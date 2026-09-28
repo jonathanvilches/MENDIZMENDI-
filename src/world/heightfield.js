@@ -1,5 +1,5 @@
 // Hornea la geografía en rejillas para consultas rápidas (altura, superficie, bosque)
-import { HALF, CELL, N, finalHeight, pathQuery, iratiMask, villageMask, meadowMask, plazaMask, BRIDGES, PLACES, riverInfo, POND_LEVEL } from './layout.js';
+import { HALF, CELL, N, finalHeight, pathQuery, iratiMask, villageMask, meadowMask, plazaMask, BRIDGES, PLACES, riverInfo, POND_LEVEL, fieldInfo } from './layout.js';
 import { clamp, lerp, smoothstep } from '../util/math.js';
 import { fbm } from '../util/noise.js';
 
@@ -59,6 +59,12 @@ export function bake() {
       let grass = 1 - Math.max(street, dirt * 0.9);
       grass *= inWater || inPond ? 0 : smoothstep(-0.2, 1.2, r.edge);
       grass *= 1 - vm * 0.55 * (1 - smoothstep(18, 30, r.d));
+      const fi = fieldInfo(x, z);
+      if (fi.mask > 0) {
+        const gm = [1, 1.1, 0.3, 0.12, 1][fi.type];
+        grass *= 1 + (gm - 1) * fi.mask;
+        SURF.forest[k] *= 1 - fi.mask * (fi.edge > 3 ? 1 : 0.5);
+      }
       SURF.grass[k] = clamp(grass, 0, 1) * 255;
     }
   }
@@ -67,7 +73,9 @@ export function bake() {
     const k = idx(i, j);
     const gx = (H[k + 1] - H[k - 1]) / (2 * CELL), gz = (H[k + N] - H[k - N]) / (2 * CELL);
     const s = Math.hypot(gx, gz);
-    const rock = smoothstep(0.75, 1.25, s) + smoothstep(115, 150, H[k]) * 0.5;
+    const xw = -HALF + i * CELL, zw = -HALF + j * CELL;
+    const re = riverInfo(xw, zw).edge;
+    const rock = (smoothstep(0.75, 1.25, s) + smoothstep(115, 150, H[k]) * 0.5) * smoothstep(1, 7, re);
     SURF.rock[k] = clamp(rock, 0, 1) * 255;
     if (rock > 0.5) { SURF.grass[k] *= 0.3; SURF.forest[k] *= 0.5; }
   }

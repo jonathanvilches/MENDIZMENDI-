@@ -45,7 +45,7 @@ export const PLACES = {
   bridgeMain: { z: -8 },
   plaza: { x: rx(-8) + 34, z: -8, r: 15 },
   church: { x: -62, z: -34, name: 'San Juan Evangelista' },
-  fronton: { x: 76, z: -42 },
+  fronton: { x: 47, z: 56 },
   muskilda: { x: 196, z: -52, name: 'Santuario de Muskilda' },
   borda: { x: -236, z: 26, name: 'Borda de Joxemari' },
   pond: { x: 78, z: -345, r: 26, name: 'Balsa de Irati' },
@@ -71,12 +71,17 @@ export const PATHS = [
   { id: 'toPlaza', type: 'street', w: 3.4, pts: [[rx(-8) + 15, -8], [PLACES.plaza.x, -8]] },
   { id: 'westBack', type: 'street', w: 2.3, pts: alongA(-88, 70, -39, 6) },
   { id: 'eastBack', type: 'street', w: 2.3, pts: alongA(-92, 46, 39, 6) },
+  { id: 'westOuter', type: 'street', w: 2.2, pts: alongA(-76, 58, -64, 6) },
+  { id: 'eastOuter', type: 'street', w: 2.2, pts: alongA(-22, 40, 63, 6) },
+  { id: 'lnW4', type: 'street', w: 2.0, pts: [[rx(-4) - 39, -4], [rx(-4) - 64, -4]] },
+  { id: 'lnW5', type: 'street', w: 2.0, pts: [[rx(44) - 39, 44], [rx(44) - 64, 44]] },
+  { id: 'lnE3', type: 'street', w: 2.0, pts: [[rx(10) + 39, 10], [rx(10) + 63, 10]] },
   { id: 'lnW1', type: 'street', w: 2.0, pts: [[rx(-58) - 15, -58], [rx(-58) - 39, -58]] },
   { id: 'lnW2', type: 'street', w: 2.0, pts: [[rx(16) - 15, 16], [rx(16) - 39, 16]] },
   { id: 'lnW3', type: 'street', w: 2.0, pts: [[rx(62) - 15, 62], [rx(62) - 39, 62]] },
   { id: 'lnE1', type: 'street', w: 2.0, pts: [[rx(-72) + 15, -72], [rx(-72) + 39, -72]] },
   { id: 'lnE2', type: 'street', w: 2.0, pts: [[rx(26) + 15, 26], [rx(26) + 39, 26]] },
-  { id: 'toFronton', type: 'street', w: 2.4, pts: [[rx(-42) + 39, -42], [PLACES.fronton.x - 16, -42]] },
+  { id: 'toFronton', type: 'street', w: 2.4, pts: [[rx(46) + 15, 46], [rx(50) + 18, 52], [PLACES.fronton.x - 17, 56]] },
   { id: 'toChurch', type: 'street', w: 2.8, pts: [[rx(-30) - 15, -30], [-36, -31], [-46, -34], [PLACES.church.x + 13, -34]] },
   { id: 'south', type: 'road', w: 3.2, pts: [...alongA(84, 490, -15, 12)] },
   { id: 'muskilda', type: 'trail', w: 1.7, pts: [[PLACES.plaza.x + 12, -8], [78, -6], [104, 4], [128, -14], [120, -34], [146, -44], [170, -30], [184, -46], [PLACES.muskilda.x - 10, -52]] },
@@ -97,7 +102,7 @@ for (const b of BRIDGES) { b.cx = rx(b.z); b.xa = b.cx - b.span / 2; b.xb = b.cx
 // ---------- Máscaras ----------
 export function villageMask(x, z) {
   const e = Math.hypot((x - 10) / 100, (z + 8) / 118);
-  return 1 - smoothstep(0.72, 1.05, e);
+  return 1 - smoothstep(0.62, 1.2, e);
 }
 export function meadowMask(x, z) {
   const e = Math.hypot((x - MEADOW.x) / MEADOW.rx, (z - MEADOW.z) / MEADOW.rz);
@@ -130,7 +135,7 @@ function rawHeight(x, z, detail) {
   // pueblo
   const vm = villageMask(x, z);
   if (vm > 0) {
-    const target = F + 1.1 + Math.max(0, d - 30) * 0.05 + (detail ? fbm(x / 40, z / 40, 2) * 0.25 : 0);
+    const target = F + 1.1 + Math.max(0, d - 26) * 0.1 + (detail ? fbm(x / 40, z / 40, 2) * 0.25 : 0);
     h = lerp(h, target, vm);
   }
   // plataforma de la iglesia
@@ -161,7 +166,7 @@ function rawHeight(x, z, detail) {
 let rawHeightMuskildaTop = 0, pondLevel = 0;
 rawHeightNoPads = (x, z) => rawHeight(x, z, false).h;
 {
-  const pads = [{ x: PLACES.fronton.x + 2, z: PLACES.fronton.z, hw: 19, hd: 9, blend: 10 }, { x: PLACES.borda.x, z: PLACES.borda.z - 6, hw: 12, hd: 18, blend: 12 }];
+  const pads = [{ x: PLACES.fronton.x + 2, z: PLACES.fronton.z, hw: 19, hd: 9, blend: 24 }, { x: PLACES.borda.x, z: PLACES.borda.z - 6, hw: 12, hd: 18, blend: 16 }];
   for (const p of pads) p.h = rawHeightNoPads(p.x, p.z);
   PADS.push(...pads);
 }
@@ -226,4 +231,26 @@ export function pathQuery(x, z) {
 
 export function plazaMask(x, z) {
   return 1 - smoothstep(PLACES.plaza.r - 2, PLACES.plaza.r + 1, Math.hypot(x - PLACES.plaza.x, z - PLACES.plaza.z));
+}
+
+// ---------- Campos de cultivo en el fondo del valle ----------
+// Devuelve { mask, type, edge }: mask 0..1 (dónde hay parcelas), tipo de parcela y distancia al lindero
+function hash2(i, j) { const s = Math.sin(i * 127.1 + j * 311.7) * 43758.5453; return s - Math.floor(s); }
+export function fieldInfo(x, z) {
+  const r = riverInfo(x, z);
+  let mask = (1 - smoothstep(120, 190, r.d)) * smoothstep(8, 16, r.edge);
+  mask *= 1 - villageMask(x, z);
+  mask *= smoothstep(-150, -110, z);
+  mask *= 1 - meadowMask(x, z) * 0.6;
+  if (mask <= 0.01) return { mask: 0, type: 0, edge: 99 };
+  const a = 0.35, c = Math.cos(a), s = Math.sin(a);
+  const wx = x + fbm(x / 90, z / 90, 2) * 14, wz = z + fbm(x / 90 + 7, z / 90 - 3, 2) * 14;
+  const u = wx * c + wz * s, v = -wx * s + wz * c;
+  const cu = 42, cv = 28;
+  const i = Math.floor(u / cu), j = Math.floor(v / cv);
+  const fu = u / cu - i, fv = v / cv - j;
+  const edge = Math.min(fu, 1 - fu) * cu < Math.min(fv, 1 - fv) * cv ? Math.min(fu, 1 - fu) * cu : Math.min(fv, 1 - fv) * cv;
+  const h = hash2(i, j);
+  const type = h < 0.42 ? 0 : h < 0.62 ? 1 : h < 0.78 ? 2 : h < 0.9 ? 3 : 4;
+  return { mask, type, edge, stripe: Math.sin(v * 1.6) };
 }

@@ -1,7 +1,7 @@
 // Árboles (hayas, abetos, robles), hierba viva, flores, rocas y helechos
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { HALF, CELL, N, PLACES, pathQuery, riverInfo, villageMask, meadowMask, iratiMask } from './layout.js';
+import { HALF, CELL, N, PLACES, pathQuery, riverInfo, villageMask, meadowMask, iratiMask, fieldInfo } from './layout.js';
 import { H, SURF, terrainHeight, surfAt } from './heightfield.js';
 import { addCircle, isFree } from './colliders.js';
 import { mulberry32, smoothstep, clamp } from '../util/math.js';
@@ -169,6 +169,14 @@ function treeSpots(rnd) {
     [PLACES.borda.x + 14, PLACES.borda.z - 10, 'oak', 1.35], [PLACES.mirador.x - 5, PLACES.mirador.z - 6, 'fir', 1.1],
   ];
   for (const [x, z, type, s] of special) spots.push({ x, z, y: terrainHeight(x, z), type, s, rot: rnd() * 6, special: true });
+  // árboles sueltos en los linderos de los campos
+  for (let k = 0; k < 9000; k++) {
+    const x = (rnd() - 0.5) * 2 * (HALF - 20), z = (rnd() - 0.5) * 2 * (HALF - 20);
+    const fi = fieldInfo(x, z);
+    if (fi.mask < 0.6 || fi.edge > 1.2 || rnd() > 0.12) continue;
+    const p = pathQuery(x, z); if (p.d < p.w + 2.5) continue;
+    spots.push({ x, z, y: terrainHeight(x, z), type: rnd() < 0.7 ? 'oak' : 'beech', s: 0.8 + rnd() * 0.5, rot: rnd() * 6.28 });
+  }
   return spots.filter(s => s.special || (isFree(s.x, s.z, 1.6) && villageMask(s.x, s.z) < 0.35));
 }
 
@@ -272,6 +280,14 @@ export class Nature {
     fern.computeVertexNormals();
     { const n = fern.attributes.normal; for (let i = 0; i < n.count; i++) n.setXYZ(i, n.getX(i) * 0.3, 1, n.getZ(i) * 0.3); }
     const bushSpots = [], fernSpots = [];
+    for (let k = 0; k < 14000; k++) {
+      const x = (rnd() - 0.5) * 2 * (HALF - 20), z = (rnd() - 0.5) * 2 * (HALF - 20);
+      const fi = fieldInfo(x, z);
+      if (fi.mask < 0.5 || fi.edge > 0.9 || rnd() > 0.55) continue;
+      const p = pathQuery(x, z); if (p.d < p.w + 1) continue;
+      if (!isFree(x, z, 0.8)) continue;
+      bushSpots.push({ x, z, s: 0.8 + rnd() * 0.7 });
+    }
     for (let k = 0; k < 16000; k++) {
       const x = (rnd() - 0.5) * 2 * (HALF - 10), z = (rnd() - 0.5) * 2 * (HALF - 10);
       const f = surfAt('forest', x, z);

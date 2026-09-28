@@ -19,14 +19,14 @@ function minGround(x, z, w, d, ry) {
   return { mn, mx };
 }
 
-function cornersOk(x, z, w, d, ry, ownPath) {
+function cornersOk(x, z, w, d, ry, riverside) {
   const c = Math.cos(ry), s = Math.sin(ry);
   for (const [a, b] of [[-w / 2, -d / 2], [w / 2, -d / 2], [w / 2, d / 2], [-w / 2, d / 2], [0, 0], [-w / 2, 0], [w / 2, 0], [0, -d / 2]]) {
     const X = x + a * c + b * s, Z = z - a * s + b * c;
     const p = pathQuery(X, Z);
     if (p.d < p.w + 0.6) return false;
     const r = riverInfo(X, Z);
-    if (r.edge < 2.5) return false;
+    if (r.edge < (riverside ? 0.9 : 2.5)) return false;
     if (Math.hypot(X - PLACES.plaza.x, Z - PLACES.plaza.z) < PLACES.plaza.r + 1) return false;
     if (villageMask(X, Z) < 0.5) return false;
   }
@@ -56,9 +56,9 @@ export function buildVillage(scene, mats) {
 
   // Palacios con escudo
   const palaceDefs = [
-    { id: 'urrutia', name: 'Palacio de Urrutia', path: 'west', s: 150, side: -1 },
-    { id: 'iriarte', name: 'Palacio de Iriarte', path: 'east', s: 40, side: 1 },
-    { id: 'donamaria', name: 'Palacio de Donamaría', path: 'east', s: 118, side: 1 },
+    { id: 'urrutia', name: 'Palacio de Urrutia', path: 'west', s: 150, side: 1 },
+    { id: 'iriarte', name: 'Palacio de Iriarte', path: 'east', s: 40, side: -1 },
+    { id: 'donamaria', name: 'Palacio de Donamaría', path: 'east', s: 118, side: -1 },
   ];
   for (const p of palaceDefs) {
     const path = PATHS.find(q => q.id === p.path);
@@ -77,12 +77,14 @@ export function buildVillage(scene, mats) {
 
   // Casas a lo largo de las calles
   const streetSpecs = [
-    { id: 'west', side: -1 }, { id: 'east', side: 1 },
+    { id: 'west', side: 1 }, { id: 'east', side: -1 },
     { id: 'westBack', side: -1 }, { id: 'westBack', side: 1 },
     { id: 'eastBack', side: 1 }, { id: 'eastBack', side: -1 },
     { id: 'toChurch', side: 1 }, { id: 'toChurch', side: -1 },
     { id: 'south', side: -1, max: 60 }, { id: 'south', side: 1, max: 40 },
-    { id: 'west', side: 1 }, { id: 'east', side: -1 },
+    { id: 'west', side: -1, riverside: true }, { id: 'east', side: 1, riverside: true },
+    { id: 'westOuter', side: -1 }, { id: 'westOuter', side: 1 }, { id: 'eastOuter', side: 1 }, { id: 'eastOuter', side: -1 },
+    { id: 'lnW4', side: 1 }, { id: 'lnW4', side: -1 }, { id: 'lnW5', side: 1 }, { id: 'lnE3', side: 1 }, { id: 'lnE3', side: -1 },
   ];
   let count = 0;
   for (const spec of streetSpecs) {
@@ -90,14 +92,14 @@ export function buildVillage(scene, mats) {
     const L = Math.min(polyLen(path.pts), spec.max ?? 1e9);
     let s = 2 + rnd() * 4;
     while (s < L - 3) {
-      const w = 7 + rnd() * 3.5, d = 7.5 + rnd() * 3, h = 6.8 + rnd() * 3.2;
+      const w = 7 + rnd() * 3.5, d = spec.riverside ? 4.6 + rnd() * 0.8 : 7.5 + rnd() * 3, h = 6.8 + rnd() * 3.2;
       const a = polyAt(path.pts, s + w / 2);
       const nx = -a.tz * spec.side, nz = a.tx * spec.side;
-      const off = path.w + 1.2 + rnd() * 1.4 + d / 2;
+      const off = path.w + (spec.riverside ? 0.6 : 1.2 + rnd() * 1.4) + d / 2;
       const x = a.x + nx * off, z = a.z + nz * off;
       const ry = Math.atan2(-nx, -nz);
       const r = Math.max(w, d) / 2;
-      if (isFree(x, z, r * 0.92) && cornersOk(x, z, w, d, ry)) {
+      if (isFree(x, z, spec.riverside ? d * 0.45 : r * 0.92) && cornersOk(x, z, w, d, ry, spec.riverside)) {
         const g = minGround(x, z, w, d, ry);
         if (g.mx - g.mn < 3.5) {
           const kind = rnd();
