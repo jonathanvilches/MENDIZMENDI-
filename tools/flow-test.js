@@ -19,7 +19,7 @@
   await T('itziar'); log.push('escudos ' + g.q('escudos').state + ' ribbons=' + g.state.ribbons.length);
   // ovejas
   await T('joxemari'); log.push('ovejas ' + g.q('ovejas').state + ':' + g.q('ovejas').step + ' herd=' + g.herd.length);
-  const pen = (await import('/src/world/landmarks.js')).LANDMARKS.pen;
+  const pen = window.__LANDMARKS.pen;
   for (const s of g.herd) { s.pos.x = pen.x; s.pos.z = pen.z; }
   g.updateHerding(0.1); log.push('herded step=' + g.q('ovejas').step + ' penned=' + g.penned);
   await T('joxemari'); log.push('ovejas ' + g.q('ovejas').state);

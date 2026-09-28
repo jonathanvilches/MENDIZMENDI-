@@ -71,7 +71,7 @@ async function boot() {
   ui.progress(0.92, 'Saludando a los vecinos…'); await frame();
 
   const game = new Game({ scene, camera, player, follow, ui, sound, input, sky, fauna, particles, beacon });
-  window.__game = game; window.__renderer = renderer; window.__hf = HF; window.__layout = LAYOUT; window.__THREE = THREE;
+  window.__game = game; window.__renderer = renderer; window.__hf = HF; window.__layout = LAYOUT; window.__THREE = THREE; window.__LANDMARKS = LANDMARKS;
   ui.buildHUD(game);
   game.spawn();
   const st = game.state;

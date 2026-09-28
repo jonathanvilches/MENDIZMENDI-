@@ -56,6 +56,8 @@ export class Game {
     this.dog.follow = null; this.zarra = null;
     if (this.mode === 'bino') this.toggleBinoculars();
     if (this.mode === 'pelota') this.endPelota();
+    if (this.dn || this.mode === 'dance') { removeEventListener('keydown', this.danceKeys, true); this.rh?.remove(); this.dn = null; this.ui.setMG(null); this.sound.setMusic(this.state.settings.music); }
+    this.follow.cinematic = null; this.player.frozen = false;
     this.mode = 'play';
     this.state = freshState(); this.state.name = name || 'Mendi';
     for (const d of npcDefs()) {

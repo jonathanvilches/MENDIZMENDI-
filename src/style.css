@@ -68,8 +68,8 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; }
 #prompt kbd { background: var(--sun); color: #3a2200; border-radius: 8px; padding: 1px 8px; font: 900 14px 'Nunito', sans-serif; }
 .touch #prompt { bottom: calc(env(safe-area-inset-bottom, 0px) + 170px); }
 .touch #prompt kbd { display: none; }
-#toast { position: absolute; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 18px); transform: translate(-50%, -150%); padding: 10px 18px; font-weight: 800; transition: transform .35s cubic-bezier(.2, 1.4, .4, 1); max-width: min(520px, 90vw); text-align: center; display: flex; gap: 10px; align-items: center; pointer-events: none; }
-#toast.on { transform: translate(-50%, 0); }
+#toast { position: absolute; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 18px); transform: translate(-50%, -40px); opacity: 0; padding: 10px 18px; font-weight: 800; transition: transform .35s cubic-bezier(.2, 1.4, .4, 1), opacity .3s; max-width: min(520px, 90vw); text-align: center; display: flex; gap: 10px; align-items: center; pointer-events: none; }
+#toast.on { transform: translate(-50%, 0); opacity: 1; }
 @media (max-width: 720px) { #toast { top: calc(env(safe-area-inset-top, 0px) + 150px); } }
 #controls { position: absolute; right: calc(env(safe-area-inset-right, 0px) + 18px); bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); display: none; gap: 12px; align-items: flex-end; }
 .touch #controls { display: flex; }
@@ -182,3 +182,24 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; }
 #cine.on::before, #cine.on::after { transform: none; }
 #subtitle { position: fixed; left: 50%; bottom: 12vh; transform: translateX(-50%); z-index: 4; font-size: 20px; font-weight: 800; text-shadow: 0 2px 6px #000; text-align: center; width: min(640px, 90vw); pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+#title { overflow-y: auto; }
+@media (max-height: 560px) {
+  #title { align-items: flex-start; padding-top: calc(env(safe-area-inset-top, 0px) + 12px); }
+  #title .logo { font-size: clamp(34px, 7vw, 56px); }
+  #title .place { font-size: 17px; margin: 6px 0 4px; }
+  #title p { font-size: 14px; margin-bottom: 10px; max-width: 520px; }
+  #title input { padding: 8px 12px; font-size: 17px; }
+  .btn { padding: 10px 18px; font-size: 16px; }
+  .hint { margin-top: 8px; }
+  #quest { max-width: 44vw; }
+  #mini { width: 100px; height: 100px; }
+  .cbtn { width: 56px; height: 56px; }
+  .cbtn.big { width: 74px; height: 74px; }
+  #dialog { padding: 10px 14px; }
+  #dialog p { font-size: 15px; min-height: 40px; }
+  #rhythm { height: 170px; }
+}
+@media (max-width: 480px) {
+  #quest { max-width: calc(100vw - 160px); }
+  #quest b { font-size: 14px; }
+}

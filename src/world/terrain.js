@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { HALF, CELL, N, finalHeight, riverInfo, iratiMask, meadowMask, valleyFloor } from './layout.js';
+import { HALF, CELL, N, finalHeight, riverInfo, iratiMask, meadowMask, valleyFloor, fieldInfo } from './layout.js';
 import { ridged } from '../util/noise.js';
 import { H, SURF } from './heightfield.js';
 import { TEX } from './textures.js';
@@ -14,6 +14,7 @@ const PAL = {
   grassA: C('#57903a'), grassB: C('#86ab4a'), grassDry: C('#a9a65a'), meadow: C('#78b043'),
   forest: C('#46642b'), litter: C('#6d5230'), gravel: C('#9a917c'), mud: C('#6b6150'),
   rock: C('#8b877c'), rockDark: C('#6a655c'), snow: C('#f1f4f7'), street: C('#ffffff'), dirt: C('#ffffff'),
+  hay: C('#a4ab58'), cut: C('#b3b06a'), cut2: C('#a2a45e'), soil: C('#7a5b3c'), crop: C('#5d8a3a'), lush: C('#4c8a33'),
 };
 
 function vertexColor(i, j, out) {
@@ -26,6 +27,14 @@ function vertexColor(i, j, out) {
   out.lerp(PAL.grassDry, smoothstep(0.62, 0.9, n2) * 0.35);
   const mm = meadowMask(x, z);
   if (mm > 0) out.lerp(PAL.meadow, mm * 0.5);
+  const fi = fieldInfo(x, z);
+  if (fi.mask > 0 && fi.edge > 0.8) {
+    const t = fi.type, m = fi.mask;
+    if (t === 1) out.lerp(PAL.hay, 0.55 * m);
+    else if (t === 2) out.lerp(fi.stripe > 0 ? PAL.cut : PAL.cut2, 0.8 * m);
+    else if (t === 3) out.lerp(fi.stripe > 0.2 ? PAL.soil : PAL.crop, 0.85 * m);
+    else if (t === 4) out.lerp(PAL.lush, 0.6 * m);
+  }
   const forest = SURF.forest[k] / 255;
   if (forest > 0) { out.lerp(PAL.forest, forest * 0.75); out.lerp(PAL.litter, forest * smoothstep(0.3, 0.8, n2) * 0.5); }
   const r = riverInfo(x, z);
