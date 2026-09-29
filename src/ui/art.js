@@ -37,7 +37,7 @@ export function stampURL(comarcaId, town = null, emblem = null) {
 }
 
 // Paisaje ilustrado según el tipo de comarca (capas de montes, cielo, sol, árboles y un pueblo)
-const TONES = {
+export const TONES = {
   atlantic: { sky: ['#8fd0f0', '#e8f6ff'], hills: ['#2f6b3a', '#3f8a48', '#5aa854', '#7cc262'], trees: '#1f5a2e', peak: null, sun: '#fff3c0' },
   green: { sky: ['#9cd4f2', '#eaf7ff'], hills: ['#6a7a8a', '#4a8a4a', '#6aaa55', '#8cc46a'], trees: '#2f6a32', peak: '#dcd7cf', sun: '#fff3c0' },
   alpine: { sky: ['#6fb4e8', '#dff1ff'], hills: ['#5a6a80', '#2f7a4a', '#4a9a55', '#6ab862'], trees: '#1c4a30', peak: '#ffffff', sun: '#ffffff' },

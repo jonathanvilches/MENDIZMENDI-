@@ -4,6 +4,8 @@
 import * as THREE from 'three';
 import { quadruped, SPECIES } from '../actors/animals.js';
 import { makeItem } from '../game/items.js';
+import { UI3D } from './icon3d-ui.js';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
 let R = null, scene, cam;
 const cache = new Map();
@@ -11,10 +13,13 @@ const S = 256, SS = 512;                         // tamaño final y de render (s
 function setup() {
   const c = document.createElement('canvas'); c.width = c.height = SS;
   R = new THREE.WebGLRenderer({ canvas: c, antialias: true, alpha: true, preserveDrawingBuffer: true });
-  R.setPixelRatio(1); R.setSize(SS, SS, false); R.toneMapping = THREE.NoToneMapping; R.outputColorSpace = THREE.SRGBColorSpace;
+  R.setPixelRatio(1); R.setSize(SS, SS, false); R.toneMapping = THREE.NeutralToneMapping; R.toneMappingExposure = 1.0; R.outputColorSpace = THREE.SRGBColorSpace;
   scene = new THREE.Scene();
-  scene.add(new THREE.AmbientLight('#ffffff', 1.1));
-  const key = new THREE.DirectionalLight('#ffffff', 2.2); key.position.set(-2.5, 4, 3); scene.add(key);
+  // luz de estudio: reflejos suaves del entorno, luz principal cálida y contraluz para dar volumen
+  const pm = new THREE.PMREMGenerator(R); scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = 0.55;
+  scene.add(new THREE.HemisphereLight('#ffffff', '#6a5a8a', 0.9));
+  const key = new THREE.DirectionalLight('#fff4e4', 2.4); key.position.set(-2.5, 4, 3); scene.add(key);
+  const rim = new THREE.DirectionalLight('#cfe6ff', 1.6); rim.position.set(3, 2, -3); scene.add(rim);
   cam = new THREE.PerspectiveCamera(22, 1, 0.01, 100);
 }
 // ---- modelos a medida (productos y herramientas) ----
@@ -140,9 +145,10 @@ CUSTOM.trout = CUSTOM.fish;
 // nombre del icono → constructor del modelo
 const ITEM = { grapes: 'uva', olive: 'olivo', pepper: 'piquillo', asparagus: 'esparrago', tomato: 'tomate', potato: 'patata', apple: 'manzana', almond: 'almendra', beans: 'pocha', corn: 'corn', herb: 'herb', herbs: 'herb', litter: 'litter', stone: 'stone' };
 const ANIMAL = { sheep: 'sheep', latxa: 'sheep', lamb: 'sheep', cow: 'cow', horse: 'pottoka', dog: 'dog', deer: 'corzo', chamois: 'corzo', boar: 'jabali' };
-export const has3D = (name) => !!(CUSTOM[name] || ITEM[name] || ANIMAL[name]);
+export const has3D = (name) => !!(UI3D[name] || CUSTOM[name] || ITEM[name] || ANIMAL[name]);
 
 function build(name) {
+  if (UI3D[name]) return UI3D[name]();
   if (CUSTOM[name]) return CUSTOM[name]();
   if (ITEM[name]) {
     const o = makeItem(ITEM[name]); o.remove(o.userData.ring);
@@ -165,19 +171,17 @@ function sticker(src) {
   const g = c.getContext('2d'); g.imageSmoothingQuality = 'high';
   const small = document.createElement('canvas'); small.width = small.height = S; small.getContext('2d').drawImage(src, 0, 0, S, S);
   const t = document.createElement('canvas'); t.width = t.height = S; const x = t.getContext('2d'); x.drawImage(small, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = '#1f1a26'; x.fillRect(0, 0, S, S);
-  for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2; g.drawImage(t, Math.cos(a) * 6.5, Math.sin(a) * 6.5); }
+  for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2; g.drawImage(t, Math.cos(a) * 5, Math.sin(a) * 5); }
   g.drawImage(small, 0, 0);
   return c.toDataURL('image/png');
 }
-// Sombreado en tres tonos planos, como un dibujo vectorial
-let RAMP = null;
-function flatten(root) {
-  if (!RAMP) { const d = new Uint8Array([90, 170, 255]); RAMP = new THREE.DataTexture(d, 3, 1, THREE.RedFormat); RAMP.minFilter = RAMP.magFilter = THREE.NearestFilter; RAMP.needsUpdate = true; }
+// Materiales suaves con algo de brillo (volumen real en lugar de tintas planas)
+function soften(root) {
   root.traverse(o => {
     if (!o.isMesh || !o.material) return;
-    const m0 = o.material, m = new THREE.MeshToonMaterial({ color: m0.color ? m0.color.clone() : new THREE.Color('#fff'), vertexColors: !!(m0.vertexColors && o.geometry.attributes.color), gradientMap: RAMP, transparent: m0.transparent, opacity: m0.opacity ?? 1, side: m0.side });
-    if (m0.emissive && m0.emissiveIntensity) { m.emissive = m0.emissive.clone(); m.emissiveIntensity = m0.emissiveIntensity; }
-    o.material = m;
+    const m = o.material;
+    if (m.isMeshStandardMaterial) { m.roughness = Math.min(m.roughness ?? 0.5, 0.75); m.envMapIntensity = 1; }
+    else { const c = m.color ? m.color.clone() : new THREE.Color('#fff'); o.material = new THREE.MeshStandardMaterial({ color: c, roughness: 0.5, vertexColors: !!m.vertexColors, map: m.map || null, transparent: m.transparent, opacity: m.opacity ?? 1, side: m.side }); }
   });
 }
 export function icon3D(name) {
@@ -187,7 +191,7 @@ export function icon3D(name) {
     const obj = build(name);
     if (obj) {
       if (!R) setup();
-      flatten(obj);
+      soften(obj);
       const holder = new THREE.Group(); holder.add(obj); scene.add(holder);
       holder.updateMatrixWorld(true);
       // caja de lo que se ve (sin contornos ocultos ni ayudas invisibles)

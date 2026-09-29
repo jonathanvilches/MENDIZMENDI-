@@ -9,6 +9,7 @@ import { iconSVG, speciesIcon } from '../ui/icons.js';
 import { avatarPortrait, portrait } from '../ui/portraits.js';
 import { stampImg, landImg } from '../assets.js';
 import { Stage } from './stage.js';
+import { dioramaShot } from './diorama.js';
 import { profile, saveProfile, levelOf, rankOf, townProgress, comarcaProgress, comarcaTowns, navarraProgress, stampCount, BADGES, checkBadges, resetProfile, salazarState } from '../game/profile.js';
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -32,13 +33,6 @@ const XY = new Map(LEVELS.map(l => [l.id, townXY(l)]));
 function ring(p, size = 54, color = '#FFD700', label = '') {
   const r = size / 2 - 5, C = 2 * Math.PI * r;
   return `<svg class="ring" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="6"/><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${color}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${C * p} ${C}" transform="rotate(-90 ${size / 2} ${size / 2})"/><text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" fill="#fff" font-size="${size * 0.26}" font-weight="900">${label || Math.round(p * 100) + '%'}</text></svg>`;
-}
-function radar(stats, color = '#FFD700') {
-  const cx = 90, cy = 90, R = 64, pt = (i, v) => { const a = -Math.PI / 2 + i * 2 * Math.PI / 5; return [cx + Math.cos(a) * R * v, cy + Math.sin(a) * R * v]; };
-  const grid = [0.33, 0.66, 1].map(k => `<polygon points="${[0, 1, 2, 3, 4].map(i => pt(i, k).join(',')).join(' ')}" fill="none" stroke="rgba(255,255,255,.18)"/>`).join('');
-  const poly = `<polygon points="${stats.map((v, i) => pt(i, v / 100).join(',')).join(' ')}" fill="${color}55" stroke="${color}" stroke-width="3"/>`;
-  const labels = STAT_LABELS.map((l, i) => { const [x, y] = pt(i, 1.28); return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#e8dcc8" font-weight="800">${l}</text>`; }).join('');
-  return `<svg class="radar" viewBox="-34 -8 248 200">${grid}${poly}${labels}</svg>`;
 }
 function spark(profile, w = 160, h = 44) {
   if (!profile?.length) return '';
@@ -100,38 +94,85 @@ export class Hub {
   }
 
   // ---------- Inicio ----------
+  // frases de la historia que cuenta el personaje en la portada
+  storyLines(p, av, last) {
+    const town = last.name.split(' /')[0], lp = townProgress(p, last), done = p.towns[last.id]?.done || {};
+    const next = (last.missions || []).map((m, i) => ({ m, i })).find(x => !done[x.i]);
+    const lines = [`¡Kaixo, ${p.name || 'amiga, amigo'}! Soy ${av.name}, ${av.role.toLowerCase()} de ${av.from.split(' /')[0]}.`];
+    if (next) {
+      const m = next.m, who = m.host?.name?.split(',')[0];
+      if (m.type === 'visit') lines.push(`Primero vamos a conocer ${town}: ${last.church?.name ? 'su ' + last.church.name.replace(/^Iglesia/, 'iglesia') : 'sus calles'} y sus rincones.`);
+      else lines.push(`${who ? who + ' nos espera en ' + town : 'En ' + town + ' nos esperan'}: «${m.title || m.name || TYPE_NAME[m.type]}». ¡Hay que ayudar!`);
+    }
+    lines.push(lp.stamp ? `¡El sello de ${town} ya es tuyo! Elige otro pueblo en el mapa.` : `Si completas las ${lp.total} misiones, el sello de ${town} será tuyo.`);
+    lines.push('Las páginas del Pasaporte Mendi están en blanco. ¡Cada pueblo guarda un sello!');
+    return lines;
+  }
   s_home() {
     const p = profile(), N = navarraProgress(p), L = levelOf(p.xp);
     const last = levelById(p.last) || LEVELS.find(l => !townProgress(p, l).stamp) || LEVELS[0];
-    const lp = townProgress(p, last);
+    const lp = townProgress(p, last), cm = comarca(last.comarca), cpr = comarcaProgress(p, last.comarca), cts = comarcaTowns(last.comarca);
+    const chapter = COMARCAS.findIndex(c => c.id === last.comarca) + 1;
     let doneM = 0, totM = 0; for (const l of LEVELS) { const t = townProgress(p, l); doneM += t.done; totM += t.total; }
     const av = AVATARS.find(a => a.id === p.avatar) || AVATARS[0];
-    this.after = () => { this.drawMiniMap($('#homeMap', this.root)); this.stage = new Stage($('#heroStage', this.root), p.avatar); };
+    const lines = this.storyLines(p, av, last);
+    const done = p.towns[last.id]?.done || {};
+    const ms = (last.missions || []).map((m, i) => `<span class="mi ${done[i] ? 'ok' : ''}" title="${esc(m.title || m.name || TYPE_NAME[m.type] || '')}">${I(TYPE_ICON[m.type] || 'star', 40)}${done[i] ? `<i class="tick">${I('check', 16)}</i>` : ''}</span>`).join('');
+    this.after = () => {
+      this.stage = new Stage($('#heroStage', this.root), p.avatar, { mode: 'scene', comarca: last.comarca });
+      let k = 0; const bub = $('#hBubble p', this.root);
+      const say = (i) => { k = (i + lines.length) % lines.length; bub.classList.remove('in'); void bub.offsetWidth; bub.textContent = lines[k]; bub.classList.add('in'); $('#hBubble .dots', this.root).innerHTML = lines.map((_, j) => `<i class="${j === k ? 'on' : ''}"></i>`).join(''); };
+      say(0);
+      clearInterval(this.bubT); this.bubT = setInterval(() => { if (!bub.isConnected) return clearInterval(this.bubT); say(k + 1); }, 6500);
+      this.stage.onPoke = () => { say(k + 1); this.sound?.ui('click'); };
+      $('#hBubble', this.root).onclick = () => { say(k + 1); clearInterval(this.bubT); };
+      this.drawMiniMap($('#homeMap', this.root));
+      this.lazyLand();
+    };
     const next = this.suggestions();
     return `
-    <section class="hero" style="--bg:url(${landImg(last.comarca)})">
-      <div class="hero-txt"><small class="kicker">${I('pin', 18)} ${esc(comarca(last.comarca)?.name || '')}</small>
-        <h1>Cada pueblo,<br>una aventura.</h1>
-        <p>Recorre Navarra pueblo a pueblo: ayuda a su gente, aprende sus oficios, sus danzas y sus leyendas, y llena tu pasaporte de sellos.</p></div>
-      <div class="hero-fig"><div id="heroStage" class="stage-host" title="¡Tócame!"></div><span class="tag"><b>${esc(av.name)}</b> ${esc(av.role)}</span></div>
-      <div class="hero-cta"><button class="btn primary big" data-play="${last.id}">${I('play', 26)} <span>${lp.done ? 'Continuar en' : 'Jugar en'} <b>${esc(last.name.split(' /')[0])}</b></span></button><button class="btn ghost" data-go="map">${I('map', 22)} Elegir en el mapa</button>
-        ${lp.total ? `<div class="mini-prog"><div class="bar"><i style="width:${lp.done / lp.total * 100}%"></i></div><span>${lp.done}/${lp.total} misiones</span></div>` : ''}</div>
+    <section class="hero3d">
+      <div id="heroStage" class="stage-host"></div>
+      <div class="h-shade"></div>
+      <button class="chapter" data-comarca="${last.comarca}" style="--c:${cm?.color}"><img src="${stampImg(last.comarca)}" alt=""><span><small>Capítulo ${chapter} · ${esc(cm?.name || '')}</small><b>${cpr.stamps}/${cts.length} sellos de la comarca</b><span class="cbar"><i style="width:${cts.length ? cpr.stamps / cts.length * 100 : 0}%"></i></span></span></button>
+      <div class="bubble" id="hBubble"><b>${esc(av.name)}</b><p></p><span class="dots"></span></div>
+      <div class="h-bot">
+        <small class="kicker">${lp.done ? 'Sigue tu aventura en' : 'Próxima parada'}</small>
+        <h1>${esc(last.name.split(' /')[0])}</h1>
+        <div class="mrow">${ms}<span class="mcount">${lp.done}/${lp.total}<small>misiones</small></span></div>
+        <div class="h-cta"><button class="btn primary big go" data-play="${last.id}">${I('play', 28)} <span>${lp.done ? '¡Seguimos!' : '¡A la aventura!'}</span></button><button class="btn ghost sq" data-go="map" aria-label="Elegir en el mapa">${I('map', 30)}<span>Mapa</span></button></div>
+      </div>
+    </section>
+    <section class="story">
+      <div class="st-txt"><small class="kicker">${I('book', 20)} La historia</small><h2>El Pasaporte Mendi</h2>
+        <p>Las páginas del viejo pasaporte se han quedado en blanco. Cada pueblo de Navarra guarda su sello, pero solo lo entrega a quien ayuda a su gente y aprende sus oficios, sus danzas y sus leyendas.</p></div>
+      <ol class="steps"><li>${I('map', 56)}<b>Viaja</b><span>Elige un pueblo en el mapa</span></li><li>${I('exclaim', 56)}<b>Ayuda</b><span>Habla con su gente y cumple sus misiones</span></li><li>${I('stamp', 56)}<b>Consigue el sello</b><span>Y llena tu pasaporte</span></li></ol>
     </section>
     <section class="tiles">
-      <div class="tile">${I('stamp', 34)}<b>${N.stamps}<small>/${N.towns}</small></b><span>Sellos</span></div>
-      <div class="tile">${I('shield', 34)}<b>${N.comarcas}<small>/${N.comarcasTotal}</small></b><span>Comarcas</span></div>
-      <div class="tile">${I('check', 34)}<b>${doneM}<small>/${totM}</small></b><span>Misiones</span></div>
-      <div class="tile">${I('badge', 34)}<b>${p.badges.length}<small>/${BADGES.length}</small></b><span>Insignias</span></div>
-      <div class="tile">${I('star', 34)}<b>${L.lv}</b><span>Nivel · ${p.xp} XP</span></div>
+      <div class="tile">${I('stamp', 44)}<b>${N.stamps}<small>/${N.towns}</small></b><span>Sellos</span></div>
+      <div class="tile">${I('shield', 44)}<b>${N.comarcas}<small>/${N.comarcasTotal}</small></b><span>Comarcas</span></div>
+      <div class="tile">${I('check', 44)}<b>${doneM}<small>/${totM}</small></b><span>Misiones</span></div>
+      <div class="tile">${I('badge', 44)}<b>${p.badges.length}<small>/${BADGES.length}</small></b><span>Insignias</span></div>
+      <div class="tile">${I('star', 44)}<b>${L.lv}</b><span>Nivel · ${p.xp} XP</span></div>
     </section>
     <section class="two">
-      <div class="panel next-panel"><h2 class="sec">${I('exclaim', 26)} Te esperan</h2>${next}</div>
-      <div class="panel map-panel" data-go="map"><h2 class="sec">${I('map', 26)} Mapa de Navarra</h2><div id="homeMap" class="mini-map"></div><p class="hint">Completa pueblos para iluminar sus comarcas.</p></div>
+      <div class="panel next-panel"><h2 class="sec">${I('exclaim', 34)} Te esperan</h2>${next}</div>
+      <div class="panel map-panel" data-go="map"><h2 class="sec">${I('map', 34)} Mapa de Navarra</h2><div id="homeMap" class="mini-map"></div><p class="hint">Completa pueblos para iluminar sus comarcas.</p></div>
     </section>
-    <h2 class="sec">${I('shield', 26)} Comarcas de Navarra</h2>
+    <h2 class="sec">${I('shield', 34)} Capítulos: las comarcas</h2>
     <section class="comarcas rail">${COMARCAS.map(c => this.comarcaCard(c)).join('')}</section>
-    <h2 class="sec">${I('mask', 26)} Leyendas y carnaval</h2>
+    <h2 class="sec">${I('mask', 34)} Leyendas y carnaval</h2>
     <section class="folk rail">${FOLKLORE.map(f => `<div class="folkcard"><img src="${portrait(FOLK_LOOK[f.id] || {}, 'bust', true)}" alt=""><div><small>${esc(f.origin)}</small><b>${esc(f.name)}</b><p>${esc(f.fact)}</p></div></div>`).join('')}</section>`;
+  }
+  // fotos 3D de las comarcas: se generan de una en una sin bloquear la pantalla
+  lazyLand() {
+    const els = [...this.root.querySelectorAll('[data-land]')];
+    const step = () => {
+      const e = els.shift(); if (!e) return;
+      if (e.isConnected) { const [id, w, h] = e.dataset.land.split(':'); const u = dioramaShot(id, +w || 640, +h || 360); if (u) e.style.backgroundImage = `url(${u})`; e.classList.add('ready'); }
+      setTimeout(step, 30);
+    };
+    setTimeout(step, 60);
   }
   suggestions() {
     const p = profile();
@@ -141,7 +182,7 @@ export class Hub {
   comarcaCard(c) {
     const p = profile(), pr = comarcaProgress(p, c.id), ts = comarcaTowns(c.id);
     return `<button class="ccard ${ts.length ? '' : 'soon'}" data-comarca="${c.id}" style="--c:${c.color}">
-      <div class="cimg" style="background-image:url(${landImg(c.id)})"></div>
+      <div class="cimg" data-land="${c.id}:480:300"></div>
       <img class="cstamp ${pr.stamps ? '' : 'gray'}" src="${stampImg(c.id)}" alt="">
       <div class="cbody"><b>${esc(c.name)}</b><small>${ts.length} pueblos jugables · ${pr.stamps} sellos</small></div>
       <div class="cring">${ring(pr.pct, 50, '#fff')}</div>
@@ -275,26 +316,51 @@ export class Hub {
 
   // ---------- Personajes: selección con el modelo 3D en grande ----------
   castInfo(a) {
-    return `<small class="kicker">${I('pin', 16)} ${esc(a.from)}</small><b class="cname">${esc(a.name)}</b><span class="crole">${esc(a.role)}</span>
-      <em class="tl">«${esc(a.tagline)}»</em><p>${esc(a.desc)}</p>${radar(a.stats, a.color)}
-      <span class="abil">${I('sparkle', 20)} ${esc(a.ability)}</span>`;
+    return `<div class="ci-head"><span class="crole">${esc(a.role)}</span><small class="cfrom">${I('pin', 16)} ${esc(a.from)}</small></div>
+      <b class="cname">${esc(a.name)}</b><em class="tl">«${esc(a.tagline)}»</em><p class="cdesc">${esc(a.desc)}</p>
+      <div class="stats">${a.stats.map((v, i) => `<div class="stat"><span>${STAT_LABELS[i]}</span><span class="sbar"><i style="--v:${v}%"></i></span><b>${v}</b></div>`).join('')}</div>
+      <div class="abil"><span class="aic">${I('sparkle', 26)}</span><span><small>Habilidad especial</small>${esc(a.ability)}</span></div>`;
   }
-  castStrip(cur) { return `<div class="cstrip">${AVATARS.map(a => `<button data-av="${a.id}" class="${cur === a.id ? 'on' : ''}" style="--c:${a.color}"><img src="${avatarPortrait(a.id)}" alt=""><span>${esc(a.name)}</span></button>`).join('')}</div>`; }
+  castStrip(cur) { return `<div class="cstrip">${AVATARS.map(a => `<button data-av="${a.id}" class="${cur === a.id ? 'on' : ''}" style="--c:${a.color}" aria-label="${esc(a.name)}"><img src="${avatarPortrait(a.id)}" alt=""><span>${esc(a.name)}</span></button>`).join('')}</div>`; }
+  // selector de personaje estilo videojuego (pantalla Personajes y primera vez)
+  selector(cur, { onb = false, extra = '' } = {}) {
+    const i = AVATARS.findIndex(a => a.id === cur.id);
+    return `<section class="csel2 ${onb ? 'onbsel' : ''}" style="--c:${cur.color}">
+      <div class="cs-stage"><div class="cs-bgname" aria-hidden="true">${esc(cur.name)}</div><div id="avStage" class="stage-host"></div>
+        <button class="cs-arrow prev" data-step="-1" aria-label="Anterior"><svg viewBox="0 0 24 24" width="28" height="28"><path d="M15 4l-8 8 8 8" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button class="cs-arrow next" data-step="1" aria-label="Siguiente"><svg viewBox="0 0 24 24" width="28" height="28"><path d="M9 4l8 8-8 8" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <span class="cs-count"><b>${i + 1}</b>/${AVATARS.length}</span><span class="cs-hint">Arrastra para girarlo · tócalo para saludar</span></div>
+      <div class="cs-side"><div class="csel-info" id="csInfo">${this.castInfo(cur)}</div></div>
+      <div class="cs-roster">${this.castStrip(cur.id)}</div>${extra ? `<div class="cs-extra">${extra}</div>` : ''}
+    </section>`;
+  }
+  bindSelector(host, start, onPick) {
+    let cur = start;
+    // centra el retrato elegido en la tira sin mover la página
+    const center = (id, smooth) => { const b = host.querySelector(`[data-av="${id}"]`), st = b?.parentElement; if (!st) return; st.scrollTo({ left: b.offsetLeft - st.clientWidth / 2 + b.offsetWidth / 2, behavior: smooth ? 'smooth' : 'auto' }); };
+    this.stage = new Stage($('#avStage', host), cur);
+    const set = (id, dir = 0) => {
+      if (id === cur) return; cur = id; const a = castById(id);
+      this.stage.setAvatar(id); this.sound?.ui('coin');
+      const sec = $('.csel2', host); sec.style.setProperty('--c', a.color);
+      const info = $('#csInfo', host); info.innerHTML = this.castInfo(a); info.classList.remove('swap'); void info.offsetWidth; info.classList.add('swap');
+      $('.cs-bgname', host).textContent = a.name; $('.cs-count b', host).textContent = AVATARS.indexOf(a) + 1;
+      host.querySelectorAll('[data-av]').forEach(x => x.classList.toggle('on', x.dataset.av === id));
+      center(id, true);
+      onPick(a);
+    };
+    const step = (d) => { const i = AVATARS.findIndex(a => a.id === cur); set(AVATARS[(i + d + AVATARS.length) % AVATARS.length].id, d); };
+    host.querySelectorAll('[data-av]').forEach(b => b.onclick = (e) => { e.stopPropagation(); set(b.dataset.av); });
+    host.querySelectorAll('[data-step]').forEach(b => b.onclick = (e) => { e.stopPropagation(); step(+b.dataset.step); });
+    const key = (e) => { if (!host.isConnected) return removeEventListener('keydown', key); if (e.target.tagName === 'INPUT') return; if (e.key === 'ArrowRight') step(1); if (e.key === 'ArrowLeft') step(-1); };
+    addEventListener('keydown', key);
+    center(cur);
+  }
   s_avatars() {
     const p = profile(), cur = castById(p.avatar);
-    this.after = () => {
-      this.stage = new Stage($('#avStage', this.root), p.avatar);
-      this.root.querySelectorAll('[data-av]').forEach(b => b.onclick = (e) => {
-        e.stopPropagation(); const a = castById(b.dataset.av); p.avatar = a.id; saveProfile(); this.sound?.ui('coin'); this.renderChip();
-        this.stage.setAvatar(a.id); $('#csInfo', this.root).innerHTML = this.castInfo(a); $('.csel', this.root).style.setProperty('--c', a.color);
-        $('#csGo', this.root).innerHTML = `${I('play', 24)} Jugar con ${esc(a.name)}`;
-        this.root.querySelectorAll('[data-av]').forEach(x => x.classList.toggle('on', x === b));
-      });
-    };
-    return `<h1 class="title">${I('person', 36)} Personajes</h1><p class="lead">Elige con quién recorrer Navarra. Cada uno viene de un rincón distinto y tiene su propia habilidad. Toca al personaje para que te salude.</p>
-      <section class="csel" style="--c:${cur.color}"><div class="csel-stage"><div id="avStage" class="stage-host big"></div></div>
-        <div class="csel-side"><div class="csel-info" id="csInfo">${this.castInfo(cur)}</div><button class="btn primary big" id="csGo" data-go="home">${I('play', 24)} Jugar con ${esc(cur.name)}</button></div></section>
-      ${this.castStrip(p.avatar)}`;
+    this.after = () => this.bindSelector(this.root, p.avatar, (a) => { p.avatar = a.id; saveProfile(); this.renderChip(); $('#csGo', this.root).innerHTML = `${I('play', 26)} Jugar con ${esc(a.name)}`; });
+    return `<div class="cs-top"><h1 class="title">Elige tu personaje</h1><button class="btn primary big" id="csGo" data-go="home">${I('play', 26)} Jugar con ${esc(cur.name)}</button></div>
+      ${this.selector(cur)}`;
   }
 
   // ---------- Insignias ----------
@@ -345,21 +411,16 @@ export class Hub {
   onboarding() {
     const p = profile();
     let pick = p.avatar || 'leire';
-    const who = (id) => { const a = castById(id); return `<b>${esc(a.name)}</b><small>${esc(a.role)} · ${esc(a.from)}</small>`; };
-    const o = el(`<div class="onb" style="--bg:url(${landImg('pirineo')})"><div class="onb-in">
+    const o = el(`<div class="onb"><div class="onb-in">
       <header class="onb-head"><div class="logo">MENDIMENDIZ</div><p class="tag">Navarra, pueblo a pueblo</p></header>
-      <div class="onb-stage"><div id="onbStage" class="stage-host"></div><div class="onb-who" id="oWho">${who(pick)}</div></div>
-      <div class="onb-side"><p class="lbl">Elige tu personaje</p>${this.castStrip(pick)}
-        <label>¿Cómo te llamas?<input id="oName" maxlength="14" autocomplete="off" placeholder="Tu nombre"></label>
-        <button class="btn primary big" id="oGo">${I('play', 26)} ¡Empezar la aventura!</button></div>
+      ${this.selector(castById(pick), { onb: true, extra: `<div class="onb-foot"><label>¿Cómo te llamas?<input id="oName" maxlength="14" autocomplete="off" placeholder="Tu nombre"></label>
+        <button class="btn primary big" id="oGo">${I('play', 26)} ¡Empezar la aventura!</button></div>` })}
     </div></div>`);
     this.root.appendChild(o);
-    const stage = new Stage($('#onbStage', o), pick);
+    this.bindSelector(o, pick, (a) => { pick = a.id; this.sound?.init?.(); });
     const inp = $('#oName', o); inp.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') go(); });
-    o.querySelectorAll('[data-av]').forEach(b => b.onclick = (e) => { e.stopPropagation(); pick = b.dataset.av; o.querySelectorAll('[data-av]').forEach(x => x.classList.toggle('on', x === b)); stage.setAvatar(pick); $('#oWho', o).innerHTML = who(pick); this.sound?.init?.(); this.sound?.ui('click'); });
     const go = () => { p.name = inp.value.trim() || 'Mendi'; p.avatar = pick; saveProfile(); this.sound?.init?.(); this.sound?.ui('open'); o.remove(); this.go('home', null, true); };
     $('#oGo', o).onclick = go;
-    if (!matchMedia('(pointer: coarse)').matches) setTimeout(() => inp.focus(), 100);
   }
 }
 

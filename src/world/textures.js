@@ -315,6 +315,8 @@ function bricks(size) {
 export const TEX = {};
 export function buildTextures(quality = 'high') {
   const S = quality === 'low' ? 256 : 512;
+  if (TEX._S === S) return TEX;
+  TEX._S = S;
   TEX.stoneWall = masonry(S, { seed: 3, rows: 9, mortar: '#8d8375', hue: 36, hueVar: 16, sat: 14, light: 62, lightVar: 18 });
   TEX.stoneDark = masonry(S, { seed: 7, rows: 8, mortar: '#6f685f', hue: 30, hueVar: 14, sat: 9, light: 50, lightVar: 16 });
   TEX.ashlar = masonry(S, { seed: 11, rows: 7, mortar: '#9d9281', hue: 38, hueVar: 8, sat: 20, light: 68, lightVar: 10 });

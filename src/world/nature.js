@@ -579,3 +579,6 @@ vTint = k < 0.4 ? vec3(1.0, 1.0, 0.97) : k < 0.62 ? vec3(1.0, 0.85, 0.2) : k < 0
   }
   update(focus) { this.uniforms.uCenter.value.set(focus.x, focus.z); }
 }
+
+// Constructores de árboles para escenas fuera de la partida (inicio, fondos)
+export const TREE_MAKERS = { beech: makeBeech, oak: makeOak, fir: makeFir, bush: makeBush, olive: makeOlive, poplar: makePoplar, pine: makePine, chestnut: makeChestnut, apple: makeApple };

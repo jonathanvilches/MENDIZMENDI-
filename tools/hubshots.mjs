@@ -10,7 +10,7 @@ page.on('console', m => { if (m.type() === 'error' && !/CERT|favicon/.test(m.tex
 await page.goto(url);
 await page.waitForFunction(() => window.__ready, null, { timeout: 120000 });
 await page.waitForTimeout(2000);
-const shot = async (n) => { await page.screenshot({ path: `${out}-${n}.png` }); };
+const shot = async (n) => { await page.screenshot({ path: `${out}-${n}.png`, timeout: 180000 }); };
 for (const s of list.split(',')) {
   if (s === 'onb') { await shot('onb'); await page.evaluate(() => { const i = document.querySelector('#oName'); if (!i) return; i.value = 'Ane'; document.querySelector('#oGo').click(); }); await page.waitForTimeout(1500); continue; }
   if (s === 'home2') { await page.evaluate(() => { const m = document.querySelector('#hMain'); m.style.scrollBehavior = 'auto'; m.scrollTop = m.clientHeight * 0.9; }); await page.waitForTimeout(700); await shot('home2'); continue; }
