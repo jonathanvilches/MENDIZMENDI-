@@ -205,7 +205,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; }
 .sectionT:first-child { margin-top: 0; }
 .stats { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
 .stats div { background: #fff; border: 2px solid var(--paper-line); border-radius: 12px; padding: 8px 12px; font-weight: 900; }
-#mapbox { position: relative; width: 100%; aspect-ratio: 1; max-height: 70vh; margin: 0 auto; }
+#mapbox { position: relative; width: min(100%, 68vh); aspect-ratio: 1; margin: 0 auto; }
 #mapbox canvas { width: 100%; height: 100%; border-radius: 14px; display: block; }
 .legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 13px; margin-top: 10px; color: #6b5a48; }
 .menu .pbody { display: grid; gap: 14px; align-content: start; }
