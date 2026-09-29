@@ -2,17 +2,22 @@
 <body><script type="module">
 import * as THREE from 'three';
 import { quadruped, SPECIES } from '../src/actors/animals.js';
+import { bird, squirrel, woodpecker, trout, owl } from '../src/actors/beasts.js';
 import { setOutlines } from '../src/actors/minifig.js';
 const r = new THREE.WebGLRenderer({ antialias: true }); r.setSize(innerWidth, innerHeight); r.shadowMap.enabled = true; r.toneMapping = THREE.ACESFilmicToneMapping; document.body.appendChild(r.domElement);
 const scene = new THREE.Scene(); scene.background = new THREE.Color('#9cc3e0');
 scene.add(new THREE.HemisphereLight('#dfefff', '#5a6a4a', 1.4));
 const sun = new THREE.DirectionalLight('#fff4e0', 2.2); sun.position.set(4, 8, 6); sun.castShadow = true; sun.shadow.camera.left = -8; sun.shadow.camera.right = 8; scene.add(sun);
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshStandardMaterial({ color: '#7ea35a' })); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
-const kinds = new URLSearchParams(location.search).get('k')?.split(',') || ['sheep', 'dog', 'cow', 'pottoka', 'corzo', 'ciervo', 'jabali'];
+const kinds = new URLSearchParams(location.search).get('k')?.split(',') || ['sheep', 'goat', 'dog', 'zorro', 'cow', 'pottoka', 'corzo', 'ciervo', 'jabali'];
 let rs = 3; const rnd = () => ((rs = (rs * 9301 + 49297) % 233280) / 233280);
 let x = 0; const xs = [];
-kinds.forEach(k => { const q = quadruped(SPECIES[k], rnd); const w = k === 'cow' || k === 'ciervo' ? 2.2 : k === 'pottoka' ? 1.8 : 1.2; x += w / 2; q.root.position.x = x; x += w / 2 + 0.3; q.root.rotation.y = +(new URLSearchParams(location.search).get("ry") ?? 0.7); setOutlines(q.root, true); scene.add(q.root); });
+kinds.forEach(k => { const q = quadruped(SPECIES[k], rnd); q.head.rotation.x = +(new URLSearchParams(location.search).get('hx') ?? 0); const w = k === 'cow' || k === 'ciervo' ? 2.2 : k === 'pottoka' ? 1.8 : 1.2; x += w / 2; q.root.position.x = x; x += w / 2 + 0.3; q.root.rotation.y = +(new URLSearchParams(location.search).get("ry") ?? 0.7); setOutlines(q.root, true); scene.add(q.root); });
 const cam = new THREE.PerspectiveCamera(28, innerWidth / innerHeight, 0.1, 100);
-cam.position.set(x / 2, 2.2, 9.5); cam.lookAt(x / 2, 0.7, 0);
+const zz = +(new URLSearchParams(location.search).get('z') ?? 1); cam.position.set(x / 2, 2.2 * zz, 9.5 * zz); cam.lookAt(x / 2, 0.7, 0);
+const birds = (new URLSearchParams(location.search).get('b') || '').split(',').filter(Boolean);
+if (birds.length) { scene.clear(); scene.add(new THREE.HemisphereLight('#dfefff', '#8a8a7a', 1.6)); const s2 = new THREE.DirectionalLight('#fff4e0', 2.0); s2.position.set(2, 8, 4); scene.add(s2);
+  let bx = 0; birds.forEach((k, i) => { const b = k === 'owl' ? owl() : k === 'pito' ? woodpecker() : k === 'ardilla' ? squirrel() : k === 'trucha' ? trout() : bird(k); const sc = ['owl','pito','ardilla','trucha'].includes(k) ? 3 : 1; b.scale.setScalar(sc); b.position.set(bx, 1.4, 0); b.rotation.set(+(new URLSearchParams(location.search).get('bx') ?? 1.1), +(new URLSearchParams(location.search).get('by') ?? 0.3), 0); scene.add(b); bx += 2.8; });
+  cam.position.set(bx / 2 - 1.4, 1.6, 8); cam.lookAt(bx / 2 - 1.4, 1.4, 0); }
 r.render(scene, cam); window.__ready = true;
 </script></body></html>

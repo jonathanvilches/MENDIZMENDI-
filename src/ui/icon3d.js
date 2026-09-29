@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { quadruped, SPECIES } from '../actors/animals.js';
 import { makeItem } from '../game/items.js';
 import { UI3D } from './icon3d-ui.js';
+import { BIRDS, bird, squirrel, woodpecker, owl, trout } from '../actors/beasts.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
 let R = null, scene, cam;
@@ -144,11 +145,15 @@ CUSTOM.wool = () => { const g = G(M(new THREE.SphereGeometry(0.45, 32, 24), '#f2
 CUSTOM.trout = CUSTOM.fish;
 // nombre del icono → constructor del modelo
 const ITEM = { grapes: 'uva', olive: 'olivo', pepper: 'piquillo', asparagus: 'esparrago', tomato: 'tomate', potato: 'patata', apple: 'manzana', almond: 'almendra', beans: 'pocha', corn: 'corn', herb: 'herb', herbs: 'herb', litter: 'litter', stone: 'stone' };
-const ANIMAL = { sheep: 'sheep', latxa: 'sheep', lamb: 'sheep', cow: 'cow', horse: 'pottoka', dog: 'dog', deer: 'corzo', chamois: 'corzo', boar: 'jabali' };
-export const has3D = (name) => !!(UI3D[name] || CUSTOM[name] || ITEM[name] || ANIMAL[name]);
+const ANIMAL = { sheep: 'sheep', latxa: 'sheep', lamb: 'sheep', cow: 'cow', horse: 'pottoka', pottoka: 'pottoka', dog: 'dog', deer: 'corzo', corzo: 'corzo', ciervo: 'ciervo', chamois: 'goat', goat: 'goat', boar: 'jabali', jabali: 'jabali', fox: 'zorro', zorro: 'zorro' };
+const SMALL = { ardilla: squirrel, squirrel, pito: woodpecker, woodpecker, lechuza: owl, owl, trucha: trout };
+const FLY = { vulture: 'buitre', eagle: 'aguila', stork: 'ciguena' };
+export const has3D = (name) => !!(UI3D[name] || CUSTOM[name] || ITEM[name] || ANIMAL[name] || SMALL[name] || BIRDS[name] || FLY[name]);
 
 function build(name) {
   if (UI3D[name]) return UI3D[name]();
+  if (BIRDS[name] || FLY[name]) { const b = bird(BIRDS[name] ? name : FLY[name]); b.rotation.set(0.9, 0.5, 0.15); b.userData.el = 0.5; return b; }
+  if (SMALL[name]) { const o = SMALL[name](); if (o.isMesh) { const g = new THREE.Group(); g.add(o); g.rotation.y = 1.2; return g; } o.rotation.y = 0.7; return o; }
   if (CUSTOM[name]) return CUSTOM[name]();
   if (ITEM[name]) {
     const o = makeItem(ITEM[name]); o.remove(o.userData.ring);

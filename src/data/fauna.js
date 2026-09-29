@@ -1,0 +1,33 @@
+// Guía de campo de la fauna de Navarra que aparece en el juego.
+// id → nombre, nombre en euskera, rasgo para reconocerla con prismáticos y dato para niños.
+export const FAUNA = {
+  buitre: { name: 'Buitre leonado', eu: 'Sai arrea', icon: 'buitre', look: 'Alas enormes y anchas con las plumas de la punta abiertas como dedos. Cuerpo color canela, cola corta y cuello blanco.',
+    fact: 'Mide casi tres metros de ala a ala. Planea en círculos sin batir las alas, aprovechando el aire caliente que sube de las rocas. Anida en las foces de Lumbier y Arbayún.' },
+  quebrantahuesos: { name: 'Quebrantahuesos', eu: 'Ugatza', icon: 'buitre', look: 'Alas largas y puntiagudas y una cola larga en forma de rombo. Pecho anaranjado y una «barba» negra bajo el pico.',
+    fact: 'Come huesos: los deja caer desde muy alto sobre las piedras para romperlos. En Navarra vive en el Pirineo, en los valles de Roncal y Belagua. Es una especie protegida.' },
+  milano: { name: 'Milano real', eu: 'Miru gorria', icon: 'buitre', look: 'Cola rojiza muy ahorquillada, como una V. Alas con manchas blancas y puntas negras.',
+    fact: 'Mueve la cola como un timón para girar. Busca comida sobre los campos y los pueblos, y en invierno se juntan muchos a dormir en los mismos árboles.' },
+  aguila: { name: 'Águila real', eu: 'Arrano beltza', icon: 'buitre', look: 'Parda oscura con la nuca dorada. Alas largas con dedos y una cola más larga que la del buitre.',
+    fact: 'Es la gran cazadora del monte. Una pareja vigila un territorio enorme y construye nidos de ramas en los cortados, que usa durante muchos años.' },
+  ciguena: { name: 'Cigüeña blanca', eu: 'Amiamoko zuria', icon: 'buitre', look: 'Blanca con las plumas del ala negras. Vuela con el cuello estirado y las patas rojas asomando por detrás.',
+    fact: 'Hace nidos enormes en las torres de las iglesias de la Ribera. Cuando se saludan castañetean el pico: suena como un tambor.' },
+  grulla: { name: 'Grulla común', eu: 'Kurrilloa', icon: 'buitre', look: 'Grises, con el cuello y la cabeza negros y blancos. Vuelan en grandes bandadas en forma de V y se oyen de muy lejos.',
+    fact: 'En otoño y en febrero pasan miles sobre Navarra en su viaje entre el norte de Europa y el sur. Muchas descansan en la Laguna de Pitillas.' },
+  corzo: { name: 'Corzo', eu: 'Orkatza', icon: 'deer', look: 'Pequeño ciervo rojizo, con el hocico negro y la barbilla blanca. Por detrás lleva una mancha blanca: el «escudo».',
+    fact: 'Cuando se asusta ladra como un perro y huye enseñando el escudo blanco. El macho tiene cuernos cortos con tres puntas.' },
+  ciervo: { name: 'Ciervo', eu: 'Oreina', icon: 'deer', look: 'Grande y pardo, con cuello oscuro. El macho tiene una cuerna muy ramificada.',
+    fact: 'En septiembre, en la berrea, los machos braman en la selva de Irati para marcar su territorio. Cada año pierden la cuerna y les crece otra nueva.' },
+  jabali: { name: 'Jabalí', eu: 'Basurdea', icon: 'boar', look: 'Cuerpo oscuro y macizo por delante, cabeza en forma de cuña y una cresta de cerdas en el lomo.',
+    fact: 'Hoza la tierra con su jeta buscando raíces y bellotas. Las crías, los rayones, nacen con rayas claras para esconderse entre las hojas.' },
+  zorro: { name: 'Zorro', eu: 'Azeria', icon: 'fox', look: 'Rojo anaranjado, con la garganta y la punta de la cola blancas y las patas negras, como si llevara calcetines.',
+    fact: 'Tiene un oído finísimo: oye a un ratón bajo la hierba y salta sobre él. Suele salir al atardecer y de noche.' },
+  ardilla: { name: 'Ardilla roja', eu: 'Katagorria', icon: 'squirrel', look: 'Pequeña y rojiza, con pinceles de pelo en las orejas y una cola enorme.',
+    fact: 'Entierra avellanas y bellotas para el invierno. Las que olvida se convierten en árboles nuevos: ¡planta bosques!' },
+  pito: { name: 'Pito negro', eu: 'Okil beltza', icon: 'woodpecker', look: 'Todo negro, del tamaño de una paloma grande, con un gorro rojo y el pico claro.',
+    fact: 'Tamborilea en los troncos de las hayas de Irati. Los agujeros que hace luego sirven de casa a lechuzas, murciélagos y ardillas.' },
+  trucha: { name: 'Trucha común', eu: 'Amuarraina', icon: 'fish', look: 'Lomo pardo con motas negras y rojas rodeadas de un halo claro.',
+    fact: 'Vive en los ríos de agua fría y limpia del norte de Navarra. Si hay truchas, el río está sano.' },
+  lechuza: { name: 'Lechuza común', eu: 'Hontza zuria', icon: 'owl', look: 'Cara blanca en forma de corazón y dorso dorado. Sólo se ve de noche.',
+    fact: 'Vuela sin hacer ruido gracias a sus plumas suaves. Vive en campanarios, graneros y bordas, y caza ratones para los agricultores.' },
+};
+export const faunaName = (id) => FAUNA[id]?.name || id;

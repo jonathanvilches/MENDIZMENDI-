@@ -209,8 +209,8 @@ export const ALIAS = {
 // Icono para un nombre de especie o planta en castellano
 export function speciesIcon(name = '') {
   const n = name.toLowerCase();
-  const T = [['corzo', 'deer'], ['ciervo', 'deer'], ['sarrio', 'chamois'], ['zorro', 'fox'], ['jabal', 'boar'], ['vaca', 'cow'], ['oveja', 'sheep'], ['latxa', 'sheep'], ['rana', 'frog'], ['quebrantahuesos', 'vulture'], ['buitre', 'vulture'], ['alimoche', 'vulture'],
-    ['águila', 'eagle'], ['milano', 'eagle'], ['cernícalo', 'eagle'], ['cigüeña', 'stork'], ['garza', 'heron'], ['marmota', 'marmot'], ['conejo', 'rabbit'], ['sisón', 'bustard'], ['petirrojo', 'robin'], ['chova', 'bird'], ['trucha', 'trout'], ['ardilla', 'squirrel'], ['pito', 'woodpecker'], ['pottoka', 'horse'],
+  const T = [['corzo', 'corzo'], ['ciervo', 'ciervo'], ['sarrio', 'goat'], ['zorro', 'zorro'], ['jabal', 'jabali'], ['vaca', 'cow'], ['oveja', 'sheep'], ['latxa', 'sheep'], ['rana', 'frog'], ['quebrantahuesos', 'quebrantahuesos'], ['buitre', 'buitre'], ['alimoche', 'buitre'],
+    ['águila', 'aguila'], ['milano', 'milano'], ['cernícalo', 'eagle'], ['cigüeña', 'ciguena'], ['grulla', 'grulla'], ['garza', 'heron'], ['marmota', 'marmot'], ['conejo', 'rabbit'], ['sisón', 'bustard'], ['petirrojo', 'robin'], ['chova', 'bird'], ['trucha', 'trucha'], ['ardilla', 'ardilla'], ['pito', 'pito'], ['lechuza', 'lechuza'], ['pottoka', 'pottoka'],
     ['pino', 'pine'], ['abeto', 'pine'], ['tejo', 'pine'], ['enebro', 'pine'], ['olivo', 'olive'], ['helecho', 'leaf'], ['acebo', 'leaf'], ['boj', 'herbs'], ['brezo', 'herbs'], ['tojo', 'herbs'], ['romero', 'herbs'], ['tomillo', 'herbs'], ['lavanda', 'herbs'], ['arándano', 'grapes'], ['rododendro', 'flower'], ['cardo', 'eguzkilore'], ['ontina', 'herbs'], ['tamariz', 'herbs'], ['jara', 'flower']];
   for (const [k, v] of T) if (n.includes(k)) return v;
   return null;
@@ -223,7 +223,7 @@ export function withDefs(k) { return ICONS[k] || ICONS.star; }
 let UID = 0;
 const uniq = (svg) => { const u = (++UID).toString(36); return svg.replace(/(id="|url\(#)(cp\d+)/g, `$1$2_${u}`); };
 export function iconSVG(name, size = 32, cls = '') {
-  const k = ICONS[name] ? name : ICONS[ALIAS[name]] ? ALIAS[name] : 'star';
+  const k = has3D(name) ? name : ICONS[name] ? name : ICONS[ALIAS[name]] ? ALIAS[name] : 'star';
   if (has3D(k)) { const u = icon3D(k); if (u) return `<img class="ico ico3d ${cls}" src="${u}" width="${size}" height="${size}" alt="" aria-hidden="true">`; }
   return `<svg class="ico ${cls}" viewBox="0 0 64 64" width="${size}" height="${size}" aria-hidden="true">${uniq(withDefs(k))}</svg>`;
 }

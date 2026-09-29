@@ -14,6 +14,9 @@ import FOLKLORE from '../data/folklore.json';
 import { LEVELS } from '../data/levels.js';
 import { COSTUMES } from '../actors/minifig.js';
 import { stampImg } from '../assets.js';
+import { FAUNA, faunaName } from '../data/fauna.js';
+import { LEGENDS, NIGHT_CARNIVAL } from '../data/legends.js';
+import { makeClue, makeAura } from './legendFx.js';
 
 const CROP = {
   uva: ['racimos de uva', 'uva'], olivo: ['aceitunas', 'olivo'], piquillo: ['pimientos del piquillo', 'piquillo'], esparrago: ['manojos de espárragos', 'esparrago'],
@@ -46,8 +49,9 @@ const FOLK = {
   zipotero: { shirt: '#3a8fd6', pattern: 'stripes', pattern2: '#f2c230', pants: '#e03c3c', hat: 'mask', hatColor: '#f2c230', bladder: true, face: 'angry' },
   caravinagre: COSTUMES.caravinagre,
   lamia: { skin: '#f1d7b8', hair: '#e8c34a', hairStyle: 'long', lashes: true, shirt: '#6ab0a0', print: 'blouse', bodice: '#3a8a7a', skirt: '#4a9a8a', pants: '#4a9a8a', comb: true },
-  basajaun: { skin: '#c49a78', hair: '#5a3a22', hairStyle: 'long', beard: '#5a3a22', fur: '#6b4a2e', shirt: '#6b4a2e', pants: '#5a3f28', staff: true, height: 2.4, build: 1.3 },
+  basajaun: { skin: '#c49a78', hair: '#5a3a22', hairStyle: 'long', beard: '#5a3a22', fur: '#6b4a2e', shirt: '#6b4a2e', pants: '#5a3f28', staff: true, height: 2.8, build: 1.35 },
   sorgina: { skin: '#e8d0b8', hair: '#dcd7cf', hairStyle: 'long', shirt: '#3d3350', print: 'shawl', shawl: '#2a2440', skirt: '#2a2440', pants: '#2a2440', kerchief: '#3d3350', old: true, staff: true },
+  roldan: { skin: '#dfe6ff', hair: '#c9d4ff', beard: '#c9d4ff', shirt: '#aab6d8', print: 'coat', pants: '#8a96b8', shoes: '#6a7698', boots: true, staff: true, height: 1.95, build: 1.15, face: 'brave' },
   tartalo: { skin: '#c9a27a', hair: '#3b2418', shirt: '#6b4a2e', fur: '#8a6a4a', pants: '#4a3a2a', height: 2.6, build: 1.4, face: 'angry', staff: true },
 };
 // Paletas de trajes para los vecinos según la zona
@@ -78,7 +82,7 @@ export class TownGame {
     this.mode = 'play';
     this.elapsed = 0;
     this.rnd = mulberry32(def.id.length * 131 + 7);
-    this.actors = []; this.walkers = []; this.items = []; this.gates = []; this.folk = [];
+    this.actors = []; this.walkers = []; this.items = []; this.gates = []; this.folk = []; this.clues = [];
     this.missions = (def.missions || []).map((m, i) => this.makeMission(m, i));
     this.state = { name: this.P.name || 'Mendi', settings: this.P.settings };
   }
@@ -102,15 +106,16 @@ export class TownGame {
       case 'herd': { const a = ANIMAL[m.animal] || ANIMAL.sheep; M.title = m.title || `Al redil: ${a[0]}`; M.icon = a[1]; M.need = m.n || 5;
         M.steps = () => ['Habla con ' + host(), `Lleva ${a[0]} al redil (${M.count}/${M.need}) — acércate por detrás para empujarlas`, 'Vuelve con ' + host()]; break; }
       case 'dance': M.title = m.name || 'La danza'; M.icon = 'dance'; M.steps = () => ['Habla con ' + host(), 'Ve al centro de la plaza', `Baila: ${m.name}`]; break;
-      case 'carnival': { const f = FOLKLORE.find(x => x.id === m.character); M.folk = f; M.title = m.title || f?.name || 'Carnaval'; M.icon = 'mask'; M.need = 3;
-        M.steps = () => ['Habla con ' + host(), `Encuentra a ${f?.name || 'los personajes'} (${M.count}/${M.need}) — escucha sus cencerros`, 'Vuelve con ' + host()]; break; }
+      case 'carnival': { const f = FOLKLORE.find(x => x.id === m.character); M.folk = f; M.title = m.title || f?.name || 'Carnaval'; M.icon = 'mask'; M.need = 3; M.night = NIGHT_CARNIVAL[m.character];
+        M.steps = () => M.night ? ['Habla con ' + host(), 'Espera a que caiga la noche', `Encuentra a los ${f?.name?.toLowerCase() || 'personajes'}s (${M.count}/${M.need}) — escucha sus cencerros`, 'Vuelve con ' + host()]
+          : ['Habla con ' + host(), `Encuentra a ${f?.name || 'los personajes'} (${M.count}/${M.need}) — escucha sus cencerros`, 'Vuelve con ' + host()]; break; }
       case 'trade': { const t = TRADE[m.kind] || TRADE.herrero; M.trade = t; M.title = m.title || t.title; M.icon = t.icon; M.steps = () => ['Habla con ' + host(), `Trabaja en el taller: ${t.title.toLowerCase()}`]; break; }
-      case 'legend': M.title = m.title || 'Leyenda'; M.icon = m.who || 'legend'; M.need = m.gather?.n || 4;
-        M.steps = () => ['Habla con ' + host(), `${m.gather?.label || 'Busca las pistas'} (${M.count}/${M.need})`, 'Vuelve con ' + host()]; break;
+      case 'legend': { const L = M.leg = LEGENDS[m.who]; M.title = m.title || 'Leyenda'; M.icon = 'legend'; M.need = L?.clues.length || m.gather?.n || 4;
+        M.steps = () => ['Escucha la leyenda: habla con ' + host(), 'Espera a que caiga la noche', `Sigue las pistas que brillan en la oscuridad (${M.count}/${M.need})`, `Encuentra a ${L?.creature || 'la criatura'}`]; break; }
       case 'race': { const r = RACE[m.kind] || RACE.camino; M.title = m.title || r[0]; M.icon = r[1]; M.need = 6;
         M.steps = () => ['Habla con ' + host(), `${r[2]}: pasa por los aros (${M.count}/${M.need})`, 'Vuelve con ' + host()]; break; }
-      case 'observe': M.title = m.title || 'Observa'; M.icon = m.species || 'binoculars'; M.need = m.n || 3;
-        M.steps = () => ['Habla con ' + host(), `Usa los prismáticos (tecla F) y observa ${m.species === 'buitre' ? 'buitres' : 'animales'} (${M.count}/${M.need})`, 'Vuelve con ' + host()]; break;
+      case 'observe': M.title = m.title || 'Observa'; M.icon = 'binoculars'; M.need = m.n || 3; M.species = [].concat(m.species || []);
+        M.steps = () => ['Habla con ' + host(), `Con los prismáticos, encuentra ${M.species.map(faunaName).join(' o ').toLowerCase() || 'animales'} (${M.count}/${M.need})`, 'Vuelve con ' + host()]; break;
       case 'tradition': M.title = m.title || 'Tradición'; M.icon = m.kind === 'angel' ? 'angel' : 'music';
         M.steps = () => ['Habla con ' + host(), m.kind === 'angel' ? 'Prepara la bajada: repite la secuencia' : 'Repite la melodía']; break;
       case 'quiz': M.title = `El sabio de ${d.name}`; M.icon = 'quiz'; M.need = QUIZ_N; M.steps = () => ['Habla con ' + host(), `Responde bien las preguntas (${M.count}/${M.need})`]; break;
@@ -143,7 +148,7 @@ export class TownGame {
       case 'herd': return TOWN.pen ? { x: TOWN.pen.x, z: TOWN.pen.z + TOWN.pen.d / 2 + 4 } : P.farm;
       case 'dance': case 'carnival': case 'tradition': return { x: P.plaza.x + (M.i % 2 ? 7 : -7), z: P.plaza.z + 6 };
       case 'trade': return m.kind === 'aizkolari' ? { x: P.forest.x * 0.5 + P.plaza.x * 0.5, z: P.forest.z * 0.4 } : m.kind === 'palomero' ? P.edgeN : { x: P.market.x + 6, z: P.market.z + 4 };
-      case 'legend': return lm('cave')?.spot || (m.gather?.near ? near(m.gather.near) : P.edgeN);
+      case 'legend': return M.leg?.teller ? { x: P.plaza.x + (M.i % 2 ? -9 : 9), z: P.plaza.z - 6 } : lm('cave')?.spot ? { x: (lm('cave').spot.x + P.plaza.x) / 2, z: (lm('cave').spot.z + P.plaza.z) / 2 } : { x: P.plaza.x - 9, z: P.plaza.z - 6 };
       case 'race': return { x: P.spawn.x - 4, z: P.spawn.z - 20 };
       case 'observe': return lm('gorge')?.spot || P.edgeN;
       case 'quiz': return TOWN.church?.door ? { x: TOWN.church.door.x, z: TOWN.church.door.z + 0 } : P.plaza;
@@ -154,7 +159,7 @@ export class TownGame {
     const d = this.def;
     for (const M of this.missions) {
       const pos = this.spot(this.placeFor(M), 5);
-      const h = M.m.host || (M.type === 'visit' ? { name: 'Guía ' + (this.rnd() < 0.5 ? 'Ane' : 'Iker'), look: { shirt: '#f2c230', vest: '#3a8fd6', pants: '#2b3a6b', hair: '#3b2418', ponytail: true, female: true, strap: '#6b4a2e', bag: '#8a6a3a', face: 'happy' } }
+      const h = (M.leg?.teller) || M.m.host || (M.type === 'visit' ? { name: 'Guía ' + (this.rnd() < 0.5 ? 'Ane' : 'Iker'), look: { shirt: '#f2c230', vest: '#3a8fd6', pants: '#2b3a6b', hair: '#3b2418', ponytail: true, female: true, strap: '#6b4a2e', bag: '#8a6a3a', face: 'happy' } }
         : M.type === 'quiz' ? { name: 'Sabio del concejo', look: { shirt: '#efe9dc', vest: '#2b2630', pants: '#2b2630', hair: '#dcd7cf', beard: '#dcd7cf', txapela: '#1d1d24', old: true, glasses: '#3a2a1a', staff: true } } : { name: 'Vecino', look: {} });
       const a = new Actor({ id: 'm' + M.i, name: h.name, x: pos.x, z: pos.z, heading: Math.atan2(PLACES.plaza.x - pos.x, PLACES.plaza.z - pos.z), look: h.look }, this.scene);
       a.mission = M; M.host = a; this.actors.push(a);
@@ -222,6 +227,7 @@ export class TownGame {
     if (this.race) this.updateRace(dt);
     if (this.mode === 'dance') this.updateDance(dt);
     if (this.mode === 'bino') this.updateBino(dt);
+    this.updateNight(dt);
     this.checkArrival();
     this.updateInteraction();
     this.updateHUD();
@@ -236,13 +242,19 @@ export class TownGame {
     const nearest = (list) => { let b = null, bd = 1e9; for (const t of list) { const d = Math.hypot(t.x - P.x, t.z - P.z); if (d < bd) { bd = d; b = t; } } return b; };
     switch (M.type) {
       case 'visit': if (M.step === 1) { const left = M.places.filter(p => !p.seen); return nearest(left.map(p => ({ x: p.at.x, z: p.at.z, h: 5 }))); } return at(M.host);
-      case 'process': case 'harvest': case 'legend': if (M.step === 1) return nearest(this.items.filter(it => it.M === M).map(it => ({ x: it.x, z: it.z, h: 1.4 }))); return at(M.host);
+      case 'legend': {
+        if (M.step === 1) return null;
+        if (M.step === 2) { const c = nearest(this.clues.filter(k => k.M === M && !k.found).map(k => ({ x: k.x, z: k.z, h: 1.2 }))); return c; }
+        if (M.step === 3 && M.lair) return { x: M.lair.x, z: M.lair.z, h: 3 };
+        return at(M.host);
+      }
+      case 'process': case 'harvest': if (M.step === 1) return nearest(this.items.filter(it => it.M === M).map(it => ({ x: it.x, z: it.z, h: 1.4 }))); return at(M.host);
       case 'herd': if (M.step === 1) { const loose = this.herd?.filter(s => !s.penned) || []; const t = nearest(loose.map(s => ({ x: s.pos.x, z: s.pos.z, h: 1.8 }))); return t || { x: TOWN.pen.x, z: TOWN.pen.z, h: 2 }; } return at(M.host);
       case 'dance': return M.step === 1 ? { x: PLACES.plaza.x, z: PLACES.plaza.z, h: 3 } : at(M.host);
-      case 'carnival': return M.step === 1 ? null : at(M.host);
+      case 'carnival': return (M.night ? M.step === 1 || M.step === 2 : M.step === 1) ? null : at(M.host);
       case 'trade': return M.step === 1 && M.bench ? { x: M.bench.x, z: M.bench.z, h: 2 } : at(M.host);
       case 'race': if (M.step === 1) { const g = this.gates.find(g => g.next); return g ? { x: g.x, z: g.z, h: 4.4 } : null; } return at(M.host);
-      case 'observe': return M.step === 1 ? null : at(M.host);
+      case 'observe': if (M.step === 1) { const t = this.obsNearest(M); return t ? { x: t.pos.x, z: t.pos.z, h: 0, noArrow: true } : null; } return at(M.host);
     }
     return at(M.host);
   }
@@ -288,6 +300,8 @@ export class TownGame {
     for (const a of this.walkers) list.push({ kind: 'walker', a, x: a.pos.x, z: a.pos.z, r: 2.4, label: `Saludar a ${a.name}` });
     for (const it of this.items) list.push({ kind: 'item', it, x: it.x, z: it.z, r: 2.2, label: it.label });
     for (const M of this.missions) if (M.bench && M.step === 1 && !M.done) list.push({ kind: 'bench', M, x: M.bench.x, z: M.bench.z, r: 3, label: M.trade.verb });
+    for (const k of this.clues) if (!k.found && k.obj.visible) list.push({ kind: 'clue', k, x: k.x, z: k.z, r: 2.6, label: 'Examinar' });
+    for (const M of this.missions) if (M.creature && M.creature.shown && !M.done) list.push({ kind: 'creature', M, x: M.creature.pos.x, z: M.creature.pos.z, r: 3.6, label: `Hablar con ${M.leg.creature}` });
     if (TOWN.fountain) list.push({ kind: 'fountain', x: TOWN.fountain.x, z: TOWN.fountain.z, r: 3.8, label: 'Beber agua' });
     return list;
   }
@@ -309,6 +323,8 @@ export class TownGame {
     if (it.kind === 'walker') { it.a.say(2.5); it.a.wave = 1.2; const L = WALKER_LINES[this.walkers.indexOf(it.a) % WALKER_LINES.length]; return this.say(it.a, L); }
     if (it.kind === 'item') return this.pick(it.it);
     if (it.kind === 'bench') return this.doTrade(it.M);
+    if (it.kind === 'clue') return this.examineClue(it.k);
+    if (it.kind === 'creature') return this.meetCreature(it.M);
     if (it.kind === 'fountain') { this.particles.emit({ x: it.x, y: TOWN.fountain.y + 1.4, z: it.z }, { n: 20, color: '#bfe8ff', speed: 1.5, size: 0.25, life: 0.8 }); this.sound.splash(this.player.pos, 0.6); this.ui.toast('Agua fresca de la fuente de la plaza.', 'water'); }
   }
   say(a, lines) {
@@ -319,7 +335,10 @@ export class TownGame {
     const M = a.mission;
     a.say(4); this.player.frozen = true;
     this.player.heading = Math.atan2(a.pos.x - this.player.pos.x, a.pos.z - this.player.pos.z);
+    const first = M && !M.done && M.step === 0;
     try { await this.dialog(M, a); } finally { this.player.frozen = false; a.talking = 0; }
+    // la voz del narrador abre cada misión con un pequeño misterio
+    if (first && M.step > 0 && M.type !== 'legend') { const h = this.hook(M); if (h) setTimeout(() => this.ui.whisper?.(h, 5200), 400); }
     this.autoTrack();
   }
   // Diálogos de cada misión según el paso
@@ -367,6 +386,13 @@ export class TownGame {
         else await S(['¡La plaza nos espera! Ponte en el centro.']);
         return;
       case 'carnival':
+        if (M.night) {
+          if (M.step === 0) { await S([...M.night.story, m.text || ''].filter(Boolean)); M.step = 1; }
+          if (M.step === 1) { if (this.isNight()) { await S([M.night.night]); this.startCarnival(M); } else await this.offerNight(a, M.night.wait, () => this.startCarnival(M)); }
+          else if (M.step === 2) await S([`Te faltan ${M.need - M.count}. Escucha los cencerros…`]);
+          else { await S([`¡Los has encontrado a todos! Así se vive el carnaval de ${this.def.name.split(' /')[0]}: una tradición que se remonta a tiempos muy antiguos.`]); await this.complete(M, { card: M.folk?.name, cardText: M.folk?.fact }); }
+          return;
+        }
         if (M.step === 0) { await S([m.text || M.folk?.fact || '', M.folk?.culture || '', `Hay ${M.need} escondidos por el pueblo. No los verás desde lejos: escucha sus cencerros, suenan más fuerte cuando estás cerca.`].filter(Boolean)); this.startCarnival(M); }
         else if (M.step === 1) await S([`Te faltan ${M.need - M.count}. Escucha…`]);
         else { await S([`¡Los has encontrado a todos! ${M.folk?.clue ? '' : ''}Así se vive el carnaval en ${this.comarca?.name}.`]); await this.complete(M, { card: M.folk?.name, cardText: M.folk?.fact }); }
@@ -375,20 +401,27 @@ export class TownGame {
         if (M.step === 0) { await S([m.text, `Ven al banco de trabajo. ${M.trade.hint}`]); M.step = 1; }
         else await S(['Ponte en el banco de trabajo cuando quieras.']);
         return;
-      case 'legend':
-        if (M.step === 0) { await S([m.text, `${m.gather?.label || 'Busca'}: necesito ${M.need}.`]); this.startGather(M, m.gather?.item || 'herb', m.gather?.label || 'Recoger', m.gather?.near); }
-        else if (M.step === 1) await S([`Aún faltan ${M.need - M.count}.`]);
-        else { await S(['Las leyendas nos enseñan a respetar la naturaleza y a los demás. Guarda bien esta historia.']); await this.complete(M, { card: M.title, cardText: m.text }); }
+      case 'legend': {
+        const L = M.leg;
+        if (M.step === 0) { await S(L.story); M.step = 1; }
+        if (M.step === 1) { if (this.isNight()) { await S([L.night]); this.startLegend(M); } else await this.offerNight(a, L.wait, () => this.startLegend(M)); }
+        else if (M.step === 2) await S([`Te quedan ${M.need - M.count} pistas. Busca las luces en la oscuridad.`]);
+        else if (M.step === 3) await S([`Ya lo tienes cerca. Ve con cuidado… ${L.creature} te está esperando.`]);
         return;
+      }
       case 'race':
         if (M.step === 0 || (M.step === 1 && !this.race)) { await S([m.text, `Pasa por los ${M.need} aros antes de que se acabe el tiempo. ¡Mantén pulsado Mayús o el botón de correr!`]); this.startRace(M); }
         else if (M.step === 2) { await S(['¡Qué rapidez! Lo has conseguido.']); await this.complete(M, { card: M.title, cardText: m.text }); }
         return;
-      case 'observe':
-        if (M.step === 0) { await S([m.text, 'Toma estos prismáticos. Pulsa F (o el botón de prismáticos), apunta al animal y pulsa E para anotarlo.']); M.step = 1; this.binoOn = true; this.ui.showBinoButton(); this.obsSeen = new Set(); }
-        else if (M.step === 1) await S([`Llevas ${M.count}/${M.need}. Mira al cielo, sobre las rocas.`]);
-        else { await S(['¡Muy bien observado! Los buitres limpian el monte y son muy importantes.']); await this.complete(M, { card: M.title, cardText: m.text }); }
+      case 'observe': {
+        const F0 = FAUNA[M.species[0]];
+        if (M.step === 0) {
+          await S([...(m.story || []), m.text, F0 ? `Fíjate bien: ${F0.look}` : '', 'Toma mis prismáticos. Pulsa F (o el botón de prismáticos), busca con calma y, cuando el círculo se ponga amarillo, pulsa E para anotarlo. La brújula te indica hacia dónde mirar.'].filter(Boolean));
+          M.step = 1; this.binoOn = true; this.ui.showBinoButton(); this.obsSeen ||= new Set();
+        } else if (M.step === 1) await S([`Llevas ${M.count}/${M.need}. ${m.hint || 'Mira al cielo: sigue la marca de la brújula.'}`]);
+        else { await S([m.outro || '¡Muy bien observado! Has aprendido a reconocerlos por su silueta, como los guardas de verdad.']); await this.complete(M, { card: M.title, cardText: m.text }); }
         return;
+      }
       case 'tradition': {
         await S([m.text, m.kind === 'angel' ? 'Repite los movimientos en el mismo orden.' : 'Escucha la melodía y repítela.']);
         M.step = 1;
@@ -489,9 +522,156 @@ export class TownGame {
     if (n >= this.herd.length) { this.herd = null; M.step = 2; this.sound.magic(); this.ui.toast(`¡Todos en el redil! Vuelve con ${M.host.name}`, 'check', 3000); }
   }
 
+  // Frase del narrador al empezar cada misión
+  hook(M) {
+    const town = this.def.name.split(' /')[0], m = M.m, c = this.comarca?.name || 'Navarra';
+    const H = {
+      visit: `Cada piedra de ${town} guarda un secreto… ¿serás capaz de descubrirlos todos?`,
+      process: `Dicen que la receta de ${m.product ? m.product.toLowerCase() : 'este pueblo'} pasa de abuelas a nietos… y que nunca se ha escrito en ningún libro.`,
+      harvest: `La tierra de ${c} esconde su tesoro. Sólo hay que saber dónde mirar.`,
+      herd: 'Cuando cae la tarde, el rebaño se dispersa por el monte… y alguien tiene que traerlo de vuelta.',
+      dance: 'Cuando suena el txistu, hasta las piedras de la plaza tienen ganas de bailar.',
+      carnival: 'Algo se mueve entre las casas… se oyen cencerros, pero no se ve a nadie.',
+      trade: 'Las manos de quien trabaja un oficio cuentan historias que no están en los libros.',
+      race: 'El camino te espera. Muchos lo han recorrido antes que tú… ¿llegarás a tiempo?',
+      observe: 'Desde lo alto, alguien te está mirando. Levanta la vista… y aprende a ver.',
+      tradition: 'Una tradición muy antigua… si nadie la recuerda, se perderá para siempre.',
+      quiz: `El sabio de ${town} guarda las respuestas… y sólo las comparte con quien sabe escuchar.`,
+    };
+    return H[M.type];
+  }
+  // ---------- Noche y leyendas ----------
+  isNight() { const t = this.sky?.time ?? 12; return t > 20.4 || t < 6.1; }
+  // Ofrece esperar a que anochezca: fundido, la luna sale y empieza la parte nocturna
+  async offerNight(a, text, then) {
+    let wait = false;
+    await this.say(a, [{ text, choices: ['Esperar a que anochezca', 'Todavía no'], onChoice: (j) => { wait = j === 0; return []; } }]);
+    if (!wait) { this.ui.toast('Vuelve cuando quieras: al caer la noche empezará la búsqueda', 'moon', 3200); return; }
+    this.player.frozen = true;
+    await this.ui.fadeOut();
+    this.sky.time = 21.9;
+    await new Promise(r => setTimeout(r, 500));
+    await this.ui.fadeIn();
+    this.player.frozen = false;
+    this.sound.owl?.(this.player.pos);
+    this.ui.whisper?.(`Cae la noche sobre ${this.def.name.split(' /')[0]}…`, 3200);
+    then();
+  }
+  // Pistas de la leyenda: se encienden de noche, camino de la guarida
+  startLegend(M) {
+    const L = M.leg; M.step = M.count >= M.need ? 3 : 2;
+    const P = PLACES, lm = (k) => TOWN.landmarks.find(l => l.kind === k);
+    const lairP = L.lair === 'cave' ? (lm('cave')?.spot || P.forest) : L.lair === 'river' ? (lm('bridge')?.spot || P.riverSpot || P.forest) : P.forest || P.edgeN;
+    M.lair = this.spot(lairP, 6);
+    for (const k of this.clues.filter(c => c.M === M)) this.scene.remove(k.obj);
+    this.clues = this.clues.filter(c => c.M !== M);
+    const from = { x: M.host.pos.x, z: M.host.pos.z };
+    L.clues.forEach((c, i) => {
+      const t = (i + 1) / (L.clues.length + 1);
+      const side = (i % 2 ? 1 : -1) * (5 + this.rnd() * 5);
+      const dx = M.lair.x - from.x, dz = M.lair.z - from.z, len = Math.hypot(dx, dz) || 1;
+      const s = this.spot({ x: from.x + dx * t - dz / len * side, z: from.z + dz * t + dx / len * side }, 4, L.lair !== 'river');
+      const o = makeClue(L.clueKind, L.color); o.position.set(s.x, terrainHeight(s.x, s.z), s.z); o.rotation.y = Math.atan2(dx, dz); this.scene.add(o);
+      this.clues.push({ M, i, x: s.x, z: s.z, obj: o, text: c.text, found: i < M.count });
+    });
+    this.clues.forEach(k => { if (k.found) k.obj.visible = false; });
+    this.ui.toast('Busca las luces en la oscuridad', 'legend', 3000);
+  }
+  async examineClue(k) {
+    const M = k.M; k.found = true;
+    this.player.rig.doAct('pick', 0.6);
+    this.particles.emit({ x: k.x, y: terrainHeight(k.x, k.z) + 0.6, z: k.z }, { n: 30, color: [M.leg.color, '#ffffff'], speed: 1.6, size: 0.3, life: 1.4 });
+    this.sound.magic();
+    k.obj.userData.fade = 1;
+    M.count++;
+    this.ui.whisper?.(k.text, 5200);
+    if (M.count >= M.need) {
+      M.step = 3;
+      setTimeout(() => this.ui.toast(`Las pistas llevan hasta aquí… ${M.leg.creature} está cerca`, 'legend', 3600), 2400);
+    } else this.ui.toast(this.stepText(M), 'legend', 1800);
+  }
+  // Aparición: sólo de noche y cuando ya has seguido todas las pistas
+  showCreature(M) {
+    const look = FOLK[M.m.who] || FOLK.basajaun;
+    if (!M.creature) {
+      const s = M.lair;
+      const a = new Actor({ id: 'c' + M.i, name: M.leg.creature, x: s.x, z: s.z, heading: Math.atan2(this.player.pos.x - s.x, this.player.pos.z - s.z), look, mini: look }, this.scene);
+      a.collider.ghost = true; a.base = a.obj.scale.x || 1;
+      // el caballero es sólo una sombra de niebla: translúcido y azulado
+      if (M.m.who === 'roldan') a.obj.traverse(o => { if (o.isMesh && o.material) { o.material = o.material.clone(); o.material.transparent = true; o.material.opacity = 0.62; o.material.depthWrite = false; } });
+      const aura = makeAura(M.leg.color, 2.2); aura.position.y = 1.2; a.obj.add(aura); a.aura = aura;
+      M.creature = a;
+    }
+    const a = M.creature; a.shown = true; a.visible = true; a.obj.visible = true; a.appear = 0;
+    this.particles.emit({ x: a.pos.x, y: a.pos.y + 1.2, z: a.pos.z }, { n: 60, color: [M.leg.color, '#ffffff'], speed: 2.2, size: 0.35, life: 1.8 });
+    this.sound.magic(); this.sound.owl?.(a.pos);
+    this.ui.whisper?.(`${M.leg.creature}…`, 2600);
+    // la cámara se vuelve hacia la criatura mientras se forma entre la niebla
+    const P = this.player.pos, dx = a.pos.x - P.x, dz = a.pos.z - P.z, l = Math.hypot(dx, dz) || 1, H = a.obj.userData.H || 2;
+    const cp = new THREE.Vector3(P.x - dx / l * 2.5 + dz / l * 2.2, P.y + H * 0.9, P.z - dz / l * 2.5 - dx / l * 2.2);
+    this.player.frozen = true; this.player.heading = Math.atan2(dx, dz);
+    this.follow.cinematic = { pos: cp, look: new THREE.Vector3(a.pos.x, a.pos.y + H * 0.55, a.pos.z), t: 0 };
+    setTimeout(() => { if (this.follow.cinematic?.look) { this.follow.cinematic = null; this.follow.snap?.(this.player); } this.player.frozen = false; }, 3400);
+  }
+  hideCreature(M, burst) {
+    const a = M.creature; if (!a || !a.shown) return;
+    a.shown = false; a.visible = false; a.obj.visible = false;
+    if (burst) this.particles.emit({ x: a.pos.x, y: a.pos.y + 1.4, z: a.pos.z }, { n: 70, color: [M.leg.color, '#ffffff'], speed: 2.6, size: 0.35, life: 2 });
+  }
+  async meetCreature(M) {
+    const a = M.creature; if (!a) return;
+    this.player.frozen = true; a.say(5);
+    this.player.heading = Math.atan2(a.pos.x - this.player.pos.x, a.pos.z - this.player.pos.z);
+    a.heading = Math.atan2(this.player.pos.x - a.pos.x, this.player.pos.z - a.pos.z);
+    try { await this.say(a, M.leg.meet); } finally { this.player.frozen = false; }
+    this.hideCreature(M, true); this.sound.whoosh?.();
+    this.ui.whisper?.('…y desaparece entre la niebla.', 3000);
+    await new Promise(r => setTimeout(r, 1200));
+    await this.complete(M, { card: M.leg.creature, cardText: M.leg.card });
+  }
+  updateNight(dt) {
+    const night = this.isNight();
+    let active = false;
+    for (const M of this.missions) {
+      if (M.done) { if (M.creature?.shown) this.hideCreature(M); continue; }
+      if (M.type === 'legend' && M.step >= 2) {
+        active = true;
+        for (const k of this.clues) if (k.M === M) {
+          const o = k.obj; if (!o.userData.fade && !k.found) o.visible = night;
+          if (o.userData.fade) { o.userData.fade -= dt * 0.8; o.scale.setScalar(Math.max(0.01, o.userData.fade)); if (o.userData.fade <= 0) { o.visible = false; o.userData.fade = 0; } }
+          if (o.visible) o.userData.tick?.(dt, this.elapsed);
+        }
+        if (M.step === 3 && night && M.lair) {
+          const d = Math.hypot(M.lair.x - this.player.pos.x, M.lair.z - this.player.pos.z);
+          if (!M.creature?.shown && d < 26) this.showCreature(M);
+        }
+        if (M.creature?.shown) {
+          const a = M.creature; a.appear = Math.min(1, (a.appear || 0) + dt * 0.8);
+          a.base ??= a.obj.scale.x || 1;
+          a.obj.scale.setScalar(a.base * (0.3 + 0.7 * (1 - Math.pow(1 - a.appear, 3)))); a.aura?.userData.tick?.(dt);
+          a.heading = Math.atan2(this.player.pos.x - a.pos.x, this.player.pos.z - a.pos.z);
+          a.update(dt, this.player);
+          if (!night) this.hideCreature(M, true);
+        }
+        // si amanece antes de terminar, las pistas se apagan hasta la noche siguiente
+        if (!night && !M.dawnWarned && this.mode === 'play') { M.dawnWarned = true; this.ui.toast('Ha amanecido: las pistas sólo se ven de noche. Habla con quien te contó la leyenda.', 'sun', 4200); M.step = 1; }
+        if (night) M.dawnWarned = false;
+      }
+      if (M.type === 'carnival' && M.night && M.step === 2) active = true;
+    }
+    // la noche dura más mientras se sigue una leyenda, y la niebla la hace más misteriosa
+    const base = 24 / (16 * 60) * (this.P.settings.timeSpeed ?? 1);
+    if (this.sky) this.sky.speed = active && night ? base * 0.12 : base;
+    const fog = this.scene.fog;
+    if (fog && fog.isFog) { this.fogFar0 ??= fog.far; const want = active && night ? Math.min(this.fogFar0, 140) : this.fogFar0; fog.far += (want - fog.far) * Math.min(1, dt * 0.8); }
+    for (const f of this.folk) if (f.fm?.night) { f.obj.visible = f.obj.visible && night; }
+  }
+
   // ---------- Carnaval: buscar por el sonido ----------
   startCarnival(M) {
-    M.step = 1; M.count = 0;
+    M.step = M.night ? 2 : 1; M.count = 0;
+    for (const a of this.folk.filter(f => f.fm === M)) this.scene.remove(a.obj);
+    this.folk = this.folk.filter(f => f.fm !== M);
     const look = FOLK[M.m.character] || FOLK.joaldun;
     const houses = TOWN.houses.filter((_, i) => i % 3 === 1);
     for (let i = 0; i < M.need; i++) {
@@ -499,7 +679,10 @@ export class TownGame {
       const p = this.spot(h.door || h, 3);
       const a = new Actor({ id: 'f' + i, name: M.folk?.name || 'Personaje', x: p.x, z: p.z, look, mini: look, wander: 6, walkSpeed: 0.9 }, this.scene);
       a.fm = M; a.bellT = this.rnd() * 2; this.folk.push(a);
+      // de noche llevan una antorcha: se ve su luz entre las casas
+      if (M.night) { const aura = makeAura('#ffb45a', 0.9); aura.position.y = 2.1; a.obj.add(aura); a.aura = aura; }
     }
+    if (M.night) this.ui.toast('Los momotxorros han salido… escucha sus cencerros', 'mask', 3400);
     this.carnivalHint = () => {
       const f = this.folk.filter(a => !a.found);
       if (!f.length) { this.ui.setMG(null); this.carnivalHint = null; return; }
@@ -520,8 +703,9 @@ export class TownGame {
       a.found = true; a.dance = 6; a.wander = 0; a.state = 'idle'; const M = a.fm; M.count++;
       this.particles.confetti ? this.particles.confetti(a.pos, 40) : this.particles.emit({ x: a.pos.x, y: a.pos.y + 2, z: a.pos.z }, { n: 30, color: ['#e03c3c', '#f2c230', '#3a8fd6'], speed: 3, size: 0.3 });
       this.sound.magic(); this.ui.toast(`¡Encontrado! ${this.stepText(M)}`, 'mask', 2400);
-      if (M.count >= M.need) { M.step = 2; this.ui.toast(`¡Todos encontrados! Vuelve con ${M.host.name}`, 'check', 3200); }
+      if (M.count >= M.need) { M.step = M.night ? 3 : 2; this.ui.toast(`¡Todos encontrados! Vuelve con ${M.host.name}`, 'check', 3200); }
     }
+    if (a.aura) a.aura.userData.tick?.(dt);
   }
 
   // ---------- Oficios ----------
@@ -656,38 +840,70 @@ export class TownGame {
   }
   updateBino(dt) {
     const P = this.player.pos, cam = this.camera;
-    const sens = this.input.touch ? 0.0025 : 0.0018;
+    const sens = this.input.touch ? 0.0012 : 0.0009;
     this.binoYaw -= this.input.look.dx * sens; this.binoPitch = clamp(this.binoPitch - this.input.look.dy * sens, -0.6, 1.3);
     const mv = this.input.move; this.binoYaw -= mv.x * dt * 0.8; this.binoPitch = clamp(this.binoPitch + mv.y * dt * 0.6, -0.6, 1.3);
-    cam.fov = lerp(cam.fov, 16, 1 - Math.exp(-8 * dt)); cam.updateProjectionMatrix();
+    cam.fov = lerp(cam.fov, 10, 1 - Math.exp(-8 * dt)); cam.updateProjectionMatrix();
     const eye = new THREE.Vector3(P.x, P.y + 1.55, P.z);
     const dir = new THREE.Vector3(Math.sin(this.binoYaw) * Math.cos(this.binoPitch), Math.sin(this.binoPitch), Math.cos(this.binoYaw) * Math.cos(this.binoPitch));
     cam.position.copy(eye); cam.lookAt(eye.clone().add(dir));
     this.follow.yaw = this.binoYaw + Math.PI;
     let best = null, ba = 1;
-    for (const o of this.fauna.observables()) {
+    const obs = this.fauna.observables();
+    for (const o of obs) {
       const to = new THREE.Vector3(o.pos.x - eye.x, o.pos.y + (o.h || 0.5) - eye.y, o.pos.z - eye.z);
-      const d = to.length(); if (d > (o.far ? 300 : 100) || d < 1) continue;
-      const ang = to.normalize().angleTo(dir), tol = Math.max(0.03, 1.4 / d);
+      const d = to.length(); if (d > (o.far ? 320 : 110) || d < 1) continue;
+      const ang = to.normalize().angleTo(dir), tol = Math.max(0.035, (o.far ? 3 : 1.4) / d);
       if (ang < tol && ang < ba && (o.far || !segmentBlocked(eye.x, eye.z, o.pos.x, o.pos.z))) { ba = ang; best = o; }
     }
+    // un ave detrás de una casa o de la iglesia no se puede anotar: comprobamos que no haya nada en medio
+    if (best && best.far) {
+      const town = this.townMeshes ||= (this.scene.getObjectByName('town')?.children || []).filter(m => m.isMesh);
+      const to = new THREE.Vector3(best.pos.x - eye.x, best.pos.y - eye.y, best.pos.z - eye.z), d = to.length();
+      this.ray ||= new THREE.Raycaster(); this.ray.set(eye, to.normalize()); this.ray.far = d;
+      if (this.ray.intersectObjects(town, false).length) best = null;
+    }
     const M = this.missions.find(x => x.type === 'observe' && x.step === 1);
-    const NAMES = { buitre: 'Buitre leonado', corzo: 'Corzo', ciervo: 'Ciervo', jabali: 'Jabalí', ardilla: 'Ardilla', pito: 'Pito real', trucha: 'Trucha', milano: 'Milano' };
-    const key = best ? best.id + ':' + (best.uid ?? Math.round(best.pos.x) + ',' + Math.round(best.pos.z)) : null;
-    const counts = M && best && (best.id === M.m.species || !M.m.species);
-    const isNew = best && !(this.obsSeen?.has(best.obj?.uuid || key));
-    this.ui.binoTarget(best ? `${NAMES[best.id] || best.id}${isNew ? ' — pulsa E para anotar' : ' — anotado'}` : '', !!best);
+    const key = best ? (best.obj?.uuid || best.id + ':' + Math.round(best.pos.x) + ',' + Math.round(best.pos.z)) : null;
+    const counts = M && best && (!M.species.length || M.species.includes(best.id));
+    const isNew = best && !this.obsSeen?.has(key);
+    const F = best ? FAUNA[best.id] : null;
+    // sin nada en el visor: flecha hacia el animal buscado más cercano
+    let hint = null;
+    if (!best && M) { const t = this.obsNearest(M); if (t) { const v = new THREE.Vector3(t.pos.x, t.pos.y + (t.h || 0.4), t.pos.z).project(cam); const behind = v.z > 1; hint = Math.atan2(behind ? -v.y : v.y, behind ? -v.x : v.x); } }
+    this.ui.binoTarget(best ? `${F?.name || best.id}${isNew ? (counts || !M ? ' — pulsa E para anotar' : ' — anótalo en tu cuaderno') : ' — anotado'}` : (M ? 'Sigue la flecha' : ''), !!best, hint);
     if (this.input.consume('e') || this.input.consume(' ')) {
       this.sound.ui('photo');
       if (best && isNew) {
-        this.obsSeen?.add(best.obj?.uuid || key);
-        if (!this.P.species.includes(best.id)) this.P.species.push(best.id);
-        if (counts) { M.count++; this.ui.toast(`¡${NAMES[best.id] || best.id} anotado! ${M.count}/${M.need}`, 'binoculars'); if (M.count >= M.need) { M.step = 2; this.ui.toast(`¡Muy bien! Vuelve con ${M.host.name}`, 'check', 3000); } }
-        else this.ui.toast(`${NAMES[best.id] || best.id} anotado en tu cuaderno`, 'binoculars');
+        this.obsSeen ||= new Set(); this.obsSeen.add(key);
+        const first = !this.P.species.includes(best.id);
+        if (first) this.P.species.push(best.id);
+        if (counts) { M.count++; if (M.count >= M.need) M.step = 2; }
         saveProfile();
+        this.fieldCard(best.id, first, counts ? M : null);
       }
     }
     if (this.input.consume('f') || this.input.consume('escape')) this.toggleBinoculars();
+  }
+
+  // animal buscado más cercano (para la brújula y la flecha del visor)
+  obsNearest(M) {
+    const P = this.player.pos; let b = null, bd = 1e9;
+    for (const o of this.fauna.observables()) {
+      if (M.species.length && !M.species.includes(o.id)) continue;
+      const k = o.obj?.uuid || o.id + ':' + Math.round(o.pos.x) + ',' + Math.round(o.pos.z); if (this.obsSeen?.has(k)) continue;
+      const d = Math.hypot(o.pos.x - P.x, o.pos.z - P.z); if (d < bd) { bd = d; b = o; }
+    }
+    return b;
+  }
+  // ficha del cuaderno de campo al anotar un animal
+  async fieldCard(id, first, M) {
+    const F = FAUNA[id]; if (!F) return;
+    if (!first && !M) { this.ui.toast(`${F.name} anotado`, 'binoculars'); return; }
+    this.sound.magic();
+    const done = M && M.count >= M.need;
+    await infoCard(this.ui, { icon: id, kicker: `Cuaderno de campo · ${F.eu}`, title: F.name, text: `${F.look} ${F.fact}`, badge: first ? 'Especie nueva' : '', button: M ? (done ? `¡Hecho! Vuelve con ${M.host.name}` : `Seguir buscando (${M.count}/${M.need})`) : 'Seguir observando' });
+    if (done) this.ui.toast(`¡Muy bien! Vuelve con ${M.host.name}`, 'check', 3000);
   }
 
   // ---------- Preguntas ----------

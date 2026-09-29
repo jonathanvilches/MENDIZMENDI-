@@ -157,6 +157,13 @@ export class UI {
     t.classList.add('on');
     clearTimeout(this.toastT); this.toastT = setTimeout(() => t.classList.remove('on'), ms);
   }
+  // Voz del narrador: frase en cursiva que aparece y se desvanece (pistas y momentos de misterio)
+  whisper(text, ms = 4000) {
+    if (!this.hud) return;
+    let w = $('#whisper', this.hud); if (!w) { w = el('<div id="whisper"><span></span></div>'); this.hud.appendChild(w); }
+    $('span', w).textContent = text; w.classList.remove('on'); void w.offsetWidth; w.classList.add('on');
+    clearTimeout(this.whT); this.whT = setTimeout(() => w.classList.remove('on'), ms);
+  }
   hudVisible(v) { if (this.hud) this.hud.style.display = v ? '' : 'none'; }
   setMG(html) { if (!this.hud) return; const m = $('#mg', this.hud); if (!html) m.classList.add('hidden'); else { m.innerHTML = html; m.classList.remove('hidden'); } }
   setCinematic(on, text) { if (!this.cine) return; this.cine.classList.toggle('on', on); this.subtitle.textContent = text || ''; }
@@ -495,11 +502,14 @@ export class UI {
   // ---------- Prismáticos ----------
   binoculars(on) {
     if (on && !this.bino) {
-      this.bino = el(`<div id="bino"><svg class="mask" viewBox="0 0 160 100" preserveAspectRatio="xMidYMid slice" width="100%" height="100%"><defs><mask id="bm"><rect x="-200" y="-200" width="560" height="500" fill="#fff"/><circle cx="58" cy="50" r="36" fill="#000"/><circle cx="102" cy="50" r="36" fill="#000"/></mask></defs><rect x="-200" y="-200" width="560" height="500" fill="#0b0a10" mask="url(#bm)"/></svg><div class="cross"></div><div class="label"></div><div class="bhint">${this.input.touch ? 'Arrastra para mirar · botón amarillo para anotar · botón de prismáticos para salir' : 'Mueve el ratón para mirar · E para anotar · F para salir'}</div></div>`);
+      this.bino = el(`<div id="bino"><svg class="mask" viewBox="0 0 160 100" preserveAspectRatio="xMidYMid slice" width="100%" height="100%"><defs><mask id="bm"><rect x="-200" y="-200" width="560" height="500" fill="#fff"/><circle cx="58" cy="50" r="36" fill="#000"/><circle cx="102" cy="50" r="36" fill="#000"/></mask></defs><rect x="-200" y="-200" width="560" height="500" fill="#0b0a10" mask="url(#bm)"/></svg><div class="cross"></div><div class="bdir"><i></i></div><div class="label"></div><div class="bhint">${this.input.touch ? 'Arrastra para mirar · botón amarillo para anotar · botón de prismáticos para salir' : 'Mueve el ratón para mirar · E para anotar · F para salir'}</div></div>`);
       document.body.appendChild(this.bino);
     } else if (!on && this.bino) { this.bino.remove(); this.bino = null; }
   }
-  binoTarget(label, lock) { if (!this.bino) return; $('.label', this.bino).textContent = label || ''; $('.cross', this.bino).classList.toggle('lock', !!lock); }
+  binoTarget(label, lock, hint = null) {
+    if (!this.bino) return; $('.label', this.bino).textContent = label || ''; $('.cross', this.bino).classList.toggle('lock', !!lock);
+    const d = $('.bdir', this.bino); d.style.opacity = hint == null ? 0 : 1; if (hint != null) d.style.transform = `rotate(${-hint}rad)`;
+  }
 
   // ---------- Ritmo (danza) ----------
   rhythm(onPad) {
