@@ -8,8 +8,29 @@ import { PLACES, rx, riverInfo, HALF, iratiMask } from '../world/layout.js';
 import { TREES } from '../world/nature.js';
 import { clamp, damp, dampAngle, lerp, mulberry32 } from '../util/math.js';
 
-const VC = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9 });
-const VCflat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, flatShading: true });
+// Textura de pelaje procedural (ruido 3D en espacio del objeto): pelo fino, vetas y manchas suaves
+function furify(mat, k = 1) {
+  mat.onBeforeCompile = (sh) => {
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vObjPos;').replace('#include <begin_vertex>', '#include <begin_vertex>\nvObjPos = position;');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>
+varying vec3 vObjPos;
+float fh(vec3 p){ p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
+float fn(vec3 x){ vec3 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(mix(fh(i), fh(i + vec3(1,0,0)), f.x), mix(fh(i + vec3(0,1,0)), fh(i + vec3(1,1,0)), f.x), f.y),
+             mix(mix(fh(i + vec3(0,0,1)), fh(i + vec3(1,0,1)), f.x), mix(fh(i + vec3(0,1,1)), fh(i + vec3(1,1,1)), f.x), f.y), f.z); }`)
+      .replace('#include <color_fragment>', `#include <color_fragment>
+      { vec3 q = vObjPos;
+        float hair = fn(vec3(q.x * 90.0, q.y * 22.0, q.z * 90.0));           // hebras de pelo
+        float fine = fn(q * 60.0);
+        float mott = fn(q * 7.0);                                            // moteado grande
+        float curl = fn(q * 26.0); curl = smoothstep(0.35, 0.65, curl);
+        float f = 0.7 + 0.32 * hair + 0.12 * fine + 0.22 * (mott - 0.5) + 0.1 * curl;
+        diffuseColor.rgb *= mix(1.0, f, ${k.toFixed(2)}); }`);
+  };
+  return mat;
+}
+const VC = furify(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9 }));
+const VCflat = furify(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, flatShading: true }), 0.8);
 
 function part(geo, color, m) {
   const g = (geo.index ? geo.toNonIndexed() : geo);

@@ -38,7 +38,7 @@ function radar(stats, color = '#ffc85a') {
   const grid = [0.33, 0.66, 1].map(k => `<polygon points="${[0, 1, 2, 3, 4].map(i => pt(i, k).join(',')).join(' ')}" fill="none" stroke="rgba(255,255,255,.18)"/>`).join('');
   const poly = `<polygon points="${stats.map((v, i) => pt(i, v / 100).join(',')).join(' ')}" fill="${color}55" stroke="${color}" stroke-width="3"/>`;
   const labels = STAT_LABELS.map((l, i) => { const [x, y] = pt(i, 1.28); return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#e8dcc8" font-weight="800">${l}</text>`; }).join('');
-  return `<svg class="radar" viewBox="-10 -6 200 196">${grid}${poly}${labels}</svg>`;
+  return `<svg class="radar" viewBox="-34 -8 248 200">${grid}${poly}${labels}</svg>`;
 }
 function spark(profile, w = 160, h = 44) {
   if (!profile?.length) return '';
