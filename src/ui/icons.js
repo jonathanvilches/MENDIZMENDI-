@@ -225,6 +225,7 @@ const uniq = (svg) => { const u = (++UID).toString(36); return svg.replace(/(id=
 export function iconSVG(name, size = 32, cls = '') {
   const k = has3D(name) ? name : ICONS[name] ? name : ICONS[ALIAS[name]] ? ALIAS[name] : 'star';
   if (has3D(k)) { const u = icon3D(k); if (u) return `<img class="ico ico3d ${cls}" src="${u}" width="${size}" height="${size}" alt="" aria-hidden="true">`; }
+  (window.__svgIcons ||= new Set()).add(k);
   return `<svg class="ico ${cls}" viewBox="0 0 64 64" width="${size}" height="${size}" aria-hidden="true">${uniq(withDefs(k))}</svg>`;
 }
 // Imagen (para dibujar en canvas: mapas, minimapa)

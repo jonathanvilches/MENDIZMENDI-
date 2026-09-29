@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { Builder, box, colored, M, MM } from './builder.js';
 import { buildHouse } from './houses.js';
 import { church, castle, wallsRing, bridge, landmark } from './monuments.js';
-import { bench, lamp } from './village.js';
+import { bench, lamp, fountain } from './village.js';
 import { PATHS, PLACES, BRIDGES, riverInfo, pathQuery, villageMask, rx, MOD } from './layout.js';
 import { terrainHeight } from './heightfield.js';
 import { addBox, addCircle, isFree } from './colliders.js';
@@ -106,9 +106,7 @@ export function buildTown(scene, mats, def) {
   const hasKiosk = (PLACES.landmarks || []).some(l => l.kind === 'kiosk');
   if (!hasKiosk) {
     const y = terrainHeight(P.x, P.z);
-    B.add('ashlar', new THREE.CylinderGeometry(2.5, 2.6, 0.85, 8, 1, true), M(P.x, y + 0.42, P.z, Math.PI / 8));
-    B.add('ashlar', new THREE.CylinderGeometry(0.45, 0.6, 2.4, 8), M(P.x, y + 1.2, P.z));
-    B.add('ashlar', new THREE.SphereGeometry(0.5, 10, 8), M(P.x, y + 2.55, P.z));
+    fountain(B, P.x, y, P.z);
     addCircle(P.x, P.z, 2.7);
     TOWN.fountain = { x: P.x, z: P.z, y };
   }

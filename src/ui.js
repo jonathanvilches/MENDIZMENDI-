@@ -17,8 +17,8 @@ const ICON = {
   map: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></svg>',
   menu: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h14"/></svg>',
   bino: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="15" r="4"/><circle cx="17" cy="15" r="4"/><path d="M7 11V6a2 2 0 014 0v5M17 11V6a2 2 0 00-4 0v5M11 14h2"/></svg>',
-  run: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M9 5.5l6.5 6.5L9 18.5l-2.6-2.6L10.3 12 6.4 8.1z" fill="#fff"/><path d="M15 5.5l6.5 6.5-6.5 6.5-2.6-2.6 3.9-3.9-3.9-3.9z" fill="#FFD700"/><path d="M1.5 9h3M1 12h3.6M1.5 15h3" fill="none" stroke="#fff" stroke-width="1.8"/></svg>',
-  jump: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.6" stroke-linejoin="round"><path d="M12 2.5l7.5 7.8h-4.6v6.2H9.1v-6.2H4.5z" fill="#fff"/><rect x="4" y="18.6" width="16" height="3" rx="1.5" fill="#00BFFF"/></svg>',
+  run: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round"><circle cx="15.6" cy="3.8" r="2.3" fill="#fff"/><path d="M12.6 6.6c1.2-.5 2.4-.3 3.3.6l2.3 2.7h3v2.3h-4l-1.5-1.7-1.3 3 2.6 2.4-1.6 6.1h-2.5l1.2-4.9-3-2.3-1.6 3.1H4.6v-2.3h3.6l2.5-5.3-1.9.9-1.6 2.6-2-1.1 2.1-3.4z" fill="#fff"/><path d="M1.2 8.5h4M.6 12h3.2M1.4 15.5h2.4" fill="none" stroke="#FFD700" stroke-width="1.9"/></svg>',
+  jump: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"><path d="M12 1.8l7.2 7.4h-4.3v5.6H9.1V9.2H4.8z" fill="#fff"/><path d="M6.5 17.6c3.6 1.8 7.4 1.8 11 0" fill="none" stroke="#00BFFF" stroke-width="2.4"/><path d="M4 21.6h16" fill="none" stroke="#fff" stroke-width="2.2"/></svg>',
   sun: '<svg viewBox="0 0 24 24" fill="#ffd34d"><circle cx="12" cy="12" r="5"/></svg>',
   moon: '<svg viewBox="0 0 24 24" fill="#f0e6c8"><path d="M15 3a9 9 0 106 15A8 8 0 0115 3z"/></svg>',
   hand: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="M8.2 13.2V5.2a1.7 1.7 0 013.4 0v5.3V3.8a1.7 1.7 0 013.4 0v6.9V5.4a1.7 1.7 0 013.4 0v8.6c0 4.6-2.4 7.6-6.6 7.6-3.1 0-4.6-1.8-6.4-4.8l-1.7-2.8c-.9-1.5 1.1-2.9 2.3-1.5z" fill="#fff"/><path d="M11.6 10.5v2.2M15 10.7v2M18.4 11v1.8" fill="none"/></svg>',
@@ -90,9 +90,9 @@ export class UI {
       <div id="stick"><i></i></div>
       <div id="stickHint"><i></i><span>Mover</span></div>
       <div id="controls">
-        <button class="cbtn" id="cRun" aria-label="Correr">${ICON.run}<b>Correr</b></button>
-        <button class="cbtn" id="cJump" aria-label="Saltar">${ICON.jump}<b>Saltar</b></button>
-        <button class="cbtn big off" id="cAct" aria-label="Acción">${ICON.hand}<b>Acción</b></button>
+        <button class="cbtn" id="cRun" aria-label="Correr" title="Correr">${ICON.run}</button>
+        <button class="cbtn" id="cJump" aria-label="Saltar" title="Saltar">${ICON.jump}</button>
+        <button class="cbtn big off" id="cAct" aria-label="Acción" title="Acción">${ICON.hand}</button>
       </div>
     </div>`);
     this.root.appendChild(h);

@@ -194,3 +194,30 @@ function missionComplete_(ui, { title, text, xp, card, icon = 'star', progress, 
     b.onclick = close;
   });
 }
+
+// ---------- Final de un pueblo: todo completado ----------
+// Devuelve 'stay' (seguir paseando), 'next' (siguiente pueblo) o 'map' (volver al mapa)
+export function townFinale(ui, { town, stamp, missions = [], xp = 0, next = null }) {
+  if (window.__autoWin) return Promise.resolve('stay');
+  return new Promise(res => {
+    ui.sound.fanfare?.();
+    const o = overlay(ui, 'finale', `
+      <div class="fw">${Array.from({ length: 14 }, (_, i) => `<i style="--x:${(i * 37) % 100}%;--d:${(i % 5) * 0.35}s;--c:${['#FFD700', '#FF69B4', '#00BFFF', '#FF6347', '#8A2BE2'][i % 5]}"></i>`).join('')}</div>
+      <small class="kicker">¡Pueblo completado!</small>
+      <img class="stampimg big" src="${stamp}" alt="">
+      <h2>${esc(town)}</h2>
+      <p>Has cumplido todas las misiones y el sello ya brilla en tu Pasaporte Mendi.</p>
+      <ul class="fin-list">${missions.map(m => `<li>${iconSVG(m.icon, 34)}<span>${esc(m.title)}</span>${iconSVG('check', 22)}</li>`).join('')}</ul>
+      <div class="rewards"><span class="rw">${iconSVG('star', 26)} +${xp} XP</span><span class="rw">${iconSVG('stamp', 26)} Sello nuevo</span></div>
+      <div class="fin-btns">
+        ${next ? `<button class="btn primary" data-r="next">${iconSVG('play', 24)} Siguiente: ${esc(next)}</button>` : ''}
+        <button class="btn ${next ? '' : 'primary'}" data-r="map">${iconSVG('map', 24)} Volver al mapa</button>
+        <button class="btn ghost" data-r="stay">Seguir paseando por ${esc(town)}</button>
+      </div>`);
+    const k = (e) => { e.stopImmediatePropagation(); if (e.key === 'Escape') { e.preventDefault(); close('stay'); } };
+    const close = (r) => { ui.sound.ui('click'); done(ui, o, k); res(r); };
+    setTimeout(() => addEventListener('keydown', k, true), 500);
+    o.querySelectorAll('[data-r]').forEach(b => b.onclick = () => close(b.dataset.r));
+    setTimeout(() => o.querySelector('[data-r]')?.focus(), 80);
+  });
+}

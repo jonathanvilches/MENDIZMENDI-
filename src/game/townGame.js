@@ -7,7 +7,7 @@ import { TOWN } from '../world/townBuilder.js';
 import { isFree, segmentBlocked } from '../world/colliders.js';
 import { clamp, lerp, angleDiff, mulberry32 } from '../util/math.js';
 import { profile, saveProfile, townState, addXP, checkBadges, addCard, comarcaDone, levelOf } from './profile.js';
-import { infoCard, timingGame, mashGame, sequenceGame, simonGame, missionComplete } from '../ui/minigames.js';
+import { infoCard, timingGame, mashGame, sequenceGame, simonGame, missionComplete, townFinale } from '../ui/minigames.js';
 import { makeItem, makeGate, makeWorkbench } from './items.js';
 import COMARCAS from '../data/comarcas.json';
 import FOLKLORE from '../data/folklore.json';
@@ -951,19 +951,28 @@ export class TownGame {
     saveProfile();
     await missionComplete(this.ui, { title: M.title, text: cardText ? cardText : `Has completado una misión en ${this.def.name}.`, xp, card, icon: M.icon, progress: { done: doneN, total: this.missions.length, name: this.def.name } });
     if (lvUp) { const L = levelOf(this.P.xp); await infoCard(this.ui, { icon: 'star', kicker: '¡Subes de nivel!', title: `Nivel ${L.lv}`, text: 'Cada misión te hace más sabio sobre Navarra. ¡Sigue así!', button: '¡Genial!' }); }
-    if (doneN === this.missions.length && !this.ts.stamp) await this.stampTown();
+    const last = doneN === this.missions.length && !this.ts.stamp;
+    if (last) { this.ts.stamp = true; saveProfile(); }
     for (const b of checkBadges()) await infoCard(this.ui, { icon: b.icon, kicker: 'Nueva insignia', title: b.name, text: b.text, button: '¡Bien!' });
     saveProfile();
+    if (last) { await this.stampTown(); return; }
     this.autoTrack();
     const next = this.missions.find(x => !x.done && this.unlocked(x));
     if (next) this.ui.toast(`Siguiente: ${next.title} — busca la exclamación amarilla`, 'exclaim', 3800);
   }
   async stampTown() {
     this.ts.stamp = true; addXP(150); saveProfile();
-    const img = stampImg(this.def.comarca, this.def.name.split(' /')[0], this.missions.find(M => M.type !== 'visit' && M.type !== 'quiz')?.icon);
-    await missionComplete(this.ui, { title: this.def.name, text: `Has completado todas las misiones de ${this.def.name}. ¡Tu pasaporte tiene un sello nuevo!`, xp: 150, stamp: img, next: 'Ver mi pasaporte' });
+    const town = this.def.name.split(' /')[0];
+    const img = stampImg(this.def.comarca, town, this.missions.find(M => M.type !== 'visit' && M.type !== 'quiz')?.icon);
     if (comarcaDone(this.P, this.def.comarca)) await infoCard(this.ui, { icon: 'shield', kicker: '¡Comarca completa!', title: this.comarca.name, text: `Has conocido todos los pueblos de ${this.comarca.name}. Se ilumina en tu mapa de Navarra.`, button: '¡Increíble!' });
     saveProfile();
+    // celebración: fuegos en el cielo del pueblo y el personaje lo festeja
+    this.player.rig.doCheer(); this.particles.confetti?.(this.player.pos, 120); this.sound.fanfare?.();
+    const xp = this.missions.reduce((s, M) => s + ({ visit: 80, quiz: 60 }[M.type] || 100), 0) + 150;
+    const nextL = LEVELS.find(l => l.comarca === this.def.comarca && l.id !== this.def.id && !this.P.towns[l.id]?.stamp) || LEVELS.find(l => l.id !== this.def.id && !this.P.towns[l.id]?.stamp);
+    const r = await townFinale(this.ui, { town, stamp: img, missions: this.missions.map(M => ({ title: M.title, icon: M.icon })), xp, next: nextL?.name.split(' /')[0] });
+    if (r === 'next' && nextL) this.onPlayTown?.(nextL.id);
+    else if (r === 'map') this.onExit?.();
   }
 
   // Compatibilidad con la interfaz

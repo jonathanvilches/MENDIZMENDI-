@@ -168,6 +168,8 @@ function leg(joints, col, hoofCol, { hoofH = 0.06, tex = 2, split = false, paw =
     color: (u, th, p) => { const c = typeof col === 'function' ? col(p, (top - p.y) / (top - bot)) : col; return p.y < bot + hoofH ? hoofCol : c; },
   });
   const out = [g];
+  const j0 = joints[0], c0 = typeof col === 'function' ? col(j0[0], 0) : col;
+  out.push(ball(j0[1][0] * 1.05, c0, tex, j0[0].x - Math.sign(j0[0].x || 1) * j0[1][0] * 0.35, top + j0[1][0] * 0.35, j0[0].z, 0.8, 1.35, 1.2));
   const last = joints[joints.length - 1];
   if (paw) out.push(ball(last[1][0] * 1.3, hoofCol, 2, last[0].x, bot + last[1][0] * 0.6, last[0].z + last[1][1] * 0.6, 1, 0.62, 1.4));
   else {
@@ -274,6 +276,7 @@ export const BEASTS = {
     const lc = (p, t) => C(R).lerp(C('#6a3a20'), sm(0.4, 0.9, t));
     const fl = (x) => leg([[V(x, 0, 0), [0.06, 0.06, 0.07]], [V(x, -0.18, 0.01), [0.04, 0.04, 0.04]], [V(x, -0.34, 0), [0.022, 0.022, 0.022]], [V(x, -0.54, 0.01), [0.016, 0.016, 0.016]], [V(x, -0.62, 0.03), [0.018, 0.018, 0.018]]], lc, '#1a1411', { hoofH: 0.035, split: true });
     const hl = (x) => leg([[V(x, 0, 0), [0.08, 0.08, 0.1]], [V(x, -0.16, 0.06), [0.055, 0.055, 0.06]], [V(x, -0.34, -0.1), [0.022, 0.022, 0.03]], [V(x, -0.56, -0.05), [0.017, 0.017, 0.017]], [V(x, -0.64, -0.02), [0.018, 0.018, 0.018]]], lc, '#1a1411', { hoofH: 0.035, split: true });
+    const hp = headG.attributes.position; for (let i = 0; i < hp.count; i++) { const y = hp.getY(i); hp.setY(i, y < 0.36 ? y * 0.72 : y - 0.1); } headG.computeVertexNormals();
     return { body, head: headG, neck: V(0, 0.72, 0.34), legs: { fl: [0.08, 0.62, 0.28], hl: [0.09, 0.64, -0.28], front: fl, hind: hl }, tail: null };
   },
   // Ciervo: gran macho pardo-grisáceo, cuello oscuro con melena, escudo claro y cuerna ramificada

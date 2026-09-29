@@ -135,12 +135,12 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; }
 #cRun { grid-column: 1; grid-row: 2; }
 #cAct { grid-column: 2; grid-row: 2; }
 .cbtn { position: relative; width: 62px; height: 62px; border-radius: 50%; padding: 0; background: radial-gradient(circle at 50% 30%, rgba(80, 40, 150, .82), rgba(28, 11, 58, .88)); border: 2.5px solid #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; color: #fff; box-shadow: 0 0 0 3px rgba(138, 43, 226, .45), 0 5px 0 rgba(10, 4, 24, .55), 0 8px 16px rgba(0, 0, 0, .3); transition: transform .1s, background .15s, box-shadow .15s, opacity .2s; -webkit-tap-highlight-color: transparent; }
-.cbtn svg { width: 30px; height: 30px; flex: none; margin-top: 2px; overflow: visible; }
+.cbtn svg { width: 36px; height: 36px; flex: none; overflow: visible; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .35)); }
 .cbtn b { font: 900 9px/1 Nunito, sans-serif; letter-spacing: .04em; text-transform: uppercase; color: #fff; text-shadow: 0 1px 0 #1f1a26; white-space: nowrap; }
 .cbtn:active { transform: translateY(3px) scale(.95); box-shadow: 0 0 0 3px rgba(138, 43, 226, .45), 0 2px 0 rgba(10, 4, 24, .55), 0 4px 10px rgba(0, 0, 0, .3); }
 .cbtn.on { background: radial-gradient(circle at 50% 30%, #ff9d8a, #FF6347 70%); box-shadow: 0 0 0 3px rgba(255, 215, 0, .8), 0 5px 0 rgba(120, 30, 10, .6), 0 0 18px rgba(255, 99, 71, .6); }
 .cbtn.big { width: 80px; height: 80px; background: radial-gradient(circle at 50% 30%, #fff38f, #FFD700 60%, #f0b000); box-shadow: 0 0 0 4px rgba(255, 215, 0, .35), 0 5px 0 #a86f00, 0 10px 22px rgba(0, 0, 0, .35); animation: actPulse 1.6s ease-in-out infinite; }
-.cbtn.big svg { width: 38px; height: 38px; }
+.cbtn.big svg { width: 44px; height: 44px; }
 .cbtn.big b { font-size: 10px; color: #3a2200; text-shadow: 0 1px 0 rgba(255, 255, 255, .6); }
 .cbtn.big.off { background: radial-gradient(circle at 50% 30%, rgba(80, 40, 150, .7), rgba(28, 11, 58, .8)); box-shadow: 0 0 0 3px rgba(138, 43, 226, .35), 0 5px 0 rgba(10, 4, 24, .5), 0 8px 16px rgba(0, 0, 0, .25); animation: none; }
 .cbtn.big.off svg { opacity: .55; }
@@ -187,17 +187,19 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; }
 }
 /* teléfono en horizontal: todo un poco más compacto */
 @media (max-height: 520px) {
+  #controls { grid-template-columns: auto auto auto; grid-template-rows: auto; bottom: calc(var(--sb) + 12px); align-items: center; }
+  #cRun { grid-column: 1; grid-row: 1; } #cJump { grid-column: 2; grid-row: 1; } #cAct { grid-column: 3; grid-row: 1; }
   #compass { height: 34px; width: min(380px, 38vw); }
   #tl { max-width: 30vw; }
   #quest b.qt { font-size: 15px; } #quest .ic { flex-basis: 36px; height: 36px; } #quest .ic svg, #quest .ic img { width: 26px; height: 26px; }
   #ribbons { padding-left: 46px; }
   #mini { width: 92px; height: 92px; }
   .round { width: 38px; height: 38px; }
-  .cbtn { width: 54px; height: 54px; } .cbtn svg { width: 26px; height: 26px; } .cbtn b { font-size: 8px; } .cbtn.big { width: 70px; height: 70px; } .cbtn.big svg { width: 32px; height: 32px; }
+  .cbtn { width: 56px; height: 56px; } .cbtn svg { width: 32px; height: 32px; } .cbtn.big { width: 70px; height: 70px; } .cbtn.big svg { width: 38px; height: 38px; }
   #stickHint { width: 88px; height: 88px; bottom: calc(var(--sb) + 24px); }
-  #toast { top: auto; bottom: calc(var(--sb) + 12px); font-size: 14px; max-width: calc(100vw - 2 * (var(--sl) + var(--sr)) - 360px); } #toast svg, #toast img { width: 26px; height: 26px; }
+  #toast { top: auto; bottom: calc(var(--sb) + 12px); left: calc(50% - 22px); font-size: 14px; max-width: calc(100vw - var(--sl) - var(--sr) - 450px); } #toast svg, #toast img { width: 26px; height: 26px; }
   #dialog { padding: 10px 14px; } #dialog p { font-size: 15px; min-height: 40px; }
-  .touch #prompt { bottom: calc(var(--sb) + 156px); }
+  .touch #prompt { bottom: calc(var(--sb) + 92px); }
 }
 
 /* ---------- Pantallas (cuaderno, mapa, menú, premio) ---------- */
@@ -315,7 +317,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; }
   .qitem b { font-size: 16px; }
 }
 @media (max-width: 380px) {
-  .cbtn { width: 54px; height: 54px; } .cbtn svg { width: 26px; height: 26px; } .cbtn b { font-size: 8px; } .cbtn.big { width: 70px; height: 70px; } .cbtn.big svg { width: 32px; height: 32px; } #controls { gap: 8px; right: calc(var(--sr, 0px) + 12px); }
+  .cbtn { width: 56px; height: 56px; } .cbtn svg { width: 30px; height: 30px; } .cbtn.big { width: 68px; height: 68px; } .cbtn.big svg { width: 36px; height: 36px; } #controls { gap: 10px; right: calc(var(--sr, 0px) + 12px); }
   #stickHint { width: 92px; height: 92px; left: calc(var(--sl, 0px) + 18px); }
   .round { width: 40px; height: 40px; }
   #quest b.qt { font-size: 15.5px; }
@@ -357,3 +359,5 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; }
 #reward .card2 { background: linear-gradient(180deg, #3a1680, #1c0b3a); color: #f6f3fc; border: 1px solid rgba(190, 160, 255, .35); box-shadow: 0 24px 70px rgba(0, 0, 0, .55); }
 #reward h2 { color: #fff; }
 #reward .stamp { border-color: #FFD700; color: #FFD700; }
+
+@media (max-height: 420px) { #mini { width: 78px; height: 78px; } .round { width: 36px; height: 36px; } #topright { gap: 8px; } }
