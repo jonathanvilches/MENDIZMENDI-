@@ -17,8 +17,8 @@ const el = (html) => { const t = document.createElement('template'); t.innerHTML
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const I = (n, s = 24, c = '') => iconSVG(n, s, c);
 const comarca = (id) => COMARCAS.find(c => c.id === id);
-const TYPE_NAME = { visit: 'Visita', process: 'Producto', harvest: 'Cosecha', herd: 'Ganadería', dance: 'Danza', carnival: 'Carnaval', trade: 'Oficio', legend: 'Leyenda', race: 'Carrera', observe: 'Naturaleza', tradition: 'Tradición', quiz: 'Preguntas' };
-const TYPE_ICON = { visit: 'church', process: 'basket', harvest: 'wheat', herd: 'sheep', dance: 'dance', carnival: 'mask', trade: 'anvil', legend: 'legend', race: 'running', observe: 'binoculars', tradition: 'music', quiz: 'quiz' };
+const TYPE_NAME = { visit: 'Visita', process: 'Producto', harvest: 'Cosecha', herd: 'Ganadería', dance: 'Danza', carnival: 'Carnaval', trade: 'Oficio', legend: 'Leyenda', race: 'Carrera', observe: 'Naturaleza', tradition: 'Tradición', quiz: 'Preguntas', summit: 'Montaña', pelota: 'Pelota' };
+const TYPE_ICON = { visit: 'church', process: 'basket', harvest: 'wheat', herd: 'sheep', dance: 'dance', carnival: 'mask', trade: 'anvil', legend: 'legend', race: 'running', observe: 'binoculars', tradition: 'music', quiz: 'quiz', summit: 'peak', pelota: 'pelota' };
 // Proyección de coordenadas geográficas al mapa de comarcas
 const proj = (lat, lon) => [19 + (lon + 2.52) / 1.80 * 709, 17 + (43.325 - lat) / 1.43 * 765];
 const norm = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z]/g, '');
@@ -255,7 +255,7 @@ export class Hub {
     const c = comarca(id); if (!c) return this.s_map();
     const p = profile(), pr = comarcaProgress(p, id), ts = comarcaTowns(id), C = c.culture || {};
     const block = (ic, k, o) => o ? `<div class="cult">${I(ic, 48)}<div><small>${k}${o.date ? ' · ' + esc(o.date) : ''}</small><b>${esc(o.title)}</b><p>${esc(o.text)}</p>${o.place ? `<em>${esc(o.place)}</em>` : ''}</div></div>` : '';
-    const mts = (c.mountains || []).map(mid => MOUNTAINS.find(m => m.id === mid)).filter(Boolean).slice(0, 8);
+    const mts = MOUNTAINS.filter(m => m.region === id && LEVELS.some(l => (l.missions || []).some(x => x.type === 'summit' && x.peak === m.id)));
     const chips = (arr, fb) => (arr || []).map(n => `<span class="nchip">${I(speciesIcon(n) || fb, 26)}${esc(n)}</span>`).join('');
     return `
     <section class="chero" style="--c:${c.color};--bg:url(${landImg(id)})">
@@ -274,7 +274,7 @@ export class Hub {
         <h3>Plantas</h3><div class="nchips">${chips(c.nature?.plants, 'herbs')}</div>
         <h3>Flores</h3><div class="nchips">${chips(c.nature?.flowers, 'flower')}</div></div>
     </section>
-    ${mts.length ? `<h2 class="sec">${I('peak', 30)} Cimas de la comarca</h2><section class="peaks">${mts.map(m => this.peakCard(m)).join('')}</section>` : ''}`;
+    ${mts.length ? `<h2 class="sec">${I('peak', 30)} Cimas para subir</h2><section class="peaks">${mts.map(m => this.peakCard(m, LEVELS.find(l => (l.missions || []).some(x => x.type === 'summit' && x.peak === m.id)))).join('')}</section>` : ''}`;
   }
   townCard(l) {
     const p = profile(), t = townProgress(p, l), c = comarca(l.comarca);
@@ -316,22 +316,23 @@ export class Hub {
   }
 
   // ---------- Cimas ----------
-  s_peaks(filter = 'all') {
+  // Cimas: las que se suben en el juego (misión de montaña en un pueblo) y el resto como guía
+  s_peaks(filter = 'game') {
     const p = profile();
-    const list = MOUNTAINS.filter(m => filter === 'all' || m.region === filter).sort((a, b) => b.altitude - a.altitude);
-    this.after = () => {
-      this.root.querySelectorAll('.filters button').forEach(b => b.onclick = (e) => { e.stopPropagation(); this.go('peaks', b.dataset.f); });
-      this.root.querySelectorAll('[data-peak]').forEach(b => b.onclick = (e) => { e.stopPropagation(); const id = b.dataset.peak; const i = p.peaks.indexOf(id); if (i >= 0) p.peaks.splice(i, 1); else p.peaks.push(id); checkBadges(); saveProfile(); this.sound?.ui(i >= 0 ? 'click' : 'coin'); this.go('peaks', filter, true); });
-    };
-    return `<h1 class="title">${I('peak', 40)} Cimas de Navarra</h1><p class="lead">${MOUNTAINS.length} montañas con su perfil. Marca las que subas de verdad con tu familia: ¡cada cima cuenta para tus insignias! Llevas <b>${p.peaks.length}</b>.</p>
-      <div class="filters"><button data-f="all" class="${filter === 'all' ? 'on' : ''}">Todas</button>${COMARCAS.map(c => `<button data-f="${c.id}" class="${filter === c.id ? 'on' : ''}" style="--c:${c.color}">${esc(c.name)}</button>`).join('')}</div>
-      <section class="peaks">${list.map(m => this.peakCard(m)).join('')}</section>`;
+    const inGame = new Map(); for (const l of LEVELS) for (const m of l.missions || []) if (m.type === 'summit') inGame.set(m.peak, l);
+    const list = MOUNTAINS.filter(m => filter === 'game' ? inGame.has(m.id) : filter === 'all' || m.region === filter).sort((a, b) => (inGame.has(b.id) - inGame.has(a.id)) || b.altitude - a.altitude);
+    this.after = () => this.root.querySelectorAll('.filters button').forEach(b => b.onclick = (e) => { e.stopPropagation(); this.go('peaks', b.dataset.f); });
+    const won = [...inGame.keys()].filter(id => p.peaks.includes(id)).length;
+    return `<h1 class="title">${I('peak', 40)} Cimas de Navarra</h1><p class="lead">Sube a los montes en las misiones de montaña: sigue los mojones hasta el buzón de cumbre. Llevas <b>${won}/${inGame.size}</b> cimas.</p>
+      <div class="filters"><button data-f="game" class="${filter === 'game' ? 'on' : ''}">${I('flag', 20)} En el juego</button><button data-f="all" class="${filter === 'all' ? 'on' : ''}">Todas</button>${COMARCAS.filter(c => MOUNTAINS.some(m => m.region === c.id)).map(c => `<button data-f="${c.id}" class="${filter === c.id ? 'on' : ''}" style="--c:${c.color}">${esc(c.name)}</button>`).join('')}</div>
+      <section class="peaks">${list.map(m => this.peakCard(m, inGame.get(m.id))).join('')}</section>`;
   }
-  peakCard(m) {
+  peakCard(m, town = null) {
     const done = profile().peaks.includes(m.id), c = comarca(m.region);
     return `<div class="pcard ${done ? 'done' : ''}" style="--c:${c?.color || '#6d3b5c'}"><div class="phead">${I('peak', 40)}<div><b>${esc(m.name)}</b><small>${esc(m.zone || '')}</small></div><span class="alt">${m.altitude} m</span></div>
-      ${spark(m.profile)}<div class="pmeta"><span>${I('footprint', 18)} ${m.distance} km</span><span>${I('arrow', 18)} +${m.gain} m</span><span class="diff">${'<i></i>'.repeat(m.difficulty)}${'<i class="o"></i>'.repeat(Math.max(0, 5 - m.difficulty))}</span></div>
-      <p>${esc(m.intro || '')}</p><button class="btn small ${done ? 'primary' : ''}" data-peak="${m.id}">${done ? I('check', 18) + ' Subida' : 'Marcar como subida'}</button></div>`;
+      ${spark(m.profile)}<div class="pmeta"><span>${m.distance} km</span><span>+${m.gain} m</span><span class="diff">${'<i></i>'.repeat(m.difficulty)}${'<i class="o"></i>'.repeat(Math.max(0, 5 - m.difficulty))}</span></div>
+      <p>${esc(m.intro || '')}</p>
+      ${town ? (done ? `<span class="pbadge ok">${I('check', 18)} Cima conseguida</span>` : `<button class="btn small primary" data-town="${town.id}">${I('play', 18)} Misión en ${esc(town.name.split(' /')[0])}</button>`) : ''}</div>`;
   }
 
   // ---------- Naturaleza ----------
