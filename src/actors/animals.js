@@ -258,10 +258,12 @@ function buildFish() {
 
 // ---------- Gestor de fauna ----------
 export class Fauna {
-  constructor(scene, quality) {
+  constructor(scene, quality, spec) {
     this.scene = scene;
     const rnd = this.rnd = mulberry32(555);
     this.animals = [];
+    this.extraObservables = [];
+    if (spec) return this.buildGeneric(scene, quality, spec);
     // Vacas pirenaicas en los prados altos del oeste
     for (let i = 0; i < 6; i++) this.add('cow', -150 + rnd() * 50, 90 + rnd() * 40, { range: 25, walk: 0.6, radius: 0.8, flee: 0 });
     // Pottokas en la ladera de Muskilda
@@ -304,6 +306,36 @@ export class Fauna {
     for (let i = 0; i < 5; i++) { const o = buildFish(); o.visible = false; scene.add(o); this.fish.push({ obj: o, t: rnd() * 8, id: 'trucha', pos: o.position, jump: -1 }); }
     // Perro del pastor
     this.dog = this.add('dog', PLACES.borda.x + 5, PLACES.borda.z + 5, { range: 6, walk: 1.2, run: 6, radius: 0.3 });
+    this.buildButterflies(scene, quality);
+    this.buildFireflies(scene, quality);
+    this.buildBirds(scene);
+    this.visDist = quality === 'low' ? 60 : quality === 'mid' ? 80 : 100;
+  }
+  buildGeneric(scene, quality, spec) {
+    const rnd = this.rnd, P = spec.places, fam = spec.def.family, com = spec.def.comarca;
+    const near = (p, r) => [p.x + (rnd() - 0.5) * r, p.z + (rnd() - 0.5) * r];
+    const farm = P.farm || { x: 150, z: 40 };
+    this.flock = [];
+    const sheepN = fam === 'ribera' ? 6 : 10;
+    for (let i = 0; i < sheepN; i++) { const [x, z] = near({ x: farm.x + (P.farm.x > 0 ? 25 : -25), z: farm.z + 30 }, 30); this.flock.push(this.add('sheep', x, z, { range: 14, walk: 0.5, run: 2.8, flee: 3.5, radius: 0.45 })); }
+    if (fam === 'atlantic' || fam === 'pyrenean') for (let i = 0; i < 5; i++) { const [x, z] = near({ x: farm.x, z: farm.z - 45 }, 40); this.add('cow', x, z, { range: 25, walk: 0.6, radius: 0.8, flee: 0 }); }
+    if (['bidasoa', 'larraun-leitzaldea', 'sakana'].includes(com)) for (let i = 0; i < 4; i++) { const [x, z] = near(P.edgeN || P.forest, 60); this.add('pottoka', x, z, { range: 30, walk: 1, run: 5, radius: 0.6, flee: 5 }); }
+    this.wild = [];
+    const forest = P.forest || { x: 0, z: -300 };
+    for (let i = 0; i < 4; i++) { const [x, z] = near(forest, 120); this.wild.push(this.add('corzo', x, z, { id: 'corzo', range: 20, walk: 0.9, run: 7, flee: 13, radius: 0.35 })); }
+    if (fam !== 'ribera') for (let i = 0; i < 2; i++) { const [x, z] = near(forest, 140); this.wild.push(this.add('ciervo', x, z, { id: 'ciervo', range: 25, walk: 1, run: 7.5, flee: 16, radius: 0.5 })); }
+    for (let i = 0; i < 2; i++) { const [x, z] = near(forest, 160); this.wild.push(this.add('jabali', x, z, { id: 'jabali', range: 25, walk: 0.8, run: 5, flee: 9, radius: 0.45 })); }
+    this.squirrels = []; this.peckers = [];
+    const trees = TREES.filter(t => Math.hypot(t.x - forest.x, t.z - forest.z) < 150 && t.type !== 'olive');
+    for (let i = 0; i < 6 && trees.length; i++) { const t = trees[Math.floor(rnd() * trees.length)]; const o = buildSquirrel(); scene.add(o); this.squirrels.push({ obj: o, tree: t, state: 'ground', t: rnd() * 5, pos: new THREE.Vector3(t.x + 1, 0, t.z), heading: 0, id: 'ardilla', climb: 0 }); }
+    if (fam === 'atlantic' || fam === 'pyrenean') for (let i = 0; i < 2 && trees.length; i++) { const t = trees[Math.floor(rnd() * trees.length)]; const o = buildWoodpecker(); scene.add(o); const a = rnd() * 6.28; o.position.set(t.x + Math.sin(a) * 0.38 * t.s, t.y + 2.4 * t.s, t.z + Math.cos(a) * 0.38 * t.s); o.rotation.y = a + Math.PI; this.peckers.push({ obj: o, t: rnd() * 3, id: 'pito', pos: o.position }); }
+    this.vultures = [];
+    const vN = fam === 'ribera' ? 3 : 5;
+    const gorge = (P.landmarks || []).find(l => l.kind === 'gorge');
+    for (let i = 0; i < vN; i++) { const o = buildVulture(); scene.add(o); const c = gorge ? new THREE.Vector3(gorge.x, 60 + i * 8, gorge.z) : new THREE.Vector3((rnd() - 0.5) * 300, 90 + i * 10, -150 + (rnd() - 0.5) * 200); this.vultures.push({ obj: o, c, r: 25 + rnd() * 35, a: rnd() * 6.28, w: 0.1 + rnd() * 0.08, id: 'buitre', pos: o.position }); }
+    this.fish = [];
+    if (spec.def.river) for (let i = 0; i < 4; i++) { const o = buildFish(); o.visible = false; scene.add(o); this.fish.push({ obj: o, t: rnd() * 8, id: 'trucha', pos: o.position, jump: -1 }); }
+    this.dog = this.add('dog', farm.x + 6, farm.z + 6, { range: 6, walk: 1.2, run: 6, radius: 0.3 });
     this.buildButterflies(scene, quality);
     this.buildFireflies(scene, quality);
     this.buildBirds(scene);
@@ -355,6 +387,7 @@ export class Fauna {
   // Lista de criaturas observables (para los prismáticos)
   observables() {
     const out = [];
+    this.extraObservables = this.extraObservables || [];
     for (const a of this.wild) out.push({ id: a.id, pos: a.pos, h: 0.8, ref: a });
     for (const s of this.squirrels) out.push({ id: 'ardilla', pos: s.obj.position, h: 0.15, ref: s });
     for (const p of this.peckers) out.push({ id: 'pito', pos: p.obj.position, h: 0.1, ref: p });

@@ -8,6 +8,7 @@ import { addBox, addCircle, isFree } from './colliders.js';
 import { mulberry32, clamp } from '../util/math.js';
 
 export const VILLAGE = { palaces: [], lamps: [], benches: [], houses: [], church: null, fountain: null, doors: [] };
+export function resetVillage() { VILLAGE.palaces = []; VILLAGE.lamps = []; VILLAGE.benches = []; VILLAGE.houses = []; VILLAGE.church = null; VILLAGE.fountain = null; VILLAGE.doors = []; }
 
 function minGround(x, z, w, d, ry) {
   const c = Math.cos(ry), s = Math.sin(ry);

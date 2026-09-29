@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { rx, zz, CONF, FA, FZ, riverHalfA, RIVER_HALF_Z, PLACES, HALF } from './layout.js';
+import { rx, zz, CONF, FA, FZ, riverHalfA, RIVER_HALF_Z, PLACES, HALF, RIVERS, PONDS, KIND } from './layout.js';
 
 const waterVS = `
 varying vec3 vWP; varying vec2 vUv; varying float vEdge;
@@ -91,38 +91,53 @@ function ribbon(samples, widthFn, levelFn) {
 export class Water {
   constructor(scene) {
     this.mats = [];
-    // Anduña (fluye de norte a sur => +z)
-    const sA = [];
-    for (let z = -HALF - 40; z <= HALF + 40; z += 3) {
-      const x = rx(z), dx = rx(z + 0.5) - rx(z - 0.5);
-      const l = Math.hypot(dx, 1);
-      sA.push([x, z, 1 / l, -dx / l]);
+    this.meshes = [];
+    const add = (m) => { m.renderOrder = 2; scene.add(m); this.meshes.push(m); };
+    if (KIND === 'salazar') {
+      // Anduña (fluye de norte a sur => +z)
+      const sA = [];
+      for (let z = -HALF - 40; z <= HALF + 40; z += 3) {
+        const x = rx(z), dx = rx(z + 0.5) - rx(z - 0.5);
+        const l = Math.hypot(dx, 1);
+        sA.push([x, z, 1 / l, -dx / l]);
+      }
+      const mA = makeMat(0.55); this.mats.push(mA);
+      add(new THREE.Mesh(ribbon(sA, i => riverHalfA(sA[i][1]), i => FA(sA[i][1]) - 0.9), mA));
+      // Zatoya (fluye de este a oeste)
+      const sZ = [];
+      for (let x = HALF + 40; x >= CONF.x - 1; x -= 3) {
+        const z = zz(x), dz = zz(x + 0.5) - zz(x - 0.5);
+        const l = Math.hypot(1, dz);
+        sZ.push([x, z, -dz / l, 1 / l]);
+      }
+      const mZ = makeMat(0.5); this.mats.push(mZ);
+      add(new THREE.Mesh(ribbon(sZ, () => RIVER_HALF_Z, i => FZ(sZ[i][0]) - 0.9), mZ));
+    } else {
+      for (const rv of RIVERS || []) {
+        const sA = [];
+        for (let z = -HALF - 40; z <= HALF + 40; z += 3) {
+          const x = rv.rx(z), dx = rv.rx(z + 0.5) - rv.rx(z - 0.5);
+          const l = Math.hypot(dx, 1);
+          sA.push([x, z, 1 / l, -dx / l]);
+        }
+        const m = makeMat(rv.half > 8 ? 0.35 : 0.55); this.mats.push(m);
+        if (rv.half > 8) { m.uniforms.uDeep.value.set('#3b5f55'); m.uniforms.uShallow.value.set('#6f8f72'); }
+        add(new THREE.Mesh(ribbon(sA, () => rv.half, i => rv.level(sA[i][1])), m));
+      }
     }
-    const mA = makeMat(0.55); this.mats.push(mA);
-    const gA = ribbon(sA, i => riverHalfA(sA[i][1]), i => FA(sA[i][1]) - 0.9);
-    const wA = new THREE.Mesh(gA, mA); wA.renderOrder = 2; scene.add(wA);
-    // Zatoya (fluye de este a oeste)
-    const sZ = [];
-    for (let x = HALF + 40; x >= CONF.x - 1; x -= 3) {
-      const z = zz(x), dz = zz(x + 0.5) - zz(x - 0.5);
-      const l = Math.hypot(1, dz);
-      sZ.push([x, z, -dz / l, 1 / l]);
+    for (const pd of PONDS) {
+      const mP = makeMat(0.0); this.mats.push(mP);
+      mP.uniforms.uDeep.value.set('#143f4d'); mP.uniforms.uShallow.value.set('#3b7f78');
+      const pg = new THREE.CircleGeometry(pd.r + 3, 64);
+      pg.rotateX(-Math.PI / 2);
+      const e = [], p = pg.attributes.position;
+      for (let i = 0; i < p.count; i++) e.push(Math.min(1, Math.hypot(p.getX(i), p.getZ(i)) / (pd.r + 3)) * 0.9);
+      pg.setAttribute('aEdge', new THREE.Float32BufferAttribute(e, 1));
+      const uvp = pg.attributes.uv; for (let i = 0; i < uvp.count; i++) uvp.setXY(i, uvp.getX(i) * 6, uvp.getY(i) * 6);
+      const pond = new THREE.Mesh(pg, mP);
+      pond.position.set(pd.x, pd.level, pd.z);
+      add(pond);
     }
-    const mZ = makeMat(0.5); this.mats.push(mZ);
-    const gZ = ribbon(sZ, () => RIVER_HALF_Z, i => FZ(sZ[i][0]) - 0.9);
-    const wZ = new THREE.Mesh(gZ, mZ); wZ.renderOrder = 2; scene.add(wZ);
-    // Balsa de Irati
-    const mP = makeMat(0.0); this.mats.push(mP);
-    mP.uniforms.uDeep.value.set('#143f4d'); mP.uniforms.uShallow.value.set('#3b7f78');
-    const pg = new THREE.CircleGeometry(PLACES.pond.r + 3, 64);
-    pg.rotateX(-Math.PI / 2);
-    const e = [], p = pg.attributes.position;
-    for (let i = 0; i < p.count; i++) e.push(Math.min(1, Math.hypot(p.getX(i), p.getZ(i)) / (PLACES.pond.r + 3)) * 0.9);
-    pg.setAttribute('aEdge', new THREE.Float32BufferAttribute(e, 1));
-    const uvp = pg.attributes.uv; for (let i = 0; i < uvp.count; i++) uvp.setXY(i, uvp.getX(i) * 6, uvp.getY(i) * 6);
-    const pond = new THREE.Mesh(pg, mP);
-    pond.position.set(PLACES.pond.x, PLACES.pond.level, PLACES.pond.z); pond.renderOrder = 2;
-    scene.add(pond);
   }
   update(elapsed, sky) {
     for (const m of this.mats) {

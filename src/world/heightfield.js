@@ -1,5 +1,5 @@
 // Hornea la geografía en rejillas para consultas rápidas (altura, superficie, bosque)
-import { HALF, CELL, N, finalHeight, pathQuery, iratiMask, villageMask, meadowMask, plazaMask, BRIDGES, PLACES, riverInfo, POND_LEVEL, fieldInfo } from './layout.js';
+import { HALF, CELL, N, finalHeight, pathQuery, iratiMask, villageMask, meadowMask, plazaMask, BRIDGES, PLACES, riverInfo, PONDS, fieldInfo, KIND, FOREST } from './layout.js';
 import { clamp, lerp, smoothstep } from '../util/math.js';
 import { fbm } from '../util/noise.js';
 
@@ -27,15 +27,19 @@ export function bake() {
       H[k] = f.h;
       const r = f.river;
       const inWater = r.edge < 1.5 && f.h < r.level - 0.05;
-      const dp = Math.hypot(x - PLACES.pond.x, z - PLACES.pond.z);
-      const inPond = dp < PLACES.pond.r + 4 && f.h < POND_LEVEL() - 0.05;
+      let inPond = false, pondClear = 1;
+      for (const pd of PONDS) {
+        const dp = Math.hypot(x - pd.x, z - pd.z);
+        if (dp < pd.r + 4 && f.h < pd.level - 0.05) inPond = true;
+        pondClear *= 1 - smoothstep(pd.r + 12, pd.r + 2, dp);
+      }
       SURF.water[k] = inWater || inPond ? 1 : 0;
       let street = 0, dirt = 0;
       if (p.type === 'street') street = 1 - smoothstep(p.w - 0.6, p.w + 0.4, p.d);
       else if (p.type) dirt = 1 - smoothstep(p.w - 0.7, p.w + 0.5, p.d);
       street = Math.max(street, plazaMask(x, z));
       // cancha del frontón
-      if (Math.abs(x - (PLACES.fronton.x)) < 16 && Math.abs(z - PLACES.fronton.z) < 6.5) street = 1;
+      for (const c of PLACES.courts || []) if (Math.abs(x - c.x) < c.hw && Math.abs(z - c.z) < c.hd) street = 1;
       // Zona de la fuente del pueblo algo más empedrada
       SURF.street[k] = street * 255;
       SURF.dirt[k] = dirt * 255;
@@ -45,14 +49,14 @@ export function bake() {
       let forest = 0;
       const irati = iratiMask(x, z);
       forest = Math.max(forest, irati * smoothstep(-0.55, -0.2, n1));
-      forest = Math.max(forest, smoothstep(0.05, 0.35, n1) * smoothstep(60, 140, r.d));
+      const t0 = 0.45 - 0.8 * FOREST;
+      forest = Math.max(forest, smoothstep(t0, t0 + 0.3, n1) * smoothstep(60, 140, Math.min(r.d, 400)));
       const r4 = Math.pow(x ** 4 + z ** 4, 0.25);
       forest *= 1 - smoothstep(470, 520, r4) * 0.8;
       forest *= 1 - vm;
       forest *= 1 - mm * 0.95;
-      forest *= 1 - smoothstep(35, 16, Math.hypot(x - PLACES.muskilda.x, z - PLACES.muskilda.z));
-      forest *= 1 - smoothstep(PLACES.pond.r + 12, PLACES.pond.r + 2, dp);
-      forest *= 1 - smoothstep(16, 8, Math.hypot(x - PLACES.waterfall.x, z - PLACES.waterfall.z));
+      for (const c of PLACES.clearings || []) forest *= 1 - smoothstep(c.r0, c.r1, Math.hypot(x - c.x, z - c.z));
+      forest *= pondClear;
       forest *= smoothstep(2, 6, p.d - p.w);
       forest *= smoothstep(1, 5, r.edge);
       SURF.forest[k] = clamp(forest, 0, 1) * 255;
@@ -119,8 +123,7 @@ export function groundHeight(x, z) {
 
 // Nivel de agua en un punto (o -Infinity si no hay agua cerca)
 export function waterLevelAt(x, z) {
-  const dp = Math.hypot(x - PLACES.pond.x, z - PLACES.pond.z);
-  if (dp < PLACES.pond.r + 8) return POND_LEVEL();
+  for (const pd of PONDS) if (Math.hypot(x - pd.x, z - pd.z) < pd.r + 8) return pd.level;
   const r = riverInfo(x, z);
   if (r.edge < 3) return r.level;
   return -Infinity;

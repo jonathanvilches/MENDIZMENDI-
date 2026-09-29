@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { HALF, CELL, N, finalHeight, riverInfo, iratiMask, meadowMask, valleyFloor, fieldInfo } from './layout.js';
+import { HALF, CELL, N, finalHeight, riverInfo, iratiMask, meadowMask, valleyFloor, fieldInfo, TONE } from './layout.js';
 import { ridged } from '../util/noise.js';
 import { H, SURF } from './heightfield.js';
 import { TEX } from './textures.js';
@@ -10,12 +10,22 @@ const CH = 100;                  // tamaño de trozo en metros
 const PER = CH / CELL;           // celdas por trozo
 
 const C = (h) => new THREE.Color(h);
-const PAL = {
-  grassA: C('#57903a'), grassB: C('#86ab4a'), grassDry: C('#a9a65a'), meadow: C('#78b043'),
-  forest: C('#46642b'), litter: C('#6d5230'), gravel: C('#9a917c'), mud: C('#6b6150'),
-  rock: C('#8b877c'), rockDark: C('#6a655c'), snow: C('#f1f4f7'), street: C('#ffffff'), dirt: C('#ffffff'),
-  hay: C('#a4ab58'), cut: C('#b3b06a'), cut2: C('#a2a45e'), soil: C('#7a5b3c'), crop: C('#5d8a3a'), lush: C('#4c8a33'),
+const BASE = {
+  grassA: '#57903a', grassB: '#86ab4a', grassDry: '#a9a65a', meadow: '#78b043',
+  forest: '#46642b', litter: '#6d5230', gravel: '#9a917c', mud: '#6b6150',
+  rock: '#8b877c', rockDark: '#6a655c', snow: '#f1f4f7', street: '#ffffff', dirt: '#ffffff',
+  hay: '#a4ab58', cut: '#b3b06a', cut2: '#a2a45e', soil: '#7a5b3c', crop: '#5d8a3a', lush: '#4c8a33',
+  vine: '#8a6f4c', olive: '#a08a60', huerta: '#5a4330', huertaG: '#4f8a35',
 };
+const TONES = {
+  alpine: {},
+  lush: { grassA: '#4f9438', grassB: '#7fb04a', grassDry: '#94a654', meadow: '#6cb543', lush: '#3f8a2f' },
+  dry: { grassA: '#7f9a45', grassB: '#b0ad5c', grassDry: '#c9b56a', meadow: '#8fae4a', hay: '#c7b464', cut: '#d6c07a', cut2: '#c9ad62', soil: '#8a6a45', rock: '#a39880', rockDark: '#857a66', forest: '#4f6a30' },
+  arid: { grassA: '#a59a5e', grassB: '#c4b073', grassDry: '#d6c38a', meadow: '#98a353', hay: '#d0bb70', cut: '#decb8c', cut2: '#cfb876', soil: '#9b7a50', rock: '#c2ab82', rockDark: '#a58c66', gravel: '#b7a88a', forest: '#5d6e3a', snow: '#e9d9b8' },
+};
+let PAL = {};
+function setPalette(tone) { PAL = {}; const t = { ...BASE, ...(TONES[tone] || {}) }; for (const k in t) PAL[k] = C(t[k]); }
+setPalette('alpine');
 
 function vertexColor(i, j, out) {
   const k = j * N + i;
@@ -34,6 +44,10 @@ function vertexColor(i, j, out) {
     else if (t === 2) out.lerp(fi.stripe > 0 ? PAL.cut : PAL.cut2, 0.8 * m);
     else if (t === 3) out.lerp(fi.stripe > 0.2 ? PAL.soil : PAL.crop, 0.85 * m);
     else if (t === 4) out.lerp(PAL.lush, 0.6 * m);
+    else if (t === 5) out.lerp(PAL.vine, 0.75 * m);
+    else if (t === 6) out.lerp(PAL.olive, 0.7 * m);
+    else if (t === 7) out.lerp(fi.stripe > 0.3 ? PAL.huertaG : PAL.huerta, 0.85 * m);
+    else if (t === 8) out.lerp(PAL.lush, 0.4 * m);
   }
   const forest = SURF.forest[k] / 255;
   if (forest > 0) { out.lerp(PAL.forest, forest * 0.75); out.lerp(PAL.litter, forest * smoothstep(0.3, 0.8, n2) * 0.5); }
@@ -153,6 +167,7 @@ roughnessFactor = mix(roughnessFactor, 0.8, smoothstep(0.2,0.9,vSurf.x));`);
 
 export class Terrain {
   constructor(scene, quality) {
+    setPalette(TONE);
     this.group = new THREE.Group();
     this.mat = makeTerrainMaterial();
     this.chunks = [];
