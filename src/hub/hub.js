@@ -155,8 +155,9 @@ export class Hub {
     const ms = (last.missions || []).map((m, i) => `<span class="mi ${done[i] ? 'ok' : ''}" title="${esc(m.title || m.name || TYPE_NAME[m.type] || '')}">${I(TYPE_ICON[m.type] || 'star', 40)}${done[i] ? `<i class="tick">${I('check', 16)}</i>` : ''}</span>`).join('');
     this.after = () => {
       // el escenario 3D se monta después de pintar la pantalla, para que aparezca al instante
+      // (salvo que otro escenario, como el selector de bienvenida, esté ya en uso encima)
       const host = $('#heroStage', this.root);
-      requestAnimationFrame(() => setTimeout(() => { if (!host.isConnected) return; this.stage = new Stage(host, p.avatar, { mode: 'scene', comarca: last.comarca }); this.stage.onPoke = () => { say(k + 1); this.sound?.ui('click'); }; }, 50));
+      requestAnimationFrame(() => setTimeout(() => { if (!host.isConnected) return; const cur = Stage.current; if (cur?.alive && cur.host !== host && cur.host.isConnected) return; this.stage = new Stage(host, p.avatar, { mode: 'scene', comarca: last.comarca }); this.stage.onPoke = () => { say(k + 1); this.sound?.ui('click'); }; }, 50));
       let k = 0; const bub = $('#hBubble p', this.root);
       const say = (i) => { k = (i + lines.length) % lines.length; bub.classList.remove('in'); void bub.offsetWidth; bub.textContent = lines[k]; bub.classList.add('in'); $('#hBubble .dots', this.root).innerHTML = lines.map((_, j) => `<i class="${j === k ? 'on' : ''}"></i>`).join(''); };
       say(0);
