@@ -16,6 +16,8 @@ import { COSTUMES } from '../actors/minifig.js';
 import { stampImg } from '../assets.js';
 import { FAUNA, faunaName } from '../data/fauna.js';
 import { LEGENDS, NIGHT_CARNIVAL } from '../data/legends.js';
+import MOUNTAINS from '../data/mountains.json';
+import { Fronton, findFrontonSpot } from './fronton.js';
 import { makeClue, makeAura } from './legendFx.js';
 
 const CROP = {
@@ -118,6 +120,10 @@ export class TownGame {
         M.steps = () => ['Habla con ' + host(), `Con los prismáticos, encuentra ${M.species.map(faunaName).join(' o ').toLowerCase() || 'animales'} (${M.count}/${M.need})`, 'Vuelve con ' + host()]; break;
       case 'tradition': M.title = m.title || 'Tradición'; M.icon = m.kind === 'angel' ? 'angel' : 'music';
         M.steps = () => ['Habla con ' + host(), m.kind === 'angel' ? 'Prepara la bajada: repite la secuencia' : 'Repite la melodía']; break;
+      case 'summit': { const pk = M.peak = MOUNTAINS.find(x => x.id === m.peak); M.title = `Sube al ${pk?.name || 'monte'}`; M.icon = 'peak'; M.need = 4;
+        M.steps = () => ['Habla con ' + host(), `Sigue los mojones hasta la cima (${M.count}/${M.need})`, `Llega a la cima del ${pk?.name || 'monte'}`]; break; }
+      case 'pelota': M.title = m.title || 'Partido en el frontón'; M.icon = 'pelota';
+        M.steps = () => ['Habla con ' + host(), 'Gana el partido de pelota a 5 tantos']; break;
       case 'quiz': M.title = `El sabio de ${d.name}`; M.icon = 'quiz'; M.need = QUIZ_N; M.steps = () => ['Habla con ' + host(), `Responde bien las preguntas (${M.count}/${M.need})`]; break;
       default: M.title = m.title || 'Misión'; M.icon = 'star'; M.steps = () => ['Habla con ' + host()];
     }
@@ -151,6 +157,8 @@ export class TownGame {
       case 'legend': return M.leg?.teller ? { x: P.plaza.x + (M.i % 2 ? -9 : 9), z: P.plaza.z - 6 } : lm('cave')?.spot ? { x: (lm('cave').spot.x + P.plaza.x) / 2, z: (lm('cave').spot.z + P.plaza.z) / 2 } : { x: P.plaza.x - 9, z: P.plaza.z - 6 };
       case 'race': return { x: P.spawn.x - 4, z: P.spawn.z - 20 };
       case 'observe': return lm('gorge')?.spot || P.edgeN;
+      case 'pelota': { if (!this.fronton) { const sp = findFrontonSpot(P.plaza); if (sp) this.fronton = new Fronton(this.scene, sp); } return this.fronton ? { x: this.fronton.entry.x + 2, z: this.fronton.entry.z } : P.plaza; }
+      case 'summit': return { x: P.plaza.x + (P.edgeN ? (P.edgeN.x - P.plaza.x) * 0.25 : 10), z: P.plaza.z + (P.edgeN ? (P.edgeN.z - P.plaza.z) * 0.25 : -14) };
       case 'quiz': return TOWN.church?.door ? { x: TOWN.church.door.x, z: TOWN.church.door.z + 0 } : P.plaza;
     }
     return P.plaza;
@@ -227,7 +235,9 @@ export class TownGame {
     if (this.race) this.updateRace(dt);
     if (this.mode === 'dance') this.updateDance(dt);
     if (this.mode === 'bino') this.updateBino(dt);
+    if (this.mode === 'pelota' && this.pelotaTick) this.pelotaTick(dt);
     this.updateNight(dt);
+    for (const M of this.missions) if (M.type === 'summit' && M.step === 1 && !M.done) this.updateSummit(M);
     this.checkArrival();
     this.updateInteraction();
     this.updateHUD();
@@ -248,6 +258,7 @@ export class TownGame {
         if (M.step === 3 && M.lair) return { x: M.lair.x, z: M.lair.z, h: 3 };
         return at(M.host);
       }
+      case 'summit': { if (M.step >= 1 && M.cairns) { const c = M.cairns.find(c => !c.reached); if (c) return { x: c.x, z: c.z, h: c.top ? 3.2 : 2 }; } return at(M.host); }
       case 'process': case 'harvest': if (M.step === 1) return nearest(this.items.filter(it => it.M === M).map(it => ({ x: it.x, z: it.z, h: 1.4 }))); return at(M.host);
       case 'herd': if (M.step === 1) { const loose = this.herd?.filter(s => !s.penned) || []; const t = nearest(loose.map(s => ({ x: s.pos.x, z: s.pos.z, h: 1.8 }))); return t || { x: TOWN.pen.x, z: TOWN.pen.z, h: 2 }; } return at(M.host);
       case 'dance': return M.step === 1 ? { x: PLACES.plaza.x, z: PLACES.plaza.z, h: 3 } : at(M.host);
@@ -430,6 +441,31 @@ export class TownGame {
         else await S(['No pasa nada, inténtalo otra vez cuando quieras.']);
         return;
       }
+      case 'pelota': {
+        if (!this.fronton) { await S(['Hoy el frontón está cerrado. ¡Vuelve otro día!']); return; }
+        if (M.step === 0) {
+          await S([...(m.story || []), m.text || '',
+            'Así se juega: la pelota tiene que dar en el frontis por encima de la chapa, la raya roja. Puede botar una vez en la cancha y entonces la devuelves.',
+            'Muévete con el joystick y pulsa la mano (o E) cuando la pelota esté cerca de ti. ¡El primero que llegue a 5 tantos gana!'].filter(Boolean));
+          M.step = 1;
+        } else await S(['¿La revancha? ¡Vamos al frontón!']);
+        a.talking = 0; this.player.frozen = false;
+        const r = await this.fronton.play(this, a);
+        if (r.win) { await S([`¡${r.you} a ${r.cpu}! Juegas como un pelotari de verdad.`]); await this.complete(M, { card: M.title, cardText: m.text }); }
+        else await S([`${r.you} a ${r.cpu}. ¡Casi! Háblame otra vez para jugar la revancha.`]);
+        return;
+      }
+      case 'summit': {
+        const pk = M.peak;
+        if (M.step === 0) {
+          await S([`¿Ves ese monte de ahí arriba? Es como el ${pk.name}${pk.altName ? ' (' + pk.altName + ')' : ''}: ${pk.intro}`,
+            `El de verdad mide ${pk.altitude.toLocaleString('es')} metros. Desde ${pk.start} son ${String(pk.distance).replace('.', ',')} km y ${pk.gain} metros de desnivel.`,
+            'Te he marcado el camino con mojones pintados de blanco y amarillo, como los de los senderos de verdad. Síguelos hasta la cima y firma en el buzón de cumbre.',
+            'Un consejo de montañera: agua, gorra y paso tranquilo. ¡Y nunca subas sola ni solo al monte!']);
+          this.startSummit(M);
+        } else await S([`Sigue los mojones: te faltan ${M.need - M.count} hasta la cima.`]);
+        return;
+      }
       case 'quiz':
         if (M.step === 0) { await S([`¡Hola, ${name}! Soy quien más sabe de ${d.name}. ¿Aceptas mi reto? Tres preguntas sobre el pueblo y la comarca.`]); M.step = 1; }
         await this.quizRound(M, a, QUIZ_N - M.count);
@@ -522,6 +558,33 @@ export class TownGame {
     if (n >= this.herd.length) { this.herd = null; M.step = 2; this.sound.magic(); this.ui.toast(`¡Todos en el redil! Vuelve con ${M.host.name}`, 'check', 3000); }
   }
 
+  // Presentación del pueblo al llegar: vuelo de cámara y lo que te espera
+  async introFly() {
+    const d = this.def, town = d.name.split(' /')[0], P = PLACES.plaza, gy = terrainHeight(P.x, P.z);
+    const ch = TOWN.church?.door || PLACES.church, pl = this.player.pos;
+    const names = this.missions.filter(M => M.type !== 'visit' && M.type !== 'quiz').map(M => M.title);
+    const shots = [
+      { pos: [P.x + 70, gy + 55, P.z + 70], look: [P.x, gy, P.z], text: `${town}. ${d.intro || ''}` },
+      { pos: [ch.x + 22, terrainHeight(ch.x, ch.z) + 12, ch.z + 18], look: [ch.x, terrainHeight(ch.x, ch.z) + 6, ch.z], text: names.length ? `Aquí te esperan ${this.missions.length} misiones: ${names.slice(0, 3).join(', ')}${names.length > 3 ? '…' : '.'}` : `Aquí te esperan ${this.missions.length} misiones.` },
+      { pos: [pl.x + 4, pl.y + 3, pl.z + 6], look: [pl.x, pl.y + 1.2, pl.z], text: 'Busca a la gente con la exclamación amarilla. ¡El sello del pueblo te espera!' },
+    ];
+    this.mode = 'cine'; this.player.frozen = true; this.ui.hudVisible(false);
+    let skip = false; const onSkip = () => { skip = true; };
+    setTimeout(() => { addEventListener('keydown', onSkip); addEventListener('pointerdown', onSkip); }, 300);
+    const cin = { pos: new THREE.Vector3(), look: new THREE.Vector3(), t: 0 };
+    for (const [i, s] of shots.entries()) {
+      if (skip) break;
+      cin.pos.set(...s.pos); cin.look.set(...s.look);
+      if (i === 0) { this.camera.position.set(s.pos[0] + 40, s.pos[1] + 30, s.pos[2] + 40); cin.lookCur = cin.look.clone(); }
+      this.follow.cinematic = cin;
+      this.ui.setCinematic(true, s.text);
+      for (let t = 0; t < 3800 && !skip; t += 100) await new Promise(r => setTimeout(r, 100));
+    }
+    removeEventListener('keydown', onSkip); removeEventListener('pointerdown', onSkip);
+    this.follow.cinematic = null; this.follow.snap(this.player);
+    this.ui.setCinematic(false); this.ui.hudVisible(true);
+    this.player.frozen = false; this.mode = 'play';
+  }
   // Frase del narrador al empezar cada misión
   hook(M) {
     const town = this.def.name.split(' /')[0], m = M.m, c = this.comarca?.name || 'Navarra';
@@ -540,6 +603,57 @@ export class TownGame {
     };
     return H[M.type];
   }
+  // ---------- Subida al monte ----------
+  startSummit(M) {
+    M.step = 1; M.count = 0;
+    for (const c of M.cairns || []) this.scene.remove(c.obj);
+    // la cima: el punto más alto a una distancia razonable del pueblo
+    const P = PLACES.plaza, h0 = M.host.pos;
+    let best = null, bh = -1e9;
+    for (let r = 90; r <= 300; r += 15) for (let a = 0; a < Math.PI * 2; a += 0.2) {
+      const x = P.x + Math.cos(a) * r, z = P.z + Math.sin(a) * r;
+      if (Math.abs(x) > 440 || Math.abs(z) > 440 || waterLevelAt(x, z) > groundHeight(x, z) - 0.2) continue;
+      const h = terrainHeight(x, z) - r * 0.02;
+      if (h > bh) { bh = h; best = { x, z }; }
+    }
+    const top = this.spot(best, 6);
+    M.cairns = [];
+    const n = M.need;
+    for (let i = 1; i <= n; i++) {
+      const t = i / n, jig = i < n ? (i % 2 ? 1 : -1) * 8 : 0;
+      const dx = top.x - h0.x, dz = top.z - h0.z, l = Math.hypot(dx, dz) || 1;
+      const s = i < n ? this.spot({ x: h0.x + dx * t - dz / l * jig, z: h0.z + dz * t + dx / l * jig }, 4) : top;
+      const o = makeCairn(i === n); o.position.set(s.x, groundHeight(s.x, s.z), s.z); o.rotation.y = Math.atan2(dx, dz); this.scene.add(o);
+      M.cairns.push({ x: s.x, z: s.z, obj: o, top: i === n });
+    }
+    M.y0 = this.player.pos.y;
+    this.ui.toast('Sigue los mojones blancos y amarillos', 'peak', 2800);
+  }
+  updateSummit(M) {
+    const c = M.cairns.find(c => !c.reached); if (!c || this.mode !== 'play' || this.ui.busy) return;
+    if (Math.hypot(c.x - this.player.pos.x, c.z - this.player.pos.z) > (c.top ? 4.5 : 4)) return;
+    c.reached = true; M.count++; this.sound.ui('coin');
+    this.particles.emit({ x: c.x, y: groundHeight(c.x, c.z) + 1.5, z: c.z }, { n: 20, color: ['#ffffff', '#FFD700'], speed: 1.6, size: 0.25 });
+    const pk = M.peak, climbed = Math.max(0, Math.round(this.player.pos.y - M.y0));
+    const lines = [pk.route, pk.terrain, `Ya has subido ${climbed} metros. Mira hacia abajo: el pueblo se ve cada vez más pequeño.`];
+    if (!c.top) { this.ui.whisper(lines[M.count - 1] || '', 5200); this.ui.toast(this.stepText(M), 'peak', 1600); }
+    else this.reachSummit(M, climbed);
+  }
+  async reachSummit(M, climbed) {
+    const pk = M.peak, P = this.player;
+    this.player.frozen = true; this.player.rig.doCheer(); this.sound.fanfare?.(); this.particles.confetti?.(P.pos, 90);
+    // vista panorámica desde la cumbre
+    const c0 = new THREE.Vector3(P.pos.x, P.pos.y, P.pos.z);
+    this.follow.cinematic = { pos: new THREE.Vector3(c0.x + 9, c0.y + 5, c0.z + 9), look: new THREE.Vector3(PLACES.plaza.x, terrainHeight(PLACES.plaza.x, PLACES.plaza.z), PLACES.plaza.z), t: 0 };
+    this.ui.whisper(`¡Cima! ${pk.name}, ${pk.altitude.toLocaleString('es')} m`, 3500);
+    await new Promise(r => setTimeout(r, 2600));
+    if (!this.P.peaks.includes(pk.id)) this.P.peaks.push(pk.id);
+    saveProfile();
+    await infoCard(this.ui, { icon: 'peak', kicker: `Buzón de cumbre · ${pk.zone}`, title: `${pk.name}${pk.altName ? ' · ' + pk.altName : ''}`, text: `${pk.intro} Altitud: ${pk.altitude.toLocaleString('es')} m. Desde ${pk.start}: ${String(pk.distance).replace('.', ',')} km y ${pk.gain} m de desnivel. En el juego has subido ${climbed} m.`, badge: 'Cima conseguida', button: '¡Firmar en el buzón!' });
+    this.follow.cinematic = null; this.follow.snap(P); this.player.frozen = false;
+    await this.complete(M, { card: pk.name, cardText: pk.intro });
+  }
+
   // ---------- Noche y leyendas ----------
   isNight() { const t = this.sky?.time ?? 12; return t > 20.4 || t < 6.1; }
   // Ofrece esperar a que anochezca: fundido, la luna sale y empieza la parte nocturna
@@ -943,7 +1057,7 @@ export class TownGame {
     if (M.done) return;
     M.done = true; M.step = M.steps().length;
     this.ts.done[M.i] = true;
-    const xp = { visit: 80, quiz: 60 }[M.type] || 100;
+    const xp = { visit: 80, quiz: 60, summit: 150 }[M.type] || 100;
     const lvUp = addXP(xp);
     if (card) addCard(this.def.id + ':' + card);
     this.player.rig.doCheer(); this.particles.confetti?.(this.player.pos, 70);
@@ -981,4 +1095,20 @@ export class TownGame {
   applySettings() { const S = this.P.settings; this.sound.setMusic(S.music); this.sound.setVolume(S.volume); this.sky.speed = 24 / (16 * 60) * (S.timeSpeed ?? 1); }
   teleport(x, z) { const s = this.spot({ x, z }, 3); this.player.place(s.x, s.z, 0); this.follow.snap(this.player); }
   dispose() { this.ui.setMG(null); if (this.danceKeys) removeEventListener('keydown', this.danceKeys, true); this.rh?.remove(); if (this.mode === 'bino') this.ui.binoculars(false); }
+}
+
+// Mojón de sendero (piedras con franjas blanca y amarilla) y, en la cima, hito con buzón y bandera
+function makeCairn(top) {
+  const g = new THREE.Group(), st = new THREE.MeshStandardMaterial({ color: '#9a938a', roughness: 0.9 });
+  const n = top ? 6 : 4;
+  for (let i = 0; i < n; i++) { const r = (top ? 0.75 : 0.42) * (1 - i / (n + 1)); const m = new THREE.Mesh(new THREE.DodecahedronGeometry(r, 0), st); m.position.y = r * 0.6 + i * r * 0.95; m.rotation.set(i, i * 1.3, 0); m.scale.y = 0.7; m.castShadow = true; g.add(m); }
+  const h = top ? 3.4 : 1.5;
+  const post = new THREE.Mesh(new THREE.BoxGeometry(0.16, h, 0.16), new THREE.MeshStandardMaterial({ color: '#d9d2c4', roughness: 0.8 })); post.position.y = h / 2; post.castShadow = true; g.add(post);
+  for (const [y, c] of [[h - 0.18, '#ffffff'], [h - 0.36, '#f2c230']]) { const b = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.14, 0.18), new THREE.MeshStandardMaterial({ color: c, roughness: 0.6, emissive: c, emissiveIntensity: 0.15 })); b.position.y = y; g.add(b); }
+  if (top) {
+    const box = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.36, 0.3), new THREE.MeshStandardMaterial({ color: '#b83a2a', metalness: 0.4, roughness: 0.4 })); box.position.set(0, 1.9, 0.2); g.add(box);
+    const flag = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.6), new THREE.MeshStandardMaterial({ color: '#d42f2f', side: THREE.DoubleSide, roughness: 0.7 })); flag.position.set(0.53, h - 0.35, 0); g.add(flag);
+    const star = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.04, 8, 20), new THREE.MeshStandardMaterial({ color: '#FFD700', metalness: 0.6, roughness: 0.3 })); star.position.set(0.53, h - 0.35, 0.02); g.add(star);
+  }
+  return g;
 }

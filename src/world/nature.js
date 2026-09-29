@@ -582,3 +582,15 @@ vTint = k < 0.4 ? vec3(1.0, 1.0, 0.97) : k < 0.62 ? vec3(1.0, 0.85, 0.2) : k < 0
 
 // Constructores de árboles para escenas fuera de la partida (inicio, fondos)
 export const TREE_MAKERS = { beech: makeBeech, oak: makeOak, fir: makeFir, bush: makeBush, olive: makeOlive, poplar: makePoplar, pine: makePine, chestnut: makeChestnut, apple: makeApple };
+// Quita la hierba (y la trama del suelo) de un rectángulo girado: canchas, frontones…
+export function clearGrass(cx, cz, w, d, ry) {
+  if (!grassTex) return;
+  const c = Math.cos(ry), s = Math.sin(ry), data = grassTex.image.data;
+  for (let u = -w / 2 - 2; u <= w / 2 + 2; u += CELL / 2) for (let v = -2; v <= d + 2; v += CELL / 2) {
+    const x = cx + u * c + v * s, z = cz - u * s + v * c;
+    const i = Math.round((x + HALF) / CELL), j = Math.round((z + HALF) / CELL);
+    if (i < 0 || j < 0 || i >= N || j >= N) continue;
+    const k = j * N + i; data[k * 4] = 0; data[k * 4 + 2] = 0; SURF.grass[k] = 0;
+  }
+  grassTex.needsUpdate = true;
+}

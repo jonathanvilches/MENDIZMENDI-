@@ -38,7 +38,7 @@ export const BADGES = [
   { id: 'runner', name: 'Pies ligeros', text: 'Gana tres carreras.', icon: 'running', test: p => missionTypeDone(p, 'race') >= 3 },
   { id: 'naturalist', name: 'Naturalista', text: 'Observa diez especies distintas.', icon: 'binoculars', test: p => p.species.length >= 10 },
   { id: 'collector', name: 'Coleccionista', text: 'Reúne treinta cartas.', icon: 'book', test: p => p.cards.length >= 30 },
-  { id: 'peaks', name: 'Cumbres', text: 'Marca cinco cimas como subidas.', icon: 'peak', test: p => p.peaks.length >= 5 },
+  { id: 'peaks', name: 'Cumbres', text: 'Corona cinco cimas en las misiones de montaña.', icon: 'peak', test: p => p.peaks.length >= 5 },
 ];
 
 let P = null;

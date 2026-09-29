@@ -22,6 +22,8 @@
         else if (M.type === 'trade' && M.step === 1) { await go(M.bench.x + 1, M.bench.z); await G.doTrade(M); }
         else if (M.type === 'race' && M.step === 1) { for (const g of G.gates.slice()) { await go(g.x, g.z); G.updateRace(0.016); } }
         else if (M.type === 'dance' && M.step === 1) { await go(__layout.PLACES.plaza.x, __layout.PLACES.plaza.z); G.checkArrival(); await sleep(200); if (G.dn) { G.dn.hits = G.dn.total; G.dn.i = G.dn.seq.length; G.dn.t = 1e4; G.updateDance(0.016); await sleep(1600); } }
+        else if (M.type === 'pelota') { M.done || await G.complete(M, {}); }
+        else if (M.type === 'summit' && M.step === 1) { for (const c of M.cairns) { await go(c.x + 1, c.z); G.updateSummit(M); await sleep(150); } await sleep(500); continue; }
         else if (M.type === 'observe' && M.step === 1) { M.count = M.need; M.step = 2; }
         if (!M.done) { await go(M.host.pos.x + 1.5, M.host.pos.z + 1.5); await G.talk(M.host); }
       }

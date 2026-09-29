@@ -439,3 +439,28 @@ export const LEVELS = [
 ];
 
 export const levelById = id => LEVELS.find(l => l.id === id);
+
+// Subir al monte del pueblo: cada misión usa los datos reales de la cima (altitud, desnivel, ruta y terreno)
+const SUMMITS = {
+  etxalar: 'aizkolegi', zugarramurdi: 'arxuria', 'amaiur-maya-del-baztan': 'gorramendi', ituren: 'mendaur', leitza: 'ttutturre',
+  'orreaga-roncesvalles': 'lindus', aribe: 'orzanzurieta', 'isaba-izaba': 'mesa', 'erronkari-roncal': 'lakora', 'altsasu-alsasua': 'beriain',
+  irurtzun: 'erga', pamplona: 'ezkaba', aoiz: 'izaga', lumbier: 'arangoiti', estella: 'montejurra', tafalla: 'unzue', corella: 'piskerra',
+};
+const GUIDES = [
+  H('Josu, montañero', { shirt: '#d9532a', vest: '#2b3a4a', pants: '#3a3530', hair: '#4a3020', beard: '#4a3020', bag: '#3a7a4a', staff: true }),
+  H('Amaia, guía de montaña', { shirt: '#3a8fd6', vest: '#2b3a4a', pants: '#3a3530', hair: '#3b2418', ponytail: true, female: true, bag: '#d9532a', staff: true }),
+];
+for (const l of LEVELS) { const id = SUMMITS[l.id]; if (id && l.missions) l.missions.push({ type: 'summit', peak: id, host: GUIDES[l.id.length % 2] }); }
+
+// Partidos en el frontón: pelota a mano, el deporte de las plazas navarras
+const PELOTA_TOWNS = { tafalla: 'Unai, pelotari', leitza: 'Aitor, pelotari', lesaka: 'Mikel, pelotari', sanguesa: 'Iñaki, pelotari', 'puente-la-reina': 'Ane, pelotari', peralta: 'Oihane, pelotari' };
+const PELOTA_STORY = [
+  'Casi todos los pueblos de Navarra tienen un frontón, muchas veces pegado a la iglesia o en la plaza. Aquí se juega a pelota desde hace siglos.',
+  'En la pelota a mano no hay raqueta: se golpea con la mano desnuda, protegida con tacos. La pelota es de cuero, dura como una piedra.',
+];
+for (const [id, who] of Object.entries(PELOTA_TOWNS)) {
+  const l = LEVELS.find(x => x.id === id); if (!l?.missions) continue;
+  const girl = /^(Ane|Oihane)/.test(who);
+  l.missions.push({ type: 'pelota', title: 'Partido en el frontón', story: PELOTA_STORY, host: H(who, { shirt: '#ffffff', pants: '#ffffff', sash: girl ? '#3a8fd6' : '#d42f2f', hair: '#2a1a12', ponytail: girl, female: girl }),
+    text: 'La pelota vasca se juega en frontones de plaza. Gana tu primer partido a 5 tantos.' });
+}
