@@ -54,6 +54,7 @@ for (const sz of sizes.split(',')) {
     await page.waitForTimeout(2500);
     await log('partida'); await shot('g-hud');
     await page.evaluate(() => { const g = window.__game, M = g.missions[0]; g.player.place(M.host.pos.x + 1.5, M.host.pos.z + 1.5, 0); g.follow.snap(g.player); });
+    await page.evaluate(() => window.__game.ui.toast('¡Bienvenido a Etxalar! Habla con Guía Iker para empezar', 'sparkle', 60000));
     await page.waitForTimeout(1200); await log('partida con acción'); await shot('g-prompt');
     // diálogo con elecciones
     await page.evaluate(() => { window.__game.ui.dialog([{ who: 'Guía Iker', look: window.__game.missions[0].host.look, text: '¿Qué quieres saber de Etxalar? Tiene casas de piedra, palomeras y una iglesia preciosa.', choices: ['Háblame de las palomeras', 'Enséñame la iglesia', 'Luego vuelvo'] }]); });
