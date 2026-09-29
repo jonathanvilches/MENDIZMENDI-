@@ -158,7 +158,7 @@ export class Game {
       await this.ui.reward({ ribbon: rib.color, title: rib.name, text: `"${rib.eu}" en euskera. ¡Ya tienes ${this.state.ribbons.length} de 8 cintas para la fiesta de Muskilda!` });
     }
     if (id === 'bienvenida') for (const k of ['escudos', 'ovejas', 'pelota', 'irati', 'basajaun', 'lamia', 'zarratrako']) if (this.q(k).state === 'locked') this.q(k).state = 'available';
-    if (this.state.ribbons.length >= 8 && this.q('muskilda').state !== 'done') { this.q('muskilda').state = 'active'; this.q('muskilda').step = 1; this.state.tracked = 'muskilda'; this.ui.toast('¡Tienes las 8 cintas! Sube a Muskilda', '💃', 4000); }
+    if (this.state.ribbons.length >= 8 && this.q('muskilda').state !== 'done') { this.q('muskilda').state = 'active'; this.q('muskilda').step = 1; this.state.tracked = 'muskilda'; this.ui.toast('¡Tienes las 8 cintas! Sube a Muskilda', 'dance', 4000); }
     else if (this.q('muskilda').state === 'locked' && id === 'bienvenida') { this.q('muskilda').state = 'active'; this.q('muskilda').step = 0; }
     // seguir otra misión
     this.autoTrack();
@@ -175,7 +175,7 @@ export class Game {
     if (this.state.cards.includes(id)) return;
     this.state.cards.push(id);
     const c = CARDS.find(c => c.id === id);
-    if (!silent) { this.ui.toast(`Nueva carta: ${c.title}`, c.emoji); this.sound.ui('card'); }
+    if (!silent) { this.ui.toast(`Nueva carta: ${c.title}`, c.icon); this.sound.ui('card'); }
     this.save();
   }
   // Destino de la misión seguida
@@ -221,11 +221,20 @@ export class Game {
   mapMarkers() {
     const out = [];
     for (const [id, q] of Object.entries(this.state.quests)) {
-      if (q.state === 'available') { const n = this.npcs[QUESTS[id].giver]; if (n) out.push({ x: n.pos.x, z: n.pos.z, icon: '❗' }); }
+      if (q.state === 'available') { const n = this.npcs[QUESTS[id].giver]; if (n) out.push({ x: n.pos.x, z: n.pos.z, icon: 'exclaim' }); }
       else if (q.state === 'active') { const t = this.questTarget(id); if (t) out.push({ x: t.x, z: t.z, icon: QUESTS[id].icon }); }
     }
-    for (const it of this.items) if (it.kind === 'eguz' && this.state.eguz.length >= 6) out.push({ x: it.x, z: it.z, icon: '🌼' });
+    for (const it of this.items) if (it.kind === 'eguz' && this.state.eguz.length >= 6) out.push({ x: it.x, z: it.z, icon: 'eguzkilore' });
     return out;
+  }
+  mapHouses() { return [...VILLAGE.houses, ...VILLAGE.palaces.map(p => ({ x: p.x, z: p.z, w: 14, d: 14, ry: p.ry || 0 }))]; }
+  mapLabels() {
+    const P = PLACES;
+    return [
+      { x: P.plaza.x, z: P.plaza.z - 30, label: 'Otsagabia' }, { x: 0, z: -320, label: 'Selva de Irati' }, { x: P.muskilda.x, z: P.muskilda.z, icon: 'church', label: 'Muskilda' },
+      { x: P.borda.x, z: P.borda.z, icon: 'sheep', label: 'Borda' }, { x: P.pond.x, z: P.pond.z, icon: 'water', label: 'Balsa' }, { x: P.fronton.x, z: P.fronton.z, icon: 'pelota', label: 'Frontón' },
+      { x: P.church.x, z: P.church.z, icon: 'church', label: 'San Juan' }, { x: P.mirador.x, z: P.mirador.z, icon: 'lookout', label: 'Mirador' }, { x: P.crucero.x, z: P.crucero.z, icon: 'cross', label: 'Crucero' },
+    ];
   }
   refreshHUD() {
     this.ui.setRibbons(this.state.ribbons, this.state.eguz.length);
@@ -302,15 +311,15 @@ export class Game {
     const qb = this.q('bienvenida');
     if (qb.state === 'active' && qb.step === 1) {
       const b = bridgeAt(P.x, P.z);
-      if (b && b.main && Math.abs(P.x - b.cx) < 3) { this.advance('bienvenida', 2); this.giveCard('puente'); this.ui.toast('¡Has cruzado el puente medieval!', '🌉'); this.sound.magic(); }
+      if (b && b.main && Math.abs(P.x - b.cx) < 3) { this.advance('bienvenida', 2); this.giveCard('puente'); this.ui.toast('¡Has cruzado el puente medieval!', 'bridge'); this.sound.magic(); }
     }
     // cartas por descubrir lugares
     const near = (x, z, r) => Math.hypot(P.x - x, P.z - z) < r;
     if (!this.state.cards.includes('muskilda') && near(PLACES.muskilda.x, PLACES.muskilda.z, 22)) { this.giveCard('muskilda'); }
-    if (!this.state.cards.includes('irati') && P.z < -190) { this.giveCard('irati'); this.ui.toast('Entras en la Selva de Irati', '🌳'); }
+    if (!this.state.cards.includes('irati') && P.z < -190) { this.giveCard('irati'); this.ui.toast('Entras en la Selva de Irati', 'tree'); }
     if (!this.state.cards.includes('haya') && P.z < -330) this.giveCard('haya');
     if (!this.state.cards.includes('pottoka') && this.fauna.animals.some(a => a.kind === 'pottoka' && Math.hypot(a.pos.x - P.x, a.pos.z - P.z) < 10)) this.giveCard('pottoka');
-    if (!this.state.cards.includes('barrios') && near(PLACES.mirador.x, PLACES.mirador.z, 6)) { this.giveCard('barrios'); this.ui.toast('¡Qué vistas del pueblo y sus cuatro barrios!', '👀'); }
+    if (!this.state.cards.includes('barrios') && near(PLACES.mirador.x, PLACES.mirador.z, 6)) { this.giveCard('barrios'); this.ui.toast('¡Qué vistas del pueblo y sus cuatro barrios!', 'lookout'); }
   }
 
   // ---------- Interacción ----------
@@ -353,8 +362,8 @@ export class Game {
       this.particles.emit({ x: it.x, y: VILLAGE.fountain.y + 1.4, z: it.z }, { n: 20, color: '#bfe8ff', speed: 1.5, size: 0.25, life: 0.8 });
       this.sound.splash(this.player.pos, 0.6);
       const q = this.q('bienvenida');
-      if (q.state === 'active' && q.step === 2) { this.advance('bienvenida', 3); this.ui.toast('¡Qué agua tan fresca! Ahora sube a la iglesia.', '💧'); }
-      else this.ui.toast('Agua fresca de la fuente. ¡Glu, glu!', '💧');
+      if (q.state === 'active' && q.step === 2) { this.advance('bienvenida', 3); this.ui.toast('¡Qué agua tan fresca! Ahora sube a la iglesia.', 'water'); }
+      else this.ui.toast('Agua fresca de la fuente. ¡Glu, glu!', 'water');
       return;
     }
     if (it.kind === 'palace') {
@@ -362,7 +371,7 @@ export class Game {
       this.giveCard('palacios');
       this.sound.magic();
       this.particles.emit({ x: it.p.door.x, y: it.p.y + 6, z: it.p.door.z }, { n: 25, color: '#ffe38a', speed: 2, size: 0.3 });
-      this.ui.toast(`${it.p.name}: ¡escudo encontrado! (${this.state.palaces.length}/3)`, '🛡️');
+      this.ui.toast(`${it.p.name}: ¡escudo encontrado! (${this.state.palaces.length}/3)`, 'shield');
       const q = this.q('escudos');
       if (q.state === 'active' && this.state.palaces.length >= 3) this.advance('escudos', 1);
       this.save(); return;
@@ -371,7 +380,7 @@ export class Game {
     if (it.kind === 'fronton') return this.startPelota();
     if (it.kind === 'mirador') {
       this.giveCard('barrios');
-      this.say({ name: 'Catalejo', face: '🔭', color: '#6d3b5c' }, ['Desde aquí ves Otsagabia entera: casas de piedra a los dos lados del río Anduña.', 'Al este, en lo alto, el santuario de Muskilda. Al norte, el bosque inmenso de Irati.']);
+      this.say({ name: 'Catalejo', icon: 'binoculars' }, ['Desde aquí ves Otsagabia entera: casas de piedra a los dos lados del río Anduña.', 'Al este, en lo alto, el santuario de Muskilda. Al norte, el bosque inmenso de Irati.']);
     }
   }
   async pickItem(it) {
@@ -381,21 +390,22 @@ export class Game {
     if (it.kind === 'eguz') {
       this.state.eguz.push(it.idx); this.sound.ui('coin');
       this.giveCard('eguzkilore', this.state.eguz.length > 1);
-      this.ui.toast(`Eguzkilore ${this.state.eguz.length}/${EGUZKILORES.length}`, '🌼');
-      if (this.state.eguz.length === EGUZKILORES.length) { this.state.stars += 5; await this.ui.reward({ icon: '🌞', title: '¡Todos los eguzkilores!', text: 'Has encontrado las doce flores del sol. Según la tradición, protegen las casas. ¡+5 estrellas!' }); }
+      this.ui.toast(`Eguzkilore ${this.state.eguz.length}/${EGUZKILORES.length}`, 'eguzkilore');
+      if (this.state.eguz.length === EGUZKILORES.length) { this.state.stars += 5; await this.ui.reward({ icon: 'sun', title: '¡Todos los eguzkilores!', text: 'Has encontrado las doce flores del sol. Según la tradición, protegen las casas. ¡+5 estrellas!' }); }
     } else if (it.kind === 'litter') {
       this.state.litter.push(it.id); this.sound.ui('coin');
-      this.ui.toast(`Basura recogida ${this.state.litter.length}/5`, '♻️');
+      this.ui.toast(`Basura recogida ${this.state.litter.length}/5`, 'litter');
       if (this.state.litter.length >= 5) this.advance('basajaun', 2);
     } else if (it.kind === 'comb') {
       this.state.comb = true; this.combItem = null; this.sound.magic();
-      this.ui.toast('¡Has encontrado el peine de oro de la Lamia!', '🪮');
+      this.ui.toast('¡Has encontrado el peine de oro de la Lamia!', 'lamia');
       this.advance('lamia', 2);
     }
     this.save(); this.refreshHUD();
   }
   say(who, lines) {
-    return this.ui.dialog(lines.map(t => typeof t === 'string' ? { who: who.name, face: who.face, color: who.color, text: t } : { who: who.name, face: who.face, color: who.color, ...t }));
+    const look = who.obj?.userData.look, icon = who.icon;
+    return this.ui.dialog(lines.map(t => typeof t === 'string' ? { who: who.name, look, icon, text: t } : { who: who.name, look, icon, ...t }));
   }
 
   // ---------- Conversaciones ----------
@@ -508,9 +518,9 @@ export class Game {
           await S([`Kaixo. Soy Iñaki, guarda de Irati. Cuidamos uno de los bosques de hayas y abetos mejor conservados de Europa.`,
             'En el bosque viven corzos, ciervos, jabalíes, ardillas, pájaros carpinteros… y en el cielo planean los buitres.',
             'Toma estos prismáticos. Obsérvalos sin molestarlos: acércate despacio, sin correr.',
-            `Anota cinco animales distintos y vuelve. ${this.input.touch ? 'Usa el botón 🔭' : 'Pulsa F para usar los prismáticos'}.`]);
+            `Anota cinco animales distintos y vuelve. ${this.input.touch ? 'Usa el botón de los prismáticos' : 'Pulsa F para usar los prismáticos'}.`]);
           st.hasBino = true; this.ui.showBinoButton();
-          await this.ui.reward({ icon: '🔭', title: 'Prismáticos', text: 'Ahora puedes observar animales de lejos y anotarlos en tu cuaderno.' });
+          await this.ui.reward({ icon: 'binoculars', title: 'Prismáticos', text: 'Ahora puedes observar animales de lejos y anotarlos en tu cuaderno.' });
           this.activate('irati'); this.advance('irati', 1);
           if (st.observed.length >= 5) this.advance('irati', 2);
           return;
@@ -582,8 +592,8 @@ export class Game {
     const idx = QUIZ.indexOf(pool[Math.floor(Math.random() * pool.length)]);
     const Q = QUIZ[idx];
     let ok = false;
-    await this.say(a, [{ text: `¿Te hago una pregunta? ${Q.q}`, choices: Q.a, onChoice: (j) => { ok = j === Q.ok; return [{ who: a.name, face: a.face, color: a.color, text: (ok ? '¡Correcto! ' : 'Casi… ') + Q.why }]; } }]);
-    if (ok) { st.quiz.push(idx); st.stars++; this.sound.ui('coin'); this.ui.toast(`¡Una estrella! Tienes ${st.stars} ⭐`, '⭐'); this.save(); }
+    await this.say(a, [{ text: `¿Te hago una pregunta? ${Q.q}`, choices: Q.a, onChoice: (j) => { ok = j === Q.ok; return [{ who: a.name, look: a.obj.userData.look, text: (ok ? '¡Correcto! ' : 'Casi… ') + Q.why }]; } }]);
+    if (ok) { st.quiz.push(idx); st.stars++; this.sound.ui('coin'); this.ui.toast(`¡Una estrella! Tienes ${st.stars} estrellas`, 'star'); this.save(); }
     else this.sound.ui('error');
   }
 
@@ -601,7 +611,7 @@ export class Game {
       this.fauna.animals.push(s); this.herd.push(s);
     });
     this.dog.follow = this.player;
-    if (!restore) this.ui.toast('Empuja las ovejas hacia el redil', '🐑');
+    if (!restore) this.ui.toast('Empuja las ovejas hacia el redil', 'sheep');
   }
   updateHerding(dt) {
     const pen = LANDMARKS.pen;
@@ -621,10 +631,10 @@ export class Game {
       }
       if (s.penned) n++;
     }
-    if (n !== this.penned) { this.penned = n; this.ui.toast(`Ovejas en el redil: ${n}/6`, '🐑'); }
+    if (n !== this.penned) { this.penned = n; this.ui.toast(`Ovejas en el redil: ${n}/6`, 'sheep'); }
     if (n >= 6 && this.q('ovejas').step === 1) {
       this.advance('ovejas', 2); this.dog.follow = null; this.sound.bark(this.dog.pos);
-      this.ui.toast('¡Todas dentro! Vuelve con Joxemari', '🐑', 3500);
+      this.ui.toast('¡Todas dentro! Vuelve con Joxemari', 'sheep', 3500);
     }
     if (this.q('ovejas').state === 'done' && this.herd) { this.dog.follow = null; }
   }
@@ -659,7 +669,7 @@ export class Game {
     this.zarra = { spots, i: q.found, bell: 0, fleeing: 0 };
     const s = spots[this.zarra.i % spots.length];
     z.setPos(s.x, s.z, 0); z.visible = true; z.collider.ghost = false; z.noTalk = true; z.sync();
-    if (!restore) this.ui.toast('Escucha los cencerros del Zarratrako…', '🔔');
+    if (!restore) this.ui.toast('Escucha los cencerros del Zarratrako…', 'bell');
   }
   updateZarratrako(dt) {
     const Z = this.zarra, a = this.npcs.zarratrako, P = this.player.pos;
@@ -674,7 +684,7 @@ export class Game {
       Z.fleeing = 1;
       q.found = (q.found || 0) + 1;
       this.sound.magic(); this.particles.confetti(a.pos, 40);
-      this.ui.toast(q.found >= 3 ? '¡Te pillé! El Zarratrako te da la cinta rosa' : `¡Encontrado! (${q.found}/3) …¡y se escapa!`, '🎭', 3000);
+      this.ui.toast(q.found >= 3 ? '¡Te pillé! El Zarratrako te da la cinta rosa' : `¡Encontrado! (${q.found}/3) …¡y se escapa!`, 'mask', 3000);
       this.save();
       setTimeout(() => {
         this.particles.emit({ x: a.pos.x, y: a.pos.y + 1, z: a.pos.z }, { n: 40, color: '#e8dcc0', speed: 3, size: 0.6, life: 1 });
@@ -746,7 +756,7 @@ export class Game {
       if (s.snd === 'floor') this.sound.pelota(0.5);
       if (s.miss) {
         this.sound.ui('error');
-        this.ui.toast(p.hits ? `¡Uy! Llevabas ${p.hits}. ¡Otra vez!` : '¡Casi! Acércate a la pelota antes de golpear', '🏐');
+        this.ui.toast(p.hits ? `¡Uy! Llevabas ${p.hits}. ¡Otra vez!` : '¡Casi! Acércate a la pelota antes de golpear', 'pelota');
         p.hits = 0; p.speed = 1; const el = document.getElementById('pelN'); if (el) el.textContent = 0;
         setTimeout(() => { if (this.mode === 'pelota') this.serve(); }, 700);
         p.segs = [{ a: pos, b: pos, T: 10, h: 0 }]; p.si = 0; p.t = 0;
@@ -801,14 +811,14 @@ export class Game {
     }
     const name = best ? SPECIES_OBS[best.id] : null;
     const isNew = best && !this.state.observed.includes(best.id);
-    this.ui.binoTarget(best ? `${name}${isNew ? ' — ¡nuevo! pulsa para anotar' : ' ✓ anotado'}` : '', !!best);
+    this.ui.binoTarget(best ? `${name}${isNew ? ' — ¡nuevo! pulsa para anotar' : ' — anotado'}` : '', !!best);
     if (this.input.consume('e') || this.input.consume(' ')) {
       if (best && isNew) {
         this.state.observed.push(best.id); this.sound.ui('photo');
         this.giveCard(best.id);
-        this.ui.toast(`¡${name} anotado en el cuaderno!`, '🔭');
+        this.ui.toast(`¡${name} anotado en el cuaderno!`, 'binoculars');
         const q = this.q('irati');
-        if (q.state === 'active' && q.step === 1 && this.state.observed.length >= 5) { this.advance('irati', 2); this.ui.toast('¡Cinco especies! Vuelve con Iñaki', '🔭', 3500); }
+        if (q.state === 'active' && q.step === 1 && this.state.observed.length >= 5) { this.advance('irati', 2); this.ui.toast('¡Cinco especies! Vuelve con Iñaki', 'binoculars', 3500); }
         this.save();
       } else this.sound.ui('photo');
     }
@@ -860,7 +870,7 @@ export class Game {
     }
     // bailarines
     const dAmt = D.t > 1.5 ? 6.3 : 0;
-    this.dancers.forEach((d, i) => { d.dance = dAmt ? (dAmt + (i % 2) * 0.01) : 0; d.t = D.t * 1 + (i % 2) * Math.PI; });
+    this.dancers.forEach((d, i) => { d.dance = dAmt ? (dAmt + (i % 2) * 0.01) : 0; d.anim.t = D.t * 1 + (i % 2) * Math.PI; });
     this.npcs.bobo.dance = dAmt ? 5 : 0;
     this.player.rig.obj.position.y = this.player.pos.y + Math.abs(Math.sin(D.t * 6.3)) * 0.15;
     // generar notas
@@ -895,7 +905,7 @@ export class Game {
     await wait(2500);
     this.state.done = true; this.q('muskilda').state = 'done';
     this.save();
-    await this.ui.reward({ stamp: 'MUSKILDA<br>Otsagabia<br>★ 8 ★', title: '¡Pasaporte sellado!', text: `${this.state.name}, has devuelto las ocho cintas y has bailado en la fiesta de Muskilda. ¡Eskerrik asko! Puedes seguir explorando el valle: quedan eguzkilores, cartas y preguntas por descubrir.`, button: 'Seguir explorando' });
+    await this.ui.reward({ stamp: 'MUSKILDA<br>Otsagabia<br>8 CINTAS', title: '¡Pasaporte sellado!', text: `${this.state.name}, has devuelto las ocho cintas y has bailado en la fiesta de Muskilda. ¡Eskerrik asko! Puedes seguir explorando el valle: quedan eguzkilores, cartas y preguntas por descubrir.`, button: 'Seguir explorando' });
     this.dancers.forEach(d => d.dance = 0);
     this.follow.cinematic = null; this.player.frozen = false; this.mode = 'play';
     this.sound.setMusic(this.state.settings.music);
@@ -931,7 +941,7 @@ export class Game {
     this.player.frozen = false; this.mode = 'play';
     this.npcs.maite.wave = 2;
     this.state.introDone = true; this.save();
-    this.ui.toast(this.input.touch ? 'Habla con Maite: acércate y toca el botón amarillo' : 'Habla con Maite: acércate y pulsa E', '💬', 4500);
+    this.ui.toast(this.input.touch ? 'Habla con Maite: acércate y toca el botón amarillo' : 'Habla con Maite: acércate y pulsa E', 'talk', 4500);
   }
   teleport(x, z) { this.player.place(x, z, this.player.heading); this.follow.snap(this.player); }
 }

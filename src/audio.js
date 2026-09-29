@@ -136,7 +136,7 @@ export class Sound {
     if (!this.ctx) return;
     this.listener = { x: player.pos.x, y: player.pos.y, z: player.pos.z, yaw: camYaw + Math.PI };
     const r = riverInfo(player.pos.x, player.pos.z);
-    const dp = Math.hypot(player.pos.x - PLACES.waterfall.x, player.pos.z - PLACES.waterfall.z);
+    const wf = PLACES.waterfall, dp = wf ? Math.hypot(player.pos.x - wf.x, player.pos.z - wf.z) : 1e9;
     const rv = clamp(1 - r.edge / 30, 0, 1) ** 1.6 * 0.5 + clamp(1 - dp / 60, 0, 1) ** 1.5 * 0.7;
     this.river.g.gain.setTargetAtTime(rv, this.ctx.currentTime, 0.3);
     this.wind.g.gain.setTargetAtTime(0.03 + clamp((player.pos.y - 20) / 60, 0, 0.1), this.ctx.currentTime, 0.5);

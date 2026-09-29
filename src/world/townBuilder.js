@@ -103,11 +103,13 @@ export function buildTown(scene, mats, def) {
   buildFarm(B, fam);
   // casas a lo largo de las calles
   let count = 0;
-  const streets = PATHS.filter(p => p.type === 'street');
+  const mid = (p) => p.pts[Math.floor(p.pts.length / 2)];
+  const streets = PATHS.filter(p => p.type === 'street').sort((a, b) => { const A = mid(a), Bm = mid(b); return Math.hypot(A[0] - PLACES.plaza.x, A[1] - PLACES.plaza.z) - Math.hypot(Bm[0] - PLACES.plaza.x, Bm[1] - PLACES.plaza.z); });
+  const cap = Math.round(def.size * (fam === 'city' || fam === 'ribera' ? 1.7 : fam === 'central' ? 1.5 : 1.25));
   for (const path of streets) for (const side of [-1, 1]) {
     const L = polyLen(path.pts);
     let s = 2 + rnd() * 4;
-    while (s < L - 3 && count < def.size) {
+    while (s < L - 3 && count < cap) {
       const st = houseStyle(fam, rnd);
       const w = (st.wide ? 9 : 7) + rnd() * 3.5, d = 7.5 + rnd() * 3, h = st.h[0] + rnd() * (st.h[1] - st.h[0]);
       const a = polyAt(path.pts, s + w / 2);
@@ -118,7 +120,7 @@ export function buildTown(scene, mats, def) {
       if (isFree(x, z, Math.max(w, d) / 2 * 0.92) && cornersOk(x, z, w, d, ry)) {
         const g = minGround(x, z, w, d, ry);
         if (g.mx - g.mn < 3.5) {
-          buildHouse(B, M(x, g.mn - 0.1, z, ry), { w, d, h, arch: st.wall === 'stone' || st.wall === 'ashlar' ? rnd() < 0.5 : rnd() < 0.2, balconyW: Math.min(w - 2, 3 + rnd() * 2.5), shield: rnd() < 0.1, cornice: rnd() < 0.4, ...st }, rnd);
+          buildHouse(B, M(x, g.mn - 0.1, z, ry), { arch: st.wall === 'stone' || st.wall === 'ashlar' ? rnd() < 0.5 : rnd() < 0.2, balconyW: Math.min(w - 2, 3 + rnd() * 2.5), shield: rnd() < 0.1, cornice: rnd() < 0.4, ...st, w, d, h }, rnd);
           addBox(x, z, w + 0.3, d + 0.3, ry, { solidView: true });
           TOWN.houses.push({ x, z, ry, w, d, door: { x: x + Math.sin(ry) * (d / 2 + 1.2), z: z + Math.cos(ry) * (d / 2 + 1.2) } });
           count++; s += w + 1.2 + rnd() * 2.5; continue;

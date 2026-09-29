@@ -1,0 +1,76 @@
+// Objetos recogibles en 3D (cosechas, hierbas, leche, basura…) y aros de carrera
+import * as THREE from 'three';
+
+const M = new Map();
+const mat = (c, o = {}) => { const k = c + JSON.stringify(o); if (!M.has(k)) M.set(k, new THREE.MeshStandardMaterial({ color: c, roughness: 0.55, ...o })); return M.get(k); };
+const mesh = (g, c, x = 0, y = 0, z = 0, o) => { const m = new THREE.Mesh(g, mat(c, o)); m.position.set(x, y, z); m.castShadow = true; return m; };
+
+// Crea un objeto recogible; devuelve un grupo con un aro brillante en el suelo
+export function makeItem(kind) {
+  const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
+  const add = (...a) => body.add(mesh(...a));
+  switch (kind) {
+    case 'uva': case 'grapes': for (let i = 0; i < 14; i++) { const r = Math.floor(i / 4); add(new THREE.SphereGeometry(0.07, 8, 6), '#6a2d7a', (i % 4 - 1.5) * 0.1 * (1 - r * 0.2), 0.45 - r * 0.1, ((i * 7) % 3 - 1) * 0.06); } add(new THREE.CylinderGeometry(0.015, 0.015, 0.15, 5), '#6b4a2e', 0, 0.58, 0); add(new THREE.CircleGeometry(0.12, 5), '#5a8a3a', 0.08, 0.58, 0, { side: THREE.DoubleSide }); break;
+    case 'olivo': case 'olive': add(new THREE.CylinderGeometry(0.02, 0.02, 0.5, 5), '#7a6a4a', 0, 0.35, 0).rotation.z = 1.2; for (let i = 0; i < 7; i++) add(new THREE.SphereGeometry(0.05, 8, 6), i % 2 ? '#3b4a1a' : '#5a6a2a', -0.2 + i * 0.07, 0.3 + (i % 3) * 0.04, 0.03); break;
+    case 'piquillo': case 'pepper': { const c = mesh(new THREE.ConeGeometry(0.1, 0.36, 10), '#c8241a', 0, 0.35, 0); c.rotation.z = Math.PI; body.add(c); add(new THREE.CylinderGeometry(0.03, 0.03, 0.08, 6), '#3d7a2a', 0, 0.56, 0); break; }
+    case 'esparrago': for (let i = 0; i < 5; i++) add(new THREE.CylinderGeometry(0.03, 0.035, 0.45, 8), '#f0ead0', (i - 2) * 0.07, 0.3, 0); add(new THREE.TorusGeometry(0.12, 0.02, 5, 12), '#d42f2f', 0, 0.25, 0).rotation.x = Math.PI / 2; break;
+    case 'alcachofa': for (let i = 0; i < 4; i++) add(new THREE.ConeGeometry(0.16 - i * 0.03, 0.14, 8), i % 2 ? '#6a8a4a' : '#557a3a', 0, 0.28 + i * 0.07, 0); add(new THREE.CylinderGeometry(0.03, 0.03, 0.2, 6), '#557a3a', 0, 0.12, 0); break;
+    case 'cardo': for (let i = 0; i < 6; i++) { const s = mesh(new THREE.BoxGeometry(0.06, 0.55, 0.04), '#dfe8cf', Math.cos(i) * 0.06, 0.35, Math.sin(i) * 0.06); s.rotation.z = (i - 2.5) * 0.06; body.add(s); } break;
+    case 'tomate': case 'tomato': add(new THREE.SphereGeometry(0.16, 12, 10), '#d9412a', 0, 0.35, 0); add(new THREE.ConeGeometry(0.08, 0.05, 5), '#3d7a2a', 0, 0.5, 0); break;
+    case 'trigo': case 'wheat': add(new THREE.CylinderGeometry(0.12, 0.16, 0.6, 10), '#e2c46a', 0, 0.4, 0); add(new THREE.TorusGeometry(0.13, 0.025, 5, 12), '#a57a45', 0, 0.38, 0).rotation.x = Math.PI / 2; for (let i = 0; i < 8; i++) add(new THREE.SphereGeometry(0.035, 6, 5), '#d9b24a', Math.cos(i) * 0.1, 0.75, Math.sin(i) * 0.1); break;
+    case 'patata': case 'potato': for (let i = 0; i < 4; i++) { const p = mesh(new THREE.SphereGeometry(0.09, 8, 6), '#b8905a', (i % 2 - 0.5) * 0.15, 0.25 + Math.floor(i / 2) * 0.1, (i % 3 - 1) * 0.06); p.scale.set(1.2, 0.9, 1); body.add(p); } break;
+    case 'manzana': case 'apple': add(new THREE.SphereGeometry(0.15, 12, 10), '#c8301e', 0, 0.35, 0); add(new THREE.CylinderGeometry(0.012, 0.012, 0.08, 5), '#5a3a22', 0, 0.52, 0); break;
+    case 'almendra': for (let i = 0; i < 5; i++) { const a = mesh(new THREE.SphereGeometry(0.06, 8, 6), '#b8844a', (i - 2) * 0.08, 0.3, 0); a.scale.set(0.8, 1.3, 0.6); body.add(a); } break;
+    case 'pocha': for (let i = 0; i < 3; i++) { const p = mesh(new THREE.CapsuleGeometry(0.04, 0.3, 4, 8), '#a8c07a', (i - 1) * 0.08, 0.35, 0); p.rotation.z = (i - 1) * 0.3; body.add(p); } break;
+    case 'corn': case 'maiz': add(new THREE.CylinderGeometry(0.08, 0.06, 0.4, 10), '#f2c94c', 0, 0.35, 0); for (const s of [-1, 1]) { const l = mesh(new THREE.ConeGeometry(0.07, 0.42, 4), '#7ab04a', s * 0.07, 0.3, 0); l.rotation.z = s * 0.25; body.add(l); } break;
+    case 'milk': add(new THREE.CylinderGeometry(0.16, 0.2, 0.5, 14), '#c9ced3', 0, 0.3, 0, { metalness: 0.6, roughness: 0.3 }); add(new THREE.CylinderGeometry(0.09, 0.15, 0.12, 14), '#c9ced3', 0, 0.61, 0, { metalness: 0.6, roughness: 0.3 }); add(new THREE.TorusGeometry(0.1, 0.02, 6, 12, Math.PI), '#6b6f75', 0, 0.7, 0); break;
+    case 'herb': case 'herbs': for (let i = 0; i < 5; i++) { const l = mesh(new THREE.SphereGeometry(0.08, 6, 5), '#5f9a3a', Math.cos(i * 1.3) * 0.08, 0.25 + i * 0.05, Math.sin(i * 1.3) * 0.08); l.scale.set(0.6, 1.4, 0.4); body.add(l); } add(new THREE.SphereGeometry(0.05, 8, 6), '#f2c230', 0, 0.55, 0); break;
+    case 'litter': add(new THREE.CylinderGeometry(0.07, 0.07, 0.22, 10), '#9aa3ab', 0, 0.2, 0, { metalness: 0.5, roughness: 0.4 }); add(new THREE.CylinderGeometry(0.06, 0.08, 0.3, 8), '#6aa0c0', 0.18, 0.18, 0.05, { transparent: true, opacity: 0.8 }).rotation.z = 1.4; break;
+    case 'lamb': { add(new THREE.SphereGeometry(0.28, 10, 8), '#fbf8f0', 0, 0.45, 0); add(new THREE.SphereGeometry(0.14, 8, 6), '#f1d7b8', 0, 0.55, 0.28); for (const [x, z] of [[-0.12, -0.12], [0.12, -0.12], [-0.12, 0.12], [0.12, 0.12]]) add(new THREE.CylinderGeometry(0.035, 0.035, 0.26, 5), '#3b3030', x, 0.14, z); break; }
+    case 'stone': add(new THREE.DodecahedronGeometry(0.22, 0), '#9a948a', 0, 0.3, 0); break;
+    case 'wool': add(new THREE.SphereGeometry(0.2, 10, 8), '#f0e8d8', 0, 0.3, 0); break;
+    case 'shell': { const s = new THREE.Mesh(new THREE.CircleGeometry(0.22, 12, 0, Math.PI), mat('#f2c94c', { side: THREE.DoubleSide })); s.position.y = 0.3; body.add(s); break; }
+    default: add(new THREE.OctahedronGeometry(0.2, 0), '#f5c542', 0, 0.35, 0, { emissive: new THREE.Color('#a07a1a') });
+  }
+  body.userData.spin = true;
+  // aro de brillo en el suelo
+  const ring = new THREE.Mesh(new THREE.RingGeometry(0.45, 0.62, 28), new THREE.MeshBasicMaterial({ color: '#ffe38a', transparent: true, opacity: 0.7, depthWrite: false, side: THREE.DoubleSide }));
+  ring.rotation.x = -Math.PI / 2; ring.position.y = 0.04; g.add(ring);
+  g.userData.body = body; g.userData.ring = ring;
+  return g;
+}
+
+// Aro de control de carrera
+export function makeGate(color = '#f5c542') {
+  const g = new THREE.Group();
+  const t = new THREE.Mesh(new THREE.TorusGeometry(2.1, 0.14, 8, 32), new THREE.MeshStandardMaterial({ color, emissive: new THREE.Color(color), emissiveIntensity: 0.6, roughness: 0.4 }));
+  t.position.y = 2.2; g.add(t);
+  for (const s of [-1, 1]) { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 2.3, 8), mat('#6b4a2e')); p.position.set(s * 2.1, 1.1, 0); g.add(p); }
+  const f = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.6), new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide })); f.position.set(2.5, 2.4, 0); g.add(f);
+  g.userData.torus = t;
+  return g;
+}
+
+// Banco de trabajo del oficio (yunque, tronco, piedra…)
+export function makeWorkbench(kind) {
+  const g = new THREE.Group();
+  if (kind === 'herrero' || kind === 'cantero') {
+    g.add(mesh(new THREE.CylinderGeometry(0.35, 0.45, 0.6, 10), '#6b4a2e', 0, 0.3, 0));
+    const a = mesh(new THREE.BoxGeometry(0.9, 0.3, 0.35), '#3a3d42', 0, 0.75, 0, { metalness: 0.7, roughness: 0.35 }); g.add(a);
+    g.add(mesh(new THREE.ConeGeometry(0.17, 0.4, 4), '#3a3d42', 0.6, 0.78, 0, { metalness: 0.7, roughness: 0.35 })).rotation.z = -Math.PI / 2;
+    if (kind === 'herrero') { const hot = mesh(new THREE.BoxGeometry(0.4, 0.06, 0.1), '#ff7a2a', 0, 0.94, 0, { emissive: new THREE.Color('#ff5a1a'), emissiveIntensity: 1.2 }); g.add(hot); g.userData.hot = hot; }
+    else g.add(mesh(new THREE.BoxGeometry(0.6, 0.4, 0.4), '#c9bda8', 1.2, 0.2, 0.2));
+  } else if (kind === 'aizkolari') {
+    g.add(mesh(new THREE.CylinderGeometry(0.4, 0.42, 1.2, 14), '#a57a45', 0, 0.6, 0).rotateZ(Math.PI / 2));
+    g.add(mesh(new THREE.CylinderGeometry(0.39, 0.39, 0.02, 14), '#e2c48a', 0.61, 0.6, 0).rotateZ(Math.PI / 2));
+  } else if (kind === 'harrijasotzaile') {
+    const s = mesh(new THREE.CylinderGeometry(0.4, 0.45, 0.55, 12), '#8f8a80', 0, 0.28, 0); g.add(s);
+  } else if (kind === 'palomero') {
+    for (const s of [-1, 1]) g.add(mesh(new THREE.CylinderGeometry(0.06, 0.08, 4, 6), '#6b4a2e', s * 2, 2, 0));
+    const net = new THREE.Mesh(new THREE.PlaneGeometry(4, 3.4, 8, 6), new THREE.MeshBasicMaterial({ color: '#8a7a5a', wireframe: true })); net.position.y = 2.2; g.add(net);
+  } else if (kind === 'alpargatero') {
+    g.add(mesh(new THREE.BoxGeometry(1.4, 0.8, 0.7), '#8a5a32', 0, 0.4, 0));
+    for (let i = 0; i < 3; i++) g.add(mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.06, 12), '#d9c79a', -0.4 + i * 0.4, 0.83, 0));
+  }
+  return g;
+}

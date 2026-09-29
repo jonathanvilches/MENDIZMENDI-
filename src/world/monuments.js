@@ -183,7 +183,7 @@ export function bridge(B, b, riverInfo) {
   const holes = [];
   for (let k = nArch - 1; k >= 0; k--) {
     const c = (k - (nArch - 1) / 2) * (2 * archR + 1.8);
-    const spring = bed + 0.4, ah = archR * (nArch === 1 ? 1.02 : 0.95);
+    const spring = bed + 0.4, ah = Math.max(1.2, Math.min(archR * (nArch === 1 ? 1.02 : 0.95), Math.min(deckY(b, b.cx + c - archR), deckY(b, b.cx + c), deckY(b, b.cx + c + archR)) - 1.25 - spring));
     s.lineTo(c + archR, bed - 1); s.lineTo(c + archR, spring);
     for (let i = 1; i < 16; i++) { const a = Math.PI * i / 16; s.lineTo(c + Math.cos(a) * archR, spring + Math.sin(a) * ah); }
     s.lineTo(c - archR, spring); s.lineTo(c - archR, bed - 1);
@@ -195,7 +195,7 @@ export function bridge(B, b, riverInfo) {
   B.add('stone', g, M(b.cx, 0, b.z - b.w / 2));
   for (const h of holes) for (const side of [-1, 1]) for (let i = 0; i < 13; i++) {
     const a0 = Math.PI * i / 13, a1 = Math.PI * (i + 1) / 13, am = (a0 + a1) / 2;
-    B.add('ashlar', box(0.7, (h.archR + 0.4) * (a1 - a0), 0.25, 1), M(b.cx + h.c + Math.cos(am) * (h.archR + 0.33), h.spring + Math.sin(am) * (h.ah + 0.33), b.z + side * (b.w / 2 + 0.06), 0, 0, am - Math.PI / 2));
+    B.add('ashlar', box(0.62, Math.hypot(h.archR * (Math.cos(a1) - Math.cos(a0)), h.ah * (Math.sin(a1) - Math.sin(a0))) + 0.04, 0.25, 1), M(b.cx + h.c + Math.cos(am) * (h.archR + 0.31), h.spring + Math.sin(am) * (h.ah + 0.31), b.z + side * (b.w / 2 + 0.06), 0, 0, Math.atan2(Math.sin(am) * h.archR, Math.cos(am) * h.ah)));
   }
   // tajamares entre arcos
   for (let k = 0; k < holes.length - 1; k++) {
