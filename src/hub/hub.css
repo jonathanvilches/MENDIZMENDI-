@@ -633,3 +633,6 @@
 .ci-dots i { width: 8px; height: 8px; border-radius: 4px; background: rgba(255, 255, 255, .35); transition: width .3s, background .3s; } .ci-dots i.on { width: 24px; background: #FFD700; }
 .ci-skip { position: absolute; z-index: 3; right: calc(env(safe-area-inset-right, 0px) + 16px); top: calc(env(safe-area-inset-top, 0px) + 12px); padding: 8px 16px; border-radius: 20px; background: rgba(255, 255, 255, .14); border: 1px solid rgba(255, 255, 255, .35); color: #fff; font: 900 14px 'Nunito', sans-serif; cursor: pointer; }
 @media (max-height: 520px) { .ci-bar { height: 7vh; } .ci-text { bottom: calc(7vh + 8px); } .ci-text p { font-size: 15px; } .ci-dots { top: 10px; } }
+.langsel { display: inline-flex; margin-top: 10px; padding: 4px; border-radius: 24px; background: rgba(255, 255, 255, .1); border: 1px solid var(--line2); gap: 4px; }
+.langsel button { padding: 7px 16px; border-radius: 20px; font: 900 14px 'Nunito', sans-serif; color: var(--mute); background: none; border: 0; cursor: pointer; }
+.langsel button.on { background: #FFD700; color: #2e1d00; }

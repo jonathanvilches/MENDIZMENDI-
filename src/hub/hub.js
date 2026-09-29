@@ -9,6 +9,7 @@ import { iconSVG, speciesIcon } from '../ui/icons.js';
 import { avatarPortrait, portrait } from '../ui/portraits.js';
 import { stampImg, landImg } from '../assets.js';
 import { Stage } from './stage.js';
+import { getLang, setLang } from '../i18n.js';
 import { dioramaShot } from './diorama.js';
 import { profile, saveProfile, levelOf, rankOf, townProgress, comarcaProgress, comarcaTowns, navarraProgress, stampCount, BADGES, checkBadges, resetProfile, salazarState } from '../game/profile.js';
 
@@ -424,6 +425,7 @@ export class Hub {
       $('#pMusic', r).onchange = e => { S.music = e.target.checked; saveProfile(); this.onSettings?.(S); };
       $('#pVol', r).oninput = e => { S.volume = +e.target.value; saveProfile(); this.onSettings?.(S); };
       $('#pQ', r).value = S.quality || 'auto';
+      $('#pLang', r).value = getLang(); $('#pLang', r).onchange = e => setLang(e.target.value);
       $('#pQ', r).onchange = e => { S.quality = e.target.value === 'auto' ? null : e.target.value; saveProfile(); this.onSettings?.(S); };
       const rb = $('#pReset', r); rb.onclick = (e) => { e.stopPropagation(); if (rb.dataset.sure) { resetProfile(); try { localStorage.removeItem('mendimendiz-salazar-v2'); } catch (err) { } this.go('home'); } else { rb.dataset.sure = 1; rb.textContent = '¿Seguro? Pulsa otra vez para borrar todo'; this.sound?.ui('error'); } };
     };
@@ -435,6 +437,7 @@ export class Hub {
         <div class="pstats"><span>${I('stamp', 26)} ${stampCount(p)} sellos</span><span>${I('check', 26)} ${doneM} misiones</span><span>${I('book', 26)} ${p.cards.length} cartas</span><span>${I('peak', 26)} ${p.peaks.length} cimas</span><span>${I('binoculars', 26)} ${p.species.length} especies</span><span>${I('ribbon', 26)} ${sal?.ribbons?.length || 0}/8 cintas de Muskilda</span></div>
         <button class="btn" data-go="avatars">${I('person', 22)} Cambiar personaje</button></div></div>
       <div class="panel"><h2>${I('gear', 30)} Ajustes</h2>
+        <label class="set">Idioma <select id="pLang"><option value="eu">Euskara</option><option value="es">Castellano</option></select></label>
         <label class="set">Música <input type="checkbox" id="pMusic" ${S.music ? 'checked' : ''}></label>
         <label class="set">Volumen <input type="range" id="pVol" min="0" max="1" step="0.05" value="${S.volume}"></label>
         <label class="set">Calidad gráfica <select id="pQ"><option value="auto">Automática</option><option value="low">Baja (más fluido)</option><option value="mid">Media</option><option value="high">Alta</option></select></label>
@@ -447,12 +450,14 @@ export class Hub {
     const p = profile();
     let pick = p.avatar || 'leire';
     const o = el(`<div class="onb"><div class="onb-in">
-      <header class="onb-head"><div class="logo">MENDIMENDIZ</div><p class="tag">Navarra, pueblo a pueblo</p></header>
+      <header class="onb-head"><div class="logo">MENDIMENDIZ</div><p class="tag">Navarra, pueblo a pueblo</p>
+        <div class="langsel" role="group" aria-label="Idioma"><button data-lang="eu" class="${getLang() === 'eu' ? 'on' : ''}">Euskara</button><button data-lang="es" class="${getLang() === 'es' ? 'on' : ''}">Castellano</button></div></header>
       ${this.selector(castById(pick), { onb: true, extra: `<div class="onb-foot"><label>¿Cómo te llamas?<input id="oName" maxlength="14" autocomplete="off" placeholder="Tu nombre"></label>
         <button class="btn primary big" id="oGo">${I('play', 26)} ¡Empezar la aventura!</button></div>` })}
     </div></div>`);
     this.root.appendChild(o);
     this.bindSelector(o, pick, (a) => { pick = a.id; this.sound?.init?.(); });
+    o.querySelectorAll('[data-lang]').forEach(b => b.onclick = (e) => { e.stopPropagation(); if (b.dataset.lang !== getLang()) setLang(b.dataset.lang); });
     const inp = $('#oName', o); inp.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') go(); });
     const go = () => { p.name = inp.value.trim() || 'Mendi'; p.avatar = pick; saveProfile(); this.sound?.init?.(); this.sound?.ui('open'); o.remove(); this.go('home', null, true); };
     $('#oGo', o).onclick = go;

@@ -25,6 +25,7 @@ import { landImg, stampImg } from './assets.js';
 import COMARCAS from './data/comarcas.json';
 import { avatarPortrait } from './ui/portraits.js';
 import { preloadIcons } from './ui/icons.js';
+import { startI18n } from './i18n.js';
 
 const q = new URLSearchParams(location.search);
 const TIPS = [
@@ -37,6 +38,7 @@ const TIPS = [
 ];
 
 async function boot() {
+  startI18n();
   preloadIcons();
   const canvas = document.getElementById('c');
   const input = new Input(canvas);
