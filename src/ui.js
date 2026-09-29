@@ -395,7 +395,7 @@ export class UI {
     const fade = (x) => Math.max(0, Math.min(1, Math.min(x, W - x) / (W * 0.14)));
     const cs = Math.cos(camYaw), sn = Math.sin(camYaw);
     const rel = (x, z) => { const dx = x - player.pos.x, dz = z - player.pos.z; return Math.atan2(dx * cs - dz * sn, -(dx * sn + dz * cs)); };
-    const NAMES = ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'];
+    const NAMES = document.documentElement.lang === 'eu' ? ['I', 'IE', 'E', 'HE', 'H', 'HM', 'M', 'IM'] : ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'];
     g.textAlign = 'center'; g.textBaseline = 'middle';
     for (let i = 0; i < 24; i++) {
       const a = wrap(camYaw + i * Math.PI / 12); if (Math.abs(a) > span) continue;
@@ -404,7 +404,7 @@ export class UI {
       if (i % 3 === 0) {
         const n = NAMES[i / 3], card = n.length === 1;
         g.font = `900 ${Math.round((card ? 14 : 10.5) * dpr)}px Nunito, sans-serif`;
-        g.fillStyle = n === 'N' ? '#FFD700' : card ? '#ffffff' : 'rgba(230,220,255,.75)';
+        g.fillStyle = (n === 'N' || n === 'I') ? '#FFD700' : card ? '#ffffff' : 'rgba(230,220,255,.75)';
         g.fillText(n, x, ly);
         g.fillRect(x - dpr, ty - 4 * dpr, 2 * dpr, 7 * dpr);
       } else { g.fillStyle = 'rgba(230,220,255,.45)'; g.fillRect(x - dpr * 0.5, ty - 2 * dpr, dpr, 4 * dpr); }
