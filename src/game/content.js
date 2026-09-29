@@ -65,6 +65,7 @@ export const CARDS = [
 
 export const SPECIES_OBS = {
   corzo: 'Corzo', ciervo: 'Ciervo', ardilla: 'Ardilla roja', pito: 'Pito negro', buitre: 'Buitre leonado', trucha: 'Trucha', jabali: 'Jabalí',
+  quebrantahuesos: 'Quebrantahuesos', aguila: 'Águila real', milano: 'Milano real', zorro: 'Zorro', lechuza: 'Lechuza',
 };
 
 // Preguntas (algunas adaptadas de los capítulos rurales del proyecto)

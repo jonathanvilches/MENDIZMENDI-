@@ -14,9 +14,11 @@
       while (!M.done && guard++ < 12) {
         const T = G.target(M);
         if (M.type === 'visit' && M.step === 1) { for (const p of M.places) { if (!p.seen) { await go(p.at.x, p.at.z); G.checkArrival(); await sleep(300); } } }
-        else if (['process', 'harvest', 'legend'].includes(M.type) && M.step === 1) { for (const it of G.items.filter(i => i.M === M)) G.pick(it); }
+        else if (['process', 'harvest'].includes(M.type) && M.step === 1) { for (const it of G.items.filter(i => i.M === M)) G.pick(it); }
+        else if (M.type === 'legend' && M.step === 2) { for (const k of G.clues.filter(k => k.M === M && !k.found)) { await go(k.x + 1, k.z); await G.examineClue(k); } }
+        else if (M.type === 'legend' && M.step === 3) { await go(M.lair.x + 2, M.lair.z + 2); G.updateNight(0.016); await sleep(200); if (M.creature?.shown) { await G.meetCreature(M); continue; } }
         else if (M.type === 'herd' && M.step === 1) { const pen = __game.fauna && G.herd; for (const s of G.herd || []) { s.pos.x = window.__TOWN_PEN.x; s.pos.z = window.__TOWN_PEN.z; } G.updateHerd(0.016); }
-        else if (M.type === 'carnival' && M.step === 1) { for (const f of G.folk.filter(f => !f.found)) { await go(f.pos.x + 1, f.pos.z + 1); G.updateFolk(f, 0.016); } }
+        else if (M.type === 'carnival' && M.step === (M.night ? 2 : 1)) { for (const f of G.folk.filter(f => !f.found)) { await go(f.pos.x + 1, f.pos.z + 1); G.updateFolk(f, 0.016); } }
         else if (M.type === 'trade' && M.step === 1) { await go(M.bench.x + 1, M.bench.z); await G.doTrade(M); }
         else if (M.type === 'race' && M.step === 1) { for (const g of G.gates.slice()) { await go(g.x, g.z); G.updateRace(0.016); } }
         else if (M.type === 'dance' && M.step === 1) { await go(__layout.PLACES.plaza.x, __layout.PLACES.plaza.z); G.checkArrival(); await sleep(200); if (G.dn) { G.dn.hits = G.dn.total; G.dn.i = G.dn.seq.length; G.dn.t = 1e4; G.updateDance(0.016); await sleep(1600); } }

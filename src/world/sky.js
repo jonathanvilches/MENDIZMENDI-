@@ -3,17 +3,18 @@ import { clamp, lerp, smoothstep } from '../util/math.js';
 
 // Paleta por hora del día: [hora, cenit, horizonte, sol color, sol intensidad, hemi cielo, hemi suelo, hemi int]
 const KEYS = [
-  [0, '#0b1230', '#1c2a4a', '#6f86c8', 0.18, '#31437a', '#141a24', 0.35],
-  [5, '#1b2450', '#4a4a70', '#7d8fd0', 0.2, '#3b4a82', '#1c2028', 0.38],
+  // noche de luna: azulada y misteriosa, pero con luz suficiente para ver el camino
+  [0, '#0d1638', '#26365e', '#9fb4f0', 0.85, '#5a70b8', '#2a3350', 0.95],
+  [5, '#1b2450', '#4a4a70', '#9fb0ea', 0.7, '#5a6aa8', '#2a3048', 0.85],
   [6.3, '#4d6fb0', '#f3a978', '#ffb27a', 1.2, '#9fb4dc', '#5d5040', 0.55],
   [8, '#3f8fe0', '#bfe0f7', '#ffe3bd', 2.6, '#bfdcff', '#6d7a4a', 0.8],
   [12, '#2f7fdc', '#cfe8fb', '#fff4e2', 3.1, '#c9e2ff', '#72804f', 0.9],
   [16.5, '#3a86dc', '#d2e6f6', '#ffe6c2', 2.8, '#c4dcff', '#6f7b4c', 0.85],
   [18.4, '#5f7cc4', '#ffc493', '#ffb277', 2.2, '#c7c6e2', '#6d6048', 0.8],
   [19.3, '#3d4488', '#e0906f', '#ff9a66', 1.0, '#8f8fbf', '#3f3a3a', 0.62],
-  [20.1, '#1c2458', '#6c4d6a', '#8a8fd0', 0.3, '#46508a', '#1c1e2a', 0.42],
-  [21, '#0e1638', '#243056', '#7086c8', 0.2, '#34447a', '#161b26', 0.36],
-  [24, '#0b1230', '#1c2a4a', '#6f86c8', 0.18, '#31437a', '#141a24', 0.35],
+  [20.1, '#1c2458', '#6c4d6a', '#9aa4e0', 0.6, '#5a64a0', '#2a2c3e', 0.8],
+  [21, '#0f1a40', '#2a3a64', '#a4b8f4', 0.85, '#5a70b8', '#2a3350', 0.95],
+  [24, '#0d1638', '#26365e', '#9fb4f0', 0.85, '#5a70b8', '#2a3350', 0.95],
 ];
 const KC = KEYS.map(k => ({ t: k[0], zen: new THREE.Color(k[1]), hor: new THREE.Color(k[2]), sun: new THREE.Color(k[3]), si: k[4], hs: new THREE.Color(k[5]), hg: new THREE.Color(k[6]), hi: k[7] }));
 
