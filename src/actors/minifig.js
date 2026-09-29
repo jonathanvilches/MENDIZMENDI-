@@ -352,9 +352,14 @@ export function buildMinifig(look, opts = {}) {
   const top = cy + R * 0.98;
   if (hc && hs !== 'bald' && L.hat !== 'mask') {
     H.add(new THREE.SphereGeometry(R * 1.06, 24, 14, 0, Math.PI * 2, 0, Math.PI * 0.36), hc, TX.hair, mtx(0, cy + R * 0.08, -R * 0.03, 0, 0, 0, 1, 1.02, 1.02));
-    H.add(new THREE.SphereGeometry(R * 1.055, 24, 14, Math.PI * 0.9, Math.PI * 1.2, Math.PI * 0.3, Math.PI * 0.2), hc, TX.hair, mtx(0, cy + R * 0.05, -R * 0.03, 0, 0, 0, 1.04, 1, 1));
-    H.add(new THREE.SphereGeometry(R * 1.05, 20, 10, Math.PI * 0.95, Math.PI * 1.1, Math.PI * 0.45, Math.PI * 0.34), hc, TX.hair, mtx(0, cy, -R * 0.02, 0, 0, 0, 1.09, 1, 1));
+    H.add(new THREE.SphereGeometry(R * 1.055, 24, 14, Math.PI * 0.96, Math.PI * 1.08, Math.PI * 0.3, Math.PI * 0.2), hc, TX.hair, mtx(0, cy + R * 0.05, -R * 0.03, 0, 0, 0, 1.04, 1, 1));
+    H.add(new THREE.SphereGeometry(R * 1.05, 20, 10, Math.PI * 1.06, Math.PI * 0.88, Math.PI * 0.45, Math.PI * 0.34), hc, TX.hair, mtx(0, cy, -R * 0.02, 0, 0, 0, 1.09, 1, 1));
     for (const s of [-1, 1]) H.add(CAP(R * 0.07, R * 0.16, 8), hc, TX.hair, mtx(s * R * 0.93, cy + R * 0.12, R * 0.02, 0, 0, s * 0.12));
+    // sienes y patillas: el pelo termina en mechones y deja ver la oreja (de perfil ya no parece un casco)
+    if (hs !== 'long') for (const s of [-1, 1]) {
+      H.add(new THREE.ConeGeometry(R * 0.1, R * 0.34, 8), hc, TX.hair, mtx(s * R * 0.99, cy + R * 0.2, R * 0.2, Math.PI - 0.15, 0, -s * 0.12, 1, 1, 0.5));
+      for (let i = 0; i < 3; i++) H.add(new THREE.ConeGeometry(R * 0.12, R * 0.34, 8), hc, TX.hair, mtx(s * R * (1.0 - i * 0.02), cy + R * (0.3 - i * 0.2), -R * (0.12 + i * 0.07), Math.PI + 0.25, 0, -s * 0.2, 1, 1, 0.5));
+    }
     if (!hatOn) {
       if (hs === 'spiky') for (let i = 0; i < 9; i++) { const a = (i / 9) * Math.PI * 2; H.add(new THREE.ConeGeometry(R * 0.2, R * 0.55, 7), hc, TX.hair, mtx(Math.sin(a) * R * 0.55, top - R * 0.05, Math.cos(a) * R * 0.55 - R * 0.05, Math.cos(a) * 0.9, 0, -Math.sin(a) * 0.9)); }
       if (hs === 'curly') for (let i = 0; i < 18; i++) { const a = i * 2.4, rr = 0.35 + (i % 3) * 0.25; H.add(SPH(R * 0.22, 10, 8), hc, TX.hair, mtx(Math.sin(a) * R * rr, top - R * 0.1 - (i % 3) * R * 0.08, Math.cos(a) * R * rr - R * 0.05)); }
@@ -375,7 +380,7 @@ export function buildMinifig(look, opts = {}) {
     // nuca con mechones y remolino: de espaldas el pelo tiene forma, no es una bola lisa
     if (hs !== 'long') for (let i = 0; i < 5; i++) { const a = (i - 2) * 0.32; H.add(new THREE.ConeGeometry(R * 0.17, R * 0.42, 6), hc, TX.hair, mtx(Math.sin(a) * R * 0.92, cy - R * 0.36 - (i % 2) * R * 0.05, -Math.cos(a) * R * 0.86, Math.PI + 0.25, 0, -Math.sin(a) * 0.5, 1, 1, 0.55)); }
     if (!hatOn && (hs === 'short' || hs === 'curly')) H.add(new THREE.ConeGeometry(R * 0.12, R * 0.42, 6), hc, TX.hair, mtx(R * 0.05, top + R * 0.06, -R * 0.4, -0.7, 0, -0.35));
-    if (hs === 'long') {
+    if (hs === 'long' && !L.hood) {
       // melena en mechones gruesos que caen desde la coronilla hasta los hombros
       const V = (x, y, z) => new THREE.Vector3(x, y, z);
       for (let i = 0; i < 13; i++) {
