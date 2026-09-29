@@ -17,11 +17,11 @@ const ICON = {
   map: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></svg>',
   menu: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h14"/></svg>',
   bino: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="15" r="4"/><circle cx="17" cy="15" r="4"/><path d="M7 11V6a2 2 0 014 0v5M17 11V6a2 2 0 00-4 0v5M11 14h2"/></svg>',
-  run: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="15" cy="4" r="2"/><path d="M13 8l-3 5 4 3-1 6M10 13l-4-1M14 9l4 3"/><path d="M3 8h4M2 11h3"/></svg>',
-  jump: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V5M6 11l6-6 6 6"/></svg>',
+  run: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M9 5.5l6.5 6.5L9 18.5l-2.6-2.6L10.3 12 6.4 8.1z" fill="#fff"/><path d="M15 5.5l6.5 6.5-6.5 6.5-2.6-2.6 3.9-3.9-3.9-3.9z" fill="#FFD700"/><path d="M1.5 9h3M1 12h3.6M1.5 15h3" fill="none" stroke="#fff" stroke-width="1.8"/></svg>',
+  jump: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.6" stroke-linejoin="round"><path d="M12 2.5l7.5 7.8h-4.6v6.2H9.1v-6.2H4.5z" fill="#fff"/><rect x="4" y="18.6" width="16" height="3" rx="1.5" fill="#00BFFF"/></svg>',
   sun: '<svg viewBox="0 0 24 24" fill="#ffd34d"><circle cx="12" cy="12" r="5"/></svg>',
   moon: '<svg viewBox="0 0 24 24" fill="#f0e6c8"><path d="M15 3a9 9 0 106 15A8 8 0 0115 3z"/></svg>',
-  hand: '<svg viewBox="0 0 24 24" fill="none" stroke="#3a2200" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V6a1.5 1.5 0 013 0v5V4a1.5 1.5 0 013 0v7V5.5a1.5 1.5 0 013 0V14c0 4-2 7-6 7-3 0-4-2-6-5l-1.5-2.5c-.8-1.3 1-2.5 2-1.3z"/></svg>',
+  hand: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="M8.2 13.2V5.2a1.7 1.7 0 013.4 0v5.3V3.8a1.7 1.7 0 013.4 0v6.9V5.4a1.7 1.7 0 013.4 0v8.6c0 4.6-2.4 7.6-6.6 7.6-3.1 0-4.6-1.8-6.4-4.8l-1.7-2.8c-.9-1.5 1.1-2.9 2.3-1.5z" fill="#fff"/><path d="M11.6 10.5v2.2M15 10.7v2M18.4 11v1.8" fill="none"/></svg>',
 };
 
 export class UI {
@@ -34,17 +34,33 @@ export class UI {
   }
   // ---------- Carga ----------
   buildLoading() {
-    this.loading = el(`<div id="loading" class="hidden"><div class="ld-in"><div class="logo">MENDIMENDIZ</div><div class="sub"></div><div class="bar"><i></i></div><div class="msg">Preparando…</div><div class="tip"></div></div>
-      <svg class="mountains" viewBox="0 0 100 30" preserveAspectRatio="none"><path d="M0 30 L0 18 L12 8 L20 15 L30 4 L42 16 L52 9 L63 18 L74 6 L86 15 L100 10 L100 30Z" fill="#2a1a52"/><path d="M0 30 L0 22 L15 16 L28 22 L40 14 L55 23 L70 15 L84 22 L100 17 L100 30Z" fill="#1d1239"/></svg></div>`);
+    this.loading = el(`<div id="loading" class="hidden"><div class="ld-bg"></div><div class="ld-shade"></div>
+      <div class="ld-in">
+        <div class="ld-top"><small class="ld-k"></small></div>
+        <div class="ld-mid"><img class="ld-stamp" alt=""><div class="ld-name"></div><p class="ld-intro"></p><div class="ld-ms"></div></div>
+        <div class="ld-bot">
+          <div class="ld-tip"><span class="ld-bulb"></span><div><b>¿Sabías que…?</b><p class="tip"></p></div></div>
+          <div class="ld-prog"><div class="bar"><i></i><img class="ld-av" alt=""></div><div class="ld-row"><span class="msg">Preparando…</span><span class="ld-pc">0%</span></div></div>
+        </div>
+      </div></div>`);
     document.body.appendChild(this.loading);
   }
-  showLoading(title, tip = '', image = '') {
-    this.loading.classList.remove('hidden'); this.loading.style.opacity = 1; this.loading.style.transition = '';
-    $('.sub', this.loading).textContent = title; $('.tip', this.loading).textContent = tip;
-    this.loading.style.backgroundImage = image ? `linear-gradient(180deg,rgba(40,12,90,.6),rgba(20,6,48,.94)),url(${image})` : '';
+  // info: { comarca, stamp, avatar, missions: [iconos], intro }
+  showLoading(title, tip = '', image = '', info = {}) {
+    const L = this.loading;
+    L.classList.remove('hidden'); L.style.opacity = 1; L.style.transition = '';
+    $('.ld-bg', L).style.backgroundImage = image ? `url(${image})` : '';
+    $('.ld-k', L).textContent = info.comarca ? 'Comarca · ' + info.comarca : 'Navarra';
+    $('.ld-name', L).textContent = title.split(' /')[0];
+    $('.ld-intro', L).textContent = info.intro || '';
+    const st = $('.ld-stamp', L); st.style.display = info.stamp ? '' : 'none'; if (info.stamp) st.src = info.stamp;
+    const av = $('.ld-av', L); av.style.display = info.avatar ? '' : 'none'; if (info.avatar) av.src = info.avatar;
+    $('.ld-ms', L).innerHTML = info.missions?.length ? `<span>${info.missions.length} misiones te esperan</span><div>${info.missions.map(ic => I(ic, 34)).join('')}</div>` : '';
+    $('.ld-bulb', L).innerHTML = I('sparkle', 30);
+    $('.tip', L).textContent = tip;
     this.progress(0, 'Preparando…');
   }
-  progress(p, msg) { $('.bar i', this.loading).style.width = (p * 100).toFixed(0) + '%'; if (msg) $('.msg', this.loading).textContent = msg; }
+  progress(p, msg) { const L = this.loading, v = Math.max(0, Math.min(1, p)); $('.bar i', L).style.width = (v * 100).toFixed(0) + '%'; $('.ld-av', L).style.left = `calc(${(v * 100).toFixed(1)}% - 22px)`; $('.ld-pc', L).textContent = Math.round(v * 100) + '%'; if (msg) $('.msg', L).textContent = msg; }
   hideLoading() { this.loading.style.transition = 'opacity .6s'; this.loading.style.opacity = 0; setTimeout(() => this.loading.classList.add('hidden'), 650); }
 
   // ---------- HUD ----------
@@ -53,7 +69,7 @@ export class UI {
     this.game = game;
     const town = game.kind === 'town';
     const h = el(`<div id="hud">
-      <div id="compass"><canvas></canvas></div>
+      <div id="compass"><canvas></canvas><span id="cdist"></span></div>
       <div id="tl">
         <div id="quest"><div class="ic"><span class="qe"></span></div><div class="qtxt"><small></small><b class="qt"></b><div class="qrow"><span class="qpips"></span><span class="qd"></span></div></div></div>
         <div id="ribbons">${town ? `<span class="tname">${esc(game.def.name.split(' /')[0])}</span><span class="dots">${game.missions.map(M => `<i data-m="${M.i}" title="${esc(M.title)}"></i>`).join('')}</span>`
@@ -74,9 +90,9 @@ export class UI {
       <div id="stick"><i></i></div>
       <div id="stickHint"><i></i><span>Mover</span></div>
       <div id="controls">
-        <button class="cbtn" id="cRun" aria-label="Correr">${ICON.run}</button>
-        <button class="cbtn" id="cJump" aria-label="Saltar">${ICON.jump}</button>
-        <button class="cbtn big off" id="cAct" aria-label="Acción">${ICON.hand}</button>
+        <button class="cbtn" id="cRun" aria-label="Correr">${ICON.run}<b>Correr</b></button>
+        <button class="cbtn" id="cJump" aria-label="Saltar">${ICON.jump}<b>Saltar</b></button>
+        <button class="cbtn big off" id="cAct" aria-label="Acción">${ICON.hand}<b>Acción</b></button>
       </div>
     </div>`);
     this.root.appendChild(h);
@@ -367,47 +383,45 @@ export class UI {
     if (!W || !Hh) return;
     if (c.width !== W || c.height !== Hh) { c.width = W; c.height = Hh; }
     const g = c.getContext('2d'); g.clearRect(0, 0, W, Hh);
-    const span = Math.PI * 0.5, k = (W / 2) / span, base = Hh * 0.56;
+    const span = Math.PI * 0.5, k = (W / 2) / span, ly = Hh * 0.42, ty = Hh * 0.8;
     const wrap = (a) => ((a + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
+    const fade = (x) => Math.max(0, Math.min(1, Math.min(x, W - x) / (W * 0.14)));
     const cs = Math.cos(camYaw), sn = Math.sin(camYaw);
     const rel = (x, z) => { const dx = x - player.pos.x, dz = z - player.pos.z; return Math.atan2(dx * cs - dz * sn, -(dx * sn + dz * cs)); };
-    g.strokeStyle = 'rgba(255,244,228,.35)'; g.lineWidth = dpr; g.beginPath(); g.moveTo(0, base); g.lineTo(W, base); g.stroke();
     const NAMES = ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'];
     g.textAlign = 'center'; g.textBaseline = 'middle';
     for (let i = 0; i < 24; i++) {
       const a = wrap(camYaw + i * Math.PI / 12); if (Math.abs(a) > span) continue;
-      const x = W / 2 + a * k;
+      const x = W / 2 + a * k, al = fade(x); if (al <= 0) continue;
+      g.globalAlpha = al;
       if (i % 3 === 0) {
         const n = NAMES[i / 3], card = n.length === 1;
-        g.font = `900 ${Math.round((card ? 14 : 11) * dpr)}px Nunito, sans-serif`;
-        g.fillStyle = n === 'N' ? '#FFD700' : card ? '#fff' : 'rgba(255,244,228,.7)';
-        g.shadowColor = 'rgba(0,0,0,.8)'; g.shadowBlur = 4 * dpr;
-        g.fillText(n, x, base - 11 * dpr); g.shadowBlur = 0;
-        g.fillStyle = g.fillStyle; g.fillRect(x - dpr, base - 3 * dpr, 2 * dpr, 6 * dpr);
-      } else { g.fillStyle = 'rgba(255,244,228,.45)'; g.fillRect(x - dpr * 0.5, base - 2 * dpr, dpr, 4 * dpr); }
+        g.font = `900 ${Math.round((card ? 14 : 10.5) * dpr)}px Nunito, sans-serif`;
+        g.fillStyle = n === 'N' ? '#FFD700' : card ? '#ffffff' : 'rgba(230,220,255,.75)';
+        g.fillText(n, x, ly);
+        g.fillRect(x - dpr, ty - 4 * dpr, 2 * dpr, 7 * dpr);
+      } else { g.fillStyle = 'rgba(230,220,255,.45)'; g.fillRect(x - dpr * 0.5, ty - 2 * dpr, dpr, 4 * dpr); }
     }
-    // misiones y lugares a la vista
+    g.globalAlpha = 1;
     for (const m of markers || []) {
       if (!m.icon || m.small || (target && Math.abs(m.x - target.x) + Math.abs(m.z - target.z) < 1)) continue;
-      const a = rel(m.x, m.z); if (Math.abs(a) > span * 0.92) continue;
-      this.drawIcon(g, m.icon, W / 2 + a * k, base, 8.5 * dpr);
+      const a = rel(m.x, m.z); if (Math.abs(a) > span * 0.85) continue;
+      const x = W / 2 + a * k; g.globalAlpha = fade(x); this.drawIcon(g, m.icon, x, ty, 6.5 * dpr); g.globalAlpha = 1;
     }
-    // objetivo: rombo dorado con la distancia; si queda detrás, flecha en el borde
+    // objetivo: rombo en la línea inferior; si queda detrás, flecha en el borde. La distancia va en su etiqueta.
+    const dEl = this.hud && $('#cdist', this.hud);
     if (target) {
-      const a0 = rel(target.x, target.z), out = Math.abs(a0) > span * 0.86, a = Math.max(-span * 0.86, Math.min(span * 0.86, a0));
-      const x = W / 2 + a * k, s = 7 * dpr;
-      g.save(); g.translate(x, base);
-      g.shadowColor = 'rgba(255,215,0,.9)'; g.shadowBlur = 10 * dpr;
-      g.fillStyle = '#FFD700'; g.strokeStyle = '#2e1d00'; g.lineWidth = 1.5 * dpr;
-      if (out) { const d = Math.sign(a0); g.beginPath(); g.moveTo(d * s * 1.3, 0); g.lineTo(-d * s * 0.4, -s); g.lineTo(-d * s * 0.4, s); g.closePath(); }
-      else { g.beginPath(); g.moveTo(0, -s); g.lineTo(s, 0); g.lineTo(0, s); g.lineTo(-s, 0); g.closePath(); }
-      g.fill(); g.shadowBlur = 0; g.stroke(); g.restore();
-      const d = Math.hypot(target.x - player.pos.x, target.z - player.pos.z);
-      g.font = `900 ${Math.round(11 * dpr)}px Nunito, sans-serif`; g.fillStyle = '#fff'; g.shadowColor = 'rgba(0,0,0,.9)'; g.shadowBlur = 4 * dpr;
-      g.fillText(`${Math.round(d)} m`, Math.max(20 * dpr, Math.min(W - 20 * dpr, x)), base + 15 * dpr); g.shadowBlur = 0;
-    }
-    // indicador central
-    g.fillStyle = '#fff'; g.beginPath(); g.moveTo(W / 2 - 5 * dpr, Hh - 1); g.lineTo(W / 2 + 5 * dpr, Hh - 1); g.lineTo(W / 2, Hh - 6 * dpr); g.closePath(); g.globalAlpha = .8; g.fill(); g.globalAlpha = 1;
+      const a0 = rel(target.x, target.z), out = Math.abs(a0) > span * 0.82, a = Math.max(-span * 0.82, Math.min(span * 0.82, a0));
+      const x = W / 2 + a * k, sz = 6.5 * dpr;
+      g.save(); g.translate(x, ty); g.shadowColor = 'rgba(255,215,0,.9)'; g.shadowBlur = 10 * dpr;
+      g.fillStyle = '#FFD700'; g.strokeStyle = '#2e1d00'; g.lineWidth = 1.5 * dpr; g.beginPath();
+      if (out) { const d = Math.sign(a0); g.moveTo(d * sz * 1.3, 0); g.lineTo(-d * sz * 0.4, -sz); g.lineTo(-d * sz * 0.4, sz); }
+      else { g.moveTo(0, -sz); g.lineTo(sz, 0); g.lineTo(0, sz); g.lineTo(-sz, 0); }
+      g.closePath(); g.fill(); g.shadowBlur = 0; g.stroke(); g.restore();
+      if (dEl) { const d = Math.round(Math.hypot(target.x - player.pos.x, target.z - player.pos.z)); const t = d + ' m'; if (dEl.textContent !== t) dEl.textContent = t; dEl.style.left = Math.max(24, Math.min(W / dpr - 24, x / dpr)) + 'px'; dEl.style.display = ''; }
+    } else if (dEl) dEl.style.display = 'none';
+    // marca central
+    g.fillStyle = '#ffffff'; g.beginPath(); g.moveTo(W / 2 - 5 * dpr, 0); g.lineTo(W / 2 + 5 * dpr, 0); g.lineTo(W / 2, 6 * dpr); g.closePath(); g.fill();
   }
   updateMinimap(player, camYaw, markers, target) {
     this.drawCompass(player, camYaw, markers, target);
