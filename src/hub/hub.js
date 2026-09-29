@@ -158,7 +158,9 @@ export class Hub {
       const op = done ? 1 : 0.35 + pr.pct * 0.55;
       return `<path d="${c.path}" data-comarca="${c.id}" class="cpath ${done ? 'done' : ''} ${focus && focus !== c.id ? 'dim' : ''}" style="fill:${c.color};fill-opacity:${op}"/>`;
     }).join('');
-    const labels = small ? '' : COMARCAS.map(c => `<text x="${c.label.x}" y="${c.label.y}" class="clabel" text-anchor="middle">${c.label.lines.map((l, i) => `<tspan x="${c.label.x}" dy="${i ? 13 : 0}">${esc(l)}</tspan>`).join('')}</text>`).join('');
+    const labels = small ? '' : COMARCAS.map(c => `<text x="${c.label.x}" y="${c.label.y}" class="clabel" text-anchor="middle">${c.label.lines.map((l, i) => `<tspan x="${c.label.x}" dy="${i ? 12 : 0}">${esc(l)}</tspan>`).join('')}</text>`).join('')
+      // en el móvil, números en lugar de nombres (la lista de debajo lleva los mismos números)
+      + COMARCAS.filter(c => comarcaTowns(c.id).length).map((c, i) => `<g class="cnum" data-comarca="${c.id}" transform="translate(${c.label.x} ${c.label.y - 4})"><circle r="19" fill="${c.color}"/><text y="7" text-anchor="middle">${i + 1}</text></g>`).join('');
     const pinsSvg = pins ? LEVELS.filter(l => !focus || l.comarca === focus).map(l => { const [x, y] = XY.get(l.id), t = townProgress(p, l); return `<g class="pin ${t.stamp ? 'ok' : t.done ? 'go' : ''}" data-town="${l.id}" transform="translate(${x} ${y})"><circle r="${small ? 5 : 8}"/>${small ? '' : `<text y="-13" text-anchor="middle">${esc(l.name.split(' /')[0])}</text>`}</g>`; }).join('') : '';
     return `<svg class="navarra" viewBox="10 10 725 780">${paths}${labels}${pinsSvg}</svg>`;
   }
@@ -170,7 +172,7 @@ export class Hub {
       <div class="map-wrap"><div class="bigmap">${this.navarraSVG({ pins: true })}</div>
       <aside class="legend2"><div class="navstats">${ring(navarraProgress(p).stamps / LEVELS.length, 84, '#FFD700')}<span>de Navarra sellada</span></div>
         <div class="lg"><span><i class="pin0"></i> Por descubrir</span><span><i class="pin1"></i> Empezado</span><span><i class="pin2"></i> Sellado</span></div>
-        <div class="clist">${COMARCAS.filter(c => comarcaTowns(c.id).length).map(c => { const pr = comarcaProgress(p, c.id); return `<button data-comarca="${c.id}" style="--c:${c.color}"><i></i><b>${esc(c.name)}</b><small>${pr.stamps}/${pr.towns}</small></button>`; }).join('')}</div></aside></div>`;
+        <div class="clist">${COMARCAS.filter(c => comarcaTowns(c.id).length).map((c, i) => { const pr = comarcaProgress(p, c.id); return `<button data-comarca="${c.id}" style="--c:${c.color}"><i>${i + 1}</i><b>${esc(c.name)}</b><small>${pr.stamps}/${pr.towns}</small></button>`; }).join('')}</div></aside></div>`;
   }
 
   // ---------- Comarca ----------

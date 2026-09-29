@@ -134,7 +134,7 @@
 .folk { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
 .folkcard { display: flex; gap: 12px; align-items: flex-start; padding: 12px; border-radius: var(--r); background: var(--glass); border: 1px solid var(--line); }
 .folkcard img { width: 72px; height: 72px; border-radius: 14px; background: radial-gradient(#6d5a9a, #2d2448); flex: none; }
-.folkcard small { color: var(--gold); font-size: 11px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; } .folkcard b { display: block; font-size: 17px; } .folkcard p { margin: 3px 0 0; font-size: 13px; color: var(--mute); font-weight: 600; }
+.folkcard > div { min-width: 0; } .folkcard small { display: block; color: var(--gold); font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .folkcard b { display: block; font-size: 17px; } .folkcard p { margin: 4px 0 0; font-size: 13px; line-height: 1.45; color: var(--mute); font-weight: 600; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
 
 /* ---------- Mapa ---------- */
 .navarra { width: 100%; height: auto; display: block; }
@@ -142,7 +142,8 @@
 .cpath:hover { fill-opacity: 1 !important; filter: brightness(1.2) drop-shadow(0 0 8px rgba(255, 255, 255, .4)); }
 .cpath.done { filter: drop-shadow(0 0 6px rgba(255, 215, 0, .8)); }
 .cpath.dim { fill-opacity: .12 !important; }
-.clabel { fill: #fff; font-size: 12px; font-weight: 900; pointer-events: none; paint-order: stroke; stroke: rgba(12, 9, 20, .85); stroke-width: 3.5px; letter-spacing: .06em; text-transform: uppercase; }
+.clabel { fill: #fff; font-size: 11px; font-weight: 900; pointer-events: none; paint-order: stroke; stroke: rgba(18, 6, 40, .9); stroke-width: 3.5px; letter-spacing: .03em; text-transform: uppercase; }
+.cnum { display: none; cursor: pointer; } .cnum circle { stroke: #12062b; stroke-width: 3.5; } .cnum text { fill: #fff; font-size: 20px; font-weight: 900; paint-order: stroke; stroke: rgba(18, 6, 40, .7); stroke-width: 3px; pointer-events: none; }
 .pin { cursor: pointer; } .pin circle { fill: #fdf8ef; stroke: #1b1208; stroke-width: 2.5; transition: r .15s; }
 .pin.go circle { fill: var(--gold); } .pin.ok circle { fill: var(--leaf); }
 .pin:hover circle { r: 11; } .pin text { fill: #fff; font-size: 12px; font-weight: 900; paint-order: stroke; stroke: rgba(12, 9, 20, .9); stroke-width: 3px; pointer-events: none; }
@@ -157,7 +158,7 @@
 .clist { display: flex; flex-direction: column; gap: 4px; }
 .clist button { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px; background: rgba(255, 255, 255, .04); border: 1px solid var(--line); text-align: left; }
 .clist button:hover { background: rgba(255, 255, 255, .09); border-color: var(--c); }
-.clist i { width: 10px; height: 10px; transform: rotate(45deg); background: var(--c); border-radius: 2px; flex: none; }
+.clist i { width: 24px; height: 24px; border-radius: 50%; background: var(--c); flex: none; display: grid; place-items: center; font-style: normal; font-size: 12px; font-weight: 900; color: #fff; box-shadow: 0 0 0 2px rgba(18, 6, 40, .8); text-shadow: 0 1px 1px rgba(0, 0, 0, .6); }
 .clist b { flex: 1; font-size: 14px; } .clist small { color: var(--mute); }
 
 /* ---------- Comarca ---------- */
@@ -187,7 +188,7 @@
 .tcard::before { content: ''; position: absolute; left: 0; top: 14px; bottom: 14px; width: 3px; border-radius: 0 3px 3px 0; background: var(--c); }
 .tcard:hover { transform: translateY(-3px); border-color: var(--line2); }
 .tcard .thead { display: flex; gap: 10px; align-items: center; position: relative; } .tcard b { font-size: 18px; font-weight: 900; display: block; } .tcard small { color: var(--mute); font-size: 12.5px; }
-.tcard p { margin: 0; color: #ddd0bd; font-size: 13.5px; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.tcard p { flex: none; margin: 0; color: #d6cdea; font-size: 13.5px; line-height: 1.45; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .tcard .ticons { display: flex; gap: 4px; flex-wrap: wrap; } .tcard .ticons span { background: rgba(0, 0, 0, .25); border-radius: 8px; padding: 3px; display: grid; }
 .tcard .tstamp { position: absolute; right: -4px; top: -6px; width: 54px; transform: rotate(12deg); }
 .tcard.stamped { border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan) inset; }
@@ -391,15 +392,15 @@
   .tile { padding: 14px 14px; border-left: 0; border-top: 1px solid var(--line); } .tile:nth-child(-n+2) { border-top: 0; } .tile:nth-child(2n) { border-left: 1px solid var(--line); }
   .tile:last-child { grid-column: span 2; border-left: 0; } .tile b { font-size: 21px; }
   .two { grid-template-columns: minmax(0, 1fr); }
-  .rail { display: grid; grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: 78%; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 6px; scrollbar-width: none; touch-action: pan-x pan-y; }
+  .rail { display: grid; grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: 86%; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 6px; scrollbar-width: none; touch-action: pan-x pan-y; }
   .rail::-webkit-scrollbar { display: none; } .rail > * { scroll-snap-align: start; }
   .map-wrap { grid-template-columns: minmax(0, 1fr); } .bigmap { padding: 4px; }
-  .pin text { display: none; } .pin circle { r: 11; } .clabel { display: none; }
+  .pin text { display: none; } .pin circle { r: 10; } .clabel { display: none; } .cnum { display: inline; }
   .legend2 .lg { flex-direction: row; flex-wrap: wrap; gap: 12px; }
   .clist { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .chero { grid-template-columns: auto 1fr; padding: 58px 16px 18px; gap: 14px; } .bigstamp { width: 84px; height: 84px; } .chero .cring { display: none; }
   .chero h1 { font-size: 30px; }
-  .towns, .peaks, .passport, .folk, .comarcas:not(.rail) { grid-template-columns: minmax(0, 1fr); }
+  .towns, .peaks, .passport, .folk:not(.rail), .comarcas:not(.rail) { grid-template-columns: minmax(0, 1fr); }
   .species, .badges { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .csel { grid-template-columns: minmax(0, 1fr); } .csel-stage { min-height: 0; } .stage-host.big { height: 300px; }
   .csel-side { padding: 0 18px 20px; } .csel-side .btn { width: 100%; }
