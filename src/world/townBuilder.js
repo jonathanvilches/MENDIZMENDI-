@@ -36,7 +36,7 @@ function cornersOk(x, z, w, d, ry) {
   return true;
 }
 
-function houseStyle(fam, rnd) {
+export function houseStyle(fam, rnd) {
   const pick = (arr) => { let r = rnd(), acc = 0; for (const [v, p] of arr) { acc += p; if (r < acc) return v; } return arr[arr.length - 1][0]; };
   switch (fam) {
     case 'atlantic': return { wall: pick([['plaster', 0.72], ['stone', 0.28]]), roof: 'tile', roofType: pick([['gableZ', 0.7], ['gableX', 0.3]]), pitch: 0.5 + rnd() * 0.08, overhang: 1.1, timber: rnd() < 0.6, balcony: rnd() < 0.7, h: [7, 9.5] };

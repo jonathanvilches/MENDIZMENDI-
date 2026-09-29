@@ -34,7 +34,7 @@ for (const sz of sizes.split(',')) {
   const page = await ctx.newPage();
   const errs = [];
   page.on('pageerror', e => errs.push('PAGEERROR ' + e.message));
-  const shot = (n) => page.screenshot({ path: `${dir}/${sz}-${n}.png`, timeout: 120000 });
+  const shot = (n) => page.screenshot({ path: `${dir}/${sz}-${n}.png`, timeout: 240000 });
   const log = async (n) => { const r = await page.evaluate(CHECK); if (r.length) report.push(`[${sz}] ${n}:\n  - ` + r.join('\n  - ')); };
   if (what !== 'game') {
     await page.goto(url);
