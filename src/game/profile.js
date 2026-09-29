@@ -1,10 +1,11 @@
 // Perfil del jugador: progreso por pueblo, comarca y Navarra; XP, cartas, insignias y ajustes.
 import { LEVELS } from '../data/levels.js';
+import { CAST } from '../data/cast.js';
 import COMARCAS from '../data/comarcas.json';
 
 const KEY = 'mendimendiz-perfil-v1';
 const fresh = () => ({
-  v: 1, name: '', avatar: 'sanferminero', xp: 0, created: Date.now(),
+  v: 1, name: '', avatar: 'leire', xp: 0, created: Date.now(),
   towns: {},          // id → { done: {índice: true}, stamp: false, visits: n, best: {} }
   cards: [],          // cartas de saber (ids)
   species: [],        // especies observadas
@@ -45,7 +46,9 @@ const listeners = new Set();
 export function profile() {
   if (P) return P;
   try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.v === 1) P = Object.assign(fresh(), s, { settings: Object.assign(fresh().settings, s.settings) }); } catch (e) { }
-  return P ||= fresh();
+  P ||= fresh();
+  if (!CAST.some(c => c.id === P.avatar)) P.avatar = 'leire';
+  return P;
 }
 export function saveProfile() { try { localStorage.setItem(KEY, JSON.stringify(P)); } catch (e) { } listeners.forEach(f => f(P)); }
 export function onProfile(f) { listeners.add(f); return () => listeners.delete(f); }

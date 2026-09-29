@@ -47,4 +47,4 @@ export function portrait(look, mode = 'bust', isMini = false) {
     return url;
   } catch (e) { console.warn('retrato', e); return ''; }
 }
-export const avatarPortrait = (id, mode = 'bust') => portrait(COSTUMES[id] || COSTUMES.sanferminero, mode, true);
+export const avatarPortrait = (id, mode = 'bust') => portrait(COSTUMES[id] || COSTUMES.leire, mode, true);

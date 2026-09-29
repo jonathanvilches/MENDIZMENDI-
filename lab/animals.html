@@ -1,0 +1,18 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:#8fb6d8;overflow:hidden}</style></head>
+<body><script type="module">
+import * as THREE from 'three';
+import { quadruped, SPECIES } from '../src/actors/animals.js';
+import { setOutlines } from '../src/actors/minifig.js';
+const r = new THREE.WebGLRenderer({ antialias: true }); r.setSize(innerWidth, innerHeight); r.shadowMap.enabled = true; r.toneMapping = THREE.ACESFilmicToneMapping; document.body.appendChild(r.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color('#9cc3e0');
+scene.add(new THREE.HemisphereLight('#dfefff', '#5a6a4a', 1.4));
+const sun = new THREE.DirectionalLight('#fff4e0', 2.2); sun.position.set(4, 8, 6); sun.castShadow = true; sun.shadow.camera.left = -8; sun.shadow.camera.right = 8; scene.add(sun);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshStandardMaterial({ color: '#7ea35a' })); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+const kinds = new URLSearchParams(location.search).get('k')?.split(',') || ['sheep', 'dog', 'cow', 'pottoka', 'corzo', 'ciervo', 'jabali'];
+let rs = 3; const rnd = () => ((rs = (rs * 9301 + 49297) % 233280) / 233280);
+let x = 0; const xs = [];
+kinds.forEach(k => { const q = quadruped(SPECIES[k], rnd); const w = k === 'cow' || k === 'ciervo' ? 2.2 : k === 'pottoka' ? 1.8 : 1.2; x += w / 2; q.root.position.x = x; x += w / 2 + 0.3; q.root.rotation.y = +(new URLSearchParams(location.search).get("ry") ?? 0.7); setOutlines(q.root, true); scene.add(q.root); });
+const cam = new THREE.PerspectiveCamera(28, innerWidth / innerHeight, 0.1, 100);
+cam.position.set(x / 2, 2.2, 9.5); cam.lookAt(x / 2, 0.7, 0);
+r.render(scene, cam); window.__ready = true;
+</script></body></html>

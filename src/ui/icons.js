@@ -1,11 +1,14 @@
+import { icon3D, has3D } from './icon3d.js';
 // Iconos propios de MENDIMENDIZ (SVG dibujado a mano, sin emojis).
 // Estilo: contorno marrón oscuro grueso, colores planos con un brillo; 64×64.
 const O = '#2b1d12';                       // contorno
-const s = (d, fill, extra = '') => `<path d="${d}" fill="${fill}" stroke="${O}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" ${extra}/>`;
+// Relleno con degradado (luz arriba, sombra abajo) para dar volumen
+const gf = (c) => { if (!c || c === 'none' || c[0] !== '#') return c; let h = c.slice(1).toLowerCase(); if (h.length === 3) h = h.split('').map(x => x + x).join(''); return `url(#mg${h})`; };
+const s = (d, fill, extra = '') => `<path d="${d}" fill="${gf(fill)}" stroke="${O}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" ${extra}/>`;
 const ln = (d, c = O, w = 3) => `<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
-const c = (x, y, r, fill, st = true) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" ${st ? `stroke="${O}" stroke-width="3"` : ''}/>`;
-const e = (x, y, rx, ry, fill, st = true, rot = 0) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${fill}" ${st ? `stroke="${O}" stroke-width="3"` : ''} ${rot ? `transform="rotate(${rot} ${x} ${y})"` : ''}/>`;
-const r = (x, y, w, h, fill, rx = 3) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="${fill}" stroke="${O}" stroke-width="3"/>`;
+const c = (x, y, r, fill, st = true) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${gf(fill)}" ${st ? `stroke="${O}" stroke-width="3"` : ''}/>`;
+const e = (x, y, rx, ry, fill, st = true, rot = 0) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${gf(fill)}" ${st ? `stroke="${O}" stroke-width="3"` : ''} ${rot ? `transform="rotate(${rot} ${x} ${y})"` : ''}/>`;
+const r = (x, y, w, h, fill, rx = 3) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="${gf(fill)}" stroke="${O}" stroke-width="3"/>`;
 const hl = (d) => `<path d="${d}" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="3" stroke-linecap="round"/>`;
 
 export const ICONS = {
@@ -202,9 +205,22 @@ export function speciesIcon(name = '') {
   return null;
 }
 
+// Degradados y sombra de cada icono
+const mix = (h, t, k) => { const a = parseInt(h, 16), b = parseInt(t, 16); const ch = (sh) => Math.round(((a >> sh) & 255) * (1 - k) + ((b >> sh) & 255) * k); return ((ch(16) << 16) | (ch(8) << 8) | ch(0)).toString(16).padStart(6, '0'); };
+const defsCache = new Map();
+export function withDefs(k) {
+  if (defsCache.has(k)) return defsCache.get(k);
+  const body = ICONS[k] || ICONS.star;
+  const cols = [...new Set([...body.matchAll(/url\(#mg([0-9a-f]{6})\)/g)].map(m => m[1]))];
+  const defs = cols.map(h => `<linearGradient id="mg${h}" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="#${mix(h, 'ffffff', 0.32)}"/><stop offset=".55" stop-color="#${h}"/><stop offset="1" stop-color="#${mix(h, '000000', 0.22)}"/></linearGradient>`).join('');
+  const out = `<defs>${defs}<filter id="mds" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="2.2" stdDeviation="1.3" flood-color="#1a0f08" flood-opacity=".35"/></filter></defs><g filter="url(#mds)">${body}</g>`;
+  defsCache.set(k, out);
+  return out;
+}
 export function iconSVG(name, size = 32, cls = '') {
   const k = ICONS[name] ? name : ICONS[ALIAS[name]] ? ALIAS[name] : 'star';
-  return `<svg class="ico ${cls}" viewBox="0 0 64 64" width="${size}" height="${size}" aria-hidden="true">${ICONS[k]}</svg>`;
+  if (has3D(k)) { const u = icon3D(k); if (u) return `<img class="ico ico3d ${cls}" src="${u}" width="${size}" height="${size}" alt="" aria-hidden="true">`; }
+  return `<svg class="ico ${cls}" viewBox="0 0 64 64" width="${size}" height="${size}" aria-hidden="true">${withDefs(k)}</svg>`;
 }
 // Imagen (para dibujar en canvas: mapas, minimapa)
 const imgCache = new Map();
@@ -212,7 +228,8 @@ export function iconImage(name) {
   const k = ICONS[name] ? name : ALIAS[name] || 'star';
   if (!imgCache.has(k)) {
     const img = new Image();
-    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="128" height="128">${ICONS[k] || ICONS.star}</svg>`);
+    if (has3D(k)) { const u = icon3D(k); if (u) { img.src = u; imgCache.set(k, img); return img; } }
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="128" height="128">${withDefs(ICONS[k] ? k : 'star')}</svg>`);
     imgCache.set(k, img);
   }
   return imgCache.get(k);
