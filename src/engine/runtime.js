@@ -32,6 +32,8 @@ export class Runtime {
     this.renderer.setSize(innerWidth, innerHeight);
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = quality === 'low' ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
+    // en móvil la sombra se recalcula un fotograma sí y otro no (casi no se nota y ahorra mucho)
+    this.shadowEvery = quality === 'high' ? 1 : 2; this.renderer.shadowMap.autoUpdate = this.shadowEvery === 1;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping; this.renderer.toneMappingExposure = 1.05;
     // en vertical se abre el campo de visión para no ver el mundo «por un tubo»
     const fovFor = (a) => a < 1 ? 55 + (1 - a) * 30 : 55;
@@ -129,6 +131,7 @@ export class Runtime {
     this.beacon.update(this.elapsed, P);
     this.sound.update(dt, P, this.follow.yaw, this.sky.night, iratiMask(P.pos.x, P.pos.z) > 0.5);
     g.ui.setClock(this.sky.clock(), this.sky.night > 0.5);
+    if (this.shadowEvery > 1 && this.frames % this.shadowEvery === 0) this.renderer.shadowMap.needsUpdate = true;
     this.renderer.render(this.scene, this.camera);
     input.endFrame();
     this.frames++; this.fpsT += dt;
