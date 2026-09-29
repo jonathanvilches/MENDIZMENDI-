@@ -46,11 +46,12 @@ function blobCanopy(rnd, blobs, detail, base, tint, spread, top) {
   const cy = top;
   for (const b of blobs) {
     // copa redondeada y mullida: esfera más fina, sombreado suave y bultos pequeños alrededor
-    const g = new THREE.IcosahedronGeometry(b[3], detail + 1);
+    // detail -1: copa sencilla para árboles lejanos y cultivos (muchas copias, se ven de lejos)
+    const g = new THREE.IcosahedronGeometry(b[3], Math.max(0, detail + 1));
     jitter(g, b[3] * 0.16, rnd);
     g.translate(b[0], b[1], b[2]);
     const gn = g.toNonIndexed(); sphericalNormals(gn, b[0], b[1], b[2], 0.9); parts.push(gn);
-    if (detail) for (let i = 0; i < 3; i++) {
+    if (detail > 0) for (let i = 0; i < 3; i++) {
       const a = rnd() * Math.PI * 2, e = (rnd() - 0.2) * 1.2, rr = b[3] * (0.38 + rnd() * 0.12);
       const px = b[0] + Math.cos(a) * Math.cos(e) * b[3] * 0.85, py = b[1] + Math.sin(e) * b[3] * 0.85, pz = b[2] + Math.sin(a) * Math.cos(e) * b[3] * 0.85;
       const sg = new THREE.IcosahedronGeometry(rr, 1); jitter(sg, rr * 0.14, rnd); sg.translate(px, py, pz);
@@ -77,13 +78,13 @@ function makeBeech(rnd, detail) {
     br.push(colorize(g.toNonIndexed(), (x, y, z, c) => c.set('#857f75')));
   }
   const blobs = [[0, 6.3, 0, 2.9], [1.8, 5.4, 0.6, 2.1], [-1.6, 5.6, -0.8, 2.2], [0.4, 5.2, -1.8, 2.0], [-0.6, 7.6, 0.5, 2.0], [0.9, 7.1, 1.4, 1.7]];
-  const c = blobCanopy(rnd, detail ? blobs : blobs.slice(0, 4), detail ? 1 : 0, '#3f6f2a', '#8fbf4a', 3.4, 6.2);
+  const c = blobCanopy(rnd, detail ? blobs : blobs.slice(0, 4), detail ? 1 : -1, '#3f6f2a', '#8fbf4a', 3.4, 6.2);
   return mergeGeometries([t.toNonIndexed(), ...(detail ? br : []), c].map(g => { for (const a of Object.keys(g.attributes)) if (!['position', 'normal', 'color'].includes(a)) g.deleteAttribute(a); return g.index ? g.toNonIndexed() : g; }));
 }
 function makeOak(rnd, detail) {
   const t = trunk(3.2, 0.42, '#6d5a45');
   const blobs = [[0, 5.2, 0, 3.0], [2.3, 4.6, 0.3, 2.3], [-2.2, 4.8, -0.4, 2.4], [0.3, 4.5, 2.1, 2.1], [-0.3, 4.6, -2.2, 2.2], [0.2, 6.6, 0, 2.1]];
-  const c = blobCanopy(rnd, detail ? blobs : blobs.slice(0, 4), detail ? 1 : 0, '#3d6526', '#9cbb4d', 3.6, 5.0);
+  const c = blobCanopy(rnd, detail ? blobs : blobs.slice(0, 4), detail ? 1 : -1, '#3d6526', '#9cbb4d', 3.6, 5.0);
   return mergeGeometries([t.toNonIndexed(), c].map(g => { for (const a of Object.keys(g.attributes)) if (!['position', 'normal', 'color'].includes(a)) g.deleteAttribute(a); return g.index ? g.toNonIndexed() : g; }));
 }
 function makeFir(rnd, detail) {
@@ -104,8 +105,8 @@ function makeFir(rnd, detail) {
   return mergeGeometries(parts.map(g => { for (const a of Object.keys(g.attributes)) if (!['position', 'normal', 'color'].includes(a)) g.deleteAttribute(a); return g; }));
 }
 function makeBush(rnd) {
-  const blobs = [[0, 0.7, 0, 0.9], [0.7, 0.5, 0.2, 0.7], [-0.6, 0.55, -0.2, 0.7]];
-  return blobCanopy(rnd, blobs, 0, '#3a6428', '#7fae45', 1, 0.6);
+  // mata central redondeada y dos laterales más sencillas (hay cientos: pocos triángulos)
+  return clean([blobCanopy(rnd, [[0, 0.7, 0, 0.9]], 0, '#3a6428', '#7fae45', 1, 0.6), blobCanopy(rnd, [[0.7, 0.5, 0.2, 0.7], [-0.6, 0.55, -0.2, 0.7]], -1, '#3a6428', '#7fae45', 1, 0.6)]);
 }
 
 function clean(list) { return mergeGeometries(list.map(g => { g = g.index ? g.toNonIndexed() : g; for (const a of Object.keys(g.attributes)) if (!['position', 'normal', 'color'].includes(a)) g.deleteAttribute(a); return g; })); }
@@ -113,31 +114,31 @@ function makeOlive(rnd, detail) {
   // tronco retorcido y copa gris verdosa
   const t = trunk(1.6, 0.3, '#6b5a48', 7); jitter(t, 0.12, rnd);
   const blobs = [[0, 2.6, 0, 1.5], [1.1, 2.3, 0.3, 1.1], [-1.0, 2.4, -0.4, 1.1], [0.2, 3.1, 0.8, 1.0]];
-  return clean([t, blobCanopy(rnd, detail ? blobs : blobs.slice(0, 2), detail ? 1 : 0, '#5f6f45', '#9fae7c', 1.8, 2.6)]);
+  return clean([t, blobCanopy(rnd, detail ? blobs : blobs.slice(0, 2), detail ? 1 : -1, '#5f6f45', '#9fae7c', 1.8, 2.6)]);
 }
 function makePoplar(rnd, detail) {
   const t = trunk(4, 0.25, '#b9b3a3');
   const blobs = [[0, 5, 0, 1.6], [0, 7, 0, 1.5], [0, 8.8, 0, 1.2], [0.3, 6, 0.3, 1.3]];
-  const c = blobCanopy(rnd, detail ? blobs : blobs.slice(0, 3), detail ? 1 : 0, '#557a2c', '#a8c460', 2.6, 6.8);
+  const c = blobCanopy(rnd, detail ? blobs : blobs.slice(0, 3), detail ? 1 : -1, '#557a2c', '#a8c460', 2.6, 6.8);
   c.scale(0.9, 1, 0.9);
   return clean([t, c]);
 }
 function makePine(rnd, detail) {
   const t = trunk(5.5, 0.3, '#8a5a3a');
   const blobs = [[0, 6.6, 0, 2.2], [1.4, 6.1, 0.4, 1.5], [-1.3, 6.3, -0.3, 1.5], [0.2, 7.4, -0.6, 1.4]];
-  const c = blobCanopy(rnd, detail ? blobs : blobs.slice(0, 2), detail ? 1 : 0, '#2f5a2e', '#6f9a4a', 2, 6.6);
+  const c = blobCanopy(rnd, detail ? blobs : blobs.slice(0, 2), detail ? 1 : -1, '#2f5a2e', '#6f9a4a', 2, 6.6);
   c.scale(1.1, 0.7, 1.1); c.translate(0, 2, 0);
   return clean([t, c]);
 }
 function makeChestnut(rnd, detail) {
   const t = trunk(3, 0.5, '#5a4636');
   const blobs = [[0, 5, 0, 3.1], [2.2, 4.5, 0.4, 2.3], [-2.1, 4.6, -0.3, 2.4], [0.3, 6.3, 0, 2.2]];
-  return clean([t, blobCanopy(rnd, detail ? blobs : blobs.slice(0, 3), detail ? 1 : 0, '#355e22', '#88a83f', 3.4, 5.0)]);
+  return clean([t, blobCanopy(rnd, detail ? blobs : blobs.slice(0, 3), detail ? 1 : -1, '#355e22', '#88a83f', 3.4, 5.0)]);
 }
 function makeApple(rnd, detail) {
   const t = trunk(1.4, 0.18, '#6b5040');
   const blobs = [[0, 2.3, 0, 1.3], [0.8, 2.1, 0.3, 0.9], [-0.8, 2.2, -0.3, 0.9]];
-  const parts = [t, blobCanopy(rnd, detail ? blobs : blobs.slice(0, 1), detail ? 1 : 0, '#3f7a2e', '#8dbb4c', 1.4, 2.3)];
+  const parts = [t, blobCanopy(rnd, detail ? blobs : blobs.slice(0, 1), detail ? 1 : -1, '#3f7a2e', '#8dbb4c', 1.4, 2.3)];
   if (detail) for (let i = 0; i < 9; i++) { const a = i * 2.4, r = 1.1 + (i % 3) * 0.15; const f = new THREE.SphereGeometry(0.09, 5, 4); f.translate(Math.cos(a) * r, 1.8 + (i % 4) * 0.3, Math.sin(a) * r); parts.push(colorize(f.toNonIndexed(), (x, y, z, c) => c.set('#d8342c'))); }
   return clean(parts);
 }
@@ -289,9 +290,9 @@ export class Nature {
     // viñedos (tipo 5) y huertas (tipo 7) en hileras
     const vine = clean([
       colorize(new THREE.CylinderGeometry(0.05, 0.07, 0.8, 5).translate(0, 0.4, 0), (x, y, z, c) => c.set('#5a4030')),
-      blobCanopy(rnd, [[0, 0.95, 0, 0.45], [0.35, 0.85, 0, 0.35], [-0.35, 0.85, 0, 0.35]], 0, '#3f6e2a', '#8fb84a', 0.5, 0.9),
+      blobCanopy(rnd, [[0, 0.95, 0, 0.45], [0.35, 0.85, 0, 0.35], [-0.35, 0.85, 0, 0.35]], -1, '#3f6e2a', '#8fb84a', 0.5, 0.9),
     ]);
-    const veg = clean([blobCanopy(rnd, [[0, 0.2, 0, 0.28], [0.15, 0.15, 0.1, 0.2]], 0, '#2f6a2a', '#7fbf4a', 0.3, 0.2)]);
+    const veg = clean([blobCanopy(rnd, [[0, 0.2, 0, 0.28], [0.15, 0.15, 0.1, 0.2]], -1, '#2f6a2a', '#7fbf4a', 0.3, 0.2)]);
     const vines = [], vegs = [];
     const cap = quality === 'low' ? 2500 : 6000;
     for (let z = -380; z < 380 && vines.length + vegs.length < cap * 2; z += 1.6) for (let x = -380; x < 380; x += 1.6) {
@@ -382,7 +383,7 @@ export class Nature {
       const im = new THREE.InstancedMesh(geo, mat, list.length);
       const m4 = new THREE.Matrix4();
       list.forEach((s, i) => { m4.compose(new THREE.Vector3(s.x, terrainHeight(s.x, s.z) - 0.1, s.z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, rnd() * 6, 0)), new THREE.Vector3(s.s, s.s, s.s)); im.setMatrixAt(i, m4); });
-      im.castShadow = mat === matB; im.receiveShadow = true;
+      im.castShadow = false; im.receiveShadow = true;   // matas y helechos: su sombra apenas se ve y duplicaba el coste
       this.group.add(im);
     }
   }

@@ -112,7 +112,9 @@ export function archPanel(w, h, depth) {
 }
 
 export class Builder {
-  constructor(mats) { this.mats = mats; this.parts = {}; }
+  // cell: tamaño de las manzanas en que se reparte la geometría; así la cámara (y la sombra) sólo
+  // dibujan las que tienen delante en vez de todo el pueblo de una vez
+  constructor(mats, cell = 70) { this.mats = mats; this.parts = {}; this.cell = cell; }
   add(mat, geo, matrix) {
     let g = geo.index ? geo.toNonIndexed() : geo;
     if (matrix) g.applyMatrix4(matrix);
@@ -120,12 +122,15 @@ export class Builder {
     // Unificar atributos (position, normal, uv[, color])
     for (const a of Object.keys(g.attributes)) if (!['position', 'normal', 'uv', 'color'].includes(a)) g.deleteAttribute(a);
     if (!g.attributes.uv) g.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count * 2), 2));
-    (this.parts[mat] ||= []).push(g);
+    g.computeBoundingBox();
+    const b = g.boundingBox, key = mat + '|' + Math.floor((b.min.x + b.max.x) / 2 / this.cell) + ',' + Math.floor((b.min.z + b.max.z) / 2 / this.cell);
+    (this.parts[key] ||= []).push(g);
   }
   build(parent, { shadows = true } = {}) {
     const meshes = [];
-    for (const [mat, list] of Object.entries(this.parts)) {
+    for (const [key, list] of Object.entries(this.parts)) {
       if (!list.length) continue;
+      const mat = key.split('|')[0];
       const hasColor = list.some(g => g.attributes.color);
       if (hasColor) for (const g of list) if (!g.attributes.color) colored(g, '#ffffff');
       const merged = mergeGeometries(list, false);
