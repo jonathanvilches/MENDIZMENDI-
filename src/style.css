@@ -370,3 +370,4 @@ img.ico3d.pend { opacity: 0; }
 img[data-pk] { opacity: 0; }
 /* durante un diálogo los avisos suben arriba, bajo el objetivo, para no tapar la conversación */
 .talking #toast { top: calc(var(--st) + 124px) !important; bottom: auto !important; left: 50% !important; }
+@media (max-width: 600px) and (orientation: portrait) { .talking #toast { top: calc(var(--st) + 172px) !important; } }

@@ -65,8 +65,8 @@ float surfH(vec3 p, float t) {
       {
         vec3 nn = normalize(normal), vv = normalize(vViewPosition);
         float fr = pow(1.0 - clamp(dot(nn, vv), 0.0, 1.0), 2.5);
-        totalEmissiveRadiance += diffuseColor.rgb * 0.2;                                    // luz de rebote: nada queda negro
-        if (vTex < 0.5) totalEmissiveRadiance += diffuseColor.rgb * vec3(0.2, 0.08, 0.04) * (0.6 + fr); // piel translúcida
+        totalEmissiveRadiance += diffuseColor.rgb * (vTex < 0.5 ? 0.08 : 0.2);              // luz de rebote: nada queda negro
+        if (vTex < 0.5) totalEmissiveRadiance += diffuseColor.rgb * vec3(0.16, 0.06, 0.03) * (0.35 + fr); // piel translúcida (poca, para que se lean los volúmenes)
         else if (vTex < 1.5 || (vTex > 2.5 && vTex < 3.5)) totalEmissiveRadiance += mix(diffuseColor.rgb, vec3(1.0), 0.35) * fr * 0.34; // terciopelo
         else if (vTex < 2.5) { float ring = smoothstep(0.3, 0.45, nn.y) * (1.0 - smoothstep(0.55, 0.72, nn.y)); vec3 hl = max(diffuseColor.rgb, vec3(0.1, 0.07, 0.05)); totalEmissiveRadiance += (hl * 0.45 + vec3(0.04)) * ring + hl * 0.45 + mix(hl, vec3(0.7, 0.6, 0.5), 0.4) * fr * 0.35; }
         else totalEmissiveRadiance += vec3(1.0, 0.97, 0.92) * fr * 0.22;                   // brillo de cuero y metal
@@ -128,11 +128,21 @@ function strandGeo(pts, r0, r1, seg = 14, rad = 8) {
 // relieve de la cara (pómulos y barbilla) en coordenadas relativas al radio
 function faceSculpt(nx, ny) {
   const g = (cx, cy2, sx, sy) => Math.exp(-(((nx - cx) / sx) ** 2) - (((ny - cy2) / sy) ** 2));
+  const pair = (cx, cy2, sx, sy) => g(cx, cy2, sx, sy) + g(-cx, cy2, sx, sy);
   // mejillas llenas y pómulos altos, barbilla redonda que asoma hacia delante y un arco suave sobre los ojos
-  const cheek = g(0.44, -0.24, 0.24, 0.2) + g(-0.44, -0.24, 0.24, 0.2);
-  const bone = g(0.5, 0.02, 0.16, 0.1) + g(-0.5, 0.02, 0.16, 0.1);
+  const cheek = pair(0.44, -0.24, 0.24, 0.2), bone = pair(0.5, 0.02, 0.16, 0.1);
   const chin = g(0, -0.74, 0.26, 0.16), brow = g(0, 0.36, 0.5, 0.1) * (1 - g(0, 0.36, 0.1, 0.2) * 0.6);
-  return { cheek: cheek + bone * 0.5, chin, k: 1 + 0.12 * cheek + 0.05 * bone + 0.15 * chin + 0.035 * brow };
+  const socket = pair(0.27, 0.12, 0.15, 0.13);       // cuencas de los ojos
+  const bridge = g(0, 0.04, 0.07, 0.16);             // puente de la nariz
+  const muzzle = g(0, -0.45, 0.32, 0.16);            // zona de la boca un poco adelantada
+  const philtrum = g(0, -0.34, 0.035, 0.06);         // surco bajo la nariz
+  const lipFold = g(0, -0.62, 0.16, 0.04);           // hoyito entre el labio y la barbilla
+  const forehead = g(0, 0.62, 0.5, 0.2);
+  const temple = pair(0.8, 0.36, 0.18, 0.18);        // sienes algo hundidas
+  return {
+    cheek: cheek + bone * 0.5, chin, temple,
+    k: 1 + 0.14 * cheek + 0.07 * bone + 0.17 * chin + 0.035 * brow - 0.08 * socket + 0.05 * bridge + 0.08 * muzzle - 0.02 * philtrum - 0.03 * lipFold + 0.04 * forehead,
+  };
 }
 const JAW = 0.13;          // ensanche de la cara a la altura de los mofletes
 function eggGeo(R) {
@@ -145,7 +155,7 @@ function eggGeo(R) {
     // escultura de la cara: pómulos, barbilla y un poco de mandíbula (sólo en la parte delantera)
     if (z > 0) {
       const f = faceSculpt(x / R, y / R);
-      x *= 1 + 0.06 * f.cheek; z *= f.k; y -= 0.035 * R * f.chin;
+      x *= (1 + 0.06 * f.cheek) * (1 - 0.04 * f.temple); z *= f.k; y -= 0.035 * R * f.chin;
     }
     p.setXYZ(i, x, y, z);
   }
@@ -168,13 +178,13 @@ function torsoGeo(rb, rt, h, belly = 1) {
 // relieve y un nacimiento del pelo dibujado (flequillo en mechones, patillas, sobre las orejas y
 // nuca). Donde no hay pelo la capa se mete bajo la piel, así el borde queda redondeado y limpio.
 const HAIR = {
-  short: { fringe: 0.54, side: 0.34, back: -0.42, thick: 0.17, locks: 4, amp: 0.14, sweep: 0.07 },
-  spiky: { fringe: 0.56, side: 0.36, back: -0.38, thick: 0.12, locks: 6, amp: 0.16, sweep: 0 },
+  short: { fringe: 0.6, side: 0.34, back: -0.42, thick: 0.17, locks: 4, amp: 0.14, sweep: 0.07 },
+  spiky: { fringe: 0.62, side: 0.36, back: -0.38, thick: 0.12, locks: 6, amp: 0.16, sweep: 0 },
   curly: { fringe: 0.58, side: 0.26, back: -0.5, thick: 0.2, locks: 7, amp: 0.1, sweep: 0, bumpy: true },
-  ponytail: { fringe: 0.56, side: 0.3, back: -0.35, thick: 0.13, locks: 4, amp: 0.12, sweep: 0.08, part: true },
-  bun: { fringe: 0.56, side: 0.3, back: -0.35, thick: 0.13, locks: 4, amp: 0.12, sweep: 0.08, part: true },
-  braids: { fringe: 0.54, side: 0.26, back: -0.45, thick: 0.1, locks: 5, amp: 0.1, sweep: 0, part: true },
-  long: { fringe: 0.52, side: 0.1, back: -0.6, thick: 0.13, locks: 5, amp: 0.1, sweep: 0.12, part: true },
+  ponytail: { fringe: 0.6, side: 0.3, back: -0.35, thick: 0.13, locks: 4, amp: 0.12, sweep: 0.08, part: true },
+  bun: { fringe: 0.6, side: 0.3, back: -0.35, thick: 0.13, locks: 4, amp: 0.12, sweep: 0.08, part: true },
+  braids: { fringe: 0.58, side: 0.26, back: -0.45, thick: 0.1, locks: 5, amp: 0.1, sweep: 0, part: true },
+  long: { fringe: 0.56, side: 0.1, back: -0.6, thick: 0.13, locks: 5, amp: 0.1, sweep: 0.12, part: true },
 };
 const HOOD = { fringe: 0.72, side: -0.95, back: -1, thick: 0.12, locks: 1, amp: 0, sweep: 0, hood: true };
 const smooth01 = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
@@ -371,7 +381,8 @@ export function buildMinifig(look, opts = {}) {
   const noseR = R * (L.bigNose ? 0.22 : child ? 0.12 : 0.145);
   const noseC = new THREE.Color(skin).lerp(new THREE.Color('#f0a080'), 0.22);
   // tabique suave entre los ojos, punta redonda y aletas
-  Hd.add(SPH(noseR, 22, 16), noseC, TX.skin, mtx(0, cy - R * 0.12, fz(0, -R * 0.12) + noseR * 0.42, 0, 0, 0, 1.0, 0.9, 0.95));
+  Hd.add(SPH(noseR, 24, 18), noseC, TX.skin, mtx(0, cy - R * 0.12, fz(0, -R * 0.12) + noseR * 0.4, -0.25, 0, 0, 1.0, 0.95, 1.12));
+  Hd.add(SPH(noseR * 0.62, 16, 12), skin, TX.skin, mtx(0, cy - R * 0.01, fz(0, -R * 0.01) + noseR * 0.05, -0.5, 0, 0, 0.85, 1.4, 0.8));
   for (const s of [-1, 1]) Hd.add(SPH(noseR * 0.5, 12, 10), noseC, TX.skin, mtx(s * noseR * 0.78, cy - R * 0.15, fz(noseR * 0.8, -R * 0.15) + noseR * 0.16, 0, 0, 0, 1, 0.8, 0.8));
   if (L.cheeks !== false) for (const s of [-1, 1]) Hd.add(SPH(R * 0.14, 12, 8), new THREE.Color(skin).lerp(new THREE.Color('#f07a78'), 0.5), TX.skin, mtx(s * R * 0.5, cy - R * 0.24, fz(R * 0.5, -R * 0.24) - R * 0.01, 0, s * 0.55, 0, 1, 0.65, 0.25));
   if (L.freckles) for (const s of [-1, 1]) for (let i = 0; i < 3; i++) Hd.add(SPH(R * 0.014, 6, 4), '#c07a50', TX.skin, mtx(s * R * (0.35 + i * 0.08), cy - R * (0.08 + (i % 2) * 0.05), fz(R * 0.43, -R * 0.1), 0, s * 0.4, 0, 1, 1, 0.4));
@@ -387,8 +398,8 @@ export function buildMinifig(look, opts = {}) {
   const bS = L.browStyle || 'thick';
   for (const s of [-1, 1]) {
     const up = (mood === 'smirk' && s > 0 ? R * 0.06 : 0) - (mood === 'angry' ? R * 0.05 : 0);
-    if (bS === 'arched') Hd.add(new THREE.TorusGeometry(R * 0.16, R * 0.042, 8, 16, Math.PI * 0.62), brow, TX.hair, mtx(s * R * 0.3, cy + R * 0.36 + up, fz(R * 0.3, R * 0.44) + R * 0.02, 0, s * 0.35, Math.PI * 0.19 - s * browTilt * 0.5));
-    else Hd.add(TCAP(R * (bS === 'fine' ? 0.045 : 0.07), R * (bS === 'fine' ? 0.022 : 0.034), R * 0.22, 10), brow, TX.hair, mtx(s * R * 0.31, cy + R * 0.47 + up, fz(R * 0.3, R * 0.44) + R * 0.025, 0, s * 0.35, s * (Math.PI / 2 + browTilt) + s * 0.08));
+    if (bS === 'arched') Hd.add(new THREE.TorusGeometry(R * 0.16, R * 0.042, 8, 16, Math.PI * 0.62), brow, TX.hair, mtx(s * R * 0.3, cy + R * 0.33 + up, fz(R * 0.3, R * 0.44) + R * 0.02, 0, s * 0.35, Math.PI * 0.19 - s * browTilt * 0.5));
+    else Hd.add(TCAP(R * (bS === 'fine' ? 0.045 : 0.07), R * (bS === 'fine' ? 0.022 : 0.034), R * 0.22, 10), brow, TX.hair, mtx(s * R * 0.31, cy + R * 0.43 + up, fz(R * 0.3, R * 0.44) + R * 0.025, 0, s * 0.35, s * (Math.PI / 2 + browTilt) + s * 0.08));
   }
   Hd.build(head);
   // ojos: blanco, iris de color, pupila y brillo
@@ -396,7 +407,7 @@ export function buildMinifig(look, opts = {}) {
   const E = new Part();
   const eyeW = R * (child ? 0.19 : 0.17), eyeH = R * (child ? 0.32 : 0.29), eyeX = R * 0.27;
   for (const s of [-1, 1]) {
-    const ey = R * 0.14, dz = (fz(eyeX + R * 0.02, ey) - fz(eyeX - R * 0.02, ey)) / (R * 0.04), yaw = s * Math.atan(-dz) * 0.8, zz = fz(eyeX, ey) - R * 0.035;
+    const ey = R * 0.14, dz = (fz(eyeX + R * 0.02, ey) - fz(eyeX - R * 0.02, ey)) / (R * 0.04), yaw = s * Math.atan(-dz) * 0.8, zz = fz(eyeX, ey) - R * 0.015;
     E.add(SPH(1, 18, 14), '#ffffff', 0, mtx(s * eyeX, 0, zz, 0, yaw, 0, eyeW, eyeH, R * 0.1));
     E.add(SPH(1, 18, 12), L.eyes, 0, mtx(s * eyeX * 0.97, -eyeH * 0.06, zz + R * 0.06, 0, yaw, 0, eyeW * 0.74, eyeH * 0.76, R * 0.04));
     E.add(SPH(1, 12, 8), new THREE.Color(L.eyes).lerp(new THREE.Color('#ffffff'), 0.35), 0, mtx(s * eyeX * 0.97, -eyeH * 0.26, zz + R * 0.075, 0, yaw, 0, eyeW * 0.45, eyeH * 0.3, R * 0.03));
@@ -406,12 +417,14 @@ export function buildMinifig(look, opts = {}) {
     E.add(SPH(1, 10, 8), '#ffffff', 0, mtx(s * eyeX * 0.93 - eyeW * 0.18, eyeH * 0.2, zz + R * 0.105, 0, yaw, 0, eyeW * 0.25, eyeW * 0.3, R * 0.02));
     E.add(SPH(1, 8, 6), '#ffffff', 0, mtx(s * eyeX * 0.99 + eyeW * 0.2, -eyeH * 0.3, zz + R * 0.1, 0, yaw, 0, eyeW * 0.11, eyeW * 0.11, R * 0.02));
     if (L.lashes) E.add(new THREE.BoxGeometry(eyeW * 0.5, eyeH * 0.12, R * 0.02), '#1a120d', 0, mtx(s * (eyeX + eyeW * 0.7), eyeH * 0.8, zz * 0.93, 0, yaw, s * -0.6));
+    // pliegue del párpado: un arco de piel algo más oscura que da profundidad a la mirada
+    E.add(new THREE.TorusGeometry(1, 0.05, 6, 20, Math.PI * 0.7), new THREE.Color(skin).multiplyScalar(0.82), 0, mtx(s * eyeX, eyeH * 0.14, zz + R * 0.015, 0, yaw, Math.PI * 0.15, eyeW * 1.2, eyeH * 1.12, R * 0.08));
   }
   E.build(eyes, false, EYE);
-  if (L.lids === 'half') { const HL = new Part(); for (const s of [-1, 1]) { const ey = R * 0.14, dz = (fz(eyeX + R * 0.02, ey) - fz(eyeX - R * 0.02, ey)) / (R * 0.04), yaw = s * Math.atan(-dz) * 0.8, zz = fz(eyeX, ey) - R * 0.035; HL.add(SPH(1, 18, 10, 0, Math.PI * 2, 0, Math.PI * 0.42), skin, TX.skin, mtx(s * eyeX, eyeH * 0.02, zz + R * 0.03, 0, yaw, 0, eyeW * 1.14, eyeH * 1.06, R * 0.11)); HL.add(new THREE.TorusGeometry(1, 0.09, 6, 18, Math.PI * 0.8), '#2a1a12', 0, mtx(s * eyeX, eyeH * 0.36, zz + R * 0.09, 0, yaw, Math.PI * 0.1, eyeW * 1.02, eyeH * 0.3, R * 0.05)); } HL.build(eyes, false); }
+  if (L.lids === 'half') { const HL = new Part(); for (const s of [-1, 1]) { const ey = R * 0.14, dz = (fz(eyeX + R * 0.02, ey) - fz(eyeX - R * 0.02, ey)) / (R * 0.04), yaw = s * Math.atan(-dz) * 0.8, zz = fz(eyeX, ey) - R * 0.015; HL.add(SPH(1, 18, 10, 0, Math.PI * 2, 0, Math.PI * 0.42), skin, TX.skin, mtx(s * eyeX, eyeH * 0.02, zz + R * 0.03, 0, yaw, 0, eyeW * 1.14, eyeH * 1.06, R * 0.11)); HL.add(new THREE.TorusGeometry(1, 0.09, 6, 18, Math.PI * 0.8), '#2a1a12', 0, mtx(s * eyeX, eyeH * 0.36, zz + R * 0.09, 0, yaw, Math.PI * 0.1, eyeW * 1.02, eyeH * 0.3, R * 0.05)); } HL.build(eyes, false); }
   const lids = new THREE.Group(); lids.position.copy(eyes.position); head.add(lids); J.lids = lids; lids.visible = false;
   const Ld = new Part();
-  for (const s of [-1, 1]) { const ey = R * 0.14, dz = (fz(eyeX + R * 0.02, ey) - fz(eyeX - R * 0.02, ey)) / (R * 0.04), yaw = s * Math.atan(-dz) * 0.8, zz = fz(eyeX, ey) - R * 0.035; Ld.add(SPH(1, 14, 10), skin, TX.skin, mtx(s * eyeX, 0, zz + R * 0.02, 0, yaw, 0, eyeW * 1.12, eyeH * 1.08, R * 0.09)); Ld.add(CAP(R * 0.028, eyeW * 1.3, 6), '#3a2418', TX.skin, mtx(s * eyeX, -eyeH * 0.1, zz + R * 0.1, 0, yaw, Math.PI / 2)); }
+  for (const s of [-1, 1]) { const ey = R * 0.14, dz = (fz(eyeX + R * 0.02, ey) - fz(eyeX - R * 0.02, ey)) / (R * 0.04), yaw = s * Math.atan(-dz) * 0.8, zz = fz(eyeX, ey) - R * 0.015; Ld.add(SPH(1, 14, 10), skin, TX.skin, mtx(s * eyeX, 0, zz + R * 0.02, 0, yaw, 0, eyeW * 1.12, eyeH * 1.08, R * 0.09)); Ld.add(CAP(R * 0.028, eyeW * 1.3, 6), '#3a2418', TX.skin, mtx(s * eyeX, -eyeH * 0.1, zz + R * 0.1, 0, yaw, Math.PI / 2)); }
   Ld.build(lids, false);
   // boca
   const mouth = new THREE.Group(); mouth.position.set(0, cy - R * 0.44, fz(0, -R * 0.44) + R * 0.005); head.add(mouth); J.mouth = mouth;
@@ -422,6 +435,10 @@ export function buildMinifig(look, opts = {}) {
     Mo.add(SPH(mw * 1.08, 24, 14, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), '#5a1a1c', TX.skin, mtx(0, 0.006, 0, 0, 0, 0, 1, 0.82, 0.32));
     Mo.add(new THREE.CylinderGeometry(mw * 0.98, mw * 0.98, mw * 0.2, 24, 1, false, -Math.PI * 0.45, Math.PI * 0.9), '#fbf7f0', TX.skin, mtx(0, -mw * 0.06, 0, Math.PI / 2, 0, 0, 1, 1, 0.34));
     Mo.add(SPH(mw * 0.5, 16, 10), '#e0505a', TX.skin, mtx(0, -mw * 0.6, mw * 0.06, 0, 0, 0, 1.1, 0.5, 0.35));
+    // labios: el de arriba recto y el de abajo siguiendo la curva de la boca
+    const lip = new THREE.Color(skin).lerp(new THREE.Color('#d0605a'), 0.4);
+    Mo.add(CAP(R * 0.028, mw * 1.9, 8), lip, TX.skin, mtx(0, mw * 0.02, mw * 0.03, 0, 0, Math.PI / 2, 1, 1, 0.8));
+    Mo.add(new THREE.TorusGeometry(mw * 1.08, R * 0.03, 8, 28, Math.PI), lip, TX.skin, mtx(0, 0.006, 0, 0, 0, Math.PI, 1, 0.82, 0.5));
   }
   else if (mood === 'smirk') { Mo.add(new THREE.TorusGeometry(mw, R * 0.04, 8, 18, Math.PI * 0.6), '#6a2420', TX.skin, mtx(R * 0.03, mw * 0.5, 0, 0, 0, Math.PI * 1.15 + 0.35, 1, 0.65, 0.5)); Mo.add(SPH(R * 0.035, 8, 6), '#b06a58', TX.skin, mtx(mw * 0.95, mw * 0.25, 0)); }
   else Mo.add(new THREE.TorusGeometry(mw, R * (L.lashes ? 0.045 : 0.035), 6, 16, Math.PI * 0.8), L.lashes ? '#c0404a' : '#6a2420', TX.skin, mtx(0, smile > 0 ? mw * 0.55 : -mw * 0.6, 0, 0, 0, smile > 0 ? Math.PI * 1.1 : Math.PI * 0.1, 1, 0.7, 0.5));
