@@ -5,6 +5,7 @@
 // MinifigAnimator (paso con rodillas y codos), MinifigRig (jugador), COSTUMES y lookToMinifig.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { CAST } from '../data/cast.js';
 
 // ---------- Materiales compartidos ----------
 function toonRamp() {
@@ -38,9 +39,9 @@ float tn(vec3 x){ vec3 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);
           t = 0.85 + 0.18 * tn(vec3(vOP.x * 20.0, vOP.y * 160.0, vOP.z * 20.0));
         } else if (vTex > 4.5) { // metal: brillo
           t = 1.1;
-        } else { t = 0.97 + 0.05 * tn(vOP * 90.0); } // piel
+        } else { t = 1.0; } // piel lisa
         diffuseColor.rgb *= mix(1.0, t, ${k.toFixed(2)});
-      }`).replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n totalEmissiveRadiance += diffuseColor.rgb * 0.26;');
+      }`).replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n totalEmissiveRadiance += diffuseColor.rgb * 0.26;\n float rimF = pow(1.0 - clamp(dot(normalize(normal), normalize(vViewPosition)), 0.0, 1.0), 3.0);\n totalEmissiveRadiance += vec3(1.0, 0.95, 0.86) * rimF * 0.32;');
   };
   return mat;
 }
@@ -78,6 +79,19 @@ class Part {
 const SPH = (r, w = 18, h = 14, ...rest) => new THREE.SphereGeometry(r, w, h, ...rest);
 const CAP = (r, len, seg = 12) => new THREE.CapsuleGeometry(r, len, 5, seg);
 // Tronco en forma de pera (torno)
+// Cabeza de una pieza: mofletes redondos abajo, frente amplia
+function eggGeo(R) {
+  const g = new THREE.SphereGeometry(R, 34, 26), p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) {
+    let x = p.getX(i), y = p.getY(i), z = p.getZ(i); const t = y / R;
+    const w = 1 + 0.09 * Math.exp(-(((t + 0.3) / 0.38) ** 2)) - 0.04 * Math.max(0, t) ** 2;
+    x *= w * 1.02; z *= w * 0.96; y *= 0.94;
+    if (z > 0 && t < -0.1) z *= 1 + 0.05 * Math.min(1, (-t - 0.1) * 3);
+    p.setXYZ(i, x, y, z);
+  }
+  g.computeVertexNormals();
+  return g;
+}
 function torsoGeo(rb, rt, h, belly = 1) {
   const pts = [new THREE.Vector2(0.001, 0)];
   for (let i = 0; i <= 12; i++) {
@@ -186,6 +200,7 @@ export function buildMinifig(look, opts = {}) {
   }
   if (L.medal) T.add(new THREE.CylinderGeometry(0.025 * k, 0.025 * k, 0.008 * k, 14), '#e8c34a', TX.metal, mtx(0.05 * k, TH * 0.6, Z(rt) + 0.012 * k, Math.PI / 2));
   if (!L.vest && !L.print && L.placket !== false && !L.apron && !L.fur) for (let i = 0; i < 3; i++) T.add(SPH(0.011 * k), '#f7f1e2', TX.metal, mtx(0, TH * (0.35 + i * 0.17), Z(rb) + 0.008 * k));
+  if ((!L.print || L.print === 'jersey' || L.print === 'rojilla') && !L.fur && !L.scarf) for (const sd of [-1, 1]) T.add(new THREE.ConeGeometry(0.045 * k, 0.09 * k, 3), L.print === 'rojilla' ? '#1c2a4a' : new THREE.Color(L.shirt).lerp(new THREE.Color('#ffffff'), 0.25), TX.cloth, mtx(sd * 0.04 * k, TH * 0.95, Z(rt) * 0.75, -1.2, 0, sd * 2.6, 1, 1, 0.35));
   T.add(new THREE.CylinderGeometry(0.055 * k, 0.06 * k, 0.07 * k, 12), skin, TX.skin, mtx(0, TH + 0.01 * k, 0));
   T.build(torso);
   if (L.bell && !L.bells) { const bl = new THREE.Group(); bl.position.set(0, TH * 0.5, -rb); torso.add(bl); new Part().add(new THREE.CylinderGeometry(0.06 * k, 0.1 * k, 0.18 * k, 12), '#8a7a58', TX.metal).build(bl); J.bell = bl; }
@@ -209,6 +224,7 @@ export function buildMinifig(look, opts = {}) {
     const Hn = new Part(), hc = L.gloves || skin;
     Hn.add(SPH(0.058 * k * B), hc, L.gloves ? TX.cloth : TX.skin, mtx(0, -0.02 * k, 0.005 * k, 0, 0, 0, 0.85, 1.05, 1));
     Hn.add(SPH(0.024 * k), hc, TX.skin, mtx(-s * 0.035 * k, 0.0, 0.035 * k, 0, 0, 0, 1, 1.3, 1));
+    for (let f = 0; f < 3; f++) Hn.add(SPH(0.019 * k, 8, 6), hc, TX.skin, mtx((f - 1) * 0.026 * k, -0.07 * k, 0.03 * k, 0, 0, 0, 1, 1.2, 1));
     Hn.build(hand);
     J[s < 0 ? 'armL' : 'armR'] = sh; J[s < 0 ? 'elbowL' : 'elbowR'] = el; J[s < 0 ? 'handL' : 'handR'] = hand;
   }
@@ -216,45 +232,49 @@ export function buildMinifig(look, opts = {}) {
   // --- cabeza grande y ojos expresivos ---
   const neck = new THREE.Group(); neck.position.y = TH + 0.03 * k; torso.add(neck);
   const head = new THREE.Group(); neck.add(head); J.head = head;
-  const R = 0.245 * k * headS, cy = R * 0.92;
+  const R = 0.27 * k * headS, cy = R * 0.9;
+  // profundidad de la superficie de la cara en (x, y relativo al centro)
+  const fz = (x, y) => { const t = y / (0.94 * R); const w = 1 + 0.09 * Math.exp(-(((t + 0.3) / 0.38) ** 2)) - 0.04 * Math.max(0, t) ** 2; const xs = x / (w * 1.02); let z = Math.sqrt(Math.max(0, R * R - xs * xs - (t * R) ** 2)) * w * 0.96; if (t < -0.1) z *= 1 + 0.05 * Math.min(1, (-t - 0.1) * 3); return z; };
   const Hd = new Part();
-  Hd.add(SPH(R, 26, 20), skin, TX.skin, mtx(0, cy, 0, 0, 0, 0, 1, 0.98, 0.95));
-  Hd.add(SPH(R * 0.66, 18, 12), skin, TX.skin, mtx(0, cy - R * 0.34, R * 0.2, 0, 0, 0, 1.08, 0.7, 1));
+  Hd.add(eggGeo(R), skin, TX.skin, mtx(0, cy, 0));
   for (const s of [-1, 1]) Hd.add(SPH(R * 0.2), skin, TX.skin, mtx(s * R * 0.96, cy - R * 0.05, -R * 0.05, 0, 0, 0, 0.5, 1, 0.8));
   const noseR = R * (L.bigNose ? 0.2 : child ? 0.1 : 0.13);
-  Hd.add(SPH(noseR), new THREE.Color(skin).lerp(new THREE.Color('#e08a70'), 0.25), TX.skin, mtx(0, cy - R * 0.12, R * 0.95, 0, 0, 0, 1, 0.9, 0.9));
-  if (L.cheeks !== false) for (const s of [-1, 1]) Hd.add(SPH(R * 0.14, 12, 8), '#f09a8a', TX.skin, mtx(s * R * 0.5, cy - R * 0.22, R * 0.8, 0, s * 0.5, 0, 1, 0.65, 0.25));
-  if (L.freckles) for (const s of [-1, 1]) for (let i = 0; i < 3; i++) Hd.add(SPH(R * 0.014, 6, 4), '#c07a50', TX.skin, mtx(s * R * (0.35 + i * 0.08), cy - R * (0.08 + (i % 2) * 0.05), R * 0.9, 0, s * 0.4, 0, 1, 1, 0.4));
+  Hd.add(SPH(noseR), new THREE.Color(skin).lerp(new THREE.Color('#e08a70'), 0.25), TX.skin, mtx(0, cy - R * 0.12, fz(0, -R * 0.12) + noseR * 0.35, 0, 0, 0, 1, 0.9, 0.9));
+  if (L.cheeks !== false) for (const s of [-1, 1]) Hd.add(SPH(R * 0.14, 12, 8), '#f09a8a', TX.skin, mtx(s * R * 0.5, cy - R * 0.24, fz(R * 0.5, -R * 0.24) - R * 0.01, 0, s * 0.55, 0, 1, 0.65, 0.25));
+  if (L.freckles) for (const s of [-1, 1]) for (let i = 0; i < 3; i++) Hd.add(SPH(R * 0.014, 6, 4), '#c07a50', TX.skin, mtx(s * R * (0.35 + i * 0.08), cy - R * (0.08 + (i % 2) * 0.05), fz(R * 0.43, -R * 0.1), 0, s * 0.4, 0, 1, 1, 0.4));
   if (L.facePaint === 'soot') Hd.add(SPH(R * 1.004, 22, 14, 0, Math.PI * 2, Math.PI * 0.35, Math.PI * 0.45), '#2a2220', TX.skin, mtx(0, cy, 0, 0, 0, 0, 1, 0.98, 0.95));
   if (L.beard) Hd.add(SPH(R * 0.78, 18, 12, 0, Math.PI * 2, Math.PI * 0.45, Math.PI * 0.55), L.beard, TX.hair, mtx(0, cy - R * 0.1, R * 0.16, 0, 0, 0, 1.12, 1.15, 1));
   else if (L.stubble) Hd.add(SPH(R * 0.74, 16, 10, 0, Math.PI * 2, Math.PI * 0.55, Math.PI * 0.45), new THREE.Color(skin).lerp(new THREE.Color('#6a5040'), 0.14), TX.skin, mtx(0, cy - R * 0.15, R * 0.2, 0, 0, 0, 1.08, 1, 1));
-  if (L.moustache) for (const s of [-1, 1]) Hd.add(CAP(R * 0.07, R * 0.18, 8), L.moustache, TX.hair, mtx(s * R * 0.14, cy - R * 0.27, R * 0.93, 0, 0, s * (L.moustacheCurl ? 1.2 : 1.45)));
+  if (L.moustache) for (const s of [-1, 1]) Hd.add(CAP(R * 0.07, R * 0.18, 8), L.moustache, TX.hair, mtx(s * R * 0.14, cy - R * 0.27, fz(R * 0.14, -R * 0.27) + R * 0.03, 0, 0, s * (L.moustacheCurl ? 1.2 : 1.45)));
   if (L.old) for (const s of [-1, 1]) Hd.add(new THREE.TorusGeometry(R * 0.08, R * 0.012, 4, 10, Math.PI), new THREE.Color(skin).multiplyScalar(0.8), TX.skin, mtx(s * R * 0.52, cy + R * 0.1, R * 0.82, 0, s * 0.5, s * 0.5));
   if (L.glasses) for (const s of [-1, 1]) Hd.add(new THREE.TorusGeometry(R * 0.2, R * 0.025, 6, 16), L.glasses, TX.metal, mtx(s * R * 0.3, cy + R * 0.12, R * 0.97, 0, s * 0.3, 0));
   const brow = L.brows || new THREE.Color(L.hair || '#3b2418').multiplyScalar(0.8);
   const mood = L.face || 'smile';
   const browTilt = mood === 'angry' ? 0.45 : mood === 'worried' ? -0.35 : mood === 'brave' ? 0.18 : -0.05;
-  for (const s of [-1, 1]) Hd.add(CAP(R * 0.045, R * 0.2, 8), brow, TX.hair, mtx(s * R * 0.3, cy + R * 0.42 - (mood === 'angry' ? R * 0.05 : 0), R * 0.86, 0, s * 0.35, Math.PI / 2 + s * browTilt));
+  for (const s of [-1, 1]) Hd.add(CAP(R * 0.045, R * 0.2, 8), brow, TX.hair, mtx(s * R * 0.3, cy + R * 0.44 - (mood === 'angry' ? R * 0.05 : 0), fz(R * 0.3, R * 0.44) + R * 0.02, 0, s * 0.35, Math.PI / 2 + s * browTilt));
   Hd.build(head);
   // ojos: blanco, iris de color, pupila y brillo
   const eyes = new THREE.Group(); eyes.position.set(0, cy + R * 0.14, 0); head.add(eyes); J.eyes = eyes;
   const E = new Part();
-  const eyeW = R * (child ? 0.21 : 0.18), eyeH = R * (child ? 0.3 : 0.27), eyeX = R * 0.28;
+  const eyeW = R * (child ? 0.2 : 0.175), eyeH = R * (child ? 0.29 : 0.26), eyeX = R * 0.29;
   for (const s of [-1, 1]) {
-    const yaw = s * 0.33, zz = Math.cos(yaw) * R * 0.9 * 0.97;
+    const yaw = s * 0.33, zz = fz(eyeX, R * 0.14) - R * 0.04;
     E.add(SPH(1, 16, 12), '#ffffff', 0, mtx(s * eyeX, 0, zz, 0, yaw, 0, eyeW, eyeH, R * 0.08));
     E.add(SPH(1, 14, 10), L.eyes, 0, mtx(s * eyeX * 0.97, -eyeH * 0.08, zz + R * 0.06, 0, yaw, 0, eyeW * 0.68, eyeH * 0.72, R * 0.04));
-    E.add(SPH(1, 12, 8), '#140c08', 0, mtx(s * eyeX * 0.97, -eyeH * 0.1, zz + R * 0.085, 0, yaw, 0, eyeW * 0.38, eyeH * 0.42, R * 0.03));
+    E.add(SPH(1, 12, 8), new THREE.Color(L.eyes).lerp(new THREE.Color('#ffffff'), 0.35), 0, mtx(s * eyeX * 0.97, -eyeH * 0.26, zz + R * 0.075, 0, yaw, 0, eyeW * 0.45, eyeH * 0.3, R * 0.03));
+    E.add(SPH(1, 12, 8), '#140c08', 0, mtx(s * eyeX * 0.97, -eyeH * 0.08, zz + R * 0.09, 0, yaw, 0, eyeW * 0.36, eyeH * 0.42, R * 0.03));
+    const lidT = mood === 'angry' ? s * -0.35 : mood === 'worried' ? s * 0.3 : 0;
+    E.add(new THREE.TorusGeometry(1, 0.13, 6, 18, Math.PI * 0.85), '#2a1a12', 0, mtx(s * eyeX, eyeH * 0.02, zz + R * 0.02, 0, yaw, Math.PI * 0.075 + lidT, eyeW * 1.02, eyeH * 0.98, R * 0.1));
     E.add(SPH(1, 8, 6), '#ffffff', 0, mtx(s * eyeX * 0.93 - eyeW * 0.2, eyeH * 0.22, zz + R * 0.105, 0, yaw, 0, eyeW * 0.2, eyeW * 0.2, R * 0.02));
     if (L.lashes) E.add(new THREE.BoxGeometry(eyeW * 0.5, eyeH * 0.12, R * 0.02), '#1a120d', 0, mtx(s * (eyeX + eyeW * 0.7), eyeH * 0.8, zz * 0.93, 0, yaw, s * -0.6));
   }
   E.build(eyes, false, EYE);
   const lids = new THREE.Group(); lids.position.copy(eyes.position); head.add(lids); J.lids = lids; lids.visible = false;
   const Ld = new Part();
-  for (const s of [-1, 1]) { const yaw = s * 0.33, zz = Math.cos(yaw) * R * 0.9 * 0.97; Ld.add(SPH(1, 14, 10), skin, TX.skin, mtx(s * eyeX, 0, zz + R * 0.02, 0, yaw, 0, eyeW * 1.12, eyeH * 1.08, R * 0.09)); Ld.add(CAP(R * 0.028, eyeW * 1.3, 6), '#3a2418', TX.skin, mtx(s * eyeX, -eyeH * 0.1, zz + R * 0.1, 0, yaw, Math.PI / 2)); }
+  for (const s of [-1, 1]) { const yaw = s * 0.33, zz = fz(eyeX, R * 0.14) - R * 0.04; Ld.add(SPH(1, 14, 10), skin, TX.skin, mtx(s * eyeX, 0, zz + R * 0.02, 0, yaw, 0, eyeW * 1.12, eyeH * 1.08, R * 0.09)); Ld.add(CAP(R * 0.028, eyeW * 1.3, 6), '#3a2418', TX.skin, mtx(s * eyeX, -eyeH * 0.1, zz + R * 0.1, 0, yaw, Math.PI / 2)); }
   Ld.build(lids, false);
   // boca
-  const mouth = new THREE.Group(); mouth.position.set(0, cy - R * 0.42, R * 0.84); head.add(mouth); J.mouth = mouth;
+  const mouth = new THREE.Group(); mouth.position.set(0, cy - R * 0.44, fz(0, -R * 0.44) + R * 0.005); head.add(mouth); J.mouth = mouth;
   const Mo = new Part();
   const smile = mood === 'angry' || mood === 'worried' ? -1 : 1;
   const mw = R * (mood === 'happy' ? 0.28 : 0.22);
@@ -278,7 +298,8 @@ export function buildMinifig(look, opts = {}) {
       if (hs === 'spiky') for (let i = 0; i < 9; i++) { const a = (i / 9) * Math.PI * 2; H.add(new THREE.ConeGeometry(R * 0.2, R * 0.55, 7), hc, TX.hair, mtx(Math.sin(a) * R * 0.55, top - R * 0.05, Math.cos(a) * R * 0.55 - R * 0.05, Math.cos(a) * 0.9, 0, -Math.sin(a) * 0.9)); }
       if (hs === 'curly') for (let i = 0; i < 18; i++) { const a = i * 2.4, rr = 0.35 + (i % 3) * 0.25; H.add(SPH(R * 0.22, 10, 8), hc, TX.hair, mtx(Math.sin(a) * R * rr, top - R * 0.1 - (i % 3) * R * 0.08, Math.cos(a) * R * rr - R * 0.05)); }
       const nF = hs === 'spiky' ? 5 : 6;
-      for (let i = 0; i < nF; i++) { const a = (i / (nF - 1) - 0.5) * 1.8; H.add(new THREE.ConeGeometry(R * 0.17, R * 0.5, 6), hc, TX.hair, mtx(Math.sin(a) * R * 0.78, cy + R * 0.66, Math.cos(a) * R * 0.72, 1.9, a, 0)); }
+      for (let i = 0; i < nF; i++) { const a = (i / (nF - 1) - 0.5) * 1.7; H.add(SPH(R * 0.3, 14, 10), hc, TX.hair, mtx(Math.sin(a) * R * 0.74, cy + R * 0.62 - Math.abs(a) * R * 0.08, Math.cos(a) * R * 0.66, 0.5, a, -a * 0.25, 0.8, 1.25, 0.42)); }
+      H.add(new THREE.TorusGeometry(R * 0.72, R * 0.045, 5, 22, Math.PI * 0.55), new THREE.Color(hc).lerp(new THREE.Color('#ffffff'), 0.38), TX.skin, mtx(0, cy + R * 0.66, R * 0.32, -0.85, 0, Math.PI * 0.225));
     }
     if (L.lashes && hs !== 'spiky' && hs !== 'curly') for (const sd of [-1, 1]) H.add(CAP(R * 0.14, R * 0.55, 8), hc, TX.hair, mtx(sd * R * 0.9, cy - R * 0.08, R * 0.22, 0.12, 0, sd * 0.1));
     if (hs === 'bun') H.add(SPH(R * 0.34), hc, TX.hair, mtx(0, top - R * 0.05, -R * 0.55));
@@ -434,6 +455,9 @@ export const COSTUMES = {
   'pastor-navarro': { skin: '#dba882', hair: '#6a6a6a', beard: '#8a8a88', txapela: '#1d1d24', shirt: '#efe9dc', vest: '#3a2a22', scarf: '#c0392b', pants: '#4a3f36', kneePatch: true, shoes: '#4a2f1c', boots: true, staff: 'crook', strap: '#6a4a2a', bag: '#8a6a3a', face: 'smile', old: true, bigNose: true },
 };
 
+// La cuadrilla de exploradores (personajes jugables)
+for (const c of CAST) COSTUMES[c.id] = c.look;
+
 // Convierte el aspecto antiguo de los vecinos al nuevo
 export function lookToMinifig(l) {
   const hairStyle = l.hairStyle || (l.bun ? 'bun' : l.braids ? 'braids' : l.longHair ? 'long' : l.messy ? 'spiky' : l.bald ? 'bald' : l.ponytail ? 'ponytail' : 'short');
@@ -469,3 +493,7 @@ export class MinifigRig {
   doCheer() { this.cheer = 2; }
   doAct(kind, t = 0.5) { this.anim.doAct(kind, t); }
 }
+
+// Materiales y utilidades compartidas con los animales
+export const TOON_MAT = TOON, OUTLINE_MAT = OUTLINE, TEXKIND = TX;
+export { mtx, prep };

@@ -257,7 +257,7 @@ export class TownGame {
       const fwd = Math.atan2(-Math.sin(this.follow.yaw), -Math.cos(this.follow.yaw)); angle = -angleDiff(fwd, Math.atan2(dx, dz));
     }
     const nSteps = M.steps().length;
-    this.ui.setQuest({ title: `${M.title} · paso ${Math.min(M.step + 1, nSteps)}/${nSteps}`, step: this.stepText(M), icon: M.icon, dist, angle });
+    this.ui.setQuest({ title: M.title, step: this.stepText(M), icon: M.icon, dist, angle, nSteps, stepIdx: Math.min(M.step, nSteps) });
     this.ui.updateMinimap(this.player, this.follow.yaw, this.mapMarkers(), t);
     if (this.carnivalHint) this.carnivalHint();
   }
@@ -744,7 +744,7 @@ export class TownGame {
   }
   async stampTown() {
     this.ts.stamp = true; addXP(150); saveProfile();
-    const img = stampImg(this.def.comarca);
+    const img = stampImg(this.def.comarca, this.def.name.split(' /')[0], this.missions.find(M => M.type !== 'visit' && M.type !== 'quiz')?.icon);
     await missionComplete(this.ui, { title: this.def.name, text: `Has completado todas las misiones de ${this.def.name}. ¡Tu pasaporte tiene un sello nuevo!`, xp: 150, stamp: img, next: 'Ver mi pasaporte' });
     if (comarcaDone(this.P, this.def.comarca)) await infoCard(this.ui, { icon: 'shield', kicker: '¡Comarca completa!', title: this.comarca.name, text: `Has conocido todos los pueblos de ${this.comarca.name}. Se ilumina en tu mapa de Navarra.`, button: '¡Increíble!' });
     saveProfile();

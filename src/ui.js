@@ -53,7 +53,7 @@ export class UI {
     this.game = game;
     const town = game.kind === 'town';
     const h = el(`<div id="hud">
-      <div id="quest" class="glass"><div class="ic"><span class="qe"></span><svg class="arrow" viewBox="0 0 52 52"><path d="M26 1 L31 8 L21 8 Z" fill="#ffc85a"/></svg></div><div class="qtxt"><small></small><b class="qt"></b><span class="qd"></span></div></div>
+      <div id="quest" class="glass"><div class="ic"><span class="qe"></span><svg class="arrow" viewBox="0 0 52 52"><path d="M26 1 L31 8 L21 8 Z" fill="#ffc85a"/></svg></div><div class="qtxt"><small></small><b class="qt"></b><div class="qrow"><span class="qpips"></span><span class="qd"></span></div></div></div>
       <div id="ribbons" class="glass">${town ? `<span class="tname">${esc(game.def.name)}</span><span class="dots">${game.missions.map(M => `<i data-m="${M.i}" title="${esc(M.title)}"></i>`).join('')}</span>`
         : `${RIBBONS.map(r => `<i data-r="${r.id}" title="${r.name}"></i>`).join('')}<span class="eg">${I('eguzkilore', 18)} <b>0/${EGUZKILORES.length}</b></span>`}</div>
       <div id="topright">
@@ -111,6 +111,8 @@ export class UI {
     if (this.lastQuestIcon !== q.icon) { $('.qe', b).innerHTML = I(q.icon, 34); this.lastQuestIcon = q.icon; }
     if ($('.qt', b).textContent !== q.step) { $('.qt', b).textContent = q.step; b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse'); this.refreshDots(); }
     $('small', b).textContent = q.title;
+    const pips = $('.qpips', b), key = (q.nSteps || 0) + ':' + (q.stepIdx ?? -1);
+    if (pips.dataset.k !== key) { pips.dataset.k = key; pips.innerHTML = q.nSteps ? Array.from({ length: q.nSteps }, (_, i) => `<i class="${i < q.stepIdx ? 'ok' : i === q.stepIdx ? 'now' : ''}"></i>`).join('') : ''; }
     $('.qd', b).textContent = q.dist != null ? (q.dist < 1000 ? `${Math.round(q.dist)} m` : '') : '';
     const svg = $('svg.arrow', b); svg.style.display = q.angle != null ? 'block' : 'none';
     if (q.angle != null) svg.style.transform = `rotate(${q.angle}rad)`;

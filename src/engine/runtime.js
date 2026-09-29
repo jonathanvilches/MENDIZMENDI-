@@ -68,7 +68,7 @@ export class Runtime {
     this.nature = new Nature(scene, q);
     onProgress(0.8, 'Despertando a los animales…'); await frame();
     this.fauna = new Fauna(scene, q, salazar ? null : { def, town: TOWN, places: PLACES });
-    const rig = new MinifigRig(COSTUMES[avatarId] || COSTUMES.sanferminero);
+    const rig = new MinifigRig(COSTUMES[avatarId] || COSTUMES.leire);
     this.player = new Player(rig, scene);
     this.follow = new FollowCamera(this.camera);
     this.particles = new Particles(scene);

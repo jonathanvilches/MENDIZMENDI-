@@ -7,48 +7,41 @@ import { resolve, isFree } from '../world/colliders.js';
 import { PLACES, rx, riverInfo, HALF, iratiMask } from '../world/layout.js';
 import { TREES } from '../world/nature.js';
 import { clamp, damp, dampAngle, lerp, mulberry32 } from '../util/math.js';
+import { TOON_MAT, OUTLINE_MAT, setOutlines } from './minifig.js';
 
-// Textura de pelaje procedural (ruido 3D en espacio del objeto): pelo fino, vetas y manchas suaves
-function furify(mat, k = 1) {
-  mat.onBeforeCompile = (sh) => {
-    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vObjPos;').replace('#include <begin_vertex>', '#include <begin_vertex>\nvObjPos = position;');
-    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>
-varying vec3 vObjPos;
-float fh(vec3 p){ p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
-float fn(vec3 x){ vec3 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);
-  return mix(mix(mix(fh(i), fh(i + vec3(1,0,0)), f.x), mix(fh(i + vec3(0,1,0)), fh(i + vec3(1,1,0)), f.x), f.y),
-             mix(mix(fh(i + vec3(0,0,1)), fh(i + vec3(1,0,1)), f.x), mix(fh(i + vec3(0,1,1)), fh(i + vec3(1,1,1)), f.x), f.y), f.z); }`)
-      .replace('#include <color_fragment>', `#include <color_fragment>
-      { vec3 q = vObjPos;
-        float hair = fn(vec3(q.x * 90.0, q.y * 22.0, q.z * 90.0));           // hebras de pelo
-        float fine = fn(q * 60.0);
-        float mott = fn(q * 7.0);                                            // moteado grande
-        float curl = fn(q * 26.0); curl = smoothstep(0.35, 0.65, curl);
-        float f = 0.7 + 0.32 * hair + 0.12 * fine + 0.22 * (mott - 0.5) + 0.1 * curl;
-        diffuseColor.rgb *= mix(1.0, f, ${k.toFixed(2)}); }`);
-  };
-  return mat;
-}
-const VC = furify(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9 }));
-const VCflat = furify(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, flatShading: true }), 0.8);
+const VC = TOON_MAT, VCflat = TOON_MAT;
 
-function part(geo, color, m) {
-  const g = (geo.index ? geo.toNonIndexed() : geo);
+// Parte de un animal con color y tipo de textura (0 piel lisa, 2 pelo, 3 lana, 4 cuerno/pezuña)
+function part(geo, color, m, tex = 2) {
+  const g = (geo.index ? geo.toNonIndexed() : geo.clone());
   if (m) g.applyMatrix4(m);
+  for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal') g.deleteAttribute(k);
   const c = new THREE.Color(color), n = g.attributes.position.count, a = new Float32Array(n * 3);
   for (let i = 0; i < n; i++) { a[i * 3] = c.r; a[i * 3 + 1] = c.g; a[i * 3 + 2] = c.b; }
   g.setAttribute('color', new THREE.BufferAttribute(a, 3));
-  g.deleteAttribute('uv');
+  g.setAttribute('aTex', new THREE.BufferAttribute(new Float32Array(n).fill(tex), 1));
   return g;
 }
+// Ojos grandes de dibujo: blanco, pupila y brillo (a ambos lados de la cabeza)
+function eyes(x, y, z, r, yaw = 0.35, iris = '#2a1a12') {
+  const out = [];
+  for (const s of [-1, 1]) {
+    const ry = s * yaw;
+    out.push(part(new THREE.SphereGeometry(r, 12, 10), '#ffffff', T(s * x, y, z, 0, ry, 0, 1, 1.15, 0.6), 0));
+    out.push(part(new THREE.SphereGeometry(r * 0.62, 10, 8), iris, T(s * (x + Math.sin(ry) * r * 0.35), y - r * 0.08, z + Math.cos(ry) * r * 0.35, 0, ry, 0, 1, 1.2, 0.5), 0));
+    out.push(part(new THREE.SphereGeometry(r * 0.22, 6, 5), '#ffffff', T(s * (x + Math.sin(ry) * r * 0.55) - r * 0.15, y + r * 0.3, z + Math.cos(ry) * r * 0.55, 0, 0, 0, 1, 1, 0.5), 0));
+  }
+  return out;
+}
+const S16 = (r) => new THREE.SphereGeometry(r, 16, 12);
 const T = (x, y, z, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1) => new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, rz)), new THREE.Vector3(sx, sy, sz));
-const merge = (parts) => { const g = mergeGeometries(parts); g.computeVertexNormals(); return g; };
+const merge = (parts) => mergeGeometries(parts);
 function woolBlob(rnd, r, n, color) {
   const parts = [];
   for (let i = 0; i < n; i++) {
-    const g = new THREE.IcosahedronGeometry(r * (0.55 + rnd() * 0.25), 1);
+    const g = new THREE.SphereGeometry(r * (0.55 + rnd() * 0.25), 14, 10);
     const a = rnd() * Math.PI * 2, b = (rnd() - 0.5) * 1.2;
-    parts.push(part(g, new THREE.Color(color).multiplyScalar(0.92 + rnd() * 0.12), T(Math.cos(a) * r * 0.45 * 1.6, Math.sin(b) * r * 0.35, Math.sin(a) * r * 0.45)));
+    parts.push(part(g, new THREE.Color(color).multiplyScalar(0.95 + rnd() * 0.08), T(Math.cos(a) * r * 0.45 * 1.6, Math.sin(b) * r * 0.35, Math.sin(a) * r * 0.45), 3));
   }
   return parts;
 }
@@ -57,90 +50,105 @@ function woolBlob(rnd, r, n, color) {
 function quadruped(spec, rnd) {
   const root = new THREE.Group();
   const body = new THREE.Group(); root.add(body);
-  const bodyGeo = merge(spec.body(rnd));
-  const bm = new THREE.Mesh(bodyGeo, spec.flat ? VCflat : VC); bm.castShadow = true; body.add(bm);
+  const mk = (geo, parent) => { const m = new THREE.Mesh(geo, VC); m.castShadow = true; parent.add(m); const o = new THREE.Mesh(geo, OUTLINE_MAT); o.userData.outline = true; o.visible = false; parent.add(o); return m; };
+  mk(merge(spec.body(rnd)), body);
   const headPivot = new THREE.Group(); headPivot.position.set(0, spec.neckY, spec.neckZ); body.add(headPivot);
-  const hm = new THREE.Mesh(merge(spec.head(rnd)), spec.flat ? VCflat : VC); hm.castShadow = true; headPivot.add(hm);
+  mk(merge(spec.head(rnd)), headPivot);
   const legs = [];
   const legGeo = merge(spec.leg(rnd));
   for (const [x, z] of spec.legPos) {
     const p = new THREE.Group(); p.position.set(x, spec.legTop, z); body.add(p);
-    const l = new THREE.Mesh(legGeo, VC); l.castShadow = true; p.add(l);
+    mk(legGeo, p);
     legs.push(p);
   }
   let tail = null;
-  if (spec.tail) { tail = new THREE.Group(); tail.position.set(0, spec.tailY, spec.tailZ); body.add(tail); const tm = new THREE.Mesh(merge(spec.tail(rnd)), VC); tail.add(tm); }
+  if (spec.tail) { tail = new THREE.Group(); tail.position.set(0, spec.tailY, spec.tailZ); body.add(tail); mk(merge(spec.tail(rnd)), tail); }
+  root.userData.outlineOn = false;
   return { root, body, head: headPivot, legs, tail };
 }
 
 const SPECIES = {
+  // Oveja latxa: nube de lana, cara oscura, orejas caídas
   sheep: {
-    neckY: 0.62, neckZ: 0.42, legTop: 0.42, legPos: [[-0.16, 0.25], [0.16, 0.25], [-0.16, -0.25], [0.16, -0.25]], tailY: 0.6, tailZ: -0.45,
-    body: (r) => woolBlob(r, 0.42, 9, '#efe6d2').map(g => g.applyMatrix4(T(0, 0.66, 0, 0, Math.PI / 2, 0, 1, 0.95, 1.25))),
-    head: (r) => [part(new THREE.SphereGeometry(0.15, 10, 8), '#2d241e', T(0, 0.02, 0.1, 0, 0, 0, 0.85, 0.9, 1.3)),
-      part(new THREE.SphereGeometry(0.05, 6, 5), '#2d241e', T(-0.13, 0.06, 0.02, 0, 0, 0, 1.6, 0.6, 0.8)), part(new THREE.SphereGeometry(0.05, 6, 5), '#2d241e', T(0.13, 0.06, 0.02, 0, 0, 0, 1.6, 0.6, 0.8)),
-      part(new THREE.SphereGeometry(0.02, 5, 4), '#ffffff', T(-0.07, 0.07, 0.2)), part(new THREE.SphereGeometry(0.02, 5, 4), '#ffffff', T(0.07, 0.07, 0.2)),
-      ...woolBlob(r, 0.13, 3, '#efe6d2').map(g => g.applyMatrix4(T(0, 0.12, 0.02)))],
-    leg: () => [part(new THREE.CylinderGeometry(0.04, 0.035, 0.42, 6), '#2d241e', T(0, -0.21, 0))],
-    tail: () => [part(new THREE.SphereGeometry(0.08, 6, 5), '#e8dfca', T(0, -0.05, -0.02))],
+    neckY: 0.62, neckZ: 0.4, legTop: 0.4, legPos: [[-0.15, 0.24], [0.15, 0.24], [-0.15, -0.24], [0.15, -0.24]], tailY: 0.62, tailZ: -0.46,
+    body: (r) => [...woolBlob(r, 0.4, 11, '#f3ecdc').map(g => g.applyMatrix4(T(0, 0.66, 0, 0, Math.PI / 2, 0, 1, 0.95, 1.25))), part(S16(0.3), '#efe6d2', T(0, 0.66, 0, 0, 0, 0, 1, 0.95, 1.4), 3)],
+    head: (r) => [part(S16(0.15), '#3a2e28', T(0, 0.02, 0.12, -0.25, 0, 0, 0.9, 1, 1.25), 0), part(S16(0.09), '#4a3c34', T(0, -0.06, 0.26, 0, 0, 0, 1.1, 0.8, 0.8), 0),
+      ...[-1, 1].map(s => part(S16(0.06), '#3a2e28', T(s * 0.16, 0.05, 0.05, 0, 0, s * 0.5, 1.8, 0.55, 1), 0)),
+      ...eyes(0.075, 0.07, 0.2, 0.04, 0.4),
+      ...woolBlob(r, 0.12, 4, '#f3ecdc').map(g => g.applyMatrix4(T(0, 0.14, 0.02)))],
+    leg: () => [part(new THREE.CapsuleGeometry(0.038, 0.3, 4, 8), '#3a2e28', T(0, -0.2, 0), 0), part(S16(0.045), '#1e1814', T(0, -0.39, 0.015, 0, 0, 0, 1, 0.6, 1.2), 4)],
+    tail: () => [part(S16(0.08), '#efe6d2', T(0, -0.05, -0.02), 3)],
   },
+  // Perro pastor: blanco y negro, orejas dobladas, cola de pluma
   dog: {
-    neckY: 0.52, neckZ: 0.32, legTop: 0.36, legPos: [[-0.1, 0.22], [0.1, 0.22], [-0.1, -0.2], [0.1, -0.2]], tailY: 0.5, tailZ: -0.33,
-    body: () => [part(new THREE.CapsuleGeometry(0.14, 0.42, 4, 8), '#1d1a18', T(0, 0.48, 0, Math.PI / 2)), part(new THREE.SphereGeometry(0.12, 8, 6), '#f4f1ea', T(0, 0.46, 0.22, 0, 0, 0, 1, 1.1, 1))],
-    head: () => [part(new THREE.SphereGeometry(0.13, 10, 8), '#1d1a18', T(0, 0.08, 0.06)), part(new THREE.CapsuleGeometry(0.06, 0.1, 4, 6), '#f4f1ea', T(0, 0.04, 0.18, Math.PI / 2)),
-      part(new THREE.SphereGeometry(0.025, 6, 5), '#111', T(0, 0.06, 0.28)), part(new THREE.ConeGeometry(0.05, 0.12, 4), '#1d1a18', T(-0.08, 0.2, 0.03, 0, 0, 0.3)), part(new THREE.ConeGeometry(0.05, 0.12, 4), '#1d1a18', T(0.08, 0.2, 0.03, 0, 0, -0.3)),
-      part(new THREE.SphereGeometry(0.018, 5, 4), '#fff', T(-0.05, 0.12, 0.16)), part(new THREE.SphereGeometry(0.018, 5, 4), '#fff', T(0.05, 0.12, 0.16))],
-    leg: () => [part(new THREE.CylinderGeometry(0.035, 0.03, 0.36, 6), '#f4f1ea', T(0, -0.18, 0))],
-    tail: () => [part(new THREE.CapsuleGeometry(0.04, 0.25, 4, 6), '#1d1a18', T(0, 0.02, -0.12, -0.9))],
+    neckY: 0.52, neckZ: 0.3, legTop: 0.34, legPos: [[-0.1, 0.2], [0.1, 0.2], [-0.1, -0.2], [0.1, -0.2]], tailY: 0.5, tailZ: -0.33,
+    body: () => [part(new THREE.CapsuleGeometry(0.15, 0.36, 6, 12), '#1d1a18', T(0, 0.48, 0, Math.PI / 2)), part(S16(0.13), '#f4f1ea', T(0, 0.45, 0.2, 0, 0, 0, 1, 1.1, 1)), part(S16(0.12), '#f4f1ea', T(0, 0.58, 0.16, 0, 0, 0, 1.2, 0.8, 1))],
+    head: () => [part(S16(0.14), '#1d1a18', T(0, 0.1, 0.06)), part(S16(0.075), '#f4f1ea', T(0, 0.04, 0.18, 0, 0, 0, 1, 0.85, 1.3)), part(new THREE.BoxGeometry(0.03, 0.14, 0.12), '#f4f1ea', T(0, 0.14, 0.14, 0.4)),
+      part(S16(0.03), '#111111', T(0, 0.07, 0.28), 0), ...[-1, 1].map(s => part(S16(0.055), '#1d1a18', T(s * 0.1, 0.22, 0.02, 0.6, 0, s * 0.4, 0.8, 1.3, 0.45))),
+      ...eyes(0.055, 0.13, 0.15, 0.03, 0.35, '#5a3a1a'), part(S16(0.03), '#e06070', T(0, -0.03, 0.2, 0, 0, 0, 1, 0.5, 1.2), 0)],
+    leg: () => [part(new THREE.CapsuleGeometry(0.045, 0.24, 4, 8), '#f4f1ea', T(0, -0.17, 0)), part(S16(0.05), '#f4f1ea', T(0, -0.32, 0.02, 0, 0, 0, 1, 0.6, 1.3))],
+    tail: () => [part(new THREE.CapsuleGeometry(0.05, 0.24, 4, 8), '#1d1a18', T(0, 0.02, -0.12, -0.9)), part(S16(0.055), '#f4f1ea', T(0, 0.13, -0.25))],
   },
+  // Vaca pirenaica: color trigo, hocico claro, cuernos en lira y cencerro
   cow: {
-    neckY: 1.05, neckZ: 0.85, legTop: 0.72, legPos: [[-0.24, 0.55], [0.24, 0.55], [-0.24, -0.55], [0.24, -0.55]], tailY: 1.1, tailZ: -0.85,
-    body: () => [part(new THREE.CapsuleGeometry(0.42, 1.0, 4, 10), '#b98a55', T(0, 1.05, 0, Math.PI / 2, 0, 0, 1, 1, 1.05)), part(new THREE.SphereGeometry(0.2, 8, 6), '#d9c09a', T(0, 0.72, 0.1, 0, 0, 0, 1, 0.6, 1.4))],
-    head: () => [part(new THREE.BoxGeometry(0.34, 0.36, 0.5), '#b98a55', T(0, 0, 0.24)), part(new THREE.BoxGeometry(0.3, 0.2, 0.14), '#e7d6bd', T(0, -0.1, 0.5)),
-      part(new THREE.ConeGeometry(0.04, 0.3, 5), '#f1ead9', T(-0.2, 0.2, 0.12, 0, 0, 1.2)), part(new THREE.ConeGeometry(0.04, 0.3, 5), '#f1ead9', T(0.2, 0.2, 0.12, 0, 0, -1.2)),
-      part(new THREE.SphereGeometry(0.03, 5, 4), '#111', T(-0.16, 0.06, 0.4)), part(new THREE.SphereGeometry(0.03, 5, 4), '#111', T(0.16, 0.06, 0.4)),
-      part(new THREE.CylinderGeometry(0.07, 0.1, 0.14, 8), '#6f6552', T(0, -0.32, 0.05))],
-    leg: () => [part(new THREE.CylinderGeometry(0.08, 0.07, 0.72, 6), '#a67a4a', T(0, -0.36, 0)), part(new THREE.CylinderGeometry(0.075, 0.075, 0.08, 6), '#2b2420', T(0, -0.7, 0))],
-    tail: () => [part(new THREE.CylinderGeometry(0.02, 0.02, 0.7, 4), '#a67a4a', T(0, -0.35, -0.05)), part(new THREE.SphereGeometry(0.06, 5, 4), '#3b2a1c', T(0, -0.72, -0.05))],
+    neckY: 1.05, neckZ: 0.82, legTop: 0.7, legPos: [[-0.24, 0.52], [0.24, 0.52], [-0.24, -0.52], [0.24, -0.52]], tailY: 1.15, tailZ: -0.85,
+    body: () => [part(new THREE.CapsuleGeometry(0.44, 0.9, 6, 16), '#c8935a', T(0, 1.05, 0, Math.PI / 2, 0, 0, 1, 1, 1.05)), part(S16(0.3), '#e2c496', T(0, 0.8, 0.05, 0, 0, 0, 1, 0.6, 1.9)), part(S16(0.34), '#bd8750', T(0, 1.22, 0.62, 0, 0, 0, 1.1, 1, 1))],
+    head: () => [part(S16(0.25), '#c8935a', T(0, 0.02, 0.22, 0, 0, 0, 1, 1.05, 1.15)), part(S16(0.19), '#f0dcc0', T(0, -0.12, 0.44, 0, 0, 0, 1.1, 0.8, 0.85), 0),
+      ...[-1, 1].map(s => part(S16(0.035), '#6a4a3a', T(s * 0.07, -0.1, 0.6), 0)),
+      ...[-1, 1].map(s => { const g = new THREE.ConeGeometry(0.045, 0.36, 10, 4); const p = g.attributes.position; for (let i = 0; i < p.count; i++) { const t = p.getY(i) / 0.36 + 0.5; p.setZ(i, p.getZ(i) - t * t * 0.1); p.setX(i, p.getX(i) + t * t * 0.08); } return part(g, '#f1e6cc', T(s * 0.22, 0.22, 0.14, 0, s < 0 ? Math.PI : 0, -s * 1.0), 4); }),
+      ...[-1, 1].map(s => part(S16(0.07), '#c8935a', T(s * 0.27, 0.08, 0.1, 0, 0, s * 0.3, 1.5, 0.6, 0.9))),
+      ...eyes(0.13, 0.08, 0.36, 0.055, 0.45),
+      part(new THREE.CylinderGeometry(0.07, 0.1, 0.14, 12), '#8a7a58', T(0, -0.36, 0.08), 4), part(new THREE.TorusGeometry(0.12, 0.02, 6, 16), '#6b4a2e', T(0, -0.25, 0.1, Math.PI / 2 - 0.3), 4)],
+    leg: () => [part(new THREE.CapsuleGeometry(0.085, 0.5, 4, 10), '#b98450', T(0, -0.33, 0)), part(new THREE.CylinderGeometry(0.09, 0.095, 0.1, 12), '#2b2420', T(0, -0.66, 0), 4)],
+    tail: () => [part(new THREE.CylinderGeometry(0.022, 0.022, 0.65, 6), '#b98450', T(0, -0.33, -0.05)), part(S16(0.07), '#5a3a22', T(0, -0.7, -0.05, 0, 0, 0, 1, 1.4, 1))],
   },
+  // Pottoka: caballito de monte, crin oscura, hocico claro
   pottoka: {
-    neckY: 1.05, neckZ: 0.6, legTop: 0.68, legPos: [[-0.17, 0.42], [0.17, 0.42], [-0.17, -0.42], [0.17, -0.42]], tailY: 1.0, tailZ: -0.62,
-    body: () => [part(new THREE.CapsuleGeometry(0.3, 0.8, 4, 10), '#4a2f22', T(0, 0.98, 0, Math.PI / 2))],
-    head: () => [part(new THREE.CapsuleGeometry(0.12, 0.32, 4, 8), '#4a2f22', T(0, 0.12, 0.12, -0.9)), part(new THREE.BoxGeometry(0.18, 0.18, 0.28), '#4a2f22', T(0, 0.3, 0.32, 0.4)),
-      part(new THREE.BoxGeometry(0.06, 0.34, 0.3), '#1a1210', T(0, 0.3, 0.02, -0.9)), part(new THREE.ConeGeometry(0.04, 0.1, 4), '#4a2f22', T(-0.06, 0.48, 0.24)), part(new THREE.ConeGeometry(0.04, 0.1, 4), '#4a2f22', T(0.06, 0.48, 0.24)),
-      part(new THREE.SphereGeometry(0.1, 6, 5), '#c9a585', T(0, 0.26, 0.46, 0, 0, 0, 0.9, 0.8, 0.6))],
-    leg: () => [part(new THREE.CylinderGeometry(0.06, 0.05, 0.68, 6), '#3a251b', T(0, -0.34, 0)), part(new THREE.CylinderGeometry(0.06, 0.07, 0.08, 6), '#1a1210', T(0, -0.66, 0))],
-    tail: () => [part(new THREE.ConeGeometry(0.1, 0.6, 5), '#1a1210', T(0, -0.3, -0.08, 0.3))],
+    neckY: 1.02, neckZ: 0.56, legTop: 0.66, legPos: [[-0.17, 0.4], [0.17, 0.4], [-0.17, -0.4], [0.17, -0.4]], tailY: 1.02, tailZ: -0.6,
+    body: () => [part(new THREE.CapsuleGeometry(0.32, 0.72, 6, 16), '#5a3826', T(0, 0.98, 0, Math.PI / 2)), part(S16(0.26), '#7a5238', T(0, 0.86, 0, 0, 0, 0, 1, 0.6, 2.2))],
+    head: () => [part(new THREE.CapsuleGeometry(0.13, 0.28, 6, 12), '#5a3826', T(0, 0.14, 0.06, 0.5)), part(new THREE.CapsuleGeometry(0.12, 0.24, 6, 12), '#5a3826', T(0, 0.34, 0.26, Math.PI / 2 + 0.45)), part(S16(0.11), '#caa585', T(0, 0.23, 0.42, 0, 0, 0, 1, 0.85, 0.9), 0),
+      ...[-1, 1].map(s => part(S16(0.022), '#3a2418', T(s * 0.045, 0.22, 0.52), 0)),
+      ...[0, 1, 2, 3, 4, 5].map(i => part(S16(0.075), '#1a1210', T(0, 0.46 - i * 0.085, 0.16 - i * 0.055, 0, 0, 0, 0.5, 1.25, 1))),
+      ...[-1, 1].map(s => part(new THREE.ConeGeometry(0.04, 0.13, 8), '#5a3826', T(s * 0.07, 0.5, 0.2, -0.3, 0, -s * 0.2))),
+      ...eyes(0.095, 0.4, 0.29, 0.042, 0.75)],
+    leg: () => [part(new THREE.CapsuleGeometry(0.06, 0.48, 4, 10), '#4a2e20', T(0, -0.3, 0)), part(new THREE.CylinderGeometry(0.065, 0.075, 0.09, 12), '#1a1210', T(0, -0.63, 0), 4)],
+    tail: () => [part(new THREE.CapsuleGeometry(0.08, 0.45, 4, 10), '#1a1210', T(0, -0.28, -0.08, 0.3))],
   },
+  // Corzo: esbelto, culera blanca, orejas grandes
   corzo: {
-    neckY: 0.85, neckZ: 0.38, legTop: 0.62, legPos: [[-0.1, 0.28], [0.1, 0.28], [-0.1, -0.26], [0.1, -0.26]], tailY: 0.8, tailZ: -0.4,
-    body: () => [part(new THREE.CapsuleGeometry(0.17, 0.55, 4, 8), '#9a5e34', T(0, 0.82, 0, Math.PI / 2)), part(new THREE.SphereGeometry(0.13, 8, 6), '#f3eee4', T(0, 0.82, -0.38, 0, 0, 0, 1, 1, 0.5))],
-    head: () => [part(new THREE.CapsuleGeometry(0.06, 0.28, 4, 6), '#9a5e34', T(0, 0.12, 0.06, -0.6)), part(new THREE.ConeGeometry(0.07, 0.22, 7), '#8a5230', T(0, 0.28, 0.2, Math.PI / 2 + 0.3)),
-      part(new THREE.SphereGeometry(0.025, 5, 4), '#111', T(0, 0.25, 0.32)), part(new THREE.SphereGeometry(0.03, 6, 5), '#fff', T(0, 0.23, 0.29, 0, 0, 0, 1.2, 0.7, 0.8)),
-      part(new THREE.ConeGeometry(0.035, 0.12, 4), '#9a5e34', T(-0.07, 0.38, 0.14, 0, 0, 0.5)), part(new THREE.ConeGeometry(0.035, 0.12, 4), '#9a5e34', T(0.07, 0.38, 0.14, 0, 0, -0.5)),
-      part(new THREE.CylinderGeometry(0.01, 0.014, 0.18, 4), '#5a3d25', T(-0.035, 0.43, 0.16, 0, 0, 0.15)), part(new THREE.CylinderGeometry(0.01, 0.014, 0.18, 4), '#5a3d25', T(0.035, 0.43, 0.16, 0, 0, -0.15))],
-    leg: () => [part(new THREE.CylinderGeometry(0.03, 0.022, 0.62, 5), '#7a4a2a', T(0, -0.31, 0))],
+    neckY: 0.85, neckZ: 0.36, legTop: 0.6, legPos: [[-0.1, 0.26], [0.1, 0.26], [-0.1, -0.24], [0.1, -0.24]], tailY: 0.82, tailZ: -0.4,
+    body: () => [part(new THREE.CapsuleGeometry(0.18, 0.46, 6, 14), '#a8663a', T(0, 0.82, 0, Math.PI / 2)), part(S16(0.14), '#f3eee4', T(0, 0.84, -0.37, 0, 0, 0, 1, 1, 0.5)), part(S16(0.14), '#d9b890', T(0, 0.72, 0, 0, 0, 0, 1, 0.5, 2))],
+    head: () => [part(new THREE.CapsuleGeometry(0.07, 0.24, 4, 10), '#a8663a', T(0, 0.12, 0.08, 0.45)), part(S16(0.1), '#a8663a', T(0, 0.28, 0.16, 0, 0, 0, 0.95, 0.95, 1.2)), part(S16(0.06), '#3a2a20', T(0, 0.25, 0.3, 0, 0, 0, 1, 0.8, 0.8), 0),
+      ...[-1, 1].map(s => part(S16(0.06), '#a8663a', T(s * 0.1, 0.38, 0.1, 0, 0, s * 0.6, 0.6, 1.5, 0.35))),
+      ...[-1, 1].map(s => part(new THREE.CylinderGeometry(0.01, 0.015, 0.16, 6), '#5a3d25', T(s * 0.035, 0.43, 0.14, 0, 0, -s * 0.15), 4)),
+      ...eyes(0.07, 0.31, 0.22, 0.035, 0.6)],
+    leg: () => [part(new THREE.CapsuleGeometry(0.042, 0.48, 4, 10), '#8a5230', T(0, -0.3, 0)), part(new THREE.CylinderGeometry(0.04, 0.045, 0.06, 10), '#2a1a12', T(0, -0.58, 0), 4)],
   },
+  // Ciervo: cuello con melena y gran cornamenta
   ciervo: {
-    neckY: 1.3, neckZ: 0.55, legTop: 0.95, legPos: [[-0.15, 0.42], [0.15, 0.42], [-0.15, -0.4], [0.15, -0.4]], tailY: 1.2, tailZ: -0.62,
-    body: () => [part(new THREE.CapsuleGeometry(0.27, 0.85, 4, 8), '#7c4f30', T(0, 1.22, 0, Math.PI / 2)), part(new THREE.SphereGeometry(0.2, 8, 6), '#d8c4a4', T(0, 1.2, -0.56, 0, 0, 0, 1, 1, 0.5)), part(new THREE.SphereGeometry(0.24, 8, 6), '#5b3a24', T(0, 1.3, 0.45, 0, 0, 0, 1, 1.2, 1))],
+    neckY: 1.3, neckZ: 0.52, legTop: 0.92, legPos: [[-0.15, 0.4], [0.15, 0.4], [-0.15, -0.38], [0.15, -0.38]], tailY: 1.2, tailZ: -0.6,
+    body: () => [part(new THREE.CapsuleGeometry(0.28, 0.75, 6, 16), '#8a5a36', T(0, 1.22, 0, Math.PI / 2)), part(S16(0.2), '#e0cca8', T(0, 1.22, -0.55, 0, 0, 0, 1, 1, 0.5)), part(S16(0.26), '#5b3a24', T(0, 1.32, 0.42, 0, 0, 0, 1, 1.2, 1))],
     head: () => {
-      const p = [part(new THREE.CapsuleGeometry(0.1, 0.4, 4, 6), '#6b4329', T(0, 0.2, 0.08, -0.5)), part(new THREE.ConeGeometry(0.1, 0.34, 7), '#6b4329', T(0, 0.42, 0.28, Math.PI / 2 + 0.3)), part(new THREE.SphereGeometry(0.03, 5, 4), '#111', T(0, 0.38, 0.45))];
-      for (const s of [-1, 1]) { // cornamenta
-        p.push(part(new THREE.CylinderGeometry(0.018, 0.028, 0.6, 5), '#d9c9a8', T(s * 0.12, 0.8, 0.15, -0.2, 0, -s * 0.45)));
-        for (let i = 0; i < 3; i++) p.push(part(new THREE.CylinderGeometry(0.01, 0.018, 0.22, 4), '#d9c9a8', T(s * (0.16 + i * 0.05), 0.68 + i * 0.13, 0.22, 0.7, 0, -s * 0.2)));
+      const p = [part(new THREE.CapsuleGeometry(0.12, 0.36, 4, 10), '#7a4e30', T(0, 0.2, 0.12, 0.45)), part(S16(0.14), '#7a4e30', T(0, 0.42, 0.26, 0, 0, 0, 0.95, 0.95, 1.3)), part(S16(0.075), '#3a2a20', T(0, 0.38, 0.44, 0, 0, 0, 1, 0.8, 0.8), 0),
+        ...[-1, 1].map(s => part(S16(0.07), '#7a4e30', T(s * 0.13, 0.52, 0.18, 0, 0, s * 0.8, 0.6, 1.4, 0.35))), ...eyes(0.09, 0.47, 0.34, 0.045, 0.6)];
+      for (const s of [-1, 1]) {
+        p.push(part(new THREE.CylinderGeometry(0.018, 0.03, 0.6, 7), '#e3d3b0', T(s * 0.12, 0.8, 0.15, -0.2, 0, -s * 0.45), 4));
+        for (let i = 0; i < 3; i++) p.push(part(new THREE.CylinderGeometry(0.01, 0.018, 0.22, 6), '#e3d3b0', T(s * (0.16 + i * 0.05), 0.68 + i * 0.13, 0.22, 0.7, 0, -s * 0.2), 4));
       }
       return p;
     },
-    leg: () => [part(new THREE.CylinderGeometry(0.045, 0.03, 0.95, 5), '#5f3d25', T(0, -0.47, 0))],
+    leg: () => [part(new THREE.CapsuleGeometry(0.058, 0.76, 4, 10), '#6a4428', T(0, -0.46, 0)), part(new THREE.CylinderGeometry(0.055, 0.06, 0.07, 10), '#2a1a12', T(0, -0.89, 0), 4)],
   },
+  // Jabalí: redondo, cresta de cerdas, jeta rosada y colmillos
   jabali: {
-    neckY: 0.55, neckZ: 0.42, legTop: 0.38, legPos: [[-0.13, 0.28], [0.13, 0.28], [-0.13, -0.28], [0.13, -0.28]], tailY: 0.55, tailZ: -0.5,
-    flat: true,
-    body: () => [part(new THREE.CapsuleGeometry(0.25, 0.55, 4, 8), '#3b3029', T(0, 0.6, 0, Math.PI / 2, 0, 0, 0.9, 1, 1.1)), part(new THREE.BoxGeometry(0.1, 0.2, 0.7), '#2a221e', T(0, 0.86, 0.05))],
-    head: () => [part(new THREE.ConeGeometry(0.2, 0.45, 6), '#3b3029', T(0, 0, 0.2, Math.PI / 2 + 0.3)), part(new THREE.CylinderGeometry(0.06, 0.06, 0.04, 8), '#6f5a50', T(0, -0.08, 0.43, Math.PI / 2 + 0.3)),
-      part(new THREE.ConeGeometry(0.015, 0.1, 4), '#f1ead9', T(-0.07, -0.05, 0.36, -0.8)), part(new THREE.ConeGeometry(0.015, 0.1, 4), '#f1ead9', T(0.07, -0.05, 0.36, -0.8))],
-    leg: () => [part(new THREE.CylinderGeometry(0.05, 0.04, 0.38, 5), '#2a221e', T(0, -0.19, 0))],
+    neckY: 0.55, neckZ: 0.4, legTop: 0.36, legPos: [[-0.13, 0.26], [0.13, 0.26], [-0.13, -0.26], [0.13, -0.26]], tailY: 0.58, tailZ: -0.48,
+    body: () => [part(new THREE.CapsuleGeometry(0.27, 0.48, 6, 14), '#4a3b32', T(0, 0.6, 0, Math.PI / 2, 0, 0, 0.9, 1, 1.1)), ...[0, 1, 2, 3, 4, 5].map(i => part(new THREE.ConeGeometry(0.05, 0.14, 6), '#2a221e', T(0, 0.86 - Math.abs(i - 2) * 0.01, 0.3 - i * 0.12, -0.3)))],
+    head: () => [part(S16(0.2), '#4a3b32', T(0, 0.02, 0.14, 0, 0, 0, 0.95, 0.95, 1.2)), part(new THREE.CylinderGeometry(0.075, 0.09, 0.14, 14), '#4a3b32', T(0, -0.04, 0.34, Math.PI / 2)), part(new THREE.CylinderGeometry(0.075, 0.075, 0.02, 14), '#d88a8a', T(0, -0.04, 0.41, Math.PI / 2), 0),
+      ...[-1, 1].map(s => part(new THREE.ConeGeometry(0.015, 0.09, 6), '#f4ecd8', T(s * 0.07, 0.0, 0.36, -0.9, 0, s * 0.3), 4)),
+      ...[-1, 1].map(s => part(new THREE.ConeGeometry(0.05, 0.1, 8), '#3a2e28', T(s * 0.12, 0.18, 0.08, -0.3, 0, -s * 0.4))),
+      ...eyes(0.09, 0.08, 0.26, 0.03, 0.5)],
+    leg: () => [part(new THREE.CapsuleGeometry(0.045, 0.24, 4, 8), '#2a221e', T(0, -0.18, 0))],
+    tail: () => [part(new THREE.CylinderGeometry(0.012, 0.012, 0.2, 5), '#2a221e', T(0, -0.1, -0.02, 0.4))],
   },
 };
 
@@ -424,7 +432,8 @@ export class Fauna {
       const d = Math.hypot(a.pos.x - player.pos.x, a.pos.z - player.pos.z);
       a.obj.visible = d < vd;
       const sh = d < 35;
-      if (a.shadowOn !== sh) { a.shadowOn = sh; a.obj.traverse(o => { if (o.isMesh) o.castShadow = sh; }); }
+      if (a.shadowOn !== sh) { a.shadowOn = sh; a.obj.traverse(o => { if (o.isMesh && !o.userData.outline) o.castShadow = sh; }); }
+      setOutlines(a.obj, d < 26);
       if (d < vd + 30 || a.alwaysUpdate) a.update(dt, player);
     }
     // ardillas: bajan al suelo, corren, suben al tronco si te acercas
@@ -540,3 +549,4 @@ export function glowTexture() {
   g.fillStyle = r; g.fillRect(0, 0, 64, 64);
   return new THREE.CanvasTexture(c);
 }
+export { quadruped, SPECIES };
