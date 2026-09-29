@@ -27,6 +27,7 @@ export class Runtime {
     this.canvas = canvas; this.input = input; this.sound = sound; this.quality = quality;
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: quality !== 'low', powerPreference: 'high-performance' });
     this.pixelRatio = Math.min(devicePixelRatio, quality === 'high' ? 2 : quality === 'mid' ? 1.5 : 1);
+    this.renderer.debug.checkShaderErrors = /debug/.test(location.search);
     this.renderer.setPixelRatio(this.pixelRatio);
     this.renderer.setSize(innerWidth, innerHeight);
     this.renderer.shadowMap.enabled = true;
@@ -83,6 +84,9 @@ export class Runtime {
     this.salazar = salazar;
     this.def = def;
     onProgress(0.95, 'Saludando a los vecinos…'); await frame();
+    // compila los shaders mientras sigue la pantalla de carga (en paralelo si el navegador puede),
+    // para que el primer fotograma del pueblo no se quede congelado
+    try { await Promise.race([this.renderer.compileAsync(scene, this.camera), new Promise(r => setTimeout(r, 5000))]); } catch (e) { }
     return this;
   }
   start(game) { this.game = game; this.active = true; this.canvas.style.visibility = 'visible'; this.clock.getDelta(); }

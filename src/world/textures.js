@@ -3,7 +3,9 @@ import * as THREE from 'three';
 import { mulberry32 } from '../util/math.js';
 import { noise2 } from '../util/noise.js';
 
-function canvas(size) { const c = document.createElement('canvas'); c.width = c.height = size; return c; }
+// willReadFrequently: el lienzo vive en memoria normal, así leer sus píxeles (grano, relieve) no
+// obliga a traerlos de la tarjeta gráfica, que es muy lento
+function canvas(size) { const c = document.createElement('canvas'); c.width = c.height = size; c.getContext('2d', { willReadFrequently: true }); return c; }
 
 // Dibuja una forma repitiéndola en los bordes para que la textura se enlose
 function wrapDraw(size, x, y, r, fn) {

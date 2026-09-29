@@ -16,6 +16,8 @@ import { fbm } from '../util/noise.js';
 import { mulberry32, smoothstep, clamp } from '../util/math.js';
 import COMARCAS from '../data/comarcas.json';
 import { LEVELS } from '../data/levels.js';
+import { getImg, putImg, enqueue } from '../util/store.js';
+import { offscreen, offscreenCanvas } from '../util/offscreen.js';
 
 const FAM = {};
 for (const l of LEVELS) FAM[l.comarca] ||= l.family;
@@ -289,28 +291,49 @@ export function buildDiorama(comarcaId, { live = true } = {}) {
   return { scene, update, sun, hf, tone, T };
 }
 
-// Foto fija de la comarca (fondos, fichas y pantalla de carga): se genera una vez y se guarda
-let SR = null;
-const shots = new Map();
-export function dioramaShot(comarcaId, w = 1280, h = 720) {
-  const key = comarcaId + w + 'x' + h;
-  if (shots.has(key)) return shots.get(key);
-  let url = '';
-  try {
-    if (!SR) {
-      SR = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
-      SR.toneMapping = THREE.ACESFilmicToneMapping; SR.outputColorSpace = THREE.SRGBColorSpace;
-      SR.shadowMap.enabled = true; SR.shadowMap.type = THREE.PCFSoftShadowMap; SR.setPixelRatio(1);
-    }
-    SR.setSize(w, h, false);
-    const D = buildDiorama(comarcaId, { live: false });
-    D.update(0.5);
-    const cam = new THREE.PerspectiveCamera(w > h ? 34 : 50, w / h, 0.3, 3000);
-    cam.position.set(4, 6.5, 16); cam.lookAt(-1, 7, -60);
-    SR.render(D.scene, cam);
-    url = SR.domElement.toDataURL('image/jpeg', 0.86);
-    D.scene.traverse(o => { if (o.geometry) o.geometry.dispose(); });
-  } catch (e) { console.warn('foto de comarca', e); }
-  shots.set(key, url);
+// Foto fija de la comarca (fondos, fichas y pantalla de carga). Generarla cuesta (monta el
+// diorama entero), así que se hace en segundo plano, de una en una, y se guarda en IndexedDB:
+// mientras tanto se devuelve un degradado con los colores de la comarca que luego se sustituye.
+function renderShot(comarcaId, w, h) {
+  const SR = offscreen(w, h);
+  const D = buildDiorama(comarcaId, { live: false });
+  SR.setClearColor(D.scene.fog.color, 1);
+  D.update(0.5);
+  const cam = new THREE.PerspectiveCamera(w > h ? 34 : 50, w / h, 0.3, 3000);
+  cam.position.set(4, 6.5, 16); cam.lookAt(-1, 7, -60);
+  SR.render(D.scene, cam);
+  const url = offscreenCanvas().toDataURL('image/jpeg', 0.84);
+  D.scene.traverse(o => { if (o.geometry) o.geometry.dispose(); });
   return url;
+}
+const holders = new Map();
+function placeholder(comarcaId, key) {
+  if (holders.has(key)) return holders.get(key);
+  const c = COMARCAS.find(x => x.id === comarcaId) || COMARCAS[0];
+  const col = (c.color || '#8A2BE2').replace('#', '%23');
+  // el comentario con la clave hace única la cadena, para poder encontrarla y cambiarla después
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 9"><!--mm-${key}--><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="%2387c7ef"/><stop offset=".45" stop-color="%23cfe8f5"/><stop offset=".7" stop-color="${col}"/><stop offset="1" stop-color="%232a1a40"/></linearGradient></defs><rect width="16" height="9" fill="url%28%23g%29"/></svg>`;
+  const u = 'data:image/svg+xml,' + svg.replace(/"/g, '%22').replace(/</g, '%3C').replace(/>/g, '%3E').replace(/ /g, '%20');
+  holders.set(key, u);
+  return u;
+}
+// cambia el degradado provisional por la foto en todos los sitios donde se haya usado
+function swapIn(ph, url) {
+  for (const e of document.querySelectorAll('[style]')) {
+    const st = e.getAttribute('style');
+    if (st.includes(ph)) e.setAttribute('style', st.split(ph).join(url));
+  }
+}
+export function dioramaShot(comarcaId, w = 1280, h = 720, { front = false, onReady } = {}) {
+  if (w > 960) { h = Math.round(h * 960 / w); w = 960; }
+  const key = comarcaId + w + 'x' + h;
+  const hit = getImg('d:' + key);
+  if (hit) { onReady?.(hit); return hit; }
+  const ph = placeholder(comarcaId, key);
+  enqueue('d:' + key, () => {
+    let url = getImg('d:' + key);
+    if (!url) { try { url = renderShot(comarcaId, w, h); } catch (e) { console.warn('foto de comarca', e); return; } putImg('d:' + key, url); }
+    swapIn(ph, url); onReady?.(url);
+  }, front);
+  return ph;
 }

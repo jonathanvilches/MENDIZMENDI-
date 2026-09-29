@@ -11,6 +11,7 @@ function renderer() {
   if (R) return R;
   const c = document.createElement('canvas');
   R = new THREE.WebGLRenderer({ canvas: c, antialias: true, alpha: true });
+  R.debug.checkShaderErrors = false;
   R.setPixelRatio(Math.min(devicePixelRatio, 2));
   R.toneMapping = THREE.ACESFilmicToneMapping; R.outputColorSpace = THREE.SRGBColorSpace;
   R.shadowMap.enabled = true; R.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -41,6 +42,11 @@ export class Stage {
     this.onMove = (e) => { if (!this.drag) return; const dx = e.clientX - this.drag.x; if (Math.abs(dx) > 6) this.drag.moved = true; this.yaw = this.drag.yaw + dx * 0.012; };
     this.onUp = () => { if (this.drag && !this.drag.moved) this.poke(); this.drag = null; };
     el.addEventListener('pointerdown', this.onDown); addEventListener('pointermove', this.onMove); addEventListener('pointerup', this.onUp);
+    // los shaders se compilan en paralelo (si el navegador lo permite) antes del primer dibujo,
+    // para no congelar la pantalla; mientras tanto el escenario aparece con un fundido
+    this.ready = false; el.style.opacity = 0; el.style.transition = 'opacity .4s';
+    const go = () => { this.ready = true; el.style.opacity = 1; };
+    try { this.r.compileAsync(this.scene, this.cam).then(go, go); } catch (e) { go(); }
     this.loop = this.loop.bind(this); requestAnimationFrame(this.loop);
   }
   poke() { this.wave = 1.6; this.jump = 0.5; this.onPoke?.(); }
@@ -158,7 +164,7 @@ export class Stage {
       this.sparkMat.opacity = 0.9;
     }
     this.anim.update(dt, { speed: 0, grounded: true, wave: this.wave, talking: this.wave > 0 ? 1 : 0 });
-    this.r.render(this.scene, this.cam);
+    if (this.ready) this.r.render(this.scene, this.cam);
   }
   dispose() {
     this.alive = false;

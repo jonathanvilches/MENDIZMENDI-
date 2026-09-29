@@ -1,4 +1,11 @@
-import { icon3D, has3D } from './icon3d.js';
+import { icon3D, has3D, icon3DReady } from './icon3d.js';
+import { enqueue } from '../util/store.js';
+const BLANK = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+// Los iconos 3D se dibujan en segundo plano: mientras, un hueco transparente que se rellena al terminar
+const waiting = new Map();
+function want3D(k) {
+  enqueue('i:' + k, () => { const u = icon3D(k); if (!u) return; for (const i of document.querySelectorAll(`img[data-i3d="${k}"]`)) { i.src = u; i.removeAttribute('data-i3d'); i.classList.remove('pend'); } const im = waiting.get(k); if (im) { im.src = u; waiting.delete(k); } });
+}
 // Iconos propios de MENDIMENDIZ (SVG dibujado a mano, sin emojis).
 // Estilo «lineal a color»: contorno casi negro de grosor uniforme, colores planos y una franja de
 // sombra en el borde inferior derecho de cada forma, con brillos blancos; 64×64.
@@ -222,9 +229,19 @@ export function withDefs(k) { return ICONS[k] || ICONS.star; }
 // (display:none) dejaría sin pintar a todos los que usan el mismo id.
 let UID = 0;
 const uniq = (svg) => { const u = (++UID).toString(36); return svg.replace(/(id="|url\(#)(cp\d+)/g, `$1$2_${u}`); };
+const flats = new Map();
+function flat(k) {
+  if (!flats.has(k)) { const b = ICONS[k] || ICONS[ALIAS[k]]; flats.set(k, b ? 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="128" height="128">${b}</svg>`) : ''); }
+  return flats.get(k);
+}
 export function iconSVG(name, size = 32, cls = '') {
   const k = has3D(name) ? name : ICONS[name] ? name : ICONS[ALIAS[name]] ? ALIAS[name] : 'star';
-  if (has3D(k)) { const u = icon3D(k); if (u) return `<img class="ico ico3d ${cls}" src="${u}" width="${size}" height="${size}" alt="" aria-hidden="true">`; }
+  if (has3D(k)) {
+    const u = icon3DReady(k); if (u) return `<img class="ico ico3d ${cls}" src="${u}" width="${size}" height="${size}" alt="" aria-hidden="true">`;
+    // mientras se dibuja el 3D se ve su versión plana (si la hay)
+    want3D(k); const f = flat(k);
+    return `<img class="ico ico3d ${f ? '' : 'pend'} ${cls}" data-i3d="${k}" src="${f || BLANK}" width="${size}" height="${size}" alt="" aria-hidden="true">`;
+  }
   (window.__svgIcons ||= new Set()).add(k);
   return `<svg class="ico ${cls}" viewBox="0 0 64 64" width="${size}" height="${size}" aria-hidden="true">${uniq(withDefs(k))}</svg>`;
 }
@@ -234,10 +251,11 @@ export function iconImage(name) {
   const k = ICONS[name] ? name : ALIAS[name] || 'star';
   if (!imgCache.has(k)) {
     const img = new Image();
-    if (has3D(k)) { const u = icon3D(k); if (u) { img.src = u; imgCache.set(k, img); return img; } }
+    if (has3D(k)) { const u = icon3DReady(k); if (u) { img.src = u; imgCache.set(k, img); return img; } waiting.set(k, img); want3D(k); }
     img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="128" height="128">${withDefs(ICONS[k] ? k : 'star')}</svg>`);
     imgCache.set(k, img);
   }
   return imgCache.get(k);
 }
-export function preloadIcons() { for (const k of Object.keys(ICONS)) iconImage(k); }
+// (los iconos se generan cuando se necesitan; ya no se precargan todos al arrancar)
+export function preloadIcons() { }

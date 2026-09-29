@@ -1,0 +1,18 @@
+import { chromium } from 'playwright-core';
+const [,, base, qs = ''] = process.argv;
+const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+await page.addInitScript(() => { window.__lt = []; new PerformanceObserver(l => { for (const e of l.getEntries()) window.__lt.push(Math.round(e.duration)); }).observe({ type: 'longtask', buffered: true }); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ name: 'Ane', avatar: 'leire' })); });
+const t0 = Date.now();
+await page.goto(base + qs, { timeout: 300000 });
+await page.waitForFunction(() => window.__ready, null, { timeout: 300000 });
+const tReady = Date.now() - t0;
+await page.waitForTimeout(8000);
+const r = await page.evaluate(() => ({ prof: window.__prof, n: window.__profN, lt: window.__lt, nav: Math.round(performance.getEntriesByType('navigation')[0].domContentLoadedEventEnd) }));
+console.log('ready ms', tReady, JSON.stringify(r));
+const t1 = Date.now();
+await page.reload({ timeout: 300000 });
+await page.waitForFunction(() => window.__ready, null, { timeout: 300000 });
+await page.waitForTimeout(3000);
+console.log('warm ready ms', Date.now() - t1, JSON.stringify(await page.evaluate(() => window.__lt)));
+await browser.close();

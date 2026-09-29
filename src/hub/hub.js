@@ -6,7 +6,7 @@ import FOLKLORE from '../data/folklore.json';
 import SETTLEMENTS from '../data/settlements.json';
 import { LEVELS, levelById } from '../data/levels.js';
 import { iconSVG, speciesIcon } from '../ui/icons.js';
-import { avatarPortrait, portrait } from '../ui/portraits.js';
+import { avatarPortrait, portrait, portraitImg, avatarPortraitImg } from '../ui/portraits.js';
 import { stampImg, landImg } from '../assets.js';
 import { Stage } from './stage.js';
 import { getLang, setLang } from '../i18n.js';
@@ -107,7 +107,7 @@ export class Hub {
     const secScreen = this.nav.find(n => n[0] === screen)?.[3];
     this.root.querySelectorAll('#hNav button').forEach(b => b.classList.toggle('on', !!(b.dataset.s === screen || (screen === 'comarca' && b.dataset.s === 'map') || (b.dataset.s === 'more' && secScreen))));
     const bgc = screen === 'comarca' ? arg : (levelById(profile().last) || LEVELS[0]).comarca;
-    if (this.bgc !== bgc) { this.bgc = bgc; $('.bgimg', this.root).style.backgroundImage = `url(${landImg(bgc)})`; }
+    if (this.bgc !== bgc) { this.bgc = bgc; $('.bgimg', this.root).style.backgroundImage = `url(${landImg(bgc, 1280, 720, true)})`; }
     this.root.dataset.screen = screen;
     const m = $('#hMain', this.root);
     m.innerHTML = this['s_' + screen](arg);
@@ -154,12 +154,13 @@ export class Hub {
     const done = p.towns[last.id]?.done || {};
     const ms = (last.missions || []).map((m, i) => `<span class="mi ${done[i] ? 'ok' : ''}" title="${esc(m.title || m.name || TYPE_NAME[m.type] || '')}">${I(TYPE_ICON[m.type] || 'star', 40)}${done[i] ? `<i class="tick">${I('check', 16)}</i>` : ''}</span>`).join('');
     this.after = () => {
-      this.stage = new Stage($('#heroStage', this.root), p.avatar, { mode: 'scene', comarca: last.comarca });
+      // el escenario 3D se monta después de pintar la pantalla, para que aparezca al instante
+      const host = $('#heroStage', this.root);
+      requestAnimationFrame(() => setTimeout(() => { if (!host.isConnected) return; this.stage = new Stage(host, p.avatar, { mode: 'scene', comarca: last.comarca }); this.stage.onPoke = () => { say(k + 1); this.sound?.ui('click'); }; }, 50));
       let k = 0; const bub = $('#hBubble p', this.root);
       const say = (i) => { k = (i + lines.length) % lines.length; bub.classList.remove('in'); void bub.offsetWidth; bub.textContent = lines[k]; bub.classList.add('in'); $('#hBubble .dots', this.root).innerHTML = lines.map((_, j) => `<i class="${j === k ? 'on' : ''}"></i>`).join(''); };
       say(0);
       clearInterval(this.bubT); this.bubT = setInterval(() => { if (!bub.isConnected) return clearInterval(this.bubT); say(k + 1); }, 6500);
-      this.stage.onPoke = () => { say(k + 1); this.sound?.ui('click'); };
       $('#hBubble', this.root).onclick = () => { say(k + 1); clearInterval(this.bubT); };
       this.drawMiniMap($('#homeMap', this.root));
       this.lazyLand();
@@ -197,17 +198,17 @@ export class Hub {
     <h2 class="sec">${I('shield', 34)} Capítulos: las comarcas</h2>
     <section class="comarcas rail">${COMARCAS.map(c => this.comarcaCard(c)).join('')}</section>
     <h2 class="sec">${I('mask', 34)} Leyendas y carnaval</h2>
-    <section class="folk rail">${FOLKLORE.map(f => `<div class="folkcard"><img src="${portrait(FOLK_LOOK[f.id] || {}, 'bust', true)}" alt=""><div><small>${esc(f.origin)}</small><b>${esc(f.name)}</b><p>${esc(f.fact)}</p></div></div>`).join('')}</section>`;
+    <section class="folk rail">${FOLKLORE.map(f => `<div class="folkcard">${portraitImg(FOLK_LOOK[f.id] || {}, 'bust', true)}<div><small>${esc(f.origin)}</small><b>${esc(f.name)}</b><p>${esc(f.fact)}</p></div></div>`).join('')}</section>`;
   }
   // fotos 3D de las comarcas: se generan de una en una sin bloquear la pantalla
   lazyLand() {
     const els = [...this.root.querySelectorAll('[data-land]')];
     const step = () => {
       const e = els.shift(); if (!e) return;
-      if (e.isConnected) { const [id, w, h] = e.dataset.land.split(':'); const u = dioramaShot(id, +w || 640, +h || 360); if (u) e.style.backgroundImage = `url(${u})`; e.classList.add('ready'); }
-      setTimeout(step, 30);
+      if (e.isConnected) { const [id, w, h] = e.dataset.land.split(':'); dioramaShot(id, +w || 640, +h || 360, { onReady: (u) => { if (e.isConnected) { e.style.backgroundImage = `url(${u})`; e.classList.add('ready'); } } }); }
+      step();
     };
-    setTimeout(step, 60);
+    step();
   }
   suggestions() {
     const p = profile();
@@ -357,7 +358,7 @@ export class Hub {
       <div class="stats">${a.stats.map((v, i) => `<div class="stat"><span>${STAT_LABELS[i]}</span><span class="sbar"><i style="--v:${v}%"></i></span><b>${v}</b></div>`).join('')}</div>
       <div class="abil"><span class="aic">${I('sparkle', 26)}</span><span><small>Habilidad especial</small>${esc(a.ability)}</span></div>`;
   }
-  castStrip(cur) { return `<div class="cstrip">${AVATARS.map(a => `<button data-av="${a.id}" class="${cur === a.id ? 'on' : ''}" style="--c:${a.color}" aria-label="${esc(a.name)}"><img src="${avatarPortrait(a.id)}" alt=""><span>${esc(a.name)}</span></button>`).join('')}</div>`; }
+  castStrip(cur) { return `<div class="cstrip">${AVATARS.map(a => `<button data-av="${a.id}" class="${cur === a.id ? 'on' : ''}" style="--c:${a.color}" aria-label="${esc(a.name)}">${avatarPortraitImg(a.id)}<span>${esc(a.name)}</span></button>`).join('')}</div>`; }
   // selector de personaje estilo videojuego (pantalla Personajes y primera vez)
   selector(cur, { onb = false, extra = '' } = {}) {
     const i = AVATARS.findIndex(a => a.id === cur.id);

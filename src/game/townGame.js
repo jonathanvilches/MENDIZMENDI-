@@ -558,28 +558,20 @@ export class TownGame {
     if (n >= this.herd.length) { this.herd = null; M.step = 2; this.sound.magic(); this.ui.toast(`¡Todos en el redil! Vuelve con ${M.host.name}`, 'check', 3000); }
   }
 
-  // Presentación del pueblo al llegar: vuelo de cámara y lo que te espera
+  // Presentación breve del pueblo al llegar: un solo vuelo de cámara hasta el jugador con una frase
   async introFly() {
-    const d = this.def, town = d.name.split(' /')[0], P = PLACES.plaza, gy = terrainHeight(P.x, P.z);
-    const ch = TOWN.church?.door || PLACES.church, pl = this.player.pos;
-    const names = this.missions.filter(M => M.type !== 'visit' && M.type !== 'quiz').map(M => M.title);
-    const shots = [
-      { pos: [P.x + 70, gy + 55, P.z + 70], look: [P.x, gy, P.z], text: `${town}. ${d.intro || ''}` },
-      { pos: [ch.x + 22, terrainHeight(ch.x, ch.z) + 12, ch.z + 18], look: [ch.x, terrainHeight(ch.x, ch.z) + 6, ch.z], text: names.length ? `Aquí te esperan ${this.missions.length} misiones: ${names.slice(0, 3).join(', ')}${names.length > 3 ? '…' : '.'}` : `Aquí te esperan ${this.missions.length} misiones.` },
-      { pos: [pl.x + 4, pl.y + 3, pl.z + 6], look: [pl.x, pl.y + 1.2, pl.z], text: 'Busca a la gente con la exclamación amarilla. ¡El sello del pueblo te espera!' },
-    ];
+    const d = this.def, town = d.name.split(' /')[0], P = PLACES.plaza, gy = terrainHeight(P.x, P.z), pl = this.player.pos;
+    const first = (d.intro || '').split(/(?<=[.!?])\s/)[0];
     this.mode = 'cine'; this.player.frozen = true; this.ui.hudVisible(false);
     let skip = false; const onSkip = () => { skip = true; };
     setTimeout(() => { addEventListener('keydown', onSkip); addEventListener('pointerdown', onSkip); }, 300);
-    const cin = { pos: new THREE.Vector3(), look: new THREE.Vector3(), t: 0 };
-    for (const [i, s] of shots.entries()) {
-      if (skip) break;
-      cin.pos.set(...s.pos); cin.look.set(...s.look);
-      if (i === 0) { this.camera.position.set(s.pos[0] + 40, s.pos[1] + 30, s.pos[2] + 40); cin.lookCur = cin.look.clone(); }
-      this.follow.cinematic = cin;
-      this.ui.setCinematic(true, s.text);
-      for (let t = 0; t < 3800 && !skip; t += 100) await new Promise(r => setTimeout(r, 100));
-    }
+    const cin = { pos: new THREE.Vector3(P.x + 60, gy + 45, P.z + 60), look: new THREE.Vector3(P.x, gy, P.z), t: 0 };
+    this.camera.position.set(P.x + 90, gy + 70, P.z + 90); cin.lookCur = cin.look.clone();
+    this.follow.cinematic = cin;
+    this.ui.setCinematic(true, first ? `${town}. ${first}` : town);
+    for (let t = 0; t < 2600 && !skip; t += 100) await new Promise(r => setTimeout(r, 100));
+    cin.pos.set(pl.x + 4, pl.y + 3, pl.z + 6); cin.look.set(pl.x, pl.y + 1.2, pl.z);
+    for (let t = 0; t < 1800 && !skip; t += 100) await new Promise(r => setTimeout(r, 100));
     removeEventListener('keydown', onSkip); removeEventListener('pointerdown', onSkip);
     this.follow.cinematic = null; this.follow.snap(this.player);
     this.ui.setCinematic(false); this.ui.hudVisible(true);

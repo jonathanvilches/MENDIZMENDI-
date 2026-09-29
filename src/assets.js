@@ -2,4 +2,4 @@
 import { stampURL } from './ui/art.js';
 import { dioramaShot } from './hub/diorama.js';
 export const stampImg = (comarca, town, emblem) => stampURL(comarca, town, emblem);
-export const landImg = (comarca, w = 1280, h = 720) => dioramaShot(comarca, w, h);
+export const landImg = (comarca, w = 1280, h = 720, front = false) => dioramaShot(comarca, w, h, { front });
