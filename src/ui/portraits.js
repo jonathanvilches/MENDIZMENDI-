@@ -31,9 +31,9 @@ export function portrait(look, mode = 'bust', isMini = false) {
     const box = new THREE.Box3().setFromObject(fig);
     if (mode === 'bust') {
       const hp = new THREE.Vector3(); J.head.getWorldPosition(hp);
-      const big = fig.userData.look?.bigHead ? 1.8 : 1, hh = 0.386 * big;
-      const cy = hp.y + hh * 0.42, dist = 1.55 * big + (fig.userData.look?.height > 2 ? 0.6 : 0);
-      cam.position.set(0.3 * big, cy + 0.1, dist); cam.lookAt(0, cy - 0.04, 0);
+      const R = fig.userData.headR || 0.25, cy = hp.y + (fig.userData.headCy || R) - R * 0.15;
+      const dist = R * 7.2 + (fig.userData.look?.hat ? R * 1.2 : 0);
+      cam.position.set(R * 1.3, cy + R * 0.25, dist); cam.lookAt(0, cy + (fig.userData.look?.hat ? R * 0.35 : 0), 0);
     } else {
       const midY = (box.max.y + box.min.y) / 2;
       cam.position.set(0.9, midY + 0.3, 4.6 * Math.max(1, (box.max.y - box.min.y) / 1.9)); cam.lookAt(0, midY, 0);
