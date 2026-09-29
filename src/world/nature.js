@@ -426,14 +426,14 @@ vec4 maskAt(vec2 w){ return texture2D(uMask, (w + ${HALF.toFixed(1)}) / ${(HALF 
 class GrassField {
   constructor(scene, quality) {
     dataTextures();
-    const count = quality === 'low' ? 16000 : quality === 'mid' ? 32000 : 60000;
+    const count = quality === 'low' ? 22000 : quality === 'mid' ? 38000 : 64000;
     const R = quality === 'low' ? 20 : quality === 'mid' ? 26 : 32;
     // hoja: tira con 3 tramos
     const blade = new THREE.BufferGeometry();
     const pos = [], uv = [];
     const segs = 3;
     for (let i = 0; i <= segs; i++) {
-      const t = i / segs, w = 0.055 * (1 - t * 0.85);
+      const t = i / segs, w = 0.062 * (1 - t * 0.85);
       pos.push(-w, t, 0, w, t, 0); uv.push(0, t, 1, t);
     }
     const idx = [];
@@ -482,10 +482,16 @@ vec2 push = pd < 1.3 ? normalize(away + 1e-4) * (1.3 - pd) * 0.7 : vec2(0.0);
 transformed.x += (bend + push.x) * hgt; transformed.z += (bend * 0.6 + push.y) * hgt;
 transformed.y -= length(push) * position.y * hgt * 0.4;
 transformed += vec3(wp.x, hAt(wp) - 0.02, wp.y);
-vec3 base = mix(vec3(0.22, 0.40, 0.12), vec3(0.30, 0.47, 0.14), aRnd.w);
-vec3 tip = mix(vec3(0.50, 0.68, 0.24), vec3(0.64, 0.70, 0.30), aRnd.z * aRnd.w);
-tip = mix(tip, vec3(0.42, 0.6, 0.22), mk.g);
-vGrassCol = mix(base, tip, position.y) * uTint;
+// manchas de color: zonas de puntas secas y zonas de verde intenso; base oscura para dar profundidad
+float pn = sin(wp.x * 0.21 + sin(wp.y * 0.17) * 2.0) * sin(wp.y * 0.19 + sin(wp.x * 0.13) * 2.0);
+// colores en espacio lineal (el renderizador los pasa a sRGB)
+vec3 base = mix(vec3(0.022, 0.084, 0.007), vec3(0.047, 0.133, 0.01), aRnd.w);
+vec3 tip = mix(vec3(0.17, 0.42, 0.04), vec3(0.26, 0.48, 0.055), aRnd.z * aRnd.w);
+tip = mix(tip, vec3(0.5, 0.45, 0.12), smoothstep(0.3, 0.75, pn) * 0.45 * step(0.55, aRnd.w));
+tip = mix(tip, vec3(0.073, 0.26, 0.022), smoothstep(-0.3, -0.7, pn) * 0.6);
+tip = mix(tip, vec3(0.147, 0.32, 0.04), mk.g);
+tip *= 0.85 + 0.3 * fract(aRnd.x * 3.7);
+vGrassCol = mix(base, tip, pow(position.y, 0.75)) * uTint;
 `);
       sh.fragmentShader = sh.fragmentShader
         .replace('#include <common>', '#include <common>\nvarying vec3 vGrassCol;')

@@ -7,13 +7,15 @@ import { clamp, damp, dampAngle, lerp } from './util/math.js';
 export class FollowCamera {
   constructor(camera) {
     this.cam = camera;
-    this.yaw = Math.PI; this.pitch = 0.32; this.dist = 7.5;
-    this.targetDist = 7.5;
+    // más cerca en pantallas pequeñas: el personaje se ve mejor en el móvil
+    const d0 = innerWidth < innerHeight ? 5.6 : innerHeight < 560 ? 6 : 6.6;
+    this.yaw = Math.PI; this.pitch = 0.3; this.dist = d0;
+    this.targetDist = d0;
     this.focus = new THREE.Vector3();
     this.idle = 0;
     this.shake = 0;
     this.cinematic = null; // {pos, look, t}
-    this.curDist = 7.5;
+    this.curDist = d0;
   }
   snap(player) {
     this.yaw = player.heading + Math.PI;

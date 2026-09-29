@@ -1,7 +1,7 @@
 // Centro de mando: inicio, mapa de Navarra, comarcas, pueblos, cimas, naturaleza, personajes, insignias, pasaporte y perfil.
 import COMARCAS from '../data/comarcas.json';
 import MOUNTAINS from '../data/mountains.json';
-import { CAST as AVATARS, STAT_LABELS } from '../data/cast.js';
+import { CAST as AVATARS, STAT_LABELS, castById } from '../data/cast.js';
 import FOLKLORE from '../data/folklore.json';
 import SETTLEMENTS from '../data/settlements.json';
 import { LEVELS, levelById } from '../data/levels.js';
@@ -51,14 +51,15 @@ function spark(profile, w = 160, h = 44) {
 export class Hub {
   constructor({ sound, onPlay }) {
     this.sound = sound; this.onPlay = onPlay;
-    this.root = el(`<div id="hub"><div class="hub-bg">${Array.from({ length: 14 }, (_, i) => `<i class="mote" style="left:${(i * 37) % 100}%;animation-delay:${-i * 1.7}s;animation-duration:${14 + (i % 5) * 3}s"></i>`).join('')}
-      <svg class="hub-mts" viewBox="0 0 1200 220" preserveAspectRatio="none"><path d="M0 220V150l90-60 70 40 110-90 80 70 90-50 120 80 100-70 90 50 120-100 110 90 90-40 130 70v90z" fill="#2c2148"/><path d="M0 220v-40l120-40 100 30 140-50 120 50 130-30 120 40 150-60 140 50 180-20v70z" fill="#231a3a"/></svg></div>
+    this.root = el(`<div id="hub"><div class="hub-bg"><div class="bgimg"></div>${Array.from({ length: 12 }, (_, i) => `<i class="mote" style="left:${(i * 37) % 100}%;animation-delay:${-i * 1.7}s;animation-duration:${16 + (i % 5) * 3}s"></i>`).join('')}</div>
       <header class="hub-top"><div class="brand logo">MENDIMENDIZ</div><div class="chip" id="hChip"></div></header>
       <nav class="hub-nav" id="hNav"></nav><main class="hub-main" id="hMain"></main></div>`);
     document.body.appendChild(this.root);
-    this.nav = [['home', 'Inicio', 'home'], ['map', 'Mapa', 'map'], ['towns', 'Pueblos', 'church'], ['peaks', 'Cimas', 'peak'], ['nature', 'Naturaleza', 'leaf'], ['avatars', 'Personajes', 'person'], ['badges', 'Insignias', 'badge'], ['passport', 'Pasaporte', 'stamp'], ['profile', 'Perfil', 'gear']];
-    $('#hNav', this.root).innerHTML = this.nav.map(([id, n, ic]) => `<button data-s="${id}">${I(ic, 26)}<span>${n}</span></button>`).join('');
-    $('#hNav', this.root).addEventListener('click', e => { const b = e.target.closest('button'); if (b) this.go(b.dataset.s); });
+    // secciones: las principales siempre a la vista; las demás, en «Más» cuando falta sitio (móvil)
+    this.nav = [['home', 'Inicio', 'home'], ['map', 'Mapa', 'map'], ['towns', 'Pueblos', 'church'], ['avatars', 'Personajes', 'person'], ['peaks', 'Cimas', 'peak', 1], ['nature', 'Naturaleza', 'leaf', 1], ['badges', 'Insignias', 'badge', 1], ['passport', 'Pasaporte', 'stamp', 1], ['profile', 'Perfil', 'gear', 1]];
+    this.MORE = { peaks: 'Montañas de Navarra con su perfil', nature: 'Fauna, árboles, plantas y flores', badges: 'Tus logros', passport: 'Los sellos de tus pueblos', profile: 'Nombre, nivel y ajustes' };
+    $('#hNav', this.root).innerHTML = this.nav.map(([id, n, ic, sec]) => `<button data-s="${id}" class="${sec ? 'sec' : ''}">${I(ic, 26)}<span>${n}</span></button>`).join('') + `<button data-s="more" class="more-btn"><svg viewBox="0 0 24 24" width="26" height="26"><circle cx="5" cy="12" r="2.4" fill="#f7f0e6"/><circle cx="12" cy="12" r="2.4" fill="#f7f0e6"/><circle cx="19" cy="12" r="2.4" fill="#f7f0e6"/></svg><span>Más</span></button>`;
+    $('#hNav', this.root).addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.s === 'more') return this.more(); this.go(b.dataset.s); });
     this.root.addEventListener('click', e => {
       const t = e.target.closest('[data-go],[data-town],[data-comarca],[data-play]'); if (!t) return;
       if (t.dataset.play) return this.play(t.dataset.play);
@@ -74,16 +75,27 @@ export class Hub {
     this.screen = screen; this.arg = arg;
     if (!silent) this.sound?.ui('click');
     this.sheet?.remove(); this.sheet = null;
-    this.root.querySelectorAll('#hNav button').forEach(b => b.classList.toggle('on', b.dataset.s === screen || (screen === 'comarca' && b.dataset.s === 'map')));
+    const secScreen = this.nav.find(n => n[0] === screen)?.[3];
+    this.root.querySelectorAll('#hNav button').forEach(b => b.classList.toggle('on', !!(b.dataset.s === screen || (screen === 'comarca' && b.dataset.s === 'map') || (b.dataset.s === 'more' && secScreen))));
+    const bgc = screen === 'comarca' ? arg : (levelById(profile().last) || LEVELS[0]).comarca;
+    if (this.bgc !== bgc) { this.bgc = bgc; $('.bgimg', this.root).style.backgroundImage = `url(${landImg(bgc)})`; }
+    this.root.dataset.screen = screen;
     const m = $('#hMain', this.root);
     m.innerHTML = this['s_' + screen](arg);
     m.scrollTop = 0;
     this.after?.(); this.after = null;
     this.renderChip();
   }
+  more() {
+    this.sound?.ui('open');
+    const s = el(`<div class="sheet more"><div class="more-in"><div class="grab"></div><small class="kicker">Más secciones</small>
+      ${this.nav.filter(n => n[3]).map(([id, n, ic]) => `<button data-go="${id}" class="${this.screen === id ? 'on' : ''}">${I(ic, 34)}<div><b>${n}</b><small>${this.MORE[id]}</small></div>${I('play', 20)}</button>`).join('')}</div></div>`);
+    this.sheet?.remove(); this.sheet = s; this.root.appendChild(s);
+    s.addEventListener('click', e => { if (e.target === s) { s.remove(); this.sheet = null; } });
+  }
   renderChip() {
     const p = profile(), L = levelOf(p.xp);
-    $('#hChip', this.root).innerHTML = `<img src="${avatarPortrait(p.avatar)}" alt=""><div><b>${esc(p.name || 'Aventurero')}</b><small>Nivel ${L.lv} · ${rankOf(L.lv)}</small><div class="xp"><i style="width:${L.cur / L.need * 100}%"></i></div></div><span class="stamps">${I('stamp', 22)}${stampCount(p)}</span>`;
+    $('#hChip', this.root).innerHTML = `<img src="${avatarPortrait(p.avatar)}" alt=""><div class="cinfo"><b>${esc(p.name || 'Aventurero')}</b><small>Nv ${L.lv} · ${rankOf(L.lv)}</small><div class="xp"><i style="width:${L.cur / L.need * 100}%"></i></div></div><span class="stamps">${I('stamp', 22)}${stampCount(p)}</span>`;
     $('#hChip', this.root).onclick = () => this.go('profile');
   }
 
@@ -95,31 +107,31 @@ export class Hub {
     let doneM = 0, totM = 0; for (const l of LEVELS) { const t = townProgress(p, l); doneM += t.done; totM += t.total; }
     const av = AVATARS.find(a => a.id === p.avatar) || AVATARS[0];
     this.after = () => { this.drawMiniMap($('#homeMap', this.root)); this.stage = new Stage($('#heroStage', this.root), p.avatar); };
+    const next = this.suggestions();
     return `
     <section class="hero" style="--bg:url(${landImg(last.comarca)})">
       <div class="hero-txt"><small class="kicker">${I('pin', 18)} ${esc(comarca(last.comarca)?.name || '')}</small>
         <h1>Cada pueblo,<br>una aventura.</h1>
-        <p>Recorre Navarra pueblo a pueblo: ayuda a su gente, aprende sus oficios, sus danzas y sus leyendas, y llena tu pasaporte de sellos.</p>
-        <div class="row"><button class="btn primary big" data-play="${last.id}">${I('play', 26)} ${lp.done ? 'Continuar en' : 'Jugar en'} ${esc(last.name)}</button><button class="btn" data-go="map">${I('map', 22)} Elegir en el mapa</button></div>
-        ${lp.total ? `<div class="mini-prog"><div class="bar"><i style="width:${lp.done / lp.total * 100}%"></i></div><span>${lp.done}/${lp.total} misiones en ${esc(last.name)}</span></div>` : ''}
-      </div>
-      <div class="hero-fig"><div id="heroStage" class="stage-host" title="¡Tócame!"></div><span class="tag">${esc(av.name)}</span></div>
+        <p>Recorre Navarra pueblo a pueblo: ayuda a su gente, aprende sus oficios, sus danzas y sus leyendas, y llena tu pasaporte de sellos.</p></div>
+      <div class="hero-fig"><div id="heroStage" class="stage-host" title="¡Tócame!"></div><span class="tag"><b>${esc(av.name)}</b> ${esc(av.role)}</span></div>
+      <div class="hero-cta"><button class="btn primary big" data-play="${last.id}">${I('play', 26)} <span>${lp.done ? 'Continuar en' : 'Jugar en'} <b>${esc(last.name.split(' /')[0])}</b></span></button><button class="btn ghost" data-go="map">${I('map', 22)} Elegir en el mapa</button>
+        ${lp.total ? `<div class="mini-prog"><div class="bar"><i style="width:${lp.done / lp.total * 100}%"></i></div><span>${lp.done}/${lp.total} misiones</span></div>` : ''}</div>
     </section>
     <section class="tiles">
-      <div class="tile">${I('stamp', 40)}<b>${N.stamps}<small>/${N.towns}</small></b><span>Sellos de pueblo</span></div>
-      <div class="tile">${I('shield', 40)}<b>${N.comarcas}<small>/${N.comarcasTotal}</small></b><span>Comarcas completas</span></div>
-      <div class="tile">${I('check', 40)}<b>${doneM}<small>/${totM}</small></b><span>Misiones</span></div>
-      <div class="tile">${I('badge', 40)}<b>${p.badges.length}<small>/${BADGES.length}</small></b><span>Insignias</span></div>
-      <div class="tile">${I('star', 40)}<b>${L.lv}</b><span>Nivel · ${p.xp} XP</span></div>
+      <div class="tile">${I('stamp', 34)}<b>${N.stamps}<small>/${N.towns}</small></b><span>Sellos</span></div>
+      <div class="tile">${I('shield', 34)}<b>${N.comarcas}<small>/${N.comarcasTotal}</small></b><span>Comarcas</span></div>
+      <div class="tile">${I('check', 34)}<b>${doneM}<small>/${totM}</small></b><span>Misiones</span></div>
+      <div class="tile">${I('badge', 34)}<b>${p.badges.length}<small>/${BADGES.length}</small></b><span>Insignias</span></div>
+      <div class="tile">${I('star', 34)}<b>${L.lv}</b><span>Nivel · ${p.xp} XP</span></div>
     </section>
     <section class="two">
-      <div class="panel map-panel" data-go="map"><h2>${I('map', 30)} Mapa de Navarra</h2><div id="homeMap" class="mini-map"></div><p class="hint">Completa pueblos para iluminar sus comarcas.</p></div>
-      <div class="panel next-panel"><h2>${I('exclaim', 30)} Te esperan</h2>${this.suggestions()}</div>
+      <div class="panel next-panel"><h2 class="sec">${I('exclaim', 26)} Te esperan</h2>${next}</div>
+      <div class="panel map-panel" data-go="map"><h2 class="sec">${I('map', 26)} Mapa de Navarra</h2><div id="homeMap" class="mini-map"></div><p class="hint">Completa pueblos para iluminar sus comarcas.</p></div>
     </section>
-    <h2 class="sec">${I('shield', 30)} Comarcas de Navarra</h2>
-    <section class="comarcas">${COMARCAS.map(c => this.comarcaCard(c)).join('')}</section>
-    <h2 class="sec">${I('mask', 30)} Leyendas y carnaval</h2>
-    <section class="folk">${FOLKLORE.map(f => `<div class="folkcard"><img src="${portrait(FOLK_LOOK[f.id] || {}, 'bust', true)}" alt=""><div><small>${esc(f.origin)}</small><b>${esc(f.name)}</b><p>${esc(f.fact)}</p></div></div>`).join('')}</section>`;
+    <h2 class="sec">${I('shield', 26)} Comarcas de Navarra</h2>
+    <section class="comarcas rail">${COMARCAS.map(c => this.comarcaCard(c)).join('')}</section>
+    <h2 class="sec">${I('mask', 26)} Leyendas y carnaval</h2>
+    <section class="folk rail">${FOLKLORE.map(f => `<div class="folkcard"><img src="${portrait(FOLK_LOOK[f.id] || {}, 'bust', true)}" alt=""><div><small>${esc(f.origin)}</small><b>${esc(f.name)}</b><p>${esc(f.fact)}</p></div></div>`).join('')}</section>`;
   }
   suggestions() {
     const p = profile();
@@ -153,10 +165,12 @@ export class Hub {
 
   // ---------- Mapa ----------
   s_map() {
-    return `<h1 class="title">${I('map', 40)} Mapa de Navarra</h1><p class="lead">Toca una comarca para ver sus pueblos, o un pueblo para jugar. Las comarcas se iluminan a medida que completas sus pueblos.</p>
+    const p = profile();
+    return `<h1 class="title">${I('map', 36)} Mapa de Navarra</h1><p class="lead">Toca una comarca para ver sus pueblos. Las comarcas se iluminan a medida que completas sus pueblos.</p>
       <div class="map-wrap"><div class="bigmap">${this.navarraSVG({ pins: true })}</div>
-      <aside class="legend2"><div><i class="pin0"></i> Pueblo por descubrir</div><div><i class="pin1"></i> Misiones empezadas</div><div><i class="pin2"></i> Sello conseguido</div>
-      <div class="navstats">${ring(navarraProgress(profile()).stamps / LEVELS.length, 96, '#ffc85a')}<span>de Navarra sellada</span></div></aside></div>`;
+      <aside class="legend2"><div class="navstats">${ring(navarraProgress(p).stamps / LEVELS.length, 84, '#f4c152')}<span>de Navarra sellada</span></div>
+        <div class="lg"><span><i class="pin0"></i> Por descubrir</span><span><i class="pin1"></i> Empezado</span><span><i class="pin2"></i> Sellado</span></div>
+        <div class="clist">${COMARCAS.filter(c => comarcaTowns(c.id).length).map(c => { const pr = comarcaProgress(p, c.id); return `<button data-comarca="${c.id}" style="--c:${c.color}"><i></i><b>${esc(c.name)}</b><small>${pr.stamps}/${pr.towns}</small></button>`; }).join('')}</div></aside></div>`;
   }
 
   // ---------- Comarca ----------
@@ -257,20 +271,28 @@ export class Hub {
       <section class="species">${data[tab].map(s => `<div class="scard ${seen.has(s.name) ? 'seen' : ''}">${I(speciesIcon(s.name) || fb[tab], 64)}<b>${esc(s.name)}</b>${s.desc ? `<p>${esc(s.desc)}</p>` : ''}<div class="where">${s.where.map(c => `<i style="background:${c.color}" title="${esc(c.name)}"></i>`).join('')}</div>${seen.has(s.name) ? `<span class="seenb">${I('binoculars', 18)} Observado</span>` : ''}</div>`).join('')}</section>`;
   }
 
-  // ---------- Personajes ----------
+  // ---------- Personajes: selección con el modelo 3D en grande ----------
+  castInfo(a) {
+    return `<small class="kicker">${I('pin', 16)} ${esc(a.from)}</small><b class="cname">${esc(a.name)}</b><span class="crole">${esc(a.role)}</span>
+      <em class="tl">«${esc(a.tagline)}»</em><p>${esc(a.desc)}</p>${radar(a.stats, a.color)}
+      <span class="abil">${I('sparkle', 20)} ${esc(a.ability)}</span>`;
+  }
+  castStrip(cur) { return `<div class="cstrip">${AVATARS.map(a => `<button data-av="${a.id}" class="${cur === a.id ? 'on' : ''}" style="--c:${a.color}"><img src="${avatarPortrait(a.id)}" alt=""><span>${esc(a.name)}</span></button>`).join('')}</div>`; }
   s_avatars() {
-    const p = profile();
-    const cur = AVATARS.find(a => a.id === p.avatar) || AVATARS[0];
+    const p = profile(), cur = castById(p.avatar);
     this.after = () => {
       this.stage = new Stage($('#avStage', this.root), p.avatar);
-      this.root.querySelectorAll('[data-av]').forEach(b => b.onclick = (e) => { e.stopPropagation(); p.avatar = b.dataset.av; saveProfile(); this.sound?.ui('coin'); this.renderChip(); const a = AVATARS.find(x => x.id === p.avatar); this.stage.setAvatar(p.avatar); $('#avName', this.root).textContent = a.name; $('#avRole', this.root).textContent = a.role; $('#avAbil', this.root).textContent = a.ability; this.root.querySelectorAll('.acard').forEach(c => c.classList.toggle('on', c.dataset.id === p.avatar)); this.root.querySelectorAll('[data-av]').forEach(x => { const on = x.dataset.av === p.avatar; x.classList.toggle('primary', on); x.innerHTML = on ? I('check', 20) + ' Elegido' : 'Elegir'; }); $('.hub-main', this.root).scrollTo({ top: 0, behavior: 'smooth' }); });
+      this.root.querySelectorAll('[data-av]').forEach(b => b.onclick = (e) => {
+        e.stopPropagation(); const a = castById(b.dataset.av); p.avatar = a.id; saveProfile(); this.sound?.ui('coin'); this.renderChip();
+        this.stage.setAvatar(a.id); $('#csInfo', this.root).innerHTML = this.castInfo(a); $('.csel', this.root).style.setProperty('--c', a.color);
+        $('#csGo', this.root).innerHTML = `${I('play', 24)} Jugar con ${esc(a.name)}`;
+        this.root.querySelectorAll('[data-av]').forEach(x => x.classList.toggle('on', x === b));
+      });
     };
-    return `<h1 class="title">${I('person', 40)} Personajes</h1><p class="lead">Elige con quién recorrer Navarra. Cada personaje viene de una tradición navarra. Toca al personaje para que te salude.</p>
-      <section class="vitrina"><div id="avStage" class="stage-host big"></div><div class="vinfo"><small id="avRole">${esc(cur.role)}</small><b id="avName">${esc(cur.name)}</b><span class="abil">${I('sparkle', 22)} <span id="avAbil">${esc(cur.ability)}</span></span><button class="btn primary big" data-go="home">${I('play', 26)} ¡A jugar!</button></div></section>
-      <section class="avatars">${AVATARS.map(a => `<div class="acard ${p.avatar === a.id ? 'on' : ''}" data-id="${a.id}">
-        <div class="aimgs" style="--c:${a.color}"><img class="fig" src="${avatarPortrait(a.id, 'full')}" alt=""><span class="from">${I('pin', 16)} ${esc(a.from)}</span></div>
-        <div class="abody"><small>${esc(a.role)}</small><b>${esc(a.name)}</b><em class="tl">«${esc(a.tagline)}»</em><p>${esc(a.desc)}</p>${radar(a.stats, a.color)}<span class="abil">${I('sparkle', 20)} ${esc(a.ability)}</span>
-        <button class="btn ${p.avatar === a.id ? 'primary' : ''}" data-av="${a.id}">${p.avatar === a.id ? I('check', 20) + ' Elegido' : 'Elegir'}</button></div></div>`).join('')}</section>`;
+    return `<h1 class="title">${I('person', 36)} Personajes</h1><p class="lead">Elige con quién recorrer Navarra. Cada uno viene de un rincón distinto y tiene su propia habilidad. Toca al personaje para que te salude.</p>
+      <section class="csel" style="--c:${cur.color}"><div class="csel-stage"><div id="avStage" class="stage-host big"></div></div>
+        <div class="csel-side"><div class="csel-info" id="csInfo">${this.castInfo(cur)}</div><button class="btn primary big" id="csGo" data-go="home">${I('play', 24)} Jugar con ${esc(cur.name)}</button></div></section>
+      ${this.castStrip(p.avatar)}`;
   }
 
   // ---------- Insignias ----------
@@ -321,18 +343,21 @@ export class Hub {
   onboarding() {
     const p = profile();
     let pick = p.avatar || 'leire';
-    const o = el(`<div class="onb"><div class="onb-in">
-      <div class="logo big">MENDIMENDIZ</div><p class="tag">Navarra, pueblo a pueblo</p>
-      <label>¿Cómo te llamas?<input id="oName" maxlength="14" autocomplete="off" placeholder="Tu nombre"></label>
-      <p class="lbl">Elige tu personaje</p>
-      <div class="opick">${AVATARS.map(a => `<button data-a="${a.id}" class="${a.id === pick ? 'on' : ''}"><img src="${avatarPortrait(a.id)}" alt=""><span>${esc(a.name)}</span></button>`).join('')}</div>
-      <button class="btn primary big" id="oGo">${I('play', 26)} ¡Empezar la aventura!</button></div></div>`);
+    const who = (id) => { const a = castById(id); return `<b>${esc(a.name)}</b><small>${esc(a.role)} · ${esc(a.from)}</small>`; };
+    const o = el(`<div class="onb" style="--bg:url(${landImg('pirineo')})"><div class="onb-in">
+      <header class="onb-head"><div class="logo">MENDIMENDIZ</div><p class="tag">Navarra, pueblo a pueblo</p></header>
+      <div class="onb-stage"><div id="onbStage" class="stage-host"></div><div class="onb-who" id="oWho">${who(pick)}</div></div>
+      <div class="onb-side"><p class="lbl">Elige tu personaje</p>${this.castStrip(pick)}
+        <label>¿Cómo te llamas?<input id="oName" maxlength="14" autocomplete="off" placeholder="Tu nombre"></label>
+        <button class="btn primary big" id="oGo">${I('play', 26)} ¡Empezar la aventura!</button></div>
+    </div></div>`);
     this.root.appendChild(o);
+    const stage = new Stage($('#onbStage', o), pick);
     const inp = $('#oName', o); inp.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') go(); });
-    o.querySelectorAll('[data-a]').forEach(b => b.onclick = () => { pick = b.dataset.a; o.querySelectorAll('[data-a]').forEach(x => x.classList.toggle('on', x === b)); this.sound?.init?.(); this.sound?.ui('click'); });
+    o.querySelectorAll('[data-av]').forEach(b => b.onclick = (e) => { e.stopPropagation(); pick = b.dataset.av; o.querySelectorAll('[data-av]').forEach(x => x.classList.toggle('on', x === b)); stage.setAvatar(pick); $('#oWho', o).innerHTML = who(pick); this.sound?.init?.(); this.sound?.ui('click'); });
     const go = () => { p.name = inp.value.trim() || 'Mendi'; p.avatar = pick; saveProfile(); this.sound?.init?.(); this.sound?.ui('open'); o.remove(); this.go('home', null, true); };
     $('#oGo', o).onclick = go;
-    setTimeout(() => inp.focus(), 100);
+    if (!matchMedia('(pointer: coarse)').matches) setTimeout(() => inp.focus(), 100);
   }
 }
 

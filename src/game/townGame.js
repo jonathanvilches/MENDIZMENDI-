@@ -648,7 +648,7 @@ export class TownGame {
   // ---------- Prismáticos ----------
   toggleBinoculars() {
     if (!this.binoOn) return;
-    if (this.mode === 'bino') { this.mode = 'play'; this.ui.binoculars(false); this.camera.fov = 55; this.camera.updateProjectionMatrix(); this.player.obj.visible = true; this.player.frozen = false; return; }
+    if (this.mode === 'bino') { this.mode = 'play'; this.ui.binoculars(false); this.camera.fov = this.camera.userData.fov0 || 55; this.camera.updateProjectionMatrix(); this.player.obj.visible = true; this.player.frozen = false; return; }
     if (this.mode !== 'play') return;
     this.mode = 'bino'; this.ui.binoculars(true); this.sound.ui('open');
     this.player.frozen = true; this.player.obj.visible = false;

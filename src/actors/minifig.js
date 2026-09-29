@@ -14,7 +14,9 @@ function toonRamp() {
   return t;
 }
 const RAMP = toonRamp();
-// Tejido sutil en espacio del objeto (textura de tela, piel, pelo) sin coste de texturas
+// Material de los personajes: sombreado suave de estilo consola (sin contorno), con la textura
+// del tejido en espacio del objeto y un acabado distinto según el tipo de superficie (aTex):
+// piel cálida y algo translúcida, tela aterciopelada, pelo con brillo, cuero y botones brillantes.
 function fabric(mat, k) {
   mat.onBeforeCompile = (sh) => {
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute float aTex;\nvarying vec3 vOP; varying float vTex;')
@@ -28,24 +30,36 @@ float tn(vec3 x){ vec3 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);
       .replace('#include <color_fragment>', `#include <color_fragment>
       {
         float t = 1.0;
-        if (vTex > 0.5 && vTex < 1.5) { // tela: trama cruzada
+        if (vTex > 0.5 && vTex < 1.5) { // tela: trama fina
           float a = sin(vOP.x * 420.0 + vOP.y * 420.0) * sin(vOP.x * 420.0 - vOP.y * 420.0 + vOP.z * 420.0);
-          t = 0.95 + 0.05 * a + 0.06 * (tn(vOP * 40.0) - 0.5);
+          t = 0.97 + 0.03 * a + 0.05 * (tn(vOP * 40.0) - 0.5);
         } else if (vTex > 1.5 && vTex < 2.5) { // pelo: mechones
-          t = 0.84 + 0.22 * tn(vec3(vOP.x * 120.0, vOP.y * 18.0, vOP.z * 120.0));
+          t = 0.84 + 0.24 * tn(vec3(vOP.x * 150.0, vOP.y * 16.0, vOP.z * 150.0));
         } else if (vTex > 2.5 && vTex < 3.5) { // lana / paja
-          t = 0.78 + 0.3 * smoothstep(0.3, 0.7, tn(vOP * 55.0));
+          t = 0.8 + 0.28 * smoothstep(0.3, 0.7, tn(vOP * 55.0));
         } else if (vTex > 3.5 && vTex < 4.5) { // madera / cuero
-          t = 0.85 + 0.18 * tn(vec3(vOP.x * 20.0, vOP.y * 160.0, vOP.z * 20.0));
-        } else if (vTex > 4.5) { // metal: brillo
-          t = 1.1;
-        } else { t = 1.0; } // piel lisa
+          t = 0.9 + 0.12 * tn(vec3(vOP.x * 20.0, vOP.y * 160.0, vOP.z * 20.0));
+        }
         diffuseColor.rgb *= mix(1.0, t, ${k.toFixed(2)});
-      }`).replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n totalEmissiveRadiance += diffuseColor.rgb * 0.26;\n float rimF = pow(1.0 - clamp(dot(normalize(normal), normalize(vViewPosition)), 0.0, 1.0), 3.0);\n totalEmissiveRadiance += vec3(1.0, 0.95, 0.86) * rimF * 0.32;');
+      }`)
+      .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
+      roughnessFactor = vTex < 0.5 ? 0.5 : vTex < 1.5 ? 0.86 : vTex < 2.5 ? 0.4 : vTex < 3.5 ? 0.95 : vTex < 4.5 ? 0.32 : 0.2;`)
+      .replace('#include <metalnessmap_fragment>', `#include <metalnessmap_fragment>
+      metalnessFactor = vTex > 4.5 ? 0.45 : 0.0;`)
+      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+      {
+        vec3 nn = normalize(normal), vv = normalize(vViewPosition);
+        float fr = pow(1.0 - clamp(dot(nn, vv), 0.0, 1.0), 2.5);
+        totalEmissiveRadiance += diffuseColor.rgb * 0.2;                                    // luz de rebote: nada queda negro
+        if (vTex < 0.5) totalEmissiveRadiance += diffuseColor.rgb * vec3(0.2, 0.08, 0.04) * (0.6 + fr); // piel translúcida
+        else if (vTex < 1.5 || (vTex > 2.5 && vTex < 3.5)) totalEmissiveRadiance += mix(diffuseColor.rgb, vec3(1.0), 0.35) * fr * 0.34; // terciopelo
+        else if (vTex < 2.5) { float ring = smoothstep(0.3, 0.45, nn.y) * (1.0 - smoothstep(0.55, 0.72, nn.y)); vec3 hl = max(diffuseColor.rgb, vec3(0.1, 0.07, 0.05)); totalEmissiveRadiance += (hl * 0.9 + vec3(0.1)) * ring + hl * 0.45 + mix(hl, vec3(0.7, 0.6, 0.5), 0.4) * fr * 0.35; }
+        else totalEmissiveRadiance += vec3(1.0, 0.97, 0.92) * fr * 0.22;                   // brillo de cuero y metal
+      }`);
   };
   return mat;
 }
-const TOON = fabric(new THREE.MeshToonMaterial({ vertexColors: true, gradientMap: RAMP }), 1);
+const TOON = fabric(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.7, metalness: 0 }), 1);
 const OUTLINE = new THREE.MeshBasicMaterial({ color: '#2a1a14', side: THREE.BackSide });
 OUTLINE.onBeforeCompile = (sh) => { sh.vertexShader = sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += normal * 0.008;'); };
 const EYE = new THREE.MeshBasicMaterial({ vertexColors: true });
@@ -72,7 +86,6 @@ class Part {
     const g = mergeGeometries(this.list, false); this.list = [];
     const m = new THREE.Mesh(g, mat); m.castShadow = true; m.receiveShadow = true;
     parent.add(m);
-    if (outline) { const o = new THREE.Mesh(g, OUTLINE); o.userData.outline = true; o.castShadow = false; parent.add(o); }
     return m;
   }
 }
@@ -110,7 +123,7 @@ export function buildMinifig(look, opts = {}) {
   const child = L.child || (L.height && L.height < 1.45);
   const k = (L.height ? L.height / 1.55 : 1) * (child ? 1.08 : 1);
   const B = L.build || 1;
-  const headS = (L.bigHead ? 1.7 : 1) * (child ? 1.12 : 1);
+  const headS = (L.bigHead ? 1.7 : 1) * (child ? 1.2 : 1.06);
   const root = new THREE.Group();
   const body = new THREE.Group(); root.add(body);
   const hipY = 0.5 * k;
@@ -135,8 +148,9 @@ export function buildMinifig(look, opts = {}) {
     if (L.boots) Q.add(new THREE.CylinderGeometry(0.085 * k * B, 0.08 * k * B, shin * 0.55, 14), L.shoes, TX.wood, mtx(0, -shin * 0.72, 0));
     if (L.kneePatch) Q.add(SPH(0.04 * k), new THREE.Color(L.pants).multiplyScalar(0.75), TX.cloth, mtx(0, -0.01 * k, 0.06 * k, 0, 0, 0, 1, 1, 0.4));
     // zapato: grande y redondeado, con suela
-    Q.add(SPH(0.1 * k * B), L.shoes, L.espadrille ? TX.cloth : TX.wood, mtx(0, -shin - 0.035 * k, 0.045 * k, 0, 0, 0, 0.95, 0.72, 1.45));
-    Q.add(new THREE.CylinderGeometry(0.098 * k * B, 0.098 * k * B, 0.03 * k, 16), L.espadrille ? '#d9c79a' : '#3a2418', L.espadrille ? TX.wool : TX.wood, mtx(0, -shin - 0.1 * k, 0.045 * k, 0, 0, 0, 0.95, 1, 1.45));
+    Q.add(SPH(0.118 * k * B, 24, 16), L.shoes, L.espadrille ? TX.cloth : TX.wood, mtx(0, -shin - 0.03 * k, 0.055 * k, -0.08, 0, 0, 1, 0.76, 1.5));
+    Q.add(SPH(0.07 * k * B, 16, 12), L.shoes, L.espadrille ? TX.cloth : TX.wood, mtx(0, -shin - 0.005 * k, -0.01 * k, 0, 0, 0, 1.25, 1, 1.1));
+    Q.add(new THREE.CylinderGeometry(0.114 * k * B, 0.11 * k * B, 0.034 * k, 20), L.espadrille ? '#d9c79a' : new THREE.Color(L.shoes).multiplyScalar(0.55), L.espadrille ? TX.wool : TX.wood, mtx(0, -shin - 0.105 * k, 0.055 * k, 0, 0, 0, 1, 1, 1.5));
     Q.build(knee);
     J[s < 0 ? 'legL' : 'legR'] = leg; J[s < 0 ? 'kneeL' : 'kneeR'] = knee;
   }
@@ -222,9 +236,10 @@ export function buildMinifig(look, opts = {}) {
     F.build(el);
     const hand = new THREE.Group(); hand.position.y = -fore - 0.035 * k; el.add(hand);
     const Hn = new Part(), hc = L.gloves || skin;
-    Hn.add(SPH(0.058 * k * B), hc, L.gloves ? TX.cloth : TX.skin, mtx(0, -0.02 * k, 0.005 * k, 0, 0, 0, 0.85, 1.05, 1));
-    Hn.add(SPH(0.024 * k), hc, TX.skin, mtx(-s * 0.035 * k, 0.0, 0.035 * k, 0, 0, 0, 1, 1.3, 1));
-    for (let f = 0; f < 3; f++) Hn.add(SPH(0.019 * k, 8, 6), hc, TX.skin, mtx((f - 1) * 0.026 * k, -0.07 * k, 0.03 * k, 0, 0, 0, 1, 1.2, 1));
+    const hT = L.gloves ? TX.cloth : TX.skin;
+    Hn.add(SPH(0.074 * k * B, 20, 14), hc, hT, mtx(0, -0.025 * k, 0.005 * k, 0, 0, 0, 0.88, 1.02, 0.95));
+    Hn.add(SPH(0.03 * k, 12, 8), hc, hT, mtx(-s * 0.05 * k, 0.0, 0.04 * k, 0, 0, s * 0.5, 1, 1.35, 1));
+    for (let f = 0; f < 3; f++) Hn.add(SPH(0.024 * k, 12, 8), hc, hT, mtx((f - 1) * 0.032 * k, -0.088 * k, 0.034 * k, 0, 0, 0, 1, 1.25, 1));
     Hn.build(hand);
     J[s < 0 ? 'armL' : 'armR'] = sh; J[s < 0 ? 'elbowL' : 'elbowR'] = el; J[s < 0 ? 'handL' : 'handR'] = hand;
   }
@@ -237,10 +252,10 @@ export function buildMinifig(look, opts = {}) {
   const fz = (x, y) => { const t = y / (0.94 * R); const w = 1 + 0.09 * Math.exp(-(((t + 0.3) / 0.38) ** 2)) - 0.04 * Math.max(0, t) ** 2; const xs = x / (w * 1.02); let z = Math.sqrt(Math.max(0, R * R - xs * xs - (t * R) ** 2)) * w * 0.96; if (t < -0.1) z *= 1 + 0.05 * Math.min(1, (-t - 0.1) * 3); return z; };
   const Hd = new Part();
   Hd.add(eggGeo(R), skin, TX.skin, mtx(0, cy, 0));
-  for (const s of [-1, 1]) Hd.add(SPH(R * 0.2), skin, TX.skin, mtx(s * R * 0.96, cy - R * 0.05, -R * 0.05, 0, 0, 0, 0.5, 1, 0.8));
-  const noseR = R * (L.bigNose ? 0.2 : child ? 0.1 : 0.13);
-  Hd.add(SPH(noseR), new THREE.Color(skin).lerp(new THREE.Color('#e08a70'), 0.25), TX.skin, mtx(0, cy - R * 0.12, fz(0, -R * 0.12) + noseR * 0.35, 0, 0, 0, 1, 0.9, 0.9));
-  if (L.cheeks !== false) for (const s of [-1, 1]) Hd.add(SPH(R * 0.14, 12, 8), '#f09a8a', TX.skin, mtx(s * R * 0.5, cy - R * 0.24, fz(R * 0.5, -R * 0.24) - R * 0.01, 0, s * 0.55, 0, 1, 0.65, 0.25));
+  for (const s of [-1, 1]) Hd.add(SPH(R * 0.22, 18, 12), skin, TX.skin, mtx(s * R * 0.92, cy - R * 0.04, R * 0.0, 0, s * 0.2, 0, 0.62, 1, 0.85));
+  const noseR = R * (L.bigNose ? 0.25 : child ? 0.145 : 0.18);
+  Hd.add(SPH(noseR, 22, 16), new THREE.Color(skin).lerp(new THREE.Color('#f0a080'), 0.3), TX.skin, mtx(0, cy - R * 0.12, fz(0, -R * 0.12) + noseR * 0.45, 0, 0, 0, 1.05, 0.92, 0.95));
+  if (L.cheeks !== false) for (const s of [-1, 1]) Hd.add(SPH(R * 0.14, 12, 8), new THREE.Color(skin).lerp(new THREE.Color('#f07a78'), 0.5), TX.skin, mtx(s * R * 0.5, cy - R * 0.24, fz(R * 0.5, -R * 0.24) - R * 0.01, 0, s * 0.55, 0, 1, 0.65, 0.25));
   if (L.freckles) for (const s of [-1, 1]) for (let i = 0; i < 3; i++) Hd.add(SPH(R * 0.014, 6, 4), '#c07a50', TX.skin, mtx(s * R * (0.35 + i * 0.08), cy - R * (0.08 + (i % 2) * 0.05), fz(R * 0.43, -R * 0.1), 0, s * 0.4, 0, 1, 1, 0.4));
   if (L.facePaint === 'soot') Hd.add(SPH(R * 1.004, 22, 14, 0, Math.PI * 2, Math.PI * 0.35, Math.PI * 0.45), '#2a2220', TX.skin, mtx(0, cy, 0, 0, 0, 0, 1, 0.98, 0.95));
   if (L.beard) Hd.add(SPH(R * 0.78, 18, 12, 0, Math.PI * 2, Math.PI * 0.45, Math.PI * 0.55), L.beard, TX.hair, mtx(0, cy - R * 0.1, R * 0.16, 0, 0, 0, 1.12, 1.15, 1));
@@ -251,21 +266,22 @@ export function buildMinifig(look, opts = {}) {
   const brow = L.brows || new THREE.Color(L.hair || '#3b2418').multiplyScalar(0.8);
   const mood = L.face || 'smile';
   const browTilt = mood === 'angry' ? 0.45 : mood === 'worried' ? -0.35 : mood === 'brave' ? 0.18 : -0.05;
-  for (const s of [-1, 1]) Hd.add(CAP(R * 0.045, R * 0.2, 8), brow, TX.hair, mtx(s * R * 0.3, cy + R * 0.44 - (mood === 'angry' ? R * 0.05 : 0), fz(R * 0.3, R * 0.44) + R * 0.02, 0, s * 0.35, Math.PI / 2 + s * browTilt));
+  for (const s of [-1, 1]) Hd.add(CAP(R * 0.06, R * 0.24, 10), brow, TX.hair, mtx(s * R * 0.3, cy + R * 0.47 - (mood === 'angry' ? R * 0.05 : 0), fz(R * 0.3, R * 0.44) + R * 0.02, 0, s * 0.35, Math.PI / 2 + s * browTilt));
   Hd.build(head);
   // ojos: blanco, iris de color, pupila y brillo
   const eyes = new THREE.Group(); eyes.position.set(0, cy + R * 0.14, 0); head.add(eyes); J.eyes = eyes;
   const E = new Part();
-  const eyeW = R * (child ? 0.2 : 0.175), eyeH = R * (child ? 0.29 : 0.26), eyeX = R * 0.29;
+  const eyeW = R * (child ? 0.19 : 0.17), eyeH = R * (child ? 0.32 : 0.29), eyeX = R * 0.27;
   for (const s of [-1, 1]) {
     const yaw = s * 0.33, zz = fz(eyeX, R * 0.14) - R * 0.04;
     E.add(SPH(1, 16, 12), '#ffffff', 0, mtx(s * eyeX, 0, zz, 0, yaw, 0, eyeW, eyeH, R * 0.08));
-    E.add(SPH(1, 14, 10), L.eyes, 0, mtx(s * eyeX * 0.97, -eyeH * 0.08, zz + R * 0.06, 0, yaw, 0, eyeW * 0.68, eyeH * 0.72, R * 0.04));
+    E.add(SPH(1, 18, 12), L.eyes, 0, mtx(s * eyeX * 0.97, -eyeH * 0.06, zz + R * 0.06, 0, yaw, 0, eyeW * 0.74, eyeH * 0.76, R * 0.04));
     E.add(SPH(1, 12, 8), new THREE.Color(L.eyes).lerp(new THREE.Color('#ffffff'), 0.35), 0, mtx(s * eyeX * 0.97, -eyeH * 0.26, zz + R * 0.075, 0, yaw, 0, eyeW * 0.45, eyeH * 0.3, R * 0.03));
-    E.add(SPH(1, 12, 8), '#140c08', 0, mtx(s * eyeX * 0.97, -eyeH * 0.08, zz + R * 0.09, 0, yaw, 0, eyeW * 0.36, eyeH * 0.42, R * 0.03));
+    E.add(SPH(1, 14, 10), '#0e0806', 0, mtx(s * eyeX * 0.97, -eyeH * 0.02, zz + R * 0.09, 0, yaw, 0, eyeW * 0.4, eyeH * 0.46, R * 0.03));
     const lidT = mood === 'angry' ? s * -0.35 : mood === 'worried' ? s * 0.3 : 0;
     E.add(new THREE.TorusGeometry(1, 0.13, 6, 18, Math.PI * 0.85), '#2a1a12', 0, mtx(s * eyeX, eyeH * 0.02, zz + R * 0.02, 0, yaw, Math.PI * 0.075 + lidT, eyeW * 1.02, eyeH * 0.98, R * 0.1));
-    E.add(SPH(1, 8, 6), '#ffffff', 0, mtx(s * eyeX * 0.93 - eyeW * 0.2, eyeH * 0.22, zz + R * 0.105, 0, yaw, 0, eyeW * 0.2, eyeW * 0.2, R * 0.02));
+    E.add(SPH(1, 10, 8), '#ffffff', 0, mtx(s * eyeX * 0.93 - eyeW * 0.18, eyeH * 0.2, zz + R * 0.105, 0, yaw, 0, eyeW * 0.25, eyeW * 0.3, R * 0.02));
+    E.add(SPH(1, 8, 6), '#ffffff', 0, mtx(s * eyeX * 0.99 + eyeW * 0.2, -eyeH * 0.3, zz + R * 0.1, 0, yaw, 0, eyeW * 0.11, eyeW * 0.11, R * 0.02));
     if (L.lashes) E.add(new THREE.BoxGeometry(eyeW * 0.5, eyeH * 0.12, R * 0.02), '#1a120d', 0, mtx(s * (eyeX + eyeW * 0.7), eyeH * 0.8, zz * 0.93, 0, yaw, s * -0.6));
   }
   E.build(eyes, false, EYE);
@@ -291,19 +307,29 @@ export function buildMinifig(look, opts = {}) {
   const top = cy + R * 0.98;
   if (hc && hs !== 'bald' && L.hat !== 'mask') {
     H.add(new THREE.SphereGeometry(R * 1.06, 24, 14, 0, Math.PI * 2, 0, Math.PI * 0.36), hc, TX.hair, mtx(0, cy + R * 0.08, -R * 0.03, 0, 0, 0, 1, 1.02, 1.02));
-    H.add(new THREE.SphereGeometry(R * 1.055, 24, 14, Math.PI * 0.9, Math.PI * 1.2, Math.PI * 0.3, Math.PI * 0.2), hc, TX.hair, mtx(0, cy + R * 0.05, -R * 0.03));
-    H.add(new THREE.SphereGeometry(R * 1.05, 20, 10, Math.PI * 0.95, Math.PI * 1.1, Math.PI * 0.45, Math.PI * 0.32), hc, TX.hair, mtx(0, cy, -R * 0.02));
+    H.add(new THREE.SphereGeometry(R * 1.055, 24, 14, Math.PI * 0.9, Math.PI * 1.2, Math.PI * 0.3, Math.PI * 0.2), hc, TX.hair, mtx(0, cy + R * 0.05, -R * 0.03, 0, 0, 0, 1.04, 1, 1));
+    H.add(new THREE.SphereGeometry(R * 1.05, 20, 10, Math.PI * 0.95, Math.PI * 1.1, Math.PI * 0.45, Math.PI * 0.34), hc, TX.hair, mtx(0, cy, -R * 0.02, 0, 0, 0, 1.09, 1, 1));
     for (const s of [-1, 1]) H.add(CAP(R * 0.07, R * 0.16, 8), hc, TX.hair, mtx(s * R * 0.93, cy + R * 0.12, R * 0.02, 0, 0, s * 0.12));
     if (!hatOn) {
       if (hs === 'spiky') for (let i = 0; i < 9; i++) { const a = (i / 9) * Math.PI * 2; H.add(new THREE.ConeGeometry(R * 0.2, R * 0.55, 7), hc, TX.hair, mtx(Math.sin(a) * R * 0.55, top - R * 0.05, Math.cos(a) * R * 0.55 - R * 0.05, Math.cos(a) * 0.9, 0, -Math.sin(a) * 0.9)); }
       if (hs === 'curly') for (let i = 0; i < 18; i++) { const a = i * 2.4, rr = 0.35 + (i % 3) * 0.25; H.add(SPH(R * 0.22, 10, 8), hc, TX.hair, mtx(Math.sin(a) * R * rr, top - R * 0.1 - (i % 3) * R * 0.08, Math.cos(a) * R * rr - R * 0.05)); }
-      const nF = hs === 'spiky' ? 5 : 6;
-      for (let i = 0; i < nF; i++) { const a = (i / (nF - 1) - 0.5) * 1.7; H.add(SPH(R * 0.3, 14, 10), hc, TX.hair, mtx(Math.sin(a) * R * 0.74, cy + R * 0.62 - Math.abs(a) * R * 0.08, Math.cos(a) * R * 0.66, 0.5, a, -a * 0.25, 0.8, 1.25, 0.42)); }
+      // flequillo: cuatro mechones grandes peinados hacia un lado
+      const locks = hs === 'spiky' ? [[-0.75, 0.9], [-0.25, 1], [0.25, 1], [0.75, 0.9]] : [[-0.72, 0.95], [-0.2, 1.12], [0.3, 1.0], [0.78, 0.85]];
+      for (const [a, sz] of locks) H.add(SPH(R * 0.36 * sz, 18, 12), hc, TX.hair, mtx(Math.sin(a) * R * 0.72, cy + R * 0.6 - Math.abs(a) * R * 0.1, Math.cos(a) * R * 0.64, 0.45, a, -0.45 - a * 0.25, 0.95, 1.3, 0.45));
       H.add(new THREE.TorusGeometry(R * 0.72, R * 0.045, 5, 22, Math.PI * 0.55), new THREE.Color(hc).lerp(new THREE.Color('#ffffff'), 0.38), TX.skin, mtx(0, cy + R * 0.66, R * 0.32, -0.85, 0, Math.PI * 0.225));
     }
     if (L.lashes && hs !== 'spiky' && hs !== 'curly') for (const sd of [-1, 1]) H.add(CAP(R * 0.14, R * 0.55, 8), hc, TX.hair, mtx(sd * R * 0.9, cy - R * 0.08, R * 0.22, 0.12, 0, sd * 0.1));
     if (hs === 'bun') H.add(SPH(R * 0.34), hc, TX.hair, mtx(0, top - R * 0.05, -R * 0.55));
-    if (hs === 'ponytail') { H.add(CAP(R * 0.2, R * 0.7, 10), hc, TX.hair, mtx(0, cy - R * 0.2, -R * 1.1, 0.35)); H.add(new THREE.TorusGeometry(R * 0.16, R * 0.05, 6, 12), L.hairTie || '#e03c3c', TX.cloth, mtx(0, cy + R * 0.35, -R * 0.98, Math.PI / 2 + 0.35)); }
+    if (hs === 'ponytail') {
+      const Lt = R * 1.35, prof = []; for (let i = 0; i <= 12; i++) { const t = i / 12; prof.push(new THREE.Vector2(R * (0.17 + 0.2 * Math.sin(Math.PI * Math.min(1, t * 1.25)) * (1 - t * 0.55)) * (t > 0.92 ? (1 - t) / 0.08 : 1), -t * Lt)); }
+      H.add(new THREE.LatheGeometry(prof, 14), hc, TX.hair, mtx(0, cy + R * 0.42, -R * 0.98, 0.42));
+      H.add(new THREE.ConeGeometry(R * 0.1, R * 0.35, 6), hc, TX.hair, mtx(R * 0.08, cy - R * 0.72, -R * 1.52, 0.9 + Math.PI, 0, 0.3));
+      H.add(new THREE.TorusGeometry(R * 0.17, R * 0.065, 8, 14), L.hairTie || '#e03c3c', TX.cloth, mtx(0, cy + R * 0.38, -R * 1.0, Math.PI / 2 + 0.42));
+      for (const sd of [-1, 1]) H.add(SPH(R * 0.1, 10, 8), L.hairTie || '#e03c3c', TX.cloth, mtx(sd * R * 0.14, cy + R * 0.46, -R * 1.02, 0, 0, 0, 1.2, 0.8, 0.6));
+    }
+    // nuca con mechones y remolino: de espaldas el pelo tiene forma, no es una bola lisa
+    if (hs !== 'long') for (let i = 0; i < 5; i++) { const a = (i - 2) * 0.32; H.add(new THREE.ConeGeometry(R * 0.17, R * 0.42, 6), hc, TX.hair, mtx(Math.sin(a) * R * 0.92, cy - R * 0.36 - (i % 2) * R * 0.05, -Math.cos(a) * R * 0.86, Math.PI + 0.25, 0, -Math.sin(a) * 0.5, 1, 1, 0.55)); }
+    if (!hatOn && (hs === 'short' || hs === 'curly')) H.add(new THREE.ConeGeometry(R * 0.12, R * 0.42, 6), hc, TX.hair, mtx(R * 0.05, top + R * 0.06, -R * 0.4, -0.7, 0, -0.35));
     if (hs === 'long') H.add(new THREE.CylinderGeometry(R * 0.95, R * 1.05, R * 1.5, 20, 1, true, Math.PI * 0.25, Math.PI * 1.5), hc, TX.hair, mtx(0, cy - R * 0.55, -R * 0.02));
     if (hs === 'braids') for (const s of [-1, 1]) { for (let i = 0; i < 4; i++) H.add(SPH(R * 0.15), hc, TX.hair, mtx(s * R * 0.85, cy - R * (0.35 + i * 0.26), -R * 0.1, 0, 0, 0, 1, 1.25, 1)); H.add(SPH(R * 0.08), L.hairTie || '#e03c3c', TX.cloth, mtx(s * R * 0.85, cy - R * 1.4, -R * 0.1)); }
   }
@@ -362,6 +388,7 @@ export class MinifigAnimator {
     this.act = 0; this.actKind = null; this.actDur = 0.5;
   }
   update(dt, s) {
+    dt = Math.max(0, Math.min(dt, 0.1)) || 0; // el primer fotograma puede llegar con tiempo negativo
     const J = this.J; this.t += dt;
     const speed = s.speed || 0, moving = speed > 0.12;
     this.walk += (Math.min(1, speed / 1.0) - this.walk) * (1 - Math.exp(-10 * dt));

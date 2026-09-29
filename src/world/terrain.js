@@ -117,27 +117,73 @@ function buildChunk(ci, cj, step) {
   return g;
 }
 
-export function makeTerrainMaterial() {
+export function makeTerrainMaterial({ outer = false } = {}) {
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0 });
+  const rockCol = (PAL.rock || C('#8b877c')).clone();
   m.onBeforeCompile = (sh) => {
     sh.uniforms.tDetail = { value: TEX.detail };
+    sh.uniforms.tGrass = { value: TEX.grass };
+    sh.uniforms.tRock = { value: TEX.rock };
     sh.uniforms.tCobble = { value: TEX.cobble.map };
     sh.uniforms.tCobbleN = { value: TEX.cobble.normalMap };
+    sh.uniforms.uRock = { value: rockCol };
+    sh.uniforms.uRockSlope = { value: new THREE.Vector2(...(({ alpine: [0.3, 0.44], dry: [0.36, 0.5], arid: [0.33, 0.47] })[TONE] || [0.46, 0.62])) };
+    sh.defines = sh.defines || {};
+    if (outer) sh.defines.OUTER = 1;
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute vec4 aSurf;\nvarying vec4 vSurf;\nvarying vec3 vWP;')
-      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvSurf = aSurf;\nvWP = (modelMatrix * vec4(transformed,1.0)).xyz;');
+      .replace('#include <common>', '#include <common>\nattribute vec4 aSurf;\nvarying vec4 vSurf;\nvarying vec3 vWP;\nvarying vec3 vNW;')
+      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvSurf = aSurf;\nvWP = (modelMatrix * vec4(transformed,1.0)).xyz;\nvNW = normalize(mat3(modelMatrix) * objectNormal);');
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>
-uniform sampler2D tDetail; uniform sampler2D tCobble; uniform sampler2D tCobbleN;
-varying vec4 vSurf; varying vec3 vWP;`)
+uniform sampler2D tDetail; uniform sampler2D tGrass; uniform sampler2D tRock; uniform sampler2D tCobble; uniform sampler2D tCobbleN; uniform vec3 uRock; uniform vec2 uRockSlope;
+varying vec4 vSurf; varying vec3 vWP; varying vec3 vNW;
+vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.x + texture2D(tRock, p.xz / s) * bw.y + texture2D(tRock, p.xy / s) * bw.z; }`)
       .replace('#include <color_fragment>', `#include <color_fragment>
 {
+  vec3 nw = normalize(vNW);
+  float slope = 1.0 - nw.y;                       // 0 llano · 0.29 a 45°
   vec3 d1 = texture2D(tDetail, vWP.xz / 11.0).rgb;
   vec3 d2 = texture2D(tDetail, vWP.xz / 2.3).rgb;
   float big = texture2D(tDetail, vWP.xz / 70.0).r;
-  diffuseColor.rgb *= 0.78 + 0.44 * d1.r;
-  diffuseColor.rgb *= 0.9 + 0.2 * d2.g;
-  diffuseColor.rgb *= 0.88 + 0.24 * big;
+  float huge = texture2D(tDetail, vWP.xz / 260.0).r;
+  vec3 base = diffuseColor.rgb;
+  // campos, grava, nieve…: detalle suave como antes
+  vec3 soft = base * (0.78 + 0.44 * d1.r) * (0.9 + 0.2 * d2.g) * (0.88 + 0.24 * big);
+  // hierba: briznas a dos escalas, manchas de color, tréboles y florecillas
+  float grassy = smoothstep(0.04, 0.12, base.g - max(base.r, base.b)) * (1.0 - vSurf.z);
+  vec4 g1 = texture2D(tGrass, vWP.xz / 1.8);
+  vec4 g2 = texture2D(tGrass, vWP.xz / 0.63 + 0.37);
+  float blades = mix(g1.r, g2.r, 0.45);
+  vec3 gc = base * (0.5 + 0.72 * blades) * (0.8 + 0.34 * d1.r) * (0.84 + 0.3 * d2.g) * (0.86 + 0.28 * big);
+  gc = mix(vec3(dot(gc, vec3(0.3, 0.59, 0.11))), gc, 1.3) * 0.92;
+  gc = mix(gc, gc * vec3(0.84, 1.03, 0.92), smoothstep(0.55, 0.78, huge) * 0.7);
+  gc *= vec3(0.78, 0.94, 0.7);                                   // suelo algo más oscuro y verde que las briznas
+  gc = mix(gc, base * vec3(0.72, 1.02, 0.78), g1.g * 0.5);
+  float fl = max(g1.b, g2.b * 0.8) * smoothstep(0.35, 0.65, d1.g) * (1.0 - vSurf.w) * (1.0 - smoothstep(0.12, 0.25, slope));
+  vec3 fc = big > 0.62 ? vec3(1.0, 0.97, 0.92) : big > 0.4 ? vec3(1.0, 0.84, 0.22) : vec3(0.86, 0.6, 0.9);
+  gc = mix(gc, fc * (0.75 + 0.25 * g1.b), fl * 0.9);
+  vec3 col = mix(soft, gc, grassy);
+  // roca en las laderas (proyección triplanar: no se estira en los cortados)
+  vec3 bw = pow(abs(nw), vec3(4.0)); bw /= (bw.x + bw.y + bw.z);
+  vec4 rk = triRock(vWP, bw, 9.0);
+#ifdef OUTER
+  vec4 rk2 = triRock(vWP, bw, 41.0);
+#else
+  vec4 rk2 = triRock(vWP, bw, 2.6);
+#endif
+  float rockM = max(vSurf.z, smoothstep(uRockSlope.x, uRockSlope.y, slope + (d1.g - 0.5) * 0.18)) * (1.0 - vSurf.x);
+  vec3 rc = uRock * vec3(1.02, 0.98, 0.92) * (0.3 + 0.95 * rk.r) * (0.72 + 0.5 * rk2.r) * (0.85 + 0.3 * big);
+  rc = mix(rc, uRock * vec3(0.86, 0.98, 0.68) * 0.85, rk.g * 0.45);
+  rc *= 0.5 + 0.5 * rk.b;
+  float scree = smoothstep(uRockSlope.x - 0.13, uRockSlope.x, slope) * (1.0 - rockM) * (1.0 - vSurf.x);
+  col = mix(col, uRock * (0.62 + 0.45 * d2.b + 0.3 * d2.g), scree * 0.45);
+  col = mix(col, rc, rockM);
+#ifdef OUTER
+  // montañas lejanas: manchas de bosque y prados
+  float fo = smoothstep(0.48, 0.6, texture2D(tDetail, vWP.xz / 190.0).r) * (1.0 - rockM) * (1.0 - smoothstep(170.0, 215.0, vWP.y));
+  col = mix(col, vec3(0.13, 0.24, 0.1) * (0.8 + 0.4 * d1.r), fo * 0.75);
+#endif
+  diffuseColor.rgb = col;
   // tierra y senderos
   vec3 dirt = vec3(0.56, 0.44, 0.30) * (0.8 + 0.35 * d2.g) * (0.85 + 0.3 * d1.r);
   dirt = mix(dirt, vec3(0.72, 0.68, 0.6), smoothstep(0.55, 0.8, d2.b) * 0.8);
@@ -162,6 +208,7 @@ varying vec4 vSurf; varying vec3 vWP;`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
 roughnessFactor = mix(roughnessFactor, 0.8, smoothstep(0.2,0.9,vSurf.x));`);
   };
+  m.customProgramCacheKey = () => (outer ? 'terrain-outer' : 'terrain');
   return m;
 }
 
@@ -205,7 +252,7 @@ export class Terrain {
       h += smoothstep(600, 1300, r4) * (120 + 160 * (fbm(x / 400, z / 400, 3) * 0.5 + 0.5));
       pos.push(x, h, z);
       const n1 = fbm(x / 90, z / 90, 2) * 0.5 + 0.5;
-      c.set('#3f6a2e').lerp(new THREE.Color('#2f5227'), n1);
+      c.set('#4d7a36').lerp(new THREE.Color('#35592a'), n1);
       c.lerp(new THREE.Color('#8a8578'), smoothstep(150, 210, h + n1 * 30));
       c.lerp(new THREE.Color('#f4f6f8'), smoothstep(215, 260, h + n1 * 40));
       col.push(c.r, c.g, c.b);
@@ -219,8 +266,9 @@ export class Terrain {
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
     g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+    g.setAttribute('aSurf', new THREE.Float32BufferAttribute(new Float32Array(pos.length / 3 * 4), 4));
     g.setIndex(idx); g.computeVertexNormals();
-    const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, flatShading: false }));
+    const m = new THREE.Mesh(g, makeTerrainMaterial({ outer: true }));
     m.position.y = -0.8; // ligeramente por debajo para evitar parpadeos en la unión
     scene.add(m);
     this.outer = m;
