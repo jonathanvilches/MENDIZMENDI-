@@ -4,7 +4,7 @@ import { groundHeight } from '../world/heightfield.js';
 import { resolve, addCircle } from '../world/colliders.js';
 import { clamp, damp, dampAngle, lerp, mulberry32 } from '../util/math.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { buildMinifig, lookToMinifig, MinifigAnimator } from './minifig.js';
+import { buildMinifig, lookToMinifig, MinifigAnimator, setOutlines } from './minifig.js';
 
 const matCache = new Map();
 export function mat(color, o = {}) {
@@ -202,6 +202,7 @@ export class Actor {
   update(dt, player) {
     this.t += dt;
     const dP = player ? Math.hypot(player.pos.x - this.pos.x, player.pos.z - this.pos.z) : 99;
+    setOutlines(this.obj, dP < 22);
     // mira al jugador si está cerca
     const near = dP < 4.5 && !this.dance;
     let moving = false;
