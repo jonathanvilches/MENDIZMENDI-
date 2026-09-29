@@ -177,7 +177,7 @@ export class UI {
       this.closeModal();
       const d = el(`<div id="dialog" class="glass"><div class="face"></div><div class="body"><h3></h3><p></p><div class="choices"></div><div class="next">${this.input.touch ? 'Toca para seguir' : 'E / Espacio / clic'} <b>›</b></div></div></div>`);
       (this.hud || document.body).appendChild(d);
-      this.dialogOpen = true;
+      this.dialogOpen = true; document.body.classList.add('talking');
       let i = 0, typing = null, full = '', lastChoice = -1, lastFace = null;
       const show = () => {
         const L = lines[i];
@@ -222,7 +222,7 @@ export class UI {
       const canvasTap = (e) => { if (e.target.id === 'c') advance(false); };
       addEventListener('keydown', onKey, true);
       addEventListener('pointerdown', canvasTap);
-      const cleanup = () => { clearInterval(typing); removeEventListener('keydown', onKey, true); removeEventListener('pointerdown', canvasTap); d.remove(); this.dialogOpen = false; };
+      const cleanup = () => { clearInterval(typing); removeEventListener('keydown', onKey, true); removeEventListener('pointerdown', canvasTap); d.remove(); this.dialogOpen = false; document.body.classList.remove('talking'); };
       show();
     });
   }

@@ -153,6 +153,8 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; }
 #stickHint span { position: absolute; bottom: -21px; left: 0; right: 0; text-align: center; font-size: 11px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; color: #fff; text-shadow: 0 1px 2px #000, 0 0 6px rgba(0, 0, 0, .8); }
 @keyframes nudge { 0%, 100% { transform: none; } 30% { transform: translateY(-18px); } 60% { transform: translateX(16px); } }
 .touch #stickHint { display: grid; } #stickHint.gone { opacity: 0; }
+/* mientras se habla con alguien, los mandos táctiles se esconden para no tapar las respuestas */
+.touch.talking #controls, .touch.talking #stickHint, .talking #controls, .talking #stickHint { display: none; }
 
 /* ---------- Diálogo: franja inferior de cine ---------- */
 #dialog { position: absolute; left: 50%; bottom: calc(var(--sb, 0px) + 14px); transform: translateX(-50%); width: min(760px, calc(100vw - 24px)); padding: 14px 18px 12px; display: flex; gap: 14px; align-items: flex-start;
@@ -366,3 +368,5 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; }
 img.ico3d.pend { opacity: 0; }
 
 img[data-pk] { opacity: 0; }
+/* durante un diálogo los avisos suben arriba, bajo el objetivo, para no tapar la conversación */
+.talking #toast { top: calc(var(--st) + 124px) !important; bottom: auto !important; left: 50% !important; }
