@@ -563,7 +563,7 @@ export class TownGame {
     this.ui.toast('¡Adelante! Pasa por el aro dorado', 'running', 2200);
   }
   updateRace(dt) {
-    const R = this.race, M = R.M;
+    const R = this.race; if (!R) return; const M = R.M;
     R.t -= dt;
     const g = this.gates.find(g => g.next);
     if (g && Math.hypot(g.x - this.player.pos.x, g.z - this.player.pos.z) < 2.6) {

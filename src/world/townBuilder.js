@@ -64,6 +64,23 @@ export function buildTown(scene, mats, def) {
     b.ya = terrainHeight(b.xa, b.z); b.yb = terrainHeight(b.xb, b.z);
     bridge(B, b, riverInfo);
   }
+  // muros de encauzamiento del río en el casco urbano
+  if (def.river && Math.abs(def.river.x) < 40) {
+    const R = MOD.R || 80;
+    for (const side of [-1, 1]) for (let z = -R * 0.85; z < R * 0.85; z += 2.5) {
+      const zm = z + 1.25;
+      if (BRIDGES.some(b => Math.abs(zm - b.z) < b.w / 2 + 1.4)) continue;
+      const half = riverInfo(rx(zm), zm).half;
+      const x0 = rx(z) + side * (half + 0.55), x1 = rx(z + 2.5) + side * (half + 0.55), xm = (x0 + x1) / 2;
+      const top = terrainHeight(rx(zm) + side * (half + 2.4), zm) + 0.7;
+      const bot = riverInfo(xm, zm).level - 1.6;
+      if (top - bot < 1.2 || top - bot > 9) continue;
+      const len = Math.hypot(x1 - x0, 2.5) + 0.05, ang = Math.atan2(x1 - x0, 2.5);
+      B.add(fam === 'ribera' ? 'brick' : 'stone', box(0.9, top - bot, len, 2), M(xm, (top + bot) / 2, zm, ang));
+      B.add('ashlar', box(1.05, 0.14, len + 0.02, 1), M(xm, top + 0.07, zm, ang));
+      addBox(xm, zm, 0.9, len, ang);
+    }
+  }
   // monumentos
   const ctx = { riverLevel: (x, z) => riverInfo(x, z).level, riverX: rx, half: riverInfo(rx(0), 0).half };
   for (const lm of PLACES.landmarks || []) {
