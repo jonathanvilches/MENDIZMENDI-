@@ -1,0 +1,15 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;background:#9cc3e0}</style></head><body><script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+const q = new URLSearchParams(location.search);
+const r = new THREE.WebGLRenderer({ antialias: true }); r.setSize(innerWidth, innerHeight); r.toneMapping = THREE.ACESFilmicToneMapping; r.outputColorSpace = THREE.SRGBColorSpace; document.body.appendChild(r.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color('#b8d4ea');
+scene.add(new THREE.HemisphereLight('#ffffff', '#6a5a4a', 1.4)); const k = new THREE.DirectionalLight('#fff4e0', 2.4); k.position.set(2, 4, 3); scene.add(k); const rim = new THREE.DirectionalLight('#cfe8ff', 1.2); rim.position.set(-3, 2, -3); scene.add(rim);
+const g = await new GLTFLoader().loadAsync(q.get('f') || 'ref/female.glb');
+const o = g.scene; scene.add(o);
+const box = new THREE.Box3().setFromObject(o), size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3());
+o.rotation.y = +(q.get('ry') || 0);
+const cam = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 0.01, 1000);
+const d = size.y * 2.1; cam.position.set(c.x + d * 0.25, c.y + size.y * 0.1, c.z + d); cam.lookAt(c);
+r.render(scene, cam); window.__info = { size: size.toArray(), center: c.toArray() }; window.__ready = true;
+</script></body></html>

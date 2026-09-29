@@ -1,15 +1,26 @@
 import { icon3D, has3D } from './icon3d.js';
 // Iconos propios de MENDIMENDIZ (SVG dibujado a mano, sin emojis).
-// Estilo: contorno marrón oscuro grueso, colores planos con un brillo; 64×64.
-const O = '#2b1d12';                       // contorno
-// Relleno con degradado (luz arriba, sombra abajo) para dar volumen
-const gf = (c) => { if (!c || c === 'none' || c[0] !== '#') return c; let h = c.slice(1).toLowerCase(); if (h.length === 3) h = h.split('').map(x => x + x).join(''); return `url(#mg${h})`; };
-const s = (d, fill, extra = '') => `<path d="${d}" fill="${gf(fill)}" stroke="${O}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" ${extra}/>`;
-const ln = (d, c = O, w = 3) => `<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
-const c = (x, y, r, fill, st = true) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${gf(fill)}" ${st ? `stroke="${O}" stroke-width="3"` : ''}/>`;
-const e = (x, y, rx, ry, fill, st = true, rot = 0) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${gf(fill)}" ${st ? `stroke="${O}" stroke-width="3"` : ''} ${rot ? `transform="rotate(${rot} ${x} ${y})"` : ''}/>`;
-const r = (x, y, w, h, fill, rx = 3) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="${gf(fill)}" stroke="${O}" stroke-width="3"/>`;
-const hl = (d) => `<path d="${d}" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="3" stroke-linecap="round"/>`;
+// Estilo «lineal a color»: contorno casi negro de grosor uniforme, colores planos y una franja de
+// sombra en el borde inferior derecho de cada forma, con brillos blancos; 64×64.
+const O = '#1f1a26';                       // contorno
+const SW = 2.6;                            // grosor del contorno
+const hex6 = (c) => { let h = c.slice(1).toLowerCase(); if (h.length === 3) h = h.split('').map(x => x + x).join(''); return h; };
+const dk = (c, k = 0.2) => { const a = parseInt(hex6(c), 16), b = 0x2a1a3a; const ch = (sh) => Math.round(((a >> sh) & 255) * (1 - k) + ((b >> sh) & 255) * k); return '#' + ((ch(16) << 16) | (ch(8) << 8) | ch(0)).toString(16).padStart(6, '0'); };
+let CP = 0;
+// forma rellena con franja de sombra: base oscura + copia clara desplazada y recortada + contorno
+function shaded(tag, attrs, fill, extra = '', stroke = true) {
+  if (!fill || fill === 'none' || fill[0] !== '#') return `<${tag} ${attrs} fill="${fill || 'none'}" ${stroke ? `stroke="${O}" stroke-width="${SW}" stroke-linejoin="round" stroke-linecap="round"` : ''} ${extra}/>`;
+  const id = 'cp' + (++CP);
+  return `<clipPath id="${id}"><${tag} ${attrs}/></clipPath><${tag} ${attrs} fill="${dk(fill)}" ${extra}/><g clip-path="url(#${id})"><${tag} ${attrs} fill="${fill}" transform="translate(-2.4 -1.8)" ${extra}/></g>` +
+    (stroke ? `<${tag} ${attrs} fill="none" stroke="${O}" stroke-width="${SW}" stroke-linejoin="round" stroke-linecap="round"/>` : '');
+}
+const gf = (c) => c;
+const s = (d, fill, extra = '') => shaded('path', `d="${d}"`, fill, extra);
+const ln = (d, c = O, w = 3) => `<path d="${d}" fill="none" stroke="${c}" stroke-width="${c === O ? Math.min(w, SW + 0.6) : w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+const c = (x, y, r, fill, st = true) => r < 3.5 || !st ? `<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" ${st ? `stroke="${O}" stroke-width="${SW}"` : ''}/>` : shaded('circle', `cx="${x}" cy="${y}" r="${r}"`, fill);
+const e = (x, y, rx, ry, fill, st = true, rot = 0) => { const a = `cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" ${rot ? `transform="rotate(${rot} ${x} ${y})"` : ''}`; return Math.min(rx, ry) < 3 || !st ? `<ellipse ${a} fill="${fill}" ${st ? `stroke="${O}" stroke-width="${SW}"` : ''}/>` : shaded('ellipse', a, fill); };
+const r = (x, y, w, h, fill, rx = 3) => Math.min(w, h) < 5 ? `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="${fill}" stroke="${O}" stroke-width="${SW}"/>` : shaded('rect', `x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}"`, fill);
+const hl = (d) => `<path d="${d}" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="2.6" stroke-linecap="round"/>`;
 
 export const ICONS = {
   // ---- lugares y arquitectura ----
@@ -27,10 +38,10 @@ export const ICONS = {
   cross: s('M28 58V24H18v-8h10V6h8v10h10v8H36v34z', '#d0bf9c') + s('M20 58h24v-6H20z', '#b8a47e'),
   dolmen: s('M8 26l48-6 2 8-50 6z', '#9a948a') + s('M12 34v24h8V33z', '#8a847a') + s('M42 30v28h8V29z', '#8a847a') + ln('M4 58h56'),
   stelae: c(32, 24, 16, '#b8b0a2') + c(32, 24, 9, '#d0c9bb') + ln('M32 15v18M23 24h18') + s('M26 38h12v20H26z', '#b8b0a2'),
-  monolith: s('M24 58l2-44 6-8 6 8 2 44z', '#b8b0a2') + ln('M28 22h8M28 30h8') + ln('M8 58h48'),
-  kiosk: s('M8 30L32 12l24 18z', '#3d8a5a') + s('M12 30h40v6H12z', '#e6d3b0') + ln('M16 36v18M32 36v18M48 36v18') + s('M8 54h48v4H8z', '#d0bf9c'),
-  horreo: s('M8 28L32 14l24 14z', '#c0563f') + r(12, 28, 40, 16, '#a57a45', 1) + ln('M16 44v12M48 44v12M32 44v12') + s('M12 56h8M28 56h8M44 56h8', '#b8b0a2'),
-  ruin: s('M8 58V30l8-6v10l6-4v28z', '#b8b0a2') + s('M30 58V20l10-8v14l8-4v36z', '#c9c1b2') + ln('M4 58h56'),
+  monolith: s('M22 58l3-40c1-6 5-10 8-12 4 2 7 6 7 12l2 40z', '#b8b0a2') + e(30, 30, 3, 5, '#8fa86a', false) + e(36, 44, 4, 3, '#8fa86a', false) + hl('M27 20c1-5 3-8 6-10') + s('M6 58c6-4 10-4 14 0M42 58c6-4 12-4 16 0', '#6aa84f') + ln('M4 58h56'),
+  kiosk: s('M32 6l2 4h-4z', '#e8c34a') + s('M6 28c6-12 16-18 26-18s20 6 26 18z', '#3d8a5a') + s('M6 28h52v5H6z', '#e6d3b0') + [12, 22, 32, 42, 52].map(x => r(x - 2, 33, 4, 17, '#f1e6cf', 1)).join('') + s('M4 50h56v8H4z', '#c9b48e') + e(32, 20, 8, 3, '#5aa870', false),
+  horreo: s('M4 26L32 10l28 16z', '#c0563f') + ln('M12 22l20-11 20 11', '#e07a5f', 2) + s('M10 26h44v17H10z', '#b08650') + ln('M16 27v15M22 27v15M28 27v15M34 27v15M40 27v15M46 27v15', '#7a5530', 2) + [16, 32, 48].map(x => e(x, 45, 6, 2.5, '#9a948a') + r(x - 3, 47, 6, 10, '#b8b0a2', 1)).join(''),
+  ruin: s('M6 58V28l6-4 4 6 4-8 4 4v32z', '#b8b0a2') + s('M30 58V34a8 8 0 0116 0v24h8V16l-6-6-4 6-4-2-4 8-4-2-4 6v38z', '#c9c1b2') + s('M38 58V36a4 4 0 018 0', 'none') + ln('M10 36h10M10 46h10M34 22h14', '#8f877a', 2) + s('M4 58c4-5 8-5 10 0M50 58c3-4 7-4 10 0', '#6aa84f'),
   tunnel: s('M4 58V24c8-12 48-12 56 0v34z', '#8f877a') + s('M16 58V38a16 12 0 0132 0v20z', '#2b2320') + ln('M22 58l4-14M42 58l-4-14', '#e8c34a'),
   lookout: s('M4 58L24 22l10 14 8-10 18 32z', '#6f9a58') + s('M36 12h10v10H36z', '#c9b48e') + ln('M41 22v10') + c(41, 8, 3, '#e8c34a'),
   townhall: s('M8 58V26h48v32z', '#e6d3b0') + s('M6 26h52l-4-8H10z', '#8a5a32') + c(32, 12, 6, '#f7f1e2') + ln('M32 9v3l2 2') + [14, 26, 38, 50].map(x => r(x - 2, 32, 6, 10, '#6aa9d0', 1)).join('') + ln('M8 46h48'),
@@ -108,14 +119,14 @@ export const ICONS = {
   stone: s('M8 50c0-14 8-28 24-28s24 14 24 28c0 4-4 8-8 8H16c-4 0-8-4-8-8z', '#9a948a') + ln('M18 40c4-6 10-10 16-10', '#fff', 2) + ln('M40 34l6 8', '#6b665e', 2),
   hammer: ln('M20 58L42 24', '#8a5a32', 6) + s('M30 8l22 14-6 10-22-14z', '#5d6066') + s('M4 60h28v-4H4z', '#6b6b6b'),
   anvil: s('M6 22h40c6 0 12 4 12 10H44v6h-8v8h10v8H18v-8h10v-8h-8v-6c-8 0-14-4-14-10z', '#4a4d52') + hl('M12 26h30'),
-  sickle: s('M20 58l6-14', 'none') + ln('M18 60l8-16', '#8a5a32', 6) + s('M26 44C8 34 14 8 38 6 22 12 20 30 32 40z', '#b7bcc2'),
-  net: s('M8 10h48v44H8z', 'none') + ln('M8 10h48v44H8zM8 22h48M8 34h48M8 46h48M20 10v44M32 10v44M44 10v44', '#8a6a4a', 2) + ln('M4 6v54M60 6v54', '#8a5a32', 4),
+  sickle: ln('M14 60l12-18', O, 10) + ln('M14 60l12-18', '#a0703a', 6) + s('M25 44C4 34 8 6 36 4c7 0 13 3 16 8C45 8 34 10 28 16 20 25 22 36 31 41z', '#c9ced4') + hl('M17 30c0-11 8-19 19-21'),
+  net: ln('M4 8h56', '#8a5a32', 6) + s('M8 10C10 36 20 54 32 58 44 54 54 36 56 10z', '#e6d3b0', 'fill-opacity=".35"') + ln('M11 20Q32 32 53 20M14 32Q32 44 50 32M20 44Q32 52 44 44M20 10Q22 34 27 55M32 10v48M44 10Q42 34 37 55', '#6b4a2e', 2) + [14, 26, 38, 50].map(x => c(x, 9, 4, '#e8743a')).join(''),
   espadrille: s('M6 44c0-8 8-12 18-12h14c10 0 20 6 20 14H6z', '#f4efe0') + s('M4 46h56v6H4z', '#d9c79a') + ln('M20 32l8 12M36 32l-8 12', '#d42f2f', 3) + ln('M8 49h48', '#b8a47e', 1.5),
-  raft: [10, 20, 30, 40, 50].map(x => s(`M${x - 4} 20h8v28h-8z`, '#a57a45')).join('') + ln('M6 28h52M6 40h52', '#6b4a2e', 3) + s('M2 54c8-4 14 4 22 0s14-4 22 0 12 4 16 0', 'none') + ln('M2 54c8-4 14 4 22 0s14-4 22 0 12 4 16 0', '#4aa3d0', 4) + ln('M48 20l8-16', '#8a5a32', 3),
+  raft: s('M2 50c8-4 14 4 22 0s14-4 22 0 12 4 18 0v8H2z', '#4aa3d0') + [20, 28, 36, 44].map(y => s(`M10 ${y}h40a4 4 0 010 8H10a4 4 0 010-8z`, '#b08650') + c(10, y + 4, 4, '#e6c89a')).join('') + ln('M46 44L58 4', O, 5) + ln('M46 44L58 4', '#8a5a32', 3),
   bell: s('M32 6c-12 0-16 10-16 24v10l-6 8h44l-6-8V30c0-14-4-24-16-24z', '#b8a060') + c(32, 52, 5, '#6b5a3a') + hl('M22 16c2-4 5-6 8-6'),
   mask: s('M8 20c8-8 40-8 48 0 2 20-8 36-24 36S6 40 8 20z', '#f1e7d6') + e(22, 28, 6, 4, '#2b1d12', false) + e(42, 28, 6, 4, '#2b1d12', false) + s('M24 42c4 4 12 4 16 0', 'none') + ln('M24 42c4 4 12 4 16 0') + s('M8 20c-2-8 4-14 8-10M56 20c2-8-4-14-8-10', '#d42f2f'),
-  giant: s('M18 58l4-26h20l4 26z', '#3a8fd6') + c(32, 18, 12, '#eab89a') + s('M18 12c4-10 24-10 28 0l-4 2H22z', '#e8c34a') + c(28, 18, 1.8, O, false) + c(36, 18, 1.8, O, false) + ln('M28 24c2 2 6 2 8 0'),
-  music: s('M22 46V14l28-6v32', 'none') + ln('M22 46V14l28-6v32', O, 4) + e(16, 46, 8, 6, '#6d3b5c') + e(44, 40, 8, 6, '#6d3b5c') + ln('M22 22l28-6', O, 4),
+  giant: s('M14 58c0-16 6-26 18-26s18 10 18 26z', '#b8232a') + ln('M18 50h28', '#e8c34a', 3) + s('M26 32h12l-2 26h-8z', '#e8c34a') + c(32, 20, 12, '#eab89a') + s('M20 12l3-8 5 5 4-7 4 7 5-5 3 8z', '#e8c34a') + c(32, 6, 2, '#d42f2f', false) + c(28, 20, 1.8, O, false) + c(36, 20, 1.8, O, false) + ln('M28 26c2 2 6 2 8 0') + e(24, 24, 2.5, 1.5, '#f09a8a', false) + e(40, 24, 2.5, 1.5, '#f09a8a', false),
+  music: s('M22 44V16l30-8v30', 'none') + ln('M22 44V16l30-8v30', O, 5) + ln('M22 44V16l30-8v30', '#f2c94c', 2) + e(16, 45, 8, 6, '#d42f2f', true, -20) + e(46, 39, 8, 6, '#d42f2f', true, -20) + s('M22 16l30-8v7l-30 8z', '#f2c94c') + hl('M12 43c2-2 5-3 7-2'),
   dance: c(24, 12, 6, '#eac1a0') + s('M18 20h12l4 16-4 22h-6l2-18-8-4z', '#f4f1ea') + ln('M30 24l12-10M18 24l-8 6', O, 4) + s('M18 34h14v4H18z', '#d42f2f') + ln('M44 12c6 2 10 8 10 14', '#e03c3c', 3) + ln('M40 8c6 0 12 4 14 10', '#f2c230', 3),
   txistu: ln('M12 52L52 12', O, 8) + ln('M12 52L52 12', '#e8dcc0', 5) + [0, 1, 2].map(i => c(28 + i * 7, 36 - i * 7, 1.8, O, false)).join(''),
   angel: c(32, 18, 7, '#f1c7a5') + s('M24 28h16l6 26H18z', '#f7f7f7') + s('M24 30c-12-4-20 6-18 16 6-6 12-8 18-6zM40 30c12-4 20 6 18 16-6-6-12-8-18-6z', '#dff1ff') + e(32, 8, 8, 2.5, 'none') + ln('M26 8h12', '#e8c34a', 3) + ln('M32 2v8', O, 1.5),
@@ -127,7 +138,7 @@ export const ICONS = {
   bishop: s('M22 22L32 6l10 16z', '#f4efe0') + ln('M32 6v16', '#e8c34a', 3) + c(32, 30, 8, '#efc8a8') + s('M18 58l4-20h20l4 20z', '#b8232a') + ln('M32 38v20', '#e8c34a', 4) + ln('M50 58V20c0-6 8-6 8 0', '#e8c34a', 3),
   camino: s('M8 50C8 26 22 12 32 12s24 14 24 38z', '#f2c94c') + [14, 22, 30, 38, 46].map(x => ln(`M32 50L${x + 2} 16`, '#d9a53a', 2)).join('') + s('M24 50h16v8H24z', '#f2c94c'),
   arrow: s('M6 28h34V16l20 16-20 16V36H6z', '#f2c94c') + hl('M10 32h28'),
-  bike: c(16, 42, 12, 'none') + c(48, 42, 12, 'none') + ln('M16 42l10-18h16l6 18M26 24l8 18h14M30 18h8M42 24l-2-8h6', O, 3) + c(16, 42, 2, O, false) + c(48, 42, 2, O, false),
+  bike: c(16, 44, 12, '#3a3d42') + c(16, 44, 8, '#e8e4dc', false) + c(48, 44, 12, '#3a3d42') + c(48, 44, 8, '#e8e4dc', false) + ln('M16 36v16M8 44h16M48 36v16M40 44h16', '#b8b4ac', 1.5) + ln('M16 44l10-18h18l4 18M26 26l10 18h12', O, 8) + ln('M16 44l10-18h18l4 18M26 26l10 18h12', '#d42f2f', 4) + s('M20 20h11l-2 5h-7z', '#3a2418') + ln('M44 26l-2-9h7', O, 4) + c(36, 44, 3, '#3a3d42'),
   running: c(38, 10, 6, '#eac1a0') + s('M28 18h12l2 16-8 4z', '#f4f1ea') + ln('M34 34l-8 12-10 2M34 34l10 10 2 12M30 22l-10 6M40 22l8 8', O, 4),
   pelota: c(32, 32, 20, '#f4efe0') + ln('M16 20c10 6 10 18 0 24M48 20c-10 6-10 18 0 24', '#d42f2f', 3) + hl('M24 18c3-2 6-3 9-3'),
   txapela: e(32, 36, 26, 10, '#1d1d24') + e(32, 32, 22, 12, '#2a2a34') + ln('M32 20v-6', '#1d1d24', 3) + hl('M16 30c6-5 16-6 24-4'),
@@ -156,7 +167,7 @@ export const ICONS = {
   clock: c(32, 32, 26, '#f7f1e2') + ln('M32 16v16l10 8', O, 4),
   heart: s('M32 56S6 40 6 22c0-10 8-16 16-16 5 0 8 3 10 6 2-3 5-6 10-6 8 0 16 6 16 16 0 18-26 34-26 34z', '#e03c3c') + hl('M14 18c1-4 4-6 8-6'),
   fire: s('M32 4c4 14 18 18 18 34a18 18 0 01-36 0c0-10 6-14 8-22 4 6 4 10 6 12 4-8 4-16 4-24z', '#f2833a') + s('M32 30c2 8 10 10 10 18a10 10 0 01-20 0c0-6 4-8 6-12 2 4 2 6 4 6z', '#f5c542'),
-  footprint: e(22, 40, 8, 12, '#8a6a4a', false) + [16, 21, 26, 30].map((x, i) => c(x, 24 - (i === 0 ? 0 : 2), 2.8, '#8a6a4a', false)).join('') + e(44, 26, 7, 11, '#8a6a4a', false) + [39, 44, 48, 51].map(x => c(x, 11, 2.4, '#8a6a4a', false)).join(''),
+  footprint: e(22, 40, 8, 12, '#b08650') + [15, 20, 25, 30].map((x, i) => c(x, 23 - (i === 0 ? 0 : 2), 3, '#b08650')).join('') + e(44, 26, 7, 11, '#b08650') + [38, 43, 48, 52].map(x => c(x, 10, 2.6, '#b08650')).join(''),
   hand: s('M20 58V28l-6-8c-2-4 4-8 8-4l4 6V8c0-4 6-4 6 0v14V6c0-4 6-4 6 0v16V8c0-4 6-4 6 0v18l2-6c2-4 8-2 6 2l-4 16c-2 10-6 20-18 20z', '#eac1a0'),
   target: c(32, 32, 26, '#f7f1e2') + c(32, 32, 17, '#d42f2f') + c(32, 32, 8, '#f7f1e2') + c(32, 32, 3, '#d42f2f', false),
   sparkle: s('M32 6l5 21 21 5-21 5-5 21-5-21-21-5 21-5z', '#fff3b0'),
@@ -170,7 +181,7 @@ export const ICONS = {
   pen: s('M44 8l12 12-32 32-16 4 4-16z', '#f5c542') + s('M12 52l4-16 12 12z', '#f2e6c4') + ln('M40 12l12 12'),
   exclaim: c(32, 32, 26, '#f5c542') + ln('M32 16v20', O, 7) + c(32, 46, 4, O, false),
   lantern: s('M22 18h20l4 30H18z', '#f5c542') + s('M20 12h24v6H20zM16 48h32v6H16z', '#4a4d52') + ln('M32 12V4'),
-  seed: e(32, 36, 12, 18, '#a57a45', true, 25) + ln('M32 18c-4 8-4 20 2 30', '#6b4a2e', 2),
+  seed: e(32, 36, 13, 19, '#b08650', true, 25) + ln('M30 18c-4 8-4 20 3 30', '#6b4a2e', 2) + s('M36 16c4-8 12-10 16-8-2 6-8 10-16 8z', '#6aa84f') + hl('M24 30c1-5 4-9 8-11'),
   water: s('M32 6C22 22 14 30 14 42a18 18 0 0036 0c0-12-8-20-18-36z', '#4aa3d0') + hl('M22 42c0-6 3-10 6-13'),
   litter: s('M16 20h32l-4 38H20z', '#8a9aa6') + s('M12 14h40v6H12z', '#6b6f75') + ln('M26 28v22M38 28v22', '#5a5f65', 3),
   lamb: e(34, 36, 16, 11, '#fbf8f0') + [22, 30, 38, 46].map(x => c(x, 27, 4.5, '#fbf8f0')).join('') + e(16, 34, 7, 6, '#f1d7b8') + c(14, 32, 1.5, O, false) + ln('M26 46v10M42 46v10', O, 3),
@@ -205,22 +216,12 @@ export function speciesIcon(name = '') {
   return null;
 }
 
-// Degradados y sombra de cada icono
-const mix = (h, t, k) => { const a = parseInt(h, 16), b = parseInt(t, 16); const ch = (sh) => Math.round(((a >> sh) & 255) * (1 - k) + ((b >> sh) & 255) * k); return ((ch(16) << 16) | (ch(8) << 8) | ch(0)).toString(16).padStart(6, '0'); };
-const defsCache = new Map();
-export function withDefs(k) {
-  if (defsCache.has(k)) return defsCache.get(k);
-  const body = ICONS[k] || ICONS.star;
-  const cols = [...new Set([...body.matchAll(/url\(#mg([0-9a-f]{6})\)/g)].map(m => m[1]))];
-  const defs = cols.map(h => `<linearGradient id="mg${h}" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="#${mix(h, 'ffffff', 0.32)}"/><stop offset=".55" stop-color="#${h}"/><stop offset="1" stop-color="#${mix(h, '000000', 0.22)}"/></linearGradient>`).join('');
-  const out = `<defs>${defs}<filter id="mds" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="2.2" stdDeviation="1.3" flood-color="#1a0f08" flood-opacity=".35"/></filter></defs><g filter="url(#mds)">${body}</g>`;
-  defsCache.set(k, out);
-  return out;
-}
-// Cada SVG en línea lleva sus propios id de degradado y sombra: si se compartieran, un icono oculto
+// Cuerpo del icono (el estilo plano ya no necesita degradados ni sombra difusa)
+export function withDefs(k) { return ICONS[k] || ICONS.star; }
+// Cada SVG en línea lleva sus propios id de recorte: si se compartieran, un icono oculto
 // (display:none) dejaría sin pintar a todos los que usan el mismo id.
 let UID = 0;
-const uniq = (svg) => { const u = (++UID).toString(36); return svg.replace(/(id="|url\(#)(mg[0-9a-f]{6}|mds)/g, `$1$2_${u}`); };
+const uniq = (svg) => { const u = (++UID).toString(36); return svg.replace(/(id="|url\(#)(cp\d+)/g, `$1$2_${u}`); };
 export function iconSVG(name, size = 32, cls = '') {
   const k = ICONS[name] ? name : ICONS[ALIAS[name]] ? ALIAS[name] : 'star';
   if (has3D(k)) { const u = icon3D(k); if (u) return `<img class="ico ico3d ${cls}" src="${u}" width="${size}" height="${size}" alt="" aria-hidden="true">`; }

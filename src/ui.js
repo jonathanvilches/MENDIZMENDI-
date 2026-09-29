@@ -35,13 +35,13 @@ export class UI {
   // ---------- Carga ----------
   buildLoading() {
     this.loading = el(`<div id="loading" class="hidden"><div class="ld-in"><div class="logo">MENDIMENDIZ</div><div class="sub"></div><div class="bar"><i></i></div><div class="msg">Preparando…</div><div class="tip"></div></div>
-      <svg class="mountains" viewBox="0 0 100 30" preserveAspectRatio="none"><path d="M0 30 L0 18 L12 8 L20 15 L30 4 L42 16 L52 9 L63 18 L74 6 L86 15 L100 10 L100 30Z" fill="#2c2440"/><path d="M0 30 L0 22 L15 16 L28 22 L40 14 L55 23 L70 15 L84 22 L100 17 L100 30Z" fill="#231c34"/></svg></div>`);
+      <svg class="mountains" viewBox="0 0 100 30" preserveAspectRatio="none"><path d="M0 30 L0 18 L12 8 L20 15 L30 4 L42 16 L52 9 L63 18 L74 6 L86 15 L100 10 L100 30Z" fill="#2a1a52"/><path d="M0 30 L0 22 L15 16 L28 22 L40 14 L55 23 L70 15 L84 22 L100 17 L100 30Z" fill="#1d1239"/></svg></div>`);
     document.body.appendChild(this.loading);
   }
   showLoading(title, tip = '', image = '') {
     this.loading.classList.remove('hidden'); this.loading.style.opacity = 1; this.loading.style.transition = '';
     $('.sub', this.loading).textContent = title; $('.tip', this.loading).textContent = tip;
-    this.loading.style.backgroundImage = image ? `linear-gradient(180deg,rgba(24,17,40,.55),rgba(24,17,40,.92)),url(${image})` : '';
+    this.loading.style.backgroundImage = image ? `linear-gradient(180deg,rgba(40,12,90,.6),rgba(20,6,48,.94)),url(${image})` : '';
     this.progress(0, 'Preparando…');
   }
   progress(p, msg) { $('.bar i', this.loading).style.width = (p * 100).toFixed(0) + '%'; if (msg) $('.msg', this.loading).textContent = msg; }
@@ -380,7 +380,7 @@ export class UI {
       if (i % 3 === 0) {
         const n = NAMES[i / 3], card = n.length === 1;
         g.font = `900 ${Math.round((card ? 14 : 11) * dpr)}px Nunito, sans-serif`;
-        g.fillStyle = n === 'N' ? '#f4c152' : card ? '#fff' : 'rgba(255,244,228,.7)';
+        g.fillStyle = n === 'N' ? '#FFD700' : card ? '#fff' : 'rgba(255,244,228,.7)';
         g.shadowColor = 'rgba(0,0,0,.8)'; g.shadowBlur = 4 * dpr;
         g.fillText(n, x, base - 11 * dpr); g.shadowBlur = 0;
         g.fillStyle = g.fillStyle; g.fillRect(x - dpr, base - 3 * dpr, 2 * dpr, 6 * dpr);
@@ -397,8 +397,8 @@ export class UI {
       const a0 = rel(target.x, target.z), out = Math.abs(a0) > span * 0.86, a = Math.max(-span * 0.86, Math.min(span * 0.86, a0));
       const x = W / 2 + a * k, s = 7 * dpr;
       g.save(); g.translate(x, base);
-      g.shadowColor = 'rgba(244,193,82,.9)'; g.shadowBlur = 10 * dpr;
-      g.fillStyle = '#f4c152'; g.strokeStyle = '#2e1d00'; g.lineWidth = 1.5 * dpr;
+      g.shadowColor = 'rgba(255,215,0,.9)'; g.shadowBlur = 10 * dpr;
+      g.fillStyle = '#FFD700'; g.strokeStyle = '#2e1d00'; g.lineWidth = 1.5 * dpr;
       if (out) { const d = Math.sign(a0); g.beginPath(); g.moveTo(d * s * 1.3, 0); g.lineTo(-d * s * 0.4, -s); g.lineTo(-d * s * 0.4, s); g.closePath(); }
       else { g.beginPath(); g.moveTo(0, -s); g.lineTo(s, 0); g.lineTo(0, s); g.lineTo(-s, 0); g.closePath(); }
       g.fill(); g.shadowBlur = 0; g.stroke(); g.restore();
@@ -429,7 +429,7 @@ export class UI {
       const d = Math.hypot(x, y), R = S / 2 - 14;
       if (d > R) { x *= R / d; y *= R / d; }
       g.save(); g.translate(x, y); g.rotate(-camYaw);
-      g.fillStyle = '#ffc85a'; g.strokeStyle = '#3a2200'; g.lineWidth = 2; g.beginPath(); g.arc(0, 0, 8, 0, 7); g.fill(); g.stroke();
+      g.fillStyle = '#FFD700'; g.strokeStyle = '#3a2200'; g.lineWidth = 2; g.beginPath(); g.arc(0, 0, 8, 0, 7); g.fill(); g.stroke();
       g.restore();
     }
     g.restore();

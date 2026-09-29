@@ -45,13 +45,19 @@ function blobCanopy(rnd, blobs, detail, base, tint, spread, top) {
   const parts = [];
   const cy = top;
   for (const b of blobs) {
-    const g = new THREE.IcosahedronGeometry(b[3], detail);
-    jitter(g, b[3] * 0.28, rnd);
+    // copa redondeada y mullida: esfera más fina, sombreado suave y bultos pequeños alrededor
+    const g = new THREE.IcosahedronGeometry(b[3], detail + 1);
+    jitter(g, b[3] * 0.16, rnd);
     g.translate(b[0], b[1], b[2]);
-    parts.push(g.toNonIndexed());
+    const gn = g.toNonIndexed(); sphericalNormals(gn, b[0], b[1], b[2], 0.9); parts.push(gn);
+    if (detail) for (let i = 0; i < 3; i++) {
+      const a = rnd() * Math.PI * 2, e = (rnd() - 0.2) * 1.2, rr = b[3] * (0.38 + rnd() * 0.12);
+      const px = b[0] + Math.cos(a) * Math.cos(e) * b[3] * 0.85, py = b[1] + Math.sin(e) * b[3] * 0.85, pz = b[2] + Math.sin(a) * Math.cos(e) * b[3] * 0.85;
+      const sg = new THREE.IcosahedronGeometry(rr, 1); jitter(sg, rr * 0.14, rnd); sg.translate(px, py, pz);
+      const sn = sg.toNonIndexed(); sphericalNormals(sn, px, py, pz, 0.9); parts.push(sn);
+    }
   }
   const g = mergeGeometries(parts);
-  sphericalNormals(g, 0, cy, 0, 0.7);
   const cA = new THREE.Color(base), cB = new THREE.Color(tint);
   colorize(g, (x, y, z, c) => {
     const t = clamp((y - (cy - spread)) / (spread * 2), 0, 1);
@@ -426,14 +432,14 @@ vec4 maskAt(vec2 w){ return texture2D(uMask, (w + ${HALF.toFixed(1)}) / ${(HALF 
 class GrassField {
   constructor(scene, quality) {
     dataTextures();
-    const count = quality === 'low' ? 22000 : quality === 'mid' ? 38000 : 64000;
+    const count = quality === 'low' ? 42000 : quality === 'mid' ? 70000 : 120000;
     const R = quality === 'low' ? 20 : quality === 'mid' ? 26 : 32;
     // hoja: tira con 3 tramos
     const blade = new THREE.BufferGeometry();
     const pos = [], uv = [];
     const segs = 3;
     for (let i = 0; i <= segs; i++) {
-      const t = i / segs, w = 0.062 * (1 - t * 0.85);
+      const t = i / segs, w = 0.026 * (1 - t * 0.9);
       pos.push(-w, t, 0, w, t, 0); uv.push(0, t, 1, t);
     }
     const idx = [];
@@ -471,9 +477,12 @@ vec4 mk = maskAt(wp);
 float dens = mk.r * (1.0 - mk.g * 0.55);
 float fade = 1.0 - smoothstep(uR * 0.72, uR, length(rel));
 float keep = step(aRnd.z, dens * 1.15);
-float hgt = aRnd.y * (0.34 + mk.b * 0.14 + mk.g * 0.14) * (0.6 + 0.4 * dens) * fade * keep;
+float hgt = aRnd.y * (0.3 + mk.b * 0.14 + mk.g * 0.14) * (0.6 + 0.4 * dens) * fade * keep;
 float c = cos(aRnd.x), s = sin(aRnd.x);
 vec3 transformed = vec3(position.x * c, position.y * hgt, position.x * s);
+// brizna curvada hacia un lado, como la hierba de verdad
+float lean = (0.18 + 0.3 * aRnd.w) * position.y * position.y * hgt;
+transformed.x += -s * lean; transformed.z += c * lean;
 // viento y empuje del jugador
 float wph = uTime * 1.8 + wp.x * 0.35 + wp.y * 0.25;
 float bend = (sin(wph) * 0.18 + sin(wph * 2.3 + aRnd.w * 6.0) * 0.07) * position.y * position.y;

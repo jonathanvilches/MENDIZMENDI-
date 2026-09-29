@@ -11,7 +11,7 @@ await page.goto(url + '?town=' + town + '&t=11');
 await page.waitForFunction(() => window.__game && window.__game.mode, null, { timeout: 180000 }).catch(() => logs.push('no game'));
 await page.waitForTimeout(3000);
 await page.evaluate(() => { document.querySelector('#hud') && (document.querySelector('#hud').style.display = 'none'); });
-const views = [['m1', 0.06, 0, 7], ['m2', 0.1, 2.1, 7], ['m3', 0.02, 4.2, 7], ['grass', 0.55, 1, 3.2]];
+const views = (process.env.VIEWS ? JSON.parse(process.env.VIEWS) : [['m1', 0.06, 0, 7], ['m2', 0.1, 2.1, 7], ['m3', 0.02, 4.2, 7], ['grass', 0.55, 1, 3.2]]);
 for (const [n, pitch, yaw, d] of views) {
   await page.evaluate(([pitch, yaw, d]) => { const f = window.__game.follow; f.pitch = pitch; f.yaw = yaw; f.targetDist = d; f.curDist = d; f.idle = 99; }, [pitch, yaw, d]);
   await page.waitForTimeout(2500);

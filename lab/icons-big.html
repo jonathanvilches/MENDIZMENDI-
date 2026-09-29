@@ -1,0 +1,5 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;background:#241c38;font:12px sans-serif;color:#fff;display:flex;flex-wrap:wrap;gap:6px;padding:8px}div{width:124px;text-align:center}div>*{background:#f4eee6;border-radius:14px;padding:6px}div:nth-child(2n)>*{background:#352a52}</style></head><body><script type="module">
+import { ICONS, iconSVG } from '../src/ui/icons.js';
+const q = new URLSearchParams(location.search), list = (q.get('k') || 'church,castle,bridge,house,palace,mill,fountain,kiosk,horreo,ruin,peak,tree,flower,eguzkilore,butterfly,fox,frog,eagle,stork,book,map,compass,binoculars,quiz,talk,check,lock,home,gear,heart,fire,stamp,medal,trophy,badge,shield,star,sickle,net,raft,bike,giant,music,camino,lantern,seed').split(',');
+document.body.innerHTML = list.map(k => `<div>${iconSVG(k, 112)}<br>${k}</div>`).join(''); window.__ready = true;
+</script></body></html>

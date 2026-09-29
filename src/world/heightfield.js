@@ -60,7 +60,7 @@ export function bake() {
       forest *= smoothstep(2, 6, p.d - p.w);
       forest *= smoothstep(1, 5, r.edge);
       SURF.forest[k] = clamp(forest, 0, 1) * 255;
-      let grass = 1 - Math.max(street, dirt * 0.9);
+      let grass = 1 - Math.max(street, Math.min(1, dirt * 1.15));
       grass *= inWater || inPond ? 0 : smoothstep(-0.2, 1.2, r.edge);
       grass *= 1 - vm * 0.55 * (1 - smoothstep(18, 30, r.d));
       const fi = fieldInfo(x, z);
