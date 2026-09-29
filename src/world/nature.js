@@ -1,7 +1,7 @@
 // Árboles (hayas, abetos, robles), hierba viva, flores, rocas y helechos
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { HALF, CELL, N, PLACES, pathQuery, riverInfo, villageMask, meadowMask, iratiMask, fieldInfo } from './layout.js';
+import { HALF, CELL, N, PLACES, pathQuery, riverInfo, villageMask, meadowMask, iratiMask, fieldInfo, SPECIAL_TREES, TREE_MIX, TONE } from './layout.js';
 import { H, SURF, terrainHeight, surfAt } from './heightfield.js';
 import { addCircle, isFree } from './colliders.js';
 import { mulberry32, smoothstep, clamp } from '../util/math.js';
@@ -102,6 +102,40 @@ function makeBush(rnd) {
   return blobCanopy(rnd, blobs, 0, '#3a6428', '#7fae45', 1, 0.6);
 }
 
+function clean(list) { return mergeGeometries(list.map(g => { g = g.index ? g.toNonIndexed() : g; for (const a of Object.keys(g.attributes)) if (!['position', 'normal', 'color'].includes(a)) g.deleteAttribute(a); return g; })); }
+function makeOlive(rnd, detail) {
+  // tronco retorcido y copa gris verdosa
+  const t = trunk(1.6, 0.3, '#6b5a48', 7); jitter(t, 0.12, rnd);
+  const blobs = [[0, 2.6, 0, 1.5], [1.1, 2.3, 0.3, 1.1], [-1.0, 2.4, -0.4, 1.1], [0.2, 3.1, 0.8, 1.0]];
+  return clean([t, blobCanopy(rnd, detail ? blobs : blobs.slice(0, 2), detail ? 1 : 0, '#5f6f45', '#9fae7c', 1.8, 2.6)]);
+}
+function makePoplar(rnd, detail) {
+  const t = trunk(4, 0.25, '#b9b3a3');
+  const blobs = [[0, 5, 0, 1.6], [0, 7, 0, 1.5], [0, 8.8, 0, 1.2], [0.3, 6, 0.3, 1.3]];
+  const c = blobCanopy(rnd, detail ? blobs : blobs.slice(0, 3), detail ? 1 : 0, '#557a2c', '#a8c460', 2.6, 6.8);
+  c.scale(0.9, 1, 0.9);
+  return clean([t, c]);
+}
+function makePine(rnd, detail) {
+  const t = trunk(5.5, 0.3, '#8a5a3a');
+  const blobs = [[0, 6.6, 0, 2.2], [1.4, 6.1, 0.4, 1.5], [-1.3, 6.3, -0.3, 1.5], [0.2, 7.4, -0.6, 1.4]];
+  const c = blobCanopy(rnd, detail ? blobs : blobs.slice(0, 2), detail ? 1 : 0, '#2f5a2e', '#6f9a4a', 2, 6.6);
+  c.scale(1.1, 0.7, 1.1); c.translate(0, 2, 0);
+  return clean([t, c]);
+}
+function makeChestnut(rnd, detail) {
+  const t = trunk(3, 0.5, '#5a4636');
+  const blobs = [[0, 5, 0, 3.1], [2.2, 4.5, 0.4, 2.3], [-2.1, 4.6, -0.3, 2.4], [0.3, 6.3, 0, 2.2]];
+  return clean([t, blobCanopy(rnd, detail ? blobs : blobs.slice(0, 3), detail ? 1 : 0, '#355e22', '#88a83f', 3.4, 5.0)]);
+}
+function makeApple(rnd, detail) {
+  const t = trunk(1.4, 0.18, '#6b5040');
+  const blobs = [[0, 2.3, 0, 1.3], [0.8, 2.1, 0.3, 0.9], [-0.8, 2.2, -0.3, 0.9]];
+  const parts = [t, blobCanopy(rnd, detail ? blobs : blobs.slice(0, 1), detail ? 1 : 0, '#3f7a2e', '#8dbb4c', 1.4, 2.3)];
+  if (detail) for (let i = 0; i < 9; i++) { const a = i * 2.4, r = 1.1 + (i % 3) * 0.15; const f = new THREE.SphereGeometry(0.09, 5, 4); f.translate(Math.cos(a) * r, 1.8 + (i % 4) * 0.3, Math.sin(a) * r); parts.push(colorize(f.toNonIndexed(), (x, y, z, c) => c.set('#d8342c'))); }
+  return clean(parts);
+}
+
 function windMaterial(opts = {}) {
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85, metalness: 0, ...opts });
   m.onBeforeCompile = (sh) => {
@@ -156,18 +190,13 @@ function treeSpots(rnd) {
     // especie: Irati = haya + abeto; laderas medias = roble / haya; alto = abeto/pino
     let type;
     const n = fbm(X / 70 + 20, Z / 70, 2);
-    if (irati > 0.5) type = n > 0.05 ? 'fir' : 'beech';
+    if (TREE_MIX) type = TREE_MIX(X, Z, h, n);
+    else if (irati > 0.5) type = n > 0.05 ? 'fir' : 'beech';
     else if (h > 70) type = n > -0.2 ? 'fir' : 'beech';
     else type = n > 0.15 ? 'beech' : n > -0.3 ? 'oak' : 'fir';
     spots.push({ x: X, z: Z, y: h, type, s: 0.75 + rnd() * 0.55, rot: rnd() * Math.PI * 2 });
   }
-  // árboles del pueblo y la ribera
-  const special = [
-    [PLACES.plaza.x + 11, PLACES.plaza.z - 7, 'oak', 1.25], [PLACES.plaza.x - 11, PLACES.plaza.z + 8, 'oak', 1.15],
-    [PLACES.church.x + 14, PLACES.church.z + 14, 'oak', 1.1], [PLACES.crucero.x - 13, PLACES.crucero.z - 7, 'oak', 1.3],
-    [PLACES.muskilda.x - 16, PLACES.muskilda.z + 12, 'oak', 1.5], [PLACES.muskilda.x + 14, PLACES.muskilda.z + 16, 'beech', 1.2],
-    [PLACES.borda.x + 14, PLACES.borda.z - 10, 'oak', 1.35], [PLACES.mirador.x - 5, PLACES.mirador.z - 6, 'fir', 1.1],
-  ];
+  const special = SPECIAL_TREES || [];
   for (const [x, z, type, s] of special) spots.push({ x, z, y: terrainHeight(x, z), type, s, rot: rnd() * 6, special: true });
   // árboles sueltos en los linderos de los campos
   for (let k = 0; k < 9000; k++) {
@@ -175,9 +204,17 @@ function treeSpots(rnd) {
     const fi = fieldInfo(x, z);
     if (fi.mask < 0.6 || fi.edge > 1.2 || rnd() > 0.12) continue;
     const p = pathQuery(x, z); if (p.d < p.w + 2.5) continue;
-    spots.push({ x, z, y: terrainHeight(x, z), type: rnd() < 0.7 ? 'oak' : 'beech', s: 0.8 + rnd() * 0.5, rot: rnd() * 6.28 });
+    const t = TREE_MIX ? TREE_MIX(x, z, 0, fbm(x / 70 + 20, z / 70, 2)) : (rnd() < 0.7 ? 'oak' : 'beech');
+    spots.push({ x, z, y: terrainHeight(x, z), type: t === 'fir' ? 'oak' : t, s: 0.8 + rnd() * 0.5, rot: rnd() * 6.28 });
   }
-  return spots.filter(s => s.special || (isFree(s.x, s.z, 1.6) && villageMask(s.x, s.z) < 0.35));
+  // plantaciones: olivares y manzanales en cuadrícula
+  for (let z = -HALF + 20; z < HALF - 20; z += 7) for (let x = -HALF + 20; x < HALF - 20; x += 7) {
+    const fi = fieldInfo(x, z);
+    if (fi.mask < 0.7 || fi.edge < 2.5 || (fi.type !== 6 && fi.type !== 8)) continue;
+    const p = pathQuery(x, z); if (p.d < p.w + 2) continue;
+    spots.push({ x: x + (rnd() - 0.5), z: z + (rnd() - 0.5), y: terrainHeight(x, z), type: fi.type === 6 ? 'olive' : 'apple', s: 0.7 + rnd() * 0.25, rot: rnd() * 6.28, crop: true });
+  }
+  return spots.filter(s => s.special || (isFree(s.x, s.z, s.crop ? 1 : 1.6) && villageMask(s.x, s.z) < 0.35));
 }
 
 export class Nature {
@@ -190,10 +227,16 @@ export class Nature {
       beech: [makeBeech(rnd, true), makeBeech(rnd, false)],
       oak: [makeOak(rnd, true), makeOak(rnd, false)],
       fir: [makeFir(rnd, true), makeFir(rnd, false)],
+      olive: [makeOlive(rnd, true), makeOlive(rnd, false)],
+      poplar: [makePoplar(rnd, true), makePoplar(rnd, false)],
+      pine: [makePine(rnd, true), makePine(rnd, false)],
+      chestnut: [makeChestnut(rnd, true), makeChestnut(rnd, false)],
+      apple: [makeApple(rnd, true), makeApple(rnd, false)],
     };
+    TREES.length = 0;
     let spots = treeSpots(rnd);
     const cap = quality === 'low' ? 2200 : quality === 'mid' ? 3600 : 5200;
-    if (spots.length > cap) { spots.sort(() => rnd() - 0.5); spots = spots.slice(0, cap); }
+    if (spots.length > cap) { const crop = spots.filter(s => s.crop || s.special), rest = spots.filter(s => !s.crop && !s.special); rest.sort(() => rnd() - 0.5); spots = crop.slice(0, cap * 0.4).concat(rest.slice(0, cap - Math.min(crop.length, cap * 0.4))); }
     // agrupar por trozo
     const chunks = new Map();
     for (const s of spots) {
@@ -230,9 +273,39 @@ export class Nature {
     this.lodDist = quality === 'low' ? 60 : quality === 'mid' ? 80 : 100;
     this.buildRocks(rnd);
     this.buildBushes(rnd);
+    this.buildCrops(rnd, quality);
     scene.add(this.group);
+    dataTextures(true);
     this.grass = new GrassField(scene, quality);
     this.flowers = new FlowerField(scene, quality);
+  }
+  buildCrops(rnd, quality) {
+    // viñedos (tipo 5) y huertas (tipo 7) en hileras
+    const vine = clean([
+      colorize(new THREE.CylinderGeometry(0.05, 0.07, 0.8, 5).translate(0, 0.4, 0), (x, y, z, c) => c.set('#5a4030')),
+      blobCanopy(rnd, [[0, 0.95, 0, 0.45], [0.35, 0.85, 0, 0.35], [-0.35, 0.85, 0, 0.35]], 0, '#3f6e2a', '#8fb84a', 0.5, 0.9),
+    ]);
+    const veg = clean([blobCanopy(rnd, [[0, 0.2, 0, 0.28], [0.15, 0.15, 0.1, 0.2]], 0, '#2f6a2a', '#7fbf4a', 0.3, 0.2)]);
+    const vines = [], vegs = [];
+    const cap = quality === 'low' ? 2500 : 6000;
+    for (let z = -380; z < 380 && vines.length + vegs.length < cap * 2; z += 1.6) for (let x = -380; x < 380; x += 1.6) {
+      const fi = fieldInfo(x, z);
+      if (fi.mask < 0.6 || fi.edge < 2 || (fi.type !== 5 && fi.type !== 7)) continue;
+      const sp = fi.type === 5 ? 2.6 : 1.4;
+      const f = ((fi.row / sp) % 1 + 1) % 1;
+      if (f > 0.25) continue;
+      const p = pathQuery(x, z); if (p.d < p.w + 1) continue;
+      (fi.type === 5 ? vines : vegs).push({ x, z, s: 0.8 + rnd() * 0.4 });
+    }
+    const mat = windMaterial();
+    const m4 = new THREE.Matrix4();
+    for (const [geo, list] of [[vine, vines.slice(0, cap)], [veg, vegs.slice(0, cap)]]) {
+      if (!list.length) continue;
+      const im = new THREE.InstancedMesh(geo, mat, list.length);
+      list.forEach((o, i) => { m4.compose(new THREE.Vector3(o.x, terrainHeight(o.x, o.z) - 0.05, o.z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, rnd() * 6, 0)), new THREE.Vector3(o.s, o.s, o.s)); im.setMatrixAt(i, m4); });
+      im.computeBoundingSphere(); im.receiveShadow = true;
+      this.group.add(im);
+    }
   }
   buildRocks(rnd) {
     const parts = [];
@@ -322,8 +395,8 @@ export class Nature {
 
 // ---------- Texturas de datos para la GPU ----------
 let heightTex = null, grassTex = null;
-function dataTextures() {
-  if (heightTex) return;
+function dataTextures(force) {
+  if (heightTex && !force) return;
   heightTex = new THREE.DataTexture(H, N, N, THREE.RedFormat, THREE.FloatType);
   heightTex.minFilter = heightTex.magFilter = THREE.NearestFilter; heightTex.needsUpdate = true;
   const g = new Uint8Array(N * N * 4);
@@ -339,7 +412,7 @@ function dataTextures() {
 }
 
 const GRASS_COMMON = `
-uniform sampler2D uHeight; uniform sampler2D uMask; uniform vec2 uCenter; uniform float uR; uniform float uTime; uniform vec3 uPlayer;
+uniform sampler2D uHeight; uniform sampler2D uMask; uniform vec2 uCenter; uniform float uR; uniform float uTime; uniform vec3 uPlayer; uniform vec3 uTint;
 float hAt(vec2 w){
   vec2 f = (w + ${HALF.toFixed(1)}) / ${CELL.toFixed(1)};
   vec2 i = floor(f); vec2 t = f - i;
@@ -380,7 +453,7 @@ class GrassField {
     g.setAttribute('aOff', new THREE.InstancedBufferAttribute(off, 2));
     g.setAttribute('aRnd', new THREE.InstancedBufferAttribute(rr, 4));
     g.instanceCount = count;
-    this.uniforms = { uHeight: { value: heightTex }, uMask: { value: grassTex }, uCenter: { value: new THREE.Vector2() }, uR: { value: R }, uTime: windUniforms.uTime, uPlayer: { value: new THREE.Vector3() } };
+    this.uniforms = { uHeight: { value: heightTex }, uMask: { value: grassTex }, uCenter: { value: new THREE.Vector2() }, uR: { value: R }, uTime: windUniforms.uTime, uPlayer: { value: new THREE.Vector3() }, uTint: { value: new THREE.Color(({ dry: '#d8c89a', arid: '#e6c98f', lush: '#e6ffe0' })[TONE] || '#ffffff') } };
     const m = new THREE.MeshLambertMaterial({ side: THREE.DoubleSide });
     m.onBeforeCompile = (sh) => {
       Object.assign(sh.uniforms, this.uniforms);
@@ -412,7 +485,7 @@ transformed += vec3(wp.x, hAt(wp) - 0.02, wp.y);
 vec3 base = mix(vec3(0.22, 0.40, 0.12), vec3(0.30, 0.47, 0.14), aRnd.w);
 vec3 tip = mix(vec3(0.50, 0.68, 0.24), vec3(0.64, 0.70, 0.30), aRnd.z * aRnd.w);
 tip = mix(tip, vec3(0.42, 0.6, 0.22), mk.g);
-vGrassCol = mix(base, tip, position.y);
+vGrassCol = mix(base, tip, position.y) * uTint;
 `);
       sh.fragmentShader = sh.fragmentShader
         .replace('#include <common>', '#include <common>\nvarying vec3 vGrassCol;')
@@ -456,7 +529,7 @@ class FlowerField {
     g.setAttribute('aOff', new THREE.InstancedBufferAttribute(off, 2));
     g.setAttribute('aRnd', new THREE.InstancedBufferAttribute(rr, 4));
     g.instanceCount = count;
-    this.uniforms = { uHeight: { value: heightTex }, uMask: { value: grassTex }, uCenter: { value: new THREE.Vector2() }, uR: { value: R }, uTime: windUniforms.uTime, uPlayer: { value: new THREE.Vector3() } };
+    this.uniforms = { uHeight: { value: heightTex }, uMask: { value: grassTex }, uCenter: { value: new THREE.Vector2() }, uR: { value: R }, uTime: windUniforms.uTime, uPlayer: { value: new THREE.Vector3() }, uTint: { value: new THREE.Color(({ dry: '#d8c89a', arid: '#e6c98f', lush: '#e6ffe0' })[TONE] || '#ffffff') } };
     const m = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
     m.onBeforeCompile = (sh) => {
       Object.assign(sh.uniforms, this.uniforms);

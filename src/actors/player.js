@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { groundHeight, waterLevelAt, surfAt, bridgeAt } from '../world/heightfield.js';
 import { resolve } from '../world/colliders.js';
+import { BOUNDARY } from '../world/layout.js';
 import { clamp, damp, dampAngle, angleDiff } from '../util/math.js';
 
 export class Player {
@@ -53,7 +54,7 @@ export class Player {
     nx = r.x; nz = r.z;
     // límites del mundo (montañas)
     const r4 = Math.pow(nx ** 4 + nz ** 4, 0.25);
-    if (r4 > 462) { const k = 462 / r4; nx *= k; nz *= k; }
+    if (r4 > BOUNDARY) { const k = BOUNDARY / r4; nx *= k; nz *= k; }
     // pendiente máxima y agua profunda
     const gNew = groundHeight(nx, nz), gOld = groundHeight(this.pos.x, this.pos.z);
     const moved = Math.hypot(nx - this.pos.x, nz - this.pos.z);

@@ -94,3 +94,5 @@ export function segmentBlocked(ax, az, bx, bz) {
   }
   return false;
 }
+
+export function resetColliders() { COLLIDERS.length = 0; grid.clear(); }

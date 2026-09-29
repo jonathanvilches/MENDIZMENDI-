@@ -168,7 +168,7 @@ export function buildHouse(B, T, o, rnd) {
   B.add(wallMat, box(w, h + 3, d, 2.6), MM(T, M(0, (h + 3) / 2 - 3, 0)));
   // zócalo de piedra
   B.add('stoneDark', box(w + 0.12, 0.7 + 3, d + 0.12, 2), MM(T, M(0, (0.7 + 3) / 2 - 3, 0)));
-  if (wallMat !== 'stone' && wallMat !== 'ashlar') quoins(B, T, w, d, h);
+  if (wallMat !== 'stone' && wallMat !== 'ashlar' && !o.noQuoins) quoins(B, T, w, d, h);
   // imposta entre plantas
   const floors = Math.max(2, Math.round(h / 2.9));
   const fh = h / floors;
@@ -183,6 +183,7 @@ export function buildHouse(B, T, o, rnd) {
   const front = MM(T, M(0, 0, d / 2));
   for (let f = 0; f < floors; f++) {
     const y = f * fh + fh * 0.58;
+    if (o.gallery && f === floors - 1 && floors > 1) { gallery(B, front, w, f * fh + 0.3, fh - 0.5); continue; }
     for (let c = 0; c < cols; c++) {
       const x = cols === 1 ? (doorX === 0 ? 0 : -doorX * 0.6) : -w / 2 + (w / cols) * (c + 0.5);
       if (f === 0 && Math.abs(x - doorX) < 1.6) continue;
@@ -196,6 +197,7 @@ export function buildHouse(B, T, o, rnd) {
     }
   }
   if (o.balcony) balconyAt(B, front, 0, fh + 0.02, o.balconyW, { flowers, iron: o.ironBalcony });
+  if (o.timber) timberFrame(B, front, w, h, floors, fh, o.timberColor);
   // ventanas traseras y laterales (sencillas)
   const back = MM(T, M(0, 0, -d / 2, Math.PI));
   for (let f = 0; f < floors; f++) for (let c = 0; c < cols; c++) if (rnd() < 0.7) windowAt(B, back, -w / 2 + (w / cols) * (c + 0.5), f * fh + fh * 0.58, 0.75, 1.1, { shutter });
@@ -212,8 +214,9 @@ export function buildHouse(B, T, o, rnd) {
   let rise;
   const gableMat = wallMat === 'stone' || wallMat === 'ashlar' ? wallMat : wallMat;
   if (o.roofType === 'hip') rise = roofHip(B, T, w, d, h, o.hipRise ?? w * 0.45, roofMat);
-  else if (o.roofType === 'gableZ') rise = roofGableZ(B, T, w, d, h, pitch, roofMat, { gableMat });
-  else rise = roofGableX(B, T, w, d, h, pitch, roofMat, { gableMat });
+  else if (o.roofType === 'gableZ') rise = roofGableZ(B, T, w, d, h, pitch, roofMat, { gableMat, overhang: o.overhang });
+  else rise = roofGableX(B, T, w, d, h, pitch, roofMat, { gableMat, overhang: o.overhang });
+  if (o.timber && o.roofType === 'gableZ') for (let i = -2; i <= 2; i++) B.add('woodDark', box(0.14, Math.max(0.3, rise * (1 - Math.abs(i) / 2.6) - 0.3), 0.08), MM(front, M(i * w / 6, h + (rise * (1 - Math.abs(i) / 2.6)) / 2, 0.06)));
   // chimenea
   chimney(B, T, (rnd() - 0.5) * w * 0.4, h + rise * 0.55, (rnd() - 0.5) * d * 0.3);
   // buhardilla ocasional
@@ -224,4 +227,29 @@ export function buildHouse(B, T, o, rnd) {
     B.add(roofMat, box(1.9, 0.12, 2.1, 2), MM(dm, M(0, 1.45, 0.1, 0, 0.18)));
   }
   return rise;
+}
+
+// Entramado de madera de los caseríos atlánticos (Baztan, Bidasoa)
+function timberFrame(B, T, w, h, floors, fh, color) {
+  const mat = 'woodDark';
+  for (let f = 1; f <= floors; f++) B.add(mat, box(w + 0.05, 0.22, 0.1), MM(T, M(0, f * fh - 0.05, 0.07)));
+  for (const s of [-1, 1]) B.add(mat, box(0.22, h - fh, 0.1), MM(T, M(s * (w / 2 - 0.12), fh + (h - fh) / 2, 0.07)));
+  for (let f = 1; f < floors; f++) {
+    const y0 = f * fh, y1 = (f + 1) * fh;
+    for (const x of [-w / 4, w / 4]) B.add(mat, box(0.16, fh, 0.08), MM(T, M(x, (y0 + y1) / 2, 0.07)));
+    const len = Math.hypot(w / 4, fh);
+    B.add(mat, box(0.14, len, 0.08), MM(T, M(-w * 3 / 8, (y0 + y1) / 2, 0.075, 0, 0, Math.atan2(w / 4, fh))));
+    B.add(mat, box(0.14, len, 0.08), MM(T, M(w * 3 / 8, (y0 + y1) / 2, 0.075, 0, 0, -Math.atan2(w / 4, fh))));
+  }
+}
+// Galería de arquillos (solana) de las casas de la Ribera
+function gallery(B, T, w, y, hh) {
+  const n = Math.max(3, Math.round(w / 1.4));
+  const aw = (w - 0.6) / n;
+  for (let i = 0; i < n; i++) {
+    const x = -w / 2 + 0.3 + aw * (i + 0.5);
+    B.add('glass', archPanel(aw * 0.62, hh * 0.8, 0.06), MM(T, M(x, y, -0.01)));
+    B.add('brick', archRing(aw * 0.31, aw * 0.44, 0.16, 8), MM(T, M(x, y + hh * 0.8 - aw * 0.31, 0.05)));
+  }
+  B.add('brick', box(w + 0.1, 0.14, 0.24), MM(T, M(0, y - 0.05, 0.1)));
 }

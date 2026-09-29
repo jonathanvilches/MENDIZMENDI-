@@ -223,6 +223,24 @@ function groundDetail(size) {
   return toTex(c, false);
 }
 
+// ---- Ladrillo de la Ribera ----
+function bricks(size) {
+  const rnd = mulberry32(31);
+  const col = canvas(size), hc = canvas(size);
+  const g = col.getContext('2d'), h = hc.getContext('2d');
+  g.fillStyle = '#c9b49a'; g.fillRect(0, 0, size, size);
+  h.fillStyle = '#303030'; h.fillRect(0, 0, size, size);
+  const rows = 16, rh = size / rows, bw = size / 5;
+  for (let r = 0; r < rows; r++) for (let c = -1; c < 6; c++) {
+    const x = c * bw + (r % 2) * bw / 2, y = r * rh;
+    const l = 40 + rnd() * 12, hue = 12 + rnd() * 10;
+    g.fillStyle = hsl(hue, 45 + rnd() * 10, l); g.fillRect(x + 1.5, y + 1.5, bw - 3, rh - 3);
+    h.fillStyle = '#d0d0d0'; h.fillRect(x + 1.5, y + 1.5, bw - 3, rh - 3);
+  }
+  grain(g, size, 0.16, rnd, 0.6);
+  return { map: toTex(col), normalMap: toTex(normalFromHeight(hc, 2.5), false) };
+}
+
 export const TEX = {};
 export function buildTextures(quality = 'high') {
   const S = quality === 'low' ? 256 : 512;
@@ -236,6 +254,10 @@ export function buildTextures(quality = 'high') {
   TEX.wood = wood(S / 2, [25, 42, 30], 8);
   TEX.woodDark = wood(S / 2, [20, 35, 20], 12);
   TEX.cobble = cobbles(S);
+  TEX.brick = bricks(S);
+  TEX.plasterOcher = plaster(S, '#e3c48f', 3);
+  TEX.plasterRose = plaster(S, '#e6b9a0', 4);
+  TEX.plasterBlue = plaster(S, '#c9d6de', 5);
   TEX.detail = groundDetail(S);
   return TEX;
 }

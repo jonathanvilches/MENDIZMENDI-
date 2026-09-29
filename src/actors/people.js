@@ -4,6 +4,7 @@ import { groundHeight } from '../world/heightfield.js';
 import { resolve, addCircle } from '../world/colliders.js';
 import { clamp, damp, dampAngle, lerp, mulberry32 } from '../util/math.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { buildMinifig, lookToMinifig } from './minifig.js';
 
 const matCache = new Map();
 export function mat(color, o = {}) {
@@ -176,7 +177,7 @@ export class Actor {
   constructor(def, scene) {
     this.def = def;
     this.id = def.id; this.name = def.name;
-    this.obj = buildFigure(def.look);
+    this.obj = buildMinifig(def.mini || lookToMinifig(def.look));
     this.J = this.obj.userData.J;
     scene.add(this.obj);
     this.pos = new THREE.Vector3(def.x, 0, def.z);
