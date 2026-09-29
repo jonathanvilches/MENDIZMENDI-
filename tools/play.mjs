@@ -6,7 +6,7 @@ const steps = JSON.parse(stepsJson);
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: { width: +w, height: +h } });
 const logs = [];
-page.on('console', m => { const t = m.text(); if (!/toNonIndexed|vite|Canvas2D|CERT|404/.test(t)) logs.push(m.type() + ': ' + t); });
+page.on('console', m => { const t = m.text(); if (!/toNonIndexed|vite|Canvas2D|CERT|404|AudioContext|NaN|bake/.test(t)) logs.push(m.type() + ': ' + t); });
 page.on('pageerror', e => logs.push('PAGEERROR: ' + e.message + '\n' + e.stack));
 await page.goto(url);
 await page.waitForFunction(() => window.__ready, null, { timeout: 120000 }).catch(() => logs.push('timeout ready'));

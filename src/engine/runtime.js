@@ -121,7 +121,7 @@ export class Runtime {
     this.lights.update(this.sky.night, P);
     this.beacon.update(this.elapsed, P);
     this.sound.update(dt, P, this.follow.yaw, this.sky.night, iratiMask(P.pos.x, P.pos.z) > 0.5);
-    g.ui.setClock((this.sky.night > 0.5 ? '🌙 ' : '☀️ ') + this.sky.clock());
+    g.ui.setClock(this.sky.clock(), this.sky.night > 0.5);
     this.renderer.render(this.scene, this.camera);
     input.endFrame();
     this.frames++; this.fpsT += dt;

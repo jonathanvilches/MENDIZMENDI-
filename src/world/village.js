@@ -226,7 +226,8 @@ function buildBridges(B) {
     for (let i = 0; i <= N; i++) { const lx = -L / 2 + L * i / N; s.lineTo(lx, deckY(b, b.cx + lx) - 0.05); }
     s.lineTo(L / 2, bed - 1); s.lineTo(archR, bed - 1); s.lineTo(archR, bed + 0.4);
     const spring = bed + 0.4;
-    const archH = b.main ? archR * 1.05 : archR * 0.9;
+    // el arco nunca puede sobrepasar el tablero: si el río es ancho, arco rebajado
+    const archH = Math.max(1.2, Math.min(b.main ? archR * 1.05 : archR * 0.9, deckY(b, b.cx) - 1.25 - spring));
     for (let i = 1; i < 20; i++) { const a = Math.PI * i / 20; s.lineTo(Math.cos(a) * archR, spring + Math.sin(a) * archH); }
     s.lineTo(-archR, spring); s.lineTo(-archR, bed - 1); s.closePath();
     const g = new THREE.ExtrudeGeometry(s, { depth: b.w, bevelEnabled: false });
@@ -236,8 +237,8 @@ function buildBridges(B) {
     for (const side of [-1, 1]) {
       for (let i = 0; i < 17; i++) {
         const a0 = Math.PI * i / 17, a1 = Math.PI * (i + 1) / 17, am = (a0 + a1) / 2;
-        const X = Math.cos(am) * (archR + 0.35), Y = spring + Math.sin(am) * (archH + 0.35);
-        B.add('ashlar', box(0.75, (archR + 0.4) * (a1 - a0), 0.25, 1), M(b.cx + X, Y, b.z + side * (b.w / 2 + 0.06), 0, 0, am - Math.PI / 2));
+        const X = Math.cos(am) * (archR + 0.33), Y = spring + Math.sin(am) * (archH + 0.33);
+        B.add('ashlar', box(0.66, Math.hypot(archR * (Math.cos(a1) - Math.cos(a0)), archH * (Math.sin(a1) - Math.sin(a0))) + 0.04, 0.25, 1), M(b.cx + X, Y, b.z + side * (b.w / 2 + 0.06), 0, 0, Math.atan2(Math.sin(am) * archR, Math.cos(am) * archH)));
       }
     }
     // pretiles con albardilla

@@ -4,7 +4,7 @@ import { groundHeight } from '../world/heightfield.js';
 import { resolve, addCircle } from '../world/colliders.js';
 import { clamp, damp, dampAngle, lerp, mulberry32 } from '../util/math.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { buildMinifig, lookToMinifig } from './minifig.js';
+import { buildMinifig, lookToMinifig, MinifigAnimator } from './minifig.js';
 
 const matCache = new Map();
 export function mat(color, o = {}) {
@@ -179,6 +179,7 @@ export class Actor {
     this.id = def.id; this.name = def.name;
     this.obj = buildMinifig(def.mini || lookToMinifig(def.look));
     this.J = this.obj.userData.J;
+    this.anim = new MinifigAnimator(this.obj);
     scene.add(this.obj);
     this.pos = new THREE.Vector3(def.x, 0, def.z);
     this.home = { x: def.x, z: def.z };
@@ -240,44 +241,15 @@ export class Actor {
     this.sync();
   }
   animate(dt) {
-    const J = this.J, t = this.t;
-    const walk = clamp(this.speed / 1.2, 0, 1.6);
-    const sw = Math.sin(this.phase) * 0.55 * Math.min(walk, 1.2);
-    J.legL.rotation.x = sw; J.legR.rotation.x = -sw;
-    J.kneeL.rotation.x = Math.max(0, -Math.sin(this.phase + 0.6)) * 0.8 * walk;
-    J.kneeR.rotation.x = Math.max(0, Math.sin(this.phase + 0.6)) * 0.8 * walk;
-    J.armL.rotation.x = -sw * 0.8; J.armR.rotation.x = sw * 0.8;
-    J.elbowL.rotation.x = -0.2 - walk * 0.2; J.elbowR.rotation.x = -0.2 - walk * 0.2;
-    const bob = Math.abs(Math.cos(this.phase)) * 0.03 * walk;
-    this.obj.children[0].position.y = bob;
-    const breath = Math.sin(t * 2) * 0.02;
-    J.torso.rotation.x = breath + (this.def.look.bent || 0) + walk * 0.05;
-    J.head.rotation.x = -(this.def.look.bent || 0) * 0.6;
-    J.head.rotation.y = Math.sin(t * 0.5) * 0.15;
-    // gestos al hablar
-    if (this.talking > 0) {
-      this.talking -= dt;
-      J.mouth.scale.y = 0.35 + Math.abs(Math.sin(t * 13)) * 0.9;
-      J.armR.rotation.x = -0.5 + Math.sin(t * 3) * 0.3; J.elbowR.rotation.x = -0.9 + Math.sin(t * 4) * 0.2;
-      J.armR.rotation.z = 0.3;
-      J.head.rotation.z = Math.sin(t * 2.2) * 0.06;
-    } else { J.mouth.scale.y = 0.35; J.armR.rotation.z = 0.08; J.head.rotation.z = 0; }
-    if (this.wave > 0) {
-      this.wave -= dt;
-      J.armR.rotation.z = 2.6; J.armR.rotation.x = 0; J.elbowR.rotation.z = Math.sin(t * 12) * 0.4;
-    } else J.elbowR.rotation.z = 0;
-    if (this.dance) {
-      const b = t * this.dance;
-      J.armL.rotation.z = -2.2 + Math.sin(b) * 0.4; J.armR.rotation.z = 2.2 + Math.sin(b + 1) * 0.4;
-      J.legL.rotation.x = Math.max(0, Math.sin(b)) * 0.7; J.kneeL.rotation.x = Math.max(0, Math.sin(b)) * 1.2;
-      J.legR.rotation.x = Math.max(0, -Math.sin(b)) * 0.7; J.kneeR.rotation.x = Math.max(0, -Math.sin(b)) * 1.2;
-      this.obj.children[0].position.y = Math.abs(Math.sin(b)) * 0.18;
+    if (this.talking > 0) this.talking -= dt;
+    if (this.wave > 0) this.wave -= dt;
+    let lookYaw = 0;
+    if (this.lookAt && this.speed < 0.3) {
+      const want = Math.atan2(this.lookAt.x - this.pos.x, this.lookAt.z - this.pos.z);
+      lookYaw = Math.max(-0.9, Math.min(0.9, Math.atan2(Math.sin(want - this.heading), Math.cos(want - this.heading))));
     }
-    if (J.staff) J.armR.rotation.x = Math.min(J.armR.rotation.x, 0.1);
-    // parpadeo
-    this.blink -= dt;
-    J.lids.visible = this.blink < 0.12;
-    if (this.blink < 0) this.blink = 2 + Math.random() * 4;
+    this.anim.update(dt, { speed: this.speed, grounded: true, talking: this.talking, wave: this.wave, dance: this.dance, lookYaw, bent: this.def.look?.bent || 0, cheer: this.cheer || 0 });
+    if (this.cheer > 0) this.cheer -= dt;
   }
   say(sec = 3) { this.talking = sec; }
   sync() {
