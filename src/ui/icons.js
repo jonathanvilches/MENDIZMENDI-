@@ -217,10 +217,14 @@ export function withDefs(k) {
   defsCache.set(k, out);
   return out;
 }
+// Cada SVG en línea lleva sus propios id de degradado y sombra: si se compartieran, un icono oculto
+// (display:none) dejaría sin pintar a todos los que usan el mismo id.
+let UID = 0;
+const uniq = (svg) => { const u = (++UID).toString(36); return svg.replace(/(id="|url\(#)(mg[0-9a-f]{6}|mds)/g, `$1$2_${u}`); };
 export function iconSVG(name, size = 32, cls = '') {
   const k = ICONS[name] ? name : ICONS[ALIAS[name]] ? ALIAS[name] : 'star';
   if (has3D(k)) { const u = icon3D(k); if (u) return `<img class="ico ico3d ${cls}" src="${u}" width="${size}" height="${size}" alt="" aria-hidden="true">`; }
-  return `<svg class="ico ${cls}" viewBox="0 0 64 64" width="${size}" height="${size}" aria-hidden="true">${withDefs(k)}</svg>`;
+  return `<svg class="ico ${cls}" viewBox="0 0 64 64" width="${size}" height="${size}" aria-hidden="true">${uniq(withDefs(k))}</svg>`;
 }
 // Imagen (para dibujar en canvas: mapas, minimapa)
 const imgCache = new Map();

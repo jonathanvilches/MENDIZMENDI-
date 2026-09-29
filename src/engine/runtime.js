@@ -32,8 +32,11 @@ export class Runtime {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = quality === 'low' ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping; this.renderer.toneMappingExposure = 1.05;
-    this.camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.15, 6000);
-    addEventListener('resize', () => { this.renderer.setSize(innerWidth, innerHeight); this.camera.aspect = innerWidth / innerHeight; this.camera.updateProjectionMatrix(); });
+    // en vertical se abre el campo de visión para no ver el mundo «por un tubo»
+    const fovFor = (a) => a < 1 ? 55 + (1 - a) * 30 : 55;
+    this.camera = new THREE.PerspectiveCamera(fovFor(innerWidth / innerHeight), innerWidth / innerHeight, 0.15, 6000);
+    this.camera.userData.fov0 = this.camera.fov;
+    addEventListener('resize', () => { this.renderer.setSize(innerWidth, innerHeight); this.camera.aspect = innerWidth / innerHeight; this.camera.fov = this.camera.userData.fov0 = fovFor(this.camera.aspect); this.camera.updateProjectionMatrix(); });
     this.texturesReady = false;
     this.active = false;
     this.clock = new THREE.Clock();

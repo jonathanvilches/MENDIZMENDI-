@@ -1,6 +1,12 @@
 // MENDIMENDIZ · Navarra pueblo a pueblo
 // Arranque: centro de mando (hub) + motor 3D que carga cada localidad con sus misiones.
 import * as THREE from 'three';
+// tipografías incrustadas: el juego funciona igual sin conexión
+import '@fontsource/lilita-one/latin-400.css';
+import '@fontsource/nunito/latin-600.css';
+import '@fontsource/nunito/latin-700.css';
+import '@fontsource/nunito/latin-800.css';
+import '@fontsource/nunito/latin-900.css';
 import './hub/hub.css';
 import * as HF from './world/heightfield.js';
 import * as LAYOUT from './world/layout.js';

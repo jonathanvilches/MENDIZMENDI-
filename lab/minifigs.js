@@ -14,7 +14,7 @@ const looks = mode === 'npc' ? JSON.parse(decodeURIComponent(q.get('looks') || '
 looks.forEach((c, i) => { const f = buildMinifig(c, { hero: mode === 'close' }); f.position.x = (i - (looks.length - 1) / 2) * 1.25; if (q.get('back')) f.rotation.y = Math.PI; scene.add(f); figs.push({ f, a: new MinifigAnimator(f) }); });
 const speed = +(q.get('speed') || 0), fr = +(q.get('t') || 0);
 const view = q.get('view');
-if (mode === 'close') { figs.forEach((o, j) => { o.f.visible = j === +(q.get('i') || 0); o.f.position.x = 0; }); const i = +(q.get('i') || 0); cam.position.set(view === 'side' ? 3.2 : 0.8, 1.1, view === 'side' ? 0 : 3.1); cam.lookAt(0, 0.78, 0); }
+if (mode === 'close') { figs.forEach((o, j) => { o.f.visible = j === +(q.get('i') || 0); o.f.position.x = 0; }); const i = +(q.get('i') || 0); cam.position.set(view === 'side' ? 3.2 : view === 'back' ? -0.9 : 0.8, view === 'back' ? 1.5 : 1.1, view === 'side' ? 0 : view === 'back' ? -3.0 : 3.1); cam.lookAt(0, 0.78, 0); }
 else { cam.position.set(0, 1.6, 15); cam.lookAt(0, 0.85, 0); }
 if (q.get('face')) { const i = +(q.get('i') || 0); cam.position.set(figs[i].f.position.x, 1.45, 1.4); cam.lookAt(figs[i].f.position.x, 1.42, 0); }
 for (const { a } of figs) { a.t = 0; a.phase = 0; a.blinkT = 99; }

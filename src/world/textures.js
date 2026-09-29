@@ -223,6 +223,75 @@ function groundDetail(size) {
   return toTex(c, false);
 }
 
+
+// ---- Suelo de hierba (vista cenital) ----
+// R: briznas (luminancia), G: manchas de trébol, B: florecillas
+function grassGround(size) {
+  const rnd = mulberry32(17);
+  const layer = () => { const c = canvas(size), g = c.getContext('2d'); g.fillStyle = '#000'; g.fillRect(0, 0, size, size); return [c, g]; };
+  const [cr, gr] = layer(), [cg, gg] = layer(), [cb, gb] = layer();
+  gr.fillStyle = 'rgb(96,96,96)'; gr.fillRect(0, 0, size, size);
+  const k = size / 512;
+  // briznas: trazos cortos en todas direcciones, oscuros abajo y claros arriba
+  gr.lineCap = 'round';
+  for (let i = 0; i < 9000 * k * k; i++) {
+    const x = rnd() * size, y = rnd() * size, a = rnd() * Math.PI * 2, L = (3 + rnd() * 7) * k, v = 40 + rnd() * 215;
+    wrapDraw(size, x, y, L, (X, Y) => { gr.strokeStyle = `rgb(${v | 0},${v | 0},${v | 0})`; gr.lineWidth = (0.8 + rnd() * 1.1) * k; gr.beginPath(); gr.moveTo(X, Y); gr.lineTo(X + Math.cos(a) * L, Y + Math.sin(a) * L); gr.stroke(); });
+  }
+  // tréboles: grupos de tres hojitas
+  for (let i = 0; i < 70 * k * k; i++) {
+    const x = rnd() * size, y = rnd() * size, n = 3 + (rnd() * 6 | 0);
+    for (let j = 0; j < n; j++) {
+      const X0 = x + (rnd() - 0.5) * 26 * k, Y0 = y + (rnd() - 0.5) * 26 * k, r = (2.2 + rnd() * 1.6) * k;
+      wrapDraw(size, X0, Y0, r * 3, (X, Y) => { gg.fillStyle = `rgb(0,${170 + rnd() * 85 | 0},0)`; for (let l = 0; l < 3; l++) { const a = l * 2.1 + rnd(); gg.beginPath(); gg.arc(X + Math.cos(a) * r, Y + Math.sin(a) * r, r, 0, 7); gg.fill(); } });
+    }
+  }
+  // florecillas: puntitos con centro
+  for (let i = 0; i < 90 * k * k; i++) {
+    const x = rnd() * size, y = rnd() * size, r = (1.6 + rnd() * 1.6) * k;
+    wrapDraw(size, x, y, r * 2, (X, Y) => { gb.fillStyle = 'rgb(0,0,255)'; for (let l = 0; l < 5; l++) { const a = l * 1.2566; gb.beginPath(); gb.arc(X + Math.cos(a) * r * 0.8, Y + Math.sin(a) * r * 0.8, r * 0.62, 0, 7); gb.fill(); } gb.fillStyle = 'rgb(0,0,140)'; gb.beginPath(); gb.arc(X, Y, r * 0.45, 0, 7); gb.fill(); });
+  }
+  const out = canvas(size), og = out.getContext('2d'), img = og.createImageData(size, size), d = img.data;
+  const R = gr.getImageData(0, 0, size, size).data, G = gg.getImageData(0, 0, size, size).data, B = gb.getImageData(0, 0, size, size).data;
+  for (let i = 0; i < size * size; i++) { d[i * 4] = R[i * 4]; d[i * 4 + 1] = G[i * 4 + 1]; d[i * 4 + 2] = B[i * 4 + 2]; d[i * 4 + 3] = 255; }
+  og.putImageData(img, 0, 0);
+  return toTex(out, false);
+}
+
+// ---- Roca de montaña: estratos, grietas y líquenes ----
+// R: luminancia de la roca, G: líquenes, B: oclusión de grietas
+function rockFace(size) {
+  const rnd = mulberry32(23);
+  const per = (x, y, f) => { const a = (x / size) * Math.PI * 2, b = (y / size) * Math.PI * 2; return noise2(Math.cos(a) * f + 10, Math.sin(a) * f + Math.cos(b) * f * 0.9 + 3) * 0.5 + noise2(Math.sin(b) * f - 7, Math.cos(b) * f + Math.sin(a) * f * 0.7) * 0.5; };
+  const c = canvas(size), g = c.getContext('2d'), img = g.createImageData(size, size), d = img.data;
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const k = (y * size + x) * 4;
+    const warp = per(x, y, 1.5) * 18;
+    // estratos: bandas horizontales onduladas de distinto grosor
+    const band = Math.sin(((y + warp) / size) * Math.PI * 2 * 7) * 0.5 + Math.sin(((y + warp * 1.7) / size) * Math.PI * 2 * 17) * 0.25;
+    const n = per(x, y, 3) * 0.45 + per(x, y, 9) * 0.25 + (rnd() - 0.5) * 0.12;
+    d[k] = Math.max(0, Math.min(255, 140 + n * 150 + band * 38));
+    d[k + 1] = Math.max(0, Math.min(255, (per(x + 40, y, 4) - 0.25) * 600));
+    d[k + 2] = 255; d[k + 3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+  // grietas: trazos quebrados, sobre todo verticales, que oscurecen R y B
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  for (let i = 0; i < 26; i++) {
+    let x = rnd() * size, y = rnd() * size; const steps = 6 + (rnd() * 10 | 0), w = 1 + rnd() * 2.2;
+    const pts = [[x, y]]; for (let j = 0; j < steps; j++) { x += (rnd() - 0.5) * 22; y += 8 + rnd() * 16; pts.push([x, y]); }
+    for (const dx of [-size, 0, size]) for (const dy of [-size, 0, size]) {
+      g.strokeStyle = 'rgba(20,0,40,0.85)'; g.lineWidth = w; g.beginPath(); pts.forEach(([px, py], j) => j ? g.lineTo(px + dx, py + dy) : g.moveTo(px + dx, py + dy)); g.stroke();
+    }
+  }
+  // juntas horizontales entre estratos
+  for (let i = 0; i < 9; i++) {
+    const y0 = rnd() * size; g.strokeStyle = 'rgba(30,0,60,0.6)'; g.lineWidth = 1 + rnd() * 1.5;
+    for (const dy of [-size, 0, size]) { g.beginPath(); for (let x = 0; x <= size; x += 8) { const y = y0 + dy + Math.sin(x / size * Math.PI * 4 + i) * 6; x ? g.lineTo(x, y) : g.moveTo(x, y); } g.stroke(); }
+  }
+  return toTex(c, false);
+}
+
 // ---- Ladrillo de la Ribera ----
 function bricks(size) {
   const rnd = mulberry32(31);
@@ -259,5 +328,7 @@ export function buildTextures(quality = 'high') {
   TEX.plasterRose = plaster(S, '#e6b9a0', 4);
   TEX.plasterBlue = plaster(S, '#c9d6de', 5);
   TEX.detail = groundDetail(S);
+  TEX.grass = grassGround(S);
+  TEX.rock = rockFace(S);
   return TEX;
 }

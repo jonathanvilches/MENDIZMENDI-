@@ -53,23 +53,26 @@ export class UI {
     this.game = game;
     const town = game.kind === 'town';
     const h = el(`<div id="hud">
-      <div id="quest" class="glass"><div class="ic"><span class="qe"></span><svg class="arrow" viewBox="0 0 52 52"><path d="M26 1 L31 8 L21 8 Z" fill="#ffc85a"/></svg></div><div class="qtxt"><small></small><b class="qt"></b><div class="qrow"><span class="qpips"></span><span class="qd"></span></div></div></div>
-      <div id="ribbons" class="glass">${town ? `<span class="tname">${esc(game.def.name)}</span><span class="dots">${game.missions.map(M => `<i data-m="${M.i}" title="${esc(M.title)}"></i>`).join('')}</span>`
-        : `${RIBBONS.map(r => `<i data-r="${r.id}" title="${r.name}"></i>`).join('')}<span class="eg">${I('eguzkilore', 18)} <b>0/${EGUZKILORES.length}</b></span>`}</div>
+      <div id="compass"><canvas></canvas></div>
+      <div id="tl">
+        <div id="quest"><div class="ic"><span class="qe"></span></div><div class="qtxt"><small></small><b class="qt"></b><div class="qrow"><span class="qpips"></span><span class="qd"></span></div></div></div>
+        <div id="ribbons">${town ? `<span class="tname">${esc(game.def.name.split(' /')[0])}</span><span class="dots">${game.missions.map(M => `<i data-m="${M.i}" title="${esc(M.title)}"></i>`).join('')}</span>`
+          : `${RIBBONS.map(r => `<i data-r="${r.id}" title="${r.name}"></i>`).join('')}<span class="eg">${I('eguzkilore', 18)} <b>0/${EGUZKILORES.length}</b></span>`}</div>
+      </div>
       <div id="topright">
-        <div id="mini"><canvas width="248" height="248"></canvas><div id="clock"><span class="ci"></span><span class="ct">09:00</span></div></div>
         <div class="rbtns">
           <button class="round hidden" id="bBino" aria-label="Prismáticos (F)">${ICON.bino}</button>
           <button class="round" id="bBook" aria-label="Cuaderno (C)">${ICON.book}</button>
           <button class="round" id="bMap" aria-label="Mapa (M)">${ICON.map}</button>
           <button class="round" id="bMenu" aria-label="Menú (Esc)">${ICON.menu}</button>
         </div>
+        <div id="mini"><canvas width="248" height="248"></canvas><div id="clock"><span class="ci"></span><span class="ct">09:00</span></div></div>
       </div>
-      <div id="prompt" class="glass hidden"><kbd>E</kbd><span></span></div>
-      <div id="toast" class="glass"></div>
+      <div id="prompt" class="hidden"><kbd>E</kbd><span></span></div>
+      <div id="toast"></div>
       <div id="mg" class="glass hidden"></div>
       <div id="stick"><i></i></div>
-      <div id="stickHint">Arrastra aquí para caminar</div>
+      <div id="stickHint"><i></i><span>Mover</span></div>
       <div id="controls">
         <button class="cbtn" id="cRun" aria-label="Correr">${ICON.run}</button>
         <button class="cbtn" id="cJump" aria-label="Saltar">${ICON.jump}</button>
@@ -95,10 +98,11 @@ export class UI {
     const stick = $('#stick', h), knob = $('#stick i', h), sh = $('#stickHint', h);
     this.input.onStick = (on, x, y, dx, dy) => {
       stick.style.display = on ? 'block' : 'none';
-      if (on) { sh.style.display = 'none'; stick.style.left = x + 'px'; stick.style.top = y + 'px'; knob.style.transform = `translate(${dx}px,${dy}px)`; }
+      if (on) { sh.classList.add('gone'); stick.style.left = x + 'px'; stick.style.top = y + 'px'; knob.style.transform = `translate(${dx}px,${dy}px)`; }
     };
     this.buildMapCanvas(game.mapHouses ? game.mapHouses() : []);
     this.mini = $('#mini canvas', h).getContext('2d');
+    this.compass = $('#compass canvas', h);
     this.lastQuestIcon = null;
     if (town) this.refreshDots();
   }
@@ -114,8 +118,6 @@ export class UI {
     const pips = $('.qpips', b), key = (q.nSteps || 0) + ':' + (q.stepIdx ?? -1);
     if (pips.dataset.k !== key) { pips.dataset.k = key; pips.innerHTML = q.nSteps ? Array.from({ length: q.nSteps }, (_, i) => `<i class="${i < q.stepIdx ? 'ok' : i === q.stepIdx ? 'now' : ''}"></i>`).join('') : ''; }
     $('.qd', b).textContent = q.dist != null ? (q.dist < 1000 ? `${Math.round(q.dist)} m` : '') : '';
-    const svg = $('svg.arrow', b); svg.style.display = q.angle != null ? 'block' : 'none';
-    if (q.angle != null) svg.style.transform = `rotate(${q.angle}rad)`;
   }
   setRibbons(have, eg) {
     if (!this.hud) return;
@@ -358,8 +360,58 @@ export class UI {
     g.beginPath(); g.moveTo(0, -11 * s); g.lineTo(8 * s, 9 * s); g.lineTo(0, 4 * s); g.lineTo(-8 * s, 9 * s); g.closePath(); g.fill(); g.stroke();
     g.restore();
   }
+  // Brújula superior: puntos cardinales, misiones cercanas y el objetivo con su distancia
+  drawCompass(player, camYaw, markers, target) {
+    const c = this.compass; if (!c || !c.offsetParent) return;
+    const dpr = Math.min(2, devicePixelRatio || 1), W = Math.round(c.clientWidth * dpr), Hh = Math.round(c.clientHeight * dpr);
+    if (!W || !Hh) return;
+    if (c.width !== W || c.height !== Hh) { c.width = W; c.height = Hh; }
+    const g = c.getContext('2d'); g.clearRect(0, 0, W, Hh);
+    const span = Math.PI * 0.5, k = (W / 2) / span, base = Hh * 0.56;
+    const wrap = (a) => ((a + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
+    const cs = Math.cos(camYaw), sn = Math.sin(camYaw);
+    const rel = (x, z) => { const dx = x - player.pos.x, dz = z - player.pos.z; return Math.atan2(dx * cs - dz * sn, -(dx * sn + dz * cs)); };
+    g.strokeStyle = 'rgba(255,244,228,.35)'; g.lineWidth = dpr; g.beginPath(); g.moveTo(0, base); g.lineTo(W, base); g.stroke();
+    const NAMES = ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'];
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    for (let i = 0; i < 24; i++) {
+      const a = wrap(camYaw + i * Math.PI / 12); if (Math.abs(a) > span) continue;
+      const x = W / 2 + a * k;
+      if (i % 3 === 0) {
+        const n = NAMES[i / 3], card = n.length === 1;
+        g.font = `900 ${Math.round((card ? 14 : 11) * dpr)}px Nunito, sans-serif`;
+        g.fillStyle = n === 'N' ? '#f4c152' : card ? '#fff' : 'rgba(255,244,228,.7)';
+        g.shadowColor = 'rgba(0,0,0,.8)'; g.shadowBlur = 4 * dpr;
+        g.fillText(n, x, base - 11 * dpr); g.shadowBlur = 0;
+        g.fillStyle = g.fillStyle; g.fillRect(x - dpr, base - 3 * dpr, 2 * dpr, 6 * dpr);
+      } else { g.fillStyle = 'rgba(255,244,228,.45)'; g.fillRect(x - dpr * 0.5, base - 2 * dpr, dpr, 4 * dpr); }
+    }
+    // misiones y lugares a la vista
+    for (const m of markers || []) {
+      if (!m.icon || m.small || (target && Math.abs(m.x - target.x) + Math.abs(m.z - target.z) < 1)) continue;
+      const a = rel(m.x, m.z); if (Math.abs(a) > span * 0.92) continue;
+      this.drawIcon(g, m.icon, W / 2 + a * k, base, 8.5 * dpr);
+    }
+    // objetivo: rombo dorado con la distancia; si queda detrás, flecha en el borde
+    if (target) {
+      const a0 = rel(target.x, target.z), out = Math.abs(a0) > span * 0.86, a = Math.max(-span * 0.86, Math.min(span * 0.86, a0));
+      const x = W / 2 + a * k, s = 7 * dpr;
+      g.save(); g.translate(x, base);
+      g.shadowColor = 'rgba(244,193,82,.9)'; g.shadowBlur = 10 * dpr;
+      g.fillStyle = '#f4c152'; g.strokeStyle = '#2e1d00'; g.lineWidth = 1.5 * dpr;
+      if (out) { const d = Math.sign(a0); g.beginPath(); g.moveTo(d * s * 1.3, 0); g.lineTo(-d * s * 0.4, -s); g.lineTo(-d * s * 0.4, s); g.closePath(); }
+      else { g.beginPath(); g.moveTo(0, -s); g.lineTo(s, 0); g.lineTo(0, s); g.lineTo(-s, 0); g.closePath(); }
+      g.fill(); g.shadowBlur = 0; g.stroke(); g.restore();
+      const d = Math.hypot(target.x - player.pos.x, target.z - player.pos.z);
+      g.font = `900 ${Math.round(11 * dpr)}px Nunito, sans-serif`; g.fillStyle = '#fff'; g.shadowColor = 'rgba(0,0,0,.9)'; g.shadowBlur = 4 * dpr;
+      g.fillText(`${Math.round(d)} m`, Math.max(20 * dpr, Math.min(W - 20 * dpr, x)), base + 15 * dpr); g.shadowBlur = 0;
+    }
+    // indicador central
+    g.fillStyle = '#fff'; g.beginPath(); g.moveTo(W / 2 - 5 * dpr, Hh - 1); g.lineTo(W / 2 + 5 * dpr, Hh - 1); g.lineTo(W / 2, Hh - 6 * dpr); g.closePath(); g.globalAlpha = .8; g.fill(); g.globalAlpha = 1;
+  }
   updateMinimap(player, camYaw, markers, target) {
-    if (!this.mini) return;
+    this.drawCompass(player, camYaw, markers, target);
+    if (!this.mini || !this.mini.canvas.offsetParent) return;
     const g = this.mini, S = 248, zoom = 1.8;
     const mpp = (2 * HALF) / 512;
     g.save(); g.clearRect(0, 0, S, S);
