@@ -324,16 +324,20 @@ function swapIn(ph, url) {
     if (st.includes(ph)) e.setAttribute('style', st.split(ph).join(url));
   }
 }
+const waiting = new Map();     // clave → avisos pendientes (cada llamada guarda el suyo)
 export function dioramaShot(comarcaId, w = 1280, h = 720, { front = false, onReady } = {}) {
   if (w > 960) { h = Math.round(h * 960 / w); w = 960; }
   const key = comarcaId + w + 'x' + h;
   const hit = getImg('d:' + key);
   if (hit) { onReady?.(hit); return hit; }
   const ph = placeholder(comarcaId, key);
+  if (onReady) { if (!waiting.has(key)) waiting.set(key, []); waiting.get(key).push(onReady); }
   enqueue('d:' + key, () => {
     let url = getImg('d:' + key);
     if (!url) { try { url = renderShot(comarcaId, w, h); } catch (e) { console.warn('foto de comarca', e); return; } putImg('d:' + key, url); }
-    swapIn(ph, url); onReady?.(url);
+    swapIn(ph, url);
+    for (const f of waiting.get(key) || []) f(url);
+    waiting.delete(key);
   }, front);
   return ph;
 }

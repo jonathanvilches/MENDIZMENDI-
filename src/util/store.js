@@ -38,7 +38,12 @@ let running = false, mode = 'all';
 export function queueMode(m) { mode = m; if (m !== 'off' && queue.length && !running) { running = true; idle(pump); } }
 const idle = (fn) => (window.requestIdleCallback ? requestIdleCallback(fn, { timeout: 300 }) : setTimeout(fn, 16));
 export function enqueue(key, fn, front = false) {
-  if (queued.has(key)) return; queued.add(key);
+  if (queued.has(key)) {
+    // ya estaba en cola: si ahora corre prisa, se adelanta
+    if (front) { const i = queue.findIndex(j => j.key === key); if (i > 0) queue.unshift(queue.splice(i, 1)[0]); }
+    return;
+  }
+  queued.add(key);
   front ? queue.unshift({ key, fn }) : queue.push({ key, fn });
   if (!running) { running = true; idle(pump); }
 }
