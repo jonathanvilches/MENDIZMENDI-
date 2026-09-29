@@ -173,30 +173,32 @@ function wood(size, base, seed) {
 
 // ---- Suelos para el terreno ----
 function cobbles(size) {
+  // empedrado en hileras: piedras redondeadas de tamaños y tonos variados, juntas oscuras con arena
   const rnd = mulberry32(21);
   const col = canvas(size), hc = canvas(size);
   const g = col.getContext('2d'), h = hc.getContext('2d');
-  g.fillStyle = '#6d665b'; g.fillRect(0, 0, size, size);
-  h.fillStyle = '#101010'; h.fillRect(0, 0, size, size);
-  // Poisson-ish
-  const pts = [];
-  for (let t = 0; t < 2400 && pts.length < 150; t++) {
-    const x = rnd() * size, y = rnd() * size;
-    let ok = true;
-    for (const p of pts) { let dx = Math.abs(p[0] - x), dy = Math.abs(p[1] - y); dx = Math.min(dx, size - dx); dy = Math.min(dy, size - dy); if (dx * dx + dy * dy < 17 * 17) { ok = false; break; } }
-    if (ok) pts.push([x, y]);
+  g.fillStyle = '#5a5046'; g.fillRect(0, 0, size, size);
+  h.fillStyle = '#0c0c0c'; h.fillRect(0, 0, size, size);
+  const rows = 14, rh = size / rows;
+  for (let rI = 0; rI < rows; rI++) {
+    let x = (rI % 2) * rh * 0.5 + rnd() * rh * 0.3;
+    const y0 = rI * rh;
+    while (x < size + rh) {
+      const w = rh * (0.85 + rnd() * 0.6), hh = rh * (0.8 + rnd() * 0.12);
+      const cx = x + w / 2, cy = y0 + rh / 2 + (rnd() - 0.5) * rh * 0.08;
+      const hue = 28 + rnd() * 22, sat = 6 + rnd() * 12, l = 42 + rnd() * 24;
+      wrapDraw(size, cx, cy, w, (X, Y) => {
+        g.fillStyle = hsl(hue, sat, l); roundedBlob(g, X, Y, w * 0.46, hh * 0.44, rnd, 0.95);
+        g.fillStyle = `rgba(255,248,235,${0.08 + rnd() * 0.08})`; roundedBlob(g, X - w * 0.08, Y - hh * 0.1, w * 0.26, hh * 0.2, rnd, 0.9);
+        const grd = h.createRadialGradient(X - w * 0.06, Y - hh * 0.08, 1, X, Y, Math.max(w, hh) * 0.5);
+        grd.addColorStop(0, '#ffffff'); grd.addColorStop(0.7, '#a0a0a0'); grd.addColorStop(1, '#303030');
+        h.fillStyle = grd; roundedBlob(h, X, Y, w * 0.46, hh * 0.44, rnd, 0.95);
+      });
+      x += w + rh * 0.08;
+    }
   }
-  for (const [x, y] of pts) {
-    const r = 8 + rnd() * 3, l = 48 + rnd() * 18, hue = 30 + rnd() * 15;
-    wrapDraw(size, x, y, r + 2, (X, Y) => {
-      g.fillStyle = hsl(hue, 10 + rnd() * 8, l); roundedBlob(g, X, Y, r, r * (0.8 + rnd() * 0.2), rnd, 0.9);
-      const grd = h.createRadialGradient(X - 2, Y - 2, 1, X, Y, r);
-      grd.addColorStop(0, '#ffffff'); grd.addColorStop(1, '#404040');
-      h.fillStyle = grd; roundedBlob(h, X, Y, r, r * 0.9, rnd, 0.9);
-    });
-  }
-  grain(g, size, 0.18, rnd, 0.6);
-  return { map: toTex(col), normalMap: toTex(normalFromHeight(hc, 3), false) };
+  grain(g, size, 0.22, rnd, 0.5);
+  return { map: toTex(col), normalMap: toTex(normalFromHeight(hc, 4), false) };
 }
 
 function groundDetail(size) {

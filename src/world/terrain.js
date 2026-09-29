@@ -151,8 +151,8 @@ vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.
   vec3 soft = base * (0.78 + 0.44 * d1.r) * (0.9 + 0.2 * d2.g) * (0.88 + 0.24 * big);
   // hierba: briznas a dos escalas, manchas de color, tréboles y florecillas
   float grassy = smoothstep(0.04, 0.12, base.g - max(base.r, base.b)) * (1.0 - vSurf.z);
-  vec4 g1 = texture2D(tGrass, vWP.xz / 1.8);
-  vec4 g2 = texture2D(tGrass, vWP.xz / 0.63 + 0.37);
+  vec4 g1 = texture2D(tGrass, vWP.xz / 1.3);
+  vec4 g2 = texture2D(tGrass, vWP.xz / 0.47 + 0.37);
   float blades = mix(g1.r, g2.r, 0.45);
   vec3 gc = base * (0.5 + 0.72 * blades) * (0.8 + 0.34 * d1.r) * (0.84 + 0.3 * d2.g) * (0.86 + 0.28 * big);
   gc = mix(vec3(dot(gc, vec3(0.3, 0.59, 0.11))), gc, 1.3) * 0.92;
@@ -185,8 +185,11 @@ vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.
 #endif
   diffuseColor.rgb = col;
   // tierra y senderos
-  vec3 dirt = vec3(0.56, 0.44, 0.30) * (0.8 + 0.35 * d2.g) * (0.85 + 0.3 * d1.r);
-  dirt = mix(dirt, vec3(0.72, 0.68, 0.6), smoothstep(0.55, 0.8, d2.b) * 0.8);
+  // tierra: grano fino, piedrecitas y huellas de rodadas (sin remolinos)
+  float grit = texture2D(tGrass, vWP.xz / 0.35).r;
+  vec3 dirt = vec3(0.55, 0.43, 0.3) * (0.8 + 0.32 * grit) * (0.86 + 0.26 * big) * (0.9 + 0.18 * g1.r);
+  dirt = mix(dirt, vec3(0.7, 0.66, 0.58) * (0.85 + 0.3 * grit), smoothstep(0.55, 0.8, d2.b) * 0.75);
+  dirt = mix(dirt, dirt * 0.82, smoothstep(0.45, 0.7, g2.g) * 0.5);
   float dm = smoothstep(0.1, 0.9, vSurf.y + (d1.g - 0.5) * 0.5);
   diffuseColor.rgb = mix(diffuseColor.rgb, dirt, dm);
   // empedrado
