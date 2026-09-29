@@ -1,14 +1,13 @@
 // Retratos de los personajes (busto de la minifigura renderizado en 3D) para diálogos y fichas
 import * as THREE from 'three';
 import { buildMinifig, lookToMinifig, COSTUMES } from '../actors/minifig.js';
+import { offscreen, offscreenCanvas } from '../util/offscreen.js';
+import { getImg, putImg, enqueue } from '../util/store.js';
 
 let R = null, scene, cam;
 const cache = new Map();
 function setup() {
-  const canvas = document.createElement('canvas'); canvas.width = canvas.height = 256;
-  R = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
-  R.setPixelRatio(1); R.setSize(256, 256, false);
-  R.toneMapping = THREE.ACESFilmicToneMapping; R.outputColorSpace = THREE.SRGBColorSpace;
+  R = offscreen(256, 256);
   scene = new THREE.Scene();
   scene.add(new THREE.HemisphereLight('#ffffff', '#6a5a4a', 1.6));
   const key = new THREE.DirectionalLight('#fff2dc', 2.2); key.position.set(1.5, 2.5, 3); scene.add(key);
@@ -19,8 +18,9 @@ function setup() {
 export function portrait(look, mode = 'bust', isMini = false) {
   const key = JSON.stringify(look) + mode + isMini;
   if (cache.has(key)) return cache.get(key);
+  const st = getImg('p:' + key); if (st) { cache.set(key, st); return st; }
   try {
-    if (!R) setup();
+    if (!R) setup(); else offscreen(256, 256);
     const fig = buildMinifig(isMini ? look : lookToMinifig(look));
     const J = fig.userData.J;
     J.armL.rotation.z = -0.1; J.armR.rotation.z = 0.1;
@@ -40,11 +40,24 @@ export function portrait(look, mode = 'bust', isMini = false) {
     }
     R.setClearColor(0x000000, 0);
     R.render(scene, cam);
-    const url = R.domElement.toDataURL('image/png');
+    const url = offscreenCanvas().toDataURL('image/png');
     scene.remove(fig);
     fig.traverse(o => { if (o.geometry) o.geometry.dispose(); });
-    cache.set(key, url);
+    cache.set(key, url); putImg('p:' + key, url);
     return url;
   } catch (e) { console.warn('retrato', e); return ''; }
 }
 export const avatarPortrait = (id, mode = 'bust') => portrait(COSTUMES[id] || COSTUMES.leire, mode, true);
+
+// <img> del retrato sin bloquear: si aún no está hecho, se dibuja en segundo plano y aparece luego
+const BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+let PK = 0; const pkeys = new Map();
+export function portraitImg(look, mode = 'bust', isMini = false) {
+  const key = JSON.stringify(look) + mode + isMini;
+  const hit = cache.get(key) || getImg('p:' + key);
+  if (hit) return `<img src="${hit}" alt="">`;
+  let id = pkeys.get(key); if (!id) { id = 'pk' + (++PK); pkeys.set(key, id); }
+  enqueue('p:' + key, () => { const u = portrait(look, mode, isMini); for (const i of document.querySelectorAll(`img[data-pk="${id}"]`)) { i.src = u; i.removeAttribute('data-pk'); } }, true);
+  return `<img src="${BLANK}" data-pk="${id}" alt="">`;
+}
+export const avatarPortraitImg = (id, mode = 'bust') => portraitImg(COSTUMES[id] || COSTUMES.leire, mode, true);

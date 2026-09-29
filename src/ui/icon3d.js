@@ -5,6 +5,8 @@ import * as THREE from 'three';
 import { quadruped, SPECIES } from '../actors/animals.js';
 import { makeItem } from '../game/items.js';
 import { UI3D } from './icon3d-ui.js';
+import { getImg, putImg } from '../util/store.js';
+import { offscreen, offscreenCanvas } from '../util/offscreen.js';
 import { BIRDS, bird, squirrel, woodpecker, owl, trout } from '../actors/beasts.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
@@ -12,12 +14,10 @@ let R = null, scene, cam;
 const cache = new Map();
 const S = 256, SS = 512;                         // tamaño final y de render (supermuestreo)
 function setup() {
-  const c = document.createElement('canvas'); c.width = c.height = SS;
-  R = new THREE.WebGLRenderer({ canvas: c, antialias: true, alpha: true, preserveDrawingBuffer: true });
-  R.setPixelRatio(1); R.setSize(SS, SS, false); R.toneMapping = THREE.NeutralToneMapping; R.toneMappingExposure = 1.0; R.outputColorSpace = THREE.SRGBColorSpace;
+  R = offscreen(SS, SS, THREE.NeutralToneMapping);
   scene = new THREE.Scene();
   // luz de estudio: reflejos suaves del entorno, luz principal cálida y contraluz para dar volumen
-  const pm = new THREE.PMREMGenerator(R); scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = 0.55;
+  const pm = new THREE.PMREMGenerator(R); scene.environment = pm.fromScene(new RoomEnvironment(), 0.04, 0.1, 100, { size: 128 }).texture; scene.environmentIntensity = 0.55;
   scene.add(new THREE.HemisphereLight('#ffffff', '#6a5a8a', 0.9));
   const key = new THREE.DirectionalLight('#fff4e4', 2.4); key.position.set(-2.5, 4, 3); scene.add(key);
   const rim = new THREE.DirectionalLight('#cfe6ff', 1.6); rim.position.set(3, 2, -3); scene.add(rim);
@@ -189,13 +189,15 @@ function soften(root) {
     else { const c = m.color ? m.color.clone() : new THREE.Color('#fff'); o.material = new THREE.MeshStandardMaterial({ color: c, roughness: 0.5, vertexColors: !!m.vertexColors, map: m.map || null, transparent: m.transparent, opacity: m.opacity ?? 1, side: m.side }); }
   });
 }
+export const icon3DReady = (name) => cache.get(name) || getImg('i:' + name) || null;
 export function icon3D(name) {
   if (cache.has(name)) return cache.get(name);
+  const st = getImg('i:' + name); if (st) { cache.set(name, st); return st; }
   let out = '';
   try {
     const obj = build(name);
     if (obj) {
-      if (!R) setup();
+      if (!R) setup(); else offscreen(SS, SS, THREE.NeutralToneMapping);
       soften(obj);
       const holder = new THREE.Group(); holder.add(obj); scene.add(holder);
       holder.updateMatrixWorld(true);
@@ -222,7 +224,7 @@ export function icon3D(name) {
       R.setClearColor(0, 0); R.render(scene, cam);
       // reencuadre fino según los píxeles realmente dibujados
       {
-        const N = 96, t = document.createElement('canvas'); t.width = t.height = N; const tg = t.getContext('2d', { willReadFrequently: true }); tg.drawImage(R.domElement, 0, 0, N, N);
+        const N = 96, t = document.createElement('canvas'); t.width = t.height = N; const tg = t.getContext('2d', { willReadFrequently: true }); tg.drawImage(R.domElement, 0, 0, SS, SS, 0, 0, N, N);
         const d = tg.getImageData(0, 0, N, N).data; let x0 = N, x1 = -1, y0 = N, y1 = -1;
         for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (d[(y * N + x) * 4 + 3] > 20) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
         if (x1 > x0) {
@@ -235,11 +237,11 @@ export function icon3D(name) {
           R.render(scene, cam);
         }
       }
-      out = sticker(R.domElement);
+      out = sticker(offscreenCanvas());
       scene.remove(holder);
       holder.traverse(o => { if (o.geometry) o.geometry.dispose(); });
     }
   } catch (e) { console.warn('icono 3D', name, e); }
-  cache.set(name, out);
+  cache.set(name, out); if (out) putImg('i:' + name, out);
   return out;
 }

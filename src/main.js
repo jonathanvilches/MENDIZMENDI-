@@ -24,7 +24,7 @@ import { LEVELS, levelById } from './data/levels.js';
 import { landImg, stampImg } from './assets.js';
 import COMARCAS from './data/comarcas.json';
 import { avatarPortrait } from './ui/portraits.js';
-import { preloadIcons } from './ui/icons.js';
+import { loadStore, queueMode } from './util/store.js';
 import { startI18n } from './i18n.js';
 
 const q = new URLSearchParams(location.search);
@@ -39,7 +39,7 @@ const TIPS = [
 
 async function boot() {
   startI18n();
-  preloadIcons();
+  await loadStore();
   const canvas = document.getElementById('c');
   const input = new Input(canvas);
   const sound = new Sound();
@@ -72,10 +72,10 @@ async function boot() {
     loading = true;
     sound.init();
     def = d;
-    hub.hide();
+    hub.hide(); queueMode('off');
     const cm = COMARCAS.find(c => c.id === d.comarca);
     const TI = { visit: 'church', process: 'basket', harvest: 'wheat', herd: 'sheep', dance: 'dance', carnival: 'mask', trade: 'anvil', legend: 'legend', race: 'running', observe: 'binoculars', tradition: 'music', quiz: 'quiz', summit: 'peak', pelota: 'pelota' };
-    ui.showLoading(d.name, TIPS[Math.floor(Math.random() * TIPS.length)], landImg(d.comarca), { comarca: cm?.name, stamp: stampImg(d.comarca, d.name.split(' /')[0]), avatar: avatarPortrait(P.avatar), intro: d.intro, missions: (d.missions || []).map(m => m.icon || TI[m.type] || 'star') });
+    ui.showLoading(d.name, TIPS[Math.floor(Math.random() * TIPS.length)], landImg(d.comarca, 1280, 720, true), { comarca: cm?.name, stamp: stampImg(d.comarca, d.name.split(' /')[0]), avatar: avatarPortrait(P.avatar), intro: d.intro, missions: (d.missions || []).map(m => m.icon || TI[m.type] || 'star') });
     try {
       await rt.load(d, P.avatar, (p, m) => ui.progress(p, m));
       const ctx = { scene: rt.scene, camera: rt.camera, player: rt.player, follow: rt.follow, ui, sound, input, sky: rt.sky, fauna: rt.fauna, particles: rt.particles, beacon: rt.beacon, onExit: exit };
@@ -96,7 +96,7 @@ async function boot() {
         rt.follow.snap(rt.player);
         ui.progress(1, '¡Listo!');
         rt.start(game);
-        ui.hideLoading();
+        ui.hideLoading(); queueMode('light');
         sound.setMusic(P.settings.music); sound.setVolume(P.settings.volume);
         if (!st.introDone && !q.get('skipintro')) await game.intro();
         else { ui.hudVisible(true); game.mode = 'play'; }
@@ -110,14 +110,14 @@ async function boot() {
         game.applySettings();
         ui.progress(1, '¡Listo!');
         rt.start(game);
-        ui.hideLoading();
+        ui.hideLoading(); queueMode('light');
         saveProfile();
         if (!q.get('skipintro') && !navigator.webdriver && !(P.towns[d.id]?.visits > 1)) await game.introFly();
         setTimeout(() => game.ui.toast(`¡Bienvenido a ${d.name}! Habla con ${game.missions[0]?.host?.name || 'tu guía'}`, 'exclaim', 4200), 700);
       }
     } catch (e) {
       console.error(e);
-      ui.hideLoading(); loading = false;
+      ui.hideLoading(); loading = false; queueMode('all');
       rt.unload(); hub.show('home');
       return;
     }
@@ -133,7 +133,7 @@ async function boot() {
     ui.destroyHUD(); ui.setCinematic(false);
     rt.unload();
     game = null;
-    hub.show('comarca', def?.comarca);
+    queueMode('all'); hub.show('comarca', def?.comarca);
   }
   window.__exit = exit;
 
@@ -144,12 +144,7 @@ async function boot() {
   const t = q.get('town');
   if (t && levelById(t)) { if (!P.name) { P.name = 'Mendi'; saveProfile(); } play(levelById(t)); }
   else {
-    // intro con la historia al abrir el juego (una vez por sesión; se puede saltar)
-    const seen = (() => { try { return sessionStorage.getItem('mm-intro'); } catch (e) { return '1'; } })();
-    if (q.get('intro') || (!seen && !q.get('screen') && !q.get('nointro') && !navigator.webdriver)) {
-      try { sessionStorage.setItem('mm-intro', '1'); } catch (e) { }
-      import('./hub/intro.js').then(({ playIntro }) => playIntro({ avatar: P.avatar, sound })).finally(() => hub.show(q.get('screen') || 'home', q.get('arg') || undefined));
-    } else hub.show(q.get('screen') || 'home', q.get('arg') || undefined);
+    hub.show(q.get('screen') || 'home', q.get('arg') || undefined);
   }
   window.__ready = true;
 }

@@ -1,0 +1,22 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:#3b2466;overflow:hidden}</style></head><body><script type="module">
+// Hoja de revisión de los avatares: cuerpo entero (frente y 3/4) y primer plano de la cara
+import * as THREE from 'three';
+import { buildMinifig, MinifigAnimator, COSTUMES } from '../src/actors/minifig.js';
+import { CAST } from '../src/data/cast.js';
+const q = new URLSearchParams(location.search), face = q.get('face'), ry = +(q.get('ry') ?? 0.3);
+const ids = (q.get('k') || CAST.map(c => c.id).join(',')).split(',');
+const r = new THREE.WebGLRenderer({ antialias: true }); r.setPixelRatio(1); r.setSize(innerWidth, innerHeight); r.toneMapping = THREE.ACESFilmicToneMapping; r.outputColorSpace = THREE.SRGBColorSpace; document.body.appendChild(r.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color('#3b2466');
+scene.add(new THREE.HemisphereLight('#fff6e8', '#4a3a5a', 1.4)); const key = new THREE.DirectionalLight('#fff0d8', 2.4); key.position.set(2, 4, 3); scene.add(key);
+const rim = new THREE.DirectionalLight('#bcd8ff', 1.2); rim.position.set(-3, 2, -2); scene.add(rim);
+const gap = 1.0, n = ids.length;
+ids.forEach((id, i) => {
+  const f = buildMinifig(COSTUMES[id] || COSTUMES.leire, { hero: true }); const a = new MinifigAnimator(f);
+  for (let s = 0; s < 40; s++) a.update(0.016, { speed: 0, grounded: true });
+  f.position.set((i - (n - 1) / 2) * gap, 0, 0); f.rotation.y = ry; scene.add(f);
+});
+const cam = new THREE.PerspectiveCamera(face ? 7 : 5.2, innerWidth / innerHeight, 0.1, 200);
+if (face) { const x = (ids.indexOf(face) - (n - 1) / 2) * gap; cam.position.set(x, 1.25, 7); cam.lookAt(x, 1.2, 0); }
+else { cam.position.set(0, 0.9, 34); cam.lookAt(0, 0.75, 0); }
+r.render(scene, cam); window.__ready = true;
+</script></body></html>
