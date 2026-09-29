@@ -29,6 +29,40 @@ function townXY(lv) {
   const c = comarca(lv.comarca); return c ? [c.label.x, c.label.y + 20] : [380, 400];
 }
 const XY = new Map(LEVELS.map(l => [l.id, townXY(l)]));
+// Colocación sin solapes: número de cada comarca en un hueco libre dentro de ella y nombres de pueblo
+// sólo donde caben (arriba, abajo o a un lado del punto)
+let MAPL = null;
+function mapLayout() {
+  if (MAPL) return MAPL;
+  const cv = document.createElement('canvas').getContext('2d');
+  const pins = LEVELS.map(l => XY.get(l.id));
+  const badges = {}, placed = [];
+  for (const c of COMARCAS) {
+    if (!comarcaTowns(c.id).length) continue;
+    const path = new Path2D(c.path), cx = c.label.x, cy = c.label.y - 4;
+    let best = [cx, cy], bs = -1e9;
+    for (let r = 0; r <= 110; r += 5) for (let a = 0; a < 6.283; a += r ? 0.35 : 7) {
+      const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;
+      if (!cv.isPointInPath(path, x, y)) continue;
+      let dmin = 99; for (const p of pins) dmin = Math.min(dmin, Math.hypot(p[0] - x, p[1] - y)); for (const q of placed) dmin = Math.min(dmin, Math.hypot(q[0] - x, q[1] - y) - 12);
+      // lejos de los puntos (≥ 28) y lo más cerca posible del centro de la comarca
+      const score = Math.min(dmin, 30) * 3 - r * 0.25;
+      if (score > bs) { bs = score; best = [x, y]; }
+    }
+    badges[c.id] = best; placed.push(best);
+  }
+  const boxes = [];
+  for (const p of pins) boxes.push([p[0] - 10, p[1] - 10, p[0] + 10, p[1] + 10]);
+  for (const b of Object.values(badges)) boxes.push([b[0] - 20, b[1] - 20, b[0] + 20, b[1] + 20]);
+  const hit = (r) => boxes.some(b => r[0] < b[2] && r[2] > b[0] && r[1] < b[3] && r[3] > b[1]);
+  const names = {};
+  for (const l of LEVELS) {
+    const [x, y] = XY.get(l.id), t = l.name.split(' /')[0], w = t.length * 6.7 + 4, h = 14;
+    const cand = [[x - w / 2, y - 12 - h, 'middle', x, y - 14], [x - w / 2, y + 12, 'middle', x, y + 23], [x + 11, y - h / 2, 'start', x + 12, y + 4], [x - 11 - w, y - h / 2, 'end', x - 12, y + 4]];
+    for (const [rx, ry, anchor, tx, ty] of cand) { const r = [rx, ry, rx + w, ry + h]; if (rx < 12 || rx + w > 733 || hit(r)) continue; boxes.push(r); names[l.id] = { anchor, x: tx - x, y: ty - y }; break; }
+  }
+  return (MAPL = { badges, names });
+}
 
 function ring(p, size = 54, color = '#FFD700', label = '') {
   const r = size / 2 - 5, C = 2 * Math.PI * r;
@@ -201,8 +235,8 @@ export class Hub {
     }).join('');
     const labels = small ? '' : COMARCAS.map(c => `<text x="${c.label.x}" y="${c.label.y}" class="clabel" text-anchor="middle">${c.label.lines.map((l, i) => `<tspan x="${c.label.x}" dy="${i ? 12 : 0}">${esc(l)}</tspan>`).join('')}</text>`).join('')
       // en el móvil, números en lugar de nombres (la lista de debajo lleva los mismos números)
-      + COMARCAS.filter(c => comarcaTowns(c.id).length).map((c, i) => `<g class="cnum" data-comarca="${c.id}" transform="translate(${c.label.x} ${c.label.y - 4})"><circle r="19" fill="${c.color}"/><text y="7" text-anchor="middle">${i + 1}</text></g>`).join('');
-    const pinsSvg = pins ? LEVELS.filter(l => !focus || l.comarca === focus).map(l => { const [x, y] = XY.get(l.id), t = townProgress(p, l); return `<g class="pin ${t.stamp ? 'ok' : t.done ? 'go' : ''}" data-town="${l.id}" transform="translate(${x} ${y})"><circle r="${small ? 5 : 8}"/>${small ? '' : `<text y="-13" text-anchor="middle">${esc(l.name.split(' /')[0])}</text>`}</g>`; }).join('') : '';
+      + COMARCAS.filter(c => comarcaTowns(c.id).length).map((c, i) => { const [bx, by] = mapLayout().badges[c.id]; return `<g class="cnum" data-comarca="${c.id}" transform="translate(${bx.toFixed(1)} ${by.toFixed(1)})"><circle r="15" fill="${c.color}"/><text y="6" text-anchor="middle">${i + 1}</text></g>`; }).join('');
+    const pinsSvg = pins ? LEVELS.filter(l => !focus || l.comarca === focus).map(l => { const [x, y] = XY.get(l.id), t = townProgress(p, l), nm = mapLayout().names[l.id]; return `<g class="pin ${t.stamp ? 'ok' : t.done ? 'go' : ''}" data-town="${l.id}" transform="translate(${x} ${y})"><circle r="${small ? 5 : 7}"/>${small || !nm ? '' : `<text x="${nm.x}" y="${nm.y}" text-anchor="${nm.anchor}">${esc(l.name.split(' /')[0])}</text>`}</g>`; }).join('') : '';
     return `<svg class="navarra" viewBox="10 10 725 780">${paths}${labels}${pinsSvg}</svg>`;
   }
 

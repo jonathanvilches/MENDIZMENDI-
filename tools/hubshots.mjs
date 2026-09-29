@@ -7,7 +7,7 @@ const page = await ctx.newPage();
 const logs = [];
 page.on('pageerror', e => logs.push('PAGEERROR: ' + e.message));
 page.on('console', m => { if (m.type() === 'error' && !/CERT|favicon/.test(m.text())) logs.push('error: ' + m.text().slice(0, 200)); });
-await page.goto(url);
+await page.goto(url, { timeout: 240000 });
 await page.waitForFunction(() => window.__ready, null, { timeout: 120000 });
 await page.waitForTimeout(2000);
 const shot = async (n) => { await page.screenshot({ path: `${out}-${n}.png`, timeout: 180000 }); };

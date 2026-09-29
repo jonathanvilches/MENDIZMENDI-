@@ -316,19 +316,34 @@ function buildRiverWalls(B) {
 }
 
 // ---------- Plaza, fuente, bancos ----------
+// cara interior de un anillo: invertir los triángulos para que se vea desde dentro
+function inside(g) {
+  g = g.toNonIndexed(); const p = g.attributes.position, n = g.attributes.normal, uv = g.attributes.uv;
+  for (let i = 0; i < p.count; i += 3) for (const a of [p, n, uv]) { if (!a) continue; const k = a.itemSize; for (let c = 0; c < k; c++) { const t = a.array[i * k + c]; a.array[i * k + c] = a.array[(i + 2) * k + c]; a.array[(i + 2) * k + c] = t; } }
+  for (let i = 0; i < n.count; i++) n.setXYZ(i, -n.getX(i), -n.getY(i), -n.getZ(i));
+  return g;
+}
+// Fuente octogonal de plaza: pila con agua, columna con taza alta, caños de hierro y remate
+export function fountain(B, x, y, z) {
+  const T = M(x, y, z, Math.PI / 8);
+  B.add('ashlar', new THREE.CylinderGeometry(2.6, 2.72, 0.82, 8, 1, true), MM(T, M(0, 0.41, 0)));
+  B.add('ashlar', inside(new THREE.CylinderGeometry(2.28, 2.28, 0.82, 8, 1, true)), MM(T, M(0, 0.41, 0)));
+  const rim = new THREE.RingGeometry(2.24, 2.68, 8, 1); rim.rotateX(-Math.PI / 2); B.add('ashlar', rim, MM(T, M(0, 0.84, 0)));
+  const rim2 = new THREE.CylinderGeometry(2.72, 2.72, 0.1, 8, 1, true); B.add('ashlar', rim2, MM(T, M(0, 0.84, 0)));
+  const floor = new THREE.CircleGeometry(2.3, 8); floor.rotateX(-Math.PI / 2); B.add('stoneDark', floor, MM(T, M(0, 0.12, 0)));
+  const water = new THREE.CircleGeometry(2.29, 8); water.rotateX(-Math.PI / 2); B.add('water', water, MM(T, M(0, 0.62, 0)));
+  // columna torneada con taza
+  const prof = [[0.001, 0], [0.62, 0], [0.62, 0.22], [0.42, 0.34], [0.36, 0.5], [0.32, 1.35], [0.4, 1.45], [0.95, 1.6], [1.0, 1.75], [0.9, 1.78]].map(([r, h]) => new THREE.Vector2(r, h));
+  B.add('ashlar', new THREE.LatheGeometry(prof, 16), MM(T, M(0, 0.1, 0)));
+  const w2 = new THREE.CircleGeometry(0.9, 16); w2.rotateX(-Math.PI / 2); B.add('water', w2, MM(T, M(0, 1.84, 0)));
+  const top = [[0.001, 0], [0.22, 0], [0.18, 0.2], [0.24, 0.45], [0.12, 0.62], [0.001, 0.72]].map(([r, h]) => new THREE.Vector2(r, h));
+  B.add('ashlar', new THREE.LatheGeometry(top, 12), MM(T, M(0, 1.84, 0)));
+  for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 + Math.PI / 8; B.add('iron', new THREE.CylinderGeometry(0.045, 0.05, 0.5, 8), M(x + Math.sin(a) * 1.15, y + 1.72, z + Math.cos(a) * 1.15, a, Math.PI / 2 - 0.25)); }
+}
 function buildPlaza(B, rnd) {
   const p = PLACES.plaza;
   const y = terrainHeight(p.x, p.z);
-  // fuente octogonal
-  const T = M(p.x, y, p.z);
-  const basin = new THREE.CylinderGeometry(2.5, 2.6, 0.85, 8, 1, true);
-  B.add('ashlar', basin, MM(T, M(0, 0.42, 0, Math.PI / 8)));
-  B.add('ashlar', new THREE.CylinderGeometry(2.25, 2.35, 0.85, 8, 1, true), MM(T, M(0, 0.42, 0, Math.PI / 8)));
-  const rim = new THREE.RingGeometry(2.25, 2.62, 8, 1); rim.rotateX(-Math.PI / 2);
-  B.add('ashlar', rim, MM(T, M(0, 0.86, 0, Math.PI / 8)));
-  B.add('ashlar', new THREE.CylinderGeometry(0.45, 0.6, 2.4, 8), MM(T, M(0, 1.2, 0)));
-  B.add('ashlar', new THREE.SphereGeometry(0.5, 10, 8), MM(T, M(0, 2.55, 0)));
-  for (let i = 0; i < 4; i++) B.add('iron', new THREE.CylinderGeometry(0.05, 0.05, 0.55, 6), MM(T, M(Math.sin(i * Math.PI / 2) * 0.6, 1.9, Math.cos(i * Math.PI / 2) * 0.6, i * Math.PI / 2, Math.PI / 2)));
+  fountain(B, p.x, y, p.z);
   addCircle(p.x, p.z, 2.7);
   VILLAGE.fountain = { x: p.x, z: p.z, y, spouts: [0, 1, 2, 3].map(i => ({ x: p.x + Math.sin(i * Math.PI / 2) * 0.88, z: p.z + Math.cos(i * Math.PI / 2) * 0.88, y: y + 1.9 })) };
   // bancos alrededor

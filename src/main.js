@@ -100,6 +100,7 @@ async function boot() {
         else { ui.hudVisible(true); game.mode = 'play'; }
       } else {
         game = new TownGame(ctx, d);
+        game.onPlayTown = (id) => { exit(); setTimeout(() => play(levelById(id)), 60); };
         window.__game = game;
         ui.buildHUD(game);
         game.spawn();

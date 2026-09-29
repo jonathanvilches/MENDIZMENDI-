@@ -37,7 +37,7 @@ for (const sz of sizes.split(',')) {
   const shot = (n) => page.screenshot({ path: `${dir}/${sz}-${n}.png`, timeout: 240000 });
   const log = async (n) => { const r = await page.evaluate(CHECK); if (r.length) report.push(`[${sz}] ${n}:\n  - ` + r.join('\n  - ')); };
   if (what !== 'game') {
-    await page.goto(url);
+    await page.goto(url, { timeout: 240000 });
     await page.waitForFunction(() => window.__ready, null, { timeout: 120000 });
     await page.waitForTimeout(1500);
     await log('bienvenida'); await shot('onb');
@@ -49,7 +49,7 @@ for (const sz of sizes.split(',')) {
     await page.evaluate(() => { window.__hub.go('home'); window.__hub.more(); }); await page.waitForTimeout(700); await log('más'); await shot('more');
   }
   if (what !== 'hub') {
-    await page.goto(url + (url.includes('?') ? '&' : '?') + 'town=etxalar');
+    await page.goto(url + (url.includes('?') ? '&' : '?') + 'town=etxalar', { timeout: 240000 });
     await page.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 180000 }).catch(() => errs.push('la partida no arrancó'));
     await page.waitForTimeout(2500);
     await log('partida'); await shot('g-hud');

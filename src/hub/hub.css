@@ -142,11 +142,11 @@
 .cpath:hover { fill-opacity: 1 !important; filter: brightness(1.2) drop-shadow(0 0 8px rgba(255, 255, 255, .4)); }
 .cpath.done { filter: drop-shadow(0 0 6px rgba(255, 215, 0, .8)); }
 .cpath.dim { fill-opacity: .12 !important; }
-.clabel { fill: #fff; font-size: 11px; font-weight: 900; pointer-events: none; paint-order: stroke; stroke: rgba(18, 6, 40, .9); stroke-width: 3.5px; letter-spacing: .03em; text-transform: uppercase; }
-.cnum { display: none; cursor: pointer; } .cnum circle { stroke: #12062b; stroke-width: 3.5; } .cnum text { fill: #fff; font-size: 20px; font-weight: 900; paint-order: stroke; stroke: rgba(18, 6, 40, .7); stroke-width: 3px; pointer-events: none; }
+.clabel { display: none; fill: #fff; font-size: 11px; font-weight: 900; pointer-events: none; paint-order: stroke; stroke: rgba(18, 6, 40, .9); stroke-width: 3.5px; letter-spacing: .03em; text-transform: uppercase; }
+.cnum { display: inline; cursor: pointer; } .cnum circle { stroke: #fff; stroke-width: 2.5; } .cnum text { fill: #fff; font-size: 16px; font-weight: 900; paint-order: stroke; stroke: rgba(18, 6, 40, .7); stroke-width: 3px; pointer-events: none; }
 .pin { cursor: pointer; } .pin circle { fill: #fdf8ef; stroke: #1b1208; stroke-width: 2.5; transition: r .15s; }
 .pin.go circle { fill: var(--gold); } .pin.ok circle { fill: var(--leaf); }
-.pin:hover circle { r: 11; } .pin text { fill: #fff; font-size: 12px; font-weight: 900; paint-order: stroke; stroke: rgba(12, 9, 20, .9); stroke-width: 3px; pointer-events: none; }
+.pin:hover circle { r: 10; } .pin text { fill: #fff; font-size: 12px; font-weight: 900; paint-order: stroke; stroke: rgba(12, 9, 20, .9); stroke-width: 3px; pointer-events: none; }
 .map-wrap { display: grid; grid-template-columns: 1fr 260px; gap: 18px; align-items: start; }
 .bigmap { background: radial-gradient(circle at 50% 40%, rgba(124, 200, 255, .1), transparent 70%), var(--glass); border-radius: 20px; padding: 10px; border: 1px solid var(--line); max-width: 820px; }
 .legend2 { display: flex; flex-direction: column; gap: 14px; font-size: 13px; color: var(--mute); }
@@ -395,7 +395,7 @@
   .rail { display: grid; grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: 86%; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 6px; scrollbar-width: none; touch-action: pan-x pan-y; }
   .rail::-webkit-scrollbar { display: none; } .rail > * { scroll-snap-align: start; }
   .map-wrap { grid-template-columns: minmax(0, 1fr); } .bigmap { padding: 4px; }
-  .pin text { display: none; } .pin circle { r: 10; } .clabel { display: none; } .cnum { display: inline; }
+  .pin text { display: none; } .pin circle { r: 7.5; } .cnum circle { r: 18px; } .cnum text { font-size: 19px; } .clabel { display: none; } .cnum { display: inline; }
   .legend2 .lg { flex-direction: row; flex-wrap: wrap; gap: 12px; }
   .clist { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .chero { grid-template-columns: auto 1fr; padding: 58px 16px 18px; gap: 14px; } .bigstamp { width: 84px; height: 84px; } .chero .cring { display: none; }
@@ -600,3 +600,18 @@
   .h-bot h1 { font-size: 40px; margin-bottom: 6px; } .mrow { margin-bottom: 10px; }
   .h-cta .go { font-size: 18px; padding-top: 12px; padding-bottom: 12px; }
 }
+/* final de pueblo */
+.finale .mg-card { width: min(520px, 100%); background: radial-gradient(ellipse at 50% 0%, #5a22b0, #1c0b3a 70%); border-color: rgba(255, 215, 0, .5); overflow-x: hidden; position: relative; }
+.finale .kicker { color: #FFD700; font-size: 14px; letter-spacing: .14em; }
+.finale .stampimg.big { width: 150px; height: 150px; animation: stampIn .7s cubic-bezier(.2, 1.5, .4, 1) both; filter: drop-shadow(0 8px 16px rgba(0, 0, 0, .5)); }
+@keyframes stampIn { from { transform: scale(2.4) rotate(-20deg); opacity: 0; } }
+.finale h2 { font-size: 38px; }
+.fin-list { list-style: none; margin: 0; padding: 0; width: 100%; display: grid; gap: 6px; }
+.fin-list li { display: grid; grid-template-columns: 34px minmax(0, 1fr) 22px; gap: 10px; align-items: center; text-align: left; padding: 6px 10px; border-radius: 12px; background: rgba(255, 255, 255, .06); font-weight: 800; font-size: 14px; }
+.fin-list li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fin-btns { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.fin-btns .btn { width: 100%; justify-content: center; }
+.fw { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.fw i { position: absolute; left: var(--x); top: 110%; width: 8px; height: 8px; border-radius: 50%; background: var(--c); box-shadow: 0 0 12px var(--c); animation: fwUp 2.4s var(--d) ease-out infinite; }
+@keyframes fwUp { 60% { top: 12%; transform: scale(1); opacity: 1; } 100% { top: 8%; transform: scale(4); opacity: 0; } }
+@media (max-height: 520px) { .finale .stampimg.big { width: 90px; height: 90px; } .finale h2 { font-size: 28px; } .fin-list { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .fin-btns { flex-direction: row; flex-wrap: wrap; } .fin-btns .btn { flex: 1 1 30%; min-width: 0; padding-left: 8px; padding-right: 8px; font-size: 14px; } .finale p { display: none; } }
