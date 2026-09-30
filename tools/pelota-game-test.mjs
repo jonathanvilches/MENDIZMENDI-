@@ -22,10 +22,10 @@ if (!only || only === 'salazar') {
   await p.evaluate(() => { const G = window.__game; const q = G.q('pelota'); q.state = 'active'; q.step = 1; G.startPelota(); });
   await p.waitForSelector('.pel-panel', { timeout: 60000 }); await p.waitForTimeout(2500);
   await p.screenshot({ path: `${out}/salazar-intro.png` });
-  await p.click('.pel-go[data-go]'); await p.waitForTimeout(1500);
+  await p.click('.pel-go[data-pel-go]'); await p.waitForTimeout(1500);
   console.log('salazar 1', await sim(p, 3)); await p.waitForTimeout(2500); await p.screenshot({ path: `${out}/salazar-peloteo.png` });
   console.log('salazar 2', await sim(p, 120)); await p.waitForTimeout(2500); await p.screenshot({ path: `${out}/salazar-final.png` });
-  const cont = await p.$('.pel-go[data-cont]'); if (cont) { await cont.click(); await p.waitForTimeout(3000); }
+  const cont = await p.$('.pel-go[data-pel-cont]'); if (cont) { await cont.click(); await p.waitForTimeout(3000); }
   console.log('salazar vuelta', await p.evaluate(() => ({ mode: window.__game.mode, q: window.__game.q('pelota').state, frozen: window.__game.player.frozen })));
   await p.screenshot({ path: `${out}/salazar-despues.png` });
   await p.close();
@@ -35,11 +35,11 @@ if (!only || only === 'pueblo') {
   await p.evaluate(() => { const G = window.__game; const M = G.missions.find(m => m.type === 'pelota'); G.target(M); window.__res = null; G.fronton.play(G, M.host).then(r => window.__res = r); });
   await p.waitForSelector('.pel-panel', { timeout: 60000 }); await p.waitForTimeout(2500);
   await p.screenshot({ path: `${out}/pueblo-intro.png` });
-  console.log('panel', await p.evaluate(() => { const b = document.querySelector('.pel-go[data-go]'); const r = b.getBoundingClientRect(); const cs = getComputedStyle(b); const top = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); return JSON.stringify({ r, vis: cs.visibility, disp: cs.display, op: cs.opacity, top: top && (top.className || top.id || top.tagName) }); }));
-  await p.click('.pel-go[data-go]'); await p.waitForTimeout(1500);
+  console.log('panel', await p.evaluate(() => { const b = document.querySelector('.pel-go[data-pel-go]'); const r = b.getBoundingClientRect(); const cs = getComputedStyle(b); const top = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); return JSON.stringify({ r, vis: cs.visibility, disp: cs.display, op: cs.opacity, top: top && (top.className || top.id || top.tagName) }); }));
+  await p.click('.pel-go[data-pel-go]'); await p.waitForTimeout(1500);
   console.log('pueblo 1', await sim(p, 6)); await p.waitForTimeout(2500); await p.screenshot({ path: `${out}/pueblo-partido.png` });
   console.log('pueblo 2', await sim(p, 400)); await p.waitForTimeout(2500); await p.screenshot({ path: `${out}/pueblo-final.png` });
-  const cont = await p.$('.pel-go[data-cont]'); if (cont) { await cont.click(); await p.waitForTimeout(3000); }
+  const cont = await p.$('.pel-go[data-pel-cont]'); if (cont) { await cont.click(); await p.waitForTimeout(3000); }
   console.log('pueblo resultado', await p.evaluate(() => JSON.stringify({ res: window.__res, mode: window.__game.mode })));
   await p.screenshot({ path: `${out}/pueblo-despues.png` });
   await p.close();
