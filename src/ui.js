@@ -6,6 +6,7 @@ import { H, SURF } from './world/heightfield.js';
 import { clamp } from './util/math.js';
 import { iconSVG, iconImage } from './ui/icons.js';
 import { portrait } from './ui/portraits.js';
+import { mountMapView } from './ui/mapview.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const el = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
@@ -13,22 +14,22 @@ const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '
 const I = (n, s = 22) => iconSVG(n, s);
 
 const ICON = {
-  book: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round"><path d="M5.2 4.6A2.1 2.1 0 017.3 2.5h11.2a1 1 0 011 1v15.8H7.3a2.1 2.1 0 00-2.1 2.1z" fill="#fff"/><path d="M5.2 21.4a2.1 2.1 0 012.1-2.1h12.2v2.6H7.3" fill="#e3d6ff"/><path d="M12.6 2.5v7.2l1.9-1.4 1.9 1.4V2.5" fill="#FFD700"/></svg>',
+  book: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round"><g transform="translate(-0.35 -0.2)"><path d="M5.2 4.6A2.1 2.1 0 017.3 2.5h11.2a1 1 0 011 1v15.8H7.3a2.1 2.1 0 00-2.1 2.1z" fill="#fff"/><path d="M5.2 21.4a2.1 2.1 0 012.1-2.1h12.2v2.6H7.3" fill="#e3d6ff"/><path d="M12.6 2.5v7.2l1.9-1.4 1.9 1.4V2.5" fill="#FFD700"/></g></svg>',
   map: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round"><path d="M2.5 5.6l6.2-2.4 6.6 2.4 6.2-2.4v15.2l-6.2 2.4-6.6-2.4-6.2 2.4z" fill="#fff"/><path d="M8.7 3.2v15.2M15.3 5.6v15.2" fill="none" stroke-width="1.2"/><path d="M5 15.5c2-2.4 4.4-.5 6.4-2.6s3.4-3.6 5.6-2.8" fill="none" stroke="#8a2be2" stroke-width="1.6" stroke-dasharray="1.8 1.4" stroke-linecap="round"/><path d="M18 3.8a2.6 2.6 0 00-2.6 2.6c0 1.9 2.6 4.4 2.6 4.4s2.6-2.5 2.6-4.4A2.6 2.6 0 0018 3.8z" fill="#ff5a4e"/></svg>',
   menu: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.4" stroke-linejoin="round" fill="#fff"><rect x="3.5" y="4.6" width="17" height="3.4" rx="1.7"/><rect x="3.5" y="10.3" width="17" height="3.4" rx="1.7"/><rect x="3.5" y="16" width="17" height="3.4" rx="1.7"/></svg>',
   bino: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round"><path d="M5.2 5.4a2 2 0 013.9 0l.8 7H3.9zM14.1 12.4l.8-7a2 2 0 013.9 0l1.3 7z" fill="#fff"/><path d="M9.6 10.4h4.8v3.2H9.6z" fill="#e3d6ff"/><circle cx="6.6" cy="15.6" r="4.4" fill="#fff"/><circle cx="17.4" cy="15.6" r="4.4" fill="#fff"/><circle cx="6.6" cy="15.6" r="2.4" fill="#7fd6ff"/><circle cx="17.4" cy="15.6" r="2.4" fill="#7fd6ff"/></svg>',
   // controles: glifos macizos con contorno oscuro (se leen sobre hierba, cielo o piedra)
-  run: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="M.9 9.4h4.2M.4 13h3.6M1.2 16.6h3" fill="none" stroke="#FFD700" stroke-width="2.3"/><path d="M9 2.4h5.4a.9.9 0 01.9.9v6.9c0 .6.3 1.1.8 1.4l3.2 1.9a4.9 4.9 0 012.4 4.2v.5H6.6c-.1-1.7.3-3.3.9-4.8L7.9 3.4c.1-.6.5-1 1.1-1z" fill="#fff"/><path d="M6.6 18.2h16.1v1.3a1 1 0 01-1 1H7.6a1 1 0 01-1-1z" fill="#FFD700"/><path d="M7.8 5.6h7.5M14 11.4l2-1.5M16 12.8l2-1.5" fill="none" stroke-width="1.3"/></svg>',
+  run: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><g transform="translate(0.25 0.55)"><path d="M.9 9.4h4.2M.4 13h3.6M1.2 16.6h3" fill="none" stroke="#FFD700" stroke-width="2.3"/><path d="M9 2.4h5.4a.9.9 0 01.9.9v6.9c0 .6.3 1.1.8 1.4l3.2 1.9a4.9 4.9 0 012.4 4.2v.5H6.6c-.1-1.7.3-3.3.9-4.8L7.9 3.4c.1-.6.5-1 1.1-1z" fill="#fff"/><path d="M6.6 18.2h16.1v1.3a1 1 0 01-1 1H7.6a1 1 0 01-1-1z" fill="#FFD700"/><path d="M7.8 5.6h7.5M14 11.4l2-1.5M16 12.8l2-1.5" fill="none" stroke-width="1.3"/></g></svg>',
   jump: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round"><ellipse cx="12" cy="21.4" rx="5.4" ry="1.5" fill="#7fd6ff" stroke="none" opacity=".9"/><path d="M12 1.6l7.4 7.4-2.8 2.8L12 7.2l-4.6 4.6L4.6 9z" fill="#fff"/><path d="M12 8.6l7.4 7.4-2.8 2.8L12 14.2l-4.6 4.6L4.6 16z" fill="#fff"/></svg>',
   sun: '<svg viewBox="0 0 24 24" fill="#ffd34d"><circle cx="12" cy="12" r="5"/></svg>',
   moon: '<svg viewBox="0 0 24 24" fill="#f0e6c8"><path d="M15 3a9 9 0 106 15A8 8 0 0115 3z"/></svg>',
   // botón de acción: cambia según lo que se puede hacer (hablar, saludar, pelota, agua, mirar, coger)
   hand: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="M9.4 21.4c-2.5 0-4.1-1.4-5.2-3.4l-1.6-2.9c-.6-1.1.7-2.1 1.7-1.3l1.9 1.5V6.4a1.5 1.5 0 013 0v4.8h.7V4.3a1.5 1.5 0 013 0v6.9h.7V5.1a1.5 1.5 0 013 0v6.1h.7V7.6a1.5 1.5 0 013 0v7.3c0 3.8-2.6 6.5-6.2 6.5z" fill="#fff"/></svg>',
   talk: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round"><path d="M4.4 3.4h15.2a2.4 2.4 0 012.4 2.4v8.8a2.4 2.4 0 01-2.4 2.4h-7.2l-5 4v-4H4.4A2.4 2.4 0 012 14.6V5.8a2.4 2.4 0 012.4-2.4z" fill="#fff"/><circle cx="7.6" cy="10.2" r="1.5" fill="#8a2be2" stroke="none"/><circle cx="12" cy="10.2" r="1.5" fill="#8a2be2" stroke="none"/><circle cx="16.4" cy="10.2" r="1.5" fill="#8a2be2" stroke="none"/></svg>',
-  wave: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="M8.4 22c-2.5 0-4.1-1.4-5.2-3.4l-1.6-2.9c-.6-1.1.7-2.1 1.7-1.3l1.9 1.5V7a1.5 1.5 0 013 0v4.8h.7V4.9a1.5 1.5 0 013 0v6.9h.7V5.7a1.5 1.5 0 013 0v6.1h.7V8.2a1.5 1.5 0 013 0v7.3c0 3.8-2.6 6.5-6.2 6.5z" fill="#fff" transform="rotate(-12 12 12)"/><path d="M19.6 2.6c1.2.8 2 2.1 2.2 3.6M17.8 4.6c.6.4 1 1.1 1.1 1.8" fill="none" stroke="#FFD700" stroke-width="1.8"/></svg>',
-  pelota: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linecap="round"><path d="M2.2 6.4c.6-1.4 1.5-2.6 2.6-3.6M1.4 10.2c.1-.8.3-1.5.6-2.2" fill="none" stroke="#FFD700" stroke-width="1.8"/><circle cx="13" cy="12.4" r="8.6" fill="#f4e6c6"/><path d="M7.4 5.9c3 2.9 3 10.1 0 13M18.6 5.9c-3 2.9-3 10.1 0 13" fill="none" stroke="#7a4a1e" stroke-width="1.5" stroke-dasharray="1.6 1.2"/><ellipse cx="10.4" cy="8.6" rx="2.2" ry="1.2" fill="#fff" stroke="none" opacity=".85" transform="rotate(-30 10.4 8.6)"/></svg>',
-  drop: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round"><path d="M12 2.2c3.6 4.7 6.8 8.5 6.8 12.3a6.8 6.8 0 01-13.6 0c0-3.8 3.2-7.6 6.8-12.3z" fill="#7fd6ff"/><path d="M9 14.8a3 3 0 002.2 3" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>',
-  look: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round"><path d="M14.4 16.6l2.1-2.1 5.1 5.1a1.5 1.5 0 01-2.1 2.1z" fill="#FFD700"/><circle cx="9.8" cy="9.8" r="7" fill="#fff"/><circle cx="9.8" cy="9.8" r="4.4" fill="#cfefff"/><path d="M7.6 7.8a3 3 0 012.4-1.4" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>',
+  wave: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><g transform="translate(-0.1 -0.6)"><path d="M8.4 22c-2.5 0-4.1-1.4-5.2-3.4l-1.6-2.9c-.6-1.1.7-2.1 1.7-1.3l1.9 1.5V7a1.5 1.5 0 013 0v4.8h.7V4.9a1.5 1.5 0 013 0v6.9h.7V5.7a1.5 1.5 0 013 0v6.1h.7V8.2a1.5 1.5 0 013 0v7.3c0 3.8-2.6 6.5-6.2 6.5z" fill="#fff" transform="rotate(-12 12 12)"/><path d="M19.6 2.6c1.2.8 2 2.1 2.2 3.6M17.8 4.6c.6.4 1 1.1 1.1 1.8" fill="none" stroke="#FFD700" stroke-width="1.8"/></g></svg>',
+  pelota: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linecap="round"><g transform="translate(0.55 0.15)"><path d="M2.2 6.4c.6-1.4 1.5-2.6 2.6-3.6M1.4 10.2c.1-.8.3-1.5.6-2.2" fill="none" stroke="#FFD700" stroke-width="1.8"/><circle cx="13" cy="12.4" r="8.6" fill="#f4e6c6"/><path d="M7.4 5.9c3 2.9 3 10.1 0 13M18.6 5.9c-3 2.9-3 10.1 0 13" fill="none" stroke="#7a4a1e" stroke-width="1.5" stroke-dasharray="1.6 1.2"/><ellipse cx="10.4" cy="8.6" rx="2.2" ry="1.2" fill="#fff" stroke="none" opacity=".85" transform="rotate(-30 10.4 8.6)"/></g></svg>',
+  drop: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round"><g transform="translate(0 0.25)"><path d="M12 2.2c3.6 4.7 6.8 8.5 6.8 12.3a6.8 6.8 0 01-13.6 0c0-3.8 3.2-7.6 6.8-12.3z" fill="#7fd6ff"/><path d="M9 14.8a3 3 0 002.2 3" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></g></svg>',
+  look: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round"><g transform="translate(-0.35 -0.4)"><path d="M14.4 16.6l2.1-2.1 5.1 5.1a1.5 1.5 0 01-2.1 2.1z" fill="#FFD700"/><circle cx="9.8" cy="9.8" r="7" fill="#fff"/><circle cx="9.8" cy="9.8" r="4.4" fill="#cfefff"/><path d="M7.6 7.8a3 3 0 012.4-1.4" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></g></svg>',
 };
 
 export class UI {
@@ -258,7 +259,7 @@ export class UI {
     });
   }
 
-  closeModal() { if (this.modal) { this.modal.remove(); this.modal = null; this.onModalClose?.(); } }
+  closeModal() { if (this.modal) { this.mapView?.destroy(); this.mapView = null; this.modal.remove(); this.modal = null; this.onModalClose?.(); } }
   get busy() { return !!this.modal || this.dialogOpen; }
 
   screen(inner, cls = '') {
@@ -291,7 +292,7 @@ export class UI {
           const q = QUESTS[id], qs = st.quests[id] || { state: 'locked' };
           const rib = RIBBONS.find(r => r.id === q.ribbon);
           const label = { locked: 'Bloqueada', available: 'Nueva', active: 'En curso', done: 'Hecha' }[qs.state];
-          const stepTxt = qs.state === 'done' ? '¡Completada!' : qs.state === 'locked' ? (id === 'muskilda' ? 'Reúne las 8 cintas' : 'Completa antes la bienvenida') : g.stepText(id);
+          const stepTxt = qs.state === 'done' ? '¡Completada!' : qs.state === 'locked' ? 'Reúne las 8 cintas' : g.stepText(id);
           return `<div class="qitem ${st.tracked === id ? 'active' : ''} ${qs.state}" data-q="${id}"><div class="qi">${I(q.icon, 40)}</div><div><b>${q.title}</b><small>${esc(stepTxt)}</small></div>
             <span class="state">${label}</span>${rib ? `<div class="rb" style="background:${qs.state === 'done' ? rib.color : '#d9ccb8'}"></div>` : ''}</div>`;
         }).join('')}</div><p class="keys" style="margin-top:12px">Toca una misión para seguirla con la flecha.</p>`;
@@ -328,12 +329,12 @@ export class UI {
         const doneN = g.missions.filter(M => M.done).length;
         body.innerHTML = `<div class="tprog"><div class="bar"><i style="width:${doneN / g.missions.length * 100}%"></i></div><span>${doneN}/${g.missions.length} misiones · ${g.ts.stamp ? 'sello conseguido' : 'completa todas para ganar el sello'}</span></div>
         <div class="qlist">${g.missions.map(M => {
-          const locked = !g.unlocked(M), st = M.done ? 'done' : locked ? 'locked' : M.step > 0 ? 'active' : 'available';
+          const st = M.done ? 'done' : M.step > 0 ? 'active' : 'available';
           const steps = M.steps();
           return `<div class="qitem ${g.tracked === M.i ? 'active' : ''} ${st}" data-m="${M.i}"><div class="qi">${I(M.icon, 40)}</div><div class="qb"><b>${esc(M.title)}</b>
-            <ol class="steps">${steps.map((x, k) => `<li class="${M.done || k < M.step ? 'ok' : k === M.step && !locked ? 'now' : ''}">${esc(x)}</li>`).join('')}</ol>
-            <small>${locked ? 'Primero conoce el pueblo con tu guía' : M.host ? 'Con ' + esc(M.host.name) : ''}</small></div>
-            <span class="state">${{ done: 'Hecha', locked: 'Bloqueada', active: 'En curso', available: 'Nueva' }[st]}</span></div>`;
+            <ol class="steps">${steps.map((x, k) => `<li class="${M.done || k < M.step ? 'ok' : k === M.step ? 'now' : ''}">${esc(x)}</li>`).join('')}</ol>
+            <small>${M.host ? 'Con ' + esc(M.host.name) : ''}</small></div>
+            <span class="state">${{ done: 'Hecha', active: 'En curso', available: 'Nueva' }[st]}</span></div>`;
         }).join('')}</div><p class="keys">Toca una misión para seguirla con la luz dorada.</p>`;
         body.querySelectorAll('.qitem').forEach(n => n.onclick = () => { g.setBook(g.missions[+n.dataset.m]); render('misiones'); });
       } else if (t === 'lugares') {
@@ -373,6 +374,9 @@ export class UI {
       d[o] = r * shade; d[o + 1] = gg * shade; d[o + 2] = b * shade; d[o + 3] = 255;
     }
     g.putImageData(img, 0, 0);
+    // fondo sin casas para el mapa grande (allí las casas se dibujan en vector)
+    const base = document.createElement('canvas'); base.width = base.height = S; base.getContext('2d').drawImage(c, 0, 0);
+    this.mapBase = base; this.mapHouseList = houses;
     const toM = (x, z) => [(x + HALF) / (2 * HALF) * S, (z + HALF) / (2 * HALF) * S];
     g.fillStyle = '#b44a3a';
     for (const hs of houses) { const [x, y] = toM(hs.x, hs.z); g.save(); g.translate(x, y); g.rotate(-(hs.ry || 0)); g.fillRect(-(hs.w || 8) / 4, -(hs.d || 8) / 4, (hs.w || 8) / 2, (hs.d || 8) / 2); g.restore(); }
@@ -383,13 +387,6 @@ export class UI {
     g.fillStyle = 'rgba(255,250,240,.92)'; g.strokeStyle = 'rgba(43,29,18,.8)'; g.lineWidth = Math.max(1.5, r * 0.14);
     g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); g.stroke();
     const im = iconImage(name); if (im.complete && im.naturalWidth) g.drawImage(im, x - r * 0.8, y - r * 0.8, r * 1.6, r * 1.6);
-  }
-  drawMarkers(g, S, list, scale = 1) {
-    for (const m of list) {
-      const x = (m.x + HALF) / (2 * HALF) * S, y = (m.z + HALF) / (2 * HALF) * S;
-      if (m.icon) this.drawIcon(g, m.icon, x, y, (m.small ? 9 : 13) * scale);
-      if (m.label && scale >= 1) { g.font = `800 ${Math.round(12 * scale)}px Nunito, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#3b2a1e'; g.strokeStyle = 'rgba(255,255,255,.9)'; g.lineWidth = 3; g.strokeText(m.label, x, y + (m.icon ? 22 : 0) * scale); g.fillText(m.label, x, y + (m.icon ? 22 : 0) * scale); }
-    }
   }
   drawPlayer(g, x, y, heading, s = 1) {
     g.save(); g.translate(x, y); g.rotate(-heading + Math.PI);
@@ -471,21 +468,11 @@ export class UI {
     this.drawPlayer(g, S / 2, S / 2, player.heading - camYaw, 1.3);
   }
   openMap() {
-    const g = this.game, town = g.kind === 'town';
-    const s = this.screen(`<header><h2>${I('map', 30)} ${town ? 'Mapa de ' + esc(g.def.name) : 'Mapa del valle'}</h2>${this.closeBtn()}</header><div class="pbody"><div id="mapbox"><canvas width="1024" height="1024"></canvas></div>
-      <div class="legend"><span>${I('exclaim', 20)} misión nueva</span><span>${I('check', 20)} misión hecha</span><span>${I('pin', 20)} objetivo</span>${town ? '' : `<span>${I('eguzkilore', 20)} eguzkilore</span>`}</div></div>`);
-    const c = $('canvas', s), ctx = c.getContext('2d');
-    ctx.imageSmoothingEnabled = true;
-    ctx.drawImage(this.mapImg, 0, 0, 1024, 1024);
-    const labels = g.mapLabels ? g.mapLabels() : [];
-    const draw = () => {
-      ctx.drawImage(this.mapImg, 0, 0, 1024, 1024);
-      this.drawMarkers(ctx, 1024, labels, 1.3);
-      this.drawMarkers(ctx, 1024, g.mapMarkers(), 1.3);
-      const [px, py] = [(g.player.pos.x + HALF) / (2 * HALF) * 1024, (g.player.pos.z + HALF) / (2 * HALF) * 1024];
-      this.drawPlayer(ctx, px, py, g.player.heading, 1.6);
-    };
-    draw(); setTimeout(draw, 120);
+    const g = this.game, town = g.kind === 'town', touch = this.input.touch;
+    const s = this.screen(`<header><h2>${I('map', 30)} ${town ? 'Mapa de ' + esc(g.def.name) : 'Mapa del valle'}</h2>${this.closeBtn()}</header><div class="pbody"><div id="mapbox"><canvas></canvas></div>
+      <div class="legend"><span>${I('exclaim', 20)} misión nueva</span><span>${I('check', 20)} misión hecha</span><span>${I('pin', 20)} objetivo</span><span>${I('pelota', 20)} frontón</span>${town ? '' : `<span>${I('eguzkilore', 20)} eguzkilore</span>`}
+      <em>${touch ? 'Pellizca o usa + y − para ampliar · arrastra para moverte · toca un sitio' : 'Rueda o + y − para ampliar · arrastra para moverte · haz clic en un sitio'}</em></div></div>`, 'mapscr');
+    this.mapView = mountMapView(this, $('#mapbox', s), { fitRadius: town ? 260 : 240 });
   }
 
   // ---------- Menú ----------
@@ -499,7 +486,7 @@ export class UI {
       <p id="mQnote" class="keys" hidden>La nueva calidad se aplicará al cargar el próximo pueblo.</p>
       <label>Paso del tiempo <select id="mT"><option value="1">Normal</option><option value="0">Detenido</option><option value="4">Rápido</option></select></label>
       <div class="keys">${this.input.touch ? 'Izquierda: caminar · Derecha: mirar · Botón amarillo: acción · botones de correr y saltar' : '<kbd>WASD</kbd> caminar · <kbd>Mayús</kbd> correr · <kbd>Espacio</kbd> saltar · <kbd>E</kbd> hablar/usar · <kbd>F</kbd> prismáticos · <kbd>C</kbd> cuaderno · <kbd>M</kbd> mapa · ratón o flechas para la cámara · rueda: zoom'}</div>
-      <div class="btns"><button class="btn primary close">Seguir jugando</button><button class="btn" id="mHome">Volver a la plaza</button><button class="btn exit" id="mExit">${I('map', 20)} Salir al mapa de Navarra</button>${town ? '' : '<button class="btn" id="mReset">Borrar partida del valle</button>'}</div>
+      <div class="btns"><button class="btn primary close">Seguir jugando</button>${g.goPelota ? `<button class="btn" id="mPelota">${I('pelota', 20)} Jugar a pelota</button>` : ''}<button class="btn" id="mHome">Volver a la plaza</button><button class="btn exit" id="mExit">${I('map', 20)} Salir al mapa de Navarra</button>${town ? '' : '<button class="btn" id="mReset">Borrar partida del valle</button>'}</div>
     </div>`, 'menu');
     $('#mQ', s).value = S.quality || (this.input.touch ? 'mid' : 'high'); $('#mT', s).value = String(S.timeSpeed ?? 1);
     const save = () => g.save();
@@ -508,6 +495,7 @@ export class UI {
     $('#mQ', s).onchange = e => { S.quality = e.target.value; save(); this.onQuality?.(e.target.value); $('#mQnote', s).hidden = false; };
     $('#mT', s).onchange = e => { S.timeSpeed = +e.target.value; g.applySettings(); save(); };
     $('#mHome', s).onclick = () => { this.closeModal(); g.teleport(PLACES.plaza.x - 6, PLACES.plaza.z + 6); };
+    const mp = $('#mPelota', s); if (mp) mp.onclick = () => { this.closeModal(); g.goPelota(); };
     $('#mExit', s).onclick = () => { this.closeModal(); g.save(); g.onExit?.(); };
     const rb = $('#mReset', s);
     if (rb) rb.onclick = () => { if (rb.dataset.sure) { this.closeModal(); g.resetState(st.name); } else { rb.dataset.sure = 1; rb.textContent = '¿Seguro? Pulsa otra vez para borrar'; this.sound.ui('error'); } };
