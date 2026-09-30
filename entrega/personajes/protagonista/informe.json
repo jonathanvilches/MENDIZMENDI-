@@ -1,7 +1,7 @@
 {
  "archivo": "char_protagonista.glb",
- "peso_MB": 1.46,
- "triangulos_visibles": 23172,
+ "peso_MB": 1.48,
+ "triangulos_visibles": 23444,
  "triangulos_por_parte": {
   "Head": 1744,
   "Hair": 2864,
@@ -13,10 +13,10 @@
   "Boots": 336,
   "Acc_Scarf": 1424,
   "Mechones": 0,
-  "Cara (ojos, iris, brillos, párpado, cejas, boca)": 504,
+  "Cara (ojos, iris, brillos, párpado, cejas, boca)": 776,
   "Manos (abiertas)": 1408
  },
- "triangulos_con_todas_las_variantes": 27382,
+ "triangulos_con_todas_las_variantes": 27654,
  "cage_caras": 1932,
  "huesos_deformadores": 39,
  "huesos_total": 43,
@@ -218,6 +218,26 @@
    "sueltos": 0,
    "ngons": 0
   },
+  "Glint_L_Big": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Glint_L_Small": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Glint_R_Big": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Glint_R_Small": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
   "Hair": {
    "fusionados": 0,
    "sueltos": 0,
@@ -293,6 +313,11 @@
    "sueltos": 0,
    "ngons": 0
   },
+  "Nose": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
   "Shirt": {
    "fusionados": 0,
    "sueltos": 0,
@@ -321,8 +346,8 @@
   "mensajes": []
  },
  "reimportacion": {
-  "altura_m": 1.621,
-  "pies_z": -0.002,
+  "altura_m": 1.626,
+  "pies_z": -0.007,
   "mira_a_-Y": true,
   "acciones": [
    "Celebrate_RIG_Protagonista",
@@ -339,7 +364,7 @@
    "Walk_RIG_Protagonista",
    "Wave_RIG_Protagonista"
   ],
-  "mallas": 28,
+  "mallas": 33,
   "huesos": 43,
   "variantes": [
    "Brow_Angry",
@@ -367,8 +392,8 @@
  },
  "lod": {
   "archivo": "char_protagonista_lod.glb",
-  "peso_MB": 0.81,
-  "triangulos_en_archivo": 10022,
+  "peso_MB": 0.83,
+  "triangulos_en_archivo": 10294,
   "validador": {
    "errores": 0,
    "avisos": 0,
@@ -376,5 +401,5 @@
    "mensajes": []
   }
  },
- "triangulos_en_archivo": 27382
+ "triangulos_en_archivo": 27654
 }

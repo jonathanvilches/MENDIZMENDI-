@@ -18,10 +18,11 @@ D = dict(
     name='Protagonista', key='protagonista', file='char_protagonista',
     # cabeza de juguete: cilindro redondeado (superelipse de exponente 3,2 de perfil) con la cara pintada encima.
     # La rejilla es la misma esfera 24 × 16 del encargo; centro entre el cuello (1,00) y la coronilla (1,58)
-    # cara de muñeco: ojos redondos castaño oscuro sin brillo, sonrisa en reposo y cejas solo al expresar algo
+    # cara de muñeco: ojos con blanco, iris castaño, pupila y brillo; cejas siempre visibles; naricilla de botón; sonrisa
     head_style='toy', head_n=2.7, head_axes=(0.27, 0.25, 0.285), head_r=0.29, head_scale=(1.0, 0.93, 1.07), head_c=1.29,
-    eye_x=0.09, eye_z=1.3, eye_w=0.048, eye_h=0.066, eye_glint=False, eye_uv=(0.5, 0.78),
-    brow_xs=(0.062, 0.09, 0.118), brow_dz=0.05, brow_lift=0.003, brow_r=0.008, brow_k=0.7, brow_hidden=('Normal', 'Happy'),
+    eye_x=0.09, eye_z=1.3, eye_w=0.047, eye_h=0.058, eye_glint=True, sclera=(1.48, 1.26), iris_off=(0.0, -0.08), iris_uv=0.4,
+    nose_size=(0.021, 0.017, 0.016),
+    brow_xs=(0.062, 0.09, 0.118), brow_dz=0.066, brow_lift=0.003, brow_r=0.0085, brow_k=0.7, brow_hidden=(),
     nose_z=1.24, mouth_z=1.2, mouth_w=0.09, mouth_h=0.03,
     blush_ll=(42, -6),
     # tronco (cilindro de 16 lados): (z, semiancho, semifondo, desplazamiento en y)

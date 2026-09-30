@@ -11,7 +11,7 @@ import protagonistaFull from '../assets/chars/portrait_protagonista_full.png?url
 
 const cache = new Map();
 let loader = null;
-const _q = new THREE.Quaternion(), _e = new THREE.Euler();
+const _q = new THREE.Quaternion(), _e = new THREE.Euler(), _Y = new THREE.Vector3(0, 1, 0);
 // nombres de variante: los del encargo nuevo y, como reserva, los antiguos
 const ALIAS = { Normal: ['Neutral', 'Normal'], Neutral: ['Neutral', 'Normal'], Happy: ['Smile', 'Happy', 'SmileOpen'], Smile: ['Smile', 'Happy'],
   SmileOpen: ['SmileOpen', 'Happy'], Talk_A: ['TalkA', 'Talk_A'], TalkA: ['TalkA', 'Talk_A'], Talk_O: ['TalkO', 'Talk_O'], TalkO: ['TalkO', 'Talk_O'] };
@@ -72,10 +72,15 @@ export class GlbChar {
     });
     // mirada: con los huesos Eye_L/Eye_R si los hay; si no, moviendo la textura del ojo (personajes antiguos)
     this.eyeBones = ['Eye_L', 'Eye_R'].map(n => this.bones[n]).filter(Boolean);
+    // ojos pintados sobre la cabeza (estilo juguete): el iris se mueve desplazando su textura
+    const painted = this.meshes.Eye_L && this.meshes.Eye_L.parent && this.meshes.Eye_L.parent.name === 'Head';
+    if (painted) this.eyeBones = [];
     const eye = !this.eyeBones.length && this.meshes.Eye_L;
     if (eye && eye.material) {
       const mat = eye.material.clone();
       if (mat.map) { mat.map = mat.map.clone(); mat.map.needsUpdate = true; }
+      // un poco de luz propia: el blanco del ojo se lee blanco aunque la cara quede en sombra (como en un dibujo)
+      if (painted && mat.map && mat.emissive) { mat.emissive.set('#ffffff'); mat.emissiveMap = mat.map; mat.emissiveIntensity = 0.28; }
       this.eyeMat = mat;
       for (const n of ['Eye_L', 'Eye_R']) if (this.meshes[n]) this.meshes[n].material = mat;
     }
@@ -104,7 +109,8 @@ export class GlbChar {
     this.lookT = 1 + Math.random() * 2;
     this.talkT = 0;
     this._initSprings();
-    this.postBones = [...this.eyeBones, ...this.springs.map(s => s.b)];
+    this.headBone = this.bones.Head || null; this.headYaw = 0;
+    this.postBones = [...this.eyeBones, ...this.springs.map(s => s.b), ...(this.headBone ? [this.headBone] : [])];
     for (const b of this.postBones) b.userData.q0 = b.quaternion.clone();
     if (opt.outline) this._addOutline(opt.outline);
     this.play('Idle', 0);
@@ -243,7 +249,9 @@ export class GlbChar {
       this.lookTarget.set((Math.random() - 0.5) * 0.8, (Math.random() - 0.5) * 0.4);
     }
     this.look.lerp(this.lookTarget, Math.min(1, dt * 14));
-    if (this.eyeMat && this.eyeMat.map) this.eyeMat.map.offset.set(-this.look.x * 0.07, -this.look.y * 0.05);
+    if (this.eyeMat && this.eyeMat.map) this.eyeMat.map.offset.set(-this.look.x * 0.035, -this.look.y * 0.025);
+    // la cabeza se adelanta a los giros (mira hacia donde va a torcer)
+    if (this.headBone && Math.abs(this.headYaw) > 1e-3) { _q.setFromAxisAngle(_Y, this.headYaw); this.headBone.quaternion.multiply(_q); }
     for (const b of this.eyeBones) { _q.setFromEuler(_e.set(-this.look.y * 0.18, 0, this.look.x * 0.22)); b.quaternion.multiply(_q); }
     this._updateSprings(dt);
   }
@@ -308,11 +316,13 @@ export class GlbRig {
     this.obj = new THREE.Group();
     // zancada natural de los clips: Walk ≈ 1,0 m/s y Run ≈ 2,5 m/s. Las velocidades del juego (3,3 y 6,8 m/s) son
     // mayores: el ritmo sube con la raíz de la velocidad para que las piernas no se vuelvan frenéticas
-    this.char = new GlbChar(gltf, { outline: 0.006, walkAt: 0.2, runAt: 4.6, gait: (v, n) => Math.sqrt(Math.max(0.2, v) / (n === 'Run' ? 2.5 : 1.0)) });
+    // Walk avanza ~1,15 m por ciclo y Run ~2,5 m/s: el ritmo sigue casi a la velocidad (los pies apenas patinan)
+    this.char = new GlbChar(gltf, { outline: 0.006, walkAt: 0.2, runAt: 4.6, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / 2.5, 0.85) : Math.pow(Math.max(0.2, v) / 1.15, 0.8) });
     this.char.root.scale.setScalar(def.scale || 1);
     this.obj.add(this.char.root);
     this.wave = 0; this.cheer = 0; this.talking = 0; this.carry = false;
     this.air = 0; this.wasGrounded = true;
+    this.roll = 0; this.pitch = 0; this.lastSpeed = 0; this.headYaw = 0;
   }
   update(dt, speed, grounded, turnRate) {
     const c = this.char;
@@ -331,6 +341,19 @@ export class GlbRig {
     }
     c.setTalking(this.talking > 0);
     c.setSpeed(speed);
+    // cuerpo vivo: se inclina hacia dentro en las curvas (más cuanto más corre), hacia delante al arrancar
+    // y al correr, y la cabeza se adelanta al giro
+    if (dt > 0) {
+      const tr = grounded ? (turnRate || 0) : 0, cl = THREE.MathUtils.clamp;
+      const acc = (speed - this.lastSpeed) / dt; this.lastSpeed = speed;
+      const wantRoll = cl(-tr * Math.min(speed, 7) * 0.028, -0.2, 0.2);
+      const wantPitch = cl(acc * 0.01, -0.05, 0.09) + (speed > 4.6 ? 0.07 : speed > 0.4 ? 0.02 : 0);
+      this.roll += (wantRoll - this.roll) * Math.min(1, dt * 7);
+      this.pitch += (wantPitch - this.pitch) * Math.min(1, dt * 5);
+      this.headYaw += (cl(tr * 0.16, -0.45, 0.45) - this.headYaw) * Math.min(1, dt * 9);
+      c.root.rotation.set(this.pitch, 0, this.roll);
+      c.headYaw = this.headYaw;
+    }
     c.update(dt);
   }
   doWave() { this.wave = 1.4; this.char.oneShot = null; }

@@ -255,6 +255,9 @@ def toy_face(d, cols, mats):
         eo = C.obj_from_bm(F.toy_eye(d, side), f'Eye_{s}', V_); assign_mat(eo, [mats['eyes']]); face[f'Eye_{s}'] = eo
         for nm, gbm in (F.toy_glints(d, side).items() if d.get('eye_glint', True) else ()):
             go = C.obj_from_bm(gbm, f'Glint_{s}_{nm}', V_); assign_mat(go, [mats['glint']]); face[f'Glint_{s}_{nm}'] = go
+    no = C.obj_from_bm(F.toy_nose(d), 'Nose', V_); assign_mat(no, [mats['face']])
+    for p in no.data.polygons: p.use_smooth = True
+    face['Nose'] = no
     for kind in ('Open', 'Half', 'Closed'):
         lo = C.obj_from_bm(F.toy_lid(d, kind), f'Eyelid_{kind}', V_); assign_mat(lo, [mats['face'], mats['eyes']])
         face[f'Eyelid_{kind}'] = lo
@@ -566,7 +569,7 @@ def uv_all(d, G):
     mark_angle_seams(G['Acc_Scarf'], 70); mark_angle_seams(G['Head'], 80)
     for t in G['tufts']: tuft_seams(t)
     body_objs = [G[n] for n in ('Body', 'Shirt', 'Vest', 'Shorts', 'Socks', 'Boots', 'Acc_Scarf')]
-    face_objs = [G['Head'], G['Hair']] + G['tufts'] + [o for n, o in G['face'].items() if n.startswith('Eyelid_')]
+    face_objs = [G['Head'], G['Hair']] + G['tufts'] + [o for n, o in G['face'].items() if n.startswith('Eyelid_') or n == 'Nose']
     unwrap_pack(body_objs); unwrap_pack(face_objs)
     # los atlas dejan libre una franja para los rincones de color plano
     for ob in face_objs + body_objs:
@@ -588,12 +591,18 @@ def uv_all(d, G):
     for n, ob in G['face'].items():
         if n.startswith('Mouth_'): set_uv(ob, mouth_uv)
     if d.get('head_style') == 'toy':
-        # ojos de punto: la pupila del atlas (o el castaño del iris, d['eye_uv']); párpados: la raya (material 1) igual
-        pupil = box_uv(EYES['iris'], *d.get('eye_uv', (0.5, 0.5)))
-        for s in ('L', 'R'):
-            set_uv(G['face'][f'Eye_{s}'], lambda p, co, part: pupil)
-            for nm in ('Big', 'Small'):
-                if f'Glint_{s}_{nm}' in G['face']: set_uv(G['face'][f'Glint_{s}_{nm}'], lambda p, co, part: (0.99, 0.99))
+        # ojos: el blanco a un punto del blanco del atlas; el iris, a lo ancho del iris pintado (con margen, para mirar)
+        pupil = box_uv(EYES['iris'], 0.5, 0.5); white = box_uv(EYES['white'], 0.5, 0.25)
+        io = d.get('iris_off', (0.0, -0.06)); ki = d.get('iris_uv', 0.4)
+        for side, s in ((1, 'L'), (-1, 'R')):
+            ex, ez, ew, eh = side * d['eye_x'] + side * io[0] * d['eye_w'] / 2, d['eye_z'] + io[1] * d['eye_h'] / 2, d['eye_w'] / 2, d['eye_h'] / 2
+            def eye_uv(p, co, part, ex=ex, ez=ez, ew=ew, eh=eh):
+                if part != 1: return white
+                return box_uv(EYES['iris'], 0.5 + (co.x - ex) / ew * ki, 0.5 + (co.z - ez) / eh * ki)
+            set_uv(G['face'][f'Eye_{s}'], eye_uv)
+            for nm in ('Big', 'Small'):      # brillos de color liso: sin coordenadas de textura (el validador las marca sin usar)
+                gl = G['face'].get(f'Glint_{s}_{nm}')
+                if gl: [gl.data.uv_layers.remove(u) for u in list(gl.data.uv_layers)]
         for n, ob in G['face'].items():
             if n.startswith('Eyelid_'):
                 uv = ob.data.uv_layers.active.data
@@ -636,6 +645,7 @@ def paint_all(d, G):
     for n, ob in G['face'].items():
         if n.startswith('Brow_'): paint(ob, lambda p: cl['brow'])
         elif n.startswith('Eyelid_') and d.get('head_style') == 'toy': paint(ob, lambda p: cl['skin'])
+        elif n == 'Nose': paint(ob, lambda p: tuple(int(a + (b - a) * 0.28) for a, b in zip(cl['skin'], cl['blush'])))
         elif n.startswith('Eyelid_'):
             zs = [v.co.z for v in ob.data.vertices]; zmin = min(zs)
             paint(ob, lambda p, zmin=zmin: (70, 40, 30) if p.center.z < zmin + 0.012 else cl['skin'])
@@ -743,7 +753,7 @@ def bake_atlases(d, G, mats, tex_dir):
     name = d['name']
     variants = [o for n, o in G['face'].items()] + list(G['hands'].values())
     body_main = [G[n] for n in ('Body', 'Shirt', 'Vest', 'Shorts', 'Socks', 'Boots', 'Acc_Scarf')]
-    face_main = [G['Head'], G['Hair']] + G['tufts']
+    face_main = [G['Head'], G['Hair']] + G['tufts'] + ([G['face']['Nose']] if 'Nose' in G['face'] else [])
     body_all = body_main + list(G['hands'].values())
     face_all = face_main + [o for n, o in G['face'].items() if n.startswith(('Brow_', 'Eyelid_', 'Mouth_'))]
     eyes_dummy = bpy.data.images.new('_descarte', 16, 16)
