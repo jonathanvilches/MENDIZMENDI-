@@ -17,9 +17,9 @@ DESVIOS = [
      'se limita por peso a los bordes de las prendas (bajo, cuello, sisas, mangas).'),
     ('Cabeza y cara de juguete',
      'Por decisión de dirección, la cabeza es un cilindro redondeado de estilo juguete (diseño propio, sin copiar figuras existentes) '
-     'con la cara pintada: ojos de punto con brillo, cejas finas y bocas de trazo como piezas planas pegadas a la cabeza, y pelo de '
-     'una sola pieza con flequillo. Se mantienen la rejilla 24 × 16, las variantes intercambiables (bocas, cejas, párpados) y el '
-     'esqueleto; desaparecen la nariz, las orejas, los globos oculares y los tres mechones (Hair_01–03).'),
+     'con la cara pintada como piezas planas pegadas a la cabeza: ojos redondos castaño oscuro, sonrisa de trazo y cejas solo al '
+     'expresar algo (enfado, preocupación, sorpresa); pelo de una sola pieza con raya al lado, tupé y mechones moldeados. Se mantienen la rejilla 24 × 16, las variantes intercambiables (bocas, cejas, párpados) y el '
+     'esqueleto; desaparecen la nariz, las orejas, los globos oculares, los brillos y los tres mechones (Hair_01–03).'),
     ('Zancada de Walk',
      'Una zancada de 2,15 m no es posible con piernas de 0,5 m. El ciclo de 30 fotogramas (contactos en 0 y 15) avanza alrededor de 1 m (1 m/s); '
      'el juego ajusta la velocidad de reproducción a la velocidad real.'),
