@@ -2,6 +2,13 @@
 // Cada personaje es un niño o niña de un rincón de Navarra con su tradición, su carácter y su habilidad.
 // stats: [Resistencia, Fuerza, Agilidad, Orientación, Naturaleza]
 export const CAST = [
+  // protagonista del juego (modelo GLB construido en Blender): el primero y el de por defecto
+  { id: 'benat', name: 'Beñat', from: 'Urbasa', role: 'Pastor', tagline: 'Conoce cada senda de la sierra', glb: true,
+    desc: 'Sube con las ovejas latxas a los pastos de Urbasa y Andia. Su pañuelo rojo se ve desde lejos entre la niebla del hayedo.',
+    ability: 'Buen pastor: los animales se dejan acercar más', stats: [85, 65, 75, 85, 80], color: '#8a3a6e',
+    // aspecto de reserva (minifigura) por si el modelo GLB no puede cargarse
+    look: { child: true, height: 1.36, skin: '#f1c4a0', hair: '#3a2418', hairStyle: 'short', shirt: '#f2ece0', vest: '#6a2854', pants: '#5c4e40',
+      scarf: '#c8222a', shoes: '#7a4c2a', boots: true, socks: '#eae2ce', face: 'smile', pose: 'hip1' } },
   { id: 'leire', name: 'Leire', from: 'Iruña / Pamplona', role: 'Sanferminera', tagline: 'Siempre llega la primera',
     desc: 'Corre más que nadie por las calles de Pamplona. Lleva su pañuelo rojo desde el 6 de julio hasta que se le olvida quitárselo.',
     ability: 'Sprint: corre más rápido durante un rato', stats: [70, 55, 95, 70, 55], color: '#d42f2f',
@@ -47,12 +54,6 @@ export const CAST = [
     ability: 'Buena mano: recoge más deprisa en las cosechas', stats: [80, 70, 65, 65, 85], color: '#6aa84f',
     look: { child: true, height: 1.36, skin: '#d9a57f', hair: '#1f1712', hairStyle: 'bun', lashes: true, eyes: '#3a2a1a', hat: 'straw', hatBand: '#3ca05a',
       shirt: '#f2c94c', overalls: '#3a6a9a', pants: '#3a6a9a', shoes: '#6b3f24', basket: true, basketFill: '#3ca05a', face: 'grin', pose: 'hip1', browStyle: 'arched' } },
-  { id: 'benat', name: 'Beñat', from: 'Urbasa', role: 'Pastor', tagline: 'Conoce cada senda de la sierra', glb: true,
-    desc: 'Sube con las ovejas latxas a los pastos de Urbasa y Andia. Su pañuelo rojo se ve desde lejos entre la niebla del hayedo.',
-    ability: 'Buen pastor: los animales se dejan acercar más', stats: [85, 65, 75, 85, 80], color: '#8a3a6e',
-    // aspecto de reserva (minifigura) por si el modelo GLB no puede cargarse
-    look: { child: true, height: 1.36, skin: '#f1c4a0', hair: '#3a2418', hairStyle: 'short', shirt: '#f2ece0', vest: '#6a2854', pants: '#5c4e40',
-      scarf: '#c8222a', shoes: '#7a4c2a', boots: true, socks: '#eae2ce', face: 'smile', pose: 'hip1' } },
 ];
 export const castById = (id) => CAST.find(c => c.id === id) || CAST[0];
 export const STAT_LABELS = ['Resistencia', 'Fuerza', 'Agilidad', 'Orientación', 'Naturaleza'];

@@ -53,5 +53,15 @@
   "mouth": "Neutral",
   "brows": "Surprised",
   "hands": "Open"
+ },
+ "Ready": {
+  "mouth": "Neutral",
+  "brows": "Normal",
+  "hands": "Open"
+ },
+ "Hit": {
+  "mouth": "SmileOpen",
+  "brows": "Angry",
+  "hands": "Open"
  }
 }

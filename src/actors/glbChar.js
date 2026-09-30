@@ -203,7 +203,7 @@ export class GlbChar {
     if (!this.oneShot || (this.oneShot.t -= dt) <= 0) {
       if (this.oneShot) this.oneShot = null;
       const v = this.speed, ts = this.opt.timeScale;
-      let want = 'Idle', scale = ts;
+      let want = this.idleName && this.actions[this.idleName] ? this.idleName : 'Idle', scale = ts;
       const gait = this.opt.gait;
       if (v > this.opt.runAt && this.actions.Run) { want = 'Run'; scale = ts * (gait ? gait(v, 'Run') : Math.max(0.6, v / RUN_REF)); }
       else if (v > this.opt.walkAt && this.actions.Walk) { want = 'Walk'; scale = ts * (gait ? gait(v, 'Walk') : Math.max(0.35, v / WALK_REF)); }
@@ -336,9 +336,12 @@ export class GlbRig {
   doWave() { this.wave = 1.4; this.char.oneShot = null; }
   doCheer() { this.cheer = 2; this.char.oneShot = null; this.char.holdFace('Happy', 'Normal', 2.6, 'Fist'); }
   setExpr(name, dur = 2) { const e = EXPR[name] || EXPR.neutral; this.char.holdFace(e[0], e[1], dur); }
+  /** Postura en parado (p. ej. 'Ready' en el frontón); null vuelve a Idle. */
+  setStance(name) { this.char.idleName = name || null; }
   doAct(kind, t = 0.5) {
     const c = this.char;
-    if (kind === 'pick') c.playOnce('Land', t);
+    if (kind === 'hit' && c.actions.Hit) { c.playOnce('Hit', t); c.holdFace('SmileOpen', 'Angry', t, 'Open'); }
+    else if (kind === 'pick') c.playOnce('Land', t);
     else if (kind === 'point') { c.playOnce('Talk', t); c.holdFace('Happy', 'Normal', t, 'Point'); }
     else { c.playOnce('Wave', t); c.holdFace('Happy', 'Normal', t, 'Fist'); }
   }

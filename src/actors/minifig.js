@@ -649,7 +649,7 @@ export class MinifigAnimator {
       if (K === 'chop' || K === 'hammer') { const swg = p < 0.5 ? -2.8 * (p / 0.5) : -2.8 + 3.3 * Math.min(1, (p - 0.5) / 0.15); armRx = armLx = swg; armLz = 0.3; armRz = -0.3; elbL = elbR = -0.3; torsoPitch += p > 0.5 ? 0.3 : -0.12; kneeL = kneeR = 0.3; }
       else if (K === 'lift') { const up = Math.sin(Math.min(1, p) * Math.PI); armRx = armLx = -1.4 - 1.6 * up; elbL = elbR = -0.4 * (1 - up); kneeL = kneeR = 1.1 * (1 - up); legL = legR = -0.5 * (1 - up); bodyY = -0.12 * (1 - up); torsoPitch += 0.3 * (1 - up); }
       else if (K === 'pick') { const d = Math.sin(Math.min(1, p) * Math.PI); torsoPitch += 0.7 * d; kneeL = kneeR = 0.9 * d; legL = legR = -0.5 * d; armRx = armLx = -0.9 - 0.4 * d; bodyY = -0.1 * d; headPitch -= 0.3 * d; }
-      else if (K === 'throw') { armRx = p < 0.4 ? 0.9 * (p / 0.4) : 0.9 - 3.6 * Math.min(1, (p - 0.4) / 0.2); torsoYaw += 0.4 * Math.sin(p * Math.PI); }
+      else if (K === 'throw' || K === 'hit') { armRx = p < 0.4 ? 0.9 * (p / 0.4) : 0.9 - 3.6 * Math.min(1, (p - 0.4) / 0.2); torsoYaw += 0.4 * Math.sin(p * Math.PI); }
       else if (K === 'point') { armRx = -1.5; armRz = 0.1; elbR = 0; }
       else if (K === 'pray') { armRx = armLx = -1.0; armRz = -0.45; armLz = 0.45; elbL = elbR = -1.2; headPitch += 0.25; }
       else if (K === 'kick') { legR = -1.3 * Math.sin(p * Math.PI); kneeR = 0.3; armLx = 0.6 * Math.sin(p * Math.PI); }

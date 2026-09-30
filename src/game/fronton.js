@@ -66,13 +66,15 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // el partido anima al jugador y coloca a los dos: el rig del jugador pasa a nuestras manos
     P.rig = { update() { }, doAct() { }, doCheer() { }, doWave() { }, setExpr() { } };
     P.frozen = true; G.mode = 'pelota'; G.ui.hudVisible?.(false); G.ui.setPrompt?.(null);
+    rig.setStance?.('Ready');                     // en la cancha, postura de pelotari
+    G.pelotaRig = rig;
     rival.frozen = true; rival.talking = 0;
     const flags = { you: {}, rival: {} };
     const once = (who, key, on, fn) => { if (on && !flags[who][key]) { flags[who][key] = true; fn(); } else if (!on) flags[who][key] = false; };
     const animYou = (obj, st, dt) => {
       P.pos.copy(obj.position); P.heading = obj.rotation.y;
       rig.update(dt, st.speed, true, 0);
-      once('you', 'swing', st.swing >= 0, () => rig.doAct?.('throw', 0.35));
+      once('you', 'swing', st.swing >= 0, () => rig.doAct?.('hit', 0.5));
       once('you', 'won', st.won, () => rig.doCheer?.());
     };
     const animRival = (obj, st) => {
@@ -88,8 +90,8 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     });
     G.pelotaTick = (dt) => match.update(dt);
     function done(r) {
-      G.pelotaTick = null; G.pelotaMatch = null;
-      P.rig = rig; P.frozen = false; G.mode = 'play'; G.ui.hudVisible?.(true);
+      G.pelotaTick = null; G.pelotaMatch = null; G.pelotaRig = null;
+      rig.setStance?.(null); P.rig = rig; P.frozen = false; G.mode = 'play'; G.ui.hudVisible?.(true);
       rival.frozen = false; rival.speed = 0; rival.setPos(home.x, home.z, home.h);
       const e = fronton.entry, c = fronton.toWorld(0, 12);
       P.place(e.x, e.z, Math.atan2(c.x - e.x, c.z - e.z));

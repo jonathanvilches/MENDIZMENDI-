@@ -171,14 +171,20 @@ export class TownGame {
       case 'legend': return M.leg?.teller ? { x: P.plaza.x + (M.i % 2 ? -9 : 9), z: P.plaza.z - 6 } : lm('cave')?.spot ? { x: (lm('cave').spot.x + P.plaza.x) / 2, z: (lm('cave').spot.z + P.plaza.z) / 2 } : { x: P.plaza.x - 9, z: P.plaza.z - 6 };
       case 'race': return { x: P.spawn.x - 4, z: P.spawn.z - 20 };
       case 'observe': return lm('gorge')?.spot || P.edgeN;
-      case 'pelota': { if (!this.fronton) { const sp = findFrontonSpot(P.plaza); if (sp) this.fronton = new Fronton(this.scene, sp); } return this.fronton ? { x: this.fronton.entry.x + 2, z: this.fronton.entry.z } : P.plaza; }
+      case 'pelota': return this.ensureFronton() ? { x: this.fronton.entry.x + 2, z: this.fronton.entry.z } : P.plaza;
       case 'summit': return { x: P.plaza.x + (P.edgeN ? (P.edgeN.x - P.plaza.x) * 0.25 : 10), z: P.plaza.z + (P.edgeN ? (P.edgeN.z - P.plaza.z) * 0.25 : -14) };
       case 'quiz': return TOWN.church?.door ? { x: TOWN.church.door.x, z: TOWN.church.door.z + 0 } : P.plaza;
     }
     return P.plaza;
   }
+  // Frontón del pueblo: está siempre, con o sin misión de pelota
+  ensureFronton() {
+    if (!this.fronton) { const sp = findFrontonSpot(PLACES.plaza); if (sp) this.fronton = new Fronton(this.scene, sp); }
+    return this.fronton;
+  }
   spawn() {
     const d = this.def;
+    this.ensureFronton();
     for (const M of this.missions) {
       const pos = this.spot(this.placeFor(M), 5);
       const h = (M.leg?.teller) || M.m.host || (M.type === 'visit' ? { name: 'Guía ' + (this.rnd() < 0.5 ? 'Ane' : 'Iker'), look: { shirt: '#f2c230', vest: '#3a8fd6', pants: '#2b3a6b', hair: '#3b2418', ponytail: true, female: true, strap: '#6b4a2e', bag: '#8a6a3a', face: 'happy' } }
@@ -205,6 +211,16 @@ export class TownGame {
       const s0 = route[0];
       const a = new Actor({ id: 'w' + i, name: ['Maite', 'Josu', 'Amaia', 'Patxi', 'Nekane', 'Koldo', 'Itziar', 'Mikel', 'Leire', 'Fermín'][i % 10], x: s0.x, z: s0.z, look, route, walkSpeed: 1 + R() * 0.4 }, this.scene);
       this.walkers.push(a);
+    }
+    // pelotari del pueblo: espera junto al frontón para jugar cuando se quiera
+    if (this.fronton && !this.missions.some(M => M.type === 'pelota')) {
+      const e = this.fronton.entry, c = this.fronton.toWorld(0, 12), s = this.spot({ x: e.x - 2.5, z: e.z + 1 }, 3);
+      const R = this.rnd, name = ['Unai', 'Mikel', 'Aitor', 'Iñaki', 'Oihana', 'Garazi'][Math.floor(R() * 6)];
+      const blue = R() < 0.5;
+      this.pelotari = new Actor({ id: 'pelotari', name, x: s.x, z: s.z, heading: Math.atan2(c.x - s.x, c.z - s.z),
+        look: { shirt: '#f6f3ec', pants: '#f6f3ec', sash: blue ? '#2f5fb3' : '#c8222a', espadrille: true, laces: blue ? '#2f5fb3' : '#c8222a',
+          skin: SKINS[Math.floor(R() * SKINS.length)], hair: HAIRS[Math.floor(R() * HAIRS.length)], female: name === 'Oihana' || name === 'Garazi', ponytail: name === 'Garazi' } }, this.scene);
+      this.actors.push(this.pelotari);
     }
     // aparición del jugador
     const sp = this.spot(PLACES.spawn, 4);
@@ -306,6 +322,7 @@ export class TownGame {
       if (M.step === 0) out.push({ x: M.host.pos.x, z: M.host.pos.z, icon: 'exclaim' });
       else { const t = this.target(M); if (t) out.push({ x: t.x, z: t.z, icon: M.icon }); }
     }
+    if (this.fronton) out.push({ x: this.fronton.entry.x, z: this.fronton.entry.z, icon: 'pelota', small: true });
     return out;
   }
   mapLabels() {
@@ -314,6 +331,7 @@ export class TownGame {
     for (const l of TOWN.landmarks) L.push({ x: l.spot.x, z: l.spot.z, icon: l.kind, label: l.name.length > 18 ? l.name.slice(0, 17) + '…' : l.name });
     if (TOWN.farm) L.push({ x: TOWN.farm.x, z: TOWN.farm.z, icon: 'sheep', label: 'Granja' });
     L.push({ x: PLACES.fields.x, z: PLACES.fields.z, icon: 'wheat', label: 'Campos' });
+    if (this.fronton) L.push({ x: this.fronton.spot.x, z: this.fronton.spot.z, icon: 'pelota', label: 'Frontón' });
     return L;
   }
   setBook(M) { if (!M.done && this.unlocked(M)) { this.tracked = M.i; this.sound.ui('click'); } }
@@ -321,13 +339,14 @@ export class TownGame {
   // ---------- Interacción ----------
   interactables() {
     const list = [];
-    for (const a of this.actors) if (a.visible !== false) list.push({ kind: 'npc', a, x: a.pos.x, z: a.pos.z, r: 3, label: `Hablar con ${a.name}` });
+    for (const a of this.actors) if (a.visible !== false) list.push({ kind: 'npc', a, x: a.pos.x, z: a.pos.z, r: 3, label: a === this.pelotari ? `Jugar a pelota con ${a.name}` : `Hablar con ${a.name}` });
     for (const a of this.walkers) list.push({ kind: 'walker', a, x: a.pos.x, z: a.pos.z, r: 2.4, label: `Saludar a ${a.name}` });
     for (const it of this.items) list.push({ kind: 'item', it, x: it.x, z: it.z, r: 2.2, label: it.label });
     for (const M of this.missions) if (M.bench && M.step === 1 && !M.done) list.push({ kind: 'bench', M, x: M.bench.x, z: M.bench.z, r: 3, label: M.trade.verb });
     for (const k of this.clues) if (!k.found && k.obj.visible) list.push({ kind: 'clue', k, x: k.x, z: k.z, r: 2.6, label: 'Examinar' });
     for (const M of this.missions) if (M.creature && M.creature.shown && !M.done && !M.chase) list.push({ kind: 'creature', M, x: M.creature.pos.x, z: M.creature.pos.z, r: 3.6, label: `Hablar con ${M.leg.creature}` });
     if (TOWN.fountain) list.push({ kind: 'fountain', x: TOWN.fountain.x, z: TOWN.fountain.z, r: 3.8, label: 'Beber agua' });
+    if (this.fronton) list.push({ kind: 'fronton', x: this.fronton.entry.x, z: this.fronton.entry.z, r: 3, label: 'Jugar a pelota' });
     return list;
   }
   updateInteraction() {
@@ -344,13 +363,34 @@ export class TownGame {
   }
   async interact(it) {
     this.sound.ui('click');
+    if (it.kind === 'npc' && it.a === this.pelotari) return this.freePelota();
     if (it.kind === 'npc') return this.talk(it.a);
+    if (it.kind === 'fronton') {
+      const M = this.missions.find(M => M.type === 'pelota' && !M.done);
+      return M ? this.talk(M.host) : this.freePelota();
+    }
     if (it.kind === 'walker') { it.a.say(2.5); it.a.wave = 1.2; const L = WALKER_LINES[this.walkers.indexOf(it.a) % WALKER_LINES.length]; return this.say(it.a, L); }
     if (it.kind === 'item') return this.pick(it.it);
     if (it.kind === 'bench') return this.doTrade(it.M);
     if (it.kind === 'clue') return this.examineClue(it.k);
     if (it.kind === 'creature') return this.meetCreature(it.M);
     if (it.kind === 'fountain') { this.particles.emit({ x: it.x, y: TOWN.fountain.y + 1.4, z: it.z }, { n: 20, color: '#bfe8ff', speed: 1.5, size: 0.25, life: 0.8 }); this.sound.splash(this.player.pos, 0.6); this.ui.toast('Agua fresca de la fuente de la plaza.', 'water'); }
+  }
+  // Partido libre en el frontón del pueblo (fuera de las misiones): contra el pelotari o el anfitrión de la misión
+  async freePelota() {
+    const a = this.pelotari || this.missions.find(M => M.type === 'pelota')?.host;
+    if (!this.fronton || !a || this.mode !== 'play') return;
+    this.player.frozen = true;
+    try {
+      const first = !this.pelotaSeen; this.pelotaSeen = true;
+      await this.say(a, first ? ['¡Aupa! ¿Echamos un partido de pelota a mano?', 'La pelota tiene que dar en el frontis por encima de la chapa, la raya roja. Ve al círculo verde y pulsa GOLPE cuando brille.']
+        : ['¿Otro partido? ¡Vamos!']);
+    } finally { this.player.frozen = false; a.talking = 0; }
+    const r = await this.fronton.play(this, a);
+    if (r.quit) return;
+    const best = (townState(profile(), this.def.id).best ||= {});
+    if (r.win) { best.pelota = (best.pelota || 0) + 1; saveProfile(); }
+    await this.say(a, [r.win ? `¡${r.you} a ${r.cpu}! Juegas como un pelotari de verdad. Vuelve cuando quieras.` : `${r.you} a ${r.cpu}. ¡Casi! Aquí estaré para la revancha.`]);
   }
   say(a, lines) {
     const look = a.obj?.userData.look;

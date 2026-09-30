@@ -1,0 +1,67 @@
+{
+ "Idle": {
+  "mouth": "Neutral",
+  "brows": "Normal",
+  "hands": "Open"
+ },
+ "Walk": {
+  "mouth": "Smile",
+  "brows": "Normal",
+  "hands": "Open"
+ },
+ "Run": {
+  "mouth": "SmileOpen",
+  "brows": "Happy",
+  "hands": "Fist"
+ },
+ "Jump_Start": {
+  "mouth": "SmileOpen",
+  "brows": "Surprised",
+  "hands": "Open"
+ },
+ "Jump_Loop": {
+  "mouth": "SmileOpen",
+  "brows": "Happy",
+  "hands": "Open"
+ },
+ "Land": {
+  "mouth": "Neutral",
+  "brows": "Normal",
+  "hands": "Open"
+ },
+ "Talk": {
+  "mouth": "TalkA",
+  "brows": "Normal",
+  "hands": "Open"
+ },
+ "Wave": {
+  "mouth": "SmileOpen",
+  "brows": "Happy",
+  "hands": "Open"
+ },
+ "Celebrate": {
+  "mouth": "SmileOpen",
+  "brows": "Happy",
+  "hands": "Fist"
+ },
+ "Scared": {
+  "mouth": "Scared",
+  "brows": "Worried",
+  "hands": "Open"
+ },
+ "Look_Around": {
+  "mouth": "Neutral",
+  "brows": "Surprised",
+  "hands": "Open"
+ },
+ "Ready": {
+  "mouth": "Neutral",
+  "brows": "Normal",
+  "hands": "Open"
+ },
+ "Hit": {
+  "mouth": "SmileOpen",
+  "brows": "Angry",
+  "hands": "Open"
+ }
+}
