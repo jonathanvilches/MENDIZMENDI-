@@ -16,10 +16,13 @@ V = Vector
 # ------------------------------------------------------------------ diseño (medidas en metros)
 D = dict(
     name='Protagonista', key='protagonista', file='char_protagonista',
-    # cabeza: esfera 24 × 16, radio 0,29, escala (1; 0,93; 1,07); centro entre el cuello (1,01) y la coronilla (1,58)
-    head_r=0.29, head_scale=(1.0, 0.93, 1.07), head_c=1.29,
-    eye_x=0.105, eye_z=1.292, eye_w=0.085, eye_h=0.11,
-    nose_z=1.212, mouth_z=1.128, mouth_w=0.11, mouth_h=0.03,
+    # cabeza de juguete: cilindro redondeado (superelipse de exponente 3,2 de perfil) con la cara pintada encima.
+    # La rejilla es la misma esfera 24 × 16 del encargo; centro entre el cuello (1,00) y la coronilla (1,58)
+    head_style='toy', head_n=3.2, head_axes=(0.27, 0.245, 0.285), head_r=0.29, head_scale=(1.0, 0.93, 1.07), head_c=1.29,
+    eye_x=0.088, eye_z=1.305, eye_w=0.042, eye_h=0.056,
+    brow_xs=(0.058, 0.088, 0.118), brow_dz=0.05, brow_lift=0.003, brow_r=0.0085, brow_k=0.7,
+    nose_z=1.24, mouth_z=1.192, mouth_w=0.1, mouth_h=0.03,
+    blush_ll=(42, -6),
     # tronco (cilindro de 16 lados): (z, semiancho, semifondo, desplazamiento en y)
     torso=[(0.47, 0.150, 0.104, 0.0), (0.52, 0.160, 0.112, 0.0), (0.58, 0.164, 0.115, 0.0), (0.64, 0.158, 0.114, 0.0),
            (0.70, 0.154, 0.116, -0.004), (0.78, 0.162, 0.118, -0.004), (0.85, 0.170, 0.114, 0.0), (0.90, 0.176, 0.108, 0.0),
@@ -36,8 +39,8 @@ D = dict(
                 shorts=(92, 78, 64), socks=(234, 226, 206), boots=(122, 76, 42), sole=(58, 40, 30), lace=(236, 222, 190),
                 iris=(98, 60, 30), iris_dark=(56, 32, 16)),
     rough=dict(body=0.72, face=0.5, eyes=0.25),
-    # mechones (Hair_01 a Hair_03): (longitud, latitud) de la raíz, dirección y largo
-    tufts=[(24, 50, (0.5, -0.75, 0.42), 0.18), (2, 58, (0.05, -0.85, 0.5), 0.2), (-24, 52, (-0.55, -0.68, 0.45), 0.17)],
+    # pelo de juguete: una sola pieza (casco con flequillo), sin mechones sueltos
+    tufts=[],
 )
 # brazo en pose A (huesos de la tabla): hombro (0,24; 0,94) → codo (0,42; 0,80) → muñeca (0,56; 0,68)
 def _arm_path():

@@ -81,7 +81,8 @@ def add_ring_band(bm, loop, fn):
 def build_geometry(d, cols, mats):
     G = {}
     # ---------------- cabeza y pelo
-    hbm, info = Hm.build_head(d)
+    toy = d.get('head_style') == 'toy'
+    hbm, info = Hm.build_toy_head(d) if toy else Hm.build_head(d)
     hair_bm = Hm.split_hair(d, hbm)
     Hm_mark = None
     C.keep_half(hbm); C.keep_half(hair_bm)
@@ -201,7 +202,9 @@ def build_geometry(d, cols, mats):
     G['Acc_Scarf'] = build_scarf(d, cols['ACC'], mats['body'])
     # ---------------- cara
     face = {}
-    for side, s in ((1, 'L'), (-1, 'R')):
+    if toy:
+        G['face'] = face = toy_face(d, cols, mats)
+    for side, s in (() if toy else ((1, 'L'), (-1, 'R'))):
         ebm, frame = F.build_eye(d, side, info)
         eo = C.obj_from_bm(ebm, f'Eye_{s}', cols['FACE_VARIANTS']); assign_mat(eo, [mats['eyes']]); face[f'Eye_{s}'] = eo
         eo['frame'] = [list(frame[0]), list(frame[1]), list(frame[2])]
@@ -211,19 +214,19 @@ def build_geometry(d, cols, mats):
             go = C.obj_from_bm(gbm, f'Glint_{s}_{nm}', cols['FACE_VARIANTS']); assign_mat(go, [mats['glint']])
             C.mod_shrinkwrap(go, eo, offset=0.002, method='NEAREST_SURFACEPOINT'); face[f'Glint_{s}_{nm}'] = go
         if side == 1: lframe = frame
-    for kind, lat in (('Open', 45), ('Half', 0), ('Closed', -60)):
+    for kind, lat in (() if toy else (('Open', 45), ('Half', 0), ('Closed', -60))):
         lbm, rows = F.build_lid(d, 1, lframe, lat)
         lo = C.obj_from_bm(lbm, f'Eyelid_{kind}', cols['FACE_VARIANTS'])
         C.mod_mirror(lo, clip=False); C.mod_solidify(lo, 0.01, 1.0); C.mod_wnormal(lo); assign_mat(lo, [mats['face']])
         face[f'Eyelid_{kind}'] = lo
-    btaper = Hm.taper_object('Taper_Brow', [(0, 0.55), (0.5, 1.0), (1.0, 0.55)], cols['FACE_VARIANTS'])
-    for kind in F.BROWS:
+    btaper = None if toy else Hm.taper_object('Taper_Brow', [(0, 0.55), (0.5, 1.0), (1.0, 0.55)], cols['FACE_VARIANTS'])
+    for kind in (() if toy else F.BROWS):
         cu = F.build_brow(d, kind, cols['FACE_VARIANTS'], btaper)
         bo = Hm.curve_to_mesh(cu, f'Brow_{kind}', cols['FACE_VARIANTS']); C.delete_obj(cu)
         bm = C.bm_from_obj(bo); C.poke_ngons(bm); C.clean_bm(bm); bm.to_mesh(bo.data); bm.free()
         C.mod_mirror(bo, clip=False); C.mod_wnormal(bo); assign_mat(bo, [mats['face']]); face[f'Brow_{kind}'] = bo
-    C.delete_obj(btaper)
-    for kind in F.MOUTHS:
+    if btaper: C.delete_obj(btaper)
+    for kind in (() if toy else F.MOUTHS):
         mbm = F.build_mouth(d, kind, info['mouth_hole'])
         C.keep_half(mbm); C.clean_bm(mbm)
         mo = C.obj_from_bm(mbm, f'Mouth_{kind}', cols['FACE_VARIANTS']); C.cage_mods(mo); assign_mat(mo, [mats['face'], mats['eyes']])
@@ -240,6 +243,29 @@ def build_geometry(d, cols, mats):
     for ob in bpy.data.objects:
         if ob.type == 'MESH': C.shade_smooth(ob)
     return G
+
+def toy_face(d, cols, mats):
+    """Cara de juguete: ojos de punto con brillo, párpados, cejas y bocas de trazo (piezas planas sobre la cabeza)."""
+    face = {}
+    V_ = cols['FACE_VARIANTS']
+    for side, s in ((1, 'L'), (-1, 'R')):
+        eo = C.obj_from_bm(F.toy_eye(d, side), f'Eye_{s}', V_); assign_mat(eo, [mats['eyes']]); face[f'Eye_{s}'] = eo
+        for nm, gbm in F.toy_glints(d, side).items():
+            go = C.obj_from_bm(gbm, f'Glint_{s}_{nm}', V_); assign_mat(go, [mats['glint']]); face[f'Glint_{s}_{nm}'] = go
+    for kind in ('Open', 'Half', 'Closed'):
+        lo = C.obj_from_bm(F.toy_lid(d, kind), f'Eyelid_{kind}', V_); assign_mat(lo, [mats['face'], mats['eyes']])
+        face[f'Eyelid_{kind}'] = lo
+    btaper = Hm.taper_object('Taper_Brow', [(0, 0.5), (0.5, 1.0), (1.0, 0.5)], V_)
+    for kind in F.BROWS:
+        cu = F.build_brow(d, kind, V_, btaper)
+        bo = Hm.curve_to_mesh(cu, f'Brow_{kind}', V_); C.delete_obj(cu)
+        bm = C.bm_from_obj(bo); C.poke_ngons(bm); C.clean_bm(bm); bm.to_mesh(bo.data); bm.free()
+        C.mod_mirror(bo, clip=False); C.mod_wnormal(bo); assign_mat(bo, [mats['face']]); face[f'Brow_{kind}'] = bo
+    C.delete_obj(btaper)
+    for kind in F.MOUTHS:
+        mo = C.obj_from_bm(F.build_mouth_decal(d, kind), f'Mouth_{kind}', V_); assign_mat(mo, [mats['face'], mats['eyes']])
+        C.mod_wnormal(mo); face[f'Mouth_{kind}'] = mo
+    return face
 
 def build_scarf(d, coll, mat):
     """Pañuelo rojo al cuello: banda, nudo delante y dos puntas (huesos Scarf_01 y Scarf_02)."""
@@ -419,6 +445,7 @@ def rig_and_weights(d, arm, G):
     # variantes de cara y manos: Parent → Bone (sin pesos)
     for n, ob in G['face'].items():
         bone = 'Eye_L' if n.endswith(('_L', 'L_Big', 'L_Small')) and n.startswith(('Eye', 'Iris', 'Glint')) else 'Eye_R' if n.startswith(('Eye', 'Iris', 'Glint')) else 'Head'
+        if d.get('head_style') == 'toy': bone = 'Head'          # ojos pintados: van con la cabeza (girarlos los despegaría)
         C.parent_to_bone(ob, arm, bone)
     for n, ob in G['hands'].items():
         C.parent_to_bone(ob, arm, 'LeftHand' if '_L_' in n else 'RightHand')
@@ -557,6 +584,19 @@ def uv_all(d, G):
         return box_uv(EYES[{1: 'dark', 2: 'tongue', 3: 'teeth'}[part]], 0.5, 0.5)
     for n, ob in G['face'].items():
         if n.startswith('Mouth_'): set_uv(ob, mouth_uv)
+    if d.get('head_style') == 'toy':
+        # ojos de punto: la pupila del atlas; párpados: la raya (material 1) también a la pupila
+        pupil = box_uv(EYES['iris'], 0.5, 0.5)
+        for s in ('L', 'R'):
+            set_uv(G['face'][f'Eye_{s}'], lambda p, co, part: pupil)
+            for nm in ('Big', 'Small'): set_uv(G['face'][f'Glint_{s}_{nm}'], lambda p, co, part: (0.99, 0.99))
+        for n, ob in G['face'].items():
+            if n.startswith('Eyelid_'):
+                uv = ob.data.uv_layers.active.data
+                for p in ob.data.polygons:
+                    if p.material_index == 1:
+                        for li in p.loop_indices: uv[li].uv = pupil
+        return
     # ojos: blanco e iris con proyección de frente en su marco local
     for s in ('L', 'R'):
         eo = G['face'][f'Eye_{s}']; c = V(eo['frame'][0]); rot = Quaternion(eo['frame'][1]); ax, ay, az = eo['frame'][2]
@@ -591,6 +631,7 @@ def paint_all(d, G):
     for ob in [G['Hair']] + G['tufts']: paint(ob, lambda p: cl['hair'])
     for n, ob in G['face'].items():
         if n.startswith('Brow_'): paint(ob, lambda p: cl['brow'])
+        elif n.startswith('Eyelid_') and d.get('head_style') == 'toy': paint(ob, lambda p: cl['skin'])
         elif n.startswith('Eyelid_'):
             zs = [v.co.z for v in ob.data.vertices]; zmin = min(zs)
             paint(ob, lambda p, zmin=zmin: (70, 40, 30) if p.center.z < zmin + 0.012 else cl['skin'])
@@ -706,7 +747,7 @@ def bake_atlases(d, G, mats, tex_dir):
     solid_mods(False)
     for key, main, allo, size, zr, extras in (
         ('Body', body_main, body_all, 1024, (0.0, 1.05), dict(dots={'pts': [(0.034, -0.162, z) for z in (0.69, 0.735, 0.78)], 'r': 0.0095, 'color': d['colors']['button']})),
-        ('Face', face_main, face_all, 512, (0.98, 1.68), dict(blush={'pts': [tuple(Hm.sph(d, s * 38, -18)) for s in (1, -1)], 'r': 0.06, 'k': 0.45, 'color': d['colors']['blush']})),
+        ('Face', face_main, face_all, 512, (0.98, 1.68), dict(blush={'pts': [tuple(Hm.sph(d, s * d.get('blush_ll', (38, -18))[0], d.get('blush_ll', (38, -18))[1])) for s in (1, -1)], 'r': 0.06, 'k': 0.45, 'color': d['colors']['blush']})),
     ):
         mat = mats['body' if key == 'Body' else 'face']
         ao = bake_image(f'AO_{name}_{key}', size, os.path.join(tex_dir, f'AO_{name}_{key}.png'), non_color=True)
