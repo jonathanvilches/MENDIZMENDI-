@@ -15,11 +15,13 @@ import { Fronton, playPelota } from './fronton.js';
 import { clamp, lerp, angleDiff, mulberry32 } from '../util/math.js';
 
 const SAVE_KEY = 'mendimendiz-salazar-v2';
+// misiones del valle que se pueden empezar en cualquier orden (Muskilda es el final: pide las 8 cintas)
+const OPEN_QUESTS = ['bienvenida', 'escudos', 'ovejas', 'pelota', 'irati', 'basajaun', 'lamia', 'zarratrako'];
 
 function freshState() {
   return {
     v: 2, name: 'Mendi', started: false, introDone: false,
-    quests: { bienvenida: { state: 'available', step: 0 }, muskilda: { state: 'locked', step: 0 } },
+    quests: { ...Object.fromEntries(OPEN_QUESTS.map(k => [k, { state: 'available', step: 0 }])), muskilda: { state: 'locked', step: 0 } },
     tracked: 'bienvenida', ribbons: [], cards: [], eguz: [], observed: [], palaces: [], litter: [], quiz: [], stars: 0,
     hasBino: false, comb: false, done: false, pos: null, time: 9.3,
     settings: { music: true, volume: 0.8, quality: null, timeSpeed: 1 },
@@ -104,8 +106,9 @@ export class Game {
     // perro del pastor
     this.dog = this.fauna.dog; this.dog.home = { x: PLACES.borda.x + 8, z: PLACES.borda.z + 6 };
     this.spawnEguz();
-    // estado de misiones guardado
+    // estado de misiones guardado: todas se pueden hacer en cualquier orden (también en partidas antiguas)
     const qs = this.state.quests;
+    for (const k of OPEN_QUESTS) if (this.q(k).state === 'locked') this.q(k).state = 'available';
     if (qs.ovejas?.state === 'active') this.startHerding(true);
     if (qs.basajaun?.state === 'active') this.spawnLitter();
     if (qs.lamia?.state === 'active' && !this.state.comb) this.spawnComb();
@@ -159,7 +162,6 @@ export class Game {
       this.state.ribbons.push(rib.id);
       await this.ui.reward({ ribbon: rib.color, title: rib.name, text: `"${rib.eu}" en euskera. ¡Ya tienes ${this.state.ribbons.length} de 8 cintas para la fiesta de Muskilda!` });
     }
-    if (id === 'bienvenida') for (const k of ['escudos', 'ovejas', 'pelota', 'irati', 'basajaun', 'lamia', 'zarratrako']) if (this.q(k).state === 'locked') this.q(k).state = 'available';
     if (this.state.ribbons.length >= 8 && this.q('muskilda').state !== 'done') { this.q('muskilda').state = 'active'; this.q('muskilda').step = 1; this.state.tracked = 'muskilda'; this.ui.toast('¡Tienes las 8 cintas! Sube a Muskilda', 'dance', 4000); }
     else if (this.q('muskilda').state === 'locked' && id === 'bienvenida') { this.q('muskilda').state = 'active'; this.q('muskilda').step = 0; }
     // seguir otra misión
@@ -223,8 +225,9 @@ export class Game {
   mapMarkers() {
     const out = [];
     for (const [id, q] of Object.entries(this.state.quests)) {
-      if (q.state === 'available') { const n = this.npcs[QUESTS[id].giver]; if (n) out.push({ x: n.pos.x, z: n.pos.z, icon: 'exclaim' }); }
-      else if (q.state === 'active') { const t = this.questTarget(id); if (t) out.push({ x: t.x, z: t.z, icon: QUESTS[id].icon }); }
+      const Q = QUESTS[id], n = this.npcs[Q.giver];
+      if (q.state === 'available') { if (n) out.push({ x: n.pos.x, z: n.pos.z, icon: 'exclaim', title: Q.title, text: `Habla con ${n.name}`, act: 'track', id, go: true }); }
+      else if (q.state === 'active') { const t = this.questTarget(id); if (t) out.push({ x: t.x, z: t.z, icon: Q.icon, title: Q.title, text: this.stepText(id), act: 'track', id }); }
     }
     for (const it of this.items) if (it.kind === 'eguz' && this.state.eguz.length >= 6) out.push({ x: it.x, z: it.z, icon: 'eguzkilore' });
     return out;
@@ -234,7 +237,7 @@ export class Game {
     const P = PLACES;
     return [
       { x: P.plaza.x, z: P.plaza.z - 30, label: 'Otsagabia' }, { x: 0, z: -320, label: 'Selva de Irati' }, { x: P.muskilda.x, z: P.muskilda.z, icon: 'church', label: 'Muskilda' },
-      { x: P.borda.x, z: P.borda.z, icon: 'sheep', label: 'Borda' }, { x: P.pond.x, z: P.pond.z, icon: 'water', label: 'Balsa' }, { x: P.fronton.x, z: P.fronton.z, icon: 'pelota', label: 'Frontón' },
+      { x: P.borda.x, z: P.borda.z, icon: 'sheep', label: 'Borda' }, { x: P.pond.x, z: P.pond.z, icon: 'water', label: 'Balsa' }, { x: P.fronton.x, z: P.fronton.z, icon: 'pelota', label: 'Frontón', text: 'Juega a pelota con Kike cuando quieras', act: 'pelota', go: false },
       { x: P.church.x, z: P.church.z, icon: 'church', label: 'San Juan' }, { x: P.mirador.x, z: P.mirador.z, icon: 'lookout', label: 'Mirador' }, { x: P.crucero.x, z: P.crucero.z, icon: 'cross', label: 'Crucero' },
     ];
   }
@@ -885,5 +888,23 @@ export class Game {
     this.state.introDone = true; this.save();
     this.ui.toast(this.input.touch ? 'Habla con Maite: acércate y toca el botón amarillo' : 'Habla con Maite: acércate y pulsa E', 'talk', 4500);
   }
-  teleport(x, z) { this.player.place(x, z, this.player.heading); this.follow.snap(this.player); }
+  teleport(x, z) {
+    let X = x, Z = z;
+    for (let k = 1; k < 40 && (!isFree(X, Z, 0.6) || waterLevelAt(X, Z) > terrainHeight(X, Z) - 0.1); k++) { const a = k * 2.4, r = 1.5 + k * 0.5; X = x + Math.cos(a) * r; Z = z + Math.sin(a) * r; }
+    this.player.place(X, Z, this.player.heading); this.follow.snap(this.player);
+  }
+  // Acciones del mapa: seguir una misión, ir a un sitio o jugar a pelota
+  mapAct(a, it) {
+    if (a === 'track') return this.track(it.id);
+    if (a === 'pelota') return this.goPelota();
+    if (a === 'go') this.teleport(it.x, it.z);
+  }
+  // Ir al frontón y jugar ya (desde el menú o el mapa): con Kike, sea o no misión
+  goPelota() {
+    if (this.mode !== 'play') return;
+    const f = PLACES.fronton; this.teleport(f.x + 3, f.z + 4.5);
+    const q = this.q('pelota');
+    if (q.state !== 'done' && !(q.state === 'active' && q.step === 1)) return this.talk(this.npcs.kike);
+    this.startPelota();
+  }
 }

@@ -4,7 +4,7 @@ const CSS = `
 .pel-root{position:fixed;inset:0;z-index:900;pointer-events:none;font-family:var(--pel-font,inherit);color:#fff;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 .pel-root *{box-sizing:border-box}
 .pel-top{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);left:0;right:0;display:flex;justify-content:center;padding:0 64px}
-.pel-exit{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);left:calc(env(safe-area-inset-left,0px) + 10px);width:44px;height:44px;border-radius:14px;border:0;background:rgba(20,16,40,.72);color:#fff;font-size:20px;pointer-events:auto;cursor:pointer;display:grid;place-items:center}
+.pel-exit{padding:0;position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);left:calc(env(safe-area-inset-left,0px) + 10px);width:44px;height:44px;border-radius:14px;border:0;background:rgba(20,16,40,.72);color:#fff;font-size:20px;pointer-events:auto;cursor:pointer;display:grid;place-items:center}
 .pel-score{display:flex;align-items:stretch;gap:0;border-radius:16px;overflow:hidden;background:rgba(20,16,40,.78);box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:100%}
 .pel-side{display:flex;align-items:center;gap:8px;padding:6px 12px;min-width:0}
 .pel-side b{font-family:var(--pel-display,inherit);font-size:28px;line-height:1;min-width:1.2em;text-align:center}
@@ -27,7 +27,7 @@ const CSS = `
 .pel-knob i{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;background:rgba(255,255,255,.85)}
 .pel-stickhint{position:absolute;left:calc(env(safe-area-inset-left,0px) + 26px);bottom:calc(env(safe-area-inset-bottom,0px) + 26px);width:120px;height:120px;border-radius:50%;border:3px dashed rgba(255,255,255,.55);display:grid;place-items:center;font-size:12px;font-weight:700;text-align:center;opacity:.8;padding:10px}
 .pel-btns{position:absolute;right:calc(env(safe-area-inset-right,0px) + 18px);bottom:calc(env(safe-area-inset-bottom,0px) + 18px);display:flex;align-items:flex-end;gap:12px;pointer-events:auto}
-.pel-btn{border:0;border-radius:50%;color:#1a1030;font-family:var(--pel-display,inherit);font-weight:800;display:grid;place-items:center;cursor:pointer;touch-action:none;box-shadow:0 6px 0 rgba(0,0,0,.25),0 8px 22px rgba(0,0,0,.25);transition:transform .06s}
+.pel-btn{padding:0;border:0;border-radius:50%;color:#1a1030;font-family:var(--pel-display,inherit);font-weight:800;display:grid;place-items:center;cursor:pointer;touch-action:none;box-shadow:0 6px 0 rgba(0,0,0,.25),0 8px 22px rgba(0,0,0,.25);transition:transform .06s}
 .pel-btn:active,.pel-btn.down{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.25)}
 .pel-hit{width:104px;height:104px;font-size:20px;background:radial-gradient(circle at 35% 30%,#fff3a8,#ffcc2e 60%,#e0a300)}
 .pel-hit.ready{animation:pel-pulse .5s infinite alternate}
