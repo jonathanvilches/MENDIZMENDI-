@@ -92,7 +92,9 @@ def build_brow(d, kind, coll, taper):
     dz = BROWS[kind]; zb = d['eye_z'] + d.get('brow_dz', d['eye_h'] / 2 + 0.03)
     xs = d.get('brow_xs', (0.052, 0.105, 0.158))
     k = d.get('brow_k', 1.0)                         # la cara de juguete lleva las cejas algo menos marcadas
-    pts = [Hm.face_point(d, x, zb + z * k, d.get('brow_lift', 0.013))[0] for x, z in zip(xs, dz)]
+    # cara de juguete: en reposo no hay cejas (la pieza queda dentro de la cabeza); solo salen al expresar algo
+    lift = -0.03 if kind in d.get('brow_hidden', ()) else d.get('brow_lift', 0.013)
+    pts = [Hm.face_point(d, x, zb + z * k, lift)[0] for x, z in zip(xs, dz)]
     cu = Hm.bezier_tube('Brow_' + kind, pts, d.get('brow_r', 0.011), taper, coll, tilt=0.0, res=4)
     return cu
 
@@ -103,7 +105,7 @@ CLOSED = {'Neutral', 'Smile', 'Tired'}
 def mouth_shape(kind, x, a, top):
     """Altura (respecto al centro de la boca) de la abertura en x, para el borde de arriba o el de abajo."""
     u = max(-1.0, min(1.0, x / a)); q = u * u
-    if kind == 'Neutral': return 0.006 * q - 0.002 + (0.003 if top else -0.003)
+    if kind == 'Neutral': return 0.013 * q - 0.006 + (0.0042 if top else -0.0042)     # sonrisa amable de reposo
     if kind == 'Smile': return 0.03 * q - 0.011 + (0.0032 if top else -0.0032)      # comisuras bien arriba: se lee de lejos
     if kind == 'Tired': return -0.008 * q + 0.002 + (0.0026 if top else -0.0026)
     if kind == 'SmileOpen': return (0.005 + 0.006 * q) if top else (-0.032 * (1 - q) + 0.004 * q)

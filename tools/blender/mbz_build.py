@@ -253,7 +253,7 @@ def toy_face(d, cols, mats):
     V_ = cols['FACE_VARIANTS']
     for side, s in ((1, 'L'), (-1, 'R')):
         eo = C.obj_from_bm(F.toy_eye(d, side), f'Eye_{s}', V_); assign_mat(eo, [mats['eyes']]); face[f'Eye_{s}'] = eo
-        for nm, gbm in F.toy_glints(d, side).items():
+        for nm, gbm in (F.toy_glints(d, side).items() if d.get('eye_glint', True) else ()):
             go = C.obj_from_bm(gbm, f'Glint_{s}_{nm}', V_); assign_mat(go, [mats['glint']]); face[f'Glint_{s}_{nm}'] = go
     for kind in ('Open', 'Half', 'Closed'):
         lo = C.obj_from_bm(F.toy_lid(d, kind), f'Eyelid_{kind}', V_); assign_mat(lo, [mats['face'], mats['eyes']])
@@ -588,11 +588,12 @@ def uv_all(d, G):
     for n, ob in G['face'].items():
         if n.startswith('Mouth_'): set_uv(ob, mouth_uv)
     if d.get('head_style') == 'toy':
-        # ojos de punto: la pupila del atlas; párpados: la raya (material 1) también a la pupila
-        pupil = box_uv(EYES['iris'], 0.5, 0.5)
+        # ojos de punto: la pupila del atlas (o el castaño del iris, d['eye_uv']); párpados: la raya (material 1) igual
+        pupil = box_uv(EYES['iris'], *d.get('eye_uv', (0.5, 0.5)))
         for s in ('L', 'R'):
             set_uv(G['face'][f'Eye_{s}'], lambda p, co, part: pupil)
-            for nm in ('Big', 'Small'): set_uv(G['face'][f'Glint_{s}_{nm}'], lambda p, co, part: (0.99, 0.99))
+            for nm in ('Big', 'Small'):
+                if f'Glint_{s}_{nm}' in G['face']: set_uv(G['face'][f'Glint_{s}_{nm}'], lambda p, co, part: (0.99, 0.99))
         for n, ob in G['face'].items():
             if n.startswith('Eyelid_'):
                 uv = ob.data.uv_layers.active.data

@@ -1,10 +1,10 @@
 {
  "archivo": "char_protagonista.glb",
  "peso_MB": 1.46,
- "triangulos_visibles": 23152,
+ "triangulos_visibles": 23172,
  "triangulos_por_parte": {
   "Head": 1744,
-  "Hair": 2796,
+  "Hair": 2864,
   "Body": 1504,
   "Shirt": 5132,
   "Vest": 2912,
@@ -13,11 +13,11 @@
   "Boots": 336,
   "Acc_Scarf": 1424,
   "Mechones": 0,
-  "Cara (ojos, iris, brillos, párpado, cejas, boca)": 552,
+  "Cara (ojos, iris, brillos, párpado, cejas, boca)": 504,
   "Manos (abiertas)": 1408
  },
- "triangulos_con_todas_las_variantes": 27362,
- "cage_caras": 1916,
+ "triangulos_con_todas_las_variantes": 27382,
+ "cage_caras": 1932,
  "huesos_deformadores": 39,
  "huesos_total": 43,
  "materiales": [
@@ -218,26 +218,6 @@
    "sueltos": 0,
    "ngons": 0
   },
-  "Glint_L_Big": {
-   "fusionados": 0,
-   "sueltos": 0,
-   "ngons": 0
-  },
-  "Glint_L_Small": {
-   "fusionados": 0,
-   "sueltos": 0,
-   "ngons": 0
-  },
-  "Glint_R_Big": {
-   "fusionados": 0,
-   "sueltos": 0,
-   "ngons": 0
-  },
-  "Glint_R_Small": {
-   "fusionados": 0,
-   "sueltos": 0,
-   "ngons": 0
-  },
   "Hair": {
    "fusionados": 0,
    "sueltos": 0,
@@ -337,16 +317,11 @@
  "validador": {
   "errores": 0,
   "avisos": 0,
-  "info": 4,
-  "mensajes": [
-   "UNUSED_OBJECT /meshes/10/primitives/0/attributes/TEXCOORD_0: This object may be unused.",
-   "UNUSED_OBJECT /meshes/11/primitives/0/attributes/TEXCOORD_0: This object may be unused.",
-   "UNUSED_OBJECT /meshes/12/primitives/0/attributes/TEXCOORD_0: This object may be unused.",
-   "UNUSED_OBJECT /meshes/13/primitives/0/attributes/TEXCOORD_0: This object may be unused."
-  ]
+  "info": 0,
+  "mensajes": []
  },
  "reimportacion": {
-  "altura_m": 1.623,
+  "altura_m": 1.621,
   "pies_z": -0.002,
   "mira_a_-Y": true,
   "acciones": [
@@ -364,7 +339,7 @@
    "Walk_RIG_Protagonista",
    "Wave_RIG_Protagonista"
   ],
-  "mallas": 32,
+  "mallas": 28,
   "huesos": 43,
   "variantes": [
    "Brow_Angry",
@@ -393,18 +368,13 @@
  "lod": {
   "archivo": "char_protagonista_lod.glb",
   "peso_MB": 0.81,
-  "triangulos_en_archivo": 10002,
+  "triangulos_en_archivo": 10022,
   "validador": {
    "errores": 0,
    "avisos": 0,
-   "info": 4,
-   "mensajes": [
-    "UNUSED_OBJECT /meshes/10/primitives/0/attributes/TEXCOORD_0: This object may be unused.",
-    "UNUSED_OBJECT /meshes/11/primitives/0/attributes/TEXCOORD_0: This object may be unused.",
-    "UNUSED_OBJECT /meshes/12/primitives/0/attributes/TEXCOORD_0: This object may be unused.",
-    "UNUSED_OBJECT /meshes/13/primitives/0/attributes/TEXCOORD_0: This object may be unused."
-   ]
+   "info": 0,
+   "mensajes": []
   }
  },
- "triangulos_en_archivo": 27362
+ "triangulos_en_archivo": 27382
 }
