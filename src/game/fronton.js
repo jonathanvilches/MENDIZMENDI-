@@ -8,6 +8,13 @@ import { clearGrass } from '../world/nature.js';
 import { getLang } from '../i18n.js';
 import { profile } from './profile.js';
 import { Crowd } from './crowd.js';
+import { shieldSpec, drawShield } from '../world/heraldry.js';
+
+// nombre del pueblo y su escudo para la pared izquierda (como el letrero del ayuntamiento en los frontones de verdad)
+export function frontonWall(def) {
+  const spec = shieldSpec(def);
+  return { wallName: (def.name || '').split(/\s*\/\s*/).join(' · ').toUpperCase(), wallSub: 'AYUNTAMIENTO · UDALA', shield: (g, cx, top, h) => drawShield(g, cx, top, h, spec) };
+}
 
 // huella del frontón en coordenadas locales (se calcula una vez)
 let EXTENT = null;
@@ -41,10 +48,11 @@ export function courtHeight(x, z, ry) {
 
 export class Fronton {
   // spot: centro del frontis a ras de suelo; ry: giro (la cancha crece hacia +z local); sin y, se calcula
-  constructor(scene, spot, title = '') {
+  // extra: { wallName, wallSub, shield } → nombre y escudo pintados en la pared izquierda
+  constructor(scene, spot, title = '', extra = {}) {
     if (spot.y == null) spot = { ...spot, y: courtHeight(spot.x, spot.z, spot.ry) };
     this.spot = spot;
-    const court = this.court = new PelotaCourt(THREE, { title });
+    const court = this.court = new PelotaCourt(THREE, { title, ...extra });
     const g = court.group; g.position.set(spot.x, spot.y, spot.z); g.rotation.y = spot.ry; scene.add(g); g.updateMatrixWorld(true);
     const E = court.extent, mid = this.toWorld((E.x0 + E.x1) / 2, 0);
     clearGrass(mid.x, mid.z, E.x1 - E.x0, E.z1, spot.ry);

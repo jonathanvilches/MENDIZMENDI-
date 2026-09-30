@@ -59,7 +59,7 @@ export class PelotaCourt {
     this.materials = [];
     const M = (o) => { const m = std(o); this.materials.push(m); return m; };
 
-    // --- suelo: cancha, cuadros, rayas de falta y pasa, contracancha
+    // --- suelo: cancha, rayas de los cuadros (sin números: esos van en la pared izquierda), falta y pasa, contracancha
     const PX = 44;   // píxeles por metro
     const fw = W + CONTRA, fl = EXT;
     const floorTex = canvasTex(T, 512, 2048, (c, w, h) => {
@@ -67,13 +67,8 @@ export class PelotaCourt {
       c.fillStyle = th.floor; c.fillRect(0, 0, X(W / 2), h);
       c.fillStyle = th.contra; c.fillRect(X(W / 2), 0, w - X(W / 2), h);
       grain(c, w, h, 9000, 0.07); grain(c, w, h, 3000, 0.05, false);
-      c.strokeStyle = th.line; c.lineWidth = 5;
-      for (let k = 1; k * C.CUADRO <= L + 0.01; k++) {
-        const z = Z(k * C.CUADRO);
-        c.beginPath(); c.moveTo(0, z); c.lineTo(X(W / 2), z); c.stroke();
-        c.fillStyle = th.line; c.font = 'bold 44px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
-        c.save(); c.translate(X(-W / 2) + 34, z - 30); c.fillText(String(k), 0, 0); c.restore();
-      }
+      c.strokeStyle = th.line; c.lineWidth = 4;
+      for (let k = 1; k * C.CUADRO <= L + 0.01; k++) { const z = Z(k * C.CUADRO); c.beginPath(); c.moveTo(0, z); c.lineTo(X(W / 2), z); c.stroke(); }
       // falta (4) y pasa (7), más gruesas y rojas
       c.strokeStyle = th.mark; c.lineWidth = 9;
       for (const z of [C.FALTA, C.PASA]) { c.beginPath(); c.moveTo(0, Z(z)); c.lineTo(X(W / 2), Z(z)); c.stroke(); }
@@ -117,19 +112,69 @@ export class PelotaCourt {
     const chapaLine = new T.Mesh(new T.BoxGeometry(W, 0.08, 0.07), M({ color: th.mark, roughness: 0.6 }));
     chapaLine.position.set(0, C.CHAPA, 0.035); g.add(chapaLine);
 
-    // --- pared izquierda con los números de los cuadros
+    // --- pared izquierda (lisa, con la raya roja de arriba)
     const leftTex = canvasTex(T, 2048, 512, (c, w, h) => {
       c.fillStyle = th.wall; c.fillRect(0, 0, w, h); grain(c, w, h, 12000, 0.06); grain(c, w, h, 3000, 0.05, false);
       weather(c, w, h, C.LEFT_H, EXT);
-      const X = (z) => w - z / EXT * w, Y = (y) => h - y / C.LEFT_H * h;   // vista desde la cancha: el frontis queda a la derecha
+      const Y = (y) => h - y / C.LEFT_H * h;
       c.fillStyle = th.mark; c.fillRect(0, Y(C.LEFT_H - 0.5) - 6, w, 12);
-      c.strokeStyle = th.line; c.lineWidth = 5; c.fillStyle = th.line; c.font = 'bold 64px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
-      for (let k = 1; k * C.CUADRO <= L + 0.01; k++) {
-        const x = X(k * C.CUADRO);
-        c.beginPath(); c.moveTo(x, h); c.lineTo(x, Y(1.4)); c.stroke();
-        c.fillText(String(k), X((k - 0.5) * C.CUADRO), Y(0.8));
+    });
+    // números de los cuadros, como en los frontones de verdad: en la pared izquierda, una raya blanca vertical
+    // desde el suelo en cada raya de cuadro y, arriba, el número dentro de un círculo (pintura algo gastada)
+    const nK = Math.floor(L / C.CUADRO + 0.01), CW = 128, CH = 480, MW = 0.9, MH = MW * CH / CW;
+    const markTex = canvasTex(T, CW * nK, CH, (c, w, h) => {
+      for (let k = 1; k <= nK; k++) {
+        const cx = (k - 0.5) * CW, R = CW * 0.4, cy = R + 8;
+        c.fillStyle = th.line; c.strokeStyle = th.line;
+        c.fillRect(cx - 11, cy + R + 16, 22, h - (cy + R + 16));
+        c.lineWidth = 10; c.beginPath(); c.arc(cx, cy, R - 5, 0, Math.PI * 2); c.stroke();
+        c.font = `bold ${R * 1.12}px "Trebuchet MS", Nunito, Arial, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
+        c.fillText(String(k), cx, cy + R * 0.06);
+        // desconchones: motas del color de la pared sobre la pintura blanca
+        c.fillStyle = th.wall;
+        for (let i = 0; i < 70; i++) { const yy = cy + R + 16 + Math.random() * (h - cy - R - 16), xx = cx - 11 + Math.random() * 22; c.fillRect(xx, yy, 1 + Math.random() * 3, 1 + Math.random() * 4); }
+        for (let i = 0; i < 18; i++) { const a = Math.random() * Math.PI * 2, rr = R - 5 + (Math.random() - 0.5) * 9; c.fillRect(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr, 2, 2); }
       }
     });
+    { const pos = [], uv = [], nrm = [], x = -W / 2 + 0.012;
+      for (let k = 1; k <= nK; k++) {
+        const z = k * C.CUADRO, u0 = (k - 1) / nK, u1 = k / nK;
+        // mira a +x (hacia la cancha); la u crece hacia −z, que es la derecha de quien mira la pared
+        const q = [[z + MW / 2, 0, u0, 0], [z - MW / 2, 0, u1, 0], [z - MW / 2, MH, u1, 1], [z + MW / 2, 0, u0, 0], [z - MW / 2, MH, u1, 1], [z + MW / 2, MH, u0, 1]];
+        for (const [zz, yy, uu, vv] of q) { pos.push(x, yy, zz); uv.push(uu, vv); nrm.push(1, 0, 0); }
+      }
+      const geo = new T.BufferGeometry();
+      geo.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); geo.setAttribute('normal', new T.Float32BufferAttribute(nrm, 3)); geo.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
+      const marks = new T.Mesh(geo, M({ map: markTex, alphaTest: 0.5, roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }));
+      marks.receiveShadow = true; marks.name = 'cuadros'; g.add(marks); }
+    // nombre y escudo del pueblo pintados en lo alto de la pared izquierda, hacia el fondo de la cancha
+    if (opts.wallName || opts.shield) {
+      const DW = 11, DH = 2.75, dz = C.CUADRO * 6.9, dy = C.LEFT_H - 0.5 - 0.35 - DH / 2;
+      const nameTex = canvasTex(T, 1536, 384, (c, w, h) => {
+        let tx = w * 0.04;
+        if (opts.shield) { opts.shield(c, h * 0.44, h * 0.03, h * 0.94); tx = h * 0.95; }
+        c.textAlign = 'left'; c.textBaseline = 'middle';
+        const fit = (text, y, size, weight) => {
+          let fs = size; c.font = `${weight} ${fs}px "Lilita One", Nunito, "Arial Black", sans-serif`;
+          const tw = c.measureText(text).width, max = w - tx - w * 0.03; if (tw > max) { fs *= max / tw; c.font = `${weight} ${fs}px "Lilita One", Nunito, "Arial Black", sans-serif`; }
+          c.fillStyle = 'rgba(0,0,0,.22)'; c.fillText(text, tx + fs * 0.04, y + fs * 0.05);
+          c.fillStyle = '#fbf8f0'; c.fillText(text, tx, y);
+        };
+        if (opts.wallName) fit(opts.wallName, h * 0.4, h * 0.36, '900');
+        if (opts.wallSub) fit(opts.wallSub, h * 0.76, h * 0.17, '700');
+        // pintura algo gastada, como las marcas de los cuadros
+        c.globalCompositeOperation = 'destination-out';
+        for (let i = 0; i < 900; i++) { c.fillStyle = `rgba(0,0,0,${0.3 + Math.random() * 0.5})`; c.fillRect(tx + Math.random() * (w - tx), Math.random() * h, 1 + Math.random() * 3, 1 + Math.random() * 3); }
+        c.globalCompositeOperation = 'source-over';
+      });
+      const x = -W / 2 + 0.014, z0 = dz + DW / 2, z1 = dz - DW / 2, y0 = dy - DH / 2, y1 = dy + DH / 2;
+      const geo = new T.BufferGeometry();
+      geo.setAttribute('position', new T.Float32BufferAttribute([x, y0, z0, x, y0, z1, x, y1, z1, x, y0, z0, x, y1, z1, x, y1, z0], 3));
+      geo.setAttribute('normal', new T.Float32BufferAttribute([1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0], 3));
+      geo.setAttribute('uv', new T.Float32BufferAttribute([0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1], 2));
+      const sign = new T.Mesh(geo, M({ map: nameTex, alphaTest: 0.35, roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }));
+      sign.receiveShadow = true; sign.name = 'nombre'; g.add(sign);
+    }
     const left = new T.Mesh(new T.BoxGeometry(0.6, C.LEFT_H, EXT), [M({ map: leftTex }), M({ color: th.wall }), M({ color: th.wall }), M({ color: th.wall }), M({ color: th.wall }), M({ color: th.wall })]);
     // la cara +x (hacia la cancha) lleva la textura; en BoxGeometry su u va de +z a −z
     left.position.set(-W / 2 - 0.3, C.LEFT_H / 2, EXT / 2); left.castShadow = true; left.receiveShadow = true; g.add(left);

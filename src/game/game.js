@@ -11,7 +11,7 @@ import { LANDMARKS } from '../world/landmarks.js';
 import { isFree, segmentBlocked } from '../world/colliders.js';
 import { makeEguzkilore, makeRibbon, makeComb, makeLitter } from '../fx.js';
 import { wait } from '../ui.js';
-import { Fronton, playPelota } from './fronton.js';
+import { Fronton, playPelota, frontonWall } from './fronton.js';
 import { clamp, lerp, angleDiff, mulberry32 } from '../util/math.js';
 
 const SAVE_KEY = 'mendimendiz-salazar-v2';
@@ -706,7 +706,7 @@ export class Game {
   ensureFronton() {
     if (this.fronton) return this.fronton;
     const f = PLACES.fronton;
-    this.fronton = new Fronton(this.scene, { x: f.x + 15, z: f.z, ry: -Math.PI / 2 }, 'Otsagabia');
+    this.fronton = new Fronton(this.scene, { x: f.x + 15, z: f.z, ry: -Math.PI / 2 }, 'Otsagabia', frontonWall({ id: 'otsagabia', name: 'Otsagabia / Ochagavía', family: 'pyrenean', relief: 'valley', river: {}, landmarks: [] }));
     return this.fronton;
   }
   startPelota() {
