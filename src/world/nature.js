@@ -173,11 +173,15 @@ function makeBush(rnd) {
 
 // Piedra: esfera deformada por ruido, cortada por planos (caras de fractura planas) y con la base aplastada
 function makeRockGeo(rnd, variant) {
-  const g = new THREE.IcosahedronGeometry(1, 3);
-  const p = g.attributes.position, v = new THREE.Vector3();
   const planes = [];
   for (let i = 0; i < 4 + variant % 3; i++) { const n = new THREE.Vector3(rnd() - 0.5, (rnd() - 0.3) * 0.8, rnd() - 0.5).normalize(); planes.push([n, 0.55 + rnd() * 0.3]); }
   const sx = 0.8 + rnd() * 0.5, sz = 0.8 + rnd() * 0.4, sy = 0.6 + rnd() * 0.35, ph = rnd() * 10;
+  // la misma piedra con dos niveles de detalle: de cerca (1280 triángulos) y de lejos (80)
+  return [rockShape(3, planes, sx, sy, sz, ph), rockShape(1, planes, sx, sy, sz, ph)];
+}
+function rockShape(detail, planes, sx, sy, sz, ph) {
+  const g = new THREE.IcosahedronGeometry(1, detail);
+  const p = g.attributes.position, v = new THREE.Vector3();
   for (let i = 0; i < p.count; i++) {
     v.set(p.getX(i), p.getY(i), p.getZ(i));
     const n = fbm(v.x * 1.6 + ph, v.z * 1.6 + v.y * 1.3, 3);
@@ -396,7 +400,7 @@ export class Nature {
             im.setMatrixAt(i, m4);
           });
           im.computeBoundingSphere();
-          im.castShadow = lod === 0; im.receiveShadow = lod === 0;
+          im.castShadow = lod === 0; im.receiveShadow = lod === 0; im.name = type + (lod ? '-lejos' : '-cerca');
           (lod ? entry.lo : entry.hi).push(im);
           this.group.add(im);
         }
@@ -411,6 +415,27 @@ export class Nature {
     dataTextures(true);
     this.grass = new GrassField(scene, quality);
     this.flowers = new FlowerField(scene, quality);
+  }
+  // reparte instancias por trozos del mapa: de cerca la geometría 'hi', de lejos 'lo' (o nada si no hay)
+  addChunked(list, hi, lo, mat, place, opts = {}) {
+    this.chunkMap ||= new Map(this.chunks.map(c => [c.cx + ',' + c.cz, c]));
+    const by = new Map();
+    for (const s of list) { const k = Math.floor((s.x + HALF) / CHUNK) + ',' + Math.floor((s.z + HALF) / CHUNK); if (!by.has(k)) by.set(k, []); by.get(k).push(s); }
+    const out = [];
+    for (const [k, items] of by) {
+      const [ci, cj] = k.split(',').map(Number), cx = -HALF + (ci + 0.5) * CHUNK, cz = -HALF + (cj + 0.5) * CHUNK;
+      let entry = this.chunkMap.get(cx + ',' + cz);
+      if (!entry) { entry = { cx, cz, hi: [], lo: [] }; this.chunkMap.set(cx + ',' + cz, entry); this.chunks.push(entry); }
+      for (const [geo, far] of [[hi, false], [lo, true]]) {
+        if (!geo) continue;
+        const im = new THREE.InstancedMesh(geo, mat, items.length);
+        items.forEach((s, i) => im.setMatrixAt(i, place(s)));
+        im.computeBoundingSphere();
+        im.castShadow = !far && !!opts.shadow; im.receiveShadow = true; im.name = (opts.name || '') + (far ? '-lejos' : '-cerca');
+        (far ? entry.lo : entry.hi).push(im); this.group.add(im); out.push({ im, items, far });
+      }
+    }
+    return out;
   }
   buildCrops(rnd, quality) {
     // viñedos (tipo 5) y huertas (tipo 7) en hileras
@@ -434,10 +459,9 @@ export class Nature {
     const m4 = new THREE.Matrix4();
     for (const [geo, list] of [[vine, vines.slice(0, cap)], [veg, vegs.slice(0, cap)]]) {
       if (!list.length) continue;
-      const im = new THREE.InstancedMesh(geo, mat, list.length);
-      list.forEach((o, i) => { m4.compose(new THREE.Vector3(o.x, terrainHeight(o.x, o.z) - 0.05, o.z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, rnd() * 6, 0)), new THREE.Vector3(o.s, o.s, o.s)); im.setMatrixAt(i, m4); });
-      im.computeBoundingSphere(); im.receiveShadow = true;
-      this.group.add(im);
+      for (const o of list) o.r = rnd() * 6;
+      // hileras de cultivo: solo en los trozos cercanos (de lejos se ven en la textura del campo)
+      this.addChunked(list, geo, null, mat, (o) => m4.compose(new THREE.Vector3(o.x, terrainHeight(o.x, o.z) - 0.05, o.z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, o.r, 0)), new THREE.Vector3(o.s, o.s, o.s)), { name: 'cultivos' });
     }
   }
   buildRocks(rnd) {
@@ -466,17 +490,15 @@ export class Nature {
     for (let v = 0; v < parts.length; v++) {
       const list = spots.filter(s => s.v === v);
       if (!list.length) continue;
-      const im = new THREE.InstancedMesh(parts[v], m, list.length);
-      const moss = new Float32Array(list.length);
-      list.forEach((s, i) => {
+      for (const s of list) {
         e.set((rnd() - 0.5) * 0.35, rnd() * 6.28, (rnd() - 0.5) * 0.35); q.setFromEuler(e);
-        m4.compose(new THREE.Vector3(s.x, terrainHeight(s.x, s.z) - s.s * s.sink, s.z), q, new THREE.Vector3(s.s * (0.8 + rnd() * 0.5), s.s * (0.7 + rnd() * 0.4), s.s * (0.8 + rnd() * 0.5)));
-        im.setMatrixAt(i, m4); moss[i] = s.moss;
+        s.m = new THREE.Matrix4().compose(new THREE.Vector3(s.x, terrainHeight(s.x, s.z) - s.s * s.sink, s.z), q.clone(), new THREE.Vector3(s.s * (0.8 + rnd() * 0.5), s.s * (0.7 + rnd() * 0.4), s.s * (0.8 + rnd() * 0.5)));
         if (s.s > 1.1) addCircle(s.x, s.z, s.s * 0.75);
-      });
-      im.geometry = im.geometry.clone(); im.geometry.setAttribute('aMoss', new THREE.InstancedBufferAttribute(moss, 1));
-      im.castShadow = true; im.receiveShadow = true;
-      this.group.add(im);
+      }
+      // rocas por trozos: detalladas y con sombra de cerca, sencillas de lejos
+      for (const { im, items } of this.addChunked(list, parts[v][0], parts[v][1], m, (s) => s.m, { shadow: true, name: 'rocas' })) {
+        im.geometry = im.geometry.clone(); im.geometry.setAttribute('aMoss', new THREE.InstancedBufferAttribute(Float32Array.from(items, s => s.moss), 1));
+      }
     }
   }
   buildBushes(rnd) {
@@ -517,7 +539,7 @@ export class Nature {
       const im = new THREE.InstancedMesh(geo, mat, list.length);
       const m4 = new THREE.Matrix4();
       list.forEach((s, i) => { m4.compose(new THREE.Vector3(s.x, terrainHeight(s.x, s.z) - 0.1, s.z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, rnd() * 6, 0)), new THREE.Vector3(s.s, s.s, s.s)); im.setMatrixAt(i, m4); });
-      im.castShadow = false; im.receiveShadow = true;   // matas y helechos: su sombra apenas se ve y duplicaba el coste
+      im.castShadow = false; im.receiveShadow = true; im.name = 'matas';   // matas y helechos: su sombra apenas se ve y duplicaba el coste
       this.group.add(im);
     }
   }

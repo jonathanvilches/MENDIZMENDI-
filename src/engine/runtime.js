@@ -5,7 +5,7 @@ import { buildTextures, TEX } from '../world/textures.js';
 import { Terrain } from '../world/terrain.js';
 import { SkySystem } from '../world/sky.js';
 import { Water } from '../world/water.js';
-import { makeMaterials } from '../world/builder.js';
+import { makeMaterials, resetDetail, updateDetail } from '../world/builder.js';
 import { buildVillage, VILLAGE, resetVillage } from '../world/village.js';
 import { buildLandmarks, LANDMARKS } from '../world/landmarks.js';
 import { buildTown, TOWN } from '../world/townBuilder.js';
@@ -53,7 +53,7 @@ export class Runtime {
     this.unload();
     const q = this.quality;
     onProgress(0.05, 'Dibujando el terreno…'); await frame();
-    resetColliders(); resetVillage(); clearPlatforms();
+    resetColliders(); resetVillage(); clearPlatforms(); resetDetail();
     for (const k of Object.keys(LANDMARKS)) delete LANDMARKS[k];
     const salazar = def.special === 'salazar';
     const mod = salazar ? SALAZAR : createTownLevel(def);
@@ -129,6 +129,7 @@ export class Runtime {
     this.sky.update(dt, P.pos, this.elapsed, g.mode === 'dance');
     this.water.update(this.elapsed, this.sky);
     this.nature.update(this.camera.position, P.pos, this.elapsed, P.pos);
+    updateDetail(this.camera.position, this.quality);
     this.fauna.update(dt, P, this.elapsed, this.sky.night, this.sound);
     this.particles.update(dt);
     if (this.waterfall) this.waterfall.update(dt, this.elapsed, Math.hypot(P.pos.x - PLACES.waterfall.x, P.pos.z - PLACES.waterfall.z) < 80);

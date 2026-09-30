@@ -134,6 +134,17 @@ export function archPanel(w, h, depth) {
   return g;
 }
 
+// Piezas de detalle registradas por los constructores: se ocultan cuando la cámara se aleja
+export const DETAIL = [];
+export function resetDetail() { DETAIL.length = 0; }
+const DETAIL_DIST = { low: [45, 110], mid: [60, 140], high: [80, 180] };
+export function updateDetail(cam, quality = 'high') {
+  const [d2, d1] = DETAIL_DIST[quality] || DETAIL_DIST.high;
+  for (const e of DETAIL) {
+    const d = Math.hypot(cam.x - e.c.x, cam.z - e.c.z) - e.r;
+    e.m.visible = d < (e.tier === 2 ? d2 : d1);
+  }
+}
 export class Builder {
   // cell: tamaño de las manzanas en que se reparte la geometría; así la cámara (y la sombra) sólo
   // dibujan las que tienen delante en vez de todo el pueblo de una vez
@@ -146,23 +157,28 @@ export class Builder {
     for (const a of Object.keys(g.attributes)) if (!['position', 'normal', 'uv', 'color'].includes(a)) g.deleteAttribute(a);
     if (!g.attributes.uv) g.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count * 2), 2));
     g.computeBoundingBox();
-    const b = g.boundingBox, key = mat + '|' + Math.floor((b.min.x + b.max.x) / 2 / this.cell) + ',' + Math.floor((b.min.z + b.max.z) / 2 / this.cell);
+    // piezas grandes, medianas y menudas: las pequeñas (marcos, macetas, balaustres…) se agrupan aparte para
+    // dejar de dibujarlas de lejos y sin sombra; las grandes, en manzanas mayores (menos llamadas de dibujo)
+    const b = g.boundingBox, size = Math.max(b.max.x - b.min.x, b.max.y - b.min.y, b.max.z - b.min.z);
+    const tier = size < 0.9 ? 2 : size < 3 ? 1 : 0, cell = tier ? this.cell : this.cell * 2;
+    const key = mat + '|' + Math.floor((b.min.x + b.max.x) / 2 / cell) + ',' + Math.floor((b.min.z + b.max.z) / 2 / cell) + '|' + tier;
     (this.parts[key] ||= []).push(g);
   }
   build(parent, { shadows = true } = {}) {
     const meshes = [];
     for (const [key, list] of Object.entries(this.parts)) {
       if (!list.length) continue;
-      const mat = key.split('|')[0];
+      const [mat, , tierS] = key.split('|'), tier = +tierS || 0;
       const hasColor = list.some(g => g.attributes.color);
       if (hasColor) for (const g of list) if (!g.attributes.color) colored(g, '#ffffff');
       const merged = mergeGeometries(list, false);
       if (!merged) { console.warn('merge failed', mat); continue; }
       merged.computeBoundingSphere();
       const m = new THREE.Mesh(merged, this.mats[mat]);
-      m.castShadow = shadows && !['glass', 'lamp'].includes(mat);
+      m.castShadow = shadows && tier === 0 && !['glass', 'lamp'].includes(mat);
+      if (tier) DETAIL.push({ m, tier, c: merged.boundingSphere.center.clone(), r: merged.boundingSphere.radius });
       m.receiveShadow = true;
-      m.matrixAutoUpdate = false;
+      m.matrixAutoUpdate = false; m.name = key;
       parent.add(m); meshes.push(m);
     }
     this.parts = {};
