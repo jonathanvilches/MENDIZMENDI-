@@ -32,13 +32,14 @@ const CHARS = { protagonista: '../src/assets/chars/char_protagonista.glb' };
 const q = new URLSearchParams(location.search);
 const shot = q.has('shot');
 if (shot) document.body.classList.add('shot');
+if (q.get('bg') === 'none') document.documentElement.style.background = document.body.style.background = 'transparent';
 
-const r = new THREE.WebGLRenderer({ antialias: true });
+const r = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
 r.setPixelRatio(Math.min(devicePixelRatio, 2)); r.setSize(innerWidth, innerHeight);
 r.outputColorSpace = THREE.SRGBColorSpace; r.toneMapping = THREE.ACESFilmicToneMapping;
 r.shadowMap.enabled = true;
 document.body.appendChild(r.domElement);
-const scene = new THREE.Scene(); scene.background = new THREE.Color(q.get('bg') || '#b8d4ea');
+const scene = new THREE.Scene(); scene.background = q.get('bg') === 'none' ? null : new THREE.Color(q.get('bg') || '#b8d4ea');
 scene.add(new THREE.HemisphereLight('#ffffff', '#6a5a4a', 1.3));
 const sun = new THREE.DirectionalLight('#fff4e0', 2.4); sun.position.set(2, 4, 3); sun.castShadow = true; scene.add(sun);
 const rim = new THREE.DirectionalLight('#cfe8ff', 1.0); rim.position.set(-3, 2, -3); scene.add(rim);
@@ -57,7 +58,7 @@ async function show(who) {
   for (const a of actors) { scene.remove(a.root); a.dispose(); }
   actors = [];
   const gltf = await loadChar(CHARS[who]);
-  ground.visible = !q.get('grid');
+  ground.visible = !q.get('grid') && q.get('bg') !== 'none';
   const grid = q.get('grid');   // hoja de expresiones: "Normal:Normal,Happy:Normal,…"
   const cells = grid ? grid.split(',').map(s => s.split(':')) : [[null, null]];
   const n = cells.length, cols = Math.min(n, +(q.get('cols') || 4));
@@ -80,7 +81,13 @@ async function show(who) {
   a.root.traverse(o => { if (o.isMesh) { const t = o.geometry.index.count / 3; tri += t; if (o.visible) { vis += t; calls++; } } });
   const view = q.get('view') || 'full';
   const ry = +(q.get('ry') || 0.35);
-  if (view === 'face' || grid) {
+  if (view === 'bust') {            // retrato: cabeza y hombros
+    const c = new THREE.Vector3(0, H * 0.73, 0), d = H * 1.35;
+    cam.position.set(Math.sin(ry) * d, c.y + H * 0.04, Math.cos(ry) * d); ctl.target.copy(c);
+  } else if (view === 'portrait') { // retrato de cuerpo entero
+    const c = new THREE.Vector3(0, H * 0.5, 0), d = H * 3.0;
+    cam.position.set(Math.sin(ry) * d, H * 0.62, Math.cos(ry) * d); ctl.target.copy(c);
+  } else if (view === 'face' || grid) {
     const rows = Math.ceil(n / cols);
     const c = new THREE.Vector3(0, grid ? H * 0.8 - (rows - 1) * 0.65 : H * 0.8, 0);
     const d = grid ? Math.max(cols * 0.62 * 0.75, rows * 1.3) * 2.2 : H * 0.9;

@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { buildMinifig, MinifigAnimator, COSTUMES, setOutlines } from '../actors/minifig.js';
 import { buildDiorama } from './diorama.js';
 import { castById } from '../data/cast.js';
+import { GlbRig, isGlbAvatar, loadGlbAvatar } from '../actors/glbChar.js';
 
 let R = null;
 function renderer() {
@@ -99,13 +100,39 @@ export class Stage {
     this.rim.color.copy(bright);
   }
   setAvatar(id) {
+    const token = this.avatarToken = (this.avatarToken || 0) + 1;
+    if (isGlbAvatar(id)) {
+      // personaje GLB: se carga en segundo plano; mientras tanto sigue el anterior
+      loadGlbAvatar(id).then(g => { if (this.avatarToken === token && this.alive !== false) this.useFig(id, this.glbFig(g, id)); })
+        .catch(e => { console.warn('avatar GLB', e); if (this.avatarToken === token) this.useFig(id, this.minifig(id)); });
+      if (!this.fig) this.useFig(id, this.minifig(id));
+      return;
+    }
+    this.useFig(id, this.minifig(id));
+  }
+  minifig(id) {
+    const fig = buildMinifig(COSTUMES[id] || COSTUMES.leire, { hero: true });
+    setOutlines(fig, true);
+    fig.traverse(o => { if (o.isMesh && !o.userData.outline) o.castShadow = true; });
+    return { fig, anim: new MinifigAnimator(fig), H: fig.userData.H };
+  }
+  glbFig(gltf, id) {
+    const rig = new GlbRig(gltf, id);
+    let prevWave = 0;
+    // mismo contrato que MinifigAnimator: update(dt, estado) y setExpr
+    const anim = {
+      update: (dt, s) => { if ((s.wave || 0) > prevWave + 0.01) rig.doWave(); prevWave = s.wave || 0; rig.update(dt, 0, true, 0); },
+      setExpr: (n, d) => rig.setExpr(n, d),
+    };
+    const box = new THREE.Box3().setFromObject(rig.obj);
+    return { fig: rig.obj, anim, H: box.max.y - box.min.y, rig };
+  }
+  useFig(id, { fig, anim, H: h, rig }) {
     if (this.fig) this.scene.remove(this.fig);
-    this.fig = buildMinifig(COSTUMES[id] || COSTUMES.leire, { hero: true });
-    setOutlines(this.fig, true);
-    this.fig.traverse(o => { if (o.isMesh && !o.userData.outline) o.castShadow = true; });
-    this.anim = new MinifigAnimator(this.fig);
+    this.glbRig?.dispose(); this.glbRig = rig || null;
+    this.fig = fig; this.anim = anim;
     this.scene.add(this.fig);
-    const H = this.H = this.fig.userData.H;
+    const H = this.H = h;
     this.setColor(castById(id)?.color || '#FFD700');
     this.pop = this.mode === 'showcase' ? 0 : 1; this.wave = 1.4; this.yaw = 0;
     this.frame();

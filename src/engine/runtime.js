@@ -15,6 +15,7 @@ import * as SALAZAR from '../levels/salazar.js';
 import { createTownLevel } from '../levels/town.js';
 import { resetColliders } from '../world/colliders.js';
 import { MinifigRig, COSTUMES } from '../actors/minifig.js';
+import { GlbRig, isGlbAvatar, loadGlbAvatar } from '../actors/glbChar.js';
 import { Player } from '../actors/player.js';
 import { Fauna } from '../actors/animals.js';
 import { FollowCamera } from '../camera.js';
@@ -74,7 +75,12 @@ export class Runtime {
     this.nature = new Nature(scene, q);
     onProgress(0.8, 'Despertando a los animales…'); await frame();
     this.fauna = new Fauna(scene, q, salazar ? null : { def, town: TOWN, places: PLACES });
-    const rig = new MinifigRig(COSTUMES[avatarId] || COSTUMES.leire);
+    let rig = null;
+    if (isGlbAvatar(avatarId)) {
+      // personaje GLB (sistema nuevo); si no carga, su minifigura de reserva
+      try { rig = new GlbRig(await loadGlbAvatar(avatarId), avatarId); } catch (e) { console.warn('avatar GLB', e); }
+    }
+    rig = rig || new MinifigRig(COSTUMES[avatarId] || COSTUMES.leire);
     this.player = new Player(rig, scene);
     this.follow = new FollowCamera(this.camera);
     this.particles = new Particles(scene);

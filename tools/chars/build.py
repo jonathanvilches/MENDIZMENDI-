@@ -158,6 +158,10 @@ def postprocess(path, clips):
     for a in j.get('animations', []):
         if a['name'] in ex: a['extras'] = {**a.get('extras', {}), **{k: v for k, v in ex[a['name']].items()}}
     write_glb(path, j, rest)
+    # aligerar: claves redundantes fuera y atributos cuantizados (sin Draco)
+    opt = subprocess.run(['node', 'tools/chars/optimize.mjs', path], capture_output=True, text=True, cwd=ROOT)
+    if opt.returncode: raise RuntimeError(opt.stderr[-600:])
+    j, rest = read_glb(path)
     tris = {}
     for m in j['meshes']:
         n = 0
