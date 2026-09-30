@@ -95,6 +95,7 @@ export const LEVELS = [
     landmarks: [{ kind: 'palace', name: 'Palacio de Arizkunenea', text: 'Casa-palacio del siglo XVII. Muchos baztaneses emigraron a América y al volver construyeron casas palacio: eran los indianos.' }, { kind: 'bridge', name: 'Puente de Elizondo', text: 'El río Baztan atraviesa el pueblo; más abajo pasa a llamarse Bidasoa.' }],
     missions: [
       { type: 'visit' },
+      { type: 'trade', kind: 'cestero', title: 'El cestero', host: H('Martín, cestero', { shirt: '#e8e0cc', vest: '#3a4a3a', pants: '#3a3530', txapela: '#1d1d24', hair: '#bdb6aa', old: true }) },
       { type: 'process', id: 'idiazabal', title: 'Del rebaño al queso', host: H('Ane, pastora', QUESERA), product: 'Queso Idiazabal',
         text: 'El queso Idiazabal se hace con leche cruda de oveja latxa. Algunos se ahúman con madera.',
         gather: { item: 'milk', n: 3, label: 'Llevar leche de oveja latxa', near: 'farm' },
@@ -145,6 +146,7 @@ export const LEVELS = [
     landmarks: [{ kind: 'horreo', name: 'Hórreo de Aezkoa', text: 'Los hórreos son graneros elevados sobre pilares para proteger el grano de la humedad y los ratones. En Aezkoa se conservan muchos.' }, { kind: 'bridge', name: 'Puente medieval', text: 'Un puente de piedra de un solo ojo cruza el Irati.' }],
     missions: [
       { type: 'visit' },
+      { type: 'trade', kind: 'carbonero', title: 'La carbonera', host: H('Fermín, carbonero', { shirt: '#4a4540', pants: '#2b2630', hair: '#2a2a2a', beard: '#2a2a2a', txapela: '#1d1d24' }) },
       { type: 'herd', animal: 'cows', n: 5, host: H('Xabier, ganadero', PASTOR), text: 'En Aezkoa las vacas y los terneros pastan en los montes en verano. Guíalas al prado del pueblo.' },
       { type: 'harvest', crop: 'patata', n: 8, host: H('Edurne', HUERTA), text: 'La patata de siembra del Pirineo crece en campos de montaña. Recoge las patatas y guárdalas en el hórreo.' },
       { type: 'quiz' },
@@ -178,6 +180,7 @@ export const LEVELS = [
     landmarks: [{ kind: 'house', name: 'Casa Museo Julián Gayarre', text: 'Julián Gayarre fue un tenor famoso en toda Europa en el siglo XIX. Nació en esta casa.' }, { kind: 'bridge', name: 'Puente sobre el Esca', text: 'El Esca baja por todo el valle hacia el embalse de Yesa.' }],
     missions: [
       { type: 'visit' },
+      { type: 'trade', kind: 'hilandera', title: 'De la oveja al ovillo', host: H('Amona Felisa', { shirt: '#3d3350', skirt: '#2a2440', pants: '#2a2440', hair: '#dcd7cf', old: true, bun: true }) },
       { type: 'process', id: 'roncal', title: 'La quesería del valle', host: H('Iker, quesero', { ...QUESERA, shirt: '#3a6b8f', skirt: null, pants: '#3a3530', bun: false, hair: '#2e2018' }), product: 'Queso Roncal',
         text: 'Solo los siete pueblos del valle elaboran el queso Roncal. Ayuda a preparar las piezas.',
         gather: { item: 'milk', n: 3, label: 'Llevar leche', near: 'farm' },
@@ -320,6 +323,7 @@ export const LEVELS = [
     landmarks: [{ kind: 'ruin', name: 'Ruinas de San Pedro', text: 'Restos de una iglesia medieval convertida en jardín.' }],
     missions: [
       { type: 'visit' },
+      { type: 'trade', kind: 'tonelero', title: 'El tonelero', host: H('Javier, tonelero', { shirt: '#c9b99a', apron: '#6b4a2e', pants: '#3a3530', hair: '#4a3020', moustache: '#4a3020' }) },
       { type: 'harvest', crop: 'uva', n: 10, host: H('Vendimiadora', VITI), text: 'En otoño se vendimia: se cortan los racimos de uva para hacer vino.' },
       { type: 'process', id: 'wine', title: 'El viaje de la uva', host: H('Bodeguero', { ...VITI, hat: null }), product: 'Vino de Navarra',
         text: 'La uva se lleva a la bodega, se estruja y fermenta.', steps: ['Vendimiar los racimos', 'Despalillar y estrujar', 'Fermentar el mosto', 'Criar el vino en barricas'] },
@@ -345,6 +349,7 @@ export const LEVELS = [
     landmarks: [{ kind: 'walls', name: 'El Cerco de Artajona', text: 'Muralla medieval que conserva nueve torreones. Protegía a los vecinos en tiempos de guerra.' }, { kind: 'dolmen', name: 'Dolmen del Portillo de Enériz', text: 'Los dólmenes son tumbas de piedra de hace más de 4000 años.' }],
     missions: [
       { type: 'visit' },
+      { type: 'trade', kind: 'panadero', title: 'El horno del pueblo', host: H('Pili, panadera', { shirt: '#ffffff', apron: '#e8dcc0', pants: '#3a3530', hair: '#6b3b1f', bun: true }) },
       { type: 'harvest', crop: 'trigo', n: 8, host: H('Agricultor', HUERTA), text: 'En la Navarra media se cultiva mucho cereal. Recoge las gavillas de trigo.' },
       { type: 'carnival', character: 'comparsa-mendigorria', title: 'La comparsa de la Novenera', host: H('Joven de la comparsa', { shirt: '#e03c3c', pants: '#34495e', hair: '#2e2018' }), text: 'En Mendigorria, muy cerca, el carnaval rural reúne figuras de otros pueblos. Encuéntralas.' },
       { type: 'quiz' },

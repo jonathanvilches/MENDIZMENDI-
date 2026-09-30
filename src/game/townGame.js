@@ -7,7 +7,8 @@ import { TOWN } from '../world/townBuilder.js';
 import { isFree, segmentBlocked } from '../world/colliders.js';
 import { clamp, lerp, angleDiff, mulberry32 } from '../util/math.js';
 import { profile, saveProfile, townState, addXP, checkBadges, addCard, comarcaDone, levelOf } from './profile.js';
-import { infoCard, timingGame, mashGame, sequenceGame, simonGame, missionComplete, townFinale } from '../ui/minigames.js';
+import { infoCard, timingGame, mashGame, sequenceGame, simonGame, choiceGame, missionComplete, townFinale } from '../ui/minigames.js';
+import { OFICIOS } from '../data/oficios.js';
 import { makeItem, makeGate, makeWorkbench } from './items.js';
 import COMARCAS from '../data/comarcas.json';
 import FOLKLORE from '../data/folklore.json';
@@ -125,7 +126,8 @@ export class TownGame {
       case 'carnival': { const f = FOLKLORE.find(x => x.id === m.character); M.folk = f; M.title = m.title || f?.name || 'Carnaval'; M.icon = 'mask'; M.need = 3; M.night = NIGHT_CARNIVAL[m.character];
         M.steps = () => M.night ? ['Habla con ' + host(), 'Espera a que caiga la noche', `Encuentra a los ${f?.name?.toLowerCase() || 'personajes'}s (${M.count}/${M.need}) — escucha sus cencerros`, 'Vuelve con ' + host()]
           : ['Habla con ' + host(), `Encuentra a ${f?.name || 'los personajes'} (${M.count}/${M.need}) — escucha sus cencerros`, 'Vuelve con ' + host()]; break; }
-      case 'trade': { const t = TRADE[m.kind] || TRADE.herrero; M.trade = t; M.title = m.title || t.title; M.icon = t.icon; M.steps = () => ['Habla con ' + host(), `Trabaja en el taller: ${t.title.toLowerCase()}`]; break; }
+      case 'trade': { const t = TRADE[m.kind] || TRADE.herrero, of = OFICIOS[m.kind]; M.trade = t; M.oficio = of; M.tstep = 0; M.title = m.title || of?.name || t.title; M.icon = of?.icon || t.icon;
+        M.steps = () => ['Habla con ' + host(), of ? `Taller de ${of.name.toLowerCase()}: paso ${Math.min(M.tstep + 1, of.steps.length)} de ${of.steps.length}` : `Trabaja en el taller: ${t.title.toLowerCase()}`]; break; }
       case 'legend': { const L = M.leg = LEGENDS[m.who]; M.title = m.title || 'Leyenda'; M.icon = 'legend'; M.need = L?.clues.length || m.gather?.n || 4;
         M.steps = () => ['Escucha la leyenda: habla con ' + host(), 'Espera a que caiga la noche', `Sigue las pistas que brillan en la oscuridad (${M.count}/${M.need})`, `Encuentra a ${L?.creature || 'la criatura'}`]; break; }
       case 'race': { const r = RACE[m.kind] || RACE.camino; M.title = m.title || r[0]; M.icon = r[1]; M.need = 6;
@@ -167,7 +169,7 @@ export class TownGame {
       case 'harvest': return P.fields;
       case 'herd': return TOWN.pen ? { x: TOWN.pen.x, z: TOWN.pen.z + TOWN.pen.d / 2 + 4 } : P.farm;
       case 'dance': case 'carnival': case 'tradition': return { x: P.plaza.x + (M.i % 2 ? 7 : -7), z: P.plaza.z + 6 };
-      case 'trade': return m.kind === 'aizkolari' ? { x: P.forest.x * 0.5 + P.plaza.x * 0.5, z: P.forest.z * 0.4 } : m.kind === 'palomero' ? P.edgeN : { x: P.market.x + 6, z: P.market.z + 4 };
+      case 'trade': return m.kind === 'aizkolari' || m.kind === 'carbonero' ? { x: P.forest.x * 0.5 + P.plaza.x * 0.5, z: P.forest.z * 0.4 } : m.kind === 'palomero' ? P.edgeN : { x: P.market.x + 6, z: P.market.z + 4 };
       case 'legend': return M.leg?.teller ? { x: P.plaza.x + (M.i % 2 ? -9 : 9), z: P.plaza.z - 6 } : lm('cave')?.spot ? { x: (lm('cave').spot.x + P.plaza.x) / 2, z: (lm('cave').spot.z + P.plaza.z) / 2 } : { x: P.plaza.x - 9, z: P.plaza.z - 6 };
       case 'race': return m.kind === 'encierro' && P.encierro ? { x: P.encierro[0].x + 5, z: P.encierro[0].z + 4 } : { x: P.spawn.x - 4, z: P.spawn.z - 20 };
       case 'observe': return lm('gorge')?.spot || P.edgeN;
@@ -347,7 +349,7 @@ export class TownGame {
     for (const a of this.actors) if (a.visible !== false) list.push({ kind: 'npc', a, x: a.pos.x, z: a.pos.z, r: 3, label: a === this.pelotari ? `Jugar a pelota con ${a.name}` : `Hablar con ${a.name}` });
     for (const a of this.walkers) list.push({ kind: 'walker', a, x: a.pos.x, z: a.pos.z, r: 2.4, label: `Saludar a ${a.name}` });
     for (const it of this.items) list.push({ kind: 'item', it, x: it.x, z: it.z, r: 2.2, label: it.label });
-    for (const M of this.missions) if (M.bench && M.step === 1 && !M.done) list.push({ kind: 'bench', M, x: M.bench.x, z: M.bench.z, r: 3, label: M.trade.verb });
+    for (const M of this.missions) if (M.bench && M.step === 1 && !M.done) list.push({ kind: 'bench', M, x: M.bench.x, z: M.bench.z, r: 3, label: M.oficio ? 'Entrar al taller' : M.trade.verb });
     for (const k of this.clues) if (!k.found && k.obj.visible) list.push({ kind: 'clue', k, x: k.x, z: k.z, r: 2.6, label: 'Examinar' });
     for (const M of this.missions) if (M.creature && M.creature.shown && !M.done && !M.chase) list.push({ kind: 'creature', M, x: M.creature.pos.x, z: M.creature.pos.z, r: 3.6, label: `Hablar con ${M.leg.creature}` });
     if (TOWN.fountain) list.push({ kind: 'fountain', x: TOWN.fountain.x, z: TOWN.fountain.z, r: 3.8, label: 'Beber agua' });
@@ -467,8 +469,8 @@ export class TownGame {
         else { await S([`¡Los has encontrado a todos! ${M.folk?.clue ? '' : ''}Así se vive el carnaval en ${this.comarca?.name}.`]); await this.complete(M, { card: M.folk?.name, cardText: M.folk?.fact }); }
         return;
       case 'trade':
-        if (M.step === 0) { await S([m.text, `Ven al banco de trabajo. ${M.trade.hint}`]); M.step = 1; }
-        else await S(['Ponte en el banco de trabajo cuando quieras.']);
+        if (M.step === 0) { const of = M.oficio; await S(of ? [of.intro, `Soy ${a.name}. Ven al banco de trabajo y te enseño cómo se hacía, paso a paso.`] : [m.text, `Ven al banco de trabajo. ${M.trade.hint}`]); M.step = 1; }
+        else await S([M.tstep ? `Íbamos por el paso ${M.tstep + 1}. Vuelve al banco de trabajo.` : 'Ponte en el banco de trabajo cuando quieras.']);
         return;
       case 'legend': {
         const L = M.leg;
@@ -900,7 +902,9 @@ export class TownGame {
   }
 
   // ---------- Oficios ----------
+  // Taller guiado: herramientas, pasos explicados con una acción cada uno y, al final, el antes y el ahora
   async doTrade(M) {
+    if (M.oficio) return this.doWorkshop(M);
     const t = M.trade;
     this.player.frozen = true; this.mode = 'mini';
     this.player.heading = Math.atan2(M.bench.x - this.player.pos.x, M.bench.z - this.player.pos.z);
@@ -912,6 +916,37 @@ export class TownGame {
     } finally { this.ui.onMiniHit = null; this.player.frozen = false; this.mode = 'play'; }
     if (r.win) { this.player.rig.doCheer(); await this.say(M.host, [`¡Tienes buenas manos! El oficio de ${t.title.toLowerCase()} pasaba de padres a hijos.`]); await this.complete(M, { card: M.title, cardText: M.m.text }); }
     else await this.say(M.host, ['¡Casi! Vuelve a intentarlo cuando quieras en el banco de trabajo.']);
+  }
+
+  async doWorkshop(M) {
+    const of = M.oficio, t = M.trade, n = of.steps.length;
+    this.player.frozen = true; this.mode = 'mini';
+    this.player.heading = Math.atan2(M.bench.x - this.player.pos.x, M.bench.z - this.player.pos.z);
+    this.ui.onMiniHit = (ok) => { if (ok) { this.player.rig.doAct(of.act === 'wave' ? 'point' : of.act, 0.45); this.particles.emit({ x: M.bench.x, y: groundHeight(M.bench.x, M.bench.z) + 1, z: M.bench.z }, { n: 10, color: of.act === 'hammer' ? ['#ffb34a', '#ffe38a'] : ['#c9a27a', '#ffffff'], speed: 2.5, size: 0.18, life: 0.5 }); } };
+    let finished = false;
+    try {
+      if (!M.tstep) {
+        const list = of.tools.map(([es, eu, what]) => `<li><b>${es}</b>${eu ? `<i>${eu}</i>` : '<i></i>'}<span>${what}</span></li>`).join('');
+        await infoCard(this.ui, { icon: of.icon, kicker: 'Las herramientas', title: `${of.name}${of.eu ? ' · ' + of.eu : ''}`, text: 'Esto es lo que se usaba en el taller:', extra: `<ul class="tools">${list}</ul>`, button: '¡A trabajar!' });
+      }
+      while (M.tstep < n) {
+        const st = of.steps[M.tstep], title = `Paso ${M.tstep + 1} de ${n}: ${st.title}`;
+        if (st.game !== 'choice') await infoCard(this.ui, { icon: of.icon, kicker: `${of.name} · paso ${M.tstep + 1} de ${n}`, title: st.title, text: st.text, button: st.game === 'order' ? 'Ordenar' : st.verb || 'Hacerlo' });
+        let r;
+        if (st.game === 'choice') r = await choiceGame(this.ui, { title, icon: of.icon, q: `${st.text} ${st.q}`, options: st.options, answer: st.answer, why: st.why });
+        else if (st.game === 'order') r = await sequenceGame(this.ui, { title, icon: of.icon, hint: 'Toca los pasos en el orden en que se hacían', steps: st.items });
+        else if (st.game === 'mash') r = await mashGame(this.ui, { title, hint: st.text, icon: of.icon, verb: st.verb, seconds: 7, goal: 28 });
+        else r = await timingGame(this.ui, { title, hint: st.text, icon: of.icon, verb: st.verb, rounds: st.rounds || 4, need: st.need || 3, zone: 0.22, speed: 0.6 });
+        if (!r.win) { await this.say(M.host, ['¡Casi! Así se aprende: vuelve a probar este paso en el banco de trabajo.']); return; }
+        M.tstep++;
+      }
+      finished = true;
+    } finally { this.ui.onMiniHit = null; this.player.frozen = false; this.mode = 'play'; }
+    if (!finished) return;
+    this.player.rig.doCheer();
+    await infoCard(this.ui, { icon: of.icon, kicker: 'Antes y ahora', title: of.product, text: `Así trabajaba ${of.name === 'Panadera' || of.name === 'Alpargatera' || of.name === 'Hilandera' ? 'la' : 'el'} ${of.name.toLowerCase()}.`, extra: `<div class="antes-ahora"><div><b>Antes</b>${of.then}</div><div><b>Ahora</b>${of.now}</div></div>`, button: '¡Lo he aprendido!' });
+    const ord = of.steps.find(s => s.game === 'order')?.items, low = (x) => x[0].toLowerCase() + x.slice(1);
+    await this.complete(M, { card: M.title, cardText: `Cómo se hacía: ${(ord || of.steps.filter(s => s.game !== 'choice').map(s => s.title)).map(low).join(', ')}.` });
   }
 
   // ---------- Carrera por aros ----------
