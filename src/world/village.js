@@ -378,24 +378,10 @@ function buildCrucero(B) {
 }
 
 // ---------- Frontón ----------
+// El frontón (cancha, paredes y colisiones) lo pone el juego con el motor de pelota (src/pelota); aquí solo su altura.
 function buildFronton(B) {
   const f = PLACES.fronton;
-  const y = terrainHeight(f.x, f.z);
-  const T = M(f.x, y, f.z, -Math.PI / 2); // la cancha se abre hacia el oeste
-  B.add('paint', colored(box(11, 0.1, 30), '#8a9a8a'), MM(T, M(0, 0.03, 0)));
-  B.add('ashlar', box(11, 10, 1.2, 2.2), MM(T, M(0, 5, -15)));
-  B.add('paint', colored(box(11, 0.12, 0.05), '#f4f4f4'), MM(T, M(0, 0.85, -14.37)));
-  B.add('ashlar', box(1, 6, 30, 2.2), MM(T, M(-5.5, 3, 0)));
-  for (let i = 1; i < 7; i++) B.add('paint', colored(box(0.05, 0.4, 0.05), '#f4f4f4'), MM(T, M(-4.97, 0.2, -15 + i * 4)));
-  for (let i = 1; i < 7; i++) B.add('paint', colored(box(0.08, 0.05, 11), '#e8e8e8'), MM(T, M(0, 0.1, -15 + i * 4, Math.PI / 2)));
-  // gradas
-  for (let i = 0; i < 3; i++) B.add('ashlar', box(1, 0.45, 22), MM(T, M(6.2 + i * 0.9, 0.22 + i * 0.45, 2)));
-  const c = Math.cos(-Math.PI / 2), s = Math.sin(-Math.PI / 2);
-  const wx = (lx, lz) => f.x + lx * c + lz * s, wz = (lx, lz) => f.z - lx * s + lz * c;
-  addBox(wx(0, -15), wz(0, -15), 11, 1.4, -Math.PI / 2, { solidView: true });
-  addBox(wx(-5.5, 0), wz(-5.5, 0), 1.2, 30, -Math.PI / 2, { solidView: true });
-  addBox(wx(7, 2), wz(7, 2), 3, 22, -Math.PI / 2);
-  f.y = y; f.wall = { x: wx(0, -14.3), z: wz(0, -14.3) };
+  f.y = terrainHeight(f.x, f.z);
 }
 
 // ---------- Farolas ----------

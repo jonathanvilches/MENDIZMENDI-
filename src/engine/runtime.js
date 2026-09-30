@@ -1,6 +1,6 @@
 // Motor: carga una localidad (Salazar o generada), la actualiza y la libera al salir
 import * as THREE from 'three';
-import { bake, initBridges, terrainHeight } from '../world/heightfield.js';
+import { bake, initBridges, terrainHeight, clearPlatforms } from '../world/heightfield.js';
 import { buildTextures, TEX } from '../world/textures.js';
 import { Terrain } from '../world/terrain.js';
 import { SkySystem } from '../world/sky.js';
@@ -53,7 +53,7 @@ export class Runtime {
     this.unload();
     const q = this.quality;
     onProgress(0.05, 'Dibujando el terreno…'); await frame();
-    resetColliders(); resetVillage();
+    resetColliders(); resetVillage(); clearPlatforms();
     for (const k of Object.keys(LANDMARKS)) delete LANDMARKS[k];
     const salazar = def.special === 'salazar';
     const mod = salazar ? SALAZAR : createTownLevel(def);
@@ -119,7 +119,7 @@ export class Runtime {
     if (!this.active || !this.scene) return;
     this.elapsed += dt;
     const g = this.game, input = this.input;
-    input.enabled = !g.ui.busy && g.mode !== 'cine' && g.mode !== 'dance' && g.mode !== 'mini';
+    input.enabled = !g.ui.busy && g.mode !== 'cine' && g.mode !== 'dance' && g.mode !== 'mini' && g.mode !== 'pelota';
     input.update();
     const P = this.player;
     P.update(dt, input, this.follow.yaw);
