@@ -56,6 +56,7 @@ export class Stage {
     let D = dioramas.get(comarca);
     if (!D) { D = buildDiorama(comarca, { live: true }); dioramas.set(comarca, D); }
     this.D = D; this.scene = D.scene;
+    this.groundY = D.hf ? D.hf(0, 0) + 0.035 : 0;               // el personaje pisa el camino (antes se hundía en él)
     this.r.setClearColor(0, 1);
   }
   buildShowcase() {
@@ -137,9 +138,35 @@ export class Stage {
     this.pop = this.mode === 'showcase' ? 0 : 1; this.wave = 1.4; this.yaw = 0;
     this.frame();
   }
+  // Portada en vertical (imagen de juego): el personaje entero en el hueco libre entre el capítulo (arriba) y el
+  // título con los botones (abajo), con la cámara algo baja para que se vea heroico. Devuelve false si no hay hueco.
+  fitBand() {
+    const sec = this.host.closest('.hero3d'); if (!sec) return false;
+    const R = this.host.getBoundingClientRect(); if (!R.height) return false;
+    const topEl = sec.querySelector('.chapter'), botEl = sec.querySelector('.h-bot .kicker') || sec.querySelector('.h-bot');
+    let t = topEl ? (topEl.getBoundingClientRect().bottom - R.top) / R.height : 0.08;
+    let b = botEl ? (botEl.getBoundingClientRect().top - R.top) / R.height : 0.7;
+    if (b - t < 0.3) b = Math.min(0.9, t + 0.3);             // pantallas muy bajas: las piernas pueden pasar tras el título
+    const H = this.H || 1.4, fov = this.cam.fov = 30, g = this.groundY || 0, tf = Math.tan(fov * Math.PI / 360);
+    // cabeza y pies en el hueco (con un poco de margen); la cámara a la altura del pecho, algo baja: pose de héroe
+    const tt = t + (b - t) * 0.06, bb = b - (b - t) * 0.04;
+    const At = Math.atan((1 - 2 * tt) * tf), Ab = Math.atan((1 - 2 * bb) * tf);
+    const cy = g + H * 0.42;
+    const span = (d) => Math.atan((g + H - cy) / d) - Math.atan((g - cy) / d);
+    let lo = 0.5, hi = 60;                                        // distancia que da el ángulo buscado (búsqueda binaria)
+    for (let i = 0; i < 40; i++) { const m = (lo + hi) / 2; if (span(m) > At - Ab) lo = m; else hi = m; }
+    const d = (lo + hi) / 2, th = Math.atan((g + H - cy) / d) - At;
+    this.lookY = cy + d * Math.tan(th);
+    this.cam.clearViewOffset();
+    this.cam.position.set(0.35, cy, d); this.cam.lookAt(0, this.lookY, 0);
+    this.cam.updateProjectionMatrix();
+    this.band = { t, b, d: +d.toFixed(2) };
+    return true;
+  }
   // encuadre según la forma del hueco
   frame() {
     const H = this.H || 1.4, a = this.cam.aspect || 1;
+    if (this.mode === 'scene' && a < 0.9 && this.fitBand()) return;
     if (this.mode === 'scene') {
       // personaje en el centro, el pueblo y los montes detrás
       const tall = a < 0.9;
@@ -147,8 +174,9 @@ export class Stage {
       // huecos poco altos: personaje algo más pequeño y más arriba para que no lo tapen los textos
       const k = tall ? Math.min(1, Math.max(0, (a - 0.55) / 0.3)) : 0;
       const d = tall ? 5.6 + k * 1.9 : 5.0;
-      this.cam.position.set(0.5, 1.25, d);
-      this.lookY = tall ? 0.62 - k * 0.36 : 0.72;
+      const g = this.groundY || 0;
+      this.cam.position.set(0.5, 1.25 + g, d);
+      this.lookY = (tall ? 0.62 - k * 0.36 : 0.72) + g;
       this.cam.lookAt(0, this.lookY, 0);
       if (!tall && this.w) this.cam.setViewOffset(this.w, this.h, -this.w * 0.17, 0, this.w, this.h); else this.cam.clearViewOffset();
     } else {
@@ -172,7 +200,7 @@ export class Stage {
       this.D.update(dt);
       if (!this.drag) this.yaw *= Math.pow(0.1, dt);
       this.fig.rotation.y = 0.18 + Math.sin(this.t * 0.4) * 0.12 + this.yaw;
-      this.fig.position.y = jumpY;
+      this.fig.position.y = (this.groundY || 0) + jumpY;
       // la cámara respira despacio
       const s = Math.sin(this.t * 0.18);
       this.cam.position.x = 0.5 + s * 0.3; this.cam.lookAt(s * 0.05, this.lookY, 0);
