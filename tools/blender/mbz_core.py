@@ -23,6 +23,7 @@ def new_scene(char):
     sc = bpy.context.scene
     sc.unit_settings.system = 'METRIC'; sc.unit_settings.scale_length = 1.0; sc.unit_settings.length_unit = 'METERS'
     sc.render.fps = 30; sc.render.fps_base = 1.0
+    bpy.context.preferences.filepaths.save_version = 0      # sin copias .blend1
     root = bpy.data.collections.new(f'CHAR_{char}'); sc.collection.children.link(root)
     cols = {'ROOT': root}
     for n in ('GEO', 'FACE_VARIANTS', 'HAND_VARIANTS', 'ACC', 'RIG'):
@@ -97,6 +98,13 @@ def inset_rings(bm, faces, n, thickness):
         rings.append(region_boundary_loop(faces))
     return rings, faces
 
+def extrude(bm, faces):
+    """Extruye una región (como E en Blender): devuelve las caras nuevas y borra las originales."""
+    r = bmesh.ops.extrude_face_region(bm, geom=faces)
+    new = [g for g in r['geom'] if isinstance(g, bmesh.types.BMFace)]
+    bmesh.ops.delete(bm, geom=faces, context='FACES_ONLY')
+    return new
+
 def smooth_verts(bm, verts, factor=0.5, repeat=5):
     for _ in range(repeat):
         bmesh.ops.smooth_vert(bm, verts=verts, factor=factor, use_axis_x=True, use_axis_y=True, use_axis_z=True)
@@ -136,10 +144,21 @@ def mod_solidify(ob, thickness=0.01, offset=1.0):
     return m
 
 def mod_bevel(ob, width=0.012, segments=3):
+    """Bevel de 0,012 con 3 segmentos y Harden Normals. En una cage de pocas caras el límite por ángulo (30°)
+    achaflanaría casi todas las aristas, así que se limita al peso de bevel puesto en los bordes de la prenda."""
     m = ob.modifiers.new('Bevel', 'BEVEL')
     m.width = width; m.segments = segments; m.harden_normals = True
-    m.limit_method = 'ANGLE'; m.angle_limit = math.radians(30)
+    m.angle_limit = math.radians(30); m.limit_method = 'WEIGHT'
     return m
+
+def mark_rim_bevel(ob):
+    """Peso de bevel 1 en los bordes de verdad de la prenda (cuello, puños, dobladillos, aberturas), no en el plano del Mirror."""
+    bm = bmesh.new(); bm.from_mesh(ob.data)
+    bw = bm.edges.layers.float.get('bevel_weight_edge') or bm.edges.layers.float.new('bevel_weight_edge')
+    for e in bm.edges:
+        on_plane = abs(e.verts[0].co.x) < 1e-4 and abs(e.verts[1].co.x) < 1e-4
+        e[bw] = 1.0 if (e.is_boundary and not on_plane) else 0.0
+    bm.to_mesh(ob.data); bm.free()
 
 def mod_shrinkwrap(ob, target, offset=0.006, method='TARGET_PROJECT'):
     m = ob.modifiers.new('Shrinkwrap', 'SHRINKWRAP')
@@ -311,6 +330,15 @@ def make_action(poser, name, frames, pose_fn, loop=True, step=2, props=None):
         for pb in arm.pose.bones:
             pb.keyframe_insert('rotation_quaternion', frame=f, group=pb.name)
             if pb.name == 'Hips': pb.keyframe_insert('location', frame=f, group=pb.name)
+    # los huesos que no se mueven del reposo en todo el clip no llevan curva (el GLB pesa menos);
+    # ojos, pelo y pañuelo se conservan siempre porque el juego los retoca después del mixer
+    rest = (1.0, 0.0, 0.0, 0.0)
+    for pb in arm.pose.bones:
+        if pb.name.startswith(('Eye_', 'Hair_', 'Scarf_')): continue
+        path = f'pose.bones["{pb.name}"].rotation_quaternion'
+        fcs = [act.fcurves.find(path, index=i) for i in range(4)]
+        if all(fc and all(abs(k.co[1] - rest[i]) < 1e-4 for k in fc.keyframe_points) for i, fc in enumerate(fcs)):
+            for fc in fcs: act.fcurves.remove(fc)
     for fc in act.fcurves:
         for k in fc.keyframe_points:
             k.interpolation = 'BEZIER'; k.handle_left_type = 'AUTO_CLAMPED'; k.handle_right_type = 'AUTO_CLAMPED'
@@ -338,16 +366,16 @@ def export_glb(path, objects):
         export_skins=True, export_all_influences=False, export_influence_nb=4,
         export_draco_mesh_compression_enable=False,
         export_animation_mode='ACTIONS', export_force_sampling=True, export_frame_step=1,
-        export_optimize_animation_size=True, export_anim_single_armature=True, export_reset_pose_bones=True,
+        export_optimize_animation_size=True, export_optimize_animation_keep_anim_armature=False, export_anim_single_armature=True, export_reset_pose_bones=True,
     )
 
-def export_copy(objs, name, coll, arm):
-    """Copia para exportar: aplica todos los modificadores salvo Armature y une las piezas en una malla."""
+def export_copy(objs, name, coll, arm, skip=()):
+    """Copia para exportar: aplica todos los modificadores salvo Armature (y los de `skip`) y une las piezas en una malla."""
     copies = []
     for ob in objs:
         c = ob.copy(); c.data = ob.data.copy(); coll.objects.link(c)
         for m in list(c.modifiers):
-            if m.type == 'ARMATURE': c.modifiers.remove(m); continue
+            if m.type == 'ARMATURE' or m.type in skip: c.modifiers.remove(m); continue
             apply_mod(c, m.name)
         copies.append(c)
     base = copies[0]
@@ -360,10 +388,10 @@ def export_copy(objs, name, coll, arm):
 
 def validate(path, root):
     code = ("const v=require('gltf-validator'),fs=require('fs');"
-            f"v.validateBytes(new Uint8Array(fs.readFileSync('{path}'))).then(r=>console.log(JSON.stringify({{"
+            "v.validateBytes(new Uint8Array(fs.readFileSync(process.argv[1]))).then(r=>console.log(JSON.stringify({"
             "errores:r.issues.numErrors,avisos:r.issues.numWarnings,info:r.issues.numInfos,"
-            "mensajes:r.issues.messages.filter(m=>m.severity<3).slice(0,12).map(m=>m.code+' '+m.pointer+': '+m.message)}})))")
-    r = subprocess.run(['node', '-e', code], capture_output=True, text=True, cwd=root)
+            "mensajes:r.issues.messages.filter(m=>m.severity<3).slice(0,12).map(m=>m.code+' '+m.pointer+': '+m.message)})))")
+    r = subprocess.run(['node', '-e', code, path], capture_output=True, text=True, cwd=root)
     try: return json.loads(r.stdout.strip().splitlines()[-1])
     except Exception: return {'error': (r.stderr or r.stdout)[-600:]}
 

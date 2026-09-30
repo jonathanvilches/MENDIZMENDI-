@@ -26,7 +26,7 @@ for (const [name, qs] of shots) {
 }
 if (!only || only.includes('expresiones')) {
   await page.setViewportSize({ width: 960, height: 720 });
-  const grid = 'Normal:Normal,Happy:Normal,Surprised:Normal,Scared:Worried,Talk_A:Normal,Talk_O:Normal,Tired:Worried,Normal:Angry';
+  const grid = 'Neutral:Normal,Smile:Happy,SmileOpen:Happy,Surprised:Surprised,Scared:Worried,TalkA:Normal,TalkO:Normal,Tired:Worried,Neutral:Angry';
   await page.goto(`${base}&grid=${grid}&cols=4&ry=0`);
   await page.waitForFunction(() => window.__ready, null, { timeout: 240000 });
   await page.screenshot({ path: `${out}/${who}-expresiones.png` });
