@@ -77,7 +77,7 @@ export function letters(text, color, { font = FONT_SERIF, weight = 'bold', shado
 
 // ---------- Piezas de fachada (plano local: fachada en z = 0 mirando a +z) ----------
 // balcón de forja: losa de piedra, barandilla calada y pasamanos
-export function balcony(B, T, x, y, bw, dep = 0.6) {
+export function balcony(B, T, x, y, bw, dep = 0.6, flowers = null) {
   B.add('ashlar', box(bw, 0.13, dep, 1), MM(T, M(x, y, dep / 2)));
   const front = new THREE.PlaneGeometry(bw, 0.95); { const uv = front.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setX(i, uv.getX(i) * bw / 0.9); }
   B.add('railing', front, MM(T, M(x, y + 0.54, dep - 0.03)));
@@ -86,13 +86,27 @@ export function balcony(B, T, x, y, bw, dep = 0.6) {
     B.add('railing', side, MM(T, M(x + s * (bw / 2 - 0.02), y + 0.54, dep / 2, Math.PI / 2)));
   }
   B.add('iron', box(bw + 0.04, 0.05, 0.07), MM(T, M(x, y + 1.02, dep - 0.03)));
+  // ménsulas de piedra bajo la losa
+  for (const s of [-1, 1]) B.add('ashlar', box(0.14, 0.26, dep * 0.8), MM(T, M(x + s * (bw / 2 - 0.2), y - 0.17, dep * 0.4, 0, 0.35)));
+  if (flowers) for (let i = 0, n = Math.max(1, Math.floor(bw / 0.55)); i < n; i++) {
+    const px = x - bw / 2 + 0.3 + i * (bw - 0.6) / Math.max(1, n - 1 || 1);
+    B.add('tile', new THREE.CylinderGeometry(0.13, 0.1, 0.2, 7), MM(T, M(px, y + 0.17, dep - 0.2)));
+    B.add('leaf', colored(new THREE.IcosahedronGeometry(0.17, 0), '#3f7a34'), MM(T, M(px, y + 0.36, dep - 0.2, i)));
+    for (let k = 0; k < 3; k++) B.add('paint', colored(new THREE.IcosahedronGeometry(0.07, 0), flowers), MM(T, M(px + (k - 1) * 0.09, y + 0.45 + (k % 2) * 0.05, dep - 0.13)));
+  }
 }
 // puerta-ventana con marco de piedra y contraventanas opcionales
-export function winDoor(B, T, x, y, ww, wh, shutter, frame = 'ashlar') {
+export function winDoor(B, T, x, y, ww, wh, shutter, frame = 'ashlar', key = false) {
   B.add('glass', box(ww, wh, 0.02), MM(T, M(x, y + wh / 2, 0.03)));
-  B.add('paint', colored(box(0.06, wh, 0.05), '#efe9dc'), MM(T, M(x, y + wh / 2, 0.05)));
-  B.add('paint', colored(box(ww, 0.06, 0.05), '#efe9dc'), MM(T, M(x, y + wh * 0.72, 0.05)));
+  // carpintería blanca con cuarterones y un visillo arriba
+  const wc = '#efe9dc';
+  B.add('paint', colored(box(0.06, wh, 0.05), wc), MM(T, M(x, y + wh / 2, 0.05)));
+  for (const t of [0.34, 0.68]) B.add('paint', colored(box(ww, 0.045, 0.05), wc), MM(T, M(x, y + wh * t, 0.05)));
+  for (const s of [-1, 1]) B.add('paint', colored(box(0.07, wh, 0.05), wc), MM(T, M(x + s * (ww / 2 - 0.035), y + wh / 2, 0.05)));
+  B.add('paint', colored(box(ww - 0.14, wh * 0.16, 0.02), '#e8e0cf'), MM(T, M(x, y + wh * 0.9, 0.042)));
   B.add(frame, box(ww + 0.4, 0.24, 0.16, 1), MM(T, M(x, y + wh + 0.12, 0.07)));
+  B.add(frame, box(ww + 0.55, 0.09, 0.24, 1), MM(T, M(x, y + wh + 0.28, 0.1)));
+  if (key) B.add(frame, box(0.26, 0.34, 0.2, 1), MM(T, M(x, y + wh + 0.12, 0.12)));
   for (const s of [-1, 1]) B.add(frame, box(0.17, wh, 0.12, 1), MM(T, M(x + s * (ww / 2 + 0.085), y + wh / 2, 0.06)));
   if (shutter) for (const s of [-1, 1]) B.add('paint', colored(box(ww / 2, wh, 0.05), shutter), MM(T, M(x + s * (ww * 0.75 + 0.2), y + wh / 2, 0.06)));
 }
@@ -155,6 +169,7 @@ export function navarraFlag(B, T, len = 2.4) {
   B.add('paint', colored(new THREE.CircleGeometry(len * 0.1, 10), '#e0b43a'), MM(T, M(0.05 + len * 0.4, len + 0.4 - len * 0.275, -0.13, Math.PI)));
 }
 
+const pick2 = (a, rnd) => a[(rnd() * a.length) | 0];
 // ---------- Edificio de vecinos entre medianeras ----------
 // Fachada en z = 0 mirando a +z; ocupa x ∈ [−w/2, w/2] y z ∈ [−d, 0].
 // o: { w, d, h, wall, arcade, floors, shutter, longBalcony, shops, shopColor, eaves, attic, frame }
@@ -176,17 +191,44 @@ export function cityBlock(B, T, o, rnd = Math.random) {
     }
     B.add('ashlar', box(w, 0.8, 0.8, 1.5), F(M(0, gh - 0.4, -0.4)));
     for (let i = 0; i < bays; i++) shopFront(B, MM(T, M(-w / 2 + (i + 0.5) * w / bays, 0, -ad)), w / bays - 1.1, gh - 1.3, o.shopColor || '#5b3a26', i % 2 === 0);
+    // techo del soportal con vigas y un farol colgado en cada tramo
+    for (let i = 0; i <= bays; i++) B.add('woodDark', box(0.22, 0.28, ad), F(M(-w / 2 + i * w / bays + (i === 0 ? 0.2 : i === bays ? -0.2 : 0), gh - 0.14, -ad / 2)));
+    for (let i = 0; i < bays; i++) { const x = -w / 2 + (i + 0.5) * w / bays; B.add('iron', box(0.03, 0.5, 0.03), F(M(x, gh - 0.45, -ad / 2))); B.add('lamp', box(0.26, 0.34, 0.26), F(M(x, gh - 0.85, -ad / 2))); B.add('iron', new THREE.ConeGeometry(0.22, 0.16, 4).rotateY(Math.PI / 4), F(M(x, gh - 0.62, -ad / 2))); }
   } else if (o.shops !== false) {
     for (let i = 0; i < bays; i++) {
       const x = -w / 2 + (i + 0.5) * w / bays;
-      if (i % 2 === 1 || bays === 1 && rnd() < 0.3) { // portal de vecinos
+      if (i % 2 === 1 || bays === 1 && rnd() < 0.3) { // portal de vecinos con montante, cuarterones y número
         B.add('woodDark', box(1.3, 2.7, 0.08), F(M(x, 1.35, 0.02)));
-        B.add(frame, box(1.8, 0.3, 0.2, 1), F(M(x, 2.85, 0.08)));
-        for (const s of [-1, 1]) B.add(frame, box(0.25, 2.7, 0.18, 1), F(M(x + s * 0.78, 1.35, 0.07)));
-      } else shopFront(B, MM(T, M(x, 0, 0)), Math.min(3.1, w / bays - 0.5), 3.1, o.shopColor || '#5b3a26', true);
+        for (const [px, py] of [[-0.32, 0.8], [0.32, 0.8], [-0.32, 1.9], [0.32, 1.9]]) B.add('wood', box(0.44, 0.8, 0.04), F(M(x + px, py, 0.07)));
+        B.add('glass', box(1.2, 0.5, 0.03), F(M(x, 3.0, 0.03)));
+        for (const k of [-0.3, 0, 0.3]) B.add('iron', box(0.03, 0.5, 0.04), F(M(x + k, 3.0, 0.05)));
+        B.add(frame, box(1.8, 0.3, 0.2, 1), F(M(x, 3.4, 0.08)));
+        for (const s of [-1, 1]) B.add(frame, box(0.25, 3.25, 0.18, 1), F(M(x + s * 0.78, 1.62, 0.07)));
+        B.add('paint', colored(box(0.22, 0.16, 0.02), '#2f5fb3'), F(M(x + 1.05, 2.3, 0.02)));
+        B.add('gold', new THREE.SphereGeometry(0.04, 6, 4), F(M(x + 0.45, 1.3, 0.12)));
+        B.add('ashlar', box(1.7, 0.16, 0.5), F(M(x, 0.08, 0.25)));
+      } else {
+        const sw = Math.min(3.1, w / bays - 0.5);
+        shopFront(B, MM(T, M(x, 0, 0)), sw, 3.1, o.shopColor || '#5b3a26', true);
+        if (rnd() < 0.45) { // toldo de rayas
+          const tc = pick2(['#b3202a', '#2f5fb3', '#3e6b48', '#d9a03a'], rnd);
+          for (let k = 0; k < 6; k++) B.add('paint', colored(box(sw / 6, 0.04, 1.2), k % 2 ? '#f4efe4' : tc), F(M(x - sw / 2 + (k + 0.5) * sw / 6, 3.45, 0.55, 0, 0.35)));
+          B.add('paint', colored(box(sw, 0.22, 0.03), tc), F(M(x, 3.12, 1.12)));
+        }
+      }
     }
   }
   const cols = Math.max(1, Math.round(w / 2.7));
+  // pilastras de esquina, zócalo y bajante
+  for (const s of [-1, 1]) B.add(frame, box(0.4, h - gh, 0.12, 1.5), F(M(s * (w / 2 - 0.2), gh + (h - gh) / 2, 0.05)));
+  B.add('stoneDark', box(w + 0.02, 0.45, 0.12, 1.5), F(M(0, 0.22, 0.04)));
+  if (!o.arcade) B.add('zinc', new THREE.CylinderGeometry(0.06, 0.06, h, 6), F(M(w / 2 - 0.55, h / 2, 0.14)));
+  if (!o.arcade && rnd() < 0.35) { // farol de pared
+    const lx = -w / 2 + 0.9;
+    B.add('iron', box(0.05, 0.05, 0.5), F(M(lx, 3.7, 0.25))); B.add('lamp', box(0.24, 0.34, 0.24), F(M(lx, 3.5, 0.5)));
+    B.add('iron', new THREE.ConeGeometry(0.2, 0.16, 4).rotateY(Math.PI / 4), F(M(lx, 3.74, 0.5)));
+  }
+  const fl = rnd() < 0.55 ? pick2(['#e0304f', '#ff6f91', '#c93a7a', '#f25c2c', '#ffffff'], rnd) : null;
   for (let f = 0; f < floors; f++) {
     const y0 = gh + f * fh, top = f === floors - 1 && o.attic;
     if (f > 0) B.add(frame, box(w + 0.02, 0.15, 0.12, 1), F(M(0, y0 - 0.02, 0.05)));
@@ -194,18 +236,26 @@ export function cityBlock(B, T, o, rnd = Math.random) {
     const long = f === 0 && o.longBalcony;
     for (let c = 0; c < cols; c++) {
       const x = -w / 2 + (c + 0.5) * w / cols;
-      winDoor(B, T, x, y0 + 0.12 + (top ? 0.5 : 0), ww, wh, o.shutter && !top ? o.shutter : null, frame);
-      if (!top && !long) balcony(B, T, x, y0 + 0.06, ww + 0.6, f === 0 ? 0.72 : 0.5);
+      winDoor(B, T, x, y0 + 0.12 + (top ? 0.5 : 0), ww, wh, o.shutter && !top ? o.shutter : null, frame, f === 0);
+      if (!top && !long) balcony(B, T, x, y0 + 0.06, ww + 0.6, f === 0 ? 0.72 : 0.5, fl && rnd() < 0.6 ? fl : null);
     }
-    if (long) balcony(B, T, 0, y0 + 0.06, w - 0.9, 0.85);
+    if (long) balcony(B, T, 0, y0 + 0.06, w - 0.9, 0.85, fl);
   }
   // alero de madera y tejado a dos aguas con la cumbrera paralela a la fachada
   B.add(o.eaves || 'woodDark', box(w + 0.02, 0.24, 1.0), F(M(0, h + 0.06, 0.32)));
+  B.add(frame, box(w + 0.02, 0.2, 0.3, 1), F(M(0, h - 0.34, 0.12)));
+  for (let i = 0; i < Math.floor(w / 0.35); i++) B.add(frame, box(0.14, 0.14, 0.14), F(M(-w / 2 + 0.2 + i * 0.35, h - 0.52, 0.08)));
   for (let i = 0; i < Math.floor(w / 0.6); i++) B.add(o.eaves || 'woodDark', box(0.1, 0.12, 0.8), F(M(-w / 2 + 0.3 + i * 0.6, h - 0.1, 0.35)));
   const rise = d * 0.17, a = Math.atan2(rise, d / 2), L1 = Math.hypot(d / 2, rise) + 0.9, L2 = Math.hypot(d / 2, rise) + 0.2;
   B.add('tile', box(w + 0.04, 0.18, L1, 2), F(M(0, h + 0.3 + rise - L1 / 2 * Math.sin(a), -d / 2 + L1 / 2 * Math.cos(a), 0, a)));
   B.add('tile', box(w + 0.04, 0.18, L2, 2), F(M(0, h + 0.3 + rise - L2 / 2 * Math.sin(a), -d / 2 - L2 / 2 * Math.cos(a), 0, -a)));
   for (const s of [-1, 1]) B.add(wall, gable(d, rise + 0.2, 0.3), F(M(s * (w / 2 - 0.15), h + 0.1, -d / 2, Math.PI / 2)));
-  if (rnd() < 0.5) { const cx = (rnd() - 0.5) * w * 0.5; B.add('brick', box(0.7, 1.6, 0.7, 1.2), F(M(cx, h + rise * 0.7 + 0.6, -d * 0.6))); }
+  if (rnd() < 0.6) { const cx = (rnd() - 0.5) * w * 0.5; B.add('brick', box(0.7, 1.6, 0.7, 1.2), F(M(cx, h + rise * 0.7 + 0.6, -d * 0.6))); B.add('ashlar', box(0.9, 0.12, 0.9), F(M(cx, h + rise * 0.7 + 1.45, -d * 0.6))); }
+  if (w > 7.5 && rnd() < 0.5) { // buhardilla en el faldón delantero
+    const dx = (rnd() - 0.5) * (w - 4), dz = -d * 0.22, dy = h + 0.3 + rise * 0.45;
+    B.add(wall, box(1.3, 1.3, 1.5, 2), F(M(dx, dy + 0.45, dz)));
+    winDoor(B, MM(T, M(0, 0, dz + 0.75)), dx, dy, 0.7, 0.8, null, frame);
+    for (const s of [-1, 1]) B.add('tile', box(0.95, 0.1, 1.9), F(M(dx + s * 0.4, dy + 1.35, dz + 0.1, 0, 0, -s * 0.55)));
+  }
   return { gh, ad };
 }

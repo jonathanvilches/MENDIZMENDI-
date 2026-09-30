@@ -29,6 +29,10 @@ export function makeMaterials() {
     glass: new THREE.MeshLambertMaterial({ color: '#2a3c4b', emissive: new THREE.Color('#ffb85a'), emissiveIntensity: 0, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }),
     water: std({ color: '#3b7f9c', roughness: 0.05, metalness: 0.3, envMapIntensity: 1.2 }),
     paint: std({ vertexColors: true, roughness: 0.7 }),
+    // asientos de estadio: algo de brillo propio para que no se vean negros bajo la cubierta
+    // superficies a la sombra de grandes cubiertas (sin luz directa se verían negras)
+    lit: std({ vertexColors: true, roughness: 0.8, emissive: new THREE.Color('#34383c') }),
+    seat: std({ vertexColors: true, roughness: 0.55, emissive: new THREE.Color('#3a0a0e') }),
     iron: std({ color: '#2a2a2e', roughness: 0.5, metalness: 0.6 }),
     dark: std({ color: '#141216', roughness: 1 }),
     leaf: std({ vertexColors: true, roughness: 0.85 }),
