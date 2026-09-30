@@ -332,7 +332,8 @@ export class Game {
     const f = VILLAGE.fountain; list.push({ kind: 'fountain', x: f.x, z: f.z, r: 3.8, label: 'Beber agua' });
     for (const p of VILLAGE.palaces) if (!this.state.palaces.includes(p.id)) list.push({ kind: 'palace', p, x: p.door.x, z: p.door.z, r: 3.5, label: 'Mirar el escudo' });
     for (const it of this.items) list.push({ kind: 'item', it, x: it.x, z: it.z, r: it.r, label: it.label });
-    if (this.q('pelota').state === 'done' || this.q('pelota').step >= 1) list.push({ kind: 'fronton', x: PLACES.fronton.x + 2, z: PLACES.fronton.z, r: 3, label: 'Jugar a pelota' });
+    // el frontón está abierto siempre: con la misión de Kike activa es el peloteo; si no, un partido libre
+    list.push({ kind: 'fronton', x: PLACES.fronton.x + 2, z: PLACES.fronton.z, r: 3, label: 'Jugar a pelota' });
     const mi = LANDMARKS.mirador; list.push({ kind: 'mirador', x: mi.x + 1.8, z: mi.z - 1.3, r: 2, label: 'Mirar por el catalejo' });
     return list;
   }

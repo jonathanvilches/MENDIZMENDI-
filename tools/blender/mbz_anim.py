@@ -134,6 +134,36 @@ def clips(H=1.62):
         spine(p, yaw=0.18 * math.sin(ph), head=Rz(0.55 * math.sin(ph)) @ Rx(0.08 * math.cos(ph)))
         return p
     out.append(('Look_Around', 90, look, True, F('Neutral', 'Surprised')))
+    # pelota a mano: espera de pelotari (rodillas flexionadas, peso delante, mano derecha abierta y atrás)
+    def ready_pose(p, ph=0.0, k=1.0):
+        spine(p, lean=0.36 * k, yaw=-0.18 * k, head=Rx(-0.28 * k) @ Rz(0.14 * k))
+        p['_hips_loc'] = Vector((0, 0, (-0.1 - 0.01 * math.sin(ph)) * k))
+        arms(p, -0.35 * k, 0.45 * k, 1.0 * k, 0.4 * k, 0.3 * k, 0.5 * k)
+        legs(p, -0.6 * k, -0.35 * k, 1.1 * k, 0.8 * k)
+        return p
+    def ready(t, T):
+        return ready_pose({}, TAU * t / T)
+    out.append(('Ready', 30, ready, True, F('Neutral', 'Normal', 'Open')))
+    # golpe con la palma, de lado: carga atrás (0–0,08 s), contacto hacia 0,12 s a la altura de la cadera,
+    # el brazo sigue cruzando por delante a la altura del pecho y vuelve a la espera
+    def hit(t, T):
+        k = t / T
+        if k < 0.16: a = -(k / 0.16)                                   # carga: 0 → −1
+        elif k < 0.36: a = -1 + 2.2 * ((k - 0.16) / 0.2)                 # golpe: −1 → 1,2
+        else: a = 1.2 * (1 - C.smooth01((k - 0.36) / 0.64))             # acompaña y vuelve: 1,2 → 0
+        back, fwd = max(0.0, -a), max(0.0, a)
+        p = ready_pose({}, 0.0, 1.0 - 0.25 * min(1.0, fwd))
+        yaw = -0.18 - 0.35 * back + 0.6 * fwd                            # el tronco carga y gira con el brazo
+        spine(p, lean=0.34, yaw=yaw, head=Rz(-yaw * 0.75) @ Rx(-0.26))
+        # brazo derecho: atrás en la carga; en el golpe barre por delante y cruza (sin subir por encima del hombro)
+        p['RightArm'] = Rx(0.45 + 0.75 * back - 1.25 * fwd) @ Rz(0.85 * fwd) @ Ry(-(DOWN - 0.5 - 0.15 * back))
+        p['RightForeArm'] = Rx(-0.2 - 0.25 * back + 0.1 * fwd) @ p['RightArm']; p['RightHand'] = p['RightForeArm']
+        p['LeftArm'] = Rx(-0.35 + 0.55 * fwd) @ Ry(DOWN - 0.5); p['LeftForeArm'] = Rx(-0.9) @ p['LeftArm']; p['LeftHand'] = p['LeftForeArm']
+        # paso corto: la pierna izquierda avanza al golpear
+        s = min(1.0, fwd)
+        legs(p, -0.6 - 0.2 * s, -0.35 + 0.2 * s, 1.1 - 0.25 * s, 0.8)
+        return p
+    out.append(('Hit', 16, hit, False, F('SmileOpen', 'Angry', 'Open')))
     return out
 
 # poses de prueba antes de exportar

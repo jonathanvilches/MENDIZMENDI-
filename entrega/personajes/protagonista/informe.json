@@ -1,6 +1,6 @@
 {
  "archivo": "char_protagonista.glb",
- "peso_MB": 1.68,
+ "peso_MB": 1.69,
  "triangulos_visibles": 26016,
  "triangulos_por_parte": {
   "Head": 2848,
@@ -75,6 +75,14 @@
   "Look_Around": {
    "fotogramas": 90,
    "segundos": 3.0
+  },
+  "Ready": {
+   "fotogramas": 30,
+   "segundos": 1.0
+  },
+  "Hit": {
+   "fotogramas": 16,
+   "segundos": 0.53
   }
  },
  "expresiones": {
@@ -131,6 +139,16 @@
   "Look_Around": {
    "mouth": "Neutral",
    "brows": "Surprised",
+   "hands": "Open"
+  },
+  "Ready": {
+   "mouth": "Neutral",
+   "brows": "Normal",
+   "hands": "Open"
+  },
+  "Hit": {
+   "mouth": "SmileOpen",
+   "brows": "Angry",
    "hands": "Open"
   }
  },
@@ -358,11 +376,13 @@
   "mira_a_-Y": true,
   "acciones": [
    "Celebrate_RIG_Protagonista",
+   "Hit_RIG_Protagonista",
    "Idle_RIG_Protagonista",
    "Jump_Loop_RIG_Protagonista",
    "Jump_Start_RIG_Protagonista",
    "Land_RIG_Protagonista",
    "Look_Around_RIG_Protagonista",
+   "Ready_RIG_Protagonista",
    "Run_RIG_Protagonista",
    "Scared_RIG_Protagonista",
    "Talk_RIG_Protagonista",
@@ -397,7 +417,7 @@
  },
  "lod": {
   "archivo": "char_protagonista_lod.glb",
-  "peso_MB": 0.87,
+  "peso_MB": 0.88,
   "triangulos_en_archivo": 11664,
   "validador": {
    "errores": 0,

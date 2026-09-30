@@ -6,17 +6,17 @@ Personaje 100 % original, modelado desde cero con bpy y bmesh (Blender 4.2). Se 
 
 | | |
 |---|---|
-| GLB principal | `char_protagonista.glb` · **1,68 MB** (límite 2 MB) |
-| GLB LOD (nivel cage) | `char_protagonista_lod.glb` · 0,87 MB · 11.664 triángulos en el archivo |
+| GLB principal | `char_protagonista.glb` · **1,69 MB** (límite 2 MB) |
+| GLB LOD (nivel cage) | `char_protagonista_lod.glb` · 0,88 MB · 11.664 triángulos en el archivo |
 | Triángulos visibles (variantes por defecto) | 26.016 |
 | Triángulos en el archivo (con todas las variantes) | 34.928 |
 | Caras de la cage | 1.512 |
 | Huesos | 42 deformadores de 46 (máx. 60) |
 | Materiales | 4: `MAT_Eyes`, `MAT_Glint`, `MAT_Protagonista_Body`, `MAT_Protagonista_Face` |
 | Texturas | Body 1024 px, Face 512 px, T_Eyes 256 px (PNG 8 bits sRGB) |
-| Clips | 11 |
+| Clips | 13 |
 | Validador glTF | 0 errores, 0 avisos, 4 informativos |
-| Reimportación en Blender limpio | altura 1,678 m, pies en z = -0,002, mira a −Y: sí, 11 acciones, 21 variantes |
+| Reimportación en Blender limpio | altura 1,678 m, pies en z = -0,002, mira a −Y: sí, 13 acciones, 21 variantes |
 
 ## Triángulos por pieza
 
@@ -51,6 +51,8 @@ Personaje 100 % original, modelado desde cero con bpy y bmesh (Blender 4.2). Se 
 | Celebrate | 54 | 1,80 | SmileOpen | Happy | Fist |
 | Scared | 48 | 1,60 | Scared | Worried | Open |
 | Look_Around | 90 | 3,00 | Neutral | Surprised | Open |
+| Ready | 30 | 1,00 | Neutral | Normal | Open |
+| Hit | 16 | 0,53 | SmileOpen | Angry | Open |
 
 Las expresiones de cada clip están también en `char_protagonista.faces.json` y en los extras de cada Action.
 

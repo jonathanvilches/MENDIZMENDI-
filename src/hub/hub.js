@@ -450,7 +450,7 @@ export class Hub {
   // ---------- Primera vez: nombre y personaje ----------
   onboarding() {
     const p = profile();
-    let pick = p.avatar || 'leire';
+    let pick = p.avatar || 'benat';
     const o = el(`<div class="onb"><div class="onb-in">
       <header class="onb-head"><div class="logo">MENDIMENDIZ</div><p class="tag">Navarra, pueblo a pueblo</p>
         <div class="langsel" role="group" aria-label="Idioma"><button data-lang="eu" class="${getLang() === 'eu' ? 'on' : ''}">Euskara</button><button data-lang="es" class="${getLang() === 'es' ? 'on' : ''}">Castellano</button></div></header>
