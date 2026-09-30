@@ -76,7 +76,7 @@ export class PelotaMatch {
   }
   confirmExit() {
     const t = this.txt; const wasPaused = this.paused; this.paused = true;
-    const p = this.hud.panel(`<h2>${t.exit}</h2><p>${t.sure}</p><div class="pel-row"><button class="pel-go alt" data-pel-no>${t.no}</button><button class="pel-go" data-pel-yes>${t.yes}</button></div>`);
+    const p = this.hud.panel(`<h2>${t.exit}</h2><p>${t.sure}</p><div class="pel-row"><button class="pel-go alt" data-pel-yes>${t.yes}</button><button class="pel-go" data-pel-no>${t.no}</button></div>`);
     p.addEventListener('click', (e) => {
       const b = e.target.closest('button'); if (!b) return;
       if (b.hasAttribute('data-pel-yes')) this.exit(true);
