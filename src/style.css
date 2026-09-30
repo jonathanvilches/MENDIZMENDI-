@@ -105,7 +105,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; }
 .rbtns { display: flex; gap: 8px; }
 .round { position: relative; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: rgba(14, 10, 24, .66); border: 2px solid rgba(255, 255, 255, .82); box-shadow: 0 3px 12px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .15); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); transition: transform .12s, background .12s, border-color .12s; }
 .round:hover { border-color: #FFD700; background: rgba(12, 9, 20, .65); } .round:active { transform: scale(.92); }
-.round svg { width: 21px; height: 21px; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .6)); }
+.round svg { width: 26px; height: 26px; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .6)); }
 .round.badge::after { content: ''; position: absolute; width: 10px; height: 10px; border-radius: 50%; background: #FF69B4; top: -1px; right: -1px; }
 #mini { width: 112px; height: 112px; border-radius: 50%; overflow: hidden; position: relative; background: #5b8a3c; cursor: pointer; border: 2.5px solid #fff; box-shadow: 0 0 0 4px rgba(12, 9, 20, .45), 0 6px 18px rgba(0, 0, 0, .35); }
 #mini canvas { width: 100%; height: 100%; display: block; }
@@ -135,12 +135,12 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; }
 #cRun { grid-column: 1; grid-row: 2; }
 #cAct { grid-column: 2; grid-row: 2; }
 .cbtn { position: relative; width: 62px; height: 62px; border-radius: 50%; padding: 0; background: radial-gradient(circle at 50% 30%, rgba(80, 40, 150, .82), rgba(28, 11, 58, .88)); border: 2.5px solid #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; color: #fff; box-shadow: 0 0 0 3px rgba(138, 43, 226, .45), 0 5px 0 rgba(10, 4, 24, .55), 0 8px 16px rgba(0, 0, 0, .3); transition: transform .1s, background .15s, box-shadow .15s, opacity .2s; -webkit-tap-highlight-color: transparent; }
-.cbtn svg { width: 36px; height: 36px; flex: none; overflow: visible; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .35)); }
+.cbtn svg { width: 40px; height: 40px; flex: none; overflow: visible; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .35)); }
 .cbtn b { font: 900 9px/1 Nunito, sans-serif; letter-spacing: .04em; text-transform: uppercase; color: #fff; text-shadow: 0 1px 0 #1f1a26; white-space: nowrap; }
 .cbtn:active { transform: translateY(3px) scale(.95); box-shadow: 0 0 0 3px rgba(138, 43, 226, .45), 0 2px 0 rgba(10, 4, 24, .55), 0 4px 10px rgba(0, 0, 0, .3); }
 .cbtn.on { background: radial-gradient(circle at 50% 30%, #ff9d8a, #FF6347 70%); box-shadow: 0 0 0 3px rgba(255, 215, 0, .8), 0 5px 0 rgba(120, 30, 10, .6), 0 0 18px rgba(255, 99, 71, .6); }
 .cbtn.big { width: 80px; height: 80px; background: radial-gradient(circle at 50% 30%, #fff38f, #FFD700 60%, #f0b000); box-shadow: 0 0 0 4px rgba(255, 215, 0, .35), 0 5px 0 #a86f00, 0 10px 22px rgba(0, 0, 0, .35); animation: actPulse 1.6s ease-in-out infinite; }
-.cbtn.big svg { width: 44px; height: 44px; }
+.cbtn.big svg { width: 50px; height: 50px; }
 .cbtn.big b { font-size: 10px; color: #3a2200; text-shadow: 0 1px 0 rgba(255, 255, 255, .6); }
 .cbtn.big.off { background: radial-gradient(circle at 50% 30%, rgba(80, 40, 150, .7), rgba(28, 11, 58, .8)); box-shadow: 0 0 0 3px rgba(138, 43, 226, .35), 0 5px 0 rgba(10, 4, 24, .5), 0 8px 16px rgba(0, 0, 0, .25); animation: none; }
 .cbtn.big.off svg { opacity: .55; }
@@ -196,8 +196,8 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; }
   #quest b.qt { font-size: 15px; } #quest .ic { flex-basis: 36px; height: 36px; } #quest .ic svg, #quest .ic img { width: 26px; height: 26px; }
   #ribbons { padding-left: 46px; }
   #mini { width: 92px; height: 92px; }
-  .round { width: 38px; height: 38px; }
-  .cbtn { width: 56px; height: 56px; } .cbtn svg { width: 32px; height: 32px; } .cbtn.big { width: 70px; height: 70px; } .cbtn.big svg { width: 38px; height: 38px; }
+  .round { width: 38px; height: 38px; } .round svg { width: 23px; height: 23px; }
+  .cbtn { width: 56px; height: 56px; } .cbtn svg { width: 36px; height: 36px; } .cbtn.big { width: 70px; height: 70px; } .cbtn.big svg { width: 44px; height: 44px; }
   #stickHint { width: 88px; height: 88px; bottom: calc(var(--sb) + 24px); }
   #toast { top: auto; bottom: calc(var(--sb) + 12px); left: calc(50% - 22px); font-size: 14px; max-width: calc(100vw - var(--sl) - var(--sr) - 450px); } #toast svg, #toast img { width: 26px; height: 26px; }
   #dialog { padding: 10px 14px; } #dialog p { font-size: 15px; min-height: 40px; }
@@ -236,7 +236,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; }
 .card .f small { color: #9a6a3a; font-size: 11px; font-weight: 900; text-transform: uppercase; }
 .card .b { background: #fff; transform: rotateY(180deg); font-size: 13px; line-height: 1.4; overflow: auto; color: #3b2a1e; font-weight: 700; }
 .card.locked .f { background: #efe6d4; filter: grayscale(1); opacity: .6; }
-.card.locked .f .e { filter: blur(3px) brightness(.4); }
+.card.locked .f .e { filter: grayscale(1); opacity: .75; }   /* el candado se ve claro: la carta está por descubrir */
 .sectionT { font-weight: 900; color: #6d3b5c; margin: 16px 0 8px; font-size: 16px; }
 .sectionT:first-child { margin-top: 0; }
 .stats { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
@@ -319,7 +319,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; }
   .qitem b { font-size: 16px; }
 }
 @media (max-width: 380px) {
-  .cbtn { width: 56px; height: 56px; } .cbtn svg { width: 30px; height: 30px; } .cbtn.big { width: 68px; height: 68px; } .cbtn.big svg { width: 36px; height: 36px; } #controls { gap: 10px; right: calc(var(--sr, 0px) + 12px); }
+  .cbtn { width: 56px; height: 56px; } .cbtn svg { width: 35px; height: 35px; } .cbtn.big { width: 68px; height: 68px; } .cbtn.big svg { width: 43px; height: 43px; } #controls { gap: 10px; right: calc(var(--sr, 0px) + 12px); }
   #stickHint { width: 92px; height: 92px; left: calc(var(--sl, 0px) + 18px); }
   .round { width: 40px; height: 40px; }
   #quest b.qt { font-size: 15.5px; }
@@ -370,4 +370,16 @@ img.ico3d.pend { opacity: 0; }
 img[data-pk] { opacity: 0; }
 /* durante un diálogo los avisos suben arriba, bajo el objetivo, para no tapar la conversación */
 .talking #toast { top: calc(var(--st) + 124px) !important; bottom: auto !important; left: 50% !important; }
-@media (max-width: 600px) and (orientation: portrait) { .talking #toast { top: calc(var(--st) + 172px) !important; } }
+.talking #prompt { display: none; }
+/* horizontal bajo: el diálogo ocupa casi todo el alto; el aviso sube al hueco entre el objetivo y los botones */
+@media (max-height: 520px) and (orientation: landscape) {
+  .talking #toast { top: calc(var(--st) + 60px) !important; max-width: calc(100vw - var(--sl) - var(--sr) - 440px); font-size: 13px; padding: 6px 12px 6px 8px; }
+  .talking #toast svg, .talking #toast img { width: 22px; height: 22px; }
+}   /* durante un diálogo no se ofrece otra acción encima de las respuestas */
+/* en vertical el objetivo va bajo la brújula: el aviso baja más para no tapar los rombos del pueblo */
+@media (orientation: portrait) { .talking #toast { top: calc(var(--st) + 172px) !important; } }
+/* en vertical estrecho el aviso de arriba deja libre la columna de botones de la derecha */
+@media (max-width: 600px) and (orientation: portrait) {
+  .talking #toast { top: calc(var(--st) + 172px) !important; left: calc(var(--sl) + 12px) !important; right: calc(var(--sr) + 66px); width: auto; max-width: none; transform: translate(0, -16px); }
+  .talking #toast.on { transform: translate(0, 0); }
+}
