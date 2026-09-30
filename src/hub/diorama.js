@@ -211,7 +211,7 @@ function trees(hf, tone, rnd, curve) {
   for (let i = 0; i < 260; i++) { const a = -Math.PI / 2 + (rnd() - 0.5) * 3.4, r = 80 + rnd() * 230, x = Math.cos(a) * r, z = Math.sin(a) * r - 20; if (fbm(x / 60, z / 60, 2) < -0.05) continue; place(x, z, 1 + rnd() * 0.6, kinds[(i >> 1) % kinds.length]); }
   // un par de árboles cerca del personaje, a los lados
   place(-7.5, -2.5, 0.75, kinds[0]); place(8.5, -6, 0.9, kinds[1]);
-  const g = new THREE.Group(), m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85 });
+  const g = new THREE.Group(), m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85, map: TEX.foliage || null, alphaTest: TEX.foliage ? 0.45 : 0, side: THREE.DoubleSide });
   for (const list of mats.values()) { const mesh = new THREE.Mesh(mergeGeometries(list), m); mesh.castShadow = true; mesh.receiveShadow = true; g.add(mesh); }
   return g;
 }
