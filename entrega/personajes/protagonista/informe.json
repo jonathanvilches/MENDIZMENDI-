@@ -1,10 +1,10 @@
 {
  "archivo": "char_protagonista.glb",
- "peso_MB": 1.47,
- "triangulos_visibles": 23236,
+ "peso_MB": 1.46,
+ "triangulos_visibles": 23152,
  "triangulos_por_parte": {
-  "Head": 1648,
-  "Hair": 2976,
+  "Head": 1744,
+  "Hair": 2796,
   "Body": 1504,
   "Shirt": 5132,
   "Vest": 2912,
@@ -16,8 +16,8 @@
   "Cara (ojos, iris, brillos, párpado, cejas, boca)": 552,
   "Manos (abiertas)": 1408
  },
- "triangulos_con_todas_las_variantes": 27446,
- "cage_caras": 1378,
+ "triangulos_con_todas_las_variantes": 27362,
+ "cage_caras": 1916,
  "huesos_deformadores": 39,
  "huesos_total": 43,
  "materiales": [
@@ -346,7 +346,7 @@
   ]
  },
  "reimportacion": {
-  "altura_m": 1.633,
+  "altura_m": 1.623,
   "pies_z": -0.002,
   "mira_a_-Y": true,
   "acciones": [
@@ -392,8 +392,8 @@
  },
  "lod": {
   "archivo": "char_protagonista_lod.glb",
-  "peso_MB": 0.75,
-  "triangulos_en_archivo": 7910,
+  "peso_MB": 0.81,
+  "triangulos_en_archivo": 10002,
   "validador": {
    "errores": 0,
    "avisos": 0,
@@ -406,5 +406,5 @@
    ]
   }
  },
- "triangulos_en_archivo": 27446
+ "triangulos_en_archivo": 27362
 }

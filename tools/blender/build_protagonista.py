@@ -34,13 +34,14 @@ D = dict(
     wrist=(0.56, 0.68), hand_end=(0.64, 0.61),
     palm=(0.1, 0.1, 0.044), fingers=[0.056, 0.062, 0.057, 0.048], finger_r=0.0165,
     boot=dict(len=0.28, w=0.126, h=0.1, heel_y=0.056, shaft=0.19),
-    colors=dict(skin=(241, 196, 160), hair=(58, 36, 24), brow=(45, 28, 20), lips=(214, 128, 118), blush=(236, 150, 140),
+    colors=dict(skin=(241, 196, 160), hair=(96, 60, 36), brow=(45, 28, 20), lips=(214, 128, 118), blush=(236, 150, 140),
                 shirt=(242, 236, 224), vest=(106, 40, 84), trim=(80, 26, 62), button=(214, 172, 74), scarf=(200, 34, 42),
                 shorts=(92, 78, 64), socks=(234, 226, 206), boots=(122, 76, 42), sole=(58, 40, 30), lace=(236, 222, 190),
                 iris=(98, 60, 30), iris_dark=(56, 32, 16)),
     rough=dict(body=0.72, face=0.5, eyes=0.25),
-    # pelo de juguete: una sola pieza (casco con flequillo), sin mechones sueltos
-    tufts=[],
+    # pelo de juguete: una sola pieza con raya a la izquierda, flequillo barrido con un mechón en punta, tupé,
+    # mechones moldeados y nuca en picos; sin mechones sueltos
+    hair_style='side', tufts=[],
 )
 # brazo en pose A (huesos de la tabla): hombro (0,24; 0,94) → codo (0,42; 0,80) → muñeca (0,56; 0,68)
 def _arm_path():

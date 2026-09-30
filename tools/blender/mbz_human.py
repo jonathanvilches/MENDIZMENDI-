@@ -54,6 +54,8 @@ def lonlat_of(d, p):
 def hairline(lon, d=None):
     """Latitud (grados) donde nace el pelo, según el lado: frente, sienes, encima de la oreja y nuca."""
     a = abs(lon)
+    if d is not None and d.get('hair_style') == 'side':
+        return hairline_side(lon)
     if d is not None and d.get('head_style') == 'toy':
         # casco de pelo de juguete: flequillo en tres puntas suaves, patillas hasta la altura de los ojos y nuca baja
         if a < 42: return 29 - 5 * (0.5 + 0.5 * math.cos(rad(lon) * 8.5))
@@ -64,6 +66,36 @@ def hairline(lon, d=None):
     if a < 60: return 36 - (a - 30) / 30 * 18
     if a < 100: return 18 - (a - 60) / 40 * 4
     return 14 - C.smooth01((a - 100) / 80) * 52
+
+# Peinado de juguete con raya a un lado (lon > 0 = izquierda del personaje): flequillo que baja en diagonal hacia el
+# otro lado con un mechón en punta sobre la ceja, patillas cortas y nuca rematada en tres picos.
+PART_LON = 26
+def hairline_side(lon):
+    a = abs(lon); g = lambda x, m, w: math.exp(-((x - m) / w) ** 2)
+    if a <= 45:
+        s = C.smooth01((45 - lon) / 90)                       # 0 en el lado de la raya, 1 en el otro
+        return 33 - 10 * s - 8.5 * g(lon, -25, 10) - 3.5 * g(lon, -6, 6)
+    front_end = 33 - 10 * C.smooth01((45 - math.copysign(45, lon)) / 90)
+    if a < 80: return front_end + (4 - front_end) * C.smooth01((a - 45) / 35)
+    if a < 108: return 4
+    back = 4 - 46 * C.smooth01((a - 108) / 72)
+    return back - 8 * max(0.0, math.cos(rad(a - 180) * 6)) ** 2 * C.smooth01((a - 135) / 20)
+
+def hair_shape_side(lo, la):
+    """Grosor del casco en cada punto: volumen arriba, tupé que barre hacia el otro lado, raya hundida y mechones
+    moldeados (surcos en la dirección del peinado)."""
+    g = lambda x, m, w: math.exp(-((x - m) / w) ** 2)
+    base = 0.013 + 0.024 * C.smooth01((la - 5) / 60)
+    swoop = 0.036 * C.smooth01((la - 16) / 24) * (1 - C.smooth01((la - 64) / 14)) * C.smooth01((PART_LON + 6 - lo) / 50) * (1 - C.smooth01((abs(lo) - 62) / 18))
+    part = -0.014 * g(lo, PART_LON, 5) * C.smooth01((la - 30) / 10)
+    if lo < PART_LON:     # el flequillo baja desde la raya hacia el otro lado
+        u = (-(lo - PART_LON) * 38 + (la - 60) * 56) / 67.7
+    elif abs(lo) < 110:   # del lado de la raya baja hacia la sien
+        u = ((lo - PART_LON) * 40 + (la - 60) * 40) / 56.6
+    else:                 # atrás caen de la coronilla a la nuca
+        u = lo * 0.8
+    groove = -0.011 * (0.5 - 0.5 * math.cos(math.tau * u / 26)) ** 1.5 * C.smooth01((la + 20) / 30)
+    return base + swoop + part + groove
 
 def reshape_ring(d, loop, cx, cz, a, b, depth, lift_fn=None):
     """Lleva un bucle de vértices a una elipse (a, b) proyectada en la cara, a una profundidad dada."""
@@ -193,7 +225,14 @@ def split_hair(d, head_bm):
     bmesh.ops.delete(hb, geom=[f for f in hb.faces if not in_hair(f, 0)], context='FACES')
     C.clean_bm(hb)
     # volumen: algo más en la coronilla y la nuca; flequillo en ondas sobre la frente
+    if d.get('hair_style') == 'side':
+        # más resolución para el mechón en punta y los surcos: una subdivisión, y cada vértice vuelve a la
+        # superficie de la cabeza (queda tan liso como con Subdivision, sin su coste)
+        bmesh.ops.subdivide_edges(hb, edges=hb.edges[:], cuts=1, use_grid_fill=True)
+        for v in hb.verts:
+            lo, la = lonlat_of(d, v.co); v.co = sph(d, lo, la)
     boundary = {v for e in hb.edges if e.is_boundary for v in e.verts}
+    off_side = {}
     if toy:
         # borde limpio: los vértices del borde van justo a la línea del pelo (sin escalones de la rejilla)
         for v in boundary:
@@ -203,6 +242,9 @@ def split_hair(d, head_bm):
     for v in hb.verts:
         lo, la = lonlat_of(d, v.co)
         n = head_normal(d, v.co - V((0, 0, d['head_c'])))
+        if d.get('hair_style') == 'side':
+            off_side[v] = (n, hair_shape_side(lo, la))
+            continue
         if toy:
             # volumen de casco: más arriba, un tupé suave delante y el borde algo separado de la piel
             extra = 0.014 + 0.026 * C.smooth01((la - 5) / 60) + 0.016 * C.smooth01((la - 30) / 30) * (1 - C.smooth01((abs(lo) - 25) / 40))
@@ -213,8 +255,17 @@ def split_hair(d, head_bm):
         if v in boundary and abs(lo) < 45:
             wave = 0.5 + 0.5 * math.cos(rad(lo) * 9)
             v.co += V((0, -0.012, -0.022 * wave))
+    if off_side:
+        # grosor suavizado (dos pasadas con los vecinos): mechones redondeados en lugar de bultos
+        off = {v: o for v, (n, o) in off_side.items()}
+        for _ in range(2):
+            off = {v: 0.5 * o + 0.5 * sum(off[e.other_vert(v)] for e in v.link_edges) / max(1, len(v.link_edges)) for v, o in off.items()}
+        for v, (n, _) in off_side.items(): v.co += n * off[v]
     # cabeza: fuera las caras que quedan bajo el pelo (se deja una fila de margen)
-    bmesh.ops.delete(head_bm, geom=[f for f in head_bm.faces if in_hair(f, 8 if toy else 11)], context='FACES')
+    def under_hair(f, margin):
+        lo, la = lonlat_of(d, f.calc_center_median())
+        return la > max(hairline(lo, d), hairline(-lo, d)) + margin
+    bmesh.ops.delete(head_bm, geom=[f for f in head_bm.faces if under_hair(f, 8 if toy else 11)], context='FACES')
     C.clean_bm(head_bm)
     return hb
 
