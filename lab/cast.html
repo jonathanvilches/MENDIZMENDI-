@@ -1,0 +1,31 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:#2e2350;overflow:hidden}</style></head><body><script type="module">
+// Retrato de un personaje (jugable o vecino) para la comparativa antes/después: ?id=leire&view=body|face|back
+import * as THREE from 'three';
+import { buildMinifig, MinifigAnimator, COSTUMES, lookToMinifig } from '../src/actors/minifig.js';
+export const NPC = {
+  maite: { skin: '#f1c7a5', hair: '#3b2418', bun: true, shirt: '#f4efe6', vest: '#2f5d7c', skirt: '#35507a', pants: '#e9dfcc', scarf: '#d23b3b', shoes: '#5a3a22' },
+  itziar: { skin: '#eec6a8', hair: '#dcd7cf', bun: true, old: true, bent: 0.16, shirt: '#7a9e7e', vest: '#3d3350', skirt: '#3d3350', pants: '#d8cfc0', apron: '#f0ebe0', staff: true, height: 1.58 },
+  kike: { skin: '#e9b98f', hair: '#8c5a2b', messy: true, shirt: '#ffffff', pants: '#ffffff', sash: '#d42f2f', shortSleeves: true, shoes: '#f0f0f0', height: 1.36 },
+  amaia: { skin: '#f3cfb3', hair: '#2a1a12', braids: true, shirt: '#f2b134', skirt: '#3b5d8f', pants: '#f3cfb3', socks: '#ffffff', shoes: '#8a2f2f', height: 1.3 },
+  garazi: { skin: '#f0c19c', hair: '#a0522d', bun: true, shirt: '#b5485d', apron: '#ffffff', skirt: '#4a3b35', pants: '#4a3b35', basket: true },
+  joxemari: { skin: '#dba882', hair: '#d6d0c6', old: true, bent: 0.08, txapela: '#1d1d24', moustache: '#ece8e0', shirt: '#efe9dc', vest: '#2d2b33', pants: '#3a3530', sash: '#7a2a2a', staff: true, shoes: '#3b2a1c' },
+  basajaun: { skin: '#b08462', hair: '#4e3420', hairStyle: 'long', hairLen: 2.6, shaggy: '#5a3e26', beard: '#4e3420', brows: '#2e1c10', fur: '#5a3e26', shirt: '#5a3e26', pants: '#4a3420', staff: true, height: 3.4, build: 1.45, face: 'brave' },
+  lamia: { skin: '#e6e2cf', hair: '#e8c34a', hairStyle: 'long', hairLen: 5.2, duck: true, lashes: true, eyes: '#2f9f8a', shirt: '#6ab0a0', print: 'blouse', bodice: '#3a8a7a', skirt: '#4a9a8a', pants: '#4a9a8a', comb: true, height: 2.55, build: 0.95, face: 'smirk', female: true },
+  inaki: { skin: '#e2b08a', hair: '#4a3020', beard: '#4a3020', shirt: '#4f6b3a', vest: '#3f5530', pants: '#3f4a33', shoes: '#3b2a1c', height: 1.8, build: 1.1 },
+};
+const q = new URLSearchParams(location.search), id = q.get('id') || 'leire', view = q.get('view') || 'body';
+const look = COSTUMES[id] || lookToMinifig(NPC[id] || {});
+const r = new THREE.WebGLRenderer({ antialias: true }); r.setPixelRatio(1); r.setSize(innerWidth, innerHeight); r.toneMapping = THREE.ACESFilmicToneMapping; r.outputColorSpace = THREE.SRGBColorSpace; r.shadowMap.enabled = true; document.body.appendChild(r.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color('#2e2350');
+scene.add(new THREE.HemisphereLight('#fff6e8', '#4a3a5a', 1.3)); const key = new THREE.DirectionalLight('#fff0d8', 2.4); key.position.set(2, 4, 3); key.castShadow = true; key.shadow.bias = -0.0005; key.shadow.normalBias = 0.02; key.shadow.mapSize.set(2048, 2048); scene.add(key);
+const rim = new THREE.DirectionalLight('#bcd8ff', 1.1); rim.position.set(-3, 2, -2); scene.add(rim);
+const floor = new THREE.Mesh(new THREE.CircleGeometry(1.2, 40), new THREE.MeshStandardMaterial({ color: '#4a3d6e' })); floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+const f = buildMinifig(look, { hero: true }), a = new MinifigAnimator(f); a.blinkT = 9; a.lookT = 99;
+for (let s = 0; s < 40; s++) { a.update(0.016, { speed: 0, grounded: true }); a.blinkT = 9; }
+f.traverse(o => { if (o.isMesh) o.castShadow = true; });
+f.rotation.y = view === 'back' ? Math.PI + 0.3 : 0.35; scene.add(f);
+const box = new THREE.Box3().setFromObject(f), H = box.max.y, cam = new THREE.PerspectiveCamera(22, innerWidth / innerHeight, 0.05, 50);
+if (view === 'face') { f.userData.J.head.updateWorldMatrix(true, true); const hp = new THREE.Vector3(); f.userData.J.head.getWorldPosition(hp); const R = f.userData.face?.R || 0.2; const cy = hp.y + R * 0.9; cam.fov = 18; cam.updateProjectionMatrix(); cam.position.set(0.25 * R * 6, cy + R * 0.1, R * 9); cam.lookAt(0, cy, 0); }
+else { cam.position.set(0, H * 0.55, Math.max(H, 1.7) * 3.1); cam.lookAt(0, H * 0.5, 0); }
+r.render(scene, cam); window.__ready = true; window.__H = H;
+</script></body></html>

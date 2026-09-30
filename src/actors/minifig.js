@@ -239,38 +239,38 @@ export function buildMinifig(look, opts = {}) {
   const headS = (L.bigHead ? 1.7 : 1) * (child ? 1.1 : 1.0);
   const root = new THREE.Group();
   const body = new THREE.Group(); root.add(body);
-  const hipY = 0.47 * k;
+  const hipY = 0.38 * k;
   const hips = new THREE.Group(); hips.position.y = hipY; body.add(hips);
   const J = { body, hips };
   const skin = L.skin, sleeve = L.sleeves || (L.print === 'sheet' ? '#f2eee6' : L.shirt);
 
   // --- piernas (muslo, rodilla, pantorrilla, zapato grande) ---
-  const legX = 0.1 * B * k, thigh = 0.19 * k, shin = 0.18 * k;
+  const legX = 0.118 * B * k, thigh = 0.15 * k, shin = 0.13 * k;
   for (const s of [-1, 1]) {
     const leg = new THREE.Group(); leg.position.set(s * legX, 0, 0); hips.add(leg);
     const P = new Part();
-    P.add(TCAP(0.09 * k * B, 0.066 * k * B, thigh * 0.74), L.pants, TX.cloth, mtx(0, -thigh / 2, 0));
+    P.add(TCAP(0.115 * k * B, 0.1 * k * B, thigh * 0.6), L.pants, TX.cloth, mtx(0, -thigh / 2, 0));
     if (L.shorts) P.add(CAP(0.066 * k, thigh * 0.3), skin, TX.skin, mtx(0, -thigh * 0.85, 0));
     P.build(leg);
     const knee = new THREE.Group(); knee.position.y = -thigh; leg.add(knee);
     const Q = new Part();
     const shinC = L.shorts ? skin : L.pants;
-    Q.add(TCAP(0.07 * k * B, 0.05 * k * B, shin * 0.72), shinC, L.shorts ? TX.skin : TX.cloth, mtx(0, -shin / 2, 0));
+    Q.add(TCAP(0.098 * k * B, 0.085 * k * B, shin * 0.55), shinC, L.shorts ? TX.skin : TX.cloth, mtx(0, -shin / 2, 0));
     if (L.socks) Q.add(new THREE.CylinderGeometry(0.072 * k * B, 0.068 * k * B, shin * (L.longSocks ? 0.8 : 0.45), 14), L.socks, TX.cloth, mtx(0, -shin * (L.longSocks ? 0.55 : 0.75), 0));
     if (L.laces) for (let i = 0; i < 3; i++) Q.add(new THREE.TorusGeometry(0.071 * k * B, 0.009 * k, 5, 14), L.laces, TX.cloth, mtx(0, -shin * (0.62 + i * 0.12), 0, Math.PI / 2 + (i % 2 ? 0.35 : -0.35)));
     if (L.boots) Q.add(new THREE.CylinderGeometry(0.085 * k * B, 0.08 * k * B, shin * 0.55, 14), L.shoes, TX.wood, mtx(0, -shin * 0.72, 0));
     if (L.kneePatch) Q.add(SPH(0.04 * k), new THREE.Color(L.pants).multiplyScalar(0.75), TX.cloth, mtx(0, -0.01 * k, 0.06 * k, 0, 0, 0, 1, 1, 0.4));
     // zapato: grande y redondeado, con suela
-    Q.add(SPH(0.108 * k * Math.max(1, B), 24, 16), L.shoes, L.espadrille ? TX.cloth : TX.wood, mtx(0, -shin - 0.03 * k, 0.055 * k, -0.08, 0, 0, 1, 0.76, 1.5));
+    Q.add(SPH(0.13 * k * Math.max(1, B), 24, 16), L.shoes, L.espadrille ? TX.cloth : TX.wood, mtx(0, -shin - 0.035 * k, 0.06 * k, -0.08, 0, 0, 1, 0.78, 1.45));
     Q.add(SPH(0.07 * k * B, 16, 12), L.shoes, L.espadrille ? TX.cloth : TX.wood, mtx(0, -shin - 0.005 * k, -0.01 * k, 0, 0, 0, 1.25, 1, 1.1));
-    Q.add(new THREE.CylinderGeometry(0.114 * k * B, 0.11 * k * B, 0.034 * k, 20), L.espadrille ? '#d9c79a' : new THREE.Color(L.shoes).multiplyScalar(0.55), L.espadrille ? TX.wool : TX.wood, mtx(0, -shin - 0.105 * k, 0.055 * k, 0, 0, 0, 1, 1, 1.5));
+    Q.add(new THREE.CylinderGeometry(0.138 * k * B, 0.134 * k * B, 0.034 * k, 20), L.espadrille ? '#d9c79a' : new THREE.Color(L.shoes).multiplyScalar(0.55), L.espadrille ? TX.wool : TX.wood, mtx(0, -shin - 0.105 * k, 0.055 * k, 0, 0, 0, 1, 1, 1.5));
     Q.build(knee);
     J[s < 0 ? 'legL' : 'legR'] = leg; J[s < 0 ? 'kneeL' : 'kneeR'] = knee;
   }
 
   // --- cadera, torso y ropa ---
   const HP = new Part();
-  HP.add(SPH(0.172 * k * B), L.pants, TX.cloth, mtx(0, 0.02 * k, 0, 0, 0, 0, 1.12, 0.8, 0.95));
+  HP.add(SPH(0.205 * k * B), L.pants, TX.cloth, mtx(0, 0.03 * k, 0, 0, 0, 0, 1.1, 0.82, 0.95));
   if (L.skirt) {
     const sk = new THREE.CylinderGeometry(0.17 * k * B, 0.3 * k * B, 0.34 * k, 24, 2, true);
     const p = sk.attributes.position; for (let i = 0; i < p.count; i++) { const a = Math.atan2(p.getZ(i), p.getX(i)); if (p.getY(i) < 0) { p.setX(i, p.getX(i) * (1 + 0.06 * Math.sin(a * 9))); p.setZ(i, p.getZ(i) * (1 + 0.06 * Math.sin(a * 9))); } }
@@ -282,7 +282,7 @@ export function buildMinifig(look, opts = {}) {
   HP.build(hips);
 
   const torso = new THREE.Group(); torso.position.y = 0.04 * k; hips.add(torso); J.torso = torso;
-  const TH = 0.35 * k, rb = 0.172 * k * B, rt = 0.16 * k * B * BODY[1];
+  const TH = 0.33 * k, rb = 0.212 * k * B, rt = 0.182 * k * B * BODY[1];
   const T = new Part();
   const torsoC = L.print === 'sheet' ? '#f2eee6' : L.print === 'bishop' ? '#f5efe0' : L.shirt;
   T.add(torsoGeo(rb, rt, TH, BODY[2] * (L.build > 1.1 ? 1.3 : 1)), torsoC, TX.cloth, mtx(0, 0, 0, 0, 0, 0, 1, 1, 0.9));
@@ -304,7 +304,7 @@ export function buildMinifig(look, opts = {}) {
     for (const s of [-1, 1]) T.add(new THREE.BoxGeometry(0.04 * k, TH * 1.2, 0.01 * k), '#e8c34a', TX.metal, mtx(s * 0.07 * k, TH * 0.42, Z(rb) + 0.05 * k, 0, 0, s * 0.18));
     T.add(new THREE.TorusGeometry(0.035 * k, 0.01 * k, 6, 12), '#e8c34a', TX.metal, mtx(0, TH * 0.7, Z(rt) + 0.02 * k));
   }
-  if (L.print === 'sheet') for (let i = 0; i < 9; i++) { const a = i * 2.4, y = TH * (0.15 + (i * 0.37) % 0.7); T.add(SPH(0.022 * k * (0.8 + (i % 3) * 0.3)), '#b3242a', TX.cloth, mtx(Math.sin(a) * rb * 0.98, y, Math.cos(a) * Z(rb) * 0.98, 0, a, 0, 1, 1.3, 0.25)); }
+  if (L.print === 'sheet') for (let i = 0; i < 16; i++) { const a = i * 2.4, y = TH * (0.15 + (i * 0.37) % 0.7); T.add(SPH(0.022 * k * (0.8 + (i % 3) * 0.3)), '#b3242a', TX.cloth, mtx(Math.sin(a) * rb * 0.98, y, Math.cos(a) * Z(rb) * 0.98, 0, a, 0, 1, 1.3, 0.25)); }
   if (L.print === 'rojilla') { T.add(new THREE.TorusGeometry(0.075 * k, 0.014 * k, 6, 16), '#1c2a4a', TX.cloth, mtx(0, TH * 0.98, 0, Math.PI / 2)); T.add(new THREE.CylinderGeometry(0.03 * k, 0.03 * k, 0.01 * k, 12), '#ffffff', TX.cloth, mtx(-0.06 * k, TH * 0.66, Z(rt) + 0.012 * k, Math.PI / 2)); for (let i = -3; i <= 3; i++) T.add(new THREE.BoxGeometry(0.008 * k, TH * 0.9, 0.004 * k), '#1c2a4a', TX.cloth, mtx(i * 0.04 * k, TH * 0.45, Z(rb) + 0.006 * k)); }
   if (L.print === 'blouse' || L.bodice) { const bd = L.bodice || '#2b2630'; T.add(new THREE.CylinderGeometry(rb * 1.12, rb * 1.1, TH * 0.55, 32, 1, true), bd, TX.cloth, mtx(0, TH * 0.3, 0, 0, 0, 0, 1, 1, 0.92)); for (let i = 0; i < 4; i++) T.add(new THREE.BoxGeometry(0.06 * k, 0.008 * k, 0.006 * k), L.lace || '#e8c34a', TX.metal, mtx(0, TH * (0.1 + i * 0.12), rb * 1.12 * 0.92 + 0.004 * k, 0, 0, (i % 2 ? 0.5 : -0.5))); T.add(new THREE.TorusGeometry(0.085 * k, 0.012 * k, 5, 18), '#ffffff', TX.cloth, mtx(0, TH * 0.96, 0, Math.PI / 2)); }
   if (L.print === 'shawl' || L.shawl) T.add(new THREE.ConeGeometry(rt * 1.6, TH * 0.75, 22, 1, true), L.shawl || '#3b2a3a', TX.wool, mtx(0, TH * 0.72, 0, 0, 0, 0, 1, 1, 0.9));
@@ -320,6 +320,13 @@ export function buildMinifig(look, opts = {}) {
   if (L.bag) T.add(new THREE.BoxGeometry(0.1 * k, 0.09 * k, 0.05 * k), L.bag, TX.wood, mtx(-rb * 1.05, 0.06 * k, 0.03 * k, 0, 0, 0.1));
   if (L.ribbons) { const cols = Array.isArray(L.ribbons) ? L.ribbons : ['#e03c3c', '#f2c230', '#3a8fd6', '#3ca05a']; cols.forEach((c, i) => { for (const d of [1, -1]) T.add(new THREE.TorusGeometry(rb * 1.08, 0.009 * k, 4, 26), c, TX.cloth, mtx(0, TH * (0.35 + i * 0.07), 0, 0, 0, d * (0.6 - i * 0.02), 1, 1.45, 0.9)); }); }
   if (L.fur) T.add(new THREE.SphereGeometry(rt * 1.45, 18, 10, 0, Math.PI * 2, 0, Math.PI * 0.45), L.fur, TX.wool, mtx(0, TH * 0.72, 0, 0, 0, 0, 1.05, 0.8, 0.95));
+  if (L.shaggy) {
+    const V = (x, y, z) => new THREE.Vector3(x, y, z), sc = new THREE.Color(L.shaggy);
+    for (let i = 0; i < 30; i++) {
+      const a = i / 30 * Math.PI * 2 + (i % 2) * 0.1, r0 = (rt + rb) * 0.55, sa = Math.sin(a), ca = Math.cos(a), len = 0.45 * k + ((i * 17) % 7) * 0.03 * k;
+      T.add(strandGeo([V(sa * r0 * 0.55, TH * 1.08, ca * r0 * 0.5), V(sa * r0 * 1.2, TH * 0.9, ca * r0 * 0.95), V(sa * r0 * 1.35, TH * 0.4, ca * r0 * 1.1), V(sa * r0 * 1.45, 0, ca * r0 * 1.2), V(sa * r0 * 1.5, -len, ca * r0 * 1.25)], 0.045 * k, 0.018 * k, 8, 6), sc.clone().multiplyScalar(0.85 + (i % 3) * 0.1), TX.hair);
+    }
+  }
   if (L.cape) T.add(new THREE.CylinderGeometry(rt * 1.2, rb * 1.8, TH * 1.5, 18, 1, true, Math.PI * 0.7, Math.PI * 0.6), L.cape, TX.cloth, mtx(0, TH * 0.25, -0.02 * k));
   if (L.scarf) {
     T.add(new THREE.TorusGeometry(0.07 * k, 0.024 * k, 8, 16), L.scarf, TX.cloth, mtx(0, TH * 0.97, 0, Math.PI / 2));
@@ -329,30 +336,30 @@ export function buildMinifig(look, opts = {}) {
   if (!L.vest && !L.print && L.placket !== false && !L.apron && !L.fur) for (let i = 0; i < 3; i++) T.add(SPH(0.015 * k, 14, 10), "#f7f1e2", TX.metal, mtx(0, TH * (0.35 + i * 0.17), Z(rb) + 0.01 * k, 0, 0, 0, 1, 1, 0.6));
   if ((!L.print || L.print === 'jersey' || L.print === 'rojilla') && !L.fur && !L.scarf) for (const sd of [-1, 1]) T.add(new THREE.ConeGeometry(0.045 * k, 0.09 * k, 3), L.print === 'rojilla' ? '#1c2a4a' : new THREE.Color(L.shirt).lerp(new THREE.Color('#ffffff'), 0.25), TX.cloth, mtx(sd * 0.04 * k, TH * 0.95, Z(rt) * 0.75, -1.2, 0, sd * 2.6, 1, 1, 0.35));
   // cuello visible con la nuez suave y el arranque del trapecio
-  T.add(TCAP(0.075 * k, 0.085 * k, 0.05 * k, 18), skin, TX.skin, mtx(0, TH + 0.03 * k, -0.004 * k));
+  T.add(TCAP(0.075 * k, 0.085 * k, 0.02 * k, 18), skin, TX.skin, mtx(0, TH + 0.012 * k, -0.004 * k));
   T.build(torso);
   if (L.bell && !L.bells) { const bl = new THREE.Group(); bl.position.set(0, TH * 0.5, -rb); torso.add(bl); new Part().add(new THREE.CylinderGeometry(0.06 * k, 0.1 * k, 0.18 * k, 12), '#8a7a58', TX.metal).build(bl); J.bell = bl; }
 
   // --- brazos: hombro, codo y mano grande ---
-  const shY = TH * 0.86, shX = rt * 1.05 + 0.02 * k, upper = 0.17 * k * (child ? 0.9 : 1), fore = 0.15 * k * (child ? 0.9 : 1);
+  const shY = TH * 0.86, shX = rt * 1.05 + 0.02 * k, upper = 0.15 * k * (child ? 0.92 : 1), fore = 0.13 * k * (child ? 0.92 : 1);
   const bare = L.shortSleeves || L.print === 'singlet';
   for (const s of [-1, 1]) {
     const sh = new THREE.Group(); sh.position.set(s * shX, shY, 0); torso.add(sh);
     const A = new Part();
-    A.add(SPH(0.072 * k * B), L.fur || (L.print === 'singlet' ? skin : sleeve), L.fur ? TX.wool : L.print === 'singlet' ? TX.skin : TX.cloth, mtx(0, 0, 0));
-    A.add(TCAP(0.066 * k * B * BODY[1], 0.054 * k * B, upper * 0.68), bare ? skin : sleeve, bare ? TX.skin : TX.cloth, mtx(0, -upper / 2, 0));
+    A.add(SPH(0.09 * k * B), L.fur || (L.print === 'singlet' ? skin : sleeve), L.fur ? TX.wool : L.print === 'singlet' ? TX.skin : TX.cloth, mtx(0, 0, 0));
+    A.add(TCAP(0.085 * k * B * BODY[1], 0.075 * k * B, upper * 0.55), bare ? skin : sleeve, bare ? TX.skin : TX.cloth, mtx(0, -upper / 2, 0));
     if (L.shortSleeves && L.print !== 'singlet') A.add(new THREE.CylinderGeometry(0.066 * k * B, 0.064 * k * B, upper * 0.35, 12), sleeve, TX.cloth, mtx(0, -upper * 0.15, 0));
     A.build(sh);
     const el = new THREE.Group(); el.position.y = -upper; sh.add(el);
     const F = new Part();
-    F.add(TCAP(0.056 * k * B, 0.042 * k * B, fore * 0.7), bare ? skin : sleeve, bare ? TX.skin : TX.cloth, mtx(0, -fore / 2, 0));
+    F.add(TCAP(0.075 * k * B, 0.065 * k * B, fore * 0.55), bare ? skin : sleeve, bare ? TX.skin : TX.cloth, mtx(0, -fore / 2, 0));
     if (!bare) F.add(new THREE.CylinderGeometry(0.056 * k * B, 0.05 * k * B, 0.034 * k, 18), L.print === 'coat' ? '#d6b44a' : new THREE.Color(sleeve).multiplyScalar(0.85), TX.cloth, mtx(0, -fore + 0.01 * k, 0));
     F.build(el);
     const hand = new THREE.Group(); hand.position.y = -fore - 0.035 * k; el.add(hand);
     const Hn = new Part(), hc = L.gloves || skin;
     const hT = L.gloves ? TX.cloth : TX.skin;
     // mano: palma, cuatro dedos algo curvados y pulgar enfrentado
-    const hk = k * Math.max(0.95, B);
+    const hk = k * 1.3 * Math.max(0.95, B);
     Hn.add(SPH(0.052 * hk, 20, 14), hc, hT, mtx(0, -0.03 * hk, 0.004 * hk, 0, 0, 0, 1.05, 1.1, 0.62));
     for (let f = 0; f < 4; f++) {
       const x = (f - 1.5) * 0.024 * hk, len = [0.05, 0.058, 0.055, 0.044][f] * hk;
@@ -366,7 +373,7 @@ export function buildMinifig(look, opts = {}) {
   }
 
   // --- cabeza grande y ojos expresivos ---
-  const neck = new THREE.Group(); neck.position.y = TH + 0.05 * k; torso.add(neck);
+  const neck = new THREE.Group(); neck.position.y = TH + 0.03 * k; torso.add(neck);
   const head = new THREE.Group(); neck.add(head); J.head = head;
   const R = 0.27 * k * headS, cy = R * 0.9;
   // profundidad de la superficie de la cara en (x, y relativo al centro)
@@ -480,7 +487,7 @@ export function buildMinifig(look, opts = {}) {
 
   // --- pelo y sombreros ---
   const hatOn = !!(L.hat || L.txapela || L.helmet || L.hood || L.kerchief);
-  const H = new Part();
+  const H = new Part(), HS = new Part();   // HS: pelo suelto que se balancea al andar
   const hc = L.hair, hs = L.hairStyle || 'short';
   const top = cy + R * 0.98;
   if (hc && hs !== 'bald' && L.hat !== 'mask') {
@@ -493,8 +500,8 @@ export function buildMinifig(look, opts = {}) {
     if (hs === 'ponytail') {
       // coleta: mechón grueso y redondo que cae con una curva desde el coletero
       const V = (x, y, z) => new THREE.Vector3(x, y, z);
-      H.add(strandGeo([V(0, cy + R * 0.4, -R * 1.02), V(0, cy + R * 0.2, -R * 1.32), V(R * 0.03, cy - R * 0.35, -R * 1.38), V(R * 0.1, cy - R * 0.9, -R * 1.2)], R * 0.2, R * 0.13, 18, 12), hc, TX.hair);
-      for (const sd of [-1, 1]) H.add(strandGeo([V(sd * R * 0.06, cy + R * 0.35, -R * 1.1), V(sd * R * 0.14, cy + R * 0.05, -R * 1.34), V(sd * R * 0.2, cy - R * 0.55, -R * 1.25)], R * 0.1, R * 0.06, 12, 8), hc, TX.hair);
+      HS.add(strandGeo([V(0, cy + R * 0.4, -R * 1.02), V(0, cy + R * 0.2, -R * 1.32), V(R * 0.03, cy - R * 0.35, -R * 1.38), V(R * 0.1, cy - R * 0.9, -R * 1.2)], R * 0.2, R * 0.13, 18, 12), hc, TX.hair);
+      for (const sd of [-1, 1]) HS.add(strandGeo([V(sd * R * 0.06, cy + R * 0.35, -R * 1.1), V(sd * R * 0.14, cy + R * 0.05, -R * 1.34), V(sd * R * 0.2, cy - R * 0.55, -R * 1.25)], R * 0.1, R * 0.06, 12, 8), hc, TX.hair);
       H.add(new THREE.TorusGeometry(R * 0.17, R * 0.065, 8, 14), L.hairTie || '#e03c3c', TX.cloth, mtx(0, cy + R * 0.38, -R * 1.1, Math.PI / 2 + 0.42));
       for (const sd of [-1, 1]) H.add(SPH(R * 0.1, 10, 8), L.hairTie || '#e03c3c', TX.cloth, mtx(sd * R * 0.14, cy + R * 0.46, -R * 1.12, 0, 0, 0, 1.2, 0.8, 0.6));
     }
@@ -502,12 +509,12 @@ export function buildMinifig(look, opts = {}) {
       // melena en mechones gruesos que caen desde la coronilla hasta los hombros
       const V = (x, y, z) => new THREE.Vector3(x, y, z);
       for (let i = 0; i < 13; i++) {
-        const a = Math.PI * (0.62 + i / 12 * 0.76) * (i % 2 ? 1 : 1) , sa = Math.sin(a), ca = Math.cos(a), len = 1.25 + ((i * 37) % 5) * 0.06;
+        const a = Math.PI * (0.62 + i / 12 * 0.76) * (i % 2 ? 1 : 1) , sa = Math.sin(a), ca = Math.cos(a), len = (L.hairLen || 1.25) + ((i * 37) % 5) * 0.06;
         const flare = 1.08 + ((i * 13) % 3) * 0.04;
-        H.add(strandGeo([V(sa * R * 0.55, cy + R * 0.9, ca * R * 0.55), V(sa * R * 1.02, cy + R * 0.3, ca * R * 1.0), V(sa * R * 1.05, cy - R * 0.4, ca * R * 1.02), V(sa * R * flare, cy - R * len, ca * R * flare * 0.98)], R * 0.2, R * 0.13), hc, TX.hair);
+        HS.add(strandGeo([V(sa * R * 0.55, cy + R * 0.9, ca * R * 0.55), V(sa * R * 1.02, cy + R * 0.3, ca * R * 1.0), V(sa * R * 1.05, cy - R * 0.4, ca * R * 1.02), V(sa * R * flare, cy - R * len, ca * R * flare * 0.98)], R * 0.2, R * 0.13), hc, TX.hair);
       }
     }
-    if (hs === 'braids') for (const s of [-1, 1]) { for (let i = 0; i < 4; i++) H.add(SPH(R * 0.15), hc, TX.hair, mtx(s * R * 0.85, cy - R * (0.35 + i * 0.26), -R * 0.1, 0, 0, 0, 1, 1.25, 1)); H.add(SPH(R * 0.08), L.hairTie || '#e03c3c', TX.cloth, mtx(s * R * 0.85, cy - R * 1.4, -R * 0.1)); }
+    if (hs === 'braids') for (const s of [-1, 1]) { for (let i = 0; i < 4; i++) HS.add(SPH(R * 0.15), hc, TX.hair, mtx(s * R * 0.85, cy - R * (0.35 + i * 0.26), -R * 0.1, 0, 0, 0, 1, 1.25, 1)); HS.add(SPH(R * 0.08), L.hairTie || '#e03c3c', TX.cloth, mtx(s * R * 0.85, cy - R * 1.4, -R * 0.1)); }
   }
   if (L.headband) H.add(new THREE.TorusGeometry(R * 1.02, R * 0.07, 6, 26), L.headband, TX.cloth, mtx(0, cy + R * 0.5, -R * 0.05, Math.PI / 2 - 0.2));
   if (L.kerchief) { H.add(new THREE.SphereGeometry(R * 1.1, 24, 14, 0, Math.PI * 2, 0, Math.PI * 0.55), L.kerchief, TX.cloth, mtx(0, cy + R * 0.02, -R * 0.05)); H.add(new THREE.ConeGeometry(R * 0.25, R * 0.4, 4), L.kerchief, TX.cloth, mtx(0, cy - R * 0.2, -R * 1.05, -0.5)); }
@@ -525,8 +532,14 @@ export function buildMinifig(look, opts = {}) {
   if (L.hood) {
     H.add(hairGeo(R * 1.02, HOOD, false), L.hood, TX.cloth, mtx(0, cy, -R * 0.02));
   }
-  if (L.horns) for (const s of [-1, 1]) { const g = new THREE.ConeGeometry(R * 0.16, R * 1.5, 10, 5); const p = g.attributes.position; for (let i = 0; i < p.count; i++) { const t = p.getY(i) / (R * 1.5) + 0.5; p.setX(i, p.getX(i) + t * t * R * 0.4); } g.computeVertexNormals(); H.add(g, '#efe4c6', TX.wood, mtx(s * R * 1.0, top + (L.hat === 'basket' ? R * 0.9 : R * 0.3), 0, 0, s < 0 ? Math.PI : 0, -s * 0.6)); }
+  if (L.horns) for (const s of [-1, 1]) { const g = new THREE.ConeGeometry(R * 0.16, R * 1.5, 10, 5); const p = g.attributes.position; for (let i = 0; i < p.count; i++) { const t = p.getY(i) / (R * 1.5) + 0.5; p.setX(i, p.getX(i) + t * t * R * 0.4); } g.computeVertexNormals(); H.add(g, '#efe4c6', TX.wood, mtx(s * R * (L.hat === 'basket' ? 1.25 : 1.0), top + (L.hat === 'basket' ? R * 0.55 : R * 0.3), 0, 0, s < 0 ? Math.PI : 0, -s * 0.6)); }
+  // momotxorro: la cara tapada con un pañuelo blanco de puntilla que cae bajo la cesta
+  if (L.veil) { H.add(new THREE.SphereGeometry(R * 1.12, 28, 16, -Math.PI * 0.05, Math.PI * 1.1, Math.PI * 0.18, Math.PI * 0.62), L.veil, TX.cloth, mtx(0, cy - R * 0.05, 0)); for (let i = 0; i < 14; i++) { const a = -Math.PI * 0.5 + i / 13 * Math.PI; H.add(SPH(R * 0.07, 6, 5), L.veil, TX.cloth, mtx(Math.sin(a) * R * 0.95, cy - R * 1.02, Math.cos(a) * R * 0.95)); } }
   H.build(head);
+  if (HS.list.length) {
+    const sw = new THREE.Group(), pv = new THREE.Vector3(0, cy + R * 0.3, -R * 0.7); sw.position.copy(pv); head.add(sw);
+    const m = HS.build(sw); m.position.copy(pv).multiplyScalar(-1); J.hairSway = sw;
+  }
 
   // --- objetos en las manos ---
   const acc = (s, fn) => { const g = new THREE.Group(); J[s < 0 ? 'handL' : 'handR'].add(g); const P = new Part(); fn(P); P.build(g); return g; };
@@ -546,10 +559,10 @@ export function buildMinifig(look, opts = {}) {
   if (L.hammer) acc(1, P => { P.add(new THREE.CylinderGeometry(0.018 * k, 0.018 * k, 0.4 * k, 8), woodC, TX.wood, mtx(0, 0.15 * k, 0)); P.add(new THREE.BoxGeometry(0.08 * k, 0.08 * k, 0.18 * k), '#5d6066', TX.metal, mtx(0, 0.36 * k, 0)); });
 
   root.userData.J = J;
-  root.userData.H = hipY + 0.04 * k + TH + 0.075 * k + cy + R + (hatOn || L.hat ? 0.12 * k : 0.05 * k);
+  root.userData.H = hipY + 0.04 * k + TH + 0.03 * k + cy + R + (hatOn || L.hat ? 0.12 * k : 0.05 * k);
   root.userData.look = L;
   root.userData.headR = R; root.userData.headCy = cy;
-  root.userData.legLen = thigh + shin + 0.1 * k;
+  root.userData.legLen = thigh + shin + 0.12 * k;
   root.traverse(o => { if (o.isMesh && !o.userData.outline) { o.castShadow = true; o.receiveShadow = true; } });
   return root;
 }
@@ -657,6 +670,10 @@ export class MinifigAnimator {
     this.headYaw += (Math.max(-1.1, Math.min(1.1, headYaw)) - this.headYaw) * (1 - Math.exp(-6 * dt));
     J.head.rotation.set(headPitch, this.headYaw, headRoll);
     if (J.bell) J.bell.rotation.z = Math.sin(ph * 2) * 0.35 * wk;
+    // respiración en reposo y pelo suelto que se balancea con el paso
+    const breath = Math.sin(this.t * 1.7) * 0.012 * (1 - wk * 0.6);
+    J.torso.scale.set(1 + breath * 0.6, 1 + breath * 0.4, 1 + breath);
+    if (J.hairSway) { this.hsw = (this.hsw || 0) + ((Math.sin(ph * 2) * 0.12 * wk + (s.turnRate || 0) * -0.05) - (this.hsw || 0)) * (1 - Math.exp(-8 * dt)); J.hairSway.rotation.set(0.05 * wk + Math.abs(this.hsw) * 0.4, 0, this.hsw); }
     this.blinkT -= dt;
     if (this.blinkT < -0.12) this.blinkT = 2 + Math.random() * 3.5;
     const blink = this.blinkT < 0;
@@ -701,7 +718,8 @@ export class MinifigAnimator {
 export const COSTUMES = {
   aizkolari: { skin: '#e6b48f', hair: '#3b2418', hairStyle: 'short', shirt: '#f4f1ea', pants: '#f4f1ea', sash: '#d42f2f', shoes: '#efe6d0', espadrille: true, socks: '#f4f1ea', laces: '#1d1d24', axe: true, face: 'brave', stubble: true, txapela: '#1d1d24', build: 1.1 },
   harrijasotzaile: { skin: '#d9a57f', hair: '#2a1a12', hairStyle: 'short', beard: '#2a1a12', headband: '#d42f2f', shirt: '#1d1d24', print: 'singlet', shortSleeves: true, pants: '#f4f1ea', sash: '#1d1d24', shoes: '#4a2f1c', build: 1.25, face: 'brave', bigNose: true },
-  momotxorro: { skin: '#e2b08a', hair: '#1a1a1a', beard: '#1a1a1a', shirt: '#f2eee6', print: 'sheet', pants: '#2b3a6b', shoes: '#4a2f1c', fur: '#7a5a34', horns: true, hat: 'basket', fork: true, face: 'angry', facePaint: 'soot', bells: true },
+  // momotxorro de Altsasu: cuernos, cesta, pañuelo de puntilla, camisa blanca manchada de rojo, piel de oveja y horca
+  momotxorro: { skin: '#e2b08a', hair: '#1a1a1a', shirt: '#f2eee6', print: 'sheet', pants: '#ece6da', shoes: '#4a2f1c', fur: '#7a5a34', horns: true, hat: 'basket', veil: '#f4efe4', fork: true, face: 'angry', bells: true, height: 2.45, build: 1.2 },
   'san-fermin': { skin: '#efc8a8', hair: '#6b4a2e', shirt: '#b8232a', print: 'bishop', pants: '#f4efe0', skirt: '#f4efe0', hat: 'mitre', crozier: true, shoes: '#b8232a', face: 'smile', old: true, beard: '#b8aea0', gloves: '#f4efe0' },
   pelotari: { skin: '#eac1a0', hair: '#2a1a12', hairStyle: 'ponytail', lashes: true, shirt: '#f4f1ea', pants: '#f4f1ea', sash: '#d42f2f', shoes: '#f4f1ea', glove: '#8a5a32', face: 'brave', placket: false, eyes: '#3a6a3a' },
   sanferminero: { skin: '#f3c9a4', hair: '#5a321c', hairStyle: 'spiky', shirt: '#f4f1ea', pants: '#f4f1ea', sash: '#d42f2f', scarf: '#d42f2f', shoes: '#efe6d0', espadrille: true, laces: '#d42f2f', face: 'happy', freckles: true, child: true, height: 1.4, eyes: '#4a2a1a' },

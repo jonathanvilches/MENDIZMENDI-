@@ -1,11 +1,28 @@
 import * as THREE from 'three';
 import { clamp, lerp, smoothstep } from '../util/math.js';
+import { groundHeight } from './heightfield.js';
+
+// texturas pintadas a mano en un lienzo: disco de la luna con sus mares y niebla suave
+function moonTex() {
+  const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
+  const r = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  r.addColorStop(0, 'rgba(255,252,236,1)'); r.addColorStop(0.42, 'rgba(250,246,226,1)'); r.addColorStop(0.47, 'rgba(250,246,226,0.25)'); r.addColorStop(1, 'rgba(200,215,255,0)');
+  g.fillStyle = r; g.fillRect(0, 0, 128, 128);
+  g.fillStyle = 'rgba(190,188,176,0.55)';
+  for (const [x, y, s] of [[52, 50, 11], [74, 60, 8], [60, 76, 9], [78, 44, 5], [46, 70, 5]]) { g.beginPath(); g.arc(x, y, s, 0, Math.PI * 2); g.fill(); }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+function mistTex() {
+  const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
+  for (let i = 0; i < 7; i++) { const x = 30 + Math.random() * 68, y = 44 + Math.random() * 40, rr = 26 + Math.random() * 26; const r = g.createRadialGradient(x, y, 0, x, y, rr); r.addColorStop(0, 'rgba(255,255,255,0.35)'); r.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = r; g.fillRect(0, 0, 128, 128); }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
 
 // Paleta por hora del día: [hora, cenit, horizonte, sol color, sol intensidad, hemi cielo, hemi suelo, hemi int]
 const KEYS = [
   // noche de luna: azulada y misteriosa, pero con luz suficiente para ver el camino
-  [0, '#0d1638', '#26365e', '#9fb4f0', 0.85, '#5a70b8', '#2a3350', 0.95],
-  [5, '#1b2450', '#4a4a70', '#9fb0ea', 0.7, '#5a6aa8', '#2a3048', 0.85],
+  [0, '#0d1638', '#26365e', '#a8bcf4', 1.05, '#6a80c8', '#34405e', 1.2],
+  [5, '#1b2450', '#4a4a70', '#9fb0ea', 0.9, '#5a6aa8', '#2a3048', 1.05],
   [6.3, '#4d6fb0', '#f3a978', '#ffb27a', 1.2, '#9fb4dc', '#5d5040', 0.55],
   [8, '#3f8fe0', '#bfe0f7', '#ffe3bd', 2.6, '#bfdcff', '#6d7a4a', 0.8],
   [12, '#2f7fdc', '#cfe8fb', '#fff4e2', 3.1, '#c9e2ff', '#72804f', 0.9],
@@ -13,8 +30,8 @@ const KEYS = [
   [18.4, '#5f7cc4', '#ffc493', '#ffb277', 2.2, '#c7c6e2', '#6d6048', 0.8],
   [19.3, '#3d4488', '#e0906f', '#ff9a66', 1.0, '#8f8fbf', '#3f3a3a', 0.62],
   [20.1, '#1c2458', '#6c4d6a', '#9aa4e0', 0.6, '#5a64a0', '#2a2c3e', 0.8],
-  [21, '#0f1a40', '#2a3a64', '#a4b8f4', 0.85, '#5a70b8', '#2a3350', 0.95],
-  [24, '#0d1638', '#26365e', '#9fb4f0', 0.85, '#5a70b8', '#2a3350', 0.95],
+  [21, '#0f1a40', '#2a3a64', '#a8bcf4', 1.05, '#6a80c8', '#34405e', 1.2],
+  [24, '#0d1638', '#26365e', '#a8bcf4', 1.05, '#6a80c8', '#34405e', 1.2],
 ];
 const KC = KEYS.map(k => ({ t: k[0], zen: new THREE.Color(k[1]), hor: new THREE.Color(k[2]), sun: new THREE.Color(k[3]), si: k[4], hs: new THREE.Color(k[5]), hg: new THREE.Color(k[6]), hi: k[7] }));
 
@@ -97,6 +114,17 @@ void main(){
     scene.fog = this.fog;
     this.sunDir = new THREE.Vector3();
     this.night = 0;
+    // luna visible (en la dirección de su luz) y niebla baja que se arrastra entre prados y calles de noche
+    this.moon = new THREE.Sprite(new THREE.SpriteMaterial({ map: moonTex(), transparent: true, depthWrite: false, fog: false, opacity: 0 }));
+    this.moon.scale.setScalar(150); this.moon.renderOrder = -9; scene.add(this.moon);
+    const mt = mistTex();
+    this.mist = [];
+    for (let i = 0; i < (quality === 'low' ? 10 : 18); i++) {
+      const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: mt, color: '#c8d4ea', transparent: true, depthWrite: false, opacity: 0 }));
+      const a = i / 18 * Math.PI * 2 * 3.1, r = 10 + (i * 37 % 60);
+      s.userData.off = new THREE.Vector2(Math.cos(a) * r, Math.sin(a) * r); s.scale.set(16 + (i % 4) * 5, 4 + (i % 3), 1);
+      scene.add(s); this.mist.push(s);
+    }
     this.tmp = { zen: new THREE.Color(), hor: new THREE.Color(), sun: new THREE.Color(), hs: new THREE.Color(), hg: new THREE.Color() };
   }
   sample(t) {
@@ -133,6 +161,17 @@ void main(){
     this.sun.position.set(fx + lightDir.x * 150, focus.y + lightDir.y * 150, fz + lightDir.z * 150);
     this.sun.target.position.set(fx, focus.y, fz);
     this.dome.position.set(focus.x, 0, focus.z);
+    const md = new THREE.Vector3(-this.sunDir.x, Math.max(0.3, -this.sunDir.y), -this.sunDir.z).normalize();
+    this.moon.position.set(focus.x + md.x * 2000, focus.y + md.y * 2000, focus.z + md.z * 2000);
+    this.moon.material.opacity = this.night; this.moon.visible = this.night > 0.02;
+    const mo = this.night * 0.3;
+    for (const s of this.mist) {
+      s.visible = mo > 0.01; if (!s.visible) continue;
+      const o = s.userData.off, drift = (elapsed * 0.6) % 140;
+      let x = focus.x + o.x + drift, z = focus.z + o.y;
+      x = focus.x + (((x - focus.x) + 70) % 140 + 140) % 140 - 70;          // la niebla rodea al jugador aunque se mueva
+      s.position.set(x, groundHeight(x, z) + 0.9, z); s.material.opacity = mo;
+    }
     return { night: this.night, isNight };
   }
   clock() {

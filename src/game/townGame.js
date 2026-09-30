@@ -19,6 +19,7 @@ import { LEGENDS, NIGHT_CARNIVAL } from '../data/legends.js';
 import MOUNTAINS from '../data/mountains.json';
 import { Fronton, findFrontonSpot } from './fronton.js';
 import { makeClue, makeAura } from './legendFx.js';
+import { Chase } from './chase.js';
 
 const CROP = {
   uva: ['racimos de uva', 'uva'], olivo: ['aceitunas', 'olivo'], piquillo: ['pimientos del piquillo', 'piquillo'], esparrago: ['manojos de espárragos', 'esparrago'],
@@ -50,10 +51,11 @@ const FOLK = {
   'comparsa-peralta': { shirt: '#e03c3c', pattern: 'dots', pattern2: '#f2c230', pants: '#3a8fd6', hat: 'cone', hatColor: '#3ca05a' },
   zipotero: { shirt: '#3a8fd6', pattern: 'stripes', pattern2: '#f2c230', pants: '#e03c3c', hat: 'mask', hatColor: '#f2c230', bladder: true, face: 'angry' },
   caravinagre: COSTUMES.caravinagre,
-  lamia: { skin: '#f1d7b8', hair: '#e8c34a', hairStyle: 'long', lashes: true, shirt: '#6ab0a0', print: 'blouse', bodice: '#3a8a7a', skirt: '#4a9a8a', pants: '#4a9a8a', comb: true },
-  basajaun: { skin: '#c49a78', hair: '#5a3a22', hairStyle: 'long', beard: '#5a3a22', fur: '#6b4a2e', shirt: '#6b4a2e', pants: '#5a3f28', staff: true, height: 2.8, build: 1.35 },
-  sorgina: { skin: '#e8d0b8', hair: '#dcd7cf', hairStyle: 'long', shirt: '#3d3350', print: 'shawl', shawl: '#2a2440', skirt: '#2a2440', pants: '#2a2440', kerchief: '#3d3350', old: true, staff: true },
-  roldan: { skin: '#dfe6ff', hair: '#c9d4ff', beard: '#c9d4ff', shirt: '#aab6d8', print: 'coat', pants: '#8a96b8', shoes: '#6a7698', boots: true, staff: true, height: 1.95, build: 1.15, face: 'brave' },
+  // criaturas de la noche: claramente más grandes que una persona (1,5 a 2,5 veces)
+  lamia: { skin: '#e6e2cf', hair: '#e8c34a', hairStyle: 'long', hairLen: 5.2, duck: true, lashes: true, eyes: '#2f9f8a', shirt: '#6ab0a0', print: 'blouse', bodice: '#3a8a7a', skirt: '#4a9a8a', pants: '#4a9a8a', comb: true, height: 2.55, build: 0.95, face: 'smirk', female: true },
+  basajaun: { skin: '#b08462', hair: '#4e3420', hairStyle: 'long', hairLen: 2.6, shaggy: '#5a3e26', beard: '#4e3420', brows: '#2e1c10', fur: '#5a3e26', shirt: '#5a3e26', pants: '#4a3420', staff: true, height: 3.4, build: 1.45, face: 'brave' },
+  sorgina: { skin: '#e8d0b8', hair: '#dcd7cf', hairStyle: 'long', shirt: '#3d3350', print: 'shawl', shawl: '#2a2440', skirt: '#2a2440', pants: '#2a2440', kerchief: '#3d3350', old: true, staff: true, height: 2.4 },
+  roldan: { skin: '#dfe6ff', hair: '#c9d4ff', beard: '#c9d4ff', shirt: '#aab6d8', print: 'coat', pants: '#8a96b8', shoes: '#6a7698', boots: true, staff: true, height: 2.7, build: 1.15, face: 'brave' },
   tartalo: { skin: '#c9a27a', hair: '#3b2418', shirt: '#6b4a2e', fur: '#8a6a4a', pants: '#4a3a2a', height: 2.6, build: 1.4, face: 'angry', staff: true },
 };
 // Paletas de trajes para los vecinos según la zona
@@ -94,6 +96,11 @@ export class TownGame {
     this.actors = []; this.walkers = []; this.items = []; this.gates = []; this.folk = []; this.clues = [];
     this.missions = (def.missions || []).map((m, i) => this.makeMission(m, i));
     this.state = { name: this.P.name || 'Mendi', settings: this.P.settings };
+    // luz propia de las criaturas de la noche: se crea al cargar (apagada) para que encenderla
+    // después no obligue a recompilar los materiales en mitad de la persecución
+    if (this.missions.some(M => M.type === 'legend' || (M.type === 'carnival' && M.night))) {
+      this.creatureLight = new THREE.PointLight('#9fe0ff', 0, 24, 1.4); this.creatureLight.position.set(0, -50, 0); this.scene.add(this.creatureLight);
+    }
   }
   // ---------- Definición de misiones y pasos ----------
   makeMission(m, i) {
@@ -319,7 +326,7 @@ export class TownGame {
     for (const it of this.items) list.push({ kind: 'item', it, x: it.x, z: it.z, r: 2.2, label: it.label });
     for (const M of this.missions) if (M.bench && M.step === 1 && !M.done) list.push({ kind: 'bench', M, x: M.bench.x, z: M.bench.z, r: 3, label: M.trade.verb });
     for (const k of this.clues) if (!k.found && k.obj.visible) list.push({ kind: 'clue', k, x: k.x, z: k.z, r: 2.6, label: 'Examinar' });
-    for (const M of this.missions) if (M.creature && M.creature.shown && !M.done) list.push({ kind: 'creature', M, x: M.creature.pos.x, z: M.creature.pos.z, r: 3.6, label: `Hablar con ${M.leg.creature}` });
+    for (const M of this.missions) if (M.creature && M.creature.shown && !M.done && !M.chase) list.push({ kind: 'creature', M, x: M.creature.pos.x, z: M.creature.pos.z, r: 3.6, label: `Hablar con ${M.leg.creature}` });
     if (TOWN.fountain) list.push({ kind: 'fountain', x: TOWN.fountain.x, z: TOWN.fountain.z, r: 3.8, label: 'Beber agua' });
     return list;
   }
@@ -712,7 +719,7 @@ export class TownGame {
       a.collider.ghost = true; a.base = a.obj.scale.x || 1;
       // el caballero es sólo una sombra de niebla: translúcido y azulado
       if (M.m.who === 'roldan') a.obj.traverse(o => { if (o.isMesh && o.material) { o.material = o.material.clone(); o.material.transparent = true; o.material.opacity = 0.62; o.material.depthWrite = false; } });
-      const aura = makeAura(M.leg.color, 2.2); aura.position.y = 1.2; a.obj.add(aura); a.aura = aura;
+      const aura = makeAura(M.leg.color, 3.2); aura.position.y = 1.4; a.obj.add(aura); a.aura = aura;
       M.creature = a;
     }
     const a = M.creature; a.shown = true; a.visible = true; a.obj.visible = true; a.appear = 0;
@@ -724,11 +731,27 @@ export class TownGame {
     const cp = new THREE.Vector3(P.x - dx / l * 2.5 + dz / l * 2.2, P.y + H * 0.9, P.z - dz / l * 2.5 - dx / l * 2.2);
     this.player.frozen = true; this.player.heading = Math.atan2(dx, dz);
     this.follow.cinematic = { pos: cp, look: new THREE.Vector3(a.pos.x, a.pos.y + H * 0.55, a.pos.z), t: 0 };
-    setTimeout(() => { if (this.follow.cinematic?.look) { this.follow.cinematic = null; this.follow.snap?.(this.player); } this.player.frozen = false; }, 3400);
+    setTimeout(() => { if (this.follow.cinematic?.look) { this.follow.cinematic = null; this.follow.snap?.(this.player); } this.player.frozen = false; if (a.shown && !M.done) this.startChase(M); }, 3400);
+  }
+  // la criatura huye: hay que atraparla con estrategia (ver chase.js)
+  startChase(M) {
+    if (M.chase) return;
+    const a = M.creature, L = M.leg, who = M.m.who;
+    if (this.creatureLight) this.creatureLight.color.set(L.color);
+    M.chase = new Chase(a, this.player, this.scene, {
+      color: L.color, lair: M.lair, water: who === 'lamia', light: this.creatureLight, speedMul: 1.2,
+      eyeColor: who === 'lamia' ? '#b8fff0' : '#ffe9a0',
+      sound: (k, pos) => this.sound.creature?.(who, k, pos),
+      onTired: () => { if (!M.tiredHint) { M.tiredHint = true; this.ui.toast(`¡${L.creature} se cansa! Es tu momento`, 'running', 2400); } },
+      onCornered: () => { if (!M.cornerHint) { M.cornerHint = true; this.ui.toast('¡No tiene salida! Acércate', 'legend', 2000); } },
+      onCaught: () => { M.chase?.dispose(); M.chase = null; this.meetCreature(M); },
+    });
+    this.ui.toast(`${L.creature} huye y es más rápido que tú. Mira hacia dónde avisa que va para cortarle el paso, acorrálalo o espera a que se canse.`, 'legend', 6000);
   }
   hideCreature(M, burst) {
     const a = M.creature; if (!a || !a.shown) return;
     a.shown = false; a.visible = false; a.obj.visible = false;
+    M.chase?.dispose(); M.chase = null;
     if (burst) this.particles.emit({ x: a.pos.x, y: a.pos.y + 1.4, z: a.pos.z }, { n: 70, color: [M.leg.color, '#ffffff'], speed: 2.6, size: 0.35, life: 2 });
   }
   async meetCreature(M) {
@@ -762,8 +785,8 @@ export class TownGame {
           const a = M.creature; a.appear = Math.min(1, (a.appear || 0) + dt * 0.8);
           a.base ??= a.obj.scale.x || 1;
           a.obj.scale.setScalar(a.base * (0.3 + 0.7 * (1 - Math.pow(1 - a.appear, 3)))); a.aura?.userData.tick?.(dt);
-          a.heading = Math.atan2(this.player.pos.x - a.pos.x, this.player.pos.z - a.pos.z);
-          a.update(dt, this.player);
+          if (M.chase) M.chase.update(dt);
+          else if (!this.player.frozen || this.mode !== 'play') { a.heading = Math.atan2(this.player.pos.x - a.pos.x, this.player.pos.z - a.pos.z); a.update(dt, this.player); }
           if (!night) this.hideCreature(M, true);
         }
         // si amanece antes de terminar, las pistas se apagan hasta la noche siguiente
@@ -808,17 +831,28 @@ export class TownGame {
     const P = this.player;
     const d = Math.hypot(a.pos.x - P.pos.x, a.pos.z - P.pos.z);
     a.obj.visible = d < 45;
-    if (d < 60) a.update(dt, P);
+    // de noche los momotxorros no se dejan coger: escapan entre las casas como las criaturas de leyenda
+    if (a.fm.night && !a.found && this.isNight()) {
+      a.chase ||= new Chase(a, P, this.scene, {
+        color: '#ffb45a', lair: { x: a.home.x, z: a.home.z }, range: 45, speedMul: 1.1, eyeColor: '#ffd08a',
+        sound: (k, pos) => { if (k === 'call') this.sound.creature?.('momotxorro', k, pos); },
+        onTired: () => this.ui.toast('¡Se ha cansado! Alcánzalo', 'running', 1800),
+        onCaught: () => { a.chase.dispose(); a.chase = null; this.catchFolk(a); },
+      });
+      if (a.chase && d < 70) a.chase.update(dt);
+    } else if (d < 60) a.update(dt, P);
     a.bellT -= dt;
     if (!a.found && a.bellT < 0) { a.bellT = 0.35 + this.rnd() * 0.25; if (d < 90) this.sound.cowbell(a.pos, clamp(1.2 - d / 80, 0.1, 0.9)); if (a.J.bell) a.J.bell.rotation.z = 0.6; }
     if (a.J.bell) a.J.bell.rotation.z *= 0.9;
-    if (!a.found && d < 3.2 && this.mode === 'play') {
-      a.found = true; a.dance = 6; a.wander = 0; a.state = 'idle'; const M = a.fm; M.count++;
-      this.particles.confetti ? this.particles.confetti(a.pos, 40) : this.particles.emit({ x: a.pos.x, y: a.pos.y + 2, z: a.pos.z }, { n: 30, color: ['#e03c3c', '#f2c230', '#3a8fd6'], speed: 3, size: 0.3 });
-      this.sound.magic(); this.ui.toast(`¡Encontrado! ${this.stepText(M)}`, 'mask', 2400);
-      if (M.count >= M.need) { M.step = M.night ? 3 : 2; this.ui.toast(`¡Todos encontrados! Vuelve con ${M.host.name}`, 'check', 3200); }
-    }
+    if (!a.found && !a.chase && d < 3.2 && this.mode === 'play') this.catchFolk(a);
     if (a.aura) a.aura.userData.tick?.(dt);
+  }
+  catchFolk(a) {
+    a.found = true; a.dance = 6; a.wander = 0; a.state = 'idle'; const M = a.fm; M.count++;
+    a.chase?.dispose(); a.chase = null;
+    this.particles.confetti ? this.particles.confetti(a.pos, 40) : this.particles.emit({ x: a.pos.x, y: a.pos.y + 2, z: a.pos.z }, { n: 30, color: ['#e03c3c', '#f2c230', '#3a8fd6'], speed: 3, size: 0.3 });
+    this.sound.magic(); this.ui.toast(`¡Encontrado! ${this.stepText(M)}`, 'mask', 2400);
+    if (M.count >= M.need) { M.step = M.night ? 3 : 2; this.ui.toast(`¡Todos encontrados! Vuelve con ${M.host.name}`, 'check', 3200); }
   }
 
   // ---------- Oficios ----------
