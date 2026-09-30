@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Personajes GLB</title>
+<style>
+:root{--bg:#b8d4ea;--panel:rgba(255,255,255,.88);--ink:#1d2733}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#1c2530;--panel:rgba(20,28,36,.9);--ink:#e8eef4}}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:14px/1.3 system-ui,sans-serif;overflow:hidden}
+#ui{position:fixed;left:8px;top:8px;right:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:var(--panel);padding:8px;border-radius:10px;max-width:760px}
+#ui label{display:flex;gap:4px;align-items:center}
+select,button{font:inherit;padding:4px 6px;border-radius:6px}
+#fps{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:600}
+#info{position:fixed;left:8px;bottom:8px;right:8px;background:var(--panel);padding:6px 8px;border-radius:8px;font-size:12px;max-width:760px}
+body.shot #ui,body.shot #info{display:none}
+</style></head><body>
+<div id="ui">
+  <label>Personaje <select id="who"></select></label>
+  <label>Animación <select id="clip"></select></label>
+  <label>Boca <select id="mouth"></select></label>
+  <label>Cejas <select id="brow"></select></label>
+  <label>Mano <select id="hand"></select></label>
+  <label>Velocidad <input id="spd" type="range" min="0" max="9" step="0.1" value="0" style="width:90px"><span id="spdv">0</span></label>
+  <button id="rot">Girar</button>
+  <span id="fps">– fps</span>
+</div>
+<div id="info"></div>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { loadChar, GlbChar } from '../src/actors/glbChar.js';
+
+const CHARS = { protagonista: '../src/assets/chars/char_protagonista.glb' };
+const q = new URLSearchParams(location.search);
+const shot = q.has('shot');
+if (shot) document.body.classList.add('shot');
+
+const r = new THREE.WebGLRenderer({ antialias: true });
+r.setPixelRatio(Math.min(devicePixelRatio, 2)); r.setSize(innerWidth, innerHeight);
+r.outputColorSpace = THREE.SRGBColorSpace; r.toneMapping = THREE.ACESFilmicToneMapping;
+r.shadowMap.enabled = true;
+document.body.appendChild(r.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(q.get('bg') || '#b8d4ea');
+scene.add(new THREE.HemisphereLight('#ffffff', '#6a5a4a', 1.3));
+const sun = new THREE.DirectionalLight('#fff4e0', 2.4); sun.position.set(2, 4, 3); sun.castShadow = true; scene.add(sun);
+const rim = new THREE.DirectionalLight('#cfe8ff', 1.0); rim.position.set(-3, 2, -3); scene.add(rim);
+const ground = new THREE.Mesh(new THREE.CircleGeometry(3, 48), new THREE.MeshStandardMaterial({ color: '#8fb573', roughness: 0.9 }));
+ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+const cam = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 0.05, 200);
+const ctl = new OrbitControls(cam, r.domElement); ctl.enableDamping = true;
+addEventListener('resize', () => { r.setSize(innerWidth, innerHeight); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); });
+
+const $ = id => document.getElementById(id);
+const fill = (sel, list, val) => { sel.innerHTML = list.map(v => `<option${v === val ? ' selected' : ''}>${v}</option>`).join(''); };
+fill($('who'), Object.keys(CHARS), q.get('who') || 'protagonista');
+
+let actors = [], spin = false;
+async function show(who) {
+  for (const a of actors) { scene.remove(a.root); a.dispose(); }
+  actors = [];
+  const gltf = await loadChar(CHARS[who]);
+  ground.visible = !q.get('grid');
+  const grid = q.get('grid');   // hoja de expresiones: "Normal:Normal,Happy:Normal,…"
+  const cells = grid ? grid.split(',').map(s => s.split(':')) : [[null, null]];
+  const n = cells.length, cols = Math.min(n, +(q.get('cols') || 4));
+  cells.forEach(([m, b, h], i) => {
+    const a = new GlbChar(gltf);
+    a.root.position.set((i % cols - (cols - 1) / 2) * 0.62, 0, -Math.floor(i / cols) * 0.0);
+    if (grid) a.root.position.y = -Math.floor(i / cols) * 1.3;
+    scene.add(a.root); actors.push(a);
+    if (m) a.holdFace(m, b || 'Normal', 1e9, h);
+  });
+  const a = actors[0];
+  fill($('clip'), a.clips, 'Idle');
+  fill($('mouth'), a.groups.mouth.map(m => m.name.slice(6)), 'Normal');
+  fill($('brow'), a.groups.brow.map(m => m.name.slice(5)), 'Normal');
+  fill($('hand'), a.groups.hand_R.map(m => m.name.slice(7)), 'Open');
+  // cámara
+  const box = new THREE.Box3().setFromObject(a.root), size = box.getSize(new THREE.Vector3());
+  const H = size.y;
+  let tri = 0, vis = 0, calls = 0;
+  a.root.traverse(o => { if (o.isMesh) { const t = o.geometry.index.count / 3; tri += t; if (o.visible) { vis += t; calls++; } } });
+  const view = q.get('view') || 'full';
+  const ry = +(q.get('ry') || 0.35);
+  if (view === 'face' || grid) {
+    const rows = Math.ceil(n / cols);
+    const c = new THREE.Vector3(0, grid ? H * 0.8 - (rows - 1) * 0.65 : H * 0.8, 0);
+    const d = grid ? Math.max(cols * 0.62 * 0.75, rows * 1.3) * 2.2 : H * 0.9;
+    cam.position.set(c.x + Math.sin(ry) * d, c.y, c.z + Math.cos(ry) * d); ctl.target.copy(c);
+  } else {
+    const c = new THREE.Vector3(0, H * 0.5, 0), d = H * 3.6;
+    cam.position.set(Math.sin(ry) * d, H * 0.62, Math.cos(ry) * d); ctl.target.copy(c);
+  }
+  ctl.update();
+  $('info').textContent = `${who}: altura ${H.toFixed(2)} m · ${tri} triángulos (${vis} visibles) · ${Object.keys(a.bones).length} huesos · ${calls} mallas visibles · clips: ${a.clips.join(', ')}`;
+  window.__info = { H, tri, vis, calls, bones: Object.keys(a.bones).length, clips: a.clips };
+}
+await show($('who').value);
+
+$('who').onchange = e => show(e.target.value);
+$('clip').onchange = e => { for (const a of actors) { a.speed = 0; a.oneShot = null; a.playOnce(e.target.value, 1e9); } $('spd').value = 0; $('spdv').textContent = '0'; };
+const face = () => { for (const a of actors) a.holdFace($('mouth').value, $('brow').value, 1e9, $('hand').value); };
+$('mouth').onchange = face; $('brow').onchange = face; $('hand').onchange = face;
+$('spd').oninput = e => { const v = +e.target.value; $('spdv').textContent = v.toFixed(1); for (const a of actors) { a.oneShot = null; a.setSpeed(v); } };
+$('rot').onclick = () => { spin = !spin; };
+
+// modo captura: clip y tiempo fijos, sin parpadeo ni mirada aleatoria
+if (shot) {
+  const clip = q.get('clip') || 'Idle', t = +(q.get('t') || 0);
+  for (const a of actors) {
+    a.blinkT = 1e9; a.lookT = 1e9;
+    if (q.get('lid')) a._lid('Eyelid_' + q.get('lid'));
+    a.oneShot = { name: clip, t: 1e9 }; a.play(clip, 0);
+    if (!q.get('grid') && !q.get('mouth')) a.faceLock = 0;
+    if (q.get('mouth')) a.holdFace(q.get('mouth'), q.get('brow') || 'Normal', 1e9, q.get('hand'));
+    a.update(0.0001); a.mixer.setTime(t); a._updateSprings(0.0001);
+  }
+  r.render(scene, cam);
+  window.__ready = true;
+} else {
+  const clock = new THREE.Clock(); let acc = 0, frames = 0;
+  r.setAnimationLoop(() => {
+    const dt = clock.getDelta();
+    for (const a of actors) { a.update(dt); if (spin) a.root.rotation.y += dt * 0.6; }
+    ctl.update(); r.render(scene, cam);
+    frames++; acc += dt; if (acc > 0.5) { $('fps').textContent = `${Math.round(frames / acc)} fps`; frames = 0; acc = 0; }
+  });
+  window.__ready = true;
+}
+</script>
+</body></html>
