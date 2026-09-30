@@ -13,15 +13,22 @@ const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '
 const I = (n, s = 22) => iconSVG(n, s);
 
 const ICON = {
-  book: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M4 21V5M9 7h6M9 11h5"/></svg>',
-  map: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></svg>',
-  menu: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h14"/></svg>',
-  bino: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="15" r="4"/><circle cx="17" cy="15" r="4"/><path d="M7 11V6a2 2 0 014 0v5M17 11V6a2 2 0 00-4 0v5M11 14h2"/></svg>',
-  run: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round"><circle cx="15.6" cy="3.8" r="2.3" fill="#fff"/><path d="M12.6 6.6c1.2-.5 2.4-.3 3.3.6l2.3 2.7h3v2.3h-4l-1.5-1.7-1.3 3 2.6 2.4-1.6 6.1h-2.5l1.2-4.9-3-2.3-1.6 3.1H4.6v-2.3h3.6l2.5-5.3-1.9.9-1.6 2.6-2-1.1 2.1-3.4z" fill="#fff"/><path d="M1.2 8.5h4M.6 12h3.2M1.4 15.5h2.4" fill="none" stroke="#FFD700" stroke-width="1.9"/></svg>',
-  jump: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"><path d="M12 1.8l7.2 7.4h-4.3v5.6H9.1V9.2H4.8z" fill="#fff"/><path d="M6.5 17.6c3.6 1.8 7.4 1.8 11 0" fill="none" stroke="#00BFFF" stroke-width="2.4"/><path d="M4 21.6h16" fill="none" stroke="#fff" stroke-width="2.2"/></svg>',
+  book: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round"><path d="M5.2 4.6A2.1 2.1 0 017.3 2.5h11.2a1 1 0 011 1v15.8H7.3a2.1 2.1 0 00-2.1 2.1z" fill="#fff"/><path d="M5.2 21.4a2.1 2.1 0 012.1-2.1h12.2v2.6H7.3" fill="#e3d6ff"/><path d="M12.6 2.5v7.2l1.9-1.4 1.9 1.4V2.5" fill="#FFD700"/></svg>',
+  map: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round"><path d="M2.5 5.6l6.2-2.4 6.6 2.4 6.2-2.4v15.2l-6.2 2.4-6.6-2.4-6.2 2.4z" fill="#fff"/><path d="M8.7 3.2v15.2M15.3 5.6v15.2" fill="none" stroke-width="1.2"/><path d="M5 15.5c2-2.4 4.4-.5 6.4-2.6s3.4-3.6 5.6-2.8" fill="none" stroke="#8a2be2" stroke-width="1.6" stroke-dasharray="1.8 1.4" stroke-linecap="round"/><path d="M18 3.8a2.6 2.6 0 00-2.6 2.6c0 1.9 2.6 4.4 2.6 4.4s2.6-2.5 2.6-4.4A2.6 2.6 0 0018 3.8z" fill="#ff5a4e"/></svg>',
+  menu: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.4" stroke-linejoin="round" fill="#fff"><rect x="3.5" y="4.6" width="17" height="3.4" rx="1.7"/><rect x="3.5" y="10.3" width="17" height="3.4" rx="1.7"/><rect x="3.5" y="16" width="17" height="3.4" rx="1.7"/></svg>',
+  bino: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round"><path d="M5.2 5.4a2 2 0 013.9 0l.8 7H3.9zM14.1 12.4l.8-7a2 2 0 013.9 0l1.3 7z" fill="#fff"/><path d="M9.6 10.4h4.8v3.2H9.6z" fill="#e3d6ff"/><circle cx="6.6" cy="15.6" r="4.4" fill="#fff"/><circle cx="17.4" cy="15.6" r="4.4" fill="#fff"/><circle cx="6.6" cy="15.6" r="2.4" fill="#7fd6ff"/><circle cx="17.4" cy="15.6" r="2.4" fill="#7fd6ff"/></svg>',
+  // controles: glifos macizos con contorno oscuro (se leen sobre hierba, cielo o piedra)
+  run: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="M.9 9.4h4.2M.4 13h3.6M1.2 16.6h3" fill="none" stroke="#FFD700" stroke-width="2.3"/><path d="M9 2.4h5.4a.9.9 0 01.9.9v6.9c0 .6.3 1.1.8 1.4l3.2 1.9a4.9 4.9 0 012.4 4.2v.5H6.6c-.1-1.7.3-3.3.9-4.8L7.9 3.4c.1-.6.5-1 1.1-1z" fill="#fff"/><path d="M6.6 18.2h16.1v1.3a1 1 0 01-1 1H7.6a1 1 0 01-1-1z" fill="#FFD700"/><path d="M7.8 5.6h7.5M14 11.4l2-1.5M16 12.8l2-1.5" fill="none" stroke-width="1.3"/></svg>',
+  jump: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round"><ellipse cx="12" cy="21.4" rx="5.4" ry="1.5" fill="#7fd6ff" stroke="none" opacity=".9"/><path d="M12 1.6l7.4 7.4-2.8 2.8L12 7.2l-4.6 4.6L4.6 9z" fill="#fff"/><path d="M12 8.6l7.4 7.4-2.8 2.8L12 14.2l-4.6 4.6L4.6 16z" fill="#fff"/></svg>',
   sun: '<svg viewBox="0 0 24 24" fill="#ffd34d"><circle cx="12" cy="12" r="5"/></svg>',
   moon: '<svg viewBox="0 0 24 24" fill="#f0e6c8"><path d="M15 3a9 9 0 106 15A8 8 0 0115 3z"/></svg>',
-  hand: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="M8.2 13.2V5.2a1.7 1.7 0 013.4 0v5.3V3.8a1.7 1.7 0 013.4 0v6.9V5.4a1.7 1.7 0 013.4 0v8.6c0 4.6-2.4 7.6-6.6 7.6-3.1 0-4.6-1.8-6.4-4.8l-1.7-2.8c-.9-1.5 1.1-2.9 2.3-1.5z" fill="#fff"/><path d="M11.6 10.5v2.2M15 10.7v2M18.4 11v1.8" fill="none"/></svg>',
+  // botón de acción: cambia según lo que se puede hacer (hablar, saludar, pelota, agua, mirar, coger)
+  hand: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="M9.4 21.4c-2.5 0-4.1-1.4-5.2-3.4l-1.6-2.9c-.6-1.1.7-2.1 1.7-1.3l1.9 1.5V6.4a1.5 1.5 0 013 0v4.8h.7V4.3a1.5 1.5 0 013 0v6.9h.7V5.1a1.5 1.5 0 013 0v6.1h.7V7.6a1.5 1.5 0 013 0v7.3c0 3.8-2.6 6.5-6.2 6.5z" fill="#fff"/></svg>',
+  talk: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round"><path d="M4.4 3.4h15.2a2.4 2.4 0 012.4 2.4v8.8a2.4 2.4 0 01-2.4 2.4h-7.2l-5 4v-4H4.4A2.4 2.4 0 012 14.6V5.8a2.4 2.4 0 012.4-2.4z" fill="#fff"/><circle cx="7.6" cy="10.2" r="1.5" fill="#8a2be2" stroke="none"/><circle cx="12" cy="10.2" r="1.5" fill="#8a2be2" stroke="none"/><circle cx="16.4" cy="10.2" r="1.5" fill="#8a2be2" stroke="none"/></svg>',
+  wave: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="M8.4 22c-2.5 0-4.1-1.4-5.2-3.4l-1.6-2.9c-.6-1.1.7-2.1 1.7-1.3l1.9 1.5V7a1.5 1.5 0 013 0v4.8h.7V4.9a1.5 1.5 0 013 0v6.9h.7V5.7a1.5 1.5 0 013 0v6.1h.7V8.2a1.5 1.5 0 013 0v7.3c0 3.8-2.6 6.5-6.2 6.5z" fill="#fff" transform="rotate(-12 12 12)"/><path d="M19.6 2.6c1.2.8 2 2.1 2.2 3.6M17.8 4.6c.6.4 1 1.1 1.1 1.8" fill="none" stroke="#FFD700" stroke-width="1.8"/></svg>',
+  pelota: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linecap="round"><path d="M2.2 6.4c.6-1.4 1.5-2.6 2.6-3.6M1.4 10.2c.1-.8.3-1.5.6-2.2" fill="none" stroke="#FFD700" stroke-width="1.8"/><circle cx="13" cy="12.4" r="8.6" fill="#f4e6c6"/><path d="M7.4 5.9c3 2.9 3 10.1 0 13M18.6 5.9c-3 2.9-3 10.1 0 13" fill="none" stroke="#7a4a1e" stroke-width="1.5" stroke-dasharray="1.6 1.2"/><ellipse cx="10.4" cy="8.6" rx="2.2" ry="1.2" fill="#fff" stroke="none" opacity=".85" transform="rotate(-30 10.4 8.6)"/></svg>',
+  drop: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round"><path d="M12 2.2c3.6 4.7 6.8 8.5 6.8 12.3a6.8 6.8 0 01-13.6 0c0-3.8 3.2-7.6 6.8-12.3z" fill="#7fd6ff"/><path d="M9 14.8a3 3 0 002.2 3" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  look: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round"><path d="M14.4 16.6l2.1-2.1 5.1 5.1a1.5 1.5 0 01-2.1 2.1z" fill="#FFD700"/><circle cx="9.8" cy="9.8" r="7" fill="#fff"/><circle cx="9.8" cy="9.8" r="4.4" fill="#cfefff"/><path d="M7.6 7.8a3 3 0 012.4-1.4" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>',
 };
 
 export class UI {
@@ -144,7 +151,13 @@ export class UI {
     if (!this.hud) return;
     const p = $('#prompt', this.hud), a = $('#cAct', this.hud);
     if (!text) { p.classList.add('hidden'); a.classList.add('off'); this.promptText = null; return; }
-    if (this.promptText !== text) { $('span', p).textContent = text; this.promptText = text; }
+    if (this.promptText !== text) {
+      $('span', p).textContent = text; this.promptText = text;
+      // el icono del botón de acción dice lo que va a pasar
+      const k = /pelota/i.test(text) ? 'pelota' : /^Hablar/.test(text) ? 'talk' : /^Saludar/.test(text) ? 'wave' : /^Beber/.test(text) ? 'drop'
+        : /^(Mirar|Examinar|Observar|Leer|Ver)/.test(text) ? 'look' : 'hand';
+      if (a.dataset.k !== k) { a.dataset.k = k; a.innerHTML = ICON[k]; }
+    }
     p.classList.remove('hidden'); a.classList.remove('off');
   }
   setClock(s, night) { if (!this.hud) return; const c = $('#clock', this.hud); $('.ct', c).textContent = s; if (this.night !== night) { this.night = night; $('.ci', c).innerHTML = night ? ICON.moon : ICON.sun; } }

@@ -47,8 +47,10 @@ const CSS = `
 .pel-levels button[aria-pressed=true]{background:#6a4fb3;border-color:#6a4fb3;color:#fff}
 .pel-go{border:0;border-radius:14px;padding:12px 20px;font-weight:800;font-size:17px;cursor:pointer;background:#ffcc2e;color:#1a1030}
 .pel-go.alt{background:#ece6ff}
-.pel-root.calling .pel-tip{opacity:0}
+.pel-root.calling .pel-tip,.pel-root.calling .pel-q{opacity:0}
+.pel-root.paneled .pel-exit,.pel-root.paneled .pel-q,.pel-root.paneled .pel-call,.pel-root.paneled .pel-tip{visibility:hidden}
 @media (max-width:560px){.pel-mid{display:none}.pel-side{padding:6px 10px}.pel-side span{max-width:30vw}
+  .pel-top{padding:0 58px}.pel-side{padding:6px 8px;gap:5px}.pel-side b{font-size:24px}.pel-side span{font-size:12px;max-width:34vw}.pel-serve{width:8px;height:8px}
   .pel-tip{max-width:calc(100vw - 32px);bottom:auto;top:calc(env(safe-area-inset-top,0px) + 66px)}}
 @media (max-height:520px){.pel-hit{width:86px;height:86px;font-size:17px}.pel-drop{width:60px;height:60px}
   .pel-tip{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);max-width:calc(100vw - 360px)}
@@ -103,9 +105,9 @@ export class PelotaHud {
   panel(html) {
     this.closePanel();
     const p = document.createElement('div'); p.className = 'pel-panel'; p.innerHTML = `<div class="pel-card">${html}</div>`;
-    this.root.appendChild(p); this.panelEl = p; return p;
+    this.root.appendChild(p); this.panelEl = p; this.root.classList.add('paneled'); return p;
   }
-  closePanel() { if (this.panelEl) { this.panelEl.remove(); this.panelEl = null; } }
+  closePanel() { if (this.panelEl) { this.panelEl.remove(); this.panelEl = null; } this.root.classList.remove('paneled'); }
   controls(on) { for (const s of ['.pel-stick', '.pel-btns', '.pel-stickhint']) { const e = this.$(s); if (e) e.style.visibility = on ? '' : 'hidden'; } }
   destroy() { this.root.remove(); }
 }
