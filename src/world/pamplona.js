@@ -344,123 +344,154 @@ function catedral(B, S, cx, cz, TOWN) {
   const ry = -Math.PI / 2, y = gy(cx, cz) - 0.2, T = M(cx, y, cz, ry), F = (m) => MM(T, m);
   const col = (lx, lz, w, d, meta) => { const p = toW(cx, cz, ry, lx, lz); addBox(p.x, p.z, w, d, ry, meta); };
   // --- cuerpo gótico: nave, naves laterales, crucero y cabecera
-  B.add('ashlar', box(16, 22, 54, 2.4), F(M(0, 9, -7)));
-  B.add('ashlar', box(28, 13, 54, 2.4), F(M(0, 4.5, -7)));
-  B.add('ashlar', box(40, 20, 12, 2.4), F(M(0, 8, -14)));
+  B.add('sandstone', box(16, 22, 54, 2.4), F(M(0, 9, -7)));
+  B.add('sandstone', box(28, 13, 54, 2.4), F(M(0, 4.5, -7)));
+  B.add('sandstone', box(40, 20, 12, 2.4), F(M(0, 8, -14)));
   B.add('stoneDark', box(28.4, 1.2, 54.4, 2), F(M(0, 0.2, -7)));
   const pitch = 0.58, rise = 8 * Math.tan(pitch);
   for (const s of [-1, 1]) B.add('tile', box(Math.hypot(8, rise) + 0.6, 0.3, 55, 2), F(M(s * (4 + 0.25), 20 + rise / 2 + 0.05, -7, 0, 0, -s * pitch)));
-  B.add('ashlar', gable(16, rise, 0.6), F(M(0, 20, -33.8)));
+  B.add('sandstone', gable(16, rise, 0.6), F(M(0, 20, -33.8)));
   for (const s of [-1, 1]) B.add('tile', box(6.8, 0.25, 54.5, 2), F(M(s * 11.2, 12.2, -7, 0, 0, -s * 0.36)));
   const tr = 6 * Math.tan(pitch);
   for (const s of [-1, 1]) B.add('tile', box(40.6, 0.3, Math.hypot(6, tr) + 0.6, 2), F(M(0, 18 + tr / 2 + 0.05, -14 + s * 3.1, 0, s * pitch)));
   for (const s of [-1, 1]) {
-    B.add('ashlar', gable(12, tr, 0.6), F(M(s * 19.7, 18, -14, Math.PI / 2)));
-    B.add('ashlar', new THREE.TorusGeometry(2.3, 0.28, 6, 22), F(M(s * 20.05, 12, -14, s * Math.PI / 2)));
+    B.add('sandstone', gable(12, tr, 0.6), F(M(s * 19.7, 18, -14, Math.PI / 2)));
+    B.add('sandstone', new THREE.TorusGeometry(2.3, 0.28, 6, 22), F(M(s * 20.05, 12, -14, s * Math.PI / 2)));
     B.add('glass', new THREE.CircleGeometry(2.25, 22), F(M(s * 20.03, 12, -14, s * Math.PI / 2)));
-    for (let k = 0; k < 4; k++) B.add('ashlar', box(0.16, 4.4, 0.2), F(M(s * 20.1, 12, -14, s * Math.PI / 2, 0, k * Math.PI / 4)));
+    for (let k = 0; k < 4; k++) B.add('sandstone', box(0.16, 4.4, 0.2), F(M(s * 20.1, 12, -14, s * Math.PI / 2, 0, k * Math.PI / 4)));
     B.add('glass', pointedPanel(2.4, 6, 0.1), F(M(s * 20.03, 2.2, -14, s * Math.PI / 2)));
   }
   // cabecera poligonal con girola
-  B.add('ashlar', new THREE.CylinderGeometry(8, 8, 22, 7, 1, false, Math.PI / 2, Math.PI), F(M(0, 9, -34)));
+  B.add('sandstone', new THREE.CylinderGeometry(8, 8, 22, 7, 1, false, Math.PI / 2, Math.PI), F(M(0, 9, -34)));
   B.add('tile', new THREE.ConeGeometry(8.6, 5, 7, 1, false, Math.PI / 2, Math.PI), F(M(0, 22.5, -34)));
-  B.add('ashlar', new THREE.CylinderGeometry(14, 14, 13, 9, 1, false, Math.PI / 2, Math.PI), F(M(0, 4.5, -34)));
+  B.add('sandstone', new THREE.CylinderGeometry(14, 14, 13, 9, 1, false, Math.PI / 2, Math.PI), F(M(0, 4.5, -34)));
   B.add('tile', new THREE.ConeGeometry(14.6, 3.2, 9, 1, false, Math.PI / 2, Math.PI), F(M(0, 12.6, -34)));
   for (let k = 0; k < 7; k++) {
     const a = Math.PI / 2 + (k + 0.5) / 7 * Math.PI;
     B.add('glass', pointedPanel(1.5, 5, 0.1), F(M(Math.sin(a) * 7.84, 13.5, -34 + Math.cos(a) * 7.84, a)));
   }
-  for (let k = 0; k <= 5; k++) { const a = Math.PI / 2 + k / 5 * Math.PI; B.add('ashlar', box(1.3, 12.5, 1.6, 2), F(M(Math.sin(a) * 14.5, 4.25, -34 + Math.cos(a) * 14.5, a))); B.add('ashlar', new THREE.ConeGeometry(0.62, 2.2, 4), F(M(Math.sin(a) * 14.5, 11.6, -34 + Math.cos(a) * 14.5, a + Math.PI / 4))); }
+  for (let k = 0; k <= 5; k++) { const a = Math.PI / 2 + k / 5 * Math.PI; B.add('sandstone', box(1.3, 12.5, 1.6, 2), F(M(Math.sin(a) * 14.5, 4.25, -34 + Math.cos(a) * 14.5, a))); B.add('sandstone', new THREE.ConeGeometry(0.62, 2.2, 4), F(M(Math.sin(a) * 14.5, 11.6, -34 + Math.cos(a) * 14.5, a + Math.PI / 4))); }
   // contrafuertes, arbotantes y ventanales apuntados
   for (let i = 0; i < 8; i++) {
     const lz = -31 + i * 6.8;
     if (lz > -21 && lz < -7) continue;
     for (const s of [-1, 1]) {
-      B.add('ashlar', box(1.4, 12.5, 1.6, 2), F(M(s * 14.6, 4.25, lz)));
-      B.add('ashlar', new THREE.ConeGeometry(0.62, 2.4, 4), F(M(s * 14.6, 11.7, lz, Math.PI / 4)));
-      B.add('ashlar', box(8.2, 0.6, 0.7), F(M(s * 11.55, 14.25, lz, 0, 0, -s * 0.735)));
+      B.add('sandstone', box(1.4, 12.5, 1.6, 2), F(M(s * 14.6, 4.25, lz)));
+      B.add('sandstone', new THREE.ConeGeometry(0.62, 2.4, 4), F(M(s * 14.6, 11.7, lz, Math.PI / 4)));
+      B.add('sandstone', box(8.2, 0.6, 0.7), F(M(s * 11.55, 14.25, lz, 0, 0, -s * 0.735)));
       if (i < 7 && !(lz + 3.4 > -21 && lz + 3.4 < -7)) {
         B.add('glass', pointedPanel(1.7, 5.4, 0.1), F(M(s * 14.03, 3.4, lz + 3.4, s * Math.PI / 2)));
         B.add('glass', pointedPanel(2.0, 5.2, 0.1), F(M(s * 8.03, 13.8, lz + 3.4, s * Math.PI / 2)));
-        B.add('ashlar', box(0.14, 3.6, 0.16), F(M(s * 14.09, 5.2, lz + 3.4)));
+        B.add('sandstone', box(0.14, 3.6, 0.16), F(M(s * 14.09, 5.2, lz + 3.4)));
       }
     }
   }
-  // --- fachada neoclásica (Ventura Rodríguez): dos torres, cuerpo central y pórtico corintio
-  B.add('ashlar', box(16, 27, 6, 2.2), F(M(0, 10.5, 23)));
-  B.add('ashlar', box(16.4, 0.8, 6.4), F(M(0, 24.2, 23)));
+  // --- fachada neoclásica (Ventura Rodríguez): dos torres con reloj y cupulín, cuerpo central y pórtico corintio
+  B.add('sandstone', box(16, 22, 6, 2.2), F(M(0, 8, 23)));
   for (const s of [-1, 1]) {
     const tx = s * 12, TT = F(M(tx, 0, 24));
-    B.add('ashlar', box(8, 37, 8, 2.2), MM(TT, M(0, 15.5, 0)));
-    for (const [yy, hh] of [[12, 0.5], [24, 0.7], [34, 0.8]]) B.add('ashlar', box(8.6, hh, 8.6), MM(TT, M(0, yy, 0)));
-    for (const [px, pz] of [[-3.7, 3.7], [3.7, 3.7], [-3.7, -3.7], [3.7, -3.7]]) B.add('ashlar', box(0.9, 33.6, 0.9, 2), MM(TT, M(px, 17, pz)));
+    B.add('sandstone', box(8, 33, 8, 2.2), MM(TT, M(0, 13.5, 0)));
+    for (const [yy, hh, ww] of [[15.5, 0.7, 8.7], [22.4, 0.9, 8.9], [30, 0.9, 8.9]]) B.add('sandstone', box(ww, hh, ww), MM(TT, M(0, yy, 0)));
+    for (const [px, pz] of [[-3.75, 3.75], [3.75, 3.75], [-3.75, -3.75], [3.75, -3.75]]) B.add('sandstone', box(0.8, 29.5, 0.8, 2), MM(TT, M(px, 15, pz)));
     for (let f = 0; f < 4; f++) {
       const R = MM(TT, M(0, 0, 0, f * Math.PI / 2));
-      B.add('dark', archPanel(2.3, 4.8, 0.1), MM(R, M(0, 27.4, 4.03)));
-      B.add('ashlar', archRing(1.15, 1.5, 0.4, 12), MM(R, M(0, 27.4 + 4.8 - 1.15, 4.1)));
-      B.add('ashlar', box(3.2, 0.3, 0.8), MM(R, M(0, 27.25, 4.2)));
-      B.add('glass', box(1.1, 2.0, 0.05), MM(R, M(0, 18.5, 4.03)));
-      B.add('ashlar', box(1.7, 0.25, 0.3), MM(R, M(0, 19.65, 4.12)));
+      // piso bajo: ventana con frontón; piso del reloj; campanario con arco entre columnas
+      B.add('glass', box(1.2, 2.3, 0.05), MM(R, M(0, 10.2, 4.03)));
+      B.add('sandstone', gable(2.0, 0.6, 0.3), MM(R, M(0, 11.5, 4.1)));
+      B.add('sandstone', box(1.8, 0.2, 0.3), MM(R, M(0, 9.0, 4.1)));
+      B.add('sandstone', new THREE.TorusGeometry(1.25, 0.18, 6, 24), MM(R, M(0, 19.2, 4.12)));
+      B.add('paint', colored(new THREE.CircleGeometry(1.22, 24), '#f7f3ea'), MM(R, M(0, 19.2, 4.06)));
+      for (let h = 0; h < 12; h++) { const a = h / 12 * Math.PI * 2; B.add('paint', colored(box(0.07, 0.22, 0.02), '#2a2622'), MM(R, M(Math.sin(a) * 1.02, 19.2 + Math.cos(a) * 1.02, 4.08, 0, 0, -a))); }
+      B.add('paint', colored(box(0.09, 0.7, 0.03), '#2a2622'), MM(R, M(0.18, 19.45, 4.1, 0, 0, -0.6)));
+      B.add('paint', colored(box(0.07, 0.95, 0.03), '#2a2622'), MM(R, M(0, 19.62, 4.11)));
+      B.add('dark', archPanel(2.4, 5.2, 0.1), MM(R, M(0, 23.6, 4.03)));
+      B.add('sandstone', archRing(1.2, 1.55, 0.4, 12), MM(R, M(0, 23.6 + 5.2 - 1.2, 4.1)));
+      for (const c of [-1, 1]) { B.add('sandstone', new THREE.CylinderGeometry(0.22, 0.25, 5.4, 10), MM(R, M(c * 2.05, 25.6, 4.25))); B.add('sandstone', box(0.6, 0.35, 0.6), MM(R, M(c * 2.05, 28.4, 4.25))); }
+      B.add('sandstone', box(3.2, 0.3, 0.8), MM(R, M(0, 23.45, 4.2)));
+      // remate: urnas en las esquinas
+      B.add('sandstone', box(0.55, 0.6, 0.55), MM(R, M(3.6, 30.75, 3.6)));
+      B.add('sandstone', new THREE.SphereGeometry(0.34, 10, 8), MM(R, M(3.6, 31.35, 3.6)));
     }
-    for (let f = 0; f < 4; f++) balustrade(B, MM(TT, M(0, 34.4, 0, f * Math.PI / 2)).multiply(M(0, 0, 3.9)), 8.2, 0.9);
-    B.add('ashlar', new THREE.CylinderGeometry(2.6, 2.85, 3.0, 8), MM(TT, M(0, 35.9, 0)));
-    for (let f = 0; f < 8; f++) { const a = f / 8 * Math.PI * 2 + Math.PI / 8; B.add('dark', archPanel(0.7, 1.6, 0.1), MM(TT, M(Math.sin(a) * 2.68, 35.2, Math.cos(a) * 2.68, a))); }
-    B.add('ashlar', new THREE.CylinderGeometry(3.0, 3.0, 0.35, 8), MM(TT, M(0, 37.55, 0)));
-    B.add('slate', new THREE.SphereGeometry(2.75, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2), MM(TT, M(0, 37.7, 0)));
-    B.add('ashlar', new THREE.CylinderGeometry(0.55, 0.65, 1.3, 8), MM(TT, M(0, 40.9, 0)));
-    B.add('slate', new THREE.ConeGeometry(0.75, 0.9, 8), MM(TT, M(0, 42, 0)));
-    B.add('iron', box(0.1, 1.6, 0.1), MM(TT, M(0, 43.2, 0))); B.add('iron', box(0.8, 0.1, 0.1), MM(TT, M(0, 43.5, 0)));
+    // cupulín: cuerpo octogonal con ventanas y aletones, cúpula de piedra, linterna y cruz
+    B.add('sandstone', box(6.4, 1.0, 6.4), MM(TT, M(0, 30.9, 0)));
+    B.add('sandstone', new THREE.CylinderGeometry(2.55, 2.8, 3.6, 8), MM(TT, M(0, 33.2, 0, Math.PI / 8)));
+    for (let f = 0; f < 8; f++) {
+      const a = f / 8 * Math.PI * 2;
+      if (f % 2 === 0) { B.add('dark', archPanel(0.9, 2.0, 0.1), MM(TT, M(Math.sin(a) * 2.62, 32.2, Math.cos(a) * 2.62, a))); B.add('sandstone', new THREE.TorusGeometry(0.6, 0.18, 5, 12, Math.PI), MM(TT, M(Math.sin(a) * 3.0, 31.9, Math.cos(a) * 3.0, a + Math.PI / 2))); }
+    }
+    B.add('sandstone', new THREE.CylinderGeometry(3.0, 3.0, 0.4, 8), MM(TT, M(0, 35.2, 0, Math.PI / 8)));
+    B.add('sandstone', new THREE.SphereGeometry(2.65, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), MM(TT, M(0, 35.4, 0)));
+    for (let f = 0; f < 8; f++) { const a = f / 8 * Math.PI * 2 + Math.PI / 8; B.add('sandstone', box(0.2, 0.25, 2.4), MM(TT, M(Math.sin(a) * 1.4, 36.9, Math.cos(a) * 1.4, a, -0.9))); }
+    B.add('sandstone', new THREE.CylinderGeometry(0.7, 0.8, 1.6, 8), MM(TT, M(0, 38.6, 0)));
+    for (let f = 0; f < 4; f++) { const a = f / 4 * Math.PI * 2; B.add('dark', box(0.35, 0.8, 0.05), MM(TT, M(Math.sin(a) * 0.76, 38.6, Math.cos(a) * 0.76, a))); }
+    B.add('sandstone', new THREE.SphereGeometry(0.85, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), MM(TT, M(0, 39.4, 0)));
+    B.add('sandstone', new THREE.SphereGeometry(0.28, 8, 6), MM(TT, M(0, 40.5, 0)));
+    B.add('iron', box(0.1, 1.5, 0.1), MM(TT, M(0, 41.4, 0))); B.add('iron', box(0.8, 0.1, 0.1), MM(TT, M(0, 41.7, 0)));
     col(tx, 24, 8.4, 8.4, { solidView: true });
   }
-  // pórtico
-  B.add('ashlar', box(20.5, 1.2, 5.2), F(M(0, 0.6, 30.6)));
-  for (let i = 0; i < 4; i++) { const hh = 1.2 - (i + 1) * 0.3; B.add('ashlar', box(22 + i * 0.8, hh + 0.3, 0.75), F(M(0, (hh + 0.3) / 2, 33.55 + i * 0.75))); addPlatform(cx, cz, ry, -11 - i * 0.4, 11 + i * 0.4, 33.2 + i * 0.75, 33.95 + i * 0.75, y + hh + 0.3); }
+  // pórtico: cuatro columnas corintias y dos pilastras, frontón con estatuas y cruz
+  B.add('sandstone', box(20.5, 1.2, 5.2), F(M(0, 0.6, 30.6)));
+  for (let i = 0; i < 4; i++) { const hh = 1.2 - (i + 1) * 0.3; B.add('sandstone', box(22 + i * 0.8, hh + 0.3, 0.75), F(M(0, (hh + 0.3) / 2, 33.55 + i * 0.75))); addPlatform(cx, cz, ry, -11 - i * 0.4, 11 + i * 0.4, 33.2 + i * 0.75, 33.95 + i * 0.75, y + hh + 0.3); }
   addPlatform(cx, cz, ry, -10.25, 10.25, 26, 33.2, y + 1.2);
-  for (const x of [-7.0, -2.4, 2.4, 7.0]) {
-    B.add('ashlar', box(1.8, 0.5, 1.8), F(M(x, 1.45, 31.4)));
-    B.add('ashlar', new THREE.CylinderGeometry(0.7, 0.82, 12.4, 16), F(M(x, 7.9, 31.4)));
-    B.add('ashlar', new THREE.CylinderGeometry(1.1, 0.72, 1.1, 10), F(M(x, 14.65, 31.4)));
-    B.add('ashlar', box(1.2, 12.9, 0.5), F(M(x, 7.9, 26.25)));
+  for (const x of [-6.6, -2.3, 2.3, 6.6]) {
+    B.add('sandstone', box(1.8, 0.5, 1.8), F(M(x, 1.45, 31.4)));
+    B.add('sandstone', new THREE.CylinderGeometry(0.72, 0.84, 12.4, 18), F(M(x, 7.9, 31.4)));
+    B.add('sandstone', new THREE.CylinderGeometry(1.12, 0.74, 1.15, 10), F(M(x, 14.65, 31.4)));
+    B.add('sandstone', box(1.3, 12.9, 0.5), F(M(x, 7.9, 26.25)));
     const p = toW(cx, cz, ry, x, 31.4); addCircle(p.x, p.z, 0.9);
   }
-  B.add('ashlar', box(18.4, 1.9, 7.2), F(M(0, 16.15, 29.6)));
-  B.add('ashlar', box(19, 0.35, 7.6), F(M(0, 17.2, 29.7)));
-  B.add('ashlar', gable(18.8, 4.4, 7.2), F(M(0, 17.3, 29.6)));
-  B.add('ashlar', new THREE.TorusGeometry(1.0, 0.18, 6, 18), F(M(0, 18.9, 33.25)));
-  B.add('dark', new THREE.CircleGeometry(0.95, 18), F(M(0, 18.9, 33.22)));
-  B.add('woodDark', box(3.4, 6.6, 0.12), F(M(0, 4.5, 26.06)));
-  for (const s of [-1, 1]) { B.add('ashlar', box(0.5, 7.2, 0.3), F(M(s * 1.95, 4.8, 26.15))); B.add('stoneDark', archPanel(1.3, 3.0, 0.1), F(M(s * 4.7, 3.2, 26.05))); }
-  B.add('ashlar', box(4.6, 0.6, 0.45), F(M(0, 8.4, 26.2)));
+  for (const s of [-1, 1]) { B.add('sandstone', box(1.4, 13.2, 1.4), F(M(s * 9.3, 8.0, 31.0))); const p = toW(cx, cz, ry, s * 9.3, 31); addCircle(p.x, p.z, 0.9); }
+  B.add('sandstone', box(20.2, 1.9, 7.2), F(M(0, 16.15, 29.6)));
+  B.add('sandstone', box(20.8, 0.4, 7.7), F(M(0, 17.25, 29.7)));
+  B.add('sandstone', gable(15.8, 3.3, 7.2), F(M(0, 17.4, 29.6)));
+  for (const s of [-1, 1]) { const len = Math.hypot(8.1, 3.3); B.add('sandstone', box(len, 0.35, 0.7), F(M(s * 4.0, 19.05, 33.15, 0, 0, -s * Math.atan2(3.3, 8.1)))); }
+  B.add('sandstone', box(2.6, 1.3, 0.3), F(M(0, 18.35, 33.25)));
+  B.add('shield', new THREE.PlaneGeometry(1.0, 1.15), F(M(0, 18.35, 33.42)));
+  for (const s of [-1, 1]) { B.add('sandstone', box(1.0, 0.8, 1.0), F(M(s * 7.4, 17.9, 32.4))); statue(B, F(M(s * 7.4, 18.3, 32.4)), 2.2, 'sandstone', s); }
+  B.add('sandstone', box(1.0, 0.8, 1.0), F(M(0, 21.0, 31.2)));
+  B.add('sandstone', box(0.3, 2.2, 0.3), F(M(0, 22.5, 31.2))); B.add('sandstone', box(1.2, 0.3, 0.3), F(M(0, 23.0, 31.2)));
+  // tres puertas bajo el pórtico, con ventanas encima
+  B.add('woodDark', box(3.2, 6.2, 0.12), F(M(0, 4.3, 26.06)));
+  B.add('sandstone', box(4.4, 0.6, 0.45), F(M(0, 7.8, 26.2)));
+  for (const s of [-1, 1]) {
+    B.add('sandstone', box(0.45, 6.8, 0.3), F(M(s * 1.85, 4.6, 26.15)));
+    B.add('woodDark', box(1.8, 4.4, 0.12), F(M(s * 4.45, 3.4, 26.06)));
+    B.add('sandstone', box(2.6, 0.45, 0.4), F(M(s * 4.45, 5.9, 26.18)));
+    B.add('glass', box(1.4, 2.3, 0.05), F(M(s * 4.45, 10.2, 26.04)));
+    B.add('sandstone', gable(2.2, 0.6, 0.3), F(M(s * 4.45, 11.55, 26.15)));
+  }
+  B.add('glass', box(1.7, 2.8, 0.05), F(M(0, 10.8, 26.04)));
+  B.add('sandstone', gable(2.6, 0.7, 0.3), F(M(0, 12.4, 26.15)));
   // claustro gótico (lado sur), con su jardín: se entra por el oeste
   const K = F(M(28, 0, 8)), kc = toW(cx, cz, ry, 28, 8);
   const kcol = (lx, lz, w, d, meta) => { const p = toW(kc.x, kc.z, ry, lx, lz); addBox(p.x, p.z, w, d, ry, meta); };
   for (const [lx, lz, w, d, door] of [[0, -11.6, 24, 0.8], [-11.6, 0, 0.8, 24], [11.6, 0, 0.8, 24], [0, 11.6, 24, 0.8, true]]) {
     if (door) {
-      B.add('ashlar', archedWall(24, 9.5, 3.0, 6.7, 0.8, true), MM(K, M(0, -1.5, lz)));
-      B.add('ashlar', pointedRing(3.0, 0.4, 1.0), MM(K, M(0, 2.6, lz)));
+      B.add('sandstone', archedWall(24, 9.5, 3.0, 6.7, 0.8, true), MM(K, M(0, -1.5, lz)));
+      B.add('sandstone', pointedRing(3.0, 0.4, 1.0), MM(K, M(0, 2.6, lz)));
       for (const s of [-1, 1]) kcol(s * 6.8, lz, 10.4, 0.9, { solidView: true });
-    } else { B.add('ashlar', box(w, 9.5, d, 2.2), MM(K, M(lx, 3.25, lz))); kcol(lx, lz, w + 0.1, d + 0.1, { solidView: true }); }
+    } else { B.add('sandstone', box(w, 9.5, d, 2.2), MM(K, M(lx, 3.25, lz))); kcol(lx, lz, w + 0.1, d + 0.1, { solidView: true }); }
   }
   for (let f = 0; f < 4; f++) {
     const R = MM(K, M(0, 0, 0, f * Math.PI / 2));
     for (let k = 0; k <= 4; k++) {
       const px = -7.4 + k * 3.7;
-      B.add('ashlar', box(0.75, 3.1, 0.95, 1.2), MM(R, M(px, 1.55, 7.4)));
+      B.add('sandstone', box(0.75, 3.1, 0.95, 1.2), MM(R, M(px, 1.55, 7.4)));
       const p = toW(kc.x, kc.z, ry + f * Math.PI / 2, px, 7.4); addCircle(p.x, p.z, 0.5);
       if (k < 4) {
         const ax = px + 1.85;
-        B.add('ashlar', pointedRing(2.9, 0.38, 0.8), MM(R, M(ax, 3.0, 7.4)));
-        B.add('ashlar', box(0.16, 3.0, 0.22), MM(R, M(ax, 1.5, 7.4)));
-        B.add('ashlar', new THREE.TorusGeometry(0.42, 0.08, 5, 12), MM(R, M(ax, 4.35, 7.4)));
-        for (const s of [-1, 1]) B.add('ashlar', pointedRing(1.15, 0.1, 0.25), MM(R, M(ax + s * 0.72, 2.95, 7.4)));
+        B.add('sandstone', pointedRing(2.9, 0.38, 0.8), MM(R, M(ax, 3.0, 7.4)));
+        B.add('sandstone', box(0.16, 3.0, 0.22), MM(R, M(ax, 1.5, 7.4)));
+        B.add('sandstone', new THREE.TorusGeometry(0.42, 0.08, 5, 12), MM(R, M(ax, 4.35, 7.4)));
+        for (const s of [-1, 1]) B.add('sandstone', pointedRing(1.15, 0.1, 0.25), MM(R, M(ax + s * 0.72, 2.95, 7.4)));
       }
     }
-    B.add('ashlar', box(15.6, 1.4, 0.95), MM(R, M(0, 6.3, 7.4)));
+    B.add('sandstone', box(15.6, 1.4, 0.95), MM(R, M(0, 6.3, 7.4)));
   }
   // tejados de las pandas: a un agua, del muro exterior (alto) a la arquería (baja)
   for (let f = 0; f < 4; f++) { const R = MM(K, M(0, 0, 0, f * Math.PI / 2)); B.add('tile', box(24, 0.22, 4.9, 2), MM(R, M(0, 7.55, 9.5, 0, -0.3))); }
-  B.add('ashlar', new THREE.CylinderGeometry(1.1, 1.3, 0.5, 10), MM(K, M(0, 0.25, 0)));
-  B.add('ashlar', box(0.35, 3.2, 0.35), MM(K, M(0, 1.8, 0))); B.add('ashlar', box(1.4, 0.3, 0.3), MM(K, M(0, 2.9, 0)));
+  B.add('sandstone', new THREE.CylinderGeometry(1.1, 1.3, 0.5, 10), MM(K, M(0, 0.25, 0)));
+  B.add('sandstone', box(0.35, 3.2, 0.35), MM(K, M(0, 1.8, 0))); B.add('sandstone', box(1.4, 0.3, 0.3), MM(K, M(0, 2.9, 0)));
   addCircle(kc.x, kc.z, 1.3);
   // colisiones del templo
   col(0, -7, 28.8, 54.4, { solidView: true }); col(0, -14, 40.4, 12.4, { solidView: true }); col(0, 23, 16.4, 6.2, { solidView: true });

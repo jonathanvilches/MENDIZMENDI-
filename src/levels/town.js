@@ -285,7 +285,8 @@ export function createTownLevel(def) {
   // la plaza pavimentada llega hasta el fondo de los soportales
   if (PLACES.plaza.rect) PLACES.courts.push({ x: PLACES.plaza.x, z: PLACES.plaza.z, hw: PLACES.plaza.rect.hw + 4, hd: PLACES.plaza.rect.hd + 4 });
   // plaza Consistorial y enlosado alrededor de la catedral (sin tocar el jardín del claustro)
-  if (PAMP) PLACES.courts.push({ x: -6, z: -101, hw: 16, hd: 8 }, { x: 112, z: -193, hw: 56, hd: 19 }, { x: 143, z: -159, hw: 25, hd: 15 }, { x: 75, z: -159, hw: 19, hd: 15 });
+  if (PAMP) PLACES.courts.push({ x: -6, z: -101, hw: 16, hd: 8 }, { x: 112, z: -193, hw: 56, hd: 19 }, { x: 143, z: -159, hw: 25, hd: 15 }, { x: 75, z: -159, hw: 19, hd: 15 },
+    { x: 232, z: -56, hw: 48, hd: 48 });   // explanada adoquinada alrededor de la plaza de toros
 
   // caminos (cubos espaciales)
   const SEGS = [];
@@ -383,6 +384,9 @@ export function createTownLevel(def) {
     const t = [];
     for (let z = 40; z <= 62; z += 7) for (const x of [12, 68]) t.push([x, z, 'oak', 0.9]);
     for (let z = 84; z <= 160; z += 12) for (const x of [31, 49]) t.push([x, z, 'oak', 0.85]);
+    // arboleda alrededor de la plaza de toros (sin tapar la entrada del encierro)
+    const g = Math.atan2(204 - 232, -71 + 56);
+    for (let i = 0; i < 26; i++) { const a = i / 26 * Math.PI * 2; if (Math.abs(Math.atan2(Math.sin(a - g), Math.cos(a - g))) < 0.45) continue; t.push([232 + Math.sin(a) * 46, -56 + Math.cos(a) * 46, 'oak', 1.0]); }
     const C = PLACES.citadel;
     for (let i = 0; i < 22; i++) {
       const a = C.gateAng + 0.3 + i / 22 * (Math.PI * 2 - 0.6);

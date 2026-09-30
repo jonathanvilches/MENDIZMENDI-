@@ -7,6 +7,7 @@ import { roofHip } from './houses.js';
 import { terrainHeight, addPlatform } from './heightfield.js';
 import { addBox, addCircle } from './colliders.js';
 import { PLACES } from './layout.js';
+import { lamp } from './village.js';
 import { archedWall, winDoor, plaque, letters, toW, fitText, roundRect, FONT_SERIF, FONT_ROUND } from './civic.js';
 import { noGrass } from './pamplona.js';
 
@@ -32,25 +33,33 @@ export function bullring(B, S, cx, cz, TOWN) {
   // ruedo y callejón de arena
   B.add('paint', colored(new THREE.CircleGeometry(23.5, 56).rotateX(-Math.PI / 2), '#d7b27a'), F(M(0, 0.17, 0)));
   noGrass((x, z) => Math.hypot(x - cx, z - cz) < R + 2, cx - R - 3, cz - R - 3, cx + R + 3, cz + R + 3);
-  // fachada: muro circular encalado con arcos de ladrillo en dos pisos y ventanas cuadradas arriba
+  // fachada: pilares claros con paños y puertas rojas abajo, dos galerías abiertas encima y el gran anillo de cobre verde
   const segLen = 2 * R * Math.sin(Math.PI / n) + 0.06;
   for (let i = 0; i < n; i++) {
     const a = (i + 0.5) / n * Math.PI * 2;
     if (skip(a, R, n)) continue;
     const P = F(M(Math.sin(a) * R, 0, Math.cos(a) * R, a));
-    B.add('plasterCream', box(segLen, H + 2, 0.9, 2.4), MM(P, M(0, H / 2 - 1, 0)));
-    B.add('stoneDark', box(segLen + 0.02, 1.3, 1.05, 2), MM(P, M(0, 0.2, 0)));
-    for (const [yy, hh] of [[4.9, 0.3], [9.4, 0.3], [H, 0.55]]) B.add('ashlar', box(segLen + 0.04, hh, 1.15, 1.5), MM(P, M(0, yy, 0)));
-    B.add('dark', archPanel(1.9, 3.0, 0.1), MM(P, M(0, 1.3, 0.46)));
-    B.add('brick', archRing(0.95, 1.22, 0.2, 10), MM(P, M(0, 3.35, 0.5)));
-    B.add('dark', archPanel(1.6, 2.7, 0.1), MM(P, M(0, 5.9, 0.46)));
-    B.add('brick', archRing(0.8, 1.05, 0.2, 10), MM(P, M(0, 7.8, 0.5)));
-    B.add('dark', box(1.0, 1.1, 0.1), MM(P, M(0, 11.6, 0.46)));
-    B.add('brick', box(1.35, 0.2, 0.2), MM(P, M(0, 12.25, 0.5)));
-    // tejadillo de la andanada (vierte hacia fuera) y columnas de la galería alta
-    B.add('tile', box(segLen * 0.98, 0.24, 6.6, 2), MM(P, M(0, H + 1.05, -2.6, 0, 0.17)));
-    B.add('ashlar', new THREE.CylinderGeometry(0.17, 0.2, 4.6, 8), F(M(Math.sin(a) * 31.2, 12.3, Math.cos(a) * 31.2)));
+    B.add('paint', colored(box(segLen, H + 2, 0.4), '#5a544b'), MM(P, M(0, H / 2 - 1, -0.5)));                 // fondo de las galerías
+    B.add('plasterCream', box(segLen, 5.0, 0.7, 2.4), MM(P, M(0, 1.5, 0)));                   // planta baja
+    const door = i % 4 === 0;
+    B.add('paint', colored(box(segLen - 1.1, door ? 3.0 : 1.9, 0.08), '#c8372d'), MM(P, M(0, door ? 1.5 : 1.35, 0.37)));
+    if (!door) B.add('paint', colored(box(segLen - 1.1, 0.9, 0.08), '#c8372d'), MM(P, M(0, 3.25, 0.37)));
+    B.add('stoneDark', box(segLen + 0.02, 0.5, 0.8, 2), MM(P, M(0, 0.1, 0)));
+    for (const [yy, hh] of [[4.1, 0.35], [7.6, 0.3], [H - 0.3, 0.4]]) B.add('ashlar', box(segLen + 0.04, hh, 1.0, 1.5), MM(P, M(0, yy, 0.05)));
+    B.add('plasterCream', box(segLen, 1.0, 0.5, 2.4), MM(P, M(0, 4.75, 0.1)));                // antepecho galería
+    B.add('plasterCream', box(segLen, 0.9, 0.5, 2.4), MM(P, M(0, 8.2, 0.1)));
+    for (const k of [-1, 1]) {                                                                 // pilares a los lados de cada tramo
+      B.add('plasterCream', box(0.75, H, 0.95, 2.4), MM(P, M(k * (segLen / 2 - 0.36), H / 2, 0.05)));
+      B.add('plasterCream', box(0.14, 2.1, 0.14), MM(P, M(k * (segLen / 2 - 0.9), 10.9, 0.25, 0, 0, k * 0.55)));   // tornapuntas de la andanada
+    }
     col(Math.sin(a) * R, Math.cos(a) * R, segLen, 1.2, a, { solidView: true });
+  }
+  { // anillo de cobre verde (arriba y por debajo), que vuela sobre la fachada
+    const top = [[R + 3.2, H + 0.3], [R + 3.2, H + 2.1], [R - 1, H + 2.9], [R - 6.2, H + 3.3], [R - 6.2, H + 2.4]];
+    const mk = (pts, color) => { const g = new THREE.LatheGeometry(pts.map(([r, h]) => new THREE.Vector2(r, h)), 72).toNonIndexed(); g.computeVertexNormals(); B.add('paint', colored(g, color), F(M(0, 0, 0))); };
+    mk([...top].reverse(), '#86b99c');
+    mk([[R + 3.2, H + 0.3], [R - 6.2, H + 2.4]], '#5f8f76');
+    for (let i = 0; i < n; i++) { const a = (i + 0.5) / n * Math.PI * 2; B.add('ashlar', new THREE.CylinderGeometry(0.17, 0.2, 4.6, 8), F(M(Math.sin(a) * 31.2, 12.3, Math.cos(a) * 31.2))); }
   }
   // tendidos: gradas escalonadas en un solo torno, con un hueco para el callejón de entrada
   const g0 = 0.128, pts = [[35.6, 10.0], [31.2, 10.0]];
@@ -101,6 +110,7 @@ export function bullring(B, S, cx, cz, TOWN) {
     B.add('paint', colored(box(1.9, 0.14, 0.13), '#f2ede3'), MM(P, M(0, 1.3, 0.01)));
     col(Math.sin(a) * (RB - 0.9), Math.cos(a) * (RB - 0.9), 1.9, 0.3, a);
   }
+  for (let i = 0; i < 14; i++) { const a = (i + 0.5) / 14 * Math.PI * 2; if (Math.abs(wrap(a)) < 0.3) continue; const p = toW(cx, cz, ryG, Math.sin(a) * 41, Math.cos(a) * 41); lamp(B, p.x, p.z); }
   // busto de Hemingway en su paseo
   const hx = cx - 10, hz = cz + 42, hr = Math.atan2(180 - hx, 0 - hz), HT = M(hx, gy(hx, hz), hz, hr);
   B.add('ashlar', box(1.5, 0.3, 1.3), MM(HT, M(0, 0.15, 0)));
@@ -273,8 +283,8 @@ function pitchTexture() {
 // fachada: bandas de paneles rojos con aletas blancas y la planta baja acristalada
 function facadePaint(g, W, H, ppm, title) {
   const hm = H / ppm;
-  g.fillStyle = '#b3202a'; g.fillRect(0, 0, W, H);
-  for (let x = 0; x < W; x += ppm * 1.2) { g.fillStyle = 'rgba(255,255,255,.85)'; g.fillRect(x, 0, Math.max(2, ppm * 0.16), H * (1 - 4.8 / hm)); g.fillStyle = 'rgba(80,0,10,.25)'; g.fillRect(x + ppm * 0.16, 0, Math.max(1, ppm * 0.08), H * (1 - 4.8 / hm)); }
+  g.fillStyle = '#c7cacd'; g.fillRect(0, 0, W, H);
+  for (let x = 0; x < W; x += ppm * 1.2) { g.fillStyle = 'rgba(255,255,255,.55)'; g.fillRect(x, 0, Math.max(2, ppm * 0.14), H * (1 - 4.8 / hm)); g.fillStyle = 'rgba(40,45,50,.22)'; g.fillRect(x + ppm * 0.14, 0, Math.max(1, ppm * 0.08), H * (1 - 4.8 / hm)); }
   for (const yy of [2.2, 7.5, 12.2]) { g.fillStyle = 'rgba(0,0,0,.18)'; g.fillRect(0, (yy / hm) * H, W, ppm * 0.25); }
   g.fillStyle = '#23303d'; g.fillRect(0, H * (1 - 4.6 / hm), W, H * 4.6 / hm);
   g.fillStyle = '#5d7486'; for (let x = 0; x < W; x += ppm * 2.4) g.fillRect(x, H * (1 - 4.6 / hm), Math.max(2, ppm * 0.12), H * 4.6 / hm);
@@ -291,6 +301,35 @@ function quad(x0, z0, x1, z1, y0, y1, u0, u1, v0 = 0, v1 = 1) {
   const uv = [u0, v0, u1, v0, u1, v1, u0, v0, u1, v1, u0, v1];
   g.setAttribute('position', new THREE.Float32BufferAttribute(p, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.computeVertexNormals();
   return g;
+}
+// anillo de cubierta entre dos rectángulos redondeados [semiancho, semifondo, radio]; la altura pasa de hA (dentro) a hB (fuera)
+function rrect(sh, [hw, hd, r], hole = false) {
+  const p = hole ? new THREE.Path() : sh;
+  p.moveTo(-hw + r, -hd); p.lineTo(hw - r, -hd); p.absarc(hw - r, -hd + r, r, -Math.PI / 2, 0, false);
+  p.lineTo(hw, hd - r); p.absarc(hw - r, hd - r, r, 0, Math.PI / 2, false);
+  p.lineTo(-hw + r, hd); p.absarc(-hw + r, hd - r, r, Math.PI / 2, Math.PI, false);
+  p.lineTo(-hw, -hd + r); p.absarc(-hw + r, -hd + r, r, Math.PI, Math.PI * 1.5, false);
+  return p;
+}
+function rrSdf(x, z, [hw, hd, r]) { const qx = Math.abs(x) - (hw - r), qz = Math.abs(z) - (hd - r); return Math.hypot(Math.max(qx, 0), Math.max(qz, 0)) + Math.min(Math.max(qx, qz), 0) - r; }
+function ringRoof(B, T, inner, outer, hA, hB, color, under = false) {
+  const sh = new THREE.Shape(); rrect(sh, outer); sh.holes.push(rrect(null, inner, true));
+  const g = new THREE.ShapeGeometry(sh, 6), p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i), z = p.getY(i), a = Math.abs(rrSdf(x, z, inner)), b = Math.abs(rrSdf(x, z, outer));
+    p.setXYZ(i, x, a < b ? hA : hB, z);
+  }
+  const idx = g.index.array;
+  // la cara buena mira hacia arriba (o hacia abajo si es la parte de debajo)
+  const up = !under;
+  for (let i = 0; i < idx.length; i += 3) {
+    const [a, b, c] = [idx[i], idx[i + 1], idx[i + 2]];
+    const ux = p.getX(b) - p.getX(a), uz = p.getZ(b) - p.getZ(a), vx = p.getX(c) - p.getX(a), vz = p.getZ(c) - p.getZ(a);
+    const ny = uz * vx - ux * vz;
+    if ((ny > 0) !== up) { idx[i + 1] = c; idx[i + 2] = b; }
+  }
+  const ng = g.toNonIndexed(); ng.computeVertexNormals();
+  B.add('paint', colored(ng, color), T);
 }
 const FONT5 = {
   O: ['.###.', '#...#', '#...#', '#...#', '#...#', '#...#', '.###.'], S: ['.####', '#....', '#....', '.###.', '....#', '....#', '####.'],
@@ -329,36 +368,58 @@ export function stadium(B, S, group, cx, cz, TOWN) {
     put(z1, cur ? WHITE : RED[k % 2]);
   };
   for (let k = 0; k < ROWS; k++) {
-    sideRow(1, k, -OZ, OZ, true);
+    sideRow(1, k, -OZ, OZ, false);
     sideRow(-1, k, -OZ, -GAP, false); sideRow(-1, k, GAP, OZ, false);
     for (const s of [-1, 1]) {
       const z0 = SZ + k * run, dz = OZ - z0, h = 1 + (k + 1) * rise;
       B.add('paint', colored(box(2 * SX, h, dz, 2), k >= 18 ? NAVY : RED[k % 2]), F(M(0, h / 2 - 0.5, s * (z0 + dz / 2))));
     }
   }
-  // cubierta blanca sobre las cuatro gradas y muro trasero
+  // cubierta roja de esquinas redondeadas que baja hacia fuera, con la banda blanca alrededor del hueco
+  const RIN = [26, 39, 9], RMID = [30, 43, 12], ROUT = [OX + 3.6, OZ + 3.6, 11], hIn = HH + 3.6, hOut = HH + 0.4;
+  ringRoof(B, T, RIN, RMID, hIn + 0.1, hIn, '#f2f2ef');
+  ringRoof(B, T, RMID, ROUT, hIn, hOut, '#c41f2c');
+  ringRoof(B, T, RIN, ROUT, hIn - 0.5, hOut - 0.4, '#b9bec4', true);
   for (const s of [-1, 1]) {
-    B.add('paint', colored(box(18.4, 0.4, 2 * OZ + 1.4), '#eef1f3'), F(M(s * 34.7, HH + 0.45, 0, 0, 0, s * 0.06)));
-    B.add('paint', colored(box(2 * SX - 2, 0.4, 18.4), '#eef1f3'), F(M(0, HH + 0.45, s * 47.7, 0, -s * 0.06, 0)));
-    B.add('paint', colored(box(0.5, 1.0, 2 * OZ + 1.4), '#4a5058'), F(M(s * 25.6, HH - 0.05, 0)));
-    B.add('paint', colored(box(2 * SX - 2, 1.0, 0.5), '#4a5058'), F(M(0, HH - 0.05, s * 38.6)));
+    B.add('paint', colored(box(0.5, 1.2, 2 * OZ - 6), '#3a3f45'), F(M(s * 27.6, hIn - 0.9, 0)));
+    // OSASUNA pintado en el tejado, a lo largo de los lados largos
+    const fr = 0.47, h = hIn + (hOut - hIn) * fr + 0.12, sl = Math.atan2(hIn - hOut, ROUT[0] - RMID[0]);
+    const u = new THREE.Vector3(0, 0, -s), v = new THREE.Vector3(-s * Math.cos(sl), Math.sin(sl), 0), nrm = new THREE.Vector3().crossVectors(u, v);
+    const Mx = new THREE.Matrix4().makeBasis(u, v, nrm).setPosition(cx + s * (RMID[0] + (ROUT[0] - RMID[0]) * fr), y + h, cz);
+    S.add(Mx, 46, 6.2, letters('OSASUNA', '#ffffff', { font: FONT_ROUND, weight: '900', shadow: null, size: 0.82 }));
     if (s > 0) B.add('paint', colored(box(0.36, HH + 5.5, 2 * OZ + 0.7), '#3a3f45'), F(M(OX + 0.18, HH / 2 - 2.25, 0)));
     B.add('paint', colored(box(0.36, HH + 5.5, OZ + 0.35 - GAP), '#3a3f45'), F(M(-(OX + 0.18), HH / 2 - 2.25, s * (OZ + 0.35 + GAP) / 2)));
     B.add('paint', colored(box(2 * OX, HH + 5.5, 0.36), '#3a3f45'), F(M(0, HH / 2 - 2.25, s * (OZ + 0.18))));
   }
   // la pared oeste necesita el hueco de la entrada: se tapa con dos paños y un dintel encima (la caja de arriba se sustituye)
   B.add('paint', colored(box(0.36, HH + 0.5 - 5.2, 2 * GAP + 0.2), '#3a3f45'), F(M(-(OX + 0.18), 5.2 + (HH + 0.5 - 5.2) / 2, 0)));
-  // fachadas con textura: tres lisas y la oeste con EL SADAR
+  // fachada gris de paneles con esquinas redondeadas; entrada al oeste; «CA OSASUNA» y «EL SADAR» en letras
   const plain = canvasTex(256, 528, (g, W, H) => facadePaint(g, W, H, 32, null), true);
-  const west = canvasTex(2048, 302, (g, W, H) => facadePaint(g, W, H, 2048 / 112, 'EL SADAR'));
-  const fo = OX + 0.4, fz = OZ + 0.4, y0 = -4.5, y1 = HH + 0.6, T0 = new THREE.Matrix4().makeTranslation(cx, y, cz);
-  const plainG = [quad(fo, fz, fo, -fz, y0, y1, 0, 2 * fz / 8), quad(fo, -fz, -fo, -fz, y0, y1, 0, 2 * fo / 8), quad(-fo, fz, fo, fz, y0, y1, 0, 2 * fo / 8)].map(g => g.applyMatrix4(T0));
-  const wm = (a, b) => (a + fz) / (2 * fz);
-  const vy = (h) => (h - y0) / (y1 - y0);
-  const westG = [quad(-fo, -fz, -fo, -GAP, y0, y1, wm(-fz), wm(-GAP)), quad(-fo, GAP, -fo, fz, y0, y1, wm(GAP), wm(fz)), quad(-fo, -GAP, -fo, GAP, 5.2, y1, wm(-GAP), wm(GAP), vy(5.2), 1)].map(g => g.applyMatrix4(T0));
-  for (const [geos, map] of [[plainG, plain], [westG, west]]) {
-    const m = new THREE.Mesh(mergeGeometries(geos), new THREE.MeshStandardMaterial({ map, roughness: 0.65, metalness: 0.1 }));
-    m.castShadow = true; m.receiveShadow = true; m.matrixAutoUpdate = false; group.add(m);
+  const FH = ROUT[0] - 0.6, FD = ROUT[1] - 0.6, FR = ROUT[2] - 0.6, y0 = -4.5, y1 = hOut + 0.3, vy = (h) => (h - y0) / (y1 - y0);
+  const path = [];
+  // recorrido en el sentido que deja las caras mirando hacia fuera: este (hacia −z), norte, oeste (con la entrada) y sur
+  path.push([FH, FD - FR], [FH, -FD + FR]);
+  for (let i = 1; i <= 6; i++) { const a = -i / 6 * Math.PI / 2; path.push([FH - FR + Math.cos(a) * FR, -FD + FR + Math.sin(a) * FR]); }
+  path.push([-FH + FR, -FD]);
+  for (let i = 1; i <= 6; i++) { const a = -Math.PI / 2 - i / 6 * Math.PI / 2; path.push([-FH + FR + Math.cos(a) * FR, -FD + FR + Math.sin(a) * FR]); }
+  path.push([-FH, -GAP], [-FH, GAP], [-FH, FD - FR]);
+  for (let i = 1; i <= 6; i++) { const a = Math.PI - i / 6 * Math.PI / 2; path.push([-FH + FR + Math.cos(a) * FR, FD - FR + Math.sin(a) * FR]); }
+  path.push([FH - FR, FD]);
+  for (let i = 1; i <= 6; i++) { const a = Math.PI / 2 - i / 6 * Math.PI / 2; path.push([FH - FR + Math.cos(a) * FR, FD - FR + Math.sin(a) * FR]); }
+  const T0 = new THREE.Matrix4().makeTranslation(cx, y, cz), fac = [];
+  let u = 0;
+  for (let i = 0; i < path.length - 1; i++) {
+    const [ax, az] = path[i], [bx, bz] = path[i + 1], l = Math.hypot(bx - ax, bz - az), gap = ax === -FH && Math.abs(az + GAP) < 0.01 && Math.abs(bz - GAP) < 0.01;
+    fac.push(quad(ax, az, bx, bz, gap ? 5.2 : y0, y1, u / 8, (u + l) / 8, gap ? vy(5.2) : 0, 1).applyMatrix4(T0)); u += l;
+  }
+  { const m = new THREE.Mesh(mergeGeometries(fac), new THREE.MeshStandardMaterial({ map: plain, roughness: 0.6, metalness: 0.15 })); m.castShadow = true; m.receiveShadow = true; m.matrixAutoUpdate = false; group.add(m); }
+  S.add(M(cx - FH - 0.08, y + 9.6, cz - 20, -Math.PI / 2), 30, 3.4, letters('CA OSASUNA', '#5d636b', { font: FONT_ROUND, weight: '900', shadow: null, size: 0.8 }));
+  S.add(M(cx + FH + 0.08, y + 9.6, cz, Math.PI / 2), 26, 3.4, letters('EL SADAR', '#5d636b', { font: FONT_ROUND, weight: '900', shadow: null, size: 0.8 }));
+  // pasillo de entrada entre la fachada y la grada oeste
+  for (const s of [-1, 1]) { B.add('paint', colored(box(FH - OX, 5.4, 0.3), '#3a3f45'), F(M(-(OX + FH) / 2, 2.2, s * (GAP + 0.15)))); addBox(cx - (OX + FH) / 2, cz + s * (GAP + 0.15), FH - OX, 0.4, 0); }
+  B.add('paint', colored(box(FH - OX, 0.3, 2 * GAP + 0.6), '#3a3f45'), F(M(-(OX + FH) / 2, 5.2, 0)));
+  for (const [x0, z0, x1, z1] of [[FH, -FD, FH, FD], [-FH, -FD, FH, -FD], [-FH, FD, FH, FD], [-FH, -FD, -FH, -GAP], [-FH, GAP, -FH, FD]]) {
+    const w = Math.abs(x1 - x0) || 0.8, d = Math.abs(z1 - z0) || 0.8; addBox(cx + (x0 + x1) / 2, cz + (z0 + z1) / 2, w, d, 0, { solidView: true });
   }
   // porterías con red
   const net = canvasTex(64, 64, (g, W, H) => { g.strokeStyle = '#f4f4f4'; g.lineWidth = 2; for (let i = 0; i <= W; i += 8) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i, H); g.stroke(); g.beginPath(); g.moveTo(0, i); g.lineTo(W, i); g.stroke(); } });
