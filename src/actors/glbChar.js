@@ -11,6 +11,14 @@ import protagonistaFull from '../assets/chars/portrait_protagonista_full.png?url
 
 const cache = new Map();
 let loader = null;
+const _q = new THREE.Quaternion(), _e = new THREE.Euler();
+// nombres de variante: los del encargo nuevo y, como reserva, los antiguos
+const ALIAS = { Normal: ['Neutral', 'Normal'], Neutral: ['Neutral', 'Normal'], Happy: ['Smile', 'Happy', 'SmileOpen'], Smile: ['Smile', 'Happy'],
+  SmileOpen: ['SmileOpen', 'Happy'], Talk_A: ['TalkA', 'Talk_A'], TalkA: ['TalkA', 'Talk_A'], Talk_O: ['TalkO', 'Talk_O'], TalkO: ['TalkO', 'Talk_O'] };
+function variantNames(prefix, name) {
+  if (prefix === 'Brow_') return [prefix + name, prefix + (name === 'Happy' || name === 'Surprised' ? 'Normal' : 'Normal')];
+  return (ALIAS[name] || [name]).map(n => prefix + n);
+}
 const outlines = new Map();
 function outlineMat(w) {
   if (!outlines.has(w)) {
@@ -51,26 +59,27 @@ export class GlbChar {
     this.bones = {};
     this.sockets = {};
     this.root.traverse(o => {
-      if (o.isBone) this.bones[o.name] = o;
-      else if (o.name.startsWith('Socket_')) this.sockets[o.name] = o;
-      if (!o.isMesh) return;
-      o.frustumCulled = false;
-      o.castShadow = true;
-      this.meshes[o.name] = o;
+      if (o.isBone) { this.bones[o.name] = o; return; }
+      if (o.name.startsWith('Socket_')) this.sockets[o.name] = o;
+      if (o.isMesh) { o.frustumCulled = false; o.castShadow = true; }
+      if (o.name && !this.meshes[o.name]) this.meshes[o.name] = o;
+      // variantes: nodos con «group» en sus extras (las bocas de dos materiales llegan como grupo)
       const g = o.userData.group;
       if (g) {
         (this.groups[g] = this.groups[g] || []).push(o);
         o.visible = !!o.userData.default;
       }
     });
-    // material de ojos propio para mover la pupila sin afectar a otros clones
-    const eye = this.meshes.Eye_L;
-    if (eye) {
+    // mirada: con los huesos Eye_L/Eye_R si los hay; si no, moviendo la textura del ojo (personajes antiguos)
+    this.eyeBones = ['Eye_L', 'Eye_R'].map(n => this.bones[n]).filter(Boolean);
+    const eye = !this.eyeBones.length && this.meshes.Eye_L;
+    if (eye && eye.material) {
       const mat = eye.material.clone();
       if (mat.map) { mat.map = mat.map.clone(); mat.map.needsUpdate = true; }
       this.eyeMat = mat;
       for (const n of ['Eye_L', 'Eye_R']) if (this.meshes[n]) this.meshes[n].material = mat;
     }
+    this.lidOpen = this.groups.lid?.some(m => m.name === 'Eyelid_Open') ? 'Eyelid_Open' : '';
     this.mixer = new THREE.AnimationMixer(this.root);
     this.actions = {};
     this.clipExtras = {};
@@ -87,7 +96,7 @@ export class GlbChar {
     this.speed = 0;
     this.talking = false;
     this.faceLock = 0;
-    this.face = { mouth: 'Normal', brow: 'Normal', hand: 'Open' };
+    this.face = { mouth: 'Neutral', brow: 'Normal', hand: 'Open' };
     this.blinkT = 2 + Math.random() * 3;
     this.blinkLeft = 0;
     this.lookTarget = new THREE.Vector2();
@@ -95,6 +104,8 @@ export class GlbChar {
     this.lookT = 1 + Math.random() * 2;
     this.talkT = 0;
     this._initSprings();
+    this.postBones = [...this.eyeBones, ...this.springs.map(s => s.b)];
+    for (const b of this.postBones) b.userData.q0 = b.quaternion.clone();
     if (opt.outline) this._addOutline(opt.outline);
     this.play('Idle', 0);
   }
@@ -122,9 +133,14 @@ export class GlbChar {
     if (this.current) this.current.crossFadeTo(a, fade, false);
     this.current = a;
     this.currentName = name;
-    const ex = this.clipExtras[name];
-    if (ex && ex.face && !this.faceLock) this.setFace(ex.face, ex.brow, ex.hand);
+    if (!this.faceLock) this._clipFace(name);
     return a;
+  }
+
+  _clipFace(name) {
+    const ex = this.clipExtras[name]; if (!ex) return;
+    const mouth = ex.mouth || ex.face, brow = ex.brows || ex.brow, hand = ex.hands || ex.hand;
+    if (mouth) this.setFace(mouth, brow, hand);
   }
 
   /** Clip de una sola vez (saludo, celebrar…): al acabar vuelve a la locomoción. */
@@ -147,10 +163,11 @@ export class GlbChar {
     if (on && !this.oneShot) this.play('Talk');
   }
 
-  /** Cara: boca (Normal, Happy, Surprised, Scared, Talk_A, Talk_O, Tired), cejas (Normal, Angry, Worried), mano derecha (Open, Fist, Point). */
+  /** Cara: boca (Neutral, Smile, SmileOpen, Surprised, Scared, TalkA, TalkO, Tired), cejas (Normal, Happy, Angry,
+   *  Worried, Surprised) y manos (Open, Fist, Point). Acepta también los nombres antiguos (Normal, Happy, Talk_A…). */
   setFace(mouth, brow, hand) {
-    if (mouth) { this.face.mouth = mouth; this._show('mouth', 'Mouth_' + mouth); }
-    if (brow) { this.face.brow = brow; this._show('brow', 'Brow_' + brow); }
+    if (mouth) { this.face.mouth = mouth; this._show('mouth', ...variantNames('Mouth_', mouth)); }
+    if (brow) { this.face.brow = brow; this._show('brow', ...variantNames('Brow_', brow)); }
     if (hand) {
       this.face.hand = hand;
       this._show('hand_R', 'Hand_R_' + hand) || this._show('hand_R', 'Hand_R_Open');
@@ -164,9 +181,10 @@ export class GlbChar {
     this.faceLock = secs;
   }
 
-  _show(group, name) {
-    const list = this.groups[group];
-    if (!list || !list.some(m => m.name === name)) return false;
+  _show(group, ...names) {
+    const list = this.groups[group]; if (!list) return false;
+    const name = names.find(n => list.some(m => m.name === n));
+    if (!name) return false;
     for (const m of list) m.visible = m.name === name;
     return true;
   }
@@ -193,12 +211,13 @@ export class GlbChar {
       this.play(want);
       if (this.current) this.current.timeScale = scale;
     }
+    // los huesos que se tocan después del mixer vuelven a su base (un clip puede no animarlos)
+    for (const b of this.postBones) b.quaternion.copy(b.userData.q0);
     this.mixer.update(dt);
     // expresión fijada
     if (this.faceLock > 0 && (this.faceLock -= dt) <= 0) {
       this.faceLock = 0;
-      const ex = this.clipExtras[this.currentName];
-      if (ex && ex.face) this.setFace(ex.face, ex.brow, ex.hand);
+      this._clipFace(this.currentName);
     }
     // boca al hablar: alterna A/O
     if (this.currentName === 'Talk' && !this.faceLock) {
@@ -206,13 +225,14 @@ export class GlbChar {
       if (this.talkT <= 0) {
         this.talkT = 0.09 + Math.random() * 0.12;
         const r = Math.random();
-        this._show('mouth', r < 0.45 ? 'Mouth_Talk_A' : r < 0.8 ? 'Mouth_Talk_O' : 'Mouth_Normal');
+        const m = r < 0.45 ? 'TalkA' : r < 0.8 ? 'TalkO' : 'Neutral';
+        this._show('mouth', ...variantNames('Mouth_', m));
       }
     }
     // parpadeo cada 2–5 s durante 120 ms
     if (this.blinkLeft > 0) {
       this.blinkLeft -= dt;
-      this._lid(this.blinkLeft > 0.04 && this.blinkLeft < 0.08 ? 'Eyelid_Closed' : this.blinkLeft > 0 ? 'Eyelid_Half' : '');
+      this._lid(this.blinkLeft > 0.04 && this.blinkLeft < 0.08 ? 'Eyelid_Closed' : this.blinkLeft > 0 ? 'Eyelid_Half' : this.lidOpen);
     } else if ((this.blinkT -= dt) <= 0) {
       this.blinkT = 2 + Math.random() * 3;
       this.blinkLeft = 0.12;
@@ -224,6 +244,7 @@ export class GlbChar {
     }
     this.look.lerp(this.lookTarget, Math.min(1, dt * 14));
     if (this.eyeMat && this.eyeMat.map) this.eyeMat.map.offset.set(-this.look.x * 0.07, -this.look.y * 0.05);
+    for (const b of this.eyeBones) { _q.setFromEuler(_e.set(-this.look.y * 0.18, 0, this.look.x * 0.22)); b.quaternion.multiply(_q); }
     this._updateSprings(dt);
   }
 
@@ -268,9 +289,9 @@ export class GlbChar {
 
 // ---- personajes GLB elegibles como avatar del jugador ----
 
-// scale: en el juego se igualan a la altura de las minifiguras de la cuadrilla (≈1,36 m)
+// scale: el protagonista mide 1,66 m (tabla de huesos del encargo) y va a su tamaño
 export const GLB_AVATARS = {
-  benat: { url: protagonistaUrl, scale: 1.2, bust: protagonistaBust, full: protagonistaFull },
+  benat: { url: protagonistaUrl, scale: 1.0, bust: protagonistaBust, full: protagonistaFull },
 };
 export const isGlbAvatar = id => !!GLB_AVATARS[id];
 export const loadGlbAvatar = id => loadChar(GLB_AVATARS[id].url);
@@ -285,9 +306,9 @@ export class GlbRig {
   constructor(gltf, id = 'benat') {
     const def = GLB_AVATARS[id] || {};
     this.obj = new THREE.Group();
-    // la zancada del modelo a escala es corta para las velocidades del juego (3,3 y 6,8 m/s): el ritmo sube con la
-    // raíz de la velocidad para que las piernas no se vuelvan frenéticas
-    this.char = new GlbChar(gltf, { outline: 0.006, walkAt: 0.2, runAt: 4.6, gait: (v, n) => Math.sqrt(Math.max(0.2, v) / (n === 'Run' ? 2.6 : 1.1)) });
+    // zancada natural de los clips: Walk ≈ 1,0 m/s y Run ≈ 2,5 m/s. Las velocidades del juego (3,3 y 6,8 m/s) son
+    // mayores: el ritmo sube con la raíz de la velocidad para que las piernas no se vuelvan frenéticas
+    this.char = new GlbChar(gltf, { outline: 0.006, walkAt: 0.2, runAt: 4.6, gait: (v, n) => Math.sqrt(Math.max(0.2, v) / (n === 'Run' ? 2.5 : 1.0)) });
     this.char.root.scale.setScalar(def.scale || 1);
     this.obj.add(this.char.root);
     this.wave = 0; this.cheer = 0; this.talking = 0; this.carry = false;

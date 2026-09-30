@@ -1,6 +1,6 @@
 // Aligera un GLB de personaje sin Draco: quita claves de animación redundantes, une datos repetidos
 // y cuantiza los atributos (KHR_mesh_quantization, que three.js lee sin decodificador).
-// Uso: node tools/chars/optimize.mjs <entrada.glb> [salida.glb]
+// Uso: node tools/blender/optimize.mjs <entrada.glb> [salida.glb]
 import { NodeIO } from '@gltf-transform/core';
 import { KHRONOS_EXTENSIONS } from '@gltf-transform/extensions';
 import { dedup, prune, resample, quantize } from '@gltf-transform/functions';

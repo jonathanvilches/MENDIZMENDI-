@@ -28,7 +28,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { loadChar, GlbChar } from '../src/actors/glbChar.js';
 
-const CHARS = { protagonista: '../src/assets/chars/char_protagonista.glb' };
+const CHARS = { protagonista: '../src/assets/chars/char_protagonista.glb', 'protagonista (LOD)': '../src/assets/chars/char_protagonista_lod.glb' };
 const q = new URLSearchParams(location.search);
 const shot = q.has('shot');
 if (shot) document.body.classList.add('shot');
@@ -71,7 +71,7 @@ async function show(who) {
   });
   const a = actors[0];
   fill($('clip'), a.clips, 'Idle');
-  fill($('mouth'), a.groups.mouth.map(m => m.name.slice(6)), 'Normal');
+  fill($('mouth'), a.groups.mouth.map(m => m.name.slice(6)), 'Neutral');
   fill($('brow'), a.groups.brow.map(m => m.name.slice(5)), 'Normal');
   fill($('hand'), a.groups.hand_R.map(m => m.name.slice(7)), 'Open');
   // cámara
