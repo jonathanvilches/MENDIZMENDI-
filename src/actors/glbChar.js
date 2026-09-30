@@ -5,9 +5,22 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
+import protagonistaUrl from '../assets/chars/char_protagonista.glb?url';
+import protagonistaBust from '../assets/chars/portrait_protagonista.png?url';
+import protagonistaFull from '../assets/chars/portrait_protagonista_full.png?url';
 
 const cache = new Map();
 let loader = null;
+const outlines = new Map();
+function outlineMat(w) {
+  if (!outlines.has(w)) {
+    const m = new THREE.MeshBasicMaterial({ color: '#2a1a14', side: THREE.BackSide });
+    m.onBeforeCompile = sh => { sh.vertexShader = sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>\ntransformed += normal * ${w.toFixed(4)};`); };
+    m.customProgramCacheKey = () => 'glbOutline' + w;
+    outlines.set(w, m);
+  }
+  return outlines.get(w);
+}
 
 /** Carga (una sola vez por url) el GLB de un personaje. */
 export function loadChar(url) {
@@ -26,7 +39,8 @@ const GROUPS = { mouth: 'Mouth_', brow: 'Brow_', lid: 'Eyelid_' };
 export class GlbChar {
   /**
    * @param {object} gltf resultado de loadChar
-   * @param {object} [opt] { timeScale: multiplicador de ritmo (Kike 1.15), walkAt, runAt: velocidades de cambio }
+   * @param {object} [opt] { timeScale: multiplicador de ritmo (Kike 1.15), walkAt, runAt: velocidades de cambio,
+   *   gait(v, 'Walk'|'Run'): ritmo del clip según la velocidad (por defecto v / 4,3 y v / 7,2 como en el encargo) }
    */
   constructor(gltf, opt = {}) {
     this.root = SkeletonUtils.clone(gltf.scene);
@@ -81,7 +95,21 @@ export class GlbChar {
     this.lookT = 1 + Math.random() * 2;
     this.talkT = 0;
     this._initSprings();
+    if (opt.outline) this._addOutline(opt.outline);
     this.play('Idle', 0);
+  }
+
+  // contorno de dibujo (casco invertido) en las mallas grandes, a juego con las minifiguras
+  _addOutline(w) {
+    const mat = outlineMat(w);
+    for (const n of ['Body', 'Head', 'Hair', 'Acc_Scarf']) {
+      const m = this.meshes[n];
+      if (!m || !m.isSkinnedMesh) continue;
+      const o = new THREE.SkinnedMesh(m.geometry, mat);
+      o.bind(m.skeleton, m.bindMatrix);
+      o.frustumCulled = false; o.userData.outline = true; o.name = n + '_Outline';
+      m.parent.add(o);
+    }
   }
 
   get clips() { return Object.keys(this.actions); }
@@ -158,8 +186,9 @@ export class GlbChar {
       if (this.oneShot) this.oneShot = null;
       const v = this.speed, ts = this.opt.timeScale;
       let want = 'Idle', scale = ts;
-      if (v > this.opt.runAt && this.actions.Run) { want = 'Run'; scale = ts * Math.max(0.6, v / RUN_REF); }
-      else if (v > this.opt.walkAt && this.actions.Walk) { want = 'Walk'; scale = ts * Math.max(0.35, v / WALK_REF); }
+      const gait = this.opt.gait;
+      if (v > this.opt.runAt && this.actions.Run) { want = 'Run'; scale = ts * (gait ? gait(v, 'Run') : Math.max(0.6, v / RUN_REF)); }
+      else if (v > this.opt.walkAt && this.actions.Walk) { want = 'Walk'; scale = ts * (gait ? gait(v, 'Walk') : Math.max(0.35, v / WALK_REF)); }
       else if (this.talking && this.actions.Talk) want = 'Talk';
       this.play(want);
       if (this.current) this.current.timeScale = scale;
@@ -235,4 +264,62 @@ export class GlbChar {
     this.mixer.uncacheRoot(this.root);
     if (this.eyeMat) { this.eyeMat.map && this.eyeMat.map.dispose(); this.eyeMat.dispose(); }
   }
+}
+
+// ---- personajes GLB elegibles como avatar del jugador ----
+
+// scale: en el juego se igualan a la altura de las minifiguras de la cuadrilla (≈1,36 m)
+export const GLB_AVATARS = {
+  benat: { url: protagonistaUrl, scale: 1.2, bust: protagonistaBust, full: protagonistaFull },
+};
+export const isGlbAvatar = id => !!GLB_AVATARS[id];
+export const loadGlbAvatar = id => loadChar(GLB_AVATARS[id].url);
+
+const EXPR = {
+  happy: ['Happy', 'Normal'], surprised: ['Surprised', 'Normal'], scared: ['Scared', 'Worried'], worried: ['Normal', 'Worried'],
+  sad: ['Tired', 'Worried'], tired: ['Tired', 'Worried'], angry: ['Normal', 'Angry'], thinking: ['Normal', 'Worried'], neutral: ['Normal', 'Normal'],
+};
+
+/** Adaptador con la misma interfaz que MinifigRig (update, doWave, doCheer, setExpr, doAct, carry). */
+export class GlbRig {
+  constructor(gltf, id = 'benat') {
+    const def = GLB_AVATARS[id] || {};
+    this.obj = new THREE.Group();
+    // la zancada del modelo a escala es corta para las velocidades del juego (3,3 y 6,8 m/s): el ritmo sube con la
+    // raíz de la velocidad para que las piernas no se vuelvan frenéticas
+    this.char = new GlbChar(gltf, { outline: 0.006, walkAt: 0.2, runAt: 4.6, gait: (v, n) => Math.sqrt(Math.max(0.2, v) / (n === 'Run' ? 2.6 : 1.1)) });
+    this.char.root.scale.setScalar(def.scale || 1);
+    this.obj.add(this.char.root);
+    this.wave = 0; this.cheer = 0; this.talking = 0; this.carry = false;
+    this.air = 0; this.wasGrounded = true;
+  }
+  update(dt, speed, grounded, turnRate) {
+    const c = this.char;
+    if (this.wave > 0) this.wave -= dt;
+    if (this.cheer > 0) this.cheer -= dt;
+    if (this.talking > 0) this.talking -= dt;
+    // saltos: impulso al despegar, bucle en el aire y caída al tocar suelo
+    if (!grounded) this.air += dt;
+    if (this.wasGrounded && !grounded) c.playOnce('Jump_Start', 0.25);
+    else if (!grounded && !c.oneShot) c.playOnce('Jump_Loop', 0.1);
+    else if (!this.wasGrounded && grounded) { if (this.air > 0.25) c.playOnce('Land', 0.25); else c.oneShot = null; this.air = 0; }
+    this.wasGrounded = grounded;
+    if (grounded && !c.oneShot) {
+      if (this.cheer > 0) c.playOnce('Celebrate', this.cheer);
+      else if (this.wave > 0 && speed < 1) c.playOnce('Wave', this.wave);
+    }
+    c.setTalking(this.talking > 0);
+    c.setSpeed(speed);
+    c.update(dt);
+  }
+  doWave() { this.wave = 1.4; this.char.oneShot = null; }
+  doCheer() { this.cheer = 2; this.char.oneShot = null; this.char.holdFace('Happy', 'Normal', 2.6, 'Fist'); }
+  setExpr(name, dur = 2) { const e = EXPR[name] || EXPR.neutral; this.char.holdFace(e[0], e[1], dur); }
+  doAct(kind, t = 0.5) {
+    const c = this.char;
+    if (kind === 'pick') c.playOnce('Land', t);
+    else if (kind === 'point') { c.playOnce('Talk', t); c.holdFace('Happy', 'Normal', t, 'Point'); }
+    else { c.playOnce('Wave', t); c.holdFace('Happy', 'Normal', t, 'Fist'); }
+  }
+  dispose() { this.char.dispose(); }
 }

@@ -36,7 +36,7 @@ export const EU_EXACT = {
   'Guardiana del bosque': 'Basozaina', 'Joaldun': 'Joalduna', 'Hortelana': 'Baratzezaina',
   '«Siempre llega la primera»': '«Beti iristen da lehena»', '«Fuerte como un roble»': '«Haritza bezain indartsua»', '«Baila sobre el puente»': '«Zubi gainean dantzatzen du»',
   '«Nunca falla un rebote»': '«Ez du errebote bat ere huts egiten»', '«Conoce todas las cimas»': '«Gailur guztiak ezagutzen ditu»', '«Pone música a todo»': '«Denari musika jartzen dio»',
-  '«Habla con los animales»': '«Animaliekin hitz egiten du»', '«Hace sonar la montaña»': '«Mendia soinuz betetzen du»', '«Sabe cuándo está madura cada verdura»': '«Badaki barazki bakoitza noiz dagoen heldua»',
+  '«Habla con los animales»': '«Animaliekin hitz egiten du»', '«Hace sonar la montaña»': '«Mendia soinuz betetzen du»', '«Sabe cuándo está madura cada verdura»': '«Badaki barazki bakoitza noiz dagoen heldua»', '«Conoce cada senda de la sierra»': '«Mendilerroko bide guztiak ezagutzen ditu»',
   'Corre más que nadie por las calles de Pamplona. Lleva su pañuelo rojo desde el 6 de julio hasta que se le olvida quitárselo.': 'Inork baino azkarrago korrika egiten du Iruñeko kaleetan. Zapi gorria uztailaren 6tik darama, kentzea ahazten zaion arte.',
   'Aprende a cortar troncos con su aitona en Leitza. Tiene un hacha de madera y un respeto enorme por el bosque.': 'Aitonarekin enborrak mozten ikasten ari da Leitzan. Egurrezko aizkora bat du eta basoarekiko errespetu handia.',
   'Ensaya el Zubigainekoa encima del pretil del río Onin. Dice que el equilibrio se aprende bailando.': 'Zubigainekoa entseatzen du Onin ibaiaren zubi-hormaren gainean. Dio oreka dantzatuz ikasten dela.',
@@ -51,6 +51,8 @@ export const EU_EXACT = {
   'Orientación: la luz dorada brilla más fuerte': 'Orientazioa: urrezko argiak indartsuago distiratzen du', 'Melodía: las canciones y tradiciones son más fáciles': 'Doinua: abestiak eta tradizioak errazagoak dira',
   'Mirada de guarda: observa animales sin asustarlos': 'Basozainaren begirada: animaliak beldurtu gabe behatzen ditu', 'Cencerro: oye a los personajes escondidos desde más lejos': 'Joarea: ezkutatutako pertsonaiak urrunagotik entzuten ditu',
   'Buena mano: recoge más deprisa en las cosechas': 'Esku ona: uztetan azkarrago biltzen du',
+  'Buen pastor: los animales se dejan acercar más': 'Artzain ona: animaliak gehiago hurbiltzen uzten dute',
+  'Sube con las ovejas latxas a los pastos de Urbasa y Andia. Su pañuelo rojo se ve desde lejos entre la niebla del hayedo.': 'Ardi latxekin igotzen da Urbasa eta Andiako larreetara. Bere zapi gorria urrunetik ikusten da pagadiko lainoaren artean.',
   // --- intsigniak, pasaportea, profila ---
   'Primer sello': 'Lehen zigilua', 'Completa tu primer pueblo.': 'Osatu zure lehen herria.', 'Viajero': 'Bidaiaria', 'Sella cinco pueblos.': 'Zigilatu bost herri.',
   'Trotamundos navarro': 'Nafar munduz mundukoa', 'Sella diez pueblos.': 'Zigilatu hamar herri.', 'Navarra entera': 'Nafarroa osoa', 'Sella todos los pueblos del juego.': 'Zigilatu jokoko herri guztiak.',

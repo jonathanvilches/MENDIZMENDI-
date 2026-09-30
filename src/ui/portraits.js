@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { buildMinifig, lookToMinifig, COSTUMES } from '../actors/minifig.js';
 import { offscreen, offscreenCanvas } from '../util/offscreen.js';
 import { getImg, putImg, enqueue } from '../util/store.js';
+import { GLB_AVATARS } from '../actors/glbChar.js';
 
 let R = null, scene, cam;
 const cache = new Map();
@@ -47,7 +48,9 @@ export function portrait(look, mode = 'bust', isMini = false) {
     return url;
   } catch (e) { console.warn('retrato', e); return ''; }
 }
-export const avatarPortrait = (id, mode = 'bust') => portrait(COSTUMES[id] || COSTUMES.leire, mode, true);
+// los avatares GLB traen su retrato ya renderizado (tools/charportraits.mjs)
+const glbPortrait = (id, mode) => GLB_AVATARS[id] && (mode === 'full' ? GLB_AVATARS[id].full : GLB_AVATARS[id].bust);
+export const avatarPortrait = (id, mode = 'bust') => glbPortrait(id, mode) || portrait(COSTUMES[id] || COSTUMES.leire, mode, true);
 
 // <img> del retrato sin bloquear: si aún no está hecho, se dibuja en segundo plano y aparece luego
 const BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
@@ -60,4 +63,4 @@ export function portraitImg(look, mode = 'bust', isMini = false) {
   enqueue('p:' + key, () => { const u = portrait(look, mode, isMini); for (const i of document.querySelectorAll(`img[data-pk="${id}"]`)) { i.src = u; i.removeAttribute('data-pk'); } }, true);
   return `<img src="${BLANK}" data-pk="${id}" alt="">`;
 }
-export const avatarPortraitImg = (id, mode = 'bust') => portraitImg(COSTUMES[id] || COSTUMES.leire, mode, true);
+export const avatarPortraitImg = (id, mode = 'bust') => { const g = glbPortrait(id, mode); return g ? `<img src="${g}" alt="">` : portraitImg(COSTUMES[id] || COSTUMES.leire, mode, true); };
