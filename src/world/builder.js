@@ -22,7 +22,9 @@ export function makeMaterials() {
     tile: withTex(TEX.roofTile, { roughness: 0.8 }),
     wood: withTex(TEX.wood),
     woodDark: withTex(TEX.woodDark),
-    glass: std({ color: '#1d2a33', roughness: 0.15, metalness: 0.3, emissive: new THREE.Color('#ffb85a'), emissiveIntensity: 0 }),
+    // cristal mate (Lambert, sin brillo especular): no hace reflejos al girar la cámara; de noche se enciende con el emisivo
+    // y con prioridad de profundidad sobre la pared, para que no parpadee de lejos ni en móviles con poca precisión
+    glass: new THREE.MeshLambertMaterial({ color: '#2a3c4b', emissive: new THREE.Color('#ffb85a'), emissiveIntensity: 0, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }),
     water: std({ color: '#3b7f9c', roughness: 0.05, metalness: 0.3, envMapIntensity: 1.2 }),
     paint: std({ vertexColors: true, roughness: 0.7 }),
     iron: std({ color: '#2a2a2e', roughness: 0.5, metalness: 0.6 }),
