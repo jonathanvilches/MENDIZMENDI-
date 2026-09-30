@@ -181,6 +181,7 @@ export class UI {
       let i = 0, typing = null, full = '', lastChoice = -1, lastFace = null;
       const show = () => {
         const L = lines[i];
+        this.onDialogLine?.(L);
         const fk = L.look ? JSON.stringify(L.look) : L.icon || 'talk';
         if (fk !== lastFace) {
           lastFace = fk;

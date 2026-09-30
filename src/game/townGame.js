@@ -77,6 +77,13 @@ export class TownGame {
     Object.assign(this, ctx);        // scene, camera, player, follow, ui, sound, input, sky, fauna, particles, beacon, onExit
     this.def = def;
     this.kind = 'town';
+    // la cara de quien habla sigue lo que dice: alegría, duda, susto o pena
+    this.ui.onDialogLine = (L) => {
+      const a = this.speaker; if (!a?.anim?.setExpr || !L?.text) return;
+      const t = L.text;
+      const e = /miedo|cuidado|oscur|de noche|susto|¡ay|socorro/i.test(t) ? 'surprised' : /triste|perdid|perdió|se han ido|nadie/i.test(t) ? 'sad' : /\?$|¿/.test(t) ? 'thinking' : /!/.test(t) ? 'happy' : null;
+      if (e) a.anim.setExpr(e, 2.4);
+    };
     this.comarca = COMARCAS.find(c => c.id === def.comarca);
     this.P = profile();
     this.ts = townState(this.P, def.id);
@@ -344,10 +351,10 @@ export class TownGame {
   }
   async talk(a) {
     const M = a.mission;
-    a.say(4); this.player.frozen = true;
+    a.say(4); this.player.frozen = true; this.speaker = a;
     this.player.heading = Math.atan2(a.pos.x - this.player.pos.x, a.pos.z - this.player.pos.z);
     const first = M && !M.done && M.step === 0;
-    try { await this.dialog(M, a); } finally { this.player.frozen = false; a.talking = 0; }
+    try { await this.dialog(M, a); } finally { this.player.frozen = false; a.talking = 0; this.speaker = null; }
     // la voz del narrador abre cada misión con un pequeño misterio
     if (first && M.step > 0 && M.type !== 'legend') { const h = this.hook(M); if (h) setTimeout(() => this.ui.whisper?.(h, 5200), 400); }
     this.autoTrack();
@@ -726,7 +733,7 @@ export class TownGame {
   }
   async meetCreature(M) {
     const a = M.creature; if (!a) return;
-    this.player.frozen = true; a.say(5);
+    this.player.frozen = true; a.say(5); this.player.rig.setExpr?.('surprised', 3);
     this.player.heading = Math.atan2(a.pos.x - this.player.pos.x, a.pos.z - this.player.pos.z);
     a.heading = Math.atan2(this.player.pos.x - a.pos.x, this.player.pos.z - a.pos.z);
     try { await this.say(a, M.leg.meet); } finally { this.player.frozen = false; }
