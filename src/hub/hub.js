@@ -150,19 +150,14 @@ export class Hub {
     const chapter = COMARCAS.findIndex(c => c.id === last.comarca) + 1;
     let doneM = 0, totM = 0; for (const l of LEVELS) { const t = townProgress(p, l); doneM += t.done; totM += t.total; }
     const av = AVATARS.find(a => a.id === p.avatar) || AVATARS[0];
-    const lines = this.storyLines(p, av, last);
     const done = p.towns[last.id]?.done || {};
     const ms = (last.missions || []).map((m, i) => `<span class="mi ${done[i] ? 'ok' : ''}" title="${esc(m.title || m.name || TYPE_NAME[m.type] || '')}">${I(TYPE_ICON[m.type] || 'star', 40)}${done[i] ? `<i class="tick">${I('check', 16)}</i>` : ''}</span>`).join('');
     this.after = () => {
       // el escenario 3D se monta después de pintar la pantalla, para que aparezca al instante
       // (salvo que otro escenario, como el selector de bienvenida, esté ya en uso encima)
       const host = $('#heroStage', this.root);
-      requestAnimationFrame(() => setTimeout(() => { if (!host.isConnected) return; const cur = Stage.current; if (cur?.alive && cur.host !== host && cur.host.isConnected) return; this.stage = new Stage(host, p.avatar, { mode: 'scene', comarca: last.comarca }); this.stage.onPoke = () => { say(k + 1); this.sound?.ui('click'); }; }, 50));
-      let k = 0; const bub = $('#hBubble p', this.root);
-      const say = (i) => { k = (i + lines.length) % lines.length; bub.classList.remove('in'); void bub.offsetWidth; bub.textContent = lines[k]; bub.classList.add('in'); $('#hBubble .dots', this.root).innerHTML = lines.map((_, j) => `<i class="${j === k ? 'on' : ''}"></i>`).join(''); };
-      say(0);
-      clearInterval(this.bubT); this.bubT = setInterval(() => { if (!bub.isConnected) return clearInterval(this.bubT); say(k + 1); }, 6500);
-      $('#hBubble', this.root).onclick = () => { say(k + 1); clearInterval(this.bubT); };
+      // portada de juego: el personaje posa (sin bocadillo); al tocarlo saluda y salta
+      requestAnimationFrame(() => setTimeout(() => { if (!host.isConnected) return; const cur = Stage.current; if (cur?.alive && cur.host !== host && cur.host.isConnected) return; this.stage = new Stage(host, p.avatar, { mode: 'scene', comarca: last.comarca }); this.stage.onPoke = () => this.sound?.ui('click'); }, 50));
       this.drawMiniMap($('#homeMap', this.root));
       this.lazyLand();
     };
@@ -172,7 +167,6 @@ export class Hub {
       <div id="heroStage" class="stage-host"></div>
       <div class="h-shade"></div>
       <button class="chapter" data-comarca="${last.comarca}" style="--c:${cm?.color}"><img src="${stampImg(last.comarca)}" alt=""><span><small>Capítulo ${chapter} · ${esc(cm?.name || '')}</small><b>${cpr.stamps}/${cts.length} sellos de la comarca</b><span class="cbar"><i style="width:${cts.length ? cpr.stamps / cts.length * 100 : 0}%"></i></span></span></button>
-      <div class="bubble" id="hBubble"><b>${esc(av.name)}</b><p></p><span class="dots"></span></div>
       <div class="h-bot">
         <small class="kicker">${lp.done ? 'Sigue tu aventura en' : 'Próxima parada'}</small>
         <h1>${esc(last.name.split(' /')[0])}</h1>

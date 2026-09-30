@@ -18,7 +18,10 @@ let CP = 0;
 function shaded(tag, attrs, fill, extra = '', stroke = true) {
   if (!fill || fill === 'none' || fill[0] !== '#') return `<${tag} ${attrs} fill="${fill || 'none'}" ${stroke ? `stroke="${O}" stroke-width="${SW}" stroke-linejoin="round" stroke-linecap="round"` : ''} ${extra}/>`;
   const id = 'cp' + (++CP);
-  return `<clipPath id="${id}"><${tag} ${attrs}/></clipPath><${tag} ${attrs} fill="${dk(fill)}" ${extra}/><g clip-path="url(#${id})"><${tag} ${attrs} fill="${fill}" transform="translate(-2.4 -1.8)" ${extra}/></g>` +
+  // la luz se desplaza con un translate; si la forma ya lleva transform (una elipse girada) se combina en el mismo
+  // atributo: dos transform en una etiqueta invalidan el SVG cuando se usa como imagen (sellos) y sale roto en Safari
+  const lit = /transform="/.test(`${attrs} ${extra}`) ? `${attrs} ${extra}`.replace(/transform="([^"]*)"/, 'transform="translate(-2.4 -1.8) $1"') : `${attrs} transform="translate(-2.4 -1.8)" ${extra}`;
+  return `<clipPath id="${id}"><${tag} ${attrs}/></clipPath><${tag} ${attrs} fill="${dk(fill)}" ${extra}/><g clip-path="url(#${id})"><${tag} ${lit} fill="${fill}"/></g>` +
     (stroke ? `<${tag} ${attrs} fill="none" stroke="${O}" stroke-width="${SW}" stroke-linejoin="round" stroke-linecap="round"/>` : '');
 }
 const gf = (c) => c;
