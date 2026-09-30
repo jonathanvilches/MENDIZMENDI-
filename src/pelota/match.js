@@ -50,7 +50,7 @@ export class PelotaMatch {
       <ol>${t.rules.map(r => `<li>${r}</li>`).join('')}</ol>
       <div class="pel-ctrl">${this.touch ? t.ctrlTouch : t.ctrlKeys}</div>
       ${this.o.fixedLevel ? '' : `<div class="pel-levels">${lv.map(([k, l]) => `<button data-pel-lv="${k}" aria-pressed="${k === this.level}">${l}</button>`).join('')}</div>`}
-      <div class="pel-row"><button class="pel-go alt" data-pel-x>${t.exit}</button><button class="pel-go" data-pel-go>${t.play}</button></div>`);
+      <div class="pel-row"><button class="pel-go alt" data-pel-x>${t.later}</button><button class="pel-go" data-pel-go>${t.play}</button></div>`);
     p.addEventListener('click', (e) => {
       const b = e.target.closest('button'); if (!b) return;
       if (b.dataset.pelLv) { this.level = b.dataset.pelLv; for (const x of p.querySelectorAll('[data-pel-lv]')) x.setAttribute('aria-pressed', x.dataset.pelLv === this.level); this.newGame(); }

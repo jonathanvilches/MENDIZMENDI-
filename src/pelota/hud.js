@@ -41,7 +41,7 @@ const CSS = `
 .pel-card .pel-ctrl{font-size:14px;line-height:1.35;background:#f1ecff;border-radius:12px;padding:10px 12px;margin:0 0 14px}
 .pel-card .pel-big{font-family:var(--pel-display,inherit);font-size:48px;text-align:center;margin:6px 0}
 .pel-card .pel-fact{background:#fff1c7;border-radius:12px;padding:10px 12px;margin:10px 0 14px;font-size:15px;line-height:1.35}
-.pel-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end}
+.pel-row{display:flex;gap:10px}.pel-row .pel-go{flex:1 1 0;min-width:0;white-space:nowrap}@media (max-width:440px){.pel-row{flex-direction:column-reverse}.pel-row .pel-go{flex:none;width:100%}}
 .pel-levels{display:flex;gap:8px;margin:0 0 14px;flex-wrap:wrap}
 .pel-levels button{flex:1;min-width:90px;border-radius:12px;border:2px solid #d8cff5;background:#fff;color:#1a1030;padding:9px 6px;font-weight:800;cursor:pointer}
 .pel-levels button[aria-pressed=true]{background:#6a4fb3;border-color:#6a4fb3;color:#fff}
