@@ -27,7 +27,8 @@ def legs(p, upL, upR, kL, kR):
     p['LeftLeg'] = Rx(kL) @ p['LeftUpLeg']; p['RightLeg'] = Rx(kR) @ p['RightUpLeg']
     # giro en el mundo: el pie se queda casi plano (solo un 12 % de la inclinación de la espinilla:
     # punta arriba al apoyar el talón delante y talón levantado detrás)
-    p['LeftFoot'] = Rx((upL + kL) * 0.12); p['RightFoot'] = Rx((upR + kR) * 0.12)
+    # (26 %: el talón se levanta al impulsarse detrás y la punta sube al apoyar delante)
+    p['LeftFoot'] = Rx((upL + kL) * 0.26); p['RightFoot'] = Rx((upR + kR) * 0.26)
     p['LeftToeBase'] = p['LeftFoot']; p['RightToeBase'] = p['RightFoot']
     return p
 
@@ -55,11 +56,11 @@ def clips(H=1.62):
         return p
     out.append(('Idle', 96, idle, True, F('Neutral')))
     # paso: contacto del talón izquierdo en 0 y del derecho en 15
-    def walk(t, T, amp=0.5, knee=0.95, lean=0.06, arm=0.42, bob=0.018):
+    def walk(t, T, amp=0.6, knee=1.0, lean=0.07, arm=0.46, bob=0.02):
         ph = TAU * t / T; p = {}
         upL, upR = -amp * math.cos(ph), amp * math.cos(ph)
         kL = 0.06 + knee * max(0, -math.sin(ph)) ** 1.2; kR = 0.06 + knee * max(0, math.sin(ph)) ** 1.2
-        spine(p, lean=lean, yaw=0.08 * math.cos(ph), head=Rx(-0.02 * math.sin(2 * ph)), hips=Rz(-0.12 * math.cos(ph)))
+        spine(p, lean=lean, yaw=0.09 * math.cos(ph), head=Rx(-0.02 * math.sin(2 * ph)), hips=Rz(-0.15 * math.cos(ph)) @ Ry(0.04 * math.cos(ph)))
         p['_hips_loc'] = Vector((0, 0, -bob * math.cos(2 * ph) - bob))
         arms(p, arm * math.cos(ph), -arm * math.cos(ph), 0.35, 0.35, 0.06, 0.06)
         legs(p, upL, upR, kL, kR)

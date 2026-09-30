@@ -61,19 +61,29 @@ if (!only || only === 'paisaje') {
   await free();
 }
 if (!only || only === 'avatar') {
-  const P0 = spots.plaza;
-  // 5) cara del protagonista de frente
-  await p.evaluate((P0) => { const G = window.__game, THREE = window.__THREE; G.player.place(P0.x + 4, P0.z + 8, 0); const pl = G.player.pos; const pos = new THREE.Vector3(pl.x, pl.y + 1.35, pl.z + 1.6), look = new THREE.Vector3(pl.x, pl.y + 1.25, pl.z); G.follow.cinematic = { pos, look, t: 0, lookCur: look.clone() }; }, P0);
-  await p.waitForTimeout(3000); await shot('5-cara');
-  await p.evaluate(() => { const G = window.__game, THREE = window.__THREE, pl = G.player.pos; const pos = new THREE.Vector3(pl.x + 2.6, pl.y + 1.0, pl.z + 2.6), look = new THREE.Vector3(pl.x, pl.y + 0.8, pl.z); G.follow.cinematic = { pos, look, t: 0, lookCur: look.clone() }; });
-  await p.waitForTimeout(2000); await shot('6-cuerpo');
-  // 7) andando y girando: se simula el joystick hacia un lado y se captura a mitad del giro
+  const F = spots.fields;
   await free();
-  await p.evaluate(() => { const G = window.__game; G.follow.snap(G.player); G.input.keys.add('d'); G.input.keys.add('w'); });
-  await p.waitForTimeout(700); await shot('7-giro');
-  await p.evaluate(() => { const G = window.__game; G.input.keys.delete('d'); });
-  await p.waitForTimeout(1500); await shot('8-andar');
-  await p.evaluate(() => { const G = window.__game; G.input.runToggle = true; }); await p.waitForTimeout(1500); await shot('9-correr');
+  const camAt = (dx, dy, dz, ly) => p.evaluate(([dx, dy, dz, ly]) => { const G = window.__game, THREE = window.__THREE, pl = G.player.pos, h = G.player.heading;
+    const c = Math.cos(h), s = Math.sin(h);
+    // dx a la derecha del personaje, dz delante de él
+    const pos = new THREE.Vector3(pl.x + c * dx + s * dz, pl.y + dy, pl.z - s * dx + c * dz), look = new THREE.Vector3(pl.x, pl.y + ly, pl.z);
+    G.follow.cinematic = { pos, look, t: 0, lookCur: look.clone() }; G.camera.position.copy(pos); G.camera.lookAt(look); }, [dx, dy, dz, ly]);
+  await p.evaluate((F) => { const G = window.__game; G.player.place(F.x, F.z, 0.6); }, F);
+  await camAt(0, 1.3, 1.25, 1.28); await p.waitForTimeout(2500); await shot('5-cara');
+  await camAt(0.9, 1.35, 1.0, 1.25); await p.waitForTimeout(1500); await shot('5b-cara-34');
+  await camAt(2.2, 1.0, 2.2, 0.8); await p.waitForTimeout(1500); await shot('6-cuerpo');
+  // andando: cámara lateral que acompaña, varios fotogramas seguidos
+  await free();
+  await p.evaluate(() => { const G = window.__game; G.follow.snap(G.player); G.input.keys.add('w'); });
+  await p.waitForTimeout(1500);
+  for (let k = 0; k < 4; k++) { await camAt(3.2, 1.0, 0.4, 0.8); await p.waitForTimeout(250); await shot('8-andar-' + k); }
+  // giro brusco a la derecha mientras anda
+  await free();
+  await p.evaluate(() => { const G = window.__game; G.follow.snap(G.player); G.input.keys.add('d'); G.input.keys.delete('w'); });
+  for (let k = 0; k < 3; k++) { await p.waitForTimeout(220); await shot('7-giro-' + k); }
+  await p.evaluate(() => { const G = window.__game; G.input.keys.delete('d'); G.input.keys.add('w'); G.input.runToggle = true; });
+  await p.waitForTimeout(1500);
+  for (let k = 0; k < 3; k++) { await camAt(3.6, 1.0, 0.6, 0.8); await p.waitForTimeout(200); await shot('9-correr-' + k); }
   await p.evaluate(() => { const G = window.__game; G.input.keys.clear(); G.input.runToggle = false; });
 }
 await browser.close();

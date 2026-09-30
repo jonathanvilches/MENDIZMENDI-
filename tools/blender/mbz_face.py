@@ -219,10 +219,28 @@ def decal_strip(bm, d, pts_top, pts_bot, lift, mat=0, part=None, val=0):
     return out
 
 def toy_eye(d, side):
-    """Ojo de punto: óvalo oscuro (se colorea con la pupila del atlas de ojos)."""
-    bm = bmesh.new()
-    decal_ellipse(bm, d, side * d['eye_x'], d['eye_z'], d['eye_w'] / 2, d['eye_h'] / 2, 0.0015, n=20)
+    """Ojo de juguete: blanco ovalado y, un poco más adelante, el iris castaño con su pupila (del atlas de ojos).
+    part 0: blanco · part 1: iris (con uv por todo el iris del atlas, para que la mirada pueda moverse)."""
+    bm = bmesh.new(); part = bm.faces.layers.int.new('part')
+    ex, ez, ew, eh = side * d['eye_x'], d['eye_z'], d['eye_w'] / 2, d['eye_h'] / 2
+    sw, sh = d.get('sclera', (1.45, 1.18)); io = d.get('iris_off', (0.0, -0.06))
+    decal_ellipse(bm, d, ex, ez, ew * sw, eh * sh, 0.0012, n=24, part=part, val=0)
+    decal_ellipse(bm, d, ex + side * io[0] * ew, ez + io[1] * eh, ew, eh, 0.0019, n=24, part=part, val=1)
     _outward(bm, d); return bm
+
+def toy_nose(d):
+    """Nariz de juguete: un botón redondeado, algo más ancho que alto, entre los ojos y la boca."""
+    bm = bmesh.new()
+    p, nn = Hm.face_point(d, 0.0, d['nose_z'], 0.0)
+    w, dp, h = d.get('nose_size', (0.021, 0.017, 0.016))
+    c = p + nn * (dp * 0.35); rows = uv_sphere_grid(12, 8)
+    vr = [[bm.verts.new(c + V((q[0] * w, q[1] * dp, q[2] * h))) for q in row] for row in rows]
+    tp = bm.verts.new(c + V((0, 0, h))); bt = bm.verts.new(c + V((0, 0, -h)))
+    for r1, r2 in zip(vr, vr[1:]):
+        for j in range(12): bm.faces.new((r1[j], r1[(j + 1) % 12], r2[(j + 1) % 12], r2[j]))
+    for j in range(12): bm.faces.new((tp, vr[0][(j + 1) % 12], vr[0][j])); bm.faces.new((bt, vr[-1][j], vr[-1][(j + 1) % 12]))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
+    return bm
 
 def toy_glints(d, side):
     ex, ez, ew, eh = side * d['eye_x'], d['eye_z'], d['eye_w'] / 2, d['eye_h'] / 2
@@ -237,7 +255,8 @@ def toy_lid(d, kind):
     """Párpados de los dos ojos: piel que tapa el ojo (material 0) y la raya del ojo cerrado (material 1)."""
     bm = bmesh.new()
     for side in (1, -1):
-        ex, ez, ew, eh = side * d['eye_x'], d['eye_z'], d['eye_w'] / 2 * 1.2, d['eye_h'] / 2 * 1.2
+        sw, sh = d.get('sclera', (1.45, 1.18))                                          # tapan el blanco entero
+        ex, ez, ew, eh = side * d['eye_x'], d['eye_z'], d['eye_w'] / 2 * sw * 1.1, d['eye_h'] / 2 * sh * 1.12
         if kind == 'Open':
             decal_ellipse(bm, d, ex, ez + eh * 0.9, ew * 0.3, eh * 0.08, -0.004, n=6)      # escondido: el ojo se ve entero
         elif kind == 'Half':
