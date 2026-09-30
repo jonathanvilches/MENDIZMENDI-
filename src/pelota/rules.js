@@ -86,7 +86,7 @@ export const TEXT = {
     facts: [
       'En la pelota a mano se juega con la mano desnuda. Los pelotaris se protegen los dedos con tacos y esparadrapo.',
       'La chapa es una banda de metal en la parte baja del frontis. Si la pelota da ahí, suena distinto y el tanto se pierde.',
-      'El suelo del frontón está dividido en cuadros de 3,5 metros, numerados desde el frontis.',
+      'La cancha está dividida en cuadros de 3,5 metros. Sus números no se pintan en el suelo, sino en la pared izquierda: una raya blanca con el número en un círculo.',
       'En los partidos, el kantari canta el tanteo en euskera, por ejemplo: «Bost eta lau, gorriak!» (cinco a cuatro, los rojos).',
       'Casi todos los pueblos de Navarra tienen frontón, muchas veces en la plaza, junto a la iglesia o el ayuntamiento.',
       'La dejada es un golpe suave que muere cerca del frontis; sirve para sorprender al rival cuando está al fondo.',
@@ -133,7 +133,7 @@ export const TEXT = {
     facts: [
       'Esku pilotan esku hutsez jokatzen da. Pilotariek atzamarrak tako eta esparatrapuz babesten dituzte.',
       'Txapa frontisaren beheko metalezko banda da. Pilota hor jotzen badu, beste soinu bat ateratzen du eta tantoa galtzen da.',
-      'Frontoiaren zorua 3,5 metroko koadroetan banatuta dago, frontisetik hasita zenbakituta.',
+      'Kantxa 3,5 metroko koadroetan banatuta dago. Zenbakiak ez dira zoruan margotzen, ezkerreko paretan baizik: marra zuri bat eta zenbakia biribil baten barruan.',
       'Partidetan, kantariak euskaraz kantatzen du tanteoa, adibidez: «Bost eta lau, gorriak!».',
       'Nafarroako herri ia guztiek dute frontoia, askotan plazan, elizaren edo udaletxearen ondoan.',
       'Dejada kolpe leuna da, frontisetik gertu hiltzen dena; aurkaria atzean dagoenean harritzeko balio du.',

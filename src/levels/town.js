@@ -53,13 +53,52 @@ export function createTownLevel(def) {
   PLACES.edgeE = { x: mainX + (R + 45) * -sideOut, z: -30 };
   PLACES.edgeW = { x: mainX + (R + 30) * sideOut, z: -60 };
   PLACES.spawn = { x: mainX + 4, z: R + 30 };
+  // Pamplona: trazado propio con la disposición real del Casco Viejo (norte = −z)
+  const PAMP = def.layout === 'pamplona';
+  if (PAMP) {
+    Object.assign(PLACES.plaza, { x: 40, z: 20, r: 34, rect: { hw: 36, hd: 48 } });
+    PLACES.church = { x: 114, z: -190 };                 // catedral, junto a la muralla y el Redín
+    PLACES.market = { x: -40, z: -92 };                  // mercado de Santo Domingo, junto al ayuntamiento
+    PLACES.farm = { x: 330, z: 70 }; PLACES.fields = { x: 150, z: -330 }; PLACES.forest = { x: -40, z: -345 };
+    PLACES.riverSpot = { x: rx(-60) + 14, z: -60 };
+    PLACES.edgeN = { x: 60, z: -300 }; PLACES.edgeS = { x: 40, z: 330 }; PLACES.edgeE = { x: 330, z: -40 }; PLACES.edgeW = { x: -120, z: 40 };
+    PLACES.spawn = { x: 44, z: 150 };
+    PLACES.frontonNear = { x: 212, z: 34 };              // el frontón Labrit, junto a la plaza de toros
+    // recorrido del encierro: corrales de Santo Domingo → Ayuntamiento → Mercaderes → Estafeta → plaza de toros
+    PLACES.encierro = [{ x: -88, z: -110 }, { x: -50, z: -104 }, { x: -14, z: -99 }, { x: 20, z: -99 }, { x: 60, z: -103 }, { x: 120, z: -103 }, { x: 178, z: -88 }, { x: 204, z: -71 }, { x: 232, z: -56 }];
+    PLACES.citadel = { x: -60, z: 250, R: 50 };
+    const d = Math.hypot(4 + 60, 60 - 250); PLACES.citadel.dir = { x: (4 + 60) / d, z: (60 - 250) / d };
+  }
 
   // ---------- Calles ----------
   const PATHS = [];
-  const addPath = (id, type, w, pts) => PATHS.push({ id, type, w, pts });
+  const addPath = (id, type, w, pts) => { const p = { id, type, w, pts }; PATHS.push(p); return p; };
   const line = (x0, z0, x1, z1, step = 6) => { const n = Math.max(1, Math.round(Math.hypot(x1 - x0, z1 - z0) / step)); const p = []; for (let i = 0; i <= n; i++) p.push([x0 + (x1 - x0) * i / n, z0 + (z1 - z0) * i / n]); return p; };
   const BRIDGES = [];
-  if (riverThrough) {
+  if (PAMP) {
+    // plaza del Castillo → Chapitela → Mercaderes → Estafeta → plaza de Toros (el recorrido del encierro, al revés)
+    addPath('chapitela', 'street', 2.8, line(18, -28, 20, -96, 5));
+    addPath('mercaderes', 'street', 3, line(-14, -98, 34, -100, 5));
+    addPath('estafeta', 'street', 3.8, [[34, -100], [60, -103], [90, -105], [120, -103], [150, -98], [178, -88], [200, -74]]).noHouses = true;
+    addPath('santoDomingo', 'street', 3, line(-14, -98, -96, -112, 6));
+    addPath('curia', 'street', 2.8, line(34, -100, 64, -190, 6));
+    addPath('navarreria', 'street', 2.6, line(58, -174, -10, -160, 6));
+    addPath('zapateria', 'street', 2.6, line(4, 10, -92, 12, 6));
+    addPath('sanNicolas', 'street', 2.6, line(4, 50, -70, 70, 6));
+    addPath('carlos3', 'street', 5, line(40, 68, 40, 170, 6)).noHouses = true;
+    addPath('bajadaJavier', 'street', 2.6, line(76, 10, 180, 0, 6));
+    addPath('amaya', 'street', 2.6, line(76, 50, 150, 110, 6));
+    { const C = PLACES.citadel, g = C.R * 0.81 + 10; addPath('toCitadel', 'road', 4, line(4, 60, C.x + C.dir.x * g, C.z + C.dir.z * g, 8)); addPath('inCitadel', 'trail', 2, line(C.x + C.dir.x * g, C.z + C.dir.z * g, C.x, C.z, 6)); }
+    addPath('toSadar', 'road', 4.5, line(40, 170, 196, 286, 8));
+    addPath('rondaRedin', 'trail', 2.2, line(-100, -244, 196, -244, 8));
+    addPath('carmen', 'street', 2.6, line(26, -166, 40, -236, 6));
+    addPath('portalFrancia', 'road', 2.6, line(40, -236, 40, -300, 6));
+    // bajada al Arga por Santo Domingo y puente de la Magdalena
+    const bz = -112, o = half + 10;
+    addPath('toBridge', 'road', 3, line(-96, bz, rx(bz) + o, bz, 8));
+    addPath('overRiver', 'road', 3, [[rx(bz) + o, bz], [rx(bz) - o, bz]]);
+    BRIDGES.push({ id: 'b0', z: bz, w: 4, arch: 1.8, span: 2 * o, main: true, big: true });
+  } else if (riverThrough) {
     // dos calles paralelas al río, como en los pueblos pirenaicos
     const along = (off, z0, z1) => { const p = []; for (let z = z0; z <= z1; z += 6) p.push([rx(z) + off, z]); return p; };
     const o = half + 10;
@@ -99,10 +138,17 @@ export function createTownLevel(def) {
     }
   }
   // caminos a las afueras
+  if (PAMP) {
+    addPath('toFarm', 'road', 2.6, line(180, 0, 318, 70, 8));
+    addPath('toFields', 'trail', 1.8, line(40, -300, PLACES.fields.x, PLACES.fields.z, 8));
+    addPath('toForest', 'trail', 1.8, line(40, -300, PLACES.forest.x, PLACES.forest.z, 8));
+    addPath('south', 'road', 3, line(40, 170, 40, 330, 10));
+  } else {
   addPath('toFarm', 'road', 2.6, line(PLACES.plaza.x + sideOut * 10, 0, PLACES.farm.x - sideOut * 12, PLACES.farm.z, 8));
   addPath('toFields', 'trail', 1.8, line(PLACES.plaza.x + sideOut * 20, -20, PLACES.fields.x, PLACES.fields.z, 8));
   addPath('toForest', 'trail', 1.8, line(PLACES.plaza.x, -R * 0.9, PLACES.forest.x, PLACES.forest.z, 8));
   addPath('south', 'road', 3, line(PLACES.plaza.x, R * 0.9, PLACES.spawn.x, R + 120, 10));
+  }
 
   // ---------- Relieve ----------
   const vR = R + 30;
@@ -137,18 +183,73 @@ export function createTownLevel(def) {
       const top = hill ? F0 + hillH * Math.exp(-(r * r) / (2 * 120 * 120)) * 0.92 + 1 : F0 + 1.1 + Math.max(0, dRiv - 24) * (relief === 'valley' ? 0.07 : 0.02);
       h = lerp(h, top + (detail ? fbm(x / 40, z / 40, 2) * 0.25 : 0), vm);
     }
+    if (PAMP) h -= bluff(x, z);
     // explanadas
     for (const pad of PADS) {
       const dd = Math.hypot(x - pad.x, z - pad.z) - pad.r;
       const k = 1 - smoothstep(0, pad.blend, dd);
       if (k > 0) h = lerp(h, pad.h, k);
     }
+    if (PAMP) h -= moat(x, z);
     const mm = meadowMask(x, z);
     return { h, vm, mm, F: F0 };
   }
+  // Pamplona: el Casco Viejo está en un alto; por fuera de la muralla norte y del Redín el terreno cae unos 12 m.
+  // Frente al Portal de Francia la caída es una rampa larga, la bajada hacia el río.
+  const REDIN = [[186, -254], [230, -282], [212, -232]];          // baluarte en punta (sin caída dentro)
+  function triOut(x, z, T) {
+    let inside = true, d = 1e9;
+    for (let i = 0; i < 3; i++) {
+      const [ax, az] = T[i], [bx, bz] = T[(i + 1) % 3];
+      if ((bx - ax) * (z - az) - (bz - az) * (x - ax) < 0) inside = false;
+      d = Math.min(d, segDist(x, z, ax, az, bx, bz).d);
+    }
+    return inside ? 0 : d;
+  }
+  function bluff(x, z) {
+    if (!PAMP) return 0;
+    const wN = (1 - smoothstep(-110, -140, x)) * (1 - smoothstep(212, 236, x)), wE = smoothstep(-132, -160, z);
+    const o = Math.min(Math.max((-254 - z) * wN - (1 - wN) * 9, (x - 212) * wE - (1 - wE) * 9), triOut(x, z, REDIN));
+    const ramp = lerp(46, 4.5, smoothstep(5, 13, Math.abs(x - 40)));
+    return 12 * smoothstep(1.5, ramp, o);
+  }
+  // Ciudadela: pentágono con cinco baluartes en punta; alrededor, un foso de hierba con un paso frente a la puerta
+  if (PAMP) {
+    const C = PLACES.citadel, g = Math.atan2(C.dir.x, C.dir.z), V = [];
+    for (let i = 0; i < 5; i++) { const a = g + Math.PI / 5 + i * Math.PI * 2 / 5; V.push([C.x + Math.sin(a) * C.R, C.z + Math.cos(a) * C.R, a]); }
+    const poly = [];
+    for (let i = 0; i < 5; i++) {
+      const [vx, vz, a] = V[i], P0 = V[(i + 4) % 5], P1 = V[(i + 1) % 5];
+      const u0 = [(P0[0] - vx) / C.R / 1.1756, (P0[1] - vz) / C.R / 1.1756], u1 = [(P1[0] - vx) / C.R / 1.1756, (P1[1] - vz) / C.R / 1.1756];
+      const n0 = [-u0[1], u0[0]], n1 = [u1[1], -u1[0]];
+      const E1 = [vx + u0[0] * 12, vz + u0[1] * 12], E2 = [vx + u1[0] * 12, vz + u1[1] * 12];
+      const out = (n, p) => ((p[0] + n[0] - C.x) ** 2 + (p[1] + n[1] - C.z) ** 2 > (p[0] - C.x) ** 2 + (p[1] - C.z) ** 2 ? n : [-n[0], -n[1]]);
+      const m0 = out(n0, E1), m1 = out(n1, E2);
+      poly.push(E1, [E1[0] + m0[0] * 7, E1[1] + m0[1] * 7], [vx + Math.sin(a) * 19, vz + Math.cos(a) * 19], [E2[0] + m1[0] * 7, E2[1] + m1[1] * 7], E2);
+    }
+    C.poly = poly; C.gateAng = g;
+  }
+  function polyOut(x, z, poly) {
+    let inside = false, d = 1e9;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      const [xi, zi] = poly[i], [xj, zj] = poly[j];
+      if ((zi > z) !== (zj > z) && x < (xj - xi) * (z - zi) / (zj - zi) + xi) inside = !inside;
+      d = Math.min(d, segDist(x, z, xi, zi, xj, zj).d);
+    }
+    return inside ? -d : d;
+  }
+  function moat(x, z) {
+    const C = PLACES.citadel;
+    if (!PAMP || Math.hypot(x - C.x, z - C.z) > C.R + 62) return 0;
+    const o = polyOut(x, z, C.poly);
+    if (o < 2) return 0;
+    const px = x - C.x, pz = z - C.z, along = px * C.dir.x + pz * C.dir.z, lat = Math.abs(px * C.dir.z - pz * C.dir.x);
+    const bridge = along > 0 ? smoothstep(4.5, 7.5, lat) : 1;
+    return 4.5 * smoothstep(2, 5, o) * (1 - smoothstep(20, 30, o)) * bridge;
+  }
   const PADS = [];
   function addPad(x, z, r, blend = 14) { const h = rawHeight(x, z, false).h; PADS.push({ x, z, r, blend, h }); }
-  addPad(PLACES.church.x, PLACES.church.z, 20);
+  addPad(PLACES.church.x, PLACES.church.z, PAMP ? 40 : 20, PAMP ? 12 : 14);
   addPad(PLACES.farm.x, PLACES.farm.z, 16, 18);
   // ---------- Monumentos: cada tipo busca su sitio ----------
   const pl = PLACES.plaza;
@@ -171,14 +272,20 @@ export function createTownLevel(def) {
     else if (c === 'gorge') pos = rv ? { x: rx(R + 150), z: R + 150 } : slots.edge.shift();
     else pos = (slots[c] && slots[c].shift()) || slots.edge.shift() || { x: pl.x + 90, z: -120 };
     if (lm.kind === 'walls' && (def.family !== 'city')) pos = { x: PLACES.church.x, z: PLACES.church.z, ring: true };
+    if (lm.x != null) pos = { x: lm.x, z: lm.z };
     const o = { ...lm, x: pos.x, z: pos.z, center: pos.center, ring: pos.ring };
+    if (lm.pad) addPad(o.x, o.z, lm.pad, lm.padBlend || 20);
     PLACES.landmarks.push(o);
     if (lm.kind === 'castle') addPad(o.x, o.z, 30, 16);
     else if (['ruin', 'monolith', 'lookout', 'dolmen', 'cross', 'stone', 'chapel', 'palomeras', 'horreo', 'house', 'palace', 'towerhouse', 'mill'].includes(lm.kind)) addPad(o.x, o.z, 9, 12);
   }
   // Pamplona: murallas al borde del casco
   PLACES.courts = [];
-  PLACES.clearings = PLACES.landmarks.map(l => ({ x: l.x, z: l.z, r0: 26, r1: 12 }));
+  PLACES.clearings = PLACES.landmarks.map(l => ({ x: l.x, z: l.z, r0: (l.pad || 14) + 12, r1: l.pad || 12 }));
+  // la plaza pavimentada llega hasta el fondo de los soportales
+  if (PLACES.plaza.rect) PLACES.courts.push({ x: PLACES.plaza.x, z: PLACES.plaza.z, hw: PLACES.plaza.rect.hw + 4, hd: PLACES.plaza.rect.hd + 4 });
+  // plaza Consistorial y enlosado alrededor de la catedral (sin tocar el jardín del claustro)
+  if (PAMP) PLACES.courts.push({ x: -6, z: -101, hw: 16, hd: 8 }, { x: 112, z: -193, hw: 56, hd: 19 }, { x: 143, z: -159, hw: 25, hd: 15 }, { x: 75, z: -159, hw: 19, hd: 15 });
 
   // caminos (cubos espaciales)
   const SEGS = [];
@@ -223,7 +330,9 @@ export function createTownLevel(def) {
     }
     return { h, river: riverInfo(x, z), vm: a.vm, mm: a.mm };
   }
-  const plazaMask = (x, z) => 1 - smoothstep(PLACES.plaza.r - 2, PLACES.plaza.r + 1, Math.hypot(x - PLACES.plaza.x, z - PLACES.plaza.z));
+  const plazaMask = PLACES.plaza.rect
+    ? (x, z) => { const q = PLACES.plaza, dx = Math.abs(x - q.x) - q.rect.hw, dz = Math.abs(z - q.z) - q.rect.hd; return 1 - smoothstep(-1, 1, Math.max(dx, dz)); }
+    : (x, z) => 1 - smoothstep(PLACES.plaza.r - 2, PLACES.plaza.r + 1, Math.hypot(x - PLACES.plaza.x, z - PLACES.plaza.z));
 
   // ---------- Campos de cultivo según la comarca ----------
   const cropKinds = {
@@ -243,6 +352,7 @@ export function createTownLevel(def) {
     mask *= 1 - meadowMask(x, z);
     const dfor = Math.hypot(x - PLACES.forest.x, z - PLACES.forest.z);
     mask *= smoothstep(80, 120, dfor);
+    for (const c of PLACES.clearings) if (c.r1 > 20) mask *= smoothstep(c.r1, c.r0 + 8, Math.hypot(x - c.x, z - c.z));
     if (relief === 'valley') mask *= 1 - smoothstep(60, 170, rv ? Math.abs(x - rx(z)) : Math.abs(x));
     mask = clamp(mask, 0, 1);
     if (mask <= 0.01) return { mask: 0, type: 0, edge: 99 };
@@ -266,7 +376,20 @@ export function createTownLevel(def) {
     if (f === 'ribera') return riverInfo(x, z).edge < 30 ? 'poplar' : n > 0 ? 'pine' : 'olive';
     return n > 0.2 ? 'pine' : n > -0.3 ? 'oak' : 'olive';
   }
-  const SPECIAL_TREES = [[PLACES.plaza.x + PLACES.plaza.r + 4, PLACES.plaza.z - 6, def.family === 'ribera' ? 'poplar' : 'oak', 1.2], [PLACES.plaza.x - PLACES.plaza.r - 4, PLACES.plaza.z + 7, def.family === 'ribera' ? 'poplar' : 'oak', 1.1]];
+  const SPECIAL_TREES = PAMP ? pampTrees() : [[PLACES.plaza.x + PLACES.plaza.r + 4, PLACES.plaza.z - 6, def.family === 'ribera' ? 'poplar' : 'oak', 1.2], [PLACES.plaza.x - PLACES.plaza.r - 4, PLACES.plaza.z + 7, def.family === 'ribera' ? 'poplar' : 'oak', 1.1]];
+
+  // Pamplona: plátanos en la plaza del Castillo y en Carlos III, y arboleda dentro de la Ciudadela
+  function pampTrees() {
+    const t = [];
+    for (let z = 40; z <= 62; z += 7) for (const x of [12, 68]) t.push([x, z, 'oak', 0.9]);
+    for (let z = 84; z <= 160; z += 12) for (const x of [31, 49]) t.push([x, z, 'oak', 0.85]);
+    const C = PLACES.citadel;
+    for (let i = 0; i < 22; i++) {
+      const a = C.gateAng + 0.3 + i / 22 * (Math.PI * 2 - 0.6);
+      t.push([C.x + Math.sin(a) * 33, C.z + Math.cos(a) * 33, i % 5 ? 'oak' : 'pine', 0.85 + (i % 3) * 0.1]);
+    }
+    return t;
+  }
 
   return {
     rx, zz: () => 9999, CONF: { x: 9999, z: 9999 }, FA, FZ: FA, riverHalfA, RIVER_HALF_Z: 0,

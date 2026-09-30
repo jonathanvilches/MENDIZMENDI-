@@ -119,7 +119,7 @@ export class Waterfall {
 // ---------- Humo de chimeneas (un solo sistema de puntos) ----------
 export class Smoke {
   constructor(scene, houses) {
-    this.spots = houses.filter((_, i) => i % 3 === 0).slice(0, 14).map(h => ({ x: h.x, z: h.z, y: terrainHeight(h.x, h.z) + 11 }));
+    this.spots = houses.filter((_, i) => i % 3 === 0).slice(0, 14).map(h => ({ x: h.x, z: h.z, y: h.top ?? terrainHeight(h.x, h.z) + 11 }));
     const n = this.spots.length * 5;
     const g = new THREE.BufferGeometry();
     this.pos = new Float32Array(n * 3); this.alpha = new Float32Array(n); this.size = new Float32Array(n);

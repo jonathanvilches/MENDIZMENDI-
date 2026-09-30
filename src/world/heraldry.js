@@ -1,0 +1,162 @@
+// Escudos de los pueblos dibujados para el juego: versiones propias inspiradas en cada localidad (no copias),
+// con corona real encima y, en muchos, la bordura con las cadenas de Navarra.
+// shieldSpec(def) elige campo, bordura y figura; drawShield(g, cx, top, h, spec) lo pinta en un canvas 2D.
+
+const FIELDS = ['#1f4f9a', '#b3202a', '#2f7d4a', '#1f4f9a', '#b3202a'];
+const GOLD = '#e2b43c', SILVER = '#f3f1ea', DARK = '#3a2a1c';
+
+function hash(s) { let h = 7; for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; }
+
+export function shieldSpec(def) {
+  const id = def.id || 'pueblo', h = hash(id), kinds = (def.landmarks || []).map(l => l.kind), name = (def.name || '').toLowerCase();
+  const spec = { field: FIELDS[h % FIELDS.length], chains: h % 3 !== 1, bordure: '#b3202a', charge: 'tower', tint: GOLD };
+  if (id === 'pamplona') return { field: '#1f4f9a', chains: true, bordure: '#b3202a', charge: 'lion', tint: SILVER };
+  if (id === 'estella') return { field: '#b3202a', chains: false, bordure: '#1f4f9a', charge: 'star', tint: GOLD };
+  if (kinds.includes('castle') || def.relief === 'hilltop') spec.charge = 'castle';
+  else if (kinds.includes('bridge') || name.includes('puente') || def.river?.bigBridge) spec.charge = 'bridge';
+  else if (def.family === 'pyrenean') spec.charge = 'fir';
+  else if (def.family === 'atlantic') spec.charge = 'oak';
+  else if (def.family === 'ribera') spec.charge = 'grapes';
+  else if (def.family === 'central') spec.charge = h % 2 ? 'grapes' : 'tower';
+  if (spec.field === '#b3202a') spec.bordure = '#1f4f9a';
+  if (['oak', 'fir', 'grapes'].includes(spec.charge)) spec.tint = spec.charge === 'grapes' ? '#6b2f6b' : '#2f6b34';
+  if (spec.field === '#2f7d4a' && spec.tint === '#2f6b34') spec.field = '#e9d9a8';
+  return spec;
+}
+
+function shieldPath(g, x0, y0, w, h) {
+  g.beginPath(); g.moveTo(x0, y0); g.lineTo(x0 + w, y0); g.lineTo(x0 + w, y0 + h * 0.55);
+  g.bezierCurveTo(x0 + w, y0 + h * 0.86, x0 + w * 0.76, y0 + h, x0 + w / 2, y0 + h);
+  g.bezierCurveTo(x0 + w * 0.24, y0 + h, x0, y0 + h * 0.86, x0, y0 + h * 0.55); g.closePath();
+}
+// punto del contorno interior (para las cadenas): t ∈ [0, 1) recorre el escudo
+function rim(x0, y0, w, h, t) {
+  const top = w, side = h * 0.55, curve = Math.PI * 0.5 * (w / 2 + h * 0.45) * 0.95, L = top + 2 * side + 2 * curve;
+  let s = t * L;
+  if (s < top) return [x0 + s, y0, 0];
+  s -= top; if (s < side) return [x0 + w, y0 + s, Math.PI / 2];
+  s -= side;
+  if (s < 2 * curve) { const a = s / (2 * curve) * Math.PI; return [x0 + w / 2 + Math.cos(a) * w / 2, y0 + h * 0.55 + Math.sin(a) * h * 0.45, a + Math.PI / 2]; }
+  s -= 2 * curve; return [x0, y0 + h * 0.55 - s, -Math.PI / 2];
+}
+
+function crown(g, cx, y, w) {
+  const h = w * 0.34;
+  g.fillStyle = GOLD; g.strokeStyle = DARK; g.lineWidth = Math.max(1.5, w * 0.018);
+  g.beginPath(); g.moveTo(cx - w / 2, y); g.lineTo(cx + w / 2, y); g.lineTo(cx + w * 0.44, y - h * 0.34); g.lineTo(cx - w * 0.44, y - h * 0.34); g.closePath(); g.fill(); g.stroke();
+  for (let i = 0; i < 5; i++) {
+    const x = cx - w * 0.4 + i * w * 0.2, t = i === 2 ? h : h * 0.72;
+    g.beginPath(); g.moveTo(x - w * 0.05, y - h * 0.34); g.quadraticCurveTo(x, y - t * 0.8, x, y - t); g.quadraticCurveTo(x, y - t * 0.8, x + w * 0.05, y - h * 0.34); g.fill(); g.stroke();
+    g.beginPath(); g.arc(x, y - t - w * 0.03, w * 0.035, 0, Math.PI * 2); g.fill(); g.stroke();
+  }
+  g.beginPath(); g.moveTo(cx, y - h - w * 0.06); g.lineTo(cx, y - h - w * 0.18); g.moveTo(cx - w * 0.05, y - h - w * 0.13); g.lineTo(cx + w * 0.05, y - h - w * 0.13); g.lineWidth = w * 0.03; g.strokeStyle = GOLD; g.stroke();
+  g.fillStyle = '#b3202a'; for (const dx of [-0.25, 0, 0.25]) { g.beginPath(); g.arc(cx + dx * w, y - h * 0.17, w * 0.035, 0, Math.PI * 2); g.fill(); }
+}
+
+function charge(g, kind, cx, cy, s, col) {
+  g.fillStyle = col; g.strokeStyle = DARK; g.lineWidth = Math.max(1.5, s * 0.025); g.lineJoin = 'round';
+  const P = (pts) => { g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(cx + x * s, cy + y * s) : g.moveTo(cx + x * s, cy + y * s))); g.closePath(); g.fill(); g.stroke(); };
+  switch (kind) {
+    case 'castle': {
+      P([[-0.45, 0.42], [0.45, 0.42], [0.45, -0.05], [0.25, -0.05], [0.25, -0.3], [-0.25, -0.3], [-0.25, -0.05], [-0.45, -0.05]]);
+      for (const x of [-0.45, -0.2, 0.05, 0.3]) P([[x, -0.05], [x + 0.12, -0.05], [x + 0.12, -0.14], [x, -0.14]]);
+      for (const x of [-0.25, -0.05, 0.13]) P([[x, -0.3], [x + 0.11, -0.3], [x + 0.11, -0.4], [x, -0.4]]);
+      g.fillStyle = DARK; g.beginPath(); g.moveTo(cx - 0.1 * s, cy + 0.42 * s); g.lineTo(cx - 0.1 * s, cy + 0.2 * s); g.arc(cx, cy + 0.2 * s, 0.1 * s, Math.PI, 0); g.lineTo(cx + 0.1 * s, cy + 0.42 * s); g.fill();
+      for (const x of [-0.33, 0.33]) g.fillRect(cx + x * s - 0.025 * s, cy + 0.05 * s, 0.05 * s, 0.12 * s);
+      break;
+    }
+    case 'tower': {
+      P([[-0.24, 0.45], [0.24, 0.45], [0.2, -0.3], [-0.2, -0.3]]);
+      for (const x of [-0.24, -0.06, 0.12]) P([[x, -0.3], [x + 0.12, -0.3], [x + 0.12, -0.42], [x, -0.42]]);
+      g.fillStyle = DARK; g.beginPath(); g.arc(cx, cy + 0.3 * s, 0.08 * s, Math.PI, 0); g.lineTo(cx + 0.08 * s, cy + 0.45 * s); g.lineTo(cx - 0.08 * s, cy + 0.45 * s); g.fill();
+      g.fillRect(cx - 0.03 * s, cy - 0.12 * s, 0.06 * s, 0.14 * s);
+      break;
+    }
+    case 'bridge': {
+      g.beginPath(); g.moveTo(cx - 0.5 * s, cy + 0.1 * s); g.lineTo(cx + 0.5 * s, cy + 0.1 * s); g.lineTo(cx + 0.5 * s, cy + 0.3 * s);
+      for (const x of [0.3, -0.1]) { g.lineTo(cx + (x + 0.12) * s, cy + 0.3 * s); g.arc(cx + x * s, cy + 0.3 * s, 0.12 * s, 0, Math.PI, true); }
+      g.lineTo(cx - 0.5 * s, cy + 0.3 * s); g.closePath(); g.fill(); g.stroke();
+      g.strokeStyle = SILVER; g.lineWidth = s * 0.035;
+      for (const y of [0.4, 0.48]) { g.beginPath(); for (let i = 0; i <= 10; i++) { const x = -0.45 + i * 0.09; g[i ? 'lineTo' : 'moveTo'](cx + x * s, cy + (y + (i % 2 ? 0.025 : -0.025)) * s); } g.stroke(); }
+      // pretil con almenillas y una torrecilla en el centro, como los puentes medievales de Navarra
+      for (let i = 0; i < 7; i++) P([[-0.46 + i * 0.14, 0.1], [-0.38 + i * 0.14, 0.1], [-0.38 + i * 0.14, 0.02], [-0.46 + i * 0.14, 0.02]]);
+      P([[-0.12, 0.1], [0.12, 0.1], [0.12, -0.28], [-0.12, -0.28]]);
+      for (const x of [-0.12, -0.02, 0.08]) P([[x, -0.28], [x + 0.06, -0.28], [x + 0.06, -0.36], [x, -0.36]]);
+      g.fillStyle = DARK; g.beginPath(); g.arc(cx, cy + 0.02 * s, 0.05 * s, Math.PI, 0); g.lineTo(cx + 0.05 * s, cy + 0.1 * s); g.lineTo(cx - 0.05 * s, cy + 0.1 * s); g.fill();
+      break;
+    }
+    case 'fir': {
+      g.fillStyle = '#6b4a2e'; g.fillRect(cx - 0.05 * s, cy + 0.3 * s, 0.1 * s, 0.16 * s); g.strokeRect(cx - 0.05 * s, cy + 0.3 * s, 0.1 * s, 0.16 * s);
+      g.fillStyle = col;
+      for (const [y, w] of [[0.32, 0.4], [0.1, 0.32], [-0.1, 0.24]]) P([[-w, y], [w, y], [0, y - 0.32]]);
+      break;
+    }
+    case 'oak': {
+      g.fillStyle = '#6b4a2e'; P([[-0.07, 0.46], [0.07, 0.46], [0.05, 0.08], [-0.05, 0.08]]);
+      g.fillStyle = col;
+      for (const [x, y, r] of [[0, -0.12, 0.26], [-0.2, 0.02, 0.19], [0.2, 0.02, 0.19], [-0.12, -0.28, 0.16], [0.13, -0.27, 0.16]]) { g.beginPath(); g.arc(cx + x * s, cy + y * s, r * s, 0, Math.PI * 2); g.fill(); g.stroke(); }
+      g.fillStyle = GOLD; for (const [x, y] of [[-0.1, -0.05], [0.12, -0.12], [0.02, 0.08]]) { g.beginPath(); g.ellipse(cx + x * s, cy + y * s, 0.035 * s, 0.05 * s, 0, 0, Math.PI * 2); g.fill(); }
+      break;
+    }
+    case 'grapes': {
+      g.fillStyle = '#3f7a34'; P([[0, -0.3], [0.28, -0.42], [0.2, -0.2], [0.34, -0.12], [0.08, -0.14]]);
+      g.strokeStyle = '#6b4a2e'; g.lineWidth = s * 0.04; g.beginPath(); g.moveTo(cx, cy - 0.2 * s); g.lineTo(cx - 0.04 * s, cy - 0.42 * s); g.stroke();
+      g.fillStyle = col; g.strokeStyle = DARK; g.lineWidth = Math.max(1.5, s * 0.02);
+      const rows = [[-0.2, 4], [-0.06, 3], [0.08, 3], [0.22, 2], [0.35, 1]];
+      for (const [y, n] of rows) for (let i = 0; i < n; i++) { g.beginPath(); g.arc(cx + (i - (n - 1) / 2) * 0.13 * s, cy + y * s, 0.075 * s, 0, Math.PI * 2); g.fill(); g.stroke(); }
+      break;
+    }
+    case 'star': {
+      g.beginPath();
+      for (let i = 0; i < 16; i++) { const a = -Math.PI / 2 + i * Math.PI / 8, r = (i % 2 ? 0.2 : 0.46) * s; g.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r); }
+      g.closePath(); g.fill(); g.stroke();
+      break;
+    }
+    case 'lion': {
+      // león pasante, de perfil y mirando a la izquierda (a la diestra del escudo)
+      g.beginPath();
+      g.moveTo(cx - 0.3 * s, cy - 0.08 * s);
+      g.bezierCurveTo(cx - 0.1 * s, cy - 0.16 * s, cx + 0.2 * s, cy - 0.12 * s, cx + 0.32 * s, cy - 0.04 * s);
+      g.lineTo(cx + 0.34 * s, cy + 0.1 * s); g.lineTo(cx + 0.36 * s, cy + 0.34 * s); g.lineTo(cx + 0.27 * s, cy + 0.34 * s); g.lineTo(cx + 0.25 * s, cy + 0.14 * s);
+      g.lineTo(cx + 0.14 * s, cy + 0.14 * s); g.lineTo(cx + 0.12 * s, cy + 0.34 * s); g.lineTo(cx + 0.04 * s, cy + 0.34 * s); g.lineTo(cx + 0.04 * s, cy + 0.12 * s);
+      g.lineTo(cx - 0.14 * s, cy + 0.12 * s); g.lineTo(cx - 0.16 * s, cy + 0.34 * s); g.lineTo(cx - 0.24 * s, cy + 0.34 * s); g.lineTo(cx - 0.24 * s, cy + 0.1 * s);
+      g.lineTo(cx - 0.3 * s, cy + 0.18 * s); g.lineTo(cx - 0.38 * s, cy + 0.34 * s); g.lineTo(cx - 0.44 * s, cy + 0.32 * s); g.lineTo(cx - 0.36 * s, cy + 0.1 * s);
+      g.closePath(); g.fill(); g.stroke();
+      // melena en mechones y cabeza
+      g.beginPath();
+      for (let i = 0; i < 22; i++) { const a = i / 22 * Math.PI * 2, r = (i % 2 ? 0.13 : 0.2) * s; g.lineTo(cx - 0.3 * s + Math.cos(a) * r, cy - 0.15 * s + Math.sin(a) * r); }
+      g.closePath(); g.fill(); g.stroke();
+      g.beginPath(); g.arc(cx - 0.34 * s, cy - 0.17 * s, 0.1 * s, 0, Math.PI * 2); g.fill(); g.stroke();
+      g.beginPath(); g.moveTo(cx - 0.4 * s, cy - 0.22 * s); g.lineTo(cx - 0.52 * s, cy - 0.16 * s); g.lineTo(cx - 0.43 * s, cy - 0.1 * s); g.closePath(); g.fill(); g.stroke();
+      g.fillStyle = '#b3202a'; g.beginPath(); g.moveTo(cx - 0.5 * s, cy - 0.13 * s); g.lineTo(cx - 0.58 * s, cy - 0.1 * s); g.lineTo(cx - 0.5 * s, cy - 0.09 * s); g.fill();
+      g.fillStyle = DARK; g.beginPath(); g.arc(cx - 0.39 * s, cy - 0.2 * s, 0.02 * s, 0, Math.PI * 2); g.fill();
+      // cola alzada
+      g.strokeStyle = col; g.lineWidth = s * 0.045; g.lineCap = 'round';
+      g.beginPath(); g.moveTo(cx + 0.32 * s, cy - 0.04 * s); g.bezierCurveTo(cx + 0.5 * s, cy - 0.1 * s, cx + 0.42 * s, cy - 0.34 * s, cx + 0.5 * s, cy - 0.4 * s); g.stroke();
+      g.fillStyle = col; g.beginPath(); g.arc(cx + 0.5 * s, cy - 0.42 * s, 0.05 * s, 0, Math.PI * 2); g.fill();
+      break;
+    }
+  }
+}
+
+// escudo con corona: cx centro, top borde de arriba de la corona, h altura total
+export function drawShield(g, cx, top, h, spec) {
+  const ch = h * 0.2, sh = h - ch, w = sh * 0.82, x0 = cx - w / 2, y0 = top + ch;
+  g.save();
+  g.fillStyle = 'rgba(0,0,0,.25)'; shieldPath(g, x0 + h * 0.015, y0 + h * 0.02, w, sh); g.fill();
+  g.fillStyle = spec.chains ? spec.bordure : GOLD; shieldPath(g, x0, y0, w, sh); g.fill();
+  const b = w * 0.1;
+  g.fillStyle = spec.field; shieldPath(g, x0 + b, y0 + b, w - 2 * b, sh - 2 * b); g.fill();
+  if (spec.chains) {
+    g.strokeStyle = GOLD; g.lineWidth = Math.max(1.5, w * 0.018);
+    const n = 30;
+    for (let i = 0; i < n; i++) {
+      const [x, y, a] = rim(x0 + b / 2, y0 + b / 2, w - b, sh - b, i / n);
+      g.save(); g.translate(x, y); g.rotate(a); g.beginPath(); g.ellipse(0, 0, w * 0.04, w * 0.022, i % 2 ? 0 : Math.PI / 2, 0, Math.PI * 2); g.stroke(); g.restore();
+    }
+  }
+  g.lineWidth = Math.max(2, w * 0.025); g.strokeStyle = DARK; shieldPath(g, x0, y0, w, sh); g.stroke();
+  charge(g, spec.charge, cx, y0 + sh * 0.47, (w - 2 * b) * 0.95, spec.tint);
+  crown(g, cx, y0 + h * 0.005, w * 0.78);
+  g.restore();
+}

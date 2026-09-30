@@ -17,7 +17,7 @@ import { stampImg } from '../assets.js';
 import { FAUNA, faunaName } from '../data/fauna.js';
 import { LEGENDS, NIGHT_CARNIVAL } from '../data/legends.js';
 import MOUNTAINS from '../data/mountains.json';
-import { Fronton, findFrontonSpot } from './fronton.js';
+import { Fronton, findFrontonSpot, frontonWall } from './fronton.js';
 import { makeClue, makeAura } from './legendFx.js';
 import { Chase } from './chase.js';
 
@@ -169,7 +169,7 @@ export class TownGame {
       case 'dance': case 'carnival': case 'tradition': return { x: P.plaza.x + (M.i % 2 ? 7 : -7), z: P.plaza.z + 6 };
       case 'trade': return m.kind === 'aizkolari' ? { x: P.forest.x * 0.5 + P.plaza.x * 0.5, z: P.forest.z * 0.4 } : m.kind === 'palomero' ? P.edgeN : { x: P.market.x + 6, z: P.market.z + 4 };
       case 'legend': return M.leg?.teller ? { x: P.plaza.x + (M.i % 2 ? -9 : 9), z: P.plaza.z - 6 } : lm('cave')?.spot ? { x: (lm('cave').spot.x + P.plaza.x) / 2, z: (lm('cave').spot.z + P.plaza.z) / 2 } : { x: P.plaza.x - 9, z: P.plaza.z - 6 };
-      case 'race': return { x: P.spawn.x - 4, z: P.spawn.z - 20 };
+      case 'race': return m.kind === 'encierro' && P.encierro ? { x: P.encierro[0].x + 5, z: P.encierro[0].z + 4 } : { x: P.spawn.x - 4, z: P.spawn.z - 20 };
       case 'observe': return lm('gorge')?.spot || P.edgeN;
       case 'pelota': return this.ensureFronton() ? { x: this.fronton.entry.x + 2, z: this.fronton.entry.z } : P.plaza;
       case 'summit': return { x: P.plaza.x + (P.edgeN ? (P.edgeN.x - P.plaza.x) * 0.25 : 10), z: P.plaza.z + (P.edgeN ? (P.edgeN.z - P.plaza.z) * 0.25 : -14) };
@@ -179,7 +179,7 @@ export class TownGame {
   }
   // Frontón del pueblo: está siempre, con o sin misión de pelota
   ensureFronton() {
-    if (!this.fronton) { const sp = findFrontonSpot(PLACES.plaza); if (sp) this.fronton = new Fronton(this.scene, sp, this.def.name.split(' /')[0]); }
+    if (!this.fronton) { const sp = findFrontonSpot(PLACES.frontonNear || PLACES.plaza); if (sp) this.fronton = new Fronton(this.scene, sp, this.def.name.split(' /')[0], frontonWall(this.def)); }
     return this.fronton;
   }
   spawn() {
@@ -920,7 +920,9 @@ export class TownGame {
     for (const g of this.gates) this.scene.remove(g.obj);
     this.gates = [];
     // recorrido: de la salida a la plaza, a la iglesia, a un monumento y de vuelta
-    const pts = [PLACES.spawn, PLACES.plaza, TOWN.church?.door || PLACES.church, ...(TOWN.landmarks.slice(0, 2).map(l => l.spot)), PLACES.market, PLACES.plaza];
+    // en Pamplona, el encierro de verdad: de los corrales de Santo Domingo a la plaza de toros por la Estafeta
+    const pts = M.m.kind === 'encierro' && PLACES.encierro ? PLACES.encierro
+      : [PLACES.spawn, PLACES.plaza, TOWN.church?.door || PLACES.church, ...(TOWN.landmarks.slice(0, 2).map(l => l.spot)), PLACES.market, PLACES.plaza];
     const route = [];
     for (let i = 0; i < M.need; i++) {
       const f = (i + 1) / (M.need + 1) * (pts.length - 1), k = Math.floor(f), t = f - k;

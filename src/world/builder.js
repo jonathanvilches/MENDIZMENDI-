@@ -32,7 +32,22 @@ export function makeMaterials() {
     leaf: std({ vertexColors: true, roughness: 0.85 }),
     lamp: std({ color: '#fff3c4', emissive: new THREE.Color('#ffcf73'), emissiveIntensity: 0 }),
     shield: std({ map: shieldTexture(), transparent: true, alphaTest: 0.5, roughness: 0.9 }),
+    // barandilla de forja calada (una sola cara con transparencia recortada): balcones, kioscos, barreras
+    railing: std({ map: railingTexture(), alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.55, metalness: 0.45 }),
   };
+}
+
+// Forja: barrotes, pasamanos y una greca de círculos; el módulo mide 0,9 m y se repite a lo ancho
+function railingTexture() {
+  const c = document.createElement('canvas'); c.width = 128; c.height = 128;
+  const g = c.getContext('2d');
+  g.fillStyle = '#26262b'; g.strokeStyle = '#26262b';
+  g.fillRect(0, 0, 128, 9); g.fillRect(0, 116, 128, 12); g.fillRect(0, 84, 128, 5);
+  for (let i = 0; i < 8; i++) g.fillRect(i * 16 + 6, 0, 4, 128);
+  g.lineWidth = 4;
+  for (let i = 0; i < 4; i++) { g.beginPath(); g.arc(i * 32 + 16, 100, 9, 0, Math.PI * 2); g.stroke(); }
+  for (let i = 0; i < 4; i++) { g.beginPath(); g.moveTo(i * 32 + 8, 30); g.quadraticCurveTo(i * 32 + 16, 18, i * 32 + 24, 30); g.stroke(); }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = THREE.RepeatWrapping; t.anisotropy = 4; return t;
 }
 
 function shieldTexture() {

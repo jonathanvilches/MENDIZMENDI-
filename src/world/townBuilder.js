@@ -4,7 +4,8 @@ import { Builder, box, colored, M, MM } from './builder.js';
 import { buildHouse } from './houses.js';
 import { church, castle, wallsRing, bridge, landmark } from './monuments.js';
 import { bench, lamp, fountain } from './village.js';
-import { PATHS, PLACES, BRIDGES, riverInfo, pathQuery, villageMask, rx, MOD } from './layout.js';
+import { PATHS, PLACES, BRIDGES, riverInfo, pathQuery, villageMask, plazaMask, rx, MOD } from './layout.js';
+import { buildPamplona } from './pamplona.js';
 import { terrainHeight } from './heightfield.js';
 import { addBox, addCircle, isFree } from './colliders.js';
 import { mulberry32, clamp } from '../util/math.js';
@@ -30,7 +31,7 @@ function cornersOk(x, z, w, d, ry) {
     const X = x + a * c + b * s, Z = z - a * s + b * c;
     const p = pathQuery(X, Z); if (p.d < p.w + 0.6) return false;
     if (riverInfo(X, Z).edge < 2.5) return false;
-    if (Math.hypot(X - PLACES.plaza.x, Z - PLACES.plaza.z) < PLACES.plaza.r + 1) return false;
+    if (Math.hypot(X - PLACES.plaza.x, Z - PLACES.plaza.z) < PLACES.plaza.r + 1 || plazaMask(X, Z) > 0.05) return false;
     if (villageMask(X, Z) < 0.45) return false;
   }
   return true;
@@ -53,10 +54,12 @@ export function buildTown(scene, mats, def) {
   const B = new Builder(mats);
   const rnd = mulberry32(def.id.length * 977 + 13);
   const fam = def.family;
+  // Pamplona: trazado y monumentos propios (plaza del Castillo, Estafeta, catedral, murallas, Ciudadela, El Sadar…)
+  const pamp = def.layout === 'pamplona' ? buildPamplona(B, group, def, rnd, TOWN) : null;
   // iglesia mirando a la plaza
   const ch = PLACES.church;
   const ry = Math.atan2(PLACES.plaza.x - ch.x, PLACES.plaza.z - ch.z);
-  const c = church(B, ch.x, ch.z, ry, def.church?.style || 'gothic', fam);
+  const c = pamp ? pamp.church : church(B, ch.x, ch.z, ry, def.church?.style || 'gothic', fam);
   TOWN.church = { ...c, name: def.church?.name, text: def.church?.text };
   // puentes
   for (const b of BRIDGES) {
@@ -85,7 +88,8 @@ export function buildTown(scene, mats, def) {
   const ctx = { riverLevel: (x, z) => riverInfo(x, z).level, riverX: rx, half: riverInfo(rx(0), 0).half };
   for (const lm of PLACES.landmarks || []) {
     let spot = null;
-    if (lm.kind === 'castle') { const cs = castle(B, lm.x, lm.z, Math.atan2(PLACES.plaza.x - lm.x, PLACES.plaza.z - lm.z), def.id === 'olite'); spot = cs.gate; }
+    if (pamp?.spots[lm.kind]) spot = pamp.spots[lm.kind];
+    else if (lm.kind === 'castle') { const cs = castle(B, lm.x, lm.z, Math.atan2(PLACES.plaza.x - lm.x, PLACES.plaza.z - lm.z), def.id === 'olite'); spot = cs.gate; }
     else if (lm.kind === 'walls') {
       if (lm.ring) { wallsRing(B, lm.x, lm.z, 44, 9, Math.atan2(PLACES.plaza.z - lm.z, PLACES.plaza.x - lm.x)); spot = { x: lm.x + (PLACES.plaza.x - lm.x) * 0.55, z: lm.z + (PLACES.plaza.z - lm.z) * 0.55 }; }
       else { const r = MOD.R + 22; wallsRingGates(B, PLACES.plaza.x, 0, r); spot = { x: PLACES.plaza.x, z: -r + 6 }; }
@@ -103,23 +107,23 @@ export function buildTown(scene, mats, def) {
   }
   // plaza: fuente (si no hay kiosco), bancos y árboles
   const P = PLACES.plaza;
-  const hasKiosk = (PLACES.landmarks || []).some(l => l.kind === 'kiosk');
+  const hasKiosk = pamp || (PLACES.landmarks || []).some(l => l.kind === 'kiosk');
   if (!hasKiosk) {
     const y = terrainHeight(P.x, P.z);
     fountain(B, P.x, y, P.z);
     addCircle(P.x, P.z, 2.7);
     TOWN.fountain = { x: P.x, z: P.z, y };
   }
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < (pamp ? 0 : 6); i++) {
     const a = i / 6 * Math.PI * 2 + 0.3, x = P.x + Math.cos(a) * (P.r - 5), z = P.z + Math.sin(a) * (P.r - 5);
     if (isFree(x, z, 1.4)) bench(B, x, terrainHeight(x, z), z, Math.atan2(P.x - x, P.z - z));
   }
   // granja: cuadra y redil
   buildFarm(B, fam);
   // casas a lo largo de las calles
-  let count = 0;
+  let count = pamp ? TOWN.houses.length : 0;
   const mid = (p) => p.pts[Math.floor(p.pts.length / 2)];
-  const streets = PATHS.filter(p => p.type === 'street').sort((a, b) => { const A = mid(a), Bm = mid(b); return Math.hypot(A[0] - PLACES.plaza.x, A[1] - PLACES.plaza.z) - Math.hypot(Bm[0] - PLACES.plaza.x, Bm[1] - PLACES.plaza.z); });
+  const streets = PATHS.filter(p => p.type === 'street' && !p.noHouses).sort((a, b) => { const A = mid(a), Bm = mid(b); return Math.hypot(A[0] - PLACES.plaza.x, A[1] - PLACES.plaza.z) - Math.hypot(Bm[0] - PLACES.plaza.x, Bm[1] - PLACES.plaza.z); });
   const cap = Math.round(def.size * (fam === 'city' || fam === 'ribera' ? 1.7 : fam === 'central' ? 1.5 : 1.25));
   for (const path of streets) for (const side of [-1, 1]) {
     const L = polyLen(path.pts);
