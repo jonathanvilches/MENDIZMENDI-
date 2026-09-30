@@ -85,11 +85,14 @@ def build_geometry(d, cols, mats):
     hbm, info = Hm.build_toy_head(d) if toy else Hm.build_head(d)
     hair_bm = Hm.split_hair(d, hbm)
     Hm_mark = None
-    C.keep_half(hbm); C.keep_half(hair_bm)
+    asym = d.get('hair_style') == 'side'                  # peinado con raya: el pelo se hace entero, sin Mirror
+    C.keep_half(hbm)
+    if not asym: C.keep_half(hair_bm)
     C.clean_bm(hbm); C.clean_bm(hair_bm)
     head = C.obj_from_bm(hbm, 'Head', cols['GEO']); C.cage_mods(head); assign_mat(head, [mats['face']]); G['Head'] = head
     hair = C.obj_from_bm(hair_bm, 'Hair', cols['GEO'])
-    C.mod_mirror(hair); C.mod_subsurf(hair); C.mod_solidify(hair, 0.012, 1.0); C.mod_wnormal(hair); assign_mat(hair, [mats['face']]); G['Hair'] = hair
+    if not asym: C.mod_mirror(hair); C.mod_subsurf(hair)
+    C.mod_solidify(hair, 0.012, 1.0); C.mod_wnormal(hair); assign_mat(hair, [mats['face']]); G['Hair'] = hair
     G['info'] = info
     # mechones: curvas Bézier (Bevel 0,06, Resolution 4, Taper en gota, Tilt 20°) convertidas a malla
     taper = Hm.taper_object('Taper_Drop', [(0, 1.0), (0.55, 0.78), (1.0, 0.25)], cols['GEO'])
