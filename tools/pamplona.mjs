@@ -32,6 +32,8 @@ const V = {
   ayto: { x: -8, y: 5, z: -84, lx: -14, ly: 10, lz: -110 },
   estafeta: { x: 40, y: 3, z: -101, lx: 110, ly: 5, lz: -106 },
   catedral: { x: 50, y: 5, z: -198, lx: 100, ly: 15, lz: -190 },
+  torosCalle: { x: 192, y: 3, z: -14, lx: 232, ly: 9, lz: -56 },
+  catedralLejos: { x: 30, y: 30, z: -140, lx: 100, ly: 15, lz: -195 },
   labrit: { x: 200, y: 26, z: 90, lx: 232, ly: 0, lz: 30 },
   claustro: { x: 96, y: 26, z: -134, lx: 106, ly: 2, lz: -162 },
   portal: { x: 52, y: 5, z: -300, lx: 40, ly: 5, lz: -256 },

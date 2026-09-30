@@ -10,6 +10,8 @@ export function makeMaterials() {
     stone: withTex(TEX.stoneWall),
     stoneDark: withTex(TEX.stoneDark),
     ashlar: withTex(TEX.ashlar),
+    // piedra arenisca dorada (catedral de Pamplona, palacios de la Ribera)
+    sandstone: withTex(TEX.ashlar, { color: new THREE.Color(1.42, 1.22, 0.9), emissive: new THREE.Color('#4d3e22') }),
     plaster: withTex(TEX.plasterWhite, { normalScale: new THREE.Vector2(0.5, 0.5) }),
     plasterCream: withTex(TEX.plasterCream, { normalScale: new THREE.Vector2(0.5, 0.5) }),
     slate: withTex(TEX.roofSlate, { roughness: 0.75 }),
