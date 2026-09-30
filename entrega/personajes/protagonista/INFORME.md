@@ -6,24 +6,24 @@ Personaje 100 % original, modelado desde cero con bpy y bmesh (Blender 4.2). Se 
 
 | | |
 |---|---|
-| GLB principal | `char_protagonista.glb` · **1,69 MB** (límite 2 MB) |
-| GLB LOD (nivel cage) | `char_protagonista_lod.glb` · 0,88 MB · 11.664 triángulos en el archivo |
-| Triángulos visibles (variantes por defecto) | 26.016 |
-| Triángulos en el archivo (con todas las variantes) | 34.928 |
-| Caras de la cage | 1.512 |
-| Huesos | 42 deformadores de 46 (máx. 60) |
+| GLB principal | `char_protagonista.glb` · **1,47 MB** (límite 2 MB) |
+| GLB LOD (nivel cage) | `char_protagonista_lod.glb` · 0,75 MB · 7.910 triángulos en el archivo |
+| Triángulos visibles (variantes por defecto) | 23.236 |
+| Triángulos en el archivo (con todas las variantes) | 27.446 |
+| Caras de la cage | 1.378 |
+| Huesos | 39 deformadores de 43 (máx. 60) |
 | Materiales | 4: `MAT_Eyes`, `MAT_Glint`, `MAT_Protagonista_Body`, `MAT_Protagonista_Face` |
 | Texturas | Body 1024 px, Face 512 px, T_Eyes 256 px (PNG 8 bits sRGB) |
 | Clips | 13 |
 | Validador glTF | 0 errores, 0 avisos, 4 informativos |
-| Reimportación en Blender limpio | altura 1,678 m, pies en z = -0,002, mira a −Y: sí, 13 acciones, 21 variantes |
+| Reimportación en Blender limpio | altura 1,633 m, pies en z = -0,002, mira a −Y: sí, 13 acciones, 21 variantes |
 
 ## Triángulos por pieza
 
 | Pieza | Triángulos |
 |---|---:|
-| Cabeza | 2.848 |
-| Pelo (masa) | 2.776 |
+| Cabeza | 1.648 |
+| Pelo (masa) | 2.976 |
 | Piel visible (cuello, antebrazos, rodillas) | 1.504 |
 | Camisa | 5.132 |
 | Chaleco | 2.912 |
@@ -31,10 +31,10 @@ Personaje 100 % original, modelado desde cero con bpy y bmesh (Blender 4.2). Se 
 | Calcetines | 2.592 |
 | Botas | 336 |
 | Pañuelo | 1.424 |
-| Mechones (Hair_01–03) | 636 |
-| Cara (ojos, iris, brillos, párpado, cejas, boca) | 1.696 |
+| Mechones (Hair_01–03) | 0 |
+| Cara (ojos, iris, brillos, párpado, cejas, boca) | 552 |
 | Manos (abiertas) | 1.408 |
-| **Total visible** | **26.016** |
+| **Total visible** | **23.236** |
 
 ## Clips
 
@@ -68,7 +68,7 @@ Sin n-gons ni vértices sueltos en ninguna malla.
 
 - **Presupuesto de triángulos.** El encargo pide una cage de 1.600–2.000 quads y 6–8k triángulos, pero una Subdivision de nivel 1 multiplica cada quad por 4 (8 triángulos) y el Solidify de la ropa duplica las caras: 2.000 quads dan unos 16k triángulos antes del Solidify. Se entregan las dos cosas: el GLB principal con Subdivision y Bevel aplicados, y un GLB LOD al nivel de la cage.
 - **Bevel de la ropa.** Con el límite por ángulo de 30° sobre una cage tan ligera se biselaban casi todas las aristas. El Bevel (0,012 × 3, harden normals) se limita por peso a los bordes de las prendas (bajo, cuello, sisas, mangas).
-- **Nariz.** En lugar de una esfera unida, la nariz se extruye de la cabeza en tres pasos con su bucle de transición: mismo volumen (≈ 0,08) y ninguna unión con n-gons.
+- **Cabeza y cara de juguete.** Por decisión de dirección, la cabeza es un cilindro redondeado de estilo juguete (diseño propio, sin copiar figuras existentes) con la cara pintada: ojos de punto con brillo, cejas finas y bocas de trazo como piezas planas pegadas a la cabeza, y pelo de una sola pieza con flequillo. Se mantienen la rejilla 24 × 16, las variantes intercambiables (bocas, cejas, párpados) y el esqueleto; desaparecen la nariz, las orejas, los globos oculares y los tres mechones (Hair_01–03).
 - **Zancada de Walk.** Una zancada de 2,15 m no es posible con piernas de 0,5 m. El ciclo de 30 fotogramas (contactos en 0 y 15) avanza alrededor de 1 m (1 m/s); el juego ajusta la velocidad de reproducción a la velocidad real.
 - **Numeración del encargo.** Algunas referencias internas del encargo («punto n») no coinciden con la numeración del texto; se ha seguido el contenido de cada apartado.
 - **Pesos de la ropa.** Los pesos automáticos se calculan sobre una copia entera del cuerpo y se transfieren a la piel y a cada prenda (punto más cercano, interpolado). Así piel y ropa se doblan juntas; luego Limit Total 4, Normalize All y Clean 0,01 como pide el encargo.

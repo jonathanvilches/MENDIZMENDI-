@@ -15,35 +15,51 @@ LON = [0, 10, 21, 33, 47, 62, 78, 93, 109, 126, 144, 162, 180]          # grados
 LAT = [78.75, 67.5, 56.25, 45, 33.75, 22.5, 11, 0, -10, -20, -27, -38, -50, -62, -76]
 
 def head_axes(d):
+    if 'head_axes' in d: return d['head_axes']
     return d['head_r'] * d['head_scale'][0], d['head_r'] * d['head_scale'][1], d['head_r'] * d['head_scale'][2]
+
+# Cabeza de juguete (d['head_style'] == 'toy'): cilindro redondeado. En horizontal es una elipse y de perfil una
+# superelipse de exponente n: ((x/rx)² + (y/ry)²)^(n/2) + |z/rz|^n = 1. Con n = 2 vuelve a ser el elipsoide.
+def _n(d): return d.get('head_n', 2.0) if d.get('head_style') == 'toy' else 2.0
+def _sp(v, e): return math.copysign(abs(v) ** e, v)
 
 def sph(d, lon, lat, r_extra=0.0):
     """Punto de la superficie de la cabeza (sin detalles) para longitud/latitud en grados."""
-    rx, ry, rz = head_axes(d); lo, la = rad(lon), rad(lat)
-    p = V((rx * math.sin(lo) * math.cos(la), -ry * math.cos(lo) * math.cos(la), rz * math.sin(la)))
+    rx, ry, rz = head_axes(d); lo, la = rad(lon), rad(lat); e = 2.0 / _n(d)
+    c, s = _sp(math.cos(la), e), _sp(math.sin(la), e)
+    p = V((rx * math.sin(lo) * c, -ry * math.cos(lo) * c, rz * s))
     if r_extra: p += head_normal(d, p) * r_extra
     return p + V((0, 0, d['head_c']))
 
 def head_normal(d, p_local):
-    rx, ry, rz = head_axes(d)
-    return V((p_local.x / rx ** 2, p_local.y / ry ** 2, p_local.z / rz ** 2)).normalized()
+    rx, ry, rz = head_axes(d); n = _n(d)
+    R = math.hypot(p_local.x / rx, p_local.y / ry)
+    k = R ** (n - 2) if R > 1e-6 else 0.0
+    return V((k * p_local.x / rx ** 2, k * p_local.y / ry ** 2, _sp(p_local.z / rz, n - 1) / rz)).normalized()
 
 def face_point(d, x, z, lift=0.0):
     """Punto de la cara (delante) con esas x y z del mundo, y su normal."""
-    rx, ry, rz = head_axes(d); zc = d['head_c']
-    t = 1 - (x / rx) ** 2 - ((z - zc) / rz) ** 2
+    rx, ry, rz = head_axes(d); zc = d['head_c']; n = _n(d)
+    s = max(0.0, 1 - abs((z - zc) / rz) ** n) ** (2 / n)
+    t = s - (x / rx) ** 2
     y = -ry * math.sqrt(max(0.01, t))
-    loc = V((x, y, z - zc)); n = head_normal(d, loc)
-    return V((x, y, z)) + n * lift, n
+    loc = V((x, y, z - zc)); nn = head_normal(d, loc)
+    return V((x, y, z)) + nn * lift, nn
 
 def lonlat_of(d, p):
-    rx, ry, rz = head_axes(d); q = p - V((0, 0, d['head_c']))
+    rx, ry, rz = head_axes(d); q = p - V((0, 0, d['head_c'])); n = _n(d)
     x, y, z = q.x / rx, q.y / ry, q.z / rz
-    return math.degrees(math.atan2(x, -y)), math.degrees(math.atan2(z, math.hypot(x, y)))
+    return math.degrees(math.atan2(x, -y)), math.degrees(math.atan2(_sp(z, n / 2), math.hypot(x, y) ** (n / 2)))
 
-def hairline(lon):
+def hairline(lon, d=None):
     """Latitud (grados) donde nace el pelo, según el lado: frente, sienes, encima de la oreja y nuca."""
     a = abs(lon)
+    if d is not None and d.get('head_style') == 'toy':
+        # casco de pelo de juguete: flequillo en tres puntas suaves, patillas hasta la altura de los ojos y nuca baja
+        if a < 42: return 29 - 5 * (0.5 + 0.5 * math.cos(rad(lon) * 8.5))
+        if a < 75: return 23 - (a - 42) / 33 * 21
+        if a < 105: return 2
+        return 2 - C.smooth01((a - 105) / 70) * 46
     if a < 30: return 36
     if a < 60: return 36 - (a - 30) / 30 * 18
     if a < 100: return 18 - (a - 60) / 40 * 4
@@ -58,6 +74,26 @@ def reshape_ring(d, loop, cx, cz, a, b, depth, lift_fn=None):
         x, z = cx + a * math.cos(phi), cz + b * math.sin(phi)
         p, n = face_point(d, x, z, depth + (lift_fn(phi) if lift_fn else 0))
         v.co = p
+
+def build_toy_head(d):
+    """Cabeza de juguete: la rejilla de 24 × 16 sobre el cilindro redondeado, sin rasgos modelados
+    (la cara va pintada encima como piezas planas). info['eyes'][lado] = (punto, normal) del centro de cada ojo."""
+    bm = bmesh.new()
+    cols = list(range(-11, 13))
+    lonk = lambda k: math.copysign(LON[abs(k)], k) if abs(k) < 12 else 180
+    grid = {}
+    for i, la in enumerate(LAT):
+        for k in cols: grid[(k, i)] = bm.verts.new(sph(d, lonk(k), la))
+    top = bm.verts.new(sph(d, 0, 90)); bot = bm.verts.new(sph(d, 0, -90))
+    nxt = lambda k: k + 1 if k < 12 else -11
+    for i in range(len(LAT) - 1):
+        for k in cols: bm.faces.new((grid[(k, i)], grid[(nxt(k), i)], grid[(nxt(k), i + 1)], grid[(k, i + 1)]))
+    for k in cols:
+        bm.faces.new((top, grid[(nxt(k), 0)], grid[(k, 0)]))
+        bm.faces.new((bot, grid[(k, len(LAT) - 1)], grid[(nxt(k), len(LAT) - 1)]))
+    bm.normal_update()
+    info = {'eyes': {side: face_point(d, side * d['eye_x'], d['eye_z'], 0.0) for side in (1, -1)}}
+    return bm, info
 
 def build_head(d):
     """Devuelve (bm completo de la cabeza, info) con ojos, nariz, boca (hueco), orejas y pómulos."""
@@ -150,23 +186,35 @@ def split_hair(d, head_bm):
     """Masa del pelo: copia de la parte de arriba y de atrás de la cabeza. Quita de la cabeza lo que tapa."""
     me = bpy.data.meshes.new('_tmp'); head_bm.to_mesh(me)
     hb = bmesh.new(); hb.from_mesh(me); bpy.data.meshes.remove(me)
+    toy = d.get('head_style') == 'toy'
     def in_hair(f, margin):
         lo, la = lonlat_of(d, f.calc_center_median())
-        return la > hairline(lo) + margin
+        return la > hairline(lo, d) + margin
     bmesh.ops.delete(hb, geom=[f for f in hb.faces if not in_hair(f, 0)], context='FACES')
     C.clean_bm(hb)
     # volumen: algo más en la coronilla y la nuca; flequillo en ondas sobre la frente
     boundary = {v for e in hb.edges if e.is_boundary for v in e.verts}
+    if toy:
+        # borde limpio: los vértices del borde van justo a la línea del pelo (sin escalones de la rejilla)
+        for v in boundary:
+            if abs(v.co.x) < 1e-5 and v.co.z < d['head_c']: continue
+            lo, la = lonlat_of(d, v.co)
+            v.co = sph(d, lo, hairline(lo, d))
     for v in hb.verts:
         lo, la = lonlat_of(d, v.co)
         n = head_normal(d, v.co - V((0, 0, d['head_c'])))
+        if toy:
+            # volumen de casco: más arriba, un tupé suave delante y el borde algo separado de la piel
+            extra = 0.014 + 0.026 * C.smooth01((la - 5) / 60) + 0.016 * C.smooth01((la - 30) / 30) * (1 - C.smooth01((abs(lo) - 25) / 40))
+            v.co += n * extra
+            continue
         extra = 0.004 + 0.03 * C.smooth01((la - 15) / 55) + 0.012 * C.smooth01((abs(lo) - 90) / 60)
         v.co += n * extra
         if v in boundary and abs(lo) < 45:
             wave = 0.5 + 0.5 * math.cos(rad(lo) * 9)
             v.co += V((0, -0.012, -0.022 * wave))
     # cabeza: fuera las caras que quedan bajo el pelo (se deja una fila de margen)
-    bmesh.ops.delete(head_bm, geom=[f for f in head_bm.faces if in_hair(f, 11)], context='FACES')
+    bmesh.ops.delete(head_bm, geom=[f for f in head_bm.faces if in_hair(f, 8 if toy else 11)], context='FACES')
     C.clean_bm(head_bm)
     return hb
 

@@ -20,11 +20,11 @@ if (!only || only === 'hub') {
     await p.goto(base + '?screen=avatars', { timeout: 300000 });
     await p.waitForFunction(() => window.__ready, null, { timeout: 300000 });
     await p.waitForTimeout(12000);
-    await p.screenshot({ path: `${out}/selector-${tag}.png` });
+    await p.screenshot({ path: `${out}/selector-${tag}.png`, timeout: 180000 });
     await p.goto(base + '?screen=home', { timeout: 300000 });
     await p.waitForFunction(() => window.__ready, null, { timeout: 300000 });
     await p.waitForTimeout(12000);
-    await p.screenshot({ path: `${out}/portada-${tag}.png` });
+    await p.screenshot({ path: `${out}/portada-${tag}.png`, timeout: 180000 });
     await p.close();
     console.log('hub', tag);
   }
@@ -39,19 +39,19 @@ if (!only || only === 'game') {
   });
   console.log(JSON.stringify(info));
   await p.waitForTimeout(3000);
-  await p.screenshot({ path: `${out}/juego-quieto.png` });
+  await p.screenshot({ path: `${out}/juego-quieto.png`, timeout: 180000 });
   // anda y corre hacia delante (simula la tecla W y mayúsculas)
   await p.keyboard.down('KeyW'); await p.waitForTimeout(4000);
-  await p.screenshot({ path: `${out}/juego-andando.png` });
+  await p.screenshot({ path: `${out}/juego-andando.png`, timeout: 180000 });
   console.log('clip', await p.evaluate(() => window.__game.player.rig.char?.currentName));
   await p.keyboard.down('ShiftLeft'); await p.waitForTimeout(4000);
-  await p.screenshot({ path: `${out}/juego-corriendo.png` });
+  await p.screenshot({ path: `${out}/juego-corriendo.png`, timeout: 180000 });
   console.log('clip', await p.evaluate(() => window.__game.player.rig.char?.currentName));
   await p.keyboard.up('ShiftLeft'); await p.keyboard.up('KeyW');
   await p.keyboard.press('Space'); await p.waitForTimeout(400);
   console.log('clip salto', await p.evaluate(() => window.__game.player.rig.char?.currentName));
   await p.evaluate(() => window.__game.player.rig.doCheer()); await p.waitForTimeout(1500);
-  await p.screenshot({ path: `${out}/juego-celebra.png` });
+  await p.screenshot({ path: `${out}/juego-celebra.png`, timeout: 180000 });
   console.log('clip', await p.evaluate(() => window.__game.player.rig.char?.currentName));
   const perf = await p.evaluate(() => { const r = window.__game.rt?.renderer || window.__game.renderer; return r ? { calls: r.info.render.calls, tris: r.info.render.triangles } : null; });
   console.log('render', JSON.stringify(perf));

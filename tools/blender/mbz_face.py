@@ -89,10 +89,11 @@ BROWS = {  # desplazamientos en z (interior, centro, exterior) y giro
     'Worried': (0.02, 0.01, -0.012), 'Surprised': (0.03, 0.044, 0.022),
 }
 def build_brow(d, kind, coll, taper):
-    dz = BROWS[kind]; zb = d['eye_z'] + d['eye_h'] / 2 + 0.03
-    xs = (0.052, 0.105, 0.158)
-    pts = [Hm.face_point(d, x, zb + z, 0.013)[0] for x, z in zip(xs, dz)]
-    cu = Hm.bezier_tube('Brow_' + kind, pts, 0.011, taper, coll, tilt=0.0, res=4)
+    dz = BROWS[kind]; zb = d['eye_z'] + d.get('brow_dz', d['eye_h'] / 2 + 0.03)
+    xs = d.get('brow_xs', (0.052, 0.105, 0.158))
+    k = d.get('brow_k', 1.0)                         # la cara de juguete lleva las cejas algo menos marcadas
+    pts = [Hm.face_point(d, x, zb + z * k, d.get('brow_lift', 0.013))[0] for x, z in zip(xs, dz)]
+    cu = Hm.bezier_tube('Brow_' + kind, pts, d.get('brow_r', 0.011), taper, coll, tilt=0.0, res=4)
     return cu
 
 # ------------------------------------------------------------------ bocas (encajan en el hueco de la cabeza)
@@ -181,3 +182,95 @@ def build_mouth(d, kind, hole):
             f = bm.faces.new((bt, vr[-1][j], vr[-1][(j + 1) % 8])); f[part] = 2; f.material_index = 1
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
     return bm
+
+# ------------------------------------------------------------------ cara de juguete: pintada con piezas planas pegadas
+# a la superficie de la cabeza (ojos de punto con brillo, párpados para parpadear y bocas de trazo)
+def _outward(bm, d):
+    """Todas las caras mirando hacia fuera de la cabeza."""
+    c = V((0, 0, d['head_c']))
+    for f in bm.faces:
+        if f.normal.dot(f.calc_center_median() - c) < 0: f.normal_flip()
+    bm.normal_update()
+
+def decal_ellipse(bm, d, cx, cz, rx, rz, lift, n=16, mat=0, a0=0.0, a1=math.tau, part=None, val=0):
+    """Elipse (o sector a0–a1) en abanico sobre la cara, separada `lift` de la piel."""
+    full = abs(a1 - a0 - math.tau) < 1e-6
+    angs = [a0 + (a1 - a0) * i / n for i in range(n if full else n + 1)]
+    ring = [bm.verts.new(Hm.face_point(d, cx + math.cos(a) * rx, cz + math.sin(a) * rz, lift)[0]) for a in angs]
+    mid = bm.verts.new(Hm.face_point(d, cx, cz, lift)[0])
+    out = []
+    for i in range(len(ring) if full else len(ring) - 1):
+        f = bm.faces.new((mid, ring[i], ring[(i + 1) % len(ring)])); f.material_index = mat
+        if part is not None: f[part] = val
+        out.append(f)
+    return out
+
+def decal_strip(bm, d, pts_top, pts_bot, lift, mat=0, part=None, val=0):
+    """Tira entre dos polilíneas (x, z) de la cara."""
+    T = [bm.verts.new(Hm.face_point(d, x, z, lift)[0]) for x, z in pts_top]
+    B = [bm.verts.new(Hm.face_point(d, x, z, lift)[0]) for x, z in pts_bot]
+    out = []
+    for i in range(len(T) - 1):
+        f = bm.faces.new((T[i], T[i + 1], B[i + 1], B[i])); f.material_index = mat
+        if part is not None: f[part] = val
+        out.append(f)
+    return out
+
+def toy_eye(d, side):
+    """Ojo de punto: óvalo oscuro (se colorea con la pupila del atlas de ojos)."""
+    bm = bmesh.new()
+    decal_ellipse(bm, d, side * d['eye_x'], d['eye_z'], d['eye_w'] / 2, d['eye_h'] / 2, 0.0015, n=20)
+    _outward(bm, d); return bm
+
+def toy_glints(d, side):
+    ex, ez, ew, eh = side * d['eye_x'], d['eye_z'], d['eye_w'] / 2, d['eye_h'] / 2
+    out = {}
+    for nm, (ox, oz, r) in (('Big', (0.34, 0.36, 0.3)), ('Small', (-0.3, -0.42, 0.14))):
+        bm = bmesh.new()
+        decal_ellipse(bm, d, ex + ox * ew, ez + oz * eh, r * ew, r * ew, 0.0028, n=12)
+        _outward(bm, d); out[nm] = bm
+    return out
+
+def toy_lid(d, kind):
+    """Párpados de los dos ojos: piel que tapa el ojo (material 0) y la raya del ojo cerrado (material 1)."""
+    bm = bmesh.new()
+    for side in (1, -1):
+        ex, ez, ew, eh = side * d['eye_x'], d['eye_z'], d['eye_w'] / 2 * 1.2, d['eye_h'] / 2 * 1.2
+        if kind == 'Open':
+            decal_ellipse(bm, d, ex, ez + eh * 0.9, ew * 0.3, eh * 0.08, -0.004, n=6)      # escondido: el ojo se ve entero
+        elif kind == 'Half':
+            decal_ellipse(bm, d, ex, ez, ew, eh, 0.0036, n=10, a0=0.0, a1=math.pi)      # la mitad de arriba tapada
+            xs = [ex - ew + 2 * ew * i / 8 for i in range(9)]
+            decal_strip(bm, d, [(x, ez + 0.0022) for x in xs], [(x, ez - 0.0022) for x in xs], 0.0042, mat=1)
+        else:
+            decal_ellipse(bm, d, ex, ez, ew, eh, 0.0036, n=16)                           # tapado entero
+            xs = [ex - ew * 0.85 + 1.7 * ew * i / 10 for i in range(11)]
+            arc = lambda x: ez - 0.006 * (1 - ((x - ex) / (ew * 0.85)) ** 2)            # raya en arco «‿»
+            decal_strip(bm, d, [(x, arc(x) + 0.0024) for x in xs], [(x, arc(x) - 0.0024) for x in xs], 0.0042, mat=1)
+    _outward(bm, d); return bm
+
+def build_mouth_decal(d, kind):
+    """Boca de trazo: las cerradas son una raya; las abiertas, un hueco oscuro con lengua y, a veces, dientes.
+    part: 1 interior/raya, 2 lengua, 3 dientes (los tres con el atlas común de ojos y bocas)."""
+    bm = bmesh.new(); part = bm.faces.layers.int.new('part')
+    mz = d['mouth_z']; a = mouth_width(kind, d); N = 14
+    xs = [-a + 2 * a * i / N for i in range(N + 1)]
+    T = [(x, mz + mouth_shape(kind, x, a, True)) for x in xs]
+    B = [(x, mz + mouth_shape(kind, x, a, False)) for x in xs]
+    if kind in CLOSED:
+        # raya con los extremos redondeados: más fina en las comisuras
+        mid = [((zt + zb) / 2) for (_, zt), (_, zb) in zip(T, B)]
+        th = [(zt - zb) / 2 * (0.45 + 0.55 * math.sqrt(max(0.0, 1 - (x / a) ** 2))) for (x, zt), (_, zb) in zip(T, B)]
+        decal_strip(bm, d, [(x, m + t) for x, m, t in zip(xs, mid, th)], [(x, m - t) for x, m, t in zip(xs, mid, th)], 0.0016, mat=1, part=part, val=1)
+    else:
+        decal_strip(bm, d, T, B, 0.0016, mat=1, part=part, val=1)
+        inner = [i for i, x in enumerate(xs) if abs(x) <= a * 0.62]
+        if kind not in ('Surprised', 'TalkO'):
+            tb = [B[i] for i in inner]; tt = [(x, zb + (zt - zb) * 0.42) for (x, zt), (_, zb) in zip([T[i] for i in inner], tb)]
+            decal_strip(bm, d, tt, [(x, zb + 0.0012) for x, zb in tb], 0.0024, mat=1, part=part, val=2)
+        if kind in ('SmileOpen', 'TalkA'):
+            ti = [i for i, x in enumerate(xs) if abs(x) <= a * 0.8]
+            top = [(T[i][0], T[i][1] - 0.0012) for i in ti]
+            decal_strip(bm, d, top, [(x, z - min(0.007, (z - B[i][1]) * 0.35)) for (x, z), i in zip(top, ti)], 0.0024, mat=1, part=part, val=3)
+    C.clean_bm(bm, dist=0.00005)
+    _outward(bm, d); return bm

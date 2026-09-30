@@ -1,10 +1,10 @@
 {
  "archivo": "char_protagonista.glb",
- "peso_MB": 1.69,
- "triangulos_visibles": 26016,
+ "peso_MB": 1.47,
+ "triangulos_visibles": 23236,
  "triangulos_por_parte": {
-  "Head": 2848,
-  "Hair": 2776,
+  "Head": 1648,
+  "Hair": 2976,
   "Body": 1504,
   "Shirt": 5132,
   "Vest": 2912,
@@ -12,14 +12,14 @@
   "Socks": 2592,
   "Boots": 336,
   "Acc_Scarf": 1424,
-  "Mechones": 636,
-  "Cara (ojos, iris, brillos, párpado, cejas, boca)": 1696,
+  "Mechones": 0,
+  "Cara (ojos, iris, brillos, párpado, cejas, boca)": 552,
   "Manos (abiertas)": 1408
  },
- "triangulos_con_todas_las_variantes": 34928,
- "cage_caras": 1512,
- "huesos_deformadores": 42,
- "huesos_total": 46,
+ "triangulos_con_todas_las_variantes": 27446,
+ "cage_caras": 1378,
+ "huesos_deformadores": 39,
+ "huesos_total": 43,
  "materiales": [
   "MAT_Eyes",
   "MAT_Glint",
@@ -243,21 +243,6 @@
    "sueltos": 0,
    "ngons": 0
   },
-  "Hair_Tuft_1": {
-   "fusionados": 0,
-   "sueltos": 0,
-   "ngons": 0
-  },
-  "Hair_Tuft_2": {
-   "fusionados": 0,
-   "sueltos": 0,
-   "ngons": 0
-  },
-  "Hair_Tuft_3": {
-   "fusionados": 0,
-   "sueltos": 0,
-   "ngons": 0
-  },
   "Hand_L_Fist": {
    "fusionados": 0,
    "sueltos": 0,
@@ -284,16 +269,6 @@
    "ngons": 0
   },
   "Head": {
-   "fusionados": 0,
-   "sueltos": 0,
-   "ngons": 0
-  },
-  "Iris_L": {
-   "fusionados": 0,
-   "sueltos": 0,
-   "ngons": 0
-  },
-  "Iris_R": {
    "fusionados": 0,
    "sueltos": 0,
    "ngons": 0
@@ -364,14 +339,14 @@
   "avisos": 0,
   "info": 4,
   "mensajes": [
-   "UNUSED_OBJECT /meshes/1/primitives/0/attributes/TEXCOORD_0: This object may be unused.",
-   "UNUSED_OBJECT /meshes/2/primitives/0/attributes/TEXCOORD_0: This object may be unused.",
-   "UNUSED_OBJECT /meshes/8/primitives/0/attributes/TEXCOORD_0: This object may be unused.",
-   "UNUSED_OBJECT /meshes/9/primitives/0/attributes/TEXCOORD_0: This object may be unused."
+   "UNUSED_OBJECT /meshes/10/primitives/0/attributes/TEXCOORD_0: This object may be unused.",
+   "UNUSED_OBJECT /meshes/11/primitives/0/attributes/TEXCOORD_0: This object may be unused.",
+   "UNUSED_OBJECT /meshes/12/primitives/0/attributes/TEXCOORD_0: This object may be unused.",
+   "UNUSED_OBJECT /meshes/13/primitives/0/attributes/TEXCOORD_0: This object may be unused."
   ]
  },
  "reimportacion": {
-  "altura_m": 1.678,
+  "altura_m": 1.633,
   "pies_z": -0.002,
   "mira_a_-Y": true,
   "acciones": [
@@ -389,8 +364,8 @@
    "Walk_RIG_Protagonista",
    "Wave_RIG_Protagonista"
   ],
-  "mallas": 34,
-  "huesos": 46,
+  "mallas": 32,
+  "huesos": 43,
   "variantes": [
    "Brow_Angry",
    "Brow_Happy",
@@ -417,19 +392,19 @@
  },
  "lod": {
   "archivo": "char_protagonista_lod.glb",
-  "peso_MB": 0.88,
-  "triangulos_en_archivo": 11664,
+  "peso_MB": 0.75,
+  "triangulos_en_archivo": 7910,
   "validador": {
    "errores": 0,
    "avisos": 0,
    "info": 4,
    "mensajes": [
-    "UNUSED_OBJECT /meshes/1/primitives/0/attributes/TEXCOORD_0: This object may be unused.",
-    "UNUSED_OBJECT /meshes/2/primitives/0/attributes/TEXCOORD_0: This object may be unused.",
-    "UNUSED_OBJECT /meshes/8/primitives/0/attributes/TEXCOORD_0: This object may be unused.",
-    "UNUSED_OBJECT /meshes/9/primitives/0/attributes/TEXCOORD_0: This object may be unused."
+    "UNUSED_OBJECT /meshes/10/primitives/0/attributes/TEXCOORD_0: This object may be unused.",
+    "UNUSED_OBJECT /meshes/11/primitives/0/attributes/TEXCOORD_0: This object may be unused.",
+    "UNUSED_OBJECT /meshes/12/primitives/0/attributes/TEXCOORD_0: This object may be unused.",
+    "UNUSED_OBJECT /meshes/13/primitives/0/attributes/TEXCOORD_0: This object may be unused."
    ]
   }
  },
- "triangulos_en_archivo": 34928
+ "triangulos_en_archivo": 27446
 }
