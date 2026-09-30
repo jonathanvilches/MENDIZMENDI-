@@ -1,5 +1,5 @@
 // Mapa interactivo del pueblo o del valle: se amplía con los dedos, la rueda o los botones, se arrastra
-// y cada marca se puede tocar para ver qué es, seguir su misión, ir allí o jugar a pelota.
+// y cada marca se puede tocar para ver qué es, seguir su misión o ir allí.
 // Las marcas y los nombres se dibujan siempre al mismo tamaño y los nombres que chocarían se esconden
 // hasta que se amplía el mapa.
 import { HALF } from '../world/layout.js';
@@ -37,7 +37,7 @@ export function mountMapView(ui, box, opts = {}) {
     const labels = (game.mapLabels ? game.mapLabels() : []).map(l => ({ ...l, pri: !l.icon ? 4 : l.act ? 2.5 : 2, go: l.go ?? true, title: l.title || l.label }));
     const out = [...labels];
     for (const m of game.mapMarkers()) {
-      const twin = labels.find(l => l.icon === m.icon && (Math.hypot(l.x - m.x, l.z - m.z) < 16 || (m.act === 'pelota' && l.act === 'pelota')));
+      const twin = labels.find(l => l.icon === m.icon && (Math.hypot(l.x - m.x, l.z - m.z) < 16 || (m.fronton && l.fronton)));
       if (twin) { twin.act ||= m.act; twin.text ||= m.text; continue; }
       out.push({ ...m, pri: m.small ? 1 : 3 });
     }
@@ -111,7 +111,7 @@ export function mountMapView(ui, box, opts = {}) {
         g.font = '800 12.5px Nunito, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#2b1d12';
         g.fillText(it.label, R.x + R.w / 2, R.y + R.h / 2 + 0.5);
       }
-      if (it.go || it.act) hits.push({ it, kind: 'label', x: R.x, y: R.y, w: R.w, h: R.h });
+      hits.push({ it, kind: 'label', x: R.x, y: R.y, w: R.w, h: R.h });
     }
     for (const { it, X, Y, r } of placed) {
       if (it === sel) { g.fillStyle = 'rgba(255,215,0,.35)'; g.beginPath(); g.arc(X, Y, r + 7, 0, 7); g.fill(); g.strokeStyle = '#FFD700'; g.lineWidth = 2.5; g.stroke(); }
@@ -139,7 +139,6 @@ export function mountMapView(ui, box, opts = {}) {
     if (!it) { card.hidden = true; return; }
     const tracked = it.act === 'track' && (game.kind === 'town' ? game.tracked === it.id : game.state?.tracked === it.id);
     const btn = [];
-    if (it.act === 'pelota') btn.push(`<button class="btn primary" data-a="pelota">${iconSVG('pelota', 20)} Jugar a pelota</button>`);
     if (it.act === 'track') btn.push(tracked ? `<span class="mc-on">${iconSVG('check', 18)} Siguiendo</span>` : `<button class="btn primary" data-a="track">${iconSVG('pin', 20)} Seguir</button>`);
     if (it.go) btn.push(`<button class="btn" data-a="go">${iconSVG('footprint', 20)} Llévame</button>`);
     card.innerHTML = `<div class="mc-i">${iconSVG(it.icon || 'home', 34)}</div><div class="mc-t"><b>${esc(it.title || it.label)}</b>${it.text ? `<small>${esc(it.text)}</small>` : ''}</div><div class="mc-b">${btn.join('')}</div><button class="mc-x" aria-label="Cerrar">${SVG.plus.replace('M12 5v14M5 12h14', 'M7 7l10 10M17 7L7 17')}</button>`;

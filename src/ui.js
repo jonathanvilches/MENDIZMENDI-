@@ -486,7 +486,7 @@ export class UI {
       <p id="mQnote" class="keys" hidden>La nueva calidad se aplicará al cargar el próximo pueblo.</p>
       <label>Paso del tiempo <select id="mT"><option value="1">Normal</option><option value="0">Detenido</option><option value="4">Rápido</option></select></label>
       <div class="keys">${this.input.touch ? 'Izquierda: caminar · Derecha: mirar · Botón amarillo: acción · botones de correr y saltar' : '<kbd>WASD</kbd> caminar · <kbd>Mayús</kbd> correr · <kbd>Espacio</kbd> saltar · <kbd>E</kbd> hablar/usar · <kbd>F</kbd> prismáticos · <kbd>C</kbd> cuaderno · <kbd>M</kbd> mapa · ratón o flechas para la cámara · rueda: zoom'}</div>
-      <div class="btns"><button class="btn primary close">Seguir jugando</button>${g.goPelota ? `<button class="btn" id="mPelota">${I('pelota', 20)} Jugar a pelota</button>` : ''}<button class="btn" id="mHome">Volver a la plaza</button><button class="btn exit" id="mExit">${I('map', 20)} Salir al mapa de Navarra</button>${town ? '' : '<button class="btn" id="mReset">Borrar partida del valle</button>'}</div>
+      <div class="btns"><button class="btn primary close">Seguir jugando</button><button class="btn" id="mHome">Volver a la plaza</button><button class="btn exit" id="mExit">${I('map', 20)} Salir al mapa de Navarra</button>${town ? '' : '<button class="btn" id="mReset">Borrar partida del valle</button>'}</div>
     </div>`, 'menu');
     $('#mQ', s).value = S.quality || (this.input.touch ? 'mid' : 'high'); $('#mT', s).value = String(S.timeSpeed ?? 1);
     const save = () => g.save();
@@ -495,7 +495,6 @@ export class UI {
     $('#mQ', s).onchange = e => { S.quality = e.target.value; save(); this.onQuality?.(e.target.value); $('#mQnote', s).hidden = false; };
     $('#mT', s).onchange = e => { S.timeSpeed = +e.target.value; g.applySettings(); save(); };
     $('#mHome', s).onclick = () => { this.closeModal(); g.teleport(PLACES.plaza.x - 6, PLACES.plaza.z + 6); };
-    const mp = $('#mPelota', s); if (mp) mp.onclick = () => { this.closeModal(); g.goPelota(); };
     $('#mExit', s).onclick = () => { this.closeModal(); g.save(); g.onExit?.(); };
     const rb = $('#mReset', s);
     if (rb) rb.onclick = () => { if (rb.dataset.sure) { this.closeModal(); g.resetState(st.name); } else { rb.dataset.sure = 1; rb.textContent = '¿Seguro? Pulsa otra vez para borrar'; this.sound.ui('error'); } };

@@ -1,4 +1,4 @@
-// Mapa interactivo, pelota desde el menú/mapa y misiones sin orden. Capturas en entrega/mapa.
+// Mapa interactivo, pelota al acercarse al frontón (sin atajos en el menú ni en el mapa) y misiones sin orden. Capturas en entrega/mapa.
 // Uso: node tools/maptest.mjs [url base] ; ONLY=movil|apaisado|escritorio|menu|salazar
 import { chromium } from 'playwright-core';
 import { mkdirSync } from 'fs';
@@ -19,7 +19,7 @@ async function open(town, w, h, mobile) {
 const shot = (p, name) => p.screenshot({ path: `${out}/${name}.png`, timeout: 180000 });
 const openMap = async (p) => { await p.evaluate(() => window.__game.ui.openMap()); await p.waitForTimeout(1500); };
 const view = (p) => p.evaluate(() => { const v = window.__game.ui.mapView.view; return `s=${v.s.toFixed(3)} c=(${v.cx.toFixed(0)}, ${v.cz.toFixed(0)})`; });
-const hitOf = (p, what) => p.evaluate((what) => { const mv = window.__game.ui.mapView, r = document.querySelector('#mapbox canvas').getBoundingClientRect(); const h = mv.hits.find(h => what === 'pelota' ? h.it.act === 'pelota' : what === 'mision' ? h.it.act === 'track' : h.it.label === what); return h ? { x: r.left + h.x + h.w / 2, y: r.top + h.y + h.h / 2, title: h.it.title } : null; }, what);
+const hitOf = (p, what) => p.evaluate((what) => { const mv = window.__game.ui.mapView, r = document.querySelector('#mapbox canvas').getBoundingClientRect(); const h = mv.hits.find(h => what === 'pelota' ? h.it.fronton : what === 'mision' ? h.it.act === 'track' : h.it.label === what); return h ? { x: r.left + h.x + h.w / 2, y: r.top + h.y + h.h / 2, title: h.it.title } : null; }, what);
 async function pinch(p, cx, cy, d0, d1) {
   const c = await p.context().newCDPSession(p);
   const pts = (d) => [{ x: cx - d / 2, y: cy, id: 1 }, { x: cx + d / 2, y: cy, id: 2 }];
@@ -54,9 +54,17 @@ if (!only || only === 'movil') {
   if (f) {
     await p.mouse.click(f.x, f.y); await p.waitForTimeout(900); await shot(p, 'movil-5-fronton');
     console.log('tarjeta', await p.evaluate(() => document.querySelector('.mapcard').innerText.replace(/\s+/g, ' ')));
-    await p.evaluate(() => document.querySelector('.mapcard [data-a=pelota]').click()); await p.waitForTimeout(2500);
-    console.log('tras jugar', await p.evaluate(() => { const g = window.__game, fr = g.fronton.entry; return JSON.stringify({ modal: !!g.ui.modal, dialogo: document.querySelector('#dialog')?.innerText.slice(0, 80), dist: Math.hypot(g.player.pos.x - fr.x, g.player.pos.z - fr.z).toFixed(1) }); }));
-    await shot(p, 'movil-6-pelota');
+    console.log('botón de pelota en el mapa', await p.evaluate(() => !!document.querySelector('.mapcard [data-a=pelota]')));
+    await p.evaluate(() => window.__game.ui.closeModal());
+    // acercarse al frontón a pie: aparece «Jugar a pelota» y el botón de acción empieza el partido
+    await p.evaluate(() => { const G = window.__game, e = G.fronton.entry; G.player.place(e.x + 0.5, e.z + 0.5, 0); G.follow.snap(G.player); });
+    await p.waitForTimeout(2500);
+    console.log('aviso al acercarse', await p.evaluate(() => { const G = window.__game, P = G.player.pos; return G.interactables().filter(i => Math.hypot(i.x - P.x, i.z - P.z) < i.r).map(i => i.label).join(' | '); }));
+    await shot(p, 'movil-6-acercarse');
+    await p.evaluate(() => { const G = window.__game, P = G.player.pos; const it = G.interactables().find(i => i.kind === 'fronton' && Math.hypot(i.x - P.x, i.z - P.z) < i.r); if (it) G.interact(it); });
+    await p.waitForTimeout(2500);
+    console.log('tras pulsar', await p.evaluate(() => document.querySelector('#dialog')?.innerText.slice(0, 80)));
+    await shot(p, 'movil-7-pelota');
   }
   await p.close();
 }
@@ -77,9 +85,7 @@ if (!only || only === 'escritorio') {
 if (!only || only === 'menu') {
   const p = await open('tafalla', 390, 844, true);
   await p.evaluate(() => window.__game.ui.openMenu()); await p.waitForTimeout(1200); await shot(p, 'menu-movil');
-  await p.evaluate(() => document.querySelector('#mPelota').click()); await p.waitForTimeout(2500);
-  console.log('menú→pelota (pueblo con misión de pelota)', await p.evaluate(() => { const g = window.__game, fr = g.fronton.entry; return JSON.stringify({ dialogo: document.querySelector('#dialog')?.innerText.slice(0, 100), dist: Math.hypot(g.player.pos.x - fr.x, g.player.pos.z - fr.z).toFixed(1) }); }));
-  await shot(p, 'menu-pelota');
+  console.log('botón de pelota en la pausa', await p.evaluate(() => !!document.querySelector('#mPelota')));
   await p.close();
 }
 if (!only || only === 'salazar') {
