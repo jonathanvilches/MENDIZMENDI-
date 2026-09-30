@@ -262,38 +262,62 @@ function grassGround(size) {
   return toTex(out, false);
 }
 
-// ---- Roca de montaña: estratos, grietas y líquenes ----
-// R: luminancia de la roca, G: líquenes, B: oclusión de grietas
+// ---- Roca de montaña: bloques fracturados, estratos, grietas y líquenes ----
+// R: luminancia de la roca, G: líquenes, B: oclusión de grietas. Devuelve también el mapa de relieve (normal).
 function rockFace(size) {
   const rnd = mulberry32(23);
   const per = (x, y, f) => { const a = (x / size) * Math.PI * 2, b = (y / size) * Math.PI * 2; return noise2(Math.cos(a) * f + 10, Math.sin(a) * f + Math.cos(b) * f * 0.9 + 3) * 0.5 + noise2(Math.sin(b) * f - 7, Math.cos(b) * f + Math.sin(a) * f * 0.7) * 0.5; };
+  // bloques: celdas de Voronoi enlosables (una semilla por casilla, algo más anchas que altas, como la caliza)
+  const G = 4, cw = size / G, seeds = [];
+  for (let j = 0; j < G; j++) for (let i = 0; i < G; i++) seeds.push([(i + 0.15 + rnd() * 0.7) * cw, (j + 0.15 + rnd() * 0.7) * cw, rnd(), rnd()]);
+  const cell = (x, y) => {
+    const ci = Math.floor(x / cw), cj = Math.floor(y / cw);
+    let d1 = 1e9, d2 = 1e9, id = null;
+    for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) {
+      const i = ci + di, j = cj + dj, si = ((i % G) + G) % G, sj = ((j % G) + G) % G, sd = seeds[sj * G + si];
+      const sx = sd[0] + (i - si) * cw, sy = sd[1] + (j - sj) * cw;
+      const dx = (x - sx) * 0.8, dy = (y - sy) * 1.25, d = dx * dx + dy * dy;
+      if (d < d1) { d2 = d1; d1 = d; id = sd; } else if (d < d2) d2 = d;
+    }
+    return { e: Math.sqrt(d2) - Math.sqrt(d1), c: Math.sqrt(d1) / cw, id };
+  };
   const c = canvas(size), g = c.getContext('2d'), img = g.createImageData(size, size), d = img.data;
+  const hc = canvas(size), hg = hc.getContext('2d'), himg = hg.createImageData(size, size), hd = himg.data;
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
     const k = (y * size + x) * 4;
     const warp = per(x, y, 1.5) * 18;
+    const cl = cell(x + warp * 0.5, y + warp * 0.3);
     // estratos: bandas horizontales onduladas de distinto grosor
     const band = Math.sin(((y + warp) / size) * Math.PI * 2 * 7) * 0.5 + Math.sin(((y + warp * 1.7) / size) * Math.PI * 2 * 17) * 0.25;
-    const n = per(x, y, 3) * 0.45 + per(x, y, 9) * 0.25 + (rnd() - 0.5) * 0.12;
-    d[k] = Math.max(0, Math.min(255, 140 + n * 150 + band * 38));
-    d[k + 1] = Math.max(0, Math.min(255, (per(x + 40, y, 4) - 0.25) * 600));
-    d[k + 2] = 255; d[k + 3] = 255;
+    const n = per(x, y, 3) * 0.45 + per(x, y, 9) * 0.25 + per(x, y, 24) * 0.12 + (rnd() - 0.5) * 0.1;
+    const edge = Math.min(1, cl.e / 3.5);                     // 0 en la junta entre bloques (fina)
+    const shade = (cl.id[2] - 0.5) * 0.34;                    // cada bloque con su tono
+    const lum = 140 + n * 135 + band * 26 + shade * 120 - (1 - edge) * 45;
+    d[k] = Math.max(0, Math.min(255, lum));
+    d[k + 1] = Math.max(0, Math.min(255, (per(x + 40, y, 4) - 0.2) * 520 + (cl.id[3] > 0.7 ? 60 : 0)));
+    d[k + 2] = Math.max(0, Math.min(255, 120 + edge * 135)); d[k + 3] = 255;
+    // relieve: cada bloque abombado, juntas hundidas y grano fino
+    const dome = 1 - Math.min(1, cl.c * 0.9);
+    const hv = 110 + dome * 80 * (0.5 + cl.id[2] * 0.7) + n * 75 + band * 16 - (1 - edge) * 70;
+    hd[k] = hd[k + 1] = hd[k + 2] = Math.max(0, Math.min(255, hv)); hd[k + 3] = 255;
   }
-  g.putImageData(img, 0, 0);
-  // grietas: trazos quebrados, sobre todo verticales, que oscurecen R y B
-  g.lineCap = 'round'; g.lineJoin = 'round';
-  for (let i = 0; i < 26; i++) {
-    let x = rnd() * size, y = rnd() * size; const steps = 6 + (rnd() * 10 | 0), w = 1 + rnd() * 2.2;
+  g.putImageData(img, 0, 0); hg.putImageData(himg, 0, 0);
+  // grietas: trazos quebrados, sobre todo verticales, que oscurecen R y B (y hunden el relieve)
+  g.lineCap = 'round'; g.lineJoin = 'round'; hg.lineCap = 'round'; hg.lineJoin = 'round';
+  for (let i = 0; i < 16; i++) {
+    let x = rnd() * size, y = rnd() * size; const steps = 6 + (rnd() * 10 | 0), w = 0.8 + rnd() * 1.6;
     const pts = [[x, y]]; for (let j = 0; j < steps; j++) { x += (rnd() - 0.5) * 22; y += 8 + rnd() * 16; pts.push([x, y]); }
     for (const dx of [-size, 0, size]) for (const dy of [-size, 0, size]) {
       g.strokeStyle = 'rgba(20,0,40,0.85)'; g.lineWidth = w; g.beginPath(); pts.forEach(([px, py], j) => j ? g.lineTo(px + dx, py + dy) : g.moveTo(px + dx, py + dy)); g.stroke();
+      hg.strokeStyle = 'rgba(10,10,10,0.9)'; hg.lineWidth = w * 1.4; hg.beginPath(); pts.forEach(([px, py], j) => j ? hg.lineTo(px + dx, py + dy) : hg.moveTo(px + dx, py + dy)); hg.stroke();
     }
   }
   // juntas horizontales entre estratos
   for (let i = 0; i < 9; i++) {
-    const y0 = rnd() * size; g.strokeStyle = 'rgba(30,0,60,0.6)'; g.lineWidth = 1 + rnd() * 1.5;
-    for (const dy of [-size, 0, size]) { g.beginPath(); for (let x = 0; x <= size; x += 8) { const y = y0 + dy + Math.sin(x / size * Math.PI * 4 + i) * 6; x ? g.lineTo(x, y) : g.moveTo(x, y); } g.stroke(); }
+    const y0 = rnd() * size; g.strokeStyle = 'rgba(30,0,60,0.6)'; g.lineWidth = 1 + rnd() * 1.5; hg.strokeStyle = 'rgba(20,20,20,0.7)'; hg.lineWidth = 2 + rnd() * 1.5;
+    for (const dy of [-size, 0, size]) for (const q of [g, hg]) { q.beginPath(); for (let x = 0; x <= size; x += 8) { const y = y0 + dy + Math.sin(x / size * Math.PI * 4 + i) * 6; x ? q.lineTo(x, y) : q.moveTo(x, y); } q.stroke(); }
   }
-  return toTex(c, false);
+  return { map: toTex(c, false), normalMap: toTex(normalFromHeight(hc, 7), false) };
 }
 
 // ---- Ladrillo de la Ribera ----
@@ -313,6 +337,70 @@ function bricks(size) {
   grain(g, size, 0.16, rnd, 0.6);
   return { map: toTex(col), normalMap: toTex(normalFromHeight(hc, 2.5), false) };
 }
+
+// ---- Follaje (atlas con transparencia) ----
+// Cuadrante sup. izq.: racimo de hojas anchas · inf. izq.: hojas más menudas · sup. dcha.: rama de abeto con agujas
+// inf. dcha.: blanco opaco (troncos y núcleos de las copas). Tonos claros casi grises: el verde lo da el color de cada vértice.
+function foliageAtlas(size) {
+  const rnd = mulberry32(41);
+  const c = document.createElement('canvas'); c.width = c.height = size;
+  const g = c.getContext('2d'), H = size / 2;
+  g.clearRect(0, 0, size, size);
+  g.fillStyle = '#ffffff'; g.fillRect(H, H, H, H);
+  const leaf = (x, y, L, W, a, l) => {
+    g.save(); g.translate(x, y); g.rotate(a);
+    g.fillStyle = `hsl(${78 + rnd() * 30},${22 + rnd() * 18}%,${l}%)`;
+    g.beginPath(); g.moveTo(0, 0); g.quadraticCurveTo(W * 0.9, L * 0.35, 0, L); g.quadraticCurveTo(-W * 0.9, L * 0.35, 0, 0); g.fill();
+    g.strokeStyle = `hsla(90,20%,${l - 22}%,.55)`; g.lineWidth = Math.max(0.8, W * 0.08); g.beginPath(); g.moveTo(0, L * 0.05); g.lineTo(0, L * 0.9); g.stroke();
+    g.restore();
+  };
+  // racimos de hojas: más densos en el centro, hojas que apuntan hacia fuera; las de dentro más oscuras
+  const cluster = (ox, oy, n, L0, W0) => {
+    const cx = ox + H / 2, cy = oy + H / 2, R = H * 0.44;
+    g.save(); g.beginPath(); g.rect(ox, oy, H, H); g.clip();
+    // ramitas
+    g.strokeStyle = 'rgba(95,80,60,1)'; g.lineWidth = size / 320;
+    for (let i = 0; i < 6; i++) { const a = rnd() * 6.28; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + Math.cos(a) * R * 0.8, cy + Math.sin(a) * R * 0.8); g.stroke(); }
+    for (let i = 0; i < n; i++) {
+      const rr = Math.sqrt(rnd()) * R, a = rnd() * 6.28, x = cx + Math.cos(a) * rr, y = cy + Math.sin(a) * rr;
+      const L = (L0 + rnd() * L0 * 0.6) * (1 - rr / R * 0.25), W = W0 * (0.8 + rnd() * 0.5);
+      leaf(x, y, L, W, a - Math.PI / 2 + (rnd() - 0.5) * 1.2, 52 + (rr / R) * 30 + rnd() * 14);
+    }
+    g.restore();
+  };
+  cluster(0, 0, 90, size * 0.06, size * 0.03);
+  cluster(0, H, 150, size * 0.042, size * 0.021);
+  // rama de abeto: eje con agujas a ambos lados, que se acortan hacia la punta
+  {
+    const ox = H, oy = 0, x0 = ox + H * 0.5, y0 = oy + H * 0.97, y1 = oy + H * 0.05;
+    g.save(); g.beginPath(); g.rect(ox, oy, H, H); g.clip();
+    const twig = (bx, by, ex, ey, len, dens) => {
+      // cuerpo de la rama: masa de agujas más oscura detrás, para que se lea de lejos
+      const ang0 = Math.atan2(ey - by, ex - bx), Lb = Math.hypot(ex - bx, ey - by);
+      g.save(); g.translate((bx + ex) / 2, (by + ey) / 2); g.rotate(ang0); g.fillStyle = 'hsl(110,22%,50%)';
+      g.beginPath(); g.ellipse(0, 0, Lb / 2 + len * 0.3, len * 0.72, 0, 0, 7); g.fill(); g.restore();
+      g.strokeStyle = 'rgba(110,95,70,1)'; g.lineWidth = size / 200; g.beginPath(); g.moveTo(bx, by); g.lineTo(ex, ey); g.stroke();
+      const n = Math.round(Math.hypot(ex - bx, ey - by) / size * 260 * dens);
+      for (let i = 0; i < n; i++) {
+        const t = i / n, x = bx + (ex - bx) * t, y = by + (ey - by) * t, L = len * (1 - t * 0.55) * (0.8 + rnd() * 0.4), ang = Math.atan2(ey - by, ex - bx);
+        for (const sd of [-1, 1]) {
+          const a = ang + sd * (0.9 + rnd() * 0.35);
+          g.strokeStyle = `hsl(${95 + rnd() * 20},${18 + rnd() * 14}%,${60 + rnd() * 32}%)`; g.lineWidth = size / 150 + rnd() * size / 300;
+          g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * L, y + Math.sin(a) * L); g.stroke();
+        }
+      }
+    };
+    twig(x0, y0, x0, y1, H * 0.2, 1.1);
+    for (let k = 0; k < 7; k++) { const t = 0.12 + k * 0.11, y = y0 + (y1 - y0) * t, sd = k % 2 ? 1 : -1; twig(x0, y, x0 + sd * H * (0.32 - t * 0.2), y - H * 0.12, H * 0.11, 1.2); }
+    g.restore();
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+  t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter;
+  return t;
+}
+// Zonas del atlas de follaje en UV (u0, v0, u1, v1) y el punto opaco para troncos
+export const FOLIAGE = { leafA: [0, 0.5, 0.5, 1], leafB: [0, 0, 0.5, 0.5], needle: [0.5, 0.5, 1, 1], solid: [0.8, 0.2] };
 
 export const TEX = {};
 export function buildTextures(quality = 'high') {
@@ -335,6 +423,7 @@ export function buildTextures(quality = 'high') {
   TEX.plasterBlue = plaster(S, '#c9d6de', 5);
   TEX.detail = groundDetail(S);
   TEX.grass = grassGround(S);
-  TEX.rock = rockFace(S);
+  { const r = rockFace(S); TEX.rock = r.map; TEX.rockN = r.normalMap; }
+  TEX.foliage = foliageAtlas(S);
   return TEX;
 }

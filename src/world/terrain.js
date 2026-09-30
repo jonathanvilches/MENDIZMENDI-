@@ -124,6 +124,7 @@ export function makeTerrainMaterial({ outer = false } = {}) {
     sh.uniforms.tDetail = { value: TEX.detail };
     sh.uniforms.tGrass = { value: TEX.grass };
     sh.uniforms.tRock = { value: TEX.rock };
+    sh.uniforms.tRockN = { value: TEX.rockN };
     sh.uniforms.tCobble = { value: TEX.cobble.map };
     sh.uniforms.tCobbleN = { value: TEX.cobble.normalMap };
     sh.uniforms.uRock = { value: rockCol };
@@ -135,9 +136,16 @@ export function makeTerrainMaterial({ outer = false } = {}) {
       .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvSurf = aSurf;\nvWP = (modelMatrix * vec4(transformed,1.0)).xyz;\nvNW = normalize(mat3(modelMatrix) * objectNormal);');
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>
-uniform sampler2D tDetail; uniform sampler2D tGrass; uniform sampler2D tRock; uniform sampler2D tCobble; uniform sampler2D tCobbleN; uniform vec3 uRock; uniform vec2 uRockSlope;
+uniform sampler2D tDetail; uniform sampler2D tGrass; uniform sampler2D tRock; uniform sampler2D tRockN; uniform sampler2D tCobble; uniform sampler2D tCobbleN; uniform vec3 uRock; uniform vec2 uRockSlope;
 varying vec4 vSurf; varying vec3 vWP; varying vec3 vNW;
-vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.x + texture2D(tRock, p.xz / s) * bw.y + texture2D(tRock, p.xy / s) * bw.z; }`)
+vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.x + texture2D(tRock, p.xz / s) * bw.y + texture2D(tRock, p.xy / s) * bw.z; }
+#ifdef OUTER
+#define ROCK_S1 26.0
+#define ROCK_S2 8.0
+#else
+#define ROCK_S1 9.0
+#define ROCK_S2 2.6
+#endif`)
       .replace('#include <color_fragment>', `#include <color_fragment>
 {
   vec3 nw = normalize(vNW);
@@ -154,27 +162,35 @@ vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.
   vec4 g1 = texture2D(tGrass, vWP.xz / 1.3);
   vec4 g2 = texture2D(tGrass, vWP.xz / 0.47 + 0.37);
   float blades = mix(g1.r, g2.r, 0.45);
-  vec3 gc = base * (0.5 + 0.72 * blades) * (0.8 + 0.34 * d1.r) * (0.84 + 0.3 * d2.g) * (0.86 + 0.28 * big);
-  gc = mix(vec3(dot(gc, vec3(0.3, 0.59, 0.11))), gc, 1.3) * 0.92;
-  gc = mix(gc, gc * vec3(0.84, 1.03, 0.92), smoothstep(0.55, 0.78, huge) * 0.7);
-  gc *= vec3(0.78, 0.94, 0.7);                                   // suelo algo más oscuro y verde que las briznas
-  gc = mix(gc, base * vec3(0.72, 1.02, 0.78), g1.g * 0.5);
+  float clump = texture2D(tDetail, vWP.xz / 4.1 + 0.3).r;        // matas a escala de un par de metros
+  vec3 gc = base * (0.56 + 0.62 * blades) * (0.82 + 0.3 * d1.r) * (0.86 + 0.26 * d2.g) * (0.84 + 0.3 * big);
+  gc = mix(vec3(dot(gc, vec3(0.3, 0.59, 0.11))), gc, 0.9) * 0.93;   // verde natural, no lima
+  gc = mix(gc, gc * vec3(1.1, 1.0, 0.7), smoothstep(0.56, 0.82, huge) * 0.55);   // rodales secos, amarillentos
+  gc = mix(gc, gc * vec3(0.76, 0.94, 0.88), smoothstep(0.44, 0.18, huge) * 0.5);  // hondonadas más frescas
+  gc = mix(gc, gc * vec3(1.06, 1.02, 0.8), smoothstep(0.62, 0.85, d1.g) * 0.3);
+  gc *= 0.84 + 0.26 * smoothstep(0.25, 0.75, clump);
+  gc *= vec3(0.8, 0.93, 0.74);                                   // suelo algo más oscuro y verde que las briznas
+  gc = mix(gc, base * vec3(0.66, 0.95, 0.72), g1.g * 0.45);
   float fl = max(g1.b, g2.b * 0.8) * smoothstep(0.35, 0.65, d1.g) * (1.0 - vSurf.w) * (1.0 - smoothstep(0.12, 0.25, slope));
   vec3 fc = big > 0.62 ? vec3(1.0, 0.97, 0.92) : big > 0.4 ? vec3(1.0, 0.84, 0.22) : vec3(0.86, 0.6, 0.9);
   gc = mix(gc, fc * (0.75 + 0.25 * g1.b), fl * 0.9);
   vec3 col = mix(soft, gc, grassy);
   // roca en las laderas (proyección triplanar: no se estira en los cortados)
   vec3 bw = pow(abs(nw), vec3(4.0)); bw /= (bw.x + bw.y + bw.z);
-  vec4 rk = triRock(vWP, bw, 9.0);
-#ifdef OUTER
-  vec4 rk2 = triRock(vWP, bw, 41.0);
-#else
-  vec4 rk2 = triRock(vWP, bw, 2.6);
-#endif
+  vec4 rk = triRock(vWP, bw, ROCK_S1);
+  vec4 rk2 = triRock(vWP, bw, ROCK_S2);
   float rockM = max(vSurf.z, smoothstep(uRockSlope.x, uRockSlope.y, slope + (d1.g - 0.5) * 0.18)) * (1.0 - vSurf.x);
-  vec3 rc = uRock * vec3(1.02, 0.98, 0.92) * (0.3 + 0.95 * rk.r) * (0.72 + 0.5 * rk2.r) * (0.85 + 0.3 * big);
-  rc = mix(rc, uRock * vec3(0.86, 0.98, 0.68) * 0.85, rk.g * 0.45);
-  rc *= 0.5 + 0.5 * rk.b;
+  // tono de la roca: gris frío o cálido por zonas, estratos por altura y regueros oscuros en las paredes
+  vec3 rbase = uRock * mix(vec3(0.84, 0.88, 0.95), vec3(1.0, 0.95, 0.84), smoothstep(0.4, 0.75, huge)) * 0.86;
+  float strata = sin(vWP.y * 0.85 + big * 7.0) * 0.5 + 0.5, strata2 = sin(vWP.y * 2.6 + d1.r * 5.0) * 0.5 + 0.5;
+  float streak = texture2D(tDetail, vec2(vWP.x + vWP.z, vWP.y * 0.1) / 7.0).g;
+  vec3 rc = rbase * (0.2 + 1.05 * rk.r) * (0.7 + 0.5 * rk2.r) * (0.84 + 0.16 * strata) * (0.92 + 0.08 * strata2) * (0.88 + 0.24 * big);
+  rc *= mix(1.0, 0.7, smoothstep(0.55, 0.82, streak) * smoothstep(0.3, 0.55, slope));
+  rc *= 0.42 + 0.58 * rk.b;                                           // juntas y grietas en sombra
+  rc = mix(rc, vec3(0.6, 0.6, 0.38) * (0.78 + 0.3 * rk2.r), smoothstep(0.5, 0.9, rk.g) * 0.38);   // líquenes gris verdosos
+  rc = mix(rc, vec3(0.78, 0.5, 0.2), smoothstep(0.86, 0.98, rk2.g) * 0.45);                       // manchas de liquen naranja
+  float ledge = smoothstep(0.6, 0.86, nw.y) * smoothstep(0.35, 0.7, d1.g);
+  rc = mix(rc, vec3(0.2, 0.29, 0.1) * (0.7 + 0.5 * blades), ledge * 0.55);                          // musgo y hierba en las repisas
   float scree = smoothstep(uRockSlope.x - 0.13, uRockSlope.x, slope) * (1.0 - rockM) * (1.0 - vSurf.x);
   col = mix(col, uRock * (0.62 + 0.45 * d2.b + 0.3 * d2.g), scree * 0.45);
   col = mix(col, rc, rockM);
@@ -187,10 +203,13 @@ vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.
   // tierra y senderos
   // tierra: grano fino, piedrecitas y huellas de rodadas (sin remolinos)
   float grit = texture2D(tGrass, vWP.xz / 0.35).r;
-  vec3 dirt = vec3(0.55, 0.43, 0.3) * (0.8 + 0.32 * grit) * (0.86 + 0.26 * big) * (0.9 + 0.18 * g1.r);
-  dirt = mix(dirt, vec3(0.7, 0.66, 0.58) * (0.85 + 0.3 * grit), smoothstep(0.55, 0.8, d2.b) * 0.75);
-  dirt = mix(dirt, dirt * 0.82, smoothstep(0.45, 0.7, g2.g) * 0.5);
-  float dm = smoothstep(0.1, 0.9, vSurf.y + (d1.g - 0.5) * 0.5);
+  vec3 dirt = mix(vec3(0.5, 0.39, 0.27), vec3(0.6, 0.5, 0.36), big) * (0.82 + 0.28 * grit) * (0.9 + 0.16 * g1.r);
+  dirt = mix(dirt, dirt * vec3(0.78, 0.76, 0.74), smoothstep(0.5, 0.75, d1.r) * 0.5);          // manchas húmedas
+  float peb = texture2D(tDetail, vWP.xz / 6.0 + 0.5).b;                                          // guijarros de 2 a 8 cm
+  dirt *= 1.0 - smoothstep(0.15, 0.4, peb) * (1.0 - smoothstep(0.4, 0.6, peb)) * 0.3;           // su sombra alrededor
+  dirt = mix(dirt, vec3(0.63, 0.59, 0.53) * (0.78 + 0.34 * d2.r), smoothstep(0.5, 0.75, peb) * 0.7);
+  dirt = mix(dirt, dirt * 0.84, smoothstep(0.45, 0.7, g2.g) * 0.4);
+  float dm = smoothstep(0.1, 0.9, vSurf.y + (d1.g - 0.5) * 0.5 + (clump - 0.5) * 0.35);
   diffuseColor.rgb = mix(diffuseColor.rgb, dirt, dm);
   // empedrado
   vec3 cob = texture2D(tCobble, vWP.xz / 2.4).rgb * 1.05;
@@ -198,6 +217,27 @@ vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.
   diffuseColor.rgb = mix(diffuseColor.rgb, cob, sm);
 }`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+{
+  // relieve de la roca: mapa de normales en proyección triplanar, sin estirarse en los cortados
+  vec3 nw = normalize(vNW);
+  float rs = 1.0 - nw.y;
+  float rn = max(vSurf.z, smoothstep(uRockSlope.x - 0.06, uRockSlope.y, rs)) * (1.0 - vSurf.x) * (1.0 - smoothstep(0.1, 0.9, vSurf.y));
+  if (rn > 0.01) {
+    vec3 bw = pow(abs(nw), vec3(4.0)); bw /= (bw.x + bw.y + bw.z);
+    vec3 tx = texture2D(tRockN, vWP.zy / ROCK_S1).xyz * 2.0 - 1.0;
+    vec3 ty = texture2D(tRockN, vWP.xz / ROCK_S1).xyz * 2.0 - 1.0;
+    vec3 tz = texture2D(tRockN, vWP.xy / ROCK_S1).xyz * 2.0 - 1.0;
+    vec3 tx2 = texture2D(tRockN, vWP.zy / ROCK_S2 + 0.31).xyz * 2.0 - 1.0;
+    vec3 tz2 = texture2D(tRockN, vWP.xy / ROCK_S2 + 0.31).xyz * 2.0 - 1.0;
+    tx.xy += tx2.xy * 0.6; tz.xy += tz2.xy * 0.6;
+    tx = vec3(tx.xy + nw.zy, abs(tx.z) * nw.x);
+    ty = vec3(ty.xy + nw.xz, abs(ty.z) * nw.y);
+    tz = vec3(tz.xy + nw.xy, abs(tz.z) * nw.z);
+    vec3 wn = normalize(tx.zyx * bw.x + ty.xzy * bw.y + tz.xyz * bw.z);
+    vec3 vn = normalize((viewMatrix * vec4(wn, 0.0)).xyz);
+    normal = normalize(mix(normal, vn, rn * 0.9));
+  }
+}
 {
   float sm = smoothstep(0.15, 0.85, vSurf.x);
   if (sm > 0.01) {
@@ -244,7 +284,7 @@ export class Terrain {
   }
   buildOuter(scene) {
     // Anillo de montañas lejanas fuera del área jugable
-    const R = 1500, step = 25, n = Math.round(2 * R / step) + 1;
+    const R = 1500, step = 12.5, n = Math.round(2 * R / step) + 1;
     const pos = [], col = [], idx = [];
     const c = new THREE.Color();
     for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
@@ -253,12 +293,9 @@ export class Terrain {
       let h = inside ? -30 : outerHeight(x, z);
       const r4 = Math.pow(x ** 4 + z ** 4, 0.25);
       h += smoothstep(600, 1300, r4) * (120 + 160 * (fbm(x / 400, z / 400, 3) * 0.5 + 0.5));
+      // crestas y canchales: relieve fino que sólo aparece en lo alto
+      if (!inside) h += (ridged(x / 75, z / 75, 3) - 0.35) * 22 * smoothstep(90, 190, h) + fbm(x / 28, z / 28, 2) * 4 * smoothstep(60, 140, h);
       pos.push(x, h, z);
-      const n1 = fbm(x / 90, z / 90, 2) * 0.5 + 0.5;
-      c.set('#4d7a36').lerp(new THREE.Color('#35592a'), n1);
-      c.lerp(new THREE.Color('#8a8578'), smoothstep(150, 210, h + n1 * 30));
-      c.lerp(new THREE.Color('#f4f6f8'), smoothstep(215, 260, h + n1 * 40));
-      col.push(c.r, c.g, c.b);
     }
     for (let j = 0; j < n - 1; j++) for (let i = 0; i < n - 1; i++) {
       const x = -R + i * step, z = -R + j * step;
@@ -268,9 +305,27 @@ export class Terrain {
     }
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-    g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
     g.setAttribute('aSurf', new THREE.Float32BufferAttribute(new Float32Array(pos.length / 3 * 4), 4));
     g.setIndex(idx); g.computeVertexNormals();
+    const nrm = g.attributes.normal;
+    const meadowC = new THREE.Color('#5a8238'), meadowD = new THREE.Color('#7d8f45'), forestC = new THREE.Color('#2c4a22'), forestD = new THREE.Color('#3b5a2a');
+    const rockC = new THREE.Color('#7b7367'), rockD = new THREE.Color('#5f5a52'), screeC = new THREE.Color('#9a9282'), snowC = new THREE.Color('#eef2f6');
+    for (let v = 0; v < pos.length / 3; v++) {
+      const x = pos[v * 3], h = pos[v * 3 + 1], z = pos[v * 3 + 2], sl = 1 - nrm.getY(v);
+      const n1 = fbm(x / 90, z / 90, 2) * 0.5 + 0.5, n2 = fbm(x / 23 + 7, z / 23, 2) * 0.5 + 0.5;
+      // prados abajo, bosque en las laderas medias (a manchas), pastos altos y luego roca
+      c.copy(meadowC).lerp(meadowD, n2 * 0.6);
+      const forestBelt = smoothstep(20, 60, h) * (1 - smoothstep(150, 185, h + n1 * 25)) * smoothstep(0.42, 0.62, n1 + (1 - sl) * 0.15);
+      c.lerp(n2 > 0.5 ? forestC : forestD, forestBelt * 0.92);
+      c.lerp(new THREE.Color('#8a9150'), smoothstep(150, 190, h + n1 * 30) * (1 - forestBelt) * 0.6);
+      const rockAmt = Math.max(smoothstep(0.28, 0.46, sl + (n2 - 0.5) * 0.12), smoothstep(175, 225, h + n1 * 35));
+      c.lerp(n2 > 0.55 ? rockC : rockD, rockAmt);
+      c.lerp(screeC, smoothstep(0.2, 0.3, sl) * (1 - smoothstep(0.3, 0.4, sl)) * smoothstep(140, 190, h) * 0.5);
+      // nieve en lo alto, sólo donde se sostiene (repisas y canales poco inclinados)
+      c.lerp(snowC, smoothstep(215, 250, h + n1 * 40) * (1 - smoothstep(0.32, 0.5, sl)));
+      col.push(c.r, c.g, c.b);
+    }
+    g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
     const m = new THREE.Mesh(g, makeTerrainMaterial({ outer: true }));
     m.position.y = -0.8; // ligeramente por debajo para evitar parpadeos en la unión
     scene.add(m);
