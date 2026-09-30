@@ -39,7 +39,7 @@ export function bullring(B, S, cx, cz, TOWN) {
     const a = (i + 0.5) / n * Math.PI * 2;
     if (skip(a, R, n)) continue;
     const P = F(M(Math.sin(a) * R, 0, Math.cos(a) * R, a));
-    B.add('paint', colored(box(segLen, H + 2, 0.4), '#5a544b'), MM(P, M(0, H / 2 - 1, -0.5)));                 // fondo de las galerías
+    B.add('paint', colored(box(segLen, H + 2, 0.4), '#7b7264'), MM(P, M(0, H / 2 - 1, -0.5)));                 // fondo de las galerías
     B.add('plasterCream', box(segLen, 5.0, 0.7, 2.4), MM(P, M(0, 1.5, 0)));                   // planta baja
     const door = i % 4 === 0;
     B.add('paint', colored(box(segLen - 1.1, door ? 3.0 : 1.9, 0.08), '#c8372d'), MM(P, M(0, door ? 1.5 : 1.35, 0.37)));
@@ -48,17 +48,24 @@ export function bullring(B, S, cx, cz, TOWN) {
     for (const [yy, hh] of [[4.1, 0.35], [7.6, 0.3], [H - 0.3, 0.4]]) B.add('ashlar', box(segLen + 0.04, hh, 1.0, 1.5), MM(P, M(0, yy, 0.05)));
     B.add('plasterCream', box(segLen, 1.0, 0.5, 2.4), MM(P, M(0, 4.75, 0.1)));                // antepecho galería
     B.add('plasterCream', box(segLen, 0.9, 0.5, 2.4), MM(P, M(0, 8.2, 0.1)));
+    // balaustres en las dos galerías y rótulo de tendido sobre las puertas
+    for (const yy of [5.25, 8.65]) { const nb = 7; for (let b = 0; b < nb; b++) B.add('plasterCream', new THREE.CylinderGeometry(0.07, 0.1, 0.62, 6), MM(P, M(-segLen / 2 + 0.85 + b * (segLen - 1.7) / (nb - 1), yy + 0.31, 0.3))); B.add('ashlar', box(segLen - 0.7, 0.14, 0.4), MM(P, M(0, yy + 0.68, 0.3))); }
+    if (door) { S.add(MM(P, M(0, 3.45, 0.43)), 1.9, 0.42, plaque(['TENDIDO ' + (1 + (i / 4 | 0))], { bg: '#f4eee2', fg: '#8a2a1f', border: '#8a2a1f' })); B.add('iron', box(segLen - 1.3, 0.05, 0.08), MM(P, M(0, 2.0, 0.45))); }
     for (const k of [-1, 1]) {                                                                 // pilares a los lados de cada tramo
-      B.add('plasterCream', box(0.75, H, 0.95, 2.4), MM(P, M(k * (segLen / 2 - 0.36), H / 2, 0.05)));
+      const px = k * (segLen / 2 - 0.36);
+      B.add('ashlar', box(0.95, 0.45, 1.1), MM(P, M(px, 0.22, 0.08)));
+      for (const yy of [4.35, 7.85]) B.add('ashlar', box(0.92, 0.22, 1.1), MM(P, M(px, yy - 0.3, 0.08)));
+      B.add('ashlar', box(0.95, 0.3, 1.15), MM(P, M(px, H - 0.65, 0.08)));
+      B.add('plasterCream', box(0.75, H, 0.95, 2.4), MM(P, M(px, H / 2, 0.05)));
       B.add('plasterCream', box(0.14, 2.1, 0.14), MM(P, M(k * (segLen / 2 - 0.9), 10.9, 0.25, 0, 0, k * 0.55)));   // tornapuntas de la andanada
     }
     col(Math.sin(a) * R, Math.cos(a) * R, segLen, 1.2, a, { solidView: true });
   }
   { // anillo de cobre verde (arriba y por debajo), que vuela sobre la fachada
     const top = [[R + 3.2, H + 0.3], [R + 3.2, H + 2.1], [R - 1, H + 2.9], [R - 6.2, H + 3.3], [R - 6.2, H + 2.4]];
-    const mk = (pts, color) => { const g = new THREE.LatheGeometry(pts.map(([r, h]) => new THREE.Vector2(r, h)), 72).toNonIndexed(); g.computeVertexNormals(); B.add('paint', colored(g, color), F(M(0, 0, 0))); };
+    const mk = (pts, color) => { const g = new THREE.LatheGeometry(pts.map(([r, h]) => new THREE.Vector2(r, h)), 72).toNonIndexed(); g.computeVertexNormals(); B.add('lit', colored(g, color), F(M(0, 0, 0))); };
     mk([...top].reverse(), '#86b99c');
-    mk([[R + 3.2, H + 0.3], [R - 6.2, H + 2.4]], '#5f8f76');
+    mk([[R + 3.2, H + 0.3], [R - 6.2, H + 2.4]], '#7fae94');
     for (let i = 0; i < n; i++) { const a = (i + 0.5) / n * Math.PI * 2; B.add('ashlar', new THREE.CylinderGeometry(0.17, 0.2, 4.6, 8), F(M(Math.sin(a) * 31.2, 12.3, Math.cos(a) * 31.2))); }
   }
   // tendidos: gradas escalonadas en un solo torno, con un hueco para el callejón de entrada
@@ -312,7 +319,7 @@ function rrect(sh, [hw, hd, r], hole = false) {
   return p;
 }
 function rrSdf(x, z, [hw, hd, r]) { const qx = Math.abs(x) - (hw - r), qz = Math.abs(z) - (hd - r); return Math.hypot(Math.max(qx, 0), Math.max(qz, 0)) + Math.min(Math.max(qx, qz), 0) - r; }
-function ringRoof(B, T, inner, outer, hA, hB, color, under = false) {
+function ringRoof(B, T, inner, outer, hA, hB, color, under = false, mat = 'paint') {
   const sh = new THREE.Shape(); rrect(sh, outer); sh.holes.push(rrect(null, inner, true));
   const g = new THREE.ShapeGeometry(sh, 6), p = g.attributes.position;
   for (let i = 0; i < p.count; i++) {
@@ -329,7 +336,7 @@ function ringRoof(B, T, inner, outer, hA, hB, color, under = false) {
     if ((ny > 0) !== up) { idx[i + 1] = c; idx[i + 2] = b; }
   }
   const ng = g.toNonIndexed(); ng.computeVertexNormals();
-  B.add('paint', colored(ng, color), T);
+  B.add(mat, colored(ng, color), T);
 }
 const FONT5 = {
   O: ['.###.', '#...#', '#...#', '#...#', '#...#', '#...#', '.###.'], S: ['.####', '#....', '#....', '.###.', '....#', '....#', '####.'],
@@ -357,7 +364,7 @@ export function stadium(B, S, group, cx, cz, TOWN) {
   const sideRow = (s, k, z0, z1, text) => {
     const x0 = SX + k * run, dx = OX - x0, h = 1 + (k + 1) * rise;
     let a = z0;
-    const put = (b, color) => { if (b - a < 0.01) return; B.add('paint', colored(box(dx, h, b - a, 2), color), F(M(s * (x0 + dx / 2), h / 2 - 0.5, (a + b) / 2))); a = b; };
+    const put = (b, color) => { if (b - a < 0.01) return; B.add('seat', colored(box(dx, h, b - a, 2), color), F(M(s * (x0 + dx / 2), h / 2 - 0.5, (a + b) / 2))); a = b; };
     if (!text) { put(z1, k >= 18 ? NAVY : RED[k % 2]); return; }
     let cur = pixel(k, z0 + 0.01);
     for (let z = zText0; z <= -zText0 + 0.01; z += px) {
@@ -372,24 +379,24 @@ export function stadium(B, S, group, cx, cz, TOWN) {
     sideRow(-1, k, -OZ, -GAP, false); sideRow(-1, k, GAP, OZ, false);
     for (const s of [-1, 1]) {
       const z0 = SZ + k * run, dz = OZ - z0, h = 1 + (k + 1) * rise;
-      B.add('paint', colored(box(2 * SX, h, dz, 2), k >= 18 ? NAVY : RED[k % 2]), F(M(0, h / 2 - 0.5, s * (z0 + dz / 2))));
+      B.add('seat', colored(box(2 * SX, h, dz, 2), k >= 18 ? NAVY : RED[k % 2]), F(M(0, h / 2 - 0.5, s * (z0 + dz / 2))));
     }
   }
   // cubierta roja de esquinas redondeadas que baja hacia fuera, con la banda blanca alrededor del hueco
   const RIN = [26, 39, 9], RMID = [30, 43, 12], ROUT = [OX + 3.6, OZ + 3.6, 11], hIn = HH + 3.6, hOut = HH + 0.4;
   ringRoof(B, T, RIN, RMID, hIn + 0.1, hIn, '#f2f2ef');
   ringRoof(B, T, RMID, ROUT, hIn, hOut, '#c41f2c');
-  ringRoof(B, T, RIN, ROUT, hIn - 0.5, hOut - 0.4, '#b9bec4', true);
+  ringRoof(B, T, RIN, ROUT, hIn - 0.5, hOut - 0.4, '#b9bec4', true, 'lit');
   for (const s of [-1, 1]) {
     B.add('paint', colored(box(0.5, 1.2, 2 * OZ - 6), '#3a3f45'), F(M(s * 27.6, hIn - 0.9, 0)));
     // OSASUNA pintado en el tejado, a lo largo de los lados largos
     const fr = 0.47, h = hIn + (hOut - hIn) * fr + 0.12, sl = Math.atan2(hIn - hOut, ROUT[0] - RMID[0]);
     const u = new THREE.Vector3(0, 0, -s), v = new THREE.Vector3(-s * Math.cos(sl), Math.sin(sl), 0), nrm = new THREE.Vector3().crossVectors(u, v);
     const Mx = new THREE.Matrix4().makeBasis(u, v, nrm).setPosition(cx + s * (RMID[0] + (ROUT[0] - RMID[0]) * fr), y + h, cz);
-    S.add(Mx, 46, 6.2, letters('OSASUNA', '#ffffff', { font: FONT_ROUND, weight: '900', shadow: null, size: 0.82 }));
-    if (s > 0) B.add('paint', colored(box(0.36, HH + 5.5, 2 * OZ + 0.7), '#3a3f45'), F(M(OX + 0.18, HH / 2 - 2.25, 0)));
-    B.add('paint', colored(box(0.36, HH + 5.5, OZ + 0.35 - GAP), '#3a3f45'), F(M(-(OX + 0.18), HH / 2 - 2.25, s * (OZ + 0.35 + GAP) / 2)));
-    B.add('paint', colored(box(2 * OX, HH + 5.5, 0.36), '#3a3f45'), F(M(0, HH / 2 - 2.25, s * (OZ + 0.18))));
+    S.add(Mx, 46, 6.2, letters('OSASUNA', '#ffffff', { font: FONT_ROUND, weight: '900', shadow: null, size: 0.82 }), { ppm: 26 });
+    if (s > 0) B.add('lit', colored(box(0.36, HH + 5.5, 2 * OZ + 0.7), '#6a7078'), F(M(OX + 0.18, HH / 2 - 2.25, 0)));
+    B.add('lit', colored(box(0.36, HH + 5.5, OZ + 0.35 - GAP), '#6a7078'), F(M(-(OX + 0.18), HH / 2 - 2.25, s * (OZ + 0.35 + GAP) / 2)));
+    B.add('lit', colored(box(2 * OX, HH + 5.5, 0.36), '#6a7078'), F(M(0, HH / 2 - 2.25, s * (OZ + 0.18))));
   }
   // la pared oeste necesita el hueco de la entrada: se tapa con dos paños y un dintel encima (la caja de arriba se sustituye)
   B.add('paint', colored(box(0.36, HH + 0.5 - 5.2, 2 * GAP + 0.2), '#3a3f45'), F(M(-(OX + 0.18), 5.2 + (HH + 0.5 - 5.2) / 2, 0)));
@@ -413,13 +420,40 @@ export function stadium(B, S, group, cx, cz, TOWN) {
     fac.push(quad(ax, az, bx, bz, gap ? 5.2 : y0, y1, u / 8, (u + l) / 8, gap ? vy(5.2) : 0, 1).applyMatrix4(T0)); u += l;
   }
   { const m = new THREE.Mesh(mergeGeometries(fac), new THREE.MeshStandardMaterial({ map: plain, roughness: 0.6, metalness: 0.15 })); m.castShadow = true; m.receiveShadow = true; m.matrixAutoUpdate = false; group.add(m); }
-  S.add(M(cx - FH - 0.08, y + 9.6, cz - 20, -Math.PI / 2), 30, 3.4, letters('CA OSASUNA', '#5d636b', { font: FONT_ROUND, weight: '900', shadow: null, size: 0.8 }));
-  S.add(M(cx + FH + 0.08, y + 9.6, cz, Math.PI / 2), 26, 3.4, letters('EL SADAR', '#5d636b', { font: FONT_ROUND, weight: '900', shadow: null, size: 0.8 }));
+  S.add(M(cx - FH - 0.08, y + 9.6, cz - 20, -Math.PI / 2), 30, 3.4, letters('CA OSASUNA', '#5d636b', { font: FONT_ROUND, weight: '900', shadow: null, size: 0.8 }), { ppm: 40 });
+  S.add(M(cx + FH + 0.08, y + 9.6, cz, Math.PI / 2), 26, 3.4, letters('EL SADAR', '#5d636b', { font: FONT_ROUND, weight: '900', shadow: null, size: 0.8 }), { ppm: 40 });
   // pasillo de entrada entre la fachada y la grada oeste
   for (const s of [-1, 1]) { B.add('paint', colored(box(FH - OX, 5.4, 0.3), '#3a3f45'), F(M(-(OX + FH) / 2, 2.2, s * (GAP + 0.15)))); addBox(cx - (OX + FH) / 2, cz + s * (GAP + 0.15), FH - OX, 0.4, 0); }
   B.add('paint', colored(box(FH - OX, 0.3, 2 * GAP + 0.6), '#3a3f45'), F(M(-(OX + FH) / 2, 5.2, 0)));
   for (const [x0, z0, x1, z1] of [[FH, -FD, FH, FD], [-FH, -FD, FH, -FD], [-FH, FD, FH, FD], [-FH, -FD, -FH, -GAP], [-FH, GAP, -FH, FD]]) {
     const w = Math.abs(x1 - x0) || 0.8, d = Math.abs(z1 - z0) || 0.8; addBox(cx + (x0 + x1) / 2, cz + (z0 + z1) / 2, w, d, 0, { solidView: true });
+  }
+  // escaleras grises entre sectores, banquillos, videomarcadores y focos bajo la cubierta
+  const stairs = (x0, z0, alongX, s, len) => { for (let k = 0; k < ROWS; k++) { const h = 1 + (k + 1) * rise; if (alongX) B.add('paint', colored(box(1.2, 0.06, run), '#9a9fa6'), F(M(x0, h - 0.47, s * (z0 + (k + 0.5) * run)))); else B.add('paint', colored(box(run, 0.06, 1.2), '#9a9fa6'), F(M(s * (x0 + (k + 0.5) * run), h - 0.47, z0))); } };
+  for (const s of [-1, 1]) {
+    for (let z = -48; z <= 48; z += 12) if (!(s < 0 && Math.abs(z) < GAP + 1)) stairs(SX, z, false, s);
+    for (let x = -18; x <= 18; x += 12) stairs(x, SZ, true, s);
+    B.add('paint', colored(box(0.1, 1.0, 2 * OZ), '#dfe3e6'), F(M(s * (SX - 0.05), 0.5, 0)));
+    B.add('paint', colored(box(2 * SX, 1.0, 0.1), '#dfe3e6'), F(M(0, 0.5, s * (SZ - 0.05))));
+    // banquillos al oeste, a los lados del túnel
+    const bz = s * 9;
+    B.add('paint', colored(box(1.6, 0.5, 7), '#2b2f36'), F(M(-SX + 1.4, 0.25, bz)));
+    B.add('paint', colored(box(0.5, 0.9, 7), '#c41f2c'), F(M(-SX + 0.9, 0.75, bz)));
+    B.add('glass', box(2.2, 0.06, 7.4), F(M(-SX + 1.3, 2.3, bz, 0, 0, 0.12)));
+    B.add('paint', colored(box(0.08, 2.2, 7.4), '#9aa2aa'), F(M(-SX + 2.4, 1.2, bz)));
+    addBox(cx - SX + 1.3, cz + bz, 2.4, 7.4, 0);
+    // videomarcador colgado en cada fondo
+    const vz = s * (RIN[1] + 1.2);
+    B.add('paint', colored(box(11, 4.6, 0.8), '#1c2027'), F(M(0, hIn - 3.4, vz)));
+    S.add(F(M(0, hIn - 3.4, vz - s * 0.42, s > 0 ? Math.PI : 0)), 10.2, 4.0, (g, W, H) => {
+      g.fillStyle = '#05070b'; g.fillRect(0, 0, W, H); g.fillStyle = '#c41f2c'; g.fillRect(0, 0, W, H * 0.3);
+      g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#fff'; fitText(g, 'EL SADAR · IRUÑA', W / 2, H * 0.16, W * 0.9, H * 0.2, FONT_ROUND, '900');
+      g.fillStyle = '#f2c230'; fitText(g, 'OSASUNA  0 - 0', W / 2, H * 0.6, W * 0.9, H * 0.36, FONT_ROUND, '900');
+      g.fillStyle = '#9fe0ff'; fitText(g, "45'", W / 2, H * 0.88, W * 0.3, H * 0.16, FONT_ROUND, '900');
+    });
+    // línea de focos en el borde de la cubierta
+    for (let z = -34; z <= 34; z += 4) B.add('lamp', box(0.6, 0.3, 1.2), F(M(s * (RIN[0] + 0.6), hIn - 0.35, z)));
+    for (let x = -18; x <= 18; x += 4) B.add('lamp', box(1.2, 0.3, 0.6), F(M(x, hIn - 0.35, s * (RIN[1] + 0.6))));
   }
   // porterías con red
   const net = canvasTex(64, 64, (g, W, H) => { g.strokeStyle = '#f4f4f4'; g.lineWidth = 2; for (let i = 0; i <= W; i += 8) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i, H); g.stroke(); g.beginPath(); g.moveTo(0, i); g.lineTo(W, i); g.stroke(); } });

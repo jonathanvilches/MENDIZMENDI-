@@ -336,6 +336,21 @@ function pointedRing(wi, t, depth) {
   const g = new THREE.ExtrudeGeometry(s, { depth, bevelEnabled: false, curveSegments: 5 });
   g.translate(0, 0, -depth / 2); return g;
 }
+// fuste estriado (acanaladuras hechas desplazando vértices alternos) y capitel corintio con dos coronas de hojas
+function fluted(r, h, n = 24) {
+  const g = new THREE.CylinderGeometry(r, r * 1.08, h, n * 2, 1, false), p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i), a = Math.atan2(x, z), k = Math.round(a / (Math.PI / n)); if (Math.abs(k) % 2 === 1) { p.setX(i, x * 0.9); p.setZ(i, z * 0.9); } }
+  g.computeVertexNormals(); return g;
+}
+function corinthian(B, T, r, mat) {
+  B.add(mat, new THREE.CylinderGeometry(r * 1.15, r, r * 1.4, 12), MM(T, M(0, r * 0.7, 0)));
+  for (let row = 0; row < 2; row++) for (let i = 0; i < 8; i++) {
+    const a = (i + row * 0.5) / 8 * Math.PI * 2;
+    B.add(mat, new THREE.ConeGeometry(r * 0.28, r * (0.9 - row * 0.2), 4).rotateX(-0.35), MM(T, M(Math.sin(a) * r * 1.0, r * (0.5 + row * 0.5), Math.cos(a) * r * 1.0, a)));
+  }
+  for (let i = 0; i < 4; i++) { const a = i / 4 * Math.PI * 2 + Math.PI / 4; B.add(mat, new THREE.TorusGeometry(r * 0.2, r * 0.07, 5, 8), MM(T, M(Math.sin(a) * r * 1.25, r * 1.3, Math.cos(a) * r * 1.25, a))); }
+  B.add(mat, box(r * 3, r * 0.3, r * 3), MM(T, M(0, r * 1.55, 0)));
+}
 function bell(B, T) {
   const pts = [[0, 1.3], [0.3, 1.28], [0.42, 1.1], [0.45, 0.7], [0.55, 0.3], [0.72, 0.05], [0.74, 0]].map(([r, y]) => new THREE.Vector2(r, y));
   B.add('gold', new THREE.LatheGeometry(pts, 12), T);
@@ -434,14 +449,20 @@ function catedral(B, S, cx, cz, TOWN) {
   for (let i = 0; i < 4; i++) { const hh = 1.2 - (i + 1) * 0.3; B.add('sandstone', box(22 + i * 0.8, hh + 0.3, 0.75), F(M(0, (hh + 0.3) / 2, 33.55 + i * 0.75))); addPlatform(cx, cz, ry, -11 - i * 0.4, 11 + i * 0.4, 33.2 + i * 0.75, 33.95 + i * 0.75, y + hh + 0.3); }
   addPlatform(cx, cz, ry, -10.25, 10.25, 26, 33.2, y + 1.2);
   for (const x of [-6.6, -2.3, 2.3, 6.6]) {
-    B.add('sandstone', box(1.8, 0.5, 1.8), F(M(x, 1.45, 31.4)));
-    B.add('sandstone', new THREE.CylinderGeometry(0.72, 0.84, 12.4, 18), F(M(x, 7.9, 31.4)));
-    B.add('sandstone', new THREE.CylinderGeometry(1.12, 0.74, 1.15, 10), F(M(x, 14.65, 31.4)));
+    B.add('sandstone', box(1.9, 0.35, 1.9), F(M(x, 1.37, 31.4)));
+    B.add('sandstone', new THREE.CylinderGeometry(0.95, 0.98, 0.3, 16), F(M(x, 1.7, 31.4)));
+    B.add('sandstone', new THREE.TorusGeometry(0.86, 0.1, 6, 18).rotateX(Math.PI / 2), F(M(x, 1.9, 31.4)));
+    B.add('sandstone', fluted(0.72, 11.8), F(M(x, 7.9, 31.4)));
+    corinthian(B, F(M(x, 13.8, 31.4)), 0.74, 'sandstone');
     B.add('sandstone', box(1.3, 12.9, 0.5), F(M(x, 7.9, 26.25)));
+    B.add('sandstone', box(1.6, 0.9, 0.62), F(M(x, 14.3, 26.3)));
     const p = toW(cx, cz, ry, x, 31.4); addCircle(p.x, p.z, 0.9);
   }
   for (const s of [-1, 1]) { B.add('sandstone', box(1.4, 13.2, 1.4), F(M(s * 9.3, 8.0, 31.0))); const p = toW(cx, cz, ry, s * 9.3, 31); addCircle(p.x, p.z, 0.9); }
-  B.add('sandstone', box(20.2, 1.9, 7.2), F(M(0, 16.15, 29.6)));
+  // entablamento: arquitrabe de tres fajas, friso y cornisa con dentellones
+  for (let k = 0; k < 3; k++) B.add('sandstone', box(20.0 + k * 0.12, 0.28, 7.0 + k * 0.1), F(M(0, 15.35 + k * 0.28, 29.6 + k * 0.05)));
+  B.add('sandstone', box(19.8, 0.9, 6.9), F(M(0, 16.65, 29.55)));
+  for (let i = 0; i < 44; i++) B.add('sandstone', box(0.22, 0.24, 0.3), F(M(-9.9 + i * 0.46, 17.0, 33.1)));
   B.add('sandstone', box(20.8, 0.4, 7.7), F(M(0, 17.25, 29.7)));
   B.add('sandstone', gable(15.8, 3.3, 7.2), F(M(0, 17.4, 29.6)));
   for (const s of [-1, 1]) { const len = Math.hypot(8.1, 3.3); B.add('sandstone', box(len, 0.35, 0.7), F(M(s * 4.0, 19.05, 33.15, 0, 0, -s * Math.atan2(3.3, 8.1)))); }
@@ -461,6 +482,17 @@ function catedral(B, S, cx, cz, TOWN) {
     B.add('sandstone', gable(2.2, 0.6, 0.3), F(M(s * 4.45, 11.55, 26.15)));
   }
   B.add('glass', box(1.7, 2.8, 0.05), F(M(0, 10.8, 26.04)));
+  balustrade(B, F(M(0, 17.45, 26.6)), 15.6, 0.9);
+  for (const s of [-1, 1]) {
+    const TT = F(M(s * 12, 0, 24));
+    for (let k = 0; k < 9; k++) B.add('sandstone', box(8.12, 0.12, 8.12), MM(TT, M(0, 0.9 + k * 0.9, 0)));
+    B.add('sandstone', box(8.3, 0.5, 8.3), MM(TT, M(0, 0.25, 0)));
+    // hornacina con estatua en el frente de cada torre
+    B.add('stoneDark', archPanel(1.4, 3.2, 0.1), MM(TT, M(0, 4.2, 4.03)));
+    B.add('sandstone', archRing(0.7, 0.95, 0.3, 10), MM(TT, M(0, 6.7, 4.1)));
+    B.add('sandstone', box(1.5, 0.25, 0.5), MM(TT, M(0, 4.15, 4.2)));
+    statue(B, MM(TT, M(0, 4.3, 4.25)), 2.1, 'sandstone', s);
+  }
   B.add('sandstone', gable(2.6, 0.7, 0.3), F(M(0, 12.4, 26.15)));
   // claustro gótico (lado sur), con su jardín: se entra por el oeste
   const K = F(M(28, 0, 8)), kc = toW(cx, cz, ry, 28, 8);
