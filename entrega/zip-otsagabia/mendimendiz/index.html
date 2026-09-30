@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#1a1030">
+<title>MENDIMENDIZ: Navarra, pueblo a pueblo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+
+</head>
+<body>
+<div id="app"></div>
+<div id="loading"><div><div class="display">MENDIMENDIZ</div><p>Construyendo Otsagabia…</p></div></div>
+
+<!-- Portada y secciones -->
+<div id="shell" hidden>
+  <div id="shade"></div>
+  <header id="topbar">
+    <div class="brand display"><i aria-hidden="true"><svg viewBox="0 0 24 24" fill="#1a1030"><path d="M2 20 9 7l4 6 3-4 6 11z"/></svg></i>MENDIMENDIZ</div>
+    <nav id="tabs" class="glass" aria-label="Secciones"></nav>
+  </header>
+
+  <section id="hero">
+    <span class="eyebrow">Navarra, pueblo a pueblo</span>
+    <h1 class="display">Cada pueblo,<br><span>una aventura.</span></h1>
+    <p>Recorre Otsagabia con tu personaje: cruza el puente del Anduña, habla con sus vecinos y consigue el sello de tu pasaporte.</p>
+    <div class="row">
+      <button class="btn primary big" id="heroPlay"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"/></svg><span>Jugar en Otsagabia</span></button>
+      <button class="btn ghost big" data-go="personaje">Mi personaje</button>
+    </div>
+    <div class="progress-chip glass" id="heroProgress"></div>
+  </section>
+
+  <section class="panel glass" id="p-pueblos" hidden>
+    <h2 class="display">Pueblos</h2>
+    <p class="sub">Cada pueblo es un escenario completo. Empezamos por el Pirineo.</p>
+    <div id="townList"></div>
+  </section>
+
+  <section class="panel glass" id="p-personaje" hidden>
+    <h2 class="display">Tu personaje</h2>
+    <p class="sub">Así te verán los vecinos. Arrastra sobre el personaje para girarlo.</p>
+    <div id="avatarOpts"></div>
+    <div class="row" style="margin-top:20px"><button class="btn primary" id="avatarPlay">Jugar con este personaje</button></div>
+  </section>
+
+  <section class="panel glass" id="p-pasaporte" hidden>
+    <h2 class="display">Pasaporte</h2>
+    <p class="sub">Sellos de los pueblos y cartas del cuaderno.</p>
+    <div class="stats" id="passStats"></div>
+    <div class="sec">Sellos</div>
+    <div class="stamps" id="stampGrid"></div>
+    <div class="sec">Cuaderno de Otsagabia</div>
+    <div class="cards" id="passCards"></div>
+  </section>
+
+  <nav id="tabbar" class="glass" aria-label="Secciones"></nav>
+</div>
+
+<!-- Juego -->
+<div class="hud" id="hud" hidden>
+  <div id="objective" class="glass" aria-live="polite">
+    <div id="objArrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="#1a1030"><path d="M12 2l7 18-7-4-7 4z"/></svg></div>
+    <div id="objText"><small>Paseo del Anduña</small><b id="objTitle"></b><span id="objDist"></span></div>
+  </div>
+  <div id="topRight">
+    <div id="water" class="glass" title="Agua de la cantimplora"><svg viewBox="0 0 24 24" width="18" height="18" fill="#63cfff"><path d="M12 2s7 8 7 13a7 7 0 01-14 0c0-5 7-13 7-13z"/></svg><div class="gauge"><i id="waterBar"></i></div></div>
+    <button class="round glass" id="btnBook" aria-label="Abrir cuaderno"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M4 21V5M9 7h6"/></svg></button>
+    <button class="round glass" id="btnMenu" aria-label="Abrir menú"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button>
+  </div>
+  <div id="tag" class="glass" hidden></div>
+  <div id="stick" hidden><i></i></div>
+  <div id="stickHint" class="glass" hidden>Arrastra aquí para caminar</div>
+  <div id="toast" class="glass" role="status"></div>
+  <button id="action" hidden></button>
+  <div id="dialog" class="glass" hidden><div id="dAvatar" aria-hidden="true"></div><div id="dBody"><h3 id="dName"></h3><p id="dText"></p><div class="drow"><span>Toca para continuar</span><button class="btn primary" id="dNext" style="padding:9px 16px;font-size:15px">Continuar</button></div></div></div>
+</div>
+
+<div class="screen" id="book" hidden>
+  <div class="card">
+    <h2 class="display">Cuaderno</h2>
+    <p id="bookCount"></p>
+    <div class="cards" id="cardGrid"></div>
+    <p class="note">Toca una carta para darle la vuelta. El trazado del pueblo está adaptado para jugar: la posición y el número de casas son aproximados.</p>
+    <div class="row"><button class="btn primary" data-close="book">Volver al paseo</button></div>
+  </div>
+</div>
+
+<div class="screen" id="menu" hidden>
+  <div class="card">
+    <h2 class="display">Pausa</h2>
+    <p id="menuKeys"></p>
+    <div class="row"><button class="btn primary" data-close="menu">Seguir</button><button class="btn ghost" id="btnRestart">Reiniciar el paseo</button><button class="btn ghost" id="btnToHome">Salir a la portada</button></div>
+  </div>
+</div>
+
+<div class="screen" id="done" hidden>
+  <div class="card" style="text-align:center">
+    <h2 class="display">Pasaporte sellado</h2>
+    <div class="stamp">Otsagabia<br>Paseo del<br>Anduña</div>
+    <p id="doneText"></p>
+    <div class="row" style="justify-content:center"><button class="btn primary" data-close="done">Seguir explorando</button><button class="btn ghost" id="btnDoneBook">Ver cuaderno</button></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js"></script>
+<script src="js/pelota.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
