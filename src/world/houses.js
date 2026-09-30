@@ -12,10 +12,11 @@ function windowAt(B, T, x, y, w, h, o) {
   B.add('ashlar', box(w + 0.3, 0.2, 0.2, 1), F(M(x, y + h / 2 + 0.1, 0.06)));         // dintel
   B.add('ashlar', box(0.16, h, 0.2, 1), F(M(x - w / 2 - 0.08, y, 0.06)));
   B.add('ashlar', box(0.16, h, 0.2, 1), F(M(x + w / 2 + 0.08, y, 0.06)));
-  B.add('glass', box(w, h, 0.04), F(M(x, y, -0.02)));
+  // el cristal queda separado de la fachada (si coincide con la pared, parpadea al mover la cámara)
+  B.add('glass', box(w, h, 0.02), F(M(x, y, 0.03)));
   // carpintería
-  B.add('paint', colored(box(0.06, h, 0.06), '#e9e4d8'), F(M(x, y, 0.02)));
-  B.add('paint', colored(box(w, 0.06, 0.06), '#e9e4d8'), F(M(x, y + h * 0.15, 0.02)));
+  B.add('paint', colored(box(0.06, h, 0.06), '#e9e4d8'), F(M(x, y, 0.06)));
+  B.add('paint', colored(box(w, 0.06, 0.06), '#e9e4d8'), F(M(x, y + h * 0.15, 0.06)));
   if (o.shutter) {
     const sc = o.shutter;
     for (const s of [-1, 1]) {
@@ -44,17 +45,17 @@ function doorAt(B, T, x, o) {
     B.add('ashlar', archRing(r, r + 0.42, 0.3, 12), F(M(x, h - r, 0.08)));
     B.add('ashlar', box(0.42, h - r, 0.3, 1), F(M(x - r - 0.21, (h - r) / 2, 0.08)));
     B.add('ashlar', box(0.42, h - r, 0.3, 1), F(M(x + r + 0.21, (h - r) / 2, 0.08)));
-    B.add('woodDark', archPanel(w, h, 0.08), F(M(x, 0, -0.03)));
+    B.add('woodDark', archPanel(w, h, 0.08), F(M(x, 0, 0.01)));
   } else {
     B.add('ashlar', box(w + 0.5, 0.3, 0.26), F(M(x, h + 0.15, 0.07)));
     B.add('ashlar', box(0.25, h, 0.26), F(M(x - w / 2 - 0.125, h / 2, 0.07)));
     B.add('ashlar', box(0.25, h, 0.26), F(M(x + w / 2 + 0.125, h / 2, 0.07)));
-    B.add('woodDark', box(w, h, 0.08), F(M(x, h / 2, -0.03)));
+    B.add('woodDark', box(w, h, 0.08), F(M(x, h / 2, 0.01)));
   }
   // escalón
   B.add('ashlar', box(w + 0.9, 0.2, 0.7), F(M(x, 0.02, 0.35)));
   // aldaba
-  B.add('iron', new THREE.TorusGeometry(0.07, 0.015, 5, 10), F(M(x + w * 0.22, h * 0.45, 0.04)));
+  B.add('iron', new THREE.TorusGeometry(0.07, 0.015, 5, 10), F(M(x + w * 0.22, h * 0.45, 0.07)));
 }
 
 function balconyAt(B, T, x, y, w, o) {
@@ -248,7 +249,7 @@ function gallery(B, T, w, y, hh) {
   const aw = (w - 0.6) / n;
   for (let i = 0; i < n; i++) {
     const x = -w / 2 + 0.3 + aw * (i + 0.5);
-    B.add('glass', archPanel(aw * 0.62, hh * 0.8, 0.06), MM(T, M(x, y, -0.01)));
+    B.add('glass', archPanel(aw * 0.62, hh * 0.8, 0.06), MM(T, M(x, y, 0.02)));
     B.add('brick', archRing(aw * 0.31, aw * 0.44, 0.16, 8), MM(T, M(x, y + hh * 0.8 - aw * 0.31, 0.05)));
   }
   B.add('brick', box(w + 0.1, 0.14, 0.24), MM(T, M(0, y - 0.05, 0.1)));
