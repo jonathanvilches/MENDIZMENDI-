@@ -9,6 +9,7 @@ const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<':
 const SVG = {
   plus: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/></svg>',
   minus: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M5 12h14" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/></svg>',
+  go: '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 11.2L20 4l-7.2 16-1.9-6.9z" fill="#fff" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>',
   me: '<svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="6.2" fill="none" stroke="#fff" stroke-width="2.4"/><circle cx="12" cy="12" r="2.6" fill="#ff4f6d"/><path d="M12 1.8v3.4M12 18.8v3.4M1.8 12h3.4M18.8 12h3.4" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg>',
 };
 const hitsRect = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
@@ -139,8 +140,8 @@ export function mountMapView(ui, box, opts = {}) {
     if (!it) { card.hidden = true; return; }
     const tracked = it.act === 'track' && (game.kind === 'town' ? game.tracked === it.id : game.state?.tracked === it.id);
     const btn = [];
-    if (it.act === 'track') btn.push(tracked ? `<span class="mc-on">${iconSVG('check', 18)} Siguiendo</span>` : `<button class="btn primary" data-a="track">${iconSVG('pin', 20)} Seguir</button>`);
-    if (it.go) btn.push(`<button class="btn" data-a="go">${iconSVG('footprint', 20)} Llévame</button>`);
+    if (it.act === 'track') btn.push(tracked ? `<button class="btn on" disabled>${iconSVG('check', 20)} Siguiendo</button>` : `<button class="btn primary" data-a="track">${iconSVG('pin', 20)} Seguir</button>`);
+    if (it.go) btn.push(`<button class="btn" data-a="go">${SVG.go} Llévame</button>`);
     card.innerHTML = `<div class="mc-i">${iconSVG(it.icon || 'home', 34)}</div><div class="mc-t"><b>${esc(it.title || it.label)}</b>${it.text ? `<small>${esc(it.text)}</small>` : ''}</div><div class="mc-b">${btn.join('')}</div><button class="mc-x" aria-label="Cerrar">${SVG.plus.replace('M12 5v14M5 12h14', 'M7 7l10 10M17 7L7 17')}</button>`;
     card.hidden = false;
     card.querySelector('.mc-x').onclick = () => select(null);

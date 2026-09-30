@@ -177,7 +177,7 @@ export function missionComplete(ui, opts) {
   if (window.__autoWin) return Promise.resolve();
   return missionComplete_(ui, opts);
 }
-function missionComplete_(ui, { title, text, xp, card, icon = 'star', progress, stamp = null, next = 'Seguir' }) {
+function missionComplete_(ui, { title, text, xp, card, icon = 'star', progress, stamp = null, next = 'Seguir jugando' }) {
   return new Promise(res => {
     ui.sound.fanfare?.();
     const o = overlay(ui, 'complete', `
@@ -210,9 +210,9 @@ export function townFinale(ui, { town, stamp, missions = [], xp = 0, next = null
       <ul class="fin-list">${missions.map(m => `<li>${iconSVG(m.icon, 34)}<span>${esc(m.title)}</span>${iconSVG('check', 22)}</li>`).join('')}</ul>
       <div class="rewards"><span class="rw">${iconSVG('star', 26)} +${xp} XP</span><span class="rw">${iconSVG('stamp', 26)} Sello nuevo</span></div>
       <div class="fin-btns">
-        ${next ? `<button class="btn primary" data-r="next">${iconSVG('play', 24)} Siguiente: ${esc(next)}</button>` : ''}
-        <button class="btn ${next ? '' : 'primary'}" data-r="map">${iconSVG('map', 24)} Volver al mapa</button>
-        <button class="btn ghost" data-r="stay">Seguir paseando por ${esc(town)}</button>
+        ${next ? `<button class="btn primary" data-r="next">${iconSVG('play', 24)} Ir a ${esc(next)}</button>` : ''}
+        <button class="btn ${next ? '' : 'primary'}" data-r="map">${iconSVG('map', 24)} Volver al mapa de Navarra</button>
+        <button class="btn" data-r="stay">${iconSVG('footprint', 24)} Seguir paseando por ${esc(town)}</button>
       </div>`);
     const k = (e) => { e.stopImmediatePropagation(); if (e.key === 'Escape') { e.preventDefault(); close('stay'); } };
     const close = (r) => { ui.sound.ui('click'); done(ui, o, k); res(r); };
