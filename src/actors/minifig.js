@@ -632,7 +632,7 @@ export class MinifigAnimator {
     // pose de reposo y postura propias de cada personaje (se funden con el paso al andar)
     let armLy = 0, armRy = 0, stance = 0;
     const P = this.pose, wI = idle * (1 - Math.min(1, this.air * 3));
-    if (P && !(s.talking > 0) && !(s.wave > 0) && !(s.cheer > 0) && !s.dance && !s.carry && !(this.act > 0)) {
+    if (P && !(s.talking > 0) && !(s.wave > 0) && !(s.cheer > 0) && !(s.clap > 0) && !s.dance && !s.carry && !(this.act > 0)) {
       armLx += (P.ax - armLx) * wI; armLz += (P.az - armLz) * wI; elbL += (P.el - elbL) * wI; armLy = P.ay * wI;
       if (!P.one) { armRx += (P.ax - armRx) * wI; armRz += (-P.az - armRz) * wI; elbR += (P.el - elbR) * wI; armRy = -P.ay * wI; }
       if (P.proud) { torsoPitch -= 0.08 * wI; headPitch -= 0.1 * wI; }
@@ -641,6 +641,7 @@ export class MinifigAnimator {
     if (s.talking > 0) { armRx = -0.6 + Math.sin(this.t * 3.1) * 0.35; armRz = 0.3 + Math.sin(this.t * 2.3) * 0.1; elbR = -1.0 + Math.sin(this.t * 4) * 0.3; armLx = -0.2 + Math.sin(this.t * 2.2 + 1) * 0.2; elbL = -0.6; headRoll += Math.sin(this.t * 2.2) * 0.07; headPitch += Math.sin(this.t * 3.7) * 0.05; }
     if (s.carry) { armLx = armRx = -1.0; armLz = 0.2; armRz = -0.2; elbL = elbR = -0.9; }
     if (s.wave > 0) { const sw = -0.3 + Math.sin(this.t * 11) * 0.32; if (J.staff) { armLz = -2.55; armLx = -0.42; armLy = 0; elbL = sw; } else { armRz = 2.55; armRx = -0.42; armRy = 0; elbR = sw; } headRoll -= 0.06; headYaw += 0.1; roll += 0.03; }
+    if (s.clap > 0) { const o = Math.max(0, Math.sin(this.t * 17)); armLx = armRx = -1.15; armRz = -0.28 - o * 0.3; armLz = 0.28 + o * 0.3; elbL = elbR = -1.05; headPitch -= 0.08; bodyY = Math.abs(Math.sin(this.t * 8.5)) * 0.03; }
     if (s.cheer > 0) { const b = Math.abs(Math.sin(this.t * 9)); armLx = armRx = -3.0; armLz = -0.35; armRz = 0.35; elbL = elbR = -0.2 - Math.sin(this.t * 12) * 0.2; bodyY = b * 0.22; kneeL = kneeR = (1 - b) * 0.6; legL = legR = -(1 - b) * 0.3; }
     if (s.dance) { const b = this.t * s.dance; armLz = -2.2 + Math.sin(b) * 0.4; armRz = 2.2 + Math.sin(b + 1) * 0.4; armLx = armRx = 0; elbL = elbR = -0.4; legL = Math.max(0, Math.sin(b)) * -0.8; kneeL = Math.max(0, Math.sin(b)) * 1.3; legR = Math.max(0, -Math.sin(b)) * -0.8; kneeR = Math.max(0, -Math.sin(b)) * 1.3; bodyY = Math.abs(Math.sin(b)) * 0.14; roll = Math.sin(b) * 0.1; headRoll = -roll; }
     if (this.act > 0) {

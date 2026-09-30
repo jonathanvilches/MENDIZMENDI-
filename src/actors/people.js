@@ -249,8 +249,9 @@ export class Actor {
       const want = Math.atan2(this.lookAt.x - this.pos.x, this.lookAt.z - this.pos.z);
       lookYaw = Math.max(-0.9, Math.min(0.9, Math.atan2(Math.sin(want - this.heading), Math.cos(want - this.heading))));
     }
-    this.anim.update(dt, { speed: this.speed, grounded: true, talking: this.talking, wave: this.wave, dance: this.dance, lookYaw, bent: this.def.look?.bent || 0, cheer: this.cheer || 0 });
+    this.anim.update(dt, { speed: this.speed, grounded: true, talking: this.talking, wave: this.wave, dance: this.dance, lookYaw, bent: this.def.look?.bent || 0, cheer: this.cheer || 0, clap: this.clap || 0 });
     if (this.cheer > 0) this.cheer -= dt;
+    if (this.clap > 0) this.clap -= dt;
   }
   say(sec = 3) { this.talking = sec; }
   sync() {
