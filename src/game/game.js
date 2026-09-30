@@ -237,7 +237,7 @@ export class Game {
     const P = PLACES;
     return [
       { x: P.plaza.x, z: P.plaza.z - 30, label: 'Otsagabia' }, { x: 0, z: -320, label: 'Selva de Irati' }, { x: P.muskilda.x, z: P.muskilda.z, icon: 'church', label: 'Muskilda' },
-      { x: P.borda.x, z: P.borda.z, icon: 'sheep', label: 'Borda' }, { x: P.pond.x, z: P.pond.z, icon: 'water', label: 'Balsa' }, { x: P.fronton.x, z: P.fronton.z, icon: 'pelota', label: 'Frontón', text: 'Juega a pelota con Kike cuando quieras', act: 'pelota', go: false },
+      { x: P.borda.x, z: P.borda.z, icon: 'sheep', label: 'Borda' }, { x: P.pond.x, z: P.pond.z, icon: 'water', label: 'Balsa' }, { x: P.fronton.x, z: P.fronton.z, icon: 'pelota', label: 'Frontón', text: 'Acércate al frontón y habla con Kike para jugar a pelota', fronton: true, go: false },
       { x: P.church.x, z: P.church.z, icon: 'church', label: 'San Juan' }, { x: P.mirador.x, z: P.mirador.z, icon: 'lookout', label: 'Mirador' }, { x: P.crucero.x, z: P.crucero.z, icon: 'cross', label: 'Crucero' },
     ];
   }
@@ -893,18 +893,9 @@ export class Game {
     for (let k = 1; k < 40 && (!isFree(X, Z, 0.6) || waterLevelAt(X, Z) > terrainHeight(X, Z) - 0.1); k++) { const a = k * 2.4, r = 1.5 + k * 0.5; X = x + Math.cos(a) * r; Z = z + Math.sin(a) * r; }
     this.player.place(X, Z, this.player.heading); this.follow.snap(this.player);
   }
-  // Acciones del mapa: seguir una misión, ir a un sitio o jugar a pelota
+  // Acciones del mapa: seguir una misión o ir a un sitio
   mapAct(a, it) {
     if (a === 'track') return this.track(it.id);
-    if (a === 'pelota') return this.goPelota();
     if (a === 'go') this.teleport(it.x, it.z);
-  }
-  // Ir al frontón y jugar ya (desde el menú o el mapa): con Kike, sea o no misión
-  goPelota() {
-    if (this.mode !== 'play') return;
-    const f = PLACES.fronton; this.teleport(f.x + 3, f.z + 4.5);
-    const q = this.q('pelota');
-    if (q.state !== 'done' && !(q.state === 'active' && q.step === 1)) return this.talk(this.npcs.kike);
-    this.startPelota();
   }
 }

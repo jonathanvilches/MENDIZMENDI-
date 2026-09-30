@@ -321,7 +321,7 @@ export class TownGame {
       if (M.step === 0) out.push({ x: h.x, z: h.z, icon: 'exclaim', title: M.title, text: `Habla con ${M.host.name}`, act: 'track', id: M.i, go: true });
       else { const t = this.target(M); if (t) out.push({ x: t.x, z: t.z, icon: M.icon, title: M.title, text: this.stepText(M), act: 'track', id: M.i }); }
     }
-    if (this.fronton) out.push({ x: this.fronton.entry.x, z: this.fronton.entry.z, icon: 'pelota', small: true, title: 'Frontón', text: 'Juega a pelota cuando quieras', act: 'pelota' });
+    if (this.fronton) out.push({ x: this.fronton.entry.x, z: this.fronton.entry.z, icon: 'pelota', small: true, title: 'Frontón', text: 'Acércate al frontón para jugar a pelota', fronton: true });
     return out;
   }
   mapLabels() {
@@ -330,22 +330,14 @@ export class TownGame {
     for (const l of TOWN.landmarks) L.push({ x: l.spot.x, z: l.spot.z, icon: l.kind, label: l.name.length > 18 ? l.name.slice(0, 17) + '…' : l.name });
     if (TOWN.farm) L.push({ x: TOWN.farm.x, z: TOWN.farm.z, icon: 'sheep', label: 'Granja' });
     L.push({ x: PLACES.fields.x, z: PLACES.fields.z, icon: 'wheat', label: 'Campos' });
-    if (this.fronton) L.push({ x: this.fronton.spot.x, z: this.fronton.spot.z, icon: 'pelota', label: 'Frontón', text: 'Juega a pelota cuando quieras', act: 'pelota', go: false });
+    if (this.fronton) L.push({ x: this.fronton.spot.x, z: this.fronton.spot.z, icon: 'pelota', label: 'Frontón', text: 'Acércate al frontón para jugar a pelota', fronton: true, go: false });
     return L;
   }
   setBook(M) { if (!M.done) { this.tracked = M.i; this.sound.ui('click'); } }
-  // Acciones del mapa: seguir una misión, ir a un sitio o jugar a pelota
+  // Acciones del mapa: seguir una misión o ir a un sitio
   mapAct(a, it) {
     if (a === 'track') return this.setBook(this.missions[it.id]);
-    if (a === 'pelota') return this.goPelota();
     if (a === 'go') this.teleport(it.x, it.z);
-  }
-  // Ir al frontón y jugar ya (desde el menú o el mapa): la misión de pelota si está pendiente; si no, un partido libre
-  goPelota() {
-    if (!this.ensureFronton() || this.mode !== 'play') return;
-    const e = this.fronton.entry; this.teleport(e.x, e.z);
-    const M = this.missions.find(M => M.type === 'pelota' && !M.done);
-    return M ? this.talk(M.host) : this.freePelota();
   }
 
   // ---------- Interacción ----------
