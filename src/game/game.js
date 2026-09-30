@@ -11,6 +11,7 @@ import { LANDMARKS } from '../world/landmarks.js';
 import { isFree, segmentBlocked } from '../world/colliders.js';
 import { makeEguzkilore, makeRibbon, makeComb, makeLitter } from '../fx.js';
 import { wait } from '../ui.js';
+import { Fronton, playPelota } from './fronton.js';
 import { clamp, lerp, angleDiff, mulberry32 } from '../util/math.js';
 
 const SAVE_KEY = 'mendimendiz-salazar-v2';
@@ -81,6 +82,7 @@ export class Game {
 
   // ---------- Construcción del mundo de juego ----------
   spawn() {
+    this.ensureFronton();
     for (const d of npcDefs()) {
       const a = new Actor(d, this.scene);
       a.face = d.face; a.color = d.color;
@@ -265,7 +267,7 @@ export class Game {
     // Minijuegos y modos
     if (this.herd) this.updateHerding(dt);
     if (this.zarra) this.updateZarratrako(dt);
-    if (this.mode === 'pelota') this.updatePelota(dt);
+    if (this.mode === 'pelota' && this.pelotaTick) this.pelotaTick(dt);
     if (this.mode === 'dance') this.updateDance(dt);
     if (this.mode === 'bino') this.updateBino(dt);
     // detección de pasos por lugares
@@ -489,7 +491,7 @@ export class Game {
       case 'kike': {
         const q = this.q('pelota');
         if (q.state === 'available' || (q.state === 'active' && q.step === 0)) {
-          await S(['¡Aupa! Soy Kike. ¿Juegas a pelota?', 'Se golpea la pelota contra el frontis, la pared grande. Cuando vuelva botando, ponte cerca y dale con la mano.', `Si me devuelves seis seguidas, te doy la cinta verde. ${this.input.touch ? 'Pulsa el botón amarillo' : 'Pulsa E'} justo cuando la pelota llegue a ti.`]);
+          await S(['¡Aupa! Soy Kike. ¿Juegas a pelota?', 'Se golpea la pelota contra el frontis, la pared grande. Cuando vuelva botando, ponte cerca y dale con la mano.', 'Si me devuelves seis seguidas, te doy la cinta verde. Ve al círculo verde y pulsa GOLPE cuando la pelota brille.']);
           this.giveCard('pelota');
           this.activate('pelota'); this.advance('pelota', 1);
           return this.startPelota();
@@ -695,87 +697,26 @@ export class Game {
   }
 
   // ---------- Pelota ----------
-  startPelota() {
+  // Frontón de Otsagabia con el motor común: el frontis mira al oeste y la cancha se abre hacia el pueblo
+  ensureFronton() {
+    if (this.fronton) return this.fronton;
     const f = PLACES.fronton;
-    this.mode = 'pelota';
-    this.pel = { hits: 0, best: this.pel?.best || 0, phase: 'serve', t: 0, speed: 1, segs: [], wallX: f.x + 14.2, x0: f.x + 1.5, zc: f.z };
-    this.player.place(f.x + 1.5, f.z, Math.PI / 2);
-    this.follow.snap(this.player);
-    this.follow.yaw = -Math.PI / 2; this.follow.pitch = 0.35; this.follow.targetDist = 6.5;
-    if (!this.ball) {
-      this.ball = new THREE.Mesh(new THREE.SphereGeometry(0.1, 12, 8), new THREE.MeshStandardMaterial({ color: '#f4f1ea', roughness: 0.5 }));
-      this.ball.castShadow = true; this.scene.add(this.ball);
-      this.ballShadow = new THREE.Mesh(new THREE.CircleGeometry(0.12, 12), new THREE.MeshBasicMaterial({ color: '#000', transparent: true, opacity: 0.3, depthWrite: false }));
-      this.ballShadow.rotation.x = -Math.PI / 2; this.scene.add(this.ballShadow);
-    }
-    this.ball.visible = this.ballShadow.visible = true;
-    this.npcs.kike.setPos(f.x - 4, f.z - 4.5, Math.PI / 2);
-    this.serve();
-    this.ui.setMG(`Pelota: <span id="pelN">0</span>/6 seguidas<small>${this.input.touch ? 'Botón amarillo' : 'E'} cuando llegue la pelota · Muévete para alcanzarla · Esc para salir</small>`);
+    this.fronton = new Fronton(this.scene, { x: f.x + 15, z: f.z, ry: -Math.PI / 2 });
+    return this.fronton;
   }
-  serve() {
-    const p = this.pel;
-    const from = new THREE.Vector3(this.player.pos.x + 0.6, this.player.pos.y + 1.2, this.player.pos.z);
-    this.pelSegs(from);
-    this.player.rig.doWave(); this.sound.pelota();
-  }
-  pelSegs(from) {
-    const p = this.pel, f = PLACES.fronton, y0 = f.y;
-    const zr = f.z + (this.rnd() - 0.5) * 5.5;
-    const zr2 = f.z + (this.rnd() - 0.5) * 6;
-    const wall = new THREE.Vector3(p.wallX, y0 + 1.6 + this.rnd() * 1.5, zr);
-    const bounce = new THREE.Vector3(f.x + 7 - p.speed, y0 + 0.1, (zr + zr2) / 2);
-    const arrive = new THREE.Vector3(f.x + 1.0 - this.rnd() * 1.5, y0 + 0.9, zr2);
-    const k = 1 / p.speed;
-    p.segs = [{ a: from, b: wall, T: 0.85 * k, h: 1.2, snd: 'wall' }, { a: wall, b: bounce, T: 0.55 * k, h: 0.8, snd: 'floor' }, { a: bounce, b: arrive, T: 0.6 * k, h: 1.6, hit: true }, { a: arrive, b: new THREE.Vector3(f.x - 12, y0 + 0.1, zr2 + (zr2 - zr) * 0.3), T: 1.0 * k, h: 0.5, miss: true }];
-    p.si = 0; p.t = 0; p.canHit = false;
-  }
-  updatePelota(dt) {
-    const p = this.pel; if (!p) return;
-    if (this.input.consume('escape')) return this.endPelota();
-    const s = p.segs[p.si];
-    p.t += dt;
-    const k = clamp(p.t / s.T, 0, 1);
-    const pos = new THREE.Vector3().lerpVectors(s.a, s.b, k); pos.y += s.h * 4 * k * (1 - k);
-    this.ball.position.copy(pos);
-    this.ballShadow.position.set(pos.x, PLACES.fronton.y + 0.06, pos.z);
-    const P = this.player.pos;
-    const near = Math.hypot(pos.x - P.x, pos.z - P.z) < 1.9 && pos.y - P.y < 2.6;
-    const tryHit = this.input.consume('e');
-    if ((s.hit && k > 0.35) || (s.miss && k < 0.3)) {
-      if (tryHit && near) {
-        p.hits++; p.speed = Math.min(1.9, 1 + p.hits * 0.12);
-        this.sound.pelota(1.2); this.player.rig.doWave(); this.particles.emit(pos, { n: 8, color: '#ffffff', speed: 2, size: 0.2 });
-        const el = document.getElementById('pelN'); if (el) el.textContent = p.hits;
-        if (p.hits >= 6 && this.q('pelota').state === 'active') { this.ball.visible = false; this.winPelota(); return; }
-        this.pelSegs(pos.clone()); return;
-      }
-    }
-    if (k >= 1) {
-      if (s.snd === 'wall') this.sound.pelota(1);
-      if (s.snd === 'floor') this.sound.pelota(0.5);
-      if (s.miss) {
-        this.sound.ui('error');
-        this.ui.toast(p.hits ? `¡Uy! Llevabas ${p.hits}. ¡Otra vez!` : '¡Casi! Acércate a la pelota antes de golpear', 'pelota');
-        p.hits = 0; p.speed = 1; const el = document.getElementById('pelN'); if (el) el.textContent = 0;
-        setTimeout(() => { if (this.mode === 'pelota') this.serve(); }, 700);
-        p.segs = [{ a: pos, b: pos, T: 10, h: 0 }]; p.si = 0; p.t = 0;
-        return;
-      }
-      p.si++; p.t = 0;
-    }
+  startPelota() {
+    const q = this.q('pelota'), rally = q.state === 'active' && q.step === 1;
+    playPelota(this, this.ensureFronton(), this.npcs.kike, { mode: rally ? 'rally' : 'match', target: rally ? 6 : 5 }).then(async (r) => {
+      if (rally && r.win) return this.winPelota();
+      if (rally && !r.quit) this.ui.toast(r.best ? `¡Casi! Llegaste a ${r.best} seguidas. Habla con Kike para volver a intentarlo` : '¡Casi! Habla con Kike para volver a intentarlo', 'pelota');
+      if (!rally && r.win) this.ui.toast(`¡${r.you} a ${r.cpu}! Has ganado a Kike`, 'trophy');
+    });
   }
   async winPelota() {
-    this.endPelota(true);
     await this.say(this.npcs.kike, ['¡Seis seguidas! ¡Eres un txapeldun, un campeón!', 'Toma la cinta verde, como el frontón. ¡Vuelve a jugar cuando quieras!']);
     await this.completeQuest('pelota');
   }
-  endPelota() {
-    this.mode = 'play'; this.ui.setMG(null);
-    if (this.ball) this.ball.visible = this.ballShadow.visible = false;
-    this.follow.targetDist = 7.5;
-    const f = PLACES.fronton; this.npcs.kike.setPos(f.x + 1, f.z + 3, Math.PI / 2);
-  }
+  endPelota() { this.pelotaMatch?.exit(false); }
 
   // ---------- Prismáticos ----------
   toggleBinoculars() {

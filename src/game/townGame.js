@@ -459,8 +459,8 @@ export class TownGame {
         if (!this.fronton) { await S(['Hoy el frontón está cerrado. ¡Vuelve otro día!']); return; }
         if (M.step === 0) {
           await S([...(m.story || []), m.text || '',
-            'Así se juega: la pelota tiene que dar en el frontis por encima de la chapa, la raya roja. Puede botar una vez en la cancha y entonces la devuelves.',
-            'Muévete con el joystick y pulsa la mano (o E) cuando la pelota esté cerca de ti. ¡El primero que llegue a 5 tantos gana!'].filter(Boolean));
+            'Así se juega: la pelota tiene que dar en el frontis por encima de la chapa, la raya roja. La puedes devolver de aire o después de un bote.',
+            'Ve al círculo verde y pulsa GOLPE cuando la pelota brille. ¡El primero que llegue a 5 tantos gana!'].filter(Boolean));
           M.step = 1;
         } else await S(['¿La revancha? ¡Vamos al frontón!']);
         a.talking = 0; this.player.frozen = false;

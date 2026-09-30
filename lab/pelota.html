@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pelota a mano</title>
+<style>html,body{margin:0;height:100%;overflow:hidden;background:#9fd2ff;font-family:system-ui,sans-serif}canvas{display:block}</style></head>
+<body><script type="module">
+import * as THREE from 'three';
+import { PelotaCourt, PelotaMatch } from '../src/pelota/index.js';
+const q = new URLSearchParams(location.search);
+const r = new THREE.WebGLRenderer({ antialias: true }); r.setPixelRatio(Math.min(devicePixelRatio, 2)); r.setSize(innerWidth, innerHeight);
+r.shadowMap.enabled = true; r.outputColorSpace = THREE.SRGBColorSpace; document.body.appendChild(r.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color('#9fd2ff'); scene.fog = new THREE.Fog('#9fd2ff', 80, 220);
+scene.add(new THREE.HemisphereLight('#cfe6ff', '#3f5f26', 1.2));
+const sun = new THREE.DirectionalLight('#ffe0a8', 2.4); sun.position.set(30, 60, 25); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -30, right: 30, top: 30, bottom: -30, far: 150 }); sun.target.position.set(0, 0, 15); scene.add(sun, sun.target);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), new THREE.MeshStandardMaterial({ color: '#6fa04a' })); ground.rotation.x = -Math.PI / 2; ground.position.y = -0.02; ground.receiveShadow = true; scene.add(ground);
+const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 500);
+addEventListener('resize', () => { r.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); });
+const court = new PelotaCourt(THREE); scene.add(court.group);
+// pelotaris de prueba: cuerpo, cabeza y faja del color de su equipo
+function fig(color) {
+  const g = new THREE.Group(), inner = new THREE.Group(); g.add(inner);
+  const m = (c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.7 });
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.26, 0.9, 12), m('#ffffff')); body.position.y = 0.95; inner.add(body);
+  const sash = new THREE.Mesh(new THREE.CylinderGeometry(0.265, 0.265, 0.14, 12), m(color)); sash.position.y = 0.62; inner.add(sash);
+  const legs = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.16, 0.55, 10), m('#ffffff')); legs.position.y = 0.28; inner.add(legs);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 12), m('#f1c4a0')); head.position.y = 1.58; inner.add(head);
+  const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.6, 8), m('#f1c4a0')); arm.position.set(0.3, 1.1, 0); inner.add(arm);
+  g.traverse(o => { if (o.isMesh) o.castShadow = true; }); scene.add(g); return g;
+}
+const you = { obj: fig('#e0392f'), name: q.get('you') || 'Tú' }, rival = { obj: fig('#2f6fe0'), name: 'Kike' };
+const match = new PelotaMatch({ THREE, court, camera, you, rival, mode: q.get('mode') || 'match', target: +(q.get('target') || 5), level: q.get('level') || 'normal',
+  lang: q.get('lang') || 'es', autoplay: q.has('auto'), autostart: q.has('autostart'), seed: 7,
+  onEnd: (res) => { window.__result = res; }, onExit: (res) => { window.__result = res; } });
+window.__match = match;
+const clock = new THREE.Clock();
+// modo de prueba: simula de golpe N segundos a 30 fps
+if (q.has('sim')) { const n = +q.get('sim') * 30; for (let i = 0; i < n; i++) match.update(1 / 30); }
+function loop() { requestAnimationFrame(loop); const dt = q.has('fixed') ? 1 / 30 : clock.getDelta(); if (match.active) match.update(dt); r.render(scene, camera); }
+loop(); window.__ready = true;
+</script></body></html>

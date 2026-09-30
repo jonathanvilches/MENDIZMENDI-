@@ -118,8 +118,17 @@ export function groundHeight(x, z) {
   const t = terrainHeight(x, z);
   const b = bridgeAt(x, z);
   if (b) return Math.max(t, deckY(b, x));
+  for (const p of PLATFORMS) {
+    const dx = x - p.x, dz = z - p.z, lx = dx * p.c - dz * p.s, lz = dx * p.s + dz * p.c;
+    if (lx > p.x0 && lx < p.x1 && lz > p.z0 && lz < p.z1) return Math.max(t, p.y);
+  }
   return t;
 }
+
+// Superficies elevadas que cuentan como suelo (canchas de frontón): rectángulo local girado ry
+const PLATFORMS = [];
+export function addPlatform(x, z, ry, x0, x1, z0, z1, y) { PLATFORMS.push({ x, z, c: Math.cos(ry), s: Math.sin(ry), x0, x1, z0, z1, y }); }
+export function clearPlatforms() { PLATFORMS.length = 0; }
 
 // Nivel de agua en un punto (o -Infinity si no hay agua cerca)
 export function waterLevelAt(x, z) {
