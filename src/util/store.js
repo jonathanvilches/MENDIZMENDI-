@@ -1,7 +1,7 @@
 // Caché persistente de imágenes generadas (iconos 3D y fotos de comarcas) en IndexedDB.
 // Se lee entera al arrancar (una sola operación asíncrona) y se escribe en segundo plano.
 // Cambia VERSION cuando cambien los modelos, para regenerar las imágenes.
-const VERSION = 'v11';
+const VERSION = 'v12';
 const DB = 'mendimendiz-img', ST = 'img';
 const mem = new Map();
 let db = null;

@@ -40,7 +40,12 @@ export class Animal {
     this.t += dt;
     const dxp = this.pos.x - player.pos.x, dzp = this.pos.z - player.pos.z, dp = Math.hypot(dxp, dzp);
     const sneak = player.speed < 2.2;
-    const scare = this.fleeDist * (sneak ? 0.55 : 1);
+    // si corres hacia ellos se asustan antes; si te acercas despacio, te dejan llegar más cerca
+    const ph = player.heading ?? 0, toward = (Math.sin(ph) * dxp + Math.cos(ph) * dzp) / (dp || 1);
+    const scare = this.fleeDist * (sneak ? 0.55 : 1) * (!sneak && toward > 0.5 ? 1.45 : 1);
+    // alerta: dejan de pastar, levantan la cabeza y te miran antes de decidir si huyen
+    this.alert = !this.follow && this.fleeDist > 0 && dp < Math.max(scare * 1.7, 7) && dp >= scare;
+    this.lookYaw = dp < 14 ? Math.atan2(-dxp, -dzp) : null;
     let want = 0;
     if (this.follow) {
       const f = this.follow;
@@ -84,19 +89,29 @@ export class Animal {
     this.sync();
   }
   animate(dt) {
-    const q = this.q, run = this.speed > 2;
-    const a = Math.min(1, this.speed / 1.2);
-    const sw = Math.sin(this.phase) * (run ? 0.9 : 0.5) * a;
+    const q = this.q, sp = this.speed;
+    // andares: paso (patas en diagonal), trote (diagonal con salto) y galope (delanteras y traseras juntas)
+    const gallop = sp > Math.max(3.2, this.run * 0.75) && this.kind !== 'cow', trot = !gallop && sp > 1.25;
+    const a = Math.min(1, sp / 1.2);
+    const sw = Math.sin(this.phase) * (trot ? 0.75 : 0.5) * a;
     q.legs[0].rotation.x = sw; q.legs[3].rotation.x = sw;
     q.legs[1].rotation.x = -sw; q.legs[2].rotation.x = -sw;
-    if (run && this.kind !== 'cow') { q.legs[0].rotation.x = q.legs[1].rotation.x = Math.sin(this.phase) * 0.8; q.legs[2].rotation.x = q.legs[3].rotation.x = -Math.sin(this.phase) * 0.8; q.body.rotation.x = Math.cos(this.phase) * 0.08; }
+    if (gallop) { q.legs[0].rotation.x = q.legs[1].rotation.x = Math.sin(this.phase) * 0.8; q.legs[2].rotation.x = q.legs[3].rotation.x = -Math.sin(this.phase) * 0.8; q.body.rotation.x = Math.cos(this.phase) * 0.08; }
     else q.body.rotation.x = 0;
-    q.body.position.y = Math.abs(Math.sin(this.phase)) * (run ? 0.12 : 0.03) * a;
-    const graze = this.state === 'graze' ? 1 : 0;
+    q.body.position.y = Math.abs(Math.sin(this.phase)) * (gallop ? 0.12 : trot ? 0.07 : 0.03) * a;
+    const graze = this.state === 'graze' && !this.alert ? 1 : 0;
     this.headDown = damp(this.headDown || 0, graze, 3, dt);
-    q.head.rotation.x = this.headDown * 0.9 + Math.sin(this.t * 3) * 0.05 * this.headDown;
-    q.head.rotation.y = Math.sin(this.t * 0.8) * 0.2 * (1 - this.headDown);
-    if (q.tail) q.tail.rotation.z = Math.sin(this.t * (this.kind === 'dog' ? 12 : 3)) * (this.kind === 'dog' ? 0.6 : 0.3);
+    // cabeza: pasta, o se levanta y gira hacia el jugador si está cerca (alerta)
+    let yaw = Math.sin(this.t * 0.8) * 0.2 * (1 - this.headDown);
+    if (this.lookYaw != null && this.state !== 'flee' && sp < 1) { const d = Math.atan2(Math.sin(this.lookYaw - this.heading), Math.cos(this.lookYaw - this.heading)); yaw = Math.max(-0.9, Math.min(0.9, d)) * (1 - this.headDown); }
+    this.headYaw = damp(this.headYaw || 0, yaw, 5, dt);
+    q.head.rotation.x = this.headDown * 0.9 + Math.sin(this.t * 3) * 0.05 * this.headDown - (this.alert ? 0.15 : 0);
+    q.head.rotation.y = this.headYaw;
+    // cola: el perro la mueve contento; vacas y caballos la sacuden de vez en cuando contra las moscas
+    if (q.tail) {
+      if (this.kind === 'dog') q.tail.rotation.z = Math.sin(this.t * 12) * 0.6;
+      else { const flick = Math.max(0, Math.sin(this.t * 0.7 + this.phase * 0.1)) ** 8; q.tail.rotation.z = Math.sin(this.t * 3) * 0.12 + Math.sin(this.t * 9) * 0.5 * flick; }
+    }
   }
   sync() { this.obj.position.copy(this.pos); this.obj.rotation.y = this.heading; }
 }

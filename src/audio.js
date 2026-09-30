@@ -127,6 +127,13 @@ export class Sound {
     }
   }
   owl(pos) { if (!this.ctx) return; const o = this.out(pos, 80, 0.4, 0.6); if (!o) return; this.tone(380, 0.35, 'sine', 0.12, o, 0, 0.05, 360); this.tone(380, 0.6, 'sine', 0.12, o, 0.5, 0.05, 350); }
+  // sonido propio de cada criatura: 'call' al avisar de que se mueve, 'ambient' de fondo
+  creature(who, kind, pos) {
+    if (!this.ctx) return; const o = this.out(pos, 70, kind === 'call' ? 0.9 : 0.55, 0.7); if (!o) return;
+    if (who === 'lamia') { this.tone(620, 1.1, 'sine', 0.08, o, 0, 0.2, kind === 'call' ? 980 : 700); this.tone(930, 0.9, 'sine', 0.04, o, 0.15, 0.3, 860); }
+    else if (who === 'momotxorro') { for (let i = 0; i < (kind === 'call' ? 4 : 2); i++) this.cowbell(pos, 0.6); if (kind === 'call') this.noiseBurst(0.3, 300, 0.6, 0.35, o); }
+    else { this.tone(62, kind === 'call' ? 1.2 : 0.8, 'sawtooth', 0.12, o, 0, 0.15, 48); this.noiseBurst(kind === 'call' ? 0.9 : 0.5, 180, 0.5, 0.3, o, 0, 'lowpass'); }
+  }
   cricket() { if (!this.ctx) return; for (let i = 0; i < 3; i++) this.tone(4200, 0.03, 'sine', 0.015, this.sfx, i * 0.05); }
   magic() { if (!this.ctx) return; [1047, 1319, 1568, 2093, 2637].forEach((f, i) => this.tone(f, 0.5, 'sine', 0.06, this.sfx, i * 0.06)); }
   whoosh() { if (this.ctx) this.noiseBurst(0.4, 600, 0.4, 0.2, this.sfx, 0, 'lowpass'); }
