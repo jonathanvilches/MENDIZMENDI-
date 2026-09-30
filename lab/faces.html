@@ -1,0 +1,20 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:#3b2466;overflow:hidden}</style></head><body><script type="module">
+// Hoja de expresiones de un personaje: neutra, contenta, sorpresa, triste, enfado, pensativa, hablando y parpadeo
+import * as THREE from 'three';
+import { buildMinifig, MinifigAnimator, COSTUMES } from '../src/actors/minifig.js';
+const q = new URLSearchParams(location.search), id = q.get('k') || 'leire';
+const r = new THREE.WebGLRenderer({ antialias: true }); r.setPixelRatio(1); r.setSize(innerWidth, innerHeight); r.toneMapping = THREE.ACESFilmicToneMapping; r.outputColorSpace = THREE.SRGBColorSpace; document.body.appendChild(r.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color('#3b2466');
+scene.add(new THREE.HemisphereLight('#fff6e8', '#4a3a5a', 1.4)); const key = new THREE.DirectionalLight('#fff0d8', 2.4); key.position.set(2, 4, 3); scene.add(key);
+const ex = [null, 'happy', 'surprised', 'sad', 'angry', 'thinking', 'talk', 'blink'];
+ex.forEach((e, i) => {
+  const f = buildMinifig(COSTUMES[id], { hero: true }), a = new MinifigAnimator(f);
+  if (e && e !== 'talk' && e !== 'blink') a.setExpr(e, 99);
+  a.blinkT = e === 'blink' ? -0.05 : 5;
+  for (let k = 0; k < 30; k++) { a.update(0.016, { speed: 0, grounded: true, talking: e === 'talk' ? 1 : 0 }); if (e === 'blink') a.blinkT = -0.05; if (e !== 'blink') a.blinkT = 5; }
+  if (e === 'talk') { f.userData.J.talk.visible = true; f.userData.J.mouth.visible = false; }
+  f.position.set((i % 4 - 1.5) * 0.95, -Math.floor(i / 4) * 0.95, 0); f.rotation.y = 0.15; scene.add(f);
+});
+const cam = new THREE.PerspectiveCamera(10, innerWidth / innerHeight, 0.1, 100); cam.position.set(0, 0.73, 11); cam.lookAt(0, 0.73, 0);
+r.render(scene, cam); window.__ready = true;
+</script></body></html>

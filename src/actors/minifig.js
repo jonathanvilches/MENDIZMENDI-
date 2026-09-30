@@ -405,26 +405,33 @@ export function buildMinifig(look, opts = {}) {
   const mood = L.face || 'smile';
   const browTilt = mood === 'angry' ? 0.45 : mood === 'worried' ? -0.35 : mood === 'brave' ? 0.18 : -0.05;
   const bS = L.browStyle || 'thick';
+  // cejas: una pieza por lado, articulada para las expresiones (subir, bajar, inclinar)
+  J.brows = [];
   for (const s of [-1, 1]) {
     const up = (mood === 'smirk' && s > 0 ? R * 0.06 : 0) - (mood === 'angry' ? R * 0.05 : 0);
-    if (bS === 'arched') Hd.add(new THREE.TorusGeometry(R * 0.16, R * 0.042, 8, 16, Math.PI * 0.62), brow, TX.hair, mtx(s * R * 0.3, cy + R * 0.33 + up, fz(R * 0.3, R * 0.44) + R * 0.02, 0, s * 0.35, Math.PI * 0.19 - s * browTilt * 0.5));
-    else Hd.add(TCAP(R * (bS === 'fine' ? 0.045 : 0.07), R * (bS === 'fine' ? 0.022 : 0.034), R * 0.22, 10), brow, TX.hair, mtx(s * R * 0.31, cy + R * 0.43 + up, fz(R * 0.3, R * 0.44) + R * 0.025, 0, s * 0.35, s * (Math.PI / 2 + browTilt) + s * 0.08));
+    const g = new THREE.Group(); head.add(g); J.brows.push(g);
+    if (bS === 'arched') { g.position.set(s * R * 0.3, cy + R * 0.33 + up, fz(R * 0.3, R * 0.44) + R * 0.02); new Part().add(new THREE.TorusGeometry(R * 0.16, R * 0.042, 8, 16, Math.PI * 0.62), brow, TX.hair, mtx(0, 0, 0, 0, s * 0.35, Math.PI * 0.19 - s * browTilt * 0.5)).build(g, false); }
+    else { g.position.set(s * R * 0.31, cy + R * 0.43 + up, fz(R * 0.3, R * 0.44) + R * 0.025); new Part().add(TCAP(R * (bS === 'fine' ? 0.045 : 0.07), R * (bS === 'fine' ? 0.022 : 0.034), R * 0.22, 10), brow, TX.hair, mtx(0, 0, 0, 0, s * 0.35, s * (Math.PI / 2 + browTilt) + s * 0.08)).build(g, false); }
+    g.userData.y0 = g.position.y; g.userData.s = s;
   }
   Hd.build(head);
   // ojos: blanco, iris de color, pupila y brillo
   const eyes = new THREE.Group(); eyes.position.set(0, cy + R * 0.14, 0); head.add(eyes); J.eyes = eyes;
   const E = new Part();
   const eyeW = R * (child ? 0.19 : 0.17), eyeH = R * (child ? 0.32 : 0.29), eyeX = R * 0.27;
+  J.iris = []; root.userData.face = { eyeW, eyeH, R };
   for (const s of [-1, 1]) {
     const ey = R * 0.14, dz = (fz(eyeX + R * 0.02, ey) - fz(eyeX - R * 0.02, ey)) / (R * 0.04), yaw = s * Math.atan(-dz) * 0.8, zz = fz(eyeX, ey) - R * 0.035;
     E.add(SPH(1, 18, 14), '#ffffff', 0, mtx(s * eyeX, 0, zz, 0, yaw, 0, eyeW, eyeH, R * 0.06));
-    E.add(SPH(1, 18, 12), L.eyes, 0, mtx(s * eyeX * 0.97, -eyeH * 0.06, zz + R * 0.044, 0, yaw, 0, eyeW * 0.74, eyeH * 0.76, R * 0.02));
-    E.add(SPH(1, 12, 8), new THREE.Color(L.eyes).lerp(new THREE.Color('#ffffff'), 0.35), 0, mtx(s * eyeX * 0.97, -eyeH * 0.26, zz + R * 0.05, 0, yaw, 0, eyeW * 0.45, eyeH * 0.3, R * 0.018));
-    E.add(SPH(1, 14, 10), '#0e0806', 0, mtx(s * eyeX * 0.97, -eyeH * 0.02, zz + R * 0.052, 0, yaw, 0, eyeW * 0.4, eyeH * 0.46, R * 0.02));
+    const IR = new Part(), ig = new THREE.Group(); eyes.add(ig); J.iris.push(ig);
+    IR.add(SPH(1, 18, 12), L.eyes, 0, mtx(s * eyeX * 0.97, -eyeH * 0.06, zz + R * 0.044, 0, yaw, 0, eyeW * 0.74, eyeH * 0.76, R * 0.02));
+    IR.add(SPH(1, 12, 8), new THREE.Color(L.eyes).lerp(new THREE.Color('#ffffff'), 0.35), 0, mtx(s * eyeX * 0.97, -eyeH * 0.26, zz + R * 0.05, 0, yaw, 0, eyeW * 0.45, eyeH * 0.3, R * 0.018));
+    IR.add(SPH(1, 14, 10), '#0e0806', 0, mtx(s * eyeX * 0.97, -eyeH * 0.02, zz + R * 0.052, 0, yaw, 0, eyeW * 0.4, eyeH * 0.46, R * 0.02));
+    IR.add(SPH(1, 10, 8), '#ffffff', 0, mtx(s * eyeX * 0.93 - eyeW * 0.18, eyeH * 0.2, zz + R * 0.062, 0, yaw, 0, eyeW * 0.25, eyeW * 0.3, R * 0.016));
+    IR.add(SPH(1, 8, 6), '#ffffff', 0, mtx(s * eyeX * 0.99 + eyeW * 0.2, -eyeH * 0.3, zz + R * 0.06, 0, yaw, 0, eyeW * 0.11, eyeW * 0.11, R * 0.016));
+    IR.build(ig, false, EYE);
     const lidT = mood === 'angry' ? s * -0.35 : mood === 'worried' ? s * 0.3 : 0;
     E.add(new THREE.TorusGeometry(1, 0.13, 6, 18, Math.PI * 0.85), '#2a1a12', 0, mtx(s * eyeX, eyeH * 0.02, zz + R * 0.02, 0, yaw, Math.PI * 0.075 + lidT, eyeW * 1.02, eyeH * 0.98, R * 0.1));
-    E.add(SPH(1, 10, 8), '#ffffff', 0, mtx(s * eyeX * 0.93 - eyeW * 0.18, eyeH * 0.2, zz + R * 0.062, 0, yaw, 0, eyeW * 0.25, eyeW * 0.3, R * 0.016));
-    E.add(SPH(1, 8, 6), '#ffffff', 0, mtx(s * eyeX * 0.99 + eyeW * 0.2, -eyeH * 0.3, zz + R * 0.06, 0, yaw, 0, eyeW * 0.11, eyeW * 0.11, R * 0.016));
     if (L.lashes) E.add(new THREE.BoxGeometry(eyeW * 0.5, eyeH * 0.12, R * 0.02), '#1a120d', 0, mtx(s * (eyeX + eyeW * 0.7), eyeH * 0.8, zz * 0.93, 0, yaw, s * -0.6));
     // pliegue del párpado: un arco de piel algo más oscura que da profundidad a la mirada
     E.add(new THREE.TorusGeometry(1, 0.05, 6, 20, Math.PI * 0.7), new THREE.Color(skin).multiplyScalar(0.82), 0, mtx(s * eyeX, eyeH * 0.14, zz + R * 0.015, 0, yaw, Math.PI * 0.15, eyeW * 1.2, eyeH * 1.12, R * 0.08));
@@ -453,6 +460,22 @@ export function buildMinifig(look, opts = {}) {
   else Mo.add(new THREE.TorusGeometry(mw, R * (L.lashes ? 0.045 : 0.035), 6, 16, Math.PI * 0.8), L.lashes ? '#c0404a' : '#6a2420', TX.skin, mtx(0, smile > 0 ? mw * 0.55 : -mw * 0.6, 0, 0, 0, smile > 0 ? Math.PI * 1.1 : Math.PI * 0.1, 1, 0.7, 0.5));
   Mo.build(mouth, false);
   const talk = new THREE.Group(); talk.position.copy(mouth.position); head.add(talk); talk.visible = false; J.talk = talk;
+  // bocas de las expresiones: sonrisa abierta, «O» de sorpresa y boca triste
+  const lipC = new THREE.Color(skin).lerp(new THREE.Color('#d0605a'), 0.4);
+  const mk = (fill) => { const g = new THREE.Group(); g.position.copy(mouth.position); g.visible = false; head.add(g); const P = new Part(); fill(P); P.build(g, false); return g; };
+  const sw = R * 0.24;
+  J.mSmile = mk(P => {
+    P.add(SPH(sw * 1.08, 24, 14, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), '#5a1a1c', TX.skin, mtx(0, 0.006, 0, 0, 0, 0, 1, 0.82, 0.16));
+    P.add(SPH(1, 20, 10), '#fbf7f0', TX.skin, mtx(0, -sw * 0.1, sw * 0.02, 0, 0, 0, sw * 0.72, sw * 0.15, sw * 0.12));
+    P.add(SPH(sw * 0.5, 16, 10), '#e0505a', TX.skin, mtx(0, -sw * 0.6, sw * 0.03, 0, 0, 0, 1.1, 0.5, 0.2));
+    P.add(CAP(R * 0.028, sw * 1.9, 8), lipC, TX.skin, mtx(0, sw * 0.02, sw * 0.03, 0, 0, Math.PI / 2, 1, 1, 0.8));
+    P.add(new THREE.TorusGeometry(sw * 1.08, R * 0.03, 8, 28, Math.PI), lipC, TX.skin, mtx(0, 0.006, 0, 0, 0, Math.PI, 1, 0.82, 0.3));
+  });
+  J.mO = mk(P => {
+    P.add(SPH(1, 18, 12), '#4a1618', TX.skin, mtx(0, -R * 0.03, 0, 0, 0, 0, R * 0.085, R * 0.11, R * 0.03));
+    P.add(new THREE.TorusGeometry(1, 0.28, 8, 22), lipC, TX.skin, mtx(0, -R * 0.03, R * 0.005, 0, 0, 0, R * 0.095, R * 0.12, R * 0.08));
+  });
+  J.mSad = mk(P => P.add(new THREE.TorusGeometry(R * 0.17, R * 0.035, 6, 16, Math.PI * 0.8), '#6a2420', TX.skin, mtx(0, -R * 0.1, 0, 0, 0, Math.PI * 0.1, 1, 0.7, 0.5)));
   new Part().add(SPH(R * 0.13, 14, 10), '#5a1a18', TX.skin, mtx(0, 0, 0, 0, 0, 0, 1.2, 1, 0.35)).add(SPH(R * 0.07, 10, 6), '#e0606a', TX.skin, mtx(0, -R * 0.05, R * 0.02, 0, 0, 0, 1.3, 0.6, 0.3)).build(talk, false);
 
   // --- pelo y sombreros ---
@@ -548,6 +571,7 @@ export class MinifigAnimator {
     this.root = root; this.J = root.userData.J; this.L = root.userData.look || {};
     this.t = Math.random() * 10; this.phase = 0; this.walk = 0; this.run = 0; this.air = 0; this.lean = 0; this.land = 0; this.wasAir = 0;
     this.blinkT = 1 + Math.random() * 3; this.headYaw = 0;
+    this.expr = null; this.exprT = 0; this.lookT = 0.5 + Math.random() * 2; this.look = new THREE.Vector2(); this.lookTo = new THREE.Vector2(); this.brow = { up: 0, inner: 0, one: 0 };
     this.legLen = root.userData.legLen || 0.5;
     this.act = 0; this.actKind = null; this.actDur = 0.5;
     this.pose = POSES[this.L.pose] || null;
@@ -638,10 +662,39 @@ export class MinifigAnimator {
     const blink = this.blinkT < 0;
     J.lids.visible = blink; J.eyes.visible = !blink;
     const talking = s.talking > 0 && (Math.sin(this.t * 17) + Math.sin(this.t * 11)) > 0.2;
-    J.talk.visible = talking; J.mouth.visible = !talking;
     if (talking) J.talk.scale.y = 0.7 + Math.abs(Math.sin(this.t * 14)) * 0.5;
+    if (J.iris) this.face(dt, s, talking); else { J.talk.visible = talking; J.mouth.visible = !talking; }
   }
   doAct(kind, t = 0.5) { this.actKind = kind; this.act = t; this.actDur = t; }
+  // expresión durante un rato: 'happy' | 'surprised' | 'sad' | 'angry' | 'thinking'
+  setExpr(name, dur = 2) { this.expr = name; this.exprT = dur; this.lookT = 0; }
+  face(dt, s, talkingNow) {
+    const J = this.J, F = this.root.userData.face;
+    if (!F || !J.iris) return;
+    if (this.exprT > 0 && (this.exprT -= dt) <= 0) this.expr = null;
+    const ex = this.expr || (s.cheer > 0 ? 'happy' : null);
+    // mirada: vistazos rápidos cada poco (a veces al frente), hacia arriba al pensar
+    if ((this.lookT -= dt) <= 0) {
+      this.lookT = 0.7 + Math.random() * 2.4;
+      if (ex === 'thinking') this.lookTo.set(0.7, 0.9);
+      else if (ex === 'surprised' || Math.random() < 0.45) this.lookTo.set(0, 0);
+      else this.lookTo.set((Math.random() - 0.5) * 1.8, (Math.random() - 0.5) * 1.0);
+    }
+    this.look.lerp(this.lookTo, 1 - Math.exp(-22 * dt));
+    for (const g of J.iris) g.position.set(this.look.x * F.eyeW * 0.2, this.look.y * F.eyeH * 0.14, 0);
+    // cejas
+    const B = { happy: [0.035, 0, 0], surprised: [0.09, 0.08, 0], sad: [0.02, 0.45, 0], angry: [-0.035, -0.55, 0], thinking: [0.01, 0, 0.07] }[ex] || [0, 0, 0];
+    const talkUp = talkingNow ? Math.abs(Math.sin(this.t * 6)) * 0.02 : 0;
+    const k = 1 - Math.exp(-12 * dt), b = this.brow;
+    b.up += (B[0] + talkUp - b.up) * k; b.inner += (B[1] - b.inner) * k; b.one += (B[2] - b.one) * k;
+    for (const g of J.brows || []) { const sd = g.userData.s; g.position.y = g.userData.y0 + (b.up + (sd > 0 ? b.one : -b.one * 0.2)) * F.R; g.rotation.z = -sd * b.inner; }
+    // ojos algo más abiertos con la sorpresa
+    const es = ex === 'surprised' ? 1.1 : ex === 'angry' ? 0.94 : 1;
+    J.eyes.scale.y += (es - J.eyes.scale.y) * k;
+    // boca según la expresión (hablar tiene prioridad)
+    const m = talkingNow ? J.talk : ex === 'surprised' ? J.mO : ex === 'happy' ? J.mSmile : ex === 'sad' || ex === 'angry' ? J.mSad : J.mouth;
+    for (const g of [J.mouth, J.talk, J.mSmile, J.mO, J.mSad]) if (g) g.visible = g === m;
+  }
 }
 
 // ---------- Los nueve personajes jugables ----------
@@ -698,7 +751,8 @@ export class MinifigRig {
     this.anim.update(dt, { speed, grounded, turnRate, wave: this.wave, cheer: this.cheer, talking: this.talking, carry: this.carry });
   }
   doWave() { this.wave = 1.2; }
-  doCheer() { this.cheer = 2; }
+  doCheer() { this.cheer = 2; this.anim.setExpr('happy', 2.6); }
+  setExpr(name, dur) { this.anim.setExpr(name, dur); }
   doAct(kind, t = 0.5) { this.anim.doAct(kind, t); }
 }
 

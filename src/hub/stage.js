@@ -49,7 +49,7 @@ export class Stage {
     try { this.r.compileAsync(this.scene, this.cam).then(go, go); } catch (e) { go(); }
     this.loop = this.loop.bind(this); requestAnimationFrame(this.loop);
   }
-  poke() { this.wave = 1.6; this.jump = 0.5; this.onPoke?.(); }
+  poke() { this.wave = 1.6; this.jump = 0.5; this.anim?.setExpr(Math.random() < 0.3 ? 'surprised' : 'happy', 1.8); this.onPoke?.(); }
   buildScene(comarca) {
     // el diorama se construye una vez por comarca y se reutiliza
     let D = dioramas.get(comarca);
