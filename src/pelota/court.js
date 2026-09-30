@@ -22,6 +22,29 @@ function grain(g, w, h, n, a, dark = true) {
   }
 }
 
+// pared de hormigón pintada: juntas de encofrado muy suaves y chorreones de lluvia desde arriba
+function weather(c, w, h, mH, mW) {
+  c.strokeStyle = 'rgba(0,0,0,.07)'; c.lineWidth = Math.max(1, w / 400);
+  for (let y = 2.5; y < mH; y += 2.5) { const Y = h - y / mH * h; c.beginPath(); c.moveTo(0, Y); c.lineTo(w, Y); c.stroke(); }
+  for (let x = 3.3; x < mW; x += 3.3) { const X = x / mW * w; c.beginPath(); c.moveTo(X, 0); c.lineTo(X, h); c.stroke(); }
+  for (let i = 0; i < 26; i++) {
+    const x = Math.random() * w, len = h * (0.08 + Math.random() * 0.35), wd = w * (0.004 + Math.random() * 0.012);
+    const gr = c.createLinearGradient(0, 0, 0, len); gr.addColorStop(0, 'rgba(40,45,40,.16)'); gr.addColorStop(1, 'rgba(40,45,40,0)');
+    c.fillStyle = gr; c.fillRect(x, 0, wd, len);
+  }
+  const gb = c.createLinearGradient(0, h * 0.82, 0, h); gb.addColorStop(0, 'rgba(60,50,35,0)'); gb.addColorStop(1, 'rgba(60,50,35,.22)');
+  c.fillStyle = gb; c.fillRect(0, h * 0.82, w, h * 0.18);   // salpicaduras y tierra abajo
+}
+// letrero pintado con el nombre del pueblo (letras claras con sombra), ajustado al ancho disponible
+function paintName(c, text, cx, cy, maxW, size, color = '#f6f1e4') {
+  if (!text) return;
+  let fs = size; c.font = `900 ${fs}px "Lilita One", Nunito, "Arial Black", sans-serif`;
+  const tw = c.measureText(text).width; if (tw > maxW) { fs = size * maxW / tw; c.font = `900 ${fs}px "Lilita One", Nunito, "Arial Black", sans-serif`; }
+  c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.fillStyle = 'rgba(0,0,0,.28)'; c.fillText(text, cx + fs * 0.05, cy + fs * 0.06);
+  c.fillStyle = color; c.fillText(text, cx, cy);
+}
+
 export const THEMES = {
   plaza: { frontis: '#6f9c8a', wall: '#7aa595', floor: '#8b948f', contra: '#b7ad98', line: '#ffffff', mark: '#e0392f', stands: '#c9b89a' },
 };
@@ -66,14 +89,29 @@ export class PelotaCourt {
     base.position.set(-W / 2 + fw / 2, -1.52, fl / 2 - 0.3); base.receiveShadow = true; g.add(base);
 
     // --- frontis con la chapa y la raya de arriba
-    const frontTex = canvasTex(T, 512, 512, (c, w, h) => {
-      c.fillStyle = th.frontis; c.fillRect(0, 0, w, h); grain(c, w, h, 5000, 0.06); grain(c, w, h, 1500, 0.05, false);
+    const title = (opts.title || '').toUpperCase();
+    const frontTex = canvasTex(T, 1024, 1024, (c, w, h) => {
+      c.fillStyle = th.frontis; c.fillRect(0, 0, w, h); grain(c, w, h, 16000, 0.06); grain(c, w, h, 5000, 0.05, false);
+      weather(c, w, h, C.FRONT_H, W + 0.6);
       const Y = (y) => h - y / C.FRONT_H * h;
-      c.fillStyle = th.mark; c.fillRect(0, Y(C.FRONT_TOP) - 7, w, 14);            // raya superior
-      c.strokeStyle = th.line; c.lineWidth = 6; c.beginPath(); c.moveTo(w - 3, 0); c.lineTo(w - 3, h); c.stroke(); // raya lateral derecha
+      // nombre del pueblo en lo alto del frontis, como en los frontones de verdad
+      paintName(c, title, w / 2, Y(7.7), w * 0.86, h * 0.1);
+      c.fillStyle = th.mark; c.fillRect(0, Y(C.FRONT_TOP) - 12, w, 24);            // raya superior
+      c.strokeStyle = th.line; c.lineWidth = 12; c.beginPath(); c.moveTo(w - 6, 0); c.lineTo(w - 6, h); c.stroke(); // raya lateral derecha
     });
-    const front = new T.Mesh(new T.BoxGeometry(W + 0.6, C.FRONT_H, 0.8), [M({ color: th.frontis }), M({ color: th.frontis }), M({ color: th.frontis }), M({ color: th.frontis }), M({ map: frontTex }), M({ color: th.frontis })]);
+    // trasera del frontis (da a la calle): el nombre y «FRONTÓN» sobre la pared
+    const backTex = canvasTex(T, 1024, 1024, (c, w, h) => {
+      c.fillStyle = th.wall; c.fillRect(0, 0, w, h); grain(c, w, h, 16000, 0.06); grain(c, w, h, 5000, 0.05, false);
+      weather(c, w, h, C.FRONT_H, W + 0.6);
+      paintName(c, title ? 'FRONTÓN' : '', w / 2, h * 0.3, w * 0.5, h * 0.06, '#fdfaf2');
+      paintName(c, title, w / 2, h * 0.42, w * 0.84, h * 0.11, '#fdfaf2');
+    });
+    const front = new T.Mesh(new T.BoxGeometry(W + 0.6, C.FRONT_H, 0.8), [M({ color: th.frontis }), M({ color: th.frontis }), M({ color: th.frontis }), M({ color: th.frontis }), M({ map: frontTex }), M({ map: backTex })]);
     front.position.set(-0.3, C.FRONT_H / 2, -0.4); front.castShadow = true; front.receiveShadow = true; g.add(front);
+    // albardilla de piedra que remata el frontis y la pared izquierda
+    const capMat = M({ color: '#ddd6c6', roughness: 0.8 });
+    const cap = new T.Mesh(new T.BoxGeometry(W + 0.9, 0.24, 1.05), capMat); cap.position.set(-0.3, C.FRONT_H + 0.12, -0.4); cap.castShadow = true; g.add(cap);
+    const capL = new T.Mesh(new T.BoxGeometry(0.85, 0.2, EXT + 0.2), capMat); capL.position.set(-W / 2 - 0.3, C.LEFT_H + 0.1, EXT / 2 - 0.1); capL.castShadow = true; g.add(capL);
     const chapa = this.chapa = new T.Mesh(new T.BoxGeometry(W, C.CHAPA, 0.05), M({ color: '#c9d0d4', metalness: 0.3, roughness: 0.4, emissive: '#000000' }));
     chapa.position.set(0, C.CHAPA / 2, 0.025); chapa.receiveShadow = true; g.add(chapa);
     const chapaLine = new T.Mesh(new T.BoxGeometry(W, 0.08, 0.07), M({ color: th.mark, roughness: 0.6 }));
@@ -82,6 +120,7 @@ export class PelotaCourt {
     // --- pared izquierda con los números de los cuadros
     const leftTex = canvasTex(T, 2048, 512, (c, w, h) => {
       c.fillStyle = th.wall; c.fillRect(0, 0, w, h); grain(c, w, h, 12000, 0.06); grain(c, w, h, 3000, 0.05, false);
+      weather(c, w, h, C.LEFT_H, EXT);
       const X = (z) => w - z / EXT * w, Y = (y) => h - y / C.LEFT_H * h;   // vista desde la cancha: el frontis queda a la derecha
       c.fillStyle = th.mark; c.fillRect(0, Y(C.LEFT_H - 0.5) - 6, w, 12);
       c.strokeStyle = th.line; c.lineWidth = 5; c.fillStyle = th.line; c.font = 'bold 64px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';

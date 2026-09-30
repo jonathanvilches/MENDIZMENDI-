@@ -78,7 +78,7 @@ export class PelotaHud {
       <div class="pel-q"></div>
       <div class="pel-tip"></div>
       <div class="pel-stick"><div class="pel-knob"><i></i></div></div>
-      ${touch ? '<div class="pel-stickhint">↔ ↕</div>' : ''}
+      ${touch ? '<div class="pel-stickhint"><svg viewBox="0 0 48 48" width="46" height="46"><path d="M24 6l6 7h-4v8h8v-4l7 7-7 7v-4h-8v8h4l-6 7-6-7h4v-8h-8v4l-7-7 7-7v4h8v-8h-4z" fill="#fff" opacity=".9"/></svg></div>' : ''}
       <div class="pel-btns"><button class="pel-btn pel-drop" aria-label="${txt.drop}">${txt.drop}</button><button class="pel-btn pel-hit" aria-label="${txt.hit}">${txt.hit}</button></div>`;
     container.appendChild(r);
     this.$ = (s) => r.querySelector(s);

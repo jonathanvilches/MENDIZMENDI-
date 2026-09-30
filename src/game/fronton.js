@@ -7,6 +7,7 @@ import { addBox, isFree } from '../world/colliders.js';
 import { clearGrass } from '../world/nature.js';
 import { getLang } from '../i18n.js';
 import { profile } from './profile.js';
+import { Crowd } from './crowd.js';
 
 // huella del frontón en coordenadas locales (se calcula una vez)
 let EXTENT = null;
@@ -40,10 +41,10 @@ export function courtHeight(x, z, ry) {
 
 export class Fronton {
   // spot: centro del frontis a ras de suelo; ry: giro (la cancha crece hacia +z local); sin y, se calcula
-  constructor(scene, spot) {
+  constructor(scene, spot, title = '') {
     if (spot.y == null) spot = { ...spot, y: courtHeight(spot.x, spot.z, spot.ry) };
     this.spot = spot;
-    const court = this.court = new PelotaCourt(THREE);
+    const court = this.court = new PelotaCourt(THREE, { title });
     const g = court.group; g.position.set(spot.x, spot.y, spot.z); g.rotation.y = spot.ry; scene.add(g); g.updateMatrixWorld(true);
     const E = court.extent, mid = this.toWorld((E.x0 + E.x1) / 2, 0);
     clearGrass(mid.x, mid.z, E.x1 - E.x0, E.z1, spot.ry);
@@ -70,6 +71,8 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     G.pelotaRig = rig;
     rival.frozen = true; rival.talking = 0;
     const flags = { you: {}, rival: {} };
+    // vecinos que se acercan a la grada a ver el partido
+    const crowd = G.pelotaCrowd = G.scene ? new Crowd(G, fronton, 7 + ((Math.random() * 4) | 0)) : null;
     const once = (who, key, on, fn) => { if (on && !flags[who][key]) { flags[who][key] = true; fn(); } else if (!on) flags[who][key] = false; };
     const animYou = (obj, st, dt) => {
       P.pos.copy(obj.position); P.heading = obj.rotation.y;
@@ -87,9 +90,12 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       you: { obj: P.obj, name: profile().name || (getLang() === 'eu' ? 'Zu' : 'Tú'), animate: animYou },
       rival: { obj: rival.obj, name: String(rival.name).split(',')[0], animate: animRival },
       onEnd: (r) => done(r), onExit: (r) => done(r),
+      onEvent: (e) => { if (e.type === 'call' && crowd) crowd.point(e.winner === 'you'); },
     });
-    G.pelotaTick = (dt) => match.update(dt);
+    G.pelotaTick = (dt) => { match.update(dt); crowd?.update(dt); };
     function done(r) {
+      // el público aplaude el final y vuelve al pueblo (sigue moviéndose con el juego hasta que se va)
+      if (crowd) { crowd.end(!!r.win); G.crowds = (G.crowds || []).filter(c => !c.disposed).concat(crowd); }
       G.pelotaTick = null; G.pelotaMatch = null; G.pelotaRig = null;
       rig.setStance?.(null); P.rig = rig; P.frozen = false; G.mode = 'play'; G.ui.hudVisible?.(true);
       rival.frozen = false; rival.speed = 0; rival.setPos(home.x, home.z, home.h);

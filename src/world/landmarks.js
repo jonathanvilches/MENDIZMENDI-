@@ -171,18 +171,26 @@ function signTexture(lines) {
     g.fillStyle = '#8a5a32'; g.fillRect(0, i * 64, 256, 64);
     g.fillStyle = '#6b4424'; g.fillRect(0, i * 64 + 58, 256, 6);
     g.fillStyle = '#fff4dc'; g.font = 'bold 30px "Trebuchet MS", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
-    g.fillText(l, 128, i * 64 + 32);
+    // la dirección va como flecha dibujada (N, NE, E, O…) y no como carácter: en el iPhone saldría un emoji
+    const dir = { N: -90, NE: -45, E: 0, O: 180 }[l.split(' ')[0]];
+    const txt = dir != null ? l.slice(l.indexOf(' ') + 1) : l;
+    if (dir != null) {
+      const cx = 30, cy = i * 64 + 32, a = dir * Math.PI / 180;
+      g.save(); g.translate(cx, cy); g.rotate(a); g.strokeStyle = '#fff4dc'; g.lineWidth = 6; g.lineCap = 'round'; g.lineJoin = 'round';
+      g.beginPath(); g.moveTo(-14, 0); g.lineTo(13, 0); g.moveTo(3, -10); g.lineTo(14, 0); g.lineTo(3, 10); g.stroke(); g.restore();
+      g.fillText(txt, 146, i * 64 + 32);
+    } else g.fillText(txt, 128, i * 64 + 32);
   });
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
   return t;
 }
 function buildSigns(B, scene) {
   const signs = [
-    { x: PLACES.plaza.x + 13, z: -12, lines: ['↗ Muskilda', '→ Frontón'] },
-    { x: rx(-96) - 19, z: -98, lines: ['↑ Selva de Irati', '← Iglesia'] },
-    { x: PLACES.church.x - 14, z: -38, lines: ['← Borda', '↑ Mirador'] },
+    { x: PLACES.plaza.x + 13, z: -12, lines: ['NE Muskilda', 'E Frontón'] },
+    { x: rx(-96) - 19, z: -98, lines: ['N Selva de Irati', 'O Iglesia'] },
+    { x: PLACES.church.x - 14, z: -38, lines: ['O Borda', 'N Mirador'] },
     { x: PLACES.crucero.x + 5, z: PLACES.crucero.z - 4, lines: ['OTSAGABIA', 'Ochagavía'] },
-    { x: rx(-298) - 20, z: -296, lines: ['→ Balsa', '↑ Irati'] },
+    { x: rx(-298) - 20, z: -296, lines: ['E Balsa', 'N Irati'] },
   ];
   for (const s of signs) {
     const y = terrainHeight(s.x, s.z);

@@ -159,7 +159,7 @@ export class PelotaMatch {
     dt = Math.min(dt, 0.05); this.t += dt;
     const g = this.game, inp = this.paused || this.hud.panelEl ? {} : this.readInput();
     const ev = this.paused ? [] : g.update(dt, inp);
-    for (const e of ev) this.onEvent(e);
+    for (const e of ev) { this.onEvent(e); this.o.onEvent?.(e); }
     this.draw(dt);
     this.hud.tick(dt); this.court.tick(dt);
     return this.active;

@@ -356,7 +356,7 @@
 .qitem .steps li { counter-increment: qs; display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; align-items: start; color: #b9aed6; overflow-wrap: anywhere; }
 .qitem .steps li::before { content: counter(qs); width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 900; background: rgba(255, 255, 255, .12); color: #e9e2ff; }
 .qitem .steps li.now { color: #fff; font-weight: 800; } .qitem .steps li.now::before { background: #FFD700; color: #2e1d00; }
-.qitem .steps li.ok { color: #8fd16a; } .qitem .steps li.ok::before { content: '✓'; background: #8fd16a; color: #173a08; }
+.qitem .steps li.ok { color: #8fd16a; } .qitem .steps li.ok::before { content: ''; background: #8fd16a url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='%23173a08' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 70% no-repeat; }
 .tprog { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; color: #cbc2e0; font-size: 14px; }
 .tprog .bar { background: rgba(255, 255, 255, .12); }
 .screen .cultgrid .cult { background: rgba(255, 255, 255, .05); border-color: rgba(190, 160, 255, .2); } .screen .cult p { color: #cbc2e0; } .screen .cult small { color: #FFD700; }
