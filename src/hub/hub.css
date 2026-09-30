@@ -645,3 +645,15 @@
 @media (orientation: landscape) and (max-height: 520px) { .hub-nav button span { font-size: 9.5px; } }
 /* móvil pequeño en horizontal: portada sin bocadillo ni rótulo para que nada se monte */
 @media (max-height: 520px) and (max-width: 700px) { .hero3d .bubble, .hero3d .h-bot .kicker { display: none; } }
+/* elegir una respuesta en el taller */
+.choice .opts { flex-direction: column; align-items: stretch; width: 100%; }
+.choice .opt { font-size: 17px; padding: 12px 14px; text-align: left; }
+.opt.right { background: #8fd16a; color: #1b2a10; box-shadow: 0 4px 0 #4f8a36; }
+.opt.wrong { opacity: .45; }
+.choice .fb { min-height: 44px; font-size: 16px; line-height: 1.35; }
+/* herramientas del taller */
+.tools { list-style: none; margin: 4px 0 10px; padding: 0; display: grid; gap: 6px; width: 100%; text-align: left; }
+.tools li { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; padding: 8px 10px; border-radius: 12px; background: rgba(255, 255, 255, .06); }
+.tools li b { font-size: 16px; } .tools li i { color: #FFD700; font-style: normal; font-weight: 800; } .tools li span { grid-column: 1 / -1; color: #d8cebf; font-size: 14px; }
+.antes-ahora { display: grid; gap: 8px; width: 100%; text-align: left; margin: 4px 0 10px; }
+.antes-ahora div { padding: 10px 12px; border-radius: 12px; background: rgba(255, 255, 255, .06); line-height: 1.35; } .antes-ahora b { display: block; color: #FFD700; }

@@ -57,7 +57,7 @@ export function makeWorkbench(kind) {
   if (kind === 'herrero' || kind === 'cantero') {
     g.add(mesh(new THREE.CylinderGeometry(0.35, 0.45, 0.6, 10), '#6b4a2e', 0, 0.3, 0));
     const a = mesh(new THREE.BoxGeometry(0.9, 0.3, 0.35), '#3a3d42', 0, 0.75, 0, { metalness: 0.7, roughness: 0.35 }); g.add(a);
-    g.add(mesh(new THREE.ConeGeometry(0.17, 0.4, 4), '#3a3d42', 0.6, 0.78, 0, { metalness: 0.7, roughness: 0.35 })).rotation.z = -Math.PI / 2;
+    { const m_ = mesh(new THREE.ConeGeometry(0.17, 0.4, 4), '#3a3d42', 0.6, 0.78, 0, { metalness: 0.7, roughness: 0.35 }); m_.rotation.z = -Math.PI / 2; g.add(m_); }
     if (kind === 'herrero') { const hot = mesh(new THREE.BoxGeometry(0.4, 0.06, 0.1), '#ff7a2a', 0, 0.94, 0, { emissive: new THREE.Color('#ff5a1a'), emissiveIntensity: 1.2 }); g.add(hot); g.userData.hot = hot; }
     else g.add(mesh(new THREE.BoxGeometry(0.6, 0.4, 0.4), '#c9bda8', 1.2, 0.2, 0.2));
   } else if (kind === 'aizkolari') {
@@ -68,6 +68,28 @@ export function makeWorkbench(kind) {
   } else if (kind === 'palomero') {
     for (const s of [-1, 1]) g.add(mesh(new THREE.CylinderGeometry(0.06, 0.08, 4, 6), '#6b4a2e', s * 2, 2, 0));
     const net = new THREE.Mesh(new THREE.PlaneGeometry(4, 3.4, 8, 6), new THREE.MeshBasicMaterial({ color: '#8a7a5a', wireframe: true })); net.position.y = 2.2; g.add(net);
+  } else if (kind === 'cestero') {
+    g.add(mesh(new THREE.CylinderGeometry(0.45, 0.32, 0.45, 12, 1, true), '#b08650', 0, 0.23, 0));
+    { const m_ = mesh(new THREE.TorusGeometry(0.45, 0.04, 6, 16), '#8a6a3a', 0, 0.46, 0); m_.rotation.x = Math.PI / 2; g.add(m_); }
+    for (let i = 0; i < 7; i++) { const m_ = mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.4, 4), '#a57a45', 0.9, 0.05, -0.3 + i * 0.1); m_.rotation.z = Math.PI / 2; g.add(m_); }
+  } else if (kind === 'carbonero') {
+    g.add(mesh(new THREE.ConeGeometry(1.3, 1.3, 14), '#4a3a2c', 0, 0.65, 0));
+    g.add(mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.25, 8), '#2a2420', 0, 1.35, 0));
+    for (let i = 0; i < 6; i++) { const m_ = mesh(new THREE.CylinderGeometry(0.07, 0.07, 1, 6), '#8a6a45', 1.7, 0.08 + (i % 3) * 0.14, -0.3 + (i >> 1) * 0.25); m_.rotation.z = Math.PI / 2; g.add(m_); }
+  } else if (kind === 'hilandera') {
+    g.add(mesh(new THREE.BoxGeometry(0.9, 0.08, 0.3), '#8a5a32', 0, 0.45, 0));
+    g.add(mesh(new THREE.TorusGeometry(0.35, 0.03, 6, 20), '#6b4a2e', -0.2, 0.9, 0));
+    g.add(mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.9, 5), '#6b4a2e', 0.3, 0.9, 0));
+    g.add(mesh(new THREE.SphereGeometry(0.16, 8, 6), '#f0e8d8', 0.3, 1.35, 0));
+    for (const s of [-1, 1]) g.add(mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.45, 5), '#6b4a2e', s * 0.35, 0.22, 0));
+  } else if (kind === 'panadero') {
+    g.add(mesh(new THREE.BoxGeometry(1.4, 0.8, 1.2), '#b9a58a', 0, 0.4, 0));
+    g.add(mesh(new THREE.SphereGeometry(0.62, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), '#c9b08a', 0, 0.8, 0));
+    g.add(mesh(new THREE.BoxGeometry(0.4, 0.3, 0.05), '#2a1a12', 0, 0.95, 0.6));
+    g.add(mesh(new THREE.SphereGeometry(0.16, 8, 6), '#d9a05a', 0.5, 0.88, 0.35));
+  } else if (kind === 'tonelero') {
+    g.add(mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.9, 14), '#8a5a32', 0, 0.45, 0));
+    for (const y of [0.12, 0.45, 0.78]) { const m_ = mesh(new THREE.TorusGeometry(0.42, 0.025, 5, 16), '#3a3d42', 0, y, 0); m_.rotation.x = Math.PI / 2; g.add(m_); }
   } else if (kind === 'alpargatero') {
     g.add(mesh(new THREE.BoxGeometry(1.4, 0.8, 0.7), '#8a5a32', 0, 0.4, 0));
     for (let i = 0; i < 3; i++) g.add(mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.06, 12), '#d9c79a', -0.4 + i * 0.4, 0.83, 0));

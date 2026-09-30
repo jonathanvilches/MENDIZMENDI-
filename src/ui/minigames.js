@@ -129,6 +129,35 @@ function sequenceGame_(ui, { title, hint, icon = 'basket', steps }) {
   });
 }
 
+// ---------- Elegir una respuesta (herramienta, material, por qué se hace así) ----------
+// answer: índice correcto, o −1 si todas valen (p. ej. elegir tu marca de cantero)
+export function choiceGame(ui, opts) {
+  if (window.__autoWin) return Promise.resolve({ win: true, errors: 0 });
+  return choiceGame_(ui, opts);
+}
+function choiceGame_(ui, { title, icon = 'quiz', q, options, answer, why }) {
+  return new Promise(res => {
+    const o = overlay(ui, 'seq choice', `<div class="mg-top">${iconSVG(icon, 48)}<div><h3>${esc(title)}</h3><small>${esc(q)}</small></div></div>
+      <div class="opts">${options.map((t, i) => `<button class="opt" data-i="${i}">${esc(t)}</button>`).join('')}</div><div class="fb"></div>
+      <button class="btn primary next" style="display:none">Seguir</button>`);
+    let errors = 0, ok = false;
+    const fb = o.querySelector('.fb'), next = o.querySelector('.next');
+    o.querySelectorAll('.opt').forEach(b => b.onclick = () => {
+      if (ok) return;
+      const i = +b.dataset.i;
+      if (answer < 0 || i === answer) {
+        ok = true; b.classList.add('right'); ui.sound.ui('coin'); fb.textContent = why || '¡Correcto!';
+        o.querySelectorAll('.opt').forEach(x => { if (x !== b) x.disabled = true; });
+        next.style.display = ''; setTimeout(() => next.focus(), 60);
+      } else { errors++; b.classList.add('shake', 'wrong'); b.disabled = true; setTimeout(() => b.classList.remove('shake'), 400); ui.sound.ui('error'); fb.textContent = 'Piénsalo otra vez…'; }
+    });
+    const close = () => { done(ui, o, k); res({ win: true, errors }); };
+    next.onclick = close;
+    const k = (e) => { e.stopImmediatePropagation(); if (ok && ['enter', ' ', 'e'].includes(e.key.toLowerCase())) { e.preventDefault(); close(); return; } const m = /^[1-9]$/.test(e.key) ? +e.key - 1 : -1; const bs = o.querySelectorAll('.opt'); if (m >= 0 && bs[m]) bs[m].click(); };
+    addEventListener('keydown', k, true);
+  });
+}
+
 // ---------- Repetir melodía / secuencia (canto, txistu, Bajada del Ángel) ----------
 const PADS = [{ c: '#e03c3c', f: 392 }, { c: '#f2c230', f: 440 }, { c: '#3a8fd6', f: 523 }, { c: '#3ca05a', f: 587 }];
 export function simonGame(ui, opts) {
