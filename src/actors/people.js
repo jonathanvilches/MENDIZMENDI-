@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { groundHeight } from '../world/heightfield.js';
 import { resolve, addCircle } from '../world/colliders.js';
-import { clamp, damp, dampAngle, lerp, mulberry32 } from '../util/math.js';
+import { damp, dampAngle } from '../util/math.js';
 import { buildMinifig, lookToMinifig, MinifigAnimator, setOutlines } from './minifig.js';
 import { buildNpc, npcsReady } from './npcGlb.js';
 
@@ -35,9 +35,8 @@ export class Actor {
     this.def = def;
     this.id = def.id; this.name = def.name;
     // todos (vecinos, carnaval y seres de leyenda) con el cuerpo de los personajes nuevos; la minifigura solo si aún no han cargado
-    const L = def.look || {};
     if (npcsReady()) { const n = buildNpc(def.look); this.obj = n.obj; this.glb = n.char; this.anim = n.anim; this.J = {}; }
-    else { this.obj = buildMinifig(def.mini || lookToMinifig(def.look)); this.J = this.obj.userData.J; this.anim = new MinifigAnimator(this.obj); }
+    else { this.obj = buildMinifig(lookToMinifig(def.look || {})); this.J = this.obj.userData.J; this.anim = new MinifigAnimator(this.obj); }
     scene.add(this.obj);
     this.pos = new THREE.Vector3(def.x, 0, def.z);
     this.home = { x: def.x, z: def.z };

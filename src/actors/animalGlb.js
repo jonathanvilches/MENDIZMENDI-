@@ -53,7 +53,9 @@ function bakedScene(key, S, g) {
   const sc = SkeletonUtils.clone(g.scene), skinned = [];
   sc.traverse(o => { if (o.isSkinnedMesh) skinned.push(o); });
   // solo si todos los trozos comparten esqueleto y matriz de enlace (si no, se deja tal cual)
-  if (skinned.length < 2 || skinned.some(m => m.skeleton !== skinned[0].skeleton || !m.bindMatrix.equals(skinned[0].bindMatrix) || m.parent !== skinned[0].parent || !m.geometry.attributes.skinIndex)) { BAKED.set(key, sc); return sc; }
+  // (al clonar, cada trozo recibe su propio objeto esqueleto con los mismos huesos: se comparan los huesos)
+  const sameBones = (m) => m.skeleton === skinned[0].skeleton || (m.skeleton.bones.length === skinned[0].skeleton.bones.length && m.skeleton.bones.every((b, i) => b === skinned[0].skeleton.bones[i]));
+  if (skinned.length < 2 || skinned.some(m => !sameBones(m) || !m.bindMatrix.equals(skinned[0].bindMatrix) || m.parent !== skinned[0].parent || !m.geometry.attributes.skinIndex)) { BAKED.set(key, sc); return sc; }
   const c = new THREE.Color(), geos = [];
   for (const m of skinned) {
     const src = m.geometry, n = src.attributes.position.count, out = new THREE.BufferGeometry();

@@ -1,10 +1,10 @@
 // Borda y redil, santuario de Muskilda, mirador, cascada de Irati, carteles, muretes de piedra
 import * as THREE from 'three';
 import { Builder, box, gable, archRing, archPanel, colored, M, MM } from './builder.js';
-import { PLACES, PATHS, MEADOW, rx, pathQuery } from './layout.js';
+import { PLACES, rx, pathQuery } from './layout.js';
 import { terrainHeight } from './heightfield.js';
 import { addBox, addCircle, isFree } from './colliders.js';
-import { bench, lamp } from './village.js';
+import { bench } from './village.js';
 import { mulberry32 } from '../util/math.js';
 
 export const LANDMARKS = {};

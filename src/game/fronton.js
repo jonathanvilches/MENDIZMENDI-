@@ -5,7 +5,7 @@ import { PelotaCourt, PelotaMatch } from '../pelota/index.js';
 import { terrainHeight, waterLevelAt, addPlatform } from '../world/heightfield.js';
 import { addBox, isFree } from '../world/colliders.js';
 import { clearGrass } from '../world/nature.js';
-import { getLang, isEU } from '../i18n.js';
+import { isEU } from '../i18n.js';
 import { profile } from './profile.js';
 import { Crowd } from './crowd.js';
 import { shieldSpec, drawShield } from '../world/heraldry.js';

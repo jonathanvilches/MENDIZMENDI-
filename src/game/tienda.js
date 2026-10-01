@@ -10,7 +10,7 @@ import { profile, saveProfile } from './profile.js';
 import { FOOD } from '../data/equipo.js';
 import { GOODS, STOCK, STAR, SHOPKEEPERS } from '../data/tiendas.js';
 import { iconSVG } from '../ui/icons.js';
-import { regionalOutfit } from '../actors/outfits.js';
+import { mergeByMaterial } from '../world/products3d.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -67,7 +67,9 @@ export class Tienda {
     });
     for (let i = 0; i < 4; i++) { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.14, 14), new THREE.MeshStandardMaterial({ color: '#efd9a0', roughness: 0.7 })); c.position.set(-1.3 + i * 0.25, 0.08 + 1.05, -0.45); G.add(c); }
     G.position.set(this.pos.x, y, this.pos.z); G.rotation.y = this.ry;
-    this.g.scene.add(G); this.obj = G;
+    // todo el puesto en pocas mallas (una por material): de unas 50 llamadas de dibujo a 8
+    const M = mergeByMaterial(G); G.traverse(o => { if (o.isMesh) o.geometry.dispose(); });
+    this.g.scene.add(M); this.obj = M;
     addBox(this.pos.x, this.pos.z, 1.7, 0.6, this.ry);
   }
   interactable() { const ox = Math.sin(this.ry), oz = Math.cos(this.ry); return { kind: 'shop', x: this.pos.x + ox * 1.2, z: this.pos.z + oz * 1.2, r: 3.2, label: 'Entrar en la tienda' }; }

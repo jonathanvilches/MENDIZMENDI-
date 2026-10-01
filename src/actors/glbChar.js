@@ -332,6 +332,8 @@ export class GlbChar {
 export const GLB_AVATARS = {};
 for (const [id, name] of [['benat', 'Rogue_Hooded'], ['nerea', 'Rogue'], ['haritz', 'Rogue_Hooded'], ['ranger', 'Ranger'], ['rogue', 'Rogue'], ['hooded', 'Rogue_Hooded'], ['knight', 'Knight'], ['barbarian', 'Barbarian'], ['mage', 'Mage']])
   if (KK[name]) GLB_AVATARS[id] = { kaykit: name, own: OWN_OUTFITS[id], bust: KK_PICS[id + '_bust'], full: KK_PICS[id + '_full'] };
+/** Tu personaje (creado en el menú): cuerpo y traje elegidos. */
+export function setMio(c) { GLB_AVATARS.mio = { kaykit: c.base, own: mioOutfit(c), mio: true }; }
 export const isGlbAvatar = id => !!GLB_AVATARS[id];
 export const loadGlbAvatar = id => GLB_AVATARS[id].kaykit ? loadKayKit(GLB_AVATARS[id].kaykit) : loadChar(GLB_AVATARS[id].url);
 
@@ -344,6 +346,7 @@ const EXPR = {
 // las piernas del modelo son un 35 % más largas que las del diseño original: cada paso cubre más suelo
 const LEGS = 1.3;
 import { applyOutfit, outfitOf, OWN_OUTFITS } from './outfits.js';
+import { mioOutfit } from './miAvatar.js';
 export class GlbRig {
   constructor(gltf, id = 'benat') {
     const def = GLB_AVATARS[id] || {};

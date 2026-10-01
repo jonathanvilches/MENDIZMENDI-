@@ -1,6 +1,6 @@
 import { snowable } from './weather.js';
 import * as THREE from 'three';
-import { HALF, CELL, N, finalHeight, riverInfo, iratiMask, meadowMask, valleyFloor, fieldInfo, TONE } from './layout.js';
+import { HALF, CELL, N, finalHeight, riverInfo, meadowMask, valleyFloor, fieldInfo, TONE } from './layout.js';
 import { ridged } from '../util/noise.js';
 import { H, SURF } from './heightfield.js';
 import { TEX } from './textures.js';

@@ -1,7 +1,7 @@
 // Interfaz en partida: HUD, diálogos con retrato, cuaderno, mapa, menú, premios, prismáticos y ritmo.
 // Todos los iconos son dibujos propios (src/ui/icons.js).
 import { RIBBONS, QUESTS, CARDS, SPECIES_OBS, EGUZKILORES } from './game/content.js';
-import { HALF, CELL, N, PATHS, PLACES } from './world/layout.js';
+import { HALF, N, PLACES } from './world/layout.js';
 import { H, SURF } from './world/heightfield.js';
 import { clamp } from './util/math.js';
 import { iconSVG, iconImage } from './ui/icons.js';

@@ -1,5 +1,5 @@
 // Hornea la geografía en rejillas para consultas rápidas (altura, superficie, bosque)
-import { HALF, CELL, N, finalHeight, pathQuery, iratiMask, villageMask, meadowMask, plazaMask, BRIDGES, PLACES, riverInfo, PONDS, fieldInfo, KIND, FOREST } from './layout.js';
+import { HALF, CELL, N, finalHeight, pathQuery, iratiMask, plazaMask, BRIDGES, PLACES, riverInfo, PONDS, fieldInfo, FOREST } from './layout.js';
 import { clamp, lerp, smoothstep } from '../util/math.js';
 import { fbm } from '../util/noise.js';
 

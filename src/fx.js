@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { glowTexture } from './actors/animals.js';
 import { terrainHeight } from './world/heightfield.js';
-import { clamp, lerp } from './util/math.js';
+import { clamp } from './util/math.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 const GLOW = glowTexture();

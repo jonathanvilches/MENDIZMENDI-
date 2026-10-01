@@ -813,3 +813,30 @@ body.futbol #controls { display: none !important; }
 .enc-live.on { display: flex; }
 .enc-live i { width: 10px; height: 10px; border-radius: 50%; background: #ff2a2a; box-shadow: 0 0 8px #ff2a2a; animation: encLive 1s steps(2) infinite; }
 @keyframes encLive { 50% { opacity: .25; } }
+/* creador de tu personaje (selector de personajes, avatar «mio») */
+.mio-ed { display: grid; gap: 4px; }
+.mio-ed small { font: 800 11px Nunito, sans-serif; letter-spacing: .05em; text-transform: uppercase; opacity: .75; margin-top: 4px; }
+.mio-top { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+.mio-top b { font: 900 16px Nunito, sans-serif; }
+.mio-top span { display: flex; gap: 6px; }
+.mio-rand, .mio-from { border: 0; border-radius: 10px; padding: 6px 10px; font: 800 12px Nunito, sans-serif; background: rgba(255, 255, 255, .14); color: inherit; cursor: pointer; }
+.mio-from option { color: #1a1a1a; }
+.mio-sw { display: flex; flex-wrap: wrap; gap: 6px; }
+.mio-sw button { width: 26px; height: 26px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .5); background: var(--s); cursor: pointer; padding: 0; }
+.mio-sw button.on { outline: 3px solid #ffe14a; outline-offset: 1px; border-color: #fff; }
+.mio-sw button.none { background: rgba(0, 0, 0, .35); color: #fff; font: 900 13px Nunito, sans-serif; line-height: 1; }
+.mio-ch, .mio-tg { display: flex; flex-wrap: wrap; gap: 6px; }
+.mio-ch button, .mio-tog { border: 2px solid rgba(255, 255, 255, .35); border-radius: 999px; padding: 4px 10px; background: rgba(0, 0, 0, .25); color: inherit; font: 800 12px Nunito, sans-serif; cursor: pointer; }
+.mio-ch button.on, .mio-tog.on { background: #ffe14a; color: #1a1a1a; border-color: #ffe14a; }
+@media (max-width: 560px) { .mio-sw button { width: 30px; height: 30px; } }
+.cs-outfits:has(.mio-ed) { max-height: min(56vh, 520px); overflow-y: auto; overscroll-behavior: contain; padding-right: 4px; }
+.cs-outfits .mio-ed { display: flex; flex-direction: column; gap: 4px; }
+.cs-outfits .mio-ed > small { display: block; }
+.cs-outfits .mio-ed > div { display: flex; flex-wrap: wrap; gap: 6px; }
+.cs-outfits .mio-sw button, .cs-outfits .mio-sw button.on { background: var(--s); }
+.cs-outfits .mio-sw button.none, .cs-outfits .mio-sw button.none.on { background: rgba(0, 0, 0, .35); }
+.cs-outfits .mio-ch button, .cs-outfits .mio-tog { width: auto; height: auto; }
+.cs-outfits .mio-sw button { min-height: 0; padding: 0; width: 28px; height: 28px; border-radius: 50%; justify-content: center; border-color: rgba(255,255,255,.55); }
+.cs-outfits .mio-sw button.on { border-color: #fff; outline: 3px solid #ffd23f; outline-offset: 1px; }
+.cs-outfits .mio-ch button.on, .cs-outfits .mio-tog.on { background: #ffd23f; color: #1a1a1a; border-color: #ffd23f; }
+.cs-outfits .mio-top { flex-direction: row; }
