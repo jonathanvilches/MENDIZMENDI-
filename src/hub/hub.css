@@ -801,3 +801,10 @@ body.futbol #controls { display: none !important; }
 .shop-note { color: #e8dcc6; margin: 0 0 8px; }
 .shop-card footer { display: flex; justify-content: flex-end; }
 @media (max-width: 600px) { .shop-star { grid-template-columns: 1fr; text-align: center; } .shop-star svg { margin: auto; width: 80px; height: 80px; } .shop-card header { grid-template-columns: 1fr auto; } .shop-keeper { display: none; } }
+/* encierro: botones de saltar, periódico y cámara */
+.enc-btns { position: fixed; right: max(14px, env(safe-area-inset-right)); bottom: calc(18px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 10px; z-index: 30; pointer-events: auto; }
+.enc-b { width: 84px; height: 84px; border-radius: 50%; border: 3px solid rgba(255,255,255,.9); color: #fff; font: 900 13px Nunito, sans-serif; cursor: pointer; box-shadow: 0 6px 16px rgba(0,0,0,.35); }
+.enc-jump { background: radial-gradient(circle at 35% 30%, #4fbf5a, #1e7a2a); }
+.enc-paper { background: radial-gradient(circle at 35% 30%, #f4efe2, #b8ad92); color: #2a1a10; font-size: 11px; }
+.enc-cam { position: fixed; right: max(14px, env(safe-area-inset-right)); top: calc(56px + env(safe-area-inset-top)); z-index: 30; pointer-events: auto; padding: 8px 12px; border: 0; border-radius: 12px; background: rgba(0,0,0,.55); color: #fff; font: 800 13px Nunito, sans-serif; cursor: pointer; }
+@media (max-width: 600px) { .enc-b { width: 70px; height: 70px; } }

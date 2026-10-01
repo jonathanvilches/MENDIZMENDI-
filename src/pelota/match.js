@@ -19,7 +19,7 @@ export class PelotaMatch {
     this.o = o; this.T = o.THREE; this.court = o.court; this.cam = o.camera;
     this.lang = o.lang === 'eu' ? 'eu' : 'es'; this.txt = TEXT[this.lang];
     this.touch = o.touch ?? (matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window);
-    this.level = o.level || 'facil';
+    this.level = o.level || 'normal';
     this.names = { you: o.you?.name || this.txt.you, rival: o.rival?.name || 'Rival' };
     this.audio = new PelotaAudio(o.audio);
     this.hud = new PelotaHud(o.container || document.body, this.txt, this.names, this.touch);
