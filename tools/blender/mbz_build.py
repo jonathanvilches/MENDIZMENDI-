@@ -297,6 +297,14 @@ def toy_face(d, cols, mats):
         C.mod_wnormal(mo); face[f'Mouth_{kind}'] = mo
     return face
 
+def add_blob(bm, c, r, seg, rings):
+    rows = F.uv_sphere_grid(seg, rings)
+    vr = [[bm.verts.new(c + V((q[0] * r[0], q[1] * r[1], q[2] * r[2]))) for q in row] for row in rows]
+    tp = bm.verts.new(c + V((0, 0, r[2]))); bt = bm.verts.new(c + V((0, 0, -r[2])))
+    for r1, r2 in zip(vr, vr[1:]):
+        for j in range(seg): bm.faces.new((r1[j], r1[(j + 1) % seg], r2[(j + 1) % seg], r2[j]))
+    for j in range(seg): bm.faces.new((tp, vr[0][(j + 1) % seg], vr[0][j])); bm.faces.new((bt, vr[-1][j], vr[-1][(j + 1) % seg]))
+
 def build_scarf(d, coll, mat):
     """Pañuelo rojo al cuello: banda, nudo delante y dos puntas (huesos Scarf_01 y Scarf_02)."""
     bm = bmesh.new()
@@ -322,6 +330,22 @@ def build_scarf(d, coll, mat):
             cur = [bm.verts.new(c + V((-w, 0, 0))), bm.verts.new(c + V((w, 0, 0)))]
             if prev: bm.faces.new((prev[0], prev[1], cur[1], cur[0]))
             prev = cur
+    # faja: nudo en la cadera izquierda y dos puntas que caen (la faja va pintada en la cintura del pantalón)
+    if d.get('sash'):
+        sc = V(d['sash']['knot'])
+        add_blob(bm, sc, (0.026, 0.02, 0.03), 8, 5)
+        for dx, ln in ((0.006, 0.11), (0.03, 0.085)):
+            prev = None
+            for i in range(5):
+                t = i / 4
+                c = sc + V((dx + 0.012 * t, -0.012 - 0.004 * t, -0.012 - ln * t))
+                w = 0.022 * (1 - 0.25 * t)
+                cur = [bm.verts.new(c + V((-w * 0.25, -w, 0))), bm.verts.new(c + V((w * 0.25, w, 0)))]
+                if prev: bm.faces.new((prev[0], prev[1], cur[1], cur[0]))
+                prev = cur
+    # botones del chaleco (en el centro, donde el chaleco va cerrado)
+    for bz in d.get('buttons', ()):
+        add_blob(bm, V((0.0, d['button_y'], bz)), (0.0095, 0.005, 0.0095), 8, 4)
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
     ob = C.obj_from_bm(bm, 'Acc_Scarf', coll)
     C.mod_subsurf(ob); C.mod_solidify(ob, 0.008, 1.0); C.mod_wnormal(ob); assign_mat(ob, [mat])
@@ -465,6 +489,8 @@ def rig_and_weights(d, arm, G):
         C.set_weights(t, wf); C.armature_mod(t, arm)
     # pañuelo: banda con el cuello, nudo con el pecho y las puntas con Scarf_01 y Scarf_02
     def scarf_w(co):
+        if co.z < 0.76: return {'Hips': 1.0} if co.z < 0.7 else {'Spine': 0.6, 'Hips': 0.4}   # faja y botones de abajo
+        if co.z < 0.86 and co.y < -0.14: return {'Spine1': 1.0}
         if co.z > 0.95 and co.y > -0.09: return {'Neck': 0.5, 'Spine2': 0.5}
         k = max(0.0, min(1.0, (0.935 - co.z) / 0.1))
         if k <= 0: return {'Spine2': 1.0}
@@ -659,11 +685,25 @@ def paint_all(d, G):
     paint(G['Body'], lambda p: cl['skin'])
     for ob in G['hands'].values(): paint(ob, lambda p: cl['skin'])
     paint(G['Shirt'], lambda p: cl['shirt'])
-    paint(G['Vest'], lambda p: cl['vest'])
-    paint(G['Shorts'], lambda p: tuple(int(x * 0.82) for x in cl['shorts']) if p.center.z > 0.69 else cl['shorts'])
+    ARM_J = V((0.175, 0.0, 0.90))
+    def vest_col(p):
+        c = p.center
+        hw = min(0.072, 0.018 + max(0.0, c.z - 0.74) * 0.4)
+        edge = c.z < 0.672 or (c.y < 0 and abs(c.x) < hw + 0.016 and c.z > 0.735) or (V((abs(c.x), c.y, c.z)) - ARM_J).length < 0.093
+        return cl.get('trim', cl['vest']) if edge else cl['vest']
+    paint(G['Vest'], vest_col)
+    sz = d.get('sash', {}).get('z')
+    def shorts_col(p):
+        z = p.center.z
+        if sz and z > sz[0]:
+            # faja: vueltas de tela con pliegues (bandas algo más oscuras)
+            k = 0.86 if int((z - sz[0]) / 0.016) % 2 else 1.0
+            return tuple(int(x * k) for x in cl['sash'])
+        return tuple(int(x * 0.82) for x in cl['shorts']) if z > 0.69 else cl['shorts']
+    paint(G['Shorts'], shorts_col)
     paint(G['Socks'], lambda p: cl['socks'])
     paint(G['Boots'], lambda p: cl['sole'] if (p.center.z < 0.02 and p.normal.z < -0.5) else cl['boots'])
-    paint(G['Acc_Scarf'], lambda p: cl['scarf'])
+    paint(G['Acc_Scarf'], lambda p: cl['button'] if (p.center.z < 0.86 and p.center.y < -0.14 and abs(p.center.x) < 0.03) else cl['sash'] if p.center.z < 0.76 else cl['scarf'])
     paint(G['Head'], lambda p: cl['skin'])
     for ob in [G['Hair']] + G['tufts']: paint(ob, lambda p: cl['hair'])
     for n, ob in G['face'].items():
@@ -702,7 +742,7 @@ def mix_color(nt, a, color, fac):
     nt.links.new(fac, m.inputs['Factor']); nt.links.new(a, m.inputs[6]); m.inputs[7].default_value = (*color, 1)
     return m.outputs[2]
 
-def color_extras(d, ao_img, zlo, zhi, blush=None, dots=None):
+def color_extras(d, ao_img, zlo, zhi, blush=None, dots=None, grain=None):
     """Oclusión al 20 %, degradado de ±6 % (claro arriba, oscuro abajo), rubor y puntos pintados (botones)."""
     def fn(nt, sock):
         geo = nt.nodes.new('ShaderNodeNewGeometry'); sep = nt.nodes.new('ShaderNodeSeparateXYZ'); nt.links.new(geo.outputs['Position'], sep.inputs[0])
@@ -715,6 +755,15 @@ def color_extras(d, ao_img, zlo, zhi, blush=None, dots=None):
         bw = nt.nodes.new('ShaderNodeRGBToBW'); nt.links.new(ao.outputs['Color'], bw.inputs[0]); nt.links.new(bw.outputs[0], mf.inputs['Value'])
         aoc = nt.nodes.new('ShaderNodeCombineColor'); [nt.links.new(mf.outputs['Result'], aoc.inputs[i]) for i in range(3)]
         sock = mul_color(nt, sock, aoc.outputs[0])
+        if grain:
+            # grano de tela: motas finas de ±k (lana, lino y paño no son de plástico)
+            nz = nt.nodes.new('ShaderNodeTexNoise'); nz.inputs['Scale'].default_value = grain['scale']; nz.inputs['Detail'].default_value = 3.0
+            nt.links.new(geo.outputs['Position'], nz.inputs['Vector'])
+            gm = nt.nodes.new('ShaderNodeMapRange'); gm.inputs['From Min'].default_value = 0.3; gm.inputs['From Max'].default_value = 0.7
+            gm.inputs['To Min'].default_value = 1.0 - grain['k']; gm.inputs['To Max'].default_value = 1.0 + grain['k'] * 0.5
+            nt.links.new(nz.outputs['Fac'], gm.inputs['Value'])
+            gc = nt.nodes.new('ShaderNodeCombineColor'); [nt.links.new(gm.outputs['Result'], gc.inputs[i]) for i in range(3)]
+            sock = mul_color(nt, sock, gc.outputs[0])
         if blush:
             for p in blush['pts']:
                 dist = nt.nodes.new('ShaderNodeVectorMath'); dist.operation = 'DISTANCE'; dist.inputs[1].default_value = p
@@ -784,7 +833,7 @@ def bake_atlases(d, G, mats, tex_dir):
     imgs = {}
     solid_mods(False)
     for key, main, allo, size, zr, extras in (
-        ('Body', body_main, body_all, 1024, (0.0, 1.05), dict(dots={'pts': [(0.034, -0.162, z) for z in (0.69, 0.735, 0.78)], 'r': 0.0095, 'color': d['colors']['button']})),
+        ('Body', body_main, body_all, 1024, (0.0, 1.05), dict(grain={'scale': 260, 'k': 0.07}, **({} if d.get('buttons') else dict(dots={'pts': [(0.034, -0.162, z) for z in (0.69, 0.735, 0.78)], 'r': 0.0095, 'color': d['colors']['button']})))),
         ('Face', face_main, face_all, 512, (0.98, 1.68), dict(blush={'pts': [tuple(Hm.sph(d, s * d.get('blush_ll', (38, -18))[0], d.get('blush_ll', (38, -18))[1])) for s in (1, -1)], 'r': 0.06, 'k': 0.45, 'color': d['colors']['blush']})),
     ):
         mat = mats['body' if key == 'Body' else 'face']
