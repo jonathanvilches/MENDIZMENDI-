@@ -25,6 +25,10 @@ function variantNames(prefix, name) {
   if (prefix === 'Brow_') return [prefix + name, prefix + (name === 'Happy' || name === 'Surprised' ? 'Normal' : 'Normal')];
   return (ALIAS[name] || [name]).map(n => prefix + n);
 }
+// solo el cuerpo, la cabeza, el pelo y los accesorios grandes proyectan sombra (los ojos, la boca o las manos no se notan
+// en la sombra y cada pieza costaría una llamada de dibujo más)
+const SHADOW_PARTS = /^(Body|Head|Hair|Acc_)/;
+const FACE_PARTS = /^(Brow|Eye|Glint|Mouth|Nose|Eyelid)/;
 const outlines = new Map();
 function outlineMat(w) {
   if (!outlines.has(w)) {
@@ -67,7 +71,7 @@ export class GlbChar {
     this.root.traverse(o => {
       if (o.isBone) { this.bones[o.name] = o; return; }
       if (o.name.startsWith('Socket_')) this.sockets[o.name] = o;
-      if (o.isMesh) { o.frustumCulled = false; o.castShadow = true; }
+      if (o.isMesh) { o.frustumCulled = false; o.castShadow = SHADOW_PARTS.test(o.name); if (!o.castShadow) o.userData.noShadow = true; }
       if (o.name && !this.meshes[o.name]) this.meshes[o.name] = o;
       // variantes: nodos con «group» en sus extras (las bocas de dos materiales llegan como grupo)
       const g = o.userData.group;
@@ -91,6 +95,9 @@ export class GlbChar {
       for (const n of ['Eye_L', 'Eye_R']) if (this.meshes[n]) this.meshes[n].material = mat;
     }
     this.lidOpen = this.groups.lid?.some(m => m.name === 'Eyelid_Open') ? 'Eyelid_Open' : '';
+    // piezas de la cara: de lejos se ocultan (miden un par de píxeles) y se recuerdan para volver a mostrarlas
+    this.faceMeshes = []; this.root.traverse(o => { if (o.isMesh && FACE_PARTS.test(o.name)) { o.userData.want = o.visible; this.faceMeshes.push(o); } });
+    this.faceOn = true;
     this.mixer = new THREE.AnimationMixer(this.root);
     this.actions = {};
     this.clipExtras = {};
@@ -197,20 +204,25 @@ export class GlbChar {
     const list = this.groups[group]; if (!list) return false;
     const name = names.find(n => list.some(m => m.name === n));
     if (!name) return false;
-    for (const m of list) m.visible = m.name === name;
+    for (const m of list) { m.userData.want = m.name === name; m.visible = m.userData.want && this.faceOn; }
     return true;
+  }
+  /** Cara con detalle (ojos, cejas, boca…) o sin ella cuando el personaje está lejos. */
+  setFaceVisible(on) {
+    if (this.faceOn === on) return; this.faceOn = on;
+    for (const m of this.faceMeshes) m.visible = on && m.userData.want !== false;
   }
 
   _lid(name) {
     const list = this.groups.lid;
-    if (list) for (const m of list) m.visible = m.name === name;
+    if (list) for (const m of list) { m.userData.want = m.name === name; m.visible = m.userData.want && this.faceOn; }
   }
 
   /** Mirada en [-1,1] (x a la derecha de quien mira, y arriba). */
   lookAt2(x, y) { this.lookTarget.set(x, y); this.lookT = 2; }
 
   update(dt) {
-    dt = Math.min(dt, 0.1);
+    dt = Math.min(dt, 0.35);
     // locomoción
     if (!this.oneShot || (this.oneShot.t -= dt) <= 0) {
       if (this.oneShot) this.oneShot = null;
@@ -273,6 +285,8 @@ export class GlbChar {
 
   _updateSprings(dt) {
     if (!this.springs.length || dt <= 0) return;
+    // con pasos largos (personaje lejano que se anima a saltos) el muelle se descontrolaría: se deja en reposo
+    if (dt > 0.06) { for (const s of this.springs) { s.prev = null; s.ang.set(0, 0); s.vel.set(0, 0); } return; }
     const K = 60, D = 8, wp = new THREE.Vector3(), q = new THREE.Quaternion(), e = new THREE.Euler();
     this.root.updateMatrixWorld(true);
     for (const s of this.springs) {

@@ -161,8 +161,10 @@ function ear(len, w, th, outer, inner, tex = 2) {
   ]);
 }
 // Pata según su esqueleto: lista de articulaciones con radio [lado, delante, detrás]
-function leg(joints, col, hoofCol, { hoofH = 0.06, tex = 2, split = false, paw = false } = {}) {
+function leg(joints, col, hoofCol, { hoofH = 0.06, tex = 2, split = false, paw = false, knee } = {}) {
   const ys = joints.map(j => j[0].y), top = ys[0], bot = ys[ys.length - 1];
+  // articulación intermedia: rodilla (carpo) delante y corvejón detrás, hacia el 60 % de la pata
+  if (knee == null) { const want = top - (top - bot) * 0.6; let bd = 1e9; joints.forEach((j, i) => { if (i === 0 || i === joints.length - 1) return; const d = Math.abs(j[0].y - want); if (d <= bd) { bd = d; knee = i; } }); }
   const g = loft({
     pts: joints.map(j => j[0]), r: joints.map(j => j[1]), seg: 10, ring: 16, e: 2.2, tex, side0: V(1, 0, 0), capA: false,
     color: (u, th, p) => { const c = typeof col === 'function' ? col(p, (top - p.y) / (top - bot)) : col; return p.y < bot + hoofH ? hoofCol : c; },
@@ -178,7 +180,10 @@ function leg(joints, col, hoofCol, { hoofH = 0.06, tex = 2, split = false, paw =
     out.push(prep(new THREE.CylinderGeometry(r0 * 1.02, r0 * 1.22, hoofH, 16), hoofCol, 4, Mx(last[0].x, bot + hoofH / 2, last[0].z + r0 * 0.12)));
     if (split) out.push(prep(new THREE.BoxGeometry(r0 * 0.12, hoofH * 0.9, r0 * 1.3), '#0c0908', 4, Mx(last[0].x, bot + hoofH * 0.45, last[0].z + r0 * 0.7)));
   }
-  return mergeAll(out);
+  const merged = mergeAll(out);
+  const kj = joints[knee ?? 1];
+  merged.userData.knee = { y: kj[0].y, z: kj[0].z, r: Math.max(kj[1][0], kj[1][2] ?? kj[1][0]), top, r0: joints[0][1][0] };
+  return merged;
 }
 // Cola, crin y mechones: tubo que se afila
 const tube = (pts, r0, r1, color, tex = 2, ring = 12) => loft({ pts, r: pts.map((_, i) => { const t = i / (pts.length - 1), rr = r0 + (r1 - r0) * t; return [rr, rr, rr]; }), seg: 8, ring, color, tex });
@@ -425,28 +430,76 @@ export const BEASTS = {
   },
 };
 
-// ---------- Montaje: mismo interfaz que el cuadrúpedo antiguo ----------
-// { root, body, head (pivote del cuello), legs [delanteras izq/der, traseras izq/der], tail }
-// las geometrías de cada especie se comparten: dos variantes por especie y raza (así un rebaño no repite el trabajo)
+// ---------- Montaje con esqueleto ----------
+// Cada animal es UNA malla con huesos (una sola llamada de dibujo y una de sombra en lugar de siete): lomo,
+// pecho (el lomo se flexiona al galopar), cabeza (el cuello se dobla suave), cuatro patas con cadera y
+// rodilla/corvejón, y la cola en dos tramos. Los pesos se reparten suaves en el cuello, los hombros, las
+// rodillas y la cola. Interfaz: { root, body, chest, head, legs[4] (con userData.knee), tail, tail2 }.
+// La geometría con pesos se calcula una vez por especie y variante y se comparte (un rebaño no repite el trabajo).
 const SPEC_CACHE = new Map();
+const BONE = { body: 0, chest: 1, head: 2, hip: 3, knee: 7, tail: 11, tail2: 12 };
+function skinParts(S) {
+  if (S._skin) return S._skin;
+  const fg = S._fg ||= S.legs.front(0), hg = S._hg ||= S.legs.hind(0);
+  const [fx, fy, fz] = S.legs.fl, [hx, hy, hz] = S.legs.hl;
+  // pecho: entre las patas delanteras, a la altura del lomo; el lomo se dobla entre caderas y hombros
+  S.body.computeBoundingBox(); const bb = S.body.boundingBox;
+  const chest = V(0, (bb.min.y + bb.max.y) / 2, fz * 0.55 + hz * 0.45 + (fz - hz) * 0.22);
+  const zA = hz + (fz - hz) * 0.32, zB = hz + (fz - hz) * 0.72;
+  const hips = [V(-fx, fy, fz), V(fx, fy, fz), V(-hx, hy, hz), V(hx, hy, hz)];
+  const knees = [fg, fg, hg, hg].map(g => V(0, g.userData.knee.y, g.userData.knee.z));
+  const bones = [
+    { name: 'body', parent: -1, abs: V(0, 0, 0) }, { name: 'chest', parent: 0, abs: chest }, { name: 'head', parent: 1, abs: S.neck.clone() },
+    ...hips.map((h, i) => ({ name: 'hip' + i, parent: i < 2 ? 1 : 0, abs: h })),
+    ...hips.map((h, i) => ({ name: 'knee' + i, parent: 3 + i, abs: h.clone().add(knees[i]) })),
+  ];
+  const parts = [];
+  // la geometría de una parte, llevada a la raíz, con sus huesos y pesos (hasta dos huesos por vértice)
+  const add = (geo, off, fn) => {
+    const g = geo.clone(); g.translate(off.x, off.y, off.z);
+    const p = g.attributes.position, n = p.count, si = new Uint16Array(n * 4), sw = new Float32Array(n * 4), lp = new THREE.Vector3();
+    for (let i = 0; i < n; i++) { lp.set(p.getX(i) - off.x, p.getY(i) - off.y, p.getZ(i) - off.z); const [a, b, w] = fn(lp, p.getZ(i)); si[i * 4] = a; si[i * 4 + 1] = b; sw[i * 4] = 1 - w; sw[i * 4 + 1] = w; }
+    g.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(si, 4)); g.setAttribute('skinWeight', new THREE.Float32BufferAttribute(sw, 4));
+    for (const k of Object.keys(g.attributes)) if (!['position', 'normal', 'color', 'aTex', 'skinIndex', 'skinWeight'].includes(k)) g.deleteAttribute(k);
+    parts.push(g);
+  };
+  // tronco: de las caderas (lomo) a los hombros (pecho)
+  add(S.body, V(0, 0, 0), (lp, z) => [BONE.body, BONE.chest, sm(zA, zB, z)]);
+  // cabeza y cuello: la base del cuello sigue al pecho
+  S.head.computeBoundingSphere(); const hr = S.head.boundingSphere.radius, nd = V(0, 0.45, 1).normalize();
+  add(S.head, S.neck, (lp) => [BONE.chest, BONE.head, sm(-0.06 * hr, 0.22 * hr, lp.dot(nd))]);
+  // patas: arriba se funden con el tronco (hombro y anca), abajo giran con la rodilla o el corvejón
+  [fg, fg, hg, hg].forEach((g, i) => {
+    const K = g.userData.knee, top = K.r0;
+    add(g, hips[i], (lp) => {
+      if (lp.y > -top * 0.9) return [i < 2 ? BONE.chest : BONE.body, BONE.hip + i, sm(top * 0.5, -top * 0.9, lp.y)];
+      return [BONE.hip + i, BONE.knee + i, sm(K.y + K.r * 0.7, K.y - K.r * 0.7, lp.y)];
+    });
+  });
+  // cola en dos tramos
+  if (S.tail) {
+    S.tail.computeBoundingBox(); const tb = S.tail.boundingBox, len = Math.max(0.05, tb.max.distanceTo(tb.min));
+    const mid = V((tb.min.x + tb.max.x) / 2, (tb.min.y + tb.max.y) / 2, (tb.min.z + tb.max.z) / 2);
+    bones.push({ name: 'tail', parent: 0, abs: S.tailAt.clone() }, { name: 'tail2', parent: 11, abs: S.tailAt.clone().add(mid) });
+    add(S.tail, S.tailAt, (lp) => { const t = lp.length() / len; return t < 0.12 ? [BONE.body, BONE.tail, sm(0, 0.12, t)] : [BONE.tail, BONE.tail2, sm(0.35, 0.75, t)]; });
+  }
+  const geo = mergeGeometries(parts); geo.computeBoundingSphere(); geo.computeBoundingBox();
+  for (const g of parts) g.dispose();
+  return (S._skin = { geo, bones });
+}
 export function beast(kind, rnd = Math.random, opts = {}) {
   const key = kind + '|' + (opts.breed || '') + '|' + (rnd() < 0.5 ? 0 : 1);
   if (!SPEC_CACHE.has(key)) SPEC_CACHE.set(key, BEASTS[kind](rnd, opts));
-  const S = SPEC_CACHE.get(key);
-  const root = new THREE.Group(), body = new THREE.Group(); root.add(body);
-  const mk = (geo, parent) => { const m = new THREE.Mesh(geo, BEAST_MAT); m.castShadow = true; m.receiveShadow = true; parent.add(m); return m; };
-  mk(S.body, body);
-  const head = new THREE.Group(); head.position.copy(S.neck); body.add(head); mk(S.head, head);
-  const legs = [];
-  const fg = S._fg ||= S.legs.front(0), hg = S._hg ||= S.legs.hind(0);
-  const [fx, fy, fz] = S.legs.fl, [hx, hy, hz] = S.legs.hl;
-  for (const [x, y, z, g] of [[-fx, fy, fz, fg], [fx, fy, fz, fg], [-hx, hy, hz, hg], [hx, hy, hz, hg]]) {
-    const p = new THREE.Group(); p.position.set(x, y, z); body.add(p); mk(g, p); legs.push(p);
-  }
-  let tail = null;
-  if (S.tail) { tail = new THREE.Group(); tail.position.copy(S.tailAt); body.add(tail); mk(S.tail, tail); }
+  const S = SPEC_CACHE.get(key), K = skinParts(S);
+  const root = new THREE.Group();
+  const bones = K.bones.map(b => { const o = new THREE.Bone(); o.name = b.name; return o; });
+  K.bones.forEach((b, i) => { const par = b.parent < 0 ? null : K.bones[b.parent]; bones[i].position.copy(b.abs).sub(par ? par.abs : V(0, 0, 0)); (par ? bones[b.parent] : root).add(bones[i]); });
+  const mesh = new THREE.SkinnedMesh(K.geo, BEAST_MAT); mesh.castShadow = true; mesh.receiveShadow = true; root.add(mesh);
+  root.updateMatrixWorld(true); mesh.bind(new THREE.Skeleton(bones));
+  const legs = [0, 1, 2, 3].map(i => bones[BONE.hip + i]);
+  legs.forEach((l, i) => { l.userData.knee = bones[BONE.knee + i]; l.userData.front = i < 2; });
   root.userData.outlineOn = false;
-  return { root, body, head, legs, tail };
+  return { root, body: bones[BONE.body], chest: bones[BONE.chest], head: bones[BONE.head], legs, tail: bones[BONE.tail] || null, tail2: bones[BONE.tail2] || null, mesh };
 }
 // invierte el orden de los triángulos tras reflejar (para que las caras sigan mirando afuera)
 function flip(g) { const ix = g.index.array; for (let i = 0; i < ix.length; i += 3) { const t = ix[i]; ix[i] = ix[i + 2]; ix[i + 2] = t; } g.index.needsUpdate = true; g.computeVertexNormals(); }

@@ -149,6 +149,11 @@ const ANIMAL = { sheep: 'sheep', latxa: 'sheep', lamb: 'sheep', cow: 'cow', hors
 const SMALL = { ardilla: squirrel, squirrel, pito: woodpecker, woodpecker, lechuza: owl, owl, trucha: trout };
 const FLY = { vulture: 'buitre', eagle: 'aguila', stork: 'ciguena' };
 export const has3D = (name) => !!(UI3D[name] || CUSTOM[name] || ITEM[name] || ANIMAL[name] || SMALL[name] || BIRDS[name] || FLY[name]);
+// todos los nombres con modelo 3D (para hornearlos con tools/iconbake.mjs)
+export const ICON3D_NAMES = () => [...new Set([UI3D, CUSTOM, ITEM, ANIMAL, SMALL, BIRDS, FLY].flatMap(o => Object.keys(o)))];
+// iconos ya horneados (imágenes WebP generadas una vez con tools/iconbake.mjs): no hay que dibujarlos en el móvil
+const BAKED = {};
+for (const [p, u] of Object.entries(import.meta.glob('../assets/icons3d/*.webp', { eager: true, query: '?url', import: 'default' }))) BAKED[p.split('/').pop().replace('.webp', '')] = u;
 
 function build(name) {
   if (UI3D[name]) return UI3D[name]();
@@ -189,10 +194,13 @@ function soften(root) {
     else { const c = m.color ? m.color.clone() : new THREE.Color('#fff'); o.material = new THREE.MeshStandardMaterial({ color: c, roughness: 0.5, vertexColors: !!m.vertexColors, map: m.map || null, transparent: m.transparent, opacity: m.opacity ?? 1, side: m.side }); }
   });
 }
-export const icon3DReady = (name) => cache.get(name) || getImg('i:' + name) || null;
-export function icon3D(name) {
-  if (cache.has(name)) return cache.get(name);
-  const st = getImg('i:' + name); if (st) { cache.set(name, st); return st; }
+export const icon3DReady = (name) => BAKED[name] || cache.get(name) || getImg('i:' + name) || null;
+export function icon3D(name, fresh = false) {
+  if (!fresh) {
+    if (BAKED[name]) return BAKED[name];
+    if (cache.has(name)) return cache.get(name);
+    const st = getImg('i:' + name); if (st) { cache.set(name, st); return st; }
+  }
   let out = '';
   try {
     const obj = build(name);
@@ -242,6 +250,6 @@ export function icon3D(name) {
       holder.traverse(o => { if (o.geometry) o.geometry.dispose(); });
     }
   } catch (e) { console.warn('icono 3D', name, e); }
-  cache.set(name, out); if (out) putImg('i:' + name, out);
+  if (!fresh) { cache.set(name, out); if (out) putImg('i:' + name, out); }
   return out;
 }

@@ -1,0 +1,3 @@
+Recursos externos usados en el modelado de arquitectura
+- Ninguno: geometría y materiales generados por código propio (tools/blender/arq).
+Referencias consultadas (no se incluyen en el juego): ver ficha.md de cada elemento.

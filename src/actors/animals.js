@@ -109,12 +109,17 @@ export class Animal {
     const a = Math.min(1, sp / 1.2), T2 = Math.PI * 2, ph = this.phase;
     const off = gallop ? [0.46, 0.58, 0.0, 0.12] : trot ? [0, 0.5, 0.5, 0] : [0.25, 0.75, 0, 0.5];   // [del. izq, del. der, tras. izq, tras. der]
     const amp = (gallop ? 0.85 : trot ? 0.62 : 0.42) * a;
+    const kneeAmp = gallop ? 1.25 : trot ? 0.95 : 0.62;
     for (let i = 0; i < 4; i++) {
       const pi = ph + off[i] * T2, w = pi + 0.38 * Math.sin(pi);           // apoyo largo y vuelta rápida
       const leg = q.legs[i]; leg.rotation.x = Math.sin(w) * amp * (i < 2 ? 1 : 0.9);
-      const lift = Math.max(0, -Math.cos(w)) * a;                          // la pata va hacia delante: se recoge
-      leg.scale.y = 1 - lift * (gallop ? 0.24 : trot ? 0.18 : 0.12);
+      // al ir hacia delante la pata se recoge: la rodilla delantera dobla la pezuña hacia atrás y el corvejón
+      // trasero la adelanta; en el apoyo la pata queda casi recta (el menudillo cede un poco)
+      const lift = Math.pow(Math.max(0, -Math.cos(w)), 1.3) * a, kn = leg.userData.knee;
+      if (kn) kn.rotation.x = (i < 2 ? 1 : -0.85) * lift * kneeAmp + (i < 2 ? -0.06 : 0.05) * Math.max(0, Math.cos(w)) * a;
     }
+    // lomo: en el galope se encoge y se estira (el pecho sube y baja respecto a la grupa)
+    if (q.chest) q.chest.rotation.x = gallop ? Math.sin(ph + 2.2) * 0.09 * a : trot ? Math.sin(ph * 2) * 0.015 * a : 0;
     const pitch = gallop ? Math.sin(ph + 0.9) * 0.09 * a : trot ? Math.sin(ph * 2) * 0.015 * a : 0;
     const tr = this.prevHeading == null ? 0 : Math.atan2(Math.sin(this.heading - this.prevHeading), Math.cos(this.heading - this.prevHeading)) / Math.max(dt, 1e-3);
     this.prevHeading = this.heading;
@@ -132,8 +137,8 @@ export class Animal {
     q.head.rotation.y = this.headYaw;
     // cola: el perro la mueve contento; vacas y caballos la sacuden de vez en cuando contra las moscas
     if (q.tail) {
-      if (this.kind === 'dog') { const run = Math.min(1, sp / 4); q.tail.rotation.z = Math.sin(this.t * 12) * 0.6 * (1 - run * 0.7); q.tail.rotation.x = -run * 0.5 + Math.sin(ph * 2) * 0.08 * run; }
-      else { const flick = Math.max(0, Math.sin(this.t * 0.7 + this.phase * 0.1)) ** 8; q.tail.rotation.z = Math.sin(this.t * 3) * 0.12 + Math.sin(this.t * 9) * 0.5 * flick; }
+      if (this.kind === 'dog') { const run = Math.min(1, sp / 4); q.tail.rotation.z = Math.sin(this.t * 12) * 0.6 * (1 - run * 0.7); q.tail.rotation.x = -run * 0.5 + Math.sin(ph * 2) * 0.08 * run; if (q.tail2) q.tail2.rotation.z = Math.sin(this.t * 12 - 0.9) * 0.45 * (1 - run * 0.7); }
+      else { const flick = Math.max(0, Math.sin(this.t * 0.7 + this.phase * 0.1)) ** 8; q.tail.rotation.z = Math.sin(this.t * 3) * 0.12 + Math.sin(this.t * 9) * 0.5 * flick; if (q.tail2) q.tail2.rotation.z = Math.sin(this.t * 3 - 0.8) * 0.1 + Math.sin(this.t * 9 - 1.2) * 0.45 * flick; }
     }
   }
   sync() { this.obj.position.copy(this.pos); this.obj.rotation.y = this.heading; }

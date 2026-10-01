@@ -1,6 +1,6 @@
 // Partida en un pueblo o ciudad: misiones con pasos claros, personajes, minijuegos y sello final.
 import * as THREE from 'three';
-import { Actor } from '../actors/people.js';
+import { Actor, cullActor, frameFrustum } from '../actors/people.js';
 import { PLACES, BRIDGES } from '../world/layout.js';
 import { groundHeight, terrainHeight, waterLevelAt } from '../world/heightfield.js';
 import { TOWN } from '../world/townBuilder.js';
@@ -381,12 +381,8 @@ export class TownGame {
     this.elapsed += dt;
     const P = this.player;
     this.watchdog(dt);
-    const cull = (a, max) => {
-      const d = Math.hypot(a.pos.x - P.pos.x, a.pos.z - P.pos.z);
-      const sh = d < 28; if (a.shadowOn !== sh) { a.shadowOn = sh; a.obj.traverse(o => { if (o.isMesh) o.castShadow = sh; }); }
-      if (d < max + 15) a.update(dt, P);
-      a.obj.visible = a.visible !== false && d < max;
-    };
+    const fr = frameFrustum(this.camera);
+    const cull = (a, max) => cullActor(a, Math.hypot(a.pos.x - P.pos.x, a.pos.z - P.pos.z), max, dt, P, fr);
     for (const a of this.actors) cull(a, 110);
     for (const a of this.walkers) cull(a, 70);
     for (const f of this.folk) this.updateFolk(f, dt);
