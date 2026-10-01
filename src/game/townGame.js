@@ -1629,11 +1629,25 @@ export class TownGame {
     const key = best ? (best.obj?.uuid || best.id + ':' + Math.round(best.pos.x) + ',' + Math.round(best.pos.z)) : null;
     const counts = M && best && (!M.species.length || M.species.includes(best.id));
     const isNew = best && (best.monte ? !best.seen : !this.obsSeen?.has(key));
-    const F = best ? (best.monte ? { name: best.seen ? best.monte.name : 'Monte desconocido' } : FAUNA[best.id]) : null;
+    const F = best ? (best.monte ? { name: best.seen ? best.monte.name : '¡Un monte! Pulsa para descubrir su nombre' } : FAUNA[best.id]) : null;
+    // misión del mirador: panel con los montes por descubrir, brújula y flecha al siguiente
+    const MM = this.missions.find(x => x.type === 'mirador' && x.step === 1), DIRS = ['NORTE', 'NORESTE', 'ESTE', 'SURESTE', 'SUR', 'SUROESTE', 'OESTE', 'NOROESTE'];
+    const brg = ((Math.atan2(dir.x, -dir.z) * 180 / Math.PI) + 360) % 360;
+    let goal = '', monteHint = null;
+    if (MM) {
+      const v = this.miradorSpot(), far = !v || Math.hypot(P.x - v.x, P.z - v.z) > 30;
+      if (far) goal = `<b>Los montes desde el mirador</b>Desde aquí no se ven bien. Sal de los prismáticos y ve al mirador: lo marca la flecha amarilla del mapa.`;
+      else {
+        const list = this.monteObs(eye), next = list.find(o => !o.seen);
+        goal = `<b>Busca ${MM.need} montes con los prismáticos (${MM.count}/${MM.need})</b>Gira hasta ver una marca «?» en el horizonte, céntrala y pulsa ${this.input.touch ? 'el botón amarillo' : 'E'}.<ul>${list.map(o => `<li class="${o.seen ? 'ok' : o === next ? 'next' : ''}">${o.seen ? '✔ ' + o.monte.name : '? Monte al ' + o.monte.dir + ' · ' + Math.round(o.monte.km) + ' km'}</li>`).join('')}</ul>`;
+        if (!best && next) { const q = next.pos.clone().project(cam); const behind = q.z > 1; monteHint = Math.atan2(behind ? -q.y : q.y, behind ? -q.x : q.x); }
+      }
+    }
+    this.ui.binoInfo?.(goal, 'MIRAS AL ' + DIRS[Math.round(brg / 45) % 8]);
     // sin nada en el visor: flecha hacia el animal buscado más cercano
-    let hint = null;
+    let hint = monteHint;
     if (!best && M) { const t = this.obsNearest(M); if (t) { const v = new THREE.Vector3(t.pos.x, t.pos.y + (t.h || 0.4), t.pos.z).project(cam); const behind = v.z > 1; hint = Math.atan2(behind ? -v.y : v.y, behind ? -v.x : v.x); } }
-    this.ui.binoTarget(best ? `${F?.name || best.id}${isNew ? (counts || !M ? ' — pulsa E para anotar' : ' — anótalo en tu cuaderno') : ' — anotado'}` : (M ? 'Sigue la flecha' : ''), !!best, hint);
+    this.ui.binoTarget(best ? (best.monte ? (best.seen ? `${best.monte.name} · ${best.monte.altitude} m` : F.name) : `${F?.name || best.id}${isNew ? (counts || !M ? ' — pulsa E para anotar' : ' — anótalo en tu cuaderno') : ' — anotado'}`) : (M || monteHint != null ? 'Sigue la flecha' : ''), !!best, hint);
     if (this.input.consume('e') || this.input.consume(' ')) {
       this.sound.ui('photo');
       if (best?.monte && !best.seen) { this.seeMonte(best); }

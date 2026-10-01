@@ -271,8 +271,13 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; padding: 0; 
 #bino .bdir { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transition: opacity .3s; }
 #bino .bdir i { position: absolute; left: 70px; top: -14px; width: 0; height: 0; border-left: 22px solid #FFD700; border-top: 14px solid transparent; border-bottom: 14px solid transparent; filter: drop-shadow(0 2px 3px rgba(0,0,0,.6)); animation: bdirP 1s ease-in-out infinite; }
 @keyframes bdirP { 50% { transform: translateX(8px); } }
-#bino .label { position: absolute; left: 50%; top: calc(50% + 50px); transform: translateX(-50%); font-weight: 900; font-size: 18px; text-shadow: 0 2px 4px #000; white-space: nowrap; }
-#bino .bhint { position: absolute; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 30px); transform: translateX(-50%); font-weight: 800; text-shadow: 0 2px 4px #000; text-align: center; }
+#bino .label { position: absolute; left: 50%; top: calc(50% + 48px); transform: translateX(-50%); max-width: 88vw; padding: 7px 14px; border-radius: 12px; background: rgba(10, 12, 20, .88); border: 2px solid rgba(255, 215, 0, .7); color: #fff; font-weight: 900; font-size: clamp(15px, 3.8vw, 19px); text-align: center; text-shadow: none; }
+#bino .bgoal { position: absolute; left: 50%; top: max(12px, env(safe-area-inset-top)); transform: translateX(-50%); width: min(92vw, 460px); padding: 10px 14px; border-radius: 14px; background: rgba(10, 12, 20, .9); color: #fff; font: 800 clamp(13px, 3.4vw, 15px) Nunito, sans-serif; line-height: 1.35; }
+#bino .bgoal b { display: block; color: #ffd84a; font-size: 1.08em; margin-bottom: 4px; }
+#bino .bgoal ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+#bino .bgoal li.ok { color: #9ff0a8; } #bino .bgoal li.next { color: #ffd84a; }
+#bino .bcomp { position: absolute; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 74px); transform: translateX(-50%); padding: 4px 12px; border-radius: 10px; background: rgba(10, 12, 20, .85); color: #fff; font: 900 14px Nunito, sans-serif; letter-spacing: .06em; }
+#bino .bhint { position: absolute; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 22px); transform: translateX(-50%); max-width: 92vw; padding: 6px 12px; border-radius: 10px; background: rgba(10, 12, 20, .85); color: #fff; font-weight: 800; font-size: 13px; text-shadow: none; text-align: center; }
 
 /* ---------- Minijuegos ---------- */
 #mg { position: absolute; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 58px); transform: translateX(-50%); padding: 10px 18px; font-weight: 900; font-size: 18px; text-align: center; }

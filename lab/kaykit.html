@@ -1,0 +1,19 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:transparent;overflow:hidden}</style></head>
+<body><script type="module">
+// Retrato de un avatar KayKit con el motor del juego: ?id=ranger&view=bust|full
+import * as THREE from 'three';
+import { GlbRig, loadGlbAvatar } from '../src/actors/glbChar.js';
+const P = new URLSearchParams(location.search), id = P.get('id') || 'ranger', view = P.get('view') || 'full';
+const r = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true }); r.setPixelRatio(2); r.setSize(innerWidth, innerHeight); r.setClearColor(0, 0);
+r.outputColorSpace = THREE.SRGBColorSpace; r.toneMapping = THREE.ACESFilmicToneMapping; document.body.appendChild(r.domElement);
+const scene = new THREE.Scene(); scene.add(new THREE.HemisphereLight('#fff6ea', '#7a7068', 2.2));
+const sun = new THREE.DirectionalLight('#ffffff', 2.2); sun.position.set(2, 4, 5); scene.add(sun);
+const rig = new GlbRig(await loadGlbAvatar(id), id); scene.add(rig.obj); rig.obj.rotation.y = 0.3;
+for (let i = 0; i < 24; i++) rig.update(1 / 30, 0, true, 0);
+rig.obj.updateMatrixWorld(true);
+const box = new THREE.Box3().setFromObject(rig.obj), H = box.max.y - box.min.y;
+const cam = new THREE.PerspectiveCamera(view === 'bust' ? 26 : 24, innerWidth / innerHeight, 0.05, 50);
+if (view === 'bust') { const y = box.min.y + H * 0.78; cam.position.set(0.25, y + 0.05, 2.0); cam.lookAt(0, y, 0); }
+else { const y = box.min.y + H * 0.5; cam.position.set(0.3, y + 0.1, H * 2.6); cam.lookAt(0, y, 0); }
+r.render(scene, cam); window.__ready = true;
+</script></body></html>
