@@ -2,28 +2,65 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { TEX } from './textures.js';
+import { HALF, CELL } from './layout.js';
+
+// Altura del suelo para el envejecimiento de las fachadas (la pone la naturaleza al conocer el terreno)
+export const groundUniforms = { uGround: { value: new THREE.DataTexture(new Float32Array([0]), 1, 1, THREE.RedFormat, THREE.FloatType) } };
+groundUniforms.uGround.value.needsUpdate = true;
+// Envejecimiento en coordenadas del mundo (rompe la repetición de la textura):
+//  · manchas amplias más claras y más oscuras · humedad y salpicaduras de barro en el primer metro sobre el suelo
+//  · musgo verdoso al pie de la piedra · churretes de lluvia que bajan de ventanas y aleros
+// k: intensidad (piedra 1, revoco 0,8, madera 0,6)
+function weather(m, k = 1, moss = 1) {
+  m.onBeforeCompile = (sh) => {
+    sh.uniforms.tWeather = { value: TEX.detail }; sh.uniforms.uGround = groundUniforms.uGround;
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWW;')
+      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vWW; uniform sampler2D tWeather; uniform sampler2D uGround;')
+      .replace('#include <map_fragment>', `#include <map_fragment>
+{
+  vec3 w = vWW;
+  ivec2 gs = textureSize(uGround, 0);
+  float gy = gs.x > 1 ? texelFetch(uGround, clamp(ivec2((w.xz + ${HALF.toFixed(1)}) / ${CELL.toFixed(1)} + 0.5), ivec2(0), gs - 1), 0).r : -1e4;
+  float up = w.y - gy;
+  float blot = texture2D(tWeather, (w.xz + w.y * 0.7) / 23.0).r;
+  float fine = texture2D(tWeather, (w.zx - w.y * 0.5) / 4.3 + 0.3).g;
+  float streak = texture2D(tWeather, vec2((w.x + w.z) / 3.1, w.y / 26.0)).b;
+  float base = 1.0 + (blot - 0.5) * 0.28 * ${'${K}'} + (fine - 0.5) * 0.1 * ${'${K}'};
+  base *= 1.0 - smoothstep(0.55, 0.8, streak) * 0.16 * ${'${K}'};
+  float damp = (1.0 - smoothstep(0.0, 1.1 + fine * 0.6, up)) * step(-0.5, up);
+  vec3 c = diffuseColor.rgb * base;
+  c = mix(c, c * vec3(0.66, 0.62, 0.56), damp * 0.55 * ${'${K}'});
+  c = mix(c, vec3(0.24, 0.3, 0.14) * (0.7 + 0.6 * fine), damp * smoothstep(0.45, 0.8, blot) * 0.45 * ${'${M}'});
+  diffuseColor.rgb = c;
+}`.replace(/\$\{K\}/g, k.toFixed(2)).replace(/\$\{M\}/g, moss.toFixed(2)));
+  };
+  m.customProgramCacheKey = () => 'weather' + k + moss;
+  return m;
+}
+
 
 export function makeMaterials() {
   const std = (o) => new THREE.MeshStandardMaterial({ roughness: 0.9, metalness: 0, ...o });
   const withTex = (t, o = {}) => std({ map: t.map, normalMap: t.normalMap, normalScale: new THREE.Vector2(0.9, 0.9), ...o });
   return {
-    stone: withTex(TEX.stoneWall),
-    stoneDark: withTex(TEX.stoneDark),
-    ashlar: withTex(TEX.ashlar),
+    stone: weather(withTex(TEX.stoneWall)),
+    stoneDark: weather(withTex(TEX.stoneDark)),
+    ashlar: weather(withTex(TEX.ashlar), 0.9),
     // piedra arenisca dorada (catedral de Pamplona, palacios de la Ribera)
-    sandstone: withTex(TEX.ashlar, { color: new THREE.Color(1.42, 1.22, 0.9), emissive: new THREE.Color('#4d3e22') }),
-    plaster: withTex(TEX.plasterWhite, { normalScale: new THREE.Vector2(0.5, 0.5) }),
-    plasterCream: withTex(TEX.plasterCream, { normalScale: new THREE.Vector2(0.5, 0.5) }),
+    sandstone: weather(withTex(TEX.ashlar, { color: new THREE.Color(1.42, 1.22, 0.9), emissive: new THREE.Color('#4d3e22') }), 0.8, 0.5),
+    plaster: weather(withTex(TEX.plasterWhite, { normalScale: new THREE.Vector2(0.5, 0.5) }), 0.8, 0.4),
+    plasterCream: weather(withTex(TEX.plasterCream, { normalScale: new THREE.Vector2(0.5, 0.5) }), 0.8, 0.4),
     slate: withTex(TEX.roofSlate, { roughness: 0.75 }),
-    brick: withTex(TEX.brick),
-    plasterOcher: withTex(TEX.plasterOcher, { normalScale: new THREE.Vector2(0.5, 0.5) }),
-    plasterRose: withTex(TEX.plasterRose, { normalScale: new THREE.Vector2(0.5, 0.5) }),
-    plasterBlue: withTex(TEX.plasterBlue, { normalScale: new THREE.Vector2(0.5, 0.5) }),
+    brick: weather(withTex(TEX.brick), 0.8, 0.3),
+    plasterOcher: weather(withTex(TEX.plasterOcher, { normalScale: new THREE.Vector2(0.5, 0.5) }), 0.8, 0.4),
+    plasterRose: weather(withTex(TEX.plasterRose, { normalScale: new THREE.Vector2(0.5, 0.5) }), 0.8, 0.4),
+    plasterBlue: weather(withTex(TEX.plasterBlue, { normalScale: new THREE.Vector2(0.5, 0.5) }), 0.8, 0.4),
     gold: std({ color: '#d9a93a', metalness: 0.7, roughness: 0.35 }),
     zinc: std({ color: '#5d7480', metalness: 0.5, roughness: 0.4 }),
     tile: withTex(TEX.roofTile, { roughness: 0.8 }),
-    wood: withTex(TEX.wood),
-    woodDark: withTex(TEX.woodDark),
+    wood: weather(withTex(TEX.wood), 0.6, 0.2),
+    woodDark: weather(withTex(TEX.woodDark), 0.6, 0.2),
     // cristal mate (Lambert, sin brillo especular): no hace reflejos al girar la cámara; de noche se enciende con el emisivo
     // y con prioridad de profundidad sobre la pared, para que no parpadee de lejos ni en móviles con poca precisión
     glass: new THREE.MeshLambertMaterial({ color: '#2a3c4b', emissive: new THREE.Color('#ffb85a'), emissiveIntensity: 0, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }),

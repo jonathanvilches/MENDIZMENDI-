@@ -7,6 +7,7 @@ import { addCircle, isFree } from './colliders.js';
 import { mulberry32, smoothstep, clamp } from '../util/math.js';
 import { fbm } from '../util/noise.js';
 import { TEX, FOLIAGE } from './textures.js';
+import { groundUniforms } from './builder.js';
 
 export const windUniforms = { uTime: { value: 0 }, uWind: { value: 1 } };
 
@@ -582,6 +583,7 @@ function dataTextures(force) {
   if (heightTex && !force) return;
   heightTex = new THREE.DataTexture(H, N, N, THREE.RedFormat, THREE.FloatType);
   heightTex.minFilter = heightTex.magFilter = THREE.NearestFilter; heightTex.needsUpdate = true;
+  groundUniforms.uGround.value = heightTex;
   const g = new Uint8Array(N * N * 4);
   for (let k = 0; k < N * N; k++) {
     g[k * 4] = SURF.grass[k];
