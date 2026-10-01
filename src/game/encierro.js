@@ -202,7 +202,7 @@ export class Encierro {
   spawn() {
     const S = this.scene, rnd = mulberry(11), av = this.G.P.avatar;
     const white = { shirt: '#f7f3ea', pants: '#f7f3ea', sash: '#d42f2f', scarf: '#d42f2f', shoes: '#efe6d0', espadrille: true };
-    const me = buildNpc({ ...white, base: GLB_AVATARS[av]?.kaykit, female: ['nerea', 'rogue', 'mage'].includes(av) });   // tu personaje, de blanco y rojo
+    const me = buildNpc({ ...white, base: GLB_AVATARS[av]?.kaykit, female: ['nerea', 'rogue', 'mage'].includes(av) || ['Rogue', 'Mage'].includes(GLB_AVATARS[av]?.kaykit) });   // tu personaje, de blanco y rojo
     S.add(me.obj); this.me = { ...me, x: 0, z: -14, speed: 0, fall: 0, safe: 0 };
     this.runners = [];
     for (let i = 0; i < 12; i++) {

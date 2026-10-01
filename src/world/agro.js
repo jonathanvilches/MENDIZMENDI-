@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { fieldInfo, PLACES, HALF } from './layout.js';
 import { terrainHeight, groundHeight } from './heightfield.js';
-import { isFree, addBox } from './colliders.js';
+import { addBox } from './colliders.js';
 import { TOWN } from './townBuilder.js';
 
 const MAT = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.62, metalness: 0.15 });

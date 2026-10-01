@@ -38,7 +38,9 @@ const KK_SEX = { boy: ['Ranger', 'Knight', 'Ranger'], girl: ['Rogue', 'Mage', 'R
 // todas las piezas con piel (cuerpo, cabeza, brazos, piernas) en una sola malla: una llamada de dibujo por vecino
 function mergeSkinned(root) {
   const sk = []; root.traverse(o => { if (o.isSkinnedMesh && o.visible) sk.push(o); });
-  if (sk.length < 2 || sk.some(m => m.skeleton !== sk[0].skeleton || !m.bindMatrix.equals(sk[0].bindMatrix) || m.parent !== sk[0].parent || m.material.map !== sk[0].material.map)) return;
+  // al clonar, cada pieza recibe su propio esqueleto (con los mismos huesos): se comparan los huesos, no el objeto
+  const sameBones = (m) => m.skeleton === sk[0].skeleton || (m.skeleton.bones.length === sk[0].skeleton.bones.length && m.skeleton.bones.every((b, i) => b === sk[0].skeleton.bones[i]));
+  if (sk.length < 2 || sk.some(m => !sameBones(m) || !m.bindMatrix.equals(sk[0].bindMatrix) || m.parent !== sk[0].parent || m.material.map !== sk[0].material.map)) return;
   const geos = sk.map(m => {
     const src = m.geometry, n = src.attributes.position.count, out = new THREE.BufferGeometry();
     const f32 = (name, k) => { const a = src.attributes[name], arr = new Float32Array(n * k); for (let i = 0; i < n; i++) for (let j = 0; j < k; j++) arr[i * k + j] = a.getComponent(i, j); return new THREE.BufferAttribute(arr, k); };
@@ -95,7 +97,7 @@ export function buildNpcKK(L) {
   const female = M ? M.female : !!(L.female || L.skirt || L.ponytail || L.bun || L.braids || L.longHair || L.lashes);
   const h = (JSON.stringify(L).split('').reduce((a, c) => (a * 31 + c.charCodeAt(0)) | 0, 7) >>> 0);
   const list = L.old && !female ? KK_SEX.old : KK_SEX[female ? 'girl' : 'boy'], base = M ? M.base : L.base && KKG[L.base] ? L.base : list[h % list.length];   // base: el cuerpo del avatar del jugador (fútbol, encierro)
-  const gltf = kkTemplate(base, M ? M.outfit : lookOutfit(L, female));
+  const gltf = kkTemplate(base, L.outfit || (M ? M.outfit : lookOutfit(L, female)));   // outfit: traje ya hecho (tu personaje)
   const char = new GlbChar(gltf, { walkAt: 0.2, runAt: 4.6, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / 3.0, 0.85) : Math.pow(Math.max(0.2, v) / 1.35, 0.8) });
   const H = M ? M.height : L.height || (L.child ? 1.2 : 1.5);
   const k = (gltf.userData.fit || 1) * (M ? H / 1.5 : THREE.MathUtils.clamp(H / 1.5, 0.7, H > 1.9 ? 1.7 : 1.15));   // gigantes de carnaval, más altos

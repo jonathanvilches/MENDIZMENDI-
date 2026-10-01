@@ -1,7 +1,7 @@
 // Árboles (hayas, abetos, robles), hierba viva, flores, rocas y helechos
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { HALF, CELL, N, PLACES, pathQuery, riverInfo, villageMask, meadowMask, iratiMask, fieldInfo, SPECIAL_TREES, TREE_MIX, TONE } from './layout.js';
+import { HALF, CELL, N, pathQuery, riverInfo, villageMask, meadowMask, iratiMask, fieldInfo, SPECIAL_TREES, TREE_MIX, TONE } from './layout.js';
 import { H, SURF, terrainHeight, surfAt } from './heightfield.js';
 import { addCircle, isFree } from './colliders.js';
 import { mulberry32, smoothstep, clamp } from '../util/math.js';

@@ -6,10 +6,11 @@ import FOLKLORE from '../data/folklore.json';
 import SETTLEMENTS from '../data/settlements.json';
 import { LEVELS, levelById } from '../data/levels.js';
 import { iconSVG, speciesIcon } from '../ui/icons.js';
-import { avatarPortrait, portrait, portraitImg, avatarPortraitImg } from '../ui/portraits.js';
+import { avatarPortrait, portraitImg, avatarPortraitImg } from '../ui/portraits.js';
 import { stampImg, landImg } from '../assets.js';
 import { Stage } from './stage.js';
-import { GLB_AVATARS } from '../actors/glbChar.js';
+import { GLB_AVATARS, setMio } from '../actors/glbChar.js';
+import { MIO_BASES, MIO_FEMALE, SKINS, HAIRS, CLOTH, HATS, defaultMio } from '../actors/miAvatar.js';
 import { OUTFITS, setOutfitChoices } from '../actors/outfits.js';
 import { getLang, setLang } from '../i18n.js';
 import { dioramaShot } from './diorama.js';
@@ -350,6 +351,7 @@ export class Hub {
 
   // ---------- Personajes: selección con el modelo 3D en grande ----------
   castInfo(a) {
+    if (a.id === 'mio') a = { ...a, name: profile().name || a.name };
     return `<div class="ci-head"><span class="crole">${esc(a.role)}</span><small class="cfrom">${I('pin', 16)} ${esc(a.from)}</small></div>
       <b class="cname">${esc(a.name)}</b><em class="tl">«${esc(a.tagline)}»</em><p class="cdesc">${esc(a.desc)}</p>
       <div class="stats">${a.stats.map((v, i) => `<div class="stat"><span>${STAT_LABELS[i]}</span><span class="sbar"><i style="--v:${v}%"></i></span><b>${v}</b></div>`).join('')}</div>
@@ -376,6 +378,7 @@ export class Hub {
     // trajes para los personajes KayKit: original, San Fermín, dantzari, pastor, casero y Osasuna
     const outfits = (id) => {
       const el = $('#csOutfits', host); if (!el) return;
+      if (id === 'mio') return this.mioEditor(el, host);
       if (!GLB_AVATARS[id]?.kaykit) { el.innerHTML = ''; return; }
       const curO = P0.outfits[id] || 'original';
       const btn = (o) => `<button class="${o.id === curO ? 'on' : ''}" data-outfit="${o.id}" style="--o:${o.shirt || '#8a7a6a'};--a:${o.sash || o.scarf || o.beret || o.pants || '#8a7a6a'}"><i></i>${esc(o.name)}</button>`;
@@ -400,6 +403,33 @@ export class Hub {
     const key = (e) => { if (!host.isConnected) return removeEventListener('keydown', key); if (e.target.tagName === 'INPUT') return; if (e.key === 'ArrowRight') step(1); if (e.key === 'ArrowLeft') step(-1); };
     addEventListener('keydown', key);
     center(cur);
+  }
+  // creador de tu personaje: cada cambio se ve al momento en el modelo 3D y se guarda en el perfil
+  mioEditor(el, host) {
+    const P = profile(), c = (P.mio ||= defaultMio());
+    const sw = (key, list, none) => `<div class="mio-sw">${none ? `<button class="none ${c[key] ? '' : 'on'}" data-k="${key}" data-v="" aria-label="Sin">∅</button>` : ''}${list.map(v => `<button class="${c[key] === v ? 'on' : ''}" data-k="${key}" data-v="${v}" style="--s:${v}" aria-label="${v}"></button>`).join('')}</div>`;
+    const chips = (key, list) => `<div class="mio-ch">${list.map(o => `<button class="${c[key] === o.id ? 'on' : ''}" data-k="${key}" data-v="${o.id}">${esc(o.name)}</button>`).join('')}</div>`;
+    const tog = (key, name) => `<button class="mio-tog ${c[key] ? 'on' : ''}" data-t="${key}">${esc(name)}</button>`;
+    el.innerHTML = `<div class="mio-ed">
+      <div class="mio-top"><b>Crea tu personaje</b><span><button class="mio-rand" data-r="1">Al azar</button><select class="mio-from" aria-label="Empezar desde un traje"><option value="">Desde un traje…</option>${OUTFITS.filter(o => o.id !== 'original').map(o => `<option value="${o.id}">${esc(o.name)}</option>`).join('')}</select></span></div>
+      <small>Cuerpo</small>${chips('base', MIO_BASES)}
+      <small>Piel</small>${sw('skin', SKINS)}
+      <small>Pelo</small>${sw('hair', HAIRS)}<div class="mio-tg">${tog('longHair', 'Melena larga')}</div>
+      <small>En la cabeza</small>${chips('hat', HATS)}${sw('hatColor', ['#1d1d22', '#c8102e', '#2b5a3a', '#1e3a8a', '#8a5ad6', '#f6f3ec'])}
+      <small>Camisa</small>${sw('shirt', CLOTH)}
+      <small>Pantalón</small>${sw('pants', CLOTH)}
+      <small>Calzado</small>${sw('shoes', ['#4a2f1c', '#6b3f24', '#1d1d22', '#efe4cc', '#f6f3ec', '#c8102e'])}
+      <small>Detalles (cinturón, chaleco)</small>${sw('accent', CLOTH)}
+      <small>Pañuelo al cuello</small>${sw('scarf', CLOTH, true)}
+      <small>Faja</small>${sw('sash', CLOTH, true)}
+      <small>Falda</small>${sw('skirt', CLOTH, true)}<div class="mio-tg">${tog('apron', 'Delantal')}${tog('fur', 'Zamarra de piel')}</div>
+    </div>`;
+    const apply = () => { saveProfile(); setMio(c); this.stage.setAvatar('mio'); const im = host.querySelector('[data-av="mio"] img'); if (im) im.outerHTML = avatarPortraitImg('mio'); this.mioEditor(el, host); };
+    el.querySelectorAll('[data-k]').forEach(b => b.onclick = (e) => { e.stopPropagation(); const k = b.dataset.k; c[k] = b.dataset.v || null; if (k === 'base' && MIO_FEMALE.has(c.base) && !c.skirt) c.skirt = '#1e3a8a'; this.sound?.ui('click'); apply(); });
+    el.querySelectorAll('[data-t]').forEach(b => b.onclick = (e) => { e.stopPropagation(); c[b.dataset.t] = !c[b.dataset.t]; this.sound?.ui('click'); apply(); });
+    $('.mio-rand', el).onclick = (e) => { e.stopPropagation(); Object.assign(c, defaultMio(Math.random)); this.sound?.ui('coin'); apply(); };
+    const from = $('.mio-from', el); from.onclick = (e) => e.stopPropagation();
+    from.onchange = () => { const o = OUTFITS.find(o => o.id === from.value); if (!o) return; Object.assign(c, { shirt: o.shirt, pants: o.pants, shoes: o.shoes, accent: o.accent, scarf: o.scarf || null, sash: o.sash || null, hat: o.beret ? 'beret' : o.cachirulo ? 'cachirulo' : c.hat, hatColor: o.beret || o.cachirulo || c.hatColor, skirt: MIO_FEMALE.has(c.base) ? (o.skirtF || c.skirt) : c.skirt }); this.sound?.ui('coin'); apply(); };
   }
   s_avatars() {
     const p = profile(), cur = castById(p.avatar);
@@ -461,7 +491,7 @@ export class Hub {
     const o = el(`<div class="onb"><div class="onb-in">
       <header class="onb-head"><div class="logo">MENDIMENDIZ</div><p class="tag">Navarra, pueblo a pueblo</p>
         <div class="langsel" role="group" aria-label="Idioma"><button data-lang="eu" class="${getLang() === 'eu' ? 'on' : ''}">Euskara</button><button data-lang="es" class="${getLang() === 'es' ? 'on' : ''}">Castellano</button><button data-lang="learn" class="${getLang() === 'learn' ? 'on' : ''}">Aprende euskera</button></div></header>
-      ${this.selector(castById(pick), { onb: true, extra: `<div class="onb-foot"><div class="gender" role="group" aria-label="Elige personaje"><button data-g="benat" class="${pick === 'benat' ? 'on' : ''}">Chico · Beñat</button><button data-g="nerea" class="${pick === 'nerea' ? 'on' : ''}">Chica · Nerea</button><button data-g="haritz" class="${pick === 'haritz' ? 'on' : ''}">Neolítico · Haritz</button></div><label>¿Cómo te llamas?<input id="oName" maxlength="14" autocomplete="off" placeholder="Tu nombre"></label>
+      ${this.selector(castById(pick), { onb: true, extra: `<div class="onb-foot"><div class="gender" role="group" aria-label="Elige personaje"><button data-g="benat" class="${pick === 'benat' ? 'on' : ''}">Chico · Beñat</button><button data-g="nerea" class="${pick === 'nerea' ? 'on' : ''}">Chica · Nerea</button><button data-g="haritz" class="${pick === 'haritz' ? 'on' : ''}">Neolítico · Haritz</button><button data-g="mio" class="${pick === 'mio' ? 'on' : ''}">Crea el tuyo</button></div><label>¿Cómo te llamas?<input id="oName" maxlength="14" autocomplete="off" placeholder="Tu nombre"></label>
         <button class="btn primary big" id="oGo">${I('play', 26)} ¡Empezar la aventura!</button></div>` })}
     </div></div>`);
     this.root.appendChild(o);

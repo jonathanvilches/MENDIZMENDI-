@@ -82,7 +82,7 @@ export class Futbol {
     this.b = { x: 0, y: BR, z: 0, vx: 0, vy: 0, vz: 0, owner: null, last: null, lastP: null };
     const npc = (kit, i, look = {}) => { const n = buildNpc({ ...kit, female: false, hair: HAIR[i % HAIR.length], skin: SKIN[i % SKIN.length], height: 1.5 + (i % 3) * 0.05, ...look }); this.root.add(n.obj); return n; };
     const num = (n, p, light) => { const d = dorsal(n, light ? '#16224a' : '#ffffff', light ? '#ffffff' : '#16224a'); d.position.set(0, (p.obj.userData.H || 1.5) * 0.66, -0.17); d.rotation.y = Math.PI; p.obj.add(d); };
-    const meLook = { base: GLB_AVATARS[av]?.kaykit, female: ['nerea', 'rogue', 'mage'].includes(av), height: 1.55 };   // tu propio personaje con la camiseta de Osasuna
+    const meLook = { base: GLB_AVATARS[av]?.kaykit, female: ['nerea', 'rogue', 'mage'].includes(av) || ['Rogue', 'Mage'].includes(GLB_AVATARS[av]?.kaykit), height: 1.55 };   // tu propio personaje con la camiseta de Osasuna
     this.me = { ...npc(KIT.home, 0, meLook), side: 'home', role: 'field', me: true, x: 0, z: -1.2, speed: JOG, h: 0 };
     num(10, this.me);
     const R = Math.random;

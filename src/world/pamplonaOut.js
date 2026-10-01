@@ -4,11 +4,11 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { box, archRing, archPanel, gable, colored, M, MM } from './builder.js';
 import { roofHip } from './houses.js';
-import { terrainHeight, addPlatform } from './heightfield.js';
+import { terrainHeight } from './heightfield.js';
 import { addBox, addCircle } from './colliders.js';
 import { PLACES } from './layout.js';
 import { lamp } from './village.js';
-import { archedWall, winDoor, plaque, letters, toW, fitText, roundRect, FONT_SERIF, FONT_ROUND } from './civic.js';
+import { archedWall, winDoor, plaque, letters, toW, fitText, roundRect, FONT_ROUND } from './civic.js';
 import { noGrass } from './pamplona.js';
 
 const gy = terrainHeight;

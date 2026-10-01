@@ -21,6 +21,10 @@ export const CAST_ALL = [
     desc: 'Vive hace unos 5.000 años, cuando los primeros pastores levantaban dólmenes en Aralar y Urbasa. Lleva túnica de lana, chaleco de piel de oveja, abarcas de cuero y un cuchillo de sílex en la bolsa.',
     ability: 'Mirada antigua: descubre antes dólmenes, cuevas y piedras con historia', stats: [90, 75, 70, 80, 90], color: '#a8603a',
     look: { child: true, height: 1.36, skin: '#e2b088', hair: '#2e1e16', hairStyle: 'short', shirt: '#d6c49e', vest: '#dacaa8', pants: '#84603e', scarf: '#a84a2c', shoes: '#b0885c', boots: true, socks: '#9c744c', face: 'smile', pose: 'hip1' } },
+  // tu propio personaje: lo creas tú en el menú (cuerpo, piel, pelo, ropa y complementos)
+  { id: 'mio', name: 'Tu personaje', from: 'Navarra', role: 'Creado por ti', tagline: 'Como tú quieras', glb: true, kaykit: true,
+    desc: 'Elige el cuerpo, la piel, el pelo, la ropa y los complementos: txapela, pañuelo, faja, falda o zamarra de piel. Puedes cambiarlo cuando quieras.',
+    ability: 'A tu manera: lo cambias cuando quieras, desde el menú de personajes', stats: [80, 70, 80, 80, 80], color: '#e8743a', look: { height: 1.5 } },
   // aventureros (modelos CC0 de KayKit Adventurers, Kay Lousberg) que vienen a descubrir Navarra
   { id: 'ranger', name: 'Iñigo', from: 'Selva de Irati', role: 'Guardabosques', tagline: 'Lee las huellas del bosque', glb: true, kaykit: true,
     desc: 'Recorre el hayedo de Irati con su pañuelo azul y su capa.  Sabe distinguir las huellas del corzo, del jabalí y del zorro.',

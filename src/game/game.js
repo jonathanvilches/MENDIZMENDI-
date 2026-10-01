@@ -4,12 +4,12 @@ import { RIBBONS, QUESTS, CARDS, SPECIES_OBS, QUIZ, EGUZKILORES } from './conten
 import { npcDefs, walkerDefs, WALKER_LINES } from './npcs.js';
 import { Actor, cullActor, frameFrustum } from '../actors/people.js';
 import { Animal } from '../actors/animals.js';
-import { PLACES, BRIDGES, rx, MEADOW, riverInfo, iratiMask, pathQuery } from '../world/layout.js';
-import { groundHeight, terrainHeight, bridgeAt, waterLevelAt } from '../world/heightfield.js';
+import { PLACES, BRIDGES, rx, MEADOW, riverInfo } from '../world/layout.js';
+import { terrainHeight, bridgeAt, waterLevelAt } from '../world/heightfield.js';
 import { VILLAGE } from '../world/village.js';
 import { LANDMARKS } from '../world/landmarks.js';
 import { isFree, segmentBlocked } from '../world/colliders.js';
-import { makeEguzkilore, makeRibbon, makeComb, makeLitter } from '../fx.js';
+import { makeEguzkilore, makeComb, makeLitter } from '../fx.js';
 import { wait } from '../ui.js';
 import { Fronton, playPelota, frontonWall } from './fronton.js';
 import { clamp, lerp, angleDiff, mulberry32 } from '../util/math.js';

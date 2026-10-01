@@ -1,10 +1,10 @@
 // Otsagabia: casas, iglesia, palacios, puentes, muros del río, plaza y fuente
 import * as THREE from 'three';
 import { TOWN } from './townBuilder.js';
-import { Builder, box, gable, archRing, archPanel, colored, M, MM } from './builder.js';
-import { buildHouse, roofHip } from './houses.js';
+import { Builder, box, gable, archRing, archPanel, M, MM } from './builder.js';
+import { buildHouse } from './houses.js';
 import { PATHS, PLACES, BRIDGES, rx, riverInfo, riverHalfA, pathQuery, villageMask, CONF } from './layout.js';
-import { terrainHeight, groundHeight, deckY } from './heightfield.js';
+import { terrainHeight, deckY } from './heightfield.js';
 import { addBox, addCircle, isFree } from './colliders.js';
 import { mulberry32, clamp } from '../util/math.js';
 

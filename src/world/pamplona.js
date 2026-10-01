@@ -9,7 +9,7 @@ import { terrainHeight, SURF, addPlatform } from './heightfield.js';
 import { addBox, addCircle, isFree } from './colliders.js';
 import { PATHS, PLACES, HALF, CELL, N } from './layout.js';
 import { bench, VILLAGE } from './village.js';
-import { Signs, cityBlock, winDoor, pointedPanel, archedWall, balustrade, statue, navarraFlag, plaque, shopSign, letters, toW, fitText, roundRect, FONT_SERIF, FONT_SANS } from './civic.js';
+import { Signs, cityBlock, winDoor, pointedPanel, archedWall, balustrade, statue, navarraFlag, plaque, shopSign, letters, toW, fitText, roundRect, FONT_SERIF } from './civic.js';
 import { bullring, walls, citadel, stadium } from './pamplonaOut.js';
 
 const gy = terrainHeight;

@@ -1,7 +1,7 @@
 // Motor: carga una localidad (Salazar o generada), la actualiza y la libera al salir
 import { Weather, pickWeather } from '../world/weather.js';
 import * as THREE from 'three';
-import { bake, initBridges, terrainHeight, clearPlatforms } from '../world/heightfield.js';
+import { bake, initBridges, clearPlatforms } from '../world/heightfield.js';
 import { buildTextures, TEX } from '../world/textures.js';
 import { Terrain } from '../world/terrain.js';
 import { SkySystem } from '../world/sky.js';
@@ -12,7 +12,7 @@ import { buildVillage, VILLAGE, resetVillage } from '../world/village.js';
 import { buildLandmarks, LANDMARKS } from '../world/landmarks.js';
 import { buildTown, TOWN } from '../world/townBuilder.js';
 import { Nature } from '../world/nature.js';
-import { setLevel, PLACES, iratiMask, KIND } from '../world/layout.js';
+import { setLevel, PLACES, iratiMask } from '../world/layout.js';
 import * as SALAZAR from '../levels/salazar.js';
 import { createTownLevel } from '../levels/town.js';
 import { resetColliders } from '../world/colliders.js';

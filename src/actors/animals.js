@@ -1,11 +1,11 @@
 // Fauna del valle: ovejas latxas, perro pastor, vacas pirenaicas, pottokas, corzos, ciervos,
 // ardillas, pito negro, buitres, truchas, mariposas y luciérnagas
 import * as THREE from 'three';
-import { groundHeight, terrainHeight, waterLevelAt, surfAt } from '../world/heightfield.js';
+import { groundHeight, terrainHeight, waterLevelAt } from '../world/heightfield.js';
 import { resolve, isFree } from '../world/colliders.js';
-import { PLACES, rx, riverInfo, HALF, iratiMask } from '../world/layout.js';
+import { PLACES, rx, riverInfo } from '../world/layout.js';
 import { TREES } from '../world/nature.js';
-import { clamp, damp, dampAngle, lerp, mulberry32 } from '../util/math.js';
+import { clamp, damp, dampAngle, mulberry32 } from '../util/math.js';
 import { setOutlines } from './minifig.js';
 import { buildAnimal } from './animalGlb.js';
 import { beast, bird, squirrel, woodpecker, trout, owl } from './beasts.js';

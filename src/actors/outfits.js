@@ -2,6 +2,7 @@
 // degradados) solo en las casillas de la ropa, manteniendo el sombreado del degradado, y se les ponen prendas de
 // aquí cosidas a los huesos: txapela, pañuelico rojo y faja. Se quitan cascos, capas y sombreros de fantasía.
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 export const OUTFITS = [
   { id: 'original', name: 'Original' },
@@ -79,6 +80,26 @@ const lum = (map, cell) => {   // luz media de una casilla (para saber cuál es 
 };
 
 /** Viste el personaje (la copia ya montada en la escena) con un traje. Devuelve las prendas añadidas. */
+// cada prenda (txapela, pañuelo, faja…) en una sola malla con sus colores por vértice y un material compartido:
+// una llamada de dibujo por prenda en vez de una por pieza (las metálicas, como el peine o la corona, se quedan igual)
+const ACC_MAT = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85, side: THREE.DoubleSide });
+function bakeGroup(g) {
+  const parts = []; let metal = false;
+  g.updateMatrixWorld(true); const inv = g.matrixWorld.clone().invert();
+  g.traverse(o => { if (o.isMesh) { parts.push(o); if (o.material.metalness > 0.3) metal = true; } });
+  if (metal || !parts.length) return g;
+  const geos = parts.map(m => {
+    let geo = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone();
+    for (const k of Object.keys(geo.attributes)) if (!['position', 'normal'].includes(k)) geo.deleteAttribute(k);
+    geo.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inv, m.matrixWorld));
+    const c = m.material.color, n = geo.attributes.position.count, col = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) { col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b; }
+    geo.setAttribute('color', new THREE.BufferAttribute(col, 3)); return geo;
+  });
+  const merged = mergeGeometries(geos); if (!merged) return g;
+  const mesh = new THREE.Mesh(merged, ACC_MAT); mesh.position.copy(g.position); mesh.quaternion.copy(g.quaternion); mesh.scale.copy(g.scale);
+  return mesh;
+}
 export function applyOutfit(root, kk, outfitId) {
   const O = typeof outfitId === 'object' ? outfitId : OUTFITS.find(o => o.id === outfitId);
   if (!O || O.id === 'original') return [];
@@ -99,10 +120,10 @@ export function applyOutfit(root, kk, outfitId) {
   // la tela grande (más del 30 % de la mayor) es la camisa; los trozos pequeños (cinturón, correas, chaleco) el acento
   const top = bodyC[0]?.[1] || 1;
   bodyC.forEach(([k, n]) => { if (!assign.has(k)) assign.set(k, n >= top * 0.3 ? O.shirt : O.accent); });
-  if (O.hairLong) {   // el pelo pintado en la cabeza: la casilla grande más oscura que no es piel
-    const big = [...headArea.entries()].filter(([k, n]) => n > headTot * 0.06 && !assign.has(k)).sort((a, b) => lum(map, a[0]) - lum(map, b[0]));
-    if (big.length > 1) assign.set(big[0][0], O.hairLong);
-  }
+  // en el atlas de los personajes nuevos la casilla 0 es la piel (cara y manos) y la 1 el pelo (o la barba)
+  const SKIN_CELL = 0, HAIR_CELL = 1, hairTint = O.hair || O.hairLong;
+  if (O.skin && headCells.has(SKIN_CELL)) assign.set(SKIN_CELL, O.skin);
+  if (hairTint && headCells.has(HAIR_CELL) && !assign.has(HAIR_CELL)) assign.set(HAIR_CELL, hairTint);
   const tex = repaint(map, assign, kk + '|' + (O.id || [O.shirt, O.pants, O.shoes, O.accent].join()));
   for (const m of [...head, ...body, ...arms, ...legs]) { m.material = m.material.clone(); m.material.map = tex; }
   // prendas cosidas a los huesos, colocadas sobre la pose de reposo
@@ -111,7 +132,7 @@ export function applyOutfit(root, kk, outfitId) {
   const box = (list) => { const b = new THREE.Box3(), t = new THREE.Box3(); list.forEach(m => { m.geometry.computeBoundingBox(); t.copy(m.geometry.boundingBox).applyMatrix4(m.matrixWorld); b.union(t); }); return b; };
   const added = [], mat = (c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.85 });
   const hb = box(head), bb = box(body), sz = hb.getSize(new THREE.Vector3()), bs = bb.getSize(new THREE.Vector3()), hc = hb.getCenter(new THREE.Vector3()), bc = bb.getCenter(new THREE.Vector3());
-  const put = (mesh, boneName, pos) => { const b = bone(boneName) || root; mesh.position.copy(root.worldToLocal(pos.clone())); mesh.castShadow = true; root.add(mesh); mesh.updateMatrixWorld(); b.attach(mesh); added.push(mesh); };
+  const put = (mesh, boneName, pos) => { mesh = bakeGroup(mesh); const b = bone(boneName) || root; mesh.position.copy(root.worldToLocal(pos.clone())); mesh.castShadow = true; root.add(mesh); mesh.updateMatrixWorld(); b.attach(mesh); added.push(mesh); };
   if (O.beret && head.length) {   // txapela: boina ancha y plana, ladeada, con el txertena (rabito) arriba
     const g = new THREE.Group(), r = sz.x * 0.56;
     const disc = new THREE.Mesh(new THREE.SphereGeometry(r, 24, 10, 0, Math.PI * 2, 0, Math.PI / 2), mat(O.beret)); disc.scale.y = 0.32; g.add(disc);

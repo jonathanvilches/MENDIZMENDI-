@@ -141,9 +141,11 @@ export function mergeByMaterial(root) {
     for (const k of Object.keys(g.attributes)) { const a = g.attributes[k]; if (!(a.array instanceof Float32Array) || a.normalized) { const n = a.count, f = new Float32Array(n * a.itemSize); for (let i = 0; i < n; i++) for (let j = 0; j < a.itemSize; j++) f[i * a.itemSize + j] = a.getComponent(i, j); g.setAttribute(k, new THREE.BufferAttribute(f, a.itemSize)); } }
     if (!g.attributes.uv) g.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count * 2), 2));
     g.applyMatrix4(o.matrixWorld);
-    if (!by.has(o.material)) by.set(o.material, []); by.get(o.material).push(g);
+    // materiales iguales aunque sean objetos distintos (mismo color, textura y acabado) van en la misma malla
+    const m = o.material, key = [m.type, m.color?.getHex(), m.map?.uuid, m.roughness, m.metalness, m.side, m.transparent, m.vertexColors, m.emissive?.getHex(), m.alphaTest].join('|');
+    if (!by.has(key)) by.set(key, [m, []]); by.get(key)[1].push(g);
   });
   const out = new THREE.Group();
-  for (const [m, list] of by) { const geo = mergeGeometries(list); if (!geo) continue; const me = new THREE.Mesh(geo, m); me.castShadow = me.receiveShadow = true; out.add(me); }
+  for (const [m, list] of by.values()) { const geo = mergeGeometries(list); if (!geo) continue; const me = new THREE.Mesh(geo, m); me.castShadow = me.receiveShadow = true; out.add(me); }
   return out;
 }

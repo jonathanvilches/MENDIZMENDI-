@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { Actor, cullActor, frameFrustum } from '../actors/people.js';
 import { MYTHS } from '../actors/outfits.js';
-import { PLACES, BRIDGES } from '../world/layout.js';
+import { PLACES } from '../world/layout.js';
 import { groundHeight, terrainHeight, waterLevelAt } from '../world/heightfield.js';
 import { TOWN } from '../world/townBuilder.js';
 import { isFree, segmentBlocked, addCircle, addBox } from '../world/colliders.js';
@@ -1330,7 +1330,7 @@ export class TownGame {
     if (!M.creature) {
       const s = M.lair;
       const myth = MYTHS[M.m.who] ? M.m.who : null;   // con el cuerpo de los personajes nuevos y su traje de leyenda
-      const a = new Actor({ id: 'c' + M.i, name: M.leg.creature, x: s.x, z: s.z, heading: Math.atan2(this.player.pos.x - s.x, this.player.pos.z - s.z), look: myth ? { ...look, myth } : look, mini: myth ? undefined : look }, this.scene);
+      const a = new Actor({ id: 'c' + M.i, name: M.leg.creature, x: s.x, z: s.z, heading: Math.atan2(this.player.pos.x - s.x, this.player.pos.z - s.z), look: myth ? { ...look, myth } : look }, this.scene);
       a.collider.ghost = true; a.base = a.obj.scale.x || 1;
       // el caballero es sólo una sombra de niebla: translúcido y azulado
       if (M.m.who === 'roldan') a.obj.traverse(o => { if (o.isMesh && o.material) { o.material = o.material.clone(); o.material.transparent = true; o.material.opacity = 0.62; o.material.depthWrite = false; } });
@@ -1428,7 +1428,7 @@ export class TownGame {
     for (let i = 0; i < M.need; i++) {
       const h = houses[Math.floor(this.rnd() * houses.length)] || PLACES.market;
       const p = this.spot(h.door || h, 3);
-      const a = new Actor({ id: 'f' + i, name: M.folk?.name || 'Personaje', x: p.x, z: p.z, look, mini: look, wander: 6, walkSpeed: 0.9 }, this.scene);
+      const a = new Actor({ id: 'f' + i, name: M.folk?.name || 'Personaje', x: p.x, z: p.z, look, wander: 6, walkSpeed: 0.9 }, this.scene);
       a.fm = M; a.bellT = this.rnd() * 2; this.folk.push(a);
       // de noche llevan una antorcha: se ve su luz entre las casas
       if (M.night) { const aura = makeAura('#ffb45a', 0.9); aura.position.y = 2.1; a.obj.add(aura); a.aura = aura; }

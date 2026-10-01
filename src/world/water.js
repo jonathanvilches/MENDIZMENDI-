@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { rx, zz, CONF, FA, FZ, riverHalfA, RIVER_HALF_Z, PLACES, HALF, RIVERS, PONDS, KIND } from './layout.js';
+import { rx, zz, CONF, FA, FZ, riverHalfA, RIVER_HALF_Z, HALF, RIVERS, PONDS, KIND } from './layout.js';
 
 const waterVS = `
 varying vec3 vWP; varying vec2 vUv; varying float vEdge;
