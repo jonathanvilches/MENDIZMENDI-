@@ -6,11 +6,11 @@ Personaje 100 % original, modelado desde cero con bpy y bmesh (Blender 4.2). Se 
 
 | | |
 |---|---|
-| GLB principal | `char_protagonista.glb` · **1,58 MB** (límite 2 MB) |
-| GLB LOD (nivel cage) | `char_protagonista_lod.glb` · 0,87 MB · 10.534 triángulos en el archivo |
-| Triángulos visibles (variantes por defecto) | 24.788 |
-| Triángulos en el archivo (con todas las variantes) | 28.998 |
-| Caras de la cage | 2.124 |
+| GLB principal | `char_protagonista.glb` · **1,99 MB** (límite 2 MB) |
+| GLB LOD (nivel cage) | `char_protagonista_lod.glb` · 1,23 MB · 11.022 triángulos en el archivo |
+| Triángulos visibles (variantes por defecto) | 26.916 |
+| Triángulos en el archivo (con todas las variantes) | 31.126 |
+| Caras de la cage | 2.268 |
 | Huesos | 39 deformadores de 43 (máx. 60) |
 | Materiales | 4: `MAT_Eyes`, `MAT_Glint`, `MAT_Protagonista_Body`, `MAT_Protagonista_Face` |
 | Texturas | Body 1024 px, Face 512 px, T_Eyes 256 px (PNG 8 bits sRGB) |
@@ -30,11 +30,11 @@ Personaje 100 % original, modelado desde cero con bpy y bmesh (Blender 4.2). Se 
 | Pantalón | 2.752 |
 | Calcetines | 2.592 |
 | Botas | 336 |
-| Pañuelo | 1.424 |
+| Pañuelo | 3.552 |
 | Mechones (Hair_01–03) | 0 |
 | Cara (ojos, iris, brillos, párpado, cejas, boca) | 776 |
 | Manos (abiertas) | 1.408 |
-| **Total visible** | **24.788** |
+| **Total visible** | **26.916** |
 
 ## Clips
 

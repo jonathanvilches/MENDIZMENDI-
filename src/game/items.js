@@ -96,3 +96,41 @@ export function makeWorkbench(kind) {
   }
   return g;
 }
+
+// Recuerdo de un personaje: pedestal de piedra con busto de bronce (figura genérica, sin parecido con nadie)
+// o estela, y el objeto que lo identifica. Placa dorada delante.
+export function makeMemorial(attr, stele) {
+  const g = new THREE.Group(), BR = '#8a6a3c', bronze = { metalness: 0.75, roughness: 0.38 };
+  g.add(mesh(new THREE.BoxGeometry(1.5, 0.22, 1.5), '#a8a092', 0, 0.11, 0));
+  g.add(mesh(new THREE.BoxGeometry(1.0, 1.25, 1.0), '#c9c0ae', 0, 0.85, 0));
+  g.add(mesh(new THREE.BoxGeometry(1.18, 0.14, 1.18), '#b8af9c', 0, 1.53, 0));
+  g.add(mesh(new THREE.BoxGeometry(0.62, 0.36, 0.03), '#d9b24a', 0, 0.95, 0.51, { metalness: 0.8, roughness: 0.3 }));
+  if (stele) {
+    // estela discoidal, como las de los valles
+    const d = mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.16, 28), BR, 0, 2.25, 0, bronze); d.rotation.x = Math.PI / 2; g.add(d);
+    g.add(mesh(new THREE.BoxGeometry(0.4, 0.55, 0.14), BR, 0, 1.85, 0, bronze));
+    const r = mesh(new THREE.TorusGeometry(0.38, 0.035, 6, 28), '#a8844c', 0, 2.25, 0.09, bronze); g.add(r);
+  } else {
+    // busto: hombros, cuello y cabeza lisa
+    const sh = mesh(new THREE.SphereGeometry(0.42, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), BR, 0, 1.6, 0, bronze); sh.scale.set(1, 0.7, 0.62); g.add(sh);
+    g.add(mesh(new THREE.CylinderGeometry(0.11, 0.13, 0.22, 10), BR, 0, 1.95, 0, bronze));
+    const h = mesh(new THREE.SphereGeometry(0.22, 18, 14), BR, 0, 2.2, 0.02, bronze); h.scale.set(0.9, 1.08, 1); g.add(h);
+  }
+  // el objeto del personaje, apoyado sobre el pedestal, delante
+  const A = new THREE.Group(); A.position.set(0.38, 1.62, 0.32); g.add(A);
+  const a = (geo, c, x, y, z, o) => { const m_ = mesh(geo, c, x, y, z, o || bronze); A.add(m_); return m_; };
+  switch (attr) {
+    case 'violin': { const b = a(new THREE.SphereGeometry(0.1, 10, 8), BR, 0, 0.05, 0); b.scale.set(0.75, 0.3, 1.3); a(new THREE.BoxGeometry(0.03, 0.03, 0.22), '#3a2a1a', 0, 0.07, -0.2); break; }
+    case 'bike': for (const z of [-0.12, 0.12]) { const w = a(new THREE.TorusGeometry(0.08, 0.012, 5, 14), '#3a3d42', 0, 0.09, z); w.rotation.y = Math.PI / 2; } a(new THREE.BoxGeometry(0.02, 0.02, 0.24), '#c8222a', 0, 0.12, 0, {}); break;
+    case 'crown': { a(new THREE.CylinderGeometry(0.09, 0.09, 0.07, 12, 1, true), '#d9b24a', 0, 0.04, 0, { metalness: 0.9, roughness: 0.25, side: THREE.DoubleSide }); for (let i = 0; i < 5; i++) a(new THREE.ConeGeometry(0.02, 0.06, 4), '#d9b24a', Math.cos(i * 1.256) * 0.09, 0.1, Math.sin(i * 1.256) * 0.09, { metalness: 0.9, roughness: 0.25 }); break; }
+    case 'chain': for (let i = 0; i < 4; i++) { const l = a(new THREE.TorusGeometry(0.04, 0.012, 5, 10), '#d9b24a', (i - 1.5) * 0.065, 0.02, 0, { metalness: 0.9, roughness: 0.25 }); l.rotation.x = i % 2 ? Math.PI / 2 : 0; } break;
+    case 'ship': { a(new THREE.BoxGeometry(0.1, 0.05, 0.26), BR, 0, 0.03, 0); a(new THREE.CylinderGeometry(0.008, 0.008, 0.2, 4), BR, 0, 0.15, 0); a(new THREE.PlaneGeometry(0.14, 0.12), '#efe6cf', 0, 0.16, 0.01, { side: THREE.DoubleSide }); break; }
+    case 'espadrille': { const s = a(new THREE.SphereGeometry(0.06, 10, 6), '#efe6cf', 0, 0.03, 0, {}); s.scale.set(0.8, 0.5, 1.8); a(new THREE.BoxGeometry(0.1, 0.012, 0.22), '#c9a27a', 0, 0.005, 0, {}); break; }
+    case 'scales': { a(new THREE.CylinderGeometry(0.008, 0.008, 0.18, 5), BR, 0, 0.09, 0); a(new THREE.BoxGeometry(0.22, 0.01, 0.01), BR, 0, 0.18, 0); for (const s of [-1, 1]) a(new THREE.CylinderGeometry(0.04, 0.03, 0.015, 10), BR, s * 0.1, 0.12, 0); break; }
+    case 'score': case 'book': default: { const b = a(new THREE.BoxGeometry(0.2, 0.04, 0.15), '#efe6cf', 0, 0.02, 0, {}); b.rotation.y = 0.3; a(new THREE.BoxGeometry(0.21, 0.02, 0.16), attr === 'score' ? '#2a2a2a' : '#7a2f3a', 0, -0.005, 0, {}).rotation.y = 0.3; }
+  }
+  // aro dorado: se apaga cuando ya se conoce la historia
+  const ring = new THREE.Mesh(new THREE.RingGeometry(1.0, 1.2, 32), new THREE.MeshBasicMaterial({ color: '#ffe38a', transparent: true, opacity: 0.6, depthWrite: false, side: THREE.DoubleSide }));
+  ring.rotation.x = -Math.PI / 2; ring.position.y = 0.05; g.add(ring); g.userData.ring = ring;
+  return g;
+}

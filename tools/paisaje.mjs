@@ -47,10 +47,13 @@ const spots = await p.evaluate(() => {
 });
 console.log(JSON.stringify(spots));
 
-if (!only || only === 'paisaje') {
+if (!only || only === 'paisaje' || only === 'hierba') {
   const F = spots.fields;
   // 1) hierba de cerca, a ras de suelo
   await cine({ x: F.x, y: 1.3, z: F.z, lx: F.x + 7, ly: 0.2, lz: F.z + 3, player: [F.x + 4, F.z + 1.8, 1.2] }); await p.waitForTimeout(3000); await shot('1-hierba');
+  // 1b) la hierba como la ve quien juega: cámara detrás del avatar
+  await cine({ x: F.x - 4, y: 2.6, z: F.z - 3, lx: F.x + 6, ly: 0.6, lz: F.z + 4, player: [F.x + 0.5, F.z + 0.5, 0.9] }); await p.waitForTimeout(3000); await shot('1b-hierba-juego');
+  if (only === 'hierba') { await browser.close(); process.exit(0); }
   // 2) prado y montañas: vista amplia desde el pueblo
   const P0 = spots.plaza;
   await cine({ x: P0.x, y: 14, z: P0.z + 30, lx: P0.x, ly: 80, lz: P0.z - 300 }); await p.waitForTimeout(3500); await shot('2-montanas');

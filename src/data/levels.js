@@ -13,6 +13,8 @@ const QUESERA = { shirt: '#b5485d', apron: '#ffffff', skirt: '#4a3b35', hair: '#
 const VITI = { shirt: '#8a4f7d', pants: '#3a3530', hat: 'straw', hair: '#2e2018' };
 const HUERTA = { shirt: '#d9a03a', pants: '#4a5b3a', hat: 'straw', hair: '#6b4a2e' };
 
+import { PERSONAJES, FIGURE_TOWNS } from './personajes.js';
+
 export const LEVELS = [
   // ---------------- Baztan-Bidasoa ----------------
   { id: 'lesaka', name: 'Lesaka', comarca: 'bidasoa', family: 'atlantic', relief: 'valley', size: 55,
@@ -475,4 +477,11 @@ for (const [id, who] of Object.entries(PELOTA_TOWNS)) {
   const girl = /^(Ane|Oihane)/.test(who);
   l.missions.push({ type: 'pelota', title: 'Partido en el frontón', story: PELOTA_STORY, host: H(who, { shirt: '#ffffff', pants: '#ffffff', sash: girl ? '#3a8fd6' : '#d42f2f', hair: '#2a1a12', ponytail: girl, female: girl }),
     text: 'La pelota vasca se juega en frontones de plaza. Gana tu primer partido a 5 tantos.' });
+}
+
+// Personajes de Navarra: música, deporte, ciencia, viajes, gobierno y mujeres que abrieron camino
+for (const [id, list] of Object.entries(FIGURE_TOWNS)) {
+  const l = LEVELS.find(x => x.id === id); if (!l?.missions) continue;
+  const at = l.missions.findIndex(m => m.type === 'quiz');
+  list.forEach((who, k) => { const F = PERSONAJES[who]; l.missions.splice((at < 0 ? l.missions.length : at) + k, 0, { type: 'figure', who, title: F.name, host: F.host }); });
 }
