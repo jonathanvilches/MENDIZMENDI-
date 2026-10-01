@@ -25,6 +25,10 @@ await p.waitForTimeout(1500); await shot('entrenadora');
 for (let i = 0; i < 8; i++) { const open = await p.evaluate(() => window.__game.ui.dialogOpen); if (!open) break; await p.keyboard.press('e'); await p.waitForTimeout(500); await p.keyboard.press('e'); await p.waitForTimeout(400); }
 await p.waitForFunction(() => window.__game.mode === 'futbol', null, { timeout: 60000 });
 await p.waitForTimeout(2500); await shot('saque');
+// el perro, sentado junto a la banda
+console.log('perro', await p.evaluate(() => { const G = window.__game, D = G.perro?.dog, F = G.futbol; if (!D) return 'sin perro'; const c = G.camera, q = D.pos; F.__cam = F.cam; F.cam = () => { c.position.set(q.x + 2.4, q.y + 1.3, q.z + 1.8); c.lookAt(q.x, q.y + 0.45, q.z); }; F.cam(); return JSON.stringify({ sit: D.sit, vis: D.obj.visible }); }));
+await p.waitForTimeout(2500); await shot('perro-sentado');
+await p.evaluate(() => { const F = window.__game.futbol; F.cam = F.__cam; });
 // juego automático: el jugador va al balón; si está cerca y mira a la portería, chuta
 const play = (secs) => p.evaluate((secs) => {
   // tiempo simulado: el jugador va al balón; si lo lleva, hacia la portería, y chuta con carga cerca del área

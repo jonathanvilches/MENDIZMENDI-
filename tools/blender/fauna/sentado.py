@@ -7,6 +7,7 @@ import bpy, math, os, sys
 from mathutils import Matrix, Vector
 
 SRC = os.path.join(os.getcwd(), 'src', 'assets', 'animals')
+ANG, NECK, THIGH, SHIN, FRONT = [float(v) for v in os.environ.get('SIT', '38,-30,-40,60,38').split(',')]
 OUT = '/tmp/fauna_der'
 
 def sentar(name, render=False):
@@ -20,31 +21,27 @@ def sentar(name, render=False):
     bpy.context.view_layer.update()
     rest = {b.name: b.bone.matrix_local.copy() for b in pb}
     hip = (rest['BackLeg.L'].to_translation() + rest['BackLeg.R'].to_translation()) / 2
+    foot = (rest['FrontLowerLeg.L'] @ Vector((0, arm.data.bones['FrontLowerLeg.L'].length, 0))).z
+    sh0 = (rest['FrontUpperLeg.L'].to_translation() + rest['FrontUpperLeg.R'].to_translation()) / 2
     def pose(t):
-        breath = math.sin(t * math.pi * 2) * 0.012
-        ang = math.radians(-38)
-        # el cuerpo gira sobre la cadera, que baja casi al suelo
-        T = Matrix.Translation(Vector((0, 0.1, hip.z * 0.32 + breath))) @ Matrix.Rotation(ang, 4, 'X') @ Matrix.Translation(-Vector((0, hip.y, hip.z)))
+        # las pezuñas son huesos sueltos (quedan en el suelo): basta con bajar la grupa girando el cuerpo sobre
+        # los hombros; las patas traseras quedan dobladas bajo la cadera y las delanteras rectas
+        breath = math.sin(t * math.pi * 2) * 0.01
+        ang = math.radians(-ANG)
+        T = Matrix.Translation(Vector((0, sh0.y, sh0.z + breath))) @ Matrix.Rotation(ang, 4, 'X') @ Matrix.Translation(-Vector((0, sh0.y, sh0.z)))
         pb['Body'].matrix = T @ rest['Body']; bpy.context.view_layer.update()
-        # cabeza y cuello compensan para mirar al frente
-        for n, a in (('Neck1', 18), ('Neck2', 10), ('Head', 8)):
+        for n, a in (('Neck1', NECK), ('Neck2', NECK * 0.5)):
             if n in pb: pb[n].rotation_quaternion = Matrix.Rotation(math.radians(a), 4, 'X').to_quaternion()
-        # patas delanteras: las pezuñas (huesos IK sueltos) bajo los hombros, en el suelo
-        bpy.context.view_layer.update()
         for s in ('L', 'R'):
-            sh = (arm.matrix_world.inverted() @ arm.matrix_world @ pb['FrontUpperLeg.' + s].matrix).to_translation()
-            ik = 'IKFrontLeg.' + s
-            if ik in pb:
-                m = rest[ik].copy(); m.translation = Vector((m.translation.x, sh.y - 0.05, rest[ik].translation.z)); pb[ik].matrix = m
-            # pata trasera recogida: el muslo hacia delante, pegado al suelo
-            for n, a in (('BackUpperLeg.' + s, -35), ('BackLowerLeg.' + s, 40)):
+            if 'FrontUpperLeg.' + s in pb: pb['FrontUpperLeg.' + s].rotation_quaternion = Matrix.Rotation(math.radians(FRONT), 4, 'X').to_quaternion()
+            for n, a in (('BackUpperLeg.' + s, THIGH), ('BackLowerLeg.' + s, SHIN)):
                 if n in pb: pb[n].rotation_quaternion = Matrix.Rotation(math.radians(a), 4, 'X').to_quaternion()
-            ikb = 'IKBackLeg.' + s
-            if ikb in pb:
-                m = rest[ikb].copy(); m.translation = Vector((m.translation.x, m.translation.y - 0.25, m.translation.z)); pb[ikb].matrix = m
-        for n, a in (('Tail1', -40), ('Tail2', -20), ('Tail3', -10)):
+        for n, a in (('Tail1', -30), ('Tail2', -15)):
             if n in pb: pb[n].rotation_quaternion = Matrix.Rotation(math.radians(a), 4, 'X').to_quaternion()
         bpy.context.view_layer.update()
+        # todo baja hasta que las manos (punta de la pata delantera) tocan el suelo
+        tip = min((pb['FrontLowerLeg.' + s].matrix @ Vector((0, pb['FrontLowerLeg.' + s].length, 0))).z for s in ('L', 'R'))
+        pb['Body'].matrix = Matrix.Translation(Vector((0, 0, foot - tip))) @ pb['Body'].matrix; bpy.context.view_layer.update()
     for f, t in ((1, 0), (13, 0.5), (25, 1.0)):
         pose(t)
         for b in pb:
@@ -55,7 +52,7 @@ def sentar(name, render=False):
     if render:
         bpy.context.scene.frame_set(1)
         cam = bpy.data.objects.new('CAM', bpy.data.cameras.new('CAM')); bpy.context.scene.collection.objects.link(cam)
-        cam.location = (9, -2, 2); cam.rotation_euler = (math.radians(84), 0, math.radians(90)); bpy.context.scene.camera = cam
+        cam.location = (11, -0.5, 1.6); cam.rotation_euler = (math.radians(86), 0, math.radians(90)); bpy.context.scene.camera = cam
         sun = bpy.data.objects.new('SUN', bpy.data.lights.new('SUN', 'SUN')); bpy.context.scene.collection.objects.link(sun); sun.rotation_euler = (0.6, 0.3, 0.8)
         sc = bpy.context.scene; sc.render.engine = 'BLENDER_EEVEE_NEXT'; sc.render.resolution_x = 640; sc.render.resolution_y = 480; sc.render.filepath = f'/tmp/fauna_der/{name}_sit.png'
         bpy.ops.render.render(write_still=True)
@@ -64,4 +61,4 @@ def sentar(name, render=False):
     print('SENTADO', name)
 
 if __name__ == '__main__':
-    for n in ('ShibaInu', 'Husky'): sentar(n, 'render' in sys.argv)
+    for n in ([a for a in sys.argv[1:] if a in ('ShibaInu', 'Husky')] or ['ShibaInu', 'Husky']): sentar(n, 'render' in sys.argv)

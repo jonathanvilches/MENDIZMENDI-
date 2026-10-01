@@ -5,15 +5,17 @@ import { NodeIO } from '@gltf-transform/core';
 import { KHRONOS_EXTENSIONS } from '@gltf-transform/extensions';
 import { dedup, prune, resample, quantize } from '@gltf-transform/functions';
 import { mkdirSync, statSync } from 'fs';
-const KEEP = new Set(['Idle', 'Idle_2', 'Idle_Headlow', 'Walk', 'Gallop', 'Eating', 'Idle_HitReact1', 'Attack_Headbutt']);
+const KEEP = new Set(['Sit', 'Idle', 'Idle_2', 'Idle_Headlow', 'Walk', 'Gallop', 'Eating', 'Idle_HitReact1', 'Attack_Headbutt']);
 const LIST = ['Cow', 'Bull', 'Horse', 'Donkey', 'Deer', 'Stag', 'Fox', 'Wolf', 'Husky', 'ShibaInu', 'Alpaca'];
 // especies derivadas en Blender (tools/blender/fauna/derivar.py → /tmp/fauna_der)
 const DER = { Sheep: 'sheep', Goat: 'goat', Pig: 'pig', Jabali: 'jabali' };
+// perros con la pose «Sentado» añadida en Blender (tools/blender/fauna/sentado.py)
+for (const n of ['ShibaInu', 'Husky']) if ((await import('fs')).existsSync(`/tmp/fauna_der/${n}.glb`)) DER[n] = n;
 const only = process.argv.slice(2);
 const io = new NodeIO().registerExtensions(KHRONOS_EXTENSIONS);
 mkdirSync('src/assets/animals', { recursive: true });
 let tot = 0;
-for (const n of [...LIST, ...Object.keys(DER)]) {
+for (const n of [...LIST.filter(n => !DER[n]), ...Object.keys(DER)]) {
   if (only.length && !only.includes(n)) continue;
   const src = DER[n] ? `/tmp/fauna_der/${DER[n]}.glb` : `lab/ref/packs/quaternius/${n}.gltf`;
   // primero a GLB tal cual (así dedup y resample trabajan sobre buffers binarios), luego se quitan clips y se optimiza

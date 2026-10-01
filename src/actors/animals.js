@@ -41,6 +41,8 @@ export class Animal {
   }
   update(dt, player, extra) {
     this.t += dt;
+    // sentado esperando (el perro mientras juegas a pelota o al fútbol)
+    if (this.sit) { this.speed = 0; this.pos.y = groundHeight(this.pos.x, this.pos.z); this.animate(dt); this.sync(); return; }
     const dxp = this.pos.x - player.pos.x, dzp = this.pos.z - player.pos.z, dp = Math.hypot(dxp, dzp);
     const sneak = player.speed < 2.2;
     // si corres hacia ellos se asustan antes; si te acercas despacio, te dejan llegar más cerca
@@ -104,7 +106,7 @@ export class Animal {
     this.sync();
   }
   animate(dt) {
-    if (this.glbA) { this.glbA.update(dt, { speed: this.speed, graze: this.state === 'graze' && !this.alert && this.speed < 0.15, alt: (this.t % 14) > 11, lod: !this.obj.visible ? 0.25 : this.dist > 45 ? 0.12 : this.dist > 22 ? 0.05 : 0 }); return; }
+    if (this.glbA) { this.glbA.update(dt, { speed: this.speed, graze: this.state === 'graze' && !this.alert && this.speed < 0.15, alt: (this.t % 14) > 11, sit: this.sit, lod: !this.obj.visible ? 0.25 : this.dist > 45 ? 0.12 : this.dist > 22 ? 0.05 : 0 }); return; }
     const q = this.q, sp = this.speed;
     // andares con cada pata a su tiempo: paso (secuencia lateral), trote (diagonales) y galope rotatorio
     // (trasera, trasera, delantera, delantera). La pata se recoge al adelantarse (como si doblara la rodilla) y el
@@ -333,7 +335,7 @@ export class Fauna {
     const vd = this.visDist;
     for (const a of this.animals) {
       const d = Math.hypot(a.pos.x - player.pos.x, a.pos.z - player.pos.z);
-      a.obj.visible = !a.hidden && d < vd;
+      a.obj.visible = !a.hidden && (d < vd || a.pinVisible);
       const sh = d < 35;
       if (a.shadowOn !== sh) { a.shadowOn = sh; a.obj.traverse(o => { if (o.isMesh && !o.userData.outline) o.castShadow = sh; }); }
       setOutlines(a.obj, d < 26);

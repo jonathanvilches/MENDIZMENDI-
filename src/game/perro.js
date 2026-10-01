@@ -25,6 +25,16 @@ export class Perro {
     if (v && !this.dog) { this.spawnDog(P.x + 1.2, P.z); g.sound?.bark?.(this.dog.pos); g.ui.toast(`${this.name} viene contigo`, 'dog', 2000); }
     if (!v && this.dog) { const F = g.fauna; g.scene.remove(this.dog.obj); F.animals.splice(F.animals.indexOf(this.dog), 1); this.dog = null; this.lead = null; g.ui.toast(`${this.name} se queda en casa. Puedes llamarlo desde la mochila.`, 'dog', 2600); }
   }
+  // se sienta a esperar en un sitio (junto a la cancha o el campo) mirando el juego, y luego vuelve contigo
+  wait(pos, look) {
+    const D = this.dog; if (!D) return;
+    this.waiting = true; D.follow = null; D.sit = true; D.pinVisible = true; D.alwaysUpdate = true; D.hidden = false;
+    D.pos.set(pos.x, 0, pos.z); if (look) D.heading = Math.atan2(look.x - pos.x, look.z - pos.z); D.sync?.();
+  }
+  release() {
+    const D = this.dog; this.waiting = false; if (!D) return;
+    D.sit = false; D.pinVisible = false; D.alwaysUpdate = false; D.follow = this.side; D.obj.visible = true;
+  }
   get breed() { return DOG_BREEDS[this.g.P.dogBreed] ? this.g.P.dogBreed : 'gorbeia'; }
   spawnDog(x, z) {
     const F = this.g.fauna, B = DOG_BREEDS[this.breed];
@@ -71,7 +81,7 @@ export class Perro {
   }
   update(dt) {
     const g = this.g, P = g.player.pos, D = this.dog;
-    if (!D) return;
+    if (!D || this.waiting) return;
     { const h = g.player.heading ?? 0, sp = g.player.speed || 0, lead = Math.min(1.2, sp * 0.18);
       this.side.pos.set(P.x + Math.cos(h) * 1.15 + Math.sin(h) * (0.2 + lead), 0, P.z - Math.sin(h) * 1.15 + Math.cos(h) * (0.2 + lead));
       this.side.speed = sp; this.side.face = h; }
