@@ -25,6 +25,8 @@ await p.evaluate(() => { const G = window.__game, E = G.encierro, T = window.__T
   const b = E.bulls.filter(b => b.kind === 'bull' && !b.out).sort((a, c) => a.z - c.z)[0]; b.charge = 1;
   E.camera.position.set(b.x - 1.6, 1.3, b.z - 4.2); E.camera.lookAt(b.x, 1.1, b.z); });
 await p.waitForTimeout(1500); await shot('toro-cerca');
+await p.evaluate(() => { const E = window.__game.encierro, t = E.tv[1]; E.camera.position.set(t.x > 0 ? t.x - 3.2 : t.x + 3.2, t.y - 0.6, t.z - 2.6); E.camera.lookAt(t.x, t.y - 0.4, t.z); });
+await p.waitForTimeout(1500); await shot('camara-tv-de-cerca');
 await p.evaluate(() => { const G = window.__game; G.altUpdate = G.__upd; });
 const st = await p.evaluate(() => { const G = window.__game; const e = G.altUpdate && G.altScene; return { mode: G.mode, errores: window.__errors || [] }; });
 console.log(JSON.stringify(st));
@@ -35,6 +37,8 @@ await p.waitForTimeout(1500); await shot('caido');
 console.log('salto', await p.evaluate(() => { const G = window.__game, E = G.encierro; E.jumpQ = true; let maxY = 0, tropiezo = false; for (let i = 0; i < 30; i++) { G.altUpdate(1 / 30); maxY = Math.max(maxY, E.me.y || 0); if (E.me.fall > 0) tropiezo = true; } return JSON.stringify({ maxY: maxY.toFixed(2), tropiezo }); }));
 await p.evaluate(() => { const E = window.__game.encierro; E.nextCam(); E.nextCam(); }); await adv(0.5); await p.waitForTimeout(800); await shot('camara-aerea');
 await p.evaluate(() => { const E = window.__game.encierro; E.nextCam(); }); await adv(0.5); await p.waitForTimeout(800); await shot('camara-toros');
+await p.evaluate(() => { const E = window.__game.encierro; E.nextCam(); }); await adv(0.5); await p.waitForTimeout(800); await shot('camara-tele');
+console.log('tele', JSON.stringify(await p.evaluate(() => { const E = window.__game.encierro; return { n: E.tv.length, live: E.h.querySelector('.enc-live').classList.contains('on') }; })));
 await p.evaluate(() => { const E = window.__game.encierro; E.nextCam(); });
 await adv(30); await p.waitForTimeout(800); await shot('plaza');
 await p.evaluate(() => { const E = window.__game.encierro; if (E) E.me.z = E.plaza.cz + 34 + 4; }); await adv(1.2); await p.waitForTimeout(800); await shot('puerta-plaza');
