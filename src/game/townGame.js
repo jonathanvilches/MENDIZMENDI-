@@ -27,6 +27,7 @@ import { Perro } from './perro.js';
 import { makeTrailSign, signSVG, ORIENTA, ORIENTA_TIPS } from './senales.js';
 import { FOOD } from '../data/equipo.js';
 import { Tienda } from './tienda.js';
+import { Mercado, marketDay } from './mercado.js';
 import { GOODS } from '../data/tiendas.js';
 import { FERIA } from '../data/ferias.js';
 import { PET, BELL, BENCH_LINES } from '../data/tocar.js';
@@ -270,6 +271,8 @@ export class TownGame {
     }
     // la tienda del pueblo (productos locales, producto estrella y trueque)
     try { this.tienda = new Tienda(this); } catch (e) { console.warn('tienda', e); }
+    // algunos días hay mercado en la plaza
+    try { if (marketDay(d, this.rnd)) { this.mercado = new Mercado(this); this.marketToast = true; } } catch (e) { console.warn('mercado', e); }
     // mochila del explorador: equipo visible, agua, comida y energía; frutos del campo para recoger
     this.mochila = new Mochila(this);
     this.gearProps = new GearProps(this.player.rig); this.gearProps.set(this.P.gear);
@@ -518,7 +521,7 @@ export class TownGame {
   // ---------- Interacción ----------
   interactables() {
     const list = [];
-    for (const a of this.actors) if (a.visible !== false) list.push({ kind: 'npc', a, x: a.pos.x, z: a.pos.z, r: 3, label: a === this.pelotari ? `Jugar a pelota con ${a.name}` : a === this.coach ? 'Jugar un partido en El Sadar' : a.sabio ? `${a.name}: la historia de ${a.sabio.name}` : `Hablar con ${a.name}` });
+    for (const a of this.actors) if (a.visible !== false) list.push({ kind: 'npc', a, x: a.pos.x, z: a.pos.z, r: 3, label: a.market ? `Puesto del mercado: ${a.market.toLowerCase()}` : a === this.pelotari ? `Jugar a pelota con ${a.name}` : a === this.coach ? 'Jugar un partido en El Sadar' : a.sabio ? `${a.name}: la historia de ${a.sabio.name}` : `Hablar con ${a.name}` });
     for (const a of this.walkers) list.push({ kind: 'walker', a, x: a.pos.x, z: a.pos.z, r: a.info ? 3 : 2.4, label: a.stall ? 'Productos del pueblo' : a.info ? `Hablar con ${a.name.toLowerCase() === 'pastor' ? 'el pastor' : 'la ganadera'}` : `Saludar a ${a.name}` });
     for (const o of this.agro?.list || []) list.push({ kind: 'agro', o, x: o.x, z: o.z, r: o.kind === 'combine' ? 6 : 4.5, label: `Mirar: ${o.info.title.toLowerCase()}` });
     for (const it of this.items) list.push({ kind: 'item', it, x: it.x, z: it.z, r: 2.2, label: it.label });

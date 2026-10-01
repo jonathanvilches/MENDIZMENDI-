@@ -25,6 +25,7 @@ import { landImg, stampImg } from './assets.js';
 import COMARCAS from './data/comarcas.json';
 import { preloadNpcs } from './actors/npcGlb.js';
 import { preloadAnimals } from './actors/animalGlb.js';
+import { preloadFood } from './world/products3d.js';
 import { setOutfitChoices } from './actors/outfits.js';
 import { avatarPortrait } from './ui/portraits.js';
 import { loadStore, queueMode } from './util/store.js';
@@ -81,7 +82,7 @@ async function boot() {
     const TI = { visit: 'church', process: 'basket', harvest: 'wheat', herd: 'sheep', dance: 'dance', carnival: 'mask', trade: 'anvil', legend: 'legend', race: 'running', observe: 'binoculars', tradition: 'music', quiz: 'quiz', summit: 'peak', pelota: 'pelota', figure: 'person', feria: 'cow', dolmen: 'dolmen', castle: 'castle', mirador: 'binoculars' };
     ui.showLoading(d.name, TIPS[Math.floor(Math.random() * TIPS.length)], landImg(d.comarca, 1280, 720, true), { comarca: cm?.name, stamp: stampImg(d.comarca, d.name.split(' /')[0]), avatar: avatarPortrait(P.avatar), intro: d.intro, missions: (d.missions || []).map(m => m.icon || TI[m.type] || 'star') });
     try {
-      const npcP = preloadNpcs(); await preloadAnimals(); await Promise.all([rt.load(d, P.avatar, (p, m) => ui.progress(p, m)), npcP]);
+      const npcP = preloadNpcs(); await Promise.all([preloadAnimals(), preloadFood()]); await Promise.all([rt.load(d, P.avatar, (p, m) => ui.progress(p, m)), npcP]);
       const ctx = { scene: rt.scene, camera: rt.camera, player: rt.player, follow: rt.follow, ui, sound, input, sky: rt.sky, fauna: rt.fauna, particles: rt.particles, beacon: rt.beacon, onExit: exit };
       hookPlayer(rt.player);
       if (d.special === 'salazar') {
