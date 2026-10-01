@@ -4,13 +4,28 @@ import { groundHeight } from './heightfield.js';
 
 // texturas pintadas a mano en un lienzo: disco de la luna con sus mares y niebla suave
 function moonTex() {
-  const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
-  const r = g.createRadialGradient(64, 64, 0, 64, 64, 64);
-  r.addColorStop(0, 'rgba(255,252,236,1)'); r.addColorStop(0.42, 'rgba(250,246,226,1)'); r.addColorStop(0.47, 'rgba(250,246,226,0.25)'); r.addColorStop(1, 'rgba(200,215,255,0)');
-  g.fillStyle = r; g.fillRect(0, 0, 128, 128);
-  g.fillStyle = 'rgba(190,188,176,0.55)';
-  for (const [x, y, s] of [[52, 50, 11], [74, 60, 8], [60, 76, 9], [78, 44, 5], [46, 70, 5]]) { g.beginPath(); g.arc(x, y, s, 0, Math.PI * 2); g.fill(); }
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+  // disco nítido con el borde algo más oscuro, mares grises de contorno irregular y cráteres con su brillo
+  const N = 256, c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d'), R = N * 0.46, C = N / 2;
+  let s = 11; const rnd = () => ((s = (s * 9301 + 49297) % 233280) / 233280);
+  g.save(); g.beginPath(); g.arc(C, C, R, 0, Math.PI * 2); g.clip();
+  const base = g.createRadialGradient(C - R * 0.25, C - R * 0.25, R * 0.1, C, C, R);
+  base.addColorStop(0, '#fffdf2'); base.addColorStop(0.75, '#efe9d6'); base.addColorStop(1, '#cfc8b4');
+  g.fillStyle = base; g.fillRect(0, 0, N, N);
+  for (const [x, y, r] of [[0.38, 0.36, 0.2], [0.55, 0.42, 0.14], [0.47, 0.6, 0.17], [0.66, 0.3, 0.09], [0.32, 0.58, 0.1], [0.62, 0.62, 0.08]]) {   // mares
+    for (let k = 0; k < 9; k++) { const a = rnd() * 6.28, d = rnd() * r * 0.6, rr = r * (0.5 + rnd() * 0.5); g.fillStyle = 'rgba(150,148,140,0.18)'; g.beginPath(); g.arc((x + Math.cos(a) * d) * N, (y + Math.sin(a) * d) * N, rr * N * 0.7, 0, 7); g.fill(); }
+  }
+  for (let i = 0; i < 70; i++) {   // cráteres
+    const x = C + (rnd() - 0.5) * 2 * R, y = C + (rnd() - 0.5) * 2 * R, r = 1 + rnd() * rnd() * 9;
+    g.fillStyle = 'rgba(120,116,104,0.35)'; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
+    g.strokeStyle = 'rgba(255,255,248,0.45)'; g.lineWidth = Math.max(0.6, r * 0.25); g.beginPath(); g.arc(x - r * 0.15, y - r * 0.15, r, 3.4, 5.6); g.stroke();
+  }
+  g.restore();
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+}
+function moonGlowTex() {
+  const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'), r = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  r.addColorStop(0, 'rgba(220,230,255,0.55)'); r.addColorStop(0.25, 'rgba(200,215,255,0.22)'); r.addColorStop(1, 'rgba(200,215,255,0)');
+  g.fillStyle = r; g.fillRect(0, 0, 128, 128); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
 function mistTex() {
   const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
@@ -116,7 +131,10 @@ void main(){
     this.night = 0;
     // luna visible (en la dirección de su luz) y niebla baja que se arrastra entre prados y calles de noche
     this.moon = new THREE.Sprite(new THREE.SpriteMaterial({ map: moonTex(), transparent: true, depthWrite: false, fog: false, opacity: 0 }));
-    this.moon.scale.setScalar(150); this.moon.renderOrder = -9; scene.add(this.moon);
+    this.moon.scale.setScalar(95); this.moon.renderOrder = -8; scene.add(this.moon);
+    // halo suave alrededor de la luna (detrás del disco)
+    this.moonGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: moonGlowTex(), transparent: true, depthWrite: false, fog: false, opacity: 0, blending: THREE.AdditiveBlending }));
+    this.moonGlow.scale.setScalar(420); this.moonGlow.renderOrder = -9; scene.add(this.moonGlow);
     const mt = mistTex();
     this.mist = [];
     for (let i = 0; i < (quality === 'low' ? 10 : 18); i++) {
@@ -164,6 +182,7 @@ void main(){
     const md = new THREE.Vector3(-this.sunDir.x, Math.max(0.3, -this.sunDir.y), -this.sunDir.z).normalize();
     this.moon.position.set(focus.x + md.x * 2000, focus.y + md.y * 2000, focus.z + md.z * 2000);
     this.moon.material.opacity = this.night; this.moon.visible = this.night > 0.02;
+    this.moonGlow.position.copy(this.moon.position); this.moonGlow.material.opacity = this.night * 0.8; this.moonGlow.visible = this.moon.visible;
     const mo = this.night * 0.3;
     for (const s of this.mist) {
       s.visible = mo > 0.01; if (!s.visible) continue;

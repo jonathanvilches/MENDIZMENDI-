@@ -1,4 +1,5 @@
 // Motor: carga una localidad (Salazar o generada), la actualiza y la libera al salir
+import { Weather, pickWeather } from '../world/weather.js';
 import * as THREE from 'three';
 import { bake, initBridges, terrainHeight, clearPlatforms } from '../world/heightfield.js';
 import { buildTextures, TEX } from '../world/textures.js';
@@ -98,6 +99,7 @@ export class Runtime {
     onProgress(0.35, 'Extendiendo el paisaje…'); await frame();
     this.terrain = new Terrain(scene, q);
     this.sky = new SkySystem(scene, this.renderer, q);
+    this.weather?.dispose(); this.weather = new Weather(scene, pickWeather(def), q);
     this.water = new Water(scene);
     onProgress(0.5, `Construyendo ${def.name}…`); await frame();
     this.mats = makeMaterials();
@@ -211,6 +213,7 @@ export class Runtime {
     g.update(dt);
     this.terrain.update(this.camera.position);
     this.sky.update(dt, P.pos, this.elapsed, g.mode === 'dance');
+    this.weather?.update(dt, this.camera, this.sky, this.sound);
     this.water.update(this.elapsed, this.sky);
     this.nature.update(this.camera.position, P.pos, this.elapsed, P.pos);
     updateDetail(this.camera.position, this.quality);
