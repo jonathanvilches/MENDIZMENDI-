@@ -346,6 +346,7 @@ function foliageAtlas(size) {
   const c = document.createElement('canvas'); c.width = c.height = size;
   const g = c.getContext('2d'), H = size / 2;
   g.clearRect(0, 0, size, size);
+  // cuadrante de abajo a la derecha: franja blanca (troncos y piezas de color liso) y «masa de hojas» opaca
   g.fillStyle = '#ffffff'; g.fillRect(H, H, H, H);
   const leaf = (x, y, L, W, a, l) => {
     g.save(); g.translate(x, y); g.rotate(a);
@@ -368,6 +369,20 @@ function foliageAtlas(size) {
     }
     g.restore();
   };
+  // masa de hojas opaca para el interior de las copas: fondo en sombra y cientos de hojas encima,
+  // más claras arriba (les da el sol) y con huecos oscuros entre racimos
+  {
+    const x0 = H, y0 = H, w = H * 0.72, h = H;
+    g.save(); g.beginPath(); g.rect(x0, y0, w, h); g.clip();
+    g.fillStyle = 'hsl(95,30%,22%)'; g.fillRect(x0, y0, w, h);
+    for (let i = 0; i < 70; i++) { g.fillStyle = `hsla(90,30%,${10 + rnd() * 10}%,.5)`; g.beginPath(); g.arc(x0 + rnd() * w, y0 + rnd() * h, size * (0.01 + rnd() * 0.02), 0, 7); g.fill(); }
+    const n = Math.round(size * 1.4);
+    for (let i = 0; i < n; i++) {
+      const x = x0 + rnd() * w, y = y0 + rnd() * h, up = 1 - (y - y0) / h;
+      leaf(x, y, size * (0.022 + rnd() * 0.02), size * (0.011 + rnd() * 0.01), rnd() * 6.28, 30 + up * 30 + rnd() * 26);
+    }
+    g.restore();
+  }
   cluster(0, 0, 90, size * 0.06, size * 0.03);
   cluster(0, H, 150, size * 0.042, size * 0.021);
   // rama de abeto: eje con agujas a ambos lados, que se acortan hacia la punta
@@ -400,7 +415,7 @@ function foliageAtlas(size) {
   return t;
 }
 // Zonas del atlas de follaje en UV (u0, v0, u1, v1) y el punto opaco para troncos
-export const FOLIAGE = { leafA: [0, 0.5, 0.5, 1], leafB: [0, 0, 0.5, 0.5], needle: [0.5, 0.5, 1, 1], solid: [0.8, 0.2] };
+export const FOLIAGE = { leafA: [0, 0.5, 0.5, 1], leafB: [0, 0, 0.5, 0.5], needle: [0.5, 0.5, 1, 1], solid: [0.93, 0.25], mass: [0.505, 0.005, 0.855, 0.495] };
 
 export const TEX = {};
 export function buildTextures(quality = 'high') {

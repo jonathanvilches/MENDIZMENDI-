@@ -498,6 +498,11 @@ def build_boot(d):
     C.smooth_verts(bm, toe, 0.5, 5)
     for v in toe:
         if zs[v] < 1e-4: v.co.z = 0.0                               # la suela sigue plana
+    # suela de goma que sobresale un poco (labio alrededor del pie)
+    if d['boot'].get('lip'):
+        cx = sum((v.co for v in bm.verts), V()) / len(bm.verts)
+        for v in bm.verts:
+            if v.co.z < 1e-4: v.co.x = cx.x + (v.co.x - cx.x) * (1 + d['boot']['lip']); v.co.y = cx.y + (v.co.y - cx.y) * (1 + d['boot']['lip'] * 0.6)
     C.clean_bm(bm)
     # pliegue (crease) en el borde de la suela: la subdivisión no la levanta del suelo
     cr = bm.edges.layers.float.get('crease_edge') or bm.edges.layers.float.new('crease_edge')

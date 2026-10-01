@@ -12,7 +12,7 @@ export const GEAR = {
 export const GEAR_ORDER = ['mochila', 'cantimplora', 'prismaticos', 'cuaderno', 'baston', 'brujula', 'farol'];
 
 export const FOOD = {
-  pan: { name: 'Pan', icon: 'bread', e: 25, fact: 'Pan del horno del pueblo. Los pastores llevaban pan y queso en el zurrón para todo el día.' },
+  pan: { name: 'Pan', icon: 'bread', e: 25, fact: 'Los pastores llevaban pan y queso en el zurrón para todo el día.' },
   moras: { name: 'Moras', icon: 'berries', e: 12, fact: 'Las zarzamoras maduran a final del verano en los bordes de los caminos. Coge solo frutos que conozcas bien.' },
   avellanas: { name: 'Avellanas', icon: 'hazelnut', e: 18, fact: 'El avellano crece en el borde del bosque y da avellanas en otoño. Tienen mucha energía.' },
   manzana: { name: 'Manzana', icon: 'apple', e: 18, fact: 'De los manzanos de la huerta. En los caseríos, con las manzanas también se hace sidra.' },

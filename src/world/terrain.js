@@ -190,6 +190,10 @@ vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.
   rc *= 0.42 + 0.58 * rk.b;                                           // juntas y grietas en sombra
   rc = mix(rc, vec3(0.6, 0.6, 0.38) * (0.78 + 0.3 * rk2.r), smoothstep(0.5, 0.9, rk.g) * 0.38);   // líquenes gris verdosos
   rc = mix(rc, vec3(0.78, 0.5, 0.2), smoothstep(0.86, 0.98, rk2.g) * 0.45);                       // manchas de liquen naranja
+  // de lejos la roca no debe verse moteada: el detalle fino se funde en tonos amplios con estratos y canales
+  float farR = smoothstep(55.0, 200.0, length(vWP - cameraPosition));
+  vec3 rfar = rbase * (0.62 + 0.3 * big + 0.12 * huge) * (0.8 + 0.2 * strata) * mix(1.0, 0.72, smoothstep(0.5, 0.8, streak) * smoothstep(0.3, 0.55, slope));
+  rc = mix(rc, rfar, farR * 0.7);
   float ledge = smoothstep(0.6, 0.86, nw.y) * smoothstep(0.35, 0.7, d1.g);
   rc = mix(rc, vec3(0.2, 0.29, 0.1) * (0.7 + 0.5 * blades), ledge * 0.55);                          // musgo y hierba en las repisas
   float scree = smoothstep(uRockSlope.x - 0.13, uRockSlope.x, slope) * (1.0 - rockM) * (1.0 - vSurf.x);
@@ -199,6 +203,19 @@ vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.
   // montañas lejanas: manchas de bosque y prados
   float fo = smoothstep(0.48, 0.6, texture2D(tDetail, vWP.xz / 190.0).r) * (1.0 - rockM) * (1.0 - smoothstep(170.0, 215.0, vWP.y));
   col = mix(col, vec3(0.13, 0.24, 0.1) * (0.8 + 0.4 * d1.r), fo * 0.75);
+  // bosque con copas: donde el color es de bosque (verde oscuro) se dibujan copas a dos escalas, con su sombra
+  float lum = dot(base, vec3(0.3, 0.59, 0.11));
+  float isF = max(fo, smoothstep(0.075, 0.04, lum) * step(base.r, base.g)) * (1.0 - rockM);
+  float c1 = texture2D(tDetail, vWP.xz / 6.5).r, c2 = texture2D(tDetail, vWP.xz / 2.9 + 0.4).g;
+  float crowns = smoothstep(0.38, 0.72, c1 * 0.65 + c2 * 0.35);
+  col = mix(col, col * mix(0.45, 1.45, crowns) * mix(vec3(0.9, 1.0, 0.85), vec3(1.08, 1.04, 0.86), smoothstep(0.55, 0.85, c2)), isF);
+  // prados altos: manchas de pasto seco y de hierba fresca
+  float mead = (1.0 - isF) * (1.0 - rockM);
+  col = mix(col, col * mix(vec3(0.86, 0.95, 0.82), vec3(1.12, 1.05, 0.82), big) * (0.88 + 0.24 * d1.g), mead * 0.8);
+  // nieve dibujada por píxel: borde irregular, solo donde se sostiene, con sombra azulada en las caras en sombra
+  float snowA = smoothstep(212.0, 246.0, vWP.y + (big - 0.5) * 70.0 + (d1.r - 0.5) * 26.0) * (1.0 - smoothstep(0.3, 0.5, slope + (d2.g - 0.5) * 0.12));
+  vec3 snowC = mix(vec3(0.78, 0.84, 0.95), vec3(0.97, 0.98, 1.0), clamp(nw.y * 1.2 - 0.1 + (rk2.r - 0.5) * 0.3, 0.0, 1.0));
+  col = mix(col, snowC, snowA);
 #endif
   diffuseColor.rgb = col;
   // tierra y senderos

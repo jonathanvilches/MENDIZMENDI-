@@ -9,6 +9,7 @@ const only = process.env.ONLY;
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 p.on('pageerror', e => console.log('PAGEERROR', e.message));
+if (process.env.AVATAR) await p.addInitScript((a) => { try { const K = 'mendimendiz-perfil-v1', P = JSON.parse(localStorage.getItem(K) || '{"v":1}'); P.avatar = a; P.seen = Object.assign(P.seen || {}, { heroBenat: true, dog: true }); localStorage.setItem(K, JSON.stringify(P)); } catch (e) { } }, process.env.AVATAR);
 await p.goto(`http://127.0.0.1:5173/?town=${town}&quality=high`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 400000 });
 // sin HUD, a media mañana, cámara libre para los planos de paisaje
