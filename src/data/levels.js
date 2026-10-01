@@ -16,6 +16,7 @@ const HUERTA = { shirt: '#d9a03a', pants: '#4a5b3a', hat: 'straw', hair: '#6b4a2
 import { PERSONAJES, FIGURE_TOWNS } from './personajes.js';
 import { FERIA_TOWNS } from './ferias.js';
 import { DOLMEN_TOWNS } from './dolmen.js';
+import { CASTLE_TOWNS } from './castillos.js';
 
 export const LEVELS = [
   // ---------------- Baztan-Bidasoa ----------------
@@ -314,6 +315,16 @@ export const LEVELS = [
       { type: 'harvest', crop: 'olivo', n: 8, host: H('Olivarero', HUERTA), text: 'En el sur de la comarca crecen olivos. Recoge las aceitunas para la almazara.' },
       { type: 'quiz' },
     ] },
+  { id: 'irulegi', name: 'Irulegi', mapName: 'Laquidáin / Lakidain', comarca: 'pamplona', family: 'central', relief: 'hilltop', size: 16,
+    river: null,
+    intro: 'Monte del valle de Aranguren, junto a Pamplona. En la cima hay ruinas de un castillo medieval y de un poblado de los vascones de hace más de 2.000 años.',
+    church: { name: 'Iglesia del pueblo', style: 'romanesque', text: 'Pequeña iglesia de piedra al pie del monte Irulegi.' },
+    landmarks: [{ kind: 'dig', name: 'Poblado de Irulegi', text: 'Excavación del poblado de la Edad del Hierro donde apareció la mano de Irulegi en 2021.' }, { kind: 'ruin', name: 'Castillo de Irulegi', text: 'Ruinas de un castillo medieval en lo alto del monte. Desde aquí se ve toda la Cuenca de Pamplona.' }],
+    missions: [
+      { type: 'visit' },
+      { type: 'dolmen', site: 'irulegi', title: 'La mano de Irulegi', host: H('Maite, arqueóloga', { shirt: '#c9a46a', vest: '#4a5a3a', pants: '#5a4a3a', hair: '#2a1a12', ponytail: true, female: true, hat: 'straw' }) },
+      { type: 'quiz' },
+    ] },
   { id: 'sanguesa', name: 'Sangüesa / Zangoza', comarca: 'sanguesa', family: 'central', relief: 'plain', size: 70,
     river: { name: 'Aragón', x: 70, w: 8, amp: 6 },
     intro: 'Ciudad del Camino de Santiago junto al río Aragón, con la portada románica de Santa María la Real.',
@@ -393,6 +404,18 @@ export const LEVELS = [
         steps: ['Recoger las aceitunas', 'Lavarlas', 'Molerlas en la almazara', 'Separar el aceite'] },
       { type: 'quiz' },
     ] },
+  { id: 'javier', name: 'Javier / Xabier', comarca: 'sanguesa', family: 'central', relief: 'hills', size: 18,
+    river: null,
+    intro: 'Pequeño pueblo junto a la frontera con Aragón, famoso por su castillo: aquí nació San Francisco Javier en 1506.',
+    church: { name: 'Basílica de Javier', style: 'gothic', text: 'Basílica neogótica levantada junto al castillo entre finales del siglo XIX y principios del XX.' },
+    landmarks: [{ kind: 'castle', style: 'javier', name: 'Castillo de Javier', text: 'Fortaleza de piedra dorada sobre una peña. Su torre más antigua y alta es la de San Miguel.' }],
+    missions: [
+      { type: 'visit' },
+      { type: 'castle', castle: 'javier' },
+      { type: 'race', kind: 'romeria', title: 'La Javierada', host: H('Peregrina', { shirt: '#3a8fd6', vest: '#2b3a4a', pants: '#3a3530', hair: '#6b3b1f', ponytail: true, female: true, staff: true }),
+        text: 'A principios de marzo, miles de personas caminan desde Pamplona y desde toda Navarra hasta el castillo de Javier: es la Javierada. Sigue el camino de los peregrinos hasta la basílica.' },
+      { type: 'quiz' },
+    ] },
   { id: 'ujue', name: 'Ujué / Uxue', comarca: 'zona-media', family: 'central', relief: 'hilltop', size: 32,
     river: null,
     intro: 'Pueblo medieval en lo alto de un cerro, con su iglesia-fortaleza y famosas almendras garrapiñadas.',
@@ -420,6 +443,17 @@ export const LEVELS = [
         hint: 'Las grullas cruzan el cielo en V, muy altas. Las cigüeñas dan vueltas sobre el pueblo.', outro: '¡Qué suerte! Ver pasar las grullas es una de las cosas más bonitas del invierno navarro.' },
     ] },
   // ---------------- Ribera Alta ----------------
+  { id: 'marcilla', name: 'Marcilla', comarca: 'ribera-alta', family: 'ribera', relief: 'plain', size: 40,
+    river: { name: 'Aragón', x: 75, w: 6, amp: 6 },
+    intro: 'Villa de la Ribera junto al río Aragón, con un castillo del siglo XV rodeado de foso: el único que se libró de los derribos de 1516.',
+    church: { name: 'Iglesia parroquial', style: 'baroque', text: 'La parroquia de la villa, de ladrillo y piedra, como muchas de la Ribera.' },
+    landmarks: [{ kind: 'castle', name: 'Castillo de Marcilla', text: 'Castillo-palacio del siglo XV con foso, torres y almenas. Lo defendió Ana de Velasco en 1516.' }],
+    missions: [
+      { type: 'visit' },
+      { type: 'castle', castle: 'marcilla' },
+      { type: 'harvest', crop: 'esparrago', n: 8, host: H('Esparraguera', HUERTA), text: 'En las vegas del río Aragón y del Ebro se cultivan espárragos. Se recogen muy temprano, antes de que les dé el sol.' },
+      { type: 'quiz' },
+    ] },
   { id: 'peralta', name: 'Peralta / Azkoien', comarca: 'ribera-alta', family: 'ribera', relief: 'plain', size: 60,
     river: { name: 'Arga', x: 55, w: 7, amp: 8 },
     intro: 'Villa de la Ribera Alta junto al Arga, con huertas y un carnaval de comparsas.',
@@ -516,6 +550,14 @@ for (const [id, F] of Object.entries(FERIA_TOWNS)) {
   l.missions.splice(at < 0 ? l.missions.length : at, 0, { type: 'feria', title: F.title, note: F.note,
     host: H('Tratante de ganado', { shirt: '#1d1d24', pants: '#2b2630', txapela: '#1d1d24', hair: '#8a8478', moustache: '#8a8478', staff: true, old: true }) });
 }
+
+// Castillos: recorrer sus partes (Olite y Cortes; Javier y Marcilla la llevan en su ficha)
+for (const id of ['olite', 'cortes']) {
+  const l = LEVELS.find(x => x.id === id); if (!l?.missions) continue; const C = CASTLE_TOWNS[id];
+  const at = l.missions.findIndex(m => m.type === 'quiz');
+  l.missions.splice(at < 0 ? l.missions.length : at, 0, { type: 'castle', castle: id, host: H(C.host.name, C.host.look) });
+}
+for (const l of LEVELS) for (const m of l.missions || []) if (m.type === 'castle' && !m.host) { const C = CASTLE_TOWNS[m.castle]; m.host = H(C.host.name, C.host.look); }
 
 // El dolmen: los primeros pastores y agricultores (Neolítico); excavar con cuidado y ordenar cómo se levantaba
 for (const id of DOLMEN_TOWNS) {

@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { Builder, box, colored, M, MM } from './builder.js';
 import { buildHouse } from './houses.js';
-import { church, castle, wallsRing, bridge, landmark } from './monuments.js';
+import { church, castle, castleJavier, dig, wallsRing, bridge, landmark } from './monuments.js';
 import { bench, lamp, fountain } from './village.js';
 import { PATHS, PLACES, BRIDGES, riverInfo, pathQuery, villageMask, plazaMask, rx, MOD } from './layout.js';
 import { buildPamplona } from './pamplona.js';
@@ -89,7 +89,8 @@ export function buildTown(scene, mats, def) {
   for (const lm of PLACES.landmarks || []) {
     let spot = null;
     if (pamp?.spots[lm.kind]) spot = pamp.spots[lm.kind];
-    else if (lm.kind === 'castle') { const cs = castle(B, lm.x, lm.z, Math.atan2(PLACES.plaza.x - lm.x, PLACES.plaza.z - lm.z), def.id === 'olite'); spot = cs.gate; }
+    else if (lm.kind === 'castle') { const ry = Math.atan2(PLACES.plaza.x - lm.x, PLACES.plaza.z - lm.z), cs = lm.style === 'javier' ? castleJavier(B, lm.x, lm.z, ry) : castle(B, lm.x, lm.z, ry, def.id === 'olite'); spot = cs.gate; }
+    else if (lm.kind === 'dig') spot = dig(B, lm.x, lm.z, Math.atan2(PLACES.plaza.x - lm.x, PLACES.plaza.z - lm.z));
     else if (lm.kind === 'walls') {
       if (lm.ring) { wallsRing(B, lm.x, lm.z, 44, 9, Math.atan2(PLACES.plaza.z - lm.z, PLACES.plaza.x - lm.x)); spot = { x: lm.x + (PLACES.plaza.x - lm.x) * 0.55, z: lm.z + (PLACES.plaza.z - lm.z) * 0.55 }; }
       else { const r = MOD.R + 22; wallsRingGates(B, PLACES.plaza.x, 0, r); spot = { x: PLACES.plaza.x, z: -r + 6 }; }

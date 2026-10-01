@@ -108,7 +108,7 @@ export class Mochila {
     };
     draw();
     const close = () => { root.remove(); g.player.frozen = false; g.mode = 'play'; removeEventListener('keydown', key, true); };
-    const key = (e) => { if (['escape', 'b', 'e'].includes(e.key.toLowerCase())) { e.preventDefault(); e.stopImmediatePropagation(); close(); } };
+    const key = (e) => { if (!document.body.contains(root)) { removeEventListener('keydown', key, true); return; } if (['escape', 'b', 'e'].includes(e.key.toLowerCase())) { e.preventDefault(); e.stopImmediatePropagation(); close(); } };
     addEventListener('keydown', key, true);
     root.addEventListener('click', (e) => {
       const b = e.target.closest('button'); if (!b) return;

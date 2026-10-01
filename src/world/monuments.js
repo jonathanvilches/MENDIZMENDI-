@@ -144,7 +144,84 @@ export function castle(B, x, z, ry, big) {
   // jardín interior con un árbol y pozo
   B.add('stone', new THREE.CylinderGeometry(1, 1, 0.9, 12, 1, true), MM(T, M(4, 0.45, 4)));
   addCircle(...Object.values(toWorld(x, z, ry, 4, 4)), 1.1);
+  boxCol(x, z, ry, 0, D / 2 + 7, W + 6, 12, { ghost: true });
   return { x, z, y, gate: toWorld(x, z, ry, 0, D / 2 + 5) };
+}
+
+// ---------- Castillo de Javier ----------
+// Compacto, de piedra arenisca dorada, sobre una peña: la torre de San Miguel (la más alta, con corona de almenas y
+// matacanes), la torre del Cristo, torres redondas en las esquinas de delante, murallas almenadas con saeteras,
+// puerta con matacán y un puente sobre el foso seco.
+export function castleJavier(B, x, z, ry) {
+  const y = terrainHeight(x, z) - 0.3, T = M(x, y, z, ry);
+  const W = 24, D = 18, Hh = 11, S = 'sandstone';
+  // peña de la base
+  for (let i = 0; i < 9; i++) { const a = i / 9 * Math.PI * 2, r = 15 + (i % 3); B.add('rock', new THREE.DodecahedronGeometry(3.4 + (i % 2), 0), MM(T, M(Math.cos(a) * r, -0.6, Math.sin(a) * r * 0.85, a, 0.3, 0, 1.4, 0.55, 1))); }
+  B.add('rock', box(W + 6, 2.2, D + 6, 3), MM(T, M(0, 0.5, 0)));
+  // murallas con almenas y saeteras
+  for (const [lx, lz, w, d] of [[0, -D / 2, W, 2], [-W / 2, 0, 2, D], [W / 2, 0, 2, D]]) {
+    B.add(S, box(w, Hh, d, 2.4), MM(T, M(lx, Hh / 2, lz))); boxCol(x, z, ry, lx, lz, w + 0.4, d + 0.4, { solidView: true });
+    const n = Math.floor(Math.max(w, d) / 1.5);
+    for (let i = 0; i < n; i++) B.add(S, box(w > d ? 0.8 : 2.2, 0.9, w > d ? 2.2 : 0.8), MM(T, M(w > d ? lx - w / 2 + 0.75 + i * 1.5 : lx, Hh + 0.45, w > d ? lz : lz - d / 2 + 0.75 + i * 1.5)));
+    for (let i = 1; i < 4; i++) B.add('dark', box(w > d ? 0.18 : 2.3, 1.3, w > d ? 2.3 : 0.18), MM(T, M(w > d ? lx - w / 2 + i * w / 4 : lx, Hh * 0.55, w > d ? lz : lz - d / 2 + i * d / 4)));
+  }
+  // fachada con la puerta (arco de medio punto), matacán encima y el escudo
+  for (const s2 of [-1, 1]) { B.add(S, box(W / 2 - 2.2, Hh, 2.2, 2.4), MM(T, M(s2 * (W / 4 + 1.1), Hh / 2, D / 2))); boxCol(x, z, ry, s2 * (W / 4 + 1.1), D / 2, W / 2 - 2.2, 2.6, { solidView: true }); }
+  B.add(S, archRing(2.2, 2.8, 2.2, 14), MM(T, M(0, 4.2, D / 2)));
+  B.add(S, box(5.6, Hh - 6.6, 2.2), MM(T, M(0, 6.6 + (Hh - 6.6) / 2, D / 2)));
+  for (let i = 0; i < 5; i++) B.add(S, box(0.5, 0.9, 0.5), MM(T, M(-2 + i, 9.2, D / 2 + 1.35)));
+  B.add(S, box(5.4, 0.5, 1.4), MM(T, M(0, 9.8, D / 2 + 0.9)));
+  B.add('paint', colored(new THREE.CircleGeometry(0.8, 16), '#c8222a'), MM(T, M(0, 7.6, D / 2 + 1.12)));
+  for (let k = 0; k < 6; k++) B.add('paint', colored(box(0.12, 0.6, 0.02), '#f2c230'), MM(T, M(-0.5 + k * 0.2, 7.6, D / 2 + 1.14)));
+  // foso seco y puente de madera
+  B.add('dark', box(W + 2, 0.4, 4.2), MM(T, M(0, -0.6, D / 2 + 3.4)));
+  for (let i = 0; i < 9; i++) B.add('woodDark', box(3.4, 0.22, 0.42), MM(T, M(0, 1.05 - i * 0.05, D / 2 + 1.4 + i * 0.48)));
+  for (const s2 of [-1, 1]) B.add('iron', box(0.08, 0.08, 4.6), MM(T, M(s2 * 1.6, 2.6, D / 2 + 2.6, 0, -0.5)));
+  // torres redondas delanteras
+  for (const s2 of [-1, 1]) {
+    const TT = MM(T, M(s2 * W / 2, 0, D / 2)), r = 3.2, th = Hh + 3;
+    B.add(S, new THREE.CylinderGeometry(r, r + 0.4, th, 18), MM(TT, M(0, th / 2, 0)));
+    for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2; B.add(S, box(0.8, 0.9, 0.7), MM(TT, M(Math.cos(a) * (r - 0.1), th + 0.45, Math.sin(a) * (r - 0.1), -a))); }
+    for (let i = 0; i < 3; i++) { const a = s2 * 0.6 + i * 1.6; B.add('dark', box(0.2, 1.3, 0.3), MM(TT, M(Math.cos(a) * (r + 0.05), th * 0.55, Math.sin(a) * (r + 0.05), -a))); }
+    const p = toWorld(x, z, ry, s2 * W / 2, D / 2); addCircle(p.x, p.z, r + 0.3, { solidView: true });
+  }
+  // torre del Cristo (lateral) y torre de San Miguel (al fondo, la más alta, con matacanes)
+  const tower = (lx, lz, tw, th) => {
+    const TT = MM(T, M(lx, 0, lz));
+    B.add(S, box(tw, th, tw, 2.4), MM(TT, M(0, th / 2, 0)));
+    for (const s3 of [-1, 1]) for (let i = 0; i < Math.floor(tw / 1.1); i++) { B.add(S, box(0.5, 0.6, 0.9), MM(TT, M(-tw / 2 + 0.55 + i * 1.1, th - 0.9, s3 * (tw / 2 + 0.35)))); B.add(S, box(0.9, 0.6, 0.5), MM(TT, M(s3 * (tw / 2 + 0.35), th - 0.9, -tw / 2 + 0.55 + i * 1.1))); }
+    B.add(S, box(tw + 1.4, 0.5, tw + 1.4), MM(TT, M(0, th - 0.4, 0)));
+    merlons(B, TT, tw + 1.2, tw + 1.2, th - 0.15, S);
+    for (let k = 0; k < 3; k++) B.add('dark', box(0.3, 1.4, 0.1), MM(TT, M(0, th * (0.35 + k * 0.2), tw / 2 + 0.03)));
+    const p = toWorld(x, z, ry, lx, lz); addBox(p.x, p.z, tw + 0.6, tw + 0.6, ry, { solidView: true });
+  };
+  tower(-3, -D / 2 + 1, 7.5, 27);
+  tower(W / 2 - 1.5, -D / 2 + 3, 5.5, 18);
+  // edificio interior con tejado
+  B.add(S, box(W - 4, Hh - 1, 7), MM(T, M(1, (Hh - 1) / 2, -2)));
+  roofHip(B, MM(T, M(1, 0, -2)), W - 4, 7, Hh - 1, 2.2, 'tile');
+  // explanada de la entrada (foso y puente): reservada para que no se construyan casas encima; se puede pisar
+  boxCol(x, z, ry, 0, D / 2 + 9, W + 12, 18, { ghost: true });
+  return { x, z, y, gate: toWorld(x, z, ry, 0, D / 2 + 9) };
+}
+
+// ---------- Excavación arqueológica (Irulegi): cimientos de casas, cuadrícula de cuerdas y estacas ----------
+export function dig(B, x, z, ry) {
+  const y = terrainHeight(x, z), T = M(x, y, z, ry);
+  B.add('paint', colored(box(16, 0.3, 12), '#8a6a4a'), MM(T, M(0, -0.12, 0)));
+  // cimientos de tres casas pegadas
+  for (const [cx, cz, w, d] of [[-4.5, -2, 5, 6], [0.8, -2, 5, 6], [5.6, -1, 4, 5]]) for (const [lx, lz, ww, dd] of [[0, -d / 2, w, 0.6], [0, d / 2, w, 0.6], [-w / 2, 0, 0.6, d], [w / 2, 0, 0.6, d]]) {
+    if (lz === d / 2 && Math.abs(cx - 0.8) < 0.1) { for (const s of [-1, 1]) B.add('stone', box(w / 2 - 0.6, 0.7, 0.6), MM(T, M(cx + s * (w / 4 + 0.3), 0.3, cz + lz))); continue; }
+    B.add('stone', box(ww, 0.6 + ((cx * 7 + lz) % 0.3), dd), MM(T, M(cx + lx, 0.28, cz + lz)));
+  }
+  // cuadrícula de cuerdas y estacas
+  for (let i = -3; i <= 3; i++) { B.add('paint', colored(box(0.03, 0.03, 12), '#f2e6c4'), MM(T, M(i * 2.4, 0.45, 0))); B.add('woodDark', box(0.08, 0.7, 0.08), MM(T, M(i * 2.4, 0.3, -6))); B.add('woodDark', box(0.08, 0.7, 0.08), MM(T, M(i * 2.4, 0.3, 6))); }
+  for (let j = -2; j <= 2; j++) B.add('paint', colored(box(16, 0.03, 0.03), '#f2e6c4'), MM(T, M(0, 0.45, j * 2.4)));
+  // cubos, cribas y carretilla del equipo
+  for (const [bx, bz, c] of [[7.5, 5, '#d42f2f'], [7.9, 4.2, '#3a8fd6'], [-7.4, 5.2, '#f2c230']]) B.add('paint', colored(new THREE.CylinderGeometry(0.22, 0.18, 0.35, 10), c), MM(T, M(bx, 0.18, bz)));
+  B.add('paint', colored(box(1.1, 0.12, 0.8), '#7a5a3a'), MM(T, M(-7.6, 0.75, -5)));
+  for (const s of [-1, 1]) B.add('woodDark', box(0.06, 0.75, 0.06), MM(T, M(-7.6 + s * 0.5, 0.38, -5)));
+  return { x, z: z + 9 };
 }
 
 // ---------- Murallas (cerco con torreones o lienzo de ciudad) ----------

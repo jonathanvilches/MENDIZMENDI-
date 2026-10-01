@@ -5,6 +5,7 @@ import { resolve, addCircle } from '../world/colliders.js';
 import { clamp, damp, dampAngle, lerp, mulberry32 } from '../util/math.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { buildMinifig, lookToMinifig, MinifigAnimator, setOutlines } from './minifig.js';
+import { buildNpc, npcsReady } from './npcGlb.js';
 
 const matCache = new Map();
 export function mat(color, o = {}) {
@@ -177,9 +178,9 @@ export class Actor {
   constructor(def, scene) {
     this.def = def;
     this.id = def.id; this.name = def.name;
-    this.obj = buildMinifig(def.mini || lookToMinifig(def.look));
-    this.J = this.obj.userData.J;
-    this.anim = new MinifigAnimator(this.obj);
+    // vecinos: el mismo modelo que el personaje principal; los seres de leyenda y carnaval (mini) siguen con su traje propio
+    if (!def.mini && npcsReady()) { const n = buildNpc(def.look); this.obj = n.obj; this.glb = n.char; this.anim = n.anim; this.J = {}; }
+    else { this.obj = buildMinifig(def.mini || lookToMinifig(def.look)); this.J = this.obj.userData.J; this.anim = new MinifigAnimator(this.obj); }
     scene.add(this.obj);
     this.pos = new THREE.Vector3(def.x, 0, def.z);
     this.home = { x: def.x, z: def.z };

@@ -184,6 +184,19 @@ export function updateDetail(cam, quality = 'high') {
     e.m.visible = d < (e.tier === 2 ? d2 : d1);
   }
 }
+// Calidad: en «low» no se crean las piezas menudas (marcos, macetas, lamas…) para ahorrar memoria en móviles
+let TINY = true;
+export function setBuilderQuality(q) { TINY = q !== 'low'; }
+// Compacta los atributos (color en bytes, normal en bytes con signo) y, una vez subidos a la tarjeta gráfica, libera
+// la copia en memoria. Las piezas grandes conservan sus posiciones para comprobar si algo tapa la vista (prismáticos).
+function compact(geo, keepPos) {
+  const c = geo.attributes.color;
+  if (c && c.array instanceof Float32Array) { const a = new Uint8Array(c.array.length); for (let i = 0; i < a.length; i++) a[i] = Math.round(Math.min(1, Math.max(0, c.array[i])) * 255); geo.setAttribute('color', new THREE.BufferAttribute(a, 3, true)); }
+  const n = geo.attributes.normal;
+  if (n && n.array instanceof Float32Array) { const a = new Int8Array(n.array.length); for (let i = 0; i < a.length; i++) a[i] = Math.round(Math.min(1, Math.max(-1, n.array[i])) * 127); geo.setAttribute('normal', new THREE.BufferAttribute(a, 3, true)); }
+  const free = function () { this.array = null; };
+  for (const [k, at] of Object.entries(geo.attributes)) if (!(keepPos && k === 'position')) at.onUpload(free);
+}
 export class Builder {
   // cell: tamaño de las manzanas en que se reparte la geometría; así la cámara (y la sombra) sólo
   // dibujan las que tienen delante en vez de todo el pueblo de una vez
@@ -200,6 +213,7 @@ export class Builder {
     // dejar de dibujarlas de lejos y sin sombra; las grandes, en manzanas mayores (menos llamadas de dibujo)
     const b = g.boundingBox, size = Math.max(b.max.x - b.min.x, b.max.y - b.min.y, b.max.z - b.min.z);
     const tier = size < 0.9 ? 2 : size < 3 ? 1 : 0, cell = tier ? this.cell : this.cell * 2;
+    if (tier === 2 && !TINY) return;
     const key = mat + '|' + Math.floor((b.min.x + b.max.x) / 2 / cell) + ',' + Math.floor((b.min.z + b.max.z) / 2 / cell) + '|' + tier;
     (this.parts[key] ||= []).push(g);
   }
@@ -212,7 +226,8 @@ export class Builder {
       if (hasColor) for (const g of list) if (!g.attributes.color) colored(g, '#ffffff');
       const merged = mergeGeometries(list, false);
       if (!merged) { console.warn('merge failed', mat); continue; }
-      merged.computeBoundingSphere();
+      merged.computeBoundingSphere(); merged.computeBoundingBox();
+      compact(merged, tier === 0);
       const m = new THREE.Mesh(merged, this.mats[mat]);
       m.castShadow = shadows && tier === 0 && !['glass', 'lamp'].includes(mat);
       if (tier) DETAIL.push({ m, tier, c: merged.boundingSphere.center.clone(), r: merged.boundingSphere.radius });

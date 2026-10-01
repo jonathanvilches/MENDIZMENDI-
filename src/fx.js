@@ -37,7 +37,6 @@ export class Particles {
     });
     this.conf = new THREE.Points(g2, this.confMat); this.conf.frustumCulled = false; scene.add(this.conf);
     this.cList = [];
-    addEventListener('resize', () => { this.mat.uniforms.scale.value = innerHeight / 2; this.confMat.uniforms.scale.value = innerHeight / 2; });
   }
   emit(p, o = {}) {
     const n = o.n || 10;
@@ -59,6 +58,7 @@ export class Particles {
     }
   }
   update(dt) {
+    this.mat.uniforms.scale.value = this.confMat.uniforms.scale.value = innerHeight / 2;
     let k = 0;
     this.list = this.list.filter(p => (p.life -= dt) > 0);
     for (const p of this.list) {
@@ -136,10 +136,9 @@ export class Smoke {
     this.points = new THREE.Points(g, this.mat); this.points.frustumCulled = false;
     scene.add(this.points);
     this.t = 0;
-    addEventListener('resize', () => { this.mat.uniforms.scale.value = innerHeight / 2; });
   }
   update(dt, wind = 1) {
-    this.t += dt;
+    this.t += dt; this.mat.uniforms.scale.value = innerHeight / 2;
     let k = 0;
     for (const s of this.spots) for (let i = 0; i < 5; i++, k++) {
       const u = ((this.t + i / 5 * 4) % 4) / 4;

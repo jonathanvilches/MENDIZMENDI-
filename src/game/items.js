@@ -34,6 +34,12 @@ export function makeItem(kind) {
     case 'berries': { for (let i = 0; i < 6; i++) { const l = mesh(new THREE.SphereGeometry(0.16, 7, 5), i % 2 ? '#3f6a2a' : '#4f7a32', Math.cos(i) * 0.18, 0.22 + (i % 3) * 0.08, Math.sin(i) * 0.18); l.scale.set(1, 0.7, 1); body.add(l); } for (let i = 0; i < 9; i++) add(new THREE.SphereGeometry(0.035, 6, 5), i % 3 ? '#2a0f30' : '#8a1f3a', Math.cos(i * 2.1) * 0.24, 0.3 + (i % 4) * 0.05, Math.sin(i * 2.1) * 0.24); break; }
     case 'hazelnut': { for (let i = 0; i < 5; i++) { const l = mesh(new THREE.SphereGeometry(0.14, 7, 5), '#5f8a3a', Math.cos(i * 1.3) * 0.14, 0.32 + (i % 2) * 0.1, Math.sin(i * 1.3) * 0.14); l.scale.set(1, 0.6, 1); body.add(l); } for (let i = 0; i < 3; i++) add(new THREE.SphereGeometry(0.05, 8, 6), '#a0682e', (i - 1) * 0.1, 0.2, 0.16); break; }
     case 'wool': add(new THREE.SphereGeometry(0.2, 10, 8), '#f0e8d8', 0, 0.3, 0); break;
+    // bandera de las partes del castillo: mástil y paño rojo y amarillo
+    case 'flag': { add(new THREE.CylinderGeometry(0.025, 0.03, 1.6, 6), '#5a4030', 0, 0.8, 0); const f = mesh(new THREE.PlaneGeometry(0.55, 0.36), '#c8222a', 0.29, 1.4, 0, { side: THREE.DoubleSide }); body.add(f); add(new THREE.PlaneGeometry(0.55, 0.08), '#f2c230', 0.29, 1.4, 0.003, { side: THREE.DoubleSide }); add(new THREE.SphereGeometry(0.045, 8, 6), '#e0b43a', 0, 1.62, 0, { metalness: 0.7, roughness: 0.3 }); break; }
+    // molino de mano: dos muelas de piedra
+    case 'quern': { add(new THREE.CylinderGeometry(0.22, 0.24, 0.1, 16), '#8e877b', 0, 0.12, 0); add(new THREE.CylinderGeometry(0.2, 0.22, 0.09, 16), '#9c958a', 0, 0.22, 0); add(new THREE.CylinderGeometry(0.02, 0.02, 0.14, 6), '#6b4a2a', 0.13, 0.3, 0); break; }
+    // la mano de bronce (lámina recortada con dedos)
+    case 'hand': { const M2 = { metalness: 0.75, roughness: 0.35 }; add(new THREE.BoxGeometry(0.2, 0.22, 0.015), '#a87a3a', 0, 0.35, 0, M2); for (let i = 0; i < 4; i++) add(new THREE.BoxGeometry(0.038, 0.14, 0.015), '#a87a3a', -0.075 + i * 0.05, 0.52, 0, M2); const th = mesh(new THREE.BoxGeometry(0.04, 0.12, 0.015), '#a87a3a', 0.13, 0.38, 0, M2); th.rotation.z = -0.6; body.add(th); for (let i = 0; i < 4; i++) add(new THREE.BoxGeometry(0.15, 0.008, 0.004), '#5a3a1a', 0, 0.3 + i * 0.03, 0.01); break; }
     case 'shell': { const s = new THREE.Mesh(new THREE.CircleGeometry(0.22, 12, 0, Math.PI), mat('#f2c94c', { side: THREE.DoubleSide })); s.position.y = 0.3; body.add(s); break; }
     default: add(new THREE.OctahedronGeometry(0.2, 0), '#f5c542', 0, 0.35, 0, { emissive: new THREE.Color('#a07a1a') });
   }

@@ -5,7 +5,8 @@ import { buildTextures, TEX } from '../world/textures.js';
 import { Terrain } from '../world/terrain.js';
 import { SkySystem } from '../world/sky.js';
 import { Water } from '../world/water.js';
-import { makeMaterials, resetDetail, updateDetail } from '../world/builder.js';
+import { makeMaterials, resetDetail, updateDetail, setBuilderQuality } from '../world/builder.js';
+import { resetNpcCache } from '../actors/npcGlb.js';
 import { buildVillage, VILLAGE, resetVillage } from '../world/village.js';
 import { buildLandmarks, LANDMARKS } from '../world/landmarks.js';
 import { buildTown, TOWN } from '../world/townBuilder.js';
@@ -23,11 +24,31 @@ import { Particles, Waterfall, Smoke, NightLights, Beacon } from '../fx.js';
 
 const frame = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
 
+// Registro de texturas por pueblo: cada textura que se sube a la tarjeta gráfica queda apuntada con el «turno» de
+// carga en que se creó; al salir del pueblo se liberan las de ese turno (terreno, carteles, sombras, vecinos…).
+// Liberar una textura que luego se vuelve a usar es seguro: se sube otra vez.
+let EPOCH = 0; const TEXREG = new Set();
+{
+  const d = Object.getOwnPropertyDescriptor(THREE.Texture.prototype, 'needsUpdate');
+  Object.defineProperty(THREE.Texture.prototype, 'needsUpdate', { configurable: true, set(v) { if (v && this.userData && this.userData.epoch == null) { this.userData.epoch = EPOCH; TEXREG.add(new WeakRef(this)); } d.set.call(this, v); } });
+}
+// aviso de memoria gráfica agotada: botón para volver a cargar el mismo pueblo
+function showContextLost() {
+  if (document.querySelector('.ctxlost')) return;
+  const o = document.createElement('div'); o.className = 'mg-overlay ctxlost';
+  o.innerHTML = '<div class="mg-card"><h3>El dispositivo necesita un respiro</h3><p>Se ha quedado sin memoria para dibujar. Tu progreso está guardado.</p><button class="btn primary">Volver a cargar</button></div>';
+  o.querySelector('button').onclick = () => location.reload();
+  document.body.appendChild(o);
+}
 export class Runtime {
   constructor({ canvas, input, sound, quality }) {
     this.canvas = canvas; this.input = input; this.sound = sound; this.quality = quality;
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: quality !== 'low', powerPreference: 'high-performance' });
-    this.pixelRatio = Math.min(devicePixelRatio, quality === 'high' ? 2 : quality === 'mid' ? 1.5 : 1);
+    setBuilderQuality(quality);
+    // en móvil (calidad media/baja) sin antialias de hardware y con menos resolución: el búfer de imagen pesa mucho menos
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: quality === 'high', powerPreference: 'high-performance' });
+    this.pixelRatio = Math.min(devicePixelRatio, quality === 'high' ? 2 : quality === 'mid' ? 1.25 : 1);
+    // si el navegador se queda sin memoria gráfica, avisar y ofrecer recargar (el progreso ya está guardado)
+    canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); this.contextLost = true; showContextLost(); }, false);
     this.renderer.debug.checkShaderErrors = /debug/.test(location.search);
     this.renderer.setPixelRatio(this.pixelRatio);
     this.renderer.setSize(innerWidth, innerHeight);
@@ -108,8 +129,21 @@ export class Runtime {
     });
     const keep = new Set(Object.values(TEX).flatMap(t => t.isTexture ? [t] : [t.map, t.normalMap]));
     for (const g of geos) g.dispose();
-    for (const m of mats) { for (const k of ['map', 'normalMap']) { const t = m[k]; if (t && !keep.has(t) && !t.userData?.shared) t.dispose?.(); } m.dispose(); }
+    // todas las texturas de los materiales (también las de los shaders propios), salvo las comunes del juego
+    const free = (t) => { if (t && t.isTexture && !keep.has(t) && !t.userData?.shared) t.dispose(); };
+    for (const m of mats) {
+      for (const k in m) free(m[k]);
+      if (m.uniforms) for (const u of Object.values(m.uniforms)) { free(u?.value); if (Array.isArray(u?.value)) u.value.forEach(free); }
+      m.dispose();
+    }
+    free(this.scene.background); free(this.scene.environment);
+    // mapas de sombras de las luces del pueblo
+    this.scene.traverse(o => { if (o.isLight && o.shadow?.map) { o.shadow.map.dispose(); o.shadow.map = null; } });
+    // texturas creadas durante la carga de este pueblo que no colgaban de ningún material (terreno, alturas…)
+    for (const r of TEXREG) { const t = r.deref(); if (!t) { TEXREG.delete(r); continue; } if (t.userData.epoch === EPOCH && !keep.has(t) && !t.userData.shared) { t.dispose(); TEXREG.delete(r); } }
+    EPOCH++;
     this.renderer.renderLists.dispose();
+    resetNpcCache();
     this.scene = null;
     this.canvas.style.visibility = 'hidden';
   }
@@ -118,7 +152,25 @@ export class Runtime {
     const dt = Math.min(this.clock.getDelta(), 0.05);
     if (!this.active || !this.scene) return;
     this.elapsed += dt;
+    if (this.contextLost) return;
     const g = this.game, input = this.input;
+    try { this.step(dt, g, input); } catch (e) { this.reportError(e); }
+    try { this.renderer.render(this.scene, this.camera); } catch (e) { this.reportError(e); }
+    input.endFrame();
+    this.frames++; this.fpsT += dt;
+    if (this.fpsT > 2) {
+      const fps = this.frames / this.fpsT; this.frames = 0; this.fpsT = 0;
+      if (fps < 32 && this.pixelRatio > 0.75) { if (++this.lowFps >= 2) { this.pixelRatio = Math.max(0.75, this.pixelRatio - 0.25); this.renderer.setPixelRatio(this.pixelRatio); this.lowFps = 0; } }
+      else this.lowFps = 0;
+      window.__fps = fps;
+    }
+  }
+  // un error en una parte del juego no debe congelar la imagen: se anota (una vez por mensaje) y se sigue
+  reportError(e) {
+    const k = String(e?.message || e); (this.errSeen ||= new Set());
+    if (!this.errSeen.has(k)) { this.errSeen.add(k); console.error('[bucle]', e); (window.__errors ||= []).push(k); }
+  }
+  step(dt, g, input) {
     input.enabled = !g.ui.busy && g.mode !== 'cine' && g.mode !== 'dance' && g.mode !== 'mini' && g.mode !== 'pelota';
     input.update();
     const P = this.player;
@@ -139,14 +191,5 @@ export class Runtime {
     this.sound.update(dt, P, this.follow.yaw, this.sky.night, iratiMask(P.pos.x, P.pos.z) > 0.5);
     g.ui.setClock(this.sky.clock(), this.sky.night > 0.5);
     if (this.shadowEvery > 1 && this.frames % this.shadowEvery === 0) this.renderer.shadowMap.needsUpdate = true;
-    this.renderer.render(this.scene, this.camera);
-    input.endFrame();
-    this.frames++; this.fpsT += dt;
-    if (this.fpsT > 2) {
-      const fps = this.frames / this.fpsT; this.frames = 0; this.fpsT = 0;
-      if (fps < 32 && this.pixelRatio > 0.75) { if (++this.lowFps >= 2) { this.pixelRatio = Math.max(0.75, this.pixelRatio - 0.25); this.renderer.setPixelRatio(this.pixelRatio); this.lowFps = 0; } }
-      else this.lowFps = 0;
-      window.__fps = fps;
-    }
   }
 }
