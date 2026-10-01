@@ -28,7 +28,8 @@ import { makeTrailSign, signSVG, ORIENTA, ORIENTA_TIPS } from './senales.js';
 import { FOOD } from '../data/equipo.js';
 import { FERIA } from '../data/ferias.js';
 import { PET, BELL, BENCH_LINES } from '../data/tocar.js';
-import { DOLMEN } from '../data/dolmen.js';
+import { SITES } from '../data/dolmen.js';
+import { PARTS, CASTLE_QUIZ, CASTLE_TOWNS, CASTILLOS } from '../data/castillos.js';
 import { GearProps } from '../actors/gear3d.js';
 import { foodFrom } from '../data/equipo.js';
 import { PROCESOS, TRADICIONES } from '../data/procesos.js';
@@ -153,8 +154,10 @@ export class TownGame {
         M.steps = () => ['Habla con ' + host(), m.kind === 'angel' ? 'Prepara la bajada: repite la secuencia' : 'Repite la melodía']; break;
       case 'summit': { const pk = M.peak = MOUNTAINS.find(x => x.id === m.peak); M.title = `Sube al ${pk?.name || 'monte'}`; M.icon = 'peak'; M.need = 4;
         M.steps = () => [M.prep ? `Prepara la mochila: ${this.supplyText()} y vuelve con ${host()}` : 'Habla con ' + host(), `Sigue los mojones hasta la cima (${M.count}/${M.need})${M.wild ? ` · animales ${M.wild.filter(w => w.found).length}/${M.wild.length}` : ''}`, `Llega a la cima del ${pk?.name || 'monte'}`]; break; }
-      case 'dolmen': M.title = m.title || 'El secreto del dolmen'; M.icon = 'dolmen'; M.need = 3;
-        M.steps = () => ['Habla con ' + host(), `Excava junto al dolmen con cuidado (${M.count}/${M.need})`, 'Vuelve con ' + host()]; break;
+      case 'dolmen': { const st = M.site = SITES[m.site || 'dolmen']; M.title = m.title || 'El secreto del dolmen'; M.icon = st.icon; M.need = st.finds.length;
+        M.steps = () => ['Habla con ' + host(), `Excava ${st.where} con cuidado (${M.count}/${M.need})`, 'Vuelve con ' + host()]; break; }
+      case 'castle': { const C = M.castle = CASTLE_TOWNS[m.castle]; M.title = m.title || C.title; M.icon = 'castle'; M.need = C.parts.length;
+        M.steps = () => ['Habla con ' + host(), `Recorre las partes del castillo: busca las banderas (${M.count}/${M.need})`, 'Vuelve con ' + host()]; break; }
       case 'feria': M.title = m.title || 'Feria de ganado'; M.icon = 'cow';
         M.steps = () => ['Habla con ' + host(), 'Ve a los corrales: juez por un día', 'Vuelve con ' + host() + ' y cierra el trato']; break;
       case 'figure': { const F = M.fig = PERSONAJES[m.who]; M.title = F.name; M.icon = F.icon;
@@ -196,7 +199,8 @@ export class TownGame {
       case 'observe': return lm('gorge')?.spot || P.edgeN;
       case 'pelota': return this.ensureFronton() ? { x: this.fronton.entry.x + 2, z: this.fronton.entry.z } : P.plaza;
       case 'summit': return { x: P.plaza.x + (P.edgeN ? (P.edgeN.x - P.plaza.x) * 0.25 : 10), z: P.plaza.z + (P.edgeN ? (P.edgeN.z - P.plaza.z) * 0.25 : -14) };
-      case 'dolmen': { const d = TOWN.landmarks.find(l => l.kind === 'dolmen'); return d?.spot ? { x: d.spot.x + 6, z: d.spot.z + 6 } : P.edgeN; }
+      case 'dolmen': { const d = TOWN.landmarks.find(l => l.kind === SITES[m.site || 'dolmen'].landmark); return d?.spot ? { x: d.spot.x + 6, z: d.spot.z + 6 } : P.edgeN; }
+      case 'castle': { const d = TOWN.landmarks.find(l => l.kind === 'castle'); return d?.spot ? { x: d.spot.x + 7, z: d.spot.z + 4 } : P.plaza; }
       case 'feria': return { x: (P.market || P.plaza).x - 8, z: (P.market || P.plaza).z + 10 };
       case 'figure': { const k = this.missions.filter(x => x.type === 'figure').indexOf(M), a = 2.2 + k * 1.6; return { x: P.plaza.x + Math.cos(a) * 15, z: P.plaza.z + Math.sin(a) * 15 }; }
       case 'quiz': return TOWN.church?.door ? { x: TOWN.church.door.x, z: TOWN.church.door.z + 0 } : P.plaza;
@@ -213,7 +217,7 @@ export class TownGame {
     this.ensureFronton();
     for (const M of this.missions) {
       const pos = this.spot(this.placeFor(M), 5);
-      const h = (M.leg?.teller) || M.m.host || (M.type === 'visit' ? { name: 'Guía ' + (this.rnd() < 0.5 ? 'Ane' : 'Iker'), look: { shirt: '#f2c230', vest: '#3a8fd6', pants: '#2b3a6b', hair: '#3b2418', ponytail: true, female: true, strap: '#6b4a2e', bag: '#8a6a3a', face: 'happy' } }
+      const h = (M.leg?.teller) || M.m.host || (M.type === 'visit' ? ((g) => ({ name: 'Guía ' + (g ? 'Ane' : 'Iker'), look: { shirt: '#f2c230', vest: '#3a8fd6', pants: '#2b3a6b', hair: '#3b2418', ponytail: g, female: g, strap: '#6b4a2e', bag: '#8a6a3a', face: 'happy' } }))(this.rnd() < 0.5)
         : M.type === 'quiz' ? { name: 'Sabio del concejo', look: { shirt: '#efe9dc', vest: '#2b2630', pants: '#2b2630', hair: '#dcd7cf', beard: '#dcd7cf', txapela: '#1d1d24', old: true, glasses: '#3a2a1a', staff: true } } : { name: 'Vecino', look: {} });
       const a = new Actor({ id: 'm' + M.i, name: h.name, x: pos.x, z: pos.z, heading: Math.atan2(PLACES.plaza.x - pos.x, PLACES.plaza.z - pos.z), look: h.look }, this.scene);
       a.mission = M; M.host = a; this.actors.push(a);
@@ -241,7 +245,7 @@ export class TownGame {
         scarf: R() < 0.2 ? pick(pal.extras) : undefined, apron: female && old && R() < 0.4 ? '#f4f1ea' : undefined, basket: R() < 0.2, pattern: R() < 0.2 ? 'check' : undefined, moustache: !female && old && R() < 0.5 ? '#dcd7cf' : undefined };
       const route = [0, 1, 2].map(() => { const p = pick(pts); const s = this.spot(p, 3); return { x: s.x, z: s.z }; });
       const s0 = route[0];
-      const a = new Actor({ id: 'w' + i, name: ['Maite', 'Josu', 'Amaia', 'Patxi', 'Nekane', 'Koldo', 'Itziar', 'Mikel', 'Leire', 'Fermín'][i % 10], x: s0.x, z: s0.z, look, route, walkSpeed: 1 + R() * 0.4 }, this.scene);
+      const a = new Actor({ id: 'w' + i, name: female ? ['Maite', 'Amaia', 'Nekane', 'Itziar', 'Leire', 'Ainhoa', 'Garazi', 'Miren'][i % 8] : ['Josu', 'Patxi', 'Koldo', 'Mikel', 'Fermín', 'Iñaki', 'Xabier', 'Unai'][i % 8], x: s0.x, z: s0.z, look, route, walkSpeed: 1 + R() * 0.4 }, this.scene);
       this.walkers.push(a);
     }
     // mochila del explorador: equipo visible, agua, comida y energía; frutos del campo para recoger
@@ -325,10 +329,19 @@ export class TownGame {
   get tracked() { return this._tr ?? 0; }
   set tracked(v) { this._tr = v; }
 
+  // Vigilante: si el jugador se queda congelado (o en modo minijuego) sin ninguna ventana, diálogo ni escena abiertos,
+  // se le devuelve el control. Evita que un fallo en una ventana deje el juego bloqueado.
+  watchdog(dt) {
+    const P = this.player, open = this.ui.busy || document.querySelector('.mg-overlay, .dogpick, .bagpanel, .ctxlost');
+    const stuck = !open && !this.follow.cinematic && ((this.mode === 'mini') || (this.mode === 'play' && P.frozen));
+    this.stuckT = stuck ? (this.stuckT || 0) + dt : 0;
+    if (this.stuckT > 6) { this.stuckT = 0; P.frozen = false; if (this.mode === 'mini') this.mode = 'play'; console.warn('[vigilante] control devuelto al jugador'); (window.__errors ||= []).push('vigilante'); }
+  }
   // ---------- Bucle ----------
   update(dt) {
     this.elapsed += dt;
     const P = this.player;
+    this.watchdog(dt);
     const cull = (a, max) => {
       const d = Math.hypot(a.pos.x - P.pos.x, a.pos.z - P.pos.z);
       const sh = d < 28; if (a.shadowOn !== sh) { a.shadowOn = sh; a.obj.traverse(o => { if (o.isMesh) o.castShadow = sh; }); }
@@ -385,7 +398,7 @@ export class TownGame {
       case 'herd': if (M.step === 1) { const loose = this.herd?.filter(s => !s.penned) || []; const t = nearest(loose.map(s => ({ x: s.pos.x, z: s.pos.z, h: 1.8 }))); return t || { x: TOWN.pen.x, z: TOWN.pen.z, h: 2 }; } return at(M.host);
       case 'dance': return M.step === 1 ? { x: PLACES.plaza.x, z: PLACES.plaza.z, h: 3 } : at(M.host);
       case 'carnival': return (M.night ? M.step === 1 || M.step === 2 : M.step === 1) ? null : at(M.host);
-      case 'dolmen': if (M.step === 1) return nearest(this.items.filter(it => it.M === M).map(it => ({ x: it.x, z: it.z, h: 1.4 }))); return at(M.host);
+      case 'dolmen': case 'castle': if (M.step === 1) return nearest(this.items.filter(it => it.M === M).map(it => ({ x: it.x, z: it.z, h: 1.4 }))); return at(M.host);
       case 'feria': return M.step === 1 && M.fair ? { x: M.fair.x, z: M.fair.z, h: 3 } : at(M.host);
       case 'figure': return M.step === 1 && M.memo ? { x: M.memo.x, z: M.memo.z, h: 3 } : at(M.host);
       case 'trade': return M.step === 1 && M.bench ? { x: M.bench.x, z: M.bench.z, h: 2 } : at(M.host);
@@ -653,21 +666,44 @@ export class TownGame {
         return;
       }
       case 'dolmen': {
+        const st = M.site;
         if (M.step === 0) {
-          await S(DOLMEN.intro);
-          await infoCard(this.ui, { icon: 'dolmen', kicker: '¿Qué es?', title: 'El dolmen', text: DOLMEN.what, button: '¡A excavar!' });
+          await S(st.intro);
+          await infoCard(this.ui, { icon: st.icon, kicker: '¿Qué es?', title: st.whatTitle, text: st.what, button: '¡A excavar!' });
           M.step = 1; M.count = 0;
-          const c = TOWN.landmarks.find(l => l.kind === 'dolmen')?.spot || M.host.pos;
-          DOLMEN.finds.forEach(([kind, label], i) => { const a = i / 3 * Math.PI * 2 + 0.4, s2 = this.spot({ x: c.x + Math.cos(a) * 7, z: c.z + Math.sin(a) * 7 }, 3);
+          const c = TOWN.landmarks.find(l => l.kind === st.landmark)?.spot || M.host.pos;
+          st.finds.forEach(([kind], i) => { const a = i / st.finds.length * Math.PI * 2 + 0.4, s2 = this.spot({ x: c.x + Math.cos(a) * 7, z: c.z + Math.sin(a) * 7 }, 3);
             const o = makeItem(kind); o.position.set(s2.x, terrainHeight(s2.x, s2.z), s2.z); this.scene.add(o); this.items.push({ M, x: s2.x, z: s2.z, obj: o, label: 'Excavar con cuidado', kind, find: i }); });
-          this.ui.toast('Busca los brillos alrededor del dolmen y excava con cuidado', 'dolmen', 3000);
+          this.ui.toast(`Busca los brillos ${st.where} y excava con cuidado`, st.icon, 3000);
         } else if (M.step === 1) await S([`Te quedan ${M.need - M.count} hallazgos. ¡Despacio, como una arqueóloga de verdad!`]);
         else {
-          await S(['¡Buen trabajo! Con lo que has encontrado sabemos cómo vivían. Ahora, ¿cómo crees que levantaban el dolmen?']);
-          const r = await sequenceGame(this.ui, { title: 'Así se levantaba un dolmen', hint: 'Toca los pasos en orden', icon: 'dolmen', steps: DOLMEN.steps });
+          await S([st.hostDone]);
+          const r = await sequenceGame(this.ui, { title: st.stepsTitle, hint: 'Toca los pasos en orden', icon: st.icon, steps: st.steps });
           if (!r.win) { await S(['¡Casi! Vuelve a hablar conmigo y lo intentamos otra vez.']); return; }
-          await infoCard(this.ui, { icon: 'dolmen', kicker: 'Antes y ahora', title: 'Los primeros pastores', text: 'Así ha cambiado:', extra: `<div class="antes-ahora"><div><b>Antes</b>${DOLMEN.then}</div><div><b>Ahora</b>${DOLMEN.now}</div></div>`, button: '¡Lo he aprendido!' });
-          await this.complete(M, { card: 'El dolmen', cardText: DOLMEN.what });
+          await infoCard(this.ui, { icon: st.icon, kicker: 'Antes y ahora', title: st.nowTitle, text: 'Así ha cambiado:', extra: `<div class="antes-ahora"><div><b>Antes</b>${st.then}</div><div><b>Ahora</b>${st.now}</div></div>`, button: '¡Lo he aprendido!' });
+          await this.complete(M, { card: st.card, cardText: st.what });
+        }
+        return;
+      }
+      case 'castle': {
+        const C = M.castle;
+        if (M.step === 0) {
+          await S(C.intro);
+          M.step = 1; M.count = 0;
+          // banderas en las partes del castillo, medidas desde su centro hacia la puerta
+          const lm = TOWN.landmarks.find(l => l.kind === 'castle'), c = { x: lm?.x ?? M.host.pos.x, z: lm?.z ?? M.host.pos.z }, g = lm?.spot || { x: c.x, z: c.z + 20 };
+          const fx = g.x - c.x, fz = g.z - c.z, fl = Math.hypot(fx, fz) || 1, F = { x: fx / fl, z: fz / fl }, Sd = { x: F.z, z: -F.x }, R = 18 * C.size;
+          C.parts.forEach((id, i) => { const p = { ...PARTS[id], ...(C.own[id] || {}) }, want = { x: c.x + (F.x * p.f + Sd.x * p.s) * R, z: c.z + (F.z * p.f + Sd.z * p.s) * R }, s2 = this.spot(want, 5);
+            const o = makeItem('flag'); o.position.set(s2.x, terrainHeight(s2.x, s2.z), s2.z); this.scene.add(o); this.items.push({ M, x: s2.x, z: s2.z, obj: o, label: 'Mirar: ' + p.name, kind: 'flag', part: id }); });
+          this.ui.toast('Busca las banderas alrededor del castillo', 'castle', 3000);
+        } else if (M.step === 1) await S([`Te quedan ${M.need - M.count} partes por ver. ¡Busca las banderas!`]);
+        else {
+          await S(['¡Ya conoces todas las partes del castillo! Una pregunta de guardián:']);
+          const r = await choiceGame(this.ui, { title: 'Guardián del castillo', icon: 'castle', q: CASTLE_QUIZ.q, options: CASTLE_QUIZ.options, answer: CASTLE_QUIZ.answer, why: CASTLE_QUIZ.why });
+          if (r && r.win === false) { await S(['¡Casi! Piénsalo otra vez y vuelve a hablar conmigo.']); return; }
+          await infoCard(this.ui, { icon: 'castle', kicker: 'Antes y ahora', title: C.title, text: 'Así ha cambiado:', extra: `<div class="antes-ahora"><div><b>Antes</b>${C.then}</div><div><b>Ahora</b>${C.now}</div></div>`, button: 'Seguir' });
+          await infoCard(this.ui, { icon: 'castle', kicker: 'Ruta de los castillos', title: 'Castillos de Navarra', text: 'Después de la conquista de Navarra muchos castillos se derribaron. Estos son algunos de los que quedan, en pie o en ruinas:', extra: `<ul class="castlelist">${CASTILLOS.map(([n, t]) => `<li><b>${n}</b> ${t}</li>`).join('')}</ul>`, button: '¡A por ellos!' });
+          await this.complete(M, { card: C.title, cardText: C.then });
         }
         return;
       }
@@ -825,12 +861,19 @@ export class TownGame {
     const M = it.M;
     this.items = this.items.filter(x => x !== it); this.scene.remove(it.obj);
     if (!M) { this.player.rig.doAct('pick', 0.6); this.sound.ui('coin'); this.mochila.addFood(it.food); return; }
+    if (it.part != null) {
+      const C = M.castle, p = { ...PARTS[it.part], ...(C.own[it.part] || {}) }; this.sound.magic?.(); M.count++;
+      if (M.count >= M.need) M.step = 2;
+      this.player.frozen = true;
+      infoCard(this.ui, { icon: p.icon || 'castle', kicker: `${C.title} · ${M.count} de ${M.need}`, title: p.name, text: p.text, badge: addCard('castillo:' + p.name) ? 'Nueva carta' : '', button: M.count >= M.need ? `¡Hecho! Vuelve con ${M.host.name}` : 'Seguir buscando' }).finally(() => { this.player.frozen = false; });
+      return;
+    }
     if (it.find != null) {
-      const [, name, text] = DOLMEN.finds[it.find]; this.player.rig.doAct('pick', 0.8); this.sound.magic?.(); M.count++;
+      const st = M.site, [, name, text] = st.finds[it.find]; this.player.rig.doAct('pick', 0.8); this.sound.magic?.(); M.count++;
       this.particles.emit({ x: it.x, y: terrainHeight(it.x, it.z) + 0.3, z: it.z }, { n: 20, color: ['#c9a46a', '#8a6a45'], speed: 1.2, size: 0.25, life: 1 });
       if (M.count >= M.need) M.step = 2;
       this.player.frozen = true;
-      infoCard(this.ui, { icon: 'dolmen', kicker: `Hallazgo ${M.count} de ${M.need}`, title: name, text, badge: addCard('dolmen:' + name) ? 'Nueva carta' : '', button: M.count >= M.need ? `¡Hecho! Vuelve con ${M.host.name}` : 'Seguir excavando' }).finally(() => { this.player.frozen = false; });
+      infoCard(this.ui, { icon: st.icon, kicker: `Hallazgo ${M.count} de ${M.need}`, title: name, text, badge: addCard(st.landmark + ':' + name) ? 'Nueva carta' : '', button: M.count >= M.need ? `¡Hecho! Vuelve con ${M.host.name}` : 'Seguir excavando' }).finally(() => { this.player.frozen = false; });
       return;
     }
     this.player.rig.doAct('pick', 0.6);
@@ -1484,7 +1527,8 @@ export class TownGame {
     }
     // un ave detrás de una casa o de la iglesia no se puede anotar: comprobamos que no haya nada en medio
     if (best && best.far) {
-      const town = this.townMeshes ||= (this.scene.getObjectByName('town')?.children || []).filter(m => m.isMesh);
+      // solo las piezas grandes conservan sus posiciones (el resto se liberó al subirlo a la tarjeta): se comprueba con una copia que solo tiene posiciones
+      const town = this.townMeshes ||= (this.scene.getObjectByName('town')?.children || []).filter(m => m.isMesh && m.geometry.attributes.position?.array).map(m => { const g = new THREE.BufferGeometry(); g.setAttribute('position', m.geometry.attributes.position); g.boundingSphere = m.geometry.boundingSphere; g.boundingBox = m.geometry.boundingBox; const r = new THREE.Mesh(g, m.material); r.matrixWorld.copy(m.matrixWorld); r.matrixAutoUpdate = false; return r; });
       const to = new THREE.Vector3(best.pos.x - eye.x, best.pos.y - eye.y, best.pos.z - eye.z), d = to.length();
       this.ray ||= new THREE.Raycaster(); this.ray.set(eye, to.normalize()); this.ray.far = d;
       if (this.ray.intersectObjects(town, false).length) best = null;
@@ -1608,7 +1652,7 @@ export class TownGame {
   save() { saveProfile(); }
   applySettings() { const S = this.P.settings; this.sound.setMusic(S.music); this.sound.setVolume(S.volume); this.sky.speed = 24 / (16 * 60) * (S.timeSpeed ?? 1); }
   teleport(x, z) { const s = this.spot({ x, z }, 3); this.player.place(s.x, s.z, 0); this.follow.snap(this.player); }
-  dispose() { this.ui.setMG(null); if (this.danceKeys) removeEventListener('keydown', this.danceKeys, true); this.rh?.remove(); if (this.mode === 'bino') this.ui.binoculars(false); }
+  dispose() { document.querySelectorAll('.mg-overlay, .dogpick, .bagpanel').forEach(o => o.remove()); this.ui.closeModal?.(); this.ui.setMG(null); if (this.danceKeys) removeEventListener('keydown', this.danceKeys, true); this.rh?.remove(); if (this.mode === 'bino') this.ui.binoculars(false); }
 }
 
 // Puesto de productos: mesa con toldo, panes, quesos y tarros de miel

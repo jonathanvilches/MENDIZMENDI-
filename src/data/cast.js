@@ -1,7 +1,8 @@
 // Reparto original de MENDIMENDIZ: la cuadrilla de exploradores.
 // Cada personaje es un niño o niña de un rincón de Navarra con su tradición, su carácter y su habilidad.
 // stats: [Resistencia, Fuerza, Agilidad, Orientación, Naturaleza]
-export const CAST = [
+// todos los diseños (los antiguos se conservan solo como reserva de aspecto para retratos y figuras de respaldo)
+export const CAST_ALL = [
   // protagonista del juego (modelo GLB construido en Blender): el primero y el de por defecto
   { id: 'benat', name: 'Beñat', from: 'Urbasa', role: 'Pastor', tagline: 'Conoce cada senda de la sierra', glb: true,
     desc: 'Sube con las ovejas latxas a los pastos de Urbasa y Andia. Su pañuelo rojo se ve desde lejos entre la niebla del hayedo.',
@@ -61,5 +62,7 @@ export const CAST = [
     look: { child: true, height: 1.36, skin: '#d9a57f', hair: '#1f1712', hairStyle: 'bun', lashes: true, eyes: '#3a2a1a', hat: 'straw', hatBand: '#3ca05a',
       shirt: '#f2c94c', overalls: '#3a6a9a', pants: '#3a6a9a', shoes: '#6b3f24', basket: true, basketFill: '#3ca05a', face: 'grin', pose: 'hip1', browStyle: 'arched' } },
 ];
+// avatares elegibles: solo los que usan la estructura del personaje principal (modelo de Blender)
+export const CAST = CAST_ALL.filter(c => c.glb);
 export const castById = (id) => CAST.find(c => c.id === id) || CAST[0];
 export const STAT_LABELS = ['Resistencia', 'Fuerza', 'Agilidad', 'Orientación', 'Naturaleza'];

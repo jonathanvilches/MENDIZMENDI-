@@ -23,6 +23,7 @@ import { profile, saveProfile, townState, checkBadges, salazarState } from './ga
 import { LEVELS, levelById } from './data/levels.js';
 import { landImg, stampImg } from './assets.js';
 import COMARCAS from './data/comarcas.json';
+import { preloadNpcs } from './actors/npcGlb.js';
 import { avatarPortrait } from './ui/portraits.js';
 import { loadStore, queueMode } from './util/store.js';
 import { startI18n } from './i18n.js';
@@ -74,10 +75,10 @@ async function boot() {
     def = d;
     hub.hide(); queueMode('off');
     const cm = COMARCAS.find(c => c.id === d.comarca);
-    const TI = { visit: 'church', process: 'basket', harvest: 'wheat', herd: 'sheep', dance: 'dance', carnival: 'mask', trade: 'anvil', legend: 'legend', race: 'running', observe: 'binoculars', tradition: 'music', quiz: 'quiz', summit: 'peak', pelota: 'pelota', figure: 'person', feria: 'cow', dolmen: 'dolmen' };
+    const TI = { visit: 'church', process: 'basket', harvest: 'wheat', herd: 'sheep', dance: 'dance', carnival: 'mask', trade: 'anvil', legend: 'legend', race: 'running', observe: 'binoculars', tradition: 'music', quiz: 'quiz', summit: 'peak', pelota: 'pelota', figure: 'person', feria: 'cow', dolmen: 'dolmen', castle: 'castle' };
     ui.showLoading(d.name, TIPS[Math.floor(Math.random() * TIPS.length)], landImg(d.comarca, 1280, 720, true), { comarca: cm?.name, stamp: stampImg(d.comarca, d.name.split(' /')[0]), avatar: avatarPortrait(P.avatar), intro: d.intro, missions: (d.missions || []).map(m => m.icon || TI[m.type] || 'star') });
     try {
-      await rt.load(d, P.avatar, (p, m) => ui.progress(p, m));
+      await Promise.all([rt.load(d, P.avatar, (p, m) => ui.progress(p, m)), preloadNpcs()]);
       const ctx = { scene: rt.scene, camera: rt.camera, player: rt.player, follow: rt.follow, ui, sound, input, sky: rt.sky, fauna: rt.fauna, particles: rt.particles, beacon: rt.beacon, onExit: exit };
       hookPlayer(rt.player);
       if (d.special === 'salazar') {
@@ -113,7 +114,7 @@ async function boot() {
         ui.hideLoading(); queueMode('light');
         saveProfile();
         if (!q.get('skipintro') && !navigator.webdriver && !(P.towns[d.id]?.visits > 1)) await game.introFly();
-        setTimeout(() => game.ui.toast(`¡Bienvenido a ${d.name}! Habla con ${game.missions[0]?.host?.name || 'tu guía'}`, 'exclaim', 4200), 700);
+        { const g = game; setTimeout(() => { if (g && g === game) g.ui.toast(`¡Bienvenido a ${d.name}! Habla con ${g.missions[0]?.host?.name || 'tu guía'}`, 'exclaim', 4200); }, 700); }
       }
     } catch (e) {
       console.error(e);

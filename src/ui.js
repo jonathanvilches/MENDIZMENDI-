@@ -131,7 +131,7 @@ export class UI {
     this.lastQuestIcon = null;
     if (town) this.refreshDots();
   }
-  destroyHUD() { this.closeModal(); this.hud?.remove(); this.hud = null; this.bino?.remove(); this.bino = null; this.setCinematic?.(false); this.input.onStick = null; }
+  destroyHUD() { this._dlgCleanup?.(); this.closeModal(); this.hud?.remove(); this.hud = null; this.bino?.remove(); this.bino = null; this.setCinematic?.(false); this.input.onStick = null; }
   refreshDots() { if (!this.hud || this.game.kind !== 'town') return; for (const i of this.hud.querySelectorAll('.dots i')) { const M = this.game.missions[+i.dataset.m]; i.className = M.done ? 'on' : M.i === this.game.tracked ? 'cur' : ''; } }
   setQuest(q) {
     const b = $('#quest', this.hud);
@@ -238,7 +238,8 @@ export class UI {
       const canvasTap = (e) => { if (e.target.id === 'c') advance(false); };
       addEventListener('keydown', onKey, true);
       addEventListener('pointerdown', canvasTap);
-      const cleanup = () => { clearInterval(typing); removeEventListener('keydown', onKey, true); removeEventListener('pointerdown', canvasTap); d.remove(); this.dialogOpen = false; document.body.classList.remove('talking'); };
+      const cleanup = () => { this._dlgCleanup = null; clearInterval(typing); removeEventListener('keydown', onKey, true); removeEventListener('pointerdown', canvasTap); d.remove(); this.dialogOpen = false; document.body.classList.remove('talking'); };
+      this._dlgCleanup = () => { cleanup(); resolve(-1); };
       show();
     });
   }

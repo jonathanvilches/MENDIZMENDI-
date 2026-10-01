@@ -295,6 +295,7 @@ export function createTownLevel(def) {
     if (lm.pad) addPad(o.x, o.z, lm.pad, lm.padBlend || 20);
     PLACES.landmarks.push(o);
     if (lm.kind === 'castle') addPad(o.x, o.z, 30, 16);
+    else if (lm.kind === 'dig') addPad(o.x, o.z, 14, 14);
     else if (['ruin', 'monolith', 'lookout', 'dolmen', 'cross', 'stone', 'chapel', 'palomeras', 'horreo', 'house', 'palace', 'towerhouse', 'mill'].includes(lm.kind)) addPad(o.x, o.z, 9, 12);
   }
   // Pamplona: murallas al borde del casco

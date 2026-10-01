@@ -5,7 +5,7 @@
 // MinifigAnimator (paso con rodillas y codos), MinifigRig (jugador), COSTUMES y lookToMinifig.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { CAST } from '../data/cast.js';
+import { CAST_ALL } from '../data/cast.js';
 
 // ---------- Materiales compartidos ----------
 function toonRamp() {
@@ -730,7 +730,7 @@ export const COSTUMES = {
 };
 
 // La cuadrilla de exploradores (personajes jugables)
-for (const c of CAST) COSTUMES[c.id] = c.look;
+for (const c of CAST_ALL) COSTUMES[c.id] = c.look;
 
 // Convierte el aspecto antiguo de los vecinos al nuevo
 export function lookToMinifig(l) {
