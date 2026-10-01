@@ -20,8 +20,8 @@ const BASE = {
 const TONES = {
   alpine: {},
   lush: { grassA: '#4f9438', grassB: '#7fb04a', grassDry: '#94a654', meadow: '#6cb543', lush: '#3f8a2f' },
-  dry: { grassA: '#7f9a45', grassB: '#b0ad5c', grassDry: '#c9b56a', meadow: '#8fae4a', hay: '#c7b464', cut: '#d6c07a', cut2: '#c9ad62', soil: '#8a6a45', rock: '#a39880', rockDark: '#857a66', forest: '#4f6a30' },
-  arid: { grassA: '#a59a5e', grassB: '#c4b073', grassDry: '#d6c38a', meadow: '#98a353', hay: '#d0bb70', cut: '#decb8c', cut2: '#cfb876', soil: '#9b7a50', rock: '#c2ab82', rockDark: '#a58c66', gravel: '#b7a88a', forest: '#5d6e3a', snow: '#e9d9b8' },
+  dry: { grassA: '#6c9840', grassB: '#98a852', grassDry: '#bcae62', meadow: '#7aac46', hay: '#c7b464', cut: '#d6c07a', cut2: '#c9ad62', soil: '#8a6a45', rock: '#a39880', rockDark: '#857a66', forest: '#4f6a30' },
+  arid: { grassA: '#8f9a52', grassB: '#b2ac68', grassDry: '#d6c38a', meadow: '#98a353', hay: '#d0bb70', cut: '#decb8c', cut2: '#cfb876', soil: '#9b7a50', rock: '#c2ab82', rockDark: '#a58c66', gravel: '#b7a88a', forest: '#5d6e3a', snow: '#e9d9b8' },
 };
 let PAL = {};
 function setPalette(tone) { PAL = {}; const t = { ...BASE, ...(TONES[tone] || {}) }; for (const k in t) PAL[k] = C(t[k]); }
@@ -120,11 +120,7 @@ function buildChunk(ci, cj, step) {
 export function makeTerrainMaterial({ outer = false } = {}) {
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0 });
   const rockCol = (PAL.rock || C('#8b877c')).clone();
-  // densidad de la hierba alta (la misma que usan las briznas en 3D): bajo ellas el suelo se oscurece
-  const gm = new THREE.DataTexture(SURF.grass, N, N, THREE.RedFormat, THREE.UnsignedByteType);
-  gm.minFilter = gm.magFilter = THREE.LinearFilter; gm.needsUpdate = true;
   m.onBeforeCompile = (sh) => {
-    sh.uniforms.tGrassMask = { value: gm };
     sh.uniforms.tDetail = { value: TEX.detail };
     sh.uniforms.tGrass = { value: TEX.grass };
     sh.uniforms.tRock = { value: TEX.rock };
@@ -140,7 +136,7 @@ export function makeTerrainMaterial({ outer = false } = {}) {
       .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvSurf = aSurf;\nvWP = (modelMatrix * vec4(transformed,1.0)).xyz;\nvNW = normalize(mat3(modelMatrix) * objectNormal);');
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>
-uniform sampler2D tGrassMask; uniform sampler2D tDetail; uniform sampler2D tGrass; uniform sampler2D tRock; uniform sampler2D tRockN; uniform sampler2D tCobble; uniform sampler2D tCobbleN; uniform vec3 uRock; uniform vec2 uRockSlope;
+uniform sampler2D tDetail; uniform sampler2D tGrass; uniform sampler2D tRock; uniform sampler2D tRockN; uniform sampler2D tCobble; uniform sampler2D tCobbleN; uniform vec3 uRock; uniform vec2 uRockSlope;
 varying vec4 vSurf; varying vec3 vWP; varying vec3 vNW;
 vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.x + texture2D(tRock, p.xz / s) * bw.y + texture2D(tRock, p.xy / s) * bw.z; }
 #ifdef OUTER
@@ -162,7 +158,7 @@ vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.
   // campos, grava, nieve…: detalle suave como antes
   vec3 soft = base * (0.78 + 0.44 * d1.r) * (0.9 + 0.2 * d2.g) * (0.88 + 0.24 * big);
   // hierba: briznas a dos escalas, manchas de color, tréboles y florecillas
-  float grassy = smoothstep(0.04, 0.12, base.g - max(base.r, base.b)) * (1.0 - vSurf.z);
+  float grassy = smoothstep(0.015, 0.07, base.g - max(base.r, base.b)) * (1.0 - vSurf.z);
   vec4 g1 = texture2D(tGrass, vWP.xz / 1.3);
   vec4 g2 = texture2D(tGrass, vWP.xz / 0.47 + 0.37);
   float blades = mix(g1.r, g2.r, 0.45);
@@ -180,9 +176,6 @@ vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.
   gc = mix(gc, fc * (0.75 + 0.25 * g1.b), fl * 0.9);
   // bajo la hierba en 3D el suelo es la sombra de las matas: verde oliva oscuro como el pie de las briznas
   vec3 col = mix(soft, gc, grassy);
-  float gdens = texture2D(tGrassMask, (vWP.xz + ${HALF.toFixed(1)}) / ${(HALF * 2).toFixed(1)} * ${((N - 1) / N).toFixed(6)} + ${(0.5 / N).toFixed(6)}).r;
-  float under = (1.0 - smoothstep(16.0, 30.0, length(vWP.xz - cameraPosition.xz))) * smoothstep(0.15, 0.6, gdens) * (1.0 - vSurf.x) * (1.0 - vSurf.y);
-  col = mix(col, vec3(0.075, 0.115, 0.03) * (0.8 + 0.45 * blades) * (0.85 + 0.3 * clump) * (0.9 + 0.2 * d1.r), under * 0.7);
   // roca en las laderas (proyección triplanar: no se estira en los cortados)
   vec3 bw = pow(abs(nw), vec3(4.0)); bw /= (bw.x + bw.y + bw.z);
   vec4 rk = triRock(vWP, bw, ROCK_S1);

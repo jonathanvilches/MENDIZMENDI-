@@ -6,8 +6,8 @@ Personaje 100 % original, modelado desde cero con bpy y bmesh (Blender 4.2). Se 
 
 | | |
 |---|---|
-| GLB principal | `char_protagonista.glb` · **1,99 MB** (límite 2 MB) |
-| GLB LOD (nivel cage) | `char_protagonista_lod.glb` · 1,23 MB · 11.022 triángulos en el archivo |
+| GLB principal | `char_protagonista.glb` · **1,98 MB** (límite 2 MB) |
+| GLB LOD (nivel cage) | `char_protagonista_lod.glb` · 1,22 MB · 11.022 triángulos en el archivo |
 | Triángulos visibles (variantes por defecto) | 26.916 |
 | Triángulos en el archivo (con todas las variantes) | 31.126 |
 | Caras de la cage | 2.268 |

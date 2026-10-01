@@ -20,6 +20,12 @@ import { FAUNA, faunaName } from '../data/fauna.js';
 import { LEGENDS, NIGHT_CARNIVAL } from '../data/legends.js';
 import MOUNTAINS from '../data/mountains.json';
 import { viewFrom } from '../data/panorama.js';
+import { buildAgro } from '../world/agro.js';
+import { PASTOR_INFO, VAQUERA_INFO } from '../data/campo.js';
+import { Mochila } from './mochila.js';
+import { GearProps } from '../actors/gear3d.js';
+import { foodFrom } from '../data/equipo.js';
+import { PROCESOS, TRADICIONES } from '../data/procesos.js';
 import { bird } from '../actors/beasts.js';
 import { Fronton, findFrontonSpot, frontonWall } from './fronton.js';
 import { makeClue, makeAura } from './legendFx.js';
@@ -225,6 +231,14 @@ export class TownGame {
       const a = new Actor({ id: 'w' + i, name: ['Maite', 'Josu', 'Amaia', 'Patxi', 'Nekane', 'Koldo', 'Itziar', 'Mikel', 'Leire', 'Fermín'][i % 10], x: s0.x, z: s0.z, look, route, walkSpeed: 1 + R() * 0.4 }, this.scene);
       this.walkers.push(a);
     }
+    // mochila del explorador: equipo visible, agua, comida y energía; frutos del campo para recoger
+    this.mochila = new Mochila(this);
+    this.gearProps = new GearProps(this.player.rig); this.gearProps.set(this.P.gear);
+    if (this.mochila.has('prismaticos')) { this.binoOn = true; this.ui.showBinoButton(); }
+    this.spawnForage();
+    // el campo trabajando: tractores, cosechadoras y pacas en las parcelas
+    this.agro = buildAgro(this.scene, d, this.rnd);
+    this.spawnShepherds();
     // pelotari del pueblo: espera junto al frontón para jugar cuando se quiera
     if (this.fronton && !this.missions.some(M => M.type === 'pelota')) {
       const e = this.fronton.entry, c = this.fronton.toWorld(0, 12), s = this.spot({ x: e.x - 2.5, z: e.z + 1 }, 3);
@@ -241,6 +255,51 @@ export class TownGame {
     this.follow.snap(this.player);
     this.autoTrack();
     window.__TOWN_PEN = TOWN.pen;
+  }
+  // Moras en las zarzas del borde del bosque, avellanas y manzanas: comida para la mochila
+  spawnForage() {
+    const P = PLACES, R = this.rnd, farm = TOWN.farm || P.farm;
+    const put = (kind, c, n, r0, r1, label) => { if (!c) return; for (let i = 0; i < n; i++) { const a = R() * Math.PI * 2, r = r0 + R() * (r1 - r0), s = this.spot({ x: c.x + Math.cos(a) * r, z: c.z + Math.sin(a) * r }, 4, true);
+      const o = makeItem(kind); o.position.set(s.x, terrainHeight(s.x, s.z), s.z); this.scene.add(o); this.items.push({ M: null, food: kind === 'berries' ? 'moras' : kind === 'hazelnut' ? 'avellanas' : 'manzana', x: s.x, z: s.z, obj: o, label, kind }); } };
+    put('berries', P.forest, 4, 70, 120, 'Coger moras');
+    put('hazelnut', P.forest, 3, 80, 130, 'Coger avellanas');
+    put('manzana', farm, 3, 14, 30, 'Coger una manzana');
+  }
+  // Pastor que pasea con su rebaño y su perro; ganadera junto a las vacas. Al hablar, explican su oficio.
+  spawnShepherds() {
+    const d = this.def, P = PLACES, R = this.rnd, farm = TOWN.farm || P.farm; if (!farm || d.family === 'city') return;
+    const route = [0, 1, 2, 3].map(i => { const a = i / 4 * Math.PI * 2 + 0.6, s = this.spot({ x: farm.x + Math.cos(a) * 42, z: farm.z + Math.sin(a) * 42 }, 6); return { x: s.x, z: s.z }; });
+    const s0 = route[0];
+    const pastor = new Actor({ id: 'pastor', name: 'Pastor', x: s0.x, z: s0.z, route, walkSpeed: 0.75,
+      look: { shirt: '#efe9dc', vest: '#3a2a22', pants: '#3a3530', txapela: '#1d1d24', hair: '#8a8478', moustache: '#8a8478', staff: true, old: R() < 0.5, bag: '#7a5a3a' } }, this.scene);
+    pastor.info = PASTOR_INFO(d.family); this.walkers.push(pastor);
+    // el rebaño va detrás en fila: cada oveja sigue a otra (las primeras, al pastor)
+    const flock = [];
+    for (let i = 0; i < 9; i++) {
+      const a = this.fauna.add('sheep', s0.x - 2 - i * 1.3 + (R() - 0.5), s0.z + (R() - 0.5) * 2, { range: 3, walk: 0.6, run: 2.6, flee: 0, radius: 0.45 });
+      a.follow = i < 2 ? pastor : flock[Math.floor(R() * flock.length)]; flock.push(a);
+    }
+    const dog = this.fauna.add('dog', s0.x + 2, s0.z + 2, { range: 4, walk: 1.2, run: 6, radius: 0.3 }); dog.follow = pastor;
+    // ganadera con sus vacas en el prado (valles húmedos y zona media)
+    if (d.family !== 'ribera') {
+      const c = this.spot({ x: farm.x + (farm.x > 0 ? -1 : 1) * 30, z: farm.z - 40 }, 6);
+      const v = new Actor({ id: 'vaquera', name: 'Ganadera', x: c.x, z: c.z, look: { shirt: '#6b8fb3', vest: '#2d3a2b', pants: '#3a3530', hair: '#6b3b1f', ponytail: true, female: true, staff: true } }, this.scene);
+      v.info = VAQUERA_INFO; this.walkers.push(v);
+      for (let i = 0; i < 4; i++) this.fauna.add('cow', c.x + 6 + (R() - 0.5) * 14, c.z + 4 + (R() - 0.5) * 14, { range: 10, walk: 0.5, radius: 0.8, flee: 0 });
+    }
+  }
+  async explainWork(a) {
+    const I = a.info; a.say(3); a.wave = 1.2;
+    this.player.frozen = true;
+    try {
+      await this.say(a, I.lines);
+      await infoCard(this.ui, { icon: I.icon, kicker: 'Oficios del campo', title: I.title, text: 'Así ha cambiado este trabajo:', extra: `<div class="antes-ahora"><div><b>Antes</b>${I.then}</div><div><b>Ahora</b>${I.now}</div></div>`, badge: addCard('campo:' + I.title) ? 'Nueva carta' : '', button: '¡Lo he entendido!' });
+    } finally { this.player.frozen = false; a.talking = 0; }
+  }
+  async showAgro(o) {
+    const I = o.info; this.player.frozen = true;
+    try { await infoCard(this.ui, { icon: I.icon, kicker: 'El campo de ' + this.def.name.split(' /')[0], title: I.title, text: I.text, extra: `<div class="antes-ahora"><div><b>Antes</b>${I.then}</div><div><b>Ahora</b>${I.now}</div></div>`, badge: addCard('campo:' + I.title) ? 'Nueva carta' : '', button: 'Seguir explorando' }); }
+    finally { this.player.frozen = false; }
   }
   autoTrack() {
     const open = this.missions.filter(M => !M.done);
@@ -273,6 +332,9 @@ export class TownGame {
       o.userData.ring.material.opacity = 0.45 + Math.sin(this.elapsed * 4) * 0.25;
     }
     for (const g of this.gates) if (g.obj.visible) g.obj.userData.torus.rotation.z += dt * (g.next ? 2 : 0.3);
+    this.agro?.update(dt, P, this.particles);
+    if (this.mode === 'play') this.mochila?.update(dt, P);
+    this.gearProps?.night(this.isNight() ? 1 : 0);
     if (this.herd) this.updateHerd(dt);
     if (this.race) this.updateRace(dt);
     if (this.mode === 'dance') this.updateDance(dt);
@@ -359,7 +421,8 @@ export class TownGame {
   interactables() {
     const list = [];
     for (const a of this.actors) if (a.visible !== false) list.push({ kind: 'npc', a, x: a.pos.x, z: a.pos.z, r: 3, label: a === this.pelotari ? `Jugar a pelota con ${a.name}` : `Hablar con ${a.name}` });
-    for (const a of this.walkers) list.push({ kind: 'walker', a, x: a.pos.x, z: a.pos.z, r: 2.4, label: `Saludar a ${a.name}` });
+    for (const a of this.walkers) list.push({ kind: 'walker', a, x: a.pos.x, z: a.pos.z, r: a.info ? 3 : 2.4, label: a.info ? `Hablar con ${a.name.toLowerCase() === 'pastor' ? 'el pastor' : 'la ganadera'}` : `Saludar a ${a.name}` });
+    for (const o of this.agro?.list || []) list.push({ kind: 'agro', o, x: o.x, z: o.z, r: o.kind === 'combine' ? 6 : 4.5, label: `Mirar: ${o.info.title.toLowerCase()}` });
     for (const it of this.items) list.push({ kind: 'item', it, x: it.x, z: it.z, r: 2.2, label: it.label });
     for (const M of this.missions) if (M.bench && M.step === 1 && !M.done) list.push({ kind: 'bench', M, x: M.bench.x, z: M.bench.z, r: 3, label: M.oficio ? 'Entrar al taller' : M.trade.verb });
     for (const M of this.missions) if (M.memo) list.push({ kind: 'memorial', M, x: M.memo.x, z: M.memo.z, r: 2.8, label: M.step === 1 && !M.done ? `Ver el recuerdo de ${M.fig.name}` : `Leer la placa` });
@@ -378,6 +441,7 @@ export class TownGame {
     if (this.input.consume('e') && best) this.interact(best);
     if (this.input.consume('f') && this.binoOn) this.toggleBinoculars();
     if (this.input.consume('c')) this.ui.openBook();
+    if (this.input.consume('b')) this.mochila?.open();
     if (this.input.consume('m')) this.ui.openMap();
     if (this.input.consume('escape')) this.ui.openMenu();
   }
@@ -389,13 +453,15 @@ export class TownGame {
       const M = this.missions.find(M => M.type === 'pelota' && !M.done);
       return M ? this.talk(M.host) : this.freePelota();
     }
+    if (it.kind === 'walker' && it.a.info) return this.explainWork(it.a);
+    if (it.kind === 'agro') return this.showAgro(it.o);
     if (it.kind === 'walker') { it.a.say(2.5); it.a.wave = 1.2; const L = WALKER_LINES[this.walkers.indexOf(it.a) % WALKER_LINES.length]; return this.say(it.a, L); }
     if (it.kind === 'item') return this.pick(it.it);
     if (it.kind === 'bench') return this.doTrade(it.M);
     if (it.kind === 'clue') return this.examineClue(it.k);
     if (it.kind === 'memorial') return this.doMemorial(it.M);
     if (it.kind === 'creature') return this.meetCreature(it.M);
-    if (it.kind === 'fountain') { this.particles.emit({ x: it.x, y: TOWN.fountain.y + 1.4, z: it.z }, { n: 20, color: '#bfe8ff', speed: 1.5, size: 0.25, life: 0.8 }); this.sound.splash(this.player.pos, 0.6); this.ui.toast('Agua fresca de la fuente de la plaza.', 'water'); }
+    if (it.kind === 'fountain') { this.particles.emit({ x: it.x, y: TOWN.fountain.y + 1.4, z: it.z }, { n: 20, color: '#bfe8ff', speed: 1.5, size: 0.25, life: 0.8 }); this.sound.splash(this.player.pos, 0.6); return this.mochila.fountain(); }
   }
   // Partido libre en el frontón del pueblo (fuera de las misiones): contra el pelotari o el anfitrión de la misión
   async freePelota() {
@@ -447,13 +513,15 @@ export class TownGame {
         else { await S([`¡Ya conoces ${d.name}! Ahora la gente del pueblo te pedirá ayuda.`, 'Los que tienen una exclamación amarilla encima tienen una misión para ti.']); await this.complete(M); }
         return;
       case 'process':
-        if (M.step === 0) { await S([m.text, `Primero: ${m.gather?.label?.toLowerCase() || 'recoge lo necesario'}. Necesito ${M.need}.`]); this.startGather(M, m.gather?.item || 'star', m.gather?.label || 'Recoger', m.gather?.near); }
+        if (M.step === 0) { await S([m.text]); await this.explain(PROCESOS[m.id], m.product, 'what'); await S([`Primero: ${m.gather?.label?.toLowerCase() || 'recoge lo necesario'}. Necesito ${M.need}.`]); this.startGather(M, m.gather?.item || 'star', m.gather?.label || 'Recoger', m.gather?.near); }
         else if (M.step === 1) await S([`Aún faltan ${M.need - M.count}. ¡Tú puedes!`]);
         else if (M.step === 2 || M.step === 3) {
           M.step = 3;
-          await S([`¡Perfecto! Ahora hagamos ${m.product} paso a paso. Ordena lo que se hace primero.`]);
+          await S([`¡Perfecto! Ahora hagamos ${m.product} paso a paso.`]);
+          await this.explain(PROCESOS[m.id], m.product, 'how');
+          await S(['Ordena los pasos: ¿qué se hace primero?']);
           const r = await sequenceGame(this.ui, { title: m.product, hint: 'Toca los pasos en el orden correcto', icon: M.icon, steps: m.steps });
-          if (r.win) { await S([`¡Así se hace ${m.product}! Es un producto de ${this.comarca?.name || 'Navarra'}.`]); await this.complete(M, { card: m.product, cardText: m.text }); }
+          if (r.win) { await S([`¡Así se hace ${m.product}! Es un producto de ${this.comarca?.name || 'Navarra'}.`]); await this.explain(PROCESOS[m.id], m.product, 'then'); await this.complete(M, { card: m.product, cardText: m.text }); }
         }
         return;
       case 'harvest':
@@ -502,16 +570,18 @@ export class TownGame {
         const F0 = FAUNA[M.species[0]];
         if (M.step === 0) {
           await S([...(m.story || []), m.text, F0 ? `Fíjate bien: ${F0.look}` : '', 'Toma mis prismáticos. Pulsa F (o el botón de prismáticos), busca con calma y, cuando el círculo se ponga amarillo, pulsa E para anotarlo. La brújula te indica hacia dónde mirar.'].filter(Boolean));
-          M.step = 1; this.binoOn = true; this.ui.showBinoButton(); this.obsSeen ||= new Set();
+          M.step = 1; this.binoOn = true; this.ui.showBinoButton(); this.obsSeen ||= new Set(); await this.mochila.give('prismaticos');
         } else if (M.step === 1) await S([`Llevas ${M.count}/${M.need}. ${m.hint || 'Mira al cielo: sigue la marca de la brújula.'}`]);
         else { await S([m.outro || '¡Muy bien observado! Has aprendido a reconocerlos por su silueta, como los guardas de verdad.']); await this.complete(M, { card: M.title, cardText: m.text }); }
         return;
       }
       case 'tradition': {
-        await S([m.text, m.kind === 'angel' ? 'Repite los movimientos en el mismo orden.' : 'Escucha la melodía y repítela.']);
+        await S([m.text]);
+        if (M.step === 0) { await this.explain(TRADICIONES[m.title], m.title, 'what'); await this.explain(TRADICIONES[m.title], m.title, 'how'); }
+        await S([m.kind === 'angel' ? 'Repite los movimientos en el mismo orden.' : 'Escucha la melodía y repítela.']);
         M.step = 1;
         const r = await simonGame(this.ui, { title: M.title, icon: M.icon, rounds: 4, labels: m.kind === 'angel' ? ['Cuerda', 'Alas', 'Bajar', 'Saludo'] : null });
-        if (r.win) { await S(['¡Precioso! Así se mantiene viva la tradición.']); await this.complete(M, { card: M.title, cardText: m.text }); }
+        if (r.win) { await S(['¡Precioso! Así se mantiene viva la tradición.']); await this.explain(TRADICIONES[m.title], m.title, 'then'); await this.complete(M, { card: M.title, cardText: m.text }); }
         else await S(['No pasa nada, inténtalo otra vez cuando quieras.']);
         return;
       }
@@ -559,6 +629,23 @@ export class TownGame {
     }
   }
 
+  // Tarjetas que explican un producto o una tradición: qué es, cómo se hace, y antes/ahora
+  async explain(X, title, part) {
+    if (!X) return;
+    const icon = this.missions.find(M => M.m.product === title || M.m.title === title)?.icon || 'book';
+    if (part === 'what') return infoCard(this.ui, { icon, kicker: '¿Qué es?', title, text: X.what, button: 'Entendido' });
+    if (part === 'how') return infoCard(this.ui, { icon, kicker: 'Cómo se hace', title, text: X.how, button: '¡Vamos!' });
+    return infoCard(this.ui, { icon, kicker: 'Antes y ahora', title, text: 'Así ha cambiado:', extra: `<div class="antes-ahora"><div><b>Antes</b>${X.then}</div><div><b>Ahora</b>${X.now}</div></div>`, button: '¡Lo he aprendido!' });
+  }
+  // Lo que se gana al terminar: comida del producto y equipo nuevo
+  async afterComplete(M) {
+    const f = M.type === 'process' ? foodFrom(M.m.product) : M.type === 'harvest' ? foodFrom(M.m.crop) : null;
+    if (f) this.mochila.addFood(f, 2);
+    if (M.type === 'summit') await this.mochila.give('baston');
+    if (M.type === 'legend' || (M.type === 'carnival' && M.night)) await this.mochila.give('farol');
+    const total = Object.values(this.P.towns || {}).reduce((n, t) => n + Object.keys(t.done || {}).length, 0);
+    if (total >= 5) await this.mochila.give('brujula');
+  }
   // ---------- Recuerdo de un personaje: placa, pregunta y su huella hoy ----------
   async doMemorial(M) {
     const F = M.fig;
@@ -595,6 +682,7 @@ export class TownGame {
   pick(it) {
     const M = it.M;
     this.items = this.items.filter(x => x !== it); this.scene.remove(it.obj);
+    if (!M) { this.player.rig.doAct('pick', 0.6); this.sound.ui('coin'); this.mochila.addFood(it.food); return; }
     this.player.rig.doAct('pick', 0.6);
     this.particles.emit({ x: it.x, y: terrainHeight(it.x, it.z) + 0.5, z: it.z }, { n: 24, color: ['#ffe38a', '#ffffff'], speed: 2.2, size: 0.28, life: 0.9 });
     this.sound.ui('coin');
@@ -641,7 +729,7 @@ export class TownGame {
     // colocar el rebaño a una distancia razonable del redil
     this.herd.forEach((s, i) => {
       const a = i / this.herd.length * 1.6 - 0.8, sp = this.spot({ x: pen.x + Math.sin(a) * 18, z: pen.z + pen.d / 2 + 16 + Math.cos(a) * 6 }, 4);
-      s.pos.set(sp.x, groundHeight(sp.x, sp.z), sp.z); s.home = { x: sp.x, z: sp.z }; s.range = 4; s.fleeDist = kind === 'cow' ? 5 : 4.2; s.run = kind === 'cow' ? 2.4 : 2.8; s.herd = true; s.penned = false; s.bounds = null;
+      s.follow = null; s.pos.set(sp.x, groundHeight(sp.x, sp.z), sp.z); s.home = { x: sp.x, z: sp.z }; s.range = 4; s.fleeDist = kind === 'cow' ? 5 : 4.2; s.run = kind === 'cow' ? 2.4 : 2.8; s.herd = true; s.penned = false; s.bounds = null;
     });
     this.herdM = M;
   }
@@ -758,7 +846,7 @@ export class TownGame {
     const F = FAUNA[w.id], n = M.wild.filter(x => x.found).length;
     const isNew = addCard('fauna:' + w.id);
     this.player.frozen = true;
-    try { await infoCard(this.ui, { icon: F.icon, kicker: `Animal del monte · ${n} de ${M.wild.length}`, title: `${F.name} · ${F.eu}`, text: `${F.look} ${F.fact}`, badge: isNew ? 'Nueva carta' : '', button: 'Seguir subiendo' }); }
+    try { await infoCard(this.ui, { icon: F.icon, kicker: `Animal del monte · ${n} de ${M.wild.length}`, title: `${F.name} · ${F.eu}`, text: `${F.look} ${F.fact}`, badge: isNew ? 'Nueva carta' : '', button: 'Seguir subiendo' }); await this.mochila.give('cuaderno'); }
     finally { this.player.frozen = false; }
   }
   updateSummit(M) {
@@ -1241,6 +1329,7 @@ export class TownGame {
     this.sound.magic();
     const done = M && M.count >= M.need;
     await infoCard(this.ui, { icon: id, kicker: `Cuaderno de campo · ${F.eu}`, title: F.name, text: `${F.look} ${F.fact}`, badge: first ? 'Especie nueva' : '', button: M ? (done ? `¡Hecho! Vuelve con ${M.host.name}` : `Seguir buscando (${M.count}/${M.need})`) : 'Seguir observando' });
+    if (first) await this.mochila.give('cuaderno');
     if (done) this.ui.toast(`¡Muy bien! Vuelve con ${M.host.name}`, 'check', 3000);
   }
 
@@ -1288,6 +1377,7 @@ export class TownGame {
     const doneN = this.missions.filter(x => x.done).length;
     saveProfile();
     await missionComplete(this.ui, { title: M.title, text: cardText ? cardText : `Has completado una misión en ${this.def.name}.`, xp, card, icon: M.icon, progress: { done: doneN, total: this.missions.length, name: this.def.name } });
+    await this.afterComplete(M);
     if (lvUp) { const L = levelOf(this.P.xp); await infoCard(this.ui, { icon: 'star', kicker: '¡Subes de nivel!', title: `Nivel ${L.lv}`, text: 'Cada misión te hace más sabio sobre Navarra. ¡Sigue así!', button: '¡Genial!' }); }
     const last = doneN === this.missions.length && !this.ts.stamp;
     if (last) { this.ts.stamp = true; saveProfile(); }

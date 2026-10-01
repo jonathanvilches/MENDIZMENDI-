@@ -415,7 +415,8 @@ export class Nature {
     this.buildCrops(rnd, quality);
     scene.add(this.group);
     dataTextures(true);
-    this.grass = new GrassField(scene, quality);
+    // sin briznas 3D: el prado es la textura del suelo (más limpio y más fluido)
+    this.grass = null;
     this.flowers = new FlowerField(scene, quality);
   }
   // reparte instancias por trozos del mapa: de cerca la geometría 'hi', de lejos 'lo' (o nada si no hay)
@@ -558,7 +559,7 @@ export class Nature {
       for (const m of c.hi) { m.visible = near; m.castShadow = shade && m.userData.shadow !== false; }
       for (const m of c.lo) m.visible = !near;
     }
-    this.grass.update(focus, elapsed, player);
+    this.grass?.update(focus, elapsed, player);
     this.flowers.update(focus, elapsed, player);
   }
 }
