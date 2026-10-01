@@ -32,6 +32,17 @@ let EPOCH = 0; const TEXREG = new Set();
   const d = Object.getOwnPropertyDescriptor(THREE.Texture.prototype, 'needsUpdate');
   Object.defineProperty(THREE.Texture.prototype, 'needsUpdate', { configurable: true, set(v) { if (v && this.userData && this.userData.epoch == null) { this.userData.epoch = EPOCH; TEXREG.add(new WeakRef(this)); } d.set.call(this, v); } });
 }
+// aviso discreto de error (para poder contarlo): esquina inferior, se va solo; tocándolo se copia el detalle
+function showErrorNote(msg, stack) {
+  let n = document.querySelector('.errnote'); if (!n) { n = document.createElement('button'); n.className = 'errnote'; document.body.appendChild(n); }
+  const where = (stack || '').split('\n').find(l => /src\//.test(l))?.match(/src\/[^?:)]+(:\d+)?/)?.[0] || '';
+  n.textContent = `Error: ${msg}${where ? ' · ' + where : ''}`; n.title = 'Toca para copiar el detalle';
+  n.onclick = () => { navigator.clipboard?.writeText(`${msg}\n${stack || ''}`); n.textContent = 'Copiado'; };
+  n.classList.add('on'); clearTimeout(n._t); n._t = setTimeout(() => n.classList.remove('on'), 9000);
+}
+// errores fuera del bucle (diálogos y misiones que esperan): se apuntan igual
+addEventListener('unhandledrejection', (ev) => { const e = ev.reason; const k = String(e?.message || e); (window.__errors ||= []).push(k); console.error('[promesa]', e); showErrorNote(k, e?.stack); });
+addEventListener('error', (ev) => { if (!ev.error) return; const k = String(ev.error.message); (window.__errors ||= []).push(k); showErrorNote(k, ev.error.stack); });
 // aviso de memoria gráfica agotada: botón para volver a cargar el mismo pueblo
 function showContextLost() {
   if (document.querySelector('.ctxlost')) return;
@@ -170,7 +181,7 @@ export class Runtime {
   // un error en una parte del juego no debe congelar la imagen: se anota (una vez por mensaje) y se sigue
   reportError(e) {
     const k = String(e?.message || e); (this.errSeen ||= new Set());
-    if (!this.errSeen.has(k)) { this.errSeen.add(k); console.error('[bucle]', e); (window.__errors ||= []).push(k); }
+    if (!this.errSeen.has(k)) { this.errSeen.add(k); console.error('[bucle]', e); (window.__errors ||= []).push(k); showErrorNote(k, e?.stack); }
   }
   step(dt, g, input) {
     input.enabled = !g.ui.busy && g.mode !== 'cine' && g.mode !== 'dance' && g.mode !== 'mini' && g.mode !== 'pelota';

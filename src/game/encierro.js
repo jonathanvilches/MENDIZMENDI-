@@ -30,7 +30,26 @@ function cobbleTex() {
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(3, L / 6); t.anisotropy = 4;
   return t;
 }
-const colored = (geo, color, m) => { const g = (geo.index ? geo.toNonIndexed() : geo); if (m) g.applyMatrix4(m); const c = new THREE.Color(color), n = g.attributes.position.count, a = new Float32Array(n * 3); for (let i = 0; i < n; i++) { a[i * 3] = c.r; a[i * 3 + 1] = c.g; a[i * 3 + 2] = c.b; } g.setAttribute('color', new THREE.BufferAttribute(a, 3)); if (g.attributes.uv) g.deleteAttribute('uv'); return g; };
+// revoco de fachada: manchas suaves, desconchones y líneas de piedra (se multiplica por el color de cada pieza)
+function plasterTex() {
+  const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'), r = mulberry(5);
+  g.fillStyle = '#f2f2f2'; g.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 5000; i++) { const v = 205 + r() * 50 | 0; g.fillStyle = `rgba(${v},${v},${v - 5},0.3)`; g.fillRect(r() * 256, r() * 256, 1 + r() * 2.5, 1 + r() * 2.5); }
+  for (let i = 0; i < 10; i++) { const x = r() * 256, y = r() * 256, gr = g.createRadialGradient(x, y, 0, x, y, 10 + r() * 24); gr.addColorStop(0, 'rgba(170,160,145,0.18)'); gr.addColorStop(1, 'rgba(170,160,145,0)'); g.fillStyle = gr; g.fillRect(0, 0, 256, 256); }
+  for (let i = 0; i < 6; i++) { g.strokeStyle = 'rgba(110,100,90,0.18)'; g.beginPath(); let x = r() * 256, y = r() * 256; g.moveTo(x, y); for (let k = 0; k < 5; k++) g.lineTo(x += (r() - 0.5) * 16, y += r() * 10); g.stroke(); }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; return t;
+}
+const colored = (geo, color, m) => {
+  const g = (geo.index ? geo.toNonIndexed() : geo); if (m) g.applyMatrix4(m);
+  const c = new THREE.Color(color), P = g.attributes.position, N = g.attributes.normal, n = P.count, a = new Float32Array(n * 3), uv = new Float32Array(n * 2);
+  for (let i = 0; i < n; i++) {
+    a[i * 3] = c.r; a[i * 3 + 1] = c.g; a[i * 3 + 2] = c.b;
+    const nx = Math.abs(N.getX(i)), ny = Math.abs(N.getY(i)), nz = Math.abs(N.getZ(i)), x = P.getX(i), y = P.getY(i), z = P.getZ(i);
+    const [u, v] = nx >= ny && nx >= nz ? [z, y] : ny >= nz ? [x, z] : [x, y];
+    uv[i * 2] = u / 2.2; uv[i * 2 + 1] = v / 2.2;
+  }
+  g.setAttribute('color', new THREE.BufferAttribute(a, 3)); g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); return g;
+};
 const M4 = (x, y, z, ry = 0, sx = 1, sy = 1, sz = 1) => new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, ry, 0)), new THREE.Vector3(sx, sy, sz));
 
 export class Encierro {
@@ -56,11 +75,15 @@ export class Encierro {
         const w = 7 + rnd() * 4, h = 12 + Math.floor(rnd() * 3) * 3, x = side * (HALF + 3.5), zc = z - w / 2, col = walls[Math.floor(rnd() * walls.length)];
         parts.push(colored(new THREE.BoxGeometry(7, h, w - 0.1), col, M4(x, h / 2, zc)));
         parts.push(colored(new THREE.BoxGeometry(7.6, 0.5, w + 0.2), '#8a4a32', M4(x, h + 0.25, zc)));            // alero
+        parts.push(colored(new THREE.BoxGeometry(7.1, 1.0, w - 0.1), '#9a8f80', M4(x - side * 0.06, 0.5, zc)));     // zócalo de piedra
+        for (let fl = 1; fl < Math.floor(h / 3); fl++) parts.push(colored(new THREE.BoxGeometry(7.12, 0.14, w - 0.1), '#d8ccb4', M4(x - side * 0.06, fl * 3 - 0.05, zc)));   // imposta
+        if (rnd() < 0.3) { parts.push(colored(new THREE.BoxGeometry(0.5, 0.05, 0.05), '#1e1c1a', M4(side * (HALF + 0.25), 3.6, zc))); parts.push(colored(new THREE.BoxGeometry(0.22, 0.34, 0.22), '#2a2622', M4(side * (HALF - 0.02), 3.4, zc))); }   // farol
         const wins = Math.max(2, Math.floor(w / 2.6));
         for (let fl = 0; fl < Math.floor(h / 3); fl++) for (let k = 0; k < wins; k++) {
           const wz = zc - w / 2 + (k + 0.5) * (w / wins), wy = 1.6 + fl * 3, fx = side * (HALF + 0.02);
           if (fl === 0) { parts.push(colored(new THREE.BoxGeometry(0.06, 2.4, 1.3), k % 2 ? '#3a2a1e' : '#5a3a28', M4(fx, 1.2, wz))); continue; }
-          parts.push(colored(new THREE.BoxGeometry(0.06, 1.9, 1.0), '#2a2622', M4(fx, wy, wz)));                         // ventana
+          parts.push(colored(new THREE.BoxGeometry(0.05, 2.1, 1.2), '#e9e1cf', M4(fx + side * 0.01, wy + 0.05, wz)));          // recerco
+          parts.push(colored(new THREE.BoxGeometry(0.06, 1.9, 1.0), '#2a2622', M4(fx - side * 0.005, wy, wz)));                // ventana
           parts.push(colored(new THREE.BoxGeometry(0.08, 1.9, 0.45), '#3d6a4a', M4(fx - side * 0.02, wy, wz - 0.75)));   // contraventanas
           parts.push(colored(new THREE.BoxGeometry(0.08, 1.9, 0.45), '#3d6a4a', M4(fx - side * 0.02, wy, wz + 0.75)));
           parts.push(colored(new THREE.BoxGeometry(0.9, 0.12, 1.5), '#5a524a', M4(fx - side * 0.45, wy - 1.0, wz)));     // balcón
@@ -84,7 +107,7 @@ export class Encierro {
     parts.push(colored(new THREE.BoxGeometry(8, 1.6, 0.3), '#efe6d2', M4(0, 10.8, pz + 2.1)));  // cartel
     parts.push(colored(new THREE.BoxGeometry(5.6, 7, 0.4), '#2a1a12', M4(0, 3.5, pz + 2.05)));  // puerta abierta (oscuro)
     for (const s of [-1, 1]) parts.push(colored(new THREE.BoxGeometry(1.2, 8, 4.6), '#e8dcc0', M4(s * 3.5, 4, pz)));
-    const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85 });
+    const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85, map: this.plaster = plasterTex() });
     const city = new THREE.Mesh(mergeGeometries(parts), mat); city.castShadow = city.receiveShadow = true; S.add(city);
     // cartel «PLAZA DE TOROS»
     const sc = document.createElement('canvas'); sc.width = 512; sc.height = 96; const sg = sc.getContext('2d');
@@ -122,12 +145,22 @@ export class Encierro {
     const herd = [['cabestro', -0.9, 0], ['bull', 0.7, -1.5], ['bull', -0.3, -3.4], ['cabestro', 1.0, -4.2], ['bull', -1.0, -5.6], ['bull', 0.4, -7.4], ['cabestro', -0.2, -8.6], ['bull', 0.9, -10]];
     for (const [k, x, dz] of herd) this.bulls.push(this.makeBeast(k, x, 14 - dz, 7.4, 0));
     this.bulls.push(this.makeBeast('bull', 0.3, 40, 8.1, 9));
+    // nubes de polvo que levantan las pezuñas sobre el adoquín
+    const dc = document.createElement('canvas'); dc.width = dc.height = 64; const dg = dc.getContext('2d'), gr = dg.createRadialGradient(32, 32, 2, 32, 32, 30);
+    gr.addColorStop(0, 'rgba(190,175,150,0.9)'); gr.addColorStop(1, 'rgba(190,175,150,0)'); dg.fillStyle = gr; dg.fillRect(0, 0, 64, 64);
+    this.dustTex = new THREE.CanvasTexture(dc); this.dust = [];
+    for (let i = 0; i < 70; i++) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.dustTex, transparent: true, depthWrite: false, opacity: 0 })); sp.visible = false; S.add(sp); this.dust.push({ sp, life: 0 }); }
+    this.dustI = 0; this.hoofT = 0; this.snortT = 3; this.shake = 0;
+  }
+  puff(x, z) {
+    const d = this.dust[this.dustI++ % this.dust.length];
+    d.life = 1; d.sp.visible = true; d.sp.position.set(x + (Math.random() - 0.5) * 0.6, 0.15, z + (Math.random() - 0.5) * 0.6); d.vy = 0.4 + Math.random() * 0.5; d.s0 = 0.5 + Math.random() * 0.4;
   }
   makeBeast(kind, x, z, speed, delay) {
-    const q = beast(kind, Math.random); q.root.scale.setScalar(kind === 'bull' ? 1.02 : 1.08);
+    const q = beast(kind, Math.random); q.root.scale.setScalar(kind === 'bull' ? 1.2 : 1.08);
     q.root.traverse(o => { if (o.isMesh) o.castShadow = true; });
     this.scene.add(q.root);
-    return { q, kind, x, z, x0: x, speed, delay, ph: Math.random() * 6, out: false };
+    return { q, kind, x, z, x0: x, speed, delay, ph: Math.random() * 6, out: false, charge: 0 };
   }
 
   // HUD propio: caídas que quedan, barra hasta la plaza y avisos
@@ -177,7 +210,8 @@ export class Encierro {
       if (d < 0.7 && d > 1e-3) { me.x += dx / d * (0.7 - d) * 0.8; if (dz > 0) me.speed *= 0.97; }
     }
     // toros y cabestros: corren en manada hacia la plaza haciendo eses; el que choca con el jugador lo tira
-    let warn = false;
+    let warn = false, near = 99;
+    for (const d of this.dust) if (d.life > 0) { d.life -= dt * 0.9; d.sp.position.y += d.vy * dt; const k = 1 - d.life; d.sp.scale.setScalar(d.s0 + k * 1.6); d.sp.material.opacity = Math.max(0, d.life) * 0.55; if (d.life <= 0) d.sp.visible = false; }
     for (const b of this.bulls) {
       if (this.t < 2.8 + b.delay || b.out) continue;
       b.ph += dt * 6;
@@ -186,11 +220,20 @@ export class Encierro {
       b.z -= b.speed * dt;
       if (b.z < -END + 2) { b.out = true; b.q.root.visible = false; continue; }
       const dz = b.z - me.z, dx = Math.abs(b.x - me.x);
+      near = Math.min(near, Math.hypot(dz, dx));
+      if (Math.random() < dt * 9) this.puff(b.x, b.z + 0.8);
+      // el toro que ve a alguien delante baja la cabeza y embiste
+      b.charge += ((b.kind === 'bull' && dz > 0 && dz < 6 && dx < 1.6 ? 1 : 0) - b.charge) * Math.min(1, dt * 4);
       if (b.kind === 'bull' && dz > 0 && dz < 11 && dx < 1.5) warn = true;
       if (dz > -1.2 && dz < 1.6 && dx < 0.95 && me.fall <= 0 && me.safe <= 0) this.hit(b);
       else if (b.kind === 'bull' && dz < 0 && dz > -2 && dx < 1.7 && dx > 0.95) this.closeCall += dt;
     }
     this.h.querySelector('.enc-warn').classList.toggle('on', warn && me.fall <= 0);
+    // retumbar de pezuñas y bufidos más fuertes cuanto más cerca; la cámara tiembla
+    const fear = Math.max(0, 1 - near / 16);
+    this.shake = fear * 0.09;
+    if (fear > 0 && (this.hoofT -= dt) <= 0) { this.hoofT = 0.32; this.G.sound.hooves?.(0.15 + fear * 0.6); }
+    if (fear > 0.3 && (this.snortT -= dt) <= 0) { this.snortT = 1.6 + Math.random() * 2; this.G.sound.snort?.(fear); }
     this.h.querySelector('.enc-bar i').style.width = `${Math.min(100, (-me.z) / END * 100).toFixed(1)}%`;
     this.h.querySelector('.enc-hearts').innerHTML = [0, 1, 2].map(i => `<span class="${i < this.lives ? 'on' : ''}"></span>`).join('');
     if (me.z <= -END) this.finish(true);
@@ -211,10 +254,13 @@ export class Encierro {
     for (const r of this.runners) { r.obj.position.set(r.x, 0, r.z); r.obj.rotation.y = Math.PI; r.anim.update(1 / 60, { speed: this.started ? r.speed : 0 }); }
     for (const b of this.bulls) {
       const q = b.q, run = this.started && this.t > 2.8 + b.delay && !b.out, ph = b.ph;
-      q.root.position.set(b.x, run ? Math.abs(Math.sin(ph)) * 0.08 : 0, b.z); q.root.rotation.y = Math.PI;
-      if (q.legs) q.legs.forEach((l, i) => { l.rotation.x = run ? Math.sin(ph + (i < 2 ? 0 : Math.PI * 0.6) + (i % 2) * 0.35) * 0.75 : 0; });
-      if (q.head) q.head.rotation.x = run ? -0.25 + Math.sin(ph * 2) * 0.06 : 0;
-      if (q.body) q.body.rotation.x = run ? Math.sin(ph) * 0.04 : 0;
+      const off = [0.46, 0.58, 0.0, 0.12];
+      q.root.position.set(b.x, run ? Math.max(0, Math.sin(ph + 0.6)) * 0.12 : 0, b.z); q.root.rotation.y = Math.PI;
+      if (q.legs) q.legs.forEach((l, i) => { const w = ph + off[i] * Math.PI * 2; const ww = w + 0.38 * Math.sin(w); l.rotation.x = run ? Math.sin(ww) * 0.85 : 0; l.scale.y = run ? 1 - Math.max(0, -Math.cos(ww)) * 0.22 : 1; });
+      // con la cabeza baja y derrotes (golpes de cuerna hacia arriba) cuando embiste
+      const ch = b.charge || 0;
+      if (q.head) q.head.rotation.x = run ? (-0.1 + ch * 0.5) + Math.sin(ph) * 0.07 - ch * Math.max(0, Math.sin(ph * 0.5)) ** 6 * 0.6 : 0;
+      if (q.body) q.body.rotation.x = run ? Math.sin(ph + 0.6) * 0.06 : 0;
     }
     this.sun.position.set(me.x + 30, 60, me.z + 20); this.sun.target.position.set(me.x, 0, me.z - 6);
   }
@@ -224,6 +270,7 @@ export class Encierro {
     if (!this.camCur) this.camCur = want.clone(); else this.camCur.lerp(want, Math.min(1, dt * 5));
     c.position.copy(this.camCur);
     if (me.fall > 0) c.position.y += Math.sin(this.t * 40) * 0.05;
+    if (this.shake > 0) { c.position.x += (Math.random() - 0.5) * this.shake; c.position.y += (Math.random() - 0.5) * this.shake; }
     c.lookAt(look);
   }
 
@@ -245,7 +292,7 @@ export class Encierro {
     removeEventListener('resize', this.onResize);
     this.h?.remove();
     this.scene.traverse(o => { if (o.geometry) o.geometry.dispose(); const ms = o.material ? [].concat(o.material) : []; for (const m of ms) { m.map?.dispose(); m.dispose(); } });
-    this.sun.shadow.map?.dispose(); this.cobble.dispose();
+    this.sun.shadow.map?.dispose(); this.cobble.dispose(); this.plaster?.dispose(); this.dustTex?.dispose();
     for (const n of [this.me, ...this.runners]) n.char?.dispose?.();
     this.scene = null;
   }

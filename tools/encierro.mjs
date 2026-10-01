@@ -20,6 +20,12 @@ const adv = (secs, wall = true) => p.evaluate(([secs, wall]) => { const G = wind
 await p.evaluate(() => { const G = window.__game; G.__enc = null; });
 await adv(3.2, false); await p.waitForTimeout(800); await shot('cohete');
 await adv(6); await p.waitForTimeout(800); await shot('toros-llegan');
+// de cerca: la cámara mira hacia atrás a la manada (sin avanzar la escena)
+await p.evaluate(() => { const G = window.__game, E = G.encierro, T = window.__THREE; G.__upd = G.altUpdate; G.altUpdate = () => { E.place(); };
+  const b = E.bulls.filter(b => b.kind === 'bull' && !b.out).sort((a, c) => a.z - c.z)[0]; b.charge = 1;
+  E.camera.position.set(b.x - 1.6, 1.3, b.z - 4.2); E.camera.lookAt(b.x, 1.1, b.z); });
+await p.waitForTimeout(1500); await shot('toro-cerca');
+await p.evaluate(() => { const G = window.__game; G.altUpdate = G.__upd; });
 const st = await p.evaluate(() => { const G = window.__game; const e = G.altUpdate && G.altScene; return { mode: G.mode, errores: window.__errors || [] }; });
 console.log(JSON.stringify(st));
 await adv(4); await p.waitForTimeout(800); await shot('estafeta');

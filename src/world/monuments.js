@@ -129,6 +129,36 @@ export function castle(B, x, z, ry, big) {
     const n = Math.floor(Math.max(w, d) / 1.4);
     for (let i = 0; i < n; i++) B.add('ashlar', box(w > d ? 0.7 : 2.2, 0.8, w > d ? 2.2 : 0.7), MM(T, M(w > d ? lx - w / 2 + 0.7 + i * 1.4 : lx, Hh + 0.4, w > d ? lz : lz - d / 2 + 0.7 + i * 1.4)));
   }
+  // detalles de un castillo de verdad: talud en la base, cornisa sobre ménsulas bajo las almenas, saeteras en los
+  // lienzos, matacán sobre la puerta con su puerta de madera claveteada abierta y el puente sobre el foso
+  for (const [lx, lz, w, d] of [[0, -D / 2, W, 2], [0, D / 2, W, 2], [-W / 2, 0, 2, D], [W / 2, 0, 2, D]]) {
+    const along = w > d, len = along ? w : d, gate = lz === D / 2, out = along ? Math.sign(lz) : Math.sign(lx);
+    B.add('stoneDark', box(along ? w + 1.2 : 3.2, 1.6, along ? 3.2 : d + 1.2), MM(T, M(lx, 0.8, lz)));                                   // talud
+    B.add('ashlar', box(along ? w + 0.5 : 2.7, 0.35, along ? 2.7 : d + 0.5), MM(T, M(lx, Hh - 0.15, lz)));                              // cornisa
+    for (let t = -len / 2 + 1.2; t < len / 2 - 1; t += 1.6) {
+      if (gate && Math.abs(t) < 4.5) continue;
+      const cx = along ? lx + t : lx + out * 1.15, cz = along ? lz + out * 1.15 : lz + t;
+      B.add('ashlar', box(along ? 0.35 : 0.5, 0.6, along ? 0.5 : 0.35), MM(T, M(cx, Hh - 0.62, cz)));                                  // ménsula
+    }
+    for (let t = -len / 2 + 3; t < len / 2 - 2.5; t += 3.6) {
+      if (gate && Math.abs(t) < 5) continue;
+      for (const sd of [out, -out]) {
+        const cx = along ? lx + t : lx + sd * 1.01, cz = along ? lz + sd * 1.01 : lz + t;
+        B.add('dark', box(along ? 0.22 : 0.06, 1.5, along ? 0.06 : 0.22), MM(T, M(cx, Hh * 0.55, cz)));                               // saetera
+        B.add('dark', box(along ? 0.7 : 0.06, 0.16, along ? 0.06 : 0.7), MM(T, M(cx, Hh * 0.55 + 0.35, cz)));                         // cruz de la saetera
+      }
+    }
+  }
+  const gz = D / 2;
+  B.add('ashlar', box(7.6, 1.6, 1.3), MM(T, M(0, Hh - 0.6, gz + 1.6)));                                                           // matacán
+  for (let i = -3; i <= 3; i++) B.add('ashlar', box(0.4, 1.1, 1.0), MM(T, M(i * 1.15, Hh - 1.9, gz + 1.45)));
+  for (const s of [-1, 1]) {
+    B.add('woodDark', box(0.25, 5.2, 2.9), MM(T, M(s * 2.85, 2.6, gz - 2.4)));                                                     // hojas de la puerta, abiertas
+    for (let k = 0; k < 4; k++) B.add('iron', box(0.3, 0.12, 2.9), MM(T, M(s * 2.85, 0.8 + k * 1.3, gz - 2.4)));
+  }
+  B.add('iron', box(5.6, 0.25, 0.25), MM(T, M(0, Hh - 3.3, gz + 0.9)));                                                           // rastrillo subido
+  B.add('woodDark', box(5.2, 0.35, 6), MM(T, M(0, 0.15, gz + 4.2)));                                                              // puente
+  for (const s of [-1, 1]) B.add('iron', new THREE.CylinderGeometry(0.06, 0.06, 7.4, 6), MM(T, new THREE.Matrix4().makeRotationX(0.62).setPosition(s * 2.4, Hh - 3.6, gz + 3.6)));   // cadenas
   // torres (Olite: muchas, de alturas distintas, con chapiteles)
   const towers = big ? [[-W / 2, -D / 2, 7, 26, 'sq'], [W / 2, -D / 2, 6, 22, 'oct'], [-W / 2, D / 2, 6, 20, 'sq'], [W / 2, D / 2, 7, 24, 'sq'], [0, -D / 2, 8, 30, 'sq'], [W / 4, 0, 5, 18, 'rd'], [-W / 4, -4, 6, 21, 'oct'], [-W / 2, 0, 5, 17, 'rd']]
     : [[-W / 2, -D / 2, 6, 16, 'sq'], [W / 2, -D / 2, 6, 16, 'sq'], [-W / 2, D / 2, 6, 15, 'rd'], [W / 2, D / 2, 6, 15, 'rd'], [0, -D / 2, 7, 20, 'sq']];

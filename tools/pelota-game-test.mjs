@@ -26,7 +26,7 @@ if (!only || only === 'salazar') {
   console.log('salazar 1', await sim(p, 3)); await p.waitForTimeout(2500); await p.screenshot({ path: `${out}/salazar-peloteo.png` });
   console.log('salazar 2', await sim(p, 120)); await p.waitForTimeout(2500); await p.screenshot({ path: `${out}/salazar-final.png` });
   const cont = await p.$('.pel-go[data-pel-cont]'); if (cont) { await cont.click(); await p.waitForTimeout(3000); }
-  console.log('salazar vuelta', await p.evaluate(() => ({ mode: window.__game.mode, q: window.__game.q('pelota').state, frozen: window.__game.player.frozen })));
+  console.log('salazar vuelta', await p.evaluate(() => ({ mode: window.__game.mode, q: window.__game.q('pelota').state, frozen: window.__game.player.frozen, errores: window.__errors || [] })));
   await p.screenshot({ path: `${out}/salazar-despues.png` });
   await p.close();
 }
@@ -40,7 +40,7 @@ if (!only || only === 'pueblo') {
   console.log('pueblo 1', await sim(p, 6)); await p.waitForTimeout(2500); await p.screenshot({ path: `${out}/pueblo-partido.png` });
   console.log('pueblo 2', await sim(p, 400)); await p.waitForTimeout(2500); await p.screenshot({ path: `${out}/pueblo-final.png` });
   const cont = await p.$('.pel-go[data-pel-cont]'); if (cont) { await cont.click(); await p.waitForTimeout(3000); }
-  console.log('pueblo resultado', await p.evaluate(() => JSON.stringify({ res: window.__res, mode: window.__game.mode })));
+  console.log('pueblo resultado', await p.evaluate(() => JSON.stringify({ res: window.__res, mode: window.__game.mode, errores: window.__errors || [] })));
   await p.screenshot({ path: `${out}/pueblo-despues.png` });
   await p.close();
 }

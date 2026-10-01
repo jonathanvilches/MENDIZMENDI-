@@ -477,7 +477,22 @@ def rig_and_weights(d, arm, G):
     for name in ('Body', 'Shirt', 'Vest', 'Shorts', 'Socks'):
         transfer_weights(proxy, G[name], arm)
     C.delete_obj(proxy)
-    C.auto_weights(G['Boots'], arm, body_bones, all_deform); fill_missing_weights(G['Boots'], arm, body_bones)
+    # botas: pesos rígidos por zonas (caña con la espinilla, empeine con el pie, puntera con los dedos). Con pesos
+    # automáticos la suela se repartía entre huesos lejanos y la bota se estiraba al doblar la rodilla.
+    bones = arm.data.bones; mw = G['Boots'].matrix_world
+    def boot_w(co):
+        w = mw @ co; sd = 'Left' if w.x > 0 else 'Right'
+        ank, knee, toe = bones[sd + 'Foot'].head_local, bones[sd + 'Leg'].head_local, bones[sd + 'ToeBase'].head_local
+        if w.z > knee.z - 0.02: return {sd + 'UpLeg': 0.5, sd + 'Leg': 0.5}
+        f = C.smooth01((ank.z + 0.035 - w.z) / 0.05)                    # 0 en la caña, 1 en el pie
+        tw = C.smooth01((toe.y + 0.02 - w.y) / 0.05) * f               # puntera (−Y es delante)
+        return {sd + 'Leg': 1 - f, sd + 'Foot': f - tw, sd + 'ToeBase': tw}
+    C.set_weights(G['Boots'], boot_w)
+    # el espejo solo cambia Left→Right si el grupo del otro lado existe
+    for vg in list(G['Boots'].vertex_groups):
+        o = vg.name.replace('Left', 'Right') if vg.name.startswith('Left') else vg.name.replace('Right', 'Left')
+        if not G['Boots'].vertex_groups.get(o): G['Boots'].vertex_groups.new(name=o)
+    C.armature_mod(G['Boots'], arm); C.weights_cleanup(G['Boots'])
     C.auto_weights(G['Head'], arm, ['Neck', 'Head'], all_deform)
     fill_missing_weights(G['Head'], arm, ['Head'])
     # pelo: la masa va con la cabeza; cada mechón pasa de la cabeza a su hueso Hair_0x

@@ -223,10 +223,11 @@ export const BEASTS = {
     const headG = mergeAll([
       loft({ pts: [V(0, -0.1, -0.12), V(0, 0.02, 0.12), V(0, 0.1, 0.32)], r: [[0.3, 0.3, 0.44], [0.24, 0.26, 0.38], [0.17, 0.2, 0.24]], color: coat, ring: 24 }),
       loft({ pts: [V(0, 0.2, 0.3), V(0, 0.16, 0.44), V(0, 0.02, 0.6), V(0, -0.14, 0.74), V(0, -0.2, 0.8)], r: [[0.2, 0.16, 0.14], [0.17, 0.14, 0.13], [0.12, 0.1, 0.1], [0.12, 0.09, 0.1], [0.11, 0.07, 0.08]], color: face, ring: 24, e: 2.3 }),
-      ...[-1, 1].map(s => ball(0.03, '#9a6a5a', 0, s * 0.055, -0.17, 0.84, 1.2, 0.7, 0.6)),
+      ...[-1, 1].map(s => ball(0.03, o.bravo ? '#120d0b' : '#9a6a5a', 0, s * 0.055, -0.17, 0.84, 1.2, 0.7, 0.6)),
       ...eye(0.135, 0.16, 0.47, 0.03, 0.9, MZ),
-      ...[-1, 1].map(s => ear(0.2, 0.07, 0.02, B, '#e8c9a0').applyMatrix4(Mx(s * 0.16, 0.2, 0.32, 0, 0, -s * 1.5))),
-      ...[-1, 1].map(s => o.bravo ? horn([V(s * 0.12, 0.27, 0.32), V(s * 0.3, 0.3, 0.36), V(s * 0.4, 0.34, 0.5), V(s * 0.36, 0.42, 0.66)], 0.05, 0.01, '#e9dcc0', '#2a221c')
+      ...(o.bravo ? [-1, 1].flatMap(s => [ball(0.06, B, 0, s * 0.13, 0.22, 0.46, 1.1, 0.45, 1), ball(0.012, '#c8382a', 0, s * 0.158, 0.165, 0.5, 1, 1, 1)]) : []),
+      ...[-1, 1].map(s => ear(0.2, 0.07, 0.02, B, o.bravo ? '#3a2e28' : '#e8c9a0').applyMatrix4(Mx(s * 0.16, 0.2, 0.32, 0, 0, -s * 1.5))),
+      ...[-1, 1].map(s => o.bravo ? horn([V(s * 0.12, 0.26, 0.3), V(s * 0.34, 0.3, 0.33), V(s * 0.49, 0.37, 0.46), V(s * 0.49, 0.49, 0.64), V(s * 0.42, 0.6, 0.78)], 0.07, 0.008, '#ece0c4', '#1a1410')
         : horn([V(s * 0.12, 0.27, 0.34), V(s * 0.26, 0.3, 0.37), V(s * 0.33, 0.38, 0.44), V(s * 0.3, 0.46, 0.52)], 0.042, 0.011, '#efe4c6', '#4a3a2a')),
       loft({ pts: [V(0, -0.18, -0.02), V(0, -0.2, 0.12)], r: [[0.2, 0.05, 0.05], [0.18, 0.05, 0.05]], color: '#5a3a22', tex: 4, ring: 16, capA: false, capB: false }),
       ...(o.bell === false ? [] : [prep(new THREE.CylinderGeometry(0.07, 0.1, 0.16, 16), '#8a7650', 4, Mx(0, -0.36, 0.08)), prep(new THREE.SphereGeometry(0.03, 8, 6), '#3a2a1a', 4, Mx(0, -0.45, 0.08))]),
@@ -356,7 +357,7 @@ export const BEASTS = {
     return { body, head: headG, neck: V(0, 0.54, 0.5), legs: { fl: [0.15, 0.38, 0.38], hl: [0.15, 0.36, -0.48], front: fl, hind: hl },
       tail: tube(curl, 0.016, 0.008, K), tailAt: V(0, 0.58, -0.7) };
   },
-  bull: (rnd) => BEASTS.cow(rnd, { c: '#1d1917', light: '#2c2622', dark: '#0f0c0b', muzzle: '#2a2420', nose: '#3a2f2a', hump: 1.16, bravo: true, bell: false }),
+  bull: (rnd) => BEASTS.cow(rnd, { c: '#171311', light: '#2a231f', dark: '#070505', muzzle: '#221c19', nose: '#2e2622', hump: 1.32, bravo: true, bell: false }),
   cabestro: (rnd) => BEASTS.cow(rnd, { c: '#7a4a2a', light: '#f0e6d4', dark: '#5a3420', hump: 1.05 }),
   dog: (rnd, o = {}) => {
     const BR = DOG_BREEDS[o.breed] || DOG_BREEDS.gorbeia, R = BR.c, Rl = BR.light, PT = BR.patch;

@@ -94,7 +94,7 @@ export class Animal {
       if (!deep && r4 < 455 && bounded && Math.abs(g - this.pos.y) < 1.2) { this.pos.x = r.x; this.pos.z = r.z; }
       else if (this.follow) { this.speed *= 0.5; }                      // el compañero no gira en redondo: frena y corrige poco a poco
       else { this.heading += 1.5 + this.rnd(); this.target = null; }
-      this.phase += this.speed * dt * (this.kind === 'cow' ? 2.6 : 5.5);
+      this.phase += dt * (this.kind === 'cow' ? this.speed * 2.6 : Math.min(this.speed * 5.5, 9 + this.speed * 1.6));   // a más velocidad, zancada más larga (no más pasos)
     }
     this.pos.y = groundHeight(this.pos.x, this.pos.z);
     this.animate(dt);
@@ -102,26 +102,37 @@ export class Animal {
   }
   animate(dt) {
     const q = this.q, sp = this.speed;
-    // andares: paso (patas en diagonal), trote (diagonal con salto) y galope (delanteras y traseras juntas)
+    // andares con cada pata a su tiempo: paso (secuencia lateral), trote (diagonales) y galope rotatorio
+    // (trasera, trasera, delantera, delantera). La pata se recoge al adelantarse (como si doblara la rodilla) y el
+    // apoyo dura más que el vuelo; el cuerpo cabecea y se inclina en las curvas, y la cabeza compensa para ir firme.
     const gallop = sp > Math.max(3.2, this.run * 0.75) && this.kind !== 'cow', trot = !gallop && sp > 1.25;
-    const a = Math.min(1, sp / 1.2);
-    const sw = Math.sin(this.phase) * (trot ? 0.75 : 0.5) * a;
-    q.legs[0].rotation.x = sw; q.legs[3].rotation.x = sw;
-    q.legs[1].rotation.x = -sw; q.legs[2].rotation.x = -sw;
-    if (gallop) { q.legs[0].rotation.x = q.legs[1].rotation.x = Math.sin(this.phase) * 0.8; q.legs[2].rotation.x = q.legs[3].rotation.x = -Math.sin(this.phase) * 0.8; q.body.rotation.x = Math.cos(this.phase) * 0.08; }
-    else q.body.rotation.x = 0;
-    q.body.position.y = Math.abs(Math.sin(this.phase)) * (gallop ? 0.12 : trot ? 0.07 : 0.03) * a;
+    const a = Math.min(1, sp / 1.2), T2 = Math.PI * 2, ph = this.phase;
+    const off = gallop ? [0.46, 0.58, 0.0, 0.12] : trot ? [0, 0.5, 0.5, 0] : [0.25, 0.75, 0, 0.5];   // [del. izq, del. der, tras. izq, tras. der]
+    const amp = (gallop ? 0.85 : trot ? 0.62 : 0.42) * a;
+    for (let i = 0; i < 4; i++) {
+      const pi = ph + off[i] * T2, w = pi + 0.38 * Math.sin(pi);           // apoyo largo y vuelta rápida
+      const leg = q.legs[i]; leg.rotation.x = Math.sin(w) * amp * (i < 2 ? 1 : 0.9);
+      const lift = Math.max(0, -Math.cos(w)) * a;                          // la pata va hacia delante: se recoge
+      leg.scale.y = 1 - lift * (gallop ? 0.24 : trot ? 0.18 : 0.12);
+    }
+    const pitch = gallop ? Math.sin(ph + 0.9) * 0.09 * a : trot ? Math.sin(ph * 2) * 0.015 * a : 0;
+    const tr = this.prevHeading == null ? 0 : Math.atan2(Math.sin(this.heading - this.prevHeading), Math.cos(this.heading - this.prevHeading)) / Math.max(dt, 1e-3);
+    this.prevHeading = this.heading;
+    this.roll = damp(this.roll || 0, Math.max(-0.18, Math.min(0.18, -tr * sp * 0.02)), 6, dt);
+    q.body.rotation.set(pitch, 0, this.roll + (gallop || trot ? 0 : Math.sin(ph) * 0.02 * a));
+    q.body.position.y = (gallop ? (0.5 + 0.5 * Math.sin(ph * 1 + 0.4)) * 0.1 : trot ? Math.abs(Math.sin(ph)) * 0.05 : Math.abs(Math.sin(ph)) * 0.015) * a;
+    this.counter = -pitch * 0.8 + (trot ? -Math.sin(ph * 2) * 0.03 * a : 0);
     const graze = this.state === 'graze' && !this.alert ? 1 : 0;
     this.headDown = damp(this.headDown || 0, graze, 3, dt);
     // cabeza: pasta, o se levanta y gira hacia el jugador si está cerca (alerta)
     let yaw = Math.sin(this.t * 0.8) * 0.2 * (1 - this.headDown);
     if (this.lookYaw != null && this.state !== 'flee' && sp < 1) { const d = Math.atan2(Math.sin(this.lookYaw - this.heading), Math.cos(this.lookYaw - this.heading)); yaw = Math.max(-0.9, Math.min(0.9, d)) * (1 - this.headDown); }
     this.headYaw = damp(this.headYaw || 0, yaw, 5, dt);
-    q.head.rotation.x = this.headDown * 0.9 + Math.sin(this.t * 3) * 0.05 * this.headDown - (this.alert ? 0.15 : 0);
+    q.head.rotation.x = this.headDown * 0.9 + Math.sin(this.t * 3) * 0.05 * this.headDown - (this.alert ? 0.15 : 0) + (this.counter || 0);
     q.head.rotation.y = this.headYaw;
     // cola: el perro la mueve contento; vacas y caballos la sacuden de vez en cuando contra las moscas
     if (q.tail) {
-      if (this.kind === 'dog') q.tail.rotation.z = Math.sin(this.t * 12) * 0.6;
+      if (this.kind === 'dog') { const run = Math.min(1, sp / 4); q.tail.rotation.z = Math.sin(this.t * 12) * 0.6 * (1 - run * 0.7); q.tail.rotation.x = -run * 0.5 + Math.sin(ph * 2) * 0.08 * run; }
       else { const flick = Math.max(0, Math.sin(this.t * 0.7 + this.phase * 0.1)) ** 8; q.tail.rotation.z = Math.sin(this.t * 3) * 0.12 + Math.sin(this.t * 9) * 0.5 * flick; }
     }
   }
