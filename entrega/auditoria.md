@@ -68,7 +68,8 @@ Estado de todo lo pedido hasta ahora: **hecho** (comprobado en el juego con capt
 | Petición | Estado | Notas |
 |---|---|---|
 | Música según la escena | Hecho | Explorar, noche, misterio, tensión, juego y fiesta |
-| Lluvia, nieve y tejados nevados | Hecho | Nieve en el Pirineo, lluvia más a menudo en el norte |
+| Lluvia, nieve y tejados nevados | Hecho | En el norte nieva a menudo (Pirineo 7 de cada 10 visitas, resto del norte 4 de cada 10) y al llegar ya está todo blanco |
+| Sin lluvia ni nieve durante los partidos | Hecho | En el fútbol y la pelota se despeja; al acabar vuelve el tiempo que hacía |
 | Luna rara | Hecho | Disco nítido con mares, cráteres y halo |
 
 ## Idioma

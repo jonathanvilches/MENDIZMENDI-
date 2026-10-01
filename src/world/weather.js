@@ -82,8 +82,9 @@ export function pickWeather(def, rnd = Math.random) {
   if (q) return q;
   if (def?.special) return 'clear';
   const c = def?.comarca, r = rnd();
-  if (c === 'pirineo') return r < 0.55 ? 'snow' : r < 0.7 ? 'rain' : 'clear';
-  if (['bidasoa', 'larraun-leitzaldea', 'sakana', 'prepirineo'].includes(c)) return r < 0.12 ? 'snow' : r < 0.42 ? 'rain' : 'clear';
+  // en el norte nieva a menudo (más en el Pirineo): tejados blancos, niebla baja y copos
+  if (c === 'pirineo') return r < 0.7 ? 'snow' : r < 0.8 ? 'rain' : 'clear';
+  if (['bidasoa', 'larraun-leitzaldea', 'sakana', 'prepirineo'].includes(c)) return r < 0.42 ? 'snow' : r < 0.62 ? 'rain' : 'clear';
   if (['ribera', 'ribera-alta'].includes(c)) return r < 0.08 ? 'rain' : 'clear';
   return r < 0.2 ? 'rain' : 'clear';
 }
@@ -94,13 +95,15 @@ export class Weather {
     const n = quality === 'low' ? 0.45 : quality === 'mid' ? 0.7 : 1;
     if (kind === 'rain') { this.fx = precip('rain', Math.round(5200 * n)); scene.add(this.fx); }
     if (kind === 'snow') { this.fx = precip('snow', Math.round(4200 * n)); scene.add(this.fx); }
-    SNOW.value = 0;
+    SNOW.value = kind === 'snow' ? 0.55 : 0;   // al llegar ya ha nevado: tejados y prados blancos
     this.grey = new THREE.Color(kind === 'snow' ? '#d6dde6' : '#8a949e');
   }
   // cada fotograma, después del cielo: cae la lluvia o la nieve, el cielo se agrisa y la nieve se va posando
-  update(dt, camera, sky, sound) {
+  // hold: durante un partido (fútbol o pelota) deja de llover o nevar y se despeja, para ver bien el juego
+  update(dt, camera, sky, sound, hold = false) {
     if (this.kind === 'clear') return;
-    this.t += dt; this.k = Math.min(1, this.k + dt * 0.25);
+    this.t += dt; this.k = hold ? Math.max(0, this.k - dt * 1.5) : Math.min(1, this.k + dt * 0.25);
+    this.fx.visible = this.k > 0.02;
     const U = this.fx.userData.U; U.uTime.value = this.t; U.uCam.value.copy(camera.position);
     if (U.uScale) U.uScale.value = innerHeight * 0.55;
     if (this.kind === 'snow') SNOW.value = Math.min(0.92, SNOW.value + dt * 0.05);   // en un rato, todo blanco
