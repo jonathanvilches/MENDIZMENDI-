@@ -75,6 +75,8 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // el partido anima al jugador y coloca a los dos: el rig del jugador pasa a nuestras manos
     P.rig = { update() { }, doAct() { }, doCheer() { }, doWave() { }, setExpr() { } };
     P.frozen = true; G.mode = 'pelota'; G.ui.hudVisible?.(false); G.ui.setPrompt?.(null);
+    // el perro espera sentado a la entrada de la cancha, mirando el partido
+    G.perro?.wait?.(fronton.entry, fronton.toWorld(0, 0));
     rig.setStance?.('Ready');                     // en la cancha, postura de pelotari
     G.pelotaRig = rig;
     rival.frozen = true; rival.talking = 0;
@@ -105,7 +107,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       // el público aplaude el final y vuelve al pueblo (sigue moviéndose con el juego hasta que se va)
       if (crowd) { crowd.end(!!r.win); G.crowds = (G.crowds || []).filter(c => !c.disposed).concat(crowd); }
       G.pelotaTick = null; G.pelotaMatch = null; G.pelotaRig = null;
-      rig.setStance?.(null); P.rig = rig; P.frozen = false; G.mode = 'play'; G.ui.hudVisible?.(true);
+      rig.setStance?.(null); P.rig = rig; P.frozen = false; G.mode = 'play'; G.ui.hudVisible?.(true); G.perro?.release?.();
       rival.frozen = false; rival.speed = 0; rival.setPos(home.x, home.z, home.h);
       const e = fronton.entry, c = fronton.toWorld(0, 12);
       P.place(e.x, e.z, Math.atan2(c.x - e.x, c.z - e.z));

@@ -112,7 +112,8 @@ export function buildAnimal(kind, opts = {}) {
     update(dt, s) {
       const sp = s.speed || 0, H = S.h;
       let a;
-      if (sp > H * 1.9 + 0.8) { a = A.play('Gallop'); a.timeScale = Math.max(0.6, sp / (H * 3.4 + 1.2)); }
+      if (s.sit) { a = A.play(actions.Sit ? 'Sit' : 'Idle'); a.timeScale = 1; }
+      else if (sp > H * 1.9 + 0.8) { a = A.play('Gallop'); a.timeScale = Math.max(0.6, sp / (H * 3.4 + 1.2)); }
       else if (sp > 0.15) { a = A.play('Walk'); a.timeScale = Math.max(0.5, sp / (H * 0.9 + 0.25)); }
       else if (s.graze) { a = A.play(actions.Eating ? 'Eating' : 'Idle_Headlow'); a.timeScale = 1; }
       else { a = A.play(s.alt && actions.Idle_2 ? 'Idle_2' : 'Idle'); a.timeScale = 1; }

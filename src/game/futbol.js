@@ -72,8 +72,8 @@ export class Futbol {
   setup() {
     const G = this.G, S = G.scene, P = profile(), av = P.avatar || 'benat';
     this.root = new THREE.Group(); S.add(this.root);
-    // el perro se queda en la grada; el avatar del explorador se cambia por el jugador con la equipación
-    this.dog = G.perro?.dog || null; if (this.dog) { this.dog.hidden = true; this.dog.obj.visible = false; }
+    // el perro espera sentado junto a la banda, mirando el partido
+    this.dog = G.perro?.dog || null; if (this.dog) G.perro.wait({ x: this.cx - 23.5, z: this.cz + 6 }, { x: this.cx, z: this.cz });
     G.player.obj.visible = false;
     this.ballTex = ballTex();
     this.ball = new THREE.Mesh(new THREE.SphereGeometry(BR, 20, 14), new THREE.MeshStandardMaterial({ map: this.ballTex, roughness: 0.5 }));
@@ -404,6 +404,6 @@ export class Futbol {
     }
     G.mode = 'play'; G.player.frozen = false; G.futbol = null; G.player.obj.visible = true;
     const w = this.W(-16.5, 3); G.player.place(w.x, w.z, -Math.PI / 2); G.follow.cinematic = null; G.follow.snap?.(G.player);
-    if (this.dog) { this.dog.hidden = false; this.dog.pos.set(w.x - 1.5, groundHeight(w.x - 1.5, w.z + 1), w.z + 1); this.dog.sync?.(); }
+    if (this.dog) { this.G.perro?.release(); this.dog.pos.set(w.x - 1.5, groundHeight(w.x - 1.5, w.z + 1), w.z + 1); this.dog.sync?.(); }
   }
 }
