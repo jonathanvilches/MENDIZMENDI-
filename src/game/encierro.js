@@ -62,7 +62,7 @@ export class Encierro {
     const rnd = mulberry(7), B = { plaster: [], stone: [], wood: [], brick: [], plain: [] };
     const WIN = [[], [], []], RAIL = [], SHOP = Object.fromEntries(SHOPS.map(k => [k, []]));   // piezas dibujadas (instancias)
     const walls = ['#e9dcc0', '#d9b98a', '#e6cfa6', '#c98f6a', '#efe6d2', '#d6a77a', '#e2d2b0'];
-    const people = [];
+    const people = [], BAL = [];   // BAL: balcones del primer piso (para las cámaras de televisión)
     // casas de la calle (F = distancia de la fachada al eje); se usa en la Estafeta y en el tramo del callejón
     const street = (F, z0, z1) => { for (const side of [-1, 1]) {
       let z = z0;
@@ -70,6 +70,8 @@ export class Encierro {
         const w = 7 + rnd() * 4, h = 12 + Math.floor(rnd() * 3) * 3, x = side * (F + 3.5), zc = z - w / 2, col = walls[Math.floor(rnd() * walls.length)];
         B.plaster.push(colored(new THREE.BoxGeometry(7, h, w - 0.1), col, M4(x, h / 2, zc)));
         B.wood.push(colored(new THREE.BoxGeometry(7.6, 0.5, w + 0.2), '#8a4a32', M4(x, h + 0.25, zc)));            // alero
+        for (let q = zc - w / 2 + 0.3; q < zc + w / 2 - 0.2; q += 0.62) B.wood.push(colored(new THREE.BoxGeometry(0.62, 0.16, 0.13), '#6a3a24', M4(side * (F - 0.28), h - 0.07, q)));   // canecillos bajo el alero
+        for (let yy = 1.1, k = 0; yy < h - 0.4; yy += 0.55, k++) B.stone.push(colored(new THREE.BoxGeometry(0.12, 0.5, k % 2 ? 0.45 : 0.7), '#c8bca4', M4(side * (F - 0.04), yy + 0.25, zc + w / 2 - 0.05 - (k % 2 ? 0.225 : 0.35))));   // esquinal de sillares
         B.stone.push(colored(new THREE.BoxGeometry(7.1, 1.0, w - 0.1), '#9a8f80', M4(x - side * 0.06, 0.5, zc)));     // zócalo de piedra
         for (let fl = 1; fl < Math.floor(h / 3); fl++) B.plaster.push(colored(new THREE.BoxGeometry(7.12, 0.14, w - 0.1), '#d8ccb4', M4(x - side * 0.06, fl * 3 - 0.05, zc)));   // imposta
         if (rnd() < 0.3) { B.plain.push(colored(new THREE.BoxGeometry(0.5, 0.05, 0.05), '#1e1c1a', M4(side * (F + 0.25), 3.6, zc))); B.plain.push(colored(new THREE.BoxGeometry(0.22, 0.34, 0.22), '#2a2622', M4(side * (F - 0.02), 3.4, zc))); }   // farol
@@ -77,16 +79,26 @@ export class Encierro {
         for (let fl = 0; fl < Math.floor(h / 3); fl++) for (let k = 0; k < wins; k++) {
           const wz = zc - w / 2 + (k + 0.5) * (w / wins), wy = 1.6 + fl * 3, fx = side * (F + 0.02);
           if (fl === 0) { SHOP[SHOPS[Math.floor(rnd() * SHOPS.length)]].push({ x: side * (F - 0.12), y: 1.45, z: wz, side, sx: Math.min(2.3, w / wins * 0.9) / 2.3 }); continue; }
-          B.plaster.push(colored(new THREE.BoxGeometry(0.05, 2.1, 1.2), '#e9e1cf', M4(fx + side * 0.01, wy + 0.05, wz)));          // recerco
+          // recerco de piedra con relieve: jambas, dintel con cornisa y alféizar
+          for (const s2 of [-1, 1]) B.stone.push(colored(new THREE.BoxGeometry(0.1, 2.2, 0.16), '#e2d8c2', M4(side * (F - 0.05), wy + 0.05, wz + s2 * 0.58)));
+          B.stone.push(colored(new THREE.BoxGeometry(0.12, 0.22, 1.38), '#e2d8c2', M4(side * (F - 0.06), wy + 1.2, wz)));
+          B.stone.push(colored(new THREE.BoxGeometry(0.2, 0.08, 1.5), '#d4c8ae', M4(side * (F - 0.1), wy + 1.34, wz)));
           WIN[Math.floor(rnd() * 3)].push({ x: side * (F - 0.02), y: wy, z: wz, side });   // ventana con cristales y visillos
           B.wood.push(colored(new THREE.BoxGeometry(0.08, 1.9, 0.45), '#3d6a4a', M4(fx - side * 0.02, wy, wz - 0.75)));   // contraventanas
           B.wood.push(colored(new THREE.BoxGeometry(0.08, 1.9, 0.45), '#3d6a4a', M4(fx - side * 0.02, wy, wz + 0.75)));
-          B.plain.push(colored(new THREE.BoxGeometry(0.9, 0.12, 1.5), '#5a524a', M4(fx - side * 0.45, wy - 1.0, wz)));     // balcón
-          RAIL.push({ x: fx - side * 0.88, y: wy - 0.52, z: wz, side });   // barandilla de forja
+          // balcón volado: losa con moldura, dos ménsulas debajo y barandilla de forja con pasamanos y laterales
+          B.stone.push(colored(new THREE.BoxGeometry(0.95, 0.1, 1.6), '#b8ad98', M4(fx - side * 0.47, wy - 0.98, wz)));
+          B.stone.push(colored(new THREE.BoxGeometry(0.85, 0.08, 1.48), '#a89c86', M4(fx - side * 0.42, wy - 1.07, wz)));
+          for (const s2 of [-1, 1]) { B.stone.push(colored(new THREE.BoxGeometry(0.55, 0.16, 0.12), '#a89c86', M4(fx - side * 0.29, wy - 1.19, wz + s2 * 0.55))); B.stone.push(colored(new THREE.BoxGeometry(0.3, 0.18, 0.11), '#a89c86', M4(fx - side * 0.17, wy - 1.35, wz + s2 * 0.55))); }
+          if (fl === 1) BAL.push({ fx, wy, wz, side });
+          RAIL.push({ x: fx - side * 0.9, y: wy - 0.52, z: wz, side });   // barandilla de forja (frente)
+          for (const s2 of [-1, 1]) RAIL.push({ x: fx - side * 0.47, y: wy - 0.52, z: wz + s2 * 0.76, side, ry: s2 > 0 ? 0 : Math.PI, sx: 0.58 });   // laterales
+          B.plain.push(colored(new THREE.BoxGeometry(0.06, 0.05, 1.56), '#1c1a18', M4(fx - side * 0.9, wy - 0.08, wz)));     // pasamanos
+          for (const s2 of [-1, 1]) B.plain.push(colored(new THREE.BoxGeometry(0.9, 0.05, 0.06), '#1c1a18', M4(fx - side * 0.47, wy - 0.08, wz + s2 * 0.77)));
           if (rnd() < 0.55) people.push({ x: fx - side * 0.55, y: wy - 0.95, z: wz + (rnd() - 0.5) * 0.7, ry: side > 0 ? -Math.PI / 2 : Math.PI / 2 });
           if (rnd() < 0.3) people.push({ x: fx - side * 0.55, y: wy - 0.95, z: wz + (rnd() - 0.5) * 0.7, ry: side > 0 ? -Math.PI / 2 : Math.PI / 2 });
           if (rnd() < 0.35) { const pz2 = wz + (rnd() - 0.5) * 0.9; B.plain.push(colored(new THREE.BoxGeometry(0.22, 0.2, 0.32), '#a5532e', M4(fx - side * 0.75, wy - 0.84, pz2))); B.plain.push(colored(new THREE.IcosahedronGeometry(0.2, 1), rnd() < 0.6 ? '#d81e2a' : '#f06aa0', M4(fx - side * 0.75, wy - 0.6, pz2, 0, 1, 0.7, 1.3))); B.plain.push(colored(new THREE.IcosahedronGeometry(0.17, 0), '#3f7a32', M4(fx - side * 0.72, wy - 0.68, pz2 + 0.1))); }   // geranios en el balcón
-          if (rnd() < 0.25) B.plain.push(colored(new THREE.BoxGeometry(0.02, 0.9, 1.2), rnd() < 0.5 ? '#d42f2f' : '#ffffff', M4(fx - side * 0.92, wy - 1.3, wz)));   // pañuelo colgado
+          if (rnd() < 0.25) B.plain.push(colored(new THREE.BoxGeometry(0.02, 0.9, 1.2), rnd() < 0.8 ? '#d42f2f' : '#f4efe2', M4(fx - side * 0.92, wy - 1.3, wz)));   // pañuelo colgado
         }
         z -= w;
       }
@@ -103,6 +115,28 @@ export class Encierro {
       if (rnd() < 0.55) people.push({ x: s * (HALF + 2.1 + rnd() * 2.5), y: 0, z: z + rnd() * 0.4, ry: s > 0 ? -Math.PI / 2 : Math.PI / 2, s: 1.5 });
       if (rnd() < 0.25) people.push({ x: s * (HALF + 1.4), y: 1.15, z, ry: s > 0 ? -Math.PI / 2 : Math.PI / 2 });
     }
+    // cámaras de televisión: en balcones del primer piso, cada unos 40 m y alternando la acera, y una en una tarima
+    // junto a la puerta de la plaza; con su operador o su operadora detrás
+    this.tv = [];
+    const tvAt = (x, y, z, side) => {
+      const ry = side > 0 ? -Math.PI / 2 : Math.PI / 2, M = (g, c, dx, dy, dz, rx = 0, rz = 0) => B.plain.push(colored(g, c, new THREE.Matrix4().compose(new THREE.Vector3(x + dx, y + dy, z + dz), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, 0, rz)), new THREE.Vector3(1, 1, 1))));
+      for (let k = 0; k < 3; k++) { const a = k * 2.094 + (side > 0 ? 0 : Math.PI); M(new THREE.CylinderGeometry(0.02, 0.025, 1.25, 5), '#2a2a2c', Math.cos(a) * 0.17, 0.6, Math.sin(a) * 0.17, Math.sin(a) * 0.28, -Math.cos(a) * 0.28); }   // trípode con las patas abiertas
+      M(new THREE.BoxGeometry(0.62, 0.36, 0.3), '#3a3d42', -side * 0.05, 1.32, 0);                       // cuerpo
+      M(new THREE.CylinderGeometry(0.11, 0.13, 0.4, 12), '#1a1a1c', -side * 0.45, 1.34, 0, 0, Math.PI / 2);   // objetivo
+      M(new THREE.BoxGeometry(0.2, 0.14, 0.18), '#22262a', side * 0.1, 1.58, 0);                         // visor
+      M(new THREE.BoxGeometry(0.05, 0.05, 0.05), '#ff2020', -side * 0.2, 1.53, 0);                       // piloto rojo
+      M(new THREE.BoxGeometry(0.02, 0.09, 0.16), '#e8e4dc', -side * 0.05, 1.32, 0.16);                   // placa «TV»
+      for (let i = people.length - 1; i >= 0; i--) if (Math.hypot(people[i].x - x, people[i].z - z) < 0.9 && Math.abs(people[i].y - y) < 1.5) people.splice(i, 1);
+      people.push({ x: x + side * 0.42, y: y + 0.05, z: z + 0.15, ry });
+      this.tv.push(new THREE.Vector3(x - side * 0.7, y + 1.34, z));
+    };
+    let lastTv = 99, tvSide = -1;
+    for (const b of [...BAL].sort((a, c) => c.wz - a.wz)) {
+      if (b.wz > -12 || b.wz < -L + 4 || lastTv - b.wz < 40 || b.side !== tvSide) continue;
+      tvAt(b.fx - b.side * 0.5, b.wy - 0.93, b.wz, b.side); lastTv = b.wz; tvSide = -tvSide;
+    }
+    B.plain.push(colored(new THREE.BoxGeometry(2.4, 1.6, 2.4), '#5a4a3a', M4(HALF + 3.1, 0.8, -GATE + 9)));   // tarima
+    tvAt(HALF + 3.1, 1.6, -GATE + 9, 1);
     // la plaza de toros, con el túnel por el que entra el encierro
     const PZ = this.plaza = buildPlaza(B, colored, M4, -GATE, HALF, rnd);
     // cada material con su textura, relieve y rugosidad (una llamada de dibujo por material)
@@ -204,7 +238,7 @@ export class Encierro {
     const h = this.h = document.createElement('div'); h.className = 'enc-hud';
     h.innerHTML = `<div class="enc-top"><div class="enc-hearts"></div><div class="enc-bar"><i></i><b>Plaza</b></div></div><div class="enc-msg"></div><div class="enc-warn">¡Toro detrás! Apártate</div><div class="enc-help">${this.G.input.touch ? 'Dedo a los lados: esquivar · arriba: correr · SALTAR los caídos · PERIÓDICO para guiar al toro' : 'A / D esquivar · W o Mayús correr · Espacio saltar · P periódico · C cámara'}</div>
       <div class="enc-btns"><button class="enc-b enc-jump" data-k="jump">SALTAR</button><button class="enc-b enc-paper" data-k="paper">PERIÓDICO</button></div>
-      <button class="enc-cam" data-k="cam">CÁMARA</button>`;
+      <button class="enc-cam" data-k="cam">CÁMARA</button><div class="enc-live"><i></i>EN DIRECTO</div>`;
     document.body.appendChild(h);
     for (const b of h.querySelectorAll('[data-k]')) b.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); const k = b.dataset.k; if (k === 'jump') this.jumpQ = true; if (k === 'paper') this.paperQ = true; if (k === 'cam') this.nextCam(); });
   }
@@ -231,6 +265,10 @@ export class Encierro {
   update(dt) {
     const G = this.G, inp = G.input, me = this.me;
     this.t += dt;
+    // el público salta y saluda: poco antes del cohete, mucho al paso de la manada (el foco va con el primer toro)
+    const lead = this.bulls?.filter(b => !b.out).reduce((m, b) => Math.min(m, b.z), 1e9);
+    this.crowd?.tick(this.t, this.won ? 1 : this.started ? 1 : 0.4, this.started && lead < 1e9 ? lead : (this.me?.z ?? 0));
+    this.stands?.tick(this.t, this.won ? 1 : 0.3, this.plaza?.cz ?? 0);
     if (!this.started || this.done) { this.place(); this.cam(dt); return; }
     // jugador: corre solo hacia la plaza; adelante = más rápido, atrás = más despacio, a los lados = esquivar
     const fy = inp.move.y, fx = inp.move.x;
@@ -341,8 +379,15 @@ export class Encierro {
       c.position.lerp(want, Math.min(1, dt * 3)); c.lookAt(0, 2.5 * k + 1.3 * (1 - k), cz * k + (me.z - 7) * (1 - k)); return;
     }
     // cámaras: detrás del corredor, desde un balcón, aérea o mirando atrás a la manada
-    const M = this.camMode || 'detras';
-    const want = M === 'balcon' ? new THREE.Vector3(HALF * 0.9, 7.5, me.z + 4) : M === 'aerea' ? new THREE.Vector3(me.x * 0.3, 15, me.z + 9) : M === 'toros' ? new THREE.Vector3(me.x * 0.6, 2.4, me.z - 5.5) : new THREE.Vector3(me.x * 0.6, 3.3, me.z + 7.2);
+    let M = this.camMode || 'detras';
+    // cámara de la tele: la más cercana por delante del corredor, que lo sigue (como en la retransmisión)
+    if (M === 'tele') {
+      const tv = this.tv.filter(p => p.z < me.z + 6).sort((a, b) => b.z - a.z)[0] || this.tv[this.tv.length - 1];
+      if (tv && tv !== this.tvCur) { this.tvCur = tv; this.camCur = null; }
+      if (tv) { c.position.copy(tv); c.lookAt(me.x, 1.1, me.z); return; }
+      M = 'detras';
+    }
+    const want = M === 'balcon' ? new THREE.Vector3(HALF * 0.9, 7.5, me.z + 4) : M === 'aerea' ? new THREE.Vector3(0, 25, me.z + 10) : M === 'toros' ? new THREE.Vector3(me.x * 0.6, 2.4, me.z - 5.5) : new THREE.Vector3(me.x * 0.6, 3.3, me.z + 7.2);
     const look = M === 'balcon' ? new THREE.Vector3(me.x, 1.0, me.z - 4) : M === 'aerea' ? new THREE.Vector3(me.x * 0.4, 0, me.z - 6) : M === 'toros' ? new THREE.Vector3(me.x * 0.5, 1.2, me.z + 8) : new THREE.Vector3(me.x * 0.5, 1.3, me.z - 7);
     if (!this.camCur) this.camCur = want.clone(); else this.camCur.lerp(want, Math.min(1, dt * 5));
     c.position.copy(this.camCur);
@@ -352,9 +397,10 @@ export class Encierro {
   }
 
   nextCam() {
-    const L = ['detras', 'balcon', 'aerea', 'toros'], i = L.indexOf(this.camMode || 'detras');
-    this.camMode = L[(i + 1) % L.length]; this.camCur = null;
-    this.msg({ detras: 'Cámara: detrás del corredor', balcon: 'Cámara: desde el balcón', aerea: 'Cámara: aérea', toros: 'Cámara: mirando a los toros' }[this.camMode], 1100);
+    const L = ['detras', 'balcon', 'aerea', 'toros', 'tele'], i = L.indexOf(this.camMode || 'detras');
+    this.camMode = L[(i + 1) % L.length]; this.camCur = null; this.tvCur = null;
+    this.h?.querySelector('.enc-live')?.classList.toggle('on', this.camMode === 'tele');
+    this.msg({ detras: 'Cámara: detrás del corredor', balcon: 'Cámara: desde el balcón', aerea: 'Cámara: aérea', toros: 'Cámara: mirando a los toros', tele: 'Cámara: la de la tele' }[this.camMode], 1100);
   }
   async finish(win) {
     if (this.done) return; this.done = true; this.won = win; if (win) { this.stands?.cheer(true); this.crowd?.cheer(true); }

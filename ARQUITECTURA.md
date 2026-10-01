@@ -1,7 +1,7 @@
 # MENDIMENDIZ · Arquitectura del código
 
 Este documento recoge las bases del proyecto: qué hace cada parte y cómo se relacionan. Hay que mantenerlo al día
-cuando cambie la estructura. Las copias de seguridad se marcan en git con una etiqueta `copia-AAAA-MM-DD`.
+cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAAA-MM-DD` (el proxy no deja subir etiquetas).
 
 ## Pila
 

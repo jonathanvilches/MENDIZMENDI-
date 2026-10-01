@@ -32,7 +32,10 @@ Estado de todo lo pedido hasta ahora: **hecho** (comprobado en el juego con capt
 | Llegar a una plaza de toros real y llena | Hecho | Túnel, ruedo de albero, barrera, tendidos llenos, galería de arcos |
 | Sin vacíos sin arquitectura | Hecho | Casas en el callejón y público tras el vallado |
 | Saltar a los caídos, más habilidades | Hecho | SALTAR y PERIÓDICO (guía al toro) |
-| Cambio de cámara | Hecho | Detrás, balcón, aérea y mirando a los toros |
+| Cambio de cámara | Hecho | Detrás, balcón, aérea, mirando a los toros y la de la tele («EN DIRECTO») |
+| Estafeta con más relieve | Hecho | Balcones volados con losa moldurada, ménsulas y barandilla con laterales; recercos de piedra, esquinales y canecillos bajo el alero |
+| Público que saluda y salta | Hecho | Saltan y agitan los brazos, más cuanto más cerca pasa la manada |
+| Cámaras de televisión | Hecho | 7 cámaras con trípode y operador en balcones y junto a la plaza |
 
 ## Fútbol y pelota
 

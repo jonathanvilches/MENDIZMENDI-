@@ -808,3 +808,8 @@ body.futbol #controls { display: none !important; }
 .enc-paper { background: radial-gradient(circle at 35% 30%, #f4efe2, #b8ad92); color: #2a1a10; font-size: 11px; }
 .enc-cam { position: fixed; right: max(14px, env(safe-area-inset-right)); top: calc(56px + env(safe-area-inset-top)); z-index: 30; pointer-events: auto; padding: 8px 12px; border: 0; border-radius: 12px; background: rgba(0,0,0,.55); color: #fff; font: 800 13px Nunito, sans-serif; cursor: pointer; }
 @media (max-width: 600px) { .enc-b { width: 70px; height: 70px; } }
+/* aviso «EN DIRECTO» de la cámara de la tele en el encierro */
+.enc-live { position: absolute; top: calc(max(12px, env(safe-area-inset-top)) + 64px); left: 16px; display: none; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 8px; background: rgba(20, 20, 24, .78); font: 900 13px Nunito, sans-serif; letter-spacing: .08em; }
+.enc-live.on { display: flex; }
+.enc-live i { width: 10px; height: 10px; border-radius: 50%; background: #ff2a2a; box-shadow: 0 0 8px #ff2a2a; animation: encLive 1s steps(2) infinite; }
+@keyframes encLive { 50% { opacity: .25; } }

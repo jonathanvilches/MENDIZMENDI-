@@ -53,17 +53,21 @@ export function crowdAtlas(set = 'futbol') {
 
 /**
  * Malla de público: un plano por espectador, orientado hacia `ry`. spots = [[x, y, z, ry], …] (y = pies).
- * Devuelve el InstancedMesh (vacío hasta que la lámina esté lista) con .cheer(on) para que celebren.
+ * Devuelve el InstancedMesh (vacío hasta que la lámina esté lista) con .cheer(on) para que celebren y
+ * .tick(t, ánimo, zFoco) para que salten y saluden con la mano (más cuanto más cerca de zFoco, p. ej. los toros).
  */
 export function crowdMesh(spots, set = 'futbol', height = 1.45) {
   const geo = new THREE.PlaneGeometry(height * CW / CH, height); geo.translate(0, height / 2, 0);
   const cell = new Float32Array(spots.length * 2);
   const mat = new THREE.MeshBasicMaterial({ transparent: false, alphaTest: 0.5, side: THREE.DoubleSide });
-  const U = { uCols: { value: 1 }, uRows: { value: 2 }, uCheer: { value: 0 } };
+  const anim = new Float32Array(spots.length * 3);   // salto (alto), fase y si saluda (agitando la mano)
+  const U = { uCols: { value: 1 }, uRows: { value: 2 }, uCheer: { value: 0 }, uTime: { value: 0 }, uExcite: { value: 0 }, uFocus: { value: 0 } };
   mat.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, U);
-    sh.vertexShader = 'attribute vec2 aCell;\nuniform float uCols, uRows, uCheer;\n' + sh.vertexShader.replace('#include <uv_vertex>',
-      '#include <uv_vertex>\n#ifdef USE_MAP\n  float row = mod(aCell.y + uCheer, 2.0);\n  vMapUv = vec2((uv.x + aCell.x) / uCols, (uv.y + (uRows - 1.0 - row)) / uRows);\n#endif');
+    // el ánimo crece cerca del foco; quien salta sube y baja, quien saluda alterna los brazos arriba y abajo
+    sh.vertexShader = 'attribute vec2 aCell;\nattribute vec3 aAnim;\nuniform float uCols, uRows, uCheer, uTime, uExcite, uFocus;\n' + sh.vertexShader.replace('#include <uv_vertex>',
+      '#include <uv_vertex>\n  float ex = uExcite * (0.35 + 0.65 * exp(-abs(instanceMatrix[3].z - uFocus) / 14.0));\n  float wv = aAnim.z * step(0.15, ex) * step(0.0, sin(uTime * 7.0 + aAnim.y));\n#ifdef USE_MAP\n  float row = mod(aCell.y + uCheer + wv, 2.0);\n  vMapUv = vec2((uv.x + aCell.x) / uCols, (uv.y + (uRows - 1.0 - row)) / uRows);\n#endif')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\n  transformed.y += aAnim.x * ex * abs(sin(uTime * 5.5 + aAnim.y));');
   };
   mat.customProgramCacheKey = () => 'crowdSprite';
   const im = new THREE.InstancedMesh(geo, mat, spots.length), m = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), s = new THREE.Vector3();
@@ -71,11 +75,14 @@ export function crowdMesh(spots, set = 'futbol', height = 1.45) {
     const k = 0.9 + Math.random() * 0.2;
     im.setMatrixAt(i, m.compose(v.set(x, y, z), q.setFromEuler(e.set(0, ry + (Math.random() - 0.5) * 0.3, 0)), s.set(k, k, k)));
     cell[i * 2] = Math.floor(Math.random() * 12); cell[i * 2 + 1] = Math.random() < 0.15 ? 1 : 0;   // algunos ya celebran
+    const r = Math.random(); anim[i * 3] = r < 0.3 ? 0.18 + Math.random() * 0.14 : 0; anim[i * 3 + 1] = Math.random() * 6.3; anim[i * 3 + 2] = r > 0.55 ? 1 : 0;
   });
   geo.setAttribute('aCell', new THREE.InstancedBufferAttribute(cell, 2));
+  geo.setAttribute('aAnim', new THREE.InstancedBufferAttribute(anim, 3));
   im.visible = false; im.frustumCulled = false;
   crowdAtlas(set).then(A => { mat.map = A.tex; U.uCols.value = A.cols; U.uRows.value = A.rows; mat.needsUpdate = true; im.visible = true; for (let i = 0; i < spots.length; i++) cell[i * 2] = Math.floor(Math.random() * A.n); geo.attributes.aCell.needsUpdate = true; })
     .catch(err => console.warn('público', err));
   im.cheer = (on) => { U.uCheer.value = on ? 1 : 0; };
+  im.tick = (t, excite = 1, focus = 0) => { U.uTime.value = t; U.uExcite.value = excite; U.uFocus.value = focus; };
   return im;
 }
