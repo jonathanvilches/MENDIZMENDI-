@@ -211,22 +211,25 @@ export const BEASTS = {
       tail: mergeAll([tube([V(0, 0, 0), V(0, -0.1, -0.04), V(0, -0.22, -0.05)], 0.05, 0.03, wc, 3)]), tailAt: V(0, 0.64, -0.5) };
   },
   // Vaca pirenaica: rubia trigo, orla clara en ojos y hocico, mucosas rosadas, cuernos en lira, papada y cencerro
-  cow: () => {
-    const B = '#c48a4c', L = '#e9cf9e', Dk = '#9c6a38';
+  // vaca pirenaica; con opciones sirve también para el toro bravo (negro, morrillo y cuernos hacia delante)
+  // y para el cabestro (buey manso con cencerro que guía a los toros en el encierro)
+  cow: (rnd, o = {}) => {
+    const B = o.c || '#c48a4c', L = o.light || '#e9cf9e', Dk = o.dark || '#9c6a38', MZ = o.muzzle || '#f0dcb8', HM = o.hump || 1;
     const coat = (u, th, p) => { const belly = th < -0.6 ? 0.35 : 0; return C(B).lerp(C(L), belly + 0.08 * vnoise(p.x * 3, p.y * 3, p.z * 3)).lerp(C(Dk), p.y > 1.2 && Math.abs(p.x) < 0.12 ? 0.25 : 0); };
     const body = loft({ pts: [V(0, 1.08, -0.9), V(0, 1.1, -0.72), V(0, 1.05, -0.35), V(0, 1.02, 0.05), V(0, 1.08, 0.45), V(0, 1.1, 0.72), V(0, 1.08, 0.86)],
-      r: [[0.18, 0.18, 0.2], [0.4, 0.3, 0.42], [0.44, 0.33, 0.52], [0.47, 0.34, 0.56], [0.43, 0.38, 0.54], [0.34, 0.33, 0.5], [0.16, 0.2, 0.25]], color: coat, ring: 30, seg: 12,
+      r: [[0.18, 0.18, 0.2], [0.4, 0.3, 0.42], [0.44, 0.33, 0.52], [0.47, 0.34, 0.56], [0.43 * HM, 0.38 * HM * HM, 0.54], [0.34 * HM, 0.33 * HM * HM, 0.5], [0.16, 0.2, 0.25]], color: coat, ring: 30, seg: 12,
       bump: (u, th, p) => (Math.abs(Math.abs(p.x) - 0.3) < 0.1 && Math.abs(p.z + 0.62) < 0.12 && th > 0.2 ? 0.05 * (1 - Math.abs(p.z + 0.62) / 0.12) : 0) });
-    const face = (u, th, p) => { const side = Math.abs(Math.cos(th)); const ring = sm(0.28, 0.36, u) * (1 - sm(0.4, 0.5, u)) * side; return u > 0.86 ? C('#e7c0a4') : C(B).lerp(C('#f0dcb8'), Math.max(ring * 0.85, sm(0.74, 0.86, u) * 0.9)); };
+    const face = (u, th, p) => { const side = Math.abs(Math.cos(th)); const ring = sm(0.28, 0.36, u) * (1 - sm(0.4, 0.5, u)) * side; return u > 0.86 ? C(o.nose || '#e7c0a4') : C(B).lerp(C(MZ), Math.max(ring * 0.85, sm(0.74, 0.86, u) * 0.9)); };
     const headG = mergeAll([
       loft({ pts: [V(0, -0.1, -0.12), V(0, 0.02, 0.12), V(0, 0.1, 0.32)], r: [[0.3, 0.3, 0.44], [0.24, 0.26, 0.38], [0.17, 0.2, 0.24]], color: coat, ring: 24 }),
       loft({ pts: [V(0, 0.2, 0.3), V(0, 0.16, 0.44), V(0, 0.02, 0.6), V(0, -0.14, 0.74), V(0, -0.2, 0.8)], r: [[0.2, 0.16, 0.14], [0.17, 0.14, 0.13], [0.12, 0.1, 0.1], [0.12, 0.09, 0.1], [0.11, 0.07, 0.08]], color: face, ring: 24, e: 2.3 }),
       ...[-1, 1].map(s => ball(0.03, '#9a6a5a', 0, s * 0.055, -0.17, 0.84, 1.2, 0.7, 0.6)),
-      ...eye(0.135, 0.16, 0.47, 0.03, 0.9, '#f0dcb8'),
+      ...eye(0.135, 0.16, 0.47, 0.03, 0.9, MZ),
       ...[-1, 1].map(s => ear(0.2, 0.07, 0.02, B, '#e8c9a0').applyMatrix4(Mx(s * 0.16, 0.2, 0.32, 0, 0, -s * 1.5))),
-      ...[-1, 1].map(s => horn([V(s * 0.12, 0.27, 0.34), V(s * 0.26, 0.3, 0.37), V(s * 0.33, 0.38, 0.44), V(s * 0.3, 0.46, 0.52)], 0.042, 0.011, '#efe4c6', '#4a3a2a')),
+      ...[-1, 1].map(s => o.bravo ? horn([V(s * 0.12, 0.27, 0.32), V(s * 0.3, 0.3, 0.36), V(s * 0.4, 0.34, 0.5), V(s * 0.36, 0.42, 0.66)], 0.05, 0.01, '#e9dcc0', '#2a221c')
+        : horn([V(s * 0.12, 0.27, 0.34), V(s * 0.26, 0.3, 0.37), V(s * 0.33, 0.38, 0.44), V(s * 0.3, 0.46, 0.52)], 0.042, 0.011, '#efe4c6', '#4a3a2a')),
       loft({ pts: [V(0, -0.18, -0.02), V(0, -0.2, 0.12)], r: [[0.2, 0.05, 0.05], [0.18, 0.05, 0.05]], color: '#5a3a22', tex: 4, ring: 16, capA: false, capB: false }),
-      prep(new THREE.CylinderGeometry(0.07, 0.1, 0.16, 16), '#8a7650', 4, Mx(0, -0.36, 0.08)), prep(new THREE.SphereGeometry(0.03, 8, 6), '#3a2a1a', 4, Mx(0, -0.45, 0.08)),
+      ...(o.bell === false ? [] : [prep(new THREE.CylinderGeometry(0.07, 0.1, 0.16, 16), '#8a7650', 4, Mx(0, -0.36, 0.08)), prep(new THREE.SphereGeometry(0.03, 8, 6), '#3a2a1a', 4, Mx(0, -0.45, 0.08))]),
     ]);
     const fl = (x) => leg([[V(x, 0, 0), [0.14, 0.14, 0.15]], [V(x, -0.28, 0.02), [0.1, 0.1, 0.1]], [V(x, -0.52, 0), [0.07, 0.07, 0.07]], [V(x, -0.8, 0.01), [0.058, 0.058, 0.058]], [V(x, -0.94, 0.03), [0.065, 0.065, 0.065]], [V(x, -1.02, 0.05), [0.062, 0.062, 0.062]]], (p, t) => C(B).lerp(C(L), sm(0.5, 0.95, t) * 0.4), '#2b2420', { hoofH: 0.07, split: true });
     const hl = (x) => leg([[V(x, 0, 0), [0.17, 0.17, 0.2]], [V(x, -0.3, 0.08), [0.12, 0.12, 0.13]], [V(x, -0.55, -0.12), [0.06, 0.06, 0.08]], [V(x, -0.8, -0.08), [0.055, 0.055, 0.055]], [V(x, -0.96, -0.04), [0.064, 0.064, 0.064]], [V(x, -1.04, -0.02), [0.062, 0.062, 0.062]]], (p, t) => C(B).lerp(C(L), sm(0.5, 0.95, t) * 0.4), '#2b2420', { hoofH: 0.07, split: true });
@@ -353,21 +356,26 @@ export const BEASTS = {
     return { body, head: headG, neck: V(0, 0.54, 0.5), legs: { fl: [0.15, 0.38, 0.38], hl: [0.15, 0.36, -0.48], front: fl, hind: hl },
       tail: tube(curl, 0.016, 0.008, K), tailAt: V(0, 0.58, -0.7) };
   },
+  bull: (rnd) => BEASTS.cow(rnd, { c: '#1d1917', light: '#2c2622', dark: '#0f0c0b', muzzle: '#2a2420', nose: '#3a2f2a', hump: 1.16, bravo: true, bell: false }),
+  cabestro: (rnd) => BEASTS.cow(rnd, { c: '#7a4a2a', light: '#f0e6d4', dark: '#5a3420', hump: 1.05 }),
   dog: (rnd, o = {}) => {
     const BR = DOG_BREEDS[o.breed] || DOG_BREEDS.gorbeia, R = BR.c, Rl = BR.light, PT = BR.patch;
     // manchas grandes (pachón, mastín) sobre la capa clara; pelo largo (iletsua) con más relieve
     const patchAt = (p) => PT && vnoise(p.x * 5 + 3, p.y * 5, p.z * 5 + 1) > 0.58;
-    const coat = (u, th, p) => patchAt(p) ? C(PT) : C(R).lerp(C(Rl), th < -0.5 ? 0.5 : 0.1 * vnoise(p.x * 8, p.y * 8, p.z * 8));
+    // manta oscura sobre el lomo (pastor alemán)
+    const saddleAt = (u, th, p) => BR.saddle && th > 0.25 - 0.25 * vnoise(p.x * 6, p.y * 6, p.z * 6) && u > 0.12 && u < 0.86;
+    const coat = (u, th, p) => saddleAt(u, th, p) ? C(BR.saddle).lerp(C(R), 0.15 * vnoise(p.x * 9, p.y * 9, p.z * 9)) : patchAt(p) ? C(PT) : C(R).lerp(C(Rl), th < -0.5 ? 0.5 : 0.1 * vnoise(p.x * 8, p.y * 8, p.z * 8));
     const body = loft({ pts: [V(0, 0.46, -0.34), V(0, 0.47, -0.24), V(0, 0.46, 0.0), V(0, 0.47, 0.2), V(0, 0.5, 0.32)],
       r: [[0.08, 0.09, 0.09], [0.12, 0.12, 0.11], [0.12, 0.12, 0.12], [0.13, 0.13, 0.17], [0.09, 0.12, 0.14]], color: coat, ring: 22, seg: 12,
       bump: (u, th, p) => th < -0.4 ? -0.05 * sm(0.2, 0.55, u) * (1 - sm(0.6, 0.85, u)) * (BR.belly ?? 1) : (BR.hair || 0.006) * vnoise(p.x * 30, p.y * 30, p.z * 30) });
     const headG = mergeAll([
       loft({ pts: [V(0, -0.04, -0.06), V(0, 0.04, 0.0), V(0, 0.1, 0.04)], r: [[0.1, 0.12, 0.14], [0.08, 0.09, 0.1], [0.07, 0.075, 0.08]].map(q => q.map(v => v * (BR.neck || 1))), color: coat, ring: 20 }),
-      loft({ pts: [V(0, 0.13, -0.04), V(0, 0.16, 0.03), V(0, 0.15, 0.09), V(0, 0.12, 0.16), V(0, 0.11, 0.2)], r: [[0.06, 0.06, 0.06], [0.078, 0.075, 0.07], [0.06, 0.05, 0.06], [0.04, 0.033, 0.04], [0.033, 0.028, 0.034]], color: (u, th) => u > 0.92 ? C('#161212') : u > 0.55 && th < -0.2 ? C(Rl) : C(R).lerp(C('#6a3818'), sm(0.55, 0.85, u) * 0.5), ring: 22 }),
+      loft({ pts: [V(0, 0.13, -0.04), V(0, 0.16, 0.03), V(0, 0.15, 0.09), V(0, 0.12, 0.16), V(0, 0.11, 0.2)], r: [[0.06, 0.06, 0.06], [0.078, 0.075, 0.07], [0.06, 0.05, 0.06], [0.04, 0.033, 0.04], [0.033, 0.028, 0.034]], color: (u, th) => u > 0.92 ? C('#161212') : BR.mask && u > 0.5 && th > -0.4 ? C('#241a14') : u > 0.55 && th < -0.2 ? C(Rl) : C(R).lerp(C('#6a3818'), sm(0.55, 0.85, u) * 0.5), ring: 22 }),
       ball(0.01, '#e0607a', 0, 0, 0.085, 0.17, 1.4, 0.5, 1.6),
       ...eye(0.042, 0.165, 0.085, 0.016, 0.45, R, '#3a2210'),
       ...[-1, 1].map(s => BR.drop
         ? ear(0.15, 0.07, 0.01, BR.earC || R, BR.earC || R).applyMatrix4(Mx(s * 0.07, 0.17, -0.02, 0.15, 0, -s * 2.7))   // orejas largas y caídas
+        : BR.bigEars ? ear(0.12, 0.062, 0.011, (u) => u > 0.3 ? '#2a1f18' : R, '#c8a07a').applyMatrix4(Mx(s * 0.05, 0.19, -0.035, -0.15, 0, -s * 0.28))   // orejas grandes y tiesas
         : ear(0.085, 0.05, 0.01, (u) => u > 0.62 ? (BR.earTip || '#8a4a22') : R, '#e6b890').applyMatrix4(Mx(s * 0.05, 0.19, -0.03, -0.2, 0, -s * 0.4))),
     ]);
     const lc = (p, t) => C(R).lerp(C(Rl), sm(0.3, 0.8, t)), lw = BR.leg || 1;
@@ -418,14 +426,18 @@ export const BEASTS = {
 
 // ---------- Montaje: mismo interfaz que el cuadrúpedo antiguo ----------
 // { root, body, head (pivote del cuello), legs [delanteras izq/der, traseras izq/der], tail }
+// las geometrías de cada especie se comparten: dos variantes por especie y raza (así un rebaño no repite el trabajo)
+const SPEC_CACHE = new Map();
 export function beast(kind, rnd = Math.random, opts = {}) {
-  const S = BEASTS[kind](rnd, opts);
+  const key = kind + '|' + (opts.breed || '') + '|' + (rnd() < 0.5 ? 0 : 1);
+  if (!SPEC_CACHE.has(key)) SPEC_CACHE.set(key, BEASTS[kind](rnd, opts));
+  const S = SPEC_CACHE.get(key);
   const root = new THREE.Group(), body = new THREE.Group(); root.add(body);
   const mk = (geo, parent) => { const m = new THREE.Mesh(geo, BEAST_MAT); m.castShadow = true; m.receiveShadow = true; parent.add(m); return m; };
   mk(S.body, body);
   const head = new THREE.Group(); head.position.copy(S.neck); body.add(head); mk(S.head, head);
   const legs = [];
-  const fg = S.legs.front(0), hg = S.legs.hind(0);
+  const fg = S._fg ||= S.legs.front(0), hg = S._hg ||= S.legs.hind(0);
   const [fx, fy, fz] = S.legs.fl, [hx, hy, hz] = S.legs.hl;
   for (const [x, y, z, g] of [[-fx, fy, fz, fg], [fx, fy, fz, fg], [-hx, hy, hz, hg], [hx, hy, hz, hg]]) {
     const p = new THREE.Group(); p.position.set(x, y, z); body.add(p); mk(g, p); legs.push(p);
@@ -443,6 +455,7 @@ export const DOG_BREEDS = {
   gorbeia: { dogName: 'Gorri', name: 'Euskal artzain txakurra (Gorbeia)', c: '#b8692e', light: '#dca06a', scale: 1, text: 'Perro pastor vasco de pelo corto y color rojo fuego. Listo, rápido y muy fiel: guía los rebaños por el monte.' },
   iletsua: { dogName: 'Haize', name: 'Euskal artzain txakurra (Iletsua)', c: '#a9845a', light: '#d6bf96', earTip: '#5a4430', hair: 0.02, scale: 1, text: 'La variedad de pelo largo del pastor vasco, de color arena. Aguanta el frío y la lluvia de la montaña.' },
   pachon: { dogName: 'Usain', name: 'Pachón navarro', c: '#f0ebe2', light: '#ffffff', patch: '#7a4a2a', drop: true, earC: '#7a4a2a', neck: 1.1, scale: 1.05, text: 'Perro de caza antiguo de Navarra, de orejas largas y caídas y manchas color hígado. Tiene un olfato buenísimo: encuentra cualquier rastro.' },
+  aleman: { dogName: 'Otso', name: 'Pastor alemán', c: '#b5793a', light: '#dcae70', saddle: '#1f1813', mask: true, bigEars: true, leg: 1.12, neck: 1.1, scale: 1.12, text: 'Perro pastor muy listo y obediente. Aprende enseguida y por eso ayuda en los rescates de montaña. Otso quiere decir «lobo» en euskera.' },
   mastin: { dogName: 'Lagun', name: 'Mastín del Pirineo', c: '#f3efe6', light: '#ffffff', patch: '#8a8478', drop: true, earC: '#8a8478', neck: 1.25, leg: 1.25, belly: 0.3, hair: 0.014, scale: 1.4, text: 'Gigante y tranquilo, protegía los rebaños del lobo y del oso en el Pirineo. Lleva su collar de pinchos (carlanca) en el monte.' },
 };
 

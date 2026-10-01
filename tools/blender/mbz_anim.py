@@ -19,6 +19,16 @@ def arms(p, swingL=0.0, swingR=0.0, elbL=0.25, elbR=0.25, outL=0.0, outR=0.0, fw
     p['RightArm'] = Rx(swingR) @ Rz(fwdR) @ Ry(-(DOWN - outR))
     p['LeftForeArm'] = Rx(-elbL) @ p['LeftArm']; p['RightForeArm'] = Rx(-elbR) @ p['RightArm']
     p['LeftHand'] = p['LeftForeArm']; p['RightHand'] = p['RightForeArm']
+    shoulders(p, swingL, swingR, outL, outR)
+    return p
+
+def shoulders(p, swingL=0.0, swingR=0.0, upL=0.0, upR=0.0):
+    """Clavículas: acompañan al brazo (se adelantan o retrasan con el balanceo y suben al levantarlo), así el
+    hombro no se queda clavado y la articulación no se pellizca."""
+    base = p.get('Spine2', Quaternion())
+    up = lambda s: max(0.0, -s) * 0.18                                       # brazo hacia delante y arriba
+    p['LeftShoulder'] = base @ Rz(-0.1 * swingL) @ Ry(-(0.35 * upL + up(swingL)))
+    p['RightShoulder'] = base @ Rz(0.1 * swingR) @ Ry(0.35 * upR + up(swingR))
     return p
 
 def legs(p, upL, upR, kL, kR):
@@ -51,7 +61,7 @@ def clips(H=1.62):
         ph = TAU * t / T; p = {}
         spine(p, lean=0.015 * math.sin(2 * ph), roll=0.025 * math.sin(ph), head=Rx(0.02 * math.sin(2 * ph + 1)) @ Rz(0.06 * math.sin(ph + 0.4)), hips=Ry(0.025 * math.sin(ph)))
         p['_hips_loc'] = Vector((0, 0, -0.004 * (1 + math.cos(2 * ph))))
-        arms(p, 0.04 * math.sin(2 * ph), 0.04 * math.sin(2 * ph + 0.6), 0.3, 0.3, 0.05, 0.05)
+        arms(p, 0.04 * math.sin(2 * ph), 0.04 * math.sin(2 * ph + 0.6), 0.22, 0.22, -0.04, -0.04)
         legs(p, 0, 0, 0.03 * (1 + math.sin(ph)), 0.03 * (1 - math.sin(ph)))
         return p
     out.append(('Idle', 96, idle, True, F('Neutral')))
@@ -110,6 +120,7 @@ def clips(H=1.62):
         spine(p, roll=0.05, head=Rz(-0.1) @ Ry(-0.06))
         p['RightArm'] = Rx(-0.3) @ Ry(0.9)                                   # brazo en alto, algo por delante
         p['RightForeArm'] = Ry(0.4 * math.sin(2 * ph)) @ Ry(0.9) @ p['RightArm']; p['RightHand'] = p['RightForeArm']
+        p['RightShoulder'] = p.get('Spine2', Quaternion()) @ Ry(0.32)
         return p
     out.append(('Wave', 54, wave, True, F('SmileOpen', 'Happy')))
     def celebrate(t, T):
@@ -118,6 +129,7 @@ def clips(H=1.62):
         p['LeftArm'] = Rx(-0.3) @ Ry(-(1.3 + 0.15 * j)); p['RightArm'] = Rx(-0.3) @ Ry(1.3 + 0.15 * j)   # brazos en V
         p['LeftForeArm'] = Ry(-0.35) @ p['LeftArm']; p['RightForeArm'] = Ry(0.35) @ p['RightArm']
         p['LeftHand'] = p['LeftForeArm']; p['RightHand'] = p['RightForeArm']
+        shoulders(p, 0, 0, 1.0, 1.0)
         legs(p, -0.35 * (1 - j), -0.35 * (1 - j), 0.7 * (1 - j), 0.7 * (1 - j))
         return p
     out.append(('Celebrate', 54, celebrate, True, F('SmileOpen', 'Happy', 'Fist')))

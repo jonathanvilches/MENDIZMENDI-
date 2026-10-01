@@ -10,7 +10,8 @@ import build_protagonista as P
 D = copy.deepcopy(P.D)
 D.update(name='Nerea', key='nerea', file='char_nerea',
     # coleta alta atrás: sale de la coronilla, cae hacia atrás y abajo
-    tufts=[(180, 38, (0.0, 0.5, -0.86), 0.34)], tuft_scale=1.3,
+    # coleta: nace alta en la nuca y cae hacia abajo, larga y redonda (con su hueso, se balancea al correr)
+    tufts=[(180, 24, (0.0, 0.26, -0.97), 0.46, 1.0)], tuft_scale=1.5,
     freckles=[(30, -12), (38, -16), (46, -11), (34, -20), (42, -6)])
 D['colors'] = dict(D['colors'], hair=(170, 92, 42), brow=(120, 62, 30), iris=(74, 122, 70), iris_dark=(40, 82, 42),
     shirt=(242, 234, 214), vest=(58, 96, 140), trim=(36, 62, 98), scarf=(132, 84, 204), sash=(120, 72, 190),

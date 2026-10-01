@@ -776,5 +776,4 @@ export class MinifigRig {
 }
 
 // Materiales y utilidades compartidas con los animales
-export const TOON_MAT = TOON, OUTLINE_MAT = OUTLINE, TEXKIND = TX;
 export { mtx, prep };

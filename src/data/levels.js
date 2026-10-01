@@ -17,6 +17,7 @@ import { PERSONAJES, FIGURE_TOWNS } from './personajes.js';
 import { FERIA_TOWNS } from './ferias.js';
 import { DOLMEN_TOWNS } from './dolmen.js';
 import { CASTLE_TOWNS } from './castillos.js';
+import { MIRADOR_TOWNS } from './miradores.js';
 
 export const LEVELS = [
   // ---------------- Baztan-Bidasoa ----------------
@@ -274,8 +275,8 @@ export const LEVELS = [
       { type: 'visit' },
       { type: 'carnival', character: 'caravinagre', title: 'Gigantes y cabezudos', host: H('Kiliki', { shirt: '#3a8fd6', pants: '#e03c3c', hat: 'mask', hatColor: '#f2c230', height: 1.5 }),
         text: 'La comparsa de gigantes y cabezudos recorre las calles en San Fermín. Busca a Caravinagre, el cabezudo más famoso.' },
-      { type: 'race', kind: 'encierro', title: 'Carrera de la Estafeta', host: H('Pastor del encierro', { shirt: '#ffffff', pants: '#ffffff', sash: '#d42f2f', scarf: '#d42f2f', hair: '#2a1a12', staff: true }),
-        text: 'Recorre el camino del encierro por la cuesta de Santo Domingo y la Estafeta hasta la plaza. (En el juego no hay toros: ¡es una carrera contra el reloj!)' },
+      { type: 'race', kind: 'encierro', title: 'El encierro de San Fermín', host: H('Pastor del encierro', { shirt: '#ffffff', pants: '#ffffff', sash: '#d42f2f', scarf: '#d42f2f', hair: '#2a1a12', staff: true }),
+        text: 'Cada 7 de julio empieza San Fermín y, cada mañana a las ocho, el encierro: seis toros y los cabestros corren por la Estafeta hasta la plaza de toros. Corre delante de ellos y esquívalos.' },
       { type: 'process', id: 'chistorra', title: 'La txistorra', host: H('Carnicera Itziar', { shirt: '#ffffff', apron: '#c0392b', pants: '#3a3530', hair: '#6b3b1f', bun: true }), product: 'Txistorra',
         text: 'La txistorra es un embutido fino y alargado típico de Navarra, con pimentón.',
         gather: { item: 'pepper', n: 4, label: 'Traer pimentón', near: 'market' },
@@ -303,7 +304,7 @@ export const LEVELS = [
     river: { name: 'Irati', x: 70, w: 5, amp: 6 },
     intro: 'Villa junto a la Foz de Lumbier, un desfiladero donde viven buitres, y con el carnaval de los iraskos.',
     church: { name: 'Iglesia de la Asunción', style: 'gothic', text: 'Templo de piedra en el centro del casco antiguo.' },
-    landmarks: [{ kind: 'gorge', name: 'Foz de Lumbier', text: 'El río Irati ha excavado este cañón en la roca. El Puente del Diablo se rompió en la Guerra de la Independencia.' }],
+    landmarks: [{ kind: 'gorge', name: 'Foz de Lumbier', text: 'El río Irati ha excavado este cañón en la roca. El Puente del Diablo se rompió en la Guerra de la Independencia.' }, { kind: 'ruin', name: 'Puente del Diablo', text: 'A la salida de la Foz quedan los restos de un puente medieval. La leyenda dice que lo levantó el diablo en una sola noche.' }],
     missions: [
       { type: 'visit' },
       { type: 'carnival', character: 'irasko', title: 'Oridos e iraskos', host: H('Mikel', { shirt: '#8fb07a', pants: '#34495e', hair: '#8c5a2b', messy: true, height: 1.4 }),
@@ -341,7 +342,7 @@ export const LEVELS = [
     river: { name: 'Ega', x: 0, w: 6, amp: 8 },
     intro: 'La "Estella la bella" del Camino de Santiago: palacios románicos, puentes y calles de la Rúa.',
     church: { name: 'San Pedro de la Rúa', style: 'romanesque', text: 'Iglesia románica en lo alto de una escalinata, con un claustro de columnas talladas.' },
-    landmarks: [{ kind: 'palace', name: 'Palacio de los Reyes de Navarra', text: 'Uno de los pocos palacios románicos civiles de España, del siglo XII.' }, { kind: 'bridge', name: 'Puente de la Cárcel', text: 'Puente de un arco muy alto sobre el Ega.' }, { kind: 'fountain', name: 'Fuente del vino (Irache)', text: 'Muy cerca, en el monasterio de Irache, los peregrinos encuentran una fuente de la que sale vino y agua.' }],
+    landmarks: [{ kind: 'palace', name: 'Palacio de los Reyes de Navarra', text: 'Uno de los pocos palacios románicos civiles de España, del siglo XII.' }, { kind: 'bridge', name: 'Puente de la Cárcel', text: 'Puente de un arco muy alto sobre el Ega.' }, { kind: 'fountain', name: 'Fuente del vino (Irache)', text: 'Muy cerca, en el monasterio de Irache, los peregrinos encuentran una fuente de la que sale vino y agua.' }, { kind: 'chapel', name: 'San Pedro de la Rúa', text: 'Iglesia románica en lo alto de una gran escalinata. Su claustro tiene capiteles tallados que cuentan historias.' }],
     missions: [
       { type: 'visit' },
       { type: 'carnival', character: 'paloki', title: 'Los palokis', host: H('Amaia', { shirt: '#b34fc4', skirt: '#34495e', pants: '#f3cfb3', hair: '#1f1712', braids: true, height: 1.3 }), text: 'Los palokis elevan telas con un aro y parecen gigantes. Búscalos en el carnaval.' },
@@ -356,7 +357,7 @@ export const LEVELS = [
     river: null,
     intro: 'Última villa navarra del Camino de Santiago, en lo alto de una loma rodeada de viñedos.',
     church: { name: 'Iglesia de Santa María', style: 'gothic', text: 'Gran iglesia gótica con portada renacentista. Delante está enterrado César Borgia.' },
-    landmarks: [{ kind: 'ruin', name: 'Ruinas de San Pedro', text: 'Restos de una iglesia medieval convertida en jardín.' }],
+    landmarks: [{ kind: 'ruin', name: 'Ruinas de San Pedro', text: 'Restos de una iglesia medieval convertida en jardín.' }, { kind: 'stone', name: 'Tumba de César Borgia', text: 'César Borgia, un capitán muy famoso de Italia, murió luchando cerca de Viana en 1507. Su tumba está a la entrada de la iglesia de Santa María.' }],
     missions: [
       { type: 'visit' },
       { type: 'trade', kind: 'tonelero', title: 'El tonelero', host: H('Javier, tonelero', { shirt: '#c9b99a', apron: '#6b4a2e', pants: '#3a3530', hair: '#4a3020', moustache: '#4a3020' }) },
@@ -370,7 +371,7 @@ export const LEVELS = [
     river: { name: 'Arga', x: 0, w: 7, amp: 6, bigBridge: true },
     intro: 'Aquí se juntan los caminos de Santiago y se cruza el Arga por un famoso puente románico de seis arcos.',
     church: { name: 'Iglesia del Crucifijo', style: 'romanesque', text: 'Guarda un crucifijo gótico con forma de Y, traído según la tradición por peregrinos.' },
-    landmarks: [{ kind: 'bridge', name: 'Puente románico', text: 'Mandado construir en el siglo XI para los peregrinos. Tiene seis arcos de piedra.' }],
+    landmarks: [{ kind: 'bridge', name: 'Puente románico', text: 'Mandado construir en el siglo XI para los peregrinos. Tiene seis arcos de piedra.' }, { kind: 'chapel', name: 'Iglesia del Crucifijo', text: 'La iglesia de los peregrinos guarda un crucifijo muy especial: la cruz tiene forma de Y, como las ramas de un árbol.' }],
     missions: [
       { type: 'visit' },
       { type: 'race', kind: 'camino', title: 'Los caminos se juntan', host: H('Peregrina', { shirt: '#3a8fd6', pants: '#3a3530', hair: '#c9772f', bun: true, staff: true }), text: 'Sigue las flechas amarillas hasta el puente.' },
@@ -431,7 +432,7 @@ export const LEVELS = [
     river: { name: 'Cidacos', x: 110, w: 3.5, amp: 5 },
     intro: 'Villa del Palacio Real de los reyes de Navarra, un castillo de cuento con muchas torres, rodeada de viñedos.',
     church: { name: 'Santa María la Real', style: 'gothic', text: 'Iglesia gótica junto al palacio, con una portada muy decorada.' },
-    landmarks: [{ kind: 'castle', name: 'Palacio Real de Olite', text: 'Construido sobre todo por el rey Carlos III el Noble a principios del siglo XV. Tenía jardines colgantes, una leonera y muchas torres.' }],
+    landmarks: [{ kind: 'castle', name: 'Palacio Real de Olite', text: 'Construido sobre todo por el rey Carlos III el Noble a principios del siglo XV. Tenía jardines colgantes, una leonera y muchas torres.' }, { kind: 'house', name: 'Galerías medievales', text: 'Bajo las calles de Olite hay galerías de piedra con bóvedas, de la Edad Media. Se usaban como almacenes y bodegas.' }],
     missions: [
       { type: 'visit' },
       { type: 'harvest', crop: 'uva', n: 10, host: H('Vendimiador', VITI), text: 'Olite es tierra de vino. Vendimia los racimos del viñedo.' },
@@ -454,35 +455,12 @@ export const LEVELS = [
       { type: 'harvest', crop: 'esparrago', n: 8, host: H('Esparraguera', HUERTA), text: 'En las vegas del río Aragón y del Ebro se cultivan espárragos. Se recogen muy temprano, antes de que les dé el sol.' },
       { type: 'quiz' },
     ] },
-  { id: 'peralta', name: 'Peralta / Azkoien', comarca: 'ribera-alta', family: 'ribera', relief: 'plain', size: 60,
-    river: { name: 'Arga', x: 55, w: 7, amp: 8 },
-    intro: 'Villa de la Ribera Alta junto al Arga, con huertas y un carnaval de comparsas.',
-    church: { name: 'Iglesia de San Juan Bautista', style: 'baroque', text: 'Templo de ladrillo y piedra en el centro de la villa.' },
-    landmarks: [{ kind: 'ruin', name: 'Peña del castillo', text: 'En lo alto estaba el castillo de Peralta, del que quedan restos.' }],
-    missions: [
-      { type: 'visit' },
-      { type: 'carnival', character: 'comparsa-peralta', title: 'La comparsa de Peralta', host: H('Unai', { shirt: '#e03c3c', pants: '#34495e', hair: '#2e2018', messy: true, height: 1.4 }), text: 'Unai prepara una comparsa con su vecindario. Encuentra a los que se han escondido.' },
-      { type: 'harvest', crop: 'esparrago', n: 8, host: H('Esparraguera', HUERTA), text: 'El espárrago blanco crece bajo tierra en caballones. Se recoge muy temprano.' },
-      { type: 'quiz' },
-    ] },
   // ---------------- Ribera ----------------
-  { id: 'corella', name: 'Corella', comarca: 'ribera', family: 'ribera', relief: 'plain', size: 65,
-    river: { name: 'Alhama', x: -80, w: 3.5, amp: 6 },
-    intro: 'Ciudad barroca de la Ribera, con casas palacio y el famoso cardo rojo.',
-    church: { name: 'Iglesia de San Miguel', style: 'baroque', text: 'Gran iglesia barroca con torre de ladrillo.' },
-    landmarks: [{ kind: 'palace', name: 'Casa palacio barroca', text: 'Corella tiene muchas casas señoriales de los siglos XVII y XVIII.' }],
-    missions: [
-      { type: 'visit' },
-      { type: 'harvest', crop: 'cardo', n: 8, host: H('Hortelano', HUERTA), text: 'El cardo rojo de Corella se cubre para que quede blanco y tierno. Recoge los cardos.' },
-      { type: 'trade', kind: 'alpargatero', title: 'Alpargatas', host: H('Alpargatera', { shirt: '#ffffff', skirt: '#2b2630', pants: '#2b2630', hair: '#1f1712', bun: true }), text: 'Muchas jóvenes navarras, las golondrinas, iban a trabajar a las fábricas de alpargatas. Cose la suela al ritmo.' },
-      { type: 'dance', name: 'Jota navarra', text: 'La jota es el baile y canto más popular de la Ribera.', host: H('Jotero', { shirt: '#ffffff', vest: '#1a1a1a', pants: '#1a1a1a', sash: '#d42f2f', scarf: '#d42f2f', hair: '#2a1a12' }), colors: ['#ffffff', '#d42f2f'] },
-      { type: 'quiz' },
-    ] },
   { id: 'tudela', name: 'Tudela', comarca: 'ribera', family: 'ribera', relief: 'plain', size: 120,
     river: { name: 'Ebro', x: 120, w: 14, amp: 10, bigBridge: true },
     intro: 'Capital de la Ribera junto al Ebro: catedral, plaza de los Fueros y una huerta famosa.',
     church: { name: 'Catedral de Santa María', style: 'cathedral', text: 'Su Puerta del Juicio tiene más de cien grupos de figuras de piedra.' },
-    landmarks: [{ kind: 'kiosk', name: 'Plaza de los Fueros', text: 'Plaza con kiosco donde se celebra la Bajada del Ángel el Domingo de Resurrección.' }, { kind: 'bridge', name: 'Puente sobre el Ebro', text: 'Un largo puente medieval de muchos arcos cruza el Ebro.' }],
+    landmarks: [{ kind: 'kiosk', name: 'Plaza de los Fueros', text: 'Plaza con kiosco donde se celebra la Bajada del Ángel el Domingo de Resurrección.' }, { kind: 'bridge', name: 'Puente sobre el Ebro', text: 'Un largo puente medieval de muchos arcos cruza el Ebro.' }, { kind: 'house', name: 'Casa del Almirante', text: 'Palacio del siglo XVI con una fachada llena de figuras talladas en piedra.' }],
     missions: [
       { type: 'visit' },
       { type: 'harvest', crop: 'alcachofa', n: 10, host: H('Hortelana de Tudela', HUERTA), text: 'La alcachofa de Tudela es un tesoro de la huerta. Se cortan las cabezas cuando están cerradas.' },
@@ -515,7 +493,7 @@ export const levelById = id => LEVELS.find(l => l.id === id);
 const SUMMITS = {
   etxalar: 'aizkolegi', zugarramurdi: 'arxuria', 'amaiur-maya-del-baztan': 'gorramendi', ituren: 'mendaur', leitza: 'ttutturre',
   'orreaga-roncesvalles': 'lindus', aribe: 'orzanzurieta', 'isaba-izaba': 'mesa', 'erronkari-roncal': 'lakora', 'altsasu-alsasua': 'beriain',
-  irurtzun: 'erga', pamplona: 'ezkaba', aoiz: 'izaga', lumbier: 'arangoiti', estella: 'montejurra', tafalla: 'unzue', corella: 'piskerra',
+  irurtzun: 'erga', pamplona: 'ezkaba', aoiz: 'izaga', lumbier: 'arangoiti', estella: 'montejurra', tafalla: 'unzue',
 };
 const GUIDES = [
   H('Josu, montañero', { shirt: '#d9532a', vest: '#2b3a4a', pants: '#3a3530', hair: '#4a3020', beard: '#4a3020', bag: '#3a7a4a', staff: true }),
@@ -524,7 +502,7 @@ const GUIDES = [
 for (const l of LEVELS) { const id = SUMMITS[l.id]; if (id && l.missions) l.missions.push({ type: 'summit', peak: id, host: GUIDES[l.id.length % 2] }); }
 
 // Partidos en el frontón: pelota a mano, el deporte de las plazas navarras
-const PELOTA_TOWNS = { tafalla: 'Unai, pelotari', leitza: 'Aitor, pelotari', lesaka: 'Mikel, pelotari', sanguesa: 'Iñaki, pelotari', 'puente-la-reina': 'Ane, pelotari', peralta: 'Oihane, pelotari' };
+const PELOTA_TOWNS = { tafalla: 'Unai, pelotari', leitza: 'Aitor, pelotari', lesaka: 'Mikel, pelotari', sanguesa: 'Iñaki, pelotari', 'puente-la-reina': 'Ane, pelotari', marcilla: 'Oihane, pelotari' };
 const PELOTA_STORY = [
   'Casi todos los pueblos de Navarra tienen un frontón, muchas veces pegado a la iglesia o en la plaza. Aquí se juega a pelota desde hace siglos.',
   'En la pelota a mano no hay raqueta: se golpea con la mano desnuda, protegida con tacos. La pelota es de cuero, dura como una piedra.',
@@ -558,6 +536,15 @@ for (const id of ['olite', 'cortes']) {
   l.missions.splice(at < 0 ? l.missions.length : at, 0, { type: 'castle', castle: id, host: H(C.host.name, C.host.look) });
 }
 for (const l of LEVELS) for (const m of l.missions || []) if (m.type === 'castle' && !m.host) { const C = CASTLE_TOWNS[m.castle]; m.host = H(C.host.name, C.host.look); }
+
+// Miradores: un punto alto del pueblo desde el que se aprenden los montes con los prismáticos
+const MIRADOR_HOSTS = [H('Edurne, montañera', { shirt: '#d9532a', vest: '#2b3a4a', pants: '#3a3530', hair: '#4a3020', ponytail: true, female: true, staff: true }), H('Koldo, guarda forestal', { shirt: '#5a6a3a', vest: '#3a4a2a', pants: '#3a3530', hair: '#2a1a12', hat: 'straw', staff: true })];
+for (const [id, nm] of Object.entries(MIRADOR_TOWNS)) {
+  const l = LEVELS.find(x => x.id === id); if (!l?.missions) continue;
+  if (!(l.landmarks || []).some(x => x.kind === 'lookout' || x.kind === 'pass')) (l.landmarks ||= []).push({ kind: 'lookout', name: nm || 'Mirador de ' + l.name.split(' /')[0], text: id === 'pamplona' ? 'Sobre la muralla, junto a la catedral: desde aquí se ven el río Arga, la Cuenca de Pamplona y los montes que la rodean.' : 'Desde este punto alto se ven los montes que rodean el pueblo. Con los prismáticos se pueden reconocer uno a uno.', ...(id === 'pamplona' ? { x: 96, z: -236 } : {}) });
+  const at = l.missions.findIndex(m => m.type === 'quiz');
+  l.missions.splice(at < 0 ? l.missions.length : at, 0, { type: 'mirador', host: MIRADOR_HOSTS[l.id.length % 2] });
+}
 
 // El dolmen: los primeros pastores y agricultores (Neolítico); excavar con cuidado y ordenar cómo se levantaba
 for (const id of DOLMEN_TOWNS) {
