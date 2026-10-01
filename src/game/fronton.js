@@ -5,7 +5,7 @@ import { PelotaCourt, PelotaMatch } from '../pelota/index.js';
 import { terrainHeight, waterLevelAt, addPlatform } from '../world/heightfield.js';
 import { addBox, isFree } from '../world/colliders.js';
 import { clearGrass } from '../world/nature.js';
-import { getLang } from '../i18n.js';
+import { getLang, isEU } from '../i18n.js';
 import { profile } from './profile.js';
 import { Crowd } from './crowd.js';
 import { shieldSpec, drawShield } from '../world/heraldry.js';
@@ -96,8 +96,8 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       if (st.won) rival.cheer = 0.6;
     };
     const match = G.pelotaMatch = new PelotaMatch({
-      THREE, court: fronton.court, camera: G.camera, lang: getLang(), mode, target, level,
-      you: { obj: P.obj, name: profile().name || (getLang() === 'eu' ? 'Zu' : 'Tú'), animate: animYou },
+      THREE, court: fronton.court, camera: G.camera, lang: isEU() ? 'eu' : 'es', mode, target, level,
+      you: { obj: P.obj, name: profile().name || (isEU() ? 'Zu' : 'Tú'), animate: animYou },
       rival: { obj: rival.obj, name: String(rival.name).split(',')[0], animate: animRival },
       onEnd: (r) => done(r), onExit: (r) => done(r),
       onEvent: (e) => { if (e.type === 'call' && crowd) crowd.point(e.winner === 'you'); },

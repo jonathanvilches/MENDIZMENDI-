@@ -431,3 +431,8 @@ img[data-pk] { opacity: 0; }
   .talking #toast { top: calc(var(--st) + 172px) !important; left: calc(var(--sl) + 12px) !important; right: calc(var(--sr) + 66px); width: auto; max-width: none; transform: translate(0, -16px); }
   .talking #toast.on { transform: translate(0, 0); }
 }
+/* modo «Aprende euskera»: botón para ver unos segundos el texto en castellano */
+.learn-btn { position: fixed; left: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 9000; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  width: 54px; height: 54px; border-radius: 50%; border: 3px solid #fff; background: linear-gradient(180deg, #d42f2f, #a01818); color: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.35); cursor: pointer; font-family: inherit; line-height: 1; }
+.learn-btn b { font-size: 17px; font-weight: 900; } .learn-btn small { font-size: 10px; font-weight: 700; opacity: .9; }
+.learn-btn.on { background: linear-gradient(180deg, #2e8a3e, #1e6a2a); }
