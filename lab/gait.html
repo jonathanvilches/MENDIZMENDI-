@@ -1,0 +1,16 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:#8fb6d8;overflow:hidden}</style></head>
+<body><script type="module">
+// Fases de la marcha de un animal (para revisar patas, lomo y cola): ?k=especie&sp=velocidad&n=fases
+import * as THREE from 'three';
+import { Animal } from '../src/actors/animals.js';
+import { beast } from '../src/actors/beasts.js';
+const P = new URLSearchParams(location.search), kind = P.get('k') || 'dog', sp = +(P.get('sp') || 6), N = +(P.get('n') || 6), fov = +(P.get('fov') || 9), gap = +(P.get('gap') || 1.4);
+const r = new THREE.WebGLRenderer({ antialias: true }); r.setSize(innerWidth, innerHeight); document.body.appendChild(r.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color('#9cc3e0');
+scene.add(new THREE.HemisphereLight('#dfefff', '#5a6a4a', 1.6)); const sun = new THREE.DirectionalLight('#fff4e0', 2); sun.position.set(4, 8, 6); scene.add(sun);
+let rs = 3; const rnd = () => ((rs = (rs * 9301 + 49297) % 233280) / 233280);
+for (let k = 0; k < N; k++) { const q = beast(kind, rnd, {}); const a = { q, kind, speed: sp, run: 4, t: 0, state: 'flee', heading: 0, phase: k / N * Math.PI * 2 }; Animal.prototype.animate.call(a, 1 / 60); q.root.position.x = k * gap; q.root.rotation.y = Math.PI / 2; scene.add(q.root); }
+const cam = new THREE.PerspectiveCamera(fov, innerWidth / innerHeight, 0.1, 200); const d = +(P.get('d') || 12), h = +(P.get('h') || 0.6);
+cam.position.set((N - 1) * gap / 2, h, d); cam.lookAt((N - 1) * gap / 2, h * 0.75, 0);
+r.render(scene, cam); window.__ready = true;
+</script></body></html>

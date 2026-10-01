@@ -256,7 +256,8 @@ export class Encierro {
       const q = b.q, run = this.started && this.t > 2.8 + b.delay && !b.out, ph = b.ph;
       const off = [0.46, 0.58, 0.0, 0.12];
       q.root.position.set(b.x, run ? Math.max(0, Math.sin(ph + 0.6)) * 0.12 : 0, b.z); q.root.rotation.y = Math.PI;
-      if (q.legs) q.legs.forEach((l, i) => { const w = ph + off[i] * Math.PI * 2; const ww = w + 0.38 * Math.sin(w); l.rotation.x = run ? Math.sin(ww) * 0.85 : 0; l.scale.y = run ? 1 - Math.max(0, -Math.cos(ww)) * 0.22 : 1; });
+      if (q.legs) q.legs.forEach((l, i) => { const w = ph + off[i] * Math.PI * 2; const ww = w + 0.38 * Math.sin(w); l.rotation.x = run ? Math.sin(ww) * 0.85 : 0; const kn = l.userData.knee; if (kn) kn.rotation.x = run ? (i < 2 ? 1.25 : -1.05) * Math.pow(Math.max(0, -Math.cos(ww)), 1.3) : 0; });
+      if (q.chest) q.chest.rotation.x = run ? Math.sin(ph + 2.2) * 0.08 : 0;
       // con la cabeza baja y derrotes (golpes de cuerna hacia arriba) cuando embiste
       const ch = b.charge || 0;
       if (q.head) q.head.rotation.x = run ? (-0.1 + ch * 0.5) + Math.sin(ph) * 0.07 - ch * Math.max(0, Math.sin(ph * 0.5)) ** 6 * 0.6 : 0;

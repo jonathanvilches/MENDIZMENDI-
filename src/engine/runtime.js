@@ -129,6 +129,12 @@ export class Runtime {
     try { await Promise.race([this.renderer.compileAsync(scene, this.camera), new Promise(r => setTimeout(r, 5000))]); } catch (e) { }
     return this;
   }
+  // segunda pasada de compilación, ya con vecinos, objetos de misión y efectos creados: así no hay tirones
+  // la primera vez que aparecen en pantalla (los sombreadores se compilan durante la pantalla de carga)
+  async precompile(ms = 4000) {
+    if (!this.scene) return;
+    try { await Promise.race([this.renderer.compileAsync(this.scene, this.camera), new Promise(r => setTimeout(r, ms))]); } catch (e) { }
+  }
   start(game) { this.game = game; this.active = true; this.canvas.style.visibility = 'visible'; this.clock.getDelta(); }
   unload() {
     this.active = false; this.game = null;

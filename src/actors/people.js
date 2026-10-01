@@ -14,6 +14,22 @@ export function mat(color, o = {}) {
 }
 
 // ---- Actor con comportamiento ----
+// Detalle por distancia de los personajes, una vez por fotograma (lo usan los pueblos y Salazar):
+// - fuera de la cámara no se dibujan (se siguen moviendo y se animan a saltos)
+// - solo proyectan sombra cerca, y solo las piezas grandes (cuerpo, cabeza, pelo)
+// - la cara con detalle (ojos, cejas, boca) solo de cerca
+const _frustum = new THREE.Frustum(), _pm = new THREE.Matrix4(), _sph = new THREE.Sphere();
+export function frameFrustum(camera) { camera.updateMatrixWorld(); _pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse); _frustum.setFromProjectionMatrix(_pm); return _frustum; }
+export function cullActor(a, d, max, dt, player, fr = _frustum) {
+  const sh = d < 28;
+  if (a.shadowOn !== sh) { a.shadowOn = sh; a.obj.traverse(o => { if (o.isMesh && !o.userData.outline) o.castShadow = sh && !o.userData.noShadow; }); }
+  _sph.center.set(a.pos.x, a.pos.y + 0.9, a.pos.z); _sph.radius = 2.2;
+  a.onScreen = d < max && (d < 5 || fr.intersectsSphere(_sph));
+  if (d < max + 15) a.update(dt, player);
+  a.obj.visible = a.visible !== false && d < max;
+  if (a.glb) { a.glb.root.visible = a.onScreen; a.glb.setFaceVisible?.(d < 18); }
+}
+
 export class Actor {
   constructor(def, scene) {
     this.def = def;
@@ -81,7 +97,10 @@ export class Actor {
     if (this.lookAt && this.speed < 0.3) this.heading = dampAngle(this.heading, Math.atan2(this.lookAt.x - this.pos.x, this.lookAt.z - this.pos.z), 5, dt);
     this.pos.y = groundHeight(this.pos.x, this.pos.z);
     this.collider.x = this.pos.x; this.collider.z = this.pos.z;
-    this.animate(dt);
+    // animación por distancia: fuera de cámara o lejos se anima a saltos (se acumula el tiempo), cerca en cada fotograma
+    this.animAcc = (this.animAcc || 0) + dt;
+    const every = this.onScreen === false ? 0.3 : dP > 45 ? 0.12 : dP > 24 ? 0.05 : 0;
+    if (this.animAcc >= every) { this.animate(this.animAcc); this.animAcc = 0; }
     this.sync();
   }
   animate(dt) {

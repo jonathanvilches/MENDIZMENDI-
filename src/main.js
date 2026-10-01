@@ -92,6 +92,7 @@ async function boot() {
         st.name = P.name || st.name; st.started = true;
         rt.sky.time = q.get('t') ? +q.get('t') : (st.time ?? 9.3);
         game.applySettings();
+        await rt.precompile();
         if (st.pos && st.introDone) rt.player.place(st.pos.x, st.pos.z, st.pos.h);
         else rt.player.place(PLACES.crucero.x - 2, PLACES.crucero.z + 5, Math.PI * 0.9);
         rt.follow.snap(rt.player);
@@ -109,6 +110,7 @@ async function boot() {
         game.spawn();
         rt.sky.time = q.get('t') ? +q.get('t') : 10;
         game.applySettings();
+        await rt.precompile();
         ui.progress(1, '¡Listo!');
         rt.start(game);
         ui.hideLoading(); queueMode('light');

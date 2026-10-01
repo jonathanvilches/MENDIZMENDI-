@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { RIBBONS, QUESTS, CARDS, SPECIES_OBS, QUIZ, EGUZKILORES } from './content.js';
 import { npcDefs, walkerDefs, WALKER_LINES } from './npcs.js';
-import { Actor } from '../actors/people.js';
+import { Actor, cullActor, frameFrustum } from '../actors/people.js';
 import { Animal } from '../actors/animals.js';
 import { PLACES, BRIDGES, rx, MEADOW, riverInfo, iratiMask, pathQuery } from '../world/layout.js';
 import { groundHeight, terrainHeight, bridgeAt, waterLevelAt } from '../world/heightfield.js';
@@ -250,11 +250,8 @@ export class Game {
     this.elapsed += dt;
     const P = this.player;
     // NPCs
-    const cull = (a, d, max) => {
-      const sh = d < 30; if (a.shadowOn !== sh) { a.shadowOn = sh; a.obj.traverse(o => { if (o.isMesh) o.castShadow = sh; }); }
-      if (d < max + 20) a.update(dt, P);
-      a.obj.visible = d < max;
-    };
+    const fr = frameFrustum(this.camera);
+    const cull = (a, d, max) => cullActor(a, d, max, dt, P, fr);
     for (const a of Object.values(this.npcs)) if (a.visible) cull(a, Math.hypot(a.pos.x - P.pos.x, a.pos.z - P.pos.z), 90);
     for (const a of this.walkers) cull(a, Math.hypot(a.pos.x - P.pos.x, a.pos.z - P.pos.z), 80);
     for (const a of this.dancers) if (a.visible) a.update(dt, P);
