@@ -328,6 +328,31 @@ export const BEASTS = {
       tail: mergeAll([tube([V(0, 0, 0), V(0, -0.12, -0.03), V(0, -0.22, -0.02)], 0.014, 0.01, B), ball(0.025, '#1a1412', 2, 0, -0.24, -0.02, 1, 1.6, 1)]), tailAt: V(0, 0.6, -0.62) };
   },
   // Euskal artzain txakurra (perro pastor vasco, tipo Gorbeia): capa rojiza fuego, orejas semierguidas, cola baja
+  // Euskal txerri (pío negro): cerdo vasco grande y tranquilo, rosado con la cabeza y la grupa negras
+  // y unas orejas enormes que le caen sobre los ojos
+  pig: (rnd) => {
+    const K = '#1c1717', Kl = '#2e2725', P = '#e9b9a6', Pl = '#f3cdbd';
+    const coat = (u, th, p) => { const n = 0.06 * vnoise(p.x * 7, p.y * 7, p.z * 7); const blk = 1 - sm(0.3 + n, 0.38 + n, u);
+      return C(P).lerp(C(Pl), 0.3 * vnoise(p.x * 5, p.y * 5, p.z * 5)).lerp(C(K).lerp(C(Kl), 0.3 * vnoise(p.x * 9, p.y * 9, p.z * 9)), blk); };
+    const body = loft({ pts: [V(0, 0.5, -0.7), V(0, 0.52, -0.56), V(0, 0.52, -0.2), V(0, 0.52, 0.15), V(0, 0.53, 0.42), V(0, 0.52, 0.55)],
+      r: [[0.12, 0.12, 0.13], [0.27, 0.27, 0.3], [0.32, 0.29, 0.37], [0.32, 0.29, 0.37], [0.29, 0.28, 0.31], [0.19, 0.21, 0.22]], color: coat, ring: 28, seg: 12,
+      bump: (u, th, p) => 0.004 * vnoise(p.x * 50, p.y * 50, p.z * 50) });
+    const headG = mergeAll([
+      loft({ pts: [V(0, 0.02, -0.08), V(0, 0.0, 0.08), V(0, -0.07, 0.24), V(0, -0.12, 0.36), V(0, -0.13, 0.42)], r: [[0.21, 0.24, 0.22], [0.17, 0.18, 0.17], [0.11, 0.1, 0.11], [0.08, 0.075, 0.08], [0.078, 0.072, 0.078]],
+        color: (u, th, p) => u > 0.9 ? C('#5a4440') : C(K).lerp(C(Kl), 0.3 * vnoise(p.x * 9, p.y * 9, p.z * 9)), ring: 24 }),
+      prep(new THREE.CylinderGeometry(0.076, 0.076, 0.022, 22), '#c98f86', 0, Mx(0, -0.133, 0.432, Math.PI / 2 - 0.12)),
+      ...[-1, 1].map(s => ball(0.014, '#3a2522', 0, s * 0.026, -0.13, 0.445)),
+      ...eye(0.085, 0.05, 0.15, 0.014, 1.1, K),
+      // orejas grandes y caídas hacia delante, tapando casi los ojos
+      ...[-1, 1].map(s => ear(0.27, 0.17, 0.014, K, '#3a2c2a').applyMatrix4(Mx(s * 0.1, 0.15, 0.02, 2.05, s * 0.25, -s * 0.2))),
+    ]);
+    const lc = (p, t) => p.z < -0.1 ? C(K) : C(P);
+    const fl = (x) => leg([[V(x, 0, 0), [0.1, 0.1, 0.11]], [V(x, -0.15, 0.01), [0.065, 0.065, 0.065]], [V(x, -0.28, 0), [0.042, 0.042, 0.042]], [V(x, -0.38, 0.02), [0.04, 0.04, 0.04]]], P, '#6a5048', { hoofH: 0.045, split: true });
+    const hl = (x) => leg([[V(x, 0, 0), [0.11, 0.11, 0.13]], [V(x, -0.13, 0.05), [0.07, 0.07, 0.07]], [V(x, -0.25, -0.05), [0.042, 0.042, 0.046]], [V(x, -0.36, -0.02), [0.04, 0.04, 0.04]]], K, '#161110', { hoofH: 0.045, split: true });
+    const curl = []; for (let i = 0; i <= 10; i++) { const a = i / 10 * Math.PI * 2.2; curl.push(V(Math.sin(a) * 0.035, -0.02 - i * 0.006 + Math.cos(a) * 0.03, -0.02 - i * 0.004)); }
+    return { body, head: headG, neck: V(0, 0.54, 0.5), legs: { fl: [0.15, 0.38, 0.38], hl: [0.15, 0.36, -0.48], front: fl, hind: hl },
+      tail: tube(curl, 0.016, 0.008, K), tailAt: V(0, 0.58, -0.7) };
+  },
   dog: (rnd, o = {}) => {
     const BR = DOG_BREEDS[o.breed] || DOG_BREEDS.gorbeia, R = BR.c, Rl = BR.light, PT = BR.patch;
     // manchas grandes (pachón, mastín) sobre la capa clara; pelo largo (iletsua) con más relieve

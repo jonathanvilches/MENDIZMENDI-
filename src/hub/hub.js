@@ -448,7 +448,7 @@ export class Hub {
     const o = el(`<div class="onb"><div class="onb-in">
       <header class="onb-head"><div class="logo">MENDIMENDIZ</div><p class="tag">Navarra, pueblo a pueblo</p>
         <div class="langsel" role="group" aria-label="Idioma"><button data-lang="eu" class="${getLang() === 'eu' ? 'on' : ''}">Euskara</button><button data-lang="es" class="${getLang() === 'es' ? 'on' : ''}">Castellano</button></div></header>
-      ${this.selector(castById(pick), { onb: true, extra: `<div class="onb-foot"><div class="gender" role="group" aria-label="Chico o chica"><button data-g="benat" class="${pick === 'nerea' ? '' : 'on'}">Chico · Beñat</button><button data-g="nerea" class="${pick === 'nerea' ? 'on' : ''}">Chica · Nerea</button></div><label>¿Cómo te llamas?<input id="oName" maxlength="14" autocomplete="off" placeholder="Tu nombre"></label>
+      ${this.selector(castById(pick), { onb: true, extra: `<div class="onb-foot"><div class="gender" role="group" aria-label="Elige personaje"><button data-g="benat" class="${pick === 'benat' ? 'on' : ''}">Chico · Beñat</button><button data-g="nerea" class="${pick === 'nerea' ? 'on' : ''}">Chica · Nerea</button><button data-g="haritz" class="${pick === 'haritz' ? 'on' : ''}">Neolítico · Haritz</button></div><label>¿Cómo te llamas?<input id="oName" maxlength="14" autocomplete="off" placeholder="Tu nombre"></label>
         <button class="btn primary big" id="oGo">${I('play', 26)} ¡Empezar la aventura!</button></div>` })}
     </div></div>`);
     this.root.appendChild(o);
