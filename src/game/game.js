@@ -351,11 +351,26 @@ export class Game {
     }
     this.near = best;
     this.ui.setPrompt(best ? best.label : null);
-    if (this.input.consume('e') && best) this.interact(best);
+    if (this.input.consume('e') && best) this.safeInteract(best);
     if (this.input.consume('f') && this.state.hasBino) this.toggleBinoculars();
     if (this.input.consume('c')) this.ui.openBook();
     if (this.input.consume('m')) this.ui.openMap();
     if (this.input.consume('escape')) this.ui.openMenu();
+  }
+  // cualquier fallo dentro de una interacción (diálogo, prueba, minijuego) no deja el juego congelado: se anota,
+  // se cierran las ventanas a medias y se devuelve el control al jugador
+  safeInteract(it) {
+    Promise.resolve().then(() => this.interact(it)).catch((e) => {
+      console.error('[interacción]', e); (window.__errors ||= []).push(String(e?.message || e));
+      this.recover();
+    });
+  }
+  recover() {
+    try { this.ui._dlgCleanup?.(); } catch (e) { }
+    document.querySelectorAll('.mg-overlay').forEach(o => o.remove());
+    this.ui.modal = null; this.ui.dialogOpen = false; this.player.frozen = false; this.follow.cinematic = null;
+    if (['mini', 'cine', 'dance'].includes(this.mode)) this.mode = 'play';
+    this.ui.hudVisible?.(true);
   }
   async interact(it) {
     this.sound.ui('click');

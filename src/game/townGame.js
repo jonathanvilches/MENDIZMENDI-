@@ -31,6 +31,7 @@ import { PET, BELL, BENCH_LINES } from '../data/tocar.js';
 import { SITES } from '../data/dolmen.js';
 import { SABIOS, STYLE_TIP, KIND_TIP, NO_SABIO } from '../data/sabios.js';
 import { Encierro } from './encierro.js';
+import { Futbol } from './futbol.js';
 import { montesFrom, townLatLon } from '../data/miradores.js';
 import { PARTS, CASTLE_QUIZ, CASTLE_TOWNS, CASTILLOS } from '../data/castillos.js';
 import { GearProps } from '../actors/gear3d.js';
@@ -273,6 +274,14 @@ export class TownGame {
           skin: SKINS[Math.floor(R() * SKINS.length)], hair: HAIRS[Math.floor(R() * HAIRS.length)], female: name === 'Oihana' || name === 'Garazi', ponytail: name === 'Garazi' } }, this.scene);
       this.actors.push(this.pelotari);
     }
+    // El Sadar: la entrenadora de la cantera de Osasuna espera junto al túnel para jugar un partido
+    const sadar = TOWN.landmarks.find(l => l.kind === 'stadium');
+    if (sadar) {
+      const x = sadar.x - 20, z = sadar.z + 6;
+      this.coach = new Actor({ id: 'coach', name: 'Leire, entrenadora de Osasuna', x, z, heading: Math.PI / 2,
+        look: { shirt: '#c41f2c', pants: '#1f2d5a', shoes: '#1d1d1f', hair: '#3a2418', female: true, ponytail: true, skin: '#e2b08a' } }, this.scene);
+      this.actors.push(this.coach); this.sadar = sadar;
+    }
     // aparición del jugador
     const sp = this.spot(PLACES.spawn, 4);
     this.player.place(sp.x, sp.z, Math.atan2(PLACES.plaza.x - sp.x, PLACES.plaza.z - sp.z));
@@ -365,7 +374,7 @@ export class TownGame {
     const P = this.player, open = this.ui.busy || document.querySelector('.mg-overlay, .dogpick, .bagpanel, .ctxlost');
     const stuck = !open && !this.follow.cinematic && ((this.mode === 'mini') || (this.mode === 'play' && P.frozen));
     this.stuckT = stuck ? (this.stuckT || 0) + dt : 0;
-    if (this.stuckT > 6) { this.stuckT = 0; P.frozen = false; if (this.mode === 'mini') this.mode = 'play'; console.warn('[vigilante] control devuelto al jugador'); (window.__errors ||= []).push('vigilante'); }
+    if (this.stuckT > 15) { this.stuckT = 0; P.frozen = false; if (this.mode === 'mini') this.mode = 'play'; console.warn('[vigilante] control devuelto al jugador'); (window.__errors ||= []).push('vigilante'); }
   }
   // ---------- Bucle ----------
   update(dt) {
@@ -399,6 +408,7 @@ export class TownGame {
     if (this.mode === 'dance') this.updateDance(dt);
     if (this.mode === 'bino') this.updateBino(dt);
     if (this.mode === 'pelota' && this.pelotaTick) this.pelotaTick(dt);
+    if (this.mode === 'futbol') this.futbol?.update(dt);
     if (this.crowds?.length) { for (const c of this.crowds) c.update(dt); this.crowds = this.crowds.filter(c => !c.disposed); }
     this.updateNight(dt);
     for (const M of this.missions) if (M.type === 'summit' && M.step === 1 && !M.done) this.updateSummit(M);
@@ -483,7 +493,7 @@ export class TownGame {
   // ---------- Interacción ----------
   interactables() {
     const list = [];
-    for (const a of this.actors) if (a.visible !== false) list.push({ kind: 'npc', a, x: a.pos.x, z: a.pos.z, r: 3, label: a === this.pelotari ? `Jugar a pelota con ${a.name}` : a.sabio ? `${a.name}: la historia de ${a.sabio.name}` : `Hablar con ${a.name}` });
+    for (const a of this.actors) if (a.visible !== false) list.push({ kind: 'npc', a, x: a.pos.x, z: a.pos.z, r: 3, label: a === this.pelotari ? `Jugar a pelota con ${a.name}` : a === this.coach ? 'Jugar un partido en El Sadar' : a.sabio ? `${a.name}: la historia de ${a.sabio.name}` : `Hablar con ${a.name}` });
     for (const a of this.walkers) list.push({ kind: 'walker', a, x: a.pos.x, z: a.pos.z, r: a.info ? 3 : 2.4, label: a.stall ? 'Productos del pueblo' : a.info ? `Hablar con ${a.name.toLowerCase() === 'pastor' ? 'el pastor' : 'la ganadera'}` : `Saludar a ${a.name}` });
     for (const o of this.agro?.list || []) list.push({ kind: 'agro', o, x: o.x, z: o.z, r: o.kind === 'combine' ? 6 : 4.5, label: `Mirar: ${o.info.title.toLowerCase()}` });
     for (const it of this.items) list.push({ kind: 'item', it, x: it.x, z: it.z, r: 2.2, label: it.label });
@@ -495,18 +505,19 @@ export class TownGame {
     const Pp = this.player.pos;
     for (const a of this.fauna.animals) if (PET[a.kind] && !a.herd && Math.abs(a.pos.x - Pp.x) < 4 && Math.abs(a.pos.z - Pp.z) < 4) list.push({ kind: 'pet', a, x: a.pos.x, z: a.pos.z, r: a.kind === 'cow' ? 2.8 : 2.2, label: `Acariciar a ${PET[a.kind].name}` });
     if (TOWN.church?.door) list.push({ kind: 'bell', x: TOWN.church.door.x, z: TOWN.church.door.z, r: 2.6, label: 'Tocar la campana' });
-    for (const b of TOWN.benches) if (Math.abs(b.x - Pp.x) < 3 && Math.abs(b.z - Pp.z) < 3) list.push({ kind: 'bench', b, x: b.x, z: b.z, r: 1.7, label: 'Sentarse a descansar' });
+    for (const b of TOWN.benches) if (Math.abs(b.x - Pp.x) < 3 && Math.abs(b.z - Pp.z) < 3) list.push({ kind: 'seat', b, x: b.x, z: b.z, r: 1.7, label: 'Sentarse a descansar' });
     if (TOWN.fountain) list.push({ kind: 'fountain', x: TOWN.fountain.x, z: TOWN.fountain.z, r: 3.8, label: 'Beber agua' });
     if (this.fronton) list.push({ kind: 'fronton', x: this.fronton.entry.x, z: this.fronton.entry.z, r: 3, label: 'Jugar a pelota' });
     return list;
   }
   updateInteraction() {
+    if (this.mode === 'futbol') return;
     if (this.mode !== 'play' || this.ui.busy) { this.ui.setPrompt(null); return; }
     const P = this.player.pos;
     let best = null, bd = 1e9;
     for (const it of this.interactables()) { const d = Math.hypot(it.x - P.x, it.z - P.z); if (d < it.r && d < bd) { bd = d; best = it; } }
     this.ui.setPrompt(best ? best.label : null);
-    if (this.input.consume('e') && best) this.interact(best);
+    if (this.input.consume('e') && best) this.safeInteract(best);
     if (this.input.consume('f') && this.binoOn) this.toggleBinoculars();
     if (this.input.consume('c')) this.ui.openBook();
     if (this.input.consume('b')) this.mochila?.open();
@@ -514,9 +525,25 @@ export class TownGame {
     if (this.input.consume('m')) this.ui.openMap();
     if (this.input.consume('escape')) this.ui.openMenu();
   }
+  // cualquier fallo dentro de una interacción (diálogo, prueba, minijuego) no deja el juego congelado: se anota,
+  // se cierran las ventanas a medias y se devuelve el control al jugador
+  safeInteract(it) {
+    Promise.resolve().then(() => this.interact(it)).catch((e) => {
+      console.error('[interacción]', e); (window.__errors ||= []).push(String(e?.message || e));
+      this.recover();
+    });
+  }
+  recover() {
+    try { this.ui._dlgCleanup?.(); } catch (e) { }
+    document.querySelectorAll('.mg-overlay').forEach(o => o.remove());
+    this.ui.modal = null; this.ui.dialogOpen = false; this.player.frozen = false; this.follow.cinematic = null;
+    if (['mini', 'cine', 'dance'].includes(this.mode)) this.mode = 'play';
+    this.ui.hudVisible?.(true);
+  }
   async interact(it) {
     this.sound.ui('click');
     if (it.kind === 'npc' && it.a === this.pelotari) return this.freePelota();
+    if (it.kind === 'npc' && it.a === this.coach) return this.playFutbol();
     if (it.kind === 'npc') return this.talk(it.a);
     if (it.kind === 'fronton') {
       const M = this.missions.find(M => M.type === 'pelota' && !M.done);
@@ -527,7 +554,7 @@ export class TownGame {
     if (it.kind === 'agro') return this.showAgro(it.o);
     if (it.kind === 'pet') return this.petAnimal(it.a);
     if (it.kind === 'bell') return this.ringBell();
-    if (it.kind === 'bench') return this.restBench(it.b);
+    if (it.kind === 'seat') return this.restBench(it.b);
     if (it.kind === 'walker') { it.a.say(2.5); it.a.wave = 1.2; const L = WALKER_LINES[this.walkers.indexOf(it.a) % WALKER_LINES.length]; return this.say(it.a, L); }
     if (it.kind === 'item') return this.pick(it.it);
     if (it.kind === 'bench') return this.doTrade(it.M);
@@ -535,6 +562,23 @@ export class TownGame {
     if (it.kind === 'memorial') return this.doMemorial(it.M);
     if (it.kind === 'creature') return this.meetCreature(it.M);
     if (it.kind === 'fountain') { this.particles.emit({ x: it.x, y: TOWN.fountain.y + 1.4, z: it.z }, { n: 20, color: '#bfe8ff', speed: 1.5, size: 0.25, life: 0.8 }); this.sound.splash(this.player.pos, 0.6); return this.mochila.fountain(); }
+  }
+  // Partido de fútbol en El Sadar con la entrenadora de la cantera
+  async playFutbol() {
+    const a = this.coach; if (!a || this.mode !== 'play') return;
+    this.player.frozen = true;
+    try {
+      const first = !this.futSeen; this.futSeen = true;
+      await this.say(a, first ? ['¡Kaixo! Soy Leire, entrenadora de la cantera de Osasuna. ¿Te atreves a jugar un partido en El Sadar?',
+        'Jugamos dos contra dos, con porteros. Acércate al balón para llevarlo y pulsa ACCIÓN: si miras a la portería, chutas; si no, pasas a tu compañero.',
+        'Gana quien marque 3 goles o vaya ganando cuando pasen dos minutos. ¡Aupa Osasuna!'] : ['¿Otro partido? ¡La grada está llena!']);
+    } finally { this.player.frozen = false; a.talking = 0; }
+    this.futbol = new Futbol(this, this.sadar);
+    const r = await this.futbol.run();
+    if (r.quit) return;
+    const best = (townState(profile(), this.def.id).best ||= {});
+    if (r.win) { best.futbol = (best.futbol || 0) + 1; saveProfile(); }
+    await this.say(a, [r.win ? `¡${r.you} a ${r.cpu}! Juegas como un rojillo de verdad.` : r.you === r.cpu ? `${r.you} a ${r.cpu}. ¡Empate! Muy buen partido.` : `${r.you} a ${r.cpu}. ¡Casi! Vuelve cuando quieras para la revancha.`]);
   }
   // Partido libre en el frontón del pueblo (fuera de las misiones): contra el pelotari o el anfitrión de la misión
   async freePelota() {

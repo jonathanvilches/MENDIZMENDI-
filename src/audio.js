@@ -116,11 +116,6 @@ export class Sound {
   cowbell(pos, v = 0.4) { if (!this.ctx) return; const o = this.out(pos, 45, v, 0.3); if (!o) return; const f = 520 + Math.random() * 90; this.tone(f, 0.5, 'square', 0.05, o); this.tone(f * 1.48, 0.4, 'triangle', 0.05, o); this.tone(f * 2.7, 0.2, 'sine', 0.03, o); }
   woodpecker(pos) { if (!this.ctx) return; const o = this.out(pos, 70, 0.8, 0.5); if (!o) return; for (let i = 0; i < 16; i++) this.noiseBurst(0.025, 1400, 3, 0.5 * (1 - i / 20), o, i * 0.055); }
   vulture() { }
-  churchBell(n, pos) {
-    if (!this.ctx) return;
-    const o = this.out(pos, 400, 0.9, 0.6); if (!o) return;
-    for (let i = 0; i < n; i++) { const t = i * 1.6; [220, 440 * 1.19, 660, 880 * 1.5].forEach((f, k) => this.tone(f, 3, 'sine', [0.2, 0.08, 0.06, 0.03][k], o, t, 0.01)); }
-  }
   bird(pos) {
     if (!this.ctx) return; const o = this.out(pos, 50, 0.35, 0.3); if (!o) return;
     const base = 2200 + Math.random() * 1800, n = 2 + Math.floor(Math.random() * 5), kind = Math.random();
@@ -143,6 +138,8 @@ export class Sound {
   churchBell(n = 3) { if (!this.ctx) return; for (let i = 0; i < n; i++) { const t = i * 1.1; this.tone(392, 2.6, 'sine', 0.16, this.sfx, t, 0.004); this.tone(392 * 2.4, 1.6, 'sine', 0.06, this.sfx, t, 0.004); this.tone(392 * 0.5, 3, 'sine', 0.09, this.sfx, t, 0.01); this.tone(392 * 3.1, 0.8, 'triangle', 0.03, this.sfx, t, 0.002); } }
   magic() { if (!this.ctx) return; [1047, 1319, 1568, 2093, 2637].forEach((f, i) => this.tone(f, 0.5, 'sine', 0.06, this.sfx, i * 0.06)); }
   whoosh() { if (this.ctx) this.noiseBurst(0.4, 600, 0.4, 0.2, this.sfx, 0, 'lowpass'); }
+  // público del estadio: rumor de muchas voces (ruido filtrado) que sube con las ocasiones y estalla en los goles
+  crowd(v = 0.3) { if (!this.ctx) return; this.noiseBurst(1.3, 700, 0.6, 0.12 * v, this.sfx, 0, 'bandpass'); this.noiseBurst(1.1, 1500, 0.8, 0.05 * v, this.sfx, 0.1, 'bandpass'); }
   pelota(v = 1) { if (this.ctx) { this.tone(160, 0.08, 'sine', 0.3 * v, this.sfx); this.noiseBurst(0.06, 2500, 1.2, 0.5 * v, this.sfx); } }
   // ---- ambiente continuo ----
   update(dt, player, camYaw, night, inIrati) {

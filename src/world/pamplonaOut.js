@@ -118,6 +118,23 @@ export function bullring(B, S, cx, cz, TOWN) {
     col(Math.sin(a) * (RB - 0.9), Math.cos(a) * (RB - 0.9), 1.9, 0.3, a);
   }
   for (let i = 0; i < 14; i++) { const a = (i + 0.5) / 14 * Math.PI * 2; if (Math.abs(wrap(a)) < 0.3) continue; const p = toW(cx, cz, ryG, Math.sin(a) * 41, Math.cos(a) * 41); lamp(B, p.x, p.z); }
+  // rayas blancas del ruedo (las de los picadores, a 7 y 9 m de la barrera) y la boca del toril enfrente de la entrada
+  for (const r of [RB - 7, RB - 9]) B.add('paint', colored(new THREE.RingGeometry(r - 0.06, r + 0.06, 72).rotateX(-Math.PI / 2), '#f4efe4'), F(M(0, 0.19, 0)));
+  { const P = F(M(0, 0, -RB + 0.1, 0));
+    B.add('paint', colored(box(2.6, 2.2, 0.16), '#6e1d18'), MM(P, M(0, 1.1, 0)));
+    B.add('iron', box(2.7, 0.08, 0.2), MM(P, M(0, 0.6, 0.05))); B.add('iron', box(2.7, 0.08, 0.2), MM(P, M(0, 1.7, 0.05)));
+    S.add(MM(P, M(0, 2.55, 0.1)), 1.8, 0.42, plaque(['TORIL'], { bg: '#f4eee2', fg: '#8a2a1f', border: '#8a2a1f' })); }
+  // banderas de Navarra y de Pamplona sobre el anillo de cobre
+  for (let i = 0; i < 8; i++) {
+    const a = (i + 0.25) / 8 * Math.PI * 2; if (Math.abs(wrap(a)) < 0.3) continue;
+    const rr = R - 2.5, P = F(M(Math.sin(a) * rr, H + 2.9, Math.cos(a) * rr, a + Math.PI / 2));
+    B.add('iron', new THREE.CylinderGeometry(0.06, 0.08, 4.2, 6), MM(P, M(0, 2.1, 0)));
+    B.add('paint', colored(box(1.9, 1.2, 0.03), i % 2 ? '#c8202a' : '#f2ede3'), MM(P, M(1.0, 3.5, 0)));
+    if (i % 2 === 0) B.add('paint', colored(box(0.5, 0.5, 0.04), '#c8202a'), MM(P, M(0.75, 3.5, 0)));     // Pamplona: blanca con el león
+    else B.add('gold', box(0.5, 0.42, 0.04), MM(P, M(1.0, 3.5, 0)));                                     // Navarra: roja con las cadenas
+  }
+  // rótulo de la puerta del encierro y burladeros exteriores del callejón
+  S.add(F(M(0, 6.15, R + 0.97)), 5.2, 0.5, letters('PUERTA DEL ENCIERRO', '#3a2a1c', { shadow: null, size: 0.7 }));
   // busto de Hemingway en su paseo
   const hx = cx - 10, hz = cz + 42, hr = Math.atan2(180 - hx, 0 - hz), HT = M(hx, gy(hx, hz), hz, hr);
   B.add('ashlar', box(1.5, 0.3, 1.3), MM(HT, M(0, 0.15, 0)));
@@ -477,6 +494,40 @@ export function stadium(B, S, group, cx, cz, TOWN) {
     bds.push(quad(s * 23, s * 39, -s * 23, s * 39, 0, 0.9, 0, 46 / 12));
   }
   { const m = new THREE.Mesh(mergeGeometries(bds.map(g => g.applyMatrix4(T0))), new THREE.MeshStandardMaterial({ map: board, roughness: 0.6, emissive: new THREE.Color('#ffffff'), emissiveMap: board, emissiveIntensity: 0.25 })); m.matrixAutoUpdate = false; group.add(m); }
+  // exterior: explanada de la entrada oeste con taquillas, puertas de acceso numeradas, la tienda del club,
+  // mástiles con banderas y farolas
+  {
+    const ex = -FH - 0.2;
+    for (const s of [-1, 1]) for (let k = 0; k < 3; k++) {
+      const z = s * (9 + k * 9), gate = k === 1;
+      if (gate) {   // puerta de acceso: hueco oscuro con tornos y su número encima
+        B.add('dark', box(0.2, 3.2, 4.2), F(M(ex - 0.1, 1.6, z)));
+        for (let t = -1; t <= 1; t++) B.add('iron', box(0.5, 1.0, 0.08), F(M(ex - 0.5, 0.5, z + t * 1.2)));
+        S.add(F(M(ex - 0.25, 3.7, z, -Math.PI / 2)), 3.6, 0.7, plaque([`PUERTA ${s < 0 ? 1 : 2} · ${s < 0 ? 1 : 2}. ATEA`], { bg: '#c41f2c', fg: '#ffffff', border: '#ffffff' }));
+      } else {      // taquilla
+        B.add('paint', colored(box(2.0, 2.7, 2.6), '#f1f1ef'), F(M(ex - 1.2, 1.35, z)));
+        B.add('paint', colored(box(2.06, 0.5, 2.66), '#c41f2c'), F(M(ex - 1.2, 2.55, z)));
+        B.add('glass', box(0.06, 0.9, 1.6), F(M(ex - 2.23, 1.45, z)));
+        S.add(F(M(ex - 2.27, 2.55, z, -Math.PI / 2)), 2.4, 0.42, plaque(['TAQUILLAS · LEIHATILAK'], { bg: '#c41f2c', fg: '#ffffff', border: '#c41f2c' }));
+        addBox(cx + ex - 1.2, cz + z, 2.1, 2.7, 0);
+      }
+    }
+    // tienda del club en la esquina suroeste
+    const tz = FD - 16;
+    B.add('glass', box(0.1, 3.2, 9), F(M(ex - 0.1, 1.6, tz)));
+    B.add('paint', colored(box(0.4, 0.9, 9.4), '#c41f2c'), F(M(ex - 0.25, 3.6, tz)));
+    S.add(F(M(ex - 0.47, 3.6, tz, -Math.PI / 2)), 7.6, 0.75, letters('DENDA · TIENDA OSASUNA', '#ffffff', { font: FONT_ROUND, weight: '900', shadow: null, size: 0.72 }));
+    // mástiles: Osasuna (rojo y azul marino), Pamplona y Navarra
+    [['#c41f2c', '#1f2d5a'], ['#f2ede3', '#c8202a'], ['#c8202a', '#e0b43a'], ['#c41f2c', '#1f2d5a']].forEach(([c1, c2], i) => {
+      const fx = ex - 14, fz = -12 + i * 8;
+      B.add('iron', new THREE.CylinderGeometry(0.08, 0.11, 9, 8), F(M(fx, 4.5, fz)));
+      B.add('paint', colored(box(0.04, 1.5, 2.4), c1), F(M(fx, 7.9, fz + 1.25)));
+      B.add('paint', colored(box(0.05, 0.5, 2.4), c2), F(M(fx, 7.4, fz + 1.25)));
+      addCircle(cx + fx, cz + fz, 0.25);
+    });
+    // farolas a lo largo de la explanada
+    for (let z = -40; z <= 40; z += 13) { const p = toW(cx, cz, 0, ex - 8, z); lamp(B, p.x, p.z); }
+  }
   // colisiones: gradas (hasta el muro) y el hueco de entrada al oeste
   addBox(cx + (SX + OX + 0.6) / 2, cz, OX + 0.6 - SX, 2 * OZ + 1, 0, { solidView: true });
   addBox(cx - (SX + OX + 0.6) / 2, cz - (GAP + OZ + 0.6) / 2, OX + 0.6 - SX, OZ + 0.6 - GAP, 0, { solidView: true });
