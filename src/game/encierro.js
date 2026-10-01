@@ -9,6 +9,7 @@ import { buildAnimal } from '../actors/animalGlb.js';
 import { buildNpc } from '../actors/npcGlb.js';
 import { infoCard } from '../ui/minigames.js';
 import { buildPlaza, RO, RA } from './encierroPlaza.js';
+import { crowdMesh } from '../actors/crowdSprites.js';
 import { cobbleSet, ashlarSet, brickSet, woodSet, plasterSet, windowTex, railingTex, shopTex, SHOPS, plaqueTex, sandTex, archTex, flagNavarraTex } from './encierroTex.js';
 
 const L = 230;          // largo de la Estafeta en la escena (m); luego el callejón vallado y la plaza
@@ -153,27 +154,10 @@ export class Encierro {
     sg.fillStyle = '#efe6d2'; sg.fillRect(0, 0, 512, 96); sg.fillStyle = '#7a2a1a'; sg.font = '900 58px Georgia, serif'; sg.textAlign = 'center'; sg.textBaseline = 'middle'; sg.fillText('PLAZA DE TOROS', 256, 50);
     const st = new THREE.CanvasTexture(sc); st.colorSpace = THREE.SRGBColorSpace;
     const sign = new THREE.Mesh(new THREE.PlaneGeometry(7.8, 1.45), new THREE.MeshBasicMaterial({ map: st })); sign.position.set(0, 7.9, -GATE + 1.6); S.add(sign);
-    // público en los balcones: figuras sencillas de blanco y rojo (una sola llamada de dibujo)
-    const fig = mergeGeometries([
-      colored(new THREE.CylinderGeometry(0.17, 0.2, 0.8, 8), '#f7f3ea', M4(0, 0.4, 0)),
-      colored(new THREE.TorusGeometry(0.11, 0.045, 6, 10), '#d42f2f', new THREE.Matrix4().makeRotationX(Math.PI / 2).setPosition(0, 0.82, 0)),
-      colored(new THREE.SphereGeometry(0.15, 10, 8), '#e8b98e', M4(0, 1.0, 0)),
-      colored(new THREE.SphereGeometry(0.155, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), '#3a2418', M4(0, 1.03, 0)),
-    ]);
-    const crowd = new THREE.InstancedMesh(fig, mat, people.length), m = new THREE.Matrix4();
-    people.forEach((p, i) => crowd.setMatrixAt(i, m.compose(new THREE.Vector3(p.x, p.y, p.z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, p.ry + (rnd() - 0.5) * 0.6, 0)), new THREE.Vector3(1, (p.s || 1) * (0.9 + rnd() * 0.25), 1))));
-    crowd.castShadow = false; S.add(crowd); this.crowd = crowd;
-    // tendidos llenos: figuras más sencillas (miles), de blanco con pañuelo rojo, alguna con camiseta de color
-    const fig2 = mergeGeometries([
-      colored(new THREE.CylinderGeometry(0.19, 0.22, 0.62, 6), '#f7f3ea', M4(0, 0.31, 0)),
-      colored(new THREE.BoxGeometry(0.26, 0.08, 0.2), '#d42f2f', M4(0, 0.6, 0.03)),
-      colored(new THREE.IcosahedronGeometry(0.14, 0), '#e8b98e', M4(0, 0.78, 0)),
-      colored(new THREE.IcosahedronGeometry(0.145, 0), '#3a2418', M4(0, 0.83, -0.03, 0, 1, 0.7, 1)),
-    ]);
-    const seats = this.plaza.seats, stands = new THREE.InstancedMesh(fig2, mat, seats.length), tint = new THREE.Color();
-    const shirts = ['#ffffff', '#ffffff', '#ffffff', '#ffffff', '#f2c4c4', '#c9d8f0', '#f0e2b0'];
-    seats.forEach((p, i) => { stands.setMatrixAt(i, m.compose(new THREE.Vector3(p.x, p.y, p.z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, p.ry + (rnd() - 0.5) * 0.4, 0)), new THREE.Vector3(1, 0.9 + rnd() * 0.2, 1))); stands.setColorAt(i, tint.set(shirts[Math.floor(rnd() * shirts.length)])); });
-    stands.castShadow = false; S.add(stands); this.stands = stands;
+    // público: personajes de verdad (de blanco y rojo casi todos) dibujados en una lámina; en los balcones, en el
+    // callejón y en los tendidos de la plaza, una llamada de dibujo para cada grupo
+    const crowd = crowdMesh(people.map(p => [p.x, p.y - 0.1, p.z, p.ry]), 'toros', 1.25); S.add(crowd); this.crowd = crowd;
+    const stands = crowdMesh(this.plaza.seats.map(p => [p.x, p.y - 0.05, p.z, p.ry]), 'toros', 1.2); S.add(stands); this.stands = stands;
     this.camera = new THREE.PerspectiveCamera(innerWidth < innerHeight ? 72 : 58, innerWidth / innerHeight, 0.2, 400);
     this.onResize = () => { this.camera.aspect = innerWidth / innerHeight; this.camera.fov = innerWidth < innerHeight ? 72 : 58; this.camera.updateProjectionMatrix(); };
     addEventListener('resize', this.onResize);
@@ -335,7 +319,7 @@ export class Encierro {
   }
 
   async finish(win) {
-    if (this.done) return; this.done = true; this.won = win;
+    if (this.done) return; this.done = true; this.won = win; if (win) { this.stands?.cheer(true); this.crowd?.cheer(true); }
     const G = this.G;
     this.h?.querySelector('.enc-warn')?.classList.remove('on');
     if (win) { G.sound.fanfare?.(); this.msg(this.closeCall > 1.2 ? '¡En la plaza! Y corriste muy cerca de los toros.' : '¡En la plaza! ¡Lo has conseguido!', 2600); }

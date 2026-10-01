@@ -141,7 +141,7 @@ export class TownGame {
         M.steps = () => ['Habla con ' + host(), `Recoge ${c[0]} (${M.count}/${M.need})`, `Lleva la cosecha a ${host()}`]; break; }
       case 'herd': { const a = ANIMAL[m.animal] || ANIMAL.sheep; M.title = m.title || `Al redil: ${a[0]}`; M.icon = a[1]; M.need = m.n || 5;
         M.steps = () => ['Habla con ' + host(), `Lleva ${a[0]} al redil (${M.count}/${M.need}) — acércate por detrás para empujarlas`, 'Vuelve con ' + host()]; break; }
-      case 'dance': M.title = m.name || 'La danza'; M.icon = 'dance'; M.steps = () => ['Habla con ' + host(), 'Ve al centro de la plaza', `Baila: ${m.name}`]; break;
+      case 'dance': M.title = m.name || 'La danza'; M.icon = 'dance'; M.steps = () => ['Habla con ' + host(), 'Ve al corro de baile de la plaza', `Baila: ${m.name}`]; break;
       case 'carnival': { const f = FOLKLORE.find(x => x.id === m.character); M.folk = f; M.title = m.title || f?.name || 'Carnaval'; M.icon = 'mask'; M.need = 3; M.night = NIGHT_CARNIVAL[m.character];
         M.steps = () => M.night ? ['Habla con ' + host(), 'Espera a que caiga la noche', `Encuentra a los ${f?.name?.toLowerCase() || 'personajes'}s (${M.count}/${M.need}) — escucha sus cencerros`, 'Vuelve con ' + host()]
           : ['Habla con ' + host(), `Encuentra a ${f?.name || 'los personajes'} (${M.count}/${M.need}) — escucha sus cencerros`, 'Vuelve con ' + host()]; break; }
@@ -177,6 +177,17 @@ export class TownGame {
   stepText(M) { if (M.done) return '¡Completada!'; const s = M.steps(); return s[Math.min(M.step, s.length - 1)]; }
 
   // ---------- Aparición de personajes ----------
+  // sitio libre en la plaza para bailar (la fuente o el kiosco ocupan el centro): el centro y el corro de
+  // dantzaris (radio r) tienen que estar despejados
+  plazaStage(r = 3.6) {
+    if (this._stage) return this._stage;
+    const c = PLACES.plaza, ok = (x, z) => isFree(x, z, 0.8) && [...Array(8)].every((_, i) => { const a = i / 8 * Math.PI * 2; return isFree(x + Math.sin(a) * r, z + Math.cos(a) * r, 0.6); });
+    for (const d of [0, 6.5, 7.5, 8.5, 10, 12]) for (let k = 0; k < (d ? 12 : 1); k++) {
+      const a = k / 12 * Math.PI * 2 + 0.4, x = c.x + Math.sin(a) * d, z = c.z + Math.cos(a) * d;
+      if (ok(x, z)) return (this._stage = { x, z });
+    }
+    return (this._stage = this.spot(c, 6));
+  }
   spot(p, r = 4, avoidWater = true) {
     for (let k = 0; k < 60; k++) {
       const a = k * 2.4, d = k === 0 ? 0 : r * 0.3 + k * 0.6;
@@ -433,7 +444,7 @@ export class TownGame {
         if (M.step >= 1 && M.cairns) { const c = M.cairns.find(c => !c.reached); if (c) return { x: c.x, z: c.z, h: c.top ? 3.2 : 2 }; } return at(M.host); }
       case 'process': case 'harvest': if (M.step === 1) return nearest(this.items.filter(it => it.M === M).map(it => ({ x: it.x, z: it.z, h: 1.4 }))); return at(M.host);
       case 'herd': if (M.step === 1) { const loose = this.herd?.filter(s => !s.penned) || []; const t = nearest(loose.map(s => ({ x: s.pos.x, z: s.pos.z, h: 1.8 }))); return t || { x: TOWN.pen.x, z: TOWN.pen.z, h: 2 }; } return at(M.host);
-      case 'dance': return M.step === 1 ? { x: PLACES.plaza.x, z: PLACES.plaza.z, h: 3 } : at(M.host);
+      case 'dance': return M.step === 1 ? { ...this.plazaStage(), h: 3 } : at(M.host);
       case 'carnival': return (M.night ? M.step === 1 || M.step === 2 : M.step === 1) ? null : at(M.host);
       case 'mirador': if (M.step === 1) { const v = this.miradorSpot(); return v && Math.hypot(v.x - this.player.pos.x, v.z - this.player.pos.z) > 6 ? { x: v.x, z: v.z, h: 2 } : null; } return at(M.host);
       case 'dolmen': case 'castle': if (M.step === 1) return nearest(this.items.filter(it => it.M === M).map(it => ({ x: it.x, z: it.z, h: 1.4 }))); return at(M.host);
@@ -992,7 +1003,7 @@ export class TownGame {
         for (const p of M.places) if (!p.seen && Math.hypot(P.x - p.at.x, P.z - p.at.z) < (p.kind === 'church' ? 8 : 9)) { p.seen = true; this.showPlace(M, p); break; }
       }
       if (M.type === 'feria' && M.step === 1 && M.fair && this.mode === 'play' && !this.ui.busy && Math.hypot(P.x - M.fair.x, P.z - M.fair.z) < 9) this.judgeFair(M);
-      if (M.type === 'dance' && M.step === 1 && this.mode === 'play' && !this.ui.busy && Math.hypot(P.x - PLACES.plaza.x, P.z - PLACES.plaza.z) < 5) this.startDance(M);
+      if (M.type === 'dance' && M.step === 1 && this.mode === 'play' && !this.ui.busy && Math.hypot(P.x - this.plazaStage().x, P.z - this.plazaStage().z) < 5) this.startDance(M);
     }
   }
   async showPlace(M, p) {
@@ -1525,7 +1536,7 @@ export class TownGame {
   // ---------- Danza (ritmo) ----------
   startDance(M) {
     this.mode = 'dance'; this.danceM = M;
-    const c = PLACES.plaza, y = terrainHeight(c.x, c.z);
+    const c = this.plazaStage(), y = terrainHeight(c.x, c.z);
     this.player.place(c.x, c.z, 0); this.player.frozen = true;
     const cols = M.m.colors || ['#ffffff', '#d42f2f'];
     this.dancers = [];

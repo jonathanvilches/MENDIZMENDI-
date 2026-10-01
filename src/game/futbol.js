@@ -6,6 +6,7 @@
 // Ambiente: entrada al campo con cámara aérea, público rojillo que salta, comentarista, cámara lenta en los goles y radar.
 import * as THREE from 'three';
 import { buildNpc } from '../actors/npcGlb.js';
+import { crowdMesh } from '../actors/crowdSprites.js';
 import { groundHeight } from '../world/heightfield.js';
 import { infoCard } from '../ui/minigames.js';
 import { profile } from './profile.js';
@@ -102,28 +103,17 @@ export class Futbol {
     this.kickoff('home');
   }
 
-  // público en las gradas: figuras rojas, blancas y azules en una sola llamada de dibujo
+  // público en las gradas: personajes de verdad (con la camiseta de Osasuna casi todos) dibujados en una lámina,
+  // uno por asiento, en una sola llamada de dibujo; celebran los goles
   makeCrowd() {
-    const col = (geo, c, m) => { const g = geo.toNonIndexed(); if (m) g.applyMatrix4(m); const k = new THREE.Color(c), n = g.attributes.position.count, a = new Float32Array(n * 3); for (let i = 0; i < n; i++) k.toArray(a, i * 3); g.setAttribute('color', new THREE.BufferAttribute(a, 3)); g.deleteAttribute('uv'); return g; };
-    const parts = [col(new THREE.CylinderGeometry(0.2, 0.22, 0.6, 7), '#ffffff', new THREE.Matrix4().makeTranslation(0, 0.3, 0)), col(new THREE.SphereGeometry(0.15, 8, 6), '#e2b08a', new THREE.Matrix4().makeTranslation(0, 0.75, 0)),
-      col(new THREE.BoxGeometry(0.08, 0.42, 0.08), '#ffffff', new THREE.Matrix4().makeTranslation(0.24, 0.62, 0))];
-    const geo = new THREE.BufferGeometry();
-    { const pos = [], c = []; for (const p of parts) { pos.push(...p.attributes.position.array); c.push(...p.attributes.color.array); } geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('color', new THREE.Float32BufferAttribute(c, 3)); geo.computeVertexNormals(); }
-    const spots = [], SX = 27, SZ = 40, run = 0.75, rise = 0.48;
+    const spots = [], SX = 27, SZ = 40, run = 0.75, rise = 0.48, base = this.gy(0, 0) - 0.05;
     for (let k = 1; k < 19; k++) {
       const h = 1 + (k + 1) * rise - 0.5;
-      for (let z = -54; z <= 54; z += 1.1) for (const s of [-1, 1]) { if (s < 0 && Math.abs(z) < 4.5) continue; if (Math.random() < 0.82) spots.push([s * (SX + k * run + run / 2), h, z, s > 0 ? -Math.PI / 2 : Math.PI / 2]); }
-      for (let x = -25; x <= 25; x += 1.1) for (const s of [-1, 1]) if (Math.random() < 0.82) spots.push([x, h, s * (SZ + k * run + run / 2), s > 0 ? Math.PI : 0]);
+      for (let z = -54; z <= 54; z += 0.95) for (const s of [-1, 1]) { if (s < 0 && Math.abs(z) < 4.5) continue; if (Math.random() < 0.85) spots.push([this.cx + s * (SX + k * run + run / 2), base + h, this.cz + z, s > 0 ? -Math.PI / 2 : Math.PI / 2]); }
+      for (let x = -25; x <= 25; x += 0.95) for (const s of [-1, 1]) if (Math.random() < 0.85) spots.push([this.cx + x, base + h, this.cz + s * (SZ + k * run + run / 2), s > 0 ? Math.PI : 0]);
     }
-    const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9 });
-    const im = new THREE.InstancedMesh(geo, mat, spots.length), m = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), one = new THREE.Vector3(1, 1, 1), shirt = new THREE.Color();
-    const base = this.gy(0, 0) - 0.05;
     this.crowdSpots = spots; this.crowdBase = base;
-    spots.forEach(([x, y, z, ry], i) => {
-      im.setMatrixAt(i, m.compose(new THREE.Vector3(this.cx + x, base + y, this.cz + z), q.setFromEuler(e.set(0, ry, 0)), one));
-      im.setColorAt(i, shirt.set(Math.random() < 0.72 ? '#c41f2c' : Math.random() < 0.55 ? '#ffffff' : '#16224a'));
-    });
-    im.frustumCulled = false; this.root.add(im); return im;
+    const im = crowdMesh(spots, 'futbol', 1.3); this.root.add(im); return im;
   }
 
   hud() {
@@ -358,6 +348,7 @@ export class Futbol {
     // el explorador (oculto) sigue al jugador para que todo lo demás (cámara, sonido, vecinos) esté en su sitio
     const mw = this.W(this.me.x, this.me.z); this.G.player.pos.set(mw.x, this.gy(this.me.x, this.me.z), mw.z); this.G.player.heading = this.me.h;
     this.cheer = Math.max(0, (this.cheer || 0) - dt);
+    this.crowd.cheer?.(this.cheer > 0);
     this.crowd.position.y = this.cheer > 0 ? Math.abs(Math.sin(this.cheer * 9)) * 0.25 : Math.abs(Math.sin(performance.now() / 300)) * 0.02;
   }
   // cámaras: televisión (desde la grada oeste siguiendo el balón), detrás del jugador (mirando a la portería rival) y aérea
@@ -408,7 +399,7 @@ export class Futbol {
     this.h?.remove(); clearTimeout(this.mt); clearTimeout(this.st); document.body.classList.remove('futbol');
     if (this.root) {
       G.scene.remove(this.root);
-      this.ball?.geometry.dispose(); this.ball?.material.dispose(); this.crowd?.geometry.dispose(); this.ballTex?.dispose(); this.crowd?.material.dispose(); this.crowd?.dispose?.();
+      this.ball?.geometry.dispose(); this.ball?.material.dispose(); this.crowd?.geometry.dispose(); this.ballTex?.dispose(); this.crowd?.material.dispose(); this.crowd?.dispose?.();   // la lámina del público se guarda para el próximo partido
       for (const p of this.all || []) { p.char?.dispose?.(); p.obj.traverse(o => { if (o.material?.map && o.material.isMeshBasicMaterial) { o.material.map.dispose(); o.material.dispose(); o.geometry.dispose(); } }); }
     }
     G.mode = 'play'; G.player.frozen = false; G.futbol = null; G.player.obj.visible = true;
