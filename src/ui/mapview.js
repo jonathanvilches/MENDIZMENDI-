@@ -4,6 +4,7 @@
 // hasta que se amplía el mapa.
 import { HALF } from '../world/layout.js';
 import { iconImage, iconSVG } from './icons.js';
+import { buildMapVectors, drawMapVectors } from './mapvector.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const SVG = {
@@ -54,6 +55,7 @@ export function mountMapView(ui, box, opts = {}) {
     g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
     const [x0, y0] = toS(-HALF, -HALF);
     g.drawImage(ui.mapBase || ui.mapImg, x0, y0, 2 * HALF * v.s, 2 * HALF * v.s);
+    if (ui.mapBase) { if (!ui.mapVec) { try { ui.mapVecJob ? ui.mapVecJob.finishNow() : (ui.mapVec = buildMapVectors()); } catch (e) { ui.mapVec = { layers: [] }; } } drawMapVectors(g, ui.mapVec, v, W, H, dpr, (ms) => setTimeout(redraw, ms)); }
     // casas en vector: nítidas a cualquier aumento
     g.fillStyle = '#b44a3a'; g.strokeStyle = 'rgba(70,24,16,.55)'; g.lineWidth = 1;
     for (const h of ui.mapHouseList || []) {
