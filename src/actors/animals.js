@@ -49,9 +49,9 @@ export class Animal {
     let want = 0;
     if (this.follow) {
       const f = this.follow;
-      const d = Math.hypot(f.pos.x - this.pos.x, f.pos.z - this.pos.z);
-      if (d > 2.5) { this.heading = dampAngle(this.heading, Math.atan2(f.pos.x - this.pos.x, f.pos.z - this.pos.z), 6, dt); want = Math.min(this.run, d * 1.4); this.state = 'walk'; }
-      else this.state = 'idle';
+      const d = Math.hypot(f.pos.x - this.pos.x, f.pos.z - this.pos.z), near = f.dist ?? 2.5;
+      if (d > near) { this.heading = dampAngle(this.heading, Math.atan2(f.pos.x - this.pos.x, f.pos.z - this.pos.z), 8, dt); want = Math.min(this.run, d * (f.gain ?? 1.4) + (f.speed || 0)); this.state = 'walk'; }
+      else { this.state = 'idle'; if (f.face != null) this.heading = dampAngle(this.heading, f.face, 5, dt); }
     } else if (this.fleeDist && dp < scare) {
       this.state = 'flee';
       this.heading = dampAngle(this.heading, Math.atan2(dxp, dzp), 7, dt);

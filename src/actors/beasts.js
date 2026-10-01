@@ -328,22 +328,26 @@ export const BEASTS = {
       tail: mergeAll([tube([V(0, 0, 0), V(0, -0.12, -0.03), V(0, -0.22, -0.02)], 0.014, 0.01, B), ball(0.025, '#1a1412', 2, 0, -0.24, -0.02, 1, 1.6, 1)]), tailAt: V(0, 0.6, -0.62) };
   },
   // Euskal artzain txakurra (perro pastor vasco, tipo Gorbeia): capa rojiza fuego, orejas semierguidas, cola baja
-  dog: () => {
-    const R = '#b8692e', Rl = '#dca06a';
-    const coat = (u, th, p) => C(R).lerp(C(Rl), th < -0.5 ? 0.5 : 0.1 * vnoise(p.x * 8, p.y * 8, p.z * 8));
+  dog: (rnd, o = {}) => {
+    const BR = DOG_BREEDS[o.breed] || DOG_BREEDS.gorbeia, R = BR.c, Rl = BR.light, PT = BR.patch;
+    // manchas grandes (pachón, mastín) sobre la capa clara; pelo largo (iletsua) con más relieve
+    const patchAt = (p) => PT && vnoise(p.x * 5 + 3, p.y * 5, p.z * 5 + 1) > 0.58;
+    const coat = (u, th, p) => patchAt(p) ? C(PT) : C(R).lerp(C(Rl), th < -0.5 ? 0.5 : 0.1 * vnoise(p.x * 8, p.y * 8, p.z * 8));
     const body = loft({ pts: [V(0, 0.46, -0.34), V(0, 0.47, -0.24), V(0, 0.46, 0.0), V(0, 0.47, 0.2), V(0, 0.5, 0.32)],
       r: [[0.08, 0.09, 0.09], [0.12, 0.12, 0.11], [0.12, 0.12, 0.12], [0.13, 0.13, 0.17], [0.09, 0.12, 0.14]], color: coat, ring: 22, seg: 12,
-      bump: (u, th, p) => th < -0.4 ? -0.05 * sm(0.2, 0.55, u) * (1 - sm(0.6, 0.85, u)) : 0.006 * vnoise(p.x * 30, p.y * 30, p.z * 30) });
+      bump: (u, th, p) => th < -0.4 ? -0.05 * sm(0.2, 0.55, u) * (1 - sm(0.6, 0.85, u)) * (BR.belly ?? 1) : (BR.hair || 0.006) * vnoise(p.x * 30, p.y * 30, p.z * 30) });
     const headG = mergeAll([
-      loft({ pts: [V(0, -0.04, -0.06), V(0, 0.04, 0.0), V(0, 0.1, 0.04)], r: [[0.1, 0.12, 0.14], [0.08, 0.09, 0.1], [0.07, 0.075, 0.08]], color: coat, ring: 20 }),
+      loft({ pts: [V(0, -0.04, -0.06), V(0, 0.04, 0.0), V(0, 0.1, 0.04)], r: [[0.1, 0.12, 0.14], [0.08, 0.09, 0.1], [0.07, 0.075, 0.08]].map(q => q.map(v => v * (BR.neck || 1))), color: coat, ring: 20 }),
       loft({ pts: [V(0, 0.13, -0.04), V(0, 0.16, 0.03), V(0, 0.15, 0.09), V(0, 0.12, 0.16), V(0, 0.11, 0.2)], r: [[0.06, 0.06, 0.06], [0.078, 0.075, 0.07], [0.06, 0.05, 0.06], [0.04, 0.033, 0.04], [0.033, 0.028, 0.034]], color: (u, th) => u > 0.92 ? C('#161212') : u > 0.55 && th < -0.2 ? C(Rl) : C(R).lerp(C('#6a3818'), sm(0.55, 0.85, u) * 0.5), ring: 22 }),
       ball(0.01, '#e0607a', 0, 0, 0.085, 0.17, 1.4, 0.5, 1.6),
       ...eye(0.042, 0.165, 0.085, 0.016, 0.45, R, '#3a2210'),
-      ...[-1, 1].map(s => ear(0.085, 0.05, 0.01, (u) => u > 0.62 ? '#8a4a22' : R, '#e6b890').applyMatrix4(Mx(s * 0.05, 0.19, -0.03, -0.2, 0, -s * 0.4))),
+      ...[-1, 1].map(s => BR.drop
+        ? ear(0.15, 0.07, 0.01, BR.earC || R, BR.earC || R).applyMatrix4(Mx(s * 0.07, 0.17, -0.02, 0.15, 0, -s * 2.7))   // orejas largas y caídas
+        : ear(0.085, 0.05, 0.01, (u) => u > 0.62 ? (BR.earTip || '#8a4a22') : R, '#e6b890').applyMatrix4(Mx(s * 0.05, 0.19, -0.03, -0.2, 0, -s * 0.4))),
     ]);
-    const lc = (p, t) => C(R).lerp(C(Rl), sm(0.3, 0.8, t));
-    const fl = (x) => leg([[V(x, 0, 0), [0.045, 0.045, 0.05]], [V(x, -0.14, 0.01), [0.032, 0.032, 0.032]], [V(x, -0.3, 0), [0.024, 0.024, 0.024]], [V(x, -0.4, 0.015), [0.024, 0.024, 0.024]]], lc, Rl, { paw: true, hoofH: 0 });
-    const hl = (x) => leg([[V(x, 0, 0), [0.06, 0.06, 0.07]], [V(x, -0.14, 0.05), [0.04, 0.04, 0.045]], [V(x, -0.26, -0.06), [0.022, 0.022, 0.026]], [V(x, -0.4, -0.02), [0.024, 0.024, 0.024]]], lc, Rl, { paw: true, hoofH: 0 });
+    const lc = (p, t) => C(R).lerp(C(Rl), sm(0.3, 0.8, t)), lw = BR.leg || 1;
+    const fl = (x) => leg([[V(x, 0, 0), [0.045 * lw, 0.045 * lw, 0.05 * lw]], [V(x, -0.14, 0.01), [0.032 * lw, 0.032 * lw, 0.032 * lw]], [V(x, -0.3, 0), [0.024 * lw, 0.024 * lw, 0.024 * lw]], [V(x, -0.4, 0.015), [0.024 * lw, 0.024 * lw, 0.024 * lw]]], lc, Rl, { paw: true, hoofH: 0 });
+    const hl = (x) => leg([[V(x, 0, 0), [0.06 * lw, 0.06 * lw, 0.07 * lw]], [V(x, -0.14, 0.05), [0.04 * lw, 0.04 * lw, 0.045 * lw]], [V(x, -0.26, -0.06), [0.022 * lw, 0.022 * lw, 0.026 * lw]], [V(x, -0.4, -0.02), [0.024 * lw, 0.024 * lw, 0.024 * lw]]], lc, Rl, { paw: true, hoofH: 0 });
     return { body, head: headG, neck: V(0, 0.54, 0.3), legs: { fl: [0.075, 0.4, 0.24], hl: [0.075, 0.4, -0.26], front: fl, hind: hl },
       tail: loft({ pts: [V(0, 0, 0), V(0, -0.06, -0.08), V(0, -0.2, -0.12), V(0, -0.32, -0.08)], r: [[0.03, 0.03, 0.03], [0.04, 0.04, 0.04], [0.04, 0.035, 0.035], [0.015, 0.012, 0.012]], color: (u) => C(R).lerp(C(Rl), u * 0.6), ring: 12 }), tailAt: V(0, 0.48, -0.34) };
   },
@@ -408,6 +412,14 @@ export function beast(kind, rnd = Math.random, opts = {}) {
 }
 // invierte el orden de los triángulos tras reflejar (para que las caras sigan mirando afuera)
 function flip(g) { const ix = g.index.array; for (let i = 0; i < ix.length; i += 3) { const t = ix[i]; ix[i] = ix[i + 2]; ix[i + 2] = t; } g.index.needsUpdate = true; g.computeVertexNormals(); }
+
+// Razas de perro para el compañero del jugador (diseño propio de cada una, a partir de su aspecto típico)
+export const DOG_BREEDS = {
+  gorbeia: { dogName: 'Gorri', name: 'Euskal artzain txakurra (Gorbeia)', c: '#b8692e', light: '#dca06a', scale: 1, text: 'Perro pastor vasco de pelo corto y color rojo fuego. Listo, rápido y muy fiel: guía los rebaños por el monte.' },
+  iletsua: { dogName: 'Haize', name: 'Euskal artzain txakurra (Iletsua)', c: '#a9845a', light: '#d6bf96', earTip: '#5a4430', hair: 0.02, scale: 1, text: 'La variedad de pelo largo del pastor vasco, de color arena. Aguanta el frío y la lluvia de la montaña.' },
+  pachon: { dogName: 'Usain', name: 'Pachón navarro', c: '#f0ebe2', light: '#ffffff', patch: '#7a4a2a', drop: true, earC: '#7a4a2a', neck: 1.1, scale: 1.05, text: 'Perro de caza antiguo de Navarra, de orejas largas y caídas y manchas color hígado. Tiene un olfato buenísimo: encuentra cualquier rastro.' },
+  mastin: { dogName: 'Lagun', name: 'Mastín del Pirineo', c: '#f3efe6', light: '#ffffff', patch: '#8a8478', drop: true, earC: '#8a8478', neck: 1.25, leg: 1.25, belly: 0.3, hair: 0.014, scale: 1.4, text: 'Gigante y tranquilo, protegía los rebaños del lobo y del oso en el Pirineo. Lleva su collar de pinchos (carlanca) en el monte.' },
+};
 
 // ---------- Aves en vuelo ----------
 // Ala como superficie: planta con el borde de ataque, las primarias separadas en «dedos» y el color
