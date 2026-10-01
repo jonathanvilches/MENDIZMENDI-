@@ -15,6 +15,11 @@ export const CAST = [
     ability: 'Orientación: la luz dorada brilla más fuerte', stats: [90, 60, 70, 95, 75], color: '#8a5ad6',
     look: { child: true, height: 1.38, skin: '#f3cfae', hair: '#c9772f', hairStyle: 'short', lashes: true, eyes: '#3a6a3a', hat: 'wool', hatColor: '#8a5ad6',
       shirt: '#e8743a', pattern: 'check', pants: '#3a4a6a', shoes: '#6b3f24', boots: true, strap: '#6a4a2a', bag: '#3a7a4a', staff: true, face: 'smile', freckles: true, pose: 'hip1', browStyle: 'arched', tilt: 0.07 } },
+  // niño del Neolítico (modelo GLB de Blender): viaja desde la época de los dólmenes
+  { id: 'haritz', name: 'Haritz', from: 'Sierra de Aralar', role: 'Niño del Neolítico', tagline: 'Viene de la época de los dólmenes', glb: true,
+    desc: 'Vive hace unos 5.000 años, cuando los primeros pastores levantaban dólmenes en Aralar y Urbasa. Lleva túnica de lana, chaleco de piel de oveja, abarcas de cuero y un cuchillo de sílex en la bolsa.',
+    ability: 'Mirada antigua: descubre antes dólmenes, cuevas y piedras con historia', stats: [90, 75, 70, 80, 90], color: '#a8603a',
+    look: { child: true, height: 1.36, skin: '#e2b088', hair: '#2e1e16', hairStyle: 'short', shirt: '#d6c49e', vest: '#dacaa8', pants: '#84603e', scarf: '#a84a2c', shoes: '#b0885c', boots: true, socks: '#9c744c', face: 'smile', pose: 'hip1' } },
   { id: 'leire', name: 'Leire', from: 'Iruña / Pamplona', role: 'Sanferminera', tagline: 'Siempre llega la primera',
     desc: 'Corre más que nadie por las calles de Pamplona. Lleva su pañuelo rojo desde el 6 de julio hasta que se le olvida quitárselo.',
     ability: 'Sprint: corre más rápido durante un rato', stats: [70, 55, 95, 70, 55], color: '#d42f2f',

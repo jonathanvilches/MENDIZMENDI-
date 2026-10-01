@@ -856,7 +856,7 @@ def bake_atlases(d, G, mats, tex_dir):
     imgs = {}
     solid_mods(False)
     for key, main, allo, size, zr, extras in (
-        ('Body', body_main, body_all, 1024, (0.0, 1.05), dict(grain={'scale': 260, 'k': 0.07}, rects=d.get('rects'), **({} if d.get('buttons') else dict(dots={'pts': [(0.034, -0.162, z) for z in (0.69, 0.735, 0.78)], 'r': 0.0095, 'color': d['colors']['button']})))),
+        ('Body', body_main, body_all, 1024, (0.0, 1.05), dict(grain={'scale': 260, 'k': 0.07}, rects=d.get('rects'), **(dict(dots=d['dots']) if d.get('dots') else {} if d.get('buttons') else dict(dots={'pts': [(0.034, -0.162, z) for z in (0.69, 0.735, 0.78)], 'r': 0.0095, 'color': d['colors']['button']})))),
         ('Face', face_main, face_all, 512, (0.98, 1.68), dict(**({'dots': {'pts': [tuple(Hm.sph(d, s * lo, la, 0.002)) for s in (1, -1) for lo, la in d['freckles']], 'r': 0.0062, 'color': (176, 112, 80)}} if d.get('freckles') else {}), blush={'pts': [tuple(Hm.sph(d, s * d.get('blush_ll', (38, -18))[0], d.get('blush_ll', (38, -18))[1])) for s in (1, -1)], 'r': 0.06, 'k': 0.45, 'color': d['colors']['blush']})),
     ):
         mat = mats['body' if key == 'Body' else 'face']
