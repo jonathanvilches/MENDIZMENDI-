@@ -30,7 +30,9 @@ const st = await p.evaluate(() => { const G = window.__game; const e = G.altUpda
 console.log(JSON.stringify(st));
 await adv(4); await p.waitForTimeout(800); await shot('estafeta');
 await adv(30); await p.waitForTimeout(800); await shot('plaza');
-await p.evaluate(() => { const E = window.__game.encierro; if (E) E.me.z = -263.5; }); await adv(1);
+await p.evaluate(() => { const E = window.__game.encierro; if (E) E.me.z = E.plaza.cz + 34 + 4; }); await adv(1.2); await p.waitForTimeout(800); await shot('puerta-plaza');
+await p.evaluate(() => { const E = window.__game.encierro; if (E) E.me.z = E.plaza.cz + 16; }); await adv(1.5); await p.waitForTimeout(800); await shot('ruedo');
+await adv(4); await p.waitForTimeout(800); await shot('plaza-llena');
 await p.waitForFunction(() => document.querySelector('.mg-overlay button'), null, { timeout: 60000 }).catch(() => {});
 await p.waitForTimeout(800); await shot('final');
 for (let i = 0; i < 8; i++) { const b = await p.evaluate(() => { const b = document.querySelector('.mg-overlay:not(.out) button'); if (b) { b.click(); return true; } return false; }); await p.waitForTimeout(1500); if (!b && await p.evaluate(() => window.__game.mode === 'play')) break; }

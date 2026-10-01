@@ -2,7 +2,10 @@
 // su esqueleto y sus animaciones, con la ropa, la piel y el pelo de cada vecino. Las texturas se recolorean una vez
 // por combinación de colores y se comparten; la geometría es la del modelo (un solo juego para todo el pueblo).
 import * as THREE from 'three';
-import { GlbChar, loadChar } from './glbChar.js';
+import { GlbChar, loadChar, loadKayKit } from './glbChar.js';
+import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { applyOutfit, regionalOutfit } from './outfits.js';
 import boyUrl from '../assets/chars/char_protagonista_lod.glb?url';
 import girlUrl from '../assets/chars/char_nerea_lod.glb?url';
 
@@ -25,9 +28,73 @@ let ready = false;
 export async function preloadNpcs() {
   try { const [b, g] = await Promise.all([loadChar(boyUrl), loadChar(girlUrl)]); GLTF.boy = b; GLTF.girl = g; ready = true; }
   catch (e) { console.warn('vecinos GLB', e); ready = false; }
-  return ready;
+  // cuerpos KayKit (la fisiología de los personajes nuevos) para todos los vecinos
+  try { await Promise.all(KK_BASES.map(n => loadKayKit(n).then(g => { KKG[n] = g; }))); kkReady = true; } catch (e) { console.warn('vecinos KayKit', e); }
+  return ready || kkReady;
 }
-export const npcsReady = () => ready;
+const KK_BASES = ['Ranger', 'Rogue', 'Knight', 'Barbarian', 'Mage', 'Rogue_Hooded'];
+const KKG = {}; let kkReady = false;
+const KK_SEX = { boy: ['Ranger', 'Knight', 'Ranger'], girl: ['Rogue', 'Mage', 'Rogue_Hooded'], old: ['Barbarian'] };
+// todas las piezas con piel (cuerpo, cabeza, brazos, piernas) en una sola malla: una llamada de dibujo por vecino
+function mergeSkinned(root) {
+  const sk = []; root.traverse(o => { if (o.isSkinnedMesh && o.visible) sk.push(o); });
+  if (sk.length < 2 || sk.some(m => m.skeleton !== sk[0].skeleton || !m.bindMatrix.equals(sk[0].bindMatrix) || m.parent !== sk[0].parent || m.material.map !== sk[0].material.map)) return;
+  const geos = sk.map(m => {
+    const src = m.geometry, n = src.attributes.position.count, out = new THREE.BufferGeometry();
+    const f32 = (name, k) => { const a = src.attributes[name], arr = new Float32Array(n * k); for (let i = 0; i < n; i++) for (let j = 0; j < k; j++) arr[i * k + j] = a.getComponent(i, j); return new THREE.BufferAttribute(arr, k); };
+    for (const [nm, k] of [['position', 3], ['normal', 3], ['uv', 2], ['skinWeight', 4]]) out.setAttribute(nm, f32(nm, k));
+    const si = src.attributes.skinIndex, sia = new Uint16Array(n * 4); for (let i = 0; i < n; i++) for (let j = 0; j < 4; j++) sia[i * 4 + j] = si.getComponent(i, j);
+    out.setAttribute('skinIndex', new THREE.BufferAttribute(sia, 4)); if (src.index) out.setIndex(Array.from(src.index.array));
+    return out;
+  });
+  const merged = mergeGeometries(geos); if (!merged) return;
+  const mesh = new THREE.SkinnedMesh(merged, sk[0].material); mesh.name = 'Body'; mesh.position.copy(sk[0].position); mesh.quaternion.copy(sk[0].quaternion); mesh.scale.copy(sk[0].scale);
+  sk[0].parent.add(mesh); mesh.bind(sk[0].skeleton, sk[0].bindMatrix);
+  for (const m of sk) m.removeFromParent();
+}
+// plantilla por cuerpo y traje (se comparte entre vecinos iguales)
+const KKT = new Map();
+function kkTemplate(base, outfit) {
+  const key = base + '|' + JSON.stringify(outfit);
+  if (!KKT.has(key)) {
+    const g = KKG[base], sc = SkeletonUtils.clone(g.scene);
+    applyOutfit(sc, base, outfit);
+    const gone = []; sc.traverse(o => { if (o.isMesh && o.visible === false) gone.push(o); }); gone.forEach(o => o.removeFromParent());
+    mergeSkinned(sc);
+    KKT.set(key, { scene: sc, animations: g.animations, userData: { ...g.userData } });
+  }
+  return KKT.get(key);
+}
+// traje del vecino a partir de su «look» (o el de su comarca si lo pide)
+function lookOutfit(L, female) {
+  if (L.region) return regionalOutfit(L.region, female, () => ((L.seed = ((L.seed || 7) * 9301 + 49297) % 233280) / 233280));
+  const O = { id: undefined, shirt: L.shirt || '#e8e0cc', pants: L.skirt && !female ? L.skirt : (L.pants || L.skirt || '#3b3a40'), shoes: L.shoes || (L.espadrille ? '#efe6d0' : '#4a2f1c'), accent: L.vest || L.sash || L.pants || '#3b3a40' };
+  if (L.txapela) O.beret = L.txapela; if (L.scarf) O.scarf = L.scarf; if (L.sash) O.sash = L.sash;
+  if (female && L.skirt) { O.skirt = L.skirt; if (L.apron) O.apron = L.apron; }
+  if (!female && L.apron) O.sash = O.sash || L.apron;
+  return O;
+}
+export function buildNpcKK(L) {
+  const female = !!(L.female || L.skirt || L.ponytail || L.bun || L.braids || L.longHair || L.lashes);
+  const h = (JSON.stringify(L).split('').reduce((a, c) => (a * 31 + c.charCodeAt(0)) | 0, 7) >>> 0);
+  const list = L.old && !female ? KK_SEX.old : KK_SEX[female ? 'girl' : 'boy'], base = list[h % list.length];
+  const gltf = kkTemplate(base, lookOutfit(L, female));
+  const char = new GlbChar(gltf, { walkAt: 0.2, runAt: 4.6, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / 3.0, 0.85) : Math.pow(Math.max(0.2, v) / 1.35, 0.8) });
+  const H = L.height || (L.child ? 1.2 : 1.5);
+  const k = (gltf.userData.fit || 1) * THREE.MathUtils.clamp(H / 1.5, 0.7, 1.15);
+  char.root.scale.setScalar(k);
+  const obj = new THREE.Group(); obj.add(char.root); obj.userData.glbNpc = true; obj.userData.sex = female ? 'girl' : 'boy'; obj.userData.H = H;
+  const anim = {
+    t: 0, setExpr() {},
+    update(dt, s) {
+      if (s.wave > 0 && !char.oneShot && s.speed < 0.5) char.playOnce('Wave', Math.min(1.4, s.wave));
+      else if ((s.cheer > 0 || s.dance || s.clap > 0) && !char.oneShot) char.playOnce('Celebrate', 1.2);
+      char.setTalking?.(s.talking > 0); char.setSpeed(s.speed); char.update(dt);
+    },
+  };
+  return { obj, char, anim };
+}
+export const npcsReady = () => ready || kkReady;
 
 // colores en sRGB (como están pintadas las texturas); getHex devuelve sRGB aunque Three trabaje en lineal
 const hex = (c) => { const h = new THREE.Color(c).getHex(); return [(h >> 16) & 255, (h >> 8) & 255, h & 255]; };
@@ -184,6 +251,7 @@ const EXPR = {
 /** Vecino: devuelve { obj, char, anim } con la misma interfaz que usaba la figura antigua (anim.update / setExpr). */
 export function buildNpc(look = {}) {
   const L = look;
+  if (kkReady && !L.classic) try { return buildNpcKK(L); } catch (e) { console.warn('vecino KayKit', e); }
   const sex = L.female || L.skirt || L.ponytail || L.bun || L.braids || L.longHair || L.lashes ? 'girl' : 'boy';
   const gltf = GLTF[sex] || GLTF.boy;
   const char = new GlbChar(gltf, { outline: 0.006, walkAt: 0.2, runAt: 4.6, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / 3.2, 0.85) : Math.pow(Math.max(0.2, v) / 1.5, 0.8) });

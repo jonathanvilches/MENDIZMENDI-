@@ -104,7 +104,7 @@ export class Animal {
     this.sync();
   }
   animate(dt) {
-    if (this.glbA) { this.glbA.update(dt, { speed: this.speed, graze: this.state === 'graze' && !this.alert && this.speed < 0.15, alt: (this.t % 14) > 11 }); return; }
+    if (this.glbA) { this.glbA.update(dt, { speed: this.speed, graze: this.state === 'graze' && !this.alert && this.speed < 0.15, alt: (this.t % 14) > 11, lod: !this.obj.visible ? 0.25 : this.dist > 45 ? 0.12 : this.dist > 22 ? 0.05 : 0 }); return; }
     const q = this.q, sp = this.speed;
     // andares con cada pata a su tiempo: paso (secuencia lateral), trote (diagonales) y galope rotatorio
     // (trasera, trasera, delantera, delantera). La pata se recoge al adelantarse (como si doblara la rodilla) y el
@@ -337,6 +337,7 @@ export class Fauna {
       const sh = d < 35;
       if (a.shadowOn !== sh) { a.shadowOn = sh; a.obj.traverse(o => { if (o.isMesh && !o.userData.outline) o.castShadow = sh; }); }
       setOutlines(a.obj, d < 26);
+      a.dist = d;
       if (d < vd + 30 || a.alwaysUpdate) a.update(dt, player);
     }
     // ardillas: bajan al suelo, corren, suben al tronco si te acercas

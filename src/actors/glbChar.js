@@ -48,7 +48,7 @@ function outlineMat(w) {
 }
 
 /** Personaje KayKit: su modelo con los clips del rig común renombrados como los del juego y escalado a su altura. */
-async function loadKayKit(name, height = 1.5) {
+export async function loadKayKit(name, height = 1.5) {
   const key = 'kaykit:' + name;
   if (!cache.has(key)) cache.set(key, (async () => {
     const [ch, mv, gen] = await Promise.all([loadChar(KK[name]), loadChar(KK.Rig_Medium_MovementBasic), loadChar(KK.Rig_Medium_General)]);
@@ -356,6 +356,7 @@ const EXPR = {
 /** Adaptador con la misma interfaz que MinifigRig (update, doWave, doCheer, setExpr, doAct, carry). */
 // las piernas del modelo son un 35 % más largas que las del diseño original: cada paso cubre más suelo
 const LEGS = 1.3;
+import { applyOutfit, outfitOf } from './outfits.js';
 export class GlbRig {
   constructor(gltf, id = 'benat') {
     const def = GLB_AVATARS[id] || {};
@@ -364,6 +365,8 @@ export class GlbRig {
     // mayores: el ritmo sube con la raíz de la velocidad para que las piernas no se vuelvan frenéticas
     // Walk avanza ~1,15 m por ciclo y Run ~2,5 m/s: el ritmo sigue casi a la velocidad (los pies apenas patinan)
     this.char = new GlbChar(gltf, { outline: 0.006, walkAt: 0.2, runAt: 4.6, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / (2.5 * LEGS), 0.85) : Math.pow(Math.max(0.2, v) / (1.15 * LEGS), 0.8) });
+    // personajes KayKit: traje navarro elegido (San Fermín, dantzari, pastor…)
+    if (def.kaykit) { try { this.outfit = outfitOf(id); applyOutfit(this.char.root, def.kaykit, this.outfit); } catch (e) { console.warn('traje', e); } }
     this.char.root.scale.setScalar(def.scale || gltf.userData?.fit || 1);
     this.obj.add(this.char.root);
     this.wave = 0; this.cheer = 0; this.talking = 0; this.carry = false;

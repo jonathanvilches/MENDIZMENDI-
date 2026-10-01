@@ -4,6 +4,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
+import { mergeGeometries, toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 const URLS = {};
 for (const [p, u] of Object.entries(import.meta.glob('../assets/animals/*.glb', { eager: true, query: '?url', import: 'default' }))) URLS[p.split('/').pop().replace('.glb', '')] = u;
@@ -43,14 +44,46 @@ export function preloadAnimals() {
   return loading;
 }
 
+// Una sola malla por animal: los trozos de cada material (cuerpo, hocico, cuernos, pezuñas, ojos…) se funden en
+// una geometría con el color de la raza en cada vértice, y las normales se suavizan (sin facetas) salvo en las
+// aristas vivas. Así cada animal cuesta una llamada de dibujo en vez de seis, y se ve más orgánico.
+const BAKED = new Map();
+function bakedScene(key, S, g) {
+  if (BAKED.has(key)) return BAKED.get(key);
+  const sc = SkeletonUtils.clone(g.scene), skinned = [];
+  sc.traverse(o => { if (o.isSkinnedMesh) skinned.push(o); });
+  // solo si todos los trozos comparten esqueleto y matriz de enlace (si no, se deja tal cual)
+  if (skinned.length < 2 || skinned.some(m => m.skeleton !== skinned[0].skeleton || !m.bindMatrix.equals(skinned[0].bindMatrix) || m.parent !== skinned[0].parent || !m.geometry.attributes.skinIndex)) { BAKED.set(key, sc); return sc; }
+  const c = new THREE.Color(), geos = [];
+  for (const m of skinned) {
+    const src = m.geometry, n = src.attributes.position.count, out = new THREE.BufferGeometry();
+    const f32 = (name, k) => { const a = src.attributes[name], arr = new Float32Array(n * k); for (let i = 0; i < n; i++) for (let j = 0; j < k; j++) arr[i * k + j] = a.getComponent(i, j); return new THREE.BufferAttribute(arr, k); };
+    out.setAttribute('position', f32('position', 3));
+    const si = src.attributes.skinIndex, sia = new Uint16Array(n * 4); for (let i = 0; i < n; i++) for (let j = 0; j < 4; j++) sia[i * 4 + j] = si.getComponent(i, j);
+    out.setAttribute('skinIndex', new THREE.BufferAttribute(sia, 4)); out.setAttribute('skinWeight', f32('skinWeight', 4));
+    const hex = S.col?.[m.material.name]; c.copy(hex ? new THREE.Color(hex) : m.material.color);
+    const col = new Float32Array(n * 3); for (let i = 0; i < n; i++) { col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b; }
+    out.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    if (src.index) out.setIndex(Array.from(src.index.array));
+    geos.push(out);
+  }
+  let merged = mergeGeometries(geos);
+  merged = toCreasedNormals(merged, THREE.MathUtils.degToRad(65));
+  const mesh = new THREE.SkinnedMesh(merged, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.82 }));
+  const s0 = skinned[0]; mesh.name = 'body'; mesh.position.copy(s0.position); mesh.quaternion.copy(s0.quaternion); mesh.scale.copy(s0.scale);
+  s0.parent.add(mesh); mesh.bind(s0.skeleton, s0.bindMatrix);
+  for (const m of skinned) m.removeFromParent();
+  BAKED.set(key, sc); return sc;
+}
+
 const MATS = new Map();
 /** Un animal listo para la escena: { root, mixer, actions, height, play(nombre), update(dt, estado) }. */
 export function buildAnimal(kind, opts = {}) {
   const S = animalSpec(kind, opts), g = S && GLTF[S.model];
   if (!g) return null;
-  const inner = SkeletonUtils.clone(g.scene);
   // colores de la raza (materiales compartidos por especie y raza)
   const key = kind + '|' + (opts.breed || '');
+  const inner = SkeletonUtils.clone(bakedScene(key, S, g));
   inner.traverse(o => {
     if (!o.isMesh) return;
     o.castShadow = true; o.receiveShadow = true; o.frustumCulled = false;
@@ -68,7 +101,7 @@ export function buildAnimal(kind, opts = {}) {
   const root = new THREE.Group(); root.add(inner);
   const mixer = new THREE.AnimationMixer(inner), actions = {};
   for (const c of g.animations) actions[c.name] = mixer.clipAction(c);
-  let cur = null;
+  let cur = null, acc = 0;
   const A = {
     root, mixer, actions, height: S.h,
     play(name, fade = 0.3) {
@@ -83,7 +116,8 @@ export function buildAnimal(kind, opts = {}) {
       else if (sp > 0.15) { a = A.play('Walk'); a.timeScale = Math.max(0.5, sp / (H * 0.9 + 0.25)); }
       else if (s.graze) { a = A.play(actions.Eating ? 'Eating' : 'Idle_Headlow'); a.timeScale = 1; }
       else { a = A.play(s.alt && actions.Idle_2 ? 'Idle_2' : 'Idle'); a.timeScale = 1; }
-      mixer.update(dt);
+      // lejos se anima a saltos (cada 0,05–0,12 s): ahorra CPU sin que se note
+      acc += dt; if (acc >= (s.lod || 0)) { mixer.update(acc); acc = 0; }
     },
   };
   A.play('Idle', 0);

@@ -1,0 +1,30 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;background:#2a2240}</style></head><body><script type="module">
+// Galería (solo pruebas): los personajes KayKit con los trajes pedidos en ?o=a,b,c (una fila por traje)
+import * as THREE from 'three';
+import { GlbRig, loadGlbAvatar } from '../src/actors/glbChar.js';
+import { OUTFITS, setOutfitChoices } from '../src/actors/outfits.js';
+const q = new URLSearchParams(location.search), ids = (q.get('c') || 'ranger,rogue,hooded,knight,barbarian,mage').split(','), outs = (q.get('o') || 'original').split(',');
+const W = 1500, cw = W / ids.length, ch = 300, H = ch * outs.length;
+const R = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true }); R.setSize(W, H); R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.NeutralToneMapping; document.body.appendChild(R.domElement);
+R.setScissorTest(true);
+const scene = new THREE.Scene(); scene.background = new THREE.Color('#3a3060');
+scene.add(new THREE.HemisphereLight('#fff6e8', '#4a4060', 1.6)); const sun = new THREE.DirectionalLight('#fff', 2.4); sun.position.set(2, 4, 5); scene.add(sun);
+const cam = new THREE.PerspectiveCamera(30, cw / ch, 0.1, 50);
+const gl = {}; for (const id of ids) gl[id] = await loadGlbAvatar(id);
+const labels = [];
+for (let r = 0; r < outs.length; r++) {
+  const o = OUTFITS.find(x => x.id === outs[r]);
+  for (let c = 0; c < ids.length; c++) {
+    setOutfitChoices({ [ids[c]]: outs[r] });
+    const rig = new GlbRig(gl[ids[c]], ids[c]); rig.update(0.016, 0, true, 0);
+    rig.obj.rotation.y = 0.35; scene.add(rig.obj);
+    cam.position.set(0, 0.95, 4.3); cam.lookAt(0, 0.72, 0);
+    R.setViewport(c * cw, H - (r + 1) * ch, cw, ch); R.setScissor(c * cw, H - (r + 1) * ch, cw, ch); R.render(scene, cam);
+    scene.remove(rig.obj);
+  }
+  labels.push(o?.name || outs[r]);
+}
+const out = document.createElement('canvas'); out.width = W; out.height = H; const g = out.getContext('2d'); g.drawImage(R.domElement, 0, 0);
+g.font = '700 22px sans-serif'; g.fillStyle = '#ffe38a'; labels.forEach((l, r) => g.fillText(l, 14, r * ch + 32));
+window.__shot = out.toDataURL('image/png');
+</script></body></html>
