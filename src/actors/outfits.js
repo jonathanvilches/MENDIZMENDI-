@@ -7,21 +7,24 @@ export const OUTFITS = [
   { id: 'original', name: 'Original' },
   { id: 'sanfermin', name: 'San Fermín', shirt: '#f6f3ec', pants: '#f6f3ec', shoes: '#efe4cc', accent: '#d42f2f', scarf: '#d42f2f', sash: '#d42f2f' },
   { id: 'dantzari', name: 'Dantzari', shirt: '#f6f3ec', pants: '#f6f3ec', shoes: '#f2ece0', accent: '#c8102e', beret: '#c8102e', sash: '#c8102e' },
-  { id: 'pastor', name: 'Pastor', shirt: '#33476a', pants: '#5b4a38', shoes: '#3a2a1e', accent: '#2a241f', beret: '#1d1d22', scarf: '#d8cfae' },
   { id: 'casero', name: 'Casero', shirt: '#ede6d4', pants: '#26262c', shoes: '#1e1a18', accent: '#1e1e24', beret: '#1d1d22', sash: '#1e1e24' },
   { id: 'osasuna', name: 'Osasuna', shirt: '#c41f2c', pants: '#16224a', shoes: '#151515', accent: '#16224a' },
-  // trajes tradicionales de cada comarca (simplificados a camisa, chaleco o blusa, pantalón, calzado y prendas)
-  { id: 'baztan', region: 'bidasoa', name: 'Baserritarra de Baztan', shirt: '#efe9da', pants: '#4a4a52', shoes: '#5a4030', accent: '#1d1d22', beret: '#1d1d22', sash: '#1d1d22' },
-  { id: 'aizkolari', region: 'larraun-leitzaldea', name: 'Aizkolari de Leitza', shirt: '#f2eee4', pants: '#2c2c34', shoes: '#2a221c', accent: '#2c2c34', beret: '#1d1d22', sash: '#c8102e' },
-  { id: 'urbasa', region: 'sakana', name: 'Pastor de Urbasa', shirt: '#6a5038', pants: '#4a3a2c', shoes: '#2e2218', accent: '#d8cfae', beret: '#1d1d22', scarf: '#d8cfae' },
-  { id: 'roncal', region: 'pirineo', name: 'Roncalés', shirt: '#18181c', pants: '#18181c', shoes: '#141414', accent: '#f2eee4', beret: '#18181c', scarf: '#f2eee4' },
-  { id: 'almadiero', region: 'prepirineo', name: 'Almadiero', shirt: '#efe9da', pants: '#26262c', shoes: '#4a3424', accent: '#26262c', beret: '#1d1d22', sash: '#c8102e' },
-  { id: 'gaitero', region: 'sanguesa', name: 'Gaitero de Sangüesa', shirt: '#f2eee4', pants: '#1e2a4a', shoes: '#1e1a18', accent: '#1e2a4a', beret: '#c8102e', sash: '#c8102e' },
-  { id: 'estella', region: 'tierra-estella', name: 'Danzante de Estella', shirt: '#f6f3ec', pants: '#f6f3ec', shoes: '#efe4cc', accent: '#1e4a8a', beret: '#1e4a8a', sash: '#1e4a8a' },
-  { id: 'vinador', region: 'valdizarbe-novenera', name: 'Viñador de Puente la Reina', shirt: '#e8e0cc', pants: '#5a4430', shoes: '#3a2a1e', accent: '#3a2a1e', beret: '#1d1d22', scarf: '#7a1c3a' },
-  { id: 'tratante', region: 'zona-media', name: 'Tratante de Tafalla', shirt: '#1c2436', pants: '#2a2a30', shoes: '#1a1614', accent: '#1c2436', beret: '#1d1d22', scarf: '#f2ece0' },
-  { id: 'hortelano', region: 'ribera-alta', name: 'Hortelano de la Ribera', shirt: '#f2eee4', pants: '#2a2a2e', shoes: '#3a2a1e', accent: '#2a2a2e', sash: '#1e1e24', scarf: '#c8102e' },
-  { id: 'ribero', region: 'ribera', name: 'Ribero de Tudela', shirt: '#f2eee4', pants: '#1e1e22', shoes: '#1a1614', accent: '#1e1e22', sash: '#4a2a6a', cachirulo: '#a01a1a' },
+  // trajes de cada comarca, según los datos de cultura de comarcas.json (los conjuntos de sus danzas y fiestas),
+  // simplificados a camisa, chaleco, pantalón o falda, calzado y prendas (bandas, fajas, pañuelos, boinas)
+  { id: 'lesaka', region: 'bidasoa', name: 'Dantzari de Lesaka', shirt: '#f6f3ec', pants: '#f6f3ec', shoes: '#efe4cc', accent: '#c8102e', scarf: '#c8102e', sash: '#c8102e', skirtF: '#f6f3ec' },
+  { id: 'leitza', region: 'larraun-leitzaldea', name: 'Ingurutxo de Leitza', shirt: '#efe9da', pants: '#2c2c34', shoes: '#2a221c', accent: '#1d1d22', beret: '#1d1d22', skirtF: '#3a2a4a' },
+  { id: 'lakuntza', region: 'sakana', name: 'Alkate dantza de Lakuntza', shirt: '#f2eee4', pants: '#2a4a8a', shoes: '#1e1a18', accent: '#1d1d22', beret: '#1d1d22', sash: '#1d1d22', scarf: '#f2eee4', skirtF: '#24242c' },
+  { id: 'ochagavia', region: 'pirineo', name: 'Danzante de Ochagavía', shirt: '#f6f3ec', pants: '#f6f3ec', shoes: '#efe4cc', accent: '#2a5aa8', sash: '#c8102e', scarf: '#2a5aa8', skirtF: '#18181c' },
+  { id: 'aoiz', region: 'prepirineo', name: 'Danzante de Aoiz', shirt: '#f6f3ec', pants: '#f6f3ec', shoes: '#efe4cc', accent: '#7a1c3a', scarf: '#7a1c3a', sash: '#7a1c3a', skirtF: '#2a3a5a' },
+  { id: 'jotavieja', region: 'sanguesa', name: 'Jota Vieja de Sangüesa', shirt: '#f2eee4', pants: '#1e1e22', shoes: '#1a1614', accent: '#1e1e22', sash: '#c8102e', skirtF: '#1e1e22' },
+  { id: 'era', region: 'tierra-estella', name: 'Baile de la Era (Estella)', shirt: '#f6f3ec', pants: '#f6f3ec', shoes: '#efe4cc', accent: '#c8102e', scarf: '#c8102e', sash: '#c8102e', skirtF: '#1e3a6a' },
+  { id: 'gares', region: 'valdizarbe-novenera', name: 'Fiesta en Puente la Reina', shirt: '#f6f3ec', pants: '#f6f3ec', shoes: '#efe4cc', accent: '#d42f2f', scarf: '#d42f2f', sash: '#d42f2f', skirtF: '#f6f3ec' },
+  { id: 'tafalla', region: 'zona-media', name: 'Fiesta en Tafalla', shirt: '#f6f3ec', pants: '#f6f3ec', shoes: '#efe4cc', accent: '#d42f2f', scarf: '#d42f2f', sash: '#d42f2f', skirtF: '#f6f3ec' },
+  { id: 'peralta', region: 'ribera-alta', name: 'Fiesta en Peralta', shirt: '#f6f3ec', pants: '#f6f3ec', shoes: '#efe4cc', accent: '#d42f2f', scarf: '#d42f2f', sash: '#d42f2f', skirtF: '#f6f3ec' },
+  { id: 'paloteado', region: 'ribera', name: 'Paloteado de Cortes', shirt: '#efe2c4', pants: '#f6f3ec', shoes: '#efe4cc', accent: '#7a1c2a', scarf: '#7a1c2a', sash: '#1e3a8a', skirtF: '#2e7a3a' },
+  // oficios de antes (no son trajes de danza)
+  { id: 'pastor', name: 'Pastor', shirt: '#33476a', pants: '#5b4a38', shoes: '#3a2a1e', accent: '#2a241f', beret: '#1d1d22', scarf: '#d8cfae', trade: true },
+  { id: 'almadiero', name: 'Almadiero', shirt: '#efe9da', pants: '#26262c', shoes: '#4a3424', accent: '#26262c', beret: '#1d1d22', sash: '#c8102e', trade: true },
 ];
 const HIDE = /Helmet|Visor|BearHat|Mage_Hat|Cape|Quiver|Mask/i;
 const COLS = 8, ROWS = 4;
@@ -143,8 +146,9 @@ export function applyOutfit(root, kk, outfitId) {
 const SKIRTS = { bidasoa: '#2a2a32', 'larraun-leitzaldea': '#3a2a4a', sakana: '#5a3a2a', pamplona: '#f6f3ec', pirineo: '#a8202a', prepirineo: '#2a3a5a', sanguesa: '#6a1e2a', 'tierra-estella': '#1e3a6a', 'valdizarbe-novenera': '#5a2a3a', 'zona-media': '#2a2a3a', 'ribera-alta': '#3a2a2a', ribera: '#4a2a5a' };
 export function regionalOutfit(region, female, rnd = Math.random) {
   const base = region === 'pamplona' ? OUTFITS.find(o => o.id === 'sanfermin') : OUTFITS.find(o => o.region === region) || OUTFITS.find(o => o.id === 'casero');
+  if (region === 'pamplona' && female) base.skirtF = '#f6f3ec';
   const O = { ...base, id: base.id + (female ? '-f' : '') };
-  if (female) { O.skirt = SKIRTS[region] || '#2a2a32'; O.apron = rnd() < 0.5 ? '#f4f1ea' : undefined; delete O.beret; if (O.cachirulo) { O.scarf = O.cachirulo; delete O.cachirulo; } }
+  if (female) { O.skirt = base.skirtF || SKIRTS[region] || '#2a2a32'; O.apron = rnd() < 0.5 ? '#f4f1ea' : undefined; delete O.beret; if (O.cachirulo) { O.scarf = O.cachirulo; delete O.cachirulo; } }
   return O;
 }
 

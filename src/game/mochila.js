@@ -51,7 +51,7 @@ export class Mochila {
       if (tired) { this.run0 = player.runSpeed; player.runSpeed = player.walkSpeed; this.g.ui.toast('¡Sin energía! Abre la mochila: bebe agua o come algo para poder correr', 'energy', 4200); }
       else if (this.run0) player.runSpeed = this.run0;
     }
-    if (P.energy < 25 && this.warned < 1) { this.warned = 1; this.g.ui.toast('Te estás cansando: en la mochila llevas agua y comida', 'backpack', 3600); }
+    if (P.energy < 25 && this.warned < 1) { this.warned = 1; const empty = !Object.values(P.bag.food || {}).some(n => n > 0); this.g.ui.toast(empty && this.g.tienda ? `Tienes hambre y la mochila está vacía. ${this.g.tienda.hint()}` : 'Te estás cansando: en la mochila llevas agua y comida', empty ? 'basket' : 'backpack', empty ? 6000 : 3600); }
     if (P.energy > 40) this.warned = 0;
     this.t = (this.t || 0) + dt; if (this.t > 0.5) { this.t = 0; this.paint(); }
     if ((this.save = (this.save || 0) + dt) > 10) { this.save = 0; saveProfile(); }
@@ -91,7 +91,7 @@ export class Mochila {
       const D = g.perro, on = !!D?.dog;
       root.innerHTML = `<div class="mg-card bp-card">
         <div class="bp-scroll">
-        <div class="bp-head">${iconSVG('backpack', 44)}<div><h3>Tu mochila</h3><div class="ebar"><i style="width:${P.energy.toFixed(0)}%"></i></div><small>Energía ${P.energy.toFixed(0)} %${P.energy < 25 ? ' · ¡come o bebe algo!' : ''}</small></div></div>
+        <div class="bp-head">${iconSVG('backpack', 44)}<div><h3>Tu mochila</h3><div class="ebar"><i style="width:${P.energy.toFixed(0)}%"></i></div><small>Energía ${P.energy.toFixed(0)} %${P.energy < 25 ? ' · ¡come o bebe algo!' : ''} · ${iconSVG('medal', 14)} ${P.coins ?? 12} txanpon</small></div></div>
         ${D ? `<h4>Perro</h4>
         <div class="bp-box">
           <div class="seg" role="group" aria-label="Ir con perro o sin perro"><button data-a="dogon" class="${on ? 'on' : ''}" aria-pressed="${on}">${iconSVG('dog', 22)}<span>Con ${esc(D.name)}</span></button><button data-a="dogoff" class="${on ? '' : 'on'}" aria-pressed="${!on}"><span>Sin perro</span></button></div>

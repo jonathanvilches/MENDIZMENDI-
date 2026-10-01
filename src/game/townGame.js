@@ -26,6 +26,8 @@ import { Mochila } from './mochila.js';
 import { Perro } from './perro.js';
 import { makeTrailSign, signSVG, ORIENTA, ORIENTA_TIPS } from './senales.js';
 import { FOOD } from '../data/equipo.js';
+import { Tienda } from './tienda.js';
+import { GOODS } from '../data/tiendas.js';
 import { FERIA } from '../data/ferias.js';
 import { PET, BELL, BENCH_LINES } from '../data/tocar.js';
 import { SITES } from '../data/dolmen.js';
@@ -266,6 +268,8 @@ export class TownGame {
       const a = new Actor({ id: 'w' + i, name: female ? ['Maite', 'Amaia', 'Nekane', 'Itziar', 'Leire', 'Ainhoa', 'Garazi', 'Miren'][i % 8] : ['Josu', 'Patxi', 'Koldo', 'Mikel', 'Fermín', 'Iñaki', 'Xabier', 'Unai'][i % 8], x: s0.x, z: s0.z, look, route, walkSpeed: 1 + R() * 0.4 }, this.scene);
       this.walkers.push(a);
     }
+    // la tienda del pueblo (productos locales, producto estrella y trueque)
+    try { this.tienda = new Tienda(this); } catch (e) { console.warn('tienda', e); }
     // mochila del explorador: equipo visible, agua, comida y energía; frutos del campo para recoger
     this.mochila = new Mochila(this);
     this.gearProps = new GearProps(this.player.rig); this.gearProps.set(this.P.gear);
@@ -357,12 +361,25 @@ export class TownGame {
       for (let i = 0; i < 4; i++) this.fauna.add('cow', c.x + 6 + (R() - 0.5) * 14, c.z + 4 + (R() - 0.5) * 14, { range: 10, walk: 0.5, radius: 0.8, flee: 0 });
     }
   }
+  giveGoods(k, n = 1) {
+    const b = this.P.bag ||= { agua: 0, food: {} }; b.goods ||= {}; b.goods[k] = (b.goods[k] || 0) + n; saveProfile();
+    this.ui.toast(`A la mochila: ${GOODS[k].name.toLowerCase()} ×${n} (para el trueque en la tienda)`, GOODS[k].icon, 2600);
+  }
   async explainWork(a) {
     const I = a.info; a.say(3); a.wave = 1.2;
     this.player.frozen = true;
     try {
       await this.say(a, I.lines);
       await infoCard(this.ui, { icon: I.icon, kicker: 'Oficios del campo', title: I.title, text: 'Así ha cambiado este trabajo:', extra: `<div class="antes-ahora"><div><b>Antes</b>${I.then}</div><div><b>Ahora</b>${I.now}</div></div>`, badge: addCard('campo:' + I.title) ? 'Nueva carta' : '', button: '¡Lo he entendido!' });
+      // tarea del campo: ayudar a esquilar o a ordeñar como se hacía antes, y llevarse lana o leche para el trueque
+      if (!a.helped) {
+        const sheep = /pastor/i.test(a.name);
+        await this.say(a, sheep ? ['¿Me ayudas a esquilar? Antes se hacía a mano, con tijeras grandes, a principios del verano. La lana sale entera, como un abrigo.'] : ['¿Me echas una mano con el ordeño? Antes se ordeñaba a mano, dos veces al día, sentados en un taburete de tres patas.']);
+        const r = sheep ? await mashGame(this.ui, { title: 'Esquilar a mano', hint: 'Pulsa rápido para cortar la lana sin hacer daño a la oveja.', icon: 'wool', verb: '¡Tijeretazo!', seconds: 7, goal: 26 })
+          : await timingGame(this.ui, { title: 'Ordeñar a mano', hint: 'Aprieta cuando la marca pase por la zona: suave y con ritmo.', icon: 'milk', verb: 'Ordeñar', rounds: 5, need: 3 });
+        if (r?.win) { a.helped = true; this.giveGoods(sheep ? 'lana' : 'leche', 2); await this.say(a, [sheep ? '¡Eskerrik asko! Llévate esta lana: en la tienda te la cambian por comida.' : '¡Eskerrik asko! Llévate esta leche: en la tienda te la cambian por queso o cuajada.']); }
+        else await this.say(a, ['¡Casi! Es más difícil de lo que parece. Vuelve cuando quieras.']);
+      }
     } finally { this.player.frozen = false; a.talking = 0; }
   }
   async showAgro(o) {
@@ -515,6 +532,7 @@ export class TownGame {
     if (TOWN.church?.door) list.push({ kind: 'bell', x: TOWN.church.door.x, z: TOWN.church.door.z, r: 2.6, label: 'Tocar la campana' });
     for (const b of TOWN.benches) if (Math.abs(b.x - Pp.x) < 3 && Math.abs(b.z - Pp.z) < 3) list.push({ kind: 'seat', b, x: b.x, z: b.z, r: 1.7, label: 'Sentarse a descansar' });
     if (TOWN.fountain) list.push({ kind: 'fountain', x: TOWN.fountain.x, z: TOWN.fountain.z, r: 3.8, label: 'Beber agua' });
+    if (this.tienda) list.push(this.tienda.interactable());
     if (this.fronton) list.push({ kind: 'fronton', x: this.fronton.entry.x, z: this.fronton.entry.z, r: 3, label: 'Jugar a pelota' });
     return list;
   }
@@ -552,6 +570,7 @@ export class TownGame {
     this.sound.ui('click');
     if (it.kind === 'npc' && it.a === this.pelotari) return this.freePelota();
     if (it.kind === 'npc' && it.a === this.coach) return this.playFutbol();
+    if (it.kind === 'shop' || (it.kind === 'npc' && it.a.shop)) return this.tienda.open();
     if (it.kind === 'npc') return this.talk(it.a);
     if (it.kind === 'fronton') {
       const M = this.missions.find(M => M.type === 'pelota' && !M.done);
@@ -1755,6 +1774,10 @@ export class TownGame {
     M.done = true; M.step = M.steps().length;
     this.ts.done[M.i] = true;
     const xp = { visit: 80, quiz: 60, summit: 150 }[M.type] || 100;
+    // txanponak para la tienda y, en las tareas del campo, lo que se cosecha o se ordeña (sirve para el trueque)
+    this.P.coins = (this.P.coins ?? 12) + 4;
+    const gk = { harvest: ['trigo', 'patatas', 'maiz'], herd: ['lana', 'leche'], feria: ['leche', 'huevos'] }[M.type];
+    if (gk) { const k = gk[M.i % gk.length]; this.giveGoods(k, 2); }
     const lvUp = addXP(xp);
     if (card) addCard(this.def.id + ':' + card);
     this.player.rig.doCheer(); this.particles.confetti?.(this.player.pos, 70);

@@ -24,6 +24,10 @@ export const FOOD = {
   uvas: { name: 'Uvas', icon: 'grapes', e: 15, fact: 'Racimo de uvas de la viña. Las mismas uvas que se pisaban para hacer el mosto.' },
   tomate: { name: 'Tomate', icon: 'tomato', e: 10, fact: 'Tomate de la huerta de la Ribera, regada por el agua del río.' },
   almendras: { name: 'Almendras', icon: 'almond', e: 20, fact: 'Los almendros florecen a final del invierno: son los primeros árboles en ponerse blancos.' },
+  talo: { name: 'Talo con txistorra', icon: 'corn', e: 30, fact: 'Torta de harina de maíz cocida en la plancha, el pan de los caseríos.' },
+  pochas: { name: 'Pochas', icon: 'beans', e: 28, fact: 'Alubias blancas frescas, guisadas con verduras de la huerta.' },
+  esparragos: { name: 'Espárragos', icon: 'asparagus', e: 12, fact: 'Espárrago blanco de la Ribera, recogido de madrugada.' },
+  alcachofa: { name: 'Alcachofa', icon: 'artichoke', e: 12, fact: 'Alcachofa de las huertas de Tudela, regadas por el Ebro.' },
 };
 // producto de una misión → comida que se guarda en la mochila
 export function foodFrom(text = '') {
