@@ -173,6 +173,7 @@ export class Runtime {
     const g = this.game, input = this.input;
     // escenas propias (el encierro): el juego dibuja su escena y su cámara, el mundo del pueblo queda en pausa
     const alt = g?.altScene;
+    if (this.frames % 15 === 0) this.sound.setMood?.(this.moodOf(g));
     try { if (alt) { input.enabled = !g.ui.busy; input.update(); g.altUpdate?.(dt); } else this.step(dt, g, input); } catch (e) { this.reportError(e); }
     try { this.renderer.render(alt || this.scene, (alt && g.altCamera) || this.camera); } catch (e) { this.reportError(e); }
     input.endFrame();
@@ -188,6 +189,18 @@ export class Runtime {
   reportError(e) {
     const k = String(e?.message || e); (this.errSeen ||= new Set());
     if (!this.errSeen.has(k)) { this.errSeen.add(k); console.error('[bucle]', e); (window.__errors ||= []).push(k); showErrorNote(k, e?.stack); }
+  }
+  // ambiente musical según lo que pasa: persecución o encierro (tensión), minijuegos y partidos (juego), danza y
+  // fiestas, leyenda de noche (misterio), noche tranquila o día de exploración
+  moodOf(g) {
+    if (!g) return 'explore';
+    const m = g.mode, night = (this.sky?.night || 0) > 0.5;
+    if (m === 'encierro') return g.encierro?.started && !g.encierro?.done ? 'tension' : 'fiesta';
+    if (m === 'futbol' || m === 'pelota' || m === 'mini') return 'game';
+    if (m === 'dance') return 'fiesta';
+    if (g.missions?.some(M => M.chase)) return 'tension';
+    if (night && g.missions?.some(M => !M.done && (M.type === 'legend' || (M.type === 'carnival' && M.night)))) return 'mystery';
+    return night ? 'night' : 'explore';
   }
   step(dt, g, input) {
     input.enabled = !g.ui.busy && g.mode !== 'cine' && g.mode !== 'dance' && g.mode !== 'mini' && g.mode !== 'pelota';

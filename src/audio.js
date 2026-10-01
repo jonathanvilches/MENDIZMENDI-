@@ -159,37 +159,81 @@ export class Sound {
       else this.bird(p);
     }
   }
-  // ---- música generativa: txistu (flauta) + tamboril ----
+  // ---- música generativa por ambiente ----
+  // explore: txistu y tamboril (día) · night: arpa lenta y bordón suave · mystery: notas sueltas, tritono y
+  // un latido grave (leyendas) · tension: ostinato rápido en menor con timbal (encierro, persecuciones) ·
+  // game: aire alegre y saltarín con bajo (minijuegos, pelota, fútbol) · fiesta: charanga (San Fermín, carnaval)
+  setMood(m) { if (m && m !== this.mood) { this.mood = m; this.moodT = 0; } }
   startMusic() {
     const ctx = this.ctx;
-    // escala dórica en re, motivos de aire popular
-    const scale = [293.66, 329.63, 349.23, 392.0, 440.0, 493.88, 523.25, 587.33, 659.25];
-    const phrases = [
-      [4, 5, 6, 7, 6, 5, 4, 2, 3, 4, 3, 2, 1, 0, 1, 2],
-      [7, 7, 6, 5, 6, 4, 5, 3, 4, 4, 2, 3, 1, 2, 0, -1],
-      [0, 2, 4, 4, 5, 4, 3, 2, 4, 5, 6, 5, 4, 3, 2, 1],
-      [4, 6, 7, 8, 7, 6, 5, 4, 5, 4, 3, 1, 2, 1, 0, -1],
-    ];
-    let bar = 0, next = ctx.currentTime + 1;
-    const beat = 0.3;
+    const D = [293.66, 329.63, 349.23, 392.0, 440.0, 493.88, 523.25, 587.33, 659.25];      // re dórico
+    const A = [220.0, 246.94, 261.63, 293.66, 329.63, 349.23, 392.0, 440.0, 493.88];        // la menor (eólico)
+    const G = [392.0, 440.0, 493.88, 523.25, 587.33, 659.25, 739.99, 783.99, 880.0];         // sol mayor
+    const PH = {
+      explore: [[4, 5, 6, 7, 6, 5, 4, 2, 3, 4, 3, 2, 1, 0, 1, 2], [7, 7, 6, 5, 6, 4, 5, 3, 4, 4, 2, 3, 1, 2, 0, -1], [0, 2, 4, 4, 5, 4, 3, 2, 4, 5, 6, 5, 4, 3, 2, 1], [4, 6, 7, 8, 7, 6, 5, 4, 5, 4, 3, 1, 2, 1, 0, -1]],
+      night: [[0, -1, 2, -1, 4, -1, 2, -1, 3, -1, 5, -1, 4, -1, -1, -1], [4, -1, 3, -1, 2, -1, 0, -1, 1, -1, 2, -1, 0, -1, -1, -1]],
+      mystery: [[0, -1, -1, 3, -1, -1, -1, -1, 5, -1, -1, 4, -1, -1, -1, -1], [6, -1, -1, -1, 5, -1, -1, 2, -1, -1, -1, -1, 1, -1, -1, -1]],
+      tension: [[0, 0, 3, 0, 4, 0, 3, 2, 0, 0, 3, 0, 5, 4, 3, 2], [0, 0, 2, 0, 3, 0, 2, 1, 0, 0, 2, 0, 4, 3, 1, 0]],
+      game: [[0, 2, 4, 2, 5, 4, 2, 4, 3, 5, 7, 5, 4, 2, 1, 2], [4, 4, 5, 7, 5, 4, 2, 0, 1, 2, 4, 2, 1, 0, 1, -1]],
+      fiesta: [[4, 4, 4, 2, 4, 5, 7, -1, 7, 6, 5, 4, 5, 4, 2, -1], [2, 2, 2, 0, 2, 4, 5, -1, 5, 4, 2, 1, 2, 4, 0, -1]],
+    };
+    const MOOD = {
+      explore: { sc: D, beat: 0.3, lead: 'flute', oct: 2, drum: 'tamboril', drone: 0.05 },
+      night: { sc: D, beat: 0.42, lead: 'harp', oct: 1, drum: null, drone: 0.035, pad: true },
+      mystery: { sc: A, beat: 0.38, lead: 'bell', oct: 2, drum: 'heart', drone: 0.06, pad: true, tritone: true },
+      tension: { sc: A, beat: 0.16, lead: 'pluck', oct: 1, drum: 'timpani', drone: 0.07, bass: true },
+      game: { sc: G, beat: 0.2, lead: 'flute', oct: 1, drum: 'pop', drone: 0, bass: true },
+      fiesta: { sc: G, beat: 0.24, lead: 'brass', oct: 1, drum: 'banda', drone: 0, bass: true },
+    };
+    this.mood = this.mood || 'explore';
+    let bar = 0, next = ctx.currentTime + 1, cur = this.mood;
     this.musicTimer = setInterval(() => {
       if (!this.musicOn || document.hidden) { next = ctx.currentTime + 0.5; return; }
       while (next < ctx.currentTime + 1.2) {
-        const ph = phrases[(bar >> 1) % phrases.length];
-        const half = (bar % 2) * 8;
+        // cambio de ambiente al empezar compás, con un pequeño fundido del bus
+        if (this.mood !== cur) { cur = this.mood; bar = 0; const g = this.musicBus.gain, v = this.musicOn ? 0.32 : 0; g.cancelScheduledValues(ctx.currentTime); g.setValueAtTime(v * 0.25, next); g.linearRampToValueAtTime(v, next + 1.2); }
+        const M = MOOD[cur] || MOOD.explore, sc = M.sc, beat = M.beat, list = PH[cur] || PH.explore;
+        const ph = list[(bar >> 1) % list.length], half = (bar % 2) * 8;
         for (let i = 0; i < 8; i++) {
-          const n = ph[half + i];
-          const t = next + i * beat - ctx.currentTime;
-          if (n >= 0 && (i % 2 === 0 || Math.random() < 0.8)) this.flute(scale[n] * 2, beat * (i === 7 ? 1.8 : 0.95), t);
-          // tamboril
-          if (i % 2 === 0) this.noiseBurst(0.08, 180, 1, i % 4 === 0 ? 0.45 : 0.25, this.musicBus, t, 'lowpass');
-          if (i % 4 === 2) this.noiseBurst(0.05, 2400, 2, 0.12, this.musicBus, t + beat * 0.5);
+          const n = ph[half + i], t = next + i * beat - ctx.currentTime;
+          if (n >= 0 && (i % 2 === 0 || Math.random() < 0.85)) this.voice(M.lead, sc[n] * M.oct, beat * (i === 7 ? 1.8 : 0.95), t);
+          if (M.tritone && n >= 0 && Math.random() < 0.25) this.voice('bell', sc[n] * M.oct * Math.SQRT2, beat * 3, t + beat * 0.5);
+          const dr = M.drum;
+          if (dr === 'tamboril') { if (i % 2 === 0) this.noiseBurst(0.08, 180, 1, i % 4 === 0 ? 0.45 : 0.25, this.musicBus, t, 'lowpass'); if (i % 4 === 2) this.noiseBurst(0.05, 2400, 2, 0.12, this.musicBus, t + beat * 0.5); }
+          else if (dr === 'timpani') { this.tone(sc[0] / 4, 0.18, 'sine', i % 2 ? 0.12 : 0.22, this.musicBus, t, 0.003, sc[0] / 5); if (i % 2) this.noiseBurst(0.04, 3200, 1.5, 0.08, this.musicBus, t); }
+          else if (dr === 'heart') { if (i === 0 || i === 1) this.tone(55, 0.22, 'sine', 0.18, this.musicBus, t + (i ? 0.05 : 0), 0.004, 42); }
+          else if (dr === 'pop') { if (i % 2 === 0) this.noiseBurst(0.06, 160, 1, 0.3, this.musicBus, t, 'lowpass'); else this.noiseBurst(0.04, 3000, 2, 0.1, this.musicBus, t); }
+          else if (dr === 'banda') { if (i % 2 === 0) this.noiseBurst(0.09, 120, 1, 0.42, this.musicBus, t, 'lowpass'); if (i % 2 === 1) this.noiseBurst(0.12, 5000, 0.8, 0.12, this.musicBus, t); }   // bombo y platillos
+          if (M.bass && i % 2 === 0) this.tone(sc[[0, 0, 4, 3][(bar + (i >> 1)) % 4] % sc.length] / (cur === 'tension' ? 4 : 2), beat * 1.6, cur === 'tension' ? 'sawtooth' : 'triangle', cur === 'tension' ? 0.035 : 0.06, this.musicBus, t, 0.01);
         }
-        // bordón
-        this.tone(scale[0] / 2, beat * 8, 'triangle', 0.05, this.musicBus, next - ctx.currentTime, 0.3);
+        if (M.drone) this.tone(sc[0] / 2, beat * 8, 'triangle', M.drone, this.musicBus, next - ctx.currentTime, 0.3);
+        if (M.pad) { for (const k of [0, 2, 4]) this.tone(sc[k] / 2, beat * 8, 'sine', 0.025, this.musicBus, next - ctx.currentTime, beat * 2); }
         next += beat * 8; bar++;
       }
     }, 250);
+  }
+  // instrumentos: txistu (flauta), arpa, campana, cuerda pulsada, metales de charanga
+  voice(kind, freq, dur, t0) {
+    if (kind === 'flute') return this.flute(freq, dur, t0);
+    const ctx = this.ctx, t = ctx.currentTime + t0, g = ctx.createGain(), o = ctx.createOscillator();
+    if (kind === 'harp' || kind === 'pluck') {
+      o.type = kind === 'harp' ? 'triangle' : 'sawtooth'; o.frequency.setValueAtTime(freq, t);
+      const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.setValueAtTime(kind === 'harp' ? 2400 : 1800, t); f.frequency.exponentialRampToValueAtTime(400, t + dur);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(kind === 'harp' ? 0.12 : 0.07, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + dur * (kind === 'harp' ? 2.2 : 0.9));
+      o.connect(f); f.connect(g);
+    } else if (kind === 'bell') {
+      o.type = 'sine'; o.frequency.setValueAtTime(freq, t);
+      const o2 = ctx.createOscillator(); o2.type = 'sine'; o2.frequency.value = freq * 2.76; const g2 = ctx.createGain(); g2.gain.value = 0.3; o2.connect(g2); g2.connect(g); o2.start(t); o2.stop(t + dur * 2.5);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.07, t + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, t + dur * 2.4);
+      o.connect(g);
+    } else {   // brass
+      o.type = 'square'; o.frequency.setValueAtTime(freq, t);
+      const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.setValueAtTime(900, t); f.frequency.linearRampToValueAtTime(2200, t + 0.06);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.06, t + 0.03); g.gain.setValueAtTime(0.05, t + dur * 0.7); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(f); f.connect(g);
+    }
+    g.connect(this.musicBus); const vg = ctx.createGain(); vg.gain.value = kind === 'brass' ? 0.12 : 0.35; g.connect(vg); vg.connect(this.verb);
+    o.start(t); o.stop(t + dur * 2.6);
   }
   flute(freq, dur, t0) {
     const ctx = this.ctx, t = ctx.currentTime + t0;
@@ -203,6 +247,6 @@ export class Sound {
     o.start(t); o2.start(t); vib.start(t); o.stop(t + dur + 0.05); o2.stop(t + dur + 0.05); vib.stop(t + dur + 0.05);
     this.noiseBurst(0.05, 3000, 1, 0.03, this.musicBus, t0);
   }
-  setMusic(on) { this.musicOn = on; if (this.musicBus) this.musicBus.gain.setTargetAtTime(on ? 0.32 : 0, this.ctx.currentTime, 0.3); }
+  setMusic(on) { this.musicOn = on; if (this.musicBus) { this.musicBus.gain.cancelScheduledValues(this.ctx.currentTime); this.musicBus.gain.setTargetAtTime(on ? 0.32 : 0, this.ctx.currentTime, 0.3); } }
   setVolume(v) { if (this.master) this.master.gain.value = v; }
 }
