@@ -88,18 +88,23 @@ export class Mochila {
     const P = this.P, root = document.createElement('div'); root.className = 'mg-overlay bagpanel';
     const draw = () => {
       const food = Object.entries(P.bag.food).filter(([k, n]) => n > 0 && FOOD[k]);
-      root.innerHTML = `<div class="mg-card">
+      const D = g.perro, on = !!D?.dog;
+      root.innerHTML = `<div class="mg-card bp-card">
+        <div class="bp-scroll">
         <div class="bp-head">${iconSVG('backpack', 44)}<div><h3>Tu mochila</h3><div class="ebar"><i style="width:${P.energy.toFixed(0)}%"></i></div><small>Energía ${P.energy.toFixed(0)} %${P.energy < 25 ? ' · ¡come o bebe algo!' : ''}</small></div></div>
-        ${g.perro ? `<h4>Perro</h4>
-        <div class="bp-row dogrow"><div class="gender dogtoggle" role="group" aria-label="Ir con perro o sin perro"><button data-a="dogon" class="${g.perro.dog ? 'on' : ''}">${iconSVG('dog', 22)} Con ${esc(g.perro.name)}</button><button data-a="dogoff" class="${g.perro.dog ? '' : 'on'}">Sin perro</button></div>
-          ${g.perro.dog ? `<button class="btn small" data-a="dog">¡Enséñame el camino!</button>` : ''}<button class="btn small" data-a="breed">Elegir perro</button></div>` : ''}
+        ${D ? `<h4>Perro</h4>
+        <div class="bp-box">
+          <div class="seg" role="group" aria-label="Ir con perro o sin perro"><button data-a="dogon" class="${on ? 'on' : ''}" aria-pressed="${on}">${iconSVG('dog', 22)}<span>Con ${esc(D.name)}</span></button><button data-a="dogoff" class="${on ? '' : 'on'}" aria-pressed="${!on}"><span>Sin perro</span></button></div>
+          <div class="bp-actions">${on ? `<button class="btn" data-a="dog">${iconSVG('compass', 22)}<span>Enséñame el camino</span></button>` : ''}<button class="btn" data-a="breed">${iconSVG('dog', 22)}<span>${on ? 'Cambiar de perro' : 'Elegir perro'}</span></button></div>
+        </div>` : ''}
         <h4>Agua</h4>
-        <div class="bp-row">${this.has('cantimplora') ? `<div class="drops">${[0, 1, 2].map(i => `<span class="${i < P.bag.agua ? 'on' : ''}">${iconSVG('water', 22)}</span>`).join('')}</div><button class="btn small" data-a="drink" ${P.bag.agua ? '' : 'disabled'}>Beber</button>` : `<small>Bebe en la fuente de una plaza: te darán una cantimplora.</small>`}</div>
+        ${this.has('cantimplora') ? `<div class="bp-box bp-water"><div class="drops">${[0, 1, 2].map(i => `<span class="${i < P.bag.agua ? 'on' : ''}">${iconSVG('water', 24)}</span>`).join('')}</div><button class="btn" data-a="drink" ${P.bag.agua ? '' : 'disabled'}>${iconSVG('canteen', 22)}<span>Beber</span></button></div>` : `<p class="bp-note">Bebe en la fuente de una plaza: te darán una cantimplora.</p>`}
         <h4>Comida</h4>
-        <div class="bp-food">${food.length ? food.map(([k, n]) => `<button class="fooditem" data-f="${k}" title="${esc(FOOD[k].fact)}">${iconSVG(FOOD[k].icon, 34)}<b>${esc(FOOD[k].name)}</b><span>×${n} · +${FOOD[k].e}</span></button>`).join('') : '<small>Vacía. Busca moras, avellanas y manzanas por el campo, o gana comida en las misiones de productos.</small>'}</div>
+        <div class="bp-food">${food.length ? food.map(([k, n]) => `<button class="fooditem" data-f="${k}" title="${esc(FOOD[k].fact)}">${iconSVG(FOOD[k].icon, 34)}<b>${esc(FOOD[k].name)}</b><span>×${n} · +${FOOD[k].e}</span></button>`).join('') : '<p class="bp-note">Vacía. Busca moras, avellanas y manzanas por el campo, o gana comida en las misiones de productos.</p>'}</div>
         <h4>Equipo</h4>
         <div class="bp-gear">${GEAR_ORDER.map(id => { const G = GEAR[id], h = this.has(id); return `<div class="gitem ${h ? '' : 'locked'}" title="${esc(h ? G.use : G.how)}">${iconSVG(h ? G.icon : 'lock', 30)}<b>${esc(h ? G.name : '¿?')}</b><small>${esc(h ? G.use : G.how)}</small></div>`; }).join('')}</div>
-        <button class="btn primary" data-a="close">Cerrar</button></div>`;
+        </div>
+        <div class="bp-foot"><button class="btn primary" data-a="close">Cerrar</button></div></div>`;
     };
     draw();
     const close = () => { root.remove(); g.player.frozen = false; g.mode = 'play'; removeEventListener('keydown', key, true); };
