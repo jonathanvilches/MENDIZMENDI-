@@ -1,3 +1,4 @@
+import { snowable } from './weather.js';
 // Acumula geometrías por material y las fusiona (pocas llamadas de dibujo)
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -47,20 +48,20 @@ export function makeMaterials() {
     stone: weather(withTex(TEX.stoneWall)),
     stoneDark: weather(withTex(TEX.stoneDark)),
     // roca natural sin labrar (losas de dolmen, peñas)
-    rock: weather(std({ normalMap: TEX.rockN, normalScale: new THREE.Vector2(1.4, 1.4), color: '#8e877b', roughness: 0.95 }), 1.3, 1),
+    rock: snowable(weather(std({ normalMap: TEX.rockN, normalScale: new THREE.Vector2(1.4, 1.4), color: '#8e877b', roughness: 0.95 }), 1.3, 1)),
     ashlar: weather(withTex(TEX.ashlar), 0.9),
     // piedra arenisca dorada (catedral de Pamplona, palacios de la Ribera)
     sandstone: weather(withTex(TEX.ashlar, { color: new THREE.Color(1.42, 1.22, 0.9), emissive: new THREE.Color('#4d3e22') }), 0.8, 0.5),
     plaster: weather(withTex(TEX.plasterWhite, { normalScale: new THREE.Vector2(0.5, 0.5) }), 0.8, 0.4),
     plasterCream: weather(withTex(TEX.plasterCream, { normalScale: new THREE.Vector2(0.5, 0.5) }), 0.8, 0.4),
-    slate: withTex(TEX.roofSlate, { roughness: 0.75 }),
+    slate: snowable(withTex(TEX.roofSlate, { roughness: 0.75 })),
     brick: weather(withTex(TEX.brick), 0.8, 0.3),
     plasterOcher: weather(withTex(TEX.plasterOcher, { normalScale: new THREE.Vector2(0.5, 0.5) }), 0.8, 0.4),
     plasterRose: weather(withTex(TEX.plasterRose, { normalScale: new THREE.Vector2(0.5, 0.5) }), 0.8, 0.4),
     plasterBlue: weather(withTex(TEX.plasterBlue, { normalScale: new THREE.Vector2(0.5, 0.5) }), 0.8, 0.4),
     gold: std({ color: '#d9a93a', metalness: 0.7, roughness: 0.35 }),
     zinc: std({ color: '#5d7480', metalness: 0.5, roughness: 0.4 }),
-    tile: withTex(TEX.roofTile, { roughness: 0.8 }),
+    tile: snowable(withTex(TEX.roofTile, { roughness: 0.8 })),
     wood: weather(withTex(TEX.wood), 0.6, 0.2),
     woodDark: weather(withTex(TEX.woodDark), 0.6, 0.2),
     // cristal mate (Lambert, sin brillo especular): no hace reflejos al girar la cámara; de noche se enciende con el emisivo
@@ -74,7 +75,7 @@ export function makeMaterials() {
     seat: std({ vertexColors: true, roughness: 0.55, emissive: new THREE.Color('#3a0a0e') }),
     iron: std({ color: '#2a2a2e', roughness: 0.5, metalness: 0.6 }),
     dark: std({ color: '#141216', roughness: 1 }),
-    leaf: std({ vertexColors: true, roughness: 0.85 }),
+    leaf: snowable(std({ vertexColors: true, roughness: 0.85 }), 0.7),
     lamp: std({ color: '#fff3c4', emissive: new THREE.Color('#ffcf73'), emissiveIntensity: 0 }),
     shield: std({ map: shieldTexture(), transparent: true, alphaTest: 0.5, roughness: 0.9 }),
     // barandilla de forja calada (una sola cara con transparencia recortada): balcones, kioscos, barreras

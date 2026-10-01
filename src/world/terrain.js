@@ -1,3 +1,4 @@
+import { snowable } from './weather.js';
 import * as THREE from 'three';
 import { HALF, CELL, N, finalHeight, riverInfo, iratiMask, meadowMask, valleyFloor, fieldInfo, TONE } from './layout.js';
 import { ridged } from '../util/noise.js';
@@ -119,6 +120,7 @@ function buildChunk(ci, cj, step) {
 
 export function makeTerrainMaterial({ outer = false } = {}) {
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0 });
+  queueMicrotask(() => snowable(m, 0.85));   // nieve en el suelo (después del sombreador del terreno)
   const rockCol = (PAL.rock || C('#8b877c')).clone();
   m.onBeforeCompile = (sh) => {
     sh.uniforms.tDetail = { value: TEX.detail };
