@@ -1,6 +1,8 @@
 <!doctype html><html><head><meta charset="utf-8"></head><body><script type="module">
 // Hornea los iconos 3D: los dibuja todos y deja sus imágenes en window.__icons (las recoge tools/iconbake.mjs)
 import { icon3D, ICON3D_NAMES } from '../src/ui/icon3d.js';
+import { preloadAnimals } from '../src/actors/animalGlb.js';
+await preloadAnimals();
 window.__names = ICON3D_NAMES();
 window.__bake = (name) => icon3D(name, true);
 window.__ready = true;

@@ -3,6 +3,7 @@
 // nítidos a cualquier tamaño.
 import * as THREE from 'three';
 import { quadruped, SPECIES } from '../actors/animals.js';
+import { buildAnimal } from '../actors/animalGlb.js';
 import { makeItem } from '../game/items.js';
 import { UI3D } from './icon3d-ui.js';
 import { getImg, putImg } from '../util/store.js';
@@ -167,6 +168,9 @@ function build(name) {
     o.rotation.y = 0.5; return o;
   }
   if (ANIMAL[name]) {
+    // modelo animado de la fauna (pose de reposo), si está cargado
+    const A = buildAnimal(SPECIES[ANIMAL[name]] || ANIMAL[name]);
+    if (A) { A.mixer.update(0.4); A.root.updateMatrixWorld(true); if (name === 'lamb') A.root.scale.setScalar(0.7); A.root.rotation.y = 0.9; A.root.userData.el = 0.22; return A.root; }
     let s = 3; const rnd = () => ((s = (s * 9301 + 49297) % 233280) / 233280);
     const q = quadruped(SPECIES[ANIMAL[name]], rnd);
     if (name === 'lamb') q.root.scale.setScalar(0.7);
@@ -211,7 +215,7 @@ export function icon3D(name, fresh = false) {
       holder.updateMatrixWorld(true);
       // caja de lo que se ve (sin contornos ocultos ni ayudas invisibles)
       const box = new THREE.Box3(), tmp = new THREE.Box3();
-      obj.traverseVisible(o => { if (o.isMesh && !o.userData.outline) { o.geometry.computeBoundingBox(); tmp.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld); box.union(tmp); } });
+      obj.traverseVisible(o => { if (o.isMesh && !o.userData.outline) { let bb; if (o.isSkinnedMesh) { o.skeleton.update(); o.computeBoundingBox(); bb = o.boundingBox; } else { o.geometry.computeBoundingBox(); bb = o.geometry.boundingBox; } tmp.copy(bb).applyMatrix4(o.matrixWorld); box.union(tmp); } });
       const ctr = box.getCenter(new THREE.Vector3());
       const sph = box.getBoundingSphere(new THREE.Sphere());
       const el = obj.userData.el ?? 0.3;

@@ -19,7 +19,10 @@ const SPEC = {
   corzo: { model: 'Deer', h: 1.05 }, ciervo: { model: 'Stag', h: 2.1 }, zorro: { model: 'Fox', h: 0.55 },
   burro: { model: 'Donkey', h: 1.35 },
   // derivadas en Blender de los modelos de Quaternius (tools/blender/fauna/derivar.py)
-  sheep: { model: 'Sheep', h: 1.05 }, goat: { model: 'Goat', h: 1.0 }, pig: { model: 'Pig', h: 0.85 }, jabali: { model: 'Jabali', h: 0.9 },
+  sheep: { model: 'Sheep', h: 1.05, col: { Main: '#ece4d2', Main_Light: '#f2ebdc', Main_Dark: '#1f1915', Muzzle: '#1f1915', Hooves: '#1a1512' } },       // oveja latxa
+  goat: { model: 'Goat', h: 1.0, col: { Main: '#4a3a2e', Main_Light: '#8a6a4a', Main_Dark: '#2a1e18', Hooves: '#15100e' } },                                 // cabra pirenaica
+  pig: { model: 'Pig', h: 0.85, col: { Main: '#f0b4a2', Main_Light: '#f6c8b8', Muzzle: '#e89a8a', Hooves: '#7a5a4a' } },
+  jabali: { model: 'Jabali', h: 0.9, col: { Main: '#3a2e26', Main_Light: '#4e4034', Muzzle: '#2a221e', Hooves: '#1a1512' } },
 };
 // perros: razas del compañero
 const DOG = {

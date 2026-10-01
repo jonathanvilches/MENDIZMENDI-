@@ -11,6 +11,7 @@ import { lamp } from '../world/village.js';
 import { houseStyle } from '../world/townBuilder.js';
 import { TREE_MAKERS } from '../world/nature.js';
 import { quadruped, SPECIES } from '../actors/animals.js';
+import { buildAnimal, preloadAnimals } from '../actors/animalGlb.js';
 import { TONES } from '../ui/art.js';
 import { fbm } from '../util/noise.js';
 import { mulberry32, smoothstep, clamp } from '../util/math.js';
@@ -234,8 +235,9 @@ function village(fam, rnd) {
 function sheep(hf, rnd) {
   const g = new THREE.Group(), list = [];
   for (const [x, z, ry] of [[5.2, -5.5, -0.6], [7.4, -8.2, 0.9], [-6.2, -9.5, 2.2], [9.5, -3.5, -1.8]]) {
-    const q = quadruped(SPECIES.sheep, rnd);
-    q.root.position.set(x, hf(x, z), z); q.root.rotation.y = ry; q.root.scale.setScalar(0.9 + rnd() * 0.2);
+    // oveja animada de la fauna del juego (si ya está cargada); si no, la procedural
+    const A = buildAnimal('sheep'), q = A ? { root: A.root } : quadruped(SPECIES.sheep, rnd);
+    q.A = A; q.root.position.set(x, hf(x, z), z); q.root.rotation.y = ry; q.root.scale.setScalar(0.9 + rnd() * 0.2);
     q.root.traverse(o => { if (o.isMesh) o.castShadow = true; });
     g.add(q.root); list.push({ q, ph: rnd() * 6 });
   }
@@ -278,6 +280,8 @@ export function buildDiorama(comarcaId, { live = true } = {}) {
   if (live) {
     grassG = grass(hf, p.userData.curve, tone, rnd, 22000); scene.add(grassG);
     herd = sheep(hf, rnd); scene.add(herd);
+    // en cuanto llegan los modelos animados, se cambia el rebaño
+    if (!herd.userData.list[0]?.q.A) preloadAnimals().then(() => { const n = sheep(hf, mulberry32(7)); if (!n.userData.list[0]?.q.A) return; scene.remove(herd); herd = n; scene.add(herd); });
     flock = birds(rnd); scene.add(flock);
   } else {
     grassG = grass(hf, p.userData.curve, tone, rnd, 5000); scene.add(grassG);
@@ -285,7 +289,7 @@ export function buildDiorama(comarcaId, { live = true } = {}) {
   let t = 0;
   const update = (dt) => {
     t += dt; WIND.value = t;
-    if (herd) for (const { q, ph } of herd.userData.list) { if (q.head) q.head.rotation.x = 0.35 + Math.sin(t * 0.9 + ph) * 0.25; }
+    if (herd) for (const { q, ph } of herd.userData.list) { if (q.A) { q.A.update(dt, { graze: Math.sin(t * 0.15 + ph) > -0.4, alt: true }); continue; } if (q.head) q.head.rotation.x = 0.35 + Math.sin(t * 0.9 + ph) * 0.25; }
     if (flock) for (const b of flock.children) { const u = b.userData, a = t * u.sp + u.ph; b.position.set(Math.cos(a) * u.r, u.h + Math.sin(t * 0.7 + u.ph) * 2, -45 + Math.sin(a) * u.r * 0.6); b.rotation.y = -a; b.rotation.z = Math.sin(t * 9 + u.ph) * 0.5; }
   };
   return { scene, update, sun, hf, tone, T };
