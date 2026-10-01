@@ -69,11 +69,12 @@ def derivar(nombre, R):
             bm = bmesh.new(); bm.from_mesh(body.data)
             bmesh.ops.delete(bm, geom=[f for f in bm.faces if f.material_index in idx], context='FACES')
             bm.to_mesh(body.data); bm.free()
-    # piezas nuevas unidas a la cabeza
-    head = arm.data.bones['Head']
-    hm = arm.matrix_world @ head.matrix_local
-    hp, hr = hm.to_translation(), hm.to_3x3()
-    size = (arm.matrix_world.to_3x3() @ Vector((0, head.length, 0))).length
+    # piezas nuevas unidas a la cabeza: se colocan sobre la caja de los vértices que mueve el hueso Head
+    gi = body.vertex_groups['Head'].index
+    hv = [body.matrix_world @ v.co for v in body.data.vertices if any(g.group == gi and g.weight > 0.5 for g in v.groups)]
+    lo = Vector([min(v[i] for v in hv) for i in range(3)]); hi = Vector([max(v[i] for v in hv) for i in range(3)])
+    W, D, Hh = hi.x - lo.x, hi.y - lo.y, hi.z - lo.z   # ancho, largo (hocico hacia −Y) y alto de la cabeza
+    size = Hh * 0.5
     extra = []
     def pieza(nombre_p, color, verts_fn):
         me = bpy.data.meshes.new(nombre_p); bm = bmesh.new(); verts_fn(bm); bm.to_mesh(me); bm.free()
@@ -96,31 +97,31 @@ def derivar(nombre, R):
             for k in range(seg): bm.faces.new((rings[i][k], rings[i][(k + 1) % seg], rings[i + 1][(k + 1) % seg], rings[i + 1][k]))
         bm.faces.new(rings[0][::-1]); c = bm.verts.new(pts[-1]);
         for k in range(seg): bm.faces.new((rings[-1][k], rings[-1][(k + 1) % seg], c))
-    up, fw, side = hr @ Vector((0, 1, 0)), hr @ Vector((0, 0, 1)), hr @ Vector((1, 0, 0))
-    # en el espacio del mundo de Blender: la cabeza mira hacia −Y del modelo y arriba es +Z
+    # mundo de Blender: la cabeza mira hacia −Y y arriba es +Z
     U, F, S = Vector((0, 0, 1)), Vector((0, -1, 0)), Vector((1, 0, 0))
-    top = hp + U * size * 0.9
+    cx = (lo.x + hi.x) / 2
     if R.get('horns') == 'espiral':
         def mk(bm):
-            for s in (-1, 1):
-                b0 = top + S * s * size * 0.35 - F * size * 0.1
-                cono(bm, b0, b0 + S * s * size * 0.55 - U * size * 0.6 + F * size * 0.35, size * 0.16, size * 0.05, 10,
-                     curve=lambda t, s=s: (-F * math.sin(t * 3.0) * size * 0.35 + U * math.sin(t * 3.0) * size * 0.25), steps=10)
+            for s_ in (-1, 1):
+                b0 = Vector((cx + s_ * W * 0.32, hi.y - D * 0.38, hi.z - Hh * 0.12))
+                cono(bm, b0, b0 + S * s_ * W * 0.25 - U * Hh * 0.55 - F * D * 0.05, Hh * 0.13, Hh * 0.04, 10,
+                     curve=lambda t, s_=s_: (S * s_ * math.sin(t * 3.14) * W * 0.22 + F * math.sin(t * 3.14) * D * 0.35), steps=12)
         pieza('ANI_Sheep_Cuernos', R['horn_col'], mk)
     if R.get('horns') == 'atras':
         def mk(bm):
-            for s in (-1, 1):
-                b0 = top + S * s * size * 0.2
-                cono(bm, b0, b0 + U * size * 0.9 - F * size * 0.9 + S * s * size * 0.15, size * 0.11, size * 0.02, 8, curve=lambda t: -U * math.sin(t * 3.1) * size * 0.1)
+            for s_ in (-1, 1):
+                b0 = Vector((cx + s_ * W * 0.18, hi.y - D * 0.45, hi.z - Hh * 0.08))
+                cono(bm, b0, b0 + U * Hh * 0.9 - F * D * 0.75 + S * s_ * W * 0.12, Hh * 0.09, Hh * 0.02, 8, curve=lambda t: U * math.sin(t * 3.1) * Hh * 0.1)
         pieza('ANI_Goat_Cuernos', R['horn_col'], mk)
     if R.get('beard'):
-        pieza('ANI_Goat_Barba', '#2a2018', lambda bm: cono(bm, hp + F * size * 1.6 - U * size * 0.2, hp + F * size * 1.5 - U * size * 0.9, size * 0.12, size * 0.02, 8))
+        b0 = Vector((cx, lo.y + D * 0.22, lo.z + Hh * 0.08))
+        pieza('ANI_Goat_Barba', '#2a2018', lambda bm: cono(bm, b0, b0 - U * Hh * 0.4 + F * D * 0.03, Hh * 0.09, Hh * 0.015, 8))
     if R.get('tusks'):
         def mk(bm):
-            for s in (-1, 1):
-                b0 = hp + F * size * 2.1 + S * s * size * 0.3 - U * size * 0.25
-                cono(bm, b0, b0 + U * size * 0.45 + S * s * size * 0.12 - F * size * 0.08, size * 0.08, size * 0.015, 8)
-        pieza('ANI_Jabali_Colmillos', '#f2ead2', mk)
+            for s_ in (-1, 1):
+                b0 = Vector((cx + s_ * W * 0.3, lo.y + D * 0.14, lo.z + Hh * 0.3))
+                cono(bm, b0, b0 + U * Hh * 0.35 + S * s_ * W * 0.12 + F * D * 0.02, Hh * 0.06, Hh * 0.012, 8)
+        pieza('ANI_Jabali_Colmillos', R['horn_col'] if R.get('horn_col') else '#f2ead2', mk)
     for ob in extra:
         vg = ob.vertex_groups.new(name='Head'); vg.add([v.index for v in ob.data.vertices], 1.0, 'REPLACE')
     if extra:

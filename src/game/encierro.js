@@ -5,6 +5,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { beast } from '../actors/beasts.js';
+import { buildAnimal } from '../actors/animalGlb.js';
 import { buildNpc } from '../actors/npcGlb.js';
 import { infoCard } from '../ui/minigames.js';
 
@@ -157,10 +158,12 @@ export class Encierro {
     d.life = 1; d.sp.visible = true; d.sp.position.set(x + (Math.random() - 0.5) * 0.6, 0.15, z + (Math.random() - 0.5) * 0.6); d.vy = 0.4 + Math.random() * 0.5; d.s0 = 0.5 + Math.random() * 0.4;
   }
   makeBeast(kind, x, z, speed, delay) {
-    const q = beast(kind, Math.random); q.root.scale.setScalar(kind === 'bull' ? 1.2 : 1.08);
+    // toros y cabestros con el modelo animado de la fauna (galope real); si no está, el procedural
+    const A = buildAnimal(kind);
+    const q = A ? { root: A.root } : beast(kind, Math.random); if (!A) q.root.scale.setScalar(kind === 'bull' ? 1.2 : 1.08);
     q.root.traverse(o => { if (o.isMesh) o.castShadow = true; });
     this.scene.add(q.root);
-    return { q, kind, x, z, x0: x, speed, delay, ph: Math.random() * 6, out: false, charge: 0 };
+    return { q, A, kind, x, z, x0: x, speed, delay, ph: Math.random() * 6, out: false, charge: 0 };
   }
 
   // HUD propio: caídas que quedan, barra hasta la plaza y avisos
@@ -255,6 +258,7 @@ export class Encierro {
     for (const b of this.bulls) {
       const q = b.q, run = this.started && this.t > 2.8 + b.delay && !b.out, ph = b.ph;
       const off = [0.46, 0.58, 0.0, 0.12];
+      if (b.A) { q.root.position.set(b.x, 0, b.z); q.root.rotation.y = Math.PI; b.A.update(1 / 60, { speed: run ? b.speed : 0, alt: !this.started }); continue; }
       q.root.position.set(b.x, run ? Math.max(0, Math.sin(ph + 0.6)) * 0.12 : 0, b.z); q.root.rotation.y = Math.PI;
       if (q.legs) q.legs.forEach((l, i) => { const w = ph + off[i] * Math.PI * 2; const ww = w + 0.38 * Math.sin(w); l.rotation.x = run ? Math.sin(ww) * 0.85 : 0; const kn = l.userData.knee; if (kn) kn.rotation.x = run ? (i < 2 ? 1.25 : -1.05) * Math.pow(Math.max(0, -Math.cos(ww)), 1.3) : 0; });
       if (q.chest) q.chest.rotation.x = run ? Math.sin(ph + 2.2) * 0.08 : 0;
