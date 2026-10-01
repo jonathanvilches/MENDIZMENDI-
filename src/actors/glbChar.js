@@ -11,6 +11,9 @@ import protagonistaFull from '../assets/chars/portrait_protagonista_full.png?url
 import nereaUrl from '../assets/chars/char_nerea.glb?url';
 import nereaBust from '../assets/chars/portrait_nerea.png?url';
 import nereaFull from '../assets/chars/portrait_nerea_full.png?url';
+import haritzUrl from '../assets/chars/char_haritz.glb?url';
+import haritzBust from '../assets/chars/portrait_haritz.png?url';
+import haritzFull from '../assets/chars/portrait_haritz_full.png?url';
 
 const cache = new Map();
 let loader = null;
@@ -304,6 +307,7 @@ export class GlbChar {
 export const GLB_AVATARS = {
   benat: { url: protagonistaUrl, scale: 1.0, bust: protagonistaBust, full: protagonistaFull },
   nerea: { url: nereaUrl, scale: 1.0, bust: nereaBust, full: nereaFull },
+  haritz: { url: haritzUrl, scale: 1.0, bust: haritzBust, full: haritzFull },
 };
 export const isGlbAvatar = id => !!GLB_AVATARS[id];
 export const loadGlbAvatar = id => loadChar(GLB_AVATARS[id].url);
