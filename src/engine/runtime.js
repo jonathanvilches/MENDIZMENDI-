@@ -213,7 +213,7 @@ export class Runtime {
     g.update(dt);
     this.terrain.update(this.camera.position);
     this.sky.update(dt, P.pos, this.elapsed, g.mode === 'dance');
-    this.weather?.update(dt, this.camera, this.sky, this.sound);
+    this.weather?.update(dt, this.camera, this.sky, this.sound, g.mode === 'futbol' || g.mode === 'pelota');
     this.water.update(this.elapsed, this.sky);
     this.nature.update(this.camera.position, P.pos, this.elapsed, P.pos);
     updateDetail(this.camera.position, this.quality);
