@@ -25,6 +25,7 @@ import { landImg, stampImg } from './assets.js';
 import COMARCAS from './data/comarcas.json';
 import { preloadNpcs } from './actors/npcGlb.js';
 import { preloadAnimals } from './actors/animalGlb.js';
+import { setOutfitChoices } from './actors/outfits.js';
 import { avatarPortrait } from './ui/portraits.js';
 import { loadStore, queueMode } from './util/store.js';
 import { startI18n } from './i18n.js';
@@ -47,6 +48,7 @@ async function boot() {
   const sound = new Sound();
   const ui = new UI(input, sound);
   const P = profile();
+  setOutfitChoices(P.outfits);
   const quality = q.get('q') || P.settings.quality || (input.touch ? 'mid' : 'high');
   const rt = new Runtime({ canvas, input, sound, quality });
   canvas.style.visibility = 'hidden';

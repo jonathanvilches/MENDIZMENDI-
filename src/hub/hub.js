@@ -9,6 +9,8 @@ import { iconSVG, speciesIcon } from '../ui/icons.js';
 import { avatarPortrait, portrait, portraitImg, avatarPortraitImg } from '../ui/portraits.js';
 import { stampImg, landImg } from '../assets.js';
 import { Stage } from './stage.js';
+import { GLB_AVATARS } from '../actors/glbChar.js';
+import { OUTFITS, setOutfitChoices } from '../actors/outfits.js';
 import { getLang, setLang } from '../i18n.js';
 import { dioramaShot } from './diorama.js';
 import { profile, saveProfile, levelOf, rankOf, townProgress, comarcaProgress, comarcaTowns, navarraProgress, stampCount, BADGES, checkBadges, resetProfile, salazarState } from '../game/profile.js';
@@ -362,7 +364,7 @@ export class Hub {
         <button class="cs-arrow prev" data-step="-1" aria-label="Anterior"><svg viewBox="0 0 24 24" width="28" height="28"><path d="M15 4l-8 8 8 8" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <button class="cs-arrow next" data-step="1" aria-label="Siguiente"><svg viewBox="0 0 24 24" width="28" height="28"><path d="M9 4l8 8-8 8" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <span class="cs-count"><b>${i + 1}</b>/${AVATARS.length}</span><span class="cs-hint">Arrastra para girarlo · tócalo para saludar</span></div>
-      <div class="cs-side"><div class="csel-info" id="csInfo">${this.castInfo(cur)}</div></div>
+      <div class="cs-side"><div class="csel-info" id="csInfo">${this.castInfo(cur)}</div><div class="cs-outfits" id="csOutfits"></div></div>
       <div class="cs-roster">${this.castStrip(cur.id)}</div>${extra ? `<div class="cs-extra">${extra}</div>` : ''}
     </section>`;
   }
@@ -370,7 +372,18 @@ export class Hub {
     let cur = start;
     // centra el retrato elegido en la tira sin mover la página
     const center = (id, smooth) => { const b = host.querySelector(`[data-av="${id}"]`), st = b?.parentElement; if (!st) return; st.scrollTo({ left: b.offsetLeft - st.clientWidth / 2 + b.offsetWidth / 2, behavior: smooth ? 'smooth' : 'auto' }); };
+    const P0 = profile(); P0.outfits ||= {}; setOutfitChoices(P0.outfits);
+    // trajes para los personajes KayKit: original, San Fermín, dantzari, pastor, casero y Osasuna
+    const outfits = (id) => {
+      const el = $('#csOutfits', host); if (!el) return;
+      if (!GLB_AVATARS[id]?.kaykit) { el.innerHTML = ''; return; }
+      const curO = P0.outfits[id] || 'original';
+      const btn = (o) => `<button class="${o.id === curO ? 'on' : ''}" data-outfit="${o.id}" style="--o:${o.shirt || '#8a7a6a'};--a:${o.sash || o.scarf || o.beret || o.pants || '#8a7a6a'}"><i></i>${esc(o.name)}</button>`;
+      el.innerHTML = `<small>Ropa de fiesta</small><div>${OUTFITS.filter(o => !o.region).map(btn).join('')}</div><small>Trajes de cada comarca</small><div>${OUTFITS.filter(o => o.region).map(btn).join('')}</div>`;
+      el.querySelectorAll('[data-outfit]').forEach(b => b.onclick = (e) => { e.stopPropagation(); P0.outfits[id] = b.dataset.outfit; saveProfile(); setOutfitChoices(P0.outfits); this.stage.setAvatar(id); this.sound?.ui('coin'); outfits(id); });
+    };
     this.stage = new Stage($('#avStage', host), cur);
+    outfits(cur);
     const set = (id, dir = 0) => {
       if (id === cur) return; cur = id; const a = castById(id);
       this.stage.setAvatar(id); this.sound?.ui('coin');
@@ -378,7 +391,7 @@ export class Hub {
       const info = $('#csInfo', host); info.innerHTML = this.castInfo(a); info.classList.remove('swap'); void info.offsetWidth; info.classList.add('swap');
       $('.cs-bgname', host).textContent = a.name; $('.cs-count b', host).textContent = AVATARS.indexOf(a) + 1;
       host.querySelectorAll('[data-av]').forEach(x => x.classList.toggle('on', x.dataset.av === id));
-      center(id, true);
+      center(id, true); outfits(id);
       onPick(a);
     };
     const step = (d) => { const i = AVATARS.findIndex(a => a.id === cur); set(AVATARS[(i + d + AVATARS.length) % AVATARS.length].id, d); };

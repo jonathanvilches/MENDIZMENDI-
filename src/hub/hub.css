@@ -766,3 +766,12 @@ body.futbol #controls { display: none !important; }
 .fut-cam { pointer-events: auto; position: absolute; right: 96px; top: max(10px, env(safe-area-inset-top)); padding: 8px 12px; border: 0; border-radius: 12px; background: rgba(0,0,0,.5); color: #fff; font: 800 13px Nunito, sans-serif; cursor: pointer; }
 @media (max-width: 560px) { .fut-board { top: 54px; } .fut-help { display: none; } .fut-say { top: 108px; } .fut-bars { top: 110px; } .fut-radar { top: 108px; } }
 @media (max-height: 460px) { .fut-b { width: 62px; height: 62px; } .fut-shoot { width: 74px; height: 74px; } .fut-help { display: none; } }
+/* selector de ropa de los personajes KayKit */
+.cs-outfits:empty { display: none; }
+.cs-outfits { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.cs-outfits small { color: #ffe38a; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; font-size: 12px; }
+.cs-outfits > div { display: flex; flex-wrap: wrap; gap: 6px; }
+.cs-outfits button { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 6px 12px; border-radius: 999px; border: 2px solid rgba(255,255,255,.18); background: rgba(10,8,30,.55); color: #fff; font: 700 13.5px/1 inherit; cursor: pointer; }
+.cs-outfits button i { width: 16px; height: 16px; border-radius: 50%; background: linear-gradient(135deg, var(--o) 0 55%, var(--a) 55%); box-shadow: 0 0 0 1.5px rgba(0,0,0,.35); flex: none; }
+.cs-outfits button.on { border-color: #ffd23f; background: rgba(255,210,63,.18); }
+@media (max-width: 600px) { .cs-outfits button { padding: 5px 9px; font-size: 12.5px; min-height: 32px; } }
