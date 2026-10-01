@@ -44,6 +44,7 @@ const play = (secs) => p.evaluate((secs) => {
   return JSON.stringify({ score: F.score, t: Math.round(F.t), done: F.done, cam: F.camMode });
 }, secs);
 await p.evaluate(() => { const F = window.__game.futbol; F.intro = 0; F.pause = 0; });
+console.log('cambio', await p.evaluate(() => { const F = window.__game.futbol, n0 = F.me.n; F.swapQ = true; F.update(1 / 30); return JSON.stringify({ antes: n0, ahora: F.me.n, homeField: F.all.filter(q => q.side === 'home' && q.role === 'field').length }); }));
 console.log('juego 1', await play(8)); await shot('partido-tv');
 await p.evaluate(() => window.__game.futbol.nextCam()); await p.waitForTimeout(2500); await shot('partido-detras');
 await p.evaluate(() => window.__game.futbol.nextCam()); await p.waitForTimeout(2500); await shot('partido-aerea');
