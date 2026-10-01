@@ -31,9 +31,15 @@ export class Perro {
     this.waiting = true; D.follow = null; D.sit = true; D.pinVisible = true; D.alwaysUpdate = true; D.hidden = false;
     D.pos.set(pos.x, 0, pos.z); if (look) D.heading = Math.atan2(look.x - pos.x, look.z - pos.z); D.sync?.();
   }
+  // se queda en casa (no aparece) hasta release(): en la pelota no hace falta
+  away() {
+    const D = this.dog; if (!D) return;
+    this.waiting = true; D.follow = null; D.sit = false; D.pinVisible = false; D.hidden = true; D.obj.visible = false;
+  }
   release() {
     const D = this.dog; this.waiting = false; if (!D) return;
-    D.sit = false; D.pinVisible = false; D.alwaysUpdate = false; D.follow = this.side; D.obj.visible = true;
+    if (D.hidden) { const P = this.g.player?.pos; if (P) D.pos.set(P.x + 1.2, P.y, P.z + 1.2); }   // vuelve junto a ti
+    D.hidden = false; D.sit = false; D.pinVisible = false; D.alwaysUpdate = false; D.follow = this.side; D.obj.visible = true;
   }
   get breed() { return DOG_BREEDS[this.g.P.dogBreed] ? this.g.P.dogBreed : 'gorbeia'; }
   spawnDog(x, z) {

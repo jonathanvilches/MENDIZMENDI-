@@ -42,7 +42,7 @@ export class Player {
       mz = -cos * f - sin * s;
     }
     const mag = Math.min(1, Math.hypot(mx, mz));
-    const target = mag * (input.run ? this.runSpeed : this.walkSpeed) * (1 - this.wade * 0.55);
+    const target = mag * (input.run ? this.runSpeed * (this.tired ? 0.75 : 1) : this.walkSpeed) * (1 - this.wade * 0.55);   // cansado corre más despacio
     this.speed = damp(this.speed, target, mag > 0.01 ? 8 : 10, dt);
     const prevHeading = this.heading;
     if (mag > 0.05) this.heading = dampAngle(this.heading, Math.atan2(mx, mz), 12, dt);

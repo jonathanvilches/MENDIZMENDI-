@@ -11,6 +11,8 @@ Estado de todo lo pedido hasta ahora: **hecho** (comprobado en el juego con capt
 | Elegir la ropa (San Fermín, etc.) | Hecho | Selector «Ropa» en la pantalla de personajes: fiesta, 11 trajes de comarca y oficios de antes |
 | Traje tradicional de cada comarca | Hecho | Basado en los datos de cultura de cada comarca (Lesaka, Leitza, Lakuntza, Ochagavía, Aoiz, Jota Vieja de Sangüesa, Baile de la Era, Paloteado de Cortes…) |
 | Todos los vecinos con la fisiología de los personajes nuevos | Hecho | Los vecinos usan el cuerpo KayKit; la mayoría lleva el traje de su comarca y las mujeres, falda |
+| Seres de leyenda con el cuerpo de los personajes nuevos | Hecho | Basajaun (melena, barba y manto de pelo), Lamia (pelo de oro, peine y patas de pato), Sorgina y Roldán; los de carnaval siguen con su traje propio |
+| Vecinos, jugadores y público de pelota con los personajes nuevos | Hecho | Cuerpo KayKit con ropa cambiada |
 | Público real en las gradas (fútbol y plaza de toros) | Hecho | Personajes reales dibujados en lámina; celebran los goles y la llegada a la plaza |
 | Ropa, calzado, pelo y cara con más detalle, más expresiones | Parcial | Trajes y prendas, sí; los KayKit no tienen expresiones faciales |
 
@@ -21,7 +23,8 @@ Estado de todo lo pedido hasta ahora: **hecho** (comprobado en el juego con capt
 | Animales Quaternius en todo el juego | Hecho | Pueblos, encierro, menú de inicio e iconos |
 | Oveja, cabra, cerdo y jabalí a partir de ellos | Hecho | Derivados en Blender |
 | Sin «cuadrículas de colores»: más orgánicos | Hecho | Cada animal es una sola malla con normales suavizadas (y cuesta 1 llamada de dibujo en vez de 6) |
-| Perro sentado esperando en pelota y fútbol | Hecho | Pose «Sentado» hecha en Blender |
+| Perro sentado esperando en el fútbol | Hecho | Pose «Sentado» hecha en Blender |
+| Sin perro en la pelota | Hecho | Se queda en casa durante el partido y vuelve contigo al acabar |
 
 ## Encierro
 
@@ -45,6 +48,9 @@ Estado de todo lo pedido hasta ahora: **hecho** (comprobado en el juego con capt
 | Porteros que se muevan y paren | Hecho | Se colocan, se estiran, blocan o despejan, salen a por balones sueltos y sacan (paran unos 6 de cada 10 tiros) |
 | Que sea un buen reto | Hecho | Rivales más rápidos y que roban más |
 | Pelota: rival más competitivo | Hecho | Menos fallos en todos los niveles; empieza en «Normal» |
+| Pelota: que no bote tanto | Hecho | Bota a 1,2-1,5 m (antes 2,2-2,7) y se frena al botar: el segundo bote cae dentro de la cancha |
+| Botón de correr | Hecho | Sin energía ya no deja de correr: corre algo más despacio y el botón se pone naranja; la energía dura el doble |
+| Fútbol en el móvil en vertical | Hecho | CAMBIAR ya no tapa el marcador y la cámara empieza detrás del jugador |
 | Equipación de Osasuna mejorada | Parcial | Colores y dorsales; sin escudos ni marcas (propiedad del club) |
 
 ## Pueblos y vida

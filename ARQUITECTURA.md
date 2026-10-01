@@ -30,7 +30,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 |---|---|
 | `src/engine/runtime.js` | Bucle principal: renderizador, cámara, terreno, cielo, tiempo (lluvia y nieve), agua, fauna, partículas, sonido, ambiente musical, precompilación de sombreadores y LOD |
 | `src/world/` | Mundo: relieve (`heightfield`, `terrain`), trazado del pueblo (`layout`, `townBuilder`, `houses`, `monuments`, `landmarks`, `civic`, `pamplona*`), naturaleza (`nature`, `agro`, `water`), materiales y texturas (`builder`, `textures`), cielo y luna (`sky`), tiempo (`weather`), productos 3D del mercado (`products3d`) y colisiones (`colliders`) |
-| `src/actors/` | Seres vivos: jugador (`player`), personajes GLB y KayKit (`glbChar`), vecinos (`npcGlb`: cuerpo KayKit con traje de su comarca), trajes (`outfits`), público en gradas (`crowdSprites`), animales (`animals` + `animalGlb` con los modelos de Quaternius; `beasts` es la versión procedural de reserva), minifiguras antiguas (`minifig`) y equipo (`gear3d`) |
+| `src/actors/` | Seres vivos: jugador (`player`), personajes GLB y KayKit (`glbChar`), vecinos (`npcGlb`: cuerpo KayKit con traje de su comarca), trajes y seres de leyenda (`outfits`: `OUTFITS`, `MYTHS`), público en gradas (`crowdSprites`), animales (`animals` + `animalGlb` con los modelos de Quaternius; `beasts` es la versión procedural de reserva), minifiguras antiguas (`minifig`) y equipo (`gear3d`) |
 | `src/game/` | Reglas y misiones: `townGame` (misiones, interacción y pasos de cada pueblo), `game` (Salazar), minijuegos grandes (`encierro` + `encierroPlaza` + `encierroTex`, `futbol`, `fronton`), vida del pueblo (`tienda`, `mercado`, `mochila`, `perro`, `chase`, `crowd`), señales y objetos (`senales`, `items`), perfil (`profile`) y contenido (`content`) |
 | `src/pelota/` | Motor de pelota a mano independiente: reglas, física, IA (niveles en `rules.js`), HUD y cancha |
 | `src/hub/` | Centro de mando: inicio, mapa, pueblos, personajes (con selector de ropa), insignias, pasaporte y perfil; `diorama` y `stage` dibujan las escenas 3D del menú |
@@ -64,6 +64,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 | `clima.mjs` | Prueba la lluvia, la nieve y la luna con capturas |
 | `vecinos.mjs` | Prueba los vecinos con capturas |
 | `trajes.mjs` | Prueba los trajes con capturas |
+| `mitos.mjs` | Prueba Basajaun, la lamia, la sorgina y Roldán con capturas |
 | `musica.mjs` | Prueba la música por ambientes |
 | `euskera.mjs` | Prueba el modo «Aprende euskera» |
 | `animalpack.mjs` | Empaqueta los animales |

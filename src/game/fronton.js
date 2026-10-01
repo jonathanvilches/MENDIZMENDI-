@@ -75,8 +75,8 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // el partido anima al jugador y coloca a los dos: el rig del jugador pasa a nuestras manos
     P.rig = { update() { }, doAct() { }, doCheer() { }, doWave() { }, setExpr() { } };
     P.frozen = true; G.mode = 'pelota'; G.ui.hudVisible?.(false); G.ui.setPrompt?.(null);
-    // el perro espera sentado a la entrada de la cancha, mirando el partido
-    G.perro?.wait?.(fronton.entry, fronton.toWorld(0, 0));
+    // para jugar a pelota no hace falta el perro: se queda en casa y vuelve al acabar
+    G.perro?.away?.();
     rig.setStance?.('Ready');                     // en la cancha, postura de pelotari
     G.pelotaRig = rig;
     rival.frozen = true; rival.talking = 0;

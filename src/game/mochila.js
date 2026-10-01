@@ -1,6 +1,6 @@
 // La mochila del explorador: equipo que se va consiguiendo, agua de la cantimplora, comida y energía.
 // La energía baja al andar, más al correr y mucho más al subir cuesta arriba (con la makila, menos).
-// Bebiendo y comiendo se recupera; sin energía no se puede correr.
+// Bebiendo y comiendo se recupera; sin energía se corre más despacio (nunca se queda sin correr).
 import { profile, saveProfile } from './profile.js';
 import { GEAR, GEAR_ORDER, FOOD } from '../data/equipo.js';
 import { iconSVG } from '../ui/icons.js';
@@ -14,6 +14,7 @@ export class Mochila {
     P.gear ||= ['mochila'];
     P.bag ||= { agua: 0, food: { pan: 2 } };
     if (P.energy == null) P.energy = 100;
+    P.energy = Math.max(P.energy, 35);   // al llegar a otro pueblo has descansado del viaje
     this.lastY = null; this.warned = 0; this.tired = false;
     this.button();
   }
@@ -40,7 +41,7 @@ export class Mochila {
   update(dt, player) {
     const P = this.P, sp = player.speed || 0, y = player.pos.y;
     let use = 0.03;                                       // en reposo casi nada
-    if (sp > 0.3) use += sp > 5 ? 0.32 : 0.06;            // andar / correr
+    if (sp > 0.3) use += sp > 4.6 ? 0.16 : 0.05;           // andar / correr
     if (this.lastY != null && sp > 0.3) { const dy = y - this.lastY; if (dy > 0) use += dy / dt * (this.has('baston') ? 0.22 : 0.4); }
     this.lastY = y;
     P.energy = Math.max(0, P.energy - use * dt);
@@ -48,8 +49,8 @@ export class Mochila {
     const tired = P.energy <= 0.5;
     if (tired !== this.tired) {
       this.tired = tired;
-      if (tired) { this.run0 = player.runSpeed; player.runSpeed = player.walkSpeed; this.g.ui.toast('¡Sin energía! Abre la mochila: bebe agua o come algo para poder correr', 'energy', 4200); }
-      else if (this.run0) player.runSpeed = this.run0;
+      player.tired = tired; document.getElementById('cRun')?.classList.toggle('tired', tired);
+      if (tired) this.g.ui.toast('¡Sin energía! Corres más despacio. Abre la mochila: bebe agua o come algo', 'energy', 4200);
     }
     if (P.energy < 25 && this.warned < 1) { this.warned = 1; const empty = !Object.values(P.bag.food || {}).some(n => n > 0); this.g.ui.toast(empty && this.g.tienda ? `Tienes hambre y la mochila está vacía. ${this.g.tienda.hint()}` : 'Te estás cansando: en la mochila llevas agua y comida', empty ? 'basket' : 'backpack', empty ? 6000 : 3600); }
     if (P.energy > 40) this.warned = 0;

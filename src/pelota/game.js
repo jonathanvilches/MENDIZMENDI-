@@ -284,7 +284,7 @@ export class PelotaGame {
     for (let i = 0; i < n; i++) {
       const ev = this.ball.step(h, []);
       for (const e of ev) {
-        if (prep) { if (e.type === 'floor') { this.prepBounces++; this.emit({ type: 'floor', ...e, soft: true }); } continue; }
+        if (prep) { if (e.type === 'floor') { this.prepBounces++; if (this.prepBounces === 1) this.ball.v.y = Math.max(this.ball.v.y, 2.9); this.emit({ type: 'floor', ...e, soft: true }); } continue; }   // al sacar, el pelotari bota la pelota con fuerza para que suba a la mano
         if (this.phase === 'rally') this.onBallEvent(e);
         else if (e.type === 'floor' || e.type === 'front' || e.type === 'left') this.emit({ type: e.type === 'left' ? 'wall' : e.type, ...e, dead: true });
       }
