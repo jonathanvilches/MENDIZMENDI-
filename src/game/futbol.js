@@ -96,6 +96,9 @@ export class Futbol {
     ];
     for (const p of this.team) { p.vx = 0; p.vz = 0; p.h = p.side === 'home' ? 0 : Math.PI; num(p.n, p, p.side === 'away' && p.role === 'field'); }
     this.all = [this.me, ...this.team];
+    // aro amarillo bajo el jugador que controlas
+    this.ring = new THREE.Mesh(new THREE.RingGeometry(0.42, 0.55, 28), new THREE.MeshBasicMaterial({ color: '#ffe14a', transparent: true, opacity: 0.85, depthWrite: false }));
+    this.ring.rotation.x = -Math.PI / 2; this.ring.position.y = 0.03; this.me.obj.add(this.ring); this.me.n = 10;
     this.crowd = this.makeCrowd();
     this.hud();
     this.score = { home: 0, away: 0 }; this.t = TIME; this.pause = 0; this.done = false; this.crowdT = 0;
@@ -129,15 +132,16 @@ export class Futbol {
         <button class="fut-b fut-shoot" data-k="shoot">TIRO</button>
       </div>
       <button class="fut-cam" data-k="cam" aria-label="Cambiar cámara">CÁMARA</button>
-      <div class="fut-help">${t ? 'Joystick: moverte · PASE · TIRO (mantén para más fuerza) · SPRINT' : 'WASD moverte · J pase/entrada · K tiro (mantén) · Mayús sprint · C cámara'}</div>
+      <button class="fut-swap" data-k="swap" aria-label="Cambiar de jugador">CAMBIAR</button>
+      <div class="fut-help">${t ? 'Joystick: moverte · PASE · TIRO (mantén para más fuerza) · SPRINT · CAMBIAR de jugador' : 'WASD moverte · J pase/entrada · K tiro (mantén) · Mayús sprint · Q cambiar de jugador · C cámara'}</div>
       <button class="fut-quit" aria-label="Salir del partido">Salir</button>`;
     document.body.appendChild(h); document.body.classList.add('futbol');
     h.querySelector('.fut-quit').addEventListener('click', () => this.finish(true));
     this.btn = { sprint: false, pass: false, shoot: false };
     for (const b of h.querySelectorAll('[data-k]')) {
       const k = b.dataset.k;
-      b.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); b.classList.add('on'); if (k === 'cam') this.nextCam(); else { this.btn[k] = true; if (k === 'pass') this.passQ = true; if (k === 'shoot') this.shootDown = true; } });
-      const up = (e) => { b.classList.remove('on'); if (k === 'cam') return; if (this.btn[k] && k === 'shoot') this.shootUp = true; this.btn[k] = false; };
+      b.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); b.classList.add('on'); if (k === 'cam') this.nextCam(); else if (k === 'swap') this.swapQ = true; else { this.btn[k] = true; if (k === 'pass') this.passQ = true; if (k === 'shoot') this.shootDown = true; } });
+      const up = (e) => { b.classList.remove('on'); if (k === 'cam' || k === 'swap') return; if (this.btn[k] && k === 'shoot') this.shootUp = true; this.btn[k] = false; };
       b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up); b.addEventListener('pointerleave', up);
     }
     this.radar = h.querySelector('.fut-radar').getContext('2d');
@@ -166,11 +170,12 @@ export class Futbol {
   update(dt) {
     if (this.done) return;
     dt = Math.min(dt, 0.1);
-    const G = this.G, inp = G.input, b = this.b, me = this.me;
+    const G = this.G, inp = G.input, b = this.b;
     G.player.obj.visible = false;
     // teclado
     const K = inp.keys;
     if (inp.consume('c')) this.nextCam();
+    if (inp.consume('q') || inp.consume('tab')) this.swapQ = true;
     if (inp.consume('j') || inp.consume(' ')) this.passQ = true;
     const kShoot = K.has('k') || K.has('e');
     if (kShoot && !this.kShootPrev) this.shootDown = true; if (!kShoot && this.kShootPrev) this.shootUp = true; this.kShootPrev = kShoot;
@@ -183,7 +188,11 @@ export class Futbol {
     this.t -= dt;
     this.h.querySelector('.fut-time').textContent = `${Math.floor(Math.max(0, this.t) / 60)}:${String(Math.floor(Math.max(0, this.t) % 60)).padStart(2, '0')}`;
     if (this.t <= 0) return this.finish(false);
+    // ---- cambio de jugador: al pedirlo, al compañero más cerca del balón; tras un pase, al que lo recibe
+    if (this.swapQ) { this.swapQ = false; const mates = this.team.filter(p => p.side === 'home' && p.role === 'field'); mates.sort((a, c) => Math.hypot(a.x - b.x, a.z - b.z) - Math.hypot(c.x - b.x, c.z - b.z)); this.switchTo(mates[0]); }
+    if (this.passTo && (b.owner === this.passTo || (this.passT -= dt) <= 0)) { const r = this.passTo; this.passTo = null; this.switchTo(r); }
     // ---- el jugador: movimiento propio relativo a la cámara
+    const me = this.me;
     const A = this.camAxes(), mx = inp.move.x, my = inp.move.y, mag = Math.min(1, Math.hypot(mx, my));
     const dx = A.fx * my + A.rx * mx, dz = A.fz * my + A.rz * mx;
     const top = (sprint ? SPRINT : JOG) * (b.owner === me ? 0.9 : 1);
@@ -219,6 +228,15 @@ export class Futbol {
     this.crowdT -= dt; if (this.crowdT <= 0) { this.crowdT = 1.1; G.sound.crowd?.(0.25 + (Math.abs(b.z) > HZ - 14 ? 0.35 : 0)); }
     this.place(dt); this.camera(dt); this.drawHud();
   }
+  // pasar a controlar a otro jugador del equipo: el que se deja vuelve a su puesto y lo lleva la máquina
+  switchTo(p) {
+    if (!p || p === this.me || p.side !== 'home' || p.role !== 'field') return;
+    const old = this.me, i = this.team.indexOf(p); if (i < 0) return;
+    old.post = p.post || [old.x, old.z]; old.speed = p.speed || 6; old.n = old.n || 10; old.me = false; old.wait = 0.4;
+    this.team[i] = old; p.me = true; p.vx = p.vx || 0; p.vz = p.vz || 0; this.me = p; this.dash = 0;
+    this.ring.position.set(0, 0.03, 0); p.obj.add(this.ring);
+    this.msg(`Juegas con el ${p.n}`, 900); this.G.sound.ui?.('click');
+  }
   // tiro: hacia la portería con la dirección del joystick (o de la carrera); con más carga, más fuerte y más alto
   playerShoot(charge) {
     const b = this.b, me = this.me, G = this.G; b.owner = null; b.last = 'home'; b.lastP = me;
@@ -242,7 +260,7 @@ export class Futbol {
     b.owner = null; b.last = 'home'; b.lastP = me; me.char.playOnce?.('Hit', 0.3); G.sound.pelota?.(0.5);
     if (best && bs > -0.2) {
       const lx = best.x + best.vx * 0.5, lz = best.z + best.vz * 0.5, dx = lx - b.x, dz = lz - b.z, L = Math.hypot(dx, dz) || 1, v = Math.min(17, 7 + L * 0.65);
-      Object.assign(b, { vx: dx / L * v, vz: dz / L * v, vy: L > 14 ? 3 : 0.4 }); best.wait = 1.2;
+      Object.assign(b, { vx: dx / L * v, vz: dz / L * v, vy: L > 14 ? 3 : 0.4 }); best.wait = 1.2; this.passTo = best; this.passT = Math.min(1.6, L / v + 0.3);
       if (L > 10) this.say(pick(SAY.pass), 1000);
     } else Object.assign(b, { vx: Math.sin(me.h) * 12, vz: Math.cos(me.h) * 12, vy: 0.5 });
   }

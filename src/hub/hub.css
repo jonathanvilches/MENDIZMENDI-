@@ -764,6 +764,8 @@ body.futbol #controls { display: none !important; }
 .fut-pass { grid-area: pass; background: radial-gradient(circle at 50% 35%, #4a7ae8, #16224a); }
 .fut-sprint { grid-area: sprint; background: radial-gradient(circle at 50% 35%, #5ad07a, #1f7a3a); }
 .fut-cam { pointer-events: auto; position: absolute; right: 96px; top: max(10px, env(safe-area-inset-top)); padding: 8px 12px; border: 0; border-radius: 12px; background: rgba(0,0,0,.5); color: #fff; font: 800 13px Nunito, sans-serif; cursor: pointer; }
+.fut-swap { pointer-events: auto; position: absolute; right: 96px; top: calc(max(10px, env(safe-area-inset-top)) + 44px); padding: 8px 12px; border: 2px solid #ffe14a; border-radius: 12px; background: rgba(0,0,0,.55); color: #ffe14a; font: 900 13px Nunito, sans-serif; cursor: pointer; }
+.fut-swap.on { background: #ffe14a; color: #1a1a1a; }
 @media (max-width: 560px) { .fut-board { top: 54px; } .fut-help { display: none; } .fut-say { top: 108px; } .fut-bars { top: 110px; } .fut-radar { top: 108px; } }
 @media (max-height: 460px) { .fut-b { width: 62px; height: 62px; } .fut-shoot { width: 74px; height: 74px; } .fut-help { display: none; } }
 /* selector de ropa de los personajes KayKit */
