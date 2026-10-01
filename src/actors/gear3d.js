@@ -10,6 +10,8 @@ const P = (geo, hex, x, y, z, rx = 0, ry = 0, rz = 0) => { const g = geo.index ?
 const rbox = (w, h, d, r = 0.02) => { const g = new THREE.BoxGeometry(w, h, d, 2, 2, 2); const p = g.attributes.position, v = new THREE.Vector3(); for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i); const k = 1 - r * 4; p.setXYZ(i, v.x * (Math.abs(v.x) > w / 2 - 1e-4 && Math.abs(v.y) > h / 2 - 1e-4 ? k + (1 - k) * 0.6 : 1), v.y, v.z * (Math.abs(v.z) > d / 2 - 1e-4 && Math.abs(v.y) > h / 2 - 1e-4 ? k : 1)); } g.computeVertexNormals(); return g; };
 const cyl = (r1, r2, h, n = 12) => new THREE.CylinderGeometry(r1, r2, h, n);
 const MAT = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.75 });
+// proporciones de los modelos de Blender (build_protagonista.py: proportions)
+export const PROP = { legs: 1.35, hip: 0.55 };
 
 function piece(id) {
   const parts = [];
@@ -73,8 +75,11 @@ export class GearProps {
   attach(id) {
     const spec = piece(id); if (!spec) return;
     const ch = this.rig.char, root = ch.root, bone = ch.bones[spec.bone];
-    const mesh = new THREE.Mesh(mergeGeometries(spec.geo), spec.glow ? [MAT] : MAT);
-    if (spec.glow) { mesh.material = MAT; const g = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.05, 0.045), this.lampMat); g.position.set(-0.18, 0.66, -0.25); mesh.add(g); }
+    const geo = mergeGeometries(spec.geo);
+    // las piezas están medidas sobre el cuerpo original: se les aplican las mismas proporciones (piernas más largas)
+    { const p = geo.attributes.position; for (let i = 0; i < p.count; i++) { const y = p.getY(i); p.setY(i, y <= PROP.hip ? y * PROP.legs : y + PROP.hip * (PROP.legs - 1)); } p.needsUpdate = true; }
+    const mesh = new THREE.Mesh(geo, MAT);
+    if (spec.glow) { const g = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.05, 0.045), this.lampMat); g.position.set(-0.18, 0.66 + PROP.hip * (PROP.legs - 1), -0.25); mesh.add(g); }
     mesh.castShadow = true;
     // posición en la pose de reposo: se guardan los huesos, se pone la pose de reposo y se mide
     const skinned = []; root.traverse(o => { if (o.isSkinnedMesh) skinned.push(o); });
@@ -83,9 +88,15 @@ export class GearProps {
     root.updateMatrixWorld(true);
     // las piezas están medidas en metros del modelo de Blender (cadera 0,55 · pecho 0,90); el GLB del juego va
     // escalado y desplazado: la escala sale de la distancia cadera-pecho y el origen, de la cadera
-    const inv = new THREE.Matrix4().copy(root.matrixWorld).invert(), at = (b) => new THREE.Vector3().setFromMatrixPosition(b.matrixWorld).applyMatrix4(inv);
-    const hp = at(ch.bones.Hips), sp = at(ch.bones.Spine2), k = (sp.y - hp.y) / 0.35;
-    const fit = new THREE.Matrix4().makeTranslation(hp.x, hp.y - 0.55 * k, hp.z).multiply(new THREE.Matrix4().makeScale(k, k, k));
+    // los pies del modelo (vértices más bajos en la pose de reposo) son el cero de las medidas de las piezas
+    if (this.feetY == null) {
+      const inv = new THREE.Matrix4().copy(root.matrixWorld).invert(), v = new THREE.Vector3(); let mn = 1e9, mx = -1e9;
+      for (const sm of skinned) { if (!/^(Boots|Hair|Head|Body|Shirt)/.test(sm.name) && !/^(Boots|Hair|Head|Body|Shirt)/.test(sm.parent?.name || '')) continue; const n = sm.geometry.attributes.position.count; for (let i = 0; i < n; i += 3) { sm.getVertexPosition(i, v); v.applyMatrix4(sm.matrixWorld).applyMatrix4(inv); if (v.y < mn) mn = v.y; if (v.y > mx) mx = v.y; } }
+      // altura del modelo de Blender con las proporciones nuevas: 1,678 m
+      this.feetY = mn; this.scale = (mx - mn) / 1.678;
+      window.__gearFit = { feet: mn, top: mx, scale: this.scale };
+    }
+    const k = this.scale, fit = new THREE.Matrix4().makeTranslation(0, this.feetY, 0).multiply(new THREE.Matrix4().makeScale(k, k, k));
     const off = new THREE.Matrix4().copy(bone.matrixWorld).invert().multiply(root.matrixWorld).multiply(fit);
     bones.forEach((b, i) => { b.position.copy(saved[i][0]); b.quaternion.copy(saved[i][1]); b.scale.copy(saved[i][2]); });
     root.updateMatrixWorld(true);

@@ -21,8 +21,8 @@ D = dict(
     # cara de muñeco: ojos con blanco, iris castaño, pupila y brillo; cejas siempre visibles; naricilla de botón; sonrisa
     head_style='toy', head_n=2.7, head_axes=(0.27, 0.25, 0.285), head_r=0.29, head_scale=(1.0, 0.93, 1.07), head_c=1.29,
     eye_x=0.09, eye_z=1.3, eye_w=0.047, eye_h=0.058, eye_glint=True, sclera=(1.48, 1.26), iris_off=(0.0, -0.08), iris_uv=0.4,
-    nose_size=(0.021, 0.017, 0.016),
-    brow_xs=(0.062, 0.09, 0.118), brow_dz=0.066, brow_lift=0.003, brow_r=0.0085, brow_k=0.7, brow_hidden=(),
+    nose_size=(0.024, 0.02, 0.019),
+    brow_xs=(0.062, 0.09, 0.118), brow_dz=0.066, brow_lift=0.003, brow_r=0.0105, brow_k=0.7, brow_hidden=(),
     nose_z=1.24, mouth_z=1.2, mouth_w=0.09, mouth_h=0.03,
     blush_ll=(42, -6),
     # tronco (cilindro de 16 lados): (z, semiancho, semifondo, desplazamiento en y)
@@ -48,6 +48,8 @@ D = dict(
     tufts=[],
     # orejas (longitud, latitud, medio alto, medio ancho, grosor, separación de la cabeza)
     ears=(90, -6, 0.032, 0.05, 0.028, 0.004),
+    # proporciones (medidas de una referencia de estilo: unas 3,5 cabezas de alto y cadera a media altura)
+    proportions=dict(legs=1.35, head=0.78, hip=0.55, neck=1.0),
     # faja roja a la cintura (pintada en el pantalón) con el nudo a la izquierda, y botones dorados en el chaleco
     sash=dict(z=(0.598, 0.75), knot=(0.118, -0.128, 0.628)),
     buttons=(0.668, 0.701, 0.734), button_y=-0.163,

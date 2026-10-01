@@ -291,9 +291,19 @@ export function landmark(B, lm, ctx) {
       addCircle(x, z, 1.5); return { x, z: z + 3 };
     }
     case 'dolmen': {
-      for (const [lx, lz] of [[-1.2, 0], [1.2, 0], [0, -1.2]]) B.add('stoneDark', box(0.5, 2, 1.6), MM(T, M(lx, 0.9, lz, lx ? 0 : Math.PI / 2)));
-      B.add('stoneDark', box(3.6, 0.5, 3), MM(T, M(0, 2.1, -0.2, 0, 0.1)));
-      for (let i = 0; i < 10; i++) { const a = i / 10 * 6.28; B.add('stone', new THREE.DodecahedronGeometry(0.5, 0), MM(T, M(Math.cos(a) * 4.5, 0.1, Math.sin(a) * 4.5))); }
+      // losas en bruto (sin labrar, con bordes irregulares), cámara abierta por delante, gran losa de cubierta
+      // inclinada y restos del túmulo: un anillo bajo de tierra y piedras alrededor
+      const slab = (w, h, d, seed) => { const g = new THREE.BoxGeometry(w, h, d, 4, 4, 2), p = g.attributes.position; let r = seed; const rn = () => ((r = (r * 9301 + 49297) % 233280) / 233280 - 0.5);
+        for (let i = 0; i < p.count; i++) { const e = Math.abs(p.getX(i)) > w / 2 - 1e-3 || Math.abs(p.getY(i)) > h / 2 - 1e-3; p.setXYZ(i, p.getX(i) * (1 + rn() * 0.18), p.getY(i) * (1 + (e ? rn() * 0.2 : 0)), p.getZ(i) * (1 + rn() * 0.35)); }
+        g.computeVertexNormals(); return g; };
+      B.add('rock', slab(0.45, 2.1, 2.2, 11), MM(T, M(-1.3, 0.95, -0.2, 0, 0.08, 0.05)));
+      B.add('rock', slab(0.45, 1.9, 2.0, 23), MM(T, M(1.35, 0.85, -0.1, 0, -0.06, -0.06)));
+      B.add('rock', slab(0.45, 2.0, 2.6, 37), MM(T, M(0, 0.9, -1.35, 0, Math.PI / 2, 0.04)));
+      B.add('rock', slab(3.8, 0.55, 3.2, 51), MM(T, M(0.05, 2.05, -0.35, 0.06, 0.12, 0.04)));
+      // túmulo: anillo de tierra con hierba y piedras sueltas
+      const mound = new THREE.TorusGeometry(4.6, 1.3, 6, 22); mound.rotateX(Math.PI / 2); mound.scale(1, 0.35, 1);
+      B.add('paint', colored(mound, '#7a8a4a'), MM(T, M(0, -0.1, -0.3)));
+      for (let i = 0; i < 16; i++) { const a = i / 16 * 6.28 + (i % 3) * 0.1; B.add('stone', new THREE.DodecahedronGeometry(0.28 + (i % 4) * 0.08, 0), MM(T, M(Math.cos(a) * (4.2 + (i % 2) * 0.8), 0.25, Math.sin(a) * (4.2 + (i % 2) * 0.8) - 0.3, i, i * 0.7, 0))); }
       col(3.6, 3); return { x, z: z + 4 };
     }
     case 'rocks': {

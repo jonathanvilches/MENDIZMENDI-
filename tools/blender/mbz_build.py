@@ -1110,6 +1110,35 @@ def cage_quads(ob):
     return n * (2 if any(m.type == 'MIRROR' for m in ob.modifiers) else 1)
 
 # ================================================================== principal
+def reproportion(d, arm):
+    """Proporciones finales del cuerpo (medidas tomadas de una referencia de estilo, sin usar su malla):
+    piernas más largas (factor 'legs' bajo la cadera) y cabeza más pequeña (factor 'head' alrededor de la base del
+    cuello, con transición suave). Se aplica a la vez a todas las mallas y al esqueleto en pose de reposo, así los
+    pesos, las UV, las texturas horneadas y las acciones siguen valiendo."""
+    P = d['proportions']; a, s = P['legs'], P['head']; zH, zN = P.get('hip', 0.55), P.get('neck', 1.0)
+    c = V((0.0, 0.006, zN))
+    def f(p):
+        p = V(p); w = C.smooth01((p.z - (zN - 0.04)) / 0.08)
+        p = p.lerp(c + (p - c) * s, w)
+        p.z = p.z * a if p.z <= zH else p.z + zH * (a - 1)
+        return p
+    arm.data.pose_position = 'REST'; bpy.context.view_layer.update()
+    meshes = [o for o in bpy.data.objects if o.type == 'MESH']
+    world = {o.name: [o.matrix_world @ v.co for v in o.data.vertices] for o in meshes}
+    for o in bpy.context.view_layer.objects: o.select_set(False)
+    bpy.context.view_layer.objects.active = arm; arm.select_set(True)
+    bpy.ops.object.mode_set(mode='EDIT')
+    mw = arm.matrix_world; inv = mw.inverted()
+    for b in arm.data.edit_bones:
+        h, t, r = f(mw @ b.head), f(mw @ b.tail), b.roll
+        b.head = inv @ h; b.tail = inv @ t; b.roll = r
+    bpy.ops.object.mode_set(mode='OBJECT'); bpy.context.view_layer.update()
+    for o in meshes:
+        im = o.matrix_world.inverted()
+        for v, p in zip(o.data.vertices, world[o.name]): v.co = im @ f(p)
+        o.data.update()
+    arm.data.pose_position = 'POSE'; bpy.context.view_layer.update()
+
 def build_character(d, root, solo_geo=False, renders=True):
     t0 = time.time()
     out = os.path.join(root, 'entrega', 'personajes', d['key']); tex = os.path.join(out, 'texturas'); rdir = os.path.join(out, 'renders')
@@ -1137,6 +1166,7 @@ def build_character(d, root, solo_geo=False, renders=True):
         if a: ob.data.color_attributes.remove(a)
     faces = build_actions(d, arm, out); log('acciones', f'{time.time() - t0:.1f} s')
     tag_variants(G)
+    if d.get('proportions'): reproportion(d, arm); log('proporciones', f'{time.time() - t0:.1f} s')
     # escena limpia: sin cámaras ni objetos auxiliares; rutas relativas
     for c in ('_PREVIEW', '_RENDER'):
         col = bpy.data.collections.get(c)

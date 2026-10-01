@@ -15,6 +15,7 @@ const HUERTA = { shirt: '#d9a03a', pants: '#4a5b3a', hat: 'straw', hair: '#6b4a2
 
 import { PERSONAJES, FIGURE_TOWNS } from './personajes.js';
 import { FERIA_TOWNS } from './ferias.js';
+import { DOLMEN_TOWNS } from './dolmen.js';
 
 export const LEVELS = [
   // ---------------- Baztan-Bidasoa ----------------
@@ -210,7 +211,7 @@ export const LEVELS = [
     river: { name: 'Altzania', x: 50, w: 2.6, amp: 6 },
     intro: 'Villa de Sakana entre las sierras de Urbasa y Aralar, con uno de los carnavales más conocidos: el de los Momotxorros.',
     church: { name: 'Iglesia de la Asunción', style: 'gothic', text: 'Templo de piedra en el centro del casco antiguo.' },
-    landmarks: [{ kind: 'plaza', name: 'Plaza del carnaval', text: 'El martes de carnaval salen los Momotxorros, con cuernos, sábanas manchadas de rojo y un sarde (horca).' }],
+    landmarks: [{ kind: 'plaza', name: 'Plaza del carnaval', text: 'El martes de carnaval salen los Momotxorros, con cuernos, sábanas manchadas de rojo y un sarde (horca).' }, { kind: 'dolmen', name: 'Dolmen de la sierra de Urbasa', text: 'En las sierras de Urbasa y Aralar hay decenas de dólmenes: tumbas de piedra levantadas por los primeros pastores hace unos 5.000 años.' }],
     missions: [
       { type: 'visit' },
       { type: 'carnival', character: 'momotxorro', title: 'Momotxorros', host: H('Unai', { shirt: '#3a8fd6', pants: '#34495e', hair: '#2e2018', messy: true, height: 1.4 }),
@@ -495,4 +496,12 @@ for (const [id, F] of Object.entries(FERIA_TOWNS)) {
   const at = l.missions.findIndex(m => m.type === 'quiz');
   l.missions.splice(at < 0 ? l.missions.length : at, 0, { type: 'feria', title: F.title, note: F.note,
     host: H('Tratante de ganado', { shirt: '#1d1d24', pants: '#2b2630', txapela: '#1d1d24', hair: '#8a8478', moustache: '#8a8478', staff: true, old: true }) });
+}
+
+// El dolmen: los primeros pastores y agricultores (Neolítico); excavar con cuidado y ordenar cómo se levantaba
+for (const id of DOLMEN_TOWNS) {
+  const l = LEVELS.find(x => x.id === id); if (!l?.missions) continue;
+  const at = l.missions.findIndex(m => m.type === 'quiz');
+  l.missions.splice(at < 0 ? l.missions.length : at, 0, { type: 'dolmen', title: 'El secreto del dolmen',
+    host: H('Ainhoa, arqueóloga', { shirt: '#c9a46a', vest: '#4a5a3a', pants: '#5a4a3a', hair: '#3b2418', ponytail: true, female: true, hat: 'straw', bag: '#7a5a3a' }) });
 }

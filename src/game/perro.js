@@ -13,7 +13,7 @@ export class Perro {
   constructor(game) {
     this.g = game; const P = game.player.pos;
     // punto al lado del jugador (a su izquierda, un poco adelantado): el perro camina a la par
-    this.side = { pos: new THREE.Vector3(), dist: 0.35, gain: 3, speed: 0, face: 0 };
+    this.side = { pos: new THREE.Vector3(), companion: true, speed: 0, face: 0 };
     this.spawnDog(P.x + 1.2, P.z);
     this.lead = null; this.best = null; this.stuck = 0; this.cool = 20; this.printT = 0;
     this.goal = { pos: new THREE.Vector3() };

@@ -351,8 +351,8 @@
   "mensajes": []
  },
  "reimportacion": {
-  "altura_m": 1.627,
-  "pies_z": -0.008,
+  "altura_m": 1.678,
+  "pies_z": -0.003,
   "mira_a_-Y": true,
   "acciones": [
    "Celebrate_RIG_Nerea",
@@ -397,7 +397,7 @@
  },
  "lod": {
   "archivo": "char_nerea_lod.glb",
-  "peso_MB": 1.26,
+  "peso_MB": 1.27,
   "triangulos_en_archivo": 11234,
   "validador": {
    "errores": 0,

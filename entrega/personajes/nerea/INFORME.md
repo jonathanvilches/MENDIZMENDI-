@@ -7,7 +7,7 @@ Personaje 100 % original, modelado desde cero con bpy y bmesh (Blender 4.2). Se 
 | | |
 |---|---|
 | GLB principal | `char_nerea.glb` · **2,03 MB** (límite 2 MB) |
-| GLB LOD (nivel cage) | `char_nerea_lod.glb` · 1,26 MB · 11.234 triángulos en el archivo |
+| GLB LOD (nivel cage) | `char_nerea_lod.glb` · 1,27 MB · 11.234 triángulos en el archivo |
 | Triángulos visibles (variantes por defecto) | 27.128 |
 | Triángulos en el archivo (con todas las variantes) | 31.338 |
 | Caras de la cage | 2.268 |
@@ -16,7 +16,7 @@ Personaje 100 % original, modelado desde cero con bpy y bmesh (Blender 4.2). Se 
 | Texturas | Body 1024 px, Face 512 px, T_Eyes 256 px (PNG 8 bits sRGB) |
 | Clips | 13 |
 | Validador glTF | 0 errores, 0 avisos, 0 informativos |
-| Reimportación en Blender limpio | altura 1,627 m, pies en z = -0,008, mira a −Y: sí, 13 acciones, 21 variantes |
+| Reimportación en Blender limpio | altura 1,678 m, pies en z = -0,003, mira a −Y: sí, 13 acciones, 21 variantes |
 
 ## Triángulos por pieza
 

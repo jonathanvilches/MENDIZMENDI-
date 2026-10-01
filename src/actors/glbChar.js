@@ -318,6 +318,8 @@ const EXPR = {
 };
 
 /** Adaptador con la misma interfaz que MinifigRig (update, doWave, doCheer, setExpr, doAct, carry). */
+// las piernas del modelo son un 35 % más largas que las del diseño original: cada paso cubre más suelo
+const LEGS = 1.3;
 export class GlbRig {
   constructor(gltf, id = 'benat') {
     const def = GLB_AVATARS[id] || {};
@@ -325,7 +327,7 @@ export class GlbRig {
     // zancada natural de los clips: Walk ≈ 1,0 m/s y Run ≈ 2,5 m/s. Las velocidades del juego (3,3 y 6,8 m/s) son
     // mayores: el ritmo sube con la raíz de la velocidad para que las piernas no se vuelvan frenéticas
     // Walk avanza ~1,15 m por ciclo y Run ~2,5 m/s: el ritmo sigue casi a la velocidad (los pies apenas patinan)
-    this.char = new GlbChar(gltf, { outline: 0.006, walkAt: 0.2, runAt: 4.6, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / 2.5, 0.85) : Math.pow(Math.max(0.2, v) / 1.15, 0.8) });
+    this.char = new GlbChar(gltf, { outline: 0.006, walkAt: 0.2, runAt: 4.6, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / (2.5 * LEGS), 0.85) : Math.pow(Math.max(0.2, v) / (1.15 * LEGS), 0.8) });
     this.char.root.scale.setScalar(def.scale || 1);
     this.obj.add(this.char.root);
     this.wave = 0; this.cheer = 0; this.talking = 0; this.carry = false;

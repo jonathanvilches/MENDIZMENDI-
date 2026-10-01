@@ -28,6 +28,7 @@ import { makeTrailSign, signSVG, ORIENTA, ORIENTA_TIPS } from './senales.js';
 import { FOOD } from '../data/equipo.js';
 import { FERIA } from '../data/ferias.js';
 import { PET, BELL, BENCH_LINES } from '../data/tocar.js';
+import { DOLMEN } from '../data/dolmen.js';
 import { GearProps } from '../actors/gear3d.js';
 import { foodFrom } from '../data/equipo.js';
 import { PROCESOS, TRADICIONES } from '../data/procesos.js';
@@ -152,6 +153,8 @@ export class TownGame {
         M.steps = () => ['Habla con ' + host(), m.kind === 'angel' ? 'Prepara la bajada: repite la secuencia' : 'Repite la melodía']; break;
       case 'summit': { const pk = M.peak = MOUNTAINS.find(x => x.id === m.peak); M.title = `Sube al ${pk?.name || 'monte'}`; M.icon = 'peak'; M.need = 4;
         M.steps = () => [M.prep ? `Prepara la mochila: ${this.supplyText()} y vuelve con ${host()}` : 'Habla con ' + host(), `Sigue los mojones hasta la cima (${M.count}/${M.need})${M.wild ? ` · animales ${M.wild.filter(w => w.found).length}/${M.wild.length}` : ''}`, `Llega a la cima del ${pk?.name || 'monte'}`]; break; }
+      case 'dolmen': M.title = m.title || 'El secreto del dolmen'; M.icon = 'dolmen'; M.need = 3;
+        M.steps = () => ['Habla con ' + host(), `Excava junto al dolmen con cuidado (${M.count}/${M.need})`, 'Vuelve con ' + host()]; break;
       case 'feria': M.title = m.title || 'Feria de ganado'; M.icon = 'cow';
         M.steps = () => ['Habla con ' + host(), 'Ve a los corrales: juez por un día', 'Vuelve con ' + host() + ' y cierra el trato']; break;
       case 'figure': { const F = M.fig = PERSONAJES[m.who]; M.title = F.name; M.icon = F.icon;
@@ -193,6 +196,7 @@ export class TownGame {
       case 'observe': return lm('gorge')?.spot || P.edgeN;
       case 'pelota': return this.ensureFronton() ? { x: this.fronton.entry.x + 2, z: this.fronton.entry.z } : P.plaza;
       case 'summit': return { x: P.plaza.x + (P.edgeN ? (P.edgeN.x - P.plaza.x) * 0.25 : 10), z: P.plaza.z + (P.edgeN ? (P.edgeN.z - P.plaza.z) * 0.25 : -14) };
+      case 'dolmen': { const d = TOWN.landmarks.find(l => l.kind === 'dolmen'); return d?.spot ? { x: d.spot.x + 6, z: d.spot.z + 6 } : P.edgeN; }
       case 'feria': return { x: (P.market || P.plaza).x - 8, z: (P.market || P.plaza).z + 10 };
       case 'figure': { const k = this.missions.filter(x => x.type === 'figure').indexOf(M), a = 2.2 + k * 1.6; return { x: P.plaza.x + Math.cos(a) * 15, z: P.plaza.z + Math.sin(a) * 15 }; }
       case 'quiz': return TOWN.church?.door ? { x: TOWN.church.door.x, z: TOWN.church.door.z + 0 } : P.plaza;
@@ -381,6 +385,7 @@ export class TownGame {
       case 'herd': if (M.step === 1) { const loose = this.herd?.filter(s => !s.penned) || []; const t = nearest(loose.map(s => ({ x: s.pos.x, z: s.pos.z, h: 1.8 }))); return t || { x: TOWN.pen.x, z: TOWN.pen.z, h: 2 }; } return at(M.host);
       case 'dance': return M.step === 1 ? { x: PLACES.plaza.x, z: PLACES.plaza.z, h: 3 } : at(M.host);
       case 'carnival': return (M.night ? M.step === 1 || M.step === 2 : M.step === 1) ? null : at(M.host);
+      case 'dolmen': if (M.step === 1) return nearest(this.items.filter(it => it.M === M).map(it => ({ x: it.x, z: it.z, h: 1.4 }))); return at(M.host);
       case 'feria': return M.step === 1 && M.fair ? { x: M.fair.x, z: M.fair.z, h: 3 } : at(M.host);
       case 'figure': return M.step === 1 && M.memo ? { x: M.memo.x, z: M.memo.z, h: 3 } : at(M.host);
       case 'trade': return M.step === 1 && M.bench ? { x: M.bench.x, z: M.bench.z, h: 2 } : at(M.host);
@@ -442,7 +447,6 @@ export class TownGame {
     for (const M of this.missions) if (M.memo) list.push({ kind: 'memorial', M, x: M.memo.x, z: M.memo.z, r: 2.8, label: M.step === 1 && !M.done ? `Ver el recuerdo de ${M.fig.name}` : `Leer la placa` });
     for (const k of this.clues) if (!k.found && k.obj.visible) list.push({ kind: 'clue', k, x: k.x, z: k.z, r: 2.6, label: 'Examinar' });
     for (const M of this.missions) if (M.creature && M.creature.shown && !M.done && !M.chase) list.push({ kind: 'creature', M, x: M.creature.pos.x, z: M.creature.pos.z, r: 3.6, label: `Hablar con ${M.leg.creature}` });
-    if (this.perro) { const D = this.perro.dog; list.push({ kind: 'dog', x: D.pos.x, z: D.pos.z, r: 1.8, label: `Acariciar a ${this.perro.name}` }); }
     // animales de granja cercanos (los del rebaño de una misión no)
     const Pp = this.player.pos;
     for (const a of this.fauna.animals) if (PET[a.kind] && !a.herd && Math.abs(a.pos.x - Pp.x) < 4 && Math.abs(a.pos.z - Pp.z) < 4) list.push({ kind: 'pet', a, x: a.pos.x, z: a.pos.z, r: a.kind === 'cow' ? 2.8 : 2.2, label: `Acariciar a ${PET[a.kind].name}` });
@@ -480,7 +484,6 @@ export class TownGame {
     if (it.kind === 'pet') return this.petAnimal(it.a);
     if (it.kind === 'bell') return this.ringBell();
     if (it.kind === 'bench') return this.restBench(it.b);
-    if (it.kind === 'dog') { const D = this.perro.dog; this.sound.bark?.(D.pos); this.particles.emit({ x: D.pos.x, y: D.pos.y + 0.8, z: D.pos.z }, { n: 10, color: ['#ff6b8a', '#ffd1dc'], speed: 1, size: 0.25, life: 1 }); return this.ui.toast(`${this.perro.name} está contento. Pulsa H si necesitas que te guíe`, 'dog', 2600); }
     if (it.kind === 'walker') { it.a.say(2.5); it.a.wave = 1.2; const L = WALKER_LINES[this.walkers.indexOf(it.a) % WALKER_LINES.length]; return this.say(it.a, L); }
     if (it.kind === 'item') return this.pick(it.it);
     if (it.kind === 'bench') return this.doTrade(it.M);
@@ -649,6 +652,25 @@ export class TownGame {
         } else await S([`Sigue los mojones: te faltan ${M.need - M.count} hasta la cima.`]);
         return;
       }
+      case 'dolmen': {
+        if (M.step === 0) {
+          await S(DOLMEN.intro);
+          await infoCard(this.ui, { icon: 'dolmen', kicker: '¿Qué es?', title: 'El dolmen', text: DOLMEN.what, button: '¡A excavar!' });
+          M.step = 1; M.count = 0;
+          const c = TOWN.landmarks.find(l => l.kind === 'dolmen')?.spot || M.host.pos;
+          DOLMEN.finds.forEach(([kind, label], i) => { const a = i / 3 * Math.PI * 2 + 0.4, s2 = this.spot({ x: c.x + Math.cos(a) * 7, z: c.z + Math.sin(a) * 7 }, 3);
+            const o = makeItem(kind); o.position.set(s2.x, terrainHeight(s2.x, s2.z), s2.z); this.scene.add(o); this.items.push({ M, x: s2.x, z: s2.z, obj: o, label: 'Excavar con cuidado', kind, find: i }); });
+          this.ui.toast('Busca los brillos alrededor del dolmen y excava con cuidado', 'dolmen', 3000);
+        } else if (M.step === 1) await S([`Te quedan ${M.need - M.count} hallazgos. ¡Despacio, como una arqueóloga de verdad!`]);
+        else {
+          await S(['¡Buen trabajo! Con lo que has encontrado sabemos cómo vivían. Ahora, ¿cómo crees que levantaban el dolmen?']);
+          const r = await sequenceGame(this.ui, { title: 'Así se levantaba un dolmen', hint: 'Toca los pasos en orden', icon: 'dolmen', steps: DOLMEN.steps });
+          if (!r.win) { await S(['¡Casi! Vuelve a hablar conmigo y lo intentamos otra vez.']); return; }
+          await infoCard(this.ui, { icon: 'dolmen', kicker: 'Antes y ahora', title: 'Los primeros pastores', text: 'Así ha cambiado:', extra: `<div class="antes-ahora"><div><b>Antes</b>${DOLMEN.then}</div><div><b>Ahora</b>${DOLMEN.now}</div></div>`, button: '¡Lo he aprendido!' });
+          await this.complete(M, { card: 'El dolmen', cardText: DOLMEN.what });
+        }
+        return;
+      }
       case 'feria': {
         if (M.step === 0) { await S([...FERIA.intro, m.note || '']); M.step = 1; }
         else if (M.step === 1) await S(['Ve a los corrales y mira bien los animales. ¡Luego me cuentas!']);
@@ -803,6 +825,14 @@ export class TownGame {
     const M = it.M;
     this.items = this.items.filter(x => x !== it); this.scene.remove(it.obj);
     if (!M) { this.player.rig.doAct('pick', 0.6); this.sound.ui('coin'); this.mochila.addFood(it.food); return; }
+    if (it.find != null) {
+      const [, name, text] = DOLMEN.finds[it.find]; this.player.rig.doAct('pick', 0.8); this.sound.magic?.(); M.count++;
+      this.particles.emit({ x: it.x, y: terrainHeight(it.x, it.z) + 0.3, z: it.z }, { n: 20, color: ['#c9a46a', '#8a6a45'], speed: 1.2, size: 0.25, life: 1 });
+      if (M.count >= M.need) M.step = 2;
+      this.player.frozen = true;
+      infoCard(this.ui, { icon: 'dolmen', kicker: `Hallazgo ${M.count} de ${M.need}`, title: name, text, badge: addCard('dolmen:' + name) ? 'Nueva carta' : '', button: M.count >= M.need ? `¡Hecho! Vuelve con ${M.host.name}` : 'Seguir excavando' }).finally(() => { this.player.frozen = false; });
+      return;
+    }
     this.player.rig.doAct('pick', 0.6);
     this.particles.emit({ x: it.x, y: terrainHeight(it.x, it.z) + 0.5, z: it.z }, { n: 24, color: ['#ffe38a', '#ffffff'], speed: 2.2, size: 0.28, life: 0.9 });
     this.sound.ui('coin');

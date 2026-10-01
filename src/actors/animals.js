@@ -50,7 +50,18 @@ export class Animal {
     if (this.follow) {
       const f = this.follow;
       const d = Math.hypot(f.pos.x - this.pos.x, f.pos.z - this.pos.z), near = f.dist ?? 2.5;
-      if (d > near) { this.heading = dampAngle(this.heading, Math.atan2(f.pos.x - this.pos.x, f.pos.z - this.pos.z), 8, dt); want = Math.min(this.run, d * (f.gain ?? 1.4) + (f.speed || 0)); this.state = 'walk'; }
+      if (f.companion) {
+        // compañero: arranca si se ha quedado a más de 0,9 m de su sitio y no para hasta llegar (sin titubeos);
+        // mientras el jugador camina, avanza en paralelo a él (sin girar en redondo) y corrige poco a poco
+        if (!this.going && d > 0.9) this.going = true;
+        if (this.going && d < 0.25 && (f.speed || 0) < 0.3) this.going = false;
+        if (this.going) {
+          const tx = (f.pos.x - this.pos.x) / (d || 1), tz = (f.pos.z - this.pos.z) / (d || 1), k = Math.min(1, (f.speed || 0) / 2.5) * (d < 3 ? 1.6 : 0.3);
+          const hx = tx + Math.sin(f.face) * k, hz = tz + Math.cos(f.face) * k;
+          this.heading = dampAngle(this.heading, Math.atan2(hx, hz), d > 4 ? 7 : 4, dt);
+          want = Math.min(this.run, (f.speed || 0) * 0.95 + d * 1.6); this.state = 'walk';
+        } else { this.state = 'idle'; this.heading = dampAngle(this.heading, f.face, 3, dt); }
+      } else if (d > near) { this.heading = dampAngle(this.heading, Math.atan2(f.pos.x - this.pos.x, f.pos.z - this.pos.z), 8, dt); want = Math.min(this.run, d * (f.gain ?? 1.4) + (f.speed || 0)); this.state = 'walk'; }
       else { this.state = 'idle'; if (f.face != null) this.heading = dampAngle(this.heading, f.face, 5, dt); }
     } else if (this.fleeDist && dp < scare) {
       this.state = 'flee';
@@ -81,6 +92,7 @@ export class Animal {
       const r4 = Math.pow(r.x ** 4 + r.z ** 4, 0.25);
       const bounded = this.bounds ? this.bounds(r.x, r.z) : true;
       if (!deep && r4 < 455 && bounded && Math.abs(g - this.pos.y) < 1.2) { this.pos.x = r.x; this.pos.z = r.z; }
+      else if (this.follow) { this.speed *= 0.5; }                      // el compañero no gira en redondo: frena y corrige poco a poco
       else { this.heading += 1.5 + this.rnd(); this.target = null; }
       this.phase += this.speed * dt * (this.kind === 'cow' ? 2.6 : 5.5);
     }
