@@ -436,3 +436,5 @@ img[data-pk] { opacity: 0; }
   width: 54px; height: 54px; border-radius: 50%; border: 3px solid #fff; background: linear-gradient(180deg, #d42f2f, #a01818); color: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.35); cursor: pointer; font-family: inherit; line-height: 1; }
 .learn-btn b { font-size: 17px; font-weight: 900; } .learn-btn small { font-size: 10px; font-weight: 700; opacity: .9; }
 .learn-btn.on { background: linear-gradient(180deg, #2e8a3e, #1e6a2a); }
+/* correr cansado: el botón sigue funcionando, con un aviso naranja */
+.cbtn.tired.on { background: radial-gradient(circle at 50% 30%, #ffc27a, #e08a2a 70%); }

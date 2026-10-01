@@ -102,7 +102,7 @@ export class Futbol {
     this.crowd = this.makeCrowd();
     this.hud();
     this.score = { home: 0, away: 0 }; this.t = TIME; this.pause = 0; this.done = false; this.crowdT = 0;
-    this.stamina = 1; this.charge = -1; this.slow = 0; this.camMode = 'tv'; this.camPos = null; this.camLook = new THREE.Vector3(); this.dash = 0;
+    this.stamina = 1; this.charge = -1; this.slow = 0; this.camMode = innerWidth < innerHeight ? 'detras' : 'tv'; this.camPos = null; this.camLook = new THREE.Vector3(); this.dash = 0;   // en el móvil en vertical se ve mejor desde detrás
     this.kickoff('home');
   }
 
@@ -427,7 +427,7 @@ export class Futbol {
       this.goalCam.t -= dt; const s = this.goalCam.z;
       pos = new THREE.Vector3(this.cx + 6, g0 + 3.2, this.cz + s * (HZ + 6)); look = new THREE.Vector3(this.cx + b.x * 0.5, g0 + 1, this.cz + s * (HZ - 6));
     } else if (this.camMode === 'tv') {
-      pos = new THREE.Vector3(this.cx - 31, g0 + 14, this.cz + b.z * 0.85); look = new THREE.Vector3(this.cx + b.x * 0.4, g0, this.cz + b.z);
+      const pt = innerWidth < innerHeight; pos = new THREE.Vector3(this.cx - (pt ? 22 : 31), g0 + (pt ? 11 : 14), this.cz + b.z * 0.85); look = new THREE.Vector3(this.cx + b.x * 0.4, g0, this.cz + b.z);
     } else if (this.camMode === 'detras') {
       const mw = this.W(me.x, me.z); pos = new THREE.Vector3(mw.x, g0 + 3.6, mw.z - 7.5); look = new THREE.Vector3(mw.x + (b.x - me.x) * 0.3, g0 + 0.8, mw.z + 6);
     } else {

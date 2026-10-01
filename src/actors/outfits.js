@@ -99,11 +99,15 @@ export function applyOutfit(root, kk, outfitId) {
   // la tela grande (más del 30 % de la mayor) es la camisa; los trozos pequeños (cinturón, correas, chaleco) el acento
   const top = bodyC[0]?.[1] || 1;
   bodyC.forEach(([k, n]) => { if (!assign.has(k)) assign.set(k, n >= top * 0.3 ? O.shirt : O.accent); });
+  if (O.hairLong) {   // el pelo pintado en la cabeza: la casilla grande más oscura que no es piel
+    const big = [...headArea.entries()].filter(([k, n]) => n > headTot * 0.06 && !assign.has(k)).sort((a, b) => lum(map, a[0]) - lum(map, b[0]));
+    if (big.length > 1) assign.set(big[0][0], O.hairLong);
+  }
   const tex = repaint(map, assign, kk + '|' + (O.id || [O.shirt, O.pants, O.shoes, O.accent].join()));
   for (const m of [...head, ...body, ...arms, ...legs]) { m.material = m.material.clone(); m.material.map = tex; }
   // prendas cosidas a los huesos, colocadas sobre la pose de reposo
   root.updateMatrixWorld(true);
-  const bone = (n) => { let b = null; root.traverse(o => { if (o.isBone && o.name === n) b = o; }); return b; };
+  const bone = (n) => { const n2 = n.replace(/\./g, ''); let b = null; root.traverse(o => { if (o.isBone && (o.name === n || o.name === n2)) b = o; }); return b; };   // el cargador quita los puntos («foot.l» → «footl»)
   const box = (list) => { const b = new THREE.Box3(), t = new THREE.Box3(); list.forEach(m => { m.geometry.computeBoundingBox(); t.copy(m.geometry.boundingBox).applyMatrix4(m.matrixWorld); b.union(t); }); return b; };
   const added = [], mat = (c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.85 });
   const hb = box(head), bb = box(body), sz = hb.getSize(new THREE.Vector3()), bs = bb.getSize(new THREE.Vector3()), hc = hb.getCenter(new THREE.Vector3()), bc = bb.getCenter(new THREE.Vector3());
@@ -135,13 +139,64 @@ export function applyOutfit(root, kk, outfitId) {
     put(g, 'hips', new THREE.Vector3(bc.x, bb.min.y + bs.y * 0.12, bc.z));
   }
   if (O.skirt && body.length) {   // falda larga (mujeres): campana desde la cintura hasta media pierna
-    const lb = box(legs), ls = lb.getSize(new THREE.Vector3()), len = (bb.min.y - lb.min.y) * 0.75 + bs.y * 0.12;
+    const lb = box(legs), len = (bb.min.y - lb.min.y) * (O.skirtLen || 0.75) + bs.y * 0.12;
     const sk = new THREE.Mesh(new THREE.CylinderGeometry(bs.x * 0.5, bs.x * 0.78, len, 20, 1, true), mat(O.skirt)); sk.material.side = THREE.DoubleSide; sk.scale.z = Math.max(0.8, bs.z / bs.x * 1.1);
     put(sk, 'hips', new THREE.Vector3(bc.x, bb.min.y + bs.y * 0.14 - len / 2, bc.z));
     if (O.apron) { const ap = new THREE.Mesh(new THREE.PlaneGeometry(bs.x * 0.75, len * 0.85), mat(O.apron)); ap.material.side = THREE.DoubleSide; put(ap, 'hips', new THREE.Vector3(bc.x, bb.min.y + bs.y * 0.1 - len * 0.45, bb.max.z + bs.z * 0.25)); }
   }
+  // ---- prendas de los seres de leyenda (Basajaun, lamias, sorginas) ----
+  const lb = box(legs), lsz = lb.getSize(new THREE.Vector3());
+  if (O.hairLong && head.length) {   // melena que cae por la espalda desde la nuca (el pelo de la cabeza se tiñe del mismo color)
+    const g = new THREE.Group(), w = sz.x * 0.36, len = sz.y * (O.hairLen || 1.2);
+    const back = new THREE.Mesh(new THREE.CapsuleGeometry(w, len, 6, 14), mat(O.hairLong)); back.scale.z = 0.45; back.position.y = -len / 2; g.add(back);
+    if (O.shaggy) for (let i = 0; i < 7; i++) { const a = (i / 6 - 0.5) * 2.2, t = new THREE.Mesh(new THREE.ConeGeometry(w * 0.3, w * 1.1, 5), mat(O.hairLong)); t.position.set(Math.sin(a) * w * 0.9, -len - w * 0.2, Math.cos(a) * w * 0.2); t.rotation.z = Math.PI; g.add(t); }   // puntas desgreñadas
+    put(g, 'head', new THREE.Vector3(hc.x, hc.y + sz.y * 0.12, hb.min.z + sz.z * 0.12));
+    if (O.scalp) {   // pelambrera en lo alto de la cabeza (sin tapar la frente), con greñas hacia atrás
+      const sc = new THREE.Group(), r = sz.x * 0.5;
+      const cap = new THREE.Mesh(new THREE.SphereGeometry(r, 18, 8, 0, Math.PI * 2, 0, Math.PI * 0.5), mat(O.hairLong)); cap.scale.y = 0.32; sc.add(cap);
+      for (let i = 0; i < 7; i++) { const a = Math.PI * 0.6 + i / 6 * Math.PI * 0.8, t = new THREE.Mesh(new THREE.ConeGeometry(r * 0.2, r * 0.6, 5), mat(O.hairLong)); t.position.set(Math.sin(a) * r * 0.9, r * 0.1, Math.cos(a) * r * 0.9); t.rotation.set(Math.cos(a) * 1.9, 0, -Math.sin(a) * 1.9); sc.add(t); }
+      put(sc, 'head', new THREE.Vector3(hc.x, hb.max.y - sz.y * 0.1, hc.z - sz.z * 0.04));
+    }
+  }
+  if (O.beard && head.length) {   // barba espesa del mentón hacia el pecho, con bigote
+    const g = new THREE.Group(), w = sz.x * 0.3, len = sz.y * (O.beardLen || 0.5);
+    const bd = new THREE.Mesh(new THREE.ConeGeometry(w, len, 12), mat(O.beard)); bd.rotation.x = Math.PI; bd.scale.z = 0.5; bd.position.y = -len / 2; g.add(bd);
+    const mo = new THREE.Mesh(new THREE.CapsuleGeometry(w * 0.16, w * 0.9, 4, 8), mat(O.beard)); mo.rotation.z = Math.PI / 2; mo.position.set(0, w * 0.12, w * 0.12); g.add(mo);
+    put(g, 'head', new THREE.Vector3(hc.x, hb.min.y + sz.y * 0.2, hb.max.z - sz.z * 0.06));
+  }
+  if (O.fur && body.length) {   // manto de pelo (o toquilla) sobre los hombros, con el borde deshilachado
+    const geo = new THREE.CylinderGeometry(bs.x * 0.46, bs.x * 0.66, bs.y * (O.furLen || 0.6), 18, 3, true), pos = geo.attributes.position;
+    for (let i = 0; i < pos.count; i++) { const y = pos.getY(i); if (y < 0) pos.setY(i, y - (O.shawl ? 0 : Math.abs(Math.sin(i * 12.9898) * 43758.5453 % 1) * bs.y * 0.25)); }
+    geo.computeVertexNormals();
+    const m = new THREE.Mesh(geo, mat(O.fur)); m.material.side = THREE.DoubleSide; m.scale.z = Math.max(0.8, bs.z / bs.x * 1.15);
+    put(m, 'chest', new THREE.Vector3(bc.x, bb.max.y - bs.y * (O.furLen || 0.6) * 0.5, bc.z));
+  }
+  if (O.staff) {   // makila o cayado en la mano derecha, de pie
+    const hand = bone('handslot.r') || bone('hand.r');
+    if (hand) { const hp = new THREE.Vector3().setFromMatrixPosition(hand.matrixWorld), L = (bb.max.y - lb.min.y) * 1.25; const st = new THREE.Mesh(new THREE.CylinderGeometry(L * 0.018, L * 0.024, L, 7), mat(O.staff)); put(st, hand.name, new THREE.Vector3(hp.x, lb.min.y + L / 2, hp.z)); }
+  }
+  if (O.comb && head.length) {   // peine de oro de la lamia, prendido en el pelo
+    const g = new THREE.Group(), w = sz.x * 0.5;
+    const top = new THREE.Mesh(new THREE.BoxGeometry(w, w * 0.18, w * 0.08), new THREE.MeshStandardMaterial({ color: O.comb, metalness: 0.9, roughness: 0.25 })); g.add(top);
+    for (let i = 0; i < 7; i++) { const t = new THREE.Mesh(new THREE.BoxGeometry(w * 0.05, w * 0.3, w * 0.05), top.material); t.position.set(-w * 0.42 + i * w * 0.14, -w * 0.2, 0); g.add(t); }
+    g.rotation.x = -0.5; put(g, 'head', new THREE.Vector3(hc.x + sz.x * 0.2, hb.max.y - sz.y * 0.05, hc.z - sz.z * 0.25));
+  }
+  if (O.duckFeet) for (const sd of ['l', 'r']) {   // patas de pato: palmeadas, asomando bajo la falda
+    const f = bone('foot.' + sd); if (!f) continue;
+    const fp = new THREE.Vector3().setFromMatrixPosition(f.matrixWorld), w = lsz.x * 0.4;
+    const g = new THREE.Group(), web = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 8), mat(O.duckFeet)); web.scale.set(w, w * 0.22, w * 1.4); web.position.z = w * 2.3; g.add(web);
+    for (const a of [-0.45, 0, 0.45]) { const toe = new THREE.Mesh(new THREE.CapsuleGeometry(w * 0.12, w * 1.1, 3, 6), mat(O.duckFeet)); toe.rotation.set(Math.PI / 2, 0, 0); toe.rotation.y = a; toe.position.set(Math.sin(a) * w * 0.9, 0, w * 2.3 + Math.cos(a) * w * 0.9); g.add(toe); }
+    put(g, f.name, new THREE.Vector3(fp.x, lb.min.y + w * 0.2, fp.z));
+  }
   return added;
 }
+/** Seres de leyenda con el cuerpo de los personajes nuevos: cuerpo base, altura (m) y traje. */
+export const MYTHS = {
+  basajaun: { base: 'Barbarian', height: 3.2, female: false, outfit: { id: 'myth-basajaun', shirt: '#5a3e26', pants: '#4a3420', shoes: '#3a2a1c', accent: '#3a2814', hairLong: '#4e3420', hairLen: 0.8, shaggy: true, scalp: true, beard: '#4e3420', beardLen: 0.55, fur: '#5e4128' } },
+  lamia: { base: 'Mage', height: 2.5, female: true, outfit: { id: 'myth-lamia', shirt: '#6ab0a0', pants: '#4a9a8a', shoes: '#4a9a8a', accent: '#3a8a7a', hairLong: '#e8c34a', hairLen: 1.5, comb: '#f2c230', skirt: '#4a9a8a', skirtLen: 0.9, duckFeet: '#e8a030' } },
+  sorgina: { base: 'Mage', height: 2.3, female: true, outfit: { id: 'myth-sorgina', shirt: '#3d3350', pants: '#2a2440', shoes: '#1e1a22', accent: '#2a2440', hairLong: '#dcd7cf', hairLen: 0.6, cachirulo: '#3d3350', fur: '#2a2440', furLen: 0.5, shawl: true, skirt: '#2a2440', skirtLen: 1 } },
+  roldan: { base: 'Knight', height: 2.6, female: false, outfit: 'original' },
+};
 /** Traje de una comarca para un vecino (mujeres con falda del color de la zona). */
 const SKIRTS = { bidasoa: '#2a2a32', 'larraun-leitzaldea': '#3a2a4a', sakana: '#5a3a2a', pamplona: '#f6f3ec', pirineo: '#a8202a', prepirineo: '#2a3a5a', sanguesa: '#6a1e2a', 'tierra-estella': '#1e3a6a', 'valdizarbe-novenera': '#5a2a3a', 'zona-media': '#2a2a3a', 'ribera-alta': '#3a2a2a', ribera: '#4a2a5a' };
 export function regionalOutfit(region, female, rnd = Math.random) {

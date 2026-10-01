@@ -1,6 +1,7 @@
 // Partida en un pueblo o ciudad: misiones con pasos claros, personajes, minijuegos y sello final.
 import * as THREE from 'three';
 import { Actor, cullActor, frameFrustum } from '../actors/people.js';
+import { MYTHS } from '../actors/outfits.js';
 import { PLACES, BRIDGES } from '../world/layout.js';
 import { groundHeight, terrainHeight, waterLevelAt } from '../world/heightfield.js';
 import { TOWN } from '../world/townBuilder.js';
@@ -1328,7 +1329,8 @@ export class TownGame {
     const look = FOLK[M.m.who] || FOLK.basajaun;
     if (!M.creature) {
       const s = M.lair;
-      const a = new Actor({ id: 'c' + M.i, name: M.leg.creature, x: s.x, z: s.z, heading: Math.atan2(this.player.pos.x - s.x, this.player.pos.z - s.z), look, mini: look }, this.scene);
+      const myth = MYTHS[M.m.who] ? M.m.who : null;   // con el cuerpo de los personajes nuevos y su traje de leyenda
+      const a = new Actor({ id: 'c' + M.i, name: M.leg.creature, x: s.x, z: s.z, heading: Math.atan2(this.player.pos.x - s.x, this.player.pos.z - s.z), look: myth ? { ...look, myth } : look, mini: myth ? undefined : look }, this.scene);
       a.collider.ghost = true; a.base = a.obj.scale.x || 1;
       // el caballero es sólo una sombra de niebla: translúcido y azulado
       if (M.m.who === 'roldan') a.obj.traverse(o => { if (o.isMesh && o.material) { o.material = o.material.clone(); o.material.transparent = true; o.material.opacity = 0.62; o.material.depthWrite = false; } });

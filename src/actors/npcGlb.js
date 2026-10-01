@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { GlbChar, loadChar, loadKayKit } from './glbChar.js';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { applyOutfit, regionalOutfit } from './outfits.js';
+import { applyOutfit, regionalOutfit, MYTHS } from './outfits.js';
 import boyUrl from '../assets/chars/char_protagonista_lod.glb?url';
 import girlUrl from '../assets/chars/char_nerea_lod.glb?url';
 
@@ -75,13 +75,14 @@ function lookOutfit(L, female) {
   return O;
 }
 export function buildNpcKK(L) {
-  const female = !!(L.female || L.skirt || L.ponytail || L.bun || L.braids || L.longHair || L.lashes);
+  const M = L.myth && MYTHS[L.myth];   // ser de leyenda: su cuerpo, su traje y su altura de gigante
+  const female = M ? M.female : !!(L.female || L.skirt || L.ponytail || L.bun || L.braids || L.longHair || L.lashes);
   const h = (JSON.stringify(L).split('').reduce((a, c) => (a * 31 + c.charCodeAt(0)) | 0, 7) >>> 0);
-  const list = L.old && !female ? KK_SEX.old : KK_SEX[female ? 'girl' : 'boy'], base = list[h % list.length];
-  const gltf = kkTemplate(base, lookOutfit(L, female));
+  const list = L.old && !female ? KK_SEX.old : KK_SEX[female ? 'girl' : 'boy'], base = M ? M.base : list[h % list.length];
+  const gltf = kkTemplate(base, M ? M.outfit : lookOutfit(L, female));
   const char = new GlbChar(gltf, { walkAt: 0.2, runAt: 4.6, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / 3.0, 0.85) : Math.pow(Math.max(0.2, v) / 1.35, 0.8) });
-  const H = L.height || (L.child ? 1.2 : 1.5);
-  const k = (gltf.userData.fit || 1) * THREE.MathUtils.clamp(H / 1.5, 0.7, 1.15);
+  const H = M ? M.height : L.height || (L.child ? 1.2 : 1.5);
+  const k = (gltf.userData.fit || 1) * (M ? H / 1.5 : THREE.MathUtils.clamp(H / 1.5, 0.7, 1.15));
   char.root.scale.setScalar(k);
   const obj = new THREE.Group(); obj.add(char.root); obj.userData.glbNpc = true; obj.userData.sex = female ? 'girl' : 'boy'; obj.userData.H = H;
   const anim = {
