@@ -742,7 +742,7 @@ def mix_color(nt, a, color, fac):
     nt.links.new(fac, m.inputs['Factor']); nt.links.new(a, m.inputs[6]); m.inputs[7].default_value = (*color, 1)
     return m.outputs[2]
 
-def color_extras(d, ao_img, zlo, zhi, blush=None, dots=None, grain=None):
+def color_extras(d, ao_img, zlo, zhi, blush=None, dots=None, grain=None, rects=None):
     """Oclusión al 20 %, degradado de ±6 % (claro arriba, oscuro abajo), rubor y puntos pintados (botones)."""
     def fn(nt, sock):
         geo = nt.nodes.new('ShaderNodeNewGeometry'); sep = nt.nodes.new('ShaderNodeSeparateXYZ'); nt.links.new(geo.outputs['Position'], sep.inputs[0])
@@ -764,6 +764,22 @@ def color_extras(d, ao_img, zlo, zhi, blush=None, dots=None, grain=None):
             nt.links.new(nz.outputs['Fac'], gm.inputs['Value'])
             gc = nt.nodes.new('ShaderNodeCombineColor'); [nt.links.new(gm.outputs['Result'], gc.inputs[i]) for i in range(3)]
             sock = mul_color(nt, sock, gc.outputs[0])
+        if rects:
+            # rectángulos pintados (bolsillos, solapas, raya del calcetín): |x| alrededor de cx, z alrededor de cz, y en [y0, y1]
+            def m(op, a, b=None, v=None):
+                n = nt.nodes.new('ShaderNodeMath'); n.operation = op
+                for i, x in enumerate((a, b)):
+                    if x is None: continue
+                    if isinstance(x, (int, float)): n.inputs[i].default_value = x
+                    else: nt.links.new(x, n.inputs[i])
+                return n.outputs[0]
+            for R in rects:
+                ax = m('ABSOLUTE', sep.outputs['X'])
+                fx = m('LESS_THAN', m('ABSOLUTE', m('SUBTRACT', ax, R['cx'])), R['hx'])
+                fz = m('LESS_THAN', m('ABSOLUTE', m('SUBTRACT', sep.outputs['Z'], R['cz'])), R['hz'])
+                fy = m('MULTIPLY', m('GREATER_THAN', sep.outputs['Y'], R.get('y0', -9)), m('LESS_THAN', sep.outputs['Y'], R.get('y1', 9)))
+                f = m('MULTIPLY', m('MULTIPLY', fx, fz), fy)
+                sock = mix_color(nt, sock, srgb2lin(R['color']), f)
         if blush:
             for p in blush['pts']:
                 dist = nt.nodes.new('ShaderNodeVectorMath'); dist.operation = 'DISTANCE'; dist.inputs[1].default_value = p
@@ -833,7 +849,7 @@ def bake_atlases(d, G, mats, tex_dir):
     imgs = {}
     solid_mods(False)
     for key, main, allo, size, zr, extras in (
-        ('Body', body_main, body_all, 1024, (0.0, 1.05), dict(grain={'scale': 260, 'k': 0.07}, **({} if d.get('buttons') else dict(dots={'pts': [(0.034, -0.162, z) for z in (0.69, 0.735, 0.78)], 'r': 0.0095, 'color': d['colors']['button']})))),
+        ('Body', body_main, body_all, 1024, (0.0, 1.05), dict(grain={'scale': 260, 'k': 0.07}, rects=d.get('rects'), **({} if d.get('buttons') else dict(dots={'pts': [(0.034, -0.162, z) for z in (0.69, 0.735, 0.78)], 'r': 0.0095, 'color': d['colors']['button']})))),
         ('Face', face_main, face_all, 512, (0.98, 1.68), dict(blush={'pts': [tuple(Hm.sph(d, s * d.get('blush_ll', (38, -18))[0], d.get('blush_ll', (38, -18))[1])) for s in (1, -1)], 'r': 0.06, 'k': 0.45, 'color': d['colors']['blush']})),
     ):
         mat = mats['body' if key == 'Body' else 'face']

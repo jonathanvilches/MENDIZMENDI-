@@ -657,3 +657,27 @@
 .tools li b { font-size: 16px; } .tools li i { color: #FFD700; font-style: normal; font-weight: 800; } .tools li span { grid-column: 1 / -1; color: #d8cebf; font-size: 14px; }
 .antes-ahora { display: grid; gap: 8px; width: 100%; text-align: left; margin: 4px 0 10px; }
 .antes-ahora div { padding: 10px 12px; border-radius: 12px; background: rgba(255, 255, 255, .06); line-height: 1.35; } .antes-ahora b { display: block; color: #FFD700; }
+
+/* ---------- Mochila del explorador ---------- */
+.round.bag { overflow: visible; }
+.round.bag .ering { position: absolute; inset: -5px; border-radius: 50%; pointer-events: none;
+  background: conic-gradient(#7ee05a calc(var(--e, 100) * 1%), rgba(255, 255, 255, .14) 0);
+  -webkit-mask: radial-gradient(circle, transparent 58%, #000 60%); mask: radial-gradient(circle, transparent 58%, #000 60%); }
+.round.bag.low .ering { background: conic-gradient(#ff5a4a calc(var(--e, 100) * 1%), rgba(255, 255, 255, .14) 0); animation: pulse 1s infinite alternate; }
+@keyframes pulse { to { opacity: .45; } }
+.bagpanel .mg-card { max-width: 560px; width: 100%; max-height: 92vh; overflow-y: auto; text-align: left; }
+.bagpanel h3 { margin: 0 0 6px; } .bagpanel h4 { margin: 14px 0 6px; color: #FFD700; font-size: 15px; letter-spacing: .04em; text-transform: uppercase; }
+.bp-head { display: flex; gap: 12px; align-items: center; } .bp-head > div { flex: 1; }
+.ebar { height: 12px; border-radius: 6px; background: rgba(255, 255, 255, .12); overflow: hidden; margin-bottom: 4px; }
+.ebar i { display: block; height: 100%; background: linear-gradient(90deg, #f5c542, #7ee05a); border-radius: 6px; }
+.bp-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.drops { display: flex; gap: 4px; } .drops span { opacity: .25; } .drops span.on { opacity: 1; }
+.bp-food { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; }
+.fooditem { display: grid; justify-items: center; gap: 2px; padding: 8px 6px; border-radius: 12px; background: rgba(255, 255, 255, .07); border: 2px solid transparent; color: inherit; font: inherit; cursor: pointer; }
+.fooditem:hover { border-color: #FFD700; } .fooditem b { font-size: 14px; } .fooditem span { font-size: 12px; opacity: .8; }
+.bp-gear { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-bottom: 12px; }
+.gitem { display: grid; grid-template-columns: 34px 1fr; column-gap: 8px; align-items: center; padding: 8px; border-radius: 12px; background: rgba(255, 255, 255, .07); }
+.gitem b { font-size: 14px; } .gitem small { grid-column: 1 / -1; font-size: 12px; opacity: .8; line-height: 1.3; margin-top: 4px; }
+.gitem.locked { opacity: .55; }
+@media (max-width: 520px) { .bp-gear { grid-template-columns: 1fr 1fr; } .gitem small { display: none; } }
+.bagpanel .mg-card { align-items: stretch; gap: 4px; } .bagpanel .btn.small { min-width: 0; min-height: 36px; } .bagpanel .btn.primary { align-self: center; }
