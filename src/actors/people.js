@@ -19,7 +19,9 @@ export class Actor {
     this.def = def;
     this.id = def.id; this.name = def.name;
     // vecinos: el mismo modelo que el personaje principal; los seres de leyenda y carnaval (mini) siguen con su traje propio
-    if (!def.mini && npcsReady()) { const n = buildNpc(def.look); this.obj = n.obj; this.glb = n.char; this.anim = n.anim; this.J = {}; }
+    const L = def.look || {};
+    const costume = L.fur || L.horns || L.duck || L.feet === 'duck' || L.crown || L.ribbons || L.bell || L.shaggy || ['mask', 'cone', 'basket'].includes(L.hat);
+    if (!def.mini && !costume && npcsReady()) { const n = buildNpc(def.look); this.obj = n.obj; this.glb = n.char; this.anim = n.anim; this.J = {}; }
     else { this.obj = buildMinifig(def.mini || lookToMinifig(def.look)); this.J = this.obj.userData.J; this.anim = new MinifigAnimator(this.obj); }
     scene.add(this.obj);
     this.pos = new THREE.Vector3(def.x, 0, def.z);

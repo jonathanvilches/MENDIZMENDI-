@@ -351,8 +351,8 @@
   "mensajes": []
  },
  "reimportacion": {
-  "altura_m": 1.677,
-  "pies_z": -0.001,
+  "altura_m": 1.67,
+  "pies_z": 0.005,
   "mira_a_-Y": false,
   "acciones": [
    "Celebrate_RIG_Nerea",

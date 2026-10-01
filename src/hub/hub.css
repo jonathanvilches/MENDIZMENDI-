@@ -732,3 +732,7 @@
 .enc-warn.on { opacity: 1; animation: encPulse .5s infinite alternate; }
 @keyframes encPulse { to { transform: translateX(-50%) scale(1.08); } }
 .enc-help { position: absolute; left: 50%; bottom: max(14px, env(safe-area-inset-bottom)); transform: translateX(-50%); padding: 6px 14px; border-radius: 12px; background: rgba(0, 0, 0, .4); font-size: 13px; white-space: nowrap; max-width: 92vw; overflow: hidden; text-overflow: ellipsis; }
+
+/* aviso de error discreto */
+.errnote { position: fixed; left: 10px; bottom: max(10px, env(safe-area-inset-bottom)); z-index: 90; max-width: min(92vw, 520px); padding: 8px 12px; border-radius: 10px; border: 0; background: rgba(140, 30, 30, .92); color: #fff; font: 700 12px Nunito, sans-serif; text-align: left; opacity: 0; transform: translateY(8px); transition: .25s; pointer-events: none; }
+.errnote.on { opacity: 1; transform: none; pointer-events: auto; }

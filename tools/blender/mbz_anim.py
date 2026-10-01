@@ -38,7 +38,9 @@ def legs(p, upL, upR, kL, kR):
     # giro en el mundo: el pie se queda casi plano (solo un 12 % de la inclinación de la espinilla:
     # punta arriba al apoyar el talón delante y talón levantado detrás)
     # (26 %: el talón se levanta al impulsarse detrás y la punta sube al apoyar delante)
-    p['LeftFoot'] = Rx((upL + kL) * 0.26); p['RightFoot'] = Rx((upR + kR) * 0.26)
+    # el tobillo solo se dobla un poco: con la rodilla muy doblada el pie acompaña a la espinilla (así la bota no se estira)
+    ank = lambda a: a - max(-0.3, min(0.42, a * 0.74))
+    p['LeftFoot'] = Rx(ank(upL + kL)); p['RightFoot'] = Rx(ank(upR + kR))
     p['LeftToeBase'] = p['LeftFoot']; p['RightToeBase'] = p['RightFoot']
     return p
 
@@ -61,7 +63,7 @@ def clips(H=1.62):
         ph = TAU * t / T; p = {}
         spine(p, lean=0.015 * math.sin(2 * ph), roll=0.025 * math.sin(ph), head=Rx(0.02 * math.sin(2 * ph + 1)) @ Rz(0.06 * math.sin(ph + 0.4)), hips=Ry(0.025 * math.sin(ph)))
         p['_hips_loc'] = Vector((0, 0, -0.004 * (1 + math.cos(2 * ph))))
-        arms(p, 0.04 * math.sin(2 * ph), 0.04 * math.sin(2 * ph + 0.6), 0.22, 0.22, -0.04, -0.04)
+        arms(p, 0.04 * math.sin(2 * ph), 0.04 * math.sin(2 * ph + 0.6), 0.22, 0.22, -0.12, -0.12)
         legs(p, 0, 0, 0.03 * (1 + math.sin(ph)), 0.03 * (1 - math.sin(ph)))
         return p
     out.append(('Idle', 96, idle, True, F('Neutral')))
@@ -72,14 +74,14 @@ def clips(H=1.62):
         kL = 0.06 + knee * max(0, -math.sin(ph)) ** 1.2; kR = 0.06 + knee * max(0, math.sin(ph)) ** 1.2
         spine(p, lean=lean, yaw=0.09 * math.cos(ph), head=Rx(-0.02 * math.sin(2 * ph)), hips=Rz(-0.15 * math.cos(ph)) @ Ry(0.04 * math.cos(ph)))
         p['_hips_loc'] = Vector((0, 0, -bob * math.cos(2 * ph) - bob))
-        arms(p, arm * math.cos(ph), -arm * math.cos(ph), 0.35, 0.35, 0.06, 0.06)
+        arms(p, arm * math.cos(ph), -arm * math.cos(ph), 0.35 + 0.12 * max(0, -math.cos(ph)), 0.35 + 0.12 * max(0, math.cos(ph)), -0.1, -0.1)
         legs(p, upL, upR, kL, kR)
         return p
     out.append(('Walk', 30, walk, True, F('Smile')))
     def run(t, T):
         ph = TAU * t / T
         p = walk(t, T, amp=0.85, knee=1.6, lean=0.3, arm=0.8, bob=0.035)
-        arms(p, 0.8 * math.cos(ph), -0.8 * math.cos(ph), 1.5, 1.5, 0.12, 0.12)
+        arms(p, 0.75 * math.cos(ph), -0.75 * math.cos(ph), 1.35 + 0.35 * max(0, -math.cos(ph)), 1.35 + 0.35 * max(0, math.cos(ph)), -0.14, -0.14)
         return p
     out.append(('Run', 18, run, True, F('SmileOpen', 'Happy', 'Fist')))
     def jstart(t, T):

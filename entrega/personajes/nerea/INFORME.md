@@ -16,7 +16,7 @@ Personaje 100 % original, modelado desde cero con bpy y bmesh (Blender 4.2). Se 
 | Texturas | Body 1024 px, Face 512 px, T_Eyes 256 px (PNG 8 bits sRGB) |
 | Clips | 13 |
 | Validador glTF | 0 errores, 0 avisos, 0 informativos |
-| Reimportación en Blender limpio | altura 1,677 m, pies en z = -0,001, mira a −Y: no, 13 acciones, 21 variantes |
+| Reimportación en Blender limpio | altura 1,670 m, pies en z = 0,005, mira a −Y: no, 13 acciones, 21 variantes |
 
 ## Triángulos por pieza
 

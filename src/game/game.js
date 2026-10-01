@@ -685,7 +685,8 @@ export class Game {
     Z.bell -= dt;
     const d = Math.hypot(a.pos.x - P.x, a.pos.z - P.z);
     if (Z.bell < 0) { Z.bell = d > 40 ? 1.6 : 1.0; for (let i = 0; i < 3; i++) setTimeout(() => this.sound.cowbell(a.pos, 1.2), i * 160); }
-    a.J.torso.rotation.z = Math.sin(this.elapsed * 8) * 0.12;
+    // con el modelo nuevo no hay «torso» suelto: se balancea la figura entera
+    if (a.J.torso) a.J.torso.rotation.z = Math.sin(this.elapsed * 8) * 0.12; else a.obj.rotation.z = Math.sin(this.elapsed * 8) * 0.08;
     if (a.J.bell) a.J.bell.rotation.z = Math.sin(this.elapsed * 14) * 0.5;
     if (d < 3.2 && !Z.fleeing) {
       Z.fleeing = 1;
