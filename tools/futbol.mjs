@@ -45,6 +45,12 @@ const play = (secs) => p.evaluate((secs) => {
 }, secs);
 await p.evaluate(() => { const F = window.__game.futbol; F.intro = 0; F.pause = 0; });
 console.log('cambio', await p.evaluate(() => { const F = window.__game.futbol, n0 = F.me.n; F.swapQ = true; F.update(1 / 30); return JSON.stringify({ antes: n0, ahora: F.me.n, homeField: F.all.filter(q => q.side === 'home' && q.role === 'field').length }); }));
+// tiros a puerta contra el portero rival: cuántos para, bloca o despeja
+console.log('portero', await p.evaluate(() => { const F = window.__game.futbol, b = F.b, K = F.all.find(q => q.side === 'away' && q.role === 'keeper'); let paradas = 0, goles = 0;
+  for (let k = 0; k < 10; k++) { Object.assign(b, { x: (Math.random() - 0.5) * 6, z: 22, y: 0.3, vx: (Math.random() - 0.5) * 4, vz: 20, vy: 1 + Math.random() * 2.5, owner: null, last: 'home' }); K.x = 0; K.z = 35.2; K.tried = false; K.dive = 0;
+    const s0 = F.score.home; let saved = false; for (let i = 0; i < 40; i++) { F.update(1 / 30); if (b.owner === K || (b.vz < 0 && b.last === 'away')) { saved = true; break; } if (F.score.home > s0 || F.pause > 0) break; }
+    if (saved) paradas++; else if (F.score.home > s0) goles++; F.pause = 0; F.nextKick = null; }
+  return JSON.stringify({ paradas, goles }); }));
 console.log('juego 1', await play(8)); await shot('partido-tv');
 await p.evaluate(() => window.__game.futbol.nextCam()); await p.waitForTimeout(2500); await shot('partido-detras');
 await p.evaluate(() => window.__game.futbol.nextCam()); await p.waitForTimeout(2500); await shot('partido-aerea');

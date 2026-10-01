@@ -88,11 +88,11 @@ export class Futbol {
     this.team = [
       { ...npc(KIT.home, 1, { female: R() < 0.4 }), side: 'home', role: 'field', post: [-9, -10], speed: 6.0, n: 7 },
       { ...npc(KIT.home, 2, { female: R() < 0.4 }), side: 'home', role: 'field', post: [9, -16], speed: 5.8, n: 4 },
-      { ...npc(KIT.away, 3, { female: R() < 0.4 }), side: 'away', role: 'field', post: [6, 8], speed: 6.2, n: 9 },
-      { ...npc(KIT.away, 4, { female: R() < 0.4 }), side: 'away', role: 'field', post: [-7, 12], speed: 6.0, n: 11 },
-      { ...npc(KIT.away, 0, { female: R() < 0.4 }), side: 'away', role: 'field', post: [0, 20], speed: 5.6, n: 5 },
+      { ...npc(KIT.away, 3, { female: R() < 0.4 }), side: 'away', role: 'field', post: [6, 8], speed: 6.8, n: 9 },
+      { ...npc(KIT.away, 4, { female: R() < 0.4 }), side: 'away', role: 'field', post: [-7, 12], speed: 6.6, n: 11 },
+      { ...npc(KIT.away, 0, { female: R() < 0.4 }), side: 'away', role: 'field', post: [0, 20], speed: 6.3, n: 5 },
       { ...npc(KIT.keepH, 3), side: 'home', role: 'keeper', speed: 4.4, save: 0.62, n: 1 },
-      { ...npc(KIT.keepA, 1), side: 'away', role: 'keeper', speed: 4.2, save: 0.5, n: 1 },
+      { ...npc(KIT.keepA, 1), side: 'away', role: 'keeper', speed: 4.6, save: 0.62, n: 1 },
     ];
     for (const p of this.team) { p.vx = 0; p.vz = 0; p.h = p.side === 'home' ? 0 : Math.PI; num(p.n, p, p.side === 'away' && p.role === 'field'); }
     this.all = [this.me, ...this.team];
@@ -223,7 +223,7 @@ export class Futbol {
     // ---- los demás
     for (const p of this.team) p.role === 'keeper' ? this.keeper(p, dt) : this.fieldAI(p, dt);
     if (b.owner === null) this.ballPhysics(dt);
-    else if (b.owner !== me) { const o = b.owner; b.x = o.x + Math.sin(o.h) * 0.6; b.z = o.z + Math.cos(o.h) * 0.6; b.y = BR; b.vx = o.vx; b.vz = o.vz; b.last = o.side; b.lastP = o; }
+    else if (b.owner !== me) { const o = b.owner, kp = o.role === 'keeper'; b.x = o.x + Math.sin(o.h) * (kp ? 0.35 : 0.6); b.z = o.z + Math.cos(o.h) * (kp ? 0.35 : 0.6); b.y = kp ? 1.0 : BR; b.vx = o.vx; b.vz = o.vz; b.last = o.side; b.lastP = o; }
     if (Math.abs(b.x) < GW && b.y < GH && Math.abs(b.z) > HZ + 0.15) return this.goal(b.z > 0 ? 'home' : 'away');
     this.crowdT -= dt; if (this.crowdT <= 0) { this.crowdT = 1.1; G.sound.crowd?.(0.25 + (Math.abs(b.z) > HZ - 14 ? 0.35 : 0)); }
     this.place(dt); this.camera(dt); this.drawHud();
@@ -264,7 +264,7 @@ export class Futbol {
       if (L > 10) this.say(pick(SAY.pass), 1000);
     } else Object.assign(b, { vx: Math.sin(me.h) * 12, vz: Math.cos(me.h) * 12, vy: 0.5 });
   }
-  steal(who) { const b = this.b; if (b.owner === null || b.owner === who) return true; const rate = who === this.me ? 3 : b.owner === this.me ? 1.5 : 1.1; return Math.random() < 1 - Math.exp(-rate * this.dt); }
+  steal(who) { const b = this.b; if (b.owner === null || b.owner === who) return true; if (b.owner.role === 'keeper') return false; const rate = who === this.me ? 2.6 : b.owner === this.me ? 2.3 : 1.1; return Math.random() < 1 - Math.exp(-rate * this.dt); }
 
   fieldAI(p, dt) {
     const b = this.b, me = this.me, own = b.owner === p, attack = p.side === 'home' ? 1 : -1;
@@ -301,24 +301,69 @@ export class Futbol {
     }
     this.moveTo(p, tx, tz, sp, dt);
   }
+  // portero: se coloca cerrando el ángulo, adivina adónde va el tiro y se estira, bloca o despeja, sale a por los
+  // balones sueltos cerca del área y, con el balón en las manos, saca rápido hacia un compañero
   keeper(p, dt) {
     const b = this.b, gz = p.side === 'home' ? -HZ + 0.8 : HZ - 0.8, dir = Math.sign(gz);
-    const tx = Math.max(-GW + 0.5, Math.min(GW - 0.5, b.x * 0.55));
-    this.moveTo(p, tx, gz, p.speed, dt, true);
+    p.hold = Math.max(0, (p.hold || 0) - dt);
+    // con el balón en las manos: lo saca a un compañero
+    if (b.owner === p) {
+      p.h = dir > 0 ? Math.PI : 0; this.moveTo(p, p.x, gz - dir * 1.5, 2, dt, true);
+      if (p.hold <= 0) {
+        const mates = this.all.filter(q => q.side === p.side && q.role === 'field'), mate = mates.sort((a, c) => Math.abs(a.x) - Math.abs(c.x))[Math.floor(Math.random() * mates.length)];
+        const dx = mate.x - b.x, dz = mate.z - b.z, L = Math.hypot(dx, dz) || 1, far = L > 18;
+        b.owner = null; Object.assign(b, { vx: dx / L * (far ? 18 : 12), vz: dz / L * (far ? 18 : 12), vy: far ? 6 : 1.2, last: p.side, lastP: p });
+        p.char.playOnce?.(far ? 'Hit' : 'Wave', 0.4); this.G.sound.pelota?.(0.6);
+      }
+      return;
+    }
+    // estirada en curso
+    if (p.dive > 0) {
+      p.dive -= dt; p.x += p.dvx * dt; p.x = Math.max(-GW - 0.6, Math.min(GW + 0.6, p.x)); p.tilt = Math.sign(p.dvx) * Math.min(1.25, (0.55 - p.dive) * 5);
+      this.keeperTouch(p, dir);
+      if (p.dive <= 0) { p.tilt = 0; p.cur = 0; }
+      return;
+    }
+    p.tilt = 0;
+    // colocación: un poco fuera de la línea según lo cerca que esté el balón, y en la bisectriz del ángulo
+    const dBall = Math.hypot(b.x, b.z - gz), out = Math.max(0.3, Math.min(3.2, 6 - dBall * 0.15));
+    let tx = Math.max(-GW + 0.4, Math.min(GW - 0.4, b.x * Math.min(1, 5 / Math.max(5, dBall)) * 1.2)), tz = gz - dir * out;
+    // balón suelto cerca del área y sin rival encima: sale a por él
+    const loose = b.owner === null && Math.abs(b.z - gz) < 9 && Math.abs(b.x) < 9 && Math.hypot(b.vx, b.vz) < 9;
+    const rivalNear = this.all.some(q => q.side !== p.side && Math.hypot(q.x - b.x, q.z - b.z) < Math.hypot(p.x - b.x, p.z - b.z) - 0.5);
+    if (loose && !rivalNear) { tx = b.x; tz = b.z; }
+    this.moveTo(p, tx, tz, loose && !rivalNear ? p.speed * 1.5 : p.speed, dt, true);
     p.h = dir > 0 ? Math.PI : 0;
-    const coming = Math.sign(b.vz) === dir && Math.abs(b.z - gz) < 1.4 && b.owner === null && Math.abs(b.x) < GW + 0.3;
-    if (coming && !p.tried) {
-      p.tried = true;
-      if (Math.abs(b.x - p.x) < 1.9 && b.y < 2.2 && Math.random() < p.save) {
-        Object.assign(b, { vz: -b.vz * 0.35, vx: (Math.random() - 0.5) * 6, vy: 2.5, last: p.side, lastP: p });
-        p.char.playOnce?.('Celebrate', 0.6); this.say(pick(SAY.save)); this.G.sound.crowd?.(0.9);
+    // tiro hacia la portería: calcula por dónde cruzará la línea y se lanza
+    const towards = b.owner === null && Math.sign(b.vz) === dir && Math.abs(b.vz) > 5;
+    if (towards) {
+      const t = (p.z - b.z) / b.vz;
+      if (t > 0 && t < 0.9) {
+        const ix = b.x + b.vx * t, iy = b.y + b.vy * t - 4.9 * t * t;
+        if (Math.abs(ix) < GW + 1 && Math.abs(ix - p.x) > 0.5 && !p.tried) {
+          p.tried = true;
+          // reflejos: no siempre llega (depende de la distancia, la colocación y su habilidad)
+          const post = Math.abs(ix) > GW - 0.7 ? 0.55 : 1, react = Math.min(1, t / 0.55);   // a la escuadra o muy rápido, cuesta más
+          const reach = (0.5 + p.save * 1.5 + (Math.random() - 0.5) * 0.9) * post * react, need = Math.abs(ix - p.x);
+          const go = Math.max(0, Math.min(need, reach)), sgn = Math.sign(ix - p.x);
+          p.dive = 0.55; p.dvx = sgn * go / 0.4; p.diveY = Math.max(0.2, Math.min(2.2, iy));
+          p.char.playOnce?.('Jump_Start', 0.3);
+        }
       }
     }
-    if (Math.abs(b.z - gz) > 4) p.tried = false;
-    if (b.owner === null && Math.hypot(b.x - p.x, b.z - p.z) < 0.9 && Math.hypot(b.vx, b.vz) < 3) {
-      const mates = this.all.filter(q => q.side === p.side && q.role === 'field'), mate = mates[Math.floor(Math.random() * mates.length)];
-      const dx = mate.x - b.x, dz = mate.z - b.z, L = Math.hypot(dx, dz) || 1;
-      Object.assign(b, { vx: dx / L * 14, vz: dz / L * 14, vy: 4, last: p.side, lastP: p }); p.char.playOnce?.('Hit', 0.4);
+    this.keeperTouch(p, dir);
+    if (Math.abs(b.z - gz) > 6) p.tried = false;
+  }
+  // ¿toca el balón? manos a la altura del salto: lo bloca si llega flojo, lo despeja si llega fuerte
+  keeperTouch(p, dir) {
+    const b = this.b; if (b.owner !== null && b.owner !== undefined) return;
+    const hy = p.dive > 0 ? (p.diveY || 0.8) : 1.0, dx = b.x - p.x, dz = b.z - p.z, dy = b.y - hy;
+    const r = p.dive > 0 ? 0.75 : 0.6;
+    if (dx * dx + dz * dz < r * r && Math.abs(dy) < 1.3 && b.last !== p.side) {
+      const v = Math.hypot(b.vx, b.vz, b.vy);
+      if (v < 14 && Math.random() < 0.6) { b.owner = p; b.vx = b.vz = b.vy = 0; p.hold = 1.1; this.say('¡La blocó el portero!'); }
+      else { Object.assign(b, { vz: -dir * Math.abs(b.vz) * 0.35, vx: (Math.random() < 0.5 ? -1 : 1) * (4 + Math.random() * 4), vy: 2.5 + Math.random() * 2, last: p.side, lastP: p }); this.say(pick(SAY.save)); }
+      p.char.playOnce?.('Celebrate', 0.6); this.G.sound.crowd?.(0.9); this.G.sound.pelota?.(0.7);
     }
   }
   moveTo(p, tx, tz, sp, dt, side = false) {
@@ -360,7 +405,7 @@ export class Futbol {
     this.ball.position.set(w.x, this.gy(b.x, b.z) + b.y, w.z);
     const v = Math.hypot(b.vx, b.vz); if (v > 0.05) { this.ball.rotation.x += (b.vz / BR) * dt; this.ball.rotation.z -= (b.vx / BR) * dt; }
     for (const p of this.all) {
-      const q = this.W(p.x, p.z); p.obj.position.set(q.x, this.gy(p.x, p.z), q.z); p.obj.rotation.y = p.h;
+      const q = this.W(p.x, p.z), dive = p.tilt || 0; p.obj.position.set(q.x, this.gy(p.x, p.z) + Math.abs(dive) * 0.35, q.z); p.obj.rotation.set(0, p.h, -dive);
       p.anim.update(dt, { speed: p.cur || 0 });
     }
     // el explorador (oculto) sigue al jugador para que todo lo demás (cámara, sonido, vecinos) esté en su sitio

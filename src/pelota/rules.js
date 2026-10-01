@@ -28,9 +28,9 @@ export const PHYS = {
 
 // Niveles: ritmo del partido (cámara lenta), ayuda al jugador y fuerza del rival
 export const LEVELS = {
-  facil: { tempo: 0.5, reach: 1.7, assist: 1.6, rival: { speed: 4.2, react: 0.42, error: 0.26, smart: 0.2 } },
-  normal: { tempo: 0.58, reach: 1.45, assist: 0.7, rival: { speed: 5.0, react: 0.3, error: 0.16, smart: 0.45 } },
-  dificil: { tempo: 0.68, reach: 1.25, assist: 0, rival: { speed: 5.8, react: 0.2, error: 0.09, smart: 0.75 } },
+  facil: { tempo: 0.52, reach: 1.7, assist: 1.4, rival: { speed: 4.8, react: 0.36, error: 0.12, smart: 0.35 } },
+  normal: { tempo: 0.6, reach: 1.45, assist: 0.6, rival: { speed: 5.5, react: 0.25, error: 0.065, smart: 0.6 } },
+  dificil: { tempo: 0.7, reach: 1.25, assist: 0, rival: { speed: 6.2, react: 0.17, error: 0.03, smart: 0.85 } },
 };
 
 const EU_NUM = ['hutsa', 'bat', 'bi', 'hiru', 'lau', 'bost', 'sei', 'zazpi', 'zortzi', 'bederatzi', 'hamar', 'hamaika', 'hamabi', 'hamahiru', 'hamalau', 'hamabost', 'hamasei', 'hamazazpi', 'hamazortzi', 'hemeretzi', 'hogei', 'hogeita bat', 'hogeita bi'];

@@ -202,8 +202,11 @@ export class Encierro {
   // HUD propio: caídas que quedan, barra hasta la plaza y avisos
   hud() {
     const h = this.h = document.createElement('div'); h.className = 'enc-hud';
-    h.innerHTML = `<div class="enc-top"><div class="enc-hearts"></div><div class="enc-bar"><i></i><b>Plaza</b></div></div><div class="enc-msg"></div><div class="enc-warn">¡Toro detrás! Apártate</div><div class="enc-help">${this.G.input.touch ? 'Mueve el dedo a los lados para esquivar · arriba para correr más' : 'A / D o ← → para esquivar · W o Mayús para correr más'}</div>`;
+    h.innerHTML = `<div class="enc-top"><div class="enc-hearts"></div><div class="enc-bar"><i></i><b>Plaza</b></div></div><div class="enc-msg"></div><div class="enc-warn">¡Toro detrás! Apártate</div><div class="enc-help">${this.G.input.touch ? 'Dedo a los lados: esquivar · arriba: correr · SALTAR los caídos · PERIÓDICO para guiar al toro' : 'A / D esquivar · W o Mayús correr · Espacio saltar · P periódico · C cámara'}</div>
+      <div class="enc-btns"><button class="enc-b enc-jump" data-k="jump">SALTAR</button><button class="enc-b enc-paper" data-k="paper">PERIÓDICO</button></div>
+      <button class="enc-cam" data-k="cam">CÁMARA</button>`;
     document.body.appendChild(h);
+    for (const b of h.querySelectorAll('[data-k]')) b.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); const k = b.dataset.k; if (k === 'jump') this.jumpQ = true; if (k === 'paper') this.paperQ = true; if (k === 'cam') this.nextCam(); });
   }
   msg(t, ms = 1800) { const m = this.h?.querySelector('.enc-msg'); if (!m) return; m.textContent = t; m.classList.add('on'); clearTimeout(this.mt); this.mt = setTimeout(() => m.classList.remove('on'), ms); }
 
@@ -231,6 +234,20 @@ export class Encierro {
     if (!this.started || this.done) { this.place(); this.cam(dt); return; }
     // jugador: corre solo hacia la plaza; adelante = más rápido, atrás = más despacio, a los lados = esquivar
     const fy = inp.move.y, fx = inp.move.x;
+    if (inp.consume(' ')) this.jumpQ = true;
+    if (inp.consume('p')) this.paperQ = true;
+    if (inp.consume('c')) this.nextCam();
+    // salto (para pasar por encima de los que se han caído)
+    if (this.jumpQ) { this.jumpQ = false; if (!(me.jump > 0) && me.fall <= 0) { me.jump = 0.62; me.char.playOnce?.('Jump_Start', 0.2); this.G.sound.jump?.(); } }
+    if (me.jump > 0) me.jump -= dt;
+    me.y = me.jump > 0 ? Math.sin((1 - me.jump / 0.62) * Math.PI) * 0.75 : 0;
+    // el periódico: como hacen los corredores, se agita delante del toro para que lo siga y no al corredor
+    this.paperCd = Math.max(0, (this.paperCd || 0) - dt);
+    if (this.paperQ) { this.paperQ = false;
+      const b = this.bulls.filter(b => b.kind === 'bull' && !b.out && b.z > me.z && b.z - me.z < 9).sort((a, c) => a.z - c.z)[0];
+      if (this.paperCd > 0) this.msg(`El periódico, en ${Math.ceil(this.paperCd)} s`, 900);
+      else if (b) { this.paperCd = 8; b.lure = 1.6; b.lureX = me.x > 0 ? -1.4 : 1.4; me.char.playOnce?.('Wave', 0.6); this.msg('¡Bien! El toro sigue el periódico y se aparta de ti', 1800); this.closeCall += 0.4; }
+      else this.msg('El periódico sirve cuando un toro está justo detrás', 1200); }
     if (me.fall > 0) { me.fall -= dt; me.speed = Math.max(0, me.speed - dt * 12); }
     else { const want = (inp.run || fy > 0.35) ? 7.2 : fy < -0.35 ? 3.0 : 5.3; me.speed += (want - me.speed) * Math.min(1, dt * 3); me.x += fx * 3.8 * dt; }
     me.x = Math.max(-HALF + 0.45, Math.min(HALF - 0.45, me.x)); me.z -= me.speed * dt; me.safe -= dt;
@@ -239,10 +256,22 @@ export class Encierro {
       const b = this.bulls.find(b => !b.out && b.z > r.z && b.z - r.z < 7 && Math.abs(b.x - r.x) < 1.6);
       r.want = b ? Math.sign(r.x || 1) * (HALF - 0.5) : r.want;
       if (!b && Math.random() < dt * 0.3) r.want = (Math.random() - 0.5) * 4;
-      r.x += Math.max(-3, Math.min(3, (r.want - r.x) * 2)) * dt; r.z -= r.speed * dt;
+      // algunos corredores tropiezan y caen delante: hay que esquivarlos o saltarlos
+      if (r.fallen > 0) { r.fallen -= dt; if (r.fallen <= 0) r.char?.playOnce?.('Jump_Start', 0.3); }
+      else {
+        if (!this.fallT) this.fallT = 4; this.fallT -= dt / this.runners.length;
+        if (this.fallT <= 0 && r.z < me.z - 7 && r.z > me.z - 16 && Math.abs(r.x - me.x) < 1.6) { this.fallT = 5 + Math.random() * 4; r.fallen = 3 + Math.random(); this.msg('¡Se ha caído un corredor! Sáltalo (SALTAR) o esquívalo', 2000); }
+        else { r.x += Math.max(-3, Math.min(3, (r.want - r.x) * 2)) * dt; r.z -= r.speed * dt; }
+      }
       if (r.z < -END + 4) r.z = -END + 4;
       // el jugador no atraviesa a los demás
       const dx = me.x - r.x, dz = me.z - r.z, d = Math.hypot(dx, dz);
+      if (r.fallen > 0) {   // caído en el suelo: si no saltas, tropiezas
+        if (Math.abs(dz) < 0.7 && Math.abs(dx) < 0.75 && !(me.y > 0.25) && me.fall <= 0 && !r.jumped) { r.jumped = true; me.speed *= 0.25; me.fall = 0.45; this.msg('¡Tropiezas con el caído! Pulsa SALTAR para pasar por encima', 1600); }
+        else if (Math.abs(dz) < 0.7 && Math.abs(dx) < 0.75 && me.y > 0.25 && !r.jumped) { r.jumped = true; this.msg('¡Buen salto!', 900); }
+        continue;
+      }
+      r.jumped = false;
       if (d < 0.7 && d > 1e-3) { me.x += dx / d * (0.7 - d) * 0.8; if (dz > 0) me.speed *= 0.97; }
     }
     // toros y cabestros: corren en manada hacia la plaza haciendo eses; el que choca con el jugador lo tira
@@ -253,6 +282,7 @@ export class Encierro {
       b.ph += dt * 6;
       // la manada va por el centro haciendo eses: pegarse a la pared es la forma de salvarse (como en la realidad)
       b.x = b.x0 + Math.sin(this.t * 0.7 + b.x0 * 2) * 0.55; b.x = Math.max(-1.45, Math.min(1.45, b.x));
+      if (b.lure > 0) { b.lure -= dt; b.lx = (b.lx ?? b.x) + ((b.lureX ?? b.x) - (b.lx ?? b.x)) * Math.min(1, dt * 3); b.x = b.lx; } else b.lx = b.x;
       b.z -= b.speed * dt;
       if (b.z < this.plaza.cz - RA * 0.5) { b.out = true; b.q.root.visible = false; continue; }
       const dz = b.z - me.z, dx = Math.abs(b.x - me.x);
@@ -284,10 +314,10 @@ export class Encierro {
   // coloca a todos (los cuadrúpedos con su galope)
   place() {
     const me = this.me;
-    me.obj.position.set(me.x, 0, me.z); me.obj.rotation.y = Math.PI;
+    me.obj.position.set(me.x, me.y || 0, me.z); me.obj.rotation.y = Math.PI;
     me.anim.update(1 / 60, { speed: me.fall > 0 ? 0 : me.speed });
     if (me.fall > 0) me.obj.rotation.x = -Math.min(1.2, (1.3 - me.fall) * 4) * 0.35; else me.obj.rotation.x = 0;
-    for (const r of this.runners) { r.obj.position.set(r.x, 0, r.z); r.obj.rotation.y = Math.PI; r.anim.update(1 / 60, { speed: this.started ? r.speed : 0 }); }
+    for (const r of this.runners) { const f = r.fallen > 0; r.obj.position.set(r.x, f ? 0.22 : 0, r.z); r.obj.rotation.set(f ? -Math.PI / 2 + 0.15 : 0, Math.PI, 0); r.anim.update(1 / 60, { speed: this.started && !f ? r.speed : 0 }); }
     for (const b of this.bulls) {
       const q = b.q, run = this.started && this.t > 2.8 + b.delay && !b.out, ph = b.ph;
       const off = [0.46, 0.58, 0.0, 0.12];
@@ -310,7 +340,10 @@ export class Encierro {
       const want = new THREE.Vector3(Math.sin(a) * 15 * k + me.x * (1 - k), 3.3 + 7 * k, cz + (me.z + 7.2 - cz) * (1 - k) + Math.cos(a) * 15 * k);
       c.position.lerp(want, Math.min(1, dt * 3)); c.lookAt(0, 2.5 * k + 1.3 * (1 - k), cz * k + (me.z - 7) * (1 - k)); return;
     }
-    const want = new THREE.Vector3(me.x * 0.6, 3.3, me.z + 7.2), look = new THREE.Vector3(me.x * 0.5, 1.3, me.z - 7);
+    // cámaras: detrás del corredor, desde un balcón, aérea o mirando atrás a la manada
+    const M = this.camMode || 'detras';
+    const want = M === 'balcon' ? new THREE.Vector3(HALF * 0.9, 7.5, me.z + 4) : M === 'aerea' ? new THREE.Vector3(me.x * 0.3, 15, me.z + 9) : M === 'toros' ? new THREE.Vector3(me.x * 0.6, 2.4, me.z - 5.5) : new THREE.Vector3(me.x * 0.6, 3.3, me.z + 7.2);
+    const look = M === 'balcon' ? new THREE.Vector3(me.x, 1.0, me.z - 4) : M === 'aerea' ? new THREE.Vector3(me.x * 0.4, 0, me.z - 6) : M === 'toros' ? new THREE.Vector3(me.x * 0.5, 1.2, me.z + 8) : new THREE.Vector3(me.x * 0.5, 1.3, me.z - 7);
     if (!this.camCur) this.camCur = want.clone(); else this.camCur.lerp(want, Math.min(1, dt * 5));
     c.position.copy(this.camCur);
     if (me.fall > 0) c.position.y += Math.sin(this.t * 40) * 0.05;
@@ -318,6 +351,11 @@ export class Encierro {
     c.lookAt(look);
   }
 
+  nextCam() {
+    const L = ['detras', 'balcon', 'aerea', 'toros'], i = L.indexOf(this.camMode || 'detras');
+    this.camMode = L[(i + 1) % L.length]; this.camCur = null;
+    this.msg({ detras: 'Cámara: detrás del corredor', balcon: 'Cámara: desde el balcón', aerea: 'Cámara: aérea', toros: 'Cámara: mirando a los toros' }[this.camMode], 1100);
+  }
   async finish(win) {
     if (this.done) return; this.done = true; this.won = win; if (win) { this.stands?.cheer(true); this.crowd?.cheer(true); }
     const G = this.G;
