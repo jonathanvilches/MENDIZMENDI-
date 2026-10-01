@@ -34,10 +34,9 @@ export class Actor {
   constructor(def, scene) {
     this.def = def;
     this.id = def.id; this.name = def.name;
-    // vecinos y seres de leyenda (myth): el mismo cuerpo que los personajes nuevos; los de carnaval (mini) siguen con su traje propio
+    // todos (vecinos, carnaval y seres de leyenda) con el cuerpo de los personajes nuevos; la minifigura solo si aún no han cargado
     const L = def.look || {};
-    const costume = L.fur || L.horns || L.duck || L.feet === 'duck' || L.crown || L.ribbons || L.bell || L.shaggy || ['mask', 'cone', 'basket'].includes(L.hat);
-    if ((L.myth || (!def.mini && !costume)) && npcsReady()) { const n = buildNpc(def.look); this.obj = n.obj; this.glb = n.char; this.anim = n.anim; this.J = {}; }
+    if (npcsReady()) { const n = buildNpc(def.look); this.obj = n.obj; this.glb = n.char; this.anim = n.anim; this.J = {}; }
     else { this.obj = buildMinifig(def.mini || lookToMinifig(def.look)); this.J = this.obj.userData.J; this.anim = new MinifigAnimator(this.obj); }
     scene.add(this.obj);
     this.pos = new THREE.Vector3(def.x, 0, def.z);
