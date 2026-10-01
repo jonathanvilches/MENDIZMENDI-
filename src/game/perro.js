@@ -14,9 +14,16 @@ export class Perro {
     this.g = game; const P = game.player.pos;
     // punto al lado del jugador (a su izquierda, un poco adelantado): el perro camina a la par
     this.side = { pos: new THREE.Vector3(), companion: true, speed: 0, face: 0 };
-    this.spawnDog(P.x + 1.2, P.z);
+    if (this.on) this.spawnDog(P.x + 1.2, P.z);
     this.lead = null; this.best = null; this.stuck = 0; this.cool = 20; this.printT = 0;
     this.goal = { pos: new THREE.Vector3() };
+  }
+  // ¿vamos con perro? (se puede elegir ir solo)
+  get on() { return this.g.P.dogOn !== false; }
+  setOn(v) {
+    const g = this.g, P = g.player.pos; g.P.dogOn = !!v; saveProfile();
+    if (v && !this.dog) { this.spawnDog(P.x + 1.2, P.z); g.sound?.bark?.(this.dog.pos); g.ui.toast(`${this.name} viene contigo`, 'dog', 2000); }
+    if (!v && this.dog) { const F = g.fauna; g.scene.remove(this.dog.obj); F.animals.splice(F.animals.indexOf(this.dog), 1); this.dog = null; this.lead = null; g.ui.toast(`${this.name} se queda en casa. Puedes llamarlo desde la mochila.`, 'dog', 2600); }
   }
   get breed() { return DOG_BREEDS[this.g.P.dogBreed] ? this.g.P.dogBreed : 'gorbeia'; }
   spawnDog(x, z) {
@@ -31,9 +38,11 @@ export class Perro {
       const prev = g.mode; g.player.frozen = true; g.mode = 'mini';
       const o = document.createElement('div'); o.className = 'mg-overlay dogpick';
       const card = (id, B) => `<button data-b="${id}" class="${id === this.breed ? 'on' : ''}"><i style="--c:${B.c};--p:${B.patch || B.light}"></i><b>${B.dogName} · ${B.name}</b><small>${B.text}</small></button>`;
-      o.innerHTML = `<div class="mg-card"><div class="mg-top">${iconSVG('dog', 48)}<div><h3>Elige a tu perro</h3><small>Te acompañará a tu lado en todas las misiones</small></div></div><div class="breeds">${Object.entries(DOG_BREEDS).map(([id, B]) => card(id, B)).join('')}</div><button class="btn primary" data-ok>¡Este!</button></div>`;
+      o.innerHTML = `<div class="mg-card"><div class="mg-top">${iconSVG('dog', 48)}<div><h3>Elige a tu perro</h3><small>Te acompañará a tu lado en todas las misiones</small></div></div><div class="breeds">${Object.entries(DOG_BREEDS).map(([id, B]) => card(id, B)).join('')}</div><div class="dogpick-foot"><button class="btn" data-none>Ir sin perro</button><button class="btn primary" data-ok>¡Este!</button></div></div>`;
       let pick = this.breed;
-      o.addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.b) { pick = b.dataset.b; o.querySelectorAll('[data-b]').forEach(x => x.classList.toggle('on', x === b)); g.sound?.ui?.('click'); } if (b.hasAttribute('data-ok')) { o.remove(); g.player.frozen = false; g.mode = prev === 'mini' ? 'play' : prev; if (pick !== this.breed) { g.P.dogBreed = pick; saveProfile(); const D = this.dog.pos; this.spawnDog(D.x, D.z); } g.sound?.bark?.(this.dog.pos); res(); } });
+      o.addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.b) { pick = b.dataset.b; o.querySelectorAll('[data-b]').forEach(x => x.classList.toggle('on', x === b)); g.sound?.ui?.('click'); } const done = () => { o.remove(); g.player.frozen = false; g.mode = prev === 'mini' ? 'play' : prev; res(); };
+        if (b.hasAttribute('data-none')) { this.setOn(false); done(); }
+        if (b.hasAttribute('data-ok')) { if (pick !== this.breed || !this.dog) { g.P.dogBreed = pick; saveProfile(); g.P.dogOn = true; const D = this.dog?.pos || g.player.pos; this.spawnDog(D.x + (this.dog ? 0 : 1.2), D.z); } g.sound?.bark?.(this.dog.pos); done(); } });
       document.body.appendChild(o);
     });
   }
@@ -41,11 +50,12 @@ export class Perro {
   async hello() {
     const P = this.g.P; if (P.seen?.dog) return;
     (P.seen ||= {}).dog = true; saveProfile();
-    await infoCard(this.g.ui, { icon: 'dog', kicker: 'Tu compañero de aventuras', title: 'Tu compañero de cuatro patas', text: `Tu perro te espera. Puedes elegir entre varias razas de Navarra y del Pirineo. Irá siempre a tu lado en las misiones. Si te pierdes, se adelantará para enseñarte el camino. También puedes pedírselo con la tecla H o desde la mochila.`, button: 'Elegir mi perro' });
+    await infoCard(this.g.ui, { icon: 'dog', kicker: 'Tu compañero de aventuras', title: 'Tu compañero de cuatro patas', text: `Tu perro te espera. Puedes elegir entre varias razas de Navarra y del Pirineo. Irá siempre a tu lado en las misiones. Si te pierdes, se adelantará para enseñarte el camino. También puedes pedírselo con la tecla H o desde la mochila. Si prefieres ir solo, elige «Ir sin perro»: podrás llamarlo cuando quieras desde la mochila.`, button: 'Elegir mi perro' });
     await this.choose();
   }
   // el jugador pide ayuda
   help() {
+    if (!this.dog) { this.g.ui.toast('Vas sin perro. Puedes llamarlo desde la mochila.', 'dog', 2400); return; }
     const t = this.g.target();
     if (!t) { this.g.ui.toast(`${this.name} mueve la cola: ahora no hay nada que buscar`, 'dog', 2200); return; }
     this.chain = 3; this.startLead(t);
@@ -61,6 +71,7 @@ export class Perro {
   }
   update(dt) {
     const g = this.g, P = g.player.pos, D = this.dog;
+    if (!D) return;
     { const h = g.player.heading ?? 0, sp = g.player.speed || 0, lead = Math.min(1.2, sp * 0.18);
       this.side.pos.set(P.x + Math.cos(h) * 1.15 + Math.sin(h) * (0.2 + lead), 0, P.z - Math.sin(h) * 1.15 + Math.cos(h) * (0.2 + lead));
       this.side.speed = sp; this.side.face = h; }

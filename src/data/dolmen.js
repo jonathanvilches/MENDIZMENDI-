@@ -1,5 +1,5 @@
 // El dolmen y los primeros pastores de Navarra (Neolítico y Edad del Bronce, hace unos 5.000 años).
-export const DOLMEN_TOWNS = ['artajona', 'altsasu-alsasua'];
+export const DOLMEN_TOWNS = ['artajona', 'altsasu-alsasua', 'lekunberri'];
 export const DOLMEN = {
   intro: [
     'Hola, soy arqueóloga: estudio cómo vivía la gente hace miles de años a partir de lo que dejó enterrado.',

@@ -10,7 +10,7 @@ import { setOutlines } from './minifig.js';
 import { beast, bird, squirrel, woodpecker, trout, owl } from './beasts.js';
 
 // Los modelos (anatomía por secciones, pelaje y aves) están en beasts.js
-const SPECIES = { sheep: 'sheep', dog: 'dog', cow: 'cow', pottoka: 'pottoka', corzo: 'corzo', ciervo: 'ciervo', jabali: 'jabali', zorro: 'zorro', goat: 'goat' };
+const SPECIES = { sheep: 'sheep', dog: 'dog', cow: 'cow', pottoka: 'pottoka', corzo: 'corzo', ciervo: 'ciervo', jabali: 'jabali', pig: 'pig', zorro: 'zorro', goat: 'goat' };
 function quadruped(kind, rnd) { return beast(typeof kind === 'string' ? kind : 'sheep', rnd); }
 
 // ---------- Animal con comportamiento ----------
@@ -202,7 +202,14 @@ export class Fauna {
     const sheepN = fam === 'ribera' ? 6 : 10;
     for (let i = 0; i < sheepN; i++) { const [x, z] = near({ x: farm.x + (P.farm.x > 0 ? 25 : -25), z: farm.z + 30 }, 30); this.flock.push(this.add('sheep', x, z, { range: 14, walk: 0.5, run: 2.8, flee: 3.5, radius: 0.45 })); }
     if (fam === 'atlantic' || fam === 'pyrenean') for (let i = 0; i < 5; i++) { const [x, z] = near({ x: farm.x, z: farm.z - 45 }, 40); this.add('cow', x, z, { range: 25, walk: 0.6, radius: 0.8, flee: 0 }); }
-    if (['bidasoa', 'larraun-leitzaldea', 'sakana'].includes(com)) for (let i = 0; i < 4; i++) { const [x, z] = near(P.edgeN || P.forest, 60); this.add('pottoka', x, z, { range: 30, walk: 1, run: 5, radius: 0.6, flee: 5 }); }
+    // pottokas: unas sueltas en el monte y otras en el prado cerca del pueblo, para poder verlas de cerca
+    if (['bidasoa', 'larraun-leitzaldea', 'sakana', 'pirineo', 'pamplona'].includes(com)) {
+      for (let i = 0; i < 3; i++) { const [x, z] = near(P.edgeN || P.forest, 60); this.add('pottoka', x, z, { range: 30, walk: 1, run: 5, radius: 0.6, flee: 5 }); }
+      for (let i = 0; i < 3; i++) { const [x, z] = near({ x: farm.x + (farm.x > 0 ? -20 : 20), z: farm.z - 20 }, 24); this.add('pottoka', x, z, { range: 18, walk: 0.9, run: 4, radius: 0.6, flee: 3 }); }
+    }
+    // euskal txerri (cerdo vasco) junto a los caseríos del norte, más en Larraun
+    if (['bidasoa', 'larraun-leitzaldea', 'sakana', 'pirineo'].includes(com)) { const n = com === 'larraun-leitzaldea' ? 7 : 3;
+      for (let i = 0; i < n; i++) { const [x, z] = near({ x: farm.x + (farm.x > 0 ? 12 : -12), z: farm.z + 12 }, 18); this.add('pig', x, z, { range: 10, walk: 0.45, run: 2.4, radius: 0.5, flee: 2.5, scale: 1.1 + rnd() * 0.15 }); } }
     this.wild = [];
     const forest = P.forest || { x: 0, z: -300 };
     for (let i = 0; i < 4; i++) { const [x, z] = near(forest, 120); this.wild.push(this.add('corzo', x, z, { id: 'corzo', range: 20, walk: 0.9, run: 7, flee: 13, radius: 0.35 })); }

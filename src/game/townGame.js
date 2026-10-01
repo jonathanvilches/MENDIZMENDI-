@@ -42,7 +42,7 @@ const CROP = {
   alcachofa: ['alcachofas', 'alcachofa'], cardo: ['cardos', 'cardo'], tomate: ['tomates', 'tomate'], trigo: ['gavillas de trigo', 'trigo'], patata: ['patatas', 'patata'],
   manzana: ['manzanas', 'manzana'], almendra: ['almendras', 'almendra'], pocha: ['vainas de pocha', 'pocha'], maiz: ['mazorcas', 'corn'],
 };
-const ANIMAL = { sheep: ['ovejas', 'sheep'], cows: ['vacas', 'cow'], pottoka: ['pottokas', 'pottoka'], horses: ['caballos', 'pottoka'], goats: ['cabras', 'sheep'] };
+const ANIMAL = { sheep: ['ovejas', 'sheep'], cows: ['vacas', 'cow'], pottoka: ['pottokas', 'pottoka'], horses: ['caballos', 'pottoka'], goats: ['cabras', 'sheep'], pigs: ['cerdos', 'pig'] };
 const TRADE = {
   herrero: { title: 'El herrero', game: 'timing', verb: 'Golpear', icon: 'anvil', hint: 'Golpea el hierro cuando la marca esté en la zona roja.', act: 'hammer', look: { shirt: '#5a4a3a', apron: '#3a2a1a', pants: '#2b2630', hammer: true } },
   palomero: { title: 'Los palomeros', game: 'timing', verb: 'Agitar la paleta', icon: 'net', hint: 'Agita la paleta blanca justo cuando pasa el bando de palomas.', act: 'wave' },
@@ -559,9 +559,9 @@ export class TownGame {
         else { this.player.rig.doAct('pick', 0.8); await S(['¡Qué buena cosecha! Esto lo llevaremos al mercado.']); await this.complete(M, { card: CROP[m.crop]?.[0], cardText: m.text }); }
         return;
       case 'herd':
-        if (M.step === 0) { await S([m.text, 'Acércate por detrás de los animales para que avancen hacia la puerta del redil. Si corres, se asustan.']); this.startHerd(M); }
+        if (M.step === 0) { await S([...(m.story || []), m.text, 'Acércate por detrás de los animales para que avancen hacia la puerta del redil. Si corres, se asustan.']); this.startHerd(M); }
         else if (M.step === 1) await S([`Quedan ${M.need - M.count}. Rodéalos con calma.`]);
-        else { await S(['¡Todos dentro! Buen trabajo de pastor.']); await this.complete(M, { card: M.title, cardText: m.text }); }
+        else { await S([m.outro || '¡Todos dentro! Buen trabajo de pastor.']); await this.complete(M, { card: m.card || M.title, cardText: m.cardText || m.text }); }
         return;
       case 'dance':
         if (M.step === 0) { await S([m.text, 'Ven al centro de la plaza y sigue el ritmo con las flechas.']); M.step = 1; }
@@ -892,7 +892,7 @@ export class TownGame {
       if (!s.penned && inPen(s)) {
         s.penned = true; s.fleeDist = 0; s.home = { x: pen.x, z: pen.z }; s.range = 3;
         s.bounds = (X, Z) => Math.abs(X - pen.x) < pen.w / 2 - 0.8 && Math.abs(Z - pen.z) < pen.d / 2 - 0.8;
-        if (s.kind === 'cow') this.sound.moo(s.pos); else this.sound.baa(s.pos);
+        if (s.kind === 'cow') this.sound.moo(s.pos); else if (s.kind === 'pig') this.sound.oink?.(s.pos); else this.sound.baa(s.pos);
         this.sound.ui('coin'); this.particles.emit({ x: s.pos.x, y: s.pos.y + 1.2, z: s.pos.z }, { n: 12, color: '#ffe38a', speed: 1.5, size: 0.25 });
       }
       if (s.penned) n++;

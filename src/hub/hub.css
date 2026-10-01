@@ -692,3 +692,5 @@
 .breeds i { grid-row: span 2; width: 46px; height: 46px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, var(--p) 0 30%, var(--c) 31%); box-shadow: inset 0 0 0 3px rgba(0, 0, 0, .25); }
 .breeds b { font-size: 15px; } .breeds small { font-size: 12.5px; opacity: .85; line-height: 1.3; }
 @media (max-width: 520px) { .breeds { grid-template-columns: 1fr; } }
+.dogrow { flex-wrap: wrap; gap: 8px; } .dogtoggle { flex: 1 1 100%; margin: 0; justify-content: flex-start; } .dogtoggle button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex: 1 1 120px; }
+.dogpick-foot { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; width: 100%; } .dogpick-foot .btn { flex: 1 1 160px; max-width: 260px; }

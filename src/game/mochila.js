@@ -90,13 +90,15 @@ export class Mochila {
       const food = Object.entries(P.bag.food).filter(([k, n]) => n > 0 && FOOD[k]);
       root.innerHTML = `<div class="mg-card">
         <div class="bp-head">${iconSVG('backpack', 44)}<div><h3>Tu mochila</h3><div class="ebar"><i style="width:${P.energy.toFixed(0)}%"></i></div><small>Energía ${P.energy.toFixed(0)} %${P.energy < 25 ? ' · ¡come o bebe algo!' : ''}</small></div></div>
+        ${g.perro ? `<h4>Perro</h4>
+        <div class="bp-row dogrow"><div class="gender dogtoggle" role="group" aria-label="Ir con perro o sin perro"><button data-a="dogon" class="${g.perro.dog ? 'on' : ''}">${iconSVG('dog', 22)} Con ${esc(g.perro.name)}</button><button data-a="dogoff" class="${g.perro.dog ? '' : 'on'}">Sin perro</button></div>
+          ${g.perro.dog ? `<button class="btn small" data-a="dog">¡Enséñame el camino!</button>` : ''}<button class="btn small" data-a="breed">Elegir perro</button></div>` : ''}
         <h4>Agua</h4>
         <div class="bp-row">${this.has('cantimplora') ? `<div class="drops">${[0, 1, 2].map(i => `<span class="${i < P.bag.agua ? 'on' : ''}">${iconSVG('water', 22)}</span>`).join('')}</div><button class="btn small" data-a="drink" ${P.bag.agua ? '' : 'disabled'}>Beber</button>` : `<small>Bebe en la fuente de una plaza: te darán una cantimplora.</small>`}</div>
         <h4>Comida</h4>
         <div class="bp-food">${food.length ? food.map(([k, n]) => `<button class="fooditem" data-f="${k}" title="${esc(FOOD[k].fact)}">${iconSVG(FOOD[k].icon, 34)}<b>${esc(FOOD[k].name)}</b><span>×${n} · +${FOOD[k].e}</span></button>`).join('') : '<small>Vacía. Busca moras, avellanas y manzanas por el campo, o gana comida en las misiones de productos.</small>'}</div>
         <h4>Equipo</h4>
         <div class="bp-gear">${GEAR_ORDER.map(id => { const G = GEAR[id], h = this.has(id); return `<div class="gitem ${h ? '' : 'locked'}" title="${esc(h ? G.use : G.how)}">${iconSVG(h ? G.icon : 'lock', 30)}<b>${esc(h ? G.name : '¿?')}</b><small>${esc(h ? G.use : G.how)}</small></div>`; }).join('')}</div>
-        ${g.perro ? `<div class="bp-row"><button class="btn" data-a="dog">${iconSVG('dog', 24)} ${esc(g.perro.name)}, ¡enséñame el camino!</button><button class="btn small" data-a="breed">Cambiar de perro</button></div>` : ''}
         <button class="btn primary" data-a="close">Cerrar</button></div>`;
     };
     draw();
@@ -108,6 +110,8 @@ export class Mochila {
       if (b.dataset.a === 'close') return close();
       if (b.dataset.a === 'dog') { close(); return g.perro.help(); }
       if (b.dataset.a === 'breed') { close(); return g.perro.choose(); }
+      if (b.dataset.a === 'dogoff') { if (g.perro.dog) { g.perro.setOn(false); draw(); } return; }
+      if (b.dataset.a === 'dogon') { if (!g.perro.dog) { g.perro.setOn(true); draw(); } return; }
       if (b.dataset.a === 'drink') { this.drink(); g.ui.toast('¡Glu, glu! +22 de energía', 'water', 1600); }
       if (b.dataset.f) { const F = FOOD[b.dataset.f]; if (this.eat(b.dataset.f)) g.ui.toast(`¡Ñam! ${F.name}: +${F.e}. ${F.fact}`, F.icon, 4200); }
       draw();
