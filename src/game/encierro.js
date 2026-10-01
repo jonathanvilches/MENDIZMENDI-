@@ -10,6 +10,7 @@ import { buildNpc } from '../actors/npcGlb.js';
 import { infoCard } from '../ui/minigames.js';
 import { buildPlaza, RO, RA } from './encierroPlaza.js';
 import { crowdMesh } from '../actors/crowdSprites.js';
+import { GLB_AVATARS } from '../actors/glbChar.js';
 import { cobbleSet, ashlarSet, brickSet, woodSet, plasterSet, windowTex, railingTex, shopTex, SHOPS, plaqueTex, sandTex, archTex, flagNavarraTex } from './encierroTex.js';
 
 const L = 230;          // largo de la Estafeta en la escena (m); luego el callejón vallado y la plaza
@@ -201,7 +202,7 @@ export class Encierro {
   spawn() {
     const S = this.scene, rnd = mulberry(11), av = this.G.P.avatar;
     const white = { shirt: '#f7f3ea', pants: '#f7f3ea', sash: '#d42f2f', scarf: '#d42f2f', shoes: '#efe6d0', espadrille: true };
-    const me = buildNpc({ ...white, female: av === 'nerea', ponytail: av === 'nerea', hair: av === 'nerea' ? '#aa5c2a' : '#3a2418', skin: '#f1c4a0' });
+    const me = buildNpc({ ...white, base: GLB_AVATARS[av]?.kaykit, female: ['nerea', 'rogue', 'mage'].includes(av) });   // tu personaje, de blanco y rojo
     S.add(me.obj); this.me = { ...me, x: 0, z: -14, speed: 0, fall: 0, safe: 0 };
     this.runners = [];
     for (let i = 0; i < 12; i++) {

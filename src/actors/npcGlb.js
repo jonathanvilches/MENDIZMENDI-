@@ -72,19 +72,35 @@ function lookOutfit(L, female) {
   if (L.txapela) O.beret = L.txapela; if (L.scarf) O.scarf = L.scarf; if (L.sash) O.sash = L.sash;
   if (female && L.skirt) { O.skirt = L.skirt; if (L.apron) O.apron = L.apron; }
   if (!female && L.apron) O.sash = O.sash || L.apron;
+  // trajes de carnaval y de fiesta: lo que lleven en la cabeza, cencerros, cintas, pieles, cuernos…
+  if (L.pattern2) O.accent = L.pattern2;
+  if (L.fur || L.shaggy) { O.fur = L.fur || L.shaggy; O.furLen = 0.55; }
+  const hc = L.hatColor || L.shirt || '#3a3530';
+  if (L.hat === 'cone') { O.cone = hc; if (L.ribbons) O.ribbons = ['#e03c3c', '#f2c230', '#3a8fd6', '#3ca05a']; }
+  else if (L.hat === 'mask') { O.mask = hc; O.maskFace = L.maskColor || '#f1e7d6'; }
+  else if (L.hat === 'basket') O.basketHat = '#b08650';
+  else if (L.hat === 'bicorne') O.bicorne = L.hatColor || '#1d1d24';
+  else if (L.hat === 'mitre') O.mitre = L.hatColor || '#f4efe0';
+  else if (L.hat === 'straw') O.straw = L.hatColor || '#e2c27a';
+  else if (L.hat === 'wool') O.wool = L.hatColor || '#c8222a';
+  if (L.crown) O.crown = true;
+  if (L.horns) O.horns = true;
+  if (L.bells || L.bell) O.bells = true;
+  if (L.ribbons && L.hat !== 'cone') O.ribbonsBody = ['#e03c3c', '#f2c230', '#3a8fd6', '#3ca05a', '#b34fc4'];
+  if (L.handkerchief && !O.scarf) O.scarf = L.handkerchief;
   return O;
 }
 export function buildNpcKK(L) {
   const M = L.myth && MYTHS[L.myth];   // ser de leyenda: su cuerpo, su traje y su altura de gigante
   const female = M ? M.female : !!(L.female || L.skirt || L.ponytail || L.bun || L.braids || L.longHair || L.lashes);
   const h = (JSON.stringify(L).split('').reduce((a, c) => (a * 31 + c.charCodeAt(0)) | 0, 7) >>> 0);
-  const list = L.old && !female ? KK_SEX.old : KK_SEX[female ? 'girl' : 'boy'], base = M ? M.base : list[h % list.length];
+  const list = L.old && !female ? KK_SEX.old : KK_SEX[female ? 'girl' : 'boy'], base = M ? M.base : L.base && KKG[L.base] ? L.base : list[h % list.length];   // base: el cuerpo del avatar del jugador (fútbol, encierro)
   const gltf = kkTemplate(base, M ? M.outfit : lookOutfit(L, female));
   const char = new GlbChar(gltf, { walkAt: 0.2, runAt: 4.6, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / 3.0, 0.85) : Math.pow(Math.max(0.2, v) / 1.35, 0.8) });
   const H = M ? M.height : L.height || (L.child ? 1.2 : 1.5);
-  const k = (gltf.userData.fit || 1) * (M ? H / 1.5 : THREE.MathUtils.clamp(H / 1.5, 0.7, 1.15));
+  const k = (gltf.userData.fit || 1) * (M ? H / 1.5 : THREE.MathUtils.clamp(H / 1.5, 0.7, H > 1.9 ? 1.7 : 1.15));   // gigantes de carnaval, más altos
   char.root.scale.setScalar(k);
-  const obj = new THREE.Group(); obj.add(char.root); obj.userData.glbNpc = true; obj.userData.sex = female ? 'girl' : 'boy'; obj.userData.H = H;
+  const obj = new THREE.Group(); obj.add(char.root); obj.userData.glbNpc = true; obj.userData.sex = female ? 'girl' : 'boy'; obj.userData.H = H; obj.userData.look = L;   // el retrato de los diálogos sale de su aspecto
   const anim = {
     t: 0, setExpr() {},
     update(dt, s) {

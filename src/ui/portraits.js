@@ -4,6 +4,7 @@ import { buildMinifig, lookToMinifig, COSTUMES } from '../actors/minifig.js';
 import { offscreen, offscreenCanvas } from '../util/offscreen.js';
 import { getImg, putImg, enqueue } from '../util/store.js';
 import { GLB_AVATARS } from '../actors/glbChar.js';
+import { buildNpc, npcsReady } from '../actors/npcGlb.js';
 
 let R = null, scene, cam;
 const cache = new Map();
@@ -16,12 +17,29 @@ function setup() {
   cam = new THREE.PerspectiveCamera(26, 1, 0.1, 20);
 }
 // look: aspecto nuevo (minifig) o antiguo; mode: 'bust' (cabeza y hombros) | 'full'
+// retrato con el cuerpo de los personajes nuevos (el mismo traje que lleva en el juego)
+function portraitKK(look, mode) {
+  const n = buildNpc(look), obj = n.obj;
+  n.char.root.rotation.y = 0.3; n.char.update?.(0.05);
+  scene.add(obj); obj.updateMatrixWorld(true);
+  const box = new THREE.Box3(), t = new THREE.Box3();
+  obj.traverse(o => { if (!o.isMesh || !o.visible) return; if (o.isSkinnedMesh) { o.skeleton.update(); o.computeBoundingBox(); t.copy(o.boundingBox); } else { o.geometry.computeBoundingBox(); t.copy(o.geometry.boundingBox); } box.union(t.applyMatrix4(o.matrixWorld)); });
+  const H = box.max.y - box.min.y;
+  if (mode === 'bust') { const cy = box.max.y - H * 0.29, d = H * 1.4; cam.position.set(d * 0.08, cy + d * 0.03, d); cam.lookAt(0, cy, 0); }
+  else { const midY = (box.max.y + box.min.y) / 2; cam.position.set(0.9 * H / 1.6, midY + 0.2 * H / 1.6, 4.4 * H / 1.6); cam.lookAt(0, midY, 0); }
+  R.setClearColor(0x000000, 0); R.render(scene, cam);
+  const url = offscreenCanvas().toDataURL('image/png');
+  scene.remove(obj);
+  return url;
+}
 export function portrait(look, mode = 'bust', isMini = false) {
-  const key = JSON.stringify(look) + mode + isMini;
+  const kk = npcsReady();
+  const key = (kk ? 'kk|' : '') + JSON.stringify(look) + mode + isMini;
   if (cache.has(key)) return cache.get(key);
   const st = getImg('p:' + key); if (st) { cache.set(key, st); return st; }
   try {
     if (!R) setup(); else offscreen(256, 256);
+    if (kk) { const url = portraitKK(look, mode); cache.set(key, url); putImg('p:' + key, url); return url; }
     const fig = buildMinifig(isMini ? look : lookToMinifig(look));
     const J = fig.userData.J;
     J.armL.rotation.z = -0.1; J.armR.rotation.z = 0.1;
@@ -56,7 +74,7 @@ export const avatarPortrait = (id, mode = 'bust') => glbPortrait(id, mode) || po
 const BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
 let PK = 0; const pkeys = new Map();
 export function portraitImg(look, mode = 'bust', isMini = false) {
-  const key = JSON.stringify(look) + mode + isMini;
+  const key = (npcsReady() ? 'kk|' : '') + JSON.stringify(look) + mode + isMini;
   const hit = cache.get(key) || getImg('p:' + key);
   if (hit) return `<img src="${hit}" alt="">`;
   let id = pkeys.get(key); if (!id) { id = 'pk' + (++PK); pkeys.set(key, id); }
