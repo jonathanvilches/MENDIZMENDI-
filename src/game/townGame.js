@@ -4,7 +4,7 @@ import { Actor } from '../actors/people.js';
 import { PLACES, BRIDGES } from '../world/layout.js';
 import { groundHeight, terrainHeight, waterLevelAt } from '../world/heightfield.js';
 import { TOWN } from '../world/townBuilder.js';
-import { isFree, segmentBlocked, addCircle } from '../world/colliders.js';
+import { isFree, segmentBlocked, addCircle, addBox } from '../world/colliders.js';
 import { clamp, lerp, angleDiff, mulberry32 } from '../util/math.js';
 import { profile, saveProfile, townState, addXP, checkBadges, addCard, comarcaDone, levelOf } from './profile.js';
 import { infoCard, timingGame, mashGame, sequenceGame, simonGame, choiceGame, missionComplete, townFinale } from '../ui/minigames.js';
@@ -26,6 +26,7 @@ import { Mochila } from './mochila.js';
 import { Perro } from './perro.js';
 import { makeTrailSign, signSVG, ORIENTA, ORIENTA_TIPS } from './senales.js';
 import { FOOD } from '../data/equipo.js';
+import { FERIA } from '../data/ferias.js';
 import { GearProps } from '../actors/gear3d.js';
 import { foodFrom } from '../data/equipo.js';
 import { PROCESOS, TRADICIONES } from '../data/procesos.js';
@@ -150,6 +151,8 @@ export class TownGame {
         M.steps = () => ['Habla con ' + host(), m.kind === 'angel' ? 'Prepara la bajada: repite la secuencia' : 'Repite la melodía']; break;
       case 'summit': { const pk = M.peak = MOUNTAINS.find(x => x.id === m.peak); M.title = `Sube al ${pk?.name || 'monte'}`; M.icon = 'peak'; M.need = 4;
         M.steps = () => [M.prep ? `Prepara la mochila: ${this.supplyText()} y vuelve con ${host()}` : 'Habla con ' + host(), `Sigue los mojones hasta la cima (${M.count}/${M.need})${M.wild ? ` · animales ${M.wild.filter(w => w.found).length}/${M.wild.length}` : ''}`, `Llega a la cima del ${pk?.name || 'monte'}`]; break; }
+      case 'feria': M.title = m.title || 'Feria de ganado'; M.icon = 'cow';
+        M.steps = () => ['Habla con ' + host(), 'Ve a los corrales: juez por un día', 'Vuelve con ' + host() + ' y cierra el trato']; break;
       case 'figure': { const F = M.fig = PERSONAJES[m.who]; M.title = F.name; M.icon = F.icon;
         M.steps = () => ['Habla con ' + host(), `Ve a ver el recuerdo de ${F.name}`, 'Responde la pregunta']; break; }
       case 'pelota': M.title = m.title || 'Partido en el frontón'; M.icon = 'pelota';
@@ -189,6 +192,7 @@ export class TownGame {
       case 'observe': return lm('gorge')?.spot || P.edgeN;
       case 'pelota': return this.ensureFronton() ? { x: this.fronton.entry.x + 2, z: this.fronton.entry.z } : P.plaza;
       case 'summit': return { x: P.plaza.x + (P.edgeN ? (P.edgeN.x - P.plaza.x) * 0.25 : 10), z: P.plaza.z + (P.edgeN ? (P.edgeN.z - P.plaza.z) * 0.25 : -14) };
+      case 'feria': return { x: (P.market || P.plaza).x - 8, z: (P.market || P.plaza).z + 10 };
       case 'figure': { const k = this.missions.filter(x => x.type === 'figure').indexOf(M), a = 2.2 + k * 1.6; return { x: P.plaza.x + Math.cos(a) * 15, z: P.plaza.z + Math.sin(a) * 15 }; }
       case 'quiz': return TOWN.church?.door ? { x: TOWN.church.door.x, z: TOWN.church.door.z + 0 } : P.plaza;
     }
@@ -208,6 +212,7 @@ export class TownGame {
         : M.type === 'quiz' ? { name: 'Sabio del concejo', look: { shirt: '#efe9dc', vest: '#2b2630', pants: '#2b2630', hair: '#dcd7cf', beard: '#dcd7cf', txapela: '#1d1d24', old: true, glasses: '#3a2a1a', staff: true } } : { name: 'Vecino', look: {} });
       const a = new Actor({ id: 'm' + M.i, name: h.name, x: pos.x, z: pos.z, heading: Math.atan2(PLACES.plaza.x - pos.x, PLACES.plaza.z - pos.z), look: h.look }, this.scene);
       a.mission = M; M.host = a; this.actors.push(a);
+      if (M.type === 'feria') this.buildFair(M, pos);
       if (M.type === 'figure') {
         const o = makeMemorial(M.fig.attr, M.fig.stele), p2 = this.spot({ x: pos.x + (PLACES.plaza.x - pos.x) * 0.3, z: pos.z + (PLACES.plaza.z - pos.z) * 0.3 }, 3);
         o.position.set(p2.x, groundHeight(p2.x, p2.z), p2.z); o.rotation.y = Math.atan2(PLACES.plaza.x - p2.x, PLACES.plaza.z - p2.z); this.scene.add(o);
@@ -375,6 +380,7 @@ export class TownGame {
       case 'herd': if (M.step === 1) { const loose = this.herd?.filter(s => !s.penned) || []; const t = nearest(loose.map(s => ({ x: s.pos.x, z: s.pos.z, h: 1.8 }))); return t || { x: TOWN.pen.x, z: TOWN.pen.z, h: 2 }; } return at(M.host);
       case 'dance': return M.step === 1 ? { x: PLACES.plaza.x, z: PLACES.plaza.z, h: 3 } : at(M.host);
       case 'carnival': return (M.night ? M.step === 1 || M.step === 2 : M.step === 1) ? null : at(M.host);
+      case 'feria': return M.step === 1 && M.fair ? { x: M.fair.x, z: M.fair.z, h: 3 } : at(M.host);
       case 'figure': return M.step === 1 && M.memo ? { x: M.memo.x, z: M.memo.z, h: 3 } : at(M.host);
       case 'trade': return M.step === 1 && M.bench ? { x: M.bench.x, z: M.bench.z, h: 2 } : at(M.host);
       case 'race': if (M.step === 1) { const g = this.gates.find(g => g.next); return g ? { x: g.x, z: g.z, h: 4.4 } : null; } return at(M.host);
@@ -634,6 +640,21 @@ export class TownGame {
         } else await S([`Sigue los mojones: te faltan ${M.need - M.count} hasta la cima.`]);
         return;
       }
+      case 'feria': {
+        if (M.step === 0) { await S([...FERIA.intro, m.note || '']); M.step = 1; }
+        else if (M.step === 1) await S(['Ve a los corrales y mira bien los animales. ¡Luego me cuentas!']);
+        else {
+          await S(['¿Qué te han parecido? Ahora aprende lo más importante de una feria: cómo se cierra un trato.']);
+          const ord = [0, 1, 2].sort(() => this.rnd() - 0.5), D = FERIA.deal;
+          const r = await choiceGame(this.ui, { title: 'El trato', icon: 'hand', q: D.q, options: ord.map(i => D.options[i]), answer: ord.indexOf(D.answer), why: D.why });
+          if (!r.win) { await S(['¡Casi! Piénsalo otra vez y vuelve a hablar conmigo.']); return; }
+          this.player.rig.doAct?.('point', 0.5);
+          await infoCard(this.ui, { icon: 'cow', kicker: 'Antes y ahora', title: M.title, text: 'Así han cambiado las ferias de ganado:', extra: `<div class="antes-ahora"><div><b>Antes</b>${FERIA.then}</div><div><b>Ahora</b>${FERIA.now}</div></div>`, button: '¡Trato hecho!' });
+          this.mochila.addFood('queso', 1);
+          await this.complete(M, { card: M.title, cardText: 'En la feria se compra, se vende y se premia el ganado; el trato se cierra con un apretón de manos.' });
+        }
+        return;
+      }
       case 'figure': {
         const F = M.fig;
         if (M.step === 0) {
@@ -659,6 +680,49 @@ export class TownGame {
     if (part === 'what') return infoCard(this.ui, { icon, kicker: '¿Qué es?', title, text: X.what, button: 'Entendido' });
     if (part === 'how') return infoCard(this.ui, { icon, kicker: 'Cómo se hace', title, text: X.how, button: '¡Vamos!' });
     return infoCard(this.ui, { icon, kicker: 'Antes y ahora', title, text: 'Así ha cambiado:', extra: `<div class="antes-ahora"><div><b>Antes</b>${X.then}</div><div><b>Ahora</b>${X.now}</div></div>`, button: '¡Lo he aprendido!' });
+  }
+  // Feria de ganado: corrales con vacas, ovejas y caballos junto al mercado, un puesto y gente mirando
+  buildFair(M, hostPos) {
+    // un prado llano y despejado a las afueras (los corrales ocupan unos 40 × 14 m)
+    const R = this.rnd, P0 = PLACES.plaza; let c = null;
+    const clear = (x, z) => { if (waterLevelAt(x, z) > groundHeight(x, z) - 0.3) return false; const h0 = groundHeight(x, z); for (let dx = -22; dx <= 22; dx += 5.5) for (let dz = -8; dz <= 10; dz += 4.5) { const qx = x + dx, qz = z + dz; if (!isFree(qx, qz, 1.5) || this.nearHouses(qx, qz, 9) || Math.abs(groundHeight(qx, qz) - h0) > 2.2 || waterLevelAt(qx, qz) > groundHeight(qx, qz) - 0.3) return false; } return true; };
+    for (let r = 45; r <= 170 && !c; r += 12) for (let a = 0; a < 6.28 && !c; a += 0.35) { const x = P0.x + Math.cos(a) * r, z = P0.z + Math.sin(a) * r; if (clear(x, z)) c = { x, z }; }
+    c ||= this.spot({ x: hostPos.x - 16, z: hostPos.z + 8 }, 10);
+    // el tratante espera junto a la feria
+    const hs = this.spot({ x: c.x + 4, z: c.z + 12 }, 3); M.host.setPos?.(hs.x, hs.z, Math.atan2(c.x - hs.x, c.z - hs.z));
+    const g = new THREE.Group(); this.scene.add(g);
+    const wood = new THREE.MeshStandardMaterial({ color: '#8a5a32', roughness: 0.85 }), dark = new THREE.MeshStandardMaterial({ color: '#5a3a22', roughness: 0.9 });
+    const pens = [];
+    [['cow', 4, 11, 8], ['sheep', 7, 8, 6], ['pottoka', 2, 8, 6]].forEach(([kind, n, w, d], i) => {
+      const px = c.x + (i - 1) * 13, pz = c.z, y0 = groundHeight(px, pz);
+      for (const [x0, z0, x1, z1] of [[-w / 2, -d / 2, w / 2, -d / 2], [w / 2, -d / 2, w / 2, d / 2], [w / 2, d / 2, -w / 2, d / 2], [-w / 2, d / 2, -w / 2, -d / 2]]) {
+        const len = Math.hypot(x1 - x0, z1 - z0), ang = Math.atan2(x1 - x0, z1 - z0), mx = px + (x0 + x1) / 2, mz = pz + (z0 + z1) / 2;
+        for (const hh of [0.45, 0.95]) { const r_ = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.12, len), wood); r_.position.set(mx, groundHeight(mx, mz) + hh, mz); r_.rotation.y = ang; r_.castShadow = true; g.add(r_); }
+        for (let k = 0; k <= Math.round(len / 2.5); k++) { const t = k / Math.round(len / 2.5), qx = px + x0 + (x1 - x0) * t, qz = pz + z0 + (z1 - z0) * t; const po = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 1.3, 6), dark); po.position.set(qx, groundHeight(qx, qz) + 0.55, qz); g.add(po); }
+        addBox(mx, mz, Math.abs(x1 - x0) + 0.3, Math.abs(z1 - z0) + 0.3, 0);
+      }
+      const box = { x0: px - w / 2 + 0.8, x1: px + w / 2 - 0.8, z0: pz - d / 2 + 0.8, z1: pz + d / 2 - 0.8 };
+      for (let k = 0; k < n; k++) {
+        const ax = box.x0 + R() * (box.x1 - box.x0), az = box.z0 + R() * (box.z1 - box.z0);
+        const a = this.fauna.add(kind, ax, az, { range: 2, walk: 0.4, run: 1, flee: 0, radius: kind === 'cow' ? 0.8 : 0.45 });
+        a.pos.set(ax, groundHeight(ax, az), az); a.home = { x: ax, z: az }; a.bounds = (x, z) => x > box.x0 && x < box.x1 && z > box.z0 && z < box.z1;
+      }
+      pens.push({ kind, x: px, z: pz });
+    });
+    // gente de la feria
+    const looks = [{ shirt: '#3a4a6a', txapela: '#1d1d24', pants: '#3a3530', hair: '#4a3020', staff: true }, { shirt: '#b5485d', skirt: '#3a3530', pants: '#3a3530', hair: '#2a1a12', bun: true, female: true, basket: true }, { shirt: '#e8e0cc', vest: '#2b2630', pants: '#2b2630', txapela: '#1d1d24', hair: '#bdb6aa', old: true, staff: true }];
+    looks.forEach((look, i) => { const s2 = this.spot({ x: c.x + (i - 1) * 9, z: c.z + 7 }, 3); const a = new Actor({ id: 'feria' + i, name: ['Ganadero', 'Vecina', 'Aitona'][i], x: s2.x, z: s2.z, heading: Math.PI, look }, this.scene); this.walkers.push(a); });
+    M.fair = { x: c.x, z: c.z, pens, obj: g };
+  }
+  async judgeFair(M) {
+    if (M.judging) return; M.judging = true; this.player.frozen = true;
+    try {
+      const li = FERIA.breeds.map(([n, t]) => `<li><b>${n}</b><span>${t}</span></li>`).join('');
+      await infoCard(this.ui, { icon: 'cow', kicker: 'Concurso de ganado', title: 'Las razas del país', text: 'En las ferias se premia a los mejores animales de las razas de aquí:', extra: `<ul class="tools">${li}</ul>`, button: 'Ser juez' });
+      const J = FERIA.judge, ord = [0, 1, 2].sort(() => this.rnd() - 0.5);
+      const r = await choiceGame(this.ui, { title: 'Juez por un día', icon: 'cow', q: J.q, options: ord.map(i => J.options[i]), answer: ord.indexOf(J.answer), why: J.why });
+      if (r.win) { M.step = 2; this.sound.fanfare?.(); this.ui.toast(`¡Buen ojo! Vuelve con ${M.host.name}`, 'check', 3000); }
+    } finally { this.player.frozen = false; setTimeout(() => { M.judging = false; }, 4000); }
   }
   // Lo que se gana al terminar: comida del producto y equipo nuevo
   async afterComplete(M) {
@@ -728,6 +792,7 @@ export class TownGame {
       if (M.type === 'visit' && M.step === 1 && this.mode === 'play' && !this.ui.busy) {
         for (const p of M.places) if (!p.seen && Math.hypot(P.x - p.at.x, P.z - p.at.z) < (p.kind === 'church' ? 8 : 9)) { p.seen = true; this.showPlace(M, p); break; }
       }
+      if (M.type === 'feria' && M.step === 1 && M.fair && this.mode === 'play' && !this.ui.busy && Math.hypot(P.x - M.fair.x, P.z - M.fair.z) < 9) this.judgeFair(M);
       if (M.type === 'dance' && M.step === 1 && this.mode === 'play' && !this.ui.busy && Math.hypot(P.x - PLACES.plaza.x, P.z - PLACES.plaza.z) < 5) this.startDance(M);
     }
   }

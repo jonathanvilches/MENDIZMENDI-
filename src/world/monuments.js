@@ -300,6 +300,7 @@ export function landmark(B, lm, ctx) {
       for (const s of [-1, 1]) { B.add('stoneDark', new THREE.CylinderGeometry(3, 5, 26, 7), MM(T, M(s * 9, 12, 0))); B.add('stoneDark', new THREE.DodecahedronGeometry(4, 0), MM(T, M(s * 9, 25, 0))); addCircle(x + s * 9, z, 5); }
       return { x, z: z + 7 };
     }
+    case 'pass':
     case 'lookout': {
       B.add('wood', box(6, 0.15, 4), MM(T, M(0, 0.3, 0)));
       B.add('wood', box(6, 0.1, 0.1), MM(T, M(0, 1.5, -1.9)));
