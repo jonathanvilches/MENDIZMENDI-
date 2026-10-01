@@ -515,13 +515,20 @@ export class UI {
   // ---------- Prismáticos ----------
   binoculars(on) {
     if (on && !this.bino) {
-      this.bino = el(`<div id="bino"><svg class="mask" viewBox="0 0 160 100" preserveAspectRatio="xMidYMid slice" width="100%" height="100%"><defs><mask id="bm"><rect x="-200" y="-200" width="560" height="500" fill="#fff"/><circle cx="58" cy="50" r="36" fill="#000"/><circle cx="102" cy="50" r="36" fill="#000"/></mask></defs><rect x="-200" y="-200" width="560" height="500" fill="#0b0a10" mask="url(#bm)"/></svg><div class="cross"></div><div class="bdir"><i></i></div><div class="label"></div><div class="bhint">${this.input.touch ? 'Arrastra para mirar · botón amarillo para anotar · botón de prismáticos para salir' : 'Mueve el ratón para mirar · E para anotar · F para salir'}</div></div>`);
+      this.bino = el(`<div id="bino"><svg class="mask" viewBox="0 0 160 100" preserveAspectRatio="xMidYMid slice" width="100%" height="100%"><defs><mask id="bm"><rect x="-200" y="-200" width="560" height="500" fill="#fff"/><circle cx="58" cy="50" r="36" fill="#000"/><circle cx="102" cy="50" r="36" fill="#000"/></mask></defs><rect x="-200" y="-200" width="560" height="500" fill="#0b0a10" mask="url(#bm)"/></svg><div class="cross"></div><div class="bdir"><i></i></div><div class="bcomp"></div><div class="bgoal"></div><div class="label"></div><div class="bhint">${this.input.touch ? 'Arrastra para mirar · botón amarillo para anotar · botón de prismáticos para salir' : 'Mueve el ratón para mirar · E para anotar · F para salir'}</div></div>`);
       document.body.appendChild(this.bino);
     } else if (!on && this.bino) { this.bino.remove(); this.bino = null; }
   }
   binoTarget(label, lock, hint = null) {
     if (!this.bino) return; $('.label', this.bino).textContent = label || ''; $('.cross', this.bino).classList.toggle('lock', !!lock);
     const d = $('.bdir', this.bino); d.style.opacity = hint == null ? 0 : 1; if (hint != null) d.style.transform = `rotate(${-hint}rad)`;
+    $('.label', this.bino).style.display = label ? '' : 'none';
+  }
+  /** Panel del objetivo (montes por descubrir) y brújula de hacia dónde se mira. */
+  binoInfo(goalHtml, compass) {
+    if (!this.bino) return;
+    const g = $('.bgoal', this.bino); if (g._h !== goalHtml) { g._h = goalHtml; g.innerHTML = goalHtml || ''; g.style.display = goalHtml ? '' : 'none'; }
+    $('.bcomp', this.bino).textContent = compass || '';
   }
 
   // ---------- Ritmo (danza) ----------

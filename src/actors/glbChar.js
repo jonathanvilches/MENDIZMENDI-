@@ -14,6 +14,13 @@ import nereaFull from '../assets/chars/portrait_nerea_full.png?url';
 import haritzUrl from '../assets/chars/char_haritz.glb?url';
 import haritzBust from '../assets/chars/portrait_haritz.png?url';
 import haritzFull from '../assets/chars/portrait_haritz_full.png?url';
+// personajes KayKit Adventurers 2.0 (CC0, Kay Lousberg, www.kaylousberg.com): modelo y animaciones del rig común
+const KK = {};
+for (const [p, u] of Object.entries(import.meta.glob('../assets/kaykit/*.glb', { eager: true, query: '?url', import: 'default' }))) KK[p.split('/').pop().replace('.glb', '')] = u;
+const KK_PICS = {};
+for (const [p, u] of Object.entries(import.meta.glob('../assets/kaykit/portraits/*.png', { eager: true, query: '?url', import: 'default' }))) KK_PICS[p.split('/').pop().replace('.png', '')] = u;
+// sus clips con los nombres que usa el juego
+const KK_CLIPS = { Idle: 'Idle_A', Walk: 'Walking_A', Run: 'Running_A', Jump_Start: 'Jump_Start', Jump_Loop: 'Jump_Idle', Land: 'Jump_Land', Wave: 'Interact', Celebrate: 'Jump_Full_Short', Talk: 'Idle_B', Hit: 'Throw', Scared: 'Hit_A', Ready: 'Idle_B', Pick: 'PickUp' };
 
 const cache = new Map();
 let loader = null;
@@ -40,6 +47,18 @@ function outlineMat(w) {
   return outlines.get(w);
 }
 
+/** Personaje KayKit: su modelo con los clips del rig común renombrados como los del juego y escalado a su altura. */
+async function loadKayKit(name, height = 1.5) {
+  const key = 'kaykit:' + name;
+  if (!cache.has(key)) cache.set(key, (async () => {
+    const [ch, mv, gen] = await Promise.all([loadChar(KK[name]), loadChar(KK.Rig_Medium_MovementBasic), loadChar(KK.Rig_Medium_General)]);
+    const src = [...mv.animations, ...gen.animations], animations = [];
+    for (const [want, have] of Object.entries(KK_CLIPS)) { const c = src.find(a => a.name === have); if (c) { const k = c.clone(); k.name = want; animations.push(k); } }
+    const box = new THREE.Box3().setFromObject(ch.scene), fit = height / Math.max(0.1, box.max.y - box.min.y);
+    return { scene: ch.scene, animations, userData: { fit, kaykit: true } };
+  })());
+  return cache.get(key);
+}
 /** Carga (una sola vez por url) el GLB de un personaje. */
 export function loadChar(url) {
   if (!cache.has(url)) {
@@ -80,6 +99,7 @@ export class GlbChar {
         o.visible = !!o.userData.default;
       }
     });
+    if (!Object.values(this.meshes).some(m => m.isMesh && m.castShadow)) this.root.traverse(o => { if (o.isMesh) { o.castShadow = true; delete o.userData.noShadow; } });
     // mirada: con los huesos Eye_L/Eye_R si los hay; si no, moviendo la textura del ojo (personajes antiguos)
     this.eyeBones = ['Eye_L', 'Eye_R'].map(n => this.bones[n]).filter(Boolean);
     // ojos pintados sobre la cabeza (estilo juguete): el iris se mueve desplazando su textura
@@ -323,8 +343,10 @@ export const GLB_AVATARS = {
   nerea: { url: nereaUrl, scale: 1.0, bust: nereaBust, full: nereaFull },
   haritz: { url: haritzUrl, scale: 1.0, bust: haritzBust, full: haritzFull },
 };
+for (const [id, name] of [['ranger', 'Ranger'], ['rogue', 'Rogue'], ['hooded', 'Rogue_Hooded'], ['knight', 'Knight'], ['barbarian', 'Barbarian'], ['mage', 'Mage']])
+  if (KK[name]) GLB_AVATARS[id] = { kaykit: name, bust: KK_PICS[id + '_bust'], full: KK_PICS[id + '_full'] };
 export const isGlbAvatar = id => !!GLB_AVATARS[id];
-export const loadGlbAvatar = id => loadChar(GLB_AVATARS[id].url);
+export const loadGlbAvatar = id => GLB_AVATARS[id].kaykit ? loadKayKit(GLB_AVATARS[id].kaykit) : loadChar(GLB_AVATARS[id].url);
 
 const EXPR = {
   happy: ['Happy', 'Normal'], surprised: ['Surprised', 'Normal'], scared: ['Scared', 'Worried'], worried: ['Normal', 'Worried'],
@@ -342,7 +364,7 @@ export class GlbRig {
     // mayores: el ritmo sube con la raíz de la velocidad para que las piernas no se vuelvan frenéticas
     // Walk avanza ~1,15 m por ciclo y Run ~2,5 m/s: el ritmo sigue casi a la velocidad (los pies apenas patinan)
     this.char = new GlbChar(gltf, { outline: 0.006, walkAt: 0.2, runAt: 4.6, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / (2.5 * LEGS), 0.85) : Math.pow(Math.max(0.2, v) / (1.15 * LEGS), 0.8) });
-    this.char.root.scale.setScalar(def.scale || 1);
+    this.char.root.scale.setScalar(def.scale || gltf.userData?.fit || 1);
     this.obj.add(this.char.root);
     this.wave = 0; this.cheer = 0; this.talking = 0; this.carry = false;
     this.air = 0; this.wasGrounded = true;
