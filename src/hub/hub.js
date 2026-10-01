@@ -379,7 +379,7 @@ export class Hub {
       if (!GLB_AVATARS[id]?.kaykit) { el.innerHTML = ''; return; }
       const curO = P0.outfits[id] || 'original';
       const btn = (o) => `<button class="${o.id === curO ? 'on' : ''}" data-outfit="${o.id}" style="--o:${o.shirt || '#8a7a6a'};--a:${o.sash || o.scarf || o.beret || o.pants || '#8a7a6a'}"><i></i>${esc(o.name)}</button>`;
-      el.innerHTML = `<small>Ropa de fiesta</small><div>${OUTFITS.filter(o => !o.region).map(btn).join('')}</div><small>Trajes de cada comarca</small><div>${OUTFITS.filter(o => o.region).map(btn).join('')}</div>`;
+      el.innerHTML = `<small>Ropa de fiesta</small><div>${OUTFITS.filter(o => !o.region && !o.trade).map(btn).join('')}</div><small>Trajes de cada comarca</small><div>${OUTFITS.filter(o => o.region).map(btn).join('')}</div><small>Oficios de antes</small><div>${OUTFITS.filter(o => o.trade).map(btn).join('')}</div>`;
       el.querySelectorAll('[data-outfit]').forEach(b => b.onclick = (e) => { e.stopPropagation(); P0.outfits[id] = b.dataset.outfit; saveProfile(); setOutfitChoices(P0.outfits); this.stage.setAvatar(id); this.sound?.ui('coin'); outfits(id); });
     };
     this.stage = new Stage($('#avStage', host), cur);
