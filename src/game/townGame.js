@@ -396,7 +396,7 @@ export class TownGame {
     for (const g of this.gates) if (g.obj.visible) g.obj.userData.torus.rotation.z += dt * (g.next ? 2 : 0.3);
     this.agro?.update(dt, P, this.particles);
     if (this.mode === 'play') this.mochila?.update(dt, P);
-    this.perro?.update(dt);
+    if (this.mode !== 'futbol') this.perro?.update(dt);
     if (!this.dogHi && this.mode === 'play' && !this.ui.busy && this.elapsed > 5) { this.dogHi = true; this.perro?.hello(); }
     this.gearProps?.night(this.isNight() ? 1 : 0);
     if (this.herd) this.updateHerd(dt);

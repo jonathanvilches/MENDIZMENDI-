@@ -1,27 +1,37 @@
-// Partido en El Sadar: el jugador (con la camiseta de Osasuna) y un compañero contra dos rivales, cada equipo con su
-// portero. Se juega en el césped de verdad del estadio, con el control normal: al acercarte al balón lo conduces y
-// con ACCIÓN chutas (hacia la portería si miras hacia ella) o pasas. Gana quien marque 3 goles o vaya por delante
-// cuando acabe el tiempo (2 minutos). Las gradas se llenan de público rojillo.
+// Partido en El Sadar: 3 contra 3 con porteros en el césped del estadio. El jugador viste la equipación de Osasuna
+// (camiseta roja, pantalón azul marino, medias rojas) con su dorsal y juega con controles propios:
+//   joystick o WASD para moverse (relativo a la cámara), PASE (J / Espacio), TIRO manteniendo para cargar
+//   potencia (K / E), SPRINT (Mayús, gasta resistencia) y CÁMARA (C): televisión, detrás del jugador o aérea.
+// Sin balón, PASE se convierte en ENTRADA para robarlo. Gana quien marque 3 goles o vaya por delante a los 3 minutos.
+// Ambiente: entrada al campo con cámara aérea, público rojillo que salta, comentarista, cámara lenta en los goles y radar.
 import * as THREE from 'three';
 import { buildNpc } from '../actors/npcGlb.js';
 import { groundHeight } from '../world/heightfield.js';
 import { infoCard } from '../ui/minigames.js';
+import { profile } from './profile.js';
 
-const HX = 22.8, HZ = 36, GW = 3.5, GH = 2.44, BR = 0.2;     // medio campo (m), media portería, altura del larguero, radio del balón
-const WALLX = 24.6, WALLZ = 37.6;                              // vallas de publicidad: el balón rebota en ellas
-const TIME = 120, WIN = 3;
+const HX = 22.8, HZ = 36, GW = 3.5, GH = 2.44, BR = 0.2;     // medio campo (m), media portería, larguero, radio del balón
+const WALLX = 24.6, WALLZ = 37.6;
+const TIME = 180, WIN = 3, JOG = 4.6, SPRINT = 7.2;
 const FACTS = [
   { title: 'Osasuna', text: 'El Club Atlético Osasuna se fundó en Pamplona en 1920. «Osasuna» significa «salud» y también «fuerza» en euskera. A sus jugadores les llaman «los rojillos» por su camiseta roja.' },
   { title: 'El Sadar', text: 'El estadio se inauguró en 1967 y toma el nombre del río Sadar, que pasa muy cerca. Se renovó entre 2019 y 2021: caben unas 23.500 personas y las gradas están muy pegadas al césped, por eso el ruido de la afición es famoso.' },
   { title: 'Juego limpio', text: 'En el fútbol se gana y se pierde: lo importante es jugar en equipo, pasar el balón y respetar al rival y al árbitro. ¡Y dar la mano al acabar!' },
 ];
+// equipación de casa de Osasuna: camiseta roja, pantalón azul marino y medias rojas; el rival, de blanco y azul
 const KIT = {
-  home: { shirt: '#c41f2c', pants: '#1f2d5a', socks: '#c41f2c', shoes: '#1d1d1f' },
-  away: { shirt: '#f4f4f2', pants: '#2f6fd0', socks: '#f4f4f2', shoes: '#1d1d1f' },
-  keepH: { shirt: '#2fa84f', pants: '#1d1d1f', socks: '#2fa84f', shoes: '#1d1d1f' },
-  keepA: { shirt: '#f2c230', pants: '#1d1d1f', socks: '#f2c230', shoes: '#1d1d1f' },
+  home: { shirt: '#c41f2c', vest: '#c41f2c', pants: '#16224a', socks: '#c41f2c', shoes: '#111114', sash: '#16224a', scarf: null },
+  away: { shirt: '#f4f4f2', vest: '#f4f4f2', pants: '#2f6fd0', socks: '#f4f4f2', shoes: '#111114', sash: '#2f6fd0', scarf: null },
+  keepH: { shirt: '#2fa84f', vest: '#2fa84f', pants: '#111114', socks: '#2fa84f', shoes: '#111114', sash: '#111114', scarf: null },
+  keepA: { shirt: '#f2c230', vest: '#f2c230', pants: '#111114', socks: '#f2c230', shoes: '#111114', sash: '#111114', scarf: null },
 };
 const HAIR = ['#2a1a12', '#5a3a22', '#c9a46a', '#1d1d24', '#7a3a1a'], SKIN = ['#f1c4a0', '#e2b08a', '#c68a5e', '#8d5a3a'];
+const CAMS = ['tv', 'detras', 'aerea'], CAM_NAME = { tv: 'Vista de televisión', detras: 'Detrás del jugador', aerea: 'Vista aérea' };
+const SAY = {
+  steal: ['¡Qué robo!', '¡Balón recuperado!', '¡Buena entrada!'], save: ['¡Paradón!', '¡Qué manos tiene el portero!', '¡La saca con la punta de los dedos!'],
+  post: ['¡Al palo!', '¡Uyyy, el poste!'], pass: ['¡Buen pase!', '¡Qué visión de juego!'], miss: ['¡Fuera por poco!', '¡Rozando el palo!'],
+};
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
 
 function ballTex() {
   const c = document.createElement('canvas'); c.width = 256; c.height = 128; const g = c.getContext('2d');
@@ -29,10 +39,17 @@ function ballTex() {
   for (let y = 0; y < 4; y++) for (let x = 0; x < 6; x++) { const cx = x * 44 + (y % 2) * 22 + 10, cy = y * 34 + 14; g.beginPath(); for (let k = 0; k < 5; k++) { const a = k / 5 * Math.PI * 2 - Math.PI / 2; g.lineTo(cx + Math.cos(a) * 9, cy + Math.sin(a) * 9); } g.fill(); }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
+// dorsal en la espalda: número con borde
+function dorsal(n, color = '#ffffff', edge = '#16224a') {
+  const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
+  g.font = '900 96px Nunito, Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.lineWidth = 10; g.strokeStyle = edge; g.strokeText(String(n), 64, 70); g.fillStyle = color; g.fillText(String(n), 64, 70);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  return new THREE.Mesh(new THREE.PlaneGeometry(0.24, 0.24), new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false }));
+}
 
 export class Futbol {
   constructor(G, lm) { this.G = G; this.cx = lm.x; this.cz = lm.z; }
-  // del campo (x a lo ancho, z a lo largo; atacamos hacia +z) al mundo
   W(x, z) { return { x: this.cx + x, z: this.cz + z }; }
   gy(x, z) { const w = this.W(x, z); return groundHeight(w.x, w.z); }
 
@@ -43,173 +60,236 @@ export class Futbol {
       try {
         await G.ui.fadeOut?.();
         this.setup();
-        G.mode = 'futbol'; G.player.frozen = false;
+        G.mode = 'futbol'; G.player.frozen = true;
         await G.ui.fadeIn?.();
-        this.msg('¡Saque inicial! Acércate al balón para llevarlo y pulsa ACCIÓN para chutar.', 3200);
-        G.sound.fanfare?.();
+        this.intro = 3.2; this.say('¡Bienvenidos a El Sadar! Osasuna contra el equipo visitante…', 3000);
+        G.sound.fanfare?.(); G.sound.crowd?.(1.2);
       } catch (e) { console.error('[fútbol]', e); this.cleanup(); res({ win: false, you: 0, cpu: 0, quit: true }); }
     });
   }
 
   setup() {
-    const G = this.G, S = G.scene;
+    const G = this.G, S = G.scene, P = profile(), av = P.avatar || 'benat';
     this.root = new THREE.Group(); S.add(this.root);
-    // balón
+    // el perro se queda en la grada; el avatar del explorador se cambia por el jugador con la equipación
+    this.dog = G.perro?.dog || null; if (this.dog) { this.dog.hidden = true; this.dog.obj.visible = false; }
+    G.player.obj.visible = false;
     this.ballTex = ballTex();
     this.ball = new THREE.Mesh(new THREE.SphereGeometry(BR, 20, 14), new THREE.MeshStandardMaterial({ map: this.ballTex, roughness: 0.5 }));
     this.ball.castShadow = true; this.root.add(this.ball);
-    this.b = { x: 0, y: BR, z: 0, vx: 0, vy: 0, vz: 0, owner: null, last: null };
-    // jugadores: el compañero, dos rivales y los porteros
-    const npc = (kit, i, female) => { const n = buildNpc({ ...kit, female, ponytail: female, hair: HAIR[i % HAIR.length], skin: SKIN[i % SKIN.length], height: 1.45 + (i % 3) * 0.06 }); this.root.add(n.obj); return n; };
+    this.b = { x: 0, y: BR, z: 0, vx: 0, vy: 0, vz: 0, owner: null, last: null, lastP: null };
+    const npc = (kit, i, look = {}) => { const n = buildNpc({ ...kit, female: false, hair: HAIR[i % HAIR.length], skin: SKIN[i % SKIN.length], height: 1.5 + (i % 3) * 0.05, ...look }); this.root.add(n.obj); return n; };
+    const num = (n, p, light) => { const d = dorsal(n, light ? '#16224a' : '#ffffff', light ? '#ffffff' : '#16224a'); d.position.set(0, (p.obj.userData.H || 1.5) * 0.66, -0.17); d.rotation.y = Math.PI; p.obj.add(d); };
+    const meLook = { female: av === 'nerea', ponytail: av === 'nerea', hair: av === 'nerea' ? '#aa5c2a' : av === 'haritz' ? '#1d1d24' : '#3a2418', skin: av === 'haritz' ? '#c68a5e' : '#f1c4a0', height: 1.55 };
+    this.me = { ...npc(KIT.home, 0, meLook), side: 'home', role: 'field', me: true, x: 0, z: -1.2, speed: JOG, h: 0 };
+    num(10, this.me);
     const R = Math.random;
     this.team = [
-      { ...npc(KIT.home, 1, R() < 0.4), side: 'home', role: 'field', name: 'Compañero', x: -6, z: -8, speed: 6.0 },
-      { ...npc(KIT.away, 2, R() < 0.4), side: 'away', role: 'field', name: 'Rival', x: 5, z: 8, speed: 6.3 },
-      { ...npc(KIT.away, 3, R() < 0.4), side: 'away', role: 'field', name: 'Rival', x: -5, z: 14, speed: 5.8 },
-      { ...npc(KIT.keepH, 4, false), side: 'home', role: 'keeper', x: 0, z: -HZ + 0.8, speed: 4.2, save: 0.6 },
-      { ...npc(KIT.keepA, 0, false), side: 'away', role: 'keeper', x: 0, z: HZ - 0.8, speed: 4.0, save: 0.52 },
+      { ...npc(KIT.home, 1, { female: R() < 0.4 }), side: 'home', role: 'field', post: [-9, -10], speed: 6.0, n: 7 },
+      { ...npc(KIT.home, 2, { female: R() < 0.4 }), side: 'home', role: 'field', post: [9, -16], speed: 5.8, n: 4 },
+      { ...npc(KIT.away, 3, { female: R() < 0.4 }), side: 'away', role: 'field', post: [6, 8], speed: 6.2, n: 9 },
+      { ...npc(KIT.away, 4, { female: R() < 0.4 }), side: 'away', role: 'field', post: [-7, 12], speed: 6.0, n: 11 },
+      { ...npc(KIT.away, 0, { female: R() < 0.4 }), side: 'away', role: 'field', post: [0, 20], speed: 5.6, n: 5 },
+      { ...npc(KIT.keepH, 3), side: 'home', role: 'keeper', speed: 4.4, save: 0.62, n: 1 },
+      { ...npc(KIT.keepA, 1), side: 'away', role: 'keeper', speed: 4.2, save: 0.5, n: 1 },
     ];
-    for (const p of this.team) { p.vx = 0; p.vz = 0; p.h = p.side === 'home' ? 0 : Math.PI; p.kickT = 0; }
+    for (const p of this.team) { p.vx = 0; p.vz = 0; p.h = p.side === 'home' ? 0 : Math.PI; num(p.n, p, p.side === 'away' && p.role === 'field'); }
+    this.all = [this.me, ...this.team];
     this.crowd = this.makeCrowd();
     this.hud();
     this.score = { home: 0, away: 0 }; this.t = TIME; this.pause = 0; this.done = false; this.crowdT = 0;
+    this.stamina = 1; this.charge = -1; this.slow = 0; this.camMode = 'tv'; this.camPos = null; this.camLook = new THREE.Vector3(); this.dash = 0;
     this.kickoff('home');
-    // cámara un poco más alta para ver el campo
-    this.camPrev = { dist: G.follow.dist };
-    if (G.follow.dist != null) G.follow.dist = Math.max(G.follow.dist, 7.5);
   }
 
-  // público en las gradas: figuras sencillas rojas y blancas (una sola llamada de dibujo)
+  // público en las gradas: figuras rojas, blancas y azules en una sola llamada de dibujo
   makeCrowd() {
     const col = (geo, c, m) => { const g = geo.toNonIndexed(); if (m) g.applyMatrix4(m); const k = new THREE.Color(c), n = g.attributes.position.count, a = new Float32Array(n * 3); for (let i = 0; i < n; i++) k.toArray(a, i * 3); g.setAttribute('color', new THREE.BufferAttribute(a, 3)); g.deleteAttribute('uv'); return g; };
-    const parts = [col(new THREE.CylinderGeometry(0.2, 0.22, 0.6, 7), '#ffffff', new THREE.Matrix4().makeTranslation(0, 0.3, 0)), col(new THREE.SphereGeometry(0.15, 8, 6), '#e2b08a', new THREE.Matrix4().makeTranslation(0, 0.75, 0))];
+    const parts = [col(new THREE.CylinderGeometry(0.2, 0.22, 0.6, 7), '#ffffff', new THREE.Matrix4().makeTranslation(0, 0.3, 0)), col(new THREE.SphereGeometry(0.15, 8, 6), '#e2b08a', new THREE.Matrix4().makeTranslation(0, 0.75, 0)),
+      col(new THREE.BoxGeometry(0.08, 0.42, 0.08), '#ffffff', new THREE.Matrix4().makeTranslation(0.24, 0.62, 0))];
     const geo = new THREE.BufferGeometry();
     { const pos = [], c = []; for (const p of parts) { pos.push(...p.attributes.position.array); c.push(...p.attributes.color.array); } geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('color', new THREE.Float32BufferAttribute(c, 3)); geo.computeVertexNormals(); }
     const spots = [], SX = 27, SZ = 40, run = 0.75, rise = 0.48;
-    for (let k = 1; k < 18; k += 2) {
+    for (let k = 1; k < 19; k++) {
       const h = 1 + (k + 1) * rise - 0.5;
-      for (let z = -54; z <= 54; z += 1.4) for (const s of [-1, 1]) { if (s < 0 && Math.abs(z) < 4.5) continue; if (Math.random() < 0.75) spots.push([s * (SX + k * run + run / 2), h, z, s > 0 ? -Math.PI / 2 : Math.PI / 2]); }
-      for (let x = -25; x <= 25; x += 1.4) for (const s of [-1, 1]) if (Math.random() < 0.75) spots.push([x, h, s * (SZ + k * run + run / 2), s > 0 ? Math.PI : 0]);
+      for (let z = -54; z <= 54; z += 1.1) for (const s of [-1, 1]) { if (s < 0 && Math.abs(z) < 4.5) continue; if (Math.random() < 0.82) spots.push([s * (SX + k * run + run / 2), h, z, s > 0 ? -Math.PI / 2 : Math.PI / 2]); }
+      for (let x = -25; x <= 25; x += 1.1) for (const s of [-1, 1]) if (Math.random() < 0.82) spots.push([x, h, s * (SZ + k * run + run / 2), s > 0 ? Math.PI : 0]);
     }
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9 });
     const im = new THREE.InstancedMesh(geo, mat, spots.length), m = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), one = new THREE.Vector3(1, 1, 1), shirt = new THREE.Color();
     const base = this.gy(0, 0) - 0.05;
+    this.crowdSpots = spots; this.crowdBase = base;
     spots.forEach(([x, y, z, ry], i) => {
       im.setMatrixAt(i, m.compose(new THREE.Vector3(this.cx + x, base + y, this.cz + z), q.setFromEuler(e.set(0, ry, 0)), one));
-      im.setColorAt(i, shirt.set(Math.random() < 0.7 ? '#c41f2c' : Math.random() < 0.5 ? '#ffffff' : '#1f2d5a'));
+      im.setColorAt(i, shirt.set(Math.random() < 0.72 ? '#c41f2c' : Math.random() < 0.55 ? '#ffffff' : '#16224a'));
     });
-    im.frustumCulled = false; this.root.add(im); this.crowdY = 0; return im;
+    im.frustumCulled = false; this.root.add(im); return im;
   }
 
   hud() {
     const h = this.h = document.createElement('div'); h.className = 'fut-hud';
-    h.innerHTML = `<div class="fut-board"><b class="fut-home">OSASUNA</b><span class="fut-score">0 - 0</span><b class="fut-away">VISITANTE</b><i class="fut-time">2:00</i></div><div class="fut-msg"></div>
-      <div class="fut-help">${this.G.input.touch ? 'Mueve el dedo para correr · ACCIÓN para chutar' : 'WASD para correr · E o Espacio para chutar'}</div><button class="fut-quit" aria-label="Salir del partido">Salir</button>`;
+    const t = this.G.input.touch;
+    h.innerHTML = `<div class="fut-board"><b class="fut-home">OSASUNA</b><span class="fut-score">0 - 0</span><b class="fut-away">VISITANTE</b><i class="fut-time">3:00</i></div>
+      <div class="fut-msg"></div><div class="fut-say"></div>
+      <canvas class="fut-radar" width="96" height="140"></canvas>
+      <div class="fut-bars"><div class="fut-stam"><i></i></div><div class="fut-pow"><i></i></div></div>
+      <div class="fut-btns">
+        <button class="fut-b fut-sprint" data-k="sprint">SPRINT</button>
+        <button class="fut-b fut-pass" data-k="pass">PASE</button>
+        <button class="fut-b fut-shoot" data-k="shoot">TIRO</button>
+      </div>
+      <button class="fut-cam" data-k="cam" aria-label="Cambiar cámara">CÁMARA</button>
+      <div class="fut-help">${t ? 'Joystick: moverte · PASE · TIRO (mantén para más fuerza) · SPRINT' : 'WASD moverte · J pase/entrada · K tiro (mantén) · Mayús sprint · C cámara'}</div>
+      <button class="fut-quit" aria-label="Salir del partido">Salir</button>`;
     document.body.appendChild(h); document.body.classList.add('futbol');
     h.querySelector('.fut-quit').addEventListener('click', () => this.finish(true));
+    this.btn = { sprint: false, pass: false, shoot: false };
+    for (const b of h.querySelectorAll('[data-k]')) {
+      const k = b.dataset.k;
+      b.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); b.classList.add('on'); if (k === 'cam') this.nextCam(); else { this.btn[k] = true; if (k === 'pass') this.passQ = true; if (k === 'shoot') this.shootDown = true; } });
+      const up = (e) => { b.classList.remove('on'); if (k === 'cam') return; if (this.btn[k] && k === 'shoot') this.shootUp = true; this.btn[k] = false; };
+      b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up); b.addEventListener('pointerleave', up);
+    }
+    this.radar = h.querySelector('.fut-radar').getContext('2d');
   }
   msg(t, ms = 1800) { const m = this.h?.querySelector('.fut-msg'); if (!m) return; m.textContent = t; m.classList.add('on'); clearTimeout(this.mt); this.mt = setTimeout(() => m.classList.remove('on'), ms); }
+  say(t, ms = 1600) { const m = this.h?.querySelector('.fut-say'); if (!m) return; m.textContent = t; m.classList.add('on'); clearTimeout(this.st); this.st = setTimeout(() => m.classList.remove('on'), ms); }
+  nextCam() { this.camMode = CAMS[(CAMS.indexOf(this.camMode) + 1) % CAMS.length]; this.say(CAM_NAME[this.camMode], 1000); }
 
-  // saque desde el centro: todos a su campo
   kickoff(side) {
-    const G = this.G, P = G.player;
     Object.assign(this.b, { x: 0, y: BR, z: 0, vx: 0, vy: 0, vz: 0, owner: null, last: null });
-    const w = this.W(0, side === 'home' ? -1.2 : -9); P.place(w.x, w.z, 0); G.follow.snap?.(P);
-    const pos = { home: [[-7, -9]], away: side === 'away' ? [[0, 1.2], [-6, 9]] : [[5, 9], [-5, 14]] };
-    if (side === 'away') pos.home = [[-7, -9]];
-    let ih = 0, ia = 0;
+    const me = this.me; me.x = side === 'home' ? 0 : -3; me.z = side === 'home' ? -0.9 : -9; me.h = 0; me.vx = me.vz = 0;
     for (const p of this.team) {
       if (p.role === 'keeper') { p.x = 0; p.z = p.side === 'home' ? -HZ + 0.8 : HZ - 0.8; }
-      else if (p.side === 'home') { [p.x, p.z] = pos.home[ih++]; }
-      else { [p.x, p.z] = pos.away[ia++]; }
+      else { [p.x, p.z] = p.post; if (side === 'away' && p.side === 'away' && p.n === 9) { p.x = 0; p.z = 1.0; } }
       p.vx = p.vz = 0; p.h = p.side === 'home' ? 0 : Math.PI;
     }
     this.pause = 1.2;
   }
 
-  // posición del jugador en coordenadas del campo
-  me() { const P = this.G.player.pos; return { x: P.x - this.cx, z: P.z - this.cz }; }
+  // dirección de la cámara en el suelo: el joystick se mueve respecto a lo que se ve
+  camAxes() {
+    const c = this.G.camera, f = new THREE.Vector3(); c.getWorldDirection(f); f.y = 0; if (f.lengthSq() < 1e-6) f.set(0, 0, 1); f.normalize();
+    return { fx: f.x, fz: f.z, rx: -f.z, rz: f.x };
+  }
 
   update(dt) {
     if (this.done) return;
-    dt = Math.min(dt, 0.1); this.dt = dt;
-    const G = this.G, P = G.player, b = this.b;
-    // el jugador no sale del césped
-    P.pos.x = Math.max(this.cx - HX - 1, Math.min(this.cx + HX + 1, P.pos.x)); P.pos.z = Math.max(this.cz - HZ - 0.5, Math.min(this.cz + HZ + 0.5, P.pos.z));
-    const me = this.me(), mh = P.heading;
-    G.ui.setPrompt?.(Math.hypot(b.x - me.x, b.z - me.z) < 1.8 ? (this.facingGoal(me, mh) ? 'Chutar' : 'Pasar') : null);
-    if (this.pause > 0) { this.pause -= dt; if (this.pause <= 0 && this.nextKick) { const k = this.nextKick; this.nextKick = null; this.kickoff(k); } this.place(dt); return; }
+    dt = Math.min(dt, 0.1);
+    const G = this.G, inp = G.input, b = this.b, me = this.me;
+    G.player.obj.visible = false;
+    // teclado
+    const K = inp.keys;
+    if (inp.consume('c')) this.nextCam();
+    if (inp.consume('j') || inp.consume(' ')) this.passQ = true;
+    const kShoot = K.has('k') || K.has('e');
+    if (kShoot && !this.kShootPrev) this.shootDown = true; if (!kShoot && this.kShootPrev) this.shootUp = true; this.kShootPrev = kShoot;
+    const sprint = (this.btn.sprint || K.has('shift')) && this.stamina > 0.05;
+    // cámara lenta tras un gol
+    if (this.slow > 0) { this.slow -= dt; dt *= 0.3; }
+    this.dt = dt;
+    if (this.intro > 0) { this.intro -= dt; this.place(dt); this.camera(dt, true); return; }
+    if (this.pause > 0) { this.pause -= dt; if (this.pause <= 0 && this.nextKick) { const k = this.nextKick; this.nextKick = null; this.kickoff(k); } this.place(dt); this.camera(dt); return; }
     this.t -= dt;
     this.h.querySelector('.fut-time').textContent = `${Math.floor(Math.max(0, this.t) / 60)}:${String(Math.floor(Math.max(0, this.t) % 60)).padStart(2, '0')}`;
     if (this.t <= 0) return this.finish(false);
-    // ---- el jugador: conduce el balón al tocarlo y chuta con ACCIÓN
+    // ---- el jugador: movimiento propio relativo a la cámara
+    const A = this.camAxes(), mx = inp.move.x, my = inp.move.y, mag = Math.min(1, Math.hypot(mx, my));
+    const dx = A.fx * my + A.rx * mx, dz = A.fz * my + A.rz * mx;
+    const top = (sprint ? SPRINT : JOG) * (b.owner === me ? 0.9 : 1);
+    const wantVx = mag > 0.08 ? dx / Math.hypot(dx, dz) * top * mag : 0, wantVz = mag > 0.08 ? dz / Math.hypot(dx, dz) * top * mag : 0;
+    if (this.dash > 0) { this.dash -= dt; } else { me.vx += (wantVx - me.vx) * Math.min(1, dt * 8); me.vz += (wantVz - me.vz) * Math.min(1, dt * 8); }
+    me.x = Math.max(-HX - 1, Math.min(HX + 1, me.x + me.vx * dt)); me.z = Math.max(-HZ - 0.5, Math.min(HZ + 0.5, me.z + me.vz * dt));
+    const v = Math.hypot(me.vx, me.vz); me.cur = v; if (v > 0.4) me.h = Math.atan2(me.vx, me.vz);
+    this.stamina = Math.max(0, Math.min(1, this.stamina + (sprint && v > 1 ? -0.28 : 0.14) * dt));
+    // cuerpo a cuerpo: nadie se atraviesa
+    for (const p of this.team) { const ex = me.x - p.x, ez = me.z - p.z, d = Math.hypot(ex, ez); if (d < 0.6 && d > 1e-3) { me.x += ex / d * (0.6 - d) * 0.5; me.z += ez / d * (0.6 - d) * 0.5; } }
+    // ---- balón con el jugador
     const dMe = Math.hypot(b.x - me.x, b.z - me.z);
-    const kick = G.input.consume('e') || G.input.consume(' ');
-    if (kick && dMe < 1.8) this.playerKick(me, mh);
-    else if (dMe < 0.85 && b.y < 0.6 && (b.owner === null || b.owner === 'me' || this.steal('me'))) b.owner = 'me';
-    if (b.owner === 'me') {
-      if (dMe > 1.6) b.owner = null;
-      else { const sp = P.speed ?? Math.hypot(P.vel?.x || 0, P.vel?.z || 0); const ahead = 0.55 + Math.min(0.25, sp * 0.04); b.x += (me.x + Math.sin(mh) * ahead - b.x) * Math.min(1, dt * 12); b.z += (me.z + Math.cos(mh) * ahead - b.z) * Math.min(1, dt * 12); b.vx = Math.sin(mh) * sp; b.vz = Math.cos(mh) * sp; b.last = 'home'; }
+    if (dMe < 0.85 && b.y < 0.6 && (b.owner === null || b.owner === me || this.steal(me))) { if (b.owner && b.owner !== me) this.say(pick(SAY.steal)); b.owner = me; }
+    if (b.owner === me && dMe > 1.6) b.owner = null;
+    // carga del tiro
+    if (this.shootDown) { this.shootDown = false; this.charge = 0; }
+    if (this.charge >= 0) this.charge = Math.min(1, this.charge + dt * 1.4);
+    if (this.shootUp) { this.shootUp = false; if (this.charge >= 0) { if (dMe < 1.8) this.playerShoot(this.charge); this.charge = -1; } }
+    if (this.passQ) {
+      this.passQ = false;
+      if (dMe < 1.8) this.playerPass();
+      else { // entrada: estirón rápido hacia el balón
+        const ex = b.x - me.x, ez = b.z - me.z, d = Math.hypot(ex, ez) || 1;
+        if (d < 4) { me.vx = ex / d * 9; me.vz = ez / d * 9; this.dash = 0.28; me.char.playOnce?.('Hit', 0.35); if (b.owner && b.owner !== me && d < 2.2 && Math.random() < 0.65) { b.owner = me; this.say(pick(SAY.steal)); G.sound.pelota?.(0.5); } }
+      }
     }
+    if (b.owner === me) { const ahead = 0.55 + Math.min(0.3, v * 0.05); b.x += (me.x + Math.sin(me.h) * ahead - b.x) * Math.min(1, dt * 12); b.z += (me.z + Math.cos(me.h) * ahead - b.z) * Math.min(1, dt * 12); b.vx = me.vx; b.vz = me.vz; b.y = BR; b.last = 'home'; b.lastP = me; }
     // ---- los demás
-    for (const p of this.team) p.role === 'keeper' ? this.keeper(p, dt) : this.fieldAI(p, dt, me);
-    // ---- balón libre: física sencilla
+    for (const p of this.team) p.role === 'keeper' ? this.keeper(p, dt) : this.fieldAI(p, dt);
     if (b.owner === null) this.ballPhysics(dt);
-    else if (b.owner !== 'me') { const o = b.owner; b.x = o.x + Math.sin(o.h) * 0.6; b.z = o.z + Math.cos(o.h) * 0.6; b.y = BR; b.vx = Math.sin(o.h) * o.speed * 0.8; b.vz = Math.cos(o.h) * o.speed * 0.8; }
-    // ---- gol
+    else if (b.owner !== me) { const o = b.owner; b.x = o.x + Math.sin(o.h) * 0.6; b.z = o.z + Math.cos(o.h) * 0.6; b.y = BR; b.vx = o.vx; b.vz = o.vz; b.last = o.side; b.lastP = o; }
     if (Math.abs(b.x) < GW && b.y < GH && Math.abs(b.z) > HZ + 0.15) return this.goal(b.z > 0 ? 'home' : 'away');
-    // ---- ambiente: murmullo del público y cámara
-    this.crowdT -= dt; if (this.crowdT <= 0) { this.crowdT = 1.1; G.sound.crowd?.(0.25 + (Math.abs(b.z) > HZ - 14 ? 0.3 : 0)); }
-    this.place(dt);
+    this.crowdT -= dt; if (this.crowdT <= 0) { this.crowdT = 1.1; G.sound.crowd?.(0.25 + (Math.abs(b.z) > HZ - 14 ? 0.35 : 0)); }
+    this.place(dt); this.camera(dt); this.drawHud();
   }
-  facingGoal(me, h) { const gx = 0 - me.x, gz = HZ - me.z, L = Math.hypot(gx, gz) || 1; return (Math.sin(h) * gx + Math.cos(h) * gz) / L > 0.35 && me.z > -6; }
-  playerKick(me, h) {
-    const b = this.b, G = this.G; b.owner = null; b.last = 'home';
-    G.player.rig.doAct?.('hit', 0.4); G.sound.pelota?.(0.8);
-    if (this.facingGoal(me, h)) {
-      // a puerta: apunta al punto de la línea de gol hacia el que mira, sin salirse de los postes (casi)
-      const t = (HZ - me.z) / Math.max(0.2, Math.cos(h)), tx = Math.max(-GW + 0.4, Math.min(GW - 0.4, me.x + Math.sin(h) * t + (Math.random() - 0.5) * 1.2));
-      const dx = tx - b.x, dz = HZ + 1 - b.z, L = Math.hypot(dx, dz), v = 19;
-      Object.assign(b, { vx: dx / L * v, vz: dz / L * v, vy: 2.2 + Math.random() * 2.2 });
-    } else {
-      // pase: si el compañero está por delante, al compañero; si no, hacia donde mira
-      const mate = this.team.find(p => p.side === 'home' && p.role === 'field'), dx = mate.x - b.x, dz = mate.z - b.z, L = Math.hypot(dx, dz) || 1;
-      const toMate = (Math.sin(h) * dx + Math.cos(h) * dz) / L > 0.5;
-      const [ux, uz] = toMate ? [dx / L, dz / L] : [Math.sin(h), Math.cos(h)], v = toMate ? Math.min(15, 6 + L * 0.7) : 13;
-      Object.assign(b, { vx: ux * v, vz: uz * v, vy: 0.6 });
-    }
+  // tiro: hacia la portería con la dirección del joystick (o de la carrera); con más carga, más fuerte y más alto
+  playerShoot(charge) {
+    const b = this.b, me = this.me, G = this.G; b.owner = null; b.last = 'home'; b.lastP = me;
+    me.char.playOnce?.('Hit', 0.4); G.sound.pelota?.(0.6 + charge * 0.6);
+    const toGoalX = 0 - me.x, toGoalZ = HZ - me.z, L0 = Math.hypot(toGoalX, toGoalZ) || 1;
+    const facing = (Math.sin(me.h) * toGoalX + Math.cos(me.h) * toGoalZ) / L0;
+    const v = 13 + charge * 15, err = (1 - Math.min(1, charge * 1.3)) * 0.5 + Math.max(0, charge - 0.85) * 2.4;
+    if (facing > 0.2 && me.z > -12) {
+      const t = (HZ - me.z) / Math.max(0.25, Math.cos(me.h)), tx = Math.max(-GW + 0.3, Math.min(GW - 0.3, me.x + Math.sin(me.h) * t)) + (Math.random() - 0.5) * err * 2;
+      const dx = tx - b.x, dz = HZ + 1 - b.z, L = Math.hypot(dx, dz);
+      Object.assign(b, { vx: dx / L * v, vz: dz / L * v, vy: 1.2 + charge * 4.2 + (Math.random() - 0.5) * err });
+      this.shot = { t: 2, x: tx };
+    } else Object.assign(b, { vx: Math.sin(me.h) * v, vz: Math.cos(me.h) * v, vy: 1.5 + charge * 4 });
   }
-  // robar el balón al que lo lleva: más fácil para los rivales cuanto más rato lo tenga el niño (pero nunca de golpe)
-  steal(who) { const b = this.b; if (b.owner === null || b.owner === who) return true; const rate = who === 'me' ? 4 : b.owner === 'me' ? 1.6 : 1.2; return Math.random() < 1 - Math.exp(-rate * this.dt); }
+  // pase al compañero mejor situado en la dirección en la que mira el jugador, adelantado a su carrera
+  playerPass() {
+    const b = this.b, me = this.me, G = this.G;
+    const mates = this.team.filter(p => p.side === 'home' && p.role === 'field');
+    let best = null, bs = -9;
+    for (const p of mates) { const dx = p.x - me.x, dz = p.z - me.z, d = Math.hypot(dx, dz) || 1; const s = (Math.sin(me.h) * dx + Math.cos(me.h) * dz) / d - d * 0.015; if (s > bs) { bs = s; best = p; } }
+    b.owner = null; b.last = 'home'; b.lastP = me; me.char.playOnce?.('Hit', 0.3); G.sound.pelota?.(0.5);
+    if (best && bs > -0.2) {
+      const lx = best.x + best.vx * 0.5, lz = best.z + best.vz * 0.5, dx = lx - b.x, dz = lz - b.z, L = Math.hypot(dx, dz) || 1, v = Math.min(17, 7 + L * 0.65);
+      Object.assign(b, { vx: dx / L * v, vz: dz / L * v, vy: L > 14 ? 3 : 0.4 }); best.wait = 1.2;
+      if (L > 10) this.say(pick(SAY.pass), 1000);
+    } else Object.assign(b, { vx: Math.sin(me.h) * 12, vz: Math.cos(me.h) * 12, vy: 0.5 });
+  }
+  steal(who) { const b = this.b; if (b.owner === null || b.owner === who) return true; const rate = who === this.me ? 3 : b.owner === this.me ? 1.5 : 1.1; return Math.random() < 1 - Math.exp(-rate * this.dt); }
 
-  fieldAI(p, dt, me) {
-    const b = this.b, own = b.owner === p, mateHas = (b.owner === 'me' && p.side === 'home') || (b.owner && b.owner !== 'me' && b.owner.side === p.side && b.owner !== p);
+  fieldAI(p, dt) {
+    const b = this.b, me = this.me, own = b.owner === p, attack = p.side === 'home' ? 1 : -1;
+    const ownerSide = b.owner ? b.owner.side : null, mateHas = ownerSide === p.side && !own;
     let tx, tz, sp = p.speed;
-    const attack = p.side === 'home' ? 1 : -1;
+    if (p.wait > 0) p.wait -= dt;
     if (own) {
-      // lleva el balón hacia la portería contraria y chuta al acercarse (o pasa si tiene a alguien encima)
-      tx = (p.side === 'home' ? 0 : 0) + Math.sin(this.t + p.x) * 3; tz = attack * HZ;
-      const near = (p.side === 'home' ? this.team.filter(q => q.side === 'away') : [{ x: me.x, z: me.z }, ...this.team.filter(q => q.side === 'home' && q.role === 'field')]).some(q => Math.hypot(q.x - p.x, q.z - p.z) < 1.6);
-      if ((attack * p.z > HZ - 15) || (near && Math.random() < dt * 1.2)) {
+      tx = Math.sin(this.t * 0.7 + p.n) * 4; tz = attack * HZ;
+      const foes = this.all.filter(q => q.side !== p.side && q.role !== 'keeper');
+      const near = foes.some(q => Math.hypot(q.x - p.x, q.z - p.z) < 1.8);
+      if (attack * p.z > HZ - 16 || (near && Math.random() < dt * 1.3)) {
         const shoot = attack * p.z > HZ - 18;
         let ux, uz, v;
-        if (shoot) { const gx = (Math.random() - 0.5) * GW * 1.8 - p.x, gz = attack * (HZ + 1) - p.z, L = Math.hypot(gx, gz); ux = gx / L; uz = gz / L; v = p.side === 'away' ? 15 : 17; }
-        else { const t = p.side === 'home' ? me : this.team.find(q => q.side === p.side && q.role === 'field' && q !== p); const gx = t.x - p.x, gz = t.z - p.z, L = Math.hypot(gx, gz) || 1; ux = gx / L; uz = gz / L; v = Math.min(14, 6 + L * 0.7); }
-        b.owner = null; b.last = p.side; Object.assign(b, { vx: ux * v, vz: uz * v, vy: shoot ? 1.5 + Math.random() * 2 : 0.5 });
-        p.kickT = 0.4; p.char.playOnce?.('Hit', 0.4); this.G.sound.pelota?.(0.6);
+        if (shoot) { const gx = (Math.random() - 0.5) * GW * 1.8 - p.x, gz = attack * (HZ + 1) - p.z, L = Math.hypot(gx, gz); ux = gx / L; uz = gz / L; v = p.side === 'away' ? 15 : 17; this.shot = { t: 2 }; }
+        else { const mates = this.all.filter(q => q.side === p.side && q.role === 'field' && q !== p); const t = mates[Math.floor(Math.random() * mates.length)]; const gx = t.x - p.x, gz = t.z - p.z, L = Math.hypot(gx, gz) || 1; ux = gx / L; uz = gz / L; v = Math.min(15, 6 + L * 0.7); }
+        b.owner = null; b.last = p.side; b.lastP = p; Object.assign(b, { vx: ux * v, vz: uz * v, vy: shoot ? 1.5 + Math.random() * 2 : 0.5 });
+        p.char.playOnce?.('Hit', 0.4); this.G.sound.pelota?.(0.6);
       }
       sp *= 0.85;
-    } else if (mateHas) {
-      // su equipo tiene el balón: se desmarca por delante, a un lado
-      const o = b.owner === 'me' ? me : b.owner; tx = Math.max(-HX + 3, Math.min(HX - 3, o.x + (o.x > 0 ? -9 : 9))); tz = Math.max(-HZ + 6, Math.min(HZ - 6, o.z + attack * 9)); sp *= 0.75;
+    } else if (mateHas || (p.wait > 0)) {
+      // su equipo lleva el balón: se desmarca hacia delante en su carril
+      const o = b.owner || b; tx = Math.max(-HX + 3, Math.min(HX - 3, p.post[0] * 1.2 + (o.x - p.post[0]) * 0.2)); tz = Math.max(-HZ + 6, Math.min(HZ - 6, o.z + attack * (6 + Math.abs(p.post[0]) * 0.4))); sp *= 0.8;
     } else {
-      // a por el balón: el más cercano de cada equipo presiona; el otro se queda entre el balón y su portería
-      const mates = this.team.filter(q => q.side === p.side && q.role === 'field');
+      // el más cercano presiona; los demás guardan su zona respecto al balón
+      const mates = this.all.filter(q => q.side === p.side && q.role === 'field');
       const dists = mates.map(q => Math.hypot(q.x - b.x, q.z - b.z)), presser = mates[dists.indexOf(Math.min(...dists))];
-      const slow = p.side === 'away' && b.owner === 'me' ? 0.92 : 1;     // al niño no le persiguen a toda velocidad
-      if (presser === p || p.side === 'home') { tx = b.x + b.vx * 0.25; tz = b.z + b.vz * 0.25; sp *= slow; }
-      else { tx = b.x * 0.5; tz = (b.z - attack * HZ) * 0.5 - attack * HZ * 0.5 + attack * 4; sp *= 0.7; }
-      if (Math.hypot(b.x - p.x, b.z - p.z) < 0.8 && b.y < 0.7 && this.steal(p)) { b.owner = p; if (b.last !== p.side) this.msg(p.side === 'home' ? '¡Tu compañero tiene el balón!' : '¡Te han robado el balón!', 1200); }
+      const slow = p.side === 'away' && b.owner === me ? 0.9 : 1;
+      if (presser === p) { tx = b.x + b.vx * 0.25; tz = b.z + b.vz * 0.25; sp *= slow; }
+      else { tx = p.post[0] * 0.8 + b.x * 0.3; tz = p.post[1] * 0.5 + b.z * 0.5 - attack * 4; sp *= 0.75; }
+      if (Math.hypot(b.x - p.x, b.z - p.z) < 0.8 && b.y < 0.7 && this.steal(p)) {
+        if (b.owner === me) { this.msg('¡Te han robado el balón!', 1100); }
+        b.owner = p;
+      }
     }
     this.moveTo(p, tx, tz, sp, dt);
   }
@@ -218,20 +298,19 @@ export class Futbol {
     const tx = Math.max(-GW + 0.5, Math.min(GW - 0.5, b.x * 0.55));
     this.moveTo(p, tx, gz, p.speed, dt, true);
     p.h = dir > 0 ? Math.PI : 0;
-    // parada: el balón va hacia su portería y pasa cerca
     const coming = Math.sign(b.vz) === dir && Math.abs(b.z - gz) < 1.4 && b.owner === null && Math.abs(b.x) < GW + 0.3;
     if (coming && !p.tried) {
       p.tried = true;
       if (Math.abs(b.x - p.x) < 1.9 && b.y < 2.2 && Math.random() < p.save) {
-        Object.assign(b, { vz: -b.vz * 0.35, vx: (Math.random() - 0.5) * 6, vy: 2.5, last: p.side });
-        p.char.playOnce?.('Celebrate', 0.6); this.msg(p.side === 'away' ? '¡Paradón del portero!' : '¡Ha parado tu portero!', 1400);
+        Object.assign(b, { vz: -b.vz * 0.35, vx: (Math.random() - 0.5) * 6, vy: 2.5, last: p.side, lastP: p });
+        p.char.playOnce?.('Celebrate', 0.6); this.say(pick(SAY.save)); this.G.sound.crowd?.(0.9);
       }
     }
     if (Math.abs(b.z - gz) > 4) p.tried = false;
-    // si el balón se queda parado en el área, lo saca
     if (b.owner === null && Math.hypot(b.x - p.x, b.z - p.z) < 0.9 && Math.hypot(b.vx, b.vz) < 3) {
-      const mate = this.team.find(q => q.side === p.side && q.role === 'field'), dx = mate.x - b.x, dz = mate.z - b.z, L = Math.hypot(dx, dz) || 1;
-      Object.assign(b, { vx: dx / L * 14, vz: dz / L * 14, vy: 4, last: p.side }); p.char.playOnce?.('Hit', 0.4);
+      const mates = this.all.filter(q => q.side === p.side && q.role === 'field'), mate = mates[Math.floor(Math.random() * mates.length)];
+      const dx = mate.x - b.x, dz = mate.z - b.z, L = Math.hypot(dx, dz) || 1;
+      Object.assign(b, { vx: dx / L * 14, vz: dz / L * 14, vy: 4, last: p.side, lastP: p }); p.char.playOnce?.('Hit', 0.4);
     }
   }
   moveTo(p, tx, tz, sp, dt, side = false) {
@@ -249,35 +328,70 @@ export class Futbol {
     if (b.y < BR) { b.y = BR; if (b.vy < -1.2) b.vy = -b.vy * 0.45; else b.vy = 0; }
     if (b.y <= BR + 0.01) { const f = Math.exp(-1.1 * dt); b.vx *= f; b.vz *= f; }
     if (Math.abs(b.x) > WALLX) { b.x = Math.sign(b.x) * WALLX; b.vx *= -0.55; }
-    // fondo: rebota en la valla salvo por la boca de la portería; postes y larguero
     const inMouth = Math.abs(b.x) < GW && b.y < GH;
-    if (!inMouth && Math.abs(b.z) > WALLZ) { b.z = Math.sign(b.z) * WALLZ; b.vz *= -0.55; }
-    if (Math.abs(Math.abs(b.z) - HZ) < 0.3 && Math.abs(Math.abs(b.x) - GW) < 0.25 && b.y < GH) { b.vz *= -0.6; b.vx *= -0.4; this.G.sound.pelota?.(0.4); }
+    if (!inMouth && Math.abs(b.z) > WALLZ) { b.z = Math.sign(b.z) * WALLZ; b.vz *= -0.55; if (this.shot?.t > 0) { this.say(pick(SAY.miss)); this.shot = null; } }
+    if (Math.abs(Math.abs(b.z) - HZ) < 0.3 && Math.abs(Math.abs(b.x) - GW) < 0.25 && b.y < GH) { b.vz *= -0.6; b.vx *= -0.4; this.G.sound.pelota?.(0.4); this.say(pick(SAY.post)); }
+    if (this.shot) { this.shot.t -= dt; if (this.shot.t <= 0) this.shot = null; }
   }
   goal(side) {
     const G = this.G; this.score[side]++;
     this.h.querySelector('.fut-score').textContent = `${this.score.home} - ${this.score.away}`;
     const w = this.W(this.b.x, this.b.z), y = this.gy(this.b.x, this.b.z) + 1.2;
+    this.slow = 1.4; this.goalCam = { t: 2.6, z: Math.sign(this.b.z) };
     if (side === 'home') {
-      this.msg(this.b.last === 'home' ? '¡GOOOL! ¡Gol de Osasuna!' : '¡Gol!', 2200); G.sound.fanfare?.(); G.sound.crowd?.(1.4);
-      G.particles?.confetti?.({ x: w.x, y, z: w.z }, 120); G.player.rig.doCheer?.(); this.cheer = 2;
+      const who = this.b.lastP === this.me ? '¡GOOOL! ¡Golazo del número 10!' : '¡GOOOL DE OSASUNA!';
+      this.msg(who, 2600); G.sound.fanfare?.(); G.sound.crowd?.(1.6);
+      G.particles?.confetti?.({ x: w.x, y, z: w.z }, 160); this.cheer = 2.6; this.me.char.playOnce?.('Celebrate', 1.6);
     } else { this.msg('Gol del equipo visitante. ¡Ánimo, a por el empate!', 2200); G.sound.ui?.('error'); }
     for (const p of this.team) if (p.side === side) p.char.playOnce?.('Celebrate', 1.4);
-    if (this.score[side] >= WIN) { this.pause = 99; this.nextKick = null; setTimeout(() => this.finish(false), 1800); return; }
-    // celebración y, al acabar la pausa (en tiempo de juego), saque del equipo que ha encajado
-    this.b.owner = null; this.b.vx = this.b.vz = this.b.vy = 0; this.pause = 2.2; this.nextKick = side === 'home' ? 'away' : 'home';
+    if (this.score[side] >= WIN) { this.pause = 99; this.nextKick = null; setTimeout(() => this.finish(false), 2400); return; }
+    this.b.owner = null; this.b.vx = this.b.vz = this.b.vy = 0; this.pause = 2.6; this.nextKick = side === 'home' ? 'away' : 'home';
   }
   place(dt) {
     const b = this.b, w = this.W(b.x, b.z);
     this.ball.position.set(w.x, this.gy(b.x, b.z) + b.y, w.z);
     const v = Math.hypot(b.vx, b.vz); if (v > 0.05) { this.ball.rotation.x += (b.vz / BR) * dt; this.ball.rotation.z -= (b.vx / BR) * dt; }
-    for (const p of this.team) {
+    for (const p of this.all) {
       const q = this.W(p.x, p.z); p.obj.position.set(q.x, this.gy(p.x, p.z), q.z); p.obj.rotation.y = p.h;
       p.anim.update(dt, { speed: p.cur || 0 });
     }
-    // el público salta con los goles
+    // el explorador (oculto) sigue al jugador para que todo lo demás (cámara, sonido, vecinos) esté en su sitio
+    const mw = this.W(this.me.x, this.me.z); this.G.player.pos.set(mw.x, this.gy(this.me.x, this.me.z), mw.z); this.G.player.heading = this.me.h;
     this.cheer = Math.max(0, (this.cheer || 0) - dt);
-    this.crowd.position.y = this.cheer > 0 ? Math.abs(Math.sin(this.cheer * 9)) * 0.25 : 0;
+    this.crowd.position.y = this.cheer > 0 ? Math.abs(Math.sin(this.cheer * 9)) * 0.25 : Math.abs(Math.sin(performance.now() / 300)) * 0.02;
+  }
+  // cámaras: televisión (desde la grada oeste siguiendo el balón), detrás del jugador (mirando a la portería rival) y aérea
+  camera(dt, intro = false) {
+    const G = this.G, c = G.camera, b = this.b, me = this.me, g0 = this.gy(0, 0);
+    let pos, look;
+    if (intro) {
+      const a = (3.2 - this.intro) * 0.45 - 0.6;
+      pos = new THREE.Vector3(this.cx + Math.sin(a) * 22, g0 + 13, this.cz + Math.cos(a) * 30); look = new THREE.Vector3(this.cx, g0, this.cz);
+      c.position.copy(pos); c.lookAt(look); this.camPos = null; return;
+    }
+    if (this.goalCam?.t > 0) {
+      this.goalCam.t -= dt; const s = this.goalCam.z;
+      pos = new THREE.Vector3(this.cx + 6, g0 + 3.2, this.cz + s * (HZ + 6)); look = new THREE.Vector3(this.cx + b.x * 0.5, g0 + 1, this.cz + s * (HZ - 6));
+    } else if (this.camMode === 'tv') {
+      pos = new THREE.Vector3(this.cx - 31, g0 + 14, this.cz + b.z * 0.85); look = new THREE.Vector3(this.cx + b.x * 0.4, g0, this.cz + b.z);
+    } else if (this.camMode === 'detras') {
+      const mw = this.W(me.x, me.z); pos = new THREE.Vector3(mw.x, g0 + 3.6, mw.z - 7.5); look = new THREE.Vector3(mw.x + (b.x - me.x) * 0.3, g0 + 0.8, mw.z + 6);
+    } else {
+      pos = new THREE.Vector3(this.cx + b.x * 0.5, g0 + 30, this.cz + b.z - 10); look = new THREE.Vector3(this.cx + b.x * 0.5, g0, this.cz + b.z);
+    }
+    if (!this.camPos) { this.camPos = pos.clone(); this.camLook.copy(look); }
+    const k = 1 - Math.exp(-4 * dt); this.camPos.lerp(pos, k); this.camLook.lerp(look, k);
+    c.position.copy(this.camPos); c.lookAt(this.camLook);
+  }
+  drawHud() {
+    const st = this.h.querySelector('.fut-stam i'), pw = this.h.querySelector('.fut-pow i');
+    st.style.width = (this.stamina * 100).toFixed(0) + '%'; pw.parentElement.style.opacity = this.charge >= 0 ? 1 : 0; pw.style.width = (Math.max(0, this.charge) * 100).toFixed(0) + '%';
+    // radar del campo
+    const g = this.radar, W = 96, H = 140, sx = W / (2 * HX + 4), sz = H / (2 * HZ + 4), X = (x) => W / 2 + x * sx, Y = (z) => H / 2 - z * sz;
+    g.clearRect(0, 0, W, H); g.fillStyle = 'rgba(30,110,50,.75)'; g.fillRect(0, 0, W, H); g.strokeStyle = 'rgba(255,255,255,.7)'; g.lineWidth = 1;
+    g.strokeRect(X(-HX), Y(HZ), 2 * HX * sx, 2 * HZ * sz); g.beginPath(); g.moveTo(X(-HX), Y(0)); g.lineTo(X(HX), Y(0)); g.stroke();
+    for (const p of this.all) { g.fillStyle = p === this.me ? '#ffe14a' : p.side === 'home' ? '#e0303a' : '#f4f4f2'; g.beginPath(); g.arc(X(p.x), Y(p.z), p === this.me ? 4 : 3, 0, 7); g.fill(); }
+    g.fillStyle = '#ffffff'; g.beginPath(); g.arc(X(this.b.x), Y(this.b.z), 2.2, 0, 7); g.fill(); g.strokeStyle = '#000'; g.stroke();
   }
 
   async finish(quit) {
@@ -291,15 +405,14 @@ export class Futbol {
   }
   cleanup() {
     const G = this.G;
-    this.h?.remove(); clearTimeout(this.mt); document.body.classList.remove('futbol');
+    this.h?.remove(); clearTimeout(this.mt); clearTimeout(this.st); document.body.classList.remove('futbol');
     if (this.root) {
       G.scene.remove(this.root);
       this.ball?.geometry.dispose(); this.ball?.material.dispose(); this.crowd?.geometry.dispose(); this.ballTex?.dispose(); this.crowd?.material.dispose(); this.crowd?.dispose?.();
-      for (const p of this.team || []) p.char?.dispose?.();
+      for (const p of this.all || []) { p.char?.dispose?.(); p.obj.traverse(o => { if (o.material?.map && o.material.isMeshBasicMaterial) { o.material.map.dispose(); o.material.dispose(); o.geometry.dispose(); } }); }
     }
-    if (this.camPrev && G.follow.dist != null) G.follow.dist = this.camPrev.dist;
-    G.mode = 'play'; G.player.frozen = false; G.futbol = null;
-    // el jugador sale por el túnel, junto al entrenador
-    const w = this.W(-16.5, 3); G.player.place(w.x, w.z, -Math.PI / 2); G.follow.snap?.(G.player);
+    G.mode = 'play'; G.player.frozen = false; G.futbol = null; G.player.obj.visible = true;
+    const w = this.W(-16.5, 3); G.player.place(w.x, w.z, -Math.PI / 2); G.follow.cinematic = null; G.follow.snap?.(G.player);
+    if (this.dog) { this.dog.hidden = false; this.dog.pos.set(w.x - 1.5, groundHeight(w.x - 1.5, w.z + 1), w.z + 1); this.dog.sync?.(); }
   }
 }
