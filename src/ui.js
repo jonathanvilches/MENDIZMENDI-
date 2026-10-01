@@ -7,6 +7,7 @@ import { clamp } from './util/math.js';
 import { iconSVG, iconImage } from './ui/icons.js';
 import { portrait } from './ui/portraits.js';
 import { mountMapView } from './ui/mapview.js';
+import { buildMapVectorsIdle } from './ui/mapvector.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const el = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
@@ -374,9 +375,19 @@ export class UI {
       d[o] = r * shade; d[o + 1] = gg * shade; d[o + 2] = b * shade; d[o + 3] = 255;
     }
     g.putImageData(img, 0, 0);
-    // fondo sin casas para el mapa grande (allí las casas se dibujan en vector)
-    const base = document.createElement('canvas'); base.width = base.height = S; base.getContext('2d').drawImage(c, 0, 0);
-    this.mapBase = base; this.mapHouseList = houses;
+    // fondo del mapa grande: solo el relieve, suave (interpolado); bosque, campos, calles, agua y casas van en vector
+    const base = document.createElement('canvas'); base.width = base.height = S;
+    { const bg = base.getContext('2d'), bi = bg.createImageData(S, S), bd = bi.data, at = (a, fx, fy) => { const i = Math.min(N - 2, Math.floor(fx)), j = Math.min(N - 2, Math.floor(fy)), u = fx - i, w = fy - j, q = j * N + i; return (a[q] * (1 - u) + a[q + 1] * u) * (1 - w) + (a[q + N] * (1 - u) + a[q + N + 1] * u) * w; };
+      for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
+        const fx = x * k, fy = y * k, h = at(H, fx, fy), hx = at(H, fx + 1, fy) - h, hz = at(H, fx, fy + 1) - h;
+        const shade = clamp(1 + (-hx - hz) * 0.22, 0.65, 1.25), snow = clamp((h - 128) / 14, 0, 1);
+        const o = (y * S + x) * 4;
+        bd[o] = (124 + (238 - 124) * snow) * shade; bd[o + 1] = (172 + (240 - 172) * snow) * shade; bd[o + 2] = (90 + (242 - 90) * snow) * shade; bd[o + 3] = 255;
+      }
+      bg.putImageData(bi, 0, 0); }
+    this.mapBase = base; this.mapHouseList = houses; this.mapVec = null;
+    // el mapa en vector se prepara en un momento tranquilo, para que se abra al instante
+    const job = this.mapVecJob = buildMapVectorsIdle((vec) => { if (this.mapVecJob === job) { this.mapVec = vec; this.mapView?.redraw?.(); } });
     const toM = (x, z) => [(x + HALF) / (2 * HALF) * S, (z + HALF) / (2 * HALF) * S];
     g.fillStyle = '#b44a3a';
     for (const hs of houses) { const [x, y] = toM(hs.x, hs.z); g.save(); g.translate(x, y); g.rotate(-(hs.ry || 0)); g.fillRect(-(hs.w || 8) / 4, -(hs.d || 8) / 4, (hs.w || 8) / 2, (hs.d || 8) / 2); g.restore(); }
