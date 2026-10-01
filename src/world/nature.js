@@ -408,6 +408,8 @@ export class Nature {
       this.chunks.push(entry);
     }
     this.lodDist = quality === 'low' ? 60 : quality === 'mid' ? 80 : 100;
+    // solo los trozos cercanos proyectan sombra: la sombra de lo lejano apenas se ve y duplica el coste
+    this.shadowDist = quality === 'low' ? 0 : quality === 'mid' ? 20 : 45;
     this.buildRocks(rnd);
     this.buildBushes(rnd);
     this.buildCrops(rnd, quality);
@@ -431,7 +433,7 @@ export class Nature {
         const im = new THREE.InstancedMesh(geo, mat, items.length);
         items.forEach((s, i) => im.setMatrixAt(i, place(s)));
         im.computeBoundingSphere();
-        im.castShadow = !far && !!opts.shadow; im.receiveShadow = true; im.name = (opts.name || '') + (far ? '-lejos' : '-cerca');
+        im.castShadow = !far && !!opts.shadow; im.userData.shadow = !far && !!opts.shadow; im.receiveShadow = true; im.name = (opts.name || '') + (far ? '-lejos' : '-cerca');
         (far ? entry.lo : entry.hi).push(im); this.group.add(im); out.push({ im, items, far });
       }
     }
@@ -495,10 +497,15 @@ export class Nature {
         s.m = new THREE.Matrix4().compose(new THREE.Vector3(s.x, terrainHeight(s.x, s.z) - s.s * s.sink, s.z), q.clone(), new THREE.Vector3(s.s * (0.8 + rnd() * 0.5), s.s * (0.7 + rnd() * 0.4), s.s * (0.8 + rnd() * 0.5)));
         if (s.s > 1.1) addCircle(s.x, s.z, s.s * 0.75);
       }
-      // rocas por trozos: detalladas y con sombra de cerca, sencillas de lejos
-      for (const { im, items } of this.addChunked(list, parts[v][0], parts[v][1], m, (s) => s.m, { shadow: true, name: 'rocas' })) {
+      // rocas por trozos: detalladas y con sombra de cerca (cinco formas)…
+      for (const { im, items } of this.addChunked(list, parts[v][0], null, m, (s) => s.m, { shadow: true, name: 'rocas' })) {
         im.geometry = im.geometry.clone(); im.geometry.setAttribute('aMoss', new THREE.InstancedBufferAttribute(Float32Array.from(items, s => s.moss), 1));
       }
+    }
+    // …y de lejos todas con una sola forma sencilla: una malla por trozo en vez de cinco
+    const all = spots.filter(s => s.m);
+    for (const { im, items } of this.addChunked(all, null, parts[0][1], m, (s) => s.m, { name: 'rocas' })) {
+      im.geometry = im.geometry.clone(); im.geometry.setAttribute('aMoss', new THREE.InstancedBufferAttribute(Float32Array.from(items, s => s.moss), 1));
     }
   }
   buildBushes(rnd) {
@@ -547,8 +554,8 @@ export class Nature {
     windUniforms.uTime.value = elapsed;
     for (const c of this.chunks) {
       const d = Math.max(Math.abs(camPos.x - c.cx), Math.abs(camPos.z - c.cz)) - CHUNK / 2;
-      const near = d < this.lodDist;
-      for (const m of c.hi) m.visible = near;
+      const near = d < this.lodDist, shade = d < this.shadowDist;
+      for (const m of c.hi) { m.visible = near; m.castShadow = shade && m.userData.shadow !== false; }
       for (const m of c.lo) m.visible = !near;
     }
     this.grass.update(focus, elapsed, player);

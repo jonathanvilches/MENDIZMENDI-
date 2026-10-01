@@ -239,6 +239,9 @@ def split_hair(d, head_bm):
             if abs(v.co.x) < 1e-5 and v.co.z < d['head_c']: continue
             lo, la = lonlat_of(d, v.co)
             v.co = sph(d, lo, hairline(lo, d))
+        # los escalones de la rejilla dejan vértices del borde en el mismo punto: se funden para que no salgan dientes
+        bmesh.ops.remove_doubles(hb, verts=[v for v in boundary if v.is_valid], dist=0.004)
+        boundary = {v for e in hb.edges if e.is_boundary for v in e.verts}
     for v in hb.verts:
         lo, la = lonlat_of(d, v.co)
         n = head_normal(d, v.co - V((0, 0, d['head_c'])))
