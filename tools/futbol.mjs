@@ -27,24 +27,30 @@ await p.waitForFunction(() => window.__game.mode === 'futbol', null, { timeout: 
 await p.waitForTimeout(2500); await shot('saque');
 // juego automático: el jugador va al balón; si está cerca y mira a la portería, chuta
 const play = (secs) => p.evaluate((secs) => {
-  // tiempo simulado a pasos fijos: el jugador va al balón; si lo lleva, hacia la portería, y chuta cerca del área
+  // tiempo simulado: el jugador va al balón; si lo lleva, hacia la portería, y chuta con carga cerca del área
   const G = window.__game, F = G.futbol;
   for (let i = 0; i < secs * 30 && G.futbol && !F.done; i++) {
-    const P = G.player, b = F.b, me = F.me(), dx = b.x - me.x, dz = b.z - me.z;
-    const [tx, tz] = b.owner === 'me' ? [0 - me.x, 36 - me.z] : [dx, dz], L = Math.hypot(tx, tz) || 1;
-    P.heading = Math.atan2(tx, tz); P.speed = 5.5; P.pos.x += tx / L * 5.5 / 30; P.pos.z += tz / L * 5.5 / 30;
-    if (b.owner === 'me' && me.z > 20) G.input.press('e');
+    const me = F.me, b = F.b, own = b.owner === me;
+    const [tx, tz] = own ? [0 - me.x, 36 - me.z] : [b.x - me.x, b.z - me.z], L = Math.hypot(tx, tz) || 1;
+    me.vx = tx / L * 5.5; me.vz = tz / L * 5.5; me.h = Math.atan2(tx, tz);
+    if (own && me.z > 20 && F.charge < 0) F.shootDown = true;
+    if (F.charge > 0.55) F.shootUp = true;
     F.update(1 / 30);
   }
-  return JSON.stringify({ score: F.score, t: Math.round(F.t), done: F.done, owner: F.b.owner === 'me' ? 'yo' : F.b.owner?.side || null });
+  return JSON.stringify({ score: F.score, t: Math.round(F.t), done: F.done, cam: F.camMode });
 }, secs);
-console.log('juego 1', await play(40)); await shot('partido');
+await p.evaluate(() => { const F = window.__game.futbol; F.intro = 0; F.pause = 0; });
+console.log('juego 1', await play(8)); await shot('partido-tv');
+await p.evaluate(() => window.__game.futbol.nextCam()); await p.waitForTimeout(2500); await shot('partido-detras');
+await p.evaluate(() => window.__game.futbol.nextCam()); await p.waitForTimeout(2500); await shot('partido-aerea');
+await p.evaluate(() => window.__game.futbol.nextCam());
+console.log('juego 1b', await play(30));
 await cam({ x: -14, y: 9, z: 20, lx: 0, ly: 1, lz: 34 }); await shot('porteria');
 await p.evaluate(() => { window.__game.follow.cinematic = null; });
 await cam({ x: 18, y: 14, z: -30, lx: -30, ly: 6, lz: 10 }); await shot('gradas');
 await p.evaluate(() => { window.__game.follow.cinematic = null; });
 // gol forzado para ver la celebración
-await p.evaluate(() => { const F = window.__game.futbol; Object.assign(F.b, { x: 0, y: 0.5, z: 34, vx: 0, vy: 0, vz: 12, owner: null, last: 'home' }); F.team.forEach(q => { if (q.role === 'keeper') q.save = 0; }); });
+await p.evaluate(() => { const F = window.__game.futbol; Object.assign(F.b, { x: 0, y: 0.5, z: 34, vx: 0, vy: 0, vz: 12, owner: null, last: 'home', lastP: F.me }); F.team.forEach(q => { if (q.role === 'keeper') q.save = 0; }); });
 await p.waitForTimeout(700); await shot('gol');
 console.log('juego 2', await play(40));
 // acabar: tiempo a cero

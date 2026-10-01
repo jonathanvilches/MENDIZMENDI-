@@ -749,4 +749,20 @@ body.futbol #compass, body.futbol #tl, body.futbol #topright, body.futbol #promp
 .fut-msg.on { opacity: 1; transform: translate(-50%, 0); }
 .fut-help { position: absolute; left: 50%; bottom: max(14px, env(safe-area-inset-bottom)); transform: translateX(-50%); padding: 6px 14px; border-radius: 12px; background: rgba(0, 0, 0, .4); font-size: 13px; white-space: nowrap; max-width: 52vw; overflow: hidden; text-overflow: ellipsis; }
 .fut-quit { pointer-events: auto; position: absolute; top: max(10px, env(safe-area-inset-top)); right: 12px; padding: 8px 14px; border: 0; border-radius: 12px; background: rgba(0, 0, 0, .5); color: #fff; font: 800 13px Nunito, sans-serif; cursor: pointer; }
-@media (max-width: 560px) { .fut-board { top: 54px; } .fut-help { display: none; } }
+body.futbol #controls { display: none !important; }
+.fut-say { position: absolute; left: 50%; top: 64px; transform: translateX(-50%); padding: 5px 14px; border-radius: 10px; background: rgba(12, 18, 34, .7); font: 800 14px Nunito, sans-serif; opacity: 0; transition: .2s; white-space: nowrap; }
+.fut-say.on { opacity: 1; }
+.fut-radar { position: absolute; right: 12px; top: 56px; width: 72px; height: 105px; border-radius: 8px; border: 2px solid rgba(255,255,255,.6); }
+.fut-bars { position: absolute; left: 16px; top: 58px; display: flex; flex-direction: column; gap: 6px; width: min(36vw, 170px); }
+.fut-bars > div { height: 10px; border-radius: 6px; background: rgba(0,0,0,.45); border: 1.5px solid rgba(255,255,255,.6); overflow: hidden; }
+.fut-stam i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, #3fd06b, #b8f05a); }
+.fut-pow { opacity: 0; transition: opacity .15s; } .fut-pow i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #ffd23a, #ff5a2a); }
+.fut-btns { position: absolute; right: max(14px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom)); display: grid; grid-template-columns: auto auto; grid-template-areas: ". shoot" "sprint pass"; gap: 10px; pointer-events: auto; }
+.fut-b { width: 74px; height: 74px; border-radius: 50%; border: 3px solid rgba(255,255,255,.85); color: #fff; font: 900 13px Nunito, sans-serif; letter-spacing: .03em; box-shadow: 0 5px 0 rgba(0,0,0,.35); touch-action: none; user-select: none; -webkit-user-select: none; cursor: pointer; }
+.fut-b.on { transform: translateY(3px) scale(.96); box-shadow: 0 2px 0 rgba(0,0,0,.35); }
+.fut-shoot { grid-area: shoot; width: 88px; height: 88px; background: radial-gradient(circle at 50% 35%, #ff6a5a, #c41f2c); }
+.fut-pass { grid-area: pass; background: radial-gradient(circle at 50% 35%, #4a7ae8, #16224a); }
+.fut-sprint { grid-area: sprint; background: radial-gradient(circle at 50% 35%, #5ad07a, #1f7a3a); }
+.fut-cam { pointer-events: auto; position: absolute; right: 96px; top: max(10px, env(safe-area-inset-top)); padding: 8px 12px; border: 0; border-radius: 12px; background: rgba(0,0,0,.5); color: #fff; font: 800 13px Nunito, sans-serif; cursor: pointer; }
+@media (max-width: 560px) { .fut-board { top: 54px; } .fut-help { display: none; } .fut-say { top: 108px; } .fut-bars { top: 110px; } .fut-radar { top: 108px; } }
+@media (max-height: 460px) { .fut-b { width: 62px; height: 62px; } .fut-shoot { width: 74px; height: 74px; } .fut-help { display: none; } }

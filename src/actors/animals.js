@@ -329,7 +329,7 @@ export class Fauna {
     const vd = this.visDist;
     for (const a of this.animals) {
       const d = Math.hypot(a.pos.x - player.pos.x, a.pos.z - player.pos.z);
-      a.obj.visible = d < vd;
+      a.obj.visible = !a.hidden && d < vd;
       const sh = d < 35;
       if (a.shadowOn !== sh) { a.shadowOn = sh; a.obj.traverse(o => { if (o.isMesh && !o.userData.outline) o.castShadow = sh; }); }
       setOutlines(a.obj, d < 26);
