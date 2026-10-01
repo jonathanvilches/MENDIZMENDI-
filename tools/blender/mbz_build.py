@@ -702,7 +702,14 @@ def paint_all(d, G):
         return tuple(int(x * 0.82) for x in cl['shorts']) if z > 0.69 else cl['shorts']
     paint(G['Shorts'], shorts_col)
     paint(G['Socks'], lambda p: cl['socks'])
-    paint(G['Boots'], lambda p: cl['sole'] if (p.center.z < 0.02 and p.normal.z < -0.5) else cl['boots'])
+    B = d['boot']
+    def boot_col(p):
+        c = p.center
+        if c.z < (0.03 if 'toecap' in cl else 0.02) and (p.normal.z < -0.5 or 'toecap' in cl): return cl['sole']   # suela de goma
+        if 'collar' in cl and c.z > B['shaft'] - 0.03: return cl['collar']                                          # collarín acolchado
+        if 'toecap' in cl and c.y < B['heel_y'] - B['len'] * 0.7 and c.z < 0.075: return cl['toecap']              # puntera
+        return cl['boots']
+    paint(G['Boots'], boot_col)
     paint(G['Acc_Scarf'], lambda p: cl['button'] if (p.center.z < 0.86 and p.center.y < -0.14 and abs(p.center.x) < 0.03) else cl['sash'] if p.center.z < 0.76 else cl['scarf'])
     paint(G['Head'], lambda p: cl['skin'])
     for ob in [G['Hair']] + G['tufts']: paint(ob, lambda p: cl['hair'])
@@ -850,7 +857,7 @@ def bake_atlases(d, G, mats, tex_dir):
     solid_mods(False)
     for key, main, allo, size, zr, extras in (
         ('Body', body_main, body_all, 1024, (0.0, 1.05), dict(grain={'scale': 260, 'k': 0.07}, rects=d.get('rects'), **({} if d.get('buttons') else dict(dots={'pts': [(0.034, -0.162, z) for z in (0.69, 0.735, 0.78)], 'r': 0.0095, 'color': d['colors']['button']})))),
-        ('Face', face_main, face_all, 512, (0.98, 1.68), dict(blush={'pts': [tuple(Hm.sph(d, s * d.get('blush_ll', (38, -18))[0], d.get('blush_ll', (38, -18))[1])) for s in (1, -1)], 'r': 0.06, 'k': 0.45, 'color': d['colors']['blush']})),
+        ('Face', face_main, face_all, 512, (0.98, 1.68), dict(**({'dots': {'pts': [tuple(Hm.sph(d, s * lo, la, 0.002)) for s in (1, -1) for lo, la in d['freckles']], 'r': 0.0062, 'color': (176, 112, 80)}} if d.get('freckles') else {}), blush={'pts': [tuple(Hm.sph(d, s * d.get('blush_ll', (38, -18))[0], d.get('blush_ll', (38, -18))[1])) for s in (1, -1)], 'r': 0.06, 'k': 0.45, 'color': d['colors']['blush']})),
     ):
         mat = mats['body' if key == 'Body' else 'face']
         ao = bake_image(f'AO_{name}_{key}', size, os.path.join(tex_dir, f'AO_{name}_{key}.png'), non_color=True)

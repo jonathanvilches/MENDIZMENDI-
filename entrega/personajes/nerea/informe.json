@@ -1,0 +1,410 @@
+{
+ "archivo": "char_nerea.glb",
+ "peso_MB": 2.03,
+ "triangulos_visibles": 27128,
+ "triangulos_por_parte": {
+  "Head": 3184,
+  "Hair": 2768,
+  "Body": 1504,
+  "Shirt": 5132,
+  "Vest": 2912,
+  "Shorts": 2752,
+  "Socks": 2592,
+  "Boots": 336,
+  "Acc_Scarf": 3552,
+  "Mechones": 212,
+  "Cara (ojos, iris, brillos, párpado, cejas, boca)": 776,
+  "Manos (abiertas)": 1408
+ },
+ "triangulos_con_todas_las_variantes": 31338,
+ "cage_caras": 2268,
+ "huesos_deformadores": 40,
+ "huesos_total": 44,
+ "materiales": [
+  "MAT_Eyes",
+  "MAT_Glint",
+  "MAT_Nerea_Body",
+  "MAT_Nerea_Face"
+ ],
+ "texturas": {
+  "Body": 1024,
+  "Face": 512,
+  "T_Eyes": 256
+ },
+ "clips": {
+  "Idle": {
+   "fotogramas": 96,
+   "segundos": 3.2
+  },
+  "Walk": {
+   "fotogramas": 30,
+   "segundos": 1.0
+  },
+  "Run": {
+   "fotogramas": 18,
+   "segundos": 0.6
+  },
+  "Jump_Start": {
+   "fotogramas": 9,
+   "segundos": 0.3
+  },
+  "Jump_Loop": {
+   "fotogramas": 24,
+   "segundos": 0.8
+  },
+  "Land": {
+   "fotogramas": 12,
+   "segundos": 0.4
+  },
+  "Talk": {
+   "fotogramas": 60,
+   "segundos": 2.0
+  },
+  "Wave": {
+   "fotogramas": 54,
+   "segundos": 1.8
+  },
+  "Celebrate": {
+   "fotogramas": 54,
+   "segundos": 1.8
+  },
+  "Scared": {
+   "fotogramas": 48,
+   "segundos": 1.6
+  },
+  "Look_Around": {
+   "fotogramas": 90,
+   "segundos": 3.0
+  },
+  "Ready": {
+   "fotogramas": 30,
+   "segundos": 1.0
+  },
+  "Hit": {
+   "fotogramas": 16,
+   "segundos": 0.53
+  }
+ },
+ "expresiones": {
+  "Idle": {
+   "mouth": "Neutral",
+   "brows": "Normal",
+   "hands": "Open"
+  },
+  "Walk": {
+   "mouth": "Smile",
+   "brows": "Normal",
+   "hands": "Open"
+  },
+  "Run": {
+   "mouth": "SmileOpen",
+   "brows": "Happy",
+   "hands": "Fist"
+  },
+  "Jump_Start": {
+   "mouth": "SmileOpen",
+   "brows": "Surprised",
+   "hands": "Open"
+  },
+  "Jump_Loop": {
+   "mouth": "SmileOpen",
+   "brows": "Happy",
+   "hands": "Open"
+  },
+  "Land": {
+   "mouth": "Neutral",
+   "brows": "Normal",
+   "hands": "Open"
+  },
+  "Talk": {
+   "mouth": "TalkA",
+   "brows": "Normal",
+   "hands": "Open"
+  },
+  "Wave": {
+   "mouth": "SmileOpen",
+   "brows": "Happy",
+   "hands": "Open"
+  },
+  "Celebrate": {
+   "mouth": "SmileOpen",
+   "brows": "Happy",
+   "hands": "Fist"
+  },
+  "Scared": {
+   "mouth": "Scared",
+   "brows": "Worried",
+   "hands": "Open"
+  },
+  "Look_Around": {
+   "mouth": "Neutral",
+   "brows": "Surprised",
+   "hands": "Open"
+  },
+  "Ready": {
+   "mouth": "Neutral",
+   "brows": "Normal",
+   "hands": "Open"
+  },
+  "Hit": {
+   "mouth": "SmileOpen",
+   "brows": "Angry",
+   "hands": "Open"
+  }
+ },
+ "limpieza": {
+  "Acc_Scarf": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Body": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Boots": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Brow_Angry": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Brow_Happy": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Brow_Normal": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Brow_Surprised": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Brow_Worried": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Eye_L": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Eye_R": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Eyelid_Closed": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Eyelid_Half": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Eyelid_Open": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Glint_L_Big": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Glint_L_Small": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Glint_R_Big": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Glint_R_Small": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Hair": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Hair_Tuft_1": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Hand_L_Fist": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Hand_L_Open": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Hand_R_Fist": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Hand_R_Open": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Hand_R_Point": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Head": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Mouth_Neutral": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Mouth_Scared": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Mouth_Smile": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Mouth_SmileOpen": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Mouth_Surprised": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Mouth_TalkA": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Mouth_TalkO": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Mouth_Tired": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Nose": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Shirt": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Shorts": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Socks": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  },
+  "Vest": {
+   "fusionados": 0,
+   "sueltos": 0,
+   "ngons": 0
+  }
+ },
+ "validador": {
+  "errores": 0,
+  "avisos": 0,
+  "info": 0,
+  "mensajes": []
+ },
+ "reimportacion": {
+  "altura_m": 1.627,
+  "pies_z": -0.008,
+  "mira_a_-Y": true,
+  "acciones": [
+   "Celebrate_RIG_Nerea",
+   "Hit_RIG_Nerea",
+   "Idle_RIG_Nerea",
+   "Jump_Loop_RIG_Nerea",
+   "Jump_Start_RIG_Nerea",
+   "Land_RIG_Nerea",
+   "Look_Around_RIG_Nerea",
+   "Ready_RIG_Nerea",
+   "Run_RIG_Nerea",
+   "Scared_RIG_Nerea",
+   "Talk_RIG_Nerea",
+   "Walk_RIG_Nerea",
+   "Wave_RIG_Nerea"
+  ],
+  "mallas": 33,
+  "huesos": 44,
+  "variantes": [
+   "Brow_Angry",
+   "Brow_Happy",
+   "Brow_Normal",
+   "Brow_Surprised",
+   "Brow_Worried",
+   "Eyelid_Closed",
+   "Eyelid_Half",
+   "Eyelid_Open",
+   "Hand_L_Fist",
+   "Hand_L_Open",
+   "Hand_R_Fist",
+   "Hand_R_Open",
+   "Hand_R_Point",
+   "Mouth_Neutral",
+   "Mouth_Scared",
+   "Mouth_Smile",
+   "Mouth_SmileOpen",
+   "Mouth_Surprised",
+   "Mouth_TalkA",
+   "Mouth_TalkO",
+   "Mouth_Tired"
+  ]
+ },
+ "lod": {
+  "archivo": "char_nerea_lod.glb",
+  "peso_MB": 1.26,
+  "triangulos_en_archivo": 11234,
+  "validador": {
+   "errores": 0,
+   "avisos": 0,
+   "info": 0,
+   "mensajes": []
+  }
+ },
+ "triangulos_en_archivo": 31338
+}

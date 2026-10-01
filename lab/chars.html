@@ -28,7 +28,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { loadChar, GlbChar } from '../src/actors/glbChar.js';
 
-const CHARS = { protagonista: '../src/assets/chars/char_protagonista.glb', 'protagonista (LOD)': '../src/assets/chars/char_protagonista_lod.glb' };
+const CHARS = { protagonista: '../src/assets/chars/char_protagonista.glb', nerea: '../src/assets/chars/char_nerea.glb', 'protagonista (LOD)': '../src/assets/chars/char_protagonista_lod.glb' };
 const q = new URLSearchParams(location.search);
 const shot = q.has('shot');
 if (shot) document.body.classList.add('shot');

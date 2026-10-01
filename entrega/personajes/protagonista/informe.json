@@ -1,6 +1,6 @@
 {
  "archivo": "char_protagonista.glb",
- "peso_MB": 1.98,
+ "peso_MB": 1.99,
  "triangulos_visibles": 26916,
  "triangulos_por_parte": {
   "Head": 3184,
@@ -346,8 +346,8 @@
   "mensajes": []
  },
  "reimportacion": {
-  "altura_m": 1.626,
-  "pies_z": -0.007,
+  "altura_m": 1.627,
+  "pies_z": -0.008,
   "mira_a_-Y": true,
   "acciones": [
    "Celebrate_RIG_Protagonista",

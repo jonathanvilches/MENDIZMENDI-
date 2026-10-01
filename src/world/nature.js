@@ -68,6 +68,18 @@ function trunk(h, r, color, segs = 6) {
   g.computeVertexNormals();
   return colorize(g, (x, y, z, c) => c.set(color).multiplyScalar(0.85 + 0.3 * (y / h)));
 }
+// coordenadas de textura de la «masa de hojas» del atlas: proyección esférica desde el centro de cada bulto
+// (cada triángulo se resuelve sin cruzar la costura de la vuelta)
+function massUV(g, cx, cy, cz, rnd) {
+  const p = g.attributes.position, n = p.count, uv = new Float32Array(n * 2), [u0, v0, u1, v1] = FOLIAGE.mass, off = rnd() * 0.5;
+  for (let t = 0; t < n; t += 3) {
+    const us = [];
+    for (let k = 0; k < 3; k++) { const i = t + k, x = p.getX(i) - cx, y = p.getY(i) - cy, z = p.getZ(i) - cz, r = Math.hypot(x, y, z) || 1; us.push([(Math.atan2(z, x) / (2 * Math.PI) + 0.5 + off) % 1, Math.acos(Math.max(-1, Math.min(1, y / r))) / Math.PI]); }
+    const m = Math.max(...us.map(q => q[0])); for (const q of us) if (m - q[0] > 0.5) q[0] += 1;
+    us.forEach((q, k) => { const u = (q[0] * 1.6) % 1.6, w = u > 1 ? 2 - u : u; uv[(t + k) * 2] = u0 + w * (u1 - u0); uv[(t + k) * 2 + 1] = v1 - q[1] * (v1 - v0); });
+  }
+  g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); g.userData.keepUV = true;
+}
 function blobCanopy(rnd, blobs, detail, base, tint, spread, top) {
   const parts = [];
   const cy = top;
@@ -77,12 +89,12 @@ function blobCanopy(rnd, blobs, detail, base, tint, spread, top) {
     const g = new THREE.IcosahedronGeometry(b[3], Math.max(0, detail + 1));
     jitter(g, b[3] * 0.16, rnd);
     g.translate(b[0], b[1], b[2]);
-    const gn = g.toNonIndexed(); sphericalNormals(gn, b[0], b[1], b[2], 0.9); parts.push(gn);
+    const gn = g.toNonIndexed(); sphericalNormals(gn, b[0], b[1], b[2], 0.9); massUV(gn, b[0], b[1], b[2], rnd); parts.push(gn);
     if (detail > 0) for (let i = 0; i < 3; i++) {
       const a = rnd() * Math.PI * 2, e = (rnd() - 0.2) * 1.2, rr = b[3] * (0.38 + rnd() * 0.12);
       const px = b[0] + Math.cos(a) * Math.cos(e) * b[3] * 0.85, py = b[1] + Math.sin(e) * b[3] * 0.85, pz = b[2] + Math.sin(a) * Math.cos(e) * b[3] * 0.85;
       const sg = new THREE.IcosahedronGeometry(rr, 1); jitter(sg, rr * 0.14, rnd); sg.translate(px, py, pz);
-      const sn = sg.toNonIndexed(); sphericalNormals(sn, px, py, pz, 0.9); parts.push(sn);
+      const sn = sg.toNonIndexed(); sphericalNormals(sn, px, py, pz, 0.9); massUV(sn, px, py, pz, rnd); parts.push(sn);
     }
   }
   const cA = new THREE.Color(base), cB = new THREE.Color(tint);
@@ -92,11 +104,11 @@ function blobCanopy(rnd, blobs, detail, base, tint, spread, top) {
     const occl = 0.72 + 0.28 * clamp(Math.hypot(x, y - cy, z) / spread, 0, 1);
     c.multiplyScalar(occl * k);
   });
-  const core = mergeGeometries(parts.map(prep));
-  if (detail < 0 || !TEX.foliage) { paint(core, 1); core.userData.keepUV = true; return core; }
+  const core = mergeKeep(parts);
+  if (detail < 0 || !TEX.foliage) { paint(core, TEX.foliage ? 1.65 : 1); core.userData.keepUV = true; return core; }
   // con hojas: el núcleo queda dentro, más oscuro, y las tarjetas dan el borde frondoso
   core.translate(0, -cy, 0); core.scale(0.9, 0.9, 0.9); core.translate(0, cy, 0);
-  paint(core, 0.8);
+  paint(core, 1.35);
   const cards = [], v = new THREE.Vector3(), d = new THREE.Vector3(), ctr = new THREE.Vector3(0, cy, 0);
   for (const b of blobs) {
     const nC = Math.round(b[3] * b[3] * (detail > 0 ? 3.4 : 2.4));

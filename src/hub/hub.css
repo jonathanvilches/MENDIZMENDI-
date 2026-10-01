@@ -681,3 +681,6 @@
 .gitem.locked { opacity: .55; }
 @media (max-width: 520px) { .bp-gear { grid-template-columns: 1fr 1fr; } .gitem small { display: none; } }
 .bagpanel .mg-card { align-items: stretch; gap: 4px; } .bagpanel .btn.small { min-width: 0; min-height: 36px; } .bagpanel .btn.primary { align-self: center; }
+.gender { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 8px; }
+.gender button { flex: 1 1 140px; max-width: 220px; min-height: 46px; border-radius: 14px; border: 2px solid rgba(255, 255, 255, .35); background: rgba(255, 255, 255, .08); color: #fff; font: 800 16px Nunito, sans-serif; cursor: pointer; }
+.gender button.on { background: #FFD700; color: #2a1640; border-color: #FFD700; }

@@ -23,6 +23,9 @@ import { viewFrom } from '../data/panorama.js';
 import { buildAgro } from '../world/agro.js';
 import { PASTOR_INFO, VAQUERA_INFO } from '../data/campo.js';
 import { Mochila } from './mochila.js';
+import { Perro } from './perro.js';
+import { makeTrailSign, signSVG, ORIENTA, ORIENTA_TIPS } from './senales.js';
+import { FOOD } from '../data/equipo.js';
 import { GearProps } from '../actors/gear3d.js';
 import { foodFrom } from '../data/equipo.js';
 import { PROCESOS, TRADICIONES } from '../data/procesos.js';
@@ -146,7 +149,7 @@ export class TownGame {
       case 'tradition': M.title = m.title || 'Tradición'; M.icon = m.kind === 'angel' ? 'angel' : 'music';
         M.steps = () => ['Habla con ' + host(), m.kind === 'angel' ? 'Prepara la bajada: repite la secuencia' : 'Repite la melodía']; break;
       case 'summit': { const pk = M.peak = MOUNTAINS.find(x => x.id === m.peak); M.title = `Sube al ${pk?.name || 'monte'}`; M.icon = 'peak'; M.need = 4;
-        M.steps = () => ['Habla con ' + host(), `Sigue los mojones hasta la cima (${M.count}/${M.need})${M.wild ? ` · animales ${M.wild.filter(w => w.found).length}/${M.wild.length}` : ''}`, `Llega a la cima del ${pk?.name || 'monte'}`]; break; }
+        M.steps = () => [M.prep ? `Prepara la mochila: ${this.supplyText()} y vuelve con ${host()}` : 'Habla con ' + host(), `Sigue los mojones hasta la cima (${M.count}/${M.need})${M.wild ? ` · animales ${M.wild.filter(w => w.found).length}/${M.wild.length}` : ''}`, `Llega a la cima del ${pk?.name || 'monte'}`]; break; }
       case 'figure': { const F = M.fig = PERSONAJES[m.who]; M.title = F.name; M.icon = F.icon;
         M.steps = () => ['Habla con ' + host(), `Ve a ver el recuerdo de ${F.name}`, 'Responde la pregunta']; break; }
       case 'pelota': M.title = m.title || 'Partido en el frontón'; M.icon = 'pelota';
@@ -236,6 +239,7 @@ export class TownGame {
     this.gearProps = new GearProps(this.player.rig); this.gearProps.set(this.P.gear);
     if (this.mochila.has('prismaticos')) { this.binoOn = true; this.ui.showBinoButton(); }
     this.spawnForage();
+    this.perro = new Perro(this);
     // el campo trabajando: tractores, cosechadoras y pacas en las parcelas
     this.agro = buildAgro(this.scene, d, this.rnd);
     this.spawnShepherds();
@@ -334,6 +338,8 @@ export class TownGame {
     for (const g of this.gates) if (g.obj.visible) g.obj.userData.torus.rotation.z += dt * (g.next ? 2 : 0.3);
     this.agro?.update(dt, P, this.particles);
     if (this.mode === 'play') this.mochila?.update(dt, P);
+    this.perro?.update(dt);
+    if (!this.dogHi && this.mode === 'play' && !this.ui.busy && this.elapsed > 5) { this.dogHi = true; this.perro?.hello(); }
     this.gearProps?.night(this.isNight() ? 1 : 0);
     if (this.herd) this.updateHerd(dt);
     if (this.race) this.updateRace(dt);
@@ -363,7 +369,8 @@ export class TownGame {
         if (M.step === 3 && M.lair) return { x: M.lair.x, z: M.lair.z, h: 3 };
         return at(M.host);
       }
-      case 'summit': { if (M.step >= 1 && M.cairns) { const c = M.cairns.find(c => !c.reached); if (c) return { x: c.x, z: c.z, h: c.top ? 3.2 : 2 }; } return at(M.host); }
+      case 'summit': { if (M.step === 0 && M.prep) { if (this.supplyOk()) return at(M.host); const P = this.P.bag; if ((P.agua || 0) < 1 && TOWN.fountain) return { x: TOWN.fountain.x, z: TOWN.fountain.z, h: 2.5 }; if (this.stall) return { x: this.stall.x, z: this.stall.z, h: 3 }; }
+        if (M.step >= 1 && M.cairns) { const c = M.cairns.find(c => !c.reached); if (c) return { x: c.x, z: c.z, h: c.top ? 3.2 : 2 }; } return at(M.host); }
       case 'process': case 'harvest': if (M.step === 1) return nearest(this.items.filter(it => it.M === M).map(it => ({ x: it.x, z: it.z, h: 1.4 }))); return at(M.host);
       case 'herd': if (M.step === 1) { const loose = this.herd?.filter(s => !s.penned) || []; const t = nearest(loose.map(s => ({ x: s.pos.x, z: s.pos.z, h: 1.8 }))); return t || { x: TOWN.pen.x, z: TOWN.pen.z, h: 2 }; } return at(M.host);
       case 'dance': return M.step === 1 ? { x: PLACES.plaza.x, z: PLACES.plaza.z, h: 3 } : at(M.host);
@@ -421,13 +428,14 @@ export class TownGame {
   interactables() {
     const list = [];
     for (const a of this.actors) if (a.visible !== false) list.push({ kind: 'npc', a, x: a.pos.x, z: a.pos.z, r: 3, label: a === this.pelotari ? `Jugar a pelota con ${a.name}` : `Hablar con ${a.name}` });
-    for (const a of this.walkers) list.push({ kind: 'walker', a, x: a.pos.x, z: a.pos.z, r: a.info ? 3 : 2.4, label: a.info ? `Hablar con ${a.name.toLowerCase() === 'pastor' ? 'el pastor' : 'la ganadera'}` : `Saludar a ${a.name}` });
+    for (const a of this.walkers) list.push({ kind: 'walker', a, x: a.pos.x, z: a.pos.z, r: a.info ? 3 : 2.4, label: a.stall ? 'Productos del pueblo' : a.info ? `Hablar con ${a.name.toLowerCase() === 'pastor' ? 'el pastor' : 'la ganadera'}` : `Saludar a ${a.name}` });
     for (const o of this.agro?.list || []) list.push({ kind: 'agro', o, x: o.x, z: o.z, r: o.kind === 'combine' ? 6 : 4.5, label: `Mirar: ${o.info.title.toLowerCase()}` });
     for (const it of this.items) list.push({ kind: 'item', it, x: it.x, z: it.z, r: 2.2, label: it.label });
     for (const M of this.missions) if (M.bench && M.step === 1 && !M.done) list.push({ kind: 'bench', M, x: M.bench.x, z: M.bench.z, r: 3, label: M.oficio ? 'Entrar al taller' : M.trade.verb });
     for (const M of this.missions) if (M.memo) list.push({ kind: 'memorial', M, x: M.memo.x, z: M.memo.z, r: 2.8, label: M.step === 1 && !M.done ? `Ver el recuerdo de ${M.fig.name}` : `Leer la placa` });
     for (const k of this.clues) if (!k.found && k.obj.visible) list.push({ kind: 'clue', k, x: k.x, z: k.z, r: 2.6, label: 'Examinar' });
     for (const M of this.missions) if (M.creature && M.creature.shown && !M.done && !M.chase) list.push({ kind: 'creature', M, x: M.creature.pos.x, z: M.creature.pos.z, r: 3.6, label: `Hablar con ${M.leg.creature}` });
+    if (this.perro) { const D = this.perro.dog; list.push({ kind: 'dog', x: D.pos.x, z: D.pos.z, r: 1.8, label: `Acariciar a ${this.perro.name}` }); }
     if (TOWN.fountain) list.push({ kind: 'fountain', x: TOWN.fountain.x, z: TOWN.fountain.z, r: 3.8, label: 'Beber agua' });
     if (this.fronton) list.push({ kind: 'fronton', x: this.fronton.entry.x, z: this.fronton.entry.z, r: 3, label: 'Jugar a pelota' });
     return list;
@@ -442,6 +450,7 @@ export class TownGame {
     if (this.input.consume('f') && this.binoOn) this.toggleBinoculars();
     if (this.input.consume('c')) this.ui.openBook();
     if (this.input.consume('b')) this.mochila?.open();
+    if (this.input.consume('h')) this.perro?.help();
     if (this.input.consume('m')) this.ui.openMap();
     if (this.input.consume('escape')) this.ui.openMenu();
   }
@@ -454,7 +463,9 @@ export class TownGame {
       return M ? this.talk(M.host) : this.freePelota();
     }
     if (it.kind === 'walker' && it.a.info) return this.explainWork(it.a);
+    if (it.kind === 'walker' && it.a.stall) return this.buyStall();
     if (it.kind === 'agro') return this.showAgro(it.o);
+    if (it.kind === 'dog') { const D = this.perro.dog; this.sound.bark?.(D.pos); this.particles.emit({ x: D.pos.x, y: D.pos.y + 0.8, z: D.pos.z }, { n: 10, color: ['#ff6b8a', '#ffd1dc'], speed: 1, size: 0.25, life: 1 }); return this.ui.toast(`${this.perro.name} está contento. Pulsa H si necesitas que te guíe`, 'dog', 2600); }
     if (it.kind === 'walker') { it.a.say(2.5); it.a.wave = 1.2; const L = WALKER_LINES[this.walkers.indexOf(it.a) % WALKER_LINES.length]; return this.say(it.a, L); }
     if (it.kind === 'item') return this.pick(it.it);
     if (it.kind === 'bench') return this.doTrade(it.M);
@@ -601,12 +612,24 @@ export class TownGame {
       }
       case 'summit': {
         const pk = M.peak;
+        if (M.step === 0 && M.prep) {
+          if (!this.supplyOk()) { await S([`Aún no: ${this.supplyText()}. Agua en la fuente de la plaza y comida en el puesto de productos del pueblo.`]); return; }
+          M.prep = false;
+          await S(['¡Mochila lista! Agua, comida de aquí y ganas de subir. ¡Vamos!', 'Fíjate en las señales pintadas en las piedras: te enseñaré a leerlas por el camino.']);
+          this.startSummit(M); return;
+        }
         if (M.step === 0) {
           await S([`¿Ves ese monte de ahí arriba? Es como el ${pk.name}${pk.altName ? ' (' + pk.altName + ')' : ''}: ${pk.intro}`,
             `El de verdad mide ${pk.altitude.toLocaleString('es')} metros. Desde ${pk.start} son ${String(pk.distance).replace('.', ',')} km y ${pk.gain} metros de desnivel.`,
             'Te he marcado el camino con mojones pintados de blanco y amarillo, como los de los senderos de verdad. Síguelos hasta la cima y firma en el buzón de cumbre.',
             'Y abre bien los ojos: en la subida viven animales del monte. Si caminas despacio, podrás acercarte a ellos sin asustarlos.',
             'Un consejo de montañera: agua, gorra y paso tranquilo. ¡Y nunca subas sola ni solo al monte!']);
+          if (!this.supplyOk()) {
+            M.prep = true; this.spawnStall();
+            await S(['Pero antes, ¡a llenar la mochila! Al monte se sube con agua y con comida que alimente.', `Necesitas la cantimplora llena (en la fuente de la plaza) y dos alimentos de aquí: pan, queso, miel… Los encontrarás en el puesto de productos del pueblo.`]);
+            return;
+          }
+          M.prep = false;
           this.startSummit(M);
         } else await S([`Sigue los mojones: te faltan ${M.need - M.count} hasta la cima.`]);
         return;
@@ -812,6 +835,14 @@ export class TownGame {
       const o = makeCairn(i === n); o.position.set(s.x, groundHeight(s.x, s.z), s.z); o.rotation.y = Math.atan2(dx, dz); this.scene.add(o);
       M.cairns.push({ x: s.x, z: s.z, obj: o, top: i === n });
     }
+    // señales pintadas junto a los mojones: sigue, una X en un ramal equivocado y un giro
+    for (const o of M.signs || []) this.scene.remove(o);
+    M.signs = [];
+    const dx0 = top.x - h0.x, dz0 = top.z - h0.z, l0 = Math.hypot(dx0, dz0) || 1, px = -dz0 / l0, pz = dx0 / l0, ang = Math.atan2(dx0, dz0);
+    const put = (kind, x, z, face) => { const s = this.spot({ x, z }, 2); const o = makeTrailSign(kind); o.position.set(s.x, groundHeight(s.x, s.z), s.z); o.rotation.y = face; this.scene.add(o); M.signs.push(o); };
+    M.cairns.forEach((c, i) => { if (c.top || i > 2) return; const k = ORIENTA[i].kind;
+      put(k === 'mal' ? 'sigue' : k, c.x + px * 1.8, c.z + pz * 1.8, ang + Math.PI);
+      if (k === 'mal') put('mal', c.x - px * 9 + dx0 / l0 * 2, c.z - pz * 9 + dz0 / l0 * 2, ang + Math.PI - 0.9); });
     M.y0 = this.player.pos.y;
     this.spawnClimbFauna(M, top);
     this.ui.toast('Sigue los mojones blancos y amarillos', 'peak', 2800);
@@ -858,8 +889,46 @@ export class TownGame {
     this.particles.emit({ x: c.x, y: groundHeight(c.x, c.z) + 1.5, z: c.z }, { n: 20, color: ['#ffffff', '#FFD700'], speed: 1.6, size: 0.25 });
     const pk = M.peak, climbed = Math.max(0, Math.round(this.player.pos.y - M.y0));
     const lines = [pk.route, pk.terrain, `Ya has subido ${climbed} metros. Mira hacia abajo: el pueblo se ve cada vez más pequeño.`];
-    if (!c.top) { this.ui.whisper(lines[M.count - 1] || '', 5200); this.ui.toast(this.stepText(M), 'peak', 1600); }
+    if (!c.top) { this.ui.toast(this.stepText(M), 'peak', 1600); this.orientCard(M, M.count - 1, lines[M.count - 1]); }
     else this.reachSummit(M, climbed);
+  }
+  // en cada mojón: cómo se leen las señales del monte y un consejo de orientación
+  async orientCard(M, i, line) {
+    const O = ORIENTA[i]; if (!O) { if (line) this.ui.whisper(line, 5200); return; }
+    this.player.frozen = true;
+    try {
+      if (O.ask) {
+        const opts = ['Camino equivocado: por ahí no', 'Hay una fuente cerca', 'Es la mitad de la subida'], ord = [0, 1, 2].sort(() => this.rnd() - 0.5);
+        await choiceGame(this.ui, { title: 'Señales del monte', icon: 'compass', q: 'Junto a este mojón, en un ramal del camino, hay una piedra con una X pintada en blanco y amarillo. ¿Qué significa?', options: ord.map(k => opts[k]), answer: ord.indexOf(0), why: O.text });
+      } else await infoCard(this.ui, { image: signSVG(O.kind), kicker: 'Señales del monte', title: O.title, text: O.text, button: 'Seguir subiendo' });
+      const tip = ORIENTA_TIPS[i]; if (tip) this.ui.whisper(tip, 6500);
+      else if (line) this.ui.whisper(line, 5200);
+    } finally { this.player.frozen = false; }
+  }
+  // ¿lleva la mochila lo necesario para el monte? agua y dos alimentos
+  supplyOk() { const b = this.P.bag || {}; return (b.agua || 0) >= 1 && Object.values(b.food || {}).reduce((a, n) => a + n, 0) >= 2; }
+  supplyText() { const b = this.P.bag || {}, n = Object.values(b.food || {}).reduce((a, k) => a + k, 0); return `${(b.agua || 0) >= 1 ? 'agua ✓' : 'agua'} · comida ${Math.min(2, n)}/2`; }
+  // Puesto de productos del pueblo: pan, queso y miel (gratis para quien va al monte)
+  spawnStall() {
+    if (this.stall) return;
+    const P = PLACES, c = this.spot({ x: (P.market || P.plaza).x + 5, z: (P.market || P.plaza).z - 4 }, 4);
+    const o = makeStall(); o.position.set(c.x, groundHeight(c.x, c.z), c.z); o.rotation.y = Math.atan2(P.plaza.x - c.x, P.plaza.z - c.z); this.scene.add(o);
+    const s2 = this.spot({ x: c.x + Math.sin(o.rotation.y + Math.PI) * 1.6, z: c.z + Math.cos(o.rotation.y + Math.PI) * 1.6 }, 2);
+    const a = new Actor({ id: 'tendera', name: 'Tendera', x: s2.x, z: s2.z, heading: o.rotation.y, look: { shirt: '#c0573a', apron: '#f4f1ea', skirt: '#3a3530', pants: '#3a3530', hair: '#4a3020', bun: true, female: true } }, this.scene);
+    this.walkers.push(a); a.stall = true;
+    this.stall = { x: c.x, z: c.z, obj: o, a, given: {} };
+  }
+  async buyStall() {
+    const S = this.stall, a = S.a; this.player.frozen = true;
+    try {
+      const fam = this.def.family, list = [['pan', 'Pan de horno de leña, del obrador del pueblo.'], ['queso', fam === 'ribera' ? 'Queso de oveja de la Bardena.' : 'Queso de oveja latxa, de un pastor del valle.'], ['miel', 'Miel de las colmenas del monte: brezo y flores silvestres.']];
+      const left = list.filter(([k]) => !S.given[k]);
+      if (!left.length) { await this.say(a, ['¡Ya llevas de todo! Que tengas buena subida.']); return; }
+      await this.say(a, ['¡Egun on! Aquí todo es de aquí: lo hacen vecinos del pueblo.', 'Para el monte, coge lo que quieras.']);
+      for (const [k, why] of left) { S.given[k] = true; this.mochila.addFood(k, 1); await infoCard(this.ui, { icon: FOOD[k].icon, kicker: 'Producto local', title: FOOD[k].name, text: `${why} ${FOOD[k].fact}`, button: 'A la mochila' }); }
+      if (!this.supplyOk()) this.ui.toast('Te falta agua: llena la cantimplora en la fuente', 'canteen', 3200);
+      else this.ui.toast('¡Mochila lista! Vuelve con tu guía de montaña', 'backpack', 3200);
+    } finally { this.player.frozen = false; a.talking = 0; }
   }
   async reachSummit(M, climbed) {
     const pk = M.peak, P = this.player;
@@ -873,6 +942,9 @@ export class TownGame {
     saveProfile();
     await infoCard(this.ui, { icon: 'peak', kicker: `Buzón de cumbre · ${pk.zone}`, title: `${pk.name}${pk.altName ? ' · ' + pk.altName : ''}`, text: `${pk.intro} Altitud: ${pk.altitude.toLocaleString('es')} m. Desde ${pk.start}: ${String(pk.distance).replace('.', ',')} km y ${pk.gain} m de desnivel. En el juego has subido ${climbed} m.`, badge: 'Cima conseguida', button: 'Mirar alrededor' });
     await this.panorama(M, c0);
+    // almuerzo en la cima, como los pastores
+    const b = this.P.bag?.food || {}, eat = ['queso', 'pan', 'miel', 'txistorra', 'manzana', 'avellanas', 'moras'].filter(k => b[k] > 0).slice(0, 2);
+    if (eat.length) { eat.forEach(k => this.mochila.eat(k)); await infoCard(this.ui, { icon: FOOD[eat[0]].icon, kicker: 'Almuerzo en la cima', title: eat.map(k => FOOD[k].name).join(' y '), text: 'Sentado en la cumbre, con el valle a tus pies, el almuerzo sabe mejor. ¡Energía recuperada para bajar! Recuerda: la bajada cansa las rodillas, ve despacio.', button: '¡Qué rico!' }); }
     this.follow.cinematic = null; this.follow.snap(P); this.player.frozen = false;
     await this.complete(M, { card: pk.name, cardText: pk.intro });
   }
@@ -1409,6 +1481,20 @@ export class TownGame {
   applySettings() { const S = this.P.settings; this.sound.setMusic(S.music); this.sound.setVolume(S.volume); this.sky.speed = 24 / (16 * 60) * (S.timeSpeed ?? 1); }
   teleport(x, z) { const s = this.spot({ x, z }, 3); this.player.place(s.x, s.z, 0); this.follow.snap(this.player); }
   dispose() { this.ui.setMG(null); if (this.danceKeys) removeEventListener('keydown', this.danceKeys, true); this.rh?.remove(); if (this.mode === 'bino') this.ui.binoculars(false); }
+}
+
+// Puesto de productos: mesa con toldo, panes, quesos y tarros de miel
+function makeStall() {
+  const g = new THREE.Group(), M = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.7, ...o });
+  const add = (geo, m, x, y, z, ry = 0) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.rotation.y = ry; o.castShadow = true; g.add(o); return o; };
+  add(new THREE.BoxGeometry(2.2, 0.08, 1), M('#8a5a32'), 0, 0.9, 0);
+  for (const [x, z] of [[-1, -0.42], [1, -0.42], [-1, 0.42], [1, 0.42]]) add(new THREE.BoxGeometry(0.08, 0.9, 0.08), M('#6b4a2e'), x, 0.45, z);
+  for (const x of [-1.05, 1.05]) add(new THREE.BoxGeometry(0.07, 2.2, 0.07), M('#6b4a2e'), x, 1.1, -0.5);
+  for (let i = 0; i < 6; i++) add(new THREE.BoxGeometry(0.38, 0.03, 1.2), M(i % 2 ? '#ffffff' : '#c8302a'), -0.95 + i * 0.38, 2.15, -0.05).rotation.x = 0.35;
+  for (let i = 0; i < 3; i++) { const b = add(new THREE.SphereGeometry(0.16, 12, 8), M('#c9934a'), -0.8 + i * 0.22, 1.0, 0.1); b.scale.set(1.3, 0.6, 0.9); }
+  for (let i = 0; i < 2; i++) add(new THREE.CylinderGeometry(0.2, 0.2, 0.14, 18), M('#f0dca0'), 0.05 + i * 0.1, 1.02 + i * 0.14, -0.05);
+  for (let i = 0; i < 3; i++) { add(new THREE.CylinderGeometry(0.07, 0.07, 0.16, 12), M('#e0a020', { transparent: true, opacity: 0.85 }), 0.6 + i * 0.17, 1.02, 0.15); add(new THREE.CylinderGeometry(0.075, 0.075, 0.03, 12), M('#c8302a'), 0.6 + i * 0.17, 1.12, 0.15); }
+  return g;
 }
 
 // Mojón de sendero (piedras con franjas blanca y amarilla) y, en la cima, hito con buzón y bandera

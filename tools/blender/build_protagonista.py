@@ -35,11 +35,11 @@ D = dict(
     arm_rings=6,
     wrist=(0.56, 0.68), hand_end=(0.64, 0.61),
     palm=(0.1, 0.1, 0.044), fingers=[0.056, 0.062, 0.057, 0.048], finger_r=0.0165,
-    boot=dict(len=0.28, w=0.126, h=0.1, heel_y=0.056, shaft=0.19),
+    boot=dict(len=0.28, w=0.126, h=0.1, heel_y=0.056, shaft=0.19, lip=0.07),
     colors=dict(skin=(241, 196, 160), hair=(96, 60, 36), brow=(45, 28, 20), lips=(214, 128, 118), blush=(236, 150, 140),
                 shirt=(236, 226, 200), vest=(96, 112, 62), trim=(64, 76, 42), button=(214, 172, 74), scarf=(200, 34, 42), sash=(196, 30, 40),
                 pocket=(112, 128, 74), flap=(70, 84, 46), cargo=(118, 94, 62), stripe=(196, 30, 40),
-                shorts=(136, 110, 76), socks=(226, 218, 198), boots=(122, 76, 42), sole=(58, 40, 30), lace=(236, 222, 190),
+                shorts=(136, 110, 76), socks=(226, 218, 198), boots=(126, 80, 44), sole=(44, 36, 32), lace=(236, 222, 190), toecap=(92, 58, 32), collar=(160, 46, 40),
                 iris=(98, 60, 30), iris_dark=(56, 32, 16)),
     rough=dict(body=0.72, face=0.5, eyes=0.25),
     # pelo de juguete: una sola pieza con raya a la izquierda, flequillo barrido con un mechón en punta, tupé,
@@ -58,7 +58,10 @@ D = dict(
            dict(cx=0.108, hx=0.004, cz=0.835, hz=0.006, y1=-0.08, color=(214, 172, 74)),
            dict(cx=0.175, hx=0.03, cz=0.43, hz=0.045, y0=-0.05, y1=0.05, color=(110, 86, 56)),
            dict(cx=0.175, hx=0.032, cz=0.476, hz=0.008, y0=-0.05, y1=0.05, color=(86, 66, 42)),
-           dict(cx=0.09, hx=0.07, cz=0.238, hz=0.009, color=(196, 30, 40))],
+           dict(cx=0.09, hx=0.07, cz=0.238, hz=0.009, color=(196, 30, 40)),
+           # cordones de las botas (en la parte de delante de la caña) y costura del bajo del pantalón
+           *[dict(cx=0.085, hx=0.024, cz=z, hz=0.0045, y1=-0.015, color=(236, 222, 190)) for z in (0.122, 0.142, 0.162)],
+           dict(cx=0.085, hx=0.006, cz=0.142, hz=0.03, y1=-0.015, color=(150, 100, 60))],
 )
 # brazo en pose A (huesos de la tabla): hombro (0,24; 0,94) → codo (0,42; 0,80) → muñeca (0,56; 0,68)
 def _arm_path():

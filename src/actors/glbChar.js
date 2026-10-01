@@ -8,6 +8,9 @@ import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import protagonistaUrl from '../assets/chars/char_protagonista.glb?url';
 import protagonistaBust from '../assets/chars/portrait_protagonista.png?url';
 import protagonistaFull from '../assets/chars/portrait_protagonista_full.png?url';
+import nereaUrl from '../assets/chars/char_nerea.glb?url';
+import nereaBust from '../assets/chars/portrait_nerea.png?url';
+import nereaFull from '../assets/chars/portrait_nerea_full.png?url';
 
 const cache = new Map();
 let loader = null;
@@ -300,6 +303,7 @@ export class GlbChar {
 // scale: el protagonista mide 1,66 m (tabla de huesos del encargo) y va a su tamaño
 export const GLB_AVATARS = {
   benat: { url: protagonistaUrl, scale: 1.0, bust: protagonistaBust, full: protagonistaFull },
+  nerea: { url: nereaUrl, scale: 1.0, bust: nereaBust, full: nereaFull },
 };
 export const isGlbAvatar = id => !!GLB_AVATARS[id];
 export const loadGlbAvatar = id => loadChar(GLB_AVATARS[id].url);
