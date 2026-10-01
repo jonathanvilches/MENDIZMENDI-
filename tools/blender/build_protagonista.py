@@ -43,7 +43,10 @@ D = dict(
     rough=dict(body=0.72, face=0.5, eyes=0.25),
     # pelo de juguete: una sola pieza con raya a la izquierda, flequillo barrido con un mechón en punta, tupé,
     # mechones moldeados y nuca en picos; sin mechones sueltos
-    hair_style='side', tufts=[],
+    hair_style='side', tuft_scale=0.55,
+    tufts=[],
+    # orejas (longitud, latitud, medio alto, medio ancho, grosor, separación de la cabeza)
+    ears=(90, -6, 0.032, 0.05, 0.028, 0.004),
 )
 # brazo en pose A (huesos de la tabla): hombro (0,24; 0,94) → codo (0,42; 0,80) → muñeca (0,56; 0,68)
 def _arm_path():

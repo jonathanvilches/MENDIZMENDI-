@@ -5,7 +5,7 @@ const [,, towns = 'lumbier,pamplona', quality = 'high'] = process.argv;
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 for (const town of towns.split(',')) {
   const p = await browser.newPage({ viewport: { width: 1280, height: 720 } });
-  await p.goto(`http://127.0.0.1:5173/?town=${town}&quality=${quality}`, { timeout: 300000 });
+  await p.goto(`http://127.0.0.1:5173/?town=${town}&q=${quality}`, { timeout: 300000 });
   await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 500000 });
   await p.waitForTimeout(4000);
   const r = await p.evaluate(async () => {

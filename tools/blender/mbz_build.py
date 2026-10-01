@@ -84,6 +84,7 @@ def build_geometry(d, cols, mats):
     toy = d.get('head_style') == 'toy'
     hbm, info = Hm.build_toy_head(d) if toy else Hm.build_head(d)
     hair_bm = Hm.split_hair(d, hbm)
+    if d.get('ears'): add_ears(d, hbm)
     Hm_mark = None
     asym = d.get('hair_style') == 'side'                  # peinado con raya: el pelo se hace entero, sin Mirror
     C.keep_half(hbm)
@@ -246,6 +247,29 @@ def build_geometry(d, cols, mats):
     for ob in bpy.data.objects:
         if ob.type == 'MESH': C.shade_smooth(ob)
     return G
+
+def add_ears(d, bm):
+    """Orejas: una concha ovalada pegada a cada lado de la cabeza (se construye la derecha; el Mirror hace la otra).
+    Va dentro de la malla de la cabeza: mismo color de piel, mismas UV y los mismos pesos del hueso Head."""
+    lon, lat, w, h, t, out = d['ears']
+    c = Hm.sph(d, lon, lat)
+    nn = Hm.head_normal(d, c - V((0, 0, d['head_c'])))
+    c = c + nn * out
+    rows = []
+    for i in range(1, 8):
+        a = math.pi * i / 8; row = []
+        for j in range(12):
+            b = 2 * math.pi * j / 12
+            # elipsoide aplastado contra la cabeza, algo más ancho arriba (forma de C)
+            zz = math.cos(a) * h; yy = math.sin(a) * math.cos(b) * w * (1.0 + 0.18 * math.cos(a)); xx = math.sin(a) * math.sin(b) * t
+            if xx < 0: xx *= 0.35
+            row.append(bm.verts.new(c + V((xx, yy, zz))))
+        rows.append(row)
+    tp = bm.verts.new(c + V((0, 0, h))); bt = bm.verts.new(c + V((0, 0, -h)))
+    for r1, r2 in zip(rows, rows[1:]):
+        for j in range(12): bm.faces.new((r1[j], r1[(j + 1) % 12], r2[(j + 1) % 12], r2[j]))
+    for j in range(12): bm.faces.new((tp, rows[0][(j + 1) % 12], rows[0][j])); bm.faces.new((bt, rows[-1][j], rows[-1][(j + 1) % 12]))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces[-24 * 7:])
 
 def toy_face(d, cols, mats):
     """Cara de juguete: ojos de punto con brillo, párpados, cejas y bocas de trazo (piezas planas sobre la cabeza)."""
