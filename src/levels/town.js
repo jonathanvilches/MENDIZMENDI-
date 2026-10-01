@@ -158,6 +158,22 @@ export function createTownLevel(def) {
   }
   const meadowMask = (x, z) => 1 - smoothstep(20, 45, Math.hypot(x - PLACES.farm.x, z - PLACES.farm.z));
   const iratiMask = (x, z) => 1 - smoothstep(80, 120, Math.hypot(x - PLACES.forest.x, z - PLACES.forest.z));
+  // Montañas con nombre (Dos Hermanas de Irurtzun): dos cumbres de caliza a cada lado del río, con el desfiladero
+  // entre ellas. Se suman al relieve; junto al cauce se corta la falda para que pase el río.
+  const PEAKS = [];
+  if (def.peaks) { const P = def.peaks, cx = rv ? rx(P.z) : PLACES.plaza.x; [-1, 1].forEach((s, i) => PEAKS.push({ x: cx + s * P.dx, z: P.z + (i ? 14 : -10), h: P.h[i], r: P.r, s })); PLACES.peaks = PEAKS; PLACES.pass = { x: cx, z: P.z }; }
+  function peakH(x, z) {
+    let add = 0;
+    for (const P of PEAKS) {
+      const dx = x - P.x, dz = (z - P.z) * 1.35, d = Math.hypot(dx, dz);
+      if (d >= P.r) continue;
+      const k = 1 - d / P.r, crag = 0.82 + 0.3 * ridged(x / 38 + P.s * 3, z / 38, 3);
+      add += P.h * Math.pow(k, 1.15) * (3 - 2 * k) * 0.5 * crag;
+    }
+    if (!add) return 0;
+    const dR = rv ? Math.abs(x - rx(z)) : 99;
+    return add * smoothstep(9, 34, dR);
+  }
   function rawHeight(x, z, detail) {
     const F0 = FA(z);
     const dRiv = rv ? Math.abs(x - rx(z)) : Math.abs(x - PLACES.plaza.x);
@@ -167,6 +183,7 @@ export function createTownLevel(def) {
     else if (relief === 'hills' || relief === 'hilltop') h += F.relief * 0.6 * (fbm(x / 230 + 3, z / 230, 3) * 0.5 + 0.5) * smoothstep(40, 220, r) + 12 * smoothstep(150, 420, r);
     else h += F.relief * 0.3 * smoothstep(250, 450, r);
     if (hill) h += hillH * Math.exp(-(r * r) / (2 * 120 * 120));
+    if (PEAKS.length) h += peakH(x, z);
     // bordes montañosos
     const r4 = Math.pow(x ** 4 + z ** 4, 0.25);
     const mt = smoothstep(360, 540, r4);
@@ -272,6 +289,7 @@ export function createTownLevel(def) {
     else if (c === 'gorge') pos = rv ? { x: rx(R + 150), z: R + 150 } : slots.edge.shift();
     else pos = (slots[c] && slots[c].shift()) || slots.edge.shift() || { x: pl.x + 90, z: -120 };
     if (lm.kind === 'walls' && (def.family !== 'city')) pos = { x: PLACES.church.x, z: PLACES.church.z, ring: true };
+    if (lm.kind === 'pass' && PLACES.pass) pos = { x: PLACES.pass.x + (rv ? 16 : 0), z: PLACES.pass.z + 75 };
     if (lm.x != null) pos = { x: lm.x, z: lm.z };
     const o = { ...lm, x: pos.x, z: pos.z, center: pos.center, ring: pos.ring };
     if (lm.pad) addPad(o.x, o.z, lm.pad, lm.padBlend || 20);

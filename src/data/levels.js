@@ -14,6 +14,7 @@ const VITI = { shirt: '#8a4f7d', pants: '#3a3530', hat: 'straw', hair: '#2e2018'
 const HUERTA = { shirt: '#d9a03a', pants: '#4a5b3a', hat: 'straw', hair: '#6b4a2e' };
 
 import { PERSONAJES, FIGURE_TOWNS } from './personajes.js';
+import { FERIA_TOWNS } from './ferias.js';
 
 export const LEVELS = [
   // ---------------- Baztan-Bidasoa ----------------
@@ -223,9 +224,11 @@ export const LEVELS = [
     ] },
   { id: 'irurtzun', name: 'Irurtzun', comarca: 'sakana', family: 'atlantic', relief: 'valley', size: 40,
     river: { name: 'Larraun', x: -35, w: 3.5, amp: 6 },
-    intro: 'Villa en el paso entre la Cuenca de Pamplona y Sakana, junto a las rocas de Dos Hermanas.',
+    intro: 'Villa en el paso entre la Cuenca de Pamplona y Sakana, a los pies de las Dos Hermanas: dos montañas de caliza que cierran el valle.',
+    // las Dos Hermanas (Bi Ahizpak): dos cumbres a cada lado del río, con el desfiladero entre ellas
+    peaks: { z: -250, dx: 66, h: [128, 112], r: 92 },
     church: { name: 'Iglesia de San Martín', style: 'romanesque', text: 'Pequeña parroquia de piedra del pueblo.' },
-    landmarks: [{ kind: 'rocks', name: 'Peñas de Dos Hermanas', text: 'Dos grandes rocas calizas a la entrada del paso. Por aquí pasan carreteras, el río y la vía verde del Plazaola.' }],
+    landmarks: [{ kind: 'pass', name: 'Las Dos Hermanas', text: 'Son dos montañas de roca caliza, una a cada lado del valle, que forman parte de las sierras que rodean la Cuenca de Pamplona. Entre las dos se abre un desfiladero estrecho: por él pasan el río, la carretera, el tren y la vía verde del Plazaola. Desde este mirador se ven las dos, frente a frente, como dos hermanas.' }],
     missions: [
       { type: 'visit' },
       { type: 'harvest', crop: 'manzana', n: 8, host: H('Josune', HUERTA), text: 'En los caseríos se cultivan manzanos. Con las manzanas se hace sidra y compota.' },
@@ -484,4 +487,12 @@ for (const [id, list] of Object.entries(FIGURE_TOWNS)) {
   const l = LEVELS.find(x => x.id === id); if (!l?.missions) continue;
   const at = l.missions.findIndex(m => m.type === 'quiz');
   list.forEach((who, k) => { const F = PERSONAJES[who]; l.missions.splice((at < 0 ? l.missions.length : at) + k, 0, { type: 'figure', who, title: F.name, host: F.host }); });
+}
+
+// Ferias de ganado: el mercado del campo en otoño (compra, venta, concurso y trato con apretón de manos)
+for (const [id, F] of Object.entries(FERIA_TOWNS)) {
+  const l = LEVELS.find(x => x.id === id); if (!l?.missions) continue;
+  const at = l.missions.findIndex(m => m.type === 'quiz');
+  l.missions.splice(at < 0 ? l.missions.length : at, 0, { type: 'feria', title: F.title, note: F.note,
+    host: H('Tratante de ganado', { shirt: '#1d1d24', pants: '#2b2630', txapela: '#1d1d24', hair: '#8a8478', moustache: '#8a8478', staff: true, old: true }) });
 }
