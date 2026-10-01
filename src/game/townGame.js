@@ -27,6 +27,7 @@ import { Perro } from './perro.js';
 import { makeTrailSign, signSVG, ORIENTA, ORIENTA_TIPS } from './senales.js';
 import { FOOD } from '../data/equipo.js';
 import { FERIA } from '../data/ferias.js';
+import { PET, BELL, BENCH_LINES } from '../data/tocar.js';
 import { GearProps } from '../actors/gear3d.js';
 import { foodFrom } from '../data/equipo.js';
 import { PROCESOS, TRADICIONES } from '../data/procesos.js';
@@ -442,6 +443,11 @@ export class TownGame {
     for (const k of this.clues) if (!k.found && k.obj.visible) list.push({ kind: 'clue', k, x: k.x, z: k.z, r: 2.6, label: 'Examinar' });
     for (const M of this.missions) if (M.creature && M.creature.shown && !M.done && !M.chase) list.push({ kind: 'creature', M, x: M.creature.pos.x, z: M.creature.pos.z, r: 3.6, label: `Hablar con ${M.leg.creature}` });
     if (this.perro) { const D = this.perro.dog; list.push({ kind: 'dog', x: D.pos.x, z: D.pos.z, r: 1.8, label: `Acariciar a ${this.perro.name}` }); }
+    // animales de granja cercanos (los del rebaño de una misión no)
+    const Pp = this.player.pos;
+    for (const a of this.fauna.animals) if (PET[a.kind] && !a.herd && Math.abs(a.pos.x - Pp.x) < 4 && Math.abs(a.pos.z - Pp.z) < 4) list.push({ kind: 'pet', a, x: a.pos.x, z: a.pos.z, r: a.kind === 'cow' ? 2.8 : 2.2, label: `Acariciar a ${PET[a.kind].name}` });
+    if (TOWN.church?.door) list.push({ kind: 'bell', x: TOWN.church.door.x, z: TOWN.church.door.z, r: 2.6, label: 'Tocar la campana' });
+    for (const b of TOWN.benches) if (Math.abs(b.x - Pp.x) < 3 && Math.abs(b.z - Pp.z) < 3) list.push({ kind: 'bench', b, x: b.x, z: b.z, r: 1.7, label: 'Sentarse a descansar' });
     if (TOWN.fountain) list.push({ kind: 'fountain', x: TOWN.fountain.x, z: TOWN.fountain.z, r: 3.8, label: 'Beber agua' });
     if (this.fronton) list.push({ kind: 'fronton', x: this.fronton.entry.x, z: this.fronton.entry.z, r: 3, label: 'Jugar a pelota' });
     return list;
@@ -471,6 +477,9 @@ export class TownGame {
     if (it.kind === 'walker' && it.a.info) return this.explainWork(it.a);
     if (it.kind === 'walker' && it.a.stall) return this.buyStall();
     if (it.kind === 'agro') return this.showAgro(it.o);
+    if (it.kind === 'pet') return this.petAnimal(it.a);
+    if (it.kind === 'bell') return this.ringBell();
+    if (it.kind === 'bench') return this.restBench(it.b);
     if (it.kind === 'dog') { const D = this.perro.dog; this.sound.bark?.(D.pos); this.particles.emit({ x: D.pos.x, y: D.pos.y + 0.8, z: D.pos.z }, { n: 10, color: ['#ff6b8a', '#ffd1dc'], speed: 1, size: 0.25, life: 1 }); return this.ui.toast(`${this.perro.name} está contento. Pulsa H si necesitas que te guíe`, 'dog', 2600); }
     if (it.kind === 'walker') { it.a.say(2.5); it.a.wave = 1.2; const L = WALKER_LINES[this.walkers.indexOf(it.a) % WALKER_LINES.length]; return this.say(it.a, L); }
     if (it.kind === 'item') return this.pick(it.it);
@@ -723,6 +732,30 @@ export class TownGame {
       const r = await choiceGame(this.ui, { title: 'Juez por un día', icon: 'cow', q: J.q, options: ord.map(i => J.options[i]), answer: ord.indexOf(J.answer), why: J.why });
       if (r.win) { M.step = 2; this.sound.fanfare?.(); this.ui.toast(`¡Buen ojo! Vuelve con ${M.host.name}`, 'check', 3000); }
     } finally { this.player.frozen = false; setTimeout(() => { M.judging = false; }, 4000); }
+  }
+  // ---------- Cosas para tocar ----------
+  async petAnimal(a) {
+    const I = PET[a.kind]; a.state = 'idle'; a.timer = 3; a.heading = Math.atan2(this.player.pos.x - a.pos.x, this.player.pos.z - a.pos.z);
+    this.player.heading = Math.atan2(a.pos.x - this.player.pos.x, a.pos.z - this.player.pos.z); this.player.rig.doAct?.('pick', 0.5);
+    if (I.sound) this.sound[I.sound]?.(a.pos);
+    this.particles.emit({ x: a.pos.x, y: a.pos.y + 1.3, z: a.pos.z }, { n: 8, color: ['#ff6b8a', '#ffd1dc'], speed: 0.8, size: 0.22, life: 1 });
+    this.mochila?.gain(3);
+    if (addCard('granja:' + a.kind)) { this.player.frozen = true; try { await infoCard(this.ui, { icon: I.icon, kicker: 'Animales de la granja', title: I.title, text: I.fact, badge: 'Nueva carta', button: '¡Qué suave!' }); } finally { this.player.frozen = false; } }
+    else this.ui.toast(`A ${I.name} le gusta que la acaricies`, I.icon, 1800);
+  }
+  async ringBell() {
+    if (this.bellT && this.elapsed - this.bellT < 6) return; this.bellT = this.elapsed;
+    this.sound.churchBell?.(3); this.player.rig.doAct?.('point', 0.6);
+    const ch = TOWN.church; this.particles.emit({ x: ch.door.x, y: groundHeight(ch.door.x, ch.door.z) + 6, z: ch.door.z }, { n: 16, color: ['#FFD700', '#ffffff'], speed: 1.4, size: 0.3, life: 1.4 });
+    if (addCard('pueblo:campanas')) { this.player.frozen = true; try { await new Promise(r => setTimeout(r, 1200)); await infoCard(this.ui, { icon: 'bell', kicker: 'Tradiciones', title: BELL.title, text: BELL.fact, badge: 'Nueva carta', button: '¡Ding, dong!' }); } finally { this.player.frozen = false; } }
+  }
+  async restBench(b) {
+    this.player.frozen = true; this.player.place(b.x, b.z, b.ry + Math.PI); this.follow.snap?.(this.player);
+    try {
+      this.ui.whisper(BENCH_LINES[Math.floor(this.rnd() * BENCH_LINES.length)], 3800);
+      await new Promise(r => setTimeout(r, 2600));
+      this.mochila?.gain(25); this.ui.toast('Has descansado: +25 de energía', 'energy', 2000);
+    } finally { this.player.frozen = false; }
   }
   // Lo que se gana al terminar: comida del producto y equipo nuevo
   async afterComplete(M) {

@@ -1,5 +1,6 @@
 // Otsagabia: casas, iglesia, palacios, puentes, muros del río, plaza y fuente
 import * as THREE from 'three';
+import { TOWN } from './townBuilder.js';
 import { Builder, box, gable, archRing, archPanel, colored, M, MM } from './builder.js';
 import { buildHouse, roofHip } from './houses.js';
 import { PATHS, PLACES, BRIDGES, rx, riverInfo, riverHalfA, pathQuery, villageMask, CONF } from './layout.js';
@@ -361,6 +362,7 @@ export function bench(B, x, y, z, ry) {
   B.add('wood', box(2.2, 0.1, 0.55, 1), MM(T, M(0, 0.5, 0)));
   B.add('wood', box(2.2, 0.35, 0.08, 1), MM(T, M(0, 0.8, -0.28, 0, -0.15)));
   addBox(x, z, 2.2, 0.6, ry);
+  TOWN.benches.push({ x: x + Math.sin(ry) * 0.7, z: z + Math.cos(ry) * 0.7, ry });
   VILLAGE.benches.push({ x, z, ry, y });
 }
 
