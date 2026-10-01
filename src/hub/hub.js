@@ -446,7 +446,7 @@ export class Hub {
         <div class="pstats"><span>${I('stamp', 26)} ${stampCount(p)} sellos</span><span>${I('check', 26)} ${doneM} misiones</span><span>${I('book', 26)} ${p.cards.length} cartas</span><span>${I('peak', 26)} ${p.peaks.length} cimas</span><span>${I('binoculars', 26)} ${p.species.length} especies</span><span>${I('ribbon', 26)} ${sal?.ribbons?.length || 0}/8 cintas de Muskilda</span></div>
         <button class="btn" data-go="avatars">${I('person', 22)} Cambiar personaje</button></div></div>
       <div class="panel"><h2>${I('gear', 30)} Ajustes</h2>
-        <label class="set">Idioma <select id="pLang"><option value="eu">Euskara</option><option value="es">Castellano</option></select></label>
+        <label class="set">Idioma <select id="pLang"><option value="eu">Euskara</option><option value="es">Castellano</option><option value="learn">Aprende euskera (con traductor)</option></select></label>
         <label class="set">Música <input type="checkbox" id="pMusic" ${S.music ? 'checked' : ''}></label>
         <label class="set">Volumen <input type="range" id="pVol" min="0" max="1" step="0.05" value="${S.volume}"></label>
         <label class="set">Calidad gráfica <select id="pQ"><option value="auto">Automática</option><option value="low">Baja (más fluido)</option><option value="mid">Media</option><option value="high">Alta</option></select></label>
@@ -460,7 +460,7 @@ export class Hub {
     let pick = p.avatar || 'benat';
     const o = el(`<div class="onb"><div class="onb-in">
       <header class="onb-head"><div class="logo">MENDIMENDIZ</div><p class="tag">Navarra, pueblo a pueblo</p>
-        <div class="langsel" role="group" aria-label="Idioma"><button data-lang="eu" class="${getLang() === 'eu' ? 'on' : ''}">Euskara</button><button data-lang="es" class="${getLang() === 'es' ? 'on' : ''}">Castellano</button></div></header>
+        <div class="langsel" role="group" aria-label="Idioma"><button data-lang="eu" class="${getLang() === 'eu' ? 'on' : ''}">Euskara</button><button data-lang="es" class="${getLang() === 'es' ? 'on' : ''}">Castellano</button><button data-lang="learn" class="${getLang() === 'learn' ? 'on' : ''}">Aprende euskera</button></div></header>
       ${this.selector(castById(pick), { onb: true, extra: `<div class="onb-foot"><div class="gender" role="group" aria-label="Elige personaje"><button data-g="benat" class="${pick === 'benat' ? 'on' : ''}">Chico · Beñat</button><button data-g="nerea" class="${pick === 'nerea' ? 'on' : ''}">Chica · Nerea</button><button data-g="haritz" class="${pick === 'haritz' ? 'on' : ''}">Neolítico · Haritz</button></div><label>¿Cómo te llamas?<input id="oName" maxlength="14" autocomplete="off" placeholder="Tu nombre"></label>
         <button class="btn primary big" id="oGo">${I('play', 26)} ¡Empezar la aventura!</button></div>` })}
     </div></div>`);
