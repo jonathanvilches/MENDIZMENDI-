@@ -267,4 +267,3 @@ export function iconImage(name) {
   return imgCache.get(k);
 }
 // (los iconos se generan cuando se necesitan; ya no se precargan todos al arrancar)
-export function preloadIcons() { }

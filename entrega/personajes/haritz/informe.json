@@ -1,6 +1,6 @@
 {
  "archivo": "char_haritz.glb",
- "peso_MB": 1.95,
+ "peso_MB": 1.97,
  "triangulos_visibles": 25572,
  "triangulos_por_parte": {
   "Head": 3184,
@@ -346,9 +346,9 @@
   "mensajes": []
  },
  "reimportacion": {
-  "altura_m": 1.678,
-  "pies_z": -0.003,
-  "mira_a_-Y": true,
+  "altura_m": 1.677,
+  "pies_z": -0.001,
+  "mira_a_-Y": false,
   "acciones": [
    "Celebrate_RIG_Haritz",
    "Hit_RIG_Haritz",
@@ -392,7 +392,7 @@
  },
  "lod": {
   "archivo": "char_haritz_lod.glb",
-  "peso_MB": 1.22,
+  "peso_MB": 1.24,
   "triangulos_en_archivo": 10734,
   "validador": {
    "errores": 0,

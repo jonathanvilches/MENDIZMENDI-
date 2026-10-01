@@ -133,5 +133,5 @@ export const PERSONAJES = {
 // Dónde está cada personaje
 export const FIGURE_TOWNS = {
   pamplona: ['sarasate', 'indurain'], 'erronkari-roncal': ['gayarre'], olite: ['blanca'], javier: ['javier'],
-  'orreaga-roncesvalles': ['sancho'], tafalla: ['azpilcueta'], tudela: ['benjamin'], peralta: ['julia'], 'isaba-izaba': ['golondrinas'],
+  'orreaga-roncesvalles': ['sancho'], tafalla: ['azpilcueta'], tudela: ['benjamin'], marcilla: ['julia'], 'isaba-izaba': ['golondrinas'],
 };

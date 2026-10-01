@@ -98,12 +98,13 @@ def build_geometry(d, cols, mats):
     # mechones: curvas Bézier (Bevel 0,06, Resolution 4, Taper en gota, Tilt 20°) convertidas a malla
     taper = Hm.taper_object('Taper_Drop', [(0, 1.0), (0.55, 0.78), (1.0, 0.25)], cols['GEO'])
     tufts = []
-    for i, (lo, la, dirv, length) in enumerate(d['tufts']):
+    for i, tt in enumerate(d['tufts']):
+        lo, la, dirv, length = tt[:4]; tsc = tt[4] if len(tt) > 4 else 1.0
         root = Hm.sph(d, lo, la, 0.01)
         dv = V(dirv).normalized()
         mid = root + dv * (length * 0.55) + V((0, 0, length * 0.12))
         tip = root + dv * length + V((0, 0, length * 0.05))
-        cu = Hm.bezier_tube(f'Hair_Tuft_{i + 1}', [root - dv * 0.04, mid, tip], 0.06 * d.get('tuft_scale', 1.0), taper, cols['GEO'], tilt=math.radians(20))
+        cu = Hm.bezier_tube(f'Hair_Tuft_{i + 1}', [root - dv * 0.04, mid, tip], 0.06 * d.get('tuft_scale', 1.0) * tsc, taper, cols['GEO'], tilt=math.radians(20))
         me_ob = Hm.curve_to_mesh(cu, f'Hair_Tuft_{i + 1}', cols['GEO'])
         bm = C.bm_from_obj(me_ob); C.poke_ngons(bm)
         # punta cerrada y redondeada
@@ -1129,9 +1130,12 @@ def reproportion(d, arm):
     bpy.context.view_layer.objects.active = arm; arm.select_set(True)
     bpy.ops.object.mode_set(mode='EDIT')
     mw = arm.matrix_world; inv = mw.inverted()
+    # posiciones originales primero: en los huesos encadenados (brazo→antebrazo, muslo→pierna…) mover la cola del
+    # padre mueve también la cabeza del hijo, y transformarla otra vez desplazaba codos, rodillas y columna
+    orig = {b.name: (mw @ b.head.copy(), mw @ b.tail.copy(), b.roll) for b in arm.data.edit_bones}
     for b in arm.data.edit_bones:
-        h, t, r = f(mw @ b.head), f(mw @ b.tail), b.roll
-        b.head = inv @ h; b.tail = inv @ t; b.roll = r
+        h, t, r = orig[b.name]
+        b.head = inv @ f(h); b.tail = inv @ f(t); b.roll = r
     bpy.ops.object.mode_set(mode='OBJECT'); bpy.context.view_layer.update()
     for o in meshes:
         im = o.matrix_world.inverted()

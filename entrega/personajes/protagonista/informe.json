@@ -1,6 +1,6 @@
 {
  "archivo": "char_protagonista.glb",
- "peso_MB": 1.99,
+ "peso_MB": 2.01,
  "triangulos_visibles": 26916,
  "triangulos_por_parte": {
   "Head": 3184,
@@ -346,9 +346,9 @@
   "mensajes": []
  },
  "reimportacion": {
-  "altura_m": 1.678,
-  "pies_z": -0.003,
-  "mira_a_-Y": true,
+  "altura_m": 1.677,
+  "pies_z": -0.001,
+  "mira_a_-Y": false,
   "acciones": [
    "Celebrate_RIG_Protagonista",
    "Hit_RIG_Protagonista",
@@ -392,7 +392,7 @@
  },
  "lod": {
   "archivo": "char_protagonista_lod.glb",
-  "peso_MB": 1.23,
+  "peso_MB": 1.24,
   "triangulos_en_archivo": 11022,
   "validador": {
    "errores": 0,

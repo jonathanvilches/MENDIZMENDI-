@@ -154,8 +154,10 @@ export class Runtime {
     this.elapsed += dt;
     if (this.contextLost) return;
     const g = this.game, input = this.input;
-    try { this.step(dt, g, input); } catch (e) { this.reportError(e); }
-    try { this.renderer.render(this.scene, this.camera); } catch (e) { this.reportError(e); }
+    // escenas propias (el encierro): el juego dibuja su escena y su cámara, el mundo del pueblo queda en pausa
+    const alt = g?.altScene;
+    try { if (alt) { input.enabled = !g.ui.busy; input.update(); g.altUpdate?.(dt); } else this.step(dt, g, input); } catch (e) { this.reportError(e); }
+    try { this.renderer.render(alt || this.scene, (alt && g.altCamera) || this.camera); } catch (e) { this.reportError(e); }
     input.endFrame();
     this.frames++; this.fpsT += dt;
     if (this.fpsT > 2) {

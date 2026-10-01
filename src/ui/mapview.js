@@ -142,8 +142,9 @@ export function mountMapView(ui, box, opts = {}) {
     if (!it) { card.hidden = true; return; }
     const tracked = it.act === 'track' && (game.kind === 'town' ? game.tracked === it.id : game.state?.tracked === it.id);
     const btn = [];
-    if (it.act === 'track') btn.push(tracked ? `<button class="btn on" disabled>${iconSVG('check', 20)} Siguiendo</button>` : `<button class="btn primary" data-a="track">${iconSVG('pin', 20)} Seguir</button>`);
-    if (it.go) btn.push(`<button class="btn" data-a="go">${SVG.go} Llévame</button>`);
+    // la brújula de arriba marca una misión: aquí se elige cuál (y se dice claro qué hace)
+    if (it.act === 'track') btn.push(tracked ? `<button class="btn on" disabled title="La flecha de la brújula te lleva hasta esta misión">${iconSVG('compass', 20)} La brújula te lleva aquí</button>` : `<button class="btn primary" data-a="track" title="La flecha de la brújula te llevará hasta esta misión">${iconSVG('compass', 20)} Llévame con la brújula</button>`);
+    if (it.go) btn.push(`<button class="btn" data-a="go" title="Viajas al instante hasta allí">${SVG.go} Viajar ahora</button>`);
     card.innerHTML = `<div class="mc-i">${iconSVG(it.icon || 'home', 34)}</div><div class="mc-t"><b>${esc(it.title || it.label)}</b>${it.text ? `<small>${esc(it.text)}</small>` : ''}</div><div class="mc-b">${btn.join('')}</div><button class="mc-x" aria-label="Cerrar">${SVG.plus.replace('M12 5v14M5 12h14', 'M7 7l10 10M17 7L7 17')}</button>`;
     card.hidden = false;
     card.querySelector('.mc-x').onclick = () => select(null);

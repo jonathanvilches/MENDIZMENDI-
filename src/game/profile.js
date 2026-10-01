@@ -42,7 +42,6 @@ export const BADGES = [
 ];
 
 let P = null;
-const listeners = new Set();
 export function profile() {
   if (P) return P;
   try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.v === 1) P = Object.assign(fresh(), s, { settings: Object.assign(fresh().settings, s.settings) }); } catch (e) { }
@@ -52,12 +51,10 @@ export function profile() {
   if (!CAST.some(c => c.id === P.avatar)) P.avatar = 'benat';
   return P;
 }
-export function saveProfile() { try { localStorage.setItem(KEY, JSON.stringify(P)); } catch (e) { } listeners.forEach(f => f(P)); }
-export function onProfile(f) { listeners.add(f); return () => listeners.delete(f); }
+export function saveProfile() { try { localStorage.setItem(KEY, JSON.stringify(P)); } catch (e) { } }
 export function resetProfile() { const keep = { name: P?.name, avatar: P?.avatar, settings: P?.settings }; P = Object.assign(fresh(), keep); saveProfile(); }
 
 export const townState = (p, id) => (p.towns[id] ||= { done: {}, stamp: false, visits: 0 });
-export const isPlayable = (lv) => !!(lv.missions?.length || lv.special);
 export function townProgress(p, lv) {
   if (lv.special === 'salazar') { const s = salazarState(); const n = 9, d = s ? Object.values(s.quests || {}).filter(q => q.state === 'done').length : 0; return { done: Math.min(n, d), total: n, stamp: !!s?.done || !!p.towns[lv.id]?.stamp }; }
   const t = p.towns[lv.id];

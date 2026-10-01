@@ -1,6 +1,6 @@
 {
  "archivo": "char_nerea.glb",
- "peso_MB": 2.03,
+ "peso_MB": 2.05,
  "triangulos_visibles": 27128,
  "triangulos_por_parte": {
   "Head": 3184,
@@ -351,9 +351,9 @@
   "mensajes": []
  },
  "reimportacion": {
-  "altura_m": 1.678,
-  "pies_z": -0.003,
-  "mira_a_-Y": true,
+  "altura_m": 1.677,
+  "pies_z": -0.001,
+  "mira_a_-Y": false,
   "acciones": [
    "Celebrate_RIG_Nerea",
    "Hit_RIG_Nerea",
@@ -397,7 +397,7 @@
  },
  "lod": {
   "archivo": "char_nerea_lod.glb",
-  "peso_MB": 1.27,
+  "peso_MB": 1.29,
   "triangulos_en_archivo": 11234,
   "validador": {
    "errores": 0,
