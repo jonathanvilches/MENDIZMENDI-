@@ -240,8 +240,9 @@ export class PelotaMatch {
     }
     // cámara detrás del jugador, mirando al frontis
     const you = g.players.you, portrait = innerWidth < innerHeight;
-    const lp = portrait ? [you.x * 0.45 + 0.4, 7.4, you.z + 11.5] : [you.x * 0.55 + 0.9, 4.8, you.z + 8.8];
-    const ll = portrait ? [you.x * 0.2, 1.0, you.z - 9.5] : [you.x * 0.25, 2.0, you.z - 12];
+    // en vertical (móvil) algo más cerca que antes: los pelotaris se ven más grandes y con su detalle
+    const lp = portrait ? [you.x * 0.45 + 0.4, 6.3, you.z + 9.6] : [you.x * 0.55 + 0.9, 4.8, you.z + 8.8];
+    const ll = portrait ? [you.x * 0.2, 1.2, you.z - 9.5] : [you.x * 0.25, 2.0, you.z - 12];
     if (g.phase === 'intro') { const a = this.t * 0.25; lp[0] = Math.sin(a) * 18 + 2; lp[1] = 9; lp[2] = COURT.L * 0.5 + Math.cos(a) * 18 + 6; ll[0] = 0; ll[1] = 2; ll[2] = COURT.L * 0.4; }
     const wp = this.v3.set(lp[0], lp[1], Math.min(lp[2], COURT.L + 11)); grp.localToWorld(wp);
     const wl = new T.Vector3(ll[0], ll[1], ll[2]); grp.localToWorld(wl);
