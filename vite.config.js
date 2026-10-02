@@ -9,6 +9,8 @@ import { createHash } from 'node:crypto';
 //    página es pequeña y cada modelo, textura o sonido es un archivo aparte que solo se descarga cuando hace falta y
 //    queda guardado (caché del navegador y de la app instalada): menos memoria, arranque rápido y juego sin conexión.
 const WEB = !!process.env.WEB;
+// la redirección a docs/ de index.html solo sirve sin compilar (GitHub Pages desde la raíz): fuera al compilar
+const sinRedir = { name: 'sin-redireccion', transformIndexHtml: (html) => html.replace(/<!-- en GitHub Pages[\s\S]*?<script id="ir-a-docs">[\s\S]*?<\/script>\n?/, '') };
 // en la web: la app se puede instalar (añadir a la pantalla de inicio) y abre a pantalla completa
 const app = {
   name: 'app-instalable',
@@ -29,7 +31,7 @@ const app = {
 
 export default defineConfig({
   base: './',
-  plugins: WEB ? [app] : [viteSingleFile()],
+  plugins: WEB ? [sinRedir, app] : [sinRedir, viteSingleFile()],
   define: { __WEB__: JSON.stringify(WEB) },
   build: WEB
     ? { target: 'es2020', outDir: 'docs', emptyOutDir: true, assetsInlineLimit: 2048, chunkSizeWarningLimit: 5000, copyPublicDir: true }
