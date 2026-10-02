@@ -20,7 +20,8 @@ const SPEC = {
   corzo: { model: 'Deer', h: 1.05 }, ciervo: { model: 'Stag', h: 2.1 }, zorro: { model: 'Fox', h: 0.55 },
   burro: { model: 'Donkey', h: 1.35 },
   // derivadas en Blender de los modelos de Quaternius (tools/blender/fauna/derivar.py)
-  sheep: { model: 'Sheep', h: 1.05, col: { Main: '#ece4d2', Main_Light: '#f2ebdc', Main_Dark: '#1f1915', Muzzle: '#1f1915', Hooves: '#1a1512' } },       // oveja latxa
+  // oveja latxa: sin cuernos (las hembras del rebaño no los llevan) y con vellón de lana rizada
+  sheep: { model: 'Sheep', h: 1.05, col: { Main: '#ece4d2', Main_Light: '#f2ebdc', Main_Dark: '#1f1915', Muzzle: '#1f1915', Hooves: '#1a1512' }, drop: ['MAT_ANI_Sheep_Cuernos'], wool: ['Main', 'Main_Light'] },
   goat: { model: 'Goat', h: 1.0, col: { Main: '#4a3a2e', Main_Light: '#8a6a4a', Main_Dark: '#2a1e18', Hooves: '#15100e' } },                                 // cabra pirenaica
   pig: { model: 'Pig', h: 0.85, col: { Main: '#f0b4a2', Main_Light: '#f6c8b8', Muzzle: '#e89a8a', Hooves: '#7a5a4a' } },
   jabali: { model: 'Jabali', h: 0.9, col: { Main: '#3a2e26', Main_Light: '#4e4034', Muzzle: '#2a221e', Hooves: '#1a1512' } },
@@ -70,6 +71,7 @@ function bakedScene(key, S, g) {
   if (skinned.length < 2 || skinned.some(m => !sameBones(m) || !m.bindMatrix.equals(skinned[0].bindMatrix) || m.parent !== skinned[0].parent || !m.geometry.attributes.skinIndex)) { BAKED.set(key, sc); return sc; }
   const c = new THREE.Color(), geos = [];
   for (const m of skinned) {
+    if (S.drop?.includes(m.material.name)) continue;   // piezas que no van (los cuernos de la oveja)
     const src = m.geometry, n = src.attributes.position.count, out = new THREE.BufferGeometry();
     const f32 = (name, k) => { const a = src.attributes[name], arr = new Float32Array(n * k); for (let i = 0; i < n; i++) for (let j = 0; j < k; j++) arr[i * k + j] = a.getComponent(i, j); return new THREE.BufferAttribute(arr, k); };
     out.setAttribute('position', f32('position', 3));
@@ -78,16 +80,44 @@ function bakedScene(key, S, g) {
     const hex = S.col?.[m.material.name]; c.copy(hex ? new THREE.Color(hex) : m.material.color);
     const col = new Float32Array(n * 3); for (let i = 0; i < n; i++) { col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b; }
     out.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    if (S.wool) out.setAttribute('wool', new THREE.BufferAttribute(new Float32Array(n).fill(S.wool.includes(m.material.name) ? 1 : 0), 1));
     if (src.index) out.setIndex(Array.from(src.index.array));
     geos.push(out);
   }
   let merged = mergeGeometries(geos);
   merged = toCreasedNormals(merged, THREE.MathUtils.degToRad(65));
-  const mesh = new THREE.SkinnedMesh(merged, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.82 }));
+  const mesh = new THREE.SkinnedMesh(merged, S.wool ? woolMaterial(merged) : new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.82 }));
   const s0 = skinned[0]; mesh.name = 'body'; mesh.position.copy(s0.position); mesh.quaternion.copy(s0.quaternion); mesh.scale.copy(s0.scale);
   s0.parent.add(mesh); mesh.bind(s0.skeleton, s0.bindMatrix);
   for (const m of skinned) m.removeFromParent();
   BAKED.set(key, sc); return sc;
+}
+
+// Lana: el modelo no tiene coordenadas de textura, así que el vellón se dibuja en el sombreador con ruido celular en
+// 3D sobre la posición del modelo (antes de la piel, así los rizos van pegados al cuerpo al moverse): rizos redondos
+// algo más claros que los huecos entre ellos y un brillo suave en los bordes. Solo donde el atributo wool vale 1.
+function woolMaterial(geo) {
+  geo.computeBoundingBox(); const size = geo.boundingBox.getSize(new THREE.Vector3()), f = (34 / Math.max(size.x, size.y, size.z)).toFixed(3);
+  const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95 });
+  m.onBeforeCompile = (sh) => {
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute float wool; varying float vWool; varying vec3 vWP;')
+      .replace('#include <begin_vertex>', `#include <begin_vertex>\nvWool = wool; vWP = position * ${f};`);
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>
+varying float vWool; varying vec3 vWP;
+vec3 h3(vec3 p){ p = vec3(dot(p, vec3(127.1, 311.7, 74.7)), dot(p, vec3(269.5, 183.3, 246.1)), dot(p, vec3(113.5, 271.9, 124.6))); return fract(sin(p) * 43758.5453); }
+float cell(vec3 p){ vec3 i = floor(p), fr = fract(p); float d = 8.0;
+  for (int x = -1; x <= 1; x++) for (int y = -1; y <= 1; y++) for (int z = -1; z <= 1; z++) { vec3 o = vec3(float(x), float(y), float(z)); vec3 r = o + h3(i + o) - fr; d = min(d, dot(r, r)); }
+  return sqrt(d); }`)
+      .replace('#include <color_fragment>', `#include <color_fragment>
+  float wc = cell(vWP), wc2 = cell(vWP * 2.3 + 7.1), wv = clamp(1.0 - wc * 1.15, 0.0, 1.0) * 0.7 + clamp(1.0 - wc2 * 1.2, 0.0, 1.0) * 0.3;
+  float crev = smoothstep(0.5, 0.95, wc) * 0.55 + smoothstep(0.55, 0.95, wc2) * 0.45;   // huecos entre rizos
+  diffuseColor.rgb *= mix(1.0, (0.9 + 0.14 * wv) * (1.0 - 0.3 * crev), vWool);`)
+      // vellón mullido: un poco de su propio color en los bordes (de lado la lana parece más esponjosa y clara)
+      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+  totalEmissiveRadiance += vWool * diffuseColor.rgb * 0.22 * pow(1.0 - abs(dot(normalize(vNormal), normalize(vViewPosition))), 2.0);`);
+  };
+  m.customProgramCacheKey = () => 'lana' + f;
+  return m;
 }
 
 const MATS = new Map();

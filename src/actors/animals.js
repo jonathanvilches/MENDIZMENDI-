@@ -106,6 +106,9 @@ export class Animal {
       const bounded = this.bounds ? this.bounds(r.x, r.z) : true;
       if (!deep && r4 < 455 && bounded && Math.abs(g - this.pos.y) < 1.2) { this.pos.x = r.x; this.pos.z = r.z; }
       else if (this.follow) { this.speed *= 0.5; }                      // el compañero no gira en redondo: frena y corrige poco a poco
+      // dentro de un cercado (el redil): si llega a la valla, se da la vuelta despacio y vuelve hacia el centro (antes
+      // giraba de golpe en cada fotograma y parecía una animación rara)
+      else if (this.bounds) { this.target = { x: this.home.x + (this.rnd() - 0.5) * 2, z: this.home.z + (this.rnd() - 0.5) * 2 }; this.state = 'walk'; this.timer = 5; this.speed *= 0.6; }
       else { this.heading += 1.5 + this.rnd(); this.target = null; }
       this.phase += dt * (this.kind === 'cow' ? this.speed * 2.6 : Math.min(this.speed * 5.5, 9 + this.speed * 1.6));   // a más velocidad, zancada más larga (no más pasos)
     }
