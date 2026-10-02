@@ -104,7 +104,7 @@ function chopScene(S, side) {
   const chips = particles(S, { geo: rbox(0.03, 0.006, 0.018, 0.002, 1), color: '#ead2a4', max: 120, gravity: -7, drag: 0.4, ground: 0.005 });
   const bark = particles(S, { geo: rbox(0.02, 0.006, 0.014, 0.002, 1), color: '#6a5444', max: 40, gravity: -7, drag: 0.4, ground: 0.005 });
   let W = null; const top = Y + R;
-  const ready = worker(S, { shirt: '#f4f1ea', pants: '#f4f1ea', sash: '#d42f2f', txapela: '#22262e', shoes: '#efe6d0', base: 'Knight' }, { height: 1.75 }).then(w => {
+  const ready = worker(S, 'sanfermin', { height: 1.75 }).then(w => {
     W = w; if (!W) return;
     rig.add(W.obj); W.obj.position.set(0, top, -0.04); rig.updateMatrixWorld(true);
     W.plant([rig.localToWorld(V(0.21, top, -0.02)), rig.localToWorld(V(-0.21, top, -0.02))]);
@@ -197,7 +197,7 @@ function stoneScene(S, stage) {
   const dust = puffs(S, { color: '#efe8da', max: 20, rise: 0.25 });
   // el cantero, detrás del bloque
   let W = null; const WZ = -0.52;
-  const ready = worker(S, { shirt: '#7a8a9a', pants: '#4a4a52', sash: '#2a2a30', txapela: '#2a2e36', base: 'Ranger' }, { height: 1.72 }).then(w => { W = w; if (W) W.obj.position.set(0, 0, WZ); });
+  const ready = worker(S, 'pastor', { height: 1.72 }).then(w => { W = w; if (W) W.obj.position.set(0, 0, WZ); });
   let last = -1, prev = 9, tx = 0;
   const E = V(0, 0, 0), H = V(0, 0, 0), hi = V(0, 0, 0), dir = V(0, 0, 0), q = new THREE.Quaternion(), hr = V(0, 0, 0), ct = V(0, 0, 0), ax = V(0, 0, 0);
   const L1 = 0.34, L2 = 0.13, BA = Math.atan2(L2, L1), TI = Math.PI / 2 + 0.3, UP = -0.8;
@@ -268,7 +268,7 @@ function basketScene(S) {
   for (let i = 0; i < 9; i++) { const a = i * 0.7; S.mesh(tube([[0.42 + Math.cos(a) * 0.02, 0.0, 0.12 + Math.sin(a) * 0.02], [0.45 + Math.cos(a) * 0.03, 0.25, 0.1], [0.55 + Math.cos(a) * 0.08, 0.55, 0.06 + Math.sin(a) * 0.05]], 0.0045, 14, 5), wM[i % 2], 0, 0, 0, g); }
   let loose = null; S.own({ dispose: () => loose?.geometry.dispose() });
   let W = null;
-  const ready = worker(S, { shirt: '#b8c8a8', pants: '#4a4a3a', apron: '#7a5a3a', txapela: '#2a2e36', base: 'Ranger' }, { height: 1.7 }).then(w => { W = w; if (W) { g.add(W.obj); W.obj.position.set(0, 0, -0.44); } });
+  const ready = worker(S, 'pastor', { height: 1.7 }).then(w => { W = w; if (W) { g.add(W.obj); W.obj.position.set(0, 0, -0.44); } });
   const lh = V(0, 0, 0), rh = V(0, 0, 0), from = V(0, 0, 0); let lastKey = '';
   return {
     ready, frame: { box: [[-0.32, 0, -2.08], [0.6, 1.35, -1.35]], dir: [0.3, 0.45, 1] },
@@ -316,7 +316,7 @@ function spinScene(S) {
   const tm = S.mat('#efe6d2', { roughness: 0.9 }), thread = new THREE.Mesh(new THREE.BufferGeometry(), tm); g.add(thread); S.own({ dispose: () => thread.geometry.dispose() });
   let threadKey = '';
   let W = null;
-  const ready = worker(S, { female: true, skirt: '#3a3248', shirt: '#efe4cf', apron: '#5a6a8a', scarf: '#2a2a3a', base: 'Rogue' }, { height: 1.6 }).then(w => {
+  const ready = worker(S, 'sanfermin', { height: 1.6 }).then(w => {
     W = w; if (!W) return; g.add(W.obj); g.updateMatrixWorld(true);
     W.plant([g.localToWorld(V(0.1, 0, 0.2)), g.localToWorld(V(-0.1, 0, 0.2))]);
   });
@@ -371,7 +371,7 @@ function ovenScene(S) {
   const blade = S.mesh(lathe([[0.001, 0], [0.13, 0], [0.135, 0.006], [0.001, 0.012]], 28), texMat(S, 'wood', '#b08a5a'), 0, 0, 0, peel); blade.scale.set(1, 1, 1.1);
   const carried = loaves[0].clone(); peel.add(carried); carried.position.set(0, 0.012, 0); carried.visible = true;
   let W = null; const BASE = V(0.55, 0, 1.75);
-  const ready = worker(S, { female: true, skirt: '#5a4a6a', shirt: '#f4ece0', apron: '#f4f1ea', scarf: '#c8202a', base: 'Rogue' }, { height: 1.6 }).then(w => {
+  const ready = worker(S, 'sanfermin', { height: 1.6 }).then(w => {
     W = w; if (!W) return; g.add(W.obj); W.obj.position.copy(BASE); W.obj.rotation.y = Math.atan2(-BASE.x, -(BASE.z - 0.3));
   });
   const bp = V(0, 0, 0), out = V(0, 0.8, 0.95), hd = V(0, 0, 0), h1 = V(0, 0, 0), h2 = V(0, 0, 0), fw = V(0, 0, 0);
@@ -411,7 +411,7 @@ function kneadScene(S) {
   S.mesh(lathe([[0.001, 0], [0.06, 0], [0.07, 0.04], [0.065, 0.1], [0.04, 0.12], [0.001, 0.12]], 20), S.mat('#c8b49a', { roughness: 0.8 }), 0.55, 0, 0.1, g);   // el saco de harina
   const dust = puffs(S, { color: '#ffffff', max: 24, rise: 0.3 });
   let W = null;
-  const ready = worker(S, { female: true, skirt: '#4a3a5a', shirt: '#f4ece0', apron: '#f4f1ea', scarf: '#c8202a', base: 'Rogue' }, { height: 1.6 }).then(w => { W = w; if (W) { g.add(W.obj); W.obj.position.set(0, 0, -0.42); } });
+  const ready = worker(S, 'sanfermin', { height: 1.6 }).then(w => { W = w; if (W) { g.add(W.obj); W.obj.position.set(0, 0, -0.42); } });
   let last = -1, prev = 9; const L = V(0, 0, 0), R = V(0, 0, 0);
   return {
     ready, frame: { box: [[-0.5, 0, -2.1], [0.66, 1.3, -1.3]], dir: [0.85, 0.5, 0.75] },
@@ -450,7 +450,7 @@ function hoopsScene(S) {
   const piv = new THREE.Group(); g.add(piv); const HM = hammer(S); HM.position.y = 0.33; piv.add(HM);
   const sparks = particles(S, { geo: new THREE.SphereGeometry(0.004, 4, 3), color: '#ffe38a', emissive: '#ffcc55', max: 40, gravity: -6 });
   let W = null; const WP = V(-0.36, 0, -0.38), F = V(-WP.x, 0, -WP.z).normalize(), RT = V(-F.z, 0, F.x);
-  const ready = worker(S, { shirt: '#d8c8a8', pants: '#3a3a42', apron: '#6a4a2a', sash: '#6a4a2a', txapela: '#2a2e36', base: 'Ranger' }, { height: 1.7 }).then(w => { W = w; if (W) { g.add(W.obj); W.obj.position.copy(WP); W.obj.rotation.y = Math.atan2(F.x, F.z); } });
+  const ready = worker(S, 'pastor', { height: 1.7 }).then(w => { W = w; if (W) { g.add(W.obj); W.obj.position.copy(WP); W.obj.rotation.y = Math.atan2(F.x, F.z); } });
   let prev = 9; const top = V(0, 0, 0), dp = V(0, 0, 0), hh = V(0, 0, 0), d = V(0, 0, 0), Y = V(0, 1, 0);
   return {
     ready, frame: { box: [[-0.72, 0, -2.0], [0.3, 1.35, -1.25]], dir: [0.5, 0.45, 1] },
@@ -489,7 +489,7 @@ function quenchScene(S) {
   const steam = puffs(S, { color: '#f4f4f2', max: 30, rise: 0.7 });
   const col = new THREE.Color(), heel = V(0, 0, 0), hand = V(0, 0, 0), td = V(0, 0, 0), X = V(1, 0, 0);
   let W = null;
-  const ready = worker(S, { shirt: '#6a6a72', pants: '#3a3a40', apron: '#5a3a24', base: 'Barbarian' }, { height: 1.72 }).then(w => { W = w; if (W) { g.add(W.obj); W.obj.position.set(0.05, 0, -0.86); } });
+  const ready = worker(S, 'pastor', { height: 1.72 }).then(w => { W = w; if (W) { g.add(W.obj); W.obj.position.set(0.05, 0, -0.86); } });
   return {
     ready, frame: { box: [[-0.55, 0.15, -2.45], [0.55, 1.4, -1.2]], dir: [0.3, 0.45, 1] },
     set(p, hit, ok) {
@@ -547,7 +547,7 @@ function doveScene(S, net) {
   const paleta = S.mesh(rbox(0.36, 0.025, 0.14, 0.012), S.mat('#f4f1ea', { roughness: 0.6 }));
   // el paletero en lo alto de la torre: lanza la paleta con el brazo por encima de la cabeza
   let W = null;
-  const ready = worker(S, { shirt: '#f4f1ea', pants: '#3a3a42', txapela: '#22262e', base: 'Ranger' }, { height: 1.7 }).then(w => { W = w; if (W) { tower.add(W.obj); W.obj.position.set(0.1, 3.34, 0.05); W.obj.rotation.y = -Math.PI / 2 - 0.25; } });
+  const ready = worker(S, 'pastor', { height: 1.7 }).then(w => { W = w; if (W) { tower.add(W.obj); W.obj.position.set(0.1, 3.34, 0.05); W.obj.rotation.y = -Math.PI / 2 - 0.25; } });
   const rh = V(0, 0, 0), lh = V(0, 0, 0);
   return {
     ready, frame: { box: [[-2.95, 0.1, -3.0], [2.95, 5.6, -1.6]], dir: [0, 0.1, 1], fov: 44 },
@@ -586,7 +586,7 @@ function liftScene(S) {
   const stoneM = texMat(S, 'rock', '#c8c0b0', { roughness: 0.9 }), SR = 0.19;
   const stone = S.mesh(uvScale(lathe([[0.001, -0.16], [SR - 0.02, -0.16], [SR, -0.14], [SR, 0.14], [SR - 0.02, 0.16], [0.001, 0.16]], 32), 2, 1), stoneM);
   let W = null, wob = 0;
-  const ready = worker(S, { shirt: '#f4f1ea', pants: '#f4f1ea', sash: '#d42f2f', scarf: '#d42f2f', shoes: '#efe6d0', base: 'Knight' }, { height: 1.75 }).then(w => { W = w; if (W) W.obj.position.set(0, 0.12, -0.12); });
+  const ready = worker(S, 'sanfermin', { height: 1.75 }).then(w => { W = w; if (W) W.obj.position.set(0, 0.12, -0.12); });
   // la subida: del suelo a los muslos, al pecho y al hombro (como en las exhibiciones)
   const KEYS = [
     { p: 0, pos: [0, 0.12 + SR, 0.2], crouch: 0.12, bend: 0.55, lean: 0, rot: 0 },
@@ -638,7 +638,7 @@ function moundScene(S) {
   S.mesh(lathe([[0.001, 0], [0.016, 0], [0.015, 0.95], [0.02, 1.0], [0.001, 1.01]], 10), S.mat('#a87848'), 0, 0, 0, shovel);
   S.mesh(new THREE.SphereGeometry(0.14, 18, 8, 0, Math.PI, 0, Math.PI / 2).scale(1, 1.4, 0.35).rotateX(Math.PI), S.mat('#6a6e74', { metalness: 0.7, roughness: 0.45, side: THREE.DoubleSide }), 0, -0.02, 0, shovel);
   let W = null; const WP = V(1.45, 0, -0.25);
-  const ready = worker(S, { shirt: '#5a5048', pants: '#3a342e', txapela: '#22262e', sash: '#3a342e', base: 'Barbarian', old: true }, { height: 1.72 }).then(w => { W = w; if (W) { W.obj.position.copy(WP); W.obj.rotation.y = Math.atan2(MC.x - WP.x, MC.z - WP.z); } });
+  const ready = worker(S, 'pastor', { height: 1.72 }).then(w => { W = w; if (W) { W.obj.position.copy(WP); W.obj.rotation.y = Math.atan2(MC.x - WP.x, MC.z - WP.z); } });
   let prev = 9; const blade = V(0, 0, 0), h1 = V(0, 0, 0), h2 = V(0, 0, 0), ax = V(0, 0, 0), side = V(0, 0, 0), fwd = V(0, 0, 0);
   return {
     ready, frame: { box: [[-1.2, 0, -1.9], [1.75, 1.35, 0.5]], dir: [0.3, 0.38, 1] },
@@ -675,7 +675,7 @@ function anvilScene(S) {
   const sparks = particles(S, { geo: new THREE.SphereGeometry(0.006, 5, 4), color: '#ffcc66', emissive: '#ffaa33', max: 100, gravity: -5, drag: 0.3 });
   const glow = new THREE.PointLight('#ff7a2a', 0.45, 0.7, 2); glow.position.set(0.1, FY + 0.05, -1.25); S.add(glow);
   let W = null;
-  const ready = worker(S, { shirt: '#6a6a72', pants: '#3a3a40', apron: '#5a3a24', base: 'Barbarian' }, { height: 1.72 }).then(w => { W = w; if (W) W.obj.position.set(0, 0, -1.86); });
+  const ready = worker(S, 'pastor', { height: 1.72 }).then(w => { W = w; if (W) W.obj.position.set(0, 0, -1.86); });
   let prev = 9; const hh = V(0, 0, 0), at = V(0, 0, 0), d = V(0, 0, 0), lh = V(0, 0, 0);
   return {
     ready, frame: { box: [[-0.42, 0, -2.1], [0.42, 1.35, -1.15]], dir: [0.55, 0.5, 1] },

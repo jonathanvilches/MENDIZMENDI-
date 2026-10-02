@@ -2,7 +2,7 @@
 // su esqueleto y sus animaciones, con la ropa, la piel y el pelo de cada vecino. Las texturas se recolorean una vez
 // por combinación de colores y se comparten; la geometría es la del modelo (un solo juego para todo el pueblo).
 import * as THREE from 'three';
-import { GlbChar, loadChar, loadKayKit, loadMeshy, hasMeshy, MESHY_GAIT } from './glbChar.js';
+import { GlbChar, loadChar, loadKayKit, loadMeshy, hasMeshy, MESHY_GAIT, MESHY_NAMES } from './glbChar.js';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { applyOutfit, regionalOutfit, MYTHS, resetOutfitTextures } from './outfits.js';
@@ -25,8 +25,27 @@ let ready = false;
 /** Carga los cuerpos de los vecinos (KayKit). Se llama antes de montar el pueblo; si no cargan, los vecinos salen
  *  con la figura sencilla de reserva. */
 export async function preloadNpcs() {
-  try { await Promise.all(KK_BASES.map(n => loadKayKit(n).then(g => { KKG[n] = g; }))); kkReady = true; } catch (e) { console.warn('vecinos KayKit', e); }
-  return kkReady;
+  // los vecinos son los personajes nuevos (Meshy, versión ligera); los cuerpos KayKit quedan solo para los seres de
+  // leyenda y los trajes de carnaval (cuernos, pieles, cencerros, máscaras), que los nuevos no tienen
+  const meshy = Promise.all(MESHY_NAMES.map(n => loadMeshy(n, true).then(g => { MESHY_LOD_NPC[n] = g; }))).then(() => { meshyReady = true; }).catch(e => console.warn('vecinos Meshy', e));
+  const kk = Promise.all(KK_BASES.map(n => loadKayKit(n).then(g => { KKG[n] = g; }))).then(() => { kkReady = true; }).catch(e => console.warn('vecinos KayKit', e));
+  await Promise.all([meshy, kk]);
+  return meshyReady || kkReady;
+}
+const MESHY_LOD_NPC = {}; let meshyReady = false;
+// trajes que solo existen en los cuerpos antiguos (carnaval, leyendas): esos vecinos siguen con ellos
+const COSTUME = (L) => !!(L.myth || L.fur || L.shaggy || L.horns || L.bells || L.bell || L.crown || L.ribbons || L.base || L.outfit || ['cone', 'mask', 'bicorne', 'mitre', 'basket'].includes(L.hat));
+const hashOf = (L) => JSON.stringify(L).split('').reduce((a, c) => (a * 31 + c.charCodeAt(0)) | 0, 7) >>> 0;
+/** Qué personaje nuevo hace de este vecino según su aspecto: boina, chaleco o mayor → el pastor; de blanco con faja o
+ *  pañuelo rojo → el sanferminero; los demás, repartidos (sobre todo esos dos, alguno con la camiseta de Osasuna o de
+ *  pelotari). */
+export function meshyFor(L = {}) {
+  if (L.meshy && MESHY_NAMES.includes(L.meshy)) return L.meshy;
+  const white = /^#(f|e[89a-f])/i.test(L.shirt || '');
+  if (L.txapela || L.old) return 'pastor';
+  if ((L.sash || L.scarf || L.handkerchief) && white) return 'sanfermin';
+  const pool = ['sanfermin', 'pastor', 'sanfermin', 'pelotari', 'pastor', 'osasuna', 'sanfermin', 'osasuna_fuera', 'pastor', 'pelotari_rojo'].filter(n => MESHY_NAMES.includes(n));
+  return pool[hashOf(L) % pool.length];
 }
 /** Personajes propios de Meshy que hacen de vecinos (el pastor): solo en los pueblos donde salen. */
 export function preloadNpcMeshy(names) {
@@ -35,10 +54,14 @@ export function preloadNpcMeshy(names) {
 const NPC_MESHY = ['pastor'], MESHY_NPC = {};
 // vecino con un personaje de Meshy: su modelo con sus clips, con la misma forma de animarse que los demás
 function buildNpcMeshy(L) {
-  const g = MESHY_NPC[L.meshy];
+  const name = meshyFor(L), g = MESHY_LOD_NPC[name] || MESHY_NPC[name];
   const char = new GlbChar(g, MESHY_GAIT);   // zancada real (sin patinar)
-  char.root.scale.setScalar(g.userData.fit || 1);
-  const obj = new THREE.Group(); obj.add(char.root); obj.userData.glbNpc = true; obj.userData.sex = 'boy'; obj.userData.H = 1.55; obj.userData.look = L;
+  // su altura: niños más bajos, el resto con un poco de variedad (todos con la misma figura nueva)
+  const H = L.height || (L.child ? 1.22 : 1.5 + (hashOf(L) % 7) * 0.02), k = H / 1.6;
+  char.root.scale.setScalar((g.userData.fit || 1) * k);
+  const female = !!(L.female || L.skirt || L.ponytail || L.bun || L.braids || L.longHair || L.lashes);
+  // (el nombre se conserva: sex dice cómo se llama, aunque de momento todos los cuerpos nuevos sean de chico)
+  const obj = new THREE.Group(); obj.add(char.root); obj.userData.glbNpc = true; obj.userData.sex = female ? 'girl' : 'boy'; obj.userData.H = H; obj.userData.look = L; obj.userData.meshy = name;
   const anim = {
     t: 0, setExpr() {},
     update(dt, s) {
@@ -130,7 +153,7 @@ export function buildNpcKK(L) {
   };
   return { obj, char, anim };
 }
-export const npcsReady = () => ready || kkReady;
+export const npcsReady = () => ready || kkReady || meshyReady;
 
 // colores en sRGB (como están pintadas las texturas); getHex devuelve sRGB aunque Three trabaje en lineal
 const hex = (c) => { const h = new THREE.Color(c).getHex(); return [(h >> 16) & 255, (h >> 8) & 255, h & 255]; };
@@ -287,6 +310,7 @@ const EXPR = {
 /** Vecino: devuelve { obj, char, anim } con la misma interfaz que usaba la figura antigua (anim.update / setExpr). */
 export function buildNpc(look = {}) {
   const L = look;
+  if (meshyReady && !COSTUME(L)) try { return buildNpcMeshy(L); } catch (e) { console.warn('vecino Meshy', e); }
   if (L.meshy && MESHY_NPC[L.meshy]) try { return buildNpcMeshy(L); } catch (e) { console.warn('vecino Meshy', e); }
   if (kkReady && !L.classic) try { return buildNpcKK(L); } catch (e) { console.warn('vecino KayKit', e); }
   if (!GLTF.boy) return null;   // sin cuerpo: la figura de reserva

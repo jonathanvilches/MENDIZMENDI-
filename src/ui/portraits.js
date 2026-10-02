@@ -35,7 +35,7 @@ function portraitKK(look, mode) {
 }
 export function portrait(look, mode = 'bust', isMini = false) {
   const kk = npcsReady();
-  const key = (kk ? 'kk|' : '') + JSON.stringify(look) + mode + isMini;
+  const key = (kk ? 'm2|' : '') + JSON.stringify(look) + mode + isMini;   // (m2: con los personajes nuevos; los retratos guardados de antes no valen)
   if (cache.has(key)) return cache.get(key);
   const st = getImg('p:' + key); if (st) { cache.set(key, st); return st; }
   try {
