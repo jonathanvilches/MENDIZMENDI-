@@ -74,6 +74,20 @@ const MESHY_BY = {
 };
 MESHY_BY.pelotari_rojo = MESHY_BY.pelotari;   // el colorado se mueve igual que el azul
 MESHY_BY.pastor.Wave = ['Hello', 0.6, 3.7];   // saluda con la mano en alto
+// bucle sin fotograma repetido: si el final coincide con el principio, el clip acaba un fotograma antes
+function seamless(clip) {
+  let dup = 0, all = 0, step = Infinity;
+  for (const t of clip.tracks) {
+    const n = t.times.length; if (n < 3) continue;
+    const vs = t.getValueSize(), v = t.values; all++; step = Math.min(step, t.times[n - 1] - t.times[n - 2]);
+    let same = true; for (let k = 0; k < vs; k++) if (Math.abs(v[k] - v[(n - 1) * vs + k]) > 2e-3 * Math.max(1, Math.abs(v[k]))) same = false;
+    if (same) dup++;
+  }
+  if (!all || dup < all * 0.7 || !isFinite(step)) return clip;
+  const end = clip.duration - step;
+  for (const tr of clip.tracks) if (tr.times[tr.times.length - 1] > end + 1e-4) tr.trim(0, end);
+  clip.duration = end; return clip;
+}
 // recorta un clip muestreándolo (así ningún hueso se queda sin pista aunque no tenga claves en ese tramo)
 function cutClip(clip, name, t0, t1, flatHips, fps = 30) {
   const n = Math.max(2, Math.round((t1 - t0) * fps) + 1), tracks = [];
@@ -106,7 +120,10 @@ export async function loadMeshy(name) {
   if (!cache.has(key)) cache.set(key, (async () => {
     const g = await loadChar(MESHY[name]);
     g.scene.traverse(o => { if (o.isMesh) { o.castShadow = true; for (const m of [].concat(o.material)) shrinkMap(m); } });
-    const src = Object.fromEntries(g.animations.map(a => [a.name, a])), animations = ['Walk', 'Run'].filter(n => src[n]).map(n => src[n]);
+    const src = Object.fromEntries(g.animations.map(a => [a.name, a]));
+    // andar y correr dan vueltas: su último fotograma es el mismo que el primero y, al repetirse, esa postura salía dos
+    // veces seguidas (un tirón en cada paso). Se quita ese fotograma repetido
+    const animations = ['Walk', 'Run'].filter(n => src[n]).map(n => seamless(src[n]));
     // el futbolista trae su chut: es su golpe (pase y tiro), desde que echa la pierna atrás
     const cuts = { ...MESHY_CUTS, ...(src.Kick ? { Hit: ['Kick', 0.42, 1.15] } : {}), ...(MESHY_BY[name] || {}) };
     for (const [want, [from, t0, t1, pp, flat]] of Object.entries(cuts)) {
