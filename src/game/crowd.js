@@ -1,6 +1,5 @@
 // Público del frontón: al empezar un partido se acercan vecinos a las gradas, siguen la pelota con la mirada,
 // aplauden cada tanto (y saltan de alegría con los tuyos) y, al terminar, se marchan.
-import * as THREE from 'three';
 import { Actor } from '../actors/people.js';
 import { isFree } from '../world/colliders.js';
 import { waterLevelAt, terrainHeight } from '../world/heightfield.js';

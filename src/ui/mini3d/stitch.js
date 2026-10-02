@@ -3,7 +3,7 @@
 // otra por el borde: la aguja atraviesa el cordón, queda la puntada y el hilo tira hacia la siguiente.
 import * as THREE from 'three';
 import { play3d, blip } from './play.js';
-import { workshop, texMat, uvScale, lathe, rbox } from './kit.js';
+import { workshop, texMat, uvScale, lathe } from './kit.js';
 
 // contorno de la suela (de pie: más ancha delante, cintura, talón), «inset» metros hacia dentro
 export function soleOutline(phi, inset = 0, L = 0.27, W = 0.1) {

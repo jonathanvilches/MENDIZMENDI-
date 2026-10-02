@@ -5,7 +5,7 @@ import { MYTHS } from '../actors/outfits.js';
 import { PLACES } from '../world/layout.js';
 import { loadMeshy, hasMeshy } from '../actors/glbChar.js';
 import { QUALITY } from '../util/quality.js';
-import { Jornales, JOBS } from './jornales.js';
+import { Jornales } from './jornales.js';
 import { groundHeight, terrainHeight, waterLevelAt } from '../world/heightfield.js';
 import { TOWN } from '../world/townBuilder.js';
 import { isFree, segmentBlocked, addCircle, addBox } from '../world/colliders.js';
@@ -668,6 +668,13 @@ export class TownGame {
   }
   async talk(a) {
     if (a.sabio) return this.sabioTalk(a);
+    // vecinos sin misión (pelotari, entrenador, puestos): lo suyo, o un saludo; nunca un diálogo de misión vacío
+    if (!a.mission) {
+      if (a === this.pelotari) return this.freePelota();
+      if (a === this.coach) return this.playFutbol();
+      if (a.shop) return this.tienda.open();
+      a.say?.(2); return this.say(a, [`¡Kaixo! Soy ${a.name}. ¡Que disfrutes de ${this.def.name.split(' /')[0]}!`]);
+    }
     const M = a.mission;
     a.say(4); this.player.frozen = true; this.speaker = a;
     this.player.heading = Math.atan2(a.pos.x - this.player.pos.x, a.pos.z - this.player.pos.z);

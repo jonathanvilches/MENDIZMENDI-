@@ -73,7 +73,7 @@ export class Animal {
         if (this.going) {
           const tx = (f.pos.x - this.pos.x) / (d || 1), tz = (f.pos.z - this.pos.z) / (d || 1), k = Math.min(1, (f.speed || 0) / 2.5) * (d < 3 ? 1.6 : 0.3);
           const hx = tx + Math.sin(f.face) * k, hz = tz + Math.cos(f.face) * k;
-          this.heading = dampAngle(this.heading, Math.atan2(hx, hz), d > 4 ? 7 : 4, dt);
+          this.heading = dampAngle(this.heading, this.skirt(Math.atan2(hx, hz), player, d), d > 4 ? 7 : 4, dt);
           want = Math.min(this.run, (f.speed || 0) * 0.95 + d * 1.6); this.state = 'walk';
         } else { this.state = 'idle'; this.heading = dampAngle(this.heading, f.face, 3, dt); }
       } else if (d > near) { this.heading = dampAngle(this.heading, Math.atan2(f.pos.x - this.pos.x, f.pos.z - this.pos.z), 8, dt); want = Math.min(this.run, d * (f.gain ?? 1.4) + (f.speed || 0)); this.state = 'walk'; }
@@ -114,9 +114,33 @@ export class Animal {
       else { this.heading += 1.5 + this.rnd(); this.target = null; }
       this.phase += dt * (this.kind === 'cow' ? this.speed * 2.6 : Math.min(this.speed * 5.5, 9 + this.speed * 1.6));   // a más velocidad, zancada más larga (no más pasos)
     }
+    if (this.follow?.companion) this.keepOff(player);
     this.pos.y = groundHeight(this.pos.x, this.pos.z);
     this.animate(dt);
     this.sync();
+  }
+  // El compañero va por fuera del jugador: si el camino recto a su sitio cruza por el jugador (al girarse este, el
+  // sitio queda al otro lado), rodea por la tangente a un círculo de su tamaño, por el lado más corto.
+  skirt(ang, player, d) {
+    const px = player.pos.x - this.pos.x, pz = player.pos.z - this.pos.z, pd = Math.hypot(px, pz), R = 0.62 + this.radius;
+    if (pd > d + 0.2 || pd < 1e-3) { this.skirtSide = 0; return ang; }
+    const ap = Math.atan2(px, pz), dev = Math.atan2(Math.sin(ang - ap), Math.cos(ang - ap));
+    const need = pd > R ? Math.asin(R / pd) + 0.1 : Math.PI / 2 + Math.min(0.7, (R - pd) * 2.5);
+    if (Math.abs(dev) >= need) { this.skirtSide = 0; return ang; }
+    // el lado se decide una vez y se mantiene mientras rodea (sin dudar a mitad de camino)
+    if (!this.skirtSide) this.skirtSide = Math.abs(dev) > 0.04 ? Math.sign(dev) : 1;
+    return ap + this.skirtSide * need;
+  }
+  // nunca dentro del jugador: ni el cuerpo, ni la cabeza, ni la grupa (si el jugador se le echa encima, el perro se aparta)
+  keepOff(player) {
+    const P = player.pos, R = 0.35 + this.radius, len = (this.glbA?.height ?? 0.7 * (this.obj.scale.x || 1)) * 0.45;
+    let dx = this.pos.x - P.x, dz = this.pos.z - P.z, d = Math.hypot(dx, dz);
+    if (d < R) { if (d < 1e-3) { dx = Math.sin(this.heading + 1.57); dz = Math.cos(this.heading + 1.57); d = 1; } this.pos.x = P.x + dx / d * R; this.pos.z = P.z + dz / d * R; }
+    // cabeza (por delante) y grupa (por detrás): si se meten en el jugador, el perro se desplaza lo que sobra
+    for (const k of [1, -0.85]) {
+      const hx = this.pos.x + Math.sin(this.heading) * len * k - P.x, hz = this.pos.z + Math.cos(this.heading) * len * k - P.z, h = Math.hypot(hx, hz), Rh = 0.33 + this.radius * 0.45;
+      if (h < Rh && h > 1e-3) { this.pos.x += hx / h * (Rh - h); this.pos.z += hz / h * (Rh - h); }
+    }
   }
   animate(dt) {
     if (!this.glbA && !this.q) return;   // modelo aún en camino
@@ -168,7 +192,6 @@ export class Animal {
 }
 
 const buildSquirrel = squirrel, buildWoodpecker = woodpecker, buildFish = trout;
-const buildVulture = () => bird('buitre');
 // Aves que se ven en el cielo de cada comarca (para los prismáticos)
 const SKY = {
   pirineo: ['buitre', 'buitre', 'quebrantahuesos', 'aguila', 'buitre'], prepirineo: ['buitre', 'buitre', 'aguila', 'milano'], sanguesa: ['buitre', 'buitre', 'buitre', 'milano', 'aguila'],

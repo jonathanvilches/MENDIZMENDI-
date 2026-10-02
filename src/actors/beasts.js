@@ -6,6 +6,7 @@
 // orla clara de la vaca pirenaica, cara negra de la latxa, calcetines negros del zorro…).
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { FILL_DECL, useFill } from '../engine/charLight.js';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const C = (h) => new THREE.Color(h);
@@ -25,9 +26,10 @@ function vnoise(x, y, z) {
 function beastMat(side = THREE.FrontSide) {
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8, metalness: 0, side });
   m.onBeforeCompile = (sh) => {
+    useFill(sh);
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute float aTex;\nvarying vec3 vOP; varying float vTex;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvOP = position; vTex = aTex;');
-    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>${FILL_DECL}
 varying vec3 vOP; varying float vTex;
 float bh(vec3 p){ p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
 float bn(vec3 x){ vec3 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);
@@ -59,11 +61,13 @@ float bsurf(vec3 p, float t) {
       roughnessFactor = vTex < 0.5 ? 0.42 : vTex < 2.5 ? 0.72 : vTex < 3.5 ? 0.97 : vTex < 4.5 ? 0.35 : vTex < 6.5 ? 0.06 : 0.6;`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
       {
+        vec3 e0 = totalEmissiveRadiance;
         vec3 nn = normalize(normal), vv = normalize(vViewPosition);
         float fr = pow(1.0 - clamp(dot(nn, vv), 0.0, 1.0), 2.2);
         totalEmissiveRadiance += diffuseColor.rgb * 0.16;                                        // rebote de luz
         if (vTex > 1.5 && vTex < 3.5) totalEmissiveRadiance += mix(diffuseColor.rgb, vec3(1.0, 0.96, 0.9), 0.45) * fr * 0.42; // brillo del pelo al contraluz
         if (vTex > 6.5) totalEmissiveRadiance += mix(diffuseColor.rgb, vec3(1.0), 0.3) * fr * 0.25;
+        totalEmissiveRadiance = e0 + (totalEmissiveRadiance - e0) * uCharFill;
       }`);
   };
   m.customProgramCacheKey = () => 'beast' + side;

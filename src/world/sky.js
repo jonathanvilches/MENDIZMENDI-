@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { clamp, lerp, smoothstep } from '../util/math.js';
+import { lerp, smoothstep } from '../util/math.js';
 import { groundHeight } from './heightfield.js';
 
 // texturas pintadas a mano en un lienzo: disco de la luna con sus mares y niebla suave
@@ -174,6 +174,8 @@ void main(){
     // Luz direccional: sol o luna
     const lightDir = this.night > 0.5 ? new THREE.Vector3(-this.sunDir.x, Math.max(0.35, -this.sunDir.y), -this.sunDir.z).normalize() : this.sunDir;
     this.sun.color.copy(s.sun); this.sun.intensity = s.si;
+    // sombras: nítidas al sol; con la luna, más suaves y claras (la noche no tiene sombras negras)
+    this.sun.shadow.intensity = 1 - 0.45 * this.night;
     const snap = 2;
     const fx = Math.round(focus.x / snap) * snap, fz = Math.round(focus.z / snap) * snap;
     this.sun.position.set(fx + lightDir.x * 150, focus.y + lightDir.y * 150, fz + lightDir.z * 150);

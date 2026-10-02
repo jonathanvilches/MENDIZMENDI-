@@ -2,7 +2,7 @@
 // de banda con las manos, córner, saque de meta, faltas y penaltis), el árbitro y sus dos asistentes, y estadísticas, a
 // paso fijo de 120 Hz. La vista (match.js) le pasa la entrada del jugador (dirección en el mundo y botones) y recibe
 // eventos para dibujar, sonar y rotular. Se puede jugar sola (autoplay) para las pruebas.
-import { FIELD as F, PHYS as K, PLAYER as PL, LEVELS, FORM, ROLES, NUMBERS, LINE, KICKERS, TEXT } from './rules.js';
+import { FIELD as F, PHYS as K, PLAYER as PL, LEVELS, FORM, ROLES, NUMBERS, LINE, KICKERS } from './rules.js';
 import { Ball, rollAhead } from './physics.js';
 
 const R = K.R, STEP = 1 / K.hz, HW_G = F.goalW / 2, N = ROLES.length;

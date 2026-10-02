@@ -351,10 +351,6 @@ function corinthian(B, T, r, mat) {
   for (let i = 0; i < 4; i++) { const a = i / 4 * Math.PI * 2 + Math.PI / 4; B.add(mat, new THREE.TorusGeometry(r * 0.2, r * 0.07, 5, 8), MM(T, M(Math.sin(a) * r * 1.25, r * 1.3, Math.cos(a) * r * 1.25, a))); }
   B.add(mat, box(r * 3, r * 0.3, r * 3), MM(T, M(0, r * 1.55, 0)));
 }
-function bell(B, T) {
-  const pts = [[0, 1.3], [0.3, 1.28], [0.42, 1.1], [0.45, 0.7], [0.55, 0.3], [0.72, 0.05], [0.74, 0]].map(([r, y]) => new THREE.Vector2(r, y));
-  B.add('gold', new THREE.LatheGeometry(pts, 12), T);
-}
 function catedral(B, S, cx, cz, TOWN) {
   const ry = -Math.PI / 2, y = gy(cx, cz) - 0.2, T = M(cx, y, cz, ry), F = (m) => MM(T, m);
   const col = (lx, lz, w, d, meta) => { const p = toW(cx, cz, ry, lx, lz); addBox(p.x, p.z, w, d, ry, meta); };

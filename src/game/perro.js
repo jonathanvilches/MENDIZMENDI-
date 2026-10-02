@@ -7,6 +7,7 @@ import { groundHeight } from '../world/heightfield.js';
 import { infoCard } from '../ui/minigames.js';
 import { saveProfile } from './profile.js';
 import { DOG_BREEDS } from '../actors/beasts.js';
+import { animalSpec } from '../actors/animalGlb.js';
 import { iconSVG } from '../ui/icons.js';
 
 export class Perro {
@@ -45,7 +46,9 @@ export class Perro {
   spawnDog(x, z) {
     const F = this.g.fauna, B = DOG_BREEDS[this.breed];
     if (this.dog) { this.g.scene.remove(this.dog.obj); F.animals.splice(F.animals.indexOf(this.dog), 1); }
-    this.dog = F.add('dog', x, z, { range: 3, walk: 1.4, run: 9, radius: 0.3, flee: 0, breed: this.breed, scale: B.scale });
+    // el modelo ya va a la altura real de la raza (el mastín, cerca de un metro); el radio, según su tamaño
+    const h = animalSpec('dog', { breed: this.breed })?.h;
+    this.dog = F.add('dog', x, z, { range: 3, walk: 1.4, run: 9, radius: h ? h * 0.36 : 0.3, flee: 0, breed: this.breed, scale: h ? 1 : B.scale, companion: true });
     this.dog.follow = this.side;
   }
   // elegir raza: tarjetas con el dibujo de color de cada perro y su historia
@@ -89,7 +92,8 @@ export class Perro {
     const g = this.g, P = g.player.pos, D = this.dog;
     if (!D || this.waiting) return;
     { const h = g.player.heading ?? 0, sp = g.player.speed || 0, lead = Math.min(1.2, sp * 0.18);
-      this.side.pos.set(P.x + Math.cos(h) * 1.15 + Math.sin(h) * (0.2 + lead), 0, P.z - Math.sin(h) * 1.15 + Math.cos(h) * (0.2 + lead));
+      const off = 0.82 + D.radius;   // a su lado, con sitio para su cuerpo (el mastín, un poco más lejos)
+      this.side.pos.set(P.x + Math.cos(h) * off + Math.sin(h) * (0.2 + lead), 0, P.z - Math.sin(h) * off + Math.cos(h) * (0.2 + lead));
       this.side.speed = sp; this.side.face = h; }
     // si se queda muy atrás (cuestas, agua…), aparece junto al jugador
     if (Math.hypot(D.pos.x - P.x, D.pos.z - P.z) > 28) { D.pos.set(P.x - 1.5, groundHeight(P.x - 1.5, P.z - 1.5), P.z - 1.5); D.sync?.(); }

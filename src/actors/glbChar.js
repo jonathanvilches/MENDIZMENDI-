@@ -2,6 +2,7 @@
 // Carga con GLTFLoader, clona con SkeletonUtils, elige Idle/Walk/Run según la velocidad,
 // gestiona la cara por visibilidad de mallas (boca, cejas, párpados, manos), el parpadeo,
 // la mirada (offset de la textura del ojo) y muelles en los huesos Hair_* y Scarf_*.
+import { fillMaterial } from '../engine/charLight.js';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
@@ -139,7 +140,7 @@ export async function loadMeshy(name, lod = false) {
     g.scene.traverse(o => { if (o.isMesh) { o.castShadow = true; for (const m of [].concat(o.material)) { if (!FULL_TEX.has(name)) shrinkMap(m); if (m.map) { m.map.anisotropy = 8; m.map.needsUpdate = true; }
       // luz de relleno propia: la cámara va detrás y el sol suele darle de frente, así que se le veía siempre en sombra.
       // Un poco de su propio color como luz propia lo aclara desde cualquier lado sin tocar el resto de la escena
-      if (m.map && m.emissive) { m.emissiveMap = m.map; m.emissive.setScalar(MESHY_FILL); m.needsUpdate = true; } } } });
+      if (m.map && m.emissive) { m.emissiveMap = m.map; fillMaterial(m, MESHY_FILL); m.needsUpdate = true; } } } });
     const src = Object.fromEntries(g.animations.map(a => [a.name, a]));
     // andar y correr dan vueltas: su último fotograma es el mismo que el primero y, al repetirse, esa postura salía dos
     // veces seguidas (un tirón en cada paso). Se quita ese fotograma repetido
@@ -167,7 +168,6 @@ export function loadChar(url) {
 // velocidades de referencia de los clips (m/s): el timeScale sale de la velocidad real
 const WALK_REF = 4.3, RUN_REF = 7.2;
 const FADE = 0.2;
-const GROUPS = { mouth: 'Mouth_', brow: 'Brow_', lid: 'Eyelid_' };
 
 export class GlbChar {
   /**
@@ -206,7 +206,7 @@ export class GlbChar {
       const mat = eye.material.clone();
       if (mat.map) { mat.map = mat.map.clone(); mat.map.needsUpdate = true; }
       // un poco de luz propia: el blanco del ojo se lee blanco aunque la cara quede en sombra (como en un dibujo)
-      if (painted && mat.map && mat.emissive) { mat.emissive.set('#ffffff'); mat.emissiveMap = mat.map; mat.emissiveIntensity = 0.28; }
+      if (painted && mat.map && mat.emissive) { fillMaterial(mat, 1); mat.emissiveMap = mat.map; mat.emissiveIntensity = 0.28; }
       this.eyeMat = mat;
       for (const n of ['Eye_L', 'Eye_R']) if (this.meshes[n]) this.meshes[n].material = mat;
     }

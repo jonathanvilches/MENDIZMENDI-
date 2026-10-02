@@ -5,6 +5,7 @@
 // sola malla y una llamada de dibujo por ejemplar, sin texturas.
 //   floraModel(id, seed) → THREE.Group listo para poner en el mundo (los pies en y = 0)
 //   floraPortrait(id) → promesa de la imagen (data URL) del ejemplar para su ficha
+import { FILL_DECL, useFill } from '../engine/charLight.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { FLORA } from '../data/flora.js';
@@ -367,7 +368,7 @@ function materialFor(m) {
   if (!MAT.has(key)) {
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: m.gloss ? 0.45 : 0.85, side: THREE.DoubleSide });
     // un poco de su color como luz propia: a contraluz las plantas no se quedan negras
-    mat.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n totalEmissiveRadiance += vColor.rgb * 0.18;'); };
+    mat.onBeforeCompile = (sh) => { useFill(sh); sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>' + FILL_DECL).replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n totalEmissiveRadiance += vColor.rgb * 0.18 * uCharFill;'); };
     mat.customProgramCacheKey = () => 'flora-' + key;
     MAT.set(key, mat);
   }
