@@ -1,4 +1,4 @@
-// El perro compañero (por defecto el pachón navarro): quieto, siguiendo al jugador andando y corriendo, y sentado.
+// El perro compañero (por defecto el pastor vasco): quieto, siguiendo al jugador andando y corriendo, y sentado.
 // Uso: node tools/perro.mjs [pueblo] [carpeta]
 import { chromium } from 'playwright-core';
 import { mkdirSync } from 'fs';

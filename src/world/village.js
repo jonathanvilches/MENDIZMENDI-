@@ -11,6 +11,12 @@ import { mulberry32, clamp } from '../util/math.js';
 export const VILLAGE = { palaces: [], lamps: [], benches: [], houses: [], church: null, fountain: null, doors: [] };
 export function resetVillage() { VILLAGE.palaces = []; VILLAGE.lamps = []; VILLAGE.benches = []; VILLAGE.houses = []; VILLAGE.church = null; VILLAGE.fountain = null; VILLAGE.doors = []; }
 
+// en las cuestas la casa se apoya casi en lo alto de su planta y lleva zócalo de piedra hasta el suelo por abajo
+function slopeBase(B, x, z, w, d, ry, g) {
+  const y = Math.max(g.mn - 0.1, g.mx - 0.35), drop = y - g.mn;
+  if (drop > 0.15) B.add('stone', new THREE.BoxGeometry(w + 0.12, drop + 0.6, d + 0.12), M(x, g.mn - 0.6 + (drop + 0.6) / 2, z, ry));
+  return y;
+}
 function minGround(x, z, w, d, ry) {
   const c = Math.cos(ry), s = Math.sin(ry);
   let mn = Infinity, mx = -Infinity;
@@ -70,11 +76,11 @@ export function buildVillage(scene, mats) {
     const x = a.x + nx * (path.w + 2.2 + d / 2), z = a.z + nz * (path.w + 2.2 + d / 2);
     const ry = Math.atan2(-nx, -nz);
     const g = minGround(x, z, w, d, ry);
-    const T = M(x, g.mn - 0.15, z, ry);
+    const by = slopeBase(B, x, z, w, d, ry, g), T = M(x, by, z, ry);
     buildHouse(B, T, { w, d, h, wall: 'ashlar', roof: 'slate', roofType: 'hip', hipRise: 5.2, arch: true, doorX: 0, balcony: true, balconyW: 5, ironBalcony: true, shield: true, shieldX: 3.8, cornice: true }, rnd);
     addBox(x, z, w + 0.4, d + 0.4, ry, { solidView: true });
     const door = { x: x + Math.sin(ry) * (d / 2 + 1.6), z: z + Math.cos(ry) * (d / 2 + 1.6) };
-    VILLAGE.palaces.push({ ...p, x, z, ry, door, y: g.mn });
+    VILLAGE.palaces.push({ ...p, x, z, ry, door, y: by });
   }
 
   // Casas a lo largo de las calles
@@ -103,12 +109,12 @@ export function buildVillage(scene, mats) {
       const r = Math.max(w, d) / 2;
       if (isFree(x, z, spec.riverside ? d * 0.45 : r * 0.92) && cornersOk(x, z, w, d, ry, spec.riverside)) {
         const g = minGround(x, z, w, d, ry);
-        if (g.mx - g.mn < 3.5) {
+        if (g.mx - g.mn < 2.4) {
           const kind = rnd();
           const wall = kind < 0.42 ? 'plaster' : kind < 0.75 ? 'stone' : 'plasterCream';
           const roof = rnd() < 0.55 ? 'tile' : 'slate';
           const roofType = rnd() < 0.55 ? 'gableX' : 'gableZ';
-          buildHouse(B, M(x, g.mn - 0.1, z, ry), {
+          buildHouse(B, M(x, slopeBase(B, x, z, w, d, ry, g), z, ry), {
             w, d, h, wall, roof, roofType, arch: wall === 'stone' ? rnd() < 0.6 : rnd() < 0.25,
             balcony: rnd() < 0.5, balconyW: Math.min(w - 2, 3 + rnd() * 2.5), shield: rnd() < 0.12, cornice: rnd() < 0.4,
           }, rnd);

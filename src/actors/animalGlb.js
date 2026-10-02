@@ -29,9 +29,6 @@ const SPEC = {
 const DOG = {
   gorbeia: { model: 'ShibaInu', h: 0.62, col: { Main: '#b8692e', Main_Light: '#dca06a' } },
   iletsua: { model: 'ShibaInu', h: 0.64, col: { Main: '#a9845a', Main_Light: '#d6bf96', Black: '#5a4430' } },
-  // el pachón navarro: modelo propio de Meshy con su textura, con el esqueleto y las animaciones del perro de Quaternius
-  // ajustados a su cuerpo en Blender (tools/blender/pachon.py)
-  pachon: { model: 'Pachon', h: 0.72 },
   aleman: { model: 'Husky', h: 0.74, col: { Material: '#b5793a', 'Material.001': '#dcae70', 'Material.006': '#1f1813' } },
   mastin: { model: 'Husky', h: 0.95, col: { Material: '#e8e2d6', 'Material.001': '#f6f2ea', 'Material.006': '#8a8478' } },
 };

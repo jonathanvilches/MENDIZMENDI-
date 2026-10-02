@@ -71,7 +71,8 @@ export class Runtime {
     this.renderer.setPixelRatio(this.pixelRatio);
     this.renderer.setSize(innerWidth, innerHeight);
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = quality === 'low' ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
+    // sombra con filtro sencillo (la suave muestrea muchas veces cada píxel y era de lo que más pesaba)
+    this.renderer.shadowMap.type = THREE.PCFShadowMap;
     // la sombra se recalcula un fotograma sí y otro no (casi no se nota y ahorra mucho; en ordenador también)
     this.shadowEvery = 2; this.renderer.shadowMap.autoUpdate = false;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping; this.renderer.toneMappingExposure = 1.05;
@@ -193,18 +194,18 @@ export class Runtime {
     if (this.fpsT > 2) {
       const fps = this.frames / this.fpsT; this.frames = 0; this.fpsT = 0;
       // resolución dinámica: si va a tirones baja un poco la resolución; si sobra fluidez, la recupera poco a poco
-      const want = this.quality === 'high' ? 50 : 32;
-      if (fps < want && this.pixelRatio > 0.75) { if (++this.lowFps >= 2) { this.pixelRatio = Math.max(0.75, this.pixelRatio - (fps < want * 0.6 ? 0.3 : 0.15)); this.renderer.setPixelRatio(this.pixelRatio); this.lowFps = 0; this.highFps = 0; } }
-      else if (fps > want + 8 && this.pixelRatio < this.maxRatio) { this.lowFps = 0; if (++this.highFps >= 3) { this.pixelRatio = Math.min(this.maxRatio, this.pixelRatio + 0.1); this.renderer.setPixelRatio(this.pixelRatio); this.highFps = 0; } }
+      const want = this.quality === 'low' ? 32 : 55;
+      if (fps < want && this.pixelRatio > 0.6) { if (++this.lowFps >= 2) { this.pixelRatio = Math.max(0.6, this.pixelRatio - (fps < want * 0.6 ? 0.3 : 0.15)); this.renderer.setPixelRatio(this.pixelRatio); this.lowFps = 0; this.highFps = 0; } }
+      else if (fps > want + 3 && this.pixelRatio < this.maxRatio) { this.lowFps = 0; if (++this.highFps >= 3) { this.pixelRatio = Math.min(this.maxRatio, this.pixelRatio + 0.1); this.renderer.setPixelRatio(this.pixelRatio); this.highFps = 0; } }
       else { this.lowFps = 0; this.highFps = 0; }
       window.__fps = fps;
     }
   }
-  // densidad de píxeles según la calidad: en alta hasta 2 pero sin pasar de ~4 megapíxeles; en media y baja 1,25
+  // densidad de píxeles: como mucho unos 2,1 megapíxeles en alta (la imagen de una pantalla Full HD; en pantallas de
+  // más resolución se escala, que apenas se nota y dibuja la mitad de píxeles) y 1,6 en media; en baja (móvil) 1,25
   ratioFor(q) {
-    if (q !== 'high') return Math.min(devicePixelRatio, 1.25);
-    const css = Math.max(1, innerWidth * innerHeight);
-    return Math.max(1, Math.min(devicePixelRatio, 2, Math.sqrt(4.1e6 / css)));
+    const css = Math.max(1, innerWidth * innerHeight), budget = q === 'high' ? 2.1e6 : q === 'mid' ? 1.6e6 : 1.2e6;
+    return Math.max(0.75, Math.min(devicePixelRatio, q === 'high' ? 1.5 : 1.25, Math.sqrt(budget / css)));
   }
   // un error en una parte del juego no debe congelar la imagen: se anota (una vez por mensaje) y se sigue
   reportError(e) {

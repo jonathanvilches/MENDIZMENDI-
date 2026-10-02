@@ -11,8 +11,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **Sin servidor:** el progreso se guarda en `localStorage` (`mendimendiz-perfil-v1`, en `src/game/profile.js`).
 - **Modelos y animaciones:**
   - Personajes KayKit (CC0).
-  - Protagonista de Meshy (modelos del autor del juego): el explorador y el mismo chico vestido de San Fermín
-    (encierro), de Osasuna (El Sadar) y de pelotari (frontón), en `src/assets/meshy`.
+  - Personajes de Meshy (modelos del autor del juego), en `src/assets/meshy`: los cuatro elegibles (sanferminero,
+    pastor, futbolista de Osasuna y pelotari) y los del partido (pelotari colorado, segunda equipación de Osasuna).
+    Cada modelo tiene una altura fija (`MESHY_H`) y se carga una sola vez; el pastor también hace de pastor del pueblo.
   - Animales y comida de Quaternius (CC0).
   - Protagonistas y piezas hechas en Blender 4.2 con scripts en `tools/blender/`.
   - Todo se prepara con `@gltf-transform`.

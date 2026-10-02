@@ -65,16 +65,15 @@ const MESHY_CUTS = {
 };
 // cortes propios de cada personaje (el pelotari trae un golpe con la derecha y un puño en alto en vez de la celebración)
 const MESHY_BY = {
-  // el explorador: quieto y hablando, del principio y el final tranquilos de su charla; el salto, de saltar un obstáculo
-  explorador: { Idle: ['TalkP', 7.2, 10.3, true], Talk: ['TalkP', 1.3, 6.8], Wave: ['TalkP', 3.0, 4.6], Celebrate: ['Hop', 0, 0.62, false, true],
+  // el pastor: quieto y hablando, del principio y el final tranquilos de su charla; el salto, de saltar un obstáculo
+  pastor: { Idle: ['TalkP', 7.2, 10.3, true], Talk: ['TalkP', 1.3, 6.8], Wave: ['TalkP', 3.0, 4.6], Celebrate: ['Hop', 0, 0.62, false, true],
     Jump_Start: ['Hop', 0, 0.3, false, true], Jump_Loop: ['Hop', 0.3, 0.55, true, true], Land: ['Hop', 0.6, 0.96, false, true],
     Ready: ['Hop', 0.02, 0.18, true, true], Scared: ['Hop', 0.62, 0.96, false, true], Pick: ['Hop', 0.62, 0.96, false, true], Hit: ['TalkP', 3.2, 3.9] },
   pelotari: { Idle: ['Fist', 0, 0.25, true], Talk: ['Fist', 0, 0.25, true], Ready: ['Slash', 0.02, 0.36, true], Hit: ['Slash', 0.5, 1.25],
     Celebrate: ['Fist', 0, 1.58], Wave: ['Fist', 0.15, 1.4], Scared: ['Slash', 1.1, 1.5], Pick: ['Slash', 0.1, 0.4] },
 };
 MESHY_BY.pelotari_rojo = MESHY_BY.pelotari;   // el colorado se mueve igual que el azul
-// el pastor (el mismo chico con txapela): como el explorador, y saluda con la mano en alto
-MESHY_BY.pastor = { ...MESHY_BY.explorador, Wave: ['Hello', 0.6, 3.7] };
+MESHY_BY.pastor.Wave = ['Hello', 0.6, 3.7];   // saluda con la mano en alto
 // recorta un clip muestreándolo (así ningún hueso se queda sin pista aunque no tenga claves en ese tramo)
 function cutClip(clip, name, t0, t1, flatHips, fps = 30) {
   const n = Math.max(2, Math.round((t1 - t0) * fps) + 1), tracks = [];
@@ -96,9 +95,14 @@ function shrinkMap(m) {
   const n = new THREE.CanvasTexture(c); n.colorSpace = t.colorSpace; n.flipY = t.flipY; n.wrapS = t.wrapS; n.wrapT = t.wrapT; n.anisotropy = 4;
   m.map = n; m.needsUpdate = true; t.dispose(); img.close?.();
 }
+// altura de cada personaje (m): una sola para todo el juego, así el mismo modelo se carga una vez aunque salga como
+// jugador, como vecino o en un partido
+const MESHY_H = { sanfermin: 1.5, pastor: 1.6, osasuna: 1.6, osasuna_fuera: 1.6, pelotari: 1.62, pelotari_rojo: 1.62 };
+/** ¿Está ya cargado (o cargándose) este personaje de Meshy? */
+export const loadedMeshy = (name) => cache.has('meshy:' + name);
 /** Personaje de Meshy con los clips del juego, escalado a su altura. */
-export async function loadMeshy(name, height = 1.45) {
-  const key = 'meshy:' + name;
+export async function loadMeshy(name) {
+  const key = 'meshy:' + name, height = MESHY_H[name] || 1.5;
   if (!cache.has(key)) cache.set(key, (async () => {
     const g = await loadChar(MESHY[name]);
     g.scene.traverse(o => { if (o.isMesh) { o.castShadow = true; for (const m of [].concat(o.material)) shrinkMap(m); } });
@@ -398,10 +402,8 @@ export class GlbChar {
 export const GLB_AVATARS = {};
 for (const [id, name] of [['ranger', 'Ranger'], ['rogue', 'Rogue'], ['hooded', 'Rogue_Hooded'], ['knight', 'Knight'], ['barbarian', 'Barbarian'], ['mage', 'Mage']])
   if (KK[name]) GLB_AVATARS[id] = { kaykit: name, bust: KK_PICS[id + '_bust'], full: KK_PICS[id + '_full'] };
-// y los de Meshy: el explorador (el de siempre) y el de San Fermín, con su ropa ya puesta; el futbolista de Osasuna
-// sale en El Sadar y el pelotari en los partidos de pelota
-// el explorador ya lleva su mochila con la esterilla (no se le añade otra)
-for (const id of ['explorador', 'sanfermin']) if (MESHY[id]) GLB_AVATARS[id] = { meshy: id, pack: id !== 'explorador', bust: MESHY_PICS[id + '_bust'], full: MESHY_PICS[id + '_full'] };
+// personajes propios (Meshy) elegibles: el sanferminero, el pastor, el futbolista de Osasuna y el pelotari
+for (const id of ['sanfermin', 'pastor', 'osasuna', 'pelotari']) if (MESHY[id]) GLB_AVATARS[id] = { meshy: id, bust: MESHY_PICS[id + '_bust'], full: MESHY_PICS[id + '_full'] };
 export const hasMeshy = (id) => !!MESHY[id];
 export const isGlbAvatar = id => !!GLB_AVATARS[id];
 export const loadGlbAvatar = id => GLB_AVATARS[id].kaykit ? loadKayKit(GLB_AVATARS[id].kaykit) : GLB_AVATARS[id].meshy ? loadMeshy(GLB_AVATARS[id].meshy) : loadChar(GLB_AVATARS[id].url);
@@ -418,14 +420,15 @@ import { applyOutfit } from './outfits.js';
 export class GlbRig {
   constructor(gltf, id = 'ranger') {
     const def = GLB_AVATARS[id] || {};
+    this.id = id;
     this.obj = new THREE.Group();
     // zancada natural de los clips: Walk ≈ 1,0 m/s y Run ≈ 2,5 m/s. Las velocidades del juego (3,3 y 6,8 m/s) son
     // mayores: el ritmo sube con la raíz de la velocidad para que las piernas no se vuelvan frenéticas
     // Walk avanza ~1,15 m por ciclo y Run ~2,5 m/s: el ritmo sigue casi a la velocidad (los pies apenas patinan)
     this.char = new GlbChar(gltf, { outline: 0.006, walkAt: 0.2, runAt: 4.6, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / (2.5 * LEGS), 0.85) : Math.pow(Math.max(0.2, v) / (1.15 * LEGS), 0.8) });
-    // la mochila del explorador a la espalda (lleva el agua, la comida y el equipo); se quitan capa y carcaj
+    // los aventureros de KayKit llevan mochila a la espalda (agua, comida y equipo; se quitan capa y carcaj); los
+    // personajes propios (sanferminero, pastor, futbolista, pelotari) van tal cual, sin mochila
     if (def.kaykit) { try { applyOutfit(this.char.root, def.kaykit, { id: 'mochila', keep: true, backpack: {} }); } catch (e) { console.warn('mochila', e); } }
-    else if (def.meshy && def.pack) { try { mixamoBackpack(this.char); } catch (e) { console.warn('mochila', e); } }
     this.char.root.scale.setScalar(def.scale || gltf.userData?.fit || 1);
     this.obj.add(this.char.root);
     this.wave = 0; this.cheer = 0; this.talking = 0; this.carry = false;
@@ -477,37 +480,6 @@ export class GlbRig {
     else { c.playOnce('Wave', t); c.holdFace('Happy', 'Normal', t, 'Fist'); }
   }
   dispose() { this.char.dispose(); }
-}
-
-// mochila a la espalda en los esqueletos de Mixamo (personajes de Meshy): se mide el torso a la altura del pecho en la
-// pose de reposo y la mochila se cuelga del hueso del pecho, con dos correas por delante
-function mixamoBackpack(char) {
-  const B = char.bones, sp = B.mixamorigSpine2 || B.mixamorigSpine1, hips = B.mixamorigHips, neck = B.mixamorigNeck;
-  if (!sp || !hips || !neck) return;
-  const meshes = []; char.root.traverse(o => { if (o.isSkinnedMesh) meshes.push(o); }); if (!meshes.length) return;
-  char.root.updateMatrixWorld(true);
-  const P = (b) => new THREE.Vector3().setFromMatrixPosition(b.matrixWorld), cS = P(sp), cH = P(hips), cN = P(neck);
-  const la = B.mixamorigLeftArm, ra = B.mixamorigRightArm, shW = la && ra ? P(la).distanceTo(P(ra)) : (cN.y - cH.y) * 0.8;
-  // espalda y pecho: los puntos de la malla en una franja estrecha alrededor de la columna
-  let back = Infinity, front = -Infinity; const v = new THREE.Vector3(), band = (cN.y - cH.y) * 0.18;
-  for (const m of meshes) { const n = m.geometry.attributes.position.count; for (let i = 0; i < n; i += 2) {
-    m.getVertexPosition(i, v); v.applyMatrix4(m.matrixWorld);
-    if (Math.abs(v.y - cS.y) < band && Math.abs(v.x - cS.x) < shW * 0.18) { back = Math.min(back, v.z); front = Math.max(front, v.z); } } }
-  if (!isFinite(back)) return;
-  const depth = front - back, w = shW * 0.72, h = (cN.y - cH.y) * 0.78, d = depth * 0.5;
-  const mat = (c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.85 });
-  const g = new THREE.Group(), add = (geo, c, x, y, z, rz = 0) => { const m = new THREE.Mesh(geo, mat(c)); m.position.set(x, y, z); m.rotation.z = rz; m.castShadow = true; g.add(m); return m; };
-  add(new THREE.BoxGeometry(w, h, d), '#3f6a4c', 0, 0, 0);                                   // bolsa
-  add(new THREE.BoxGeometry(w * 1.04, h * 0.38, d * 1.08), '#2f5239', 0, h * 0.33, 0);        // solapa
-  add(new THREE.BoxGeometry(w * 0.62, h * 0.32, d * 0.32), '#2f5239', 0, -h * 0.18, -d * 0.62); // bolsillo
-  add(new THREE.CylinderGeometry(d * 0.42, d * 0.42, w * 1.15, 12), '#b8322a', 0, h * 0.62, 0, Math.PI / 2);   // manta enrollada
-  g.position.set(cS.x, cS.y - h * 0.08, back - d * 0.42);
-  sp.attach(g);
-  // correas: por encima de los hombros y por delante del pecho, hasta la cintura
-  for (const sx of [-1, 1]) {
-    const st = new THREE.Mesh(new THREE.BoxGeometry(shW * 0.09, h * 0.75, depth * 0.06), mat('#4a2f1c')); st.castShadow = true;
-    st.position.set(cS.x + sx * shW * 0.22, cS.y + h * 0.06, front + depth * 0.03); sp.attach(st);
-  }
 }
 
 // golpe a mano: el brazo derecho se echa atrás mientras llega la pelota (wind) y sale hacia delante al golpear (swing),
