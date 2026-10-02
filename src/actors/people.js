@@ -5,6 +5,7 @@ import { resolve, addCircle } from '../world/colliders.js';
 import { damp, dampAngle } from '../util/math.js';
 import { buildMinifig, lookToMinifig, MinifigAnimator, setOutlines } from './minifig.js';
 import { buildNpc, npcsReady } from './npcGlb.js';
+import { makeBlob } from '../util/blob.js';
 import { nameFor } from '../data/nombres.js';
 
 const matCache = new Map();
@@ -42,6 +43,7 @@ export class Actor {
       if (!def.look?.myth) this.name = nameFor(def.name, n.obj.userData.sex); }
     else { this.obj = buildMinifig(lookToMinifig(def.look || {})); this.J = this.obj.userData.J; this.anim = new MinifigAnimator(this.obj); }
     scene.add(this.obj);
+    this.blob = makeBlob(0.42); if (this.blob) { this.blob.position.y = 0.03; this.obj.add(this.blob); }   // va con el vecino
     this.pos = new THREE.Vector3(def.x, 0, def.z);
     this.home = { x: def.x, z: def.z };
     this.heading = def.heading ?? 0;

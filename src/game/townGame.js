@@ -4,6 +4,7 @@ import { Actor, cullActor, frameFrustum } from '../actors/people.js';
 import { MYTHS } from '../actors/outfits.js';
 import { PLACES } from '../world/layout.js';
 import { loadMeshy, hasMeshy } from '../actors/glbChar.js';
+import { QUALITY } from '../util/quality.js';
 import { groundHeight, terrainHeight, waterLevelAt } from '../world/heightfield.js';
 import { TOWN } from '../world/townBuilder.js';
 import { isFree, segmentBlocked, addCircle, addBox } from '../world/colliders.js';
@@ -426,8 +427,9 @@ export class TownGame {
     }
     const fr = frameFrustum(this.camera);
     const cull = (a, max) => cullActor(a, Math.hypot(a.pos.x - P.pos.x, a.pos.z - P.pos.z), max, dt, P, fr);
-    for (const a of this.actors) cull(a, 110);
-    for (const a of this.walkers) cull(a, 70);
+    const lowQ = QUALITY === 'low';   // en móviles los vecinos se dibujan más cerca
+    for (const a of this.actors) cull(a, lowQ ? 70 : 110);
+    for (const a of this.walkers) cull(a, lowQ ? 50 : 70);
     for (const f of this.folk) this.updateFolk(f, dt);
     // objetos
     for (const it of this.items) {
