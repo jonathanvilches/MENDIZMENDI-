@@ -205,6 +205,13 @@ export class Runtime {
       window.__fps = fps;
     }
   }
+  /** Más resolución mientras dura una escena sencilla y de cerca (el partido de pelota): en el móvil los pelotaris se
+   *  veían con manchas porque la imagen se dibujaba a 1,25 en pantallas de 3. Si va lento, la resolución dinámica la baja. */
+  boost(on) {
+    this.maxRatio = on ? Math.max(this.ratioFor(this.quality), Math.min(devicePixelRatio, 2)) : this.ratioFor(this.quality);
+    this.pixelRatio = on ? this.maxRatio : Math.min(this.pixelRatio, this.maxRatio);
+    this.renderer.setPixelRatio(this.pixelRatio); this.lowFps = this.highFps = 0;
+  }
   // densidad de píxeles: en alta hasta 2 y unos 3,7 megapíxeles (2560×1440, imagen nítida); en media 2,1 y en baja
   // (móviles) 1,25. Si va a tirones, la resolución dinámica la baja un poco y la recupera cuando sobra
   ratioFor(q) {

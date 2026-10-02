@@ -95,6 +95,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // el partido anima al jugador y coloca a los dos: el rig del jugador pasa a nuestras manos
     P.rig = { update() { }, doAct() { }, doCheer() { }, doWave() { }, setExpr() { } };
     P.frozen = true; G.mode = 'pelota'; G.ui.hudVisible?.(false); G.ui.setPrompt?.(null);
+    G.rt?.boost?.(true);   // partido: imagen más nítida (en el móvil, los pelotaris con su detalle)
     // para jugar a pelota no hace falta el perro: se queda en casa y vuelve al acabar
     G.perro?.away?.();
     const bf = G.fauna?.bfMesh, bfWas = bf?.visible; if (bf) bf.visible = false;   // sin mariposas sobre la cancha
@@ -139,6 +140,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       if (pel) { P.obj.remove(pel.char.root); pel.dispose(); for (const c of hidden) P.obj.add(c); }
       if (bf) bf.visible = bfWas;
       if (red) { red.char.post = null; rival.obj.remove(red.char.root); red.dispose(); for (const c of hiddenR) rival.obj.add(c); }
+      G.rt?.boost?.(false);
       P.rig = rig0; P.frozen = false; G.mode = 'play'; G.ui.hudVisible?.(true); G.perro?.release?.();
       rival.frozen = false; rival.speed = 0; rival.setPos(home.x, home.z, home.h);
       const e = fronton.entry, c = fronton.toWorld(0, 12);

@@ -101,7 +101,7 @@ async function boot() {
     try {
       const npcP = preloadNpcs(); await preloadFood(); await Promise.all([rt.load(d, P.avatar, (p, m) => ui.progress(p, m)), npcP]);
       if (!d.special && hasShepherd(d) && P.avatar !== 'pastor') await preloadNpcMeshy(['pastor']);
-      const ctx = { scene: rt.scene, camera: rt.camera, player: rt.player, follow: rt.follow, ui, sound, input, sky: rt.sky, fauna: rt.fauna, particles: rt.particles, beacon: rt.beacon, onExit: exit };
+      const ctx = { scene: rt.scene, camera: rt.camera, player: rt.player, follow: rt.follow, ui, sound, input, sky: rt.sky, fauna: rt.fauna, particles: rt.particles, beacon: rt.beacon, rt, onExit: exit };
       hookPlayer(rt.player);
       if (d.special === 'salazar') {
         game = new Game(ctx);
