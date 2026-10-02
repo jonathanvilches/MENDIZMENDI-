@@ -73,6 +73,8 @@ const MESHY_BY = {
     Celebrate: ['Fist', 0, 1.58], Wave: ['Fist', 0.15, 1.4], Scared: ['Slash', 1.1, 1.5], Pick: ['Slash', 0.1, 0.4] },
 };
 MESHY_BY.pelotari_rojo = MESHY_BY.pelotari;   // el colorado se mueve igual que el azul
+// el pastor (el mismo chico con txapela): como el explorador, y saluda con la mano en alto
+MESHY_BY.pastor = { ...MESHY_BY.explorador, Wave: ['Hello', 0.6, 3.7] };
 // recorta un clip muestreándolo (así ningún hueso se queda sin pista aunque no tenga claves en ese tramo)
 function cutClip(clip, name, t0, t1, flatHips, fps = 30) {
   const n = Math.max(2, Math.round((t1 - t0) * fps) + 1), tracks = [];

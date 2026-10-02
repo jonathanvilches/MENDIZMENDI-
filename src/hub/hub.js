@@ -111,6 +111,7 @@ export class Hub {
     if (this.bgc !== bgc) { this.bgc = bgc; $('.bgimg', this.root).style.backgroundImage = `url(${landImg(bgc, 1280, 720, true)})`; }
     this.root.dataset.screen = screen;
     const m = $('#hMain', this.root);
+    if (!this['s_' + screen]) { screen = this.screen = 'home'; this.root.dataset.screen = screen; }   // pantalla desconocida: la portada
     m.innerHTML = this['s_' + screen](arg);
     m.scrollTop = 0;
     this.after?.(); this.after = null;

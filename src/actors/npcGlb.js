@@ -2,7 +2,7 @@
 // su esqueleto y sus animaciones, con la ropa, la piel y el pelo de cada vecino. Las texturas se recolorean una vez
 // por combinación de colores y se comparten; la geometría es la del modelo (un solo juego para todo el pueblo).
 import * as THREE from 'three';
-import { GlbChar, loadChar, loadKayKit } from './glbChar.js';
+import { GlbChar, loadChar, loadKayKit, loadMeshy, hasMeshy } from './glbChar.js';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { applyOutfit, regionalOutfit, MYTHS, resetOutfitTextures } from './outfits.js';
@@ -30,7 +30,26 @@ export async function preloadNpcs() {
   catch (e) { console.warn('vecinos GLB', e); ready = false; }
   // cuerpos KayKit (la fisiología de los personajes nuevos) para todos los vecinos
   try { await Promise.all(KK_BASES.map(n => loadKayKit(n).then(g => { KKG[n] = g; }))); kkReady = true; } catch (e) { console.warn('vecinos KayKit', e); }
+  // personajes propios de Meshy que hacen de vecinos (el pastor)
+  await Promise.all(NPC_MESHY.filter(hasMeshy).map(n => loadMeshy(n, 1.55).then(g => { MESHY_NPC[n] = g; }).catch(e => console.warn('vecino', n, e))));
   return ready || kkReady;
+}
+const NPC_MESHY = ['pastor'], MESHY_NPC = {};
+// vecino con un personaje de Meshy: su modelo con sus clips, con la misma forma de animarse que los demás
+function buildNpcMeshy(L) {
+  const g = MESHY_NPC[L.meshy];
+  const char = new GlbChar(g, { walkAt: 0.2, runAt: 4.6, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / 3.2, 0.85) : Math.pow(Math.max(0.2, v) / 1.35, 0.8) });
+  char.root.scale.setScalar(g.userData.fit || 1);
+  const obj = new THREE.Group(); obj.add(char.root); obj.userData.glbNpc = true; obj.userData.sex = 'boy'; obj.userData.H = 1.55; obj.userData.look = L;
+  const anim = {
+    t: 0, setExpr() {},
+    update(dt, s) {
+      if (s.wave > 0 && !char.oneShot && s.speed < 0.5) char.playOnce('Wave', Math.min(2.4, s.wave + 0.8));
+      else if ((s.cheer > 0 || s.dance || s.clap > 0) && !char.oneShot) char.playOnce('Celebrate', 1.2);
+      char.setTalking?.(s.talking > 0); char.setSpeed(s.speed); char.update(dt);
+    },
+  };
+  return { obj, char, anim };
 }
 const KK_BASES = ['Ranger', 'Rogue', 'Knight', 'Barbarian', 'Mage', 'Rogue_Hooded'];
 const KKG = {}; let kkReady = false;
@@ -270,6 +289,7 @@ const EXPR = {
 /** Vecino: devuelve { obj, char, anim } con la misma interfaz que usaba la figura antigua (anim.update / setExpr). */
 export function buildNpc(look = {}) {
   const L = look;
+  if (L.meshy && MESHY_NPC[L.meshy]) try { return buildNpcMeshy(L); } catch (e) { console.warn('vecino Meshy', e); }
   if (kkReady && !L.classic) try { return buildNpcKK(L); } catch (e) { console.warn('vecino KayKit', e); }
   const sex = L.female || L.skirt || L.ponytail || L.bun || L.braids || L.longHair || L.lashes ? 'girl' : 'boy';
   const gltf = GLTF[sex] || GLTF.boy;
