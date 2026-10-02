@@ -328,12 +328,10 @@ export class GlbChar {
 
 // ---- personajes GLB elegibles como avatar del jugador ----
 
-// todos los personajes con el mismo cuerpo (KayKit): Beñat, Nerea y Haritz llevan su propia ropa (own) si no se elige otra
+// los personajes jugables: los seis importados (KayKit), tal cual
 export const GLB_AVATARS = {};
-for (const [id, name] of [['benat', 'Rogue_Hooded'], ['nerea', 'Rogue'], ['haritz', 'Rogue_Hooded'], ['ranger', 'Ranger'], ['rogue', 'Rogue'], ['hooded', 'Rogue_Hooded'], ['knight', 'Knight'], ['barbarian', 'Barbarian'], ['mage', 'Mage']])
-  if (KK[name]) GLB_AVATARS[id] = { kaykit: name, own: OWN_OUTFITS[id], bust: KK_PICS[id + '_bust'], full: KK_PICS[id + '_full'] };
-/** Tu personaje (creado en el menú): cuerpo y traje elegidos. */
-export function setMio(c) { GLB_AVATARS.mio = { kaykit: c.base, own: mioOutfit(c), mio: true }; }
+for (const [id, name] of [['ranger', 'Ranger'], ['rogue', 'Rogue'], ['hooded', 'Rogue_Hooded'], ['knight', 'Knight'], ['barbarian', 'Barbarian'], ['mage', 'Mage']])
+  if (KK[name]) GLB_AVATARS[id] = { kaykit: name, bust: KK_PICS[id + '_bust'], full: KK_PICS[id + '_full'] };
 export const isGlbAvatar = id => !!GLB_AVATARS[id];
 export const loadGlbAvatar = id => GLB_AVATARS[id].kaykit ? loadKayKit(GLB_AVATARS[id].kaykit) : loadChar(GLB_AVATARS[id].url);
 
@@ -345,18 +343,14 @@ const EXPR = {
 /** Adaptador con la misma interfaz que MinifigRig (update, doWave, doCheer, setExpr, doAct, carry). */
 // las piernas del modelo son un 35 % más largas que las del diseño original: cada paso cubre más suelo
 const LEGS = 1.3;
-import { applyOutfit, outfitOf, OWN_OUTFITS } from './outfits.js';
-import { mioOutfit } from './miAvatar.js';
 export class GlbRig {
-  constructor(gltf, id = 'benat') {
+  constructor(gltf, id = 'ranger') {
     const def = GLB_AVATARS[id] || {};
     this.obj = new THREE.Group();
     // zancada natural de los clips: Walk ≈ 1,0 m/s y Run ≈ 2,5 m/s. Las velocidades del juego (3,3 y 6,8 m/s) son
     // mayores: el ritmo sube con la raíz de la velocidad para que las piernas no se vuelvan frenéticas
     // Walk avanza ~1,15 m por ciclo y Run ~2,5 m/s: el ritmo sigue casi a la velocidad (los pies apenas patinan)
     this.char = new GlbChar(gltf, { outline: 0.006, walkAt: 0.2, runAt: 4.6, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / (2.5 * LEGS), 0.85) : Math.pow(Math.max(0.2, v) / (1.15 * LEGS), 0.8) });
-    // personajes KayKit: traje navarro elegido (San Fermín, dantzari, pastor…)
-    if (def.kaykit) { try { this.outfit = outfitOf(id); if (this.outfit === 'original' && def.own) this.outfit = def.own; applyOutfit(this.char.root, def.kaykit, this.outfit); } catch (e) { console.warn('traje', e); } }
     this.char.root.scale.setScalar(def.scale || gltf.userData?.fit || 1);
     this.obj.add(this.char.root);
     this.wave = 0; this.cheer = 0; this.talking = 0; this.carry = false;

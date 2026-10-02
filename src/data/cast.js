@@ -4,27 +4,23 @@
 // todos los diseños (los antiguos se conservan solo como reserva de aspecto para retratos y figuras de respaldo)
 export const CAST_ALL = [
   // protagonista del juego (modelo GLB construido en Blender): el primero y el de por defecto
-  { id: 'benat', name: 'Beñat', from: 'Urbasa', role: 'Pastor', tagline: 'Conoce cada senda de la sierra', glb: true,
+  { id: 'benat', name: 'Beñat', from: 'Urbasa', role: 'Pastor', tagline: 'Conoce cada senda de la sierra',
     desc: 'Sube con las ovejas latxas a los pastos de Urbasa y Andia. Su pañuelo rojo se ve desde lejos entre la niebla del hayedo.',
     ability: 'Buen pastor: los animales se dejan acercar más', stats: [85, 65, 75, 85, 80], color: '#8a3a6e',
     // aspecto de reserva (minifigura) por si el modelo GLB no puede cargarse
     look: { child: true, height: 1.36, skin: '#f1c4a0', hair: '#3a2418', hairStyle: 'short', shirt: '#f2ece0', vest: '#6a2854', pants: '#5c4e40',
       scarf: '#c8222a', shoes: '#7a4c2a', boots: true, socks: '#eae2ce', face: 'smile', pose: 'hip1' } },
   // protagonista chica (modelo GLB de Blender, mismo esqueleto que Beñat)
-  { id: 'nerea', name: 'Nerea', from: 'Isaba / Izaba', role: 'Montañera', tagline: 'Conoce todas las cimas', glb: true,
+  { id: 'nerea', name: 'Nerea', from: 'Isaba / Izaba', role: 'Montañera', tagline: 'Conoce todas las cimas',
     desc: 'Ha subido a la Mesa de los Tres Reyes con su familia. Lleva mapa, brújula y un bocadillo de queso del Roncal.',
     ability: 'Orientación: la luz dorada brilla más fuerte', stats: [90, 60, 70, 95, 75], color: '#8a5ad6',
     look: { child: true, height: 1.38, skin: '#f3cfae', hair: '#c9772f', hairStyle: 'short', lashes: true, eyes: '#3a6a3a', hat: 'wool', hatColor: '#8a5ad6',
       shirt: '#e8743a', pattern: 'check', pants: '#3a4a6a', shoes: '#6b3f24', boots: true, strap: '#6a4a2a', bag: '#3a7a4a', staff: true, face: 'smile', freckles: true, pose: 'hip1', browStyle: 'arched', tilt: 0.07 } },
   // niño del Neolítico (modelo GLB de Blender): viaja desde la época de los dólmenes
-  { id: 'haritz', name: 'Haritz', from: 'Sierra de Aralar', role: 'Niño del Neolítico', tagline: 'Viene de la época de los dólmenes', glb: true,
+  { id: 'haritz', name: 'Haritz', from: 'Sierra de Aralar', role: 'Niño del Neolítico', tagline: 'Viene de la época de los dólmenes',
     desc: 'Vive hace unos 5.000 años, cuando los primeros pastores levantaban dólmenes en Aralar y Urbasa. Lleva túnica de lana, chaleco de piel de oveja, abarcas de cuero y un cuchillo de sílex en la bolsa.',
     ability: 'Mirada antigua: descubre antes dólmenes, cuevas y piedras con historia', stats: [90, 75, 70, 80, 90], color: '#a8603a',
     look: { child: true, height: 1.36, skin: '#e2b088', hair: '#2e1e16', hairStyle: 'short', shirt: '#d6c49e', vest: '#dacaa8', pants: '#84603e', scarf: '#a84a2c', shoes: '#b0885c', boots: true, socks: '#9c744c', face: 'smile', pose: 'hip1' } },
-  // tu propio personaje: lo creas tú en el menú (cuerpo, piel, pelo, ropa y complementos)
-  { id: 'mio', name: 'Tu personaje', from: 'Navarra', role: 'Creado por ti', tagline: 'Como tú quieras', glb: true, kaykit: true,
-    desc: 'Elige el cuerpo, la piel, el pelo, la ropa y los complementos: txapela, pañuelo, faja, falda o zamarra de piel. Puedes cambiarlo cuando quieras.',
-    ability: 'A tu manera: lo cambias cuando quieras, desde el menú de personajes', stats: [80, 70, 80, 80, 80], color: '#e8743a', look: { height: 1.5 } },
   // aventureros (modelos CC0 de KayKit Adventurers, Kay Lousberg) que vienen a descubrir Navarra
   { id: 'ranger', name: 'Iñigo', from: 'Selva de Irati', role: 'Guardabosques', tagline: 'Lee las huellas del bosque', glb: true, kaykit: true,
     desc: 'Recorre el hayedo de Irati con su pañuelo azul y su capa.  Sabe distinguir las huellas del corzo, del jabalí y del zorro.',

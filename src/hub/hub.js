@@ -9,9 +9,6 @@ import { iconSVG, speciesIcon } from '../ui/icons.js';
 import { avatarPortrait, portraitImg, avatarPortraitImg } from '../ui/portraits.js';
 import { stampImg, landImg } from '../assets.js';
 import { Stage } from './stage.js';
-import { GLB_AVATARS, setMio } from '../actors/glbChar.js';
-import { MIO_BASES, MIO_FEMALE, SKINS, HAIRS, CLOTH, HATS, defaultMio } from '../actors/miAvatar.js';
-import { OUTFITS, setOutfitChoices } from '../actors/outfits.js';
 import { getLang, setLang } from '../i18n.js';
 import { dioramaShot } from './diorama.js';
 import { profile, saveProfile, levelOf, rankOf, townProgress, comarcaProgress, comarcaTowns, navarraProgress, stampCount, BADGES, checkBadges, resetProfile, salazarState } from '../game/profile.js';
@@ -351,7 +348,6 @@ export class Hub {
 
   // ---------- Personajes: selección con el modelo 3D en grande ----------
   castInfo(a) {
-    if (a.id === 'mio') a = { ...a, name: profile().name || a.name };
     return `<div class="ci-head"><span class="crole">${esc(a.role)}</span><small class="cfrom">${I('pin', 16)} ${esc(a.from)}</small></div>
       <b class="cname">${esc(a.name)}</b><em class="tl">«${esc(a.tagline)}»</em><p class="cdesc">${esc(a.desc)}</p>
       <div class="stats">${a.stats.map((v, i) => `<div class="stat"><span>${STAT_LABELS[i]}</span><span class="sbar"><i style="--v:${v}%"></i></span><b>${v}</b></div>`).join('')}</div>
@@ -366,7 +362,7 @@ export class Hub {
         <button class="cs-arrow prev" data-step="-1" aria-label="Anterior"><svg viewBox="0 0 24 24" width="28" height="28"><path d="M15 4l-8 8 8 8" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <button class="cs-arrow next" data-step="1" aria-label="Siguiente"><svg viewBox="0 0 24 24" width="28" height="28"><path d="M9 4l8 8-8 8" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <span class="cs-count"><b>${i + 1}</b>/${AVATARS.length}</span><span class="cs-hint">Arrastra para girarlo · tócalo para saludar</span></div>
-      <div class="cs-side"><div class="csel-info" id="csInfo">${this.castInfo(cur)}</div><div class="cs-outfits" id="csOutfits"></div></div>
+      <div class="cs-side"><div class="csel-info" id="csInfo">${this.castInfo(cur)}</div></div>
       <div class="cs-roster">${this.castStrip(cur.id)}</div>${extra ? `<div class="cs-extra">${extra}</div>` : ''}
     </section>`;
   }
@@ -374,19 +370,7 @@ export class Hub {
     let cur = start;
     // centra el retrato elegido en la tira sin mover la página
     const center = (id, smooth) => { const b = host.querySelector(`[data-av="${id}"]`), st = b?.parentElement; if (!st) return; st.scrollTo({ left: b.offsetLeft - st.clientWidth / 2 + b.offsetWidth / 2, behavior: smooth ? 'smooth' : 'auto' }); };
-    const P0 = profile(); P0.outfits ||= {}; setOutfitChoices(P0.outfits);
-    // trajes para los personajes KayKit: original, San Fermín, dantzari, pastor, casero y Osasuna
-    const outfits = (id) => {
-      const el = $('#csOutfits', host); if (!el) return;
-      if (id === 'mio') return this.mioEditor(el, host);
-      if (!GLB_AVATARS[id]?.kaykit) { el.innerHTML = ''; return; }
-      const curO = P0.outfits[id] || 'original';
-      const btn = (o) => `<button class="${o.id === curO ? 'on' : ''}" data-outfit="${o.id}" style="--o:${o.shirt || '#8a7a6a'};--a:${o.sash || o.scarf || o.beret || o.pants || '#8a7a6a'}"><i></i>${esc(o.name)}</button>`;
-      el.innerHTML = `<small>Ropa de fiesta</small><div>${OUTFITS.filter(o => !o.region && !o.trade).map(btn).join('')}</div><small>Trajes de cada comarca</small><div>${OUTFITS.filter(o => o.region).map(btn).join('')}</div><small>Oficios de antes</small><div>${OUTFITS.filter(o => o.trade).map(btn).join('')}</div>`;
-      el.querySelectorAll('[data-outfit]').forEach(b => b.onclick = (e) => { e.stopPropagation(); P0.outfits[id] = b.dataset.outfit; saveProfile(); setOutfitChoices(P0.outfits); this.stage.setAvatar(id); this.sound?.ui('coin'); outfits(id); });
-    };
     this.stage = new Stage($('#avStage', host), cur);
-    outfits(cur);
     const set = (id, dir = 0) => {
       if (id === cur) return; cur = id; const a = castById(id);
       this.stage.setAvatar(id); this.sound?.ui('coin');
@@ -394,7 +378,7 @@ export class Hub {
       const info = $('#csInfo', host); info.innerHTML = this.castInfo(a); info.classList.remove('swap'); void info.offsetWidth; info.classList.add('swap');
       $('.cs-bgname', host).textContent = a.name; $('.cs-count b', host).textContent = AVATARS.indexOf(a) + 1;
       host.querySelectorAll('[data-av]').forEach(x => x.classList.toggle('on', x.dataset.av === id));
-      center(id, true); outfits(id);
+      center(id, true);
       onPick(a);
     };
     const step = (d) => { const i = AVATARS.findIndex(a => a.id === cur); set(AVATARS[(i + d + AVATARS.length) % AVATARS.length].id, d); };
@@ -403,33 +387,6 @@ export class Hub {
     const key = (e) => { if (!host.isConnected) return removeEventListener('keydown', key); if (e.target.tagName === 'INPUT') return; if (e.key === 'ArrowRight') step(1); if (e.key === 'ArrowLeft') step(-1); };
     addEventListener('keydown', key);
     center(cur);
-  }
-  // creador de tu personaje: cada cambio se ve al momento en el modelo 3D y se guarda en el perfil
-  mioEditor(el, host) {
-    const P = profile(), c = (P.mio ||= defaultMio());
-    const sw = (key, list, none) => `<div class="mio-sw">${none ? `<button class="none ${c[key] ? '' : 'on'}" data-k="${key}" data-v="" aria-label="Sin">∅</button>` : ''}${list.map(v => `<button class="${c[key] === v ? 'on' : ''}" data-k="${key}" data-v="${v}" style="--s:${v}" aria-label="${v}"></button>`).join('')}</div>`;
-    const chips = (key, list) => `<div class="mio-ch">${list.map(o => `<button class="${c[key] === o.id ? 'on' : ''}" data-k="${key}" data-v="${o.id}">${esc(o.name)}</button>`).join('')}</div>`;
-    const tog = (key, name) => `<button class="mio-tog ${c[key] ? 'on' : ''}" data-t="${key}">${esc(name)}</button>`;
-    el.innerHTML = `<div class="mio-ed">
-      <div class="mio-top"><b>Crea tu personaje</b><span><button class="mio-rand" data-r="1">Al azar</button><select class="mio-from" aria-label="Empezar desde un traje"><option value="">Desde un traje…</option>${OUTFITS.filter(o => o.id !== 'original').map(o => `<option value="${o.id}">${esc(o.name)}</option>`).join('')}</select></span></div>
-      <small>Cuerpo</small>${chips('base', MIO_BASES)}
-      <small>Piel</small>${sw('skin', SKINS)}
-      <small>Pelo</small>${sw('hair', HAIRS)}<div class="mio-tg">${tog('longHair', 'Melena larga')}</div>
-      <small>En la cabeza</small>${chips('hat', HATS)}${sw('hatColor', ['#1d1d22', '#c8102e', '#2b5a3a', '#1e3a8a', '#8a5ad6', '#f6f3ec'])}
-      <small>Camisa</small>${sw('shirt', CLOTH)}
-      <small>Pantalón</small>${sw('pants', CLOTH)}
-      <small>Calzado</small>${sw('shoes', ['#4a2f1c', '#6b3f24', '#1d1d22', '#efe4cc', '#f6f3ec', '#c8102e'])}
-      <small>Detalles (cinturón, chaleco)</small>${sw('accent', CLOTH)}
-      <small>Pañuelo al cuello</small>${sw('scarf', CLOTH, true)}
-      <small>Faja</small>${sw('sash', CLOTH, true)}
-      <small>Falda</small>${sw('skirt', CLOTH, true)}<div class="mio-tg">${tog('apron', 'Delantal')}${tog('fur', 'Zamarra de piel')}</div>
-    </div>`;
-    const apply = () => { saveProfile(); setMio(c); this.stage.setAvatar('mio'); const im = host.querySelector('[data-av="mio"] img'); if (im) im.outerHTML = avatarPortraitImg('mio'); this.mioEditor(el, host); };
-    el.querySelectorAll('[data-k]').forEach(b => b.onclick = (e) => { e.stopPropagation(); const k = b.dataset.k; c[k] = b.dataset.v || null; if (k === 'base' && MIO_FEMALE.has(c.base) && !c.skirt) c.skirt = '#1e3a8a'; this.sound?.ui('click'); apply(); });
-    el.querySelectorAll('[data-t]').forEach(b => b.onclick = (e) => { e.stopPropagation(); c[b.dataset.t] = !c[b.dataset.t]; this.sound?.ui('click'); apply(); });
-    $('.mio-rand', el).onclick = (e) => { e.stopPropagation(); Object.assign(c, defaultMio(Math.random)); this.sound?.ui('coin'); apply(); };
-    const from = $('.mio-from', el); from.onclick = (e) => e.stopPropagation();
-    from.onchange = () => { const o = OUTFITS.find(o => o.id === from.value); if (!o) return; Object.assign(c, { shirt: o.shirt, pants: o.pants, shoes: o.shoes, accent: o.accent, scarf: o.scarf || null, sash: o.sash || null, hat: o.beret ? 'beret' : o.cachirulo ? 'cachirulo' : c.hat, hatColor: o.beret || o.cachirulo || c.hatColor, skirt: MIO_FEMALE.has(c.base) ? (o.skirtF || c.skirt) : c.skirt }); this.sound?.ui('coin'); apply(); };
   }
   s_avatars() {
     const p = profile(), cur = castById(p.avatar);
@@ -487,16 +444,15 @@ export class Hub {
   // ---------- Primera vez: nombre y personaje ----------
   onboarding() {
     const p = profile();
-    let pick = p.avatar || 'benat';
+    let pick = p.avatar || AVATARS[0].id;
     const o = el(`<div class="onb"><div class="onb-in">
       <header class="onb-head"><div class="logo">MENDIMENDIZ</div><p class="tag">Navarra, pueblo a pueblo</p>
         <div class="langsel" role="group" aria-label="Idioma"><button data-lang="eu" class="${getLang() === 'eu' ? 'on' : ''}">Euskara</button><button data-lang="es" class="${getLang() === 'es' ? 'on' : ''}">Castellano</button><button data-lang="learn" class="${getLang() === 'learn' ? 'on' : ''}">Aprende euskera</button></div></header>
-      ${this.selector(castById(pick), { onb: true, extra: `<div class="onb-foot"><div class="gender" role="group" aria-label="Elige personaje"><button data-g="benat" class="${pick === 'benat' ? 'on' : ''}">Chico · Beñat</button><button data-g="nerea" class="${pick === 'nerea' ? 'on' : ''}">Chica · Nerea</button><button data-g="haritz" class="${pick === 'haritz' ? 'on' : ''}">Neolítico · Haritz</button><button data-g="mio" class="${pick === 'mio' ? 'on' : ''}">Crea el tuyo</button></div><label>¿Cómo te llamas?<input id="oName" maxlength="14" autocomplete="off" placeholder="Tu nombre"></label>
+      ${this.selector(castById(pick), { onb: true, extra: `<div class="onb-foot"><label>¿Cómo te llamas?<input id="oName" maxlength="14" autocomplete="off" placeholder="Tu nombre"></label>
         <button class="btn primary big" id="oGo">${I('play', 26)} ¡Empezar la aventura!</button></div>` })}
     </div></div>`);
     this.root.appendChild(o);
-    this.bindSelector(o, pick, (a) => { pick = a.id; this.sound?.init?.(); o.querySelectorAll('[data-g]').forEach(b => b.classList.toggle('on', b.dataset.g === a.id)); });
-    o.querySelectorAll('[data-g]').forEach(b => b.onclick = (e) => { e.stopPropagation(); o.querySelector(`[data-av="${b.dataset.g}"]`)?.click(); });
+    this.bindSelector(o, pick, (a) => { pick = a.id; this.sound?.init?.(); });
     o.querySelectorAll('[data-lang]').forEach(b => b.onclick = (e) => { e.stopPropagation(); if (b.dataset.lang !== getLang()) setLang(b.dataset.lang); });
     const inp = $('#oName', o); inp.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') go(); });
     const go = () => { p.name = inp.value.trim() || 'Mendi'; p.avatar = pick; saveProfile(); this.sound?.init?.(); this.sound?.ui('open'); o.remove(); this.go('home', null, true); };

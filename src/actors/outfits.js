@@ -274,12 +274,6 @@ export function applyOutfit(root, kk, outfitId) {
   }
   return added;
 }
-/** Ropa propia de los protagonistas (Beñat pastor de Urbasa, Nerea montañera, Haritz niño del Neolítico). */
-export const OWN_OUTFITS = {
-  benat: { id: 'own-benat', shirt: '#f2ece0', pants: '#5c4e40', shoes: '#7a4c2a', accent: '#6a2854', scarf: '#c8222a', hood: '#3a2418' },
-  nerea: { id: 'own-nerea', shirt: '#e8743a', pants: '#3a4a6a', shoes: '#6b3f24', accent: '#3a7a4a', wool: '#8a5ad6' },
-  haritz: { id: 'own-haritz', shirt: '#d6c49e', pants: '#84603e', shoes: '#b0885c', accent: '#a84a2c', fur: '#d8c8a2', furLen: 0.42, furW: 0.86, hood: '#2e1e16' },
-};
 /** Seres de leyenda con el cuerpo de los personajes nuevos: cuerpo base, altura (m) y traje. */
 export const MYTHS = {
   basajaun: { base: 'Barbarian', height: 3.2, female: false, outfit: { id: 'myth-basajaun', shirt: '#5a3e26', pants: '#4a3420', shoes: '#3a2a1c', accent: '#3a2814', hairLong: '#4e3420', hairLen: 0.8, shaggy: true, scalp: true, beard: '#4e3420', beardLen: 0.55, fur: '#5e4128' } },
@@ -298,6 +292,3 @@ export function regionalOutfit(region, female, rnd = Math.random) {
 }
 
 // elección de traje por personaje (se guarda en el perfil)
-let choice = {};
-export const setOutfitChoices = (c) => { choice = c || {}; };
-export const outfitOf = (id) => choice[id] || 'original';

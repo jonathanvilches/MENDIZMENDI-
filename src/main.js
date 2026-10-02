@@ -26,10 +26,7 @@ import COMARCAS from './data/comarcas.json';
 import { preloadNpcs } from './actors/npcGlb.js';
 import { preloadAnimals } from './actors/animalGlb.js';
 import { preloadFood } from './world/products3d.js';
-import { setOutfitChoices } from './actors/outfits.js';
 import { avatarPortrait } from './ui/portraits.js';
-import { setMio } from './actors/glbChar.js';
-import { defaultMio } from './actors/miAvatar.js';
 import { loadStore, queueMode } from './util/store.js';
 import { startI18n } from './i18n.js';
 
@@ -51,8 +48,6 @@ async function boot() {
   const sound = new Sound();
   const ui = new UI(input, sound);
   const P = profile();
-  setOutfitChoices(P.outfits);
-  P.mio ||= defaultMio(); setMio(P.mio);   // tu personaje, listo para elegirlo
   const quality = q.get('q') || P.settings.quality || (input.touch ? 'mid' : 'high');
   const rt = new Runtime({ canvas, input, sound, quality });
   canvas.style.visibility = 'hidden';

@@ -6,11 +6,9 @@ Estado de todo lo pedido hasta ahora: **hecho** (comprobado en el juego con capt
 
 | Petición | Estado | Notas |
 |---|---|---|
-| Personajes KayKit seleccionables | Hecho | Todos los personajes con el mismo cuerpo: Beñat, Nerea y Haritz con su ropa de siempre y 6 más |
-| Crear tu propio personaje | Hecho | Cuerpo, piel, pelo, melena, cabeza, ropa, pañuelo, faja, falda, delantal y zamarra; al azar o desde un traje; se juega con él en todo el juego |
+| Personajes jugables | Hecho | Solo los seis importados (Iñigo, Ainhoa, Oier, Sancho, Mattin y Mari), con su aspecto original; sin Beñat, Nerea ni Haritz, sin creador y sin elegir traje |
 | Todos los personajes unificados | Hecho | Vecinos, público, jugadores, carnaval (joaldunak, momotxorros…), seres de leyenda y retratos de los diálogos |
 | Toque navarro en los personajes nuevos | Hecho | Txapela, pañuelico, faja; sin cascos ni capas de fantasía |
-| Elegir la ropa (San Fermín, etc.) | Hecho | Selector «Ropa» en la pantalla de personajes: fiesta, 11 trajes de comarca y oficios de antes |
 | Traje tradicional de cada comarca | Hecho | Basado en los datos de cultura de cada comarca (Lesaka, Leitza, Lakuntza, Ochagavía, Aoiz, Jota Vieja de Sangüesa, Baile de la Era, Paloteado de Cortes…) |
 | Todos los vecinos con la fisiología de los personajes nuevos | Hecho | Los vecinos usan el cuerpo KayKit; la mayoría lleva el traje de su comarca y las mujeres, falda |
 | Seres de leyenda con el cuerpo de los personajes nuevos | Hecho | Basajaun (melena, barba y manto de pelo), Lamia (pelo de oro, peine y patas de pato), Sorgina y Roldán; los de carnaval siguen con su traje propio |
