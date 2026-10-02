@@ -71,7 +71,7 @@ export class Futbol {
   }
 
   setup() {
-    const G = this.G, S = G.scene, P = profile(), av = P.avatar || 'benat';
+    const G = this.G, S = G.scene, P = profile(), av = P.avatar || 'ranger';
     this.root = new THREE.Group(); S.add(this.root);
     // el perro espera sentado junto a la banda, mirando el partido
     this.dog = G.perro?.dog || null; if (this.dog) G.perro.wait({ x: this.cx - 23.5, z: this.cz + 6 }, { x: this.cx, z: this.cz });

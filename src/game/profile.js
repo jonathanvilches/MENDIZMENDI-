@@ -5,7 +5,7 @@ import COMARCAS from '../data/comarcas.json';
 
 const KEY = 'mendimendiz-perfil-v1';
 const fresh = () => ({
-  v: 1, name: '', avatar: 'benat', xp: 0, created: Date.now(),
+  v: 1, name: '', avatar: 'ranger', xp: 0, created: Date.now(),
   towns: {},          // id → { done: {índice: true}, stamp: false, visits: n, best: {} }
   cards: [],          // cartas de saber (ids)
   species: [],        // especies observadas
@@ -46,9 +46,8 @@ export function profile() {
   if (P) return P;
   try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.v === 1) P = Object.assign(fresh(), s, { settings: Object.assign(fresh().settings, s.settings) }); } catch (e) { }
   P ||= fresh();
-  // el protagonista (Beñat, modelo de Blender) pasa a ser el jugador una vez; luego se respeta lo que se elija
-  if (!P.seen.heroBenat) { P.avatar = 'benat'; P.seen.heroBenat = true; }
-  if (!CAST.some(c => c.id === P.avatar)) P.avatar = 'benat';
+  // solo los seis personajes importados: si el guardado tenía otro (Beñat, Nerea, Haritz…), pasa al primero
+  if (!CAST.some(c => c.id === P.avatar)) P.avatar = CAST[0].id;
   return P;
 }
 export function saveProfile() { try { localStorage.setItem(KEY, JSON.stringify(P)); } catch (e) { } }
