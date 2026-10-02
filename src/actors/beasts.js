@@ -506,9 +506,9 @@ function flip(g) { const ix = g.index.array; for (let i = 0; i < ix.length; i +=
 
 // Razas de perro para el compañero del jugador (diseño propio de cada una, a partir de su aspecto típico)
 export const DOG_BREEDS = {
+  pachon: { dogName: 'Usain', name: 'Pachón navarro', c: '#f0ebe2', light: '#ffffff', patch: '#7a4a2a', drop: true, earC: '#7a4a2a', neck: 1.1, scale: 1.05, text: 'Perro de caza antiguo de Navarra, de orejas largas y caídas y manchas color hígado. Tiene un olfato buenísimo: encuentra cualquier rastro.' },
   gorbeia: { dogName: 'Gorri', name: 'Euskal artzain txakurra (Gorbeia)', c: '#b8692e', light: '#dca06a', scale: 1, text: 'Perro pastor vasco de pelo corto y color rojo fuego. Listo, rápido y muy fiel: guía los rebaños por el monte.' },
   iletsua: { dogName: 'Haize', name: 'Euskal artzain txakurra (Iletsua)', c: '#a9845a', light: '#d6bf96', earTip: '#5a4430', hair: 0.02, scale: 1, text: 'La variedad de pelo largo del pastor vasco, de color arena. Aguanta el frío y la lluvia de la montaña.' },
-  pachon: { dogName: 'Usain', name: 'Pachón navarro', c: '#f0ebe2', light: '#ffffff', patch: '#7a4a2a', drop: true, earC: '#7a4a2a', neck: 1.1, scale: 1.05, text: 'Perro de caza antiguo de Navarra, de orejas largas y caídas y manchas color hígado. Tiene un olfato buenísimo: encuentra cualquier rastro.' },
   aleman: { dogName: 'Otso', name: 'Pastor alemán', c: '#b5793a', light: '#dcae70', saddle: '#1f1813', mask: true, bigEars: true, leg: 1.12, neck: 1.1, scale: 1.12, text: 'Perro pastor muy listo y obediente. Aprende enseguida y por eso ayuda en los rescates de montaña. Otso quiere decir «lobo» en euskera.' },
   mastin: { dogName: 'Lagun', name: 'Mastín del Pirineo', c: '#f3efe6', light: '#ffffff', patch: '#8a8478', drop: true, earC: '#8a8478', neck: 1.25, leg: 1.25, belly: 0.3, hair: 0.014, scale: 1.4, text: 'Gigante y tranquilo, protegía los rebaños del lobo y del oso en el Pirineo. Lleva su collar de pinchos (carlanca) en el monte.' },
 };

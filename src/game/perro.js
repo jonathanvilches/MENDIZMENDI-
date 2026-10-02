@@ -41,7 +41,7 @@ export class Perro {
     if (D.hidden) { const P = this.g.player?.pos; if (P) D.pos.set(P.x + 1.2, P.y, P.z + 1.2); }   // vuelve junto a ti
     D.hidden = false; D.sit = false; D.pinVisible = false; D.alwaysUpdate = false; D.follow = this.side; D.obj.visible = true;
   }
-  get breed() { return DOG_BREEDS[this.g.P.dogBreed] ? this.g.P.dogBreed : 'gorbeia'; }
+  get breed() { return DOG_BREEDS[this.g.P.dogBreed] ? this.g.P.dogBreed : 'pachon'; }   // por defecto, el pachón navarro
   spawnDog(x, z) {
     const F = this.g.fauna, B = DOG_BREEDS[this.breed];
     if (this.dog) { this.g.scene.remove(this.dog.obj); F.animals.splice(F.animals.indexOf(this.dog), 1); }

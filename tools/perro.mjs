@@ -1,29 +1,24 @@
-// Perro compañero: elegir raza, caminar al lado del jugador y las cuatro razas juntas.
-// Uso: node tools/perro.mjs <pueblo> <carpeta>
+// El perro compañero (por defecto el pachón navarro): quieto, siguiendo al jugador andando y corriendo, y sentado.
+// Uso: node tools/perro.mjs [pueblo] [carpeta]
 import { chromium } from 'playwright-core';
 import { mkdirSync } from 'fs';
-const [,, town = 'lumbier', out = 'entrega/perro'] = process.argv;
-mkdirSync(out, { recursive: true });
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
-const p = await browser.newPage({ viewport: { width: 1280, height: 720 } });
-p.on('pageerror', e => console.log('PAGEERROR', e.message));
-await p.addInitScript(() => { try { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true } })); } catch (e) { } });
-await p.goto(`http://127.0.0.1:5173/?town=${town}&q=mid`, { timeout: 300000 });
+const [,, town = 'lesaka', out = '/tmp/claude-0/perro'] = process.argv; mkdirSync(out, { recursive: true });
+const URL = process.env.URL || 'http://127.0.0.1:5173';
+const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const p = await b.newPage({ viewport: { width: 1000, height: 600 } }); const errs = [];
+p.on('pageerror', e => errs.push(e.message));
+await p.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', dogOn: true, seen: { heroBenat: true, dog: true } })); });
+await p.goto(`${URL}/?town=${town}&q=high&weather=clear&skipintro=1`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 500000 });
-let k = 0; const shot = async (n) => { await p.waitForTimeout(900); await p.screenshot({ path: `${out}/${town}-${String(k++).padStart(2, '0')}-${n}.png`, timeout: 180000 }); console.log('foto', n); };
-// presentación y selector (sale solo a los 5 s)
-await p.evaluate(() => { const G = window.__game; G.dogHi = true; document.querySelectorAll('.mg-overlay').forEach(o => o.remove()); G.ui.busy = false; G.mode = 'play'; G.perro.choose(); });
-await p.waitForFunction(() => document.querySelector('.dogpick'), null, { timeout: 20000 });
-await p.evaluate(() => document.querySelector('[data-b="pachon"]').click()); await shot('elegir');
-await p.evaluate(() => document.querySelector('[data-ok]').click());
-await p.waitForTimeout(1500);
-// caminar: mover al jugador en línea recta unos segundos
-await p.keyboard.down('w'); await p.waitForTimeout(5000);
-const st = await p.evaluate(() => { const G = window.__game, P = G.player.pos, D = G.perro.dog.pos, h = G.player.heading; const dx = D.x - P.x, dz = D.z - P.z; return { side: (dx * Math.cos(h) - dz * Math.sin(h)).toFixed(2), ahead: (dx * Math.sin(h) + dz * Math.cos(h)).toFixed(2), dist: Math.hypot(dx, dz).toFixed(2) }; });
-console.log('perro respecto al jugador', JSON.stringify(st));
-await shot('andando'); await p.keyboard.up('w');
-await p.waitForTimeout(2500); await shot('parado');
-// las cuatro razas juntas
-await p.evaluate(async () => { const G = window.__game, T = window.__THREE, P = G.player.pos; const { DOG_BREEDS } = await import('/src/actors/beasts.js'); Object.keys(DOG_BREEDS).forEach((b, i) => { const a = G.fauna.add('dog', P.x - 3 + i * 2, P.z + 4, { range: 0.5, walk: 0, run: 0, flee: 0, breed: b, scale: DOG_BREEDS[b].scale }); a.heading = Math.PI; a.state = 'idle'; a.timer = 999; }); const pos = new T.Vector3(P.x, P.y + 1.7, P.z + 9.5), lk = new T.Vector3(P.x, P.y + 0.5, P.z + 4); G.follow.cinematic = { pos, look: lk, t: 0, lookCur: lk.clone() }; G.camera.position.copy(pos); G.camera.lookAt(lk); });
-await p.waitForTimeout(3000); await shot('razas');
-await browser.close();
+await p.waitForTimeout(2000);
+const info = await p.evaluate(() => { const G = window.__game, D = G.perro?.dog; return D ? { raza: G.perro.breed, nombre: G.perro.name, modelo: !!D.A, x: D.pos.x } : 'sin perro'; });
+console.log(JSON.stringify(info));
+const shot = async (n, f, w = 1500) => { await p.evaluate(f); await p.waitForTimeout(w); await p.screenshot({ path: `${out}/${n}.png` }); console.log('foto', n); };
+const camOn = () => { const G = window.__game, D = G.perro.dog, T = window.__THREE; const pos = new T.Vector3(D.pos.x + 2.2, D.pos.y + 1.1, D.pos.z + 2.2), look = new T.Vector3(D.pos.x, D.pos.y + 0.35, D.pos.z); G.follow.cinematic = { pos, look, t: 0, lookCur: look.clone() }; };
+await shot('quieto', camOn);
+await shot('andando', () => { const G = window.__game; G.follow.cinematic = null; G.input.keys.add('w'); }, 2500);
+await shot('corriendo', () => { const G = window.__game; G.input.keys.add('shift'); }, 2500);
+await shot('sentado', () => { const G = window.__game; G.input.keys.clear(); const D = G.perro.dog; D.sit = true; D.state = 'sit'; }, 3500);
+await p.evaluate(camOn); await p.waitForTimeout(1200); await p.screenshot({ path: `${out}/sentado-cerca.png` });
+console.log('errores', JSON.stringify(errs.slice(0, 4)));
+await b.close();

@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { mergeGeometries, toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';   // el pachón (modelo de Meshy) va comprimido
 
 const URLS = {};
 for (const [p, u] of Object.entries(import.meta.glob('../assets/animals/*.glb', { eager: true, query: '?url', import: 'default' }))) URLS[p.split('/').pop().replace('.glb', '')] = u;
@@ -29,7 +30,9 @@ const SPEC = {
 const DOG = {
   gorbeia: { model: 'ShibaInu', h: 0.62, col: { Main: '#b8692e', Main_Light: '#dca06a' } },
   iletsua: { model: 'ShibaInu', h: 0.64, col: { Main: '#a9845a', Main_Light: '#d6bf96', Black: '#5a4430' } },
-  pachon: { model: 'ShibaInu', h: 0.62, col: { Main: '#7a4a2a', Main_Light: '#f0ebe2' } },
+  // el pachón navarro: modelo propio de Meshy con su textura, con el esqueleto y las animaciones del perro de Quaternius
+  // ajustados a su cuerpo en Blender (tools/blender/pachon.py)
+  pachon: { model: 'Pachon', h: 0.72 },
   aleman: { model: 'Husky', h: 0.74, col: { Material: '#b5793a', 'Material.001': '#dcae70', 'Material.006': '#1f1813' } },
   mastin: { model: 'Husky', h: 0.95, col: { Material: '#e8e2d6', 'Material.001': '#f6f2ea', 'Material.006': '#8a8478' } },
 };
@@ -39,7 +42,7 @@ export const hasGlbAnimal = (kind, opts) => { const s = animalSpec(kind, opts); 
 /** Carga todos los modelos (una vez); se llama durante la pantalla de carga del pueblo. */
 export function preloadAnimals() {
   if (loading) return loading;
-  const L = new GLTFLoader();
+  const L = new GLTFLoader(); L.setMeshoptDecoder(MeshoptDecoder);
   loading = Promise.all(Object.entries(URLS).map(([n, u]) => L.loadAsync(u).then(g => { GLTF[n] = g; }).catch(e => console.warn('animal', n, e))));
   return loading;
 }
