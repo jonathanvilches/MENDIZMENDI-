@@ -305,9 +305,10 @@ export class Encierro {
     // el protagonista se pone su ropa de San Fermín (el modelo vestido de blanco y rojo); los aventureros, de blanco y rojo
     // el jugador y los demás corredores son el mismo personaje de San Fermín (blanco y rojo, todos del mismo tamaño);
     // si no carga, los vecinos vestidos de blanco y rojo
-    let sf = null; try { sf = await loadMeshy('sanfermin'); } catch (e) { console.warn('corredor', e); }
-    const sanfermin = (k = 1) => {
-      const char = new GlbChar(sf, MESHY_GAIT); char.root.scale.setScalar((sf.userData.fit || 1) * k);
+    // (el jugador con el modelo completo; los demás corredores con la versión ligera: son muchos)
+    let sf = null, sfL = null; try { [sf, sfL] = await Promise.all([loadMeshy('sanfermin'), loadMeshy('sanfermin', true)]); } catch (e) { console.warn('corredor', e); }
+    const sanfermin = (k = 1, lite = false) => {
+      const char = new GlbChar(lite ? sfL : sf, MESHY_GAIT); char.root.scale.setScalar(((lite ? sfL : sf).userData.fit || 1) * k);
       const obj = new THREE.Group(); obj.add(char.root); obj.userData.H = 1.6 * k;
       return { obj, char, anim: { update: (dt, st) => { char.setSpeed(st.speed || 0); char.update(dt); } } };
     };
@@ -317,7 +318,7 @@ export class Encierro {
     this.runners = [];
     const nR = QUALITY === 'low' ? 7 : 12;
     for (let i = 0; i < nR; i++) {
-      const f = rnd() < 0.3, n = sf ? sanfermin(0.97 + rnd() * 0.06) : buildNpc({ ...white, female: f, ponytail: f, hair: ['#2a1a12', '#5a3a22', '#c9a46a', '#1d1d24'][i % 4], skin: ['#f1c4a0', '#e2b08a', '#c68a5e'][i % 3], height: 1.57 + rnd() * 0.06 });
+      const f = rnd() < 0.3, n = sf ? sanfermin(0.97 + rnd() * 0.06, true) : buildNpc({ ...white, female: f, ponytail: f, hair: ['#2a1a12', '#5a3a22', '#c9a46a', '#1d1d24'][i % 4], skin: ['#f1c4a0', '#e2b08a', '#c68a5e'][i % 3], height: 1.57 + rnd() * 0.06 });
       S.add(n.obj); this.runners.push({ ...n, x: (rnd() - 0.5) * 4.6, z: -6 - rnd() * 70, speed: 4.6 + rnd() * 1.6, want: 0 });
     }
     // la manada: cabestros y toros juntos; luego un toro suelto que se ha quedado atrás (el más peligroso)

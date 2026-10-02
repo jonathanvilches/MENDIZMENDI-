@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Personajes ligeros</title><link rel="icon" href="data:,"><style>html,body{margin:0;background:#cfd8e0}</style></head><body><script type="module">
+// comparación: cada personaje nuevo completo (arriba) y su versión ligera (abajo)
+import * as THREE from 'three';
+import { GlbChar, loadMeshy, MESHY_GAIT, MESHY_NAMES } from '../src/actors/glbChar.js';
+const r = new THREE.WebGLRenderer({ antialias: true }); r.setSize(innerWidth, innerHeight); r.outputColorSpace = THREE.SRGBColorSpace; document.body.appendChild(r.domElement);
+const s = new THREE.Scene(); s.add(new THREE.HemisphereLight('#fff', '#666', 2.2)); const d = new THREE.DirectionalLight('#fff', 2); d.position.set(2, 4, 5); s.add(d);
+const cam = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 0.1, 100); cam.position.set(0, 1.9, 13); cam.lookAt(0, 1.6, 0);
+const names = MESHY_NAMES;
+for (const [row, lod] of [[0, false], [1, true]]) for (const [i, n] of names.entries()) {
+  const g = await loadMeshy(n, lod), c = new GlbChar(g, MESHY_GAIT); c.root.scale.setScalar(g.userData.fit || 1); c.update(0.1);
+  c.root.position.set((i - (names.length - 1) / 2) * 1.6, row ? 0 : 1.9, 0); s.add(c.root);
+}
+r.render(s, cam); window.__ready = true;
+</script></body></html>

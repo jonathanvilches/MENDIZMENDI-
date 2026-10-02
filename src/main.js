@@ -18,12 +18,12 @@ import { Sound } from './audio.js';
 import { UI } from './ui.js';
 import { Hub } from './hub/hub.js';
 import { Game } from './game/game.js';
-import { TownGame, hasShepherd } from './game/townGame.js';
+import { TownGame } from './game/townGame.js';
 import { profile, saveProfile, townState, checkBadges, salazarState } from './game/profile.js';
 import { levelById } from './data/levels.js';
 import { landImg, stampImg } from './assets.js';
 import COMARCAS from './data/comarcas.json';
-import { preloadNpcs, preloadNpcMeshy } from './actors/npcGlb.js';
+import { preloadNpcs } from './actors/npcGlb.js';
 import { animalsSettled } from './actors/animalGlb.js';
 import { preloadFood } from './world/products3d.js';
 import { avatarPortrait } from './ui/portraits.js';
@@ -100,7 +100,6 @@ async function boot() {
     ui.showLoading(d.name, TIPS[Math.floor(Math.random() * TIPS.length)], landImg(d.comarca, 1280, 720, true), { comarca: cm?.name, stamp: stampImg(d.comarca, d.name.split(' /')[0]), avatar: avatarPortrait(P.avatar), intro: d.intro, missions: (d.missions || []).map(m => m.icon || TI[m.type] || 'star') });
     try {
       const npcP = preloadNpcs(); await preloadFood(); await Promise.all([rt.load(d, P.avatar, (p, m) => ui.progress(p, m)), npcP]);
-      if (!d.special && hasShepherd(d) && P.avatar !== 'pastor') await preloadNpcMeshy(['pastor']);
       const ctx = { scene: rt.scene, camera: rt.camera, player: rt.player, follow: rt.follow, ui, sound, input, sky: rt.sky, fauna: rt.fauna, particles: rt.particles, beacon: rt.beacon, rt, onExit: exit };
       hookPlayer(rt.player);
       if (d.special === 'salazar') {

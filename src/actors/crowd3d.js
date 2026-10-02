@@ -1,13 +1,11 @@
 // Público en 3D de verdad para las gradas y los balcones (El Sadar, la plaza de toros, la Estafeta): los mismos cuerpos
-// KayKit vestidos que las láminas (Osasuna, San Fermín, trajes de aquí), quietos o celebrando, cocinados una sola vez
+// personajes nuevos (Meshy, versión ligera) vestidos como en las láminas (Osasuna, San Fermín, el pastor), quietos o celebrando, cocinados una sola vez
 // en mallas fijas (la pose aplicada a los vértices y el color de su textura pasado a cada vértice) y dibujados por
 // instancias: una llamada de dibujo por figura y pose. Solo los espectadores cercanos a la cámara son 3D; los lejanos
 // siguen en lámina (de lejos no se distinguen y cuestan casi nada). Cada espectador es la misma figura de cerca y de lejos.
 import * as THREE from 'three';
-import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { GlbChar, loadKayKit } from './glbChar.js';
-import { applyOutfit } from './outfits.js';
+import { GlbChar, loadMeshy, MESHY_GAIT } from './glbChar.js';
 import { crowdMesh, figure, FIGS, sitPose } from './crowdSprites.js';
 import { QUALITY } from '../util/quality.js';
 
@@ -73,11 +71,9 @@ function bakeSet(set, sit) {
   const pr = (async () => {
     const out = [];
     for (let f = 0; f < FIGS; f++) {
-      const { base, outfit } = figure(set, f), gl = await loadKayKit(base), poses = [];
+      const gl = await loadMeshy(figure(set, f).meshy, true), poses = [];
       for (let r = 0; r < 2; r++) {
-        const src = { scene: SkeletonUtils.clone(gl.scene), animations: gl.animations, userData: gl.userData };
-        applyOutfit(src.scene, base, outfit);
-        const c = new GlbChar(src, {});
+        const c = new GlbChar(gl, MESHY_GAIT);
         c.root.scale.setScalar(gl.userData.fit || 1);
         if (r === 1) c.playOnce?.('Celebrate', 1); c.update(r === 1 ? 0.45 : 0.3);
         if (r === 0 && sit) sitPose(c.root);
@@ -103,7 +99,8 @@ export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false } = 
   for (let i = 0; i < n; i++) figs[i] = Math.floor(Math.random() * FIGS);
   const group = new THREE.Group(), sprites = crowdMesh(spots, set, height, figs, sit);
   group.add(sprites);
-  const Q = QUALITY, K = Q === 'low' ? 45 : Q === 'mid' ? 90 : 170, R = Q === 'low' ? 15 : Q === 'mid' ? 22 : 30;
+  // (los personajes nuevos tienen más detalle: en el móvil, menos en 3D a la vez)
+  const Q = QUALITY, K = Q === 'low' ? 26 : Q === 'mid' ? 60 : 120, R = Q === 'low' ? 13 : Q === 'mid' ? 20 : 28;
   const A = sprites.geometry.attributes.aAnim.array, C = sprites.geometry.attributes.aCell.array, IM = sprites.instanceMatrix, orig = IM.array.slice();
   const near = new Int32Array(K); let nNear = 0, meshes = null, cheer = 0, pick = 0;
   const hide = new Uint8Array(n), m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), s3 = new THREE.Vector3();

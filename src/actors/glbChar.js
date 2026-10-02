@@ -57,6 +57,11 @@ export async function loadKayKit(name, height = 1.5) {
 const MESHY = {}, MESHY_PICS = {};
 for (const [p, u] of Object.entries(import.meta.glob('../assets/meshy/*.glb', { eager: true, query: '?url', import: 'default' }))) MESHY[p.split('/').pop().replace('.glb', '')] = u;
 for (const [p, u] of Object.entries(import.meta.glob('../assets/meshy/portraits/*.png', { eager: true, query: '?url', import: 'default' }))) MESHY_PICS[p.split('/').pop().replace('.png', '')] = u;
+// versión ligera de cada uno (tools/meshy-lod.mjs: ~1/3 de triángulos y textura de 512 px) para cuando salen muchos a la
+// vez: vecinos, corredores, futbolistas
+const MESHY_LOD = {};
+for (const [p, u] of Object.entries(import.meta.glob('../assets/meshy/lod/*.glb', { eager: true, query: '?url', import: 'default' }))) MESHY_LOD[p.split('/').pop().replace('.glb', '')] = u;
+export const MESHY_NAMES = Object.keys(MESHY);
 // nombre del juego: [clip de origen, desde (s), hasta (s), ida y vuelta, sin subir la cadera (el salto lo hace el juego)]
 const MESHY_CUTS = {
   Idle: ['Celebrate', 6.9, 9.3, true], Talk: ['Celebrate', 6.4, 9.3, true], Wave: ['Celebrate', 3.55, 6.1], Celebrate: ['Celebrate', 0.3, 1.75],
@@ -124,11 +129,12 @@ export const MESHY_GAIT = { walkAt: 0.15, runAt: 3.6, gait: (v, n) => n === 'Run
 export const MESHY_SPEEDS = { walk: 2.4, run: 5.8 };
 /** ¿Está ya cargado (o cargándose) este personaje de Meshy? */
 export const loadedMeshy = (name) => cache.has('meshy:' + name);
-/** Personaje de Meshy con los clips del juego, escalado a su altura. */
-export async function loadMeshy(name) {
-  const key = 'meshy:' + name, height = MESHY_H[name] || 1.5;
+/** Personaje de Meshy con los clips del juego, escalado a su altura. lod: la versión ligera (para multitudes). */
+export async function loadMeshy(name, lod = false) {
+  lod = lod && !!MESHY_LOD[name];
+  const key = 'meshy:' + name + (lod ? ':lod' : ''), height = MESHY_H[name] || 1.5;
   if (!cache.has(key)) cache.set(key, (async () => {
-    const g = await loadChar(MESHY[name]);
+    const g = await loadChar(lod ? MESHY_LOD[name] : MESHY[name]);
     // textura nítida también vista de lado (anisotropía); en el móvil se reduce salvo la del personaje del jugador
     g.scene.traverse(o => { if (o.isMesh) { o.castShadow = true; for (const m of [].concat(o.material)) { if (!FULL_TEX.has(name)) shrinkMap(m); if (m.map) { m.map.anisotropy = 8; m.map.needsUpdate = true; }
       // luz de relleno propia: la cámara va detrás y el sol suele darle de frente, así que se le veía siempre en sombra.
