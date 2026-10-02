@@ -8,7 +8,7 @@ const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-119
 const p = await b.newPage({ viewport: { width: 1100, height: 620 } }); const errs = [];
 p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type() === 'error' && !/404/.test(m.text())) errs.push(m.text()); });
 await p.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); localStorage.setItem('mendimendiz-futbol-v1', JSON.stringify({ v: 1, tutorial: true })); });
-await p.goto('http://127.0.0.1:5173/?town=pamplona&q=high&weather=clear&skipintro=1', { timeout: 300000 });
+await p.goto((process.env.BASE || 'http://127.0.0.1:5173/') + '?town=pamplona&q=high&weather=clear&skipintro=1', { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 900000 });
 const adv = (s) => p.evaluate((s) => { const m = window.__futbol; if (!m) return 'sin partido'; for (let i = 0; i < s * 30; i++) m.update(1 / 30); return { mode: m.o.mode, phase: m.game.phase, score: m.game.score.join('-') }; }, s);
 // abre el fútbol como lo hace la entrenadora (sin la charla)

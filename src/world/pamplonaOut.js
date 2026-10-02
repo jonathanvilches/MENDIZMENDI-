@@ -453,10 +453,10 @@ export function stadium(B, S, group, cx, cz, TOWN) {
   ringRoof(B, T, RIN, ROUT, hIn - 0.5, hOut - 0.4, '#b9bec4', true, 'lit');
   for (const s of [-1, 1]) {
     B.add('paint', colored(box(0.5, 1.2, 2 * OZ - 6), '#3a3f45'), F(M(s * 27.6, hIn - 0.9, 0)));
-    // OSASUNA pintado en el tejado, a lo largo de los lados largos
-    const fr = 0.47, h = hIn + (hOut - hIn) * fr + 0.12, sl = Math.atan2(hIn - hOut, ROUT[0] - RMID[0]);
-    const u = new THREE.Vector3(0, 0, -s), v = new THREE.Vector3(-s * Math.cos(sl), Math.sin(sl), 0), nrm = new THREE.Vector3().crossVectors(u, v);
-    const Mx = new THREE.Matrix4().makeBasis(u, v, nrm).setPosition(cx + s * (RMID[0] + (ROUT[0] - RMID[0]) * fr), y + h, cz);
+    // OSASUNA pintado en el tejado sobre los dos fondos (como en las fotos aéreas), a lo ancho del estadio
+    const fr = 0.5, h = hIn + (hOut - hIn) * fr + 0.12, sl = Math.atan2(hIn - hOut, ROUT[1] - RMID[1]);
+    const u = new THREE.Vector3(s, 0, 0), v = new THREE.Vector3(0, Math.sin(sl), -s * Math.cos(sl)), nrm = new THREE.Vector3().crossVectors(u, v);
+    const Mx = new THREE.Matrix4().makeBasis(u, v, nrm).setPosition(cx, y + h, cz + s * (RMID[1] + (ROUT[1] - RMID[1]) * fr));
     S.add(Mx, 46, 6.2, letters('OSASUNA', '#ffffff', { font: FONT_ROUND, weight: '900', shadow: null, size: 0.82 }), { ppm: 26 });
     if (s > 0) B.add('lit', colored(box(0.36, HH + 5.5, 2 * OZ + 0.7), '#6a7078'), F(M(OX + 0.18, HH / 2 - 2.25, 0)));
     B.add('lit', colored(box(0.36, HH + 5.5, OZ + 0.35 - GAP), '#6a7078'), F(M(-(OX + 0.18), HH / 2 - 2.25, s * (OZ + 0.35 + GAP) / 2)));

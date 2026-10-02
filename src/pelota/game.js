@@ -98,12 +98,15 @@ export class PelotaGame {
       v = aimVelocity(p, tx, ty, p.z / (13 + q * 3));
     } else {
       let tx, landZ, speed = 19 + q * 5;
-      if (aim.y > 0.55) { shot = 'largo'; tx = aim.x * 2.4; landZ = 27.5 + gauss(rnd) * err * 5; speed += 2; }
+      if (aim.y > 0.55) { shot = 'largo'; tx = aim.x * 2.4; landZ = 26 + gauss(rnd) * err * 3; speed += 1; }
       else if (aim.x < -0.5) { shot = 'pared'; tx = -3.7; landZ = 17 + rnd() * 6; }
       else if (aim.x > 0.5) { shot = 'ancho'; tx = 3.9; landZ = 15 + rnd() * 6; }
       else { tx = aim.x * 2 + gauss(rnd) * 1.1; landZ = 16 + rnd() * 9; }
       tx = clamp(tx + gauss(rnd) * err * 2.2, -4.6, 4.8);
       landZ += gauss(rnd) * err * 4.5;
+      // alcance de un golpe: un pelotari con mucha fuerza, desde el cuadro 4, la manda de vuelta hasta el cuadro 7;
+      // desde más atrás llega algo más lejos (le da más alto en el frontis) y un golpe flojo se queda antes
+      landZ = Math.min(landZ, 21.5 + q * 3 + clamp(p.z - COURT.FALTA, -4, 8) * 0.22);
       v = solveShot(p, tx, landZ, speed).v;
     }
     // golpe muy malo: a veces a la chapa o demasiado alto

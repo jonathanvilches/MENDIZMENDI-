@@ -37,7 +37,7 @@ export class Ball {
       v.x += (-K.drag * s * v.x + mx) * dt; v.y += (-K.g - K.drag * s * v.y + my) * dt; v.z += (-K.drag * s * v.z + mz) * dt;
       const wd = Math.exp(-0.25 * dt); w.x *= wd; w.y *= wd; w.z *= wd;
     } else {
-      // rodando: deceleración de 1,8 m/s² más el aire; el efecto se pierde enseguida contra el césped
+      // rodando: deceleración de 1,5 m/s² más el aire; el efecto se pierde enseguida contra el césped
       const s = Math.hypot(v.x, v.z);
       if (s > 0) { const ns = Math.max(0, s - (K.roll + K.drag * s * s) * dt); v.x *= ns / s; v.z *= ns / s; }
       v.y = 0; p.y = R; const wd = Math.exp(-5 * dt); w.x *= wd; w.y *= wd; w.z *= wd;
@@ -49,7 +49,7 @@ export class Ball {
       if (v.y < -0.9) { ev.push({ t: 'bounce', s: -v.y }); v.y = -v.y * K.rest; v.x *= K.tan; v.z *= K.tan; } else v.y = 0;
     }
     if (Math.abs(p.x) > F.HL - 0.8 || Math.abs(ox) > F.HL - 0.8) for (const s of [-1, 1]) this.goal(s, ox, oy, oz, ev);
-    // valla alrededor del campo, a 2 m de las líneas
+    // vallas de publicidad alrededor del campo, a 5 m de las líneas
     const BX = F.HL + F.margin - R, BZ = F.HW + F.margin - R;
     if (Math.abs(p.x) > BX) { p.x = Math.sign(p.x) * BX; if (v.x * p.x > 0) { ev.push({ t: 'board', s: Math.abs(v.x) }); v.x = -v.x * K.board; v.z *= 0.8; } }
     if (Math.abs(p.z) > BZ) { p.z = Math.sign(p.z) * BZ; if (v.z * p.z > 0) { ev.push({ t: 'board', s: Math.abs(v.z) }); v.z = -v.z * K.board; v.x *= 0.8; } }
@@ -109,6 +109,6 @@ export function rollAhead(b, t) {
 }
 function roll(x, z, vx, vz, s, t) {
   if (s < 1e-3) return { x, z, y: R };
-  const d = 2.4, ts = Math.min(t, s / d), dist = s * ts - 0.5 * d * ts * ts, ux = vx / Math.hypot(vx, vz), uz = vz / Math.hypot(vx, vz);
+  const d = K.roll + 0.6, ts = Math.min(t, s / d), dist = s * ts - 0.5 * d * ts * ts, ux = vx / Math.hypot(vx, vz), uz = vz / Math.hypot(vx, vz);
   return { x: x + ux * dist, z: z + uz * dist, y: R };
 }
