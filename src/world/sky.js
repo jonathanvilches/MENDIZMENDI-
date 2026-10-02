@@ -118,7 +118,7 @@ void main(){
     scene.add(this.hemi);
     this.sun = new THREE.DirectionalLight('#ffffff', 3);
     this.sun.castShadow = true;
-    const sm = quality === 'low' ? 1024 : quality === 'mid' ? 2048 : 3072;
+    const sm = quality === 'low' ? 1024 : 2048;   // 3072 en alta costaba mucho y apenas se notaba
     this.sun.shadow.mapSize.set(sm, sm);
     const S = this.shadowSize = quality === 'low' ? 38 : 55;
     Object.assign(this.sun.shadow.camera, { left: -S, right: S, top: S, bottom: -S, near: 1, far: 400 });

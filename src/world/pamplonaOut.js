@@ -424,7 +424,7 @@ export function stadium(B, S, group, cx, cz, TOWN) {
       const im = new THREE.InstancedMesh(sg, mat, list.length);
       list.forEach(([x, yy, z, ry, c], i) => { im.setMatrixAt(i, m4.compose(v.set(cx + x, y + yy, cz + z), q.setFromEuler(e.set(0, ry, 0)), sc)); im.setColorAt(i, col.set(c)); });
       im.computeBoundingSphere(); im.receiveShadow = true; im.name = 'asientos'; group.add(im);
-      DETAIL.push({ m: im, tier: 1, c: im.boundingSphere.center.clone(), r: im.boundingSphere.radius });
+      DETAIL.push({ m: im, tier: 2, c: im.boundingSphere.center.clone(), r: im.boundingSphere.radius });   // solo de cerca (de lejos no se distinguen)
     }
     // vomitorios: boca oscura con dintel, laterales y barandilla
     for (const vv of VOM) {

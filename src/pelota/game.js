@@ -135,7 +135,7 @@ export class PelotaGame {
     }
     this.score[winner]++;
     this.server = winner;
-    this.emit({ type: 'call', call, winner, score: { ...this.score }, kantari: kantari(this.score.you, this.score.rival) });
+    this.emit({ type: 'call', call, winner, score: { ...this.score }, kantari: kantari(this.score.rival, this.score.you) });
     const P = this.players[winner]; P.act = 'cheer'; P.actT = 0;
     const L = this.players[this.other(winner)]; L.act = 'sad'; L.actT = 0;
   }

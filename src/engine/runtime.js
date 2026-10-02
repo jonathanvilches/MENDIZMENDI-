@@ -60,8 +60,11 @@ export class Runtime {
     this.canvas = canvas; this.input = input; this.sound = sound; this.quality = quality;
     setBuilderQuality(quality); setOutfitTexMax(quality === 'low' ? 256 : 512); setMeshyTexMax(quality === 'low' ? 1024 : 2048); setQuality(quality);
     // en móvil (calidad media/baja) sin antialias de hardware y con menos resolución: el búfer de imagen pesa mucho menos
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: quality === 'high', powerPreference: 'high-performance' });
-    this.pixelRatio = Math.min(devicePixelRatio, quality === 'high' ? 2 : 1.25);   // en móvil (media y baja) 1,25: nítido sin un búfer enorme
+    // en pantallas de mucha densidad (retina, 4K) la propia resolución ya suaviza los bordes: sin antialias de hardware,
+    // que con tantos píxeles era lo que más frenaba los ordenadores
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: quality === 'high' && devicePixelRatio < 1.5, powerPreference: 'high-performance' });
+    // resolución con un presupuesto de píxeles: en alta, como mucho unos 4 millones (2560×1600); en móvil 1,25
+    this.pixelRatio = this.maxRatio = this.ratioFor(quality);
     // si el navegador se queda sin memoria gráfica, avisar y ofrecer recargar (el progreso ya está guardado)
     canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); this.contextLost = true; showContextLost(); }, false);
     this.renderer.debug.checkShaderErrors = /debug/.test(location.search);
@@ -69,18 +72,18 @@ export class Runtime {
     this.renderer.setSize(innerWidth, innerHeight);
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = quality === 'low' ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
-    // en móvil la sombra se recalcula un fotograma sí y otro no (casi no se nota y ahorra mucho)
-    this.shadowEvery = quality === 'high' ? 1 : 2; this.renderer.shadowMap.autoUpdate = this.shadowEvery === 1;
+    // la sombra se recalcula un fotograma sí y otro no (casi no se nota y ahorra mucho; en ordenador también)
+    this.shadowEvery = 2; this.renderer.shadowMap.autoUpdate = false;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping; this.renderer.toneMappingExposure = 1.05;
     // en vertical se abre el campo de visión para no ver el mundo «por un tubo»
     const fovFor = (a) => a < 1 ? 55 + (1 - a) * 30 : 55;
     this.camera = new THREE.PerspectiveCamera(fovFor(innerWidth / innerHeight), innerWidth / innerHeight, 0.15, 6000);
     this.camera.userData.fov0 = this.camera.fov;
-    addEventListener('resize', () => { this.renderer.setSize(innerWidth, innerHeight); this.camera.aspect = innerWidth / innerHeight; this.camera.fov = this.camera.userData.fov0 = fovFor(this.camera.aspect); this.camera.updateProjectionMatrix(); });
+    addEventListener('resize', () => { this.maxRatio = this.ratioFor(this.quality); if (this.pixelRatio > this.maxRatio) { this.pixelRatio = this.maxRatio; this.renderer.setPixelRatio(this.pixelRatio); } this.renderer.setSize(innerWidth, innerHeight); this.camera.aspect = innerWidth / innerHeight; this.camera.fov = this.camera.userData.fov0 = fovFor(this.camera.aspect); this.camera.updateProjectionMatrix(); });
     this.texturesReady = false;
     this.active = false;
     this.clock = new THREE.Clock();
-    this.elapsed = 0; this.frames = 0; this.fpsT = 0; this.lowFps = 0;
+    this.elapsed = 0; this.frames = 0; this.fpsT = 0; this.lowFps = 0; this.highFps = 0;
     this.loop = this.loop.bind(this);
     requestAnimationFrame(this.loop);
   }
@@ -182,15 +185,26 @@ export class Runtime {
     const alt = g?.altScene;
     if (this.frames % 15 === 0) this.sound.setMood?.(this.moodOf(g));
     try { if (alt) { input.enabled = !g.ui.busy; input.update(); g.altUpdate?.(dt); } else this.step(dt, g, input); } catch (e) { this.reportError(e); }
+    // sombras un fotograma sí y otro no (también en las escenas propias, como el encierro)
+    if (this.frames % this.shadowEvery === 0) this.renderer.shadowMap.needsUpdate = true;
     try { this.renderer.render(alt || this.scene, (alt && g.altCamera) || this.camera); } catch (e) { this.reportError(e); }
     input.endFrame();
     this.frames++; this.fpsT += dt;
     if (this.fpsT > 2) {
       const fps = this.frames / this.fpsT; this.frames = 0; this.fpsT = 0;
-      if (fps < 32 && this.pixelRatio > 0.75) { if (++this.lowFps >= 2) { this.pixelRatio = Math.max(0.75, this.pixelRatio - 0.25); this.renderer.setPixelRatio(this.pixelRatio); this.lowFps = 0; } }
-      else this.lowFps = 0;
+      // resolución dinámica: si va a tirones baja un poco la resolución; si sobra fluidez, la recupera poco a poco
+      const want = this.quality === 'high' ? 50 : 32;
+      if (fps < want && this.pixelRatio > 0.75) { if (++this.lowFps >= 2) { this.pixelRatio = Math.max(0.75, this.pixelRatio - (fps < want * 0.6 ? 0.3 : 0.15)); this.renderer.setPixelRatio(this.pixelRatio); this.lowFps = 0; this.highFps = 0; } }
+      else if (fps > want + 8 && this.pixelRatio < this.maxRatio) { this.lowFps = 0; if (++this.highFps >= 3) { this.pixelRatio = Math.min(this.maxRatio, this.pixelRatio + 0.1); this.renderer.setPixelRatio(this.pixelRatio); this.highFps = 0; } }
+      else { this.lowFps = 0; this.highFps = 0; }
       window.__fps = fps;
     }
+  }
+  // densidad de píxeles según la calidad: en alta hasta 2 pero sin pasar de ~4 megapíxeles; en media y baja 1,25
+  ratioFor(q) {
+    if (q !== 'high') return Math.min(devicePixelRatio, 1.25);
+    const css = Math.max(1, innerWidth * innerHeight);
+    return Math.max(1, Math.min(devicePixelRatio, 2, Math.sqrt(4.1e6 / css)));
   }
   // un error en una parte del juego no debe congelar la imagen: se anota (una vez por mensaje) y se sigue
   reportError(e) {
@@ -230,6 +244,5 @@ export class Runtime {
     this.beacon.update(this.elapsed, P);
     this.sound.update(dt, P, this.follow.yaw, this.sky.night, iratiMask(P.pos.x, P.pos.z) > 0.5);
     g.ui.setClock(this.sky.clock(), this.sky.night > 0.5);
-    if (this.shadowEvery > 1 && this.frames % this.shadowEvery === 0) this.renderer.shadowMap.needsUpdate = true;
   }
 }

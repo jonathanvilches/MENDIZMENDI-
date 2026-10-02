@@ -64,9 +64,14 @@ const MESHY_CUTS = {
 };
 // cortes propios de cada personaje (el pelotari trae un golpe con la derecha y un puño en alto en vez de la celebración)
 const MESHY_BY = {
+  // el explorador: quieto y hablando, del principio y el final tranquilos de su charla; el salto, de saltar un obstáculo
+  explorador: { Idle: ['TalkP', 7.2, 10.3, true], Talk: ['TalkP', 1.3, 6.8], Wave: ['TalkP', 3.0, 4.6], Celebrate: ['Hop', 0, 0.62, false, true],
+    Jump_Start: ['Hop', 0, 0.3, false, true], Jump_Loop: ['Hop', 0.3, 0.55, true, true], Land: ['Hop', 0.6, 0.96, false, true],
+    Ready: ['Hop', 0.02, 0.18, true, true], Scared: ['Hop', 0.62, 0.96, false, true], Pick: ['Hop', 0.62, 0.96, false, true], Hit: ['TalkP', 3.2, 3.9] },
   pelotari: { Idle: ['Fist', 0, 0.25, true], Talk: ['Fist', 0, 0.25, true], Ready: ['Slash', 0.02, 0.36, true], Hit: ['Slash', 0.5, 1.25],
     Celebrate: ['Fist', 0, 1.58], Wave: ['Fist', 0.15, 1.4], Scared: ['Slash', 1.1, 1.5], Pick: ['Slash', 0.1, 0.4] },
 };
+MESHY_BY.pelotari_rojo = MESHY_BY.pelotari;   // el colorado se mueve igual que el azul
 // recorta un clip muestreándolo (así ningún hueso se queda sin pista aunque no tenga claves en ese tramo)
 function cutClip(clip, name, t0, t1, flatHips, fps = 30) {
   const n = Math.max(2, Math.round((t1 - t0) * fps) + 1), tracks = [];
@@ -74,7 +79,7 @@ function cutClip(clip, name, t0, t1, flatHips, fps = 30) {
     const I = tr.createInterpolant(), vs = tr.getValueSize(), times = new Float32Array(n), values = new Float32Array(n * vs);
     for (let i = 0; i < n; i++) { const t = t0 + (t1 - t0) * i / (n - 1); times[i] = t - t0; values.set(I.evaluate(t), i * vs); }
     // la cadera no sube: el salto del clip se quedaría encima del salto del juego (sí baja, al agacharse)
-    if (flatHips && /Hips\.position$/.test(tr.name)) { const y0 = values[1]; for (let i = 0; i < n; i++) values[i * 3 + 1] = Math.min(values[i * 3 + 1], y0); }
+    if (flatHips && /Hips\.position$/.test(tr.name)) { const [x0, y0, z0] = values; for (let i = 0; i < n; i++) { values[i * 3] = x0; values[i * 3 + 1] = Math.min(values[i * 3 + 1], y0); values[i * 3 + 2] = z0; } }
     tracks.push(new tr.constructor(tr.name, times, values));
   }
   return new THREE.AnimationClip(name, t1 - t0, tracks);
@@ -390,8 +395,10 @@ export class GlbChar {
 export const GLB_AVATARS = {};
 for (const [id, name] of [['ranger', 'Ranger'], ['rogue', 'Rogue'], ['hooded', 'Rogue_Hooded'], ['knight', 'Knight'], ['barbarian', 'Barbarian'], ['mage', 'Mage']])
   if (KK[name]) GLB_AVATARS[id] = { kaykit: name, bust: KK_PICS[id + '_bust'], full: KK_PICS[id + '_full'] };
-// y el de Meshy de San Fermín, con su ropa ya puesta (de blanco y rojo); el futbolista de Osasuna sale en El Sadar
-for (const id of ['sanfermin']) if (MESHY[id]) GLB_AVATARS[id] = { meshy: id, bust: MESHY_PICS[id + '_bust'], full: MESHY_PICS[id + '_full'] };
+// y los de Meshy: el explorador (el de siempre) y el de San Fermín, con su ropa ya puesta; el futbolista de Osasuna
+// sale en El Sadar y el pelotari en los partidos de pelota
+// el explorador ya lleva su mochila con la esterilla (no se le añade otra)
+for (const id of ['explorador', 'sanfermin']) if (MESHY[id]) GLB_AVATARS[id] = { meshy: id, pack: id !== 'explorador', bust: MESHY_PICS[id + '_bust'], full: MESHY_PICS[id + '_full'] };
 export const hasMeshy = (id) => !!MESHY[id];
 export const isGlbAvatar = id => !!GLB_AVATARS[id];
 export const loadGlbAvatar = id => GLB_AVATARS[id].kaykit ? loadKayKit(GLB_AVATARS[id].kaykit) : GLB_AVATARS[id].meshy ? loadMeshy(GLB_AVATARS[id].meshy) : loadChar(GLB_AVATARS[id].url);
@@ -415,7 +422,7 @@ export class GlbRig {
     this.char = new GlbChar(gltf, { outline: 0.006, walkAt: 0.2, runAt: 4.6, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / (2.5 * LEGS), 0.85) : Math.pow(Math.max(0.2, v) / (1.15 * LEGS), 0.8) });
     // la mochila del explorador a la espalda (lleva el agua, la comida y el equipo); se quitan capa y carcaj
     if (def.kaykit) { try { applyOutfit(this.char.root, def.kaykit, { id: 'mochila', keep: true, backpack: {} }); } catch (e) { console.warn('mochila', e); } }
-    else if (def.meshy) { try { mixamoBackpack(this.char); } catch (e) { console.warn('mochila', e); } }
+    else if (def.meshy && def.pack) { try { mixamoBackpack(this.char); } catch (e) { console.warn('mochila', e); } }
     this.char.root.scale.setScalar(def.scale || gltf.userData?.fit || 1);
     this.obj.add(this.char.root);
     this.wave = 0; this.cheer = 0; this.talking = 0; this.carry = false;
