@@ -7,7 +7,7 @@ import { PLACES, rx, riverInfo } from '../world/layout.js';
 import { TREES } from '../world/nature.js';
 import { clamp, damp, dampAngle, mulberry32 } from '../util/math.js';
 import { setOutlines } from './minifig.js';
-import { buildAnimal } from './animalGlb.js';
+import { buildAnimal, ensureAnimal, animalPending } from './animalGlb.js';
 import { beast, bird, squirrel, woodpecker, trout, owl } from './beasts.js';
 
 // Los modelos (anatomía por secciones, pelaje y aves) están en beasts.js
@@ -21,8 +21,16 @@ export class Animal {
     // especies con modelo y animaciones (Quaternius); el resto, con su modelo procedural
     const G = buildAnimal(kind, opts);
     if (G) { this.glbA = G; this.obj = G.root; this.q = null; }
+    else if (animalPending(kind, opts)) {
+      // su modelo aún se está descargando: un grupo vacío que lo recibe al llegar (la pantalla de carga lo espera)
+      this.obj = new THREE.Group(); this.q = null; this.glbA = null;
+      ensureAnimal(kind, opts).then(() => {
+        const A = buildAnimal(kind, opts), q = A ? null : beast(kind, rnd, opts);
+        this.obj.add(A ? A.root : q.root); this.glbA = A; this.q = q;
+      });
+    }
     else { const q = beast(kind, rnd, opts); this.obj = q.root; this.q = q; }
-    const s = opts.scale ?? (G ? 0.94 + rnd() * 0.12 : 0.9 + rnd() * 0.2);
+    const s = opts.scale ?? (G || !this.q ? 0.94 + rnd() * 0.12 : 0.9 + rnd() * 0.2);
     this.obj.scale.setScalar(s);
     this.pos = new THREE.Vector3(x, groundHeight(x, z), z);
     this.home = { x, z };
@@ -106,6 +114,7 @@ export class Animal {
     this.sync();
   }
   animate(dt) {
+    if (!this.glbA && !this.q) return;   // modelo aún en camino
     if (this.glbA) { this.glbA.update(dt, { speed: this.speed, graze: this.state === 'graze' && !this.alert && this.speed < 0.15, alt: (this.t % 14) > 11, sit: this.sit, lod: !this.obj.visible ? 0.25 : this.dist > 45 ? 0.12 : this.dist > 22 ? 0.05 : 0 }); return; }
     const q = this.q, sp = this.speed;
     // andares con cada pata a su tiempo: paso (secuencia lateral), trote (diagonales) y galope rotatorio

@@ -98,6 +98,10 @@ const WALKER_LINES = [
 ];
 const QUIZ_N = 3;
 
+/** ¿Sale el pastor con su rebaño en este pueblo? (pueblos con granja, no ciudades). Se mira al terminar de montar el
+ *  pueblo, para descargar su personaje solo donde hace falta. */
+export const hasShepherd = (d) => !!(TOWN.farm || PLACES.farm) && d.family !== 'city';
+
 export class TownGame {
   constructor(ctx, def) {
     Object.assign(this, ctx);        // scene, camera, player, follow, ui, sound, input, sky, fauna, particles, beacon, onExit
@@ -344,7 +348,7 @@ export class TownGame {
     } finally { this.player.frozen = false; a.talking = 0; this.speaker = null; }
   }
   spawnShepherds() {
-    const d = this.def, P = PLACES, R = this.rnd, farm = TOWN.farm || P.farm; if (!farm || d.family === 'city') return;
+    const d = this.def, P = PLACES, R = this.rnd, farm = TOWN.farm || P.farm; if (!hasShepherd(d)) return;
     const route = [0, 1, 2, 3].map(i => { const a = i / 4 * Math.PI * 2 + 0.6, s = this.spot({ x: farm.x + Math.cos(a) * 42, z: farm.z + Math.sin(a) * 42 }, 6); return { x: s.x, z: s.z }; });
     const s0 = route[0];
     // el pastor del pueblo, con su rebaño y su perro: es el personaje del pastor (modelo de Meshy con txapela)

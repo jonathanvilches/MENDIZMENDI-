@@ -281,7 +281,7 @@ export function buildDiorama(comarcaId, { live = true } = {}) {
     grassG = grass(hf, p.userData.curve, tone, rnd, 22000); scene.add(grassG);
     herd = sheep(hf, rnd); scene.add(herd);
     // en cuanto llegan los modelos animados, se cambia el rebaño
-    if (!herd.userData.list[0]?.q.A) preloadAnimals().then(() => { const n = sheep(hf, mulberry32(7)); if (!n.userData.list[0]?.q.A) return; scene.remove(herd); herd = n; scene.add(herd); });
+    if (!herd.userData.list[0]?.q.A) preloadAnimals(['sheep']).then(() => { const n = sheep(hf, mulberry32(7)); if (!n.userData.list[0]?.q.A) return; scene.remove(herd); herd = n; scene.add(herd); });
     flock = birds(rnd); scene.add(flock);
   } else {
     grassG = grass(hf, p.userData.curve, tone, rnd, 5000); scene.add(grassG);

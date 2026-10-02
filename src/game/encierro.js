@@ -5,7 +5,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { beast } from '../actors/beasts.js';
-import { buildAnimal } from '../actors/animalGlb.js';
+import { buildAnimal, preloadAnimals } from '../actors/animalGlb.js';
 import { buildNpc } from '../actors/npcGlb.js';
 import { infoCard } from '../ui/minigames.js';
 import { buildPlaza, RO, RA } from './encierroPlaza.js';
@@ -200,6 +200,7 @@ export class Encierro {
 
   // corredores (el jugador y los demás, todos de blanco y rojo), toros y cabestros
   async spawn() {
+    await preloadAnimals(['bull', 'cabestro']);   // toros y cabestros (se descargan al empezar el encierro)
     const S = this.scene, rnd = mulberry(11), av = this.G.P.avatar, def = GLB_AVATARS[av];
     const white = { shirt: '#f7f3ea', pants: '#f7f3ea', sash: '#d42f2f', scarf: '#d42f2f', shoes: '#efe6d0', espadrille: true };
     // el protagonista se pone su ropa de San Fermín (el modelo vestido de blanco y rojo); los aventureros, de blanco y rojo

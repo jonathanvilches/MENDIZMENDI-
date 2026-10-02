@@ -8,6 +8,7 @@ import { addBox, isFree } from '../world/colliders.js';
 import { clearGrass } from '../world/nature.js';
 import { isEU } from '../i18n.js';
 import { profile } from './profile.js';
+import { QUALITY } from '../util/quality.js';
 import { Crowd } from './crowd.js';
 import { shieldSpec, drawShield } from '../world/heraldry.js';
 
@@ -19,7 +20,7 @@ export function frontonWall(def) {
 
 // huella del frontón en coordenadas locales (se calcula una vez)
 let EXTENT = null;
-function extent() { if (!EXTENT) { const c = new PelotaCourt(THREE); EXTENT = c.extent; c.dispose(); } return EXTENT; }
+function extent() { if (!EXTENT) { const c = new PelotaCourt(THREE, { texScale: 0.25 }); EXTENT = c.extent; c.dispose(); } return EXTENT; }
 
 // Busca un sitio llano y libre cerca de la plaza
 export function findFrontonSpot(plaza) {
@@ -59,7 +60,7 @@ export class Fronton {
   constructor(scene, spot, title = '', extra = {}) {
     if (spot.y == null) spot = { ...spot, y: courtHeight(spot.x, spot.z, spot.ry) };
     this.spot = spot;
-    const court = this.court = new PelotaCourt(THREE, { title, ...extra });
+    const court = this.court = new PelotaCourt(THREE, { title, texScale: QUALITY === 'low' ? 0.5 : 1, ...extra });
     const g = court.group; g.position.set(spot.x, spot.y, spot.z); g.rotation.y = spot.ry; scene.add(g); g.updateMatrixWorld(true);
     const E = court.extent, mid = this.toWorld((E.x0 + E.x1) / 2, 0);
     clearGrass(mid.x, mid.z, E.x1 - E.x0, E.z1, spot.ry);

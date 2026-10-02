@@ -30,9 +30,19 @@ pueblo se gana su sello; con todos los pueblos de una comarca, la comarca se ilu
 ```
 npm install
 npx vite                        # servidor de desarrollo
-npx vite build                  # genera dist/index.html (un solo archivo)
+npx vite build                  # genera dist/index.html (un solo archivo, para ordenador)
+WEB=1 npx vite build            # genera docs/ (versión web para el navegador y el móvil)
 node tools/make-artifact.mjs    # prepara artifact/mendimendiz.html para publicar
 ```
+### Versión web y móvil (docs/)
+La carpeta `docs/` es la versión que se juega desde el navegador (GitHub Pages: rama `main`, carpeta `/docs`). La
+página pesa unos 2 MB y cada modelo, textura o sonido es un archivo aparte que solo se descarga cuando hace falta (un
+pueblo baja sus animales y personajes, no todos). Un service worker guarda lo descargado: la segunda vez carga al
+momento y se puede jugar sin conexión. Se puede instalar en el móvil («Añadir a pantalla de inicio») y abre a
+pantalla completa. En los móviles (calidad baja) los carteles y el frontón usan texturas a la mitad.
+Medir: `tools/memoria-web.mjs` (descargas y memoria), `tools/memoria-gpu.mjs` (texturas y geometría),
+`tools/descargas.mjs` (qué baja cada pueblo); iconos de la app: `tools/iconos-app.mjs`.
+
 Pruebas: `tools/play.mjs` (pasos automatizados), `tools/views.mjs` (fotos con cámara fija) y `lab/flow-town.js`
 (recorre todas las misiones de un pueblo: `node tools/play.mjs "http://127.0.0.1:5173/?town=lesaka" out '[{"wait":20000},{"file":"lab/flow-town.js"}]'`).
 Laboratorios: `lab/minifigs.html` (figuras y animación), `lab/icons.html` (iconos), `lab/portraits.html` (retratos).

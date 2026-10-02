@@ -24,15 +24,20 @@ const BASE = {
 };
 const GLTF = {};
 let ready = false;
-/** Carga los dos modelos de vecino (chico/hombre y chica/mujer). Se llama antes de montar el pueblo. */
+/** Carga los cuerpos de los vecinos (KayKit). Los dos modelos antiguos de Blender solo se descargan si los KayKit
+ *  no cargan (son la reserva). Se llama antes de montar el pueblo. */
 export async function preloadNpcs() {
-  try { const [b, g] = await Promise.all([loadChar(boyUrl), loadChar(girlUrl)]); GLTF.boy = b; GLTF.girl = g; ready = true; }
-  catch (e) { console.warn('vecinos GLB', e); ready = false; }
   // cuerpos KayKit (la fisiología de los personajes nuevos) para todos los vecinos
   try { await Promise.all(KK_BASES.map(n => loadKayKit(n).then(g => { KKG[n] = g; }))); kkReady = true; } catch (e) { console.warn('vecinos KayKit', e); }
-  // personajes propios de Meshy que hacen de vecinos (el pastor)
-  await Promise.all(NPC_MESHY.filter(hasMeshy).map(n => loadMeshy(n, 1.55).then(g => { MESHY_NPC[n] = g; }).catch(e => console.warn('vecino', n, e))));
+  if (!kkReady) {
+    try { const [b, g] = await Promise.all([loadChar(boyUrl), loadChar(girlUrl)]); GLTF.boy = b; GLTF.girl = g; ready = true; }
+    catch (e) { console.warn('vecinos GLB', e); ready = false; }
+  }
   return ready || kkReady;
+}
+/** Personajes propios de Meshy que hacen de vecinos (el pastor): solo en los pueblos donde salen. */
+export function preloadNpcMeshy(names) {
+  return Promise.all(names.filter(n => hasMeshy(n) && !MESHY_NPC[n]).map(n => loadMeshy(n, 1.55).then(g => { MESHY_NPC[n] = g; }).catch(e => console.warn('vecino', n, e))));
 }
 const NPC_MESHY = ['pastor'], MESHY_NPC = {};
 // vecino con un personaje de Meshy: su modelo con sus clips, con la misma forma de animarse que los demás
