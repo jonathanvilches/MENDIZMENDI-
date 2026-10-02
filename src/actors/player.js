@@ -4,12 +4,14 @@ import { groundHeight, waterLevelAt, surfAt, bridgeAt } from '../world/heightfie
 import { resolve } from '../world/colliders.js';
 import { BOUNDARY } from '../world/layout.js';
 import { clamp, damp, dampAngle, angleDiff } from '../util/math.js';
+import { makeBlob, placeBlob } from '../util/blob.js';
 
 export class Player {
   constructor(rig, scene) {
     this.rig = rig;
     this.obj = rig.obj;
     scene.add(this.obj);
+    this.blob = makeBlob(0.48); if (this.blob) scene.add(this.blob);   // sombra redonda en móviles
     this.pos = new THREE.Vector3();
     this.vel = new THREE.Vector3();
     this.heading = 0;
@@ -114,5 +116,6 @@ export class Player {
     this.obj.position.copy(this.pos);
     this.obj.position.y -= this.wade * 0.15;
     this.obj.rotation.y = this.heading;
+    if (this.blob) { const g = groundHeight(this.pos.x, this.pos.z); placeBlob(this.blob, { x: this.pos.x, y: Math.min(this.pos.y, g), z: this.pos.z }, this.obj.visible && this.wade < 0.3); const k = Math.max(0.4, 1 - (this.pos.y - g) * 0.4); this.blob.scale.set(0.95 * k, 1, 0.95 * k); }
   }
 }

@@ -70,7 +70,9 @@ export class Runtime {
     this.renderer.debug.checkShaderErrors = /debug/.test(location.search);
     this.renderer.setPixelRatio(this.pixelRatio);
     this.renderer.setSize(innerWidth, innerHeight);
-    this.renderer.shadowMap.enabled = true;
+    // en móviles (calidad baja) sin sombras en tiempo real: obligan a dibujar la escena dos veces y el iPhone se quedaba
+    // en 15-25 imágenes por segundo. Los personajes llevan una sombra redonda (util/blob.js)
+    this.renderer.shadowMap.enabled = quality !== 'low';
     // sombra suave en ordenador; con filtro sencillo en móviles
     this.renderer.shadowMap.type = quality === 'low' ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
     // la sombra se recalcula en cada fotograma (a la mitad de ritmo, la de los personajes que andan iba a saltos);
