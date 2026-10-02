@@ -1,6 +1,6 @@
 // Minijuegos de interfaz: barra de precisión, pulsar rápido, ordenar pasos, repetir melodía y fichas de lugar.
 import { iconSVG } from './icons.js';
-import { tradeArt } from './tradeArt.js';
+import { timing3d, mash3d, has3DArt } from './mini3d/index.js';
 
 const el = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -38,26 +38,24 @@ function infoCard_(ui, { icon = 'church', kicker = '', title, text, extra = '', 
 
 // ---------- Barra de precisión (herrero, palomero, aizkolari, cantero…) ----------
 // rounds: nº de golpes; zone: anchura de la zona buena (0..1); speed: vueltas por segundo
-export function timingGame(ui, opts) {
-  if (window.__autoWin) return Promise.resolve({ win: true, hits: 5, errors: 0 });
+// con «art» (el paso de un oficio) y el escenario 3D del juego, se juega en su diorama 3D; si algo falla, la barra sola
+export async function timingGame(ui, opts) {
+  if (window.__autoWin) return { win: true, hits: 5, errors: 0 };
+  if (opts.art && ui.stage3d && has3DArt(opts.art)) { const r = await timing3d(ui, opts); if (!r.error) return r; }
   return timingGame_(ui, opts);
 }
-function timingGame_(ui, { title, hint, icon = 'hammer', rounds = 5, zone = 0.18, speed = 0.7, need = 3, verb = 'Golpear', art = null }) {
+function timingGame_(ui, { title, hint, icon = 'hammer', rounds = 5, zone = 0.18, speed = 0.7, need = 3, verb = 'Golpear' }) {
   return new Promise(res => {
-    const A = tradeArt(art);
-    const o = overlay(ui, 'timing' + (A ? ' arty' : ''), `<div class="mg-top">${iconSVG(icon, 48)}<div><h3>${esc(title)}</h3><small>${esc(hint)}</small></div></div>
-      <div class="mg-artbox"></div>
+    const o = overlay(ui, 'timing', `<div class="mg-top">${iconSVG(icon, 48)}<div><h3>${esc(title)}</h3><small>${esc(hint)}</small></div></div>
       <div class="tbar"><div class="zone"></div><div class="cursor"></div></div>
       <div class="pips">${Array.from({ length: rounds }, () => '<i></i>').join('')}</div>
       <div class="fb">¡Prepárate!</div><button class="btn primary big">${esc(verb)}</button>`);
     const zoneEl = o.querySelector('.zone'), cur = o.querySelector('.cursor'), fb = o.querySelector('.fb'), pips = o.querySelectorAll('.pips i');
-    if (A) o.querySelector('.mg-artbox').appendChild(A.canvas); else o.querySelector('.mg-artbox').remove();
-    let zc = 0.5, t = 0, round = 0, hits = 0, raf, last = performance.now(), locked = false, sp = speed, hitT = -9, hitOk = true;
+    let zc = 0.5, t = 0, round = 0, hits = 0, raf, last = performance.now(), locked = false, sp = speed;
     const place = () => { zc = 0.15 + Math.random() * 0.7; zoneEl.style.left = ((zc - zone / 2) * 100) + '%'; zoneEl.style.width = (zone * 100) + '%'; };
     place();
     const pos = () => 0.5 - 0.5 * Math.cos(t * Math.PI * 2 * sp);
-    // el dibujo avanza con cada golpe bueno: con los necesarios, el trabajo queda hecho
-    const tick = (now) => { const dt = Math.min(0.05, (now - last) / 1000); last = now; if (!locked) t += dt; cur.style.left = (pos() * 100) + '%'; A?.draw(Math.min(1, hits / need), (now - hitT) / 1000, hitOk); raf = requestAnimationFrame(tick); };
+    const tick = (now) => { const dt = Math.min(0.05, (now - last) / 1000); last = now; if (!locked) t += dt; cur.style.left = (pos() * 100) + '%'; raf = requestAnimationFrame(tick); };
     raf = requestAnimationFrame(tick);
     const hit = () => {
       if (locked) return;
@@ -65,7 +63,7 @@ function timingGame_(ui, { title, hint, icon = 'hammer', rounds = 5, zone = 0.18
       pips[round].className = ok ? 'ok' : 'ko';
       if (ok) { hits++; fb.textContent = Math.abs(p - zc) < zone * 0.2 ? '¡Perfecto!' : '¡Bien!'; ui.sound.tone(660 + hits * 60, 0.12, 'square', 0.12, ui.sound.sfx); ui.sound.noiseBurst?.(0.05, 3000, 1.5, 0.3, ui.sound.sfx); }
       else { fb.textContent = p < zc ? '¡Demasiado pronto!' : '¡Demasiado tarde!'; ui.sound.ui('error'); }
-      ui.onMiniHit?.(ok); hitT = performance.now(); hitOk = ok;
+      ui.onMiniHit?.(ok);
       round++; locked = true;
       setTimeout(() => {
         if (round >= rounds) { cancelAnimationFrame(raf); const win = hits >= need; fb.textContent = win ? `¡Lo has conseguido! ${hits}/${rounds}` : `${hits}/${rounds}: necesitas ${need}. ¡Otra vez!`; setTimeout(() => { done(ui, o, k); res({ win, hits }); }, 1100); return; }
@@ -79,30 +77,28 @@ function timingGame_(ui, { title, hint, icon = 'hammer', rounds = 5, zone = 0.18
 }
 
 // ---------- Pulsar rápido (harrijasotzaile, subir la piedra; remar la almadía…) ----------
-export function mashGame(ui, opts) {
-  if (window.__autoWin) return Promise.resolve({ win: true, hits: 5, errors: 0 });
+export async function mashGame(ui, opts) {
+  if (window.__autoWin) return { win: true, hits: 5, errors: 0 };
+  if (opts.art && ui.stage3d && has3DArt(opts.art)) { const r = await mash3d(ui, opts); if (!r.error) return r; }
   return mashGame_(ui, opts);
 }
-function mashGame_(ui, { title, hint, icon = 'stone', seconds = 6, goal = 30, verb = '¡Empuja!', art = null }) {
+function mashGame_(ui, { title, hint, icon = 'stone', seconds = 6, goal = 30, verb = '¡Empuja!' }) {
   return new Promise(res => {
-    const A = tradeArt(art);
-    const o = overlay(ui, 'mash' + (A ? ' arty' : ''), `<div class="mg-top">${iconSVG(icon, 48)}<div><h3>${esc(title)}</h3><small>${esc(hint)}</small></div></div>
-      ${A ? '<div class="mg-artbox"></div>' : ''}<div class="mbar"><i></i><span class="goal"></span></div><div class="fb">Pulsa muchas veces seguidas</div><div class="clock"></div>
+    const o = overlay(ui, 'mash', `<div class="mg-top">${iconSVG(icon, 48)}<div><h3>${esc(title)}</h3><small>${esc(hint)}</small></div></div>
+      <div class="mbar"><i></i><span class="goal"></span></div><div class="fb">Pulsa muchas veces seguidas</div><div class="clock"></div>
       <button class="btn primary big">${esc(verb)}</button>`);
     const bar = o.querySelector('.mbar i'), fb = o.querySelector('.fb'), clock = o.querySelector('.clock');
-    if (A) { o.querySelector('.mg-artbox').appendChild(A.canvas); A.draw(0); }
-    let n = 0, t0 = 0, raf, fin = false, lvl = 0, hitT = -9;
+    let n = 0, t0 = 0, raf, fin = false;
     const tick = (now) => {
       if (!t0) t0 = now;
       const left = Math.max(0, seconds - (now - t0) / 1000);
-      lvl = Math.max(0, lvl - 0.0025);          // la piedra pesa: baja si no empujas
-      bar.style.height = Math.min(100, (n / goal) * 100 - lvl * 0) + '%';
-      clock.textContent = left.toFixed(1) + ' s'; A?.draw(n / goal, (now - hitT) / 1000, true);
+      bar.style.height = Math.min(100, (n / goal) * 100) + '%';
+      clock.textContent = left.toFixed(1) + ' s';
       if (n >= goal || left <= 0) { finish(n >= goal); return; }
       raf = requestAnimationFrame(tick);
     };
     const finish = (win) => { if (fin) return; fin = true; cancelAnimationFrame(raf); fb.textContent = win ? '¡Arriba! ¡Qué fuerza!' : '¡Casi! Prueba otra vez'; if (win) ui.sound.fanfare?.(); setTimeout(() => { done(ui, o, k); res({ win, n }); }, 1000); };
-    const press = () => { if (fin) return; if (!t0) raf = requestAnimationFrame(tick); n++; hitT = performance.now(); ui.sound.tone(200 + n * 12, 0.05, 'triangle', 0.08, ui.sound.sfx); ui.onMiniHit?.(true); fb.textContent = n < goal * 0.3 ? '¡Vamos!' : n < goal * 0.7 ? '¡Más fuerte!' : '¡Ya casi!'; };
+    const press = () => { if (fin) return; if (!t0) raf = requestAnimationFrame(tick); n++; ui.sound.tone(200 + n * 12, 0.05, 'triangle', 0.08, ui.sound.sfx); ui.onMiniHit?.(true); fb.textContent = n < goal * 0.3 ? '¡Vamos!' : n < goal * 0.7 ? '¡Más fuerte!' : '¡Ya casi!'; };
     const k = (e) => { const key = e.key.toLowerCase(); e.stopImmediatePropagation(); if ([' ', 'e', 'enter'].includes(key)) { e.preventDefault(); if (!e.repeat) press(); } };
     addEventListener('keydown', k, true);
     o.querySelector('button').addEventListener('pointerdown', e => { e.preventDefault(); press(); });

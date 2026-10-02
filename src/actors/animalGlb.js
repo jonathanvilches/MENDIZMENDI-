@@ -96,14 +96,22 @@ function bakedScene(key, S, g) {
 // Lana: el modelo no tiene coordenadas de textura, así que el vellón se dibuja en el sombreador con ruido celular en
 // 3D sobre la posición del modelo (antes de la piel, así los rizos van pegados al cuerpo al moverse): rizos redondos
 // algo más claros que los huecos entre ellos y un brillo suave en los bordes. Solo donde el atributo wool vale 1.
-function woolMaterial(geo) {
+// Con «cut» (el minijuego de esquilar), además: una lista de cortes (posición y radio en el espacio del modelo) y un
+// atributo «shorn» por vértice; donde se ha cortado, el vellón se hunde y asoma la piel con la lana muy corta.
+export const MAXCUT = 96;
+export function woolMaterial(geo, cut = null) {
   geo.computeBoundingBox(); const size = geo.boundingBox.getSize(new THREE.Vector3()), f = (34 / Math.max(size.x, size.y, size.z)).toFixed(3);
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95 });
   m.onBeforeCompile = (sh) => {
-    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute float wool; varying float vWool; varying vec3 vWP;')
-      .replace('#include <begin_vertex>', `#include <begin_vertex>\nvWool = wool; vWP = position * ${f};`);
+    if (cut) Object.assign(sh.uniforms, cut.uniforms);
+    const cutDecl = cut ? `\nuniform vec4 uCut[${MAXCUT}]; uniform int uNCut; uniform float uThick; attribute float shorn; attribute vec3 smoothN; varying float vCut; varying vec3 vBP;
+float cutAt(vec3 p){ float k = 0.0; for (int i = 0; i < ${MAXCUT}; i++) { if (i >= uNCut) break; vec4 c = uCut[i]; k = max(k, 1.0 - smoothstep(c.w * 0.62, c.w, distance(p, c.xyz))); } return k; }` : '';
+    const cutVert = cut ? `\nvBP = position; vCut = max(shorn, cutAt(position)) * wool; transformed -= normalize(smoothN) * uThick * vCut;` : '';
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute float wool; varying float vWool; varying vec3 vWP;' + cutDecl)
+      .replace('#include <begin_vertex>', `#include <begin_vertex>\nvWool = wool; vWP = position * ${f};` + cutVert);
     sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>
-varying float vWool; varying vec3 vWP;
+varying float vWool; varying vec3 vWP;${cut ? `\nuniform vec4 uCut[${MAXCUT}]; uniform int uNCut; uniform vec3 uSkin; varying float vCut; varying vec3 vBP;
+float cutAt(vec3 p){ float k = 0.0; for (int i = 0; i < ${MAXCUT}; i++) { if (i >= uNCut) break; vec4 c = uCut[i]; k = max(k, 1.0 - smoothstep(c.w * 0.62, c.w, distance(p, c.xyz))); } return k; }` : ''}
 vec3 h3(vec3 p){ p = vec3(dot(p, vec3(127.1, 311.7, 74.7)), dot(p, vec3(269.5, 183.3, 246.1)), dot(p, vec3(113.5, 271.9, 124.6))); return fract(sin(p) * 43758.5453); }
 float cell(vec3 p){ vec3 i = floor(p), fr = fract(p); float d = 8.0;
   for (int x = -1; x <= 1; x++) for (int y = -1; y <= 1; y++) for (int z = -1; z <= 1; z++) { vec3 o = vec3(float(x), float(y), float(z)); vec3 r = o + h3(i + o) - fr; d = min(d, dot(r, r)); }
@@ -111,12 +119,17 @@ float cell(vec3 p){ vec3 i = floor(p), fr = fract(p); float d = 8.0;
       .replace('#include <color_fragment>', `#include <color_fragment>
   float wc = cell(vWP), wc2 = cell(vWP * 2.3 + 7.1), wv = clamp(1.0 - wc * 1.15, 0.0, 1.0) * 0.7 + clamp(1.0 - wc2 * 1.2, 0.0, 1.0) * 0.3;
   float crev = smoothstep(0.5, 0.95, wc) * 0.55 + smoothstep(0.55, 0.95, wc2) * 0.45;   // huecos entre rizos
-  diffuseColor.rgb *= mix(1.0, (0.9 + 0.14 * wv) * (1.0 - 0.3 * crev), vWool);`)
+  diffuseColor.rgb *= mix(1.0, (0.9 + 0.14 * wv) * (1.0 - 0.3 * crev), vWool);${cut ? `
+  // esquilado: la piel rosada con la lana rapada (un punteado corto), con el borde del corte más blanco
+  float sc = max(vCut, cutAt(vBP) * vWool), stub = cell(vWP * 4.0);
+  vec3 shornCol = mix(uSkin, vec3(0.9, 0.85, 0.74), 0.2 + 0.3 * smoothstep(0.2, 0.7, stub));
+  diffuseColor.rgb = mix(diffuseColor.rgb, shornCol, smoothstep(0.3, 0.75, sc));
+  diffuseColor.rgb *= 1.0 - 0.25 * smoothstep(0.25, 0.45, sc) * (1.0 - smoothstep(0.45, 0.75, sc));   // el borde del corte, en sombra` : ''}`)
       // vellón mullido: un poco de su propio color en los bordes (de lado la lana parece más esponjosa y clara)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
-  totalEmissiveRadiance += vWool * diffuseColor.rgb * 0.22 * pow(1.0 - abs(dot(normalize(vNormal), normalize(vViewPosition))), 2.0);`);
+  totalEmissiveRadiance += vWool * ${cut ? '(1.0 - vCut) *' : ''} diffuseColor.rgb * 0.22 * pow(1.0 - abs(dot(normalize(vNormal), normalize(vViewPosition))), 2.0);`);
   };
-  m.customProgramCacheKey = () => 'lana' + f;
+  m.customProgramCacheKey = () => 'lana' + f + (cut ? '-corte' : '');
   return m;
 }
 

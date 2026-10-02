@@ -40,7 +40,7 @@ import { SABIOS, STYLE_TIP, KIND_TIP, NO_SABIO } from '../data/sabios.js';
 import { Encierro } from './encierro.js';
 import { Futbol } from './futbol.js';
 import { montesFrom, townLatLon } from '../data/miradores.js';
-import { forgeGame, stitchGame, shearGame } from '../ui/oficioGames.js';
+import { forgeGame, stitchGame, shearGame } from '../ui/mini3d/index.js';
 import { Panorama } from '../world/panorama.js';
 import { PARTS, CASTLE_QUIZ, CASTLE_TOWNS, CASTILLOS } from '../data/castillos.js';
 import { GearProps } from '../actors/gear3d.js';
@@ -111,6 +111,13 @@ export class TownGame {
   constructor(ctx, def) {
     Object.assign(this, ctx);        // scene, camera, player, follow, ui, sound, input, sky, fauna, particles, beacon, onExit
     this.def = def;
+    // los minijuegos en 3D se dibujan con el renderer del juego, en una escena propia (el pueblo queda en pausa)
+    const G = this;
+    this.ui.stage3d = {
+      get quality() { return G.rt?.quality; }, get renderer() { return G.rt?.renderer; },
+      show: (scene, camera, update) => { this._alt3d = [this.altScene, this.altCamera, this.altUpdate]; this.altScene = scene; this.altCamera = camera; this.altUpdate = update; },
+      hide: () => { const p = this._alt3d || [null, null, null]; this._alt3d = null; [this.altScene, this.altCamera, this.altUpdate] = p; },
+    };
     this.kind = 'town';
     // la cara de quien habla sigue lo que dice: alegría, duda, susto o pena
     this.ui.onDialogLine = (L) => {
@@ -1533,7 +1540,8 @@ export class TownGame {
         else if (st.game === 'stitch') r = await stitchGame(this.ui, { title: st.title });
         else if (st.game === 'shear') r = await shearGame(this.ui, { title: st.title });
         else r = await timingGame(this.ui, { title, hint: st.text, icon: of.icon, verb: st.verb, rounds: st.rounds || 4, need: st.need || 3, zone: 0.22, speed: 0.6, art: st.art });
-        if (!r.win) { await this.say(M.host, ['¡Casi! Así se aprende: vuelve a probar este paso en el banco de trabajo.']); return; }
+        // si la escena 3D no se pudo montar, el paso no bloquea el taller: se da por visto
+        if (!r.win && !r.error) { await this.say(M.host, ['¡Casi! Así se aprende: vuelve a probar este paso en el banco de trabajo.']); return; }
         M.tstep++;
       }
       finished = true;
