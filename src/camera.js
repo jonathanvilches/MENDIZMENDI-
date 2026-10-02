@@ -62,10 +62,13 @@ export class FollowCamera {
       }
       if (hit) { d = Math.max(1.6, t - 0.4); break; }
     }
-    this.curDist = instant ? d : (d < this.curDist ? damp(this.curDist, d, 20, dt) : damp(this.curDist, d, 3, dt));
+    this.curDist = instant ? d : (d < this.curDist ? damp(this.curDist, d, 14, dt) : damp(this.curDist, d, 3, dt));
     const p = this.focus.clone().addScaledVector(dir, this.curDist);
-    const gy = groundHeight(p.x, p.z) + 0.45;
-    if (p.y < gy) p.y = gy;
+    // sobre el terreno: si la cámara quedaría bajo el suelo se eleva, deprisa pero sin saltos (al bajar de un muro o una
+    // cuesta el suelo de detrás cambia de golpe y la imagen daba un tirón)
+    const gy = groundHeight(p.x, p.z) + 0.45, needLift = Math.max(0, gy - p.y);
+    this.lift = instant ? needLift : damp(this.lift || 0, needLift, needLift > (this.lift || 0) ? 30 : 6, dt);
+    p.y += Math.max(this.lift, needLift - 0.35);
     if (this.shake > 0) { this.shake -= dt; p.x += (Math.random() - 0.5) * this.shake * 0.3; p.y += (Math.random() - 0.5) * this.shake * 0.3; }
     this.cam.position.copy(p);
     this.cam.lookAt(this.focus.x, this.focus.y + 0.1, this.focus.z);

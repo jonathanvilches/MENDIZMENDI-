@@ -62,7 +62,9 @@ export class Runtime {
     // en móvil (calidad media/baja) sin antialias de hardware y con menos resolución: el búfer de imagen pesa mucho menos
     // en pantallas de mucha densidad (retina, 4K) la propia resolución ya suaviza los bordes: sin antialias de hardware,
     // que con tantos píxeles era lo que más frenaba los ordenadores
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: quality === 'high' && devicePixelRatio < 1.5, powerPreference: 'high-performance' });
+    // suavizado de bordes: en el móvil también (sus gráficas lo hacen casi gratis y sin él los personajes se veían con
+    // dientes y motas); en ordenador con pantalla de mucha densidad no hace falta (ya es nítida)
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: quality !== 'high' || devicePixelRatio < 1.5, powerPreference: 'high-performance' });
     // resolución con un presupuesto de píxeles: en alta, como mucho unos 4 millones (2560×1600); en móvil 1,25
     this.pixelRatio = this.maxRatio = this.ratioFor(quality);
     // si el navegador se queda sin memoria gráfica, avisar y ofrecer recargar (el progreso ya está guardado)

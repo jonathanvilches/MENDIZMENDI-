@@ -103,6 +103,10 @@ function cutClip(clip, name, t0, t1, flatHips, fps = 30) {
 // su textura viene a 2048 px (con todo el detalle); en calidad baja (móviles) se usa a 1024 para no agotar la memoria
 let MESHY_TEX = 2048;
 export const setMeshyTexMax = (px) => { MESHY_TEX = px; };
+// personajes que van con su textura completa aunque el móvil reduzca las demás (el del jugador, que se ve de cerca)
+const FULL_TEX = new Set();
+const MESHY_FILL = 0.3;   // cuánto de su color pone de luz propia cada personaje de Meshy
+export const fullTexFor = (name) => FULL_TEX.add(name);
 function shrinkMap(m) {
   const t = m.map, img = t?.image; if (!img || !(img.width > MESHY_TEX)) return;
   const c = document.createElement('canvas'); c.width = c.height = MESHY_TEX; c.getContext('2d').drawImage(img, 0, 0, MESHY_TEX, MESHY_TEX);
@@ -125,7 +129,11 @@ export async function loadMeshy(name) {
   const key = 'meshy:' + name, height = MESHY_H[name] || 1.5;
   if (!cache.has(key)) cache.set(key, (async () => {
     const g = await loadChar(MESHY[name]);
-    g.scene.traverse(o => { if (o.isMesh) { o.castShadow = true; for (const m of [].concat(o.material)) shrinkMap(m); } });
+    // textura nítida también vista de lado (anisotropía); en el móvil se reduce salvo la del personaje del jugador
+    g.scene.traverse(o => { if (o.isMesh) { o.castShadow = true; for (const m of [].concat(o.material)) { if (!FULL_TEX.has(name)) shrinkMap(m); if (m.map) { m.map.anisotropy = 8; m.map.needsUpdate = true; }
+      // luz de relleno propia: la cámara va detrás y el sol suele darle de frente, así que se le veía siempre en sombra.
+      // Un poco de su propio color como luz propia lo aclara desde cualquier lado sin tocar el resto de la escena
+      if (m.map && m.emissive) { m.emissiveMap = m.map; m.emissive.setScalar(MESHY_FILL); m.needsUpdate = true; } } } });
     const src = Object.fromEntries(g.animations.map(a => [a.name, a]));
     // andar y correr dan vueltas: su último fotograma es el mismo que el primero y, al repetirse, esa postura salía dos
     // veces seguidas (un tirón en cada paso). Se quita ese fotograma repetido
@@ -266,10 +274,14 @@ export class GlbChar {
   }
 
   /** Clip de una sola vez (saludo, celebrar…): al acabar vuelve a la locomoción. */
-  playOnce(name, secs) {
+  /** Un gesto suelto durante secs segundos; con fit, el clip entero acelerado o frenado para caber en ese tiempo (si no,
+   *  de un clip largo solo se veía el principio y se cortaba de golpe: el aterrizaje del salto iba «a trozos»). */
+  playOnce(name, secs, fit = false) {
     const a = this.actions[name];
     if (!a) return;
-    this.oneShot = { name, t: secs ?? a.getClip().duration * (a.loop === THREE.LoopOnce ? 1 : 1) };
+    const dur = a.getClip().duration;
+    this.oneShot = { name, t: secs ?? dur };
+    a.timeScale = fit && secs ? dur / secs : 1;
     this.play(name);
   }
 
@@ -429,7 +441,11 @@ for (const [id, name] of [['ranger', 'Ranger'], ['rogue', 'Rogue'], ['hooded', '
 for (const id of ['sanfermin', 'pastor', 'osasuna', 'pelotari']) if (MESHY[id]) GLB_AVATARS[id] = { meshy: id, bust: MESHY_PICS[id + '_bust'], full: MESHY_PICS[id + '_full'] };
 export const hasMeshy = (id) => !!MESHY[id];
 export const isGlbAvatar = id => !!GLB_AVATARS[id];
-export const loadGlbAvatar = id => GLB_AVATARS[id].kaykit ? loadKayKit(GLB_AVATARS[id].kaykit) : GLB_AVATARS[id].meshy ? loadMeshy(GLB_AVATARS[id].meshy) : loadChar(GLB_AVATARS[id].url);
+export const loadGlbAvatar = (id) => {
+  const d = GLB_AVATARS[id];
+  if (d.meshy) { fullTexFor(d.meshy); return loadMeshy(d.meshy); }   // el del jugador, con su textura completa
+  return d.kaykit ? loadKayKit(d.kaykit) : loadChar(d.url);
+};
 
 const EXPR = {
   happy: ['Happy', 'Normal'], surprised: ['Surprised', 'Normal'], scared: ['Scared', 'Worried'], worried: ['Normal', 'Worried'],
@@ -471,9 +487,10 @@ export class GlbRig {
     if (this.talking > 0) this.talking -= dt;
     // saltos: impulso al despegar, bucle en el aire y caída al tocar suelo
     if (!grounded) this.air += dt;
-    if (this.wasGrounded && !grounded) c.playOnce('Jump_Start', 0.25);
+    if (this.wasGrounded && !grounded) c.playOnce('Jump_Start', 0.28, true);
     else if (!grounded && !c.oneShot) c.playOnce('Jump_Loop', 0.1);
-    else if (!this.wasGrounded && grounded) { if (this.air > 0.25) c.playOnce('Land', 0.25); else c.oneShot = null; this.air = 0; }
+    // al caer: el aterrizaje entero y rápido si la caída fue larga; si fue un saltito, se sigue andando sin cortes
+    else if (!this.wasGrounded && grounded) { if (this.air > 0.45) c.playOnce('Land', speed > 1 ? 0.3 : 0.45, true); else c.oneShot = null; this.air = 0; }
     this.wasGrounded = grounded;
     if (grounded && !c.oneShot) {
       if (this.cheer > 0) c.playOnce('Celebrate', this.cheer);
