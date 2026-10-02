@@ -194,6 +194,7 @@ export class FutbolMatch {
       case 'out': H.say(e.type === 'kickin' ? `${TEXT.out}: ${TEXT.kickin.toLowerCase()}` : e.type === 'corner' ? TEXT.corner : TEXT.goalkick, 1500); break;
       case 'restart':
         if (e.type === 'penalty') H.msg(TEXT.penalty, e.team === 0 ? 'Apunta con el joystick y mantén TIRO' : 'Para el tiro… ¡tu portero está atento!', 2000);
+        else if (this.reto || this.tuto) break;   // (en los retos y el tutorial no hay saques que anunciar)
         else if (e.team === 0 && !g.autoplay && e.type !== 'goalkick') H.say(`${RESTART_NAME[e.type]}: tu saque. Apunta y pulsa ${this.hud.el.pass ? 'PASE' : 'J'}`, 2200);
         else if (e.type !== 'kickoff') H.say(RESTART_NAME[e.type], 1300);
         break;
@@ -221,7 +222,7 @@ export class FutbolMatch {
     const H = this.hud, g = this.game;
     H.pens(g.pen.log, g.pen.kicks);
     H.setButtons(e.human === 'keeper' ? 'PARAR' : 'PASE', e.human === 'keeper' ? 'PARAR' : 'TIRO');
-    H.tip(e.human === 'keeper' ? 'Te toca parar: elige lado con el joystick (o quédate en el centro) y pulsa <b>PARAR</b>' : e.human === 'shooter' ? 'Apunta con el joystick a un lado de la portería y mantén <b>TIRO</b> para cargar; suelta para chutar' : null);
+    H.tip(e.human === 'keeper' ? 'Te toca parar: elige lado con el joystick y pulsa <b>PARAR</b>' : e.human === 'shooter' ? 'Apunta a un lado de la portería, mantén <b>TIRO</b> y suelta para chutar' : null);
     if (e.sudden && e.n === 1 && e.team === 0) H.msg('Muerte súbita', '', 1600);
   }
   async onEnd(r) {
@@ -416,10 +417,10 @@ class Tutorial {
   next(i) {
     this.step = i; this.st = 0;
     const tips = [
-      this.v.hud.el.pass ? 'Mueve a tu jugador con el <b>joystick</b> (toca y arrastra a la izquierda)' : 'Muévete con <b>WASD</b> o las flechas',
+      this.v.hud.el.pass ? 'Muévete con el <b>joystick</b>: toca y arrastra a la izquierda' : 'Muévete con <b>WASD</b> o las flechas',
       `Pasa a tu compañero: apunta hacia él y suelta <b>${this.v.hud.el.pass ? 'PASE' : 'J'}</b>`,
-      `¡Ahora a puerta! Mantén <b>${this.v.hud.el.pass ? 'TIRO' : 'K'}</b> para cargar y suelta para chutar`,
-      `Un rival lleva el balón: acércate y pulsa <b>${this.v.hud.el.pass ? 'ROBO' : 'J'}</b> cuando el balón se separe de su pie`,
+      `¡A puerta! Mantén <b>${this.v.hud.el.pass ? 'TIRO' : 'K'}</b> para cargar y suelta para chutar`,
+      `Acércate al rival y pulsa <b>${this.v.hud.el.pass ? 'ROBO' : 'J'}</b> cuando el balón se le separe del pie`,
       '¡Ya sabes jugar! Empieza el partido',
     ];
     this.v.hud.tip(tips[i]);

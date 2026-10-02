@@ -276,17 +276,24 @@ export class GlbChar {
   /** Clip de una sola vez (saludo, celebrar…): al acabar vuelve a la locomoción. */
   /** Un gesto suelto durante secs segundos; con fit, el clip entero acelerado o frenado para caber en ese tiempo (si no,
    *  de un clip largo solo se veía el principio y se cortaba de golpe: el aterrizaje del salto iba «a trozos»). */
-  playOnce(name, secs, fit = false) {
+  playOnce(name, secs, fit = false, then = null) {
     const a = this.actions[name];
     if (!a) return;
     const dur = a.getClip().duration;
-    this.oneShot = { name, t: secs ?? dur };
+    this.oneShot = { name, t: secs ?? dur, then };
     a.timeScale = fit && secs ? dur / secs : 1;
     this.play(name);
   }
+  /** Un clip que se mantiene (el vuelo de un salto) hasta que se quite oneShot: sin volver a la locomoción entre medias. */
+  hold(name) {
+    const a = this.actions[name]; if (!a) return;
+    a.timeScale = 1; this.oneShot = { name, t: Infinity, then: null }; this.play(name);
+  }
+  // fin del gesto: sigue con el encadenado (el impulso del salto pasa al vuelo) o vuelve a la locomoción
+  _endOneShot() { const n = this.oneShot?.then; this.oneShot = null; if (n) this.hold(n); }
 
   _onFinished(action) {
-    if (this.oneShot && this.actions[this.oneShot.name] === action) this.oneShot = null;
+    if (this.oneShot && this.actions[this.oneShot.name] === action) this._endOneShot();
   }
 
   /** Velocidad horizontal en m/s: elige Idle/Walk/Run y ajusta el ritmo. */
@@ -339,8 +346,8 @@ export class GlbChar {
   update(dt) {
     dt = Math.min(dt, 0.35);
     // locomoción
-    if (!this.oneShot || (this.oneShot.t -= dt) <= 0) {
-      if (this.oneShot) this.oneShot = null;
+    if (this.oneShot && (this.oneShot.t -= dt) <= 0) this._endOneShot();
+    if (!this.oneShot) {
       const v = this.speed, ts = this.opt.timeScale;
       let want = this.idleName && this.actions[this.idleName] ? this.idleName : 'Idle', scale = ts;
       const gait = this.opt.gait;
@@ -485,10 +492,11 @@ export class GlbRig {
     if (this.wave > 0) this.wave -= dt;
     if (this.cheer > 0) this.cheer -= dt;
     if (this.talking > 0) this.talking -= dt;
-    // saltos: impulso al despegar, bucle en el aire y caída al tocar suelo
+    // saltos: impulso al despegar que enlaza con el vuelo (se mantiene todo el tiempo en el aire, sin volver a correr
+    // entre medias: antes se reiniciaba cada 0,1 s y el cuerpo daba tirones) y caída al tocar suelo
     if (!grounded) this.air += dt;
-    if (this.wasGrounded && !grounded) c.playOnce('Jump_Start', 0.28, true);
-    else if (!grounded && !c.oneShot) c.playOnce('Jump_Loop', 0.1);
+    if (this.wasGrounded && !grounded) c.playOnce('Jump_Start', 0.28, true, 'Jump_Loop');
+    else if (!grounded && !/^Jump_/.test(c.oneShot?.name || '')) c.hold('Jump_Loop');
     // al caer: el aterrizaje entero y rápido si la caída fue larga; si fue un saltito, se sigue andando sin cortes
     else if (!this.wasGrounded && grounded) { if (this.air > 0.45) c.playOnce('Land', speed > 1 ? 0.3 : 0.45, true); else c.oneShot = null; this.air = 0; }
     this.wasGrounded = grounded;

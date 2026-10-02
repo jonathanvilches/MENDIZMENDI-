@@ -41,7 +41,7 @@ export class Reto {
     }
     const fin = this.add(new THREE.Mesh(new THREE.PlaneGeometry(0.3, 8).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#ffd700' }))); fin.position.set(14, 0.02, 0);
     this.pen = 0; this.go = false; this.prevX = this.g.ball.p.x;
-    this.v.hud.tip('Pasa cada cono por el lado del <b>círculo azul</b>, en zigzag, y cruza la línea amarilla con el balón');
+    this.v.hud.tip('Zigzag: pasa cada cono por el lado del <b>círculo azul</b> y cruza la línea amarilla');
   }
   // ---------------------------------------------------------------- dianas
   setupDianas(me) {
@@ -50,7 +50,7 @@ export class Reto {
     const tor = new THREE.TorusGeometry(0.34, 0.05, 10, 32), tm = new THREE.MeshStandardMaterial({ color: '#ffd700', emissive: '#ffb000', emissiveIntensity: 0.6 });
     this.targets = [-1, 1].map(s => { const m = this.add(new THREE.Mesh(tor, tm.clone())); m.position.set(F.HL - 0.02, F.goalH - 0.4, s * (F.goalW / 2 - 0.4)); m.rotation.y = Math.PI / 2; return { m, y: F.goalH - 0.4, z: s * (F.goalW / 2 - 0.4) }; });
     this.place(me);
-    this.v.hud.tip('Apunta con el joystick a una <b>diana</b> y mantén TIRO para cargar: arriba hace falta fuerza');
+    this.v.hud.tip('Apunta a una <b>diana</b> y mantén <b>TIRO</b> para cargar (arriba, más fuerza)');
   }
   place(me) {
     const g = this.g, spots = [[9, 0], [10, -3], [10, 3], [11, -5], [11, 5], [12, 0], [9, -2], [9, 2]], [d, z] = spots[this.n % spots.length];
@@ -64,7 +64,7 @@ export class Reto {
     me.x = -4; me.z = 0; me.h = Math.PI / 2; g.ball.set(-3.4, 0); g.takeBall(me);
     this.mates = mates.map((p, i) => { const c = [[4, -5], [10, 2], [2, 6]][i]; p.x = c[0]; p.z = c[1]; return { p, cx: c[0], cz: c[1], a: i * 2, r: 3 + i, w: 0.5 + i * 0.12 }; });
     this.n = 0; this.back = 0;
-    this.v.hud.tip('Tus compañeros no paran: pásales al hueco (apunta hacia ellos y suelta <b>PASE</b>). Te la devuelven');
+    this.v.hud.tip('Pasa al hueco: apunta a un compañero y suelta <b>PASE</b>. Te la devuelven');
   }
 
   update(dt) {

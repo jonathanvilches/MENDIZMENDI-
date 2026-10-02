@@ -13,13 +13,14 @@ const CSS = `
 .fb-team b{font-family:'Lilita One',Nunito,sans-serif;font-weight:400;font-size:26px;line-height:1;min-width:1em;text-align:center}
 .fb-clock{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px 10px;background:rgba(255,255,255,.1);font-weight:900;font-size:15px;line-height:1.05;font-variant-numeric:tabular-nums}
 .fb-clock small{font-size:10px;opacity:.8;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
-.fb-say{font-size:14px;font-weight:800;padding:4px 12px;border-radius:12px;background:rgba(16,10,30,.6);opacity:0;transition:opacity .2s;max-width:min(92vw,520px);text-align:center}
-.fb-say.on{opacity:1}
+.fb-say{display:none;font-size:13px;font-weight:800;padding:3px 12px;border-radius:12px;background:rgba(16,10,30,.62);max-width:min(92vw,480px);text-align:center;line-height:1.25}
+.fb-say.on{display:block;animation:fbin .18s ease-out}
+@keyframes fbin{from{opacity:0;transform:translateY(-4px)}}
 .fb-pen{display:none;gap:10px;font-size:12px;font-weight:800;padding:4px 10px;border-radius:10px;background:rgba(16,10,30,.7)}
 .fb-pen.on{display:grid;grid-template-columns:auto auto;align-items:center}
 .fb-pen u{display:inline-block;width:12px;height:12px;border-radius:50%;margin:0 2px;background:rgba(255,255,255,.25);text-decoration:none;vertical-align:middle}
 .fb-pen u.g{background:#3fd36a}.fb-pen u.x{background:#e0453a}
-.fb-pause,.fb-cam{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.85);background:rgba(16,10,30,.66);color:#fff;pointer-events:auto;cursor:pointer;display:grid;place-items:center;padding:0;box-shadow:0 3px 12px rgba(0,0,0,.35)}
+.fb-pause,.fb-cam{position:absolute;top:calc(env(safe-area-inset-top,0px) + 8px);width:42px;height:42px;border-radius:50%;border:2px solid rgba(255,255,255,.7);background:rgba(16,10,30,.5);color:#fff;pointer-events:auto;cursor:pointer;display:grid;place-items:center;padding:0;box-shadow:0 3px 12px rgba(0,0,0,.35)}
 .fb-pause{left:calc(env(safe-area-inset-left,0px) + 10px)}.fb-cam{right:calc(env(safe-area-inset-right,0px) + 10px)}
 .fb-pause svg,.fb-cam svg{width:20px;height:20px}
 .fb-msg{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%) scale(.85);opacity:0;transition:opacity .2s,transform .25s cubic-bezier(.2,1.4,.4,1);text-align:center;pointer-events:none;max-width:92vw}
@@ -30,24 +31,30 @@ const CSS = `
 .fb-stick{position:absolute;left:0;bottom:0;width:50vw;height:78vh;pointer-events:auto;touch-action:none}
 .fb-knob{position:absolute;width:124px;height:124px;margin:-62px 0 0 -62px;border-radius:50%;border:3px solid rgba(255,255,255,.55);background:rgba(16,10,30,.25);display:none}
 .fb-knob i{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:rgba(255,255,255,.88);box-shadow:0 2px 8px rgba(0,0,0,.35)}
-.fb-stickhint{position:absolute;left:calc(env(safe-area-inset-left,0px) + 24px);bottom:calc(env(safe-area-inset-bottom,0px) + 24px);width:112px;height:112px;border-radius:50%;border:3px dashed rgba(255,255,255,.5);display:grid;place-items:center;font-size:12px;font-weight:800;text-align:center;opacity:.75;padding:10px;transition:opacity .4s}
-.fb-btns{position:absolute;right:calc(env(safe-area-inset-right,0px) + 14px);bottom:calc(env(safe-area-inset-bottom,0px) + 14px);display:grid;grid-template-columns:auto auto;grid-template-rows:auto auto;gap:10px;align-items:end;justify-items:center;pointer-events:auto}
-.fb-b{border:0;padding:0;border-radius:50%;font-family:'Lilita One',Nunito,sans-serif;font-weight:400;color:#2a1a00;display:grid;place-items:center;cursor:pointer;touch-action:none;text-align:center;line-height:1;box-shadow:0 5px 0 rgba(0,0,0,.28),0 8px 18px rgba(0,0,0,.3);transition:transform .06s}
-.fb-b.down{transform:translateY(4px);box-shadow:0 1px 0 rgba(0,0,0,.28)}
-.fb-b small{display:block;font-family:Nunito,sans-serif;font-weight:900;font-size:10px;opacity:.75;margin-top:2px}
-.fb-shoot{grid-column:2;grid-row:1 / span 2;width:98px;height:98px;font-size:19px;background:radial-gradient(circle at 50% 30%,#fff38f,#ffd700 60%,#f0b000)}
-.fb-pass{grid-column:1;grid-row:2;width:84px;height:84px;font-size:17px;background:radial-gradient(circle at 50% 30%,#b6f3ff,#56c8f0 60%,#2a95c8);color:#062a3a}
-.fb-sprint{grid-column:1;grid-row:1;width:72px;height:72px;font-size:14px;color:#fff;background:radial-gradient(circle at 50% 30%,#8ae08a,#3a9a46 60%,#24702e)}
-.fb-b.def.fb-pass{background:radial-gradient(circle at 50% 30%,#ffd0b0,#f0864a 60%,#c45a24);color:#3a1200}
-.fb-b.def.fb-shoot{background:radial-gradient(circle at 50% 30%,#ffb0b0,#e04a4a 60%,#a82020);color:#fff}
-.fb-swap{position:absolute;right:calc(env(safe-area-inset-right,0px) + 200px);bottom:calc(env(safe-area-inset-bottom,0px) + 18px);width:56px;height:56px;font-size:11px;color:#fff;background:rgba(16,10,30,.75);border:2px solid rgba(255,255,255,.8);pointer-events:auto}
-.fb-bars{position:absolute;right:calc(env(safe-area-inset-right,0px) + 14px);bottom:calc(env(safe-area-inset-bottom,0px) + 196px);width:182px;display:flex;flex-direction:column;gap:5px}
-.fb-bar{height:9px;border-radius:6px;background:rgba(16,10,30,.6);overflow:hidden;box-shadow:0 0 0 1.5px rgba(255,255,255,.5)}
+.fb-stickhint{position:absolute;left:calc(env(safe-area-inset-left,0px) + 18px);bottom:calc(env(safe-area-inset-bottom,0px) + 18px);width:96px;height:96px;border-radius:50%;border:2px dashed rgba(255,255,255,.5);display:grid;place-items:center;font-size:11px;font-weight:800;text-align:center;opacity:.7;padding:10px;transition:opacity .4s;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+/* botones como en los juegos de fútbol del móvil: círculos translúcidos con aro de color (se ve el campo a través), en arco
+   alrededor de SPRINT, que va en la esquina: PASE a la izquierda, CAMBIAR en diagonal y TIRO encima */
+.fb-btns{--s:70px;--p:60px;--w:48px;--r:78px;position:absolute;right:calc(env(safe-area-inset-right,0px) + 10px);bottom:calc(env(safe-area-inset-bottom,0px) + 10px);width:calc(var(--s) / 2 + var(--r) + var(--p) / 2);height:calc(var(--s) / 2 + var(--r) + var(--p) / 2);pointer-events:none}
+.fb-b{position:absolute;border:3px solid var(--c,#fff);padding:0;border-radius:50%;background:rgba(12,8,24,.4);color:#fff;font:900 13px Nunito,system-ui,sans-serif;letter-spacing:.04em;text-shadow:0 1px 3px rgba(0,0,0,.75);display:grid;place-items:center;cursor:pointer;touch-action:none;pointer-events:auto;text-align:center;line-height:1;box-shadow:0 3px 12px rgba(0,0,0,.28),inset 0 0 0 1px rgba(255,255,255,.14);-webkit-backdrop-filter:blur(1.5px);backdrop-filter:blur(1.5px);transition:transform .06s,background .06s}
+.fb-b.down{background:var(--c,#fff);transform:scale(.92)}
+.fb-b.long{font-size:10.5px;letter-spacing:.02em}
+.fb-sprint{--c:#3fbf5a;right:0;bottom:0;width:var(--s);height:var(--s)}
+.fb-pass{--c:#2fa8e0;width:var(--p);height:var(--p);right:calc(var(--s) / 2 + var(--r) - var(--p) / 2);bottom:calc(var(--s) / 2 - var(--p) / 2)}
+.fb-shoot{--c:#e8473c;width:var(--p);height:var(--p);right:calc(var(--s) / 2 - var(--p) / 2);bottom:calc(var(--s) / 2 + var(--r) - var(--p) / 2)}
+.fb-swap{--c:#f2c230;width:var(--w);height:var(--w);align-content:center;gap:1px;right:calc(var(--s) / 2 + var(--r) * .7071 - var(--w) / 2);bottom:calc(var(--s) / 2 + var(--r) * .7071 - var(--w) / 2)}
+.fb-swap svg{width:20px;height:20px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}.fb-swap small{font-size:8px;font-weight:900;letter-spacing:.02em;text-transform:uppercase}
+.fb-b.def.fb-pass{--c:#f08a3a}.fb-b.def.fb-shoot{--c:#c42a2a}
+.fb-bars{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 10px);width:min(24vw,190px);display:flex;flex-direction:column;gap:4px;pointer-events:none}
+.fb-bar{height:7px;border-radius:5px;background:rgba(16,10,30,.5);overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.45)}
 .fb-bar i{display:block;height:100%;width:100%;border-radius:6px;background:linear-gradient(90deg,#3fd36a,#a6f07a);transform-origin:left;transition:transform .05s linear}
 .fb-bar.pow{opacity:0;transition:opacity .15s}.fb-bar.pow.on{opacity:1}.fb-bar.pow i{background:linear-gradient(90deg,#ffd700,#ff8a2a,#e0302a)}
 .fb-arrow{position:absolute;width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-bottom:26px solid #ffe14a;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));display:none;transform-origin:50% 60%}
-.fb-tip{position:absolute;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 96px);max-width:min(560px,calc(100vw - 32px));padding:9px 16px;border-radius:14px;background:rgba(40,16,90,.92);border:1px solid rgba(255,215,0,.5);font-size:16px;font-weight:800;line-height:1.3;text-align:center;opacity:0;transition:opacity .2s;box-shadow:0 8px 24px rgba(0,0,0,.35)}
-.fb-tip.on{opacity:1}.fb-tip b{color:#ffd84a}
+/* consejo del tutorial y de los retos: pequeño, bajo el marcador (encima de la grada, no del campo); a los pocos segundos
+   se recoge en un botón «?» que lo vuelve a abrir */
+.fb-tip{display:none;align-items:center;gap:7px;max-width:min(500px,64vw);padding:4px 12px 4px 5px;border-radius:13px;background:rgba(36,14,80,.8);border:1px solid rgba(255,215,0,.45);font-size:13px;font-weight:800;line-height:1.25;text-align:left;box-shadow:0 4px 14px rgba(0,0,0,.3);pointer-events:auto;cursor:pointer}
+.fb-tip.on{display:flex;animation:fbin .18s ease-out}.fb-tip b{color:#ffd84a}
+.fb-tip i{flex:none;width:20px;height:20px;border-radius:50%;background:#ffd84a;color:#2a1a00;font:900 13px/20px Nunito,sans-serif;font-style:normal;text-align:center}
+.fb-tip.mini{padding:3px;border-radius:50%;background:rgba(36,14,80,.6)}.fb-tip.mini span{display:none}
 .fb-keys{position:absolute;left:calc(env(safe-area-inset-left,0px) + 12px);bottom:calc(env(safe-area-inset-bottom,0px) + 10px);font-size:12px;font-weight:800;padding:5px 10px;border-radius:10px;background:rgba(16,10,30,.6);max-width:calc(100vw - 24px)}
 .fb-panel{position:absolute;inset:0;display:grid;place-items:center;background:rgba(10,4,24,.62);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);pointer-events:auto;padding:calc(env(safe-area-inset-top,0px) + 12px) 12px calc(env(safe-area-inset-bottom,0px) + 12px)}
 .fb-card{width:min(540px,100%);max-height:100%;overflow:auto;background:linear-gradient(180deg,#32136f,#1c0b3a);border:1px solid rgba(190,160,255,.3);border-radius:22px;padding:20px 20px 16px;box-shadow:0 24px 70px rgba(0,0,0,.55);text-align:center}
@@ -65,19 +72,21 @@ const CSS = `
 .fb-big{font-family:'Lilita One',Nunito,sans-serif;font-size:46px;line-height:1;margin:6px 0}
 @media (max-width:640px) and (orientation:portrait){
   .fb-top{left:58px;right:58px}.fb-team{padding:4px 7px;font-size:12px}.fb-team b{font-size:22px}.fb-team span{max-width:18vw}
-  .fb-team span.fb-ln{display:none}.fb-team span.fb-sn{display:inline}.fb-stickhint{width:96px;height:96px;font-size:11px}
-  .fb-shoot{width:88px;height:88px;font-size:17px}.fb-pass{width:76px;height:76px;font-size:15px}.fb-sprint{width:72px;height:72px;font-size:13px}
-  .fb-swap{right:calc(env(safe-area-inset-right,0px) + 198px)}.fb-bars{width:166px;bottom:calc(env(safe-area-inset-bottom,0px) + 182px)}
+  .fb-team span.fb-ln{display:none}.fb-team span.fb-sn{display:inline}
+  .fb-btns{--s:72px;--p:62px;--w:50px;--r:82px}.fb-tip{max-width:92vw}
+  .fb-bars{left:auto;transform:none;right:calc(env(safe-area-inset-right,0px) + 12px);bottom:calc(env(safe-area-inset-bottom,0px) + 172px);width:140px}
   .fb-stick{height:62vh}
 }
 @media (max-height:460px) and (orientation:landscape){
   .fb-top{top:calc(env(safe-area-inset-top,0px) + 4px)}.fb-team b{font-size:22px}
-  .fb-shoot{width:84px;height:84px}.fb-pass{width:74px;height:74px}.fb-sprint{width:72px;height:72px}
-  .fb-bars{left:50%;right:auto;transform:translateX(-50%);width:min(26vw,220px);bottom:calc(env(safe-area-inset-bottom,0px) + 16px)}.fb-tip{top:calc(env(safe-area-inset-top,0px) + 66px)}
-  .fb-msg{top:42%}
+  .fb-btns{--s:62px;--p:54px;--w:44px;--r:68px}.fb-b{font-size:12px}.fb-swap svg{width:17px;height:17px}.fb-swap small{font-size:7.5px}
+  .fb-pause,.fb-cam{width:38px;height:38px}.fb-top{gap:4px}.fb-tip{font-size:12.5px}
+  .fb-stickhint{width:84px;height:84px;font-size:10px}
+  .fb-msg{top:42%}.fb-msg h2{font-size:clamp(34px,8vw,60px)}
 }
 `;
 const SVG_PAUSE = '<svg viewBox="0 0 24 24" fill="#fff"><rect x="6" y="4" width="4" height="16" rx="1.5"/><rect x="14" y="4" width="4" height="16" rx="1.5"/></svg>';
+const SVG_SWAP = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h13l-3.5-3.5"/><path d="M20 15H7l3.5 3.5"/></svg>';
 const SVG_CAM = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"><rect x="3" y="7" width="13" height="10" rx="2"/><path d="M16 11l5-3v8l-5-3z"/></svg>';
 const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -102,13 +111,12 @@ export class FutbolHud {
       <div class="fb-clock"><span class="fb-time">0:00</span><small class="fb-half">1ª parte</small></div>
       <div class="fb-team"><b class="fb-s1">0</b><span class="fb-ln">${esc(o.away.name)}</span><span class="fb-sn">${esc(o.away.short || o.away.name)}</span><i style="background:${o.away.shirt}"></i></div></div>
       <div class="fb-pen"><span>${esc(o.home.short || o.home.name)}</span><span class="fb-p0"></span><span>${esc(o.away.short || o.away.name)}</span><span class="fb-p1"></span></div>
-      <div class="fb-say"></div></div>
+      <div class="fb-say"></div><div class="fb-tip"><i>?</i><span></span></div></div>
       <button class="fb-pause" aria-label="Pausa">${SVG_PAUSE}</button><button class="fb-cam" aria-label="Cambiar cámara">${SVG_CAM}</button>
-      <div class="fb-msg"><h2></h2><p></p></div><div class="fb-tip"></div><div class="fb-arrow"></div>
+      <div class="fb-msg"><h2></h2><p></p></div><div class="fb-arrow"></div>
       ${t ? `<div class="fb-stick"><div class="fb-knob"><i></i></div></div><div class="fb-stickhint">Toca y arrastra para moverte</div>
       <div class="fb-bars"><div class="fb-bar"><i class="fb-en"></i></div><div class="fb-bar pow"><i class="fb-pw"></i></div></div>
-      <div class="fb-btns"><button class="fb-b fb-sprint" data-a="sprint">SPRINT</button><button class="fb-b fb-shoot" data-a="shoot">TIRO</button><button class="fb-b fb-pass" data-a="pass">PASE</button></div>
-      <button class="fb-b fb-swap" data-a="switch">CAMBIAR</button>`
+      <div class="fb-btns"><button class="fb-b fb-sprint" data-a="sprint">SPRINT</button><button class="fb-b fb-pass" data-a="pass">PASE</button><button class="fb-b fb-swap" data-a="switch" aria-label="Cambiar de jugador">${SVG_SWAP}<small>cambiar</small></button><button class="fb-b fb-shoot" data-a="shoot">TIRO</button></div>`
       : `<div class="fb-bars" style="bottom:calc(env(safe-area-inset-bottom,0px) + 44px)"><div class="fb-bar"><i class="fb-en"></i></div><div class="fb-bar pow"><i class="fb-pw"></i></div></div>
       <div class="fb-keys">WASD o flechas: moverte · <b>J</b> pase / robo · <b>K</b> tiro / entrada (mantén para cargar) · <b>Mayús</b> sprint · <b>L</b> cambiar · <b>C</b> cámara · <b>Esc</b> pausa</div>`}`;
     document.body.appendChild(r);
@@ -116,6 +124,8 @@ export class FutbolHud {
     this.el = { s0: $('.fb-s0'), s1: $('.fb-s1'), time: $('.fb-time'), half: $('.fb-half'), say: $('.fb-say'), msg: $('.fb-msg'), tip: $('.fb-tip'), arrow: $('.fb-arrow'),
       en: $('.fb-en'), pw: $('.fb-pw'), pow: $('.fb-bar.pow'), pass: $('.fb-pass'), shoot: $('.fb-shoot'), pen: $('.fb-pen'), p0: $('.fb-p0'), p1: $('.fb-p1'), hint: $('.fb-stickhint') };
     $('.fb-pause').addEventListener('click', (e) => { e.stopPropagation(); o.onPause?.(); });
+    // el consejo se abre y se recoge tocándolo
+    this.el.tip.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); this.tipOpen(this.el.tip.classList.contains('mini')); });
     $('.fb-cam').addEventListener('click', (e) => { e.stopPropagation(); o.onCam?.(); });
     this.held = { sprint: false };
     for (const b of r.querySelectorAll('[data-a]')) {
@@ -141,9 +151,9 @@ export class FutbolHud {
     if (this.def === def || !this.el.pass) return; this.def = def;
     this.el.pass.classList.toggle('def', def); this.el.shoot.classList.toggle('def', def);
     this.el.pass.textContent = def ? 'ROBO' : 'PASE'; this.el.shoot.textContent = def ? 'ENTRADA' : 'TIRO';
-    this.el.shoot.style.fontSize = def ? '15px' : '';
+    this.el.shoot.classList.toggle('long', def);
   }
-  setButtons(pass, shoot) { if (!this.el.pass) return; this.def = null; this.el.pass.textContent = pass; this.el.shoot.textContent = shoot; this.el.pass.classList.remove('def'); this.el.shoot.classList.remove('def'); this.el.shoot.style.fontSize = shoot.length > 6 ? '15px' : ''; }
+  setButtons(pass, shoot) { if (!this.el.pass) return; this.def = null; this.el.pass.textContent = pass; this.el.shoot.textContent = shoot; this.el.pass.classList.remove('def'); this.el.shoot.classList.remove('def'); this.el.shoot.classList.toggle('long', shoot.length > 6); this.el.pass.classList.toggle('long', pass.length > 6); }
   bars(energy, charge) {
     if (this.el.en) this.el.en.style.transform = `scaleX(${energy.toFixed(3)})`;
     if (this.el.pow) { this.el.pow.classList.toggle('on', charge >= 0); if (charge >= 0) this.el.pw.style.transform = `scaleX(${charge.toFixed(3)})`; }
@@ -153,7 +163,13 @@ export class FutbolHud {
     clearTimeout(this.mt); this.mt = setTimeout(() => m.classList.remove('on'), ms);
   }
   say(text, ms = 1700) { const s = this.el.say; s.textContent = text; s.classList.add('on'); clearTimeout(this.st); this.st = setTimeout(() => s.classList.remove('on'), ms); }
-  tip(html) { const t = this.el.tip; if (!html) { t.classList.remove('on'); return; } t.innerHTML = html; t.classList.add('on'); }
+  /** Consejo: se ve entero unos segundos y luego se recoge en «?» (para no tapar el juego); null lo quita. */
+  tip(html) {
+    const t = this.el.tip; clearTimeout(this.tt);
+    if (!html) { t.classList.remove('on', 'mini'); return; }
+    t.querySelector('span').innerHTML = html; t.classList.add('on'); this.tipOpen(true, 7000);
+  }
+  tipOpen(open, ms = 6000) { const t = this.el.tip; clearTimeout(this.tt); t.classList.toggle('mini', !open); if (open) this.tt = setTimeout(() => t.classList.add('mini'), ms); }
   /** Flecha en el borde de la pantalla hacia el jugador controlado (x, y en píxeles; ang en radianes) o null. */
   arrow(x, y, ang) { const a = this.el.arrow; if (x === null) { a.style.display = 'none'; return; } a.style.display = 'block'; a.style.left = (x - 14) + 'px'; a.style.top = (y - 13) + 'px'; a.style.transform = `rotate(${ang}rad)`; }
   pens(log, kicks) {
