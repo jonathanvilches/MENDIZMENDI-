@@ -18,10 +18,11 @@ export const COURT = {
 // Física (en «tiempo de juego»; el partido va a cámara algo lenta según el nivel)
 export const PHYS = {
   G: 9.8,
-  FLOOR_E: 0.42,     // rebote vertical en el suelo (la pelota de cuero bota poco)
+  FLOOR_E: 0.3,      // rebote vertical en el suelo (la pelota de cuero bota poco: unos 60 cm tras un golpe normal)
   FLOOR_F: 0.7,      // lo que conserva en horizontal al botar (se frena: el segundo bote cae dentro)
-  FRONT_E: 0.66,     // rebote en el frontis
+  FRONT_E: 0.52,     // rebote en el frontis (sale con algo menos de fuerza de la que llega)
   FRONT_F: 0.94,
+  FRONT_FX: 0.62,    // lo que conserva de lado al dar en el frontis (rozamiento: la pelota no sale cruzada)
   WALL_E: 0.74,      // rebote en la pared izquierda
   DRAG: 0.05,
 };
