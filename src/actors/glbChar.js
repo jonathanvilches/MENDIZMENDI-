@@ -112,6 +112,9 @@ function shrinkMap(m) {
 // altura de cada personaje (m): una sola para todo el juego, así el mismo modelo se carga una vez aunque salga como
 // jugador, como vecino o en un partido
 const MESHY_H = { sanfermin: 1.5, pastor: 1.6, osasuna: 1.6, osasuna_fuera: 1.6, pelotari: 1.62, pelotari_rojo: 1.62 };
+/** Ritmo de las piernas de los personajes de Meshy según su zancada real (tools/zancada.mjs: andar ~0,92 m/s y correr
+ *  ~1,62 m/s a ritmo 1): los pies no patinan. Desde 1,9 m/s trotan; el de correr no pasa de ×2,8. */
+export const MESHY_GAIT = { walkAt: 0.15, runAt: 1.9, gait: (v, n) => n === 'Run' ? Math.min(2.8, Math.max(0.8, v / 1.62)) : Math.min(2.2, Math.max(0.4, v / 0.92)) };
 /** ¿Está ya cargado (o cargándose) este personaje de Meshy? */
 export const loadedMeshy = (name) => cache.has('meshy:' + name);
 /** Personaje de Meshy con los clips del juego, escalado a su altura. */
@@ -442,7 +445,12 @@ export class GlbRig {
     // zancada natural de los clips: Walk ≈ 1,0 m/s y Run ≈ 2,5 m/s. Las velocidades del juego (3,3 y 6,8 m/s) son
     // mayores: el ritmo sube con la raíz de la velocidad para que las piernas no se vuelvan frenéticas
     // Walk avanza ~1,15 m por ciclo y Run ~2,5 m/s: el ritmo sigue casi a la velocidad (los pies apenas patinan)
-    this.char = new GlbChar(gltf, { outline: 0.006, walkAt: 0.2, runAt: 4.6, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / (2.5 * LEGS), 0.85) : Math.pow(Math.max(0.2, v) / (1.15 * LEGS), 0.8) });
+    // personajes de Meshy: el ritmo de las piernas sale de su zancada real (medida con tools/zancada.mjs: el clip de
+    // andar avanza ~0,92 m/s y el de correr ~1,62 m/s a ritmo 1), así los pies no patinan. Al paso del juego (3,3 m/s)
+    // ya trotan con el clip de correr; andar es para ir despacio. El de correr no pasa de ×2,8 (no se vuelve frenético)
+    this.char = gltf.userData?.meshy
+      ? new GlbChar(gltf, { outline: 0.006, ...MESHY_GAIT })
+      : new GlbChar(gltf, { outline: 0.006, walkAt: 0.2, runAt: 4.6, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / (2.5 * LEGS), 0.85) : Math.pow(Math.max(0.2, v) / (1.15 * LEGS), 0.8) });
     // los aventureros de KayKit llevan mochila a la espalda (agua, comida y equipo; se quitan capa y carcaj); los
     // personajes propios (sanferminero, pastor, futbolista, pelotari) van tal cual, sin mochila
     if (def.kaykit) { try { applyOutfit(this.char.root, def.kaykit, { id: 'mochila', keep: true, backpack: {} }); } catch (e) { console.warn('mochila', e); } }
@@ -468,12 +476,16 @@ export class GlbRig {
       else if (this.wave > 0 && speed < 1) c.playOnce('Wave', this.wave);
     }
     c.setTalking(this.talking > 0);
-    c.setSpeed(speed);
+    // la velocidad que mueve las piernas se suaviza: medida fotograma a fotograma salta un poco (choques, cuestas,
+    // fotogramas desiguales) y el ritmo de los pasos cambiaba de golpe
+    this.legSpeed = this.legSpeed == null ? speed : this.legSpeed + (speed - this.legSpeed) * Math.min(1, dt * 10);
+    if (speed < 0.05 && this.legSpeed < 0.3) this.legSpeed = speed;
+    c.setSpeed(this.legSpeed);
     // cuerpo vivo: se inclina hacia dentro en las curvas (más cuanto más corre), hacia delante al arrancar
     // y al correr, y la cabeza se adelanta al giro
     if (dt > 0) {
       const tr = grounded ? (turnRate || 0) : 0, cl = THREE.MathUtils.clamp;
-      const acc = (speed - this.lastSpeed) / dt; this.lastSpeed = speed;
+      const acc = (this.legSpeed - this.lastSpeed) / dt; this.lastSpeed = this.legSpeed;
       const wantRoll = cl(-tr * Math.min(speed, 7) * 0.028, -0.2, 0.2);
       const wantPitch = cl(acc * 0.01, -0.05, 0.09) + (speed > 4.6 ? 0.07 : speed > 0.4 ? 0.02 : 0);
       this.roll += (wantRoll - this.roll) * Math.min(1, dt * 7);

@@ -424,7 +424,7 @@ export class Hub {
       $('#pVol', r).oninput = e => { S.volume = +e.target.value; saveProfile(); this.onSettings?.(S); };
       $('#pQ', r).value = S.quality || 'auto';
       $('#pLang', r).value = getLang(); $('#pLang', r).onchange = e => setLang(e.target.value);
-      $('#pQ', r).onchange = e => { S.quality = e.target.value === 'auto' ? null : e.target.value; saveProfile(); this.onSettings?.(S); };
+      $('#pQ', r).onchange = e => { S.quality = e.target.value === 'auto' ? null : e.target.value; S.qualityAuto = false; saveProfile(); this.onSettings?.(S); };
       const rb = $('#pReset', r); rb.onclick = (e) => { e.stopPropagation(); if (rb.dataset.sure) { resetProfile(); try { localStorage.removeItem('mendimendiz-salazar-v2'); } catch (err) { } this.go('home'); } else { rb.dataset.sure = 1; rb.textContent = '¿Seguro? Pulsa otra vez para borrar todo'; this.sound?.ui('error'); } };
     };
     let doneM = 0; for (const l of LEVELS) doneM += townProgress(p, l).done;

@@ -10,7 +10,7 @@ import { buildNpc } from '../actors/npcGlb.js';
 import { infoCard } from '../ui/minigames.js';
 import { buildPlaza, RO, RA } from './encierroPlaza.js';
 import { crowd3d } from '../actors/crowd3d.js';
-import { GLB_AVATARS, GlbChar, loadMeshy } from '../actors/glbChar.js';
+import { GLB_AVATARS, GlbChar, loadMeshy, MESHY_GAIT } from '../actors/glbChar.js';
 import { cobbleSet, ashlarSet, brickSet, woodSet, plasterSet, windowTex, railingTex, shopTex, SHOPS, plaqueTex, sandTex, archTex, flagNavarraTex } from './encierroTex.js';
 
 const L = 230;          // largo de la Estafeta en la escena (m); luego el callejón vallado y la plaza
@@ -206,7 +206,7 @@ export class Encierro {
     // el protagonista se pone su ropa de San Fermín (el modelo vestido de blanco y rojo); los aventureros, de blanco y rojo
     let me = null;
     if (def?.meshy) try {
-      const g = await loadMeshy('sanfermin'), char = new GlbChar(g, { walkAt: 0.2, runAt: 4.4, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / 3.2, 0.85) : Math.pow(Math.max(0.2, v) / 1.35, 0.8) });
+      const g = await loadMeshy('sanfermin'), char = new GlbChar(g, MESHY_GAIT);
       char.root.scale.setScalar(g.userData.fit || 1); const obj = new THREE.Group(); obj.add(char.root); obj.userData.H = 1.45;
       me = { obj, char, anim: { update: (dt, st) => { char.setSpeed(st.speed || 0); char.update(dt); } } };
     } catch (e) { console.warn('corredor', e); }

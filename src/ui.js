@@ -504,7 +504,7 @@ export class UI {
     const save = () => g.save();
     $('#mMusic', s).onchange = e => { S.music = e.target.checked; this.sound.setMusic(e.target.checked); save(); };
     $('#mVol', s).oninput = e => { S.volume = +e.target.value; this.sound.setVolume(+e.target.value); save(); };
-    $('#mQ', s).onchange = e => { S.quality = e.target.value; save(); this.onQuality?.(e.target.value); $('#mQnote', s).hidden = false; };
+    $('#mQ', s).onchange = e => { S.quality = e.target.value; S.qualityAuto = false; save(); this.onQuality?.(e.target.value); $('#mQnote', s).hidden = false; };
     $('#mT', s).onchange = e => { S.timeSpeed = +e.target.value; g.applySettings(); save(); };
     $('#mHome', s).onclick = () => { this.closeModal(); g.teleport(PLACES.plaza.x - 6, PLACES.plaza.z + 6); };
     $('#mExit', s).onclick = () => { this.closeModal(); g.save(); g.onExit?.(); };

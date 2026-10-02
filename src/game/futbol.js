@@ -6,7 +6,7 @@
 // Ambiente: entrada al campo con cámara aérea, público rojillo que salta, comentarista, cámara lenta en los goles y radar.
 import * as THREE from 'three';
 import { buildNpc } from '../actors/npcGlb.js';
-import { GlbChar, loadMeshy, hasMeshy } from '../actors/glbChar.js';
+import { GlbChar, loadMeshy, hasMeshy, MESHY_GAIT } from '../actors/glbChar.js';
 import { crowd3d } from '../actors/crowd3d.js';
 import { TOWN } from '../world/townBuilder.js';
 import { groundHeight } from '../world/heightfield.js';
@@ -117,7 +117,7 @@ export class Futbol {
 
   // el futbolista de Meshy con la interfaz de los demás (obj, char, anim)
   meshyPlayer(g) {
-    const char = new GlbChar(g, { walkAt: 0.2, runAt: 4.4, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / 3.4, 0.85) : Math.pow(Math.max(0.2, v) / 1.4, 0.8) });
+    const char = new GlbChar(g, MESHY_GAIT);
     char.root.scale.setScalar(g.userData.fit || 1);
     const obj = new THREE.Group(); obj.add(char.root); obj.userData.H = 1.55; this.root.add(obj);
     return { obj, char, meshy: true, anim: { update: (dt, st) => { char.setSpeed(st.speed || 0); char.update(dt); } } };

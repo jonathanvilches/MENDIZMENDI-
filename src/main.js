@@ -40,18 +40,14 @@ const TIPS = [
   'Cuando tengas todos los pueblos de una comarca, se iluminará en el mapa de Navarra.',
 ];
 
-// ordenador: alta solo con tarjeta gráfica dedicada; con la integrada (la de casi todos los portátiles: Intel, AMD
-// Radeon Graphics/Vega, o sin aceleración) media, que va mucho más fluida
+// ordenador: siempre alta (mejor menos cosas y con calidad); solo sin aceleración gráfica, baja
 function desktopTier() {
   try {
     const gl = document.createElement('canvas').getContext('webgl2') || document.createElement('canvas').getContext('webgl');
     const ext = gl?.getExtension('WEBGL_debug_renderer_info'), r = String(ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl?.getParameter(gl.RENDERER) || '');
     gl?.getExtension('WEBGL_lose_context')?.loseContext();
-    if (/swiftshader|llvmpipe|software|microsoft basic/i.test(r)) return 'low';
-    if (/intel|uhd|iris|hd graphics|radeon\(tm\) graphics|radeon graphics|vega|mali|adreno|powervr/i.test(r)) return 'mid';
-    if (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) return 'mid';
-    return 'high';
-  } catch (e) { return 'mid'; }
+    return /swiftshader|llvmpipe|software|microsoft basic/i.test(r) ? 'low' : 'high';
+  } catch (e) { return 'high'; }
 }
 
 async function boot() {
@@ -65,10 +61,13 @@ async function boot() {
   // calidad automática: ordenador alta; móvil baja (en iPhone no se puede saber la memoria y Safari cierra la página
   // si se pasa), salvo móviles que dicen tener mucha memoria (6 GB o más), que van en media
   const bigMem = navigator.deviceMemory && navigator.deviceMemory >= 6;
+  // en ordenador, una calidad bajada sola (por un fallo de carga o de memoria) no se queda para siempre: se vuelve a
+  // la automática una vez (las elegidas a mano en Ajustes se respetan)
+  if (!input.touch && (P.settings.qualityAuto || !P.q3)) { P.settings.quality = null; P.settings.qualityAuto = false; P.q3 = true; saveProfile(); }
   const quality = q.get('q') || P.settings.quality || (input.touch ? (bigMem ? 'mid' : 'low') : desktopTier());
   const rt = new Runtime({ canvas, input, sound, quality });
   // si el dispositivo se queda sin memoria para dibujar (pantalla apagada), la próxima vez arranca con menos calidad
-  canvas.addEventListener('webglcontextlost', () => { const S = P.settings, next = { high: 'mid', mid: 'low' }[S.quality || quality]; if (next) { S.quality = next; saveProfile(); } });
+  canvas.addEventListener('webglcontextlost', () => { const S = P.settings, next = { high: 'mid', mid: 'low' }[S.quality || quality]; if (next) { S.quality = next; S.qualityAuto = true; saveProfile(); } });
   canvas.style.visibility = 'hidden';
   window.__renderer = rt.renderer; window.__hf = HF; window.__layout = LAYOUT; window.__THREE = THREE; window.__LANDMARKS = LANDMARKS; window.__rt = rt;
 
@@ -150,7 +149,7 @@ async function boot() {
       ui.hideLoading(); loading = false; queueMode('all');
       try { rt.unload(); } catch (e2) { }
       const S = P.settings, lowered = (S.quality || rt.quality) !== 'low';
-      if (lowered) { S.quality = 'low'; saveProfile(); }
+      if (lowered) { S.quality = 'low'; S.qualityAuto = true; saveProfile(); }
       hub.show('home');
       showLoadError(d, e, lowered);
       return;
