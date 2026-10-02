@@ -231,7 +231,10 @@ export class PelotaMatch {
       P.yaw = P.yaw == null ? yaw : P.yaw + Math.atan2(Math.sin(yaw - P.yaw), Math.cos(yaw - P.yaw)) * (1 - Math.exp(-12 * dt));
       side.obj.rotation.y = grp.rotation.y + P.yaw + (this.o.yawOffset || 0);
       const swingAge = this.t - (this.lastSwing[who] || -9);
-      const st = { speed: P.speed || 0, act: P.act, actT: P.actT, swing: swingAge < 0.4 ? swingAge / 0.4 : -1, won: g.phase === 'point' && P.act === 'cheer', lost: g.phase === 'point' && P.act === 'sad' };
+      // preparación del golpe: cuando la pelota viene hacia quien le toca, echa el brazo atrás (más cuanto más cerca)
+      const ball = g.ball.p, turn = g.phase === 'rally' ? g.rally?.turn === who && g.rally?.front : g.phase === 'servePrep' && g.server === who;
+      const dB = Math.hypot(ball.x - P.x, ball.z - P.z), wind = turn ? Math.max(0, Math.min(1, 1 - (dB - 1.0) / 5)) : 0;
+      const st = { speed: P.speed || 0, act: P.act, actT: P.actT, wind, swing: swingAge < 0.4 ? swingAge / 0.4 : -1, won: g.phase === 'point' && P.act === 'cheer', lost: g.phase === 'point' && P.act === 'sad' };
       if (P.act === 'swing' && who === 'you' && swingAge > 0.4) { this.lastSwing[who] = this.t; }
       if (side.animate) side.animate(side.obj, st, dt); else basicAnimate(side.obj, st, dt, this.t);
     }

@@ -48,8 +48,12 @@ async function boot() {
   const sound = new Sound();
   const ui = new UI(input, sound);
   const P = profile();
-  const quality = q.get('q') || P.settings.quality || (input.touch ? 'mid' : 'high');
+  // calidad automática: ordenador alta; móvil media, y baja si tiene poca memoria (4 GB o menos)
+  const lowMem = navigator.deviceMemory && navigator.deviceMemory <= 4;
+  const quality = q.get('q') || P.settings.quality || (input.touch ? (lowMem ? 'low' : 'mid') : 'high');
   const rt = new Runtime({ canvas, input, sound, quality });
+  // si el dispositivo se queda sin memoria para dibujar (pantalla apagada), la próxima vez arranca con menos calidad
+  canvas.addEventListener('webglcontextlost', () => { const S = P.settings, next = { high: 'mid', mid: 'low' }[S.quality || quality]; if (next) { S.quality = next; saveProfile(); } });
   canvas.style.visibility = 'hidden';
   window.__renderer = rt.renderer; window.__hf = HF; window.__layout = LAYOUT; window.__THREE = THREE; window.__LANDMARKS = LANDMARKS; window.__rt = rt;
 
@@ -62,6 +66,7 @@ async function boot() {
   const hookPlayer = (player) => {
     player.onStep = (surf, speed, pos) => {
       sound.step(surf, speed);
+      if (surf !== 'water') rt.weather?.footprint(pos, player.heading);   // huellas si ha nevado
       if (surf === 'water') rt.particles.emit({ x: pos.x, y: pos.y + 0.1, z: pos.z }, { n: 6, color: '#dff4ff', speed: 1.6, size: 0.22, life: 0.5, gravity: 6 });
       else if (surf === 'dirt' && speed > 4) rt.particles.emit({ x: pos.x, y: pos.y + 0.1, z: pos.z }, { n: 2, color: '#b09a78', speed: 0.6, size: 0.35, life: 0.6, gravity: -0.2 });
     };

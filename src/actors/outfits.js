@@ -49,8 +49,10 @@ const textures = new Map();
 // atlas repintado: cada casilla de ropa toma el color del traje con la luz de su degradado original
 function repaint(map, assign, key) {
   if (textures.has(key)) return textures.get(key);
-  const img = map.image, w = img.width, h = img.height, c = document.createElement('canvas'); c.width = w; c.height = h;
-  const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0);
+  // a 512 px como mucho: las casillas son colores lisos y así cada traje ocupa 4 veces menos memoria gráfica
+  // (con muchos vecinos de trajes distintos, a 1024 px los móviles se quedaban sin memoria y se apagaba la pantalla)
+  const img = map.image, sc = Math.min(1, 512 / Math.max(img.width, img.height)), w = Math.round(img.width * sc), h = Math.round(img.height * sc), c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0, w, h);
   const cw = w / COLS, ch = h / ROWS, col = new THREE.Color();
   for (const [cell, hex] of assign) {
     const cx = cell % COLS, cy = cell / COLS | 0, x0 = cx * cw | 0, y0 = (map.flipY ? ROWS - 1 - cy : cy) * ch | 0;
@@ -104,8 +106,10 @@ export function applyOutfit(root, kk, outfitId) {
   const O = typeof outfitId === 'object' ? outfitId : OUTFITS.find(o => o.id === outfitId);
   if (!O || O.id === 'original') return [];
   const meshes = []; root.traverse(o => { if (o.isMesh && !o.userData.outline) meshes.push(o); });
-  const part = (re) => meshes.filter(m => re.test(m.name) && !HIDE.test(m.name));
-  for (const m of meshes) if (HIDE.test(m.name)) { m.visible = false; m.userData.want = false; for (const c of m.children) c.visible = false; }
+  // keep: se conserva el aspecto del personaje (solo se añaden prendas; para la mochila se quitan capa y carcaj)
+  const hideRe = O.keep ? /Cape|Quiver/i : HIDE;
+  const part = (re) => meshes.filter(m => re.test(m.name) && !hideRe.test(m.name));
+  for (const m of meshes) if (hideRe.test(m.name)) { m.visible = false; m.userData.want = false; for (const c of m.children) c.visible = false; }
   const head = part(/Head/), body = part(/Body/), arms = part(/Arm/), legs = part(/Leg/);
   const map = (body[0] || meshes[0])?.material?.map; if (!map?.image) return [];
   // casillas: las de la cabeza (piel, pelo, ojos) no se tocan; el resto se reparten entre camisa, pantalón y calzado
@@ -124,8 +128,10 @@ export function applyOutfit(root, kk, outfitId) {
   const SKIN_CELL = 0, HAIR_CELL = 1, hairTint = O.hair || O.hairLong;
   if (O.skin && headCells.has(SKIN_CELL)) assign.set(SKIN_CELL, O.skin);
   if (hairTint && headCells.has(HAIR_CELL) && !assign.has(HAIR_CELL)) assign.set(HAIR_CELL, hairTint);
-  const tex = repaint(map, assign, kk + '|' + (O.id || [O.shirt, O.pants, O.shoes, O.accent].join()));
-  for (const m of [...head, ...body, ...arms, ...legs]) { m.material = m.material.clone(); m.material.map = tex; }
+  if (!O.keep) {
+    const tex = repaint(map, assign, kk + '|' + (O.id || [O.shirt, O.pants, O.shoes, O.accent].join()));
+    for (const m of [...head, ...body, ...arms, ...legs]) { m.material = m.material.clone(); m.material.map = tex; }
+  }
   // prendas cosidas a los huesos, colocadas sobre la pose de reposo
   root.updateMatrixWorld(true);
   const bone = (n) => { const n2 = n.replace(/\./g, ''); let b = null; root.traverse(o => { if (o.isBone && (o.name === n || o.name === n2)) b = o; }); return b; };   // el cargador quita los puntos («foot.l» → «footl»)
@@ -208,6 +214,16 @@ export function applyOutfit(root, kk, outfitId) {
     const g = new THREE.Group(), web = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 8), mat(O.duckFeet)); web.scale.set(w, w * 0.22, w * 1.4); web.position.z = w * 2.3; g.add(web);
     for (const a of [-0.45, 0, 0.45]) { const toe = new THREE.Mesh(new THREE.CapsuleGeometry(w * 0.12, w * 1.1, 3, 6), mat(O.duckFeet)); toe.rotation.set(Math.PI / 2, 0, 0); toe.rotation.y = a; toe.position.set(Math.sin(a) * w * 0.9, 0, w * 2.3 + Math.cos(a) * w * 0.9); g.add(toe); }
     put(g, f.name, new THREE.Vector3(fp.x, lb.min.y + w * 0.2, fp.z));
+  }
+  if (O.backpack && body.length) {   // mochila del explorador a la espalda: bolsa con solapa, bolsillo, manta enrollada y correas
+    const g = new THREE.Group(), w = bs.x * 0.6, h = bs.y * 0.7, d = bs.z * 0.4, P = O.backpack;
+    const bag = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(P.bag || '#3f6a4c')); g.add(bag);
+    const flap = new THREE.Mesh(new THREE.BoxGeometry(w * 1.03, h * 0.38, d * 1.06), mat(P.flap || '#2f5239')); flap.position.y = h * 0.33; g.add(flap);
+    const pocket = new THREE.Mesh(new THREE.BoxGeometry(w * 0.6, h * 0.32, d * 0.3), mat(P.flap || '#2f5239')); pocket.position.set(0, -h * 0.2, -d * 0.62); g.add(pocket);
+    const roll = new THREE.Mesh(new THREE.CylinderGeometry(d * 0.42, d * 0.42, w * 1.15, 12), mat(P.roll || '#b8322a')); roll.rotation.z = Math.PI / 2; roll.position.set(0, h * 0.62, 0); g.add(roll);
+    for (const sx of [-1, 1]) { const st = new THREE.Mesh(new THREE.BoxGeometry(w * 0.1, h * 0.9, d * 0.1), mat(P.strap || '#4a2f1c')); st.position.set(sx * w * 0.3, 0, -d * 0.52); g.add(st); }
+    put(g, 'chest', new THREE.Vector3(bc.x, bc.y + bs.y * 0.2, bb.min.z - d * 0.4));
+    for (const sx of [-1, 1]) { const sh = new THREE.Mesh(new THREE.BoxGeometry(bs.x * 0.09, bs.y * 0.62, bs.z * 0.08), mat(P.strap || '#4a2f1c')); put(sh, 'chest', new THREE.Vector3(bc.x + sx * bs.x * 0.24, bc.y + bs.y * 0.12, bb.max.z + bs.z * 0.02)); }   // correas por delante
   }
   // ---- prendas de carnaval y de fiesta (joaldunak, momotxorros, zipoteros, gigantes…) ----
   const onHead = (g, dy = 0) => put(g, 'head', new THREE.Vector3(hc.x, hb.max.y - sz.y * 0.12 + dy, hc.z));
