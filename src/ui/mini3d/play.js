@@ -12,14 +12,14 @@ function hud(ui, { title, hint, icon, buttons = '', extra = '' }) {
   const o = document.createElement('div'); o.className = 'mg3d loading';
   o.innerHTML = `<div class="m3-cap"></div>
     <div class="m3-top">${iconSVG(icon, 40)}<div class="m3-txt"><h3>${esc(title)}</h3><small>${esc(hint)}</small></div>
-      <b class="m3-clock"></b><div class="m3-prog"><i></i></div></div>
+      <b class="m3-clock"></b><button class="m3-x" aria-label="Salir">✕</button><div class="m3-prog"><i></i></div></div>
     <div class="m3-bot"><div class="fb">¡Cuando quieras!</div>${extra}<div class="m3-btns">${buttons}</div></div>
-    <div class="m3-load"><span></span>Preparando…</div>`;
+    <div class="m3-load"><span></span>Preparando…<button class="btn m3-xl">Salir</button></div>`;
   document.body.appendChild(o); ui.modal = o; document.body.classList.add('mg3d-on');   // el HUD del pueblo se oculta (style.css)
   const $ = (s) => o.querySelector(s);
   let keyFn = null;
   return {
-    o, cap: $('.m3-cap'), fb: $('.fb'), clock: $('.m3-clock'), top: $('.m3-top'), bot: $('.m3-bot'),
+    o, cap: $('.m3-cap'), x: [$('.m3-x'), $('.m3-xl')], fb: $('.fb'), clock: $('.m3-clock'), top: $('.m3-top'), bot: $('.m3-bot'),
     prog(p) { $('.m3-prog i').style.width = Math.round(Math.max(0, Math.min(1, p)) * 100) + '%'; },
     time(s) { this.clock.textContent = Math.max(0, s).toFixed(1) + ' s'; },
     keys(fn) { keyFn = (e) => { if (o.classList.contains('loading')) return; e.stopImmediatePropagation(); fn(e); }; addEventListener('keydown', keyFn, true); },
@@ -46,6 +46,11 @@ export function play3d(ui, opts, setup) {
     // cerrar: quita el panel, libera la escena y las texturas, y devuelve el resultado (una sola vez)
     const close = (value) => { if (closed) return; closed = true; over = true; H.remove(); S.dispose(); releaseTextures(); if (live === me) live = null; res(value); };
     const me = { abort: () => close({ win: false }) }; live = me;
+    // salir cuando se quiera (también mientras carga): nunca te quedas encerrado en un minijuego
+    for (const b of H.x) b?.addEventListener('click', (e) => { e.stopPropagation(); ui.sound?.ui?.('click'); close({ win: false, quit: true }); });
+    // si la escena tarda demasiado en montarse (móvil sin memoria, un modelo que no llega), se deja y se sigue jugando
+    const slow = setTimeout(() => { if (!closed && H.o.classList.contains('loading')) { console.warn('minijuego 3D: no termina de cargar'); close({ win: false, error: true }); } }, 25000);
+    S.own({ dispose: () => clearTimeout(slow) });
     const end = (value, msg, wait = 1400) => {
       if (over) return; over = true;
       if (msg) H.fb.textContent = msg; H.fb.classList.toggle('win', !!value.win);

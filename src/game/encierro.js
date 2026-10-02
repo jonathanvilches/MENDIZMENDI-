@@ -352,9 +352,9 @@ export class Encierro {
     const h = this.h = document.createElement('div'); h.className = 'enc-hud';
     h.innerHTML = `<div class="enc-top"><div class="enc-hearts"></div><div class="enc-bar"><i></i><b>Plaza</b></div></div><div class="enc-msg"></div><div class="enc-warn">¡Toro detrás! Apártate</div><div class="enc-help">${this.G.input.touch ? 'Dedo a los lados: esquivar · arriba: correr · SALTAR los caídos · PERIÓDICO para guiar al toro' : 'A / D esquivar · W o Mayús correr · Espacio saltar · P periódico · C cámara'}</div>
       <div class="enc-btns"><button class="enc-b enc-jump" data-k="jump">SALTAR</button><button class="enc-b enc-paper" data-k="paper">PERIÓDICO</button></div>
-      <button class="enc-cam" data-k="cam">CÁMARA</button><div class="enc-live"><i></i>EN DIRECTO</div>`;
+      <button class="enc-cam" data-k="cam">CÁMARA</button><button class="enc-quit" data-k="quit" aria-label="Salir del encierro">✕</button><div class="enc-live"><i></i>EN DIRECTO</div>`;
     document.body.appendChild(h);
-    for (const b of h.querySelectorAll('[data-k]')) b.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); const k = b.dataset.k; if (k === 'jump') this.jumpQ = true; if (k === 'paper') this.paperQ = true; if (k === 'cam') this.nextCam(); });
+    for (const b of h.querySelectorAll('[data-k]')) b.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); const k = b.dataset.k; if (k === 'quit') { this.finish(false, true); return; } if (k === 'jump') this.jumpQ = true; if (k === 'paper') this.paperQ = true; if (k === 'cam') this.nextCam(); });
   }
   msg(t, ms = 1800) { const m = this.h?.querySelector('.enc-msg'); if (!m) return; m.textContent = t; m.classList.add('on'); clearTimeout(this.mt); this.mt = setTimeout(() => m.classList.remove('on'), ms); }
 
@@ -365,7 +365,14 @@ export class Encierro {
       this.res = res;
       G.ui.hudVisible(false); G.player.frozen = true;
       await G.ui.fadeOut?.();
-      this.build(); await this.spawn(); this.hud();
+      // si la escena no se puede montar (un modelo que no llega, el móvil sin memoria), se vuelve al pueblo en vez de
+      // quedarse con la pantalla en negro y el jugador quieto
+      try { this.build(); await this.spawn(); this.hud(); }
+      catch (e) {
+        console.warn('encierro', e); try { this.dispose(); } catch { /* lo que haya */ }
+        G.altScene = null; G.altCamera = null; G.altUpdate = null; G.encierro = null; G.mode = 'play'; G.player.frozen = false; G.ui.hudVisible(true);
+        await G.ui.fadeIn?.(); G.ui.toast?.('No se ha podido preparar el encierro. Prueba otra vez en un momento.'); res({ win: false, error: true }); return;
+      }
       this.lives = 3; this.t = 0; this.started = false; this.done = false; this.closeCall = 0;
       G.encierro = this; G.altScene = this.scene; G.altCamera = this.camera; G.altUpdate = (dt) => this.update(dt); G.mode = 'encierro';
       this.place(); this.camCur = null;
@@ -554,24 +561,25 @@ export class Encierro {
     this.h?.querySelector('.enc-live')?.classList.toggle('on', this.camMode === 'tele');
     this.msg({ detras: 'Cámara: detrás del corredor', balcon: 'Cámara: desde el balcón', aerea: 'Cámara: aérea', toros: 'Cámara: mirando a los toros', tele: 'Cámara: la de la tele' }[this.camMode], 1100);
   }
-  async finish(win) {
+  async finish(win, quit = false) {
     if (this.done) return; this.done = true; this.won = win; if (win) { this.stands?.cheer(true); this.crowd?.cheer(true); setTimeout(() => this.me?.char?.playOnce?.('Celebrate', 2.4), 900); }
     const G = this.G;
     this.h?.querySelector('.enc-warn')?.classList.remove('on');
     if (win) { G.sound.fanfare?.(); this.msg(this.closeCall > 1.2 ? '¡En la plaza! Y corriste muy cerca de los toros.' : '¡En la plaza! ¡Lo has conseguido!', 2600); }
     this.h?.querySelector('.enc-help')?.remove();
-    await new Promise(r => setTimeout(r, win ? 5000 : 1800));   // tiempo para ver la plaza llena mientras la cámara gira
+    await new Promise(r => setTimeout(r, win ? 5000 : quit ? 200 : 1800));   // tiempo para ver la plaza llena mientras la cámara gira
     if (this.h) this.h.style.display = 'none';   // sin avisos encima de las tarjetas
-    for (const f of (win ? FACTS : FACTS.slice(-1))) await infoCard(G.ui, { icon: 'bull', kicker: 'San Fermín', title: f.title, text: f.text, button: 'Seguir' });
+    if (!quit) for (const f of (win ? FACTS : FACTS.slice(-1))) await infoCard(G.ui, { icon: 'bull', kicker: 'San Fermín', title: f.title, text: f.text, button: 'Seguir' });
     await G.ui.fadeOut?.();
     this.dispose();
     G.altScene = null; G.altCamera = null; G.altUpdate = null; G.encierro = null; G.mode = 'play'; G.player.frozen = false; G.ui.hudVisible(true);
     await G.ui.fadeIn?.();
-    this.res({ win, close: this.closeCall });
+    this.res({ win, close: this.closeCall, quit });
   }
   dispose() {
     removeEventListener('resize', this.onResize);
-    this.h?.remove();
+    this.h?.remove(); if (!this.scene) return;
+    this.scene.traverse(o => { if (o.isSkinnedMesh) o.skeleton?.dispose(); });
     this.scene.traverse(o => { if (o.geometry) o.geometry.dispose(); const ms = o.material ? [].concat(o.material) : []; for (const m of ms) { m.map?.dispose(); m.dispose(); } });
     this.sun.shadow.map?.dispose(); for (const t of this.texs || []) t.dispose(); this.dustTex?.dispose();
     for (const n of [this.me, ...this.runners]) n.char?.dispose?.();

@@ -124,6 +124,7 @@ export class Stage {
     removeEventListener('resize', this.onResize);
     if (this.shown) this.host.hide();   // (si no llegó a verse, la vista del juego no se toca)
     for (const x of this.owned) x.dispose?.();
+    this.scene.traverse(o => { if (o.isSkinnedMesh) o.skeleton?.dispose(); });   // (la vaca, la oveja, la gente: sus huesos)
     this.owned.length = 0; this.ticks.length = 0; this.mats.clear();
     this.scene.clear();
   }

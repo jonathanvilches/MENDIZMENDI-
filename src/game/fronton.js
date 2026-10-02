@@ -123,13 +123,14 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       once('rival', 'won', st.won, () => red?.doCheer());
       if (st.won) rival.cheer = 0.6;
     };
-    const match = G.pelotaMatch = new PelotaMatch({
+    let match;
+    try { match = G.pelotaMatch = new PelotaMatch({
       THREE, court: fronton.court, camera: G.camera, lang: isEU() ? 'eu' : 'es', mode, target, level,
       you: { obj: P.obj, name: profile().name || (isEU() ? 'Zu' : 'Tú'), animate: animYou },
       rival: { obj: rival.obj, name: String(rival.name).split(',')[0], animate: animRival },
       onEnd: (r) => done(r), onExit: (r) => done(r),
       onEvent: (e) => { if (e.type === 'call' && crowd) crowd.point(e.winner === 'you'); },
-    });
+    }); } catch (e) { console.warn('frontón', e); done({ win: false, error: true }); return; }   // (si no se monta, de vuelta al pueblo)
     G.pelotaTick = (dt) => { match.update(dt); crowd?.update(dt); };
     function done(r) {
       // el público aplaude el final y vuelve al pueblo (sigue moviéndose con el juego hasta que se va)
