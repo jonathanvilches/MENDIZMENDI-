@@ -282,6 +282,7 @@ export class GlbChar {
     // la cabeza se adelanta a los giros (mira hacia donde va a torcer)
     if (this.headBone && Math.abs(this.headYaw) > 1e-3) { _q.setFromAxisAngle(_Y, this.headYaw); this.headBone.quaternion.multiply(_q); }
     for (const b of this.eyeBones) { _q.setFromEuler(_e.set(-this.look.y * 0.18, 0, this.look.x * 0.22)); b.quaternion.multiply(_q); }
+    this.post?.(this, dt);   // ajustes encima de la animación (p. ej. el brazo de golpear en la pelota)
     this._updateSprings(dt);
   }
 
@@ -343,6 +344,7 @@ const EXPR = {
 /** Adaptador con la misma interfaz que MinifigRig (update, doWave, doCheer, setExpr, doAct, carry). */
 // las piernas del modelo son un 35 % más largas que las del diseño original: cada paso cubre más suelo
 const LEGS = 1.3;
+import { applyOutfit } from './outfits.js';
 export class GlbRig {
   constructor(gltf, id = 'ranger') {
     const def = GLB_AVATARS[id] || {};
@@ -351,6 +353,8 @@ export class GlbRig {
     // mayores: el ritmo sube con la raíz de la velocidad para que las piernas no se vuelvan frenéticas
     // Walk avanza ~1,15 m por ciclo y Run ~2,5 m/s: el ritmo sigue casi a la velocidad (los pies apenas patinan)
     this.char = new GlbChar(gltf, { outline: 0.006, walkAt: 0.2, runAt: 4.6, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / (2.5 * LEGS), 0.85) : Math.pow(Math.max(0.2, v) / (1.15 * LEGS), 0.8) });
+    // la mochila del explorador a la espalda (lleva el agua, la comida y el equipo); se quitan capa y carcaj
+    if (def.kaykit) { try { applyOutfit(this.char.root, def.kaykit, { id: 'mochila', keep: true, backpack: {} }); } catch (e) { console.warn('mochila', e); } }
     this.char.root.scale.setScalar(def.scale || gltf.userData?.fit || 1);
     this.obj.add(this.char.root);
     this.wave = 0; this.cheer = 0; this.talking = 0; this.carry = false;
@@ -402,4 +406,24 @@ export class GlbRig {
     else { c.playOnce('Wave', t); c.holdFace('Happy', 'Normal', t, 'Fist'); }
   }
   dispose() { this.char.dispose(); }
+}
+
+// golpe a mano: el brazo derecho se echa atrás mientras llega la pelota (wind) y sale hacia delante al golpear (swing),
+// con un giro del pecho; se aplica encima de la animación de cada pelotari
+export function armSwing(char, get) {
+  if (!char) return;
+  const B = {}; char.root.traverse(o => { if (o.isBone) B[o.name] = o; });
+  const ua = B.upperarmr, la = B.lowerarmr, ch = B.chest; if (!ua) return;
+  const q = new THREE.Quaternion(), X = new THREE.Vector3(1, 0, 0), Y = new THREE.Vector3(0, 1, 0);
+  let w = 0;   // preparación suavizada
+  char.post = (c, dt) => {
+    const st = get(); if (!st) return;
+    w += ((st.swing >= 0 ? 0 : st.wind || 0) - w) * Math.min(1, dt * 10);
+    let arm = -2.3 * w, elbow = 1.0 * w, twist = 0.7 * w;   // brazo bien atrás, codo doblado y hombro girado
+    if (st.swing >= 0) { const s = st.swing, up = Math.min(1, s / 0.3), back = s < 0.3 ? 1 : Math.max(0, 1 - (s - 0.3) / 0.7);   // latigazo rápido y vuelta
+      arm = (-2.3 + 4.3 * up) * back; elbow = 1.0 * (1 - up) * back; twist = (0.7 - 1.4 * up) * back; }
+    if (Math.abs(arm) > 1e-3) ua.quaternion.multiply(q.setFromAxisAngle(X, arm));
+    if (la && Math.abs(elbow) > 1e-3) la.quaternion.multiply(q.setFromAxisAngle(X, -elbow));
+    if (ch && Math.abs(twist) > 1e-3) ch.quaternion.multiply(q.setFromAxisAngle(Y, twist));
+  };
 }

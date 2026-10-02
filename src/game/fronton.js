@@ -1,6 +1,7 @@
 // Frontón de los pueblos y partido de pelota a mano con el motor común de src/pelota.
 // Aquí solo se adapta el motor al juego: dónde va el frontón, colisiones, personajes, cámara e interfaz.
 import * as THREE from 'three';
+import { armSwing } from '../actors/glbChar.js';
 import { PelotaCourt, PelotaMatch } from '../pelota/index.js';
 import { terrainHeight, waterLevelAt, addPlatform } from '../world/heightfield.js';
 import { addBox, isFree } from '../world/colliders.js';
@@ -84,13 +85,17 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // vecinos que se acercan a la grada a ver el partido
     const crowd = G.pelotaCrowd = G.scene ? new Crowd(G, fronton, 7 + ((Math.random() * 4) | 0)) : null;
     const once = (who, key, on, fn) => { if (on && !flags[who][key]) { flags[who][key] = true; fn(); } else if (!on) flags[who][key] = false; };
+    const stYou = { v: null }, stRival = { v: null };
+    armSwing(rig.char, () => stYou.v); armSwing(rival.glb, () => stRival.v);
     const animYou = (obj, st, dt) => {
+      stYou.v = st;
       P.pos.copy(obj.position); P.heading = obj.rotation.y;
       rig.update(dt, st.speed, true, 0);
       once('you', 'swing', st.swing >= 0, () => rig.doAct?.('hit', 0.5));
       once('you', 'won', st.won, () => rig.doCheer?.());
     };
     const animRival = (obj, st) => {
+      stRival.v = st;
       rival.pos.copy(obj.position); rival.heading = obj.rotation.y; rival.speed = st.speed;
       once('rival', 'swing', st.swing >= 0, () => rival.anim?.doAct?.('throw', 0.35));
       if (st.won) rival.cheer = 0.6;
@@ -107,6 +112,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       // el público aplaude el final y vuelve al pueblo (sigue moviéndose con el juego hasta que se va)
       if (crowd) { crowd.end(!!r.win); G.crowds = (G.crowds || []).filter(c => !c.disposed).concat(crowd); }
       G.pelotaTick = null; G.pelotaMatch = null; G.pelotaRig = null;
+      if (rig.char) rig.char.post = null; if (rival.glb) rival.glb.post = null;
       rig.setStance?.(null); P.rig = rig; P.frozen = false; G.mode = 'play'; G.ui.hudVisible?.(true); G.perro?.release?.();
       rival.frozen = false; rival.speed = 0; rival.setPos(home.x, home.z, home.h);
       const e = fronton.entry, c = fronton.toWorld(0, 12);

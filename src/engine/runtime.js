@@ -48,7 +48,7 @@ addEventListener('error', (ev) => { if (!ev.error) return; const k = String(ev.e
 function showContextLost() {
   if (document.querySelector('.ctxlost')) return;
   const o = document.createElement('div'); o.className = 'mg-overlay ctxlost';
-  o.innerHTML = '<div class="mg-card"><h3>El dispositivo necesita un respiro</h3><p>Se ha quedado sin memoria para dibujar. Tu progreso está guardado.</p><button class="btn primary">Volver a cargar</button></div>';
+  o.innerHTML = '<div class="mg-card"><h3>El dispositivo necesita un respiro</h3><p>Se ha quedado sin memoria para dibujar. Tu progreso está guardado y, al volver, el juego irá con una calidad más ligera.</p><button class="btn primary">Volver a cargar</button></div>';
   o.querySelector('button').onclick = () => location.reload();
   document.body.appendChild(o);
 }

@@ -104,6 +104,7 @@ export class Weather {
     if (this.kind === 'clear') return;
     this.t += dt; this.k = hold ? Math.max(0, this.k - dt * 1.5) : Math.min(1, this.k + dt * 0.25);
     this.fx.visible = this.k > 0.02;
+    this.agePrints(dt);
     const U = this.fx.userData.U; U.uTime.value = this.t; U.uCam.value.copy(camera.position);
     if (U.uScale) U.uScale.value = innerHeight * 0.55;
     if (this.kind === 'snow') SNOW.value = Math.min(0.92, SNOW.value + dt * 0.05);   // en un rato, todo blanco
@@ -117,5 +118,39 @@ export class Weather {
     }
     sound?.setRain?.(this.kind === 'rain' ? this.k : 0);
   }
-  dispose() { if (this.fx) { this.scene.remove(this.fx); this.fx.geometry.dispose(); this.fx.material.dispose(); } SNOW.value = 0; }
+  // huellas en la nieve: una por paso, alternando pie izquierdo y derecho; las viejas se borran poco a poco
+  footprint(pos, heading) {
+    if (this.kind !== 'snow' || SNOW.value < 0.3) return;
+    if (!this.prints) {
+      const c = document.createElement('canvas'); c.width = 64; c.height = 128; const g = c.getContext('2d');
+      const grad = (x, y, rx, ry) => { g.save(); g.translate(x, y); g.scale(rx, ry); const gr = g.createRadialGradient(0, 0, 0, 0, 0, 1); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.7, 'rgba(255,255,255,0.85)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.beginPath(); g.arc(0, 0, 1, 0, Math.PI * 2); g.fill(); g.restore(); };
+      grad(32, 40, 22, 34); grad(32, 98, 17, 24);   // puntera y talón de la bota
+      const tex = new THREE.CanvasTexture(c);
+      const mat = new THREE.MeshStandardMaterial({ color: '#8e9db3', roughness: 1, alphaMap: tex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
+      const geo = new THREE.PlaneGeometry(0.2, 0.36); geo.rotateX(-Math.PI / 2);
+      this.N = 180; this.prints = new THREE.InstancedMesh(geo, mat, this.N); this.prints.count = 0; this.prints.frustumCulled = false; this.prints.renderOrder = 1;
+      this.printAge = new Float32Array(this.N); this.printM = []; this.pi = 0; this.foot = 1; this.printTex = tex;
+      this.scene.add(this.prints);
+    }
+    this.foot = -this.foot;
+    const i = this.pi % this.N, m = new THREE.Matrix4(), sx = Math.cos(heading), sz = -Math.sin(heading);
+    const x = pos.x + sx * this.foot * 0.12, z = pos.z + sz * this.foot * 0.12;
+    m.compose(new THREE.Vector3(x, pos.y + 0.03, z), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), heading + Math.PI), new THREE.Vector3(1, 1, 1));   // la puntera hacia donde se camina
+    this.prints.setMatrixAt(i, m); this.printM[i] = m; this.printAge[i] = 0;
+    this.pi++; this.prints.count = Math.min(this.N, this.pi); this.prints.instanceMatrix.needsUpdate = true;
+  }
+  // las huellas viejas se van tapando (se encogen) a partir de los 40 s
+  agePrints(dt) {
+    if (!this.prints) return;
+    this.printTick = (this.printTick || 0) + dt; if (this.printTick < 0.5) return;
+    const step = this.printTick; this.printTick = 0; let dirty = false;
+    const p = new THREE.Vector3(), q = new THREE.Quaternion(), sc = new THREE.Vector3();
+    for (let i = 0; i < this.prints.count; i++) {
+      const a = (this.printAge[i] += step); if (a < 40) continue;
+      const k = Math.max(0, 1 - (a - 40) / 20); this.printM[i].decompose(p, q, sc); sc.setScalar(k);
+      this.prints.setMatrixAt(i, new THREE.Matrix4().compose(p, q, sc)); dirty = true;
+    }
+    if (dirty) this.prints.instanceMatrix.needsUpdate = true;
+  }
+  dispose() { if (this.fx) { this.scene.remove(this.fx); this.fx.geometry.dispose(); this.fx.material.dispose(); } if (this.prints) { this.scene.remove(this.prints); this.prints.geometry.dispose(); this.prints.material.dispose(); this.printTex.dispose(); } SNOW.value = 0; }
 }
