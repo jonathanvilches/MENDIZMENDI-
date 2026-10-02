@@ -1,5 +1,5 @@
-// La plaza de toros de Pamplona para el final del encierro: muro redondo de ladrillo con zócalo y pilastras de
-// piedra, la puerta por la que entra el encierro (un túnel bajo los tendidos), el ruedo de albero con su barrera
+// La plaza de toros de Pamplona para el final del encierro: muro redondo de piedra clara (sillería y revoco ocre) con
+// zócalo y pilastras, la puerta por la que entra el encierro (un túnel bajo los tendidos), el ruedo de albero con su barrera
 // roja, el callejón, los tendidos llenos de gente de blanco y rojo, la galería de arcos arriba y las banderas.
 // Todo se mete en los mismos cubos de materiales que la calle (una llamada de dibujo por material).
 import * as THREE from 'three';
@@ -23,11 +23,12 @@ export function buildPlaza(B, colored, M4, gate, half, rnd) {
   for (let i = 0; i < N; i++) {
     const a = (i + 0.5) / N * Math.PI * 2, sw = 2 * Math.PI * RO / N + 0.06, [x, , z] = at(RO, a), ry = a;
     const tunnel = open(a, RO), y0 = tunnel ? 5.2 : 0;
-    B.brick.push(colored(new THREE.BoxGeometry(sw, TOP - y0, 1.2), '#c06848', M4(x, y0 + (TOP - y0) / 2, z, ry)));
+    B.plaster.push(colored(new THREE.BoxGeometry(sw, TOP - y0, 1.2), '#dcc49a', M4(x, y0 + (TOP - y0) / 2, z, ry)));   // revoco ocre claro
     if (!tunnel) B.stone.push(colored(new THREE.BoxGeometry(sw, 1.4, 1.35), '#d8cdb4', M4(x, 0.7, z, ry)));
     B.stone.push(colored(new THREE.BoxGeometry(sw, 0.7, 1.6), '#e8dcc0', M4(x, TOP + 0.35, z, ry)));       // cornisa
     B.stone.push(colored(new THREE.BoxGeometry(sw, 0.35, 1.4), '#e8dcc0', M4(x, 8.2, z, ry)));             // imposta
-    if (i % 4 === 0) { const [px, , pz] = at(RO + 0.2, a - Math.PI / N); B.stone.push(colored(new THREE.BoxGeometry(0.9, TOP, 0.5), '#e8dcc0', M4(px, TOP / 2, pz, ry))); }
+    // pilastras (ninguna en el hueco del túnel)
+    if (i % 4 === 0 && !open(a - Math.PI / N, RO) && !tunnel) { const [px, , pz] = at(RO + 0.2, a - Math.PI / N); B.stone.push(colored(new THREE.BoxGeometry(0.9, TOP, 0.5), '#e8dcc0', M4(px, TOP / 2, pz, ry))); }
     if (!tunnel) {
       const [wx, , wz] = at(RO + 0.62, a);
       B.stone.push(colored(new THREE.BoxGeometry(1.5, 2.5, 0.1), '#efe6d2', M4(wx, 11.4, wz, ry)));   // recerco de la ventana alta
@@ -43,8 +44,14 @@ export function buildPlaza(B, colored, M4, gate, half, rnd) {
   B.stone.push(colored(new THREE.BoxGeometry(9, 0.5, 1.8), '#e8dcc0', M4(gx, 10.2, gz)));
   // túnel bajo los tendidos, de la puerta al ruedo
   const tl = RO - RA - 1.6, tz = gate - tl / 2;
-  for (const s of [-1, 1]) B.plaster.push(colored(new THREE.BoxGeometry(0.5, 5.2, tl), '#efe6d2', M4(s * (half + 0.25), 2.6, tz)));
-  B.stone.push(colored(new THREE.BoxGeometry(2 * half + 1, 0.6, tl), '#bdb6a8', M4(0, 5.0, tz)));
+  // el túnel: muros y techo de hormigón (oscuro, en sombra bajo los tendidos) y tablones de madera a los lados, a la
+  // altura de los corredores, como el callejón de verdad
+  for (const s of [-1, 1]) {
+    B.plaster.push(colored(new THREE.BoxGeometry(0.5, 5.2, tl), '#8f887c', M4(s * (half + 0.25), 2.6, tz)));
+    B.wood.push(colored(new THREE.BoxGeometry(0.12, 1.5, tl), '#7a5a36', M4(s * (half - 0.05), 0.85, tz)));
+    for (let z2 = gate - 1; z2 > gate - tl; z2 -= 2.4) B.wood.push(colored(new THREE.BoxGeometry(0.16, 1.7, 0.16), '#5a3e22', M4(s * (half - 0.12), 0.85, z2)));
+  }
+  B.stone.push(colored(new THREE.BoxGeometry(2 * half + 1, 0.6, tl), '#6e685e', M4(0, 5.0, tz)));
   // ruedo: barrera roja, callejón y contrabarrera
   for (let i = 0; i < N; i++) {
     const a = (i + 0.5) / N * Math.PI * 2;
@@ -82,7 +89,8 @@ export function buildPlaza(B, colored, M4, gate, half, rnd) {
     }
     // público sentado en la grada (algún hueco libre)
     const m = Math.round(2 * Math.PI * r / 0.95);
-    for (let i = 0; i < m; i++) { if (rnd() < 0.12) continue; const a = (i + rnd() * 0.4) / m * Math.PI * 2, [x, , z] = at(r - step * 0.15, a); seats.push({ x, y, z, ry: a + Math.PI }); }
+    // (encima del túnel y de la puerta de toriles no hay grada en las filas bajas: nadie sentado en el aire)
+    for (let i = 0; i < m; i++) { if (rnd() < 0.12) continue; const a = (i + rnd() * 0.4) / m * Math.PI * 2; if ((open(a, r) && y < 5.9) || (toril(a, r) && y < 3.6)) continue; const [x, , z] = at(r - step * 0.15, a); seats.push({ x, y, z, ry: a + Math.PI }); }
   }
   const rg = RO - 1.2, ng = 48;
   for (let i = 0; i < ng; i++) {

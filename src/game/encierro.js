@@ -10,6 +10,7 @@ import { buildNpc } from '../actors/npcGlb.js';
 import { infoCard } from '../ui/minigames.js';
 import { buildPlaza, RO, RA } from './encierroPlaza.js';
 import { crowd3d } from '../actors/crowd3d.js';
+import { QUALITY } from '../util/quality.js';
 import { GLB_AVATARS, GlbChar, loadMeshy, MESHY_GAIT } from '../actors/glbChar.js';
 import { cobbleSet, ashlarSet, brickSet, woodSet, plasterSet, windowTex, railingTex, shopTex, SHOPS, plaqueTex, sandTex, archTex, flagNavarraTex } from './encierroTex.js';
 
@@ -51,7 +52,7 @@ export class Encierro {
     // suelo de adoquines
     // adoquín de la calle y del callejón, y el ruedo de albero al final
     const GW = 2 * (HALF + 7), GL = GATE + 30 + 2;
-    const CT = this.cobbleT = cobbleSet([GW / 2.2, GL / 2.2]);
+    const CT = this.cobbleT = cobbleSet([GW / 1.3, GL / 1.3]);   // adoquín de unos 15 cm, como el de la Estafeta
     const ground = new THREE.Mesh(new THREE.PlaneGeometry(GW, GL), new THREE.MeshStandardMaterial({ ...CT, roughness: 1, normalScale: new THREE.Vector2(1.2, 1.2) }));
     ground.rotation.x = -Math.PI / 2; ground.position.set(0, 0, 30 - GL / 2); ground.receiveShadow = true; S.add(ground);
     const cz0 = -GATE - RO, out = new THREE.Mesh(new THREE.PlaneGeometry(2 * RO + 40, 2 * RO + 40), new THREE.MeshStandardMaterial({ color: '#a8a296', roughness: 0.95 }));
@@ -63,7 +64,7 @@ export class Encierro {
     const rnd = mulberry(7), B = { plaster: [], stone: [], wood: [], brick: [], plain: [] };
     const WIN = [[], [], []], RAIL = [], SHOP = Object.fromEntries(SHOPS.map(k => [k, []]));   // piezas dibujadas (instancias)
     const walls = ['#e9dcc0', '#d9b98a', '#e6cfa6', '#c98f6a', '#efe6d2', '#d6a77a', '#e2d2b0'];
-    const people = [], BAL = [];   // BAL: balcones del primer piso (para las cámaras de televisión)
+    const people = [], sitters = [], BAL = [];   // BAL: balcones del primer piso (para las cámaras de televisión)
     // casas de la calle (F = distancia de la fachada al eje); se usa en la Estafeta y en el tramo del callejón
     const street = (F, z0, z1) => { for (const side of [-1, 1]) {
       let z = z0;
@@ -110,11 +111,13 @@ export class Encierro {
       B.wood.push(colored(new THREE.BoxGeometry(0.2, 1.7, 0.2), '#6a4a2a', M4(s * HALF, 0.85, z)));
       for (const y of [0.45, 0.95, 1.45]) B.wood.push(colored(new THREE.BoxGeometry(0.1, 0.18, 2.2), '#8a6a42', M4(s * (HALF - 0.12), y, z - 1.1)));
       B.wood.push(colored(new THREE.BoxGeometry(0.2, 1.7, 0.2), '#6a4a2a', M4(s * (HALF + 1.4), 0.85, z)));
+      for (const y of [0.45, 0.95, 1.45]) B.wood.push(colored(new THREE.BoxGeometry(0.1, 0.18, 2.2), '#8a6a42', M4(s * (HALF + 1.4 + 0.12), y, z - 1.1)));   // la exterior también tiene travesaños
+      B.wood.push(colored(new THREE.BoxGeometry(0.26, 0.08, 2.2), '#7a5a36', M4(s * (HALF + 1.4), 1.66, z - 1.1)));   // y una tabla arriba, donde se sienta la gente
     }
     // público en el callejón: de pie tras el vallado y sentado encima
     for (let z = -L - 1; z > -GATE + 3; z -= 0.8) for (const s of [-1, 1]) {
       if (rnd() < 0.55) people.push({ x: s * (HALF + 2.1 + rnd() * 2.5), y: 0, z: z + rnd() * 0.4, ry: s > 0 ? -Math.PI / 2 : Math.PI / 2, s: 1.5 });
-      if (rnd() < 0.25) people.push({ x: s * (HALF + 1.4), y: 1.15, z, ry: s > 0 ? -Math.PI / 2 : Math.PI / 2 });
+      if (rnd() < 0.3) sitters.push({ x: s * (HALF + 1.4), y: 1.7, z, ry: s > 0 ? -Math.PI / 2 : Math.PI / 2 });   // sentados en lo alto de la valla
     }
     // cámaras de televisión: en balcones del primer piso, cada unos 40 m y alternando la acera, y una en una tarima
     // junto a la puerta de la plaza; con su operador o su operadora detrás
@@ -191,8 +194,11 @@ export class Encierro {
     const sign = new THREE.Mesh(new THREE.PlaneGeometry(7.8, 1.45), new THREE.MeshBasicMaterial({ map: st })); sign.position.set(0, 7.9, -GATE + 1.6); S.add(sign);
     // público: personajes de verdad (de blanco y rojo casi todos) dibujados en una lámina; en los balcones, en el
     // callejón y en los tendidos de la plaza, una llamada de dibujo para cada grupo
-    const crowd = crowd3d(people.map(p => [p.x, p.y - 0.1, p.z, p.ry]), 'toros', 1.25); S.add(crowd); this.crowd = crowd;
-    const stands = crowd3d(this.plaza.seats.map(p => [p.x + Math.sin(p.ry) * 0.3, p.y - 0.46, p.z + Math.cos(p.ry) * 0.3, p.ry]), 'toros', 1.2, { sit: true }); S.add(stands); this.stands = stands;
+    // todos a la misma escala que los corredores (antes el público era más pequeño)
+    const crowd = crowd3d(people.map(p => [p.x, p.y - 0.1, p.z, p.ry]), 'toros', 1.6); S.add(crowd); this.crowd = crowd;
+    const seated = this.plaza.seats.concat(sitters);
+    // (sentados: los pies delante y por debajo del asiento)
+    const stands = crowd3d(seated.map(p => [p.x + Math.sin(p.ry) * 0.38, p.y - 0.59, p.z + Math.cos(p.ry) * 0.38, p.ry]), 'toros', 1.55, { sit: true }); S.add(stands); this.stands = stands;
     this.camera = new THREE.PerspectiveCamera(innerWidth < innerHeight ? 72 : 58, innerWidth / innerHeight, 0.2, 400);
     this.onResize = () => { this.camera.aspect = innerWidth / innerHeight; this.camera.fov = innerWidth < innerHeight ? 72 : 58; this.camera.updateProjectionMatrix(); };
     addEventListener('resize', this.onResize);
@@ -204,24 +210,30 @@ export class Encierro {
     const S = this.scene, rnd = mulberry(11), av = this.G.P.avatar, def = GLB_AVATARS[av];
     const white = { shirt: '#f7f3ea', pants: '#f7f3ea', sash: '#d42f2f', scarf: '#d42f2f', shoes: '#efe6d0', espadrille: true };
     // el protagonista se pone su ropa de San Fermín (el modelo vestido de blanco y rojo); los aventureros, de blanco y rojo
-    let me = null;
-    if (def?.meshy) try {
-      const g = await loadMeshy('sanfermin'), char = new GlbChar(g, MESHY_GAIT);
-      char.root.scale.setScalar(g.userData.fit || 1); const obj = new THREE.Group(); obj.add(char.root); obj.userData.H = 1.45;
-      me = { obj, char, anim: { update: (dt, st) => { char.setSpeed(st.speed || 0); char.update(dt); } } };
-    } catch (e) { console.warn('corredor', e); }
-    me ||= buildNpc({ ...white, base: def?.kaykit, female: ['Rogue', 'Rogue_Hooded', 'Mage'].includes(def?.kaykit) });
+    // el jugador y los demás corredores son el mismo personaje de San Fermín (blanco y rojo, todos del mismo tamaño);
+    // si no carga, los vecinos vestidos de blanco y rojo
+    let sf = null; try { sf = await loadMeshy('sanfermin'); } catch (e) { console.warn('corredor', e); }
+    const sanfermin = (k = 1) => {
+      const char = new GlbChar(sf, MESHY_GAIT); char.root.scale.setScalar((sf.userData.fit || 1) * k);
+      const obj = new THREE.Group(); obj.add(char.root); obj.userData.H = 1.6 * k;
+      return { obj, char, anim: { update: (dt, st) => { char.setSpeed(st.speed || 0); char.update(dt); } } };
+    };
+    let me = sf ? sanfermin() : null;
+    me ||= buildNpc({ ...white, base: def?.kaykit, female: ['Rogue', 'Rogue_Hooded', 'Mage'].includes(def?.kaykit), height: 1.6 });
     S.add(me.obj); this.me = { ...me, x: 0, z: -14, speed: 0, fall: 0, safe: 0 };
     this.runners = [];
-    for (let i = 0; i < 12; i++) {
-      const f = rnd() < 0.3, n = buildNpc({ ...white, female: f, ponytail: f, hair: ['#2a1a12', '#5a3a22', '#c9a46a', '#1d1d24'][i % 4], skin: ['#f1c4a0', '#e2b08a', '#c68a5e'][i % 3], height: 1.62 + rnd() * 0.2 });
+    const nR = QUALITY === 'low' ? 7 : 12;
+    for (let i = 0; i < nR; i++) {
+      const f = rnd() < 0.3, n = sf ? sanfermin(0.97 + rnd() * 0.06) : buildNpc({ ...white, female: f, ponytail: f, hair: ['#2a1a12', '#5a3a22', '#c9a46a', '#1d1d24'][i % 4], skin: ['#f1c4a0', '#e2b08a', '#c68a5e'][i % 3], height: 1.57 + rnd() * 0.06 });
       S.add(n.obj); this.runners.push({ ...n, x: (rnd() - 0.5) * 4.6, z: -6 - rnd() * 70, speed: 4.6 + rnd() * 1.6, want: 0 });
     }
     // la manada: cabestros y toros juntos; luego un toro suelto que se ha quedado atrás (el más peligroso)
     this.bulls = [];
-    const herd = [['cabestro', -0.9, 0], ['bull', 0.7, -1.5], ['bull', -0.3, -3.4], ['cabestro', 1.0, -4.2], ['bull', -1.0, -5.6], ['bull', 0.4, -7.4], ['cabestro', -0.2, -8.6], ['bull', 0.9, -10]];
-    for (const [k, x, dz] of herd) this.bulls.push(this.makeBeast(k, x, 14 - dz, 7.4, 0));
-    this.bulls.push(this.makeBeast('bull', 0.3, 40, 8.1, 9));
+    // la manada estirada por la calle (unos 5 m entre animales, cada uno a su ritmo) y un toro suelto que se ha quedado
+    // atrás, el más peligroso
+    const herd = [['cabestro', -0.9], ['bull', 0.8], ['bull', -0.6], ['cabestro', 1.0], ['bull', -1.1], ['bull', 0.3], ['cabestro', -0.2], ['bull', 1.0]];
+    herd.forEach(([k, x], i) => this.bulls.push(this.makeBeast(k, x, 14 + i * (4.2 + rnd() * 2.6), 7.0 + rnd() * 0.9, i * 0.35)));
+    this.bulls.push(this.makeBeast('bull', 0.3, 60, 8.1, 9));
     // nubes de polvo que levantan las pezuñas sobre el adoquín
     const dc = document.createElement('canvas'); dc.width = dc.height = 64; const dg = dc.getContext('2d'), gr = dg.createRadialGradient(32, 32, 2, 32, 32, 30);
     gr.addColorStop(0, 'rgba(190,175,150,0.9)'); gr.addColorStop(1, 'rgba(190,175,150,0)'); dg.fillStyle = gr; dg.fillRect(0, 0, 64, 64);
@@ -359,7 +371,15 @@ export class Encierro {
     // la manada va por el centro haciendo eses: pegarse a la pared es la forma de salvarse (como en la realidad)
     b.x = b.x0 + Math.sin(this.t * 0.7 + b.x0 * 2) * (inRing ? 0.2 : 0.55); b.x = Math.max(-1.45, Math.min(1.45, b.x));
     if (b.lure > 0) { b.lure -= dt; b.lx = (b.lx ?? b.x) + ((b.lureX ?? b.x) - (b.lx ?? b.x)) * Math.min(1, dt * 3); b.x = b.lx; } else b.lx = b.x;
-    b.z -= b.speed * dt;
+    // amago de embestida: un toro que tiene a alguien justo delante baja la cabeza, tira un derrote hacia ese lado y
+    // acelera un instante; luego sigue su camino (como en la calle de verdad)
+    b.feintCd = Math.max(0, (b.feintCd ?? 2 + Math.random() * 3) - dt);
+    if (b.kind === 'bull' && !inRing && !(b.feint > 0) && b.feintCd <= 0) {
+      const tgt = [this.me, ...this.runners].find(r => r && !(r.fallen > 0) && b.z - r.z > 2.2 && b.z - r.z < 6.5 && Math.abs(r.x - b.x) < 1.9);
+      if (tgt) { b.feint = 0.7; b.feintDir = Math.sign(tgt.x - b.x) || 1; b.feintCd = 3 + Math.random() * 4; }
+    }
+    if (b.feint > 0) { b.feint -= dt; const k = Math.sin(Math.max(0, 1 - b.feint / 0.7) * Math.PI); b.x += b.feintDir * k * 0.9; b.x = Math.max(-1.45, Math.min(1.45, b.x)); b.charge = 1; }   // pegado a la pared sigues a salvo
+    b.z -= b.speed * (b.feint > 0 ? 1.18 : 1) * dt;
     if (b.z < T.z - 4.5) { b.out = true; b.q.root.visible = false; if (this.bulls.every(q => q.out)) { this.bullsIn = true; this.msg?.('¡Cuarto cohete! Los toros ya están en los corrales.', 2200); } return false; }
     if (Math.random() < dt * 9) this.puff(b.x, b.z + 0.8);
     return true;
@@ -398,7 +418,7 @@ export class Encierro {
     for (const b of this.bulls) {
       const q = b.q, run = this.started && this.t > 2.8 + b.delay && !b.out, ph = b.ph;
       const off = [0.46, 0.58, 0.0, 0.12];
-      if (b.A) { q.root.position.set(b.x, 0, b.z); q.root.rotation.y = Math.PI; b.A.update(dt, { speed: run ? b.speed : 0, alt: !this.started }); continue; }
+      if (b.A) { q.root.position.set(b.x, 0, b.z); q.root.rotation.y = Math.PI + (b.feint > 0 ? -b.feintDir * 0.35 * Math.sin(Math.max(0, 1 - b.feint / 0.7) * Math.PI) : 0); b.A.update(dt, { speed: run ? b.speed : 0, alt: !this.started, attack: run && b.feint > 0 }); continue; }
       q.root.position.set(b.x, run ? Math.max(0, Math.sin(ph + 0.6)) * 0.12 : 0, b.z); q.root.rotation.y = Math.PI;
       if (q.legs) q.legs.forEach((l, i) => { const w = ph + off[i] * Math.PI * 2; const ww = w + 0.38 * Math.sin(w); l.rotation.x = run ? Math.sin(ww) * 0.85 : 0; const kn = l.userData.knee; if (kn) kn.rotation.x = run ? (i < 2 ? 1.25 : -1.05) * Math.pow(Math.max(0, -Math.cos(ww)), 1.3) : 0; });
       if (q.chest) q.chest.rotation.x = run ? Math.sin(ph + 2.2) * 0.08 : 0;

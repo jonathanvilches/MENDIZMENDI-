@@ -11,7 +11,7 @@ await p.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON
 await p.goto(`${process.env.URL || 'http://127.0.0.1:5173'}/?town=pamplona&q=high&weather=clear`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 600000 });
 await p.evaluate(() => { const G = window.__game, M = G.missions.find(M => M.m.kind === 'encierro'); document.querySelectorAll('.mg-overlay').forEach(o => o.remove()); G.ui.busy = false; G.say = async () => {}; G.dialog(M, M.host); });
-await p.waitForFunction(() => window.__game.mode === 'encierro' && window.__game.encierro?.bulls?.length, null, { timeout: 180000 });
+await p.waitForFunction(() => window.__game.mode === 'encierro' && window.__game.encierro?.bulls?.length, null, { timeout: 900000 });
 await p.addStyleTag({ content: '#ui > *, .enc-hud, .mg-overlay { display: none !important; }' });
 const info = await p.evaluate(async () => { const G = window.__game, E = G.encierro; G.altUpdate = () => { E.place?.(); };
   const m = await import('/src/game/encierro.js'); return { L: m.ENC?.L, gate: m.ENC?.GATE }; });
