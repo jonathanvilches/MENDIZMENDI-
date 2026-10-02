@@ -1072,8 +1072,11 @@ export class TownGame {
     let n = 0;
     for (const s of this.herd) {
       if (!s.penned && inPen(s)) {
-        s.penned = true; s.fleeDist = 0; s.home = { x: pen.x, z: pen.z }; s.range = 3;
-        s.bounds = (X, Z) => Math.abs(X - pen.x) < pen.w / 2 - 0.8 && Math.abs(Z - pen.z) < pen.d / 2 - 0.8;
+        // ya dentro: entra caminando tranquilo hacia el centro y luego pasta por el redil (el cercado es un poco más
+        // amplio que la zona en la que cuenta como dentro, para que no se quede atrapado en el borde)
+        s.penned = true; s.fleeDist = 0; s.home = { x: pen.x, z: pen.z }; s.range = Math.max(1, Math.min(pen.w, pen.d) / 2 - 1.6);
+        s.state = 'walk'; s.timer = 6; s.target = { x: pen.x + (Math.random() - 0.5) * pen.w * 0.4, z: pen.z + (Math.random() - 0.5) * pen.d * 0.4 };
+        s.bounds = (X, Z) => Math.abs(X - pen.x) < pen.w / 2 - 0.35 && Math.abs(Z - pen.z) < pen.d / 2 - 0.35;
         if (s.kind === 'cow') this.sound.moo(s.pos); else if (s.kind === 'pig') this.sound.oink?.(s.pos); else this.sound.baa(s.pos);
         this.sound.ui('coin'); this.particles.emit({ x: s.pos.x, y: s.pos.y + 1.2, z: s.pos.z }, { n: 12, color: '#ffe38a', speed: 1.5, size: 0.25 });
       }
