@@ -387,7 +387,8 @@ export class Nature {
     };
     TREES.length = 0;
     let spots = treeSpots(rnd);
-    const cap = quality === 'low' ? 2000 : quality === 'mid' ? 3000 : 4000;
+    // menos árboles, pero cada uno con todo su detalle (mejor pocos y bonitos que muchos y pobres)
+    const cap = quality === 'low' ? 1800 : quality === 'mid' ? 2600 : 3200;
     if (spots.length > cap) { const crop = spots.filter(s => s.crop || s.special), rest = spots.filter(s => !s.crop && !s.special); rest.sort(() => rnd() - 0.5); spots = crop.slice(0, cap * 0.4).concat(rest.slice(0, cap - Math.min(crop.length, cap * 0.4))); }
     // agrupar por trozo
     const chunks = new Map();
@@ -422,10 +423,10 @@ export class Nature {
       }
       this.chunks.push(entry);
     }
-    this.lodDist = quality === 'low' ? 50 : quality === 'mid' ? 60 : 70;   // árboles detallados solo cerca (eran lo más caro)
+    this.lodDist = quality === 'low' ? 60 : quality === 'mid' ? 80 : 100;
     this.rockFar = quality === 'low' ? 170 : quality === 'mid' ? 230 : 300;
     // solo los trozos cercanos proyectan sombra: la sombra de lo lejano apenas se ve y duplica el coste
-    this.shadowDist = quality === 'low' ? 0 : quality === 'mid' ? 18 : 30;
+    this.shadowDist = quality === 'low' ? 0 : quality === 'mid' ? 20 : 45;
     this.buildRocks(rnd);
     this.buildBushes(rnd);
     this.buildCrops(rnd, quality);
@@ -464,7 +465,7 @@ export class Nature {
     ]);
     const veg = clean([blobCanopy(rnd, [[0, 0.2, 0, 0.28], [0.15, 0.15, 0.1, 0.2]], -1, '#2f6a2a', '#7fbf4a', 0.3, 0.2)]);
     const vines = [], vegs = [];
-    const cap = quality === 'low' ? 2500 : 6000;
+    const cap = quality === 'low' ? 1800 : 3500;
     for (let z = -380; z < 380 && vines.length + vegs.length < cap * 2; z += 1.6) for (let x = -380; x < 380; x += 1.6) {
       const fi = fieldInfo(x, z);
       if (fi.mask < 0.6 || fi.edge < 2 || (fi.type !== 5 && fi.type !== 7)) continue;
@@ -540,7 +541,7 @@ export class Nature {
     fern.computeVertexNormals();
     { const n = fern.attributes.normal; for (let i = 0; i < n.count; i++) n.setXYZ(i, n.getX(i) * 0.3, 1, n.getZ(i) * 0.3); }
     const bushSpots = [], fernSpots = [];
-    for (let k = 0; k < 14000; k++) {
+    for (let k = 0; k < 8000; k++) {   // menos matas en los campos
       const x = (rnd() - 0.5) * 2 * (HALF - 20), z = (rnd() - 0.5) * 2 * (HALF - 20);
       const fi = fieldInfo(x, z);
       if (fi.mask < 0.5 || fi.edge > 0.9 || rnd() > 0.55) continue;
@@ -548,7 +549,7 @@ export class Nature {
       if (!isFree(x, z, 0.8)) continue;
       bushSpots.push({ x, z, s: 0.8 + rnd() * 0.7 });
     }
-    for (let k = 0; k < 16000; k++) {
+    for (let k = 0; k < 10000; k++) {
       const x = (rnd() - 0.5) * 2 * (HALF - 10), z = (rnd() - 0.5) * 2 * (HALF - 10);
       const f = surfAt('forest', x, z);
       const p = pathQuery(x, z); if (p.d < p.w + 0.8) continue;
