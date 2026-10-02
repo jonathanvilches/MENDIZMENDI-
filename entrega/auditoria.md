@@ -6,7 +6,9 @@ Estado de todo lo pedido hasta ahora: **hecho** (comprobado en el juego con capt
 
 | Petición | Estado | Notas |
 |---|---|---|
-| Personajes KayKit seleccionables | Hecho | 6 personajes nuevos junto a los de antes |
+| Personajes KayKit seleccionables | Hecho | Todos los personajes con el mismo cuerpo: Beñat, Nerea y Haritz con su ropa de siempre y 6 más |
+| Crear tu propio personaje | Hecho | Cuerpo, piel, pelo, melena, cabeza, ropa, pañuelo, faja, falda, delantal y zamarra; al azar o desde un traje; se juega con él en todo el juego |
+| Todos los personajes unificados | Hecho | Vecinos, público, jugadores, carnaval (joaldunak, momotxorros…), seres de leyenda y retratos de los diálogos |
 | Toque navarro en los personajes nuevos | Hecho | Txapela, pañuelico, faja; sin cascos ni capas de fantasía |
 | Elegir la ropa (San Fermín, etc.) | Hecho | Selector «Ropa» en la pantalla de personajes: fiesta, 11 trajes de comarca y oficios de antes |
 | Traje tradicional de cada comarca | Hecho | Basado en los datos de cultura de cada comarca (Lesaka, Leitza, Lakuntza, Ochagavía, Aoiz, Jota Vieja de Sangüesa, Baile de la Era, Paloteado de Cortes…) |
@@ -78,6 +80,12 @@ Estado de todo lo pedido hasta ahora: **hecho** (comprobado en el juego con capt
 |---|---|---|
 | Modo «Aprende euskera» con traducción al instante | Hecho | Opción de idioma y botón ES (6 s en castellano) |
 | Todo el juego en euskera | Parcial | Interfaz y textos principales, sí; parte de los diálogos de misiones aún sale en castellano |
+
+## Auditoría y optimización (2 de octubre)
+
+- Corregido: los cuerpos de personajes y animales no se unían en una sola malla; las caras de los diálogos no salían.
+- Pamplona: de 702 a 486 llamadas de dibujo por fotograma. Juego: de 27,3 a 21,4 MB.
+- Pruebas: 31 pueblos, frontón, fútbol, encierro, tienda, mercado, carnaval, seres de leyenda y creador, sin errores.
 
 ## Pendiente
 
