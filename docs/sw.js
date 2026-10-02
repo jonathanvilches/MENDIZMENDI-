@@ -3,7 +3,7 @@
 // caché. La página y el manifiesto se piden primero a la red (para recibir la versión nueva) y, sin red, de la caché.
 // el nombre de la caché cambia con cada versión publicada (lo pone vite.config.js): al llegar una versión nueva se
 // borra la caché vieja entera y se vuelve a guardar lo que se use
-const CACHE = 'mendimendiz-798389d8c3';
+const CACHE = 'mendimendiz-9bfe4e283a';
 self.addEventListener('install', (e) => { self.skipWaiting(); e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./', './manifest.webmanifest']).catch(() => {}))); });
 self.addEventListener('activate', (e) => {
   e.waitUntil((async () => {

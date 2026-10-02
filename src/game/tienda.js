@@ -81,7 +81,7 @@ export class Tienda {
     return new Promise(res => {
       const prev = g.mode; g.mode = 'mini'; g.player.frozen = true;
       const o = document.createElement('div'); o.className = 'mg-overlay shop';
-      let tab = 'star', said = `¡Egun on! Soy ${keeper}. ¿Conoces nuestro producto estrella? Es ${S.name.toLowerCase()}.`;
+      let tab = 'star', said = `¡Egun on! Soy ${keeper}. ¿Conoces nuestro producto estrella? ¡${S.name}!`;   // con sus mayúsculas (Urbasa, Andia, Olite…)
       const goods = () => Object.entries(P.bag.goods).filter(([k, n]) => n > 0 && GOODS[k]);
       const paint = () => {
         const stock = { [S.food]: STOCK[S.food] || 5, ...STOCK };
@@ -89,12 +89,12 @@ export class Tienda {
           <div class="shop-shelves" aria-hidden="true">${Object.keys(stock).slice(0, 8).map(k => `<i>${iconSVG(FOOD[k]?.icon || 'basket', 40)}</i>`).join('')}</div>
           <div class="shop-card">
             <header><div class="shop-keeper">${iconSVG('person', 46)}<b>${esc(keeper)}</b></div><div class="shop-bubble">${esc(said)}</div>
-              <div class="shop-purse">${iconSVG('medal', 26)}<b>${P.coins}</b><small>txanpon</small></div></header>
+              <div class="shop-purse">${iconSVG('medal', 26)}<b>${P.coins}</b><small>txanpon</small></div>
+              <button class="shop-exit" data-close aria-label="Salir de la tienda">${iconSVG('back', 20)}<span>Salir</span></button></header>
             <nav><button data-tab="star" class="${tab === 'star' ? 'on' : ''}">Producto estrella</button><button data-tab="buy" class="${tab === 'buy' ? 'on' : ''}">Comprar</button><button data-tab="trade" class="${tab === 'trade' ? 'on' : ''}">Trueque</button></nav>
             <section>${tab === 'star' ? `<div class="shop-star">${iconSVG(F?.icon || 'basket', 120)}<div><small>Producto estrella de la comarca · ${esc(S.eu)}</small><h3>${esc(S.name)}</h3><p>${esc(S.text)}</p><button class="btn primary" data-buy="${S.food}">${iconSVG('medal', 20)} Comprar por ${STOCK[S.food] || 5}</button></div></div>`
               : tab === 'buy' ? `${P.coins < Math.min(...Object.values(stock)) ? `<div class="shop-broke"><p>No te llega para nada. En el pueblo siempre hay alguien que necesita ayuda con su oficio, y paga en txanponak.</p><button class="btn primary" data-job>${iconSVG('hand', 20)} ¿Dónde puedo trabajar?</button></div>` : ''}<div class="shop-grid">${Object.entries(stock).filter(([k]) => FOOD[k]).map(([k, p]) => `<button class="shop-item" data-buy="${k}" ${P.coins < p ? 'disabled' : ''}>${iconSVG(FOOD[k].icon, 46)}<b>${esc(FOOD[k].name)}</b><span>+${FOOD[k].e} energía</span><em>${iconSVG('medal', 16)} ${p}</em></button>`).join('')}</div>`
               : `<p class="shop-note">Trae lo que consigas ayudando en el campo y con el ganado, y cámbialo por comida.</p><div class="shop-grid">${goods().length ? goods().map(([k, n]) => `<button class="shop-item" data-sell="${k}">${iconSVG(GOODS[k].icon, 46)}<b>${esc(GOODS[k].name)} ×${n}</b><span>${esc(GOODS[k].from)}</span><em>vale ${GOODS[k].v}</em></button>`).join('') : `<p class="shop-note">No llevas nada para cambiar. Ayuda a la ganadera, al pastor o en la huerta: te darán leche, lana, huevos o patatas.</p>`}</div>`}</section>
-            <footer><button class="btn" data-close>${iconSVG('back', 20)} Salir de la tienda</button></footer>
           </div></div>`;
       };
       paint();
