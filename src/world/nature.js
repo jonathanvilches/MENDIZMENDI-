@@ -423,6 +423,7 @@ export class Nature {
       this.chunks.push(entry);
     }
     this.lodDist = quality === 'low' ? 60 : quality === 'mid' ? 80 : 100;
+    this.rockFar = quality === 'low' ? 170 : quality === 'mid' ? 230 : 300;
     // solo los trozos cercanos proyectan sombra: la sombra de lo lejano apenas se ve y duplica el coste
     this.shadowDist = quality === 'low' ? 0 : quality === 'mid' ? 20 : 45;
     this.buildRocks(rnd);
@@ -521,7 +522,7 @@ export class Nature {
     // …y de lejos todas con una sola forma sencilla: una malla por trozo en vez de cinco
     const all = spots.filter(s => s.m);
     for (const { im, items } of this.addChunked(all, null, parts[0][1], m, (s) => s.m, { name: 'rocas' })) {
-      im.geometry = im.geometry.clone(); im.geometry.setAttribute('aMoss', new THREE.InstancedBufferAttribute(Float32Array.from(items, s => s.moss), 1));
+      im.userData.rock = true; im.geometry = im.geometry.clone(); im.geometry.setAttribute('aMoss', new THREE.InstancedBufferAttribute(Float32Array.from(items, s => s.moss), 1));
     }
   }
   buildBushes(rnd) {
@@ -572,7 +573,9 @@ export class Nature {
       const d = Math.max(Math.abs(camPos.x - c.cx), Math.abs(camPos.z - c.cz)) - CHUNK / 2;
       const near = d < this.lodDist, shade = d < this.shadowDist;
       for (const m of c.hi) { m.visible = near; m.castShadow = shade && m.userData.shadow !== false; }
-      for (const m of c.lo) m.visible = !near;
+      // de lejos, las piedras solo hasta cierta distancia: más allá miden menos de un píxel y eran casi la quinta parte
+      // de todos los triángulos de la escena (los árboles lejanos sí se dibujan: forman la silueta del bosque)
+      for (const m of c.lo) m.visible = !near && (d < this.rockFar || !m.userData.rock);
     }
     this.grass?.update(focus, elapsed, player);
     this.flowers.update(focus, elapsed, player);

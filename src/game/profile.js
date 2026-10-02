@@ -5,7 +5,7 @@ import COMARCAS from '../data/comarcas.json';
 
 const KEY = 'mendimendiz-perfil-v1';
 const fresh = () => ({
-  v: 1, name: '', avatar: 'ranger', xp: 0, created: Date.now(),
+  v: 1, name: '', avatar: 'explorador', xp: 0, created: Date.now(),
   towns: {},          // id → { done: {índice: true}, stamp: false, visits: n, best: {} }
   cards: [],          // cartas de saber (ids)
   species: [],        // especies observadas
@@ -48,6 +48,8 @@ export function profile() {
   P ||= fresh();
   // solo los seis personajes importados: si el guardado tenía otro (Beñat, Nerea, Haritz…), pasa al primero
   if (!CAST.some(c => c.id === P.avatar)) P.avatar = CAST[0].id;
+  // llega el explorador (el personaje de siempre): quien seguía con el de por defecto de antes pasa a él una vez
+  if (!P.mz2) { if (P.avatar === 'ranger' && CAST.some(c => c.id === 'explorador')) P.avatar = 'explorador'; P.mz2 = true; }
   return P;
 }
 export function saveProfile() { try { localStorage.setItem(KEY, JSON.stringify(P)); } catch (e) { } }

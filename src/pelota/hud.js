@@ -70,9 +70,9 @@ export class PelotaHud {
     r.innerHTML = `
       <button class="pel-exit" aria-label="${txt.exit}"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg></button>
       <div class="pel-top"><div class="pel-score">
-        <div class="pel-side pel-red"><i class="pel-serve" data-pel-s="you"></i><span>${esc(names.you)}</span><b data-pel-n="you">0</b></div>
+        <div class="pel-side pel-blue"><i class="pel-serve" data-pel-s="you"></i><span>${esc(names.you)}</span><b data-pel-n="you">0</b></div>
         <div class="pel-mid" data-pel-mid></div>
-        <div class="pel-side pel-blue"><b data-pel-n="rival">0</b><span>${esc(names.rival)}</span><i class="pel-serve" data-pel-s="rival"></i></div>
+        <div class="pel-side pel-red"><b data-pel-n="rival">0</b><span>${esc(names.rival)}</span><i class="pel-serve" data-pel-s="rival"></i></div>
       </div></div>
       <div class="pel-call"><h3></h3><p></p><div class="pel-kantari"></div></div>
       <div class="pel-q"></div>

@@ -76,7 +76,12 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // para el partido te conviertes en el pelotari (camiseta, pantalón blanco y tacos en las manos); al acabar vuelves a ser tú
     let rig = rig0, pel = null; const hidden = [];
     if (hasMeshy('pelotari')) try { pel = new GlbRig(await loadMeshy('pelotari', 1.62), 'pelotari'); } catch (e) { console.warn('pelotari', e); }
-    if (pel) { for (const c of P.obj.children) if (c.visible) { c.visible = false; hidden.push(c); } P.obj.add(pel.char.root); rig = pel; }
+    // (el cuerpo de siempre se aparta del todo mientras dura el partido: así nada lo vuelve a mostrar)
+    if (pel) { hidden.push(...P.obj.children); for (const c of hidden) P.obj.remove(c); P.obj.add(pel.char.root); rig = pel; }
+    // y el rival juega de rojo (el pelotari colorado), como en los partidos de verdad: azules contra colorados
+    let red = null; const hiddenR = [];
+    if (hasMeshy('pelotari_rojo')) try { red = new GlbRig(await loadMeshy('pelotari_rojo', 1.62), 'pelotari_rojo'); } catch (e) { console.warn('pelotari rojo', e); }
+    if (red) { hiddenR.push(...rival.obj.children); for (const c of hiddenR) rival.obj.remove(c); rival.obj.add(red.char.root); red.setStance('Ready'); }
     // el partido anima al jugador y coloca a los dos: el rig del jugador pasa a nuestras manos
     P.rig = { update() { }, doAct() { }, doCheer() { }, doWave() { }, setExpr() { } };
     P.frozen = true; G.mode = 'pelota'; G.ui.hudVisible?.(false); G.ui.setPrompt?.(null);
@@ -91,7 +96,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     const crowd = G.pelotaCrowd = G.scene ? new Crowd(G, fronton, 7 + ((Math.random() * 4) | 0)) : null;
     const once = (who, key, on, fn) => { if (on && !flags[who][key]) { flags[who][key] = true; fn(); } else if (!on) flags[who][key] = false; };
     const stYou = { v: null }, stRival = { v: null };
-    armSwing(rig.char, () => stYou.v, { windOnly: !!pel }); armSwing(rival.glb, () => stRival.v);
+    armSwing(rig.char, () => stYou.v, { windOnly: !!pel }); armSwing(red ? red.char : rival.glb, () => stRival.v, { windOnly: !!red });
     const animYou = (obj, st, dt) => {
       stYou.v = st;
       P.pos.copy(obj.position); P.heading = obj.rotation.y;
@@ -99,10 +104,12 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       once('you', 'swing', st.swing >= 0, () => rig.doAct?.('hit', 0.5));
       once('you', 'won', st.won, () => rig.doCheer?.());
     };
-    const animRival = (obj, st) => {
+    const animRival = (obj, st, dt = 1 / 60) => {
       stRival.v = st;
       rival.pos.copy(obj.position); rival.heading = obj.rotation.y; rival.speed = st.speed;
-      once('rival', 'swing', st.swing >= 0, () => rival.anim?.doAct?.('throw', 0.35));
+      if (red) red.update(dt, st.speed, true, 0);
+      once('rival', 'swing', st.swing >= 0, () => red ? red.doAct('hit', 0.5) : rival.anim?.doAct?.('throw', 0.35));
+      once('rival', 'won', st.won, () => red?.doCheer());
       if (st.won) rival.cheer = 0.6;
     };
     const match = G.pelotaMatch = new PelotaMatch({
@@ -119,8 +126,9 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       G.pelotaTick = null; G.pelotaMatch = null; G.pelotaRig = null;
       if (rig.char) rig.char.post = null; if (rival.glb) rival.glb.post = null;
       rig.setStance?.(null);
-      if (pel) { P.obj.remove(pel.char.root); pel.dispose(); for (const c of hidden) c.visible = true; }
+      if (pel) { P.obj.remove(pel.char.root); pel.dispose(); for (const c of hidden) P.obj.add(c); }
       if (bf) bf.visible = bfWas;
+      if (red) { red.char.post = null; rival.obj.remove(red.char.root); red.dispose(); for (const c of hiddenR) rival.obj.add(c); }
       P.rig = rig0; P.frozen = false; G.mode = 'play'; G.ui.hudVisible?.(true); G.perro?.release?.();
       rival.frozen = false; rival.speed = 0; rival.setPos(home.x, home.z, home.h);
       const e = fronton.entry, c = fronton.toWorld(0, 12);

@@ -89,17 +89,21 @@ export class Futbol {
     let mine = null;
     if (hasMeshy('osasuna')) try { mine = this.meshyPlayer(await loadMeshy('osasuna', 1.55)); } catch (e) { console.warn('futbolista', e); }
     this.me = { ...(mine || npc(KIT.home, 0, { height: 1.55 })), side: 'home', role: 'field', me: true, x: 0, z: -1.2, speed: JOG, h: 0 };
+    // el equipo visitante, con la segunda equipación de Osasuna (modelo de Meshy); cada uno de una altura
+    let away = null;
+    if (hasMeshy('osasuna_fuera')) try { away = await loadMeshy('osasuna_fuera', 1.55); } catch (e) { console.warn('visitantes', e); }
+    const visitor = (i) => { if (!away) return npc(KIT.away, i + 3); const p = this.meshyPlayer(away); p.char.root.scale.multiplyScalar([0.97, 1.03, 1.0][i % 3]); return p; };
     if (mine) this.me.n = 7; else num(10, this.me);   // el de Meshy ya lleva su 7 en la espalda
     this.team = [
       { ...npc(KIT.home, 1), side: 'home', role: 'field', post: [-9, -10], speed: 6.0, n: 7 },
       { ...npc(KIT.home, 2), side: 'home', role: 'field', post: [9, -16], speed: 5.8, n: 4 },
-      { ...npc(KIT.away, 3), side: 'away', role: 'field', post: [6, 8], speed: 6.8, n: 9 },
-      { ...npc(KIT.away, 4), side: 'away', role: 'field', post: [-7, 12], speed: 6.6, n: 11 },
-      { ...npc(KIT.away, 5), side: 'away', role: 'field', post: [0, 20], speed: 6.3, n: 5 },
+      { ...visitor(0), side: 'away', role: 'field', post: [6, 8], speed: 6.8, n: 9 },
+      { ...visitor(1), side: 'away', role: 'field', post: [-7, 12], speed: 6.6, n: 11 },
+      { ...visitor(2), side: 'away', role: 'field', post: [0, 20], speed: 6.3, n: 5 },
       { ...npc(KIT.keepH, 6), side: 'home', role: 'keeper', speed: 4.4, save: 0.62, n: 1 },
       { ...npc(KIT.keepA, 7), side: 'away', role: 'keeper', speed: 4.6, save: 0.62, n: 1 },
     ];
-    for (const p of this.team) { p.vx = 0; p.vz = 0; p.h = p.side === 'home' ? 0 : Math.PI; num(p.n, p, p.side === 'away' && p.role === 'field'); }
+    for (const p of this.team) { p.vx = 0; p.vz = 0; p.h = p.side === 'home' ? 0 : Math.PI; if (!p.meshy) num(p.n, p, p.side === 'away' && p.role === 'field'); }   // los de Meshy ya llevan su número
     this.all = [this.me, ...this.team];
     // aro amarillo bajo el jugador que controlas
     this.ring = new THREE.Mesh(new THREE.RingGeometry(0.42, 0.55, 28), new THREE.MeshBasicMaterial({ color: '#ffe14a', transparent: true, opacity: 0.85, depthWrite: false }));
@@ -116,7 +120,7 @@ export class Futbol {
     const char = new GlbChar(g, { walkAt: 0.2, runAt: 4.4, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / 3.4, 0.85) : Math.pow(Math.max(0.2, v) / 1.4, 0.8) });
     char.root.scale.setScalar(g.userData.fit || 1);
     const obj = new THREE.Group(); obj.add(char.root); obj.userData.H = 1.55; this.root.add(obj);
-    return { obj, char, anim: { update: (dt, st) => { char.setSpeed(st.speed || 0); char.update(dt); } } };
+    return { obj, char, meshy: true, anim: { update: (dt, st) => { char.setSpeed(st.speed || 0); char.update(dt); } } };
   }
   // público en las gradas: sentado en sus asientos; de cerca, personajes 3D de verdad (con la camiseta de Osasuna casi
   // todos) y de lejos en lámina; se levantan y celebran los goles

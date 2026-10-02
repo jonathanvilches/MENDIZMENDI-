@@ -202,10 +202,10 @@ export class Encierro {
   async spawn() {
     const S = this.scene, rnd = mulberry(11), av = this.G.P.avatar, def = GLB_AVATARS[av];
     const white = { shirt: '#f7f3ea', pants: '#f7f3ea', sash: '#d42f2f', scarf: '#d42f2f', shoes: '#efe6d0', espadrille: true };
-    // tu personaje: el de San Fermín tal cual (ya va de blanco y rojo); los demás, vestidos de blanco y rojo
+    // el protagonista se pone su ropa de San Fermín (el modelo vestido de blanco y rojo); los aventureros, de blanco y rojo
     let me = null;
     if (def?.meshy) try {
-      const g = await loadMeshy(def.meshy), char = new GlbChar(g, { walkAt: 0.2, runAt: 4.4, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / 3.2, 0.85) : Math.pow(Math.max(0.2, v) / 1.35, 0.8) });
+      const g = await loadMeshy('sanfermin'), char = new GlbChar(g, { walkAt: 0.2, runAt: 4.4, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / 3.2, 0.85) : Math.pow(Math.max(0.2, v) / 1.35, 0.8) });
       char.root.scale.setScalar(g.userData.fit || 1); const obj = new THREE.Group(); obj.add(char.root); obj.userData.H = 1.45;
       me = { obj, char, anim: { update: (dt, st) => { char.setSpeed(st.speed || 0); char.update(dt); } } };
     } catch (e) { console.warn('corredor', e); }

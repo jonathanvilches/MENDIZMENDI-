@@ -32,7 +32,7 @@ export const EU_EXACT = {
   'Elige tu personaje': 'Aukeratu zure pertsonaia', 'Arrastra para girarlo · tócalo para saludar': 'Arrastatu biratzeko · ukitu agurtzeko',
   'Resistencia': 'Erresistentzia', 'Fuerza': 'Indarra', 'Agilidad': 'Arintasuna', 'Orientación': 'Orientazioa', 'Habilidad especial': 'Trebetasun berezia',
   '¿Cómo te llamas?': 'Nola duzu izena?', 'Tu nombre': 'Zure izena', '¡Empezar la aventura!': 'Hasi abentura!', 'Idioma': 'Hizkuntza',
-  'Sanferminera': 'Sanferminzalea', 'Sanferminero': 'Sanferminzalea', '«No se pierde ni un chupinazo»': '«Ez du txupinazo bat ere galtzen»', 'Aizkolari': 'Aizkolaria', 'Dantzari': 'Dantzaria', 'Pelotari': 'Pilotaria', 'Montañera': 'Mendizalea', 'Txistulari': 'Txistularia',
+  'Sanferminera': 'Sanferminzalea', 'Sanferminero': 'Sanferminzalea', 'Explorador': 'Esploratzailea', '«Quiere conocer cada rincón de Navarra»': '«Nafarroako txoko guztiak ezagutu nahi ditu»', '«No se pierde ni un chupinazo»': '«Ez du txupinazo bat ere galtzen»', 'Aizkolari': 'Aizkolaria', 'Dantzari': 'Dantzaria', 'Pelotari': 'Pilotaria', 'Montañera': 'Mendizalea', 'Txistulari': 'Txistularia',
   'Guardiana del bosque': 'Basozaina', 'Joaldun': 'Joalduna', 'Hortelana': 'Baratzezaina', 'Hortelano': 'Baratzezaina', 'Hortelano de Tudela': 'Tuterako baratzezaina', 'Viticultor': 'Mahastizaina', 'Exploradora de la niebla': 'Lainoko esploratzailea', 'Guardabosques': 'Basozaina',
   '«Siempre llega la primera»': '«Beti iristen da lehena»', '«Fuerte como un roble»': '«Haritza bezain indartsua»', '«Baila sobre el puente»': '«Zubi gainean dantzatzen du»',
   '«Nunca falla un rebote»': '«Ez du errebote bat ere huts egiten»', '«Conoce todas las cimas»': '«Gailur guztiak ezagutzen ditu»', '«Pone música a todo»': '«Denari musika jartzen dio»',

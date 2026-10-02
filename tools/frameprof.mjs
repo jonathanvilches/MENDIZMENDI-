@@ -4,7 +4,7 @@ const [,, base = 'http://127.0.0.1:5182/', town = 'lesaka', W = 390, H = 844] = 
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const page = await browser.newPage({ viewport: { width: +W, height: +H }, isMobile: +W < 900, hasTouch: +W < 900 });
 page.on('pageerror', e => console.log('PAGEERROR', e.message));
-await page.goto(base + '?town=' + town, { timeout: 300000 });
+await page.goto(base + '?town=' + town + (process.env.QS ? '&' + process.env.QS : ''), { timeout: 300000 });
 await page.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 300000 });
 await page.waitForTimeout(4000);
 const r = await page.evaluate(async () => {

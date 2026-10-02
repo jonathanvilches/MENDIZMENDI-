@@ -14,8 +14,10 @@ pueblo se gana su sello; con todos los pueblos de una comarca, la comarca se ilu
   luz dorada): visita, producto (recoger + ordenar pasos), cosecha, rebaño al redil, danza (ritmo), carnaval
   (buscar por el sonido de los cencerros), oficio (barra de precisión o pulsar rápido), leyenda, carrera por aros,
   observación con prismáticos, tradición (repetir melodía) y preguntas del sabio del pueblo.
-- **Personajes** (`src/actors/minifig.js`): minifiguras de bloques con cara impresa (parpadeo y habla), estampados
-  de traje, texturas de pelo, lana, paja, madera y metal, y paso de péndulo con balanceo.
+- **Personajes** (`src/actors/glbChar.js`): el protagonista es un explorador (modelo de Meshy) que se viste de San
+  Fermín para el encierro, de Osasuna para jugar en El Sadar y de pelotari en el frontón; también se puede jugar con
+  los seis aventureros de KayKit. Los vecinos usan los cuerpos KayKit con el traje de su comarca y los nombres van
+  con su cuerpo (`src/data/nombres.js`). El público de gradas y balcones es 3D cerca de la cámara (`crowd3d`).
 - **Gráficos propios**: todos los iconos están dibujados en SVG (`src/ui/icons.js`); los retratos se renderizan
   desde las propias figuras 3D (`src/ui/portraits.js`). No se usan emojis.
 
