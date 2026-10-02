@@ -7,22 +7,25 @@ import { buildAnimal } from '../actors/animalGlb.js';
 import { makeItem } from '../game/items.js';
 import { UI3D } from './icon3d-ui.js';
 import { getImg, putImg } from '../util/store.js';
-import { offscreen, offscreenCanvas } from '../util/offscreen.js';
+import { offscreen, offscreenCanvas, offscreenGen } from '../util/offscreen.js';
 import { BIRDS, bird, squirrel, woodpecker, owl, trout } from '../actors/beasts.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
 let R = null, scene, cam;
 const cache = new Map();
 const S = 256, SS = 512;                         // tamaño final y de render (supermuestreo)
+let envGen = -1;
 function setup() {
   R = offscreen(SS, SS, THREE.NeutralToneMapping);
-  scene = new THREE.Scene();
-  // luz de estudio: reflejos suaves del entorno, luz principal cálida y contraluz para dar volumen
-  const pm = new THREE.PMREMGenerator(R); scene.environment = pm.fromScene(new RoomEnvironment(), 0.04, 0.1, 100, { size: 128 }).texture; scene.environmentIntensity = 0.55;
-  scene.add(new THREE.HemisphereLight('#ffffff', '#6a5a8a', 0.9));
-  const key = new THREE.DirectionalLight('#fff4e4', 2.4); key.position.set(-2.5, 4, 3); scene.add(key);
-  const rim = new THREE.DirectionalLight('#cfe6ff', 1.6); rim.position.set(3, 2, -3); scene.add(rim);
-  cam = new THREE.PerspectiveCamera(22, 1, 0.01, 100);
+  if (!scene) {
+    scene = new THREE.Scene();
+    scene.add(new THREE.HemisphereLight('#ffffff', '#6a5a8a', 0.9));
+    const key = new THREE.DirectionalLight('#fff4e4', 2.4); key.position.set(-2.5, 4, 3); scene.add(key);
+    const rim = new THREE.DirectionalLight('#cfe6ff', 1.6); rim.position.set(3, 2, -3); scene.add(rim);
+    cam = new THREE.PerspectiveCamera(22, 1, 0.01, 100);
+  }
+  // luz de estudio: reflejos suaves del entorno (va ligado al renderizador: si se ha liberado, se rehace)
+  if (envGen !== offscreenGen()) { envGen = offscreenGen(); scene.environment?.dispose(); const pm = new THREE.PMREMGenerator(R); scene.environment = pm.fromScene(new RoomEnvironment(), 0.04, 0.1, 100, { size: 128 }).texture; pm.dispose(); scene.environmentIntensity = 0.55; }
 }
 // ---- modelos a medida (productos y herramientas) ----
 const mat = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.6, metalness: 0, ...o });
@@ -209,7 +212,7 @@ export function icon3D(name, fresh = false) {
   try {
     const obj = build(name);
     if (obj) {
-      if (!R) setup(); else offscreen(SS, SS, THREE.NeutralToneMapping);
+      setup();
       soften(obj);
       const holder = new THREE.Group(); holder.add(obj); scene.add(holder);
       holder.updateMatrixWorld(true);

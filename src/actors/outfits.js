@@ -46,12 +46,17 @@ function cellsOf(mesh) {
   return out;
 }
 const textures = new Map();
+let TEXMAX = 512;
+/** Tamaño máximo de las texturas de ropa (256 en calidad baja: en el móvil cada lienzo cuenta). */
+export const setOutfitTexMax = (n) => { TEXMAX = n; };
+/** Al salir de un pueblo: fuera las texturas de ropa (antes se acumulaban pueblo tras pueblo hasta llenar la memoria). */
+export function resetOutfitTextures() { for (const t of textures.values()) { t.dispose(); if (t.image?.getContext) t.image.width = t.image.height = 1; } textures.clear(); }
 // atlas repintado: cada casilla de ropa toma el color del traje con la luz de su degradado original
 function repaint(map, assign, key) {
   if (textures.has(key)) return textures.get(key);
   // a 512 px como mucho: las casillas son colores lisos y así cada traje ocupa 4 veces menos memoria gráfica
   // (con muchos vecinos de trajes distintos, a 1024 px los móviles se quedaban sin memoria y se apagaba la pantalla)
-  const img = map.image, sc = Math.min(1, 512 / Math.max(img.width, img.height)), w = Math.round(img.width * sc), h = Math.round(img.height * sc), c = document.createElement('canvas'); c.width = w; c.height = h;
+  const img = map.image, sc = Math.min(1, TEXMAX / Math.max(img.width, img.height)), w = Math.round(img.width * sc), h = Math.round(img.height * sc), c = document.createElement('canvas'); c.width = w; c.height = h;
   const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0, w, h);
   const cw = w / COLS, ch = h / ROWS, col = new THREE.Color();
   for (const [cell, hex] of assign) {

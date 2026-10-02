@@ -1,6 +1,7 @@
 // Frontón en 3D (compatible con three.js r128 y posteriores: THREE se recibe como parámetro).
 // Origen del grupo: suelo, centro del frontis. La cancha crece hacia +z; la pared izquierda en x = −W/2.
 import { COURT } from './rules.js';
+import { freeCanvasOnUpload } from '../util/freeCanvas.js';
 
 function srgb(THREE, tex) {
   if ('colorSpace' in tex && THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
@@ -10,7 +11,7 @@ function srgb(THREE, tex) {
 function canvasTex(THREE, w, h, draw, repeat) {
   const c = document.createElement('canvas'); c.width = w; c.height = h;
   draw(c.getContext('2d'), w, h);
-  const t = srgb(THREE, new THREE.CanvasTexture(c));
+  const t = freeCanvasOnUpload(srgb(THREE, new THREE.CanvasTexture(c)));
   t.anisotropy = 4;
   if (repeat) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(repeat[0], repeat[1]); }
   return t;

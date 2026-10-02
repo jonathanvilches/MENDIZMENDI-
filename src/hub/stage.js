@@ -4,6 +4,7 @@
 import * as THREE from 'three';
 import { buildMinifig, MinifigAnimator, COSTUMES, setOutlines } from '../actors/minifig.js';
 import { buildDiorama } from './diorama.js';
+import { TEX } from '../world/textures.js';
 import { castById } from '../data/cast.js';
 import { GlbRig, isGlbAvatar, loadGlbAvatar } from '../actors/glbChar.js';
 
@@ -19,6 +20,19 @@ function renderer() {
   return R;
 }
 const dioramas = new Map();
+let pendingCompile = null;
+/** Al entrar a jugar: se suelta el escenario del menú (su contexto WebGL, los dioramas y el personaje). En el
+ *  móvil, tener a la vez este, el de los retratos y el del juego agotaba la memoria y el navegador cerraba la página. */
+export function releaseStage() {
+  // si aún está preparando sus shaders, se espera (soltar el renderizador a mitad hace fallar a three.js)
+  if (pendingCompile) { pendingCompile.then(releaseStage, releaseStage); return; }
+  Stage.current?.dispose(); Stage.current = null;
+  // (las texturas comunes del juego —adoquín, hojas…— no se tocan: las usa también el pueblo)
+  const keep = new Set(Object.values(TEX).flatMap(t => t?.isTexture ? [t] : [t?.map, t?.normalMap]).filter(Boolean));
+  for (const D of dioramas.values()) D.scene?.traverse(o => { o.geometry?.dispose(); const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []; for (const m of ms) { for (const k in m) if (m[k]?.isTexture && !keep.has(m[k]) && !m[k].userData?.shared) m[k].dispose(); m.dispose(); } });
+  dioramas.clear();
+  if (R) { try { R.dispose(); R.forceContextLoss(); } catch (e) { } R.domElement.width = R.domElement.height = 1; R = null; }
+}
 
 function glowTex(inner, outer = 'rgba(0,0,0,0)') {
   const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
@@ -47,7 +61,7 @@ export class Stage {
     // para no congelar la pantalla; mientras tanto el escenario aparece con un fundido
     this.ready = false; el.style.opacity = 0; el.style.transition = 'opacity .4s';
     const go = () => { this.ready = true; el.style.opacity = 1; };
-    try { this.r.compileAsync(this.scene, this.cam).then(go, go); } catch (e) { go(); }
+    try { const pc = pendingCompile = this.r.compileAsync(this.scene, this.cam); pc.then(go, go).finally(() => { if (pendingCompile === pc) pendingCompile = null; }); } catch (e) { go(); }
     this.loop = this.loop.bind(this); requestAnimationFrame(this.loop);
   }
   poke() { this.wave = 1.6; this.jump = 0.5; this.anim?.setExpr(Math.random() < 0.3 ? 'surprised' : 'happy', 1.8); this.onPoke?.(); }

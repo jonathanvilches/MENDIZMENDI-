@@ -48,9 +48,10 @@ async function boot() {
   const sound = new Sound();
   const ui = new UI(input, sound);
   const P = profile();
-  // calidad automática: ordenador alta; móvil media, y baja si tiene poca memoria (4 GB o menos)
-  const lowMem = navigator.deviceMemory && navigator.deviceMemory <= 4;
-  const quality = q.get('q') || P.settings.quality || (input.touch ? (lowMem ? 'low' : 'mid') : 'high');
+  // calidad automática: ordenador alta; móvil baja (en iPhone no se puede saber la memoria y Safari cierra la página
+  // si se pasa), salvo móviles que dicen tener mucha memoria (6 GB o más), que van en media
+  const bigMem = navigator.deviceMemory && navigator.deviceMemory >= 6;
+  const quality = q.get('q') || P.settings.quality || (input.touch ? (bigMem ? 'mid' : 'low') : 'high');
   const rt = new Runtime({ canvas, input, sound, quality });
   // si el dispositivo se queda sin memoria para dibujar (pantalla apagada), la próxima vez arranca con menos calidad
   canvas.addEventListener('webglcontextlost', () => { const S = P.settings, next = { high: 'mid', mid: 'low' }[S.quality || quality]; if (next) { S.quality = next; saveProfile(); } });
@@ -126,12 +127,28 @@ async function boot() {
         { const g = game; setTimeout(() => { if (g && g === game) g.ui.toast(`¡Bienvenido a ${d.name}! Habla con ${g.missions[0]?.host?.name || 'tu guía'}`, 'exclaim', 4200); }, 700); }
       }
     } catch (e) {
+      // antes se volvía al menú sin decir nada («me saca del juego»): ahora se avisa, y si no estaba ya en calidad
+      // baja se guarda la baja para el siguiente intento
       console.error(e);
       ui.hideLoading(); loading = false; queueMode('all');
-      rt.unload(); hub.show('home');
+      try { rt.unload(); } catch (e2) { }
+      const S = P.settings, lowered = (S.quality || rt.quality) !== 'low';
+      if (lowered) { S.quality = 'low'; saveProfile(); }
+      hub.show('home');
+      showLoadError(d, e, lowered);
       return;
     }
     loading = false;
+  }
+
+  // aviso cuando no se ha podido entrar en un pueblo: qué ha pasado (para poder contarlo) y botón para reintentar
+  function showLoadError(d, e, lowered) {
+    document.querySelector('.loaderr')?.remove();
+    const o = document.createElement('div'); o.className = 'mg-overlay loaderr';
+    const msg = String(e?.message || e).slice(0, 160).replace(/[<>&]/g, '');
+    o.innerHTML = `<div class="mg-card"><h3>No se ha podido entrar en ${d.name.split(' /')[0]}</h3><p>${lowered ? 'El dispositivo se ha quedado corto. Hemos bajado la calidad gráfica para que funcione: vuelve a intentarlo.' : 'Ha ocurrido un problema al cargar el pueblo.'}</p><p class="hint">Detalle: ${msg}</p><button class="btn primary">${lowered ? 'Volver a cargar' : 'Cerrar'}</button></div>`;
+    o.querySelector('button').onclick = () => { if (lowered) location.reload(); else o.remove(); };
+    document.body.appendChild(o);
   }
 
   function exit() {
