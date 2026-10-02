@@ -101,7 +101,7 @@ export class Actor {
     this.collider.x = this.pos.x; this.collider.z = this.pos.z;
     // animación por distancia: fuera de cámara o lejos se anima a saltos (se acumula el tiempo), cerca en cada fotograma
     this.animAcc = (this.animAcc || 0) + dt;
-    const every = this.onScreen === false ? 0.3 : dP > 45 ? 0.12 : dP > 24 ? 0.05 : 0;
+    const every = this.onScreen === false ? 0.3 : dP > 60 ? 0.066 : dP > 40 ? 0.033 : 0;   // a la vista, fluidos hasta 40 m
     if (this.animAcc >= every) { this.animate(this.animAcc); this.animAcc = 0; }
     this.sync();
   }

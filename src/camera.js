@@ -33,7 +33,10 @@ export class FollowCamera {
     if (moving && this.idle > 1.2 && input.move.y > -0.3) this.yaw = dampAngle(this.yaw, player.heading + Math.PI, 1.2 * Math.abs(input.move.y) + 0.3 * Math.abs(input.move.x), dt);
     const want = new THREE.Vector3(player.pos.x, player.pos.y + 1.45, player.pos.z);
     if (instant) this.focus.copy(want);
-    else { this.focus.x = damp(this.focus.x, want.x, 14, dt); this.focus.z = damp(this.focus.z, want.z, 14, dt); this.focus.y = damp(this.focus.y, want.y, 8, dt); }
+    // en horizontal la cámara va pegada al jugador: con un retraso suavizado, ese retraso cambiaba de un fotograma a otro
+    // (los fotogramas nunca duran lo mismo) y el personaje temblaba en pantalla aunque el paisaje fuese fluido.
+    // En vertical sí se suaviza (escalones, saltos)
+    else { this.focus.x = want.x; this.focus.z = want.z; this.focus.y = damp(this.focus.y, want.y, 8, dt); }
     if (this.cinematic) {
       const c = this.cinematic;
       c.t += dt;
