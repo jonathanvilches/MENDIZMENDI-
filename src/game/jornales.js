@@ -163,6 +163,7 @@ export class Jornales {
     } finally { g.player.frozen = false; if (g.mode === 'mini') g.mode = 'play'; a.talking = 0; }
     if (!r) return;
     if (r.win) { g.player.rig.doCheer?.(); await this.pay(id, a, null); }
+    else if (r.quit) return;   // lo ha dejado: sin reproches
     else if (r.error) await g.say(a, ['Hoy no hay manera de ponerse con esto. Vuelve en un rato y lo hacemos.']);   // la escena no se pudo montar
     else await g.say(a, ['¡Casi! Es más difícil de lo que parece. Cuando quieras, lo volvemos a intentar.']);
   }

@@ -435,6 +435,8 @@ export class GlbChar {
     this.mixer.stopAllAction();
     this.mixer.uncacheRoot(this.root);
     if (this.eyeMat) { this.eyeMat.map && this.eyeMat.map.dispose(); this.eyeMat.dispose(); }
+    // la textura de los huesos de cada copia (si no, queda una en la memoria gráfica por personaje que se va)
+    this.root.traverse(o => { if (o.isSkinnedMesh) o.skeleton?.dispose(); });
   }
 }
 

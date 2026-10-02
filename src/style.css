@@ -458,6 +458,9 @@ img[data-pk] { opacity: 0; }
 .mg3d .m3-top h3 { margin: 0; font-size: 18px; line-height: 1.15; }
 .mg3d .m3-top small { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 13px; line-height: 1.3; color: #e8dcff; }
 .mg3d .m3-clock { font-size: 17px; color: #ffd84a; min-width: 3.6em; text-align: right; }
+.mg3d .m3-top { grid-template-columns: auto 1fr auto auto; }
+.mg3d .m3-x { width: 34px; height: 34px; border-radius: 50%; border: 2px solid rgba(255,255,255,.55); background: rgba(255,255,255,.08); color: #fff; font: 900 15px/1 Nunito, sans-serif; cursor: pointer; pointer-events: auto; display: grid; place-items: center; padding: 0; }
+.mg3d .m3-load .m3-xl { margin-top: 6px; min-height: 44px; }
 .mg3d .m3-prog { grid-column: 1 / -1; height: 8px; border-radius: 99px; background: rgba(255,255,255,.14); overflow: hidden; }
 .mg3d .m3-prog i { display: block; height: 100%; width: 0; border-radius: 99px; background: linear-gradient(90deg, #ffd84a, #7be07b); transition: width .2s; }
 .mg3d .m3-bot { position: absolute; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); left: 50%; transform: translateX(-50%); width: min(94vw, 640px);

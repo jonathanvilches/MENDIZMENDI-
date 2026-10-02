@@ -1541,6 +1541,7 @@ export class TownGame {
         else if (st.game === 'shear') r = await shearGame(this.ui, { title: st.title });
         else r = await timingGame(this.ui, { title, hint: st.text, icon: of.icon, verb: st.verb, rounds: st.rounds || 4, need: st.need || 3, zone: 0.22, speed: 0.6, art: st.art });
         // si la escena 3D no se pudo montar, el paso no bloquea el taller: se da por visto
+        if (r.quit) { await this.say(M.host, ['Cuando quieras, seguimos donde lo has dejado.']); return; }
         if (!r.win && !r.error) { await this.say(M.host, ['¡Casi! Así se aprende: vuelve a probar este paso en el banco de trabajo.']); return; }
         M.tstep++;
       }
