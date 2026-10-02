@@ -5,6 +5,7 @@ import { resolve, addCircle } from '../world/colliders.js';
 import { damp, dampAngle } from '../util/math.js';
 import { buildMinifig, lookToMinifig, MinifigAnimator, setOutlines } from './minifig.js';
 import { buildNpc, npcsReady } from './npcGlb.js';
+import { nameFor } from '../data/nombres.js';
 
 const matCache = new Map();
 export function mat(color, o = {}) {
@@ -35,7 +36,9 @@ export class Actor {
     this.def = def;
     this.id = def.id; this.name = def.name;
     // todos (vecinos, carnaval y seres de leyenda) con el cuerpo de los personajes nuevos; la minifigura solo si aún no han cargado
-    if (npcsReady()) { const n = buildNpc(def.look); this.obj = n.obj; this.glb = n.char; this.anim = n.anim; this.J = {}; }
+    if (npcsReady()) { const n = buildNpc(def.look); this.obj = n.obj; this.glb = n.char; this.anim = n.anim; this.J = {};
+      // el nombre va con el cuerpo: un chico con nombre de chico y una chica con nombre de chica (los seres de leyenda, como son)
+      if (!def.look?.myth) this.name = nameFor(def.name, n.obj.userData.sex); }
     else { this.obj = buildMinifig(lookToMinifig(def.look || {})); this.J = this.obj.userData.J; this.anim = new MinifigAnimator(this.obj); }
     scene.add(this.obj);
     this.pos = new THREE.Vector3(def.x, 0, def.z);

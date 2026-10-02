@@ -50,6 +50,62 @@ export async function loadKayKit(name, height = 1.5) {
   })());
   return cache.get(key);
 }
+// personajes hechos con Meshy (los sube el usuario): un modelo con su propia textura y unos pocos clips (correr,
+// andar, salto completo y celebración). Los que faltan se recortan de esos mismos clips: estar quieto y hablar (el final
+// tranquilo de la celebración, de ida y vuelta para que no salte), saludar, celebrar, el impulso, el vuelo y la caída
+const MESHY = {}, MESHY_PICS = {};
+for (const [p, u] of Object.entries(import.meta.glob('../assets/meshy/*.glb', { eager: true, query: '?url', import: 'default' }))) MESHY[p.split('/').pop().replace('.glb', '')] = u;
+for (const [p, u] of Object.entries(import.meta.glob('../assets/meshy/portraits/*.png', { eager: true, query: '?url', import: 'default' }))) MESHY_PICS[p.split('/').pop().replace('.png', '')] = u;
+// nombre del juego: [clip de origen, desde (s), hasta (s), ida y vuelta, sin subir la cadera (el salto lo hace el juego)]
+const MESHY_CUTS = {
+  Idle: ['Celebrate', 6.9, 9.3, true], Talk: ['Celebrate', 6.4, 9.3, true], Wave: ['Celebrate', 3.55, 6.1], Celebrate: ['Celebrate', 0.3, 1.75],
+  Jump_Start: ['Jump_Full', 0, 0.58, false, true], Jump_Loop: ['Jump_Full', 0.62, 0.95, true, true], Land: ['Jump_Full', 1.05, 1.96, false, true],
+  Ready: ['Jump_Full', 0.22, 0.42, true, true], Scared: ['Jump_Full', 1.1, 1.62, false, true], Pick: ['Jump_Full', 1.05, 1.62, false, true], Hit: ['Celebrate', 0.35, 1.05],
+};
+// cortes propios de cada personaje (el pelotari trae un golpe con la derecha y un puño en alto en vez de la celebración)
+const MESHY_BY = {
+  pelotari: { Idle: ['Fist', 0, 0.25, true], Talk: ['Fist', 0, 0.25, true], Ready: ['Slash', 0.02, 0.36, true], Hit: ['Slash', 0.5, 1.25],
+    Celebrate: ['Fist', 0, 1.58], Wave: ['Fist', 0.15, 1.4], Scared: ['Slash', 1.1, 1.5], Pick: ['Slash', 0.1, 0.4] },
+};
+// recorta un clip muestreándolo (así ningún hueso se queda sin pista aunque no tenga claves en ese tramo)
+function cutClip(clip, name, t0, t1, flatHips, fps = 30) {
+  const n = Math.max(2, Math.round((t1 - t0) * fps) + 1), tracks = [];
+  for (const tr of clip.tracks) {
+    const I = tr.createInterpolant(), vs = tr.getValueSize(), times = new Float32Array(n), values = new Float32Array(n * vs);
+    for (let i = 0; i < n; i++) { const t = t0 + (t1 - t0) * i / (n - 1); times[i] = t - t0; values.set(I.evaluate(t), i * vs); }
+    // la cadera no sube: el salto del clip se quedaría encima del salto del juego (sí baja, al agacharse)
+    if (flatHips && /Hips\.position$/.test(tr.name)) { const y0 = values[1]; for (let i = 0; i < n; i++) values[i * 3 + 1] = Math.min(values[i * 3 + 1], y0); }
+    tracks.push(new tr.constructor(tr.name, times, values));
+  }
+  return new THREE.AnimationClip(name, t1 - t0, tracks);
+}
+// su textura viene a 2048 px (con todo el detalle); en calidad baja (móviles) se usa a 1024 para no agotar la memoria
+let MESHY_TEX = 2048;
+export const setMeshyTexMax = (px) => { MESHY_TEX = px; };
+function shrinkMap(m) {
+  const t = m.map, img = t?.image; if (!img || !(img.width > MESHY_TEX)) return;
+  const c = document.createElement('canvas'); c.width = c.height = MESHY_TEX; c.getContext('2d').drawImage(img, 0, 0, MESHY_TEX, MESHY_TEX);
+  const n = new THREE.CanvasTexture(c); n.colorSpace = t.colorSpace; n.flipY = t.flipY; n.wrapS = t.wrapS; n.wrapT = t.wrapT; n.anisotropy = 4;
+  m.map = n; m.needsUpdate = true; t.dispose(); img.close?.();
+}
+/** Personaje de Meshy con los clips del juego, escalado a su altura. */
+export async function loadMeshy(name, height = 1.45) {
+  const key = 'meshy:' + name;
+  if (!cache.has(key)) cache.set(key, (async () => {
+    const g = await loadChar(MESHY[name]);
+    g.scene.traverse(o => { if (o.isMesh) { o.castShadow = true; for (const m of [].concat(o.material)) shrinkMap(m); } });
+    const src = Object.fromEntries(g.animations.map(a => [a.name, a])), animations = ['Walk', 'Run'].filter(n => src[n]).map(n => src[n]);
+    // el futbolista trae su chut: es su golpe (pase y tiro), desde que echa la pierna atrás
+    const cuts = { ...MESHY_CUTS, ...(src.Kick ? { Hit: ['Kick', 0.42, 1.15] } : {}), ...(MESHY_BY[name] || {}) };
+    for (const [want, [from, t0, t1, pp, flat]] of Object.entries(cuts)) {
+      if (!src[from]) continue;
+      const k = cutClip(src[from], want, t0, Math.min(t1, src[from].duration), flat); if (pp) k.userData = { pingpong: true }; animations.push(k);
+    }
+    const box = new THREE.Box3().setFromObject(g.scene), fit = height / Math.max(0.1, box.max.y - box.min.y);
+    return { scene: g.scene, animations, userData: { fit, meshy: true } };
+  })());
+  return cache.get(key);
+}
 /** Carga (una sola vez por url) el GLB de un personaje. */
 export function loadChar(url) {
   if (!cache.has(url)) {
@@ -116,6 +172,7 @@ export class GlbChar {
       const a = this.mixer.clipAction(clip);
       const loop = !/^(Jump_Start|Land|Caught|Roar|Dodge_[LR])$/.test(clip.name);
       if (!loop) { a.setLoop(THREE.LoopOnce, 1); a.clampWhenFinished = true; }
+      else if (clip.userData?.pingpong) a.setLoop(THREE.LoopPingPong, Infinity);
       this.actions[clip.name] = a;
       this.clipExtras[clip.name] = clip.userData || {};
     }
@@ -133,7 +190,7 @@ export class GlbChar {
     this.lookT = 1 + Math.random() * 2;
     this.talkT = 0;
     this._initSprings();
-    this.headBone = this.bones.Head || null; this.headYaw = 0;
+    this.headBone = this.bones.Head || this.bones.mixamorigHead || null; this.headYaw = 0;
     this.postBones = [...this.eyeBones, ...this.springs.map(s => s.b), ...(this.headBone ? [this.headBone] : [])];
     for (const b of this.postBones) b.userData.q0 = b.quaternion.clone();
     if (opt.outline) this._addOutline(opt.outline);
@@ -333,8 +390,11 @@ export class GlbChar {
 export const GLB_AVATARS = {};
 for (const [id, name] of [['ranger', 'Ranger'], ['rogue', 'Rogue'], ['hooded', 'Rogue_Hooded'], ['knight', 'Knight'], ['barbarian', 'Barbarian'], ['mage', 'Mage']])
   if (KK[name]) GLB_AVATARS[id] = { kaykit: name, bust: KK_PICS[id + '_bust'], full: KK_PICS[id + '_full'] };
+// y el de Meshy de San Fermín, con su ropa ya puesta (de blanco y rojo); el futbolista de Osasuna sale en El Sadar
+for (const id of ['sanfermin']) if (MESHY[id]) GLB_AVATARS[id] = { meshy: id, bust: MESHY_PICS[id + '_bust'], full: MESHY_PICS[id + '_full'] };
+export const hasMeshy = (id) => !!MESHY[id];
 export const isGlbAvatar = id => !!GLB_AVATARS[id];
-export const loadGlbAvatar = id => GLB_AVATARS[id].kaykit ? loadKayKit(GLB_AVATARS[id].kaykit) : loadChar(GLB_AVATARS[id].url);
+export const loadGlbAvatar = id => GLB_AVATARS[id].kaykit ? loadKayKit(GLB_AVATARS[id].kaykit) : GLB_AVATARS[id].meshy ? loadMeshy(GLB_AVATARS[id].meshy) : loadChar(GLB_AVATARS[id].url);
 
 const EXPR = {
   happy: ['Happy', 'Normal'], surprised: ['Surprised', 'Normal'], scared: ['Scared', 'Worried'], worried: ['Normal', 'Worried'],
@@ -355,6 +415,7 @@ export class GlbRig {
     this.char = new GlbChar(gltf, { outline: 0.006, walkAt: 0.2, runAt: 4.6, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / (2.5 * LEGS), 0.85) : Math.pow(Math.max(0.2, v) / (1.15 * LEGS), 0.8) });
     // la mochila del explorador a la espalda (lleva el agua, la comida y el equipo); se quitan capa y carcaj
     if (def.kaykit) { try { applyOutfit(this.char.root, def.kaykit, { id: 'mochila', keep: true, backpack: {} }); } catch (e) { console.warn('mochila', e); } }
+    else if (def.meshy) { try { mixamoBackpack(this.char); } catch (e) { console.warn('mochila', e); } }
     this.char.root.scale.setScalar(def.scale || gltf.userData?.fit || 1);
     this.obj.add(this.char.root);
     this.wave = 0; this.cheer = 0; this.talking = 0; this.carry = false;
@@ -408,22 +469,60 @@ export class GlbRig {
   dispose() { this.char.dispose(); }
 }
 
+// mochila a la espalda en los esqueletos de Mixamo (personajes de Meshy): se mide el torso a la altura del pecho en la
+// pose de reposo y la mochila se cuelga del hueso del pecho, con dos correas por delante
+function mixamoBackpack(char) {
+  const B = char.bones, sp = B.mixamorigSpine2 || B.mixamorigSpine1, hips = B.mixamorigHips, neck = B.mixamorigNeck;
+  if (!sp || !hips || !neck) return;
+  const meshes = []; char.root.traverse(o => { if (o.isSkinnedMesh) meshes.push(o); }); if (!meshes.length) return;
+  char.root.updateMatrixWorld(true);
+  const P = (b) => new THREE.Vector3().setFromMatrixPosition(b.matrixWorld), cS = P(sp), cH = P(hips), cN = P(neck);
+  const la = B.mixamorigLeftArm, ra = B.mixamorigRightArm, shW = la && ra ? P(la).distanceTo(P(ra)) : (cN.y - cH.y) * 0.8;
+  // espalda y pecho: los puntos de la malla en una franja estrecha alrededor de la columna
+  let back = Infinity, front = -Infinity; const v = new THREE.Vector3(), band = (cN.y - cH.y) * 0.18;
+  for (const m of meshes) { const n = m.geometry.attributes.position.count; for (let i = 0; i < n; i += 2) {
+    m.getVertexPosition(i, v); v.applyMatrix4(m.matrixWorld);
+    if (Math.abs(v.y - cS.y) < band && Math.abs(v.x - cS.x) < shW * 0.18) { back = Math.min(back, v.z); front = Math.max(front, v.z); } } }
+  if (!isFinite(back)) return;
+  const depth = front - back, w = shW * 0.72, h = (cN.y - cH.y) * 0.78, d = depth * 0.5;
+  const mat = (c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.85 });
+  const g = new THREE.Group(), add = (geo, c, x, y, z, rz = 0) => { const m = new THREE.Mesh(geo, mat(c)); m.position.set(x, y, z); m.rotation.z = rz; m.castShadow = true; g.add(m); return m; };
+  add(new THREE.BoxGeometry(w, h, d), '#3f6a4c', 0, 0, 0);                                   // bolsa
+  add(new THREE.BoxGeometry(w * 1.04, h * 0.38, d * 1.08), '#2f5239', 0, h * 0.33, 0);        // solapa
+  add(new THREE.BoxGeometry(w * 0.62, h * 0.32, d * 0.32), '#2f5239', 0, -h * 0.18, -d * 0.62); // bolsillo
+  add(new THREE.CylinderGeometry(d * 0.42, d * 0.42, w * 1.15, 12), '#b8322a', 0, h * 0.62, 0, Math.PI / 2);   // manta enrollada
+  g.position.set(cS.x, cS.y - h * 0.08, back - d * 0.42);
+  sp.attach(g);
+  // correas: por encima de los hombros y por delante del pecho, hasta la cintura
+  for (const sx of [-1, 1]) {
+    const st = new THREE.Mesh(new THREE.BoxGeometry(shW * 0.09, h * 0.75, depth * 0.06), mat('#4a2f1c')); st.castShadow = true;
+    st.position.set(cS.x + sx * shW * 0.22, cS.y + h * 0.06, front + depth * 0.03); sp.attach(st);
+  }
+}
+
 // golpe a mano: el brazo derecho se echa atrás mientras llega la pelota (wind) y sale hacia delante al golpear (swing),
 // con un giro del pecho; se aplica encima de la animación de cada pelotari
-export function armSwing(char, get) {
+export function armSwing(char, get, { windOnly = false } = {}) {
   if (!char) return;
   const B = {}; char.root.traverse(o => { if (o.isBone) B[o.name] = o; });
-  const ua = B.upperarmr, la = B.lowerarmr, ch = B.chest; if (!ua) return;
-  const q = new THREE.Quaternion(), X = new THREE.Vector3(1, 0, 0), Y = new THREE.Vector3(0, 1, 0);
+  // KayKit (ejes locales conocidos) o Mixamo (los ejes del personaje se pasan al espacio de cada hueso)
+  const mix = !B.upperarmr;
+  const ua = B.upperarmr || B.mixamorigRightArm, la = B.lowerarmr || B.mixamorigRightForeArm, ch = B.chest || B.mixamorigSpine2; if (!ua) return;
+  const q = new THREE.Quaternion(), qc = new THREE.Quaternion(), X = new THREE.Vector3(1, 0, 0), Y = new THREE.Vector3(0, 1, 0), ax = new THREE.Vector3();
+  // eje del personaje → espacio local del hueso (con la pose de este fotograma, no la del anterior)
+  const local = (bone, axis) => { qc.identity(); for (let b = bone; b && b !== char.root; b = b.parent) qc.premultiply(b.quaternion); return ax.copy(axis).applyQuaternion(qc.invert()); };
+  const turn = (bone, axis, a) => bone.quaternion.multiply(q.setFromAxisAngle(mix ? local(bone, axis) : axis, a));
   let w = 0;   // preparación suavizada
   char.post = (c, dt) => {
     const st = get(); if (!st) return;
     w += ((st.swing >= 0 ? 0 : st.wind || 0) - w) * Math.min(1, dt * 10);
     let arm = -2.3 * w, elbow = 1.0 * w, twist = 0.7 * w;   // brazo bien atrás, codo doblado y hombro girado
+    if (st.swing >= 0 && windOnly) return;   // el golpe ya lo anima su clip
     if (st.swing >= 0) { const s = st.swing, up = Math.min(1, s / 0.3), back = s < 0.3 ? 1 : Math.max(0, 1 - (s - 0.3) / 0.7);   // latigazo rápido y vuelta
       arm = (-2.3 + 4.3 * up) * back; elbow = 1.0 * (1 - up) * back; twist = (0.7 - 1.4 * up) * back; }
-    if (Math.abs(arm) > 1e-3) ua.quaternion.multiply(q.setFromAxisAngle(X, arm));
-    if (la && Math.abs(elbow) > 1e-3) la.quaternion.multiply(q.setFromAxisAngle(X, -elbow));
-    if (ch && Math.abs(twist) > 1e-3) ch.quaternion.multiply(q.setFromAxisAngle(Y, twist));
+    // en Mixamo el personaje mira a +Z: girar el brazo alrededor de +X lo lleva atrás, de ahí el signo
+    if (Math.abs(arm) > 1e-3) turn(ua, X, mix ? -arm * 0.8 : arm);
+    if (la && Math.abs(elbow) > 1e-3) turn(la, X, -elbow);
+    if (ch && Math.abs(twist) > 1e-3) turn(ch, Y, twist);
   };
 }

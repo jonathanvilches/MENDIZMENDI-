@@ -5,22 +5,29 @@ import * as THREE from 'three';
 
 export const SNOW = { value: 0 };   // 0…1: cuánta nieve cubre lo que mira hacia arriba (lo comparten los materiales)
 
-/** Añade nieve a un material: las caras que miran al cielo se vuelven blancas según SNOW. */
-export function snowable(m, k = 1) {
+/** Añade nieve a un material: las caras que miran al cielo se vuelven blancas según SNOW.
+ *  k: cuánta nieve como mucho; lo/hi: desde qué inclinación empieza a cuajar (las copas de los árboles, solo arriba). */
+export function snowable(m, k = 1, lo = 0.32, hi = 0.72) {
   if (!m || m.userData.snowable) return m;
   m.userData.snowable = true;
   const prev = m.onBeforeCompile, prevKey = m.customProgramCacheKey;
   m.onBeforeCompile = function (sh, r) {
     prev?.call(this, sh, r);
     sh.uniforms.uSnow = SNOW;
+    // en los objetos repetidos (árboles, matas) la orientación de cada copia cuenta para saber qué mira arriba
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vSnowN;')
-      .replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\nvSnowN = normalize(mat3(modelMatrix) * objectNormal);');
+      .replace('#include <beginnormal_vertex>', `#include <beginnormal_vertex>
+#ifdef USE_INSTANCING
+vSnowN = normalize(mat3(modelMatrix) * mat3(instanceMatrix) * objectNormal);
+#else
+vSnowN = normalize(mat3(modelMatrix) * objectNormal);
+#endif`);
     sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uSnow; varying vec3 vSnowN;')
-      .replace('#include <roughnessmap_fragment>', `{ float up = smoothstep(0.32, 0.72, vSnowN.y) * uSnow * ${k.toFixed(2)};
+      .replace('#include <roughnessmap_fragment>', `{ float up = smoothstep(${lo.toFixed(2)}, ${hi.toFixed(2)}, vSnowN.y) * uSnow * ${k.toFixed(2)};
   diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.88, 0.91, 0.96) * (0.92 + 0.08 * diffuseColor.r), up); }
 #include <roughnessmap_fragment>`);
   };
-  m.customProgramCacheKey = function () { return (prevKey ? prevKey.call(this) : '') + '|snow' + k; };
+  m.customProgramCacheKey = function () { return (prevKey ? prevKey.call(this) : '') + '|snow' + k + ',' + lo + ',' + hi; };
   m.needsUpdate = true;
   return m;
 }
@@ -35,8 +42,9 @@ function precip(kind, n) {
     else { pos.set([x, y, z], i * 3); seed[i] = s; }
   }
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('aSeed', new THREE.BufferAttribute(seed, 1));
-  const U = { uTime: { value: 0 }, uCam: { value: new THREE.Vector3() }, uWind: { value: new THREE.Vector2(1.2, 0.4) } };
-  const vert = (body) => `uniform float uTime; uniform vec3 uCam; uniform vec2 uWind; attribute float aSeed;
+  // uAmt: cuánto llueve o nieva ahora (0…1); al amainar quedan menos gotas en vez de gotas más transparentes
+  const U = { uTime: { value: 0 }, uCam: { value: new THREE.Vector3() }, uWind: { value: new THREE.Vector2(1.2, 0.4) }, uAmt: { value: 1 } };
+  const vert = (body) => `uniform float uTime; uniform vec3 uCam; uniform vec2 uWind; uniform float uAmt; attribute float aSeed;
 ${body}`;
   const wrap = `
   float W = ${W.toFixed(1)}, H = ${H.toFixed(1)};
@@ -52,10 +60,10 @@ ${body}`;
     const mat = new THREE.ShaderMaterial({ uniforms: U, transparent: true, depthWrite: false, fog: false,
       vertexShader: vert(`varying float vA;
 void main() {${wrap.replaceAll('SPEED', '17.0').replaceAll('DRIFT', '0.05').replaceAll('WOBBLE', '0.0')}
-  if (mod(float(gl_VertexID), 2.0) > 0.5) p += vec3(uWind.x * 0.06, 0.9, uWind.y * 0.06);   // la estela de la gota
-  vA = 1.0 - smoothstep(14.0, 26.0, distance(p.xz, uCam.xz));
+  if (mod(float(gl_VertexID), 2.0) > 0.5) p += vec3(uWind.x * 0.04, 0.55, uWind.y * 0.04);   // la estela de la gota (corta: lluvia fina)
+  vA = (1.0 - smoothstep(14.0, 26.0, distance(p.xz, uCam.xz))) * step(aSeed, uAmt);
   gl_Position = projectionMatrix * viewMatrix * vec4(p, 1.0); }`),
-      fragmentShader: 'varying float vA; void main() { gl_FragColor = vec4(0.82, 0.87, 0.95, 0.6 * vA); }' });
+      fragmentShader: 'varying float vA; void main() { if (vA < 0.01) discard; gl_FragColor = vec4(0.8, 0.85, 0.92, 0.32 * vA); }' });
     obj = new THREE.LineSegments(geo, mat);
   } else {
     const c = document.createElement('canvas'); c.width = c.height = 32; const g = c.getContext('2d'), gr = g.createRadialGradient(16, 16, 0, 16, 16, 16);
@@ -67,7 +75,7 @@ void main() {${wrap.replaceAll('SPEED', '17.0').replaceAll('DRIFT', '0.05').repl
 void main() {${wrap.replaceAll('SPEED', '1.6').replaceAll('DRIFT', '0.03').replaceAll('WOBBLE', '0.6')}
   vec4 mv = viewMatrix * vec4(p, 1.0);
   gl_PointSize = uScale * (0.11 + 0.1 * aSeed) / -mv.z;
-  vA = 1.0 - smoothstep(16.0, 27.0, distance(p.xz, uCam.xz));
+  vA = (1.0 - smoothstep(16.0, 27.0, distance(p.xz, uCam.xz))) * step(aSeed, uAmt);
   gl_Position = projectionMatrix * mv; }`),
       fragmentShader: 'uniform sampler2D tFlake; varying float vA; void main() { vec4 t = texture2D(tFlake, gl_PointCoord); gl_FragColor = vec4(1.0, 1.0, 1.0, t.a * 0.9 * vA); }' });
     obj = new THREE.Points(geo, mat);
@@ -93,19 +101,25 @@ export class Weather {
   constructor(scene, kind = 'clear', quality = 'high') {
     this.kind = kind; this.scene = scene; this.t = 0; this.k = 0;
     const n = quality === 'low' ? 0.45 : quality === 'mid' ? 0.7 : 1;
-    if (kind === 'rain') { this.fx = precip('rain', Math.round(5200 * n)); scene.add(this.fx); }
+    if (kind === 'rain') { this.fx = precip('rain', Math.round(3200 * n)); scene.add(this.fx); }
     if (kind === 'snow') { this.fx = precip('snow', Math.round(4200 * n)); scene.add(this.fx); }
     SNOW.value = kind === 'snow' ? 0.55 : 0;   // al llegar ya ha nevado: tejados y prados blancos
     this.grey = new THREE.Color(kind === 'snow' ? '#d6dde6' : '#8a949e');
+    // la lluvia va a ratos: al llegar llueve, al cabo de un rato escampa y luego vuelve a llover
+    this.raining = true; this.phaseT = 50 + Math.random() * 40;
   }
   // cada fotograma, después del cielo: cae la lluvia o la nieve, el cielo se agrisa y la nieve se va posando
   // hold: durante un partido (fútbol o pelota) deja de llover o nevar y se despeja, para ver bien el juego
   update(dt, camera, sky, sound, hold = false) {
     if (this.kind === 'clear') return;
-    this.t += dt; this.k = hold ? Math.max(0, this.k - dt * 1.5) : Math.min(1, this.k + dt * 0.25);
+    this.t += dt;
+    if (this.kind === 'rain' && (this.phaseT -= dt) <= 0) { this.raining = !this.raining; this.phaseT = this.raining ? 40 + Math.random() * 50 : 30 + Math.random() * 45; }
+    const target = hold || !this.raining ? 0 : 1;
+    // entra en unos segundos; escampa despacio (o deprisa si empieza un partido)
+    this.k = target > this.k ? Math.min(target, this.k + dt * 0.25) : Math.max(target, this.k - dt * (hold ? 1.5 : 0.08));
     this.fx.visible = this.k > 0.02;
     this.agePrints(dt);
-    const U = this.fx.userData.U; U.uTime.value = this.t; U.uCam.value.copy(camera.position);
+    const U = this.fx.userData.U; U.uTime.value = this.t; U.uCam.value.copy(camera.position); U.uAmt.value = this.kind === 'rain' ? this.k : Math.min(1, this.k * 1.5);
     if (U.uScale) U.uScale.value = innerHeight * 0.55;
     if (this.kind === 'snow') SNOW.value = Math.min(0.92, SNOW.value + dt * 0.05);   // en un rato, todo blanco
     if (sky) {

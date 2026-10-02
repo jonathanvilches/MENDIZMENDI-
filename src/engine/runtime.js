@@ -2,6 +2,8 @@
 import { Weather, pickWeather } from '../world/weather.js';
 import * as THREE from 'three';
 import { setOutfitTexMax } from '../actors/outfits.js';
+import { setMeshyTexMax } from '../actors/glbChar.js';
+import { setQuality } from '../util/quality.js';
 import { bake, initBridges, clearPlatforms } from '../world/heightfield.js';
 import { buildTextures, TEX } from '../world/textures.js';
 import { Terrain } from '../world/terrain.js';
@@ -56,7 +58,7 @@ function showContextLost() {
 export class Runtime {
   constructor({ canvas, input, sound, quality }) {
     this.canvas = canvas; this.input = input; this.sound = sound; this.quality = quality;
-    setBuilderQuality(quality); setOutfitTexMax(quality === 'low' ? 256 : 512);
+    setBuilderQuality(quality); setOutfitTexMax(quality === 'low' ? 256 : 512); setMeshyTexMax(quality === 'low' ? 1024 : 2048); setQuality(quality);
     // en móvil (calidad media/baja) sin antialias de hardware y con menos resolución: el búfer de imagen pesa mucho menos
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: quality === 'high', powerPreference: 'high-performance' });
     this.pixelRatio = Math.min(devicePixelRatio, quality === 'high' ? 2 : 1.25);   // en móvil (media y baja) 1,25: nítido sin un búfer enorme
@@ -108,8 +110,10 @@ export class Runtime {
     else buildTown(scene, this.mats, def);
     onProgress(0.65, 'Plantando árboles y cultivos…'); await frame();
     this.nature = new Nature(scene, q);
+    if (this.weather.kind === 'snow' && this.nature.flowers?.mesh) this.nature.flowers.mesh.visible = false;   // sin flores sobre la nieve
     onProgress(0.8, 'Despertando a los animales…'); await frame();
     this.fauna = new Fauna(scene, q, salazar ? null : { def, town: TOWN, places: PLACES });
+    if (this.weather.kind !== 'clear' && this.fauna.bfMesh) this.fauna.bfMesh.visible = false;   // con lluvia o nieve no hay mariposas
     let rig = null;
     if (isGlbAvatar(avatarId)) {
       // personaje GLB (sistema nuevo); si no carga, su minifigura de reserva

@@ -187,7 +187,9 @@ export function updateDetail(cam, quality = 'high') {
 }
 // Calidad: en «low» no se crean las piezas menudas (marcos, macetas, lamas…) para ahorrar memoria en móviles
 let TINY = true;
-export function setBuilderQuality(q) { TINY = q !== 'low'; }
+let BQ = 'high';
+export function setBuilderQuality(q) { TINY = q !== 'low'; BQ = q || 'high'; }
+export const builderQuality = () => BQ;
 // Compacta los atributos (color en bytes, normal en bytes con signo) y, una vez subidos a la tarjeta gráfica, libera
 // la copia en memoria. Las piezas grandes conservan sus posiciones para comprobar si algo tapa la vista (prismáticos).
 function compact(geo, keepPos) {

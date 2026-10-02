@@ -6,11 +6,11 @@
 // Ambiente: entrada al campo con cámara aérea, público rojillo que salta, comentarista, cámara lenta en los goles y radar.
 import * as THREE from 'three';
 import { buildNpc } from '../actors/npcGlb.js';
-import { GLB_AVATARS } from '../actors/glbChar.js';
-import { crowdMesh } from '../actors/crowdSprites.js';
+import { GlbChar, loadMeshy, hasMeshy } from '../actors/glbChar.js';
+import { crowd3d } from '../actors/crowd3d.js';
+import { TOWN } from '../world/townBuilder.js';
 import { groundHeight } from '../world/heightfield.js';
 import { infoCard } from '../ui/minigames.js';
-import { profile } from './profile.js';
 
 const HX = 22.8, HZ = 36, GW = 3.5, GH = 2.44, BR = 0.2;     // medio campo (m), media portería, larguero, radio del balón
 const WALLX = 24.6, WALLZ = 37.6;
@@ -27,7 +27,8 @@ const KIT = {
   keepH: { shirt: '#2fa84f', vest: '#2fa84f', pants: '#111114', socks: '#2fa84f', shoes: '#111114', sash: '#111114', scarf: null },
   keepA: { shirt: '#f2c230', vest: '#f2c230', pants: '#111114', socks: '#f2c230', shoes: '#111114', sash: '#111114', scarf: null },
 };
-const HAIR = ['#2a1a12', '#5a3a22', '#c9a46a', '#1d1d24', '#7a3a1a'], SKIN = ['#f1c4a0', '#e2b08a', '#c68a5e', '#8d5a3a'];
+const HAIR = ['#2a1a12', '#5a3a22', '#c9a46a', '#1d1d24', '#7a3a1a', '#3b2a1e', '#8a5a2a'], SKIN = ['#f1c4a0', '#e2b08a', '#c68a5e', '#8d5a3a', '#f3d2b8', '#a8755a'];
+const BODIES = ['Knight', 'Ranger', 'Barbarian', 'Rogue', 'Ranger', 'Knight', 'Barbarian', 'Mage'];   // un cuerpo para cada jugador
 const CAMS = ['tv', 'detras', 'aerea'], CAM_NAME = { tv: 'Vista de televisión', detras: 'Detrás del jugador', aerea: 'Vista aérea' };
 const SAY = {
   steal: ['¡Qué robo!', '¡Balón recuperado!', '¡Buena entrada!'], save: ['¡Paradón!', '¡Qué manos tiene el portero!', '¡La saca con la punta de los dedos!'],
@@ -61,7 +62,7 @@ export class Futbol {
       this.res = res;
       try {
         await G.ui.fadeOut?.();
-        this.setup();
+        await this.setup();
         G.mode = 'futbol'; G.player.frozen = true;
         await G.ui.fadeIn?.();
         this.intro = 3.2; this.say('¡Bienvenidos a El Sadar! Osasuna contra el equipo visitante…', 3000);
@@ -70,36 +71,39 @@ export class Futbol {
     });
   }
 
-  setup() {
-    const G = this.G, S = G.scene, P = profile(), av = P.avatar || 'ranger';
+  async setup() {
+    const G = this.G, S = G.scene;
     this.root = new THREE.Group(); S.add(this.root);
     // el perro espera sentado junto a la banda, mirando el partido
     this.dog = G.perro?.dog || null; if (this.dog) G.perro.wait({ x: this.cx - 23.5, z: this.cz + 6 }, { x: this.cx, z: this.cz });
     G.player.obj.visible = false;
+    this.bf = G.fauna?.bfMesh; if (this.bf) { this.bfWas = this.bf.visible; this.bf.visible = false; }   // sin mariposas sobre el césped
     this.ballTex = ballTex();
     this.ball = new THREE.Mesh(new THREE.SphereGeometry(BR, 20, 14), new THREE.MeshStandardMaterial({ map: this.ballTex, roughness: 0.5 }));
     this.ball.castShadow = true; this.root.add(this.ball);
     this.b = { x: 0, y: BR, z: 0, vx: 0, vy: 0, vz: 0, owner: null, last: null, lastP: null };
-    const npc = (kit, i, look = {}) => { const n = buildNpc({ ...kit, female: false, hair: HAIR[i % HAIR.length], skin: SKIN[i % SKIN.length], height: 1.5 + (i % 3) * 0.05, ...look }); this.root.add(n.obj); return n; };
+    // cada jugador distinto: su cuerpo, su piel, su pelo y su altura
+    const npc = (kit, i, look = {}) => { const n = buildNpc({ ...kit, female: false, base: BODIES[i % BODIES.length], hair: HAIR[(i * 3) % HAIR.length], skin: SKIN[(i * 5 + 1) % SKIN.length], height: 1.47 + ((i * 7) % 5) * 0.03, ...look }); this.root.add(n.obj); return n; };
     const num = (n, p, light) => { const d = dorsal(n, light ? '#16224a' : '#ffffff', light ? '#ffffff' : '#16224a'); d.position.set(0, (p.obj.userData.H || 1.5) * 0.66, -0.17); d.rotation.y = Math.PI; p.obj.add(d); };
-    const meLook = { base: GLB_AVATARS[av]?.kaykit, female: ['nerea', 'rogue', 'mage'].includes(av) || ['Rogue', 'Mage'].includes(GLB_AVATARS[av]?.kaykit), height: 1.55 };   // tu propio personaje con la camiseta de Osasuna
-    this.me = { ...npc(KIT.home, 0, meLook), side: 'home', role: 'field', me: true, x: 0, z: -1.2, speed: JOG, h: 0 };
-    num(10, this.me);
-    const R = Math.random;
+    // tu futbolista: el jugador de Osasuna (modelo de Meshy, con su camiseta, sus clips y su chut); si no está, uno con la equipación
+    let mine = null;
+    if (hasMeshy('osasuna')) try { mine = this.meshyPlayer(await loadMeshy('osasuna', 1.55)); } catch (e) { console.warn('futbolista', e); }
+    this.me = { ...(mine || npc(KIT.home, 0, { height: 1.55 })), side: 'home', role: 'field', me: true, x: 0, z: -1.2, speed: JOG, h: 0 };
+    if (mine) this.me.n = 7; else num(10, this.me);   // el de Meshy ya lleva su 7 en la espalda
     this.team = [
-      { ...npc(KIT.home, 1, { female: R() < 0.4 }), side: 'home', role: 'field', post: [-9, -10], speed: 6.0, n: 7 },
-      { ...npc(KIT.home, 2, { female: R() < 0.4 }), side: 'home', role: 'field', post: [9, -16], speed: 5.8, n: 4 },
-      { ...npc(KIT.away, 3, { female: R() < 0.4 }), side: 'away', role: 'field', post: [6, 8], speed: 6.8, n: 9 },
-      { ...npc(KIT.away, 4, { female: R() < 0.4 }), side: 'away', role: 'field', post: [-7, 12], speed: 6.6, n: 11 },
-      { ...npc(KIT.away, 0, { female: R() < 0.4 }), side: 'away', role: 'field', post: [0, 20], speed: 6.3, n: 5 },
-      { ...npc(KIT.keepH, 3), side: 'home', role: 'keeper', speed: 4.4, save: 0.62, n: 1 },
-      { ...npc(KIT.keepA, 1), side: 'away', role: 'keeper', speed: 4.6, save: 0.62, n: 1 },
+      { ...npc(KIT.home, 1), side: 'home', role: 'field', post: [-9, -10], speed: 6.0, n: 7 },
+      { ...npc(KIT.home, 2), side: 'home', role: 'field', post: [9, -16], speed: 5.8, n: 4 },
+      { ...npc(KIT.away, 3), side: 'away', role: 'field', post: [6, 8], speed: 6.8, n: 9 },
+      { ...npc(KIT.away, 4), side: 'away', role: 'field', post: [-7, 12], speed: 6.6, n: 11 },
+      { ...npc(KIT.away, 5), side: 'away', role: 'field', post: [0, 20], speed: 6.3, n: 5 },
+      { ...npc(KIT.keepH, 6), side: 'home', role: 'keeper', speed: 4.4, save: 0.62, n: 1 },
+      { ...npc(KIT.keepA, 7), side: 'away', role: 'keeper', speed: 4.6, save: 0.62, n: 1 },
     ];
     for (const p of this.team) { p.vx = 0; p.vz = 0; p.h = p.side === 'home' ? 0 : Math.PI; num(p.n, p, p.side === 'away' && p.role === 'field'); }
     this.all = [this.me, ...this.team];
     // aro amarillo bajo el jugador que controlas
     this.ring = new THREE.Mesh(new THREE.RingGeometry(0.42, 0.55, 28), new THREE.MeshBasicMaterial({ color: '#ffe14a', transparent: true, opacity: 0.85, depthWrite: false }));
-    this.ring.rotation.x = -Math.PI / 2; this.ring.position.y = 0.03; this.me.obj.add(this.ring); this.me.n = 10;
+    this.ring.rotation.x = -Math.PI / 2; this.ring.position.y = 0.03; this.me.obj.add(this.ring); this.me.n ||= 10;
     this.crowd = this.makeCrowd();
     this.hud();
     this.score = { home: 0, away: 0 }; this.t = TIME; this.pause = 0; this.done = false; this.crowdT = 0;
@@ -107,8 +111,15 @@ export class Futbol {
     this.kickoff('home');
   }
 
-  // público en las gradas: personajes de verdad (con la camiseta de Osasuna casi todos) dibujados en una lámina,
-  // uno por asiento, en una sola llamada de dibujo; celebran los goles
+  // el futbolista de Meshy con la interfaz de los demás (obj, char, anim)
+  meshyPlayer(g) {
+    const char = new GlbChar(g, { walkAt: 0.2, runAt: 4.4, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / 3.4, 0.85) : Math.pow(Math.max(0.2, v) / 1.4, 0.8) });
+    char.root.scale.setScalar(g.userData.fit || 1);
+    const obj = new THREE.Group(); obj.add(char.root); obj.userData.H = 1.55; this.root.add(obj);
+    return { obj, char, anim: { update: (dt, st) => { char.setSpeed(st.speed || 0); char.update(dt); } } };
+  }
+  // público en las gradas: sentado en sus asientos; de cerca, personajes 3D de verdad (con la camiseta de Osasuna casi
+  // todos) y de lejos en lámina; se levantan y celebran los goles
   makeCrowd() {
     const spots = [], SX = 27, SZ = 40, run = 0.75, rise = 0.48, base = this.gy(0, 0) - 0.05;
     for (let k = 1; k < 19; k++) {
@@ -116,8 +127,11 @@ export class Futbol {
       for (let z = -54; z <= 54; z += 0.95) for (const s of [-1, 1]) { if (s < 0 && Math.abs(z) < 4.5) continue; if (Math.random() < 0.85) spots.push([this.cx + s * (SX + k * run + run / 2), base + h, this.cz + z, s > 0 ? -Math.PI / 2 : Math.PI / 2]); }
       for (let x = -25; x <= 25; x += 0.95) for (const s of [-1, 1]) if (Math.random() < 0.85) spots.push([this.cx + x, base + h, this.cz + s * (SZ + k * run + run / 2), s > 0 ? Math.PI : 0]);
     }
+    // con los asientos del estadio, cada espectador en su asiento (casi la mitad ocupados)
+    const seats = TOWN.sadarSeats;
+    if (seats?.length) { spots.length = 0; for (const st of seats) if (Math.random() < 0.46) spots.push([st[0], st[1] + 0.06, st[2], st[3]]); }
     this.crowdSpots = spots; this.crowdBase = base;
-    const im = crowdMesh(spots, 'futbol', 1.3); this.root.add(im); return im;
+    const im = crowd3d(spots, 'futbol', 1.3, { sit: !!seats?.length }); this.root.add(im); return im;
   }
 
   hud() {
@@ -393,7 +407,7 @@ export class Futbol {
     const w = this.W(this.b.x, this.b.z), y = this.gy(this.b.x, this.b.z) + 1.2;
     this.slow = 1.4; this.goalCam = { t: 2.6, z: Math.sign(this.b.z) };
     if (side === 'home') {
-      const who = this.b.lastP === this.me ? '¡GOOOL! ¡Golazo del número 10!' : '¡GOOOL DE OSASUNA!';
+      const who = this.b.lastP === this.me ? `¡GOOOL! ¡Golazo del número ${this.me.n || 10}!` : '¡GOOOL DE OSASUNA!';
       this.msg(who, 2600); G.sound.fanfare?.(); G.sound.crowd?.(1.6);
       G.particles?.confetti?.({ x: w.x, y, z: w.z }, 160); this.cheer = 2.6; this.me.char.playOnce?.('Celebrate', 1.6);
     } else { this.msg('Gol del equipo visitante. ¡Ánimo, a por el empate!', 2200); G.sound.ui?.('error'); }
@@ -413,7 +427,8 @@ export class Futbol {
     const mw = this.W(this.me.x, this.me.z); this.G.player.pos.set(mw.x, this.gy(this.me.x, this.me.z), mw.z); this.G.player.heading = this.me.h;
     this.cheer = Math.max(0, (this.cheer || 0) - dt);
     this.crowd.cheer?.(this.cheer > 0);
-    this.crowd.position.y = this.cheer > 0 ? Math.abs(Math.sin(this.cheer * 9)) * 0.25 : Math.abs(Math.sin(performance.now() / 300)) * 0.02;
+    // de pie y saltando en los goles; sentados el resto (los cercanos a la jugada se animan más)
+    this.crowd.tick?.(performance.now() / 1000, this.cheer > 0 ? 1 : 0.25, this.W(this.b.x, this.b.z).z, this.G.camera);
   }
   // cámaras: televisión (desde la grada oeste siguiendo el balón), detrás del jugador (mirando a la portería rival) y aérea
   camera(dt, intro = false) {
@@ -463,9 +478,10 @@ export class Futbol {
     this.h?.remove(); clearTimeout(this.mt); clearTimeout(this.st); document.body.classList.remove('futbol');
     if (this.root) {
       G.scene.remove(this.root);
-      this.ball?.geometry.dispose(); this.ball?.material.dispose(); this.crowd?.geometry.dispose(); this.ballTex?.dispose(); this.crowd?.material.dispose(); this.crowd?.dispose?.();   // la lámina del público se guarda para el próximo partido
+      this.ball?.geometry.dispose(); this.ball?.material.dispose(); this.ballTex?.dispose(); this.crowd?.dispose?.();   // la lámina y las figuras del público se guardan para el próximo partido
       for (const p of this.all || []) { p.char?.dispose?.(); p.obj.traverse(o => { if (o.material?.map && o.material.isMeshBasicMaterial) { o.material.map.dispose(); o.material.dispose(); o.geometry.dispose(); } }); }
     }
+    if (this.bf) this.bf.visible = this.bfWas;
     G.mode = 'play'; G.player.frozen = false; G.futbol = null; G.player.obj.visible = true;
     const w = this.W(-16.5, 3); G.player.place(w.x, w.z, -Math.PI / 2); G.follow.cinematic = null; G.follow.snap?.(G.player);
     if (this.dog) { this.G.perro?.release(); this.dog.pos.set(w.x - 1.5, groundHeight(w.x - 1.5, w.z + 1), w.z + 1); this.dog.sync?.(); }

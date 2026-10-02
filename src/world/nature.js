@@ -8,6 +8,7 @@ import { mulberry32, smoothstep, clamp } from '../util/math.js';
 import { fbm } from '../util/noise.js';
 import { TEX, FOLIAGE } from './textures.js';
 import { groundUniforms } from './builder.js';
+import { snowable } from './weather.js';
 
 export const windUniforms = { uTime: { value: 0 }, uWind: { value: 1 } };
 
@@ -371,7 +372,8 @@ export class Nature {
   constructor(scene, quality) {
     this.quality = quality;
     const rnd = mulberry32(99);
-    this.matTree = windMaterial({ map: TEX.foliage, alphaTest: 0.45, side: THREE.DoubleSide });
+    // con nieve, un poco de blanco encima de las copas (los troncos, que miran a los lados, quedan oscuros)
+    this.matTree = snowable(windMaterial({ map: TEX.foliage, alphaTest: 0.45, side: THREE.DoubleSide }), 0.75, 0.2, 0.8);
     this.group = new THREE.Group();
     const geos = {
       beech: [makeBeech(rnd, true), makeBeech(rnd, false)],
@@ -471,7 +473,7 @@ export class Nature {
       const p = pathQuery(x, z); if (p.d < p.w + 1) continue;
       (fi.type === 5 ? vines : vegs).push({ x, z, s: 0.8 + rnd() * 0.4 });
     }
-    const mat = windMaterial();
+    const mat = snowable(windMaterial(), 0.55, 0.25, 0.8);
     const m4 = new THREE.Matrix4();
     for (const [geo, list] of [[vine, vines.slice(0, cap)], [veg, vegs.slice(0, cap)]]) {
       if (!list.length) continue;
@@ -554,8 +556,8 @@ export class Nature {
       if (f > 0.3 && rnd() < 0.5) fernSpots.push({ x, z, s: 0.7 + rnd() * 0.7 });
       else if ((f > 0.1 || (r.edge < 8 && villageMask(x, z) < 0.3)) && rnd() < 0.25) bushSpots.push({ x, z, s: 0.7 + rnd() * 0.9 });
     }
-    const matB = windMaterial({ map: TEX.foliage, alphaTest: 0.45, side: THREE.DoubleSide });
-    const matF = windMaterial({ side: THREE.DoubleSide });
+    const matB = snowable(windMaterial({ map: TEX.foliage, alphaTest: 0.45, side: THREE.DoubleSide }), 0.65, 0.2, 0.8);
+    const matF = snowable(windMaterial({ side: THREE.DoubleSide }), 0.5, 0.25, 0.8);
     for (const [geo, list, mat] of [[g, bushSpots, matB], [fern, fernSpots.slice(0, 5000), matF]]) {
       const im = new THREE.InstancedMesh(geo, mat, list.length);
       const m4 = new THREE.Matrix4();

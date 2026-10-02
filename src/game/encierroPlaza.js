@@ -17,6 +17,7 @@ export function buildPlaza(B, colored, M4, gate, half, rnd) {
   const cz = gate - RO, seats = [], flags = [], arches = [];
   const at = (r, a, y = 0) => [Math.sin(a) * r, y, cz + Math.cos(a) * r];
   const open = (a, r) => Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < (half + 0.6) / r;   // hueco del túnel
+  const toril = (a, r) => Math.abs(Math.atan2(Math.sin(a - Math.PI), Math.cos(a - Math.PI))) < 1.7 / r;   // puerta de los corrales, enfrente
   const N = 96, TOP = 15;
   // muro exterior: ladrillo, zócalo y cornisa de piedra, pilastras cada 4 tramos, ventanas y puertas
   for (let i = 0; i < N; i++) {
@@ -47,13 +48,26 @@ export function buildPlaza(B, colored, M4, gate, half, rnd) {
   // ruedo: barrera roja, callejón y contrabarrera
   for (let i = 0; i < N; i++) {
     const a = (i + 0.5) / N * Math.PI * 2;
-    if (open(a, RA)) continue;
+    if (open(a, RA) || toril(a, RA)) continue;
     const sw = 2 * Math.PI * RA / N + 0.05, [x, , z] = at(RA, a);
     B.wood.push(colored(new THREE.BoxGeometry(sw, 1.4, 0.14), '#9a2020', M4(x, 0.7, z, a)));
     B.wood.push(colored(new THREE.BoxGeometry(sw, 0.1, 0.3), '#5a1a14', M4(x, 1.44, z, a)));
     if (i % 12 === 3) { const [bx, , bz] = at(RA - 0.6, a); B.wood.push(colored(new THREE.BoxGeometry(1.6, 1.4, 0.12), '#9a2020', M4(bx, 0.7, bz, a))); }   // burladero
     const [cx2, , cz2] = at(RA + 1.7, a);
-    B.plaster.push(colored(new THREE.BoxGeometry(2 * Math.PI * (RA + 1.7) / N + 0.05, 2.0, 0.3), '#efe6d2', M4(cx2, 1.0, cz2, a)));
+    if (!toril(a, RA + 1.7)) B.plaster.push(colored(new THREE.BoxGeometry(2 * Math.PI * (RA + 1.7) / N + 0.05, 2.0, 0.3), '#efe6d2', M4(cx2, 1.0, cz2, a)));
+  }
+  // puerta de toriles enfrente del túnel: dos hojas rojas abiertas y el pasillo oscuro hacia los corrales, por donde
+  // entran los toros al acabar el encierro
+  {
+    const tz = cz - RA;
+    for (const sx of [-1, 1]) {
+      B.wood.push(colored(new THREE.BoxGeometry(0.12, 1.8, 1.5), '#9a2020', M4(sx * 2.4, 0.9, tz + 0.75)));   // hojas abiertas hacia el ruedo
+      B.stone.push(colored(new THREE.BoxGeometry(0.6, 2.9, 0.6), '#e8dcc0', M4(sx * 1.75, 1.45, tz - 0.2)));   // jambas
+      B.plaster.push(colored(new THREE.BoxGeometry(0.4, 2.8, 5.2), '#efe6d2', M4(sx * 1.65, 1.4, tz - 2.9)));   // muros del pasillo
+    }
+    B.stone.push(colored(new THREE.BoxGeometry(4.1, 0.5, 0.7), '#e8dcc0', M4(0, 3.1, tz - 0.2)));             // dintel
+    B.plain.push(colored(new THREE.BoxGeometry(3.0, 2.8, 0.2), '#141216', M4(0, 1.4, tz - 5.4)));            // fondo oscuro (los corrales)
+    B.plain.push(colored(new THREE.BoxGeometry(3.4, 0.2, 5.4), '#2a2622', M4(0, 2.85, tz - 2.9)));           // techo del pasillo
   }
   // tendidos: gradas de piedra en anillos; arriba, la galería de arcos y el tejado
   const ROWS = 14, step = (RO - RA - 3.4) / ROWS;
@@ -62,7 +76,7 @@ export function buildPlaza(B, colored, M4, gate, half, rnd) {
     const r = RA + 1.9 + (k + 0.5) * step, y = 2.0 + (k + 1) * 0.55, n = Math.round(2 * Math.PI * r / 2.2);
     ytop = y;
     for (let i = 0; i < n; i++) {
-      const a = (i + 0.5) / n * Math.PI * 2, [x, , z] = at(r, a), y0 = open(a, r) ? 5.3 : 0;
+      const a = (i + 0.5) / n * Math.PI * 2, [x, , z] = at(r, a), y0 = open(a, r) ? 5.3 : toril(a, r) ? 3.0 : 0;
       if (y - y0 < 0.1) continue;
       B.stone.push(colored(new THREE.BoxGeometry(2 * Math.PI * r / n + 0.04, y - y0, step + 0.02), k % 2 ? '#c9c2b4' : '#bdb6a8', M4(x, y0 + (y - y0) / 2, z, a)));
     }
@@ -77,5 +91,5 @@ export function buildPlaza(B, colored, M4, gate, half, rnd) {
     const [rx, , rz] = at(RO - 1.6, a);
     B.wood.push(colored(new THREE.BoxGeometry(2 * Math.PI * (RO - 1.6) / ng + 0.1, 0.35, 3.6), '#8a4a32', M4(rx, ytop + 4.6, rz, a)));   // tejado de la galería
   }
-  return { cz, seats, flags, arches, ytop };
+  return { cz, seats, flags, arches, ytop, toril: { x: 0, z: cz - RA } };
 }
