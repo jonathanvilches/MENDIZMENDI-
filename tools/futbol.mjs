@@ -1,75 +1,27 @@
-// Partido de fútbol en El Sadar: habla con la entrenadora, juega en tiempo real (el «jugador» corre al balón y chuta
-// cuando mira a la portería), saca capturas del estadio por dentro y por fuera y comprueba que vuelve al juego sin errores.
-// Uso: node tools/futbol.mjs [carpeta] [url base]
+// Fútbol sala en el navegador: abre la página de prueba (lab/futbol-demo.html), juega con la IA por el jugador y saca
+// capturas en escritorio, móvil horizontal y móvil vertical. Comprueba que no hay errores en la consola.
+// Uso: node tools/futbol.mjs [personajes: meshy|simple] [carpeta]
 import { chromium } from 'playwright-core';
 import { mkdirSync } from 'fs';
-const [,, out = 'entrega/futbol', base = 'http://127.0.0.1:5173/'] = process.argv;
-mkdirSync(out, { recursive: true });
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
-const p = await browser.newPage({ viewport: { width: 1100, height: 620 } });
-const errs = [];
-p.on('pageerror', e => errs.push('PAGEERROR ' + e.message + ' ' + (e.stack || '').split('\n')[1]));
-p.on('console', m => { if (m.type() === 'error') errs.push('consola ' + m.text().slice(0, 200)); });
-await p.addInitScript(() => { try { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); } catch (e) { } });
-await p.goto(`${base}?town=pamplona&q=mid`, { timeout: 300000 });
-await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 600000 });
-let k = 0; const shot = async (n) => { await p.waitForTimeout(1200); await p.screenshot({ path: `${out}/${String(k++).padStart(2, '0')}-${n}.png`, timeout: 180000 }); console.log('foto', n); };
-const cam = (o) => p.evaluate((o) => { const G = window.__game, T = window.__THREE, l = G.sadar; const g0 = window.__hf.groundHeight(l.x, l.z), pos = new T.Vector3(l.x + o.x, g0 + o.y, l.z + o.z), lk = new T.Vector3(l.x + o.lx, g0 + o.ly, l.z + o.lz); G.follow.cinematic = { pos, look: lk, t: 0, lookCur: lk.clone() }; G.camera.position.copy(pos); G.camera.lookAt(lk); }, o);
-// fuera: la explanada de la entrada oeste
-await p.evaluate(() => { const G = window.__game, l = G.sadar; G.player.place(l.x - 60, l.z, Math.PI / 2); });
-await cam({ x: -78, y: 9, z: 26, lx: -46, ly: 4, lz: -4 }); await shot('fuera-entrada');
-await p.evaluate(() => { window.__game.follow.cinematic = null; });
-// hablar con la entrenadora
-await p.evaluate(() => { const G = window.__game, a = G.coach; G.player.place(a.pos.x + 1.5, a.pos.z, -Math.PI / 2); G.safeInteract({ kind: 'npc', a, x: a.pos.x, z: a.pos.z }); });
-await p.waitForTimeout(1500); await shot('entrenadora');
-for (let i = 0; i < 8; i++) { const open = await p.evaluate(() => window.__game.ui.dialogOpen); if (!open) break; await p.keyboard.press('e'); await p.waitForTimeout(500); await p.keyboard.press('e'); await p.waitForTimeout(400); }
-await p.waitForFunction(() => window.__game.mode === 'futbol', null, { timeout: 60000 });
-await p.waitForTimeout(2500); await shot('saque');
-// el perro, sentado junto a la banda
-console.log('perro', await p.evaluate(() => { const G = window.__game, D = G.perro?.dog, F = G.futbol; if (!D) return 'sin perro'; const c = G.camera, q = D.pos; F.__cam = F.cam; F.cam = () => { c.position.set(q.x + 2.4, q.y + 1.3, q.z + 1.8); c.lookAt(q.x, q.y + 0.45, q.z); }; F.cam(); return JSON.stringify({ sit: D.sit, vis: D.obj.visible }); }));
-await p.waitForTimeout(2500); await shot('perro-sentado');
-await p.evaluate(() => { const F = window.__game.futbol; F.cam = F.__cam; });
-// juego automático: el jugador va al balón; si está cerca y mira a la portería, chuta
-const play = (secs) => p.evaluate((secs) => {
-  // tiempo simulado: el jugador va al balón; si lo lleva, hacia la portería, y chuta con carga cerca del área
-  const G = window.__game, F = G.futbol;
-  for (let i = 0; i < secs * 30 && G.futbol && !F.done; i++) {
-    const me = F.me, b = F.b, own = b.owner === me;
-    const [tx, tz] = own ? [0 - me.x, 36 - me.z] : [b.x - me.x, b.z - me.z], L = Math.hypot(tx, tz) || 1;
-    me.vx = tx / L * 5.5; me.vz = tz / L * 5.5; me.h = Math.atan2(tx, tz);
-    if (own && me.z > 20 && F.charge < 0) F.shootDown = true;
-    if (F.charge > 0.55) F.shootUp = true;
-    F.update(1 / 30);
-  }
-  return JSON.stringify({ score: F.score, t: Math.round(F.t), done: F.done, cam: F.camMode });
-}, secs);
-await p.evaluate(() => { const F = window.__game.futbol; F.intro = 0; F.pause = 0; });
-console.log('cambio', await p.evaluate(() => { const F = window.__game.futbol, n0 = F.me.n; F.swapQ = true; F.update(1 / 30); return JSON.stringify({ antes: n0, ahora: F.me.n, homeField: F.all.filter(q => q.side === 'home' && q.role === 'field').length }); }));
-// tiros a puerta contra el portero rival: cuántos para, bloca o despeja
-console.log('portero', await p.evaluate(() => { const F = window.__game.futbol, b = F.b, K = F.all.find(q => q.side === 'away' && q.role === 'keeper'); let paradas = 0, goles = 0;
-  for (let k = 0; k < 10; k++) { Object.assign(b, { x: (Math.random() - 0.5) * 6, z: 22, y: 0.3, vx: (Math.random() - 0.5) * 4, vz: 20, vy: 1 + Math.random() * 2.5, owner: null, last: 'home' }); K.x = 0; K.z = 35.2; K.tried = false; K.dive = 0;
-    const s0 = F.score.home; let saved = false; for (let i = 0; i < 40; i++) { F.update(1 / 30); if (b.owner === K || (b.vz < 0 && b.last === 'away')) { saved = true; break; } if (F.score.home > s0 || F.pause > 0) break; }
-    if (saved) paradas++; else if (F.score.home > s0) goles++; F.pause = 0; F.nextKick = null; }
-  return JSON.stringify({ paradas, goles }); }));
-console.log('juego 1', await play(8)); await shot('partido-tv');
-await p.evaluate(() => window.__game.futbol.nextCam()); await p.waitForTimeout(2500); await shot('partido-detras');
-await p.evaluate(() => window.__game.futbol.nextCam()); await p.waitForTimeout(2500); await shot('partido-aerea');
-await p.evaluate(() => window.__game.futbol.nextCam());
-console.log('juego 1b', await play(30));
-await cam({ x: -14, y: 9, z: 20, lx: 0, ly: 1, lz: 34 }); await shot('porteria');
-await p.evaluate(() => { window.__game.follow.cinematic = null; });
-await cam({ x: 18, y: 14, z: -30, lx: -30, ly: 6, lz: 10 }); await shot('gradas');
-await p.evaluate(() => { window.__game.follow.cinematic = null; });
-// gol forzado para ver la celebración
-await p.evaluate(() => { const F = window.__game.futbol; Object.assign(F.b, { x: 0, y: 0.5, z: 34, vx: 0, vy: 0, vz: 12, owner: null, last: 'home', lastP: F.me }); F.team.forEach(q => { if (q.role === 'keeper') q.save = 0; }); });
-await p.waitForTimeout(700); await shot('gol');
-console.log('juego 2', await play(40));
-// acabar: tiempo a cero
-await p.evaluate(() => { const F = window.__game.futbol; if (F) F.t = 0.05; });
-await p.waitForFunction(() => document.querySelector('.mg-overlay button') || window.__game.mode === 'play', null, { timeout: 60000 }).catch(() => {});
-await p.waitForTimeout(1000); await shot('final');
-for (let i = 0; i < 10; i++) { const b = await p.evaluate(() => { const b = document.querySelector('.mg-overlay:not(.out) button'); if (b) { b.click(); return true; } if (window.__game.ui.dialogOpen) { window.__game.ui._dlgCleanup?.(); return true; } return false; }); await p.waitForTimeout(1200); if (!b && await p.evaluate(() => window.__game.mode === 'play')) break; }
-await p.waitForTimeout(1500); await shot('vuelta');
-console.log('estado', await p.evaluate(() => JSON.stringify({ mode: window.__game.mode, frozen: window.__game.player.frozen, futbol: !!window.__game.futbol, hud: !!document.querySelector('.fut-hud'), clase: document.body.classList.contains('futbol'), errores: window.__errors || [] })));
-console.log('errores', JSON.stringify(errs));
-await browser.close();
+const [,, chars = 'meshy', out = '/tmp/claude-0/futbol'] = process.argv; mkdirSync(out, { recursive: true });
+const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const views = [['escritorio', 1280, 720, false], ['movil-horizontal', 844, 390, true], ['movil-vertical', 390, 844, true]];
+for (const [name, w, h, touch] of views) {
+  const ctx = await b.newContext({ viewport: { width: w, height: h }, hasTouch: touch, isMobile: touch, deviceScaleFactor: 1 });
+  const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
+  await p.goto(`http://127.0.0.1:5173/lab/futbol-demo.html?go=match&chars=${chars}&notuto&auto&quality=${touch ? 'low' : 'high'}`, { timeout: 300000 });
+  await p.waitForFunction(() => window.__futbol && window.__futbol.game && window.__futbol.hud, null, { timeout: 600000 });
+  // avanza el partido a mano (el navegador de pruebas dibuja muy despacio)
+  const adv = (s) => p.evaluate((s) => { const m = window.__futbol; for (let i = 0; i < s * 30; i++) m.update(1 / 30); return { phase: m.game.phase, score: m.game.score.join('-'), clock: m.game.clock.toFixed(1) }; }, s);
+  let st = await adv(4); await p.waitForTimeout(2500);
+  await p.screenshot({ path: `${out}/${name}-1.png` });
+  st = await adv(12); await p.waitForTimeout(2500);
+  await p.screenshot({ path: `${out}/${name}-2.png` });
+  // cámara detrás del jugador
+  await p.evaluate(() => { window.__futbol.camMode = 'detras'; }); st = await adv(3); await p.waitForTimeout(2500);
+  await p.screenshot({ path: `${out}/${name}-3.png` });
+  const info = await p.evaluate(() => { const r = window.__futbolRenderer?.info?.render; return { calls: r?.calls, tris: r?.triangles }; });
+  console.log(name, JSON.stringify(st), JSON.stringify(info), errs.length ? 'ERRORES ' + errs.slice(0, 4).join(' | ') : 'sin errores');
+  await ctx.close();
+}
+await b.close();

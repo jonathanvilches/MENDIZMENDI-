@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Fútbol sala · prueba</title><link rel="icon" href="data:,">
+<style>
+html,body{margin:0;height:100%;background:#1c0b3a;font-family:Nunito,system-ui,sans-serif;color:#fff}
+main{max-width:640px;margin:0 auto;padding:24px 16px}
+h1{font-size:28px;margin:0 0 6px}p{color:#d8ccf0;margin:0 0 16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+button{border:0;border-radius:14px;padding:14px;font:800 16px Nunito,sans-serif;cursor:pointer;background:#ffd700;color:#2a1a00;min-height:52px}
+button.alt{background:#56c8f0;color:#062a3a}
+label{display:inline-flex;gap:6px;align-items:center;margin:0 12px 10px 0;font-weight:700}
+select{font:700 15px Nunito,sans-serif;border-radius:8px;padding:4px}
+pre{background:rgba(0,0,0,.35);padding:10px;border-radius:10px;white-space:pre-wrap;font-size:13px}
+</style></head>
+<body><main>
+<h1>Fútbol sala — página de prueba</h1>
+<p>Prueba cada modo del módulo <code>src/futbol</code> sin cargar un pueblo.</p>
+<div>
+  <label>Dificultad <select id="lvl"><option value="facil">Fácil</option><option value="normal" selected>Normal</option><option value="dificil">Difícil</option></select></label>
+  <label>Parte <select id="dur"><option>2</option><option selected>3</option><option>4</option><option>5</option></select> min</label>
+  <label>Personajes <select id="chars"><option value="meshy">Del juego</option><option value="simple">Figura por defecto</option></select></label>
+  <label><input type="checkbox" id="auto"> La IA juega por mí</label>
+  <label>Velocidad <select id="ts"><option>1</option><option>2</option><option>6</option></select></label>
+</div>
+<div class="grid">
+  <button data-m="match">Partido</button><button data-m="cup">Eliminatoria</button><button data-m="pen">Penaltis</button>
+  <button class="alt" data-m="conos">Reto: conos</button><button class="alt" data-m="dianas">Reto: dianas</button><button class="alt" data-m="pases">Reto: pases</button>
+  <button data-m="menu">Menú del juego</button><button class="alt" data-m="tuto">Repetir el tutorial</button>
+</div>
+<h3>Último resultado</h3><pre id="out">—</pre>
+</main>
+<script type="module">
+import { FutbolSystem } from '../src/futbol/index.js';
+import { makeCharacter } from '../src/game/futbol.js';
+import { crowd3d } from '../src/actors/crowd3d.js';
+const q = new URLSearchParams(location.search), $ = (s) => document.querySelector(s);
+const quality = q.get('quality') || (matchMedia('(pointer:coarse)').matches ? 'mid' : 'high');
+function setup() {
+  FutbolSystem.init({ quality, makeCharacter: $('#chars').value === 'meshy' ? makeCharacter : null, crowd: q.has('nocrowd') ? null : (spots) => crowd3d(spots, 'futbol', 1.3, { sit: true }) });
+}
+async function go(m) {
+  setup(); const o = { dificultad: $('#lvl').value, duracion: +$('#dur').value, autoplay: $('#auto').checked, timeScale: +$('#ts').value };
+  let r;
+  if (m === 'tuto') { FutbolSystem.career.set('tutorial', false); m = 'match'; }
+  if (m === 'match' || m === 'cup') r = await FutbolSystem.startMatch({ ...o, modo: m === 'cup' ? 'eliminatoria' : 'amistoso' });
+  else if (m === 'pen') r = await FutbolSystem.startPenaltis({ dificultad: o.dificultad, autoplay: o.autoplay });
+  else if (m === 'menu') r = await FutbolSystem.openMenu({});
+  else r = await FutbolSystem.startReto({ reto: m });
+  $('#out').textContent = JSON.stringify(r, null, 1); window.__result = r;
+}
+document.querySelectorAll('[data-m]').forEach(b => b.onclick = () => go(b.dataset.m));
+// pruebas automáticas: ?go=match&auto&ts=6&level=normal&dur=2&chars=simple
+if (q.get('chars')) $('#chars').value = q.get('chars');
+if (q.get('level')) $('#lvl').value = q.get('level');
+if (q.get('dur')) $('#dur').value = q.get('dur');
+if (q.has('auto')) $('#auto').checked = true;
+if (q.get('ts')) { const s = $('#ts'); if (![...s.options].some(o => o.value === q.get('ts'))) s.add(new Option(q.get('ts'))); s.value = q.get('ts'); }
+if (q.has('notuto')) FutbolSystem.career.set('tutorial', true);
+window.__ready = true;
+if (q.get('go')) go(q.get('go'));
+</script></body></html>

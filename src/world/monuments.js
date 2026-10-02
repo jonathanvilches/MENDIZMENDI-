@@ -2,8 +2,9 @@
 import * as THREE from 'three';
 import { box, gable, archRing, archPanel, colored, M, MM } from './builder.js';
 import { roofHip } from './houses.js';
-import { terrainHeight, deckY } from './heightfield.js';
+import { terrainHeight, deckY, addPlatform } from './heightfield.js';
 import { addBox, addCircle } from './colliders.js';
+import { PLACES } from './layout.js';
 
 const toWorld = (x, z, ry, lx, lz) => ({ x: x + lx * Math.cos(ry) + lz * Math.sin(ry), z: z - lx * Math.sin(ry) + lz * Math.cos(ry) });
 function boxCol(x, z, ry, lx, lz, w, d, meta) { const p = toWorld(x, z, ry, lx, lz); return addBox(p.x, p.z, w, d, ry, meta); }
@@ -419,11 +420,39 @@ export function landmark(B, lm, ctx) {
     }
     case 'pass':
     case 'lookout': {
-      B.add('wood', box(6, 0.15, 4), MM(T, M(0, 0.3, 0)));
-      B.add('wood', box(6, 0.1, 0.1), MM(T, M(0, 1.5, -1.9)));
-      for (const s of [-1, 1]) B.add('woodDark', new THREE.CylinderGeometry(0.08, 0.08, 1.4, 6), MM(T, M(s * 2.9, 0.9, -1.9)));
-      B.add('iron', new THREE.CylinderGeometry(0.05, 0.05, 1.2, 6), MM(T, M(1.8, 0.9, -1.3))); B.add('iron', box(0.35, 0.16, 0.4), MM(T, M(1.8, 1.55, -1.3)));
-      addBox(x, z - 2.1, 6, 0.3, 0); return { x, z: z + 2 };
+      // tarima de madera a nivel (sobre el punto más alto de su planta, con patas hasta el suelo): es suelo de verdad
+      // (plataforma) y su barandilla de tres lados no se atraviesa; se entra por delante
+      // de cara al pueblo se entra; la barandilla del fondo mira al paisaje
+      const ry = lm.ry ?? Math.atan2(PLACES.plaza.x - x, PLACES.plaza.z - z), c = Math.cos(ry), sn = Math.sin(ry), W = 6, D = 4;
+      const wp = (lx, lz) => [x + lx * c + lz * sn, z - lx * sn + lz * c];
+      let top = -Infinity, low = Infinity;
+      for (const [lx, lz] of [[-W / 2, -D / 2], [W / 2, -D / 2], [W / 2, D / 2], [-W / 2, D / 2], [0, 0]]) { const [px, pz] = wp(lx, lz), h = terrainHeight(px, pz); top = Math.max(top, h); low = Math.min(low, h); }
+      const deck = top - y + 0.32;                                 // altura de la tarima sobre el suelo del centro
+      B.add('wood', box(W, 0.16, D), MM(T, M(0, deck - 0.08, 0)));
+      for (let i = 0; i < 7; i++) B.add('woodDark', box(0.04, 0.02, D), MM(T, M(-W / 2 + 0.5 + i * (W - 1) / 6, deck + 0.005, 0)));   // juntas de las tablas
+      for (const [lx, lz] of [[-W / 2 + 0.2, -D / 2 + 0.2], [W / 2 - 0.2, -D / 2 + 0.2], [W / 2 - 0.2, D / 2 - 0.2], [-W / 2 + 0.2, D / 2 - 0.2]]) {
+        const [px, pz] = wp(lx, lz), hl = deck + y - terrainHeight(px, pz) + 0.4;
+        B.add('woodDark', box(0.18, hl, 0.18), MM(T, M(lx, deck - hl / 2, lz)));   // patas hasta el terreno
+      }
+      // barandilla por los cuatro lados (pasamanos, travesaño y postes) con el hueco de la rampa delante
+      const GAP = 0.85, fw = W / 2 - GAP;
+      const rails = [[0, -D / 2 + 0.05, W, 0.1], [-W / 2 + 0.05, 0, 0.1, D], [W / 2 - 0.05, 0, 0.1, D], [-GAP - fw / 2, D / 2 - 0.05, fw, 0.1], [GAP + fw / 2, D / 2 - 0.05, fw, 0.1]];
+      for (const [lx, lz, w, d] of rails) {
+        B.add('wood', box(w, 0.1, d), MM(T, M(lx, deck + 1.05, lz))); B.add('wood', box(w, 0.07, d), MM(T, M(lx, deck + 0.55, lz)));
+        const [cx2, cz2] = wp(lx, lz); addBox(cx2, cz2, Math.max(w, 0.3), Math.max(d, 0.3), ry);
+      }
+      for (const [lx, lz] of [[-W / 2 + 0.05, -D / 2 + 0.05], [W / 2 - 0.05, -D / 2 + 0.05], [-W / 2 + 0.05, D / 2 - 0.05], [W / 2 - 0.05, D / 2 - 0.05], [-1, -D / 2 + 0.05], [1, -D / 2 + 0.05], [-GAP, D / 2 - 0.05], [GAP, D / 2 - 0.05]])
+        B.add('woodDark', new THREE.CylinderGeometry(0.06, 0.06, 1.1, 6), MM(T, M(lx, deck + 0.55, lz)));
+      B.add('iron', new THREE.CylinderGeometry(0.05, 0.05, 1.2, 6), MM(T, M(1.8, deck + 0.6, -1.3))); B.add('iron', box(0.35, 0.16, 0.4), MM(T, M(1.8, deck + 1.25, -1.3)));   // catalejo
+      addPlatform(x, z, ry, -W / 2, W / 2, -D / 2, D / 2, y + deck);
+      // rampa de tablas con listones hasta el suelo de delante (pendiente suave: se sube andando)
+      const [fx, fz] = wp(0, D / 2 + 1), rise = Math.max(0.05, y + deck - terrainHeight(fx, fz)), L = Math.max(1.4, rise / 0.45), RW = 2 * GAP - 0.1;
+      const ang = Math.atan2(rise, L), len = Math.hypot(L, rise);
+      B.add('wood', box(RW, 0.1, len), MM(T, M(0, deck - rise / 2 - 0.05, D / 2 + L / 2, -ang, 0, 0)));
+      for (let k = 0.3; k < len - 0.1; k += 0.4) { const f = k / len; B.add('woodDark', box(RW, 0.04, 0.06), MM(T, M(0, deck - rise * f + 0.02, D / 2 + L * f, -ang, 0, 0))); }
+      for (const sx of [-1, 1]) { const ph = rise + 0.2; if (ph > 0.35) B.add('woodDark', box(0.12, ph, 0.12), MM(T, M(sx * (RW / 2 - 0.06), deck - ph / 2, D / 2 + 0.1))); }
+      addPlatform(x, z, ry, -RW / 2, RW / 2, D / 2 - 0.01, D / 2 + L, y + deck, y + deck - rise);
+      const [ex, ez] = wp(0, D / 2 + L + 1.2); return { x: ex, z: ez };
     }
     case 'tunnel': {
       B.add('stoneDark', box(20, 10, 12, 3), MM(T, M(0, 4, -6)));

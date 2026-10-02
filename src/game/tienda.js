@@ -92,7 +92,7 @@ export class Tienda {
               <div class="shop-purse">${iconSVG('medal', 26)}<b>${P.coins}</b><small>txanpon</small></div></header>
             <nav><button data-tab="star" class="${tab === 'star' ? 'on' : ''}">Producto estrella</button><button data-tab="buy" class="${tab === 'buy' ? 'on' : ''}">Comprar</button><button data-tab="trade" class="${tab === 'trade' ? 'on' : ''}">Trueque</button></nav>
             <section>${tab === 'star' ? `<div class="shop-star">${iconSVG(F?.icon || 'basket', 120)}<div><small>Producto estrella de la comarca · ${esc(S.eu)}</small><h3>${esc(S.name)}</h3><p>${esc(S.text)}</p><button class="btn primary" data-buy="${S.food}">${iconSVG('medal', 20)} Comprar por ${STOCK[S.food] || 5}</button></div></div>`
-              : tab === 'buy' ? `<div class="shop-grid">${Object.entries(stock).filter(([k]) => FOOD[k]).map(([k, p]) => `<button class="shop-item" data-buy="${k}" ${P.coins < p ? 'disabled' : ''}>${iconSVG(FOOD[k].icon, 46)}<b>${esc(FOOD[k].name)}</b><span>+${FOOD[k].e} energía</span><em>${iconSVG('medal', 16)} ${p}</em></button>`).join('')}</div>`
+              : tab === 'buy' ? `${P.coins < Math.min(...Object.values(stock)) ? `<div class="shop-broke"><p>No te llega para nada. En el pueblo siempre hay alguien que necesita ayuda con su oficio, y paga en txanponak.</p><button class="btn primary" data-job>${iconSVG('hand', 20)} ¿Dónde puedo trabajar?</button></div>` : ''}<div class="shop-grid">${Object.entries(stock).filter(([k]) => FOOD[k]).map(([k, p]) => `<button class="shop-item" data-buy="${k}" ${P.coins < p ? 'disabled' : ''}>${iconSVG(FOOD[k].icon, 46)}<b>${esc(FOOD[k].name)}</b><span>+${FOOD[k].e} energía</span><em>${iconSVG('medal', 16)} ${p}</em></button>`).join('')}</div>`
               : `<p class="shop-note">Trae lo que consigas ayudando en el campo y con el ganado, y cámbialo por comida.</p><div class="shop-grid">${goods().length ? goods().map(([k, n]) => `<button class="shop-item" data-sell="${k}">${iconSVG(GOODS[k].icon, 46)}<b>${esc(GOODS[k].name)} ×${n}</b><span>${esc(GOODS[k].from)}</span><em>vale ${GOODS[k].v}</em></button>`).join('') : `<p class="shop-note">No llevas nada para cambiar. Ayuda a la ganadera, al pastor o en la huerta: te darán leche, lana, huevos o patatas.</p>`}</div>`}</section>
             <footer><button class="btn" data-close>${iconSVG('back', 20)} Salir de la tienda</button></footer>
           </div></div>`;
@@ -101,9 +101,10 @@ export class Tienda {
       o.addEventListener('click', (e) => {
         const b = e.target.closest('button'); if (!b) return;
         if (b.dataset.tab) { tab = b.dataset.tab; said = tab === 'trade' ? '¿Qué traes? Aquí todo se aprovecha: con la leche hacemos cuajada y queso, con la lana, abarcas y jerseys.' : tab === 'buy' ? 'Todo es de aquí, de los vecinos del valle.' : said; g.sound?.ui?.('click'); paint(); return; }
+        if (b.dataset.job != null && g.jornales) { said = g.jornales.suggest(); g.sound?.ui?.('click'); paint(); setTimeout(() => o.querySelector('[data-close]')?.click(), 2600); return; }
         if (b.dataset.buy) {
           const k = b.dataset.buy, p = STOCK[k] || 5;
-          if (P.coins < p) { said = 'Te faltan txanponak. Ayuda en el pueblo, o haz un trueque con lo que traigas del campo.'; g.sound?.ui?.('error'); paint(); return; }
+          if (P.coins < p) { said = 'Te faltan txanponak. Ayuda a algún vecino en su oficio, o haz un trueque con lo que traigas del campo.'; g.sound?.ui?.('error'); paint(); return; }
           P.coins -= p; g.mochila.addFood(k, 1); saveProfile(); said = `¡Que aproveche! ${FOOD[k].fact}`; g.sound?.ui?.('coin'); paint(); return;
         }
         if (b.dataset.sell) {

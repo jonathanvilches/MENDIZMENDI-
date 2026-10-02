@@ -52,7 +52,7 @@ export class Mochila {
       player.tired = tired; document.getElementById('cRun')?.classList.toggle('tired', tired);
       if (tired) this.g.ui.toast('¡Sin energía! Corres más despacio. Abre la mochila: bebe agua o come algo', 'energy', 4200);
     }
-    if (P.energy < 25 && this.warned < 1) { this.warned = 1; const empty = !Object.values(P.bag.food || {}).some(n => n > 0); this.g.ui.toast(empty && this.g.tienda ? `Tienes hambre y la mochila está vacía. ${this.g.tienda.hint()}` : 'Te estás cansando: en la mochila llevas agua y comida', empty ? 'basket' : 'backpack', empty ? 6000 : 3600); }
+    if (P.energy < 25 && this.warned < 1) { this.warned = 1; const empty = !Object.values(P.bag.food || {}).some(n => n > 0); const broke = (P.coins ?? 12) < 2 && !Object.values(P.bag?.goods || {}).some(n => n > 0); this.g.ui.toast(empty && broke && this.g.jornales ? `Tienes hambre y no te queda dinero. ${this.g.jornales.suggest()}` : empty && this.g.tienda ? `Tienes hambre y la mochila está vacía. ${this.g.tienda.hint()}` : 'Te estás cansando: en la mochila llevas agua y comida', empty ? 'basket' : 'backpack', empty ? 6000 : 3600); }
     if (P.energy > 40) this.warned = 0;
     this.t = (this.t || 0) + dt; if (this.t > 0.5) { this.t = 0; this.paint(); }
     if ((this.save = (this.save || 0) + dt) > 10) { this.save = 0; saveProfile(); }

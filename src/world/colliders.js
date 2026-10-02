@@ -24,6 +24,11 @@ function insert(c, x, z, r) {
     const k = key(i, j); let l = grid.get(k); if (!l) grid.set(k, l = []); l.push(c);
   }
 }
+// cuerpos que se mueven (vecinos y animales): fuera de la rejilla fija (se quedarían en la celda donde nacieron y lejos
+// de ella se les podía atravesar); se miran todos en cada choque, son pocos
+export const MOVERS = [];
+export function addMover(x, z, r, meta = {}) { const c = { type: 'circle', x, z, r, mover: true, ...meta }; MOVERS.push(c); return c; }
+export function removeMover(c) { const i = MOVERS.indexOf(c); if (i >= 0) MOVERS.splice(i, 1); }
 export function nearby(x, z, r) {
   const out = new Set();
   const i0 = Math.floor((x - r) / CELL), i1 = Math.floor((x + r) / CELL), j0 = Math.floor((z - r) / CELL), j1 = Math.floor((z + r) / CELL);
@@ -31,11 +36,19 @@ export function nearby(x, z, r) {
   return out;
 }
 
+const _near = [];
+function moversNear(x, z, r) { _near.length = 0; for (const c of MOVERS) if (Math.abs(c.x - x) < c.r + r + 0.5 && Math.abs(c.z - z) < c.r + r + 0.5) _near.push(c); return _near.slice(); }
 // Empuja un círculo (x,z,r) fuera de los obstáculos. Devuelve {x,z,hit}
 export function resolve(x, z, r, ignore) {
   let hit = false;
   for (let it = 0; it < 3; it++) {
     let moved = false;
+    for (const c of moversNear(x, z, r)) {
+      if (c === ignore || c.ghost) continue;
+      const who = c.actor || c.animal; if (who && (!who.obj?.parent || who.visible === false)) continue;   // fuera de la escena u oculto: no estorba
+      const dx = x - c.x, dz = z - c.z, d = Math.hypot(dx, dz), m = c.r + r;
+      if (d < m && d > 1e-5) { x = c.x + dx / d * m; z = c.z + dz / d * m; hit = moved = true; }
+    }
     for (const c of nearby(x, z, r + 2)) {
       if (c === ignore || c.ghost) continue;
       if (c.type === 'circle') {
@@ -95,4 +108,4 @@ export function segmentBlocked(ax, az, bx, bz) {
   return false;
 }
 
-export function resetColliders() { COLLIDERS.length = 0; grid.clear(); }
+export function resetColliders() { COLLIDERS.length = 0; grid.clear(); MOVERS.length = 0; }
