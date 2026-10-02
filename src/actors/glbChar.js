@@ -5,6 +5,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';   // modelos de Meshy comprimidos
 // personajes KayKit Adventurers 2.0 (CC0, Kay Lousberg, www.kaylousberg.com): modelo y animaciones del rig común
 const KK = {};
 for (const [p, u] of Object.entries(import.meta.glob('../assets/kaykit/*.glb', { eager: true, query: '?url', import: 'default' }))) KK[p.split('/').pop().replace('.glb', '')] = u;
@@ -114,7 +115,7 @@ export async function loadMeshy(name, height = 1.45) {
 /** Carga (una sola vez por url) el GLB de un personaje. */
 export function loadChar(url) {
   if (!cache.has(url)) {
-    loader = loader || new GLTFLoader();
+    if (!loader) { loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder); }
     cache.set(url, loader.loadAsync(url));
   }
   return cache.get(url);
