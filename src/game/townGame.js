@@ -50,6 +50,8 @@ import { bird } from '../actors/beasts.js';
 import { Fronton, findFrontonSpot, frontonWall } from './fronton.js';
 import { makeClue, makeAura } from './legendFx.js';
 import { Chase } from './chase.js';
+import { FloraSpots } from './floraSpots.js';
+import { showFicha } from '../ui/ficha.js';
 
 const CROP = {
   uva: ['racimos de uva', 'uva'], olivo: ['aceitunas', 'olivo'], piquillo: ['pimientos del piquillo', 'piquillo'], esparrago: ['manojos de espárragos', 'esparrago'],
@@ -298,6 +300,8 @@ export class TownGame {
     this.perro = new Perro(this);
     // el campo trabajando: tractores, cosechadoras y pacas en las parcelas
     this.agro = buildAgro(this.scene, d, this.rnd);
+    // plantas reales de la comarca para identificar (herbario)
+    if (!/noflora/.test(location.search)) try { this.flora = new FloraSpots(this); } catch (e) { console.warn('flora', e); }
     this.spawnSabios();
     this.spawnShepherds();
     // jornales: ayudar en los oficios del pueblo para ganar txanponak (esquilar, ordeñar, fragua, vendimia…); después
@@ -445,6 +449,7 @@ export class TownGame {
     for (const g of this.gates) if (g.obj.visible) g.obj.userData.torus.rotation.z += dt * (g.next ? 2 : 0.3);
     this.agro?.update(dt, P, this.particles);
     if (this.mode === 'play') this.mochila?.update(dt, P);
+    this.flora?.update(dt, P.pos);
     if (this.mode !== 'futbol') this.perro?.update(dt);
     if (!this.dogHi && this.mode === 'play' && !this.ui.busy && this.elapsed > 5) { this.dogHi = true; this.perro?.hello(); }
     this.gearProps?.night(this.isNight() ? 1 : 0);
@@ -565,6 +570,7 @@ export class TownGame {
     if (TOWN.fountain) list.push({ kind: 'fountain', x: TOWN.fountain.x, z: TOWN.fountain.z, r: 3.8, label: 'Beber agua' });
     if (this.tienda) list.push(this.tienda.interactable());
     if (this.fronton) list.push({ kind: 'fronton', x: this.fronton.entry.x, z: this.fronton.entry.z, r: 3, label: 'Jugar a pelota' });
+    this.flora?.interactables(list);
     return list;
   }
   updateInteraction() {
@@ -612,6 +618,7 @@ export class TownGame {
     if (it.kind === 'walker' && it.a.stall) return this.buyStall();
     if (it.kind === 'agro') return this.showAgro(it.o);
     if (it.kind === 'pet') return this.petAnimal(it.a);
+    if (it.kind === 'flora') return this.flora.interact(it.s);
     if (it.kind === 'bell') return this.ringBell();
     if (it.kind === 'seat') return this.restBench(it.b);
     if (it.kind === 'walker') { it.a.say(2.5); it.a.wave = 1.2; const L = WALKER_LINES[this.walkers.indexOf(it.a) % WALKER_LINES.length]; return this.say(it.a, L); }
@@ -953,7 +960,8 @@ export class TownGame {
     if (I.sound) this.sound[I.sound]?.(a.pos);
     this.particles.emit({ x: a.pos.x, y: a.pos.y + 1.3, z: a.pos.z }, { n: 8, color: ['#ff6b8a', '#ffd1dc'], speed: 0.8, size: 0.22, life: 1 });
     this.mochila?.gain(3);
-    if (addCard('granja:' + a.kind)) { this.player.frozen = true; try { await infoCard(this.ui, { icon: I.icon, kicker: 'Animales de la granja', title: I.title, text: I.fact, badge: 'Nueva carta', button: '¡Qué suave!' }); } finally { this.player.frozen = false; } }
+    const fid = { sheep: 'oveja', cow: 'vaca', pottoka: 'pottoka', goat: 'cabra', pig: 'cerdo' }[a.kind];
+    if (addCard('granja:' + a.kind)) { if (fid) addCard('fauna:' + fid); this.player.frozen = true; try { if (fid) await showFicha('fauna:' + fid, { ui: this.ui, kicker: 'Animales de la granja · ficha de fauna', badge: 'Nueva carta', button: '¡Qué suave!' }); else await infoCard(this.ui, { icon: I.icon, kicker: 'Animales de la granja', title: I.title, text: I.fact, badge: 'Nueva carta', button: '¡Qué suave!' }); } finally { this.player.frozen = false; } }
     else this.ui.toast(`A ${I.name} le gusta que la acaricies`, I.icon, 1800);
   }
   async ringBell() {
@@ -1206,7 +1214,7 @@ export class TownGame {
     const F = FAUNA[w.id], n = M.wild.filter(x => x.found).length;
     const isNew = addCard('fauna:' + w.id);
     this.player.frozen = true;
-    try { await infoCard(this.ui, { icon: F.icon, kicker: `Animal del monte · ${n} de ${M.wild.length}`, title: `${F.name} · ${F.eu}`, text: `${F.look} ${F.fact}`, badge: isNew ? 'Nueva carta' : '', button: 'Seguir subiendo' }); await this.mochila.give('cuaderno'); }
+    try { await showFicha('fauna:' + w.id, { ui: this.ui, kicker: `Animal del monte · ${n} de ${M.wild.length}`, badge: isNew ? 'Nueva carta' : '', button: 'Seguir subiendo' }); await this.mochila.give('cuaderno'); }
     finally { this.player.frozen = false; }
   }
   updateSummit(M) {
@@ -1805,7 +1813,8 @@ export class TownGame {
     if (!first && !M) { if (this.mode === 'bino') this.ui.binoNote(`${F.name} anotado`); else this.ui.toast(`${F.name} anotado`, 'binoculars'); return; }
     this.sound.magic();
     const done = M && M.count >= M.need;
-    await infoCard(this.ui, { icon: id, kicker: `Cuaderno de campo · ${F.eu}`, title: F.name, text: `${F.look} ${F.fact}`, badge: first ? 'Especie nueva' : '', button: M ? (done ? `¡Hecho! Vuelve con ${M.host.name}` : `Seguir buscando (${M.count}/${M.need})`) : 'Seguir observando' });
+    if (first) addCard('fauna:' + id);
+    await showFicha('fauna:' + id, { ui: this.ui, kicker: 'Cuaderno de campo · ficha de fauna', badge: first ? 'Especie nueva' : '', button: M ? (done ? `¡Hecho! Vuelve con ${M.host.name}` : `Seguir buscando (${M.count}/${M.need})`) : 'Seguir observando' });
     if (first) await this.mochila.give('cuaderno');
     if (done) this.ui.toast(`¡Muy bien! Vuelve con ${M.host.name}`, 'check', 3000);
   }
@@ -1889,7 +1898,7 @@ export class TownGame {
   save() { saveProfile(); }
   applySettings() { const S = this.P.settings; this.sound.setMusic(S.music); this.sound.setVolume(S.volume); this.sky.speed = 24 / (16 * 60) * (S.timeSpeed ?? 1); }
   teleport(x, z) { const s = this.spot({ x, z }, 3); this.player.place(s.x, s.z, 0); this.follow.snap(this.player); }
-  dispose() { document.querySelectorAll('.mg-overlay, .dogpick, .bagpanel').forEach(o => o.remove()); this.ui.closeModal?.(); this.ui.setMG(null); if (this.danceKeys) removeEventListener('keydown', this.danceKeys, true); this.rh?.remove(); if (this.mode === 'bino') this.ui.binoculars(false); }
+  dispose() { this.flora?.dispose(); document.querySelectorAll('.mg-overlay, .dogpick, .bagpanel').forEach(o => o.remove()); this.ui.closeModal?.(); this.ui.setMG(null); if (this.danceKeys) removeEventListener('keydown', this.danceKeys, true); this.rh?.remove(); if (this.mode === 'bino') this.ui.binoculars(false); }
 }
 
 // Puesto de productos: mesa con toldo, panes, quesos y tarros de miel
