@@ -11,10 +11,10 @@ export const RO = 34, RA = 22;   // radio exterior de la plaza y radio del ruedo
  * @param colored, M4  ayudas de la escena del encierro
  * @param gate  z de la puerta (cara exterior del muro); el centro del ruedo queda en gate − RO
  * @param half  media anchura del túnel
- * @returns { cz, seats: [{x,y,z,ry}], flags: [{x,y,z,ry}], arches: [{x,y,z,ry}] }
+ * @returns { cz, seats: [{x,y,z,ry}], flags: [{x,y,z,ry}], arches: [{x,y,z,ry}], boards (carteles de la entrada), band (banda roja) }
  */
 export function buildPlaza(B, colored, M4, gate, half, rnd) {
-  const cz = gate - RO, seats = [], flags = [], arches = [];
+  const cz = gate - RO, seats = [], flags = [], arches = [], boards = [], band = {};
   const at = (r, a, y = 0) => [Math.sin(a) * r, y, cz + Math.cos(a) * r];
   const open = (a, r) => Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < (half + 0.6) / r;   // hueco del túnel
   const toril = (a, r) => Math.abs(Math.atan2(Math.sin(a - Math.PI), Math.cos(a - Math.PI))) < 1.7 / r;   // puerta de los corrales, enfrente
@@ -37,11 +37,23 @@ export function buildPlaza(B, colored, M4, gate, half, rnd) {
     }
     if (i % 6 === 0) flags.push({ x: Math.sin(a) * (RO + 0.3), y: TOP + 2.2, z: cz + Math.cos(a) * (RO + 0.3), ry: a });
   }
-  // la puerta del encierro: portada de piedra con frontón sobre el túnel
-  const [gx, , gz] = at(RO + 0.75, 0);
-  for (const s of [-1, 1]) B.stone.push(colored(new THREE.BoxGeometry(1.2, 6.2, 1.6), '#e8dcc0', M4(gx + s * (half + 0.9), 3.1, gz)));
-  B.stone.push(colored(new THREE.BoxGeometry(2 * half + 3, 1.2, 1.7), '#e8dcc0', M4(gx, 5.8, gz)));
-  B.stone.push(colored(new THREE.BoxGeometry(9, 0.5, 1.8), '#e8dcc0', M4(gx, 10.2, gz)));
+  // la entrada del encierro, como la de verdad: un hueco rectangular de 3,9 m de alto con una banda roja encima (el
+  // nombre de la plaza), jambas de hormigón, los dos portones rojos abiertos contra la fachada y carteles a los lados
+  const [gx, , gz] = at(RO + 0.6, 0), OPEN = 3.9, BW = 2 * half + 2.6;
+  B.plaster.push(colored(new THREE.BoxGeometry(BW, 1.8, 0.5), '#a8221d', M4(gx, OPEN + 0.9, gz + 0.02)));        // banda roja (fondo)
+  B.plain.push(colored(new THREE.BoxGeometry(BW + 0.1, 0.08, 0.6), '#7a1814', M4(gx, OPEN + 1.84, gz + 0.04)));   // vierteaguas
+  for (const s of [-1, 1]) {
+    B.stone.push(colored(new THREE.BoxGeometry(0.55, OPEN + 0.02, 1.7), '#cfc6b4', M4(gx + s * (half + 0.28), OPEN / 2, gz - 0.55)));   // jambas
+    B.stone.push(colored(new THREE.BoxGeometry(BW / 2 - half + 1.4, 0.9, 0.12), '#bfb6a4', M4(gx + s * (half + (BW / 2 - half + 1.4) / 2), 0.45, gz + 0.3)));   // zócalo de la fachada
+    // portón rojo de dos hojas abierto contra la fachada: bastidor, tablas y herrajes
+    const dx = gx + s * (half + 0.6 + 1.25), dz = gz + 0.34;
+    B.wood.push(colored(new THREE.BoxGeometry(2.5, OPEN - 0.1, 0.1), '#a3241f', M4(dx, (OPEN - 0.1) / 2, dz)));
+    for (const yy of [0.5, OPEN / 2, OPEN - 0.6]) B.wood.push(colored(new THREE.BoxGeometry(2.5, 0.16, 0.05), '#8c1d19', M4(dx, yy, dz + 0.07)));
+    for (const xx of [-1.2, 1.2]) B.wood.push(colored(new THREE.BoxGeometry(0.12, OPEN - 0.1, 0.05), '#8c1d19', M4(dx + xx, (OPEN - 0.1) / 2, dz + 0.07)));
+    for (const yy of [0.9, OPEN - 1]) B.plain.push(colored(new THREE.BoxGeometry(0.9, 0.06, 0.04), '#2a2624', M4(dx - s * 0.8, yy, dz + 0.1)));   // bisagras
+    boards.push({ x: gx + s * (half + 4.4), y: 2.2, z: gz + 0.32, kind: s > 0 ? 1 : 0 });
+  }
+  band.x = gx; band.y = OPEN + 0.9; band.z = gz + 0.28; band.w = BW - 0.2; band.h = 1.6;
   // túnel bajo los tendidos, de la puerta al ruedo
   const tl = RO - RA - 1.6, tz = gate - tl / 2;
   // el túnel: muros y techo de hormigón (oscuro, en sombra bajo los tendidos) y tablones de madera a los lados, a la
@@ -51,7 +63,7 @@ export function buildPlaza(B, colored, M4, gate, half, rnd) {
     B.wood.push(colored(new THREE.BoxGeometry(0.12, 1.5, tl), '#7a5a36', M4(s * (half - 0.05), 0.85, tz)));
     for (let z2 = gate - 1; z2 > gate - tl; z2 -= 2.4) B.wood.push(colored(new THREE.BoxGeometry(0.16, 1.7, 0.16), '#5a3e22', M4(s * (half - 0.12), 0.85, z2)));
   }
-  B.stone.push(colored(new THREE.BoxGeometry(2 * half + 1, 0.6, tl), '#6e685e', M4(0, 5.0, tz)));
+  B.stone.push(colored(new THREE.BoxGeometry(2 * half + 1, 0.6, tl), '#6e685e', M4(0, 4.2, tz)));   // techo del túnel, a la altura del hueco
   // ruedo: barrera roja, callejón y contrabarrera
   for (let i = 0; i < N; i++) {
     const a = (i + 0.5) / N * Math.PI * 2;
@@ -99,5 +111,5 @@ export function buildPlaza(B, colored, M4, gate, half, rnd) {
     const [rx, , rz] = at(RO - 1.6, a);
     B.wood.push(colored(new THREE.BoxGeometry(2 * Math.PI * (RO - 1.6) / ng + 0.1, 0.35, 3.6), '#8a4a32', M4(rx, ytop + 4.6, rz, a)));   // tejado de la galería
   }
-  return { cz, seats, flags, arches, ytop, toril: { x: 0, z: cz - RA } };
+  return { cz, seats, flags, arches, boards, band, ytop, toril: { x: 0, z: cz - RA } };
 }

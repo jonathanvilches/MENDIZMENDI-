@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Escenario del encierro</title><link rel="icon" href="data:,">
+<style>html,body{margin:0;height:100%;overflow:hidden;background:#000}</style></head><body><script type="module">
+// el escenario del encierro (Estafeta, callejón y plaza) sin cargar Pamplona: __view([x,y,z], [x,y,z]) coloca la cámara
+import * as THREE from 'three';
+import { Encierro } from '../src/game/encierro.js';
+const r = new THREE.WebGLRenderer({ antialias: true }); r.setSize(innerWidth, innerHeight); r.outputColorSpace = THREE.SRGBColorSpace;
+r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.05; r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap; document.body.appendChild(r.domElement);
+const E = new Encierro({}); E.build(); window.__E = E;
+const sun = E.sun;
+window.__view = (pos, look) => { E.camera.position.set(...pos); E.camera.lookAt(...look); E.camera.aspect = innerWidth / innerHeight; E.camera.updateProjectionMatrix();
+  sun.target.position.set(pos[0], 0, pos[2] - 10); sun.position.set(pos[0] + 30, 60, pos[2] + 10); r.shadowMap.needsUpdate = true; r.render(E.scene, E.camera); return r.info.render; };
+const loop = () => { requestAnimationFrame(loop); E.crowd?.tick?.(performance.now() / 1000, 0.5, 0, E.camera); E.stands?.tick?.(performance.now() / 1000, 0.5, 0, E.camera); r.render(E.scene, E.camera); };
+window.__view([0, 3.2, -240], [0, 3, -266]); loop(); window.__ready = true;
+</script></body></html>
