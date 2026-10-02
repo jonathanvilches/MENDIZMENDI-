@@ -5,9 +5,16 @@
 import * as THREE from 'three';
 
 const W = 960, H = 720;
-let R = null, cw = W, ch = H;
+let R = null, cw = W, ch = H, gen = 0, idle = null;
+/** Número de renderizador: cambia cuando se libera y se vuelve a crear (lo que dependa de él hay que rehacerlo). */
+export const offscreenGen = () => gen;
+/** Libera el renderizador oculto (su contexto WebGL y todo lo que subió a la tarjeta). En móvil cada contexto pesa mucho. */
+export function releaseOffscreen() { clearTimeout(idle); if (!R) return; try { R.dispose(); R.forceContextLoss(); } catch (e) { } R.domElement.width = R.domElement.height = 1; R = null; }
 export function offscreen(w, h, tone = THREE.ACESFilmicToneMapping) {
+  // si pasa un rato sin usarse, se libera solo (se vuelve a crear cuando haga falta)
+  clearTimeout(idle); idle = setTimeout(releaseOffscreen, 4000);
   if (!R) {
+    gen++;
     R = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
     R.debug.checkShaderErrors = false;
     R.setPixelRatio(1); R.setSize(W, H, false); R.outputColorSpace = THREE.SRGBColorSpace;

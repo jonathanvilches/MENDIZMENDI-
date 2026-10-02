@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { GlbChar, loadChar, loadKayKit } from './glbChar.js';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { applyOutfit, regionalOutfit, MYTHS } from './outfits.js';
+import { applyOutfit, regionalOutfit, MYTHS, resetOutfitTextures } from './outfits.js';
 import boyUrl from '../assets/chars/char_protagonista_lod.glb?url';
 import girlUrl from '../assets/chars/char_nerea_lod.glb?url';
 
@@ -163,7 +163,7 @@ function palette(look, sex) {
 }
 const texCache = new Map();
 /** Al salir de un pueblo: se sueltan las texturas de sus vecinos (cada pueblo tiene los suyos). */
-export function resetNpcCache() { for (const v of texCache.values()) { v.body.dispose(); v.face.dispose(); v.body.image.width = v.face.image.width = 1; } texCache.clear(); }
+export function resetNpcCache() { for (const v of texCache.values()) { v.body.dispose(); v.face.dispose(); v.body.image.width = v.face.image.width = 1; } texCache.clear(); KKT.clear(); resetOutfitTextures(); }
 function variantTextures(sex, P, srcBody, srcFace) {
   const q = (c) => c.map(v => v >> 3).join('.');
   const key = sex + '|' + [P.skin, P.hair, P.shirt, P.vest, P.pants, P.boots, P.red, P.socks].map(q).join('|');

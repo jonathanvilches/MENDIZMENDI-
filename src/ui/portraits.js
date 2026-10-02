@@ -10,6 +10,7 @@ let R = null, scene, cam;
 const cache = new Map();
 function setup() {
   R = offscreen(256, 256);
+  if (scene) return;
   scene = new THREE.Scene();
   scene.add(new THREE.HemisphereLight('#ffffff', '#6a5a4a', 1.6));
   const key = new THREE.DirectionalLight('#fff2dc', 2.2); key.position.set(1.5, 2.5, 3); scene.add(key);
@@ -38,7 +39,7 @@ export function portrait(look, mode = 'bust', isMini = false) {
   if (cache.has(key)) return cache.get(key);
   const st = getImg('p:' + key); if (st) { cache.set(key, st); return st; }
   try {
-    if (!R) setup(); else offscreen(256, 256);
+    setup();   // el renderizador oculto puede haberse liberado: se pide cada vez
     if (kk) { const url = portraitKK(look, mode); cache.set(key, url); putImg('p:' + key, url); return url; }
     const fig = buildMinifig(isMini ? look : lookToMinifig(look));
     const J = fig.userData.J;

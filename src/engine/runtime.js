@@ -1,6 +1,7 @@
 // Motor: carga una localidad (Salazar o generada), la actualiza y la libera al salir
 import { Weather, pickWeather } from '../world/weather.js';
 import * as THREE from 'three';
+import { setOutfitTexMax } from '../actors/outfits.js';
 import { bake, initBridges, clearPlatforms } from '../world/heightfield.js';
 import { buildTextures, TEX } from '../world/textures.js';
 import { Terrain } from '../world/terrain.js';
@@ -55,10 +56,10 @@ function showContextLost() {
 export class Runtime {
   constructor({ canvas, input, sound, quality }) {
     this.canvas = canvas; this.input = input; this.sound = sound; this.quality = quality;
-    setBuilderQuality(quality);
+    setBuilderQuality(quality); setOutfitTexMax(quality === 'low' ? 256 : 512);
     // en móvil (calidad media/baja) sin antialias de hardware y con menos resolución: el búfer de imagen pesa mucho menos
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: quality === 'high', powerPreference: 'high-performance' });
-    this.pixelRatio = Math.min(devicePixelRatio, quality === 'high' ? 2 : quality === 'mid' ? 1.25 : 1);
+    this.pixelRatio = Math.min(devicePixelRatio, quality === 'high' ? 2 : 1.25);   // en móvil (media y baja) 1,25: nítido sin un búfer enorme
     // si el navegador se queda sin memoria gráfica, avisar y ofrecer recargar (el progreso ya está guardado)
     canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); this.contextLost = true; showContextLost(); }, false);
     this.renderer.debug.checkShaderErrors = /debug/.test(location.search);

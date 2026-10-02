@@ -6,9 +6,10 @@ import FOLKLORE from '../data/folklore.json';
 import SETTLEMENTS from '../data/settlements.json';
 import { LEVELS, levelById } from '../data/levels.js';
 import { iconSVG, speciesIcon } from '../ui/icons.js';
+import { releaseOffscreen } from '../util/offscreen.js';
 import { avatarPortrait, portraitImg, avatarPortraitImg } from '../ui/portraits.js';
 import { stampImg, landImg } from '../assets.js';
-import { Stage } from './stage.js';
+import { Stage, releaseStage } from './stage.js';
 import { getLang, setLang } from '../i18n.js';
 import { dioramaShot } from './diorama.js';
 import { profile, saveProfile, levelOf, rankOf, townProgress, comarcaProgress, comarcaTowns, navarraProgress, stampCount, BADGES, checkBadges, resetProfile, salazarState } from '../game/profile.js';
@@ -99,7 +100,7 @@ export class Hub {
     this.screen = 'home';
   }
   show(screen = this.screen, arg = this.arg) { this.root.classList.remove('hidden'); this.visible = true; this.go(screen, arg, true); if (!profile().name) this.onboarding(); }
-  hide() { this.root.classList.add('hidden'); this.visible = false; this.sheet?.remove(); }
+  hide() { this.root.classList.add('hidden'); this.visible = false; this.sheet?.remove(); releaseStage(); releaseOffscreen(); }
   go(screen, arg, silent) {
     this.screen = screen; this.arg = arg;
     if (!silent) this.sound?.ui('click');
