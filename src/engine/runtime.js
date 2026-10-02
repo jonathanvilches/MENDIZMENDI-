@@ -73,8 +73,9 @@ export class Runtime {
     this.renderer.shadowMap.enabled = true;
     // sombra con filtro sencillo (la suave muestrea muchas veces cada píxel y era de lo que más pesaba)
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
-    // la sombra se recalcula un fotograma sí y otro no (casi no se nota y ahorra mucho; en ordenador también)
-    this.shadowEvery = 2; this.renderer.shadowMap.autoUpdate = false;
+    // la sombra se recalcula en cada fotograma (a la mitad de ritmo, la de los personajes que andan iba a saltos);
+    // solo en calidad baja (móviles) un fotograma sí y otro no
+    this.shadowEvery = quality === 'low' ? 2 : 1; this.renderer.shadowMap.autoUpdate = false;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping; this.renderer.toneMappingExposure = 1.05;
     // en vertical se abre el campo de visión para no ver el mundo «por un tubo»
     const fovFor = (a) => a < 1 ? 55 + (1 - a) * 30 : 55;
