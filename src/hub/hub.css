@@ -771,28 +771,55 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 /* selector de ropa de los personajes KayKit */
 /* tienda del pueblo: interior con estanterías, quien atiende y pestañas de producto estrella, compra y trueque */
 .mg-overlay.shop { display: grid; place-items: center; padding: 12px; }
-.shop-room { position: relative; width: min(900px, 100%); max-height: calc(100dvh - 24px); border-radius: 22px; overflow: hidden;
-  background: linear-gradient(#5a3a22 0 6px, transparent 6px) 0 0 / 100% 92px, linear-gradient(180deg, #3a2618, #24160e); box-shadow: 0 20px 60px rgba(0,0,0,.5); }
-.shop-shelves { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(8, 1fr); align-content: start; gap: 8px 4px; padding: 30px 14px; opacity: .22; pointer-events: none; }
-.shop-card { position: relative; display: flex; flex-direction: column; gap: 10px; padding: 16px; max-height: calc(100dvh - 24px); overflow: auto; }
-.shop-card header { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; }
+.shop-room { position: relative; width: min(900px, 100%); max-height: calc(100dvh - 24px); border-radius: 22px; overflow: hidden; display: flex; flex-direction: column;
+  background: linear-gradient(180deg, #3a2618, #24160e); box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+/* la estantería con los productos: una franja de adorno arriba, nunca detrás del texto */
+.shop-shelves { flex: none; display: flex; justify-content: space-around; align-items: flex-end; gap: 4px; height: 58px; padding: 6px 14px 0; pointer-events: none;
+  background: linear-gradient(180deg, #2a1a10, #3a2618); border-bottom: 8px solid #6b4426; box-shadow: inset 0 -2px 0 rgba(0,0,0,.35), 0 3px 6px rgba(0,0,0,.35); }
+.shop-shelves i { display: block; filter: drop-shadow(0 3px 2px rgba(0,0,0,.45)); }
+.shop-shelves svg { width: 40px; height: 40px; display: block; }
+.shop-card { position: relative; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 10px; padding: 16px; overflow: auto; }
+@media (max-height: 560px) {
+  .shop-shelves { display: none; } .shop-card { padding: 12px 14px; gap: 8px; }
+  /* en el móvil tumbado: productos en fichas bajas (dibujo a la izquierda) para que quepan sin bajar */
+  .shop-card .shop-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+  .shop-card .shop-item { display: grid; grid-template-columns: auto 1fr; column-gap: 8px; row-gap: 0; align-items: center; justify-items: start; text-align: left; padding: 6px 8px; }
+  .shop-card .shop-item > :first-child { grid-row: 1 / span 3; width: 34px; height: 34px; }
+  .shop-card .shop-star { padding: 10px 14px; gap: 12px; } .shop-card .shop-star > :first-child { width: 76px; height: 76px; } .shop-star h3 { font-size: 20px; margin-bottom: 4px; } .shop-star p { font-size: 14px; line-height: 1.35; margin-bottom: 8px; }
+}
+/* solo se desplaza la parte de los productos: la cabecera, las pestañas y «Salir de la tienda» quedan siempre a la vista
+   en su sitio, sin nada encima */
+.shop-card { overflow: hidden; }
+.shop-card > header, .shop-card > nav { flex: none; }
+.shop-card > section { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; border-radius: 16px; }
+.shop-card header { display: grid; grid-template-columns: auto 1fr auto auto; gap: 12px; align-items: center; }
+/* salir: arriba, junto al monedero (no ocupa una fila entera ni tapa nada) */
+.shop-exit { display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 999px; border: 2px solid rgba(255,255,255,.2); background: #22150d; color: #fff; font: 800 15px/1 inherit; cursor: pointer; }
+.shop-exit svg { width: 18px; height: 18px; }
 .shop-keeper { display: flex; flex-direction: column; align-items: center; color: #ffe38a; font-size: 13px; }
 .shop-bubble { background: #fff8ea; color: #2a1a10; border-radius: 16px; padding: 10px 14px; font-weight: 600; font-size: 15px; line-height: 1.35; position: relative; }
-.shop-purse { display: flex; align-items: center; gap: 4px; background: rgba(0,0,0,.35); color: #ffe38a; border-radius: 999px; padding: 6px 12px; font-size: 18px; }
+.shop-purse { display: flex; align-items: center; gap: 6px; background: #1a100a; border: 2px solid rgba(255,227,138,.25); color: #ffe38a; border-radius: 999px; padding: 6px 12px; font-size: 18px; }
 .shop-purse small { color: #f4e6c8; font-size: 11px; }
 .shop-card nav { display: flex; gap: 6px; flex-wrap: wrap; }
-.shop-card nav button { flex: 1; min-height: 40px; border-radius: 12px; border: 2px solid rgba(255,255,255,.15); background: rgba(0,0,0,.3); color: #fff; font: 800 14px/1 inherit; cursor: pointer; }
+.shop-card nav button { flex: 1; min-height: 40px; border-radius: 12px; border: 2px solid rgba(255,255,255,.15); background: #22150d; color: #fff; font: 800 14px/1 inherit; cursor: pointer; }
 .shop-card nav button.on { background: #ffd23f; color: #2a1a10; border-color: #ffd23f; }
-.shop-star { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; background: rgba(255,248,234,.08); border-radius: 16px; padding: 14px; color: #f7f0e6; }
+.shop-star { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; background: #3d2b1d; border: 1px solid rgba(255,248,234,.1); border-radius: 16px; padding: 14px; color: #f7f0e6; }
 .shop-star h3 { margin: 2px 0 6px; font-size: 24px; color: #fff; } .shop-star small { color: #ffe38a; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; font-size: 11px; }
 .shop-star p { margin: 0 0 10px; line-height: 1.45; }
 .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
-.shop-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 6px; border-radius: 14px; border: 2px solid rgba(255,255,255,.12); background: rgba(255,248,234,.08); color: #fff; cursor: pointer; font: inherit; text-align: center; }
+.shop-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 6px; border-radius: 14px; border: 2px solid rgba(255,255,255,.12); background: #3d2b1d; color: #fff; cursor: pointer; font: inherit; text-align: center; }
 .shop-item b { font-size: 14px; } .shop-item span { font-size: 11.5px; color: #e8dcc6; } .shop-item em { font-style: normal; color: #ffe38a; font-weight: 800; display: flex; align-items: center; gap: 3px; }
 .shop-item:disabled { opacity: .45; cursor: default; }
 .shop-note { color: #e8dcc6; margin: 0 0 8px; }
-.shop-card footer { display: flex; justify-content: flex-end; }
-@media (max-width: 600px) { .shop-star { grid-template-columns: 1fr; text-align: center; } .shop-star svg { margin: auto; width: 80px; height: 80px; } .shop-card header { grid-template-columns: 1fr auto; } .shop-keeper { display: none; } }
+@media (max-width: 600px) {
+  .shop-star { grid-template-columns: 1fr; text-align: center; } .shop-star > :first-child { margin: auto; width: 80px; height: 80px; }
+  /* arriba quien atiende y el monedero; debajo, su frase a todo lo ancho */
+  .shop-card header { grid-template-columns: minmax(0, 1fr) auto auto; row-gap: 8px; gap: 8px; }
+  .shop-keeper { flex-direction: row; gap: 8px; grid-column: 1; grid-row: 1; font-size: 15px; min-width: 0; } .shop-keeper > :first-child { width: 34px; height: 34px; flex: none; } .shop-keeper b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .shop-purse { grid-column: 2; grid-row: 1; } .shop-exit { grid-column: 3; grid-row: 1; width: 44px; padding: 0; justify-content: center; } .shop-exit span { display: none; }
+  .shop-bubble { grid-column: 1 / -1; grid-row: 2; }
+  .shop-card nav button { font-size: 13px; padding: 0 4px; }
+}
 /* encierro: botones de saltar, periódico y cámara */
 .enc-btns { position: fixed; right: max(14px, env(safe-area-inset-right)); bottom: calc(18px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 10px; z-index: 30; pointer-events: auto; }
 .enc-b { width: 84px; height: 84px; border-radius: 50%; border: 3px solid rgba(255,255,255,.9); color: #fff; font: 900 13px Nunito, sans-serif; cursor: pointer; box-shadow: 0 6px 16px rgba(0,0,0,.35); }

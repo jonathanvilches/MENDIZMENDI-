@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tienda</title><link rel="icon" href="data:,">
+<link rel="stylesheet" href="../src/hub/hub.css"><link rel="stylesheet" href="../src/style.css">
+<style>html,body{margin:0;height:100%;background:#4a6a3a}</style></head><body><script type="module">
+// el panel de la tienda con el código del juego, sin cargar un pueblo (comarca y tendera por la dirección)
+import { Tienda } from '../src/game/tienda.js';
+import { STAR } from '../src/data/tiendas.js';
+const q = new URLSearchParams(location.search);
+const g = { mode: 'play', player: { frozen: false }, mochila: { addFood() {}, paint() {} }, sound: { ui() {} }, jornales: null };
+window.__open = () => Tienda.prototype.open.call({ g, star: STAR[q.get('comarca') || 'sakana'], keeper: { name: q.get('keeper') || 'Arantxa' } });
+window.__open(); window.__ready = true;
+</script></body></html>
