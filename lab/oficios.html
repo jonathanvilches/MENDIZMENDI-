@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Oficios</title><link rel="icon" href="data:,">
+<link rel="stylesheet" href="../src/hub/hub.css"><link rel="stylesheet" href="../src/style.css">
+<style>html,body{margin:0;height:100%;background:#3a5a3a}</style></head><body><script type="module">
+import * as G from '../src/ui/oficioGames.js';
+import * as MG from '../src/ui/minigames.js';
+const noop = () => {}, sound = new Proxy({}, { get: (o, k) => k === 'sfx' ? null : noop });
+const ui = { sound, closeModal() {}, modal: null };
+window.__ui = ui; window.__G = G;
+window.__play = (name, opts = {}) => { window.__res = null; G[name](ui, opts).then(r => { window.__res = r; }); };
+// los juegos genéricos (barra de precisión, pulsar deprisa) con su dibujo
+window.__mg = (name, opts = {}) => { window.__res = null; MG[name](ui, opts).then(r => { window.__res = r; }); };
+window.__ready = true;
+</script></body></html>

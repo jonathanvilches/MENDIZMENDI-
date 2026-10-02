@@ -749,7 +749,7 @@ body.futbol #compass, body.futbol #tl, body.futbol #topright, body.futbol #promp
 .fut-msg.on { opacity: 1; transform: translate(-50%, 0); }
 .fut-help { position: absolute; left: 50%; bottom: max(14px, env(safe-area-inset-bottom)); transform: translateX(-50%); padding: 6px 14px; border-radius: 12px; background: rgba(0, 0, 0, .4); font-size: 13px; white-space: nowrap; max-width: 52vw; overflow: hidden; text-overflow: ellipsis; }
 .fut-quit { pointer-events: auto; position: absolute; top: max(10px, env(safe-area-inset-top)); right: 12px; padding: 8px 14px; border: 0; border-radius: 12px; background: rgba(0, 0, 0, .5); color: #fff; font: 800 13px Nunito, sans-serif; cursor: pointer; }
-body.futbol #controls { display: none !important; }
+body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .fut-say { position: absolute; left: 50%; top: 64px; transform: translateX(-50%); padding: 5px 14px; border-radius: 10px; background: rgba(12, 18, 34, .7); font: 800 14px Nunito, sans-serif; opacity: 0; transition: .2s; white-space: nowrap; }
 .fut-say.on { opacity: 1; }
 .fut-radar { position: absolute; right: 12px; top: 56px; width: 72px; height: 105px; border-radius: 8px; border: 2px solid rgba(255,255,255,.6); }

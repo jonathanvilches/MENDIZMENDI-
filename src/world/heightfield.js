@@ -120,14 +120,15 @@ export function groundHeight(x, z) {
   if (b) return Math.max(t, deckY(b, x));
   for (const p of PLATFORMS) {
     const dx = x - p.x, dz = z - p.z, lx = dx * p.c - dz * p.s, lz = dx * p.s + dz * p.c;
-    if (lx > p.x0 && lx < p.x1 && lz > p.z0 && lz < p.z1) return Math.max(t, p.y);
+    if (lx > p.x0 && lx < p.x1 && lz > p.z0 && lz < p.z1) return Math.max(t, p.y1 === undefined ? p.y : p.y + (p.y1 - p.y) * (lz - p.z0) / (p.z1 - p.z0));
   }
   return t;
 }
 
-// Superficies elevadas que cuentan como suelo (canchas de frontón): rectángulo local girado ry
+// Superficies elevadas que cuentan como suelo (canchas de frontón, tarimas): rectángulo local girado ry; con y1 es una
+// rampa que va de la altura y (en z0) a y1 (en z1)
 const PLATFORMS = [];
-export function addPlatform(x, z, ry, x0, x1, z0, z1, y) { PLATFORMS.push({ x, z, c: Math.cos(ry), s: Math.sin(ry), x0, x1, z0, z1, y }); }
+export function addPlatform(x, z, ry, x0, x1, z0, z1, y, y1) { PLATFORMS.push({ x, z, c: Math.cos(ry), s: Math.sin(ry), x0, x1, z0, z1, y, y1 }); }
 export function clearPlatforms() { PLATFORMS.length = 0; }
 
 // Nivel de agua en un punto (o -Infinity si no hay agua cerca)

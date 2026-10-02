@@ -188,10 +188,35 @@ export function railingTex() {
   g.fillRect(4, 20, 248, 4);
   const t = tex(c); return t;
 }
-/** Bajos de las casas: portal de madera, bar, pastelería, tienda de recuerdos o alpargatería (nombres inventados). */
-export const SHOPS = ['portal', 'bar', 'pasteleria', 'recuerdos', 'alpargatas', 'portal2'];
+/** Bajos de las casas: portal de madera, bar, pastelería, tienda de recuerdos o alpargatería (nombres inventados), y
+ *  los comercios cerrados como en cualquier mañana de encierro: persiana metálica bajada o tablas de protección. */
+export const SHOPS = ['portal', 'bar', 'pasteleria', 'recuerdos', 'alpargatas', 'portal2', 'persiana', 'tablas'];
 export function shopTex(kind) {
   const [c, g] = canvas(256, 320), r = rng(kind.length * 7 + 3);
+  if (kind === 'persiana') {
+    // persiana metálica enrollable: lamas onduladas con brillo, guías laterales, cajón arriba y cerrojo abajo
+    g.fillStyle = '#8c9196'; g.fillRect(0, 0, 256, 320);
+    for (let y = 30; y < 316; y += 9) { const gr = g.createLinearGradient(0, y, 0, y + 9); gr.addColorStop(0, '#b8bdc2'); gr.addColorStop(0.45, '#8e9398'); gr.addColorStop(0.55, '#6e7378'); gr.addColorStop(1, '#a2a7ac'); g.fillStyle = gr; g.fillRect(8, y, 240, 9); }
+    for (let i = 0; i < 900; i++) { g.fillStyle = `rgba(${r() < 0.5 ? '60,50,40' : '255,255,255'},${0.05 + r() * 0.08})`; g.fillRect(8 + r() * 240, 30 + r() * 286, 1 + r() * 3, 1); }   // óxido y roces
+    g.fillStyle = 'rgba(90,60,40,0.18)'; g.fillRect(8, 280, 240, 36);   // suciedad abajo
+    g.fillStyle = '#5a5f64'; g.fillRect(0, 0, 256, 30); g.fillStyle = '#74797e'; g.fillRect(0, 26, 256, 4);   // cajón
+    g.fillStyle = '#4a4e52'; g.fillRect(0, 30, 8, 290); g.fillRect(248, 30, 8, 290);   // guías
+    g.fillStyle = '#3a3d40'; g.fillRect(118, 300, 20, 12); g.fillStyle = '#c9a24a'; g.fillRect(124, 303, 8, 6);   // cerrojo
+    return tex(c);
+  }
+  if (kind === 'tablas') {
+    // tablas de madera clavadas delante del escaparate para proteger el cristal durante el encierro
+    g.fillStyle = '#3a2a1e'; g.fillRect(0, 0, 256, 320);
+    for (let y = 6, i = 0; y < 318; y += 38, i++) {
+      const col = ['#a0794a', '#8f6a40', '#b08654', '#977048'][i % 4]; g.fillStyle = col; g.fillRect(4, y, 248, 33);
+      g.strokeStyle = 'rgba(60,35,15,0.35)'; g.lineWidth = 1; for (let k = 0; k < 9; k++) { const yy = y + 3 + r() * 27; g.beginPath(); g.moveTo(4, yy); g.bezierCurveTo(80, yy + (r() - 0.5) * 6, 170, yy + (r() - 0.5) * 6, 252, yy + (r() - 0.5) * 4); g.stroke(); }
+      g.fillStyle = 'rgba(0,0,0,0.35)'; g.fillRect(4, y + 31, 248, 2);
+      g.fillStyle = '#2a2622'; for (const x of [22, 128, 234]) { g.beginPath(); g.arc(x, y + 16, 2.5, 0, 7); g.fill(); }   // clavos
+    }
+    g.fillStyle = '#6a4a2e'; g.fillRect(20, 0, 26, 320); g.fillRect(210, 0, 26, 320);   // listones verticales
+    g.fillStyle = 'rgba(0,0,0,0.25)'; g.fillRect(46, 0, 3, 320); g.fillRect(236, 0, 3, 320);
+    return tex(c);
+  }
   // marco de piedra
   g.fillStyle = '#b9ad96'; g.fillRect(0, 0, 256, 320);
   for (let i = 0; i < 1200; i++) { const v = 140 + r() * 80 | 0; g.fillStyle = `rgba(${v},${v - 6},${v - 18},0.35)`; g.fillRect(r() * 256, r() * 320, 2, 2); }

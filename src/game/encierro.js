@@ -65,22 +65,59 @@ export class Encierro {
     const WIN = [[], [], []], RAIL = [], SHOP = Object.fromEntries(SHOPS.map(k => [k, []]));   // piezas dibujadas (instancias)
     const walls = ['#e9dcc0', '#d9b98a', '#e6cfa6', '#c98f6a', '#efe6d2', '#d6a77a', '#e2d2b0'];
     const people = [], sitters = [], BAL = [];   // BAL: balcones del primer piso (para las cámaras de televisión)
+    // planta baja con relieve: pilastras de sillería con zócalo entre los huecos, dintel y cornisa corrida, y los bajos
+    // metidos 45 cm (escaparates, portales, persianas bajadas o tablas de protección), con umbral y marco de madera
+    const GF = 3.0, RD = 0.45;
+    const groundFloor = (side, F, zc, w, bays) => {
+      const z0 = zc - w / 2 + 0.05, z1 = zc + w / 2 - 0.05, bw = (z1 - z0) / bays, ow = Math.min(2.3, bw * 0.74), OH = 2.55;
+      B.stone.push(colored(new THREE.BoxGeometry(7 - RD, GF, z1 - z0), '#8f857a', M4(side * (F + RD + (7 - RD) / 2), GF / 2, zc)));   // fondo de los huecos
+      let prev = z0;
+      for (let k = 0; k <= bays; k++) {
+        const oz = k < bays ? z0 + (k + 0.5) * bw : null, a = oz === null ? z1 : oz - ow / 2, len = a - prev;
+        if (len > 0.02) {
+          const pz = prev + len / 2, tone = ['#cfc3aa', '#c6b99e', '#d6cbb3'][Math.floor(rnd() * 3)];
+          B.stone.push(colored(new THREE.BoxGeometry(RD, GF, len), tone, M4(side * (F + RD / 2), GF / 2, pz)));                 // pilastra
+          B.stone.push(colored(new THREE.BoxGeometry(RD + 0.07, 0.5, len + 0.05), '#8e8476', M4(side * (F + RD / 2 - 0.035), 0.25, pz)));   // zócalo
+          B.stone.push(colored(new THREE.BoxGeometry(0.05, 0.12, len + 0.02), '#e2d8c2', M4(side * (F - 0.025), GF - 0.42, pz)));       // capitel sencillo
+        }
+        if (oz === null) break;
+        prev = oz + ow / 2;
+        // dintel encima del hueco, umbral de piedra y el bajo (dibujo) al fondo
+        B.stone.push(colored(new THREE.BoxGeometry(RD, GF - OH, ow), '#d2c6ad', M4(side * (F + RD / 2), OH + (GF - OH) / 2, oz)));
+        B.stone.push(colored(new THREE.BoxGeometry(RD + 0.04, 0.07, ow), '#b8ad98', M4(side * (F + RD / 2 - 0.02), 0.035, oz)));
+        const kind = SHOPS[Math.floor(rnd() * SHOPS.length)];
+        SHOP[kind].push({ x: side * (F + RD - 0.02), y: OH / 2, z: oz, side, sx: ow / 2.3, sy: OH / 2.9 });
+        // marco de madera con relieve en los escaparates y portales (no en las persianas ni en las tablas)
+        if (kind !== 'persiana' && kind !== 'tablas') {
+          const wcol = kind === 'portal2' ? '#2e4a2e' : '#4a2c1a';
+          for (const s2 of [-1, 1]) B.wood.push(colored(new THREE.BoxGeometry(0.12, OH, 0.1), wcol, M4(side * (F + RD - 0.08), OH / 2, oz + s2 * (ow / 2 - 0.05))));
+          B.wood.push(colored(new THREE.BoxGeometry(0.12, 0.1, ow), wcol, M4(side * (F + RD - 0.08), OH - 0.05, oz)));
+          if (!kind.startsWith('portal')) { B.wood.push(colored(new THREE.BoxGeometry(0.1, 0.08, ow * 0.62), wcol, M4(side * (F + RD - 0.07), 0.9, oz - ow * 0.17))); B.wood.push(colored(new THREE.BoxGeometry(0.1, OH - 0.62, 0.07), wcol, M4(side * (F + RD - 0.07), OH / 2 + 0.25, oz + ow * 0.16))); }
+        } else B.plain.push(colored(new THREE.BoxGeometry(0.16, 0.22, ow + 0.06), kind === 'persiana' ? '#5a5f64' : '#5a4030', M4(side * (F + RD - 0.1), OH - 0.11, oz)));   // cajón de la persiana o travesaño
+        // banderola de hierro con el letrero en algunos comercios
+        if (!kind.startsWith('portal') && rnd() < 0.3) {
+          B.plain.push(colored(new THREE.BoxGeometry(0.7, 0.04, 0.04), '#1e1c1a', M4(side * (F - 0.35), GF + 0.35, oz + ow / 2 + 0.25)));
+          B.plain.push(colored(new THREE.BoxGeometry(0.55, 0.38, 0.04), ['#7a1c1c', '#2e4a3a', '#2a2a44', '#c9a24a'][Math.floor(rnd() * 4)], M4(side * (F - 0.42), GF + 0.1, oz + ow / 2 + 0.25)));
+        }
+      }
+      B.stone.push(colored(new THREE.BoxGeometry(0.24, 0.18, z1 - z0), '#ddd2bb', M4(side * (F - 0.1), GF + 0.03, zc)));   // cornisa corrida sobre la planta baja
+    };
     // casas de la calle (F = distancia de la fachada al eje); se usa en la Estafeta y en el tramo del callejón
     const street = (F, z0, z1) => { for (const side of [-1, 1]) {
       let z = z0;
       while (z > z1) {
         const w = 7 + rnd() * 4, h = 12 + Math.floor(rnd() * 3) * 3, x = side * (F + 3.5), zc = z - w / 2, col = walls[Math.floor(rnd() * walls.length)];
-        B.plaster.push(colored(new THREE.BoxGeometry(7, h, w - 0.1), col, M4(x, h / 2, zc)));
+        B.plaster.push(colored(new THREE.BoxGeometry(7, h - GF, w - 0.1), col, M4(x, GF + (h - GF) / 2, zc)));   // pisos de arriba (la planta baja, aparte)
         B.wood.push(colored(new THREE.BoxGeometry(7.6, 0.5, w + 0.2), '#8a4a32', M4(x, h + 0.25, zc)));            // alero
         for (let q = zc - w / 2 + 0.3; q < zc + w / 2 - 0.2; q += 0.62) B.wood.push(colored(new THREE.BoxGeometry(0.62, 0.16, 0.13), '#6a3a24', M4(side * (F - 0.28), h - 0.07, q)));   // canecillos bajo el alero
         for (let yy = 1.1, k = 0; yy < h - 0.4; yy += 0.55, k++) B.stone.push(colored(new THREE.BoxGeometry(0.12, 0.5, k % 2 ? 0.45 : 0.7), '#c8bca4', M4(side * (F - 0.04), yy + 0.25, zc + w / 2 - 0.05 - (k % 2 ? 0.225 : 0.35))));   // esquinal de sillares
-        B.stone.push(colored(new THREE.BoxGeometry(7.1, 1.0, w - 0.1), '#9a8f80', M4(x - side * 0.06, 0.5, zc)));     // zócalo de piedra
-        for (let fl = 1; fl < Math.floor(h / 3); fl++) B.plaster.push(colored(new THREE.BoxGeometry(7.12, 0.14, w - 0.1), '#d8ccb4', M4(x - side * 0.06, fl * 3 - 0.05, zc)));   // imposta
+        for (let fl = 2; fl < Math.floor(h / 3); fl++) B.plaster.push(colored(new THREE.BoxGeometry(7.12, 0.14, w - 0.1), '#d8ccb4', M4(x - side * 0.06, fl * 3 - 0.05, zc)));   // imposta
+        groundFloor(side, F, zc, w, Math.max(2, Math.floor(w / 2.6)));
         if (rnd() < 0.3) { B.plain.push(colored(new THREE.BoxGeometry(0.5, 0.05, 0.05), '#1e1c1a', M4(side * (F + 0.25), 3.6, zc))); B.plain.push(colored(new THREE.BoxGeometry(0.22, 0.34, 0.22), '#2a2622', M4(side * (F - 0.02), 3.4, zc))); }   // farol
         const wins = Math.max(2, Math.floor(w / 2.6));
         for (let fl = 0; fl < Math.floor(h / 3); fl++) for (let k = 0; k < wins; k++) {
           const wz = zc - w / 2 + (k + 0.5) * (w / wins), wy = 1.6 + fl * 3, fx = side * (F + 0.02);
-          if (fl === 0) { SHOP[SHOPS[Math.floor(rnd() * SHOPS.length)]].push({ x: side * (F - 0.12), y: 1.45, z: wz, side, sx: Math.min(2.3, w / wins * 0.9) / 2.3 }); continue; }
+          if (fl === 0) continue;   // la planta baja la hace groundFloor
           // recerco de piedra con relieve: jambas, dintel con cornisa y alféizar
           for (const s2 of [-1, 1]) B.stone.push(colored(new THREE.BoxGeometry(0.1, 2.2, 0.16), '#e2d8c2', M4(side * (F - 0.05), wy + 0.05, wz + s2 * 0.58)));
           B.stone.push(colored(new THREE.BoxGeometry(0.12, 0.22, 1.38), '#e2d8c2', M4(side * (F - 0.06), wy + 1.2, wz)));
@@ -160,12 +197,12 @@ export class Encierro {
     const inst = (map, w, h, list, extra = {}) => {
       if (!list.length) return; this.texs.push(map);
       const im = new THREE.InstancedMesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardMaterial({ map, roughness: 0.55, ...extra }), list.length);
-      list.forEach((o, i) => im.setMatrixAt(i, m4.compose(v3.set(o.x, o.y, o.z), q.setFromEuler(e.set(0, o.ry ?? -o.side * Math.PI / 2, 0)), scl.set(o.sx || 1, 1, 1))));
+      list.forEach((o, i) => im.setMatrixAt(i, m4.compose(v3.set(o.x, o.y, o.z), q.setFromEuler(e.set(0, o.ry ?? -o.side * Math.PI / 2, 0)), scl.set(o.sx || 1, o.sy || 1, 1))));
       im.receiveShadow = true; S.add(im);
     };
     WIN.forEach((l, i) => inst(windowTex(i), 1.0, 1.9, l, { roughness: 0.25, metalness: 0.1 }));
     inst(railingTex(), 1.5, 0.85, RAIL, { transparent: false, alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.5, metalness: 0.5 });
-    for (const k of SHOPS) inst(shopTex(k), 2.3, 2.9, SHOP[k]);
+    for (const k of SHOPS) inst(shopTex(k), 2.3, 2.9, SHOP[k], k === 'persiana' ? { roughness: 0.45, metalness: 0.55 } : {});
     inst(archTex(), 1, 4.2, PZ.arches.map(o => ({ ...o, sx: o.w })), { alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.8 });
     inst(flagNavarraTex(), 1.6, 1.0, PZ.flags, { side: THREE.DoubleSide, roughness: 0.8 });
     for (const o of PZ.flags) B.plain.push(colored(new THREE.CylinderGeometry(0.04, 0.04, 3.2, 5), '#3a3530', M4(o.x, o.y - 0.6, o.z)));

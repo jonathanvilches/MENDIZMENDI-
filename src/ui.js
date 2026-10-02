@@ -131,7 +131,7 @@ export class UI {
     this.lastQuestIcon = null;
     if (town) this.refreshDots();
   }
-  destroyHUD() { this._dlgCleanup?.(); this.closeModal(); this.hud?.remove(); this.hud = null; this.bino?.remove(); this.bino = null; this.setCinematic?.(false); this.input.onStick = null; }
+  destroyHUD() { this._dlgCleanup?.(); this.closeModal(); this.hud?.remove(); this.hud = null; this.bino?.remove(); this.bino = null; document.body.classList.remove('bino-on'); this.setCinematic?.(false); this.input.onStick = null; }
   refreshDots() { if (!this.hud || this.game.kind !== 'town') return; for (const i of this.hud.querySelectorAll('.dots i')) { const M = this.game.missions[+i.dataset.m]; i.className = M.done ? 'on' : M.i === this.game.tracked ? 'cur' : ''; } }
   setQuest(q) {
     const b = $('#quest', this.hud);
@@ -514,11 +514,15 @@ export class UI {
 
   // ---------- Prismáticos ----------
   binoculars(on) {
+    // con los prismáticos, los avisos generales no salen (se montaban detrás del panel de la misión); los prismáticos
+    // ya dicen lo que se ve y lo que se anota
+    document.body.classList.toggle('bino-on', !!on);
     if (on && !this.bino) {
       this.bino = el(`<div id="bino"><svg class="mask" viewBox="0 0 160 100" preserveAspectRatio="xMidYMid slice" width="100%" height="100%"><defs><mask id="bm"><rect x="-200" y="-200" width="560" height="500" fill="#fff"/><circle cx="58" cy="50" r="36" fill="#000"/><circle cx="102" cy="50" r="36" fill="#000"/></mask></defs><rect x="-200" y="-200" width="560" height="500" fill="#0b0a10" mask="url(#bm)"/></svg><div class="cross"></div><div class="bdir"><i></i></div><div class="bcomp"></div><div class="bgoal"></div><div class="label"></div><div class="bhint">${this.input.touch ? 'Arrastra para mirar · botón amarillo para anotar · botón de prismáticos para salir' : 'Mueve el ratón para mirar · E para anotar · F para salir'}</div></div>`);
       document.body.appendChild(this.bino);
     } else if (!on && this.bino) { this.bino.remove(); this.bino = null; }
   }
+  binoNote(text, ms = 2000) { this._bnote = { text, until: performance.now() + ms }; }
   binoTarget(label, lock, hint = null) {
     if (!this.bino) return; $('.label', this.bino).textContent = label || ''; $('.cross', this.bino).classList.toggle('lock', !!lock);
     const d = $('.bdir', this.bino); d.style.opacity = hint == null ? 0 : 1; if (hint != null) d.style.transform = `rotate(${-hint}rad)`;
@@ -528,7 +532,9 @@ export class UI {
   binoInfo(goalHtml, compass) {
     if (!this.bino) return;
     const g = $('.bgoal', this.bino); if (g._h !== goalHtml) { g._h = goalHtml; g.innerHTML = goalHtml || ''; g.style.display = goalHtml ? '' : 'none'; }
-    $('.bcomp', this.bino).textContent = compass || '';
+    // un aviso corto (p. ej. «Halcón anotado») ocupa un momento el sitio de la dirección
+    const note = this._bnote && performance.now() < this._bnote.until ? this._bnote.text : null;
+    $('.bcomp', this.bino).textContent = note || compass || ''; $('.bcomp', this.bino).classList.toggle('note', !!note);
   }
 
   // ---------- Ritmo (danza) ----------

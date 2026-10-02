@@ -160,7 +160,7 @@ export function mountMapView(ui, box, opts = {}) {
   const pts = new Map(); let down = null, pinch = null, lastTap = null;
   const pos = (e) => { const r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
   cv.addEventListener('pointerdown', (e) => {
-    e.preventDefault(); cv.setPointerCapture?.(e.pointerId); anim = null;
+    e.preventDefault(); try { cv.setPointerCapture(e.pointerId); } catch { /* sin captura */ } anim = null;
     const p = pos(e); pts.set(e.pointerId, p);
     if (pts.size === 1) down = { ...p, moved: false }; else if (down) down.moved = true;
     pinch = null;

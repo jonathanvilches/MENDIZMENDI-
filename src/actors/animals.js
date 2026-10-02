@@ -2,7 +2,7 @@
 // ardillas, pito negro, buitres, truchas, mariposas y luciérnagas
 import * as THREE from 'three';
 import { groundHeight, terrainHeight, waterLevelAt } from '../world/heightfield.js';
-import { resolve, isFree } from '../world/colliders.js';
+import { resolve, isFree, addMover } from '../world/colliders.js';
 import { PLACES, rx, riverInfo } from '../world/layout.js';
 import { TREES } from '../world/nature.js';
 import { clamp, damp, dampAngle, mulberry32 } from '../util/math.js';
@@ -45,6 +45,8 @@ export class Animal {
     this.id = opts.id;
     this.rnd = rnd;
     scene.add(this.obj);
+    // el cuerpo del animal ocupa su sitio: ni el jugador ni los demás lo atraviesan (el perro que te acompaña, sí)
+    this.collider = addMover(x, z, Math.max(0.3, this.radius * 0.9), { animal: this });
     this.sync();
   }
   update(dt, player, extra) {
@@ -99,7 +101,7 @@ export class Animal {
     this.speed = damp(this.speed, want, 5, dt);
     if (this.speed > 0.02) {
       let nx = this.pos.x + Math.sin(this.heading) * this.speed * dt, nz = this.pos.z + Math.cos(this.heading) * this.speed * dt;
-      const r = resolve(nx, nz, this.radius);
+      const r = resolve(nx, nz, this.radius, this.collider);
       const g = groundHeight(r.x, r.z);
       const deep = waterLevelAt(r.x, r.z) - g > 0.4;
       const r4 = Math.pow(r.x ** 4 + r.z ** 4, 0.25);
@@ -159,7 +161,10 @@ export class Animal {
       else { const flick = Math.max(0, Math.sin(this.t * 0.7 + this.phase * 0.1)) ** 8; q.tail.rotation.z = Math.sin(this.t * 3) * 0.12 + Math.sin(this.t * 9) * 0.5 * flick; if (q.tail2) q.tail2.rotation.z = Math.sin(this.t * 3 - 0.8) * 0.1 + Math.sin(this.t * 9 - 1.2) * 0.45 * flick; }
     }
   }
-  sync() { this.obj.position.copy(this.pos); this.obj.rotation.y = this.heading; }
+  sync() {
+    this.obj.position.copy(this.pos); this.obj.rotation.y = this.heading;
+    if (this.collider) { this.collider.x = this.pos.x; this.collider.z = this.pos.z; this.collider.ghost = !!this.follow?.companion || !!this.sit; }
+  }
 }
 
 const buildSquirrel = squirrel, buildWoodpecker = woodpecker, buildFish = trout;

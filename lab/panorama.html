@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vista del mirador</title><link rel="icon" href="data:,">
+<style>html,body{margin:0;height:100%;overflow:hidden;background:#000}</style></head><body><script type="module">
+import * as THREE from 'three';
+import { Panorama } from '../src/world/panorama.js';
+import { montesFrom, townLatLon } from '../src/data/miradores.js';
+import { LEVELS } from '../src/data/levels.js';
+const q = new URLSearchParams(location.search), id = q.get('town') || 'isaba-izaba';
+const lv = LEVELS.find(l => l.id === id), ll = townLatLon(lv), montes = montesFrom(ll.lat, ll.lon, 4);
+const r = new THREE.WebGLRenderer({ antialias: true }); r.setSize(innerWidth, innerHeight); r.outputColorSpace = THREE.SRGBColorSpace; r.toneMapping = THREE.ACESFilmicToneMapping; document.body.appendChild(r.domElement);
+const P = new Panorama(montes, { quality: q.get('q') || 'high' });
+window.__pano = P; window.__montes = montes;
+window.__look = (i, fov = 24) => { const pk = P.peaks[i]; P.look(Math.PI - pk.m.bearing * Math.PI / 180, Math.atan2(pk.summit.y * 0.55 - P.eye.y, pk.ds), fov); r.render(P.scene, P.camera); return { name: pk.m.name, type: pk.type, H: Math.round(pk.H), ds: Math.round(pk.ds), km: Math.round(pk.m.km), alt: pk.m.altitude }; };
+window.__look(0); window.__ready = true;
+</script></body></html>

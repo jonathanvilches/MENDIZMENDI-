@@ -5,6 +5,7 @@ import { MYTHS } from '../actors/outfits.js';
 import { PLACES } from '../world/layout.js';
 import { loadMeshy, hasMeshy } from '../actors/glbChar.js';
 import { QUALITY } from '../util/quality.js';
+import { Jornales, JOBS } from './jornales.js';
 import { groundHeight, terrainHeight, waterLevelAt } from '../world/heightfield.js';
 import { TOWN } from '../world/townBuilder.js';
 import { isFree, segmentBlocked, addCircle, addBox } from '../world/colliders.js';
@@ -39,6 +40,8 @@ import { SABIOS, STYLE_TIP, KIND_TIP, NO_SABIO } from '../data/sabios.js';
 import { Encierro } from './encierro.js';
 import { Futbol } from './futbol.js';
 import { montesFrom, townLatLon } from '../data/miradores.js';
+import { forgeGame, stitchGame, shearGame } from '../ui/oficioGames.js';
+import { Panorama } from '../world/panorama.js';
 import { PARTS, CASTLE_QUIZ, CASTLE_TOWNS, CASTILLOS } from '../data/castillos.js';
 import { GearProps } from '../actors/gear3d.js';
 import { foodFrom } from '../data/equipo.js';
@@ -55,12 +58,12 @@ const CROP = {
 };
 const ANIMAL = { sheep: ['ovejas', 'sheep'], cows: ['vacas', 'cow'], pottoka: ['pottokas', 'pottoka'], horses: ['caballos', 'pottoka'], goats: ['cabras', 'sheep'], pigs: ['cerdos', 'pig'] };
 const TRADE = {
-  herrero: { title: 'El herrero', game: 'timing', verb: 'Golpear', icon: 'anvil', hint: 'Golpea el hierro cuando la marca esté en la zona roja.', act: 'hammer', look: { shirt: '#5a4a3a', apron: '#3a2a1a', pants: '#2b2630', hammer: true } },
-  palomero: { title: 'Los palomeros', game: 'timing', verb: 'Agitar la paleta', icon: 'net', hint: 'Agita la paleta blanca justo cuando pasa el bando de palomas.', act: 'wave' },
-  harrijasotzaile: { title: 'Levantar la piedra', game: 'mash', verb: '¡Arriba!', icon: 'stone', hint: 'Pulsa muy rápido para subir la piedra al hombro.', act: 'lift' },
-  aizkolari: { title: 'Aizkolari', game: 'timing', verb: 'Hachazo', icon: 'axe', hint: 'Da cada hachazo en el momento justo para cortar el tronco.', act: 'chop' },
-  cantero: { title: 'El cantero', game: 'timing', verb: 'Tallar', icon: 'hammer', hint: 'Talla la piedra con golpes precisos.', act: 'hammer' },
-  alpargatero: { title: 'Alpargatas de esparto', game: 'timing', verb: 'Coser', icon: 'espadrille', hint: 'Cose la suela de esparto con puntadas precisas.', act: 'pick' },
+  herrero: { art: 'anvil', title: 'El herrero', game: 'timing', verb: 'Golpear', icon: 'anvil', hint: 'Golpea el hierro cuando la marca esté en la zona roja.', act: 'hammer', look: { shirt: '#5a4a3a', apron: '#3a2a1a', pants: '#2b2630', hammer: true } },
+  palomero: { art: 'dove', title: 'Los palomeros', game: 'timing', verb: 'Agitar la paleta', icon: 'net', hint: 'Agita la paleta blanca justo cuando pasa el bando de palomas.', act: 'wave' },
+  harrijasotzaile: { art: 'lift', title: 'Levantar la piedra', game: 'mash', verb: '¡Arriba!', icon: 'stone', hint: 'Pulsa muy rápido para subir la piedra al hombro.', act: 'lift' },
+  aizkolari: { art: 'chop', title: 'Aizkolari', game: 'timing', verb: 'Hachazo', icon: 'axe', hint: 'Da cada hachazo en el momento justo para cortar el tronco.', act: 'chop' },
+  cantero: { art: 'stone', title: 'El cantero', game: 'timing', verb: 'Tallar', icon: 'hammer', hint: 'Talla la piedra con golpes precisos.', act: 'hammer' },
+  alpargatero: { art: 'sole', title: 'Alpargatas de esparto', game: 'timing', verb: 'Coser', icon: 'espadrille', hint: 'Cose la suela de esparto con puntadas precisas.', act: 'pick' },
 };
 const RACE = { camino: ['El Camino de Santiago', 'camino', 'Sigue las conchas y flechas amarillas'], almadia: ['Bajada en almadía', 'raft', 'Guía la almadía por el río'], encierro: ['Carrera del encierro', 'bull', '¡Corre delante de los toros!'], romeria: ['Romería', 'footprint', 'Sube por el camino de los romeros'], bici: ['Vía verde', 'bike', 'Recorre el viejo trazado del tren'] };
 // Aspecto de los personajes de carnaval y leyenda
@@ -167,7 +170,7 @@ export class TownGame {
         M.steps = () => ['Habla con ' + host(), m.kind === 'angel' ? 'Prepara la bajada: repite la secuencia' : 'Repite la melodía']; break;
       case 'summit': { const pk = M.peak = MOUNTAINS.find(x => x.id === m.peak); M.title = `Sube al ${pk?.name || 'monte'}`; M.icon = 'peak'; M.need = 4;
         M.steps = () => [M.prep ? `Prepara la mochila: ${this.supplyText()} y vuelve con ${host()}` : 'Habla con ' + host(), `Sigue los mojones hasta la cima (${M.count}/${M.need})${M.wild ? ` · animales ${M.wild.filter(w => w.found).length}/${M.wild.length}` : ''}`, `Llega a la cima del ${pk?.name || 'monte'}`]; break; }
-      case 'mirador': { const ll = townLatLon(d); M.montes = ll ? montesFrom(ll.lat, ll.lon) : []; M.title = m.title || 'Los montes desde el mirador'; M.icon = 'binoculars'; M.need = Math.min(3, M.montes.length) || 1;
+      case 'mirador': { const ll = townLatLon(d); M.montes = ll ? montesFrom(ll.lat, ll.lon, 4) : []; M.title = m.title || 'Los montes desde el mirador'; M.icon = 'binoculars'; M.need = Math.min(3, M.montes.length) || 1;
         M.steps = () => ['Habla con ' + host(), `Ve al mirador y busca los montes con los prismáticos (${M.count}/${M.need})`, 'Vuelve con ' + host()]; break; }
       case 'dolmen': { const st = M.site = SITES[m.site || 'dolmen']; M.title = m.title || 'El secreto del dolmen'; M.icon = st.icon; M.need = st.finds.length;
         M.steps = () => ['Habla con ' + host(), `Excava ${st.where} con cuidado (${M.count}/${M.need})`, 'Vuelve con ' + host()]; break; }
@@ -290,6 +293,9 @@ export class TownGame {
     this.agro = buildAgro(this.scene, d, this.rnd);
     this.spawnSabios();
     this.spawnShepherds();
+    // jornales: ayudar en los oficios del pueblo para ganar txanponak (esquilar, ordeñar, fragua, vendimia…); después
+    // del pastor y la ganadera, que son los que dan los trabajos del ganado
+    try { this.jornales = new Jornales(this); } catch (e) { console.warn('jornales', e); }
     // pelotari del pueblo: espera junto al frontón para jugar cuando se quiera
     if (this.fronton && !this.missions.some(M => M.type === 'pelota')) {
       const e = this.fronton.entry, c = this.fronton.toWorld(0, 12), s = this.spot({ x: e.x - 2.5, z: e.z + 1 }, 3);
@@ -376,21 +382,12 @@ export class TownGame {
     const b = this.P.bag ||= { agua: 0, food: {} }; b.goods ||= {}; b.goods[k] = (b.goods[k] || 0) + n; saveProfile();
     this.ui.toast(`A la mochila: ${GOODS[k].name.toLowerCase()} ×${n} (para el trueque en la tienda)`, GOODS[k].icon, 2600);
   }
-  async explainWork(a) {
+  async explainWork(a, fromJob = false) {
     const I = a.info; a.say(3); a.wave = 1.2;
     this.player.frozen = true;
     try {
       await this.say(a, I.lines);
       await infoCard(this.ui, { icon: I.icon, kicker: 'Oficios del campo', title: I.title, text: 'Así ha cambiado este trabajo:', extra: `<div class="antes-ahora"><div><b>Antes</b>${I.then}</div><div><b>Ahora</b>${I.now}</div></div>`, badge: addCard('campo:' + I.title) ? 'Nueva carta' : '', button: '¡Lo he entendido!' });
-      // tarea del campo: ayudar a esquilar o a ordeñar como se hacía antes, y llevarse lana o leche para el trueque
-      if (!a.helped) {
-        const sheep = /pastor/i.test(a.name);
-        await this.say(a, sheep ? ['¿Me ayudas a esquilar? Antes se hacía a mano, con tijeras grandes, a principios del verano. La lana sale entera, como un abrigo.'] : ['¿Me echas una mano con el ordeño? Antes se ordeñaba a mano, dos veces al día, sentados en un taburete de tres patas.']);
-        const r = sheep ? await mashGame(this.ui, { title: 'Esquilar a mano', hint: 'Pulsa rápido para cortar la lana sin hacer daño a la oveja.', icon: 'wool', verb: '¡Tijeretazo!', seconds: 7, goal: 26 })
-          : await timingGame(this.ui, { title: 'Ordeñar a mano', hint: 'Aprieta cuando la marca pase por la zona: suave y con ritmo.', icon: 'milk', verb: 'Ordeñar', rounds: 5, need: 3 });
-        if (r?.win) { a.helped = true; this.giveGoods(sheep ? 'lana' : 'leche', 2); await this.say(a, [sheep ? '¡Eskerrik asko! Llévate esta lana: en la tienda te la cambian por comida.' : '¡Eskerrik asko! Llévate esta leche: en la tienda te la cambian por queso o cuajada.']); }
-        else await this.say(a, ['¡Casi! Es más difícil de lo que parece. Vuelve cuando quieras.']);
-      }
     } finally { this.player.frozen = false; a.talking = 0; }
   }
   async showAgro(o) {
@@ -445,6 +442,7 @@ export class TownGame {
     if (!this.dogHi && this.mode === 'play' && !this.ui.busy && this.elapsed > 5) { this.dogHi = true; this.perro?.hello(); }
     this.gearProps?.night(this.isNight() ? 1 : 0);
     if (this.herd) this.updateHerd(dt);
+    this.jornales?.update(dt);
     if (this.race) this.updateRace(dt);
     if (this.mode === 'dance') this.updateDance(dt);
     if (this.mode === 'bino') this.updateBino(dt);
@@ -489,9 +487,19 @@ export class TownGame {
     }
     return at(M.host);
   }
+  jobTarget() {
+    const h = this.herdJob, P = this.player.pos;
+    if (h) {
+      if (h.step >= 2) return { x: h.host.pos.x, z: h.host.pos.z, h: 2.3 };
+      let b = null, bd = 1e9; for (const s of this.herd || []) { if (s.penned) continue; const d = Math.hypot(s.pos.x - P.x, s.pos.z - P.z); if (d < bd) { bd = d; b = s; } }
+      return b ? { x: b.pos.x, z: b.pos.z, h: 1.8 } : TOWN.pen ? { x: TOWN.pen.x, z: TOWN.pen.z, h: 2 } : null;
+    }
+    const e = this.jornales?.escort; if (e) return { x: e.a.pos.x, z: e.a.pos.z, h: 2.3 };
+    return this.jornales?.guideTarget() || null;
+  }
   updateHUD() {
     const M = this.missions[this.tracked];
-    const t = this.target();
+    const t = this.jobTarget() || this.target();
     this.beacon.set(t && !t.noArrow ? t : null, '#ffd34d');
     if (!M) { this.ui.setQuest(null); return; }
     let dist = null, angle = null;
@@ -535,7 +543,7 @@ export class TownGame {
   interactables() {
     const list = [];
     for (const a of this.actors) if (a.visible !== false) list.push({ kind: 'npc', a, x: a.pos.x, z: a.pos.z, r: 3, label: a.market ? `Puesto del mercado: ${a.market.toLowerCase()}` : a === this.pelotari ? `Jugar a pelota con ${a.name}` : a === this.coach ? 'Jugar un partido en El Sadar' : a.sabio ? `${a.name}: la historia de ${a.sabio.name}` : `Hablar con ${a.name}` });
-    for (const a of this.walkers) list.push({ kind: 'walker', a, x: a.pos.x, z: a.pos.z, r: a.info ? 3 : 2.4, label: a.stall ? 'Productos del pueblo' : a.info ? `Hablar con ${a.name.toLowerCase() === 'pastor' ? 'el pastor' : 'la ganadera'}` : `Saludar a ${a.name}` });
+    for (const a of this.walkers) list.push({ kind: 'walker', a, x: a.pos.x, z: a.pos.z, r: a.info || a.jobs ? 3 : 2.4, label: a.stall ? 'Productos del pueblo' : a.jobs ? `Ayudar a ${a.name.toLowerCase()} (txanponak)` : a.info ? `Hablar con ${a.name.toLowerCase() === 'pastor' ? 'el pastor' : 'la ganadera'}` : `Saludar a ${a.name}` });
     for (const o of this.agro?.list || []) list.push({ kind: 'agro', o, x: o.x, z: o.z, r: o.kind === 'combine' ? 6 : 4.5, label: `Mirar: ${o.info.title.toLowerCase()}` });
     for (const it of this.items) list.push({ kind: 'item', it, x: it.x, z: it.z, r: 2.2, label: it.label });
     for (const M of this.missions) if (M.bench && M.step === 1 && !M.done) list.push({ kind: 'bench', M, x: M.bench.x, z: M.bench.z, r: 3, label: M.oficio ? 'Entrar al taller' : M.trade.verb });
@@ -592,6 +600,7 @@ export class TownGame {
       const M = this.missions.find(M => M.type === 'pelota' && !M.done);
       return M ? this.talk(M.host) : this.freePelota();
     }
+    if (it.kind === 'walker' && it.a.jobs && this.jornales) return this.jornales.talk(it.a);
     if (it.kind === 'walker' && it.a.info) return this.explainWork(it.a);
     if (it.kind === 'walker' && it.a.stall) return this.buyStall();
     if (it.kind === 'agro') return this.showAgro(it.o);
@@ -612,9 +621,9 @@ export class TownGame {
     this.player.frozen = true;
     try {
       const first = !this.futSeen; this.futSeen = true;
-      await this.say(a, first ? ['¡Kaixo! Soy Leire, entrenadora de la cantera de Osasuna. ¿Te atreves a jugar un partido en El Sadar?',
-        'Jugamos dos contra dos, con porteros. Acércate al balón para llevarlo y pulsa ACCIÓN: si miras a la portería, chutas; si no, pasas a tu compañero.',
-        'Gana quien marque 3 goles o vaya ganando cuando pasen dos minutos. ¡Aupa Osasuna!'] : ['¿Otro partido? ¡La grada está llena!']);
+      await this.say(a, first ? ['¡Kaixo! Soy Leire, entrenadora de la cantera de Osasuna. ¿Te atreves a jugar en El Sadar?',
+        'Jugamos a fútbol sala: cinco contra cinco, con porteros. Primero un entrenamiento de pases y luego eliges: partido, penaltis o un reto.',
+        'Con el balón: PASE y TIRO (mantenlo pulsado para chutar más fuerte). Sin balón: ROBO cuando se le separe del pie, o ENTRADA. ¡Aupa Osasuna!'] : ['¿Otro partido? ¡La grada está llena!']);
     } finally { this.player.frozen = false; a.talking = 0; }
     this.futbol = new Futbol(this, this.sadar);
     const r = await this.futbol.run();
@@ -1495,8 +1504,8 @@ export class TownGame {
     this.ui.onMiniHit = (ok) => { if (ok) { this.player.rig.doAct(t.act === 'wave' ? 'point' : t.act, 0.45); this.particles.emit({ x: M.bench.x, y: groundHeight(M.bench.x, M.bench.z) + 1, z: M.bench.z }, { n: 10, color: t.act === 'hammer' ? ['#ffb34a', '#ffe38a'] : ['#c9a27a', '#ffffff'], speed: 2.5, size: 0.18, life: 0.5 }); } };
     let r;
     try {
-      r = t.game === 'mash' ? await mashGame(this.ui, { title: M.title, hint: t.hint, icon: t.icon, verb: t.verb, seconds: 7, goal: 32 })
-        : await timingGame(this.ui, { title: M.title, hint: t.hint, icon: t.icon, verb: t.verb, rounds: 5, need: 3, zone: 0.2, speed: 0.6 });
+      r = t.game === 'mash' ? await mashGame(this.ui, { title: M.title, hint: t.hint, icon: t.icon, verb: t.verb, seconds: 7, goal: 32, art: t.art })
+        : await timingGame(this.ui, { title: M.title, hint: t.hint, icon: t.icon, verb: t.verb, rounds: 5, need: 3, zone: 0.2, speed: 0.6, art: t.art });
     } finally { this.ui.onMiniHit = null; this.player.frozen = false; this.mode = 'play'; }
     if (r.win) { this.player.rig.doCheer(); await this.say(M.host, [`¡Tienes buenas manos! El oficio de ${t.title.toLowerCase()} pasaba de padres a hijos.`]); await this.complete(M, { card: M.title, cardText: M.m.text }); }
     else await this.say(M.host, ['¡Casi! Vuelve a intentarlo cuando quieras en el banco de trabajo.']);
@@ -1519,8 +1528,11 @@ export class TownGame {
         let r;
         if (st.game === 'choice') r = await choiceGame(this.ui, { title, icon: of.icon, q: `${st.text} ${st.q}`, options: st.options, answer: st.answer, why: st.why });
         else if (st.game === 'order') r = await sequenceGame(this.ui, { title, icon: of.icon, hint: 'Toca los pasos en el orden en que se hacían', steps: st.items });
-        else if (st.game === 'mash') r = await mashGame(this.ui, { title, hint: st.text, icon: of.icon, verb: st.verb, seconds: 7, goal: 28 });
-        else r = await timingGame(this.ui, { title, hint: st.text, icon: of.icon, verb: st.verb, rounds: st.rounds || 4, need: st.need || 3, zone: 0.22, speed: 0.6 });
+        else if (st.game === 'mash') r = await mashGame(this.ui, { title, hint: st.text, icon: of.icon, verb: st.verb, seconds: 7, goal: 28, art: st.art });
+        else if (st.game === 'forge') r = await forgeGame(this.ui, { title: st.title });
+        else if (st.game === 'stitch') r = await stitchGame(this.ui, { title: st.title });
+        else if (st.game === 'shear') r = await shearGame(this.ui, { title: st.title });
+        else r = await timingGame(this.ui, { title, hint: st.text, icon: of.icon, verb: st.verb, rounds: st.rounds || 4, need: st.need || 3, zone: 0.22, speed: 0.6, art: st.art });
         if (!r.win) { await this.say(M.host, ['¡Casi! Así se aprende: vuelve a probar este paso en el banco de trabajo.']); return; }
         M.tstep++;
       }
@@ -1644,28 +1656,52 @@ export class TownGame {
   // ---------- Prismáticos ----------
   toggleBinoculars() {
     if (!this.binoOn) return;
-    if (this.mode === 'bino') { this.mode = 'play'; this.ui.binoculars(false); this.camera.fov = this.camera.userData.fov0 || 55; this.camera.updateProjectionMatrix(); this.player.obj.visible = true; this.player.frozen = false; return; }
+    if (this.mode === 'bino') {
+      this.mode = 'play'; this.ui.binoculars(false); this.camera.fov = this.camera.userData.fov0 || 55; this.camera.updateProjectionMatrix(); this.player.obj.visible = true; this.player.frozen = false;
+      if (this.panoOn) { this.panoOn = false; this.altScene = null; this.altCamera = null; this.altUpdate = null; }
+      return;
+    }
     if (this.mode !== 'play') return;
     this.mode = 'bino'; this.ui.binoculars(true); this.sound.ui('open');
     this.player.frozen = true; this.player.obj.visible = false;
     this.binoYaw = this.follow.yaw + Math.PI; this.binoPitch = 0.25;
+    // en el mirador: la vista lejana con los montes de verdad en su dirección
+    const v = this.miradorSpot(), P = this.player.pos, montes = this.panoMontes();
+    if (v && montes.length && Math.hypot(P.x - v.x, P.z - v.z) < 30) {
+      try {
+        // colores del cielo según la hora (los del pueblo pueden venir sin actualizar)
+        const sk = this.sky?.sample?.(this.sky.time ?? 10);
+        if (!this.pano) this.pano = new Panorama(montes, { quality: this.rt?.quality, sun: this.sky?.sunDir, zenith: sk?.zen, horizon: sk?.hor });
+        this.panoOn = true; this.altScene = this.pano.scene; this.altCamera = this.pano.camera; this.altUpdate = (dt) => this.updateBino(dt);
+        const M = this.missions.find(x => x.type === 'mirador'), next = this.pano.peaks.find(pk => !(M?.seenIds?.has(pk.m.id))) || this.pano.peaks[0];
+        this.binoYaw = Math.PI - next.m.bearing * Math.PI / 180 + 0.12; this.binoPitch = Math.atan2(next.summit.y * 0.6 - this.pano.eye.y, next.ds);
+        this.pano.camera.fov = 45;
+      } catch (e) { console.warn('vista del mirador', e); this.panoOn = false; }
+    }
+  }
+  // montes que se ven desde el mirador: los de la misión o, si no la hay, los cuatro más vistosos desde el pueblo
+  panoMontes() {
+    const M = this.missions.find(x => x.type === 'mirador'); if (M?.montes?.length) return M.montes;
+    if (!this._panoM) { const ll = townLatLon(this.def); this._panoM = ll ? montesFrom(ll.lat, ll.lon, 4) : []; }
+    return this._panoM;
   }
   updateBino(dt) {
-    const P = this.player.pos, cam = this.camera;
-    const sens = this.input.touch ? 0.0012 : 0.0009;
+    const P = this.player.pos, pano = this.panoOn ? this.pano : null, cam = pano ? pano.camera : this.camera;
+    const sens = (this.input.touch ? 0.0012 : 0.0009) * (pano ? cam.fov / 10 : 1);
     this.binoYaw -= this.input.look.dx * sens; this.binoPitch = clamp(this.binoPitch - this.input.look.dy * sens, -0.6, 1.3);
     const mv = this.input.move; this.binoYaw -= mv.x * dt * 0.8; this.binoPitch = clamp(this.binoPitch + mv.y * dt * 0.6, -0.6, 1.3);
-    cam.fov = lerp(cam.fov, 10, 1 - Math.exp(-8 * dt)); cam.updateProjectionMatrix();
-    const eye = new THREE.Vector3(P.x, P.y + 1.55, P.z);
+    const fov = lerp(cam.fov, pano ? 24 : 10, 1 - Math.exp(-(pano ? 2.5 : 8) * dt));
+    const eye = pano ? pano.eye.clone() : new THREE.Vector3(P.x, P.y + 1.55, P.z);
     const dir = new THREE.Vector3(Math.sin(this.binoYaw) * Math.cos(this.binoPitch), Math.sin(this.binoPitch), Math.cos(this.binoYaw) * Math.cos(this.binoPitch));
-    cam.position.copy(eye); cam.lookAt(eye.clone().add(dir));
+    if (pano) pano.look(this.binoYaw, this.binoPitch, fov);
+    else { cam.fov = fov; cam.updateProjectionMatrix(); cam.position.copy(eye); cam.lookAt(eye.clone().add(dir)); }
     this.follow.yaw = this.binoYaw + Math.PI;
     let best = null, ba = 1;
-    const obs = [...this.fauna.observables(), ...this.monteObs(eye)];
+    const obs = pano ? this.monteObs(eye) : [...this.fauna.observables(), ...this.monteObs(eye)];
     for (const o of obs) {
       const to = new THREE.Vector3(o.pos.x - eye.x, o.pos.y + (o.h || 0.5) - eye.y, o.pos.z - eye.z);
-      const d = to.length(); if (d > (o.far ? 320 : 110) || d < 1) continue;
-      const ang = to.normalize().angleTo(dir), tol = Math.max(0.035, (o.far ? 3 : 1.4) / d);
+      const d = to.length(); if ((!o.pano && d > (o.far ? 320 : 110)) || d < 1) continue;
+      const ang = to.normalize().angleTo(dir), tol = o.pano ? 0.06 : Math.max(0.035, (o.far ? 3 : 1.4) / d);
       if (ang < tol && ang < ba && (o.far || !segmentBlocked(eye.x, eye.z, o.pos.x, o.pos.z))) { ba = ang; best = o; }
     }
     // un ave detrás de una casa o de la iglesia no se puede anotar: comprobamos que no haya nada en medio
@@ -1686,11 +1722,11 @@ export class TownGame {
     const brg = ((Math.atan2(dir.x, -dir.z) * 180 / Math.PI) + 360) % 360;
     let goal = '', monteHint = null;
     if (MM) {
-      const v = this.miradorSpot(), far = !v || Math.hypot(P.x - v.x, P.z - v.z) > 30;
+      const v = this.miradorSpot(), far = !pano && (!v || Math.hypot(P.x - v.x, P.z - v.z) > 30);
       if (far) goal = `<b>Los montes desde el mirador</b>Desde aquí no se ven bien. Sal de los prismáticos y ve al mirador: lo marca la flecha amarilla del mapa.`;
       else {
         const list = this.monteObs(eye), next = list.find(o => !o.seen);
-        goal = `<b>Busca ${MM.need} montes con los prismáticos (${MM.count}/${MM.need})</b>Gira hasta ver una marca «?» en el horizonte, céntrala y pulsa ${this.input.touch ? 'el botón amarillo' : 'E'}.<ul>${list.map(o => `<li class="${o.seen ? 'ok' : o === next ? 'next' : ''}">${o.seen ? '✔ ' + o.monte.name : '? Monte al ' + o.monte.dir + ' · ' + Math.round(o.monte.km) + ' km'}</li>`).join('')}</ul>`;
+        goal = `<b>Busca ${MM.need} montes con los prismáticos (${MM.count}/${MM.need})</b>Centra la marca «?» de una cumbre y pulsa ${this.input.touch ? 'el botón amarillo' : 'E'}.<ul>${list.map(o => `<li class="${o.seen ? 'ok' : o === next ? 'next' : ''}">${o.seen ? '✔ ' + o.monte.name : '? Monte al ' + o.monte.dir + ' · ' + Math.round(o.monte.km) + ' km'}</li>`).join('')}</ul>`;
         if (!best && next) { const q = next.pos.clone().project(cam); const behind = q.z > 1; monteHint = Math.atan2(behind ? -q.y : q.y, behind ? -q.x : q.x); }
       }
     }
@@ -1717,6 +1753,15 @@ export class TownGame {
   // mirador del pueblo (el landmark «lookout» o «pass») y montes vistos desde él, en su dirección real (norte = −z)
   miradorSpot() { const l = TOWN.landmarks.find(l => l.kind === 'lookout') || TOWN.landmarks.find(l => l.kind === 'pass'); return l ? (l.spot || { x: l.x, z: l.z }) : null; }
   monteObs(eye) {
+    if (this.panoOn && this.pano) {
+      const M = this.missions.find(x => x.type === 'mirador'), S = this.pano.scene;
+      if (!this.panoPins) this.panoPins = this.pano.peaks.map(pk => { const seen = this.P.montes?.includes(pk.m.id) && (!M || M.seenIds?.has(pk.m.id)); const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: pinTex(seen ? pk.m.name : '?'), depthTest: false, transparent: true, fog: false })); sp.renderOrder = 20; sp.userData.named = seen; S.add(sp); return sp; });
+      return this.pano.peaks.map((pk, i) => {
+        const pin = this.panoPins[i], s = pk.ds * 0.026, named = pin.userData.named;
+        pin.scale.set(named ? s * 3.4 : s, named ? s * 0.85 : s, 1); pin.position.copy(pk.summit).add(new THREE.Vector3(0, s * 0.75 + pk.H * 0.05, 0));
+        return { pos: pk.summit, h: 0, far: true, pano: true, id: 'monte:' + pk.m.id, monte: pk.m, seen: named, pin, i };
+      });
+    }
     const M = this.missions.find(x => x.type === 'mirador'), v = this.miradorSpot();
     if (!M || M.step < 1 || !v || Math.hypot(eye.x - v.x, eye.z - v.z) > 30) { if (this.montePins) this.montePins.forEach(p => p.visible = false); return []; }
     if (!this.montePins) this.montePins = M.montes.map(mt => { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: pinTex('?'), depthTest: false, transparent: true })); sp.scale.set(14, 14, 1); sp.renderOrder = 20; this.scene.add(sp); return sp; });
@@ -1728,12 +1773,12 @@ export class TownGame {
   }
   seeMonte(o) {
     const M = this.missions.find(x => x.type === 'mirador'), mt = o.monte;
-    (M.seenIds ||= new Set()).add(mt.id); (this.P.montes ||= []).includes(mt.id) || this.P.montes.push(mt.id);
-    o.pin.material.map?.dispose(); o.pin.material.map = pinTex(mt.name); o.pin.material.needsUpdate = true; o.pin.scale.set(36, 9, 1);
-    if (M.step === 1) { M.count = M.seenIds.size; if (M.count >= M.need) M.step = 2; }
+    if (M) (M.seenIds ||= new Set()).add(mt.id); (this.P.montes ||= []).includes(mt.id) || this.P.montes.push(mt.id);
+    o.pin.material.map?.dispose(); o.pin.material.map = pinTex(mt.name); o.pin.material.needsUpdate = true; o.pin.scale.set(36, 9, 1); o.pin.userData.named = true;
+    if (M && M.step === 1) { M.count = M.seenIds.size; if (M.count >= M.need) M.step = 2; }
     saveProfile(); this.sound.magic?.();
     const isNew = addCard('monte:' + mt.id);
-    infoCard(this.ui, { icon: 'peak', kicker: `Al ${mt.dir} · ${Math.round(mt.km)} km`, title: `${mt.name}${mt.alt ? ' · ' + mt.alt : ''}`, text: `${mt.altitude.toLocaleString('es')} metros${mt.zone ? ' · ' + mt.zone : ''}. ${mt.intro || ''}`, badge: isNew ? 'Nueva carta' : '', button: M.step === 2 ? `¡Hecho! Vuelve con ${M.host.name}` : 'Seguir mirando' });
+    infoCard(this.ui, { icon: 'peak', kicker: `Al ${mt.dir} · ${Math.round(mt.km)} km`, title: `${mt.name}${mt.alt ? ' · ' + mt.alt : ''}`, text: `${mt.altitude.toLocaleString('es')} metros${mt.zone ? ' · ' + mt.zone : ''}. ${mt.intro || ''}`, badge: isNew ? 'Nueva carta' : '', button: M?.step === 2 ? `¡Hecho! Vuelve con ${M.host.name}` : 'Seguir mirando' });
   }
   // animal buscado más cercano (para la brújula y la flecha del visor)
   obsNearest(M) {
@@ -1748,7 +1793,7 @@ export class TownGame {
   // ficha del cuaderno de campo al anotar un animal
   async fieldCard(id, first, M) {
     const F = FAUNA[id]; if (!F) return;
-    if (!first && !M) { this.ui.toast(`${F.name} anotado`, 'binoculars'); return; }
+    if (!first && !M) { if (this.mode === 'bino') this.ui.binoNote(`${F.name} anotado`); else this.ui.toast(`${F.name} anotado`, 'binoculars'); return; }
     this.sound.magic();
     const done = M && M.count >= M.need;
     await infoCard(this.ui, { icon: id, kicker: `Cuaderno de campo · ${F.eu}`, title: F.name, text: `${F.look} ${F.fact}`, badge: first ? 'Especie nueva' : '', button: M ? (done ? `¡Hecho! Vuelve con ${M.host.name}` : `Seguir buscando (${M.count}/${M.need})`) : 'Seguir observando' });
