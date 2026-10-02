@@ -158,8 +158,9 @@ export class NightLights {
     this.mat = new THREE.PointsMaterial({ map: GLOW, color: '#ffc46b', size: 3.4, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0, sizeAttenuation: true });
     this.points = new THREE.Points(g, this.mat);
     scene.add(this.points);
-    // unas pocas luces reales cerca del jugador
-    this.lights = [0, 1, 2].map(() => { const p = new THREE.PointLight('#ffb65c', 0, 14, 1.6); scene.add(p); return p; });
+    // sin luces reales: cada luz puntual encarece el dibujo de todo lo que se ve (también de día, con la luz apagada).
+    // Las farolas se ven encendidas por su brillo y su cristal
+    this.lights = [];
     this.lamps = lamps;
   }
   update(night, player) {

@@ -40,6 +40,20 @@ const TIPS = [
   'Cuando tengas todos los pueblos de una comarca, se iluminará en el mapa de Navarra.',
 ];
 
+// ordenador: alta solo con tarjeta gráfica dedicada; con la integrada (la de casi todos los portátiles: Intel, AMD
+// Radeon Graphics/Vega, o sin aceleración) media, que va mucho más fluida
+function desktopTier() {
+  try {
+    const gl = document.createElement('canvas').getContext('webgl2') || document.createElement('canvas').getContext('webgl');
+    const ext = gl?.getExtension('WEBGL_debug_renderer_info'), r = String(ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl?.getParameter(gl.RENDERER) || '');
+    gl?.getExtension('WEBGL_lose_context')?.loseContext();
+    if (/swiftshader|llvmpipe|software|microsoft basic/i.test(r)) return 'low';
+    if (/intel|uhd|iris|hd graphics|radeon\(tm\) graphics|radeon graphics|vega|mali|adreno|powervr/i.test(r)) return 'mid';
+    if (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) return 'mid';
+    return 'high';
+  } catch (e) { return 'mid'; }
+}
+
 async function boot() {
   startI18n();
   await loadStore();
@@ -51,7 +65,7 @@ async function boot() {
   // calidad automática: ordenador alta; móvil baja (en iPhone no se puede saber la memoria y Safari cierra la página
   // si se pasa), salvo móviles que dicen tener mucha memoria (6 GB o más), que van en media
   const bigMem = navigator.deviceMemory && navigator.deviceMemory >= 6;
-  const quality = q.get('q') || P.settings.quality || (input.touch ? (bigMem ? 'mid' : 'low') : 'high');
+  const quality = q.get('q') || P.settings.quality || (input.touch ? (bigMem ? 'mid' : 'low') : desktopTier());
   const rt = new Runtime({ canvas, input, sound, quality });
   // si el dispositivo se queda sin memoria para dibujar (pantalla apagada), la próxima vez arranca con menos calidad
   canvas.addEventListener('webglcontextlost', () => { const S = P.settings, next = { high: 'mid', mid: 'low' }[S.quality || quality]; if (next) { S.quality = next; saveProfile(); } });
@@ -87,7 +101,7 @@ async function boot() {
     ui.showLoading(d.name, TIPS[Math.floor(Math.random() * TIPS.length)], landImg(d.comarca, 1280, 720, true), { comarca: cm?.name, stamp: stampImg(d.comarca, d.name.split(' /')[0]), avatar: avatarPortrait(P.avatar), intro: d.intro, missions: (d.missions || []).map(m => m.icon || TI[m.type] || 'star') });
     try {
       const npcP = preloadNpcs(); await preloadFood(); await Promise.all([rt.load(d, P.avatar, (p, m) => ui.progress(p, m)), npcP]);
-      if (!d.special && hasShepherd(d)) await preloadNpcMeshy(['pastor']);
+      if (!d.special && hasShepherd(d) && P.avatar !== 'pastor') await preloadNpcMeshy(['pastor']);
       const ctx = { scene: rt.scene, camera: rt.camera, player: rt.player, follow: rt.follow, ui, sound, input, sky: rt.sky, fauna: rt.fauna, particles: rt.particles, beacon: rt.beacon, onExit: exit };
       hookPlayer(rt.player);
       if (d.special === 'salazar') {

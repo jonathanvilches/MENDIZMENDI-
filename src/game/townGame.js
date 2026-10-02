@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { Actor, cullActor, frameFrustum } from '../actors/people.js';
 import { MYTHS } from '../actors/outfits.js';
 import { PLACES } from '../world/layout.js';
+import { loadMeshy, hasMeshy } from '../actors/glbChar.js';
 import { groundHeight, terrainHeight, waterLevelAt } from '../world/heightfield.js';
 import { TOWN } from '../world/townBuilder.js';
 import { isFree, segmentBlocked, addCircle, addBox } from '../world/colliders.js';
@@ -353,7 +354,7 @@ export class TownGame {
     const s0 = route[0];
     // el pastor del pueblo, con su rebaño y su perro: es el personaje del pastor (modelo de Meshy con txapela)
     const pastor = new Actor({ id: 'pastor', name: 'Pastor', x: s0.x, z: s0.z, route, walkSpeed: 0.75,
-      look: { meshy: 'pastor', shirt: '#efe9dc', vest: '#3a2a22', pants: '#3a3530', txapela: '#1d1d24', hair: '#8a8478', moustache: '#8a8478', staff: true, old: R() < 0.5, bag: '#7a5a3a' } }, this.scene);
+      look: { meshy: this.P.avatar === 'pastor' ? null : 'pastor', shirt: '#efe9dc', vest: '#3a2a22', pants: '#3a3530', txapela: '#1d1d24', hair: '#8a8478', moustache: '#8a8478', staff: true, old: R() < 0.5, bag: '#7a5a3a' } }, this.scene);
     pastor.info = PASTOR_INFO(d.family); this.walkers.push(pastor);
     // el rebaño va detrás en fila: cada oveja sigue a otra (las primeras, al pastor)
     const flock = [];
@@ -419,6 +420,10 @@ export class TownGame {
     this.elapsed += dt;
     const P = this.player;
     this.watchdog(dt);
+    // cerca del frontón se piden ya los dos pelotaris (así el partido empieza al momento, sin esperar a descargarlos)
+    if (this.fronton && !this.pelPrefetch && Math.hypot(this.fronton.entry.x - P.pos.x, this.fronton.entry.z - P.pos.z) < 60) {
+      this.pelPrefetch = true; for (const n of ['pelotari', 'pelotari_rojo']) if (hasMeshy(n)) loadMeshy(n).catch(() => {});
+    }
     const fr = frameFrustum(this.camera);
     const cull = (a, max) => cullActor(a, Math.hypot(a.pos.x - P.pos.x, a.pos.z - P.pos.z), max, dt, P, fr);
     for (const a of this.actors) cull(a, 110);

@@ -36,7 +36,8 @@ export class Actor {
     this.def = def;
     this.id = def.id; this.name = def.name;
     // todos (vecinos, carnaval y seres de leyenda) con el cuerpo de los personajes nuevos; la minifigura solo si aún no han cargado
-    if (npcsReady()) { const n = buildNpc(def.look); this.obj = n.obj; this.glb = n.char; this.anim = n.anim; this.J = {};
+    const n = npcsReady() ? buildNpc(def.look) : null;
+    if (n) { this.obj = n.obj; this.glb = n.char; this.anim = n.anim; this.J = {};
       // el nombre va con el cuerpo: un chico con nombre de chico y una chica con nombre de chica (los seres de leyenda, como son)
       if (!def.look?.myth) this.name = nameFor(def.name, n.obj.userData.sex); }
     else { this.obj = buildMinifig(lookToMinifig(def.look || {})); this.J = this.obj.userData.J; this.anim = new MinifigAnimator(this.obj); }

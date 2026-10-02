@@ -6,8 +6,6 @@ import { GlbChar, loadChar, loadKayKit, loadMeshy, hasMeshy } from './glbChar.js
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { applyOutfit, regionalOutfit, MYTHS, resetOutfitTextures } from './outfits.js';
-import boyUrl from '../assets/chars/char_protagonista_lod.glb?url';
-import girlUrl from '../assets/chars/char_nerea_lod.glb?url';
 
 // colores con los que se pintaron los modelos en Blender (build_protagonista.py / build_nerea.py)
 const BASE = {
@@ -24,20 +22,15 @@ const BASE = {
 };
 const GLTF = {};
 let ready = false;
-/** Carga los cuerpos de los vecinos (KayKit). Los dos modelos antiguos de Blender solo se descargan si los KayKit
- *  no cargan (son la reserva). Se llama antes de montar el pueblo. */
+/** Carga los cuerpos de los vecinos (KayKit). Se llama antes de montar el pueblo; si no cargan, los vecinos salen
+ *  con la figura sencilla de reserva. */
 export async function preloadNpcs() {
-  // cuerpos KayKit (la fisiología de los personajes nuevos) para todos los vecinos
   try { await Promise.all(KK_BASES.map(n => loadKayKit(n).then(g => { KKG[n] = g; }))); kkReady = true; } catch (e) { console.warn('vecinos KayKit', e); }
-  if (!kkReady) {
-    try { const [b, g] = await Promise.all([loadChar(boyUrl), loadChar(girlUrl)]); GLTF.boy = b; GLTF.girl = g; ready = true; }
-    catch (e) { console.warn('vecinos GLB', e); ready = false; }
-  }
-  return ready || kkReady;
+  return kkReady;
 }
 /** Personajes propios de Meshy que hacen de vecinos (el pastor): solo en los pueblos donde salen. */
 export function preloadNpcMeshy(names) {
-  return Promise.all(names.filter(n => hasMeshy(n) && !MESHY_NPC[n]).map(n => loadMeshy(n, 1.55).then(g => { MESHY_NPC[n] = g; }).catch(e => console.warn('vecino', n, e))));
+  return Promise.all(names.filter(n => hasMeshy(n) && !MESHY_NPC[n]).map(n => loadMeshy(n).then(g => { MESHY_NPC[n] = g; }).catch(e => console.warn('vecino', n, e))));
 }
 const NPC_MESHY = ['pastor'], MESHY_NPC = {};
 // vecino con un personaje de Meshy: su modelo con sus clips, con la misma forma de animarse que los demás
@@ -296,6 +289,7 @@ export function buildNpc(look = {}) {
   const L = look;
   if (L.meshy && MESHY_NPC[L.meshy]) try { return buildNpcMeshy(L); } catch (e) { console.warn('vecino Meshy', e); }
   if (kkReady && !L.classic) try { return buildNpcKK(L); } catch (e) { console.warn('vecino KayKit', e); }
+  if (!GLTF.boy) return null;   // sin cuerpo: la figura de reserva
   const sex = L.female || L.skirt || L.ponytail || L.bun || L.braids || L.longHair || L.lashes ? 'girl' : 'boy';
   const gltf = GLTF[sex] || GLTF.boy;
   const char = new GlbChar(gltf, { outline: 0.006, walkAt: 0.2, runAt: 4.6, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / 3.2, 0.85) : Math.pow(Math.max(0.2, v) / 1.5, 0.8) });

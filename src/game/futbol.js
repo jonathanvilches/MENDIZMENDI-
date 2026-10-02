@@ -87,11 +87,11 @@ export class Futbol {
     const num = (n, p, light) => { const d = dorsal(n, light ? '#16224a' : '#ffffff', light ? '#ffffff' : '#16224a'); d.position.set(0, (p.obj.userData.H || 1.5) * 0.66, -0.17); d.rotation.y = Math.PI; p.obj.add(d); };
     // tu futbolista: el jugador de Osasuna (modelo de Meshy, con su camiseta, sus clips y su chut); si no está, uno con la equipación
     let mine = null;
-    if (hasMeshy('osasuna')) try { mine = this.meshyPlayer(await loadMeshy('osasuna', 1.55)); } catch (e) { console.warn('futbolista', e); }
+    if (hasMeshy('osasuna')) try { mine = this.meshyPlayer(await loadMeshy('osasuna')); } catch (e) { console.warn('futbolista', e); }
     this.me = { ...(mine || npc(KIT.home, 0, { height: 1.55 })), side: 'home', role: 'field', me: true, x: 0, z: -1.2, speed: JOG, h: 0 };
     // el equipo visitante, con la segunda equipación de Osasuna (modelo de Meshy); cada uno de una altura
     let away = null;
-    if (hasMeshy('osasuna_fuera')) try { away = await loadMeshy('osasuna_fuera', 1.55); } catch (e) { console.warn('visitantes', e); }
+    if (hasMeshy('osasuna_fuera')) try { away = await loadMeshy('osasuna_fuera'); } catch (e) { console.warn('visitantes', e); }
     const visitor = (i) => { if (!away) return npc(KIT.away, i + 3); const p = this.meshyPlayer(away); p.char.root.scale.multiplyScalar([0.97, 1.03, 1.0][i % 3]); return p; };
     if (mine) this.me.n = 7; else num(10, this.me);   // el de Meshy ya lleva su 7 en la espalda
     this.team = [
@@ -427,7 +427,7 @@ export class Futbol {
       const q = this.W(p.x, p.z), dive = p.tilt || 0; p.obj.position.set(q.x, this.gy(p.x, p.z) + Math.abs(dive) * 0.35, q.z); p.obj.rotation.set(0, p.h, -dive);
       p.anim.update(dt, { speed: p.cur || 0 });
     }
-    // el explorador (oculto) sigue al jugador para que todo lo demás (cámara, sonido, vecinos) esté en su sitio
+    // el personaje del jugador (oculto) sigue al jugador para que todo lo demás (cámara, sonido, vecinos) esté en su sitio
     const mw = this.W(this.me.x, this.me.z); this.G.player.pos.set(mw.x, this.gy(this.me.x, this.me.z), mw.z); this.G.player.heading = this.me.h;
     this.cheer = Math.max(0, (this.cheer || 0) - dt);
     this.crowd.cheer?.(this.cheer > 0);

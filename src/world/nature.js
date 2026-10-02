@@ -387,7 +387,7 @@ export class Nature {
     };
     TREES.length = 0;
     let spots = treeSpots(rnd);
-    const cap = quality === 'low' ? 2200 : quality === 'mid' ? 3600 : 5200;
+    const cap = quality === 'low' ? 2000 : quality === 'mid' ? 3000 : 4000;
     if (spots.length > cap) { const crop = spots.filter(s => s.crop || s.special), rest = spots.filter(s => !s.crop && !s.special); rest.sort(() => rnd() - 0.5); spots = crop.slice(0, cap * 0.4).concat(rest.slice(0, cap - Math.min(crop.length, cap * 0.4))); }
     // agrupar por trozo
     const chunks = new Map();
@@ -422,10 +422,10 @@ export class Nature {
       }
       this.chunks.push(entry);
     }
-    this.lodDist = quality === 'low' ? 60 : quality === 'mid' ? 80 : 100;
+    this.lodDist = quality === 'low' ? 50 : quality === 'mid' ? 60 : 70;   // árboles detallados solo cerca (eran lo más caro)
     this.rockFar = quality === 'low' ? 170 : quality === 'mid' ? 230 : 300;
     // solo los trozos cercanos proyectan sombra: la sombra de lo lejano apenas se ve y duplica el coste
-    this.shadowDist = quality === 'low' ? 0 : quality === 'mid' ? 20 : 45;
+    this.shadowDist = quality === 'low' ? 0 : quality === 'mid' ? 18 : 30;
     this.buildRocks(rnd);
     this.buildBushes(rnd);
     this.buildCrops(rnd, quality);

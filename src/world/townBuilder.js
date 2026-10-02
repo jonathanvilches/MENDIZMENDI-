@@ -25,6 +25,13 @@ function minGround(x, z, w, d, ry) {
   for (const [a, b] of [[-w / 2, -d / 2], [w / 2, -d / 2], [w / 2, d / 2], [-w / 2, d / 2], [0, 0], [0, d / 2]]) { const h = terrainHeight(x + a * c + b * s, z - a * s + b * c); mn = Math.min(mn, h); mx = Math.max(mx, h); }
   return { mn, mx };
 }
+// en las cuestas la casa se apoya casi en lo alto de su planta (el lado de arriba no queda enterrado) y por debajo
+// lleva un zócalo de piedra hasta el suelo por el lado de abajo. Devuelve la altura de la planta baja.
+function slopeBase(B, x, z, w, d, ry, g) {
+  const y = Math.max(g.mn - 0.1, g.mx - 0.35), drop = y - g.mn;
+  if (drop > 0.15) B.add('stone', new THREE.BoxGeometry(w + 0.12, drop + 0.6, d + 0.12), M(x, g.mn - 0.6 + (drop + 0.6) / 2, z, ry));
+  return y;
+}
 function cornersOk(x, z, w, d, ry) {
   const c = Math.cos(ry), s = Math.sin(ry);
   for (const [a, b] of [[-w / 2, -d / 2], [w / 2, -d / 2], [w / 2, d / 2], [-w / 2, d / 2], [0, 0], [-w / 2, 0], [w / 2, 0], [0, -d / 2]]) {
@@ -100,7 +107,7 @@ export function buildTown(scene, mats, def) {
       const p = pathQuery(lm.x, lm.z);
       const r2 = Math.atan2(PLACES.plaza.x - lm.x, PLACES.plaza.z - lm.z);
       const g = minGround(lm.x, lm.z, w, d, r2);
-      buildHouse(B, M(lm.x, g.mn - 0.15, lm.z, r2), { w, d, h, wall: fam === 'ribera' ? 'brick' : 'ashlar', noQuoins: true, roof: fam === 'pyrenean' ? 'slate' : 'tile', roofType: 'hip', hipRise: 4.6, arch: true, doorX: 0, balcony: true, balconyW: 5, ironBalcony: true, shield: lm.kind === 'palace', cornice: true }, rnd);
+      buildHouse(B, M(lm.x, slopeBase(B, lm.x, lm.z, w, d, r2, g), lm.z, r2), { w, d, h, wall: fam === 'ribera' ? 'brick' : 'ashlar', noQuoins: true, roof: fam === 'pyrenean' ? 'slate' : 'tile', roofType: 'hip', hipRise: 4.6, arch: true, doorX: 0, balcony: true, balconyW: 5, ironBalcony: true, shield: lm.kind === 'palace', cornice: true }, rnd);
       addBox(lm.x, lm.z, w + 0.4, d + 0.4, r2, { solidView: true });
       spot = { x: lm.x + Math.sin(r2) * (d / 2 + 2), z: lm.z + Math.cos(r2) * (d / 2 + 2) };
     } else spot = landmark(B, lm, ctx);
@@ -139,8 +146,8 @@ export function buildTown(scene, mats, def) {
       const ry = Math.atan2(-nx, -nz);
       if (isFree(x, z, Math.max(w, d) / 2 * 0.92) && cornersOk(x, z, w, d, ry)) {
         const g = minGround(x, z, w, d, ry);
-        if (g.mx - g.mn < 3.5) {
-          buildHouse(B, M(x, g.mn - 0.1, z, ry), { arch: st.wall === 'stone' || st.wall === 'ashlar' ? rnd() < 0.5 : rnd() < 0.2, balconyW: Math.min(w - 2, 3 + rnd() * 2.5), shield: rnd() < 0.1, cornice: rnd() < 0.4, ...st, w, d, h }, rnd);
+        if (g.mx - g.mn < 2.4) {
+          buildHouse(B, M(x, slopeBase(B, x, z, w, d, ry, g), z, ry), { arch: st.wall === 'stone' || st.wall === 'ashlar' ? rnd() < 0.5 : rnd() < 0.2, balconyW: Math.min(w - 2, 3 + rnd() * 2.5), shield: rnd() < 0.1, cornice: rnd() < 0.4, ...st, w, d, h }, rnd);
           addBox(x, z, w + 0.3, d + 0.3, ry, { solidView: true });
           TOWN.houses.push({ x, z, ry, w, d, door: { x: x + Math.sin(ry) * (d / 2 + 1.2), z: z + Math.cos(ry) * (d / 2 + 1.2) } });
           count++; s += w + 1.2 + rnd() * 2.5; continue;
