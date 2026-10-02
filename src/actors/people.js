@@ -1,7 +1,7 @@
 // Vecinos y seres de leyenda: figuras articuladas procedurales con animación propia
 import * as THREE from 'three';
 import { groundHeight } from '../world/heightfield.js';
-import { resolve, addCircle, addMover } from '../world/colliders.js';
+import { resolve, addMover } from '../world/colliders.js';
 import { damp, dampAngle } from '../util/math.js';
 import { buildMinifig, lookToMinifig, MinifigAnimator, setOutlines } from './minifig.js';
 import { buildNpc, npcsReady } from './npcGlb.js';

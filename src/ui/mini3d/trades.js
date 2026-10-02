@@ -4,7 +4,7 @@
 // bajan, el hierro se enfría en el agua, las palomas bajan a las redes, la piedra sube al hombro, la carbonera se tapa,
 // la herradura se dobla, la suela se cose). Todo con curvas: tornos, tubos, extrusiones y piezas redondeadas.
 import * as THREE from 'three';
-import { play3d, blip } from './play.js';
+import { play3d } from './play.js';
 import { workshop, outdoors, texMat, uvScale, rbox, lathe, lumpy, particles, puffs, tube, stool, tree } from './kit.js';
 import { anvil, hammer, tongs, shoeCurve, heatColor } from './forge.js';
 import { soleMesh, soleOutline } from './stitch.js';

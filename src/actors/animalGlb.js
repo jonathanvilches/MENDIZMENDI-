@@ -5,7 +5,9 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { mergeGeometries, toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';   // el pachón (modelo de Meshy) va comprimido
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';   // los modelos van comprimidos
+import { dogPart, dogShape, dogFur, dogGear, dogDress } from './dogDetail.js';
+import { FILL_DECL, useFill } from '../engine/charLight.js';
 
 const URLS = {};
 for (const [p, u] of Object.entries(import.meta.glob('../assets/animals/*.glb', { eager: true, query: '?url', import: 'default' }))) URLS[p.split('/').pop().replace('.glb', '')] = u;
@@ -26,12 +28,13 @@ const SPEC = {
   pig: { model: 'Pig', h: 0.85, col: { Main: '#f0b4a2', Main_Light: '#f6c8b8', Muzzle: '#e89a8a', Hooves: '#7a5a4a' } },
   jabali: { model: 'Jabali', h: 0.9, col: { Main: '#3a2e26', Main_Light: '#4e4034', Muzzle: '#2a221e', Hooves: '#1a1512' } },
 };
-// perros: razas del compañero
+// perros: razas del compañero, a su altura real (hasta la punta de las orejas); el detalle de cada raza (capa, pelo,
+// collar, orejas y cola) está en dogDetail.js
 const DOG = {
-  gorbeia: { model: 'ShibaInu', h: 0.62, col: { Main: '#b8692e', Main_Light: '#dca06a' } },
-  iletsua: { model: 'ShibaInu', h: 0.64, col: { Main: '#a9845a', Main_Light: '#d6bf96', Black: '#5a4430' } },
-  aleman: { model: 'Husky', h: 0.74, col: { Material: '#b5793a', 'Material.001': '#dcae70', 'Material.006': '#1f1813' } },
-  mastin: { model: 'Husky', h: 0.95, col: { Material: '#e8e2d6', 'Material.001': '#f6f2ea', 'Material.006': '#8a8478' } },
+  gorbeia: { model: 'ShibaInu', h: 0.7, col: { Main: '#b8692e', Main_Light: '#dca06a' }, dog: { paint: 'gorbeia', tail: -1.6, tailUncurl: -0.4, hair: 0.0007, collar: '#a3261f' } },
+  iletsua: { model: 'ShibaInu', h: 0.72, col: { Main: '#a9845a', Main_Light: '#d6bf96', Black: '#2a201a' }, dog: { paint: 'iletsua', tail: -1.6, tailUncurl: -0.4, hair: 0.001, long: true, collar: '#2f6b3a' } },
+  aleman: { model: 'Husky', h: 0.84, col: {}, dog: { paint: 'aleman', tail: -1.8, tailUncurl: -0.14, hair: 0.0008, collar: '#1e1b19' } },
+  mastin: { model: 'Husky', h: 1.0, col: {}, dog: { paint: 'mastin', tail: -1.6, tailUncurl: -0.05, ears: 'drop', bulk: true, hair: 0.001, long: true, collar: '#5a3a22', carlanca: true } },
 };
 export function animalSpec(kind, opts = {}) { return kind === 'dog' ? DOG[opts.breed] || DOG.gorbeia : SPEC[kind] || null; }
 export const hasGlbAnimal = (kind, opts) => { const s = animalSpec(kind, opts); return !!(s && GLTF[s.model]); };
@@ -60,7 +63,7 @@ export const animalPending = (kind, opts) => { const s = animalSpec(kind, opts);
 // Una sola malla por animal: los trozos de cada material (cuerpo, hocico, cuernos, pezuñas, ojos…) se funden en
 // una geometría con el color de la raza en cada vértice, y las normales se suavizan (sin facetas) salvo en las
 // aristas vivas. Así cada animal cuesta una llamada de dibujo en vez de seis, y se ve más orgánico.
-const BAKED = new Map();
+const BAKED = new Map(), GEAR = new Map();
 function bakedScene(key, S, g) {
   if (BAKED.has(key)) return BAKED.get(key);
   const sc = SkeletonUtils.clone(g.scene), skinned = [];
@@ -81,13 +84,16 @@ function bakedScene(key, S, g) {
     const col = new Float32Array(n * 3); for (let i = 0; i < n; i++) { col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b; }
     out.setAttribute('color', new THREE.BufferAttribute(col, 3));
     if (S.wool) out.setAttribute('wool', new THREE.BufferAttribute(new Float32Array(n).fill(S.wool.includes(m.material.name) ? 1 : 0), 1));
+    if (S.dog) out.setAttribute('part', new THREE.BufferAttribute(new Float32Array(n).fill(dogPart(m.material.name)), 1));
     if (src.index) out.setIndex(Array.from(src.index.array));
     geos.push(out);
   }
   let merged = mergeGeometries(geos);
-  merged = toCreasedNormals(merged, THREE.MathUtils.degToRad(65));
-  const mesh = new THREE.SkinnedMesh(merged, S.wool ? woolMaterial(merged) : new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.82 }));
-  const s0 = skinned[0]; mesh.name = 'body'; mesh.position.copy(s0.position); mesh.quaternion.copy(s0.quaternion); mesh.scale.copy(s0.scale);
+  const s0 = skinned[0];
+  merged = S.dog ? dogShape(merged, S, s0.skeleton, s0.bindMatrix) : toCreasedNormals(merged, THREE.MathUtils.degToRad(65));
+  const mesh = new THREE.SkinnedMesh(merged, S.dog ? dogFur(merged, S) : S.wool ? woolMaterial(merged) : new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.82 }));
+  if (S.dog) GEAR.set(key, dogGear(merged, S, s0.skeleton, s0.bindMatrix));
+  mesh.name = 'body'; mesh.position.copy(s0.position); mesh.quaternion.copy(s0.quaternion); mesh.scale.copy(s0.scale);
   s0.parent.add(mesh); mesh.bind(s0.skeleton, s0.bindMatrix);
   for (const m of skinned) m.removeFromParent();
   BAKED.set(key, sc); return sc;
@@ -104,12 +110,13 @@ export function woolMaterial(geo, cut = null) {
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95 });
   m.onBeforeCompile = (sh) => {
     if (cut) Object.assign(sh.uniforms, cut.uniforms);
+    useFill(sh);
     const cutDecl = cut ? `\nuniform vec4 uCut[${MAXCUT}]; uniform int uNCut; uniform float uThick; attribute float shorn; attribute vec3 smoothN; varying float vCut; varying vec3 vBP;
 float cutAt(vec3 p){ float k = 0.0; for (int i = 0; i < ${MAXCUT}; i++) { if (i >= uNCut) break; vec4 c = uCut[i]; k = max(k, 1.0 - smoothstep(c.w * 0.62, c.w, distance(p, c.xyz))); } return k; }` : '';
     const cutVert = cut ? `\nvBP = position; vCut = max(shorn, cutAt(position)) * wool; transformed -= normalize(smoothN) * uThick * vCut;` : '';
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute float wool; varying float vWool; varying vec3 vWP;' + cutDecl)
       .replace('#include <begin_vertex>', `#include <begin_vertex>\nvWool = wool; vWP = position * ${f};` + cutVert);
-    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>${FILL_DECL}
 varying float vWool; varying vec3 vWP;${cut ? `\nuniform vec4 uCut[${MAXCUT}]; uniform int uNCut; uniform vec3 uSkin; varying float vCut; varying vec3 vBP;
 float cutAt(vec3 p){ float k = 0.0; for (int i = 0; i < ${MAXCUT}; i++) { if (i >= uNCut) break; vec4 c = uCut[i]; k = max(k, 1.0 - smoothstep(c.w * 0.62, c.w, distance(p, c.xyz))); } return k; }` : ''}
 vec3 h3(vec3 p){ p = vec3(dot(p, vec3(127.1, 311.7, 74.7)), dot(p, vec3(269.5, 183.3, 246.1)), dot(p, vec3(113.5, 271.9, 124.6))); return fract(sin(p) * 43758.5453); }
@@ -127,7 +134,7 @@ float cell(vec3 p){ vec3 i = floor(p), fr = fract(p); float d = 8.0;
   diffuseColor.rgb *= 1.0 - 0.25 * smoothstep(0.25, 0.45, sc) * (1.0 - smoothstep(0.45, 0.75, sc));   // el borde del corte, en sombra` : ''}`)
       // vellón mullido: un poco de su propio color en los bordes (de lado la lana parece más esponjosa y clara)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
-  totalEmissiveRadiance += vWool * ${cut ? '(1.0 - vCut) *' : ''} diffuseColor.rgb * 0.22 * pow(1.0 - abs(dot(normalize(vNormal), normalize(vViewPosition))), 2.0);`);
+  totalEmissiveRadiance += uCharFill * vWool * ${cut ? '(1.0 - vCut) *' : ''} diffuseColor.rgb * 0.22 * pow(1.0 - abs(dot(normalize(vNormal), normalize(vViewPosition))), 2.0);`);
   };
   m.customProgramCacheKey = () => 'lana' + f + (cut ? '-corte' : '');
   return m;
@@ -155,6 +162,8 @@ export function buildAnimal(kind, opts = {}) {
   // a su altura real, con los pies en el suelo
   const box = new THREE.Box3().setFromObject(inner), h = box.max.y - box.min.y || 1;
   inner.scale.setScalar(S.h / h); inner.position.y = -box.min.y * (S.h / h);
+  // perros: collar, pelo largo y postura de la raza
+  const pose = S.dog ? dogDress(inner, S, GEAR.get(key), opts) : null;
   const root = new THREE.Group(); root.add(inner);
   const mixer = new THREE.AnimationMixer(inner), actions = {};
   for (const c of g.animations) actions[c.name] = mixer.clipAction(c);
@@ -176,7 +185,7 @@ export function buildAnimal(kind, opts = {}) {
       else if (s.graze) { a = A.play(actions.Eating ? 'Eating' : 'Idle_Headlow'); a.timeScale = 1; }
       else { a = A.play(s.alt && actions.Idle_2 ? 'Idle_2' : 'Idle'); a.timeScale = 1; }
       // lejos se anima a saltos (cada 0,05–0,12 s): ahorra CPU sin que se note
-      acc += dt; if (acc >= (s.lod || 0)) { mixer.update(acc); acc = 0; }
+      acc += dt; if (acc >= (s.lod || 0)) { pose?.before(); mixer.update(acc); pose?.after(acc, s); acc = 0; }
     },
   };
   A.play('Idle', 0);

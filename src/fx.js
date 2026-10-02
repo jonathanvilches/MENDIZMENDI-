@@ -169,6 +169,8 @@ export class NightLights {
     this.mats.lamp.emissiveIntensity = on * 3;
     this.mats.glass.emissiveIntensity = on * 0.55;
     const near = this.lamps.map(l => ({ l, d: (l.x - player.pos.x) ** 2 + (l.z - player.pos.z) ** 2 })).sort((a, b) => a.d - b.d).slice(0, 3);
+    // cuánto ilumina la farola más cercana al jugador (para la luz propia de los personajes: bajo la farola, cálida)
+    this.lampK = near[0] ? on * Math.max(0, 1 - Math.sqrt(near[0].d) / 8) ** 2 : 0;
     this.lights.forEach((p, i) => { if (near[i]) { p.position.set(near[i].l.x, near[i].l.y - 0.3, near[i].l.z); p.intensity = on * 12; } });
   }
 }

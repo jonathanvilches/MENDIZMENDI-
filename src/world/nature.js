@@ -4,7 +4,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { HALF, CELL, N, pathQuery, riverInfo, villageMask, meadowMask, iratiMask, fieldInfo, SPECIAL_TREES, TREE_MIX, TONE } from './layout.js';
 import { H, SURF, terrainHeight, surfAt } from './heightfield.js';
 import { addCircle, isFree } from './colliders.js';
-import { mulberry32, smoothstep, clamp } from '../util/math.js';
+import { mulberry32, clamp } from '../util/math.js';
 import { fbm } from '../util/noise.js';
 import { TEX, FOLIAGE } from './textures.js';
 import { groundUniforms } from './builder.js';
@@ -613,105 +613,6 @@ float hAt(vec2 w){
 }
 vec4 maskAt(vec2 w){ return texture2D(uMask, (w + ${HALF.toFixed(1)}) / ${(HALF * 2).toFixed(1)} * ${((N - 1) / N).toFixed(6)} + ${(0.5 / N).toFixed(6)}); }
 `;
-
-class GrassField {
-  constructor(scene, quality) {
-    dataTextures();
-    const count = quality === 'low' ? 42000 : quality === 'mid' ? 70000 : 120000;
-    const R = quality === 'low' ? 20 : quality === 'mid' ? 26 : 32;
-    // hoja: tira con 3 tramos
-    const blade = new THREE.BufferGeometry();
-    const pos = [], uv = [];
-    const segs = 3;
-    for (let i = 0; i <= segs; i++) {
-      const t = i / segs, w = 0.021 * (1 - Math.pow(t, 1.4) * 0.92);
-      pos.push(-w, t, 0, w, t, 0); uv.push(0, t, 1, t);
-    }
-    const idx = [];
-    for (let i = 0; i < segs; i++) { const a = i * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
-    blade.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-    blade.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
-    blade.setAttribute('normal', new THREE.Float32BufferAttribute(new Array(pos.length).fill(0).map((_, i) => i % 3 === 1 ? 1 : 0), 3));
-    blade.setIndex(idx);
-    const g = new THREE.InstancedBufferGeometry();
-    g.index = blade.index; g.attributes = blade.attributes;
-    const rnd = mulberry32(7);
-    const off = new Float32Array(count * 2), rr = new Float32Array(count * 4);
-    // matas: grupos de 4 a 9 briznas que salen del mismo punto (la hierba de verdad crece en macollas)
-    let cx = 0, cz = 0, left = 0;
-    for (let i = 0; i < count; i++) {
-      if (left-- <= 0) { cx = (rnd() * 2 - 1) * R; cz = (rnd() * 2 - 1) * R; left = 3 + Math.floor(rnd() * 6); }
-      const a = rnd() * 6.283, r = Math.sqrt(rnd()) * 0.16;
-      off[i * 2] = cx + Math.cos(a) * r; off[i * 2 + 1] = cz + Math.sin(a) * r;
-      rr[i * 4] = rnd() * Math.PI * 2; rr[i * 4 + 1] = 0.55 + rnd() * 0.7; rr[i * 4 + 2] = rnd(); rr[i * 4 + 3] = rnd();
-    }
-    g.setAttribute('aOff', new THREE.InstancedBufferAttribute(off, 2));
-    g.setAttribute('aRnd', new THREE.InstancedBufferAttribute(rr, 4));
-    g.instanceCount = count;
-    this.uniforms = { uHeight: { value: heightTex }, uMask: { value: grassTex }, uCenter: { value: new THREE.Vector2() }, uR: { value: R }, uTime: windUniforms.uTime, uPlayer: { value: new THREE.Vector3() }, uTint: { value: new THREE.Color(({ dry: '#d8c89a', arid: '#e6c98f', lush: '#e6ffe0' })[TONE] || '#ffffff') } };
-    const m = new THREE.MeshLambertMaterial({ side: THREE.DoubleSide });
-    m.onBeforeCompile = (sh) => {
-      Object.assign(sh.uniforms, this.uniforms);
-      sh.vertexShader = sh.vertexShader
-        .replace('#include <common>', `#include <common>
-attribute vec2 aOff; attribute vec4 aRnd; varying vec3 vGrassCol; ${GRASS_COMMON}`)
-        .replace('#include <beginnormal_vertex>', `vec3 objectNormal = normalize(vec3(cos(aRnd.x) * 0.55, 1.0, sin(aRnd.x) * 0.55) + vec3(0.0, 0.0, 0.0));
-#ifdef USE_TANGENT
-vec3 objectTangent = vec3(1.0,0.0,0.0);
-#endif`)
-        .replace('#include <begin_vertex>', `
-vec2 rel = mod(aOff - uCenter + uR, 2.0 * uR) - uR;
-vec2 wp = uCenter + rel;
-vec4 mk = maskAt(wp);
-float dens = mk.r * (1.0 - mk.g * 0.55);
-float fade = 1.0 - smoothstep(uR * 0.72, uR, length(rel));
-float keep = step(aRnd.z, dens * 1.15);
-float hgt = aRnd.y * (0.3 + mk.b * 0.14 + mk.g * 0.14) * (0.6 + 0.4 * dens) * fade * keep;
-float c = cos(aRnd.x), s = sin(aRnd.x);
-vec3 transformed = vec3(position.x * c, position.y * hgt, position.x * s);
-// brizna curvada hacia un lado, como la hierba de verdad
-float lean = (0.18 + 0.3 * aRnd.w) * position.y * position.y * hgt;
-transformed.x += -s * lean; transformed.z += c * lean;
-// viento y empuje del jugador
-float wph = uTime * 1.8 + wp.x * 0.35 + wp.y * 0.25;
-float bend = (sin(wph) * 0.18 + sin(wph * 2.3 + aRnd.w * 6.0) * 0.07) * position.y * position.y;
-vec2 away = wp - uPlayer.xz; float pd = length(away);
-vec2 push = pd < 1.3 ? normalize(away + 1e-4) * (1.3 - pd) * 0.7 : vec2(0.0);
-transformed.x += (bend + push.x) * hgt; transformed.z += (bend * 0.6 + push.y) * hgt;
-transformed.y -= length(push) * position.y * hgt * 0.4;
-transformed += vec3(wp.x, hAt(wp) - 0.02, wp.y);
-// manchas de color: zonas de puntas secas y zonas de verde intenso; base oscura para dar profundidad
-float pn = sin(wp.x * 0.21 + sin(wp.y * 0.17) * 2.0) * sin(wp.y * 0.19 + sin(wp.x * 0.13) * 2.0);
-// colores en espacio lineal (el renderizador los pasa a sRGB)
-vec3 base = mix(vec3(0.045, 0.085, 0.018), vec3(0.07, 0.12, 0.025), aRnd.w);
-// puntas de verde natural (menos lima), algunas amarillentas o azuladas, y rodales secos
-vec3 tip = mix(vec3(0.14, 0.33, 0.045), vec3(0.22, 0.4, 0.07), aRnd.z * aRnd.w);
-tip = mix(tip, vec3(0.3, 0.36, 0.08), step(0.86, fract(aRnd.x * 5.3)) * 0.8);
-tip = mix(tip, vec3(0.1, 0.25, 0.09), step(0.9, fract(aRnd.y * 7.1)) * 0.7);
-tip = mix(tip, vec3(0.46, 0.4, 0.13), smoothstep(0.3, 0.75, pn) * 0.45 * step(0.55, aRnd.w));
-tip = mix(tip, vec3(0.065, 0.22, 0.03), smoothstep(-0.3, -0.7, pn) * 0.6);
-tip = mix(tip, vec3(0.147, 0.32, 0.04), mk.g);
-tip *= 0.85 + 0.3 * fract(aRnd.x * 3.7);
-// las briznas más altas de cada mata llevan la punta más clara (les da el sol)
-tip *= 0.92 + 0.22 * smoothstep(0.9, 1.25, aRnd.y);
-vGrassCol = mix(base, tip, smoothstep(0.0, 0.85, position.y)) * uTint;
-`);
-      sh.fragmentShader = sh.fragmentShader
-        .replace('#include <common>', '#include <common>\nvarying vec3 vGrassCol;')
-        .replace('#include <color_fragment>', '#include <color_fragment>\ndiffuseColor.rgb = vGrassCol;')
-        .replace('#include <normal_fragment_begin>', 'float faceDirection = 1.0;\nvec3 normal = normalize( vNormal );\nvec3 nonPerturbedNormal = normal;');
-    };
-    m.customProgramCacheKey = () => 'grass';
-    this.mesh = new THREE.Mesh(g, m);
-    this.mesh.frustumCulled = false;
-    this.mesh.receiveShadow = true;
-    scene.add(this.mesh);
-  }
-  update(focus, elapsed, player) {
-    this.uniforms.uCenter.value.set(focus.x, focus.z);
-    if (player) this.uniforms.uPlayer.value.copy(player);
-  }
-}
 
 class FlowerField {
   constructor(scene, quality) {

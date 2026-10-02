@@ -5,7 +5,7 @@ import { ridged } from '../util/noise.js';
 import { H, SURF } from './heightfield.js';
 import { TEX } from './textures.js';
 import { fbm } from '../util/noise.js';
-import { clamp, lerp, smoothstep } from '../util/math.js';
+import { lerp, smoothstep } from '../util/math.js';
 
 const CH = 100;                  // tamaño de trozo en metros
 const PER = CH / CELL;           // celdas por trozo

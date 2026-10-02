@@ -78,18 +78,24 @@ export class Fronton {
  */
 export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level } = {}) {
   if (window.__autoWin) return Promise.resolve({ win: true, you: target, cpu: 0 });
-  return new Promise(async res => {
+  return new Promise(res => {
     const P = G.player, rig0 = P.rig, home = { x: rival.pos.x, z: rival.pos.z, h: rival.heading };
+    let rig = rig0, pel = null, red = null, crowd = null, bf = null, bfWas = false, ended = false; const hidden = [], hiddenR = [];
+    // si algo falla al montar el partido, de vuelta al pueblo con todo como estaba (nunca congelado en la cancha)
+    const fail = (e) => {
+      console.warn('frontón', e);
+      try { done({ win: false, error: true }); }
+      catch (e2) { console.warn('frontón', e2); P.rig = rig0; P.frozen = false; G.mode = 'play'; G.pelotaTick = null; G.ui.hudVisible?.(true); res({ win: false, you: 0, cpu: 0, best: 0, quit: true }); }   // (resolver dos veces no hace nada)
+    };
+    (async () => {
     // para el partido te conviertes en el pelotari (camiseta, pantalón blanco y tacos en las manos); al acabar vuelves a ser tú
     // (si ya juegas con el pelotari, no hace falta cambiar; los modelos se piden antes, al acercarte al frontón)
-    let rig = rig0, pel = null; const hidden = [];
     const wait = !loadedMeshy('pelotari') || !loadedMeshy('pelotari_rojo');
     if (wait) G.ui.toast?.(isEU() ? 'Pilotariak prestatzen…' : 'Preparando a los pelotaris…', 'pelota', 1800);
     if (rig0.id !== 'pelotari' && hasMeshy('pelotari')) try { pel = new GlbRig(await loadMeshy('pelotari'), 'pelotari'); } catch (e) { console.warn('pelotari', e); }
     // (el cuerpo de siempre se aparta del todo mientras dura el partido: así nada lo vuelve a mostrar)
     if (pel) { hidden.push(...P.obj.children); for (const c of hidden) P.obj.remove(c); P.obj.add(pel.char.root); rig = pel; }
     // y el rival juega de rojo (el pelotari colorado), como en los partidos de verdad: azules contra colorados
-    let red = null; const hiddenR = [];
     if (hasMeshy('pelotari_rojo')) try { red = new GlbRig(await loadMeshy('pelotari_rojo'), 'pelotari_rojo'); } catch (e) { console.warn('pelotari rojo', e); }
     if (red) { hiddenR.push(...rival.obj.children); for (const c of hiddenR) rival.obj.remove(c); rival.obj.add(red.char.root); red.setStance('Ready'); }
     // el partido anima al jugador y coloca a los dos: el rig del jugador pasa a nuestras manos
@@ -98,13 +104,13 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     G.rt?.boost?.(true);   // partido: imagen más nítida (en el móvil, los pelotaris con su detalle)
     // para jugar a pelota no hace falta el perro: se queda en casa y vuelve al acabar
     G.perro?.away?.();
-    const bf = G.fauna?.bfMesh, bfWas = bf?.visible; if (bf) bf.visible = false;   // sin mariposas sobre la cancha
+    bf = G.fauna?.bfMesh; bfWas = bf?.visible; if (bf) bf.visible = false;   // sin mariposas sobre la cancha
     rig.setStance?.('Ready');                     // en la cancha, postura de pelotari
     G.pelotaRig = rig;
     rival.frozen = true; rival.talking = 0;
     const flags = { you: {}, rival: {} };
     // vecinos que se acercan a la grada a ver el partido
-    const crowd = G.pelotaCrowd = G.scene ? new Crowd(G, fronton, 7 + ((Math.random() * 4) | 0)) : null;
+    crowd = G.pelotaCrowd = G.scene ? new Crowd(G, fronton, 7 + ((Math.random() * 4) | 0)) : null;
     const once = (who, key, on, fn) => { if (on && !flags[who][key]) { flags[who][key] = true; fn(); } else if (!on) flags[who][key] = false; };
     const stYou = { v: null }, stRival = { v: null };
     armSwing(rig.char, () => stYou.v, { windOnly: !!pel }); armSwing(red ? red.char : rival.glb, () => stRival.v, { windOnly: !!red });
@@ -132,7 +138,9 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       onEvent: (e) => { if (e.type === 'call' && crowd) crowd.point(e.winner === 'you'); },
     }); } catch (e) { console.warn('frontón', e); done({ win: false, error: true }); return; }   // (si no se monta, de vuelta al pueblo)
     G.pelotaTick = (dt) => { match.update(dt); crowd?.update(dt); };
+    })().catch(fail);
     function done(r) {
+      if (ended) return; ended = true;
       // el público aplaude el final y vuelve al pueblo (sigue moviéndose con el juego hasta que se va)
       if (crowd) { crowd.end(!!r.win); G.crowds = (G.crowds || []).filter(c => !c.disposed).concat(crowd); }
       G.pelotaTick = null; G.pelotaMatch = null; G.pelotaRig = null;

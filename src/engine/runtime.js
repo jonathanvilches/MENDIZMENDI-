@@ -1,4 +1,5 @@
 // Motor: carga una localidad (Salazar o generada), la actualiza y la libera al salir
+import { applyCharFill, skyFill, lampFill } from './charLight.js';
 import { Weather, pickWeather } from '../world/weather.js';
 import * as THREE from 'three';
 import { setOutfitTexMax } from '../actors/outfits.js';
@@ -136,6 +137,7 @@ export class Runtime {
     const houses = salazar ? VILLAGE.houses : TOWN.houses;
     this.smoke = new Smoke(scene, houses);
     this.lights = new NightLights(scene, VILLAGE.lamps, this.mats);
+    this.charFill = new THREE.Color(1, 1, 1);
     this.beacon = new Beacon(scene);
     this.salazar = salazar;
     this.def = def;
@@ -193,7 +195,11 @@ export class Runtime {
     try { if (alt) { input.enabled = !g.ui.busy; input.update(); g.altUpdate?.(dt); } else this.step(dt, g, input); } catch (e) { this.reportError(e); }
     // sombras un fotograma sí y otro no (también en las escenas propias, como el encierro)
     if (this.frames % this.shadowEvery === 0) this.renderer.shadowMap.needsUpdate = true;
+    // la luz propia de personajes y animales sigue a la del pueblo (de noche, tenue y azulada; junto a una farola, cálida);
+    // las escenas propias (fútbol, pelota, encierro) tienen su luz y lo ven neutro
+    if (!alt) applyCharFill(this.charFill);
     try { this.renderer.render(alt || this.scene, (alt && g.altCamera) || this.camera); } catch (e) { this.reportError(e); }
+    if (!alt) applyCharFill(null);
     input.endFrame();
     this.frames++; this.fpsT += dt;
     if (this.fpsT > 2) {
@@ -255,6 +261,7 @@ export class Runtime {
     if (this.waterfall) this.waterfall.update(dt, this.elapsed, Math.hypot(P.pos.x - PLACES.waterfall.x, P.pos.z - PLACES.waterfall.z) < 80);
     this.smoke.update(dt);
     this.lights.update(this.sky.night, P);
+    lampFill(skyFill(this.charFill, this.sky.hemi, this.sky.sun, this.sky.night), this.lights.lampK || 0);
     this.beacon.update(this.elapsed, P);
     this.sound.update(dt, P, this.follow.yaw, this.sky.night, iratiMask(P.pos.x, P.pos.z) > 0.5);
     g.ui.setClock(this.sky.clock(), this.sky.night > 0.5);

@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { groundHeight } from './world/heightfield.js';
 import { nearby } from './world/colliders.js';
-import { clamp, damp, dampAngle, lerp } from './util/math.js';
+import { clamp, damp, dampAngle } from './util/math.js';
 
 export class FollowCamera {
   constructor(camera) {

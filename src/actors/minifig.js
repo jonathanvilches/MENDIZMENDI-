@@ -6,22 +6,18 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { CAST_ALL } from '../data/cast.js';
+import { FILL_DECL, useFill } from '../engine/charLight.js';
 
 // ---------- Materiales compartidos ----------
-function toonRamp() {
-  const d = new Uint8Array([125, 125, 125, 255, 185, 185, 185, 255, 230, 230, 230, 255, 255, 255, 255, 255]);
-  const t = new THREE.DataTexture(d, 4, 1, THREE.RGBAFormat); t.minFilter = t.magFilter = THREE.NearestFilter; t.generateMipmaps = false; t.needsUpdate = true;
-  return t;
-}
-const RAMP = toonRamp();
 // Material de los personajes: sombreado suave de estilo consola (sin contorno), con la textura
 // del tejido en espacio del objeto y un acabado distinto según el tipo de superficie (aTex):
 // piel cálida y algo translúcida, tela aterciopelada, pelo con brillo, cuero y botones brillantes.
 function fabric(mat, k) {
   mat.onBeforeCompile = (sh) => {
+    useFill(sh);   // la luz propia sigue a la del cielo (de noche, tenue y azulada)
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute float aTex;\nvarying vec3 vOP; varying float vTex;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvOP = position; vTex = aTex;');
-    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>${FILL_DECL}
 varying vec3 vOP; varying float vTex;
 float th(vec3 p){ p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
 float tn(vec3 x){ vec3 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);
@@ -63,6 +59,7 @@ float surfH(vec3 p, float t) {
       metalnessFactor = vTex > 4.5 ? 0.45 : 0.0;`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
       {
+        vec3 e0 = totalEmissiveRadiance;
         vec3 nn = normalize(normal), vv = normalize(vViewPosition);
         float fr = pow(1.0 - clamp(dot(nn, vv), 0.0, 1.0), 2.5);
         totalEmissiveRadiance += diffuseColor.rgb * (vTex < 0.5 ? 0.08 : 0.2);              // luz de rebote: nada queda negro
@@ -70,6 +67,7 @@ float surfH(vec3 p, float t) {
         else if (vTex < 1.5 || (vTex > 2.5 && vTex < 3.5)) totalEmissiveRadiance += mix(diffuseColor.rgb, vec3(1.0), 0.35) * fr * 0.34; // terciopelo
         else if (vTex < 2.5) { float ring = smoothstep(0.3, 0.45, nn.y) * (1.0 - smoothstep(0.55, 0.72, nn.y)); vec3 hl = max(diffuseColor.rgb, vec3(0.1, 0.07, 0.05)); totalEmissiveRadiance += (hl * 0.18 + vec3(0.02)) * ring + hl * 0.4 + mix(hl, vec3(0.7, 0.6, 0.5), 0.4) * fr * 0.35; }
         else totalEmissiveRadiance += vec3(1.0, 0.97, 0.92) * fr * 0.22;                   // brillo de cuero y metal
+        totalEmissiveRadiance = e0 + (totalEmissiveRadiance - e0) * uCharFill;
       }`);
   };
   return mat;
@@ -78,6 +76,8 @@ const TOON = fabric(new THREE.MeshStandardMaterial({ vertexColors: true, roughne
 const OUTLINE = new THREE.MeshBasicMaterial({ color: '#2a1a14', side: THREE.BackSide });
 OUTLINE.onBeforeCompile = (sh) => { sh.vertexShader = sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += normal * 0.008;'); };
 const EYE = new THREE.MeshBasicMaterial({ vertexColors: true });
+// los ojos no tienen sombreado (se leen siempre), pero de noche se apagan con la luz: si no, brillarían en la oscuridad
+EYE.onBeforeCompile = (sh) => { useFill(sh); sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>' + FILL_DECL).replace('#include <color_fragment>', '#include <color_fragment>\n diffuseColor.rgb *= min(vec3(1.0), uCharFill * 1.6 + 0.08);'); };
 
 // ---------- Geometría ----------
 const TX = { skin: 0, cloth: 1, hair: 2, wool: 3, wood: 4, metal: 5 };

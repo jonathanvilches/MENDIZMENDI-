@@ -1,0 +1,37 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:#9cc3e0;overflow:hidden}</style></head>
+<body><script type="module">
+// Las razas del perro compañero con su modelo del juego: ?ry=giro &z=zoom &cara=1 (primer plano de la cabeza) &anim=Walk
+import * as THREE from 'three';
+import { ensureAnimal, buildAnimal } from '../src/actors/animalGlb.js';
+const q = new URLSearchParams(location.search);
+const r = new THREE.WebGLRenderer({ antialias: true }); r.setSize(innerWidth, innerHeight); r.shadowMap.enabled = true; r.toneMapping = THREE.ACESFilmicToneMapping; r.outputColorSpace = THREE.SRGBColorSpace; document.body.appendChild(r.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color('#a8cbe6');
+scene.add(new THREE.HemisphereLight('#e4f1ff', '#5a6a4a', 1.3));
+const sun = new THREE.DirectionalLight('#fff4e0', 2.6); sun.position.set(3, 6, 5); sun.castShadow = true; Object.assign(sun.shadow.camera, { left: -4, right: 4, top: 4, bottom: -4 }); sun.shadow.mapSize.set(2048, 2048); scene.add(sun);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshStandardMaterial({ color: '#7ea35a' })); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+const breeds = (q.get('b') || 'gorbeia,iletsua,aleman,mastin').split(',');
+let x = 0; const dogs = [];
+for (const b of breeds) {
+  await ensureAnimal('dog', { breed: b }); const A = buildAnimal('dog', { breed: b, companion: !q.get('farm') });
+  const st = { speed: q.get('anim') === 'Walk' ? 1.2 : q.get('anim') === 'Gallop' ? 6 : 0, sit: q.get('anim') === 'Sit', lod: 0 };
+  for (let i = 0; i < 12; i++) A.update(+(q.get('t') || 0.4) / 12, st);
+  A.root.position.x = x; A.root.rotation.y = +(q.get('ry') ?? 0.75); scene.add(A.root); dogs.push(A); x += 1.25;
+}
+// referencia: una persona de 1,2 m (niño) en gris
+if (q.get('ref')) { const p = new THREE.Mesh(new THREE.CapsuleGeometry(0.2, 0.8), new THREE.MeshStandardMaterial({ color: '#888' })); p.position.set(-0.9, 0.6, 0); scene.add(p); }
+const cam = new THREE.PerspectiveCamera(q.get('cara') ? 14 : 26, innerWidth / innerHeight, 0.05, 100);
+const zz = +(q.get('z') ?? 1), cx = (x - 1.25) / 2;
+if (q.get('cara')) { cam.position.set(cx + 0.6, 1.05, 6.2 * zz); cam.lookAt(cx, 0.6, 0); }
+else { cam.position.set(cx, 1.5 * zz, 6.8 * zz); cam.lookAt(cx, 0.45, 0); }
+// primer plano de la cabeza de cada perro, uno al lado de otro (?head=1&hy=giro de cámara)
+if (q.get('head')) {
+  r.setScissorTest(true); const n = dogs.length, w = innerWidth / n;
+  dogs.forEach((A, i) => {
+    A.root.updateMatrixWorld(true); const hp = A.root.getObjectByName('Head').getWorldPosition(new THREE.Vector3());
+    const c2 = new THREE.PerspectiveCamera(30, w / innerHeight, 0.02, 50), a = +((q.get('hys') || '').split(',')[i] || q.get('hy') || 0.5) + A.root.rotation.y, d = +(q.get('hd') ?? 0.75);
+    c2.position.set(hp.x + Math.sin(a) * d, hp.y + 0.08, hp.z + Math.cos(a) * d); c2.lookAt(hp.x, hp.y - 0.04, hp.z);
+    r.setViewport(i * w, 0, w, innerHeight); r.setScissor(i * w, 0, w, innerHeight); r.render(scene, c2);
+  });
+} else r.render(scene, cam);
+window.__ready = true;
+</script></body></html>

@@ -2,7 +2,7 @@
 // su esqueleto y sus animaciones, con la ropa, la piel y el pelo de cada vecino. Las texturas se recolorean una vez
 // por combinación de colores y se comparten; la geometría es la del modelo (un solo juego para todo el pueblo).
 import * as THREE from 'three';
-import { GlbChar, loadChar, loadKayKit, loadMeshy, hasMeshy, MESHY_GAIT, MESHY_NAMES } from './glbChar.js';
+import { GlbChar, loadKayKit, loadMeshy, hasMeshy, MESHY_GAIT, MESHY_NAMES } from './glbChar.js';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { applyOutfit, regionalOutfit, MYTHS, resetOutfitTextures } from './outfits.js';
@@ -51,7 +51,7 @@ export function meshyFor(L = {}) {
 export function preloadNpcMeshy(names) {
   return Promise.all(names.filter(n => hasMeshy(n) && !MESHY_NPC[n]).map(n => loadMeshy(n).then(g => { MESHY_NPC[n] = g; }).catch(e => console.warn('vecino', n, e))));
 }
-const NPC_MESHY = ['pastor'], MESHY_NPC = {};
+const MESHY_NPC = {};
 // vecino con un personaje de Meshy: su modelo con sus clips, con la misma forma de animarse que los demás
 function buildNpcMeshy(L) {
   const name = meshyFor(L), g = MESHY_LOD_NPC[name] || MESHY_NPC[name];
@@ -158,7 +158,6 @@ export const npcsReady = () => ready || kkReady || meshyReady;
 // colores en sRGB (como están pintadas las texturas); getHex devuelve sRGB aunque Three trabaje en lineal
 const hex = (c) => { const h = new THREE.Color(c).getHex(); return [(h >> 16) & 255, (h >> 8) & 255, h & 255]; };
 const shade = (c, k) => c.map(v => Math.max(0, Math.min(255, Math.round(v * k))));
-const isWarmRed = (c) => c[0] > 150 && c[1] < 90 && c[2] < 90;
 
 // recolorea la imagen: cada píxel busca el color base más parecido (admitiendo luz y sombra) y se le suma
 // la diferencia hacia el color nuevo, así se conservan el grano, las costuras y el sombreado pintados
