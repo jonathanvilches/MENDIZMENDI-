@@ -113,8 +113,11 @@ function shrinkMap(m) {
 // jugador, como vecino o en un partido
 const MESHY_H = { sanfermin: 1.5, pastor: 1.6, osasuna: 1.6, osasuna_fuera: 1.6, pelotari: 1.62, pelotari_rojo: 1.62 };
 /** Ritmo de las piernas de los personajes de Meshy según su zancada real (tools/zancada.mjs: andar ~0,92 m/s y correr
- *  ~1,62 m/s a ritmo 1): los pies no patinan. Desde 1,9 m/s trotan; el de correr no pasa de ×2,8. */
-export const MESHY_GAIT = { walkAt: 0.15, runAt: 1.9, gait: (v, n) => n === 'Run' ? Math.min(2.8, Math.max(0.8, v / 1.62)) : Math.min(2.2, Math.max(0.4, v / 0.92)) };
+ *  ~1,62 m/s a ritmo 1). Andando, su clip de andar (hasta ×2,1); corriendo (desde 3,6 m/s), el de correr (hasta ×2,8). */
+export const MESHY_GAIT = { walkAt: 0.15, runAt: 3.6, gait: (v, n) => n === 'Run' ? Math.min(2.8, Math.max(0.8, v / 1.62)) : Math.min(2.1, Math.max(0.4, v / 0.92)) };
+/** Velocidades del jugador con un personaje de Meshy (m/s): andar a paso vivo y correr; con ellas los pies casi no
+ *  patinan y se distingue bien andar de correr. */
+export const MESHY_SPEEDS = { walk: 2.4, run: 5.8 };
 /** ¿Está ya cargado (o cargándose) este personaje de Meshy? */
 export const loadedMeshy = (name) => cache.has('meshy:' + name);
 /** Personaje de Meshy con los clips del juego, escalado a su altura. */
@@ -441,6 +444,7 @@ export class GlbRig {
   constructor(gltf, id = 'ranger') {
     const def = GLB_AVATARS[id] || {};
     this.id = id;
+    if (gltf.userData?.meshy) this.speeds = MESHY_SPEEDS;   // el jugador anda y corre a su paso
     this.obj = new THREE.Group();
     // zancada natural de los clips: Walk ≈ 1,0 m/s y Run ≈ 2,5 m/s. Las velocidades del juego (3,3 y 6,8 m/s) son
     // mayores: el ritmo sube con la raíz de la velocidad para que las piernas no se vuelvan frenéticas

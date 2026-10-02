@@ -19,7 +19,7 @@ export class Player {
     this.vy = 0;
     this.grounded = true;
     this.radius = 0.35;
-    this.walkSpeed = 3.3; this.runSpeed = 6.8;
+    this.walkSpeed = rig.speeds?.walk ?? 3.3; this.runSpeed = rig.speeds?.run ?? 6.8;   // cada personaje a su paso
     this.wade = 0;
     this.stepDist = 0;
     this.onStep = null;   // callback(surface)
