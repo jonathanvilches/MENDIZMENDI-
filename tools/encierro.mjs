@@ -7,8 +7,9 @@ const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromi
 const p = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 p.on('pageerror', e => console.log('PAGEERROR', e.message));
 p.on('console', m => { if (m.type() === 'error') console.log('CONSOLE', m.text().slice(0, 200)); });
-await p.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true }, dogOn: false })); });
-await p.goto('http://127.0.0.1:5173/?town=pamplona&q=mid', { timeout: 300000 });
+// AVATAR=sanfermin para correr con Fermín (por defecto, el personaje por defecto)
+await p.addInitScript((av) => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, ...(av ? { avatar: av } : {}), seen: { heroBenat: true, dog: true }, dogOn: false })); }, process.env.AVATAR || '');
+await p.goto(`${process.env.URL || 'http://127.0.0.1:5173'}/?town=pamplona&q=mid&weather=clear`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 600000 });
 let k = 0; const shot = async (n) => { await p.screenshot({ path: `${out}/${String(k++).padStart(2, '0')}-${n}.png`, timeout: 180000 }); console.log('foto', n); };
 await p.evaluate(() => { const G = window.__game, M = G.missions.find(M => M.m.kind === 'encierro'); document.querySelectorAll('.mg-overlay').forEach(o => o.remove()); G.ui.busy = false; G.say = async () => {}; G.dialog(M, M.host); });

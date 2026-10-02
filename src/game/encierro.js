@@ -9,8 +9,8 @@ import { buildAnimal } from '../actors/animalGlb.js';
 import { buildNpc } from '../actors/npcGlb.js';
 import { infoCard } from '../ui/minigames.js';
 import { buildPlaza, RO, RA } from './encierroPlaza.js';
-import { crowdMesh } from '../actors/crowdSprites.js';
-import { GLB_AVATARS } from '../actors/glbChar.js';
+import { crowd3d } from '../actors/crowd3d.js';
+import { GLB_AVATARS, GlbChar, loadMeshy } from '../actors/glbChar.js';
 import { cobbleSet, ashlarSet, brickSet, woodSet, plasterSet, windowTex, railingTex, shopTex, SHOPS, plaqueTex, sandTex, archTex, flagNavarraTex } from './encierroTex.js';
 
 const L = 230;          // largo de la Estafeta en la escena (m); luego el callejón vallado y la plaza
@@ -191,18 +191,25 @@ export class Encierro {
     const sign = new THREE.Mesh(new THREE.PlaneGeometry(7.8, 1.45), new THREE.MeshBasicMaterial({ map: st })); sign.position.set(0, 7.9, -GATE + 1.6); S.add(sign);
     // público: personajes de verdad (de blanco y rojo casi todos) dibujados en una lámina; en los balcones, en el
     // callejón y en los tendidos de la plaza, una llamada de dibujo para cada grupo
-    const crowd = crowdMesh(people.map(p => [p.x, p.y - 0.1, p.z, p.ry]), 'toros', 1.25); S.add(crowd); this.crowd = crowd;
-    const stands = crowdMesh(this.plaza.seats.map(p => [p.x, p.y - 0.05, p.z, p.ry]), 'toros', 1.2); S.add(stands); this.stands = stands;
+    const crowd = crowd3d(people.map(p => [p.x, p.y - 0.1, p.z, p.ry]), 'toros', 1.25); S.add(crowd); this.crowd = crowd;
+    const stands = crowd3d(this.plaza.seats.map(p => [p.x + Math.sin(p.ry) * 0.3, p.y - 0.46, p.z + Math.cos(p.ry) * 0.3, p.ry]), 'toros', 1.2, { sit: true }); S.add(stands); this.stands = stands;
     this.camera = new THREE.PerspectiveCamera(innerWidth < innerHeight ? 72 : 58, innerWidth / innerHeight, 0.2, 400);
     this.onResize = () => { this.camera.aspect = innerWidth / innerHeight; this.camera.fov = innerWidth < innerHeight ? 72 : 58; this.camera.updateProjectionMatrix(); };
     addEventListener('resize', this.onResize);
   }
 
   // corredores (el jugador y los demás, todos de blanco y rojo), toros y cabestros
-  spawn() {
-    const S = this.scene, rnd = mulberry(11), av = this.G.P.avatar;
+  async spawn() {
+    const S = this.scene, rnd = mulberry(11), av = this.G.P.avatar, def = GLB_AVATARS[av];
     const white = { shirt: '#f7f3ea', pants: '#f7f3ea', sash: '#d42f2f', scarf: '#d42f2f', shoes: '#efe6d0', espadrille: true };
-    const me = buildNpc({ ...white, base: GLB_AVATARS[av]?.kaykit, female: ['nerea', 'rogue', 'mage'].includes(av) || ['Rogue', 'Mage'].includes(GLB_AVATARS[av]?.kaykit) });   // tu personaje, de blanco y rojo
+    // tu personaje: el de San Fermín tal cual (ya va de blanco y rojo); los demás, vestidos de blanco y rojo
+    let me = null;
+    if (def?.meshy) try {
+      const g = await loadMeshy(def.meshy), char = new GlbChar(g, { walkAt: 0.2, runAt: 4.4, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / 3.2, 0.85) : Math.pow(Math.max(0.2, v) / 1.35, 0.8) });
+      char.root.scale.setScalar(g.userData.fit || 1); const obj = new THREE.Group(); obj.add(char.root); obj.userData.H = 1.45;
+      me = { obj, char, anim: { update: (dt, st) => { char.setSpeed(st.speed || 0); char.update(dt); } } };
+    } catch (e) { console.warn('corredor', e); }
+    me ||= buildNpc({ ...white, base: def?.kaykit, female: ['Rogue', 'Rogue_Hooded', 'Mage'].includes(def?.kaykit) });
     S.add(me.obj); this.me = { ...me, x: 0, z: -14, speed: 0, fall: 0, safe: 0 };
     this.runners = [];
     for (let i = 0; i < 12; i++) {
@@ -252,7 +259,7 @@ export class Encierro {
       this.res = res;
       G.ui.hudVisible(false); G.player.frozen = true;
       await G.ui.fadeOut?.();
-      this.build(); this.spawn(); this.hud();
+      this.build(); await this.spawn(); this.hud();
       this.lives = 3; this.t = 0; this.started = false; this.done = false; this.closeCall = 0;
       G.encierro = this; G.altScene = this.scene; G.altCamera = this.camera; G.altUpdate = (dt) => this.update(dt); G.mode = 'encierro';
       this.place(); this.camCur = null;
@@ -268,9 +275,10 @@ export class Encierro {
     this.t += dt;
     // el público salta y saluda: poco antes del cohete, mucho al paso de la manada (el foco va con el primer toro)
     const lead = this.bulls?.filter(b => !b.out).reduce((m, b) => Math.min(m, b.z), 1e9);
-    this.crowd?.tick(this.t, this.won ? 1 : this.started ? 1 : 0.4, this.started && lead < 1e9 ? lead : (this.me?.z ?? 0));
-    this.stands?.tick(this.t, this.won ? 1 : 0.3, this.plaza?.cz ?? 0);
-    if (!this.started || this.done) { this.place(); this.cam(dt); return; }
+    this.crowd?.tick(this.t, this.won ? 1 : this.started ? 1 : 0.4, this.started && lead < 1e9 ? lead : (this.me?.z ?? 0), this.camera);
+    // los tendidos se levantan cuando la manada entra en el ruedo
+    this.stands?.tick(this.t, this.won ? 1 : lead < -GATE ? 0.9 : 0.3, this.plaza?.cz ?? 0, this.camera);
+    if (!this.started || this.done) { if (this.done) this.settle(dt); this.place(dt); this.cam(dt); return; }
     // jugador: corre solo hacia la plaza; adelante = más rápido, atrás = más despacio, a los lados = esquivar
     const fy = inp.move.y, fx = inp.move.x;
     if (inp.consume(' ')) this.jumpQ = true;
@@ -292,6 +300,8 @@ export class Encierro {
     me.x = Math.max(-HALF + 0.45, Math.min(HALF - 0.45, me.x)); me.z -= me.speed * dt; me.safe -= dt;
     // otros corredores: corren, y se apartan a la pared si llega un toro
     for (const r of this.runners) {
+      const z0 = r.z, x0 = r.x;
+      if (this.arena(r, dt)) { r.v = Math.hypot(r.z - z0, r.x - x0) / dt; continue; }
       const b = this.bulls.find(b => !b.out && b.z > r.z && b.z - r.z < 7 && Math.abs(b.x - r.x) < 1.6);
       r.want = b ? Math.sign(r.x || 1) * (HALF - 0.5) : r.want;
       if (!b && Math.random() < dt * 0.3) r.want = (Math.random() - 0.5) * 4;
@@ -302,7 +312,7 @@ export class Encierro {
         if (this.fallT <= 0 && r.z < me.z - 7 && r.z > me.z - 16 && Math.abs(r.x - me.x) < 1.6) { this.fallT = 5 + Math.random() * 4; r.fallen = 3 + Math.random(); this.msg('¡Se ha caído un corredor! Sáltalo (SALTAR) o esquívalo', 2000); }
         else { r.x += Math.max(-3, Math.min(3, (r.want - r.x) * 2)) * dt; r.z -= r.speed * dt; }
       }
-      if (r.z < -END + 4) r.z = -END + 4;
+      r.v = r.fallen > 0 ? 0 : Math.hypot(r.z - z0, r.x - x0) / dt;
       // el jugador no atraviesa a los demás
       const dx = me.x - r.x, dz = me.z - r.z, d = Math.hypot(dx, dz);
       if (r.fallen > 0) {   // caído en el suelo: si no saltas, tropiezas
@@ -317,13 +327,7 @@ export class Encierro {
     let warn = false, near = 99;
     for (const d of this.dust) if (d.life > 0) { d.life -= dt * 0.9; d.sp.position.y += d.vy * dt; const k = 1 - d.life; d.sp.scale.setScalar(d.s0 + k * 1.6); d.sp.material.opacity = Math.max(0, d.life) * 0.55; if (d.life <= 0) d.sp.visible = false; }
     for (const b of this.bulls) {
-      if (this.t < 2.8 + b.delay || b.out) continue;
-      b.ph += dt * 6;
-      // la manada va por el centro haciendo eses: pegarse a la pared es la forma de salvarse (como en la realidad)
-      b.x = b.x0 + Math.sin(this.t * 0.7 + b.x0 * 2) * 0.55; b.x = Math.max(-1.45, Math.min(1.45, b.x));
-      if (b.lure > 0) { b.lure -= dt; b.lx = (b.lx ?? b.x) + ((b.lureX ?? b.x) - (b.lx ?? b.x)) * Math.min(1, dt * 3); b.x = b.lx; } else b.lx = b.x;
-      b.z -= b.speed * dt;
-      if (b.z < this.plaza.cz - RA * 0.5) { b.out = true; b.q.root.visible = false; continue; }
+      if (!this.moveBull(b, dt)) continue;
       const dz = b.z - me.z, dx = Math.abs(b.x - me.x);
       near = Math.min(near, Math.hypot(dz, dx));
       if (Math.random() < dt * 9) this.puff(b.x, b.z + 0.8);
@@ -342,7 +346,40 @@ export class Encierro {
     this.h.querySelector('.enc-bar i').style.width = `${Math.min(100, (-me.z) / END * 100).toFixed(1)}%`;
     this.h.querySelector('.enc-hearts').innerHTML = [0, 1, 2].map(i => `<span class="${i < this.lives ? 'on' : ''}"></span>`).join('');
     if (me.z <= -END) this.finish(true);
-    this.place(); this.cam(dt);
+    this.place(dt); this.cam(dt);
+  }
+  // un toro o cabestro avanza: por la calle haciendo eses, y en el ruedo derecho a la puerta de toriles, por la que
+  // entra a los corrales (allí desaparece). Devuelve false si aún no ha salido o ya está dentro
+  moveBull(b, dt) {
+    if (this.t < 2.8 + b.delay || b.out) return false;
+    b.ph += dt * 6;
+    const T = this.plaza.toril, inRing = b.z < -GATE - (RO - RA - 1.6);
+    if (inRing) b.x0 *= Math.max(0, 1 - dt * 1.6);   // en el ruedo se juntan hacia la puerta
+    // la manada va por el centro haciendo eses: pegarse a la pared es la forma de salvarse (como en la realidad)
+    b.x = b.x0 + Math.sin(this.t * 0.7 + b.x0 * 2) * (inRing ? 0.2 : 0.55); b.x = Math.max(-1.45, Math.min(1.45, b.x));
+    if (b.lure > 0) { b.lure -= dt; b.lx = (b.lx ?? b.x) + ((b.lureX ?? b.x) - (b.lx ?? b.x)) * Math.min(1, dt * 3); b.x = b.lx; } else b.lx = b.x;
+    b.z -= b.speed * dt;
+    if (b.z < T.z - 4.5) { b.out = true; b.q.root.visible = false; if (this.bulls.every(q => q.out)) { this.bullsIn = true; this.msg?.('¡Cuarto cohete! Los toros ya están en los corrales.', 2200); } return false; }
+    if (Math.random() < dt * 9) this.puff(b.x, b.z + 0.8);
+    return true;
+  }
+  // en el ruedo: cada corredor busca un sitio a un lado (lejos del paso de los toros), frena y se queda quieto
+  arena(r, dt) {
+    const cz = this.plaza.cz;
+    if (r.z > -GATE - (RO - RA - 1.6) - 1) return false;
+    if (!r.spot) { const side = r.x >= 0 ? 1 : -1; r.spot = { x: side * (4.5 + Math.random() * 9), z: cz + RA * 0.55 - Math.random() * RA * 0.9 }; }
+    const dx = r.spot.x - r.x, dz = r.spot.z - r.z, d = Math.hypot(dx, dz);
+    r.speed = Math.max(0, Math.min(r.speed, d * 1.2, 5)); if (d < 0.4) { r.speed = 0; if (!r.cheered) { r.cheered = true; r.char?.playOnce?.('Celebrate', 1.6); } }
+    if (d > 1e-3) { r.x += dx / d * r.speed * dt; r.z += dz / d * r.speed * dt; r.face = Math.atan2(dx, dz); }
+    return true;
+  }
+  // al acabar (en la plaza o tras la última caída): el jugador frena, los corredores se reparten por el ruedo y los toros
+  // terminan de entrar en los corrales; nadie se queda corriendo en el sitio
+  settle(dt) {
+    const me = this.me;
+    me.speed = Math.max(0, me.speed - dt * (this.won ? 4 : 14)); me.z -= me.speed * dt;
+    for (const r of this.runners) { const z0 = r.z, x0 = r.x; if (!this.arena(r, dt)) r.speed = 0; r.v = Math.hypot(r.z - z0, r.x - x0) / dt; }
+    for (const b of this.bulls) this.moveBull(b, dt);
   }
   hit(b) {
     const me = this.me; this.lives--; me.fall = 1.3; me.safe = 3.2;
@@ -351,16 +388,16 @@ export class Encierro {
     if (this.lives <= 0) setTimeout(() => this.finish(false), 1400);
   }
   // coloca a todos (los cuadrúpedos con su galope)
-  place() {
-    const me = this.me;
+  place(dt = 1 / 60) {
+    const me = this.me; dt = Math.min(dt, 0.1);
     me.obj.position.set(me.x, me.y || 0, me.z); me.obj.rotation.y = Math.PI;
-    me.anim.update(1 / 60, { speed: me.fall > 0 ? 0 : me.speed });
+    me.anim.update(dt, { speed: me.fall > 0 || !this.started ? 0 : me.speed });
     if (me.fall > 0) me.obj.rotation.x = -Math.min(1.2, (1.3 - me.fall) * 4) * 0.35; else me.obj.rotation.x = 0;
-    for (const r of this.runners) { const f = r.fallen > 0; r.obj.position.set(r.x, f ? 0.22 : 0, r.z); r.obj.rotation.set(f ? -Math.PI / 2 + 0.15 : 0, Math.PI, 0); r.anim.update(1 / 60, { speed: this.started && !f ? r.speed : 0 }); }
+    for (const r of this.runners) { const f = r.fallen > 0; r.obj.position.set(r.x, f ? 0.22 : 0, r.z); r.obj.rotation.set(f ? -Math.PI / 2 + 0.15 : 0, r.face ?? Math.PI, 0); r.anim.update(dt, { speed: this.started && !f ? (r.v || 0) : 0 }); }
     for (const b of this.bulls) {
       const q = b.q, run = this.started && this.t > 2.8 + b.delay && !b.out, ph = b.ph;
       const off = [0.46, 0.58, 0.0, 0.12];
-      if (b.A) { q.root.position.set(b.x, 0, b.z); q.root.rotation.y = Math.PI; b.A.update(1 / 60, { speed: run ? b.speed : 0, alt: !this.started }); continue; }
+      if (b.A) { q.root.position.set(b.x, 0, b.z); q.root.rotation.y = Math.PI; b.A.update(dt, { speed: run ? b.speed : 0, alt: !this.started }); continue; }
       q.root.position.set(b.x, run ? Math.max(0, Math.sin(ph + 0.6)) * 0.12 : 0, b.z); q.root.rotation.y = Math.PI;
       if (q.legs) q.legs.forEach((l, i) => { const w = ph + off[i] * Math.PI * 2; const ww = w + 0.38 * Math.sin(w); l.rotation.x = run ? Math.sin(ww) * 0.85 : 0; const kn = l.userData.knee; if (kn) kn.rotation.x = run ? (i < 2 ? 1.25 : -1.05) * Math.pow(Math.max(0, -Math.cos(ww)), 1.3) : 0; });
       if (q.chest) q.chest.rotation.x = run ? Math.sin(ph + 2.2) * 0.08 : 0;
@@ -404,7 +441,7 @@ export class Encierro {
     this.msg({ detras: 'Cámara: detrás del corredor', balcon: 'Cámara: desde el balcón', aerea: 'Cámara: aérea', toros: 'Cámara: mirando a los toros', tele: 'Cámara: la de la tele' }[this.camMode], 1100);
   }
   async finish(win) {
-    if (this.done) return; this.done = true; this.won = win; if (win) { this.stands?.cheer(true); this.crowd?.cheer(true); }
+    if (this.done) return; this.done = true; this.won = win; if (win) { this.stands?.cheer(true); this.crowd?.cheer(true); setTimeout(() => this.me?.char?.playOnce?.('Celebrate', 2.4), 900); }
     const G = this.G;
     this.h?.querySelector('.enc-warn')?.classList.remove('on');
     if (win) { G.sound.fanfare?.(); this.msg(this.closeCall > 1.2 ? '¡En la plaza! Y corriste muy cerca de los toros.' : '¡En la plaza! ¡Lo has conseguido!', 2600); }

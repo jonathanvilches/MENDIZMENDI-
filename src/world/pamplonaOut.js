@@ -2,7 +2,7 @@
 // murallas con el Portal de Francia y el baluarte del Redín, Ciudadela en estrella y estadio de El Sadar.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { box, archRing, archPanel, gable, colored, M, MM } from './builder.js';
+import { box, archRing, archPanel, gable, colored, M, MM, DETAIL, builderQuality } from './builder.js';
 import { roofHip } from './houses.js';
 import { terrainHeight } from './heightfield.js';
 import { addBox, addCircle } from './colliders.js';
@@ -369,8 +369,10 @@ export function stadium(B, S, group, cx, cz, TOWN) {
   const pitch = new THREE.Mesh(new THREE.PlaneGeometry(52, 78).rotateX(-Math.PI / 2), pm);
   pitch.position.set(cx, y + 0.1, cz); pitch.receiveShadow = true; pitch.matrixAutoUpdate = false; pitch.updateMatrix(); group.add(pitch);
   B.add('paint', colored(new THREE.PlaneGeometry(2 * OX, 2 * OZ).rotateX(-Math.PI / 2), '#3d6e3a'), F(M(0, 0.05, 0)));
-  // gradas: filas escalonadas; en la grada este, OSASUNA escrito con asientos blancos
-  const RED = ['#b8202b', '#a61b26'], WHITE = '#f1f1ef', NAVY = '#1f2d5a';
+  // gradas: escalones de hormigón con un asiento rojo con respaldo en cada plaza (en la grada este, OSASUNA escrito
+  // con asientos blancos), vomitorios a media altura y barandilla delante; en calidad baja, escalones pintados de rojo
+  const RED = ['#b8202b', '#a61b26'], WHITE = '#f1f1ef', NAVY = '#1f2d5a', CON = ['#a3a29c', '#97968f'];
+  const seats = builderQuality() !== 'low', SEAT = 0.5;
   const word = 'OSASUNA', px = 1.5, cols = word.length * 6 - 1, zText0 = -cols * px / 2;
   const pixel = (k, z) => {
     if (k < 3 || k > 16) return false;
@@ -378,25 +380,70 @@ export function stadium(B, S, group, cx, cz, TOWN) {
     if (c < 0 || c >= cols || c % 6 === 5) return false;
     return FONT5[word[Math.floor(c / 6)]][br][c % 6] === '#';
   };
+  const rowColor = (k) => k >= 18 ? NAVY : RED[k % 2];
+  // vomitorios: bocas de acceso a media grada (filas 7 a 9), cada 24 m en los laterales y en el centro de los fondos
+  const VOM = [], vomAt = (side, along) => VOM.push({ side, along });
+  for (const z of [-36, -12, 12, 36]) { vomAt(1, z); if (Math.abs(z) > GAP + 3) vomAt(-1, z); }
+  for (const s of [-1, 1]) vomAt(s * 2, 0);
+  const inVom = (side, k, along) => k >= 7 && k <= 9 && VOM.some(v => v.side === side && Math.abs(v.along - along) < 1.5);
+  const seatList = [];   // [x, y, z, ry, color]
   const sideRow = (s, k, z0, z1, text) => {
     const x0 = SX + k * run, dx = OX - x0, h = 1 + (k + 1) * rise;
-    let a = z0;
-    const put = (b, color) => { if (b - a < 0.01) return; B.add('seat', colored(box(dx, h, b - a, 2), color), F(M(s * (x0 + dx / 2), h / 2 - 0.5, (a + b) / 2))); a = b; };
-    if (!text) { put(z1, k >= 18 ? NAVY : RED[k % 2]); return; }
-    let cur = pixel(k, z0 + 0.01);
-    for (let z = zText0; z <= -zText0 + 0.01; z += px) {
-      if (z <= z0) continue;
-      const on = pixel(k, z + 0.01);
-      if (on !== cur) { put(Math.min(z, z1), cur ? WHITE : RED[k % 2]); cur = on; }
+    B.add(seats ? 'paint' : 'seat', colored(box(dx, h, z1 - z0, 2), seats ? CON[k % 2] : rowColor(k)), F(M(s * (x0 + dx / 2), h / 2 - 0.5, (z0 + z1) / 2)));
+    for (let z = z0 + SEAT / 2; z < z1; z += SEAT) {
+      if (inVom(s, k, z) || Math.abs(((z % 12) + 12) % 12 - 0) < 0.7) continue;   // vomitorios y escaleras (cada 12 m)
+      seatList.push([s * (x0 + run * 0.62), h - 0.5, z, s > 0 ? -Math.PI / 2 : Math.PI / 2, text && pixel(k, z) ? WHITE : rowColor(k)]);
     }
-    put(z1, cur ? WHITE : RED[k % 2]);
   };
   for (let k = 0; k < ROWS; k++) {
-    sideRow(1, k, -OZ, OZ, false);
+    sideRow(1, k, -OZ, OZ, true);
     sideRow(-1, k, -OZ, -GAP, false); sideRow(-1, k, GAP, OZ, false);
     for (const s of [-1, 1]) {
       const z0 = SZ + k * run, dz = OZ - z0, h = 1 + (k + 1) * rise;
-      B.add('seat', colored(box(2 * SX, h, dz, 2), k >= 18 ? NAVY : RED[k % 2]), F(M(0, h / 2 - 0.5, s * (z0 + dz / 2))));
+      B.add(seats ? 'paint' : 'seat', colored(box(2 * SX, h, dz, 2), seats ? CON[k % 2] : rowColor(k)), F(M(0, h / 2 - 0.5, s * (z0 + dz / 2))));
+      for (let x = -SX + SEAT / 2; x < SX; x += SEAT) {
+        if (inVom(s * 2, k, x) || Math.abs(((x + 18) % 12 + 12) % 12) < 0.7) continue;
+        seatList.push([x, h - 0.5, s * (z0 + run * 0.62), s > 0 ? Math.PI : 0, rowColor(k)]);
+      }
+    }
+  }
+  // las plazas, para sentar al público del partido en sus asientos
+  TOWN.sadarSeats = seatList.map(([x, yy, z, ry]) => [cx + x, y + yy, cz + z, ry]);
+  if (seats) {
+    // asiento de plástico: cubeta con respaldo algo inclinado y su pata (unos 30 triángulos)
+    const sg = mergeGeometries([
+      new THREE.BoxGeometry(0.44, 0.06, 0.36).translate(0, 0.42, 0.02),
+      new THREE.BoxGeometry(0.44, 0.4, 0.05).rotateX(-0.12).translate(0, 0.64, -0.17),
+      new THREE.BoxGeometry(0.1, 0.4, 0.22).translate(0, 0.2, -0.02),
+    ].map(g => g.toNonIndexed()));
+    // un grupo por grada, para que cada uno se descarte si no está a la vista y de lejos no se dibuje
+    const groups = new Map();
+    for (const st of seatList) { const key = Math.abs(st[0]) > SX + 0.1 ? (st[0] > 0 ? 'e' : 'w') : (st[2] > 0 ? 's' : 'n'); if (!groups.has(key)) groups.set(key, []); groups.get(key).push(st); }
+    const mat = new THREE.MeshStandardMaterial({ roughness: 0.55, metalness: 0.05 }), m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), sc = new THREE.Vector3(1, 1, 1), col = new THREE.Color();
+    for (const list of groups.values()) {
+      const im = new THREE.InstancedMesh(sg, mat, list.length);
+      list.forEach(([x, yy, z, ry, c], i) => { im.setMatrixAt(i, m4.compose(v.set(cx + x, y + yy, cz + z), q.setFromEuler(e.set(0, ry, 0)), sc)); im.setColorAt(i, col.set(c)); });
+      im.computeBoundingSphere(); im.receiveShadow = true; im.name = 'asientos'; group.add(im);
+      DETAIL.push({ m: im, tier: 1, c: im.boundingSphere.center.clone(), r: im.boundingSphere.radius });
+    }
+    // vomitorios: boca oscura con dintel, laterales y barandilla
+    for (const vv of VOM) {
+      const ends = Math.abs(vv.side) === 2, s = Math.sign(vv.side), k = 7, base0 = SX + k * run, h7 = 1 + (k + 1) * rise - 0.5;
+      const g0 = ends ? M(vv.along, h7 + 0.9, s * (SZ + k * run + run * 1.5)) : M(s * (base0 + run * 1.5), h7 + 0.9, vv.along);
+      B.add('dark', ends ? box(2.6, 1.9, run * 3) : box(run * 3, 1.9, 2.6), F(g0));
+      const lint = ends ? M(vv.along, h7 + 1.95, s * (SZ + k * run + run * 1.5)) : M(s * (base0 + run * 1.5), h7 + 1.95, vv.along);
+      B.add('paint', colored(ends ? box(3.0, 0.22, run * 3.1) : box(run * 3.1, 0.22, 3.0), '#d9dcdf'), F(lint));
+      for (const t of [-1, 1]) {
+        const pos = ends ? M(vv.along + t * 1.4, h7 + 1.0, s * (SZ + k * run + run * 1.5)) : M(s * (base0 + run * 1.5), h7 + 1.0, vv.along + t * 1.4);
+        B.add('iron', ends ? box(0.06, 1.0, run * 3) : box(run * 3, 1.0, 0.06), F(pos));
+      }
+    }
+    // barandilla de cristal y tubo sobre el muro de la primera fila
+    for (const s of [-1, 1]) {
+      B.add('glass', box(0.04, 0.9, 2 * OZ - (s < 0 ? 0 : 0)), F(M(s * (SX + 0.02), 1.45, 0)));
+      B.add('iron', box(0.07, 0.07, 2 * OZ), F(M(s * (SX + 0.02), 1.92, 0)));
+      B.add('glass', box(2 * SX, 0.9, 0.04), F(M(0, 1.45, s * (SZ + 0.02))));
+      B.add('iron', box(2 * SX, 0.07, 0.07), F(M(0, 1.92, s * (SZ + 0.02))));
     }
   }
   // cubierta roja de esquinas redondeadas que baja hacia fuera, con la banda blanca alrededor del hueco
