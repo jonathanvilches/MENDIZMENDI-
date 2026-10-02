@@ -12,7 +12,7 @@ import { buildPlaza, RO, RA } from './encierroPlaza.js';
 import { crowd3d } from '../actors/crowd3d.js';
 import { QUALITY } from '../util/quality.js';
 import { GLB_AVATARS, GlbChar, loadMeshy, MESHY_GAIT } from '../actors/glbChar.js';
-import { cobbleSet, ashlarSet, brickSet, woodSet, plasterSet, windowTex, railingTex, shopTex, SHOPS, plaqueTex, sandTex, archTex, flagNavarraTex } from './encierroTex.js';
+import { cobbleSet, ashlarSet, brickSet, woodSet, plasterSet, windowTex, railingTex, shopTex, SHOPS, plaqueTex, sandTex, archTex, flagNavarraTex, paverSet, stencilTex, bandTex, boardTex } from './encierroTex.js';
 
 const L = 230;          // largo de la Estafeta en la escena (m); luego el callejón vallado y la plaza
 const GATE = L + 34;    // puerta de la plaza de toros (cara del muro)
@@ -61,7 +61,7 @@ export class Encierro {
     const arena = new THREE.Mesh(new THREE.CircleGeometry(RA + 1.8, 72), new THREE.MeshStandardMaterial({ map: sand, roughness: 1 }));
     arena.rotation.x = -Math.PI / 2; arena.position.set(0, 0.02, cz0); arena.receiveShadow = true; S.add(arena);
     // fachadas: casas altas pegadas, con balcones de hierro en cada piso, contraventanas y gente asomada
-    const rnd = mulberry(7), B = { plaster: [], stone: [], wood: [], brick: [], plain: [] };
+    const rnd = mulberry(7), B = { plaster: [], stone: [], wood: [], brick: [], plain: [], leaf: [] };
     const WIN = [[], [], []], RAIL = [], SHOP = Object.fromEntries(SHOPS.map(k => [k, []]));   // piezas dibujadas (instancias)
     const walls = ['#e9dcc0', '#d9b98a', '#e6cfa6', '#c98f6a', '#efe6d2', '#d6a77a', '#e2d2b0'];
     const people = [], sitters = [], BAL = [];   // BAL: balcones del primer piso (para las cámaras de televisión)
@@ -103,10 +103,14 @@ export class Encierro {
       B.stone.push(colored(new THREE.BoxGeometry(0.24, 0.18, z1 - z0), '#ddd2bb', M4(side * (F - 0.1), GF + 0.03, zc)));   // cornisa corrida sobre la planta baja
     };
     // casas de la calle (F = distancia de la fachada al eje); se usa en la Estafeta y en el tramo del callejón
+    const ends = [];   // la testera de la última casa de cada acera (se ve desde el callejón)
     const street = (F, z0, z1) => { for (const side of [-1, 1]) {
       let z = z0;
-      while (z > z1) {
-        const w = 7 + rnd() * 4, h = 12 + Math.floor(rnd() * 3) * 3, x = side * (F + 3.5), zc = z - w / 2, col = walls[Math.floor(rnd() * walls.length)];
+      while (z > z1 + 2.5) {
+        // la última casa acaba justo donde termina la calle (no se mete en el callejón)
+        let w = 7 + rnd() * 4; if (z - w < z1 + 3) w = z - z1;
+        const h = 12 + Math.floor(rnd() * 3) * 3, x = side * (F + 3.5), zc = z - w / 2, col = walls[Math.floor(rnd() * walls.length)];
+        if (z - w <= z1 + 0.01) ends.push({ side, F, z: z - w, h, col });
         B.plaster.push(colored(new THREE.BoxGeometry(7, h - GF, w - 0.1), col, M4(x, GF + (h - GF) / 2, zc)));   // pisos de arriba (la planta baja, aparte)
         B.wood.push(colored(new THREE.BoxGeometry(7.6, 0.5, w + 0.2), '#8a4a32', M4(x, h + 0.25, zc)));            // alero
         for (let q = zc - w / 2 + 0.3; q < zc + w / 2 - 0.2; q += 0.62) B.wood.push(colored(new THREE.BoxGeometry(0.62, 0.16, 0.13), '#6a3a24', M4(side * (F - 0.28), h - 0.07, q)));   // canecillos bajo el alero
@@ -142,19 +146,72 @@ export class Encierro {
         z -= w;
       }
     } };
-    street(HALF, 8, -L); street(HALF + 6, -L, -GATE + 5);
-    // callejón: doble vallado de madera y, al fondo, la puerta de la plaza de toros
-    for (let z = -L; z > -GATE + 1; z -= 2.2) for (const s of [-1, 1]) {
-      B.wood.push(colored(new THREE.BoxGeometry(0.2, 1.7, 0.2), '#6a4a2a', M4(s * HALF, 0.85, z)));
-      for (const y of [0.45, 0.95, 1.45]) B.wood.push(colored(new THREE.BoxGeometry(0.1, 0.18, 2.2), '#8a6a42', M4(s * (HALF - 0.12), y, z - 1.1)));
-      B.wood.push(colored(new THREE.BoxGeometry(0.2, 1.7, 0.2), '#6a4a2a', M4(s * (HALF + 1.4), 0.85, z)));
-      for (const y of [0.45, 0.95, 1.45]) B.wood.push(colored(new THREE.BoxGeometry(0.1, 0.18, 2.2), '#8a6a42', M4(s * (HALF + 1.4 + 0.12), y, z - 1.1)));   // la exterior también tiene travesaños
-      B.wood.push(colored(new THREE.BoxGeometry(0.26, 0.08, 2.2), '#7a5a36', M4(s * (HALF + 1.4), 1.66, z - 1.1)));   // y una tabla arriba, donde se sienta la gente
+    street(HALF, 8, -L);
+    // la testera de la última casa de la Estafeta, que da al callejón: ventanas con recerco y balcones, no una pared ciega
+    for (const e of ends.splice(0)) for (let fl = 1; fl < Math.floor(e.h / 3); fl++) for (let k = 0; k < 3; k++) {
+      const x = e.side * (e.F + 1.3 + k * 2.2), y = 1.6 + fl * 3, z = e.z - 0.02;
+      WIN[(fl + k) % 3].push({ x, y, z, ry: Math.PI });
+      B.stone.push(colored(new THREE.BoxGeometry(1.38, 0.22, 0.12), '#e2d8c2', M4(x, y + 1.2, z - 0.06)));
+      for (const s2 of [-1, 1]) B.stone.push(colored(new THREE.BoxGeometry(0.16, 2.2, 0.1), '#e2d8c2', M4(x + s2 * 0.58, y + 0.05, z - 0.05)));
+      B.stone.push(colored(new THREE.BoxGeometry(1.6, 0.1, 0.9), '#b8ad98', M4(x, y - 0.98, z - 0.45)));   // balcón
+      RAIL.push({ x, y: y - 0.52, z: z - 0.9, ry: Math.PI });
+      B.plain.push(colored(new THREE.BoxGeometry(1.56, 0.05, 0.06), '#1c1a18', M4(x, y - 0.08, z - 0.9)));
+      if (rnd() < 0.6) people.push({ x: x + (rnd() - 0.5) * 0.6, y: y - 0.95, z: z - 0.5, ry: Math.PI });
     }
-    // público en el callejón: de pie tras el vallado y sentado encima
+    // ---------------------------------------------------------------- el callejón de la plaza (como el de verdad)
+    // la bajada hacia la plaza entre dos muros de hormigón con balaustrada de piedra arriba, desde donde mira la gente;
+    // abajo, el doble vallado de postes gruesos y cuatro tablones, acuñados en el suelo, y el adoquín de hormigón gris
+    const XW = HALF + 3.1, CZ0 = -L, CZ1 = -GATE + 0.6;
+    const wallH = this.wallH = (z) => 2.4 + 1.5 * Math.min(1, Math.max(0, (-z - L) / (GATE - L)));   // el muro crece: la calle baja
+    // caja con la base y la cima según z (para seguir la bajada)
+    const sloped = (w, z0, z1, yb, yt, segs = 16) => {
+      const g = new THREE.BoxGeometry(w, 1, z0 - z1, 1, 1, segs); g.translate(0, 0, (z0 + z1) / 2);
+      const P = g.attributes.position; for (let i = 0; i < P.count; i++) { const z = P.getZ(i); P.setY(i, P.getY(i) > 0 ? yt(z) : yb(z)); }
+      g.computeVertexNormals(); return g;
+    };
+    for (const side of [-1, 1]) {
+      B.plaster.push(colored(sloped(0.5, CZ0, CZ1, () => 0, wallH), '#bcb5a7', M4(side * (XW + 0.25), 0, 0)));                       // muro
+      B.stone.push(colored(sloped(0.08, CZ0, CZ1, () => 0, () => 0.55), '#8f887c', M4(side * (XW - 0.03), 0, 0)));                   // zócalo
+      B.stone.push(colored(sloped(0.78, CZ0, CZ1, wallH, (z) => wallH(z) + 0.15), '#d9d1c0', M4(side * (XW + 0.3), 0, 0)));           // albardilla
+      B.stone.push(colored(sloped(0.36, CZ0, CZ1, (z) => wallH(z) + 0.15, (z) => wallH(z) + 0.3), '#d4ccba', M4(side * (XW + 0.3), 0, 0)));   // base de la balaustrada
+      B.stone.push(colored(sloped(0.42, CZ0, CZ1, (z) => wallH(z) + 0.92, (z) => wallH(z) + 1.06), '#ddd5c4', M4(side * (XW + 0.3), 0, 0)));   // pasamanos
+      B.stone.push(colored(sloped(7, CZ0, CZ1, (z) => wallH(z) - 0.3, wallH), '#a19b90', M4(side * (XW + 4.0), 0, 0)));               // acera de arriba
+      // balaustres torneados y, cada cuatro metros y medio, un dado de piedra
+      const bal = new THREE.LatheGeometry([[0.0, 0], [0.085, 0], [0.085, 0.05], [0.06, 0.09], [0.05, 0.16], [0.075, 0.28], [0.085, 0.36], [0.06, 0.46], [0.045, 0.52], [0.065, 0.56], [0.075, 0.62], [0, 0.62]].map(([x, y]) => new THREE.Vector2(x, y)), 8);
+      for (let z = CZ0 - 0.2; z > CZ1; z -= 0.3) {
+        if (((CZ0 - z) % 4.5) < 0.3) { B.stone.push(colored(new THREE.BoxGeometry(0.46, 0.95, 0.46), '#d9d1c0', M4(side * (XW + 0.3), wallH(z) + 0.6, z))); continue; }
+        B.stone.push(colored(bal.clone(), '#e2dbcb', M4(side * (XW + 0.3), wallH(z) + 0.3, z)));
+      }
+      // arriba, gente asomada a la balaustrada
+      for (let z = CZ0 - 1; z > CZ1 + 1; z -= 0.75) if (rnd() < 0.6) people.push({ x: side * (XW + 0.85 + rnd() * 0.7), y: wallH(z), z: z + rnd() * 0.3, ry: side > 0 ? -Math.PI / 2 : Math.PI / 2 });
+    }
+    // plátanos en la acera de arriba de un lado (el paseo) y, detrás, las casas de la ciudad
+    for (let z = CZ0 - 3; z > CZ1 + 2; z -= 6.5) {
+      const x = -(XW + 5.2), y = wallH(z);
+      B.wood.push(colored(new THREE.CylinderGeometry(0.16, 0.24, 4.2, 7), '#8d8170', M4(x, y + 2.1, z)));
+      for (let k = 0; k < 5; k++) B.leaf.push(colored(new THREE.IcosahedronGeometry(1.5 + rnd() * 0.6, 2), ['#4f7a35', '#5d8a3e', '#46702f'][k % 3], M4(x + (rnd() - 0.5) * 2.2, y + 4.6 + rnd() * 1.6, z + (rnd() - 0.5) * 2.4, rnd() * 3, 1, 0.8, 1)));
+    }
+    street(XW + 11, -L - 1, -GATE + 7);
+    // el doble vallado: postes de 24 cm cada dos metros metidos en el suelo con cuñas, cuatro tablones por el lado de
+    // los corredores, y arriba una tabla donde se sienta la gente
+    const PLANK = ['#a9a398', '#9d968a', '#b2ab9f', '#958e82', '#a39b8d'];
+    for (let z = CZ0; z > CZ1; z -= 2.0) for (const s of [-1, 1]) for (const fx of [HALF, HALF + 1.4]) {
+      B.wood.push(colored(new THREE.BoxGeometry(0.24, 2.0, 0.24), '#857c70', M4(s * (fx + 0.12), 1.0, z)));
+      B.plain.push(colored(new THREE.BoxGeometry(0.42, 0.025, 0.42), '#3c3b38', M4(s * (fx + 0.12), 0.012, z)));   // el hueco del suelo, con su tapa
+      for (const dz of [-1, 1]) B.wood.push(colored(new THREE.BoxGeometry(0.05, 0.14, 0.16), '#b08a5a', M4(s * (fx + 0.12), 0.07, z + dz * 0.15, 0, 1, 1, 1)));   // cuñas
+      if (z - 2.0 > CZ1 - 0.4) for (const [k, y] of [0.42, 0.84, 1.26, 1.68].entries()) B.wood.push(colored(new THREE.BoxGeometry(0.07, 0.21, 2.0), PLANK[(Math.abs(Math.round(z)) + k) % PLANK.length], M4(s * (fx - 0.035), y, z - 1.0)));
+      if (fx > HALF && z - 2.0 > CZ1 - 0.4) B.wood.push(colored(new THREE.BoxGeometry(0.3, 0.06, 2.0), '#a39b8d', M4(s * (fx + 0.12), 2.03, z - 1.0)));   // tabla de arriba
+    }
+    // el suelo del callejón: adoquín de hormigón gris en zigzag (encima del de la Estafeta)
+    {
+      const PT = this.paverT = paverSet([2 * XW / 1.8, (CZ0 - CZ1) / 1.8]);
+      const pv = new THREE.Mesh(new THREE.PlaneGeometry(2 * XW, CZ0 - CZ1), new THREE.MeshStandardMaterial({ ...PT, roughness: 1, normalScale: new THREE.Vector2(1, 1) }));
+      pv.rotation.x = -Math.PI / 2; pv.position.set(0, 0.006, (CZ0 + CZ1) / 2); pv.receiveShadow = true; S.add(pv);
+    }
+    // público en el callejón: de pie entre el vallado y el muro, y sentado encima de la valla de fuera
     for (let z = -L - 1; z > -GATE + 3; z -= 0.8) for (const s of [-1, 1]) {
-      if (rnd() < 0.55) people.push({ x: s * (HALF + 2.1 + rnd() * 2.5), y: 0, z: z + rnd() * 0.4, ry: s > 0 ? -Math.PI / 2 : Math.PI / 2, s: 1.5 });
-      if (rnd() < 0.3) sitters.push({ x: s * (HALF + 1.4), y: 1.7, z, ry: s > 0 ? -Math.PI / 2 : Math.PI / 2 });   // sentados en lo alto de la valla
+      if (rnd() < 0.55) people.push({ x: s * (HALF + 2.0 + rnd() * 0.8), y: 0, z: z + rnd() * 0.4, ry: s > 0 ? -Math.PI / 2 : Math.PI / 2, s: 1.5 });
+      if (rnd() < 0.3) sitters.push({ x: s * (HALF + 1.52), y: 2.06, z, ry: s > 0 ? -Math.PI / 2 : Math.PI / 2 });   // sentados en lo alto de la valla
     }
     // cámaras de televisión: en balcones del primer piso, cada unos 40 m y alternando la acera, y una en una tarima
     // junto a la puerta de la plaza; con su operador o su operadora detrás
@@ -176,19 +233,19 @@ export class Encierro {
       if (b.wz > -12 || b.wz < -L + 4 || lastTv - b.wz < 40 || b.side !== tvSide) continue;
       tvAt(b.fx - b.side * 0.5, b.wy - 0.93, b.wz, b.side); lastTv = b.wz; tvSide = -tvSide;
     }
-    B.plain.push(colored(new THREE.BoxGeometry(2.4, 1.6, 2.4), '#5a4a3a', M4(HALF + 3.1, 0.8, -GATE + 9)));   // tarima
-    tvAt(HALF + 3.1, 1.6, -GATE + 9, 1);
+    tvAt(XW + 1.0, wallH(-GATE + 9), -GATE + 9, 1);   // la de la entrada, arriba en la balaustrada
     // la plaza de toros, con el túnel por el que entra el encierro
     const PZ = this.plaza = buildPlaza(B, colored, M4, -GATE, HALF, rnd);
     // cada material con su textura, relieve y rugosidad (una llamada de dibujo por material)
     const T = { plaster: plasterSet(), stone: ashlarSet(), wood: woodSet(), brick: brickSet() };
-    this.texs = Object.values(T).flatMap(t => Object.values(t)).concat(Object.values(this.cobbleT), [this.sandT]);
+    this.texs = Object.values(T).flatMap(t => Object.values(t)).concat(Object.values(this.cobbleT), Object.values(this.paverT), [this.sandT]);
     const mats = {
       plaster: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, ...T.plaster, normalScale: new THREE.Vector2(0.8, 0.8) }),
       stone: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, ...T.stone }),
       wood: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, ...T.wood }),
       brick: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, ...T.brick }),
       plain: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.6, metalness: 0.3 }),
+      leaf: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9, flatShading: true }),
     };
     for (const k in B) { if (!B[k].length) continue; const city = new THREE.Mesh(mergeGeometries(B[k]), mats[k]); city.castShadow = city.receiveShadow = true; S.add(city); }
     const mat = mats.plaster;
@@ -224,11 +281,10 @@ export class Encierro {
     }
     // placas de la calle en las dos aceras, al principio
     for (const [s, z] of [[-1, -4], [1, -40], [-1, -120]]) inst(plaqueTex(), 0.8, 0.4, [{ x: s * (HALF - 0.03), y: 3.4, z, side: s }]);
-    // cartel «PLAZA DE TOROS»
-    const sc = document.createElement('canvas'); sc.width = 512; sc.height = 96; const sg = sc.getContext('2d');
-    sg.fillStyle = '#efe6d2'; sg.fillRect(0, 0, 512, 96); sg.fillStyle = '#7a2a1a'; sg.font = '900 58px Georgia, serif'; sg.textAlign = 'center'; sg.textBaseline = 'middle'; sg.fillText('PLAZA DE TOROS', 256, 50);
-    const st = new THREE.CanvasTexture(sc); st.colorSpace = THREE.SRGBColorSpace;
-    const sign = new THREE.Mesh(new THREE.PlaneGeometry(7.8, 1.45), new THREE.MeshBasicMaterial({ map: st })); sign.position.set(0, 7.9, -GATE + 1.6); S.add(sign);
+    // la entrada: banda roja con el nombre sobre el hueco, carteles a los lados y «RESERVADO PRENSA» en una tabla
+    { const bt = bandTex(); this.texs.push(bt); const b = PZ.band; const m = new THREE.Mesh(new THREE.PlaneGeometry(b.w, b.h), new THREE.MeshStandardMaterial({ map: bt, roughness: 0.7 })); m.position.set(b.x, b.y, b.z); S.add(m); }
+    PZ.boards.forEach((o, i) => { const t = boardTex(o.kind); this.texs.push(t); const m = new THREE.Mesh(new THREE.PlaneGeometry(1.15, 1.7), new THREE.MeshStandardMaterial({ map: t, roughness: 0.5 })); m.position.set(o.x, o.y, o.z); S.add(m); });
+    { const t = stencilTex(); this.texs.push(t); const m = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 0.2), new THREE.MeshStandardMaterial({ map: t, transparent: true, roughness: 0.8, depthWrite: false })); m.position.set(HALF - 0.073, 1.26, -GATE + 7); m.rotation.y = -Math.PI / 2; S.add(m); }
     // público: personajes de verdad (de blanco y rojo casi todos) dibujados en una lámina; en los balcones, en el
     // callejón y en los tendidos de la plaza, una llamada de dibujo para cada grupo
     // todos a la misma escala que los corredores (antes el público era más pequeño)

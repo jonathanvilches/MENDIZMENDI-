@@ -81,6 +81,72 @@ export function cobbleSet(repeat) {
   return finish(L, 6, repeat);
 }
 
+/** Adoquín de hormigón gris del callejón de la plaza: piezas que encajan entre sí, con los cantos en zigzag, a
+ *  matajunta, en grises distintos y con manchas. Un tile = 1,8 m (piezas de unos 22 × 11 cm). */
+export function paverSet(repeat) {
+  const L = layers(1024), { n, cg, hg, rg } = L, r = rng(53);
+  cg.fillStyle = '#4e4d4a'; cg.fillRect(0, 0, n, n); hg.fillStyle = '#000'; hg.fillRect(0, 0, n, n); rg.fillStyle = '#f0f0f0'; rg.fillRect(0, 0, n, n);
+  const PW = 128, PH = 64, A = 7, rows = n / PH;                 // pieza de 128 × 64 px; los cantos largos ondulan
+  const wave = (x) => A * Math.sin(x / PW * Math.PI * 4);        // el canto largo compartido por dos hileras (encajan)
+  const zig = (y, x0) => { const t = ((y % PH) + PH) % PH / PH; return x0 + (t < 0.5 ? t : 1 - t) * 2 * 10 - 5; };   // canto corto en zigzag
+  const piece = (g, x0, y0) => {
+    g.beginPath();
+    for (let x = x0; x <= x0 + PW; x += 4) g.lineTo(x, y0 + wave(x));
+    for (let y = y0; y <= y0 + PH; y += 4) g.lineTo(zig(y, x0 + PW), y);
+    for (let x = x0 + PW; x >= x0; x -= 4) g.lineTo(x, y0 + PH + wave(x));
+    for (let y = y0 + PH; y >= y0; y -= 4) g.lineTo(zig(y, x0), y);
+    g.closePath();
+  };
+  for (let row = -1; row <= rows; row++) {
+    const off = row % 2 ? PW / 2 : 0;
+    for (let x = -PW + off; x < n + PW; x += PW) {
+      const y = row * PH, base = 96 + r() * 40, warm = (r() - 0.5) * 8;
+      for (const [dx, dy] of [[0, 0], [-n, 0], [n, 0], [0, -n], [0, n]]) {
+        cg.save(); cg.translate(dx, dy);
+        piece(cg, x, y); cg.fillStyle = `rgb(${base + warm | 0},${base | 0},${base - warm * 0.5 + 3 | 0})`; cg.fill();
+        cg.lineWidth = 4; cg.strokeStyle = 'rgba(40,40,38,0.9)'; cg.stroke();
+        hg.save(); hg.translate(dx, dy); piece(hg, x, y); const hv = 170 + r() * 50 | 0; hg.fillStyle = `rgb(${hv},${hv},${hv})`; hg.fill(); hg.lineWidth = 6; hg.strokeStyle = '#2a2a2a'; hg.stroke(); hg.restore();
+        rg.save(); rg.translate(dx, dy); piece(rg, x, y); const rv = 170 + r() * 50 | 0; rg.fillStyle = `rgb(${rv},${rv},${rv})`; rg.fill(); rg.restore();
+        cg.restore();
+      }
+    }
+  }
+  grain(cg, n, r, 16000, 0.22, 200, 40);   // árido del hormigón
+  for (let i = 0; i < 26; i++) { const x = r() * n, y = r() * n, rr = 20 + r() * 70, gr = cg.createRadialGradient(x, y, 0, x, y, rr); gr.addColorStop(0, `rgba(30,28,26,${0.1 + r() * 0.12})`); gr.addColorStop(1, 'rgba(30,28,26,0)'); cg.fillStyle = gr; cg.fillRect(x - rr, y - rr, rr * 2, rr * 2); }   // manchas
+  return finish(L, 5, repeat);
+}
+
+/** Letrero pintado en una tabla del vallado («RESERVADO PRENSA»), en blanco a plantilla. */
+export function stencilTex(text = 'RESERVADO PRENSA') {
+  const [c, g] = canvas(1024, 96);
+  g.clearRect(0, 0, 1024, 96); g.fillStyle = 'rgba(245,242,232,0.92)'; g.font = '900 64px Arial Black, Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText(text, 512, 52);
+  g.globalCompositeOperation = 'destination-out'; g.fillStyle = '#000'; for (let i = 0; i < 260; i++) g.fillRect(Math.random() * 1024, Math.random() * 96, 2 + Math.random() * 6, 2 + Math.random() * 3);   // pintura gastada
+  const t = tex(c); return t;
+}
+/** La banda roja sobre la entrada del callejón a la plaza, con el nombre en euskera y castellano. */
+export function bandTex() {
+  const [c, g] = canvas(1024, 256);
+  g.fillStyle = '#b3201b'; g.fillRect(0, 0, 1024, 256);
+  for (let i = 0; i < 3000; i++) { g.fillStyle = `rgba(${Math.random() < 0.5 ? '255,255,255' : '0,0,0'},${Math.random() * 0.06})`; g.fillRect(Math.random() * 1024, Math.random() * 256, 2, 2); }
+  g.fillStyle = 'rgba(0,0,0,0.18)'; g.fillRect(0, 236, 1024, 20); g.fillStyle = 'rgba(255,255,255,0.12)'; g.fillRect(0, 0, 1024, 8);
+  g.fillStyle = '#f6f1e6'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = '800 54px Georgia, serif';
+  g.fillText('ZEZEN PLAZA · PLAZA DE TOROS', 512, 92);
+  g.font = 'italic 600 34px Georgia, serif'; g.fillText('Iruña · Pamplona', 512, 168);
+  return tex(c);
+}
+/** Carteles de la fachada junto a la entrada (visitas, horarios), blancos con cabecera roja o azul. */
+export function boardTex(kind = 0) {
+  const [c, g] = canvas(256, 384);
+  g.fillStyle = kind ? '#1f2c4a' : '#f4f1ea'; g.fillRect(0, 0, 256, 384);
+  g.fillStyle = kind ? '#c8a24a' : '#b3201b'; g.fillRect(0, 0, 256, 64);
+  g.fillStyle = '#ffffff'; g.font = '800 26px Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(kind ? 'VISITA GUIADA' : 'ZEZEN PLAZA', 128, 34);
+  g.fillStyle = kind ? '#e8e4da' : '#3a3530'; g.font = '600 18px Arial, sans-serif'; g.textAlign = 'left';
+  for (let i = 0; i < 9; i++) g.fillRect(24, 96 + i * 28, 140 + (i * 37 % 70), 8);
+  if (!kind) { g.fillStyle = '#b3201b'; g.fillRect(24, 350, 208, 10); }
+  return tex(c);
+}
+
 /** Sillería de piedra arenisca (zócalos y esquinas): sillares grandes, juntas de mortero claro. Tile = 2,2 m. */
 export function ashlarSet() {
   const L = layers(512), { n, cg, hg, rg } = L, r = rng(7);
