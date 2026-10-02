@@ -629,7 +629,7 @@ export class TownGame {
     try {
       const first = !this.futSeen; this.futSeen = true;
       await this.say(a, first ? ['¡Kaixo! Soy Leire, entrenadora de la cantera de Osasuna. ¿Te atreves a jugar en El Sadar?',
-        'Jugamos a fútbol sala: cinco contra cinco, con porteros. Primero un entrenamiento de pases y luego eliges: partido, penaltis o un reto.',
+        'Jugamos a fútbol de verdad: once contra once en el campo de El Sadar, con porteros, árbitro y fuera de juego. Primero un entrenamiento de pases y luego eliges: partido, penaltis o un reto.',
         'Con el balón: PASE y TIRO (mantenlo pulsado para chutar más fuerte). Sin balón: ROBO cuando se le separe del pie, o ENTRADA. ¡Aupa Osasuna!'] : ['¿Otro partido? ¡La grada está llena!']);
     } finally { this.player.frozen = false; a.talking = 0; }
     this.futbol = new Futbol(this, this.sadar);

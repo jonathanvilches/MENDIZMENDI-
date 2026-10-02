@@ -37,7 +37,8 @@ for (const [ti, town] of list.entries()) {
       if (game === 'timing3d') for (let k = 0; !(await fin()); k++) { const s = await st(); if (s && s.locked <= 0 && Math.abs(s.pos - s.zc) < s.zone * 0.3) { await tap('[data-go]'); if (s.hits === 1) await snap(); } await p.waitForTimeout(25); }
       if (game === 'mash3d') for (let k = 0; !(await fin()); k++) { await tap('[data-go]'); await p.waitForTimeout(60); if (k === 14) await snap(); }
       const r = await p.waitForFunction((k) => window.__res?.[k], key, { timeout: 120000 }).then(h => h.jsonValue()).catch(() => 'sin terminar');
-      await p.waitForTimeout(1600);
+      // (el cierre tiene una pequeña animación: en este navegador de pruebas, sin tarjeta gráfica, puede tardar)
+      await p.waitForFunction(() => !window.__game.altScene && !document.querySelector('.mg3d'), null, { timeout: 8000 }).catch(() => {});
       const back = await p.evaluate(() => ({ alt: !!window.__game.altScene, hud: !!document.querySelector('.mg3d') }));
       console.log('  ', key, JSON.stringify(r), back.alt || back.hud ? 'NO VUELVE AL PUEBLO ' + JSON.stringify(back) : 'vuelve al pueblo');
     }
