@@ -23,14 +23,20 @@ function extent() { if (!EXTENT) { const c = new PelotaCourt(THREE); EXTENT = c.
 
 // Busca un sitio llano y libre cerca de la plaza
 export function findFrontonSpot(plaza) {
+  // primero cerca de la plaza; si el pueblo está muy lleno (Tudela), más lejos y con algo menos de holgura:
+  // todos los pueblos tienen su frontón y su pelotari
+  for (const [r0, r1, gap, da] of [[34, 120, 1.2, 0.3], [120, 240, 1.2, 0.2], [34, 260, 0.6, 0.15]]) { const sp = frontonSearch(plaza, r0, r1, gap, da); if (sp) return sp; }
+  return null;
+}
+function frontonSearch(plaza, r0, r1, gap, da) {
   const E = extent();
   let best = null, bs = 1e9;
-  for (let r = 34; r <= 120; r += 8) for (let a = 0; a < Math.PI * 2; a += 0.3) {
+  for (let r = r0; r <= r1; r += 8) for (let a = 0; a < Math.PI * 2; a += da) {
     const x = plaza.x + Math.cos(a) * r, z = plaza.z + Math.sin(a) * r, ry = Math.atan2(plaza.x - x, plaza.z - z);   // la cancha se abre hacia la plaza
     const c = Math.cos(ry), s = Math.sin(ry); let mn = 1e9, mx = -1e9, ok = true;
     for (let lx = E.x0; lx <= E.x1 + 0.01 && ok; lx += 3) for (let lz = E.z0; lz <= E.z1 + 0.01; lz += 3) {
       const X = x + lx * c + lz * s, Z = z - lx * s + lz * c;
-      if (!isFree(X, Z, 1.2) || waterLevelAt(X, Z) > terrainHeight(X, Z) - 0.3) { ok = false; break; }
+      if (!isFree(X, Z, gap) || waterLevelAt(X, Z) > terrainHeight(X, Z) - 0.3) { ok = false; break; }
       const h = terrainHeight(X, Z); mn = Math.min(mn, h); mx = Math.max(mx, h);
     }
     if (!ok) continue;

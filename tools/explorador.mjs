@@ -10,7 +10,7 @@ const p = await b.newPage({ viewport: { width: 1100, height: 620 } });
 p.on('pageerror', e => errs.push(e.message));
 await p.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'ranger', seen: { heroBenat: true, dog: true } })); });
 // selector de personajes: el explorador sale el primero (y quien tenía el de antes por defecto pasa a él)
-await p.goto(`${URL}/?screen=chars`, { timeout: 300000 });
+await p.goto(`${URL}/?screen=avatars`, { timeout: 300000 });
 await p.waitForFunction(() => window.__ready, null, { timeout: 300000 }); await p.waitForTimeout(6000);
 await p.screenshot({ path: `${out}/selector.png` });
 console.log('avatar', await p.evaluate(async () => (await import('/src/game/profile.js')).profile().avatar));
