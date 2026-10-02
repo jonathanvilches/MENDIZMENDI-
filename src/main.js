@@ -18,13 +18,13 @@ import { Sound } from './audio.js';
 import { UI } from './ui.js';
 import { Hub } from './hub/hub.js';
 import { Game } from './game/game.js';
-import { TownGame } from './game/townGame.js';
+import { TownGame, hasShepherd } from './game/townGame.js';
 import { profile, saveProfile, townState, checkBadges, salazarState } from './game/profile.js';
 import { levelById } from './data/levels.js';
 import { landImg, stampImg } from './assets.js';
 import COMARCAS from './data/comarcas.json';
-import { preloadNpcs } from './actors/npcGlb.js';
-import { preloadAnimals } from './actors/animalGlb.js';
+import { preloadNpcs, preloadNpcMeshy } from './actors/npcGlb.js';
+import { animalsSettled } from './actors/animalGlb.js';
 import { preloadFood } from './world/products3d.js';
 import { avatarPortrait } from './ui/portraits.js';
 import { loadStore, queueMode } from './util/store.js';
@@ -86,7 +86,8 @@ async function boot() {
     const TI = { visit: 'church', process: 'basket', harvest: 'wheat', herd: 'sheep', dance: 'dance', carnival: 'mask', trade: 'anvil', legend: 'legend', race: 'running', observe: 'binoculars', tradition: 'music', quiz: 'quiz', summit: 'peak', pelota: 'pelota', figure: 'person', feria: 'cow', dolmen: 'dolmen', castle: 'castle', mirador: 'binoculars' };
     ui.showLoading(d.name, TIPS[Math.floor(Math.random() * TIPS.length)], landImg(d.comarca, 1280, 720, true), { comarca: cm?.name, stamp: stampImg(d.comarca, d.name.split(' /')[0]), avatar: avatarPortrait(P.avatar), intro: d.intro, missions: (d.missions || []).map(m => m.icon || TI[m.type] || 'star') });
     try {
-      const npcP = preloadNpcs(); await Promise.all([preloadAnimals(), preloadFood()]); await Promise.all([rt.load(d, P.avatar, (p, m) => ui.progress(p, m)), npcP]);
+      const npcP = preloadNpcs(); await preloadFood(); await Promise.all([rt.load(d, P.avatar, (p, m) => ui.progress(p, m)), npcP]);
+      if (!d.special && hasShepherd(d)) await preloadNpcMeshy(['pastor']);
       const ctx = { scene: rt.scene, camera: rt.camera, player: rt.player, follow: rt.follow, ui, sound, input, sky: rt.sky, fauna: rt.fauna, particles: rt.particles, beacon: rt.beacon, onExit: exit };
       hookPlayer(rt.player);
       if (d.special === 'salazar') {
@@ -96,6 +97,7 @@ async function boot() {
         window.__game = game;
         ui.buildHUD(game);
         game.spawn();
+        await animalsSettled();   // los animales del pueblo (cada uno baja su modelo al aparecer)
         const st = game.state;
         st.name = P.name || st.name; st.started = true;
         rt.sky.time = q.get('t') ? +q.get('t') : (st.time ?? 9.3);
@@ -116,6 +118,7 @@ async function boot() {
         window.__game = game;
         ui.buildHUD(game);
         game.spawn();
+        await animalsSettled();   // los animales del pueblo (cada uno baja su modelo al aparecer)
         rt.sky.time = q.get('t') ? +q.get('t') : 10;
         game.applySettings();
         await rt.precompile();
@@ -176,6 +179,10 @@ async function boot() {
   window.__ready = true;
 }
 
+// versión web: el service worker guarda lo descargado (la segunda vez carga al momento y funciona sin conexión)
+if (typeof __WEB__ !== 'undefined' && __WEB__ && 'serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(e => console.warn('service worker', e)));
+}
 boot().catch(e => {
   console.error(e);
   const d = document.createElement('div');

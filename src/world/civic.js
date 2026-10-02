@@ -3,6 +3,7 @@
 // Los letreros comparten un único atlas de textura y se dibujan en una sola malla.
 import * as THREE from 'three';
 import { freeCanvasOnUpload } from '../util/freeCanvas.js';
+import { QUALITY } from '../util/quality.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { box, gable, colored, M, MM } from './builder.js';
 
@@ -35,7 +36,10 @@ export class Signs {
   }
   build(parent) {
     if (!this.geos.length) return null;
-    const t = freeCanvasOnUpload(new THREE.CanvasTexture(this.canvas)); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
+    // en calidad baja (móviles) el atlas se reduce a la mitad: cuatro veces menos memoria y en una pantalla pequeña se lee igual
+    let cv = this.canvas;
+    if (QUALITY === 'low' && this.S > 1024) { const h = document.createElement('canvas'); h.width = h.height = this.S / 2; h.getContext('2d').drawImage(cv, 0, 0, h.width, h.height); cv.width = cv.height = 1; cv = h; }
+    const t = freeCanvasOnUpload(new THREE.CanvasTexture(cv)); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
     const m = new THREE.Mesh(mergeGeometries(this.geos), new THREE.MeshStandardMaterial({ map: t, alphaTest: 0.5, roughness: 0.8, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
     m.receiveShadow = true; m.matrixAutoUpdate = false; m.updateMatrix(); m.name = 'signs'; parent.add(m);
     this.geos = [];

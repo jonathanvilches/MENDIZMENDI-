@@ -8,9 +8,12 @@ function srgb(THREE, tex) {
   else if (THREE.sRGBEncoding) tex.encoding = THREE.sRGBEncoding;
   return tex;
 }
+// escala de las texturas pintadas (opts.texScale): en los móviles se pintan a la mitad (cuatro veces menos memoria)
+let TEX_K = 1;
 function canvasTex(THREE, w, h, draw, repeat) {
-  const c = document.createElement('canvas'); c.width = w; c.height = h;
-  draw(c.getContext('2d'), w, h);
+  const c = document.createElement('canvas'); c.width = Math.round(w * TEX_K); c.height = Math.round(h * TEX_K);
+  const g = c.getContext('2d'); g.scale(TEX_K, TEX_K);
+  draw(g, w, h);
   const t = freeCanvasOnUpload(srgb(THREE, new THREE.CanvasTexture(c)));
   t.anisotropy = 4;
   if (repeat) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(repeat[0], repeat[1]); }
@@ -53,7 +56,7 @@ export const THEMES = {
 export class PelotaCourt {
   constructor(THREE, opts = {}) {
     const T = THREE, C = COURT, th = THEMES[opts.theme] || THEMES.plaza;
-    this.THREE = T;
+    this.THREE = T; TEX_K = opts.texScale || 1;
     const g = this.group = new T.Group(); g.name = 'Fronton';
     const W = C.W, L = C.L, EXT = L + 3, CONTRA = 2.6;
     const std = (o) => new T.MeshStandardMaterial(Object.assign({ roughness: 0.88, metalness: 0 }, o));

@@ -10,7 +10,6 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 const URLS = {};
 for (const [p, u] of Object.entries(import.meta.glob('../assets/animals/*.glb', { eager: true, query: '?url', import: 'default' }))) URLS[p.split('/').pop().replace('.glb', '')] = u;
 const GLTF = {};
-let loading = null;
 
 // especie del juego → modelo, altura total (m) y colores de cada material del modelo
 const SPEC = {
@@ -40,12 +39,25 @@ export function animalSpec(kind, opts = {}) { return kind === 'dog' ? DOG[opts.b
 export const hasGlbAnimal = (kind, opts) => { const s = animalSpec(kind, opts); return !!(s && GLTF[s.model]); };
 
 /** Carga todos los modelos (una vez); se llama durante la pantalla de carga del pueblo. */
-export function preloadAnimals() {
-  if (loading) return loading;
-  const L = new GLTFLoader(); L.setMeshoptDecoder(MeshoptDecoder);
-  loading = Promise.all(Object.entries(URLS).map(([n, u]) => L.loadAsync(u).then(g => { GLTF[n] = g; }).catch(e => console.warn('animal', n, e))));
-  return loading;
+// Cada modelo se descarga una vez y solo cuando hace falta (en la versión web, un archivo por animal): así un pueblo
+// baja los animales que tiene y no los diecisiete.
+const LOADS = {}; let LOADER = null;
+function loadModel(name) {
+  if (LOADS[name]) return LOADS[name];
+  if (!URLS[name]) return Promise.resolve();
+  if (!LOADER) { LOADER = new GLTFLoader(); LOADER.setMeshoptDecoder(MeshoptDecoder); }
+  return (LOADS[name] = LOADER.loadAsync(URLS[name]).then(g => { GLTF[name] = g; }).catch(e => console.warn('animal', name, e)));
 }
+/** Descarga todos los modelos (o los de la lista de especies). */
+export function preloadAnimals(kinds) {
+  return Promise.all(kinds ? kinds.map(k => ensureAnimal(k)) : Object.keys(URLS).map(loadModel));
+}
+/** Descarga el modelo de una especie (o raza de perro); se resuelve cuando ya se puede construir. */
+export function ensureAnimal(kind, opts) { const s = animalSpec(kind, opts); return s ? loadModel(s.model) : Promise.resolve(); }
+/** Espera a que terminen las descargas pedidas hasta ahora (la pantalla de carga no se quita antes). */
+export function animalsSettled() { return Promise.all(Object.values(LOADS)); }
+/** ¿Está la especie pendiente de descarga (tiene modelo pero aún no ha llegado)? */
+export const animalPending = (kind, opts) => { const s = animalSpec(kind, opts); return !!(s && URLS[s.model] && !GLTF[s.model]); };
 
 // Una sola malla por animal: los trozos de cada material (cuerpo, hocico, cuernos, pezuñas, ojos…) se funden en
 // una geometría con el color de la raza en cada vértice, y las normales se suavizan (sin facetas) salvo en las
