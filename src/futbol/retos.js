@@ -13,9 +13,10 @@ export class Reto {
     const g = this.g;
     g.players.forEach((p, i) => { if (keep.includes(p)) return; p.x = -F.HL + 2 + i * 1.6; p.z = -F.HW - 1.2; p.h = 0; p.react = 1e9; p.wx = p.wz = 0; p.vx = p.vz = 0; });
     g.keeper = (p) => { p.wx = p.wz = 0; };   // sin porteros
+    g.noRefs = true; g.refs.forEach((r, i) => { r.x = F.HL - 4 - i * 2; r.z = -F.HW - 3; r.vx = r.vz = 0; });   // ni árbitro
   }
   start() {
-    const g = this.g, me = g.players[4];
+    const g = this.g, me = g.byRole(0, 'DCD');
     g.kickoff(0); g.restart = null; g.setPhase('tuto'); g.owner = null; g.noSwitch = true;
     g.me = me; me.react = 0;
     this.v.hud.say(this.D.name, 2000);
@@ -47,22 +48,23 @@ export class Reto {
   setupDianas(me) {
     this.clear([me]);
     this.n = 0; this.hits = 0; this.wait = 0;
-    const tor = new THREE.TorusGeometry(0.34, 0.05, 10, 32), tm = new THREE.MeshStandardMaterial({ color: '#ffd700', emissive: '#ffb000', emissiveIntensity: 0.6 });
-    this.targets = [-1, 1].map(s => { const m = this.add(new THREE.Mesh(tor, tm.clone())); m.position.set(F.HL - 0.02, F.goalH - 0.4, s * (F.goalW / 2 - 0.4)); m.rotation.y = Math.PI / 2; return { m, y: F.goalH - 0.4, z: s * (F.goalW / 2 - 0.4) }; });
+    const tor = new THREE.TorusGeometry(0.42, 0.06, 10, 32), tm = new THREE.MeshStandardMaterial({ color: '#ffd700', emissive: '#ffb000', emissiveIntensity: 0.6 });
+    this.targets = [-1, 1].map(s => { const m = this.add(new THREE.Mesh(tor, tm.clone())); m.position.set(F.HL - 0.02, F.goalH - 0.5, s * (F.goalW / 2 - 0.5)); m.rotation.y = Math.PI / 2; return { m, y: F.goalH - 0.5, z: s * (F.goalW / 2 - 0.5) }; });
     this.place(me);
     this.v.hud.tip('Apunta a una <b>diana</b> y mantén <b>TIRO</b> para cargar (arriba, más fuerza)');
   }
   place(me) {
-    const g = this.g, spots = [[9, 0], [10, -3], [10, 3], [11, -5], [11, 5], [12, 0], [9, -2], [9, 2]], [d, z] = spots[this.n % spots.length];
+    // desde la frontal del área (a 17–21 m de la línea de meta)
+    const g = this.g, spots = [[18, 0], [19, -4], [19, 4], [20, -7], [20, 7], [21, 0], [17, -2], [17, 2]], [d, z] = spots[this.n % spots.length];
     me.x = F.HL - d - 0.7; me.z = z; me.h = Math.atan2(F.HL - me.x, -me.z * 0.3); me.vx = me.vz = 0;
     g.owner = null; g.ball.set(F.HL - d, z); g.takeBall(me); this.shot = null;
   }
   // ---------------------------------------------------------------- pases
   setupPases(me) {
-    const g = this.g, mates = [g.players[1], g.players[2], g.players[3]];
+    const g = this.g, mates = [g.byRole(0, 'MCI'), g.byRole(0, 'MI'), g.byRole(0, 'MD')];
     this.clear([me, ...mates]);
     me.x = -4; me.z = 0; me.h = Math.PI / 2; g.ball.set(-3.4, 0); g.takeBall(me);
-    this.mates = mates.map((p, i) => { const c = [[4, -5], [10, 2], [2, 6]][i]; p.x = c[0]; p.z = c[1]; return { p, cx: c[0], cz: c[1], a: i * 2, r: 3 + i, w: 0.5 + i * 0.12 }; });
+    this.mates = mates.map((p, i) => { const c = [[5, -7], [13, 3], [3, 9]][i]; p.x = c[0]; p.z = c[1]; return { p, cx: c[0], cz: c[1], a: i * 2, r: 3 + i, w: 0.5 + i * 0.12 }; });
     this.n = 0; this.back = 0;
     this.v.hud.tip('Pasa al hueco: apunta a un compañero y suelta <b>PASE</b>. Te la devuelven');
   }
@@ -87,12 +89,12 @@ export class Reto {
         this.shot.t += dt;
         const pl = F.HL - 0.05, P0 = g.ball.prev;
         if (!this.shot.res && P0.x < pl && B.x >= pl) {
-          const hit = this.targets.find(T => hyp(B.y - T.y, B.z - T.z) < 0.48);
+          const hit = this.targets.find(T => hyp(B.y - T.y, B.z - T.z) < 0.58);
           this.shot.res = hit ? 'hit' : (Math.abs(B.z) < F.goalW / 2 && B.y < F.goalH ? 'goal' : 'miss');
           if (hit) { this.hits++; this.v.hud.msg('¡Diana!', `${this.hits} de ${this.D.shots}`, 1200); this.v.audio.roar(); hit.m.material.emissiveIntensity = 2; setTimeout(() => { hit.m.material.emissiveIntensity = 0.6; }, 600); }
           else this.v.hud.say(this.shot.res === 'goal' ? 'Gol, pero lejos de la diana' : 'Fuera', 1100);
         }
-        if (this.shot.t > 2.2 || (this.shot.t > 0.8 && g.ball.speed < 0.3)) {
+        if (this.shot.t > 2.6 || (this.shot.t > 0.9 && g.ball.speed < 0.3)) {
           this.n++;
           if (this.n >= this.D.shots) return this.finish(this.hits >= this.D.target, `${this.hits} dianas`, [['', 'Dianas', `${this.hits} de ${this.D.shots}`], ['', 'Objetivo', `${this.D.target}`]], 'dianas', this.hits);
           this.place(me);
@@ -123,7 +125,7 @@ export class Reto {
   }
   cam(pos, look, fov) {
     const g = this.g, B = g.ball.p;
-    if (this.id === 'dianas') return { pos: new THREE.Vector3(F.HL - 17, 4.2, B.z * 0.4 + 0.01), look: new THREE.Vector3(F.HL, 1.1, 0), fov: 44 };
+    if (this.id === 'dianas') return { pos: new THREE.Vector3(F.HL - 27, 4.8, B.z * 0.4 + 0.01), look: new THREE.Vector3(F.HL, 1.3, 0), fov: 36 };
     return { pos, look, fov };
   }
   dispose() { for (const o of this.objs) { this.v.scene?.remove(o); o.geometry?.dispose(); o.material?.dispose?.(); } }

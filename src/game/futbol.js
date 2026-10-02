@@ -1,33 +1,35 @@
-// El fútbol en el juego: la entrenadora de El Sadar abre el menú del módulo de fútbol sala (src/futbol) y el partido se
-// juega en su propia escena mientras Pamplona queda en pausa. Aquí se le dan los personajes del juego (el futbolista de
-// Osasuna de Meshy de rojo, el visitante de blanco y los porteros con la camiseta de otro color), el público de las
-// gradas, el sonido y la calidad.
+// El fútbol en el juego: la entrenadora de El Sadar abre el menú del módulo de fútbol (src/futbol) y el partido se juega
+// en su propia escena mientras Pamplona queda en pausa. Aquí se le dan los personajes del juego (el futbolista de Osasuna
+// de Meshy de rojo, el visitante de blanco, los porteros con la camiseta de otro color y el árbitro y sus asistentes de
+// negro, todos en su versión ligera porque son veinticinco a la vez), el público de las gradas, el sonido y la calidad.
 import * as THREE from 'three';
 import { FutbolSystem } from '../futbol/index.js';
 import { GlbChar, loadMeshy, hasMeshy, MESHY_GAIT } from '../actors/glbChar.js';
 import { crowd3d } from '../actors/crowd3d.js';
 import { QUALITY } from '../util/quality.js';
+import { REFEREE } from '../futbol/rules.js';
 
-// la camiseta roja del modelo pasa a otro color (porteros): solo los píxeles de rojo muy saturado, la piel no
-function recolor(root, color) {
+// la camiseta roja del modelo pasa a otro color (porteros y árbitros): solo los píxeles de rojo muy saturado, la piel no.
+// El brillo sigue el del color pedido (el negro del árbitro sale oscuro, no granate)
+function recolor(root, color, minSat = 0.5) {
   const c = new THREE.Color(color), hsl = {}; c.getHSL(hsl);
   const mats = [];
   root.traverse(o => {
     if (!o.isMesh) return;
     o.material = [].concat(o.material).map(m0 => {
-      const m = m0.clone(); mats.push(m);
+      const m = m0.clone(); m.userData.fbOwn = true; mats.push(m);   // (propio de este jugador: la sombra de la cubierta se le añade sin copiarlo)
       m.onBeforeCompile = (sh) => {
-        sh.uniforms.uHue = { value: hsl.h }; sh.uniforms.uSat = { value: Math.max(0.5, hsl.s) }; sh.uniforms.uLit = { value: hsl.l };
+        sh.uniforms.uHue = { value: hsl.h }; sh.uniforms.uSat = { value: Math.max(minSat, hsl.s) }; sh.uniforms.uLit = { value: hsl.l };
         const fn = `uniform float uHue, uSat, uLit;
           vec3 fbHsv(vec3 c){ vec4 K=vec4(0.,-1./3.,2./3.,-1.); vec4 p=mix(vec4(c.bg,K.wz),vec4(c.gb,K.xy),step(c.b,c.g)); vec4 q=mix(vec4(p.xyw,c.r),vec4(c.r,p.yzx),step(p.x,c.r)); float d=q.x-min(q.w,q.y); return vec3(abs(q.z+(q.w-q.y)/(6.*d+1e-10)),d/(q.x+1e-10),q.x); }
           vec3 fbRgb(vec3 c){ vec3 p=abs(fract(c.xxx+vec3(1.,2./3.,1./3.))*6.-3.); return c.z*mix(vec3(1.),clamp(p-1.,0.,1.),c.y); }
           vec3 fbRecolor(vec3 c){ vec3 h=fbHsv(c); float red=(h.x<0.03||h.x>0.95)?1.:0.; float k=red*smoothstep(0.78,0.9,h.y)*smoothstep(0.03,0.08,h.z);
-            vec3 t=fbRgb(vec3(uHue,uSat,h.z*(0.65+uLit*1.2))); return mix(c,t,k); }`;
+            vec3 t=fbRgb(vec3(uHue,uSat,clamp(h.z*uLit*2.5,0.,1.))); return mix(c,t,k); }`;
         sh.fragmentShader = sh.fragmentShader.replace('void main() {', fn + '\nvoid main() {')
           .replace('#include <map_fragment>', '#include <map_fragment>\n diffuseColor.rgb = fbRecolor(diffuseColor.rgb);')
           .replace('#include <emissivemap_fragment>', '#ifdef USE_EMISSIVEMAP\n vec4 emissiveColor = texture2D( emissiveMap, vEmissiveMapUv ); totalEmissiveRadiance *= fbRecolor(emissiveColor.rgb);\n#endif');
       };
-      m.customProgramCacheKey = () => 'fb-recolor-' + color;
+      m.customProgramCacheKey = () => 'fb-recolor';
       return m;
     });
     if (o.material.length === 1) o.material = o.material[0];
@@ -35,17 +37,49 @@ function recolor(root, color) {
   return mats;
 }
 
-// futbolistas del juego: el modelo de Meshy de cada equipo; los porteros, con el de Osasuna y la camiseta de su color
+// gira un hueso (en el mundo) para que su dirección «from» pase a ser «to»
+const qa = new THREE.Quaternion(), qb = new THREE.Quaternion(), qc = new THREE.Quaternion(), va = new THREE.Vector3(), vb = new THREE.Vector3(), vc = new THREE.Vector3();
+function aimBone(bone, child, to) {
+  bone.getWorldPosition(va); child.getWorldPosition(vb); vb.sub(va).normalize();
+  qa.setFromUnitVectors(vb, vc.copy(to).normalize()); bone.getWorldQuaternion(qb); qb.premultiply(qa);
+  bone.parent.getWorldQuaternion(qc); bone.quaternion.copy(qc.invert().multiply(qb)); bone.updateMatrixWorld(true);
+}
+// banderín del asistente: palo y tela amarilla y roja a cuadros
+function flag() {
+  const g = new THREE.Group(), c = document.createElement('canvas'); c.width = c.height = 32; const x = c.getContext('2d');
+  for (let i = 0; i < 4; i++) { x.fillStyle = REFEREE.flag[(i + (i >> 1)) % 2]; x.fillRect((i % 2) * 16, (i >> 1) * 16, 16, 16); }
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+  const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.5, 6), new THREE.MeshStandardMaterial({ color: '#222' })); stick.position.y = 0.25;
+  const cloth = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.26), new THREE.MeshStandardMaterial({ map: tex, side: THREE.DoubleSide, roughness: 0.8 })); cloth.position.set(0.17, 0.37, 0);
+  g.add(stick, cloth); return g;
+}
+// futbolistas del juego: el modelo de Meshy de cada equipo (en su versión ligera); los porteros, con el de Osasuna y la
+// camiseta de su color; el árbitro y los asistentes, con el de Osasuna de negro (y el banderín los asistentes)
 export async function makeCharacter(d) {
-  const model = d.keeper ? 'osasuna' : d.team.model;
+  const model = d.keeper || d.referee ? 'osasuna' : d.team.model;
   if (!model || !hasMeshy(model)) return null;
-  const g = await loadMeshy(model);
+  const g = await loadMeshy(model, true);
   const char = new GlbChar(g, MESHY_GAIT); char.root.scale.setScalar(g.userData.fit || 1);
-  // cada jugador un poco distinto de alto
-  char.root.scale.multiplyScalar([1, 0.97, 1.03, 0.99, 1.02][(d.num + d.side) % 5]);
-  const mats = d.keeper ? recolor(char.root, d.team.keeper) : [];
+  // cada jugador un poco distinto de alto; los porteros, algo más altos
+  char.root.scale.multiplyScalar(d.keeper ? 1.05 : [1, 0.97, 1.03, 0.99, 1.02][((d.num || 0) + d.side) % 5]);
+  const mats = d.keeper ? recolor(char.root, d.team.keeper) : d.referee ? recolor(char.root, REFEREE.shirt, 0) : d.team.recolor ? recolor(char.root, d.team.shirt) : [];
+  const B = {}; char.root.traverse(o => { if (o.isBone) B[o.name.replace(/[.:]/g, '').replace(/^mixamorig/, '')] = o; });
+  const arms = ['Left', 'Right'].map(s => [B[s + 'Arm'], B[s + 'ForeArm'], B[s + 'Hand']]).filter(a => a.every(Boolean));
+  // el banderín, en la mano derecha (con la escala del mundo: el esqueleto de Mixamo va a 1/100)
+  let fl = null; if (d.line && B.RightHand) { fl = flag(); B.RightHand.add(fl); char.root.updateMatrixWorld(true); fl.scale.setScalar(1 / B.RightHand.getWorldScale(new THREE.Vector3()).x); }
+  const up = new THREE.Vector3(0, 1, 0), fw = new THREE.Vector3(), out = new THREE.Vector3(), w = new THREE.Quaternion();
   return { obj: char.root, anim: { setSpeed: (v) => char.setSpeed(v), once: (n, s, fit) => char.playOnce(n, s, fit), update: (dt) => char.update(dt) },
-    dispose: () => { char.dispose(); for (const m of mats) m.dispose(); } };
+    // brazos arriba sobre la cabeza (saque de banda) o el derecho en alto con el banderín (fuera de juego)
+    post: (st) => {
+      if (!st?.arms || !arms.length) return;
+      char.root.getWorldQuaternion(w); fw.set(0, 0, 1).applyQuaternion(w);
+      arms.forEach(([a, f, h], i) => {
+        if (st.arms === 'flag' && i === 0) return;
+        out.copy(up).addScaledVector(fw, st.arms === 'up' ? 0.25 : 0.1);
+        aimBone(a, f, out); aimBone(f, h, out);
+      });
+    },
+    dispose: () => { char.dispose(); for (const m of mats) m.dispose(); if (fl) fl.traverse(o => { if (o.isMesh) { o.geometry.dispose(); o.material.map?.dispose(); o.material.dispose(); } }); } };
 }
 
 export class Futbol {
@@ -72,7 +106,7 @@ export class Futbol {
       const r = await FutbolSystem.startReto({ campoId: 'sadar', reto: 'pases' });
       if (r?.quit && !r.reto) return { quit: true };
     }
-    const r = await FutbolSystem.openMenu({ campoId: 'sadar', title: 'El Sadar', sub: 'Fútbol sala con la cantera' });
+    const r = await FutbolSystem.openMenu({ campoId: 'sadar', title: 'El Sadar', sub: 'Fútbol 11 con la cantera' });
     if (!r || r.quit) return { quit: true };
     if (r.mode === 'reto') return { quit: true, reto: r };
     return { win: !!r.win, you: r.pens && r.mode === 'penalties' ? r.pens[0] : r.you ?? 0, cpu: r.pens && r.mode === 'penalties' ? r.pens[1] : r.cpu ?? 0, quit: !!r.quit, draw: !!r.draw };

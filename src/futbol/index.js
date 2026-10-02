@@ -1,4 +1,4 @@
-// Fútbol sala de MENDIMENDIZ: módulo independiente del juego (como el de pelota a mano).
+// Fútbol 11 de MENDIMENDIZ: módulo independiente del juego (como el de pelota a mano).
 //   FutbolSystem.init({ THREE, data, makeCharacter, animateCharacter, crowd, host, quality, touch, audio })
 //   FutbolSystem.startMatch({ campoId, modo, rival, dificultad, duracion, asistencia }) → Promise<resultado>
 //   FutbolSystem.startPenaltis({ campoId, rival, tiros }) → Promise<resultado>
@@ -13,7 +13,7 @@ import { menuPanel } from './hud.js';
 import { VENUES, TEAMS, RETOS, CAREER_KEY } from './rules.js';
 export { FutbolGame } from './game.js';
 export { FIELD, PHYS, PLAYER, LEVELS, TEAMS, VENUES, RETOS } from './rules.js';
-export const VERSION = '2.0.0';
+export const VERSION = '3.0.0';
 
 const career = {
   data: null,
@@ -91,9 +91,10 @@ export const FutbolSystem = {
   /** Menú previo: modo (partido, penaltis o un reto), rival, dificultad, duración y asistencia. */
   async openMenu({ campoId = 'sadar', title, sub } = {}) {
     const V = VENUES[campoId] || VENUES.sadar, d = career.load();
-    const rivals = Object.values(TEAMS).filter(t => t.id !== V.home && (V.env === 'estadio' ? t.model : true)).map(t => [t.id, t.name]);
+    // (en El Sadar no se juega contra el equipo rojo del pueblo: se confundiría con Osasuna)
+    const rivals = Object.values(TEAMS).filter(t => t.id !== V.home && !(V.env === 'estadio' && t.id === 'pueblo')).map(t => [t.id, t.name]);
     const modes = [['match', 'Partido'], ['cup', 'Eliminatoria'], ['penalties', 'Penaltis'], ...Object.values(RETOS).map(r => ['reto:' + r.id, r.name + (d.retos[r.id]?.done ? ' ✓' : '')])];
-    const v = await menuPanel({ title: title || V.name, sub: sub || (V.town || 'Fútbol sala'), modes, rivals, values: { mode: 'match', rival: V.away, level: 'normal', duration: 3, assist: true } });
+    const v = await menuPanel({ title: title || V.name, sub: sub || (V.town || 'Fútbol'), modes, rivals, values: { mode: 'match', rival: V.away, level: 'normal', duration: 3, assist: true } });
     if (!v) return { quit: true };
     if (v.mode.startsWith('reto:')) return this.startReto({ campoId, reto: v.mode.slice(5) });
     if (v.mode === 'penalties') return this.startPenaltis({ campoId, rival: v.rival, dificultad: v.level });

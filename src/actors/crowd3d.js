@@ -10,7 +10,11 @@ import { crowdMesh, figure, FIGS, sitPose } from './crowdSprites.js';
 import { QUALITY } from '../util/quality.js';
 
 const baked = new Map();   // conjunto → promesa de [figura][pose] geometrías
+// con un poco de su propio color como luz propia (como los personajes de Meshy): a contraluz no se quedan oscuros y
+// casan con las láminas, que no reciben luz
 const MAT = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.82 });
+MAT.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n totalEmissiveRadiance += vColor.rgb * 0.38;'); };
+MAT.customProgramCacheKey = () => 'crowd3d-fill';
 
 // píxeles de una textura (de la imagen o del lienzo recoloreado), para leer el color bajo cada vértice
 const pixCache = new WeakMap();
@@ -100,7 +104,7 @@ export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false } = 
   const group = new THREE.Group(), sprites = crowdMesh(spots, set, height, figs, sit);
   group.add(sprites);
   // (los personajes nuevos tienen más detalle: en el móvil, menos en 3D a la vez)
-  const Q = QUALITY, K = Q === 'low' ? 26 : Q === 'mid' ? 60 : 120, R = Q === 'low' ? 13 : Q === 'mid' ? 20 : 28;
+  const Q = QUALITY, K = Q === 'low' ? 18 : Q === 'mid' ? 40 : 80, R = Q === 'low' ? 13 : Q === 'mid' ? 20 : 28;
   const A = sprites.geometry.attributes.aAnim.array, C = sprites.geometry.attributes.aCell.array, IM = sprites.instanceMatrix, orig = IM.array.slice();
   const near = new Int32Array(K); let nNear = 0, meshes = null, cheer = 0, pick = 0;
   const hide = new Uint8Array(n), m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), s3 = new THREE.Vector3();
@@ -109,12 +113,17 @@ export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false } = 
   bakeSet(set, sit).then(G => {
     meshes = G.map(poses => poses.map(g => { const im = new THREE.InstancedMesh(g, MAT, K); im.count = 0; im.frustumCulled = false; group.add(im); return im; }));
   }).catch(err => console.warn('público 3D', err));
-  const cam = new THREE.Vector3();
-  // elige los K espectadores más cercanos a la cámara (dentro de R) para dibujarlos en 3D
+  const cam = new THREE.Vector3(), frustum = new THREE.Frustum(), pm = new THREE.Matrix4(), sph = new THREE.Sphere(new THREE.Vector3(), 1.2);
+  // elige los K espectadores más cercanos a la cámara (dentro de R) que se ven, para dibujarlos en 3D (los que quedan
+  // detrás de la cámara o fuera de la imagen no cuentan: siguen como lámina, que no se dibuja si no se ve)
   function choose(camera) {
-    camera.getWorldPosition(cam);
+    camera.getWorldPosition(cam); camera.updateMatrixWorld();
+    frustum.setFromProjectionMatrix(pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
     const cand = [];
-    for (let i = 0; i < n; i++) { const s = spots[i], d = (s[0] - cam.x) ** 2 + (s[1] - cam.y) ** 2 * 0.5 + (s[2] - cam.z) ** 2; if (d < R * R) cand.push([d, i]); }
+    for (let i = 0; i < n; i++) {
+      const s = spots[i], d = (s[0] - cam.x) ** 2 + (s[1] - cam.y) ** 2 * 0.5 + (s[2] - cam.z) ** 2; if (d >= R * R) continue;
+      sph.center.set(s[0], s[1] + 0.7, s[2]); if (frustum.intersectsSphere(sph)) cand.push([d, i]);
+    }
     cand.sort((a, b) => a[0] - b[0]);
     const keep = new Uint8Array(n); nNear = Math.min(K, cand.length);
     for (let k = 0; k < nNear; k++) { near[k] = cand[k][1]; keep[cand[k][1]] = 1; }

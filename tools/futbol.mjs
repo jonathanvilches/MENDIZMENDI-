@@ -9,7 +9,7 @@ const views = [['escritorio', 1280, 720, false], ['movil-horizontal', 844, 390, 
 for (const [name, w, h, touch] of views) {
   const ctx = await b.newContext({ viewport: { width: w, height: h }, hasTouch: touch, isMobile: touch, deviceScaleFactor: 1 });
   const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
-  await p.goto(`http://127.0.0.1:5173/lab/futbol-demo.html?go=match&chars=${chars}&notuto&auto&quality=${touch ? 'low' : 'high'}`, { timeout: 300000 });
+  await p.goto(`${process.env.BASE || 'http://127.0.0.1:5173/'}lab/futbol-demo.html?go=match&chars=${chars}&notuto&auto&quality=${touch ? 'low' : 'high'}`, { timeout: 300000 });
   await p.waitForFunction(() => window.__futbol && window.__futbol.game && window.__futbol.hud, null, { timeout: 600000 });
   // avanza el partido a mano (el navegador de pruebas dibuja muy despacio)
   const adv = (s) => p.evaluate((s) => { const m = window.__futbol; for (let i = 0; i < s * 30; i++) m.update(1 / 30); return { phase: m.game.phase, score: m.game.score.join('-'), clock: m.game.clock.toFixed(1) }; }, s);

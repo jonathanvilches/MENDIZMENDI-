@@ -182,7 +182,7 @@ export class FutbolHud {
     this.root.appendChild(p); return p;
   }
   /** Menú previo: modo, rival, dificultad, duración y asistencia. */
-  menu({ title = 'Fútbol sala', sub = '', modes, rivals, values }) {
+  menu({ title = 'Fútbol', sub = '', modes, rivals, values }) {
     return new Promise(res => {
       const v = { ...values };
       const chips = (key, list) => `<div class="fb-row"><label>${{ mode: 'Modo', rival: 'Rival', level: 'Dificultad', duration: 'Duración de cada parte', assist: 'Asistencia al pase y al tiro' }[key]}</label>${list.map(([id, name]) => `<button class="fb-chip ${v[key] === id ? 'on' : ''}" data-k="${key}" data-v="${id}">${esc(name)}</button>`).join('')}</div>`;

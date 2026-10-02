@@ -42,6 +42,7 @@ async function go(m) {
   setup(); const o = { dificultad: $('#lvl').value, duracion: +$('#dur').value, autoplay: $('#auto').checked, timeScale: +$('#ts').value };
   let r;
   if (m === 'tuto') { FutbolSystem.career.set('tutorial', false); m = 'match'; }
+  if (q.get('campo')) o.campoId = q.get('campo');   // ?campo=pueblo: el campo de un pueblo en vez de El Sadar
   if (m === 'match' || m === 'cup') r = await FutbolSystem.startMatch({ ...o, modo: m === 'cup' ? 'eliminatoria' : 'amistoso' });
   else if (m === 'pen') r = await FutbolSystem.startPenaltis({ dificultad: o.dificultad, autoplay: o.autoplay });
   else if (m === 'menu') r = await FutbolSystem.openMenu({});
