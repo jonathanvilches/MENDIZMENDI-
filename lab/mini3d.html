@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Minijuegos 3D</title><link rel="icon" href="data:,">
+<link rel="stylesheet" href="../src/hub/hub.css"><link rel="stylesheet" href="../src/style.css">
+<style>html,body{margin:0;height:100%;background:#1c0b3a;overflow:hidden}</style></head><body><script type="module">
+// los minijuegos 3D sin cargar un pueblo: __play('milk', opciones) — el resultado queda en window.__res
+import * as G from '../src/ui/mini3d/index.js';
+const noop = () => {}, sound = new Proxy({}, { get: (o, k) => k === 'sfx' ? null : noop });
+const ui = { sound, closeModal() {}, modal: null };
+window.__ui = ui; window.__G = G;
+window.__play = (name, opts = {}) => { window.__res = null; G[name](ui, opts).then(r => { window.__res = r; }); };
+const q = new URLSearchParams(location.search); if (q.get('g')) window.__play(q.get('g'), JSON.parse(q.get('o') || '{}'));
+window.__ready = true;
+</script></body></html>

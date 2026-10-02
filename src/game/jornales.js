@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import { Actor } from '../actors/people.js';
 import { infoCard } from '../ui/minigames.js';
-import { milkGame, shearGame, pickGame, forgeGame, stitchGame } from '../ui/oficioGames.js';
+import { milkGame, shearGame, pickGame, forgeGame, stitchGame } from '../ui/mini3d/index.js';
 import { saveProfile } from './profile.js';
 import { TOWN } from '../world/townBuilder.js';
 import { PLACES } from '../world/layout.js';
@@ -163,6 +163,7 @@ export class Jornales {
     } finally { g.player.frozen = false; if (g.mode === 'mini') g.mode = 'play'; a.talking = 0; }
     if (!r) return;
     if (r.win) { g.player.rig.doCheer?.(); await this.pay(id, a, null); }
+    else if (r.error) await g.say(a, ['Hoy no hay manera de ponerse con esto. Vuelve en un rato y lo hacemos.']);   // la escena no se pudo montar
     else await g.say(a, ['¡Casi! Es más difícil de lo que parece. Cuando quieras, lo volvemos a intentar.']);
   }
   async pay(id, a, line) {

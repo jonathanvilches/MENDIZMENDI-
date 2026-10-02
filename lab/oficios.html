@@ -2,13 +2,14 @@
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Oficios</title><link rel="icon" href="data:,">
 <link rel="stylesheet" href="../src/hub/hub.css"><link rel="stylesheet" href="../src/style.css">
 <style>html,body{margin:0;height:100%;background:#3a5a3a}</style></head><body><script type="module">
-import * as G from '../src/ui/oficioGames.js';
+// los juegos genéricos (barra de precisión, pulsar deprisa) tal como los llama el juego: con «art» y el escenario 3D
+// van a su diorama; sin escenario, a la barra clásica. Los minijuegos 3D sueltos están en mini3d.html
 import * as MG from '../src/ui/minigames.js';
+import * as G from '../src/ui/mini3d/index.js';
 const noop = () => {}, sound = new Proxy({}, { get: (o, k) => k === 'sfx' ? null : noop });
-const ui = { sound, closeModal() {}, modal: null };
-window.__ui = ui; window.__G = G;
-window.__play = (name, opts = {}) => { window.__res = null; G[name](ui, opts).then(r => { window.__res = r; }); };
-// los juegos genéricos (barra de precisión, pulsar deprisa) con su dibujo
-window.__mg = (name, opts = {}) => { window.__res = null; MG[name](ui, opts).then(r => { window.__res = r; }); };
+const ui = { sound, closeModal() {}, modal: null, stage3d: null };
+const lab = { show: (...a) => G.labStage().show(...a), hide: () => G.labStage().hide(), get renderer() { return G.labStage().renderer; }, quality: 'high' };
+window.__ui = ui;
+window.__mg = (name, opts = {}, three = true) => { window.__res = null; ui.stage3d = three ? lab : null; MG[name](ui, opts).then(r => { window.__res = r; }); };
 window.__ready = true;
 </script></body></html>

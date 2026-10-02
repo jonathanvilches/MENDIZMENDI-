@@ -441,40 +441,59 @@ img[data-pk] { opacity: 0; }
 /* correr cansado: el botón sigue funcionando, con un aviso naranja */
 .cbtn.tired.on { background: radial-gradient(circle at 50% 30%, #ffc27a, #e08a2a 70%); }
 
-/* barra de precisión y pulsar deprisa con el dibujo del trabajo encima (avanza con cada golpe bueno) */
-.mg-overlay.arty .mg-card { gap: 8px; padding: 16px 18px; }
-.mg-overlay.arty .mg-card > * { flex-shrink: 0; }
-.mg-artbox { width: min(86vw, 460px, calc((100dvh - 330px) * 2.4)); }
-.mg-artbox canvas { display: block; width: 100%; height: auto; border-radius: 14px; box-shadow: 0 4px 14px rgba(0,0,0,.25); }
-@media (orientation: landscape) and (max-height: 540px) {
-  .mg-overlay.arty .mg-card { width: min(94vw, 760px); display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(220px, 1fr); column-gap: 16px; row-gap: 6px; align-items: center; }
-  .mg-overlay.arty .mg-card > .mg-artbox { grid-column: 1; grid-row: 1 / span 6; width: 100%; }
-  .mg-overlay.arty .mg-card > :not(.mg-artbox) { grid-column: 2; }
-}
-
-/* minijuegos de los oficios (ordeñar, esquilar, vendimia, forja, coser): lienzo con la tarea dibujada */
-.mg-overlay.oficio .mg-card { max-width: min(94vw, 520px); gap: 8px; padding: 16px 18px; }
-.mg-overlay.oficio .mg-card > * { flex-shrink: 0; }   /* nada se encoge ni se monta encima de otra cosa */
-.mg-overlay.oficio .mg-top small { display: block; font-size: 13px; line-height: 1.35; }
-.mg-overlay.oficio .fb { min-height: 2.6em; font-size: 17px; line-height: 1.3; display: flex; align-items: center; justify-content: center; text-wrap: balance; }
-.mg-overlay.oficio .of-stage { position: relative; margin: 2px auto 0; width: min(86vw, 460px, calc((100dvh - 300px) * 4 / 3)); }
-.mg-overlay.oficio canvas { display: block; width: 100%; height: auto; border-radius: 14px; touch-action: none; cursor: crosshair; box-shadow: 0 4px 14px rgba(0,0,0,.25); }
-.mg-overlay.oficio .of-clock { position: absolute; top: 8px; right: 10px; font-weight: 800; background: rgba(0,0,0,.5); color: #fff; padding: 2px 9px; border-radius: 10px; font-size: 14px; }
-.mg-overlay.oficio .of-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 6px; }
-.mg-overlay.oficio .of-btns .btn { min-width: 132px; min-height: 52px; touch-action: manipulation; }
-/* móvil en horizontal: el dibujo a la izquierda y la explicación, el mensaje y los botones a la derecha */
-@media (orientation: landscape) and (max-height: 540px) {
-  .mg-overlay.oficio .mg-card { display: grid; grid-template-columns: auto minmax(200px, 1fr); grid-template-rows: auto 1fr auto; column-gap: 16px; row-gap: 6px; align-items: center;
-    width: min(96vw, 900px); max-width: none; max-height: 96dvh; padding: 10px 14px; }
-  .mg-overlay.oficio .of-stage { grid-column: 1; grid-row: 1 / span 3; margin: 0; width: min(calc((96dvh - 24px) * 4 / 3), 58vw); }
-  .mg-overlay.oficio .mg-top { grid-column: 2; grid-row: 1; } .mg-overlay.oficio .mg-top h3 { font-size: 19px; }
-  .mg-overlay.oficio .fb { grid-column: 2; grid-row: 2; font-size: 16px; }
-  .mg-overlay.oficio .of-btns { grid-column: 2; grid-row: 3; margin: 0; }
-  .mg-overlay.oficio .of-btns .btn { min-width: 0; flex: 1 1 120px; }
-}
 /* tienda sin dinero: a quién ayudar para ganar txanponak */
 .shop-broke { background: #fff6dc; border: 2px solid #e8c25a; border-radius: 14px; padding: 10px 12px; margin-bottom: 10px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .shop-broke p { margin: 0; flex: 1 1 220px; font-size: 14px; color: #4a3a1a; }
 /* elegir trabajo con un vecino */
 .job-pick { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
 .job-pick .btn { width: 100%; justify-content: center; }
+
+/* ---------- minijuegos en 3D: la escena a pantalla completa, panel arriba y botones abajo ---------- */
+.mg3d { position: fixed; inset: 0; z-index: 40; pointer-events: none; color: #fff; font-family: Nunito, system-ui, sans-serif; }
+.mg3d.out { opacity: 0; transition: opacity .25s; }
+.mg3d .m3-cap { position: absolute; inset: 0; pointer-events: auto; touch-action: none; }
+.mg3d .m3-top { position: absolute; top: calc(env(safe-area-inset-top, 0px) + 10px); left: 50%; transform: translateX(-50%); width: min(94vw, 640px);
+  display: grid; grid-template-columns: auto 1fr auto; gap: 4px 12px; align-items: center; padding: 10px 14px 12px; border-radius: 18px;
+  background: rgba(22, 12, 34, .8); box-shadow: 0 8px 24px rgba(0,0,0,.35); pointer-events: auto; }
+.mg3d .m3-top h3 { margin: 0; font-size: 18px; line-height: 1.15; }
+.mg3d .m3-top small { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 13px; line-height: 1.3; color: #e8dcff; }
+.mg3d .m3-clock { font-size: 17px; color: #ffd84a; min-width: 3.6em; text-align: right; }
+.mg3d .m3-prog { grid-column: 1 / -1; height: 8px; border-radius: 99px; background: rgba(255,255,255,.14); overflow: hidden; }
+.mg3d .m3-prog i { display: block; height: 100%; width: 0; border-radius: 99px; background: linear-gradient(90deg, #ffd84a, #7be07b); transition: width .2s; }
+.mg3d .m3-bot { position: absolute; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); left: 50%; transform: translateX(-50%); width: min(94vw, 640px);
+  display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.mg3d .fb { min-height: 1.4em; padding: 7px 16px; border-radius: 99px; background: rgba(22, 12, 34, .8); font-weight: 800; font-size: 16px; text-align: center; text-wrap: balance; max-width: 100%; }
+.mg3d .fb.win { background: rgba(40, 120, 60, .92); }
+.mg3d .m3-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; pointer-events: auto; }
+.mg3d .m3-btns .btn { min-width: 140px; min-height: 56px; font-size: 17px; touch-action: manipulation; }
+.mg3d .m3-bar { width: min(92vw, 520px); pointer-events: none; display: grid; gap: 6px; justify-items: center; }
+.mg3d .m3-bar .tbar { height: 34px; box-shadow: inset 0 3px 8px rgba(0, 0, 0, .4), 0 0 0 2px rgba(255,255,255,.2); }
+.mg3d .m3-bar .pips { padding: 4px 8px; border-radius: 99px; background: rgba(22, 12, 34, .7); }
+.mg3d .m3-load { position: absolute; inset: 0; display: none; place-items: center; align-content: center; gap: 14px; background: rgba(16, 8, 26, .82); font-weight: 800; font-size: 18px; pointer-events: auto; }
+.mg3d.loading .m3-load { display: grid; }
+.mg3d.loading .m3-top, .mg3d.loading .m3-bot { visibility: hidden; }
+.mg3d .m3-load span { width: 42px; height: 42px; border-radius: 50%; border: 4px solid rgba(255,255,255,.2); border-top-color: #ffd84a; animation: spin 0.9s linear infinite; }
+@media (orientation: landscape) and (max-height: 540px) {
+  .mg3d .m3-top { width: min(60vw, 560px); padding: 7px 12px 9px; top: calc(env(safe-area-inset-top, 0px) + 6px); }
+  .mg3d .m3-top > svg, .mg3d .m3-top > img { width: 30px; height: 30px; }
+  .mg3d .m3-top h3 { font-size: 16px; } .mg3d .m3-top small { -webkit-line-clamp: 1; font-size: 12px; }
+  .mg3d .m3-bot { bottom: calc(env(safe-area-inset-bottom, 0px) + 6px); gap: 6px; }
+  .mg3d .fb { font-size: 14px; padding: 5px 12px; }
+  .mg3d .m3-btns .btn { min-height: 48px; min-width: 120px; font-size: 15px; }
+  /* en horizontal, el botón a la derecha (al pulgar) y el mensaje y la barra a su izquierda: deja más escena libre */
+  .mg3d .m3-bot { width: min(96vw, 860px); display: grid; grid-template-columns: 1fr auto; column-gap: 14px; row-gap: 5px; align-items: center; justify-items: center; }
+  .mg3d .m3-bot > .m3-btns { grid-column: 2; grid-row: 1 / span 2; }
+  .mg3d .m3-bot > :not(.m3-btns) { grid-column: 1; }
+  .mg3d .m3-bar { width: 100%; grid-template-columns: 1fr auto; align-items: center; column-gap: 8px; }
+  .mg3d .m3-bar .tbar { height: 28px; }
+}
+/* durante un minijuego 3D no se ve el HUD del pueblo (brújula, minimapa, avisos, mandos), que quedaría encima del panel;
+   el botón de traducir del modo «Aprende euskera» sube junto al panel de arriba para no tapar los botones */
+body.mg3d-on #hud, body.mg3d-on #bino, body.mg3d-on #cine, body.mg3d-on #subtitle { visibility: hidden; }
+body.mg3d-on .learn-btn { bottom: auto; top: calc(env(safe-area-inset-top, 0px) + 112px); left: 8px; width: 46px; height: 46px; }
+@media (orientation: landscape) and (max-height: 540px) { body.mg3d-on .learn-btn { top: calc(env(safe-area-inset-top, 0px) + 8px); } }
+/* el calor del hierro en la fragua: zonas (frío · al rojo · se quema) y el color de la pieza ahora */
+.mg3d .m3-heat { position: relative; height: 26px; border-radius: 99px; overflow: hidden; display: grid; grid-template-columns: 48fr 35fr 17fr; background: rgba(22, 12, 34, .82); box-shadow: inset 0 0 0 2px rgba(255,255,255,.22); }
+.mg3d .m3-heat i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-right: 3px solid #fff; opacity: .9; }
+.mg3d .m3-heat span { position: relative; z-index: 1; font: 800 12px/26px Nunito, sans-serif; text-align: center; color: #fff; text-shadow: 0 1px 2px #000; border-left: 1px dashed rgba(255,255,255,.4); }
+.mg3d .m3-heat span:first-of-type { border-left: 0; }
