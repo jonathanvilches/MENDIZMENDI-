@@ -241,6 +241,11 @@
 .scard b { font-size: 16px; } .scard p { font-size: 12.5px; color: var(--mute); margin: 0; font-weight: 600; }
 .scard .where { display: flex; gap: 3px; flex-wrap: wrap; justify-content: center; } .scard .where i { width: 10px; height: 10px; border-radius: 3px; }
 .scard.seen { border-color: var(--leaf); }
+button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } button.nchip:hover { filter: brightness(1.15); } button.scard:active { transform: scale(.98); }
+.scard .seu { font-size: 12px; color: var(--mute); font-weight: 700; line-height: 1.25; } .scard .seu i { font-weight: 600; }
+.spic { position: relative; width: 96px; height: 80px; display: grid; place-items: center; border-radius: 12px; overflow: hidden; background: rgba(255, 255, 255, .06); }
+.spic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .35s; } .spic img.on { opacity: 1; }
+.nprog { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0 0 10px; font-weight: 800; } .nprog span { display: inline-flex; align-items: center; gap: 6px; } .nprog b { color: var(--leaf); font-size: 18px; }
 .seenb { position: absolute; top: 8px; right: 8px; font-size: 11px; background: var(--leaf); color: #06243a; border-radius: 10px; padding: 2px 8px 2px 4px; display: flex; align-items: center; gap: 3px; }
 
 /* ---------- Personajes: selección ---------- */
@@ -325,6 +330,34 @@
 .ic-icon.big { width: 170px; height: 170px; }
 .ic-badge { position: absolute; top: 0; right: -30px; background: #8fd16a; color: #1b2a10; font-weight: 900; font-size: 12px; padding: 4px 10px; border-radius: 12px; transform: rotate(10deg); }
 .info .mg-card { background: linear-gradient(180deg, #3a1680, #1c0b3a); } .info .mg-card p { color: #cbc2e0; } .info .kicker { color: #FFD700; }
+/* ficha de fauna y flora (también se abre desde el menú: por encima de todo) */
+.mg-overlay.ficha { z-index: 4000; }
+.ficha .mg-card { width: min(600px, 100%); background: linear-gradient(180deg, #24502e, #10261a); text-align: left; align-items: stretch; gap: 8px; }
+.ficha .fc-head { align-self: center; position: relative; }
+.fc-pic { width: min(300px, 72vw, 31vh); aspect-ratio: 6 / 5; border-radius: 16px; overflow: hidden; background: #eef4e6 radial-gradient(#ffffff, #dfe9d4); box-shadow: 0 8px 24px rgba(0, 0, 0, .35); }
+.fc-pic img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0; transition: opacity .35s; } .fc-pic img.on { opacity: 1; }
+.fc-pic.fauna { width: min(170px, 30vh); height: min(170px, 30vh); aspect-ratio: auto; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(rgba(255, 215, 0, .28), transparent 70%); box-shadow: none; }
+.fc-pic.fauna .ico { width: 82%; height: 82%; }
+.ficha .kicker { align-self: center; color: #b8f08a; text-align: center; }
+.ficha h2 { text-align: center; }
+.fc-names { display: flex; gap: 6px 12px; justify-content: center; flex-wrap: wrap; font-size: 16px; }
+.fc-names .eu { font-weight: 900; color: #ffe38a; } .fc-names .sci { color: #cfe3c4; }
+.fc-sec { margin: 4px 0 0; display: grid; gap: 2px; }
+.fc-sec dt { font-weight: 900; color: #b8f08a; font-size: 12px; text-transform: uppercase; letter-spacing: .1em; margin-top: 8px; }
+.fc-sec dd { margin: 0; color: #eef4e6; font-weight: 600; line-height: 1.38; font-size: 15px; }
+.fc-where { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 6px; }
+.fc-where span { padding: 3px 10px; border-radius: 999px; background: var(--c); color: #fff; font-size: 12px; font-weight: 800; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25); }
+.ficha .btn.primary { align-self: center; margin-top: 6px; }
+.ficha.quiz .mg-card { text-align: center; align-items: center; }
+.fc-hint { font-size: 14px; color: #d8e8cc !important; }
+.fc-opts { display: grid; gap: 8px; width: min(380px, 100%); }
+.fc-opt { min-height: 48px; font-weight: 900; font-size: 17px; background: #f4efe2; color: #1f3a1a; border-radius: 14px; box-shadow: 0 4px 0 rgba(0, 0, 0, .3); }
+.fc-opt.ok { background: #8fd16a; color: #1b2a10; } .fc-opt.ko { background: #e03c3c; color: #fff; animation: shake .35s; }
+@media (orientation: landscape) and (max-height: 520px) {
+  .ficha .mg-card { display: grid; grid-template-columns: minmax(150px, 34%) 1fr; column-gap: 16px; align-items: start; }
+  .ficha .mg-card > :not(.fc-head) { grid-column: 2; } .ficha .fc-head { grid-column: 1; grid-row: 1 / span 6; align-self: start; }
+  .ficha .fc-pic { width: 100%; } .ficha .kicker, .ficha h2 { text-align: left; align-self: start; } .fc-names { justify-content: flex-start; }
+}
 .tbar { position: relative; width: 100%; height: 46px; border-radius: 14px; background: linear-gradient(90deg, #32136f, #461d95); overflow: hidden; box-shadow: inset 0 3px 8px rgba(0, 0, 0, .4); }
 .tbar .zone { position: absolute; top: 0; bottom: 0; background: linear-gradient(180deg, #ff7a3a, #e03c3c); box-shadow: 0 0 18px #ff7a3a; border-radius: 8px; }
 .tbar .cursor { position: absolute; top: -4px; bottom: -4px; width: 8px; margin-left: -4px; background: #fff; border-radius: 4px; box-shadow: 0 0 10px #fff; }

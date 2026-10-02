@@ -6,6 +6,10 @@ import FOLKLORE from '../data/folklore.json';
 import SETTLEMENTS from '../data/settlements.json';
 import { LEVELS, levelById } from '../data/levels.js';
 import { iconSVG, speciesIcon } from '../ui/icons.js';
+import { showFicha, allFichas } from '../ui/ficha.js';
+import { floraId } from '../data/flora.js';
+import { faunaId } from '../data/fauna.js';
+import { floraPortrait } from '../world/flora3d.js';
 import { releaseOffscreen } from '../util/offscreen.js';
 import { avatarPortrait, portraitImg, avatarPortraitImg } from '../ui/portraits.js';
 import { stampImg, landImg } from '../assets.js';
@@ -255,7 +259,10 @@ export class Hub {
     const p = profile(), pr = comarcaProgress(p, id), ts = comarcaTowns(id), C = c.culture || {};
     const block = (ic, k, o) => o ? `<div class="cult">${I(ic, 48)}<div><small>${k}${o.date ? ' · ' + esc(o.date) : ''}</small><b>${esc(o.title)}</b><p>${esc(o.text)}</p>${o.place ? `<em>${esc(o.place)}</em>` : ''}</div></div>` : '';
     const mts = MOUNTAINS.filter(m => m.region === id && LEVELS.some(l => (l.missions || []).some(x => x.type === 'summit' && x.peak === m.id)));
-    const chips = (arr, fb) => (arr || []).map(n => `<span class="nchip">${I(speciesIcon(n) || fb, 26)}${esc(n)}</span>`).join('');
+    // cada animal y planta abre su ficha
+    const chip = (n, fb, key, title = '') => key ? `<button class="nchip" data-k="${key}" title="${esc(title)}">${I(speciesIcon(n) || fb, 26)}${esc(n)}</button>` : `<span class="nchip" title="${esc(title)}">${I(speciesIcon(n) || fb, 26)}${esc(n)}</span>`;
+    const chips = (arr, fb) => (arr || []).map(n => { const k = floraId(n); return chip(n, fb, k && 'flora:' + k); }).join('');
+    this.after = () => this.root.querySelectorAll('.nchip[data-k]').forEach(b => b.onclick = () => showFicha(b.dataset.k, { ui: { sound: this.sound }, button: 'Cerrar' }));
     return `
     <section class="chero" style="--c:${c.color};--bg:url(${landImg(id)})">
       <button class="back" data-go="map">${I('back', 26)} Mapa</button>
@@ -268,7 +275,7 @@ export class Hub {
     <section class="two">
       <div class="panel"><h2>${I('dance', 30)} Cultura</h2><div class="cultgrid">${block('dance', 'Danza', C.dance)}${block('mask', 'Carnaval', C.carnival)}${block('flag', 'Fiesta', C.festival)}${block('ribbon', 'Traje', C.costume)}</div></div>
       <div class="panel"><h2>${I('leaf', 30)} Naturaleza</h2>
-        <h3>Fauna</h3><div class="nchips">${(c.fauna || []).map(f => `<span class="nchip" title="${esc(f[2])}">${I(speciesIcon(f[0]) || 'bird', 26)}${esc(f[0])}</span>`).join('')}</div>
+        <h3>Fauna</h3><div class="nchips">${(c.fauna || []).map(f => { const k = faunaId(f[0]); return chip(f[0], 'bird', k && 'fauna:' + k, f[2]); }).join('')}</div>
         <h3>Árboles</h3><div class="nchips">${chips(c.nature?.trees, 'tree')}</div>
         <h3>Plantas</h3><div class="nchips">${chips(c.nature?.plants, 'herbs')}</div>
         <h3>Flores</h3><div class="nchips">${chips(c.nature?.flowers, 'flower')}</div></div>
@@ -335,17 +342,29 @@ export class Hub {
   }
 
   // ---------- Naturaleza ----------
+  // la guía de campo: todos los animales y plantas de las comarcas, cada uno con su ficha (al tocarlo). Los que has
+  // observado (prismáticos, monte, granja) o identificado (herbario de los pueblos) quedan marcados
   s_nature(tab = 'fauna') {
-    const p = profile();
-    const agg = (get) => { const m = new Map(); for (const c of COMARCAS) for (const n of get(c) || []) { const k = Array.isArray(n) ? n[0] : n; if (!m.has(k)) m.set(k, { name: k, desc: Array.isArray(n) ? n[2] : '', where: [] }); m.get(k).where.push(c); } return [...m.values()]; };
-    const data = { fauna: agg(c => c.fauna), trees: agg(c => c.nature?.trees), plants: agg(c => c.nature?.plants), flowers: agg(c => c.nature?.flowers) };
-    const fb = { fauna: 'bird', trees: 'tree', plants: 'herbs', flowers: 'flower' };
-    this.after = () => this.root.querySelectorAll('.filters button').forEach(b => b.onclick = (e) => { e.stopPropagation(); this.go('nature', b.dataset.f); });
-    const obsMap = { corzo: 'Corzo', ciervo: 'Ciervo', jabali: 'Jabalí', buitre: 'Buitre leonado' };
-    const seen = new Set(p.species.map(s => obsMap[s]).filter(Boolean));
-    return `<h1 class="title">${I('leaf', 40)} Naturaleza de Navarra</h1><p class="lead">Del hayedo atlántico a las Bardenas: cada comarca tiene sus animales y plantas. Los que observes con los prismáticos quedan marcados.</p>
-      <div class="filters">${[['fauna', 'Fauna'], ['trees', 'Árboles'], ['plants', 'Plantas'], ['flowers', 'Flores']].map(([k, n]) => `<button data-f="${k}" class="${tab === k ? 'on' : ''}">${n}</button>`).join('')}</div>
-      <section class="species">${data[tab].map(s => `<div class="scard ${seen.has(s.name) ? 'seen' : ''}">${I(speciesIcon(s.name) || fb[tab], 64)}<b>${esc(s.name)}</b>${s.desc ? `<p>${esc(s.desc)}</p>` : ''}<div class="where">${s.where.map(c => `<i style="background:${c.color}" title="${esc(c.name)}"></i>`).join('')}</div>${seen.has(s.name) ? `<span class="seenb">${I('binoculars', 18)} Observado</span>` : ''}</div>`).join('')}</section>`;
+    const p = profile(), cards = new Set(p.cards);
+    const obsMap = { corzo: 'corzo', ciervo: 'ciervo', jabali: 'jabali', buitre: 'buitre' };
+    for (const sp of p.species || []) if (obsMap[sp]) cards.add('fauna:' + obsMap[sp]);
+    const type = tab === 'fauna' ? 'fauna' : 'flora';
+    const kindOk = (d) => tab === 'fauna' || (tab === 'trees' ? d.F.m.t === 'tree' : tab === 'flowers' ? d.F.m.t === 'flower' : d.F.m.t !== 'tree' && d.F.m.t !== 'flower');
+    const list = allFichas(type).filter(kindOk).sort((a, b) => (cards.has(type + ':' + b.id) - cards.has(type + ':' + a.id)) || a.F.name.localeCompare(b.F.name, 'es'));
+    const nFl = allFichas('flora').length, gotFl = allFichas('flora').filter(d => cards.has('flora:' + d.id)).length, nFa = allFichas('fauna').length, gotFa = allFichas('fauna').filter(d => cards.has('fauna:' + d.id)).length;
+    this.after = () => {
+      this.root.querySelectorAll('.filters button').forEach(b => b.onclick = (e) => { e.stopPropagation(); this.go('nature', b.dataset.f); });
+      this.root.querySelectorAll('.scard[data-k]').forEach(c => c.onclick = () => showFicha(c.dataset.k, { ui: { sound: this.sound }, button: 'Cerrar' }));
+      // retratos 3D de las plantas, de uno en uno (sin bloquear la pantalla)
+      const imgs = [...this.root.querySelectorAll('img[data-flora]')], scr = this.screen;
+      (async () => { for (const img of imgs) { await new Promise(r => setTimeout(r, 40)); if (this.screen !== scr || !img.isConnected) return; const u = await floraPortrait(img.dataset.flora).catch(() => ''); if (u) { img.src = u; img.classList.add('on'); } } })();
+    };
+    const fb = { trees: 'tree', plants: 'herbs', flowers: 'flower' };
+    const pic = (d) => d.type === 'fauna' ? I(d.F.icon || speciesIcon(d.F.name) || 'bird', 64) : `<span class="spic">${I(speciesIcon(d.F.name) || fb[tab], 40)}<img alt="" data-flora="${d.id}"></span>`;
+    return `<h1 class="title">${I('leaf', 40)} Naturaleza de Navarra</h1><p class="lead">Del hayedo atlántico a las Bardenas: cada comarca tiene sus animales y plantas. Toca uno para ver su ficha. En los pueblos, identifica las plantas marcadas con una hoja y observa los animales para completar tu cuaderno.</p>
+      <div class="nprog"><span>${I('leaf', 22)} Herbario <b>${gotFl}</b> / ${nFl}</span><span>${I('binoculars', 22)} Cuaderno de fauna <b>${gotFa}</b> / ${nFa}</span></div>
+      <div class="filters">${[['fauna', 'Fauna'], ['trees', 'Árboles'], ['plants', 'Arbustos y plantas'], ['flowers', 'Flores']].map(([k, n]) => `<button data-f="${k}" class="${tab === k ? 'on' : ''}">${n}</button>`).join('')}</div>
+      <section class="species">${list.map(d => { const got = cards.has(type + ':' + d.id); return `<button class="scard ${got ? 'seen' : ''}" data-k="${type}:${d.id}">${pic(d)}<b>${esc(d.F.name)}</b><small class="seu">${esc(d.F.eu || '')}${d.F.eu && d.F.sci ? ' · ' : ''}<i>${esc(d.F.sci || '')}</i></small><div class="where">${d.comarcas.map(c => `<i style="background:${c.color}" title="${esc(c.name)}"></i>`).join('')}</div>${got ? `<span class="seenb">${I(type === 'flora' ? 'check' : 'binoculars', 18)} ${type === 'flora' ? 'Identificada' : 'Observado'}</span>` : ''}</button>`; }).join('')}</section>`;
   }
 
   // ---------- Personajes: selección con el modelo 3D en grande ----------
