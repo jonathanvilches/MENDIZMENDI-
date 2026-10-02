@@ -18,7 +18,7 @@ export class Ball {
     // frontis
     if (p.z < R && v.z < 0) {
       out.push({ type: 'front', x: p.x, y: p.y, z: 0 });
-      p.z = R; v.z = -v.z * PHYS.FRONT_E; v.x *= PHYS.FRONT_F; v.y *= PHYS.FRONT_F;
+      p.z = R; v.z = -v.z * PHYS.FRONT_E; v.x *= PHYS.FRONT_FX; v.y *= PHYS.FRONT_F;
     }
     // pared izquierda
     if (p.x < -COURT.W / 2 + R && v.x < 0 && p.z < COURT.L + 2) {
