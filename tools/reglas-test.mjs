@@ -90,6 +90,13 @@ for (const format of ['f11', 'sala']) for (const half of [1, 2]) {
     g.ball.set(own + s * 5, F.HW - 0.05); g.restart = { type: 'throwin', team: 0, taker: p, x: g.ball.p.x, z: g.ball.p.z };
     g.ball.set(own + s * 2, F.HW - 0.05); const B = g.ball.p, dx = own - s - B.x, dz = -B.z, d = Math.hypot(dx, dz), v = Math.min(28, 9 + d * 0.7); g.kickBall(p, dx / d * v, 1, dz / d * v, 0, 'pass');
     const { goal, out } = run(g); ok(!goal && out?.type === 'corner' && out.team === 1, 'saque de banda directo a la propia portería: córner para el rival'); }
+  // falta directa a la propia portería: córner para el rival; saque de centro directo a la portería rival: gol
+  { const g = game(format, half), s = g.dir[0], own = -s * F.HL, p = g.byRole(0, format === 'f11' ? 'CTD' : 'CIE');
+    g.ball.set(own + s * 8, 1); g.restart = { type: 'free', team: 0, taker: p, x: g.ball.p.x, z: 1 };
+    g.kickBall(p, -s * 18, 0.8, -1.5, 0, 'pass'); const { goal, out } = run(g); ok(!goal && out?.type === 'corner' && out.team === 1, 'falta directa a la propia portería: córner para el rival'); }
+  { const g = game(format, half), s = g.dir[0], gx = s * F.HL, p = g.byRole(0, format === 'f11' ? 'DCD' : 'PIV');
+    g.ball.set(gx - s * 9, 0.5); g.restart = { type: 'kickoff', team: 0, taker: p, x: g.ball.p.x, z: 0.5 };
+    g.kickBall(p, s * 20, 0.8, -0.3, 0, 'shot'); const { goal } = run(g); ok(goal?.team === 0, 'saque directo a la portería rival: gol (sí vale)'); }
   // el portero fuera de su área no la coge con las manos (ni estirándose)
   { const g = game(format, half), k = g.gk(0), s = -g.dir[0], gx = s * F.HL; delete g.keeper; g.keeper = FutbolGame.prototype.keeper.bind(g);
     k.x = gx - s * (F.area + 2.5); k.z = 0; k.dive = { t: 0.5, vz: 0, vx: 0, hy: 0.5, side: 1 }; g.ball.set(k.x, 0.5, 0.5); g.ball.v.x = g.ball.v.z = 0; g.last = g.byRole(1, format === 'f11' ? 'DCD' : 'PIV');

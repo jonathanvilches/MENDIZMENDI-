@@ -268,6 +268,51 @@ function latticeTexture() {
     g.strokeStyle = 'rgba(60,66,74,.35)'; g.lineWidth = 2; g.stroke();
   }, { repeat: true });
 }
+// chapa de la cubierta vista desde arriba (gris claro: se tiñe con el color de cada banda): juntas alzadas cada metro,
+// paneles de tono algo distinto, la junta de solape y manchas de agua (losa de 6 × 6 m)
+function sheetTexture() {
+  return canvasTex(96, 96, (g, W, H) => {
+    g.fillStyle = '#e4e4e2'; g.fillRect(0, 0, W, H);
+    g.fillStyle = 'rgba(0,0,0,.07)'; g.fillRect(W / 2, 0, W / 2, H);
+    for (let x = 0; x < W; x += 16) { g.fillStyle = '#ffffff'; g.fillRect(x, 0, 2, H); g.fillStyle = '#a8a8a6'; g.fillRect(x + 2, 0, 1, H); }
+    g.fillStyle = '#b4b4b2'; g.fillRect(0, H * 0.62, W, 1);
+    const rnd = mulberry(7); for (let i = 0; i < 26; i++) { g.fillStyle = `rgba(30,20,20,${0.03 + rnd() * 0.05})`; g.fillRect(rnd() * W, rnd() * H, 1 + rnd() * 3, 6 + rnd() * 26); }
+  }, { repeat: true });
+}
+// suelos de los alrededores: asfalto (losa de 4 m), adoquín con banda de granito (8 m) y césped de parque (6 m)
+function asphaltTexture() {
+  return canvasTex(128, 128, (g, W, H) => {
+    g.fillStyle = '#4a4d52'; g.fillRect(0, 0, W, H); const rnd = mulberry(5);
+    for (let i = 0; i < 2600; i++) { const l = rnd(); g.fillStyle = l < 0.5 ? `rgba(20,20,24,${0.2 + rnd() * 0.3})` : `rgba(140,140,146,${0.1 + rnd() * 0.2})`; g.fillRect(rnd() * W, rnd() * H, 1, 1); }
+    for (let i = 0; i < 6; i++) { g.fillStyle = 'rgba(25,25,28,.18)'; g.beginPath(); g.ellipse(rnd() * W, rnd() * H, 6 + rnd() * 14, 4 + rnd() * 8, rnd() * 3, 0, Math.PI * 2); g.fill(); }
+  }, { repeat: true });
+}
+function pavingTexture() {
+  return canvasTex(256, 256, (g, W, H) => {
+    g.fillStyle = '#a9a398'; g.fillRect(0, 0, W, H); const rnd = mulberry(11);
+    for (let y = 0; y < H; y += 16) for (let x = 0; x < W; x += 16) { const k = rnd(); g.fillStyle = `rgb(${160 + k * 30},${153 + k * 28},${142 + k * 26})`; g.fillRect(x + 1, y + 1, 14, 14); }
+    g.fillStyle = '#5d5a55'; g.fillRect(0, 0, W, 26); g.fillRect(0, 0, 26, H);
+    for (let i = 0; i < 1400; i++) { g.fillStyle = `rgba(50,45,40,${rnd() * 0.14})`; g.fillRect(rnd() * W, rnd() * H, 1, 1); }
+  }, { repeat: true });
+}
+function parkTexture() {
+  return canvasTex(128, 128, (g, W, H) => {
+    g.fillStyle = '#6f8f4c'; g.fillRect(0, 0, W, H); const rnd = mulberry(13);
+    for (let i = 0; i < 3000; i++) { const l = rnd(); g.fillStyle = l < 0.5 ? `rgba(40,70,25,${0.15 + rnd() * 0.2})` : `rgba(170,200,110,${0.1 + rnd() * 0.15})`; g.fillRect(rnd() * W, rnd() * H, 1, 1 + rnd() * 2); }
+    for (let i = 0; i < 5; i++) { g.fillStyle = 'rgba(120,110,60,.12)'; g.beginPath(); g.ellipse(rnd() * W, rnd() * H, 8 + rnd() * 16, 5 + rnd() * 10, rnd() * 3, 0, Math.PI * 2); g.fill(); }
+  }, { repeat: true });
+}
+// fachada de un bloque de pisos (blanca: se tiñe con el color de cada bloque): una planta de 3 m y un módulo de 3,5 m
+// con su ventana, persiana, alféizar y el canto del forjado
+function flatsTexture() {
+  return canvasTex(64, 64, (g, W, H) => {
+    g.fillStyle = '#f2f0ec'; g.fillRect(0, 0, W, H);
+    g.fillStyle = '#d9d6d0'; g.fillRect(0, H - 5, W, 5);
+    g.fillStyle = '#3b4652'; g.fillRect(16, 14, 32, 30);
+    g.fillStyle = '#7c8794'; g.fillRect(16, 14, 32, 8);
+    g.fillStyle = '#ffffff'; g.fillRect(14, 44, 36, 3); g.fillRect(31, 22, 2, 22);
+  }, { repeat: true });
+}
 // videomarcador: nombre del campo y el resultado (se repinta con cada gol)
 function scoreboard(names) {
   const c = document.createElement('canvas'); c.width = 512; c.height = 208; const g = c.getContext('2d');
@@ -434,11 +479,14 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
     // más oscura. Borde interior blanco con los focos y borde exterior rojo
     const RI = rr(...ROOF_IN), RM = rr(F.HL + 14, F.HW + 13.5, 18), RO = rr(...ROOF_OUT), yIn = 27, yMid = 25.6, yOut = 22.8, TH = 0.5;
     const top = new Geo(), under = [new Geo(), new Geo()], rim = new Geo(), lamps = new Geo(), WHITE_R = lin('#e9e9e6'), RED_R = lin('#c01d2a');
-    let s = 0, sm = 0;
+    let s = 0, sm = 0, so = 0;
+    const T6 = 6, wd = (P, Q, i) => Math.hypot(Q[i][0] - P[i][0], Q[i][1] - P[i][1]) / T6;
     for (let i = 0; i < N; i++) {
-      const j = (i + 1) % N, l = len(RI, i), l2 = len(RM, i);
-      top.quad([RI[i][0], yIn + TH, RI[i][1]], [RI[j][0], yIn + TH, RI[j][1]], [RM[j][0], yMid + TH, RM[j][1]], [RM[i][0], yMid + TH, RM[i][1]], [0, 1, 0], undefined, WHITE_R);
-      top.quad([RM[i][0], yMid + TH, RM[i][1]], [RM[j][0], yMid + TH, RM[j][1]], [RO[j][0], yOut + TH, RO[j][1]], [RO[i][0], yOut + TH, RO[i][1]], [0, 1, 0], undefined, RED_R);
+      const j = (i + 1) % N, l = len(RI, i), l2 = len(RM, i), l3 = len(RO, i);
+      // por arriba, chapa con las juntas bajando hacia fuera (losa de 6 m)
+      top.quad([RI[i][0], yIn + TH, RI[i][1]], [RI[j][0], yIn + TH, RI[j][1]], [RM[j][0], yMid + TH, RM[j][1]], [RM[i][0], yMid + TH, RM[i][1]], [0, 1, 0], [s / T6, 0, (s + l) / T6, 0, (sm + l2) / T6, wd(RI, RM, j), sm / T6, wd(RI, RM, i)], WHITE_R);
+      top.quad([RM[i][0], yMid + TH, RM[i][1]], [RM[j][0], yMid + TH, RM[j][1]], [RO[j][0], yOut + TH, RO[j][1]], [RO[i][0], yOut + TH, RO[i][1]], [0, 1, 0], [sm / T6, 0, (sm + l2) / T6, 0, (so + l3) / T6, wd(RM, RO, j), so / T6, wd(RM, RO, i)], RED_R);
+      so += l3;
       under[0].quad([RI[i][0], yIn, RI[i][1]], [RI[j][0], yIn, RI[j][1]], [RM[j][0], yMid, RM[j][1]], [RM[i][0], yMid, RM[i][1]], [0, -1, 0], [s / 7, 0, (s + l) / 7, 0, (sm + l2) / 7, 12 / 7, sm / 7, 12 / 7]);
       under[1].quad([RM[i][0], yMid, RM[i][1]], [RM[j][0], yMid, RM[j][1]], [RO[j][0], yOut, RO[j][1]], [RO[i][0], yOut, RO[i][1]], [0, -1, 0], [sm / 7, 0, (sm + l2) / 7, 0, (sm + l2) / 7, 21 / 7, sm / 7, 21 / 7]);
       rim.quad([RI[i][0], yIn - 1.3, RI[i][1]], [RI[j][0], yIn - 1.3, RI[j][1]], [RI[j][0], yIn + TH, RI[j][1]], [RI[i][0], yIn + TH, RI[i][1]], [-RI[i][2], 0, -RI[i][3]], undefined, WHITE_R);
@@ -449,7 +497,7 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
       s += l; sm += l2;
     }
     const latT = own(latticeTexture());
-    add(top.build(), own(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.6, metalness: 0.1 })));
+    add(top.build(), own(new THREE.MeshStandardMaterial({ vertexColors: true, map: own(sheetTexture()), roughness: 0.55, metalness: 0.1 })));
     add(under[0].build(), own(new THREE.MeshStandardMaterial({ map: latT, roughness: 0.7, emissive: '#e9eef3', emissiveMap: latT, emissiveIntensity: 0.75 })));
     add(under[1].build(), own(new THREE.MeshStandardMaterial({ map: latT, roughness: 0.75, color: '#9aa1a9', emissive: '#7d858e', emissiveMap: latT, emissiveIntensity: 0.25 })));
     add(rim.build(), own(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.5, side: THREE.DoubleSide })));
@@ -515,20 +563,67 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
       for (const sx of [-1, 1]) { const side = new THREE.Mesh(own(new THREE.BoxGeometry(0.06, 2.1, 1.9)), glassM); side.position.set(sx * 4.7, 1.1, 0.3); g.add(side); }
       S.add(g);
     }
-    // alrededores: la explanada, unos árboles y bloques de viviendas (Pamplona) para la llegada de la cámara
-    const rnd2 = mulberry(5), trees = [], crowns = [], blocks = [], tops = [];
-    for (let i = 0; i < 70; i++) {
-      const a = rnd2() * Math.PI * 2, r = 112 + rnd2() * 50, x = Math.cos(a) * r * 1.15, z = Math.sin(a) * r;
-      const h = 4 + rnd2() * 3; trees.push(new THREE.CylinderGeometry(0.25, 0.35, h, 6).translate(x, h / 2, z)); crowns.push(new THREE.IcosahedronGeometry(2.4 + rnd2() * 1.5, 1).translate(x, h + 1.6, z));
+    // alrededores (se ven en la llegada de la cámara y desde la grada): acera de adoquín con bandas de granito alrededor
+    // del zócalo, una calle de asfalto que rodea el estadio, dos aparcamientos con las plazas pintadas y coches, dos
+    // plazas con hileras de árboles en los fondos, un parque alrededor y, más allá, bloques de pisos con sus ventanas
+    const flat = (x0, z0, x1, z1, tileM, y, mat) => { const g = new THREE.PlaneGeometry(x1 - x0, z1 - z0).rotateX(-Math.PI / 2).translate((x0 + x1) / 2, y, (z0 + z1) / 2), uv = g.attributes.uv, p = g.attributes.position; for (let i = 0; i < uv.count; i++) uv.setXY(i, p.getX(i) / tileM, p.getZ(i) / tileM); return g; };
+    const offM = (o) => ({ polygonOffset: true, polygonOffsetFactor: -o, polygonOffsetUnits: -o });
+    apron.material.map = own(parkTexture()); apron.material.map.repeat.set(150, 150); apron.material.color.set('#ffffff'); apron.material.needsUpdate = true;
+    // (de dentro afuera: acera de 10 m, calle de 10 m y, más allá, las plazas de los fondos y los aparcamientos)
+    const AX = FA[0] + 48, AZ = FA[1] + 52, K = [FA[0] + 10, FA[1] + 10], RD = 10;
+    add(mergeGeometries([flat(-AX, -AZ, AX, -K[1], 4, -0.01), flat(-AX, K[1], AX, AZ, 4, -0.01), flat(-AX, -K[1], -K[0], K[1], 4, -0.01), flat(K[0], -K[1], AX, K[1], 4, -0.01)]),
+      own(new THREE.MeshStandardMaterial({ map: own(asphaltTexture()), roughness: 0.95, ...offM(1) })), { receive: true });
+    const paveM = own(new THREE.MeshStandardMaterial({ map: own(pavingTexture()), roughness: 0.9, ...offM(2) }));
+    add(mergeGeometries([flat(-K[0], -K[1], K[0], -FA[1], 8, 0.01), flat(-K[0], FA[1], K[0], K[1], 8, 0.01), flat(-K[0], -FA[1], -FA[0], FA[1], 8, 0.01), flat(FA[0], -FA[1], K[0], FA[1], 8, 0.01),
+      flat(-AX, -K[1] - RD, -K[0] - RD, K[1] + RD, 8, 0.01), flat(K[0] + RD, -K[1] - RD, AX, K[1] + RD, 8, 0.01)]), paveM, { receive: true });
+    const rnd2 = mulberry(5), trees = [], crowns = [], blocks = [], tops = [], paint = [], stalls = [];
+    const strip = (x, z, w, d) => paint.push(new THREE.PlaneGeometry(w, d).rotateX(-Math.PI / 2).translate(x, 0.02, z));
+    // la calle que rodea el estadio: línea discontinua en medio
+    for (let z = -K[1] - RD / 2; z < K[1] + RD / 2; z += 9) for (const sx of [-1, 1]) strip(sx * (K[0] + RD / 2), z, 0.15, 4);
+    for (let x = -K[0] - RD / 2; x < K[0] + RD / 2; x += 9) for (const sz of [-1, 1]) strip(x, sz * (K[1] + RD / 2), 4, 0.15);
+    // aparcamientos: cuatro filas de plazas de 2,5 × 5 m a cada lado (dos espalda con espalda en medio)
+    for (const sz of [-1, 1]) for (const z0 of [K[1] + RD, K[1] + RD + 12, K[1] + RD + 17, K[1] + RD + 27]) {
+      const zc = sz * (z0 + 2.5);
+      for (let x = -FA[0]; x + 2.5 <= FA[0]; x += 2.5) { strip(x, zc, 0.12, 4.8); stalls.push([x + 1.25, zc]); }
     }
-    for (let i = 0; i < 26; i++) {
-      const a = i / 26 * Math.PI * 2 + rnd2() * 0.1, r = 205 + rnd2() * 70, x = Math.cos(a) * r * 1.2, z = Math.sin(a) * r, w = 18 + rnd2() * 16, h = 14 + rnd2() * 22, d = 12 + rnd2() * 6;
-      blocks.push(new THREE.BoxGeometry(w, h, d).rotateY(-a).translate(x, h / 2, z)); tops.push(new THREE.BoxGeometry(w + 0.6, 0.8, d + 0.6).rotateY(-a).translate(x, h + 0.4, z));
+    add(mergeGeometries(paint), own(new THREE.MeshStandardMaterial({ color: '#eceee8', roughness: 0.7, ...offM(3) })), { receive: true });
+    paint.forEach(g => g.dispose());
+    // coches aparcados (dos de cada tres plazas)
+    if (!low) {
+      const tint = (g, c) => { g = g.index ? g.toNonIndexed() : g; const col = new THREE.Color(c), a = []; for (let i = 0; i < g.attributes.position.count; i++) a.push(col.r, col.g, col.b); g.setAttribute('color', new THREE.Float32BufferAttribute(a, 3)); return g; };
+      const taper = (g, topY, k) => { const p = g.attributes.position; for (let i = 0; i < p.count; i++) if (p.getY(i) > topY - 1e-3) p.setZ(i, p.getZ(i) * k); return g; };
+      const parts = [tint(new THREE.BoxGeometry(1.78, 0.62, 4.3).translate(0, 0.62, 0), '#ffffff'), tint(taper(new THREE.BoxGeometry(1.62, 0.48, 2.3).translate(0, 1.17, -0.25), 1.41, 0.72), '#26303a'), tint(new THREE.BoxGeometry(1.5, 0.06, 1.62).translate(0, 1.43, -0.25), '#ffffff')];
+      for (const wx of [-0.8, 0.8]) for (const wz of [-1.38, 1.38]) parts.push(tint(new THREE.CylinderGeometry(0.32, 0.32, 0.24, 10).rotateZ(Math.PI / 2).translate(wx, 0.32, wz), '#151618'));
+      const carG = own(mergeGeometries(parts)); parts.forEach(g => g.dispose());
+      const cars = stalls.filter(() => rnd2() < 0.66), PAL = ['#c9ccd1', '#1f2329', '#f2f2f0', '#8a1c22', '#24426e', '#6d737a', '#3d5a3a', '#b8a27a'];
+      const im = new THREE.InstancedMesh(carG, own(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.35, metalness: 0.4 })), cars.length);
+      const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), v = new THREE.Vector3(), sc = new THREE.Vector3(1, 1, 1), col = new THREE.Color(), Y = new THREE.Vector3(0, 1, 0);
+      cars.forEach(([x, z], i) => { q.setFromAxisAngle(Y, (rnd2() - 0.5) * 0.06 + (rnd2() < 0.5 ? Math.PI : 0)); im.setMatrixAt(i, m4.compose(v.set(x, 0.02, z), q, sc)); im.setColorAt(i, col.set(PAL[(rnd2() * PAL.length) | 0])); });
+      im.computeBoundingSphere(); S.add(im);
+    }
+    // árboles: hileras en las plazas de los fondos y un parque alrededor
+    const tree = (x, z, k = 1) => { const h = (4 + rnd2() * 2.5) * k; trees.push(new THREE.CylinderGeometry(0.25, 0.35, h, 6).translate(x, h / 2, z)); crowns.push(new THREE.IcosahedronGeometry((2.2 + rnd2() * 1.2) * k, 1).translate(x, h + 1.6 * k, z)); };
+    for (const sx of [-1, 1]) for (let x = K[0] + RD + 5; x < AX - 3; x += 9) for (let z = -K[1] - RD + 6; z < K[1] + RD - 4; z += 9) tree(sx * x, z, 0.85);
+    for (let i = 0; i < 90; i++) { const a = rnd2() * Math.PI * 2, r = 1 + rnd2() * 0.35, x = Math.cos(a) * (AX + 12) * r, z = Math.sin(a) * (AZ + 12) * r; tree(x, z); }
+    // bloques de pisos con ventanas (cada uno de un color) y su cubierta plana
+    const flatsM = own(new THREE.MeshStandardMaterial({ map: own(flatsTexture()), vertexColors: true, roughness: 0.9 }));
+    const WALLS = ['#e9dfcc', '#d8c3a5', '#f1ece2', '#c9a88a', '#e3d6bf', '#b98f74', '#dcd9d2'];
+    const blockG = (w, h, d, a, x, z, c) => {
+      const g = new THREE.BoxGeometry(w, h, d), uv = g.attributes.uv, col = new THREE.Color(c), cc = [];
+      // cada cara con sus ventanas a escala (módulo de 3,5 m de ancho y 3 m de alto); arriba y abajo, sin ventanas
+      for (let f = 0; f < 6; f++) { const fw = f < 2 ? d : f < 4 ? 0.01 : w; for (let k = 0; k < 4; k++) { const i = f * 4 + k; uv.setXY(i, uv.getX(i) * fw / 3.5, uv.getY(i) * (f >= 2 && f < 4 ? 0.01 : h / 3)); } }
+      for (let i = 0; i < g.attributes.position.count; i++) cc.push(col.r, col.g, col.b);
+      g.setAttribute('color', new THREE.Float32BufferAttribute(cc, 3));
+      return g.rotateY(-a).translate(x, h / 2, z);
+    };
+    for (let i = 0; i < 30; i++) {
+      const a = i / 30 * Math.PI * 2 + rnd2() * 0.08, r = 1.55 + rnd2() * 0.3, x = Math.cos(a) * (AX + 30) * r, z = Math.sin(a) * (AZ + 30) * r, w = 22 + rnd2() * 16, h = 15 + Math.floor(rnd2() * 7) * 3, d = 12 + rnd2() * 4;
+      blocks.push(blockG(w, h, d, a, x, z, WALLS[i % WALLS.length])); tops.push(new THREE.BoxGeometry(w + 0.6, 0.8, d + 0.6).rotateY(-a).translate(x, h + 0.4, z));
     }
     add(mergeGeometries(trees), own(new THREE.MeshStandardMaterial({ color: '#5a4030', roughness: 1 })));
     add(mergeGeometries(crowns), own(new THREE.MeshStandardMaterial({ color: '#3e6a2e', roughness: 1, flatShading: true })));
-    add(mergeGeometries(blocks), own(new THREE.MeshStandardMaterial({ color: '#d8cdb8', roughness: 0.95 })));
-    add(mergeGeometries(tops), own(new THREE.MeshStandardMaterial({ color: '#8c5a46', roughness: 0.9 })));
+    add(mergeGeometries(blocks), flatsM);
+    add(mergeGeometries(tops), own(new THREE.MeshStandardMaterial({ color: '#7d7a76', roughness: 0.9 })));
     trees.concat(crowns, blocks, tops).forEach(g => g.dispose());
   } else {
     // pueblo: muro de piedra junto a las vallas, un graderío sencillo en una banda, árboles y casas detrás

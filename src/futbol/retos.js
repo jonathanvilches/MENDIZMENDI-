@@ -70,7 +70,7 @@ export class Reto {
     const k = F.areaD ? 0.62 : 1;
     this.mates = mates.map((p, i) => { const c = [[5, -7], [13, 3], [3, 9]][i].map(v => v * k); p.x = c[0]; p.z = c[1]; return { p, cx: c[0], cz: c[1], a: i * 2, r: (3 + i) * k, w: 0.5 + i * 0.12 }; });
     this.n = 0; this.back = 0;
-    this.v.hud.tip('Pasa al hueco: apunta a un compañero y suelta <b>PASE</b>. Te la devuelven');
+    this.v.hud.tip('Pasa: apunta a un compañero y toca <b>PASE</b>. Te la devuelven');
   }
 
   update(dt) {

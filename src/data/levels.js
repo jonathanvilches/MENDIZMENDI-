@@ -269,7 +269,7 @@ export const LEVELS = [
       { kind: 'bullring', name: 'Plaza de Toros', x: 232, z: -56, pad: 40, text: 'Se inauguró en 1922 y es una de las más grandes del mundo. Aquí termina el encierro. Fuera hay un busto del escritor Ernest Hemingway, que contó los Sanfermines en una novela.' },
       { kind: 'walls', name: 'Murallas y Portal de Francia', x: 40, z: -262, text: 'Pamplona conserva casi 5 kilómetros de murallas. Por el Portal de Francia, con su puente levadizo, entran los peregrinos del Camino de Santiago. El baluarte del Redín mira al río Arga.' },
       { kind: 'citadel', name: 'Ciudadela', x: -60, z: 250, pad: 78, padBlend: 26, text: 'Fortaleza con forma de estrella de cinco puntas, mandada construir por el rey Felipe II a finales del siglo XVI. Hoy es un gran parque.' },
-      { kind: 'stadium', name: 'Estadio El Sadar', x: 232, z: 318, pad: 92, padBlend: 40, text: 'El campo de fútbol de Osasuna, el equipo de Pamplona. Se inauguró en 1967 y se renovó en 2021 con el proyecto «Muro Rojo»: por fuera, un anillo rojo que parece flotar sobre una base de chapa con dos millones de agujeros, que de noche deja ver las letras EL SADAR y OSASUNA. Dentro, las gradas están muy cerca del césped.' },
+      { kind: 'stadium', name: 'Estadio El Sadar', x: 232, z: 318, pad: 122, padBlend: 50, text: 'El campo de fútbol de Osasuna, el equipo de Pamplona. Se inauguró en 1967 y se renovó en 2021 con el proyecto «Muro Rojo»: por fuera, un anillo rojo que parece flotar sobre una base de chapa con dos millones de agujeros, que de noche deja ver las letras EL SADAR y OSASUNA. Dentro, las gradas están muy cerca del césped.' },
     ],
     missions: [
       { type: 'visit' },
