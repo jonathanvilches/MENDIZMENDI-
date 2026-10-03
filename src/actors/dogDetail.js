@@ -3,7 +3,7 @@
 //    hocico negro del pastor alemán, la máscara gris de las orejas y los ojos y las manchas del mastín…
 //  - cambia de cuerpo donde hace falta (el mastín, más ancho, con papada y belfos),
 //  - lleva un pelaje con mechones en el sombreador (más largos en las razas de pelo largo),
-//  - su collar (el mastín, la carlanca de pinchos contra el lobo) con la chapa, y el mastín sus orejas caídas,
+//  - el mastín, sus orejas caídas (el collar está hecho, pero los perros van sin él: `collar` en la raza para ponerlo),
 //  - y su postura: cola baja (en gancho en el mastín), que menea cuando te acompaña.
 import * as THREE from 'three';
 import { toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js';

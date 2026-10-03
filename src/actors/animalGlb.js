@@ -29,12 +29,12 @@ const SPEC = {
   jabali: { model: 'Jabali', h: 0.9, col: { Main: '#3a2e26', Main_Light: '#4e4034', Muzzle: '#2a221e', Hooves: '#1a1512' } },
 };
 // perros: razas del compañero, a su altura real (hasta la punta de las orejas); el detalle de cada raza (capa, pelo,
-// collar, orejas y cola) está en dogDetail.js
+// orejas y cola; van sin collar) está en dogDetail.js
 const DOG = {
-  gorbeia: { model: 'ShibaInu', h: 0.7, col: { Main: '#b8692e', Main_Light: '#dca06a' }, dog: { paint: 'gorbeia', tail: -1.6, tailUncurl: -0.4, hair: 0.0007, collar: '#a3261f' } },
-  iletsua: { model: 'ShibaInu', h: 0.72, col: { Main: '#a9845a', Main_Light: '#d6bf96', Black: '#2a201a' }, dog: { paint: 'iletsua', tail: -1.6, tailUncurl: -0.4, hair: 0.001, long: true, collar: '#2f6b3a' } },
-  aleman: { model: 'Husky', h: 0.84, col: {}, dog: { paint: 'aleman', tail: -1.8, tailUncurl: -0.14, hair: 0.0008, collar: '#1e1b19' } },
-  mastin: { model: 'Husky', h: 1.0, col: {}, dog: { paint: 'mastin', tail: -1.6, tailUncurl: -0.05, ears: 'drop', bulk: true, hair: 0.001, long: true, collar: '#5a3a22', carlanca: true } },
+  gorbeia: { model: 'ShibaInu', h: 0.7, col: { Main: '#b8692e', Main_Light: '#dca06a' }, dog: { paint: 'gorbeia', tail: -1.6, tailUncurl: -0.4, hair: 0.0007 } },
+  iletsua: { model: 'ShibaInu', h: 0.72, col: { Main: '#a9845a', Main_Light: '#d6bf96', Black: '#2a201a' }, dog: { paint: 'iletsua', tail: -1.6, tailUncurl: -0.4, hair: 0.001, long: true } },
+  aleman: { model: 'Husky', h: 0.84, col: {}, dog: { paint: 'aleman', tail: -1.8, tailUncurl: -0.14, hair: 0.0008 } },
+  mastin: { model: 'Husky', h: 1.0, col: {}, dog: { paint: 'mastin', tail: -1.6, tailUncurl: -0.05, ears: 'drop', bulk: true, hair: 0.001, long: true } },
 };
 export function animalSpec(kind, opts = {}) { return kind === 'dog' ? DOG[opts.breed] || DOG.gorbeia : SPEC[kind] || null; }
 export const hasGlbAnimal = (kind, opts) => { const s = animalSpec(kind, opts); return !!(s && GLTF[s.model]); };
@@ -162,7 +162,7 @@ export function buildAnimal(kind, opts = {}) {
   // a su altura real, con los pies en el suelo
   const box = new THREE.Box3().setFromObject(inner), h = box.max.y - box.min.y || 1;
   inner.scale.setScalar(S.h / h); inner.position.y = -box.min.y * (S.h / h);
-  // perros: collar, pelo largo y postura de la raza
+  // perros: orejas caídas y postura de la raza
   const pose = S.dog ? dogDress(inner, S, GEAR.get(key), opts) : null;
   const root = new THREE.Group(); root.add(inner);
   const mixer = new THREE.AnimationMixer(inner), actions = {};
