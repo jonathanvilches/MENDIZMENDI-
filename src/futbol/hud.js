@@ -20,38 +20,38 @@ const CSS = `
 .fb-pen.on{display:grid;grid-template-columns:auto auto;align-items:center}
 .fb-pen u{display:inline-block;width:12px;height:12px;border-radius:50%;margin:0 2px;background:rgba(255,255,255,.25);text-decoration:none;vertical-align:middle}
 .fb-pen u.g{background:#3fd36a}.fb-pen u.x{background:#e0453a}
-.fb-pause,.fb-cam{position:absolute;top:calc(env(safe-area-inset-top,0px) + 8px);width:42px;height:42px;border-radius:50%;border:2px solid rgba(255,255,255,.7);background:rgba(16,10,30,.5);color:#fff;pointer-events:auto;cursor:pointer;display:grid;place-items:center;padding:0;box-shadow:0 3px 12px rgba(0,0,0,.35)}
+.fb-pause,.fb-cam{position:absolute;top:calc(env(safe-area-inset-top,0px) + 8px);width:40px;height:40px;border-radius:50%;border:1.5px solid rgba(255,255,255,.75);background:rgba(8,10,20,.25);color:#fff;pointer-events:auto;cursor:pointer;display:grid;place-items:center;padding:0;box-shadow:0 2px 10px rgba(0,0,0,.18)}
 .fb-pause{left:calc(env(safe-area-inset-left,0px) + 10px)}.fb-cam{right:calc(env(safe-area-inset-right,0px) + 10px)}
-.fb-pause svg,.fb-cam svg{width:20px;height:20px}
+.fb-pause svg,.fb-cam svg{width:18px;height:18px}
 .fb-msg{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%) scale(.85);opacity:0;transition:opacity .2s,transform .25s cubic-bezier(.2,1.4,.4,1);text-align:center;pointer-events:none;max-width:92vw}
 .fb-msg.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
 .fb-msg h2{margin:0;font-family:'Lilita One',Nunito,sans-serif;font-weight:400;font-size:clamp(40px,10vw,84px);line-height:1;text-shadow:0 4px 0 rgba(0,0,0,.35),0 8px 26px rgba(0,0,0,.45);letter-spacing:.02em}
 .fb-msg p{margin:6px 0 0;font-size:clamp(15px,3.6vw,20px);font-weight:900;text-shadow:0 2px 8px rgba(0,0,0,.6)}
 .fb-msg.goal h2{color:#ffd84a}
 .fb-stick{position:absolute;left:0;bottom:0;width:50vw;height:78vh;pointer-events:auto;touch-action:none}
-.fb-knob{position:absolute;width:124px;height:124px;margin:-62px 0 0 -62px;border-radius:50%;border:3px solid rgba(255,255,255,.55);background:rgba(16,10,30,.25);display:none}
-.fb-knob i{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:rgba(255,255,255,.88);box-shadow:0 2px 8px rgba(0,0,0,.35)}
-.fb-stickhint{position:absolute;left:calc(env(safe-area-inset-left,0px) + 18px);bottom:calc(env(safe-area-inset-bottom,0px) + 18px);width:96px;height:96px;border-radius:50%;border:2px dashed rgba(255,255,255,.5);display:grid;place-items:center;font-size:11px;font-weight:800;text-align:center;opacity:.7;padding:10px;transition:opacity .4s;text-shadow:0 1px 3px rgba(0,0,0,.6)}
-/* cuatro botones, como en el FIFA del móvil: círculos translúcidos con aro de color, icono y nombre, en arco para el
-   pulgar derecho. TIRO (el grande) en la esquina; PASE a su izquierda; SPRINT encima de TIRO; CAMBIAR en diagonal,
-   entre los dos (siempre en su sitio; con el balón en tus pies, apagado). Al defender: ROBAR y ENTRADA. Medidas en --u
-   (escala) para que no se toquen nunca: los centros están separados al menos 12 px más que la suma de los radios */
+.fb-knob{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;border:1.5px solid rgba(255,255,255,.6);background:rgba(8,10,20,.14);display:none}
+.fb-knob i{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:rgba(255,255,255,.72);box-shadow:0 1px 6px rgba(0,0,0,.25)}
+.fb-stickhint{position:absolute;left:calc(env(safe-area-inset-left,0px) + 18px);bottom:calc(env(safe-area-inset-bottom,0px) + 18px);width:96px;height:96px;border-radius:50%;border:1.5px dashed rgba(255,255,255,.5);display:grid;place-items:center;font-size:10.5px;font-weight:600;text-align:center;opacity:.7;padding:10px;transition:opacity .4s;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+/* cuatro botones minimalistas: un aro blanco fino, el icono de trazo fino y el nombre en pequeño. TIRO (el mayor) en la
+   esquina; PASE a su izquierda; SPRINT encima de TIRO; CAMBIAR en diagonal, entre los dos (siempre en su sitio; con el
+   balón en tus pies, apagado). Al pulsar, se rellenan con un toque de color. Al defender: ROBAR y ENTRADA. Medidas en
+   --u (escala) para que no se toquen nunca: los centros están separados al menos 12 px más que la suma de los radios */
 .fb-btns{--u:1;position:absolute;right:calc(env(safe-area-inset-right,0px) + 8px);bottom:calc(env(safe-area-inset-bottom,0px) + 8px);width:calc(240px * var(--u));height:calc(172px * var(--u));pointer-events:none}
-.fb-b{position:absolute;border:3px solid var(--c,#fff);padding:0;border-radius:50%;background:rgba(12,8,24,.42);color:#fff;font:900 calc(9.5px * var(--u)) Nunito,system-ui,sans-serif;letter-spacing:.03em;text-shadow:0 1px 3px rgba(0,0,0,.8);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(2px * var(--u));cursor:pointer;touch-action:none;pointer-events:auto;text-align:center;line-height:1;box-shadow:0 3px 12px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.12);-webkit-user-select:none;user-select:none;transition:transform .06s,background .06s,opacity .2s}
-.fb-b svg{width:calc(24px * var(--u));height:calc(24px * var(--u));flex:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6));pointer-events:none}
-.fb-b span{white-space:nowrap;pointer-events:none;text-transform:uppercase}
-.fb-b.down{background:var(--c,#fff);transform:scale(.92)}
-.fb-shoot{--c:#e8473c;width:calc(78px * var(--u));height:calc(78px * var(--u));right:calc(10px * var(--u));bottom:calc(8px * var(--u))}
-.fb-shoot svg{width:calc(30px * var(--u));height:calc(30px * var(--u))}.fb-shoot span{font-size:calc(11px * var(--u))}
-.fb-pass{--c:#2fa8e0;width:calc(66px * var(--u));height:calc(66px * var(--u));right:calc(104px * var(--u));bottom:calc(4px * var(--u))}
-.fb-sprint{--c:#3fbf5a;width:calc(60px * var(--u));height:calc(60px * var(--u));right:calc(18px * var(--u));bottom:calc(106px * var(--u))}
-.fb-swap{--c:#f2c230;width:calc(60px * var(--u));height:calc(60px * var(--u));right:calc(94px * var(--u));bottom:calc(88px * var(--u))}
-.fb-swap span{font-size:calc(9px * var(--u));letter-spacing:0}
-.fb-btns.atk .fb-swap{opacity:.4}
-.fb-btns.def .fb-pass{--c:#f08a3a}.fb-btns.def .fb-shoot{--c:#c42a2a}
+.fb-b{position:absolute;border:1.5px solid rgba(255,255,255,.8);padding:0;border-radius:50%;background:rgba(8,10,20,.2);color:#fff;font:600 calc(7.5px * var(--u)) Nunito,system-ui,sans-serif;letter-spacing:.16em;text-shadow:0 1px 2px rgba(0,0,0,.55);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(3px * var(--u));cursor:pointer;touch-action:none;pointer-events:auto;text-align:center;line-height:1;box-shadow:0 2px 10px rgba(0,0,0,.18);-webkit-user-select:none;user-select:none;transition:transform .06s,background .08s,opacity .2s}
+.fb-b svg{width:calc(21px * var(--u));height:calc(21px * var(--u));flex:none;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.45));pointer-events:none}
+.fb-b span{white-space:nowrap;pointer-events:none;text-transform:uppercase;opacity:.9;padding-left:.16em}
+.fb-b.down{background:var(--cd,rgba(255,255,255,.3));transform:scale(.94)}
+.fb-shoot{--cd:rgba(232,71,60,.5);width:calc(72px * var(--u));height:calc(72px * var(--u));right:calc(12px * var(--u));bottom:calc(10px * var(--u))}
+.fb-shoot svg{width:calc(25px * var(--u));height:calc(25px * var(--u))}
+.fb-pass{--cd:rgba(47,168,224,.5);width:calc(60px * var(--u));height:calc(60px * var(--u));right:calc(106px * var(--u));bottom:calc(6px * var(--u))}
+.fb-sprint{--cd:rgba(63,191,90,.5);width:calc(54px * var(--u));height:calc(54px * var(--u));right:calc(21px * var(--u));bottom:calc(108px * var(--u))}
+.fb-swap{--cd:rgba(242,194,48,.5);width:calc(54px * var(--u));height:calc(54px * var(--u));right:calc(97px * var(--u));bottom:calc(91px * var(--u))}
+.fb-swap span{letter-spacing:.06em}
+.fb-btns.atk .fb-swap{opacity:.35}
+.fb-btns.def .fb-pass{--cd:rgba(240,138,58,.55)}.fb-btns.def .fb-shoot{--cd:rgba(196,42,42,.55)}
 .fb-btns.pen .fb-swap,.fb-btns.pen .fb-sprint{display:none}
 .fb-bars{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 10px);width:min(24vw,190px);display:flex;flex-direction:column;gap:4px;pointer-events:none}
-.fb-bar{height:7px;border-radius:5px;background:rgba(16,10,30,.5);overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.45)}
+.fb-bar{height:4px;border-radius:3px;background:rgba(8,10,20,.4);overflow:hidden;box-shadow:0 0 0 .5px rgba(255,255,255,.4)}
 .fb-bar i{display:block;height:100%;width:100%;border-radius:6px;background:linear-gradient(90deg,#3fd36a,#a6f07a);transform-origin:left;transition:transform .05s linear}
 .fb-bar.pow{opacity:0;transition:opacity .15s}.fb-bar.pow.on{opacity:1}.fb-bar.pow i{background:linear-gradient(90deg,#ffd700,#ff8a2a,#e0302a)}
 .fb-arrow{position:absolute;width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-bottom:26px solid #ffe14a;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));display:none;transform-origin:50% 60%}
@@ -104,22 +104,21 @@ const CSS = `
   .fb-msg{top:42%}.fb-msg h2{font-size:clamp(34px,8vw,60px)}
 }
 `;
-const SVG_PAUSE = '<svg viewBox="0 0 24 24" fill="#fff"><rect x="6" y="4" width="4" height="16" rx="1.5"/><rect x="14" y="4" width="4" height="16" rx="1.5"/></svg>';
-const SVG_SWAP = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h13l-3.5-3.5"/><path d="M20 15H7l3.5 3.5"/></svg>';
-// iconos de los botones (trazo blanco, 24 × 24)
-const IC = (d, fill = false) => `<svg viewBox="0 0 24 24" fill="${fill ? '#fff' : 'none'}" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const SVG_PAUSE = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"><path d="M9 6v12M15 6v12"/></svg>';
+// iconos de los botones: trazo blanco fino (24 × 24), lo justo para reconocerlos
+const IC = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 export const ICON = {
-  shoot: IC('<circle cx="15.5" cy="12" r="5.5"/><path d="M15.5 6.5l1.6 3.4 3.7.4M2.5 8h6M1.5 12h6M2.5 16h6"/>'),
-  pass: IC('<circle cx="5" cy="18" r="2.6"/><circle cx="19" cy="6" r="2.6"/><path d="M7.4 16.2l8.9-8"/><path d="M11.5 7.6h5.1v5.1"/>'),
-  through: IC('<path d="M3 19c4-1 7-4 9-8s5-6 9-6" stroke-dasharray="2.4 2.6"/><path d="M15.5 3.4l5.5 1.6-1.9 5.3"/><circle cx="5" cy="19" r="1.6" fill="#fff"/>'),
-  sprint: IC('<path d="M13.5 2L5 13.5h6.2L10 22l9-12.2h-6.4z" fill="#fff"/>'),
-  swap: IC('<path d="M4 9h13l-3.5-3.5"/><path d="M20 15H7l3.5 3.5"/>'),
-  tackle: IC('<circle cx="17.5" cy="15.5" r="3.6"/><path d="M3 15.5h7.5M7 11.5l4 4-4 4"/>'),
-  slide: IC('<path d="M2.5 20h19"/><circle cx="7" cy="9" r="2.4"/><path d="M7.5 12.5l4 3.5h7M10 13l-3 4"/><circle cx="20" cy="15.5" r="2" fill="#fff"/>'),
-  contain: IC('<path d="M12 2.8l7.5 3v5.6c0 4.8-3.3 8-7.5 9.8-4.2-1.8-7.5-5-7.5-9.8V5.8z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>'),
-  dive: IC('<path d="M3 17c3-6 8-9 14-9"/><circle cx="19.5" cy="8" r="2.5"/><path d="M6 20l4-5"/>'),
+  shoot: IC('<circle cx="15" cy="12" r="5"/><path d="M3.5 9.5h5M2.5 12h6M3.5 14.5h5"/>'),
+  pass: IC('<path d="M5.5 18.5L18.5 5.5"/><path d="M10 5.5h8.5V14"/>'),
+  through: IC('<path d="M4 19c5-1 9-6 12-11" stroke-dasharray="2 2.5"/><path d="M12.5 6.5H17V11"/>'),
+  sprint: IC('<path d="M6 6.5l5.5 5.5L6 17.5M12.5 6.5l5.5 5.5-5.5 5.5"/>'),
+  swap: IC('<path d="M4.5 9h14l-3.5-3.5M19.5 15h-14l3.5 3.5"/>'),
+  tackle: IC('<circle cx="16.5" cy="12" r="3.5"/><path d="M11 12H3.5M6.5 9l-3 3 3 3"/>'),
+  slide: IC('<path d="M2.5 17.5h11M10.5 14.5l3 3-3 3"/><circle cx="19" cy="17.5" r="2.3"/>'),
+  contain: IC('<path d="M12 3.5l7 2.8v5.2c0 4.4-3 7.3-7 9-4-1.7-7-4.6-7-9V6.3z"/>'),
+  dive: IC('<path d="M4 18c3.5-6.5 8.5-9.5 14-9.5"/><circle cx="19" cy="8.5" r="2"/>'),
 };
-const SVG_CAM = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"><rect x="3" y="7" width="13" height="10" rx="2"/><path d="M16 11l5-3v8l-5-3z"/></svg>';
+const SVG_CAM = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"><rect x="3" y="7" width="13" height="10" rx="2"/><path d="M16 11l5-3v8l-5-3z"/></svg>';
 const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 /** Menú suelto (antes de empezar): usa los mismos estilos sin crear el resto de la interfaz. */

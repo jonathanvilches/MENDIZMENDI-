@@ -279,14 +279,7 @@ function sheetTexture() {
     const rnd = mulberry(7); for (let i = 0; i < 26; i++) { g.fillStyle = `rgba(30,20,20,${0.03 + rnd() * 0.05})`; g.fillRect(rnd() * W, rnd() * H, 1 + rnd() * 3, 6 + rnd() * 26); }
   }, { repeat: true });
 }
-// suelos de los alrededores: asfalto (losa de 4 m), adoquín con banda de granito (8 m) y césped de parque (6 m)
-function asphaltTexture() {
-  return canvasTex(128, 128, (g, W, H) => {
-    g.fillStyle = '#4a4d52'; g.fillRect(0, 0, W, H); const rnd = mulberry(5);
-    for (let i = 0; i < 2600; i++) { const l = rnd(); g.fillStyle = l < 0.5 ? `rgba(20,20,24,${0.2 + rnd() * 0.3})` : `rgba(140,140,146,${0.1 + rnd() * 0.2})`; g.fillRect(rnd() * W, rnd() * H, 1, 1); }
-    for (let i = 0; i < 6; i++) { g.fillStyle = 'rgba(25,25,28,.18)'; g.beginPath(); g.ellipse(rnd() * W, rnd() * H, 6 + rnd() * 14, 4 + rnd() * 8, rnd() * 3, 0, Math.PI * 2); g.fill(); }
-  }, { repeat: true });
-}
+// suelos de los alrededores: adoquín con banda de granito (losa de 8 m) y césped de parque
 function pavingTexture() {
   return canvasTex(256, 256, (g, W, H) => {
     g.fillStyle = '#a9a398'; g.fillRect(0, 0, W, H); const rnd = mulberry(11);
@@ -563,47 +556,20 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
       for (const sx of [-1, 1]) { const side = new THREE.Mesh(own(new THREE.BoxGeometry(0.06, 2.1, 1.9)), glassM); side.position.set(sx * 4.7, 1.1, 0.3); g.add(side); }
       S.add(g);
     }
-    // alrededores (se ven en la llegada de la cámara y desde la grada): acera de adoquín con bandas de granito alrededor
-    // del zócalo, una calle de asfalto que rodea el estadio, dos aparcamientos con las plazas pintadas y coches, dos
-    // plazas con hileras de árboles en los fondos, un parque alrededor y, más allá, bloques de pisos con sus ventanas
-    const flat = (x0, z0, x1, z1, tileM, y, mat) => { const g = new THREE.PlaneGeometry(x1 - x0, z1 - z0).rotateX(-Math.PI / 2).translate((x0 + x1) / 2, y, (z0 + z1) / 2), uv = g.attributes.uv, p = g.attributes.position; for (let i = 0; i < uv.count; i++) uv.setXY(i, p.getX(i) / tileM, p.getZ(i) / tileM); return g; };
-    const offM = (o) => ({ polygonOffset: true, polygonOffsetFactor: -o, polygonOffsetUnits: -o });
+    // alrededores (se ven en la llegada de la cámara y desde la grada; sin calles ni coches, como en el resto del juego):
+    // acera de adoquín con bandas de granito alrededor del zócalo, dos plazas con hileras de árboles en los fondos, un
+    // parque con alamedas alrededor y, más allá, bloques de pisos con sus ventanas
+    const flat = (x0, z0, x1, z1, tileM, y) => { const g = new THREE.PlaneGeometry(x1 - x0, z1 - z0).rotateX(-Math.PI / 2).translate((x0 + x1) / 2, y, (z0 + z1) / 2), uv = g.attributes.uv, p = g.attributes.position; for (let i = 0; i < uv.count; i++) uv.setXY(i, p.getX(i) / tileM, p.getZ(i) / tileM); return g; };
     apron.material.map = own(parkTexture()); apron.material.map.repeat.set(150, 150); apron.material.color.set('#ffffff'); apron.material.needsUpdate = true;
-    // (de dentro afuera: acera de 10 m, calle de 10 m y, más allá, las plazas de los fondos y los aparcamientos)
-    const AX = FA[0] + 48, AZ = FA[1] + 52, K = [FA[0] + 10, FA[1] + 10], RD = 10;
-    add(mergeGeometries([flat(-AX, -AZ, AX, -K[1], 4, -0.01), flat(-AX, K[1], AX, AZ, 4, -0.01), flat(-AX, -K[1], -K[0], K[1], 4, -0.01), flat(K[0], -K[1], AX, K[1], 4, -0.01)]),
-      own(new THREE.MeshStandardMaterial({ map: own(asphaltTexture()), roughness: 0.95, ...offM(1) })), { receive: true });
-    const paveM = own(new THREE.MeshStandardMaterial({ map: own(pavingTexture()), roughness: 0.9, ...offM(2) }));
+    const AX = FA[0] + 48, AZ = FA[1] + 52, K = [FA[0] + 10, FA[1] + 10];
     add(mergeGeometries([flat(-K[0], -K[1], K[0], -FA[1], 8, 0.01), flat(-K[0], FA[1], K[0], K[1], 8, 0.01), flat(-K[0], -FA[1], -FA[0], FA[1], 8, 0.01), flat(FA[0], -FA[1], K[0], FA[1], 8, 0.01),
-      flat(-AX, -K[1] - RD, -K[0] - RD, K[1] + RD, 8, 0.01), flat(K[0] + RD, -K[1] - RD, AX, K[1] + RD, 8, 0.01)]), paveM, { receive: true });
-    const rnd2 = mulberry(5), trees = [], crowns = [], blocks = [], tops = [], paint = [], stalls = [];
-    const strip = (x, z, w, d) => paint.push(new THREE.PlaneGeometry(w, d).rotateX(-Math.PI / 2).translate(x, 0.02, z));
-    // la calle que rodea el estadio: línea discontinua en medio
-    for (let z = -K[1] - RD / 2; z < K[1] + RD / 2; z += 9) for (const sx of [-1, 1]) strip(sx * (K[0] + RD / 2), z, 0.15, 4);
-    for (let x = -K[0] - RD / 2; x < K[0] + RD / 2; x += 9) for (const sz of [-1, 1]) strip(x, sz * (K[1] + RD / 2), 4, 0.15);
-    // aparcamientos: cuatro filas de plazas de 2,5 × 5 m a cada lado (dos espalda con espalda en medio)
-    for (const sz of [-1, 1]) for (const z0 of [K[1] + RD, K[1] + RD + 12, K[1] + RD + 17, K[1] + RD + 27]) {
-      const zc = sz * (z0 + 2.5);
-      for (let x = -FA[0]; x + 2.5 <= FA[0]; x += 2.5) { strip(x, zc, 0.12, 4.8); stalls.push([x + 1.25, zc]); }
-    }
-    add(mergeGeometries(paint), own(new THREE.MeshStandardMaterial({ color: '#eceee8', roughness: 0.7, ...offM(3) })), { receive: true });
-    paint.forEach(g => g.dispose());
-    // coches aparcados (dos de cada tres plazas)
-    if (!low) {
-      const tint = (g, c) => { g = g.index ? g.toNonIndexed() : g; const col = new THREE.Color(c), a = []; for (let i = 0; i < g.attributes.position.count; i++) a.push(col.r, col.g, col.b); g.setAttribute('color', new THREE.Float32BufferAttribute(a, 3)); return g; };
-      const taper = (g, topY, k) => { const p = g.attributes.position; for (let i = 0; i < p.count; i++) if (p.getY(i) > topY - 1e-3) p.setZ(i, p.getZ(i) * k); return g; };
-      const parts = [tint(new THREE.BoxGeometry(1.78, 0.62, 4.3).translate(0, 0.62, 0), '#ffffff'), tint(taper(new THREE.BoxGeometry(1.62, 0.48, 2.3).translate(0, 1.17, -0.25), 1.41, 0.72), '#26303a'), tint(new THREE.BoxGeometry(1.5, 0.06, 1.62).translate(0, 1.43, -0.25), '#ffffff')];
-      for (const wx of [-0.8, 0.8]) for (const wz of [-1.38, 1.38]) parts.push(tint(new THREE.CylinderGeometry(0.32, 0.32, 0.24, 10).rotateZ(Math.PI / 2).translate(wx, 0.32, wz), '#151618'));
-      const carG = own(mergeGeometries(parts)); parts.forEach(g => g.dispose());
-      const cars = stalls.filter(() => rnd2() < 0.66), PAL = ['#c9ccd1', '#1f2329', '#f2f2f0', '#8a1c22', '#24426e', '#6d737a', '#3d5a3a', '#b8a27a'];
-      const im = new THREE.InstancedMesh(carG, own(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.35, metalness: 0.4 })), cars.length);
-      const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), v = new THREE.Vector3(), sc = new THREE.Vector3(1, 1, 1), col = new THREE.Color(), Y = new THREE.Vector3(0, 1, 0);
-      cars.forEach(([x, z], i) => { q.setFromAxisAngle(Y, (rnd2() - 0.5) * 0.06 + (rnd2() < 0.5 ? Math.PI : 0)); im.setMatrixAt(i, m4.compose(v.set(x, 0.02, z), q, sc)); im.setColorAt(i, col.set(PAL[(rnd2() * PAL.length) | 0])); });
-      im.computeBoundingSphere(); S.add(im);
-    }
+      flat(-AX, -K[1], -K[0], K[1], 8, 0.01), flat(K[0], -K[1], AX, K[1], 8, 0.01)]),
+      own(new THREE.MeshStandardMaterial({ map: own(pavingTexture()), roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 })), { receive: true });
+    const rnd2 = mulberry(5), trees = [], crowns = [], blocks = [], tops = [];
     // árboles: hileras en las plazas de los fondos y un parque alrededor
     const tree = (x, z, k = 1) => { const h = (4 + rnd2() * 2.5) * k; trees.push(new THREE.CylinderGeometry(0.25, 0.35, h, 6).translate(x, h / 2, z)); crowns.push(new THREE.IcosahedronGeometry((2.2 + rnd2() * 1.2) * k, 1).translate(x, h + 1.6 * k, z)); };
-    for (const sx of [-1, 1]) for (let x = K[0] + RD + 5; x < AX - 3; x += 9) for (let z = -K[1] - RD + 6; z < K[1] + RD - 4; z += 9) tree(sx * x, z, 0.85);
+    for (const sx of [-1, 1]) for (let x = K[0] + 5; x < AX - 3; x += 9) for (let z = -K[1] + 6; z < K[1] - 4; z += 9) tree(sx * x, z, 0.85);
+    for (const sz of [-1, 1]) for (const d of [8, 20, 32, 44]) for (let x = -AX + 6; x < AX - 4; x += 10) tree(x + (d % 24 ? 5 : 0), sz * (K[1] + d), 0.9);
     for (let i = 0; i < 90; i++) { const a = rnd2() * Math.PI * 2, r = 1 + rnd2() * 0.35, x = Math.cos(a) * (AX + 12) * r, z = Math.sin(a) * (AZ + 12) * r; tree(x, z); }
     // bloques de pisos con ventanas (cada uno de un color) y su cubierta plana
     const flatsM = own(new THREE.MeshStandardMaterial({ map: own(flatsTexture()), vertexColors: true, roughness: 0.9 }));
