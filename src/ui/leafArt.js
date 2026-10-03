@@ -86,9 +86,9 @@ function frond(g, o, c) {
   g.strokeStyle = shade(c.c, 0.55); g.lineWidth = 3; g.beginPath(); g.moveTo(0, 30); g.quadraticCurveTo(6, -o.L * 0.5, 0, -o.L); g.stroke();
   const n = 15;
   for (let k = 0; k < n; k++) {
-    const t = 0.1 + k / n * 0.88, y = -o.L * t, len = o.W * Math.sin(PI * Math.min(1, t * 1.1)) * (1 - t * 0.35);
+    const t = 0.1 + k / n * 0.88, y = -o.L * t, len = o.W * 1.12 * Math.pow(1 - t, 0.85) * Math.min(1, (t - 0.02) / 0.14);   // triangular: más ancha abajo
     for (const s of [1, -1]) {
-      g.save(); g.translate(2, y); g.rotate(s * (PI / 2 - 0.5));
+      g.save(); g.translate(2, y); g.rotate(s * (PI / 2 - 0.45 - 0.35 * t));
       g.strokeStyle = shade(c.c, 0.7); g.lineWidth = 1.5; g.beginPath(); g.moveTo(0, 0); g.lineTo(0, -len); g.stroke();
       const m = Math.max(3, Math.round(len / 7));
       for (let j = 0; j < m; j++) { const yy = -len * (j + 0.6) / (m + 0.4), r = (len / m) * 0.7 * (1 - j / m * 0.5); for (const q of [1, -1]) { g.fillStyle = shade(c.c, 0.9 + 0.2 * (j % 2)); g.beginPath(); g.ellipse(q * r * 0.7, yy, r * 0.75, r * 0.45, q * 0.5, 0, 2 * PI); g.fill(); } }

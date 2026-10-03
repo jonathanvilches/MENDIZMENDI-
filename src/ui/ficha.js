@@ -35,9 +35,9 @@ function close(ui, o, k) { removeEventListener('keydown', k, true); o.classList.
 // la imagen: el retrato 3D de la planta (se dibuja la primera vez) o el icono del animal
 function picture(d) {
   if (d.type === 'fauna') return `<div class="fc-pic fauna">${iconSVG(d.F.icon || d.id, 150)}</div>`;
-  // la planta entera y, en la esquina, su hoja (es lo que mejor la identifica)
+  // la planta entera y, al lado, su hoja (es lo que mejor la identifica)
   const leaf = leafImage(d.id);
-  return `<div class="fc-pic flora"><img alt="${esc(d.F.name)}" data-flora="${d.id}">${leaf ? `<figure class="fc-leaf"><img class="on" src="${leaf}" alt="Hoja"><figcaption>Su hoja</figcaption></figure>` : ''}</div>`;
+  return `<div class="fc-pics${leaf ? ' two' : ''}"><div class="fc-pic flora"><img alt="${esc(d.F.name)}" data-flora="${d.id}"></div>${leaf ? `<figure class="fc-leaf"><img src="${leaf}" alt="Hoja de ${esc(d.F.name)}"><figcaption>Su hoja</figcaption></figure>` : ''}</div>`;
 }
 function fillPictures(o) {
   o.querySelectorAll('img[data-flora]').forEach(img => floraPortrait(img.dataset.flora).then(u => { if (u) { img.src = u; img.classList.add('on'); } }).catch(() => {}));
@@ -63,7 +63,7 @@ export function showFicha(key, { ui = null, badge = '', button = 'Seguir', kicke
       ${d.comarcas.length ? `<div class="fc-where">${d.comarcas.map(c => `<span style="--c:${c.color}">${esc(c.name)}</span>`).join('')}</div>` : ''}
       <button class="btn primary">${esc(button)}</button>`);
     fillPictures(o);
-    const b = o.querySelector('button'); setTimeout(() => b.focus(), 60);
+    const b = o.querySelector('button'); setTimeout(() => b.focus({ preventScroll: true }), 60);
     const k = (e) => { e.stopImmediatePropagation(); if (['e', 'enter', ' ', 'escape'].includes(e.key.toLowerCase())) { e.preventDefault(); done(); } };
     const done = () => { ui?.sound?.ui?.('click'); close(ui, o, k); res(); };
     setTimeout(() => addEventListener('keydown', k, true), 300);
