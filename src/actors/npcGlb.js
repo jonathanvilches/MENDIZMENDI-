@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { GlbChar, loadKayKit, loadMeshy, hasMeshy, MESHY_GAIT, MESHY_NAMES } from './glbChar.js';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { applyOutfit, regionalOutfit, MYTHS, resetOutfitTextures } from './outfits.js';
+import { applyOutfit, regionalOutfit, MYTHS, resetOutfitTextures, dressMeshy } from './outfits.js';
 
 // colores con los que se pintaron los modelos en Blender (build_protagonista.py / build_nerea.py)
 const BASE = {
@@ -71,6 +71,21 @@ function buildNpcMeshy(L) {
     },
   };
   return { obj, char, anim };
+}
+// Vecino con traje (carnaval, dantzaris, seres de leyenda) con el cuerpo de los personajes nuevos: el de Meshy que mejor
+// le va (de blanco, el sanferminero; los seres del monte, el pastor), a su altura (los gigantes, gigantes) y con las
+// prendas del traje cosidas a sus huesos: gorros, cencerros, pieles, cintas, máscaras, melenas, barbas…
+function buildNpcMeshyCostume(L) {
+  const M = L.myth && MYTHS[L.myth], female = M ? M.female : !!(L.female || L.skirt || L.ponytail || L.bun || L.braids || L.longHair || L.lashes);
+  const white = /^#(f|e[89a-f])/i.test(L.shirt || '');
+  const n = buildNpcMeshy({ ...L, meshy: M || !white ? 'pastor' : 'sanfermin', height: M ? M.height : L.height });
+  const O = M ? M.outfit : lookOutfit(L, female);
+  if (O && typeof O === 'object') {
+    const D = { ...O }; delete D.beret; delete D.scarf; delete D.sash;   // eso ya lo llevan los personajes nuevos
+    n.char.root.updateMatrixWorld(true); dressMeshy(n.char.root, D);
+  }
+  n.obj.userData.look = L; n.obj.userData.sex = female ? 'girl' : 'boy';
+  return n;
 }
 const KK_BASES = ['Ranger', 'Rogue', 'Knight', 'Barbarian', 'Mage', 'Rogue_Hooded'];
 const KKG = {}; let kkReady = false;
@@ -310,6 +325,7 @@ const EXPR = {
 export function buildNpc(look = {}) {
   const L = look;
   if (meshyReady && !COSTUME(L)) try { return buildNpcMeshy(L); } catch (e) { console.warn('vecino Meshy', e); }
+  if (meshyReady && COSTUME(L)) try { return buildNpcMeshyCostume(L); } catch (e) { console.warn('vecino Meshy con traje', e); }
   if (L.meshy && MESHY_NPC[L.meshy]) try { return buildNpcMeshy(L); } catch (e) { console.warn('vecino Meshy', e); }
   if (kkReady && !L.classic) try { return buildNpcKK(L); } catch (e) { console.warn('vecino KayKit', e); }
   if (!GLTF.boy) return null;   // sin cuerpo: la figura de reserva
