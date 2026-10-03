@@ -93,7 +93,7 @@ export class FutbolGame {
   action(a) {
     const me = this.me;
     if (this.mode === 'penalties') { this.buffer = { ...a, t: 60 }; return; }
-    if (this.restart && this.restart.taker === me) { if (this.restart.t >= this.restart.prep) this.takeRestart(me, a); else this.buffer = { ...a, t: 0.6 }; return; }
+    if (this.restart && this.restart.taker === me) { if (this.restart.t >= this.restart.prep) this.takeRestart(me, a); else this.buffer = { ...a, t: this.restart.prep - this.restart.t + 0.6 }; return; }   // (se guarda hasta que se pueda sacar)
     if (this.phase !== 'play' && this.phase !== 'tuto') return;
     if (this.owner === me && !me.hands) this.doAction(me, a); else this.buffer = { ...a, t: 0.32 };   // si el balón llega en ese momento, al primer toque
   }

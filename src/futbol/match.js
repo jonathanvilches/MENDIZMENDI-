@@ -91,6 +91,9 @@ export class FutbolMatch {
     ringG.rotateX(-Math.PI / 2); tri.computeVertexNormals();
     const ringM = new THREE.MeshBasicMaterial({ color: '#ffe14a', transparent: true, opacity: 0.92, depthWrite: false, side: THREE.DoubleSide });
     this.ring = new THREE.Group(); this.ring.add(new THREE.Mesh(ringG, ringM), new THREE.Mesh(tri, ringM)); this.ring.position.y = 0.03; this.ring.renderOrder = 2; this.scene.add(this.ring);
+    // encima del jugador que llevas, una flecha amarilla que baja y sube (en el móvil el aro del suelo apenas se ve)
+    this.pin = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.5, 4).rotateX(Math.PI), new THREE.MeshBasicMaterial({ color: '#ffe14a', depthTest: false, transparent: true }));
+    this.pin.renderOrder = 3; this.scene.add(this.pin);
     // a quién va el pase: un aro azul
     this.mark = new THREE.Mesh(new THREE.RingGeometry(0.4, 0.5, 28).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#7ad7ff', transparent: true, opacity: 0.8, depthWrite: false })); this.mark.visible = false; this.scene.add(this.mark);
     this.audio = new FutbolAudio(o.audio || {});
@@ -408,6 +411,8 @@ export class FutbolMatch {
     const me = g.me, showRing = !g.autoplay && g.mode !== 'penalties' || (g.mode === 'penalties' && g.pen?.human === 'shooter');
     this.ring.visible = showRing && !this.replay && !(this.intro > 0); this.ring.position.set(me.x, 0.03, me.z); this.ring.rotation.y = me.h;
     this.ring.children[0].material.color.set(g.defending() ? '#ffb347' : '#ffe14a');
+    this.pin.visible = this.ring.visible; this.pin.position.set(me.x, 2.25 + Math.sin(this.t * 6) * 0.12, me.z); this.pin.rotation.y = this.t * 2;
+    this.pin.material.color.copy(this.ring.children[0].material.color);
     const q = g.passTo; this.mark.visible = !!q && q.team === 0 && q !== me; if (q) this.mark.position.set(q.x, 0.03, q.z);
     // público: se anima con las ocasiones y celebra los goles
     if (this.cheerT > 0 && (this.cheerT -= dt) <= 0) this.field.cheer(false);
@@ -492,10 +497,10 @@ export class FutbolMatch {
       // abierto en vertical, que en el móvil apaisado la pantalla es baja)
       const own = g.owner, lead = clamp(g.ball.v.x * 0.35 + (own ? g.dir[own.team] * 4 : 0), -9, 9);
       this.lead = (this.lead ?? 0) + (lead - (this.lead ?? 0)) * Math.min(1, dt * 1.5);
-      const x = clamp(B.x * 0.94 + this.lead, -F.HL + 10, F.HL - 10), lz = B.z * 0.85 - 2, cz = F.HW + 22, cy = 21;
+      const x = clamp(B.x * 0.94 + this.lead, -F.HL + 10, F.HL - 10), lz = B.z * 0.85 - 2, phone = innerHeight < 520 && this.camera.aspect >= 1.2, cz = F.HW + 22, cy = 21;
       pos = new THREE.Vector3(x, cy, cz); look = new THREE.Vector3(x, 0, lz);
-      const dist = Math.hypot(cz - lz, cy), span = this.camera.aspect < 1.2 ? 30 : 23;
-      fov = clamp(2 * Math.atan(span / 2 / dist) * 180 / Math.PI, 16, 42);
+      const dist = Math.hypot(cz - lz, cy), span = this.camera.aspect < 1.2 ? 30 : phone ? 15 : 21;
+      fov = clamp(2 * Math.atan(span / 2 / dist) * 180 / Math.PI, phone ? 11 : 16, 42);   // (en el móvil apaisado, más zoom: si no, los jugadores salen diminutos)
       if (this.reto?.cam) ({ pos, look, fov } = this.reto.cam(pos, look, fov));
     }
     if (Math.abs(c.fov - fov) > 0.01) { c.fov += (fov - c.fov) * Math.min(1, dt * 2.5); if (snap) c.fov = fov; c.updateProjectionMatrix(); }

@@ -99,13 +99,7 @@ export class Futbol {
         after: async () => { G.player.frozen = false; G.follow?.snap?.(G.player); },
       },
     });
-    const d = FutbolSystem.career.data;
-    // la primera vez: un reto de entrenamiento antes del partido (la misión del campo); después, el menú libre
-    if (!d.retos?.pases?.done && !this.G.futRetoSeen) {
-      this.G.futRetoSeen = true;
-      const r = await FutbolSystem.startReto({ campoId: 'sadar', reto: 'pases' });
-      if (r?.quit && !r.reto) return { quit: true };
-    }
+    // directamente al menú (el partido once contra once viene elegido; los retos de entrenamiento, en la misma lista)
     const r = await FutbolSystem.openMenu({ campoId: 'sadar', title: 'El Sadar', sub: 'Fútbol 11 con la cantera' });
     if (!r || r.quit) return { quit: true };
     if (r.mode === 'reto') return { quit: true, reto: r };

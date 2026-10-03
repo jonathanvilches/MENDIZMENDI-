@@ -77,6 +77,12 @@ const CSS = `
   .fb-bars{left:auto;transform:none;right:calc(env(safe-area-inset-right,0px) + 12px);bottom:calc(env(safe-area-inset-bottom,0px) + 172px);width:140px}
   .fb-stick{height:62vh}
 }
+@media (max-height:520px) and (orientation:landscape){
+  .fb-panel{padding:calc(env(safe-area-inset-top,0px) + 8px) calc(env(safe-area-inset-right,0px) + 10px) calc(env(safe-area-inset-bottom,0px) + 8px) calc(env(safe-area-inset-left,0px) + 10px)}
+  .fb-card{width:min(860px,100%);padding:10px 16px 12px;display:grid;grid-template-columns:1fr 1fr;column-gap:16px;align-content:start}
+  .fb-card>*{grid-column:1/-1}.fb-card .fb-row:not(:first-of-type){grid-column:auto}.fb-card .fb-go,.fb-card .fb-alt{grid-column:auto;margin-top:4px;min-height:44px;padding:8px}
+  .fb-card h2{font-size:24px}.fb-row{margin:2px 0 6px;gap:5px}.fb-row label{font-size:11px}.fb-chip{min-height:34px;padding:5px 11px;font-size:13px}
+}
 @media (max-height:460px) and (orientation:landscape){
   .fb-top{top:calc(env(safe-area-inset-top,0px) + 4px)}.fb-team b{font-size:22px}
   .fb-btns{--s:62px;--p:54px;--w:44px;--r:68px}.fb-b{font-size:12px}.fb-swap svg{width:17px;height:17px}.fb-swap small{font-size:7.5px}
