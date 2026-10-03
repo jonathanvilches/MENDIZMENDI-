@@ -2,9 +2,14 @@
 // rozamiento, rodadura, postes y larguero (esfera contra cilindro), red que retiene el balón por dentro y lo para por
 // fuera, y la valla alrededor del campo. Cada paso se divide en tramos de 5 cm como mucho (colisión continua: a
 // 30 m/s el balón no atraviesa un poste ni la red).
-import { FIELD as F, PHYS as K } from './rules.js';
+// En fútbol sala (PHYS con dragK) el aire y el efecto siguen el encargo: Cd de 0,45 a 0,25 según la velocidad y Magnus
+// con CL = r·|ω|/|v|.
+import { FIELD as F, PHYS as K, onFormat } from './rules.js';
 
-const R = K.R;
+let R = K.R;
+onFormat(() => { R = K.R; });
+// aceleración del aire (por unidad de v²): Cd 0,45 a 5 m/s y menos, 0,25 desde 12 m/s y en medio, lineal
+const cdAt = (s) => K.cd[0] + (K.cd[1] - K.cd[0]) * clamp((s - K.cdV[0]) / (K.cdV[1] - K.cdV[0]), 0, 1);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
 export class Ball {
@@ -32,21 +37,32 @@ export class Ball {
     if (p.y > R + 1e-3 || v.y > 0.01) {
       // en el aire: gravedad, aire y Magnus k·(ω × v), limitado a 6 m/s²
       const s = Math.hypot(v.x, v.y, v.z);
-      let mx = K.magnus * (w.y * v.z - w.z * v.y), my = K.magnus * (w.z * v.x - w.x * v.z), mz = K.magnus * (w.x * v.y - w.y * v.x);
+      let mx = w.y * v.z - w.z * v.y, my = w.z * v.x - w.x * v.z, mz = w.x * v.y - w.y * v.x, drag = K.drag;
+      if (K.dragK) {
+        // fútbol sala: ½·ρ·Cd·A·v²/m y Magnus ½·ρ·CL·A·v²/m en la dirección de ω × v
+        drag = K.dragK * cdAt(s);
+        const wl = Math.hypot(w.x, w.y, w.z), cl = s > 0.5 ? clamp(R * wl / s, 0, K.cl) : 0, ml = Math.hypot(mx, my, mz);
+        const a = ml > 1e-9 ? K.dragK * cl * s * s / ml : 0; mx *= a; my *= a; mz *= a;
+      } else { mx *= K.magnus; my *= K.magnus; mz *= K.magnus; }
       const ml = Math.hypot(mx, my, mz); if (ml > K.magnusMax) { const k = K.magnusMax / ml; mx *= k; my *= k; mz *= k; }
-      v.x += (-K.drag * s * v.x + mx) * dt; v.y += (-K.g - K.drag * s * v.y + my) * dt; v.z += (-K.drag * s * v.z + mz) * dt;
-      const wd = Math.exp(-0.25 * dt); w.x *= wd; w.y *= wd; w.z *= wd;
+      v.x += (-drag * s * v.x + mx) * dt; v.y += (-K.g - drag * s * v.y + my) * dt; v.z += (-drag * s * v.z + mz) * dt;
+      const wd = K.spinKeep ? Math.pow(K.spinKeep, dt * 60) : Math.exp(-0.25 * dt); w.x *= wd; w.y *= wd; w.z *= wd;
     } else {
       // rodando: deceleración de 1,5 m/s² más el aire; el efecto se pierde enseguida contra el césped
       const s = Math.hypot(v.x, v.z);
-      if (s > 0) { const ns = Math.max(0, s - (K.roll + K.drag * s * s) * dt); v.x *= ns / s; v.z *= ns / s; }
+      if (s > 0) { const ns = Math.max(0, s - (K.roll + (K.dragK ? K.dragK * cdAt(s) : K.drag) * s * s) * dt); v.x *= ns / s; v.z *= ns / s; }
       v.y = 0; p.y = R; const wd = Math.exp(-5 * dt); w.x *= wd; w.y *= wd; w.z *= wd;
     }
     p.x += v.x * dt; p.y += v.y * dt; p.z += v.z * dt;
     // bote: restitución 0,55 y rozamiento tangencial 0,85
     if (p.y < R) {
       p.y = R;
-      if (v.y < -0.9) { ev.push({ t: 'bounce', s: -v.y }); v.y = -v.y * K.rest; v.x *= K.tan; v.z *= K.tan; } else v.y = 0;
+      if (v.y < -0.9) {
+        ev.push({ t: 'bounce', s: -v.y }); v.y = -v.y * K.rest;
+        // rozamiento con el suelo: frena la velocidad horizontal y una parte se pasa al giro (rueda hacia delante)
+        const lx = v.x * (1 - K.tan), lz = v.z * (1 - K.tan); v.x *= K.tan; v.z *= K.tan;
+        if (K.dragK) { w.x = w.x * 0.5 + lz / R * 0.4; w.z = w.z * 0.5 - lx / R * 0.4; }
+      } else v.y = 0;
     }
     if (Math.abs(p.x) > F.HL - 0.8 || Math.abs(ox) > F.HL - 0.8) for (const s of [-1, 1]) this.goal(s, ox, oy, oz, ev);
     // vallas de publicidad alrededor del campo, a 5 m de las líneas

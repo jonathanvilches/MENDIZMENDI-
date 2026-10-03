@@ -82,10 +82,12 @@ export async function makeCharacter(d) {
     dispose: () => { char.dispose(); for (const m of mats) m.dispose(); if (fl) fl.traverse(o => { if (o.isMesh) { o.geometry.dispose(); o.material.map?.dispose(); o.material.dispose(); } }); } };
 }
 
+// El fútbol desde el pueblo: en El Sadar (fútbol 11, con la entrenadora de Osasuna) o en la pista del pueblo (fútbol
+// sala, con el entrenador del club del pueblo). opts: { campo, title, sub, local: { name, short } }
 export class Futbol {
-  constructor(G, lm) { this.G = G; this.lm = lm; }
+  constructor(G, lm, opts = {}) { this.G = G; this.lm = lm; this.opts = { campo: 'sadar', title: 'El Sadar', sub: 'Fútbol 11 con la cantera', ...opts }; }
   update() {}
-  async run() {
+  setup() {
     const G = this.G;
     const sound = G.sound?.ctx ? { ctx: G.sound.ctx, out: G.sound.sfx } : null;
     FutbolSystem.init({
@@ -100,9 +102,21 @@ export class Futbol {
       },
     });
     // directamente al menú (el partido once contra once viene elegido; los retos de entrenamiento, en la misma lista)
-    const r = await FutbolSystem.openMenu({ campoId: 'sadar', title: 'El Sadar', sub: 'Fútbol 11 con la cantera' });
-    if (!r || r.quit) return { quit: true };
-    if (r.mode === 'reto') return { quit: true, reto: r };
+  }
+  result(r) {
+    if (!r || r.quit) return { quit: true, reto: r?.reto, win: !!r?.win };
+    if (r.mode === 'reto') return { quit: false, reto: r.reto, win: !!r.win };
     return { win: !!r.win, you: r.pens && r.mode === 'penalties' ? r.pens[0] : r.you ?? 0, cpu: r.pens && r.mode === 'penalties' ? r.pens[1] : r.cpu ?? 0, quit: !!r.quit, draw: !!r.draw };
   }
+  /** El menú libre (partido, penaltis o un reto). */
+  async run() {
+    this.setup(); const o = this.opts;
+    const r = await FutbolSystem.openMenu({ campoId: o.campo, title: o.title, sub: o.sub, local: o.local });
+    const res = this.result(r); if (r?.mode === 'reto') res.quit = true;
+    return res;
+  }
+  /** Un reto de entrenamiento concreto. */
+  async reto(id) { this.setup(); const o = this.opts; return this.result(await FutbolSystem.startReto({ campoId: o.campo, reto: id, local: o.local })); }
+  /** Un partido directo contra un rival. */
+  async match(rival, dificultad = 'normal', duracion = 2) { this.setup(); const o = this.opts; return this.result(await FutbolSystem.startMatch({ campoId: o.campo, rival, dificultad, duracion, local: o.local })); }
 }

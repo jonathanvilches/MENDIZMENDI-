@@ -42,11 +42,11 @@ async function go(m) {
   setup(); const o = { dificultad: $('#lvl').value, duracion: +$('#dur').value, autoplay: $('#auto').checked, timeScale: +$('#ts').value };
   let r;
   if (m === 'tuto') { FutbolSystem.career.set('tutorial', false); m = 'match'; }
-  if (q.get('campo')) o.campoId = q.get('campo');   // ?campo=pueblo: el campo de un pueblo en vez de El Sadar
+  if (q.get('campo')) o.campoId = q.get('campo');   // ?campo=pueblo: el campo de un pueblo; ?campo=pista: fútbol sala en la pista del pueblo
   if (m === 'match' || m === 'cup') r = await FutbolSystem.startMatch({ ...o, modo: m === 'cup' ? 'eliminatoria' : 'amistoso' });
-  else if (m === 'pen') r = await FutbolSystem.startPenaltis({ dificultad: o.dificultad, autoplay: o.autoplay });
-  else if (m === 'menu') r = await FutbolSystem.openMenu({});
-  else r = await FutbolSystem.startReto({ reto: m });
+  else if (m === 'pen') r = await FutbolSystem.startPenaltis({ campoId: o.campoId, dificultad: o.dificultad, autoplay: o.autoplay });
+  else if (m === 'menu') r = await FutbolSystem.openMenu({ campoId: o.campoId });
+  else r = await FutbolSystem.startReto({ campoId: o.campoId, reto: m });
   $('#out').textContent = JSON.stringify(r, null, 1); window.__result = r;
 }
 document.querySelectorAll('[data-m]').forEach(b => b.onclick = () => go(b.dataset.m));

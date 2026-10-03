@@ -1,7 +1,7 @@
 // Retos de entrenamiento: regate entre conos contra reloj, tiro a las dianas de las escuadras y pases a compañeros que se
 // mueven. Usan la misma lógica del partido en una fase libre (sin árbitro ni reloj del partido).
 import * as THREE from 'three';
-import { FIELD as F, PHYS as K, RETOS } from './rules.js';
+import { FIELD as F, PHYS as K, RETOS, RULES as RU, ROLES } from './rules.js';
 
 const hyp = Math.hypot;
 
@@ -16,7 +16,7 @@ export class Reto {
     g.noRefs = true; g.refs.forEach((r, i) => { r.x = F.HL - 4 - i * 2; r.z = -F.HW - 3; r.vx = r.vz = 0; });   // ni árbitro
   }
   start() {
-    const g = this.g, me = g.byRole(0, 'DCD');
+    const g = this.g, me = g.byRole(0, RU.start);
     g.kickoff(0); g.restart = null; g.setPhase('tuto'); g.owner = null; g.noSwitch = true;
     g.me = me; me.react = 0;
     this.v.hud.say(this.D.name, 2000);
@@ -30,17 +30,19 @@ export class Reto {
   // ---------------------------------------------------------------- conos
   setupConos(me) {
     this.clear([me]);
-    me.x = -16; me.z = 0; me.h = Math.PI / 2; this.g.ball.set(-15.4, 0); this.g.takeBall(me);
+    // (en la pista de sala, los conos más juntos: 6 conos entre −11·k y 11·k)
+    const k = Math.max(RU.scale, 0.6); this.k = k;
+    me.x = -16 * k; me.z = 0; me.h = Math.PI / 2; this.g.ball.set(-16 * k + 0.6, 0); this.g.takeBall(me);
     const cone = new THREE.ConeGeometry(0.22, 0.6, 16), mat = new THREE.MeshStandardMaterial({ color: '#ff7a1a', roughness: 0.6 });
     const gate = new THREE.CircleGeometry(0.32, 20).rotateX(-Math.PI / 2), gm = new THREE.MeshBasicMaterial({ color: '#56c8f0', transparent: true, opacity: 0.75, depthWrite: false });
     this.cones = [];
     for (let i = 0; i < 6; i++) {
-      const x = -11 + i * 4.4, side = i % 2 ? 1 : -1;
+      const x = (-11 + i * 4.4) * k, side = i % 2 ? 1 : -1;
       const c = this.add(new THREE.Mesh(cone, mat)); c.position.set(x, 0.3, 0); c.castShadow = true;
       const m = this.add(new THREE.Mesh(gate, gm)); m.position.set(x, 0.02, side * 1.3);   // por este lado se pasa
       this.cones.push({ x, side, done: false });
     }
-    const fin = this.add(new THREE.Mesh(new THREE.PlaneGeometry(0.3, 8).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#ffd700' }))); fin.position.set(14, 0.02, 0);
+    const fin = this.add(new THREE.Mesh(new THREE.PlaneGeometry(0.3, 8).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#ffd700' }))); fin.position.set(14 * k, 0.02, 0);
     this.pen = 0; this.go = false; this.prevX = this.g.ball.p.x;
     this.v.hud.tip('Zigzag: pasa cada cono por el lado del <b>círculo azul</b> y cruza la línea amarilla');
   }
@@ -55,16 +57,18 @@ export class Reto {
   }
   place(me) {
     // desde la frontal del área (a 17–21 m de la línea de meta)
-    const g = this.g, spots = [[18, 0], [19, -4], [19, 4], [20, -7], [20, 7], [21, 0], [17, -2], [17, 2]], [d, z] = spots[this.n % spots.length];
+    // (en sala, desde 9–12 m: la mitad de lejos y más cerrado)
+    const g = this.g, k = F.areaD ? 0.55 : 1, spots = [[18, 0], [19, -4], [19, 4], [20, -7], [20, 7], [21, 0], [17, -2], [17, 2]], [d0, z0] = spots[this.n % spots.length], d = d0 * k, z = z0 * k;
     me.x = F.HL - d - 0.7; me.z = z; me.h = Math.atan2(F.HL - me.x, -me.z * 0.3); me.vx = me.vz = 0;
     g.owner = null; g.ball.set(F.HL - d, z); g.takeBall(me); this.shot = null;
   }
   // ---------------------------------------------------------------- pases
   setupPases(me) {
-    const g = this.g, mates = [g.byRole(0, 'MCI'), g.byRole(0, 'MI'), g.byRole(0, 'MD')];
+    const g = this.g, mates = ROLES.length > 5 ? [g.byRole(0, 'MCI'), g.byRole(0, 'MI'), g.byRole(0, 'MD')] : g.team(0).filter(p => p.role !== 'POR' && p.role !== RU.start).slice(0, 3);
     this.clear([me, ...mates]);
     me.x = -4; me.z = 0; me.h = Math.PI / 2; g.ball.set(-3.4, 0); g.takeBall(me);
-    this.mates = mates.map((p, i) => { const c = [[5, -7], [13, 3], [3, 9]][i]; p.x = c[0]; p.z = c[1]; return { p, cx: c[0], cz: c[1], a: i * 2, r: 3 + i, w: 0.5 + i * 0.12 }; });
+    const k = F.areaD ? 0.62 : 1;
+    this.mates = mates.map((p, i) => { const c = [[5, -7], [13, 3], [3, 9]][i].map(v => v * k); p.x = c[0]; p.z = c[1]; return { p, cx: c[0], cz: c[1], a: i * 2, r: (3 + i) * k, w: 0.5 + i * 0.12 }; });
     this.n = 0; this.back = 0;
     this.v.hud.tip('Pasa al hueco: apunta a un compañero y suelta <b>PASE</b>. Te la devuelven');
   }
@@ -82,7 +86,7 @@ export class Reto {
         if (!ok) { this.pen += 2; this.v.hud.say('Cono saltado: +2 s', 1200); } else this.v.audio.touch();
       }
       this.prevX = B.x;
-      if (B.x >= 14 && g.owner === me) this.finish(this.time() <= this.D.target, `${this.time().toFixed(1)} s`, [['', 'Tiempo', this.time().toFixed(1) + ' s'], ['', 'Penalización', this.pen + ' s'], ['', 'Objetivo', this.D.target + ' s']], 'conos', this.time());
+      if (B.x >= 14 * this.k && g.owner === me) this.finish(this.time() <= this.D.target, `${this.time().toFixed(1)} s`, [['', 'Tiempo', this.time().toFixed(1) + ' s'], ['', 'Penalización', this.pen + ' s'], ['', 'Objetivo', this.D.target + ' s']], 'conos', this.time());
     } else if (this.id === 'dianas') {
       if (!this.shot && g.lastKick?.kind === 'shot' && g.lastKick.t > (this.kickT || -1)) { this.shot = { t: 0 }; this.kickT = g.lastKick.t; }
       if (this.shot) {
@@ -125,7 +129,7 @@ export class Reto {
   }
   cam(pos, look, fov) {
     const g = this.g, B = g.ball.p;
-    if (this.id === 'dianas') return { pos: new THREE.Vector3(F.HL - 27, 4.8, B.z * 0.4 + 0.01), look: new THREE.Vector3(F.HL, 1.3, 0), fov: 36 };
+    if (this.id === 'dianas') { const k = F.areaD ? 0.55 : 1; return { pos: new THREE.Vector3(F.HL - 27 * k, 4.8 * Math.max(k, 0.7), B.z * 0.4 + 0.01), look: new THREE.Vector3(F.HL, 1.3, 0), fov: 36 }; }
     return { pos, look, fov };
   }
   dispose() { for (const o of this.objs) { this.v.scene?.remove(o); o.geometry?.dispose(); o.material?.dispose?.(); } }

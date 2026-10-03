@@ -10,9 +10,12 @@
 // Devuelve la escena y unas pocas funciones para animarla.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { FIELD as F, VENUES } from './rules.js';
+//   · La pista del pueblo (fútbol sala): pista exterior de 40 × 20 m de color verde con la zona de seguridad de otro
+//     color, líneas de 8 cm (área en D, punto de penalti y segundo punto), porterías de 3 × 2 m y el muro de piedra.
+import { FIELD as F, VENUES, onFormat } from './rules.js';
 
-const GW = F.L + 2 * F.margin, GH = F.W + 2 * F.margin;   // suelo de hierba: el campo y su margen hasta las vallas
+let GW, GH, STRIPE;   // suelo: el campo y su margen hasta las vallas; franjas de corte (veinte de portería a portería)
+onFormat(() => { GW = F.L + 2 * F.margin; GH = F.W + 2 * F.margin; STRIPE = F.L / 20; });
 // color de vértice: el de la paleta (sRGB) pasado al espacio lineal en que trabaja el sombreador
 const lin = (hex) => new THREE.Color(hex).toArray();
 function mulberry(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -27,7 +30,6 @@ function canvasTex(w, h, draw, { repeat = false, alpha = false } = {}) {
 // ---------------------------------------------------------------- césped
 // una baldosa de dos franjas de corte (5,25 m cada una: veinte franjas de portería a portería) con el grano de la hierba;
 // se repite por todo el suelo
-const STRIPE = F.L / 20;
 function grassTexture(V, px) {
   const t = canvasTex(px, px, (g, W, H) => {
     const [g1, g2] = V.grass;
@@ -44,11 +46,27 @@ function grassTexture(V, px) {
   t.offset.x = -(((GW / 2) / (2 * STRIPE)) % 1);
   return t;
 }
+// pista polideportiva: la pista de juego de un color y la zona de seguridad de otro, con un poco de grano (resina)
+function courtTexture(V, px) {
+  const W = px, H = Math.round(px * GH / GW);
+  return canvasTex(W, H, (g) => {
+    g.fillStyle = V.courtOut; g.fillRect(0, 0, W, H);
+    const x0 = F.margin / GW * W, z0 = F.margin / GH * H;
+    g.fillStyle = V.court; g.fillRect(x0, z0, W - 2 * x0, H - 2 * z0);
+    const rnd = mulberry(5), n = W * H / 2;
+    for (let i = 0; i < n; i++) { const l = rnd(); g.fillStyle = l < 0.5 ? `rgba(0,0,0,${0.03 + rnd() * 0.05})` : `rgba(255,255,255,${0.02 + rnd() * 0.04})`; g.fillRect(rnd() * W, rnd() * H, 1, 1); }
+    // marcas de uso: más gastado delante de las porterías y en el centro
+    for (const [cx, r] of [[0.5, 0.08], [F.margin / GW + 0.04, 0.07], [1 - F.margin / GW - 0.04, 0.07]]) {
+      const gr = g.createRadialGradient(cx * W, H / 2, 0, cx * W, H / 2, r * W); gr.addColorStop(0, 'rgba(255,255,255,0.07)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    }
+  });
+}
 // manchas suaves de desgaste (áreas de meta, punto de penalti y centro) y un poco de variación de color, por vértice
 function pitchGeometry() {
   const g = new THREE.PlaneGeometry(GW, GH, 92, 64); g.rotateX(-Math.PI / 2);
   const P = g.attributes.position, col = new Float32Array(P.count * 3), rnd = mulberry(17);
-  const wear = [[0, 0, 7, 0.06], ...[-1, 1].flatMap(s => [[s * (F.HL - 3), 0, 5, 0.12], [s * (F.HL - F.spot), 0, 2.5, 0.08], [s * (F.HL - 14), 0, 9, 0.04]])];
+  const k = F.L / 105, wear = [[0, 0, 7 * k, 0.06], ...[-1, 1].flatMap(s => [[s * (F.HL - 3 * k), 0, 5 * k, 0.12], [s * (F.HL - F.spot), 0, 2.5 * k, 0.08], [s * (F.HL - 14 * k), 0, 9 * k, 0.04]])];
   for (let i = 0; i < P.count; i++) {
     const x = P.getX(i), z = P.getZ(i);
     let k = 1 + (rnd() - 0.5) * 0.05, y = 0;
@@ -84,8 +102,25 @@ function linesGeometry() {
   seg(-HL, -HW, -HL, HW); seg(HL, -HW, HL, HW);                     // líneas de meta
   seg(0, -HW, 0, HW);                                               // medio campo
   arc(0, 0, F.circle, 0, Math.PI * 2, 72); dot(0, 0, 0.12);
-  const aw = F.areaW / 2, bw = F.boxW / 2, c = Math.acos((F.area - F.spot) / F.arc);
-  for (const s of [-1, 1]) {
+  if (F.areaD) {
+    // fútbol sala: área en D (cuartos de círculo de 6 m con centro en cada poste y la recta que los une), punto de
+    // penalti a 6 m, segundo punto a 10 m (con sus marcas a 5 m a los lados) y córners de 25 cm
+    const pw = F.goalW / 2;
+    for (const s of [-1, 1]) {
+      const gx = s * HL, ax = s * (HL - F.area);
+      if (s > 0) { arc(gx, pw, F.area, Math.PI / 2, Math.PI, 24); arc(gx, -pw, F.area, Math.PI, 1.5 * Math.PI, 24); }
+      else { arc(gx, pw, F.area, 0, Math.PI / 2, 24); arc(gx, -pw, F.area, -Math.PI / 2, 0, 24); }
+      seg(ax, -pw, ax, pw);
+      dot(s * (HL - F.spot), 0, 0.1); dot(s * (HL - F.spot2), 0, 0.1);
+      for (const sz of [-1, 1]) seg(s * (HL - F.spot2), sz * 5 - 0.2, s * (HL - F.spot2), sz * 5 + 0.2);
+      for (const sz of [-1, 1]) {
+        const am = Math.atan2(-sz, -s); arc(gx, sz * HW, F.corner, am - Math.PI / 4, am + Math.PI / 4, 6);
+        seg(gx + s * 0.1, sz * (HW - F.wall), gx + s * 0.4, sz * (HW - F.wall));
+      }
+    }
+  }
+  const aw = F.areaW / 2, bw = F.boxW / 2, c = F.areaD ? 0 : Math.acos((F.area - F.spot) / F.arc);
+  for (const s of F.areaD ? [] : [-1, 1]) {
     const gx = s * HL, ax = s * (HL - F.area), bx = s * (HL - F.box);
     seg(ax, -aw - e, ax, aw + e); seg(gx, -aw, ax, -aw); seg(gx, aw, ax, aw);   // área de penalti
     seg(bx, -bw - e, bx, bw + e); seg(gx, -bw, bx, -bw); seg(gx, bw, bx, bw);   // área de meta
@@ -287,8 +322,8 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
   const shade = (m) => stadium ? roofShade(m, U) : m;
 
   // suelo: el campo con su margen hasta las vallas y alrededor
-  const gt = own(grassTexture(V, low ? 256 : 512));
-  add(pitchGeometry(), own(shade(new THREE.MeshStandardMaterial({ map: gt, vertexColors: true, roughness: 0.95, metalness: 0 }))), { receive: true });
+  const court = V.surface === 'pista', gt = own(court ? courtTexture(V, low ? 512 : 1024) : grassTexture(V, low ? 256 : 512));
+  add(pitchGeometry(), own(shade(new THREE.MeshStandardMaterial({ map: gt, vertexColors: true, roughness: court ? 0.8 : 0.95, metalness: 0 }))), { receive: true });
   add(linesGeometry(), own(shade(new THREE.MeshStandardMaterial({ color: '#f4f6f2', roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }))), { receive: true });
   const apron = add(new THREE.PlaneGeometry(900, 900).rotateX(-Math.PI / 2), own(new THREE.MeshStandardMaterial({ color: stadium ? '#767a74' : '#6f8a4a', roughness: 1 })), { receive: true });
   apron.position.y = -0.03; apron.updateMatrix();
@@ -504,11 +539,13 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
     }
     add(mergeGeometries(wallG), stoneMat, { receive: true }); wallG.forEach(g => g.dispose());
     // graderío: escalones de piedra con bancos de madera y público
-    const steps = [], len = 40;
+    // (en la pista de sala, el graderío en la banda de enfrente: la cámara de televisión mira por encima de la banda
+    // cercana sin público delante)
+    const steps = [], len = Math.min(40, F.L), side = F.areaD ? -1 : 1;
     for (let k = 0; k < 7; k++) {
-      const d = bz + 1.4 + k * 0.8 + 0.4, y = 0.2 + (k + 1) * 0.42;
+      const d = side * (bz + 1.4 + k * 0.8 + 0.4), y = 0.2 + (k + 1) * 0.42;
       steps.push(new THREE.BoxGeometry(len, y, 0.8).translate(0, y / 2, d));
-      for (let x = -len / 2 + 0.35; x < len / 2 - 0.2; x += 0.55) seats.push([x, y, d - 0.1, Math.PI, k]);
+      for (let x = -len / 2 + 0.35; x < len / 2 - 0.2; x += 0.55) seats.push([x, y, d - side * 0.1, side > 0 ? Math.PI : 0, k]);
     }
     add(mergeGeometries(steps), stoneMat, { receive: true }); steps.forEach(g => g.dispose());
     const rnd = mulberry(29);
@@ -520,7 +557,7 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
       crowns.push(new THREE.IcosahedronGeometry(1.8 + rnd3() * 1.4, 1).translate(x, h + 1.2, z));
     }
     for (let i = 0; i < 12; i++) {
-      const x = -bx + 6 + i * (2 * bx - 12) / 11 + rnd3() * 3, z = -bz - 16 - rnd3() * 6, w = 7 + rnd3() * 3, h = 6 + rnd3() * 4;
+      const x = -bx + 6 + i * (2 * bx - 12) / 11 + rnd3() * 3, z = -bz - (F.areaD ? 20 : 16) - rnd3() * 6, w = 7 + rnd3() * 3, h = 6 + rnd3() * 4;
       houses.push(new THREE.BoxGeometry(w, h, 7).translate(x, h / 2, z));
       const r = new THREE.ConeGeometry(w * 0.75, 2.4, 4); r.rotateY(Math.PI / 4); r.translate(x, h + 1.2, z); roofsH.push(r);
     }

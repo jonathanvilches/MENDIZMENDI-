@@ -56,6 +56,9 @@ const CSS = `
 .fb-tip i{flex:none;width:20px;height:20px;border-radius:50%;background:#ffd84a;color:#2a1a00;font:900 13px/20px Nunito,sans-serif;font-style:normal;text-align:center}
 .fb-tip.mini{padding:3px;border-radius:50%;background:rgba(36,14,80,.6)}.fb-tip.mini span{display:none}
 .fb-keys{position:absolute;left:calc(env(safe-area-inset-left,0px) + 12px);bottom:calc(env(safe-area-inset-bottom,0px) + 10px);font-size:12px;font-weight:800;padding:5px 10px;border-radius:10px;background:rgba(16,10,30,.6);max-width:calc(100vw - 24px)}
+.fb-fouls{display:none;align-self:center;gap:6px;align-items:center;margin-top:3px;padding:2px 8px;border-radius:9px;background:rgba(14,10,30,.72);font:900 9px Nunito,sans-serif;letter-spacing:.08em;color:#cbbcf0}
+.fb-fouls.show{display:flex}.fb-fouls span{display:flex;gap:2px}.fb-fouls u{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.22);text-decoration:none}
+.fb-fouls u.on{background:#ffd84a}.fb-fouls u.x{background:#ff4a4a}
 .fb-panel{position:absolute;inset:0;display:grid;place-items:center;background:rgba(10,4,24,.62);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);pointer-events:auto;padding:calc(env(safe-area-inset-top,0px) + 12px) 12px calc(env(safe-area-inset-bottom,0px) + 12px)}
 .fb-card{width:min(540px,100%);max-height:100%;overflow:auto;background:linear-gradient(180deg,#32136f,#1c0b3a);border:1px solid rgba(190,160,255,.3);border-radius:22px;padding:20px 20px 16px;box-shadow:0 24px 70px rgba(0,0,0,.55);text-align:center}
 .fb-card h2{margin:0 0 4px;font-family:'Lilita One',Nunito,sans-serif;font-weight:400;font-size:30px;line-height:1.1}
@@ -116,7 +119,7 @@ export class FutbolHud {
     r.innerHTML = `<div class="fb-top"><div class="fb-score"><div class="fb-team"><i style="background:${o.home.shirt}"></i><span class="fb-ln">${esc(o.home.name)}</span><span class="fb-sn">${esc(o.home.short || o.home.name)}</span><b class="fb-s0">0</b></div>
       <div class="fb-clock"><span class="fb-time">0:00</span><small class="fb-half">1ª parte</small></div>
       <div class="fb-team"><b class="fb-s1">0</b><span class="fb-ln">${esc(o.away.name)}</span><span class="fb-sn">${esc(o.away.short || o.away.name)}</span><i style="background:${o.away.shirt}"></i></div></div>
-      <div class="fb-pen"><span>${esc(o.home.short || o.home.name)}</span><span class="fb-p0"></span><span>${esc(o.away.short || o.away.name)}</span><span class="fb-p1"></span></div>
+      <div class="fb-fouls"></div><div class="fb-pen"><span>${esc(o.home.short || o.home.name)}</span><span class="fb-p0"></span><span>${esc(o.away.short || o.away.name)}</span><span class="fb-p1"></span></div>
       <div class="fb-say"></div><div class="fb-tip"><i>?</i><span></span></div></div>
       <button class="fb-pause" aria-label="Pausa">${SVG_PAUSE}</button><button class="fb-cam" aria-label="Cambiar cámara">${SVG_CAM}</button>
       <div class="fb-msg"><h2></h2><p></p></div><div class="fb-arrow"></div>
@@ -152,6 +155,12 @@ export class FutbolHud {
     }
   }
   setScore(a, b) { this.el.s0.textContent = a; this.el.s1.textContent = b; }
+  // faltas acumuladas de la parte (fútbol sala): un punto por falta; desde la 6.ª, en rojo
+  setFouls(a, b, lim = 5) {
+    const el = this.root.querySelector('.fb-fouls'); if (!el) return;
+    const dots = (n) => Array.from({ length: Math.max(lim, n) }, (_, i) => `<u class="${i < n ? (i >= lim ? 'x' : 'on') : ''}"></u>`).join('');
+    el.innerHTML = `<span>${dots(a)}</span><b>FALTAS</b><span>${dots(b)}</span>`; el.classList.add('show');
+  }
   setClock(sec, half, label) { const s = Math.max(0, Math.ceil(sec)); this.el.time.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; this.el.half.textContent = label || (half === 1 ? '1ª parte' : '2ª parte'); }
   setDefending(def) {
     if (this.def === def || !this.el.pass) return; this.def = def;

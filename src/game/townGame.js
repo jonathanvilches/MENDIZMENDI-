@@ -48,6 +48,7 @@ import { foodFrom } from '../data/equipo.js';
 import { PROCESOS, TRADICIONES } from '../data/procesos.js';
 import { bird } from '../actors/beasts.js';
 import { Fronton, findFrontonSpot, frontonWall } from './fronton.js';
+import { Pista, findPistaSpot } from './pista.js';
 import { makeClue, makeAura } from './legendFx.js';
 import { Chase } from './chase.js';
 import { FloraSpots } from './floraSpots.js';
@@ -319,6 +320,20 @@ export class TownGame {
     }
     // El Sadar: la entrenadora de la cantera de Osasuna espera junto al túnel para jugar un partido
     const sadar = TOWN.landmarks.find(l => l.kind === 'stadium');
+    // pista polideportiva del pueblo (fútbol sala), si hay sitio llano cerca de la plaza; el entrenador del club espera
+    // en la entrada (en Pamplona se juega en El Sadar)
+    if (!sadar && !/nopista/.test(location.search)) try {
+      const sp = findPistaSpot(PLACES.plaza);
+      if (sp) {
+        this.pista = new Pista(this.scene, sp);
+        const e = this.pista.entry, c = this.pista.center, R = this.rnd, female = R() < 0.5;
+        const name = female ? ['Ane', 'Maite', 'Nerea', 'Leire', 'Amaia'][Math.floor(R() * 5)] : ['Jon', 'Xabier', 'Ander', 'Iker', 'Koldo'][Math.floor(R() * 5)];
+        const s2 = this.spot({ x: e.x, z: e.z }, 2.5);
+        this.futsalCoach = new Actor({ id: 'futsal', name: `${name}, ${female ? 'entrenadora' : 'entrenador'} del club`, x: s2.x, z: s2.z, heading: Math.atan2(c.x - s2.x, c.z - s2.z),
+          look: { shirt: '#2f6fd0', pants: '#1d2a4a', shoes: '#f4f4f2', hair: HAIRS[Math.floor(R() * HAIRS.length)], skin: SKINS[Math.floor(R() * SKINS.length)], female, ponytail: female } }, this.scene);
+        this.actors.push(this.futsalCoach);
+      }
+    } catch (e) { console.warn('pista', e); }
     if (sadar) {
       const x = sadar.x - 20, z = sadar.z + 6;
       this.coach = new Actor({ id: 'coach', name: 'Leire, entrenadora de Osasuna', x, z, heading: Math.PI / 2,
@@ -554,7 +569,7 @@ export class TownGame {
   // ---------- Interacción ----------
   interactables() {
     const list = [];
-    for (const a of this.actors) if (a.visible !== false) list.push({ kind: 'npc', a, x: a.pos.x, z: a.pos.z, r: 3, label: a.market ? `Puesto del mercado: ${a.market.toLowerCase()}` : a === this.pelotari ? `Jugar a pelota con ${a.name}` : a === this.coach ? 'Jugar un partido en El Sadar' : a.sabio ? `${a.name}: la historia de ${a.sabio.name}` : `Hablar con ${a.name}` });
+    for (const a of this.actors) if (a.visible !== false) list.push({ kind: 'npc', a, x: a.pos.x, z: a.pos.z, r: 3, label: a.market ? `Puesto del mercado: ${a.market.toLowerCase()}` : a === this.pelotari ? `Jugar a pelota con ${a.name}` : a === this.coach ? 'Jugar un partido en El Sadar' : a === this.futsalCoach ? 'Jugar a fútbol sala en la pista' : a.sabio ? `${a.name}: la historia de ${a.sabio.name}` : `Hablar con ${a.name}` });
     for (const a of this.walkers) list.push({ kind: 'walker', a, x: a.pos.x, z: a.pos.z, r: a.info || a.jobs ? 3 : 2.4, label: a.stall ? 'Productos del pueblo' : a.jobs ? `Ayudar a ${a.name.toLowerCase()} (txanponak)` : a.info ? `Hablar con ${a.name.toLowerCase() === 'pastor' ? 'el pastor' : 'la ganadera'}` : `Saludar a ${a.name}` });
     for (const o of this.agro?.list || []) list.push({ kind: 'agro', o, x: o.x, z: o.z, r: o.kind === 'combine' ? 6 : 4.5, label: `Mirar: ${o.info.title.toLowerCase()}` });
     for (const it of this.items) list.push({ kind: 'item', it, x: it.x, z: it.z, r: 2.2, label: it.label });
@@ -607,6 +622,7 @@ export class TownGame {
     this.sound.ui('click');
     if (it.kind === 'npc' && it.a === this.pelotari) return this.freePelota();
     if (it.kind === 'npc' && it.a === this.coach) return this.playFutbol();
+    if (it.kind === 'npc' && it.a === this.futsalCoach) return this.playFutsal();
     if (it.kind === 'shop' || (it.kind === 'npc' && it.a.shop)) return this.tienda.open();
     if (it.kind === 'npc') return this.talk(it.a);
     if (it.kind === 'fronton') {
@@ -646,6 +662,44 @@ export class TownGame {
     if (r.win) { best.futbol = (best.futbol || 0) + 1; saveProfile(); }
     await this.say(a, [r.win ? `¡${r.you} a ${r.cpu}! Juegas como un rojillo de verdad.` : r.you === r.cpu ? `${r.you} a ${r.cpu}. ¡Empate! Muy buen partido.` : `${r.you} a ${r.cpu}. ¡Casi! Vuelve cuando quieras para la revancha.`]);
   }
+  // Fútbol sala en la pista del pueblo con el entrenador del club. La primera vez es una pequeña misión: conocer la
+  // pista → entrenamiento de pases → partido contra el equipo de los vecinos → sello de fútbol sala en el pasaporte.
+  // Después, juego libre con el menú (partido, penaltis o un reto).
+  async playFutsal() {
+    const a = this.futsalCoach; if (!a || this.mode !== 'play') return;
+    const st = (townState(profile(), this.def.id).futsal ||= { step: 0, tries: 0, sello: false });
+    const town = this.def.name.split(' /')[0], local = { name: town, short: town.normalize('NFD').replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase() };
+    const fut = new Futbol(this, null, { campo: 'pista', title: `Pista de ${town}`, sub: 'Fútbol sala 5 contra 5', local });
+    this.player.frozen = true;
+    try {
+      if (st.step === 0) {
+        await this.say(a, [`¡Kaixo! Esta es la pista de ${town}: aquí jugamos a fútbol sala, cinco contra cinco, con porteros y dos árbitros.`,
+          'La pista mide 40 por 20 metros, el balón bota poco y no hay fuera de juego. El saque de banda es con el pie y tienes 4 segundos para sacar.',
+          'Primero un entrenamiento de pases y luego un partido contra el equipo de los vecinos. Si les ganas, te pongo el sello de fútbol sala en el pasaporte.']);
+        st.step = 1; saveProfile();
+      } else if (st.step === 1) await this.say(a, ['¿Otra vez el entrenamiento de pases? Apunta al compañero y suelta PASE.']);
+      else if (st.step === 2) await this.say(a, ['¡El partido contra los vecinos! Dos partes de dos minutos. ¡Aupa!']);
+      else await this.say(a, ['¿Echamos otro? La pista es vuestra.']);
+    } finally { this.player.frozen = false; a.talking = 0; }
+    if (st.step === 1) {
+      const r = await fut.reto('pases'); if (r.quit) return;
+      st.tries = (st.tries || 0) + 1;
+      if (r.win || st.tries >= 2) { st.step = 2; saveProfile(); await this.say(a, [r.win ? '¡Muy buenos pases! Ya estás listo para el partido contra los vecinos. Habla conmigo cuando quieras jugarlo.' : 'Te ha costado, pero ya tienes el toque. Habla conmigo para jugar el partido contra los vecinos.']); }
+      else { saveProfile(); await this.say(a, ['¡Casi! Vuelve a hablar conmigo para repetir el entrenamiento.']); }
+      return;
+    }
+    if (st.step === 2) {
+      const r = await fut.match('vecinos', 'normal', 2); if (r.quit) return;
+      if (r.win) {
+        st.step = 3; st.sello = true; addXP(60); saveProfile();
+        await this.say(a, [`¡${r.you} a ${r.cpu}! Has ganado a los vecinos. Toma: el sello de fútbol sala de ${town} para tu pasaporte.`, 'Desde ahora la pista es tuya: partido, penaltis o un reto, cuando quieras.']);
+        this.ui.toast?.(`Sello de fútbol sala de ${town}`, 'balon', 2600);
+      } else await this.say(a, [r.you === r.cpu ? `${r.you} a ${r.cpu}. ¡Empate! Para el sello hay que ganar: ¿la revancha?` : `${r.you} a ${r.cpu}. ¡Casi! Habla conmigo para la revancha.`]);
+      return;
+    }
+    const r = await fut.run(); if (r.quit) return;
+    await this.say(a, [r.win ? `¡${r.you} a ${r.cpu}! ¡Qué partidazo!` : r.you === r.cpu ? `${r.you} a ${r.cpu}. Empate.` : `${r.you} a ${r.cpu}. La próxima, seguro.`]);
+  }
   // Partido libre en el frontón del pueblo (fuera de las misiones): contra el pelotari o el anfitrión de la misión
   async freePelota() {
     const a = this.pelotari || this.missions.find(M => M.type === 'pelota')?.host;
@@ -672,6 +726,7 @@ export class TownGame {
     if (!a.mission) {
       if (a === this.pelotari) return this.freePelota();
       if (a === this.coach) return this.playFutbol();
+      if (a === this.futsalCoach) return this.playFutsal();
       if (a.shop) return this.tienda.open();
       a.say?.(2); return this.say(a, [`¡Kaixo! Soy ${a.name}. ¡Que disfrutes de ${this.def.name.split(' /')[0]}!`]);
     }
