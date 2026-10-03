@@ -400,7 +400,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 /* ================= Móvil ================= */
 /* pantallas no muy altas: las secciones secundarias pasan a «Más» */
 @media (max-height: 700px) and (min-width: 761px) {
-  .hub-nav .sec { display: none; } .hub-nav .more-btn { display: flex; }
+  .hub-nav .nav2 { display: none; } .hub-nav .more-btn { display: flex; }
 }
 /* teléfono en vertical */
 @media (max-width: 760px) {
@@ -410,7 +410,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   .chip { padding: 3px 10px 3px 3px; gap: 8px; } .chip img { width: 38px; height: 38px; } .chip .xp { width: 64px; } .chip small { display: none; } .chip b { font-size: 14px; max-width: 90px; }
   .chip .stamps { padding-left: 8px; }
   .hub-nav { grid-row: 3; flex-direction: row; justify-content: space-around; gap: 0; overflow: visible; padding: 4px 4px calc(env(safe-area-inset-bottom, 0px) + 4px); border-right: 0; border-top: 1px solid var(--line); background: rgba(10, 8, 16, .92); }
-  .hub-nav .sec { display: none; } .hub-nav .more-btn { display: flex; }
+  .hub-nav .nav2 { display: none; } .hub-nav .more-btn { display: flex; }
   .hub-nav button { flex: 1; font-size: 10.5px; padding: 7px 0 5px; min-width: 0; }
   .hub-nav button.on { background: none; }
   .hub-nav button.on::before { left: 28%; right: 28%; top: -4px; bottom: auto; width: auto; height: 3px; }
@@ -467,7 +467,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   .brand { font-size: 22px; }
   .chip { padding: 2px 10px 2px 2px; } .chip img { width: 36px; height: 36px; } .chip small { display: none; } .chip .xp { width: 70px; }
   .hub-nav { padding: 6px 4px 6px calc(env(safe-area-inset-left, 0px) + 4px); gap: 0; justify-content: space-evenly; overflow: hidden; }
-  .hub-nav .sec { display: none; } .hub-nav .more-btn { display: flex; }
+  .hub-nav .nav2 { display: none; } .hub-nav .more-btn { display: flex; }
   .hub-nav button { padding: 5px 0 4px; font-size: 9.5px; gap: 2px; } .hub-nav button svg { width: 24px; height: 24px; }
   .hub-nav button.on::before { left: -4px; top: 8px; bottom: 8px; }
   .hub-main { padding: 12px calc(env(safe-area-inset-right, 0px) + 16px) 24px 16px; }
@@ -866,3 +866,17 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .enc-live.on { display: flex; }
 .enc-live i { width: 10px; height: 10px; border-radius: 50%; background: #ff2a2a; box-shadow: 0 0 8px #ff2a2a; animation: encLive 1s steps(2) infinite; }
 @keyframes encLive { 50% { opacity: .25; } }
+
+/* primera pantalla: elegir idioma */
+.langpick { display: grid; place-items: center; }
+.lp-in { width: min(560px, calc(100vw - 32px)); text-align: center; padding: 24px 0; }
+.lp-in .logo { font-size: clamp(34px, 8vw, 56px); }
+.lp-in h2 { margin: 14px 0 22px; font-size: clamp(20px, 4.6vw, 28px); font-weight: 900; }
+.lp-in h2 span { color: var(--mute); font-weight: 800; }
+.lp-opts { display: grid; gap: 12px; }
+.lp-opts button { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; width: 100%; padding: 18px 22px; border-radius: 18px; border: 2px solid var(--line2); background: rgba(255, 255, 255, .08); color: #fff; text-align: left; cursor: pointer; font-family: 'Nunito', sans-serif; transition: transform .15s, background .15s, border-color .15s; }
+.lp-opts button b { font-size: 22px; font-weight: 900; }
+.lp-opts button small { font-size: 14px; font-weight: 700; color: var(--mute); }
+.lp-opts button:hover, .lp-opts button:focus-visible { transform: translateY(-2px); border-color: #FFD700; background: rgba(255, 215, 0, .12); }
+.lp-opts button.learn { border-color: rgba(255, 215, 0, .55); }
+.lp-note { margin-top: 18px; color: var(--mute); font-size: 13px; font-weight: 700; }
