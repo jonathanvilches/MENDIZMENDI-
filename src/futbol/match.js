@@ -90,6 +90,11 @@ export class FutbolMatch {
     this.blobTex = new THREE.CanvasTexture(bs);
     const blobMat = new THREE.MeshBasicMaterial({ map: this.blobTex, transparent: true, depthWrite: false });
     this.ballShadow = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.5), blobMat); this.ballShadow.rotation.x = -Math.PI / 2; this.scene.add(this.ballShadow);
+    // estela del balón en los pases y tiros: unos puntos blancos que se apagan detrás de él (para seguirlo con la vista)
+    const ds = document.createElement('canvas'); ds.width = ds.height = 32; const dg = ds.getContext('2d'), dgr = dg.createRadialGradient(16, 16, 0, 16, 16, 15);
+    dgr.addColorStop(0, 'rgba(255,255,255,1)'); dgr.addColorStop(0.5, 'rgba(255,255,255,.55)'); dgr.addColorStop(1, 'rgba(255,255,255,0)'); dg.fillStyle = dgr; dg.fillRect(0, 0, 32, 32);
+    this.trailTex = new THREE.CanvasTexture(ds); this.trailHist = [];
+    this.trail = Array.from({ length: 7 }, () => { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.trailTex, transparent: true, depthWrite: false, opacity: 0 })); sp.visible = false; this.scene.add(sp); return sp; });
     // en calidad baja, sin sombras de verdad: una mancha bajo cada jugador
     if (o.quality === 'low') for (const ch of [...this.chars, ...this.refChars]) { const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), blobMat); m.rotation.x = -Math.PI / 2; m.position.y = 0.015; ch.outer.add(m); }
     // anillo amarillo (con una flecha hacia donde mira) bajo el jugador que controlas
@@ -449,11 +454,20 @@ export class FutbolMatch {
     // balón: rodando con giro coherente con la velocidad; en las manos del portero, con él
     const bp = B.p, bm = this.ball;
     const al = g.alpha ?? 1, P0 = B.prev, ibx = P0.x + (bp.x - P0.x) * al, iby = P0.y + (bp.y - P0.y) * al, ibz = P0.z + (bp.z - P0.z) * al;
-    bm.position.set(ibx, iby + (K.scale - 1) * R, ibz);
+    // de lejos el balón se dibuja algo más grande (hasta el doble), para que no se pierda en la pantalla del móvil
+    const camD = this.camera.position.distanceTo(bm.position), big = clamp(camD / 24, 1, 2);
+    bm.scale.setScalar(big); bm.position.set(ibx, iby + (K.scale * big - 1) * R, ibz);
     const hs = Math.hypot(B.v.x, B.v.z);
+    const last = this.trailHist[0]; if (last && Math.hypot(last[0] - ibx, last[2] - ibz) > 3) this.trailHist.length = 0;   // (saque: el balón se ha colocado en otro sitio)
+    this.trailHist.unshift([ibx, iby + (K.scale * big - 1) * R, ibz]); if (this.trailHist.length > 14) this.trailHist.length = 14;
+    const showTrail = !B.held && !g.owner && B.speed > 7 && !this.replay;
+    this.trail.forEach((sp, i) => {
+      const h = this.trailHist[(i + 1) * 2]; sp.visible = showTrail && !!h; if (!sp.visible) return;
+      sp.position.set(h[0], h[1], h[2]); const k = 1 - (i + 1) / (this.trail.length + 1); sp.scale.setScalar(R * K.scale * big * 2.4 * (0.5 + 0.5 * k)); sp.material.opacity = 0.55 * k * clamp((B.speed - 7) / 5, 0, 1);
+    });
     if (hs > 0.05 && !B.held && dt > 0) { const ax = new THREE.Vector3(B.v.z, 0, -B.v.x).normalize(); bm.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(ax, hs / (R * K.scale) * dt)); }
     this.field.follow?.(bp.x, bp.z);
-    const sh = clamp(1 - bp.y / 5, 0.25, 1); this.ballShadow.position.set(bp.x, 0.012, bp.z); this.ballShadow.scale.setScalar(0.7 + (1 - sh) * 0.8); this.ballShadow.material.opacity = sh;
+    const sh = clamp(1 - bp.y / 5, 0.25, 1); this.ballShadow.position.set(bp.x, 0.012, bp.z); this.ballShadow.scale.setScalar((0.7 + (1 - sh) * 0.8) * big); this.ballShadow.material.opacity = sh;
     // anillo del jugador y aro del pase
     const me = g.me, showRing = !g.autoplay && g.mode !== 'penalties' || (g.mode === 'penalties' && g.pen?.human === 'shooter');
     this.ring.visible = showRing && !this.replay && !(this.intro > 0); this.ring.position.set(me.x, 0.03, me.z); this.ring.rotation.y = me.h;
@@ -596,7 +610,7 @@ export class FutbolMatch {
     for (const ch of [...(this.chars || []), ...(this.refChars || [])]) { try { ch.c.dispose?.(); } catch (e) { } }
     for (const m of this.roofMats || []) m.dispose();
     this.reto?.dispose?.(); this.confetti?.dispose(); removeEventListener('pointerdown', this.onTap);
-    this.ball?.geometry.dispose(); this.ball?.material.dispose(); this.ballTex?.dispose(); this.blobTex?.dispose();
+    this.ball?.geometry.dispose(); this.ball?.material.dispose(); this.ballTex?.dispose(); this.blobTex?.dispose(); this.trailTex?.dispose(); this.trail?.forEach(sp => sp.material.dispose());
     this.ballShadow?.geometry.dispose(); this.ballShadow?.material.dispose();
     this.ring?.traverse(o => { if (o.isMesh) { o.geometry.dispose(); o.material.dispose(); } }); this.mark?.geometry.dispose(); this.mark?.material.dispose();
     this.field?.dispose(); this.hud?.dispose(); this.audio?.dispose();
