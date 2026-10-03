@@ -141,10 +141,16 @@ export function applyOutfit(root, kk, outfitId) {
   root.updateMatrixWorld(true);
   const bone = (n) => { const n2 = n.replace(/\./g, ''); let b = null; root.traverse(o => { if (o.isBone && (o.name === n || o.name === n2)) b = o; }); return b; };   // el cargador quita los puntos («foot.l» → «footl»)
   const box = (list) => { const b = new THREE.Box3(), t = new THREE.Box3(); list.forEach(m => { m.geometry.computeBoundingBox(); t.copy(m.geometry.boundingBox).applyMatrix4(m.matrixWorld); b.union(t); }); return b; };
-  const added = [], mat = (c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.85 });
-  const hb = box(head), bb = box(body), sz = hb.getSize(new THREE.Vector3()), bs = bb.getSize(new THREE.Vector3()), hc = hb.getCenter(new THREE.Vector3()), bc = bb.getCenter(new THREE.Vector3());
+  return garments(root, O, { hasHead: head.length > 0, hasBody: body.length > 0, hb: box(head), bb: box(body), lb: box(legs), bone });
+}
+// Prendas y complementos (boina, faja, falda, gorros de carnaval, cencerros, pieles, melenas…) colgados de los huesos.
+// G: cajas de la cabeza (hb), el tronco (bb) y las piernas (lb) en reposo y bone(nombre) → hueso. Vale para los dos
+// esqueletos: el de KayKit y el de los personajes de Meshy (dressMeshy).
+function garments(root, O, G) {
+  const bone = G.bone, added = [], mat = (c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.85 });
+  const hb = G.hb, bb = G.bb, sz = hb.getSize(new THREE.Vector3()), bs = bb.getSize(new THREE.Vector3()), hc = hb.getCenter(new THREE.Vector3()), bc = bb.getCenter(new THREE.Vector3());
   const put = (mesh, boneName, pos) => { mesh = bakeGroup(mesh); const b = bone(boneName) || root; mesh.position.copy(root.worldToLocal(pos.clone())); mesh.castShadow = true; root.add(mesh); mesh.updateMatrixWorld(); b.attach(mesh); added.push(mesh); };
-  if (O.beret && head.length) {   // txapela: boina ancha y plana, ladeada, con el txertena (rabito) arriba
+  if (O.beret && G.hasHead) {   // txapela: boina ancha y plana, ladeada, con el txertena (rabito) arriba
     const g = new THREE.Group(), r = sz.x * 0.56;
     const disc = new THREE.Mesh(new THREE.SphereGeometry(r, 24, 10, 0, Math.PI * 2, 0, Math.PI / 2), mat(O.beret)); disc.scale.y = 0.32; g.add(disc);
     const band = new THREE.Mesh(new THREE.TorusGeometry(r * 0.86, r * 0.07, 6, 24), mat(O.beret)); band.rotation.x = Math.PI / 2; g.add(band);
@@ -152,33 +158,33 @@ export function applyOutfit(root, kk, outfitId) {
     g.rotation.z = 0.18; g.rotation.x = -0.08;
     put(g, 'head', new THREE.Vector3(hc.x, hb.max.y - sz.y * 0.12, hc.z));
   }
-  if (O.cachirulo && head.length) {   // cachirulo: pañuelo atado a la cabeza, con el nudo atrás
+  if (O.cachirulo && G.hasHead) {   // cachirulo: pañuelo atado a la cabeza, con el nudo atrás
     const g = new THREE.Group(), r = sz.x * 0.53;
     const cap = new THREE.Mesh(new THREE.SphereGeometry(r, 20, 8, 0, Math.PI * 2, 0, Math.PI / 2), mat(O.cachirulo)); cap.scale.y = 0.45; g.add(cap);
     const knot = new THREE.Mesh(new THREE.SphereGeometry(r * 0.16, 8, 6), mat(O.cachirulo)); knot.position.set(0, 0.02, -r * 0.95); g.add(knot);
     put(g, 'head', new THREE.Vector3(hc.x, hb.max.y - sz.y * 0.2, hc.z));
   }
-  if (O.scarf && body.length) {   // pañuelico anudado al cuello, con el pico por delante
+  if (O.scarf && G.hasBody) {   // pañuelico anudado al cuello, con el pico por delante
     const g = new THREE.Group(), r = bs.x * 0.34;
     const ring = new THREE.Mesh(new THREE.TorusGeometry(r, r * 0.22, 8, 20), mat(O.scarf)); ring.rotation.x = Math.PI / 2; g.add(ring);
     const pico = new THREE.Mesh(new THREE.ConeGeometry(r * 0.55, r * 1.1, 3), mat(O.scarf)); pico.rotation.x = Math.PI; pico.position.set(0, -r * 0.5, r * 0.9); pico.scale.z = 0.35; g.add(pico);
     put(g, 'chest', new THREE.Vector3(bc.x, bb.max.y - bs.y * 0.05, bc.z));
   }
-  if (O.sash && body.length) {   // faja ancha a la cintura, con las puntas colgando al costado
+  if (O.sash && G.hasBody) {   // faja ancha a la cintura, con las puntas colgando al costado
     const g = new THREE.Group(), rx = bs.x * 0.53, rz = bs.z * 0.6;
     const band = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, bs.y * 0.16, 24, 1, true), mat(O.sash)); band.scale.set(rx, 1, rz); band.material.side = THREE.DoubleSide; g.add(band);
     const end = new THREE.Mesh(new THREE.BoxGeometry(rx * 0.25, bs.y * 0.32, rz * 0.12), mat(O.sash)); end.position.set(rx * 0.8, -bs.y * 0.16, rz * 0.4); end.rotation.z = 0.15; g.add(end);
     put(g, 'hips', new THREE.Vector3(bc.x, bb.min.y + bs.y * 0.12, bc.z));
   }
-  if (O.skirt && body.length) {   // falda larga (mujeres): campana desde la cintura hasta media pierna
-    const lb = box(legs), len = (bb.min.y - lb.min.y) * (O.skirtLen || 0.75) + bs.y * 0.12;
+  if (O.skirt && G.hasBody) {   // falda larga (mujeres): campana desde la cintura hasta media pierna
+    const lb = G.lb, len = (bb.min.y - lb.min.y) * (O.skirtLen || 0.75) + bs.y * 0.12;
     const sk = new THREE.Mesh(new THREE.CylinderGeometry(bs.x * 0.5, bs.x * 0.78, len, 20, 1, true), mat(O.skirt)); sk.material.side = THREE.DoubleSide; sk.scale.z = Math.max(0.8, bs.z / bs.x * 1.1);
     put(sk, 'hips', new THREE.Vector3(bc.x, bb.min.y + bs.y * 0.14 - len / 2, bc.z));
     if (O.apron) { const ap = new THREE.Mesh(new THREE.PlaneGeometry(bs.x * 0.75, len * 0.85), mat(O.apron)); ap.material.side = THREE.DoubleSide; put(ap, 'hips', new THREE.Vector3(bc.x, bb.min.y + bs.y * 0.1 - len * 0.45, bb.max.z + bs.z * 0.25)); }
   }
   // ---- prendas de los seres de leyenda (Basajaun, lamias, sorginas) ----
-  const lb = box(legs), lsz = lb.getSize(new THREE.Vector3());
-  if (O.hairLong && head.length) {   // melena que cae por la espalda desde la nuca (el pelo de la cabeza se tiñe del mismo color)
+  const lb = G.lb, lsz = lb.getSize(new THREE.Vector3());
+  if (O.hairLong && G.hasHead) {   // melena que cae por la espalda desde la nuca (el pelo de la cabeza se tiñe del mismo color)
     const g = new THREE.Group(), w = sz.x * 0.36, len = sz.y * (O.hairLen || 1.2);
     const back = new THREE.Mesh(new THREE.CapsuleGeometry(w, len, 6, 14), mat(O.hairLong)); back.scale.z = 0.45; back.position.y = -len / 2; g.add(back);
     if (O.shaggy) for (let i = 0; i < 7; i++) { const a = (i / 6 - 0.5) * 2.2, t = new THREE.Mesh(new THREE.ConeGeometry(w * 0.3, w * 1.1, 5), mat(O.hairLong)); t.position.set(Math.sin(a) * w * 0.9, -len - w * 0.2, Math.cos(a) * w * 0.2); t.rotation.z = Math.PI; g.add(t); }   // puntas desgreñadas
@@ -190,13 +196,13 @@ export function applyOutfit(root, kk, outfitId) {
       put(sc, 'head', new THREE.Vector3(hc.x, hb.max.y - sz.y * 0.1, hc.z - sz.z * 0.04));
     }
   }
-  if (O.beard && head.length) {   // barba espesa del mentón hacia el pecho, con bigote
+  if (O.beard && G.hasHead) {   // barba espesa del mentón hacia el pecho, con bigote
     const g = new THREE.Group(), w = sz.x * 0.3, len = sz.y * (O.beardLen || 0.5);
     const bd = new THREE.Mesh(new THREE.ConeGeometry(w, len, 12), mat(O.beard)); bd.rotation.x = Math.PI; bd.scale.z = 0.5; bd.position.y = -len / 2; g.add(bd);
     const mo = new THREE.Mesh(new THREE.CapsuleGeometry(w * 0.16, w * 0.9, 4, 8), mat(O.beard)); mo.rotation.z = Math.PI / 2; mo.position.set(0, w * 0.12, w * 0.12); g.add(mo);
     put(g, 'head', new THREE.Vector3(hc.x, hb.min.y + sz.y * 0.2, hb.max.z - sz.z * 0.06));
   }
-  if (O.fur && body.length) {   // manto de pelo (o toquilla) sobre los hombros, con el borde deshilachado
+  if (O.fur && G.hasBody) {   // manto de pelo (o toquilla) sobre los hombros, con el borde deshilachado
     const fw = O.furW || 1, geo = new THREE.CylinderGeometry(bs.x * 0.46 * fw, bs.x * 0.66 * fw, bs.y * (O.furLen || 0.6), 18, 3, true), pos = geo.attributes.position;
     for (let i = 0; i < pos.count; i++) { const y = pos.getY(i); if (y < 0) pos.setY(i, y - (O.shawl ? 0 : Math.abs(Math.sin(i * 12.9898) * 43758.5453 % 1) * bs.y * 0.25)); }
     geo.computeVertexNormals();
@@ -207,7 +213,7 @@ export function applyOutfit(root, kk, outfitId) {
     const hand = bone('handslot.r') || bone('hand.r');
     if (hand) { const hp = new THREE.Vector3().setFromMatrixPosition(hand.matrixWorld), L = (bb.max.y - lb.min.y) * 1.25; const st = new THREE.Mesh(new THREE.CylinderGeometry(L * 0.018, L * 0.024, L, 7), mat(O.staff)); put(st, hand.name, new THREE.Vector3(hp.x, lb.min.y + L / 2, hp.z)); }
   }
-  if (O.comb && head.length) {   // peine de oro de la lamia, prendido en el pelo
+  if (O.comb && G.hasHead) {   // peine de oro de la lamia, prendido en el pelo
     const g = new THREE.Group(), w = sz.x * 0.5;
     const top = new THREE.Mesh(new THREE.BoxGeometry(w, w * 0.18, w * 0.08), new THREE.MeshStandardMaterial({ color: O.comb, metalness: 0.9, roughness: 0.25 })); g.add(top);
     for (let i = 0; i < 7; i++) { const t = new THREE.Mesh(new THREE.BoxGeometry(w * 0.05, w * 0.3, w * 0.05), top.material); t.position.set(-w * 0.42 + i * w * 0.14, -w * 0.2, 0); g.add(t); }
@@ -215,12 +221,12 @@ export function applyOutfit(root, kk, outfitId) {
   }
   if (O.duckFeet) for (const sd of ['l', 'r']) {   // patas de pato: palmeadas, asomando bajo la falda
     const f = bone('foot.' + sd); if (!f) continue;
-    const fp = new THREE.Vector3().setFromMatrixPosition(f.matrixWorld), w = lsz.x * 0.4;
+    const fp = new THREE.Vector3().setFromMatrixPosition(f.matrixWorld), w = lsz.x * 0.2;
     const g = new THREE.Group(), web = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 8), mat(O.duckFeet)); web.scale.set(w, w * 0.22, w * 1.4); web.position.z = w * 2.3; g.add(web);
     for (const a of [-0.45, 0, 0.45]) { const toe = new THREE.Mesh(new THREE.CapsuleGeometry(w * 0.12, w * 1.1, 3, 6), mat(O.duckFeet)); toe.rotation.set(Math.PI / 2, 0, 0); toe.rotation.y = a; toe.position.set(Math.sin(a) * w * 0.9, 0, w * 2.3 + Math.cos(a) * w * 0.9); g.add(toe); }
     put(g, f.name, new THREE.Vector3(fp.x, lb.min.y + w * 0.2, fp.z));
   }
-  if (O.backpack && body.length) {   // mochila del explorador a la espalda: bolsa con solapa, bolsillo, manta enrollada y correas
+  if (O.backpack && G.hasBody) {   // mochila del explorador a la espalda: bolsa con solapa, bolsillo, manta enrollada y correas
     const g = new THREE.Group(), w = bs.x * 0.6, h = bs.y * 0.7, d = bs.z * 0.4, P = O.backpack;
     const bag = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(P.bag || '#3f6a4c')); g.add(bag);
     const flap = new THREE.Mesh(new THREE.BoxGeometry(w * 1.03, h * 0.38, d * 1.06), mat(P.flap || '#2f5239')); flap.position.y = h * 0.33; g.add(flap);
@@ -232,14 +238,14 @@ export function applyOutfit(root, kk, outfitId) {
   }
   // ---- prendas de carnaval y de fiesta (joaldunak, momotxorros, zipoteros, gigantes…) ----
   const onHead = (g, dy = 0) => put(g, 'head', new THREE.Vector3(hc.x, hb.max.y - sz.y * 0.12 + dy, hc.z));
-  if (O.cone && head.length) {   // gorro cónico alto (joaldun, miel-otxin), con cintas de colores colgando
+  if (O.cone && G.hasHead) {   // gorro cónico alto (joaldun, miel-otxin), con cintas de colores colgando
     const g = new THREE.Group(), r = sz.x * 0.42, H = sz.y * 1.5;
     const c = new THREE.Mesh(new THREE.ConeGeometry(r, H, 20), mat(O.cone)); c.position.y = H / 2; g.add(c);
     const band = new THREE.Mesh(new THREE.TorusGeometry(r * 0.95, r * 0.08, 6, 20), mat(O.ribbons?.[0] || O.accent)); band.rotation.x = Math.PI / 2; band.position.y = r * 0.1; g.add(band);
     (O.ribbons || []).forEach((col, i) => { const a = i / O.ribbons.length * Math.PI * 2, rb = new THREE.Mesh(new THREE.BoxGeometry(r * 0.22, H * 0.7, 0.01), mat(col)); rb.position.set(Math.sin(a) * r * 0.75, H * 0.62, Math.cos(a) * r * 0.75); rb.rotation.y = a; rb.material.side = THREE.DoubleSide; g.add(rb); });
     onHead(g, -sz.y * 0.08);
   }
-  if (O.mask && head.length) {   // máscara de carnaval que tapa la cara, con capucha del mismo color
+  if (O.mask && G.hasHead) {   // máscara de carnaval que tapa la cara, con capucha del mismo color
     const g = new THREE.Group(), r = sz.x * 0.54;
     const hood = new THREE.Mesh(new THREE.SphereGeometry(r, 20, 12), mat(O.mask)); hood.scale.set(1.02, 1.05, 1.02); g.add(hood);
     const face = new THREE.Mesh(new THREE.SphereGeometry(r * 0.78, 16, 10, 0, Math.PI * 2, 0, Math.PI * 0.6), mat(O.maskFace || '#f1e7d6')); face.rotation.x = Math.PI / 2; face.position.z = r * 0.6; face.scale.set(0.95, 1, 0.55); g.add(face);
@@ -247,53 +253,76 @@ export function applyOutfit(root, kk, outfitId) {
     const m = new THREE.Mesh(new THREE.BoxGeometry(r * 0.5, r * 0.07, r * 0.05), mat('#3a1010')); m.position.set(0, -r * 0.3, r * 1.0); g.add(m);
     put(g, 'head', new THREE.Vector3(hc.x, hc.y, hc.z + sz.z * 0.02));
   }
-  if (O.basketHat && head.length) {   // cesta en la cabeza (momotxorro de Altsasu)
+  if (O.basketHat && G.hasHead) {   // cesta en la cabeza (momotxorro de Altsasu)
     const g = new THREE.Group(), r = sz.x * 0.5;
     const b = new THREE.Mesh(new THREE.CylinderGeometry(r * 1.05, r * 0.85, r * 0.9, 16, 1, true), mat(O.basketHat)); b.material.side = THREE.DoubleSide; b.position.y = r * 0.3; g.add(b);
     for (let i = 0; i < 4; i++) { const ring = new THREE.Mesh(new THREE.TorusGeometry(r * (0.87 + i * 0.05), r * 0.04, 4, 18), mat('#6a4a22')); ring.rotation.x = Math.PI / 2; ring.position.y = -r * 0.1 + i * r * 0.25; g.add(ring); }
     onHead(g);
   }
-  if (O.bicorne && head.length) {   // bicornio (lagunero, caravinagre)
+  if (O.bicorne && G.hasHead) {   // bicornio (lagunero, caravinagre)
     const g = new THREE.Group(), r = sz.x * 0.5;
     const b = new THREE.Mesh(new THREE.CylinderGeometry(r * 1.4, r * 1.4, r * 0.5, 3, 1), mat(O.bicorne)); b.rotation.set(Math.PI / 2, 0, Math.PI / 2); b.scale.set(1, 0.35, 1); b.position.y = r * 0.3; g.add(b);
     const cock = new THREE.Mesh(new THREE.SphereGeometry(r * 0.16, 8, 6), mat('#c8102e')); cock.position.set(0, r * 0.55, r * 0.15); g.add(cock);
     onHead(g);
   }
-  if (O.mitre && head.length) {   // mitra (San Fermín)
+  if (O.mitre && G.hasHead) {   // mitra (San Fermín)
     const g = new THREE.Group(), r = sz.x * 0.4;
     const m = new THREE.Mesh(new THREE.ConeGeometry(r, r * 2.4, 4), mat(O.mitre)); m.rotation.y = Math.PI / 4; m.scale.z = 0.6; m.position.y = r * 1.1; g.add(m);
     const cr = new THREE.Mesh(new THREE.BoxGeometry(r * 0.12, r * 1.6, r * 0.5), mat('#e8c34a')); cr.position.y = r * 0.9; g.add(cr);
     onHead(g, -sz.y * 0.05);
   }
-  if (O.straw && head.length) {   // sombrero de paja de ala ancha
+  if (O.straw && G.hasHead) {   // sombrero de paja de ala ancha
     const g = new THREE.Group(), r = sz.x * 0.5;
     const brim = new THREE.Mesh(new THREE.CylinderGeometry(r * 1.7, r * 1.7, r * 0.06, 24), mat(O.straw)); g.add(brim);
     const crown = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.75, r * 0.85, r * 0.6, 18), mat(O.straw)); crown.position.y = r * 0.3; g.add(crown);
     const band = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.86, r * 0.86, r * 0.14, 18), mat(O.accent || '#7a2a1a')); band.position.y = r * 0.08; g.add(band);
     onHead(g, -sz.y * 0.05);
   }
-  if (O.wool && head.length) {   // gorro de lana con borla
+  if (O.wool && G.hasHead) {   // gorro de lana con borla
     const g = new THREE.Group(), r = sz.x * 0.52;
     const c = new THREE.Mesh(new THREE.SphereGeometry(r, 18, 8, 0, Math.PI * 2, 0, Math.PI / 2), mat(O.wool)); c.scale.y = 0.75; g.add(c);
     const p = new THREE.Mesh(new THREE.SphereGeometry(r * 0.22, 8, 6), mat(O.accent || '#f4f1ea')); p.position.y = r * 0.8; g.add(p);
     onHead(g, -sz.y * 0.12);
   }
-  if (O.crown && head.length) {   // corona de oro
+  if (O.crown && G.hasHead) {   // corona de oro
     const g = new THREE.Group(), r = sz.x * 0.36, gold = new THREE.MeshStandardMaterial({ color: '#e8c34a', metalness: 0.85, roughness: 0.3 });
     const ring = new THREE.Mesh(new THREE.CylinderGeometry(r, r, r * 0.35, 16, 1, true), gold); ring.material.side = THREE.DoubleSide; g.add(ring);
     for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2, t = new THREE.Mesh(new THREE.ConeGeometry(r * 0.16, r * 0.4, 4), gold); t.position.set(Math.sin(a) * r, r * 0.35, Math.cos(a) * r); g.add(t); }
     onHead(g, sz.y * 0.02);
   }
-  if (O.horns && head.length) {   // cuernos (momotxorro)
+  if (O.horns && G.hasHead) {   // cuernos (momotxorro)
     for (const sx of [-1, 1]) { const h = new THREE.Mesh(new THREE.ConeGeometry(sz.x * 0.09, sz.y * 0.55, 8), mat('#efe6d0')); h.rotation.z = -sx * 0.5; put(h, 'head', new THREE.Vector3(hc.x + sx * sz.x * 0.36, hb.max.y + sz.y * 0.08, hc.z)); }
   }
-  if (O.bells && body.length) {   // cencerros a la espalda (joaldunak), colgados de la cintura
+  if (O.bells && G.hasBody) {   // cencerros a la espalda (joaldunak), colgados de la cintura
     for (const sx of [-1, 1]) { const b = new THREE.Mesh(new THREE.CylinderGeometry(bs.x * 0.16, bs.x * 0.24, bs.y * 0.42, 10), new THREE.MeshStandardMaterial({ color: '#8a7a5a', metalness: 0.7, roughness: 0.4 })); put(b, 'hips', new THREE.Vector3(bc.x + sx * bs.x * 0.2, bb.min.y + bs.y * 0.05, bb.min.z - bs.z * 0.12)); }
   }
-  if (O.ribbonsBody && body.length) {   // cintas de colores colgando de los hombros (paloki, miel-otxin)
+  if (O.ribbonsBody && G.hasBody) {   // cintas de colores colgando de los hombros (paloki, miel-otxin)
     O.ribbonsBody.forEach((col, i) => { const rb = new THREE.Mesh(new THREE.BoxGeometry(bs.x * 0.09, bs.y * 0.9, 0.01), mat(col)); rb.material.side = THREE.DoubleSide; const x = bc.x + (i / (O.ribbonsBody.length - 1) - 0.5) * bs.x * 0.9; put(rb, 'chest', new THREE.Vector3(x, bb.max.y - bs.y * 0.45, bb.max.z + 0.01)); });
   }
   return added;
+}
+/** Viste a un personaje de Meshy (esqueleto Mixamo, una sola malla) con las prendas de un traje: las cajas de cabeza,
+ *  tronco y piernas salen de los vértices que mueve cada hueso (en reposo). Su textura no se toca. */
+export function dressMeshy(root, O) {
+  if (!O || typeof O !== 'object') return [];
+  root.updateMatrixWorld(true);
+  root.traverse(o => { if (o.isSkinnedMesh) o.skeleton.update(); });
+  const bones = {}; root.traverse(o => { if (o.isBone) bones[o.name.replace(/^mixamorig:?/, '')] = o; });
+  const MAP = { head: 'Head', chest: 'Spine2', hips: 'Hips', 'hand.r': 'RightHand', 'handslot.r': 'RightHand', 'foot.l': 'LeftFoot', 'foot.r': 'RightFoot' };
+  const bone = (n) => bones[MAP[n] || n] || null;
+  const zone = (nm) => /Head|Neck|headfront/.test(nm) ? 'h' : /Leg|Foot|Toe/.test(nm) ? 'l' : /Arm|Hand|Shoulder/.test(nm) ? 'a' : 'b';
+  const box = { h: new THREE.Box3(), b: new THREE.Box3(), l: new THREE.Box3() }, v = new THREE.Vector3();
+  root.traverse(m => {
+    if (!m.isSkinnedMesh) return;
+    const g = m.geometry, p = g.attributes.position, si = g.attributes.skinIndex, sw = g.attributes.skinWeight, names = m.skeleton.bones.map(b => zone(b.name.replace(/^mixamorig:?/, '')));
+    for (let i = 0; i < p.count; i += 2) {
+      let best = 0, bw = -1; for (let k = 0; k < 4; k++) { const w = sw.getComponent(i, k); if (w > bw) { bw = w; best = si.getComponent(i, k); } }
+      const z = names[best]; if (z === 'a') continue;
+      m.getVertexPosition(i, v).applyMatrix4(m.matrixWorld); box[z].expandByPoint(v);   // con la piel aplicada (la malla va en otra escala que el esqueleto)
+    }
+  });
+  if (box.h.isEmpty() || box.b.isEmpty()) return [];
+  return garments(root, O, { hasHead: true, hasBody: true, hb: box.h, bb: box.b, lb: box.l.isEmpty() ? box.b : box.l, bone });
 }
 /** Seres de leyenda con el cuerpo de los personajes nuevos: cuerpo base, altura (m) y traje. */
 export const MYTHS = {
