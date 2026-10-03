@@ -896,3 +896,8 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .lp-note { margin-top: 18px; color: var(--mute); font-size: 13px; font-weight: 700; }
 
 /* la hoja de la planta, en la esquina de su imagen */
+
+/* sello de fútbol sala (ganado a los vecinos en la pista del pueblo) sobre el sello del pueblo */
+.pst { position: relative; }
+.pst .fsello { position: absolute; top: 2px; right: 2px; width: 22px; height: 22px; border-radius: 50%; background: #2f6a2a; display: grid; place-items: center; box-shadow: 0 2px 6px rgba(0, 0, 0, .35); }
+.pst .fsello img, .pst .fsello svg { width: 18px; height: 18px; }

@@ -2,7 +2,7 @@
 // sonido (audio.js) y la entrada (teclado y táctil). El anfitrión llama a update(dt) en cada fotograma y dibuja
 // scene con camera. run() devuelve una promesa con el resultado cuando el jugador sale.
 import * as THREE from 'three';
-import { FIELD as F, PHYS as K, TEAMS, TEXT, RETOS } from './rules.js';
+import { FIELD as F, PHYS as K, TEAMS, TEXT, RETOS, VENUES, RULES as RU, ROLES, useFormat, onFormat, FORMAT } from './rules.js';
 import { FutbolGame } from './game.js';
 import { buildField, ballTexture, roofShade } from './field.js';
 import { FutbolHud } from './hud.js';
@@ -10,7 +10,8 @@ import { FutbolAudio } from './audio.js';
 import { Reto } from './retos.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-const R = K.R;
+let R = K.R;
+onFormat(() => { R = K.R; });
 
 // figura por defecto (si el juego no da personajes): cuerpo con la equipación, cabeza y piernas que se mueven
 export function defaultCharacter({ team, keeper }) {
@@ -37,6 +38,10 @@ export class FutbolMatch {
   constructor(o) {
     this.o = { venue: 'sadar', home: 'osasuna', away: 'visitante', timeScale: 1, quality: 'high', ...o };
     this.home = TEAMS[this.o.home] || TEAMS.osasuna; this.away = TEAMS[this.o.away] || TEAMS.visitante;
+    // el formato sale del campo: El Sadar, fútbol 11; la pista del pueblo, fútbol sala
+    if (this.o.local) this.home = { ...this.home, ...this.o.local };
+    const V = VENUES[this.o.venue] || VENUES.sadar; this.o.format ||= V.format || 'f11'; this.o.surface ||= V.surface || 'hierba';
+    useFormat(this.o.format, this.o.surface);
     this.camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.3, 600);
     this.camMode = (innerWidth < innerHeight) ? 'detras' : 'tv';
     this.done = false; this.paused = false; this.t = 0; this.snaps = []; this.replay = null; this.intro = 3; this.introLen = 3; this.live = false;
@@ -99,6 +104,7 @@ export class FutbolMatch {
     this.audio = new FutbolAudio(o.audio || {});
     this.hud = new FutbolHud({ touch: o.touch ?? matchMedia('(pointer:coarse)').matches, home: this.home, away: this.away,
       onPress: (a) => this.press(a), onRelease: (a) => this.release(a), onPause: () => this.pauseMenu(), onCam: () => this.nextCam() });
+    if (RU.foulLimit && o.mode === 'match') this.hud.setFouls(0, 0, RU.foulLimit);
     this.keys = new Set();
     this.onKey = (e) => this.key(e, true); this.onKeyUp = (e) => this.key(e, false);
     addEventListener('keydown', this.onKey, true); addEventListener('keyup', this.onKeyUp, true);
@@ -128,7 +134,7 @@ export class FutbolMatch {
     this.introStage = -1;
     if (!this.lineup) return;
     // en fila, de cara a la tribuna principal: los locales a un lado del trío arbitral y los visitantes al otro
-    const Z = 8;
+    const Z = Math.min(8, F.HW * 0.35);
     this.rows = g.players.map(p => { const i = p.id % 11; return { x: (p.team ? 1 : -1) * (1.7 + i * 1.15), z: Z }; });
     this.refRows = g.refs.map((r, i) => ({ x: (i - 1) * 0.8, z: Z }));
   }
@@ -173,7 +179,8 @@ export class FutbolMatch {
     const P = [], m = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), one = new THREE.Vector3(1, 1, 1), v = new THREE.Vector3();
     const r = Math.random;
     for (let i = 0; i < N; i++) {
-      P.push({ x: (r() - 0.5) * 44, y: 1 + r() * 16, z: -4 + r() * 18, vy: 0.9 + r() * 0.9, a: r() * 6, b: r() * 6, w: 2 + r() * 5, ph: r() * 6 });
+      const k = Math.max(F.L / 105, 0.5);
+      P.push({ x: (r() - 0.5) * 44 * k, y: 1 + r() * 16 * k, z: (-4 + r() * 18) * k, vy: 0.9 + r() * 0.9, a: r() * 6, b: r() * 6, w: 2 + r() * 5, ph: r() * 6 });
       mesh.setColorAt(i, cols[i % cols.length]);
     }
     mesh.frustumCulled = false; mesh.visible = false;
@@ -190,7 +197,8 @@ export class FutbolMatch {
     return { mesh, update, dispose: () => { geo.dispose(); mesh.material.dispose(); mesh.dispose(); } };
   }
   newGame() {
-    const o = this.o, g = new FutbolGame({ mode: o.mode === 'penalties' ? 'penalties' : 'match', level: o.level, duration: o.duration, assist: o.assist, autoplay: o.autoplay, cup: o.cup, kicks: o.kicks, seed: o.seed });
+    const o = this.o; useFormat(o.format, o.surface);
+    const g = new FutbolGame({ format: o.format, surface: o.surface, mode: o.mode === 'penalties' ? 'penalties' : 'match', level: o.level, duration: o.duration, assist: o.assist, autoplay: o.autoplay, cup: o.cup, kicks: o.kicks, seed: o.seed });
     if (o.mode === 'reto') this.reto = new Reto(o.reto, g, this);
     return g;
   }
@@ -234,7 +242,8 @@ export class FutbolMatch {
     let sx = st.x, sy = st.y;
     if (K2.has('w') || K2.has('arrowup')) sy += 1; if (K2.has('s') || K2.has('arrowdown')) sy -= 1;
     if (K2.has('a') || K2.has('arrowleft')) sx -= 1; if (K2.has('d') || K2.has('arrowright')) sx += 1;
-    const m = Math.min(1, Math.hypot(sx, sy)); if (m > 1e-3) { const l = Math.hypot(sx, sy); sx /= l; sy /= l; }
+    // zona muerta del 12 % (el pulgar apoyado no mueve al jugador) y de ahí a tope, sin escalón
+    const raw = Math.min(1, Math.hypot(sx, sy)), m = raw < 0.12 ? 0 : (raw - 0.12) / 0.88; if (raw > 1e-3) { const l = Math.hypot(sx, sy); sx /= l; sy /= l; }
     const f = new THREE.Vector3(); this.camera.getWorldDirection(f); f.y = 0; if (f.lengthSq() < 1e-6) f.set(0, 0, -1); f.normalize();
     const rx = -f.z, rz = f.x;
     const wx = rx * sx + f.x * sy, wz = rz * sx + f.z * sy;
@@ -277,7 +286,9 @@ export class FutbolMatch {
     const g = this.game, H = this.hud, A = this.audio, P = (id) => g.players[id];
     const name = (p) => p ? `el ${p.num}${p.team === 0 ? '' : ' visitante'}` : '';
     switch (e.t) {
-      case 'kick': if (e.kind !== 'throw') A.kick(e.power); this.anim(P(e.p), e.kind === 'throw' ? 'throw' : 'kick'); break;
+      case 'kick': if (e.kind !== 'throw') A.kick(e.power); this.anim(P(e.p), e.kind === 'throw' ? 'throw' : 'kick');
+        if (P(e.p) === g.me && !g.autoplay) try { navigator.vibrate?.(e.kind === 'shot' ? 22 : 12); } catch (err) { /* sin vibración */ }
+        break;
       case 'touch': if (P(e.p) === g.me) A.touch(); break;
       case 'post': case 'bar': A.post(); A.ooh(); H.say(e.t === 'post' ? TEXT.post : TEXT.bar); break;
       case 'net': A.net(); this.field.netHit(e.side, g.ball.p.z, g.ball.p.y, g.ball.speed + 6); break;
@@ -290,19 +301,23 @@ export class FutbolMatch {
       case 'shot': A.bump(0.6, 1.2); break;
       case 'steal': if (P(e.p).team === 0) H.say(e.how === 'entrada' ? '¡Qué entrada!' : TEXT.steal, 1200); else if (P(e.from) === g.me) H.say('¡Te han robado el balón!', 1200); this.tuto?.stole(e); break;
       case 'tackle': this.anim(P(e.p), e.kind === 'slide' ? 'slide' : 'robo'); break;
-      case 'foul': H.msg(e.penalty ? TEXT.penalty : TEXT.foul, e.penalty ? 'Falta dentro del área' : `De ${name(P(e.p))}`, 1800); A.groan(); this.anim(P(e.on), 'fall'); break;
+      case 'foul':
+        H.msg(e.penalty ? TEXT.penalty : TEXT.foul, e.penalty ? 'Falta dentro del área' : e.over ? TEXT.fouls6 : RU.foulLimit ? `De ${name(P(e.p))} · ${e.acc}.ª falta` : `De ${name(P(e.p))}`, 1800);
+        A.groan(); this.anim(P(e.on), 'fall'); if (RU.foulLimit) H.setFouls?.(g.fouls[0], g.fouls[1], RU.foulLimit); break;
+      case 'fourSec': H.say(TEXT.fourSec + ' Saca el otro equipo', 1600); break;
       case 'out': H.say(e.type === 'throwin' ? `${TEXT.out}: ${TEXT.throwin.toLowerCase()}` : e.type === 'corner' ? TEXT.corner : TEXT.goalkick, 1500); break;
       case 'offside': H.say(`${TEXT.offside}${P(e.p).team === 0 ? ' de ' + name(P(e.p)) : ''}`, 1600); break;
       case 'restart':
         if (e.type === 'penalty') H.msg(TEXT.penalty, e.team === 0 ? 'Apunta con el joystick y mantén TIRO' : 'Para el tiro… ¡tu portero está atento!', 2000);
         else if (this.reto || this.tuto) break;   // (en los retos y el tutorial no hay saques que anunciar)
         else if (e.team === 0 && !g.autoplay && e.type !== 'goalkick') H.say(`${RESTART_NAME[e.type]}: tu saque. Apunta y pulsa ${this.hud.el.pass ? 'PASE' : 'J'}`, 2200);
-        else if (e.type !== 'kickoff') H.say(RESTART_NAME[e.type], 1300);
+        else if (e.type !== 'kickoff') H.say(e.noWall ? TEXT.double : RESTART_NAME[e.type], 1300);
+        if (e.noWall && e.team === 0 && !g.autoplay) H.say(`${TEXT.double}, sin barrera: mantén ${this.hud.el.pass ? 'TIRO' : 'K'}`, 2200);
         break;
       case 'goal': this.onGoal(e); break;
       case 'replay': this.startReplay(); break;
       case 'half': H.msg(TEXT.half, `${g.score[0]} – ${g.score[1]}`, 2800); A.bump(0.4, 2); break;
-      case 'second': H.msg(TEXT.second, 'Se cambia de campo', 1800); break;
+      case 'second': H.msg(TEXT.second, RU.foulLimit ? 'Se cambia de campo y las faltas vuelven a cero' : 'Se cambia de campo', 1800); if (RU.foulLimit) H.setFouls?.(0, 0, RU.foulLimit); break;
       case 'toPenalties': H.msg('¡Penaltis!', 'Empate: se decide en la tanda', 2400); break;
       case 'penTurn': this.penTurn(e); break;
       case 'penResult': H.pens(e.log, g.pen.kicks); H.say(e.res === 'goal' ? (e.team === 0 ? '¡Gol!' : 'Gol del rival') : e.res === 'save' ? (e.team === 0 ? 'Lo ha parado el portero' : '¡Lo has parado!') : '¡Fuera!', 1500); if (e.res !== 'goal') (e.team === 1 ? A.roar() : A.groan()); break;
@@ -372,7 +387,9 @@ export class FutbolMatch {
     const g = this.game, B = g.ball;
     for (const p of g.players) {
       const ch = this.chars[p.id]; if (!ch) continue;
-      ch.outer.position.set(p.x, 0, p.z); ch.outer.rotation.y = p.h;
+      // entre dos pasos de la física (120 Hz) se interpola la posición para que el dibujo vaya suave a cualquier frecuencia
+      const al = g.alpha ?? 1, ix = p.px === undefined ? p.x : p.px + (p.x - p.px) * al, iz = p.pz === undefined ? p.z : p.pz + (p.z - p.pz) * al;
+      ch.outer.position.set(ix, 0, iz); ch.outer.rotation.y = p.h;
       const sp = Math.hypot(p.vx, p.vz), a = ch.c.anim;
       // poses del cuerpo entero: estirada del portero, entrada en plancha, caída y celebración
       const pv = ch.pivot; let rx = 0, rz = 0, py = 0, pz = 0;
@@ -390,7 +407,7 @@ export class FutbolMatch {
       a.setSpeed?.(p.dive || p.slide || p.down > 0 ? 0 : sp);
       a.update?.(dt);
       // brazos arriba: el que saca de banda, con el balón sobre la cabeza
-      ch.c.post?.({ arms: g.restart?.type === 'throwin' && g.restart.taker === p ? 'up' : null }, dt);
+      ch.c.post?.({ arms: g.restart?.type === 'throwin' && RU.throwHands && g.restart.taker === p ? 'up' : null }, dt);
     }
     // árbitro y asistentes (el asistente levanta el banderín en el fuera de juego)
     g.refs.forEach((r, i) => {
@@ -402,7 +419,8 @@ export class FutbolMatch {
     });
     // balón: rodando con giro coherente con la velocidad; en las manos del portero, con él
     const bp = B.p, bm = this.ball;
-    bm.position.set(bp.x, bp.y + (K.scale - 1) * R, bp.z);
+    const al = g.alpha ?? 1, P0 = B.prev, ibx = P0.x + (bp.x - P0.x) * al, iby = P0.y + (bp.y - P0.y) * al, ibz = P0.z + (bp.z - P0.z) * al;
+    bm.position.set(ibx, iby + (K.scale - 1) * R, ibz);
     const hs = Math.hypot(B.v.x, B.v.z);
     if (hs > 0.05 && !B.held && dt > 0) { const ax = new THREE.Vector3(B.v.z, 0, -B.v.x).normalize(); bm.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(ax, hs / (R * K.scale) * dt)); }
     this.field.follow?.(bp.x, bp.z);
@@ -428,10 +446,11 @@ export class FutbolMatch {
     while (this.snaps.length && this.snaps[0].t < g.time - 5) this.snaps.shift();
   }
   startReplay() {
-    const at = this.goalAt ?? this.game.time, from = at - 2.6, to = at + 0.6;
+    // los últimos 1,2 s antes del gol, en 3 s: a cámara lenta (0,4×), desde detrás de la portería
+    const at = this.goalAt ?? this.game.time, from = at - 1.0, to = at + 0.2;
     const frames = this.snaps.filter(s => s.t >= from && s.t <= to);
     if (frames.length < 10) return;
-    this.replay = { frames, i: 0, t: 0, len: frames[frames.length - 1].t - frames[0].t, dur: 3.2, side: Math.sign(frames[frames.length - 1].b[0]) || 1 };
+    this.replay = { frames, i: 0, t: 0, len: frames[frames.length - 1].t - frames[0].t, dur: 3.0, side: Math.sign(frames[frames.length - 1].b[0]) || 1 };
     this.hud.say('Repetición', 3000); this.hud.el.msg.classList.remove('on');
   }
   playReplay(dt) {
@@ -453,7 +472,8 @@ export class FutbolMatch {
     // cámara: desde detrás de la portería, baja y a un lado
     const s = R2.side, c = this.camera, gz = f.b[2];
     c.fov = 38; c.updateProjectionMatrix();
-    c.position.set(s * (F.HL + 8), 3.2, gz * 0.5 + 6.5 * (gz >= 0 ? -1 : 1)); c.lookAt(f.b[0] * 0.6 + s * F.HL * 0.4, 1.1, f.b[2] * 0.7);
+    const kk = F.areaD ? 0.45 : 1;
+    c.position.set(s * (F.HL + 8 * kk), 3.2 * Math.max(kk, 0.7), gz * 0.5 + 6.5 * kk * (gz >= 0 ? -1 : 1)); c.lookAt(f.b[0] * 0.6 + s * F.HL * 0.4, 1.1, f.b[2] * 0.7);
     this.field.tick(dt, this.t, c, 1, f.b[2]);
     if (R2.t >= R2.dur) { this.replay = null; this.camPos = null; this.hud.el.say.classList.remove('on'); this.game.afterGoal(); }
   }
@@ -467,16 +487,17 @@ export class FutbolMatch {
       const t = this.introLen - this.intro, ss = (k) => { k = clamp(k, 0, 1); return k * k * (3 - 2 * k); };
       if (this.lineup && t >= 3 && t < 6) {
         // a ras de suelo, recorriendo la fila de jugadores
-        const e = ss((t - 3) / 3), x = -17 + e * 34;
-        pos = new THREE.Vector3(x, 1.7, 13.2); look = new THREE.Vector3(x + 2.5, 1.25, 8); fov = 38;
+        const W = 1.7 + ROLES.length * 1.15 + 1, Z = Math.min(8, F.HW * 0.35), e = ss((t - 3) / 3), x = -W + e * 2 * W;
+        pos = new THREE.Vector3(x, 1.7, Z + 5.2); look = new THREE.Vector3(x + 2.5, 1.25, Z); fov = 38;
       } else if (this.lineup && t >= 6) {
         // el campo entero desde lo alto (por dentro del hueco de la cubierta), bajando a la cámara de televisión
-        const e = ss((t - 6) / 2.2);
-        pos = new THREE.Vector3(-40 + e * 40, 36 - e * 15, 16 + e * (F.HW + 6)); look = new THREE.Vector3(4 - e * 4, 0, -3 + e); fov = 55 - e * 13;
+        const e = ss((t - 6) / 2.2), k = F.L / 105, tv = this.tvCam(true);
+        const p0 = new THREE.Vector3(-40 * k, 36 * Math.max(k, 0.5), 16 * k), l0 = new THREE.Vector3(4 * k, 0, -3 * k);
+        pos = p0.lerp(tv.pos, e); look = l0.lerp(tv.look, e); fov = 55 + (tv.fov - 55) * e;
       } else {
         // llega desde fuera, por encima de la cubierta (se ve el estadio entero), y baja hacia el centro del campo
         const k = clamp(this.lineup ? t / 3 : 1 - this.intro / this.introLen, 0, 1), e = k * k * (3 - 2 * k), a = -0.75 + e * 0.55;
-        const r = 205 - e * (this.lineup ? 150 : 165), h = 95 - e * (this.lineup ? 60 : 50);
+        const sk = Math.max(F.L / 105, 0.45), r = (205 - e * (this.lineup ? 150 : 165)) * sk, h = (95 - e * (this.lineup ? 60 : 50)) * Math.max(sk, 0.6);
         pos = new THREE.Vector3(Math.sin(a) * r * 1.1, h, Math.cos(a) * r); look = new THREE.Vector3(0, 6 - e * 5, this.lineup ? e * 6 : 0); fov = 46;
       }
     } else if (g.mode === 'penalties' || g.restart?.type === 'penalty' && g.phase !== 'play') {
@@ -490,17 +511,10 @@ export class FutbolMatch {
       const t = sc || { x: B.x, z: B.z }; pos = new THREE.Vector3(t.x - 5, 3.2, t.z + 6); look = new THREE.Vector3(t.x, 1.1, t.z); fov = 40;
     } else if (this.camMode === 'detras' && !this.reto?.fixedCam) {
       const me = g.me, s = g.dir[me.team];
-      pos = new THREE.Vector3(me.x - s * 11, 7.5, me.z * 0.88); look = new THREE.Vector3(me.x + s * 8, 0.4, me.z * 0.9 + (B.z - me.z) * 0.25); fov = 52;
+      const k = F.areaD ? 0.7 : 1;
+      pos = new THREE.Vector3(me.x - s * 11 * k, 7.5 * k, me.z * 0.88); look = new THREE.Vector3(me.x + s * 8 * k, 0.4, me.z * 0.9 + (B.z - me.z) * 0.25); fov = 52;
     } else {
-      // retransmisión: como la cámara principal de la tele, en lo alto de la tribuna (a 22 m de la banda y 21 m de
-      // altura), siguiendo al balón a lo largo y con el zoom justo para ver unos 26 m de campo alrededor de él (más
-      // abierto en vertical, que en el móvil apaisado la pantalla es baja)
-      const own = g.owner, lead = clamp(g.ball.v.x * 0.35 + (own ? g.dir[own.team] * 4 : 0), -9, 9);
-      this.lead = (this.lead ?? 0) + (lead - (this.lead ?? 0)) * Math.min(1, dt * 1.5);
-      const x = clamp(B.x * 0.94 + this.lead, -F.HL + 10, F.HL - 10), lz = B.z * 0.85 - 2, phone = innerHeight < 520 && this.camera.aspect >= 1.2, cz = F.HW + 22, cy = 21;
-      pos = new THREE.Vector3(x, cy, cz); look = new THREE.Vector3(x, 0, lz);
-      const dist = Math.hypot(cz - lz, cy), span = this.camera.aspect < 1.2 ? 30 : phone ? 15 : 21;
-      fov = clamp(2 * Math.atan(span / 2 / dist) * 180 / Math.PI, phone ? 11 : 16, 42);   // (en el móvil apaisado, más zoom: si no, los jugadores salen diminutos)
+      ({ pos, look, fov } = this.tvCam(false, dt));
       if (this.reto?.cam) ({ pos, look, fov } = this.reto.cam(pos, look, fov));
     }
     if (Math.abs(c.fov - fov) > 0.01) { c.fov += (fov - c.fov) * Math.min(1, dt * 2.5); if (snap) c.fov = fov; c.updateProjectionMatrix(); }
@@ -508,6 +522,29 @@ export class FutbolMatch {
     const k = 1 - Math.exp(-4 * dt);
     this.camPos.lerp(pos, k); this.camLook.lerp(look, k);
     c.position.copy(this.camPos); c.lookAt(this.camLook);
+  }
+  // retransmisión: como la cámara principal de la tele, en lo alto de la tribuna, siguiendo al balón a lo largo y
+  // adelantándose hacia donde va el juego.
+  //   · fútbol 11: a 22 m de la banda y 21 m de altura, con el zoom justo para ver unos 21 m de campo alrededor del balón;
+  //   · sala: a 18 m de la banda y 14 m de altura, FOV de 45° como mucho y zoom según lo dispersos que estén los jugadores.
+  // En el móvil apaisado, más zoom (si no, los jugadores salen diminutos)
+  tvCam(still = false, dt = 0) {
+    const g = this.game, B = g.ball.p, own = g.owner, sala = !!F.areaD;
+    const lead = clamp(g.ball.v.x * 0.35 + (own ? g.dir[own.team] * (sala ? 3 : 4) : 0), sala ? -4 : -9, sala ? 4 : 9);
+    if (!still) this.lead = (this.lead ?? 0) + (lead - (this.lead ?? 0)) * Math.min(1, dt * 1.5);
+    const ld = still ? 0 : this.lead, phone = innerHeight < 520 && this.camera.aspect >= 1.2;
+    const x = sala ? clamp(B.x * 0.8 + ld, -F.HL + 6, F.HL - 6) : clamp(B.x * 0.94 + ld, -F.HL + 10, F.HL - 10);
+    const lz = B.z * (sala ? 0.6 : 0.85) - (sala ? 1 : 2), cz = F.HW + (sala ? 18 : 22), cy = sala ? 14 : 21;
+    const dist = Math.hypot(cz - lz, cy);
+    let span = this.camera.aspect < 1.2 ? 30 : phone ? 15 : 21;
+    if (sala) {
+      // lo que ocupan los jugadores de campo alrededor del balón (a lo ancho de la pantalla), entre 14 y 26 m
+      let lo = B.x, hi = B.x; for (const p of g.players) if (p.role !== 'POR' && Math.abs(p.x - B.x) < 14) { lo = Math.min(lo, p.x); hi = Math.max(hi, p.x); }
+      const wide = clamp(hi - lo + 6, 14, 26) / Math.max(1, this.camera.aspect) * 1.25;
+      span = clamp(wide, phone ? 8 : 10, this.camera.aspect < 1.2 ? 26 : 18);
+    }
+    const fov = clamp(2 * Math.atan(span / 2 / dist) * 180 / Math.PI, phone ? 11 : 16, sala ? 45 : 42);
+    return { pos: new THREE.Vector3(x, cy, cz), look: new THREE.Vector3(x, 0, lz), fov };
   }
   drawHud() {
     const g = this.game, H = this.hud, me = g.me;
@@ -541,11 +578,12 @@ class Tutorial {
   start() {
     const g = this.g; g.kickoff(0); g.restart = null; g.setPhase('tuto'); g.owner = null;
     for (const p of g.players) { p.react = 99; }
-    const me = g.byRole(0, 'DCD'); g.setMe(me, 'tuto'); me.x = 22; me.z = 0; me.h = Math.PI / 2; me.react = 0;
-    g.ball.set(22.6, 0); g.takeBall(me);
-    const mate = g.byRole(0, 'DCI'); this.mate = mate; mate.x = 32; mate.z = -8; mate.react = 99;
+    // (en la pista de sala, todo a escala)
+    const k = RU.scale, me = g.byRole(0, RU.kick[0]); g.setMe(me, 'tuto'); me.x = 22 * k; me.z = 0; me.h = Math.PI / 2; me.react = 0;
+    g.ball.set(22 * k + 0.6, 0); g.takeBall(me);
+    const mate = g.byRole(0, RU.kick[1]); this.mate = mate; mate.x = 32 * k; mate.z = -8 * k; mate.react = 99;
     // los rivales, apartados (menos el portero)
-    for (const p of g.team(1)) if (p.role !== 'POR') { const i = p.id % 11; p.x = 2 + (i % 4) * 5; p.z = (i % 2 ? -1 : 1) * (18 + (i % 3) * 4); }
+    for (const p of g.team(1)) if (p.role !== 'POR') { const i = p.id % ROLES.length; p.x = (2 + (i % 4) * 5) * k; p.z = (i % 2 ? -1 : 1) * Math.min(18 + (i % 3) * 4, F.HW - 1); }
     this.start0 = { x: me.x, z: me.z }; this.next(0);
   }
   next(i) {
@@ -559,9 +597,9 @@ class Tutorial {
     ];
     this.v.hud.tip(tips[i]);
     if (i === 3) {
-      const g = this.g, r = g.byRole(1, 'MCD'), me = g.me;
+      const g = this.g, r = g.byRole(1, ROLES[2]), me = g.me;
       for (const p of g.team(0)) if (p !== me && p.role !== 'POR') { p.react = 99; p.wx = p.wz = 0; }
-      g.owner = null; r.x = me.x + 6; r.z = me.z; r.react = 0; g.ball.set(r.x - 0.6, r.z); g.takeBall(r);
+      g.owner = null; r.x = me.x + 6 * Math.max(RU.scale, 0.7); r.z = me.z; r.react = 0; g.ball.set(r.x - 0.6, r.z); g.takeBall(r);
       r.h = -Math.PI / 2; this.carrier = r;
     }
     if (i === 4) setTimeout(() => { this.v.hud.tip(null); this.v.tuto = null; this.v.o.onTutorialDone?.(); this.g.start(); }, 1800);
