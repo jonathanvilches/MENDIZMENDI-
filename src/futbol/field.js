@@ -69,7 +69,7 @@ function linesGeometry() {
     const L = Math.hypot(x1 - x0, z1 - z0), n = Math.max(1, Math.ceil(L / 2)), ux = (x1 - x0) / L, uz = (z1 - z0) / L, nx = -uz * w / 2, nz = ux * w / 2;
     for (let i = 0; i < n; i++) {
       const a = i / n, b = (i + 1) / n, ax = x0 + (x1 - x0) * a, az = z0 + (z1 - z0) * a, bx = x0 + (x1 - x0) * b, bz = z0 + (z1 - z0) * b;
-      quad(ax - nx, az - nz, bx - nx, bz - nz, bx + nx, bz + nz, ax + nx, az + nz);
+      quad(ax + nx, az + nz, bx + nx, bz + nz, bx - nx, bz - nz, ax - nx, az - nz);   // (en este orden miran hacia arriba)
     }
   };
   const arc = (cx, cz, r, a0, a1, n = Math.max(6, Math.ceil(Math.abs(a1 - a0) * r / 0.8))) => {
@@ -91,7 +91,7 @@ function linesGeometry() {
     seg(bx, -bw - e, bx, bw + e); seg(gx, -bw, bx, -bw); seg(gx, bw, bx, bw);   // área de meta
     dot(s * (HL - F.spot), 0, 0.12);
     // semicírculo del área: la parte del círculo de 9,15 m alrededor del punto que queda fuera del área
-    if (s > 0) arc(HL - F.spot, 0, F.arc, Math.PI - (Math.PI - c), Math.PI + (Math.PI - c), 28); else arc(-HL + F.spot, 0, F.arc, -(Math.PI - c), Math.PI - c, 28);
+    if (s > 0) arc(HL - F.spot, 0, F.arc, Math.PI - c, Math.PI + c, 16); else arc(-HL + F.spot, 0, F.arc, -c, c, 16);
     // córners (cuarto de círculo de 1 m hacia dentro) y las marcas de 9,15 m por fuera del campo
     for (const sz of [-1, 1]) {
       const am = Math.atan2(-sz, -s); arc(gx, sz * HW, F.corner, am - Math.PI / 4, am + Math.PI / 4, 8);
