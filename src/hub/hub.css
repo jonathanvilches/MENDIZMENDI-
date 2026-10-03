@@ -331,7 +331,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .ic-badge { position: absolute; top: 0; right: -30px; background: #8fd16a; color: #1b2a10; font-weight: 900; font-size: 12px; padding: 4px 10px; border-radius: 12px; transform: rotate(10deg); }
 .info .mg-card { background: linear-gradient(180deg, #3a1680, #1c0b3a); } .info .mg-card p { color: #cbc2e0; } .info .kicker { color: #FFD700; }
 /* ficha de fauna y flora (también se abre desde el menú: por encima de todo) */
-.mg-overlay.ficha { z-index: 4000; }
+.mg-overlay.ficha { z-index: 4000; grid-template-columns: minmax(0, 1fr); justify-items: center; }
 .ficha .mg-card { width: min(600px, 100%); background: linear-gradient(180deg, #24502e, #10261a); text-align: left; align-items: stretch; gap: 8px; }
 .ficha .fc-head { align-self: center; position: relative; }
 .fc-pic { position: relative; width: min(300px, 72vw, 31vh); aspect-ratio: 6 / 5; border-radius: 16px; overflow: hidden; background: #eef4e6 radial-gradient(#ffffff, #dfe9d4); box-shadow: 0 8px 24px rgba(0, 0, 0, .35); }
@@ -353,10 +353,24 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .fc-opts { display: grid; gap: 8px; width: min(380px, 100%); }
 .fc-opt { min-height: 48px; font-weight: 900; font-size: 17px; background: #f4efe2; color: #1f3a1a; border-radius: 14px; box-shadow: 0 4px 0 rgba(0, 0, 0, .3); }
 .fc-opt.ok { background: #8fd16a; color: #1b2a10; } .fc-opt.ko { background: #e03c3c; color: #fff; animation: shake .35s; }
-@media (orientation: landscape) and (max-height: 520px) {
-  .ficha .mg-card { display: grid; grid-template-columns: minmax(150px, 34%) 1fr; column-gap: 16px; align-items: start; }
-  .ficha .mg-card > :not(.fc-head) { grid-column: 2; } .ficha .fc-head { grid-column: 1; grid-row: 1 / span 6; align-self: start; }
-  .ficha .fc-pic { width: 100%; } .ficha .kicker, .ficha h2 { text-align: left; align-self: start; } .fc-names { justify-content: flex-start; }
+/* planta y hoja: dos tarjetas una al lado de la otra (en vertical) o una encima de otra (en horizontal) */
+.fc-pics { display: flex; gap: 10px; justify-content: center; align-items: stretch; }
+.fc-pics.two { width: min(100%, 470px); }
+.fc-pics.two .fc-pic.flora { flex: 1.3 1 0; width: auto; min-width: 0; max-height: 34vh; }
+.fc-leaf { flex: 1 1 0; min-width: 0; margin: 0; padding: 8px 8px 6px; border-radius: 16px; background: #f6f9f0 radial-gradient(circle at 50% 42%, #ffffff, #e6efdc 75%); box-shadow: 0 8px 24px rgba(0, 0, 0, .35); display: flex; flex-direction: column; align-items: center; gap: 4px; overflow: hidden; }
+.fc-leaf img { flex: 1 1 0; min-height: 0; min-width: 0; width: 100%; height: 0; object-fit: contain; display: block; }
+.fc-leaf figcaption { flex: none; padding: 2px 10px; border-radius: 999px; background: #2f6a2a; color: #fff; font: 900 11px 'Nunito', sans-serif; letter-spacing: .06em; text-transform: uppercase; }
+@media (max-width: 360px) { .fc-pics.two { flex-direction: column; align-items: center; } .fc-pics.two .fc-pic.flora { width: 100%; flex: none; } .fc-leaf { width: 60%; flex: none; aspect-ratio: 1; } }
+/* móvil en horizontal: las imágenes a la izquierda, quietas, y el texto a la derecha con su propio desplazamiento */
+@media (orientation: landscape) and (max-height: 560px) {
+  .ficha .mg-card { width: min(860px, 100%); max-height: calc(100vh - 28px); max-height: calc(100dvh - 28px); display: grid; grid-template-columns: minmax(170px, 38%) 1fr; column-gap: 18px; align-items: start; padding: 16px 18px; }
+  .ficha .mg-card > :not(.fc-head) { grid-column: 2; } .ficha .fc-head { grid-column: 1; grid-row: 1 / span 8; align-self: start; position: sticky; top: 0; z-index: 1; }
+  .ficha .fc-pics, .ficha .fc-pics.two { width: 100%; flex-direction: column; }
+  .ficha .fc-pic, .ficha .fc-pics.two .fc-pic.flora { width: 100%; flex: none; max-height: none; aspect-ratio: auto; height: calc((100vh - 70px) * .56); height: calc((100dvh - 70px) * .56); }
+  .ficha .fc-leaf { flex: none; width: 100%; height: calc((100vh - 70px) * .44); height: calc((100dvh - 70px) * .44); }
+  .ficha .fc-pic.fauna { width: min(170px, 60vh); height: min(170px, 60vh); align-self: center; }
+  .ficha .kicker, .ficha h2 { text-align: left; align-self: start; } .fc-names { justify-content: flex-start; }
+  .ficha .fc-where { justify-content: flex-start; } .ficha .btn.primary { align-self: stretch; }
 }
 .tbar { position: relative; width: 100%; height: 46px; border-radius: 14px; background: linear-gradient(90deg, #32136f, #461d95); overflow: hidden; box-shadow: inset 0 3px 8px rgba(0, 0, 0, .4); }
 .tbar .zone { position: absolute; top: 0; bottom: 0; background: linear-gradient(180deg, #ff7a3a, #e03c3c); box-shadow: 0 0 18px #ff7a3a; border-radius: 8px; }
@@ -882,6 +896,3 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .lp-note { margin-top: 18px; color: var(--mute); font-size: 13px; font-weight: 700; }
 
 /* la hoja de la planta, en la esquina de su imagen */
-.fc-leaf { position: absolute; right: 6px; bottom: 6px; width: 44%; aspect-ratio: 1; margin: 0; border-radius: 50%; background: radial-gradient(#ffffff, #eef4e6 70%); box-shadow: 0 4px 14px rgba(0, 0, 0, .35); border: 3px solid #ffffff; display: grid; place-items: center; overflow: hidden; }
-.fc-pic .fc-leaf img { width: 86%; height: 86%; object-fit: contain; opacity: 1; }
-.fc-leaf figcaption { position: absolute; bottom: 7%; left: 0; right: 0; text-align: center; font: 900 10px 'Nunito', sans-serif; color: #2f5a1e; letter-spacing: .04em; text-transform: uppercase; text-shadow: 0 0 4px #fff, 0 0 4px #fff; }
