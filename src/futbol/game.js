@@ -225,7 +225,7 @@ export class FutbolGame {
     const loose = !this.owner && this.passTo !== p;
     if ((this.defending() || loose) && this.switchCD <= 0 && !p.robo && !p.slide) {
       const b = this.ball.p, mine = hyp(p.x - b.x, p.z - b.z);
-      let best = null, bd = mine - (loose ? 4 : 2.5);
+      let best = null, bd = mine - (loose ? 1.6 : 1.2);
       for (const q of this.team(p.team)) if (q.role !== 'POR' && q !== p && q.down <= 0) { const d = hyp(q.x - b.x, q.z - b.z); if (d < bd) { bd = d; best = q; } }
       if (best) this.setMe(best, 'auto');
     }
@@ -233,7 +233,7 @@ export class FutbolGame {
   setMe(q, why = 'manual') {
     if (!q || q === this.me || q.role === 'POR') return;
     if (this.noSwitch && why !== 'force') return;   // en los retos siempre llevas al mismo
-    const old = this.me; old.wx = old.vx; old.wz = old.vz; this.me = q; this.switchCD = 0.9; q.plan = null;
+    const old = this.me; old.wx = old.vx; old.wz = old.vz; this.me = q; this.switchCD = 0.6; q.plan = null;
     this.emit({ t: 'switch', p: q.id, why });
   }
   manualSwitch() {
@@ -315,6 +315,8 @@ export class FutbolGame {
     tx += (this.rnd() - 0.5) * 2 * err; tz += (this.rnd() - 0.5) * 2 * err;
     tx = clamp(tx, -F.HL + 0.4, F.HL - 0.4); tz = clamp(tz, -F.HW + 0.4, F.HW - 0.4);
     this.passToPoint(p, tx, tz, loft, q);
+    // el balón va a un compañero tuyo (lo pasa el portero o la IA): pasas a llevar al que lo recibe
+    if (q.team === this.me.team && p !== this.me && !this.autoplay) this.setMe(q, 'pass');
   }
   passToPoint(p, tx, tz, loft, q = null) {
     const b = this.ball.p, dx = tx - b.x, dz = tz - b.z, d = hyp(dx, dz) || 1;

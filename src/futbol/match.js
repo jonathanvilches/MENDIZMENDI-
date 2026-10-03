@@ -39,7 +39,7 @@ export class FutbolMatch {
     this.home = TEAMS[this.o.home] || TEAMS.osasuna; this.away = TEAMS[this.o.away] || TEAMS.visitante;
     this.camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.3, 600);
     this.camMode = (innerWidth < innerHeight) ? 'detras' : 'tv';
-    this.done = false; this.paused = false; this.t = 0; this.snaps = []; this.replay = null; this.intro = 3; this.live = false;
+    this.done = false; this.paused = false; this.t = 0; this.snaps = []; this.replay = null; this.intro = 3; this.introLen = 3; this.live = false;
   }
   /** Crea el campo, los veintidós jugadores, el árbitro y sus asistentes, el balón y la interfaz. */
   async load() {
@@ -104,7 +104,87 @@ export class FutbolMatch {
     // al cambiar de aplicación en el móvil, el partido se para
     this.onHide = () => { if (document.hidden && !this.ended && this.intro <= 0) this.pauseMenu(); };
     document.addEventListener('visibilitychange', this.onHide);
+    this.onTap = () => { if (this.intro > 0 && !this.paused) this.skipIntro(); }; addEventListener('pointerdown', this.onTap);
+    this.confetti = this.makeConfetti(); this.scene.add(this.confetti.mesh);
+    this.prepIntro(this.o.mode === 'match');
     this.sync(0); this.cam(1, true);
+  }
+  // ---------------------------------------------------------------- presentación
+  // 0–3 s: llegada aérea al estadio con los dos equipos ya formados en el centro; 3–6 s: la cámara pasa a ras de suelo
+  // por delante de los veintidós (y el trío arbitral) entre confeti; 6–8,5 s: plano abierto del campo entero con cada
+  // uno corriendo a su puesto del saque inicial (portero bajo palos), y la cámara baja a la de televisión.
+  // Tocar la pantalla o pulsar una tecla la salta
+  prepIntro(lineup) {
+    const g = this.game;
+    // los puestos del saque inicial (los mismos que pondrá el saque de verdad al empezar)
+    if (g.mode === 'match') { g.kickoff(0); g.restart = null; g.phase = 'intro'; g.events = []; }
+    this.slots = g.players.map(p => ({ x: p.x, z: p.z }));
+    this.refSlots = g.refs.map(r => ({ x: r.x, z: r.z }));
+    this.lineup = lineup && g.mode === 'match';
+    this.introLen = this.intro = this.lineup ? 8.5 : this.intro;
+    this.introStage = -1;
+    if (!this.lineup) return;
+    // en fila, de cara a la tribuna principal: los locales a un lado del trío arbitral y los visitantes al otro
+    const Z = 8;
+    this.rows = g.players.map(p => { const i = p.id % 11; return { x: (p.team ? 1 : -1) * (1.7 + i * 1.15), z: Z }; });
+    this.refRows = g.refs.map((r, i) => ({ x: (i - 1) * 0.8, z: Z }));
+  }
+  introStep(dt) {
+    const g = this.game, e = this.introLen - this.intro;
+    const stage = !this.lineup ? 2 : e < 3 ? 0 : e < 6 ? 1 : 2;
+    const enter = stage !== this.introStage; this.introStage = stage;
+    if (enter) this.camPos = null;   // corte de plano
+    if (enter && stage === 1) this.hud.msg(this.home.name, `${this.away.name} · 11 contra 11`, 2600);
+    this.confetti.mesh.visible = this.lineup && e > 2.6;
+    if (this.confetti.mesh.visible) this.confetti.update(dt);
+    if (stage < 2) {
+      g.players.forEach((p, i) => { const r = this.rows[i]; p.x = r.x; p.z = r.z; p.vx = p.vz = 0; p.h = 0; });
+      g.refs.forEach((r, i) => { const q = this.refRows[i]; r.x = q.x; r.z = q.z; r.vx = r.vz = 0; r.h = 0; });
+      return;
+    }
+    if (!this.lineup) { g.players.forEach((p, i) => { const t = this.slots[i]; p.x = t.x; p.z = t.z; p.h = Math.atan2(-t.x, -t.z * 0.2); }); return; }
+    // tras el corte, ya a medio camino; cada uno llega a su puesto a su paso (el portero, al trote largo)
+    const left = Math.max(0.05, this.intro - 0.6);
+    const go = (o, from, to) => {
+      if (enter) { o.x = from.x + (to.x - from.x) * 0.72; o.z = from.z + (to.z - from.z) * 0.72; }
+      const dx = to.x - o.x, dz = to.z - o.z, d = Math.hypot(dx, dz);
+      if (d < 0.05) { o.vx = o.vz = 0; o.h = Math.atan2(-o.x, -o.z * 0.2); return; }
+      const v = Math.min(d / left, 7.5, d / Math.max(dt, 1e-3)); o.vx = dx / d * v; o.vz = dz / d * v;
+      o.x += o.vx * dt; o.z += o.vz * dt; o.h = Math.atan2(dx, dz);
+    };
+    g.players.forEach((p, i) => go(p, this.rows[i], this.slots[i]));
+    g.refs.forEach((r, i) => go(r, this.refRows[i], this.refSlots[i]));
+  }
+  skipIntro() {
+    if (!this.live || this.intro <= 0.3) return;
+    const g = this.game;
+    g.players.forEach((p, i) => { const t = this.slots[i]; p.x = t.x; p.z = t.z; p.vx = p.vz = 0; });
+    g.refs.forEach((r, i) => { const t = this.refSlots[i]; r.x = t.x; r.z = t.z; r.vx = r.vz = 0; });
+    this.lineup = false; this.intro = 0.3; this.introStage = -1; this.camPos = null;
+  }
+  // confeti rojo, blanco, azul marino y dorado sobre el centro del campo
+  makeConfetti() {
+    const N = this.o.quality === 'low' ? 400 : 1400, geo = new THREE.PlaneGeometry(0.16, 0.1);
+    const mesh = new THREE.InstancedMesh(geo, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, toneMapped: false }), N);
+    const cols = ['#d91a2a', '#ffffff', '#16224a', '#e8b73a', '#d91a2a', '#ffffff'].map(c => new THREE.Color(c));
+    const P = [], m = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), one = new THREE.Vector3(1, 1, 1), v = new THREE.Vector3();
+    const r = Math.random;
+    for (let i = 0; i < N; i++) {
+      P.push({ x: (r() - 0.5) * 44, y: 1 + r() * 16, z: -4 + r() * 18, vy: 0.9 + r() * 0.9, a: r() * 6, b: r() * 6, w: 2 + r() * 5, ph: r() * 6 });
+      mesh.setColorAt(i, cols[i % cols.length]);
+    }
+    mesh.frustumCulled = false; mesh.visible = false;
+    const update = (dt) => {
+      for (let i = 0; i < N; i++) {
+        const p = P[i];
+        if (p.y > 0.02) { p.ph += dt * 2; p.y -= p.vy * dt; p.x += Math.sin(p.ph) * 0.6 * dt; p.a += p.w * dt; p.b += p.w * 0.7 * dt; }
+        else { p.y = 0.015; p.a = Math.PI / 2; }
+        q.setFromEuler(e.set(p.a, p.b, 0)); m.compose(v.set(p.x, p.y, p.z), q, one); mesh.setMatrixAt(i, m);
+      }
+      mesh.instanceMatrix.needsUpdate = true;
+    };
+    update(0);
+    return { mesh, update, dispose: () => { geo.dispose(); mesh.material.dispose(); mesh.dispose(); } };
   }
   newGame() {
     const o = this.o, g = new FutbolGame({ mode: o.mode === 'penalties' ? 'penalties' : 'match', level: o.level, duration: o.duration, assist: o.assist, autoplay: o.autoplay, cup: o.cup, kicks: o.kicks, seed: o.seed });
@@ -114,7 +194,7 @@ export class FutbolMatch {
   run() {
     return new Promise((res) => {
       this.res = res;
-      this.intro = 3; this.live = true;
+      this.live = true;
       const V = this.field.venue;
       this.hud.msg(V.name, `${this.home.name} – ${this.away.name}`, 2600);
       this.audio.resume(); this.audio.whistle(1);
@@ -128,7 +208,7 @@ export class FutbolMatch {
   }
 
   // ---------------------------------------------------------------- entrada
-  press(a) { if (this.paused || this.replay) return; this.audio.resume(); this.game.press(a); if (a === 'pass' || a === 'shoot') this.tuto?.pressed(a); }
+  press(a) { if (this.paused || this.replay) return; if (this.intro > 0) { this.skipIntro(); return; } this.audio.resume(); this.game.press(a); if (a === 'pass' || a === 'shoot') this.tuto?.pressed(a); }
   release(a) { if (this.paused) return; this.game.release(a); }
   key(e, down) {
     if (this.done || ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target?.tagName)) return;
@@ -173,7 +253,7 @@ export class FutbolMatch {
     if (this.paused) { this.field.tick(dt, this.t, this.camera, 0.2, 0); return; }
     // hasta que run() arranca (el fundido de entrada), solo se dibuja la presentación
     if (!this.live) { this.sync(dt); this.cam(dt); return; }
-    if (this.intro > 0) { this.intro -= dt; this.sync(dt); this.cam(dt); if (this.intro <= 0) { this.begin(); this.cam(dt, true); } return; }
+    if (this.intro > 0) { this.intro -= dt; this.introStep(dt); this.sync(dt); this.cam(dt); if (this.intro <= 0) { this.confetti.mesh.visible = false; this.begin(); this.cam(dt, true); } return; }
     if (this.replay) { this.playReplay(dt); return; }
     this.moveInput();
     this.tuto?.update(dt); this.reto?.update(dt);
@@ -268,7 +348,7 @@ export class FutbolMatch {
   restart() {
     this.ended = false; this.replay = null; this.snaps = []; this.tuto = null;
     this.hud.setScore(0, 0); this.field.setScore?.(0, 0); this.hud.tip(null); this.hud.el.pen.classList.remove('on');
-    this.game = this.newGame(); this.intro = 1.2; this.camPos = null;
+    this.game = this.newGame(); this.intro = 1.2; this.camPos = null; this.prepIntro(false);
   }
   exit(result) {
     if (this.done) return; this.done = true;
@@ -326,7 +406,7 @@ export class FutbolMatch {
     const sh = clamp(1 - bp.y / 5, 0.25, 1); this.ballShadow.position.set(bp.x, 0.012, bp.z); this.ballShadow.scale.setScalar(0.7 + (1 - sh) * 0.8); this.ballShadow.material.opacity = sh;
     // anillo del jugador y aro del pase
     const me = g.me, showRing = !g.autoplay && g.mode !== 'penalties' || (g.mode === 'penalties' && g.pen?.human === 'shooter');
-    this.ring.visible = showRing && !this.replay; this.ring.position.set(me.x, 0.03, me.z); this.ring.rotation.y = me.h;
+    this.ring.visible = showRing && !this.replay && !(this.intro > 0); this.ring.position.set(me.x, 0.03, me.z); this.ring.rotation.y = me.h;
     this.ring.children[0].material.color.set(g.defending() ? '#ffb347' : '#ffe14a');
     const q = g.passTo; this.mark.visible = !!q && q.team === 0 && q !== me; if (q) this.mark.position.set(q.x, 0.03, q.z);
     // público: se anima con las ocasiones y celebra los goles
@@ -379,9 +459,21 @@ export class FutbolMatch {
     let pos, look, fov = 45;
     if (this.intro > 0) {
       // presentación: llega desde fuera, por encima de la cubierta (se ve el estadio entero), y baja hasta el campo
-      const k = clamp(1 - this.intro / 3, 0, 1), e = k * k * (3 - 2 * k), a = -0.75 + e * 0.55;
-      const r = 205 - e * 165, h = 95 - e * 50;
-      pos = new THREE.Vector3(Math.sin(a) * r * 1.1, h, Math.cos(a) * r); look = new THREE.Vector3(0, 6 - e * 5, 0); fov = 46;
+      const t = this.introLen - this.intro, ss = (k) => { k = clamp(k, 0, 1); return k * k * (3 - 2 * k); };
+      if (this.lineup && t >= 3 && t < 6) {
+        // a ras de suelo, recorriendo la fila de jugadores
+        const e = ss((t - 3) / 3), x = -17 + e * 34;
+        pos = new THREE.Vector3(x, 1.7, 13.2); look = new THREE.Vector3(x + 2.5, 1.25, 8); fov = 38;
+      } else if (this.lineup && t >= 6) {
+        // el campo entero desde lo alto (por dentro del hueco de la cubierta), bajando a la cámara de televisión
+        const e = ss((t - 6) / 2.2);
+        pos = new THREE.Vector3(-40 + e * 40, 36 - e * 15, 16 + e * (F.HW + 6)); look = new THREE.Vector3(4 - e * 4, 0, -3 + e); fov = 55 - e * 13;
+      } else {
+        // llega desde fuera, por encima de la cubierta (se ve el estadio entero), y baja hacia el centro del campo
+        const k = clamp(this.lineup ? t / 3 : 1 - this.intro / this.introLen, 0, 1), e = k * k * (3 - 2 * k), a = -0.75 + e * 0.55;
+        const r = 205 - e * (this.lineup ? 150 : 165), h = 95 - e * (this.lineup ? 60 : 50);
+        pos = new THREE.Vector3(Math.sin(a) * r * 1.1, h, Math.cos(a) * r); look = new THREE.Vector3(0, 6 - e * 5, this.lineup ? e * 6 : 0); fov = 46;
+      }
     } else if (g.mode === 'penalties' || g.restart?.type === 'penalty' && g.phase !== 'play') {
       // penaltis: detrás del que tira (o detrás de la portería si paras tú)
       const P = g.pen, gx = g.restart?.type === 'penalty' && g.mode !== 'penalties' ? g.goalX(g.restart.team) : F.HL, s = Math.sign(gx);
@@ -429,7 +521,7 @@ export class FutbolMatch {
     removeEventListener('keydown', this.onKey, true); removeEventListener('keyup', this.onKeyUp, true); removeEventListener('resize', this.onResize); document.removeEventListener('visibilitychange', this.onHide);
     for (const ch of [...(this.chars || []), ...(this.refChars || [])]) { try { ch.c.dispose?.(); } catch (e) { } }
     for (const m of this.roofMats || []) m.dispose();
-    this.reto?.dispose?.();
+    this.reto?.dispose?.(); this.confetti?.dispose(); removeEventListener('pointerdown', this.onTap);
     this.ball?.geometry.dispose(); this.ball?.material.dispose(); this.ballTex?.dispose(); this.blobTex?.dispose();
     this.ballShadow?.geometry.dispose(); this.ballShadow?.material.dispose();
     this.ring?.traverse(o => { if (o.isMesh) { o.geometry.dispose(); o.material.dispose(); } }); this.mark?.geometry.dispose(); this.mark?.material.dispose();
