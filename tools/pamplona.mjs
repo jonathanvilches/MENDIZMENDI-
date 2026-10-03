@@ -24,6 +24,7 @@ const cine = (o) => p.evaluate((o) => {
   const pos = new THREE.Vector3(o.x, (o.abs ? 0 : gh(o.x, o.z)) + o.y, o.z), look = new THREE.Vector3(o.lx, (o.abs ? 0 : gh(o.lx, o.lz)) + o.ly, o.lz);
   G.player.place(o.px ?? o.x + 0.5, o.pz ?? o.z + 0.5, 0);
   G.follow.cinematic = { pos, look, t: 0, lookCur: look.clone() }; G.camera.position.copy(pos); G.camera.lookAt(look);
+  if (G.rt?.sky) { G.rt.sky.time = o.night ? 22.5 : 12; G.rt.sky.speed = 0; }
 }, o);
 const V = {
   plaza: { x: 40, y: 26, z: 108, lx: 40, ly: 2, lz: 0 },
@@ -46,6 +47,9 @@ const V = {
   ciudadela: { x: 40, y: 70, z: 170, lx: -60, ly: 0, lz: 250 },
   sadar: { x: 120, y: 50, z: 300, lx: 232, ly: 4, lz: 318 },
   sadarDentro: { x: 208, y: 3, z: 318, lx: 260, ly: 7, lz: 318 },
+  sadarEsquina: { x: 150, y: 3, z: 400, lx: 232, ly: 9, lz: 318 },
+  sadarOeste: { x: 140, y: 2.5, z: 330, lx: 232, ly: 9, lz: 318 },
+  sadarNoche: { x: 150, y: 3, z: 400, lx: 232, ly: 9, lz: 318, night: true },
   ciudad: { x: 40, y: 240, z: 330, lx: 40, ly: 0, lz: -60 },
 };
 for (const [k, o] of Object.entries(V)) {
