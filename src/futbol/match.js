@@ -81,7 +81,7 @@ export class FutbolMatch {
       const patch = (m) => { if (!copies.has(m)) { const c2 = m.userData.fbOwn ? m : m.clone(); roofShade(c2, this.field.roof); copies.set(m, c2); this.roofMats.push(c2); } return copies.get(m); };
       for (const ch of [...this.chars, ...this.refChars]) ch.c.obj.traverse(m => { if (m.isMesh && m.material) m.material = Array.isArray(m.material) ? m.material.map(patch) : patch(m.material); });
     }
-    // balón (dibujado al 120 %) con su sombra
+    // balón (de su tamaño real) con su sombra
     this.ballTex = ballTexture();
     this.ball = new THREE.Mesh(new THREE.SphereGeometry(R * K.scale, 24, 16), new THREE.MeshStandardMaterial({ map: this.ballTex, roughness: 0.45 }));
     this.ball.castShadow = true; this.scene.add(this.ball);
@@ -454,20 +454,19 @@ export class FutbolMatch {
     // balón: rodando con giro coherente con la velocidad; en las manos del portero, con él
     const bp = B.p, bm = this.ball;
     const al = g.alpha ?? 1, P0 = B.prev, ibx = P0.x + (bp.x - P0.x) * al, iby = P0.y + (bp.y - P0.y) * al, ibz = P0.z + (bp.z - P0.z) * al;
-    // de lejos el balón se dibuja algo más grande (hasta el doble), para que no se pierda en la pantalla del móvil
-    const camD = this.camera.position.distanceTo(bm.position), big = clamp(camD / 24, 1, 2);
-    bm.scale.setScalar(big); bm.position.set(ibx, iby + (K.scale * big - 1) * R, ibz);
+    // el balón, siempre de su tamaño (para seguirlo en los pases está la estela)
+    bm.position.set(ibx, iby + (K.scale - 1) * R, ibz);
     const hs = Math.hypot(B.v.x, B.v.z);
     const last = this.trailHist[0]; if (last && Math.hypot(last[0] - ibx, last[2] - ibz) > 3) this.trailHist.length = 0;   // (saque: el balón se ha colocado en otro sitio)
-    this.trailHist.unshift([ibx, iby + (K.scale * big - 1) * R, ibz]); if (this.trailHist.length > 14) this.trailHist.length = 14;
+    this.trailHist.unshift([ibx, iby + (K.scale - 1) * R, ibz]); if (this.trailHist.length > 14) this.trailHist.length = 14;
     const showTrail = !B.held && !g.owner && B.speed > 7 && !this.replay;
     this.trail.forEach((sp, i) => {
       const h = this.trailHist[(i + 1) * 2]; sp.visible = showTrail && !!h; if (!sp.visible) return;
-      sp.position.set(h[0], h[1], h[2]); const k = 1 - (i + 1) / (this.trail.length + 1); sp.scale.setScalar(R * K.scale * big * 2.4 * (0.5 + 0.5 * k)); sp.material.opacity = 0.55 * k * clamp((B.speed - 7) / 5, 0, 1);
+      sp.position.set(h[0], h[1], h[2]); const k = 1 - (i + 1) / (this.trail.length + 1); sp.scale.setScalar(R * K.scale * 2.2 * (0.5 + 0.5 * k)); sp.material.opacity = 0.55 * k * clamp((B.speed - 7) / 5, 0, 1);
     });
     if (hs > 0.05 && !B.held && dt > 0) { const ax = new THREE.Vector3(B.v.z, 0, -B.v.x).normalize(); bm.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(ax, hs / (R * K.scale) * dt)); }
     this.field.follow?.(bp.x, bp.z);
-    const sh = clamp(1 - bp.y / 5, 0.25, 1); this.ballShadow.position.set(bp.x, 0.012, bp.z); this.ballShadow.scale.setScalar((0.7 + (1 - sh) * 0.8) * big); this.ballShadow.material.opacity = sh;
+    const sh = clamp(1 - bp.y / 5, 0.25, 1); this.ballShadow.position.set(bp.x, 0.012, bp.z); this.ballShadow.scale.setScalar(0.7 + (1 - sh) * 0.8); this.ballShadow.material.opacity = sh;
     // anillo del jugador y aro del pase
     const me = g.me, showRing = !g.autoplay && g.mode !== 'penalties' || (g.mode === 'penalties' && g.pen?.human === 'shooter');
     this.ring.visible = showRing && !this.replay && !(this.intro > 0); this.ring.position.set(me.x, 0.03, me.z); this.ring.rotation.y = me.h;
@@ -511,6 +510,7 @@ export class FutbolMatch {
     f.r?.forEach(([x, z, h, sp], i) => { const ch = this.refChars[i]; if (!ch) return; ch.outer.position.set(x, 0, z); ch.outer.rotation.y = h; ch.c.anim.setSpeed?.(sp * (R2.len / R2.dur)); ch.c.anim.update?.(dt * (R2.len / R2.dur)); });
     this.ball.position.set(f.b[0], f.b[1] + (K.scale - 1) * R, f.b[2]); this.ball.quaternion.copy(f.q);
     this.ballShadow.position.set(f.b[0], 0.012, f.b[2]);
+    for (const sp of this.trail) sp.visible = false;   // (en la repetición, sin estela)
     this.ring.visible = false; this.mark.visible = false;
     // cámara: desde detrás de la portería, baja y a un lado
     const s = R2.side, c = this.camera, gz = f.b[2];
