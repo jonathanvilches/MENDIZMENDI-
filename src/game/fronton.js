@@ -76,7 +76,8 @@ export class Fronton {
  * Partido (o peloteo) en un frontón. Devuelve una promesa con { win, you, cpu, best, quit }.
  * G: juego (player, camera, follow, ui, mode); rival: Actor del pueblo.
  */
-export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level } = {}) {
+// (torneo: rivalName para el nombre del rival en el marcador y fixedLevel para no elegir nivel)
+export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level, rivalName, fixedLevel = false } = {}) {
   if (window.__autoWin) return Promise.resolve({ win: true, you: target, cpu: 0 });
   return new Promise(res => {
     const P = G.player, rig0 = P.rig, home = { x: rival.pos.x, z: rival.pos.z, h: rival.heading };
@@ -131,9 +132,9 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     };
     let match;
     try { match = G.pelotaMatch = new PelotaMatch({
-      THREE, court: fronton.court, camera: G.camera, lang: isEU() ? 'eu' : 'es', mode, target, level,
+      THREE, court: fronton.court, camera: G.camera, lang: isEU() ? 'eu' : 'es', mode, target, level, fixedLevel,
       you: { obj: P.obj, name: profile().name || (isEU() ? 'Zu' : 'Tú'), animate: animYou },
-      rival: { obj: rival.obj, name: String(rival.name).split(',')[0], animate: animRival },
+      rival: { obj: rival.obj, name: rivalName || String(rival.name).split(',')[0], animate: animRival },
       onEnd: (r) => done(r), onExit: (r) => done(r),
       onEvent: (e) => { if (e.type === 'call' && crowd) crowd.point(e.winner === 'you'); },
     }); } catch (e) { console.warn('frontón', e); done({ win: false, error: true }); return; }   // (si no se monta, de vuelta al pueblo)

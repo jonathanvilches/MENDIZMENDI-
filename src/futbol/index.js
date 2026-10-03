@@ -93,11 +93,13 @@ export const FutbolSystem = {
     return this.startMatch({ campoId: 'pueblo', local: H, awayTeam: A, dificultad: levelFor(club, rival), duracion, autoplay, timeScale, venueName: F.field ? `Campo de ${F.field} · ${F.town}` : `Campo municipal de ${F.town}` });
   },
   /** Liga Navarra con el club del pueblo: pantalla de la liga, partido (o simulado), resultados de la jornada. */
-  async startLeague({ club, autoplay = false, timeScale = 1 } = {}) {
+  // here: club del pueblo en el que estás (la jornada solo se juega en el campo del de casa; si no, «travel»)
+  async startLeague({ club, here = undefined, autoplay = false, timeScale = 1 } = {}) {
     let S = season(club), last = null;
     for (;;) {
-      const a = await ligaPanel(S);
+      const a = await ligaPanel(S, here);
       if (a === 'exit') return last || { quit: true };
+      if (a === 'travel') return { quit: true, travel: nextMatch(S).h };
       if (a === 'new') { S = newSeason(club); continue; }
       const m = nextMatch(S), j = S.j, home = m.h === club, rival = home ? m.a : m.h;
       let mine = null, theirs = null;

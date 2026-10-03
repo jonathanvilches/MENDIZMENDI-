@@ -51,6 +51,9 @@ import { Fronton, findFrontonSpot, frontonWall } from './fronton.js';
 import { Pista, findPistaSpot } from './pista.js';
 import { clubOfTown, teamOfClub, clubPanel } from '../futbol/index.js';
 import { season as ligaSeason } from '../futbol/liga.js';
+import { TOWN_CLUB, CLUBS } from '../futbol/clubs.js';
+const CLUBS_NAME = (id) => CLUBS[id]?.name || '', CLUBS_TOWN = (id) => CLUBS[id]?.town || '';
+import { torneo, yourMatch, playTorneoRound, torneoPanel, pelotaMenu } from './torneo.js';
 import { makeClue, makeAura } from './legendFx.js';
 import { Chase } from './chase.js';
 import { FloraSpots } from './floraSpots.js';
@@ -686,13 +689,21 @@ export class TownGame {
         st.step = this.pista ? 1 : 0; if (!this.pista) st.met = true; saveProfile();
       } else await this.say(a, [club ? `¡Aupa ${club.name}! ¿Qué jugamos hoy?` : '¿Qué jugamos hoy?']);
     } finally { this.player.frozen = false; a.talking = 0; }
-    // menú del club (como el FIFA): liga, fútbol sala, amistoso
-    const S = club ? ligaSeason(club.id) : null;
+    // menú del club (como el FIFA): liga, fútbol sala, amistoso. En la liga juegas con «tu club» (el del primer pueblo
+    // en el que la empezaste); cada jornada se juega en el campo del de casa, así que se viaja de pueblo en pueblo
+    const P = profile(), myClub = P.futbolClub || club?.id, S = myClub ? ligaSeason(myClub) : null;
     const sala = !this.pista ? null : st.step === 1 ? ['sala', 'Fútbol sala: entrenamiento', 'Pases en la pista (para el sello)'] : st.step === 2 ? ['sala', 'Fútbol sala: partido por el sello', `5 contra 5 contra ${rivalName}`] : ['sala', 'Fútbol sala en la pista', 'Partido, penaltis o un reto'];
-    const items = (club ? [['liga', S.j < S.rounds.length ? `Liga Navarra · jornada ${S.j + 1}` : 'Liga Navarra · nueva temporada', 'Fútbol 11 contra los clubes de la zona'], sala, ['amistoso', 'Amistoso', 'Contra cualquier club de Navarra'], ['exit', 'Salir', '']] : [sala, ['exit', 'Salir', '']]).filter(Boolean);
+    const nm = S && S.j < S.rounds.length ? S.rounds[S.j].find(x => x.h === myClub || x.a === myClub) : null;
+    const ligaSub = !nm ? 'Fútbol 11 contra los clubes de la zona' : nm.h === club?.id ? `${P.futbolClub ? CLUBS_NAME(myClub) + ' · ' : ''}la jornada se juega aquí` : `Jornada en ${CLUBS_TOWN(nm.h)}`;
+    const items = (club ? [['liga', S.j < S.rounds.length ? `Liga Navarra · jornada ${S.j + 1}` : 'Liga Navarra · nueva temporada', ligaSub], sala, ['amistoso', 'Amistoso', 'Contra cualquier club de Navarra'], ['exit', 'Salir', '']] : [sala, ['exit', 'Salir', '']]).filter(Boolean);
     const pick = club ? await clubPanel(club.id, items, `${town} · tu club`) : 'sala';
     if (pick === 'exit' || (pick === 'sala' && !this.pista)) return;
-    if (pick === 'liga') { const r = await fut.liga(club.id); if (!r.quit && r.win) addXP(30); return; }
+    if (pick === 'liga') {
+      if (!P.futbolClub) { P.futbolClub = club.id; saveProfile(); }
+      const r = await fut.liga(myClub, club.id); if (!r.quit && r.win) addXP(30);
+      if (r.travel) return this.travelTo(this.townOfClub(r.travel));
+      return;
+    }
     if (pick === 'amistoso') { const r = await fut.friendly(club.id); if (r.quit) return; await this.say(a, [r.win ? `¡${r.you} a ${r.cpu}! ¡Qué partidazo!` : r.you === r.cpu ? `${r.you} a ${r.cpu}. Empate.` : `${r.you} a ${r.cpu}. La próxima, seguro.`]); return; }
     if (st.step === 1) {
       const r = await fut.reto('pases'); if (r.quit) return;
@@ -713,6 +724,20 @@ export class TownGame {
     const r = await fut.run(); if (r.quit) return;
     await this.say(a, [r.win ? `¡${r.you} a ${r.cpu}! ¡Qué partidazo!` : r.you === r.cpu ? `${r.you} a ${r.cpu}. Empate.` : `${r.you} a ${r.cpu}. La próxima, seguro.`]);
   }
+  // el pueblo del juego de un club (el que lleva su nombre o el primero de su lista)
+  townOfClub(id) { const ts = Object.keys(TOWN_CLUB).filter(t => TOWN_CLUB[t] === id); const c = clubOfTown(ts[0]); return ts.find(t => LEVELS.find(l => l.id === t)?.name.split(' /')[0] === c?.town) || ts[0]; }
+  // viajar a otro pueblo para jugar allí (el partido de liga o del torneo)
+  async travelTo(id) {
+    const L = LEVELS.find(l => l.id === id); if (!L || id === this.def.id) return;
+    await this.ui.toast?.(`De viaje a ${L.name.split(' /')[0]}…`, 'map', 1600);
+    this.onPlayTown ? this.onPlayTown(id) : this.onExit?.();
+  }
+  // los pueblos del juego donde se juega el torneo de la comarca: los de la comarca y, si son pocos, los más cercanos
+  comarcaVenues() {
+    const own = LEVELS.filter(l => l.comarca === this.def.comarca), i0 = LEVELS.findIndex(l => l.id === this.def.id);
+    const near = LEVELS.filter(l => l.comarca !== this.def.comarca && l.id !== 'pamplona').sort((a, b) => Math.abs(LEVELS.indexOf(a) - i0) - Math.abs(LEVELS.indexOf(b) - i0));
+    return [...own, ...near].slice(0, Math.max(own.length, 4)).map(l => ({ id: l.id, name: l.name.split(' /')[0] }));
+  }
   // Partido libre en el frontón del pueblo (fuera de las misiones): contra el pelotari o el anfitrión de la misión
   async freePelota() {
     const a = this.pelotari || this.missions.find(M => M.type === 'pelota')?.host;
@@ -723,11 +748,39 @@ export class TownGame {
       await this.say(a, first ? ['¡Aupa! ¿Echamos un partido de pelota a mano?', 'La pelota tiene que dar en el frontis por encima de la chapa, la raya roja. Ve al círculo verde y pulsa GOLPE cuando brille.']
         : ['¿Otro partido? ¡Vamos!']);
     } finally { this.player.frozen = false; a.talking = 0; }
+    // partido libre o el torneo de mano de la comarca (la txapela, parte de la misión de la comarca)
+    const P = profile(), town = this.def.name.split(' /')[0], cm = this.comarca?.name || 'la comarca';
+    const ctx = { comarca: this.def.comarca, comarcaName: cm, towns: this.comarcaVenues() };
+    let T = torneo({ name: P.name || 'Tú', town }, ctx);
+    const pick = await pelotaMenu(T, this.def.id);
+    if (pick === 'exit') return;
+    if (pick === 'torneo') return this.pelotaTorneo(a, ctx);
     const r = await this.fronton.play(this, a);
     if (r.quit) return;
     const best = (townState(profile(), this.def.id).best ||= {});
     if (r.win) { best.pelota = (best.pelota || 0) + 1; saveProfile(); }
     await this.say(a, [r.win ? `¡${r.you} a ${r.cpu}! Juegas como un pelotari de verdad. Vuelve cuando quieras.` : `${r.you} a ${r.cpu}. ¡Casi! Aquí estaré para la revancha.`]);
+  }
+  async pelotaTorneo(a, ctx) {
+    const P = profile(), town = this.def.name.split(' /')[0];
+    let T = torneo({ name: P.name || 'Tú', town }, ctx);
+    for (;;) {
+      const act = await torneoPanel(T, this.def.id);
+      if (act === 'exit') return;
+      if (act === 'new') { T = torneo({ name: P.name || 'Tú', town }, ctx, true); continue; }
+      if (act === 'travel') return this.travelTo(yourMatch(T).venue.id);
+      if (act === 'sim') { playTorneoRound(T); continue; }
+      const m = yourMatch(T);
+      const r = await this.fronton.play(this, a, { target: m.target, level: m.level, rivalName: `${m.rival.name} (${m.rival.town})`, fixedLevel: true });
+      if (r.quit) continue;
+      playTorneoRound(T, r.you, r.cpu);
+      if (T.done && T.players[T.champion].you) {
+        P.txapelas = (P.txapelas || 0) + 1; addXP(150); saveProfile();
+        this.player.rig.doCheer?.(); this.particles.confetti?.(this.player.pos, 120); this.sound.fanfare?.();
+        await this.say(a, [`¡Txapeldun! Eres campeón del torneo de mano de ${ctx.comarcaName}. La txapela es tuya.`]);
+      } else if (!r.win) await this.say(a, [`${r.you} a ${r.cpu}. ¡Qué pena! El torneo sigue: mira quién se lleva la txapela.`]);
+      else if (!T.done) await this.say(a, [`¡${r.you} a ${r.cpu}! Pasas a ${yourMatch(T)?.round.toLowerCase() || 'la siguiente ronda'}. El próximo partido es en ${yourMatch(T)?.venue.name || 'otro pueblo'}.`]);
+    }
   }
   say(a, lines) {
     const look = a.obj?.userData.look;
@@ -1843,6 +1896,8 @@ export class TownGame {
   }
 
   // mirador del pueblo (el landmark «lookout» o «pass») y montes vistos desde él, en su dirección real (norte = −z)
+  // centro de la tarima del mirador (para las pruebas y la cámara)
+  miradorDeck() { const l = TOWN.landmarks.find(l => l.kind === 'lookout') || TOWN.landmarks.find(l => l.kind === 'pass'); return l ? { x: l.x, z: l.z } : null; }
   miradorSpot() { const l = TOWN.landmarks.find(l => l.kind === 'lookout') || TOWN.landmarks.find(l => l.kind === 'pass'); return l ? (l.spot || { x: l.x, z: l.z }) : null; }
   monteObs(eye) {
     if (this.panoOn && this.pano) {

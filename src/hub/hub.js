@@ -1,5 +1,6 @@
 // Centro de mando: inicio, mapa de Navarra, comarcas, pueblos, cimas, naturaleza, personajes, insignias, pasaporte y perfil.
 import COMARCAS from '../data/comarcas.json';
+import { txapelas as TXAPELAS } from '../game/torneo.js';
 import MOUNTAINS from '../data/mountains.json';
 import { CAST as AVATARS, STAT_LABELS, castById } from '../data/cast.js';
 import FOLKLORE from '../data/folklore.json';
@@ -221,7 +222,7 @@ export class Hub {
     return `<button class="ccard ${ts.length ? '' : 'soon'}" data-comarca="${c.id}" style="--c:${c.color}">
       <div class="cimg" data-land="${c.id}:480:300"></div>
       <img class="cstamp ${pr.stamps ? '' : 'gray'}" src="${stampImg(c.id)}" alt="">
-      <div class="cbody"><b>${esc(c.name)}</b><small>${ts.length} pueblos jugables · ${pr.stamps} sellos</small></div>
+      <div class="cbody"><b>${esc(c.name)}</b><small>${ts.length} pueblos jugables · ${pr.stamps} sellos${ts.length ? ` · ${TXAPELAS()[c.id] ? '¡txapela de pelota!' : 'txapela: por ganar'}` : ''}</small></div>
       <div class="cring">${ring(pr.pct, 50, '#fff')}</div>
       <span class="cgo">${ts.length ? 'Elegir pueblo' : 'Próximamente'}</span></button>`;
   }
