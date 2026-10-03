@@ -406,11 +406,11 @@ export function createTownLevel(def) {
     // arboleda alrededor de la plaza de toros (sin tapar la entrada del encierro)
     const g = Math.atan2(204 - 232, -71 + 56);
     for (let i = 0; i < 26; i++) { const a = i / 26 * Math.PI * 2; if (Math.abs(Math.atan2(Math.sin(a - g), Math.cos(a - g))) < 0.45) continue; t.push([232 + Math.sin(a) * 46, -56 + Math.cos(a) * 46, 'oak', 1.0]); }
-    // El Sadar (centro 232, 318; zócalo de 46 × 59 m de semilado): árboles en la acera de la avenida del este, en el borde
-    // de la explanada oeste y al fondo de los dos aparcamientos
-    for (let z = -96; z <= 96; z += 12) t.push([232 + 46 + 25.5, 318 + z, 'oak', 0.95]);
+    // El Sadar (centro 232, 318; zócalo de 46 × 59 m de semilado): hileras de árboles en la explanada oeste (sin tapar
+    // la entrada), dos en el paseo del este (a los lados de las farolas) y alamedas en el césped del norte y del sur
     for (let z = -60; z <= 60; z += 12) if (Math.abs(z) > 18) for (const x of [-46 - 45, -46 - 33, -46 - 21]) t.push([232 + x, 318 + z, 'oak', x < -80 ? 1.0 : 0.85]);
-    for (const s of [-1, 1]) for (let x = -40; x <= 52; x += 13) t.push([232 + x, 318 + s * (59 + 46.5), 'oak', 0.9]);
+    for (let z = -60; z <= 60; z += 12) for (const x of [46 + 6, 46 + 22]) t.push([232 + x, 318 + z, 'oak', 0.9]);
+    for (const s of [-1, 1]) for (const d of [16, 30, 44]) for (let x = -40; x <= 60; x += 12) t.push([232 + x + (d === 30 ? 6 : 0), 318 + s * (59 + d), 'oak', 0.9]);
     const C = PLACES.citadel;
     for (let i = 0; i < 22; i++) {
       const a = C.gateAng + 0.3 + i / 22 * (Math.PI * 2 - 0.6);
