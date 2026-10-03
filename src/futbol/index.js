@@ -12,6 +12,10 @@ import * as THREE from 'three';
 import { FutbolMatch } from './match.js';
 import { menuPanel } from './hud.js';
 import { VENUES, TEAMS, RETOS, CAREER_KEY } from './rules.js';
+import { CLUBS, teamOfClub, awayKit } from './clubs.js';
+import { season, newSeason, nextMatch, playRound, levelFor, ligaPanel, roundPanel, rivalPanel, clubPanel } from './liga.js';
+export { CLUBS, TOWN_CLUB, clubOfTown, teamOfClub } from './clubs.js';
+export { clubPanel } from './liga.js';
 export { FutbolGame } from './game.js';
 export { FIELD, PHYS, PLAYER, LEVELS, TEAMS, VENUES, RETOS, useFormat } from './rules.js';
 export const VERSION = '3.0.0';
@@ -78,9 +82,38 @@ export const FutbolSystem = {
     return res;
   },
   // local: { name, short } para el equipo de casa (el del pueblo, con el nombre del pueblo)
-  startMatch({ campoId = 'sadar', modo = 'amistoso', rival, dificultad = 'normal', duracion = 3, asistencia = true, autoplay = false, timeScale = 1, seed, local } = {}) {
+  // awayTeam / venueName: rival que es un club (de clubs.js) y nombre del campo
+  startMatch({ campoId = 'sadar', modo = 'amistoso', rival, dificultad = 'normal', duracion = 3, asistencia = true, autoplay = false, timeScale = 1, seed, local, awayTeam, venueName } = {}) {
     const V = VENUES[campoId] || VENUES.sadar;
-    return this.play({ mode: 'match', venue: V.id, home: V.home, away: rival || V.away, level: dificultad, duration: duracion, assist: asistencia, cup: modo === 'eliminatoria', autoplay, timeScale, seed, local });
+    return this.play({ mode: 'match', venue: V.id, home: V.home, away: rival || V.away, level: dificultad, duration: duracion, assist: asistencia, cup: modo === 'eliminatoria', autoplay, timeScale, seed, local, awayTeam, venueName });
+  },
+  /** Partido de fútbol 11 entre dos clubes de los pueblos (en el campo del de casa). */
+  startClubMatch({ club, rival, campoDe = club, duracion = 2, autoplay = false, timeScale = 1 } = {}) {
+    const H = teamOfClub(club), A = awayKit(H, teamOfClub(rival)), F = CLUBS[campoDe];
+    return this.startMatch({ campoId: 'pueblo', local: H, awayTeam: A, dificultad: levelFor(club, rival), duracion, autoplay, timeScale, venueName: F.field ? `Campo de ${F.field} · ${F.town}` : `Campo municipal de ${F.town}` });
+  },
+  /** Liga Navarra con el club del pueblo: pantalla de la liga, partido (o simulado), resultados de la jornada. */
+  async startLeague({ club, autoplay = false, timeScale = 1 } = {}) {
+    let S = season(club), last = null;
+    for (;;) {
+      const a = await ligaPanel(S);
+      if (a === 'exit') return last || { quit: true };
+      if (a === 'new') { S = newSeason(club); continue; }
+      const m = nextMatch(S), j = S.j, home = m.h === club, rival = home ? m.a : m.h;
+      let mine = null, theirs = null;
+      if (a === 'play') {
+        const r = await this.startClubMatch({ club, rival, campoDe: m.h, autoplay, timeScale });
+        if (!r || r.quit) continue;   // abandonado: la jornada sigue pendiente
+        mine = r.you ?? 0; theirs = r.cpu ?? 0; last = { ...r, liga: true };
+      }
+      const R = playRound(S, mine, theirs);
+      await roundPanel(S, R, j);
+    }
+  },
+  /** Amistoso del club contra el que se elija. */
+  async startFriendly({ club } = {}) {
+    const rival = await rivalPanel(club); if (!rival) return { quit: true };
+    return this.startClubMatch({ club, rival, duracion: 2 });
   },
   startPenaltis({ campoId = 'sadar', rival, tiros = 5, dificultad = 'normal', autoplay = false, local } = {}) {
     const V = VENUES[campoId] || VENUES.sadar;

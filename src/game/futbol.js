@@ -37,6 +37,56 @@ function recolor(root, color, minSat = 0.5) {
   return mats;
 }
 
+// equipación de un club (camiseta, pantalón y medias, con rayas verticales o banda diagonal): el futbolista de Meshy va
+// de rojo con pantalón azul marino; cada zona se tiñe por su altura en la pose de reposo (el futbolista es cabezón: camiseta por
+// encima del 36 % de la altura, pantalón entre el 20 y el 50 %, medias por debajo del 36 %) y por su color original (el rojo de
+// la camiseta y las medias, el azul oscuro del pantalón). La piel, el pelo y las botas no cambian
+const HSV_GLSL = `vec3 fbHsv(vec3 c){ vec4 K=vec4(0.,-1./3.,2./3.,-1.); vec4 p=mix(vec4(c.bg,K.wz),vec4(c.gb,K.xy),step(c.b,c.g)); vec4 q=mix(vec4(p.xyw,c.r),vec4(c.r,p.yzx),step(p.x,c.r)); float d=q.x-min(q.w,q.y); return vec3(abs(q.z+(q.w-q.y)/(6.*d+1e-10)),d/(q.x+1e-10),q.x); }
+  vec3 fbRgb(vec3 c){ vec3 p=abs(fract(c.xxx+vec3(1.,2./3.,1./3.))*6.-3.); return c.z*mix(vec3(1.),clamp(p-1.,0.,1.),c.y); }`;
+function kitRecolor(root, T) {
+  const hsl = (c) => { const o = {}; new THREE.Color(c).getHSL(o); return new THREE.Vector3(o.h, o.s, o.l); };
+  const box = new THREE.Box3(); root.traverse(o => { if (o.isMesh) { o.geometry.computeBoundingBox(); box.union(o.geometry.boundingBox); } });
+  const H = Math.max(1e-3, box.max.y - box.min.y), y0 = box.min.y, cx = (box.min.x + box.max.x) / 2;
+  const pat = T.pattern === 'rayas' ? 1 : T.pattern === 'banda' ? 2 : 0;
+  const mats = [];
+  root.traverse(o => {
+    if (!o.isMesh) return;
+    o.material = [].concat(o.material).map(m0 => {
+      const m = m0.clone(); m.userData.fbOwn = true; mats.push(m);
+      m.onBeforeCompile = (sh) => {
+        Object.assign(sh.uniforms, { uShirt: { value: hsl(T.shirt) }, uShirt2: { value: hsl(T.shirt2 || T.shirt) }, uShorts: { value: hsl(T.shorts) }, uSocks: { value: hsl(T.socks) },
+          uKit: { value: new THREE.Vector4(H, y0, cx, pat) } });
+        sh.vertexShader = sh.vertexShader.replace('void main() {', 'varying vec3 vFbPos;\nvoid main() {').replace('#include <begin_vertex>', '#include <begin_vertex>\n vFbPos = position;');
+        const fn = `uniform vec3 uShirt, uShirt2, uShorts, uSocks; uniform vec4 uKit; varying vec3 vFbPos;
+          ${HSV_GLSL}
+          vec3 fbTone(vec3 hsl, float v, float ref){ return fbRgb(vec3(hsl.x, hsl.y, clamp(v / ref * hsl.z * 1.15, 0., 1.))); }
+          vec3 fbKit(vec3 c){
+            vec3 h = fbHsv(c); float y = (vFbPos.y - uKit.y) / uKit.x, x = (vFbPos.x - uKit.z) / uKit.x;
+            float red = ((h.x < 0.03 || h.x > 0.95) ? 1. : 0.) * smoothstep(0.7, 0.85, h.y) * smoothstep(0.03, 0.08, h.z);
+            float navy = step(0.55, h.x) * step(h.x, 0.75) * step(0.3, h.y) * step(h.z, 0.6);
+            if (y > 0.36 && red > 0.) {
+              vec3 col = uShirt;
+              if (uKit.w > 0.5 && uKit.w < 1.5 && fract(x / 0.07) > 0.5) col = uShirt2;                 // rayas verticales
+              if (uKit.w > 1.5 && abs(x + (y - 0.5)) < 0.04) col = uShirt2;                             // banda diagonal
+              return mix(c, fbTone(col, h.z, 0.8), red);
+            }
+            if (y <= 0.5 && y > 0.2 && navy > 0.) return fbTone(uShorts, h.z, 0.32);
+            if (y <= 0.36 && red > 0.) return mix(c, fbTone(uSocks, h.z, 0.8), red);
+            return c;
+          }`;
+        sh.fragmentShader = sh.fragmentShader.replace('void main() {', fn + '\nvoid main() {')
+          .replace('#include <map_fragment>', '#include <map_fragment>\n diffuseColor.rgb = fbKit(diffuseColor.rgb);')
+          // (la luz de relleno usa la misma textura como brillo propio: también se tiñe, o el rojo volvería por encima)
+          .replace('#include <emissivemap_fragment>', '#ifdef USE_EMISSIVEMAP\n vec4 emissiveColor = texture2D( emissiveMap, vEmissiveMapUv ); totalEmissiveRadiance *= fbKit(emissiveColor.rgb);\n#endif');
+      };
+      m.customProgramCacheKey = () => 'fb-kit';
+      return m;
+    });
+    if (o.material.length === 1) o.material = o.material[0];
+  });
+  return mats;
+}
+
 // gira un hueso (en el mundo) para que su dirección «from» pase a ser «to»
 const qa = new THREE.Quaternion(), qb = new THREE.Quaternion(), qc = new THREE.Quaternion(), va = new THREE.Vector3(), vb = new THREE.Vector3(), vc = new THREE.Vector3();
 function aimBone(bone, child, to) {
@@ -62,7 +112,7 @@ export async function makeCharacter(d) {
   const char = new GlbChar(g, MESHY_GAIT); char.root.scale.setScalar(g.userData.fit || 1);
   // cada jugador un poco distinto de alto; los porteros, algo más altos
   char.root.scale.multiplyScalar(d.keeper ? 1.05 : [1, 0.97, 1.03, 0.99, 1.02][((d.num || 0) + d.side) % 5]);
-  const mats = d.keeper ? recolor(char.root, d.team.keeper) : d.referee ? recolor(char.root, REFEREE.shirt, 0) : d.team.recolor ? recolor(char.root, d.team.shirt) : [];
+  const mats = d.keeper ? recolor(char.root, d.team.keeper) : d.referee ? recolor(char.root, REFEREE.shirt, 0) : d.team.club ? kitRecolor(char.root, d.team) : d.team.recolor ? recolor(char.root, d.team.shirt) : [];
   const B = {}; char.root.traverse(o => { if (o.isBone) B[o.name.replace(/[.:]/g, '').replace(/^mixamorig/, '')] = o; });
   const arms = ['Left', 'Right'].map(s => [B[s + 'Arm'], B[s + 'ForeArm'], B[s + 'Hand']]).filter(a => a.every(Boolean));
   // el banderín, en la mano derecha (con la escala del mundo: el esqueleto de Mixamo va a 1/100)
@@ -118,5 +168,9 @@ export class Futbol {
   /** Un reto de entrenamiento concreto. */
   async reto(id) { this.setup(); const o = this.opts; return this.result(await FutbolSystem.startReto({ campoId: o.campo, reto: id, local: o.local })); }
   /** Un partido directo contra un rival. */
-  async match(rival, dificultad = 'normal', duracion = 2) { this.setup(); const o = this.opts; return this.result(await FutbolSystem.startMatch({ campoId: o.campo, rival, dificultad, duracion, local: o.local })); }
+  async match(rival, dificultad = 'normal', duracion = 2, awayTeam = null) { this.setup(); const o = this.opts; return this.result(await FutbolSystem.startMatch({ campoId: o.campo, rival, dificultad, duracion, local: o.local, awayTeam })); }
+  /** Liga Navarra con el club del pueblo (fútbol 11 en el campo de cada club). */
+  async liga(club) { this.setup(); return this.result(await FutbolSystem.startLeague({ club })); }
+  /** Amistoso del club contra el club que se elija. */
+  async friendly(club) { this.setup(); return this.result(await FutbolSystem.startFriendly({ club })); }
 }
