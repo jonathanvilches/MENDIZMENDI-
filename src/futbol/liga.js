@@ -95,7 +95,7 @@ export function kitSvg(id, size = 44) {
   return `<svg class="lg-kit" viewBox="0 0 48 64" width="${size * 0.75}" height="${size}">${defs}<path d="M14 4 L22 2 Q24 6 26 2 L34 4 L44 12 L38 20 L35 17 L35 40 L13 40 L13 17 L10 20 L4 12 Z" fill="${fill}" stroke="#1a1426" stroke-width="1.6" stroke-linejoin="round"/>${band}<path d="M13 41 L35 41 L36 50 L26 50 L24 46 L22 50 L12 50 Z" fill="${c.shorts}" stroke="#1a1426" stroke-width="1.6" stroke-linejoin="round"/><rect x="14" y="51" width="7" height="10" rx="2" fill="${c.socks}" stroke="#1a1426" stroke-width="1.4"/><rect x="27" y="51" width="7" height="10" rx="2" fill="${c.socks}" stroke="#1a1426" stroke-width="1.4"/></svg>`;
 }
 const CSS = `
-.lg-root{position:fixed;inset:0;z-index:4500;display:grid;place-items:center;padding:calc(env(safe-area-inset-top,0px) + 10px) 10px calc(env(safe-area-inset-bottom,0px) + 10px);background:radial-gradient(circle at 50% 0%,#2a1460,#0d0820 70%);font-family:Nunito,system-ui,sans-serif;color:#fff;animation:lgIn .25s}
+.lg-root{position:fixed;inset:0;z-index:30000;display:grid;place-items:center;padding:calc(env(safe-area-inset-top,0px) + 10px) 10px calc(env(safe-area-inset-bottom,0px) + 10px);background:radial-gradient(circle at 50% 0%,#2a1460,#0d0820 70%);font-family:Nunito,system-ui,sans-serif;color:#fff;animation:lgIn .25s}
 @keyframes lgIn{from{opacity:0}to{opacity:1}}
 .lg-card{width:min(860px,100%);max-height:100%;overflow:auto;display:grid;gap:12px;grid-template-columns:1fr;padding:16px;border-radius:22px;background:linear-gradient(180deg,rgba(60,30,130,.55),rgba(20,10,45,.9));border:1px solid rgba(190,160,255,.3);box-shadow:0 30px 80px rgba(0,0,0,.6)}
 .lg-head{display:flex;align-items:center;gap:12px}.lg-head h2{margin:0;font:400 26px 'Lilita One',Nunito,sans-serif;line-height:1}.lg-head small{display:block;color:#ffd84a;font-weight:900;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
@@ -127,9 +127,10 @@ function head(S, sub) {
   return `<div class="lg-head">${kitSvg(S.club, 48)}<div><small>${esc(sub)}</small><h2>${esc(c.name)}</h2><span class="lg-note">${esc(c.town)} · Liga Navarra, grupo ${c.group === 'norte' ? 'Norte' : 'Sur'}${S.titles ? ` · ${S.titles} ${S.titles === 1 ? 'título' : 'títulos'}` : ''}</span></div><div class="lg-ovr">${c.ovr}<small>MEDIA</small></div></div>`;
 }
 /** Pantalla principal de la liga: próximo partido y clasificación. Devuelve 'play' | 'sim' | 'new' | 'exit'. */
-export function ligaPanel(S) {
+// here: el club del pueblo en el que estás (cada jornada se juega en el campo del de casa: si no estás allí, hay que viajar)
+export function ligaPanel(S, here = undefined) {
   return new Promise(res => {
-    const m = nextMatch(S), c = CLUBS[S.club];
+    const m = nextMatch(S), c = CLUBS[S.club], away = m && here !== undefined && here !== m.h;
     let mid;
     if (m) {
       const H = CLUBS[m.h], A = CLUBS[m.a], home = m.h === S.club, rival = home ? m.a : m.h;
@@ -139,8 +140,9 @@ export function ligaPanel(S) {
       mid = `<div class="lg-champ"><small>CAMPEÓN DE LA LIGA NAVARRA</small><br><b>${esc(ch.name)}</b><br>${S.champion === S.club ? '¡Sois campeones! Aupa ' + esc(c.town) + '!' : 'La próxima temporada, a por el título.'}</div>`;
     }
     const adapt = Object.values(CLUBS).some(x => x.adapt) ? '<p class="lg-note">Clubes y colores de las fichas de los clubes navarros. Pirineo, Aurrera Leitza y CD Xota: adaptación (colores del juego).</p>' : '';
+    const play = away ? `<button class="lg-btn go" data-a="travel">Viajar a ${esc(CLUBS[m.h].town)}</button>` : '<button class="lg-btn go" data-a="play">¡A jugar!</button>';
     const r = panel(`${head(S, m ? `Temporada ${S.year}` : 'Fin de temporada')}${mid}${tableHtml(S)}
-      <div class="lg-btns">${m ? '<button class="lg-btn go" data-a="play">¡A jugar!</button><button class="lg-btn" data-a="sim">Simular partido</button>' : '<button class="lg-btn go" data-a="new">Nueva temporada</button>'}<button class="lg-btn" data-a="exit">Salir</button></div>${adapt}`);
+      <div class="lg-btns">${m ? `${play}<button class="lg-btn" data-a="sim">Simular partido</button>` : '<button class="lg-btn go" data-a="new">Nueva temporada</button>'}<button class="lg-btn" data-a="exit">Salir</button></div>${away ? `<p class="lg-note">La jornada se juega en el campo del ${esc(CLUBS[m.h].name)}: viaja a ${esc(CLUBS[m.h].town)} (en el mapa) y habla con su entrenador.</p>` : ''}${adapt}`);
     r.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; r.remove(); res(b.dataset.a); });
   });
 }
@@ -169,4 +171,4 @@ export function rivalPanel(clubId) {
     r.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; r.remove(); res(b.dataset.a || null); });
   });
 }
-export { clubById };
+export { clubById, panel as lgPanel, esc as lgEsc };

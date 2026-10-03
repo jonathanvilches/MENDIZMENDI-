@@ -32,18 +32,25 @@ const CSS = `
 .fb-knob{position:absolute;width:124px;height:124px;margin:-62px 0 0 -62px;border-radius:50%;border:3px solid rgba(255,255,255,.55);background:rgba(16,10,30,.25);display:none}
 .fb-knob i{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:rgba(255,255,255,.88);box-shadow:0 2px 8px rgba(0,0,0,.35)}
 .fb-stickhint{position:absolute;left:calc(env(safe-area-inset-left,0px) + 18px);bottom:calc(env(safe-area-inset-bottom,0px) + 18px);width:96px;height:96px;border-radius:50%;border:2px dashed rgba(255,255,255,.5);display:grid;place-items:center;font-size:11px;font-weight:800;text-align:center;opacity:.7;padding:10px;transition:opacity .4s;text-shadow:0 1px 3px rgba(0,0,0,.6)}
-/* botones como en los juegos de fútbol del móvil: círculos translúcidos con aro de color (se ve el campo a través), en arco
-   alrededor de SPRINT, que va en la esquina: PASE a la izquierda, CAMBIAR en diagonal y TIRO encima */
-.fb-btns{--s:70px;--p:60px;--w:48px;--r:78px;position:absolute;right:calc(env(safe-area-inset-right,0px) + 10px);bottom:calc(env(safe-area-inset-bottom,0px) + 10px);width:calc(var(--s) / 2 + var(--r) + var(--p) / 2);height:calc(var(--s) / 2 + var(--r) + var(--p) / 2);pointer-events:none}
-.fb-b{position:absolute;border:3px solid var(--c,#fff);padding:0;border-radius:50%;background:rgba(12,8,24,.4);color:#fff;font:900 13px Nunito,system-ui,sans-serif;letter-spacing:.04em;text-shadow:0 1px 3px rgba(0,0,0,.75);display:grid;place-items:center;cursor:pointer;touch-action:none;pointer-events:auto;text-align:center;line-height:1;box-shadow:0 3px 12px rgba(0,0,0,.28),inset 0 0 0 1px rgba(255,255,255,.14);-webkit-backdrop-filter:blur(1.5px);backdrop-filter:blur(1.5px);transition:transform .06s,background .06s}
+/* botones como en el FIFA del móvil: círculos translúcidos con aro de color, icono y nombre, en arco para el pulgar
+   derecho. TIRO (el grande) en la esquina; PASE a su izquierda; AL HUECO en diagonal; SPRINT encima de TIRO; CAMBIAR
+   (solo sin el balón) más a la izquierda. Al defender: ROBO, ENTRADA y PRESIÓN. Medidas en --u (escala) para que no se
+   toquen nunca: los centros están separados al menos 12 px más que la suma de los radios */
+.fb-btns{--u:1;position:absolute;right:calc(env(safe-area-inset-right,0px) + 8px);bottom:calc(env(safe-area-inset-bottom,0px) + 8px);width:calc(240px * var(--u));height:calc(172px * var(--u));pointer-events:none}
+.fb-b{position:absolute;border:3px solid var(--c,#fff);padding:0;border-radius:50%;background:rgba(12,8,24,.42);color:#fff;font:900 calc(9.5px * var(--u)) Nunito,system-ui,sans-serif;letter-spacing:.03em;text-shadow:0 1px 3px rgba(0,0,0,.8);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(2px * var(--u));cursor:pointer;touch-action:none;pointer-events:auto;text-align:center;line-height:1;box-shadow:0 3px 12px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.12);-webkit-user-select:none;user-select:none;transition:transform .06s,background .06s}
+.fb-b svg{width:calc(24px * var(--u));height:calc(24px * var(--u));flex:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6));pointer-events:none}
+.fb-b span{white-space:nowrap;pointer-events:none;text-transform:uppercase}
 .fb-b.down{background:var(--c,#fff);transform:scale(.92)}
-.fb-b.long{font-size:10.5px;letter-spacing:.02em}
-.fb-sprint{--c:#3fbf5a;right:0;bottom:0;width:var(--s);height:var(--s)}
-.fb-pass{--c:#2fa8e0;width:var(--p);height:var(--p);right:calc(var(--s) / 2 + var(--r) - var(--p) / 2);bottom:calc(var(--s) / 2 - var(--p) / 2)}
-.fb-shoot{--c:#e8473c;width:var(--p);height:var(--p);right:calc(var(--s) / 2 - var(--p) / 2);bottom:calc(var(--s) / 2 + var(--r) - var(--p) / 2)}
-.fb-swap{--c:#f2c230;width:var(--w);height:var(--w);align-content:center;gap:1px;right:calc(var(--s) / 2 + var(--r) * .7071 - var(--w) / 2);bottom:calc(var(--s) / 2 + var(--r) * .7071 - var(--w) / 2)}
-.fb-swap svg{width:20px;height:20px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}.fb-swap small{font-size:8px;font-weight:900;letter-spacing:.02em;text-transform:uppercase}
-.fb-b.def.fb-pass{--c:#f08a3a}.fb-b.def.fb-shoot{--c:#c42a2a}
+.fb-shoot{--c:#e8473c;width:calc(78px * var(--u));height:calc(78px * var(--u));right:calc(10px * var(--u));bottom:calc(8px * var(--u))}
+.fb-shoot svg{width:calc(30px * var(--u));height:calc(30px * var(--u))}.fb-shoot span{font-size:calc(11px * var(--u))}
+.fb-pass{--c:#2fa8e0;width:calc(64px * var(--u));height:calc(64px * var(--u));right:calc(104px * var(--u));bottom:calc(4px * var(--u))}
+.fb-thru{--c:#9b6cff;width:calc(62px * var(--u));height:calc(62px * var(--u));right:calc(92px * var(--u));bottom:calc(88px * var(--u))}
+.fb-sprint{--c:#3fbf5a;width:calc(58px * var(--u));height:calc(58px * var(--u));right:calc(18px * var(--u));bottom:calc(108px * var(--u))}
+.fb-swap{--c:#f2c230;width:calc(56px * var(--u));height:calc(56px * var(--u));right:calc(178px * var(--u));bottom:calc(44px * var(--u));display:none}
+.fb-swap span,.fb-thru span{font-size:calc(8.5px * var(--u));letter-spacing:0}
+.fb-btns.def .fb-swap,.fb-btns.loose .fb-swap{display:flex}
+.fb-btns.def .fb-pass{--c:#f08a3a}.fb-btns.def .fb-shoot{--c:#c42a2a}.fb-btns.def .fb-thru{--c:#e0b020}
+.fb-btns.pen .fb-thru,.fb-btns.pen .fb-swap,.fb-btns.pen .fb-sprint{display:none}
 .fb-bars{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 10px);width:min(24vw,190px);display:flex;flex-direction:column;gap:4px;pointer-events:none}
 .fb-bar{height:7px;border-radius:5px;background:rgba(16,10,30,.5);overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.45)}
 .fb-bar i{display:block;height:100%;width:100%;border-radius:6px;background:linear-gradient(90deg,#3fd36a,#a6f07a);transform-origin:left;transition:transform .05s linear}
@@ -72,23 +79,27 @@ const CSS = `
 .fb-alt{display:block;width:100%;margin-top:10px;border:2px solid rgba(255,255,255,.4);border-radius:16px;padding:11px;font:800 16px Nunito,sans-serif;color:#fff;background:transparent;cursor:pointer;min-height:48px}
 .fb-stats{width:100%;border-collapse:collapse;margin:8px 0 6px;font-size:15px}
 .fb-stats td{padding:5px 6px;border-bottom:1px solid rgba(255,255,255,.1)}.fb-stats td:first-child,.fb-stats td:last-child{font-weight:900;width:22%;font-variant-numeric:tabular-nums}.fb-stats td:nth-child(2){color:#cbbcf0;font-weight:700;font-size:13px}
+.fb-ctrl{width:100%;border-collapse:collapse;font-size:12.5px;text-align:left;margin:6px 0}.fb-ctrl th{font-size:10px;color:#cbbcf0;text-transform:uppercase;letter-spacing:.06em;padding:3px 4px}
+.fb-ctrl td{padding:4px;border-top:1px solid rgba(255,255,255,.1);vertical-align:middle;font-weight:800}.fb-ctrl td small{font-weight:600;color:#cbbcf0}.fb-ctrl td.ic{width:30px}.fb-ctrl td.ic svg{width:22px;height:22px}
 .fb-big{font-family:'Lilita One',Nunito,sans-serif;font-size:46px;line-height:1;margin:6px 0}
 @media (max-width:640px) and (orientation:portrait){
   .fb-top{left:58px;right:58px}.fb-team{padding:4px 7px;font-size:12px}.fb-team b{font-size:22px}.fb-team span{max-width:18vw}
   .fb-team span.fb-ln{display:none}.fb-team span.fb-sn{display:inline}
-  .fb-btns{--s:72px;--p:62px;--w:50px;--r:82px}.fb-tip{max-width:92vw}
-  .fb-bars{left:auto;transform:none;right:calc(env(safe-area-inset-right,0px) + 12px);bottom:calc(env(safe-area-inset-bottom,0px) + 172px);width:140px}
+  .fb-btns{--u:.96}.fb-tip{max-width:92vw}
+  .fb-bars{left:auto;transform:none;right:calc(env(safe-area-inset-right,0px) + 12px);bottom:calc(env(safe-area-inset-bottom,0px) + 186px);width:140px}
   .fb-stick{height:62vh}
 }
 @media (max-height:520px) and (orientation:landscape){
   .fb-panel{padding:calc(env(safe-area-inset-top,0px) + 8px) calc(env(safe-area-inset-right,0px) + 10px) calc(env(safe-area-inset-bottom,0px) + 8px) calc(env(safe-area-inset-left,0px) + 10px)}
   .fb-card{width:min(860px,100%);padding:10px 16px 12px;display:grid;grid-template-columns:1fr 1fr;column-gap:16px;align-content:start}
   .fb-card>*{grid-column:1/-1}.fb-card .fb-row:not(:first-of-type){grid-column:auto}.fb-card .fb-go,.fb-card .fb-alt{grid-column:auto;margin-top:4px;min-height:44px;padding:8px}
+  .fb-ctrl{font-size:11px;margin:2px 0}.fb-ctrl td{padding:2px 4px}.fb-ctrl td small{display:none}.fb-ctrl td.ic svg{width:17px;height:17px}.fb-ctrl td br{display:none}
   .fb-card h2{font-size:24px}.fb-row{margin:2px 0 6px;gap:5px}.fb-row label{font-size:11px}.fb-chip{min-height:34px;padding:5px 11px;font-size:13px}
 }
 @media (max-height:460px) and (orientation:landscape){
   .fb-top{top:calc(env(safe-area-inset-top,0px) + 4px)}.fb-team b{font-size:22px}
-  .fb-btns{--s:62px;--p:54px;--w:44px;--r:68px}.fb-b{font-size:12px}.fb-swap svg{width:17px;height:17px}.fb-swap small{font-size:7.5px}
+  .fb-btns{--u:.9}
+  .fb-bars{left:calc(env(safe-area-inset-left,0px) + 124px);transform:none;width:min(150px,22vw)}
   .fb-pause,.fb-cam{width:38px;height:38px}.fb-top{gap:4px}.fb-tip{font-size:12.5px}
   .fb-stickhint{width:84px;height:84px;font-size:10px}
   .fb-msg{top:42%}.fb-msg h2{font-size:clamp(34px,8vw,60px)}
@@ -96,6 +107,19 @@ const CSS = `
 `;
 const SVG_PAUSE = '<svg viewBox="0 0 24 24" fill="#fff"><rect x="6" y="4" width="4" height="16" rx="1.5"/><rect x="14" y="4" width="4" height="16" rx="1.5"/></svg>';
 const SVG_SWAP = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h13l-3.5-3.5"/><path d="M20 15H7l3.5 3.5"/></svg>';
+// iconos de los botones (trazo blanco, 24 × 24)
+const IC = (d, fill = false) => `<svg viewBox="0 0 24 24" fill="${fill ? '#fff' : 'none'}" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+export const ICON = {
+  shoot: IC('<circle cx="15.5" cy="12" r="5.5"/><path d="M15.5 6.5l1.6 3.4 3.7.4M2.5 8h6M1.5 12h6M2.5 16h6"/>'),
+  pass: IC('<circle cx="5" cy="18" r="2.6"/><circle cx="19" cy="6" r="2.6"/><path d="M7.4 16.2l8.9-8"/><path d="M11.5 7.6h5.1v5.1"/>'),
+  through: IC('<path d="M3 19c4-1 7-4 9-8s5-6 9-6" stroke-dasharray="2.4 2.6"/><path d="M15.5 3.4l5.5 1.6-1.9 5.3"/><circle cx="5" cy="19" r="1.6" fill="#fff"/>'),
+  sprint: IC('<path d="M13.5 2L5 13.5h6.2L10 22l9-12.2h-6.4z" fill="#fff"/>'),
+  swap: IC('<path d="M4 9h13l-3.5-3.5"/><path d="M20 15H7l3.5 3.5"/>'),
+  tackle: IC('<circle cx="17.5" cy="15.5" r="3.6"/><path d="M3 15.5h7.5M7 11.5l4 4-4 4"/>'),
+  slide: IC('<path d="M2.5 20h19"/><circle cx="7" cy="9" r="2.4"/><path d="M7.5 12.5l4 3.5h7M10 13l-3 4"/><circle cx="20" cy="15.5" r="2" fill="#fff"/>'),
+  contain: IC('<path d="M12 2.8l7.5 3v5.6c0 4.8-3.3 8-7.5 9.8-4.2-1.8-7.5-5-7.5-9.8V5.8z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>'),
+  dive: IC('<path d="M3 17c3-6 8-9 14-9"/><circle cx="19.5" cy="8" r="2.5"/><path d="M6 20l4-5"/>'),
+};
 const SVG_CAM = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"><rect x="3" y="7" width="13" height="10" rx="2"/><path d="M16 11l5-3v8l-5-3z"/></svg>';
 const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -125,13 +149,13 @@ export class FutbolHud {
       <div class="fb-msg"><h2></h2><p></p></div><div class="fb-arrow"></div>
       ${t ? `<div class="fb-stick"><div class="fb-knob"><i></i></div></div><div class="fb-stickhint">Toca y arrastra para moverte</div>
       <div class="fb-bars"><div class="fb-bar"><i class="fb-en"></i></div><div class="fb-bar pow"><i class="fb-pw"></i></div></div>
-      <div class="fb-btns"><button class="fb-b fb-sprint" data-a="sprint">SPRINT</button><button class="fb-b fb-pass" data-a="pass">PASE</button><button class="fb-b fb-swap" data-a="switch" aria-label="Cambiar de jugador">${SVG_SWAP}<small>cambiar</small></button><button class="fb-b fb-shoot" data-a="shoot">TIRO</button></div>`
+      <div class="fb-btns atk"><button class="fb-b fb-sprint" data-a="sprint" aria-label="Sprint">${ICON.sprint}<span>Sprint</span></button><button class="fb-b fb-thru" data-a="through" aria-label="Pase al hueco">${ICON.through}<span>Al hueco</span></button><button class="fb-b fb-swap" data-a="switch" aria-label="Cambiar de jugador">${ICON.swap}<span>Cambiar</span></button><button class="fb-b fb-pass" data-a="pass" aria-label="Pase">${ICON.pass}<span>Pase</span></button><button class="fb-b fb-shoot" data-a="shoot" aria-label="Tiro">${ICON.shoot}<span>Tiro</span></button></div>`
       : `<div class="fb-bars" style="bottom:calc(env(safe-area-inset-bottom,0px) + 44px)"><div class="fb-bar"><i class="fb-en"></i></div><div class="fb-bar pow"><i class="fb-pw"></i></div></div>
-      <div class="fb-keys">WASD o flechas: moverte · <b>J</b> pase / robo · <b>K</b> tiro / entrada (mantén para cargar) · <b>Mayús</b> sprint · <b>L</b> cambiar · <b>C</b> cámara · <b>Esc</b> pausa</div>`}`;
+      <div class="fb-keys">WASD/flechas mover · <b>J</b> pase (mantén: elevado) · <b>I</b> al hueco · <b>K</b> tiro (mantén: fuerza; con <b>F</b>, colocado) · <b>Mayús</b> sprint · <b>O</b> proteger / presionar · <b>L</b> cambiar · <b>Esc</b> pausa · <b>H</b> controles · también con mando</div>`}`;
     document.body.appendChild(r);
     const $ = (s) => r.querySelector(s);
     this.el = { s0: $('.fb-s0'), s1: $('.fb-s1'), time: $('.fb-time'), half: $('.fb-half'), say: $('.fb-say'), msg: $('.fb-msg'), tip: $('.fb-tip'), arrow: $('.fb-arrow'),
-      en: $('.fb-en'), pw: $('.fb-pw'), pow: $('.fb-bar.pow'), pass: $('.fb-pass'), shoot: $('.fb-shoot'), pen: $('.fb-pen'), p0: $('.fb-p0'), p1: $('.fb-p1'), hint: $('.fb-stickhint') };
+      en: $('.fb-en'), pw: $('.fb-pw'), pow: $('.fb-bar.pow'), pass: $('.fb-pass'), shoot: $('.fb-shoot'), thru: $('.fb-thru'), swap: $('.fb-swap'), btns: $('.fb-btns'), pen: $('.fb-pen'), p0: $('.fb-p0'), p1: $('.fb-p1'), hint: $('.fb-stickhint') };
     $('.fb-pause').addEventListener('click', (e) => { e.stopPropagation(); o.onPause?.(); });
     // el consejo se abre y se recoge tocándolo
     this.el.tip.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); this.tipOpen(this.el.tip.classList.contains('mini')); });
@@ -162,13 +186,44 @@ export class FutbolHud {
     el.innerHTML = `<span>${dots(a)}</span><b>FALTAS</b><span>${dots(b)}</span>`; el.classList.add('show');
   }
   setClock(sec, half, label) { const s = Math.max(0, Math.ceil(sec)); this.el.time.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; this.el.half.textContent = label || (half === 1 ? '1ª parte' : '2ª parte'); }
-  setDefending(def) {
-    if (this.def === def || !this.el.pass) return; this.def = def;
-    this.el.pass.classList.toggle('def', def); this.el.shoot.classList.toggle('def', def);
-    this.el.pass.textContent = def ? 'ROBO' : 'PASE'; this.el.shoot.textContent = def ? 'ENTRADA' : 'TIRO';
-    this.el.shoot.classList.toggle('long', def);
+  // los botones según el momento: con el balón (atk), sin él (def: ROBO, ENTRADA, PRESIÓN y CAMBIAR) o suelto (loose)
+  setMode(mode) {
+    if (this.mode === mode || !this.el.btns) return; this.mode = mode;
+    const def = mode === 'def', set = (b, icon, label) => { b.innerHTML = `${ICON[icon]}<span>${label}</span>`; b.setAttribute('aria-label', label); };
+    this.el.btns.className = 'fb-btns ' + mode;
+    set(this.el.pass, def ? 'tackle' : 'pass', def ? 'Robo' : 'Pase');
+    set(this.el.shoot, def ? 'slide' : 'shoot', def ? 'Entrada' : 'Tiro');
+    set(this.el.thru, def ? 'contain' : 'through', def ? 'Presión' : 'Al hueco');
   }
-  setButtons(pass, shoot) { if (!this.el.pass) return; this.def = null; this.el.pass.textContent = pass; this.el.shoot.textContent = shoot; this.el.pass.classList.remove('def'); this.el.shoot.classList.remove('def'); this.el.shoot.classList.toggle('long', shoot.length > 6); this.el.pass.classList.toggle('long', pass.length > 6); }
+  setDefending(def) { this.setMode(def ? 'def' : 'atk'); }
+  // tanda de penaltis: solo dos botones (PARAR o TIRO)
+  setButtons(pass, shoot) {
+    if (!this.el.pass) return; this.mode = 'pen'; this.el.btns.className = 'fb-btns pen';
+    const keep = /PARAR/i.test(shoot);
+    this.el.pass.innerHTML = `${ICON[keep ? 'dive' : 'pass']}<span>${pass}</span>`; this.el.shoot.innerHTML = `${ICON[keep ? 'dive' : 'shoot']}<span>${shoot}</span>`;
+  }
+  /** Pantalla de controles (como la del FIFA): táctil, teclado y mando. */
+  controls() {
+    return new Promise(res => {
+      const row = (ic, a, b, c, d) => `<tr><td class="ic">${ic ? ICON[ic] : ''}</td><td><b>${a}</b><br><small>${b}</small></td><td>${c}</td><td>${d}</td></tr>`;
+      const p = this.panel(`<h2>Controles</h2><p class="fb-kick">Táctil · teclado · mando</p>
+        <table class="fb-ctrl"><tr><th></th><th>Acción</th><th>Teclado</th><th>Mando</th></tr>
+        ${row('', 'Moverte', 'Joystick: toca y arrastra en la mitad izquierda', 'WASD / flechas', 'Stick izquierdo')}
+        ${row('pass', 'Pase', 'Toca: raso. Mantén: elevado', 'J (mantén: elevado)', 'A')}
+        ${row('pass', 'Pase elevado / centro', 'Mantén PASE', 'U', 'B')}
+        ${row('through', 'Pase al hueco', 'Al espacio por delante del compañero', 'I', 'Y')}
+        ${row('shoot', 'Tiro', 'Mantén para cargar; apunta con el joystick', 'K (mantén)', 'X (mantén)')}
+        ${row('shoot', 'Tiro colocado', 'Al palo largo con rosca', 'F + K', 'RB + X')}
+        ${row('sprint', 'Sprint', 'Mantén (gasta energía)', 'Mayús', 'RT')}
+        ${row('contain', 'Proteger el balón', '—', 'O (con el balón)', 'LT')}
+        ${row('tackle', 'Robo', 'Sin el balón, cuando se le separe del pie', 'J', 'B')}
+        ${row('slide', 'Entrada', 'A ras de suelo (si llegas tarde, falta)', 'K', 'X')}
+        ${row('contain', 'Presionar', 'Mantén: te pegas al rival y un compañero ayuda', 'O (mantén)', 'A (mantén) · RB: compañero')}
+        ${row('swap', 'Cambiar de jugador', 'Al que está mejor colocado (también automático)', 'L', 'LB')}
+        </table><p class="fb-kick" style="margin-top:6px">El jugador que llevas cambia solo según va el balón</p><button class="fb-go">Entendido</button>`);
+      p.querySelector('.fb-go').onclick = () => { p.remove(); res(); };
+    });
+  }
   bars(energy, charge) {
     if (this.el.en) this.el.en.style.transform = `scaleX(${energy.toFixed(3)})`;
     if (this.el.pow) { this.el.pow.classList.toggle('on', charge >= 0); if (charge >= 0) this.el.pw.style.transform = `scaleX(${charge.toFixed(3)})`; }
@@ -214,9 +269,10 @@ export class FutbolHud {
   }
   pause() {
     return new Promise(res => {
-      const p = this.panel(`<h2>Pausa</h2><p>El partido está parado.</p><button class="fb-go">Seguir</button><button class="fb-alt">Abandonar</button>`);
+      const p = this.panel(`<h2>Pausa</h2><p>El partido está parado.</p><button class="fb-go">Seguir</button><button class="fb-alt fb-ctl">Controles</button><button class="fb-alt">Abandonar</button>`);
       p.querySelector('.fb-go').onclick = () => { p.remove(); res('resume'); };
-      p.querySelector('.fb-alt').onclick = () => { p.remove(); res('quit'); };
+      p.querySelector('.fb-ctl').onclick = async (e) => { e.stopPropagation(); p.style.display = 'none'; await this.controls(); p.style.display = ''; };
+      p.querySelector('.fb-alt:not(.fb-ctl)').onclick = () => { p.remove(); res('quit'); };
     });
   }
   /** Pantalla final con las estadísticas. */

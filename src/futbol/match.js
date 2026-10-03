@@ -225,22 +225,49 @@ export class FutbolMatch {
   key(e, down) {
     if (this.done || ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target?.tagName)) return;
     const k = e.key.toLowerCase();
-    const mine = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'j', 'k', 'l', 'c', 'shift', 'escape', ' ', 'e', 'q'];
+    const mine = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'j', 'k', 'l', 'c', 'shift', 'escape', ' ', 'e', 'q', 'i', 'u', 'o', 'f', 'h'];
     if (!mine.includes(k)) return;
     e.preventDefault(); e.stopImmediatePropagation();
+    // J pase (mantén: elevado) · U elevado · I al hueco · K tiro (con F: colocado) · O proteger / presionar · L cambiar
+    const act = { j: 'pass', ' ': 'pass', u: 'lob', i: 'through', k: 'shoot', e: 'shoot', f: 'finesse' }[k];
     if (down) {
       if (this.keys.has(k)) return; this.keys.add(k);
-      if (k === 'j' || k === ' ') this.press('pass'); if (k === 'k' || k === 'e') this.press('shoot');
-      if (k === 'l' || k === 'q') this.press('switch'); if (k === 'c') this.nextCam(); if (k === 'escape') this.pauseMenu();
+      if (act) this.press(act);
+      if (k === 'o') { this.keyHold = this.game.owner === this.game.me ? 'shield' : 'contain'; this.press(this.keyHold); }
+      if (k === 'l' || k === 'q') this.press('switch'); if (k === 'c') this.nextCam(); if (k === 'escape') this.pauseMenu(); if (k === 'h') this.showControls();
     } else {
       this.keys.delete(k);
-      if (k === 'j' || k === ' ') this.release('pass'); if (k === 'k' || k === 'e') this.release('shoot');
+      if (act) this.release(act);
+      if (k === 'o' && this.keyHold) { this.release(this.keyHold); this.keyHold = null; }
     }
   }
+  // mando (API de gamepads, distribución estándar, como el FIFA):
+  //   con el balón: A pase · B elevado/centro · X tiro (RB + X colocado) · Y al hueco · LT proteger · RT sprint · LB cambiar
+  //   sin el balón: A presionar · B robo · X entrada · RB presión de un compañero · LT presionar · RT sprint · LB cambiar
+  //   Start: pausa. Lo que se pulsa se suelta como se pulsó (aunque cambie la posesión entretanto)
+  pollPad() {
+    const pads = navigator.getGamepads ? navigator.getGamepads() : null;
+    const gp = pads && Array.from(pads).find(p => p && p.connected && p.buttons?.length >= 10);
+    if (!gp) { this.padAx = null; return; }
+    if (!this.padOn) { this.padOn = true; this.hud.say('Mando conectado', 1400); }
+    const b = gp.buttons.map(x => x.pressed || x.value > 0.5), prev = this.padPrev || [], held = (this.padHeld ||= {});
+    const atk = this.game.owner === this.game.me || !this.game.defending();
+    const map = atk ? { 0: 'pass', 1: 'lob', 2: 'shoot', 3: 'through', 4: 'switch', 5: 'finesse', 6: 'shield' } : { 0: 'contain', 1: 'tackle', 2: 'slide', 3: 'contain', 4: 'switch', 5: 'mate', 6: 'contain' };
+    for (let i = 0; i < b.length; i++) {
+      if (b[i] && !prev[i]) { if (i === 9) this.pauseMenu(); else if (map[i]) { held[i] = map[i]; this.press(map[i]); } }
+      else if (!b[i] && prev[i] && held[i]) { this.release(held[i]); delete held[i]; }
+    }
+    this.padPrev = b;
+    const dz = (v) => Math.abs(v) < 0.15 ? 0 : v;
+    this.padAx = [dz(gp.axes[0] || 0), dz(gp.axes[1] || 0)]; this.padSprint = !!b[7];
+  }
+  async showControls() { if (this.paused || this.done) return; this.paused = true; await this.hud.controls(); this.paused = false; }
   // joystick o teclas → dirección en el suelo según la cámara (arriba en la pantalla = alejarse de la cámara)
   moveInput() {
     const K2 = this.keys, st = this.hud.stick;
+    this.pollPad();
     let sx = st.x, sy = st.y;
+    if (this.padAx) { sx += this.padAx[0]; sy -= this.padAx[1]; }
     if (K2.has('w') || K2.has('arrowup')) sy += 1; if (K2.has('s') || K2.has('arrowdown')) sy -= 1;
     if (K2.has('a') || K2.has('arrowleft')) sx -= 1; if (K2.has('d') || K2.has('arrowright')) sx += 1;
     // zona muerta del 12 % (el pulgar apoyado no mueve al jugador) y de ahí a tope, sin escalón
@@ -248,7 +275,7 @@ export class FutbolMatch {
     const f = new THREE.Vector3(); this.camera.getWorldDirection(f); f.y = 0; if (f.lengthSq() < 1e-6) f.set(0, 0, -1); f.normalize();
     const rx = -f.z, rz = f.x;
     const wx = rx * sx + f.x * sy, wz = rz * sx + f.z * sy;
-    this.game.setMove(wx, wz, m, K2.has('shift') || this.hud.held.sprint);
+    this.game.setMove(wx, wz, m, K2.has('shift') || this.hud.held.sprint || !!this.padSprint);
   }
   nextCam() { this.camMode = CAMS[(CAMS.indexOf(this.camMode) + 1) % CAMS.length]; this.hud.say(CAM_NAME[this.camMode], 1200); }
   async pauseMenu() {
@@ -550,7 +577,7 @@ export class FutbolMatch {
   drawHud() {
     const g = this.game, H = this.hud, me = g.me;
     if (g.mode !== 'penalties') H.setClock(g.halfLen - g.clock, g.half, this.reto ? this.reto.label() : null);
-    if (g.mode !== 'penalties' && !this.reto) H.setDefending(g.defending());
+    if (g.mode !== 'penalties' && !this.reto) H.setMode(g.owner ? (g.owner.team === g.me.team ? 'atk' : 'def') : 'loose');
     H.bars(me.energy, g.charge);
     // flecha en el borde si tu jugador no se ve
     if (!this.ring.visible) { H.arrow(null); return; }

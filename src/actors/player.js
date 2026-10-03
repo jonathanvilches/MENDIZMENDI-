@@ -63,7 +63,8 @@ export class Player {
     const wl = waterLevelAt(nx, nz);
     const depth = wl - gNew;
     const onBridge = bridgeAt(nx, nz);
-    const tooSteep = moved > 1e-4 && (gNew - gOld) / moved > 1.25 && this.grounded;
+    // (un escalón pequeño, como el borde de una tarima o de una rampa, se sube; una pared o un talud, no)
+    const tooSteep = moved > 1e-4 && gNew - gOld > 0.25 && (gNew - gOld) / moved > 1.25 && this.grounded;
     const tooDeep = !onBridge && depth > 0.95;
     if (tooSteep || tooDeep) {
       // deslizar: probar solo X o solo Z
