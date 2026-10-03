@@ -37,7 +37,8 @@ export class FutbolMatch {
    */
   constructor(o) {
     this.o = { venue: 'sadar', home: 'osasuna', away: 'visitante', timeScale: 1, quality: 'high', ...o };
-    this.home = TEAMS[this.o.home] || TEAMS.osasuna; this.away = TEAMS[this.o.away] || TEAMS.visitante;
+    // (los clubes de los pueblos llegan ya como equipo: homeTeam / awayTeam)
+    this.home = this.o.homeTeam || TEAMS[this.o.home] || TEAMS.osasuna; this.away = this.o.awayTeam || TEAMS[this.o.away] || TEAMS.visitante;
     // el formato sale del campo: El Sadar, fútbol 11; la pista del pueblo, fútbol sala
     if (this.o.local) this.home = { ...this.home, ...this.o.local };
     const V = VENUES[this.o.venue] || VENUES.sadar; this.o.format ||= V.format || 'f11'; this.o.surface ||= V.surface || 'hierba';
@@ -207,7 +208,7 @@ export class FutbolMatch {
       this.res = res;
       this.live = true;
       const V = this.field.venue;
-      this.hud.msg(V.name, `${this.home.name} – ${this.away.name}`, 2600);
+      this.hud.msg(this.o.venueName || V.name, `${this.home.name} – ${this.away.name}`, 2600);
       this.audio.resume(); this.audio.whistle(1);
     });
   }

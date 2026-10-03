@@ -46,6 +46,8 @@ async function go(m) {
   if (m === 'match' || m === 'cup') r = await FutbolSystem.startMatch({ ...o, modo: m === 'cup' ? 'eliminatoria' : 'amistoso' });
   else if (m === 'pen') r = await FutbolSystem.startPenaltis({ campoId: o.campoId, dificultad: o.dificultad, autoplay: o.autoplay });
   else if (m === 'menu') r = await FutbolSystem.openMenu({ campoId: o.campoId });
+  else if (m === 'liga') r = await FutbolSystem.startLeague({ club: q.get('club') || 'baztan', autoplay: o.autoplay, timeScale: o.timeScale });   // ?go=liga&club=baztan
+  else if (m === 'club') r = await FutbolSystem.startClubMatch({ club: q.get('club') || 'baztan', rival: q.get('rival') || 'aoiz', autoplay: o.autoplay, timeScale: o.timeScale });
   else r = await FutbolSystem.startReto({ campoId: o.campoId, reto: m });
   $('#out').textContent = JSON.stringify(r, null, 1); window.__result = r;
 }
