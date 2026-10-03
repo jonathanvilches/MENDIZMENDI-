@@ -168,6 +168,8 @@ export class NightLights {
     this.mat.opacity = on * 0.85; this.points.visible = on > 0.01;
     this.mats.lamp.emissiveIntensity = on * 3;
     this.mats.glass.emissiveIntensity = on * 0.55;
+    // otros materiales que se encienden de noche (la fachada de El Sadar): [de día, de noche]
+    for (const m of this.mats.nightExtra || []) m.emissiveIntensity = m.userData.night[0] + (m.userData.night[1] - m.userData.night[0]) * on;
     const near = this.lamps.map(l => ({ l, d: (l.x - player.pos.x) ** 2 + (l.z - player.pos.z) ** 2 })).sort((a, b) => a.d - b.d).slice(0, 3);
     // cuánto ilumina la farola más cercana al jugador (para la luz propia de los personajes: bajo la farola, cálida)
     this.lampK = near[0] ? on * Math.max(0, 1 - Math.sqrt(near[0].d) / 8) ** 2 : 0;

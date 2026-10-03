@@ -304,21 +304,6 @@ function pitchTexture() {
     }
   });
 }
-// fachada: bandas de paneles rojos con aletas blancas y la planta baja acristalada
-function facadePaint(g, W, H, ppm, title) {
-  const hm = H / ppm;
-  g.fillStyle = '#c7cacd'; g.fillRect(0, 0, W, H);
-  for (let x = 0; x < W; x += ppm * 1.2) { g.fillStyle = 'rgba(255,255,255,.55)'; g.fillRect(x, 0, Math.max(2, ppm * 0.14), H * (1 - 4.8 / hm)); g.fillStyle = 'rgba(40,45,50,.22)'; g.fillRect(x + ppm * 0.14, 0, Math.max(1, ppm * 0.08), H * (1 - 4.8 / hm)); }
-  for (const yy of [2.2, 7.5, 12.2]) { g.fillStyle = 'rgba(0,0,0,.18)'; g.fillRect(0, (yy / hm) * H, W, ppm * 0.25); }
-  g.fillStyle = '#23303d'; g.fillRect(0, H * (1 - 4.6 / hm), W, H * 4.6 / hm);
-  g.fillStyle = '#5d7486'; for (let x = 0; x < W; x += ppm * 2.4) g.fillRect(x, H * (1 - 4.6 / hm), Math.max(2, ppm * 0.12), H * 4.6 / hm);
-  g.fillStyle = '#e9ecef'; g.fillRect(0, H * (1 - 4.9 / hm), W, ppm * 0.3);
-  if (title) {
-    g.textAlign = 'center'; g.textBaseline = 'middle';
-    g.fillStyle = 'rgba(0,0,0,.3)'; fitText(g, title, W / 2 + ppm * 0.25, H * 0.36 + ppm * 0.3, W * 0.5, H * 0.34, FONT_ROUND, '900');
-    g.fillStyle = '#ffffff'; fitText(g, title, W / 2, H * 0.36, W * 0.5, H * 0.34, FONT_ROUND, '900');
-  }
-}
 function quad(x0, z0, x1, z1, y0, y1, u0, u1, v0 = 0, v1 = 1) {
   const g = new THREE.BufferGeometry();
   const p = [x0, y0, z0, x1, y0, z1, x1, y1, z1, x0, y0, z0, x1, y1, z1, x0, y1, z0];
@@ -447,7 +432,8 @@ export function stadium(B, S, group, cx, cz, TOWN) {
     }
   }
   // cubierta roja de esquinas redondeadas que baja hacia fuera, con la banda blanca alrededor del hueco
-  const RIN = [26, 39, 9], RMID = [30, 43, 12], ROUT = [OX + 3.6, OZ + 3.6, 11], hIn = HH + 3.6, hOut = HH + 0.4;
+  // (la cubierta acaba justo por dentro del anillo rojo de la fachada)
+  const RING = [OX + 5, OZ + 5, 15], RIN = [26, 39, 9], RMID = [30, 43, 12], ROUT = [RING[0] - 0.4, RING[1] - 0.4, RING[2] - 0.4], hIn = HH + 3.6, hOut = HH + 0.4;
   ringRoof(B, T, RIN, RMID, hIn + 0.1, hIn, '#f2f2ef');
   ringRoof(B, T, RMID, ROUT, hIn, hOut, '#c41f2c');
   ringRoof(B, T, RIN, ROUT, hIn - 0.5, hOut - 0.4, '#b9bec4', true, 'lit');
@@ -464,28 +450,82 @@ export function stadium(B, S, group, cx, cz, TOWN) {
   }
   // la pared oeste necesita el hueco de la entrada: se tapa con dos paños y un dintel encima (la caja de arriba se sustituye)
   B.add('paint', colored(box(0.36, HH + 0.5 - 5.2, 2 * GAP + 0.2), '#3a3f45'), F(M(-(OX + 0.18), 5.2 + (HH + 0.5 - 5.2) / 2, 0)));
-  // fachada gris de paneles con esquinas redondeadas; entrada al oeste; «CA OSASUNA» y «EL SADAR» en letras
-  const plain = canvasTex(256, 528, (g, W, H) => facadePaint(g, W, H, 32, null), true);
-  const FH = ROUT[0] - 0.6, FD = ROUT[1] - 0.6, FR = ROUT[2] - 0.6, y0 = -4.5, y1 = hOut + 0.3, vy = (h) => (h - y0) / (y1 - y0);
-  const path = [];
-  // recorrido en el sentido que deja las caras mirando hacia fuera: este (hacia −z), norte, oeste (con la entrada) y sur
-  path.push([FH, FD - FR], [FH, -FD + FR]);
-  for (let i = 1; i <= 6; i++) { const a = -i / 6 * Math.PI / 2; path.push([FH - FR + Math.cos(a) * FR, -FD + FR + Math.sin(a) * FR]); }
-  path.push([-FH + FR, -FD]);
-  for (let i = 1; i <= 6; i++) { const a = -Math.PI / 2 - i / 6 * Math.PI / 2; path.push([-FH + FR + Math.cos(a) * FR, -FD + FR + Math.sin(a) * FR]); }
-  path.push([-FH, -GAP], [-FH, GAP], [-FH, FD - FR]);
-  for (let i = 1; i <= 6; i++) { const a = Math.PI - i / 6 * Math.PI / 2; path.push([-FH + FR + Math.cos(a) * FR, FD - FR + Math.sin(a) * FR]); }
-  path.push([FH - FR, FD]);
-  for (let i = 1; i <= 6; i++) { const a = Math.PI / 2 - i / 6 * Math.PI / 2; path.push([FH - FR + Math.cos(a) * FR, FD - FR + Math.sin(a) * FR]); }
-  const T0 = new THREE.Matrix4().makeTranslation(cx, y, cz), fac = [];
-  let u = 0;
-  for (let i = 0; i < path.length - 1; i++) {
-    const [ax, az] = path[i], [bx, bz] = path[i + 1], l = Math.hypot(bx - ax, bz - az), gap = ax === -FH && Math.abs(az + GAP) < 0.01 && Math.abs(bz - GAP) < 0.01;
-    fac.push(quad(ax, az, bx, bz, gap ? 5.2 : y0, y1, u / 8, (u + l) / 8, gap ? vy(5.2) : 0, 1).applyMatrix4(T0)); u += l;
+  // EL SADAR por fuera (proyecto «Muro Rojo», 2021): dos piezas que se contraponen. Abajo, un zócalo rectangular de
+  // esquinas vivas forrado de chapa grecada perforada oscura, opaco de día; de noche, con la luz de dentro, se leen
+  // EL SADAR y OSASUNA a través de los agujeros y todo él brilla en rojo. Encima, un anillo ovalado de chapa grecada roja
+  // que parece flotar: vuela por delante del zócalo y, en las esquinas, las del zócalo asoman por fuera de sus curvas
+  const FH = OX + 3, FD = OZ + 3, y0 = -4.5, yB = 9, yR0 = 9.9, yR1 = hOut + 0.8;
+  const T0 = new THREE.Matrix4().makeTranslation(cx, y, cz);
+  // recorrido en el sentido que deja las caras mirando hacia fuera: este (hacia −z), norte, oeste y sur
+  const rrPath = ([hw, hd, r], n = 10) => {
+    const P = [[hw, hd - r], [hw, -hd + r]];
+    const arc = (ox, oz, a0) => { for (let i = 1; i <= n; i++) { const a = a0 - i / n * Math.PI / 2; P.push([ox + Math.cos(a) * r, oz + Math.sin(a) * r]); } };
+    arc(hw - r, -hd + r, 0); P.push([-hw + r, -hd]); arc(-hw + r, -hd + r, -Math.PI / 2); P.push([-hw, hd - r]); arc(-hw + r, hd - r, Math.PI); P.push([hw - r, hd]); arc(hw - r, hd - r, Math.PI / 2);
+    return P;
+  };
+  const strip = (path, ya, yb, gapAt = null) => {
+    const out = []; let u = 0;
+    for (let i = 0; i < path.length - 1; i++) {
+      const [ax, az] = path[i], [bx, bz] = path[i + 1], l = Math.hypot(bx - ax, bz - az), g = gapAt?.(ax, az, bx, bz);
+      out.push(quad(ax, az, bx, bz, g ?? ya, yb, u, u + l, (g ?? ya) - ya, yb - ya).applyMatrix4(T0)); u += l;
+    }
+    return mergeGeometries(out);
+  };
+  const night = (m, day, nite) => { m.userData.night = [day, nite]; m.emissiveIntensity = day; (B.mats.nightExtra ||= []).push(m); return m; };
+  // chapa grecada perforada: pliegues verticales cada 25 cm y una trama fina de agujeros (losa de 2 × 2 m que se repite)
+  const perf = canvasTex(128, 128, (g, W, H) => {
+    g.fillStyle = '#656c74'; g.fillRect(0, 0, W, H);
+    for (let x = 0; x < W; x += 16) { g.fillStyle = '#7a828b'; g.fillRect(x, 0, 6, H); g.fillStyle = '#454a51'; g.fillRect(x + 6, 0, 2, H); g.fillStyle = '#5a6068'; g.fillRect(x + 14, 0, 2, H); }
+    g.fillStyle = 'rgba(16,18,22,.6)'; for (let yy = 1; yy < H; yy += 4) for (let x = (yy >> 2) % 2 * 2; x < W; x += 4) g.fillRect(x, yy, 1, 1);
+  }, true);
+  perf.wrapT = THREE.RepeatWrapping; perf.repeat.set(0.5, 0.5);
+  // luz de dentro a través de la chapa: el rojo de Osasuna y las letras (en las caras largas EL SADAR; en los fondos OSASUNA)
+  const glow = (len, word) => {
+    const t = canvasTex(1024, 128, (g, W, H) => {
+      const hz = yB - y0, vy = (h) => H * (1 - (h - y0) / hz);
+      g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
+      const gr = g.createLinearGradient(0, vy(yB), 0, vy(0)); gr.addColorStop(0, '#5a0a10'); gr.addColorStop(1, '#2a0408'); g.fillStyle = gr; g.fillRect(0, vy(yB), W, vy(0) - vy(yB));
+      // pilares de la estructura de las gradas: franjas en sombra
+      for (let m = 4; m < len; m += 8) { g.fillStyle = 'rgba(0,0,0,.55)'; g.fillRect(m / len * W, vy(yB), Math.max(2, 0.8 / len * W), vy(0) - vy(yB)); }
+      g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#ffd2d2';
+      // (el lienzo no tiene los mismos píxeles por metro a lo ancho que a lo alto: se corrige para que no se deformen)
+      const k = W * hz / (len * H);
+      g.save(); g.scale(k, 1); fitText(g, word, W / 2 / k, (vy(8.2) + vy(4.2)) / 2, W * 0.42 / k, vy(4.2) - vy(8.2), FONT_ROUND, '900'); g.restore();
+    });
+    t.wrapS = THREE.ClampToEdgeWrapping; t.repeat.set(1 / len, 1 / (yB - y0));
+    return t;
+  };
+  const baseMat = (len, word) => night(new THREE.MeshStandardMaterial({ map: perf, roughness: 0.6, metalness: 0.15, emissive: new THREE.Color('#ffffff'), emissiveMap: glow(len, word) }), 0.06, 1.25);
+  const sides = [
+    { path: [[FH, FD], [FH, -FD]], len: 2 * FD, word: 'EL SADAR' },
+    { path: [[FH, -FD], [-FH, -FD]], len: 2 * FH, word: 'OSASUNA' },
+    { path: [[-FH, -FD], [-FH, -GAP], [-FH, GAP], [-FH, FD]], len: 2 * FD, word: 'EL SADAR' },
+    { path: [[-FH, FD], [FH, FD]], len: 2 * FH, word: 'OSASUNA' },
+  ];
+  for (const sd of sides) {
+    const g = strip(sd.path, y0, yB, (ax, az, bx, bz) => ax === -FH && Math.abs(az + GAP) < 0.01 && Math.abs(bz - GAP) < 0.01 ? 5.2 : null);   // hueco de la entrada oeste
+    const m = new THREE.Mesh(g, baseMat(sd.len, sd.word)); m.castShadow = true; m.receiveShadow = true; m.matrixAutoUpdate = false; group.add(m);
   }
-  { const m = new THREE.Mesh(mergeGeometries(fac), new THREE.MeshStandardMaterial({ map: plain, roughness: 0.6, metalness: 0.15 })); m.castShadow = true; m.receiveShadow = true; m.matrixAutoUpdate = false; group.add(m); }
-  S.add(M(cx - FH - 0.08, y + 9.6, cz - 20, -Math.PI / 2), 30, 3.4, letters('CA OSASUNA', '#5d636b', { font: FONT_ROUND, weight: '900', shadow: null, size: 0.8 }), { ppm: 40 });
-  S.add(M(cx + FH + 0.08, y + 9.6, cz, Math.PI / 2), 26, 3.4, letters('EL SADAR', '#5d636b', { font: FONT_ROUND, weight: '900', shadow: null, size: 0.8 }), { ppm: 40 });
+  // remate del zócalo (se ve en las esquinas, por fuera del anillo)
+  { const sh = new THREE.Shape(); sh.moveTo(-FH, -FD); sh.lineTo(FH, -FD); sh.lineTo(FH, FD); sh.lineTo(-FH, FD); sh.lineTo(-FH, -FD);
+    const hole = new THREE.Path(); hole.moveTo(-OX, -OZ); hole.lineTo(-OX, OZ); hole.lineTo(OX, OZ); hole.lineTo(OX, -OZ); hole.lineTo(-OX, -OZ); sh.holes.push(hole);
+    B.add('paint', colored(new THREE.ShapeGeometry(sh).rotateX(-Math.PI / 2).translate(0, yB, 0), '#2c3036'), T); }
+  // entre el zócalo y el anillo, una franja en sombra: el anillo parece flotar
+  for (const s of [-1, 1]) {
+    B.add('paint', colored(box(0.3, yR0 - yB + 0.8, 2 * OZ + 1.5), '#1c1f23'), F(M(s * (OX + 0.75), (yB + yR0) / 2, 0)));
+    B.add('paint', colored(box(2 * OX + 1.5, yR0 - yB + 0.8, 0.3), '#1c1f23'), F(M(0, (yB + yR0) / 2, s * (OZ + 0.75))));
+  }
+  // anillo rojo: chapa grecada (pliegues verticales), con su panza por debajo y el canto de arriba
+  const red = canvasTex(64, 64, (g, W, H) => {
+    g.fillStyle = '#c41f2c'; g.fillRect(0, 0, W, H);
+    for (let x = 0; x < W; x += 16) { g.fillStyle = '#d93441'; g.fillRect(x, 0, 5, H); g.fillStyle = '#9c1620'; g.fillRect(x + 9, 0, 3, H); g.fillStyle = '#b01a26'; g.fillRect(x + 12, 0, 4, H); }
+  }, true);
+  red.repeat.set(1, 1 / (yR1 - yR0));
+  { const m = new THREE.Mesh(strip(rrPath(RING), yR0, yR1), night(new THREE.MeshStandardMaterial({ map: red, roughness: 0.55, metalness: 0.05, emissive: new THREE.Color('#c41f2c') }), 0.2, 0.5));   // (algo de luz propia: en sombra sigue leyéndose rojo)
+    m.castShadow = true; m.receiveShadow = true; m.matrixAutoUpdate = false; group.add(m); }
+  { const sh = new THREE.Shape(); rrect(sh, RING); sh.holes.push(rrect(null, [OX, OZ, 3], true));
+    B.add('paint', colored(new THREE.ShapeGeometry(sh, 8).rotateX(Math.PI / 2).translate(0, yR0, 0), '#7a121b'), T); }
+  ringRoof(B, T, ROUT, RING, yR1, yR1, '#a8141f');
   // pasillo de entrada entre la fachada y la grada oeste
   for (const s of [-1, 1]) { B.add('paint', colored(box(FH - OX, 5.4, 0.3), '#3a3f45'), F(M(-(OX + FH) / 2, 2.2, s * (GAP + 0.15)))); addBox(cx - (OX + FH) / 2, cz + s * (GAP + 0.15), FH - OX, 0.4, 0); }
   B.add('paint', colored(box(FH - OX, 0.3, 2 * GAP + 0.6), '#3a3f45'), F(M(-(OX + FH) / 2, 5.2, 0)));

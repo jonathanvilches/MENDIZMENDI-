@@ -333,7 +333,13 @@ export class FutbolMatch {
         H.msg(e.penalty ? TEXT.penalty : TEXT.foul, e.penalty ? 'Falta dentro del área' : e.over ? TEXT.fouls6 : RU.foulLimit ? `De ${name(P(e.p))} · ${e.acc}.ª falta` : `De ${name(P(e.p))}`, 1800);
         A.groan(); this.anim(P(e.on), 'fall'); if (RU.foulLimit) H.setFouls?.(g.fouls[0], g.fouls[1], RU.foulLimit); break;
       case 'fourSec': H.say(TEXT.fourSec + ' Saca el otro equipo', 1600); break;
-      case 'out': H.say(e.type === 'throwin' ? `${TEXT.out}: ${TEXT.throwin.toLowerCase()}` : e.type === 'corner' ? TEXT.corner : TEXT.goalkick, 1500); break;
+      case 'out': {
+        // quién saca: siempre el rival del último que la tocó (en el de banda y el córner) o el que defiende esa portería
+        const who = e.team === 0 ? this.home.short : this.away.short;
+        H.say(e.type === 'throwin' ? `${TEXT.out} · ${TEXT.throwin.toLowerCase()} para ${who}` : `${e.type === 'corner' ? TEXT.corner : TEXT.goalkick} para ${who}`, 1800);
+        break;
+      }
+      case 'noGoal': H.msg('No vale el gol', e.why === 'throwin' ? 'No se puede marcar directamente de un saque de banda' : e.why === 'indirect' ? 'Tiro libre indirecto: la tiene que tocar otro jugador' : 'El portero no puede marcar lanzando con la mano', 2200); A.groan(); break;
       case 'offside': H.say(`${TEXT.offside}${P(e.p).team === 0 ? ' de ' + name(P(e.p)) : ''}`, 1600); break;
       case 'restart':
         if (e.type === 'penalty') H.msg(TEXT.penalty, e.team === 0 ? 'Apunta con el joystick y mantén TIRO' : 'Para el tiro… ¡tu portero está atento!', 2000);
@@ -638,8 +644,8 @@ class Tutorial {
     const g = this.g, me = g.me; this.t += dt; this.st += dt;
     if (this.step >= 4) return;
     if (this.t > 60) { this.next(4); return; }
-    // el balón no sale del campo durante el tutorial
-    const B = g.ball.p; if (Math.abs(B.x) > F.HL + 0.5 || Math.abs(B.z) > F.HW + 0.5) { g.ball.set(me.x + 0.6, me.z); }
+    // en el entrenamiento el balón que sale vuelve a tus pies (en el partido, saca el rival: se avisa)
+    const B = g.ball.p; if (Math.abs(B.x) > F.HL + 0.5 || Math.abs(B.z) > F.HW + 0.5) { g.ball.set(me.x + 0.6, me.z); this.v.hud.say('Fuera. En el partido sacará el rival; ahora, sigue practicando', 1800); }
     if (this.step === 0 && Math.hypot(me.x - this.start0.x, me.z - this.start0.z) > 3) this.next(1);
     if (this.step === 1) { const mate = this.mate; mate.wx = mate.wz = 0; if (g.stats.passesOk[0] > 0) this.next(2); }
     if (this.step === 2) { if (!g.owner && !g.passTo && this.st > 1.5 && g.stats.shots[0] === 0 && Math.hypot(B.x - me.x, B.z - me.z) > 3) { g.ball.set(me.x + 0.6, me.z); g.takeBall(me); } if (g.stats.shots[0] > 0 && this.st > 0.3) this.waitShot = (this.waitShot || 0) + dt; if (this.waitShot > 1.6) this.next(3); }

@@ -4,8 +4,8 @@
 // estadio:
 //   · El Sadar tras la reforma de 2021: una sola grada continua y muy pendiente por los cuatro lados, pegada al césped
 //     y con las esquinas cerradas (asientos rojos, escaleras y respaldos), cubierta continua de celosía que vuela sobre
-//     las gradas hasta casi las líneas y da sombra al campo, el anillo rojo del borde de la cubierta y, por fuera, la
-//     base rectangular de chapa plegada roja y azul (según desde dónde se mire se ve de un color o del otro).
+//     las gradas hasta casi las líneas y da sombra al campo y, por fuera, el anillo rojo de chapa grecada (el borde de
+//     la cubierta) que parece flotar sobre un zócalo rectangular de chapa perforada oscura (proyecto «Muro Rojo»).
 //   · El campo de un pueblo: muro de piedra, un graderío sencillo, árboles y casas.
 // Devuelve la escena y unas pocas funciones para animarla.
 import * as THREE from 'three';
@@ -268,22 +268,6 @@ function latticeTexture() {
     g.strokeStyle = 'rgba(60,66,74,.35)'; g.lineWidth = 2; g.stroke();
   }, { repeat: true });
 }
-// fachada: paneles gris claro con aletas blancas verticales y juntas; abajo, la planta de accesos acristalada con
-// puertas rojas y azules (la baldosa mide 4,8 m de ancho y toda la altura de la fachada, 21 m)
-function facadeTexture() {
-  return canvasTex(256, 512, (g, W, H) => {
-    const ppm = H / 21, glass = 4.4 * ppm;
-    g.fillStyle = '#cfd3d7'; g.fillRect(0, 0, W, H - glass);
-    for (let x = 0; x < W; x += 1.2 * ppm) { g.fillStyle = 'rgba(255,255,255,.75)'; g.fillRect(x, 0, 0.16 * ppm, H - glass); g.fillStyle = 'rgba(40,45,52,.22)'; g.fillRect(x + 0.16 * ppm, 0, 0.1 * ppm, H - glass); }
-    for (const y of [5.2, 10.4, 15.6]) { g.fillStyle = 'rgba(0,0,0,.12)'; g.fillRect(0, H - y * ppm, W, 0.18 * ppm); }
-    g.fillStyle = '#e9ecef'; g.fillRect(0, H - glass - 0.35 * ppm, W, 0.35 * ppm);
-    g.fillStyle = '#1f2a35'; g.fillRect(0, H - glass, W, glass);
-    for (let x = 0; x < W; x += 1.2 * ppm) { g.fillStyle = '#6b7c8b'; g.fillRect(x, H - glass, 0.08 * ppm, glass); }
-    g.fillStyle = '#c41f2c'; g.fillRect(0.4 * ppm, H - 3.0 * ppm, 1.6 * ppm, 3.0 * ppm);
-    g.fillStyle = '#1d3b8a'; g.fillRect(2.6 * ppm, H - 3.0 * ppm, 1.6 * ppm, 3.0 * ppm);
-    g.fillStyle = 'rgba(255,255,255,.25)'; g.fillRect(0, H - glass + 0.2 * ppm, W, 0.1 * ppm);
-  }, { repeat: true });
-}
 // videomarcador: nombre del campo y el resultado (se repinta con cada gol)
 function scoreboard(names) {
   const c = document.createElement('canvas'); c.width = 512; c.height = 208; const g = c.getContext('2d');
@@ -458,7 +442,6 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
       under[0].quad([RI[i][0], yIn, RI[i][1]], [RI[j][0], yIn, RI[j][1]], [RM[j][0], yMid, RM[j][1]], [RM[i][0], yMid, RM[i][1]], [0, -1, 0], [s / 7, 0, (s + l) / 7, 0, (sm + l2) / 7, 12 / 7, sm / 7, 12 / 7]);
       under[1].quad([RM[i][0], yMid, RM[i][1]], [RM[j][0], yMid, RM[j][1]], [RO[j][0], yOut, RO[j][1]], [RO[i][0], yOut, RO[i][1]], [0, -1, 0], [sm / 7, 0, (sm + l2) / 7, 0, (sm + l2) / 7, 21 / 7, sm / 7, 21 / 7]);
       rim.quad([RI[i][0], yIn - 1.3, RI[i][1]], [RI[j][0], yIn - 1.3, RI[j][1]], [RI[j][0], yIn + TH, RI[j][1]], [RI[i][0], yIn + TH, RI[i][1]], [-RI[i][2], 0, -RI[i][3]], undefined, WHITE_R);
-      rim.quad([RO[i][0], yOut - 2.2, RO[i][1]], [RO[j][0], yOut - 2.2, RO[j][1]], [RO[j][0], yOut + TH, RO[j][1]], [RO[i][0], yOut + TH, RO[i][1]], [RO[i][2], 0, RO[i][3]], undefined, RED_R);
       // focos: una línea de luces bajo el borde interior
       const nl = Math.max(1, Math.floor(l / 4.5));
       for (let q = 0; q < nl; q++) { const p = lerp(RI, i, (q + 0.5) / nl), nx = RI[i][2], nz = RI[i][3], tx = -nz * 0.6, tz = nx * 0.6;
@@ -481,16 +464,33 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
       const m = add(new THREE.PlaneGeometry(46, 7.2), osaM);
       m.matrix.makeBasis(u, v, nrm).setPosition(s2 * xa, ya, 0); m.matrixWorldNeedsUpdate = true;
     }
-    // fachada: base de paneles gris claro con aletas blancas, la planta baja acristalada con los accesos rojos y azules,
-    // un poco metida bajo el vuelo de la cubierta; CA OSASUNA en letras grises en un lateral
-    const FA = [F.HL + 34, F.HW + 32.5, 32], FP = rr(...FA), facT = own(facadeTexture()), fac = new Geo();
-    { let u = 0; for (let i = 0; i < N; i++) { const j = (i + 1) % N, l = len(FP, i); fac.quad([FP[i][0], 0, FP[i][1]], [FP[j][0], 0, FP[j][1]], [FP[j][0], 21, FP[j][1]], [FP[i][0], 21, FP[i][1]], [FP[i][2], 0, FP[i][3]], [u / 4.8, 0, (u + l) / 4.8, 0, (u + l) / 4.8, 1, u / 4.8, 1]); u += l; } }
-    add(fac.build(), own(new THREE.MeshStandardMaterial({ map: facT, roughness: 0.6, metalness: 0.12 })), { receive: !low });
-    // tapa entre la fachada y el fondo de la grada, bajo la cubierta (para que no se vea el hueco)
-    { const g = new Geo(), A = rr(ST.x0 + dTop, ST.z0 + dTop, ST.r0 + dTop); for (let i = 0; i < N; i++) { const j = (i + 1) % N; g.quad([A[i][0], 21, A[i][1]], [A[j][0], 21, A[j][1]], [FP[j][0], 21, FP[j][1]], [FP[i][0], 21, FP[i][1]], [0, 1, 0], undefined, lin('#5c6067')); }
-      add(g.build(), own(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9 }))); }
-    const nameT = own(canvasTex(1024, 128, (g, W, Hh) => { g.font = '900 104px Nunito, Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#6a7079'; g.fillText('CA OSASUNA', W / 2, Hh / 2 + 6); }, { alpha: true }));
-    { const m = add(new THREE.PlaneGeometry(44, 5.5), own(new THREE.MeshStandardMaterial({ map: nameT, alphaTest: 0.5, roughness: 0.5 }))); m.position.set(12, 8.5, -(FA[1] + 0.06)); m.rotation.y = Math.PI; m.updateMatrix(); }
+    // por fuera (proyecto «Muro Rojo», 2021): abajo, un zócalo rectangular de esquinas vivas de chapa perforada oscura;
+    // encima, el anillo ovalado de chapa grecada roja, que es el borde de la cubierta y parece flotar sobre el zócalo
+    // (las esquinas del zócalo asoman por fuera de sus curvas); entre los dos, una franja en sombra
+    const yB = 12, yR0 = 12.9, FA = [F.HL + 34, F.HW + 32.5, 0.6], FP = rr(...FA), A = rr(ST.x0 + dTop, ST.z0 + dTop, ST.r0 + dTop), fac = new Geo(), ring = new Geo(), caps = new Geo();
+    { let u = 0, ur = 0; for (let i = 0; i < N; i++) {
+      const j = (i + 1) % N, l = len(FP, i), lr = len(RO, i);
+      fac.quad([FP[i][0], 0, FP[i][1]], [FP[j][0], 0, FP[j][1]], [FP[j][0], yB, FP[j][1]], [FP[i][0], yB, FP[i][1]], [FP[i][2], 0, FP[i][3]], [u / 2, 0, (u + l) / 2, 0, (u + l) / 2, yB / 2, u / 2, yB / 2]); u += l;
+      ring.quad([RO[i][0], yR0, RO[i][1]], [RO[j][0], yR0, RO[j][1]], [RO[j][0], yOut + TH, RO[j][1]], [RO[i][0], yOut + TH, RO[i][1]], [RO[i][2], 0, RO[i][3]], [ur, 0, ur + lr, 0, ur + lr, 1, ur, 1]); ur += lr;
+      caps.quad([A[i][0], yB, A[i][1]], [A[j][0], yB, A[j][1]], [FP[j][0], yB, FP[j][1]], [FP[i][0], yB, FP[i][1]], [0, 1, 0], undefined, lin('#2c3036'));
+      caps.quad([A[i][0], yR0, A[i][1]], [A[j][0], yR0, A[j][1]], [RO[j][0], yR0, RO[j][1]], [RO[i][0], yR0, RO[i][1]], [0, -1, 0], undefined, lin('#7a121b'));
+      caps.quad([A[i][0], yB - 0.4, A[i][1]], [A[j][0], yB - 0.4, A[j][1]], [A[j][0], yR0 + 0.4, A[j][1]], [A[i][0], yR0 + 0.4, A[i][1]], [A[i][2], 0, A[i][3]], undefined, lin('#1c1f23'));
+    } }
+    const perfT = own(canvasTex(128, 128, (g, W, Hh) => {
+      g.fillStyle = '#656c74'; g.fillRect(0, 0, W, Hh);
+      for (let x = 0; x < W; x += 16) { g.fillStyle = '#7a828b'; g.fillRect(x, 0, 6, Hh); g.fillStyle = '#454a51'; g.fillRect(x + 6, 0, 2, Hh); g.fillStyle = '#5a6068'; g.fillRect(x + 14, 0, 2, Hh); }
+      g.fillStyle = 'rgba(16,18,22,.6)'; for (let y = 1; y < Hh; y += 4) for (let x = (y >> 2) % 2 * 2; x < W; x += 4) g.fillRect(x, y, 1, 1);
+    }, { repeat: true }));
+    const redT = own(canvasTex(64, 64, (g, W, Hh) => {
+      g.fillStyle = '#c41f2c'; g.fillRect(0, 0, W, Hh);
+      for (let x = 0; x < W; x += 16) { g.fillStyle = '#d93441'; g.fillRect(x, 0, 5, Hh); g.fillStyle = '#9c1620'; g.fillRect(x + 9, 0, 3, Hh); g.fillStyle = '#b01a26'; g.fillRect(x + 12, 0, 4, Hh); }
+    }, { repeat: true }));
+    add(fac.build(), own(new THREE.MeshStandardMaterial({ map: perfT, roughness: 0.6, metalness: 0.15 })), { receive: !low });
+    add(ring.build(), own(new THREE.MeshStandardMaterial({ map: redT, roughness: 0.55, metalness: 0.05, emissive: '#c41f2c', emissiveIntensity: 0.2 })));
+    add(caps.build(), own(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9 })));
+    // EL SADAR: de día apenas se lee en la chapa (de noche se ve con la luz de dentro)
+    const nameT = own(canvasTex(1024, 128, (g, W, Hh) => { g.font = '900 104px Nunito, Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#8a7f84'; g.fillText('EL SADAR', W / 2, Hh / 2 + 6); }, { alpha: true }));
+    { const m = add(new THREE.PlaneGeometry(40, 5), own(new THREE.MeshStandardMaterial({ map: nameT, alphaTest: 0.5, roughness: 0.6, polygonOffset: true, polygonOffsetFactor: -2 }))); m.position.set(0, 6.4, -(FA[1] + 0.06)); m.rotation.y = Math.PI; m.updateMatrix(); }
     // vallas LED azules delante de la primera fila
     { const ledT = own(boardTexture(['AUPA GORRITXOAK', 'IRUÑA', 'MENDIMENDIZ', 'NAFARROA'], '#14295e', '#ffffff')), g = new Geo(), P = rr(ST.x0 - 0.06, ST.z0 - 0.06, ST.r0 - 0.06); let u = 0;
       for (let i = 0; i < N; i++) { const j = (i + 1) % N, l = len(P, i); g.quad([P[i][0], 0.2, P[i][1]], [P[j][0], 0.2, P[j][1]], [P[j][0], 1.0, P[j][1]], [P[i][0], 1.0, P[i][1]], [-P[i][2], 0, -P[i][3]], [u / 16, 0, (u + l) / 16, 0, (u + l) / 16, 1, u / 16, 1]); u += l; }
