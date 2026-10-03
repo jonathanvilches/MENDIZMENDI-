@@ -5,7 +5,7 @@
   G.ui.dialog = async (lines) => { for (let i = 0; i < lines.length; i++) { const L = lines[i]; if (L.choices) { const r = L.onChoice?.(0); if (r) lines.splice(i + 1, 0, ...r); } } return 0; };
   const go = async (x, z) => { G.player.place(x, z, 0); G.follow.snap(G.player); await sleep(200); };
   for (const M of G.missions) {
-    const t0 = performance.now();
+    const t0 = performance.now(); (window.__fl ||= []).push(`${M.i} ${M.type}: empieza`);
     try {
       if (G.unlocked && !G.unlocked(M)) { log.push(`${M.i} ${M.type}: bloqueada`); continue; }   // (hoy todas se hacen en cualquier orden)
       await go(M.host.pos.x + 1.5, M.host.pos.z + 1.5);
