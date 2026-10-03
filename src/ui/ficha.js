@@ -8,6 +8,7 @@ import { FLORA, FLORA_KIND, floraOf } from '../data/flora.js';
 import { FAUNA, FAUNA_KIND, faunaOf } from '../data/fauna.js';
 import { iconSVG } from './icons.js';
 import { floraPortrait } from '../world/flora3d.js';
+import { leafImage } from './leafArt.js';
 import COMARCAS from '../data/comarcas.json';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -34,7 +35,9 @@ function close(ui, o, k) { removeEventListener('keydown', k, true); o.classList.
 // la imagen: el retrato 3D de la planta (se dibuja la primera vez) o el icono del animal
 function picture(d) {
   if (d.type === 'fauna') return `<div class="fc-pic fauna">${iconSVG(d.F.icon || d.id, 150)}</div>`;
-  return `<div class="fc-pic flora"><img alt="${esc(d.F.name)}" data-flora="${d.id}"></div>`;
+  // la planta entera y, en la esquina, su hoja (es lo que mejor la identifica)
+  const leaf = leafImage(d.id);
+  return `<div class="fc-pic flora"><img alt="${esc(d.F.name)}" data-flora="${d.id}">${leaf ? `<figure class="fc-leaf"><img class="on" src="${leaf}" alt="Hoja"><figcaption>Su hoja</figcaption></figure>` : ''}</div>`;
 }
 function fillPictures(o) {
   o.querySelectorAll('img[data-flora]').forEach(img => floraPortrait(img.dataset.flora).then(u => { if (u) { img.src = u; img.classList.add('on'); } }).catch(() => {}));

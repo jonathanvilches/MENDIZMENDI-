@@ -334,7 +334,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .mg-overlay.ficha { z-index: 4000; }
 .ficha .mg-card { width: min(600px, 100%); background: linear-gradient(180deg, #24502e, #10261a); text-align: left; align-items: stretch; gap: 8px; }
 .ficha .fc-head { align-self: center; position: relative; }
-.fc-pic { width: min(300px, 72vw, 31vh); aspect-ratio: 6 / 5; border-radius: 16px; overflow: hidden; background: #eef4e6 radial-gradient(#ffffff, #dfe9d4); box-shadow: 0 8px 24px rgba(0, 0, 0, .35); }
+.fc-pic { position: relative; width: min(300px, 72vw, 31vh); aspect-ratio: 6 / 5; border-radius: 16px; overflow: hidden; background: #eef4e6 radial-gradient(#ffffff, #dfe9d4); box-shadow: 0 8px 24px rgba(0, 0, 0, .35); }
 .fc-pic img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0; transition: opacity .35s; } .fc-pic img.on { opacity: 1; }
 .fc-pic.fauna { width: min(170px, 30vh); height: min(170px, 30vh); aspect-ratio: auto; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(rgba(255, 215, 0, .28), transparent 70%); box-shadow: none; }
 .fc-pic.fauna .ico { width: 82%; height: 82%; }
@@ -880,3 +880,8 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .lp-opts button:hover, .lp-opts button:focus-visible { transform: translateY(-2px); border-color: #FFD700; background: rgba(255, 215, 0, .12); }
 .lp-opts button.learn { border-color: rgba(255, 215, 0, .55); }
 .lp-note { margin-top: 18px; color: var(--mute); font-size: 13px; font-weight: 700; }
+
+/* la hoja de la planta, en la esquina de su imagen */
+.fc-leaf { position: absolute; right: 6px; bottom: 6px; width: 44%; aspect-ratio: 1; margin: 0; border-radius: 50%; background: radial-gradient(#ffffff, #eef4e6 70%); box-shadow: 0 4px 14px rgba(0, 0, 0, .35); border: 3px solid #ffffff; display: grid; place-items: center; overflow: hidden; }
+.fc-pic .fc-leaf img { width: 86%; height: 86%; object-fit: contain; opacity: 1; }
+.fc-leaf figcaption { position: absolute; bottom: 7%; left: 0; right: 0; text-align: center; font: 900 10px 'Nunito', sans-serif; color: #2f5a1e; letter-spacing: .04em; text-transform: uppercase; text-shadow: 0 0 4px #fff, 0 0 4px #fff; }
