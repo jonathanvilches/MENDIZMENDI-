@@ -6,6 +6,8 @@ import { EU_EXACT, EU_RX } from './data/eu.js';
 
 const KEY = 'mendimendiz-lang';
 export function getLang() { try { return localStorage.getItem(KEY) || 'es'; } catch (e) { return 'es'; } }
+/** ¿Ha elegido ya idioma? (la primera vez se pregunta antes de nada) */
+export function langChosen() { try { return !!localStorage.getItem(KEY); } catch (e) { return true; } }
 export function setLang(l) { try { localStorage.setItem(KEY, l); } catch (e) { } location.reload(); }
 // «Aprende euskera»: el juego en euskera con un botón para ver al momento el texto en castellano
 export const isLearn = () => getLang() === 'learn';

@@ -14,7 +14,7 @@ import { releaseOffscreen } from '../util/offscreen.js';
 import { avatarPortrait, portraitImg, avatarPortraitImg } from '../ui/portraits.js';
 import { stampImg, landImg } from '../assets.js';
 import { Stage, releaseStage } from './stage.js';
-import { getLang, setLang } from '../i18n.js';
+import { getLang, setLang, langChosen } from '../i18n.js';
 import { dioramaShot } from './diorama.js';
 import { profile, saveProfile, levelOf, rankOf, townProgress, comarcaProgress, comarcaTowns, navarraProgress, stampCount, BADGES, checkBadges, resetProfile, salazarState } from '../game/profile.js';
 
@@ -92,7 +92,7 @@ export class Hub {
     // secciones: las principales siempre a la vista; las demás, en «Más» cuando falta sitio (móvil)
     this.nav = [['home', 'Inicio', 'home'], ['map', 'Mapa', 'map'], ['towns', 'Pueblos', 'church'], ['avatars', 'Personajes', 'person'], ['peaks', 'Cimas', 'peak', 1], ['nature', 'Naturaleza', 'leaf', 1], ['badges', 'Insignias', 'badge', 1], ['passport', 'Pasaporte', 'stamp', 1], ['profile', 'Perfil', 'gear', 1]];
     this.MORE = { peaks: 'Montañas de Navarra con su perfil', nature: 'Fauna, árboles, plantas y flores', badges: 'Tus logros', passport: 'Los sellos de tus pueblos', profile: 'Nombre, nivel y ajustes' };
-    $('#hNav', this.root).innerHTML = this.nav.map(([id, n, ic, sec]) => `<button data-s="${id}" class="${sec ? 'sec' : ''}">${I(ic, 26)}<span>${n}</span></button>`).join('') + `<button data-s="more" class="more-btn"><svg viewBox="0 0 24 24" width="26" height="26"><circle cx="5" cy="12" r="2.4" fill="#f7f0e6"/><circle cx="12" cy="12" r="2.4" fill="#f7f0e6"/><circle cx="19" cy="12" r="2.4" fill="#f7f0e6"/></svg><span>Más</span></button>`;
+    $('#hNav', this.root).innerHTML = this.nav.map(([id, n, ic, sec]) => `<button data-s="${id}" class="${sec ? 'nav2' : ''}">${I(ic, 26)}<span>${n}</span></button>`).join('') + `<button data-s="more" class="more-btn"><svg viewBox="0 0 24 24" width="26" height="26"><circle cx="5" cy="12" r="2.4" fill="#f7f0e6"/><circle cx="12" cy="12" r="2.4" fill="#f7f0e6"/><circle cx="19" cy="12" r="2.4" fill="#f7f0e6"/></svg><span>Más</span></button>`;
     $('#hNav', this.root).addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.s === 'more') return this.more(); this.go(b.dataset.s); });
     this.root.addEventListener('click', e => {
       const t = e.target.closest('[data-go],[data-town],[data-comarca],[data-play]'); if (!t) return;
@@ -103,7 +103,7 @@ export class Hub {
     });
     this.screen = 'home';
   }
-  show(screen = this.screen, arg = this.arg) { this.root.classList.remove('hidden'); this.visible = true; this.go(screen, arg, true); if (!profile().name) this.onboarding(); }
+  show(screen = this.screen, arg = this.arg) { this.root.classList.remove('hidden'); this.visible = true; this.go(screen, arg, true); if (!langChosen()) this.langPicker(); else if (!profile().name) this.onboarding(); }
   hide() { this.root.classList.add('hidden'); this.visible = false; this.sheet?.remove(); releaseStage(); releaseOffscreen(); }
   go(screen, arg, silent) {
     this.screen = screen; this.arg = arg;
@@ -460,6 +460,22 @@ export class Hub {
         <label class="set">Calidad gráfica <select id="pQ"><option value="auto">Automática</option><option value="low">Baja (más fluido)</option><option value="mid">Media</option><option value="high">Alta</option></select></label>
         <p class="hint">Controles: WASD o flechas para caminar, ratón para mirar, E para hablar, Espacio para saltar, Mayús para correr. En móvil: arrastra a la izquierda para caminar y a la derecha para mirar.</p>
         <button class="btn danger" id="pReset">Borrar todo el progreso</button></div></section>`;
+  }
+
+  // ---------- Primera vez: el idioma (antes que nada; en los dos idiomas, porque aún no se sabe cuál) ----------
+  langPicker() {
+    const o = el(`<div class="onb langpick"><div class="lp-in">
+      <div class="logo">MENDIMENDIZ</div>
+      <h2>Hautatu hizkuntza <span>· Elige idioma</span></h2>
+      <div class="lp-opts">
+        <button data-lang="eu"><b>Euskara</b><small>Jolastu euskaraz</small></button>
+        <button data-lang="es"><b>Castellano</b><small>Jugar en castellano</small></button>
+        <button data-lang="learn" class="learn"><b>Aprende euskera</b><small>Euskaraz jolastu, con la traducción al castellano a un toque</small></button>
+      </div>
+      <p class="lp-note">Gero aldatu dezakezu Profilean · Puedes cambiarlo luego en Perfil</p>
+    </div></div>`);
+    this.root.appendChild(o);
+    o.querySelectorAll('[data-lang]').forEach(b => b.onclick = () => { this.sound?.ui?.('click'); setLang(b.dataset.lang); });   // guarda y recarga en ese idioma
   }
 
   // ---------- Primera vez: nombre y personaje ----------
