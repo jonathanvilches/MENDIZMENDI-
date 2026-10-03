@@ -340,6 +340,125 @@ function ringRoof(B, T, inner, outer, hA, hB, color, under = false, mat = 'paint
   const ng = g.toNonIndexed(); ng.computeVertexNormals();
   B.add(mat, colored(ng, color), T);
 }
+// rectángulo redondeado [semiancho, semifondo, radio] como recorrido cerrado; todos tienen los mismos puntos, así que
+// dos recorridos se unen punto a punto (para hacer bandas de cubierta)
+function rrLoop([hw, hd, r], n = 10) {
+  const P = [[hw, hd - r], [hw, -hd + r]];
+  const arc = (ox, oz, a0) => { for (let i = 1; i <= n; i++) { const a = a0 - i / n * Math.PI / 2; P.push([ox + Math.cos(a) * r, oz + Math.sin(a) * r]); } };
+  arc(hw - r, -hd + r, 0); P.push([-hw + r, -hd]); arc(-hw + r, -hd + r, -Math.PI / 2); P.push([-hw, hd - r]); arc(-hw + r, hd - r, Math.PI); P.push([hw - r, hd]); arc(hw - r, hd - r, Math.PI / 2);
+  return P;
+}
+// chapa de cubierta vista desde arriba: juntas alzadas cada metro que bajan hacia fuera, paneles de tono algo distinto,
+// la junta de solape y manchas de agua (losa de 6 × 6 m que se repite)
+function roofSheetTex(base, light, dark) {
+  const t = canvasTex(96, 96, (g, W, H) => {
+    g.fillStyle = base; g.fillRect(0, 0, W, H);
+    g.fillStyle = 'rgba(0,0,0,.07)'; g.fillRect(W / 2, 0, W / 2, H);
+    g.fillStyle = 'rgba(255,255,255,.05)'; g.fillRect(0, 0, W / 6, H);
+    for (let x = 0; x < W; x += 16) { g.fillStyle = light; g.fillRect(x, 0, 2, H); g.fillStyle = dark; g.fillRect(x + 2, 0, 1, H); }
+    g.fillStyle = dark; g.fillRect(0, H * 0.62, W, 1);
+    let sd = 7; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 26; i++) { g.fillStyle = `rgba(30,20,20,${0.03 + rnd() * 0.05})`; g.fillRect(rnd() * W, rnd() * H, 1 + rnd() * 3, 6 + rnd() * 26); }
+  }, true);
+  t.wrapT = THREE.RepeatWrapping;
+  return t;
+}
+// banda de cubierta entre dos recorridos (dentro a la altura hA, fuera a hB) con las juntas en la línea de máxima
+// pendiente; la cara buena mira hacia arriba
+function sheetBand(T, inner, outer, hA, hB, tileM = 6) {
+  const A = rrLoop(inner), O = rrLoop(outer), pos = [], uv = [];
+  let sa = 0, so = 0;
+  for (let i = 0; i < A.length; i++) {
+    const j = (i + 1) % A.length, la = Math.hypot(A[j][0] - A[i][0], A[j][1] - A[i][1]), lo = Math.hypot(O[j][0] - O[i][0], O[j][1] - O[i][1]);
+    const ri = Math.hypot(O[i][0] - A[i][0], O[i][1] - A[i][1]), rj = Math.hypot(O[j][0] - A[j][0], O[j][1] - A[j][1]);
+    const a = [A[i][0], hA, A[i][1]], b = [A[j][0], hA, A[j][1]], c = [O[j][0], hB, O[j][1]], d = [O[i][0], hB, O[i][1]];
+    const ta = [sa / tileM, 0], tb = [(sa + la) / tileM, 0], tc = [(so + lo) / tileM, rj / tileM], td = [so / tileM, ri / tileM];
+    const up = (b[2] - a[2]) * (d[0] - a[0]) - (b[0] - a[0]) * (d[2] - a[2]) > 0;
+    const V = up ? [a, b, c, a, c, d] : [a, c, b, a, d, c], U = up ? [ta, tb, tc, ta, tc, td] : [ta, tc, tb, ta, td, tc];
+    for (const v of V) pos.push(...v); for (const t of U) uv.push(...t);
+    sa += la; so += lo;
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.computeVertexNormals(); return g.applyMatrix4(T);
+}
+// alrededores de El Sadar, para verlo desde arriba y a pie de calle: acera alrededor del zócalo, la explanada
+// adoquinada de la entrada oeste, una avenida al este con sus carriles y el paso de cebra, dos aparcamientos (norte y
+// sur) con las plazas pintadas y coches aparcados, y farolas. Los árboles de las aceras se plantan con los demás
+// árboles del pueblo (SPECIAL_TREES, en levels/town.js)
+function sadarSurroundings(B, group, cx, cz, FH, FD) {
+  const gyL = (x, z) => terrainHeight(cx + x, cz + z);
+  // adoquín de losas de 50 cm en tonos de piedra, con una banda de granito oscuro cada 8 m (losa de 8 × 8 m)
+  const paveT = canvasTex(256, 256, (g, W, H) => {
+    g.fillStyle = '#a9a398'; g.fillRect(0, 0, W, H);
+    let sd = 11; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+    for (let y = 0; y < H; y += 16) for (let x = 0; x < W; x += 16) { const k = rnd(); g.fillStyle = `rgb(${160 + k * 30},${153 + k * 28},${142 + k * 26})`; g.fillRect(x + 1, y + 1, 14, 14); }
+    g.fillStyle = '#5d5a55'; g.fillRect(0, 0, W, 26); g.fillRect(0, 0, 26, H);
+    g.fillStyle = 'rgba(255,255,255,.08)'; for (let x = 0; x < W; x += 13) g.fillRect(x, 0, 1, 26);
+    for (let i = 0; i < 1400; i++) { g.fillStyle = `rgba(50,45,40,${rnd() * 0.14})`; g.fillRect(rnd() * W, rnd() * H, 1, 1); }
+  }, true);
+  const asphT = canvasTex(128, 128, (g, W, H) => {
+    g.fillStyle = '#4a4d52'; g.fillRect(0, 0, W, H);
+    let sd = 5; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 2600; i++) { const l = rnd(); g.fillStyle = l < 0.5 ? `rgba(20,20,24,${0.2 + rnd() * 0.3})` : `rgba(140,140,146,${0.1 + rnd() * 0.2})`; g.fillRect(rnd() * W, rnd() * H, 1, 1); }
+    for (let i = 0; i < 6; i++) { g.fillStyle = 'rgba(25,25,28,.18)'; g.beginPath(); g.ellipse(rnd() * W, rnd() * H, 6 + rnd() * 14, 4 + rnd() * 8, rnd() * 3, 0, Math.PI * 2); g.fill(); }
+  }, true);
+  for (const t of [paveT, asphT]) t.wrapT = THREE.RepeatWrapping;
+  // trozo de suelo que sigue el terreno (uv en metros / losa)
+  const patch = (x0, z0, x1, z1, tileM, lift) => {
+    const nx = Math.max(1, Math.ceil((x1 - x0) / 8)), nz = Math.max(1, Math.ceil((z1 - z0) / 8));
+    const g = new THREE.PlaneGeometry(x1 - x0, z1 - z0, nx, nz).rotateX(-Math.PI / 2), p = g.attributes.position, uv = g.attributes.uv;
+    for (let i = 0; i < p.count; i++) { const x = p.getX(i) + (x0 + x1) / 2, z = p.getZ(i) + (z0 + z1) / 2; p.setXYZ(i, cx + x, gyL(x, z) + lift, cz + z); uv.setXY(i, x / tileM, z / tileM); }
+    g.computeVertexNormals(); return g;
+  };
+  const mesh = (geos, mat) => { const m = new THREE.Mesh(mergeGeometries(geos), mat); m.receiveShadow = true; m.matrixAutoUpdate = false; group.add(m); geos.forEach(g => g.dispose()); return m; };
+  const off = (u) => ({ polygonOffset: true, polygonOffsetFactor: -u, polygonOffsetUnits: -u });
+  const AV = [FH + 8, FH + 22], PK = 44;   // avenida (x) y fondo de los aparcamientos
+  // aceras y explanada
+  mesh([patch(-FH - 48, -FD - 8, -FH, FD + 8, 8, 0.05), patch(FH, -FD - 8, AV[0], FD + 8, 8, 0.05), patch(-FH, -FD - 8, FH, -FD, 8, 0.05), patch(-FH, FD, FH, FD + 8, 8, 0.05),
+    patch(AV[1], -FD - PK, AV[1] + 7, FD + PK, 8, 0.05)], new THREE.MeshStandardMaterial({ map: paveT, roughness: 0.9, ...off(1) }));
+  // asfalto: la avenida y los dos aparcamientos
+  mesh([patch(AV[0], -FD - PK, AV[1], FD + PK, 4, 0.07), patch(-FH, -FD - PK, AV[0], -FD - 8, 4, 0.07), patch(-FH, FD + 8, AV[0], FD + PK, 4, 0.07)], new THREE.MeshStandardMaterial({ map: asphT, roughness: 0.95, ...off(2) }));
+  // pintura blanca: plazas de aparcamiento, carriles, línea continua central y paso de cebra
+  const lines = [], strip = (x, z, w, d) => { const y = gyL(x, z) + 0.1; lines.push(new THREE.PlaneGeometry(w, d).rotateX(-Math.PI / 2).translate(cx + x, y, cz + z)); };
+  const stalls = [];
+  for (const s of [-1, 1]) {
+    // cuatro filas de plazas de 2,5 × 5 m: junto a la acera, dos espalda con espalda en medio y otra al fondo
+    for (const [z0, dirz] of [[FD + 8, 1], [FD + 20, 1], [FD + 25, 1], [FD + 37, 1]]) {
+      const zc = s * (z0 + 2.5 * dirz);
+      for (let x = -FH + 1; x + 2.5 <= AV[0] - 2; x += 2.5) { strip(x, zc, 0.12, 4.8); stalls.push([x + 1.25, zc]); }
+      strip(-FH + 1 + Math.floor((AV[0] - 3 + FH) / 2.5) * 2.5, zc, 0.12, 4.8);
+    }
+    for (const zz of [FD + 13, FD + 31.5]) for (let x = -FH + 4; x < AV[0] - 4; x += 6) strip(x, s * zz, 3, 0.15);   // flechas del pasillo
+  }
+  for (let z = -FD - PK + 2; z < FD + PK - 2; z += 9) { strip((AV[0] + AV[1]) / 2 - 3.5, z, 0.15, 4); strip((AV[0] + AV[1]) / 2 + 3.5, z, 0.15, 4); }
+  for (const dx of [-0.15, 0.15]) strip((AV[0] + AV[1]) / 2 + dx, 0, 0.12, 2 * (FD + PK) - 4);
+  for (const ex of [AV[0] + 0.4, AV[1] - 0.4]) strip(ex, 0, 0.15, 2 * (FD + PK) - 4);
+  for (let k = -3; k <= 3; k++) strip((AV[0] + AV[1]) / 2, k * 1.1, AV[1] - AV[0] - 1, 0.55);   // paso de cebra frente a la puerta este
+  mesh(lines, new THREE.MeshStandardMaterial({ color: '#eceee8', roughness: 0.7, ...off(3) }));
+  // coches aparcados (dos de cada tres plazas): carrocería del color de cada uno y la cabina acristalada
+  let sd = 3; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+  // turismo de 4,3 m: carrocería (del color de cada coche), cabina con las lunas inclinadas, techo del color del coche y
+  // cuatro ruedas (los colores blancos se tiñen con el de cada coche; los oscuros quedan oscuros)
+  const tint = (g, c) => { g = g.index ? g.toNonIndexed() : g; const col = new THREE.Color(c), a = []; for (let i = 0; i < g.attributes.position.count; i++) a.push(col.r, col.g, col.b); g.setAttribute('color', new THREE.Float32BufferAttribute(a, 3)); return g; };
+  const taper = (g, top, k) => { const p = g.attributes.position; for (let i = 0; i < p.count; i++) if (p.getY(i) > top - 1e-3) p.setZ(i, p.getZ(i) * k); return g; };
+  const body = new THREE.BoxGeometry(1.78, 0.62, 4.3).translate(0, 0.62, 0), hood = new THREE.BoxGeometry(1.7, 0.08, 1.2).translate(0, 0.96, 1.45);
+  const cab = taper(new THREE.BoxGeometry(1.62, 0.48, 2.3).translate(0, 1.17, -0.25), 1.41, 0.72), roof = taper(new THREE.BoxGeometry(1.5, 0.06, 1.62).translate(0, 1.43, -0.25), 1.46, 0.98);
+  const wheels = []; for (const sx of [-1, 1]) for (const sz of [-1, 1]) wheels.push(tint(new THREE.CylinderGeometry(0.32, 0.32, 0.24, 10).rotateZ(Math.PI / 2).translate(sx * 0.8, 0.32, sz * 1.38), '#151618'));
+  const carG = mergeGeometries([tint(body, '#ffffff'), tint(hood, '#ffffff'), tint(cab, '#26303a'), tint(roof, '#ffffff'), ...wheels]);
+  const cars = stalls.filter(() => rnd() < 0.66), PAL = ['#c9ccd1', '#1f2329', '#f2f2f0', '#8a1c22', '#24426e', '#6d737a', '#3d5a3a', '#b8a27a'];
+  const im = new THREE.InstancedMesh(carG, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.35, metalness: 0.4 }), cars.length);
+  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), v = new THREE.Vector3(), sc = new THREE.Vector3(1, 1, 1), col = new THREE.Color();
+  cars.forEach(([x, z], i) => {
+    const yy = gyL(x, z) + 0.02; q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), (rnd() - 0.5) * 0.06 + (rnd() < 0.5 ? Math.PI : 0));
+    im.setMatrixAt(i, m4.compose(v.set(cx + x, yy, cz + z), q, sc)); im.setColorAt(i, col.set(PAL[(rnd() * PAL.length) | 0]));
+    addBox(cx + x, cz + z, 1.9, 4.3, 0);
+  });
+  im.castShadow = true; im.receiveShadow = true; im.computeBoundingSphere(); group.add(im);
+  // farolas: a lo largo de la avenida y en los aparcamientos
+  for (let z = -FD - PK + 8; z <= FD + PK - 8; z += 18) { const p = toW(cx, cz, 0, AV[1] + 1.2, z); lamp(B, p.x, p.z); }
+  for (const s of [-1, 1]) for (let x = -FH + 6; x < AV[0] - 4; x += 20) { const p = toW(cx, cz, 0, x, s * (FD + 25)); lamp(B, p.x, p.z); }   // (entre las filas espalda con espalda, sobre una raya)
+  noGrass((x, z) => x > cx - FH - 50 && x < cx + AV[1] + 9 && Math.abs(z - cz) < FD + PK + 2, cx - FH - 52, cz - FD - PK - 4, cx + AV[1] + 10, cz + FD + PK + 4);
+}
 const FONT5 = {
   O: ['.###.', '#...#', '#...#', '#...#', '#...#', '#...#', '.###.'], S: ['.####', '#....', '#....', '.###.', '....#', '....#', '####.'],
   A: ['.###.', '#...#', '#...#', '#####', '#...#', '#...#', '#...#'], U: ['#...#', '#...#', '#...#', '#...#', '#...#', '#...#', '.###.'],
@@ -434,8 +553,11 @@ export function stadium(B, S, group, cx, cz, TOWN) {
   // cubierta roja de esquinas redondeadas que baja hacia fuera, con la banda blanca alrededor del hueco
   // (la cubierta acaba justo por dentro del anillo rojo de la fachada)
   const RING = [OX + 5, OZ + 5, 15], RIN = [26, 39, 9], RMID = [30, 43, 12], ROUT = [RING[0] - 0.4, RING[1] - 0.4, RING[2] - 0.4], hIn = HH + 3.6, hOut = HH + 0.4;
-  ringRoof(B, T, RIN, RMID, hIn + 0.1, hIn, '#f2f2ef');
-  ringRoof(B, T, RMID, ROUT, hIn, hOut, '#c41f2c');
+  // por arriba, chapa: blanca alrededor del hueco y roja hasta el anillo (con sus juntas y algún panel de otro tono)
+  for (const [a, b, ha, hb, tex] of [[RIN, RMID, hIn + 0.1, hIn, roofSheetTex('#efefeb', '#ffffff', '#c9cac6')], [RMID, ROUT, hIn, hOut, roofSheetTex('#c41f2c', '#d9434d', '#8f1620')]]) {
+    const m = new THREE.Mesh(sheetBand(T, a, b, ha, hb), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.55, metalness: 0.1 }));
+    m.castShadow = true; m.receiveShadow = true; m.matrixAutoUpdate = false; group.add(m);
+  }
   ringRoof(B, T, RIN, ROUT, hIn - 0.5, hOut - 0.4, '#b9bec4', true, 'lit');
   for (const s of [-1, 1]) {
     B.add('paint', colored(box(0.5, 1.2, 2 * OZ - 6), '#3a3f45'), F(M(s * 27.6, hIn - 0.9, 0)));
@@ -620,6 +742,7 @@ export function stadium(B, S, group, cx, cz, TOWN) {
   addBox(cx - (SX + OX + 0.6) / 2, cz - (GAP + OZ + 0.6) / 2, OX + 0.6 - SX, OZ + 0.6 - GAP, 0, { solidView: true });
   addBox(cx - (SX + OX + 0.6) / 2, cz + (GAP + OZ + 0.6) / 2, OX + 0.6 - SX, OZ + 0.6 - GAP, 0, { solidView: true });
   for (const s of [-1, 1]) addBox(cx, cz + s * (SZ + OZ + 0.6) / 2, 2 * SX, OZ + 0.6 - SZ, 0, { solidView: true });
+  sadarSurroundings(B, group, cx, cz, OX + 3, OZ + 3);
   TOWN.houses.push({ x: cx, z: cz, ry: 0, w: 2 * OX, d: 2 * OZ, top: y + HH + 2 });
   return { x: cx - 16, z: cz + 6 };
 }

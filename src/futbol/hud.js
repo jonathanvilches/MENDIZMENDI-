@@ -1,5 +1,5 @@
-// Interfaz del partido de fútbol (DOM): marcador, mensajes grandes, comentarios, joystick dinámico, botones (al
-// defender, Pase pasa a ser Robo y Tiro, Entrada), barras de energía y de carga, flecha del jugador fuera de pantalla,
+// Interfaz del partido de fútbol (DOM): marcador, mensajes grandes, comentarios, joystick dinámico, cuatro botones (al
+// defender, Pase pasa a ser Robar y Tiro, Entrada), barras de energía y de carga, flecha del jugador fuera de pantalla,
 // tanda de penaltis, consejos del tutorial, menú previo, pausa y pantalla final. Todo con el prefijo «fb-», sin
 // solaparse en móvil (vertical y horizontal) y escritorio.
 const CSS = `
@@ -32,25 +32,24 @@ const CSS = `
 .fb-knob{position:absolute;width:124px;height:124px;margin:-62px 0 0 -62px;border-radius:50%;border:3px solid rgba(255,255,255,.55);background:rgba(16,10,30,.25);display:none}
 .fb-knob i{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:rgba(255,255,255,.88);box-shadow:0 2px 8px rgba(0,0,0,.35)}
 .fb-stickhint{position:absolute;left:calc(env(safe-area-inset-left,0px) + 18px);bottom:calc(env(safe-area-inset-bottom,0px) + 18px);width:96px;height:96px;border-radius:50%;border:2px dashed rgba(255,255,255,.5);display:grid;place-items:center;font-size:11px;font-weight:800;text-align:center;opacity:.7;padding:10px;transition:opacity .4s;text-shadow:0 1px 3px rgba(0,0,0,.6)}
-/* botones como en el FIFA del móvil: círculos translúcidos con aro de color, icono y nombre, en arco para el pulgar
-   derecho. TIRO (el grande) en la esquina; PASE a su izquierda; AL HUECO en diagonal; SPRINT encima de TIRO; CAMBIAR
-   (solo sin el balón) más a la izquierda. Al defender: ROBO, ENTRADA y PRESIÓN. Medidas en --u (escala) para que no se
-   toquen nunca: los centros están separados al menos 12 px más que la suma de los radios */
+/* cuatro botones, como en el FIFA del móvil: círculos translúcidos con aro de color, icono y nombre, en arco para el
+   pulgar derecho. TIRO (el grande) en la esquina; PASE a su izquierda; SPRINT encima de TIRO; CAMBIAR en diagonal,
+   entre los dos (siempre en su sitio; con el balón en tus pies, apagado). Al defender: ROBAR y ENTRADA. Medidas en --u
+   (escala) para que no se toquen nunca: los centros están separados al menos 12 px más que la suma de los radios */
 .fb-btns{--u:1;position:absolute;right:calc(env(safe-area-inset-right,0px) + 8px);bottom:calc(env(safe-area-inset-bottom,0px) + 8px);width:calc(240px * var(--u));height:calc(172px * var(--u));pointer-events:none}
-.fb-b{position:absolute;border:3px solid var(--c,#fff);padding:0;border-radius:50%;background:rgba(12,8,24,.42);color:#fff;font:900 calc(9.5px * var(--u)) Nunito,system-ui,sans-serif;letter-spacing:.03em;text-shadow:0 1px 3px rgba(0,0,0,.8);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(2px * var(--u));cursor:pointer;touch-action:none;pointer-events:auto;text-align:center;line-height:1;box-shadow:0 3px 12px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.12);-webkit-user-select:none;user-select:none;transition:transform .06s,background .06s}
+.fb-b{position:absolute;border:3px solid var(--c,#fff);padding:0;border-radius:50%;background:rgba(12,8,24,.42);color:#fff;font:900 calc(9.5px * var(--u)) Nunito,system-ui,sans-serif;letter-spacing:.03em;text-shadow:0 1px 3px rgba(0,0,0,.8);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(2px * var(--u));cursor:pointer;touch-action:none;pointer-events:auto;text-align:center;line-height:1;box-shadow:0 3px 12px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.12);-webkit-user-select:none;user-select:none;transition:transform .06s,background .06s,opacity .2s}
 .fb-b svg{width:calc(24px * var(--u));height:calc(24px * var(--u));flex:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6));pointer-events:none}
 .fb-b span{white-space:nowrap;pointer-events:none;text-transform:uppercase}
 .fb-b.down{background:var(--c,#fff);transform:scale(.92)}
 .fb-shoot{--c:#e8473c;width:calc(78px * var(--u));height:calc(78px * var(--u));right:calc(10px * var(--u));bottom:calc(8px * var(--u))}
 .fb-shoot svg{width:calc(30px * var(--u));height:calc(30px * var(--u))}.fb-shoot span{font-size:calc(11px * var(--u))}
-.fb-pass{--c:#2fa8e0;width:calc(64px * var(--u));height:calc(64px * var(--u));right:calc(104px * var(--u));bottom:calc(4px * var(--u))}
-.fb-thru{--c:#9b6cff;width:calc(62px * var(--u));height:calc(62px * var(--u));right:calc(92px * var(--u));bottom:calc(88px * var(--u))}
-.fb-sprint{--c:#3fbf5a;width:calc(58px * var(--u));height:calc(58px * var(--u));right:calc(18px * var(--u));bottom:calc(108px * var(--u))}
-.fb-swap{--c:#f2c230;width:calc(56px * var(--u));height:calc(56px * var(--u));right:calc(178px * var(--u));bottom:calc(44px * var(--u));display:none}
-.fb-swap span,.fb-thru span{font-size:calc(8.5px * var(--u));letter-spacing:0}
-.fb-btns.def .fb-swap,.fb-btns.loose .fb-swap{display:flex}
-.fb-btns.def .fb-pass{--c:#f08a3a}.fb-btns.def .fb-shoot{--c:#c42a2a}.fb-btns.def .fb-thru{--c:#e0b020}
-.fb-btns.pen .fb-thru,.fb-btns.pen .fb-swap,.fb-btns.pen .fb-sprint{display:none}
+.fb-pass{--c:#2fa8e0;width:calc(66px * var(--u));height:calc(66px * var(--u));right:calc(104px * var(--u));bottom:calc(4px * var(--u))}
+.fb-sprint{--c:#3fbf5a;width:calc(60px * var(--u));height:calc(60px * var(--u));right:calc(18px * var(--u));bottom:calc(106px * var(--u))}
+.fb-swap{--c:#f2c230;width:calc(60px * var(--u));height:calc(60px * var(--u));right:calc(94px * var(--u));bottom:calc(88px * var(--u))}
+.fb-swap span{font-size:calc(9px * var(--u));letter-spacing:0}
+.fb-btns.atk .fb-swap{opacity:.4}
+.fb-btns.def .fb-pass{--c:#f08a3a}.fb-btns.def .fb-shoot{--c:#c42a2a}
+.fb-btns.pen .fb-swap,.fb-btns.pen .fb-sprint{display:none}
 .fb-bars{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 10px);width:min(24vw,190px);display:flex;flex-direction:column;gap:4px;pointer-events:none}
 .fb-bar{height:7px;border-radius:5px;background:rgba(16,10,30,.5);overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.45)}
 .fb-bar i{display:block;height:100%;width:100%;border-radius:6px;background:linear-gradient(90deg,#3fd36a,#a6f07a);transform-origin:left;transition:transform .05s linear}
@@ -149,13 +148,13 @@ export class FutbolHud {
       <div class="fb-msg"><h2></h2><p></p></div><div class="fb-arrow"></div>
       ${t ? `<div class="fb-stick"><div class="fb-knob"><i></i></div></div><div class="fb-stickhint">Toca y arrastra para moverte</div>
       <div class="fb-bars"><div class="fb-bar"><i class="fb-en"></i></div><div class="fb-bar pow"><i class="fb-pw"></i></div></div>
-      <div class="fb-btns atk"><button class="fb-b fb-sprint" data-a="sprint" aria-label="Sprint">${ICON.sprint}<span>Sprint</span></button><button class="fb-b fb-thru" data-a="through" aria-label="Pase al hueco">${ICON.through}<span>Al hueco</span></button><button class="fb-b fb-swap" data-a="switch" aria-label="Cambiar de jugador">${ICON.swap}<span>Cambiar</span></button><button class="fb-b fb-pass" data-a="pass" aria-label="Pase">${ICON.pass}<span>Pase</span></button><button class="fb-b fb-shoot" data-a="shoot" aria-label="Tiro">${ICON.shoot}<span>Tiro</span></button></div>`
+      <div class="fb-btns atk"><button class="fb-b fb-sprint" data-a="sprint" aria-label="Sprint">${ICON.sprint}<span>Sprint</span></button><button class="fb-b fb-swap" data-a="switch" aria-label="Cambiar de jugador">${ICON.swap}<span>Cambiar</span></button><button class="fb-b fb-pass" data-a="pass" aria-label="Pase">${ICON.pass}<span>Pase</span></button><button class="fb-b fb-shoot" data-a="shoot" aria-label="Tiro">${ICON.shoot}<span>Tiro</span></button></div>`
       : `<div class="fb-bars" style="bottom:calc(env(safe-area-inset-bottom,0px) + 44px)"><div class="fb-bar"><i class="fb-en"></i></div><div class="fb-bar pow"><i class="fb-pw"></i></div></div>
-      <div class="fb-keys">WASD/flechas mover · <b>J</b> pase (mantén: elevado) · <b>I</b> al hueco · <b>K</b> tiro (mantén: fuerza; con <b>F</b>, colocado) · <b>Mayús</b> sprint · <b>O</b> proteger / presionar · <b>L</b> cambiar · <b>Esc</b> pausa · <b>H</b> controles · también con mando</div>`}`;
+      <div class="fb-keys">WASD/flechas mover · <b>J</b> pase / robar · <b>K</b> tiro (mantén: fuerza) / entrada · <b>Mayús</b> sprint · <b>L</b> cambiar · <b>Esc</b> pausa · <b>H</b> controles · también con mando</div>`}`;
     document.body.appendChild(r);
     const $ = (s) => r.querySelector(s);
     this.el = { s0: $('.fb-s0'), s1: $('.fb-s1'), time: $('.fb-time'), half: $('.fb-half'), say: $('.fb-say'), msg: $('.fb-msg'), tip: $('.fb-tip'), arrow: $('.fb-arrow'),
-      en: $('.fb-en'), pw: $('.fb-pw'), pow: $('.fb-bar.pow'), pass: $('.fb-pass'), shoot: $('.fb-shoot'), thru: $('.fb-thru'), swap: $('.fb-swap'), btns: $('.fb-btns'), pen: $('.fb-pen'), p0: $('.fb-p0'), p1: $('.fb-p1'), hint: $('.fb-stickhint') };
+      en: $('.fb-en'), pw: $('.fb-pw'), pow: $('.fb-bar.pow'), pass: $('.fb-pass'), shoot: $('.fb-shoot'), swap: $('.fb-swap'), btns: $('.fb-btns'), pen: $('.fb-pen'), p0: $('.fb-p0'), p1: $('.fb-p1'), hint: $('.fb-stickhint') };
     $('.fb-pause').addEventListener('click', (e) => { e.stopPropagation(); o.onPause?.(); });
     // el consejo se abre y se recoge tocándolo
     this.el.tip.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); this.tipOpen(this.el.tip.classList.contains('mini')); });
@@ -186,14 +185,13 @@ export class FutbolHud {
     el.innerHTML = `<span>${dots(a)}</span><b>FALTAS</b><span>${dots(b)}</span>`; el.classList.add('show');
   }
   setClock(sec, half, label) { const s = Math.max(0, Math.ceil(sec)); this.el.time.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; this.el.half.textContent = label || (half === 1 ? '1ª parte' : '2ª parte'); }
-  // los botones según el momento: con el balón (atk), sin él (def: ROBO, ENTRADA, PRESIÓN y CAMBIAR) o suelto (loose)
+  // los botones según el momento: con el balón (atk), sin él (def: ROBAR y ENTRADA) o suelto (loose)
   setMode(mode) {
     if (this.mode === mode || !this.el.btns) return; this.mode = mode;
     const def = mode === 'def', set = (b, icon, label) => { b.innerHTML = `${ICON[icon]}<span>${label}</span>`; b.setAttribute('aria-label', label); };
     this.el.btns.className = 'fb-btns ' + mode;
-    set(this.el.pass, def ? 'tackle' : 'pass', def ? 'Robo' : 'Pase');
+    set(this.el.pass, def ? 'tackle' : 'pass', def ? 'Robar' : 'Pase');
     set(this.el.shoot, def ? 'slide' : 'shoot', def ? 'Entrada' : 'Tiro');
-    set(this.el.thru, def ? 'contain' : 'through', def ? 'Presión' : 'Al hueco');
   }
   setDefending(def) { this.setMode(def ? 'def' : 'atk'); }
   // tanda de penaltis: solo dos botones (PARAR o TIRO)
@@ -206,20 +204,15 @@ export class FutbolHud {
   controls() {
     return new Promise(res => {
       const row = (ic, a, b, c, d) => `<tr><td class="ic">${ic ? ICON[ic] : ''}</td><td><b>${a}</b><br><small>${b}</small></td><td>${c}</td><td>${d}</td></tr>`;
-      const p = this.panel(`<h2>Controles</h2><p class="fb-kick">Táctil · teclado · mando</p>
+      const p = this.panel(`<h2>Controles</h2><p class="fb-kick">Cuatro botones: pase, tiro, sprint y cambiar</p>
         <table class="fb-ctrl"><tr><th></th><th>Acción</th><th>Teclado</th><th>Mando</th></tr>
         ${row('', 'Moverte', 'Joystick: toca y arrastra en la mitad izquierda', 'WASD / flechas', 'Stick izquierdo')}
-        ${row('pass', 'Pase', 'Toca: raso. Mantén: elevado', 'J (mantén: elevado)', 'A')}
-        ${row('pass', 'Pase elevado / centro', 'Mantén PASE', 'U', 'B')}
-        ${row('through', 'Pase al hueco', 'Al espacio por delante del compañero', 'I', 'Y')}
-        ${row('shoot', 'Tiro', 'Mantén para cargar; apunta con el joystick', 'K (mantén)', 'X (mantén)')}
-        ${row('shoot', 'Tiro colocado', 'Al palo largo con rosca', 'F + K', 'RB + X')}
+        ${row('pass', 'Pase', 'Al compañero hacia donde apuntas (por alto si hay rivales en medio)', 'J / espacio', 'A')}
+        ${row('shoot', 'Tiro', 'Mantén para cargar la fuerza; apunta con el joystick', 'K (mantén)', 'B (mantén)')}
         ${row('sprint', 'Sprint', 'Mantén (gasta energía)', 'Mayús', 'RT')}
-        ${row('contain', 'Proteger el balón', '—', 'O (con el balón)', 'LT')}
-        ${row('tackle', 'Robo', 'Sin el balón, cuando se le separe del pie', 'J', 'B')}
-        ${row('slide', 'Entrada', 'A ras de suelo (si llegas tarde, falta)', 'K', 'X')}
-        ${row('contain', 'Presionar', 'Mantén: te pegas al rival y un compañero ayuda', 'O (mantén)', 'A (mantén) · RB: compañero')}
-        ${row('swap', 'Cambiar de jugador', 'Al que está mejor colocado (también automático)', 'L', 'LB')}
+        ${row('swap', 'Cambiar', 'Al compañero mejor colocado (también cambia solo)', 'L', 'LB')}
+        ${row('tackle', 'Sin el balón: robar', 'Con el botón de PASE, pegado al rival', 'J', 'A')}
+        ${row('slide', 'Sin el balón: entrada', 'Con el botón de TIRO (si llegas tarde, falta)', 'K', 'B')}
         </table><p class="fb-kick" style="margin-top:6px">El jugador que llevas cambia solo según va el balón</p><button class="fb-go">Entendido</button>`);
       p.querySelector('.fb-go').onclick = () => { p.remove(); res(); };
     });

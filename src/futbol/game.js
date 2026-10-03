@@ -90,11 +90,12 @@ export class FutbolGame {
   // ---------------------------------------------------------------- entrada del jugador
   /** Dirección de movimiento en el mundo (x, z), intensidad 0…1 y sprint. */
   setMove(x, z, mag, sprint) { const I = this.input; I.x = x; I.z = z; I.mag = mag; I.sprint = sprint; if (mag > 0.25) { I.aimX = x; I.aimZ = z; } }
-  // Controles (como en el FIFA):
-  //   con el balón: pass = pase raso (mantener = elevado), lob = pase elevado o centro, through = pase al hueco,
-  //     shoot = tiro (mantener para cargar; con finesse pulsado, tiro colocado con rosca), shield = proteger el balón;
-  //   sin el balón: pass / tackle = robo, shoot / slide = entrada, through / contain = presionar (contener al que lleva el
-  //     balón; con el botón táctil, además un compañero presiona), mate = que presione un compañero; switch = cambiar
+  // Controles (cuatro, para jugar sin aprenderse un mando entero): pass, shoot, switch y el sprint (en setMove).
+  //   con el balón: pass = pase al compañero hacia donde apuntas (raso, o por alto si hay rivales en medio y está
+  //     lejos), shoot = tiro (mantener para cargar la fuerza);
+  //   sin el balón: pass = robar, shoot = entrada, switch = cambiar de jugador.
+  // (El motor conserva el pase al hueco, el elevado, el tiro colocado, proteger y presionar para la IA, los saques y
+  // las pruebas: lob, through, finesse, shield, contain, mate)
   press(a) {
     if (this.autoplay) return;
     if (this.mode === 'penalties' && this.pen?.human === 'keeper') { if (a === 'pass' || a === 'shoot' || a === 'tackle' || a === 'contain') this.humanDive(); return; }
@@ -120,7 +121,7 @@ export class FutbolGame {
     if (a === 'finesse') I.finesse = false;
     if (a === 'through') { I.contain = false; I.mate = false; if (this.hold.through >= 0) { this.hold.through = -1; this.action({ kind: 'through' }); } }
     if (a === 'lob' && this.hold.lob >= 0) { this.hold.lob = -1; this.action({ kind: 'pass', loft: true }); }
-    if (a === 'pass' && this.hold.pass >= 0) { const loft = this.hold.pass > PL.loft; this.hold.pass = -1; this.action({ kind: 'pass', loft }); }
+    if (a === 'pass' && this.hold.pass >= 0) { this.hold.pass = -1; this.action({ kind: 'pass', loft: false }); }
     if (a === 'shoot' && this.hold.shoot >= 0) { const charge = Math.min(1, this.hold.shoot / PL.charge); this.hold.shoot = -1; this.action({ kind: 'shot', charge, finesse: !!I.finesse }); }
   }
   get charge() { return this.hold.shoot >= 0 ? Math.min(1, this.hold.shoot / PL.charge) : -1; }
@@ -308,7 +309,8 @@ export class FutbolGame {
     let dx = I.mag > 0.25 ? I.x : f.x, dz = I.mag > 0.25 ? I.z : f.z; const l = hyp(dx, dz) || 1; dx /= l; dz /= l;
     const q = this.bestReceiver(p, dx, dz, this.assist ? PL.cone : PL.cone * 0.7);
     this.stats.passes[p.team]++;
-    if (q) { this.passBall(p, q, loft, 0); this.setMe(q, 'pass'); }
+    // pase inteligente: raso; por alto si hay un rival en la línea del pase y el compañero está lejos (o muy lejos)
+    if (q) { const B = this.ball.p, d = hyp(q.x - p.x, q.z - p.z); loft ||= (this.laneOpen(p.team, B.x, B.z, q.x, q.z) < 1.1 && d > 12 * SC) || d > 32 * SC; this.passBall(p, q, loft, 0); this.setMe(q, 'pass'); }
     else { const tx = clamp(p.x + dx * 14, -F.HL, F.HL), tz = clamp(p.z + dz * 14, -F.HW, F.HW); this.passToPoint(p, tx, tz, loft); }
   }
   // pase al hueco: al compañero mejor situado hacia donde apunta el joystick, pero al espacio por delante de él (hacia la
@@ -381,7 +383,8 @@ export class FutbolGame {
     // no vale gol directo (hasta que la toque otro): saque de banda (con la mano o, en sala, con el pie), tiro libre
     // indirecto y balón lanzado con la mano por el portero (también el saque de portería de sala)
     const rs = this.restart, nd = kind === 'throw' ? 'throw' : rs?.type === 'throwin' ? 'throwin' : rs?.type === 'free' && rs.indirect ? 'indirect' : null;
-    this.noDirect = nd ? { p, why: rs?.type === 'throwin' ? 'throwin' : nd } : null;
+    // y de cualquier otro saque (de centro, de meta, córner o falta directa) no vale gol directo en la propia portería
+    this.noDirect = nd ? { p, why: rs?.type === 'throwin' ? 'throwin' : nd } : rs && rs.type !== 'penalty' ? { p, why: 'own', ownOnly: true } : null;
     // fuera de juego: los compañeros que están más adelantados que el balón y que el penúltimo rival en el campo contrario
     // en el momento del pase (no cuenta en el saque de banda, el de meta ni el córner)
     const rt = this.restart?.type, free = !RU.offside || rt === 'throwin' || rt === 'goalkick' || rt === 'corner';
@@ -966,8 +969,9 @@ export class FutbolGame {
     for (const s of [-1, 1]) if (s * B.x > lim && Math.abs(B.z) < HW_G && B.y < F.goalH) {
       const t = this.dir[0] === s ? 0 : 1;
       // directo de un saque de banda, de un indirecto o de la mano del portero: no es gol; si entra en la portería
-      // rival, saque de portería; si entra en la propia, córner
-      if (this.noDirect) { this.emit({ t: 'noGoal', why: this.noDirect.why, team: t }); return this.endLine(s, this.noDirect.p.team === t ? 'goalkick' : 'corner'); }
+      // rival, saque de portería; si entra en la propia, córner (y de cualquier saque directo a la propia, córner)
+      const nd = this.noDirect;
+      if (nd && (!nd.ownOnly || nd.p.team !== t)) { this.emit({ t: 'noGoal', why: nd.why, team: t }); return this.endLine(s, nd.p.team === t ? 'goalkick' : 'corner'); }
       return this.goal(t);
     }
     if (Math.abs(B.x) > lim) {

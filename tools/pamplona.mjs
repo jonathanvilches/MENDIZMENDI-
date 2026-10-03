@@ -50,6 +50,8 @@ const V = {
   sadarEsquina: { x: 150, y: 3, z: 400, lx: 232, ly: 9, lz: 318 },
   sadarOeste: { x: 140, y: 2.5, z: 330, lx: 232, ly: 9, lz: 318 },
   sadarNoche: { x: 150, y: 3, z: 400, lx: 232, ly: 9, lz: 318, night: true },
+  sadarAvenida: { x: 296, y: 2.2, z: 250, lx: 290, ly: 4, lz: 330 },
+  sadarParking: { x: 200, y: 6, z: 222, lx: 240, ly: 2, lz: 250 },
   ciudad: { x: 40, y: 240, z: 330, lx: 40, ly: 0, lz: -60 },
 };
 for (const [k, o] of Object.entries(V)) {

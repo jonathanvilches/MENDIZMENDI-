@@ -225,34 +225,29 @@ export class FutbolMatch {
   key(e, down) {
     if (this.done || ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target?.tagName)) return;
     const k = e.key.toLowerCase();
-    const mine = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'j', 'k', 'l', 'c', 'shift', 'escape', ' ', 'e', 'q', 'i', 'u', 'o', 'f', 'h'];
+    const mine = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'j', 'k', 'l', 'c', 'shift', 'escape', ' ', 'e', 'q', 'h'];
     if (!mine.includes(k)) return;
     e.preventDefault(); e.stopImmediatePropagation();
-    // J pase (mantén: elevado) · U elevado · I al hueco · K tiro (con F: colocado) · O proteger / presionar · L cambiar
-    const act = { j: 'pass', ' ': 'pass', u: 'lob', i: 'through', k: 'shoot', e: 'shoot', f: 'finesse' }[k];
+    // J (o espacio) pase / robar · K (o E) tiro / entrada · Mayús sprint · L (o Q) cambiar
+    const act = { j: 'pass', ' ': 'pass', k: 'shoot', e: 'shoot' }[k];
     if (down) {
       if (this.keys.has(k)) return; this.keys.add(k);
       if (act) this.press(act);
-      if (k === 'o') { this.keyHold = this.game.owner === this.game.me ? 'shield' : 'contain'; this.press(this.keyHold); }
       if (k === 'l' || k === 'q') this.press('switch'); if (k === 'c') this.nextCam(); if (k === 'escape') this.pauseMenu(); if (k === 'h') this.showControls();
     } else {
       this.keys.delete(k);
       if (act) this.release(act);
-      if (k === 'o' && this.keyHold) { this.release(this.keyHold); this.keyHold = null; }
     }
   }
-  // mando (API de gamepads, distribución estándar, como el FIFA):
-  //   con el balón: A pase · B elevado/centro · X tiro (RB + X colocado) · Y al hueco · LT proteger · RT sprint · LB cambiar
-  //   sin el balón: A presionar · B robo · X entrada · RB presión de un compañero · LT presionar · RT sprint · LB cambiar
-  //   Start: pausa. Lo que se pulsa se suelta como se pulsó (aunque cambie la posesión entretanto)
+  // mando (API de gamepads, distribución estándar): A pase / robar · B o X tiro / entrada · LB o RB cambiar ·
+  // RT sprint · Start pausa
   pollPad() {
     const pads = navigator.getGamepads ? navigator.getGamepads() : null;
     const gp = pads && Array.from(pads).find(p => p && p.connected && p.buttons?.length >= 10);
     if (!gp) { this.padAx = null; return; }
     if (!this.padOn) { this.padOn = true; this.hud.say('Mando conectado', 1400); }
     const b = gp.buttons.map(x => x.pressed || x.value > 0.5), prev = this.padPrev || [], held = (this.padHeld ||= {});
-    const atk = this.game.owner === this.game.me || !this.game.defending();
-    const map = atk ? { 0: 'pass', 1: 'lob', 2: 'shoot', 3: 'through', 4: 'switch', 5: 'finesse', 6: 'shield' } : { 0: 'contain', 1: 'tackle', 2: 'slide', 3: 'contain', 4: 'switch', 5: 'mate', 6: 'contain' };
+    const map = { 0: 'pass', 1: 'shoot', 2: 'shoot', 4: 'switch', 5: 'switch' };
     for (let i = 0; i < b.length; i++) {
       if (b[i] && !prev[i]) { if (i === 9) this.pauseMenu(); else if (map[i]) { held[i] = map[i]; this.press(map[i]); } }
       else if (!b[i] && prev[i] && held[i]) { this.release(held[i]); delete held[i]; }
@@ -339,7 +334,7 @@ export class FutbolMatch {
         H.say(e.type === 'throwin' ? `${TEXT.out} · ${TEXT.throwin.toLowerCase()} para ${who}` : `${e.type === 'corner' ? TEXT.corner : TEXT.goalkick} para ${who}`, 1800);
         break;
       }
-      case 'noGoal': H.msg('No vale el gol', e.why === 'throwin' ? 'No se puede marcar directamente de un saque de banda' : e.why === 'indirect' ? 'Tiro libre indirecto: la tiene que tocar otro jugador' : 'El portero no puede marcar lanzando con la mano', 2200); A.groan(); break;
+      case 'noGoal': H.msg('No vale el gol', e.why === 'throwin' ? 'No se puede marcar directamente de un saque de banda' : e.why === 'indirect' ? 'Tiro libre indirecto: la tiene que tocar otro jugador' : e.why === 'own' ? 'Un saque directo a tu propia portería es córner' : 'El portero no puede marcar lanzando con la mano', 2200); A.groan(); break;
       case 'offside': H.say(`${TEXT.offside}${P(e.p).team === 0 ? ' de ' + name(P(e.p)) : ''}`, 1600); break;
       case 'restart':
         if (e.type === 'penalty') H.msg(TEXT.penalty, e.team === 0 ? 'Apunta con el joystick y mantén TIRO' : 'Para el tiro… ¡tu portero está atento!', 2000);
@@ -582,7 +577,10 @@ export class FutbolMatch {
   }
   drawHud() {
     const g = this.game, H = this.hud, me = g.me;
-    if (g.mode !== 'penalties') H.setClock(g.halfLen - g.clock, g.half, this.reto ? this.reto.label() : null);
+    // reloj como en la tele: de 0 a 45 minutos en la primera parte y de 45 a 90 en la segunda (en sala, 20 y 40); en
+    // los retos, la cuenta atrás
+    if (this.reto) H.setClock(g.halfLen - g.clock, g.half, this.reto.label());
+    else if (g.mode !== 'penalties') H.setClock(Math.floor(((g.half - 1) + Math.min(1, g.clock / g.halfLen)) * (RU.period || 45) * 60), g.half);
     if (g.mode !== 'penalties' && !this.reto) H.setMode(g.owner ? (g.owner.team === g.me.team ? 'atk' : 'def') : 'loose');
     H.bars(me.energy, g.charge);
     // flecha en el borde si tu jugador no se ve
@@ -626,7 +624,7 @@ class Tutorial {
       this.v.hud.el.pass ? 'Muévete con el <b>joystick</b>: toca y arrastra a la izquierda' : 'Muévete con <b>WASD</b> o las flechas',
       `Pasa a tu compañero: apunta hacia él y suelta <b>${this.v.hud.el.pass ? 'PASE' : 'J'}</b>`,
       `¡A puerta! Mantén <b>${this.v.hud.el.pass ? 'TIRO' : 'K'}</b> para cargar y suelta para chutar`,
-      `Acércate al rival y pulsa <b>${this.v.hud.el.pass ? 'ROBO' : 'J'}</b> cuando el balón se le separe del pie`,
+      `Acércate al rival y pulsa <b>${this.v.hud.el.pass ? 'ROBAR' : 'J'}</b> pegado a él`,
       '¡Ya sabes jugar! Empieza el partido',
     ];
     this.v.hud.tip(tips[i]);

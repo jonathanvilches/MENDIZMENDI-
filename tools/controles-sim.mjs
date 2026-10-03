@@ -17,6 +17,12 @@ const run = (g, s) => { const ev = []; for (let t = 0; t < s; t += 1 / 120) { g.
 // pase elevado: el balón sube
 { const g = setup(), me = g.me, q = g.byRole(0, 'DCI'); me.x = 0; me.z = 0; me.h = Math.PI / 2; q.x = 22; q.z = 4; g.ball.set(0.5, 0); g.owner = me;
   g.setMove(1, 0.15, 1, false); g.press('lob'); g.step(1 / 120); g.release('lob'); ok(g.ball.v.y > 4, `pase elevado (vy ${g.ball.v.y.toFixed(1)} m/s)`); }
+// pase (un solo botón): raso al compañero libre; por alto si hay un rival en medio y está lejos
+{ const g = setup(), me = g.me, q = g.byRole(0, 'DCI'); me.x = 0; me.z = 0; me.h = Math.PI / 2; q.x = 10; q.z = 1; g.ball.set(0.5, 0); g.owner = me;
+  g.setMove(1, 0.1, 1, false); g.press('pass'); g.step(1 / 120); g.release('pass'); const raso = g.ball.v.y < 1.5 && g.passTo === q;
+  const g2 = setup(), me2 = g2.me, q2 = g2.byRole(0, 'DCI'), r = g2.byRole(1, 'MCD'); me2.x = 0; me2.z = 0; me2.h = Math.PI / 2; q2.x = 22; q2.z = 1; r.x = 10; r.z = 0.5; g2.ball.set(0.5, 0); g2.owner = me2;
+  g2.setMove(1, 0.05, 1, false); g2.press('pass'); g2.step(1 / 120); g2.release('pass');
+  ok(raso && g2.ball.v.y > 4, `pase: raso al compañero libre (vy ${g.ball.v.y.toFixed(1)}), por alto si hay un rival en medio (vy ${g2.ball.v.y.toFixed(1)})`); }
 // presionar: se coloca entre el rival con balón y su portería, a poco más de un metro
 { const g = setup(), me = g.me, o = g.byRole(1, 'MCD'); o.x = 5; o.z = 3; o.h = -Math.PI / 2; g.ball.set(4.6, 3); g.owner = o; o.react = 99; me.x = -6; me.z = -4;
   g.press('contain'); run(g, 2.5); const gx = g.ownGoal(0), d = Math.hypot(me.x - o.x, me.z - o.z), between = (me.x - o.x) * (gx - o.x) > 0;

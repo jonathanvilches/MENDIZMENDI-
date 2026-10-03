@@ -107,15 +107,16 @@ const FORM_SALA = {
 const NUMBERS_SALA = { POR: 1, CIE: 4, ALI: 7, ALD: 8, PIV: 10 };
 const KICKERS_SALA = ['PIV', 'ALI', 'ALD', 'CIE'];
 
-// Reglas de cada formato: fuera de juego, saque de banda (con las manos o con el pie), saque de portería (con el pie
+// Reglas de cada formato (period: minutos de cada parte que marca el reloj, como en la tele: 45 en fútbol 11 y 20 en
+// sala; la parte dura en realidad los minutos elegidos en el menú): fuera de juego, saque de banda (con las manos o con el pie), saque de portería (con el pie
 // desde el área de meta o con la mano del portero), límite de faltas acumuladas (desde la 6.ª, tiro libre directo sin
 // barrera desde el segundo punto), los 4 s para sacar, los dos que sacan de centro, el que empieza con el jugador y el
 // equipo arbitral (árbitro y asistentes, o dos árbitros de banda)
 const FORMATS = {
   f11: { id: 'f11', name: 'Fútbol 11', FIELD: FIELD11, PHYS: PHYS11, PLAYER: PLAYER11, ROLES: ROLES11, ROLE_NAME: ROLE_NAME11, LINE: LINE11, FORM: FORM11, NUMBERS: NUMBERS11, KICKERS: KICKERS11,
-    RULES: { offside: true, throwHands: true, goalkickHands: false, foulLimit: 0, fourSec: false, kick: ['DCD', 'DCI'], start: 'DCD', refs: 'f11', scale: 1 } },
+    RULES: { offside: true, throwHands: true, goalkickHands: false, foulLimit: 0, fourSec: false, kick: ['DCD', 'DCI'], start: 'DCD', refs: 'f11', scale: 1, period: 45 } },
   sala: { id: 'sala', name: 'Fútbol sala', FIELD: FIELD_SALA, PHYS: PHYS_SALA, PLAYER: PLAYER_SALA, ROLES: ROLES_SALA, ROLE_NAME: ROLE_NAME_SALA, LINE: LINE_SALA, FORM: FORM_SALA, NUMBERS: NUMBERS_SALA, KICKERS: KICKERS_SALA,
-    RULES: { offside: false, throwHands: false, goalkickHands: true, foulLimit: 5, fourSec: true, kick: ['PIV', 'ALI'], start: 'PIV', refs: 'sala', scale: 0.55 } },
+    RULES: { offside: false, throwHands: false, goalkickHands: true, foulLimit: 5, fourSec: true, kick: ['PIV', 'ALI'], start: 'PIV', refs: 'sala', scale: 0.55, period: 20 } },
 };
 export let FIELD = FIELD11, PHYS = PHYS11, PLAYER = PLAYER11, ROLES = ROLES11, ROLE_NAME = ROLE_NAME11, LINE = LINE11, FORM = FORM11, NUMBERS = NUMBERS11, KICKERS = KICKERS11, RULES = FORMATS.f11.RULES, FORMAT = 'f11';
 const hooks = [];
