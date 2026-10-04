@@ -174,6 +174,15 @@ export function createTownLevel(def) {
     const dR = rv ? Math.abs(x - rx(z)) : 99;
     return add * smoothstep(9, 34, dR);
   }
+  // Horizonte: alrededor no hay una muralla continua de montes. Según la dirección, unos sectores levantan sierra y
+  // otros se abren a lomas bajas y a la lejanía; y cuánto monte hay depende de la comarca (Pirineo más, zona media y
+  // Ribera menos). Lo usan los bordes del pueblo y el anillo de montes lejanos (terrain.js).
+  const MTK = { pyrenean: 0.8, atlantic: 0.6, central: 0.5, city: 0.45, ribera: 0.35 }[def.family] ?? 0.55;
+  const hph = (def.id.length * 7.3 + def.id.charCodeAt(0) * 0.37 + def.id.charCodeAt(def.id.length - 1) * 0.11) % 10;
+  function horizonK(x, z) {
+    const a = Math.atan2(z, x), n = fbm(Math.cos(a) * 1.4 + hph, Math.sin(a) * 1.4 - hph, 2) * 0.5 + 0.5;
+    return MTK * (0.3 + 0.7 * smoothstep(0.38, 0.68, n));
+  }
   function rawHeight(x, z, detail) {
     const F0 = FA(z);
     const dRiv = rv ? Math.abs(x - rx(z)) : Math.abs(x - PLACES.plaza.x);
@@ -191,7 +200,7 @@ export function createTownLevel(def) {
       // mesas y cabezos al estilo de las Bardenas
       const m = fbm(x / 140 + 9, z / 140 - 2, 3);
       h += mt * (18 + 30 * smoothstep(0.05, 0.12, m));
-    } else h += mt * (F.relief * 1.1 + 60 * ridged(x / 160, z / 160, 4));
+    } else h += mt * (F.relief * 1.1 + 60 * ridged(x / 160, z / 160, 4)) * horizonK(x, z);
     const rough = 0.25 + smoothstep(30, 220, dRiv) * 0.8 + mt;
     h += fbm(x / 140 + 3.1, z / 140 - 1.7, 4) * F.noise * rough;
     if (detail) h += fbm(x / 26, z / 26, 3) * 0.7 * (0.3 + rough);
@@ -421,7 +430,7 @@ export function createTownLevel(def) {
 
   return {
     rx, zz: () => 9999, CONF: { x: 9999, z: 9999 }, FA, FZ: FA, riverHalfA, RIVER_HALF_Z: 0,
-    riverInfo, valleyFloor, finalHeight, pathQuery, plazaMask, fieldInfo, villageMask, meadowMask, iratiMask,
+    riverInfo, valleyFloor, finalHeight, pathQuery, plazaMask, fieldInfo, villageMask, meadowMask, iratiMask, horizonK,
     PLACES, MEADOW: null, PATHS, BRIDGES, PONDS: [], SPECIAL_TREES, TREE_MIX, R,
     RIVERS: rv ? [{ rx, level: z => FA(z) - 0.9, half }] : [],
     BOUNDARY: 440, def, family: def.family, relief, addPad, PADS, FOREST: F.forest, TONE: F.grass,
