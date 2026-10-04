@@ -361,6 +361,7 @@ export class Encierro {
 
   // entra en la escena y devuelve una promesa que se resuelve al llegar a la plaza (o al rendirse)
   run() {
+    if (window.__autoWin) return Promise.resolve({ win: true });   // pruebas automáticas (como el resto de minijuegos)
     const G = this.G;
     return new Promise(async (res) => {
       this.res = res;

@@ -5,7 +5,6 @@ import { buildHouse } from './houses.js';
 import { church, castle, castleJavier, dig, wallsRing, bridge, landmark } from './monuments.js';
 import { bench, lamp, fountain } from './village.js';
 import { PATHS, PLACES, BRIDGES, riverInfo, pathQuery, villageMask, plazaMask, rx, MOD } from './layout.js';
-import { buildPamplona } from './pamplona.js';
 import { terrainHeight } from './heightfield.js';
 import { addBox, addCircle, isFree } from './colliders.js';
 import { mulberry32, clamp } from '../util/math.js';
@@ -54,6 +53,11 @@ export function houseStyle(fam, rnd) {
     default: return { wall: pick([['plaster', 0.42], ['stone', 0.33], ['plasterCream', 0.25]]), roof: rnd() < 0.55 ? 'tile' : 'slate', roofType: rnd() < 0.55 ? 'gableX' : 'gableZ', h: [6.8, 10] };
   }
 }
+
+// Pamplona (trazado propio, catedral, murallas, Ciudadela, plaza de toros, El Sadar) va en su propio trozo de código:
+// solo se descarga al ir allí. Hay que esperarlo antes de buildTown.
+let buildPamplona = null;
+export async function preloadTown(def) { if (def.layout === 'pamplona' && !buildPamplona) buildPamplona = (await import('./pamplona.js')).buildPamplona; }
 
 export function buildTown(scene, mats, def) {
   for (const k of Object.keys(TOWN)) TOWN[k] = Array.isArray(TOWN[k]) ? [] : null;

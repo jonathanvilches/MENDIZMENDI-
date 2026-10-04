@@ -5,8 +5,7 @@
 // te lleva hasta él. Cada trabajo se puede repetir pasado un rato.
 import * as THREE from 'three';
 import { Actor } from '../actors/people.js';
-import { infoCard } from '../ui/minigames.js';
-import { milkGame, shearGame, pickGame, forgeGame, stitchGame } from '../ui/mini3d/index.js';
+import { infoCard, play3d } from '../ui/minigames.js';
 import { saveProfile } from './profile.js';
 import { TOWN } from '../world/townBuilder.js';
 import { PLACES } from '../world/layout.js';
@@ -155,11 +154,11 @@ export class Jornales {
       if (J.game === 'herd') { if (g.herd) { await g.say(a, ['Primero termina con el otro rebaño, que no podemos con todo a la vez.']); return; } this.startHerd(a); return; }
       if (J.game === 'escort') { this.startEscort(a, id); return; }
       g.mode = 'mini';
-      if (J.game === 'shear') r = await shearGame(g.ui, {});
-      else if (J.game === 'milk') r = await milkGame(g.ui, {});
-      else if (J.game === 'pick') r = await pickGame(g.ui, { title: J.title, icon: J.icon, kind: J.kind });
-      else if (J.game === 'forge') r = await forgeGame(g.ui, {});
-      else if (J.game === 'stitch') r = await stitchGame(g.ui, {});
+      if (J.game === 'shear') r = await play3d('shearGame', g.ui, {});
+      else if (J.game === 'milk') r = await play3d('milkGame', g.ui, {});
+      else if (J.game === 'pick') r = await play3d('pickGame', g.ui, { title: J.title, icon: J.icon, kind: J.kind });
+      else if (J.game === 'forge') r = await play3d('forgeGame', g.ui, {});
+      else if (J.game === 'stitch') r = await play3d('stitchGame', g.ui, {});
     } finally { g.player.frozen = false; if (g.mode === 'mini') g.mode = 'play'; a.talking = 0; }
     if (!r) return;
     if (r.win) { g.player.rig.doCheer?.(); await this.pay(id, a, null); }

@@ -128,21 +128,32 @@ export class UI {
     this.buildMapCanvas(game.mapHouses ? game.mapHouses() : []);
     this.mini = $('#mini canvas', h).getContext('2d');
     this.compass = $('#compass canvas', h);
+    // tamaño y visibilidad de la brújula y el minimapa sin preguntarlos en cada fotograma (leer clientWidth u offsetParent
+    // tras cambiar textos obligaba al navegador a recolocar toda la página 60 veces por segundo)
+    this.boxes = new Map(); this.hudSig = {}; this.miniSig = null; this.questHidden = undefined;
+    this.ro?.disconnect();
+    this.ro = typeof ResizeObserver === 'function' ? new ResizeObserver(es => { for (const e of es) this.boxes.set(e.target, [e.contentRect.width, e.contentRect.height]); this.hudSig = {}; this.miniSig = null; }) : null;
+    if (this.ro) { this.ro.observe(this.compass); this.ro.observe(this.mini.canvas); }
+    this.questEls = { qt: $('#quest .qt', h), small: $('#quest small', h), qd: $('#quest .qd', h), qe: $('#quest .qe', h), pips: $('#quest .qpips', h), clock: $('#clock .ct', h), clockI: $('#clock .ci', h), cdist: $('#cdist', h) };
     this.lastQuestIcon = null;
     if (town) this.refreshDots();
   }
-  destroyHUD() { this._dlgCleanup?.(); this.closeModal(); this.hud?.remove(); this.hud = null; this.bino?.remove(); this.bino = null; document.body.classList.remove('bino-on'); this.setCinematic?.(false); this.input.onStick = null; }
+  // caja (ancho, alto) de un elemento del HUD: la da el ResizeObserver; sin él, se mide (más lento)
+  box(el) { if (this.ro) return this.boxes.get(el) || [0, 0]; return el.offsetParent ? [el.clientWidth, el.clientHeight] : [0, 0]; }
+  destroyHUD() { this.ro?.disconnect(); this.ro = null; this._dlgCleanup?.(); this.closeModal(); this.hud?.remove(); this.hud = null; this.bino?.remove(); this.bino = null; document.body.classList.remove('bino-on'); this.setCinematic?.(false); this.input.onStick = null; }
   refreshDots() { if (!this.hud || this.game.kind !== 'town') return; for (const i of this.hud.querySelectorAll('.dots i')) { const M = this.game.missions[+i.dataset.m]; i.className = M.done ? 'on' : M.i === this.game.tracked ? 'cur' : ''; } }
   setQuest(q) {
-    const b = $('#quest', this.hud);
-    if (!q) { b.classList.add('hidden'); return; }
-    b.classList.remove('hidden');
-    if (this.lastQuestIcon !== q.icon) { $('.qe', b).innerHTML = I(q.icon, 34); this.lastQuestIcon = q.icon; }
-    if ($('.qt', b).textContent !== q.step) { $('.qt', b).textContent = q.step; b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse'); this.refreshDots(); }
-    $('small', b).textContent = q.title;
-    const pips = $('.qpips', b), key = (q.nSteps || 0) + ':' + (q.stepIdx ?? -1);
+    const b = $('#quest', this.hud), E = this.questEls;
+    if (!q) { if (!this.questHidden) { b.classList.add('hidden'); this.questHidden = true; } return; }
+    if (this.questHidden !== false) { b.classList.remove('hidden'); this.questHidden = false; }
+    // (solo se toca lo que cambia: escribir el mismo texto en cada fotograma también obliga a redibujar la página)
+    if (this.lastQuestIcon !== q.icon) { E.qe.innerHTML = I(q.icon, 34); this.lastQuestIcon = q.icon; }
+    if (E.qt.textContent !== q.step) { E.qt.textContent = q.step; b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse'); this.refreshDots(); }
+    if (E.small.textContent !== q.title) E.small.textContent = q.title;
+    const pips = E.pips, key = (q.nSteps || 0) + ':' + (q.stepIdx ?? -1);
     if (pips.dataset.k !== key) { pips.dataset.k = key; pips.innerHTML = q.nSteps ? Array.from({ length: q.nSteps }, (_, i) => `<i class="${i < q.stepIdx ? 'ok' : i === q.stepIdx ? 'now' : ''}"></i>`).join('') : ''; }
-    $('.qd', b).textContent = q.dist != null ? (q.dist < 1000 ? `${Math.round(q.dist)} m` : '') : '';
+    const dt = q.dist != null ? (q.dist < 1000 ? `${Math.round(q.dist)} m` : '') : '';
+    if (E.qd.textContent !== dt) E.qd.textContent = dt;
   }
   setRibbons(have, eg) {
     if (!this.hud) return;
@@ -162,7 +173,7 @@ export class UI {
     }
     p.classList.remove('hidden'); a.classList.remove('off');
   }
-  setClock(s, night) { if (!this.hud) return; const c = $('#clock', this.hud); $('.ct', c).textContent = s; if (this.night !== night) { this.night = night; $('.ci', c).innerHTML = night ? ICON.moon : ICON.sun; } }
+  setClock(s, night) { if (!this.hud) return; const E = this.questEls; if (E.clock.textContent !== s) E.clock.textContent = s; if (this.night !== night) { this.night = night; E.clockI.innerHTML = night ? ICON.moon : ICON.sun; } }
   showBinoButton() { $('#bBino', this.hud)?.classList.remove('hidden'); }
   hideBinoButton() { $('#bBino', this.hud)?.classList.add('hidden'); }
   toast(text, icon = 'sparkle', ms = 2800) {
@@ -408,9 +419,13 @@ export class UI {
   }
   // Brújula superior: puntos cardinales, misiones cercanas y el objetivo con su distancia
   drawCompass(player, camYaw, markers, target) {
-    const c = this.compass; if (!c || !c.offsetParent) return;
-    const dpr = Math.min(2, devicePixelRatio || 1), W = Math.round(c.clientWidth * dpr), Hh = Math.round(c.clientHeight * dpr);
+    const c = this.compass; if (!c) return;
+    const [cw, ch] = this.box(c), dpr = Math.min(2, devicePixelRatio || 1), W = Math.round(cw * dpr), Hh = Math.round(ch * dpr);
     if (!W || !Hh) return;
+    // sin cambios (quieto, hablando…) no se redibuja; las marcas que se mueven solas se ponen al día cada cuarto de segundo
+    const sg = this.hudSig, nm = markers ? markers.length : 0, now = performance.now();
+    if (now - sg.t < 250 && sg.cy === camYaw && sg.cx === player.pos.x && sg.cz === player.pos.z && sg.tx === target?.x && sg.tz === target?.z && sg.n === nm && sg.W === W) return;
+    sg.t = now; sg.cy = camYaw; sg.cx = player.pos.x; sg.cz = player.pos.z; sg.tx = target?.x; sg.tz = target?.z; sg.n = nm; sg.W = W;
     if (c.width !== W || c.height !== Hh) { c.width = W; c.height = Hh; }
     const g = c.getContext('2d'); g.clearRect(0, 0, W, Hh);
     const span = Math.PI * 0.5, k = (W / 2) / span, ly = Hh * 0.42, ty = Hh * 0.8;
@@ -439,7 +454,7 @@ export class UI {
       const x = W / 2 + a * k; g.globalAlpha = fade(x); this.drawIcon(g, m.icon, x, ty, 6.5 * dpr); g.globalAlpha = 1;
     }
     // objetivo: rombo en la línea inferior; si queda detrás, flecha en el borde. La distancia va en su etiqueta.
-    const dEl = this.hud && $('#cdist', this.hud);
+    const dEl = this.hud && this.questEls.cdist;
     if (target) {
       const a0 = rel(target.x, target.z), out = Math.abs(a0) > span * 0.82, a = Math.max(-span * 0.82, Math.min(span * 0.82, a0));
       const x = W / 2 + a * k, sz = 6.5 * dpr;
@@ -448,14 +463,17 @@ export class UI {
       if (out) { const d = Math.sign(a0); g.moveTo(d * sz * 1.3, 0); g.lineTo(-d * sz * 0.4, -sz); g.lineTo(-d * sz * 0.4, sz); }
       else { g.moveTo(0, -sz); g.lineTo(sz, 0); g.lineTo(0, sz); g.lineTo(-sz, 0); }
       g.closePath(); g.fill(); g.shadowBlur = 0; g.stroke(); g.restore();
-      if (dEl) { const d = Math.round(Math.hypot(target.x - player.pos.x, target.z - player.pos.z)); const t = d + ' m'; if (dEl.textContent !== t) dEl.textContent = t; dEl.style.left = Math.max(24, Math.min(W / dpr - 24, x / dpr)) + 'px'; dEl.style.display = ''; }
-    } else if (dEl) dEl.style.display = 'none';
+      if (dEl) { const d = Math.round(Math.hypot(target.x - player.pos.x, target.z - player.pos.z)); const t = d + ' m'; if (dEl.textContent !== t) dEl.textContent = t; const l = Math.round(Math.max(24, Math.min(W / dpr - 24, x / dpr))) + 'px'; if (dEl.style.left !== l) dEl.style.left = l; if (dEl.style.display) dEl.style.display = ''; }
+    } else if (dEl && dEl.style.display !== 'none') dEl.style.display = 'none';
     // marca central
     g.fillStyle = '#ffffff'; g.beginPath(); g.moveTo(W / 2 - 5 * dpr, 0); g.lineTo(W / 2 + 5 * dpr, 0); g.lineTo(W / 2, 6 * dpr); g.closePath(); g.fill();
   }
   updateMinimap(player, camYaw, markers, target) {
     this.drawCompass(player, camYaw, markers, target);
-    if (!this.mini || !this.mini.canvas.offsetParent) return;
+    if (!this.mini || !this.box(this.mini.canvas)[0]) return;
+    const ms = this.miniSig ||= {}, nm = markers ? markers.length : 0, now = performance.now();
+    if (now - ms.t < 250 && ms.cy === camYaw && ms.cx === player.pos.x && ms.cz === player.pos.z && ms.h === player.heading && ms.tx === target?.x && ms.tz === target?.z && ms.n === nm) return;
+    ms.t = now; ms.cy = camYaw; ms.cx = player.pos.x; ms.cz = player.pos.z; ms.h = player.heading; ms.tx = target?.x; ms.tz = target?.z; ms.n = nm;
     const g = this.mini, S = 248, zoom = 1.8;
     const mpp = (2 * HALF) / 512;
     g.save(); g.clearRect(0, 0, S, S);

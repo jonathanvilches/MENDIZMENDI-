@@ -20,14 +20,21 @@ varying vec3 vWP; varying vec2 vUv; varying float vEdge;
 float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }
 float vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
   return mix(mix(hash(i),hash(i+vec2(1,0)),f.x), mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x), f.y); }
+#ifdef LOWQ
+// móvil: olas de dos capas de ruido y un solo tren de ondas (8 ruidos por píxel en vez de 21)
+float wav(vec2 p){ return vnoise(p) * 0.66 + vnoise(p * 2.3) * 0.34; }
+#define WAVES(q) (wav((q) * vec2(1.3, 2.1) - flow * 1.3) * 1.5)
+#else
 float wav(vec2 p){ return vnoise(p) * 0.6 + vnoise(p * 2.3) * 0.3 + vnoise(p * 5.1) * 0.1; }
+#define WAVES(q) (wav((q) * vec2(1.0, 1.6) - flow) + wav((q) * vec2(2.1, 3.3) - flow * 1.7 + 3.1) * 0.5)
+#endif
 void main(){
   vec2 flow = vec2(0.0, uTime * uFlow);
   vec2 p = vec2(vUv.x * 3.0, vUv.y);
   float e = 0.08;
-  float h0 = wav(p * vec2(1.0, 1.6) - flow) + wav(p * vec2(2.1, 3.3) - flow * 1.7 + 3.1) * 0.5;
-  float hx = wav((p + vec2(e, 0.0)) * vec2(1.0, 1.6) - flow) + wav((p + vec2(e, 0.0)) * vec2(2.1, 3.3) - flow * 1.7 + 3.1) * 0.5;
-  float hy = wav((p + vec2(0.0, e)) * vec2(1.0, 1.6) - flow) + wav((p + vec2(0.0, e)) * vec2(2.1, 3.3) - flow * 1.7 + 3.1) * 0.5;
+  float h0 = WAVES(p);
+  float hx = WAVES(p + vec2(e, 0.0));
+  float hy = WAVES(p + vec2(0.0, e));
   vec3 n = normalize(vec3((h0 - hx) * 1.4, 1.0, (h0 - hy) * 1.4));
   vec3 V = normalize(cameraPosition - vWP);
   float fres = pow(1.0 - max(dot(n, V), 0.0), 3.0);
@@ -47,8 +54,9 @@ void main(){
   #include <fog_fragment>
 }`;
 
+let LOWQ = false;
 function makeMat(flow) {
-  return new THREE.ShaderMaterial({
+  return new THREE.ShaderMaterial({ defines: LOWQ ? { LOWQ: 1 } : {},
     uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, {
       uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3(0, 1, 0) }, uSunCol: { value: new THREE.Color('#fff') },
       uSky: { value: new THREE.Color('#bfe0f7') }, uDeep: { value: new THREE.Color('#174e5a') }, uShallow: { value: new THREE.Color('#3d8580') },
@@ -89,7 +97,8 @@ function ribbon(samples, widthFn, levelFn) {
 }
 
 export class Water {
-  constructor(scene) {
+  constructor(scene, quality = 'high') {
+    LOWQ = quality === 'low';
     this.mats = [];
     this.meshes = [];
     const add = (m) => { m.renderOrder = 2; scene.add(m); this.meshes.push(m); };

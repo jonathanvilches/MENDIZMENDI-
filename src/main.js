@@ -1,6 +1,9 @@
 // MENDIMENDIZ · Navarra pueblo a pueblo
 // Arranque: centro de mando (hub) + motor 3D que carga cada localidad con sus misiones.
 import * as THREE from 'three';
+// muchas piezas llaman a toNonIndexed() sobre geometría que ya lo es: three.js devuelve la misma y avisa en la consola
+// (decenas de avisos al arrancar). Mismo resultado, sin el aviso.
+{ const tni = THREE.BufferGeometry.prototype.toNonIndexed; THREE.BufferGeometry.prototype.toNonIndexed = function () { return this.index === null ? this : tni.call(this); }; }
 // tipografías incrustadas: el juego funciona igual sin conexión
 import '@fontsource/lilita-one/latin-400.css';
 import '@fontsource/nunito/latin-600.css';
@@ -75,10 +78,10 @@ async function boot() {
   const hub = new Hub({ sound, onPlay: (d) => play(d) });
   hub.onSettings = (S) => { sound.setMusic(S.music); sound.setVolume(S.volume); };
   window.__hub = hub;
-  // el fútbol y el encierro van en archivos aparte (se cargan al entrar): se descargan sin prisa cuando el navegador
-  // está desocupado, así quedan guardados para jugar sin conexión y no esperan al tocarlos
+  // el fútbol, el encierro, los minijuegos 3D de los oficios y Pamplona van en archivos aparte (se cargan al entrar): se descargan
+  // sin prisa cuando el navegador está desocupado, así quedan guardados para jugar sin conexión y no esperan al tocarlos
   const idle = window.requestIdleCallback || ((f) => setTimeout(f, 1));
-  setTimeout(() => idle(() => { import('./game/futbol.js').catch(() => {}); import('./game/encierro.js').catch(() => {}); }, { timeout: 20000 }), 15000);
+  setTimeout(() => idle(() => { import('./game/futbol.js').catch(() => {}); import('./game/encierro.js').catch(() => {}); import('./ui/mini3d/index.js').catch(() => {}); import('./world/pamplona.js').catch(() => {}); }, { timeout: 20000 }), 15000);
 
   // pasos, saltos y salpicaduras
   const hookPlayer = (player) => {
