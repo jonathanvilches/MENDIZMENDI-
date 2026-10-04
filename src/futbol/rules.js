@@ -28,7 +28,7 @@ const PHYS11 = {
 
 // Jugadores: 6 m/s normal y 8 en sprint (la energía se agota en 5 s y se recupera en 7), aceleración 14 m/s²
 const PLAYER11 = {
-  run: 6, sprint: 8, acc: 14, drain: 1 / 5, regain: 1 / 7, radius: 0.36,
+  run: 6, sprint: 8, acc: 14, brake: 26, grip: 8.5, drain: 1 / 5, regain: 1 / 7, radius: 0.36,
   reach: 0.9, ctrlH: 1, keep: 1.3, touchSlow: 0.5, touchFast: 0.35,
   cone: 35 * Math.PI / 180, charge: 0.8, tackleWin: 0.25, trapMax: 12, loft: 0.3,
 };
@@ -90,7 +90,7 @@ PHYS_SALA.drag = PHYS_SALA.dragK * 0.25;   // (la aproximación de la IA para ca
 // Jugadores: 5,5 m/s y 7,2 en sprint (la energía se agota en 4 s y se recupera en 6), aceleración 14 m/s², frenada
 // 18 m/s², giro de 540 °/s (360 °/s con el balón); controla el balón a menos de 0,9 m y 0,8 m de altura
 const PLAYER_SALA = {
-  run: 5.5, sprint: 7.2, acc: 14, brake: 18, drain: 1 / 4, regain: 1 / 6, radius: 0.36, turn: 540 * Math.PI / 180, turnBall: 360 * Math.PI / 180,
+  run: 5.5, sprint: 7.2, acc: 14, brake: 24, grip: 9.5, drain: 1 / 4, regain: 1 / 6, radius: 0.36, turn: 540 * Math.PI / 180, turnBall: 360 * Math.PI / 180,
   reach: 0.9, ctrlH: 0.8, keep: 1.3, touchSlow: 0.5, touchFast: 0.32,
   cone: 35 * Math.PI / 180, charge: 0.8, tackleWin: 0.25, trapMax: 12, loft: 0.3,
 };

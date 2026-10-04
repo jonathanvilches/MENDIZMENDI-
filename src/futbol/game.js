@@ -211,11 +211,31 @@ export class FutbolGame {
     p.energy = clamp(p.energy + (sprint ? -PL.drain : PL.regain) * h, 0, 1);
     const top = (sprint ? PL.sprint : PL.run) * (p.team === 1 ? this.lvl.speed : 1) * (this.owner === p ? 0.88 : 1) * (p.recover > 0 ? 0.55 : 1);
     if (want > top) { wx *= top / want; wz *= top / want; }
-    // acelera a 14 m/s² y frena (si quiere ir más despacio o hacia atrás) a la frenada del formato
-    const braking = PL.brake && (wx * p.vx + wz * p.vz < p.vx * p.vx + p.vz * p.vz - 0.01);
-    let dvx = wx - p.vx, dvz = wz - p.vz; const dl = hyp(dvx, dvz), mx = (braking ? PL.brake : PL.acc) * h;
-    if (dl > mx) { dvx *= mx / dl; dvz *= mx / dl; }
-    p.vx += dvx; p.vz += dvz;
+    const wv = Math.min(want, top), v0 = hyp(p.vx, p.vz);
+    if (v0 > 0.6 && wv > 0.6) {
+      // con agarre (como en el FIFA): la velocidad gira hacia donde apunta el joystick sin derrapar en una curva abierta
+      // (más rápido trotando que esprintando, algo menos con el balón); en un cambio brusco de sentido el jugador
+      // planta el pie, frena en seco y sale hacia el otro lado
+      const a0 = Math.atan2(p.vx, p.vz), d = angDiff(a0, Math.atan2(wx, wz));
+      const omega = (PL.grip || 8.5) * (sprint ? 0.7 : 1) * (this.owner === p ? 0.88 : 1) * (p.recover > 0 ? 0.5 : 1);
+      if (Math.abs(d) > 2.1) {
+        const nv = Math.max(0, v0 - (PL.brake || 26) * 1.15 * h);
+        if (nv < 1.2) { const a1 = Math.atan2(wx, wz); p.vx = Math.sin(a1) * nv; p.vz = Math.cos(a1) * nv; }
+        else { p.vx *= nv / v0; p.vz *= nv / v0; }
+      } else {
+        const a = a0 + clamp(d, -omega * h, omega * h);
+        // en el giro se pierde algo de velocidad (más cuanto más cerrado), luego se recupera
+        const tv = wv * (1 - Math.min(0.35, Math.abs(d) * 0.22)), dv = tv - v0;
+        const nv = v0 + clamp(dv, -(PL.brake || 26) * h, PL.acc * h);
+        p.vx = Math.sin(a) * nv; p.vz = Math.cos(a) * nv;
+      }
+    } else {
+      // arrancar o pararse: acelera a 14 m/s² y frena a la frenada del formato
+      const braking = wx * p.vx + wz * p.vz < p.vx * p.vx + p.vz * p.vz - 0.01;
+      let dvx = wx - p.vx, dvz = wz - p.vz; const dl = hyp(dvx, dvz), mx = (braking ? (PL.brake || 26) : PL.acc) * h;
+      if (dl > mx) { dvx *= mx / dl; dvz *= mx / dl; }
+      p.vx += dvx; p.vz += dvz;
+    }
     p.x += p.vx * h; p.z += p.vz * h;
     this.bounds(p);
     // giro suavizado: hacia donde corre, o hacia donde quiere mirar (al balón, a la portería)
@@ -259,6 +279,17 @@ export class FutbolGame {
     if (I.mag < 0.1 && this.passTo === p && !this.owner) { const q = this.interceptPoint(p); this.seek(p, q.x, q.z, PL.run); p.face = { x: this.ball.p.x, z: this.ball.p.z }; return; }
     const top = I.sprint ? PL.sprint : PL.run;
     p.wx = wx * top; p.wz = wz * top; p.wantSprint = I.sprint && I.mag > 0.5;
+    // recibiendo un pase con el joystick en la mano: la carrera se corrige sola hacia la línea del balón (lo justo
+    // para no pasar de largo; la dirección general la sigue marcando el jugador)
+    if (this.passTo === p && !this.owner && I.mag >= 0.1) {
+      const b = this.ball, B = b.p, bv = hyp(b.v.x, b.v.z);
+      if (bv > 1 && hyp(B.x - p.x, B.z - p.z) < 12) {
+        // va al punto donde puede cortar el balón (si el pase queda por detrás, frena y vuelve a por él)
+        const q = this.interceptPoint(p), ex = q.x - p.x, ez = q.z - p.z, el = hyp(ex, ez);
+        const sv = el > 0.15 ? Math.min(top, el * 3 + 0.5) / el : 0;
+        p.wx += (ex * sv - p.wx) * 0.6; p.wz += (ez * sv - p.wz) * 0.6;
+      }
+    }
     p.face = I.mag < 0.1 && !this.owner ? { x: this.ball.p.x, z: this.ball.p.z } : null;
     // presionar (contener): se pone entre el que lleva el balón y su portería, a 1,3 m, de cara al balón, y le sigue
     const o = this.owner;
@@ -282,11 +313,14 @@ export class FutbolGame {
     const loose = !this.owner && this.passTo !== p;
     if ((this.defending() || loose) && this.switchCD <= 0 && !p.robo && !p.slide && !I.contain) {
       const b = this.ball.p; let best = null;
+      // mientras mueves a tu jugador, solo cambia si otro llega claramente antes (no te quita el control a cada momento)
+      const steering = I.mag > 0.2;
       if (loose) {
-        let bt = this.interceptPoint(p).t - 0.3;
+        let bt = this.interceptPoint(p).t - (steering ? 0.7 : 0.3);
         for (const q of this.team(p.team)) if (q.role !== 'POR' && q !== p && q.down <= 0) { const t = this.interceptPoint(q).t; if (t < bt) { bt = t; best = q; } }
       } else {
-        let bd = hyp(p.x - b.x, p.z - b.z) - 1.2;
+        const dme = hyp(p.x - b.x, p.z - b.z);
+        let bd = steering ? (dme > 12 ? dme - 5 : -1) : dme - 1.2;
         for (const q of this.team(p.team)) if (q.role !== 'POR' && q !== p && q.down <= 0) { const d = hyp(q.x - b.x, q.z - b.z); if (d < bd) { bd = d; best = q; } }
       }
       if (best) this.setMe(best, 'auto');
@@ -407,7 +441,9 @@ export class FutbolGame {
     for (let k = 0; k < 3; k++) {
       const d = hyp(tx - b.x, tz - b.z); v = loft ? this.loftV(d).vh : this.groundV(d);
       T = loft ? this.loftV(d).T : d / (v * 0.78);
-      tx = q.x + q.vx * T * 0.85; tz = q.z + q.vz * T * 0.85;
+      // (al tuyo, el pase va justo a donde llegará corriendo; a la IA, algo corto para que lo busque)
+      const lead = q.team === this.me.team && !this.autoplay ? 1 : 0.85;
+      tx = q.x + q.vx * T * lead; tz = q.z + q.vz * T * lead;
     }
     tx += (this.rnd() - 0.5) * 2 * err; tz += (this.rnd() - 0.5) * 2 * err;
     tx = clamp(tx, -F.HL + 0.4, F.HL - 0.4); tz = clamp(tz, -F.HW + 0.4, F.HW - 0.4);
@@ -461,7 +497,9 @@ export class FutbolGame {
         if (p.cool > 0 || p.stun > 0 || p.down > 0 || p.slide || p.dive || p.hands) continue;
         if (this.restart && this.restart.taker !== p) continue;
         const f = foot(p), d = hyp(B.x - f.x, B.z - f.z), body = hyp(B.x - p.x, B.z - p.z);
-        if (B.y < PL.ctrlH && (d < PL.reach || body < 0.45) && d < bd) { bd = d; best = p; }
+        // al que va el pase lo controla con más margen (estira la pierna): pasa menos veces de largo
+        const mine = this.passTo === p, reach = mine ? PL.reach + 0.45 : PL.reach;
+        if (B.y < PL.ctrlH + (mine ? 0.2 : 0) && (d < reach || body < (mine ? 0.8 : 0.45)) && d - (mine ? 0.3 : 0) < bd) { bd = d - (mine ? 0.3 : 0); best = p; }
       }
       if (best) {
         const rel = hyp(b.v.x - best.vx, b.v.z - best.vz, b.v.y);
@@ -488,7 +526,7 @@ export class FutbolGame {
       const ff = fwd(p), facing = (B.x - p.x) * ff.x + (B.z - p.z) * ff.z > 0;
       const poke = d < 0.62 && d < dob + 0.05 && facing, block = body < 0.62 && ((p.x - o.x) * o.vx + (p.z - o.z) * o.vz) / mv > 0.3;
       if (poke || block) {
-        const rate = (this.human(p) ? 6 : 1.5 + this.L(p).tackle * 3) * (o.shielding ? 0.35 : 1) * clamp((dob + 0.1) / 0.45, 0.5, 1) * (block && !poke ? 2.2 : 1);
+        const rate = (this.human(p) ? 6 : 0.6 + this.L(p).tackle * 1.6) * (o.shielding ? 0.25 : 1) * clamp((dob + 0.1) / 0.45, 0.4, 1) * (block && !poke ? 1.6 : 1);
         if (this.rnd() < 1 - Math.exp(-rate * h)) { o.stun = 0.3; this.takeBall(p); this.stats.steals[p.team]++; this.emit({ t: 'steal', p: p.id, from: o.id, how: 'pie' }); return; }
       }
     }
@@ -535,7 +573,7 @@ export class FutbolGame {
     const off = lead + amp * Math.sin(Math.PI * clamp(1 - o.touchT / T, 0, 1));
     // a dónde tiene que ir el balón en el próximo paso y la velocidad para llegar (con un tope, sin teletransportes)
     const tx = o.x + o.vx * h + f.x * off, tz = o.z + o.vz * h + f.z * off;
-    let cx = (tx - B.x) * 16, cz = (tz - B.z) * 16; const cl = hyp(cx, cz), cmax = 3 + sp * 0.5;
+    let cx = (tx - B.x) * 20, cz = (tz - B.z) * 20; const cl = hyp(cx, cz), cmax = 5 + sp * 0.9;   // (en los giros el balón sigue a la bota)
     if (cl > cmax) { cx *= cmax / cl; cz *= cmax / cl; }
     // recién controlado, el balón se amortigua más despacio (no se queda clavado de golpe)
     const k = clamp((this.time - (o.gotT || 0)) / 0.18, 0.3, 1) * Math.min(1, h * 30);
@@ -571,7 +609,8 @@ export class FutbolGame {
     // éxito según el ángulo (de frente mejor que por detrás) y el momento (con el balón separado del pie, más fácil)
     const ax = p.x - o.x, az = p.z - o.z, al = hyp(ax, az) || 1, of = fwd(o), front = (ax * of.x + az * of.z) / al;
     const fo = foot(o), exposed = hyp(B.x - fo.x, B.z - fo.z);
-    const base = (this.human(p) ? 0.72 : this.L(p).tackle) * (o.shielding ? 0.55 : 1);
+    // (contra tu jugador la IA necesita buen momento: un robo de frente al balón pegado al pie sale menos)
+    const base = (this.human(p) ? 0.72 : this.L(p).tackle * (this.human(o) ? 0.62 : 1)) * (o.shielding ? 0.35 : 1);
     const chance = clamp(base * (0.55 + 0.45 * clamp(front + 0.6, 0, 1)) + clamp((exposed - 0.2) * 0.7, 0, 0.3), 0.05, 0.95);
     const contact = hyp(p.x - o.x, p.z - o.z) < 0.85;
     if (front < -0.35 && contact && this.rnd() < 0.42) return this.foul(p, o);
@@ -864,7 +903,7 @@ export class FutbolGame {
       const f = foot(p), d = hyp(B.x - f.x, B.z - f.z), fo = foot(o), exposed = hyp(B.x - fo.x, B.z - fo.z) > 0.26;
       if (d < 1.05) {
         const want = (exposed ? 0.85 : 0.45) * L.press;
-        if (this.rnd() < want * h * 6) { this.tackle(p, 'robo'); p.tackleCD = 1.4 - L.press * 0.6; }
+        if (this.rnd() < want * h * 6) { this.tackle(p, 'robo'); p.tackleCD = 2.0 - L.press * 0.6; }
         else if (L.coord && hyp(o.x - p.x, o.z - p.z) < 2.2 && this.rnd() < 0.08 * h && Math.abs(angDiff(o.h, Math.atan2(p.x - o.x, p.z - o.z))) < 1.4) { this.tackle(p, 'slide'); p.tackleCD = 2.5; }
       }
     }

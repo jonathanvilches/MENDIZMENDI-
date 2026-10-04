@@ -273,6 +273,9 @@ export class FutbolMatch {
     // zona muerta del 12 % (el pulgar apoyado no mueve al jugador) y de ahí a tope, sin escalón
     const raw = Math.min(1, Math.hypot(sx, sy)), m = raw < 0.12 ? 0 : (raw - 0.12) / 0.88; if (raw > 1e-3) { const l = Math.hypot(sx, sy); sx /= l; sy /= l; }
     const f = new THREE.Vector3(); this.camera.getWorldDirection(f); f.y = 0; if (f.lengthSq() < 1e-6) f.set(0, 0, -1); f.normalize();
+    // «arriba» en el joystick es siempre la misma dirección del campo (hacia la banda de enfrente o hacia la portería
+    // rival): la cámara de la tele gira al seguir el balón y, si no, el jugador se desviaba sin querer
+    if (Math.abs(f.x) > 0.82 || Math.abs(f.z) > 0.82) { if (Math.abs(f.x) > Math.abs(f.z)) f.set(Math.sign(f.x), 0, 0); else f.set(0, 0, Math.sign(f.z)); }
     const rx = -f.z, rz = f.x;
     const wx = rx * sx + f.x * sy, wz = rz * sx + f.z * sy;
     this.game.setMove(wx, wz, m, K2.has('shift') || this.hud.held.sprint || !!this.padSprint);
