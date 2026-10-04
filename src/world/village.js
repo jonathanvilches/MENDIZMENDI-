@@ -1,8 +1,9 @@
 // Otsagabia: casas, iglesia, palacios, puentes, muros del río, plaza y fuente
 import * as THREE from 'three';
 import { TOWN } from './townBuilder.js';
-import { Builder, box, gable, archRing, archPanel, M, MM } from './builder.js';
+import { Builder, box, gable, archRing, archPanel, M, MM, uvFit, cyl } from './builder.js';
 import { buildHouse } from './houses.js';
+import { belfryBell, towerClock, eaveCorbels } from './monuments.js';
 import { PATHS, PLACES, BRIDGES, rx, riverInfo, riverHalfA, pathQuery, villageMask, CONF } from './layout.js';
 import { terrainHeight, deckY } from './heightfield.js';
 import { addBox, addCircle, isFree } from './colliders.js';
@@ -164,9 +165,10 @@ function buildChurch(B, rnd) {
   B.add('ashlar', gable(W, rise, 0.6), MM(T, M(0, H, L / 2 - 0.3)));
   B.add('ashlar', gable(W, rise, 0.6), MM(T, M(0, H, -L / 2 + 0.3)));
   // cabecera poligonal (ábside)
-  const apse = new THREE.CylinderGeometry(W / 2 - 0.3, W / 2 - 0.3, H - 1, 7, 1, false, Math.PI / 2, Math.PI);
+  const apse = cyl(W / 2 - 0.3, W / 2 - 0.3, H - 1, 7, false, 2.2, Math.PI / 2, Math.PI);
   B.add('ashlar', apse, MM(T, M(0, (H - 1) / 2, -L / 2)));
-  const apseRoof = new THREE.ConeGeometry(W / 2 + 0.2, 3.6, 7, 1, false, Math.PI / 2, Math.PI);
+  eaveCorbels(B, T, W, L, H);
+  const apseRoof = uvFit(new THREE.ConeGeometry(W / 2 + 0.2, 3.6, 7, 1, false, Math.PI / 2, Math.PI), W * 0.8 / 2, 2);
   B.add('tile', apseRoof, MM(T, M(0, H - 1 + 1.8, -L / 2)));
   // portada con arquivoltas
   const F = MM(T, M(0, 0, L / 2));
@@ -195,12 +197,12 @@ function buildChurch(B, rnd) {
     B.add('glass', archPanel(1.5, 3.2, 0.1), MM(R, M(0, TH - 5, TW / 2 + 0.01)));
     B.add('ashlar', archRing(0.75, 1.05, 0.3, 10), MM(R, M(0, TH - 5 + 2.45, TW / 2 + 0.05)));
     B.add('ashlar', box(2.4, 0.25, 0.4), MM(R, M(0, TH - 5.05, TW / 2 + 0.1)));
+    belfryBell(B, R, 1.5, TH - 4.3, TW / 2);
   }
-  const bell = new THREE.LatheGeometry([[0, 0.95], [0.25, 0.9], [0.35, 0.6], [0.45, 0.2], [0.6, 0], [0.55, -0.05], [0, -0.05]].map(p => new THREE.Vector2(p[0], p[1])), 12);
-  B.add('iron', bell, MM(TT, M(0, TH - 3.8, 0)));
+  towerClock(B, MM(TT, M(0, 12, TW / 2)), 1.25);
   B.add('ashlar', box(TW + 0.5, 0.5, TW + 0.5), MM(TT, M(0, TH + 0.25, 0)));
   // chapitel piramidal de pizarra
-  const spire = new THREE.ConeGeometry(TW * 0.74, 9, 4, 1);
+  const spire = uvFit(new THREE.ConeGeometry(TW * 0.74, 9, 4, 1), TW * 2, 4.5);
   spire.rotateY(Math.PI / 4);
   B.add('slate', spire, MM(TT, M(0, TH + 0.5 + 4.5, 0)));
   B.add('iron', box(0.08, 1.6, 0.08), MM(TT, M(0, TH + 10.3, 0)));
@@ -333,19 +335,28 @@ function inside(g) {
 // Fuente octogonal de plaza: pila con agua, columna con taza alta, caños de hierro y remate
 export function fountain(B, x, y, z) {
   const T = M(x, y, z, Math.PI / 8);
-  B.add('ashlar', new THREE.CylinderGeometry(2.6, 2.72, 0.82, 8, 1, true), MM(T, M(0, 0.41, 0)));
-  B.add('ashlar', inside(new THREE.CylinderGeometry(2.28, 2.28, 0.82, 8, 1, true)), MM(T, M(0, 0.41, 0)));
-  const rim = new THREE.RingGeometry(2.24, 2.68, 8, 1); rim.rotateX(-Math.PI / 2); B.add('ashlar', rim, MM(T, M(0, 0.84, 0)));
-  const rim2 = new THREE.CylinderGeometry(2.72, 2.72, 0.1, 8, 1, true); B.add('ashlar', rim2, MM(T, M(0, 0.84, 0)));
-  const floor = new THREE.CircleGeometry(2.3, 8); floor.rotateX(-Math.PI / 2); B.add('stoneDark', floor, MM(T, M(0, 0.12, 0)));
+  // pila de sillares (la textura a escala real: antes se estiraba alrededor y parecía de tablas)
+  B.add('ashlar', cyl(2.6, 2.72, 0.82, 8, true, 1.6), MM(T, M(0, 0.41, 0)));
+  B.add('ashlar', inside(cyl(2.28, 2.28, 0.82, 8, true, 1.6)), MM(T, M(0, 0.41, 0)));
+  const rim = new THREE.RingGeometry(2.24, 2.68, 8, 1); rim.rotateX(-Math.PI / 2); uvFit(rim, 3, 3); B.add('ashlar', rim, MM(T, M(0, 0.84, 0)));
+  B.add('ashlar', cyl(2.76, 2.76, 0.12, 8, true, 1.6), MM(T, M(0, 0.84, 0)));
+  // bocel del borde y basa algo más ancha, como las pilas talladas
+  B.add('ashlar', cyl(2.8, 2.86, 0.18, 8, false, 1.6), MM(T, M(0, 0.09, 0)));
+  const floor = new THREE.CircleGeometry(2.3, 8); floor.rotateX(-Math.PI / 2); uvFit(floor, 2, 2); B.add('stoneDark', floor, MM(T, M(0, 0.12, 0)));
   const water = new THREE.CircleGeometry(2.29, 8); water.rotateX(-Math.PI / 2); B.add('water', water, MM(T, M(0, 0.62, 0)));
   // columna torneada con taza
   const prof = [[0.001, 0], [0.62, 0], [0.62, 0.22], [0.42, 0.34], [0.36, 0.5], [0.32, 1.35], [0.4, 1.45], [0.95, 1.6], [1.0, 1.75], [0.9, 1.78]].map(([r, h]) => new THREE.Vector2(r, h));
-  B.add('ashlar', new THREE.LatheGeometry(prof, 16), MM(T, M(0, 0.1, 0)));
+  B.add('ashlar', uvFit(new THREE.LatheGeometry(prof, 16), 2.4, 1.6), MM(T, M(0, 0.1, 0)));
   const w2 = new THREE.CircleGeometry(0.9, 16); w2.rotateX(-Math.PI / 2); B.add('water', w2, MM(T, M(0, 1.84, 0)));
   const top = [[0.001, 0], [0.22, 0], [0.18, 0.2], [0.24, 0.45], [0.12, 0.62], [0.001, 0.72]].map(([r, h]) => new THREE.Vector2(r, h));
-  B.add('ashlar', new THREE.LatheGeometry(top, 12), MM(T, M(0, 1.84, 0)));
-  for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 + Math.PI / 8; B.add('iron', new THREE.CylinderGeometry(0.045, 0.05, 0.5, 8), M(x + Math.sin(a) * 1.15, y + 1.72, z + Math.cos(a) * 1.15, a, Math.PI / 2 - 0.25)); }
+  B.add('ashlar', uvFit(new THREE.LatheGeometry(top, 12), 0.8, 0.6), MM(T, M(0, 1.84, 0)));
+  // caños de hierro y su chorro, que cae en arco hasta la pila
+  for (let i = 0; i < 4; i++) {
+    const a = i * Math.PI / 2 + Math.PI / 8, sx = Math.sin(a), sz = Math.cos(a);
+    B.add('iron', new THREE.CylinderGeometry(0.045, 0.05, 0.5, 8), M(x + sx * 1.15, y + 1.72, z + sz * 1.15, a, Math.PI / 2 - 0.25));
+    const c = new THREE.QuadraticBezierCurve3(new THREE.Vector3(x + sx * 1.38, y + 1.66, z + sz * 1.38), new THREE.Vector3(x + sx * 1.75, y + 1.62, z + sz * 1.75), new THREE.Vector3(x + sx * 1.9, y + 0.62, z + sz * 1.9));
+    B.add('jet', new THREE.TubeGeometry(c, 10, 0.024, 5, false));
+  }
 }
 function buildPlaza(B, rnd) {
   const p = PLACES.plaza;
@@ -376,8 +387,8 @@ export function bench(B, x, y, z, ry) {
 function buildCrucero(B) {
   const c = PLACES.crucero;
   const y = terrainHeight(c.x, c.z);
-  for (let i = 0; i < 3; i++) B.add('ashlar', new THREE.CylinderGeometry(2.2 - i * 0.6, 2.2 - i * 0.6, 0.35, 8), M(c.x, y + 0.1 + i * 0.35, c.z));
-  B.add('ashlar', new THREE.CylinderGeometry(0.22, 0.28, 3.6, 8), M(c.x, y + 1.05 + 1.8, c.z));
+  for (let i = 0; i < 3; i++) B.add('ashlar', cyl(2.2 - i * 0.6, 2.2 - i * 0.6, 0.35, 8, false, 1.6), M(c.x, y + 0.1 + i * 0.35, c.z));
+  B.add('ashlar', cyl(0.22, 0.28, 3.6, 8, false, 1.6), M(c.x, y + 1.05 + 1.8, c.z));
   B.add('ashlar', box(0.6, 0.4, 0.6), M(c.x, y + 4.8, c.z));
   B.add('ashlar', box(0.22, 1.5, 0.2), M(c.x, y + 5.7, c.z));
   B.add('ashlar', box(1.0, 0.2, 0.2), M(c.x, y + 5.95, c.z));

@@ -68,6 +68,8 @@ export function makeMaterials() {
     // y con prioridad de profundidad sobre la pared, para que no parpadee de lejos ni en móviles con poca precisión
     glass: new THREE.MeshLambertMaterial({ color: '#2a3c4b', emissive: new THREE.Color('#ffb85a'), emissiveIntensity: 0, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }),
     water: std({ color: '#3b7f9c', roughness: 0.05, metalness: 0.3, envMapIntensity: 1.2 }),
+    // chorro de las fuentes: agua clara y algo transparente
+    jet: std({ color: '#d8edf3', roughness: 0.1, transparent: true, opacity: 0.6, emissive: new THREE.Color('#29434d') }),
     paint: std({ vertexColors: true, roughness: 0.7 }),
     // asientos de estadio: algo de brillo propio para que no se vean negros bajo la cubierta
     // superficies a la sombra de grandes cubiertas (sin luz directa se verían negras)
@@ -126,6 +128,18 @@ export function box(w, h, d, uvScale = 2.5) {
     uv.setXY(i, uv.getX(i) * su / uvScale, uv.getY(i) * sv / uvScale);
   }
   return g;
+}
+
+// Reescala las UV de una pieza de revolución (cilindro, cono, torno) para que la textura vaya a escala real:
+// su = vueltas de textura alrededor (perímetro / tamaño de la losa), sv = a lo largo (altura / tamaño)
+export function uvFit(g, su, sv) {
+  const uv = g.attributes.uv;
+  for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * su, uv.getY(i) * sv);
+  return g;
+}
+// Cilindro con la textura a escala real (2,5 m por losa, como box)
+export function cyl(rt, rb, h, seg = 8, open = false, uvScale = 2.5, t0 = 0, tl = Math.PI * 2) {
+  return uvFit(new THREE.CylinderGeometry(rt, rb, h, seg, 1, open, t0, tl), Math.max(rt, rb) * tl / uvScale, h / uvScale);
 }
 
 export function colored(g, color) {
@@ -232,7 +246,7 @@ export class Builder {
       merged.computeBoundingSphere(); merged.computeBoundingBox();
       compact(merged, tier === 0);
       const m = new THREE.Mesh(merged, this.mats[mat]);
-      m.castShadow = shadows && tier === 0 && !['glass', 'lamp'].includes(mat);
+      m.castShadow = shadows && tier === 0 && !['glass', 'lamp', 'jet'].includes(mat);
       if (tier) DETAIL.push({ m, tier, c: merged.boundingSphere.center.clone(), r: merged.boundingSphere.radius });
       m.receiveShadow = true;
       m.matrixAutoUpdate = false; m.name = key;

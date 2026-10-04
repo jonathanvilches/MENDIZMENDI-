@@ -63,24 +63,36 @@ function masonry(size, opt) {
   const g = col.getContext('2d'), h = hc.getContext('2d');
   g.fillStyle = opt.mortar; g.fillRect(0, 0, size, size);
   h.fillStyle = '#202020'; h.fillRect(0, 0, size, size);
-  const rows = opt.rows;
-  const rh = size / rows;
-  for (let r = 0; r < rows; r++) {
+  // hiladas de alturas distintas (como en un muro de verdad), que suman justo el lado para que se enlose
+  const hs = []; for (let r = 0; r < opt.rows; r++) hs.push(0.7 + rnd() * 0.6);
+  const hsum = hs.reduce((a, b) => a + b, 0);
+  let y0 = 0;
+  for (let r = 0; r < opt.rows; r++) {
+    const rh = hs[r] / hsum * size;
     let x = rnd() * 20;
     while (x < size + 10) {
       const w = rh * (1.1 + rnd() * 1.4);
-      const y = r * rh + rh / 2 + (rnd() - 0.5) * rh * 0.15;
+      const y = y0 + rh / 2 + (rnd() - 0.5) * rh * 0.12;
       const hue = opt.hue + (rnd() - 0.5) * opt.hueVar, sat = opt.sat + (rnd() - 0.5) * 10, lig = opt.light + (rnd() - 0.5) * opt.lightVar;
       const cx = x + w / 2, rx = w / 2 - 1.5 - rnd() * 1.5, ry = rh / 2 - 1.5 - rnd() * 1.5;
+      // motas de cada piedra (grano más claro y más oscuro) y, a veces, liquen
+      const dots = []; for (let i = 0; i < 6; i++) dots.push([(rnd() - 0.5) * rx * 1.5, (rnd() - 0.5) * ry * 1.4, 0.6 + rnd() * 1.6, rnd() < 0.5]);
+      const lichen = rnd() < 0.12 ? [(rnd() - 0.5) * rx, (rnd() - 0.5) * ry, 2 + rnd() * rx * 0.4] : null;
       wrapDraw(size, cx, y, w, (X, Y) => {
         g.fillStyle = hsl(hue, sat, lig);
         roundedBlob(g, X, Y, rx, ry, rnd, 0.35);
+        // canto inferior en sombra y superior más claro: la piedra sobresale de la junta
+        g.fillStyle = 'rgba(0,0,0,.13)'; g.fillRect(X - rx + 2, Y + ry - 2.2, rx * 2 - 4, 2.2);
+        g.fillStyle = 'rgba(255,250,240,.10)'; g.fillRect(X - rx + 2, Y - ry, rx * 2 - 4, 1.6);
+        for (const [dx, dy, r, light] of dots) { g.fillStyle = light ? 'rgba(255,250,240,.12)' : 'rgba(30,25,20,.14)'; g.beginPath(); g.arc(X + dx, Y + dy, r, 0, 7); g.fill(); }
+        if (lichen) { g.fillStyle = 'rgba(150,160,95,.22)'; g.beginPath(); g.ellipse(X + lichen[0], Y + lichen[1], lichen[2], lichen[2] * 0.7, 0, 0, 7); g.fill(); }
         const grd = h.createRadialGradient(X, Y - ry * 0.2, 1, X, Y, Math.max(rx, ry));
         grd.addColorStop(0, '#f0f0f0'); grd.addColorStop(0.7, '#b8b8b8'); grd.addColorStop(1, '#505050');
         h.fillStyle = grd; roundedBlob(h, X, Y, rx, ry, rnd, 0.35);
       });
       x += w;
     }
+    y0 += rh;
   }
   grain(g, size, 0.22, rnd, 0.8);
   return { map: toTex(col), normalMap: toTex(normalFromHeight(hc, 3.5), false) };
@@ -108,10 +120,28 @@ function plaster(size, base, seed) {
     const x = rnd() * size, y = rnd() * size, r = 8 + rnd() * 30;
     wrapDraw(size, x, y, r, (X, Y) => { g.fillStyle = `rgba(120,105,85,${0.03 + rnd() * 0.05})`; g.beginPath(); g.ellipse(X, Y, r, r * 0.7, rnd() * 3, 0, 7); g.fill(); });
   }
+  // pasadas de llana (bandas suaves) y alguna grieta fina
+  for (let i = 0; i < 26; i++) {
+    const x = rnd() * size, y = rnd() * size, w = 30 + rnd() * 60, a = (rnd() - 0.5) * 0.5, l = rnd() < 0.5;
+    wrapDraw(size, x, y, w, (X, Y) => { g.save(); g.translate(X, Y); g.rotate(a); g.fillStyle = l ? 'rgba(255,252,245,.05)' : 'rgba(90,80,65,.04)'; g.beginPath(); g.ellipse(0, 0, w, w * 0.22, 0, 0, 7); g.fill(); g.restore(); });
+  }
+  const cracks = [];
+  for (let i = 0; i < 4; i++) {
+    let x = rnd() * size, y = rnd() * size, a = Math.PI / 2 + (rnd() - 0.5);
+    const pts = [[x, y]];
+    for (let k = 0; k < 9; k++) { a += (rnd() - 0.5) * 0.9; x += Math.cos(a) * size / 60; y += Math.sin(a) * size / 60; pts.push([x, y]); }
+    cracks.push(pts);
+  }
+  const crack = (cg, cs, lw) => { for (const pts of cracks) wrapDraw(size, pts[0][0], pts[0][1], size / 6, (X, Y) => {
+    const ox = X - pts[0][0], oy = Y - pts[0][1];
+    cg.strokeStyle = cs; cg.lineWidth = lw; cg.beginPath(); pts.forEach(([px, py], j) => j ? cg.lineTo(px + ox, py + oy) : cg.moveTo(px + ox, py + oy)); cg.stroke();
+  }); };
+  crack(g, 'rgba(70,60,50,.28)', 0.7);
   grain(g, size, 0.07, rnd, 1.5);
   const img = h.getImageData(0, 0, size, size), d = img.data;
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) { const v = 128 + noise2(x / 4, y / 4) * 30 + noise2(x / 1.5, y / 1.5) * 18; const k = (y * size + x) * 4; d[k] = d[k + 1] = d[k + 2] = v; }
   h.putImageData(img, 0, 0);
+  crack(h, '#505050', 1);
   return { map: toTex(col), normalMap: toTex(normalFromHeight(hc, 1.2), false) };
 }
 
@@ -144,6 +174,12 @@ function roofTiles(size, opt) {
         h.rect(X - cw / 2 + 1, top, cw - 2, rh - 1); h.fill();
       });
     }
+  }
+  // líquenes (amarillo anaranjado en la teja, gris verdoso en la losa) y alguna pieza más oscura cambiada
+  for (let i = 0; i < 70; i++) {
+    const x = rnd() * size, y = rnd() * size, r = 1 + rnd() * size / 90;
+    const c = opt.round ? `rgba(${200 + rnd() * 40},${150 + rnd() * 40},60,${0.18 + rnd() * 0.2})` : `rgba(150,165,140,${0.12 + rnd() * 0.16})`;
+    wrapDraw(size, x, y, r, (X, Y) => { g.fillStyle = c; g.beginPath(); g.ellipse(X, Y, r, r * 0.8, rnd() * 3, 0, 7); g.fill(); });
   }
   grain(g, size, 0.15, rnd, 0.7);
   return { map: toTex(col), normalMap: toTex(normalFromHeight(hc, 4), false) };

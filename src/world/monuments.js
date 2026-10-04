@@ -1,6 +1,6 @@
 // Monumentos genéricos: iglesias por estilo, castillos, murallas, puentes, cuevas, hórreos, molinos...
 import * as THREE from 'three';
-import { box, gable, archRing, archPanel, colored, M, MM } from './builder.js';
+import { box, gable, archRing, archPanel, colored, M, MM, uvFit, cyl } from './builder.js';
 import { roofHip } from './houses.js';
 import { terrainHeight, deckY, addPlatform } from './heightfield.js';
 import { addBox, addCircle } from './colliders.js';
@@ -21,15 +21,43 @@ function portal(B, F, r0, n, mat = 'ashlar', h = 3.4) {
     for (const s of [-1, 1]) B.add(mat, box(0.34, h, 0.6), MM(F, M(s * (r + 0.17), h / 2, 0.25 + k * 0.12)));
   }
   B.add('woodDark', archPanel(r0 * 2, h + r0, 0.12), MM(F, M(0, 0, 0.05)));
+  // hojas claveteadas: herrajes largos y filas de clavos de forja
+  for (const y of [0.7, h - 0.5]) for (const s of [-1, 1]) B.add('iron', box(r0 * 0.85, 0.09, 0.03), MM(F, M(s * r0 * 0.5, y, 0.125)));
+  for (let y = 0.45; y < h; y += 0.5) for (let i = -2; i <= 2; i++) if (i) B.add('iron', box(0.06, 0.06, 0.04), MM(F, M(i * r0 * 0.36, y, 0.13)));
+  B.add('iron', box(0.03, h + r0 * 0.6, 0.03), MM(F, M(0, (h + r0 * 0.6) / 2, 0.125)));
 }
-function spireTower(B, T, tw, th, roof, mat, style) {
+// Campana de bronce con su yugo, medio metida en el muro del campanario: lo que asoma se ve dentro del hueco oscuro
+// (k: tamaño, y: altura de la boca, z: cara del muro)
+const BELL = [[0.36, 0], [0.34, 0.05], [0.24, 0.25], [0.2, 0.5], [0.12, 0.6], [0.001, 0.62]];
+export function belfryBell(B, R, k, y, z) {
+  B.add('paint', colored(new THREE.LatheGeometry(BELL.map(([r, h]) => new THREE.Vector2(r * k, h * k)), 12), '#7a5b2e'), MM(R, M(0, y, z + 0.02)));
+  B.add('woodDark', box(k, 0.16, 0.2), MM(R, M(0, y + k * 0.62 + 0.08, z + 0.02)));
+}
+// Reloj de torre: esfera blanca con marco de piedra, marcas de las horas y agujas (C: centro sobre la cara del muro)
+export function towerClock(B, C, cr) {
+  B.add('ashlar', new THREE.TorusGeometry(cr, 0.09, 6, 24), MM(C, M(0, 0, 0.09)));
+  B.add('paint', colored(new THREE.CircleGeometry(cr, 24), '#ece6d6'), MM(C, M(0, 0, 0.08)));
+  for (let k = 0; k < 12; k++) { const a = k * Math.PI / 6; B.add('iron', box(0.05, k % 3 ? 0.12 : 0.2, 0.02), MM(C, M(Math.sin(a) * cr * 0.82, Math.cos(a) * cr * 0.82, 0.1, 0, 0, -a))); }
+  B.add('iron', box(0.06, cr * 0.5, 0.02), MM(C, M(Math.sin(1.1) * cr * 0.22, Math.cos(1.1) * cr * 0.22, 0.12, 0, 0, -1.1)));
+  B.add('iron', box(0.045, cr * 0.75, 0.02), MM(C, M(Math.sin(-0.5) * cr * 0.34, Math.cos(-0.5) * cr * 0.34, 0.13, 0, 0, 0.5)));
+}
+// Cornisa bajo el alero sobre canecillos (ménsulas de piedra), como en las iglesias románicas y góticas de Navarra
+export function eaveCorbels(B, T, W, L, H) {
+  for (const s of [-1, 1]) {
+    B.add('ashlar', box(0.5, 0.26, L + 0.2, 1.2), MM(T, M(s * (W / 2 + 0.12), H - 0.05, 0)));
+    for (let zc = -L / 2 + 0.7; zc < L / 2 - 0.4; zc += 1.25) B.add('ashlar', box(0.32, 0.36, 0.26, 1), MM(T, M(s * (W / 2 + 0.16), H - 0.38, zc)));
+  }
+}
+function spireTower(B, T, tw, th, roof, mat, style, clock = true) {
   B.add(mat, box(tw, th + 2, tw, 2.2), MM(T, M(0, (th + 2) / 2 - 2, 0)));
   for (const y of [th * 0.35, th * 0.68]) B.add('ashlar', box(tw + 0.3, 0.3, tw + 0.3), MM(T, M(0, y, 0)));
   for (let s = 0; s < 4; s++) {
     const R = MM(T, M(0, 0, 0, s * Math.PI / 2));
     B.add('glass', archPanel(tw * 0.25, tw * 0.5, 0.1), MM(R, M(0, th - tw * 0.8, tw / 2 + 0.01)));
     B.add('ashlar', archRing(tw * 0.125, tw * 0.18, 0.3, 8), MM(R, M(0, th - tw * 0.8 + tw * 0.375, tw / 2 + 0.05)));
+    if (style !== 'fortress') belfryBell(B, R, tw * 0.25, th - tw * 0.8 + tw * 0.13, tw / 2);
   }
+  if (clock && style !== 'fortress') towerClock(B, MM(T, M(0, th * 0.52, tw / 2)), tw * 0.2);
   B.add('ashlar', box(tw + 0.5, 0.5, tw + 0.5), MM(T, M(0, th + 0.25, 0)));
   if (style === 'fortress') { merlons(B, T, tw + 0.4, tw + 0.4, th + 0.5); return th + 1.2; }
   if (style === 'baroque') {
@@ -40,7 +68,7 @@ function spireTower(B, T, tw, th, roof, mat, style) {
     B.add('iron', box(0.08, 1.4, 0.08), MM(T, M(0, th + 2 + tw * 1.3, 0)));
     return th + tw * 1.4;
   }
-  const sp = new THREE.ConeGeometry(tw * 0.74, style === 'romanesque' ? tw * 0.7 : tw * 1.45, 4, 1); sp.rotateY(Math.PI / 4);
+  const sp = uvFit(new THREE.ConeGeometry(tw * 0.74, style === 'romanesque' ? tw * 0.7 : tw * 1.45, 4, 1), tw * 4 / 2, tw * 1.6 / 2); sp.rotateY(Math.PI / 4);
   const sh = style === 'romanesque' ? tw * 0.7 : tw * 1.45;
   B.add(roof, sp, MM(T, M(0, th + 0.5 + sh / 2, 0)));
   B.add('iron', box(0.08, 1.6, 0.08), MM(T, M(0, th + 0.5 + sh + 0.7, 0)));
@@ -79,8 +107,9 @@ export function church(B, x, z, ry, style, fam) {
   B.add(mat, gable(W, rise, 0.6), MM(T, M(0, Hh, -L / 2 + 0.3)));
   // ábside
   const apseSeg = style === 'romanesque' ? 14 : 7;
-  B.add(mat, new THREE.CylinderGeometry(W / 2 - 0.3, W / 2 - 0.3, Hh - 1, apseSeg, 1, false, Math.PI / 2, Math.PI), MM(T, M(0, (Hh - 1) / 2, -L / 2)));
-  B.add(roof, new THREE.ConeGeometry(W / 2 + 0.2, 3.6, apseSeg, 1, false, Math.PI / 2, Math.PI), MM(T, M(0, Hh - 1 + 1.8, -L / 2)));
+  B.add(mat, cyl(W / 2 - 0.3, W / 2 - 0.3, Hh - 1, apseSeg, false, 2.2, Math.PI / 2, Math.PI), MM(T, M(0, (Hh - 1) / 2, -L / 2)));
+  B.add(roof, uvFit(new THREE.ConeGeometry(W / 2 + 0.2, 3.6, apseSeg, 1, false, Math.PI / 2, Math.PI), W * 0.8 / 2, 2), MM(T, M(0, Hh - 1 + 1.8, -L / 2)));
+  eaveCorbels(B, T, W, L, Hh);
   const F = MM(T, M(0, 0, L / 2));
   if (style === 'cathedral') {
     // fachada con pórtico de columnas y dos torres
@@ -88,7 +117,7 @@ export function church(B, x, z, ry, style, fam) {
     B.add('ashlar', box(W, 1.2, 3.6), MM(F, M(0, 9.6, 2)));
     B.add('ashlar', gable(W, 3.4, 3.6), MM(F, M(0, 10.2, 2)));
     portal(B, F, 1.8, 3, mat, 4.4);
-    for (const s of [-1, 1]) spireTower(B, MM(F, M(s * (W / 2 - 3), 0, -2)), 6, Hh + 14, 'slate', mat, 'baroque');
+    for (const s of [-1, 1]) spireTower(B, MM(F, M(s * (W / 2 - 3), 0, -2)), 6, Hh + 14, 'slate', mat, 'baroque', s < 0);
     // cimborrio
     B.add(mat, new THREE.CylinderGeometry(5, 5, 6, 8), MM(T, M(0, Hh + 3, -L * 0.2)));
     B.add('slate', new THREE.ConeGeometry(5.6, 6, 8), MM(T, M(0, Hh + 9, -L * 0.2)));
@@ -96,7 +125,15 @@ export function church(B, x, z, ry, style, fam) {
     for (let i = 0; i < 8; i++) B.add('ashlar', new THREE.CylinderGeometry(0.22, 0.22, 3, 8), MM(T, M(W / 2 + 3 + (i % 4) * 3.5, 1.5, -L / 2 + 4 + Math.floor(i / 4) * 12)));
   } else {
     portal(B, F, style === 'romanesque' ? 1.2 : 1.5, style === 'romanesque' ? 4 : 3, mat, 3.4);
-    if (style === 'gothic') { B.add('ashlar', new THREE.TorusGeometry(1.25, 0.25, 6, 20), MM(F, M(0, Hh - 4.6, 0.15))); B.add('glass', new THREE.CircleGeometry(1.2, 20), MM(F, M(0, Hh - 4.6, 0.06))); }
+    if (style === 'gothic') {
+      // rosetón con tracería: anillo, óculo central y ocho radios de piedra sobre la vidriera
+      const RF = MM(F, M(0, Hh - 4.6, 0));
+      B.add('ashlar', new THREE.TorusGeometry(1.25, 0.25, 6, 20), MM(RF, M(0, 0, 0.15)));
+      B.add('glass', new THREE.CircleGeometry(1.2, 20), MM(RF, M(0, 0, 0.06)));
+      B.add('ashlar', new THREE.TorusGeometry(0.34, 0.08, 5, 14), MM(RF, M(0, 0, 0.12)));
+      for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; B.add('ashlar', box(0.09, 0.82, 0.1), MM(RF, M(Math.sin(a) * 0.76, Math.cos(a) * 0.76, 0.12, 0, 0, -a))); }
+      for (let k = 0; k < 8; k++) { const a = (k + 0.5) * Math.PI / 4; B.add('ashlar', new THREE.TorusGeometry(0.2, 0.04, 4, 10), MM(RF, M(Math.sin(a) * 0.82, Math.cos(a) * 0.82, 0.11))); }
+    }
     if (style === 'baroque') { for (const s of [-1, 1]) B.add(mat, box(0.7, Hh, 0.5), MM(F, M(s * 3.2, Hh / 2, 0.2))); B.add(mat, box(W, 0.6, 0.6), MM(F, M(0, Hh * 0.62, 0.2))); }
     // torre en un lateral de la cabecera
     const tw = style === 'fortress' ? 7.5 : style === 'romanesque' ? 5 : 6.4;

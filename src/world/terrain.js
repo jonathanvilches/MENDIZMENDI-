@@ -58,8 +58,11 @@ function vertexColor(i, j, out) {
   if (r.edge < -0.2) out.lerp(PAL.mud, 0.6);
   const rock = SURF.rock[k] / 255;
   if (rock > 0) out.lerp(n2 > 0.5 ? PAL.rock : PAL.rockDark, rock);
-  const snow = smoothstep(128, 150, h + n * 14);
+  // nieve en lo alto solo en el Pirineo (en la Ribera, «nieve» es el yeso claro de las cimas); en los montes atlánticos y
+  // de la Navarra media las cumbres son de pasto y helecho
+  const snow = TONE === 'lush' || TONE === 'dry' ? 0 : smoothstep(128, 150, h + n * 14);
   if (snow > 0) out.lerp(PAL.snow, snow);
+  else if (TONE === 'lush') out.lerp(PAL.grassDry, smoothstep(128, 150, h + n * 14) * 0.5 * (1 - rock));
   const s = SURF.street[k] / 255, d = SURF.dirt[k] / 255;
   if (s > 0) out.lerp(PAL.street, s);
   if (d > 0) out.lerp(PAL.dirt, d);
@@ -130,6 +133,7 @@ export function makeTerrainMaterial({ outer = false } = {}) {
     sh.uniforms.tCobble = { value: TEX.cobble.map };
     sh.uniforms.tCobbleN = { value: TEX.cobble.normalMap };
     sh.uniforms.uRock = { value: rockCol };
+    sh.uniforms.uSnowY = { value: TONE === 'alpine' ? 212 : 1e5 };   // cota de la nieve perpetua (solo en el Pirineo)
     sh.uniforms.uRockSlope = { value: new THREE.Vector2(...(({ alpine: [0.3, 0.44], dry: [0.36, 0.5], arid: [0.33, 0.47] })[TONE] || [0.46, 0.62])) };
     sh.defines = sh.defines || {};
     if (outer) sh.defines.OUTER = 1;
@@ -138,7 +142,7 @@ export function makeTerrainMaterial({ outer = false } = {}) {
       .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvSurf = aSurf;\nvWP = (modelMatrix * vec4(transformed,1.0)).xyz;\nvNW = normalize(mat3(modelMatrix) * objectNormal);');
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>
-uniform sampler2D tDetail; uniform sampler2D tGrass; uniform sampler2D tRock; uniform sampler2D tRockN; uniform sampler2D tCobble; uniform sampler2D tCobbleN; uniform vec3 uRock; uniform vec2 uRockSlope;
+uniform sampler2D tDetail; uniform sampler2D tGrass; uniform sampler2D tRock; uniform sampler2D tRockN; uniform sampler2D tCobble; uniform sampler2D tCobbleN; uniform vec3 uRock; uniform vec2 uRockSlope; uniform float uSnowY;
 varying vec4 vSurf; varying vec3 vWP; varying vec3 vNW;
 vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.x + texture2D(tRock, p.xz / s) * bw.y + texture2D(tRock, p.xy / s) * bw.z; }
 #ifdef OUTER
@@ -215,7 +219,7 @@ vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.
   float mead = (1.0 - isF) * (1.0 - rockM);
   col = mix(col, col * mix(vec3(0.86, 0.95, 0.82), vec3(1.12, 1.05, 0.82), big) * (0.88 + 0.24 * d1.g), mead * 0.8);
   // nieve dibujada por píxel: borde irregular, solo donde se sostiene, con sombra azulada en las caras en sombra
-  float snowA = smoothstep(212.0, 246.0, vWP.y + (big - 0.5) * 70.0 + (d1.r - 0.5) * 26.0) * (1.0 - smoothstep(0.3, 0.5, slope + (d2.g - 0.5) * 0.12));
+  float snowA = smoothstep(uSnowY, uSnowY + 34.0, vWP.y + (big - 0.5) * 70.0 + (d1.r - 0.5) * 26.0) * (1.0 - smoothstep(0.3, 0.5, slope + (d2.g - 0.5) * 0.12));
   vec3 snowC = mix(vec3(0.78, 0.84, 0.95), vec3(0.97, 0.98, 1.0), clamp(nw.y * 1.2 - 0.1 + (rk2.r - 0.5) * 0.3, 0.0, 1.0));
   col = mix(col, snowC, snowA);
 #endif
@@ -338,11 +342,15 @@ export class Terrain {
       const forestBelt = smoothstep(20, 60, h) * (1 - smoothstep(150, 185, h + n1 * 25)) * smoothstep(0.42, 0.62, n1 + (1 - sl) * 0.15);
       c.lerp(n2 > 0.5 ? forestC : forestD, forestBelt * 0.92);
       c.lerp(new THREE.Color('#8a9150'), smoothstep(150, 190, h + n1 * 30) * (1 - forestBelt) * 0.6);
-      const rockAmt = Math.max(smoothstep(0.28, 0.46, sl + (n2 - 0.5) * 0.12), smoothstep(175, 225, h + n1 * 35));
+      // en los montes atlánticos (Bidasoa, Baztan) las cimas son lomas de pasto y helecho, no roca pelada
+      const lush = TONE === 'lush';
+      if (lush) c.lerp(n2 > 0.5 ? new THREE.Color('#7f8248') : new THREE.Color('#6d7a3e'), smoothstep(165, 215, h + n1 * 30) * (1 - forestBelt) * 0.8);
+      const rockAmt = Math.max(smoothstep(0.28, 0.46, sl + (n2 - 0.5) * 0.12), lush ? 0 : smoothstep(175, 225, h + n1 * 35));
       c.lerp(n2 > 0.55 ? rockC : rockD, rockAmt);
       c.lerp(screeC, smoothstep(0.2, 0.3, sl) * (1 - smoothstep(0.3, 0.4, sl)) * smoothstep(140, 190, h) * 0.5);
       // nieve en lo alto, sólo donde se sostiene (repisas y canales poco inclinados)
-      c.lerp(snowC, smoothstep(215, 250, h + n1 * 40) * (1 - smoothstep(0.32, 0.5, sl)));
+      // (solo en el Pirineo: en el resto de Navarra los montes no guardan nieve fuera del invierno)
+      if (TONE === 'alpine') c.lerp(snowC, smoothstep(215, 250, h + n1 * 40) * (1 - smoothstep(0.32, 0.5, sl)));
       col.push(c.r, c.g, c.b);
     }
     g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));

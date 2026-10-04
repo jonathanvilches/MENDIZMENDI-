@@ -560,12 +560,13 @@ export class Nature {
     }
     const matB = snowable(windMaterial({ map: TEX.foliage, alphaTest: 0.45, side: THREE.DoubleSide }), 0.65, 0.2, 0.8);
     const matF = snowable(windMaterial({ side: THREE.DoubleSide }), 0.5, 0.25, 0.8);
+    // por trozos del mapa y solo de cerca: una sola malla para todo el valle se dibujaba entera (también lo que queda
+    // detrás de la cámara o a cientos de metros, donde una mata mide menos de un píxel). Sin sombra: apenas se ve y
+    // duplicaba el coste
+    const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), sc = new THREE.Vector3();
     for (const [geo, list, mat] of [[g, bushSpots, matB], [fern, fernSpots.slice(0, 5000), matF]]) {
-      const im = new THREE.InstancedMesh(geo, mat, list.length);
-      const m4 = new THREE.Matrix4();
-      list.forEach((s, i) => { m4.compose(new THREE.Vector3(s.x, terrainHeight(s.x, s.z) - 0.1, s.z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, rnd() * 6, 0)), new THREE.Vector3(s.s, s.s, s.s)); im.setMatrixAt(i, m4); });
-      im.castShadow = false; im.receiveShadow = true; im.name = 'matas';   // matas y helechos: su sombra apenas se ve y duplicaba el coste
-      this.group.add(im);
+      for (const s of list) s.r = rnd() * 6;
+      this.addChunked(list, geo, null, mat, (s) => m4.compose(v.set(s.x, terrainHeight(s.x, s.z) - 0.1, s.z), q.setFromEuler(e.set(0, s.r, 0)), sc.setScalar(s.s)), { name: 'matas' });
     }
   }
   update(camPos, focus, elapsed, player) {
