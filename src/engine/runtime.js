@@ -14,7 +14,7 @@ import { makeMaterials, resetDetail, updateDetail, setBuilderQuality } from '../
 import { resetNpcCache } from '../actors/npcGlb.js';
 import { buildVillage, VILLAGE, resetVillage } from '../world/village.js';
 import { buildLandmarks, LANDMARKS } from '../world/landmarks.js';
-import { buildTown, TOWN } from '../world/townBuilder.js';
+import { buildTown, preloadTown, TOWN } from '../world/townBuilder.js';
 import { Nature } from '../world/nature.js';
 import { setLevel, PLACES, iratiMask } from '../world/layout.js';
 import * as SALAZAR from '../levels/salazar.js';
@@ -113,8 +113,9 @@ export class Runtime {
     this.terrain = new Terrain(scene, q);
     this.sky = new SkySystem(scene, this.renderer, q);
     this.weather?.dispose(); this.weather = new Weather(scene, pickWeather(def), q);
-    this.water = new Water(scene);
+    this.water = new Water(scene, q);
     onProgress(0.5, `Construyendo ${def.name}…`); await frame();
+    if (!salazar) await preloadTown(def);
     this.mats = makeMaterials();
     if (salazar) { buildVillage(scene, this.mats); buildLandmarks(scene, this.mats); }
     else buildTown(scene, this.mats, def);

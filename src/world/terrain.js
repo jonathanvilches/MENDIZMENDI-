@@ -121,7 +121,7 @@ function buildChunk(ci, cj, step) {
   return g;
 }
 
-export function makeTerrainMaterial({ outer = false } = {}) {
+export function makeTerrainMaterial({ outer = false, quality = 'high' } = {}) {
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0 });
   queueMicrotask(() => snowable(m, 0.85));   // nieve en el suelo (después del sombreador del terreno)
   const rockCol = (PAL.rock || C('#8b877c')).clone();
@@ -137,6 +137,7 @@ export function makeTerrainMaterial({ outer = false } = {}) {
     sh.uniforms.uRockSlope = { value: new THREE.Vector2(...(({ alpine: [0.3, 0.44], dry: [0.36, 0.5], arid: [0.33, 0.47] })[TONE] || [0.46, 0.62])) };
     sh.defines = sh.defines || {};
     if (outer) sh.defines.OUTER = 1;
+    if (quality === 'low') sh.defines.LOWQ = 1;   // móvil: menos lecturas de textura por píxel
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', '#include <common>\nattribute vec4 aSurf;\nvarying vec4 vSurf;\nvarying vec3 vWP;\nvarying vec3 vNW;')
       .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvSurf = aSurf;\nvWP = (modelMatrix * vec4(transformed,1.0)).xyz;\nvNW = normalize(mat3(modelMatrix) * objectNormal);');
@@ -166,9 +167,16 @@ vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.
   // hierba: briznas a dos escalas, manchas de color, tréboles y florecillas
   float grassy = smoothstep(0.015, 0.07, base.g - max(base.r, base.b)) * (1.0 - vSurf.z);
   vec4 g1 = texture2D(tGrass, vWP.xz / 1.3);
+#ifdef LOWQ
+  // móvil: la escala más fina de briznas y las matas salen de lecturas que ya están hechas (dos lecturas menos por píxel)
+  vec4 g2 = vec4(g1.rg, 0.0, 1.0);
+  float blades = g1.r;
+  float clump = d2.r;
+#else
   vec4 g2 = texture2D(tGrass, vWP.xz / 0.47 + 0.37);
   float blades = mix(g1.r, g2.r, 0.45);
   float clump = texture2D(tDetail, vWP.xz / 4.1 + 0.3).r;        // matas a escala de un par de metros
+#endif
   vec3 gc = base * (0.56 + 0.62 * blades) * (0.82 + 0.3 * d1.r) * (0.86 + 0.26 * d2.g) * (0.84 + 0.3 * big);
   gc = mix(vec3(dot(gc, vec3(0.3, 0.59, 0.11))), gc, 0.9) * 0.93;   // verde natural, no lima
   gc = mix(gc, gc * vec3(1.1, 1.0, 0.7), smoothstep(0.56, 0.82, huge) * 0.55);   // rodales secos, amarillentos
@@ -182,29 +190,39 @@ vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.
   gc = mix(gc, fc * (0.75 + 0.25 * g1.b), fl * 0.9);
   // bajo la hierba en 3D el suelo es la sombra de las matas: verde oliva oscuro como el pie de las briznas
   vec3 col = mix(soft, gc, grassy);
-  // roca en las laderas (proyección triplanar: no se estira en los cortados)
-  vec3 bw = pow(abs(nw), vec3(4.0)); bw /= (bw.x + bw.y + bw.z);
-  vec4 rk = triRock(vWP, bw, ROCK_S1);
-  vec4 rk2 = triRock(vWP, bw, ROCK_S2);
+  // roca en las laderas (proyección triplanar: no se estira en los cortados). Solo donde la hay: en los prados y las
+  // calles se salta entera (eran seis lecturas de textura por píxel aunque no se viera roca)
   float rockM = max(vSurf.z, smoothstep(uRockSlope.x, uRockSlope.y, slope + (d1.g - 0.5) * 0.18)) * (1.0 - vSurf.x);
-  // tono de la roca: gris frío o cálido por zonas, estratos por altura y regueros oscuros en las paredes
-  vec3 rbase = uRock * mix(vec3(0.84, 0.88, 0.95), vec3(1.0, 0.95, 0.84), smoothstep(0.4, 0.75, huge)) * 0.86;
-  float strata = sin(vWP.y * 0.85 + big * 7.0) * 0.5 + 0.5, strata2 = sin(vWP.y * 2.6 + d1.r * 5.0) * 0.5 + 0.5;
-  float streak = texture2D(tDetail, vec2(vWP.x + vWP.z, vWP.y * 0.1) / 7.0).g;
-  vec3 rc = rbase * (0.2 + 1.05 * rk.r) * (0.7 + 0.5 * rk2.r) * (0.84 + 0.16 * strata) * (0.92 + 0.08 * strata2) * (0.88 + 0.24 * big);
-  rc *= mix(1.0, 0.7, smoothstep(0.55, 0.82, streak) * smoothstep(0.3, 0.55, slope));
-  rc *= 0.42 + 0.58 * rk.b;                                           // juntas y grietas en sombra
-  rc = mix(rc, vec3(0.6, 0.6, 0.38) * (0.78 + 0.3 * rk2.r), smoothstep(0.5, 0.9, rk.g) * 0.38);   // líquenes gris verdosos
-  rc = mix(rc, vec3(0.78, 0.5, 0.2), smoothstep(0.86, 0.98, rk2.g) * 0.45);                       // manchas de liquen naranja
-  // de lejos la roca no debe verse moteada: el detalle fino se funde en tonos amplios con estratos y canales
-  float farR = smoothstep(55.0, 200.0, length(vWP - cameraPosition));
-  vec3 rfar = rbase * (0.62 + 0.3 * big + 0.12 * huge) * (0.8 + 0.2 * strata) * mix(1.0, 0.72, smoothstep(0.5, 0.8, streak) * smoothstep(0.3, 0.55, slope));
-  rc = mix(rc, rfar, farR * 0.7);
-  float ledge = smoothstep(0.6, 0.86, nw.y) * smoothstep(0.35, 0.7, d1.g);
-  rc = mix(rc, vec3(0.2, 0.29, 0.1) * (0.7 + 0.5 * blades), ledge * 0.55);                          // musgo y hierba en las repisas
   float scree = smoothstep(uRockSlope.x - 0.13, uRockSlope.x, slope) * (1.0 - rockM) * (1.0 - vSurf.x);
   col = mix(col, uRock * (0.62 + 0.45 * d2.b + 0.3 * d2.g), scree * 0.45);
-  col = mix(col, rc, rockM);
+  vec4 rk2 = vec4(0.5);
+  if (rockM > 0.002) {
+    vec3 bw = pow(abs(nw), vec3(4.0)); bw /= (bw.x + bw.y + bw.z);
+#ifdef LOWQ
+    // móvil: una sola proyección (la de la cara que más mira) y una escala
+    vec2 rq = bw.y > max(bw.x, bw.z) ? vWP.xz : bw.x > bw.z ? vWP.zy : vWP.xy;
+    vec4 rk = texture2D(tRock, rq / ROCK_S1); rk2 = rk.gbar;
+#else
+    vec4 rk = triRock(vWP, bw, ROCK_S1);
+    rk2 = triRock(vWP, bw, ROCK_S2);
+#endif
+    // tono de la roca: gris frío o cálido por zonas, estratos por altura y regueros oscuros en las paredes
+    vec3 rbase = uRock * mix(vec3(0.84, 0.88, 0.95), vec3(1.0, 0.95, 0.84), smoothstep(0.4, 0.75, huge)) * 0.86;
+    float strata = sin(vWP.y * 0.85 + big * 7.0) * 0.5 + 0.5, strata2 = sin(vWP.y * 2.6 + d1.r * 5.0) * 0.5 + 0.5;
+    float streak = texture2D(tDetail, vec2(vWP.x + vWP.z, vWP.y * 0.1) / 7.0).g;
+    vec3 rc = rbase * (0.2 + 1.05 * rk.r) * (0.7 + 0.5 * rk2.r) * (0.84 + 0.16 * strata) * (0.92 + 0.08 * strata2) * (0.88 + 0.24 * big);
+    rc *= mix(1.0, 0.7, smoothstep(0.55, 0.82, streak) * smoothstep(0.3, 0.55, slope));
+    rc *= 0.42 + 0.58 * rk.b;                                           // juntas y grietas en sombra
+    rc = mix(rc, vec3(0.6, 0.6, 0.38) * (0.78 + 0.3 * rk2.r), smoothstep(0.5, 0.9, rk.g) * 0.38);   // líquenes gris verdosos
+    rc = mix(rc, vec3(0.78, 0.5, 0.2), smoothstep(0.86, 0.98, rk2.g) * 0.45);                       // manchas de liquen naranja
+    // de lejos la roca no debe verse moteada: el detalle fino se funde en tonos amplios con estratos y canales
+    float farR = smoothstep(55.0, 200.0, length(vWP - cameraPosition));
+    vec3 rfar = rbase * (0.62 + 0.3 * big + 0.12 * huge) * (0.8 + 0.2 * strata) * mix(1.0, 0.72, smoothstep(0.5, 0.8, streak) * smoothstep(0.3, 0.55, slope));
+    rc = mix(rc, rfar, farR * 0.7);
+    float ledge = smoothstep(0.6, 0.86, nw.y) * smoothstep(0.35, 0.7, d1.g);
+    rc = mix(rc, vec3(0.2, 0.29, 0.1) * (0.7 + 0.5 * blades), ledge * 0.55);                          // musgo y hierba en las repisas
+    col = mix(col, rc, rockM);
+  }
 #ifdef OUTER
   // hondonadas y canales más oscuros (oclusión), crestas algo más claras
   { vec2 q = vWP.xz; float oh = texture2D(tDetail, q / 140.0).r + texture2D(tDetail, q / 41.0 + 0.2).g * 0.55; col *= 0.8 + 0.3 * smoothstep(0.35, 1.25, oh); }
@@ -214,7 +232,11 @@ vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.
   // bosque con copas: donde el color es de bosque (verde oscuro) se dibujan copas a dos escalas, con su sombra
   float lum = dot(base, vec3(0.3, 0.59, 0.11));
   float isF = max(fo, smoothstep(0.075, 0.04, lum) * step(base.r, base.g)) * (1.0 - rockM);
+#ifdef LOWQ
+  vec2 cc = texture2D(tDetail, vWP.xz / 6.5).rg; float c1 = cc.r, c2 = cc.g;
+#else
   float c1 = texture2D(tDetail, vWP.xz / 6.5).r, c2 = texture2D(tDetail, vWP.xz / 2.9 + 0.4).g;
+#endif
   float crowns = smoothstep(0.38, 0.72, c1 * 0.65 + c2 * 0.35);
   col = mix(col, col * mix(0.45, 1.45, crowns) * mix(vec3(0.9, 1.0, 0.85), vec3(1.08, 1.04, 0.86), smoothstep(0.55, 0.85, c2)), isF);
   // prados altos: manchas de pasto seco y de hierba fresca
@@ -228,35 +250,47 @@ vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.
   diffuseColor.rgb = col;
   // tierra y senderos
   // tierra: grano fino, piedrecitas y huellas de rodadas (sin remolinos)
-  float grit = texture2D(tGrass, vWP.xz / 0.35).r;
-  vec3 dirt = mix(vec3(0.5, 0.39, 0.27), vec3(0.6, 0.5, 0.36), big) * (0.82 + 0.28 * grit) * (0.9 + 0.16 * g1.r);
-  dirt = mix(dirt, dirt * vec3(0.78, 0.76, 0.74), smoothstep(0.5, 0.75, d1.r) * 0.5);          // manchas húmedas
-  float peb = texture2D(tDetail, vWP.xz / 6.0 + 0.5).b;                                          // guijarros de 2 a 8 cm
-  dirt *= 1.0 - smoothstep(0.15, 0.4, peb) * (1.0 - smoothstep(0.4, 0.6, peb)) * 0.3;           // su sombra alrededor
-  dirt = mix(dirt, vec3(0.63, 0.59, 0.53) * (0.78 + 0.34 * d2.r), smoothstep(0.5, 0.75, peb) * 0.7);
-  dirt = mix(dirt, dirt * 0.84, smoothstep(0.45, 0.7, g2.g) * 0.4);
+  // tierra y empedrado, solo donde los hay (en el prado no se leen sus texturas)
   float dm = smoothstep(0.1, 0.9, vSurf.y + (d1.g - 0.5) * 0.5 + (clump - 0.5) * 0.35);
-  diffuseColor.rgb = mix(diffuseColor.rgb, dirt, dm);
+  if (dm > 0.002) {
+#ifdef LOWQ
+    float grit = g1.r;
+#else
+    float grit = texture2D(tGrass, vWP.xz / 0.35).r;
+#endif
+    vec3 dirt = mix(vec3(0.5, 0.39, 0.27), vec3(0.6, 0.5, 0.36), big) * (0.82 + 0.28 * grit) * (0.9 + 0.16 * g1.r);
+    dirt = mix(dirt, dirt * vec3(0.78, 0.76, 0.74), smoothstep(0.5, 0.75, d1.r) * 0.5);          // manchas húmedas
+    float peb = texture2D(tDetail, vWP.xz / 6.0 + 0.5).b;                                          // guijarros de 2 a 8 cm
+    dirt *= 1.0 - smoothstep(0.15, 0.4, peb) * (1.0 - smoothstep(0.4, 0.6, peb)) * 0.3;           // su sombra alrededor
+    dirt = mix(dirt, vec3(0.63, 0.59, 0.53) * (0.78 + 0.34 * d2.r), smoothstep(0.5, 0.75, peb) * 0.7);
+    dirt = mix(dirt, dirt * 0.84, smoothstep(0.45, 0.7, g2.g) * 0.4);
+    diffuseColor.rgb = mix(diffuseColor.rgb, dirt, dm);
+  }
   // empedrado
-  vec3 cob = texture2D(tCobble, vWP.xz / 2.4).rgb * 1.05;
   float sm = smoothstep(0.15, 0.85, vSurf.x + (d1.g - 0.5) * 0.4);
-  diffuseColor.rgb = mix(diffuseColor.rgb, cob, sm);
+  if (sm > 0.002) { vec3 cob = texture2D(tCobble, vWP.xz / 2.4).rgb * 1.05; diffuseColor.rgb = mix(diffuseColor.rgb, cob, sm); }
 }`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
 {
   // montañas lejanas: lomos, canales y cárcavas dibujados con la luz (relieve de un campo de alturas a dos escalas);
   // así no se ven las facetas de la malla gruesa. En el valle jugable, solo de lejos y en las laderas
   vec2 p = vWP.xz; float e = 5.0;
+#ifdef LOWQ
+  #define OH(q) (texture2D(tDetail, (q) / 140.0).r + texture2D(tDetail, (q) / 41.0 + 0.2).g * 0.55)
+#else
   #define OH(q) (texture2D(tDetail, (q) / 140.0).r + texture2D(tDetail, (q) / 41.0 + 0.2).g * 0.55 + texture2D(tDetail, (q) / 13.0 + 0.6).r * 0.18)
-  float h0 = OH(p), hx = OH(p + vec2(e, 0.0)), hz = OH(p + vec2(0.0, e));
+#endif
   float dcam = length(vWP - cameraPosition);
   vec3 nw0 = normalize(vNW);
 #ifdef OUTER
   float fade = 1.0 - smoothstep(900.0, 2400.0, dcam) * 0.6;
+#elif defined(LOWQ)
+  float fade = 0.0;   // móvil: solo en las montañas lejanas
 #else
   float fade = smoothstep(90.0, 260.0, dcam) * smoothstep(0.12, 0.3, 1.0 - nw0.y) * 0.8;
 #endif
   if (fade > 0.01) {
+    float h0 = OH(p), hx = OH(p + vec2(e, 0.0)), hz = OH(p + vec2(0.0, e));
     vec3 wn = normalize(nw0 + vec3(-(hx - h0), 0.0, -(hz - h0)) / e * 26.0 * fade);
     normal = normalize(mix(normal, (viewMatrix * vec4(wn, 0.0)).xyz, fade > 0.5 ? 1.0 : fade * 2.0));
   }
@@ -266,6 +300,9 @@ vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.
   vec3 nw = normalize(vNW);
   float rs = 1.0 - nw.y;
   float rn = max(vSurf.z, smoothstep(uRockSlope.x - 0.06, uRockSlope.y, rs)) * (1.0 - vSurf.x) * (1.0 - smoothstep(0.1, 0.9, vSurf.y));
+#ifdef LOWQ
+  rn = 0.0;   // móvil: sin mapa de normales de la roca (cinco lecturas menos; el color ya marca grietas y estratos)
+#endif
   if (rn > 0.01) {
     vec3 bw = pow(abs(nw), vec3(4.0)); bw /= (bw.x + bw.y + bw.z);
     vec3 tx = texture2D(tRockN, vWP.zy / ROCK_S1).xyz * 2.0 - 1.0;
@@ -295,7 +332,7 @@ vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
 roughnessFactor = mix(roughnessFactor, 0.8, smoothstep(0.2,0.9,vSurf.x));`);
   };
-  m.customProgramCacheKey = () => (outer ? 'terrain-outer' : 'terrain');
+  m.customProgramCacheKey = () => (outer ? 'terrain-outer' : 'terrain') + (quality === 'low' ? '-low' : '');
   return m;
 }
 
@@ -303,7 +340,8 @@ export class Terrain {
   constructor(scene, quality) {
     setPalette(TONE);
     this.group = new THREE.Group();
-    this.mat = makeTerrainMaterial();
+    this.quality = quality;
+    this.mat = makeTerrainMaterial({ quality });
     this.chunks = [];
     const nc = (N - 1) / PER;
     for (let cj = 0; cj < nc; cj++) for (let ci = 0; ci < nc; ci++) {
@@ -380,7 +418,7 @@ export class Terrain {
       col.push(c.r, c.g, c.b);
     }
     g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
-    const mat = makeTerrainMaterial({ outer: true }), grp = new THREE.Group();
+    const mat = makeTerrainMaterial({ outer: true, quality: this.quality }), grp = new THREE.Group();
     grp.position.y = -0.8; // ligeramente por debajo para evitar parpadeos en la unión
     const v = new THREE.Vector3(), box = new THREE.Box3();
     for (const list of tiles.values()) {

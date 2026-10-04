@@ -9,6 +9,7 @@ import { castById } from '../data/cast.js';
 import { GlbRig, isGlbAvatar, loadGlbAvatar } from '../actors/glbChar.js';
 
 let R = null;
+const COARSE = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
 function renderer() {
   if (R) return R;
   const c = document.createElement('canvas');
@@ -204,6 +205,9 @@ export class Stage {
     if (!this.alive) return;
     requestAnimationFrame(this.loop);
     if (!this.host.isConnected) { this.dispose(); return; }
+    // en el móvil el menú se dibuja a 30 imágenes por segundo (aquí todo se mueve despacio): la mitad de batería y calor;
+    // al girar el personaje con el dedo, a 60
+    if (COARSE && !this.drag && now - this.last < 30) return;
     const dt = Math.max(0, Math.min(0.05, (now - this.last) / 1000)); this.last = now; this.t += dt;
     const w = this.host.clientWidth, h = this.host.clientHeight;
     if (!w || !h) return;

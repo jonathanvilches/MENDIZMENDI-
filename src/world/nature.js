@@ -228,9 +228,11 @@ function rockShape(detail, planes, sx, sy, sz, ph) {
   return out;
 }
 // Material de roca: textura y relieve en proyección triplanar (en el mundo), musgo en lo alto según cada piedra
-function rockMaterial() {
+function rockMaterial(quality) {
   const m = new THREE.MeshStandardMaterial({ color: ROCK_TINT[TONE] || '#8d8a82', roughness: 0.92, metalness: 0 });
+  const low = quality === 'low';
   m.onBeforeCompile = (sh) => {
+    if (low) sh.defines = { ...(sh.defines || {}), LOWQ: 1 };
     sh.uniforms.tRock = { value: TEX.rock }; sh.uniforms.tRockN = { value: TEX.rockN };
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', '#include <common>\nattribute float aMoss; varying float vMoss; varying vec3 vRP; varying vec3 vRN;')
@@ -246,7 +248,13 @@ vec4 triR(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.x +
 {
   vec3 nw = normalize(vRN);
   vec3 bw = pow(abs(nw), vec3(4.0)); bw /= (bw.x + bw.y + bw.z);
+#ifdef LOWQ
+  // móvil: una proyección (la de la cara que más mira) y una lectura; el relieve fino sale de otro canal del mismo texel
+  vec2 rq = bw.y > max(bw.x, bw.z) ? vRP.xz : bw.x > bw.z ? vRP.zy : vRP.xy;
+  vec4 a = texture2D(tRock, rq / 3.2), b = a.gbar;
+#else
   vec4 a = triR(vRP, bw, 3.2), b = triR(vRP, bw, 0.9);
+#endif
   vec3 c = diffuseColor.rgb * (0.36 + 0.86 * a.r) * (0.78 + 0.4 * b.r);
   c *= 0.5 + 0.5 * a.b;
   c = mix(c, vec3(0.58, 0.58, 0.38) * (0.8 + 0.3 * b.r), smoothstep(0.55, 0.9, a.g) * 0.35);
@@ -256,6 +264,7 @@ vec4 triR(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.x +
   diffuseColor.rgb = c;
 }`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+#ifndef LOWQ
 {
   vec3 nw = normalize(vRN);
   vec3 bw = pow(abs(nw), vec3(4.0)); bw /= (bw.x + bw.y + bw.z);
@@ -263,9 +272,10 @@ vec4 triR(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.x +
   tx = vec3(tx.xy + nw.zy, abs(tx.z) * nw.x); ty = vec3(ty.xy + nw.xz, abs(ty.z) * nw.y); tz = vec3(tz.xy + nw.xy, abs(tz.z) * nw.z);
   vec3 wn = normalize(tx.zyx * bw.x + ty.xzy * bw.y + tz.xyz * bw.z);
   normal = normalize(mix(normal, normalize((viewMatrix * vec4(wn, 0.0)).xyz), 0.85));
-}`);
+}
+#endif`);
   };
-  m.customProgramCacheKey = () => 'rock-tri';
+  m.customProgramCacheKey = () => 'rock-tri' + (low ? '-low' : '');
   return m;
 }
 const ROCK_TINT = { alpine: '#8f8d88', lush: '#8a8a80', dry: '#a39a88', arid: '#b8a684' };
@@ -522,7 +532,7 @@ export class Nature {
       else if (forest > 0.4 && rnd() < 0.12) put(x, z, 0.6 + rnd() * 1.2, 0.35, 0.9);
       else if (slope > 0.45 && rnd() < 0.25) put(x, z, 0.5 + rnd() * 1.4, 0.4, 0.3);
     }
-    const m = rockMaterial();
+    const m = rockMaterial(this.quality);
     const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler();
     for (let v = 0; v < parts.length; v++) {
       const list = spots.filter(s => s.v === v);

@@ -62,14 +62,19 @@ export class SkySystem {
       uTime: { value: 0 }, uNight: { value: 0 }, uCloud: { value: 0.55 },
     };
     this.mat = new THREE.ShaderMaterial({
-      uniforms: this.uniforms, side: THREE.BackSide, depthWrite: false, fog: false,
+      uniforms: this.uniforms, side: THREE.BackSide, depthWrite: false, fog: false, defines: quality === 'low' ? { LOWQ: 1 } : {},   // móvil: nubes con menos capas de ruido
       vertexShader: `varying vec3 vDir; void main(){ vDir = normalize(position); vec4 p = projectionMatrix * modelViewMatrix * vec4(position,1.0); gl_Position = p.xyww; }`,
       fragmentShader: `
 uniform vec3 uZen, uHor, uSunDir, uSunCol; uniform float uTime, uNight, uCloud; varying vec3 vDir;
 float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }
 float vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
   return mix(mix(hash(i),hash(i+vec2(1,0)),f.x), mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x), f.y); }
-float fbm(vec2 p){ float s=0.0,a=0.5; for(int i=0;i<5;i++){ s+=a*vnoise(p); p*=2.03; a*=0.5; } return s; }
+#ifdef LOWQ
+#define OCT 3
+#else
+#define OCT 5
+#endif
+float fbm(vec2 p){ float s=0.0,a=0.5; for(int i=0;i<OCT;i++){ s+=a*vnoise(p); p*=2.03; a*=0.5; } return s; }
 void main(){
   vec3 d = normalize(vDir);
   float h = clamp(d.y, -1.0, 1.0);
@@ -99,7 +104,11 @@ void main(){
     vec2 cp = d.xz / (d.y + 0.12) * 1.3 + vec2(uTime * 0.004, uTime * 0.0015);
     float n = fbm(cp * 1.4);
     float c = smoothstep(1.0 - uCloud, 1.0 - uCloud + 0.28, n);
+#ifdef LOWQ
+    float shade = n - (vnoise(cp * 1.4 + vec2(0.05, 0.08)) - 0.5) * 0.12;   // móvil: la sombra de la nube con un solo ruido
+#else
     float shade = fbm(cp * 1.4 + vec2(0.05, 0.08));
+#endif
     vec3 cc = mix(vec3(1.0), uHor * 0.9 + 0.1, 0.35) * (0.8 + 0.35 * (n - shade) * 3.0);
     cc = mix(cc, uSunCol * 1.2, pow(sd, 6.0) * 0.5);
     cc *= mix(1.0, 0.35, uNight);
@@ -111,7 +120,9 @@ void main(){
     });
     this.dome = new THREE.Mesh(geo, this.mat);
     this.dome.frustumCulled = false;
-    this.dome.renderOrder = -10;
+    // el último de lo opaco: su profundidad es la del fondo (xyww), así que solo se calcula en los píxeles donde se ve
+    // cielo; dibujado el primero, sombreaba la pantalla entera con sus nubes y luego el terreno y el pueblo lo tapaban
+    this.dome.renderOrder = 1000;
     scene.add(this.dome);
 
     this.hemi = new THREE.HemisphereLight('#ffffff', '#444444', 0.8);

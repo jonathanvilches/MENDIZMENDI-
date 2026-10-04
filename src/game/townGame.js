@@ -11,7 +11,7 @@ import { TOWN } from '../world/townBuilder.js';
 import { isFree, segmentBlocked, addCircle, addBox } from '../world/colliders.js';
 import { clamp, lerp, angleDiff, mulberry32 } from '../util/math.js';
 import { profile, saveProfile, townState, addXP, checkBadges, addCard, comarcaDone, levelOf } from './profile.js';
-import { infoCard, timingGame, mashGame, sequenceGame, simonGame, choiceGame, missionComplete, townFinale } from '../ui/minigames.js';
+import { infoCard, timingGame, mashGame, sequenceGame, simonGame, choiceGame, missionComplete, townFinale, play3d } from '../ui/minigames.js';
 import { OFICIOS } from '../data/oficios.js';
 import { PERSONAJES } from '../data/personajes.js';
 import { makeItem, makeGate, makeWorkbench, makeMemorial } from './items.js';
@@ -41,7 +41,6 @@ import { SABIOS, STYLE_TIP, KIND_TIP, NO_SABIO } from '../data/sabios.js';
 const loadEncierro = () => import('./encierro.js').then(m => m.Encierro);
 const loadFutbol = () => import('./futbol.js').then(m => m.Futbol);
 import { montesFrom, townLatLon } from '../data/miradores.js';
-import { forgeGame, stitchGame, shearGame } from '../ui/mini3d/index.js';
 import { Panorama } from '../world/panorama.js';
 import { PARTS, CASTLE_QUIZ, CASTLE_TOWNS, CASTILLOS } from '../data/castillos.js';
 import { GearProps } from '../actors/gear3d.js';
@@ -547,7 +546,9 @@ export class TownGame {
     }
     const nSteps = M.steps().length;
     this.ui.setQuest({ title: M.title, step: this.stepText(M), icon: M.icon, dist, angle, nSteps, stepIdx: Math.min(M.step, nSteps) });
-    this.ui.updateMinimap(this.player, this.follow.yaw, this.mapMarkers(), t);
+    // las marcas del mapa (recorren todas las misiones) se rehacen cinco veces por segundo, no en cada fotograma
+    if (!this.mkList || this.elapsed - this.mkT > 0.2 || this.elapsed < this.mkT) { this.mkList = this.mapMarkers(); this.mkT = this.elapsed; }
+    this.ui.updateMinimap(this.player, this.follow.yaw, this.mkList, t);
     if (this.carnivalHint) this.carnivalHint();
   }
   mapMarkers() {
@@ -1679,9 +1680,9 @@ export class TownGame {
         if (st.game === 'choice') r = await choiceGame(this.ui, { title, icon: of.icon, q: `${st.text} ${st.q}`, options: st.options, answer: st.answer, why: st.why });
         else if (st.game === 'order') r = await sequenceGame(this.ui, { title, icon: of.icon, hint: 'Toca los pasos en el orden en que se hacían', steps: st.items });
         else if (st.game === 'mash') r = await mashGame(this.ui, { title, hint: st.text, icon: of.icon, verb: st.verb, seconds: 7, goal: 28, art: st.art });
-        else if (st.game === 'forge') r = await forgeGame(this.ui, { title: st.title });
-        else if (st.game === 'stitch') r = await stitchGame(this.ui, { title: st.title });
-        else if (st.game === 'shear') r = await shearGame(this.ui, { title: st.title });
+        else if (st.game === 'forge') r = await play3d('forgeGame', this.ui, { title: st.title });
+        else if (st.game === 'stitch') r = await play3d('stitchGame', this.ui, { title: st.title });
+        else if (st.game === 'shear') r = await play3d('shearGame', this.ui, { title: st.title });
         else r = await timingGame(this.ui, { title, hint: st.text, icon: of.icon, verb: st.verb, rounds: st.rounds || 4, need: st.need || 3, zone: 0.22, speed: 0.6, art: st.art });
         // si la escena 3D no se pudo montar, el paso no bloquea el taller: se da por visto
         if (r.quit) { await this.say(M.host, ['Cuando quieras, seguimos donde lo has dejado.']); return; }

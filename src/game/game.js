@@ -306,7 +306,9 @@ export class Game {
       angle = -angleDiff(fwd, Math.atan2(dx, dz));
     }
     this.ui.setQuest({ title: Q.title, step: this.stepText(id), icon: Q.icon, dist, angle });
-    this.ui.updateMinimap(this.player, this.follow.yaw, this.mapMarkers(), t);
+    // las marcas del mapa (recorren todas las misiones) se rehacen cinco veces por segundo, no en cada fotograma
+    if (!this.mkList || this.elapsed - this.mkT > 0.2 || this.elapsed < this.mkT) { this.mkList = this.mapMarkers(); this.mkT = this.elapsed; }
+    this.ui.updateMinimap(this.player, this.follow.yaw, this.mkList, t);
   }
 
   checkPlaces() {

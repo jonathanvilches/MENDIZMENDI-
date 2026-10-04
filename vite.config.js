@@ -21,11 +21,12 @@ const app = {
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Mendimendiz">
 </head>`),
-  // el service worker, con el nombre de su caché sacado de los archivos de esta versión
+  // el service worker, con el nombre de su caché sacado de los archivos de esta versión y la lista de esos archivos
   generateBundle(_, bundle) {
     const v = createHash('sha1').update(Object.keys(bundle).sort().join()).digest('hex').slice(0, 10);
     this.emitFile({ type: 'asset', fileName: '.nojekyll', source: '' });   // GitHub Pages sirve los archivos tal cual
-    this.emitFile({ type: 'asset', fileName: 'sw.js', source: readFileSync('src/web/sw.js', 'utf8').replace('__VERSION__', v) });
+    const files = Object.keys(bundle).filter(f => f.startsWith('assets/')).map(f => f.slice(7));
+    this.emitFile({ type: 'asset', fileName: 'sw.js', source: readFileSync('src/web/sw.js', 'utf8').replace('__VERSION__', v).replace('__FILES__', JSON.stringify(files)) });
   },
 };
 
@@ -34,6 +35,9 @@ export default defineConfig({
   plugins: WEB ? [sinRedir, app] : [sinRedir, viteSingleFile()],
   define: { __WEB__: JSON.stringify(WEB) },
   build: WEB
-    ? { target: 'es2020', outDir: 'docs', emptyOutDir: true, assetsInlineLimit: 2048, chunkSizeWarningLimit: 5000, copyPublicDir: true }
+    ? { target: 'es2020', outDir: 'docs', emptyOutDir: true, assetsInlineLimit: 2048, chunkSizeWarningLimit: 5000, copyPublicDir: true,
+      // three.js en su propio archivo: no cambia entre versiones del juego, así que el móvil lo guarda y no lo vuelve a
+      // descargar en cada actualización (solo baja el código del juego, que es lo que cambia)
+      rolldownOptions: { output: { codeSplitting: { groups: [{ name: 'three', test: /node_modules[\\/]three[\\/]/ }] } } } }
     : { target: 'es2020', assetsInlineLimit: 100000000, chunkSizeWarningLimit: 5000, copyPublicDir: false },
 });

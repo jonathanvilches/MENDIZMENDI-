@@ -14,6 +14,7 @@ groundUniforms.uGround.value.needsUpdate = true;
 // k: intensidad (piedra 1, revoco 0,8, madera 0,6)
 function weather(m, k = 1, moss = 1) {
   m.onBeforeCompile = (sh) => {
+    if (BQ === 'low') sh.defines = { ...(sh.defines || {}), LOWQ: 1 };
     sh.uniforms.tWeather = { value: TEX.detail }; sh.uniforms.uGround = groundUniforms.uGround;
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWW;')
       .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
@@ -24,11 +25,17 @@ function weather(m, k = 1, moss = 1) {
   ivec2 gs = textureSize(uGround, 0);
   float gy = gs.x > 1 ? texelFetch(uGround, clamp(ivec2((w.xz + ${HALF.toFixed(1)}) / ${CELL.toFixed(1)} + 0.5), ivec2(0), gs - 1), 0).r : -1e4;
   float up = w.y - gy;
+#ifdef LOWQ
+  vec4 wt = texture2D(tWeather, (w.xz + w.y * 0.7) / 23.0);   // móvil: una sola lectura (manchas y grano del mismo texel)
+  float blot = wt.r, fine = wt.g;
+  float base = 1.0 + (blot - 0.5) * 0.28 * ${'${K}'} + (fine - 0.5) * 0.1 * ${'${K}'};
+#else
   float blot = texture2D(tWeather, (w.xz + w.y * 0.7) / 23.0).r;
   float fine = texture2D(tWeather, (w.zx - w.y * 0.5) / 4.3 + 0.3).g;
   float streak = texture2D(tWeather, vec2((w.x + w.z) / 3.1, w.y / 26.0)).b;
   float base = 1.0 + (blot - 0.5) * 0.28 * ${'${K}'} + (fine - 0.5) * 0.1 * ${'${K}'};
   base *= 1.0 - smoothstep(0.55, 0.8, streak) * 0.16 * ${'${K}'};
+#endif
   float damp = (1.0 - smoothstep(0.0, 1.1 + fine * 0.6, up)) * step(-0.5, up);
   vec3 c = diffuseColor.rgb * base;
   c = mix(c, c * vec3(0.66, 0.62, 0.56), damp * 0.55 * ${'${K}'});
@@ -36,7 +43,7 @@ function weather(m, k = 1, moss = 1) {
   diffuseColor.rgb = c;
 }`.replace(/\$\{K\}/g, k.toFixed(2)).replace(/\$\{M\}/g, moss.toFixed(2)));
   };
-  m.customProgramCacheKey = () => 'weather' + k + moss;
+  m.customProgramCacheKey = () => 'weather' + k + moss + (BQ === 'low' ? '-low' : '');
   return m;
 }
 

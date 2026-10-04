@@ -1,6 +1,13 @@
 // Minijuegos de interfaz: barra de precisión, pulsar rápido, ordenar pasos, repetir melodía y fichas de lugar.
 import { iconSVG } from './icons.js';
-import { timing3d, mash3d, has3DArt } from './mini3d/index.js';
+// Los minijuegos 3D de los oficios van en su propio trozo de código: se descargan la primera vez que hacen falta
+let M3 = null;
+export const mini3d = () => (M3 ||= import('./mini3d/index.js').catch(e => { M3 = null; throw e; }));
+// juega uno de ellos (milkGame, forgeGame…); si no se puede descargar, el paso no bloquea: vuelve con «error»
+export async function play3d(name, ui, opts) {
+  let M; try { M = await mini3d(); } catch (e) { console.error('minijuego 3D no disponible', e); return { error: true }; }
+  return M[name](ui, opts);
+}
 
 const el = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -41,7 +48,7 @@ function infoCard_(ui, { icon = 'church', kicker = '', title, text, extra = '', 
 // con «art» (el paso de un oficio) y el escenario 3D del juego, se juega en su diorama 3D; si algo falla, la barra sola
 export async function timingGame(ui, opts) {
   if (window.__autoWin) return { win: true, hits: 5, errors: 0 };
-  if (opts.art && ui.stage3d && has3DArt(opts.art)) { const r = await timing3d(ui, opts); if (!r.error) return r; }
+  if (opts.art && ui.stage3d) { const M = await mini3d().catch(() => null); if (M?.has3DArt(opts.art)) { const r = await M.timing3d(ui, opts); if (!r.error) return r; } }
   return timingGame_(ui, opts);
 }
 function timingGame_(ui, { title, hint, icon = 'hammer', rounds = 5, zone = 0.18, speed = 0.7, need = 3, verb = 'Golpear' }) {
@@ -79,7 +86,7 @@ function timingGame_(ui, { title, hint, icon = 'hammer', rounds = 5, zone = 0.18
 // ---------- Pulsar rápido (harrijasotzaile, subir la piedra; remar la almadía…) ----------
 export async function mashGame(ui, opts) {
   if (window.__autoWin) return { win: true, hits: 5, errors: 0 };
-  if (opts.art && ui.stage3d && has3DArt(opts.art)) { const r = await mash3d(ui, opts); if (!r.error) return r; }
+  if (opts.art && ui.stage3d) { const M = await mini3d().catch(() => null); if (M?.has3DArt(opts.art)) { const r = await M.mash3d(ui, opts); if (!r.error) return r; } }
   return mashGame_(ui, opts);
 }
 function mashGame_(ui, { title, hint, icon = 'stone', seconds = 6, goal = 30, verb = '¡Empuja!' }) {
