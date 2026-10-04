@@ -75,6 +75,10 @@ async function boot() {
   const hub = new Hub({ sound, onPlay: (d) => play(d) });
   hub.onSettings = (S) => { sound.setMusic(S.music); sound.setVolume(S.volume); };
   window.__hub = hub;
+  // el fútbol y el encierro van en archivos aparte (se cargan al entrar): se descargan sin prisa cuando el navegador
+  // está desocupado, así quedan guardados para jugar sin conexión y no esperan al tocarlos
+  const idle = window.requestIdleCallback || ((f) => setTimeout(f, 1));
+  setTimeout(() => idle(() => { import('./game/futbol.js').catch(() => {}); import('./game/encierro.js').catch(() => {}); }, { timeout: 20000 }), 15000);
 
   // pasos, saltos y salpicaduras
   const hookPlayer = (player) => {

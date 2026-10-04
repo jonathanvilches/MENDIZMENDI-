@@ -11,7 +11,7 @@ const p = await browser.newPage();
 p.on('pageerror', e => console.log('PAGEERROR', e.message));
 await p.goto(base + 'lab/iconbake.html', { timeout: 300000 });
 await p.waitForFunction(() => window.__ready, null, { timeout: 300000 });
-const names = await p.evaluate(() => window.__names);
+const names = (await p.evaluate(() => window.__names)).filter(n => !process.env.ONLY || process.env.ONLY.split(',').includes(n));   // ONLY=boar,jabali para rehacer solo esos
 console.log(names.length, 'iconos');
 let n = 0;
 for (const name of names) {
@@ -25,7 +25,7 @@ execFileSync('python3', ['-c', `
 import glob, os
 from PIL import Image
 out = 'src/assets/icons3d'; os.makedirs(out, exist_ok=True); tot = 0
-for f in glob.glob('${tmp}/*.png'):
+for f in [os.path.join('${tmp}', n + '.png') for n in ${JSON.stringify(names)} if os.path.exists(os.path.join('${tmp}', n + '.png'))]:
     im = Image.open(f).convert('RGBA').resize((${size}, ${size}), Image.LANCZOS)
     d = os.path.join(out, os.path.basename(f)[:-4] + '.webp'); im.save(d, 'WEBP', quality=88, method=6); tot += os.path.getsize(d)
 print('webp', len(glob.glob(out + '/*.webp')), 'total KB', tot // 1024)
