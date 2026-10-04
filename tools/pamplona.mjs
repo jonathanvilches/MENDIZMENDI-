@@ -51,6 +51,7 @@ const V = {
   sadarOeste: { x: 140, y: 2.5, z: 330, lx: 232, ly: 9, lz: 318 },
   sadarNoche: { x: 150, y: 3, z: 400, lx: 232, ly: 9, lz: 318, night: true },
   sadarPaseo: { x: 296, y: 2.2, z: 250, lx: 290, ly: 4, lz: 330 },
+  sadarBancos: { x: 150, y: 3, z: 300, lx: 180, ly: 1, lz: 330 },
   sadarNorte: { x: 200, y: 6, z: 222, lx: 240, ly: 2, lz: 250 },
   ciudad: { x: 40, y: 240, z: 330, lx: 40, ly: 0, lz: -60 },
 };

@@ -392,8 +392,8 @@ function sadarSurroundings(B, group, cx, cz, FH, FD) {
     g.fillStyle = '#a9a398'; g.fillRect(0, 0, W, H);
     let sd = 11; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
     for (let y = 0; y < H; y += 16) for (let x = 0; x < W; x += 16) { const k = rnd(); g.fillStyle = `rgb(${160 + k * 30},${153 + k * 28},${142 + k * 26})`; g.fillRect(x + 1, y + 1, 14, 14); }
-    g.fillStyle = '#5d5a55'; g.fillRect(0, 0, W, 26); g.fillRect(0, 0, 26, H);
-    g.fillStyle = 'rgba(255,255,255,.08)'; for (let x = 0; x < W; x += 13) g.fillRect(x, 0, 1, 26);
+    g.fillStyle = '#7d786f'; g.fillRect(0, 0, W, 12); g.fillRect(0, 0, 12, H);
+    g.fillStyle = 'rgba(255,255,255,.08)'; for (let x = 0; x < W; x += 13) g.fillRect(x, 0, 1, 12);
     for (let i = 0; i < 1400; i++) { g.fillStyle = `rgba(50,45,40,${rnd() * 0.14})`; g.fillRect(rnd() * W, rnd() * H, 1, 1); }
   }, true);
   paveT.wrapT = THREE.RepeatWrapping;
@@ -410,6 +410,23 @@ function sadarSurroundings(B, group, cx, cz, FH, FD) {
   m.receiveShadow = true; m.matrixAutoUpdate = false; group.add(m); geos.forEach(g => g.dispose());
   // farolas a lo largo del paseo
   for (let z = -FD + 2; z <= FD - 2; z += 18) { const p = toW(cx, cz, 0, FH + PW / 2, z); lamp(B, p.x, p.z); }
+  // bancos de madera, papeleras y jardineras en el paseo, en la acera y en la explanada (sin tapar las puertas)
+  const yL = (x, z) => gyL(x, z) + 0.05;
+  const bench = (x, z, ry) => {
+    const T = M(cx + x, yL(x, z), cz + z, ry);
+    B.add('woodDark', box(1.8, 0.08, 0.5), MM(T, M(0, 0.45, 0))); B.add('woodDark', box(1.8, 0.4, 0.07), MM(T, M(0, 0.72, -0.23)));
+    for (const s of [-1, 1]) B.add('iron', box(0.08, 0.45, 0.45), MM(T, M(s * 0.8, 0.22, 0)));
+    addBox(cx + x, cz + z, 1.8, 0.6, ry);
+  };
+  const bin = (x, z) => { B.add('paint', colored(new THREE.CylinderGeometry(0.25, 0.22, 0.85, 10), '#3d5a3a'), M(cx + x, yL(x, z) + 0.42, cz + z)); addCircle(cx + x, cz + z, 0.3); };
+  const planter = (x, z, ry) => {
+    const T = M(cx + x, yL(x, z), cz + z, ry);
+    B.add('stone', box(2.4, 0.55, 1.2), MM(T, M(0, 0.27, 0))); B.add('paint', colored(new THREE.SphereGeometry(0.75, 10, 8).scale(1.4, 0.55, 0.75), '#4a7a34'), MM(T, M(0, 0.72, 0)));
+    addBox(cx + x, cz + z, 2.4, 1.2, ry);
+  };
+  for (let z = -FD + 11; z <= FD - 11; z += 18) { bench(FH + 9, z, -Math.PI / 2); bench(FH + PW - 3, z, Math.PI / 2); bin(FH + PW / 2, z + 4); }
+  for (const s of [-1, 1]) for (let x = -FH + 8; x <= FH - 8; x += 16) { (Math.abs(x) % 32 < 16 ? planter : bench)(x, s * (FD + 4.5), s > 0 ? Math.PI : 0); }
+  for (let z = -FD + 6; z <= FD - 6; z += 12) if (Math.abs(z) > 22) { const k = Math.round(z / 12) % 2; k ? bench(-FH - 27, z, Math.PI / 2) : planter(-FH - 27, z, Math.PI / 2); bin(-FH - 39, z); }
   noGrass((x, z) => (x > cx - FH - 50 && x < cx + FH + PW + 1 && Math.abs(z - cz) < FD + 9), cx - FH - 52, cz - FD - 10, cx + FH + PW + 2, cz + FD + 10);
 }
 const FONT5 = {

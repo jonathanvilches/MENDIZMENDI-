@@ -34,11 +34,16 @@ function grassTexture(V, px) {
   const t = canvasTex(px, px, (g, W, H) => {
     const [g1, g2] = V.grass;
     g.fillStyle = g1; g.fillRect(0, 0, W / 2, H); g.fillStyle = g2; g.fillRect(W / 2, 0, W / 2, H);
-    const rnd = mulberry(3), n = W * H / 3;
+    // corte cruzado muy suave (a cuadros, como en los estadios) y manchas de color de la hierba
+    g.fillStyle = 'rgba(255,255,255,.03)'; g.fillRect(0, 0, W, H / 2);
+    const rnd = mulberry(3), sc = W / 512;
+    for (let i = 0; i < 70; i++) { const gr = g.createRadialGradient(0, 0, 0, 0, 0, 1); const x = rnd() * W, y = rnd() * H, r = (6 + rnd() * 18) * sc; g.save(); g.translate(x, y); g.scale(r, r * (0.6 + rnd() * 0.6)); gr.addColorStop(0, rnd() < 0.5 ? 'rgba(20,60,20,.12)' : 'rgba(170,210,120,.08)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(-1, -1, 2, 2); g.restore(); }
+    // briznas: trazos cortos algo inclinados, claros y oscuros
+    const n = W * H / 2.4;
     for (let i = 0; i < n; i++) {
       const x = rnd() * W, y = rnd() * H, l = rnd();
-      g.fillStyle = l < 0.5 ? `rgba(18,52,18,${0.06 + rnd() * 0.1})` : `rgba(190,230,150,${0.04 + rnd() * 0.07})`;
-      g.fillRect(x, y, 1, 1 + rnd() * 2);
+      g.fillStyle = l < 0.5 ? `rgba(18,52,18,${0.06 + rnd() * 0.12})` : `rgba(190,230,150,${0.04 + rnd() * 0.08})`;
+      g.fillRect(x, y, 1, (1 + rnd() * 3) * sc); if (rnd() < 0.25) g.fillRect(x + 1, y + sc, 1, (1 + rnd() * 2) * sc);
     }
   }, { repeat: true });
   t.repeat.set(GW / (2 * STRIPE), GH / (2 * STRIPE));
@@ -284,7 +289,7 @@ function pavingTexture() {
   return canvasTex(256, 256, (g, W, H) => {
     g.fillStyle = '#a9a398'; g.fillRect(0, 0, W, H); const rnd = mulberry(11);
     for (let y = 0; y < H; y += 16) for (let x = 0; x < W; x += 16) { const k = rnd(); g.fillStyle = `rgb(${160 + k * 30},${153 + k * 28},${142 + k * 26})`; g.fillRect(x + 1, y + 1, 14, 14); }
-    g.fillStyle = '#5d5a55'; g.fillRect(0, 0, W, 26); g.fillRect(0, 0, 26, H);
+    g.fillStyle = '#7d786f'; g.fillRect(0, 0, W, 12); g.fillRect(0, 0, 12, H);
     for (let i = 0; i < 1400; i++) { g.fillStyle = `rgba(50,45,40,${rnd() * 0.14})`; g.fillRect(rnd() * W, rnd() * H, 1, 1); }
   }, { repeat: true });
 }
@@ -305,6 +310,26 @@ function flatsTexture() {
     g.fillStyle = '#7c8794'; g.fillRect(16, 14, 32, 8);
     g.fillStyle = '#ffffff'; g.fillRect(14, 44, 36, 3); g.fillRect(31, 22, 2, 22);
   }, { repeat: true });
+}
+// copa de árbol frondosa: tres o cuatro masas redondeadas de hojas (cada árbol de un verde algo distinto) con textura de
+// hojas, en vez de una sola bola facetada
+function leafTexture() {
+  const t = canvasTex(128, 128, (g, W, H) => {
+    g.fillStyle = '#ffffff'; g.fillRect(0, 0, W, H); const rnd = mulberry(41);
+    for (let i = 0; i < 900; i++) { const x = rnd() * W, y = rnd() * H, r = 1.5 + rnd() * 3.5, l = rnd(); g.fillStyle = l < 0.35 ? `rgba(40,60,30,${0.25 + rnd() * 0.3})` : l < 0.7 ? `rgba(120,150,90,${0.2 + rnd() * 0.25})` : `rgba(230,245,200,${0.15 + rnd() * 0.25})`; g.beginPath(); g.ellipse(x, y, r, r * 0.6, rnd() * 3, 0, Math.PI * 2); g.fill(); }
+  }, { repeat: true });
+  t.repeat.set(3, 2); return t;
+}
+const CROWN = ['#3e6a2e', '#4a7a34', '#365f2a', '#56843a', '#43703a'];
+function leafyCrown(x, y, z, r, rnd) {
+  const c = new THREE.Color(CROWN[(rnd() * CROWN.length) | 0]), parts = [], n = 3 + (rnd() < 0.5 ? 1 : 0);
+  for (let i = 0; i < n; i++) {
+    const a = i / n * Math.PI * 2 + rnd(), d = i === 0 ? 0 : r * 0.45, rr = r * (i === 0 ? 0.85 : 0.6 + rnd() * 0.15);
+    const g = new THREE.SphereGeometry(rr, 10, 8); g.scale(1, 0.85, 1); g.translate(x + Math.cos(a) * d, y + (i === 0 ? r * 0.15 : -r * 0.1 + rnd() * r * 0.3), z + Math.sin(a) * d);
+    const k = 0.9 + rnd() * 0.2, cc = []; for (let j = 0; j < g.attributes.position.count; j++) { const sh = 0.75 + 0.25 * ((g.attributes.position.getY(j) - y + r) / (2 * r)); cc.push(c.r * k * sh, c.g * k * sh, c.b * k * sh); }
+    g.setAttribute('color', new THREE.Float32BufferAttribute(cc, 3)); parts.push(g);
+  }
+  const m = mergeGeometries(parts); parts.forEach(g => g.dispose()); return m;
 }
 // videomarcador: nombre del campo y el resultado (se repinta con cada gol)
 function scoreboard(names) {
@@ -344,7 +369,7 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
   const shade = (m) => stadium ? roofShade(m, U) : m;
 
   // suelo: el campo con su margen hasta las vallas y alrededor
-  const court = V.surface === 'pista', gt = own(court ? courtTexture(V, low ? 512 : 1024) : grassTexture(V, low ? 256 : 512));
+  const court = V.surface === 'pista', gt = own(court ? courtTexture(V, low ? 512 : 1024) : grassTexture(V, low ? 256 : quality === 'high' ? 1024 : 512));
   add(pitchGeometry(), own(shade(new THREE.MeshStandardMaterial({ map: gt, vertexColors: true, roughness: court ? 0.8 : 0.95, metalness: 0 }))), { receive: true });
   add(linesGeometry(), own(shade(new THREE.MeshStandardMaterial({ color: '#f4f6f2', roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }))), { receive: true });
   const apron = add(new THREE.PlaneGeometry(900, 900).rotateX(-Math.PI / 2), own(new THREE.MeshStandardMaterial({ color: stadium ? '#767a74' : '#6f8a4a', roughness: 1 })), { receive: true });
@@ -354,7 +379,9 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
     const ring = new THREE.Shape(), hole = new THREE.Path();
     ring.moveTo(-F.HL - 9, -F.HW - 8); ring.lineTo(F.HL + 9, -F.HW - 8); ring.lineTo(F.HL + 9, F.HW + 8); ring.lineTo(-F.HL - 9, F.HW + 8);
     hole.moveTo(-GW / 2, -GH / 2); hole.lineTo(-GW / 2, GH / 2); hole.lineTo(GW / 2, GH / 2); hole.lineTo(GW / 2, -GH / 2); ring.holes.push(hole);
-    const m = add(new THREE.ShapeGeometry(ring).rotateX(Math.PI / 2), own(shade(new THREE.MeshStandardMaterial({ color: '#2f6a33', roughness: 1, side: THREE.DoubleSide }))), { receive: true });
+    const rg = new THREE.ShapeGeometry(ring).rotateX(Math.PI / 2), ruv = rg.attributes.uv, rp = rg.attributes.position; for (let i = 0; i < ruv.count; i++) ruv.setXY(i, rp.getX(i) / (2 * STRIPE), rp.getZ(i) / (2 * STRIPE));
+    const rt = own(gt.clone()); rt.repeat.set(1, 1); rt.offset.set(0, 0); rt.needsUpdate = true;
+    const m = add(rg, own(shade(new THREE.MeshStandardMaterial({ map: rt, color: '#7d9a7e', roughness: 1, side: THREE.DoubleSide }))), { receive: true });
     m.position.y = -0.005; m.updateMatrix();
   }
 
@@ -382,6 +409,33 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
     S.add(g); nets.push({ s, back, base, hits: [] });
   }
 
+  // césped gastado delante de las porterías, en los puntos de penalti y en el centro (manchas de tierra y hierba pisada)
+  if (!court) {
+    const wearT = own(canvasTex(128, 128, (g, W, Hh) => {
+      const rnd = mulberry(23);
+      for (let i = 0; i < 140; i++) {
+        const a = rnd() * Math.PI * 2, r = Math.sqrt(rnd()) * 0.42, x = W * (0.5 + Math.cos(a) * r), y = Hh * (0.5 + Math.sin(a) * r * 0.9), k = 1 - r / 0.45;
+        const gr = g.createRadialGradient(x, y, 0, x, y, (3 + rnd() * 9) * k + 2); gr.addColorStop(0, `rgba(${150 + rnd() * 30},${150 + rnd() * 25},${90 + rnd() * 20},${0.08 + rnd() * 0.18 * k})`); gr.addColorStop(1, 'rgba(150,150,90,0)');
+        g.fillStyle = gr; g.fillRect(0, 0, W, Hh);
+      }
+    }, { alpha: true }));
+    const wearM = own(shade(new THREE.MeshStandardMaterial({ map: wearT, transparent: true, depthWrite: false, roughness: 1, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 })));
+    const k = F.L / 105, wg = [];
+    for (const s2 of [-1, 1]) { wg.push(new THREE.PlaneGeometry(7 * k, 11 * k).rotateX(-Math.PI / 2).translate(s2 * (F.HL - 3 * k), 0.006, 0)); wg.push(new THREE.PlaneGeometry(2.6 * k, 2.6 * k).rotateX(-Math.PI / 2).translate(s2 * (F.HL - F.spot), 0.006, 0)); }
+    wg.push(new THREE.PlaneGeometry(4 * k, 4 * k).rotateX(-Math.PI / 2).translate(0, 0.006, 0));
+    add(mergeGeometries(wg), wearM, { receive: true });
+  }
+  // banderines de córner (fútbol 11): mástil blanco de 1,5 m con la bandera roja, que ondea
+  const flags = [];
+  if (!F.areaD) {
+    const poleG = own(new THREE.CylinderGeometry(0.018, 0.022, 1.55, 8).translate(0, 0.775, 0)), poleM = own(new THREE.MeshStandardMaterial({ color: '#f4f4f2', roughness: 0.5 }));
+    const flagG = own(new THREE.PlaneGeometry(0.46, 0.34, 6, 1).translate(0.23, 0, 0)), flagM = own(new THREE.MeshStandardMaterial({ color: '#d0232f', roughness: 0.7, side: THREE.DoubleSide }));
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+      const pole = new THREE.Mesh(poleG, poleM); pole.position.set(sx * F.HL, 0, sz * F.HW); pole.castShadow = !low; S.add(pole);
+      const fl = new THREE.Mesh(flagG.clone(), flagM); fl.position.set(sx * F.HL, 1.36, sz * F.HW); fl.rotation.y = Math.atan2(sz, -sx); fl.castShadow = !low; S.add(fl); own(fl.geometry);
+      flags.push({ m: fl, base: fl.geometry.attributes.position.array.slice(), ph: (sx + 2) * 1.3 + sz });
+    }
+  }
   // vallas de publicidad a 5 m de las líneas, con rótulos propios (con hueco para los banquillos)
   const BH = 0.9, bx = F.HL + F.margin, bz = F.HW + F.margin;
   const boardLines = stadium ? ['MENDIMENDIZ', 'IRUÑA · PAMPLONA', 'NAFARROA', 'AUPA!', 'GORRITXOAK'] : ['MENDIMENDIZ', 'HERRIKO TALDEA', 'AUPA!', 'NAFARROA'];
@@ -548,14 +602,45 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
     }
     // banquillos delante de la tribuna, a los lados del túnel de vestuarios
     const benchM = own(new THREE.MeshStandardMaterial({ color: '#1f2328', roughness: 0.6 })), glassM = own(new THREE.MeshStandardMaterial({ color: '#9fb4c4', transparent: true, opacity: 0.35, roughness: 0.1, depthWrite: false })), redM = own(new THREE.MeshStandardMaterial({ color: '#c41f2c', roughness: 0.5 }));
+    // asientos de banquillo: cubetas rojas con respaldo alto, sobre una base oscura
+    const seatG = own(mergeGeometries([new THREE.BoxGeometry(0.5, 0.1, 0.48).translate(0, 0.5, 0.35), new THREE.BoxGeometry(0.5, 0.75, 0.08).rotateX(-0.12).translate(0, 0.9, 0.62), new THREE.BoxGeometry(0.06, 0.32, 0.06).translate(0, 0.27, 0.4)]));
     for (const x of benches) {
       const g = new THREE.Group(); g.position.set(x, 0, F.HW + 4.2);
-      const seatB = new THREE.Mesh(own(new THREE.BoxGeometry(9, 0.5, 1.1)), redM); seatB.position.set(0, 0.25, 0.4); g.add(seatB);
+      const baseB = new THREE.Mesh(own(new THREE.BoxGeometry(9, 0.12, 1.3)), benchM); baseB.position.set(0, 0.06, 0.45); g.add(baseB);
+      for (let i = 0; i < 14; i++) { const st = new THREE.Mesh(seatG, redM); st.position.x = -4.2 + i * 0.645; st.castShadow = !low; g.add(st); }
       const backB = new THREE.Mesh(own(new THREE.BoxGeometry(9, 1.6, 0.12)), benchM); backB.position.set(0, 0.8, 1.0); g.add(backB);
       const roofB = new THREE.Mesh(own(new THREE.BoxGeometry(9.4, 0.08, 2.0)), glassM); roofB.position.set(0, 2.25, 0.3); roofB.rotation.x = -0.12; g.add(roofB);
       for (const sx of [-1, 1]) { const side = new THREE.Mesh(own(new THREE.BoxGeometry(0.06, 2.1, 1.9)), glassM); side.position.set(sx * 4.7, 1.1, 0.3); g.add(side); }
       S.add(g);
     }
+    // área técnica de cada banquillo (línea discontinua a 1 m de la banda) y pintura de los detalles del borde
+    { const dash = [], lineM = own(shade(new THREE.MeshStandardMaterial({ color: '#f4f6f2', roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 })));
+      const seg = (x0, z0, x1, z1) => { const l = Math.hypot(x1 - x0, z1 - z0), n = Math.floor(l / 1); for (let i = 0; i < n; i++) { const t0 = i / n, t1 = (i + 0.5) / n, cx = x0 + (x1 - x0) * (t0 + t1) / 2, cz = z0 + (z1 - z0) * (t0 + t1) / 2; dash.push(new THREE.PlaneGeometry(Math.abs(x1 - x0) > 0 ? l * 0.5 / n : 0.08, Math.abs(z1 - z0) > 0 ? l * 0.5 / n : 0.08).rotateX(-Math.PI / 2).translate(cx, 0.014, cz)); } };
+      for (const x of benches) { seg(x - 5.5, F.HW + 1, x + 5.5, F.HW + 1); seg(x - 5.5, F.HW + 1, x - 5.5, F.HW + 3.4); seg(x + 5.5, F.HW + 1, x + 5.5, F.HW + 3.4); }
+      add(mergeGeometries(dash), lineM, { receive: true }); }
+    // fotógrafos de rodillas a los lados de cada portería (chaleco naranja, cámara y teleobjetivo) y cámaras de televisión
+    // en trípode junto a la banda de enfrente y detrás de las porterías
+    { const parts = [], col = (g, c) => { g = g.index ? g.toNonIndexed() : g; const cc = new THREE.Color(c), a = []; for (let i = 0; i < g.attributes.position.count; i++) a.push(cc.r, cc.g, cc.b); g.setAttribute('color', new THREE.Float32BufferAttribute(a, 3)); return g; };
+      const rnd3 = mulberry(31), SK = ['#e8c4a4', '#c99a74', '#f0d2b6', '#8d5f43'];
+      const shooter = (x, z, ry) => {
+        const T = new THREE.Matrix4().makeRotationY(ry).setPosition(x, 0, z), P = [
+          col(new THREE.BoxGeometry(0.5, 0.4, 0.36).translate(-0.05, 0.2, 0), '#2a2d33'), col(new THREE.BoxGeometry(0.3, 0.55, 0.42).translate(-0.02, 0.68, 0), '#ff7a1a'),
+          col(new THREE.SphereGeometry(0.12, 10, 8).translate(0.02, 1.07, 0), SK[(rnd3() * SK.length) | 0]), col(new THREE.SphereGeometry(0.125, 10, 6, 0, Math.PI * 2, 0, 1.4).translate(0.0, 1.11, 0), '#1d2026'),
+          col(new THREE.BoxGeometry(0.16, 0.13, 0.15).translate(0.2, 0.98, 0), '#121316'), col(new THREE.CylinderGeometry(0.05, 0.06, 0.4, 10).rotateZ(Math.PI / 2).translate(0.47, 0.98, 0), '#e9e9e4'),
+          col(new THREE.BoxGeometry(0.4, 0.28, 0.3).translate(-0.45, 0.14, 0.3), '#3b3f46'),
+        ];
+        for (const g of P) parts.push(g.applyMatrix4(T));
+      };
+      for (const s2 of [-1, 1]) for (const z of [-17, -14.6, -12.2, 10.4, 12.8, 15.2, 17.6]) shooter(s2 * (F.HL + 1.9), z + (rnd3() - 0.5) * 0.5, s2 > 0 ? Math.PI : 0);
+      const tvcam = (x, z, ry) => {
+        const T = new THREE.Matrix4().makeRotationY(ry).setPosition(x, 0, z), P = [];
+        for (let k = 0; k < 3; k++) { const a = k / 3 * Math.PI * 2; P.push(col(new THREE.CylinderGeometry(0.02, 0.03, 1.5, 6).translate(0, 0.72, 0).rotateZ(0.22).rotateY(a), '#2a2c30')); }
+        P.push(col(new THREE.BoxGeometry(0.62, 0.34, 0.3).translate(0.02, 1.55, 0), '#2b2e34'), col(new THREE.CylinderGeometry(0.1, 0.12, 0.42, 12).rotateZ(Math.PI / 2).translate(0.5, 1.55, 0), '#16171a'), col(new THREE.BoxGeometry(0.2, 0.16, 0.16).translate(-0.2, 1.8, 0), '#2b2e34'));
+        for (const g of P) parts.push(g.applyMatrix4(T));
+      };
+      for (const x of [-22, 22]) tvcam(x, -(F.HW + 2.6), Math.PI / 2);
+      for (const s2 of [-1, 1]) tvcam(s2 * (F.HL + 3), 4.5, s2 > 0 ? Math.PI : 0);
+      const m = add(mergeGeometries(parts), own(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.6 }))); m.castShadow = !low; parts.forEach(g => g.dispose()); }
     // alrededores (se ven en la llegada de la cámara y desde la grada; sin calles ni coches, como en el resto del juego):
     // acera de adoquín con bandas de granito alrededor del zócalo, dos plazas con hileras de árboles en los fondos, un
     // parque con alamedas alrededor y, más allá, bloques de pisos con sus ventanas
@@ -567,10 +652,36 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
       own(new THREE.MeshStandardMaterial({ map: own(pavingTexture()), roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 })), { receive: true });
     const rnd2 = mulberry(5), trees = [], crowns = [], blocks = [], tops = [];
     // árboles: hileras en las plazas de los fondos y un parque alrededor
-    const tree = (x, z, k = 1) => { const h = (4 + rnd2() * 2.5) * k; trees.push(new THREE.CylinderGeometry(0.25, 0.35, h, 6).translate(x, h / 2, z)); crowns.push(new THREE.IcosahedronGeometry((2.2 + rnd2() * 1.2) * k, 1).translate(x, h + 1.6 * k, z)); };
+    const tree = (x, z, k = 1) => { const h = (4 + rnd2() * 2.5) * k; trees.push(new THREE.CylinderGeometry(0.2, 0.32, h, 7).translate(x, h / 2, z)); crowns.push(leafyCrown(x, h + 1.4 * k, z, (2.2 + rnd2() * 1.2) * k, rnd2)); };
     for (const sx of [-1, 1]) for (let x = K[0] + 5; x < AX - 3; x += 9) for (let z = -K[1] + 6; z < K[1] - 4; z += 9) tree(sx * x, z, 0.85);
     for (const sz of [-1, 1]) for (const d of [8, 20, 32, 44]) for (let x = -AX + 6; x < AX - 4; x += 10) tree(x + (d % 24 ? 5 : 0), sz * (K[1] + d), 0.9);
     for (let i = 0; i < 90; i++) { const a = rnd2() * Math.PI * 2, r = 1 + rnd2() * 0.35, x = Math.cos(a) * (AX + 12) * r, z = Math.sin(a) * (AZ + 12) * r; tree(x, z); }
+    // en la acera: puertas de acceso numeradas en el zócalo (hueco oscuro, marco rojo, tornos y cartel), farolas, bancos,
+    // papeleras y jardineras
+    { const furn = [], col = (g, c) => { g = g.index ? g.toNonIndexed() : g; const cc = new THREE.Color(c), a = []; for (let i = 0; i < g.attributes.position.count; i++) a.push(cc.r, cc.g, cc.b); g.setAttribute('color', new THREE.Float32BufferAttribute(a, 3)); return g; };
+      const put = (g, x, z, ry) => furn.push(g.rotateY(ry).translate(x, 0, z));
+      const gates = []; for (const x of [-60, -20, 20, 60]) for (const sz of [-1, 1]) gates.push([x, sz * FA[1], sz > 0 ? 0 : Math.PI]); for (const sx of [-1, 1]) for (const z of [-25, 25]) gates.push([sx * FA[0], z, sx > 0 ? Math.PI / 2 : -Math.PI / 2]);
+      const signs = [];
+      gates.forEach(([x, z, ry], i) => {
+        const P = [col(new THREE.BoxGeometry(4.2, 3.2, 0.1).translate(0, 1.6, 0.04), '#14161a'), col(new THREE.BoxGeometry(4.7, 0.25, 0.25).translate(0, 3.32, 0.12), '#c41f2c'),
+          col(new THREE.BoxGeometry(0.25, 3.3, 0.25).translate(-2.22, 1.65, 0.12), '#c41f2c'), col(new THREE.BoxGeometry(0.25, 3.3, 0.25).translate(2.22, 1.65, 0.12), '#c41f2c')];
+        for (let t = -1; t <= 1; t++) P.push(col(new THREE.BoxGeometry(0.12, 1, 0.8).translate(t * 1.2, 0.5, 0.5), '#9aa2aa'));
+        const g = mergeGeometries(P); P.forEach(q => q.dispose()); put(g, x, z, ry);
+        signs.push([x, z, ry, i + 1]);
+      });
+      // el cartel de cada puerta (PUERTA n · n. ATEA)
+      for (const [x, z, ry, n] of signs) {
+        const tex = own(canvasTex(256, 64, (g, W, Hh) => { g.fillStyle = '#c41f2c'; g.fillRect(0, 0, W, Hh); g.fillStyle = '#fff'; g.font = '900 34px Nunito, Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(`PUERTA ${n} · ${n}. ATEA`, W / 2, Hh / 2 + 2); }));
+        const m = add(new THREE.PlaneGeometry(3.6, 0.9), own(new THREE.MeshStandardMaterial({ map: tex, roughness: 0.5 }))); m.position.set(x + Math.sin(ry) * 0.27, 3.95, z + Math.cos(ry) * 0.27); m.rotation.y = ry; m.updateMatrix();
+      }
+      // farolas, bancos y papeleras alternando a lo largo de la acera, a 6 m del zócalo
+      const bench = () => mergeGeometries([col(new THREE.BoxGeometry(1.8, 0.08, 0.5).translate(0, 0.45, 0), '#8a6a4a'), col(new THREE.BoxGeometry(1.8, 0.4, 0.07).translate(0, 0.7, -0.23), '#8a6a4a'), col(new THREE.BoxGeometry(0.08, 0.45, 0.45).translate(-0.8, 0.22, 0), '#2a2c30'), col(new THREE.BoxGeometry(0.08, 0.45, 0.45).translate(0.8, 0.22, 0), '#2a2c30')]);
+      const lampG = () => mergeGeometries([col(new THREE.CylinderGeometry(0.07, 0.1, 5, 8).translate(0, 2.5, 0), '#2a2c30'), col(new THREE.BoxGeometry(0.9, 0.12, 0.3).translate(0.35, 5, 0), '#2a2c30'), col(new THREE.BoxGeometry(0.5, 0.06, 0.24).translate(0.55, 4.92, 0), '#fff6d8')]);
+      const bin = () => col(new THREE.CylinderGeometry(0.25, 0.22, 0.85, 10).translate(0, 0.42, 0), '#3d5a3a');
+      const planter = () => mergeGeometries([col(new THREE.BoxGeometry(2.4, 0.55, 1.2).translate(0, 0.27, 0), '#b8b2a6'), col(new THREE.SphereGeometry(0.75, 10, 8).scale(1.4, 0.55, 0.75).translate(0, 0.72, 0), '#4a7a34')]);
+      const along = (x0, z0, x1, z1, ry) => { const l = Math.hypot(x1 - x0, z1 - z0), n = Math.floor(l / 8); for (let i = 1; i < n; i++) { const t = i / n, x = x0 + (x1 - x0) * t, z = z0 + (z1 - z0) * t; if (gates.some(([gx, gz]) => Math.hypot(gx - x, gz - z) < 9)) continue; const k = i % 4; put(k === 0 ? lampG() : k === 1 ? bench() : k === 2 ? planter() : bin(), x, z, ry); } };
+      along(-FA[0], FA[1] + 6, FA[0], FA[1] + 6, Math.PI); along(-FA[0], -FA[1] - 6, FA[0], -FA[1] - 6, 0); along(FA[0] + 6, -FA[1], FA[0] + 6, FA[1], -Math.PI / 2); along(-FA[0] - 6, -FA[1], -FA[0] - 6, FA[1], Math.PI / 2);
+      const m = add(mergeGeometries(furn), own(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.7 }))); m.castShadow = !low; furn.forEach(g => g.dispose()); }
     // bloques de pisos con ventanas (cada uno de un color) y su cubierta plana
     const flatsM = own(new THREE.MeshStandardMaterial({ map: own(flatsTexture()), vertexColors: true, roughness: 0.9 }));
     const WALLS = ['#e9dfcc', '#d8c3a5', '#f1ece2', '#c9a88a', '#e3d6bf', '#b98f74', '#dcd9d2'];
@@ -586,8 +697,8 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
       const a = i / 30 * Math.PI * 2 + rnd2() * 0.08, r = 1.55 + rnd2() * 0.3, x = Math.cos(a) * (AX + 30) * r, z = Math.sin(a) * (AZ + 30) * r, w = 22 + rnd2() * 16, h = 15 + Math.floor(rnd2() * 7) * 3, d = 12 + rnd2() * 4;
       blocks.push(blockG(w, h, d, a, x, z, WALLS[i % WALLS.length])); tops.push(new THREE.BoxGeometry(w + 0.6, 0.8, d + 0.6).rotateY(-a).translate(x, h + 0.4, z));
     }
-    add(mergeGeometries(trees), own(new THREE.MeshStandardMaterial({ color: '#5a4030', roughness: 1 })));
-    add(mergeGeometries(crowns), own(new THREE.MeshStandardMaterial({ color: '#3e6a2e', roughness: 1, flatShading: true })));
+    add(mergeGeometries(trees), own(new THREE.MeshStandardMaterial({ color: '#4f3a2b', roughness: 1 })));
+    add(mergeGeometries(crowns), own(new THREE.MeshStandardMaterial({ map: own(leafTexture()), vertexColors: true, roughness: 0.95 })));
     add(mergeGeometries(blocks), flatsM);
     add(mergeGeometries(tops), own(new THREE.MeshStandardMaterial({ color: '#7d7a76', roughness: 0.9 })));
     trees.concat(crowns, blocks, tops).forEach(g => g.dispose());
@@ -615,15 +726,15 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
     for (let i = 0; i < 60; i++) {
       const a = rnd3() * Math.PI * 2, rx = bx + 10 + rnd3() * 22, rz = bz + 10 + rnd3() * 18, x = Math.cos(a) * rx, z = Math.sin(a) * rz;
       const h = 3 + rnd3() * 3; trees.push(new THREE.CylinderGeometry(0.18, 0.26, h, 6).translate(x, h / 2, z));
-      crowns.push(new THREE.IcosahedronGeometry(1.8 + rnd3() * 1.4, 1).translate(x, h + 1.2, z));
+      crowns.push(leafyCrown(x, h + 1.1, z, 1.8 + rnd3() * 1.4, rnd3));
     }
     for (let i = 0; i < 12; i++) {
       const x = -bx + 6 + i * (2 * bx - 12) / 11 + rnd3() * 3, z = -bz - (F.areaD ? 20 : 16) - rnd3() * 6, w = 7 + rnd3() * 3, h = 6 + rnd3() * 4;
       houses.push(new THREE.BoxGeometry(w, h, 7).translate(x, h / 2, z));
       const r = new THREE.ConeGeometry(w * 0.75, 2.4, 4); r.rotateY(Math.PI / 4); r.translate(x, h + 1.2, z); roofsH.push(r);
     }
-    add(mergeGeometries(trees), own(new THREE.MeshStandardMaterial({ color: '#5a4030', roughness: 1 })));
-    add(mergeGeometries(crowns), own(new THREE.MeshStandardMaterial({ color: '#3e6a2e', roughness: 1, flatShading: true })));
+    add(mergeGeometries(trees), own(new THREE.MeshStandardMaterial({ color: '#4f3a2b', roughness: 1 })));
+    add(mergeGeometries(crowns), own(new THREE.MeshStandardMaterial({ map: own(leafTexture()), vertexColors: true, roughness: 0.95 })));
     add(mergeGeometries(houses), own(new THREE.MeshStandardMaterial({ color: '#e8dcc4', roughness: 0.95 })));
     add(mergeGeometries(roofsH), own(new THREE.MeshStandardMaterial({ color: '#a4482e', roughness: 0.9, flatShading: true })));
     trees.concat(crowns, houses, roofsH).forEach(g => g.dispose());
@@ -633,6 +744,7 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
   // la red se abomba donde entra el balón y vuelve oscilando
   function netHit(side, z, y, strength = 1) { const n = nets.find(n => n.s === side); if (n) n.hits.push({ z, y, a: Math.min(0.5, 0.12 + strength * 0.03), t: 0 }); }
   function tick(dt, t, camera, excite = 0.3, focus = 0) {
+    for (const f of flags) { const p = f.m.geometry.attributes.position, a = p.array; for (let i = 0; i < a.length; i += 3) { const x = f.base[i]; a[i + 2] = f.base[i + 2] + Math.sin(t * 5 + f.ph + x * 9) * 0.06 * (x / 0.46); } p.needsUpdate = true; }
     for (const n of nets) {
       if (!n.hits.length && !n.dirty) continue;
       const pos = n.back.geometry.attributes.position, arr = pos.array; arr.set(n.base);
