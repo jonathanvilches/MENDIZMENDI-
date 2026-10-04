@@ -10,7 +10,7 @@ const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromi
 const p = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 p.on('pageerror', e => console.log('PAGEERROR', e.message));
 if (process.env.AVATAR) await p.addInitScript((a) => { try { const K = 'mendimendiz-perfil-v1', P = JSON.parse(localStorage.getItem(K) || '{"v":1}'); P.avatar = a; P.seen = Object.assign(P.seen || {}, { heroBenat: true, dog: true }); localStorage.setItem(K, JSON.stringify(P)); } catch (e) { } }, process.env.AVATAR);
-await p.goto(`http://127.0.0.1:5173/?town=${town}&quality=high`, { timeout: 300000 });
+await p.goto(`http://127.0.0.1:5173/?town=${town}&q=high&weather=clear`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 400000 });
 // sin HUD, a media mañana, cámara libre para los planos de paisaje
 await p.addStyleTag({ content: '#hud, #controls, #compass, #toast, #prompt, .whisper { display: none !important; }' });

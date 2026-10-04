@@ -386,6 +386,8 @@ export class Fauna {
     for (const s of this.squirrels) {
       s.t += dt;
       const t = s.tree; const dp = Math.hypot(player.pos.x - t.x, player.pos.z - t.z);
+      // de lejos no se ven (miden un palmo) y cada una tiene muchos triángulos: ni se dibujan ni se mueven
+      s.obj.visible = dp < 45 || this.farView; if (!s.obj.visible) continue;
       if (dp < 6 && s.state !== 'up') s.state = 'up';
       else if (dp > 14 && s.state === 'up' && s.t > 6) { s.state = 'ground'; s.t = 0; }
       const trunkR = 0.36 * t.s;
@@ -407,6 +409,7 @@ export class Fauna {
     }
     for (const p of this.peckers) {
       p.t += dt;
+      p.obj.visible = this.farView || Math.hypot(player.pos.x - p.obj.position.x, player.pos.z - p.obj.position.z) < 50; if (!p.obj.visible) continue;
       const peck = (p.t % 4) < 1.2 ? Math.abs(Math.sin(p.t * 25)) : 0;
       p.obj.userData.body.rotation.x = peck * 0.35;
       if (peck && (p.t % 4) < 0.05 && sound) sound.woodpecker(p.obj.position);
