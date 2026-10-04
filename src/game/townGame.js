@@ -73,6 +73,8 @@ const TRADE = {
   cantero: { art: 'stone', title: 'El cantero', game: 'timing', verb: 'Tallar', icon: 'hammer', hint: 'Talla la piedra con golpes precisos.', act: 'hammer' },
   alpargatero: { art: 'sole', title: 'Alpargatas de esparto', game: 'timing', verb: 'Coser', icon: 'espadrille', hint: 'Cose la suela de esparto con puntadas precisas.', act: 'pick' },
 };
+// nombre del guía del pueblo, nunca el mismo que el de quien juega («Guía Ane: ¡Kaixo, Ane!» confundía)
+const guideName = (g, me = '') => (g ? ['Ane', 'Maite'] : ['Iker', 'Unai']).find(n => n.toLowerCase() !== String(me).trim().toLowerCase());
 const RACE = { camino: ['El Camino de Santiago', 'camino', 'Sigue las conchas y flechas amarillas'], almadia: ['Bajada en almadía', 'raft', 'Guía la almadía por el río'], encierro: ['Carrera del encierro', 'bull', '¡Corre delante de los toros!'], romeria: ['Romería', 'footprint', 'Sube por el camino de los romeros'], bici: ['Vía verde', 'bike', 'Recorre el viejo trazado del tren'] };
 // Aspecto de los personajes de carnaval y leyenda
 const FOLK = {
@@ -262,7 +264,7 @@ export class TownGame {
     this.ensureFronton();
     for (const M of this.missions) {
       const pos = this.spot(this.placeFor(M), 5);
-      const h = (M.leg?.teller) || M.m.host || (M.type === 'visit' ? ((g) => ({ name: 'Guía ' + (g ? 'Ane' : 'Iker'), look: { shirt: '#f2c230', vest: '#3a8fd6', pants: '#2b3a6b', hair: '#3b2418', ponytail: g, female: g, strap: '#6b4a2e', bag: '#8a6a3a', face: 'happy' } }))(this.rnd() < 0.5)
+      const h = (M.leg?.teller) || M.m.host || (M.type === 'visit' ? ((g) => ({ name: 'Guía ' + guideName(g, this.P.name), look: { shirt: '#f2c230', vest: '#3a8fd6', pants: '#2b3a6b', hair: '#3b2418', ponytail: g, female: g, strap: '#6b4a2e', bag: '#8a6a3a', face: 'happy' } }))(this.rnd() < 0.5)
         : M.type === 'quiz' ? { name: 'Sabio del concejo', look: { shirt: '#efe9dc', vest: '#2b2630', pants: '#2b2630', hair: '#dcd7cf', beard: '#dcd7cf', txapela: '#1d1d24', old: true, glasses: '#3a2a1a', staff: true } } : { name: 'Vecino', look: {} });
       const a = new Actor({ id: 'm' + M.i, name: h.name, x: pos.x, z: pos.z, heading: Math.atan2(PLACES.plaza.x - pos.x, PLACES.plaza.z - pos.z), look: h.look }, this.scene);
       a.mission = M; M.host = a; this.actors.push(a);

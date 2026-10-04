@@ -4,6 +4,7 @@ const [,, url, out, w = 390, h = 844, list = 'onb,home,home2,map,avatars,comarca
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const ctx = await browser.newContext({ viewport: { width: +w, height: +h }, hasTouch: true, isMobile: +w < 1000, deviceScaleFactor: 2 });
 const page = await ctx.newPage();
+await page.addInitScript((k) => { try { if (!localStorage.getItem(k)) localStorage.setItem(k, 'es'); } catch (e) { } }, 'mendimendiz-lang');
 const logs = [];
 page.on('pageerror', e => logs.push('PAGEERROR: ' + e.message));
 page.on('console', m => { if (m.type() === 'error' && !/CERT|favicon/.test(m.text())) logs.push('error: ' + m.text().slice(0, 200)); });
