@@ -218,6 +218,10 @@ export function buildHouse(B, T, o, rnd) {
   else if (o.roofType === 'gableZ') rise = roofGableZ(B, T, w, d, h, pitch, roofMat, { gableMat, overhang: o.overhang });
   else rise = roofGableX(B, T, w, d, h, pitch, roofMat, { gableMat, overhang: o.overhang });
   if (o.timber && o.roofType === 'gableZ') for (let i = -2; i <= 2; i++) B.add('woodDark', box(0.14, Math.max(0.3, rise * (1 - Math.abs(i) / 2.6) - 0.3), 0.08), MM(front, M(i * w / 6, h + (rise * (1 - Math.abs(i) / 2.6)) / 2, 0.06)));
+  // canalones de cinc bajo los aleros y bajantes por la fachada hasta el suelo
+  if (o.roofType !== 'hip' && !o.noGutter) gutters(B, T, w, d, h, pitch, o.overhang ?? 0.6, o.roofType === 'gableZ');
+  // placa del número de la casa junto a la puerta
+  { const px = doorX + (doorX > 0 ? -1 : 1) * (o.arch ? 1.75 : 1.4); B.add('paint', colored(box(0.28, 0.21, 0.03), '#2f5b8a'), MM(front, M(px, 2.05, 0.02))); B.add('paint', colored(box(0.22, 0.15, 0.03), '#f2efe6'), MM(front, M(px, 2.05, 0.035))); }
   // chimenea
   chimney(B, T, (rnd() - 0.5) * w * 0.4, h + rise * 0.55, (rnd() - 0.5) * d * 0.3);
   // buhardilla ocasional
@@ -228,6 +232,24 @@ export function buildHouse(B, T, o, rnd) {
     B.add(roofMat, box(1.9, 0.12, 2.1, 2), MM(dm, M(0, 1.45, 0.1, 0, 0.18)));
   }
   return rise;
+}
+
+// Canalón (media caña de cinc) a lo largo de cada alero y una bajante con su codo hasta la pared y el suelo
+function gutters(B, T, w, d, h, pitch, ov, alongZ) {
+  const ye = h - Math.tan(pitch) * ov - 0.12, len = (alongZ ? d : w) + ov * 2, half = (alongZ ? w : d) / 2;
+  for (const s of [-1, 1]) {
+    const out = half + ov - 0.06;
+    const g = new THREE.CylinderGeometry(0.09, 0.09, len, 8, 1, true, alongZ ? -Math.PI / 2 : Math.PI, Math.PI); // media caña abierta arriba
+    B.add('zinc', g, MM(T, alongZ ? M(s * out, ye, 0, 0, Math.PI / 2, 0) : M(0, ye, s * out, 0, 0, Math.PI / 2)));
+    // bajante en un extremo (uno por alero, en esquinas opuestas)
+    const a = s * ((alongZ ? d : w) / 2 - 0.3), wall = half + 0.07, mid = (out + wall) / 2;
+    const P = (along, across, y) => alongZ ? M(s * across, y, along) : M(along, y, s * across);
+    B.add('zinc', new THREE.CylinderGeometry(0.05, 0.05, ye + 0.05, 6), MM(T, P(a, wall, ye / 2 - 0.05)));
+    const neck = Math.hypot(out - wall, 0.35);
+    B.add('zinc', new THREE.CylinderGeometry(0.05, 0.05, neck, 6), MM(T, alongZ ? M(s * mid, ye - 0.17, a, 0, 0, -s * Math.atan2(out - wall, 0.35)) : M(a, ye - 0.17, s * mid, 0, s * Math.atan2(out - wall, 0.35), 0)));
+    B.add('zinc', box(0.14, 0.06, 0.14), MM(T, P(a, wall, 1.2)));        // abrazadera
+    B.add('zinc', box(0.14, 0.06, 0.14), MM(T, P(a, wall, ye - 1.4)));
+  }
 }
 
 // Entramado de madera de los caseríos atlánticos (Baztan, Bidasoa)
