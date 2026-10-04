@@ -25,8 +25,9 @@ const SPEC = {
   // oveja latxa: sin cuernos (las hembras del rebaño no los llevan) y con vellón de lana rizada
   sheep: { model: 'Sheep', h: 1.05, col: { Main: '#ece4d2', Main_Light: '#f2ebdc', Main_Dark: '#1f1915', Muzzle: '#1f1915', Hooves: '#1a1512' }, drop: ['MAT_ANI_Sheep_Cuernos'], wool: ['Main', 'Main_Light'] },
   goat: { model: 'Goat', h: 1.0, col: { Main: '#4a3a2e', Main_Light: '#8a6a4a', Main_Dark: '#2a1e18', Hooves: '#15100e' } },                                 // cabra pirenaica
-  pig: { model: 'Pig', h: 0.85, col: { Main: '#f0b4a2', Main_Light: '#f6c8b8', Muzzle: '#e89a8a', Hooves: '#7a5a4a' } },
-  jabali: { model: 'Jabali', h: 0.9, col: { Main: '#3a2e26', Main_Light: '#4e4034', Muzzle: '#2a221e', Hooves: '#1a1512' } },
+  // cerdo y jabalí con cuerpo propio (tools/blender/fauna/cerdos.py): euskal txerria rosado con cabeza y grupa negras
+  pig: { model: 'Pig', h: 0.85, col: { Main: '#efc4b4', Main_Light: '#f6d4c6', Main_Dark: '#2a2422', Muzzle: '#d9a094', Hooves: '#5e4a40' } },
+  jabali: { model: 'Jabali', h: 0.95, col: { Main: '#5a4a3c', Main_Light: '#7f6e5b', Main_Dark: '#221c18', Muzzle: '#3b3431', Hooves: '#151210' } },
 };
 // perros: razas del compañero, a su altura real (hasta la punta de las orejas); el detalle de cada raza (capa, pelo,
 // orejas y cola; van sin collar) está en dogDetail.js
@@ -81,7 +82,9 @@ function bakedScene(key, S, g) {
     const si = src.attributes.skinIndex, sia = new Uint16Array(n * 4); for (let i = 0; i < n; i++) for (let j = 0; j < 4; j++) sia[i * 4 + j] = si.getComponent(i, j);
     out.setAttribute('skinIndex', new THREE.BufferAttribute(sia, 4)); out.setAttribute('skinWeight', f32('skinWeight', 4));
     const hex = S.col?.[m.material.name]; c.copy(hex ? new THREE.Color(hex) : m.material.color);
-    const col = new Float32Array(n * 3); for (let i = 0; i < n; i++) { col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b; }
+    // si el modelo trae color por vértice (manchas pintadas en Blender, p. ej. el euskal txerria), lo multiplica
+    const vc = src.attributes.color, col = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) { const k = vc ? [vc.getX(i), vc.getY(i), vc.getZ(i)] : [1, 1, 1]; col[i * 3] = c.r * k[0]; col[i * 3 + 1] = c.g * k[1]; col[i * 3 + 2] = c.b * k[2]; }
     out.setAttribute('color', new THREE.BufferAttribute(col, 3));
     if (S.wool) out.setAttribute('wool', new THREE.BufferAttribute(new Float32Array(n).fill(S.wool.includes(m.material.name) ? 1 : 0), 1));
     if (S.dog) out.setAttribute('part', new THREE.BufferAttribute(new Float32Array(n).fill(dogPart(m.material.name)), 1));

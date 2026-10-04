@@ -37,8 +37,9 @@ import { FERIA } from '../data/ferias.js';
 import { PET, BELL, BENCH_LINES } from '../data/tocar.js';
 import { SITES } from '../data/dolmen.js';
 import { SABIOS, STYLE_TIP, KIND_TIP, NO_SABIO } from '../data/sabios.js';
-import { Encierro } from './encierro.js';
-import { Futbol } from './futbol.js';
+// el encierro y el fútbol (motores grandes) se descargan al entrar en ellos, no al abrir el juego
+const loadEncierro = () => import('./encierro.js').then(m => m.Encierro);
+const loadFutbol = () => import('./futbol.js').then(m => m.Futbol);
 import { montesFrom, townLatLon } from '../data/miradores.js';
 import { forgeGame, stitchGame, shearGame } from '../ui/mini3d/index.js';
 import { Panorama } from '../world/panorama.js';
@@ -49,7 +50,8 @@ import { PROCESOS, TRADICIONES } from '../data/procesos.js';
 import { bird } from '../actors/beasts.js';
 import { Fronton, findFrontonSpot, frontonWall } from './fronton.js';
 import { Pista, findPistaSpot } from './pista.js';
-import { clubOfTown, teamOfClub, clubPanel } from '../futbol/index.js';
+import { clubOfTown, teamOfClub } from '../futbol/clubs.js';
+import { clubPanel } from '../futbol/liga.js';
 import { season as ligaSeason } from '../futbol/liga.js';
 import { TOWN_CLUB, CLUBS } from '../futbol/clubs.js';
 const CLUBS_NAME = (id) => CLUBS[id]?.name || '', CLUBS_TOWN = (id) => CLUBS[id]?.town || '';
@@ -664,6 +666,7 @@ export class TownGame {
         'Jugamos a fútbol de verdad: once contra once en el campo de El Sadar, con porteros, árbitro y fuera de juego. Primero un entrenamiento de pases y luego eliges: partido, penaltis o un reto.',
         'Con el balón: PASE y TIRO (mantenlo pulsado para chutar más fuerte). Sin balón: ROBO cuando se le separe del pie, o ENTRADA. ¡Aupa Osasuna!'] : ['¿Otro partido? ¡La grada está llena!']);
     } finally { this.player.frozen = false; a.talking = 0; }
+    const Futbol = await loadFutbol();
     this.futbol = new Futbol(this, this.sadar);
     const r = await this.futbol.run();
     if (r.quit) return;
@@ -681,6 +684,7 @@ export class TownGame {
     const local = club ? teamOfClub(club.id) : { name: town, short: town.normalize('NFD').replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase() };
     // el rival del fútbol sala: el club vecino más parecido de la liga (o el equipo de los vecinos)
     const rivalId = club ? ligaSeason(club.id).teams[1] : null, rivalTeam = rivalId ? teamOfClub(rivalId) : null, rivalName = rivalTeam?.name || 'los vecinos';
+    const Futbol = await loadFutbol();
     const fut = new Futbol(this, null, { campo: 'pista', title: `Pista de ${town}`, sub: 'Fútbol sala 5 contra 5', local });
     this.player.frozen = true;
     try {
@@ -880,6 +884,7 @@ export class TownGame {
         if (m.kind === 'encierro') {
           if (M.step === 2) { await S(['¡Has llegado a la plaza! Así se vive el encierro.']); await this.complete(M, { card: 'El encierro', cardText: m.text }); return; }
           await S([m.text, 'Recuerda: en la vida real solo pueden correr las personas mayores de 18 años. Aquí, en el juego, sí puedes probar. ¿Preparado? Vamos a la Estafeta.']);
+          const Encierro = await loadEncierro();
           const r = await new Encierro(this).run();
           if (r.win) { M.step = 2; saveProfile(); await S(['¡Bravo! Has corrido el encierro hasta la plaza.']); await this.complete(M, { card: 'El encierro', cardText: m.text }); }
           else await S(['No pasa nada: los toros son muy rápidos. Habla conmigo cuando quieras intentarlo otra vez.']);
