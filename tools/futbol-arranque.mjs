@@ -9,7 +9,7 @@ await p.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON
 await p.goto(`http://127.0.0.1:5173/?town=${process.argv[2] || 'etxalar'}&q=low&weather=clear&skipintro=1`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 900000 });
 console.log('cargado; memoria', await p.evaluate(() => performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1e6) + ' MB' : '?'));
-await p.evaluate(() => { const G = window.__game; G.ui.dialog = async () => 0; window.__r = G.playFutsal().then(() => 'fin', e => 'ERROR ' + e.message); });
+await p.evaluate(() => { const G = window.__game; G.ui.dialog = async () => 0; window.__clk = setInterval(() => document.querySelector('[data-a="sala"]')?.click(), 600); window.__r = G.playFutsal().then(() => 'fin', e => 'ERROR ' + e.message); });
 const t0 = Date.now();
 const ok = await p.waitForFunction(() => window.__futbol && window.__futbol.live, null, { timeout: 600000, polling: 1000 }).then(() => true, e => e.message.slice(0, 120));
 console.log('partido en marcha:', ok, ((Date.now() - t0) / 1000).toFixed(0) + ' s', '· memoria', await p.evaluate(() => performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1e6) + ' MB' : '?').catch(() => '?'));
