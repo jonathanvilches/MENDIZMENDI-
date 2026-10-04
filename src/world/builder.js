@@ -51,7 +51,7 @@ export function makeMaterials() {
     rock: snowable(weather(std({ normalMap: TEX.rockN, normalScale: new THREE.Vector2(1.4, 1.4), color: '#8e877b', roughness: 0.95 }), 1.3, 1)),
     ashlar: weather(withTex(TEX.ashlar), 0.9),
     // piedra arenisca dorada (catedral de Pamplona, palacios de la Ribera)
-    sandstone: weather(withTex(TEX.ashlar, { color: new THREE.Color(1.42, 1.22, 0.9), emissive: new THREE.Color('#4d3e22') }), 0.8, 0.5),
+    sandstone: weather(withTex(TEX.ashlar, { color: new THREE.Color(1.3, 1.08, 0.76), emissive: new THREE.Color('#3d2f17') }), 1.0, 0.5),
     plaster: weather(withTex(TEX.plasterWhite, { normalScale: new THREE.Vector2(0.5, 0.5) }), 0.8, 0.4),
     plasterCream: weather(withTex(TEX.plasterCream, { normalScale: new THREE.Vector2(0.5, 0.5) }), 0.8, 0.4),
     slate: snowable(withTex(TEX.roofSlate, { roughness: 0.75 })),

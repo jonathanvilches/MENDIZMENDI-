@@ -11,6 +11,7 @@ import { PATHS, PLACES, HALF, CELL, N } from './layout.js';
 import { bench, VILLAGE } from './village.js';
 import { Signs, cityBlock, winDoor, pointedPanel, archedWall, balustrade, statue, navarraFlag, plaque, shopSign, letters, toW, fitText, roundRect, FONT_SERIF } from './civic.js';
 import { bullring, walls, citadel, stadium } from './pamplonaOut.js';
+import { towerClock } from './monuments.js';
 
 const gy = terrainHeight;
 const PAL = ['plasterOcher', 'plasterCream', 'plasterRose', 'plasterBlue', 'plaster', 'plasterOcher', 'plasterCream', 'plasterRose'];
@@ -180,61 +181,139 @@ function plazaCastillo(B, S, rnd, TOWN) {
   return { x: P.x, z: P.z + 12, kiosk: k };
 }
 
-// ---------- Ayuntamiento: fachada barroca de tres órdenes con el balcón del chupinazo ----------
+// ---------- Ayuntamiento: fachada barroca de piedra dorada (1753), estrecha y alta, de tres órdenes ----------
+// Planta baja con la puerta en arco entre dos estatuas (Prudencia y Justicia) y puertas laterales con rejas; dos
+// balcones corridos de forja con los escudos de la ciudad (en el primero se lanza el chupinazo) y las banderas en el
+// segundo; cornisa volada; remate con balaustrada, Hércules sobre volutas en las esquinas, el reloj en el cuerpo
+// central, frontón con el escudo y la Fama tocando la trompeta.
+const FLAGS = {
+  // banderas colgadas a lo largo de su mástil: franjas a lo largo (la tela cae junto al palo)
+  es: (B, F) => { for (const [x0, x1, c] of [[0, 0.25, '#c60b1e'], [0.25, 0.75, '#ffc400'], [0.75, 1, '#c60b1e']]) B.add('paint', flagStrip(x0, x1, c), F); },
+  na: (B, F) => { B.add('paint', flagStrip(0, 1, '#c8102e'), F); B.add('paint', colored(new THREE.CircleGeometry(0.2, 12), '#e0b43a'), MM(F, M(0.5, 1.95, 0.06))); B.add('paint', colored(new THREE.CircleGeometry(0.2, 12), '#e0b43a'), MM(F, M(0.5, 1.95, -0.06, Math.PI))); },
+  pa: (B, F) => { B.add('paint', flagStrip(0, 1, '#a3152b'), F); },
+  eu: (B, F) => {
+    B.add('paint', flagStrip(0, 1, '#123c9c'), F);
+    for (let k = 0; k < 12; k++) { const a = k * Math.PI / 6; for (const s of [1, -1]) B.add('paint', colored(new THREE.CircleGeometry(0.045, 5), '#ffd200'), MM(F, M(0.5 + Math.sin(a) * 0.3, 1.95 + Math.cos(a) * 0.3, s * 0.06, s < 0 ? Math.PI : 0))); }
+  },
+};
+// tela de 1 m de ancho y 2 m de caída a lo largo del mástil (de y = 0,9 a 2,9), con algo de vuelo
+function flagStrip(x0, x1, color) {
+  const g = new THREE.PlaneGeometry(x1 - x0, 2.0, 2, 8), p = g.attributes.position;
+  g.translate(x0 + (x1 - x0) / 2, 1.9, 0);
+  for (let i = 0; i < p.count; i++) p.setZ(i, Math.sin(p.getY(i) * 2.6 + p.getX(i) * 1.5) * 0.06 * p.getX(i));
+  g.computeVertexNormals();
+  const g2 = g.clone(); g2.rotateY(Math.PI); g2.translate(2 * (x0 + (x1 - x0) / 2), 0, 0);   // la otra cara
+  const both = new THREE.BufferGeometry().copy(g.toNonIndexed());
+  return colored(mergeTwo(both, g2.toNonIndexed()), color);
+}
+function mergeTwo(a, b) {
+  const g = new THREE.BufferGeometry();
+  for (const k of ['position', 'normal', 'uv']) { const A = a.attributes[k], Bb = b.attributes[k], arr = new Float32Array(A.array.length + Bb.array.length); arr.set(A.array); arr.set(Bb.array, A.array.length); g.setAttribute(k, new THREE.BufferAttribute(arr, A.itemSize)); }
+  return g;
+}
+// escudo de la ciudad sobre la barandilla: marco dorado, campo rojo y las cadenas (un anillo dorado)
+function railShield(B, F, x, y, z) {
+  B.add('gold', box(0.9, 0.82, 0.06), MM(F, M(x, y, z)));
+  B.add('paint', colored(box(0.74, 0.66, 0.04), '#b3202a'), MM(F, M(x, y, z + 0.03)));
+  B.add('gold', new THREE.TorusGeometry(0.16, 0.035, 5, 12), MM(F, M(x, y, z + 0.06)));
+  B.add('gold', box(0.5, 0.04, 0.03), MM(F, M(x, y, z + 0.06)));
+  B.add('gold', box(0.04, 0.5, 0.03), MM(F, M(x, y, z + 0.06)));
+}
 function ayuntamiento(B, S, cx, cz, TOWN) {
-  const w = 18, d = 15, fz = cz + d / 2, y = Math.min(gy(cx, fz), gy(cx - w / 2, fz), gy(cx + w / 2, fz)) - 0.1;
-  const T = M(cx, y, fz, 0), F = (m) => MM(T, m);
-  const top = 15.4, levels = [[0, 5.4], [5.4, 5.2], [10.6, 4.8]];
-  B.add('ashlar', box(w, top + 3, d, 2.2), F(M(0, top / 2 - 1.5, -d / 2)));
-  B.add('stoneDark', box(w + 0.3, 0.9, d + 0.3, 2), F(M(0, 0.15, -d / 2)));
-  const colX = [-8.4, -7.6, -3.1, -2.3, 2.3, 3.1, 7.6, 8.4];
+  const w = 15.5, d = 15, fz = cz + d / 2, y = Math.min(gy(cx, fz), gy(cx - w / 2, fz), gy(cx + w / 2, fz)) - 0.1;
+  const T = M(cx, y, fz, 0), F = (m) => MM(T, m), SA = 'sandstone';
+  const levels = [[0, 6.2], [6.2, 5.4], [11.6, 5.0]], top = 16.6, bays = [-4.7, 0, 4.7];
+  B.add(SA, box(w, top + 3, d, 2.2), F(M(0, top / 2 - 1.5, -d / 2)));
+  B.add('stoneDark', box(w + 0.3, 0.7, d + 0.3, 2), F(M(0, 0.05, -d / 2)));
+  // columnas pareadas en cada orden (toscano, jónico, corintio: capiteles cada vez más anchos)
+  const colX = [-7.35, -6.7, -2.75, -2.1, 2.1, 2.75, 6.7, 7.35];
   levels.forEach(([y0, lh], L) => {
     for (const x of colX) {
-      B.add('ashlar', box(0.72, 0.36, 0.72, 1), F(M(x, y0 + 0.2, 0.42)));
-      B.add('ashlar', new THREE.CylinderGeometry(0.24, 0.29, lh - 1.0, 10), F(M(x, y0 + 0.38 + (lh - 1.0) / 2, 0.42)));
-      B.add('ashlar', new THREE.CylinderGeometry(0.42 + L * 0.05, 0.28, 0.34 + L * 0.08, 8), F(M(x, y0 + lh - 0.64, 0.42)));
+      B.add(SA, box(0.66, 0.4, 0.66, 1), F(M(x, y0 + 0.2, 0.42)));
+      B.add(SA, new THREE.CylinderGeometry(0.22, 0.26, lh - 1.15, 12), F(M(x, y0 + 0.4 + (lh - 1.15) / 2, 0.42)));
+      B.add(SA, new THREE.CylinderGeometry(0.36 + L * 0.06, 0.24, 0.3 + L * 0.12, 8), F(M(x, y0 + lh - 0.6 + L * 0.03, 0.42)));
     }
-    B.add('ashlar', box(w + 0.5, 0.5, 1.05), F(M(0, y0 + lh - 0.25, 0.38)));
-    B.add('ashlar', box(w + 0.9, 0.17, 1.3), F(M(0, y0 + lh + 0.08, 0.42)));
+    // entablamento: arquitrabe, friso y cornisa volada
+    B.add(SA, box(w + 0.4, 0.55, 1.0), F(M(0, y0 + lh - 0.28, 0.4)));
+    B.add(SA, box(w + 0.8, 0.18, 1.3), F(M(0, y0 + lh + 0.05, 0.45)));
   });
-  // planta baja: tres puertas en arco
-  for (const [x, dw, dh] of [[0, 2.6, 4.3], [-5.35, 1.8, 3.7], [5.35, 1.8, 3.7]]) {
-    B.add('woodDark', archPanel(dw, dh, 0.1), F(M(x, 0.3, 0.05)));
-    B.add('ashlar', archRing(dw / 2, dw / 2 + 0.36, 0.34, 12), F(M(x, 0.3 + dh - dw / 2, 0.12)));
-    for (const s of [-1, 1]) B.add('ashlar', box(0.36, dh - dw / 2, 0.3, 1), F(M(x + s * (dw / 2 + 0.18), 0.3 + (dh - dw / 2) / 2, 0.1)));
+  // cornisa principal muy volada sobre ménsulas
+  B.add(SA, box(w + 1.4, 0.42, 1.9), F(M(0, top + 0.3, 0.55)));
+  for (let x = -w / 2 + 0.4; x <= w / 2 - 0.3; x += 0.95) B.add(SA, box(0.22, 0.34, 1.1, 1), F(M(x, top - 0.06, 0.75)));
+  // planta baja: puerta en arco con montante de forja, dos estatuas sobre pedestales y puertas laterales con rejas
+  B.add('woodDark', archPanel(2.5, 4.7, 0.1), F(M(0, 0.3, 0.05)));
+  B.add('railing', new THREE.PlaneGeometry(2.3, 1.0), F(M(0, 3.75, 0.12)));
+  B.add(SA, archRing(1.25, 1.7, 0.4, 14), F(M(0, 0.3 + 4.7 - 1.25, 0.14)));
+  for (const s of [-1, 1]) B.add(SA, box(0.45, 4.7 - 1.25, 0.38, 1), F(M(s * 1.48, 0.3 + (4.7 - 1.25) / 2, 0.12)));
+  B.add(SA, box(1.2, 0.8, 0.6), F(M(0, 5.25, 0.3)));   // clave con cartela
+  for (const s of [-1, 1]) {
+    B.add(SA, box(0.95, 1.7, 0.95), F(M(s * 2.45, 0.85, 1.0)));
+    B.add(SA, box(1.15, 0.2, 1.15), F(M(s * 2.45, 1.75, 1.0)));
+    statue(B, F(M(s * 2.45, 1.85, 1.0, -s * 0.25)), 2.3, 'ashlar', -s);
   }
-  // planta noble: balcón corrido del chupinazo y frontones sobre las puertas
-  for (const [x, ww, wh] of [[0, 1.6, 3.3], [-5.35, 1.3, 3.0], [5.35, 1.3, 3.0]]) {
-    winDoor(B, T, x, 5.75, ww, wh, null);
-    B.add('ashlar', gable(ww + 1.1, 0.75, 0.35), F(M(x, 5.75 + wh + 0.28, 0.12)));
+  for (const x of [-4.7, 4.7]) {
+    B.add('woodDark', box(1.7, 2.9, 0.1), F(M(x, 1.75, 0.05)));
+    B.add(SA, box(2.3, 0.35, 0.3), F(M(x, 3.4, 0.12)));
+    for (const s of [-1, 1]) B.add(SA, box(0.3, 4.9, 0.3, 1), F(M(x + s * 1.0, 2.75, 0.1)));
+    B.add('glass', box(1.7, 1.5, 0.02), F(M(x, 4.45, 0.03)));
+    B.add('railing', new THREE.PlaneGeometry(1.7, 1.5), F(M(x, 4.45, 0.1)));
+    B.add(SA, box(2.3, 0.3, 0.3), F(M(x, 5.35, 0.12)));
   }
-  B.add('ashlar', box(w - 0.6, 0.3, 1.45), F(M(0, 5.5, 0.72)));
-  { const rail = new THREE.PlaneGeometry(w - 0.8, 1.0), uv = rail.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setX(i, uv.getX(i) * (w - 0.8) / 0.9); B.add('railing', rail, F(M(0, 6.15, 1.42))); }
-  for (const s of [-1, 1]) { const rail = new THREE.PlaneGeometry(1.4, 1.0); B.add('railing', rail, F(M(s * (w / 2 - 0.42), 6.15, 0.75, Math.PI / 2))); }
-  B.add('gold', box(w - 0.7, 0.07, 0.1), F(M(0, 6.66, 1.42)));
-  for (let i = 0; i < 7; i++) B.add('ashlar', box(0.3, 0.5, 1.2), F(M(-7.5 + i * 2.5, 5.12, 0.6, 0, 0.3)));
-  // segunda planta: balcones sueltos
-  for (const [x, ww, wh] of [[0, 1.4, 2.8], [-5.35, 1.2, 2.6], [5.35, 1.2, 2.6]]) {
-    winDoor(B, T, x, 10.95, ww, wh, null);
-    B.add('ashlar', box(ww + 0.7, 0.14, 0.7, 1), F(M(x, 10.9, 0.35)));
-    const rail = new THREE.PlaneGeometry(ww + 0.6, 0.9); { const uv = rail.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setX(i, uv.getX(i) * (ww + 0.6) / 0.9); }
-    B.add('railing', rail, F(M(x, 11.42, 0.68)));
+  // primera y segunda planta: balcón corrido de forja con un escudo en cada vano, ventanas con frontón
+  const balcony = (yb, h) => {
+    B.add(SA, box(w - 0.3, 0.3, 1.5), F(M(0, yb, 0.75)));
+    for (let i = 0; i < 8; i++) B.add(SA, box(0.3, 0.5, 1.25), F(M(-6.9 + i * 1.97, yb - 0.38, 0.62, 0, 0.3)));
+    const rail = new THREE.PlaneGeometry(w - 0.5, h), uv = rail.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setX(i, uv.getX(i) * (w - 0.5) / 0.9);
+    B.add('railing', rail, F(M(0, yb + 0.15 + h / 2, 1.47)));
+    for (const s of [-1, 1]) B.add('railing', new THREE.PlaneGeometry(1.45, h), F(M(s * (w / 2 - 0.27), yb + 0.15 + h / 2, 0.75, Math.PI / 2)));
+    B.add('iron', box(w - 0.4, 0.07, 0.1), F(M(0, yb + 0.17 + h, 1.47)));
+    for (const x of bays) railShield(B, F(M(0, 0, 0)), x, yb + 0.15 + h * 0.5, 1.52);
+  };
+  levels.slice(1).forEach(([y0, lh], L) => {
+    balcony(y0 + 0.05, 1.0);
+    for (const x of bays) {
+      const ww = x === 0 ? 1.55 : 1.35, wh = lh - 1.9;
+      winDoor(B, T, x, y0 + 0.25, ww, wh, null, SA);
+      B.add('woodDark', box(ww * 0.46, wh, 0.06), F(M(x - ww * 0.27, y0 + 0.25 + wh / 2, 0.08, 0.5)));   // hoja abierta
+      if (L === 0) B.add(SA, gable(ww + 1.0, 0.6, 0.35), F(M(x, y0 + 0.25 + wh + 0.4, 0.14)));
+      else { B.add(SA, archRing(ww / 2 + 0.2, ww / 2 + 0.45, 0.3, 10), F(M(x, y0 + 0.25 + wh + 0.3, 0.14))); }
+      B.add(SA, box(0.8, 0.5, 0.25), F(M(x, y0 + lh - 0.9, 0.12)));   // cartela entre ventana y cornisa
+    }
+  });
+  // banderas en el balcón de la segunda planta: España, Navarra, Pamplona y Europa
+  ['es', 'na', 'pa', 'eu'].forEach((k, i) => {
+    const x = -1.5 + i * 1.0, P = F(M(x, 11.75, 1.5, 0, 0.55, -x * 0.12));
+    B.add('iron', new THREE.CylinderGeometry(0.035, 0.04, 3.1, 6), MM(P, M(0, 1.55, 0)));
+    B.add('gold', new THREE.SphereGeometry(0.07, 8, 6), MM(P, M(0, 3.12, 0)));
+    FLAGS[k](B, MM(P, M(0.04, 0, 0)));
+  });
+  // remate: balaustrada, volutas con Hércules en las esquinas, cuerpo central con el reloj, frontón con el escudo y la Fama
+  balustrade(B, F(M(0, top + 0.5, 0.2)), w + 0.2, 1.0, 0.42, SA);
+  for (const s of [-1, 1]) {
+    const vx = s * (w / 2 - 1.0);
+    B.add(SA, box(1.4, 1.3, 1.4), F(M(vx, top + 1.15, 0.2)));
+    const vol = new THREE.CylinderGeometry(0.9, 0.9, 1.3, 12, 1, false, 0, Math.PI / 2); vol.rotateZ(Math.PI / 2);
+    B.add(SA, vol, F(M(vx - s * 0.7, top + 0.5, 0.2, s > 0 ? 0 : Math.PI)));
+    statue(B, F(M(vx, top + 1.8, 0.2, -s * 0.35)), 2.7, 'ashlar', s);
+    B.add(SA, new THREE.CylinderGeometry(0.07, 0.12, 1.5, 6), F(M(vx + s * 0.55, top + 3.6, 0.35, 0, 0, -s * 0.5)));   // la maza
   }
-  // remate: balaustrada con pináculos, escudo en un frontón curvo, dos estatuas y la Fama con su trompeta
-  balustrade(B, F(M(0, top + 0.16, 0.25)), w + 0.4, 1.0);
-  for (const x of [-8, -2.7, 2.7, 8]) { B.add('ashlar', box(0.55, 0.9, 0.55), F(M(x, top + 1.6, 0.25))); B.add('ashlar', new THREE.SphereGeometry(0.3, 10, 8), F(M(x, top + 2.35, 0.25))); }
-  B.add('ashlar', box(6.2, 3.3, 0.9), F(M(0, top + 1.8, 0.1)));
-  B.add('ashlar', archRing(2.7, 3.35, 0.9, 16), F(M(0, top + 3.45, 0.1)));
-  B.add('ashlar', box(7.2, 0.3, 1.1), F(M(0, top + 3.5, 0.15)));
-  B.add('shield', new THREE.PlaneGeometry(1.9, 2.3), F(M(0, top + 2.2, 0.58)));
-  for (const s of [-1, 1]) statue(B, F(M(s * 4.4, top + 1.16, 0.25, -s * 0.3)), 2.3, 'ashlar', s);
-  statue(B, F(M(0, top + 6.8, 0.1)), 2.1, 'ashlar', 1);
-  B.add('gold', new THREE.ConeGeometry(0.12, 1.2, 8), F(M(0.55, top + 8.4, 0.4, 0, -0.6, -0.9)));
+  for (const x of [-4.2, 4.2]) { B.add(SA, box(0.5, 0.8, 0.5), F(M(x, top + 1.9, 0.2))); B.add(SA, new THREE.SphereGeometry(0.28, 10, 8), F(M(x, top + 2.55, 0.2))); }
+  const cw = 6.0, ch = 4.4, cy = top + 0.5;
+  B.add(SA, box(cw, ch, 1.2), F(M(0, cy + ch / 2, -0.1)));
+  for (const s of [-1, 1]) { B.add(SA, box(0.45, ch, 0.35), F(M(s * (cw / 2 - 0.2), cy + ch / 2, 0.6))); B.add(SA, new THREE.CylinderGeometry(0.75, 0.75, 0.9, 12, 1, false, 0, Math.PI), F(M(s * (cw / 2 + 0.55), cy + 0.6, -0.1, s > 0 ? -Math.PI / 2 : Math.PI / 2, 0, Math.PI / 2))); }
+  towerClock(B, F(M(0, cy + 2.2, 0.5)), 1.05);
+  B.add(SA, box(cw + 0.8, 0.3, 1.4), F(M(0, cy + ch + 0.15, 0)));
+  B.add(SA, gable(cw + 0.6, 1.5, 1.1), F(M(0, cy + ch + 0.3, 0)));
+  B.add('shield', new THREE.PlaneGeometry(1.5, 1.8), F(M(0, cy + ch + 1.25, 0.62)));
+  B.add('gold', new THREE.CylinderGeometry(0.45, 0.35, 0.35, 10), F(M(0, cy + ch + 2.3, 0.5)));   // corona
+  B.add(SA, box(0.9, 0.5, 0.9), F(M(0, cy + ch + 1.9, 0)));
+  statue(B, F(M(0, cy + ch + 2.15, 0.05)), 2.3, 'ashlar', 1);
+  B.add('gold', new THREE.ConeGeometry(0.11, 1.2, 8), F(M(0.6, cy + ch + 4.1, 0.35, 0, -0.6, -0.9)));   // trompeta de la Fama
   roofHip(B, F(M(0, 0, -d / 2)), w, d, top + 0.2, 3.2, 'tile');
-  navarraFlag(B, F(M(0, top + 3.2, -4.5)), 2.6);
   addBox(cx, cz, w + 0.4, d + 0.4, 0, { solidView: true });
+  for (const s of [-1, 1]) addBox(cx + s * 2.45, fz + 1.0, 1.0, 1.0, 0);   // pedestales de las estatuas
   S.add(F(M(-w / 2 - 0.03, 3.2, -2.2, -Math.PI / 2)), 1.4, 0.58, plaque(['PLAZA CONSISTORIAL', 'UDALETXEKO PLAZA']));
-  TOWN.houses.push({ x: cx, z: cz, ry: 0, w, d, top: y + top + 4 });
+  TOWN.houses.push({ x: cx, z: cz, ry: 0, w, d, top: y + top + 10 });
   return { x: cx, z: fz + 6 };
 }
 

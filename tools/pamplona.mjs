@@ -11,7 +11,7 @@ const errs = [];
 p.on('pageerror', e => errs.push('PAGEERROR ' + e.message));
 p.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errs.push(m.type() + ' ' + m.text().slice(0, 200)); });
 const t0 = Date.now();
-await p.goto('http://127.0.0.1:5173/?town=pamplona&quality=high', { timeout: 300000 });
+await p.goto('http://127.0.0.1:5173/?town=pamplona&q=high', { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 500000 });
 console.log('cargado en', ((Date.now() - t0) / 1000).toFixed(0), 's');
 await p.addStyleTag({ content: '#hud, #controls, #compass, #toast, #prompt, .whisper { display: none !important; }' });
@@ -30,7 +30,9 @@ const V = {
   plaza: { x: 40, y: 26, z: 108, lx: 40, ly: 2, lz: 0 },
   kiosco: { x: 52, y: 5, z: 44, lx: 40, ly: 4, lz: 20 },
   iruna: { x: 50, y: 4, z: 30, lx: 76, ly: 6, lz: 30 },
-  ayto: { x: -8, y: 5, z: -84, lx: -14, ly: 10, lz: -110 },
+  ayto: { x: -14, y: 4, z: -88, lx: -14, ly: 13, lz: -109 },
+  aytoPuerta: { x: -11, y: 1.7, z: -97, lx: -14, ly: 3.5, lz: -109 },
+  aytoLado: { x: -4, y: 3, z: -96, lx: -15, ly: 10, lz: -109 },
   estafeta: { x: 40, y: 3, z: -101, lx: 110, ly: 5, lz: -106 },
   catedral: { x: 50, y: 5, z: -198, lx: 100, ly: 15, lz: -190 },
   torosCalle: { x: 192, y: 3, z: -14, lx: 232, ly: 9, lz: -56 },

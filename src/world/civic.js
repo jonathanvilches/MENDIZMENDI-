@@ -148,18 +148,27 @@ export function archedWall(w, h, ow, oh, depth, pointed = false) {
   return g;
 }
 // balaustrada: pasamanos, zócalo y balaustres torneados
-export function balustrade(B, T, len, h = 1, step = 0.42) {
-  B.add('ashlar', box(len, 0.16, 0.5, 1), MM(T, M(0, 0.08, 0)));
-  B.add('ashlar', box(len, 0.16, 0.55, 1), MM(T, M(0, h - 0.08, 0)));
+export function balustrade(B, T, len, h = 1, step = 0.42, mat = 'ashlar') {
+  B.add(mat, box(len, 0.16, 0.5, 1), MM(T, M(0, 0.08, 0)));
+  B.add(mat, box(len, 0.16, 0.55, 1), MM(T, M(0, h - 0.08, 0)));
   const n = Math.floor(len / step);
-  for (let i = 0; i < n; i++) B.add('ashlar', new THREE.CylinderGeometry(0.08, 0.13, h - 0.3, 6), MM(T, M(-len / 2 + (i + 0.5) * len / n, h / 2, 0)));
+  for (let i = 0; i < n; i++) B.add(mat, new THREE.CylinderGeometry(0.08, 0.13, h - 0.3, 6), MM(T, M(-len / 2 + (i + 0.5) * len / n, h / 2, 0)));
 }
-// estatua de piedra sencilla (figura con túnica), altura h
+// estatua de piedra: túnica con pliegues hasta los pies, torso, hombros, cabeza y un brazo levantado (arm: lado del
+// brazo alzado), sobre su peana; altura h
 export function statue(B, T, h = 2.2, mat = 'ashlar', arm = 1) {
-  B.add(mat, new THREE.CylinderGeometry(0.22 * h / 2.2, 0.36 * h / 2.2, h * 0.68, 8), MM(T, M(0, h * 0.34, 0)));
-  B.add(mat, new THREE.SphereGeometry(0.19 * h / 2.2, 8, 6), MM(T, M(0, h * 0.78, 0)));
-  B.add(mat, box(0.12 * h / 2.2, h * 0.34, 0.12 * h / 2.2), MM(T, M(0.3 * h / 2.2 * arm, h * 0.62, 0.08, 0, -0.5, arm * 0.5)));
-  B.add(mat, box(0.55 * h / 2.2, 0.14, 0.5 * h / 2.2), MM(T, M(0, 0.07, 0)));
+  const k = h / 2.2;
+  const robe = [[0.4, 0], [0.42, 0.08], [0.36, 0.5], [0.3, 0.95], [0.27, 1.25], [0.3, 1.45], [0.26, 1.58], [0.12, 1.66], [0.001, 1.67]].map(([r, y]) => new THREE.Vector2(r * k, y * k));
+  const g = new THREE.LatheGeometry(robe, 14), p = g.attributes.position;
+  // pliegues verticales de la tela
+  for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i), a = Math.atan2(z, x), f = 1 + 0.07 * Math.sin(a * 7) * (1 - p.getY(i) / (1.7 * k)); p.setX(i, x * f); p.setZ(i, z * f); }
+  g.computeVertexNormals();
+  B.add(mat, g, MM(T, M(0, 0.14, 0)));
+  B.add(mat, new THREE.SphereGeometry(0.15 * k, 10, 8), MM(T, M(0, 1.84 * k + 0.14, 0)));                  // cabeza
+  B.add(mat, new THREE.CylinderGeometry(0.07 * k, 0.08 * k, 0.16 * k, 8), MM(T, M(0, 1.7 * k + 0.14, 0)));   // cuello
+  B.add(mat, new THREE.CylinderGeometry(0.06 * k, 0.07 * k, 0.75 * k, 6), MM(T, M(arm * 0.4 * k, 1.75 * k, 0.06 * k, 0, -0.3, arm * 0.55)));   // brazo alzado
+  B.add(mat, new THREE.CylinderGeometry(0.06 * k, 0.07 * k, 0.7 * k, 6), MM(T, M(-arm * 0.3 * k, 1.25 * k, 0.1 * k, 0, 0.35, -arm * 0.12)));   // brazo caído
+  B.add(mat, box(0.62 * k, 0.14, 0.56 * k), MM(T, M(0, 0.07, 0)));
 }
 // mástil con bandera de Navarra (roja con el escudo dorado de cadenas), ondeando en quietud
 export function navarraFlag(B, T, len = 2.4) {
