@@ -103,7 +103,7 @@ export class Mochila {
         <h4>Comida</h4>
         <div class="bp-food">${food.length ? food.map(([k, n]) => `<button class="fooditem" data-f="${k}" title="${esc(FOOD[k].fact)}">${iconSVG(FOOD[k].icon, 34)}<b>${esc(FOOD[k].name)}</b><span>×${n} · +${FOOD[k].e}</span></button>`).join('') : '<p class="bp-note">Vacía. Busca moras, avellanas y manzanas por el campo, o gana comida en las misiones de productos.</p>'}</div>
         <h4>Equipo</h4>
-        <div class="bp-gear">${GEAR_ORDER.map(id => { const G = GEAR[id], h = this.has(id); return `<div class="gitem ${h ? '' : 'locked'}" title="${esc(h ? G.use : G.how)}">${iconSVG(h ? G.icon : 'lock', 30)}<b>${esc(h ? G.name : '¿?')}</b><small>${esc(h ? G.use : G.how)}</small></div>`; }).join('')}</div>
+        <div class="bp-gear">${GEAR_ORDER.map(id => { const G = GEAR[id], h = this.has(id); return `<div class="gitem ${h ? '' : 'locked'}" title="${esc(h ? G.use : G.how)}">${iconSVG(h ? G.icon : 'lock', 30)}<b>${esc(h ? G.name : 'Por descubrir')}</b><small>${esc(h ? G.use : G.how)}</small></div>`; }).join('')}</div>
         </div>
         <div class="bp-foot"><button class="btn primary" data-a="close">Cerrar</button></div></div>`;
     };
