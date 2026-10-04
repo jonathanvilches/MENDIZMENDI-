@@ -454,19 +454,20 @@ export class FutbolMatch {
     // balón: rodando con giro coherente con la velocidad; en las manos del portero, con él
     const bp = B.p, bm = this.ball;
     const al = g.alpha ?? 1, P0 = B.prev, ibx = P0.x + (bp.x - P0.x) * al, iby = P0.y + (bp.y - P0.y) * al, ibz = P0.z + (bp.z - P0.z) * al;
-    // el balón, siempre de su tamaño (para seguirlo en los pases está la estela)
-    bm.position.set(ibx, iby + (K.scale - 1) * R, ibz);
+    // el balón, al 120 %; de lejos (la cámara de televisión) un poco mayor, hasta 1,5 veces el real, para que no se pierda
+    const big = clamp(this.camera.position.distanceTo(bm.position) / 34, 1, 1.25), kb = K.scale * big;
+    bm.scale.setScalar(big); bm.position.set(ibx, iby + (kb - 1) * R, ibz);
     const hs = Math.hypot(B.v.x, B.v.z);
     const last = this.trailHist[0]; if (last && Math.hypot(last[0] - ibx, last[2] - ibz) > 3) this.trailHist.length = 0;   // (saque: el balón se ha colocado en otro sitio)
-    this.trailHist.unshift([ibx, iby + (K.scale - 1) * R, ibz]); if (this.trailHist.length > 14) this.trailHist.length = 14;
+    this.trailHist.unshift([ibx, iby + (kb - 1) * R, ibz]); if (this.trailHist.length > 14) this.trailHist.length = 14;
     const showTrail = !B.held && !g.owner && B.speed > 7 && !this.replay;
     this.trail.forEach((sp, i) => {
       const h = this.trailHist[(i + 1) * 2]; sp.visible = showTrail && !!h; if (!sp.visible) return;
-      sp.position.set(h[0], h[1], h[2]); const k = 1 - (i + 1) / (this.trail.length + 1); sp.scale.setScalar(R * K.scale * 2.2 * (0.5 + 0.5 * k)); sp.material.opacity = 0.55 * k * clamp((B.speed - 7) / 5, 0, 1);
+      sp.position.set(h[0], h[1], h[2]); const k = 1 - (i + 1) / (this.trail.length + 1); sp.scale.setScalar(R * kb * 2.2 * (0.5 + 0.5 * k)); sp.material.opacity = 0.55 * k * clamp((B.speed - 7) / 5, 0, 1);
     });
     if (hs > 0.05 && !B.held && dt > 0) { const ax = new THREE.Vector3(B.v.z, 0, -B.v.x).normalize(); bm.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(ax, hs / (R * K.scale) * dt)); }
     this.field.follow?.(bp.x, bp.z);
-    const sh = clamp(1 - bp.y / 5, 0.25, 1); this.ballShadow.position.set(bp.x, 0.012, bp.z); this.ballShadow.scale.setScalar(0.7 + (1 - sh) * 0.8); this.ballShadow.material.opacity = sh;
+    const sh = clamp(1 - bp.y / 5, 0.25, 1); this.ballShadow.position.set(bp.x, 0.012, bp.z); this.ballShadow.scale.setScalar((0.7 + (1 - sh) * 0.8) * big); this.ballShadow.material.opacity = sh;
     // anillo del jugador y aro del pase
     const me = g.me, showRing = !g.autoplay && g.mode !== 'penalties' || (g.mode === 'penalties' && g.pen?.human === 'shooter');
     this.ring.visible = showRing && !this.replay && !(this.intro > 0); this.ring.position.set(me.x, 0.03, me.z); this.ring.rotation.y = me.h;

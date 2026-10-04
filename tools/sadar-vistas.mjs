@@ -16,6 +16,11 @@ const V = {
   'fondo': [[70, 9, 0], [0, 0, 0]],
   'cesped-porteria': [[40, 1.6, 6], [52.5, 1.2, 0]],
   'lateral-bajo': [[0, 1.7, 30], [0, 4, -40]],
+  'tv': [[0, 24, 70], [0, 0, 6]],
+  'esquina': [[44, 2.2, 26], [52.5, 0.5, 34]],
+  'banquillo': [[-14, 2.5, 26], [-6, 1, 40]],
+  'porteria': [[-38, 3, -10], [-55, 1, 0]],
+  'exterior': [[-60, 2, 128], [-20, 6, 80]],
 };
 for (const [n, [p, l]] of Object.entries(V)) {
   await page.evaluate(([p, l]) => { const c = window.__futbol.camera; c.fov = 50; c.position.set(...p); c.lookAt(...l); c.updateProjectionMatrix(); }, [p, l]);

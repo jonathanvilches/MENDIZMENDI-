@@ -19,10 +19,10 @@ const FIELD11 = {
   wall: 9.15, margin: 5,                              // la barrera y los rivales a 9,15 m; vallas de publicidad a 5 m de las líneas
 };
 
-// Balón (talla 5): radio 0,11 m y 0,43 kg; se dibuja de su tamaño real (en los pases, una estela ayuda a seguirlo)
+// Balón (talla 5): radio 0,11 m y 0,43 kg; se dibuja al 120 % (y de lejos un poco más) para que se lea en el móvil
 const PHYS11 = {
   R: 0.11, mass: 0.43, g: 9.81, drag: 0.012, magnus: 0.0008, magnusMax: 6,
-  rest: 0.55, tan: 0.85, roll: 1.5, postRest: 0.7, net: 0.85, board: 0.45, hz: 120, scale: 1,
+  rest: 0.55, tan: 0.85, roll: 1.5, postRest: 0.7, net: 0.85, board: 0.45, hz: 120, scale: 1.2,
   pass: [8, 27], shot: [16, 31], clear: [26, 34], throw: [7, 15],
 };
 
@@ -76,13 +76,13 @@ const FIELD_SALA = {
   spot: 6, spot2: 10, arc: 0, circle: 3, corner: 0.25,
   wall: 5, margin: 2,                                 // rivales a 5 m en los balones parados; muro a 2 m de las líneas
 };
-// Balón de talla 4: radio 0,100 m y 0,41 kg (de su tamaño real en pantalla). Aire: ½·ρ·Cd·A·v² con Cd de 0,45 (a 5 m/s) a 0,25
+// Balón de talla 4: radio 0,100 m y 0,41 kg (al 120 % en pantalla). Aire: ½·ρ·Cd·A·v² con Cd de 0,45 (a 5 m/s) a 0,25
 // (desde 12 m/s); Magnus ½·ρ·CL·A·v² con CL = r·|ω|/|v| (como mucho 0,35) y 8 m/s² como máximo; el giro se pierde un
 // 1,5 % cada 1/60 s. Bote bajo (restitución 0,55 y −12 % de velocidad horizontal), rodadura de 1,6 m/s² en pista lisa
 // (2,8 en hierba)
 const PHYS_SALA = {
   R: 0.1, mass: 0.41, g: 9.81, rho: 1.2, cd: [0.45, 0.25], cdV: [5, 12], cl: 0.35, magnusMax: 8, spinKeep: 0.985,
-  rest: 0.55, tan: 0.88, roll: 1.6, rollGrass: 2.8, postRest: 0.7, net: 0.85, board: 0.45, hz: 120, scale: 1,
+  rest: 0.55, tan: 0.88, roll: 1.6, rollGrass: 2.8, postRest: 0.7, net: 0.85, board: 0.45, hz: 120, scale: 1.2,
   pass: [8, 16], loftV: [10, 18], shot: [16, 30], clear: [18, 24], throw: [7, 15],
 };
 PHYS_SALA.dragK = 0.5 * PHYS_SALA.rho * Math.PI * PHYS_SALA.R * PHYS_SALA.R / PHYS_SALA.mass;   // aceleración = dragK·Cd·v²
