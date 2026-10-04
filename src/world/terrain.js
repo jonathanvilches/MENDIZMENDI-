@@ -206,6 +206,8 @@ vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.
   col = mix(col, uRock * (0.62 + 0.45 * d2.b + 0.3 * d2.g), scree * 0.45);
   col = mix(col, rc, rockM);
 #ifdef OUTER
+  // hondonadas y canales más oscuros (oclusión), crestas algo más claras
+  { vec2 q = vWP.xz; float oh = texture2D(tDetail, q / 140.0).r + texture2D(tDetail, q / 41.0 + 0.2).g * 0.55; col *= 0.8 + 0.3 * smoothstep(0.35, 1.25, oh); }
   // montañas lejanas: manchas de bosque y prados
   float fo = smoothstep(0.48, 0.6, texture2D(tDetail, vWP.xz / 190.0).r) * (1.0 - rockM) * (1.0 - smoothstep(170.0, 215.0, vWP.y));
   col = mix(col, vec3(0.13, 0.24, 0.1) * (0.8 + 0.4 * d1.r), fo * 0.75);
@@ -241,6 +243,24 @@ vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.
   diffuseColor.rgb = mix(diffuseColor.rgb, cob, sm);
 }`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+{
+  // montañas lejanas: lomos, canales y cárcavas dibujados con la luz (relieve de un campo de alturas a dos escalas);
+  // así no se ven las facetas de la malla gruesa. En el valle jugable, solo de lejos y en las laderas
+  vec2 p = vWP.xz; float e = 5.0;
+  #define OH(q) (texture2D(tDetail, (q) / 140.0).r + texture2D(tDetail, (q) / 41.0 + 0.2).g * 0.55 + texture2D(tDetail, (q) / 13.0 + 0.6).r * 0.18)
+  float h0 = OH(p), hx = OH(p + vec2(e, 0.0)), hz = OH(p + vec2(0.0, e));
+  float dcam = length(vWP - cameraPosition);
+  vec3 nw0 = normalize(vNW);
+#ifdef OUTER
+  float fade = 1.0 - smoothstep(900.0, 2400.0, dcam) * 0.6;
+#else
+  float fade = smoothstep(90.0, 260.0, dcam) * smoothstep(0.12, 0.3, 1.0 - nw0.y) * 0.8;
+#endif
+  if (fade > 0.01) {
+    vec3 wn = normalize(nw0 + vec3(-(hx - h0), 0.0, -(hz - h0)) / e * 26.0 * fade);
+    normal = normalize(mix(normal, (viewMatrix * vec4(wn, 0.0)).xyz, fade > 0.5 ? 1.0 : fade * 2.0));
+  }
+}
 {
   // relieve de la roca: mapa de normales en proyección triplanar, sin estirarse en los cortados
   vec3 nw = normalize(vNW);
@@ -321,11 +341,17 @@ export class Terrain {
       if (!inside) h += (ridged(x / 75, z / 75, 3) - 0.35) * 22 * smoothstep(90, 190, h) + fbm(x / 28, z / 28, 2) * 4 * smoothstep(60, 140, h);
       pos.push(x, h, z);
     }
+    // índices por baldosas de TILE×TILE celdas: cada una es una malla con su esfera, así la cámara no dibuja las que
+    // quedan detrás o a los lados (antes el anillo entero, unos 50 000 triángulos, se dibujaba en cada fotograma)
+    const TILE = 40, tiles = new Map();
     for (let j = 0; j < n - 1; j++) for (let i = 0; i < n - 1; i++) {
       const x = -R + i * step, z = -R + j * step;
       if (x >= -HALF + 20 && x + step <= HALF - 20 && z >= -HALF + 20 && z + step <= HALF - 20) continue;
       const A = j * n + i, B = A + 1, Cc = A + n, D = Cc + 1;
       idx.push(A, Cc, B, B, Cc, D);
+      const k = Math.floor(i / TILE) + ',' + Math.floor(j / TILE);
+      if (!tiles.has(k)) tiles.set(k, []);
+      tiles.get(k).push(A, Cc, B, B, Cc, D);
     }
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
@@ -354,10 +380,21 @@ export class Terrain {
       col.push(c.r, c.g, c.b);
     }
     g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
-    const m = new THREE.Mesh(g, makeTerrainMaterial({ outer: true }));
-    m.position.y = -0.8; // ligeramente por debajo para evitar parpadeos en la unión
-    scene.add(m);
-    this.outer = m;
+    const mat = makeTerrainMaterial({ outer: true }), grp = new THREE.Group();
+    grp.position.y = -0.8; // ligeramente por debajo para evitar parpadeos en la unión
+    const v = new THREE.Vector3(), box = new THREE.Box3();
+    for (const list of tiles.values()) {
+      const tg = new THREE.BufferGeometry();
+      for (const [k, a] of Object.entries(g.attributes)) tg.setAttribute(k, a);   // los vértices se comparten (una sola copia)
+      tg.setIndex(list);
+      box.makeEmpty(); for (const id of list) box.expandByPoint(v.fromBufferAttribute(g.attributes.position, id));
+      tg.boundingBox = box.clone(); tg.boundingSphere = box.getBoundingSphere(new THREE.Sphere());
+      const m = new THREE.Mesh(tg, mat); m.matrixAutoUpdate = false; m.name = 'montes-lejos';
+      grp.add(m);
+    }
+    grp.updateMatrixWorld(true);
+    scene.add(grp);
+    this.outer = grp;
   }
 }
 

@@ -147,37 +147,54 @@ function makeOak(rnd, detail) {
   return mergeKeep([t, c]);
 }
 function makeFir(rnd, detail) {
-  const t = trunk(2.2, 0.28, '#5a4636');
+  const t = trunk(2.6, 0.3, '#4e3d30');
   const parts = [t.toNonIndexed()];
-  const layers = detail ? 6 : 4;
-  for (let i = 0; i < layers; i++) {
-    const k = i / (layers - 1);
-    const r = 2.9 * (1 - k * 0.78), h = 3.6 - k * 1.2;
-    const g = new THREE.ConeGeometry(r, h, detail ? 9 : 7, 1, true);
-    jitter(g, 0.25, rnd);
-    g.translate(0, 2.2 + k * 8.6 + h / 2, 0);
-    const gn = g.toNonIndexed();
-    sphericalNormals(gn, 0, 2.2 + k * 8.6 + h * 0.2, 0, 0.45);
-    colorize(gn, (x, y, z, c) => { const rr = Math.hypot(x, z) / r; c.set('#1f4a2c').lerp(new THREE.Color('#4f8a45'), clamp(rr * 0.8 + k * 0.3, 0, 1)).multiplyScalar(detail && TEX.foliage ? 0.72 : 1); });
-    parts.push(gn);
-    if (!detail || !TEX.foliage) continue;
-    // ramas de agujas: salen del tronco en abanico, caen un poco y se acortan hacia la punta
-    const y0 = 2.2 + k * 8.6 + h * 0.3, nB = Math.round(10 - k * 4);
+  // perfil del abeto (Abies alba): ancho abajo, se estrecha hasta la punta; verde oscuro azulado, más claro en las puntas
+  const H0 = 1.6, H1 = 12.6, R0 = 3.1, dark = new THREE.Color('#1f3d27'), mid = new THREE.Color('#3b6a40'), tip = new THREE.Color('#7aa65e');
+  if (!detail || !TEX.foliage) {
+    // de lejos: capas de conos con el borde dentado y tonos irregulares
+    const layers = 5;
+    for (let i = 0; i < layers; i++) {
+      const k = i / (layers - 1), r = R0 * (1 - k * 0.8), h = 3.6 - k * 1.2;
+      const g = new THREE.ConeGeometry(r, h, 8, 1, true);
+      jitter(g, 0.3, rnd);
+      g.translate(0, H0 + 0.4 + k * 8.4 + h / 2, 0);
+      const gn = g.toNonIndexed();
+      sphericalNormals(gn, 0, H0 + k * 8.4 + h * 0.2, 0, 0.45);
+      colorize(gn, (x, y, z, c) => { const rr = Math.hypot(x, z) / r; c.copy(dark).lerp(mid, clamp(rr, 0, 1)).lerp(tip, clamp(rr - 0.7, 0, 1) * 0.6).multiplyScalar(0.92 + rnd() * 0.16); });
+      parts.push(gn);
+    }
+    return mergeKeep(parts);
+  }
+  // núcleo oscuro: lo que se ve entre las ramas es sombra, no cielo
+  const core = new THREE.ConeGeometry(R0 * 0.42, H1 - H0, 7, 1, true); core.translate(0, H0 + (H1 - H0) / 2, 0);
+  const cn = core.toNonIndexed(); cn.computeVertexNormals(); colorize(cn, (x, y, z, c) => c.copy(dark).multiplyScalar(0.8)); parts.push(cn);
+  // verticilos de ramas con acículas: cuelgan más abajo, se acortan y se juntan hacia la punta
+  const [u0, v0, u1, v1] = FOLIAGE.needle;
+  for (let y = H0; y < H1 - 0.5; y += 0.68 + rnd() * 0.14) {
+    const k = (y - H0) / (H1 - H0), R = R0 * Math.pow(1 - k, 0.92) + 0.35, nB = Math.max(4, Math.round(5 + 4 * (1 - k)));
+    const droop = 0.3 + 0.45 * (1 - k), a0 = rnd() * 6.28;
     for (let j = 0; j < nB; j++) {
-      const a = (j / nB) * Math.PI * 2 + rnd() * 0.4, L = r * (1.05 + rnd() * 0.25), W = L * 0.62;
-      const q = new THREE.PlaneGeometry(W, L); q.translate(0, L / 2, 0);
-      const uv = q.attributes.uv, [u0, v0, u1, v1] = FOLIAGE.needle;
+      const a = a0 + (j / nB) * Math.PI * 2 + (rnd() - 0.5) * 0.5, L = R * (0.95 + rnd() * 0.3), W = L * (0.8 + rnd() * 0.15), roll = rnd() * 3;
+      for (const r2 of [roll, roll + 1.45]) {      // dos tarjetas cruzadas por rama: tiene volumen desde cualquier lado
+      const q = new THREE.PlaneGeometry(W, L); q.translate(0, L / 2, 0); q.rotateY(r2);
+      const uv = q.attributes.uv;
       for (let t = 0; t < uv.count; t++) uv.setXY(t, u0 + uv.getX(t) * (u1 - u0), v0 + uv.getY(t) * (v1 - v0));
-      q.rotateX(Math.PI / 2 + 0.35 + rnd() * 0.25);          // tumbada hacia fuera y colgando
-      q.rotateZ((rnd() - 0.5) * 0.4);
-      q.rotateY(a); q.translate(0, y0 + (rnd() - 0.5) * 0.3, 0);
+      q.rotateX(Math.PI / 2 + droop + (rnd() - 0.5) * 0.2);       // tumbada hacia fuera y colgando
+      q.rotateZ((rnd() - 0.5) * 1.1);                              // cada rama algo girada sobre sí misma: se ve desde todos lados
+      q.rotateY(a); q.translate(0, y + (rnd() - 0.5) * 0.2, 0);
       const g2 = q.toNonIndexed(), n = g2.attributes.normal, pp = g2.attributes.position, vv = new THREE.Vector3();
-      for (let t = 0; t < n.count; t++) { vv.set(pp.getX(t), 0.9, pp.getZ(t)).normalize(); n.setXYZ(t, vv.x, vv.y, vv.z); }
-      colorize(g2, (x, y, z, c) => { const rr = Math.hypot(x, z) / r; c.set('#2a5a33').lerp(new THREE.Color('#6a9a55'), clamp(rr * 0.7 + k * 0.25, 0, 1)).multiplyScalar(0.95 + rnd() * 0.15); });
+      for (let t = 0; t < n.count; t++) { vv.set(pp.getX(t), 0.7, pp.getZ(t)).normalize(); n.setXYZ(t, vv.x, vv.y, vv.z); }
+      const shade = 0.85 + rnd() * 0.25;
+      colorize(g2, (x, yy, z, c) => { const rr = Math.hypot(x, z) / (R + 0.01); c.copy(mid).lerp(tip, clamp(rr * 0.9 + k * 0.2 - 0.15, 0, 1)).multiplyScalar(shade); });
       g2.userData.keepUV = true;
       parts.push(g2);
+      }
     }
   }
+  // guía terminal
+  const top = new THREE.ConeGeometry(0.28, 1.4, 6, 1, true); top.translate(0, H1 + 0.2, 0);
+  const tn = top.toNonIndexed(); tn.computeVertexNormals(); colorize(tn, (x, y, z, c) => c.copy(mid)); parts.push(tn);
   return mergeKeep(parts);
 }
 function makeBush(rnd) {
@@ -620,18 +637,26 @@ class FlowerField {
     dataTextures();
     const count = quality === 'low' ? 1800 : quality === 'mid' ? 3000 : 4500;
     const R = quality === 'low' ? 22 : 30;
-    // flor: 5 pétalos planos + centro
+    // mata de flores: dos cabezas en estrella algo ahuecadas (pétalos), botón amarillo, tallos cruzados (se ven
+    // desde cualquier lado) y hojas en la base; la cabeza blanca la tiñe el sombreador con el color de cada especie
     const parts = [];
-    for (let i = 0; i < 5; i++) {
-      const p = new THREE.CircleGeometry(0.055, 5); p.scale(1, 1.8, 1); p.translate(0, 0.07, 0); p.rotateX(-Math.PI / 2); p.rotateY(i / 5 * Math.PI * 2);
-      parts.push(colorize(p.toNonIndexed(), (x, y, z, c) => c.setRGB(1, 1, 1)));
-    }
-    const center = new THREE.CircleGeometry(0.03, 6); center.rotateX(-Math.PI / 2); center.translate(0, 0.004, 0);
-    parts.push(colorize(center.toNonIndexed(), (x, y, z, c) => c.setRGB(1.0, 0.8, 0.1)));
-    const stem = new THREE.PlaneGeometry(0.015, 0.3); stem.translate(0, -0.15, 0);
-    parts.push(colorize(stem.toNonIndexed(), (x, y, z, c) => c.setRGB(0.25, 0.5, 0.15)));
+    const head = (r, x, y, z, s) => {
+      const pos = [], P = 10;
+      for (let i = 0; i < P; i++) {
+        const a0 = i / P * Math.PI * 2, a1 = (i + 1) / P * Math.PI * 2, r0 = i % 2 ? r * 0.42 : r, r1 = i % 2 ? r : r * 0.42;
+        pos.push(0, 0, 0, Math.cos(a1) * r1, (i % 2 ? 0.016 : 0.004) * s, Math.sin(a1) * r1, Math.cos(a0) * r0, (i % 2 ? 0.004 : 0.016) * s, Math.sin(a0) * r0);
+      }
+      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals();
+      g.translate(x, y, z); parts.push(colorize(g, (px, py, pz, c) => c.setRGB(1, 1, 1)));
+      const ce = new THREE.CircleGeometry(r * 0.3, 5); ce.rotateX(-Math.PI / 2); ce.translate(x, y + 0.012, z);
+      parts.push(colorize(ce.toNonIndexed(), (px, py, pz, c) => c.setRGB(0.95, 0.75, 0.12)));
+      for (const ry of [0, Math.PI / 2]) { const st = new THREE.PlaneGeometry(0.012, y); st.translate(0, y / 2, 0); st.rotateY(ry); st.translate(x, 0, z); parts.push(colorize(st.toNonIndexed(), (px, py, pz, c) => c.setRGB(0.24, 0.46, 0.15))); }
+    };
+    head(0.09, 0, 0.27, 0, 1);
+    head(0.072, 0.07, 0.18, 0.05, 0.8);
+    for (let i = 0; i < 3; i++) { const l = new THREE.PlaneGeometry(0.035, 0.15); l.translate(0, 0.075, 0); l.rotateX(0.7); l.rotateY(i * 2.1); parts.push(colorize(l.toNonIndexed(), (px, py, pz, c) => c.setRGB(0.22, 0.42, 0.13))); }
+    for (const g of parts) if (!g.attributes.uv) g.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count * 2), 2));
     const flower = mergeGeometries(parts.map(g => { g.deleteAttribute('uv'); return g; }));
-    flower.translate(0, 0.3, 0);
     const g = new THREE.InstancedBufferGeometry();
     g.attributes = flower.attributes;
     const rnd = mulberry32(17);

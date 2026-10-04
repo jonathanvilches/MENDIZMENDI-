@@ -1802,12 +1802,12 @@ export class TownGame {
   toggleBinoculars() {
     if (!this.binoOn) return;
     if (this.mode === 'bino') {
-      this.mode = 'play'; this.ui.binoculars(false); this.camera.fov = this.camera.userData.fov0 || 55; this.camera.updateProjectionMatrix(); this.player.obj.visible = true; this.player.frozen = false;
+      this.mode = 'play'; this.fauna.farView = false; this.ui.binoculars(false); this.camera.fov = this.camera.userData.fov0 || 55; this.camera.updateProjectionMatrix(); this.player.obj.visible = true; this.player.frozen = false;
       if (this.panoOn) { this.panoOn = false; this.altScene = null; this.altCamera = null; this.altUpdate = null; }
       return;
     }
     if (this.mode !== 'play') return;
-    this.mode = 'bino'; this.ui.binoculars(true); this.sound.ui('open');
+    this.mode = 'bino'; this.fauna.farView = true; this.ui.binoculars(true); this.sound.ui('open');
     this.player.frozen = true; this.player.obj.visible = false;
     this.binoYaw = this.follow.yaw + Math.PI; this.binoPitch = 0.25;
     // en el mirador: la vista lejana con los montes de verdad en su dirección

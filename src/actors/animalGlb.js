@@ -91,7 +91,7 @@ function bakedScene(key, S, g) {
   let merged = mergeGeometries(geos);
   const s0 = skinned[0];
   merged = S.dog ? dogShape(merged, S, s0.skeleton, s0.bindMatrix) : toCreasedNormals(merged, THREE.MathUtils.degToRad(65));
-  const mesh = new THREE.SkinnedMesh(merged, S.dog ? dogFur(merged, S) : S.wool ? woolMaterial(merged) : new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.82 }));
+  const mesh = new THREE.SkinnedMesh(merged, S.dog ? dogFur(merged, S) : S.wool ? woolMaterial(merged) : hideMaterial(merged, S));
   if (S.dog) GEAR.set(key, dogGear(merged, S, s0.skeleton, s0.bindMatrix));
   mesh.name = 'body'; mesh.position.copy(s0.position); mesh.quaternion.copy(s0.quaternion); mesh.scale.copy(s0.scale);
   s0.parent.add(mesh); mesh.bind(s0.skeleton, s0.bindMatrix);
@@ -138,6 +138,56 @@ float cell(vec3 p){ vec3 i = floor(p), fr = fract(p); float d = 8.0;
   };
   m.customProgramCacheKey = () => 'lana' + f + (cut ? '-corte' : '');
   return m;
+}
+
+// Capa de los animales (vacas, caballos, ciervos, zorros, jabalíes, cerdos…): el modelo no tiene textura, así que el
+// pelaje se dibuja en el sombreador sobre la posición del modelo (va pegado al cuerpo al moverse):
+//  · manchas amplias más claras y más oscuras (ninguna capa es de un color liso) · el vientre algo más claro y las patas
+//    más oscuras y con barro · pelo fino en la dirección del cuerpo, con un poco de relieve, que se funde de lejos
+//  · un brillo suave en el contorno (el pelo recoge la luz de lado)
+// k.hair: fuerza del pelo (el cerdo casi no tiene; el jabalí, cerdas), k.belly: aclarado del vientre
+const COAT = { pig: { hair: 0.25, belly: 0.06, patch: 0.5 }, jabali: { hair: 1.4, belly: 0.04 }, pottoka: { hair: 0.8, belly: 0.1 }, bull: { hair: 0.7, belly: 0.03 },
+  zorro: { hair: 1.1, belly: 0.3 }, corzo: { hair: 0.9, belly: 0.3 }, ciervo: { hair: 1.0, belly: 0.22 } };
+const HIDES = new Map();
+function hideMaterial(geo, S) {
+  const key = S.model + '|' + JSON.stringify(S.col || {}); if (HIDES.has(key)) return HIDES.get(key);
+  geo.computeBoundingBox();
+  const bb = geo.boundingBox, size = bb.getSize(new THREE.Vector3()), f = (1 / size.y).toExponential(4), y0 = bb.min.y.toExponential(4);
+  const along = size.x > size.z ? 'x' : 'z', kind = Object.keys(SPEC).find(k => SPEC[k] === S), K = { hair: 0.8, belly: 0.14, patch: 1, ...(COAT[kind] || {}) };
+  const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8 });
+  m.onBeforeCompile = (sh) => {
+    useFill(sh);
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vOP; varying float vOY; varying float vBelly;')
+      .replace('#include <begin_vertex>', `#include <begin_vertex>\nvOP = position * ${f}; vOY = (position.y - ${y0}) * ${f}; vBelly = -objectNormal.y;`);
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>${FILL_DECL}
+varying vec3 vOP; varying float vOY; varying float vBelly;
+float hh(vec3 p){ return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
+float vn(vec3 p){ vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(mix(hh(i), hh(i + vec3(1,0,0)), f.x), mix(hh(i + vec3(0,1,0)), hh(i + vec3(1,1,0)), f.x), f.y),
+             mix(mix(hh(i + vec3(0,0,1)), hh(i + vec3(1,0,1)), f.x), mix(hh(i + vec3(0,1,1)), hh(i + vec3(1,1,1)), f.x), f.y), f.z); }
+vec3 fbump(vec3 sp, vec3 n, float h, float k) {
+  vec3 sx = dFdx(sp), sy = dFdy(sp), r1 = cross(sy, n), r2 = cross(n, sx);
+  float det = dot(sx, r1); vec3 grad = sign(det) * (dFdx(h) * k * r1 + dFdy(h) * k * r2);
+  return normalize(abs(det) * n - grad);
+}`)
+      .replace('#include <color_fragment>', `#include <color_fragment>
+  float coatP = vn(vOP * 3.0) * 0.65 + vn(vOP * 7.5 + 3.1) * 0.35;
+  diffuseColor.rgb *= 1.0 + (coatP - 0.5) * 0.24 * ${K.patch.toFixed(2)};
+  diffuseColor.rgb = mix(diffuseColor.rgb, min(diffuseColor.rgb * 1.35 + 0.06, vec3(1.0)), smoothstep(0.2, 0.7, vBelly) * ${K.belly.toFixed(2)} * 2.0);
+  float legs = 1.0 - smoothstep(0.08, 0.32, vOY);
+  diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(0.62, 0.56, 0.5), legs * 0.55);
+  // pelo: rayas finas a lo largo del cuerpo (ruido estirado), fundidas cuando son más finas que un píxel
+  vec3 hp = vOP * vec3(${along === 'x' ? '22.0, 160.0, 160.0' : '160.0, 160.0, 22.0'});
+  float faa = 1.0 - smoothstep(0.25, 1.0, length(fwidth(hp)) * 0.5);
+  float hs = mix(0.5, vn(hp) * 0.7 + vn(hp * 2.1 + 5.0) * 0.3, faa);
+  diffuseColor.rgb *= 1.0 + (hs - 0.5) * 0.3 * ${K.hair.toFixed(2)};`)
+      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+  normal = fbump(-vViewPosition, normal, hs, 0.0012 * ${K.hair.toFixed(2)} * faa);`)
+      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+  totalEmissiveRadiance += uCharFill * diffuseColor.rgb * 0.12 * ${Math.min(1, K.hair).toFixed(2)} * pow(1.0 - abs(dot(normalize(vNormal), normalize(vViewPosition))), 2.5);`);
+  };
+  m.customProgramCacheKey = () => 'capa' + f + y0 + along + K.hair + K.belly + K.patch;
+  HIDES.set(key, m); return m;
 }
 
 const MATS = new Map();

@@ -89,11 +89,15 @@ function prep(g, color, tex = 2, m) {
   return g;
 }
 const Mx = (x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1) => new THREE.Matrix4().compose(V(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, rz, 'YXZ')), V(sx, sy, sz));
-const ball = (r, color, tex, x, y, z, sx = 1, sy = 1, sz = 1, rx = 0, ry = 0, rz = 0, seg = 20) => prep(new THREE.SphereGeometry(r, seg, Math.round(seg * 0.7)), color, tex, Mx(x, y, z, rx, ry, rz, sx, sy, sz));
+// resolución de las mallas: los bichos pequeños (ardilla, pito, trucha, lechuza) se hacen con menos segmentos
+let RES = 1;
+const lowRes = (fn) => (...a) => { RES = 0.45; try { return fn(...a); } finally { RES = 1; } };
+const ball = (r, color, tex, x, y, z, sx = 1, sy = 1, sz = 1, rx = 0, ry = 0, rz = 0, seg = 20) => { seg = Math.max(8, Math.round(seg * RES)); return prep(new THREE.SphereGeometry(r, seg, Math.round(seg * 0.7)), color, tex, Mx(x, y, z, rx, ry, rz, sx, sy, sz)); };
 
 // Loft: columna (puntos de control) + secciones [ancho, alto por arriba, alto por abajo, (desplazamiento vertical)]
 // color(u, th, p) → Color; bump(u, th, p) → empuje radial (lana, cerdas, mechones)
 export function loft({ pts, r, seg = 24, ring = 22, e = 2, color = '#888', tex = 2, bump, side0 = V(1, 0, 0), capA = true, capB = true, capK = 0.55 }) {
+  seg = Math.max(4, Math.round(seg * RES)); ring = Math.max(6, Math.round(ring * RES));
   const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
   const n = pts.length, R = (u) => {
     const f = u * (n - 1), i = Math.min(n - 2, Math.floor(f)), t = f - i;
@@ -644,7 +648,7 @@ export function bird(kind) {
 
 // ---------- Pequeños ----------
 // Ardilla roja: pelaje rojizo, vientre blanco, pinceles en las orejas, cola enorme en S
-export function squirrel() {
+export const squirrel = lowRes(function squirrel() {
   const R = '#a8481f', W = '#f3e8d8';
   const g = mergeAll([
     loft({ pts: [V(0, 0.05, -0.06), V(0, 0.1, 0.0), V(0, 0.15, 0.04)], r: [[0.055, 0.055, 0.06], [0.05, 0.05, 0.055], [0.04, 0.04, 0.045]], color: (u, th) => th < -0.3 ? C(W) : C(R), ring: 16 }),
@@ -660,9 +664,9 @@ export function squirrel() {
   const tp = new THREE.Group(); tp.position.set(0, 0.05, -0.07); tp.add(new THREE.Mesh(tail, BEAST_MAT)); root.add(tp);
   root.userData.tail = tp;
   return root;
-}
+});
 // Pito negro: todo negro, píleo rojo, pico marfil y ojo claro; se agarra al tronco apoyado en la cola
-export function woodpecker() {
+export const woodpecker = lowRes(function woodpecker() {
   const K = '#141414';
   const g = mergeAll([
     loft({ pts: [V(0, -0.14, -0.03), V(0, -0.04, 0.0), V(0, 0.06, 0.02), V(0, 0.12, 0.03)], r: [[0.03, 0.02, 0.02], [0.06, 0.055, 0.06], [0.06, 0.055, 0.06], [0.04, 0.04, 0.04]], color: K, tex: 7, ring: 16, side0: V(1, 0, 0) }),
@@ -674,9 +678,9 @@ export function woodpecker() {
   ]);
   const root = new THREE.Group(); const b = new THREE.Mesh(g, BEAST_MAT); b.castShadow = true; root.add(b); root.userData.body = b;
   return root;
-}
+});
 // Trucha común: lomo pardo verdoso con motas negras y rojas con halo claro, vientre amarillento
-export function trout() {
+export const trout = lowRes(function trout() {
   const g = mergeAll([
     loft({ pts: [V(0, 0, -0.16), V(0, 0.005, -0.08), V(0, 0.005, 0.04), V(0, 0, 0.12), V(0, -0.005, 0.16)], r: [[0.008, 0.012, 0.012], [0.028, 0.045, 0.04], [0.032, 0.05, 0.045], [0.025, 0.035, 0.032], [0.008, 0.01, 0.01]],
       color: (u, th, p) => { let c = th > 0 ? C('#6a6a3a') : th > -0.6 ? C('#b8a060') : C('#f2e8c8'); const n = vnoise(p.x * 200, p.y * 200, p.z * 200); if (th > -0.6 && n > 0.78) c = C(n > 0.9 && th < 0.3 ? '#c83020' : '#1c1810'); return c; }, tex: 0, ring: 18, e: 2.4 }),
@@ -684,9 +688,9 @@ export function trout() {
     ...eye(0.018, 0.012, 0.11, 0.007, 1.2, '#6a6a3a', '#c8a030', '#101010'),
   ]);
   return new THREE.Mesh(g, BEAST_MAT2);
-}
+});
 // Lechuza común (de noche): disco facial blanco en forma de corazón, dorso dorado moteado
-export function owl() {
+export const owl = lowRes(function owl() {
   const g = mergeAll([
     loft({ pts: [V(0, 0, 0), V(0, 0.1, 0.01), V(0, 0.2, 0.0)], r: [[0.06, 0.05, 0.06], [0.08, 0.07, 0.08], [0.07, 0.07, 0.07]], color: (u, th) => th < -0.2 ? C('#f6efe0') : C('#d4a456'), tex: 7, ring: 16, side0: V(1, 0, 0) }),
     ball(0.085, '#d4a456', 7, 0, 0.27, 0.0, 1, 0.95, 0.9),
@@ -695,4 +699,4 @@ export function owl() {
     ball(0.01, '#e8c8a8', 4, 0, 0.26, 0.075, 1, 1.5, 1),
   ]);
   const root = new THREE.Group(); const b = new THREE.Mesh(g, BEAST_MAT); root.add(b); return root;
-}
+});
