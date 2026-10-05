@@ -1,7 +1,6 @@
 import { snowable } from './weather.js';
 // Acumula geometrías por material y las fusiona (pocas llamadas de dibujo)
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { TEX } from './textures.js';
 import { HALF, CELL } from './layout.js';
 
@@ -212,50 +211,107 @@ let TINY = true;
 let BQ = 'high';
 export function setBuilderQuality(q) { TINY = q !== 'low'; BQ = q || 'high'; }
 export const builderQuality = () => BQ;
-// Compacta los atributos (color en bytes, normal en bytes con signo) y, una vez subidos a la tarjeta gráfica, libera
-// la copia en memoria. Las piezas grandes conservan sus posiciones para comprobar si algo tapa la vista (prismáticos).
-function compact(geo, keepPos) {
-  const c = geo.attributes.color;
-  if (c && c.array instanceof Float32Array) { const a = new Uint8Array(c.array.length); for (let i = 0; i < a.length; i++) a[i] = Math.round(Math.min(1, Math.max(0, c.array[i])) * 255); geo.setAttribute('color', new THREE.BufferAttribute(a, 3, true)); }
-  const n = geo.attributes.normal;
-  if (n && n.array instanceof Float32Array) { const a = new Int8Array(n.array.length); for (let i = 0; i < a.length; i++) a[i] = Math.round(Math.min(1, Math.max(-1, n.array[i])) * 127); geo.setAttribute('normal', new THREE.BufferAttribute(a, 3, true)); }
-  const free = function () { this.array = null; };
-  for (const [k, at] of Object.entries(geo.attributes)) if (!(keepPos && k === 'position')) at.onUpload(free);
+// Un bloque de un material (una manzana de piezas de un tamaño): los vértices de cada pieza se copian aquí en cuanto
+// llega, ya colocados y compactos (color en bytes, normal en bytes con signo). Antes cada pieza se guardaba suelta hasta
+// el final y luego se unían todas en una copia nueva: en Pamplona eran más de cien mil piezas vivas a la vez y, al unirlas,
+// otra copia entera encima; con ese pico de memoria Safari puede cerrar la página en el iPhone.
+class Run {
+  constructor() { this.n = 0; this.cap = 0; this.ni = 0; this.icap = 0; this.pos = null; this.nrm = null; this.uv = null; this.col = null; this.idx = null; }
+  reserve(addV, addI) {
+    const grow = (T, old, k, cap, used) => { const a = new T(cap * k); if (old) a.set(old.subarray(0, used * k)); return a; };
+    if (this.n + addV > this.cap) {
+      let cap = Math.max(512, Math.ceil(this.cap * 1.5)); while (cap < this.n + addV) cap = Math.ceil(cap * 1.5);
+      this.pos = grow(Float32Array, this.pos, 3, cap, this.n); this.nrm = grow(Int8Array, this.nrm, 3, cap, this.n); this.uv = grow(Float32Array, this.uv, 2, cap, this.n);
+      if (this.col) this.col = grow(Uint8Array, this.col, 3, cap, this.n);
+      this.cap = cap;
+    }
+    if (this.ni + addI > this.icap) {
+      let cap = Math.max(768, Math.ceil(this.icap * 1.5)); while (cap < this.ni + addI) cap = Math.ceil(cap * 1.5);
+      this.idx = grow(Uint32Array, this.idx, 1, cap, this.ni); this.icap = cap;
+    }
+  }
+  // a partir de la primera pieza con color, el bloque lleva color (las anteriores, blancas)
+  withColor() { if (!this.col) { this.col = new Uint8Array(this.cap * 3); this.col.fill(255, 0, this.n * 3); } }
 }
+// memoria de trabajo reutilizada entre piezas (posiciones y normales ya colocadas de la pieza que llega)
+let SP = new Float32Array(3 * 4096), SN = new Float32Array(3 * 4096);
+const _nm = new THREE.Matrix3(), _v = new THREE.Vector3();
+const to8 = (v) => Math.round(Math.min(1, Math.max(0, v)) * 255), toS8 = (v) => Math.round(Math.min(1, Math.max(-1, v)) * 127);
 export class Builder {
   // cell: tamaño de las manzanas en que se reparte la geometría; así la cámara (y la sombra) sólo
   // dibujan las que tienen delante en vez de todo el pueblo de una vez
   constructor(mats, cell = 70) { this.mats = mats; this.parts = {}; this.cell = cell; }
+  /** Añade una pieza (con su matriz). La pieza no se modifica: se puede volver a añadir con otra matriz. */
   add(mat, geo, matrix) {
-    let g = geo.index ? geo.toNonIndexed() : geo;
-    if (matrix) g.applyMatrix4(matrix);
-    if (this.mats[mat].vertexColors && !g.attributes.color) colored(g, '#ffffff');
-    // Unificar atributos (position, normal, uv[, color])
-    for (const a of Object.keys(g.attributes)) if (!['position', 'normal', 'uv', 'color'].includes(a)) g.deleteAttribute(a);
-    if (!g.attributes.uv) g.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count * 2), 2));
-    g.computeBoundingBox();
+    const pa = geo.attributes.position; if (!pa || !pa.count) return;
+    const nv = pa.count, idx = geo.index, cnt = idx ? idx.count : nv;
+    if (!cnt) return;
+    if (SP.length < nv * 3) { SP = new Float32Array(nv * 3 * 2); SN = new Float32Array(nv * 3 * 2); }
+    // 1) vértices colocados y su caja (para saber en qué manzana y de qué tamaño es)
+    const e = matrix ? matrix.elements : null, fast = pa.array instanceof Float32Array && !pa.isInterleavedBufferAttribute && pa.itemSize === 3 && !pa.normalized, A = pa.array;
+    let x0 = Infinity, y0 = Infinity, z0 = Infinity, x1 = -Infinity, y1 = -Infinity, z1 = -Infinity;
+    for (let v = 0; v < nv; v++) {
+      let x, y, z;
+      if (fast) { x = A[v * 3]; y = A[v * 3 + 1]; z = A[v * 3 + 2]; } else { x = pa.getX(v); y = pa.getY(v); z = pa.getZ(v); }
+      if (e) { const X = e[0] * x + e[4] * y + e[8] * z + e[12], Y = e[1] * x + e[5] * y + e[9] * z + e[13], Z = e[2] * x + e[6] * y + e[10] * z + e[14]; x = X; y = Y; z = Z; }
+      // (la caja, con los valores ya en precisión simple, como quedan guardados: hay piezas de 0,9 m justos, el límite
+      // entre mediana y menuda, y así caen en el mismo grupo que antes)
+      x = Math.fround(x); y = Math.fround(y); z = Math.fround(z);
+      SP[v * 3] = x; SP[v * 3 + 1] = y; SP[v * 3 + 2] = z;
+      if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; if (z < z0) z0 = z; if (z > z1) z1 = z;
+    }
     // piezas grandes, medianas y menudas: las pequeñas (marcos, macetas, balaustres…) se agrupan aparte para
     // dejar de dibujarlas de lejos y sin sombra; las grandes, en manzanas mayores (menos llamadas de dibujo)
-    const b = g.boundingBox, size = Math.max(b.max.x - b.min.x, b.max.y - b.min.y, b.max.z - b.min.z);
+    const size = Math.max(x1 - x0, y1 - y0, z1 - z0);
     const tier = size < 0.9 ? 2 : size < 3 ? 1 : 0, cell = tier ? this.cell : this.cell * 2;
     if (tier === 2 && !TINY) return;
-    const key = mat + '|' + Math.floor((b.min.x + b.max.x) / 2 / cell) + ',' + Math.floor((b.min.z + b.max.z) / 2 / cell) + '|' + tier;
-    (this.parts[key] ||= []).push(g);
+    const key = mat + '|' + Math.floor((x0 + x1) / 2 / cell) + ',' + Math.floor((z0 + z1) / 2 / cell) + '|' + tier;
+    const run = (this.parts[key] ||= new Run());
+    // 2) normales colocadas (con la matriz de normales, como applyMatrix4)
+    let na = geo.attributes.normal;
+    if (!na) { geo.computeVertexNormals(); na = geo.attributes.normal; }
+    if (e) _nm.getNormalMatrix(matrix);
+    for (let v = 0; v < nv; v++) {
+      _v.set(na.getX(v), na.getY(v), na.getZ(v)); if (e) _v.applyMatrix3(_nm).normalize();
+      SN[v * 3] = _v.x; SN[v * 3 + 1] = _v.y; SN[v * 3 + 2] = _v.z;
+    }
+    // 3) copia al bloque: cada vértice una vez y los triángulos por índices, como en la pieza original (una caja son 24
+    //    vértices en vez de 36 repetidos: un tercio menos de memoria en la gráfica)
+    const ua = geo.attributes.uv, ca = geo.attributes.color;
+    run.reserve(nv, cnt); if (ca || this.mats[mat]?.vertexColors) run.withColor();
+    const P = run.pos, N = run.nrm, U = run.uv, C = run.col, I = run.idx, o0 = run.n, i0 = run.ni;
+    for (let v = 0; v < nv; v++) {
+      const o = o0 + v;
+      P[o * 3] = SP[v * 3]; P[o * 3 + 1] = SP[v * 3 + 1]; P[o * 3 + 2] = SP[v * 3 + 2];
+      N[o * 3] = toS8(SN[v * 3]); N[o * 3 + 1] = toS8(SN[v * 3 + 1]); N[o * 3 + 2] = toS8(SN[v * 3 + 2]);
+      if (ua) { U[o * 2] = ua.getX(v); U[o * 2 + 1] = ua.getY(v); } else { U[o * 2] = 0; U[o * 2 + 1] = 0; }
+      if (C) { if (ca) { C[o * 3] = to8(ca.getX(v)); C[o * 3 + 1] = to8(ca.getY(v)); C[o * 3 + 2] = to8(ca.getZ(v)); } else { C[o * 3] = C[o * 3 + 1] = C[o * 3 + 2] = 255; } }
+    }
+    if (idx) { const IA = idx.array; for (let k = 0; k < cnt; k++) I[i0 + k] = o0 + IA[k]; } else for (let k = 0; k < cnt; k++) I[i0 + k] = o0 + k;
+    run.n += nv; run.ni += cnt;
   }
   build(parent, { shadows = true } = {}) {
     const meshes = [];
-    for (const [key, list] of Object.entries(this.parts)) {
-      if (!list.length) continue;
-      const [mat, , tierS] = key.split('|'), tier = +tierS || 0;
-      const hasColor = list.some(g => g.attributes.color);
-      if (hasColor) for (const g of list) if (!g.attributes.color) colored(g, '#ffffff');
-      const merged = mergeGeometries(list, false);
-      if (!merged) { console.warn('merge failed', mat); continue; }
-      merged.computeBoundingSphere(); merged.computeBoundingBox();
-      compact(merged, tier === 0);
-      const m = new THREE.Mesh(merged, this.mats[mat]);
+    // una vez subidos a la tarjeta gráfica, se suelta la copia en memoria. Las piezas grandes conservan sus posiciones
+    // para comprobar si algo tapa la vista (prismáticos)
+    const free = function () { this.array = null; };
+    for (const [key, run] of Object.entries(this.parts)) {
+      if (!run.n) continue;
+      const [mat, , tierS] = key.split('|'), tier = +tierS || 0, n = run.n, ni = run.ni;
+      // (copias del tamaño justo: el bloque de trabajo crece por tramos y le sobra sitio; se suelta enseguida)
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(run.pos.slice(0, n * 3), 3));
+      g.setAttribute('normal', new THREE.BufferAttribute(run.nrm.slice(0, n * 3), 3, true));
+      g.setAttribute('uv', new THREE.BufferAttribute(run.uv.slice(0, n * 2), 2));
+      if (run.col) g.setAttribute('color', new THREE.BufferAttribute(run.col.slice(0, n * 3), 3, true));
+      g.setIndex(new THREE.BufferAttribute(n <= 65535 ? Uint16Array.from(run.idx.subarray(0, ni)) : run.idx.slice(0, ni), 1));
+      run.pos = run.nrm = run.uv = run.col = run.idx = null;
+      g.computeBoundingSphere(); g.computeBoundingBox();
+      for (const [k, at] of Object.entries(g.attributes)) if (!(tier === 0 && k === 'position')) at.onUpload(free);
+      if (tier !== 0) g.index.onUpload(free);
+      const m = new THREE.Mesh(g, this.mats[mat]);
       m.castShadow = shadows && tier === 0 && !['glass', 'lamp', 'jet'].includes(mat);
-      if (tier) DETAIL.push({ m, tier, c: merged.boundingSphere.center.clone(), r: merged.boundingSphere.radius });
+      if (tier) DETAIL.push({ m, tier, c: g.boundingSphere.center.clone(), r: g.boundingSphere.radius });
       m.receiveShadow = true;
       m.matrixAutoUpdate = false; m.name = key;
       parent.add(m); meshes.push(m);

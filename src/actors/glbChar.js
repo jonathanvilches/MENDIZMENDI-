@@ -110,7 +110,9 @@ function cutClip(clip, name, t0, t1, flatHips, fps = 30) {
 // su textura viene a 2048 px (con todo el detalle); en calidad baja (móviles) se usa a 1024 para no agotar la memoria
 let MESHY_TEX = 2048;
 export const setMeshyTexMax = (px) => { MESHY_TEX = px; };
-// personajes que van con su textura completa aunque el móvil reduzca las demás (el del jugador, que se ve de cerca)
+// personajes que van con su textura completa aunque se reduzcan las demás (el del jugador, que se ve de cerca). En calidad
+// baja (móviles) también se reduce la suya: a 2048 px ocupaba 16 MB en memoria y 21 en la gráfica, y en la pantalla del
+// móvil no se distingue de la de 1024
 const FULL_TEX = new Set();
 const MESHY_FILL = 0.3;   // cuánto de su color pone de luz propia cada personaje de Meshy
 export const fullTexFor = (name) => FULL_TEX.add(name);
@@ -138,7 +140,7 @@ export async function loadMeshy(name, lod = false) {
   if (!cache.has(key)) cache.set(key, (async () => {
     const g = await loadChar(lod ? MESHY_LOD[name] : MESHY[name]);
     // textura nítida también vista de lado (anisotropía); en el móvil se reduce salvo la del personaje del jugador
-    g.scene.traverse(o => { if (o.isMesh) { o.castShadow = true; for (const m of [].concat(o.material)) { if (!FULL_TEX.has(name)) shrinkMap(m); if (m.map) { m.map.anisotropy = 8; m.map.needsUpdate = true; }
+    g.scene.traverse(o => { if (o.isMesh) { o.castShadow = true; for (const m of [].concat(o.material)) { if (!FULL_TEX.has(name) || MESHY_TEX < 2048) shrinkMap(m); if (m.map) { m.map.anisotropy = 8; m.map.needsUpdate = true; }
       // luz de relleno propia: la cámara va detrás y el sol suele darle de frente, así que se le veía siempre en sombra.
       // Un poco de su propio color como luz propia lo aclara desde cualquier lado sin tocar el resto de la escena
       if (m.map && m.emissive) { m.emissiveMap = m.map; fillMaterial(m, MESHY_FILL); m.needsUpdate = true; } } } });
