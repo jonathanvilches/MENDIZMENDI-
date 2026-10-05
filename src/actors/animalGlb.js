@@ -157,15 +157,23 @@ const HIDES = new Map();
 function hideMaterial(geo, S) {
   const key = S.model + '|' + JSON.stringify(S.col || {}); if (HIDES.has(key)) return HIDES.get(key);
   geo.computeBoundingBox();
-  const bb = geo.boundingBox, size = bb.getSize(new THREE.Vector3()), f = (1 / size.y).toExponential(4), y0 = bb.min.y.toExponential(4);
+  const bb = geo.boundingBox, size = bb.getSize(new THREE.Vector3()), f = 1 / size.y;
   const along = size.x > size.z ? 'x' : 'z', kind = Object.keys(SPEC).find(k => SPEC[k] === S), K = { hair: 0.8, belly: 0.14, patch: 1, rump: 0, rumpY: [0, 0], ...(COAT[kind] || {}) };
-  const a0 = bb.min[along].toExponential(4), aL = (1 / size[along]).toExponential(4);
+  // las medidas y la capa de cada especie van en uniformes: todas las especies comparten un solo programa de sombreado
+  // (antes cada una compilaba el suyo: más espera al cargar el pueblo)
+  const U = {
+    uCoatA: { value: new THREE.Vector4(f, bb.min.y, bb.min[along], 1 / size[along]) },
+    uCoatK: { value: new THREE.Vector4(K.hair, K.belly, K.patch, K.rump) },
+    uCoatR: { value: new THREE.Vector2(K.rumpY[0], K.rumpY[1]) },
+    uCoatAx: { value: new THREE.Vector3(along === 'x' ? 1 : 0, 0, along === 'x' ? 0 : 1) },
+  };
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8 });
   m.onBeforeCompile = (sh) => {
-    useFill(sh);
-    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vOP; varying float vOY; varying float vBelly; varying float vAl; varying float vAN;')
-      .replace('#include <begin_vertex>', `#include <begin_vertex>\nvOP = position * ${f}; vOY = (position.y - ${y0}) * ${f}; vBelly = -objectNormal.y; vAl = (position.${along} - ${a0}) * ${aL}; vAN = objectNormal.${along};`);
+    useFill(sh); Object.assign(sh.uniforms, U);
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform vec4 uCoatA; uniform vec3 uCoatAx;\nvarying vec3 vOP; varying float vOY; varying float vBelly; varying float vAl; varying float vAN;')
+      .replace('#include <begin_vertex>', `#include <begin_vertex>\nvOP = position * uCoatA.x; vOY = (position.y - uCoatA.y) * uCoatA.x; vBelly = -objectNormal.y; vAl = (dot(position, uCoatAx) - uCoatA.z) * uCoatA.w; vAN = dot(objectNormal, uCoatAx);`);
     sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>${FILL_DECL}
+uniform vec4 uCoatK; uniform vec2 uCoatR; uniform vec3 uCoatAx;
 varying vec3 vOP; varying float vOY; varying float vBelly; varying float vAl; varying float vAN;
 float hh(vec3 p){ return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
 float vn(vec3 p){ vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
@@ -178,23 +186,25 @@ vec3 fbump(vec3 sp, vec3 n, float h, float k) {
 }`)
       .replace('#include <color_fragment>', `#include <color_fragment>
   float coatP = vn(vOP * 3.0) * 0.65 + vn(vOP * 7.5 + 3.1) * 0.35;
-  diffuseColor.rgb *= 1.0 + (coatP - 0.5) * 0.24 * ${K.patch.toFixed(2)};
-  diffuseColor.rgb = mix(diffuseColor.rgb, min(diffuseColor.rgb * 1.35 + 0.06, vec3(1.0)), smoothstep(0.2, 0.7, vBelly) * ${K.belly.toFixed(2)} * 2.0);
+  diffuseColor.rgb *= 1.0 + (coatP - 0.5) * 0.24 * uCoatK.z;
+  diffuseColor.rgb = mix(diffuseColor.rgb, min(diffuseColor.rgb * 1.35 + 0.06, vec3(1.0)), smoothstep(0.2, 0.7, vBelly) * uCoatK.y * 2.0);
   float legs = 1.0 - smoothstep(0.08, 0.32, vOY);
-  diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(0.62, 0.56, 0.5), legs * 0.55);${K.rump ? `
-  float rump = (1.0 - smoothstep(0.07, 0.17, vAl + (coatP - 0.5) * 0.04)) * smoothstep(${K.rumpY[0].toFixed(2)}, ${(K.rumpY[0] + 0.07).toFixed(2)}, vOY) * (1.0 - smoothstep(${(K.rumpY[1] - 0.07).toFixed(2)}, ${K.rumpY[1].toFixed(2)}, vOY)) * smoothstep(0.05, -0.45, vAN);
-  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.94, 0.91, 0.85), rump * ${K.rump.toFixed(2)});` : ''}
+  diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(0.62, 0.56, 0.5), legs * 0.55);
+  if (uCoatK.w > 0.0) {
+    float rump = (1.0 - smoothstep(0.07, 0.17, vAl + (coatP - 0.5) * 0.04)) * smoothstep(uCoatR.x, uCoatR.x + 0.07, vOY) * (1.0 - smoothstep(uCoatR.y - 0.07, uCoatR.y, vOY)) * smoothstep(0.05, -0.45, vAN);
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.94, 0.91, 0.85), rump * uCoatK.w);
+  }
   // pelo: rayas finas a lo largo del cuerpo (ruido estirado), fundidas cuando son más finas que un píxel
-  vec3 hp = vOP * vec3(${along === 'x' ? '22.0, 160.0, 160.0' : '160.0, 160.0, 22.0'});
+  vec3 hp = vOP * mix(vec3(160.0), vec3(22.0), uCoatAx);
   float faa = 1.0 - smoothstep(0.25, 1.0, length(fwidth(hp)) * 0.5);
   float hs = mix(0.5, vn(hp) * 0.7 + vn(hp * 2.1 + 5.0) * 0.3, faa);
-  diffuseColor.rgb *= 1.0 + (hs - 0.5) * 0.3 * ${K.hair.toFixed(2)};`)
+  diffuseColor.rgb *= 1.0 + (hs - 0.5) * 0.3 * uCoatK.x;`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
-  normal = fbump(-vViewPosition, normal, hs, 0.0012 * ${K.hair.toFixed(2)} * faa);`)
+  normal = fbump(-vViewPosition, normal, hs, 0.0012 * uCoatK.x * faa);`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
-  totalEmissiveRadiance += uCharFill * diffuseColor.rgb * 0.12 * ${Math.min(1, K.hair).toFixed(2)} * pow(1.0 - abs(dot(normalize(vNormal), normalize(vViewPosition))), 2.5);`);
+  totalEmissiveRadiance += uCharFill * diffuseColor.rgb * 0.12 * min(1.0, uCoatK.x) * pow(1.0 - abs(dot(normalize(vNormal), normalize(vViewPosition))), 2.5);`);
   };
-  m.customProgramCacheKey = () => 'capa' + f + y0 + along + K.hair + K.belly + K.patch + (K.rump ? 'r' + K.rump + a0 + aL : '');
+  m.customProgramCacheKey = () => 'capa2';
   HIDES.set(key, m); return m;
 }
 
