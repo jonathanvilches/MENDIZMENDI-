@@ -13,8 +13,10 @@ for (const sz of sizes.split(',')) {
   const p = await b.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 2, hasTouch: W < 900 });
   p.on('pageerror', e => errs.push(`${sz} PAGEERROR ${e.message}`));
   p.on('console', m => { if (m.type() === 'error') errs.push(`${sz} ${m.text().slice(0, 160)}`); });
+  p.on('response', r => { if (r.status() >= 400) errs.push(`${sz} HTTP ${r.status()} ${r.url().slice(-90)}`); });
   for (let t = 0; ; t++) {
     try {
+      if (process.env.EU) await p.addInitScript(() => { window.__EU = true; });
       await p.goto(`${URL}/src/futbol/liga.js`, { timeout: 300000 });
       await p.waitForTimeout(1500);
       await p.evaluate(async () => {
@@ -24,6 +26,7 @@ for (const sz of sizes.split(',')) {
         localStorage.removeItem('mendimendiz-liga-v1'); localStorage.removeItem('mendimendiz-torneo-v1');
         window.__L = await import('/src/futbol/liga.js'); window.__T = await import('/src/game/torneo.js'); window.__FH = await import('/src/futbol/hud.js');
         window.__PH = await import('/src/pelota/hud.js'); window.__PR = await import('/src/pelota/rules.js');
+        if (window.__EU) { localStorage.setItem('mendimendiz-lang', 'eu'); (await import('/src/i18n.js')).startI18n(); } else localStorage.setItem('mendimendiz-lang', 'es');   // EU=1: euskaraz
       });
       break;
     } catch (e) { if (t >= 3) throw e; console.log('reintento:', e.message.slice(0, 70)); await p.waitForTimeout(3000); }

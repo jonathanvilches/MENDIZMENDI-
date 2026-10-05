@@ -13,6 +13,7 @@ for (const sz of sizes.split(',')) {
   const p = await b.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 2, hasTouch: W < 900 });
   p.on('pageerror', e => errs.push(`${sz} PAGEERROR ${e.message}`));
   p.on('console', m => { if (m.type() === 'error') errs.push(`${sz} ${m.text().slice(0, 160)}`); });
+  p.on('response', r => { if (r.status() >= 400) errs.push(`${sz} HTTP ${r.status()} ${r.url().slice(-90)}`); });
   // (si el servidor de desarrollo recarga la página a medias, se vuelve a empezar)
   for (let t = 0; ; t++) {
     try {
