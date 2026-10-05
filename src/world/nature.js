@@ -9,6 +9,7 @@ import { fbm } from '../util/noise.js';
 import { TEX, FOLIAGE } from './textures.js';
 import { groundUniforms } from './builder.js';
 import { snowable } from './weather.js';
+import { FILL_DECL, useFill } from '../engine/charLight.js';
 
 export const windUniforms = { uTime: { value: 0 }, uWind: { value: 1 } };
 
@@ -338,9 +339,9 @@ function windMaterial(opts = {}, { bark = false, fern = false, low = false } = {
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85, metalness: 0, ...opts });
   m.onBeforeCompile = (sh) => {
     sh.defines = { ...(sh.defines || {}), ...(bark ? { BARK: 1 } : {}), ...(fern ? { FERN: 1 } : {}), ...(low ? { LOWQ: 1 } : {}) };
-    sh.uniforms.uTime = windUniforms.uTime; sh.uniforms.uWind = windUniforms.uWind;
+    sh.uniforms.uTime = windUniforms.uTime; sh.uniforms.uWind = windUniforms.uWind; useFill(sh);
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', `#include <common>
+      .replace('#include <common>', `#include <common>${FILL_DECL}
 varying vec3 vWPos;
 #if defined(BARK) || defined(FERN)
 varying vec2 vTUv; varying vec3 vTP;
@@ -406,6 +407,12 @@ float bkN(vec3 x) {
         diffuseColor.rgb = c;
       }
 #endif`)
+      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+      {
+        // luz que rebota en la hierba: la parte de abajo de las copas no se queda negra (sigue a la luz del día)
+        float down = clamp(-dot(normal, normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz)), 0.0, 1.0);
+        totalEmissiveRadiance += uCharFill * diffuseColor.rgb * vec3(0.85, 1.0, 0.7) * (0.05 + 0.16 * down);
+      }`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
 #ifdef FERN
       normal = normalize(vNormal);   // las dos caras de la fronda, con la luz de la de arriba (por detrás no queda negra)
@@ -751,20 +758,24 @@ class FlowerField {
     // mata de flores: dos cabezas en estrella algo ahuecadas (pétalos), botón amarillo, tallos cruzados (se ven
     // desde cualquier lado) y hojas en la base; la cabeza blanca la tiñe el sombreador con el color de cada especie
     const parts = [];
-    const head = (r, x, y, z, s) => {
-      const pos = [], P = 10;
-      for (let i = 0; i < P; i++) {
-        const a0 = i / P * Math.PI * 2, a1 = (i + 1) / P * Math.PI * 2, r0 = i % 2 ? r * 0.42 : r, r1 = i % 2 ? r : r * 0.42;
-        pos.push(0, 0, 0, Math.cos(a1) * r1, (i % 2 ? 0.016 : 0.004) * s, Math.sin(a1) * r1, Math.cos(a0) * r0, (i % 2 ? 0.004 : 0.016) * s, Math.sin(a0) * r0);
+    const head = (r, x, y, z, s, n = 5) => {
+      // n pétalos redondeados (abanico de tres triángulos cada uno), algo ahuecados hacia arriba y separados entre sí;
+      // más claros en la punta (el color lo pone el sombreador según la especie)
+      const pos = [], col = [], w = Math.PI / n * 0.82;
+      for (let i = 0; i < n; i++) {
+        const a = i / n * Math.PI * 2, pts = [-1, -0.45, 0.45, 1].map(t => { const aa = a + t * w, rr = r * (1 - 0.18 * t * t); return [Math.cos(aa) * rr, (0.018 + 0.012 * (1 - t * t)) * s, Math.sin(aa) * rr]; });
+        const b = [Math.cos(a) * r * 0.12, 0.004 * s, Math.sin(a) * r * 0.12];
+        for (let k = 0; k < 3; k++) { pos.push(...b, ...pts[k + 1], ...pts[k]); col.push(0.82, 0.82, 0.82, 1, 1, 1, 1, 1, 1); }
       }
       const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals();
-      g.translate(x, y, z); parts.push(colorize(g, (px, py, pz, c) => c.setRGB(1, 1, 1)));
+      g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+      g.translate(x, y, z); parts.push(g);
       const ce = new THREE.CircleGeometry(r * 0.3, 5); ce.rotateX(-Math.PI / 2); ce.translate(x, y + 0.012, z);
       parts.push(colorize(ce.toNonIndexed(), (px, py, pz, c) => c.setRGB(0.95, 0.75, 0.12)));
       for (const ry of [0, Math.PI / 2]) { const st = new THREE.PlaneGeometry(0.012, y); st.translate(0, y / 2, 0); st.rotateY(ry); st.translate(x, 0, z); parts.push(colorize(st.toNonIndexed(), (px, py, pz, c) => c.setRGB(0.24, 0.46, 0.15))); }
     };
     head(0.09, 0, 0.27, 0, 1);
-    head(0.072, 0.07, 0.18, 0.05, 0.8);
+    head(0.072, 0.07, 0.18, 0.05, 0.8, 6);
     for (let i = 0; i < 3; i++) { const l = new THREE.PlaneGeometry(0.035, 0.15); l.translate(0, 0.075, 0); l.rotateX(0.7); l.rotateY(i * 2.1); parts.push(colorize(l.toNonIndexed(), (px, py, pz, c) => c.setRGB(0.22, 0.42, 0.13))); }
     for (const g of parts) if (!g.attributes.uv) g.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count * 2), 2));
     const flower = mergeGeometries(parts.map(g => { g.deleteAttribute('uv'); return g; }));
@@ -801,7 +812,7 @@ vTint = k < 0.4 ? vec3(1.0, 1.0, 0.97) : k < 0.62 ? vec3(1.0, 0.85, 0.2) : k < 0
 `);
       sh.fragmentShader = sh.fragmentShader
         .replace('#include <common>', '#include <common>\nvarying vec3 vTint;')
-        .replace('#include <color_fragment>', '#include <color_fragment>\nif (vColor.r > 0.99 && vColor.g > 0.99) diffuseColor.rgb = vTint;')
+        .replace('#include <color_fragment>', '#include <color_fragment>\nif (vColor.r > 0.7 && abs(vColor.r - vColor.g) < 0.02 && abs(vColor.g - vColor.b) < 0.02) diffuseColor.rgb = vTint * vColor.r;')
         .replace('#include <normal_fragment_begin>', 'float faceDirection = 1.0;\nvec3 normal = normalize( vNormal );\nvec3 nonPerturbedNormal = normal;');
     };
     m.customProgramCacheKey = () => 'flowers';
