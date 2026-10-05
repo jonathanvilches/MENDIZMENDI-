@@ -405,7 +405,8 @@ export class FutbolGame {
     const f = fwd(p), toG = Math.atan2(gx - b.x, tz - b.z), pose = Math.abs(angDiff(p.h, toG)) > 1.1 ? 0.05 : 0;
     const press = this.nearestFoe(p) < 1.4 ? 0.05 : 0;
     const err = 0.01 + charge * charge * 0.032 + pose + press + (this.assist ? 0 : 0.02);
-    const ty = 0.25 + charge * 1.9;
+    // altura: de raso a casi la escuadra según la fuerza (la portería de sala mide 2 m: a tope iba por encima del larguero)
+    const ty = 0.25 + charge * (F.goalH - 0.55);
     if (finesse) {
       // tiro colocado: al palo largo, con rosca hacia dentro, menos fuerte y más preciso
       const far = -Math.sign(b.z || (this.rnd() - 0.5)) * (HW_G - 0.4);
@@ -525,8 +526,8 @@ export class FutbolGame {
           // el portero de pie: un balón fuerte solo lo para si le llega al cuerpo (lo de los lados lo tiene que sacar
           // estirándose a tiempo), y si llega muy fuerte lo rechaza en vez de blocarlo
           const body = hyp(B.x - best.x, B.z - best.z), fast = b.speed > 9;
-          if (fast && body > 0.6) best = null;
-          else if (fast && b.speed > this.L(best).catchV) { this.deflect(best, 0.2); if (this.shotLive && this.shotLive.team !== best.team) { this.stats.saves[best.team]++; this.stats.onTarget[this.other(best.team)]++; this.shotLive = null; this.emit({ t: 'save', p: best.id, catch: false }); } return; }
+          if (fast && body > (PL.gkBody || 0.6)) best = null;
+          else if (fast && b.speed > this.L(best).catchV) { this.parry(best); if (this.shotLive && this.shotLive.team !== best.team) { this.stats.saves[best.team]++; this.stats.onTarget[this.other(best.team)]++; this.shotLive = null; this.emit({ t: 'save', p: best.id, catch: false }); } return; }
           else { this.catchBall(best); return; }
         }
       }
@@ -572,6 +573,12 @@ export class FutbolGame {
     if (p.team === this.me.team && p !== this.me && !this.autoplay && p.role !== 'POR') this.setMe(p, 'ball');
     p.plan = null; p.think = this.human(p) ? 0 : (prev && prev.team !== p.team ? this.L(p).react * 0.6 : 0.05);
     this.emit({ t: 'control', p: p.id });
+  }
+  // el portero rechaza un balón muy fuerte: hacia fuera y a un lado (no de vuelta al punto de penalti)
+  parry(p) {
+    const b = this.ball, s = -this.dir[p.team], side = Math.sign(b.p.z - p.z || this.rnd() - 0.5);
+    b.kick(-s * (2 + this.rnd() * 3), 1.4 + this.rnd() * 2.2, side * (4 + this.rnd() * 4));
+    this.last = p; p.cool = 0.3; p.act = 'save'; p.actT = 0.4;
   }
   deflect(p, k) {
     const b = this.ball, B = b.p, nx = B.x - p.x, nz = B.z - p.z, d = hyp(nx, nz) || 1, ux = nx / d, uz = nz / d;
