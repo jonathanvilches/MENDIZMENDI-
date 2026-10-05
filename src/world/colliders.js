@@ -93,6 +93,32 @@ export function isFree(x, z, r) {
   return true;
 }
 
+/**
+ * ¿Está libre un rectángulo girado entero? (x, z) y ry como las tarimas de heightfield.addPlatform; x0..x1 y z0..z1 en
+ * coordenadas locales; m: holgura. A diferencia de mirar isFree en una rejilla de puntos, no se le escapan las cosas
+ * pequeñas que caen entre punto y punto (la farola que quedó dentro del frontón de Javier).
+ */
+export function rectFree(x, z, ry, x0, x1, z0, z1, m = 0) {
+  const c = Math.cos(ry), s = Math.sin(ry), ax = (x0 + x1) / 2, az = (z0 + z1) / 2, ahw = (x1 - x0) / 2 + m, ahd = (z1 - z0) / 2 + m;
+  for (const o of nearby(x + ax * c + az * s, z - ax * s + az * c, Math.hypot(ahw, ahd) + 2)) {
+    const dx = o.x - x, dz = o.z - z, lx = dx * c - dz * s, lz = dx * s + dz * c;
+    if (o.type === 'circle') {
+      const px = Math.max(x0, Math.min(x1, lx)), pz = Math.max(z0, Math.min(z1, lz));
+      if (Math.hypot(lx - px, lz - pz) < o.r + m) return false;
+      continue;
+    }
+    // dos rectángulos girados: se tocan si no hay un eje que los separe (los dos del rectángulo y los dos de la caja)
+    const cd = Math.abs(c * o.cos + s * o.sin), sd = Math.abs(s * o.cos - c * o.sin), tx = lx - ax, tz = lz - az;
+    const ux = c * o.cos + s * o.sin, uz = s * o.cos - c * o.sin;   // eje x de la caja visto desde el rectángulo
+    if (Math.abs(tx) > ahw + o.hw * cd + o.hd * sd) continue;
+    if (Math.abs(tz) > ahd + o.hw * sd + o.hd * cd) continue;
+    if (Math.abs(tx * ux + tz * uz) > o.hw + ahw * cd + ahd * sd) continue;
+    if (Math.abs(-tx * uz + tz * ux) > o.hd + ahw * sd + ahd * cd) continue;
+    return false;
+  }
+  return true;
+}
+
 // Rayo 2D contra cajas (para línea de visión)
 export function segmentBlocked(ax, az, bx, bz) {
   const steps = Math.ceil(Math.hypot(bx - ax, bz - az) / 1.5);
@@ -108,4 +134,10 @@ export function segmentBlocked(ax, az, bx, bz) {
   return false;
 }
 
+/** Quita un obstáculo (por ejemplo, el tronco de un árbol que ha quedado debajo de un frontón). */
+export function removeCollider(c) {
+  const i = COLLIDERS.indexOf(c); if (i < 0) return; COLLIDERS.splice(i, 1);
+  const r = c.bound, i0 = Math.floor((c.x - r) / CELL), i1 = Math.floor((c.x + r) / CELL), j0 = Math.floor((c.z - r) / CELL), j1 = Math.floor((c.z + r) / CELL);
+  for (let a = i0; a <= i1; a++) for (let b = j0; b <= j1; b++) { const l = grid.get(key(a, b)); const k = l ? l.indexOf(c) : -1; if (k >= 0) l.splice(k, 1); }
+}
 export function resetColliders() { COLLIDERS.length = 0; grid.clear(); MOVERS.length = 0; }

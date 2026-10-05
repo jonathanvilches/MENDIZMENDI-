@@ -514,10 +514,13 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 }
 @media (prefers-reduced-motion: reduce) { #hub *, .onb * { animation: none !important; } }
 
-/* ================= Portada 3D con historia ================= */
+/* ================= Portada con historia ================= */
 .hero3d { position: relative; height: clamp(460px, 66vh, 640px); border-radius: 22px; overflow: hidden; border: 1px solid var(--line2); box-shadow: 0 20px 50px rgba(0, 0, 0, .45); background: #1c0b3a; isolation: isolate; }
-.hero3d .stage-host { position: absolute; inset: 0; width: auto; height: auto; max-width: none; cursor: grab; touch-action: pan-y; }
-.hero3d .stage3d { display: block; }
+/* portada fija: la foto de la comarca y el personaje de pie a la derecha (en vertical, en el centro, encima del título) */
+.hero3d .hero-img { position: absolute; inset: 0; background: #1c0b3a center 60% / cover no-repeat; }
+.hero3d .hero-av { position: absolute; left: 66%; bottom: 6%; height: min(80%, 560px); width: auto; transform: translateX(-50%); transform-origin: 50% 100%; filter: drop-shadow(0 16px 14px rgba(0, 0, 0, .42)); cursor: pointer; -webkit-user-drag: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+.hero3d .hero-av.hop { animation: heroHop .6s cubic-bezier(.3, 1.5, .5, 1); }
+@keyframes heroHop { 35% { transform: translateX(-50%) translateY(-7%) scale(1.02, .98); } }
 .h-shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(20, 6, 48, .5) 0%, rgba(20, 6, 48, 0) 20%, rgba(20, 6, 48, 0) 52%, rgba(20, 6, 48, .8) 80%, rgba(20, 6, 48, .96) 100%); }
 .chapter { position: absolute; left: 14px; top: 14px; z-index: 2; display: flex; gap: 10px; align-items: center; padding: 5px 16px 5px 5px; border-radius: 40px; background: rgba(20, 6, 48, .74); border: 1px solid var(--line2); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); color: #fff; max-width: calc(100% - 28px); text-align: left; font: inherit; cursor: pointer; }
 .chapter img { width: 46px; height: 46px; flex: none; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .4)); }
@@ -562,6 +565,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .ccard .cimg:not(.ready) { opacity: .6; }
 
 @media (max-aspect-ratio: 1/1) {
+  .hero3d .hero-av { left: 50%; bottom: auto; top: 76px; height: calc(100% - 76px - 270px); min-height: 150px; max-height: 420px; }
   .bubble { left: 14px; right: 14px; top: 74px; width: auto; max-width: 520px; }
   .bubble::after { left: 50%; bottom: -8px; margin-left: -9px; }
   .h-bot { width: 100%; padding: 0 16px 16px; }

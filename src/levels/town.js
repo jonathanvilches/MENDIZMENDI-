@@ -439,7 +439,7 @@ export function createTownLevel(def) {
     if (f === 'ribera') return riverInfo(x, z).edge < 30 ? 'poplar' : n > 0 ? 'pine' : 'olive';
     return n > 0.2 ? 'pine' : n > -0.3 ? 'oak' : 'olive';
   }
-  const SPECIAL_TREES = PAMP ? pampTrees() : [[PLACES.plaza.x + PLACES.plaza.r + 4, PLACES.plaza.z - 6, def.family === 'ribera' ? 'poplar' : 'oak', 1.2], [PLACES.plaza.x - PLACES.plaza.r - 4, PLACES.plaza.z + 7, def.family === 'ribera' ? 'poplar' : 'oak', 1.1]];
+  const SPECIAL_TREES = PAMP ? pampTrees() : [[PLACES.plaza.x + PLACES.plaza.r + 4, PLACES.plaza.z - 6, def.family === 'ribera' ? 'poplar' : 'oak', 1.2, true], [PLACES.plaza.x - PLACES.plaza.r - 4, PLACES.plaza.z + 7, def.family === 'ribera' ? 'poplar' : 'oak', 1.1, true]];   // (true: si no caben, buscan un hueco cerca)
 
   // Pamplona: plátanos en la plaza del Castillo y en Carlos III, y arboleda dentro de la Ciudadela
   function pampTrees() {

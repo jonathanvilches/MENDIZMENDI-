@@ -57,7 +57,7 @@ export async function loadKayKit(name, height = 1.5) {
 // tranquilo de la celebración, de ida y vuelta para que no salte), saludar, celebrar, el impulso, el vuelo y la caída
 const MESHY = {}, MESHY_PICS = {};
 for (const [p, u] of Object.entries(import.meta.glob('../assets/meshy/*.glb', { eager: true, query: '?url', import: 'default' }))) MESHY[p.split('/').pop().replace('.glb', '')] = u;
-for (const [p, u] of Object.entries(import.meta.glob('../assets/meshy/portraits/*.png', { eager: true, query: '?url', import: 'default' }))) MESHY_PICS[p.split('/').pop().replace('.png', '')] = u;
+for (const [p, u] of Object.entries(import.meta.glob('../assets/meshy/portraits/*.{png,webp}', { eager: true, query: '?url', import: 'default' }))) MESHY_PICS[p.split('/').pop().replace(/\.(png|webp)$/, '')] = u;
 // versión ligera de cada uno (tools/meshy-lod.mjs: ~1/3 de triángulos y textura de 512 px) para cuando salen muchos a la
 // vez: vecinos, corredores, futbolistas
 const MESHY_LOD = {};
@@ -461,7 +461,7 @@ export const GLB_AVATARS = {};
 for (const [id, name] of [['ranger', 'Ranger'], ['rogue', 'Rogue'], ['hooded', 'Rogue_Hooded'], ['knight', 'Knight'], ['barbarian', 'Barbarian'], ['mage', 'Mage']])
   if (KK[name]) GLB_AVATARS[id] = { kaykit: name, bust: KK_PICS[id + '_bust'], full: KK_PICS[id + '_full'] };
 // personajes propios (Meshy) elegibles: el sanferminero, el pastor, el futbolista de Osasuna y el pelotari
-for (const id of ['sanfermin', 'pastor', 'osasuna', 'pelotari']) if (MESHY[id]) GLB_AVATARS[id] = { meshy: id, bust: MESHY_PICS[id + '_bust'], full: MESHY_PICS[id + '_full'] };
+for (const id of ['sanfermin', 'pastor', 'osasuna', 'pelotari']) if (MESHY[id]) GLB_AVATARS[id] = { meshy: id, bust: MESHY_PICS[id + '_bust'], full: MESHY_PICS[id + '_full'], hero: MESHY_PICS[id + '_hero'] };   // (hero: el grande de la portada)
 export const hasMeshy = (id) => !!MESHY[id];
 export const isGlbAvatar = id => !!GLB_AVATARS[id];
 export const loadGlbAvatar = (id) => {

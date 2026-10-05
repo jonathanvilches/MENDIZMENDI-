@@ -4,8 +4,8 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { fieldInfo, PLACES, HALF } from './layout.js';
-import { terrainHeight, groundHeight } from './heightfield.js';
-import { addBox } from './colliders.js';
+import { terrainHeight, groundHeight, onPlatform } from './heightfield.js';
+import { addBox, isFree } from './colliders.js';
 import { TOWN } from './townBuilder.js';
 
 const MAT = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.62, metalness: 0.15 });
@@ -122,7 +122,7 @@ export function buildAgro(scene, def, rnd) {
   const cand = [];
   for (let z = -HALF + 40; z < HALF - 40; z += 13) for (let x = -HALF + 40; x < HALF - 40; x += 13) {
     const fi = fieldInfo(x, z);
-    if (fi.mask < 0.95 || fi.edge < 9 || nearHouse(x, z)) continue;
+    if (fi.mask < 0.95 || fi.edge < 9 || nearHouse(x, z) || !isFree(x, z, 4.5) || onPlatform(x, z, 6)) continue;   // (ni encima de la pista ni del frontón)
     const h0 = terrainHeight(x, z), slope = Math.abs(terrainHeight(x + 4, z) - h0) + Math.abs(terrainHeight(x, z + 4) - h0);
     if (slope > 1.2) continue;
     cand.push({ x, z, fi });
@@ -148,9 +148,10 @@ export function buildAgro(scene, def, rnd) {
     obj.position.set(c.x, groundHeight(c.x, c.z), c.z); obj.rotation.y = ang;
     scene.add(obj);
     const o = { kind, x: c.x, z: c.z, obj, info: AGRO_INFO[kind] };
-    // algunos trabajan: van y vienen por el surco
-    if ((kind === 'plough' || kind === 'combine') && movers.length < 2) {
-      const L = 26; o.move = { x0: c.x, z0: c.z, dx: Math.sin(ang), dz: Math.cos(ang), L, s: 0, dir: 1, speed: kind === 'combine' ? 1.6 : 2.0, turn: 0 };
+    // algunos trabajan: van y vienen por el surco (si está libre de punta a punta)
+    const L = 26, free = [0, 0.25, 0.5, 0.75, 1].every(t => { const x = c.x + Math.sin(ang) * L * t, z = c.z + Math.cos(ang) * L * t; return isFree(x, z, 3.5) && !onPlatform(x, z, 5); });
+    if ((kind === 'plough' || kind === 'combine') && movers.length < 2 && free) {
+      o.move = { x0: c.x, z0: c.z, dx: Math.sin(ang), dz: Math.cos(ang), L, s: 0, dir: 1, speed: kind === 'combine' ? 1.6 : 2.0, turn: 0 };
       movers.push(o);
     } else addBox(c.x, c.z, kind === 'combine' ? 5.6 : 2.4, kind === 'combine' ? 7 : kind === 'bales' ? 8 : 5.5, ang);
     out.push(o);

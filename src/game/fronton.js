@@ -3,10 +3,10 @@
 import * as THREE from 'three';
 import { armSwing, GlbRig, loadMeshy, hasMeshy, loadedMeshy } from '../actors/glbChar.js';
 import { PelotaCourt, PelotaMatch } from '../pelota/index.js';
-import { terrainHeight, waterLevelAt, addPlatform } from '../world/heightfield.js';
-import { addBox, isFree } from '../world/colliders.js';
-import { rx } from '../world/layout.js';
-import { clearGrass } from '../world/nature.js';
+import { terrainHeight, waterLevelAt, addPlatform, onPlatform } from '../world/heightfield.js';
+import { addBox, rectFree } from '../world/colliders.js';
+import { rx, pathQuery } from '../world/layout.js';
+import { clearGrass, clearTrees } from '../world/nature.js';
 import { isEU } from '../i18n.js';
 import { profile } from './profile.js';
 import { QUALITY } from '../util/quality.js';
@@ -25,10 +25,13 @@ function extent() { if (!EXTENT) { const c = new PelotaCourt(THREE, { texScale: 
 
 // Busca un sitio llano y libre cerca de la plaza
 export function findFrontonSpot(plaza) {
-  // primero cerca de la plaza; si el pueblo está muy lleno (Tudela), más lejos y con algo menos de holgura:
-  // todos los pueblos tienen su frontón y su pelotari
-  for (const [r0, r1, gap, da] of [[34, 120, 1.2, 0.3], [120, 240, 1.2, 0.2], [34, 260, 0.6, 0.15]]) { const sp = frontonSearch(plaza, r0, r1, gap, da); if (sp) return sp; }
-  return null;
+  // primero cerca de la plaza; si allí solo cabe encima de una calle o no cabe (Tudela), también más lejos; y si
+  // tampoco, con algo menos de holgura: todos los pueblos tienen su frontón y su pelotari
+  const near = frontonSearch(plaza, 34, 120, 1.2, 0.3);
+  if (near && !near.road) return near;
+  const far = frontonSearch(plaza, 120, 240, 1.2, 0.2);
+  if (near || far) return !far || (near && near.score <= far.score) ? near : far;
+  return frontonSearch(plaza, 34, 260, 0.6, 0.15);
 }
 function frontonSearch(plaza, r0, r1, gap, da) {
   const E = extent();
@@ -36,15 +39,18 @@ function frontonSearch(plaza, r0, r1, gap, da) {
   for (let r = r0; r <= r1; r += 8) for (let a = 0; a < Math.PI * 2; a += da) {
     const x = plaza.x + Math.cos(a) * r, z = plaza.z + Math.sin(a) * r, ry = Math.atan2(plaza.x - x, plaza.z - z);   // la cancha se abre hacia la plaza
     if (Math.sign(x - rx(z)) !== Math.sign(plaza.x - rx(plaza.z))) continue;   // en la misma orilla que la plaza (sin río, rx es 9999: todo vale)
-    const c = Math.cos(ry), s = Math.sin(ry); let mn = 1e9, mx = -1e9, ok = true;
+    if (!rectFree(x, z, ry, E.x0, E.x1, E.z0, E.z1, gap)) continue;   // ni casas ni muros ni farolas dentro
+    const c = Math.cos(ry), s = Math.sin(ry); let mn = 1e9, mx = -1e9, ok = true, road = 0;
     for (let lx = E.x0; lx <= E.x1 + 0.01 && ok; lx += 3) for (let lz = E.z0; lz <= E.z1 + 0.01; lz += 3) {
       const X = x + lx * c + lz * s, Z = z - lx * s + lz * c;
-      if (!isFree(X, Z, gap) || waterLevelAt(X, Z) > terrainHeight(X, Z) - 0.3) { ok = false; break; }
+      if (onPlatform(X, Z, 1) || waterLevelAt(X, Z) > terrainHeight(X, Z) - 0.3) { ok = false; break; }
       const h = terrainHeight(X, Z); mn = Math.min(mn, h); mx = Math.max(mx, h);
+      const q = pathQuery(X, Z); if (q.d < q.w + 1) road++;
     }
     if (!ok) continue;
-    const score = (mx - mn) * 10 + r * 0.05;
-    if (score < bs) { bs = score; best = { x, z, ry, y: mx + 0.05 }; }
+    // mejor sin calles ni caminos debajo (las paredes los cortarían): cada punto de camino cuenta como 40 m más lejos
+    const score = (mx - mn) * 10 + r * 0.05 + road * 2;
+    if (score < bs) { bs = score; best = { x, z, ry, y: mx + 0.05, road, score }; }
   }
   return best;
 }
@@ -65,7 +71,7 @@ export class Fronton {
     const court = this.court = new PelotaCourt(THREE, { title, texScale: QUALITY === 'low' ? 0.5 : 1, ...extra });
     const g = court.group; g.position.set(spot.x, spot.y, spot.z); g.rotation.y = spot.ry; scene.add(g); g.updateMatrixWorld(true);
     const E = court.extent, mid = this.toWorld((E.x0 + E.x1) / 2, 0);
-    clearGrass(mid.x, mid.z, E.x1 - E.x0, E.z1, spot.ry);
+    clearGrass(mid.x, mid.z, E.x1 - E.x0, E.z1, spot.ry); clearTrees(mid.x, mid.z, E.x1 - E.x0, E.z1, spot.ry);
     for (const b of court.boxes) { const p = this.toWorld(b.x, b.z); addBox(p.x, p.z, b.w, b.d, spot.ry, { solidView: true }); }
     addPlatform(spot.x, spot.z, spot.ry, E.x0, E.x1 - 3.3, E.z0, E.z1, spot.y);   // la cancha es suelo (sin las gradas)
     this.entry = this.toWorld(court.entry.x, court.entry.z);

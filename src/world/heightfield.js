@@ -127,9 +127,17 @@ export function groundHeight(x, z) {
 
 // Superficies elevadas que cuentan como suelo (canchas de frontón, tarimas): rectángulo local girado ry; con y1 es una
 // rampa que va de la altura y (en z0) a y1 (en z1)
-const PLATFORMS = [];
+export const PLATFORMS = [];   // (exportada para revisar solapes: tools/solapes.mjs)
 export function addPlatform(x, z, ry, x0, x1, z0, z1, y, y1) { PLATFORMS.push({ x, z, c: Math.cos(ry), s: Math.sin(ry), x0, x1, z0, z1, y, y1 }); }
 export function clearPlatforms() { PLATFORMS.length = 0; }
+/** ¿Cae (x, z) sobre una cancha o tarima, con margen m? Para no poner encima árboles, plantas, puestos ni otra pista. */
+export function onPlatform(x, z, m = 0) {
+  for (const p of PLATFORMS) {
+    const dx = x - p.x, dz = z - p.z, lx = dx * p.c - dz * p.s, lz = dx * p.s + dz * p.c;
+    if (lx > p.x0 - m && lx < p.x1 + m && lz > p.z0 - m && lz < p.z1 + m) return true;
+  }
+  return false;
+}
 
 // Nivel de agua en un punto (o -Infinity si no hay agua cerca)
 export function waterLevelAt(x, z) {

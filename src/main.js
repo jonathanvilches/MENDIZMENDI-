@@ -30,7 +30,7 @@ import { preloadNpcs } from './actors/npcGlb.js';
 import { animalsSettled } from './actors/animalGlb.js';
 import { preloadFood } from './world/products3d.js';
 import { avatarPortrait, portrait } from './ui/portraits.js';
-import { releaseOffscreen } from './util/offscreen.js';
+import { releaseOffscreen, setOffscreenHost } from './util/offscreen.js';
 import { loadStore, queueMode } from './util/store.js';
 import { startI18n } from './i18n.js';
 
@@ -87,6 +87,8 @@ async function boot() {
   if (!input.touch && (P.settings.qualityAuto || !P.q3)) { P.settings.quality = null; P.settings.qualityAuto = false; P.q3 = true; saveProfile(); }
   const quality = q.get('q') || P.settings.quality || (input.touch ? (bigMem ? 'mid' : 'low') : desktopTier());
   const rt = new Runtime({ canvas, input, sound, quality });
+  // retratos, fichas, iconos y figuras del público se dibujan con este mismo renderizador (sin un segundo contexto WebGL)
+  setOffscreenHost(rt.renderer);
   // si el dispositivo se queda sin memoria para dibujar (pantalla apagada), la próxima vez arranca con menos calidad
   canvas.addEventListener('webglcontextlost', () => { const S = P.settings, next = { high: 'mid', mid: 'low' }[S.quality || quality]; if (next) { S.quality = next; S.qualityAuto = true; saveProfile(); } });
   canvas.style.visibility = 'hidden';
@@ -106,8 +108,8 @@ async function boot() {
     player.onStep = (surf, speed, pos) => {
       sound.step(surf, speed);
       if (surf !== 'water') rt.weather?.footprint(pos, player.heading);   // huellas si ha nevado
-      if (surf === 'water') rt.particles.emit({ x: pos.x, y: pos.y + 0.1, z: pos.z }, { n: 6, color: '#dff4ff', speed: 1.6, size: 0.22, life: 0.5, gravity: 6 });
-      else if (surf === 'dirt' && speed > 4) rt.particles.emit({ x: pos.x, y: pos.y + 0.1, z: pos.z }, { n: 2, color: '#b09a78', speed: 0.6, size: 0.35, life: 0.6, gravity: -0.2 });
+      if (surf === 'water') rt.particles?.emit({ x: pos.x, y: pos.y + 0.1, z: pos.z }, { n: 6, color: '#dff4ff', speed: 1.6, size: 0.22, life: 0.5, gravity: 6 });
+      else if (surf === 'dirt' && speed > 4) rt.particles?.emit({ x: pos.x, y: pos.y + 0.1, z: pos.z }, { n: 2, color: '#b09a78', speed: 0.6, size: 0.35, life: 0.6, gravity: -0.2 });
     };
     player.onJump = () => sound.jump();
     player.onLand = (v) => sound.land(v);
@@ -164,7 +166,6 @@ async function boot() {
         rt.start(game);
         ui.hideLoading(); queueMode('light');
         saveProfile();
-        if (!q.get('skipintro') && !navigator.webdriver && !(P.towns[d.id]?.visits > 1)) await game.introFly();
         { const g = game; setTimeout(() => { if (g && g === game) g.ui.toast(`¡Ya estás en ${d.name}! Habla con ${g.missions[0]?.host?.name || 'tu guía'}`, 'exclaim', 4200); }, 700); }
       }
     } catch (e) {
@@ -200,6 +201,9 @@ async function boot() {
     game.dispose?.();
     ui.destroyHUD(); ui.setCinematic(false);
     rt.unload();
+    // (que nada siga apuntando al pueblo que se deja: si no, se queda en memoria mientras se carga el siguiente)
+    if (window.__game === game) window.__game = null;
+    if (ui.game === game) ui.game = null;
     game = null;
     queueMode('all'); hub.show('comarca', def?.comarca);
   }

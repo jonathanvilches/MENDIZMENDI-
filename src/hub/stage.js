@@ -1,10 +1,7 @@
-// Escenarios 3D en vivo del centro de mando:
-//  · 'scene': el personaje en el camino de su pueblo (diorama de la comarca) — portada
-//  · 'showcase': plataforma de selección con aro de luz, haz y chispas del color del personaje
+// Escenario 3D en vivo del centro de mando: la plataforma del selector de personaje, con aro de luz, haz y chispas
+// del color del personaje. (La portada ya no es una escena en vivo: es la foto de la comarca con el personaje.)
 import * as THREE from 'three';
 import { buildMinifig, MinifigAnimator, COSTUMES, setOutlines } from '../actors/minifig.js';
-import { buildDiorama } from './diorama.js';
-import { TEX } from '../world/textures.js';
 import { castById } from '../data/cast.js';
 import { GlbRig, isGlbAvatar, loadGlbAvatar } from '../actors/glbChar.js';
 
@@ -20,18 +17,13 @@ function renderer() {
   R.shadowMap.enabled = true; R.shadowMap.type = THREE.PCFSoftShadowMap;
   return R;
 }
-const dioramas = new Map();
 let pendingCompile = null;
-/** Al entrar a jugar: se suelta el escenario del menú (su contexto WebGL, los dioramas y el personaje). En el
- *  móvil, tener a la vez este, el de los retratos y el del juego agotaba la memoria y el navegador cerraba la página. */
+/** Al entrar a jugar: se suelta el escenario del menú (su contexto WebGL y el personaje). En el móvil, tener a la vez
+ *  este, el de los retratos y el del juego agotaba la memoria y el navegador cerraba la página. */
 export function releaseStage() {
   // si aún está preparando sus shaders, se espera (soltar el renderizador a mitad hace fallar a three.js)
   if (pendingCompile) { pendingCompile.then(releaseStage, releaseStage); return; }
   Stage.current?.dispose(); Stage.current = null;
-  // (las texturas comunes del juego —adoquín, hojas…— no se tocan: las usa también el pueblo)
-  const keep = new Set(Object.values(TEX).flatMap(t => t?.isTexture ? [t] : [t?.map, t?.normalMap]).filter(Boolean));
-  for (const D of dioramas.values()) D.scene?.traverse(o => { o.geometry?.dispose(); const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []; for (const m of ms) { for (const k in m) if (m[k]?.isTexture && !keep.has(m[k]) && !m[k].userData?.shared) m[k].dispose(); m.dispose(); } });
-  dioramas.clear();
   if (R) { try { R.dispose(); R.forceContextLoss(); } catch (e) { } R.domElement.width = R.domElement.height = 1; R = null; }
 }
 
@@ -43,14 +35,14 @@ function glowTex(inner, outer = 'rgba(0,0,0,0)') {
 }
 
 export class Stage {
-  constructor(host, avatarId, { mode = 'showcase', comarca = 'bidasoa' } = {}) {
-    this.host = host; this.mode = mode;
+  constructor(host, avatarId) {
+    this.host = host;
     this.r = renderer();
     Stage.current?.dispose(); Stage.current = this;
     host.appendChild(this.r.domElement);
     this.r.domElement.className = 'stage3d';
-    this.cam = new THREE.PerspectiveCamera(mode === 'scene' ? 38 : 26, 1, 0.1, 3000);
-    if (mode === 'scene') this.buildScene(comarca); else this.buildShowcase();
+    this.cam = new THREE.PerspectiveCamera(26, 1, 0.1, 3000);
+    this.buildShowcase();
     this.setAvatar(avatarId);
     this.t = 0; this.last = performance.now(); this.alive = true; this.yaw = 0; this.drag = null;
     const el = this.r.domElement;
@@ -66,14 +58,6 @@ export class Stage {
     this.loop = this.loop.bind(this); requestAnimationFrame(this.loop);
   }
   poke() { this.wave = 1.6; this.jump = 0.5; this.anim?.setExpr(Math.random() < 0.3 ? 'surprised' : 'happy', 1.8); this.onPoke?.(); }
-  buildScene(comarca) {
-    // el diorama se construye una vez por comarca y se reutiliza
-    let D = dioramas.get(comarca);
-    if (!D) { D = buildDiorama(comarca, { live: true }); dioramas.set(comarca, D); }
-    this.D = D; this.scene = D.scene;
-    this.groundY = D.hf ? D.hf(0, 0) + 0.035 : 0;               // el personaje pisa el camino (antes se hundía en él)
-    this.r.setClearColor(0, 1);
-  }
   buildShowcase() {
     const scene = this.scene = new THREE.Scene();
     scene.add(new THREE.HemisphereLight('#e8e0ff', '#2a1050', 1.1));
@@ -109,7 +93,6 @@ export class Stage {
     this.r.setClearColor(0, 0);
   }
   setColor(hex) {
-    if (this.mode !== 'showcase') return;
     const c = new THREE.Color(hex), bright = c.clone().lerp(new THREE.Color('#ffffff'), 0.25);
     this.ringMat.color.copy(bright); this.ringMat.emissive.copy(bright);
     this.glowMat.color.copy(c); this.beamMat.uniforms.uC.value.copy(bright); this.sparkMat.color.copy(bright);
@@ -149,57 +132,17 @@ export class Stage {
     this.glbRig?.dispose(); this.glbRig = rig || null;
     this.fig = fig; this.anim = anim;
     this.scene.add(this.fig);
-    const H = this.H = h;
+    this.H = h;
     this.setColor(castById(id)?.color || '#FFD700');
-    this.pop = this.mode === 'showcase' ? 0 : 1; this.wave = 1.4; this.yaw = 0;
+    this.pop = 0; this.wave = 1.4; this.yaw = 0;
     this.frame();
-  }
-  // Portada en vertical (imagen de juego): el personaje entero en el hueco libre entre el capítulo (arriba) y el
-  // título con los botones (abajo), con la cámara algo baja para que se vea heroico. Devuelve false si no hay hueco.
-  fitBand() {
-    const sec = this.host.closest('.hero3d'); if (!sec) return false;
-    const R = this.host.getBoundingClientRect(); if (!R.height) return false;
-    const topEl = sec.querySelector('.chapter'), botEl = sec.querySelector('.h-bot .kicker') || sec.querySelector('.h-bot');
-    let t = topEl ? (topEl.getBoundingClientRect().bottom - R.top) / R.height : 0.08;
-    let b = botEl ? (botEl.getBoundingClientRect().top - R.top) / R.height : 0.7;
-    if (b - t < 0.3) b = Math.min(0.9, t + 0.3);             // pantallas muy bajas: las piernas pueden pasar tras el título
-    const H = this.H || 1.4, fov = this.cam.fov = 30, g = this.groundY || 0, tf = Math.tan(fov * Math.PI / 360);
-    // cabeza y pies en el hueco (con un poco de margen); la cámara a la altura del pecho, algo baja: pose de héroe
-    const tt = t + (b - t) * 0.06, bb = b - (b - t) * 0.04;
-    const At = Math.atan((1 - 2 * tt) * tf), Ab = Math.atan((1 - 2 * bb) * tf);
-    const cy = g + H * 0.42;
-    const span = (d) => Math.atan((g + H - cy) / d) - Math.atan((g - cy) / d);
-    let lo = 0.5, hi = 60;                                        // distancia que da el ángulo buscado (búsqueda binaria)
-    for (let i = 0; i < 40; i++) { const m = (lo + hi) / 2; if (span(m) > At - Ab) lo = m; else hi = m; }
-    const d = (lo + hi) / 2, th = Math.atan((g + H - cy) / d) - At;
-    this.lookY = cy + d * Math.tan(th);
-    this.cam.clearViewOffset();
-    this.cam.position.set(0.35, cy, d); this.cam.lookAt(0, this.lookY, 0);
-    this.cam.updateProjectionMatrix();
-    this.band = { t, b, d: +d.toFixed(2) };
-    return true;
   }
   // encuadre según la forma del hueco
   frame() {
     const H = this.H || 1.4, a = this.cam.aspect || 1;
-    if (this.mode === 'scene' && a < 0.9 && this.fitBand()) return;
-    if (this.mode === 'scene') {
-      // personaje en el centro, el pueblo y los montes detrás
-      const tall = a < 0.9;
-      this.cam.fov = tall ? 40 : 34;
-      // huecos poco altos: personaje algo más pequeño y más arriba para que no lo tapen los textos
-      const k = tall ? Math.min(1, Math.max(0, (a - 0.55) / 0.3)) : 0;
-      const d = tall ? 5.6 + k * 1.9 : 5.0;
-      const g = this.groundY || 0;
-      this.cam.position.set(0.5, 1.25 + g, d);
-      this.lookY = (tall ? 0.62 - k * 0.36 : 0.72) + g;
-      this.cam.lookAt(0, this.lookY, 0);
-      if (!tall && this.w) this.cam.setViewOffset(this.w, this.h, -this.w * 0.17, 0, this.w, this.h); else this.cam.clearViewOffset();
-    } else {
-      const d = a < 0.8 ? H * 4.4 + 1.6 : H * 3.3 + 1.3;
-      this.cam.fov = 26;
-      this.cam.position.set(0, H * 0.75, d); this.cam.lookAt(0, H * 0.5, 0);
-    }
+    const d = a < 0.8 ? H * 4.4 + 1.6 : H * 3.3 + 1.3;
+    this.cam.fov = 26;
+    this.cam.position.set(0, H * 0.75, d); this.cam.lookAt(0, H * 0.5, 0);
     this.cam.updateProjectionMatrix();
   }
   loop(now) {
@@ -215,28 +158,18 @@ export class Stage {
     if (this.w !== w || this.h !== h) { this.w = w; this.h = h; this.r.setSize(w, h, false); this.r.domElement.style.width = w + 'px'; this.r.domElement.style.height = h + 'px'; this.cam.aspect = w / h; this.frame(); }
     if (this.wave > 0) this.wave -= dt;
     let jumpY = 0; if (this.jump > 0) { this.jump -= dt; jumpY = Math.sin((1 - this.jump / 0.5) * Math.PI) * 0.25; }
-    if (this.mode === 'scene') {
-      this.D.update(dt);
-      if (!this.drag) this.yaw *= Math.pow(0.1, dt);
-      this.fig.rotation.y = 0.18 + Math.sin(this.t * 0.4) * 0.12 + this.yaw;
-      this.fig.position.y = (this.groundY || 0) + jumpY;
-      // la cámara respira despacio
-      const s = Math.sin(this.t * 0.18);
-      this.cam.position.x = 0.5 + s * 0.3; this.cam.lookAt(s * 0.05, this.lookY, 0);
-    } else {
-      this.pop = Math.min(1, this.pop + dt * 3.2);
-      const p = this.pop, k = p < 1 ? 1 + Math.sin(p * Math.PI) * 0.12 - (1 - p) * 0.6 : 1;
-      this.fig.scale.setScalar(Math.max(0.01, k));
-      if (!this.drag) this.yaw *= Math.pow(0.3, dt);
-      this.fig.rotation.y = Math.sin(this.t * 0.45) * 0.35 + this.yaw;
-      this.fig.position.y = jumpY;
-      this.pad.rotation.y += dt * 0.4;
-      this.beamMat.uniforms.uT.value = this.t;
-      const pos = this.sparks.geometry.attributes.position;
-      this.sparkData.forEach((s, i) => { s.y += dt * s.s; if (s.y > 2.8) s.y = 0; s.a += dt * 0.4; pos.setXYZ(i, Math.cos(s.a) * s.r, s.y, Math.sin(s.a) * s.r); });
-      pos.needsUpdate = true;
-      this.sparkMat.opacity = 0.9;
-    }
+    this.pop = Math.min(1, this.pop + dt * 3.2);
+    const p = this.pop, k = p < 1 ? 1 + Math.sin(p * Math.PI) * 0.12 - (1 - p) * 0.6 : 1;
+    this.fig.scale.setScalar(Math.max(0.01, k));
+    if (!this.drag) this.yaw *= Math.pow(0.3, dt);
+    this.fig.rotation.y = Math.sin(this.t * 0.45) * 0.35 + this.yaw;
+    this.fig.position.y = jumpY;
+    this.pad.rotation.y += dt * 0.4;
+    this.beamMat.uniforms.uT.value = this.t;
+    const pos = this.sparks.geometry.attributes.position;
+    this.sparkData.forEach((s, i) => { s.y += dt * s.s; if (s.y > 2.8) s.y = 0; s.a += dt * 0.4; pos.setXYZ(i, Math.cos(s.a) * s.r, s.y, Math.sin(s.a) * s.r); });
+    pos.needsUpdate = true;
+    this.sparkMat.opacity = 0.9;
     this.anim.update(dt, { speed: 0, grounded: true, wave: this.wave, talking: this.wave > 0 ? 1 : 0 });
     if (this.ready) this.r.render(this.scene, this.cam);
   }
@@ -247,9 +180,8 @@ export class Stage {
       if (this.r.domElement.parentNode === this.host) this.r.domElement.remove();
     }
     if (this.fig && this.scene) this.scene.remove(this.fig);
-    // se sueltan el diorama y el personaje: el menú guarda este escenario y, si no, toda la geometría de la portada
-    // seguía viva durante la partida (en el iPhone, memoria de más justo al entrar en un pueblo grande)
+    // se suelta el personaje: el menú guarda este escenario y, si no, seguía vivo durante la partida
     this.glbRig?.dispose?.(); this.glbRig = null;
-    this.fig = this.anim = null; this.scene = this.D = null;
+    this.fig = this.anim = null; this.scene = null;
   }
 }

@@ -25,7 +25,7 @@ function setup() {
     cam = new THREE.PerspectiveCamera(22, 1, 0.01, 100);
   }
   // luz de estudio: reflejos suaves del entorno (va ligado al renderizador: si se ha liberado, se rehace)
-  if (envGen !== offscreenGen()) { envGen = offscreenGen(); scene.environment?.dispose(); const pm = new THREE.PMREMGenerator(R); scene.environment = pm.fromScene(new RoomEnvironment(), 0.04, 0.1, 100, { size: 128 }).texture; pm.dispose(); scene.environmentIntensity = 0.55; }
+  if (envGen !== offscreenGen()) { envGen = offscreenGen(); scene.environment?.dispose(); const pm = new THREE.PMREMGenerator(R.isFacade ? R.renderer : R); scene.environment = pm.fromScene(new RoomEnvironment(), 0.04, 0.1, 100, { size: 128 }).texture; pm.dispose(); scene.environmentIntensity = 0.55; }
 }
 // ---- modelos a medida (productos y herramientas) ----
 const mat = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.6, metalness: 0, ...o });

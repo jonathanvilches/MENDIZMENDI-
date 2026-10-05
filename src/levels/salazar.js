@@ -259,9 +259,10 @@ export function fieldInfo(x, z) {
 export const PONDS = [PLACES.pond];
 PLACES.courts = [{ x: PLACES.fronton.x, z: PLACES.fronton.z, hw: 16, hd: 6.5 }];
 PLACES.clearings = [{ x: PLACES.muskilda.x, z: PLACES.muskilda.z, r0: 35, r1: 16 }, { x: PLACES.waterfall.x, z: PLACES.waterfall.z, r0: 16, r1: 8 }];
+// (true: si alguno no cabe donde se puso, busca un hueco cerca en vez de quitarse)
 export const SPECIAL_TREES = [
-  [PLACES.plaza.x + 11, PLACES.plaza.z - 7, 'oak', 1.25], [PLACES.plaza.x - 11, PLACES.plaza.z + 8, 'oak', 1.15],
-  [PLACES.church.x + 14, PLACES.church.z + 14, 'oak', 1.1], [PLACES.crucero.x - 13, PLACES.crucero.z - 7, 'oak', 1.3],
-  [PLACES.muskilda.x - 16, PLACES.muskilda.z + 12, 'oak', 1.5], [PLACES.muskilda.x + 14, PLACES.muskilda.z + 16, 'beech', 1.2],
-  [PLACES.borda.x + 14, PLACES.borda.z - 10, 'oak', 1.35], [PLACES.mirador.x - 5, PLACES.mirador.z - 6, 'fir', 1.1],
+  [PLACES.plaza.x + 11, PLACES.plaza.z - 7, 'oak', 1.25, true], [PLACES.plaza.x - 11, PLACES.plaza.z + 8, 'oak', 1.15, true],
+  [PLACES.church.x + 14, PLACES.church.z + 14, 'oak', 1.1, true], [PLACES.crucero.x - 13, PLACES.crucero.z - 7, 'oak', 1.3, true],
+  [PLACES.muskilda.x - 16, PLACES.muskilda.z + 12, 'oak', 1.5, true], [PLACES.muskilda.x + 14, PLACES.muskilda.z + 16, 'beech', 1.2, true],
+  [PLACES.borda.x + 14, PLACES.borda.z - 10, 'oak', 1.35, true], [PLACES.mirador.x - 5, PLACES.mirador.z - 6, 'fir', 1.1, true],
 ];

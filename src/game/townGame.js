@@ -6,7 +6,7 @@ import { PLACES } from '../world/layout.js';
 import { loadMeshy, hasMeshy } from '../actors/glbChar.js';
 import { QUALITY } from '../util/quality.js';
 import { Jornales } from './jornales.js';
-import { groundHeight, terrainHeight, waterLevelAt } from '../world/heightfield.js';
+import { groundHeight, terrainHeight, waterLevelAt, onPlatform } from '../world/heightfield.js';
 import { TOWN } from '../world/townBuilder.js';
 import { isFree, segmentBlocked, addCircle, addBox } from '../world/colliders.js';
 import { clamp, lerp, angleDiff, mulberry32 } from '../util/math.js';
@@ -219,17 +219,25 @@ export class TownGame {
     }
     return (this._stage = this.spot(c, 6));
   }
-  spot(p, r = 4, avoidWater = true) {
+  // sitio libre y llano cerca de un punto. Cada sitio dado queda apartado: los personajes no son obstáculos fijos y,
+  // sin esto, la tienda caía encima del personaje de la misión que espera junto al mercado (Lesaka, Viana). Tampoco
+  // sirven las canchas del frontón ni de la pista
+  // (gap: hueco que deja con los demás sitios dados; la tienda, que es ancha, pide más; ok: otra condición del sitio)
+  spot(p, r = 4, avoidWater = true, gap = 1.6, ok = null) {
+    const taken = this._taken ||= [];
+    const done = (x, z) => { taken.push(x, z, gap); return { x, z }; };
     for (let k = 0; k < 60; k++) {
       const a = k * 2.4, d = k === 0 ? 0 : r * 0.3 + k * 0.6;
       const x = p.x + Math.cos(a) * d, z = p.z + Math.sin(a) * d;
-      if (!isFree(x, z, 0.9)) continue;
+      if (!isFree(x, z, 0.9) || onPlatform(x, z, 0.5)) continue;
+      let near = false; for (let i = 0; i < taken.length && !near; i += 3) { const g = Math.max(gap, taken[i + 2]); near = Math.abs(taken[i] - x) < g && Math.abs(taken[i + 1] - z) < g; }
+      if (near || (ok && !ok(x, z))) continue;
       if (avoidWater && waterLevelAt(x, z) > groundHeight(x, z) - 0.05) continue;
       const g0 = groundHeight(x, z), g1 = groundHeight(x + 1, z), g2 = groundHeight(x, z + 1);
       if (Math.abs(g1 - g0) > 0.6 || Math.abs(g2 - g0) > 0.6) continue;
-      return { x, z };
+      return done(x, z);
     }
-    return { x: p.x, z: p.z };
+    return done(p.x, p.z);
   }
   placeFor(M) {
     const P = PLACES, m = M.m, lm = (k) => TOWN.landmarks.find(l => l.kind === k);
@@ -260,9 +268,20 @@ export class TownGame {
     if (!this.fronton) { const sp = findFrontonSpot(PLACES.frontonNear || PLACES.plaza); if (sp) this.fronton = new Fronton(this.scene, sp, this.def.name.split(' /')[0], frontonWall(this.def)); }
     return this.fronton;
   }
+  // pista polideportiva del pueblo (fútbol sala), si hay sitio llano cerca de la plaza (en Pamplona se juega en El
+  // Sadar). Se levanta justo después del frontón y antes que la flora, los puestos y los demás objetos, para que nada
+  // quede encima de ella (antes se ponía al final y podía caer sobre plantas que no cuentan como obstáculo)
+  ensurePista() {
+    if (this._pistaDone) return this.pista;
+    this._pistaDone = true;
+    if (TOWN.landmarks.find(l => l.kind === 'stadium') || /nopista/.test(location.search)) return null;
+    try { const sp = findPistaSpot(PLACES.plaza); if (sp) this.pista = new Pista(this.scene, sp); } catch (e) { console.warn('pista', e); }
+    return this.pista;
+  }
   spawn() {
     const d = this.def;
     this.ensureFronton();
+    this.ensurePista();
     for (const M of this.missions) {
       const pos = this.spot(this.placeFor(M), 5);
       const h = (M.leg?.teller) || M.m.host || (M.type === 'visit' ? ((g) => ({ name: 'Guía ' + guideName(g, this.P.name), look: { shirt: '#f2c230', vest: '#3a8fd6', pants: '#2b3a6b', hair: '#3b2418', ponytail: g, female: g, strap: '#6b4a2e', bag: '#8a6a3a', face: 'happy' } }))(this.rnd() < 0.5)
@@ -332,9 +351,8 @@ export class TownGame {
     // en la entrada (en Pamplona se juega en El Sadar)
     if (!sadar && !/nopista/.test(location.search)) try {
       // (sin sitio para la pista, el entrenador del club espera en la plaza: liga y amistosos igual)
-      const sp = findPistaSpot(PLACES.plaza);
-      if (sp || clubOfTown(this.def.id)) {
-        if (sp) this.pista = new Pista(this.scene, sp);
+      this.ensurePista();
+      if (this.pista || clubOfTown(this.def.id)) {
         const e = this.pista ? this.pista.entry : this.spot({ x: PLACES.plaza.x + 9, z: PLACES.plaza.z + 6 }, 4), c = this.pista ? this.pista.center : PLACES.plaza, R = this.rnd, female = R() < 0.5;
         const name = female ? ['Ane', 'Maite', 'Nerea', 'Leire', 'Amaia'][Math.floor(R() * 5)] : ['Jon', 'Xabier', 'Ander', 'Iker', 'Koldo'][Math.floor(R() * 5)];
         const s2 = this.spot({ x: e.x, z: e.z }, 2.5);
@@ -1239,25 +1257,6 @@ export class TownGame {
     if (n >= this.herd.length) { this.herd = null; M.step = 2; this.sound.magic(); this.ui.toast(`¡Todos en el redil! Vuelve con ${M.host.name}`, 'check', 3000); }
   }
 
-  // Presentación breve del pueblo al llegar: un solo vuelo de cámara hasta el jugador con una frase
-  async introFly() {
-    const d = this.def, town = d.name.split(' /')[0], P = PLACES.plaza, gy = terrainHeight(P.x, P.z), pl = this.player.pos;
-    const first = (d.intro || '').split(/(?<=[.!?])\s/)[0];
-    this.mode = 'cine'; this.player.frozen = true; this.ui.hudVisible(false);
-    let skip = false; const onSkip = () => { skip = true; };
-    setTimeout(() => { addEventListener('keydown', onSkip); addEventListener('pointerdown', onSkip); }, 300);
-    const cin = { pos: new THREE.Vector3(P.x + 60, gy + 45, P.z + 60), look: new THREE.Vector3(P.x, gy, P.z), t: 0 };
-    this.camera.position.set(P.x + 90, gy + 70, P.z + 90); cin.lookCur = cin.look.clone();
-    this.follow.cinematic = cin;
-    this.ui.setCinematic(true, first ? `${town}. ${first}` : town);
-    for (let t = 0; t < 2600 && !skip; t += 100) await new Promise(r => setTimeout(r, 100));
-    cin.pos.set(pl.x + 4, pl.y + 3, pl.z + 6); cin.look.set(pl.x, pl.y + 1.2, pl.z);
-    for (let t = 0; t < 1800 && !skip; t += 100) await new Promise(r => setTimeout(r, 100));
-    removeEventListener('keydown', onSkip); removeEventListener('pointerdown', onSkip);
-    this.follow.cinematic = null; this.follow.snap(this.player);
-    this.ui.setCinematic(false); this.ui.hudVisible(true);
-    this.player.frozen = false; this.mode = 'play';
-  }
   // Frase del narrador al empezar cada misión
   hook(M) {
     const town = this.def.name.split(' /')[0], m = M.m, c = this.comarca?.name || 'Navarra';
