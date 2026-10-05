@@ -94,6 +94,7 @@ const CSS = `
   .fb-card>*{grid-column:1/-1}.fb-card .fb-row:not(:first-of-type){grid-column:auto}.fb-card .fb-go,.fb-card .fb-alt{grid-column:auto;margin-top:4px;min-height:44px;padding:8px}
   .fb-ctrl{font-size:11px;margin:2px 0}.fb-ctrl td{padding:2px 4px}.fb-ctrl td small{display:none}.fb-ctrl td.ic svg{width:17px;height:17px}.fb-ctrl td br{display:none}
   .fb-card h2{font-size:24px}.fb-row{margin:2px 0 6px;gap:5px}.fb-row label{font-size:11px}.fb-chip{min-height:34px;padding:5px 11px;font-size:13px}
+  .fb-stats{font-size:13px;margin:4px 0 2px}.fb-stats td{padding:3px 6px}.fb-big{font-size:36px;margin:2px 0}.fb-card p{margin:2px 0 6px}
 }
 @media (max-height:460px) and (orientation:landscape){
   .fb-top{top:calc(env(safe-area-inset-top,0px) + 4px)}.fb-team b{font-size:22px}
@@ -244,17 +245,26 @@ export class FutbolHud {
     this.root.appendChild(p); return p;
   }
   /** Menú previo: modo, rival, dificultad, duración y asistencia. */
+  // (los retos van en su propia fila; rival, dificultad, duración y asistencia solo se ven cuando cuentan para el modo)
   menu({ title = 'Fútbol', sub = '', modes, rivals, values }) {
     return new Promise(res => {
       const v = { ...values };
-      const chips = (key, list) => `<div class="fb-row"><label>${{ mode: 'Modo', rival: 'Rival', level: 'Dificultad', duration: 'Duración de cada parte', assist: 'Asistencia al pase y al tiro' }[key]}</label>${list.map(([id, name]) => `<button class="fb-chip ${v[key] === id ? 'on' : ''}" data-k="${key}" data-v="${id}">${esc(name)}</button>`).join('')}</div>`;
+      const LABEL = { mode: 'Modo', reto: 'Retos de entrenamiento', rival: 'Rival', level: 'Dificultad', duration: 'Duración de cada parte', assist: 'Asistencia al pase y al tiro' };
+      const chips = (key, list, k = key) => `<div class="fb-row" data-row="${key}"><label>${LABEL[key]}</label>${list.map(([id, name]) => `<button class="fb-chip ${v[k] === id ? 'on' : ''}" data-k="${k}" data-v="${id}">${esc(name)}</button>`).join('')}</div>`;
+      const main = modes.filter(([id]) => !String(id).startsWith('reto:')), retos = modes.filter(([id]) => String(id).startsWith('reto:'));
       const p = this.panel(`<p class="fb-kick">${esc(sub)}</p><h2>${esc(title)}</h2>
-        ${chips('mode', modes)}${rivals.length > 1 ? chips('rival', rivals) : ''}${chips('level', [['facil', 'Fácil'], ['normal', 'Normal'], ['dificil', 'Difícil']])}
+        ${chips('mode', main)}${retos.length ? chips('reto', retos, 'mode') : ''}${rivals.length > 1 ? chips('rival', rivals) : ''}${chips('level', [['facil', 'Fácil'], ['normal', 'Normal'], ['dificil', 'Difícil']])}
         ${chips('duration', [[2, '2 min'], [3, '3 min'], [4, '4 min'], [5, '5 min']])}${chips('assist', [[true, 'Sí'], [false, 'No']])}
         <button class="fb-go">¡A jugar!</button><button class="fb-alt">Salir</button>`);
+      const refresh = () => {
+        const m = String(v.mode), reto = m.startsWith('reto:'), pen = m === 'penalties';
+        const show = { rival: !reto, level: !reto, duration: !reto && !pen, assist: !reto && !pen };
+        for (const row of p.querySelectorAll('.fb-row[data-row]')) if (row.dataset.row in show) row.style.display = show[row.dataset.row] ? '' : 'none';
+      };
+      refresh();
       p.addEventListener('click', (e) => {
         const b = e.target.closest('button'); if (!b) return;
-        if (b.dataset.k) { const k = b.dataset.k, raw = b.dataset.v; v[k] = k === 'duration' ? +raw : k === 'assist' ? raw === 'true' : raw; p.querySelectorAll(`[data-k="${k}"]`).forEach(c => c.classList.toggle('on', c === b)); return; }
+        if (b.dataset.k) { const k = b.dataset.k, raw = b.dataset.v; v[k] = k === 'duration' ? +raw : k === 'assist' ? raw === 'true' : raw; p.querySelectorAll(`[data-k="${k}"]`).forEach(c => c.classList.toggle('on', c === b)); if (k === 'mode') refresh(); return; }
         p.remove(); res(b.classList.contains('fb-go') ? v : null);
       });
     });
