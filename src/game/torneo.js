@@ -83,7 +83,7 @@ export const youOut = (T) => !T.done && !T.matches.some(m => T.players[m.a].you 
 // ---------------------------------------------------------------- pantalla: el cuadro del torneo
 const CSS = `.tq-bracket{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;align-items:center}
 .tq-wait{display:none;font-size:12px;color:#a99cc9;text-align:center;padding:2px 0 4px}
-@media (max-width:560px){.tq-bracket{grid-template-columns:1fr;gap:10px;align-items:start}.tq-col h4{text-align:left}.tq-m.tq-ph{display:none}.tq-wait{display:block;text-align:left}.tq-m{font-size:13.5px;padding:6px 10px}}
+@media (max-width:560px){.tq-bracket{grid-template-columns:1fr;gap:10px;align-items:start}.tq-col h4{text-align:left}.tq-m.tq-ph{display:none}.tq-col:has(.tq-wait){display:flex;align-items:baseline;gap:8px}.tq-col:has(.tq-wait) h4{margin:0}.tq-wait{display:block;text-align:left;padding:0}.tq-m{font-size:13.5px;padding:6px 10px}}
 @media (orientation:landscape) and (max-height:520px){.tq-bracket{gap:6px}.tq-m{font-size:11.5px;padding:3px 6px;gap:0}.tq-m small{display:none}.tq-col{gap:5px}.tq-col h4{font-size:9.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
 .tq-col{display:grid;gap:8px}.tq-col h4{margin:0;text-align:center;font-size:11px;color:#cbbcf0;text-transform:uppercase;letter-spacing:.06em}
 .tq-m{border-radius:12px;background:rgba(255,255,255,.07);padding:5px 8px;font-size:12.5px;display:grid;gap:2px}
@@ -120,7 +120,7 @@ export function torneoPanel(T, here = null) {
     else mid = `<div class="lg-champ"><small>ELIMINADO</small><br>El torneo sigue sin ti: mira quién se lleva la txapela.</div>`;
     const away = m && here && m.venue.id !== here;
     const btns = T.done ? '<button class="lg-btn go" data-a="new">Nuevo torneo</button>' : m ? (away ? `<button class="lg-btn go" data-a="travel">Viajar a ${esc(m.venue.name)}</button>` : '<button class="lg-btn go" data-a="play">¡A jugar!</button>') : '<button class="lg-btn go" data-a="sim">Siguiente ronda</button>';
-    const r = lgPanel(`${head}${mid}${how}${bracketHtml(T)}<div class="lg-btns">${btns}<button class="lg-btn" data-a="exit">Salir</button></div>${away ? `<p class="lg-note">Tu partido es en el frontón de ${esc(m.venue.name)}: viaja allí (en el mapa) y habla con su pelotari.</p>` : ''}<p class="lg-note lg-adapt">Pelotaris inventados para el juego.</p>`);
+    const r = lgPanel(`${head}${mid}${how}${bracketHtml(T)}<div class="lg-btns">${btns}<button class="lg-btn" data-a="exit">Salir</button></div>${away && !how ? `<p class="lg-note">Tu partido es en el frontón de ${esc(m.venue.name)}: viaja allí (en el mapa) y habla con su pelotari.</p>` : ''}<p class="lg-note lg-adapt">Pelotaris inventados para el juego.</p>`);
     r.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; r.remove(); res(b.dataset.a); });
   });
 }
