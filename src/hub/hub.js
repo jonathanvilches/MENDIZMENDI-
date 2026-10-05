@@ -287,7 +287,7 @@ export class Hub {
     const p = profile(), t = townProgress(p, l), c = comarca(l.comarca);
     const types = (l.missions || []).map(m => m.type);
     return `<button class="tcard ${t.stamp ? 'stamped' : ''}" data-town="${l.id}" style="--c:${c?.color}">
-      <div class="thead">${I(l.special ? 'castle' : ({ romanesque: 'church', gothic: 'church', baroque: 'church', fortress: 'castle', cathedral: 'cathedral' }[l.church?.style] || 'church'), 44)}<div><b>${esc(l.name)}</b><small>${esc(c?.name)}</small></div>${t.stamp ? `<img class="tstamp" src="${stampImg(l.comarca)}" alt="">` : ''}</div>
+      <div class="thead">${I(l.special ? 'castle' : ({ romanesque: 'church', gothic: 'church', baroque: 'church', fortress: 'castle', cathedral: 'cathedral', pamplona: 'cathedral' }[l.church?.style] || 'church'), 44)}<div><b>${esc(l.name)}</b><small>${esc(c?.name)}</small></div>${t.stamp ? `<img class="tstamp" src="${stampImg(l.comarca)}" alt="">` : ''}</div>
       <p>${esc(l.intro || '')}</p>
       <div class="ticons">${(l.special ? ['visit', 'herd', 'legend', 'dance', 'observe', 'carnival'] : types).map(ty => `<span title="${TYPE_NAME[ty]}">${I(TYPE_ICON[ty], 24)}</span>`).join('')}</div>
       <div class="mini-prog"><div class="bar"><i style="width:${t.total ? t.done / t.total * 100 : 0}%"></i></div><span>${t.done}/${t.total}</span></div></button>`;

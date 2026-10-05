@@ -37,9 +37,9 @@ export const LEVELS = [
         text: 'En el Bidasoa había ferrerías: con la fuerza del agua se movían martillos para trabajar el hierro. Golpea el hierro cuando esté al rojo.' },
     ] },
   { id: 'etxalar', name: 'Etxalar', comarca: 'bidasoa', family: 'atlantic', relief: 'valley', size: 40,
-    river: { name: 'regata de Tximista', x: 40, w: 2.4, amp: 8 },
+    river: { name: 'Tximista erreka', x: 40, w: 2.4, amp: 8 },
     intro: 'Pueblo de casas blancas junto a la iglesia, rodeado de montes y famoso por sus palomeras.',
-    church: { name: 'Iglesia de San Pedro', style: 'gothic', text: 'En su cementerio hay estelas discoidales, piedras redondas talladas de hace siglos.' },
+    church: { name: 'Iglesia de la Asunción', style: 'gothic', text: 'Su portada es gótica, del siglo XIII. Alrededor hay más de cien estelas discoidales: piedras redondas con cruces y los nombres de las casas del pueblo.' },
     landmarks: [{ kind: 'stelae', name: 'Estelas discoidales', text: 'Las hilarriak son piedras funerarias con forma de disco y dibujos grabados.' }, { kind: 'palomeras', name: 'Palomeras', text: 'En otoño, en los collados, se usan grandes redes para cazar palomas que migran. Es una tradición de siglos.' }],
     missions: [
       { type: 'visit' },
@@ -50,9 +50,9 @@ export const LEVELS = [
       { type: 'quiz' },
     ] },
   { id: 'zugarramurdi', name: 'Zugarramurdi', comarca: 'bidasoa', family: 'atlantic', relief: 'valley', size: 32,
-    river: { name: 'regata Infernuko erreka', x: 70, w: 2.2, amp: 6 },
+    river: { name: 'Infernuko erreka', x: 70, w: 2.2, amp: 6 },
     intro: 'Pueblo junto a la frontera, conocido por su cueva y por la historia de las brujas.',
-    church: { name: 'Iglesia de la Asunción', style: 'gothic', text: 'Templo de piedra en el centro del pueblo, rodeado de casas de caserío.' },
+    church: { name: 'Iglesia de la Asunción', style: 'baroque', label: 'Iglesia neoclásica', text: 'Construida entre 1781 y 1784 en el centro del pueblo. Las tropas francesas la destruyeron en parte en 1793 y hubo que reconstruirla en el siglo XIX.' },
     landmarks: [{ kind: 'cave', name: 'Cueva de las Brujas', text: 'Una gran cueva atravesada por la regata del Infierno. En 1610 muchas personas del pueblo fueron acusadas injustamente de brujería.' }],
     missions: [
       { type: 'visit' },
@@ -97,8 +97,8 @@ export const LEVELS = [
   { id: 'elizondo', name: 'Elizondo', comarca: 'bidasoa', family: 'atlantic', relief: 'valley', size: 70,
     river: { name: 'Baztan', x: 0, w: 5, amp: 4 },
     intro: 'Capital del valle de Baztan, con palacios de indianos y casas blasonadas a orillas del río.',
-    church: { name: 'Iglesia de Santiago', style: 'baroque', text: 'Templo de gran torre construido a principios del siglo XX con estilo que recuerda al barroco.' },
-    landmarks: [{ kind: 'palace', name: 'Palacio de Arizkunenea', text: 'Casa-palacio del siglo XVII. Muchos baztaneses emigraron a América y al volver construyeron casas palacio: eran los indianos.' }, { kind: 'bridge', name: 'Puente de Elizondo', text: 'El río Baztan atraviesa el pueblo; más abajo pasa a llamarse Bidasoa.' }],
+    church: { name: 'Iglesia de Santiago', style: 'baroque', twin: true, label: 'Iglesia neobarroca', text: 'Construida entre 1916 y 1925, después de que la gran riada de 1913 destruyera la iglesia anterior. Es de piedra rojiza y tiene dos torres gemelas con cúpulas.' },
+    landmarks: [{ kind: 'palace', name: 'Palacio de Arizkunenea', text: 'Casa-palacio del siglo XVIII. Muchos baztaneses emigraron a América y al volver construyeron casas palacio: eran los indianos.' }, { kind: 'bridge', name: 'Puente de Elizondo', text: 'El río Baztan atraviesa el pueblo; más abajo pasa a llamarse Bidasoa.' }],
     missions: [
       { type: 'visit' },
       { type: 'trade', kind: 'cestero', title: 'El cestero', host: H('Martín, cestero', { shirt: '#e8e0cc', vest: '#3a4a3a', pants: '#3a3530', txapela: '#1d1d24', hair: '#bdb6aa', old: true }) },
@@ -116,7 +116,7 @@ export const LEVELS = [
   { id: 'leitza', name: 'Leitza', comarca: 'larraun-leitzaldea', family: 'atlantic', relief: 'valley', size: 55,
     river: { name: 'Leitzaran', x: -30, w: 3.2, amp: 6 },
     intro: 'Villa de grandes caseríos con amplios aleros, tierra de harrijasotzaileak y aizkolaris.',
-    church: { name: 'Iglesia de San Miguel', style: 'baroque', text: 'Preside la plaza de Leitza, donde se celebran pruebas de deporte rural.' },
+    church: { name: 'Iglesia de San Miguel', style: 'gothic', label: 'Iglesia del siglo XVI', text: 'Iglesia de finales del siglo XVI que preside la plaza de Leitza, donde se celebran pruebas de deporte rural como levantar piedras o cortar troncos.' },
     landmarks: [{ kind: 'tunnel', name: 'Vía verde del Plazaola', text: 'Por aquí pasaba el tren del Plazaola entre Pamplona y San Sebastián. Hoy es un camino para bicis y paseos.' }],
     missions: [
       { type: 'visit' },
@@ -129,7 +129,7 @@ export const LEVELS = [
   { id: 'lekunberri', name: 'Lekunberri', comarca: 'larraun-leitzaldea', family: 'atlantic', relief: 'valley', size: 40,
     river: { name: 'Larraun', x: 40, w: 2.6, amp: 5 },
     intro: 'Pueblo del valle de Larraun, a los pies de la sierra de Aralar, entre prados, caseríos y hayedos.',
-    church: { name: 'Iglesia de San Juan Bautista', style: 'baroque', text: 'La parroquia del pueblo, rodeada de casas de piedra con grandes aleros.' },
+    church: { name: 'Iglesia de San Juan Bautista', style: 'gothic', text: 'Iglesia del siglo XIV, entre el románico y el gótico, en el corazón del pueblo viejo. Conserva dos ventanas de aire románico.' },
     landmarks: [{ kind: 'tunnel', name: 'Vía verde del Plazaola', text: 'El tren del Plazaola paraba en Lekunberri en su viaje entre Pamplona y San Sebastián. Hoy la vía es un camino para ir a pie o en bici, con túneles y puentes.' }, { kind: 'dolmen', name: 'Dolmen de Aralar', text: 'En la sierra de Aralar hay decenas de dólmenes: tumbas de piedra que levantaron los primeros pastores hace unos 5.000 años.' }],
     missions: [
       { type: 'visit' },
@@ -167,7 +167,7 @@ export const LEVELS = [
   { id: 'aribe', name: 'Aribe', comarca: 'pirineo', family: 'pyrenean', relief: 'valley', size: 22,
     river: { name: 'Irati', x: 20, w: 5, amp: 4 },
     intro: 'Pueblo del valle de Aezkoa junto al río Irati, con puente medieval y hórreos.',
-    church: { name: 'Iglesia de San Pedro', style: 'romanesque', text: 'Pequeña iglesia de piedra con tejado de pizarra.' },
+    church: { name: 'Iglesia de la Inmaculada', style: 'romanesque', label: 'Iglesia del pueblo', text: 'Pequeña iglesia de piedra con tejado de pizarra, construida en 1943. Guarda imágenes barrocas que vinieron de la ermita de San Joaquín.' },
     landmarks: [{ kind: 'horreo', name: 'Hórreo de Aezkoa', text: 'Los hórreos son graneros elevados sobre pilares para proteger el grano de la humedad y los ratones. En Aezkoa se conservan muchos.' }, { kind: 'bridge', name: 'Puente medieval', text: 'Un puente de piedra de un solo ojo cruza el Irati.' }],
     missions: [
       { type: 'visit' },
@@ -217,7 +217,7 @@ export const LEVELS = [
   { id: 'burgui-burgi', name: 'Burgui / Burgi', comarca: 'pirineo', family: 'pyrenean', relief: 'valley', size: 28,
     river: { name: 'Esca', x: 0, w: 5, amp: 5 },
     intro: 'Puerta del valle de Roncal, con un puente medieval sobre el Esca y la fiesta de la Almadía.',
-    church: { name: 'Iglesia de San Pedro', style: 'romanesque', text: 'Parroquia de piedra que domina el caserío.' },
+    church: { name: 'Iglesia de San Pedro', style: 'gothic', text: 'Iglesia gótica del siglo XVI con contrafuertes, una gran torre y un rosetón sobre la portada. Dentro está el viejo órgano del monasterio de Leyre.' },
     landmarks: [{ kind: 'bridge', name: 'Puente medieval', text: 'Por debajo de este puente bajaban las almadías, balsas de troncos que llevaban la madera río abajo.' }, { kind: 'raft', name: 'Almadía', text: 'Los almadieros unían troncos para formar balsas y las guiaban por el río hasta el Ebro.' }],
     missions: [
       { type: 'visit' },
@@ -229,7 +229,7 @@ export const LEVELS = [
     ] },
   // ---------------- Sakana ----------------
   { id: 'altsasu-alsasua', name: 'Altsasu / Alsasua', comarca: 'sakana', family: 'atlantic', relief: 'valley', size: 75,
-    river: { name: 'Altzania', x: 50, w: 2.6, amp: 6 },
+    river: { name: 'Burunda', x: 50, w: 2.6, amp: 6 },
     intro: 'Villa de Sakana entre las sierras de Urbasa y Aralar, con uno de los carnavales más conocidos: el de los Momotxorros.',
     church: { name: 'Iglesia de la Asunción', style: 'gothic', text: 'Templo de piedra en el centro del casco antiguo.' },
     landmarks: [{ kind: 'plaza', name: 'Plaza del carnaval', text: 'El martes de carnaval salen los Momotxorros, con cuernos, sábanas manchadas de rojo y un sarde (horca).' }, { kind: 'dolmen', name: 'Dolmen de la sierra de Urbasa', text: 'En las sierras de Urbasa y Aralar hay decenas de dólmenes: tumbas de piedra levantadas por los primeros pastores hace unos 5.000 años.' }],
@@ -249,7 +249,7 @@ export const LEVELS = [
     intro: 'Villa en el paso entre la Cuenca de Pamplona y Sakana, a los pies de las Dos Hermanas: dos montañas de caliza que cierran el valle.',
     // las Dos Hermanas (Bi Ahizpak): dos cumbres a cada lado del río, con el desfiladero entre ellas
     peaks: { z: -250, dx: 66, h: [128, 112], r: 92 },
-    church: { name: 'Iglesia de San Martín', style: 'romanesque', text: 'Pequeña parroquia de piedra del pueblo.' },
+    church: { name: 'Iglesia de San Martín', style: 'gothic', label: 'Iglesia del siglo XIX', text: 'Construida a finales del siglo XIX por el arquitecto Ansoleaga. Guarda una Virgen gótica que vino de la ermita de la Trinidad de Erga.' },
     landmarks: [{ kind: 'pass', name: 'Las Dos Hermanas', text: 'Son dos montañas de roca caliza, una a cada lado del valle, que forman parte de las sierras que rodean la Cuenca de Pamplona. Entre las dos se abre un desfiladero estrecho: por él pasan el río, la carretera, el tren y la vía verde del Plazaola. Desde este mirador se ven las dos, frente a frente, como dos hermanas.' }],
     missions: [
       { type: 'visit' },
@@ -319,7 +319,7 @@ export const LEVELS = [
   { id: 'irulegi', name: 'Irulegi', mapName: 'Laquidáin / Lakidain', comarca: 'pamplona', family: 'central', relief: 'hilltop', size: 16,
     river: null,
     intro: 'Monte del valle de Aranguren, junto a Pamplona. En la cima hay ruinas de un castillo medieval y de un poblado de los vascones de hace más de 2.000 años.',
-    church: { name: 'Iglesia del pueblo', style: 'romanesque', text: 'Pequeña iglesia de piedra al pie del monte Irulegi.' },
+    church: { name: 'Iglesia de San Martín de Tours', style: 'romanesque', label: 'Iglesia medieval', text: 'Sencilla iglesia de Lakidain, de origen medieval, con la torre a los pies. Guarda un retablo pintado hacia 1560 por Juan de Frías Salazar.' },
     landmarks: [{ kind: 'dig', name: 'Poblado de Irulegi', text: 'Excavación del poblado de la Edad del Hierro donde apareció la mano de Irulegi en 2021.' }, { kind: 'ruin', name: 'Castillo de Irulegi', text: 'Ruinas de un castillo medieval en lo alto del monte. Desde aquí se ve toda la Cuenca de Pamplona.' }],
     missions: [
       { type: 'visit' },
@@ -342,7 +342,7 @@ export const LEVELS = [
     river: { name: 'Ega', x: 0, w: 6, amp: 8 },
     intro: 'La "Estella la bella" del Camino de Santiago: palacios románicos, puentes y calles de la Rúa.',
     church: { name: 'San Pedro de la Rúa', style: 'romanesque', text: 'Iglesia románica en lo alto de una escalinata, con un claustro de columnas talladas.' },
-    landmarks: [{ kind: 'palace', name: 'Palacio de los Reyes de Navarra', text: 'Uno de los pocos palacios románicos civiles de España, del siglo XII.' }, { kind: 'bridge', name: 'Puente de la Cárcel', text: 'Puente de un arco muy alto sobre el Ega.' }, { kind: 'fountain', name: 'Fuente del vino (Irache)', text: 'Muy cerca, en el monasterio de Irache, los peregrinos encuentran una fuente de la que sale vino y agua.' }, { kind: 'chapel', name: 'San Pedro de la Rúa', text: 'Iglesia románica en lo alto de una gran escalinata. Su claustro tiene capiteles tallados que cuentan historias.' }],
+    landmarks: [{ kind: 'palace', name: 'Palacio de los Reyes de Navarra', text: 'Uno de los pocos palacios románicos civiles de España, del siglo XII.' }, { kind: 'bridge', name: 'Puente de la Cárcel', text: 'Puente de un arco muy alto sobre el Ega.' }, { kind: 'fountain', name: 'Fuente del vino (Irache)', text: 'Muy cerca, en el monasterio de Irache, los peregrinos encuentran una fuente de la que sale vino y agua.' }, { kind: 'chapel', name: 'Iglesia del Santo Sepulcro', text: 'En la calle de la Rúa, por donde pasan los peregrinos. Su portada gótica está llena de figuras: los doce apóstoles, la Última Cena y el entierro de Jesús.' }],
     missions: [
       { type: 'visit' },
       { type: 'carnival', character: 'paloki', title: 'Los palokis', host: H('Amaia', { shirt: '#b34fc4', skirt: '#34495e', pants: '#f3cfb3', hair: '#1f1712', braids: true, height: 1.3 }), text: 'Los palokis elevan telas con un aro y parecen gigantes. Búscalos en el carnaval.' },
@@ -370,7 +370,7 @@ export const LEVELS = [
   { id: 'puente-la-reina', name: 'Puente la Reina / Gares', comarca: 'valdizarbe-novenera', family: 'central', relief: 'hills', size: 60,
     river: { name: 'Arga', x: 0, w: 7, amp: 6, bigBridge: true },
     intro: 'Aquí se juntan los caminos de Santiago y se cruza el Arga por un famoso puente románico de seis arcos.',
-    church: { name: 'Iglesia del Crucifijo', style: 'romanesque', text: 'Guarda un crucifijo gótico con forma de Y, traído según la tradición por peregrinos.' },
+    church: { name: 'Iglesia de Santiago', style: 'romanesque', label: 'Portada románica', text: 'Parroquia de la calle Mayor. Su portada románica tiene arcos de muchos lóbulos y figuras talladas. Dentro está Santiago Beltza, una talla gótica del apóstol vestido de peregrino.' },
     landmarks: [{ kind: 'bridge', name: 'Puente románico', text: 'Mandado construir en el siglo XI para los peregrinos. Tiene seis arcos de piedra.' }, { kind: 'chapel', name: 'Iglesia del Crucifijo', text: 'La iglesia de los peregrinos guarda un crucifijo muy especial: la cruz tiene forma de Y, como las ramas de un árbol.' }],
     missions: [
       { type: 'visit' },
@@ -408,7 +408,7 @@ export const LEVELS = [
   { id: 'javier', name: 'Javier / Xabier', comarca: 'sanguesa', family: 'central', relief: 'hills', size: 18,
     river: null,
     intro: 'Pequeño pueblo junto a la frontera con Aragón, famoso por su castillo: aquí nació San Francisco Javier en 1506.',
-    church: { name: 'Basílica de Javier', style: 'gothic', text: 'Basílica neogótica levantada junto al castillo entre finales del siglo XIX y principios del XX.' },
+    church: { name: 'Basílica de Javier', style: 'gothic', label: 'Basílica neogótica', text: 'Basílica neogótica levantada junto al castillo entre finales del siglo XIX y principios del XX.' },
     landmarks: [{ kind: 'castle', style: 'javier', name: 'Castillo de Javier', text: 'Fortaleza de piedra dorada sobre una peña. Su torre más antigua y alta es la de San Miguel.' }],
     missions: [
       { type: 'visit' },
@@ -447,7 +447,7 @@ export const LEVELS = [
   { id: 'marcilla', name: 'Marcilla', comarca: 'ribera-alta', family: 'ribera', relief: 'plain', size: 40,
     river: { name: 'Aragón', x: 75, w: 6, amp: 6 },
     intro: 'Villa de la Ribera junto al río Aragón, con un castillo del siglo XV rodeado de foso: el único que se libró de los derribos de 1516.',
-    church: { name: 'Iglesia parroquial', style: 'baroque', text: 'La parroquia de la villa, de ladrillo y piedra, como muchas de la Ribera.' },
+    church: { name: 'Iglesia de San Bartolomé', style: 'baroque', label: 'Iglesia neoclásica', text: 'Reconstruida a finales del siglo XVIII sobre un templo más antiguo, de ladrillo y piedra como muchas de la Ribera. Está en el centro de la villa, cerca del castillo.' },
     landmarks: [{ kind: 'castle', name: 'Castillo de Marcilla', text: 'Castillo-palacio del siglo XV con foso, torres y almenas. Lo defendió Ana de Velasco en 1516.' }],
     missions: [
       { type: 'visit' },
@@ -475,7 +475,7 @@ export const LEVELS = [
   { id: 'cortes', name: 'Cortes', comarca: 'ribera', family: 'ribera', relief: 'plain', size: 45,
     river: { name: 'Canal Imperial de Aragón', x: 70, w: 4, amp: 2 },
     intro: 'El pueblo más al sur de Navarra, con un castillo-palacio y el Canal Imperial de Aragón.',
-    church: { name: 'Iglesia de San Miguel', style: 'baroque', text: 'Parroquia de ladrillo de la villa.' },
+    church: { name: 'Iglesia de San Juan Bautista', style: 'baroque', label: 'Iglesia de ladrillo', text: 'Iglesia de ladrillo del siglo XVI. Su torre, de tradición mudéjar, termina en un chapitel con forma de bulbo, y la fachada da a la plaza.' },
     landmarks: [{ kind: 'castle', name: 'Castillo de Cortes', text: 'Castillo medieval convertido en palacio, con torres y patio.' }],
     missions: [
       { type: 'visit' },

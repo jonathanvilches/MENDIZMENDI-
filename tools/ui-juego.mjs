@@ -24,5 +24,6 @@ for (const [n, fn] of [['3-libro', 'openBook'], ['4-pueblo', 'openTownBook'], ['
   await p.evaluate((fn) => window.__game.ui[fn](), fn); await p.waitForTimeout(1500); await shot(n); await close(); await p.waitForTimeout(500);
 }
 await p.evaluate(() => window.__game.mochila?.open?.()); await p.waitForTimeout(1500); await shot('7-mochila'); await close();
+await p.evaluate(() => window.__game.tienda?.open()); await p.waitForTimeout(2500); await shot('8-tienda'); await p.evaluate(() => document.querySelectorAll('.mg-overlay.shop').forEach(o => o.remove()));
 console.log(errs.join('\n') || 'sin errores');
 await b.close();

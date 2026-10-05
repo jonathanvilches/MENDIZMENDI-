@@ -214,7 +214,7 @@ export const ICONS = {
 export const ALIAS = {
   visit: 'church', process: 'basket', harvest: 'basket', herd: 'sheep', dance: 'dance', carnival: 'mask', trade: 'hammer', legend: 'legend',
   race: 'running', observe: 'binoculars', tradition: 'music', quiz: 'quiz',
-  romanesque: 'church', gothic: 'church', baroque: 'church', fortress: 'castle', cathedral: 'cathedral',
+  romanesque: 'church', gothic: 'church', baroque: 'church', fortress: 'castle', cathedral: 'cathedral', pamplona: 'cathedral',
   aizkolari: 'axe', harrijasotzaile: 'stone', herrero: 'anvil', palomero: 'net', cantero: 'hammer', alpargatero: 'espadrille',
   camino: 'camino', almadia: 'raft', encierro: 'bull', romeria: 'footprint', bici: 'bike', song: 'music',
   sheep: 'sheep', cows: 'cow', pottoka: 'horse', horses: 'horse', pigs: 'pig', goats: 'sheep',

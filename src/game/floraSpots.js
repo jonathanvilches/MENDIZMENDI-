@@ -85,7 +85,7 @@ export class FloraSpots {
       const i = await identifyQuiz(key, opts.map(id => FLORA[id].name), { ui: G.ui, right });
       const ok = i === right;
       if (ok) { addCard(key); addXP(25); saveProfile(); G.particles?.emit({ x: s.x, y: s.y, z: s.z }, { n: 18, color: ['#8fd16a', '#ffffff'], speed: 1.4, size: 0.22 }); }
-      await showFicha(key, { ui: G.ui, badge: ok ? 'Al herbario' : '', kicker: ok ? '¡Bien identificada! · ficha de flora' : `No era ${FLORA[opts[i]]?.name.toLowerCase() || 'esa'}: así se reconoce`, button: ok ? '¡A por otra!' : 'Ahora ya la conoces' });
+      await showFicha(key, { ui: G.ui, badge: ok ? 'Al herbario' : '', kicker: ok ? '¡Bien identificada!' : `No era ${FLORA[opts[i]]?.name.toLowerCase() || 'esa'}: así se reconoce`, button: ok ? '¡A por otra!' : 'Ahora ya la conoces' });
       if (ok) {
         const left = this.list.filter(x => !this.known(x.id)).length;
         G.ui.toast(left ? `Herbario: ${this.list.length - left} de ${this.list.length} plantas de aquí identificadas` : '¡Has identificado todas las plantas de este pueblo!', 'leaf', 2600);

@@ -71,7 +71,7 @@ export function buildTown(scene, mats, def) {
   // iglesia mirando a la plaza
   const ch = PLACES.church;
   const ry = Math.atan2(PLACES.plaza.x - ch.x, PLACES.plaza.z - ch.z);
-  const c = pamp ? pamp.church : church(B, ch.x, ch.z, ry, def.church?.style || 'gothic', fam);
+  const c = pamp ? pamp.church : church(B, ch.x, ch.z, ry, def.church?.style || 'gothic', fam, def.church || {});
   TOWN.church = { ...c, name: def.church?.name, text: def.church?.text };
   // puentes
   for (const b of BRIDGES) {

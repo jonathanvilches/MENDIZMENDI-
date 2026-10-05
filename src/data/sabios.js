@@ -11,6 +11,18 @@ export const STYLE_TIP = {
   fortress: 'Es una iglesia-fortaleza: además de templo, servía para defenderse. Fíjate en sus muros altos y casi sin ventanas.',
   cathedral: 'Es una catedral: la iglesia principal de una diócesis, donde está la silla del obispo, la «cátedra».',
 };
+// iglesias que no encajan en un estilo clásico (neoclásicas, del siglo XIX...): la pista va por su etiqueta
+export const LABEL_TIP = {
+  'Iglesia neoclásica': 'Es neoclásica: líneas rectas y sencillas, con columnas y frontones que imitan los templos de Grecia y Roma.',
+  'Iglesia neobarroca': 'Es neobarroca: se construyó hace unos cien años copiando el estilo barroco. Fíjate en las dos torres con cúpula.',
+  'Basílica neogótica': 'Es neogótica: tiene arcos en punta y torres esbeltas como las catedrales medievales, pero se construyó hace poco más de cien años.',
+  'Iglesia del siglo XIX': 'Es del siglo XIX: imita el estilo de las iglesias medievales, con arcos en punta y una torre con campanario.',
+  'Iglesia del siglo XVI': 'Es del siglo XVI, entre el gótico y el Renacimiento: muros altos, contrafuertes y bóvedas con nervios por dentro.',
+  'Iglesia de ladrillo': 'Es de ladrillo, como muchas iglesias de la Ribera. Fíjate en la torre, con dibujos de rombos de tradición mudéjar.',
+  'Iglesia medieval': 'Es medieval y muy sencilla: muros gruesos, pocas ventanas y la torre a los pies de la nave.',
+  'Iglesia del pueblo': 'Es una iglesia sencilla de pueblo. Lo importante es la plaza de delante, donde se juntan los vecinos los días de fiesta.',
+  'Portada románica': 'Fíjate en la portada: es románica, con arcos redondos uno dentro de otro y figuras talladas en la piedra.',
+};
 export const KIND_TIP = {
   bridge: 'Los puentes de piedra se hacían con arcos: cada piedra empuja a la de al lado y así aguantan siglos.',
   castle: 'Fíjate en las almenas, las saeteras y la torre más alta: todo estaba pensado para defenderse.',
