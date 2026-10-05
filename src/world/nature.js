@@ -64,11 +64,25 @@ function foliageCard(size, pos, dir, region, rnd, normalFrom) {
   g.userData.keepUV = true;
   return g;
 }
-function trunk(h, r, color, segs = 6) {
-  const g = new THREE.CylinderGeometry(r * 0.7, r, h, segs, 2);
+function trunk(h, r, color, segs = 8) {
+  const g = new THREE.CylinderGeometry(r * 0.7, r, h, segs, 3);
   g.translate(0, h / 2, 0);
+  // anillos más juntos abajo; el pie se ensancha en raíces (tres contrafuertes) y el fuste no es un cilindro perfecto
+  const p = g.attributes.position, ph = r * 17;
+  for (let i = 0; i < p.count; i++) {
+    const y = h * Math.pow(Math.max(0, p.getY(i) / h), 1.5), x = p.getX(i), z = p.getZ(i), a = Math.atan2(z, x);
+    const k = 1 + 0.4 * Math.pow(Math.max(0, 1 - y / (r * 2.4)), 2) * (0.65 + 0.35 * Math.cos(a * 3 + ph)) + 0.05 * Math.sin(a * 2 + y * 1.3 + ph);
+    p.setXYZ(i, x * k, y, z * k);
+  }
   g.computeVertexNormals();
-  return colorize(g, (x, y, z, c) => c.set(color).multiplyScalar(0.85 + 0.3 * (y / h)));
+  return barkUV(colorize(g, (x, y, z, c) => c.set(color).multiplyScalar(0.85 + 0.3 * (y / h))));
+}
+// troncos y ramas: todos sus vértices al punto «bark» del atlas (el material de los árboles les dibuja la corteza)
+function barkUV(g) {
+  const n = g.attributes.position.count, uv = new Float32Array(n * 2);
+  for (let i = 0; i < n; i++) { uv[i * 2] = FOLIAGE.bark[0]; uv[i * 2 + 1] = FOLIAGE.bark[1]; }
+  g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); g.userData.keepUV = true;
+  return g;
 }
 // coordenadas de textura de la «masa de hojas» del atlas: proyección esférica desde el centro de cada bulto
 // (cada triángulo se resuelve sin cruzar la costura de la vuelta)
@@ -134,7 +148,7 @@ function makeBeech(rnd, detail) {
   for (let i = 0; i < 3; i++) {
     const g = new THREE.CylinderGeometry(0.07, 0.14, 2.4, 5); g.translate(0, 1.2, 0);
     g.rotateZ(0.6); g.rotateY(i * 2.1 + rnd()); g.translate(0, 3.4, 0);
-    br.push(colorize(g.toNonIndexed(), (x, y, z, c) => c.set('#857f75')));
+    br.push(barkUV(colorize(g.toNonIndexed(), (x, y, z, c) => c.set('#857f75'))));
   }
   const blobs = [[0, 6.3, 0, 2.9], [1.8, 5.4, 0.6, 2.1], [-1.6, 5.6, -0.8, 2.2], [0.4, 5.2, -1.8, 2.0], [-0.6, 7.6, 0.5, 2.0], [0.9, 7.1, 1.4, 1.7]];
   const c = blobCanopy(rnd, detail ? blobs : blobs.slice(0, 4), detail ? 1 : -1, '#3f6f2a', '#8fbf4a', 3.4, 6.2);
@@ -148,7 +162,7 @@ function makeOak(rnd, detail) {
 }
 function makeFir(rnd, detail) {
   const t = trunk(2.6, 0.3, '#4e3d30');
-  const parts = [t.toNonIndexed()];
+  const parts = [t];
   // perfil del abeto (Abies alba): ancho abajo, se estrecha hasta la punta; verde oscuro azulado, más claro en las puntas
   const H0 = 1.6, H1 = 12.6, R0 = 3.1, dark = new THREE.Color('#1f3d27'), mid = new THREE.Color('#3b6a40'), tip = new THREE.Color('#7aa65e');
   if (!detail || !TEX.foliage) {
@@ -314,12 +328,31 @@ function makeApple(rnd, detail) {
   return clean(parts);
 }
 
-function windMaterial(opts = {}) {
+// Material de árboles y matas: se mecen con el viento; la copa se vuelve punteada si la cámara la atraviesa.
+//  · bark: los troncos (marcados con el punto «bark» del atlas) llevan corteza dibujada en el propio material: surcos
+//    en robles, castaños y abetos, placas rojizas en los pinos, corteza lisa con líquenes en hayas y chopos, y musgo
+//    al pie. Sin texturas nuevas: el tipo sale del color del tronco (más gris, más lisa)
+//  · fern: las hojas del helecho se recortan en folíolos (fronda pinnada) a partir de sus coordenadas
+//  · low: en móvil, una sola capa de ruido y sin relieve
+function windMaterial(opts = {}, { bark = false, fern = false, low = false } = {}) {
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85, metalness: 0, ...opts });
   m.onBeforeCompile = (sh) => {
+    sh.defines = { ...(sh.defines || {}), ...(bark ? { BARK: 1 } : {}), ...(fern ? { FERN: 1 } : {}), ...(low ? { LOWQ: 1 } : {}) };
     sh.uniforms.uTime = windUniforms.uTime; sh.uniforms.uWind = windUniforms.uWind;
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying vec3 vWPos;')
+      .replace('#include <common>', `#include <common>
+varying vec3 vWPos;
+#if defined(BARK) || defined(FERN)
+varying vec2 vTUv; varying vec3 vTP;
+#endif
+#ifdef BARK
+float bkH(vec3 p) { p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
+float bkN(vec3 x) {
+  vec3 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(mix(bkH(i), bkH(i + vec3(1, 0, 0)), f.x), mix(bkH(i + vec3(0, 1, 0)), bkH(i + vec3(1, 1, 0)), f.x), f.y),
+             mix(mix(bkH(i + vec3(0, 0, 1)), bkH(i + vec3(1, 0, 1)), f.x), mix(bkH(i + vec3(0, 1, 1)), bkH(i + vec3(1, 1, 1)), f.x), f.y), f.z);
+}
+#endif`)
       .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
       {
         // transparencia punteada cuando la cámara atraviesa la copa
@@ -329,12 +362,77 @@ function windMaterial(opts = {}) {
         float b = (fc.x * 4.0 + fc.y) / 16.0;
         b = fract(b * 7.0 / 16.0 * 16.0 / 7.0 + fc.x * 0.37 + fc.y * 0.61);
         if (a < 0.999 && a < b) discard;
-      }`);
+      }
+#ifdef FERN
+      float fernS = 0.0;
+      {
+        // fronda: contorno ancho abajo y en punta arriba, con un pie desnudo; folíolos inclinados hacia la punta a
+        // ambos lados del raquis. De lejos (folíolos de menos de un píxel) se rellena el contorno para que no parpadee
+        float v = vTUv.y, x = abs(vTUv.x - 0.5) * 2.0;
+        float w = 0.95 * pow(max(1.0 - v, 0.0), 0.6) * smoothstep(0.04, 0.16, v);
+        fernS = fract(v * 16.0 - x * 1.3);
+        float far = clamp(fwidth(v * 16.0) * 1.6 - 0.4, 0.0, 1.0);
+        float leaf = step(x, w) * step(fernS, mix(0.7 - 0.3 * x / max(w, 0.01), 1.0, far));
+        if (max(leaf, step(x, 0.045)) < 0.5) discard;
+      }
+#endif`)
+      .replace('#include <color_fragment>', `#include <color_fragment>
+#ifdef FERN
+      diffuseColor.rgb *= 0.78 + 0.32 * (1.0 - fernS) * smoothstep(0.0, 0.5, abs(vTUv.x - 0.5) * 2.0) + 0.1;
+#endif
+#ifdef BARK
+      float barkH = 0.0;
+      if (abs(vTUv.x - ${FOLIAGE.bark[0].toFixed(3)}) + abs(vTUv.y - ${FOLIAGE.bark[1].toFixed(3)}) < 0.002) {
+        vec3 c = diffuseColor.rgb, p = vTP;
+        float mx = max(c.r, max(c.g, c.b)), sat = (mx - min(c.r, min(c.g, c.b))) / max(mx, 0.001);
+        float smoothB = 1.0 - smoothstep(0.14, 0.3, sat);     // haya y chopo: corteza lisa y gris
+        float plates = smoothstep(0.46, 0.56, sat);            // pino: placas
+        float n1 = bkN(p * vec3(7.0, mix(1.1, 2.4, plates), 7.0));
+#ifdef LOWQ
+        float n2 = fract(n1 * 7.13);
+#else
+        float n2 = bkN(p * vec3(19.0, mix(3.2, 6.0, plates), 19.0) + 7.3);
+#endif
+        float r = n1 * 0.68 + n2 * 0.32, furrow = smoothstep(0.3, 0.62, r);
+        barkH = mix(furrow, 0.5 + (r - 0.5) * 0.3, smoothB);
+        c *= mix(mix(0.42, 1.2, furrow), 0.88 + 0.24 * r, smoothB);
+        c = mix(c, c * vec3(1.18, 0.88, 0.74), plates * furrow * 0.55);
+        // líquenes (manchas claras gris verdosas, más en las lisas) y musgo al pie del tronco
+        float lich = smoothstep(0.66, 0.74, n2 * 0.7 + n1 * 0.4) * (0.35 + 0.65 * smoothB);
+        c = mix(c, vec3(0.70, 0.73, 0.60), lich * 0.5);
+        float moss = smoothstep(1.5, 0.15, p.y + (n1 - 0.5) * 1.3);
+        c = mix(c, vec3(0.19, 0.29, 0.08), moss * 0.6 * (0.55 + 0.45 * furrow));
+        c *= 0.72 + 0.28 * smoothstep(0.0, 0.3, p.y);
+        diffuseColor.rgb = c;
+      }
+#endif`)
+      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+#ifdef FERN
+      normal = normalize(vNormal);   // las dos caras de la fronda, con la luz de la de arriba (por detrás no queda negra)
+#endif
+#if defined(BARK) && !defined(LOWQ)
+      {
+        // relieve de los surcos (como un mapa de relieve, pero con la altura calculada aquí)
+        vec3 sx = normalize(dFdx(-vViewPosition)), sy = normalize(dFdy(-vViewPosition));
+        vec3 r1 = cross(sy, normal), r2 = cross(normal, sx);
+        float det = dot(sx, r1) * faceDirection;
+        vec3 grad = sign(det) * (dFdx(barkH) * r1 + dFdy(barkH) * r2) * 1.6;
+        normal = normalize(abs(det) * normal - grad);
+      }
+#endif`);
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nuniform float uTime; uniform float uWind;\nvarying vec3 vWPos;')
+      .replace('#include <common>', `#include <common>
+uniform float uTime; uniform float uWind;
+varying vec3 vWPos;
+#if defined(BARK) || defined(FERN)
+varying vec2 vTUv; varying vec3 vTP;
+#endif`)
       .replace('#include <project_vertex>', `#include <project_vertex>
       vWPos = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;`)
       .replace('#include <begin_vertex>', `#include <begin_vertex>
+#if defined(BARK) || defined(FERN)
+      vTUv = uv; vTP = position;
+#endif
       {
         vec3 ip = vec3(instanceMatrix[3][0], 0.0, instanceMatrix[3][2]);
         float ph = ip.x * 0.37 + ip.z * 0.23;
@@ -343,7 +441,7 @@ function windMaterial(opts = {}) {
         transformed.z += cos(uTime * 1.1 + ph) * 0.5 * k * transformed.y * 0.35;
       }`);
   };
-  m.customProgramCacheKey = () => 'wind';
+  m.customProgramCacheKey = () => 'wind' + (bark ? 'b' : '') + (fern ? 'f' : '') + (low ? 'l' : '');
   return m;
 }
 
@@ -400,7 +498,7 @@ export class Nature {
     this.quality = quality;
     const rnd = mulberry32(99);
     // con nieve, un poco de blanco encima de las copas (los troncos, que miran a los lados, quedan oscuros)
-    this.matTree = snowable(windMaterial({ map: TEX.foliage, alphaTest: 0.45, side: THREE.DoubleSide }), 0.75, 0.2, 0.8);
+    this.matTree = snowable(windMaterial({ map: TEX.foliage, alphaTest: 0.45, side: THREE.DoubleSide }, { bark: true, low: quality === 'low' }), 0.75, 0.2, 0.8);
     this.group = new THREE.Group();
     const geos = {
       beech: [makeBeech(rnd, true), makeBeech(rnd, false)],
@@ -555,14 +653,17 @@ export class Nature {
   }
   buildBushes(rnd) {
     const g = makeBush(rnd);
-    // helechos: hojas planas en abanico
-    const fronds = [];
-    for (let i = 0; i < 7; i++) {
-      const p = new THREE.PlaneGeometry(0.35, 1.3, 1, 3);
-      const pos = p.attributes.position;
-      for (let k = 0; k < pos.count; k++) { const y = pos.getY(k) + 0.65; pos.setXYZ(k, pos.getX(k) * (1 - y / 1.5), y, -y * y * 0.35); }
-      p.translate(0, 0, 0.1); p.rotateX(-0.5); p.rotateY(i / 7 * Math.PI * 2 + rnd() * 0.3);
-      fronds.push(colorize(p.toNonIndexed(), (x, y, z, c) => c.set('#3d7a2e').lerp(new THREE.Color('#8fc255'), y / 1.3)));
+    // helechos: frondas arqueadas en roseta (el material las recorta en folíolos); unas más largas y tumbadas, otras
+    // jóvenes más derechas, y algunas ya doradas como el helecho común en otoño
+    const fronds = [], cBase = new THREE.Color('#2f6a26'), cTip = new THREE.Color('#86bd4e'), cOld = new THREE.Color('#a8893f');
+    for (let i = 0; i < 9; i++) {
+      const L = 0.95 + rnd() * 0.55, W = L * 0.52, young = i % 4 === 3, old = rnd() < 0.18;
+      const p = new THREE.PlaneGeometry(W, L, 1, 5);
+      const pos = p.attributes.position, bend = young ? 0.15 : 0.32 + rnd() * 0.2;
+      for (let k = 0; k < pos.count; k++) { const y = pos.getY(k) + L / 2, t = y / L; pos.setXYZ(k, pos.getX(k) * (1 - t * 0.15), y, -y * y * bend + pos.getX(k) * pos.getX(k) * 0.35 * t); }
+      p.rotateX(young ? -0.1 : -0.22 - rnd() * 0.25); p.rotateY(i / 9 * Math.PI * 2 + rnd() * 0.4);
+      const shade = 0.88 + rnd() * 0.2;
+      fronds.push(colorize(p.toNonIndexed(), (x, y, z, c) => { c.copy(cBase).lerp(cTip, clamp(y / L, 0, 1)); if (old) c.lerp(cOld, 0.75); c.multiplyScalar(shade); }));
     }
     const fern = mergeGeometries(fronds);
     fern.computeVertexNormals();
@@ -586,7 +687,7 @@ export class Nature {
       else if ((f > 0.1 || (r.edge < 8 && villageMask(x, z) < 0.3)) && rnd() < 0.25) bushSpots.push({ x, z, s: 0.7 + rnd() * 0.9 });
     }
     const matB = snowable(windMaterial({ map: TEX.foliage, alphaTest: 0.45, side: THREE.DoubleSide }), 0.65, 0.2, 0.8);
-    const matF = snowable(windMaterial({ side: THREE.DoubleSide }), 0.5, 0.25, 0.8);
+    const matF = snowable(windMaterial({ side: THREE.DoubleSide }, { fern: true }), 0.5, 0.25, 0.8);
     // por trozos del mapa y solo de cerca: una sola malla para todo el valle se dibujaba entera (también lo que queda
     // detrás de la cámara o a cientos de metros, donde una mata mide menos de un píxel). Sin sombra: apenas se ve y
     // duplicaba el coste

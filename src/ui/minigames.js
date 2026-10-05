@@ -95,9 +95,10 @@ function mashGame_(ui, { title, hint, icon = 'stone', seconds = 6, goal = 30, ve
       <div class="mbar"><i></i><span class="goal"></span></div><div class="fb">Pulsa muchas veces seguidas</div><div class="clock"></div>
       <button class="btn primary big">${esc(verb)}</button>`);
     const bar = o.querySelector('.mbar i'), fb = o.querySelector('.fb'), clock = o.querySelector('.clock');
+    // (el reloj empieza con el primer toque, como en la versión 3D: no se pierde tiempo leyendo)
     let n = 0, t0 = 0, raf, fin = false;
+    clock.textContent = seconds.toFixed(1) + ' s';
     const tick = (now) => {
-      if (!t0) t0 = now;
       const left = Math.max(0, seconds - (now - t0) / 1000);
       bar.style.height = Math.min(100, (n / goal) * 100) + '%';
       clock.textContent = left.toFixed(1) + ' s';
@@ -105,11 +106,10 @@ function mashGame_(ui, { title, hint, icon = 'stone', seconds = 6, goal = 30, ve
       raf = requestAnimationFrame(tick);
     };
     const finish = (win) => { if (fin) return; fin = true; cancelAnimationFrame(raf); fb.textContent = win ? '¡Arriba! ¡Qué fuerza!' : '¡Casi! Prueba otra vez'; if (win) ui.sound.fanfare?.(); setTimeout(() => { done(ui, o, k); res({ win, n }); }, 1000); };
-    const press = () => { if (fin) return; if (!t0) raf = requestAnimationFrame(tick); n++; ui.sound.tone(200 + n * 12, 0.05, 'triangle', 0.08, ui.sound.sfx); ui.onMiniHit?.(true); fb.textContent = n < goal * 0.3 ? '¡Vamos!' : n < goal * 0.7 ? '¡Más fuerte!' : '¡Ya casi!'; };
+    const press = () => { if (fin) return; if (!t0) { t0 = performance.now(); raf = requestAnimationFrame(tick); } n++; ui.sound.tone(200 + n * 12, 0.05, 'triangle', 0.08, ui.sound.sfx); ui.onMiniHit?.(true); fb.textContent = n < goal * 0.3 ? '¡Vamos!' : n < goal * 0.7 ? '¡Más fuerte!' : '¡Ya casi!'; };
     const k = (e) => { const key = e.key.toLowerCase(); e.stopImmediatePropagation(); if ([' ', 'e', 'enter'].includes(key)) { e.preventDefault(); if (!e.repeat) press(); } };
     addEventListener('keydown', k, true);
     o.querySelector('button').addEventListener('pointerdown', e => { e.preventDefault(); press(); });
-    raf = requestAnimationFrame(tick); t0 = 0;
   });
 }
 

@@ -95,7 +95,9 @@ export class Perro {
       const off = 0.82 + D.radius;   // a su lado, con sitio para su cuerpo (el mastín, un poco más lejos)
       this.side.pos.set(P.x + Math.cos(h) * off + Math.sin(h) * (0.2 + lead), 0, P.z - Math.sin(h) * off + Math.cos(h) * (0.2 + lead));
       this.side.speed = sp; this.side.face = h; }
-    // si se queda muy atrás (cuestas, agua…), aparece junto al jugador
+    // al empezar (el jugador se coloca después de crear el perro) o si se queda muy atrás (cuestas, agua…), aparece
+    // junto al jugador
+    if (!this.placed) { this.placed = true; const S = this.side.pos; D.pos.set(S.x, groundHeight(S.x, S.z), S.z); D.heading = g.player.heading ?? 0; D.sync?.(); }
     if (Math.hypot(D.pos.x - P.x, D.pos.z - P.z) > 28) { D.pos.set(P.x - 1.5, groundHeight(P.x - 1.5, P.z - 1.5), P.z - 1.5); D.sync?.(); }
     if (this.lead != null) {
       this.lead -= dt;

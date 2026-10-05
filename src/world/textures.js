@@ -451,7 +451,8 @@ function foliageAtlas(size) {
   return t;
 }
 // Zonas del atlas de follaje en UV (u0, v0, u1, v1) y el punto opaco para troncos
-export const FOLIAGE = { leafA: [0, 0.5, 0.5, 1], leafB: [0, 0, 0.5, 0.5], needle: [0.5, 0.5, 1, 1], solid: [0.93, 0.25], mass: [0.505, 0.005, 0.855, 0.495] };
+// (bark: otro punto de la franja blanca; marca los troncos para que el material les dibuje la corteza)
+export const FOLIAGE = { leafA: [0, 0.5, 0.5, 1], leafB: [0, 0, 0.5, 0.5], needle: [0.5, 0.5, 1, 1], solid: [0.93, 0.25], bark: [0.97, 0.12], mass: [0.505, 0.005, 0.855, 0.495] };
 
 export const TEX = {};
 export function buildTextures(quality = 'high') {
