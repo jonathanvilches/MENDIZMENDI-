@@ -283,11 +283,17 @@ export class FutbolGame {
     // para no pasar de largo; la dirección general la sigue marcando el jugador)
     if (this.passTo === p && !this.owner && I.mag >= 0.1) {
       const b = this.ball, B = b.p, bv = hyp(b.v.x, b.v.z);
-      if (bv > 1 && hyp(B.x - p.x, B.z - p.z) < 12) {
-        // va al punto donde puede cortar el balón (si el pase queda por detrás, frena y vuelve a por él)
-        const q = this.interceptPoint(p), ex = q.x - p.x, ez = q.z - p.z, el = hyp(ex, ez);
-        const sv = el > 0.15 ? Math.min(top, el * 3 + 0.5) / el : 0;
-        p.wx += (ex * sv - p.wx) * 0.6; p.wz += (ez * sv - p.wz) * 0.6;
+      if (bv > 1 && hyp(B.x - p.x, B.z - p.z) < 14) {
+        // si siguiendo su carrera se encuentra con el balón más adelante (un pase al hueco), sigue corriendo y solo
+        // ajusta la dirección; si no, va al punto donde puede cortarlo (si el pase queda por detrás, frena y vuelve)
+        const ws = hyp(p.wx, p.wz); let meet = null;
+        if (ws > 1) for (let t = 0.1; t <= 3; t += 0.1) { const q = rollAhead(b, t); if (hyp(q.x - (p.x + p.wx * t), q.z - (p.z + p.wz * t)) < 1.6 + t * 0.4) { meet = q; break; } }
+        if (meet) { const ex = meet.x - p.x, ez = meet.z - p.z, el = hyp(ex, ez) || 1; p.wx = ex / el * ws; p.wz = ez / el * ws; }
+        else {
+          const q = this.interceptPoint(p), ex = q.x - p.x, ez = q.z - p.z, el = hyp(ex, ez);
+          const sv = el > 0.15 ? Math.min(top, el * 3 + 0.5) / el : 0;
+          p.wx += (ex * sv - p.wx) * 0.6; p.wz += (ez * sv - p.wz) * 0.6;
+        }
       }
     }
     p.face = I.mag < 0.1 && !this.owner ? { x: this.ball.p.x, z: this.ball.p.z } : null;
@@ -357,9 +363,18 @@ export class FutbolGame {
     if (!q) { const tx = clamp(p.x + dx * 16 * SC, -F.HL + 1, F.HL - 1), tz = clamp(p.z + dz * 16 * SC, -F.HW + 1, F.HW - 1); return this.passToPoint(p, tx, tz, false); }
     // hacia dónde corre: hacia la portería rival, un poco hacia el centro
     let rx = s, rz = -q.z * 0.02 + (I.mag > 0.25 ? dz * 0.4 : 0); const rl = hyp(rx, rz) || 1; rx /= rl; rz /= rl;
-    const lead = (5 + Math.min(4, hyp(q.x - p.x, q.z - p.z) * 0.12)) * SC;
+    // a dónde llegará corriendo cuando llegue el balón: el tiempo del balón según la distancia y la carrera del
+    // compañero (antes iba a un punto fijo unos metros por delante y, esprintando, el delantero lo pasaba de largo)
+    const B = this.ball.p, run = Math.max(hyp(q.vx, q.vz), PL.run * 0.85);
+    let lead = (5 + Math.min(4, hyp(q.x - p.x, q.z - p.z) * 0.12)) * SC;
+    for (let k = 0; k < 3; k++) {
+      const ax = q.x + rx * lead, az = q.z + rz * lead, d = hyp(ax - B.x, az - B.z), v = this.groundV(d) * this.firm(p), T = d / (v * 0.78);
+      lead = Math.max(4 * SC, run * T * 0.95);
+    }
     const tx = clamp(q.x + rx * lead, -F.HL + 1.2, F.HL - 1.2), tz = clamp(q.z + rz * lead, -F.HW + 1, F.HW - 1);
     this.passToPoint(p, tx, tz, false, q); q.react = 0;
+    // el pase al hueco pilla a la defensa a contrapié: tardan su tiempo de reacción en ir a por él
+    for (const r of this.team(this.other(p.team))) if (r.role !== 'POR') r.react = Math.max(r.react, this.L(r).react * 1.1);
     this.setMe(q, 'pass');
     this.emit({ t: 'through', p: p.id, q: q.id });
   }
@@ -427,6 +442,8 @@ export class FutbolGame {
     if (this.restart && (this.phase === 'kickoff' || this.phase === 'setpiece')) { this.restart = null; this.setPhase('play'); }
   }
   isOffside(q) { if (!RU.offside) return false; const s = this.dir[q.team], u = s * q.x; return u > 0 && u > s * this.ball.p.x + 0.1 && u > this.offLine(q.team) + 0.1; }
+  // tus pases rasos van más tensos (como en el FIFA): la defensa tiene menos tiempo para cortarlos
+  firm(p) { return this.human(p) ? 1.22 : 1; }
   // pase raso: llega al compañero a unos 5,5–10 m/s en fútbol 11 y a 4–6 m/s en sala (rodadura y aire de por medio)
   groundV(d) {
     if (K.dragK) { const va = 4 + Math.min(2, d * 0.14), dec = K.roll + 0.7; return clamp(Math.sqrt(va * va + 2 * dec * d), K.pass[0], K.pass[1]); }
@@ -439,7 +456,7 @@ export class FutbolGame {
     const b = this.ball.p;
     let tx = q.x, tz = q.z, v = 10, T = 1;
     for (let k = 0; k < 3; k++) {
-      const d = hyp(tx - b.x, tz - b.z); v = loft ? this.loftV(d).vh : this.groundV(d);
+      const d = hyp(tx - b.x, tz - b.z); v = loft ? this.loftV(d).vh : this.groundV(d) * this.firm(p);
       T = loft ? this.loftV(d).T : d / (v * 0.78);
       // (al tuyo, el pase va justo a donde llegará corriendo; a la IA, algo corto para que lo busque)
       const lead = q.team === this.me.team && !this.autoplay ? 1 : 0.85;
@@ -455,7 +472,7 @@ export class FutbolGame {
     const b = this.ball.p, dx = tx - b.x, dz = tz - b.z, d = hyp(dx, dz) || 1;
     if (this.restart?.type === 'throwin' && RU.throwHands) return this.throwBall(p, tx, tz, q);
     if (loft) { const L = this.loftV(d); this.kickBall(p, dx / d * L.vh, L.vy, dz / d * L.vh, 0, 'loft'); }
-    else { const v = this.groundV(d); this.kickBall(p, dx / d * v, 0, dz / d * v, 0, 'pass'); }
+    else { const v = Math.min(K.pass[1], this.groundV(d) * this.firm(p)); this.kickBall(p, dx / d * v, 0, dz / d * v, 0, 'pass'); }
     this.passTo = q; this.passT = 3.2; this.passFrom = p;
     if (q) { q.plan = null; q.react = 0; }
   }
@@ -504,8 +521,19 @@ export class FutbolGame {
       if (best) {
         const rel = hyp(b.v.x - best.vx, b.v.z - best.vz, b.v.y);
         const keeperHands = best.role === 'POR' && this.inArea(best.team, B.x, B.z);
-        if (keeperHands && this.last?.team !== best.team) { this.catchBall(best); return; }
-        if (rel > PL.trapMax) this.deflect(best, 0.35);
+        if (keeperHands && this.last?.team !== best.team) {
+          // el portero de pie: un balón fuerte solo lo para si le llega al cuerpo (lo de los lados lo tiene que sacar
+          // estirándose a tiempo), y si llega muy fuerte lo rechaza en vez de blocarlo
+          const body = hyp(B.x - best.x, B.z - best.z), fast = b.speed > 9;
+          if (fast && body > 0.6) best = null;
+          else if (fast && b.speed > this.L(best).catchV) { this.deflect(best, 0.2); if (this.shotLive && this.shotLive.team !== best.team) { this.stats.saves[best.team]++; this.stats.onTarget[this.other(best.team)]++; this.shotLive = null; this.emit({ t: 'save', p: best.id, catch: false }); } return; }
+          else { this.catchBall(best); return; }
+        }
+      }
+      if (best) {
+        const rel = hyp(b.v.x - best.vx, b.v.z - best.vz, b.v.y);
+        // (un pase tenso al que va dirigido lo controla; lo que rebota es un balón fuerte que no era para él)
+        if (rel > PL.trapMax * (this.passTo === best ? 1.6 : 1)) this.deflect(best, 0.35);
         else this.takeBall(best);
       }
       // un balón fuerte que pasa por el cuerpo de alguien (más alto que los pies) también rebota
