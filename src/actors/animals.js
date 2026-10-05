@@ -320,14 +320,17 @@ export class Fauna {
   }
   buildButterflies(scene, quality) {
     const n = quality === 'low' ? 25 : 50;
-    const wing = new THREE.CircleGeometry(0.07, 6); wing.translate(0.06, 0, 0);
-    this.bfMesh = new THREE.InstancedMesh(wing, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }), n * 2);
+    // un ala (ala anterior y posterior juntas) en horizontal, con el cuerpo en el borde; la otra es la misma en espejo.
+    // El dibujo (borde oscuro, punta negra con manchas claras, nervios y ocelos) va en una textura pequeña y el color de
+    // cada especie lo pone la copia: limonera amarilla, blanca de la col, vanesa naranja, ícaro azul, y una pardo-violeta
+    const wing = new THREE.PlaneGeometry(0.1, 0.1); wing.translate(0.05, 0, 0); wing.rotateX(Math.PI / 2);   // (ala anterior hacia +z, hacia donde vuela)
+    this.bfMesh = new THREE.InstancedMesh(wing, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, map: wingTexture(), alphaTest: 0.5 }), n * 2);
     this.bfMesh.frustumCulled = false;
-    const cols = ['#ffd23f', '#ffffff', '#ff8c42', '#7ec8e3', '#c77dff'].map(c => new THREE.Color(c));
+    const cols = ['#ffe14a', '#f4f2ea', '#ff8a3a', '#7fb8ff', '#b88ad8'].map(c => new THREE.Color(c));
     this.butterflies = [];
     for (let i = 0; i < n; i++) {
       this.bfMesh.setColorAt(i * 2, cols[i % cols.length]); this.bfMesh.setColorAt(i * 2 + 1, cols[i % cols.length]);
-      this.butterflies.push({ t: this.rnd() * 10, c: new THREE.Vector3(), phase: this.rnd() * 6 });
+      this.butterflies.push({ t: this.rnd() * 10, c: new THREE.Vector3(), phase: this.rnd() * 6, beat: 18 + this.rnd() * 8 });
     }
     scene.add(this.bfMesh);
     this._m = new THREE.Matrix4(); this._q = new THREE.Quaternion(); this._e = new THREE.Euler(); this._p = new THREE.Vector3(); this._s = new THREE.Vector3(1, 1, 1);
@@ -460,12 +463,14 @@ export class Fauna {
     this.butterflies.forEach((b, i) => {
       b.t += dt;
       if (b.c.distanceTo(player.pos) > 30 || b.t > 25) { const a = this.rnd() * 6.28, r = 6 + this.rnd() * 20; b.c.set(player.pos.x + Math.cos(a) * r, 0, player.pos.z + Math.sin(a) * r); b.c.y = terrainHeight(b.c.x, b.c.z); b.t = 0; }
-      const x = b.c.x + Math.sin(b.t * 0.7 + b.phase) * 2.5, z = b.c.z + Math.cos(b.t * 0.5 + b.phase) * 2.5;
-      const y = terrainHeight(x, z) + 0.6 + Math.sin(b.t * 2) * 0.3;
-      const yaw = b.t * 0.6 + b.phase, f = Math.sin(b.t * 22) * 1.1;
+      const u = b.t + b.phase, x = b.c.x + Math.sin(u * 0.7) * 2.5, z = b.c.z + Math.cos(u * 0.5) * 2.5;
+      // aleteo arriba y abajo alrededor del cuerpo, con ratos planeando con las alas casi planas; vuela hacia donde va
+      const glide = Math.sin(u * 0.9) > 0.75, fl = Math.sin(b.t * b.beat), wingA = glide ? 0.18 + fl * 0.06 : 0.45 + fl * 0.85;
+      const y = terrainHeight(x, z) + 0.6 + Math.sin(b.t * 2) * 0.3 + (glide ? 0 : fl * 0.025);
+      const yaw = Math.atan2(Math.cos(u * 0.7) * 0.7 * 2.5, -Math.sin(u * 0.5) * 0.5 * 2.5);
       const sc = night < 0.5 ? 1 : 0;
       for (const [k, s2] of [[0, 1], [1, -1]]) {
-        E.set(0, yaw + s2 * f, 0, 'YXZ'); Q.setFromEuler(E);
+        E.set(-0.2, yaw, s2 * wingA, 'YXZ'); Q.setFromEuler(E);
         S.set(s2 * sc, sc, sc);
         M4.compose(Pp.set(x, y, z), Q, S);
         this.bfMesh.setMatrixAt(i * 2 + k, M4);
@@ -503,6 +508,28 @@ export class Fauna {
   }
 }
 
+// ala de mariposa (64 px): el cuerpo en el borde izquierdo, el ala anterior delante y la posterior detrás. Blanco = el
+// color de la especie; bordes, punta y nervios oscuros; manchas claras en la punta y un ocelo en el ala de atrás
+function wingTexture() {
+  const c = document.createElement('canvas'); c.width = c.height = 64;
+  const g = c.getContext('2d');
+  const fore = new Path2D('M2 30 C 10 14, 30 4, 58 3 C 62 10, 58 24, 50 33 C 36 36, 16 36, 2 36 Z');
+  const hind = new Path2D('M2 35 C 18 35, 36 38, 42 46 C 44 56, 32 62, 22 62 C 12 60, 4 50, 2 40 Z');
+  g.fillStyle = '#ffffff'; g.fill(fore); g.fill(hind);
+  g.save(); g.clip(fore);
+  g.fillStyle = 'rgba(30,22,18,0.92)'; g.beginPath(); g.ellipse(58, 6, 20, 15, -0.5, 0, 7); g.fill();
+  g.fillStyle = '#ffffff'; for (const [x, y, r] of [[50, 9, 2.6], [55, 15, 2], [44, 6, 1.8]]) { g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); }
+  g.restore();
+  g.strokeStyle = 'rgba(30,22,18,0.85)'; g.lineWidth = 2.6; g.stroke(fore); g.stroke(hind);
+  g.strokeStyle = 'rgba(30,22,18,0.35)'; g.lineWidth = 0.8;
+  for (const [x, y] of [[40, 8], [50, 22], [44, 32], [30, 34], [36, 50], [26, 58], [12, 58]]) { g.beginPath(); g.moveTo(3, 34); g.quadraticCurveTo((3 + x) / 2, (34 + y) / 2 + 2, x, y); g.stroke(); }
+  g.fillStyle = 'rgba(30,22,18,0.9)'; g.beginPath(); g.arc(30, 50, 4.2, 0, 7); g.fill();
+  g.fillStyle = 'rgba(120,170,255,0.95)'; g.beginPath(); g.arc(30, 50, 2.2, 0, 7); g.fill();
+  // medio cuerpo (con el ala del otro lado queda entero)
+  g.fillStyle = '#2a211b'; g.beginPath(); g.ellipse(0, 36, 2.6, 20, 0, 0, 7); g.fill();
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
 export function glowTexture() {
   const c = document.createElement('canvas'); c.width = c.height = 64;
   const g = c.getContext('2d');

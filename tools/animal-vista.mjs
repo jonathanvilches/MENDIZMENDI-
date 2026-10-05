@@ -11,7 +11,7 @@ await p.goto(`http://127.0.0.1:5173/?town=${town}&q=high&weather=clear&skipintro
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 500000 });
 await p.addStyleTag({ content: '#hud, #controls, #compass, #toast, #prompt, .whisper { display: none !important; }' });
 for (const k of kinds.split(',')) {
-  for (const [n, ang, el] of [['lado', 1.5708, 0.25], ['tres-cuartos', 0.75, 0.45]]) {
+  for (const [n, ang, el] of [['lado', 1.5708, 0.25], ['tres-cuartos', 0.75, 0.45], ['atras', 2.6, 0.35]]) {
     const ok = await p.evaluate(([k, ang, el]) => {
       const G = window.__game, T = window.__THREE, F = window.__rt.fauna, gh = window.__hf.groundHeight;
       let a = F.animals.find(a => a.kind === k);

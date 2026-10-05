@@ -150,20 +150,23 @@ float cell(vec3 p){ vec3 i = floor(p), fr = fract(p); float d = 8.0;
 //  · un brillo suave en el contorno (el pelo recoge la luz de lado)
 // k.hair: fuerza del pelo (el cerdo casi no tiene; el jabalí, cerdas), k.belly: aclarado del vientre
 const COAT = { pig: { hair: 0.25, belly: 0.06, patch: 0.5 }, jabali: { hair: 1.4, belly: 0.04 }, pottoka: { hair: 0.8, belly: 0.1 }, bull: { hair: 0.7, belly: 0.03 },
-  zorro: { hair: 1.1, belly: 0.3 }, corzo: { hair: 0.9, belly: 0.3 }, ciervo: { hair: 1.0, belly: 0.22 } };
+  zorro: { hair: 1.1, belly: 0.3 }, corzo: { hair: 0.9, belly: 0.3, rump: 1, rumpY: [0.48, 0.74] }, ciervo: { hair: 1.0, belly: 0.22, rump: 0.6, rumpY: [0.36, 0.56] } };
+// rump: el escudo claro de la grupa (blanco en el corzo, que lo enseña al huir; crema en el ciervo), en la parte de
+// atrás del cuerpo (los modelos miran hacia +z) entre las alturas rumpY (fracción de la altura del modelo)
 const HIDES = new Map();
 function hideMaterial(geo, S) {
   const key = S.model + '|' + JSON.stringify(S.col || {}); if (HIDES.has(key)) return HIDES.get(key);
   geo.computeBoundingBox();
   const bb = geo.boundingBox, size = bb.getSize(new THREE.Vector3()), f = (1 / size.y).toExponential(4), y0 = bb.min.y.toExponential(4);
-  const along = size.x > size.z ? 'x' : 'z', kind = Object.keys(SPEC).find(k => SPEC[k] === S), K = { hair: 0.8, belly: 0.14, patch: 1, ...(COAT[kind] || {}) };
+  const along = size.x > size.z ? 'x' : 'z', kind = Object.keys(SPEC).find(k => SPEC[k] === S), K = { hair: 0.8, belly: 0.14, patch: 1, rump: 0, rumpY: [0, 0], ...(COAT[kind] || {}) };
+  const a0 = bb.min[along].toExponential(4), aL = (1 / size[along]).toExponential(4);
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8 });
   m.onBeforeCompile = (sh) => {
     useFill(sh);
-    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vOP; varying float vOY; varying float vBelly;')
-      .replace('#include <begin_vertex>', `#include <begin_vertex>\nvOP = position * ${f}; vOY = (position.y - ${y0}) * ${f}; vBelly = -objectNormal.y;`);
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vOP; varying float vOY; varying float vBelly; varying float vAl; varying float vAN;')
+      .replace('#include <begin_vertex>', `#include <begin_vertex>\nvOP = position * ${f}; vOY = (position.y - ${y0}) * ${f}; vBelly = -objectNormal.y; vAl = (position.${along} - ${a0}) * ${aL}; vAN = objectNormal.${along};`);
     sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>${FILL_DECL}
-varying vec3 vOP; varying float vOY; varying float vBelly;
+varying vec3 vOP; varying float vOY; varying float vBelly; varying float vAl; varying float vAN;
 float hh(vec3 p){ return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
 float vn(vec3 p){ vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
   return mix(mix(mix(hh(i), hh(i + vec3(1,0,0)), f.x), mix(hh(i + vec3(0,1,0)), hh(i + vec3(1,1,0)), f.x), f.y),
@@ -178,7 +181,9 @@ vec3 fbump(vec3 sp, vec3 n, float h, float k) {
   diffuseColor.rgb *= 1.0 + (coatP - 0.5) * 0.24 * ${K.patch.toFixed(2)};
   diffuseColor.rgb = mix(diffuseColor.rgb, min(diffuseColor.rgb * 1.35 + 0.06, vec3(1.0)), smoothstep(0.2, 0.7, vBelly) * ${K.belly.toFixed(2)} * 2.0);
   float legs = 1.0 - smoothstep(0.08, 0.32, vOY);
-  diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(0.62, 0.56, 0.5), legs * 0.55);
+  diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(0.62, 0.56, 0.5), legs * 0.55);${K.rump ? `
+  float rump = (1.0 - smoothstep(0.07, 0.17, vAl + (coatP - 0.5) * 0.04)) * smoothstep(${K.rumpY[0].toFixed(2)}, ${(K.rumpY[0] + 0.07).toFixed(2)}, vOY) * (1.0 - smoothstep(${(K.rumpY[1] - 0.07).toFixed(2)}, ${K.rumpY[1].toFixed(2)}, vOY)) * smoothstep(0.05, -0.45, vAN);
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.94, 0.91, 0.85), rump * ${K.rump.toFixed(2)});` : ''}
   // pelo: rayas finas a lo largo del cuerpo (ruido estirado), fundidas cuando son más finas que un píxel
   vec3 hp = vOP * vec3(${along === 'x' ? '22.0, 160.0, 160.0' : '160.0, 160.0, 22.0'});
   float faa = 1.0 - smoothstep(0.25, 1.0, length(fwidth(hp)) * 0.5);
@@ -189,7 +194,7 @@ vec3 fbump(vec3 sp, vec3 n, float h, float k) {
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
   totalEmissiveRadiance += uCharFill * diffuseColor.rgb * 0.12 * ${Math.min(1, K.hair).toFixed(2)} * pow(1.0 - abs(dot(normalize(vNormal), normalize(vViewPosition))), 2.5);`);
   };
-  m.customProgramCacheKey = () => 'capa' + f + y0 + along + K.hair + K.belly + K.patch;
+  m.customProgramCacheKey = () => 'capa' + f + y0 + along + K.hair + K.belly + K.patch + (K.rump ? 'r' + K.rump + a0 + aL : '');
   HIDES.set(key, m); return m;
 }
 
