@@ -100,7 +100,7 @@ export const EU_EXACT = {
   'Tu cuadrilla te espera. Ha llegado la hora de recorrer Navarra, pueblo a pueblo. ¿Preparado?': 'Zure koadrila zure zain dago. Nafarroa herriz herri ibiltzeko ordua iritsi da. Prest?',
   'Busca a la gente con la exclamación amarilla. ¡El sello del pueblo te espera!': 'Bilatu harridura ikur horia duen jendea. Herriko zigilua zure zain dago!',
   // --- herrien sarrerak ---
-  'Villa de las Cinco Villas del Bidasoa, con casas de entramado de madera, palacios y portadas de piedra junto al regata Onin.': 'Bortzirietako hiribildua, egurrezko egiturako etxeekin, jauregiekin eta harrizko atariekin Onin errekaren ondoan.',
+  'Villa de las Cinco Villas del Bidasoa, con casas de entramado de madera, palacios y portadas de piedra junto a la regata Onin.': 'Bortzirietako hiribildua, egurrezko egiturako etxeekin, jauregiekin eta harrizko atariekin Onin errekaren ondoan.',
   'Pueblo de casas blancas junto a la iglesia, rodeado de montes y famoso por sus palomeras.': 'Elizaren ondoko etxe zurien herria, mendiz inguratua eta bere usategiengatik ezaguna.',
   'Pueblo junto a la frontera, conocido por su cueva y por la historia de las brujas.': 'Mugaren ondoko herria, bere kobagatik eta sorginen historiagatik ezaguna.',
   'Pueblo de Baztan con una calle larga de casas palacio, un arco de entrada y un molino.': 'Baztango herria, jauregi-etxeen kale luze batekin, sarrerako arku batekin eta errota batekin.',

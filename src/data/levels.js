@@ -23,7 +23,7 @@ export const LEVELS = [
   // ---------------- Baztan-Bidasoa ----------------
   { id: 'lesaka', name: 'Lesaka', comarca: 'bidasoa', family: 'atlantic', relief: 'valley', size: 55,
     river: { name: 'Onin', x: 6, w: 3.2, amp: 6 },
-    intro: 'Villa de las Cinco Villas del Bidasoa, con casas de entramado de madera, palacios y portadas de piedra junto al regata Onin.',
+    intro: 'Villa de las Cinco Villas del Bidasoa, con casas de entramado de madera, palacios y portadas de piedra junto a la regata Onin.',
     church: { name: 'Iglesia de San Martín de Tours', style: 'gothic', text: 'Se alza sobre el pueblo con su torre. Desde la plaza se sube por escaleras de piedra.' },
     landmarks: [{ kind: 'towerhouse', name: 'Casa-torre de Zabaleta', text: 'Las casas-torre medievales eran casas fuertes de piedra. Lesaka conserva varias junto al río.' }],
     missions: [
