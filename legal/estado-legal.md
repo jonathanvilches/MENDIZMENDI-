@@ -33,6 +33,8 @@
 
 | Fecha | Función | Respuestas (1-8) | Color | Decisión |
 |---|---|---|---|---|
+| 2026-10-05 | Recuperación tras quedarse sin memoria gráfica (rehacer el pueblo o recargar y volver al mismo pueblo) y retratos de los vecinos preparados durante la carga | 1 No · 2 Sí, sessionStorage con el id del pueblo (se borra al arrancar) e IndexedDB de imágenes ya existente · 3 No · 4 Sí · 5 No · 6 No · 7 No · 8 No | VERDE | Seguir. Añadido a la tabla del punto 6. |
+| 2026-10-05 | Fútbol como minijuego (partido directo, sin entrenamiento ni menú), cambios de control del fútbol y la pelota (golpe a dos paredes), lluvia más baja | 1-6 No · 7 Sí: «dos paredes» descrito como golpe de la pelota a mano (dato cultural general) · 8 No | VERDE | Seguir. Los nombres de clubes reales siguen pendientes de la decisión ROJO del informe. |
 | 2026-10-05 | Estado actual del juego completo (primera auditoría) | 1 No (apodo local) · 2 Sí, localStorage y caché del service worker · 3 Sí, ver registro · 4 Sí · 5 No (solo puntos y «txanpon» del juego) · 6 No, salvo descargar el juego · 7 Sí · 8 Sí, se juega con el móvil en la mano | ÁMBAR | Seguir con los cambios del informe (`legal/informe-auditoria-inicial.md`). Los puntos ROJO (clubes reales) esperan decisión del titular. |
 
 A partir de ahora, cada función nueva pasa por la puerta legal antes de implementarse y se anota aquí.
@@ -69,7 +71,8 @@ A partir de ahora, cada función nueva pasa por la puerta legal antes de impleme
 | `mendimendiz-liga-v1` | temporada de la liga de fútbol del juego | No |
 | `mendimendiz-torneo-v1` | torneo de pelota del juego | No |
 | `mendimendiz-futbol-v1` | retos de fútbol superados | No |
-| `mendimendiz-img` | imágenes generadas por el juego guardadas para no rehacerlas | No |
+| `mendimendiz-img` (IndexedDB, no localStorage) | imágenes generadas por el juego (retratos de los vecinos, iconos, sellos) guardadas para no rehacerlas | No |
+| `mendimendiz-volver` (sessionStorage) | solo el identificador del pueblo en el que estabas, durante un instante, para volver a él si el juego tiene que recargarse porque el dispositivo se quedó sin memoria gráfica; se borra al arrancar | No |
 | Caché del service worker (`mendimendiz-<versión>` y `mendimendiz-assets`) | copia del propio juego para jugar sin conexión | No |
 
 Todo se borra desde «Perfil → Borrar todo el progreso» o borrando los datos del sitio en el navegador.

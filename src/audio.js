@@ -249,6 +249,6 @@ export class Sound {
   }
   setMusic(on) { this.musicOn = on; if (this.musicBus) { this.musicBus.gain.cancelScheduledValues(this.ctx.currentTime); this.musicBus.gain.setTargetAtTime(on ? 0.32 : 0, this.ctx.currentTime, 0.3); } }
   // lluvia: rumor de ruido filtrado agudo que sube con la intensidad
-  setRain(k) { if (!this.ctx) return; if (!this.rain && k > 0) this.rain = this.loopNoise(2600, 0.35); if (this.rain) this.rain.g.gain.setTargetAtTime(k * 0.22, this.ctx.currentTime, 0.5); }
+  setRain(k) { if (!this.ctx) return; if (!this.rain && k > 0) this.rain = this.loopNoise(2600, 0.35); if (this.rain) this.rain.g.gain.setTargetAtTime(k * 0.08, this.ctx.currentTime, 0.5); }
   setVolume(v) { if (this.master) this.master.gain.value = v; }
 }

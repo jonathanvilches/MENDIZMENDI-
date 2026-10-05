@@ -236,22 +236,26 @@ export function buildAnimal(kind, opts = {}) {
   const mixer = new THREE.AnimationMixer(inner), actions = {};
   for (const c of g.animations) actions[c.name] = mixer.clipAction(c);
   let cur = null, acc = 0;
+  // cada animal a su ritmo y empezando en un punto distinto al pastar o estar quieto (si no, el rebaño entero bajaba
+  // la cabeza a la vez)
+  const rate = 0.85 + Math.random() * 0.3, calm = /^(Idle|Idle_2|Idle_Headlow|Eating|Sit)$/;
   const A = {
-    root, mixer, actions, height: S.h,
+    root, mixer, actions, height: S.h, rate,
     play(name, fade = 0.3) {
       const a = actions[name] || actions.Idle; if (!a || a === cur) return a;
-      a.reset().setEffectiveWeight(1).play(); if (cur) cur.crossFadeTo(a, fade, false); cur = a; return a;
+      a.reset().setEffectiveWeight(1).play(); if (calm.test(a.getClip().name)) a.time = Math.random() * a.getClip().duration;
+      if (cur) cur.crossFadeTo(a, fade, false); cur = a; return a;
     },
     // speed (m/s), graze (pastando), alert (mira algo); las zancadas siguen a la velocidad real
     update(dt, s) {
       const sp = s.speed || 0, H = S.h;
       let a;
       if (s.attack && actions.Attack_Headbutt) { a = A.play('Attack_Headbutt', 0.12); a.timeScale = 1.5; }   // amago de embestida (toros)
-      else if (s.sit) { a = A.play(actions.Sit ? 'Sit' : 'Idle'); a.timeScale = 1; }
+      else if (s.sit) { a = A.play(actions.Sit ? 'Sit' : 'Idle'); a.timeScale = rate; }
       else if (sp > H * 1.9 + 0.8) { a = A.play('Gallop'); a.timeScale = Math.max(0.6, sp / (H * 3.4 + 1.2)); }
       else if (sp > 0.15) { a = A.play('Walk'); a.timeScale = Math.max(0.5, sp / (H * 0.9 + 0.25)); }
-      else if (s.graze) { a = A.play(actions.Eating ? 'Eating' : 'Idle_Headlow'); a.timeScale = 1; }
-      else { a = A.play(s.alt && actions.Idle_2 ? 'Idle_2' : 'Idle'); a.timeScale = 1; }
+      else if (s.graze) { a = A.play(actions.Eating ? 'Eating' : 'Idle_Headlow'); a.timeScale = rate; }
+      else { a = A.play(s.alt && actions.Idle_2 ? 'Idle_2' : 'Idle'); a.timeScale = rate; }
       // lejos se anima a saltos (cada 0,05–0,12 s): ahorra CPU sin que se note
       acc += dt; if (acc >= (s.lod || 0)) { pose?.before(); mixer.update(acc); pose?.after(acc, s); acc = 0; }
     },

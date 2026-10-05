@@ -75,7 +75,8 @@ const MESHY_BY = {
   pastor: { Idle: ['TalkP', 7.2, 10.3, true], Talk: ['TalkP', 1.3, 6.8], Wave: ['TalkP', 3.0, 4.6], Celebrate: ['Hop', 0, 0.62, false, true],
     Jump_Start: ['Hop', 0, 0.3, false, true], Jump_Loop: ['Hop', 0.3, 0.55, true, true], Land: ['Hop', 0.6, 0.96, false, true],
     Ready: ['Hop', 0.02, 0.18, true, true], Scared: ['Hop', 0.62, 0.96, false, true], Pick: ['Hop', 0.62, 0.96, false, true], Hit: ['TalkP', 3.2, 3.9] },
-  pelotari: { Idle: ['Fist', 0, 0.25, true], Talk: ['Fist', 0, 0.25, true], Ready: ['Slash', 0.02, 0.36, true], Hit: ['Slash', 0.5, 1.25],
+  // (su reposo es un trocito de un cuarto de segundo: a ritmo normal, de ida y vuelta, temblaba; va a un quinto)
+  pelotari: { Idle: ['Fist', 0, 0.25, true, false, 0.2], Talk: ['Fist', 0, 0.25, true, false, 0.4], Ready: ['Slash', 0.02, 0.36, true], Hit: ['Slash', 0.5, 1.25],
     Celebrate: ['Fist', 0, 1.58], Wave: ['Fist', 0.15, 1.4], Scared: ['Slash', 1.1, 1.5], Pick: ['Slash', 0.1, 0.4] },
 };
 MESHY_BY.pelotari_rojo = MESHY_BY.pelotari;   // el colorado se mueve igual que el azul
@@ -147,9 +148,9 @@ export async function loadMeshy(name, lod = false) {
     const animations = ['Walk', 'Run'].filter(n => src[n]).map(n => seamless(src[n]));
     // el futbolista trae su chut: es su golpe (pase y tiro), desde que echa la pierna atrás
     const cuts = { ...MESHY_CUTS, ...(src.Kick ? { Hit: ['Kick', 0.42, 1.15] } : {}), ...(MESHY_BY[name] || {}) };
-    for (const [want, [from, t0, t1, pp, flat]] of Object.entries(cuts)) {
+    for (const [want, [from, t0, t1, pp, flat, rate]] of Object.entries(cuts)) {
       if (!src[from]) continue;
-      const k = cutClip(src[from], want, t0, Math.min(t1, src[from].duration), flat); if (pp) k.userData = { pingpong: true }; animations.push(k);
+      const k = cutClip(src[from], want, t0, Math.min(t1, src[from].duration), flat); k.userData = { ...(pp ? { pingpong: true } : {}), ...(rate ? { rate } : {}) }; animations.push(k);
     }
     const box = new THREE.Box3().setFromObject(g.scene), fit = height / Math.max(0.1, box.max.y - box.min.y);
     return { scene: g.scene, animations, userData: { fit, meshy: true } };
@@ -179,6 +180,9 @@ export class GlbChar {
     this.root = SkeletonUtils.clone(gltf.scene);
     this.root.name = 'GlbChar';
     this.opt = { timeScale: 1, walkAt: 0.15, runAt: 3.2, ...opt };
+    // vecinos (vary): cada uno con su ritmo de reposo y empezando en un punto distinto del clip; si no, todo el pueblo
+    // respiraba y se balanceaba a la vez, como un baile ensayado
+    this.vary = !!opt.vary; this.idleRate = this.vary ? 0.86 + Math.random() * 0.28 : 1;
     this.meshes = {};
     this.groups = {};
     this.bones = {};
@@ -266,6 +270,7 @@ export class GlbChar {
     const a = this.actions[name];
     if (!a || this.current === a) return a;
     a.reset().setEffectiveWeight(1).play();
+    if (this.vary && /^(Idle|Talk)/.test(name)) a.time = Math.random() * a.getClip().duration;
     if (this.current) this.current.crossFadeTo(a, fade, false);
     this.current = a;
     this.currentName = name;
@@ -360,6 +365,7 @@ export class GlbChar {
       if (v > this.opt.runAt && this.actions.Run) { want = 'Run'; scale = ts * (gait ? gait(v, 'Run') : Math.max(0.6, v / RUN_REF)); }
       else if (v > this.opt.walkAt && this.actions.Walk) { want = 'Walk'; scale = ts * (gait ? gait(v, 'Walk') : Math.max(0.35, v / WALK_REF)); }
       else if (this.talking && this.actions.Talk) want = 'Talk';
+      if (want !== 'Walk' && want !== 'Run') scale *= (this.clipExtras[want]?.rate || 1) * this.idleRate;
       this.play(want);
       if (this.current) this.current.timeScale = scale;
     }

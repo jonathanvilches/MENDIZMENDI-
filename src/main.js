@@ -29,7 +29,8 @@ import COMARCAS from './data/comarcas.json';
 import { preloadNpcs } from './actors/npcGlb.js';
 import { animalsSettled } from './actors/animalGlb.js';
 import { preloadFood } from './world/products3d.js';
-import { avatarPortrait } from './ui/portraits.js';
+import { avatarPortrait, portrait } from './ui/portraits.js';
+import { releaseOffscreen } from './util/offscreen.js';
 import { loadStore, queueMode } from './util/store.js';
 import { startI18n } from './i18n.js';
 
@@ -51,6 +52,23 @@ function desktopTier() {
     gl?.getExtension('WEBGL_lose_context')?.loseContext();
     return /swiftshader|llvmpipe|software|microsoft basic/i.test(r) ? 'low' : 'high';
   } catch (e) { return 'high'; }
+}
+
+// retratos de los vecinos con los que se habla, hechos durante la carga (con el renderizador oculto, que se suelta
+// antes de jugar): antes se hacían al abrir cada diálogo y el juego se paraba un momento (en el iPhone, crear ese
+// segundo contexto gráfico y compilar sus sombreadores cuesta) y, de paso, había dos contextos a la vez
+async function warmPortraits(g, ui) {
+  const hosts = new Set((g.missions || []).map(M => M.host).filter(Boolean));
+  const list = [...(g.actors || [])].sort((a, b) => (hosts.has(b) ? 1 : 0) - (hosts.has(a) ? 1 : 0));
+  const seen = new Set(), t0 = performance.now();
+  for (const a of list) {
+    const L = a.obj?.userData?.look; if (!L || a.visible === false) continue;
+    const k = JSON.stringify(L); if (seen.has(k)) continue; seen.add(k);
+    try { portrait(L, 'bust', true); } catch (e) { }
+    if (seen.size >= 30 || performance.now() - t0 > 3500) break;
+    if (seen.size % 4 === 0) { ui.progress?.(0.97, 'Saludando a los vecinos…'); await new Promise(r => requestAnimationFrame(() => r())); }
+  }
+  releaseOffscreen();
 }
 
 async function boot() {
@@ -140,6 +158,7 @@ async function boot() {
         await animalsSettled();   // los animales del pueblo (cada uno baja su modelo al aparecer)
         rt.sky.time = q.get('t') ? +q.get('t') : 10;
         game.applySettings();
+        await warmPortraits(game, ui);
         await rt.precompile();
         ui.progress(1, '¡Listo!');
         rt.start(game);
@@ -185,12 +204,33 @@ async function boot() {
     queueMode('all'); hub.show('comarca', def?.comarca);
   }
   window.__exit = exit;
+  // memoria gráfica perdida (en el iPhone, al volver de otra aplicación o con poca memoria): si el navegador la
+  // devuelve, se rehace el pueblo en el que estabas (las geometrías del pueblo sueltan su copia tras subirlas a la
+  // tarjeta, así que no se pueden volver a subir tal cual); si no vuelve, el botón recarga y entra en el mismo pueblo
+  rt.onContextRestored = () => {
+    if (!game || !def || loading) return;
+    // en mitad de un minijuego, un partido, el encierro o un diálogo es más seguro recargar y volver al mismo pueblo
+    if (game.mode !== 'play' || game.altScene || ui.dialogOpen || document.querySelector('.mg-overlay:not(.ctxlost), .fb-root, .pel-root')) { rt.onReload(); return; }
+    const d = def;
+    try { game.save?.(); } catch (e) { }
+    try { game.dispose?.(); } catch (e) { }
+    ui.destroyHUD(); ui.setCinematic(false);
+    try { rt.unload(); } catch (e) { }
+    game = null;
+    play(d);
+  };
+  rt.onReload = () => {
+    try { game?.save?.(); } catch (e) { }
+    try { if (game && def) sessionStorage.setItem('mendimendiz-volver', def.id); } catch (e) { }
+    location.reload();
+  };
 
   addEventListener('visibilitychange', () => { if (document.hidden) { try { game?.save(); } catch (e) { } } });
   addEventListener('pagehide', () => { try { game?.save(); } catch (e) { } });
 
   // parámetros de prueba: ?town=olite (&autostart)
-  const t = q.get('town');
+  let back = null; try { back = sessionStorage.getItem('mendimendiz-volver'); sessionStorage.removeItem('mendimendiz-volver'); } catch (e) { }
+  const t = q.get('town') || back;
   if (t && levelById(t)) { if (!P.name) { P.name = 'Mendi'; saveProfile(); } play(levelById(t)); }
   else {
     hub.show(q.get('screen') || 'home', q.get('arg') || undefined);

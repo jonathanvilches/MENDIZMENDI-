@@ -62,6 +62,39 @@ export function aimVelocity(p, tx, ty, T) {
   return vec((tx - p.x) / T * k, ((ty - p.y) + 0.5 * G * T * T) / T * k, (0 - p.z) / T * k);
 }
 
+// Velocidad para que la pelota salga de p y pase por el punto t (en el aire) tras T segundos
+export function aimVelocityTo(p, t, T) {
+  const G = PHYS.G, k = 1 + PHYS.DRAG * T * 0.5;
+  return vec((t.x - p.x) / T * k, ((t.y - p.y) + 0.5 * G * T * T) / T * k, (t.z - p.z) / T * k);
+}
+
+// Golpe a dos paredes: primero a la pared izquierda, luego al frontis (por encima de la chapa) y sale cruzado a la
+// cancha. Se buscan el punto de la pared y la altura con los que el primer bote cae cerca de landZ; null si desde ahí
+// no sale ninguno (muy pegado a la pared o muy cerca del frontis)
+export function solveTwoWalls(p, speed, landZ = 17) {
+  const xw = -COURT.W / 2 + R;
+  let best = null, bs = -1e9;
+  for (const fz of [0.28, 0.4, 0.52, 0.64]) {
+    const zw = Math.max(1.2, p.z * fz);
+    const d = Math.hypot(xw - p.x, zw - p.z); if (d < 1) continue;
+    const T = Math.max(0.1, d / speed);
+    for (let yw = 1; yw <= 7; yw += 0.25) {
+      const v = aimVelocityTo(p, { x: xw, y: yw, z: zw }, T);
+      const b = new Ball(); b.set(p, v);
+      const ev = predict(b, 4).events;
+      const iL = ev.findIndex(e => e.type === 'left'), iF = ev.findIndex(e => e.type === 'front');
+      if (iL < 0 || iF < 0 || iL > iF) continue;
+      const F = ev[iF]; if (F.y < COURT.CHAPA + 0.35 || F.y > COURT.FRONT_TOP - 0.3) continue;
+      if (ev.some(e => e.type === 'floor' && e.t < F.t)) continue;
+      const land = ev.find(e => e.type === 'floor' && e.n === 1);
+      if (!land || land.x > COURT.W / 2 - 0.3 || land.z > COURT.L - 1 || land.z < 4) continue;
+      const score = -Math.abs(land.z - landZ) - Math.max(0, 1 - land.x) * 1.5;   // mejor cuanto más cruzado (hacia la derecha)
+      if (score > bs) { bs = score; best = { v, land, wall: { x: xw, y: yw, z: zw } }; }
+    }
+  }
+  return best;
+}
+
 // Primer bote tras el frontis para un golpe dado
 export function landingOf(p, v) {
   const b = new Ball(); b.set(p, v);
@@ -73,7 +106,7 @@ export function landingOf(p, v) {
 }
 
 // Busca la altura en el frontis (ty) para que el primer bote caiga cerca de landZ
-export function solveShot(p, tx, landZ, speed, tyMin = COURT.CHAPA + 0.25, tyMax = 8.5) {
+export function solveShot(p, tx, landZ, speed, tyMin = COURT.CHAPA + 0.25, tyMax = 9) {
   const T = Math.max(0.25, p.z / speed);
   let lo = tyMin, hi = tyMax, best = null;
   for (let i = 0; i < 14; i++) {

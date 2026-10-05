@@ -1,7 +1,7 @@
 // Lógica del partido de pelota a mano (sin gráficos): saque, peloteo, árbitro, tanteo y rival.
 // La vista (match.js) le pasa la entrada del jugador y recibe eventos para dibujar, sonar y rotular.
 import { COURT, LEVELS, kantari } from './rules.js';
-import { Ball, predict, solveShot, aimVelocity, vec } from './physics.js';
+import { Ball, predict, solveShot, solveTwoWalls, aimVelocity, vec } from './physics.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const gauss = (rnd) => (rnd() + rnd() + rnd() - 1.5) / 1.5;
@@ -79,8 +79,8 @@ export class PelotaGame {
     const reach = who === 'you' && !this.autoplay ? this.lvl.reach : 1.25;
     const qh = 1 - clamp(Math.abs(b.y - 0.85) - 0.35, 0, 1.1) / 1.1;
     const qd = 1 - clamp(Math.hypot(b.x - pl.x, b.z - pl.z) - 0.45, 0, reach) / reach;
-    const qt = 1 - clamp(Math.abs(swingElapsed - 0.06) / 0.25, 0, 1);
-    return clamp(0.45 * qh + 0.35 * qd + 0.2 * qt, 0, 1);
+    const qt = 1 - clamp(Math.abs(swingElapsed - 0.06) / 0.34, 0, 1);
+    return clamp(0.42 * qh + 0.36 * qd + 0.22 * qt + (who === 'you' && !this.autoplay ? this.lvl.assist * 0.08 : 0), 0, 1);
   }
   // Elige el golpe: aim = {x, y} de −1 a 1 (x: izquierda/derecha, y: arriba = largo, abajo = dejada)
   strike(who, q, aim = { x: 0, y: 0 }, forceDrop = false) {
@@ -90,24 +90,32 @@ export class PelotaGame {
     if (serve) {
       const tx = clamp(aim.x * 2.5 + gauss(rnd) * err * 1.2, -3.5, 3.5);
       const landZ = 19.3 + gauss(rnd) * err * 7.5;
-      v = solveShot(p, tx, landZ, 19 + q * 3).v; shot = 'saque';
+      v = solveShot(p, tx, landZ, 20 + q * 3).v; shot = 'saque';
     } else if (forceDrop || aim.y < -0.55) {
       shot = 'dejada';
       const tx = clamp(p.x * 0.4 + aim.x * 2.2 + gauss(rnd) * err * 1.2, -4.2, 4);
       const ty = COURT.CHAPA + 0.28 + err * 0.9 + gauss(rnd) * err * 0.55;
       v = aimVelocity(p, tx, ty, p.z / (13 + q * 3));
     } else {
-      let tx, landZ, speed = 19 + q * 5;
-      if (aim.y > 0.55) { shot = 'largo'; tx = aim.x * 2.4; landZ = 26 + gauss(rnd) * err * 3; speed += 1; }
-      else if (aim.x < -0.5) { shot = 'pared'; tx = -3.7; landZ = 17 + rnd() * 6; }
-      else if (aim.x > 0.5) { shot = 'ancho'; tx = 3.9; landZ = 15 + rnd() * 6; }
-      else { tx = aim.x * 2 + gauss(rnd) * 1.1; landZ = 16 + rnd() * 9; }
-      tx = clamp(tx + gauss(rnd) * err * 2.2, -4.6, 4.8);
-      landZ += gauss(rnd) * err * 4.5;
-      // alcance de un golpe: un pelotari con mucha fuerza, desde el cuadro 4, la manda de vuelta hasta el cuadro 7;
-      // desde más atrás llega algo más lejos (le da más alto en el frontis) y un golpe flojo se queda antes
-      landZ = Math.min(landZ, 21.5 + q * 3 + clamp(p.z - COURT.FALTA, -4, 8) * 0.22);
-      v = solveShot(p, tx, landZ, speed).v;
+      let tx, landZ, speed = 18 + q * 4;
+      // dos paredes: joystick del todo a la izquierda. Primero la pared izquierda, luego el frontis y sale cruzada
+      // (si desde donde está no sale, se convierte en un golpe a la pared)
+      if (aim.x < -0.5 && aim.y <= 0.55) {
+        const r = solveTwoWalls(p, speed + 1, 15 + rnd() * 6);
+        if (r) { shot = 'dosparedes'; v = r.v; }
+      }
+      if (!v) {
+        if (aim.y > 0.55) { shot = 'largo'; tx = aim.x * 2.4; landZ = 26 + gauss(rnd) * err * 3; speed += 2; }
+        else if (aim.x < -0.25) { shot = 'pared'; tx = -3.7; landZ = 17 + rnd() * 6; }
+        else if (aim.x > 0.5) { shot = 'ancho'; tx = 3.9; landZ = 15 + rnd() * 6; }
+        else { tx = aim.x * 2 + gauss(rnd) * 1.1; landZ = 16 + rnd() * 9; }
+        tx = clamp(tx + gauss(rnd) * err * 2.2, -4.6, 4.8);
+        landZ += gauss(rnd) * err * 4.5;
+        // alcance de un golpe: un pelotari con mucha fuerza, desde el cuadro 4, la manda de vuelta hasta el cuadro 7;
+        // desde más atrás llega algo más lejos (le da más alto en el frontis) y un golpe flojo se queda antes
+        landZ = Math.min(landZ, 21.5 + q * 3 + clamp(p.z - COURT.FALTA, -4, 8) * 0.22);
+        v = solveShot(p, tx, landZ, speed).v;
+      } else if (err > 0.2) { const k = 1 + gauss(rnd) * err * 0.06; v.x *= k; v.y *= 1 + gauss(rnd) * err * 0.05; v.z *= k; }   // a dos paredes, un golpe flojo se desvía un poco
     }
     // golpe muy malo: a veces a la chapa o demasiado alto
     if (!serve && q < 0.3 && rnd() < 0.45) {
@@ -202,7 +210,7 @@ export class PelotaGame {
     if (this.mode === 'rally' && who === 'rival') return { aim: { x: (op.x - me.x) * 0.15, y: 0 }, drop: false };  // en el peloteo, pelotas fáciles
     if (rnd() < smart) {
       if (op.z > 21 && me.z < 20 && rnd() < 0.55) return { aim: { x: 0, y: -1 }, drop: true };
-      if (op.x > 1) return { aim: { x: -1, y: 0 } };
+      if (op.x > 1) return { aim: { x: me.x > -2 && rnd() < smart ? -1 : -0.4, y: 0 } };   // rival a la derecha: a la pared o a dos paredes
       if (op.x < -1.2) return { aim: { x: 1, y: 0 } };
       if (op.z < 15) return { aim: { x: 0, y: 1 } };
     }

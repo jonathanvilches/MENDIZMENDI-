@@ -158,12 +158,11 @@ export class Futbol {
     if (r.mode === 'reto') return { quit: false, reto: r.reto, win: !!r.win };
     return { win: !!r.win, you: r.pens && r.mode === 'penalties' ? r.pens[0] : r.you ?? 0, cpu: r.pens && r.mode === 'penalties' ? r.pens[1] : r.cpu ?? 0, quit: !!r.quit, draw: !!r.draw };
   }
-  /** El menú libre (partido, penaltis o un reto). */
+  /** Un minijuego, no un juego completo: hablar con quien entrena y al partido (dos partes de 2 minutos, nivel
+   *  fácil, con ayuda al pase y al tiro), sin entrenamiento ni menú previo. Al acabar, revancha o salir. */
   async run() {
     this.setup(); const o = this.opts;
-    const r = await FutbolSystem.openMenu({ campoId: o.campo, title: o.title, sub: o.sub, local: o.local });
-    const res = this.result(r); if (r?.mode === 'reto') res.quit = true;
-    return res;
+    return this.result(await FutbolSystem.startMatch({ campoId: o.campo, dificultad: 'facil', duracion: 2, asistencia: true, local: o.local }));
   }
   /** Un reto de entrenamiento concreto. */
   async reto(id) { this.setup(); const o = this.opts; return this.result(await FutbolSystem.startReto({ campoId: o.campo, reto: id, local: o.local })); }

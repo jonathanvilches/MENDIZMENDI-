@@ -77,7 +77,7 @@ export class Actor {
         this.wait -= dt;
         if (this.wait <= 0 && !near) {
           if (this.route) { this.target = this.route[this.routeI]; this.routeI = (this.routeI + 1) % this.route.length; this.state = 'walk'; }
-          else if (this.wander > 0) { const a = Math.random() * 6.28, r = Math.random() * this.wander; this.target = { x: this.home.x + Math.cos(a) * r, z: this.home.z + Math.sin(a) * r }; this.state = 'walk'; }
+          else if (this.wander > 0) { this.target = this.pickWander(); if (this.target) this.state = 'walk'; }
           this.wait = 2 + Math.random() * 5;
         }
       } else if (this.state === 'walk' && this.target) {
@@ -91,13 +91,19 @@ export class Actor {
       }
     }
     if (!moving) this.speed = damp(this.speed, 0, 8, dt);
+    this.moved = 0;
     if (this.speed > 0.01) {
       let nx = this.pos.x + Math.sin(this.heading) * this.speed * dt, nz = this.pos.z + Math.cos(this.heading) * this.speed * dt;
       const r = resolve(nx, nz, this.radius, this.collider);
-      if (r.hit && this.state === 'walk') { this.stuck = (this.stuck || 0) + dt; if (this.stuck > 1.5) { this.state = 'idle'; this.stuck = 0; this.target = null; } }
+      // contra una pared o una persona: no se queda andando sin avanzar (antes empujaba 1,5 s y lo volvía a intentar)
+      if (r.hit && this.state === 'walk') { this.stuck = (this.stuck || 0) + dt; if (this.stuck > 0.6) { this.state = 'idle'; this.stuck = 0; this.target = null; this.wait = 0.8 + Math.random() * 1.5; } }
+      else this.stuck = 0;
+      this.moved = Math.hypot(r.x - this.pos.x, r.z - this.pos.z);
       this.pos.x = r.x; this.pos.z = r.z;
       this.phase += this.speed * dt * 4.2;
     }
+    // las piernas siguen a lo que avanza de verdad (si algo le frena, no anda en el sitio ni patina)
+    this.vSpeed = damp(this.vSpeed || 0, dt > 0 ? this.moved / dt : 0, 10, dt);
     if (this.lookAt && this.speed < 0.3) this.heading = dampAngle(this.heading, Math.atan2(this.lookAt.x - this.pos.x, this.lookAt.z - this.pos.z), 5, dt);
     this.pos.y = groundHeight(this.pos.x, this.pos.z);
     this.collider.x = this.pos.x; this.collider.z = this.pos.z;
@@ -115,11 +121,23 @@ export class Actor {
       const want = Math.atan2(this.lookAt.x - this.pos.x, this.lookAt.z - this.pos.z);
       lookYaw = Math.max(-0.9, Math.min(0.9, Math.atan2(Math.sin(want - this.heading), Math.cos(want - this.heading))));
     }
-    this.anim.update(dt, { speed: this.speed, grounded: true, talking: this.talking, wave: this.wave, dance: this.dance, lookYaw, bent: this.def.look?.bent || 0, cheer: this.cheer || 0, clap: this.clap || 0 });
+    this.anim.update(dt, { speed: this.state === 'walk' ? Math.min(this.speed, this.vSpeed ?? this.speed) : this.speed, grounded: true, talking: this.talking, wave: this.wave, dance: this.dance, lookYaw, bent: this.def.look?.bent || 0, cheer: this.cheer || 0, clap: this.clap || 0 });
     if (this.cheer > 0) this.cheer -= dt;
     if (this.clap > 0) this.clap -= dt;
   }
   say(sec = 3) { this.talking = sec; }
+  // un sitio al que pasear: dentro de su zona, sin caer dentro de una casa ni de un muro (y con el camino despejado a
+  // medias); si no encuentra ninguno, se queda donde está
+  pickWander() {
+    for (let k = 0; k < 6; k++) {
+      const a = Math.random() * 6.28, r = (0.35 + Math.random() * 0.65) * this.wander;
+      const x = this.home.x + Math.cos(a) * r, z = this.home.z + Math.sin(a) * r;
+      if (resolve(x, z, 0.45, this.collider).hit) continue;
+      if (resolve((x + this.pos.x) / 2, (z + this.pos.z) / 2, 0.4, this.collider).hit) continue;
+      return { x, z };
+    }
+    return null;
+  }
   sync() {
     this.obj.position.copy(this.pos);
     this.obj.rotation.y = this.heading;

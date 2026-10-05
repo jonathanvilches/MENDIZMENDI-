@@ -75,7 +75,7 @@ export const avatarPortrait = (id, mode = 'bust') => glbPortrait(id, mode) || po
 const BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
 let PK = 0; const pkeys = new Map();
 export function portraitImg(look, mode = 'bust', isMini = false) {
-  const key = (npcsReady() ? 'kk|' : '') + JSON.stringify(look) + mode + isMini;
+  const key = (npcsReady() ? 'm2|' : '') + JSON.stringify(look) + mode + isMini;   // (la misma clave que portrait)
   const hit = cache.get(key) || getImg('p:' + key);
   if (hit) return `<img src="${hit}" alt="">`;
   let id = pkeys.get(key); if (!id) { id = 'pk' + (++PK); pkeys.set(key, id); }

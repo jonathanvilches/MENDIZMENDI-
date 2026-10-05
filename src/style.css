@@ -537,3 +537,15 @@ body.mg3d-on .learn-btn { bottom: auto; top: calc(env(safe-area-inset-top, 0px) 
   .menu .keys { grid-column: 1 / -1; font-size: 12px; margin: 0; }
   .menu #mQnote { grid-column: 2; }
 }
+/* móvil pequeño tumbado (iPhone SE, 8): la brújula un poco más estrecha para no pisar el objetivo de la izquierda */
+@media (max-height: 520px) and (max-width: 740px) { #compass { width: 33vw; } #tl { max-width: 29vw; } }
+/* móvil y tableta: sin desenfoque del fondo encima del juego 3D. En el iPhone cada panel desenfocado (botones redondos,
+   brújula, paneles) se recalculaba en cada fotograma sobre el lienzo que se mueve: gastaba gráfica y, en algunos
+   Safari, hacía parpadear la imagen. Los fondos se oscurecen un poco más para que todo se lea igual */
+@media (pointer: coarse) {
+  *, *::before, *::after { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+  .mg-overlay { background: rgba(8, 5, 16, .74); }
+  .screen { background: rgba(14, 4, 34, .78); }
+  body .fb-panel { background: rgba(10, 4, 24, .8); }
+  body .pel-panel { background: rgba(14, 4, 34, .78); }
+}
