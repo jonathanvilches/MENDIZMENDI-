@@ -647,6 +647,8 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   .csel2 .cstrip { padding-top: 8px; } .csel2 .cstrip button { width: 56px; } .csel2 .cstrip button img { width: 46px; height: 46px; } .csel2 .cstrip button span { display: none; }
   .onb .cs-stage { height: calc(100vh - 150px); }
   .onb-foot { grid-template-columns: minmax(0, 1fr) auto; }
+  .cs-hint { display: none; }   /* (en pantallas bajas se montaba sobre la peana) */
+  .cs-count { top: 8px; left: 12px; }
 }
 .cs-extra { grid-area: extra; position: relative; padding: 14px 16px 16px; border-top: 1px solid var(--line); background: rgba(10, 4, 26, .55); }
 .csel2 .cs-roster { overflow: hidden; }
