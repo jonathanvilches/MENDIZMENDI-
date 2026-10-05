@@ -384,7 +384,7 @@ export class FutbolMatch {
     H.tip(null);
     await new Promise(r2 => setTimeout(r2, 1400));
     const pos = S.poss[0] + S.poss[1] || 1, pct = (t) => Math.round(S.poss[t] / pos * 100) + ' %';
-    const rows = g.mode === 'penalties' && !g.cupPens ? [] : [[g.score[0], 'Goles', g.score[1]], [S.shots[0], 'Tiros', S.shots[1]], [S.onTarget[0], 'Tiros a puerta', S.onTarget[1]], [pct(0), 'Posesión', pct(1)], [S.passesOk[0], 'Pases buenos', S.passesOk[1]], [S.steals[0], 'Robos', S.steals[1]], [S.saves[0], 'Paradas', S.saves[1]]];
+    const rows = g.mode === 'penalties' && !g.cupPens ? [] : [[g.score[0], 'Goles', g.score[1]], [`${S.shots[0]} (${S.onTarget[0]})`, 'Tiros (a puerta)', `${S.shots[1]} (${S.onTarget[1]})`], [pct(0), 'Posesión', pct(1)], [S.passesOk[0], 'Pases buenos', S.passesOk[1]], [S.steals[0], 'Robos', S.steals[1]], [S.saves[0], 'Paradas', S.saves[1]]];
     const pens = r.pens ? ` (penaltis ${r.pens[0]}-${r.pens[1]})` : '';
     const title = r.win ? '¡Victoria!' : r.draw ? 'Empate' : 'Derrota';
     const score = g.mode === 'penalties' && !g.cupPens ? `${r.pens[0]} – ${r.pens[1]}` : `${g.score[0]} – ${g.score[1]}${pens}`;

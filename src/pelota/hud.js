@@ -42,6 +42,7 @@ const CSS = `
 .pel-card .pel-big{font-family:var(--pel-display,'Lilita One',Nunito,sans-serif);font-weight:400;font-size:52px;text-align:center;margin:6px 0;color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.35)}
 .pel-card .pel-fact{background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.35);color:#fff3c4;border-radius:12px;padding:10px 12px;margin:10px 0 14px;font-size:15px;line-height:1.35}.pel-card .pel-fact b{color:#FFD700}
 .pel-row{display:flex;gap:10px}.pel-row .pel-go{flex:1 1 0;min-width:0;white-space:nowrap}@media (max-width:440px){.pel-row{flex-direction:column-reverse}.pel-row .pel-go{flex:none;width:100%}}
+.pel-lbl{display:block;font-size:11px;font-weight:900;color:#cbbcf0;text-transform:uppercase;letter-spacing:.06em;margin:0 0 6px}
 .pel-levels{display:flex;gap:8px;margin:0 0 14px;flex-wrap:wrap}
 .pel-levels button{flex:1;min-width:90px;border-radius:12px;border:1px solid rgba(190,160,255,.35);background:rgba(255,255,255,.06);color:#fff;padding:9px 6px;font:inherit;font-weight:900;cursor:pointer}
 .pel-levels button[aria-pressed=true]{background:linear-gradient(180deg,#9b4dff,#6a2bd0);border-color:#c9a6ff;color:#fff;box-shadow:0 0 0 2px rgba(138,43,226,.35)}

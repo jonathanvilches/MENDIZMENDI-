@@ -110,18 +110,25 @@ const CSS = `
 .lg-btns{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
 .lg-btn{border:0;border-radius:14px;padding:12px;min-height:50px;font:800 15px Nunito,sans-serif;color:#fff;background:rgba(255,255,255,.12);cursor:pointer}.lg-btn.go{background:linear-gradient(180deg,#fff38f,#ffd700 55%,#f0b000);color:#2a1a00;font:400 20px 'Lilita One',Nunito,sans-serif;box-shadow:0 4px 0 #a86f00}
 .lg-note{font-size:11px;color:#a99cc9;margin:0}
+.lg-how{font-size:12.5px;line-height:1.35;color:#e6def7;margin:0;padding:8px 12px;border-radius:12px;background:rgba(255,216,74,.08);border:1px solid rgba(255,216,74,.25)}.lg-how b{color:#ffd84a}
+.lg-table td.dg{color:#cbbcf0;font-variant-numeric:tabular-nums}
+.lg-rv{display:flex;align-items:center;gap:8px;text-align:left;min-width:0;padding:8px 10px}.lg-rv>span{min-width:0;flex:1}.lg-rv b,.lg-rv small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lg-rv b{font-size:14px}.lg-rv small{font:700 11.5px Nunito,sans-serif;opacity:.75}
+@media (max-width:560px){.lg-card{padding:14px 12px;gap:10px}.lg-head h2{font-size:24px}.lg-table .x{display:none}.lg-table{font-size:13.5px}.lg-table td{padding:6px 4px}.lg-table th{padding:4px}.lg-btns{grid-template-columns:1fr 1fr}.lg-btns .lg-btn.go{grid-column:1/-1}}
 .lg-champ{text-align:center;padding:10px;border-radius:16px;background:linear-gradient(180deg,rgba(255,216,74,.25),rgba(255,216,74,.05))}.lg-champ b{font:400 26px 'Lilita One',Nunito,sans-serif;color:#ffd84a}
-@media (orientation:landscape) and (max-height:520px){.lg-card{grid-template-columns:1.1fr 1fr;align-items:start}.lg-card>.lg-head,.lg-card>.lg-btns,.lg-card>.lg-note{grid-column:1/-1}.lg-table{font-size:12px}.lg-table td{padding:3px 2px}}
+@media (orientation:landscape) and (max-height:520px){.lg-card{grid-template-columns:1.1fr 1fr;align-items:start;gap:10px;padding:12px 16px}.lg-card>.lg-head,.lg-card>.lg-btns,.lg-card>.lg-note,.lg-card>.lg-how{grid-column:1/-1}.lg-table{font-size:12px}.lg-table td{padding:3px 2px}.lg-head h2{font-size:22px}.lg-next{padding:8px}.lg-next .lg-kit{display:none}.lg-how{font-size:11.5px;padding:6px 10px}.lg-btn{min-height:42px;padding:8px}}
 `;
 function panel(html) {
   if (!document.getElementById('lg-css')) { const st = document.createElement('style'); st.id = 'lg-css'; st.textContent = CSS; document.head.appendChild(st); }
   const r = document.createElement('div'); r.className = 'lg-root'; r.innerHTML = `<div class="lg-card">${html}</div>`; document.body.appendChild(r);
   return r;
 }
+// (en el móvil, solo PJ · DG · Pts; las demás columnas se ven en pantallas anchas)
 function tableHtml(S) {
-  return `<table class="lg-table"><tr><th></th><th style="text-align:left">Club</th><th>PJ</th><th>G</th><th>E</th><th>P</th><th>GF</th><th>GC</th><th>Pts</th></tr>${table(S).map((t, i) => {
-    const c = CLUBS[t.id]; return `<tr class="${t.id === S.club ? 'me' : ''}"><td>${i + 1}</td><td class="n"><i style="background:${c.shirt}"></i>${esc(c.name)}</td><td>${t.pj}</td><td>${t.g}</td><td>${t.e}</td><td>${t.p}</td><td>${t.gf}</td><td>${t.gc}</td><td class="pts">${t.pts}</td></tr>`; }).join('')}</table>`;
+  return `<table class="lg-table"><tr><th></th><th style="text-align:left">Club</th><th>PJ</th><th class="x">G</th><th class="x">E</th><th class="x">P</th><th class="x">GF</th><th class="x">GC</th><th>DG</th><th>Pts</th></tr>${table(S).map((t, i) => {
+    const c = CLUBS[t.id], dg = t.gf - t.gc; return `<tr class="${t.id === S.club ? 'me' : ''}"><td>${i + 1}</td><td class="n"><i style="background:${c.shirt}"></i>${esc(c.name)}</td><td>${t.pj}</td><td class="x">${t.g}</td><td class="x">${t.e}</td><td class="x">${t.p}</td><td class="x">${t.gf}</td><td class="x">${t.gc}</td><td class="dg">${dg > 0 ? '+' + dg : dg}</td><td class="pts">${t.pts}</td></tr>`; }).join('')}</table>`;
 }
+// cómo funciona (solo al empezar la temporada, para no repetirlo en cada jornada)
+const HOW = '<p class="lg-how"><b>Cómo funciona:</b> siete jornadas, todos contra todos con los clubes de tu grupo. Tus partidos los juegas tú (o los simulas); los demás se simulan solos. Cada jornada se juega en el campo del equipo de casa, así que a veces hay que viajar. Tres puntos por victoria y uno por empate.</p>';
 function head(S, sub) {
   const c = CLUBS[S.club];
   return `<div class="lg-head">${kitSvg(S.club, 48)}<div><small>${esc(sub)}</small><h2>${esc(c.name)}</h2><span class="lg-note">${esc(c.town)} · Liga Navarra, grupo ${c.group === 'norte' ? 'Norte' : 'Sur'}${S.titles ? ` · ${S.titles} ${S.titles === 1 ? 'título' : 'títulos'}` : ''}</span></div><div class="lg-ovr">${c.ovr}<small>MEDIA</small></div></div>`;
@@ -139,9 +146,9 @@ export function ligaPanel(S, here = undefined) {
       const ch = CLUBS[S.champion];
       mid = `<div class="lg-champ"><small>CAMPEÓN DE LA LIGA NAVARRA</small><br><b>${esc(ch.name)}</b><br>${S.champion === S.club ? '¡Sois campeones! Aupa ' + esc(c.town) + '!' : 'La próxima temporada, a por el título.'}</div>`;
     }
-    const adapt = Object.values(CLUBS).some(x => x.adapt) ? '<p class="lg-note">Clubes y colores de las fichas de los clubes navarros. Pirineo, Aurrera Leitza y CD Xota: adaptación (colores del juego).</p>' : '';
+    const adapt = Object.values(CLUBS).some(x => x.adapt) ? '<p class="lg-note">Nombres y colores de los clubes navarros, sin escudos. Pirineo, Aurrera Leitza y CD Xota son adaptaciones del juego.</p>' : '';
     const play = away ? `<button class="lg-btn go" data-a="travel">Viajar a ${esc(CLUBS[m.h].town)}</button>` : '<button class="lg-btn go" data-a="play">¡A jugar!</button>';
-    const r = panel(`${head(S, m ? `Temporada ${S.year}` : 'Fin de temporada')}${mid}${tableHtml(S)}
+    const r = panel(`${head(S, m ? `Temporada ${S.year}` : 'Fin de temporada')}${mid}${m && S.j === 0 ? HOW : ''}${tableHtml(S)}
       <div class="lg-btns">${m ? `${play}<button class="lg-btn" data-a="sim">Simular partido</button>` : '<button class="lg-btn go" data-a="new">Nueva temporada</button>'}<button class="lg-btn" data-a="exit">Salir</button></div>${away ? `<p class="lg-note">La jornada se juega en el campo del ${esc(CLUBS[m.h].name)}: viaja a ${esc(CLUBS[m.h].town)} (en el mapa) y habla con su entrenador.</p>` : ''}${adapt}`);
     r.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; r.remove(); res(b.dataset.a); });
   });
@@ -166,7 +173,7 @@ export function clubPanel(clubId, items, sub = 'Tu club') {
 export function rivalPanel(clubId) {
   return new Promise(res => {
     const S = season(clubId);
-    const list = Object.keys(CLUBS).filter(k => k !== clubId).map(k => `<button class="lg-btn" data-a="${k}" style="display:flex;align-items:center;gap:8px;text-align:left">${kitSvg(k, 34)}<span>${esc(CLUBS[k].name)}<br><small style="font-weight:700;opacity:.75">${esc(CLUBS[k].town)} · media ${CLUBS[k].ovr}</small></span></button>`).join('');
+    const list = Object.keys(CLUBS).filter(k => k !== clubId).map(k => `<button class="lg-btn lg-rv" data-a="${k}">${kitSvg(k, 34)}<span><b>${esc(CLUBS[k].name)}</b><small>${esc(CLUBS[k].town)} · media ${CLUBS[k].ovr}</small></span></button>`).join('');
     const r = panel(`${head(S, 'Amistoso: elige rival')}<div class="lg-btns">${list}</div><div class="lg-btns"><button class="lg-btn" data-a="">Volver</button></div>`);
     r.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; r.remove(); res(b.dataset.a || null); });
   });

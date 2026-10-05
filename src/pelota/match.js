@@ -49,7 +49,7 @@ export class PelotaMatch {
     const p = this.hud.panel(`<h2>${t.title}</h2><p class="pel-sub">${esc(this.names.you)} vs ${esc(this.names.rival)} · ${g.mode === 'rally' ? t.rally(g.target) : t.to(g.target)}</p>
       <ol>${t.rules.map(r => `<li>${r}</li>`).join('')}</ol>
       <div class="pel-ctrl">${this.touch ? t.ctrlTouch : t.ctrlKeys}</div>
-      ${this.o.fixedLevel ? '' : `<div class="pel-levels">${lv.map(([k, l]) => `<button data-pel-lv="${k}" aria-pressed="${k === this.level}">${l}</button>`).join('')}</div>`}
+      ${this.o.fixedLevel ? '' : `<small class="pel-lbl">${t.level || 'Nivel'}</small><div class="pel-levels">${lv.map(([k, l]) => `<button data-pel-lv="${k}" aria-pressed="${k === this.level}">${l}</button>`).join('')}</div>`}
       <div class="pel-row"><button class="pel-go alt" data-pel-x>${t.later}</button><button class="pel-go" data-pel-go>${t.play}</button></div>`);
     p.addEventListener('click', (e) => {
       const b = e.target.closest('button'); if (!b) return;

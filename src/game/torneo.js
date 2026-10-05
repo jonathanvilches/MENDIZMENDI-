@@ -82,6 +82,9 @@ export const youOut = (T) => !T.done && !T.matches.some(m => T.players[m.a].you 
 
 // ---------------------------------------------------------------- pantalla: el cuadro del torneo
 const CSS = `.tq-bracket{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;align-items:center}
+.tq-wait{display:none;font-size:12px;color:#a99cc9;text-align:center;padding:2px 0 4px}
+@media (max-width:560px){.tq-bracket{grid-template-columns:1fr;gap:10px;align-items:start}.tq-col h4{text-align:left}.tq-m.tq-ph{display:none}.tq-wait{display:block;text-align:left}.tq-m{font-size:13.5px;padding:6px 10px}}
+@media (orientation:landscape) and (max-height:520px){.tq-bracket{gap:6px}.tq-m{font-size:11.5px;padding:3px 6px;gap:0}.tq-m small{display:none}.tq-col{gap:5px}.tq-col h4{font-size:10px}}
 .tq-col{display:grid;gap:8px}.tq-col h4{margin:0;text-align:center;font-size:11px;color:#cbbcf0;text-transform:uppercase;letter-spacing:.06em}
 .tq-m{border-radius:12px;background:rgba(255,255,255,.07);padding:5px 8px;font-size:12.5px;display:grid;gap:2px}
 .tq-m div{display:flex;justify-content:space-between;gap:6px}.tq-m b{font-variant-numeric:tabular-nums}.tq-m .w{color:#ffd84a;font-weight:900}.tq-m .you{text-decoration:underline;text-decoration-color:#ffd84a}
@@ -95,10 +98,11 @@ function bracketHtml(T) {
   const cols = ROUNDS.map((R, i) => {
     const ms = i < T.past.length ? T.past[i].matches : i === T.round && !T.done ? T.matches : [];
     const n = [4, 2, 1][i];
-    const rows = Array.from({ length: n }, (_, k) => { const m = ms[k]; if (!m) return '<div class="tq-m"><div><span>—</span></div><div><span>—</span></div></div>';
+    const rows = Array.from({ length: n }, (_, k) => { const m = ms[k]; if (!m) return '<div class="tq-m tq-ph"><div><span>—</span></div><div><span>—</span></div></div>';
       const aw = m.s && m.s[0] > m.s[1], bw = m.s && m.s[1] > m.s[0];
       return `<div class="tq-m">${card(T, m.a, m.s?.[0], aw)}${card(T, m.b, m.s?.[1], bw)}</div>`; }).join('');
-    return `<div class="tq-col"><h4>${R.name} · a ${R.target}</h4>${rows}</div>`;
+    // (en el móvil las rondas van una debajo de otra y las que aún no se juegan solo dicen «por jugar»)
+    return `<div class="tq-col"><h4>${R.name} · a ${R.target}</h4>${ms.length ? '' : '<div class="tq-wait">Por jugar</div>'}${rows}</div>`;
   }).join('');
   return `<div class="tq-bracket">${cols}</div>`;
 }
@@ -107,14 +111,16 @@ export function torneoPanel(T, here = null) {
   if (!document.getElementById('tq-css')) { const st = document.createElement('style'); st.id = 'tq-css'; st.textContent = CSS; document.head.appendChild(st); }
   return new Promise(res => {
     const m = yourMatch(T), out = youOut(T);
-    const head = `<div class="lg-head tq-txa">${TXAPELA}<div><small>Misión de la comarca · torneo de mano · edición ${T.edition}</small><h2>Txapela de ${esc(T.comarcaName)}</h2><span class="lg-note">${T.txapelas ? `Tus txapelas: ${T.txapelas}` : 'Gana la final y la txapela de la comarca es tuya'} · cada partido, en un pueblo distinto</span></div></div>`;
+    const head = `<div class="lg-head tq-txa">${TXAPELA}<div><small>Torneo de mano · edición ${T.edition}</small><h2>Txapela de ${esc(T.comarcaName)}</h2><span class="lg-note">${T.txapelas ? `Tus txapelas: ${T.txapelas}` : 'Gana la final y la txapela es tuya'}</span></div></div>`;
+    // cómo funciona: solo al empezar (en las rondas siguientes ya se sabe)
+    const how = T.round === 0 && !T.past.length && !T.done ? '<p class="lg-how"><b>Cómo funciona:</b> ocho pelotaris por eliminatorias (cuartos y semifinales a 5 tantos, final a 7). Cada partido tuyo se juega en el frontón de un pueblo distinto de la comarca: viaja allí y habla con su pelotari. Los demás partidos se simulan. Es parte de la misión de la comarca.</p>' : '';
     let mid;
     if (T.done) { const C = T.players[T.champion]; mid = `<div class="lg-champ"><small>TXAPELDUN · CAMPEÓN DEL TORNEO</small><br><b>${esc(C.name)}</b><br>${C.you ? '¡La txapela es tuya! Zorionak!' : `${esc(C.town)} se lleva la txapela. ¡A por la próxima!`}</div>`; }
     else if (m) mid = `<div class="lg-next"><div class="lg-t"><b>${esc(T.players[0].name)}</b><em>${esc(T.players[0].town)}</em></div><div class="lg-vs">VS<small>${esc(m.round.toUpperCase())} · A ${m.target} TANTOS</small><small>FRONTÓN DE ${esc(m.venue.name.toUpperCase())}</small></div><div class="lg-t"><b>${esc(m.rival.name)}</b><em>${esc(m.rival.town)} · ${'★'.repeat(m.rival.lv)}</em></div></div>`;
     else mid = `<div class="lg-champ"><small>ELIMINADO</small><br>El torneo sigue sin ti: mira quién se lleva la txapela.</div>`;
     const away = m && here && m.venue.id !== here;
     const btns = T.done ? '<button class="lg-btn go" data-a="new">Nuevo torneo</button>' : m ? (away ? `<button class="lg-btn go" data-a="travel">Viajar a ${esc(m.venue.name)}</button>` : '<button class="lg-btn go" data-a="play">¡A jugar!</button>') : '<button class="lg-btn go" data-a="sim">Siguiente ronda</button>';
-    const r = lgPanel(`${head}${mid}${bracketHtml(T)}<div class="lg-btns">${btns}<button class="lg-btn" data-a="exit">Salir</button></div><p class="lg-note">${away ? `Tu partido es en el frontón de ${esc(m.venue.name)}: viaja allí (en el mapa) y habla con su pelotari. ` : ''}Pelotaris del juego (no son personas reales).</p>`);
+    const r = lgPanel(`${head}${mid}${how}${bracketHtml(T)}<div class="lg-btns">${btns}<button class="lg-btn" data-a="exit">Salir</button></div><p class="lg-note">${away ? `Tu partido es en el frontón de ${esc(m.venue.name)}: viaja allí (en el mapa) y habla con su pelotari. ` : ''}Pelotaris inventados para el juego.</p>`);
     r.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; r.remove(); res(b.dataset.a); });
   });
 }
