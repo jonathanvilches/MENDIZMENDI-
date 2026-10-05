@@ -527,3 +527,13 @@ body.mg3d-on .learn-btn { bottom: auto; top: calc(env(safe-area-inset-top, 0px) 
   #compass { width: min(520px, 60vw); height: 42px; }
   #mini { display: block; width: 124px; height: 124px; }
 }
+/* pausa en el móvil tumbado: ancho, dos columnas (botones a la izquierda, ajustes a la derecha): todo a la vista sin desplazar */
+@media (max-height: 520px) and (orientation: landscape) {
+  .menu .paper { width: min(820px, 100%); }
+  .menu .pbody { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px 14px; align-items: start; }
+  .menu .pbody .btns.top { grid-row: 1 / span 5; display: grid; gap: 8px; }
+  .menu .pbody .btns.top .btn { min-height: 44px; padding: 8px 12px; font-size: 15px; }
+  .menu label { padding: 8px 12px; font-size: 14px; }
+  .menu .keys { grid-column: 1 / -1; font-size: 12px; margin: 0; }
+  .menu #mQnote { grid-column: 2; }
+}
