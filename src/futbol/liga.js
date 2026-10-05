@@ -107,9 +107,11 @@ const CSS = `
 .lg-table td{padding:5px 3px;text-align:center;border-top:1px solid rgba(255,255,255,.08)}.lg-table td.n{text-align:left;font-weight:800;white-space:nowrap}.lg-table td.n i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px;border:1px solid rgba(0,0,0,.4)}
 .lg-table tr.me td{background:rgba(255,216,74,.16)}.lg-table tr.me td.n{color:#ffd84a}.lg-table td.pts{font-weight:900}
 .lg-res{display:grid;gap:4px;font-size:13px}.lg-res div{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;padding:5px 8px;border-radius:10px;background:rgba(255,255,255,.05)}.lg-res div.me{background:rgba(255,216,74,.16)}.lg-res span:first-child{text-align:right}.lg-res b{min-width:42px;text-align:center}
-.lg-btns{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.lg-btns{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}.lg-btns>.lg-btn:only-child{grid-column:1/-1}
 .lg-btn{border:0;border-radius:14px;padding:12px;min-height:50px;font:800 15px Nunito,sans-serif;color:#fff;background:rgba(255,255,255,.12);cursor:pointer}.lg-btn.go{background:linear-gradient(180deg,#fff38f,#ffd700 55%,#f0b000);color:#2a1a00;font:400 20px 'Lilita One',Nunito,sans-serif;box-shadow:0 4px 0 #a86f00}
 .lg-note{font-size:11px;color:#a99cc9;margin:0}
+/* elegir rival: solo se desplaza la lista; la cabecera y «Volver» quedan siempre a la vista */
+.lg-card.lg-pick{grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden}.lg-card.lg-pick>.lg-list{overflow:auto;min-height:0;overscroll-behavior:contain;padding:2px}
 .lg-how{font-size:12.5px;line-height:1.35;color:#e6def7;margin:0;padding:8px 12px;border-radius:12px;background:rgba(255,216,74,.08);border:1px solid rgba(255,216,74,.25)}.lg-how b{color:#ffd84a}
 .lg-table td.dg{color:#cbbcf0;font-variant-numeric:tabular-nums}
 .lg-rv{display:flex;align-items:center;gap:8px;text-align:left;min-width:0;padding:8px 10px}.lg-rv>span{min-width:0;flex:1}.lg-rv b,.lg-rv small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lg-rv b{font-size:14px}.lg-rv small{font:700 11.5px Nunito,sans-serif;opacity:.75}
@@ -122,6 +124,8 @@ const CSS = `
 .lg-card.lg-two>.lg-next,.lg-card.lg-two>.lg-how,.lg-card.lg-two>.lg-res,.lg-card.lg-two>.lg-champ,.lg-card.lg-two>.lg-btns,.lg-card.lg-two>.lg-note{grid-column:1}
 .lg-card.lg-two>.lg-table,.lg-card.lg-two>.tq-bracket{grid-column:2;grid-row:2/span 4;align-self:start}
 .lg-card.lg-two>.lg-btns{grid-template-columns:1fr 1fr}.lg-card.lg-two>.lg-btns .lg-btn.go{grid-column:1/-1}
+/* con solo dos botones (jugar o viajar, y salir) van en la misma fila: así cabe todo sin desplazar, también en euskera */
+.lg-card.lg-two>.lg-btns:has(>.lg-btn:nth-child(2):last-child){grid-template-columns:1.7fr 1fr}.lg-card.lg-two>.lg-btns:has(>.lg-btn:nth-child(2):last-child)>.lg-btn.go{grid-column:auto}
 .lg-table{font-size:12px}.lg-table td{padding:2px}.lg-table th{padding:3px 2px}.lg-head{gap:10px}.lg-head .lg-kit{width:27px;height:36px}.lg-head h2{font-size:20px}.lg-head small{font-size:11px}
 .lg-next{padding:6px 8px}.lg-next .lg-kit{display:none}.lg-next b{font-size:14px}.lg-vs{font-size:22px}
 .lg-how{font-size:11px;line-height:1.25;padding:5px 9px}.lg-btn{min-height:38px;padding:6px}.lg-btn.go{font-size:18px}
@@ -187,7 +191,8 @@ export function rivalPanel(clubId) {
   return new Promise(res => {
     const S = season(clubId);
     const list = Object.keys(CLUBS).filter(k => k !== clubId).map(k => `<button class="lg-btn lg-rv" data-a="${k}">${kitSvg(k, 34)}<span><b>${esc(CLUBS[k].name)}</b><small>${esc(CLUBS[k].town)} · media ${CLUBS[k].ovr}</small></span></button>`).join('');
-    const r = panel(`${head(S, 'Amistoso: elige rival')}<div class="lg-btns">${list}</div><div class="lg-btns"><button class="lg-btn" data-a="">Volver</button></div>`);
+    const r = panel(`${head(S, 'Amistoso: elige rival')}<div class="lg-btns lg-list">${list}</div><div class="lg-btns"><button class="lg-btn" data-a="">Volver</button></div>`);
+    r.firstElementChild.classList.add('lg-pick');
     r.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; r.remove(); res(b.dataset.a || null); });
   });
 }

@@ -675,9 +675,8 @@ export class TownGame {
     if (r.win) { best.futbol = (best.futbol || 0) + 1; saveProfile(); }
     await this.say(a, [r.win ? `¡${r.you} a ${r.cpu}! Juegas como un rojillo de verdad.` : r.you === r.cpu ? `${r.you} a ${r.cpu}. ¡Empate! Muy buen partido.` : `${r.you} a ${r.cpu}. ¡Casi! Vuelve cuando quieras para la revancha.`]);
   }
-  // Fútbol sala en la pista del pueblo con el entrenador del club. La primera vez es una pequeña misión: conocer la
-  // pista → entrenamiento de pases → partido contra el equipo de los vecinos → sello de fútbol sala en el pasaporte.
-  // Después, juego libre con el menú (partido, penaltis o un reto).
+  // Fútbol sala en la pista del pueblo con el entrenador del club. Es un minijuego: la primera vez, un partido contra el
+  // equipo de los vecinos da el sello de fútbol sala del pasaporte; después, otro partido cuando quieras.
   async playFutsal() {
     const a = this.futsalCoach; if (!a || this.mode !== 'play') return;
     const st = (townState(profile(), this.def.id).futsal ||= { step: 0, tries: 0, sello: false });
@@ -713,13 +712,6 @@ export class TownGame {
       return;
     }
     if (pick === 'amistoso') { const r = await fut.friendly(club.id); if (r.quit) return; await this.say(a, [r.win ? `¡${r.you} a ${r.cpu}! ¡Qué partidazo!` : r.you === r.cpu ? `${r.you} a ${r.cpu}. Empate.` : `${r.you} a ${r.cpu}. La próxima, seguro.`]); return; }
-    if (st.step === 1) {
-      const r = await fut.reto('pases'); if (r.quit) return;
-      st.tries = (st.tries || 0) + 1;
-      if (r.win || st.tries >= 2) { st.step = 2; saveProfile(); await this.say(a, [r.win ? `¡Muy buenos pases! Ya estás listo para el partido contra ${rivalName}. Habla conmigo cuando quieras jugarlo.` : `Te ha costado, pero ya tienes el toque. Habla conmigo para jugar el partido contra ${rivalName}.`]); }
-      else { saveProfile(); await this.say(a, ['¡Casi! Vuelve a hablar conmigo para repetir el entrenamiento.']); }
-      return;
-    }
     if (st.step === 2) {
       const r = await fut.match('vecinos', 'facil', 2, rivalTeam); if (r.quit) return;
       if (r.win) {

@@ -1,5 +1,5 @@
 // Fútbol sala en los pueblos: ¿qué pueblos tienen pista? y, en el primero, la misión entera (hablar con el entrenador →
-// entrenamiento de pases → partido contra los vecinos → sello de fútbol sala) con fotos de la pista en el pueblo.
+// partido contra los vecinos → sello de fútbol sala; sin entrenamiento previo) con fotos de la pista en el pueblo.
 // Uso: node tools/futsal-pueblo.mjs <carpeta> [pueblos separados por comas]
 import { chromium } from 'playwright-core';
 import { mkdirSync } from 'fs';
