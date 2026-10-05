@@ -159,8 +159,14 @@ vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.
   float slope = 1.0 - nw.y;                       // 0 llano · 0.29 a 45°
   vec3 d1 = texture2D(tDetail, vWP.xz / 11.0).rgb;
   vec3 d2 = texture2D(tDetail, vWP.xz / 2.3).rgb;
+#ifdef LOWQ
+  // móvil: las manchas grandes y las enormes salen del mismo texel (otro canal): una lectura menos por píxel
+  vec2 bh = texture2D(tDetail, vWP.xz / 70.0).rb;
+  float big = bh.x, huge = bh.y;
+#else
   float big = texture2D(tDetail, vWP.xz / 70.0).r;
   float huge = texture2D(tDetail, vWP.xz / 260.0).r;
+#endif
   vec3 base = diffuseColor.rgb;
   // campos, grava, nieve…: detalle suave como antes
   vec3 soft = base * (0.78 + 0.44 * d1.r) * (0.9 + 0.2 * d2.g) * (0.88 + 0.24 * big);

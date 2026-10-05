@@ -16,9 +16,10 @@ function weather(m, k = 1, moss = 1) {
   m.onBeforeCompile = (sh) => {
     if (BQ === 'low') sh.defines = { ...(sh.defines || {}), LOWQ: 1 };
     sh.uniforms.tWeather = { value: TEX.detail }; sh.uniforms.uGround = groundUniforms.uGround;
+    sh.uniforms.uWK = { value: new THREE.Vector2(k, moss) };   // (en uniforme: piedra, revoco y madera comparten programa)
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWW;')
       .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
-    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vWW; uniform sampler2D tWeather; uniform sampler2D uGround;')
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vWW; uniform sampler2D tWeather; uniform sampler2D uGround; uniform vec2 uWK;')
       .replace('#include <map_fragment>', `#include <map_fragment>
 {
   vec3 w = vWW;
@@ -41,9 +42,9 @@ function weather(m, k = 1, moss = 1) {
   c = mix(c, c * vec3(0.66, 0.62, 0.56), damp * 0.55 * ${'${K}'});
   c = mix(c, vec3(0.24, 0.3, 0.14) * (0.7 + 0.6 * fine), damp * smoothstep(0.45, 0.8, blot) * 0.45 * ${'${M}'});
   diffuseColor.rgb = c;
-}`.replace(/\$\{K\}/g, k.toFixed(2)).replace(/\$\{M\}/g, moss.toFixed(2)));
+}`.replace(/\$\{K\}/g, 'uWK.x').replace(/\$\{M\}/g, 'uWK.y'));
   };
-  m.customProgramCacheKey = () => 'weather' + k + moss + (BQ === 'low' ? '-low' : '');
+  m.customProgramCacheKey = () => 'weather2' + (BQ === 'low' ? '-low' : '');
   return m;
 }
 
