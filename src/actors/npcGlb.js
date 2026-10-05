@@ -2,6 +2,7 @@
 // su esqueleto y sus animaciones, con la ropa, la piel y el pelo de cada vecino. Las texturas se recolorean una vez
 // por combinación de colores y se comparten; la geometría es la del modelo (un solo juego para todo el pueblo).
 import * as THREE from 'three';
+import { fillMaterial } from '../engine/charLight.js';
 import { GlbChar, loadKayKit, loadMeshy, hasMeshy, MESHY_GAIT, MESHY_NAMES } from './glbChar.js';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -56,6 +57,7 @@ const MESHY_NPC = {};
 function buildNpcMeshy(L) {
   const name = meshyFor(L), g = MESHY_LOD_NPC[name] || MESHY_NPC[name];
   const char = new GlbChar(g, MESHY_GAIT);   // zancada real (sin patinar)
+  hairTint(char.root, L);
   // su altura: niños más bajos, el resto con un poco de variedad (todos con la misma figura nueva)
   const H = L.height || (L.child ? 1.22 : 1.5 + (hashOf(L) % 7) * 0.02), k = H / 1.6;
   char.root.scale.setScalar((g.userData.fit || 1) * k);
@@ -71,6 +73,44 @@ function buildNpcMeshy(L) {
     },
   };
   return { obj, char, anim };
+}
+// Pelo de cada vecino: los personajes de Meshy llevan el pelo pintado en su textura (castaño oscuro en todos), así que
+// se tiñe en el material con el color del «look» (rubio, castaño claro, pelirrojo, canoso…). El pelo se reconoce por su
+// color en la textura (castaño muy oscuro y rojizo: mucho más rojo que verde y casi sin azul) y solo en la cabeza
+// (atributo por vértice calculado una vez por modelo): la boina negra, los ojos y el pañuelo rojo no cambian
+const HAIR_K = (geo) => {
+  if (geo.attributes.aHead) return;
+  const P = geo.attributes.position, n = P.count, a = new Float32Array(n); let top = -1e9;
+  for (let i = 0; i < n; i++) top = Math.max(top, P.getY(i));
+  for (let i = 0; i < n; i++) a[i] = THREE.MathUtils.smoothstep(P.getY(i), top - 0.6, top - 0.5);   // (el modelo mide 2 unidades)
+  geo.setAttribute('aHead', new THREE.BufferAttribute(a, 1));
+};
+function hairTint(root, L) {
+  const hair = L.hair || (L.old ? '#d6d0c6' : null); if (!hair) return;
+  const col = new THREE.Color(hair);
+  root.traverse(o => {
+    if (!o.isSkinnedMesh || !o.material?.map) return;
+    HAIR_K(o.geometry);
+    const m = o.material.clone(); if (o.material.userData.fillK != null) fillMaterial(m, o.material.userData.fillK);
+    m.onBeforeCompile = (sh) => {
+      sh.uniforms.uHair = { value: col };
+      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute float aHead; varying float vHead;')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvHead = aHead;');
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform vec3 uHair; varying float vHead;')
+        .replace('#include <map_fragment>', `#include <map_fragment>
+{
+  vec3 c = diffuseColor.rgb; float l = dot(c, vec3(0.3, 0.59, 0.11));
+  // pelo: oscuro, con más rojo que verde y poco azul (la boina negra y los ojos son grises o negros puros: no se
+  // tiñen; el pañuelo rojo es mucho más claro). Se mira el texel tal cual: las islas del pelo en el atlas son
+  // pequeñas y desenfocar mezcla con la piel de al lado
+  float h = vHead * smoothstep(1.3, 1.8, c.r / max(c.g, 0.002)) * (1.0 - smoothstep(0.4, 0.55, c.b / max(c.r, 0.002))) * (1.0 - smoothstep(0.09, 0.14, l));
+  diffuseColor.rgb = mix(c, uHair * clamp(l / 0.009, 0.35, 1.5), h);
+}`)
+        .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance = emissive * diffuseColor.rgb;');
+    };
+    m.customProgramCacheKey = () => 'meshy-hair';
+    o.material = m;
+  });
 }
 // Vecino con traje (carnaval, dantzaris, seres de leyenda) con el cuerpo de los personajes nuevos: el de Meshy que mejor
 // le va (de blanco, el sanferminero; los seres del monte, el pastor), a su altura (los gigantes, gigantes) y con las
@@ -124,8 +164,11 @@ function kkTemplate(base, outfit) {
 }
 // traje del vecino a partir de su «look» (o el de su comarca si lo pide)
 function lookOutfit(L, female) {
-  if (L.region) return regionalOutfit(L.region, female, () => ((L.seed = ((L.seed || 7) * 9301 + 49297) % 233280) / 233280));
+  // pelo y piel de cada vecino (antes todos salían con el pelo castaño del modelo), también con el traje de su comarca
+  const hair = L.hair || (L.old ? '#d6d0c6' : undefined);
+  if (L.region) { const R = regionalOutfit(L.region, female, () => ((L.seed = ((L.seed || 7) * 9301 + 49297) % 233280) / 233280)); R.hair = hair; if (L.skin) R.skin = L.skin; return R; }
   const O = { id: undefined, shirt: L.shirt || '#e8e0cc', pants: L.skirt && !female ? L.skirt : (L.pants || L.skirt || '#3b3a40'), shoes: L.shoes || (L.espadrille ? '#efe6d0' : '#4a2f1c'), accent: L.vest || L.sash || L.pants || '#3b3a40' };
+  O.hair = hair; if (L.skin) O.skin = L.skin;
   if (L.txapela) O.beret = L.txapela; if (L.scarf) O.scarf = L.scarf; if (L.sash) O.sash = L.sash;
   if (female && L.skirt) { O.skirt = L.skirt; if (L.apron) O.apron = L.apron; }
   if (!female && L.apron) O.sash = O.sash || L.apron;

@@ -161,7 +161,13 @@ for (const [p, u] of Object.entries(import.meta.glob('../assets/icons3d/*.webp',
 
 function build(name) {
   if (UI3D[name]) return UI3D[name]();
-  if (BIRDS[name] || FLY[name]) { const b = bird(BIRDS[name] ? name : FLY[name]); b.rotation.set(0.9, 0.5, 0.15); b.userData.el = 0.5; return b; }
+  if (BIRDS[name] || FLY[name]) {
+    // ave planeando vista de tres cuartos, con las alas algo levantadas (en V): de arriba, en diagonal y con las alas
+    // planas, en la ficha se leía como un palo marrón
+    const b = bird(BIRDS[name] ? name : FLY[name]);
+    if (b.userData.wl) b.userData.wl.rotation.z = -0.42; if (b.userData.wr) b.userData.wr.rotation.z = 0.42;
+    b.rotation.set(0.55, -0.75, -0.1); b.userData.el = 0.35; return b;
+  }
   if (SMALL[name]) { const o = SMALL[name](); if (o.isMesh) { const g = new THREE.Group(); g.add(o); g.rotation.y = 1.2; return g; } o.rotation.y = 0.7; return o; }
   if (CUSTOM[name]) return CUSTOM[name]();
   if (ITEM[name]) {

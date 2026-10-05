@@ -134,7 +134,7 @@ export function applyOutfit(root, kk, outfitId) {
   if (O.skin && headCells.has(SKIN_CELL)) assign.set(SKIN_CELL, O.skin);
   if (hairTint && headCells.has(HAIR_CELL) && !assign.has(HAIR_CELL)) assign.set(HAIR_CELL, hairTint);
   if (!O.keep) {
-    const tex = repaint(map, assign, kk + '|' + (O.id || [O.shirt, O.pants, O.shoes, O.accent].join()));
+    const tex = repaint(map, assign, kk + '|' + (O.id || [O.shirt, O.pants, O.shoes, O.accent].join()) + '|' + (O.hair || '') + (O.skin || ''));
     for (const m of [...head, ...body, ...arms, ...legs]) { m.material = m.material.clone(); m.material.map = tex; }
   }
   // prendas cosidas a los huesos, colocadas sobre la pose de reposo
