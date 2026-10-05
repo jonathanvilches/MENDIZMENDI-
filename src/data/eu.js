@@ -183,7 +183,7 @@ export const EU_EXACT = {
   'Simular partido': 'Partida simulatu', 'Nueva temporada': 'Denboraldi berria', 'Tu club': 'Zure kluba', 'Amistoso: elige rival': 'Lagunartekoa: aukeratu aurkaria', 'Amistoso': 'Lagunartekoa',
   'Liga Navarra · nueva temporada': 'Nafarroako Liga · denboraldi berria', 'Fútbol 11 contra los clubes de la zona': '11ko futbola inguruko kluben aurka', 'la jornada se juega aquí': 'jardunaldia hemen jokatzen da', 'La jornada se juega aquí': 'Jardunaldia hemen jokatzen da', 'Tiros': 'Jaurtiketak', 'Tiros a puerta': 'Jaurtiketak atera',
   'Fútbol sala: entrenamiento': 'Areto futbola: entrenamendua', 'Pases en la pista (para el sello)': 'Paseak pistan (zigilurako)', 'Fútbol sala: partido por el sello': 'Areto futbola: partida zigiluaren alde',
-  'Fútbol sala en la pista': 'Areto futbola pistan', 'Partido, penaltis o un reto': 'Partida, penaltiak edo erronka bat', 'Contra cualquier club de Navarra': 'Nafarroako edozein kluben aurka', 'Fútbol sala 5 contra 5': 'Areto futbola, 5 eta 5',
+  'Fútbol sala en la pista': 'Areto futbola pistan', 'Un partido 5 contra 5': 'Partida bat, 5 eta 5', 'Partido, penaltis o un reto': 'Partida, penaltiak edo erronka bat', 'Contra cualquier club de Navarra': 'Nafarroako edozein kluben aurka', 'Fútbol sala 5 contra 5': 'Areto futbola, 5 eta 5',
   'Norte': 'Iparraldea', 'Sur': 'Hegoaldea',
   // --- esku pilota txapelketa ---
   'Gana la final y la txapela es tuya': 'Irabazi finala eta txapela zurea da', 'TXAPELDUN · CAMPEÓN DEL TORNEO': 'TXAPELDUNA · TXAPELKETAKO IRABAZLEA', '¡La txapela es tuya! Zorionak!': 'Txapela zurea da! Zorionak!',
@@ -194,6 +194,8 @@ export const EU_EXACT = {
   'Siguiente ronda': 'Hurrengo erronda', 'Pelotaris inventados para el juego.': 'Jokorako asmatutako pilotariak.', 'Por jugar': 'Jokatzeko', 'Frontón del pueblo': 'Herriko frontoia', 'Pelota a mano': 'Esku pilota',
   'Partido libre o torneo por la txapela': 'Partida librea edo txapelketa txapelaren alde', 'Nueva edición': 'Edizio berria', 'Partido libre': 'Partida librea', 'A 5 tantos': '5 tantora',
   'Baztan-Bidasoa': 'Baztan-Bidasoa', 'Larraun-Leitzaldea': 'Larraun-Leitzaldea', 'Sakana': 'Sakana', 'Valdizarbe-Novenera': 'Valdizarbe-Novenera',
+  'Recuperando la imagen…': 'Irudia berreskuratzen…', 'Saludando a los vecinos…': 'Bizilagunak agurtzen…', 'Volver a cargar': 'Berriro kargatu',
+  'El dispositivo se ha quedado sin memoria para dibujar. Tu progreso está guardado. Si en unos segundos no vuelve, toca el botón y seguirás en el mismo pueblo.': 'Gailuak marrazteko memoriarik gabe geratu da. Zure aurrerapena gordeta dago. Segundo batzuetan itzultzen ez bada, ukitu botoia eta herri berean jarraituko duzu.',
 };
 // Plantillak (hutsuneekin)
 // Deklinabidea: -ko (nongo) eta -ren (noren), izenaren bukaeraren arabera

@@ -56,7 +56,7 @@ const MESHY_NPC = {};
 // vecino con un personaje de Meshy: su modelo con sus clips, con la misma forma de animarse que los demás
 function buildNpcMeshy(L) {
   const name = meshyFor(L), g = MESHY_LOD_NPC[name] || MESHY_NPC[name];
-  const char = new GlbChar(g, MESHY_GAIT);   // zancada real (sin patinar)
+  const char = new GlbChar(g, { ...MESHY_GAIT, vary: true });   // zancada real (sin patinar); cada uno a su ritmo
   hairTint(char.root, L);
   // su altura: niños más bajos, el resto con un poco de variedad (todos con la misma figura nueva)
   const H = L.height || (L.child ? 1.22 : 1.5 + (hashOf(L) % 7) * 0.02), k = H / 1.6;
@@ -196,7 +196,7 @@ export function buildNpcKK(L) {
   const h = (JSON.stringify(L).split('').reduce((a, c) => (a * 31 + c.charCodeAt(0)) | 0, 7) >>> 0);
   const list = L.old && !female ? KK_SEX.old : KK_SEX[female ? 'girl' : 'boy'], base = M ? M.base : L.base && KKG[L.base] ? L.base : list[h % list.length];   // base: el cuerpo del avatar del jugador (fútbol, encierro)
   const gltf = kkTemplate(base, L.outfit || (M ? M.outfit : lookOutfit(L, female)));   // outfit: traje ya hecho (tu personaje)
-  const char = new GlbChar(gltf, { walkAt: 0.2, runAt: 4.6, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / 3.0, 0.85) : Math.pow(Math.max(0.2, v) / 1.35, 0.8) });
+  const char = new GlbChar(gltf, { vary: true, walkAt: 0.2, runAt: 4.6, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / 3.0, 0.85) : Math.pow(Math.max(0.2, v) / 1.35, 0.8) });
   const H = M ? M.height : L.height || (L.child ? 1.2 : 1.5);
   const k = (gltf.userData.fit || 1) * (M ? H / 1.5 : THREE.MathUtils.clamp(H / 1.5, 0.7, H > 1.9 ? 1.7 : 1.15));   // gigantes de carnaval, más altos
   char.root.scale.setScalar(k);
@@ -374,7 +374,7 @@ export function buildNpc(look = {}) {
   if (!GLTF.boy) return null;   // sin cuerpo: la figura de reserva
   const sex = L.female || L.skirt || L.ponytail || L.bun || L.braids || L.longHair || L.lashes ? 'girl' : 'boy';
   const gltf = GLTF[sex] || GLTF.boy;
-  const char = new GlbChar(gltf, { outline: 0.006, walkAt: 0.2, runAt: 4.6, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / 3.2, 0.85) : Math.pow(Math.max(0.2, v) / 1.5, 0.8) });
+  const char = new GlbChar(gltf, { vary: true, outline: 0.006, walkAt: 0.2, runAt: 4.6, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / 3.2, 0.85) : Math.pow(Math.max(0.2, v) / 1.5, 0.8) });
   const P = palette(L, sex);
   // texturas recoloreadas (compartidas entre vecinos con los mismos colores)
   let srcBody = null, srcFace = null;

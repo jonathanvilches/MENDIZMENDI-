@@ -69,7 +69,7 @@ export const FutbolSystem = {
   async play(opts) {
     const C = this.cfg, data = career.load();
     const m = new FutbolMatch({ ...opts, makeCharacter: C.makeCharacter, crowd: C.crowd, quality: C.quality, touch: C.touch, audio: C.audio,
-      tutorial: opts.mode === 'match' && !data.tutorial && !opts.autoplay, onResult: (r) => career.record(r), onTutorialDone: () => career.set('tutorial', true) });
+      tutorial: false, onResult: (r) => career.record(r), onTutorialDone: () => career.set('tutorial', true) });   // (es un minijuego: sin entrenamiento previo, al partido)
     window.__futbol = m;
     await C.host?.before?.();
     try { await m.load(); }
@@ -131,7 +131,7 @@ export const FutbolSystem = {
     // (en El Sadar no se juega contra el equipo rojo del pueblo: se confundiría con Osasuna)
     // (en el pueblo, solo equipos del pueblo: sin clubes de verdad)
     const rivals = Object.values(TEAMS).filter(t => t.id !== V.home && !(V.env === 'estadio' && t.id === 'pueblo') && !(V.env !== 'estadio' && t.model === 'osasuna_fuera') && !(V.env !== 'estadio' && t.id === 'osasuna')).map(t => [t.id, t.name]);
-    const modes = [['match', 'Partido'], ['cup', 'Eliminatoria'], ['penalties', 'Penaltis'], ...Object.values(RETOS).map(r => ['reto:' + r.id, r.name + (d.retos[r.id]?.done ? ' ✓' : '')])];
+    const modes = [['match', 'Partido'], ['penalties', 'Penaltis']];   // (minijuego: partido o penaltis, sin retos de entrenamiento)
     const v = await menuPanel({ title: title || V.name, sub: sub || (V.town || 'Fútbol'), modes, rivals, values: { mode: 'match', rival: V.away, level: 'normal', duration: 3, assist: true } });
     if (!v) return { quit: true };
     if (v.mode.startsWith('reto:')) return this.startReto({ campoId, reto: v.mode.slice(5), local });

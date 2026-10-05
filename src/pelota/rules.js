@@ -18,20 +18,20 @@ export const COURT = {
 // Física (en «tiempo de juego»; el partido va a cámara algo lenta según el nivel)
 export const PHYS = {
   G: 9.8,
-  FLOOR_E: 0.3,      // rebote vertical en el suelo (la pelota de cuero bota poco: unos 60 cm tras un golpe normal)
-  FLOOR_F: 0.7,      // lo que conserva en horizontal al botar (se frena: el segundo bote cae dentro)
-  FRONT_E: 0.52,     // rebote en el frontis (sale con algo menos de fuerza de la que llega)
-  FRONT_F: 0.94,
+  FLOOR_E: 0.25,     // rebote vertical en el suelo (la pelota de cuero bota poco: medio metro tras un golpe normal)
+  FLOOR_F: 0.66,      // lo que conserva en horizontal al botar (se frena: el segundo bote cae dentro)
+  FRONT_E: 0.47,     // rebote en el frontis (sale con bastante menos fuerza de la que llega: da tiempo a colocarse)
+  FRONT_F: 0.9,
   FRONT_FX: 0.62,    // lo que conserva de lado al dar en el frontis (rozamiento: la pelota no sale cruzada)
   WALL_E: 0.74,      // rebote en la pared izquierda
-  DRAG: 0.05,
+  DRAG: 0.065,
 };
 
 // Niveles: ritmo del partido (cámara lenta), ayuda al jugador y fuerza del rival
 export const LEVELS = {
-  facil: { tempo: 0.52, reach: 1.7, assist: 1.4, rival: { speed: 4.8, react: 0.36, error: 0.12, smart: 0.35 } },
-  normal: { tempo: 0.6, reach: 1.45, assist: 0.6, rival: { speed: 5.5, react: 0.25, error: 0.065, smart: 0.6 } },
-  dificil: { tempo: 0.7, reach: 1.25, assist: 0, rival: { speed: 6.2, react: 0.17, error: 0.03, smart: 0.85 } },
+  facil: { tempo: 0.5, reach: 1.85, assist: 1.8, rival: { speed: 4.8, react: 0.36, error: 0.12, smart: 0.35 } },
+  normal: { tempo: 0.58, reach: 1.65, assist: 1.0, rival: { speed: 5.5, react: 0.25, error: 0.065, smart: 0.6 } },
+  dificil: { tempo: 0.68, reach: 1.4, assist: 0.35, rival: { speed: 6.2, react: 0.17, error: 0.03, smart: 0.85 } },
 };
 
 const EU_NUM = ['hutsa', 'bat', 'bi', 'hiru', 'lau', 'bost', 'sei', 'zazpi', 'zortzi', 'bederatzi', 'hamar', 'hamaika', 'hamabi', 'hamahiru', 'hamalau', 'hamabost', 'hamasei', 'hamazazpi', 'hamazortzi', 'hemeretzi', 'hogei', 'hogeita bat', 'hogeita bi'];
@@ -56,8 +56,8 @@ export const TEXT = {
       'El saque debe botar entre la raya del 4 (falta) y la del 7 (pasa).',
     ],
     level: 'Nivel',
-    ctrlTouch: 'Joystick para moverte · GOLPE cuando la pelota brille · empuja el joystick al golpear para apuntar.',
-    ctrlKeys: 'WASD o flechas para moverte · Espacio: golpe · Mayúsculas: dejada · apunta con la dirección al golpear.',
+    ctrlTouch: 'Joystick para moverte · GOLPE cuando la pelota brille · al golpear, empuja el joystick para apuntar: arriba largo, abajo dejada, a la derecha al ancho, un poco a la izquierda a la pared y del todo a la izquierda dos paredes.',
+    ctrlKeys: 'WASD o flechas para moverte · Espacio: golpe · Mayúsculas: dejada · al golpear, la dirección apunta: arriba largo, derecha al ancho, izquierda a la pared y dos paredes.',
     play: '¡A jugar!', later: 'Ahora no', again: 'Otra partida', cont: 'Volver al pueblo', exit: 'Salir', sure: '¿Seguro que quieres dejar el partido?', yes: 'Sí, salir', no: 'Seguir jugando',
     hit: 'GOLPE', drop: 'DEJADA',
     tipServe: 'Te toca sacar: pulsa GOLPE para botar la pelota y otra vez cuando suba.',
@@ -78,7 +78,7 @@ export const TEXT = {
       tanto: ['¡Tanto!', ''],
     },
     quality: { perfect: '¡Perfecto!', good: '¡Bien!', ok: 'Justo', late: 'Tarde', whiff: '¡Al aire!' },
-    shots: { dejada: 'Dejada', pared: 'A la pared', ancho: 'Al ancho', largo: 'Largo', normal: '' },
+    shots: { dejada: 'Dejada', pared: 'A la pared', dosparedes: 'Dos paredes', ancho: 'Al ancho', largo: 'Largo', normal: '' },
     pointYou: 'Tanto para ti', pointRival: (n) => `Tanto para ${n}`,
     serveYou: 'Sacas tú', serveRival: (n) => `Saca ${n}`,
     streak: (n, g) => `${n} de ${g} seguidas`,
@@ -92,6 +92,7 @@ export const TEXT = {
       'En los partidos, el kantari canta el tanteo en euskera, por ejemplo: «Bost eta lau, gorriak!» (cinco a cuatro, los rojos).',
       'Casi todos los pueblos de Navarra tienen frontón, muchas veces en la plaza, junto a la iglesia o el ayuntamiento.',
       'La dejada es un golpe suave que muere cerca del frontis; sirve para sorprender al rival cuando está al fondo.',
+      'El golpe a dos paredes va primero a la pared izquierda, luego al frontis y sale cruzado hacia la cancha: muy difícil de devolver.',
     ],
   },
   eu: {
@@ -104,8 +105,8 @@ export const TEXT = {
       'Sakeak 4ko marraren (falta) eta 7koaren (pasa) artean egin behar du bote.',
     ],
     level: 'Maila',
-    ctrlTouch: 'Joysticka mugitzeko · JO pilotak distira egitean · bultzatu joysticka jotzean, zuzentzeko.',
-    ctrlKeys: 'WASD edo geziak mugitzeko · Zuriunea: jo · Maiuskula: dejada · zuzendu norabidearekin jotzean.',
+    ctrlTouch: 'Joysticka mugitzeko · JO pilotak distira egitean · jotzean, bultzatu joysticka zuzentzeko: gora luzea, behera dejada, eskuinera zabalera, pixka bat ezkerrera paretara eta erabat ezkerrera bi pareta.',
+    ctrlKeys: 'WASD edo geziak mugitzeko · Zuriunea: jo · Maiuskula: dejada · jotzean, norabideak zuzentzen du: gora luzea, eskuinera zabalera, ezkerrera paretara eta bi pareta.',
     play: 'Jolastera!', later: 'Orain ez', again: 'Beste partida bat', cont: 'Herrira itzuli', exit: 'Irten', sure: 'Ziur partida utzi nahi duzula?', yes: 'Bai, irten', no: 'Jolasten jarraitu',
     hit: 'JO', drop: 'DEJADA',
     tipServe: 'Zuri dagokizu sakea: sakatu JO pilotari bote eragiteko, eta berriz igotzean.',
@@ -126,7 +127,7 @@ export const TEXT = {
       tanto: ['Tantoa!', ''],
     },
     quality: { perfect: 'Primeran!', good: 'Ondo!', ok: 'Justu', late: 'Berandu', whiff: 'Airera!' },
-    shots: { dejada: 'Dejada', pared: 'Paretara', ancho: 'Zabalera', largo: 'Luzea', normal: '' },
+    shots: { dejada: 'Dejada', pared: 'Paretara', dosparedes: 'Bi pareta', ancho: 'Zabalera', largo: 'Luzea', normal: '' },
     pointYou: 'Tantoa zuretzat', pointRival: (n) => `Tantoa ${n}rentzat`,
     serveYou: 'Zuk ateratzen duzu', serveRival: (n) => `${n}k ateratzen du`,
     streak: (n, g) => `${n}/${g} jarraian`,
@@ -140,6 +141,7 @@ export const TEXT = {
       'Partidetan, kantariak euskaraz kantatzen du tanteoa, adibidez: «Bost eta lau, gorriak!».',
       'Nafarroako herri ia guztiek dute frontoia, askotan plazan, elizaren edo udaletxearen ondoan.',
       'Dejada kolpe leuna da, frontisetik gertu hiltzen dena; aurkaria atzean dagoenean harritzeko balio du.',
+      'Bi paretako kolpea lehenik ezkerreko paretara doa, gero frontisera eta zeharka irteten da kantxara: oso zaila da itzultzea.',
     ],
   },
 };

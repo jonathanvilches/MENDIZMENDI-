@@ -347,7 +347,7 @@ export class FutbolGame {
   humanPass(p, loft) {
     const I = this.input, f = fwd(p);
     let dx = I.mag > 0.25 ? I.x : f.x, dz = I.mag > 0.25 ? I.z : f.z; const l = hyp(dx, dz) || 1; dx /= l; dz /= l;
-    const q = this.bestReceiver(p, dx, dz, this.assist ? PL.cone : PL.cone * 0.7);
+    const q = this.bestReceiver(p, dx, dz, this.assist ? PL.cone * 1.6 : PL.cone) || (this.assist ? this.bestReceiver(p, dx, dz, Math.PI / 2) : null);
     this.stats.passes[p.team]++;
     // pase inteligente: raso; por alto si hay un rival en la línea del pase y el compañero está lejos (o muy lejos)
     if (q) { const B = this.ball.p, d = hyp(q.x - p.x, q.z - p.z); loft ||= (this.laneOpen(p.team, B.x, B.z, q.x, q.z) < 1.1 && d > 12 * SC) || d > 32 * SC; this.passBall(p, q, loft, 0); this.setMe(q, 'pass'); }
@@ -444,7 +444,7 @@ export class FutbolGame {
   }
   isOffside(q) { if (!RU.offside) return false; const s = this.dir[q.team], u = s * q.x; return u > 0 && u > s * this.ball.p.x + 0.1 && u > this.offLine(q.team) + 0.1; }
   // tus pases rasos van más tensos (como en el FIFA): la defensa tiene menos tiempo para cortarlos
-  firm(p) { return this.human(p) ? 1.22 : 1; }
+  firm(p) { return this.human(p) ? 1.12 : 1; }
   // pase raso: llega al compañero a unos 5,5–10 m/s en fútbol 11 y a 4–6 m/s en sala (rodadura y aire de por medio)
   groundV(d) {
     if (K.dragK) { const va = 4 + Math.min(2, d * 0.14), dec = K.roll + 0.7; return clamp(Math.sqrt(va * va + 2 * dec * d), K.pass[0], K.pass[1]); }
@@ -555,7 +555,7 @@ export class FutbolGame {
       const ff = fwd(p), facing = (B.x - p.x) * ff.x + (B.z - p.z) * ff.z > 0;
       const poke = d < 0.62 && d < dob + 0.05 && facing, block = body < 0.62 && ((p.x - o.x) * o.vx + (p.z - o.z) * o.vz) / mv > 0.3;
       if (poke || block) {
-        const rate = (this.human(p) ? 6 : 0.6 + this.L(p).tackle * 1.6) * (o.shielding ? 0.25 : 1) * clamp((dob + 0.1) / 0.45, 0.4, 1) * (block && !poke ? 1.6 : 1);
+        const rate = (this.human(p) ? 6 : 0.6 + this.L(p).tackle * 1.6) * (o.shielding ? 0.25 : 1) * clamp((dob + 0.1) / 0.45, 0.4, 1) * (block && !poke ? 1.6 : 1) * (this.human(o) ? (this.assist ? 0.4 : 0.6) : 1);
         if (this.rnd() < 1 - Math.exp(-rate * h)) { o.stun = 0.3; this.takeBall(p); this.stats.steals[p.team]++; this.emit({ t: 'steal', p: p.id, from: o.id, how: 'pie' }); return; }
       }
     }
@@ -604,7 +604,8 @@ export class FutbolGame {
       o.heavy = sp > PL.run * 0.65 && this.nearestFoe(o) < 2.5 * Math.max(SC, 0.6) && this.rnd() < (this.human(o) ? 0.03 : 0.12 + this.L(o).passErr * 0.08) + dash * 0.08;
     }
     // distancia del centro del jugador al balón: la punta de la bota está a 0,32 m y el balón, justo delante
-    const lead = (o.shielding ? 0.4 : 0.45) + run * 0.08 + dash * 0.3, amp = sp < 1 ? 0 : 0.05 + run * 0.1 + dash * 0.3 + (o.heavy ? 0.7 : 0);
+    const hm = this.human(o) ? 0.7 : 1;   // (el tuyo la lleva más pegada: los toques se separan menos)
+    const lead = (o.shielding ? 0.4 : 0.45) + (run * 0.08 + dash * 0.3) * hm, amp = sp < 1 ? 0 : (0.05 + run * 0.1 + dash * 0.3) * hm + (o.heavy ? 0.7 : 0);
     const off = lead + amp * Math.sin(Math.PI * clamp(1 - o.touchT / T, 0, 1));
     // a dónde tiene que ir el balón en el próximo paso y la velocidad para llegar (con un tope, sin teletransportes)
     const tx = o.x + o.vx * h + f.x * off, tz = o.z + o.vz * h + f.z * off;
@@ -645,7 +646,7 @@ export class FutbolGame {
     const ax = p.x - o.x, az = p.z - o.z, al = hyp(ax, az) || 1, of = fwd(o), front = (ax * of.x + az * of.z) / al;
     const fo = foot(o), exposed = hyp(B.x - fo.x, B.z - fo.z);
     // (contra tu jugador la IA necesita buen momento: un robo de frente al balón pegado al pie sale menos)
-    const base = (this.human(p) ? 0.72 : this.L(p).tackle * (this.human(o) ? 0.62 : 1)) * (o.shielding ? 0.35 : 1);
+    const base = (this.human(p) ? 0.72 : this.L(p).tackle * (this.human(o) ? 0.48 : 1)) * (o.shielding ? 0.35 : 1);
     const chance = clamp(base * (0.55 + 0.45 * clamp(front + 0.6, 0, 1)) + clamp((exposed - 0.2) * 0.7, 0, 0.3), 0.05, 0.95);
     const contact = hyp(p.x - o.x, p.z - o.z) < 0.85;
     if (front < -0.35 && contact && this.rnd() < 0.42) return this.foul(p, o);
@@ -938,7 +939,7 @@ export class FutbolGame {
       const f = foot(p), d = hyp(B.x - f.x, B.z - f.z), fo = foot(o), exposed = hyp(B.x - fo.x, B.z - fo.z) > 0.26;
       if (d < 1.05) {
         const want = (exposed ? 0.85 : 0.45) * L.press;
-        if (this.rnd() < want * h * 6) { this.tackle(p, 'robo'); p.tackleCD = 2.0 - L.press * 0.6; }
+        if (this.rnd() < want * h * 6 * (this.human(o) ? 0.55 : 1)) { this.tackle(p, 'robo'); p.tackleCD = 2.0 - L.press * 0.6 + (this.human(o) ? 0.6 : 0); }   // (a tu jugador le entran menos veces)
         else if (L.coord && hyp(o.x - p.x, o.z - p.z) < 2.2 && this.rnd() < 0.08 * h && Math.abs(angDiff(o.h, Math.atan2(p.x - o.x, p.z - o.z))) < 1.4) { this.tackle(p, 'slide'); p.tackleCD = 2.5; }
       }
     }

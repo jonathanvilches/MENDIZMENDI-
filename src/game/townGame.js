@@ -664,7 +664,7 @@ export class TownGame {
     try {
       const first = !this.futSeen; this.futSeen = true;
       await this.say(a, first ? ['¡Kaixo! Soy Leire, entrenadora de la cantera de Osasuna. ¿Te atreves a jugar en El Sadar?',
-        'Jugamos a fútbol de verdad: once contra once en el campo de El Sadar, con porteros, árbitro y fuera de juego. Primero un entrenamiento de pases y luego eliges: partido, penaltis o un reto.',
+        'Un partido once contra once en el campo de El Sadar, con porteros y árbitro. ¡Al campo!',
         'Con el balón: PASE y TIRO (mantenlo pulsado para chutar más fuerte). Sin balón: ROBO cuando se le separe del pie, o ENTRADA. ¡Aupa Osasuna!'] : ['¿Otro partido? ¡La grada está llena!']);
     } finally { this.player.frozen = false; a.talking = 0; }
     const Futbol = await loadFutbol();
@@ -692,14 +692,15 @@ export class TownGame {
       if (st.step === 0 && !st.met) {
         await this.say(a, [club ? `¡Kaixo! Entreno al ${club.name}${club.adapt ? '' : ', el club de ' + club.town}. Aquí puedes jugar con nosotros como en el FIFA.` : `¡Kaixo! Esta es la pista de ${town}.`,
           this.pista ? 'Tienes la Liga Navarra de fútbol 11 contra los clubes de la zona, amistosos contra cualquier club de Navarra y fútbol sala en esta pista: cinco contra cinco, con porteros y dos árbitros.' : 'Tienes la Liga Navarra de fútbol 11 contra los clubes de la zona y amistosos contra cualquier club de Navarra.',
-          ...(this.pista ? [`En la pista, primero un entrenamiento de pases y luego un partido contra ${rivalName}. Si ganas, te pongo el sello de fútbol sala en el pasaporte.`] : [])].filter(Boolean));
-        st.step = this.pista ? 1 : 0; if (!this.pista) st.met = true; saveProfile();
+          ...(this.pista ? [`En la pista, un partido de fútbol sala contra ${rivalName}. Si ganas, te pongo el sello de fútbol sala en el pasaporte.`] : [])].filter(Boolean));
+        st.step = this.pista ? 2 : 0; if (!this.pista) st.met = true; saveProfile();
       } else await this.say(a, [club ? `¡Aupa ${club.name}! ¿Qué jugamos hoy?` : '¿Qué jugamos hoy?']);
     } finally { this.player.frozen = false; a.talking = 0; }
     // menú del club (como el FIFA): liga, fútbol sala, amistoso. En la liga juegas con «tu club» (el del primer pueblo
     // en el que la empezaste); cada jornada se juega en el campo del de casa, así que se viaja de pueblo en pueblo
     const P = profile(), myClub = P.futbolClub || club?.id, S = myClub ? ligaSeason(myClub) : null;
-    const sala = !this.pista ? null : st.step === 1 ? ['sala', 'Fútbol sala: entrenamiento', 'Pases en la pista (para el sello)'] : st.step === 2 ? ['sala', 'Fútbol sala: partido por el sello', `5 contra 5 contra ${rivalName}`] : ['sala', 'Fútbol sala en la pista', 'Partido, penaltis o un reto'];
+    if (st.step === 1) st.step = 2;   // (ya no hay entrenamiento previo: directo al partido por el sello)
+    const sala = !this.pista ? null : st.step === 2 ? ['sala', 'Fútbol sala: partido por el sello', `5 contra 5 contra ${rivalName}`] : ['sala', 'Fútbol sala en la pista', 'Un partido 5 contra 5'];
     const nm = S && S.j < S.rounds.length ? S.rounds[S.j].find(x => x.h === myClub || x.a === myClub) : null;
     const ligaSub = !nm ? 'Fútbol 11 contra los clubes de la zona' : nm.h === club?.id ? `${P.futbolClub ? CLUBS_NAME(myClub) + ' · ' : ''}la jornada se juega aquí` : `Jornada en ${CLUBS_TOWN(nm.h)}`;
     const items = (club ? [['liga', S.j < S.rounds.length ? `Liga Navarra · jornada ${S.j + 1}` : 'Liga Navarra · nueva temporada', ligaSub], sala, ['amistoso', 'Amistoso', 'Contra cualquier club de Navarra'], ['exit', 'Salir', '']] : [sala, ['exit', 'Salir', '']]).filter(Boolean);
@@ -720,10 +721,10 @@ export class TownGame {
       return;
     }
     if (st.step === 2) {
-      const r = await fut.match('vecinos', 'normal', 2, rivalTeam); if (r.quit) return;
+      const r = await fut.match('vecinos', 'facil', 2, rivalTeam); if (r.quit) return;
       if (r.win) {
         st.step = 3; st.sello = true; addXP(60); saveProfile();
-        await this.say(a, [`¡${r.you} a ${r.cpu}! Has ganado a ${rivalName}. Toma: el sello de fútbol sala de ${town} para tu pasaporte.`, 'Desde ahora la pista es tuya: partido, penaltis o un reto, cuando quieras.']);
+        await this.say(a, [`¡${r.you} a ${r.cpu}! Has ganado a ${rivalName}. Toma: el sello de fútbol sala de ${town} para tu pasaporte.`, 'Desde ahora la pista es tuya: vuelve cuando quieras a jugar otro partido.']);
         this.ui.toast?.(`Sello de fútbol sala de ${town}`, 'balon', 2600);
       } else await this.say(a, [r.you === r.cpu ? `${r.you} a ${r.cpu}. ¡Empate! Para el sello hay que ganar: ¿la revancha?` : `${r.you} a ${r.cpu}. ¡Casi! Habla conmigo para la revancha.`]);
       return;

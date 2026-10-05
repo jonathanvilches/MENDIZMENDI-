@@ -1,5 +1,5 @@
 // Fútbol dentro del juego como en un iPhone en horizontal: en Pamplona se abre el fútbol de El Sadar (directo al
-// menú), se elige Partido, se ve la presentación y se juega CON LOS DEDOS (joystick y botones de la pantalla, sin IA
+// partido, sin menú), se ve la presentación y se juega CON LOS DEDOS (joystick y botones de la pantalla, sin IA
 // por el jugador): se comprueba que el jugador se mueve, que pasa y tira, que cambia de jugador y que no hay errores.
 // Uso: node tools/futbol-movil.mjs [carpeta]
 import { chromium } from 'playwright-core';
@@ -12,9 +12,7 @@ await p.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON
 await p.goto((process.env.BASE || 'http://127.0.0.1:5173/') + '?town=pamplona&q=low&weather=clear&skipintro=1', { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 900000 });
 await p.evaluate(() => { const G = window.__game; window.__run = import('/src/game/futbol.js').then(M => new M.Futbol(G, G.sadar).run()).then(r => { window.__res = r; }); });
-await p.waitForSelector('.fb-panel .fb-go', { timeout: 120000 });
-await p.screenshot({ path: `${out}/1-menu.png` });
-await p.tap('.fb-panel .fb-go');
+// (minijuego: sin menú ni entrenamiento, al hablar con la entrenadora empieza el partido)
 await p.waitForFunction(() => window.__futbol && window.__futbol.o.mode === 'match' && window.__futbol.live, null, { timeout: 600000 });
 await p.waitForFunction(() => { const m = window.__futbol; return m.introLen - m.intro > 4; }, null, { timeout: 300000 });
 await p.screenshot({ path: `${out}/2-presentacion.png` });

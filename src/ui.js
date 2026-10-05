@@ -5,7 +5,7 @@ import { HALF, N, PLACES } from './world/layout.js';
 import { H, SURF } from './world/heightfield.js';
 import { clamp } from './util/math.js';
 import { iconSVG, iconImage } from './ui/icons.js';
-import { portrait } from './ui/portraits.js';
+import { portraitImg } from './ui/portraits.js';
 import { mountMapView } from './ui/mapview.js';
 import { buildMapVectorsIdle } from './ui/mapvector.js';
 
@@ -211,8 +211,8 @@ export class UI {
         const fk = L.look ? JSON.stringify(L.look) : L.icon || 'talk';
         if (fk !== lastFace) {
           lastFace = fk;
-          const url = L.look ? portrait(L.look, 'bust', true) : '';
-          $('.face', d).innerHTML = url ? `<img src="${url}" alt="">` : I(L.icon || 'talk', 64);
+          // (sin parar el juego: si el retrato aún no está hecho, se dibuja en un rato libre y aparece al momento)
+          $('.face', d).innerHTML = L.look ? portraitImg(L.look, 'bust', true) : I(L.icon || 'talk', 64);
         }
         $('h3', d).textContent = L.who || '';
         full = L.text || ''; let k = 0;
