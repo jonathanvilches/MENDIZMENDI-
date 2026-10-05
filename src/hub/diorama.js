@@ -300,21 +300,27 @@ export function buildDiorama(comarcaId, { live = true } = {}) {
   return { scene, update, sun, hf, tone, T };
 }
 
-// Foto fija de la comarca (fondos, fichas y pantalla de carga). Generarla cuesta (monta el
-// diorama entero), así que se hace en segundo plano, de una en una, y se guarda en IndexedDB:
-// mientras tanto se devuelve un degradado con los colores de la comarca que luego se sustituye.
-function renderShot(comarcaId, w, h) {
-  const SR = offscreen(w, h);
+// Foto fija de la comarca (portada, fondos, fichas y pantalla de carga). Viene ya hecha con el juego
+// (src/assets/portadas, tools/portadabake.mjs): montar el diorama entero en el móvil costaba tiempo y memoria. Si
+// faltara alguna, se genera como antes: en segundo plano, de una en una, guardada en IndexedDB y, mientras tanto, con
+// un degradado con los colores de la comarca que luego se sustituye.
+const BAKED = {};
+for (const [p, u] of Object.entries(import.meta.glob('../assets/portadas/*.webp', { eager: true, query: '?url', import: 'default' }))) BAKED[p.split('/').pop().replace('.webp', '')] = u;
+function drawShot(R, comarcaId, w, h) {
   const D = buildDiorama(comarcaId, { live: false });
-  SR.setClearColor(D.scene.fog.color, 1);
+  R.setClearColor(D.scene.fog.color, 1);
   D.update(0.5);
   const cam = new THREE.PerspectiveCamera(w > h ? 34 : 50, w / h, 0.3, 3000);
   cam.position.set(4, 6.5, 16); cam.lookAt(-1, 7, -60);
-  SR.render(D.scene, cam);
-  const url = offscreenCanvas().toDataURL('image/jpeg', 0.84);
+  R.render(D.scene, cam);
   D.scene.traverse(o => { if (o.geometry) o.geometry.dispose(); });
-  return url;
 }
+function renderShot(comarcaId, w, h) {
+  drawShot(offscreen(w, h), comarcaId, w, h);
+  return offscreenCanvas().toDataURL('image/jpeg', 0.84);
+}
+/** Para hornear las fotos (tools/portadabake.mjs): con un renderizador propio del tamaño pedido. */
+export function bakeShot(R, comarcaId, w, h) { R.setSize(w, h, false); drawShot(R, comarcaId, w, h); return R.domElement.toDataURL('image/png'); }
 const holders = new Map();
 function placeholder(comarcaId, key) {
   if (holders.has(key)) return holders.get(key);
@@ -335,6 +341,9 @@ function swapIn(ph, url) {
 }
 const waiting = new Map();     // clave → avisos pendientes (cada llamada guarda el suyo)
 export function dioramaShot(comarcaId, w = 1280, h = 720, { front = false, onReady } = {}) {
+  // la horneada: la pequeña para las tarjetas, la grande para lo demás
+  const baked = (w <= 480 && BAKED[comarcaId + '-s']) || BAKED[comarcaId];
+  if (baked) { onReady?.(baked); return baked; }
   if (w > 960) { h = Math.round(h * 960 / w); w = 960; }
   const key = comarcaId + w + 'x' + h;
   const hit = getImg('d:' + key);

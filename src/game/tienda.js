@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { Actor } from '../actors/people.js';
 import { addBox } from '../world/colliders.js';
 import { groundHeight } from '../world/heightfield.js';
-import { PLACES } from '../world/layout.js';
+import { PLACES, pathQuery } from '../world/layout.js';
 import { profile, saveProfile } from './profile.js';
 import { FOOD } from '../data/equipo.js';
 import { GOODS, STOCK, STAR, SHOPKEEPERS } from '../data/tiendas.js';
@@ -34,7 +34,8 @@ export class Tienda {
     this.star = STAR[d.comarca] || STAR.pamplona;
     const P = profile(); P.coins ??= 12; P.bag ||= { agua: 0, food: {} }; P.bag.goods ||= {};
     // sitio: junto al mercado o la plaza, en un hueco libre y llano
-    const base = PLACES.market || PLACES.plaza, s = game.spot(base, 9);
+    // (el puesto mide más de 3 m: se aparta de los demás sitios y se pone al borde de la calle, no en medio)
+    const base = PLACES.market || PLACES.plaza, s = game.spot(base, 9, true, 3.2, (x, z) => { const q = pathQuery(x, z); return q.d > q.w + 1.8; });
     this.pos = { x: s.x, z: s.z }; this.y = groundHeight(s.x, s.z);
     const toPlaza = Math.atan2(PLACES.plaza.x - s.x, PLACES.plaza.z - s.z);
     this.ry = Math.abs(Math.hypot(PLACES.plaza.x - s.x, PLACES.plaza.z - s.z)) > 1 ? toPlaza : 0;

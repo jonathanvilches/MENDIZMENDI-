@@ -160,18 +160,17 @@ export class Hub {
     const done = p.towns[last.id]?.done || {};
     const ms = (last.missions || []).map((m, i) => `<span class="mi ${done[i] ? 'ok' : ''}" title="${esc(m.title || m.name || TYPE_NAME[m.type] || '')}">${I(TYPE_ICON[m.type] || 'star', 40)}${done[i] ? `<i class="tick">${I('check', 16)}</i>` : ''}</span>`).join('');
     this.after = () => {
-      // el escenario 3D se monta después de pintar la pantalla, para que aparezca al instante
-      // (salvo que otro escenario, como el selector de bienvenida, esté ya en uso encima)
-      const host = $('#heroStage', this.root);
-      // portada de juego: el personaje posa (sin bocadillo); al tocarlo saluda y salta
-      requestAnimationFrame(() => setTimeout(() => { if (!host.isConnected) return; const cur = Stage.current; if (cur?.alive && cur.host !== host && cur.host.isConnected) return; this.stage = new Stage(host, p.avatar, { mode: 'scene', comarca: last.comarca }); this.stage.onPoke = () => this.sound?.ui('click'); }, 50));
+      // portada de juego: una imagen fija (la foto de la comarca y el personaje), sin escena 3D en vivo: en el móvil
+      // montaba el diorama entero y un segundo WebGL solo para el menú. Al tocar al personaje, salta
+      const fig = $('.hero-av', this.root);
+      if (fig) fig.onclick = () => { fig.classList.remove('hop'); void fig.offsetWidth; fig.classList.add('hop'); this.sound?.ui('click'); };
       this.drawMiniMap($('#homeMap', this.root));
       this.lazyLand();
     };
     const next = this.suggestions();
     return `
     <section class="hero3d">
-      <div id="heroStage" class="stage-host"></div>
+      <div class="hero-img" style="background-image:url(${landImg(last.comarca, 1280, 720, true)})">${avatarPortraitImg(p.avatar, 'hero').replace('<img ', '<img class="hero-av" ')}</div>
       <div class="h-shade"></div>
       <button class="chapter" data-comarca="${last.comarca}" style="--c:${cm?.color}"><img src="${stampImg(last.comarca)}" alt=""><span><small>Capítulo ${chapter} · ${esc(cm?.name || '')}</small><b>${cpr.stamps}/${cts.length} sellos de la comarca</b><span class="cbar"><i style="width:${cts.length ? cpr.stamps / cts.length * 100 : 0}%"></i></span></span></button>
       <div class="h-bot">

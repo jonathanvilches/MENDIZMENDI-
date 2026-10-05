@@ -188,6 +188,10 @@ export class Runtime {
     this.renderer.renderLists.dispose();
     resetNpcCache();
     this.scene = null;
+    // y todo lo demás del pueblo: antes seguía vivo hasta que el pueblo siguiente lo sustituía, ya a mitad de su carga
+    // (al viajar estaban los dos pueblos a la vez en memoria, que es cuando más justo va el móvil)
+    this.weather?.dispose(); this.weather = null;
+    this.terrain = this.sky = this.water = this.mats = this.nature = this.fauna = this.player = this.particles = this.waterfall = this.smoke = this.lights = this.beacon = null;
     this.canvas.style.visibility = 'hidden';
   }
   loop() {

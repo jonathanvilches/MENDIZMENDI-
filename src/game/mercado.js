@@ -5,7 +5,7 @@
 import * as THREE from 'three';
 import { Actor } from '../actors/people.js';
 import { addBox, isFree } from '../world/colliders.js';
-import { groundHeight } from '../world/heightfield.js';
+import { groundHeight, onPlatform } from '../world/heightfield.js';
 import { PLACES } from '../world/layout.js';
 import { PRODUCTS, crateOf, mergeByMaterial } from '../world/products3d.js';
 
@@ -42,7 +42,7 @@ export class Mercado {
     let placed = 0; const wood = new THREE.MeshStandardMaterial({ color: '#7a5634', roughness: 0.85 });
     for (let k = 0; k < 16 && placed < list.length; k++) {
       const a = k / 16 * Math.PI * 2 + 0.2, x = c.x + Math.sin(a) * r, z = c.z + Math.cos(a) * r;
-      if (!isFree(x, z, 2.0) || this.stalls.some(s => Math.hypot(s.x - x, s.z - z) < 5.5)) continue;
+      if (!isFree(x, z, 2.0) || onPlatform(x, z, 2) || this.stalls.some(s => Math.hypot(s.x - x, s.z - z) < 5.5)) continue;
       const S = list[placed++], ry = Math.atan2(c.x - x, c.z - z), y = groundHeight(x, z);
       const st = new THREE.Group(); st.position.set(x, y, z); st.rotation.y = ry;
       const add = (o) => { st.add(o); return o; };

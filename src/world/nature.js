@@ -2,8 +2,8 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { HALF, CELL, N, pathQuery, riverInfo, villageMask, meadowMask, iratiMask, fieldInfo, SPECIAL_TREES, TREE_MIX, TONE } from './layout.js';
-import { H, SURF, terrainHeight, surfAt } from './heightfield.js';
-import { addCircle, isFree } from './colliders.js';
+import { H, SURF, terrainHeight, surfAt, onPlatform } from './heightfield.js';
+import { addCircle, isFree, removeCollider } from './colliders.js';
 import { mulberry32, clamp } from '../util/math.js';
 import { fbm } from '../util/noise.js';
 import { TEX, FOLIAGE } from './textures.js';
@@ -479,8 +479,15 @@ function treeSpots(rnd) {
     else type = n > 0.15 ? 'beech' : n > -0.3 ? 'oak' : 'fir';
     spots.push({ x: X, z: Z, y: h, type, s: 0.75 + rnd() * 0.55, rot: rnd() * Math.PI * 2 });
   }
-  const special = SPECIAL_TREES || [];
-  for (const [x, z, type, s] of special) spots.push({ x, z, y: terrainHeight(x, z), type, s, rot: rnd() * 6, special: true });
+  // árboles fijos (los de la plaza y las alamedas de Pamplona): no se colocan a ciegas, porque al mover plazas y calles
+  // podían quedar dentro de una casa o en mitad de una calle. Los de la plaza buscan un hueco cerca; los que van en
+  // hilera (nudge sin marcar) se quitan, para no romper la fila
+  const fits = (x, z) => { if (!isFree(x, z, 1.6) || onPlatform(x, z, 1.5)) return false; const p = pathQuery(x, z); return p.d > p.w + 0.8; };
+  for (const [x, z, type, s, nudge] of SPECIAL_TREES || []) {
+    const rot = rnd() * 6; let X = x, Z = z, ok = fits(x, z);
+    for (let k = 1; !ok && nudge && k <= 30; k++) { const a = k * 2.4, d = 1 + k * 0.28; X = x + Math.cos(a) * d; Z = z + Math.sin(a) * d; ok = fits(X, Z); }
+    if (ok) spots.push({ x: X, z: Z, y: terrainHeight(X, Z), type, s, rot, special: true });
+  }
   // árboles sueltos en los linderos de los campos
   for (let k = 0; k < 9000; k++) {
     const x = (rnd() - 0.5) * 2 * (HALF - 20), z = (rnd() - 0.5) * 2 * (HALF - 20);
@@ -529,7 +536,7 @@ export class Nature {
       if (!chunks.has(key)) chunks.set(key, { list: [], cx: 0, cz: 0 });
       chunks.get(key).list.push(s);
       TREES.push(s);
-      addCircle(s.x, s.z, 0.45 * s.s + 0.1, { tree: true });
+      s.col = addCircle(s.x, s.z, 0.45 * s.s + 0.1, { tree: true }); s.inst = [];
     }
     this.chunks = [];
     const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler();
@@ -545,7 +552,7 @@ export class Nature {
           list.forEach((s, i) => {
             e.set((rnd() - 0.5) * 0.06, s.rot, (rnd() - 0.5) * 0.06); q.setFromEuler(e);
             m4.compose(new THREE.Vector3(s.x, s.y - 0.25, s.z), q, new THREE.Vector3(s.s, s.s * (0.9 + rnd() * 0.25), s.s));
-            im.setMatrixAt(i, m4);
+            im.setMatrixAt(i, m4); s.inst.push([im, i]);
           });
           im.computeBoundingSphere();
           im.castShadow = lod === 0; im.receiveShadow = lod === 0; im.name = type + (lod ? '-lejos' : '-cerca');
@@ -825,6 +832,19 @@ vTint = k < 0.4 ? vec3(1.0, 1.0, 0.97) : k < 0.62 ? vec3(1.0, 0.85, 0.2) : k < 0
 
 // Constructores de árboles para escenas fuera de la partida (inicio, fondos)
 export const TREE_MAKERS = { beech: makeBeech, oak: makeOak, fir: makeFir, bush: makeBush, olive: makeOlive, poplar: makePoplar, pine: makePine, chestnut: makeChestnut, apple: makeApple };
+// Quita los árboles que hayan quedado dentro de un rectángulo girado (mismo criterio que clearGrass: ancho w centrado
+// y fondo d desde el punto): al levantar un frontón o una pista, un árbol podía quedar en medio de la cancha (Tafalla)
+const _zero = new THREE.Matrix4().makeScale(0, 0, 0);
+export function clearTrees(cx, cz, w, d, ry, m = 1) {
+  const c = Math.cos(ry), s = Math.sin(ry);
+  for (let k = TREES.length - 1; k >= 0; k--) {
+    const t = TREES[k], dx = t.x - cx, dz = t.z - cz, u = dx * c - dz * s, v = dx * s + dz * c, r = m + 0.6 * t.s;   // (con la copa)
+    if (Math.abs(u) > w / 2 + r || v < -r || v > d + r) continue;
+    for (const [im, i] of t.inst || []) { im.setMatrixAt(i, _zero); im.instanceMatrix.needsUpdate = true; }
+    if (t.col) removeCollider(t.col);
+    TREES.splice(k, 1);
+  }
+}
 // Quita la hierba (y la trama del suelo) de un rectángulo girado: canchas, frontones…
 export function clearGrass(cx, cz, w, d, ry) {
   if (!grassTex) return;

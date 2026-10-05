@@ -6,8 +6,8 @@ import * as THREE from 'three';
 import { FLORA, floraOf } from '../data/flora.js';
 import { floraModel, releaseFlora } from '../world/flora3d.js';
 import { showFicha, identifyQuiz } from '../ui/ficha.js';
-import { PLACES } from '../world/layout.js';
-import { groundHeight, waterLevelAt } from '../world/heightfield.js';
+import { PLACES, pathQuery } from '../world/layout.js';
+import { groundHeight, waterLevelAt, onPlatform } from '../world/heightfield.js';
 import { isFree, addCircle } from '../world/colliders.js';
 import { profile, saveProfile, addCard, addXP } from './profile.js';
 import { mulberry32 } from '../util/math.js';
@@ -46,7 +46,8 @@ export class FloraSpots {
       let at = null;
       for (let k = 0; k < 80 && !at; k++) {
         const a = rnd() * Math.PI * 2, d = (big ? 38 : 22) + rnd() * (big ? 70 : 55), x = c.x + Math.cos(a) * d, z = c.z + Math.sin(a) * d;
-        if (!isFree(x, z, clear) || waterLevelAt(x, z) > groundHeight(x, z) - 0.1 || G.nearHouses?.(x, z, big ? 12 : 5)) continue;
+        if (!isFree(x, z, clear) || onPlatform(x, z, clear) || waterLevelAt(x, z) > groundHeight(x, z) - 0.1 || G.nearHouses?.(x, z, big ? 12 : 5)) continue;   // (ni en un frontón ni en la pista)
+        const pq = pathQuery(x, z); if (pq.d < pq.w + (big ? 2.5 : 0.6)) continue;   // junto al camino, pero no en medio
         const h0 = groundHeight(x, z); if (Math.abs(groundHeight(x + 1.5, z) - h0) > 0.9 || Math.abs(groundHeight(x, z + 1.5) - h0) > 0.9) continue;
         if (used.some(u => Math.hypot(u.x - x, u.z - z) < 9)) continue;
         at = { x, z };

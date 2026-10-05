@@ -1,0 +1,12 @@
+<!doctype html><html><head><meta charset="utf-8"></head><body><script type="module">
+// Hornea las fotos de las comarcas (portada, fondos y pantalla de carga): las recoge tools/portadabake.mjs
+import * as THREE from 'three';
+import { bakeShot } from '../src/hub/diorama.js';
+import COMARCAS from '../src/data/comarcas.json';
+const R = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+R.setPixelRatio(1); R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.ACESFilmicToneMapping;
+R.shadowMap.enabled = true; R.shadowMap.type = THREE.PCFSoftShadowMap;
+window.__ids = COMARCAS.map(c => c.id);
+window.__bake = (id, w, h) => bakeShot(R, id, w, h);
+window.__ready = true;
+</script></body></html>

@@ -30,6 +30,8 @@ await p.addInitScript((q) => {
 await p.goto(`${URL}?town=${town}&q=${q}&weather=clear&skipintro=1`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play' && window.__rt?.active, null, { timeout: 900000 });
 await p.waitForTimeout(8000);
+// VIAJE=pueblo: ir a otro pueblo y volver antes de medir (lo que se quede del otro pueblo sale en la lista)
+if (process.env.VIAJE) for (const t of [process.env.VIAJE, town]) { await p.evaluate((t) => window.__game.onPlayTown(t), t); await p.waitForFunction((t) => window.__game && window.__game.def?.id === t && window.__game.mode === 'play' && window.__rt?.active, t, { timeout: 900000 }); await p.waitForTimeout(6000); }
 const r = await p.evaluate(async () => {
   for (let i = 0; i < 4; i++) { window.gc?.(); await new Promise(r => setTimeout(r, 400)); }
   const by = new Map(); let tot = 0;

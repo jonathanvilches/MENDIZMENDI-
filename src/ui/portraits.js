@@ -17,7 +17,8 @@ function setup() {
   const rim = new THREE.DirectionalLight('#9fd0ff', 1.2); rim.position.set(-2, 1.5, -2); scene.add(rim);
   cam = new THREE.PerspectiveCamera(26, 1, 0.1, 20);
 }
-// look: aspecto nuevo (minifig) o antiguo; mode: 'bust' (cabeza y hombros) | 'full'
+// look: aspecto nuevo (minifig) o antiguo; mode: 'bust' (cabeza y hombros) | 'full' (cuerpo entero; 'hero', el grande de
+// la portada del menú, solo lo traen hecho los personajes GLB: para los demás es como 'full')
 // retrato con el cuerpo de los personajes nuevos (el mismo traje que lleva en el juego)
 function portraitKK(look, mode) {
   const n = buildNpc(look), obj = n.obj;
@@ -68,7 +69,7 @@ export function portrait(look, mode = 'bust', isMini = false) {
   } catch (e) { console.warn('retrato', e); return ''; }
 }
 // los avatares GLB traen su retrato ya renderizado (tools/charportraits.mjs)
-const glbPortrait = (id, mode) => GLB_AVATARS[id] && (mode === 'full' ? GLB_AVATARS[id].full : GLB_AVATARS[id].bust);
+const glbPortrait = (id, mode) => GLB_AVATARS[id] && (mode === 'hero' ? GLB_AVATARS[id].hero || GLB_AVATARS[id].full : mode === 'full' ? GLB_AVATARS[id].full : GLB_AVATARS[id].bust);
 export const avatarPortrait = (id, mode = 'bust') => glbPortrait(id, mode) || portrait(COSTUMES[id] || COSTUMES.leire, mode, true);
 
 // <img> del retrato sin bloquear: si aún no está hecho, se dibuja en segundo plano y aparece luego
