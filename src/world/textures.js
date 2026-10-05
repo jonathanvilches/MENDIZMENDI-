@@ -118,7 +118,12 @@ function plaster(size, base, seed) {
   // manchas y zonas donde asoma la piedra
   for (let i = 0; i < 40; i++) {
     const x = rnd() * size, y = rnd() * size, r = 8 + rnd() * 30;
-    wrapDraw(size, x, y, r, (X, Y) => { g.fillStyle = `rgba(120,105,85,${0.03 + rnd() * 0.05})`; g.beginPath(); g.ellipse(X, Y, r, r * 0.7, rnd() * 3, 0, 7); g.fill(); });
+    wrapDraw(size, x, y, r, (X, Y) => { g.fillStyle = `rgba(120,105,85,${0.04 + rnd() * 0.07})`; g.beginPath(); g.ellipse(X, Y, r, r * 0.7, rnd() * 3, 0, 7); g.fill(); });
+  }
+  // zonas amplias algo más cálidas o más frías (capas de cal distintas, humedad): rompen el blanco uniforme
+  for (let i = 0; i < 10; i++) {
+    const x = rnd() * size, y = rnd() * size, r = 60 + rnd() * 110, warm = rnd() < 0.5;
+    wrapDraw(size, x, y, r, (X, Y) => { g.fillStyle = warm ? `rgba(200,170,120,${0.05 + rnd() * 0.05})` : `rgba(150,160,175,${0.04 + rnd() * 0.05})`; g.beginPath(); g.ellipse(X, Y, r, r * 0.6, rnd() * 3, 0, 7); g.fill(); });
   }
   // pasadas de llana (bandas suaves) y alguna grieta fina
   for (let i = 0; i < 26; i++) {
@@ -139,10 +144,16 @@ function plaster(size, base, seed) {
   crack(g, 'rgba(70,60,50,.28)', 0.7);
   grain(g, size, 0.07, rnd, 1.5);
   const img = h.getImageData(0, 0, size, size), d = img.data;
-  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) { const v = 128 + noise2(x / 4, y / 4) * 30 + noise2(x / 1.5, y / 1.5) * 18; const k = (y * size + x) * 4; d[k] = d[k + 1] = d[k + 2] = v; }
+  // relieve: grano fino de la arena del mortero, pasadas de llana a media escala y ondulación ancha (una pared
+  // revocada a mano nunca es un plano): con el sol de lado se ve la textura y las paredes grandes no quedan lisas
+  const S = size / 512;
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const v = 128 + noise2(x / (4 * S), y / (4 * S)) * 26 + noise2(x / (1.5 * S), y / (1.5 * S)) * 14 + noise2(x / (14 * S) + 3, y / (14 * S)) * 22 + noise2(x / (46 * S) + 7, y / (46 * S) + 2) * 34;
+    const k = (y * size + x) * 4; d[k] = d[k + 1] = d[k + 2] = v;
+  }
   h.putImageData(img, 0, 0);
   crack(h, '#505050', 1);
-  return { map: toTex(col), normalMap: toTex(normalFromHeight(hc, 1.2), false) };
+  return { map: toTex(col), normalMap: toTex(normalFromHeight(hc, 1.8), false) };
 }
 
 // ---- Tejas / losas ----
@@ -243,10 +254,12 @@ function groundDetail(size) {
   // canal R: ruido grande, G: ruido fino, B: guijarros para tierra
   const rnd = mulberry32(5);
   const c = canvas(size), g = c.getContext('2d'), img = g.createImageData(size, size), d = img.data;
+  // ruido que se repite sin costura: el ruido en el punto y en sus tres copias desplazadas un periodo, fundidos por la
+  // distancia al borde (el truco anterior, con senos y cosenos, dejaba remolinos concéntricos que se veían en el prado
+  // como huellas dactilares)
   const per = (x, y, f) => {
-    // ruido periódico
-    const a = (x / size) * Math.PI * 2, b = (y / size) * Math.PI * 2;
-    return noise2(Math.cos(a) * f + 10, Math.sin(a) * f + Math.cos(b) * f * 0.9 + 3) * 0.5 + noise2(Math.sin(b) * f - 7, Math.cos(b) * f + Math.sin(a) * f * 0.7) * 0.5;
+    const u = x / size, v = y / size, s = f * 2.2, n = (px, py) => noise2(px * s + 10, py * s + 3);
+    return n(u, v) * (1 - u) * (1 - v) + n(u - 1, v) * u * (1 - v) + n(u, v - 1) * (1 - u) * v + n(u - 1, v - 1) * u * v;
   };
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
     const k = (y * size + x) * 4;
@@ -302,7 +315,10 @@ function grassGround(size) {
 // R: luminancia de la roca, G: líquenes, B: oclusión de grietas. Devuelve también el mapa de relieve (normal).
 function rockFace(size) {
   const rnd = mulberry32(23);
-  const per = (x, y, f) => { const a = (x / size) * Math.PI * 2, b = (y / size) * Math.PI * 2; return noise2(Math.cos(a) * f + 10, Math.sin(a) * f + Math.cos(b) * f * 0.9 + 3) * 0.5 + noise2(Math.sin(b) * f - 7, Math.cos(b) * f + Math.sin(a) * f * 0.7) * 0.5; };
+  const per = (x, y, f) => {   // (sin costura y sin remolinos, como en groundDetail)
+    const u = x / size, v = y / size, s = f * 2.2, n = (px, py) => noise2(px * s + 10, py * s + 3);
+    return n(u, v) * (1 - u) * (1 - v) + n(u - 1, v) * u * (1 - v) + n(u, v - 1) * (1 - u) * v + n(u - 1, v - 1) * u * v;
+  };
   // bloques: celdas de Voronoi enlosables (una semilla por casilla, algo más anchas que altas, como la caliza)
   const G = 4, cw = size / G, seeds = [];
   for (let j = 0; j < G; j++) for (let i = 0; i < G; i++) seeds.push([(i + 0.15 + rnd() * 0.7) * cw, (j + 0.15 + rnd() * 0.7) * cw, rnd(), rnd()]);
@@ -363,14 +379,25 @@ function bricks(size) {
   const g = col.getContext('2d'), h = hc.getContext('2d');
   g.fillStyle = '#c9b49a'; g.fillRect(0, 0, size, size);
   h.fillStyle = '#303030'; h.fillRect(0, 0, size, size);
-  const rows = 16, rh = size / rows, bw = size / 5;
+  // mortero con grano (arena y cal) antes de poner los ladrillos
+  grain(g, size, 0.12, rnd, 0.8);
+  const rows = 16, rh = size / rows, bw = size / 5, k = size / 512;
   for (let r = 0; r < rows; r++) for (let c = -1; c < 6; c++) {
-    const x = c * bw + (r % 2) * bw / 2, y = r * rh;
-    const l = 40 + rnd() * 12, hue = 12 + rnd() * 10;
-    g.fillStyle = hsl(hue, 45 + rnd() * 10, l); g.fillRect(x + 1.5, y + 1.5, bw - 3, rh - 3);
-    h.fillStyle = '#d0d0d0'; h.fillRect(x + 1.5, y + 1.5, bw - 3, rh - 3);
+    // cada ladrillo con su tono (alguno más cocido, casi morado; alguno más claro), un poco movido en la hilada y con
+    // los bordes algo desiguales; en el relieve, los ladrillos no sobresalen todos lo mismo
+    const x = c * bw + (r % 2) * bw / 2 + (rnd() - 0.5) * 2 * k, y = r * rh;
+    const burnt = rnd() < 0.12, pale = !burnt && rnd() < 0.1;
+    const l = burnt ? 30 + rnd() * 6 : pale ? 54 + rnd() * 6 : 40 + rnd() * 12, hue = burnt ? 4 + rnd() * 8 : 12 + rnd() * 10, sat = burnt ? 40 + rnd() * 10 : 45 + rnd() * 12;
+    const grd = g.createLinearGradient(0, y, 0, y + rh); grd.addColorStop(0, hsl(hue, sat, l + 3)); grd.addColorStop(1, hsl(hue, sat, l - 3));
+    g.fillStyle = grd; g.fillRect(x + 1.5 * k, y + 1.5 * k, bw - 3 * k, rh - 3 * k);
+    // cara del ladrillo: poros y alguna veta más oscura (arcilla sin refinar)
+    for (let i = 0; i < 12; i++) { g.fillStyle = `rgba(60,25,15,${0.08 + rnd() * 0.12})`; g.fillRect(x + 2 * k + rnd() * (bw - 6 * k), y + 2 * k + rnd() * (rh - 6 * k), (1 + rnd() * 3) * k, (1 + rnd() * 1.5) * k); }
+    if (rnd() < 0.3) { g.fillStyle = `rgba(255,240,220,${0.06 + rnd() * 0.08})`; g.fillRect(x + 2 * k, y + 2 * k + rnd() * (rh - 6 * k), bw - 4 * k, (1 + rnd() * 2) * k); }
+    const hv = 190 + rnd() * 40; h.fillStyle = `rgb(${hv},${hv},${hv})`; h.fillRect(x + 1.5 * k, y + 1.5 * k, bw - 3 * k, rh - 3 * k);
   }
-  grain(g, size, 0.16, rnd, 0.6);
+  // eflorescencias de cal (velos blanquecinos) y salpicaduras oscuras cerca de alguna junta
+  for (let i = 0; i < 9; i++) { const x = rnd() * size, y = rnd() * size, w = 20 + rnd() * 60, hh = 8 + rnd() * 30; wrapDraw(size, x, y, Math.max(w, hh), (X, Y) => { g.fillStyle = `rgba(235,228,215,${0.05 + rnd() * 0.07})`; g.beginPath(); g.ellipse(X, Y, w * k, hh * k, rnd() * 3, 0, 7); g.fill(); }); }
+  grain(g, size, 0.1, rnd, 0.6);
   return { map: toTex(col), normalMap: toTex(normalFromHeight(hc, 2.5), false) };
 }
 
@@ -467,7 +494,7 @@ export function buildTextures(quality = 'high') {
   TEX.roofSlate = roofTiles(S, { seed: 4, rows: 16, cols: 8, dark: '#1f2126', hue: 220, hueVar: 12, sat: 8, light: 30, lightVar: 10 });
   TEX.roofTile = roofTiles(S, { seed: 5, rows: 14, cols: 9, dark: '#3d1d14', hue: 12, hueVar: 10, sat: 45, light: 38, lightVar: 12, round: true });
   TEX.wood = wood(S / 2, [25, 42, 30], 8);
-  TEX.woodDark = wood(S / 2, [20, 35, 20], 12);
+  TEX.woodDark = wood(S / 2, [20, 35, 27], 12);   // (roble oscuro, pero no negro: a la sombra las puertas se veían como un hueco)
   TEX.cobble = cobbles(S);
   TEX.brick = bricks(S);
   TEX.plasterOcher = plaster(S, '#e3c48f', 3);

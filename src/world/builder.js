@@ -60,13 +60,13 @@ export function makeMaterials() {
     ashlar: weather(withTex(TEX.ashlar), 0.9),
     // piedra arenisca dorada (catedral de Pamplona, palacios de la Ribera)
     sandstone: weather(withTex(TEX.ashlar, { color: new THREE.Color(1.3, 1.08, 0.76), emissive: new THREE.Color('#3d2f17') }), 1.0, 0.5),
-    plaster: weather(withTex(TEX.plasterWhite, { normalScale: new THREE.Vector2(0.5, 0.5) }), 0.8, 0.4),
-    plasterCream: weather(withTex(TEX.plasterCream, { normalScale: new THREE.Vector2(0.5, 0.5) }), 0.8, 0.4),
+    plaster: weather(withTex(TEX.plasterWhite, { normalScale: new THREE.Vector2(0.8, 0.8) }), 0.8, 0.4),
+    plasterCream: weather(withTex(TEX.plasterCream, { normalScale: new THREE.Vector2(0.8, 0.8) }), 0.8, 0.4),
     slate: snowable(withTex(TEX.roofSlate, { roughness: 0.75 })),
     brick: weather(withTex(TEX.brick), 0.8, 0.3),
-    plasterOcher: weather(withTex(TEX.plasterOcher, { normalScale: new THREE.Vector2(0.5, 0.5) }), 0.8, 0.4),
-    plasterRose: weather(withTex(TEX.plasterRose, { normalScale: new THREE.Vector2(0.5, 0.5) }), 0.8, 0.4),
-    plasterBlue: weather(withTex(TEX.plasterBlue, { normalScale: new THREE.Vector2(0.5, 0.5) }), 0.8, 0.4),
+    plasterOcher: weather(withTex(TEX.plasterOcher, { normalScale: new THREE.Vector2(0.8, 0.8) }), 0.8, 0.4),
+    plasterRose: weather(withTex(TEX.plasterRose, { normalScale: new THREE.Vector2(0.8, 0.8) }), 0.8, 0.4),
+    plasterBlue: weather(withTex(TEX.plasterBlue, { normalScale: new THREE.Vector2(0.8, 0.8) }), 0.8, 0.4),
     gold: std({ color: '#d9a93a', metalness: 0.7, roughness: 0.35 }),
     zinc: std({ color: '#5d7480', metalness: 0.5, roughness: 0.4 }),
     tile: snowable(withTex(TEX.roofTile, { roughness: 0.8 })),
@@ -74,7 +74,7 @@ export function makeMaterials() {
     woodDark: weather(withTex(TEX.woodDark), 0.6, 0.2),
     // cristal mate (Lambert, sin brillo especular): no hace reflejos al girar la cámara; de noche se enciende con el emisivo
     // y con prioridad de profundidad sobre la pared, para que no parpadee de lejos ni en móviles con poca precisión
-    glass: new THREE.MeshLambertMaterial({ color: '#2a3c4b', emissive: new THREE.Color('#ffb85a'), emissiveIntensity: 0, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }),
+    glass: new THREE.MeshLambertMaterial({ color: '#3b5166', emissive: new THREE.Color('#ffb85a'), emissiveIntensity: 0, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }),
     water: std({ color: '#3b7f9c', roughness: 0.05, metalness: 0.3, envMapIntensity: 1.2 }),
     // chorro de las fuentes: agua clara y algo transparente
     jet: std({ color: '#d8edf3', roughness: 0.1, transparent: true, opacity: 0.6, emissive: new THREE.Color('#29434d') }),

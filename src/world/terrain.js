@@ -185,8 +185,11 @@ vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.
 #endif
   vec3 gc = base * (0.56 + 0.62 * blades) * (0.82 + 0.3 * d1.r) * (0.86 + 0.26 * d2.g) * (0.84 + 0.3 * big);
   gc = mix(vec3(dot(gc, vec3(0.3, 0.59, 0.11))), gc, 0.9) * 0.93;   // verde natural, no lima
-  gc = mix(gc, gc * vec3(1.1, 1.0, 0.7), smoothstep(0.56, 0.82, huge) * 0.55);   // rodales secos, amarillentos
-  gc = mix(gc, gc * vec3(0.76, 0.94, 0.88), smoothstep(0.44, 0.18, huge) * 0.5);  // hondonadas más frescas
+  // rodales secos amarillentos y hondonadas más frescas: transiciones anchas y rotas con el detalle medio (con un
+  // umbral estrecho sobre un ruido tan suave salían anillos concéntricos en el prado, como curvas de nivel)
+  float hz = huge + (d1.r - 0.5) * 0.16 + (big - 0.5) * 0.1;
+  gc = mix(gc, gc * vec3(1.1, 1.0, 0.7), smoothstep(0.5, 0.95, hz) * 0.5);
+  gc = mix(gc, gc * vec3(0.76, 0.94, 0.88), smoothstep(0.5, 0.08, hz) * 0.45);
   gc = mix(gc, gc * vec3(1.06, 1.02, 0.8), smoothstep(0.62, 0.85, d1.g) * 0.3);
   gc *= 0.84 + 0.26 * smoothstep(0.25, 0.75, clump);
   gc *= vec3(0.8, 0.93, 0.74);                                   // suelo algo más oscuro y verde que las briznas

@@ -10,6 +10,7 @@ import { addBox, addCircle, isFree } from './colliders.js';
 import { mulberry32, clamp } from '../util/math.js';
 
 export const TOWN = { houses: [], lamps: [], benches: [], church: null, fountain: null, landmarks: [], farm: null, pen: null };
+if (typeof window !== 'undefined') window.__TOWN = TOWN;   // (para las herramientas de capturas)
 
 function polyLen(pts) { let l = 0; for (let i = 1; i < pts.length; i++) l += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); return l; }
 function polyAt(pts, s) {
