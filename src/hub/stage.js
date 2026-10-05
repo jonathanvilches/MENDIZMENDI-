@@ -144,6 +144,7 @@ export class Stage {
     return { fig: rig.obj, anim, H: box.max.y - box.min.y, rig };
   }
   useFig(id, { fig, anim, H: h, rig }) {
+    if (!this.scene) { rig?.dispose?.(); return; }   // (escenario ya soltado)
     if (this.fig) this.scene.remove(this.fig);
     this.glbRig?.dispose(); this.glbRig = rig || null;
     this.fig = fig; this.anim = anim;
@@ -240,9 +241,15 @@ export class Stage {
     if (this.ready) this.r.render(this.scene, this.cam);
   }
   dispose() {
-    this.alive = false;
-    this.r.domElement.removeEventListener('pointerdown', this.onDown); removeEventListener('pointermove', this.onMove); removeEventListener('pointerup', this.onUp);
-    if (this.fig) this.scene.remove(this.fig);
-    if (this.r.domElement.parentNode === this.host) this.r.domElement.remove();
+    this.alive = false; this.avatarToken = -1;   // (un personaje que aún se esté cargando ya no se pone)
+    if (this.r) {
+      this.r.domElement.removeEventListener('pointerdown', this.onDown); removeEventListener('pointermove', this.onMove); removeEventListener('pointerup', this.onUp);
+      if (this.r.domElement.parentNode === this.host) this.r.domElement.remove();
+    }
+    if (this.fig && this.scene) this.scene.remove(this.fig);
+    // se sueltan el diorama y el personaje: el menú guarda este escenario y, si no, toda la geometría de la portada
+    // seguía viva durante la partida (en el iPhone, memoria de más justo al entrar en un pueblo grande)
+    this.glbRig?.dispose?.(); this.glbRig = null;
+    this.fig = this.anim = null; this.scene = this.D = null;
   }
 }

@@ -52,8 +52,8 @@ else {
   await p.evaluate(() => window.__lce.restoreContext());
   await p.waitForFunction(() => !document.querySelector('.ctxlost') && window.__game && window.__game.mode === 'play' && window.__rt.active && !window.__rt.contextLost, null, { timeout: 400000 }).catch(() => {});
   await p.waitForTimeout(2500);
-  const back = await p.evaluate(() => { const f0 = window.__rt.renderer.info.render.frame; return new Promise(r => setTimeout(() => r({ aviso: !!document.querySelector('.ctxlost'), juego: window.__game?.mode, dibuja: window.__rt.renderer.info.render.frame - f0, tris: window.__rt.renderer.info.render.triangles }), 1500)); });
-  ok(!back.aviso && back.juego === 'play' && back.dibuja > 0 && back.tris > 1000, `al volver: juego ${back.juego}, ${back.dibuja} fotogramas en 1,5 s, ${back.tris} triángulos en pantalla`);
+  const back = await p.evaluate(() => { const f0 = window.__rt.renderer.info.render.frame; return new Promise(r => setTimeout(() => r({ aviso: !!document.querySelector('.ctxlost'), juego: window.__game?.mode, dibuja: window.__rt.renderer.info.render.frame - f0, tris: window.__rt.renderer.info.render.triangles }), 5000)); });   // (5 s: en un pueblo grande y con el procesador ocupado, un fotograma puede tardar)
+  ok(!back.aviso && back.juego === 'play' && back.dibuja > 0 && back.tris > 1000, `al volver: juego ${back.juego}, ${back.dibuja} fotogramas en 5 s, ${back.tris} triángulos en pantalla`);
 }
 
 // 3. vecinos

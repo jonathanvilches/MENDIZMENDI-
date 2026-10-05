@@ -199,12 +199,13 @@ function clouds(rnd) {
 function trees(hf, tone, rnd, curve) {
   const kinds = TREES[tone] || TREES.atlantic, geos = {};
   const pts = curve.getSpacedPoints(60), mats = new Map();
+  // cada especie, una sola geometría repetida con instancias (antes se copiaba entera en cada árbol: unos 330 árboles,
+  // más de un millón de vértices solo para la portada del menú)
   const place = (x, z, s, kind) => {
     let dp = 1e9; for (const q of pts) dp = Math.min(dp, Math.hypot(q.x - x, q.z - z));
     if (dp < 5 || Math.hypot(x - PLAZA.x, z - PLAZA.z) < 34) return;
-    const g = (geos[kind] ||= TREE_MAKERS[kind](rnd, 1)).clone();
-    g.applyMatrix4(M(x, hf(x, z) - 0.2, z, rnd() * 6.28, 0, 0, s, s, s));
-    (mats.get(kind) || mats.set(kind, []).get(kind)).push(g);
+    geos[kind] ||= TREE_MAKERS[kind](rnd, 1);
+    (mats.get(kind) || mats.set(kind, []).get(kind)).push(M(x, hf(x, z) - 0.2, z, rnd() * 6.28, 0, 0, s, s, s));
   };
   // arboleda a los lados del pueblo y del camino
   for (let i = 0; i < 70; i++) { const side = i % 2 ? 1 : -1, x = side * (16 + rnd() * 70), z = -8 - rnd() * 110; place(x, z, 0.8 + rnd() * 0.5, kinds[i % kinds.length]); }
@@ -213,7 +214,11 @@ function trees(hf, tone, rnd, curve) {
   // un par de árboles cerca del personaje, a los lados
   place(-7.5, -2.5, 0.75, kinds[0]); place(8.5, -6, 0.9, kinds[1]);
   const g = new THREE.Group(), m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85, map: TEX.foliage || null, alphaTest: TEX.foliage ? 0.45 : 0, side: THREE.DoubleSide });
-  for (const list of mats.values()) { const mesh = new THREE.Mesh(mergeGeometries(list), m); mesh.castShadow = true; mesh.receiveShadow = true; g.add(mesh); }
+  for (const [kind, list] of mats) {
+    const mesh = new THREE.InstancedMesh(geos[kind], m, list.length);
+    list.forEach((mx, i) => mesh.setMatrixAt(i, mx)); mesh.instanceMatrix.needsUpdate = true; mesh.computeBoundingSphere();
+    mesh.castShadow = true; mesh.receiveShadow = true; g.add(mesh);
+  }
   return g;
 }
 

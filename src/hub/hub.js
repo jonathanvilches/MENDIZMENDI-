@@ -105,7 +105,7 @@ export class Hub {
     this.screen = 'home';
   }
   show(screen = this.screen, arg = this.arg) { this.root.classList.remove('hidden'); this.visible = true; this.go(screen, arg, true); if (!langChosen()) this.langPicker(); else if (!profile().name) this.onboarding(); }
-  hide() { this.root.classList.add('hidden'); this.visible = false; this.sheet?.remove(); releaseStage(); releaseOffscreen(); }
+  hide() { this.root.classList.add('hidden'); this.visible = false; this.sheet?.remove(); releaseStage(); this.stage = null; releaseOffscreen(); }
   go(screen, arg, silent) {
     this.screen = screen; this.arg = arg;
     if (!silent) this.sound?.ui('click');
