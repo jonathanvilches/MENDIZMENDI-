@@ -5,6 +5,7 @@ import { armSwing, GlbRig, loadMeshy, hasMeshy, loadedMeshy } from '../actors/gl
 import { PelotaCourt, PelotaMatch } from '../pelota/index.js';
 import { terrainHeight, waterLevelAt, addPlatform } from '../world/heightfield.js';
 import { addBox, isFree } from '../world/colliders.js';
+import { rx } from '../world/layout.js';
 import { clearGrass } from '../world/nature.js';
 import { isEU } from '../i18n.js';
 import { profile } from './profile.js';
@@ -34,6 +35,7 @@ function frontonSearch(plaza, r0, r1, gap, da) {
   let best = null, bs = 1e9;
   for (let r = r0; r <= r1; r += 8) for (let a = 0; a < Math.PI * 2; a += da) {
     const x = plaza.x + Math.cos(a) * r, z = plaza.z + Math.sin(a) * r, ry = Math.atan2(plaza.x - x, plaza.z - z);   // la cancha se abre hacia la plaza
+    if (Math.sign(x - rx(z)) !== Math.sign(plaza.x - rx(plaza.z))) continue;   // en la misma orilla que la plaza (sin río, rx es 9999: todo vale)
     const c = Math.cos(ry), s = Math.sin(ry); let mn = 1e9, mx = -1e9, ok = true;
     for (let lx = E.x0; lx <= E.x1 + 0.01 && ok; lx += 3) for (let lz = E.z0; lz <= E.z1 + 0.01; lz += 3) {
       const X = x + lx * c + lz * s, Z = z - lx * s + lz * c;

@@ -151,7 +151,7 @@ export const EU_RX = [
   [/^(.+) · con (.+)$/, '$1 · $2'],
   [/^Habla con (.+)$/, 'Hitz egin: $1'], [/^Vuelve con (.+)$/, 'Itzuli: $1'], [/^Hablar con (.+)$/, 'Hitz egin: $1'], [/^Saludar a (.+)$/, 'Agurtu: $1'],
   [/^Conoce (.+)$/, 'Ezagutu $1'], [/^El sabio de (.+)$/, '$1ko jakintsua'], [/^Sube al (.+)$/, 'Igo $1ra'],
-  [/^¡Bienvenido a (.+)! Habla con (.+)$/, 'Ongi etorri $1ra! Hitz egin: $2'],
+  [/^¡Ya estás en (.+)! Habla con (.+)$/, 'Ongi etorri $1ra! Hitz egin: $2'],
   [/^Siguiente: (.+) — busca la exclamación amarilla$/, 'Hurrengoa: $1 — bilatu harridura ikur horia'],
   [/^¡Ya está! Vuelve con (.+)$/, 'Eginda! Itzuli: $1'], [/^¡Hecho! Vuelve con (.+)$/, 'Eginda! Itzuli: $1'], [/^¡Muy bien! Vuelve con (.+)$/, 'Oso ondo! Itzuli: $1'],
   [/^Seguir \((\d+)\/(\d+)\)$/, 'Jarraitu ($1/$2)'], [/^Seguir buscando \((\d+)\/(\d+)\)$/, 'Jarraitu bilatzen ($1/$2)'],

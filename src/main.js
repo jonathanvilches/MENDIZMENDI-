@@ -146,7 +146,7 @@ async function boot() {
         ui.hideLoading(); queueMode('light');
         saveProfile();
         if (!q.get('skipintro') && !navigator.webdriver && !(P.towns[d.id]?.visits > 1)) await game.introFly();
-        { const g = game; setTimeout(() => { if (g && g === game) g.ui.toast(`¡Bienvenido a ${d.name}! Habla con ${g.missions[0]?.host?.name || 'tu guía'}`, 'exclaim', 4200); }, 700); }
+        { const g = game; setTimeout(() => { if (g && g === game) g.ui.toast(`¡Ya estás en ${d.name}! Habla con ${g.missions[0]?.host?.name || 'tu guía'}`, 'exclaim', 4200); }, 700); }
       }
     } catch (e) {
       // antes se volvía al menú sin decir nada («me saca del juego»): ahora se avisa, y si no estaba ya en calidad

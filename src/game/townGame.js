@@ -36,7 +36,7 @@ import { GOODS } from '../data/tiendas.js';
 import { FERIA } from '../data/ferias.js';
 import { PET, BELL, BENCH_LINES } from '../data/tocar.js';
 import { SITES } from '../data/dolmen.js';
-import { SABIOS, STYLE_TIP, KIND_TIP, NO_SABIO } from '../data/sabios.js';
+import { SABIOS, STYLE_TIP, LABEL_TIP, KIND_TIP, NO_SABIO } from '../data/sabios.js';
 // el encierro y el fútbol (motores grandes) se descargan al entrar en ellos, no al abrir el juego
 const loadEncierro = () => import('./encierro.js').then(m => m.Encierro);
 const loadFutbol = () => import('./futbol.js').then(m => m.Futbol);
@@ -161,7 +161,7 @@ export class TownGame {
     switch (m.type) {
       case 'visit': {
         M.title = `Conoce ${d.name}`; M.icon = 'church';
-        M.places = [{ kind: 'church', name: d.church?.name || 'La iglesia', text: d.church?.text || '', style: d.church?.style }, ...(d.landmarks || []).filter(l => !['walls'].includes(l.kind) || true)];
+        M.places = [{ kind: 'church', name: d.church?.name || 'La iglesia', text: d.church?.text || '', style: d.church?.style, label: d.church?.label }, ...(d.landmarks || []).filter(l => !['walls'].includes(l.kind) || true)];
         M.need = M.places.length;
         M.steps = () => ['Habla con ' + host(), `Visita los lugares importantes (${M.count}/${M.need})`, 'Vuelve con ' + host()];
         break;
@@ -369,7 +369,7 @@ export class TownGame {
   // Pastor que pasea con su rebaño y su perro; ganadera junto a las vacas. Al hablar, explican su oficio.
   // Un sabio o una sabia junto a la iglesia y a cada lugar histórico: al hablar explica su historia
   spawnSabios() {
-    const d = this.def, places = [{ kind: 'church', name: d.church?.name || 'La iglesia', text: d.church?.text || '', style: d.church?.style, at: TOWN.church?.door || PLACES.church }];
+    const d = this.def, places = [{ kind: 'church', name: d.church?.name || 'La iglesia', text: d.church?.text || '', style: d.church?.style, label: d.church?.label, at: TOWN.church?.door || PLACES.church }];
     TOWN.landmarks.forEach((l, k) => { if (!NO_SABIO.has(l.kind) && l.text) places.push({ kind: l.kind, name: l.name, text: l.text, at: l.spot || { x: l.x, z: l.z }, li: k + 1 }); });
     places.forEach((p, i) => {
       const S = SABIOS[(i + d.id.length) % SABIOS.length], f = !!S.female;
@@ -384,7 +384,7 @@ export class TownGame {
     a.say(5); this.player.frozen = true; this.speaker = a;
     this.player.heading = Math.atan2(a.pos.x - this.player.pos.x, a.pos.z - this.player.pos.z);
     try {
-      const tip = p.kind === 'church' ? STYLE_TIP[p.style] : KIND_TIP[p.kind];
+      const tip = p.kind === 'church' ? (LABEL_TIP[p.label] || STYLE_TIP[p.style]) : KIND_TIP[p.kind];
       await this.say(a, [`Kaixo, ${this.state.name}. Soy ${a.name.replace(/^Sabi[oa] /, '')}, ${f ? 'la sabia' : 'el sabio'} del pueblo: conozco la historia de cada piedra de ${d.name.split(' /')[0]}.`, `${p.name}. ${p.text}`, tip].filter(Boolean));
       // cuenta como lugar visitado en la misión «Conoce el pueblo»
       const M = this.missions.find(x => x.type === 'visit' && !x.done);
@@ -565,7 +565,7 @@ export class TownGame {
   mapLabels() {
     const L = [{ x: PLACES.plaza.x, z: PLACES.plaza.z - 18, label: this.def.name }];
     if (TOWN.church) L.push({ x: TOWN.church.x ?? PLACES.church.x, z: TOWN.church.z ?? PLACES.church.z, icon: 'church', label: 'Iglesia' });
-    for (const l of TOWN.landmarks) L.push({ x: l.spot.x, z: l.spot.z, icon: l.kind, label: l.name.length > 18 ? l.name.slice(0, 17) + '…' : l.name });
+    for (const l of TOWN.landmarks) L.push({ x: l.spot.x, z: l.spot.z, icon: l.kind, label: l.name.length > 24 ? l.name.slice(0, 23).replace(/\s+\S*$/, '') + '…' : l.name })   // (se corta por palabra entera);
     if (TOWN.farm) L.push({ x: TOWN.farm.x, z: TOWN.farm.z, icon: 'sheep', label: 'Granja' });
     L.push({ x: PLACES.fields.x, z: PLACES.fields.z, icon: 'wheat', label: 'Campos' });
     if (this.fronton) L.push({ x: this.fronton.spot.x, z: this.fronton.spot.z, icon: 'pelota', label: 'Frontón', text: 'Acércate al frontón para jugar a pelota', fronton: true, go: false });
@@ -826,7 +826,7 @@ export class TownGame {
     switch (M.type) {
       case 'visit':
         if (M.step === 0) {
-          await S([`¡Kaixo, ${name}! Ongi etorri: bienvenido a ${d.name}.`, d.intro || '', `Aquí hay ${M.need} lugares que tienes que conocer: ${M.places.map(p => p.name).join(', ')}.`, 'Sigue la luz dorada y la flecha de arriba. Cuando llegues a cada lugar, lo apuntarás en tu cuaderno.'].filter(Boolean));
+          await S([`¡Kaixo, ${name}! Ongi etorri: ¡te damos la bienvenida a ${d.name}!`, d.intro || '', `Aquí hay ${M.need} lugares que tienes que conocer: ${M.places.map(p => p.name).join(', ')}.`, 'Sigue la luz dorada y la flecha de arriba. Cuando llegues a cada lugar, lo apuntarás en tu cuaderno.'].filter(Boolean));
           this.startVisit(M);
         } else if (M.step === 1) await S([`Te quedan ${M.need - M.count} lugares por visitar. ¡Sigue la luz dorada!`]);
         else { await S([`¡Ya conoces ${d.name}! Ahora la gente del pueblo te pedirá ayuda.`, 'Los que tienen una exclamación amarilla encima tienen una misión para ti.']); await this.complete(M); }
@@ -1203,10 +1203,10 @@ export class TownGame {
   }
   async showPlace(M, p) {
     M.count++;
-    const kicker = p.kind === 'church' ? ({ romanesque: 'Arte románico', gothic: 'Arte gótico', baroque: 'Arte barroco', fortress: 'Iglesia-fortaleza', cathedral: 'Catedral' }[p.style] || 'Iglesia') : 'Patrimonio de ' + this.def.name;
+    const kicker = p.kind === 'church' ? (p.label || { romanesque: 'Arte románico', gothic: 'Arte gótico', baroque: 'Arte barroco', fortress: 'Iglesia-fortaleza', cathedral: 'Catedral', pamplona: 'Catedral' }[p.style] || 'Iglesia') : 'Patrimonio de ' + this.def.name;
     const isNew = addCard(this.def.id + ':' + p.name);
     this.sound.magic();
-    await infoCard(this.ui, { icon: p.kind === 'church' ? (p.style === 'cathedral' ? 'cathedral' : p.style === 'fortress' ? 'castle' : 'church') : p.kind, kicker, title: p.name, text: p.text, badge: isNew ? 'Nueva carta' : '', button: M.count >= M.need ? `¡Hecho! Vuelve con ${M.host.name}` : `Seguir (${M.count}/${M.need})` });
+    await infoCard(this.ui, { icon: p.kind === 'church' ? (p.style === 'cathedral' || p.style === 'pamplona' ? 'cathedral' : p.style === 'fortress' ? 'castle' : 'church') : p.kind, kicker, title: p.name, text: p.text, badge: isNew ? 'Nueva carta' : '', button: M.count >= M.need ? `¡Hecho! Vuelve con ${M.host.name}` : `Seguir (${M.count}/${M.need})` });
     if (M.count >= M.need) M.step = 2;
     saveProfile();
   }

@@ -336,15 +336,15 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .ficha .fc-head { align-self: center; position: relative; }
 .fc-pic { position: relative; width: min(300px, 72vw, 31vh); aspect-ratio: 6 / 5; border-radius: 16px; overflow: hidden; background: #eef4e6 radial-gradient(#ffffff, #dfe9d4); box-shadow: 0 8px 24px rgba(0, 0, 0, .35); }
 .fc-pic img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0; transition: opacity .35s; } .fc-pic img.on { opacity: 1; }
-.fc-pic.fauna { width: min(170px, 30vh); height: min(170px, 30vh); aspect-ratio: auto; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(rgba(255, 215, 0, .28), transparent 70%); box-shadow: none; }
+.fc-pic.fauna { width: min(150px, 26vh); height: min(150px, 26vh); aspect-ratio: auto; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(rgba(255, 215, 0, .28), transparent 70%); box-shadow: none; }
 .fc-pic.fauna .ico { width: 82%; height: 82%; }
 .ficha .kicker { align-self: center; color: #b8f08a; text-align: center; }
 .ficha h2 { text-align: center; }
 .fc-names { display: flex; gap: 6px 12px; justify-content: center; flex-wrap: wrap; font-size: 16px; }
 .fc-names .eu { font-weight: 900; color: #ffe38a; } .fc-names .sci { color: #cfe3c4; }
-.fc-sec { margin: 4px 0 0; display: grid; gap: 2px; }
+.fc-sec { margin: 2px 0 0; display: grid; gap: 1px; }
 .fc-sec dt { font-weight: 900; color: #b8f08a; font-size: 12px; text-transform: uppercase; letter-spacing: .1em; margin-top: 8px; }
-.fc-sec dd { margin: 0; color: #eef4e6; font-weight: 600; line-height: 1.38; font-size: 15px; }
+.fc-sec dd { margin: 0; color: #eef4e6; font-weight: 600; line-height: 1.34; font-size: 14.5px; }
 .fc-where { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 6px; }
 .fc-where span { padding: 3px 10px; border-radius: 999px; background: var(--c); color: #fff; font-size: 12px; font-weight: 800; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25); }
 .ficha .btn.primary { align-self: center; margin-top: 6px; }
@@ -676,7 +676,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   .finale .fin-list { display: none; }
   .finale .fin-btns { flex-direction: row; } .finale .fin-btns .btn { flex: 1 1 0; min-width: 0; flex-direction: column; gap: 4px; padding: 8px 10px; font-size: 14px; line-height: 1.15; }
 }
-@media (max-height: 900px) { .finale .stampimg.big { width: 110px; height: 110px; } .finale h2 { font-size: 32px; } .fin-list li { padding: 4px 10px; } }
+@media (max-height: 900px) { .finale .mg-card { gap: 9px; } .finale .stampimg.big { width: 104px; height: 104px; } .finale h2 { font-size: 30px; } .finale p { font-size: 14.5px; line-height: 1.3; } .fin-list { gap: 5px; } .fin-list li { padding: 3px 10px; font-size: 13.5px; } .finale .rewards .rw { padding: 5px 10px; } .finale .fin-btns { gap: 6px; padding-top: 10px; } .finale .fin-btns .btn { min-height: 46px; } }
 #pReset { width: 100%; margin-top: 6px; }
 .fw { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .fw i { position: absolute; left: var(--x); top: 110%; width: 8px; height: 8px; border-radius: 50%; background: var(--c); box-shadow: 0 0 12px var(--c); animation: fwUp 2.4s var(--d) ease-out infinite; }
@@ -692,6 +692,26 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 @media (orientation: landscape) and (max-height: 520px) { .hub-nav button span { font-size: 9.5px; } }
 /* móvil pequeño en horizontal: portada sin bocadillo ni rótulo para que nada se monte */
 @media (max-height: 520px) and (max-width: 700px) { .hero3d .bubble, .hero3d .h-bot .kicker { display: none; } }
+/* móvil tumbado (poca altura): las fichas de información y de misión cumplida van en dos columnas (dibujo a la
+   izquierda, texto y botón a la derecha) y «ordenar pasos» pone las opciones junto a los huecos: todo cabe sin desplazar */
+@media (orientation: landscape) and (max-height: 560px) {
+  .info .mg-card, .complete .mg-card { width: min(780px, 100%); max-height: calc(100dvh - 20px); display: grid; grid-template-columns: 150px minmax(0, 1fr); column-gap: 20px; row-gap: 6px; align-items: center; align-content: center; justify-items: start; text-align: left; padding: 14px 22px 14px 18px; }
+  .info .ic-head, .complete .ic-icon.big, .complete .stampimg { grid-column: 1; grid-row: 1 / span 8; justify-self: center; align-self: center; }
+  .info .mg-card > :not(.ic-head), .complete .mg-card > :not(.burst):not(.ic-icon):not(.stampimg) { grid-column: 2; }
+  .info .ic-icon { width: 120px; height: 120px; } .complete .ic-icon.big { width: 130px; height: 130px; } .complete .stampimg { width: 140px; height: 140px; }
+  .info .ic-badge { right: -14px; top: -2px; }
+  .info .mg-card h2, .complete .mg-card h2 { font-size: 26px; } .info .mg-card p, .complete .mg-card p { font-size: 15px; }
+  .info .mg-card .btn, .complete .mg-card .btn { min-width: 200px; min-height: 46px; margin-top: 4px; }
+  .complete .rewards, .complete .prog { justify-self: stretch; } .complete .rewards { justify-content: flex-start; }
+  .antes-ahora { margin: 2px 0 2px; } .antes-ahora div { padding: 7px 10px; }
+  .seq:not(.choice) .mg-card { width: min(840px, 100%); display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); column-gap: 16px; row-gap: 8px; align-items: start; padding: 14px 18px; }
+  .seq:not(.choice) .mg-top, .seq:not(.choice) .fb { grid-column: 1 / -1; }
+  .seq:not(.choice) .slots { grid-column: 1; } .seq:not(.choice) .opts { grid-column: 2; flex-direction: column; align-items: stretch; gap: 6px; }
+  .seq:not(.choice) .slots li { min-height: 40px; padding: 6px 10px; } .seq:not(.choice) .opt { padding: 8px 12px; text-align: left; }
+  .seq:not(.choice) .fb { min-height: 22px; font-size: 17px; }
+  .mash .mbar { height: 140px; }
+  .ficha .fc-head .ic-badge { right: 6px; top: 6px; }
+}
 /* elegir una respuesta en el taller */
 .choice .opts { flex-direction: column; align-items: stretch; width: 100%; }
 .choice .opt { font-size: 17px; padding: 12px 14px; text-align: left; }

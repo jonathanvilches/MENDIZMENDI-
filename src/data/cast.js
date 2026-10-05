@@ -23,7 +23,7 @@ export const CAST_ALL = [
     look: { child: true, height: 1.36, skin: '#e2b088', hair: '#2e1e16', hairStyle: 'short', shirt: '#d6c49e', vest: '#dacaa8', pants: '#84603e', scarf: '#a84a2c', shoes: '#b0885c', boots: true, socks: '#9c744c', face: 'smile', pose: 'hip1' } },
   // aventureros (modelos CC0 de KayKit Adventurers, Kay Lousberg) que vienen a descubrir Navarra
   { id: 'ranger', name: 'Iñigo', from: 'Selva de Irati', role: 'Guardabosques', tagline: 'Lee las huellas del bosque', glb: true, kaykit: true,
-    desc: 'Recorre el hayedo de Irati con su pañuelo azul y su capa.  Sabe distinguir las huellas del corzo, del jabalí y del zorro.',
+    desc: 'Recorre el hayedo de Irati con su pañuelo azul y su capa. Sabe distinguir las huellas del corzo, del jabalí y del zorro.',
     ability: 'Rastreador: ve antes a los animales con los prismáticos', stats: [80, 60, 85, 85, 95], color: '#2f7a4a',
     look: { height: 1.5, skin: '#f1c4a0', hair: '#9a4a24', shirt: '#2f7a4a', pants: '#6a4a2a', shoes: '#6b3f24', boots: true } },
   { id: 'rogue', name: 'Ainhoa', from: 'Bardenas Reales', role: 'Exploradora', tagline: 'Se mueve sin hacer ruido', glb: true, kaykit: true,

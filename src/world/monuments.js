@@ -77,7 +77,7 @@ function spireTower(B, T, tw, th, roof, mat, style, clock = true) {
 }
 
 // ---------- Iglesia (estilos: romanesque, gothic, baroque, fortress, cathedral) ----------
-export function church(B, x, z, ry, style, fam) {
+export function church(B, x, z, ry, style, fam, opts = {}) {
   const y = terrainHeight(x, z) - 0.2;
   const T = M(x, y, z, ry);
   const brick = fam === 'ribera' && style === 'baroque';
@@ -135,13 +135,16 @@ export function church(B, x, z, ry, style, fam) {
       for (let k = 0; k < 8; k++) { const a = (k + 0.5) * Math.PI / 4; B.add('ashlar', new THREE.TorusGeometry(0.2, 0.04, 4, 10), MM(RF, M(Math.sin(a) * 0.82, Math.cos(a) * 0.82, 0.11))); }
     }
     if (style === 'baroque') { for (const s of [-1, 1]) B.add(mat, box(0.7, Hh, 0.5), MM(F, M(s * 3.2, Hh / 2, 0.2))); B.add(mat, box(W, 0.6, 0.6), MM(F, M(0, Hh * 0.62, 0.2))); }
-    // torre en un lateral de la cabecera
+    // torre en un lateral de la cabecera (la barroca, junto a la fachada); con «twin», dos torres gemelas flanquean
+    // la fachada, como en Santiago de Elizondo
     const tw = style === 'fortress' ? 7.5 : style === 'romanesque' ? 5 : 6.4;
     const th = style === 'fortress' ? Hh + 14 : style === 'romanesque' ? Hh + 6 : Hh + 13;
-    const TT = MM(T, M(style === 'baroque' ? W / 2 + tw / 2 - 0.5 : W / 2 + tw / 2 + 0.3, 0, style === 'baroque' ? L / 2 - tw / 2 : -L / 2 + tw));
-    spireTower(B, TT, tw, th, roof, mat, style);
-    const tp = toWorld(x, z, ry, style === 'baroque' ? W / 2 + tw / 2 - 0.5 : W / 2 + tw / 2 + 0.3, style === 'baroque' ? L / 2 - tw / 2 : -L / 2 + tw);
-    addBox(tp.x, tp.z, tw + 0.4, tw + 0.4, ry, { solidView: true });
+    const tx = style === 'baroque' ? W / 2 + tw / 2 - 0.5 : W / 2 + tw / 2 + 0.3, tz = style === 'baroque' || opts.twin ? L / 2 - tw / 2 : -L / 2 + tw;
+    for (const s of opts.twin ? [1, -1] : [1]) {
+      spireTower(B, MM(T, M(s * tx, 0, tz)), tw, th, roof, mat, style, s > 0);
+      const tp = toWorld(x, z, ry, s * tx, tz);
+      addBox(tp.x, tp.z, tw + 0.4, tw + 0.4, ry, { solidView: true });
+    }
   }
   // escalinata
   for (let i = 0; i < 4; i++) B.add('ashlar', box(8 - i * 0.6, 0.3, 1.2), MM(F, M(0, 0.15 - i * 0.3, (style === 'cathedral' ? 4.5 : 1.3) + i * 1.1)));

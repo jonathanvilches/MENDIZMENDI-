@@ -35,7 +35,7 @@ function infoCard_(ui, { icon = 'church', kicker = '', title, text, extra = '', 
       <div class="ic-head">${image ? `<img class="ic-img" src="${image}" alt="">` : `<div class="ic-icon">${iconSVG(icon, 84)}</div>`}${badge ? `<div class="ic-badge">${badge}</div>` : ''}</div>
       <small class="kicker">${esc(kicker)}</small><h2>${esc(title)}</h2><p>${esc(text)}</p>${extra}
       <button class="btn primary">${esc(button)}</button>`);
-    const b = o.querySelector('button'); setTimeout(() => b.focus(), 60);
+    const b = o.querySelector('button'); setTimeout(() => b.focus({ preventScroll: true }), 60);
     const k = (e) => { e.stopImmediatePropagation(); if (['e', 'enter', ' ', 'escape'].includes(e.key.toLowerCase())) { e.preventDefault(); close(); } };
     const close = () => { ui.sound.ui('click'); done(ui, o, k); res(); };
     setTimeout(() => addEventListener('keydown', k, true), 300);
@@ -158,7 +158,7 @@ function choiceGame_(ui, { title, icon = 'quiz', q, options, answer, why }) {
       if (answer < 0 || i === answer) {
         ok = true; b.classList.add('right'); ui.sound.ui('coin'); fb.textContent = why || '¡Correcto!';
         o.querySelectorAll('.opt').forEach(x => { if (x !== b) x.disabled = true; });
-        next.style.display = ''; setTimeout(() => next.focus(), 60);
+        next.style.display = ''; setTimeout(() => next.focus({ preventScroll: true }), 60);
       } else { errors++; b.classList.add('shake', 'wrong'); b.disabled = true; setTimeout(() => b.classList.remove('shake'), 400); ui.sound.ui('error'); fb.textContent = 'Piénsalo otra vez…'; }
     });
     const close = () => { done(ui, o, k); res({ win: true, errors }); };
@@ -226,7 +226,7 @@ function missionComplete_(ui, { title, text, xp, card, icon = 'star', progress, 
       <div class="rewards">${xp ? `<span class="rw">${iconSVG('xp', 26)} +${xp} XP</span>` : ''}${card ? `<span class="rw">${iconSVG('book', 26)} Carta: ${esc(card)}</span>` : ''}</div>
       ${progress ? `<div class="prog"><i style="width:${Math.round(progress.done / progress.total * 100)}%"></i><span>${progress.done}/${progress.total} misiones en ${esc(progress.name)}</span></div>` : ''}
       <button class="btn primary">${esc(next)}</button>`);
-    const b = o.querySelector('button'); setTimeout(() => b.focus(), 80);
+    const b = o.querySelector('button'); setTimeout(() => b.focus({ preventScroll: true }), 80);
     const k = (e) => { e.stopImmediatePropagation(); if (['e', 'enter', ' ', 'escape'].includes(e.key.toLowerCase())) { e.preventDefault(); close(); } };
     const close = () => { ui.sound.ui('click'); done(ui, o, k); res(); };
     setTimeout(() => addEventListener('keydown', k, true), 500);
@@ -257,6 +257,6 @@ export function townFinale(ui, { town, stamp, missions = [], xp = 0, next = null
     const close = (r) => { ui.sound.ui('click'); done(ui, o, k); res(r); };
     setTimeout(() => addEventListener('keydown', k, true), 500);
     o.querySelectorAll('[data-r]').forEach(b => b.onclick = () => close(b.dataset.r));
-    setTimeout(() => o.querySelector('[data-r]')?.focus(), 80);
+    setTimeout(() => o.querySelector('[data-r]')?.focus({ preventScroll: true }), 80);
   });
 }

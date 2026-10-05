@@ -444,7 +444,7 @@ export class Game {
       case 'maite': {
         const q = this.q('bienvenida');
         if (q.state === 'available' || (q.state === 'active' && q.step === 0)) {
-          await S([`¡Kaixo, ${name}! Soy Maite. ¡Ongi etorri a Otsagabia! Así se dice "bienvenido" en euskera.`,
+          await S([`¡Kaixo, ${name}! Soy Maite. ¡Ongi etorri a Otsagabia! Así se da la bienvenida en euskera.`,
             'Este crucero de piedra marca la entrada del pueblo, justo donde el Zatoya se junta con el Anduña.',
             'Mañana es la fiesta de Muskilda y los danzantes necesitan ocho cintas de colores para sus trajes… ¡pero se han perdido por todo el valle!',
             '¿Nos ayudas a encontrarlas? Primero conoce el pueblo: cruza el puente medieval, bebe en la fuente de la plaza y sube a la iglesia a ver a Itziar.',

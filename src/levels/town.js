@@ -38,12 +38,14 @@ export function createTownLevel(def) {
   const hill = relief === 'hilltop';
   const hillH = hill ? 34 : 0;
   const riverThrough = rv && Math.abs(rv.x) < 40;
-  const PLACES = { center: { x: 0, z: 0 }, plaza: { x: riverThrough ? rx(0) - 30 * Math.sign(rv.x || 1) : 0, z: 0, r: def.family === 'city' ? 24 : 16 } };
+  // (con el río por el casco, la plaza queda en la orilla oeste, detrás de la calle de la ribera; granja, campos y
+  // bosque caen en esa misma orilla para que ningún camino cruce el río sin puente)
+  const PLACES = { center: { x: 0, z: 0 }, plaza: { x: riverThrough ? rx(0) - half - 40 : 0, z: riverThrough ? 8 : 0, r: def.family === 'city' ? 24 : 16 } };
   const P = PLACES.plaza;
   const mainX = P.x;
   PLACES.church = hill ? { x: P.x + 4, z: P.z - 34 } : { x: P.x, z: P.z - 36 };
   // granja, campos y puntos fuera del casco
-  const sideOut = rv && rv.x > 0 ? -1 : 1;               // lado opuesto al río
+  const sideOut = riverThrough ? -1 : rv && rv.x > 0 ? -1 : 1;   // lado opuesto al río
   PLACES.farm = { x: mainX + sideOut * (R + 55), z: 40 };
   PLACES.fields = { x: mainX + sideOut * (R + 40), z: -90 };
   PLACES.forest = { x: mainX + sideOut * 40, z: -R - 130 };
@@ -113,28 +115,48 @@ export function createTownLevel(def) {
       addPath('lnW' + bz, 'street', 2.2, [[rx(bz) - o, bz + 6], [rx(bz) - o - 26, bz + 6]]);
       addPath('lnE' + bz, 'street', 2.2, [[rx(bz) + o, bz - 6], [rx(bz) + o + 26, bz - 6]]);
     }
-    PLACES.plaza.x = rx(0) - o - 30; PLACES.plaza.z = 8;
     addPath('toPlaza', 'street', 3, [[rx(8) - o, 8], [PLACES.plaza.x, 8]]);
     PLACES.church = { x: PLACES.plaza.x - 8, z: PLACES.plaza.z - 36 };
     addPath('toChurch', 'street', 2.6, [[PLACES.plaza.x, PLACES.plaza.z], [PLACES.church.x + 2, PLACES.church.z + 14]]);
   } else {
     const cx = P.x, sp = 34;
-    addPath('main', 'street', 3.4, line(cx, -R, cx, R));
-    addPath('cross', 'street', 3.2, line(cx - R, 0, cx + R, 0));
+    // Río apartado de la plaza pero dentro del casco: el pueblo se queda en una orilla. Las calles acaban en la calle
+    // de la ribera, que va junto al río, y solo lo cruza un puente (como en Sangüesa, Tudela u Olite).
+    const o = half + 10, dir = rv ? (Math.sign(rx(20) - cx) || 1) : 0;
+    const bankX = z => rx(z) - dir * o;                                   // eje de la calle de la ribera
+    const over = ([x, z]) => dir * (x - bankX(z));                        // > 0: en el río o en la otra orilla
+    function clip(pts) {
+      if (!rv) return pts;
+      // el tramo más largo que queda en la orilla del pueblo, rematado justo en la calle de la ribera
+      const runs = []; let run = null;
+      for (let i = 0; i < pts.length; i++) {
+        if (over(pts[i]) < -0.5) { if (!run) { run = { pts: [], prev: i > 0 ? pts[i - 1] : null, next: null }; runs.push(run); } run.pts.push(pts[i]); }
+        else if (run) { run.next = pts[i]; run = null; }
+      }
+      if (!runs.length) return [];
+      const best = runs.reduce((a, b) => (b.pts.length > a.pts.length ? b : a));
+      const snap = (a, c) => { const da = over(a), dc = over(c), f = da / (da - dc); return [a[0] + (c[0] - a[0]) * f, a[1] + (c[1] - a[1]) * f]; };
+      const out = best.pts.slice();
+      if (best.prev) out.unshift(snap(out[0], best.prev));
+      if (best.next) out.push(snap(out[out.length - 1], best.next));
+      return out;
+    }
+    const street = (id, type, w, pts) => { const c = clip(pts); if (c.length >= 2) addPath(id, type, w, c); };
+    street('main', 'street', 3.4, line(cx, -R, cx, R));
+    street('cross', 'street', 3.2, line(cx - R, 0, cx + R, 0));
     const par = def.size >= 55 ? [-sp, sp] : [-sp];
     if (def.size >= 100) par.push(-2 * sp, 2 * sp);
-    for (const dx of par) addPath('par' + dx, 'street', 2.6, line(cx + dx, -R * 0.8, cx + dx, R * 0.8));
-    for (const z of [-R * 0.55, R * 0.5]) addPath('x' + z, 'street', 2.4, line(cx - R * 0.8, z, cx + R * 0.8, z));
-    if (def.size >= 100) for (const z of [-R * 0.27, R * 0.25]) addPath('xx' + z, 'street', 2.2, line(cx - R * 0.8, z, cx + R * 0.8, z));
-    addPath('toChurch', 'street', 2.8, line(cx, -8, PLACES.church.x, PLACES.church.z + 14));
-    // río lejano: camino y puente
+    for (const dx of par) street('par' + dx, 'street', 2.6, line(cx + dx, -R * 0.8, cx + dx, R * 0.8));
+    for (const z of [-R * 0.55, R * 0.5]) street('x' + z, 'street', 2.4, line(cx - R * 0.8, z, cx + R * 0.8, z));
+    if (def.size >= 100) for (const z of [-R * 0.27, R * 0.25]) street('xx' + z, 'street', 2.2, line(cx - R * 0.8, z, cx + R * 0.8, z));
+    street('toChurch', 'street', 2.8, line(cx, -8, PLACES.church.x, PLACES.church.z + 14));
     if (rv) {
-      const bz = 20;
-      const o = half + 10;
-      const xb = rx(bz);
-      const dir = Math.sign(xb - cx);
-      addPath('toRiver', 'road', 2.8, line(cx + dir * R, 0, xb - dir * o, bz, 8));
-      addPath('overRiver', 'road', 2.8, [[xb - o, bz], [xb + o, bz]]);
+      const bz = 20, xb = rx(bz);
+      // calle de la ribera por la orilla del pueblo; de ella arranca el puente y al otro lado el camino sigue
+      const along = (z0, z1) => { const p = []; for (let z = z0; z <= z1; z += 6) p.push([bankX(z), z]); return p; };
+      if (Math.abs(rv.x - cx) < R + 10) addPath('ribera', 'street', 2.6, along(-R * 0.75, R * 0.75));
+      addPath('overRiver', 'road', 2.8, [[xb - dir * o, bz], [xb + dir * o, bz]]);
+      addPath('beyond', 'road', 2.8, line(xb + dir * o, bz, xb + dir * (o + 70), bz + 26, 8));
       BRIDGES.push({ id: 'b0', z: bz, w: 4, arch: 1.8, span: 2 * o, main: true, big: rv.bigBridge });
     }
   }
@@ -286,11 +308,17 @@ export function createTownLevel(def) {
   // ---------- Monumentos: cada tipo busca su sitio ----------
   const pl = PLACES.plaza;
   const out = sideOut;
+  // ningún monumento se mete en el río ni cae a la otra orilla: se retira hacia el pueblo hasta dejar sitio (m) y,
+  // si tuviera que moverse mucho, pasa al lado contrario de la plaza; los huecos que no se han movido van primero
+  const dirR = rv ? (Math.sign(rx(pl.z) - pl.x) || 1) : 0;
+  const keepNear = (p, m) => { if (!rv) return p; const lim = rx(p.z) - dirR * (half + m); if (dirR * (p.x - lim) > 0) p.x = lim; return p; };
+  const fit = (p, m) => { const x0 = p.x; keepNear(p, m); if (Math.abs(p.x - x0) > 40) { p.x = 2 * pl.x - x0; keepNear(p, m); } p.moved = p.x !== x0; return p; };
+  const order = (list, m) => list.map(p => fit(p, m)).sort((a, b) => a.moved - b.moved);
   const slots = {
-    big: [{ x: pl.x - out * 58, z: pl.z - 8 }, { x: pl.x + out * 58, z: pl.z + 30 }],
-    street: [{ x: pl.x + out * 22, z: pl.z + 26 }, { x: pl.x - out * 22, z: pl.z - 22 }, { x: pl.x + out * 24, z: pl.z - 50 }],
-    edge: [{ x: pl.x + out * (R + 25), z: -R * 0.6 }, { x: pl.x - out * 30, z: -R - 60 }, { x: pl.x + out * 70, z: R + 55 }, { x: pl.x - out * (R + 40), z: R * 0.4 }],
-    river: rv ? [{ x: rx(-R * 0.6) + (half + 7) * (rv.x > 0 ? -1 : 1), z: -R * 0.6 }, { x: rx(R * 0.9) - (half + 7) * (rv.x > 0 ? -1 : 1), z: R * 0.9 }] : [],
+    big: order([{ x: pl.x - out * 58, z: pl.z - 8 }, { x: pl.x + out * 58, z: pl.z + 30 }], 36),
+    street: order([{ x: pl.x + out * 22, z: pl.z + 26 }, { x: pl.x - out * 22, z: pl.z - 22 }, { x: pl.x + out * 24, z: pl.z - 50 }], 16),
+    edge: order([{ x: pl.x + out * (R + 25), z: -R * 0.6 }, { x: pl.x - out * 30, z: -R - 60 }, { x: pl.x + out * 70, z: R + 55 }, { x: pl.x - out * (R + 40), z: R * 0.4 }], 16),
+    river: rv ? [{ x: rx(-R * 0.6) + (half + 19) * (rv.x > 0 ? -1 : 1), z: -R * 0.6 }, { x: rx(R * 0.9) - (half + 19) * (rv.x > 0 ? -1 : 1), z: R * 0.9 }] : [],   // detrás de la calle de la orilla, no encima
   };
   const cat = { castle: 'big', walls: 'big', palace: 'street', house: 'street', towerhouse: rv ? 'river' : 'street', arch: 'street', townhall: 'plaza', kiosk: 'plaza', fountain: 'plaza', plaza: 'plaza',
     mill: rv ? 'river' : 'edge', raft: rv ? 'river' : 'edge', gorge: 'gorge', bridge: 'bridge', stelae: 'church', chapel: 'church' };
