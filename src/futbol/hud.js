@@ -91,7 +91,7 @@ const CSS = `
 @media (max-height:520px) and (orientation:landscape){
   .fb-panel{padding:calc(env(safe-area-inset-top,0px) + 8px) calc(env(safe-area-inset-right,0px) + 10px) calc(env(safe-area-inset-bottom,0px) + 8px) calc(env(safe-area-inset-left,0px) + 10px)}
   .fb-card{width:min(860px,100%);padding:10px 16px 12px;display:grid;grid-template-columns:1fr 1fr;column-gap:16px;align-content:start}
-  .fb-card>*{grid-column:1/-1}.fb-card .fb-row:not(:first-of-type){grid-column:auto}.fb-card .fb-go,.fb-card .fb-alt{grid-column:auto;margin-top:4px;min-height:44px;padding:8px}
+  .fb-card>*{grid-column:1/-1}.fb-card .fb-row:not(:first-of-type){grid-column:auto}.fb-card .fb-row[data-row=reto]{grid-column:1/-1}.fb-card .fb-go,.fb-card .fb-alt{grid-column:auto;margin-top:4px;min-height:44px;padding:8px}
   .fb-ctrl{font-size:11px;margin:2px 0}.fb-ctrl td{padding:2px 4px}.fb-ctrl td small{display:none}.fb-ctrl td.ic svg{width:17px;height:17px}.fb-ctrl td br{display:none}
   .fb-card h2{font-size:24px}.fb-row{margin:2px 0 6px;gap:5px}.fb-row label{font-size:11px}.fb-chip{min-height:34px;padding:5px 11px;font-size:13px}
   .fb-stats{font-size:13px;margin:4px 0 2px}.fb-stats td{padding:3px 6px}.fb-big{font-size:36px;margin:2px 0}.fb-card p{margin:2px 0 6px}

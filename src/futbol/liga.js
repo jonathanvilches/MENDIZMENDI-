@@ -115,11 +115,24 @@ const CSS = `
 .lg-rv{display:flex;align-items:center;gap:8px;text-align:left;min-width:0;padding:8px 10px}.lg-rv>span{min-width:0;flex:1}.lg-rv b,.lg-rv small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lg-rv b{font-size:14px}.lg-rv small{font:700 11.5px Nunito,sans-serif;opacity:.75}
 @media (max-width:560px){.lg-card{padding:14px 12px;gap:10px}.lg-head h2{font-size:24px}.lg-table .x{display:none}.lg-table{font-size:13.5px}.lg-table td{padding:6px 4px}.lg-table th{padding:4px}.lg-btns{grid-template-columns:1fr 1fr}.lg-btns .lg-btn.go{grid-column:1/-1}}
 .lg-champ{text-align:center;padding:10px;border-radius:16px;background:linear-gradient(180deg,rgba(255,216,74,.25),rgba(255,216,74,.05))}.lg-champ b{font:400 26px 'Lilita One',Nunito,sans-serif;color:#ffd84a}
-@media (orientation:landscape) and (max-height:520px){.lg-card{grid-template-columns:1.1fr 1fr;align-items:start;gap:10px;padding:12px 16px}.lg-card>.lg-head,.lg-card>.lg-btns,.lg-card>.lg-note,.lg-card>.lg-how{grid-column:1/-1}.lg-table{font-size:12px}.lg-table td{padding:3px 2px}.lg-head h2{font-size:22px}.lg-next{padding:8px}.lg-next .lg-kit{display:none}.lg-how{font-size:11.5px;padding:6px 10px}.lg-btn{min-height:42px;padding:8px}}
+@media (orientation:landscape) and (max-height:520px){
+.lg-root{padding:8px}.lg-card{gap:6px 12px;padding:10px 16px}.lg-adapt{display:none}
+.lg-card.lg-two{grid-template-columns:1fr 1.15fr;grid-auto-rows:min-content;align-items:start}
+.lg-card.lg-two>.lg-head{grid-column:1/-1}
+.lg-card.lg-two>.lg-next,.lg-card.lg-two>.lg-how,.lg-card.lg-two>.lg-res,.lg-card.lg-two>.lg-champ,.lg-card.lg-two>.lg-btns,.lg-card.lg-two>.lg-note{grid-column:1}
+.lg-card.lg-two>.lg-table,.lg-card.lg-two>.tq-bracket{grid-column:2;grid-row:2/span 4;align-self:start}
+.lg-card.lg-two>.lg-btns{grid-template-columns:1fr 1fr}.lg-card.lg-two>.lg-btns .lg-btn.go{grid-column:1/-1}
+.lg-table{font-size:12px}.lg-table td{padding:2px}.lg-table th{padding:3px 2px}.lg-head{gap:10px}.lg-head .lg-kit{width:27px;height:36px}.lg-head h2{font-size:20px}.lg-head small{font-size:11px}
+.lg-next{padding:6px 8px}.lg-next .lg-kit{display:none}.lg-next b{font-size:14px}.lg-vs{font-size:22px}
+.lg-how{font-size:11px;line-height:1.25;padding:5px 9px}.lg-btn{min-height:38px;padding:6px}.lg-btn.go{font-size:18px}
+.lg-rv{padding:4px 8px;gap:6px}.lg-rv .lg-kit{width:21px;height:28px}
+}
 `;
 function panel(html) {
   if (!document.getElementById('lg-css')) { const st = document.createElement('style'); st.id = 'lg-css'; st.textContent = CSS; document.head.appendChild(st); }
   const r = document.createElement('div'); r.className = 'lg-root'; r.innerHTML = `<div class="lg-card">${html}</div>`; document.body.appendChild(r);
+  // (con clasificación o cuadro, en el móvil tumbado va a dos columnas: lo demás a la izquierda y la tabla a la derecha)
+  if (r.querySelector('.lg-table, .tq-bracket')) r.firstElementChild.classList.add('lg-two');
   return r;
 }
 // (en el móvil, solo PJ · DG · Pts; las demás columnas se ven en pantallas anchas)
@@ -146,7 +159,7 @@ export function ligaPanel(S, here = undefined) {
       const ch = CLUBS[S.champion];
       mid = `<div class="lg-champ"><small>CAMPEÓN DE LA LIGA NAVARRA</small><br><b>${esc(ch.name)}</b><br>${S.champion === S.club ? '¡Sois campeones! Aupa ' + esc(c.town) + '!' : 'La próxima temporada, a por el título.'}</div>`;
     }
-    const adapt = Object.values(CLUBS).some(x => x.adapt) ? '<p class="lg-note">Nombres y colores de los clubes navarros, sin escudos. Pirineo, Aurrera Leitza y CD Xota son adaptaciones del juego.</p>' : '';
+    const adapt = Object.values(CLUBS).some(x => x.adapt) ? '<p class="lg-note lg-adapt">Nombres y colores de los clubes navarros, sin escudos. Pirineo, Aurrera Leitza y CD Xota son adaptaciones del juego.</p>' : '';
     const play = away ? `<button class="lg-btn go" data-a="travel">Viajar a ${esc(CLUBS[m.h].town)}</button>` : '<button class="lg-btn go" data-a="play">¡A jugar!</button>';
     const r = panel(`${head(S, m ? `Temporada ${S.year}` : 'Fin de temporada')}${mid}${m && S.j === 0 ? HOW : ''}${tableHtml(S)}
       <div class="lg-btns">${m ? `${play}<button class="lg-btn" data-a="sim">Simular partido</button>` : '<button class="lg-btn go" data-a="new">Nueva temporada</button>'}<button class="lg-btn" data-a="exit">Salir</button></div>${away ? `<p class="lg-note">La jornada se juega en el campo del ${esc(CLUBS[m.h].name)}: viaja a ${esc(CLUBS[m.h].town)} (en el mapa) y habla con su entrenador.</p>` : ''}${adapt}`);
