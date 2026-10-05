@@ -500,3 +500,30 @@ body.mg3d-on .learn-btn { bottom: auto; top: calc(env(safe-area-inset-top, 0px) 
 .mg3d .m3-heat i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-right: 3px solid #fff; opacity: .9; }
 .mg3d .m3-heat span { position: relative; z-index: 1; font: 800 12px/26px Nunito, sans-serif; text-align: center; color: #fff; text-shadow: 0 1px 2px #000; border-left: 1px dashed rgba(255,255,255,.4); }
 .mg3d .m3-heat span:first-of-type { border-left: 0; }
+
+/* pantallas grandes (tableta en horizontal, escritorio): el HUD algo más grande, que no quede diminuto en una pantalla
+   de 10 o 24 pulgadas (en el teléfono se queda como está) */
+@media (min-width: 1000px) and (min-height: 640px) {
+  #compass { width: min(520px, 36vw); height: 44px; border-radius: 22px; }
+  #cdist { font-size: 12.5px; }
+  #tl { max-width: min(420px, 30vw); top: calc(var(--st) + 14px); }
+  #quest .ic { flex-basis: 50px; height: 50px; } #quest .ic svg, #quest .ic img { width: 36px; height: 36px; }
+  #quest b.qt { font-size: 20px; } #quest small { font-size: 12.5px; }
+  #ribbons { padding-left: 60px; } #ribbons .tname { font-size: 13.5px; } #ribbons .dots i { width: 12px; height: 12px; }
+  .round { width: 54px; height: 54px; } .round svg { width: 32px; height: 32px; }
+  #topright { gap: 12px; }
+  #mini { width: 140px; height: 140px; }
+  .cbtn { width: 72px; height: 72px; } .cbtn svg { width: 46px; height: 46px; }
+  .cbtn.big { width: 92px; height: 92px; } .cbtn.big svg { width: 58px; height: 58px; }
+  #stick { width: 140px; height: 140px; } #stick i { width: 60px; height: 60px; margin: -30px 0 0 -30px; }
+  #stickHint { width: 120px; height: 120px; } #stickHint i { width: 48px; height: 48px; } #stickHint span { font-size: 12.5px; }
+  #dialog { width: min(880px, calc(100vw - 24px)); padding: 16px 22px 14px; }
+  #dialog .face { flex-basis: 80px; height: 80px; } #dialog p { font-size: 20px; }
+  #toast { font-size: 17px; } #prompt { font-size: 18px; } #mg { font-size: 20px; }
+}
+/* tableta en vertical: la disposición del teléfono (brújula arriba, misión debajo), pero la brújula no ocupa todo el
+   ancho y el minimapa se ve (en el teléfono se esconde por falta de sitio) */
+@media (max-aspect-ratio: 1/1) and (min-width: 700px) {
+  #compass { width: min(520px, 60vw); height: 42px; }
+  #mini { display: block; width: 124px; height: 124px; }
+}

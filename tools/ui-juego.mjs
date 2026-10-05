@@ -10,7 +10,7 @@ const p = await ctx.newPage(); const errs = [];
 p.on('pageerror', e => errs.push('PAGEERROR ' + e.message));
 p.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 200)); });
 await p.addInitScript(() => { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true } })); });
-await p.goto(`http://127.0.0.1:5173/?town=${town}&q=low&weather=clear&skipintro=1`, { timeout: 300000 });
+await p.goto(`${process.env.URL || 'http://127.0.0.1:5173'}/?town=${town}&q=low&weather=clear&skipintro=1`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 500000 });
 await p.waitForTimeout(2500);
 const shot = (n) => p.screenshot({ path: `${out}/${W}x${H}-${n}.png`, timeout: 180000 });

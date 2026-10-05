@@ -52,6 +52,14 @@ function doorAt(B, T, x, o) {
     B.add('ashlar', box(0.25, h, 0.26), F(M(x + w / 2 + 0.125, h / 2, 0.07)));
     B.add('woodDark', box(w, h, 0.08), F(M(x, h / 2, 0.01)));
   }
+  // hoja de tablas: juntas verticales y dos travesaños con clavos (de cerca la puerta deja de ser un rectángulo liso)
+  const hb = o.arch ? h - w / 2 - 0.1 : h;   // (en la puerta de arco los travesaños quedan bajo el arranque del arco)
+  const nb = Math.max(3, Math.round(w / 0.42));
+  for (let k = 1; k < nb; k++) B.add('paint', colored(box(0.02, hb - 0.1, 0.02), '#241910'), F(M(x - w / 2 + k * w / nb, hb / 2, 0.055)));
+  for (const yy of [hb * 0.28, hb * 0.72]) {
+    B.add('woodDark', box(w - 0.1, 0.16, 0.05), F(M(x, yy, 0.075)));
+    for (let k = 0; k < nb; k++) B.add('iron', box(0.035, 0.035, 0.03), F(M(x - w / 2 + (k + 0.5) * w / nb, yy, 0.11)));
+  }
   // escalón
   B.add('ashlar', box(w + 0.9, 0.2, 0.7), F(M(x, 0.02, 0.35)));
   // aldaba

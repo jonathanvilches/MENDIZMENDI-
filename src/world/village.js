@@ -10,6 +10,7 @@ import { addBox, addCircle, isFree } from './colliders.js';
 import { mulberry32, clamp } from '../util/math.js';
 
 export const VILLAGE = { palaces: [], lamps: [], benches: [], houses: [], church: null, fountain: null, doors: [] };
+if (typeof window !== 'undefined') window.__VILLAGE = VILLAGE;   // (para las herramientas de capturas)
 export function resetVillage() { VILLAGE.palaces = []; VILLAGE.lamps = []; VILLAGE.benches = []; VILLAGE.houses = []; VILLAGE.church = null; VILLAGE.fountain = null; VILLAGE.doors = []; }
 
 // en las cuestas la casa se apoya casi en lo alto de su planta y lleva zócalo de piedra hasta el suelo por abajo

@@ -105,7 +105,8 @@ export class PelotaCourt {
       paintName(c, title ? 'FRONTÓN' : '', w / 2, h * 0.3, w * 0.5, h * 0.06, '#fdfaf2');
       paintName(c, title, w / 2, h * 0.42, w * 0.84, h * 0.11, '#fdfaf2');
     });
-    const front = new T.Mesh(new T.BoxGeometry(W + 0.6, C.FRONT_H, 0.8), [M({ color: th.frontis }), M({ color: th.frontis }), M({ color: th.frontis }), M({ color: th.frontis }), M({ map: frontTex }), M({ map: backTex })]);
+    const frontEnd = canvasTex(T, 256, 1024, (c, w, h) => { c.fillStyle = th.frontis; c.fillRect(0, 0, w, h); grain(c, w, h, 6000, 0.06); grain(c, w, h, 2000, 0.05, false); weather(c, w, h, C.FRONT_H, 0.8); });
+    const front = new T.Mesh(new T.BoxGeometry(W + 0.6, C.FRONT_H, 0.8), [M({ map: frontEnd }), M({ map: frontEnd }), M({ color: th.frontis }), M({ color: th.frontis }), M({ map: frontTex }), M({ map: backTex })]);
     front.position.set(-0.3, C.FRONT_H / 2, -0.4); front.castShadow = true; front.receiveShadow = true; g.add(front);
     // albardilla de piedra que remata el frontis y la pared izquierda
     const capMat = M({ color: '#ddd6c6', roughness: 0.8 });
@@ -179,13 +180,24 @@ export class PelotaCourt {
       const sign = new T.Mesh(geo, M({ map: nameTex, alphaTest: 0.35, roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }));
       sign.receiveShadow = true; sign.name = 'nombre'; g.add(sign);
     }
-    const left = new T.Mesh(new T.BoxGeometry(0.6, C.LEFT_H, EXT), [M({ map: leftTex }), M({ color: th.wall }), M({ color: th.wall }), M({ color: th.wall }), M({ color: th.wall }), M({ color: th.wall })]);
+    // caras exteriores (la trasera de la pared izquierda da a la calle y se ve desde el pueblo): hormigón revocado con
+    // grano, juntas horizontales del encofrado, churretes y humedad al pie, en vez de un plano de color liso
+    const outerTex = canvasTex(T, 1024, 512, (c, w, h) => {
+      c.fillStyle = th.wall; c.fillRect(0, 0, w, h); grain(c, w, h, 12000, 0.07); grain(c, w, h, 4000, 0.05, false);
+      weather(c, w, h, C.LEFT_H, EXT);
+      c.strokeStyle = 'rgba(0,0,0,.13)'; c.lineWidth = 2;
+      for (let k = 1; k * 1.3 < C.LEFT_H; k++) { const y = h - k * 1.3 / C.LEFT_H * h; c.beginPath(); c.moveTo(0, y); c.lineTo(w, y); c.stroke(); }
+      c.strokeStyle = 'rgba(255,255,255,.08)'; for (let k = 1; k * 1.3 < C.LEFT_H; k++) { const y = h - k * 1.3 / C.LEFT_H * h + 2; c.beginPath(); c.moveTo(0, y); c.lineTo(w, y); c.stroke(); }
+    });
+    outerTex.wrapS = outerTex.wrapT = T.RepeatWrapping;
+    const outer = () => M({ map: outerTex });
+    const left = new T.Mesh(new T.BoxGeometry(0.6, C.LEFT_H, EXT), [M({ map: leftTex }), outer(), outer(), outer(), outer(), outer()]);
     // la cara +x (hacia la cancha) lleva la textura; en BoxGeometry su u va de +z a −z
     left.position.set(-W / 2 - 0.3, C.LEFT_H / 2, EXT / 2); left.castShadow = true; left.receiveShadow = true; g.add(left);
 
     // --- muro bajo del fondo y gradas de la contracancha
     // muro bajo del fondo: solo detrás de la cancha, para poder entrar por la contracancha
-    const back = new T.Mesh(new T.BoxGeometry(W + 0.6, 2.2, 0.4), M({ color: th.wall }));
+    const back = new T.Mesh(new T.BoxGeometry(W + 0.6, 2.2, 0.4), outer());
     back.position.set(-0.3, 1.1, EXT + 0.2); back.castShadow = true; back.receiveShadow = true; g.add(back);
     for (let i = 0; i < 3; i++) {
       const st = new T.Mesh(new T.BoxGeometry(1.1, 0.42 * (i + 1), L * 0.78), M({ color: th.stands, roughness: 0.9 }));
