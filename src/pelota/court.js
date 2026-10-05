@@ -64,7 +64,6 @@ export class PelotaCourt {
     const M = (o) => { const m = std(o); this.materials.push(m); return m; };
 
     // --- suelo: cancha, rayas de los cuadros (sin números: esos van en la pared izquierda), falta y pasa, contracancha
-    const PX = 44;   // píxeles por metro
     const fw = W + CONTRA, fl = EXT;
     const floorTex = canvasTex(T, 512, 2048, (c, w, h) => {
       const sx = w / fw, sz = h / fl, X = (x) => (x + W / 2) * sx, Z = (z) => z * sz;

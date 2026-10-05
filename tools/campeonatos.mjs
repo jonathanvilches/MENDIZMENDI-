@@ -36,7 +36,7 @@ for (const sz of sizes.split(',')) {
     ['liga-fuera', `const S = L.season('baztan'); L.ligaPanel(S, 'aoiz')`],
     ['liga-jornada', `const S = L.season('baztan'); const R = L.playRound(S, 2, 1); L.roundPanel(S, R, 0)`],
     ['liga-final', `const S = L.season('baztan'); while (L.nextMatch(S)) L.playRound(S, 3, 0); L.ligaPanel(S, 'baztan')`],
-    ['club', `L.clubPanel('baztan', [['liga', 'Liga Navarra · jornada 1', 'La jornada se juega aquí'], ['sala', 'Fútbol sala: entrenamiento', 'Pases en la pista (para el sello)'], ['amistoso', 'Amistoso', 'Contra cualquier club de Navarra'], ['exit', 'Salir', '']], 'Elizondo · tu club')`],
+    ['club', `L.clubPanel('baztan', [['liga', 'Liga Navarra · jornada 1', 'La jornada se juega aquí'], ['sala', 'Fútbol sala: partido por el sello', '5 contra 5 contra los vecinos'], ['amistoso', 'Amistoso', 'Contra cualquier club de Navarra'], ['exit', 'Salir', '']], 'Elizondo · tu club')`],
     ['amistoso', `L.rivalPanel('baztan')`],
     ['torneo', `const T = T_.torneo({ name: 'Ane', town: 'Elizondo' }, CTX); T_.torneoPanel(T, 'elizondo')`],
     ['torneo-fuera', `const T = T_.torneo({ name: 'Ane', town: 'Elizondo' }, CTX); T_.torneoPanel(T, 'ituren')`],
@@ -46,8 +46,8 @@ for (const sz of sizes.split(',')) {
     ['futbol-menu', `FH.menuPanel({ title: 'El Sadar', sub: 'Pamplona / Iruña', modes: [['match', 'Partido'], ['cup', 'Eliminatoria'], ['penalties', 'Penaltis'], ['reto:conos', 'Regate entre conos'], ['reto:dianas', 'Tiro a las escuadras ✓'], ['reto:pases', 'Pases en movimiento']], rivals: [['visitante', 'Visitante'], ['vecinos', 'Vecinos']], values: { mode: 'match', rival: 'visitante', level: 'normal', duration: 3, assist: true } })`],
     ['futbol-final', `const h = new FH.FutbolHud({ touch: true, home: { name: 'Osasuna', short: 'OSA', shirt: '#c41f2c' }, away: { name: 'Visitante', short: 'VIS', shirt: '#f4f4f2' } }); h.end({ title: '¡Victoria!', sub: 'Final del partido', score: '2 – 1', rows: [[2, 'Goles', 1], [7, 'Tiros', 4], [4, 'Tiros a puerta', 2], ['58 %', 'Posesión', '42 %'], [23, 'Pases buenos', 15], [6, 'Robos', 4], [1, 'Paradas', 2]], again: 'Revancha', exit: 'Salir' })`],
     ['futbol-controles', `const h = new FH.FutbolHud({ touch: true, home: { name: 'Osasuna', short: 'OSA', shirt: '#c41f2c' }, away: { name: 'Visitante', short: 'VIS', shirt: '#f4f4f2' } }); h.controls()`],
-    ['pelota-inicio', `const t = PR.TEXT.es, hud = new PH.PelotaHud(document.body, t, { you: 'Ane', rival: 'Unai' }, true); hud.panel('<h2>' + t.title + '</h2><p class="pel-sub">Ane vs Unai · ' + t.to(5) + '</p><ol>' + t.rules.map(r => '<li>' + r + '</li>').join('') + '</ol><div class="pel-ctrl">' + t.ctrlTouch + '</div><div class="pel-levels"><button aria-pressed="false">Fácil</button><button aria-pressed="true">Normal</button><button aria-pressed="false">Difícil</button></div><div class="pel-row"><button class="pel-go alt">' + t.later + '</button><button class="pel-go">' + t.play + '</button></div>')`],
-    ['pelota-fin', `const t = PR.TEXT.es, hud = new PH.PelotaHud(document.body, t, { you: 'Ane', rival: 'Unai' }, true); hud.panel('<h2>' + t.win + '</h2><p class="pel-sub">Ane – Unai</p><div class="pel-big">5 – 3</div><div class="pel-fact"><b>' + t.factsTitle + '</b><br>' + t.facts[2] + '</div><div class="pel-row"><button class="pel-go alt">' + t.again + '</button><button class="pel-go">' + t.cont + '</button></div>')`],
+    ['pelota-inicio', `const t = PR.TEXT[window.__EU ? 'eu' : 'es'], hud = new PH.PelotaHud(document.body, t, { you: 'Ane', rival: 'Unai' }, true); hud.panel('<h2>' + t.title + '</h2><p class="pel-sub">Ane vs Unai · ' + t.to(5) + '</p><ol>' + t.rules.map(r => '<li>' + r + '</li>').join('') + '</ol><div class="pel-ctrl">' + t.ctrlTouch + '</div><small class="pel-lbl">' + t.level + '</small><div class="pel-levels" role="group" aria-label="' + t.level + '"><button aria-pressed="false">' + (window.__EU ? 'Erraza' : 'Fácil') + '</button><button aria-pressed="true">' + (window.__EU ? 'Normala' : 'Normal') + '</button><button aria-pressed="false">' + (window.__EU ? 'Zaila' : 'Difícil') + '</button></div><div class="pel-row"><button class="pel-go alt">' + t.later + '</button><button class="pel-go">' + t.play + '</button></div>')`],
+    ['pelota-fin', `const t = PR.TEXT[window.__EU ? 'eu' : 'es'], hud = new PH.PelotaHud(document.body, t, { you: 'Ane', rival: 'Unai' }, true); hud.panel('<h2>' + t.win + '</h2><p class="pel-sub">Ane – Unai</p><div class="pel-big">5 – 3</div><div class="pel-fact"><b>' + t.factsTitle + '</b><br>' + t.facts[2] + '</div><div class="pel-row"><button class="pel-go alt">' + t.again + '</button><button class="pel-go">' + t.cont + '</button></div>')`],
   ];
   for (const [name, code] of SHOTS) {
     await p.evaluate((code) => {
@@ -61,7 +61,9 @@ for (const sz of sizes.split(',')) {
     await p.screenshot({ path: `${out}/${sz}-${name}.png` });
     const over = await p.evaluate(() => { const c = document.querySelector('.lg-card, .fb-card, .pel-card'); if (!c) return 0; const d = c.scrollHeight - c.clientHeight; if (d > 8) c.scrollTop = d; return d; });
     if (over > 8) { await p.waitForTimeout(300); await p.screenshot({ path: `${out}/${sz}-${name}-abajo.png` }); }
-    console.log(sz, name, over > 8 ? `(se desplaza ${over}px)` : '');
+    // (una lista larga puede desplazarse dentro del panel, con la cabecera y los botones fijos: eso está bien)
+    const lista = await p.evaluate(() => { const l = document.querySelector('.lg-list'); return l ? l.scrollHeight - l.clientHeight : 0; });
+    console.log(sz, name, over > 8 ? `(se desplaza ${over}px)` : '', lista > 8 ? `(lista desplazable ${lista}px, botones fijos)` : '');
   }
   await p.close();
 }

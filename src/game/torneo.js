@@ -110,7 +110,7 @@ function bracketHtml(T) {
 export function torneoPanel(T, here = null) {
   if (!document.getElementById('tq-css')) { const st = document.createElement('style'); st.id = 'tq-css'; st.textContent = CSS; document.head.appendChild(st); }
   return new Promise(res => {
-    const m = yourMatch(T), out = youOut(T);
+    const m = yourMatch(T);
     const head = `<div class="lg-head tq-txa">${TXAPELA}<div><small>Torneo de mano · edición ${T.edition}</small><h2>Txapela de ${esc(T.comarcaName)}</h2><span class="lg-note">${T.txapelas ? `Tus txapelas: ${T.txapelas}` : 'Gana la final y la txapela es tuya'}</span></div></div>`;
     // cómo funciona: solo al empezar (en las rondas siguientes ya se sabe)
     const how = T.round === 0 && !T.past.length && !T.done ? '<p class="lg-how"><b>Cómo funciona:</b> ocho pelotaris por eliminatorias (cuartos y semifinales a 5 tantos, final a 7). Cada partido tuyo se juega en el frontón de un pueblo distinto de la comarca: viaja allí y habla con su pelotari. Los demás partidos se simulan. Es parte de la misión de la comarca.</p>' : '';

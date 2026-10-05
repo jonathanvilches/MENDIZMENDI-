@@ -60,6 +60,15 @@ const CSS = `
   .pel-card ol{columns:2;column-gap:22px;font-size:13.5px;margin-bottom:8px}.pel-card li{break-inside:avoid;margin-bottom:4px}
   .pel-card .pel-ctrl{font-size:13px;padding:7px 10px;margin-bottom:10px}.pel-levels{margin-bottom:10px}.pel-levels button{padding:7px 6px}
   .pel-go{padding:9px 16px;font-size:15px}.pel-card .pel-big{font-size:36px;margin:2px 0}.pel-card .pel-fact{margin:6px 0 10px;font-size:14px}}
+/* móvil en horizontal con poca altura: título y marcador en una línea, sin la etiqueta «Nivel» (el grupo la lleva como
+   aria-label) y los niveles junto a los botones de jugar, para que todo quepa sin desplazar */
+@media (orientation:landscape) and (max-height:440px){
+  .pel-panel{padding-top:calc(env(safe-area-inset-top,0px) + 8px);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 8px)}
+  .pel-card{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:12px;padding:10px 16px 12px;border-radius:18px}
+  .pel-card>*{flex:1 1 100%}.pel-card>h2{flex:0 0 auto;margin-bottom:6px}.pel-card>.pel-sub{flex:1 1 0;min-width:0;margin-bottom:6px}
+  .pel-card>.pel-lbl{display:none}
+  .pel-card>.pel-levels{flex:3 1 0;min-width:0;margin:0;align-self:center;flex-wrap:nowrap}.pel-card>.pel-levels button{min-width:0;min-height:44px}
+  .pel-card>.pel-levels+.pel-row{flex:2 1 0;min-width:0;align-self:center}}
 @media (hover:hover) and (pointer:fine){.pel-stick,.pel-stickhint{display:none}}
 `;
 
