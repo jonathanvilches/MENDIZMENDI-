@@ -299,7 +299,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .xp.big { height: 10px; border-radius: 10px; background: rgba(255, 255, 255, .12); overflow: hidden; margin: 6px 0 4px; }
 .pstats { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; } .pstats span { display: flex; align-items: center; gap: 8px; font-size: 14px; }
 .set { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
-.set select { font: inherit; padding: 6px 10px; border-radius: 10px; background: var(--plum2); color: #fff; border: 1px solid var(--line2); }
+.set select { font: inherit; padding: 6px 10px; border-radius: 10px; background: var(--plum2); color: #fff; border: 1px solid var(--line2); min-width: 0; max-width: 60%; flex: 0 1 auto; text-overflow: ellipsis; }
 .set input[type=range] { width: 50%; accent-color: var(--gold); } .set input[type=checkbox] { width: 24px; height: 24px; accent-color: var(--gold); }
 
 /* ---------- Bienvenida: selección de personaje a pantalla completa ---------- */
@@ -741,7 +741,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .ebar i { display: block; height: 100%; background: linear-gradient(90deg, #f5c542, #7ee05a); border-radius: 6px; }
 .bp-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .drops { display: flex; gap: 4px; } .drops span { opacity: .25; } .drops span.on { opacity: 1; }
-.bp-food { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; }
+.bp-food { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; } .bp-food .bp-note { grid-column: 1 / -1; }
 .fooditem { display: grid; justify-items: center; gap: 2px; padding: 8px 6px; border-radius: 12px; background: rgba(255, 255, 255, .07); border: 2px solid transparent; color: inherit; font: inherit; cursor: pointer; }
 .fooditem:hover { border-color: #FFD700; } .fooditem b { font-size: 14px; } .fooditem span { font-size: 12px; opacity: .8; }
 .bp-gear { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-bottom: 12px; }
