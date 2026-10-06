@@ -73,10 +73,12 @@ export function aimVelocityTo(p, t, T) {
 // Golpe a dos paredes: primero a la pared izquierda, luego al frontis (por encima de la chapa) y sale cruzado a la
 // cancha. Se buscan el punto de la pared y la altura con los que el primer bote cae cerca de landZ; null si desde ahí
 // no sale ninguno (muy pegado a la pared o muy cerca del frontis)
-export function solveTwoWalls(p, speed, landZ = 17) {
+// fzs: dónde se busca el punto de la pared, como fracción de la distancia al frontis (poco: la pared pronto y sale más
+// cruzada; mucho: la pared cerca del frontis y sale más recta)
+export function solveTwoWalls(p, speed, landZ = 17, fzs = [0.28, 0.4, 0.52, 0.64]) {
   const xw = -COURT.W / 2 + R;
   let best = null, bs = -1e9;
-  for (const fz of [0.28, 0.4, 0.52, 0.64]) {
+  for (const fz of fzs) {
     const zw = Math.max(1.2, p.z * fz);
     const d = Math.hypot(xw - p.x, zw - p.z); if (d < 1) continue;
     const T = Math.max(0.1, d / speed);
