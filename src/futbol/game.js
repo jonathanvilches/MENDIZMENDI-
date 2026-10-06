@@ -107,7 +107,7 @@ export class FutbolGame {
     if (live && this.rivalShot() && (a === 'pass' || a === 'shoot' || a === 'switch')) { this.humanKeeperDive(); return; }
     if (a === 'switch') { this.manualSwitch(); return; }
     // llevando a tu portero: PASE o TIRO = estirarse o salir a por el balón hacia donde apuntas
-    if (this.me.role === 'POR' && live && (a === 'pass' || a === 'shoot')) { this.humanKeeperDive(); return; }
+    if (this.me.role === 'POR' && live && (a === 'pass' || a === 'shoot') && this.owner !== this.me) { this.humanKeeperDive(); return; }
     if (a === 'contain') { I.contain = true; return; }
     if (a === 'mate') { I.mate = true; return; }
     if (a === 'shield') { I.shield = true; return; }
@@ -128,11 +128,13 @@ export class FutbolGame {
     if (a === 'finesse') I.finesse = false;
     if (a === 'through') { I.contain = false; I.mate = false; if (this.hold.through >= 0) { this.hold.through = -1; this.action({ kind: 'through' }); } }
     if (a === 'lob' && this.hold.lob >= 0) { this.hold.lob = -1; this.action({ kind: 'pass', loft: true }); }
-    if (a === 'pass' && this.hold.pass >= 0) { this.hold.pass = -1; this.action({ kind: 'pass', loft: false }); }
+    // pase: un toque, al pie del compañero al que apuntas; mantenido, al hueco por delante de él (más lejos cuanto más
+    // lo mantienes)
+    if (a === 'pass' && this.hold.pass >= 0) { const t = this.hold.pass; this.hold.pass = -1; if (t > PL.passHold && !this.defending()) this.action({ kind: 'through', charge: Math.min(1, (t - PL.passHold) / PL.charge) }); else this.action({ kind: 'pass', loft: false }); }
     if (a === 'shoot' && this.hold.shoot >= 0 && this.gkCtl) { const charge = Math.min(1, this.hold.shoot / PL.charge); this.hold.shoot = -1; this.gkRelease('kick', charge); return; }
     if (a === 'shoot' && this.hold.shoot >= 0) { const charge = Math.min(1, this.hold.shoot / PL.charge); this.hold.shoot = -1; this.action({ kind: 'shot', charge, finesse: !!I.finesse }); }
   }
-  get charge() { return this.hold.shoot >= 0 ? Math.min(1, this.hold.shoot / PL.charge) : -1; }
+  get charge() { return this.hold.shoot >= 0 ? Math.min(1, this.hold.shoot / PL.charge) : this.hold.pass > PL.passHold ? Math.min(1, (this.hold.pass - PL.passHold) / PL.charge) : -1; }
   action(a) {
     const me = this.me;
     if (this.mode === 'penalties') { this.buffer = { ...a, t: 60 }; return; }
@@ -142,7 +144,7 @@ export class FutbolGame {
   }
   doAction(p, a) {
     if (a.kind === 'pass') this.humanPass(p, a.loft);
-    else if (a.kind === 'through') this.humanThrough(p);
+    else if (a.kind === 'through') this.humanThrough(p, a.charge ?? 0.5);
     else this.humanShot(p, a.charge, a.finesse);
   }
 
@@ -243,7 +245,8 @@ export class FutbolGame {
     } else {
       // arrancar o pararse: acelera a 14 m/s² y frena a la frenada del formato
       const braking = wx * p.vx + wz * p.vz < p.vx * p.vx + p.vz * p.vz - 0.01;
-      let dvx = wx - p.vx, dvz = wz - p.vz; const dl = hyp(dvx, dvz), mx = (braking ? (PL.brake || 26) : PL.acc) * (this.human(p) ? 1.25 : 1) * h;
+      // (el tuyo, al soltar el joystick, frena en seco y deja el balón parado en el pie)
+      let dvx = wx - p.vx, dvz = wz - p.vz; const dl = hyp(dvx, dvz), mx = (braking ? (PL.brake || 26) * (this.human(p) && want < 0.1 ? 1.6 : 1) : PL.acc) * (this.human(p) ? 1.25 : 1) * h;
       if (dl > mx) { dvx *= mx / dl; dvz *= mx / dl; }
       p.vx += dvx; p.vz += dvz;
     }
@@ -357,16 +360,17 @@ export class FutbolGame {
   // jugador de campo al pulsar otra vez)
   manualSwitch() {
     const b = this.ball.p, me = this.me, I = this.input; if (this.owner === me) return;
-    const gk = this.gk(me.team), nearOwn = hyp(b.x - this.ownGoal(me.team), b.z) < 30 * SC && this.defending();
+    const gk = this.gk(me.team), nearOwn = hyp(b.x - this.ownGoal(me.team), b.z) < 30 * SC && (this.defending() || !this.owner);
     if (me.role !== 'POR' && nearOwn && I.mag < 0.3 && !this.noSwitch) { this.setMe(gk, 'gk'); this.emit({ t: 'gkCtl', on: true }); return; }
     const c = this.team(me.team).filter(q => q.role !== 'POR' && q !== me);
+    if (me.role !== 'POR' && I.mag > 0.3 && !this.noSwitch) c.push(gk);   // apuntando hacia tu portero, también lo coges
     let pick = null;
     if (I.mag > 0.3) {
       let bs = -1e9;
       for (const q of c) { const ex = q.x - me.x, ez = q.z - me.z, d = hyp(ex, ez) || 1, cos = (ex * I.x + ez * I.z) / d; if (cos < 0.5) continue; const sc = cos * 2 - d / (25 * SC) - hyp(q.x - b.x, q.z - b.z) / (40 * SC); if (sc > bs) { bs = sc; pick = q; } }
     }
-    if (!pick) pick = c.sort((a, q) => hyp(a.x - b.x, a.z - b.z) - hyp(q.x - b.x, q.z - b.z))[0];
-    if (pick) this.setMe(pick, 'manual');
+    if (!pick) pick = c.filter(q => q.role !== 'POR').sort((a, q) => hyp(a.x - b.x, a.z - b.z) - hyp(q.x - b.x, q.z - b.z))[0];
+    if (pick) { this.setMe(pick, pick.role === 'POR' ? 'gk' : 'manual'); if (pick.role === 'POR') this.emit({ t: 'gkCtl', on: true }); }
   }
   /** ¿Va un tiro del rival hacia tu portería? */
   rivalShot() {
@@ -393,18 +397,18 @@ export class FutbolGame {
     if (p.dive) return;
     if (p.down > 0) { p.wx = p.wz = 0; return; }
     // el balón se aleja de tu área (o lo tiene tu equipo): vuelves a un jugador de campo
-    if (hyp(b.x - gx, b.z) > 36 * SC || (this.owner && this.owner.team === p.team && this.owner !== p)) {
+    if (hyp(b.x - gx, b.z) > 55 * SC || (this.owner && this.owner.team === p.team && this.owner !== p)) {
       const c = this.team(p.team).filter(q => q.role !== 'POR').sort((a, q) => hyp(a.x - b.x, a.z - b.z) - hyp(q.x - b.x, q.z - b.z));
       this.emit({ t: 'gkCtl', on: false }); this.setMe(this.owner?.team === p.team && this.owner.role !== 'POR' ? this.owner : c[0], 'force'); return;
     }
     const top = I.sprint ? PL.sprint : PL.run;
     p.wx = I.x * I.mag * top; p.wz = I.z * I.mag * top; p.wantSprint = I.sprint && I.mag > 0.5;
-    // sin salir del área (con un margen) ni meterse en la portería
+    // puede salir del área (fuera solo juega con los pies), pero no meterse dentro de la portería
     const s = -this.dir[p.team], d = s * (gx - p.x);
     if (d < 0.3 && s * p.wx > 0) p.wx = 0;
-    if (!this.inArea(p.team, p.x + p.wx * 0.1, p.z + p.wz * 0.1, 1)) { p.wx = (gx - s * 6 - p.x) * 2; p.wz = -p.z * 0.5; }
-    p.face = { x: b.x, z: b.z };
-    this.keeperTouch(p);
+    p.face = this.owner === p ? null : { x: b.x, z: b.z };
+    if (this.buffer && this.owner === p && !p.hands) { const a = this.buffer; this.buffer = null; this.doAction(p, a); }
+    if (this.owner !== p) this.keeperTouch(p);
   }
   // sacar con tu portero: con la mano al compañero al que apuntas, o un saque largo hacia donde apuntas
   gkRelease(kind, charge = 0.6) {
@@ -430,7 +434,8 @@ export class FutbolGame {
   humanPass(p, loft) {
     const I = this.input, f = fwd(p);
     let dx = I.mag > 0.25 ? I.x : f.x, dz = I.mag > 0.25 ? I.z : f.z; const l = hyp(dx, dz) || 1; dx /= l; dz /= l;
-    const q = this.bestReceiver(p, dx, dz, this.assist ? PL.cone * 1.6 : PL.cone) || (this.assist ? this.bestReceiver(p, dx, dz, Math.PI / 2) : null);
+    const cone = (this.assist ? PL.cone * 1.6 : PL.cone) * (I.mag > 0.85 ? 0.8 : 1);   // (con el joystick a tope, más exacto)
+    const q = this.bestReceiver(p, dx, dz, cone) || (this.assist ? this.bestReceiver(p, dx, dz, Math.PI / 2) : null);
     this.stats.passes[p.team]++;
     // pase inteligente: raso; por alto si hay un rival en la línea del pase y el compañero está lejos (o muy lejos)
     if (q) { const B = this.ball.p, d = hyp(q.x - p.x, q.z - p.z); loft ||= (this.laneOpen(p.team, B.x, B.z, q.x, q.z) < 1.1 && d > 12 * SC) || d > 32 * SC; this.passBall(p, q, loft, 0); this.setMe(q, 'pass'); }
@@ -438,7 +443,7 @@ export class FutbolGame {
   }
   // pase al hueco: al compañero mejor situado hacia donde apunta el joystick, pero al espacio por delante de él (hacia la
   // portería rival), para que llegue corriendo; el compañero arranca a por él
-  humanThrough(p) {
+  humanThrough(p, charge = 0.5) {
     const I = this.input, f = fwd(p), s = this.dir[p.team];
     let dx = I.mag > 0.25 ? I.x : f.x, dz = I.mag > 0.25 ? I.z : f.z; const l = hyp(dx, dz) || 1; dx /= l; dz /= l;
     const q = this.bestReceiver(p, dx, dz, this.assist ? PL.cone * 1.2 : PL.cone, true);
@@ -449,10 +454,10 @@ export class FutbolGame {
     // a dónde llegará corriendo cuando llegue el balón: el tiempo del balón según la distancia y la carrera del
     // compañero (antes iba a un punto fijo unos metros por delante y, esprintando, el delantero lo pasaba de largo)
     const B = this.ball.p, run = Math.max(hyp(q.vx, q.vz), PL.run * 0.85);
-    let lead = (5 + Math.min(4, hyp(q.x - p.x, q.z - p.z) * 0.12)) * SC;
+    let lead = (3 + charge * 10 + Math.min(4, hyp(q.x - p.x, q.z - p.z) * 0.12)) * SC;   // (más carga, más por delante)
     for (let k = 0; k < 3; k++) {
       const ax = q.x + rx * lead, az = q.z + rz * lead, d = hyp(ax - B.x, az - B.z), v = this.groundV(d) * this.firm(p), T = d / (v * 0.78);
-      lead = Math.max(4 * SC, run * T * 0.95);
+      lead = Math.max((3 + charge * 9) * SC, run * T * (0.7 + charge * 0.7));
     }
     const tx = clamp(q.x + rx * lead, -F.HL + 1.2, F.HL - 1.2), tz = clamp(q.z + rz * lead, -F.HW + 1, F.HW - 1);
     this.passToPoint(p, tx, tz, false, q); q.react = 0;
@@ -599,7 +604,7 @@ export class FutbolGame {
         if (this.restart && this.restart.taker !== p) continue;
         const f = foot(p), d = hyp(B.x - f.x, B.z - f.z), body = hyp(B.x - p.x, B.z - p.z);
         // al que va el pase lo controla con más margen (estira la pierna): pasa menos veces de largo
-        const mine = this.passTo === p, reach = mine ? PL.reach + 0.45 : PL.reach;
+        const mine = this.passTo === p || (this.human(p) && !this.owner), reach = (mine ? PL.reach + 0.45 : PL.reach) + (this.human(p) ? 0.12 : 0);
         if (B.y < PL.ctrlH + (mine ? 0.2 : 0) && (d < reach || body < (mine ? 0.8 : 0.45)) && d - (mine ? 0.3 : 0) < bd) { bd = d - (mine ? 0.3 : 0); best = p; }
       }
       if (best) {
@@ -617,7 +622,7 @@ export class FutbolGame {
       if (best) {
         const rel = hyp(b.v.x - best.vx, b.v.z - best.vz, b.v.y);
         // (un pase tenso al que va dirigido lo controla; lo que rebota es un balón fuerte que no era para él)
-        if (rel > PL.trapMax * (this.passTo === best ? 1.6 : 1)) this.deflect(best, 0.35);
+        if (rel > PL.trapMax * (this.passTo === best ? 1.6 : 1) * (this.human(best) ? 1.3 : 1)) this.deflect(best, 0.35);
         else this.takeBall(best);
       }
       // un balón fuerte que pasa por el cuerpo de alguien (más alto que los pies) también rebota
