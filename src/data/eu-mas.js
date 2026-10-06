@@ -37,12 +37,15 @@ const ala = (n) => /(ia|ea)$/.test(n) ? n.slice(0, -1) + 'ra' : /[aeiou]$/i.test
 const abl = (n) => /(ia|ea)$/.test(n) ? n.slice(0, -1) + 'tik' : /[aeiou]$/i.test(n) ? n + 'tik' : n + 'etik';
 const erg = (n) => /[aeiou]$/i.test(n) ? n + 'k' : n + 'ek';
 const pers = (n) => /[aeiou]$/i.test(n) ? n + 'rengana' : n + 'engana';   // «itzuli X-rengana»
-const e = (x) => T[x] ?? EU_EXACT[x] ?? MAS[x] ?? x;
+// lo que cae en un hueco: diccionario o, si no está, el traductor entero (con sus plantillas: «Guía Maite»…)
+let TR = null; export const setTr = (f) => { TR = f; };
+const e = (x) => T[x] ?? EU_EXACT[x] ?? MAS[x] ?? (TR && x.length < 300 ? TR(x) : x);
 const DIRS = { norte: 'Iparraldera', sur: 'Hegoaldera', este: 'Ekialdera', oeste: 'Mendebaldera', noreste: 'Ipar-ekialdera', noroeste: 'Ipar-mendebaldera', sureste: 'Hego-ekialdera', suroeste: 'Hego-mendebaldera' };
 const supply = (s) => s.replace(/\bagua\b/g, 'ura').replace(/\bcomida\b/g, 'janaria').replace(/\by\b/g, 'eta');
 
 export const EU_MAS = { ...MAS, ...T };
 export const EU_RX_MAS = [
+  [/^Productos de ([^.…!?]+)$/, (m, a) => `${loc(e(a))} produktuak`],
   [/^El sabio de ([^.…!?]+)$/, (m, a) => `${loc(e(a))} jakintsua`], [/^La sabia de ([^.…!?]+)$/, (m, a) => `${loc(e(a))} jakintsua`],
   [/^(\d+) misiones te esperan$/, '$1 misio zure zain'],
   [/^¡Kaixo, (.+?)! Ongi etorri: ¡te damos la bienvenida a (.+)!$/, (m, a, b) => `Kaixo, ${a}! Ongi etorri ${ala(e(b))}!`],

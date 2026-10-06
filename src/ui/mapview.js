@@ -3,6 +3,7 @@
 // Las marcas y los nombres se dibujan siempre al mismo tamaño y los nombres que chocarían se esconden
 // hasta que se amplía el mapa.
 import { HALF } from '../world/layout.js';
+import { tr } from '../i18n.js';
 import { iconImage, iconSVG } from './icons.js';
 import { buildMapVectors, drawMapVectors } from './mapvector.js';
 
@@ -36,7 +37,7 @@ export function mountMapView(ui, box, opts = {}) {
 
   // qué se dibuja: nombres de lugares y marcas de misión (sin repetir la misma marca dos veces)
   const collect = () => {
-    const labels = (game.mapLabels ? game.mapLabels() : []).map(l => ({ ...l, pri: !l.icon ? 4 : l.act ? 2.5 : 2, go: l.go ?? true, title: l.title || l.label }));
+    const labels = (game.mapLabels ? game.mapLabels() : []).map(l => ({ ...l, label: l.label && tr(l.label), pri: !l.icon ? 4 : l.act ? 2.5 : 2, go: l.go ?? true, title: l.title || l.label }));
     const out = [...labels];
     for (const m of game.mapMarkers()) {
       const twin = labels.find(l => l.icon === m.icon && (Math.hypot(l.x - m.x, l.z - m.z) < 16 || (m.fronton && l.fronton)));

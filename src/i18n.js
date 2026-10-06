@@ -3,7 +3,7 @@
 // cada texto (y aria-label, placeholder y title) por su versión en euskera: frases exactas y
 // plantillas con huecos (nombres de pueblo, números…).
 import { EU_EXACT, EU_RX } from './data/eu.js';
-import { EU_MAS, EU_RX_MAS } from './data/eu-mas.js';
+import { EU_MAS, EU_RX_MAS, setTr } from './data/eu-mas.js';
 // la segunda parte de la traducción (menú completo, misiones, flora y fauna): sus frases y, por delante, sus plantillas
 Object.assign(EU_EXACT, EU_MAS); EU_RX.unshift(...EU_RX_MAS);
 
@@ -24,6 +24,7 @@ const sub = (x) => x == null ? '' : EU_EXACT[x] ?? (x.length < 300 ? trCore(x) :
 // para revisar la traducción (tools/eu-faltan.mjs): con ?eufaltan, apunta los textos que se quedan sin traducir
 const MISS = (() => { try { return /[?&]eufaltan\b/.test(location.search) ? (window.__euMiss = new Set()) : null; } catch (e) { return null; } })();
 function trCore(core) { return tr(core); }
+setTr((x) => tr(x));
 export function tr(s) {
   if (!isEU() || !s || peek) return s;
   const lead = s.match(/^\s*/)[0], trail = s.match(/\s*$/)[0], core = s.trim();
