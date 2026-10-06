@@ -33,7 +33,7 @@ export const EU_ROLES = {
   'pastor': 'artzaina', 'pastora': 'artzaina', 'herrero': 'errementaria', 'herrera': 'errementaria', 'cestero': 'saskigilea', 'cestera': 'saskigilea',
   'carbonero': 'ikazkina', 'apicultora': 'erlezaina', 'apicultor': 'erlezaina', 'panadera': 'okina', 'panadero': 'okina', 'viticultor': 'mahastizaina',
   'viticultora': 'mahastizaina', 'tonelero': 'upelgilea', 'cantero': 'hargina', 'almadiero': 'almadiazaina', 'hortelana': 'baratzezaina', 'hortelano': 'baratzezaina',
-  'ganadera': 'abeltzaina', 'ganadero': 'abeltzaina', 'agricultora': 'nekazaria', 'agricultor': 'nekazaria', 'dantzari': 'dantzaria', 'txistulari': 'txistularia', 'palomero': 'usazalea', 'Amona Felisa': 'Felisa amona', 'Aizkolari': 'Aizkolaria', 'Cantero': 'Hargina', 'palomera': 'usazalea', 'aizkolari': 'aizkolaria', 'leñador': 'egurgilea',
+  'ganadera': 'abeltzaina', 'ganadero': 'abeltzaina', 'agricultora': 'nekazaria', 'agricultor': 'nekazaria', 'dantzari': 'dantzaria', 'txistulari': 'txistularia', 'palomero': 'usazalea', 'guarda forestal': 'basozaina', 'lavandera': 'garbitzailea', 'criador': 'hazlea', 'criadora': 'hazlea', 'peregrino': 'erromesa', 'peregrina': 'erromesa', 'violinista': 'biolin-jolea', 'carnicera': 'harakina', 'Amona Felisa': 'Felisa amona', 'Aizkolari': 'Aizkolaria', 'Cantero': 'Hargina', 'palomera': 'usazalea', 'aizkolari': 'aizkolaria', 'leñador': 'egurgilea',
   'ovejas': 'ardiak', 'vacas': 'behiak', 'cerdos': 'txerriak', 'cabras': 'ahuntzak', 'caballos': 'zaldiak', 'patatas': 'patatak', 'manzanas': 'sagarrak',
 };
 const T = { ...EU_TOWNS, ...EU_ROLES };
@@ -62,7 +62,10 @@ export const EU_RX_MAS = [
   [/^Soy ([^,]+), ([^.]+)\. Ven al banco de trabajo y te enseño cómo se hacía, paso a paso\.$/, (m, a, b) => `${a} naiz, ${e(b)}. Etorri lan-mahaira eta nola egiten zen erakutsiko dizut, pausoz pauso.`],
   [/^Primero: (.+)\. Necesito (\d+)\.$/, (m, a, n) => { const t = e(cap(a)); return t === cap(a) ? null : `Lehenik: ${t.charAt(0).toLowerCase() + t.slice(1)}. ${n} behar ditut.`; }],
   [/^Taller de (.+): paso (\d+) de (\d+)$/, (m, a, n, k) => `${cap(e(a))}aren tailerra: ${n}. urratsa (${k})`],
-  [/^Encuentra a (.+)$/, (m, a) => `Aurkitu ${e(a)}`],
+  [/^Encuentra a (.+)$/, (m, a) => `Aurkitu ${e(a)}`], [/^Encuentra (\d+) montes\.$/, 'Aurkitu $1 mendi.'],
+  [/^Recoge ([^.!?]+)$/, (m, a) => { const t = e(a); return t === a ? null : `Bildu ${t}`; }],
+  // lanbidea aurretik: «Apicultora Maite» → «Maite erlezaina»
+  [/^(Apicultora|Apicultor|Carnicera|Carnicero|Hospitalera|Hospitalero|Panadera|Panadero|Pastora|Pastor|Quesera|Quesero|Molinera|Molinero) (\S+)$/, (m, r, a) => `${a} ${({ Apicultora: 'erlezaina', Apicultor: 'erlezaina', Carnicera: 'harakina', Carnicero: 'harakina', Hospitalera: 'ospitalaria', Hospitalero: 'ospitalaria', Panadera: 'okina', Panadero: 'okina', Pastora: 'artzaina', Pastor: 'artzaina', Quesera: 'gaztagilea', Quesero: 'gaztagilea', Molinera: 'errotaria', Molinero: 'errotaria' })[r]}`],
   [/^Soy ([^,.]+)\. Ven al banco de trabajo y te enseño cómo se hacía, paso a paso\.$/, (m, a) => `${e(a)} naiz. Etorri lan-mahaira eta nola egiten zen erakutsiko dizut, pausoz pauso.`],
   [/^Construyendo (.+)…$/, (m, a) => `${e(a)} eraikitzen…`], [/^Mirar: (.+)$/, (m, a) => `Begiratu: ${e(a)}`],
   [/^¡Has bailado (.+) como en las fiestas! (\d+)\/(\d+) pasos\.$/, (m, a, n, k) => `${e(a)} dantzatu duzu jaietan bezala! ${n}/${k} urrats.`],
