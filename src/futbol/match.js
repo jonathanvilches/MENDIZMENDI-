@@ -360,6 +360,7 @@ export class FutbolMatch {
       case 'penResult': H.pens(e.log, g.pen.kicks); H.say(e.res === 'goal' ? (e.team === 0 ? '¡Gol!' : 'Gol del rival') : e.res === 'save' ? (e.team === 0 ? 'Lo ha parado el portero' : '¡Lo has parado!') : '¡Fuera!', 1500); if (e.res !== 'goal') (e.team === 1 ? A.roar() : A.groan()); break;
       case 'end': this.onEnd(e.result); break;
       case 'switch': break;
+      case 'gkCtl': if (e.on && e.hands) H.say('Tu portero tiene el balón: apunta y PASE para sacar con la mano, o mantén TIRO para un saque largo', 2600); else if (e.on) H.say('Llevas al portero: muévelo y pulsa PASE o TIRO para estirarte', 2200); break;
     }
   }
   onGoal(e) {
@@ -599,7 +600,8 @@ export class FutbolMatch {
     // los retos, la cuenta atrás
     if (this.reto) H.setClock(g.halfLen - g.clock, g.half, this.reto.label());
     else if (g.mode !== 'penalties') H.setClock(Math.floor(((g.half - 1) + Math.min(1, g.clock / g.halfLen)) * (RU.period || 45) * 60), g.half);
-    if (g.mode !== 'penalties' && !this.reto) H.setMode(g.owner ? (g.owner.team === g.me.team ? 'atk' : 'def') : 'loose');
+    // botones según el momento; con tu portero: sacar (con la balón en las manos) o estirarse (llevándolo o con un tiro del rival)
+    if (g.mode !== 'penalties' && !this.reto) H.setMode(g.gkCtl ? 'gkhands' : (g.me.role === 'POR' || (g.phase === 'play' && g.rivalShot())) ? 'gk' : g.owner ? (g.owner.team === g.me.team ? 'atk' : 'def') : 'loose');
     H.bars(me.energy, g.charge);
     // flecha en el borde si tu jugador no se ve
     if (!this.ring.visible) { H.arrow(null); return; }

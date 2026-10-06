@@ -99,8 +99,15 @@ export class FutbolGame {
   press(a) {
     if (this.autoplay) return;
     if (this.mode === 'penalties' && this.pen?.human === 'keeper') { if (a === 'pass' || a === 'shoot' || a === 'tackle' || a === 'contain') this.humanDive(); return; }
-    if (a === 'switch') { this.manualSwitch(); return; }
     const I = this.input, live = this.phase === 'play' || this.phase === 'tuto', def = this.defending() && live;
+    // tu portero con el balón en las manos: lo sacas tú (PASE con la mano al compañero al que apuntas, TIRO un saque
+    // largo con la fuerza que cargues)
+    if (this.gkCtl) { if (a === 'pass') this.gkRelease('throw'); else if (a === 'shoot') this.hold.shoot = 0; return; }
+    // un tiro del rival hacia tu portería: cualquier botón hace que tu portero se estire hacia donde apuntas
+    if (live && this.rivalShot() && (a === 'pass' || a === 'shoot' || a === 'switch')) { this.humanKeeperDive(); return; }
+    if (a === 'switch') { this.manualSwitch(); return; }
+    // llevando a tu portero: PASE o TIRO = estirarse o salir a por el balón hacia donde apuntas
+    if (this.me.role === 'POR' && live && (a === 'pass' || a === 'shoot')) { this.humanKeeperDive(); return; }
     if (a === 'contain') { I.contain = true; return; }
     if (a === 'mate') { I.mate = true; return; }
     if (a === 'shield') { I.shield = true; return; }
@@ -122,6 +129,7 @@ export class FutbolGame {
     if (a === 'through') { I.contain = false; I.mate = false; if (this.hold.through >= 0) { this.hold.through = -1; this.action({ kind: 'through' }); } }
     if (a === 'lob' && this.hold.lob >= 0) { this.hold.lob = -1; this.action({ kind: 'pass', loft: true }); }
     if (a === 'pass' && this.hold.pass >= 0) { this.hold.pass = -1; this.action({ kind: 'pass', loft: false }); }
+    if (a === 'shoot' && this.hold.shoot >= 0 && this.gkCtl) { const charge = Math.min(1, this.hold.shoot / PL.charge); this.hold.shoot = -1; this.gkRelease('kick', charge); return; }
     if (a === 'shoot' && this.hold.shoot >= 0) { const charge = Math.min(1, this.hold.shoot / PL.charge); this.hold.shoot = -1; this.action({ kind: 'shot', charge, finesse: !!I.finesse }); }
   }
   get charge() { return this.hold.shoot >= 0 ? Math.min(1, this.hold.shoot / PL.charge) : -1; }
@@ -169,11 +177,14 @@ export class FutbolGame {
     if (ph === 'foulstop' && this.phaseT > 1.1) { const d = this.pendingRestart; this.pendingRestart = null; this.setPiece(d.type, d.team, d.x, d.z, d.indirect, d.noWall); }
     // jugadores
     for (const p of this.players) this.timers(p, h);
+    if (ph !== 'play' && ph !== 'tuto') this.gkCtl = null;
     if (ph === 'play' || ph === 'tuto') {
       this.clock += ph === 'play' ? h : 0;
       for (const t of [0, 1]) if ((this.ts[t].t -= h) <= 0) { this.ts[t].t = 0.2; this.teamThink(t); }
-      if (!this.autoplay) this.humanStep(h);
-      for (const p of this.players) if (!this.human(p)) this.aiStep(p, h);
+      this.gkCtl = !this.autoplay && !this.noSwitch && this.owner?.hands && this.owner.team === this.me.team && this.owner.role === 'POR' ? this.owner : null;
+      if (this.gkCtl && this.me !== this.gkCtl) { this.me.wx = this.me.wz = 0; }
+      if (!this.autoplay && !this.gkCtl) this.humanStep(h);
+      for (const p of this.players) if (!this.human(p) || (this.gkCtl && p === this.me)) this.aiStep(p, h);
     } else if (ph === 'kickoff' || ph === 'setpiece') this.restartStep(h);
     else for (const p of this.players) this.drift(p, ph);
     for (const p of this.players) this.integrate(p, h);
@@ -217,7 +228,7 @@ export class FutbolGame {
       // (más rápido trotando que esprintando, algo menos con el balón); en un cambio brusco de sentido el jugador
       // planta el pie, frena en seco y sale hacia el otro lado
       const a0 = Math.atan2(p.vx, p.vz), d = angDiff(a0, Math.atan2(wx, wz));
-      const omega = (PL.grip || 8.5) * (sprint ? 0.7 : 1) * (this.owner === p ? 0.88 : 1) * (p.recover > 0 ? 0.5 : 1);
+      const omega = (PL.grip || 8.5) * (sprint ? 0.7 : 1) * (this.owner === p ? 0.88 : 1) * (p.recover > 0 ? 0.5 : 1) * (this.human(p) ? 1.35 : 1);   // (el tuyo responde antes al joystick)
       if (Math.abs(d) > 2.1) {
         const nv = Math.max(0, v0 - (PL.brake || 26) * 1.15 * h);
         if (nv < 1.2) { const a1 = Math.atan2(wx, wz); p.vx = Math.sin(a1) * nv; p.vz = Math.cos(a1) * nv; }
@@ -226,20 +237,20 @@ export class FutbolGame {
         const a = a0 + clamp(d, -omega * h, omega * h);
         // en el giro se pierde algo de velocidad (más cuanto más cerrado), luego se recupera
         const tv = wv * (1 - Math.min(0.35, Math.abs(d) * 0.22)), dv = tv - v0;
-        const nv = v0 + clamp(dv, -(PL.brake || 26) * h, PL.acc * h);
+        const nv = v0 + clamp(dv, -(PL.brake || 26) * h, PL.acc * (this.human(p) ? 1.25 : 1) * h);
         p.vx = Math.sin(a) * nv; p.vz = Math.cos(a) * nv;
       }
     } else {
       // arrancar o pararse: acelera a 14 m/s² y frena a la frenada del formato
       const braking = wx * p.vx + wz * p.vz < p.vx * p.vx + p.vz * p.vz - 0.01;
-      let dvx = wx - p.vx, dvz = wz - p.vz; const dl = hyp(dvx, dvz), mx = (braking ? (PL.brake || 26) : PL.acc) * h;
+      let dvx = wx - p.vx, dvz = wz - p.vz; const dl = hyp(dvx, dvz), mx = (braking ? (PL.brake || 26) : PL.acc) * (this.human(p) ? 1.25 : 1) * h;
       if (dl > mx) { dvx *= mx / dl; dvz *= mx / dl; }
       p.vx += dvx; p.vz += dvz;
     }
     p.x += p.vx * h; p.z += p.vz * h;
     this.bounds(p);
     // giro suavizado: hacia donde corre, o hacia donde quiere mirar (al balón, a la portería)
-    const v = hyp(p.vx, p.vz), turn = (this.owner === p ? PL.turnBall || 9 : PL.turn || 12) * h;
+    const v = hyp(p.vx, p.vz), turn = (this.owner === p ? PL.turnBall || 9 : PL.turn || 12) * (this.human(p) && !p.shielding ? 1.4 : 1) * h;
     let ta = null;
     if (p.face) ta = Math.atan2(p.face.x - p.x, p.face.z - p.z);
     if (v > 0.6 && !(p.face && v < 2.5)) ta = Math.atan2(p.vx, p.vz);
@@ -273,6 +284,7 @@ export class FutbolGame {
   // ---------------------------------------------------------------- el jugador humano
   humanStep(h) {
     const p = this.me, I = this.input;
+    if (p.role === 'POR') return this.humanKeeper(p, h);
     if (p.down > 0 || p.slide || p.dive) return;
     let wx = I.x * I.mag, wz = I.z * I.mag;
     // sin tocar el joystick y con un pase hacia él: va solo a por el balón (ayuda al recibir)
@@ -317,31 +329,102 @@ export class FutbolGame {
     // cambio automático (como en los juegos de fútbol): con el balón suelto, al que antes llega a él; defendiendo, al más cercano al
     // balón (nunca mientras se presiona, a mitad de un robo o de una entrada)
     const loose = !this.owner && this.passTo !== p;
-    if ((this.defending() || loose) && this.switchCD <= 0 && !p.robo && !p.slide && !I.contain) {
+    if ((this.defending() || loose) && this.switchCD <= 0 && !p.robo && !p.slide && !I.contain && !this.noAuto) {
       const b = this.ball.p; let best = null;
       // mientras mueves a tu jugador, solo cambia si otro llega claramente antes (no te quita el control a cada momento)
       const steering = I.mag > 0.2;
       if (loose) {
-        let bt = this.interceptPoint(p).t - (steering ? 0.7 : 0.3);
+        let bt = this.interceptPoint(p).t - (steering ? 1.1 : 0.35);
         for (const q of this.team(p.team)) if (q.role !== 'POR' && q !== p && q.down <= 0) { const t = this.interceptPoint(q).t; if (t < bt) { bt = t; best = q; } }
       } else {
         const dme = hyp(p.x - b.x, p.z - b.z);
-        let bd = steering ? (dme > 12 ? dme - 5 : -1) : dme - 1.2;
+        let bd = steering ? (dme > 18 ? dme - 8 : -1) : dme - 2;
         for (const q of this.team(p.team)) if (q.role !== 'POR' && q !== p && q.down <= 0) { const d = hyp(q.x - b.x, q.z - b.z); if (d < bd) { bd = d; best = q; } }
       }
       if (best) this.setMe(best, 'auto');
     }
   }
   setMe(q, why = 'manual') {
-    if (!q || q === this.me || q.role === 'POR') return;
+    if (!q || q === this.me || (q.role === 'POR' && why !== 'gk')) return;
     if (this.noSwitch && why !== 'force') return;   // en los retos siempre llevas al mismo
-    const old = this.me; old.wx = old.vx; old.wz = old.vz; this.me = q; this.switchCD = 0.6; q.plan = null;
+    // (tras un cambio que eliges tú, el automático espera más: no te quita al que acabas de coger)
+    const old = this.me; old.wx = old.vx; old.wz = old.vz; this.me = q; this.switchCD = why === 'manual' || why === 'gk' ? 1.6 : 0.6; q.plan = null;
+    if (old.role === 'POR') old.threat = null;
     this.emit({ t: 'switch', p: q.id, why });
   }
+  // cambiar: con el joystick apuntando, al compañero que está hacia ese lado (el más cercano en esa dirección); sin
+  // apuntar, al más cercano al balón. Con el balón cerca de tu área, sin apuntar, coges al portero (y vuelve a un
+  // jugador de campo al pulsar otra vez)
   manualSwitch() {
-    const b = this.ball.p, me = this.me; if (this.owner === me) return;
-    const c = this.team(me.team).filter(q => q.role !== 'POR' && q !== me).sort((a, q) => hyp(a.x - b.x, a.z - b.z) - hyp(q.x - b.x, q.z - b.z));
-    if (c[0]) this.setMe(c[0], 'manual');
+    const b = this.ball.p, me = this.me, I = this.input; if (this.owner === me) return;
+    const gk = this.gk(me.team), nearOwn = hyp(b.x - this.ownGoal(me.team), b.z) < 30 * SC && this.defending();
+    if (me.role !== 'POR' && nearOwn && I.mag < 0.3 && !this.noSwitch) { this.setMe(gk, 'gk'); this.emit({ t: 'gkCtl', on: true }); return; }
+    const c = this.team(me.team).filter(q => q.role !== 'POR' && q !== me);
+    let pick = null;
+    if (I.mag > 0.3) {
+      let bs = -1e9;
+      for (const q of c) { const ex = q.x - me.x, ez = q.z - me.z, d = hyp(ex, ez) || 1, cos = (ex * I.x + ez * I.z) / d; if (cos < 0.5) continue; const sc = cos * 2 - d / (25 * SC) - hyp(q.x - b.x, q.z - b.z) / (40 * SC); if (sc > bs) { bs = sc; pick = q; } }
+    }
+    if (!pick) pick = c.sort((a, q) => hyp(a.x - b.x, a.z - b.z) - hyp(q.x - b.x, q.z - b.z))[0];
+    if (pick) this.setMe(pick, 'manual');
+  }
+  /** ¿Va un tiro del rival hacia tu portería? */
+  rivalShot() {
+    const t = this.me.team, b = this.ball, s = -this.dir[t];
+    return !this.owner && this.shotLive && this.shotLive.team !== t && b.v.x * s > 3;
+  }
+  // tu portero se estira (o se tira a por el balón) hacia donde apunta el joystick; sin apuntar, hacia el balón
+  humanKeeperDive() {
+    const k = this.gk(this.me.team); if (k.dive || k.hands || k.down > 0) return;
+    const I = this.input, b = this.ball, B = b.p, s = -this.dir[k.team];
+    let dx, dz;
+    if (I.mag > 0.3) { dx = I.x; dz = I.z; }
+    else { const T = Math.abs(b.v.x) > 1 ? clamp((k.x - B.x) / b.v.x, 0, 1.2) : 0; dx = B.x + b.v.x * T - k.x; dz = B.z + b.v.z * T - k.z; }
+    const l = hyp(dx, dz) || 1; dx /= l; dz /= l;
+    // estirada: sobre todo de lado (a lo largo de la línea); hacia delante, un poco (salir a los pies)
+    const side = Math.sign(dz) || 1, high = B.y > 1.3 || (I.mag > 0.3 && dx * s < -0.5);
+    const L = this.L(k), v = 5.4 * L.keeperReach;
+    k.dive = { t: 0.7, vz: dz * v, vx: dx * v * 0.55, hy: high ? 1.8 : 0.6, side };
+    k.act = 'dive'; k.actT = 0.9; k.threat = null; this.emit({ t: 'dive', p: k.id, side, high, human: true });
+  }
+  // tu portero, manejado por ti: se mueve con el joystick sin salir del área y para con las manos lo que le llegue
+  humanKeeper(p, h) {
+    const I = this.input, b = this.ball.p, gx = this.ownGoal(p.team);
+    if (p.dive) return;
+    if (p.down > 0) { p.wx = p.wz = 0; return; }
+    // el balón se aleja de tu área (o lo tiene tu equipo): vuelves a un jugador de campo
+    if (hyp(b.x - gx, b.z) > 36 * SC || (this.owner && this.owner.team === p.team && this.owner !== p)) {
+      const c = this.team(p.team).filter(q => q.role !== 'POR').sort((a, q) => hyp(a.x - b.x, a.z - b.z) - hyp(q.x - b.x, q.z - b.z));
+      this.emit({ t: 'gkCtl', on: false }); this.setMe(this.owner?.team === p.team && this.owner.role !== 'POR' ? this.owner : c[0], 'force'); return;
+    }
+    const top = I.sprint ? PL.sprint : PL.run;
+    p.wx = I.x * I.mag * top; p.wz = I.z * I.mag * top; p.wantSprint = I.sprint && I.mag > 0.5;
+    // sin salir del área (con un margen) ni meterse en la portería
+    const s = -this.dir[p.team], d = s * (gx - p.x);
+    if (d < 0.3 && s * p.wx > 0) p.wx = 0;
+    if (!this.inArea(p.team, p.x + p.wx * 0.1, p.z + p.wz * 0.1, 1)) { p.wx = (gx - s * 6 - p.x) * 2; p.wz = -p.z * 0.5; }
+    p.face = { x: b.x, z: b.z };
+    this.keeperTouch(p);
+  }
+  // sacar con tu portero: con la mano al compañero al que apuntas, o un saque largo hacia donde apuntas
+  gkRelease(kind, charge = 0.6) {
+    const p = this.gkCtl; if (!p) return;
+    const I = this.input, t = p.team, s = this.dir[t];
+    let dx = I.mag > 0.25 ? I.x : s, dz = I.mag > 0.25 ? I.z : 0; const l = hyp(dx, dz) || 1; dx /= l; dz /= l;
+    p.hands = false; this.ball.held = null; this.owner = null; this.ball.p.y = 0.9; this.gkCtl = null; p.gkWait = null;
+    if (kind === 'throw') {
+      const q = this.bestReceiver(p, dx, dz, PL.cone * 1.4);
+      this.handThrow = true;
+      if (q && hyp(q.x - p.x, q.z - p.z) < 34 * SC) { this.passBall(p, q, hyp(q.x - p.x, q.z - p.z) > 18 * SC, 0.2); p.act = 'throw'; this.setMe(q, 'pass'); }
+      else { this.passToPoint(p, clamp(p.x + dx * 16 * SC, -F.HL + 1, F.HL - 1), clamp(p.z + dz * 16 * SC, -F.HW + 1, F.HW - 1), false); p.act = 'throw'; }
+    } else {
+      // saque largo: de 25 a 60 m (en sala, de 12 a 30) según la fuerza, hacia donde apuntas
+      const dist = (12 + charge * 18) * (K.dragK ? 1 : 2), tx = clamp(p.x + dx * dist, -F.HL + 3, F.HL - 3), tz = clamp(p.z + dz * dist, -F.HW + 2, F.HW - 2);
+      const q = this.bestReceiver(p, dx, dz, PL.cone);
+      this.passToPoint(p, tx, tz, true, q && hyp(q.x - tx, q.z - tz) < 14 * SC ? q : null);
+    }
+    if (this.restart) { this.restart = null; this.setPhase('play'); }
+    this.emit({ t: 'gkCtl', on: false });
   }
   // pase del jugador: al compañero mejor situado dentro de un cono de 35° hacia donde apunta el joystick
   humanPass(p, loft) {
@@ -783,7 +866,16 @@ export class FutbolGame {
     p.wx = p.wz = 0; const t = p.team, s = -this.dir[t];
     p.face = { x: 0, z: 0 };
     if (this.phase !== 'play' && this.phase !== 'setpiece') return;
+    // tu portero: lo sacas tú (andando con el balón por el área y apuntando); si tardas más de 6 s, saca solo
+    if (this.gkCtl === p) {
+      const I = this.input;
+      if (p.gkWait == null) { p.gkWait = 6; this.emit({ t: 'gkCtl', on: true, hands: true }); }
+      if (I.mag > 0.2) { p.face = { x: p.x + I.x * 5, z: p.z + I.z * 5 }; if (this.inArea(t, p.x + I.x * 0.4, p.z + I.z * 0.4, -0.5)) { p.wx = I.x * I.mag * 2.2; p.wz = I.z * I.mag * 2.2; } }
+      else p.face = { x: p.x - s * 5, z: p.z };
+      if ((p.gkWait -= h) > 0) return;
+    }
     if ((p.holdT -= h) > 0) return;
+    p.gkWait = null;
     let best = null, bs = -1e9;
     for (const q of this.team(t)) {
       if (q === p) continue;
