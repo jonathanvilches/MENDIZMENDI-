@@ -311,8 +311,12 @@ for (const [p, u] of Object.entries(import.meta.glob('../assets/portadas/*.webp'
 // alrededor) sacada del mismo render, que se pone encima con el mismo encuadre
 const HERO = {};
 for (const [p, u] of Object.entries(import.meta.glob('../assets/portadas/heroe/*.webp', { eager: true, query: '?url', import: 'default' }))) HERO[p.split('/').pop().replace('.webp', '')] = u;
-/** Portada de la comarca con ese personaje dentro de la escena, como lista de fondos CSS (capa encima, fondo debajo), o null. */
-export function heroShot(comarcaId, avatar) { const f = HERO[comarcaId + '-' + avatar], bg = HERO[comarcaId]; return f && bg ? `url(${f}), url(${bg})` : null; }
+/** Portada de la comarca con ese personaje dentro de la escena, como lista de fondos CSS (capa encima, fondo debajo), o null.
+ *  vert: la del móvil de pie (personaje entero y centrado). */
+export function heroShot(comarcaId, avatar, vert = false) {
+  const s = vert ? '-v' : '', f = HERO[comarcaId + '-' + avatar + s], bg = HERO[comarcaId + s];
+  return f && bg ? `url(${f}), url(${bg})` : null;
+}
 function drawShot(R, comarcaId, w, h) {
   const D = buildDiorama(comarcaId, { live: false });
   R.setClearColor(D.scene.fog.color, 1);

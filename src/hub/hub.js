@@ -170,7 +170,7 @@ export class Hub {
     const next = this.suggestions();
     return `
     <section class="hero3d">
-      ${heroShot(last.comarca, p.avatar) ? `<div class="hero-img scene" style="background-image:${heroShot(last.comarca, p.avatar)}"></div>`
+      ${heroShot(last.comarca, p.avatar) ? `<div class="hero-img scene" style="--hero-h:${heroShot(last.comarca, p.avatar)};--hero-v:${heroShot(last.comarca, p.avatar, true) || heroShot(last.comarca, p.avatar)}"></div>`
         : `<div class="hero-img" style="background-image:url(${landImg(last.comarca, 1280, 720, true)})">${avatarPortraitImg(p.avatar, 'hero').replace('<img ', '<img class="hero-av" ')}</div>`}
       <div class="h-shade"></div>
       <button class="chapter" data-comarca="${last.comarca}" style="--c:${cm?.color}"><img src="${stampImg(last.comarca)}" alt=""><span><small>Capítulo ${chapter} · ${esc(cm?.name || '')}</small><b>${cpr.stamps}/${cts.length} sellos de la comarca</b><span class="cbar"><i style="width:${cts.length ? cpr.stamps / cts.length * 100 : 0}%"></i></span></span></button>

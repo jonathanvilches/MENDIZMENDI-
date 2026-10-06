@@ -3,12 +3,13 @@
 // del mismo render, así que encajan al ponerlas una encima de otra con el mismo encuadre. Así el fondo va a buena
 // resolución una sola vez por comarca y cada personaje solo pesa lo que ocupa.
 // Volver a ejecutar si cambian los dioramas, los personajes o las comarcas.
-// Uso: node tools/herobake.mjs [url base]   (ONLY=comarca,… y AV=personaje,… para hacer solo algunos)
+// Uso: node tools/herobake.mjs [url base]   (ONLY=comarca,… y AV=personaje,… para hacer solo algunos; V=1: las del móvil
+// de pie, <comarca>-v.webp y <comarca>-<personaje>-v.webp, con el personaje entero y centrado)
 import { chromium } from 'playwright-core';
 import { writeFileSync, mkdirSync } from 'fs';
 import { execFileSync } from 'child_process';
 const [,, base = 'http://127.0.0.1:5173/'] = process.argv;
-const W = 1600, H = 900, tmp = '/tmp/herobake'; mkdirSync(tmp, { recursive: true });
+const V = !!process.env.V, W = V ? 768 : 1600, H = V ? 1366 : 900, SUF = V ? '-v' : '', tmp = '/tmp/herobake' + SUF; mkdirSync(tmp, { recursive: true });
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage();
 p.on('pageerror', e => console.log('PAGEERROR', e.message));
@@ -19,7 +20,7 @@ const jobs = [];
 for (const c of ids) for (const a of avs) {
   if (process.env.ONLY && !process.env.ONLY.split(',').includes(c)) continue;
   if (process.env.AV && !process.env.AV.split(',').includes(a)) continue;
-  const [bg, fig, mask] = await p.evaluate(([c, a, w, h]) => window.__bake(c, a, w, h), [c, a, W, H]);
+  const [bg, fig, mask] = await p.evaluate(([c, a, w, h, v]) => window.__bake(c, a, w, h, v), [c, a, W, H, V]);
   writeFileSync(`${tmp}/${c}-${a}-m.png`, Buffer.from(mask.split(',')[1], 'base64'));
   writeFileSync(`${tmp}/${c}.png`, Buffer.from(bg.split(',')[1], 'base64'));
   writeFileSync(`${tmp}/${c}-${a}.png`, Buffer.from(fig.split(',')[1], 'base64')); jobs.push([c, a]); console.log('·', c, a);
@@ -33,7 +34,7 @@ out = 'src/assets/portadas/heroe'; os.makedirs(out, exist_ok=True); tot = 0; don
 for c, a in ${JSON.stringify(jobs)}:
     bg = Image.open('${tmp}/' + c + '.png').convert('RGB'); fig = Image.open('${tmp}/' + c + '-' + a + '.png').convert('RGB')
     if c not in done:
-        d = os.path.join(out, c + '.webp'); bg.save(d, 'WEBP', quality=64, method=6); tot += os.path.getsize(d); done.add(c)
+        d = os.path.join(out, c + '${SUF}.webp'); bg.save(d, 'WEBP', quality=${V ? 50 : 60}, method=6); tot += os.path.getsize(d); done.add(c)
     # capa: la figura (con su silueta exacta) y su sombra, guardada como negro con transparencia (oscurece el fondo
     # lo mismo que en el render y casi no pesa)
     B = np.asarray(bg, np.float32); F = np.asarray(fig, np.float32)
@@ -46,6 +47,6 @@ for c, a in ${JSON.stringify(jobs)}:
     a_sh = np.round(np.asarray(a_sh, np.float32) / 255 * 32) / 32
     arr = np.zeros(B.shape[:2] + (4,), np.float32); arr[..., :3] = F * (fm > 0)[..., None]; arr[..., 3] = np.maximum(fm, a_sh * (1 - fm)) * 255
     arr = arr.clip(0, 255).astype(np.uint8)
-    d = os.path.join(out, c + '-' + a + '.webp'); Image.fromarray(arr, 'RGBA').save(d, 'WEBP', quality=74, alpha_quality=80, method=6); tot += os.path.getsize(d)
+    d = os.path.join(out, c + '-' + a + '${SUF}.webp'); Image.fromarray(arr, 'RGBA').save(d, 'WEBP', quality=${V ? 68 : 74}, alpha_quality=80, method=6); tot += os.path.getsize(d)
 print('portadas', len(${JSON.stringify(jobs)}), 'total KB', tot // 1024)
 `], { stdio: 'inherit' });
