@@ -1,7 +1,7 @@
 // Control del jugador: movimiento relativo a cámara, colisiones, agua, pendientes, salto
 import * as THREE from 'three';
 import { groundHeight, waterLevelAt, surfAt, bridgeAt } from '../world/heightfield.js';
-import { resolve } from '../world/colliders.js';
+import { resolve, addMover } from '../world/colliders.js';
 import { BOUNDARY } from '../world/layout.js';
 import { clamp, damp, dampAngle, angleDiff } from '../util/math.js';
 import { makeBlob, placeBlob } from '../util/blob.js';
@@ -27,6 +27,8 @@ export class Player {
     this.frozen = false;
     this.turnRate = 0;
     this.lastSafe = new THREE.Vector3();
+    // (los vecinos y los animales chocan con el jugador como con cualquiera; oculto, en un partido o en el encierro, no)
+    this.collider = addMover(0, 0, this.radius, { player: this });
   }
   place(x, z, heading = 0) {
     this.pos.set(x, groundHeight(x, z), z);
@@ -52,7 +54,7 @@ export class Player {
     const dirx = Math.sin(this.heading), dirz = Math.cos(this.heading);
     let nx = this.pos.x + dirx * this.speed * dt, nz = this.pos.z + dirz * this.speed * dt;
     // colisiones
-    const r = resolve(nx, nz, this.radius);
+    const r = resolve(nx, nz, this.radius, this.collider);
     nx = r.x; nz = r.z;
     // límites del mundo (montañas)
     const r4 = Math.pow(nx ** 4 + nz ** 4, 0.25);
@@ -64,7 +66,7 @@ export class Player {
     const depth = wl - gNew;
     const onBridge = bridgeAt(nx, nz);
     // (un escalón pequeño, como el borde de una tarima o de una rampa, se sube; una pared o un talud, no)
-    const tooSteep = moved > 1e-4 && gNew - gOld > 0.25 && (gNew - gOld) / moved > 1.25 && this.grounded;
+    const tooSteep = moved > 1e-4 && gNew - gOld > 0.36 && (gNew - gOld) / moved > 1.25 && this.grounded;   // (un peldaño de 30 cm se sube)
     const tooDeep = !onBridge && depth > 0.95;
     if (tooSteep || tooDeep) {
       // deslizar: probar solo X o solo Z
@@ -114,6 +116,7 @@ export class Player {
     this.sync();
   }
   sync() {
+    if (this.collider) { this.collider.x = this.pos.x; this.collider.z = this.pos.z; this.collider.ghost = !this.obj.visible || !this.obj.parent; }
     this.obj.position.copy(this.pos);
     this.obj.position.y -= this.wade * 0.15;
     this.obj.rotation.y = this.heading;

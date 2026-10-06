@@ -19,6 +19,7 @@ import { setLevel, PLACES, iratiMask } from '../world/layout.js';
 import * as SALAZAR from '../levels/salazar.js';
 import { createTownLevel } from '../levels/town.js';
 import { resetColliders } from '../world/colliders.js';
+import { resetNav, navTick } from '../world/nav.js';
 import { MinifigRig, COSTUMES } from '../actors/minifig.js';
 import { GlbRig, isGlbAvatar, loadGlbAvatar } from '../actors/glbChar.js';
 import { Player } from '../actors/player.js';
@@ -105,7 +106,7 @@ export class Runtime {
     this.unload();
     const q = this.quality;
     onProgress(0.05, 'Dibujando el terreno…'); await frame();
-    resetColliders(); resetVillage(); clearPlatforms(); resetDetail();
+    resetColliders(); resetVillage(); clearPlatforms(); resetDetail(); resetNav();
     for (const k of Object.keys(LANDMARKS)) delete LANDMARKS[k];
     const salazar = def.special === 'salazar';
     const mod = salazar ? SALAZAR : createTownLevel(def);
@@ -281,6 +282,7 @@ export class Runtime {
     P.update(dt, input, this.follow.yaw);
     if (g.mode !== 'bino') this.follow.update(dt, P, input);
     g.update(dt);
+    navTick(this.quality === 'low' ? 1.5 : 2.5);   // caminos de los vecinos, unos milisegundos por fotograma
     this.terrain.update(this.camera.position);
     this.sky.update(dt, P.pos, this.elapsed, g.mode === 'dance');
     this.weather?.update(dt, this.camera, this.sky, this.sound, g.mode === 'futbol' || g.mode === 'pelota');

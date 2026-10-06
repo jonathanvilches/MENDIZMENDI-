@@ -1,4 +1,5 @@
 // Monumentos genéricos: iglesias por estilo, castillos, murallas, puentes, cuevas, hórreos, molinos...
+import { stepFrom } from './houses.js';
 import * as THREE from 'three';
 import { box, gable, archRing, archPanel, colored, M, MM, uvFit, cyl } from './builder.js';
 import { roofHip } from './houses.js';
@@ -147,7 +148,8 @@ export function church(B, x, z, ry, style, fam, opts = {}) {
     }
   }
   // escalinata
-  for (let i = 0; i < 4; i++) B.add('ashlar', box(8 - i * 0.6, 0.3, 1.2), MM(F, M(0, 0.15 - i * 0.3, (style === 'cathedral' ? 4.5 : 1.3) + i * 1.1)));
+  for (let i = 0; i < 4; i++) { const zc = (style === 'cathedral' ? 4.5 : 1.3) + i * 1.1; B.add('ashlar', box(8 - i * 0.6, 0.3, 1.2), MM(F, M(0, 0.15 - i * 0.3, zc)));
+    stepFrom(F, 0, 0.3 - i * 0.3, zc, (8 - i * 0.6) / 2, 0.6); }   // (cada peldaño es suelo: se sube la escalinata)
   addBox(x, z, W + 3, L + 2, ry, { solidView: true });
   if (style === 'cathedral') boxCol(x, z, ry, W / 2 + 7, -L / 2 + 10, 12, 16);
   const door = toWorld(x, z, ry, 0, L / 2 + (style === 'cathedral' ? 8 : 5));
