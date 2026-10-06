@@ -57,7 +57,7 @@ const MESHY_BY = {
     Jump_Start: ['Hop', 0, 0.3, false, true], Jump_Loop: ['Hop', 0.3, 0.55, true, true], Land: ['Hop', 0.6, 0.96, false, true],
     Ready: ['Hop', 0.02, 0.18, true, true], Scared: ['Hop', 0.62, 0.96, false, true], Pick: ['Hop', 0.62, 0.96, false, true], Hit: ['TalkP', 3.2, 3.9] },
   // (su reposo es un trocito de un cuarto de segundo: a ritmo normal, de ida y vuelta, temblaba; va a un quinto)
-  pelotari: { Idle: ['Fist', 0, 0.25, true, false, 0.2], Talk: ['Fist', 0, 0.25, true, false, 0.4], Ready: ['Slash', 0.02, 0.36, true], Hit: ['Slash', 0.5, 1.25],
+  pelotari: { Idle: ['Fist', 0, 0.25, true, false, 0.2], Talk: ['Fist', 0, 0.25, true, false, 0.4], Ready: ['Slash', 0.02, 0.36, true], Hit: ['Slash', 0.52, 1.25],
     Celebrate: ['Fist', 0, 1.58], Wave: ['Fist', 0.15, 1.4], Scared: ['Slash', 1.1, 1.5], Pick: ['Slash', 0.1, 0.4] },
 };
 MESHY_BY.pelotari_rojo = MESHY_BY.pelotari;   // el colorado se mueve igual que el azul
@@ -130,7 +130,7 @@ export async function loadMeshy(name, lod = false) {
     // veces seguidas (un tirón en cada paso). Se quita ese fotograma repetido
     const animations = ['Walk', 'Run'].filter(n => src[n]).map(n => seamless(src[n]));
     // el futbolista trae su chut: es su golpe (pase y tiro), desde que echa la pierna atrás
-    const cuts = { ...MESHY_CUTS, ...(src.Kick ? { Hit: ['Kick', 0.42, 1.15] } : {}), ...(MESHY_BY[name] || {}) };
+    const cuts = { ...MESHY_CUTS, ...(src.Kick ? { Hit: ['Kick', 0.46, 1.15] } : {}), ...(MESHY_BY[name] || {}) };
     for (const [want, [from, t0, t1, pp, flat, rate]] of Object.entries(cuts)) {
       if (!src[from]) continue;
       const k = cutClip(src[from], want, t0, Math.min(t1, src[from].duration), flat); k.userData = { ...(pp ? { pingpong: true } : {}), ...(rate ? { rate } : {}) }; animations.push(k);
@@ -349,6 +349,7 @@ export class GlbChar {
       else if (v > this.opt.walkAt && this.actions.Walk) { want = 'Walk'; scale = ts * (gait ? gait(v, 'Walk') : Math.max(0.35, v / WALK_REF)); }
       else if (this.talking && this.actions.Talk) want = 'Talk';
       if (want !== 'Walk' && want !== 'Run') scale *= (this.clipExtras[want]?.rate || 1) * this.idleRate;
+      else if (this.back) scale = -scale;   // hacia atrás sin darse la vuelta (el pelotari, mirando al frontis): el paso al revés
       this.play(want);
       if (this.current) this.current.timeScale = scale;
     }

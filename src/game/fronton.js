@@ -127,14 +127,14 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     const animYou = (obj, st, dt) => {
       stYou.v = st;
       P.pos.copy(obj.position); P.heading = obj.rotation.y;
-      rig.update(dt, st.speed, true, 0);
+      if (rig.char) rig.char.back = st.back; rig.update(dt, st.speed, true, 0);
       once('you', 'swing', st.swing >= 0, () => rig.doAct?.('hit', 0.5));
       once('you', 'won', st.won, () => rig.doCheer?.());
     };
     const animRival = (obj, st, dt = 1 / 60) => {
       stRival.v = st;
       rival.pos.copy(obj.position); rival.heading = obj.rotation.y; rival.speed = st.speed;
-      if (red) red.update(dt, st.speed, true, 0);
+      if (red) { red.char.back = st.back; red.update(dt, st.speed, true, 0); }
       once('rival', 'swing', st.swing >= 0, () => red ? red.doAct('hit', 0.5) : rival.anim?.doAct?.('throw', 0.35));
       once('rival', 'won', st.won, () => red?.doCheer());
       if (st.won) rival.cheer = 0.6;

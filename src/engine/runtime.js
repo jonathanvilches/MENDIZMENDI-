@@ -220,7 +220,9 @@ export class Runtime {
       const fps = this.frames / this.fpsT; this.frames = 0; this.fpsT = 0;
       // resolución dinámica: si va a tirones baja un poco la resolución; si sobra fluidez, la recupera poco a poco
       const want = this.quality === 'low' ? 32 : 45;
-      const floor = this.quality === 'low' ? 0.6 : Math.min(1, this.maxRatio);   // en ordenador nunca por debajo de la resolución de la pantalla (se veía pixelado)
+      // (en ordenador nunca por debajo de la resolución de la pantalla: se veía pixelado; en los partidos tampoco baja de
+      // 1,5: los pelotaris y futbolistas se veían borrosos cuando el móvil iba justo)
+      const floor = this.boosted ? Math.min(1.5, this.maxRatio) : this.quality === 'low' ? 0.6 : Math.min(1, this.maxRatio);
       // (el cambio se aplica en el siguiente fotograma, antes de dibujar: sin destello. Tras bajar, no se vuelve a subir
       // en 25 s, y para subir tiene que sobrar bastante: así no sube y baja cada pocos segundos)
       if (fps < want && this.pixelRatio > floor) { if (++this.lowFps >= 2) { this.pixelRatio = Math.max(floor, this.pixelRatio - (fps < want * 0.6 ? 0.3 : 0.15)); this.ratioDirty = true; this.lowFps = 0; this.highFps = 0; this.ratioHold = this.elapsed + 25; } }

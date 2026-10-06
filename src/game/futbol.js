@@ -1,7 +1,7 @@
 // El fútbol en el juego: la entrenadora de El Sadar abre el menú del módulo de fútbol (src/futbol) y el partido se juega
 // en su propia escena mientras Pamplona queda en pausa. Aquí se le dan los personajes del juego (el futbolista de Osasuna
 // de Meshy de rojo, el visitante de blanco, los porteros con la camiseta de otro color y el árbitro y sus asistentes de
-// negro, todos en su versión ligera porque son veinticinco a la vez), el público de las gradas, el sonido y la calidad.
+// negro, todos con su modelo completo: la geometría y la textura se comparten entre los veinticinco), el público de las gradas, el sonido y la calidad.
 import * as THREE from 'three';
 import { FutbolSystem } from '../futbol/index.js';
 import { GlbChar, loadMeshy, hasMeshy, MESHY_GAIT } from '../actors/glbChar.js';
@@ -103,12 +103,12 @@ function flag() {
   const cloth = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.26), new THREE.MeshStandardMaterial({ map: tex, side: THREE.DoubleSide, roughness: 0.8 })); cloth.position.set(0.17, 0.37, 0);
   g.add(stick, cloth); return g;
 }
-// futbolistas del juego: el modelo de Meshy de cada equipo (en su versión ligera); los porteros, con el de Osasuna y la
+// futbolistas del juego: el modelo de Meshy de cada equipo; los porteros, con el de Osasuna y la
 // camiseta de su color; el árbitro y los asistentes, con el de Osasuna de negro (y el banderín los asistentes)
 export async function makeCharacter(d) {
   const model = d.keeper || d.referee ? 'osasuna' : d.team.model;
   if (!model || !hasMeshy(model)) return null;
-  const g = await loadMeshy(model, true);
+  const g = await loadMeshy(model);   // el modelo completo (antes, el ligero: con su textura a la mitad se veían borrosos)
   const char = new GlbChar(g, MESHY_GAIT); char.root.scale.setScalar(g.userData.fit || 1);
   // cada jugador un poco distinto de alto; los porteros, algo más altos
   char.root.scale.multiplyScalar(d.keeper ? 1.05 : [1, 0.97, 1.03, 0.99, 1.02][((d.num || 0) + d.side) % 5]);
