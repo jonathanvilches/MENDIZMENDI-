@@ -49,6 +49,7 @@ const CSS = `
 .fb-swap span{letter-spacing:.06em}
 .fb-btns.atk .fb-swap{opacity:.35}
 .fb-btns.def .fb-pass{--cd:rgba(240,138,58,.55)}.fb-btns.def .fb-shoot{--cd:rgba(196,42,42,.55)}
+.fb-btns.gk .fb-pass,.fb-btns.gk .fb-shoot{--cd:rgba(40,170,90,.6)}.fb-btns.gkhands .fb-pass,.fb-btns.gkhands .fb-shoot{--cd:rgba(40,170,90,.6)}
 .fb-btns.pen .fb-swap,.fb-btns.pen .fb-sprint{display:none}
 .fb-bars{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 10px);width:min(24vw,190px);display:flex;flex-direction:column;gap:4px;pointer-events:none}
 .fb-bar{height:4px;border-radius:3px;background:rgba(8,10,20,.4);overflow:hidden;box-shadow:0 0 0 .5px rgba(255,255,255,.4)}
@@ -190,6 +191,8 @@ export class FutbolHud {
     if (this.mode === mode || !this.el.btns) return; this.mode = mode;
     const def = mode === 'def', set = (b, icon, label) => { b.innerHTML = `${ICON[icon]}<span>${label}</span>`; b.setAttribute('aria-label', label); };
     this.el.btns.className = 'fb-btns ' + mode;
+    if (mode === 'gk') { set(this.el.pass, 'tackle', 'Estirada'); set(this.el.shoot, 'slide', 'Estirada'); return; }
+    if (mode === 'gkhands') { set(this.el.pass, 'pass', 'Sacar'); set(this.el.shoot, 'shoot', 'Saque largo'); return; }
     set(this.el.pass, def ? 'tackle' : 'pass', def ? 'Robar' : 'Pase');
     set(this.el.shoot, def ? 'slide' : 'shoot', def ? 'Entrada' : 'Tiro');
   }
@@ -210,10 +213,12 @@ export class FutbolHud {
         ${row('pass', 'Pase', 'Al compañero hacia donde apuntas (por alto si hay rivales en medio)', 'J / espacio', 'A')}
         ${row('shoot', 'Tiro', 'Mantén para cargar la fuerza; apunta con el joystick', 'K (mantén)', 'B (mantén)')}
         ${row('sprint', 'Sprint', 'Mantén (gasta energía)', 'Mayús', 'RT')}
-        ${row('swap', 'Cambiar', 'Al compañero mejor colocado (también cambia solo)', 'L', 'LB')}
+        ${row('swap', 'Cambiar', 'Al compañero hacia donde apuntas; sin apuntar, al más cercano al balón. Cerca de tu área, al portero', 'L', 'LB')}
+        ${row('tackle', 'Portero: estirada', 'Con un tiro del rival (o llevando al portero), cualquier botón: se estira hacia donde apuntas', 'J / K', 'A / B')}
+        ${row('pass', 'Portero: sacar', 'Con el balón en sus manos: PASE con la mano al que apuntas; mantén TIRO para un saque largo', 'J / K', 'A / B')}
         ${row('tackle', 'Sin el balón: robar', 'Con el botón de PASE, pegado al rival', 'J', 'A')}
         ${row('slide', 'Sin el balón: entrada', 'Con el botón de TIRO (si llegas tarde, falta)', 'K', 'B')}
-        </table><p class="fb-kick" style="margin-top:6px">El jugador que llevas cambia solo según va el balón</p><button class="fb-go">Entendido</button>`);
+        </table><p class="fb-kick" style="margin-top:6px">Mientras mueves a tu jugador, no se cambia solo salvo que otro llegue mucho antes</p><button class="fb-go">Entendido</button>`);
       p.querySelector('.fb-go').onclick = () => { p.remove(); res(); };
     });
   }
