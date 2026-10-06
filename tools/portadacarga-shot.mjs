@@ -1,3 +1,5 @@
+// Capturas de la pantalla de carga de un pueblo (su portada con el personaje) en móvil horizontal y vertical.
+// Uso: node tools/portadacarga-shot.mjs <carpeta> [pueblo]
 import { chromium } from 'playwright-core';
 const [,, out, town = 'lumbier'] = process.argv;
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
