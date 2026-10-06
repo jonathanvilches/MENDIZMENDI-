@@ -13,6 +13,12 @@ export const EU_TOWNS = {
   'Burgui': 'Burgi', 'Burgui / Burgi': 'Burgi', 'Ochagavía': 'Otsagabia', 'Viana': 'Viana', 'Cortes': 'Cortes', 'Tafalla': 'Tafalla',
   'Leire': 'Leire', 'Monasterio de Leyre': 'Leireko monasterioa', 'Usún': 'Usun', 'Amaiur / Maya del Baztan': 'Amaiur', 'Mendigorría': 'Mendigorria',
   'Peralta': 'Azkoien', 'Lodosa': 'Lodosa', 'Pitillas': 'Pitillas', 'Leyre': 'Leire', 'Yesa': 'Esa',
+  'Amaiur / Maya': 'Amaiur', 'Erronkari / Roncal': 'Erronkari', 'Otsagabia / Ochagavía': 'Otsagabia', 'Ochagavía / Otsagabia': 'Otsagabia', 'Javier / Xabier': 'Xabier',
+  'Burgi / Burgui': 'Burgi', 'Izaba / Isaba': 'Izaba', 'Zangoza / Sangüesa': 'Zangoza', 'Erriberri / Olite': 'Erriberri', 'Uxue / Ujué': 'Uxue', 'Gares / Puente la Reina': 'Gares',
+  'Agoitz / Aoiz': 'Agoitz', 'Alsasua / Altsasu': 'Altsasu', 'Roncesvalles / Orreaga': 'Orreaga',
+  // eskualdeak
+  'Comarca de Pamplona': 'Iruñerria', 'Pirineo': 'Pirinioa', 'Prepirineo': 'Aurrepirinioa', 'Tierra Estella': 'Lizarraldea', 'Valdizarbe-Novenera': 'Izarbeibar-Novenera',
+  'Zona Media': 'Erdialdea', 'Ribera Alta': 'Erribera Garaia', 'Ribera': 'Erribera', 'Baztan-Bidasoa': 'Baztan-Bidasoa', 'Larraun-Leitzaldea': 'Larraun-Leitzaldea', 'Sakana': 'Sakana',
 };
 // lanbideak eta ezizenak, «Izena, lanbidea» eta «Mota · lanbidea» moduetan agertzen direnak
 export const EU_ROLES = {
@@ -39,12 +45,44 @@ const erg = (n) => /[aeiou]$/i.test(n) ? n + 'k' : n + 'ek';
 const pers = (n) => /[aeiou]$/i.test(n) ? n + 'rengana' : n + 'engana';   // «itzuli X-rengana»
 // lo que cae en un hueco: diccionario o, si no está, el traductor entero (con sus plantillas: «Guía Maite»…)
 let TR = null; export const setTr = (f) => { TR = f; };
-const e = (x) => T[x] ?? EU_EXACT[x] ?? MAS[x] ?? (TR && x.length < 300 ? TR(x) : x);
+// «Amaiur / Maya» moduko izen bikoitzak: zerrendan ez badago, euskarazkoa dirudiena (tx, tz, k… eta ez ñ, ll, ch, que…)
+const isEu = (w) => !/ñ|ll|ch|qu|c[eiaou]|j/i.test(w);
+const pair = (x) => { const m = /^(.+?)\s*\/\s*(.+)$/.exec(x); if (!m) return null; return T[m[1]] ?? T[m[2]] ?? (isEu(m[1]) ? m[1] : isEu(m[2]) ? m[2] : m[1]); };
+const e = (x) => T[x] ?? EU_EXACT[x] ?? MAS[x] ?? pair(x) ?? (TR && x.length < 300 ? TR(x) : x);
+const cap = (x) => x.charAt(0).toUpperCase() + x.slice(1);
 const DIRS = { norte: 'Iparraldera', sur: 'Hegoaldera', este: 'Ekialdera', oeste: 'Mendebaldera', noreste: 'Ipar-ekialdera', noroeste: 'Ipar-mendebaldera', sureste: 'Hego-ekialdera', suroeste: 'Hego-mendebaldera' };
 const supply = (s) => s.replace(/\bagua\b/g, 'ura').replace(/\bcomida\b/g, 'janaria').replace(/\by\b/g, 'eta');
 
 export const EU_MAS = { ...MAS, ...T };
 export const EU_RX_MAS = [
+  // kontagailuak eta « — » zatiak: zati bakoitza bere aldetik (biak itzultzen badira bakarrik)
+  [/^(.+?) \((\d+)\/(\d+)\)$/, (m, a, n, k) => { const t = e(a); return t === a ? null : `${t} (${n}/${k})`; }],
+  [/^(.+?) \((\d+)\/(\d+)\) — (.+)$/, (m, a, n, k, b) => { const t = e(a), u = e(b); return t === a || u === b ? null : `${t} (${n}/${k}) — ${u}`; }],
+  [/^(.+?) — (.+)$/, (m, a, b) => { const t = e(a), u = e(b); return t === a && u === b ? null : `${t} — ${u}`; }],
+  // herriko galdetegia
+  [/^¿En qué comarca está (.+)\?$/, (m, a) => `Zein eskualdetan dago ${e(a)}?`],
+  [/^¿Qué puedes visitar en (.+)\?$/, (m, a) => `Zer bisita dezakezu ${ine(e(a))}?`],
+  [/^¿Qué río o regata pasa por (.+)\?$/, (m, a) => `Zein ibai edo erreka igarotzen da ${abl(e(a))}?`],
+  [/^¿Cómo se llama la iglesia principal de (.+)\?$/, (m, a) => `Nola du izena ${loc(e(a))} eliza nagusiak?`],
+  [/^¿Qué animal vive en los montes de (.+)\?$/, (m, a) => `Zein animalia bizi da ${loc(e(a))} mendietan?`],
+  [/^¿Qué fiesta se celebra en (.+)\?$/, (m, a) => `Zein jai ospatzen da ${ine(e(a))}?`],
+  [/^¿Qué se cosecha en (.+)\?$/, (m, a) => `Zer biltzen da ${ine(e(a))}?`],
+  [/^¿Qué carnaval es famoso en (.+)\?$/, (m, a) => `Zein inauteri da ospetsua ${ine(e(a))}?`],
+  [/^¿Qué danza es típica de (.+)\?$/, (m, a) => `Zein dantza da ${loc(e(a))} ohikoa?`],
+  [/^¿Qué producto has aprendido a hacer en (.+)\?$/, (m, a) => `Zer produktu egiten ikasi duzu ${ine(e(a))}?`],
+  // ekoizpena
+  [/^¡Así se hace (.+)! Es un producto de (.+)\.$/, (m, a, b) => `Horrela egiten da ${e(a)}! ${loc(e(b))} produktua da.`],
+  [/^¡Perfecto! Ahora hagamos (.+) paso a paso\.$/, (m, a) => `Primeran! Orain egin dezagun ${e(a)} pausoz pauso.`],
+  [/^Dicen que la receta de (.+) pasa de abuelas a nietos… y que nunca se ha escrito en ningún libro\.$/, (m, a) => { const t = e(cap(a)); return `Diotenez, ${gen(t === cap(a) ? a : t.charAt(0).toLowerCase() + t.slice(1))} errezeta amonengandik bilobengana pasatzen da… eta ez da inoiz liburu batean idatzi.`; }],
+  // kakoak eta ahotsa
+  [/^Hay personas que cambiaron (.+)… y su historia todavía se puede escuchar\.$/, (m, a) => `Badira ${e(a)} aldatu zuten pertsonak… eta haien istorioa oraindik entzun daiteke.`],
+  [/^La tierra de (.+) esconde su tesoro\. Sólo hay que saber dónde mirar\.$/, (m, a) => `${loc(e(a))} lurrak bere altxorra gordetzen du. Non begiratu jakitea besterik ez da behar.`],
+  [/^Cae la noche sobre (.+)…$/, (m, a) => `Gaua dator ${ala(e(a))}…`],
+  [/^Ya lo tienes cerca\. Ve con cuidado… (.+) te está esperando\.$/, (m, a) => `Gertu duzu. Kontuz ibili… ${e(a)} zure zain dago.`],
+  [/^Las pistas llevan hasta aquí… (.+) está cerca$/, (m, a) => `Arrastoek honaino ekarri zaituzte… ${e(a)} gertu dago`],
+  [/^¡Meta! Vuelve con (.+)$/, (m, a) => `Helmuga! Itzuli ${pers(e(a))}`],
+  [/^¡Todos en el redil! Vuelve con (.+)$/, (m, a) => `Denak artegian! Itzuli ${pers(e(a))}`],
+  [/^El castillo de ([A-ZÁÉÍÓÚÑ][^\s.,]*(?: [^\s.,]+){0,2})$/, (m, a) => `${loc(e(a))} gaztelua`],
   [/^Productos de ([^.…!?]+)$/, (m, a) => `${loc(e(a))} produktuak`],
   [/^El sabio de ([^.…!?]+)$/, (m, a) => `${loc(e(a))} jakintsua`], [/^La sabia de ([^.…!?]+)$/, (m, a) => `${loc(e(a))} jakintsua`],
   [/^(\d+) misiones te esperan$/, '$1 misio zure zain'],

@@ -50,7 +50,8 @@ function bakeGroup(g) {
 // G: cajas de la cabeza (hb), el tronco (bb) y las piernas (lb) en reposo y bone(nombre) → hueso. Vale para los dos
 // personajes de Meshy (dressMeshy).
 function garments(root, O, G) {
-  const bone = G.bone, added = [], mat = (c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.85 });
+  // (con un poco de su propio color como luz propia, como la ropa pintada del personaje: si no, a contraluz salían grises)
+  const bone = G.bone, added = [], mat = (c) => { const m = new THREE.MeshStandardMaterial({ color: c, roughness: 0.85 }); m.emissive.set(c).multiplyScalar(0.18); return m; };
   const hb = G.hb, bb = G.bb, sz = hb.getSize(new THREE.Vector3()), bs = bb.getSize(new THREE.Vector3()), hc = hb.getCenter(new THREE.Vector3()), bc = bb.getCenter(new THREE.Vector3());
   const put = (mesh, boneName, pos) => { mesh = bakeGroup(mesh); const b = bone(boneName) || root; mesh.position.copy(root.worldToLocal(pos.clone())); mesh.castShadow = true; root.add(mesh); mesh.updateMatrixWorld(); b.attach(mesh); added.push(mesh); };
   if (O.beret && G.hasHead) {   // txapela: boina ancha y plana, ladeada, con el txertena (rabito) arriba
@@ -84,6 +85,13 @@ function garments(root, O, G) {
     const sk = new THREE.Mesh(new THREE.CylinderGeometry(bs.x * 0.5, bs.x * 0.78, len, 20, 1, true), mat(O.skirt)); sk.material.side = THREE.DoubleSide; sk.scale.z = Math.max(0.8, bs.z / bs.x * 1.1);
     put(sk, 'hips', new THREE.Vector3(bc.x, bb.min.y + bs.y * 0.14 - len / 2, bc.z));
     if (O.apron) { const ap = new THREE.Mesh(new THREE.PlaneGeometry(bs.x * 0.75, len * 0.85), mat(O.apron)); ap.material.side = THREE.DoubleSide; put(ap, 'hips', new THREE.Vector3(bc.x, bb.min.y + bs.y * 0.1 - len * 0.45, bb.max.z + bs.z * 0.25)); }
+  }
+  if (O.apron && !O.skirt && G.hasBody) {   // delantal sin falda (tenderos, herreros): de la cintura a las rodillas
+    const lb = G.lb, len = (bb.min.y - lb.min.y) * 0.62 + bs.y * 0.2;
+    // (un trozo de cono abierto por delante, que rodea la tripa y cae algo abierto hacia las rodillas: plano parecía una tabla)
+    const ap = new THREE.Mesh(new THREE.CylinderGeometry(bs.x * 0.54, bs.x * 0.66, len, 14, 1, true, -0.8, 1.6), mat(O.apron)); ap.material.side = THREE.DoubleSide;
+    ap.scale.z = Math.max(0.8, bs.z / bs.x * 1.15);
+    put(ap, 'hips', new THREE.Vector3(bc.x, bb.min.y + bs.y * 0.18 - len / 2, bc.z));
   }
   // ---- prendas de los seres de leyenda (Basajaun, lamias, sorginas) ----
   const lb = G.lb, lsz = lb.getSize(new THREE.Vector3());
