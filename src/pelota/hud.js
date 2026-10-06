@@ -3,15 +3,15 @@
 const CSS = `
 .pel-root{position:fixed;inset:0;z-index:900;pointer-events:none;font-family:var(--pel-font,Nunito,sans-serif);color:#fff;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 .pel-root *{box-sizing:border-box}
-.pel-top{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);left:0;right:0;display:flex;justify-content:center;padding:0 64px}
+.pel-top{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);right:calc(env(safe-area-inset-right,0px) + 10px);display:flex;justify-content:flex-end}
 .pel-exit{padding:0;position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);left:calc(env(safe-area-inset-left,0px) + 10px);width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.82);background:rgba(14,10,24,.66);box-shadow:0 3px 12px rgba(0,0,0,.35);color:#fff;pointer-events:auto;cursor:pointer;display:grid;place-items:center}.pel-exit svg{width:20px;height:20px;display:block}
-.pel-score{display:flex;align-items:stretch;gap:0;border-radius:16px;overflow:hidden;background:rgba(28,11,58,.88);border:1px solid rgba(190,160,255,.35);box-shadow:0 6px 20px rgba(0,0,0,.3);max-width:100%}
-.pel-side{display:flex;align-items:center;gap:8px;padding:6px 12px;min-width:0}
-.pel-side b{font-family:var(--pel-display,'Lilita One',Nunito,sans-serif);font-size:28px;line-height:1;min-width:1.2em;text-align:center}
-.pel-side span{font-size:13px;font-weight:700;opacity:.92;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:26vw}
+.pel-score{display:flex;align-items:stretch;gap:0;border-radius:10px;opacity:.92;overflow:hidden;background:rgba(28,11,58,.88);border:1px solid rgba(190,160,255,.35);box-shadow:0 6px 20px rgba(0,0,0,.3);max-width:100%}
+.pel-side{display:flex;align-items:center;gap:5px;padding:2px 8px;min-width:0;height:28px}
+.pel-side b{font-family:var(--pel-display,'Lilita One',Nunito,sans-serif);font-size:19px;line-height:1;min-width:1em;text-align:center}
+.pel-side span{font-size:11px;font-weight:700;opacity:.92;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:min(16vw,90px)}
 .pel-red{background:linear-gradient(180deg,#e0392f,#b3261e)}.pel-blue{background:linear-gradient(180deg,#2f6fe0,#1f4fb3)}
-.pel-mid{display:grid;place-items:center;padding:0 8px;font-size:11px;font-weight:700;opacity:.85;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
-.pel-serve{width:10px;height:10px;border-radius:50%;background:#fff6d8;box-shadow:0 0 0 2px rgba(0,0,0,.25);visibility:hidden;flex:none}
+.pel-mid{display:grid;place-items:center;padding:0 6px;font-size:9px;font-weight:700;opacity:.85;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+.pel-serve{width:7px;height:7px;border-radius:50%;background:#fff6d8;box-shadow:0 0 0 2px rgba(0,0,0,.25);visibility:hidden;flex:none}
 .pel-serve.on{visibility:visible}
 .pel-call{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 70px);transform:translateX(-50%) scale(.9);opacity:0;transition:opacity .18s,transform .18s;text-align:center;max-width:min(92vw,520px);padding:10px 18px;border-radius:18px;background:linear-gradient(180deg,rgba(50,19,111,.94),rgba(28,11,58,.94));border:1px solid rgba(190,160,255,.35);box-shadow:0 10px 30px rgba(0,0,0,.35)}
 .pel-call.on{opacity:1;transform:translateX(-50%) scale(1)}
@@ -33,7 +33,7 @@ const CSS = `
 .pel-hit.ready{animation:pel-pulse .5s infinite alternate}
 @keyframes pel-pulse{from{box-shadow:0 6px 0 rgba(0,0,0,.25),0 0 0 0 rgba(255,220,80,.7)}to{box-shadow:0 6px 0 rgba(0,0,0,.25),0 0 0 14px rgba(255,220,80,0)}}
 .pel-drop{width:70px;height:70px;font-size:13px;color:#fff;text-shadow:0 1px 0 #1f1a26;background:radial-gradient(circle at 50% 30%,rgba(80,40,150,.92),rgba(28,11,58,.95));border:2.5px solid #fff;box-shadow:0 0 0 3px rgba(138,43,226,.45),0 5px 0 rgba(10,4,24,.55),0 8px 16px rgba(0,0,0,.3)}
-.pel-side{display:flex;flex-direction:column;align-items:center;gap:8px}
+.pel-bcol{display:flex;flex-direction:column;align-items:center;gap:8px}
 .pel-cut{font-size:12px;line-height:1.05;padding:0 4px;text-align:center}
 .pel-cut{background:radial-gradient(circle at 50% 30%,rgba(210,60,60,.95),rgba(110,16,24,.96));box-shadow:0 0 0 3px rgba(230,70,70,.45),0 5px 0 rgba(40,4,8,.55),0 8px 16px rgba(0,0,0,.3)}
 .pel-hit,.pel-cut{position:relative}
@@ -57,12 +57,11 @@ const CSS = `
 .pel-go.alt{background:rgba(255,255,255,.08);border:1px solid rgba(190,160,255,.35);color:#fff;box-shadow:none;text-shadow:none}
 .pel-root.calling .pel-tip,.pel-root.calling .pel-q{opacity:0}
 .pel-root.paneled .pel-exit,.pel-root.paneled .pel-q,.pel-root.paneled .pel-call,.pel-root.paneled .pel-tip{visibility:hidden}
-@media (max-width:560px){.pel-mid{display:none}.pel-side{padding:6px 10px}.pel-side span{max-width:30vw}
-  .pel-top{padding:0 58px}.pel-side{padding:6px 8px;gap:5px}.pel-side b{font-size:24px}.pel-side span{font-size:12px;max-width:34vw}.pel-serve{width:8px;height:8px}
+@media (max-width:560px){.pel-mid{display:none}.pel-side{padding:2px 7px}.pel-side span{max-width:20vw}
   .pel-tip{max-width:calc(100vw - 32px);bottom:auto;top:calc(env(safe-area-inset-top,0px) + 66px)}}
 @media (max-height:520px){.pel-hit{width:86px;height:86px;font-size:17px}.pel-drop{width:60px;height:60px}
   .pel-tip{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);max-width:calc(100vw - 360px)}
-  .pel-call{top:calc(env(safe-area-inset-top,0px) + 58px);padding:6px 14px}.pel-side b{font-size:22px}
+  .pel-call{top:calc(env(safe-area-inset-top,0px) + 58px);padding:6px 14px}
   .pel-card{width:min(780px,100%);padding:14px 18px 12px}.pel-card h2{font-size:24px}.pel-card .pel-sub{margin-bottom:8px}
   .pel-card ol{columns:2;column-gap:22px;font-size:13.5px;margin-bottom:8px}.pel-card li{break-inside:avoid;margin-bottom:4px}
   .pel-card .pel-ctrl{font-size:13px;padding:7px 10px;margin-bottom:10px}.pel-levels{margin-bottom:10px}.pel-levels button{padding:7px 6px}
@@ -96,7 +95,7 @@ export class PelotaHud {
       <div class="pel-tip"></div>
       <div class="pel-stick"><div class="pel-knob"><i></i></div></div>
       ${touch ? '<div class="pel-stickhint"><svg viewBox="0 0 48 48" width="46" height="46"><path d="M24 6l6 7h-4v8h8v-4l7 7-7 7v-4h-8v8h4l-6 7-6-7h4v-8h-8v4l-7-7 7-7v4h8v-8h-4z" fill="#fff" opacity=".9"/></svg></div>' : ''}
-      <div class="pel-btns"><div class="pel-side"><button class="pel-btn pel-drop pel-cut" aria-label="${txt.cut}">${txt.cut}</button><button class="pel-btn pel-drop" aria-label="${txt.drop}">${txt.drop}</button></div><button class="pel-btn pel-hit" aria-label="${txt.hit}">${txt.hit}</button></div>`;
+      <div class="pel-btns"><div class="pel-bcol"><button class="pel-btn pel-drop pel-cut" aria-label="${txt.cut}">${txt.cut}</button><button class="pel-btn pel-drop" aria-label="${txt.drop}">${txt.drop}</button></div><button class="pel-btn pel-hit" aria-label="${txt.hit}">${txt.hit}</button></div>`;
     container.appendChild(r);
     this.$ = (s) => r.querySelector(s);
     this.callT = 0; this.qT = 0;

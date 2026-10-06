@@ -310,6 +310,12 @@ for (const [p, u] of Object.entries(import.meta.glob('../assets/portadas/*.webp'
 // personaje del jugador en grande, con la misma luz de atardecer (tools/heroav.mjs)
 const HERO_AV = {};
 for (const [p, u] of Object.entries(import.meta.glob('../assets/portadas/heroe/av-*.webp', { eager: true, query: '?url', import: 'default' }))) HERO_AV[p.split('/').pop().replace('av-', '').replace('.webp', '')] = u;
+// la portada de cada pueblo: foto del propio juego a pie de calle, al atardecer y con luz de estudio, para poner delante
+// al personaje del jugador (tools/puebloportada.mjs y .py)
+const TOWN_COVER = {};
+for (const [p, u] of Object.entries(import.meta.glob('../assets/portadas/pueblos/*.webp', { eager: true, query: '?url', import: 'default' }))) TOWN_COVER[p.split('/').pop().replace('.webp', '')] = u;
+/** La portada del pueblo (o null si no la tiene: entonces se usa la de su comarca); small: la de las tarjetas. */
+export const townCover = (id, small = false) => (small && TOWN_COVER[id + '-s']) || TOWN_COVER[id] || null;
 /** El personaje para la portada del menú (o null si ese personaje no lo tiene). */
 export const heroAvatar = (avatar) => HERO_AV[avatar] || null;
 function drawShot(R, comarcaId, w, h) {
