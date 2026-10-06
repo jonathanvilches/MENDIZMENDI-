@@ -6,7 +6,7 @@ import { church, castle, castleJavier, dig, wallsRing, bridge, landmark } from '
 import { bench, lamp, fountain } from './village.js';
 import { PATHS, PLACES, BRIDGES, riverInfo, pathQuery, villageMask, plazaMask, rx, MOD } from './layout.js';
 import { terrainHeight } from './heightfield.js';
-import { addBox, addCircle, isFree } from './colliders.js';
+import { addBox, addCircle, isFree, rectFree } from './colliders.js';
 import { mulberry32, clamp } from '../util/math.js';
 
 export const TOWN = { houses: [], lamps: [], benches: [], church: null, fountain: null, landmarks: [], farm: null, pen: null };
@@ -133,7 +133,10 @@ export function buildTown(scene, mats, def) {
   }
   // granja: cuadra y redil
   buildFarm(B, fam);
-  // casas a lo largo de las calles
+  // casas a lo largo de las calles: con la casa entera libre (no solo un círculo en su centro, que dejaba casas metidas
+  // entre los muros de un castillo) y fuera del recinto de los castillos (su patio no tiene choques)
+  const keep = TOWN.landmarks.filter(l => l.kind === 'castle').map(l => ({ x: l.x, z: l.z, r: l.style === 'javier' ? 24 : def.id === 'olite' ? 36 : 26 }));
+  const inKeep = (x, z, r) => keep.some(k => Math.hypot(x - k.x, z - k.z) < k.r + r);
   let count = pamp ? TOWN.houses.length : 0;
   const mid = (p) => p.pts[Math.floor(p.pts.length / 2)];
   const streets = PATHS.filter(p => p.type === 'street' && !p.noHouses).sort((a, b) => { const A = mid(a), Bm = mid(b); return Math.hypot(A[0] - PLACES.plaza.x, A[1] - PLACES.plaza.z) - Math.hypot(Bm[0] - PLACES.plaza.x, Bm[1] - PLACES.plaza.z); });
@@ -149,7 +152,7 @@ export function buildTown(scene, mats, def) {
       const off = path.w + 1.2 + rnd() * 1.2 + d / 2;
       const x = a.x + nx * off, z = a.z + nz * off;
       const ry = Math.atan2(-nx, -nz);
-      if (isFree(x, z, Math.max(w, d) / 2 * 0.92) && cornersOk(x, z, w, d, ry)) {
+      if (rectFree(x, z, ry, -w / 2, w / 2, -d / 2, d / 2, 0.4) && !inKeep(x, z, Math.hypot(w, d) / 2) && cornersOk(x, z, w, d, ry)) {
         const g = minGround(x, z, w, d, ry);
         if (g.mx - g.mn < 2.4) {
           buildHouse(B, M(x, slopeBase(B, x, z, w, d, ry, g), z, ry), { arch: st.wall === 'stone' || st.wall === 'ashlar' ? rnd() < 0.5 : rnd() < 0.2, balconyW: Math.min(w - 2, 3 + rnd() * 2.5), shield: rnd() < 0.1, cornice: rnd() < 0.4, ...st, w, d, h }, rnd);
