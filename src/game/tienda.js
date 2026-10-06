@@ -1,3 +1,4 @@
+import { tr } from '../i18n.js';
 // La tienda del pueblo (denda): un puesto con toldo a rayas, cajas de fruta y verdura y quien la atiende. Dentro,
 // el producto estrella de la comarca (y su historia), comida para comprar con txanponak y el trueque: se cambian
 // productos del campo y de la ganadería (leche, lana, huevos, trigo, patatas, maíz) por la comida que haga falta.
@@ -24,7 +25,7 @@ function signTex(town) {
   const c = document.createElement('canvas'); c.width = 512; c.height = 128; const g = c.getContext('2d');
   g.fillStyle = '#3a2416'; g.fillRect(0, 0, 512, 128); g.strokeStyle = '#d8b25a'; g.lineWidth = 6; g.strokeRect(8, 8, 496, 112);
   g.fillStyle = '#f4e6c8'; g.textAlign = 'center'; g.font = '900 46px Georgia, serif'; g.fillText('DENDA · TIENDA', 256, 62);
-  g.font = 'italic 700 26px Georgia, serif'; g.fillText('Productos de ' + town, 256, 100);
+  g.font = 'italic 700 26px Georgia, serif'; g.fillText(tr('Productos de ' + town), 256, 100);
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
 }
 

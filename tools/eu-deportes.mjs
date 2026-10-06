@@ -1,0 +1,36 @@
+// Euskera en el fútbol y la pelota: abre los dos en euskera (con ?eufaltan), pasa por menú, partido y ayuda, y
+// apunta los textos que se quedan sin traducir en /tmp/eu-deportes.json. Uso: node tools/eu-deportes.mjs
+import { chromium } from 'playwright-core';
+import { writeFileSync } from 'fs';
+const URL = process.env.URL || 'http://127.0.0.1:5173';
+const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const init = () => { localStorage.setItem('mendimendiz-lang', 'eu'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'sanfermin', seen: { heroBenat: true, dog: true } })); localStorage.setItem('mendimendiz-futbol-v1', JSON.stringify({ v: 1, tutorial: true })); };
+const all = new Set(), errs = [];
+const grab = async (p) => { for (const s of await p.evaluate(() => [...(window.__euMiss || [])])) all.add(s); };
+const sl = (p, ms) => p.waitForTimeout(ms);
+// pelota
+{ const p = await b.newPage({ viewport: { width: 844, height: 390 } }); await p.addInitScript(init); p.on('pageerror', e => errs.push(e.message));
+  await p.goto(`${URL}/?town=lumbier&q=low&skipintro=1&eufaltan`, { timeout: 300000 });
+  await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 400000 });
+  await p.evaluate(() => { const G = window.__game; G.fronton.play(G, G.pelotari); });
+  await p.waitForFunction(() => document.querySelector('.pel-panel'), null, { timeout: 60000 });
+  for (const sel of ['[data-pel-help]', '[data-pel-rules]', '.pel-tab']) await p.evaluate((s) => document.querySelectorAll(s).forEach(e => e.click()), sel);
+  await sl(p, 500); await grab(p);
+  await p.evaluate(() => document.querySelector('[data-pel-go]')?.click()); await sl(p, 9000); await grab(p);
+  await p.screenshot({ path: '/tmp/claude-0/eu-pelota.png' }); await p.close(); console.log('pelota', all.size); writeFileSync('/tmp/eu-deportes.json', JSON.stringify([...all], null, 1)); }
+// fútbol
+{ const p = await b.newPage({ viewport: { width: 1100, height: 620 } }); await p.addInitScript(init); p.on('pageerror', e => errs.push(e.message));
+  await p.goto(`${URL}/?town=pamplona&q=low&skipintro=1&eufaltan`, { timeout: 300000 });
+  await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 900000 });
+  await p.evaluate(() => { const G = window.__game; import('/src/game/futbol.js').then(M => new M.Futbol(G, G.sadar).run()); });
+  await p.waitForFunction(() => window.__futbol && window.__futbol.hud && window.__game.altScene, null, { timeout: 600000 });
+  await p.evaluate(() => { const m = window.__futbol; for (let i = 0; i < 150; i++) m.update(1 / 30); }); await sl(p, 1500); await grab(p);
+  await p.evaluate(() => window.__futbol.exit({ quit: true, reto: 'pases' }));
+  await p.waitForFunction(() => document.querySelector('.fb-panel .fb-go'), null, { timeout: 120000 }).catch(async (e) => { await p.screenshot({ path: '/tmp/claude-0/eu-futbol-err.png' }); console.log(await p.evaluate(() => document.querySelector('.fb-panel')?.outerHTML.slice(0, 800))); throw e; });
+  await p.evaluate(() => document.querySelectorAll('.fb-panel button:not(.fb-go)').forEach(e => { try { e.click(); } catch (x) { } })); await sl(p, 600); await grab(p);
+  await p.evaluate(() => document.querySelector('.fb-panel .fb-go')?.click());
+  await p.waitForFunction(() => window.__futbol && window.__futbol.o.mode === 'match' && window.__game.altScene, null, { timeout: 600000 });
+  await p.evaluate(() => { const m = window.__futbol; m.game.autoplay = true; for (let i = 0; i < 30 * 40; i++) m.update(1 / 30); }); await sl(p, 2000); await grab(p);
+  await p.screenshot({ path: '/tmp/claude-0/eu-futbol.png' }); await p.close(); console.log('fútbol', all.size); }
+writeFileSync('/tmp/eu-deportes.json', JSON.stringify([...all], null, 1));
+console.log(errs.length ? errs.slice(0, 5).join('\n') : 'sin errores'); await b.close();
