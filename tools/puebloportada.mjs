@@ -8,7 +8,7 @@ import { mkdirSync, writeFileSync, existsSync } from 'fs';
 const BASE = (process.env.URL || 'http://127.0.0.1:5174').replace(/\/$/, '');
 const out = '/tmp/puebloportada'; mkdirSync(out, { recursive: true });
 // encuadres a mano donde la iglesia no es lo mejor: pueblo → [tipo de monumento, distancia, altura, giro]
-const OVR = { olite: ['castle', 80, 2.2, 0], javier: ['castle', 75, 2.2, 0], marcilla: ['castle', 70, 2.2, 0] };
+const OVR = { olite: ['castle', 80, 2.2, 0], javier: ['castle', 75, 2.2, 0], marcilla: ['castle', 95, 2.2, 0], pamplona: ['church', 95, 2.2, 0] };
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const list = await (async () => {
   if (process.argv[2]) return process.argv[2].split(',');
@@ -40,8 +40,9 @@ for (const town of list) {
       // giros y distancias hasta que nada tape la vista del monumento (ni casas ni árboles a menos de 10 m)
       const T0 = window.__THREE, rc = new T0.Raycaster(), solid = [];
       // algunos objetos de la escena no se dejan atravesar por el rayo (geometrías a medias): se saltan
-      const cast = () => { const out = []; for (const o of solid) { try { o.raycast(rc, out); } catch (e) { } } return out.sort((x, y) => x.distance - y.distance); };
-      rt.scene.traverse(o => { if (!o.isMesh || !o.visible || o.isSkinnedMesh || !o.geometry || /terrain|ground|sky|water|road|street|path|grass/i.test(o.name || '')) return; if (!o.geometry.boundingSphere) o.geometry.computeBoundingSphere(); const sc = o.getWorldScale(new T0.Vector3()); if (o.isInstancedMesh || o.geometry.boundingSphere.radius * Math.max(sc.x, sc.y, sc.z) > 4.5) solid.push(o); });
+      const cast = (L = solid) => { const out = []; for (const o of L) { try { o.raycast(rc, out); } catch (e) { } } return out.sort((x, y) => x.distance - y.distance); };
+      const near = [];   // para lo pegado a la cámara cuenta también lo pequeño (puestos, balcones, farolas)
+      rt.scene.traverse(o => { if (!o.isMesh || !o.visible || o.isSkinnedMesh || !o.geometry || /terrain|ground|sky|water|road|street|path|grass/i.test(o.name || '')) return; if (!o.geometry.boundingSphere) o.geometry.computeBoundingSphere(); const sc = o.getWorldScale(new T0.Vector3()), r = o.geometry.boundingSphere.radius * Math.max(sc.x, sc.y, sc.z); if (o.isInstancedMesh || r > 4.5) solid.push(o); if (o.isInstancedMesh || r > 0.8) near.push(o); });
       const own = kind === 'church' ? 17 : 30;   // lo que está tan cerca del monumento es el propio monumento
       const gy = H(lm.x, lm.z), base = Math.atan2(dz, dx) + turn * Math.PI / 180;
       let pick = null, tries = 0;
@@ -59,10 +60,10 @@ for (const town of list) {
           // y que no haya nada grande pegado a la cámara en todo el encuadre (una pared a un lado lo estropea)
           if (ok) {
             const lx = lm.x + Math.sin(a) * dd * 0.33, lz = lm.z - Math.cos(a) * dd * 0.33, yaw = Math.atan2(lz - cz, lx - cx);
-            for (const off of [-24, -12, 0, 12, 24]) {
+            for (const off of [-26, -16, -8, 0, 8]) {
               const y = yaw + off * Math.PI / 180;
-              rc.set(new T0.Vector3(cx, cy, cz), new T0.Vector3(Math.cos(y), 0, Math.sin(y))); rc.far = 14; tries++;
-              if (cast().length) { ok = false; (window.__blk ||= []).push('cerca'); break; }
+              rc.set(new T0.Vector3(cx, cy, cz), new T0.Vector3(Math.cos(y), -0.04, Math.sin(y)).normalize()); rc.far = 13; tries++;
+              if (cast(near).length) { ok = false; (window.__blk ||= []).push('cerca'); break; }
             }
           }
           if (ok) { pick = { a, cx, cy, cz, dd, tr }; break outer; }
