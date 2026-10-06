@@ -60,7 +60,7 @@ const CSS = `
 @media (max-width:560px){.pel-mid{display:none}.pel-side{padding:2px 7px}.pel-side span{max-width:20vw}
   .pel-tip{max-width:calc(100vw - 32px);bottom:auto;top:calc(env(safe-area-inset-top,0px) + 66px)}}
 @media (max-height:520px){.pel-hit{width:86px;height:86px;font-size:17px}.pel-drop{width:60px;height:60px}
-  .pel-tip{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);max-width:calc(100vw - 360px)}
+  .pel-tip{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 50px);max-width:calc(100vw - 240px);font-size:14px;padding:6px 12px}
   .pel-call{top:calc(env(safe-area-inset-top,0px) + 58px);padding:6px 14px}
   .pel-card{width:min(780px,100%);padding:14px 18px 12px}.pel-card h2{font-size:24px}.pel-card .pel-sub{margin-bottom:8px}
   .pel-card ol{columns:2;column-gap:22px;font-size:13.5px;margin-bottom:8px}.pel-card li{break-inside:avoid;margin-bottom:4px}

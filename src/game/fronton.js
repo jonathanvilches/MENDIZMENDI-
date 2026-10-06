@@ -12,6 +12,7 @@ import { profile } from './profile.js';
 import { QUALITY } from '../util/quality.js';
 import { Crowd } from './crowd.js';
 import { shieldSpec, drawShield } from '../world/heraldry.js';
+import { LEVELS } from '../data/levels.js';
 
 // Cómo es el frontón de cada sitio. Se parte de la comarca y de lo que cuentan las fuentes (legal/estado-legal.md): los
 // frontones viejos de los pueblos, junto a la iglesia y con el frontis de sillería (arenisca rojiza en Baztan y Bidasoa,
@@ -35,12 +36,24 @@ const LOOK_COMARCA = {
   'zona-media': { stone: STONE.gold, wall: EARTH, floor: '#918c82', contra: '#b09f82' },
   ribera: { frontis: '#c08a5e', wall: '#c08a5e', brick: true, floor: '#9a9183', contra: '#b6a487', chapa: '#7a2b22', chapaMetal: false, stands: '#c7a782' },
 };
-LOOK_COMARCA['ribera-alta'] = LOOK_COMARCA.ribera;
+LOOK_COMARCA['ribera-alta'] = { ...LOOK_COMARCA.ribera, frontis: '#cfa877', wall: '#cfa877', chapa: '#2f4f6a', floor: '#968d7f' };
+// dentro de la comarca, cada pueblo con lo suyo (por orden de los pueblos de la comarca): otra pared, otro colchón,
+// la piedra algo distinta o, en alguno, cubierta. Así no hay dos frontones iguales y todos son de su comarca.
+const VARIANTS = {
+  bidasoa: [{}, { wall: GREEN, chapa: '#7a2a24' }, { wall: OCHRE, chapa: '#2f4f6a', stone: '#a47c68' }, { wall: BLUE, chapa: '#c9d0d4', chapaMetal: true }, { wall: '#e8dfc9', chapa: '#6b4a30', roof: 'wood', stone: '#b89480' }, { wall: EARTH, chapa: '#24453a' }],
+  pirineo: [{ wall: PLASTER }, { wall: GREEN, chapa: '#7a2a24', stone: '#6b6a66' }, { wall: '#cbbfa8', chapa: '#c9d0d4', chapaMetal: true, stone: '#837a6f' }, { wall: BLUE, chapa: '#3a3f46', stone: '#6f6862' }, { wall: EARTH, chapa: '#2f5a46', stone: '#8a8178' }],
+  'larraun-leitzaldea': [{}, { frontis: BLUE, wall: BLUE, chapa: '#c9d0d4', chapaMetal: true }],
+  sakana: [{}, { frontis: BLUE, wall: BLUE }],
+  sanguesa: [{}, { wall: '#dccdb1', chapa: '#2f5a46' }, { wall: OCHRE, chapa: '#6b4a30' }],
+  'tierra-estella': [{}, { wall: OCHRE, chapa: '#7a2a24' }],
+  'valdizarbe-novenera': [{}, { wall: EARTH, chapa: '#7a2a24', stone: '#b9a27a' }],
+  'zona-media': [{}, { wall: OCHRE, chapa: '#2f4f6a' }, { wall: '#b98d66', chapa: '#6b4a30' }],
+  ribera: [{}, { chapa: '#2f5a46', floor: '#9d9487' }],
+};
 const FAMILY = { atlantic: 'bidasoa', pyrenean: 'pirineo', central: 'zona-media', ribera: 'ribera', city: 'pamplona' };
 const COVERED = { stone: null, chapa: '#c9d0d4', chapaMetal: true };   // frontón cubierto moderno: hormigón pintado y chapa de metal
 const LOOK_TOWN = {
   elizondo: { ...COVERED, roof: 'metal', frontis: GREEN, wall: GREEN },                  // el frontón Baztan (1975), cubierto
-  lekunberri: { frontis: BLUE, wall: BLUE },
   'isaba-izaba': { roof: 'wood', roofTop: '#4b4f55' }, 'erronkari-roncal': { roof: 'wood', roofTop: '#4b4f55' },   // tejados de nieve
   'altsasu-alsasua': { ...COVERED, roof: 'metal', frontis: BLUE, wall: BLUE },
   irulegi: { ...COVERED, roof: 'wood', frontis: GREEN, wall: GREEN, floor: '#7f8781' },  // la Cuenca: madera laminada (Orkoien)
@@ -51,8 +64,9 @@ const LOOK_TOWN = {
   ujue: { stone: STONE.grey, wall: PLASTER }, javier: { stone: STONE.grey },
 };
 export function frontonLook(def = {}) {
-  const c = LOOK_COMARCA[def.comarca] || LOOK_COMARCA[FAMILY[def.family]] || {};
-  return { ...c, ...(LOOK_TOWN[def.id] || {}) };
+  const cid = LOOK_COMARCA[def.comarca] ? def.comarca : FAMILY[def.family], c = LOOK_COMARCA[cid] || {};
+  const i = Math.max(0, LEVELS.filter(l => l.comarca === cid && !l.special).findIndex(l => l.id === def.id)), V = VARIANTS[cid] || [{}];
+  return { ...c, ...V[i % V.length], ...(LOOK_TOWN[def.id] || {}) };
 }
 
 // nombre del pueblo y su escudo para la pared izquierda (como el letrero del ayuntamiento en los frontones de verdad)

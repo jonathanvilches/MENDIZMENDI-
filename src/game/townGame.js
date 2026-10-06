@@ -772,7 +772,7 @@ export class TownGame {
     const P = profile(), town = this.def.name.split(' /')[0], cm = this.comarca?.name || 'la comarca';
     const ctx = { comarca: this.def.comarca, comarcaName: cm, towns: this.comarcaVenues() };
     let T = torneo({ name: P.name || 'Tú', town }, ctx);
-    const pick = await pelotaMenu(T, this.def.id);
+    const pick = await pelotaMenu(T, town);
     if (pick === 'exit') return;
     if (pick === 'torneo') return this.pelotaTorneo(a, ctx);
     const r = await this.fronton.play(this, a);
@@ -794,9 +794,9 @@ export class TownGame {
       const ctx = { comarca: this.def.comarca, comarcaName: cm, towns: this.comarcaVenues() };
       for (;;) {
         this.ui.hudVisible(false);
-        const pick = await pelotaMenu(torneo({ name: P.name || 'Tú', town }, ctx), null);
+        const pick = await pelotaMenu(torneo({ name: P.name || 'Tú', town }, ctx), town);
         if (pick === 'exit') return;
-        if (pick === 'torneo') { await this.pelotaTorneo(a, ctx, null); continue; }
+        if (pick === 'torneo') { await this.pelotaTorneo(a, ctx); continue; }
         const r = await this.fronton.play(this, a);
         if (r.quit) continue;
         const best = (townState(profile(), this.def.id).best ||= {});
@@ -806,16 +806,16 @@ export class TownGame {
       }
     } finally { this.onExit?.('home'); }
   }
-  // here: el pueblo en el que estás (cada partido del torneo, en su frontón: hay que viajar); null, todos aquí
-  async pelotaTorneo(a, ctx, here = this.def.id) {
+  // el torneo entero se juega en este frontón (los rivales vienen aquí): el del pueblo elegido en Campeonatos o el
+  // del pueblo en el que estás
+  async pelotaTorneo(a, ctx) {
     const P = profile(), town = this.def.name.split(' /')[0];
     let T = torneo({ name: P.name || 'Tú', town }, ctx);
     for (;;) {
       this.ui.hudVisible(!this.sportMode);
-      const act = await torneoPanel(T, here);
+      const act = await torneoPanel(T, town);
       if (act === 'exit') return;
       if (act === 'new') { T = torneo({ name: P.name || 'Tú', town }, ctx, true); continue; }
-      if (act === 'travel') return this.travelTo(yourMatch(T).venue.id);
       if (act === 'sim') { playTorneoRound(T); continue; }
       const m = yourMatch(T);
       const r = await this.fronton.play(this, a, { target: m.target, level: m.level, rivalName: `${m.rival.name} (${m.rival.town})`, fixedLevel: true });
@@ -826,7 +826,7 @@ export class TownGame {
         this.player.rig.doCheer?.(); this.particles.confetti?.(this.player.pos, 120); this.sound.fanfare?.();
         await this.say(a, [`¡Txapeldun! Eres campeón del torneo de mano de ${ctx.comarcaName}. La txapela es tuya.`]);
       } else if (!r.win) await this.say(a, [`${r.you} a ${r.cpu}. ¡Qué pena! El torneo sigue: mira quién se lleva la txapela.`]);
-      else if (!T.done) await this.say(a, [`¡${r.you} a ${r.cpu}! Pasas a ${yourMatch(T)?.round.toLowerCase() || 'la siguiente ronda'}. El próximo partido es ${here ? 'en ' + (yourMatch(T)?.venue.name || 'otro pueblo') : 'aquí mismo'}.`]);
+      else if (!T.done) await this.say(a, [`¡${r.you} a ${r.cpu}! Pasas a ${yourMatch(T)?.round.toLowerCase() || 'la siguiente ronda'}. El próximo partido, aquí mismo.`]);
     }
   }
   say(a, lines) {
