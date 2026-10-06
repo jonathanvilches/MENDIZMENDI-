@@ -1,54 +1,11 @@
 // Reparto original de MENDIMENDIZ: la cuadrilla de exploradores.
 // Cada personaje es un niño o niña de un rincón de Navarra con su tradición, su carácter y su habilidad.
 // stats: [Resistencia, Fuerza, Agilidad, Orientación, Naturaleza]
-// todos los diseños (los antiguos se conservan solo como reserva de aspecto para retratos y figuras de respaldo)
+// los personajes elegibles y Leire, el aspecto de reserva (figura sencilla) si un modelo no puede cargarse
 export const CAST_ALL = [
-  // protagonista del juego (modelo GLB construido en Blender): el primero y el de por defecto
-  { id: 'benat', name: 'Beñat', from: 'Urbasa', role: 'Pastor', tagline: 'Conoce cada senda de la sierra',
-    desc: 'Sube con las ovejas latxas a los pastos de Urbasa y Andia. Su pañuelo rojo se ve desde lejos entre la niebla del hayedo.',
-    ability: 'Buen pastor: los animales se dejan acercar más', stats: [85, 65, 75, 85, 80], color: '#8a3a6e',
-    // aspecto de reserva (minifigura) por si el modelo GLB no puede cargarse
-    look: { child: true, height: 1.36, skin: '#f1c4a0', hair: '#3a2418', hairStyle: 'short', shirt: '#f2ece0', vest: '#6a2854', pants: '#5c4e40',
-      scarf: '#c8222a', shoes: '#7a4c2a', boots: true, socks: '#eae2ce', face: 'smile', pose: 'hip1' } },
-  // protagonista chica (modelo GLB de Blender, mismo esqueleto que Beñat)
-  { id: 'nerea', name: 'Nerea', from: 'Isaba / Izaba', role: 'Montañera', tagline: 'Conoce todas las cimas',
-    desc: 'Ha subido a la Mesa de los Tres Reyes con su familia. Lleva mapa, brújula y un bocadillo de queso del Roncal.',
-    ability: 'Orientación: la luz dorada brilla más fuerte', stats: [90, 60, 70, 95, 75], color: '#8a5ad6',
-    look: { child: true, height: 1.38, skin: '#f3cfae', hair: '#c9772f', hairStyle: 'short', lashes: true, eyes: '#3a6a3a', hat: 'wool', hatColor: '#8a5ad6',
-      shirt: '#e8743a', pattern: 'check', pants: '#3a4a6a', shoes: '#6b3f24', boots: true, strap: '#6a4a2a', bag: '#3a7a4a', staff: true, face: 'smile', freckles: true, pose: 'hip1', browStyle: 'arched', tilt: 0.07 } },
-  // niño del Neolítico (modelo GLB de Blender): viaja desde la época de los dólmenes
-  { id: 'haritz', name: 'Haritz', from: 'Sierra de Aralar', role: 'Niño del Neolítico', tagline: 'Viene de la época de los dólmenes',
-    desc: 'Vive hace unos 5.000 años, cuando los primeros pastores levantaban dólmenes en Aralar y Urbasa. Lleva túnica de lana, chaleco de piel de oveja, abarcas de cuero y un cuchillo de sílex en la bolsa.',
-    ability: 'Mirada antigua: descubre antes dólmenes, cuevas y piedras con historia', stats: [90, 75, 70, 80, 90], color: '#a8603a',
-    look: { child: true, height: 1.36, skin: '#e2b088', hair: '#2e1e16', hairStyle: 'short', shirt: '#d6c49e', vest: '#dacaa8', pants: '#84603e', scarf: '#a84a2c', shoes: '#b0885c', boots: true, socks: '#9c744c', face: 'smile', pose: 'hip1' } },
-  // aventureros (modelos CC0 de KayKit Adventurers, Kay Lousberg) que vienen a descubrir Navarra
-  { id: 'ranger', name: 'Iñigo', from: 'Selva de Irati', role: 'Guardabosques', tagline: 'Lee las huellas del bosque', glb: true, kaykit: true,
-    desc: 'Recorre el hayedo de Irati con su pañuelo azul y su capa. Sabe distinguir las huellas del corzo, del jabalí y del zorro.',
-    ability: 'Rastreador: ve antes a los animales con los prismáticos', stats: [80, 60, 85, 85, 95], color: '#2f7a4a',
-    look: { height: 1.5, skin: '#f1c4a0', hair: '#9a4a24', shirt: '#2f7a4a', pants: '#6a4a2a', shoes: '#6b3f24', boots: true } },
-  { id: 'rogue', name: 'Ainhoa', from: 'Bardenas Reales', role: 'Exploradora', tagline: 'Se mueve sin hacer ruido', glb: true, kaykit: true,
-    desc: 'Conoce cada barranco y cada cabezo de las Bardenas. Camina tan sigilosa que las aves no se asustan cuando pasa.',
-    ability: 'Sigilo: los animales se dejan acercar más', stats: [75, 55, 95, 80, 80], color: '#3a5a2a',
-    look: { female: true, height: 1.5, skin: '#e2b08a', hair: '#7a3a1a', shirt: '#3a5a2a', pants: '#5a4a3a', shoes: '#5a3a24', boots: true } },
-  { id: 'hooded', name: 'Olatz', from: 'Sierra de Urbasa', role: 'Exploradora de la niebla', tagline: 'No le asusta la niebla', glb: true, kaykit: true,
-    desc: 'Con su capucha verde atraviesa la niebla del raso de Urbasa sin perderse. Siempre lleva una brújula y un mapa.',
-    ability: 'Orientación: la brújula guía mejor en la niebla', stats: [80, 60, 85, 95, 75], color: '#2a6a3a',
-    look: { female: true, height: 1.5, skin: '#f1c4a0', hair: '#2a1a12', shirt: '#2a6a3a', pants: '#4a3a2a', shoes: '#4a2a1a', boots: true } },
-  { id: 'knight', name: 'Sancho', from: 'Olite', role: 'Caballero del Reino', tagline: 'Guarda el palacio de Olite', glb: true, kaykit: true,
-    desc: 'Se imagina que es uno de los caballeros de Carlos III el Noble y vigila las torres del palacio real de Olite.',
-    ability: 'Valiente: no se asusta de noche', stats: [90, 90, 55, 70, 60], color: '#8a8f99',
-    look: { height: 1.5, skin: '#f1c4a0', hair: '#5a3a22', shirt: '#9aa0a8', pants: '#6a6f78', shoes: '#4a4a52', boots: true } },
-  { id: 'barbarian', name: 'Mattin', from: 'Valle de Roncal', role: 'Montañés', tagline: 'Fuerte como un oso del Pirineo', glb: true, kaykit: true,
-    desc: 'Lleva una piel de oso como las de las leyendas del Pirineo. Sube las cuestas del Roncal sin cansarse.',
-    ability: 'Resistencia: la energía baja más despacio', stats: [95, 95, 60, 70, 75], color: '#7a4a2a',
-    look: { height: 1.55, skin: '#e2b08a', hair: '#4a2a1a', shirt: '#7a4a2a', pants: '#5a4a3a', shoes: '#4a2a1a', boots: true } },
-  { id: 'mage', name: 'Mari', from: 'Zugarramurdi', role: 'Guardiana de leyendas', tagline: 'Conoce todas las leyendas', glb: true, kaykit: true,
-    desc: 'Vive cerca de las cuevas de Zugarramurdi y se sabe todas las leyendas de Navarra: Mari, las lamias, el Basajaun…',
-    ability: 'Leyendas: las criaturas de la noche se encuentran antes', stats: [70, 55, 70, 80, 90], color: '#5a4aa8',
-    look: { female: true, height: 1.5, skin: '#f1c4a0', hair: '#1d1d24', shirt: '#5a4aa8', pants: '#3a3060', shoes: '#4a2a1a', boots: true } },
-  // los personajes que se eligen (modelos propios de Meshy): el sanferminero, el pastor, el futbolista de Osasuna y el
+  // los personajes que se eligen (modelos propios de Meshy): el sanferminero, el pastor, el futbolista y el
   // pelotari. En el encierro cualquiera de ellos corre vestido de San Fermín, en El Sadar juega con la camiseta de
-  // Osasuna y en el frontón se pone de pelotari
+  // Iruña y en el frontón se pone de pelotari
   { id: 'sanfermin', name: 'Fermín', from: 'Iruña / Pamplona', role: 'Sanferminero', tagline: 'No se pierde ni un chupinazo', glb: true, meshy: true,
     desc: 'Lleva el pañuelo rojo y la faja desde el chupinazo del 6 de julio. Se sabe las canciones de las peñas y cada curva del recorrido del encierro, de la cuesta de Santo Domingo a la plaza.',
     ability: 'Fiestero: la gente de los pueblos le saluda y le ayuda antes', stats: [80, 60, 90, 80, 70], color: '#d42f2f',
@@ -70,43 +27,8 @@ export const CAST_ALL = [
     ability: 'Sprint: corre más rápido durante un rato', stats: [70, 55, 95, 70, 55], color: '#d42f2f',
     look: { child: true, height: 1.36, skin: '#f3cfae', hair: '#6b3a1e', hairStyle: 'ponytail', hairTie: '#d42f2f', lashes: true, eyes: '#4a2a14',
       shirt: '#f7f3ea', pants: '#f7f3ea', sash: '#d42f2f', scarf: '#d42f2f', shoes: '#f0e8d4', espadrille: true, laces: '#d42f2f', face: 'grin', freckles: true, pose: 'hips', browStyle: 'arched', tilt: 0.08, body: 'slim' } },
-  { id: 'iker', name: 'Iker', from: 'Leitza', role: 'Aizkolari', tagline: 'Fuerte como un roble',
-    desc: 'Aprende a cortar troncos con su aitona en Leitza. Tiene un hacha de madera y un respeto enorme por el bosque.',
-    ability: 'Golpe preciso: los oficios le salen mejor', stats: [85, 90, 60, 60, 70], color: '#3a7a4a',
-    look: { child: true, height: 1.38, skin: '#e8b890', hair: '#2a1a12', hairStyle: 'short', shirt: '#f4f1ea', pants: '#f4f1ea', sash: '#2d7a4a',
-      txapela: '#1d1d24', shoes: '#efe6d0', espadrille: true, socks: '#f4f1ea', laces: '#1d1d24', axe: true, face: 'smirk', build: 1.05, body: 'athletic', pose: 'crossed', lids: 'half' } },
-  { id: 'maialen', name: 'Maialen', from: 'Lesaka', role: 'Dantzari', tagline: 'Baila sobre el puente',
-    desc: 'Ensaya el Zubigainekoa encima del pretil del río Onin. Dice que el equilibrio se aprende bailando.',
-    ability: 'Ritmo: las danzas le salen de maravilla', stats: [65, 50, 90, 65, 70], color: '#3a8fd6',
-    look: { child: true, height: 1.34, skin: '#f1c8a4', hair: '#3b2418', hairStyle: 'braids', hairTie: '#3a8fd6', lashes: true, eyes: '#2a5a8a',
-      shirt: '#ffffff', ribbons: ['#e03c3c', '#f2c230', '#3a8fd6'], skirt: '#d42f2f', skirtBand: '#ffffff', pants: '#ffffff', shoes: '#f0e8d4', espadrille: true, laces: '#d42f2f', castanets: true, face: 'happy', pose: 'behind', browStyle: 'arched', tilt: -0.1 } },
-  { id: 'unai', name: 'Unai', from: 'Tafalla', role: 'Pelotari', tagline: 'Nunca falla un rebote',
-    desc: 'Juega en el frontón de la plaza hasta que se hace de noche. Conoce todas las paredes de la Zona Media.',
-    ability: 'Buena vista: encuentra antes los objetos', stats: [75, 65, 85, 70, 55], color: '#f2a33a',
-    look: { child: true, height: 1.4, skin: '#d9a57f', hair: '#1a1a1a', hairStyle: 'curly', shirt: '#ffffff', pants: '#ffffff', belt: '#d42f2f',
-      headband: '#d42f2f', shoes: '#ffffff', glove: '#8a5a32', face: 'grin', eyes: '#3a2a1a', body: 'athletic', pose: 'hip1', tilt: -0.05 } },
-  { id: 'jon', name: 'Jon', from: 'Otsagabia / Ochagavía', role: 'Txistulari', tagline: 'Pone música a todo',
-    desc: 'Toca el txistu en las fiestas de Muskilda. Si hay silencio, él lo arregla con una melodía.',
-    ability: 'Melodía: las canciones y tradiciones son más fáciles', stats: [60, 50, 70, 70, 80], color: '#d9a53a',
-    look: { child: true, height: 1.37, skin: '#f0c49e', hair: '#5a3a22', hairStyle: 'short', shirt: '#ffffff', vest: '#2b2630', pants: '#2b2630',
-      txapela: '#c0392b', scarf: '#2b2630', shoes: '#1a1a1a', stick: '#e8dcc0', face: 'smirk', pose: 'behind', lids: 'half', tilt: 0.06 } },
-  { id: 'irati', name: 'Irati', from: 'Orreaga / Roncesvalles', role: 'Guardiana del bosque', tagline: 'Habla con los animales',
-    desc: 'Lleva el nombre de la gran selva. Sabe distinguir el canto de cada pájaro y el rastro de cada animal.',
-    ability: 'Mirada de guarda: observa animales sin asustarlos', stats: [70, 50, 75, 80, 95], color: '#3ca05a',
-    look: { child: true, height: 1.35, skin: '#e2b08a', hair: '#2a1a12', hairStyle: 'long', lashes: true, eyes: '#5a3a1a', hood: '#3a7a4a',
-      shirt: '#6a8a4a', pants: '#4a3a2a', belt: '#6b4a2e', shoes: '#4a2f1c', boots: true, bag: '#8a6a3a', face: 'smile', pose: 'shy', browStyle: 'arched', tilt: -0.12 } },
-  { id: 'koldo', name: 'Koldo', from: 'Ituren', role: 'Joaldun', tagline: 'Hace sonar la montaña',
-    desc: 'En carnaval camina con sus cencerros hasta Zubieta. Dice que el sonido despierta a la primavera.',
-    ability: 'Cencerro: oye a los personajes escondidos desde más lejos', stats: [95, 75, 55, 65, 70], color: '#6d5a9a',
-    look: { child: true, height: 1.4, skin: '#f0c49e', hair: '#3b2418', hairStyle: 'short', shirt: '#ffffff', fur: '#ece4d2', hat: 'cone', hatColor: '#ffffff',
-      scarf: '#3a8fd6', skirt: '#ffffff', pants: '#1d2a4a', shoes: '#4a2f1c', bells: true, face: 'brave', body: 'round', pose: 'proud' } },
-  { id: 'ainhoa', name: 'Ainhoa', from: 'Tudela', role: 'Hortelana', tagline: 'Sabe cuándo está madura cada verdura',
-    desc: 'Ayuda en la huerta de la Ribera. Alcachofas, espárragos, pimientos: los reconoce con los ojos cerrados.',
-    ability: 'Buena mano: recoge más deprisa en las cosechas', stats: [80, 70, 65, 65, 85], color: '#6aa84f',
-    look: { child: true, height: 1.36, skin: '#d9a57f', hair: '#1f1712', hairStyle: 'bun', lashes: true, eyes: '#3a2a1a', hat: 'straw', hatBand: '#3ca05a',
-      shirt: '#f2c94c', overalls: '#3a6a9a', pants: '#3a6a9a', shoes: '#6b3f24', basket: true, basketFill: '#3ca05a', face: 'grin', pose: 'hip1', browStyle: 'arched' } },
 ];
-// avatares elegibles: solo los personajes propios de Meshy (los antiguos quedan como aspecto de reserva y de vecinos)
+// avatares elegibles: los personajes propios de Meshy
 export const CAST = CAST_ALL.filter(c => c.meshy);
 export const castById = (id) => CAST.find(c => c.id === id) || CAST[0];
 export const STAT_LABELS = ['Resistencia', 'Fuerza', 'Agilidad', 'Orientación', 'Naturaleza'];
