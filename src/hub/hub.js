@@ -13,10 +13,10 @@ import { faunaId } from '../data/fauna.js';
 import { floraPortrait } from '../world/flora3d.js';
 import { releaseOffscreen } from '../util/offscreen.js';
 import { avatarPortrait, portraitImg, avatarPortraitImg } from '../ui/portraits.js';
-import { stampImg, landImg } from '../assets.js';
+import { stampImg, landImg, townImg } from '../assets.js';
 import { Stage, releaseStage } from './stage.js';
 import { getLang, setLang, langChosen } from '../i18n.js';
-import { dioramaShot, heroAvatar } from './diorama.js';
+import { dioramaShot, heroAvatar, townCover } from './diorama.js';
 import { profile, saveProfile, levelOf, rankOf, townProgress, comarcaProgress, comarcaTowns, navarraProgress, stampCount, BADGES, checkBadges, resetProfile, salazarState } from '../game/profile.js';
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -286,7 +286,9 @@ export class Hub {
   townCard(l) {
     const p = profile(), t = townProgress(p, l), c = comarca(l.comarca);
     const types = (l.missions || []).map(m => m.type);
-    return `<button class="tcard ${t.stamp ? 'stamped' : ''}" data-town="${l.id}" style="--c:${c?.color}">
+    const cov = townCover(l.id, true);
+    return `<button class="tcard ${t.stamp ? 'stamped' : ''}${cov ? ' has-cov' : ''}" data-town="${l.id}" style="--c:${c?.color}">
+      ${cov ? `<img class="tcov" src="${cov}" alt="" loading="lazy" decoding="async">` : ''}
       <div class="thead">${I(l.special ? 'castle' : ({ romanesque: 'church', gothic: 'church', baroque: 'church', fortress: 'castle', cathedral: 'cathedral', pamplona: 'cathedral' }[l.church?.style] || 'church'), 44)}<div><b>${esc(l.name)}</b><small>${esc(c?.name)}</small></div>${t.stamp ? `<img class="tstamp" src="${stampImg(l.comarca)}" alt="">` : ''}</div>
       <p>${esc(l.intro || '')}</p>
       <div class="ticons">${(l.special ? ['visit', 'herd', 'legend', 'dance', 'observe', 'carnival'] : types).map(ty => `<span title="${TYPE_NAME[ty]}">${I(TYPE_ICON[ty], 24)}</span>`).join('')}</div>
@@ -299,9 +301,10 @@ export class Hub {
     const ms = l.special ? [{ type: 'visit', title: 'Ongi etorri a Otsagabia' }, { type: 'herd', title: 'El rebaño de Joxemari' }, { type: 'observe', title: 'Guardianes de Irati' }, { type: 'legend', title: 'Basajaun y la Lamia' }, { type: 'carnival', title: 'El Zarratrako' }, { type: 'dance', title: 'La fiesta de Muskilda' }]
       : l.missions;
     const title = (m) => m.title || (m.type === 'visit' ? `Conoce ${l.name}` : m.type === 'quiz' ? `El sabio de ${l.name}` : m.name || m.product || TYPE_NAME[m.type]);
-    const s = el(`<div class="sheet"><div class="sheet-in" style="--c:${c?.color};--bg:url(${landImg(l.comarca)})">
+    const hero = heroAvatar(p.avatar);
+    const s = el(`<div class="sheet"><div class="sheet-in" style="--c:${c?.color};--bg:url(${townImg(l)})">
       <button class="x" aria-label="Cerrar">${I('close', 22)}</button>
-      <div class="sh-hero"><small class="kicker">${esc(c?.name)}</small><h1>${esc(l.name)}</h1><p>${esc(l.intro || '')}</p></div>
+      <div class="sh-hero${hero ? ' key' : ''}">${hero ? `<img class="sh-av" src="${hero}" alt="">` : ''}<small class="kicker">${esc(c?.name)}</small><h1>${esc(l.name)}</h1><p>${esc(l.intro || '')}</p></div>
       <div class="sh-body">
         <h3>${I('check', 24)} Misiones (${t.done}/${t.total})</h3>
         <ul class="mlist">${ms.map((m, i) => `<li class="${ts?.done?.[i] ? 'ok' : ''}">${I(TYPE_ICON[m.type], 34)}<div><b>${esc(title(m))}</b><small>${TYPE_NAME[m.type]}${m.host ? ' · con ' + esc(m.host.name) : ''}</small></div>${ts?.done?.[i] ? I('check', 26) : ''}</li>`).join('')}</ul>

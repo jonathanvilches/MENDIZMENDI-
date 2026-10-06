@@ -185,6 +185,8 @@
 .filters button.on::after { content: ''; position: absolute; left: 10px; right: 10px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--c, var(--cyan)); box-shadow: 0 0 10px var(--c, var(--cyan)); }
 .towns { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 12px; }
 .tcard { position: relative; text-align: left; padding: 18px 18px 16px 20px; border-radius: var(--r); background: linear-gradient(160deg, color-mix(in srgb, var(--c) 22%, rgba(38, 24, 76, .75)), rgba(34, 12, 70, .84) 70%); border: 1px solid var(--line); transition: transform .15s, border-color .15s; display: flex; flex-direction: column; gap: 8px; }
+.tcard.has-cov { padding-top: 0; overflow: hidden; } .tcard .tcov { display: block; width: calc(100% + 38px); margin: 0 -18px 2px -20px; aspect-ratio: 16 / 7; object-fit: cover; object-position: 30% 55%; -webkit-mask: linear-gradient(180deg, #000 70%, transparent); mask: linear-gradient(180deg, #000 70%, transparent); }
+.tcard.has-cov .tstamp { top: auto; }
 .tcard::before { content: ''; position: absolute; left: 0; top: 14px; bottom: 14px; width: 3px; border-radius: 0 3px 3px 0; background: var(--c); }
 .tcard:hover { transform: translateY(-3px); border-color: var(--line2); }
 .tcard .thead { display: flex; gap: 10px; align-items: center; position: relative; } .tcard b { font-size: 18px; font-weight: 900; display: block; } .tcard small { color: var(--mute); font-size: 12.5px; }
@@ -200,6 +202,13 @@
 .sheet-in::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--c); z-index: 3; }
 .sheet .x { position: absolute; right: 12px; top: 12px; z-index: 2; background: rgba(10, 8, 16, .6); border: 1px solid var(--line2); border-radius: 50%; width: 40px; height: 40px; display: grid; place-items: center; }
 .sh-hero { padding: 58px 24px 18px; background: linear-gradient(180deg, transparent, var(--plum)), linear-gradient(90deg, color-mix(in srgb, var(--c) 70%, #000), transparent), var(--bg) center/cover; }
+/* portada del pueblo con el personaje: el pueblo de fondo algo desenfocado, el personaje nítido a la derecha con
+   contraluz dorado, y el nombre a la izquierda */
+.sh-hero.key { position: relative; overflow: hidden; min-height: 250px; display: flex; flex-direction: column; justify-content: flex-end; padding-right: 42%; background: none; isolation: isolate; }
+.sh-hero.key::before { content: ''; position: absolute; inset: -8px; z-index: -2; background: var(--bg) 30% center / cover no-repeat; filter: blur(2px) saturate(1.06); }
+.sh-hero.key::after { content: ''; position: absolute; inset: 0; z-index: -1; background: radial-gradient(80% 90% at 80% 25%, rgba(255, 190, 110, .26), rgba(255, 190, 110, 0) 60%), linear-gradient(90deg, rgba(20, 6, 48, .7), rgba(20, 6, 48, .1) 60%, rgba(20, 6, 48, 0)), linear-gradient(180deg, transparent 55%, var(--plum)); }
+.sh-hero .sh-av { position: absolute; z-index: -1; right: 4%; bottom: -34%; height: 150%; width: auto; pointer-events: none; filter: drop-shadow(0 0 16px rgba(255, 170, 80, .4)) drop-shadow(0 10px 20px rgba(0, 0, 0, .45)); -webkit-mask: linear-gradient(180deg, #000 72%, transparent 92%); mask: linear-gradient(180deg, #000 72%, transparent 92%); }
+.sh-hero.key h1, .sh-hero.key p, .sh-hero.key small { text-shadow: 0 2px 8px rgba(0, 0, 0, .6); }
 .sh-hero h1 { margin: 4px 0 6px; font-family: 'Lilita One', 'Nunito', sans-serif; font-weight: 400; font-size: 38px; line-height: 1; } .sh-hero p { margin: 0; color: #eadfcf; font-weight: 600; }
 .sh-body { padding: 4px 24px 10px; overflow-y: auto; touch-action: pan-y; }
 .sh-body h3 { display: flex; align-items: center; gap: 8px; color: var(--gold); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; }
