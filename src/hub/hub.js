@@ -19,6 +19,9 @@ import { getLang, setLang, langChosen } from '../i18n.js';
 import { dioramaShot } from './diorama.js';
 import { profile, saveProfile, levelOf, rankOf, townProgress, comarcaProgress, comarcaTowns, navarraProgress, stampCount, BADGES, checkBadges, resetProfile, salazarState } from '../game/profile.js';
 
+// portadas del menú ya hechas con el personaje dentro de la escena (tools/herobake.mjs): <comarca>-<personaje>
+const HERO = {};
+for (const [p, u] of Object.entries(import.meta.glob('../assets/portadas/heroe/*.webp', { eager: true, query: '?url', import: 'default' }))) HERO[p.split('/').pop().replace('.webp', '')] = u;
 const $ = (s, r = document) => r.querySelector(s);
 const el = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -160,8 +163,8 @@ export class Hub {
     const done = p.towns[last.id]?.done || {};
     const ms = (last.missions || []).map((m, i) => `<span class="mi ${done[i] ? 'ok' : ''}" title="${esc(m.title || m.name || TYPE_NAME[m.type] || '')}">${I(TYPE_ICON[m.type] || 'star', 40)}${done[i] ? `<i class="tick">${I('check', 16)}</i>` : ''}</span>`).join('');
     this.after = () => {
-      // portada de juego: una imagen fija (la foto de la comarca y el personaje), sin escena 3D en vivo: en el móvil
-      // montaba el diorama entero y un segundo WebGL solo para el menú. Al tocar al personaje, salta
+      // portada de juego: una imagen fija con el personaje dentro de la escena de su comarca, sin escena 3D en vivo (en el
+      // móvil montaba el diorama entero y un segundo WebGL solo para el menú). Si faltara, foto y personaje por separado
       const fig = $('.hero-av', this.root);
       if (fig) fig.onclick = () => { fig.classList.remove('hop'); void fig.offsetWidth; fig.classList.add('hop'); this.sound?.ui('click'); };
       this.drawMiniMap($('#homeMap', this.root));
@@ -170,7 +173,8 @@ export class Hub {
     const next = this.suggestions();
     return `
     <section class="hero3d">
-      <div class="hero-img" style="background-image:url(${landImg(last.comarca, 1280, 720, true)})">${avatarPortraitImg(p.avatar, 'hero').replace('<img ', '<img class="hero-av" ')}</div>
+      ${HERO[last.comarca + '-' + p.avatar] ? `<div class="hero-img scene" style="background-image:url(${HERO[last.comarca + '-' + p.avatar]})"></div>`
+        : `<div class="hero-img" style="background-image:url(${landImg(last.comarca, 1280, 720, true)})">${avatarPortraitImg(p.avatar, 'hero').replace('<img ', '<img class="hero-av" ')}</div>`}
       <div class="h-shade"></div>
       <button class="chapter" data-comarca="${last.comarca}" style="--c:${cm?.color}"><img src="${stampImg(last.comarca)}" alt=""><span><small>Capítulo ${chapter} · ${esc(cm?.name || '')}</small><b>${cpr.stamps}/${cts.length} sellos de la comarca</b><span class="cbar"><i style="width:${cts.length ? cpr.stamps / cts.length * 100 : 0}%"></i></span></span></button>
       <div class="h-bot">
