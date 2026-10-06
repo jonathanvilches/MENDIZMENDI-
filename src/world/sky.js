@@ -60,12 +60,14 @@ export class SkySystem {
       uZen: { value: new THREE.Color() }, uHor: { value: new THREE.Color() },
       uSunDir: { value: new THREE.Vector3(0, 1, 0) }, uSunCol: { value: new THREE.Color() },
       uTime: { value: 0 }, uNight: { value: 0 }, uCloud: { value: 0.55 },
+      // tormenta (weather.js): cielo cubierto de nubes negras y el relámpago que las ilumina hacia donde cae el rayo
+      uStorm: { value: 0 }, uFlash: { value: 0 }, uFlashDir: { value: new THREE.Vector3(0, 1, 0) },
     };
     this.mat = new THREE.ShaderMaterial({
       uniforms: this.uniforms, side: THREE.BackSide, depthWrite: false, fog: false, defines: quality === 'low' ? { LOWQ: 1 } : {},   // móvil: nubes con menos capas de ruido
       vertexShader: `varying vec3 vDir; void main(){ vDir = normalize(position); vec4 p = projectionMatrix * modelViewMatrix * vec4(position,1.0); gl_Position = p.xyww; }`,
       fragmentShader: `
-uniform vec3 uZen, uHor, uSunDir, uSunCol; uniform float uTime, uNight, uCloud; varying vec3 vDir;
+uniform vec3 uZen, uHor, uSunDir, uSunCol, uFlashDir; uniform float uTime, uNight, uCloud, uStorm, uFlash; varying vec3 vDir;
 float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }
 float vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
   return mix(mix(hash(i),hash(i+vec2(1,0)),f.x), mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x), f.y); }
@@ -99,6 +101,10 @@ void main(){
     star *= 0.6 + 0.4 * sin(uTime * 2.0 + s * 50.0);
     col += vec3(star) * uNight * smoothstep(0.0, 0.25, h);
   }
+  // tormenta: el cielo que asoma entre las nubes también se apaga; el relámpago lo aclara
+  float fd = max(dot(d, uFlashDir), 0.0);
+  col = mix(col, vec3(0.16, 0.18, 0.22), uStorm * 0.75);
+  col += vec3(0.45, 0.5, 0.65) * uFlash * (0.15 + 0.8 * pow(fd, 4.0));
   // nubes
   if (h > 0.0) {
     vec2 cp = d.xz / (d.y + 0.12) * 1.3 + vec2(uTime * 0.004, uTime * 0.0015);
@@ -112,7 +118,11 @@ void main(){
     vec3 cc = mix(vec3(1.0), uHor * 0.9 + 0.1, 0.35) * (0.8 + 0.35 * (n - shade) * 3.0);
     cc = mix(cc, uSunCol * 1.2, pow(sd, 6.0) * 0.5);
     cc *= mix(1.0, 0.35, uNight);
-    col = mix(col, cc, c * smoothstep(0.0, 0.18, h) * 0.92);
+    // nubes de tormenta: casi negras, con relieve (los bordes algo más claros) y encendidas por dentro con el rayo
+    vec3 dark = vec3(0.11, 0.12, 0.15) * (0.7 + 0.9 * (n - shade) * 3.0 + 0.4 * n) * mix(1.0, 0.5, uNight);
+    cc = mix(cc, dark, uStorm);
+    cc += vec3(0.75, 0.8, 1.0) * uFlash * (0.2 + 1.7 * pow(fd, 6.0)) * (0.5 + n);
+    col = mix(col, cc, c * smoothstep(0.0, 0.18, h) * mix(0.92, 1.0, uStorm));
   }
   gl_FragColor = vec4(col, 1.0);
   #include <colorspace_fragment>

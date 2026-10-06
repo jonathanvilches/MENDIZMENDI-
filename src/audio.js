@@ -251,6 +251,23 @@ export class Sound {
   }
   setMusic(on) { this.musicOn = on; if (this.musicBus) { this.musicBus.gain.cancelScheduledValues(this.ctx.currentTime); this.musicBus.gain.setTargetAtTime(on ? 0.32 : 0, this.ctx.currentTime, 0.3); } }
   // lluvia: rumor de ruido filtrado agudo que sube con la intensidad
+  // trueno: si el rayo cae cerca, primero un chasquido seco; luego el retumbar grave y largo, que va y viene (ruido muy
+  // filtrado con varios golpes) y resuena en el eco. dist en metros: más lejos, más tarde, más grave y más flojo
+  thunder(dist = 600, pan = 0) {
+    if (!this.ctx) return;
+    const ctx = this.ctx, near = clamp(1 - dist / 1400, 0.2, 1), t0 = dist / 343;
+    const bus = ctx.createGain(); bus.gain.value = 0.85 * near;
+    const p = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    if (p) { p.pan.value = pan; bus.connect(p); p.connect(this.sfx); const vg = ctx.createGain(); vg.gain.value = 0.6; p.connect(vg); vg.connect(this.verb); } else bus.connect(this.sfx);
+    if (dist < 650) this.noiseBurst(0.4, 1800, 0.5, 0.45 * near, bus, t0, 'highpass');
+    const t = ctx.currentTime + t0 + 0.06, dur = 4 + Math.random() * 3;
+    const s = ctx.createBufferSource(); s.buffer = this.noiseBuf; s.loop = true; s.playbackRate.value = 0.3 + Math.random() * 0.15;
+    const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 150 + 250 * near; f.Q.value = 0.8;
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(1, t + 0.15);
+    let k = t + 0.15; for (let i = 0; i < 4; i++) { k += dur * 0.16 * (0.6 + Math.random() * 0.6); g.gain.exponentialRampToValueAtTime(0.2 + Math.random() * 0.7, k); }
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    s.connect(f); f.connect(g); g.connect(bus); s.start(t); s.stop(t + dur + 0.1);
+  }
   setRain(k) { if (!this.ctx) return; if (!this.rain && k > 0) this.rain = this.loopNoise(2600, 0.35); if (this.rain) this.rain.g.gain.setTargetAtTime(k * 0.08, this.ctx.currentTime, 0.5); }
   setVolume(v) { if (this.master) this.master.gain.value = v; }
 }

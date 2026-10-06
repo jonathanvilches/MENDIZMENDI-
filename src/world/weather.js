@@ -97,6 +97,33 @@ export function pickWeather(def, rnd = Math.random) {
   return r < 0.2 ? 'rain' : 'clear';
 }
 
+// Tormenta: cuando llueve, el cielo se cubre de nubes negras y caen rayos a lo lejos (siempre por delante, donde se
+// mira), con el destello que ilumina las nubes y el pueblo y el trueno que llega después (a la velocidad del sonido)
+const STORM_ZEN = new THREE.Color('#2a3140'), STORM_HOR = new THREE.Color('#4a525e'), FLASH = new THREE.Color('#dfe8ff');
+// el rayo: una línea quebrada desde la nube hasta el suelo, con un par de ramas; se dibuja como una cinta de cara a la
+// cámara (núcleo blanco y halo azulado)
+function boltGeometry(camPos, top, bottom, width, rnd) {
+  const lines = [], main = [top.clone()], N = 16, side = new THREE.Vector3(), seg = new THREE.Vector3(), to = new THREE.Vector3();
+  for (let i = 1; i <= N; i++) {
+    const k = i / N, p = top.clone().lerp(bottom, k);
+    if (i < N) { p.x += (rnd() - 0.5) * 34 * (1 - k * 0.4); p.z += (rnd() - 0.5) * 34 * (1 - k * 0.4); p.y += (rnd() - 0.5) * 8; }
+    main.push(p);
+  }
+  lines.push([main, width]);
+  for (let b = 0; b < 2 + Math.floor(rnd() * 2); b++) {   // ramas: salen de la mitad de arriba y se apagan antes de llegar al suelo
+    const i0 = 2 + Math.floor(rnd() * N * 0.45), p0 = main[i0], br = [p0.clone()], dir = new THREE.Vector3((rnd() - 0.5) * 2, -1.2, (rnd() - 0.5) * 2).normalize();
+    let p = p0.clone(); for (let j = 0; j < 5; j++) { p = p.clone().addScaledVector(dir, 16 + rnd() * 14); p.x += (rnd() - 0.5) * 12; p.z += (rnd() - 0.5) * 12; br.push(p); }
+    lines.push([br, width * 0.5]);
+  }
+  const pos = [];
+  for (const [L, w] of lines) for (let i = 0; i < L.length - 1; i++) {
+    const a = L[i], b = L[i + 1]; seg.subVectors(b, a); to.subVectors(camPos, a); side.crossVectors(seg, to).normalize().multiplyScalar(w * 0.5);
+    const a0 = a.clone().sub(side), a1 = a.clone().add(side), b0 = b.clone().sub(side), b1 = b.clone().add(side);
+    pos.push(a0.x, a0.y, a0.z, a1.x, a1.y, a1.z, b1.x, b1.y, b1.z, a0.x, a0.y, a0.z, b1.x, b1.y, b1.z, b0.x, b0.y, b0.z);
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); return g;
+}
+
 export class Weather {
   constructor(scene, kind = 'clear', quality = 'high') {
     this.kind = kind; this.scene = scene; this.t = 0; this.k = 0;
@@ -104,7 +131,7 @@ export class Weather {
     if (kind === 'rain') { this.fx = precip('rain', Math.round(3200 * n)); scene.add(this.fx); }
     if (kind === 'snow') { this.fx = precip('snow', Math.round(4200 * n)); scene.add(this.fx); }
     SNOW.value = kind === 'snow' ? 0.55 : 0;   // al llegar ya ha nevado: tejados y prados blancos
-    this.grey = new THREE.Color(kind === 'snow' ? '#d6dde6' : '#8a949e');
+    this.grey = new THREE.Color(kind === 'snow' ? '#d6dde6' : '#6c757f');
     // la lluvia va a ratos: al llegar llueve, al cabo de un rato escampa y luego vuelve a llover
     this.raining = true; this.phaseT = 50 + Math.random() * 40;
   }
@@ -131,6 +158,48 @@ export class Weather {
       sky.hemi.intensity *= 1 + (this.kind === 'snow' ? 0.15 : -0.1) * this.k;
     }
     sound?.setRain?.(this.kind === 'rain' ? this.k : 0);
+    if (this.kind === 'rain') this.storm(dt, camera, sky, sound);
+  }
+  storm(dt, camera, sky, sound) {
+    if (!sky?.uniforms) return;
+    const U = sky.uniforms, k = this.k; this.sky = sky;
+    U.uStorm.value = k; U.uCloud.value = 0.55 + 0.43 * k;
+    U.uZen.value.lerp(STORM_ZEN, 0.85 * k); U.uHor.value.lerp(STORM_HOR, 0.75 * k);
+    // luz de tormenta (además de lo que ya baja con la lluvia): más oscuro y con la niebla gris plomo
+    sky.sun.intensity *= 1 - 0.35 * k; sky.hemi.intensity *= 1 - 0.22 * k; sky.fog.color.lerp(this.grey, 0.35 * k);
+    // un rayo cada 5 a 17 s mientras llueve fuerte
+    if (k > 0.55 && (this.boltT = (this.boltT ?? 3 + Math.random() * 3) - dt) <= 0) { this.boltT = 5 + Math.random() * 12; this.strike(camera, sound); }
+    // destello: dos o tres fogonazos seguidos que se apagan enseguida
+    let I = 0;
+    if (this.strikeT != null) {
+      const t = (this.strikeT += dt);
+      for (const [t0, a] of this.pulses) if (t >= t0) I = Math.max(I, a * Math.exp(-(t - t0) / 0.07));
+      if (t > 1.2) { this.strikeT = null; if (this.bolt) this.bolt.visible = false; }
+    }
+    U.uFlash.value = I;
+    if (I > 0.01) {
+      sky.hemi.intensity += I * 2.4; sky.fog.color.lerp(FLASH, I * 0.3);
+      if (this.bolt) { this.bolt.visible = I > 0.12; this.bolt.children[0].material.opacity = Math.min(1, I * 1.4); this.bolt.children[1].material.opacity = Math.min(0.5, I * 0.6); }
+    }
+  }
+  strike(camera, sound) {
+    const rnd = Math.random, fw = new THREE.Vector3(); camera.getWorldDirection(fw); fw.y = 0; if (fw.lengthSq() < 1e-4) fw.set(0, 0, 1); fw.normalize();
+    const camA = Math.atan2(fw.x, fw.z), a = camA + (rnd() - 0.5) * 2.1, dist = 300 + rnd() * 520, P = camera.position;
+    const bottom = new THREE.Vector3(P.x + Math.sin(a) * dist, P.y - 25, P.z + Math.cos(a) * dist), top = bottom.clone(); top.y += 240 + rnd() * 90;
+    top.x += (rnd() - 0.5) * 60; top.z += (rnd() - 0.5) * 60;
+    if (!this.bolt) {
+      const m = (c, o) => new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: o, depthWrite: false, fog: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, toneMapped: false });
+      this.bolt = new THREE.Group(); this.bolt.add(new THREE.Mesh(new THREE.BufferGeometry(), m('#f4f8ff', 1)), new THREE.Mesh(new THREE.BufferGeometry(), m('#8fb0ff', 0.4)));
+      this.bolt.children.forEach(o => { o.frustumCulled = false; o.renderOrder = 1001; }); this.scene.add(this.bolt);
+    }
+    const [core, glow] = this.bolt.children; core.geometry.dispose(); glow.geometry.dispose();
+    let s = (rnd() * 1e6) | 0; const r1 = () => ((s = (s * 9301 + 49297) % 233280) / 233280), s0 = s; const r2 = () => ((s = (s * 9301 + 49297) % 233280) / 233280);
+    core.geometry = boltGeometry(P, top, bottom, 2.4, r1); s = s0; glow.geometry = boltGeometry(P, top, bottom, 11, r2);   // (la misma forma para los dos)
+    this.bolt.visible = true;
+    this.pulses = [[0, 1], [0.11 + rnd() * 0.05, 0.6 + rnd() * 0.3], ...(rnd() < 0.6 ? [[0.3 + rnd() * 0.1, 0.35 + rnd() * 0.2]] : [])];
+    this.strikeT = 0;
+    this.sky?.uniforms.uFlashDir.value.subVectors(top, P).normalize();
+    sound?.thunder?.(dist, Math.max(-1, Math.min(1, -Math.sin(a - camA))) * 0.8);
   }
   // huellas en la nieve: una por paso, alternando pie izquierdo y derecho; las viejas se borran poco a poco
   footprint(pos, heading) {
@@ -166,5 +235,5 @@ export class Weather {
     }
     if (dirty) this.prints.instanceMatrix.needsUpdate = true;
   }
-  dispose() { if (this.fx) { this.scene.remove(this.fx); this.fx.geometry.dispose(); this.fx.material.dispose(); } if (this.prints) { this.scene.remove(this.prints); this.prints.geometry.dispose(); this.prints.material.dispose(); this.printTex.dispose(); } SNOW.value = 0; }
+  dispose() { if (this.sky?.uniforms) { this.sky.uniforms.uStorm.value = 0; this.sky.uniforms.uFlash.value = 0; this.sky.uniforms.uCloud.value = 0.55; } if (this.bolt) { this.scene.remove(this.bolt); this.bolt.children.forEach(o => { o.geometry.dispose(); o.material.dispose(); }); } if (this.fx) { this.scene.remove(this.fx); this.fx.geometry.dispose(); this.fx.material.dispose(); } if (this.prints) { this.scene.remove(this.prints); this.prints.geometry.dispose(); this.prints.material.dispose(); this.printTex.dispose(); } SNOW.value = 0; }
 }
