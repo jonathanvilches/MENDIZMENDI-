@@ -25,32 +25,33 @@ function extent() { if (!EXTENT) { const c = new PelotaCourt(THREE, { texScale: 
 
 // Busca un sitio llano y libre cerca de la plaza
 export function findFrontonSpot(plaza) {
-  // primero cerca de la plaza; si allí solo cabe encima de una calle o no cabe (Tudela), también más lejos; y si
-  // tampoco, con algo menos de holgura: todos los pueblos tienen su frontón y su pelotari
-  const near = frontonSearch(plaza, 34, 120, 1.2, 0.3);
-  if (near && !near.road) return near;
-  const far = frontonSearch(plaza, 120, 240, 1.2, 0.2);
-  if (near || far) return !far || (near && near.score <= far.score) ? near : far;
-  return frontonSearch(plaza, 34, 260, 0.6, 0.15);
+  // primero cerca de la plaza y sin calles ni caminos debajo (las paredes los cortarían) y con sitio de sobra alrededor
+  // (los tejados sobresalen del choque de las casas: antes quedaban esquinas de casa pegadas a la cancha); si así no
+  // cabe, más lejos; luego dejando pasar algún camino; y al final con menos holgura: todos los pueblos tienen frontón
+  return frontonSearch(plaza, 34, 130, 3, 0.2, true) || frontonSearch(plaza, 130, 240, 3, 0.15, true)
+    || frontonSearch(plaza, 34, 240, 1.5, 0.2, false) || frontonSearch(plaza, 34, 260, 0.6, 0.15, false);
 }
-function frontonSearch(plaza, r0, r1, gap, da) {
+function frontonSearch(plaza, r0, r1, gap, da, noRoad) {
   const E = extent();
   let best = null, bs = 1e9;
   for (let r = r0; r <= r1; r += 8) for (let a = 0; a < Math.PI * 2; a += da) {
-    const x = plaza.x + Math.cos(a) * r, z = plaza.z + Math.sin(a) * r, ry = Math.atan2(plaza.x - x, plaza.z - z);   // la cancha se abre hacia la plaza
+    const x = plaza.x + Math.cos(a) * r, z = plaza.z + Math.sin(a) * r, face = Math.atan2(plaza.x - x, plaza.z - z);
     if (Math.sign(x - rx(z)) !== Math.sign(plaza.x - rx(plaza.z))) continue;   // en la misma orilla que la plaza (sin río, rx es 9999: todo vale)
-    if (!rectFree(x, z, ry, E.x0, E.x1, E.z0, E.z1, gap)) continue;   // ni casas ni muros ni farolas dentro
-    const c = Math.cos(ry), s = Math.sin(ry); let mn = 1e9, mx = -1e9, ok = true, road = 0;
-    for (let lx = E.x0; lx <= E.x1 + 0.01 && ok; lx += 3) for (let lz = E.z0; lz <= E.z1 + 0.01; lz += 3) {
-      const X = x + lx * c + lz * s, Z = z - lx * s + lz * c;
-      if (onPlatform(X, Z, 1) || waterLevelAt(X, Z) > terrainHeight(X, Z) - 0.3) { ok = false; break; }
-      const h = terrainHeight(X, Z); mn = Math.min(mn, h); mx = Math.max(mx, h);
-      const q = pathQuery(X, Z); if (q.d < q.w + 1) road++;
+    // la cancha se abre hacia la plaza; si así no cabe, también de lado (como muchos frontones, a lo largo de la calle)
+    for (const [ry, turned] of [[face, 0], [face + Math.PI / 2, 1], [face - Math.PI / 2, 1]]) {
+      if (!rectFree(x, z, ry, E.x0, E.x1, E.z0, E.z1, gap)) continue;   // ni casas ni muros ni farolas dentro
+      const c = Math.cos(ry), s = Math.sin(ry); let mn = 1e9, mx = -1e9, ok = true, road = 0;
+      for (let lx = E.x0 - 1; lx <= E.x1 + 1.01 && ok; lx += 2.5) for (let lz = E.z0 - 1; lz <= E.z1 + 1.01; lz += 2.5) {
+        const X = x + lx * c + lz * s, Z = z - lx * s + lz * c;
+        if (onPlatform(X, Z, 1) || waterLevelAt(X, Z) > terrainHeight(X, Z) - 0.3) { ok = false; break; }
+        const h = terrainHeight(X, Z); mn = Math.min(mn, h); mx = Math.max(mx, h);
+        const q = pathQuery(X, Z); if (q.d < q.w + 1.5) road++;
+      }
+      if (!ok || (noRoad && road)) continue;
+      // llano, cerca de la plaza, sin caminos debajo y mejor de frente a la plaza
+      const score = (mx - mn) * 10 + r * 0.05 + road * 2 + turned * 1.5;
+      if (score < bs) { bs = score; best = { x, z, ry, y: mx + 0.05, road, score }; }
     }
-    if (!ok) continue;
-    // mejor sin calles ni caminos debajo (las paredes los cortarían): cada punto de camino cuenta como 40 m más lejos
-    const score = (mx - mn) * 10 + r * 0.05 + road * 2;
-    if (score < bs) { bs = score; best = { x, z, ry, y: mx + 0.05, road, score }; }
   }
   return best;
 }

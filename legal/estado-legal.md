@@ -33,6 +33,7 @@
 
 | Fecha | Función | Respuestas (1-8) | Color | Decisión |
 |---|---|---|---|---|
+| 2026-10-06 | Portadas de comarca nuevas (vistas aéreas del propio juego al atardecer con acabado de portada) y recolocación de frontones y casas | 1-8 No (imágenes propias renderizadas por el juego; sin contenido de terceros) | VERDE | Seguir. Fotos anotadas como obra propia. |
 | 2026-10-06 | Quitar los avatares que ya no se usan (seis de KayKit con sus retratos, tres de Blender y siete diseños antiguos de minifigura) | 1-8 No (se quita contenido; no entra nada nuevo) | VERDE | Seguir. Registro de licencias al día. |
 | 2026-10-06 | Portada vertical para el móvil de pie y texturas de los personajes propios a 1024 px | 1-8 No (imágenes propias hechas por el juego; las texturas son las mismas a menos resolución) | VERDE | Seguir. |
 | 2026-10-06 | Portadas del menú a más resolución (fondo de cada comarca a 1600×900 y capa del personaje encima) y retratos de personajes en WebP en vez de PNG | 1-8 No (imágenes propias hechas por el juego; mismo contenido, otro formato) | VERDE | Seguir. |
