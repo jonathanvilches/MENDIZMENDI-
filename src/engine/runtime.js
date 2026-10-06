@@ -186,6 +186,8 @@ export class Runtime {
     EPOCH++;
     this.renderer.renderLists.dispose();
     resetNpcCache();
+    // los colisionadores móviles guardan a los vecinos (y, a través de ellos, el pueblo entero): fuera también
+    resetColliders(); resetVillage(); clearPlatforms();
     this.scene = null;
     // y todo lo demás del pueblo: antes seguía vivo hasta que el pueblo siguiente lo sustituía, ya a mitad de su carga
     // (al viajar estaban los dos pueblos a la vez en memoria, que es cuando más justo va el móvil)
