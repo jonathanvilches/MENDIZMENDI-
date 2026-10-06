@@ -518,7 +518,9 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .hero3d { position: relative; height: clamp(460px, 66vh, 640px); border-radius: 22px; overflow: hidden; border: 1px solid var(--line2); box-shadow: 0 20px 50px rgba(0, 0, 0, .45); background: #1c0b3a; isolation: isolate; }
 /* portada fija: la foto de la comarca y el personaje de pie a la derecha (en vertical, en el centro, encima del título) */
 .hero3d .hero-img { position: absolute; inset: 0; background: #1c0b3a center 60% / cover no-repeat; }
-.hero3d .hero-img.scene { background-position: 66% 50%; }   /* (el personaje está a dos tercios de la foto) */
+.hero3d .hero-img.scene { background-image: var(--hero-h); background-position: 66% 50%; }   /* (el personaje está a dos tercios de la foto) */
+/* móvil de pie: la portada vertical, con el personaje entero y centrado (la apaisada se recortaba y ampliaba demasiado) */
+@media (orientation: portrait) { .hero3d .hero-img.scene { background-image: var(--hero-v); background-position: 50% 40%; } }
 .hero3d .hero-av { position: absolute; left: 66%; bottom: 6%; height: min(80%, 560px); width: auto; transform: translateX(-50%); transform-origin: 50% 100%; filter: drop-shadow(0 16px 14px rgba(0, 0, 0, .42)); cursor: pointer; -webkit-user-drag: none; user-select: none; -webkit-tap-highlight-color: transparent; }
 .hero3d .hero-av.hop { animation: heroHop .6s cubic-bezier(.3, 1.5, .5, 1); }
 @keyframes heroHop { 35% { transform: translateX(-50%) translateY(-7%) scale(1.02, .98); } }
