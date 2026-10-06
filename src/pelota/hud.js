@@ -36,6 +36,10 @@ const CSS = `
 .pel-side{display:flex;flex-direction:column;align-items:center;gap:8px}
 .pel-cut{font-size:12px;line-height:1.05;padding:0 4px;text-align:center}
 .pel-cut{background:radial-gradient(circle at 50% 30%,rgba(210,60,60,.95),rgba(110,16,24,.96));box-shadow:0 0 0 3px rgba(230,70,70,.45),0 5px 0 rgba(40,4,8,.55),0 8px 16px rgba(0,0,0,.3)}
+.pel-hit,.pel-cut{position:relative}
+.pel-hit.charging::after,.pel-cut.charging::after{content:'';position:absolute;inset:-9px;border-radius:50%;background:conic-gradient(#ff7a1a var(--cp),rgba(255,255,255,.18) 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 7px),#000 calc(100% - 6px));mask:radial-gradient(farthest-side,transparent calc(100% - 7px),#000 calc(100% - 6px));pointer-events:none}
+.pel-hit.full::after,.pel-cut.full::after{background:#ff3b1a;animation:pel-full .25s infinite alternate}
+@keyframes pel-full{to{filter:brightness(1.6)}}
 .pel-panel{position:absolute;inset:0;display:grid;place-items:center;background:rgba(14,4,34,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);pointer-events:auto;padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 16px)}
 .pel-card{width:min(520px,100%);max-height:100%;overflow:auto;background:linear-gradient(180deg,#32136f 0%,#1c0b3a 100%);color:#f6f3fc;border:1px solid rgba(190,160,255,.3);border-radius:22px;padding:22px 22px 18px;box-shadow:0 24px 70px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08)}
 .pel-card h2{margin:0 0 4px;font-family:var(--pel-display,'Lilita One',Nunito,sans-serif);font-weight:400;font-size:32px;line-height:1.1;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.3)}
@@ -111,6 +115,14 @@ export class PelotaHud {
   quality(text) { const q = this.$('.pel-q'); q.textContent = text; q.classList.toggle('on', !!text); this.qT = 0.8; }
   tip(text) { const t = this.$('.pel-tip'); if (t.textContent !== (text || '')) t.textContent = text || ''; t.classList.toggle('on', !!text); }
   ready(on) { this.$('.pel-hit').classList.toggle('ready', !!on); }
+  // anillo de carga alrededor del botón que se mantiene (golpe o cortada)
+  charge(p, kind) {
+    for (const [k, sel] of [['hit', '.pel-hit'], ['cut', '.pel-cut']]) {
+      const b = this.$(sel); if (!b) continue;
+      const v = kind === k ? p : 0; if (b._cp === v) continue; b._cp = v;
+      b.style.setProperty('--cp', (v * 100).toFixed(0) + '%'); b.classList.toggle('charging', v > 0); b.classList.toggle('full', v >= 1);
+    }
+  }
   tick(dt) {
     if (this.callT > 0 && (this.callT -= dt) <= 0) { this.$('.pel-call').classList.remove('on'); this.root.classList.remove('calling'); }
     if (this.qT > 0 && (this.qT -= dt) <= 0) this.$('.pel-q').classList.remove('on');

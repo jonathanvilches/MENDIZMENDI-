@@ -83,15 +83,17 @@ export class PelotaGame {
     return clamp(0.42 * qh + 0.36 * qd + 0.22 * qt + (who === 'you' && !this.autoplay ? this.lvl.assist * 0.08 : 0), 0, 1);
   }
   // Elige el golpe: aim = {x, y} de −1 a 1 (x: izquierda/derecha, y: arriba = largo, abajo = dejada); req: golpe pedido
-  // con su botón ('dejada' o 'cortada'; true es la dejada, como antes)
-  strike(who, q, aim = { x: 0, y: 0 }, req = false) {
+  // con su botón ('dejada' o 'cortada'; true es la dejada, como antes); pow: fuerza de 0 a 1 (cuanto más se mantiene
+  // pulsado el golpe, más fuerte: más rápido y más largo; a tope cuesta más afinar)
+  strike(who, q, aim = { x: 0, y: 0 }, req = false, pow = 0.5) {
     const b = this.ball, p = { ...b.p }, rnd = this.rnd, serve = this.phase === 'servePrep';
-    let shot = 'normal', v;
-    const err = (1 - q), forceDrop = req === true || req === 'dejada';
+    let shot = 'normal', sub = '', v;
+    pow = clamp(pow, 0, 1);
+    const err = (1 - q) + Math.max(0, pow - 0.8) * 0.6, forceDrop = req === true || req === 'dejada';
     if (serve) {
       const tx = clamp(aim.x * 2.5 + gauss(rnd) * err * 1.2, -3.5, 3.5);
-      const landZ = 19.3 + gauss(rnd) * err * 7.5;
-      v = solveShot(p, tx, landZ, 20 + q * 3).v; shot = 'saque';
+      const landZ = 18.3 + pow * 2 + gauss(rnd) * err * 7.5;
+      v = solveShot(p, tx, landZ, 17 + q * 3 + pow * 6).v; shot = 'saque';
     } else if (forceDrop) {
       shot = 'dejada';
       const tx = clamp(p.x * 0.4 + aim.x * 2.2 + gauss(rnd) * err * 1.2, -4.2, 4);
@@ -101,27 +103,34 @@ export class PelotaGame {
       // cortada: fuerte y raso, muy ajustada a la chapa: vuelve baja y rápida, botando pronto y corriendo. Cuanto peor
       // el golpe, más se arriesga: uno flojo puede dar en la chapa
       shot = 'cortada';
-      const speed = 24 + q * 5;
+      const speed = 20 + q * 4 + pow * 9;
       const tx = clamp(aim.x * 2.6 + gauss(rnd) * err * 1.4, -4.2, 4.6);
       const ty = COURT.CHAPA + 0.16 + gauss(rnd) * err * 0.7;   // bien dada roza la chapa por encima; floja, a veces da en ella
       v = aimVelocity(p, tx, ty, Math.max(0.2, p.z / speed));
     } else {
       // el joystick manda: de lado (x) dónde cae a lo ancho y de arriba abajo (y) lo largo; el error solo depende de lo
       // bien que se golpee (antes cada golpe tenía mucho azar y no se notaba hacia dónde se apuntaba)
-      let tx, landZ, speed = 18 + q * 4;
+      let tx, landZ, speed = 14 + q * 4 + pow * 8;
       // dos paredes: joystick hacia la izquierda (con fuerza): pared izquierda, frontis y sale cruzada. No es un golpe
       // fijo: el ángulo del joystick dice dónde pega en la pared (cuanto más a la izquierda, antes la toca y más
       // cruzada sale) y arriba o abajo, lo largo; un golpe flojo se desvía. Si desde donde estás no sale, va a la pared
       if (aim.x < -0.45 && aim.y <= 0.6) {
         const ang = clamp((-aim.x - 0.45) / 0.55, 0, 1);   // 0: poco a la izquierda · 1: del todo
         const fz = clamp(0.7 - ang * 0.45 + gauss(rnd) * err * 0.12, 0.2, 0.8);
-        const r = solveTwoWalls(p, speed + 1, clamp(16.5 + aim.y * 6 + gauss(rnd) * err * 3, 10, 25), [fz, fz - 0.06, fz + 0.06]);
-        if (r) { shot = 'dosparedes'; v = r.v; }
+        const lz = clamp(14.5 + aim.y * 6 + pow * 4 + gauss(rnd) * err * 3, 10, 26);
+        const r = solveTwoWalls(p, speed + 1, lz, [fz, fz - 0.06, fz + 0.06]);
+        if (r) {
+          shot = 'dosparedes'; v = r.v;
+          // cada dos paredes sale distinta según ángulo, largo y fuerza: corta (floja o hacia abajo), cruzada (poco
+          // ángulo: se abre hacia la derecha), larga (del todo a la izquierda y con fuerza) o pegada (fuerte y rasa)
+          sub = pow > 0.8 && aim.y < -0.3 ? 'dpPegada' : lz < 12 || pow < 0.3 ? 'dpCorta' : ang < 0.4 ? 'dpCruzada' : lz > 16 ? 'dpLarga' : '';
+          if (sub === 'dpPegada') v.y = Math.min(v.y, v.y * 0.85);
+        }
       }
       if (!v) {
         // se apunta al sitio del bote (no al punto del frontis: la pelota sigue abriéndose al salir y el golpe al
         // ancho caía siempre fuera): lx a lo ancho y landZ a lo largo
-        const depth = clamp(17.5 + aim.y * 7, 11, 26);   // abajo corto, arriba largo
+        const depth = clamp(15.5 + aim.y * 7 + pow * 4, 10, 27);   // abajo corto, arriba largo; con más fuerza, más lejos
         let lx;
         if (aim.y > 0.6) { shot = 'largo'; lx = aim.x * 3; landZ = Math.max(depth, 25); speed += 2; }
         else if (aim.x < -0.2) { shot = 'pared'; lx = -4.1; landZ = depth; }
@@ -131,7 +140,7 @@ export class PelotaGame {
         landZ += gauss(rnd) * err * 4.5;
         // alcance de un golpe: un pelotari con mucha fuerza, desde el cuadro 4, la manda de vuelta hasta el cuadro 7;
         // desde más atrás llega algo más lejos (le da más alto en el frontis) y un golpe flojo se queda antes
-        landZ = Math.min(landZ, 21.5 + q * 3 + clamp(p.z - COURT.FALTA, -4, 8) * 0.22);
+        landZ = Math.min(landZ, 19 + q * 3 + pow * 5 + clamp(p.z - COURT.FALTA, -4, 8) * 0.22);
         tx = lx * 0.55;
         for (let it = 0; it < 4; it++) {   // se corrige el punto del frontis hasta que el bote cae donde se apunta
           const r = solveShot(p, tx, landZ, speed); v = r.v;
@@ -152,7 +161,7 @@ export class PelotaGame {
     this.phase = 'rally'; this.phaseT = 0; this.pred = null;
     this.stats.hits[who]++;
     const label = q > 0.85 ? 'perfect' : q > 0.6 ? 'good' : q > 0.35 ? 'ok' : 'late';
-    this.emit({ type: 'hit', who, q, label, shot, x: p.x, y: p.y, z: p.z });
+    this.emit({ type: 'hit', who, q, label, shot, sub, pow, x: p.x, y: p.y, z: p.z });
   }
 
   // ---------------------------------------------------------------- árbitro
@@ -251,7 +260,7 @@ export class PelotaGame {
         const bad = this.rnd() < (this.mode === 'rally' && who === 'rival' ? 0.03 : lv.error);
         const q = bad ? 0.1 + this.rnd() * 0.2 : 0.55 + this.rnd() * 0.4;
         const s = this.aiShot(who);
-        return this.strike(who, q, s.aim, s.drop);
+        return this.strike(who, q, s.aim, s.drop, 0.35 + this.rnd() * 0.55);
       }
     } else if (this.phase === 'rally') {
       // se recoloca: centro-fondo, algo al lado contrario del rival
@@ -346,13 +355,13 @@ export class PelotaGame {
       if (this.phase === 'serveWait' && this.server === 'you') { you.vx = you.vz = 0; }
       // golpe
       if ((inp.hit || inp.drop || inp.cut) && you.cool <= 0) {
-        if (this.phase === 'servePrep' || this.phase === 'rally') { you.swing = 0.3; you.swingT = 0; you.dropReq = inp.drop ? 'dejada' : inp.cut ? 'cortada' : false; you.act = 'swing'; you.actT = 0; you.cool = 0.32; }
+        if (this.phase === 'servePrep' || this.phase === 'rally') { you.swing = 0.3; you.swingT = 0; you.dropReq = inp.drop ? 'dejada' : inp.cut ? 'cortada' : false; you.pow = inp.power ?? 0.5; you.act = 'swing'; you.actT = 0; you.cool = 0.32; }
       }
       if (you.swing > 0) {
         you.swingT += dt; you.swing -= dt;
         if (this.hittable('you')) {
           const q = this.quality('you', you.swingT);
-          this.strike('you', q, { x: inp.aimX || 0, y: inp.aimY || 0 }, you.dropReq);
+          this.strike('you', q, { x: inp.aimX || 0, y: inp.aimY || 0 }, you.dropReq, you.pow ?? 0.5);
         } else if (you.swing <= 0) this.emit({ type: 'whiff' });
       }
     }
