@@ -16,6 +16,7 @@ export const EU_TOWNS = {
   'Amaiur / Maya': 'Amaiur', 'Erronkari / Roncal': 'Erronkari', 'Otsagabia / Ochagavía': 'Otsagabia', 'Ochagavía / Otsagabia': 'Otsagabia', 'Javier / Xabier': 'Xabier',
   'Burgi / Burgui': 'Burgi', 'Izaba / Isaba': 'Izaba', 'Zangoza / Sangüesa': 'Zangoza', 'Erriberri / Olite': 'Erriberri', 'Uxue / Ujué': 'Uxue', 'Gares / Puente la Reina': 'Gares',
   'Agoitz / Aoiz': 'Agoitz', 'Alsasua / Altsasu': 'Altsasu', 'Roncesvalles / Orreaga': 'Orreaga',
+  'Mesa de los Tres Reyes': 'Hiru Erregeen Mahaia', 'Peña de Ezkaurre': 'Ezkaurre', 'Sierra de Urbasa': 'Urbasa mendilerroa', 'Sierra de Aralar': 'Aralar mendilerroa',
   // eskualdeak
   'Comarca de Pamplona': 'Iruñerria', 'Pirineo': 'Pirinioa', 'Prepirineo': 'Aurrepirinioa', 'Tierra Estella': 'Lizarraldea', 'Valdizarbe-Novenera': 'Izarbeibar-Novenera',
   'Zona Media': 'Erdialdea', 'Ribera Alta': 'Erribera Garaia', 'Ribera': 'Erribera', 'Baztan-Bidasoa': 'Baztan-Bidasoa', 'Larraun-Leitzaldea': 'Larraun-Leitzaldea', 'Sakana': 'Sakana',
@@ -32,7 +33,8 @@ export const EU_ROLES = {
   'pastor': 'artzaina', 'pastora': 'artzaina', 'herrero': 'errementaria', 'herrera': 'errementaria', 'cestero': 'saskigilea', 'cestera': 'saskigilea',
   'carbonero': 'ikazkina', 'apicultora': 'erlezaina', 'apicultor': 'erlezaina', 'panadera': 'okina', 'panadero': 'okina', 'viticultor': 'mahastizaina',
   'viticultora': 'mahastizaina', 'tonelero': 'upelgilea', 'cantero': 'hargina', 'almadiero': 'almadiazaina', 'hortelana': 'baratzezaina', 'hortelano': 'baratzezaina',
-  'ganadera': 'abeltzaina', 'ganadero': 'abeltzaina', 'agricultora': 'nekazaria', 'agricultor': 'nekazaria', 'dantzari': 'dantzaria', 'txistulari': 'txistularia',
+  'ganadera': 'abeltzaina', 'ganadero': 'abeltzaina', 'agricultora': 'nekazaria', 'agricultor': 'nekazaria', 'dantzari': 'dantzaria', 'txistulari': 'txistularia', 'palomero': 'usazalea', 'Amona Felisa': 'Felisa amona', 'Aizkolari': 'Aizkolaria', 'Cantero': 'Hargina', 'palomera': 'usazalea', 'aizkolari': 'aizkolaria', 'leñador': 'egurgilea',
+  'ovejas': 'ardiak', 'vacas': 'behiak', 'cerdos': 'txerriak', 'cabras': 'ahuntzak', 'caballos': 'zaldiak', 'patatas': 'patatak', 'manzanas': 'sagarrak',
 };
 const T = { ...EU_TOWNS, ...EU_ROLES };
 // deklinabidea (eu.js-en berdinak, hemen ere bai)
@@ -55,6 +57,17 @@ const supply = (s) => s.replace(/\bagua\b/g, 'ura').replace(/\bcomida\b/g, 'jana
 
 export const EU_MAS = { ...MAS, ...T };
 export const EU_RX_MAS = [
+  // misioen esaldi errepikatuak
+  [/^¡Ya conoces (.+)! Ahora la gente del pueblo te pedirá ayuda\.$/, (m, a) => `${e(a)} ezagutzen duzu jada! Orain herriko jendeak laguntza eskatuko dizu.`],
+  [/^Soy ([^,]+), ([^.]+)\. Ven al banco de trabajo y te enseño cómo se hacía, paso a paso\.$/, (m, a, b) => `${a} naiz, ${e(b)}. Etorri lan-mahaira eta nola egiten zen erakutsiko dizut, pausoz pauso.`],
+  [/^Primero: (.+)\. Necesito (\d+)\.$/, (m, a, n) => { const t = e(cap(a)); return t === cap(a) ? null : `Lehenik: ${t.charAt(0).toLowerCase() + t.slice(1)}. ${n} behar ditut.`; }],
+  [/^Taller de (.+): paso (\d+) de (\d+)$/, (m, a, n, k) => `${cap(e(a))}aren tailerra: ${n}. urratsa (${k})`],
+  [/^Encuentra a (.+)$/, (m, a) => `Aurkitu ${e(a)}`],
+  [/^Soy ([^,.]+)\. Ven al banco de trabajo y te enseño cómo se hacía, paso a paso\.$/, (m, a) => `${e(a)} naiz. Etorri lan-mahaira eta nola egiten zen erakutsiko dizut, pausoz pauso.`],
+  [/^Construyendo (.+)…$/, (m, a) => `${e(a)} eraikitzen…`], [/^Mirar: (.+)$/, (m, a) => `Begiratu: ${e(a)}`],
+  [/^¡Has bailado (.+) como en las fiestas! (\d+)\/(\d+) pasos\.$/, (m, a, n, k) => `${e(a)} dantzatu duzu jaietan bezala! ${n}/${k} urrats.`],
+  [/^Sube al? (.+)$/, (m, a) => `Igo ${ala(e(a))}`],
+  [/^La cosecha: (.+)$/, (m, a) => `Uzta: ${e(a)}`], [/^Al redil: (.+)$/, (m, a) => `Artegira: ${e(a)}`],
   // txapelketak (menuko pantaila)
   [/^Frontón de (.+)$/, (m, a) => `${loc(e(a))} frontoia`], [/^Pista de (.+)$/, (m, a) => `${loc(e(a))} pista`],
   [/^Tu club: (.+)$/, (m, a) => `Zure kluba: ${e(a)}`], [/^(\d+) txapelas?$/, '$1 txapela'],
