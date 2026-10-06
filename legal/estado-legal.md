@@ -33,6 +33,7 @@
 
 | Fecha | Función | Respuestas (1-8) | Color | Decisión |
 |---|---|---|---|---|
+| 2026-10-06 | Pelota: joystick directo y reglas de la pared izquierda y del frontis; fútbol: sprint; revisión general (memoria, sonido, salir) | 1-8 No (mecánica y reglas descritas con palabras propias) | VERDE | Seguir. |
 | 2026-10-06 | Portadas de pueblo estilo ilustración con el personaje en acción; fútbol: portero jugable con los pies, pase al hueco mantenido, frenada con el balón | 1-8 No (imágenes propias renderizadas y pintadas por filtro; mecánica propia) | VERDE | Seguir. |
 | 2026-10-06 | Portadas de cada pueblo (foto del propio juego con el personaje y luz de estudio), marcador fino de pelota y control del portero en fútbol | 1-8 No (imágenes renderizadas por el juego con personajes propios; mecánica propia) | VERDE | Seguir. |
 | 2026-10-06 | Pelota: golpe con carga (cuanto más se mantiene, más fuerte) y cuatro tipos de dos paredes | 1-8 No (mecánica y textos propios) | VERDE | Seguir. |
