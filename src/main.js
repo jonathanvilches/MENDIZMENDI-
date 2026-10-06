@@ -23,7 +23,7 @@ import { Hub } from './hub/hub.js';
 import { Game } from './game/game.js';
 import { TownGame } from './game/townGame.js';
 import { profile, saveProfile, townState, checkBadges, salazarState } from './game/profile.js';
-import { levelById } from './data/levels.js';
+import { levelById, LEVELS } from './data/levels.js';
 import { stampImg, townImg } from './assets.js';
 import { heroAction } from './hub/diorama.js';
 import COMARCAS from './data/comarcas.json';
@@ -33,7 +33,7 @@ import { preloadFood } from './world/products3d.js';
 import { avatarPortrait, portrait } from './ui/portraits.js';
 import { releaseOffscreen, setOffscreenHost } from './util/offscreen.js';
 import { loadStore, queueMode } from './util/store.js';
-import { startI18n } from './i18n.js';
+import { startI18n, isEU } from './i18n.js';
 
 const q = new URLSearchParams(location.search);
 const TIPS = [
@@ -97,6 +97,8 @@ async function boot() {
 
   let game = null, def = null, loading = false;
   const hub = new Hub({ sound, onPlay: (d) => play(d) });
+  // campeonatos desde el menú, sin misiones: la pelota en el frontón del pueblo elegido; el fútbol, en su propia escena
+  hub.onSport = (kind, townId) => kind === 'futbol' ? futbolSport() : play(levelById(townId) || LEVELS[0], { sport: 'pelota' });
   hub.onSettings = (S) => { sound.setMusic(S.music); sound.setVolume(S.volume); };
   window.__hub = hub;
   // el fútbol, el encierro, los minijuegos 3D de los oficios y Pamplona van en archivos aparte (se cargan al entrar): se descargan
@@ -117,7 +119,7 @@ async function boot() {
     player.onSplash = (p, v) => sound.splash(p, v);
   };
 
-  async function play(d) {
+  async function play(d, opt = {}) {
     if (loading) return;
     loading = true;
     sound.init();
@@ -125,7 +127,7 @@ async function boot() {
     hub.hide(); queueMode('off');
     const cm = COMARCAS.find(c => c.id === d.comarca);
     const TI = { visit: 'church', process: 'basket', harvest: 'wheat', herd: 'sheep', dance: 'dance', carnival: 'mask', trade: 'anvil', legend: 'legend', race: 'running', observe: 'binoculars', tradition: 'music', quiz: 'quiz', summit: 'peak', pelota: 'pelota', figure: 'person', feria: 'cow', dolmen: 'dolmen', castle: 'castle', mirador: 'binoculars' };
-    ui.showLoading(d.name, TIPS[Math.floor(Math.random() * TIPS.length)], townImg(d), { hero: heroAction(P.avatar, d.id), comarca: cm?.name, stamp: stampImg(d.comarca, d.name.split(' /')[0]), avatar: avatarPortrait(P.avatar), intro: d.intro, missions: (d.missions || []).map(m => m.icon || TI[m.type] || 'star') });
+    ui.showLoading(opt.sport ? `${isEU() ? 'Esku pilota' : 'Pelota a mano'} · ${d.name.split(' /')[0]}` : d.name, TIPS[Math.floor(Math.random() * TIPS.length)], townImg(d), { hero: heroAction(P.avatar, d.id), comarca: cm?.name, stamp: stampImg(d.comarca, d.name.split(' /')[0]), avatar: avatarPortrait(P.avatar), intro: d.intro, missions: (d.missions || []).map(m => m.icon || TI[m.type] || 'star') });
     try {
       const npcP = preloadNpcs(); await preloadFood(); await Promise.all([rt.load(d, P.avatar, (p, m) => ui.progress(p, m)), npcP]);
       const ctx = { scene: rt.scene, camera: rt.camera, player: rt.player, follow: rt.follow, ui, sound, input, sky: rt.sky, fauna: rt.fauna, particles: rt.particles, beacon: rt.beacon, rt, onExit: exit };
@@ -167,6 +169,7 @@ async function boot() {
         rt.start(game);
         ui.hideLoading(); queueMode('light');
         saveProfile();
+        if (opt.sport) { loading = false; game.sportOnly(); return; }
         { const g = game; setTimeout(() => { if (g && g === game) g.ui.toast(`¡Ya estás en ${d.name}! Habla con ${g.missions[0]?.host?.name || 'tu guía'}`, 'exclaim', 4200); }, 700); }
       }
     } catch (e) {
@@ -184,6 +187,51 @@ async function boot() {
     loading = false;
   }
 
+  // Campeonato de fútbol desde el menú, sin entrar en un pueblo: el partido tiene su propia escena y se dibuja con el
+  // mismo renderizador (sin un segundo WebGL). Entre partido y partido, de fondo, una escena vacía bajo los menús
+  async function futbolSport() {
+    if (loading || game) return;
+    loading = true; sound.init(); hub.hide(); queueMode('off');
+    const blank = new THREE.Scene(); blank.background = new THREE.Color('#1e1830');
+    const cam = new THREE.PerspectiveCamera();
+    let alt = null, altCam = null;
+    // fundido propio (el del interfaz del pueblo se crea con su marcador, que aquí no hay)
+    const fade = document.createElement('div'); fade.style.cssText = 'position:fixed;inset:0;z-index:29999;background:#000;opacity:0;pointer-events:none;transition:opacity .45s';
+    document.body.appendChild(fade);
+    const pause = (ms) => new Promise(r => setTimeout(r, ms));
+    const gui = Object.create(ui); gui.fadeOut = async () => { fade.style.opacity = '1'; await pause(480); }; gui.fadeIn = async () => { fade.style.opacity = '0'; await pause(320); };
+    const G = { mode: 'menu', ui: gui, sound, input, rt, player: { frozen: false }, follow: null, altUpdate: null,
+      get altScene() { return alt || blank; }, set altScene(v) { alt = v; }, get altCamera() { return altCam || cam; }, set altCamera(v) { altCam = v; } };
+    const ownScene = !rt.scene; if (ownScene) rt.scene = blank;
+    try {
+      const [{ Futbol }, { CLUBS, teamOfClub }, { season, clubPick, clubPanel }, { addXP }] = await Promise.all([import('./game/futbol.js'), import('./futbol/clubs.js'), import('./futbol/liga.js'), import('./game/profile.js')]);
+      rt.start(G); loading = false; game = null;
+      let club = CLUBS[P.futbolClub] ? P.futbolClub : null;
+      for (;;) {
+        if (!club) { club = await clubPick(); if (!club) break; P.futbolClub = club; saveProfile(); }
+        const S = season(club), C = CLUBS[club];
+        const items = [['liga', S.j < S.rounds.length ? `Liga Navarra · jornada ${S.j + 1}` : 'Liga Navarra · nueva temporada', 'Fútbol 11 contra los clubes de tu grupo'],
+          ['amistoso', 'Amistoso', 'Contra cualquier club de Navarra'], ['sadar', 'El Sadar', 'Fútbol 11 en el estadio de Iruña'],
+          ['sala', 'Fútbol sala', '5 contra 5 en la pista del pueblo'], ['club', 'Cambiar de club', C.name], ['exit', 'Salir', '']];
+        const pick = await clubPanel(club, items, 'Campeonato de fútbol');
+        if (pick === 'exit') break;
+        if (pick === 'club') { club = null; continue; }
+        const fut = new Futbol(G, null, pick === 'sala' ? { campo: 'pista', title: `Pista de ${C.town}`, sub: 'Fútbol sala 5 contra 5', local: teamOfClub(club) } : {});
+        if (pick === 'liga') { const r = await fut.liga(club); if (!r.quit && r.win) addXP(30); }
+        else if (pick === 'amistoso') await fut.friendly(club);
+        else if (pick === 'sadar') await fut.match(undefined, 'normal', 3);
+        else await fut.match('vecinos', 'normal', 2);
+      }
+    } catch (e) { console.error('[fútbol] campeonato', e); }
+    finally {
+      document.querySelectorAll('.lg-root').forEach(r => r.remove()); fade.remove();
+      rt.active = false; rt.game = null; if (ownScene && rt.scene === blank) rt.scene = null;
+      canvas.style.visibility = 'hidden'; loading = false;
+      queueMode('all'); hub.show('home');
+    }
+  }
+  window.__futbolSport = futbolSport;
+
   // aviso cuando no se ha podido entrar en un pueblo: qué ha pasado (para poder contarlo) y botón para reintentar
   function showLoadError(d, e, lowered) {
     document.querySelector('.loaderr')?.remove();
@@ -194,7 +242,7 @@ async function boot() {
     document.body.appendChild(o);
   }
 
-  function exit() {
+  function exit(to) {
     if (!game) return;
     try { game.save?.(); } catch (e) { }
     // el valle de Salazar completo cuenta como sello
@@ -206,7 +254,7 @@ async function boot() {
     if (window.__game === game) window.__game = null;
     if (ui.game === game) ui.game = null;
     game = null;
-    queueMode('all'); hub.show('comarca', def?.comarca);
+    queueMode('all'); if (to === 'home') hub.show('home'); else hub.show('comarca', def?.comarca);
   }
   window.__exit = exit;
   // memoria gráfica perdida (en el iPhone, al volver de otra aplicación o con poca memoria): si el navegador la

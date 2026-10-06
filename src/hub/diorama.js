@@ -328,6 +328,8 @@ export const heroAction = (avatar, seed = '') => {
   let h = 0; for (const ch of String(seed)) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
   return L.slice().sort((a, b) => a.acc.localeCompare(b.acc))[h % L.length];
 };
+/** Una pose concreta de un personaje (las tarjetas de los campeonatos), o null. */
+export const heroPose = (avatar, acc) => HERO_ACT[avatar]?.find(x => x.acc === acc)?.url || null;
 /** El personaje para la portada del menú (o null si ese personaje no lo tiene). */
 export const heroAvatar = (avatar) => HERO_AV[avatar] || null;
 function drawShot(R, comarcaId, w, h) {

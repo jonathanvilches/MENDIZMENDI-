@@ -16,7 +16,8 @@ import { avatarPortrait, portraitImg, avatarPortraitImg } from '../ui/portraits.
 import { stampImg, landImg, townImg } from '../assets.js';
 import { Stage, releaseStage } from './stage.js';
 import { getLang, setLang, langChosen } from '../i18n.js';
-import { dioramaShot, heroAvatar, heroAction, townCover } from './diorama.js';
+import { dioramaShot, heroAvatar, heroAction, townCover, heroPose } from './diorama.js';
+import { CLUBS } from '../futbol/clubs.js';
 import { profile, saveProfile, levelOf, rankOf, townProgress, comarcaProgress, comarcaTowns, navarraProgress, stampCount, BADGES, checkBadges, resetProfile, salazarState } from '../game/profile.js';
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -91,12 +92,14 @@ export class Hub {
       <nav class="hub-nav" id="hNav"></nav><main class="hub-main" id="hMain"></main></div>`);
     document.body.appendChild(this.root);
     // secciones: las principales siempre a la vista; las demás, en «Más» cuando falta sitio (móvil)
-    this.nav = [['home', 'Inicio', 'home'], ['map', 'Mapa', 'map'], ['towns', 'Pueblos', 'church'], ['avatars', 'Personajes', 'person'], ['peaks', 'Cimas', 'peak', 1], ['nature', 'Naturaleza', 'leaf', 1], ['badges', 'Insignias', 'badge', 1], ['passport', 'Pasaporte', 'stamp', 1], ['profile', 'Perfil', 'gear', 1]];
+    this.nav = [['home', 'Inicio', 'home'], ['map', 'Mapa', 'map'], ['towns', 'Pueblos', 'church'], ['sports', 'Campeonatos', 'trophy'], ['avatars', 'Personajes', 'person'], ['peaks', 'Cimas', 'peak', 1], ['nature', 'Naturaleza', 'leaf', 1], ['badges', 'Insignias', 'badge', 1], ['passport', 'Pasaporte', 'stamp', 1], ['profile', 'Perfil', 'gear', 1]];
     this.MORE = { peaks: 'Montañas de Navarra con su perfil', nature: 'Fauna, árboles, plantas y flores', badges: 'Tus logros', passport: 'Los sellos de tus pueblos', profile: 'Nombre, nivel y ajustes' };
     $('#hNav', this.root).innerHTML = this.nav.map(([id, n, ic, sec]) => `<button data-s="${id}" class="${sec ? 'nav2' : ''}">${I(ic, 26)}<span>${n}</span></button>`).join('') + `<button data-s="more" class="more-btn"><svg viewBox="0 0 24 24" width="26" height="26"><circle cx="5" cy="12" r="2.4" fill="#f7f0e6"/><circle cx="12" cy="12" r="2.4" fill="#f7f0e6"/><circle cx="19" cy="12" r="2.4" fill="#f7f0e6"/></svg><span>Más</span></button>`;
     $('#hNav', this.root).addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.s === 'more') return this.more(); this.go(b.dataset.s); });
     this.root.addEventListener('click', e => {
-      const t = e.target.closest('[data-go],[data-town],[data-comarca],[data-play]'); if (!t) return;
+      const t = e.target.closest('[data-go],[data-town],[data-comarca],[data-play],[data-sport],[data-fronton]'); if (!t) return;
+      if (t.dataset.fronton) { this.frontonTown = t.dataset.fronton; this.sound?.ui('click'); return this.go('sports', undefined, true); }
+      if (t.dataset.sport) { this.sound?.ui('open'); return this.onSport?.(t.dataset.sport, t.dataset.sport === 'pelota' ? this.frontonId() : null); }
       if (t.dataset.play) return this.play(t.dataset.play);
       if (t.dataset.town) return this.townSheet(t.dataset.town);
       if (t.dataset.comarca) return this.go('comarca', t.dataset.comarca);
@@ -186,6 +189,7 @@ export class Hub {
         <p>Las páginas del viejo pasaporte se han quedado en blanco. Cada pueblo de Navarra guarda su sello, pero solo lo entrega a quien ayuda a su gente y aprende sus oficios, sus danzas y sus leyendas.</p></div>
       <ol class="hsteps"><li>${I('map', 56)}<b>Viaja</b><span>Elige un pueblo en el mapa</span></li><li>${I('exclaim', 56)}<b>Ayuda</b><span>Habla con su gente y cumple sus misiones</span></li><li>${I('stamp', 56)}<b>Consigue el sello</b><span>Y llena tu pasaporte</span></li></ol>
     </section>
+    <button class="sports-cta" data-go="sports">${I('trophy', 44)}<div><b>Campeonatos</b><small>Pelota a mano y fútbol, sin entrar en un pueblo</small></div>${I('play', 26)}</button>
     <section class="tiles">
       <div class="tile">${I('stamp', 44)}<b>${N.stamps}<small>/${N.towns}</small></b><span>Sellos</span></div>
       <div class="tile">${I('shield', 44)}<b>${N.comarcas}<small>/${N.comarcasTotal}</small></b><span>Comarcas</span></div>
@@ -201,6 +205,37 @@ export class Hub {
     <section class="comarcas rail">${COMARCAS.map(c => this.comarcaCard(c)).join('')}</section>
     <h2 class="sec">${I('mask', 34)} Leyendas y carnaval</h2>
     <section class="folk rail">${FOLKLORE.map(f => `<div class="folkcard">${portraitImg(FOLK_LOOK[f.id] || {}, 'bust', true)}<div><small>${esc(f.origin)}</small><b>${esc(f.name)}</b><p>${esc(f.fact)}</p></div></div>`).join('')}</section>`;
+  }
+  // ---------- Campeonatos ----------
+  // pelota a mano y fútbol sin entrar en las misiones de un pueblo: la pelota se juega en el frontón del pueblo que se
+  // elija; el fútbol, con tu club (Liga Navarra, amistosos, El Sadar y fútbol sala)
+  frontonId() { const p = profile(); return levelById(this.frontonTown)?.id || levelById(p.last)?.id || LEVELS[0].id; }
+  s_sports() {
+    const p = profile(), fl = levelById(this.frontonId()), club = CLUBS[p.futbolClub], tx = p.txapelas || 0;
+    let fb = null; try { fb = JSON.parse(localStorage.getItem('mendimendiz-futbol-v1') || 'null'); } catch (e) { }
+    const avP = heroPose('pelotari', 'golpea'), avF = heroPose('osasuna', 'celebra'), sadar = levelById('pamplona');
+    const towns = LEVELS.filter(l => !l.special).map(l => `<button class="fr-chip ${l.id === fl.id ? 'on' : ''}" data-fronton="${l.id}">${esc(l.name.split(' /')[0])}</button>`).join('');
+    this.after = () => { $('.fr-chip.on', this.root)?.scrollIntoView({ block: 'nearest', inline: 'center' }); };
+    return `
+    <h2 class="sec">${I('trophy', 34)} Campeonatos</h2>
+    <p class="hint sp-hint">Juega sin entrar en las misiones de un pueblo. Lo que ganes cuenta igual.</p>
+    <section class="sports">
+      <div class="sport" style="--bg:url(${townImg(fl)})">
+        ${avP ? `<img class="sp-av" src="${avP}" alt="">` : ''}
+        <div class="sp-txt"><small class="kicker">Frontón de ${esc(fl.name.split(' /')[0])}</small><h3>Pelota a mano</h3>
+          <p>Partido libre o el torneo de mano por la txapela de la comarca: cuartos, semifinal y final.</p>
+          <span class="sp-stat">${I('txapela', 22)} ${tx} ${tx === 1 ? 'txapela' : 'txapelas'}</span></div>
+        <div class="fr-pick"><small>Elige frontón</small><div class="fr-rail">${towns}</div></div>
+        <button class="btn primary big" data-sport="pelota">${I('play', 26)} <span>Jugar a pelota</span></button>
+      </div>
+      <div class="sport" style="--bg:url(${townImg(sadar)})">
+        ${avF ? `<img class="sp-av" src="${avF}" alt="">` : ''}
+        <div class="sp-txt"><small class="kicker">${club ? 'Tu club: ' + esc(club.name) : 'Elige tu club'}</small><h3>Fútbol</h3>
+          <p>Liga Navarra con tu club, amistosos contra cualquier club, fútbol 11 en El Sadar y fútbol sala 5 contra 5.</p>
+          <span class="sp-stat">${I('balon', 22)} ${fb?.played || 0} partidos · ${fb?.won || 0} ganados</span></div>
+        <button class="btn primary big" data-sport="futbol">${I('play', 26)} <span>Jugar a fútbol</span></button>
+      </div>
+    </section>`;
   }
   // fotos 3D de las comarcas: se generan de una en una sin bloquear la pantalla
   lazyLand() {
