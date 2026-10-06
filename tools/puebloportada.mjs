@@ -8,7 +8,10 @@ import { mkdirSync, writeFileSync, existsSync } from 'fs';
 const BASE = (process.env.URL || 'http://127.0.0.1:5174').replace(/\/$/, '');
 const out = '/tmp/puebloportada'; mkdirSync(out, { recursive: true });
 // encuadres a mano donde la iglesia no es lo mejor: pueblo → [tipo de monumento, distancia, altura, giro]
-const OVR = { olite: ['castle', 80, 2.2, 0], javier: ['castle', 75, 2.2, 0], marcilla: ['castle', 95, 2.2, 0], pamplona: ['church', 95, 2.2, 0] };
+// (con el quinto valor a true, ese giro y esa altura tal cual, sin buscar: elegidos a ojo con CAND=1)
+const OVR = { olite: ['castle', 80, 2.2, 0], javier: ['castle', 75, 2.2, 0], pamplona: ['church', 95, 2.2, 0],
+  marcilla: ['castle', 95, 6, 180, true], 'altsasu-alsasua': ['church', 44, 6, 0, true], sanguesa: ['church', 44, 6, 0, true],
+  tudela: ['church', 44, 6, 0, true], zugarramurdi: ['church', 44, 6, 0, true] };
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const list = await (async () => {
   if (process.argv[2]) return process.argv[2].split(',');
@@ -19,7 +22,7 @@ const list = await (async () => {
 console.log(list.length, 'pueblos');
 for (const town of list) {
   if (process.env.SKIP && existsSync(`${out}/${town}.png`)) continue;
-  const [kind, dist, high, turn] = OVR[town] || ['church', 44, 1.9, 0];
+  const [kind, dist, high, turn, fixed] = OVR[town] || ['church', 44, 1.9, 0];
   const p = await b.newPage({ viewport: { width: 1600, height: 900 } });
   p.on('pageerror', e => console.log('ERR', town, e.message));
   await p.addInitScript(() => { try { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true }, settings: { quality: 'high' } })); } catch (e) { } });
@@ -27,7 +30,7 @@ for (const town of list) {
     await p.goto(`${BASE}/?town=${town}&q=high&weather=clear&t=18.1&skipintro=1`, { timeout: 300000 });
     await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 900000 });
     await p.waitForTimeout(3000);
-    const info = await p.evaluate(([kind, dist, high, turn]) => {
+    const info = await p.evaluate(([kind, dist, high, turn, fixed]) => {
       const rt = window.__rt, P = window.__layout.PLACES, H = (x, z) => { try { return window.__hf.groundHeight(x, z) || 0; } catch (e) { return 0; } };
       const lm = kind === 'church' ? (P.church || P.plaza) : ((P.landmarks || []).find(l => l.kind === kind) || P.church || P.plaza);
       rt.scene.traverse(o => { if (o.isSkinnedMesh || /GlbChar|Animal|dog|perro|crowd|particles/i.test(o.name)) o.visible = false; });
@@ -46,11 +49,11 @@ for (const town of list) {
       const own = kind === 'church' ? 17 : 30;   // lo que está tan cerca del monumento es el propio monumento
       const gy = H(lm.x, lm.z), base = Math.atan2(dz, dx) + turn * Math.PI / 180;
       let pick = null, tries = 0;
-      outer: for (const dd of [dist, dist * 0.8, dist * 1.25, dist * 0.65])
-        for (const tr of [0, 25, -25, 50, -50, 80, -80, 120, -120, 180]) {
+      outer: for (const hh of [high, high + 4]) for (const dd of [dist, dist * 0.8, dist * 1.25, dist * 0.65])
+        for (const tr of fixed ? [0] : [0, 25, -25, 50, -50, 80, -80, 120, -120, 180]) {
           const a = base + tr * Math.PI / 180, sd = dd * 0.24;
-          const cx = lm.x + Math.cos(a) * dd - Math.sin(a) * sd, cz = lm.z + Math.sin(a) * dd + Math.cos(a) * sd, cy = H(cx, cz) + high;
-          let ok = true;
+          const cx = lm.x + Math.cos(a) * dd - Math.sin(a) * sd, cz = lm.z + Math.sin(a) * dd + Math.cos(a) * sd, cy = H(cx, cz) + hh;
+          let ok = !fixed || true; if (fixed) { pick = { a, cx, cy, cz, dd, tr }; break outer; }
           for (const hy of [1.5, 5]) {
             const o = new T0.Vector3(cx, cy, cz), to = new T0.Vector3(lm.x, gy + hy, lm.z), dir = to.clone().sub(o), L = dir.length(); dir.normalize();
             rc.set(o, dir); rc.far = Math.max(1, L - own); tries++;
@@ -60,9 +63,9 @@ for (const town of list) {
           // y que no haya nada grande pegado a la cámara en todo el encuadre (una pared a un lado lo estropea)
           if (ok) {
             const lx = lm.x + Math.sin(a) * dd * 0.33, lz = lm.z - Math.cos(a) * dd * 0.33, yaw = Math.atan2(lz - cz, lx - cx);
-            for (const off of [-26, -16, -8, 0, 8]) {
+            for (const off of [-38, -28, -18, -8, 0, 10, 22, 34]) {
               const y = yaw + off * Math.PI / 180;
-              rc.set(new T0.Vector3(cx, cy, cz), new T0.Vector3(Math.cos(y), -0.04, Math.sin(y)).normalize()); rc.far = 13; tries++;
+              rc.set(new T0.Vector3(cx, cy, cz), new T0.Vector3(Math.cos(y), -0.04, Math.sin(y)).normalize()); rc.far = 16; tries++;
               if (cast(near).length) { ok = false; (window.__blk ||= []).push('cerca'); break; }
             }
           }
@@ -81,7 +84,22 @@ for (const town of list) {
       rt.scene.add(key, key.target, fill, fill.target);
       window.__stop = true;
       return { blk: (window.__blk || []).slice(0, 8), tr: pick.tr, dd: Math.round(pick.dd), tries, lm: [Math.round(lm.x), Math.round(lm.z)], cam: [Math.round(cx), Math.round(cy), Math.round(cz)] };
-    }, [kind, dist, high, turn]);
+    }, [kind, dist, high, turn, fixed]);
+    if (process.env.CAND) {
+      for (const tr of [0, 40, -40, 80, -80, 130, -130, 180]) for (const hh of [2.2, 6]) {
+        const u = await p.evaluate(([kind, dist, tr, hh]) => {
+          const rt = window.__rt, P = window.__layout.PLACES, H = (x, z) => { try { return window.__hf.groundHeight(x, z) || 0; } catch (e) { return 0; } };
+          const lm = kind === 'church' ? (P.church || P.plaza) : ((P.landmarks || []).find(l => l.kind === kind) || P.church || P.plaza);
+          let dx = P.plaza.x - lm.x, dz = P.plaza.z - lm.z; if (Math.hypot(dx, dz) < 5) { dx = 0; dz = 1; }
+          const a = Math.atan2(dz, dx) + tr * Math.PI / 180, sd = dist * 0.24, gy = H(lm.x, lm.z);
+          const cx = lm.x + Math.cos(a) * dist - Math.sin(a) * sd, cz = lm.z + Math.sin(a) * dist + Math.cos(a) * sd, cy = H(cx, cz) + hh, c = rt.camera;
+          c.position.set(cx, cy, cz); c.lookAt(lm.x + Math.sin(a) * dist * 0.33, Math.max(gy, cy - 2) + 6.5, lm.z - Math.cos(a) * dist * 0.33); c.updateMatrixWorld();
+          rt.renderer.setSize(800, 450, false); rt.camera.aspect = 16 / 9; rt.camera.updateProjectionMatrix(); rt.renderer.render(rt.scene, c); return rt.renderer.domElement.toDataURL('image/jpeg', 0.8);
+        }, [kind, dist, tr, hh]);
+        writeFileSync(`${out}/cand-${town}_${tr}_${hh}.jpg`, Buffer.from(u.split(',')[1], 'base64'));
+      }
+      console.log('· candidatos', town); await p.close(); continue;
+    }
     await p.waitForTimeout(2500);
     const url = await p.evaluate(() => { const rt = window.__rt; rt.renderer.setSize(1600, 900, false); rt.camera.aspect = 16 / 9; rt.camera.updateProjectionMatrix(); rt.renderer.render(rt.scene, rt.camera); return rt.renderer.domElement.toDataURL('image/png'); });
     writeFileSync(`${out}/${town}.png`, Buffer.from(url.split(',')[1], 'base64'));
