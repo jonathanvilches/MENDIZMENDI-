@@ -109,10 +109,13 @@ export class PelotaGame {
       // el joystick manda: de lado (x) dónde cae a lo ancho y de arriba abajo (y) lo largo; el error solo depende de lo
       // bien que se golpee (antes cada golpe tenía mucho azar y no se notaba hacia dónde se apuntaba)
       let tx, landZ, speed = 18 + q * 4;
-      // dos paredes: joystick hacia la izquierda (con fuerza): pared izquierda, frontis y sale cruzada; lo largo, con
-      // el joystick arriba o abajo. Si desde donde estás no sale, va a la pared
-      if (aim.x < -0.55 && aim.y <= 0.6) {
-        const r = solveTwoWalls(p, speed + 1, clamp(16.5 + aim.y * 5 + gauss(rnd) * err * 3, 11, 24));
+      // dos paredes: joystick hacia la izquierda (con fuerza): pared izquierda, frontis y sale cruzada. No es un golpe
+      // fijo: el ángulo del joystick dice dónde pega en la pared (cuanto más a la izquierda, antes la toca y más
+      // cruzada sale) y arriba o abajo, lo largo; un golpe flojo se desvía. Si desde donde estás no sale, va a la pared
+      if (aim.x < -0.45 && aim.y <= 0.6) {
+        const ang = clamp((-aim.x - 0.45) / 0.55, 0, 1);   // 0: poco a la izquierda · 1: del todo
+        const fz = clamp(0.7 - ang * 0.45 + gauss(rnd) * err * 0.12, 0.2, 0.8);
+        const r = solveTwoWalls(p, speed + 1, clamp(16.5 + aim.y * 6 + gauss(rnd) * err * 3, 10, 25), [fz, fz - 0.06, fz + 0.06]);
         if (r) { shot = 'dosparedes'; v = r.v; }
       }
       if (!v) {
@@ -121,7 +124,7 @@ export class PelotaGame {
         const depth = clamp(17.5 + aim.y * 7, 11, 26);   // abajo corto, arriba largo
         let lx;
         if (aim.y > 0.6) { shot = 'largo'; lx = aim.x * 3; landZ = Math.max(depth, 25); speed += 2; }
-        else if (aim.x < -0.25) { shot = 'pared'; lx = -4.1; landZ = depth; }
+        else if (aim.x < -0.2) { shot = 'pared'; lx = -4.1; landZ = depth; }
         else if (aim.x > 0.5) { shot = 'ancho'; lx = 3.2 + (aim.x - 0.5) * 2; landZ = depth - 1.5; }   // pegado a la raya, dentro
         else { lx = aim.x * 3.2; landZ = depth; }
         lx = clamp(lx + gauss(rnd) * err * 2.4, -4.6, 5.6);   // un golpe malo al ancho puede irse fuera
