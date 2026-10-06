@@ -24,6 +24,9 @@ export const PHYS = {
   FRONT_F: 0.9,
   FRONT_FX: 0.62,    // lo que conserva de lado al dar en el frontis (rozamiento: la pelota no sale cruzada)
   WALL_E: 0.74,      // rebote en la pared izquierda
+  CUT_E: 0.62,       // cortada: sale del frontis con más fuerza que un golpe normal…
+  CUT_FLOOR_E: 0.18, // …bota más bajo…
+  CUT_FLOOR_F: 0.8,  // …y corre más al botar
   DRAG: 0.065,
 };
 
@@ -56,10 +59,10 @@ export const TEXT = {
       'El saque debe botar entre la raya del 4 (falta) y la del 7 (pasa).',
     ],
     level: 'Nivel',
-    ctrlTouch: 'Joystick para moverte · GOLPE cuando la pelota brille · al golpear, empuja el joystick para apuntar: arriba largo, abajo dejada, a la derecha al ancho, un poco a la izquierda a la pared y del todo a la izquierda dos paredes.',
-    ctrlKeys: 'WASD o flechas para moverte · Espacio: golpe · Mayúsculas: dejada · al golpear, la dirección apunta: arriba largo, derecha al ancho, izquierda a la pared y dos paredes.',
+    ctrlTouch: 'Joystick para moverte · GOLPE cuando la pelota brille · o elige el golpe con su botón: CORTADA (rasa, pegada a la chapa), DOS PAREDES o DEJADA · al golpear, el joystick apunta: arriba largo, a la derecha al ancho, a la izquierda a la pared.',
+    ctrlKeys: 'WASD o flechas para moverte · Espacio: golpe · L: cortada · I: dos paredes · Mayúsculas: dejada · al golpear, la dirección apunta: arriba largo, derecha al ancho, izquierda a la pared.',
     play: '¡A jugar!', later: 'Ahora no', again: 'Otra partida', cont: 'Volver al pueblo', exit: 'Salir', sure: '¿Seguro que quieres dejar el partido?', yes: 'Sí, salir', no: 'Seguir jugando',
-    hit: 'GOLPE', drop: 'DEJADA',
+    hit: 'GOLPE', drop: 'DEJADA', cut: 'CORTADA', two: 'DOS PAREDES',
     tipServe: 'Te toca sacar: pulsa GOLPE para botar la pelota y otra vez cuando suba.',
     tipServe2: '¡Ahora! Golpea cuando la pelota brille.',
     tipMove: 'Ve al círculo verde: ahí llegará la pelota.',
@@ -78,7 +81,7 @@ export const TEXT = {
       tanto: ['¡Tanto!', ''],
     },
     quality: { perfect: '¡Perfecto!', good: '¡Bien!', ok: 'Justo', late: 'Tarde', whiff: '¡Al aire!' },
-    shots: { dejada: 'Dejada', pared: 'A la pared', dosparedes: 'Dos paredes', ancho: 'Al ancho', largo: 'Largo', normal: '' },
+    shots: { dejada: 'Dejada', cortada: 'Cortada', pared: 'A la pared', dosparedes: 'Dos paredes', ancho: 'Al ancho', largo: 'Largo', normal: '' },
     pointYou: 'Tanto para ti', pointRival: (n) => `Tanto para ${n}`,
     serveYou: 'Sacas tú', serveRival: (n) => `Saca ${n}`,
     streak: (n, g) => `${n} de ${g} seguidas`,
@@ -93,6 +96,7 @@ export const TEXT = {
       'Casi todos los pueblos de Navarra tienen frontón, muchas veces en la plaza, junto a la iglesia o el ayuntamiento.',
       'La dejada es un golpe suave que muere cerca del frontis; sirve para sorprender al rival cuando está al fondo.',
       'El golpe a dos paredes va primero a la pared izquierda, luego al frontis y sale cruzado hacia la cancha: muy difícil de devolver.',
+      'La cortada es un golpe fuerte y raso que da en el frontis muy cerca de la chapa: vuelve bajo y rápido, pero si fallas da en la chapa.',
     ],
   },
   eu: {
@@ -105,10 +109,10 @@ export const TEXT = {
       'Sakeak 4ko marraren (falta) eta 7koaren (pasa) artean egin behar du bote.',
     ],
     level: 'Maila',
-    ctrlTouch: 'Joysticka mugitzeko · JO pilotak distira egitean · jotzean, bultzatu joysticka zuzentzeko: gora luzea, behera dejada, eskuinera zabalera, pixka bat ezkerrera paretara eta erabat ezkerrera bi pareta.',
-    ctrlKeys: 'WASD edo geziak mugitzeko · Zuriunea: jo · Maiuskula: dejada · jotzean, norabideak zuzentzen du: gora luzea, eskuinera zabalera, ezkerrera paretara eta bi pareta.',
+    ctrlTouch: 'Joysticka mugitzeko · JO pilotak distira egitean · edo aukeratu kolpea bere botoiarekin: CORTADA (txapatik oso gertu), BI PARETA edo DEJADA · jotzean, joystickak zuzentzen du: gora luzea, eskuinera zabalera, ezkerrera paretara.',
+    ctrlKeys: 'WASD edo geziak mugitzeko · Zuriunea: jo · L: cortada · I: bi pareta · Maiuskula: dejada · jotzean, norabideak zuzentzen du: gora luzea, eskuinera zabalera, ezkerrera paretara.',
     play: 'Jolastera!', later: 'Orain ez', again: 'Beste partida bat', cont: 'Herrira itzuli', exit: 'Irten', sure: 'Ziur partida utzi nahi duzula?', yes: 'Bai, irten', no: 'Jolasten jarraitu',
-    hit: 'JO', drop: 'DEJADA',
+    hit: 'JO', drop: 'DEJADA', cut: 'CORTADA', two: 'BI PARETA',
     tipServe: 'Zuri dagokizu sakea: sakatu JO pilotari bote eragiteko, eta berriz igotzean.',
     tipServe2: 'Orain! Jo pilotak distira egiten duenean.',
     tipMove: 'Joan zirkulu berdera: hor iritsiko da pilota.',
@@ -127,7 +131,7 @@ export const TEXT = {
       tanto: ['Tantoa!', ''],
     },
     quality: { perfect: 'Primeran!', good: 'Ondo!', ok: 'Justu', late: 'Berandu', whiff: 'Airera!' },
-    shots: { dejada: 'Dejada', pared: 'Paretara', dosparedes: 'Bi pareta', ancho: 'Zabalera', largo: 'Luzea', normal: '' },
+    shots: { dejada: 'Dejada', cortada: 'Cortada', pared: 'Paretara', dosparedes: 'Bi pareta', ancho: 'Zabalera', largo: 'Luzea', normal: '' },
     pointYou: 'Tantoa zuretzat', pointRival: (n) => `Tantoa ${n}rentzat`,
     serveYou: 'Zuk ateratzen duzu', serveRival: (n) => `${n}k ateratzen du`,
     streak: (n, g) => `${n}/${g} jarraian`,
@@ -142,6 +146,7 @@ export const TEXT = {
       'Nafarroako herri ia guztiek dute frontoia, askotan plazan, elizaren edo udaletxearen ondoan.',
       'Dejada kolpe leuna da, frontisetik gertu hiltzen dena; aurkaria atzean dagoenean harritzeko balio du.',
       'Bi paretako kolpea lehenik ezkerreko paretara doa, gero frontisera eta zeharka irteten da kantxara: oso zaila da itzultzea.',
+      'Cortada kolpe indartsu eta baxua da, frontisean txapatik oso gertu jotzen duena: baxu eta azkar itzultzen da, baina huts egiten baduzu txapan jotzen du.',
     ],
   },
 };

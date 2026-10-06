@@ -42,7 +42,7 @@ export class PelotaGame {
     s.x = this.server === 'you' ? 0.8 : -0.8; s.z = SERVE_Z;
     r.x = this.server === 'you' ? -1.2 : 1.2; r.z = RECV_Z;
     for (const p of [s, r]) { p.vx = p.vz = 0; p.swing = 0; p.act = 'idle'; }
-    this.ball.set(vec(s.x + 0.35, 1.05, s.z - 0.35), vec());
+    this.ball.set(vec(s.x + 0.35, 1.05, s.z - 0.35), vec()); this.ball.spin = 0;
     this.rally = null; this.serveTries = 0;
   }
   start() { if (this.phase === 'intro') this.toServe(); }
@@ -53,7 +53,7 @@ export class PelotaGame {
   dropForServe() {
     const s = this.players[this.server];
     this.phase = 'servePrep'; this.phaseT = 0;
-    this.ball.set(vec(s.x + 0.35, 1.05, s.z - 0.4), vec(0, 0.6, 0));
+    this.ball.set(vec(s.x + 0.35, 1.05, s.z - 0.4), vec(0, 0.6, 0)); this.ball.spin = 0;
     this.prepBounces = 0;
     s.act = 'bounce'; s.actT = 0;
     this.emit({ type: 'drop', who: this.server });
@@ -82,11 +82,12 @@ export class PelotaGame {
     const qt = 1 - clamp(Math.abs(swingElapsed - 0.06) / 0.34, 0, 1);
     return clamp(0.42 * qh + 0.36 * qd + 0.22 * qt + (who === 'you' && !this.autoplay ? this.lvl.assist * 0.08 : 0), 0, 1);
   }
-  // Elige el golpe: aim = {x, y} de −1 a 1 (x: izquierda/derecha, y: arriba = largo, abajo = dejada)
-  strike(who, q, aim = { x: 0, y: 0 }, forceDrop = false) {
+  // Elige el golpe: aim = {x, y} de −1 a 1 (x: izquierda/derecha, y: arriba = largo, abajo = dejada); req: golpe pedido
+  // con su botón ('dejada', 'cortada' o 'dosparedes'; true es la dejada, como antes)
+  strike(who, q, aim = { x: 0, y: 0 }, req = false) {
     const b = this.ball, p = { ...b.p }, rnd = this.rnd, serve = this.phase === 'servePrep';
     let shot = 'normal', v;
-    const err = (1 - q);
+    const err = (1 - q), forceDrop = req === true || req === 'dejada';
     if (serve) {
       const tx = clamp(aim.x * 2.5 + gauss(rnd) * err * 1.2, -3.5, 3.5);
       const landZ = 19.3 + gauss(rnd) * err * 7.5;
@@ -96,16 +97,25 @@ export class PelotaGame {
       const tx = clamp(p.x * 0.4 + aim.x * 2.2 + gauss(rnd) * err * 1.2, -4.2, 4);
       const ty = COURT.CHAPA + 0.28 + err * 0.9 + gauss(rnd) * err * 0.55;
       v = aimVelocity(p, tx, ty, p.z / (13 + q * 3));
+    } else if (req === 'cortada') {
+      // cortada: fuerte y raso, muy ajustada a la chapa: vuelve baja y rápida, botando pronto y corriendo. Cuanto peor
+      // el golpe, más se arriesga: uno flojo puede dar en la chapa
+      shot = 'cortada';
+      const speed = 24 + q * 5;
+      const tx = clamp(aim.x * 2.6 + gauss(rnd) * err * 1.4, -4.2, 4.6);
+      const ty = COURT.CHAPA + 0.16 + gauss(rnd) * err * 0.7;   // bien dada roza la chapa por encima; floja, a veces da en ella
+      v = aimVelocity(p, tx, ty, Math.max(0.2, p.z / speed));
     } else {
       let tx, landZ, speed = 18 + q * 4;
-      // dos paredes: joystick del todo a la izquierda. Primero la pared izquierda, luego el frontis y sale cruzada
-      // (si desde donde está no sale, se convierte en un golpe a la pared)
-      if (aim.x < -0.5 && aim.y <= 0.55) {
+      // dos paredes (con su botón, o con el joystick del todo a la izquierda): primero la pared izquierda, luego el
+      // frontis y sale cruzada (si desde donde está no sale, se convierte en un golpe a la pared)
+      if (req === 'dosparedes' || (aim.x < -0.5 && aim.y <= 0.55)) {
         const r = solveTwoWalls(p, speed + 1, 15 + rnd() * 6);
         if (r) { shot = 'dosparedes'; v = r.v; }
       }
       if (!v) {
-        if (aim.y > 0.55) { shot = 'largo'; tx = aim.x * 2.4; landZ = 26 + gauss(rnd) * err * 3; speed += 2; }
+        if (req === 'dosparedes') { shot = 'pared'; tx = -3.7; landZ = 17 + rnd() * 6; }
+        else if (aim.y > 0.55) { shot = 'largo'; tx = aim.x * 2.4; landZ = 26 + gauss(rnd) * err * 3; speed += 2; }
         else if (aim.x < -0.25) { shot = 'pared'; tx = -3.7; landZ = 17 + rnd() * 6; }
         else if (aim.x > 0.5) { shot = 'ancho'; tx = 3.9; landZ = 15 + rnd() * 6; }
         else { tx = aim.x * 2 + gauss(rnd) * 1.1; landZ = 16 + rnd() * 9; }
@@ -122,7 +132,7 @@ export class PelotaGame {
       const T = p.z / 18;
       v = rnd() < 0.6 ? aimVelocity(p, p.x * 0.5, COURT.CHAPA * (0.3 + rnd() * 0.5), T) : aimVelocity(p, p.x + gauss(rnd) * 3, COURT.FRONT_TOP + 0.6 + rnd(), T);
     }
-    b.set(p, v);
+    b.set(p, v); b.spin = shot === 'cortada' ? 1 : 0;
     const pl = this.players[who]; pl.act = 'hit'; pl.actT = 0; pl.swing = 0; pl.cool = 0.3;
     this.rally = { striker: who, turn: this.other(who), front: false, bounces: 0, serve, hits: (this.rally?.hits || 0) + 1 };
     this.phase = 'rally'; this.phaseT = 0; this.pred = null;
@@ -210,6 +220,7 @@ export class PelotaGame {
     if (this.mode === 'rally' && who === 'rival') return { aim: { x: (op.x - me.x) * 0.15, y: 0 }, drop: false };  // en el peloteo, pelotas fáciles
     if (rnd() < smart) {
       if (op.z > 21 && me.z < 20 && rnd() < 0.55) return { aim: { x: 0, y: -1 }, drop: true };
+      if (op.z < 16 && rnd() < 0.4) return { aim: { x: op.x > 0 ? -0.6 : 0.6, y: 0 }, drop: 'cortada' };   // rival adelantado: cortada que le pase
       if (op.x > 1) return { aim: { x: me.x > -2 && rnd() < smart ? -1 : -0.4, y: 0 } };   // rival a la derecha: a la pared o a dos paredes
       if (op.x < -1.2) return { aim: { x: 1, y: 0 } };
       if (op.z < 15) return { aim: { x: 0, y: 1 } };
@@ -272,7 +283,7 @@ export class PelotaGame {
     // saque: esperar a que el que saca bote la pelota
     if (this.phase === 'serveWait') {
       const s = this.players[this.server];
-      this.ball.set(vec(s.x + 0.35, 1.05, s.z - 0.35), vec());
+      this.ball.set(vec(s.x + 0.35, 1.05, s.z - 0.35), vec()); this.ball.spin = 0;
       const humanServes = this.server === 'you' && !this.autoplay;
       if (humanServes ? (inp.hit || this.phaseT > 9) : this.phaseT > 1.3) this.dropForServe();
       this.movePlayers(dt, { ...inp, hit: false, drop: false }, true);
@@ -320,8 +331,8 @@ export class PelotaGame {
       you.vx += (vx - you.vx) * a; you.vz += (vz - you.vz) * a;
       if (this.phase === 'serveWait' && this.server === 'you') { you.vx = you.vz = 0; }
       // golpe
-      if ((inp.hit || inp.drop) && you.cool <= 0) {
-        if (this.phase === 'servePrep' || this.phase === 'rally') { you.swing = 0.3; you.swingT = 0; you.dropReq = !!inp.drop; you.act = 'swing'; you.actT = 0; you.cool = 0.32; }
+      if ((inp.hit || inp.drop || inp.cut || inp.two) && you.cool <= 0) {
+        if (this.phase === 'servePrep' || this.phase === 'rally') { you.swing = 0.3; you.swingT = 0; you.dropReq = inp.drop ? 'dejada' : inp.cut ? 'cortada' : inp.two ? 'dosparedes' : false; you.act = 'swing'; you.actT = 0; you.cool = 0.32; }
       }
       if (you.swing > 0) {
         you.swingT += dt; you.swing -= dt;

@@ -33,6 +33,7 @@
 
 | Fecha | Función | Respuestas (1-8) | Color | Decisión |
 |---|---|---|---|---|
+| 2026-10-06 | Pelota: golpes de cortada y dos paredes con su botón | 1-6 No · 7 Sí: «cortada» y «dos paredes» descritos como golpes de la pelota a mano (dato cultural general, con palabras propias) · 8 No | VERDE | Seguir. |
 | 2026-10-06 | Portada del menú estilo portada de videojuego (vista de la comarca de fondo y el personaje en grande con luz de atardecer) | 1-8 No (imágenes propias renderizadas por el juego) | VERDE | Seguir. |
 | 2026-10-06 | Portadas de comarca nuevas (vistas aéreas del propio juego al atardecer con acabado de portada) y recolocación de frontones y casas | 1-8 No (imágenes propias renderizadas por el juego; sin contenido de terceros) | VERDE | Seguir. Fotos anotadas como obra propia. |
 | 2026-10-06 | Quitar los avatares que ya no se usan (seis de KayKit con sus retratos, tres de Blender y siete diseños antiguos de minifigura) | 1-8 No (se quita contenido; no entra nada nuevo) | VERDE | Seguir. Registro de licencias al día. |

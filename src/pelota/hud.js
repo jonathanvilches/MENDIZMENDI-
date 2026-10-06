@@ -33,6 +33,10 @@ const CSS = `
 .pel-hit.ready{animation:pel-pulse .5s infinite alternate}
 @keyframes pel-pulse{from{box-shadow:0 6px 0 rgba(0,0,0,.25),0 0 0 0 rgba(255,220,80,.7)}to{box-shadow:0 6px 0 rgba(0,0,0,.25),0 0 0 14px rgba(255,220,80,0)}}
 .pel-drop{width:70px;height:70px;font-size:13px;color:#fff;text-shadow:0 1px 0 #1f1a26;background:radial-gradient(circle at 50% 30%,rgba(80,40,150,.92),rgba(28,11,58,.95));border:2.5px solid #fff;box-shadow:0 0 0 3px rgba(138,43,226,.45),0 5px 0 rgba(10,4,24,.55),0 8px 16px rgba(0,0,0,.3)}
+.pel-side{display:flex;flex-direction:column;align-items:center;gap:8px}
+.pel-cut,.pel-two{font-size:11px;line-height:1.05;padding:0 4px;text-align:center}
+.pel-cut{background:radial-gradient(circle at 50% 30%,rgba(210,60,60,.95),rgba(110,16,24,.96));box-shadow:0 0 0 3px rgba(230,70,70,.45),0 5px 0 rgba(40,4,8,.55),0 8px 16px rgba(0,0,0,.3)}
+.pel-two{background:radial-gradient(circle at 50% 30%,rgba(30,150,150,.95),rgba(8,60,70,.96));box-shadow:0 0 0 3px rgba(40,190,190,.45),0 5px 0 rgba(2,24,28,.55),0 8px 16px rgba(0,0,0,.3)}
 .pel-panel{position:absolute;inset:0;display:grid;place-items:center;background:rgba(14,4,34,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);pointer-events:auto;padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 16px)}
 .pel-card{width:min(520px,100%);max-height:100%;overflow:auto;background:linear-gradient(180deg,#32136f 0%,#1c0b3a 100%);color:#f6f3fc;border:1px solid rgba(190,160,255,.3);border-radius:22px;padding:22px 22px 18px;box-shadow:0 24px 70px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08)}
 .pel-card h2{margin:0 0 4px;font-family:var(--pel-display,'Lilita One',Nunito,sans-serif);font-weight:400;font-size:32px;line-height:1.1;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.3)}
@@ -53,7 +57,7 @@ const CSS = `
 @media (max-width:560px){.pel-mid{display:none}.pel-side{padding:6px 10px}.pel-side span{max-width:30vw}
   .pel-top{padding:0 58px}.pel-side{padding:6px 8px;gap:5px}.pel-side b{font-size:24px}.pel-side span{font-size:12px;max-width:34vw}.pel-serve{width:8px;height:8px}
   .pel-tip{max-width:calc(100vw - 32px);bottom:auto;top:calc(env(safe-area-inset-top,0px) + 66px)}}
-@media (max-height:520px){.pel-hit{width:86px;height:86px;font-size:17px}.pel-drop{width:60px;height:60px}
+@media (max-height:520px){.pel-side{display:grid;grid-template-columns:repeat(2,auto);gap:7px}.pel-side .pel-drop:not(.pel-cut):not(.pel-two){grid-column:span 2;justify-self:center}.pel-hit{width:86px;height:86px;font-size:17px}.pel-drop{width:60px;height:60px}
   .pel-tip{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);max-width:calc(100vw - 360px)}
   .pel-call{top:calc(env(safe-area-inset-top,0px) + 58px);padding:6px 14px}.pel-side b{font-size:22px}
   .pel-card{width:min(780px,100%);padding:14px 18px 12px}.pel-card h2{font-size:24px}.pel-card .pel-sub{margin-bottom:8px}
@@ -89,7 +93,7 @@ export class PelotaHud {
       <div class="pel-tip"></div>
       <div class="pel-stick"><div class="pel-knob"><i></i></div></div>
       ${touch ? '<div class="pel-stickhint"><svg viewBox="0 0 48 48" width="46" height="46"><path d="M24 6l6 7h-4v8h8v-4l7 7-7 7v-4h-8v8h4l-6 7-6-7h4v-8h-8v4l-7-7 7-7v4h8v-8h-4z" fill="#fff" opacity=".9"/></svg></div>' : ''}
-      <div class="pel-btns"><button class="pel-btn pel-drop" aria-label="${txt.drop}">${txt.drop}</button><button class="pel-btn pel-hit" aria-label="${txt.hit}">${txt.hit}</button></div>`;
+      <div class="pel-btns"><div class="pel-side"><button class="pel-btn pel-drop pel-two" aria-label="${txt.two}">${txt.two}</button><button class="pel-btn pel-drop pel-cut" aria-label="${txt.cut}">${txt.cut}</button><button class="pel-btn pel-drop" aria-label="${txt.drop}">${txt.drop}</button></div><button class="pel-btn pel-hit" aria-label="${txt.hit}">${txt.hit}</button></div>`;
     container.appendChild(r);
     this.$ = (s) => r.querySelector(s);
     this.callT = 0; this.qT = 0;
