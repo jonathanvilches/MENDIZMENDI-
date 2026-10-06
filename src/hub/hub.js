@@ -16,12 +16,9 @@ import { avatarPortrait, portraitImg, avatarPortraitImg } from '../ui/portraits.
 import { stampImg, landImg } from '../assets.js';
 import { Stage, releaseStage } from './stage.js';
 import { getLang, setLang, langChosen } from '../i18n.js';
-import { dioramaShot } from './diorama.js';
+import { dioramaShot, heroShot } from './diorama.js';
 import { profile, saveProfile, levelOf, rankOf, townProgress, comarcaProgress, comarcaTowns, navarraProgress, stampCount, BADGES, checkBadges, resetProfile, salazarState } from '../game/profile.js';
 
-// portadas del menú ya hechas con el personaje dentro de la escena (tools/herobake.mjs): <comarca>-<personaje>
-const HERO = {};
-for (const [p, u] of Object.entries(import.meta.glob('../assets/portadas/heroe/*.webp', { eager: true, query: '?url', import: 'default' }))) HERO[p.split('/').pop().replace('.webp', '')] = u;
 const $ = (s, r = document) => r.querySelector(s);
 const el = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -173,7 +170,7 @@ export class Hub {
     const next = this.suggestions();
     return `
     <section class="hero3d">
-      ${HERO[last.comarca + '-' + p.avatar] ? `<div class="hero-img scene" style="background-image:url(${HERO[last.comarca + '-' + p.avatar]})"></div>`
+      ${heroShot(last.comarca, p.avatar) ? `<div class="hero-img scene" style="background-image:url(${heroShot(last.comarca, p.avatar)})"></div>`
         : `<div class="hero-img" style="background-image:url(${landImg(last.comarca, 1280, 720, true)})">${avatarPortraitImg(p.avatar, 'hero').replace('<img ', '<img class="hero-av" ')}</div>`}
       <div class="h-shade"></div>
       <button class="chapter" data-comarca="${last.comarca}" style="--c:${cm?.color}"><img src="${stampImg(last.comarca)}" alt=""><span><small>Capítulo ${chapter} · ${esc(cm?.name || '')}</small><b>${cpr.stamps}/${cts.length} sellos de la comarca</b><span class="cbar"><i style="width:${cts.length ? cpr.stamps / cts.length * 100 : 0}%"></i></span></span></button>
