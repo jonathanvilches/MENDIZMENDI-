@@ -392,7 +392,7 @@ export class TownGame {
     places.forEach((p, i) => {
       const S = SABIOS[(i + d.id.length) % SABIOS.length], f = !!S.female;
       const sp = this.spot({ x: p.at.x + 3.2, z: p.at.z + 1.5 }, 4);
-      const look = { old: true, female: f, hair: f ? '#e4e0d8' : '#d6d0c6', shirt: f ? '#6d4a6a' : '#efe9dc', vest: f ? undefined : '#2b2630', skirt: f ? '#2b2630' : undefined, pants: '#2b2630', bun: f, txapela: f ? undefined : '#1d1d24', staff: !f };
+      const look = { old: true, female: f, hair: f ? '#e4e0d8' : '#d6d0c6', shirt: f ? '#6d4a6a' : '#efe9dc', vest: f ? undefined : '#2b2630', skirt: f ? '#2b2630' : undefined, pants: '#2b2630', scarf: f ? '#3a2a3a' : '#2b2630', bun: f, txapela: f ? undefined : '#1d1d24', beard: f ? undefined : '#e8e4dc', staff: !f };
       const a = new Actor({ id: 'sabio' + i, name: S.name, x: sp.x, z: sp.z, heading: Math.atan2(p.at.x - sp.x, p.at.z - sp.z), look, wander: 0 }, this.scene);
       a.sabio = p; this.actors.push(a);
     });
