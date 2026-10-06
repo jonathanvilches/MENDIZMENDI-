@@ -1,15 +1,18 @@
 // Sonidos sintetizados (sin archivos): golpe de mano, frontis, chapa metálica, bote y el público.
+const SHARED = { ctx: null };
 export class PelotaAudio {
   constructor(ctx) { this.ctx = ctx || null; this.muted = false; }
   ensure() {
     if (this.muted) return null;
     try {
-      if (!this.ctx) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null; this.ctx = new AC(); }
+      // un solo contexto de sonido para todos los partidos (el iPhone admite pocos y no se liberan solos)
+      if (!this.ctx) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null; this.ctx = SHARED.ctx ||= new AC(); }
       if (this.ctx.state === 'suspended') this.ctx.resume();
+      if (!this.noiseBuf && SHARED.noise && SHARED.ctx === this.ctx) this.noiseBuf = SHARED.noise;
       if (!this.noiseBuf) {
         const n = this.ctx.sampleRate * 1.2, b = this.ctx.createBuffer(1, n, this.ctx.sampleRate), d = b.getChannelData(0);
         for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
-        this.noiseBuf = b;
+        this.noiseBuf = SHARED.noise = b;
       }
     } catch (e) { return null; }
     return this.ctx;
