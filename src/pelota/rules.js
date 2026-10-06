@@ -10,6 +10,7 @@ export const COURT = {
   FRONT_TOP: 9.4,   // raya superior del frontis: por encima es fuera
   CHAPA: 0.9,       // la chapa: la pelota tiene que dar por encima
   LEFT_H: 8.5,      // altura de la pared izquierda
+  LEFT_LINE: 8,     // su raya roja: por encima es mala
   FALTA: 14,        // cuadro 4: el saque tiene que botar más allá…
   PASA: 24.5,       // …y antes del cuadro 7
   BALL_R: 0.1,      // radio visible de la pelota (algo mayor que la real para verla bien)
@@ -55,12 +56,12 @@ export const TEXT = {
     rules: [
       'Golpea con la mano: la pelota tiene que dar en el frontis por encima de la chapa (la raya roja).',
       'Devuélvela de aire o tras un bote. Al segundo bote, tanto para el otro.',
-      'Es fuera si bota más allá de la raya derecha o de la última raya del fondo.',
+      'Es fuera si bota más allá de la raya derecha o de la última raya del fondo, si da en el frontis por encima de su raya o fuera de la raya de la derecha, y si da en la pared izquierda por encima de la raya roja.',
       'El saque debe botar entre la raya del 4 (falta) y la del 7 (pasa).',
     ],
     level: 'Nivel',
-    ctrlTouch: 'Joystick para moverte · mantén GOLPE para cargar y suelta cuando la pelota brille: cuanto más lo mantienes, más fuerte y más lejos (a tope golpea solo al llegar la pelota) · al golpear, el joystick apunta: a la derecha o a la izquierda, a lo ancho; arriba largo y abajo corto; hacia la izquierda, dos paredes (poco: cruzada; del todo y con fuerza: larga; floja o hacia abajo: corta; a tope y hacia abajo: pegada) · CORTADA: rasa, pegada a la chapa · DEJADA: muere junto al frontis.',
-    ctrlKeys: 'WASD o flechas para moverte · Espacio: golpe (mantén para cargar: cuanto más, más fuerte) · L: cortada · Mayúsculas: dejada · al golpear, la dirección apunta: derecha o izquierda a lo ancho, arriba largo, abajo corto y hacia la izquierda dos paredes (poco: muy cruzada; del todo: al centro y más larga).',
+    ctrlTouch: 'Joystick para moverte · mantén GOLPE para cargar y suelta cuando la pelota brille: cuanto más lo mantienes, más fuerte y más lejos (a tope golpea solo al llegar la pelota) · al golpear, el joystick apunta: a la izquierda va a la izquierda (del todo, pegada a la pared) y a la derecha, a la derecha (del todo, al ancho); arriba larga, abajo corta · en diagonal abajo-izquierda, dos paredes · CORTADA: rasa y rápida, medio metro por encima de la chapa · DEJADA: muere junto al frontis.',
+    ctrlKeys: 'WASD o flechas para moverte · Espacio: golpe (mantén para cargar: cuanto más, más fuerte) · L: cortada · Mayúsculas: dejada · al golpear, la dirección apunta: izquierda a la izquierda, derecha a la derecha, arriba larga, abajo corta; abajo-izquierda, dos paredes.',
     play: '¡A jugar!', later: 'Ahora no', again: 'Otra partida', cont: 'Volver al pueblo', exit: 'Salir', sure: '¿Seguro que quieres dejar el partido?', yes: 'Sí, salir', no: 'Seguir jugando',
     hit: 'GOLPE', drop: 'DEJADA', cut: 'CORTADA',
     tipServe: 'Te toca sacar: pulsa GOLPE para botar la pelota y otra vez cuando suba.',
@@ -73,6 +74,8 @@ export const TEXT = {
       chapa: ['¡Chapa!', 'Ha dado en la chapa, por debajo de la raya roja.'],
       corta: ['¡Falta!', 'No ha llegado al frontis.'],
       alta: ['¡Fuera!', 'Ha dado por encima de la raya del frontis.'],
+      pared: ['¡Fuera!', 'Ha dado en la pared izquierda por encima de la raya roja.'],
+      lado: ['¡Fuera!', 'Ha dado en el frontis fuera de la raya de la derecha.'],
       fuera: ['¡Fuera!', 'Ha botado fuera de la cancha.'],
       largo: ['¡Fuera!', 'Ha botado más allá de la última raya.'],
       falta: ['¡Falta!', 'El saque ha botado antes de la raya del 4.'],
@@ -105,12 +108,12 @@ export const TEXT = {
     rules: [
       'Jo eskuarekin: pilotak frontisean jo behar du, txaparen gainetik (marra gorria).',
       'Itzuli airean edo bote baten ondoren. Bigarren botean, tantoa bestearentzat.',
-      'Kanpo da eskuineko marratik edo atzeko azken marratik haratago bote egiten badu.',
+      'Kanpo da eskuineko marratik edo atzeko azken marratik haratago bote egiten badu, frontisean bere marraren gainetik edo eskuineko marratik kanpo jotzen badu, eta ezkerreko paretan marra gorriaren gainetik jotzen badu.',
       'Sakeak 4ko marraren (falta) eta 7koaren (pasa) artean egin behar du bote.',
     ],
     level: 'Maila',
-    ctrlTouch: 'Joysticka mugitzeko · eutsi JO kargatzeko eta askatu pilotak distira egitean: zenbat eta gehiago eutsi, orduan eta indartsuago (gehienera, bakarrik jotzen du pilota iristean) · jotzean, joystickak zuzentzen du: eskuinera edo ezkerrera zabaleran; gora luzea eta behera motza; ezkerrera, bi pareta (pixka bat: oso zeharka; erabat: erdira eta luzeago) · CORTADA: baxua, txapatik oso gertu · DEJADA: frontisaren ondoan hiltzen da.',
-    ctrlKeys: 'WASD edo geziak mugitzeko · Zuriunea: jo (eutsi kargatzeko: zenbat eta gehiago, orduan eta indartsuago) · L: cortada · Maiuskula: dejada · jotzean, norabideak zuzentzen du: eskuinera edo ezkerrera zabaleran, gora luzea, behera motza eta ezkerrera bi pareta (pixka bat: oso zeharka; erabat: erdira eta luzeago).',
+    ctrlTouch: 'Joysticka mugitzeko · eutsi JO kargatzeko eta askatu pilotak distira egitean: zenbat eta gehiago eutsi, orduan eta indartsuago · jotzean, joystickak zuzentzen du: ezkerrera ezkerrera doa (erabat, paretari itsatsita) eta eskuinera eskuinera (erabat, zabalera); gora luzea, behera motza · behera-ezkerrera diagonalean, bi pareta · CORTADA: baxua eta azkarra, txaparen gainetik metro erdira · DEJADA: frontisaren ondoan hiltzen da.',
+    ctrlKeys: 'WASD edo geziak mugitzeko · Zuriunea: jo (eutsi kargatzeko) · L: cortada · Maiuskula: dejada · jotzean, norabideak zuzentzen du: ezkerra ezkerrera, eskuina eskuinera, gora luzea, behera motza; behera-ezkerra, bi pareta.',
     play: 'Jolastera!', later: 'Orain ez', again: 'Beste partida bat', cont: 'Herrira itzuli', exit: 'Irten', sure: 'Ziur partida utzi nahi duzula?', yes: 'Bai, irten', no: 'Jolasten jarraitu',
     hit: 'JO', drop: 'DEJADA', cut: 'CORTADA',
     tipServe: 'Zuri dagokizu sakea: sakatu JO pilotari bote eragiteko, eta berriz igotzean.',
@@ -123,6 +126,8 @@ export const TEXT = {
       chapa: ['Txapa!', 'Txapan jo du, marra gorriaren azpian.'],
       corta: ['Falta!', 'Ez da frontisera iritsi.'],
       alta: ['Kanpo!', 'Frontiseko marraren gainetik jo du.'],
+      pared: ['Kanpo!', 'Ezkerreko paretan marra gorriaren gainetik jo du.'],
+      lado: ['Kanpo!', 'Frontisean eskuineko marratik kanpo jo du.'],
       fuera: ['Kanpo!', 'Kantxatik kanpo egin du bote.'],
       largo: ['Kanpo!', 'Azken marratik haratago egin du bote.'],
       falta: ['Falta!', 'Sakeak 4ko marra baino lehen egin du bote.'],

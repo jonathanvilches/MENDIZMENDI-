@@ -121,7 +121,7 @@ export class PelotaCourt {
       c.fillStyle = th.wall; c.fillRect(0, 0, w, h); grain(c, w, h, 12000, 0.06); grain(c, w, h, 3000, 0.05, false);
       weather(c, w, h, C.LEFT_H, EXT);
       const Y = (y) => h - y / C.LEFT_H * h;
-      c.fillStyle = th.mark; c.fillRect(0, Y(C.LEFT_H - 0.5) - 6, w, 12);
+      c.fillStyle = th.mark; c.fillRect(0, Y(C.LEFT_LINE) - 6, w, 12);   // raya roja: por encima es mala
     });
     // números de los cuadros, como en los frontones de verdad: en la pared izquierda, una raya blanca vertical
     // desde el suelo en cada raya de cuadro y, arriba, el número dentro de un círculo (pintura algo gastada)

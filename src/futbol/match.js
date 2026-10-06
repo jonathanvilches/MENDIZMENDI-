@@ -565,6 +565,9 @@ export class FutbolMatch {
       ({ pos, look, fov } = this.tvCam(false, dt));
       if (this.reto?.cam) ({ pos, look, fov } = this.reto.cam(pos, look, fov));
     }
+    // esprintando, la cámara abre un poco el plano (sensación de velocidad)
+    this.sprintK = (this.sprintK || 0) + (((this.game.me?.sprinting && this.game.phase === 'play') ? 1 : 0) - (this.sprintK || 0)) * Math.min(1, dt * 4);
+    fov *= 1 + this.sprintK * 0.1;
     if (Math.abs(c.fov - fov) > 0.01) { c.fov += (fov - c.fov) * Math.min(1, dt * 2.5); if (snap) c.fov = fov; c.updateProjectionMatrix(); }
     if (!this.camPos || snap) { this.camPos = pos.clone(); this.camLook = look.clone(); }
     const k = 1 - Math.exp(-4 * dt);

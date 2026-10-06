@@ -790,7 +790,7 @@ export class TownGame {
       if (act === 'sim') { playTorneoRound(T); continue; }
       const m = yourMatch(T);
       const r = await this.fronton.play(this, a, { target: m.target, level: m.level, rivalName: `${m.rival.name} (${m.rival.town})`, fixedLevel: true });
-      if (r.quit) continue;
+      if (r.quit) return;   // (salir del partido es salir: de vuelta al pueblo, no al panel del torneo otra vez)
       playTorneoRound(T, r.you, r.cpu);
       if (T.done && T.players[T.champion].you) {
         P.txapelas = (P.txapelas || 0) + 1; addXP(150); saveProfile();

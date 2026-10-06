@@ -7,7 +7,7 @@ export const vec = (x = 0, y = 0, z = 0) => ({ x, y, z });
 
 export class Ball {
   constructor() { this.p = vec(0, 1, 10); this.v = vec(); this.spin = 0; }
-  set(p, v) { this.p = { ...p }; this.v = { ...v }; }
+  set(p, v) { this.p = { ...p }; this.v = { ...v }; this.over = false; }
   clone() { const b = new Ball(); b.set(this.p, this.v); b.spin = this.spin; return b; }
   // avanza dt (tiempo de juego) y devuelve los eventos ocurridos
   step(dt, out = []) {
@@ -23,7 +23,9 @@ export class Ball {
       else { p.z = R; v.z = -v.z * PHYS.FRONT_E; v.x *= PHYS.FRONT_FX; v.y *= PHYS.FRONT_F; }
     }
     // pared izquierda
-    if (p.x < -COURT.W / 2 + R && v.x < 0 && p.z < COURT.L + 2) {
+    // (por encima de la pared no hay rebote: sale fuera, pero se avisa para el árbitro)
+    if (p.x < -COURT.W / 2 + R && v.x < 0 && p.z < COURT.L + 2 && p.y > COURT.LEFT_H) { if (!this.over) { this.over = true; out.push({ type: 'left', x: -COURT.W / 2, y: p.y, z: p.z, over: true }); } }
+    else if (p.x < -COURT.W / 2 + R && v.x < 0 && p.z < COURT.L + 2) {
       out.push({ type: 'left', x: -COURT.W / 2, y: p.y, z: p.z });
       p.x = -COURT.W / 2 + R; v.x = -v.x * PHYS.WALL_E; v.z *= 0.97;
     }
@@ -110,7 +112,7 @@ export function landingOf(p, v) {
 }
 
 // Busca la altura en el frontis (ty) para que el primer bote caiga cerca de landZ
-export function solveShot(p, tx, landZ, speed, tyMin = COURT.CHAPA + 0.25, tyMax = 9) {
+export function solveShot(p, tx, landZ, speed, tyMin = COURT.CHAPA + 0.25, tyMax = 8.6) {
   const T = Math.max(0.25, p.z / speed);
   let lo = tyMin, hi = tyMax, best = null;
   for (let i = 0; i < 14; i++) {

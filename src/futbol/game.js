@@ -222,7 +222,9 @@ export class FutbolGame {
     const sprint = p.wantSprint && p.energy > 0.01 && want > PL.run * 0.8;
     p.sprinting = sprint;
     p.energy = clamp(p.energy + (sprint ? -PL.drain : PL.regain) * h, 0, 1);
-    const top = (sprint ? PL.sprint : PL.run) * (p.team === 1 ? this.lvl.speed : 1) * (this.owner === p ? 0.88 : 1) * (p.recover > 0 ? 0.55 : 1);
+    // el sprint del tuyo se nota: un 15 % más de punta y arrancada más explosiva (se gasta igual)
+    const hs = sprint && this.human(p);
+    const top = (sprint ? PL.sprint * (hs ? 1.15 : 1) : PL.run) * (p.team === 1 ? this.lvl.speed : 1) * (this.owner === p ? 0.88 : 1) * (p.recover > 0 ? 0.55 : 1);
     if (want > top) { wx *= top / want; wz *= top / want; }
     const wv = Math.min(want, top), v0 = hyp(p.vx, p.vz);
     if (v0 > 0.6 && wv > 0.6) {
@@ -239,14 +241,14 @@ export class FutbolGame {
         const a = a0 + clamp(d, -omega * h, omega * h);
         // en el giro se pierde algo de velocidad (más cuanto más cerrado), luego se recupera
         const tv = wv * (1 - Math.min(0.35, Math.abs(d) * 0.22)), dv = tv - v0;
-        const nv = v0 + clamp(dv, -(PL.brake || 26) * h, PL.acc * (this.human(p) ? 1.25 : 1) * h);
+        const nv = v0 + clamp(dv, -(PL.brake || 26) * h, PL.acc * (this.human(p) ? 1.25 : 1) * (hs ? 1.5 : 1) * h);
         p.vx = Math.sin(a) * nv; p.vz = Math.cos(a) * nv;
       }
     } else {
       // arrancar o pararse: acelera a 14 m/s² y frena a la frenada del formato
       const braking = wx * p.vx + wz * p.vz < p.vx * p.vx + p.vz * p.vz - 0.01;
       // (el tuyo, al soltar el joystick, frena en seco y deja el balón parado en el pie)
-      let dvx = wx - p.vx, dvz = wz - p.vz; const dl = hyp(dvx, dvz), mx = (braking ? (PL.brake || 26) * (this.human(p) && want < 0.1 ? 1.6 : 1) : PL.acc) * (this.human(p) ? 1.25 : 1) * h;
+      let dvx = wx - p.vx, dvz = wz - p.vz; const dl = hyp(dvx, dvz), mx = (braking ? (PL.brake || 26) * (this.human(p) && want < 0.1 ? 1.6 : 1) : PL.acc * (hs ? 1.5 : 1)) * (this.human(p) ? 1.25 : 1) * h;
       if (dl > mx) { dvx *= mx / dl; dvz *= mx / dl; }
       p.vx += dvx; p.vz += dvz;
     }
