@@ -55,6 +55,11 @@ const supply = (s) => s.replace(/\bagua\b/g, 'ura').replace(/\bcomida\b/g, 'jana
 
 export const EU_MAS = { ...MAS, ...T };
 export const EU_RX_MAS = [
+  // txapelketak (menuko pantaila)
+  [/^Frontón de (.+)$/, (m, a) => `${loc(e(a))} frontoia`], [/^Pista de (.+)$/, (m, a) => `${loc(e(a))} pista`],
+  [/^Tu club: (.+)$/, (m, a) => `Zure kluba: ${e(a)}`], [/^(\d+) txapelas?$/, '$1 txapela'],
+  [/^(\d+) partidos · (\d+) ganados$/, '$1 partida · $2 irabazita'],
+  [/^(Esku pilota|Pelota a mano) · (.+)$/, (m, a, b) => `Esku pilota · ${e(b)}`],
   // kontagailuak eta « — » zatiak: zati bakoitza bere aldetik (biak itzultzen badira bakarrik)
   [/^(.+?) \((\d+)\/(\d+)\)$/, (m, a, n, k) => { const t = e(a); return t === a ? null : `${t} (${n}/${k})`; }],
   [/^(.+?) \((\d+)\/(\d+)\) — (.+)$/, (m, a, n, k, b) => { const t = e(a), u = e(b); return t === a || u === b ? null : `${t} (${n}/${k}) — ${u}`; }],
