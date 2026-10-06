@@ -3,6 +3,9 @@
 // cada texto (y aria-label, placeholder y title) por su versión en euskera: frases exactas y
 // plantillas con huecos (nombres de pueblo, números…).
 import { EU_EXACT, EU_RX } from './data/eu.js';
+import { EU_MAS, EU_RX_MAS } from './data/eu-mas.js';
+// la segunda parte de la traducción (menú completo, misiones, flora y fauna): sus frases y, por delante, sus plantillas
+Object.assign(EU_EXACT, EU_MAS); EU_RX.unshift(...EU_RX_MAS);
 
 const KEY = 'mendimendiz-lang';
 export function getLang() { try { return localStorage.getItem(KEY) || 'es'; } catch (e) { return 'es'; } }
@@ -16,14 +19,26 @@ let peek = false;                 // mientras se mira la traducción, el traduct
 const ORIG = new WeakMap();       // nodo de texto → su texto original en castellano
 
 const cache = new Map();
+// un hueco de plantilla: su traducción (exacta o por otra plantilla) o tal cual
+const sub = (x) => x == null ? '' : EU_EXACT[x] ?? (x.length < 300 ? trCore(x) : x);
+// para revisar la traducción (tools/eu-faltan.mjs): con ?eufaltan, apunta los textos que se quedan sin traducir
+const MISS = (() => { try { return /[?&]eufaltan\b/.test(location.search) ? (window.__euMiss = new Set()) : null; } catch (e) { return null; } })();
+function trCore(core) { return tr(core); }
 export function tr(s) {
   if (!isEU() || !s || peek) return s;
   const lead = s.match(/^\s*/)[0], trail = s.match(/\s*$/)[0], core = s.trim();
   if (!core) return s;
   if (cache.has(core)) return lead + cache.get(core) + trail;
   let out = EU_EXACT[core];
-  if (out == null) for (const [rx, rep] of EU_RX) { if (rx.test(core)) { out = core.replace(rx, (...m) => typeof rep === 'function' ? rep(...m) : rep.replace(/\$(\d)/g, (_, i) => EU_EXACT[m[i]] ?? m[i])); break; } }
-  if (out == null) out = core;
+  // plantillas: lo que cae en cada hueco también se traduce (un nombre de misión, un lugar, una persona…); una
+  // plantilla que devuelve null no se aplica y se prueba la siguiente
+  if (out == null) for (const [rx, rep] of EU_RX) {
+    if (!rx.test(core)) continue;
+    let skip = false;
+    const r = core.replace(rx, (...m) => { if (typeof rep === 'function') { const v = rep(...m); if (v == null) { skip = true; return ''; } return v; } return rep.replace(/\$(\d)/g, (_, i) => sub(m[i])); });
+    if (!skip) { out = r; break; }
+  }
+  if (out == null) { out = core; MISS?.add(core); }
   if (cache.size < 5000) cache.set(core, out);
   return lead + out + trail;
 }
