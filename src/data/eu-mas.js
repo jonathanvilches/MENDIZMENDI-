@@ -62,7 +62,8 @@ export const EU_RX_MAS = [
   [/^Soy ([^,]+), ([^.]+)\. Ven al banco de trabajo y te enseño cómo se hacía, paso a paso\.$/, (m, a, b) => `${a} naiz, ${e(b)}. Etorri lan-mahaira eta nola egiten zen erakutsiko dizut, pausoz pauso.`],
   [/^Primero: (.+)\. Necesito (\d+)\.$/, (m, a, n) => { const t = e(cap(a)); return t === cap(a) ? null : `Lehenik: ${t.charAt(0).toLowerCase() + t.slice(1)}. ${n} behar ditut.`; }],
   [/^Taller de (.+): paso (\d+) de (\d+)$/, (m, a, n, k) => `${cap(e(a))}aren tailerra: ${n}. urratsa (${k})`],
-  [/^Encuentra a (.+)$/, (m, a) => `Aurkitu ${e(a)}`], [/^Encuentra (\d+) montes\.$/, 'Aurkitu $1 mendi.'],
+  [/^Encuentra a (.+)$/, (m, a) => `Aurkitu ${e(a)}`], [/^([^–]+) – ([^–]+)$/, (m, a, b) => { const t = e(a), u = e(b); return t === a && u === b ? null : `${t} – ${u}`; }],
+  [/^(.+) · (\d+) contra (\d+)$/, (m, a, n, k) => `${e(a)} · ${n}en kontra ${k}`], [/^Comarca · (.+)$/, (m, a) => `Eskualdea · ${e(a)}`], [/^Encuentra (\d+) montes\.$/, 'Aurkitu $1 mendi.'],
   [/^Recoge ([^.!?]+)$/, (m, a) => { const t = e(a); return t === a ? null : `Bildu ${t}`; }],
   // lanbidea aurretik: «Apicultora Maite» → «Maite erlezaina»
   [/^(Apicultora|Apicultor|Carnicera|Carnicero|Hospitalera|Hospitalero|Panadera|Panadero|Pastora|Pastor|Quesera|Quesero|Molinera|Molinero) (\S+)$/, (m, r, a) => `${a} ${({ Apicultora: 'erlezaina', Apicultor: 'erlezaina', Carnicera: 'harakina', Carnicero: 'harakina', Hospitalera: 'ospitalaria', Hospitalero: 'ospitalaria', Panadera: 'okina', Panadero: 'okina', Pastora: 'artzaina', Pastor: 'artzaina', Quesera: 'gaztagilea', Quesero: 'gaztagilea', Molinera: 'errotaria', Molinero: 'errotaria' })[r]}`],

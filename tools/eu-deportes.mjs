@@ -22,7 +22,7 @@ const sl = (p, ms) => p.waitForTimeout(ms);
 { const p = await b.newPage({ viewport: { width: 1100, height: 620 } }); await p.addInitScript(init); p.on('pageerror', e => errs.push(e.message));
   await p.goto(`${URL}/?screen=sports&eufaltan`, { timeout: 300000 }); await p.waitForFunction(() => window.__hub, null, { timeout: 300000 });
   await sl(p, 800); await grab(p);
-  await p.evaluate(() => window.__futbolSport());
+  await p.evaluate(() => { window.__futbolSport(); });
   await p.waitForFunction(() => document.querySelector('.lg-root .lg-rv'), null, { timeout: 120000 }); await grab(p);
   await p.evaluate(() => document.querySelector('.lg-root .lg-rv').click());
   await p.waitForFunction(() => document.querySelector('.lg-root [data-a="liga"]'), null, { timeout: 60000 }); await grab(p);
