@@ -34,8 +34,8 @@ const out = await p.evaluate(async ([who, SIZES]) => {
 }, [who, SIZES]);
 for (const [k, v] of Object.entries(out)) {
   const f = `src/assets/meshy/portraits/${who}_${k}.png`; writeFileSync(f, Buffer.from(v.split(',')[1], 'base64'));
-  // el de la portada, en WebP con transparencia (pesa la quinta parte)
-  if (k === 'hero') execFileSync('python3', ['-c', `from PIL import Image; import os; Image.open('${f}').save('${f.replace('.png', '.webp')}', 'WEBP', quality=90, method=6); os.remove('${f}')`]);
+  // en WebP con transparencia (pesa la sexta parte que el PNG)
+  execFileSync('python3', ['-c', `from PIL import Image; import os; Image.open('${f}').save('${f.replace('.png', '.webp')}', 'WEBP', quality=90, alpha_quality=90, method=6); os.remove('${f}')`]);
   console.log(who + '_' + k);
 }
 await b.close();

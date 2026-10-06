@@ -11,7 +11,7 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 const KK = {};
 for (const [p, u] of Object.entries(import.meta.glob('../assets/kaykit/*.glb', { eager: true, query: '?url', import: 'default' }))) KK[p.split('/').pop().replace('.glb', '')] = u;
 const KK_PICS = {};
-for (const [p, u] of Object.entries(import.meta.glob('../assets/kaykit/portraits/*.png', { eager: true, query: '?url', import: 'default' }))) KK_PICS[p.split('/').pop().replace('.png', '')] = u;
+for (const [p, u] of Object.entries(import.meta.glob('../assets/kaykit/portraits/*.webp', { eager: true, query: '?url', import: 'default' }))) KK_PICS[p.split('/').pop().replace('.webp', '')] = u;
 // sus clips con los nombres que usa el juego
 const KK_CLIPS = { Idle: 'Idle_A', Walk: 'Walking_A', Run: 'Running_A', Jump_Start: 'Jump_Start', Jump_Loop: 'Jump_Idle', Land: 'Jump_Land', Wave: 'Interact', Celebrate: 'Jump_Full_Short', Talk: 'Idle_B', Hit: 'Throw', Scared: 'Hit_A', Ready: 'Idle_B', Pick: 'PickUp' };
 
