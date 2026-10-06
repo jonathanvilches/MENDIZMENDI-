@@ -213,7 +213,7 @@ export class FutbolGame {
     if (want > top) { wx *= top / want; wz *= top / want; }
     const wv = Math.min(want, top), v0 = hyp(p.vx, p.vz);
     if (v0 > 0.6 && wv > 0.6) {
-      // con agarre (como en el FIFA): la velocidad gira hacia donde apunta el joystick sin derrapar en una curva abierta
+      // con agarre (como en los juegos de fútbol): la velocidad gira hacia donde apunta el joystick sin derrapar en una curva abierta
       // (más rápido trotando que esprintando, algo menos con el balón); en un cambio brusco de sentido el jugador
       // planta el pie, frena en seco y sale hacia el otro lado
       const a0 = Math.atan2(p.vx, p.vz), d = angDiff(a0, Math.atan2(wx, wz));
@@ -314,7 +314,7 @@ export class FutbolGame {
     // acción pedida justo antes de que llegue el balón: al primer toque
     if (this.buffer && this.owner === p && !p.hands) { const a = this.buffer; this.buffer = null; this.doAction(p, a); }
     // defendiendo, el más cercano al balón pasa a ser el tuyo
-    // cambio automático (como en el FIFA): con el balón suelto, al que antes llega a él; defendiendo, al más cercano al
+    // cambio automático (como en los juegos de fútbol): con el balón suelto, al que antes llega a él; defendiendo, al más cercano al
     // balón (nunca mientras se presiona, a mitad de un robo o de una entrada)
     const loose = !this.owner && this.passTo !== p;
     if ((this.defending() || loose) && this.switchCD <= 0 && !p.robo && !p.slide && !I.contain) {
@@ -443,7 +443,7 @@ export class FutbolGame {
     if (this.restart && (this.phase === 'kickoff' || this.phase === 'setpiece')) { this.restart = null; this.setPhase('play'); }
   }
   isOffside(q) { if (!RU.offside) return false; const s = this.dir[q.team], u = s * q.x; return u > 0 && u > s * this.ball.p.x + 0.1 && u > this.offLine(q.team) + 0.1; }
-  // tus pases rasos van más tensos (como en el FIFA): la defensa tiene menos tiempo para cortarlos
+  // tus pases rasos van más tensos (como en los juegos de fútbol): la defensa tiene menos tiempo para cortarlos
   firm(p) { return this.human(p) ? 1.12 : 1; }
   // pase raso: llega al compañero a unos 5,5–10 m/s en fútbol 11 y a 4–6 m/s en sala (rodadura y aire de por medio)
   groundV(d) {
@@ -589,7 +589,7 @@ export class FutbolGame {
     p.cool = 0.15; this.last = p; this.emit({ t: 'block', p: p.id });
     if (this.shotLive && this.shotLive.team !== p.team) this.emit({ t: 'blocked', p: p.id });
   }
-  // conducción pegada al pie (como en el FIFA): el balón va delante de la bota, en la dirección en la que mira el
+  // conducción pegada al pie (como en los juegos de fútbol): el balón va delante de la bota, en la dirección en la que mira el
   // jugador, y le sigue en los giros, el zigzag y las frenadas. Entre toque y toque se separa un poco y vuelve al pie:
   // andando, unos centímetros; trotando, un palmo; esprintando, toques largos de hasta un metro (y entonces un rival
   // que llega antes puede meter el pie)

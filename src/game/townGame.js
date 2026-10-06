@@ -364,7 +364,7 @@ export class TownGame {
     } catch (e) { console.warn('pista', e); }
     if (sadar) {
       const x = sadar.x - 20, z = sadar.z + 6;
-      this.coach = new Actor({ id: 'coach', name: 'Leire, entrenadora de Osasuna', x, z, heading: Math.PI / 2,
+      this.coach = new Actor({ id: 'coach', name: 'Leire, entrenadora de fútbol', x, z, heading: Math.PI / 2,
         look: { shirt: '#c41f2c', pants: '#1f2d5a', shoes: '#1d1d1f', hair: '#3a2418', female: true, ponytail: true, skin: '#e2b08a' } }, this.scene);
       this.actors.push(this.coach); this.sadar = sadar;
     }
@@ -681,9 +681,9 @@ export class TownGame {
     this.player.frozen = true;
     try {
       const first = !this.futSeen; this.futSeen = true;
-      await this.say(a, first ? ['¡Kaixo! Soy Leire, entrenadora de la cantera de Osasuna. ¿Te atreves a jugar en El Sadar?',
+      await this.say(a, first ? ['¡Kaixo! Soy Leire, entrenadora de la cantera de Iruña. ¿Te atreves a jugar en El Sadar?',
         'Un partido once contra once en el campo de El Sadar, con porteros y árbitro. ¡Al campo!',
-        'Con el balón: PASE y TIRO (mantenlo pulsado para chutar más fuerte). Sin balón: ROBO cuando se le separe del pie, o ENTRADA. ¡Aupa Osasuna!'] : ['¿Otro partido? ¡La grada está llena!']);
+        'Con el balón: PASE y TIRO (mantenlo pulsado para chutar más fuerte). Sin balón: ROBO cuando se le separe del pie, o ENTRADA. ¡Aupa Iruña!'] : ['¿Otro partido? ¡La grada está llena!']);
     } finally { this.player.frozen = false; a.talking = 0; }
     const Futbol = await loadFutbol();
     this.futbol = new Futbol(this, this.sadar);
@@ -707,13 +707,13 @@ export class TownGame {
     this.player.frozen = true;
     try {
       if (st.step === 0 && !st.met) {
-        await this.say(a, [club ? `¡Kaixo! Entreno al ${club.name}${club.adapt ? '' : ', el club de ' + club.town}. Aquí puedes jugar con nosotros como en el FIFA.` : `¡Kaixo! Esta es la pista de ${town}.`,
+        await this.say(a, [club ? `¡Kaixo! Entreno al equipo de ${club.name}. Aquí puedes jugar con nosotros.` : `¡Kaixo! Esta es la pista de ${town}.`,
           this.pista ? 'Tienes la Liga Navarra de fútbol 11 contra los clubes de la zona, amistosos contra cualquier club de Navarra y fútbol sala en esta pista: cinco contra cinco, con porteros y dos árbitros.' : 'Tienes la Liga Navarra de fútbol 11 contra los clubes de la zona y amistosos contra cualquier club de Navarra.',
           ...(this.pista ? [`En la pista, un partido de fútbol sala contra ${rivalName}. Si ganas, te pongo el sello de fútbol sala en el pasaporte.`] : [])].filter(Boolean));
         st.step = this.pista ? 2 : 0; if (!this.pista) st.met = true; saveProfile();
       } else await this.say(a, [club ? `¡Aupa ${club.name}! ¿Qué jugamos hoy?` : '¿Qué jugamos hoy?']);
     } finally { this.player.frozen = false; a.talking = 0; }
-    // menú del club (como el FIFA): liga, fútbol sala, amistoso. En la liga juegas con «tu club» (el del primer pueblo
+    // menú del club (como en los juegos de fútbol): liga, fútbol sala, amistoso. En la liga juegas con «tu club» (el del primer pueblo
     // en el que la empezaste); cada jornada se juega en el campo del de casa, así que se viaja de pueblo en pueblo
     const P = profile(), myClub = P.futbolClub || club?.id, S = myClub ? ligaSeason(myClub) : null;
     if (st.step === 1) st.step = 2;   // (ya no hay entrenamiento previo: directo al partido por el sello)

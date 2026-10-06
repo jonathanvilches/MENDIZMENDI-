@@ -1,4 +1,4 @@
-// Liga Navarra (como el modo carrera del FIFA): juegas con el club de tu pueblo contra los clubes de tu zona (grupo
+// Liga Navarra (como el modo carrera de los juegos de fútbol): juegas con el club de tu pueblo contra los clubes de tu zona (grupo
 // Norte o Sur), todos contra todos a una vuelta (siete jornadas). Tu partido lo juegas tú; los demás de la jornada se
 // simulan según la media de cada club. Clasificación con puntos, goles y diferencia; al final, el campeón.
 // La temporada se guarda en localStorage ('mendimendiz-liga-v1'), una por club.
@@ -84,7 +84,7 @@ export function table(S) {
 /** Dificultad de la IA rival según la diferencia de media. */
 export function levelFor(mine, rival) { const d = CLUBS[rival].ovr - CLUBS[mine].ovr; return d > 4 ? 'dificil' : d < -4 ? 'facil' : 'normal'; }
 
-// ---------------------------------------------------------------- pantallas (estilo FIFA)
+// ---------------------------------------------------------------- pantallas (como en los juegos de fútbol)
 const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // la equipación en pequeño: camiseta con su dibujo, pantalón y medias
 export function kitSvg(id, size = 44) {
@@ -163,7 +163,7 @@ export function ligaPanel(S, here = undefined) {
       const ch = CLUBS[S.champion];
       mid = `<div class="lg-champ"><small>CAMPEÓN DE LA LIGA NAVARRA</small><br><b>${esc(ch.name)}</b><br>${S.champion === S.club ? '¡Sois campeones! Aupa ' + esc(c.town) + '!' : 'La próxima temporada, a por el título.'}</div>`;
     }
-    const adapt = Object.values(CLUBS).some(x => x.adapt) ? '<p class="lg-note lg-adapt">Nombres y colores de los clubes navarros, sin escudos. Pirineo, Aurrera Leitza y CD Xota son adaptaciones del juego.</p>' : '';
+    const adapt = Object.values(CLUBS).some(x => x.adapt) ? '<p class="lg-note lg-adapt">Equipos con el nombre de cada pueblo o valle, sin nombres ni escudos de clubes de verdad.</p>' : '';
     const play = away ? `<button class="lg-btn go" data-a="travel">Viajar a ${esc(CLUBS[m.h].town)}</button>` : '<button class="lg-btn go" data-a="play">¡A jugar!</button>';
     const r = panel(`${head(S, m ? `Temporada ${S.year}` : 'Fin de temporada')}${mid}${m && S.j === 0 ? HOW : ''}${tableHtml(S)}
       <div class="lg-btns">${m ? `${play}<button class="lg-btn" data-a="sim">Simular partido</button>` : '<button class="lg-btn go" data-a="new">Nueva temporada</button>'}<button class="lg-btn" data-a="exit">Salir</button></div>${away && S.j !== 0 ? `<p class="lg-note">La jornada se juega en el campo del ${esc(CLUBS[m.h].name)}: viaja a ${esc(CLUBS[m.h].town)} (en el mapa) y habla con su entrenador.</p>` : ''}${adapt}`);

@@ -9,7 +9,7 @@ export const OUTFITS = [
   { id: 'sanfermin', name: 'San Fermín', shirt: '#f6f3ec', pants: '#f6f3ec', shoes: '#efe4cc', accent: '#d42f2f', scarf: '#d42f2f', sash: '#d42f2f' },
   { id: 'dantzari', name: 'Dantzari', shirt: '#f6f3ec', pants: '#f6f3ec', shoes: '#f2ece0', accent: '#c8102e', beret: '#c8102e', sash: '#c8102e' },
   { id: 'casero', name: 'Casero', shirt: '#ede6d4', pants: '#26262c', shoes: '#1e1a18', accent: '#1e1e24', beret: '#1d1d22', sash: '#1e1e24' },
-  { id: 'osasuna', name: 'Osasuna', shirt: '#c41f2c', pants: '#16224a', shoes: '#151515', accent: '#16224a' },
+  { id: 'osasuna', name: 'Futbolista', shirt: '#c41f2c', pants: '#16224a', shoes: '#151515', accent: '#16224a' },
   // trajes de cada comarca, según los datos de cultura de comarcas.json (los conjuntos de sus danzas y fiestas),
   // simplificados a camisa, chaleco, pantalón o falda, calzado y prendas (bandas, fajas, pañuelos, boinas)
   { id: 'lesaka', region: 'bidasoa', name: 'Dantzari de Lesaka', shirt: '#f6f3ec', pants: '#f6f3ec', shoes: '#efe4cc', accent: '#c8102e', scarf: '#c8102e', sash: '#c8102e', skirtF: '#f6f3ec' },
