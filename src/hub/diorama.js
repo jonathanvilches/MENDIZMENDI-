@@ -316,6 +316,18 @@ const TOWN_COVER = {};
 for (const [p, u] of Object.entries(import.meta.glob('../assets/portadas/pueblos/*.webp', { eager: true, query: '?url', import: 'default' }))) TOWN_COVER[p.split('/').pop().replace('.webp', '')] = u;
 /** La portada del pueblo (o null si no la tiene: entonces se usa la de su comarca); small: la de las tarjetas. */
 export const townCover = (id, small = false) => (small && TOWN_COVER[id + '-s']) || TOWN_COVER[id] || null;
+// el personaje en acción para las portadas de los pueblos (corriendo, saltando, celebrando…), de cuerpo entero y con
+// el mismo acabado de ilustración que el fondo (tools/heroaccion.mjs y tools/ilustra.py)
+const HERO_ACT = {};
+for (const [p, u] of Object.entries(import.meta.glob('../assets/portadas/heroe/acc-*.webp', { eager: true, query: '?url', import: 'default' }))) {
+  const [av, acc] = p.split('/').pop().replace('acc-', '').replace('.webp', '').split('-'); (HERO_ACT[av] ||= []).push({ acc, url: u });
+}
+/** El personaje en acción para la portada de un pueblo: cada pueblo, siempre la misma acción (o null). */
+export const heroAction = (avatar, seed = '') => {
+  const L = HERO_ACT[avatar]; if (!L?.length) return null;
+  let h = 0; for (const ch of String(seed)) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return L.slice().sort((a, b) => a.acc.localeCompare(b.acc))[h % L.length];
+};
 /** El personaje para la portada del menú (o null si ese personaje no lo tiene). */
 export const heroAvatar = (avatar) => HERO_AV[avatar] || null;
 function drawShot(R, comarcaId, w, h) {
