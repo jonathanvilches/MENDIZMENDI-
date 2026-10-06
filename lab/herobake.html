@@ -14,17 +14,26 @@ R.shadowMap.enabled = true; R.shadowMap.type = THREE.PCFSoftShadowMap;
 const rigs = {};
 for (const c of CAST) { const r = new GlbRig(await loadGlbAvatar(c.id), c.id); r.obj.traverse(o => { if (o.isMesh) o.castShadow = true; }); for (let i = 0; i < 20; i++) r.update(0.05, 0, true, 0); rigs[c.id] = r; }
 window.__ids = COMARCAS.map(c => c.id); window.__avs = CAST.map(c => c.id);
+// devuelve dos fotos del mismo instante: sin el personaje (el fondo de la comarca) y con él (de la diferencia sale la capa
+// del personaje con su sombra, que se pone encima del fondo)
 window.__bake = (comarca, av, w, h) => {
   const D = buildDiorama(comarca, { live: true }); D.update(0.5);
   const g = D.hf(0, 0) + 0.035, fig = rigs[av].obj;
-  fig.position.set(0, g, 0); fig.rotation.y = 0.18; D.scene.add(fig);
+  fig.position.set(0, g, 0); fig.rotation.y = 0.18;
   const cam = new THREE.PerspectiveCamera(34, w / h, 0.1, 3000);
   cam.position.set(0.5, 1.25 + g, 5.0); cam.lookAt(0, 0.72 + g, 0);
   cam.setViewOffset(w, h, -w * 0.17, 0, w, h); cam.updateProjectionMatrix();
-  R.setSize(w, h, false); R.setClearColor(0, 1); R.shadowMap.needsUpdate = true; R.render(D.scene, cam);
-  const url = R.domElement.toDataURL('image/png');
+  R.setSize(w, h, false); R.setClearColor(0, 1);
+  R.shadowMap.needsUpdate = true; R.render(D.scene, cam); const bg = R.domElement.toDataURL('image/png');
+  D.scene.add(fig); R.shadowMap.needsUpdate = true; R.render(D.scene, cam); const withFig = R.domElement.toDataURL('image/png');
+  // silueta exacta del personaje (blanco sobre negro), para separar en la capa la figura de su sombra
+  const hidden = D.scene.children.filter(o => o !== fig && o.visible); hidden.forEach(o => { o.visible = false; });
+  const bgk = D.scene.background, fog = D.scene.fog; D.scene.background = null; D.scene.fog = null;
+  D.scene.overrideMaterial = new THREE.MeshBasicMaterial({ color: '#ffffff' }); R.setClearColor(0, 1); R.render(D.scene, cam);
+  const mask = R.domElement.toDataURL('image/png');
+  D.scene.overrideMaterial = null; D.scene.background = bgk; D.scene.fog = fog; hidden.forEach(o => { o.visible = true; });
   D.scene.remove(fig); D.scene.traverse(o => { if (o.geometry) o.geometry.dispose(); });
-  return url;
+  return [bg, withFig, mask];
 };
 window.__ready = true;
 </script></body></html>
