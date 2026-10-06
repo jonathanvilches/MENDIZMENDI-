@@ -25,7 +25,7 @@ import { TownGame } from './game/townGame.js';
 import { profile, saveProfile, townState, checkBadges, salazarState } from './game/profile.js';
 import { levelById } from './data/levels.js';
 import { stampImg, townImg } from './assets.js';
-import { heroAvatar } from './hub/diorama.js';
+import { heroAction } from './hub/diorama.js';
 import COMARCAS from './data/comarcas.json';
 import { preloadNpcs } from './actors/npcGlb.js';
 import { animalsSettled } from './actors/animalGlb.js';
@@ -125,7 +125,7 @@ async function boot() {
     hub.hide(); queueMode('off');
     const cm = COMARCAS.find(c => c.id === d.comarca);
     const TI = { visit: 'church', process: 'basket', harvest: 'wheat', herd: 'sheep', dance: 'dance', carnival: 'mask', trade: 'anvil', legend: 'legend', race: 'running', observe: 'binoculars', tradition: 'music', quiz: 'quiz', summit: 'peak', pelota: 'pelota', figure: 'person', feria: 'cow', dolmen: 'dolmen', castle: 'castle', mirador: 'binoculars' };
-    ui.showLoading(d.name, TIPS[Math.floor(Math.random() * TIPS.length)], townImg(d), { hero: heroAvatar(P.avatar), comarca: cm?.name, stamp: stampImg(d.comarca, d.name.split(' /')[0]), avatar: avatarPortrait(P.avatar), intro: d.intro, missions: (d.missions || []).map(m => m.icon || TI[m.type] || 'star') });
+    ui.showLoading(d.name, TIPS[Math.floor(Math.random() * TIPS.length)], townImg(d), { hero: heroAction(P.avatar, d.id), comarca: cm?.name, stamp: stampImg(d.comarca, d.name.split(' /')[0]), avatar: avatarPortrait(P.avatar), intro: d.intro, missions: (d.missions || []).map(m => m.icon || TI[m.type] || 'star') });
     try {
       const npcP = preloadNpcs(); await preloadFood(); await Promise.all([rt.load(d, P.avatar, (p, m) => ui.progress(p, m)), npcP]);
       const ctx = { scene: rt.scene, camera: rt.camera, player: rt.player, follow: rt.follow, ui, sound, input, sky: rt.sky, fauna: rt.fauna, particles: rt.particles, beacon: rt.beacon, rt, onExit: exit };

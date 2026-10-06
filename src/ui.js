@@ -43,7 +43,7 @@ export class UI {
   }
   // ---------- Carga ----------
   buildLoading() {
-    this.loading = el(`<div id="loading" class="hidden"><div class="ld-bg"></div><img class="ld-hero" alt=""><div class="ld-shade"></div>
+    this.loading = el(`<div id="loading" class="hidden"><div class="ld-bg"></div><div class="ld-shade"></div><div class="ld-heroW"><img class="ld-hero" alt=""></div>
       <div class="ld-in">
         <div class="ld-top"><small class="ld-k"></small></div>
         <div class="ld-mid"><img class="ld-stamp" alt=""><div class="ld-name"></div><p class="ld-intro"></p><div class="ld-ms"></div></div>
@@ -60,7 +60,8 @@ export class UI {
     L.classList.remove('hidden'); L.style.opacity = 1; L.style.transition = '';
     $('.ld-bg', L).style.backgroundImage = image ? `url(${image})` : '';
     // portada del pueblo: el personaje del jugador en grande delante de su pueblo
-    const hero = $('.ld-hero', L); L.classList.toggle('has-hero', !!info.hero); if (info.hero) hero.src = info.hero; else hero.removeAttribute('src');
+    const hero = $('.ld-hero', L), H = info.hero; L.classList.toggle('has-hero', !!H); L.dataset.acc = H?.acc || '';
+    if (H) hero.src = H.url; else hero.removeAttribute('src');
     $('.ld-k', L).textContent = info.comarca ? 'Comarca · ' + info.comarca : 'Navarra';
     $('.ld-name', L).textContent = title.split(' /')[0];
     $('.ld-intro', L).textContent = info.intro || '';

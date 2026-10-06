@@ -16,7 +16,7 @@ import { avatarPortrait, portraitImg, avatarPortraitImg } from '../ui/portraits.
 import { stampImg, landImg, townImg } from '../assets.js';
 import { Stage, releaseStage } from './stage.js';
 import { getLang, setLang, langChosen } from '../i18n.js';
-import { dioramaShot, heroAvatar, townCover } from './diorama.js';
+import { dioramaShot, heroAvatar, heroAction, townCover } from './diorama.js';
 import { profile, saveProfile, levelOf, rankOf, townProgress, comarcaProgress, comarcaTowns, navarraProgress, stampCount, BADGES, checkBadges, resetProfile, salazarState } from '../game/profile.js';
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -301,10 +301,10 @@ export class Hub {
     const ms = l.special ? [{ type: 'visit', title: 'Ongi etorri a Otsagabia' }, { type: 'herd', title: 'El rebaño de Joxemari' }, { type: 'observe', title: 'Guardianes de Irati' }, { type: 'legend', title: 'Basajaun y la Lamia' }, { type: 'carnival', title: 'El Zarratrako' }, { type: 'dance', title: 'La fiesta de Muskilda' }]
       : l.missions;
     const title = (m) => m.title || (m.type === 'visit' ? `Conoce ${l.name}` : m.type === 'quiz' ? `El sabio de ${l.name}` : m.name || m.product || TYPE_NAME[m.type]);
-    const hero = heroAvatar(p.avatar);
+    const hero = heroAction(p.avatar, l.id);
     const s = el(`<div class="sheet"><div class="sheet-in" style="--c:${c?.color};--bg:url(${townImg(l)})">
       <button class="x" aria-label="Cerrar">${I('close', 22)}</button>
-      <div class="sh-hero${hero ? ' key' : ''}">${hero ? `<img class="sh-av" src="${hero}" alt="">` : ''}<small class="kicker">${esc(c?.name)}</small><h1>${esc(l.name)}</h1><p>${esc(l.intro || '')}</p></div>
+      <div class="sh-hero${hero ? ' key' : ''}" data-acc="${hero?.acc || ''}">${hero ? `<div class="sh-avW"><img class="sh-av" src="${hero.url}" alt=""></div>` : ''}<small class="kicker">${esc(c?.name)}</small><h1>${esc(l.name)}</h1><p>${esc(l.intro || '')}</p></div>
       <div class="sh-body">
         <h3>${I('check', 24)} Misiones (${t.done}/${t.total})</h3>
         <ul class="mlist">${ms.map((m, i) => `<li class="${ts?.done?.[i] ? 'ok' : ''}">${I(TYPE_ICON[m.type], 34)}<div><b>${esc(title(m))}</b><small>${TYPE_NAME[m.type]}${m.host ? ' · con ' + esc(m.host.name) : ''}</small></div>${ts?.done?.[i] ? I('check', 26) : ''}</li>`).join('')}</ul>
