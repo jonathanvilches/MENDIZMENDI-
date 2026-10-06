@@ -433,6 +433,8 @@ const FONT5 = {
   O: ['.###.', '#...#', '#...#', '#...#', '#...#', '#...#', '.###.'], S: ['.####', '#....', '#....', '.###.', '....#', '....#', '####.'],
   A: ['.###.', '#...#', '#...#', '#####', '#...#', '#...#', '#...#'], U: ['#...#', '#...#', '#...#', '#...#', '#...#', '#...#', '.###.'],
   N: ['#...#', '##..#', '#.#.#', '#..##', '#...#', '#...#', '#...#'],
+  I: ['#####', '..#..', '..#..', '..#..', '..#..', '..#..', '#####'], R: ['####.', '#...#', '#...#', '####.', '#.#..', '#..#.', '#...#'],
+  Ñ: ['.##.#', '#.##.', '.....', '##..#', '#.#.#', '#..##', '#...#'],
 };
 export function stadium(B, S, group, cx, cz, TOWN) {
   const y = gy(cx, cz) - 0.05, T = M(cx, y, cz, 0), F = (m) => MM(T, m);
@@ -443,11 +445,11 @@ export function stadium(B, S, group, cx, cz, TOWN) {
   const pitch = new THREE.Mesh(new THREE.PlaneGeometry(52, 78).rotateX(-Math.PI / 2), pm);
   pitch.position.set(cx, y + 0.1, cz); pitch.receiveShadow = true; pitch.matrixAutoUpdate = false; pitch.updateMatrix(); group.add(pitch);
   B.add('paint', colored(new THREE.PlaneGeometry(2 * OX, 2 * OZ).rotateX(-Math.PI / 2), '#3d6e3a'), F(M(0, 0.05, 0)));
-  // gradas: escalones de hormigón con un asiento rojo con respaldo en cada plaza (en la grada este, OSASUNA escrito
+  // gradas: escalones de hormigón con un asiento rojo con respaldo en cada plaza (en la grada este, IRUÑA escrito
   // con asientos blancos), vomitorios a media altura y barandilla delante; en calidad baja, escalones pintados de rojo
   const RED = ['#b8202b', '#a61b26'], WHITE = '#f1f1ef', NAVY = '#1f2d5a', CON = ['#a3a29c', '#97968f'];
   const seats = builderQuality() !== 'low', SEAT = 0.5;
-  const word = 'OSASUNA', px = 1.5, cols = word.length * 6 - 1, zText0 = -cols * px / 2;
+  const word = 'IRUÑA', px = 1.5, cols = word.length * 6 - 1, zText0 = -cols * px / 2;
   const pixel = (k, z) => {
     if (k < 3 || k > 16) return false;
     const br = 6 - Math.floor((k - 3) / 2), c = Math.floor((z - zText0) / px);
@@ -531,11 +533,11 @@ export function stadium(B, S, group, cx, cz, TOWN) {
   ringRoof(B, T, RIN, ROUT, hIn - 0.5, hOut - 0.4, '#b9bec4', true, 'lit');
   for (const s of [-1, 1]) {
     B.add('paint', colored(box(0.5, 1.2, 2 * OZ - 6), '#3a3f45'), F(M(s * 27.6, hIn - 0.9, 0)));
-    // OSASUNA pintado en el tejado sobre los dos fondos (como en las fotos aéreas), a lo ancho del estadio
+    // IRUÑA pintado en el tejado sobre los dos fondos (como en las fotos aéreas), a lo ancho del estadio
     const fr = 0.5, h = hIn + (hOut - hIn) * fr + 0.12, sl = Math.atan2(hIn - hOut, ROUT[1] - RMID[1]);
     const u = new THREE.Vector3(s, 0, 0), v = new THREE.Vector3(0, Math.sin(sl), -s * Math.cos(sl)), nrm = new THREE.Vector3().crossVectors(u, v);
     const Mx = new THREE.Matrix4().makeBasis(u, v, nrm).setPosition(cx, y + h, cz + s * (RMID[1] + (ROUT[1] - RMID[1]) * fr));
-    S.add(Mx, 46, 6.2, letters('OSASUNA', '#ffffff', { font: FONT_ROUND, weight: '900', shadow: null, size: 0.82 }), { ppm: 26 });
+    S.add(Mx, 46, 6.2, letters('IRUÑA', '#ffffff', { font: FONT_ROUND, weight: '900', shadow: null, size: 0.82 }), { ppm: 26 });
     if (s > 0) B.add('lit', colored(box(0.36, HH + 5.5, 2 * OZ + 0.7), '#6a7078'), F(M(OX + 0.18, HH / 2 - 2.25, 0)));
     B.add('lit', colored(box(0.36, HH + 5.5, OZ + 0.35 - GAP), '#6a7078'), F(M(-(OX + 0.18), HH / 2 - 2.25, s * (OZ + 0.35 + GAP) / 2)));
     B.add('lit', colored(box(2 * OX, HH + 5.5, 0.36), '#6a7078'), F(M(0, HH / 2 - 2.25, s * (OZ + 0.18))));
@@ -544,7 +546,7 @@ export function stadium(B, S, group, cx, cz, TOWN) {
   B.add('paint', colored(box(0.36, HH + 0.5 - 5.2, 2 * GAP + 0.2), '#3a3f45'), F(M(-(OX + 0.18), 5.2 + (HH + 0.5 - 5.2) / 2, 0)));
   // EL SADAR por fuera (proyecto «Muro Rojo», 2021): dos piezas que se contraponen. Abajo, un zócalo rectangular de
   // esquinas vivas forrado de chapa grecada perforada oscura, opaco de día; de noche, con la luz de dentro, se leen
-  // EL SADAR y OSASUNA a través de los agujeros y todo él brilla en rojo. Encima, un anillo ovalado de chapa grecada roja
+  // EL SADAR e IRUÑA a través de los agujeros y todo él brilla en rojo. Encima, un anillo ovalado de chapa grecada roja
   // que parece flotar: vuela por delante del zócalo y, en las esquinas, las del zócalo asoman por fuera de sus curvas
   const FH = OX + 3, FD = OZ + 3, y0 = -4.5, yB = 9, yR0 = 9.9, yR1 = hOut + 0.8;
   const T0 = new THREE.Matrix4().makeTranslation(cx, y, cz);
@@ -571,7 +573,7 @@ export function stadium(B, S, group, cx, cz, TOWN) {
     g.fillStyle = 'rgba(16,18,22,.6)'; for (let yy = 1; yy < H; yy += 4) for (let x = (yy >> 2) % 2 * 2; x < W; x += 4) g.fillRect(x, yy, 1, 1);
   }, true);
   perf.wrapT = THREE.RepeatWrapping; perf.repeat.set(0.5, 0.5);
-  // luz de dentro a través de la chapa: el rojo de Osasuna y las letras (en las caras largas EL SADAR; en los fondos OSASUNA)
+  // luz de dentro a través de la chapa: el rojo y las letras (en las caras largas EL SADAR; en los fondos IRUÑA)
   const glow = (len, word) => {
     const t = canvasTex(1024, 128, (g, W, H) => {
       const hz = yB - y0, vy = (h) => H * (1 - (h - y0) / hz);
@@ -590,9 +592,9 @@ export function stadium(B, S, group, cx, cz, TOWN) {
   const baseMat = (len, word) => night(new THREE.MeshStandardMaterial({ map: perf, roughness: 0.6, metalness: 0.15, emissive: new THREE.Color('#ffffff'), emissiveMap: glow(len, word) }), 0.06, 1.25);
   const sides = [
     { path: [[FH, FD], [FH, -FD]], len: 2 * FD, word: 'EL SADAR' },
-    { path: [[FH, -FD], [-FH, -FD]], len: 2 * FH, word: 'OSASUNA' },
+    { path: [[FH, -FD], [-FH, -FD]], len: 2 * FH, word: 'IRUÑA' },
     { path: [[-FH, -FD], [-FH, -GAP], [-FH, GAP], [-FH, FD]], len: 2 * FD, word: 'EL SADAR' },
-    { path: [[-FH, FD], [FH, FD]], len: 2 * FH, word: 'OSASUNA' },
+    { path: [[-FH, FD], [FH, FD]], len: 2 * FH, word: 'IRUÑA' },
   ];
   for (const sd of sides) {
     const g = strip(sd.path, y0, yB, (ax, az, bx, bz) => ax === -FH && Math.abs(az + GAP) < 0.01 && Math.abs(bz - GAP) < 0.01 ? 5.2 : null);   // hueco de la entrada oeste
@@ -644,7 +646,7 @@ export function stadium(B, S, group, cx, cz, TOWN) {
     S.add(F(M(0, hIn - 3.4, vz - s * 0.42, s > 0 ? Math.PI : 0)), 10.2, 4.0, (g, W, H) => {
       g.fillStyle = '#05070b'; g.fillRect(0, 0, W, H); g.fillStyle = '#c41f2c'; g.fillRect(0, 0, W, H * 0.3);
       g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#fff'; fitText(g, 'EL SADAR · IRUÑA', W / 2, H * 0.16, W * 0.9, H * 0.2, FONT_ROUND, '900');
-      g.fillStyle = '#f2c230'; fitText(g, 'OSASUNA  0 - 0', W / 2, H * 0.6, W * 0.9, H * 0.36, FONT_ROUND, '900');
+      g.fillStyle = '#f2c230'; fitText(g, 'IRUÑA  0 - 0', W / 2, H * 0.6, W * 0.9, H * 0.36, FONT_ROUND, '900');
       g.fillStyle = '#9fe0ff'; fitText(g, "45'", W / 2, H * 0.88, W * 0.3, H * 0.16, FONT_ROUND, '900');
     });
     // línea de focos en el borde de la cubierta
@@ -666,7 +668,7 @@ export function stadium(B, S, group, cx, cz, TOWN) {
   }
   { const m = new THREE.Mesh(mergeGeometries(nets.map(g => { if (!g.attributes.normal) g.computeVertexNormals(); return g; })), new THREE.MeshStandardMaterial({ map: net, alphaTest: 0.4, side: THREE.DoubleSide, roughness: 0.9 })); m.matrixAutoUpdate = false; group.add(m); }
   // vallas de publicidad a pie de campo
-  const board = canvasTex(1024, 64, (g, W, H) => { g.fillStyle = '#16213a'; g.fillRect(0, 0, W, H); g.textBaseline = 'middle'; g.font = `900 ${H * 0.62}px ${FONT_ROUND}`; const words = ['IRUÑA', 'PAMPLONA', 'OSASUNA', 'NAFARROA']; let x = 16; let i = 0; while (x < W) { const w = words[i % 4]; g.fillStyle = i % 2 ? '#f2c230' : '#ffffff'; g.fillText(w, x, H / 2 + 2); x += g.measureText(w).width + 40; i++; } }, true);
+  const board = canvasTex(1024, 64, (g, W, H) => { g.fillStyle = '#16213a'; g.fillRect(0, 0, W, H); g.textBaseline = 'middle'; g.font = `900 ${H * 0.62}px ${FONT_ROUND}`; const words = ['IRUÑA', 'PAMPLONA', 'EL SADAR', 'NAFARROA']; let x = 16; let i = 0; while (x < W) { const w = words[i % 4]; g.fillStyle = i % 2 ? '#f2c230' : '#ffffff'; g.fillText(w, x, H / 2 + 2); x += g.measureText(w).width + 40; i++; } }, true);
   const bds = [];
   for (const s of [-1, 1]) {
     bds.push(quad(s * 25, -s * 38, s * 25, s * 38, 0, 0.9, 0, 76 / 12));
@@ -695,8 +697,8 @@ export function stadium(B, S, group, cx, cz, TOWN) {
     const tz = FD - 16;
     B.add('glass', box(0.1, 3.2, 9), F(M(ex - 0.1, 1.6, tz)));
     B.add('paint', colored(box(0.4, 0.9, 9.4), '#c41f2c'), F(M(ex - 0.25, 3.6, tz)));
-    S.add(F(M(ex - 0.47, 3.6, tz, -Math.PI / 2)), 7.6, 0.75, letters('DENDA · TIENDA OSASUNA', '#ffffff', { font: FONT_ROUND, weight: '900', shadow: null, size: 0.72 }));
-    // mástiles: Osasuna (rojo y azul marino), Pamplona y Navarra
+    S.add(F(M(ex - 0.47, 3.6, tz, -Math.PI / 2)), 7.6, 0.75, letters('DENDA · TIENDA', '#ffffff', { font: FONT_ROUND, weight: '900', shadow: null, size: 0.72 }));
+    // mástiles: rojo y azul marino, Pamplona y Navarra
     [['#c41f2c', '#1f2d5a'], ['#f2ede3', '#c8202a'], ['#c8202a', '#e0b43a'], ['#c41f2c', '#1f2d5a']].forEach(([c1, c2], i) => {
       const fx = ex - 14, fz = -12 + i * 8;
       B.add('iron', new THREE.CylinderGeometry(0.08, 0.11, 9, 8), F(M(fx, 4.5, fz)));

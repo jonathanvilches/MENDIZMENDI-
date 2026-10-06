@@ -134,9 +134,9 @@ export function onFormat(fn) { hooks.push(fn); fn(); }
 // el árbitro y los dos asistentes: camiseta negra; banderín amarillo y rojo
 export const REFEREE = { shirt: '#17181c', flag: ['#ffd400', '#e0242c'] };
 
-// Equipos: Osasuna en El Sadar (el futbolista del jugador) y equipos de pueblo con equipaciones propias, sin marcas
+// Equipos: Iruña en El Sadar (el futbolista del jugador; sin nombre ni escudo de ningún club de verdad) y equipos de pueblo con equipaciones propias, sin marcas
 export const TEAMS = {
-  osasuna: { id: 'osasuna', name: 'Osasuna', short: 'OSA', shirt: '#c41f2c', shorts: '#16224a', socks: '#c41f2c', text: '#ffffff', model: 'osasuna', keeper: '#1f9a4a' },
+  osasuna: { id: 'osasuna', name: 'Iruña', short: 'IRU', shirt: '#c41f2c', shorts: '#16224a', socks: '#c41f2c', text: '#ffffff', model: 'osasuna', keeper: '#1f9a4a' },
   visitante: { id: 'visitante', name: 'Visitante', short: 'VIS', shirt: '#f4f4f2', shorts: '#16224a', socks: '#f4f4f2', text: '#16224a', model: 'osasuna_fuera', keeper: '#f2b01e' },
   // los de los pueblos, con el mismo futbolista (rojo) y, los vecinos, con la camiseta azul (recolor: se tiñe el rojo)
   pueblo: { id: 'pueblo', name: 'Pueblo', short: 'PUE', shirt: '#d8262e', shorts: '#ffffff', socks: '#d8262e', text: '#ffffff', model: 'osasuna', keeper: '#2a8a3a' },

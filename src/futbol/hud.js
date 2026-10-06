@@ -200,7 +200,7 @@ export class FutbolHud {
     const keep = /PARAR/i.test(shoot);
     this.el.pass.innerHTML = `${ICON[keep ? 'dive' : 'pass']}<span>${pass}</span>`; this.el.shoot.innerHTML = `${ICON[keep ? 'dive' : 'shoot']}<span>${shoot}</span>`;
   }
-  /** Pantalla de controles (como la del FIFA): táctil, teclado y mando. */
+  /** Pantalla de controles (como en los juegos de fútbol): táctil, teclado y mando. */
   controls() {
     return new Promise(res => {
       const row = (ic, a, b, c, d) => `<tr><td class="ic">${ic ? ICON[ic] : ''}</td><td><b>${a}</b><br><small>${b}</small></td><td>${c}</td><td>${d}</td></tr>`;

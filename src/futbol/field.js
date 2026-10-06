@@ -521,7 +521,7 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
     { const g = new Geo(), P = rr(ST.x0 + dTop - 0.05, ST.z0 + dTop - 0.05, ST.r0 + dTop - 0.05); for (let i = 0; i < N; i++) { const j = (i + 1) % N; g.quad([P[i][0], yTop + 1.2, P[i][1]], [P[j][0], yTop + 1.2, P[j][1]], [P[j][0], yTop + 3.6, P[j][1]], [P[i][0], yTop + 3.6, P[i][1]], [-P[i][2], 0, -P[i][3]]); }
       add(g.build(), own(new THREE.MeshStandardMaterial({ color: '#1c2a36', roughness: 0.15, metalness: 0.6, emissive: '#2b3c4c', emissiveIntensity: 0.4 }))); }
 
-    // cubierta continua (como en las fotos): por arriba roja con una banda blanca ancha alrededor del hueco y OSASUNA en
+    // cubierta continua (como en las fotos): por arriba roja con una banda blanca ancha alrededor del hueco e IRUÑA en
     // los fondos; baja hacia fuera. Por debajo, celosía de vigas: la banda de dentro es translúcida (clara) y la de fuera,
     // más oscura. Borde interior blanco con los focos y borde exterior rojo
     const RI = rr(...ROOF_IN), RM = rr(F.HL + 14, F.HW + 13.5, 18), RO = rr(...ROOF_OUT), yIn = 27, yMid = 25.6, yOut = 22.8, TH = 0.5;
@@ -549,8 +549,8 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
     add(under[1].build(), own(new THREE.MeshStandardMaterial({ map: latT, roughness: 0.75, color: '#9aa1a9', emissive: '#7d858e', emissiveMap: latT, emissiveIntensity: 0.25 })));
     add(rim.build(), own(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.5, side: THREE.DoubleSide })));
     add(lamps.build(), own(new THREE.MeshBasicMaterial({ color: '#fffbea' })));
-    // OSASUNA en blanco sobre la parte roja de la cubierta, en los dos fondos (como en las fotos aéreas)
-    const osaT = own(canvasTex(1024, 160, (g, W, Hh) => { g.font = '900 140px Nunito, Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#ffffff'; g.fillText('OSASUNA', W / 2, Hh / 2 + 8); }, { alpha: true }));
+    // IRUÑA en blanco sobre la parte roja de la cubierta, en los dos fondos (como en las fotos aéreas)
+    const osaT = own(canvasTex(1024, 160, (g, W, Hh) => { g.font = '900 140px Nunito, Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#ffffff'; g.fillText('IRUÑA', W / 2, Hh / 2 + 8); }, { alpha: true }));
     const osaM = own(new THREE.MeshStandardMaterial({ map: osaT, alphaTest: 0.5, roughness: 0.6, polygonOffset: true, polygonOffsetFactor: -2 }));
     for (const s2 of [-1, 1]) {
       const fr = 0.45, xa = ROOF_OUT[0] - (ROOF_OUT[0] - (F.HL + 14)) * (1 - fr), ya = yOut + (yMid - yOut) * (1 - fr) + TH + 0.06, sl = Math.atan2(yMid - yOut, ROOF_OUT[0] - (F.HL + 14));

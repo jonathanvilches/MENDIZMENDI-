@@ -15,6 +15,7 @@ const [ids, avs] = await p.evaluate(() => [window.__ids, window.__avs]);
 const names = [];
 for (const c of ids) for (const a of avs) {
   if (process.env.ONLY && !process.env.ONLY.split(',').includes(c)) continue;
+  if (process.env.AV && !process.env.AV.split(',').includes(a)) continue;
   const url = await p.evaluate(([c, a, w, h]) => window.__bake(c, a, w, h), [c, a, W, H]);
   writeFileSync(`${tmp}/${c}-${a}.png`, Buffer.from(url.split(',')[1], 'base64')); names.push(`${c}-${a}`); console.log('·', c, a);
 }

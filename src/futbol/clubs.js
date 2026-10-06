@@ -1,32 +1,31 @@
-// Clubes de fútbol de los pueblos de MENDIMENDIZ (como en el FIFA: cada pueblo juega con su equipo de verdad).
-// Nombre, pueblo, equipación (camiseta, pantalón, medias y dibujo: liso, rayas verticales o banda diagonal) y campo (cuando consta; si no, «campo municipal»),
-// de las fichas públicas de los clubes (Federación Navarra de Fútbol, futbolme, Wikipedia). Sin escudos: solo nombres
-// y colores. La «media» (como en el FIFA) es una estimación del juego según la categoría en la que compiten.
+// Equipos de fútbol de los pueblos de MENDIMENDIZ: cada pueblo juega con un equipo con el nombre del pueblo o del valle.
+// Sin nombres, siglas ni escudos de clubes de verdad (marcas registradas): solo el nombre del lugar, colores lisos y el campo
+// (cuando consta; si no, «campo municipal»). La «media» es una estimación del juego.
 // Los pueblos sin club propio juegan con el de su valle o comarca; donde no hay club de fútbol 11 conocido, el equipo
 // es una adaptación (adapt: true) con colores del juego.
 
 export const CLUBS = {
-  betigazte: { name: 'Beti Gazte KJKE', short: 'BGZ', town: 'Lesaka', shirt: '#1f8a3c', shorts: '#f4f4f2', socks: '#1f8a3c', field: 'Mastegi', ovr: 66, group: 'norte' },
-  baztan: { name: 'CD Baztan', short: 'BAZ', town: 'Elizondo', shirt: '#c8222a', shorts: '#1f3a8a', socks: '#18181c', field: 'Giltxaurdi', ovr: 70, group: 'norte' },
-  doneztebe: { name: 'Doneztebe FT', short: 'DON', town: 'Doneztebe', shirt: '#d8262e', shirt2: '#f4f4f2', pattern: 'rayas', shorts: '#f4f4f2', socks: '#d8262e', field: null, ovr: 72, group: 'norte' },
-  leitza: { name: 'Aurrera Leitza', short: 'LEI', town: 'Leitza', shirt: '#1f6a3a', shorts: '#f4f4f2', socks: '#1f6a3a', field: 'Arkiskil', ovr: 60, group: 'norte', adapt: true },
-  betikozkor: { name: 'Beti Kozkor KE', short: 'BKZ', town: 'Lekunberri', shirt: '#1b1b1f', shorts: '#1b1b1f', socks: '#1b1b1f', field: null, ovr: 73, group: 'norte' },
+  betigazte: { name: 'Lesaka', short: 'LES', town: 'Lesaka', shirt: '#1f8a3c', shorts: '#f4f4f2', socks: '#1f8a3c', field: 'Mastegi', ovr: 66, group: 'norte' },
+  baztan: { name: 'Baztan', short: 'BAZ', town: 'Elizondo', shirt: '#c8222a', shorts: '#1f3a8a', socks: '#18181c', field: 'Giltxaurdi', ovr: 70, group: 'norte' },
+  doneztebe: { name: 'Doneztebe', short: 'DON', town: 'Doneztebe', shirt: '#d8262e', shirt2: '#f4f4f2', pattern: 'rayas', shorts: '#f4f4f2', socks: '#d8262e', field: null, ovr: 72, group: 'norte' },
+  leitza: { name: 'Leitza', short: 'LEI', town: 'Leitza', shirt: '#1f6a3a', shorts: '#f4f4f2', socks: '#1f6a3a', field: 'Arkiskil', ovr: 60, group: 'norte', adapt: true },
+  betikozkor: { name: 'Lekunberri', short: 'LEK', town: 'Lekunberri', shirt: '#1b1b1f', shorts: '#1b1b1f', socks: '#1b1b1f', field: null, ovr: 73, group: 'norte' },
   pirineo: { name: 'Pirineo', short: 'PIR', town: 'valles del Pirineo', shirt: '#2f8f5a', shirt2: '#f4f4f2', pattern: 'rayas', shorts: '#1f3a5a', socks: '#2f8f5a', field: null, ovr: 58, group: 'norte', adapt: true },
-  alsasua: { name: 'SD Alsasua', short: 'ALS', town: 'Altsasu', shirt: '#c8222a', shorts: '#1c2a5a', socks: '#c8222a', field: null, ovr: 66, group: 'norte' },
-  xota: { name: 'CD Xota', short: 'XOT', town: 'Irurtzun', shirt: '#2a5fb5', shorts: '#1c2a5a', socks: '#2a5fb5', field: null, ovr: 62, group: 'norte', adapt: true },
-  aoiz: { name: 'CD Aoiz', short: 'AOI', town: 'Aoiz', shirt: '#c8222a', shorts: '#1c2a5a', socks: '#c8222a', field: null, ovr: 73, group: 'norte' },
-  ilumberri: { name: 'CD Ilumberri', short: 'ILU', town: 'Lumbier', shirt: '#f4f4f2', shorts: '#1c2a5a', socks: '#f4f4f2', field: null, ovr: 64, group: 'norte' },
-  mutilvera: { name: 'UD Mutilvera', short: 'MUT', town: 'Mutilva', shirt: '#f4f4f2', shorts: '#2a4fa5', socks: '#2a4fa5', field: null, ovr: 76, group: 'norte' },
-  cantolagua: { name: 'CD Cantolagua', short: 'CAN', town: 'Sangüesa', shirt: '#f4f4f2', shirt2: '#2a5fb5', pattern: 'banda', shorts: '#f4f4f2', socks: '#f4f4f2', field: 'Cantolagua', ovr: 74, group: 'sur' },
-  izarra: { name: 'CD Izarra', short: 'IZA', town: 'Estella-Lizarra', shirt: '#2a5fb5', shirt2: '#f4f4f2', pattern: 'rayas', shorts: '#2a4fa5', socks: '#2a4fa5', field: 'Merkatondoa', ovr: 76, group: 'sur' },
-  vianes: { name: 'CA Vianés', short: 'VIA', town: 'Viana', shirt: '#c8222a', shorts: '#1c2a5a', socks: '#1c2a5a', field: null, ovr: 66, group: 'sur' },
-  gares: { name: 'CD Gares', short: 'GAR', town: 'Puente la Reina', shirt: '#7a1f2e', shirt2: '#f4f4f2', pattern: 'banda', shorts: '#18181c', socks: '#7a1f2e', field: 'Osabidea', ovr: 66, group: 'sur' },
-  artajones: { name: 'CA Artajonés', short: 'ART', town: 'Artajona', shirt: '#c8222a', shirt2: '#f4f4f2', pattern: 'rayas', shorts: '#2a4fa5', socks: '#c8222a', field: 'La Alameda', ovr: 68, group: 'sur' },
-  penasport: { name: 'Peña Sport FC', short: 'PEÑ', town: 'Tafalla', shirt: '#2a5fb5', shorts: '#18181c', socks: '#18181c', field: 'San Francisco', ovr: 72, group: 'sur' },
-  erriberri: { name: 'CD Erriberri', short: 'ERR', town: 'Olite', shirt: '#c8222a', shorts: '#2a4fa5', socks: '#c8222a', field: 'San Miguel', ovr: 66, group: 'sur' },
-  marcilla: { name: 'CA Marcilla Aurora', short: 'MAR', town: 'Marcilla', shirt: '#2f8f4a', shirt2: '#f4f4f2', pattern: 'rayas', shorts: '#f4f4f2', socks: '#2f8f4a', field: null, ovr: 64, group: 'sur' },
-  tudelano: { name: 'CD Tudelano', short: 'TUD', town: 'Tudela', shirt: '#f4f4f2', shorts: '#18181c', socks: '#f4f4f2', field: 'Ciudad de Tudela', ovr: 78, group: 'sur' },
-  cortes: { name: 'CD Cortes', short: 'COR', town: 'Cortes', shirt: '#c8222a', shorts: '#18181c', socks: '#18181c', field: null, ovr: 74, group: 'sur' },
+  alsasua: { name: 'Altsasu', short: 'ALT', town: 'Altsasu', shirt: '#c8222a', shorts: '#1c2a5a', socks: '#c8222a', field: null, ovr: 66, group: 'norte' },
+  xota: { name: 'Irurtzun', short: 'IRT', town: 'Irurtzun', shirt: '#2a5fb5', shorts: '#1c2a5a', socks: '#2a5fb5', field: null, ovr: 62, group: 'norte', adapt: true },
+  aoiz: { name: 'Agoitz', short: 'AGO', town: 'Aoiz', shirt: '#c8222a', shorts: '#1c2a5a', socks: '#c8222a', field: null, ovr: 73, group: 'norte' },
+  ilumberri: { name: 'Lumbier', short: 'LUM', town: 'Lumbier', shirt: '#f4f4f2', shorts: '#1c2a5a', socks: '#f4f4f2', field: null, ovr: 64, group: 'norte' },
+  mutilvera: { name: 'Mutilva', short: 'MUT', town: 'Mutilva', shirt: '#f4f4f2', shorts: '#2a4fa5', socks: '#2a4fa5', field: null, ovr: 76, group: 'norte' },
+  cantolagua: { name: 'Sangüesa', short: 'SAN', town: 'Sangüesa', shirt: '#f4f4f2', shirt2: '#2a5fb5', pattern: 'banda', shorts: '#f4f4f2', socks: '#f4f4f2', field: 'Cantolagua', ovr: 74, group: 'sur' },
+  izarra: { name: 'Lizarra', short: 'LIZ', town: 'Estella-Lizarra', shirt: '#2a5fb5', shirt2: '#f4f4f2', pattern: 'rayas', shorts: '#2a4fa5', socks: '#2a4fa5', field: 'Merkatondoa', ovr: 76, group: 'sur' },
+  vianes: { name: 'Viana', short: 'VIA', town: 'Viana', shirt: '#c8222a', shorts: '#1c2a5a', socks: '#1c2a5a', field: null, ovr: 66, group: 'sur' },
+  gares: { name: 'Gares', short: 'GAR', town: 'Puente la Reina', shirt: '#7a1f2e', shirt2: '#f4f4f2', pattern: 'banda', shorts: '#18181c', socks: '#7a1f2e', field: 'Osabidea', ovr: 66, group: 'sur' },
+  artajones: { name: 'Artajona', short: 'ART', town: 'Artajona', shirt: '#c8222a', shirt2: '#f4f4f2', pattern: 'rayas', shorts: '#2a4fa5', socks: '#c8222a', field: 'La Alameda', ovr: 68, group: 'sur' },
+  penasport: { name: 'Tafalla', short: 'TAF', town: 'Tafalla', shirt: '#2a5fb5', shorts: '#18181c', socks: '#18181c', field: 'San Francisco', ovr: 72, group: 'sur' },
+  erriberri: { name: 'Erriberri', short: 'ERR', town: 'Olite', shirt: '#c8222a', shorts: '#2a4fa5', socks: '#c8222a', field: 'San Miguel', ovr: 66, group: 'sur' },
+  marcilla: { name: 'Marcilla', short: 'MAR', town: 'Marcilla', shirt: '#2f8f4a', shirt2: '#f4f4f2', pattern: 'rayas', shorts: '#f4f4f2', socks: '#2f8f4a', field: null, ovr: 64, group: 'sur' },
+  tudelano: { name: 'Tudela', short: 'TUD', town: 'Tudela', shirt: '#f4f4f2', shorts: '#18181c', socks: '#f4f4f2', field: 'Ciudad de Tudela', ovr: 78, group: 'sur' },
+  cortes: { name: 'Cortes', short: 'COR', town: 'Cortes', shirt: '#c8222a', shorts: '#18181c', socks: '#18181c', field: null, ovr: 74, group: 'sur' },
 };
 
 // el equipo de cada pueblo del juego (el suyo o el de su valle o comarca)
