@@ -1,0 +1,30 @@
+<!doctype html><html><head><meta charset="utf-8"></head><body><script type="module">
+// Hornea la portada del menú de cada comarca con cada personaje dentro de la escena (en el camino, con su sombra y la
+// luz del sitio), con el mismo encuadre que tenía la portada 3D en vivo. Las recoge tools/herobake.mjs
+import * as THREE from 'three';
+import { buildDiorama } from '../src/hub/diorama.js';
+import { GlbRig, loadGlbAvatar } from '../src/actors/glbChar.js';
+import { preloadAnimals } from '../src/actors/animalGlb.js';
+import { CAST } from '../src/data/cast.js';
+import COMARCAS from '../src/data/comarcas.json';
+await preloadAnimals(['sheep']).catch(() => {});
+const R = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+R.setPixelRatio(1); R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.ACESFilmicToneMapping;
+R.shadowMap.enabled = true; R.shadowMap.type = THREE.PCFSoftShadowMap;
+const rigs = {};
+for (const c of CAST) { const r = new GlbRig(await loadGlbAvatar(c.id), c.id); r.obj.traverse(o => { if (o.isMesh) o.castShadow = true; }); for (let i = 0; i < 20; i++) r.update(0.05, 0, true, 0); rigs[c.id] = r; }
+window.__ids = COMARCAS.map(c => c.id); window.__avs = CAST.map(c => c.id);
+window.__bake = (comarca, av, w, h) => {
+  const D = buildDiorama(comarca, { live: true }); D.update(0.5);
+  const g = D.hf(0, 0) + 0.035, fig = rigs[av].obj;
+  fig.position.set(0, g, 0); fig.rotation.y = 0.18; D.scene.add(fig);
+  const cam = new THREE.PerspectiveCamera(34, w / h, 0.1, 3000);
+  cam.position.set(0.5, 1.25 + g, 5.0); cam.lookAt(0, 0.72 + g, 0);
+  cam.setViewOffset(w, h, -w * 0.17, 0, w, h); cam.updateProjectionMatrix();
+  R.setSize(w, h, false); R.setClearColor(0, 1); R.shadowMap.needsUpdate = true; R.render(D.scene, cam);
+  const url = R.domElement.toDataURL('image/png');
+  D.scene.remove(fig); D.scene.traverse(o => { if (o.geometry) o.geometry.dispose(); });
+  return url;
+};
+window.__ready = true;
+</script></body></html>
