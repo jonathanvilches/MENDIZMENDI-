@@ -105,48 +105,44 @@ export class PelotaGame {
       shot = 'cortada';
       const speed = 20 + q * 4 + pow * 9;
       const tx = clamp(aim.x * 2.6 + gauss(rnd) * err * 1.4, -4.2, 4.6);
-      const ty = COURT.CHAPA + 0.16 + gauss(rnd) * err * 0.7;   // bien dada roza la chapa por encima; floja, a veces da en ella
+      const ty = COURT.CHAPA + 0.48 + gauss(rnd) * err * 0.45;   // (rasa pero no pegada a la chapa: medio metro por encima)   // bien dada roza la chapa por encima; floja, a veces da en ella
       v = aimVelocity(p, tx, ty, Math.max(0.2, p.z / speed));
     } else {
       // el joystick manda: de lado (x) dónde cae a lo ancho y de arriba abajo (y) lo largo; el error solo depende de lo
       // bien que se golpee (antes cada golpe tenía mucho azar y no se notaba hacia dónde se apuntaba)
-      let tx, landZ, speed = 14 + q * 4 + pow * 8;
-      // dos paredes: joystick hacia la izquierda (con fuerza): pared izquierda, frontis y sale cruzada. No es un golpe
-      // fijo: el ángulo del joystick dice dónde pega en la pared (cuanto más a la izquierda, antes la toca y más
-      // cruzada sale) y arriba o abajo, lo largo; un golpe flojo se desvía. Si desde donde estás no sale, va a la pared
-      if (aim.x < -0.45 && aim.y <= 0.6) {
-        const ang = clamp((-aim.x - 0.45) / 0.55, 0, 1);   // 0: poco a la izquierda · 1: del todo
-        const fz = clamp(0.7 - ang * 0.45 + gauss(rnd) * err * 0.12, 0.2, 0.8);
-        const lz = clamp(14.5 + aim.y * 6 + pow * 4 + gauss(rnd) * err * 3, 10, 26);
+      let tx, landZ, speed = 20 + q * 5 + pow * 9;   // (golpe tenso: da en el frontis a 3–5 m, no en globo)
+      // dos paredes: joystick en diagonal abajo-izquierda: pared izquierda, frontis y sale cruzada. El ángulo dice dónde
+      // pega en la pared (cuanto más a la izquierda, antes la toca y más cruzada sale) y la fuerza, lo larga
+      if (aim.x < -0.5 && aim.y < -0.35) {
+        const ang = clamp((-aim.x - 0.5) / 0.5, 0, 1), lz = clamp(13 + pow * 6 + gauss(rnd) * err * 2.2, 10, 24);
+        const fz = clamp(0.68 - ang * 0.4 + gauss(rnd) * err * 0.08, 0.2, 0.8);
         const r = solveTwoWalls(p, speed + 1, lz, [fz, fz - 0.06, fz + 0.06]);
         if (r) {
           shot = 'dosparedes'; v = r.v;
-          // cada dos paredes sale distinta según ángulo, largo y fuerza: corta (floja o hacia abajo), cruzada (poco
-          // ángulo: se abre hacia la derecha), larga (del todo a la izquierda y con fuerza) o pegada (fuerte y rasa)
-          sub = pow > 0.8 && aim.y < -0.3 ? 'dpPegada' : lz < 12 || pow < 0.3 ? 'dpCorta' : ang < 0.4 ? 'dpCruzada' : lz > 16 ? 'dpLarga' : '';
+          sub = pow > 0.8 && aim.y < -0.8 ? 'dpPegada' : lz < 12 || pow < 0.3 ? 'dpCorta' : ang < 0.4 ? 'dpCruzada' : lz > 16 ? 'dpLarga' : '';
           if (sub === 'dpPegada') v.y = Math.min(v.y, v.y * 0.85);
         }
       }
       if (!v) {
-        // se apunta al sitio del bote (no al punto del frontis: la pelota sigue abriéndose al salir y el golpe al
-        // ancho caía siempre fuera): lx a lo ancho y landZ a lo largo
-        const depth = clamp(15.5 + aim.y * 7 + pow * 4, 10, 27);   // abajo corto, arriba largo; con más fuerza, más lejos
-        let lx;
-        if (aim.y > 0.6) { shot = 'largo'; lx = aim.x * 3; landZ = Math.max(depth, 25); speed += 2; }
-        else if (aim.x < -0.2) { shot = 'pared'; lx = -4.1; landZ = depth; }
-        else if (aim.x > 0.5) { shot = 'ancho'; lx = 3.2 + (aim.x - 0.5) * 2; landZ = depth - 1.5; }   // pegado a la raya, dentro
-        else { lx = aim.x * 3.2; landZ = depth; }
-        lx = clamp(lx + gauss(rnd) * err * 2.4, -4.6, 5.6);   // un golpe malo al ancho puede irse fuera
-        landZ += gauss(rnd) * err * 4.5;
+        // el joystick manda de verdad: a la izquierda va a la izquierda (pegada a la pared del todo) y a la derecha, a
+        // la derecha (al ancho del todo), en proporción a lo que se inclina; arriba larga y abajo corta. Se apunta al
+        // bote y se corrige el punto del frontis hasta que cae ahí; el error solo depende de lo bien que se golpee
+        const depth = clamp(15.5 + aim.y * 8 + pow * 4, 9.5, 27.5);
+        let lx = aim.x * (aim.x < 0 ? 3.8 : 4.3);   // (a la izquierda, del todo, a medio metro de la pared: si no, la roza alta)
+        if (aim.y > 0.6) { shot = 'largo'; landZ = Math.max(depth, 24.5); speed += 2; }
+        else landZ = depth;
+        if (aim.x < -0.6) shot = 'pared'; else if (aim.x > 0.6) { shot = 'ancho'; landZ -= 1; }
+        lx = clamp(lx + gauss(rnd) * err * 1.2, -4.75, 5.6);   // (un golpe malo al ancho puede irse fuera)
+        landZ += gauss(rnd) * err * 2.5;
         // alcance de un golpe: un pelotari con mucha fuerza, desde el cuadro 4, la manda de vuelta hasta el cuadro 7;
         // desde más atrás llega algo más lejos (le da más alto en el frontis) y un golpe flojo se queda antes
         landZ = Math.min(landZ, 19 + q * 3 + pow * 5 + clamp(p.z - COURT.FALTA, -4, 8) * 0.22);
         tx = lx * 0.55;
-        for (let it = 0; it < 4; it++) {   // se corrige el punto del frontis hasta que el bote cae donde se apunta
+        for (let it = 0; it < 5; it++) {   // se corrige el punto del frontis hasta que el bote cae donde se apunta
           const r = solveShot(p, tx, landZ, speed); v = r.v;
           if (!r.land) break;
-          const dx = r.land.x - lx; if (Math.abs(dx) < 0.15) break;
-          tx = clamp(tx - dx * 0.6, -4.6, 4.8);
+          const dx = r.land.x - lx; if (Math.abs(dx) < 0.12) break;
+          tx = clamp(tx - dx * 0.65, -4.7, COURT.W / 2 - 0.15);
         }
       } else if (err > 0.2) { const k = 1 + gauss(rnd) * err * 0.06; v.x *= k; v.y *= 1 + gauss(rnd) * err * 0.05; v.z *= k; }   // a dos paredes, un golpe flojo se desvía un poco
     }
@@ -190,11 +186,14 @@ export class PelotaGame {
       if (R.front) return;                                    // ya había dado
       if (e.y < COURT.CHAPA) { this.emit({ type: 'front', ...e, chapa: true }); return this.point(receiver, 'chapa'); }
       if (e.y > COURT.FRONT_TOP) { this.emit({ type: 'front', ...e }); return this.point(receiver, 'alta'); }
+      if (e.x > COURT.W / 2) { this.emit({ type: 'front', ...e }); return this.point(receiver, 'lado'); }   // fuera de la raya lateral del frontis
       R.front = true; R.bounces = 0;
       this.emit({ type: 'front', ...e });
       if (this.mode === 'rally' && striker === 'you') { this.streak++; this.best = Math.max(this.best, this.streak); this.emit({ type: 'streak', n: this.streak }); if (this.streak >= this.target) this.finish(); }
     } else if (e.type === 'left') {
       this.emit({ type: 'wall', ...e });
+      // en la pared izquierda, por encima de su raya roja (o por encima de la pared) es mala, antes o después del frontis
+      if (e.y > COURT.LEFT_LINE) return this.point(receiver, 'pared');
     } else if (e.type === 'floor') {
       this.emit({ type: 'floor', ...e });
       if (!R.front) return this.point(receiver, 'corta');
@@ -244,7 +243,7 @@ export class PelotaGame {
     if (rnd() < smart) {
       if (op.z > 21 && me.z < 20 && rnd() < 0.55) return { aim: { x: 0, y: -1 }, drop: true };
       if (op.z < 16 && rnd() < 0.4) return { aim: { x: op.x > 0 ? -0.6 : 0.6, y: 0 }, drop: 'cortada' };   // rival adelantado: cortada que le pase
-      if (op.x > 1) return { aim: { x: me.x > -2 && rnd() < smart ? -1 : -0.4, y: 0 } };   // rival a la derecha: a la pared o a dos paredes
+      if (op.x > 1) return { aim: me.x > -2 && rnd() < smart ? { x: -0.85, y: -0.55 } : { x: -0.9, y: 0 } };   // rival a la derecha: a dos paredes o a la pared
       if (op.x < -1.2) return { aim: { x: 1, y: 0 } };
       if (op.z < 15) return { aim: { x: 0, y: 1 } };
     }
