@@ -117,10 +117,13 @@ export async function makeCharacter(d) {
   const arms = ['Left', 'Right'].map(s => [B[s + 'Arm'], B[s + 'ForeArm'], B[s + 'Hand']]).filter(a => a.every(Boolean));
   // el banderín, en la mano derecha (con la escala del mundo: el esqueleto de Mixamo va a 1/100)
   let fl = null; if (d.line && B.RightHand) { fl = flag(); B.RightHand.add(fl); char.root.updateMatrixWorld(true); fl.scale.setScalar(1 / B.RightHand.getWorldScale(new THREE.Vector3()).x); }
+  // el árbitro lleva las tarjetas: la que enseña aparece en su mano derecha, en alto
+  let card = null; if (d.referee && !d.line && B.RightHand) { card = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.105, 0.006), new THREE.MeshBasicMaterial({ color: '#ffd400' })); card.position.set(0, 0.09, 0.02); card.visible = false; B.RightHand.add(card); char.root.updateMatrixWorld(true); card.scale.setScalar(1 / B.RightHand.getWorldScale(new THREE.Vector3()).x); card.position.multiplyScalar(card.scale.x); }
   const up = new THREE.Vector3(0, 1, 0), fw = new THREE.Vector3(), out = new THREE.Vector3(), w = new THREE.Quaternion();
   return { obj: char.root, anim: { setSpeed: (v) => char.setSpeed(v), once: (n, s, fit) => char.playOnce(n, s, fit), update: (dt) => char.update(dt) },
     // brazos arriba sobre la cabeza (saque de banda) o el derecho en alto con el banderín (fuera de juego)
     post: (st) => {
+      if (card) { card.visible = !!st?.card; if (st?.card) card.material.color.set(st.card === 'red' ? '#e3262b' : '#ffd400'); }
       if (!st?.arms || !arms.length) return;
       char.root.getWorldQuaternion(w); fw.set(0, 0, 1).applyQuaternion(w);
       arms.forEach(([a, f, h], i) => {
@@ -129,7 +132,7 @@ export async function makeCharacter(d) {
         aimBone(a, f, out); aimBone(f, h, out);
       });
     },
-    dispose: () => { char.dispose(); for (const m of mats) m.dispose(); if (fl) fl.traverse(o => { if (o.isMesh) { o.geometry.dispose(); o.material.map?.dispose(); o.material.dispose(); } }); } };
+    dispose: () => { char.dispose(); for (const m of mats) m.dispose(); if (card) { card.geometry.dispose(); card.material.dispose(); } if (fl) fl.traverse(o => { if (o.isMesh) { o.geometry.dispose(); o.material.map?.dispose(); o.material.dispose(); } }); } };
 }
 
 // El fútbol desde el pueblo: en El Sadar (fútbol 11, con la entrenadora de Osasuna) o en la pista del pueblo (fútbol

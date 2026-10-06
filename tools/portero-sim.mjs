@@ -54,14 +54,14 @@ const gx = -F.HL;   // tu portería (el equipo 0 ataca hacia +x)
   me.x = 0; me.z = 0; q.x = 6; q.z = 3; o.x = 9; o.z = 3; g.ball.set(8.6, 3); g.owner = o; o.react = 99; g.switchCD = 0;
   g.setMove(1, 0.3, 1, false); run(g, 0.5);
   ok(g.me === me, `moviéndote, sigues con tu jugador (${g.me.role})`); }
-// pase: un toque al pie; mantenido, al hueco y más lejos cuanto más se mantiene
+// pase: un toque al pie (fuerza automática); mantenido, la barra pone la fuerza: más tiempo, más lejos y más fuerte
 { const res = [];
-  for (const hold of [0.05, 0.5, 1.1]) {
+  for (const hold of [0.05, 0.3, 0.55, 0.8]) {
     const g = setup(), me = g.me, q = g.byRole(0, 'DCI'); me.x = 0; me.z = 0; me.h = Math.PI / 2; q.x = 14; q.z = -4; q.vx = 3; g.ball.set(0.5, 0); g.owner = me;
-    g.setMove(0, 0, 0, false); g.press('pass'); run(g, hold); me.x = 0; me.z = 0; g.ball.set(0.5, 0); g.owner = me; q.x = 14; q.z = -4; const ev = []; g.release('pass'); g.step(1 / 120); ev.push(...g.drain());
-    const ahead = Math.hypot(g.ball.v.x, g.ball.v.z); res.push({ through: ev.some(e => e.t === 'through'), v: ahead });
+    g.setMove(0, 0, 0, false); g.press('pass'); const ch = []; for (let t = 0; t < hold; t += 1 / 120) { g.step(1 / 120); ch.push(g.charge); } me.x = 0; me.z = 0; g.ball.set(0.5, 0); g.owner = me; q.x = 14; q.z = -4; const ev = []; g.release('pass'); g.step(1 / 120); ev.push(...g.drain());
+    const pp = ev.find(e => e.t === 'powerPass'); res.push({ power: pp?.power ?? null, d: pp?.d ?? null, v: Math.hypot(g.ball.v.x, g.ball.v.z), bar: Math.max(...ch) });
   }
-  ok(!res[0].through && res[1].through && res[2].through && res[2].v > res[1].v, `pase: toque al pie (${res[0].through ? 'hueco' : 'al pie'}), mantenido al hueco (${res[1].v.toFixed(1)} → ${res[2].v.toFixed(1)} m/s más carga)`); }
+  ok(res[0].power === null && res[1].d < res[2].d && res[2].d < res[3].d && res[3].bar > 0.9, `pase: toque al pie (${res[0].power === null ? 'automático' : 'con fuerza'}), mantenido con fuerza: ${res.slice(1).map(r => r.d + ' m').join(' → ')} (barra hasta ${(res[3].bar * 100).toFixed(0)}%)`); }
 // tu portero con el balón en los pies (cesión): pasa con el pie en vez de estirarse
 { const g = setup(), k = g.gk(0), q = g.byRole(0, 'CTI'); k.x = gx + 6; k.z = 0; k.h = Math.PI / 2; q.x = gx + 20; q.z = -6; g.setMe(k, 'gk'); g.ball.set(k.x + 0.5, 0); g.owner = k; k.hands = false;
   g.setMove(1, -0.4, 1, false); g.press('pass'); g.release('pass'); g.step(1 / 120);

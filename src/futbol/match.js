@@ -332,7 +332,16 @@ export class FutbolMatch {
       case 'shot': A.bump(0.6, 1.2); break;
       case 'steal': if (P(e.p).team === 0) H.say(e.how === 'entrada' ? '¡Qué entrada!' : TEXT.steal, 1200); else if (P(e.from) === g.me) H.say('¡Te han robado el balón!', 1200); this.tuto?.stole(e); break;
       case 'tackle': this.anim(P(e.p), e.kind === 'slide' ? 'slide' : 'robo'); break;
+      case 'advantage': H.say(TEXT.advantage, 1500); break;
+      case 'card': {
+        const red = e.color === 'red', who = name(P(e.p));
+        H.msg(red ? (e.second ? TEXT.second2 : TEXT.red) : TEXT.yellow, red ? `${who.charAt(0).toUpperCase() + who.slice(1)}, expulsado` : who.charAt(0).toUpperCase() + who.slice(1), 2400, red ? 'card-r' : 'card-y');
+        H.setCards?.(g); if (red) A.groan(); break;
+      }
+      case 'sentOff': H.say(e.back ? 'Uno menos durante 2 minutos (o hasta encajar un gol)' : (P(e.p).team === 0 ? 'Jugáis con uno menos' : 'El rival juega con uno menos'), 2400); break;
+      case 'backOn': H.say(P(e.p).team === 0 ? 'Entra un compañero: volvéis a estar completos' : 'El rival vuelve a estar completo', 1800); break;
       case 'foul':
+        if (e.advantage) { A.groan(); this.anim(P(e.on), 'fall'); if (RU.foulLimit) H.setFouls?.(g.fouls[0], g.fouls[1], RU.foulLimit); break; }
         H.msg(e.penalty ? TEXT.penalty : TEXT.foul, e.penalty ? 'Falta dentro del área' : e.over ? TEXT.fouls6 : RU.foulLimit ? `De ${name(P(e.p))} · ${e.acc}.ª falta` : `De ${name(P(e.p))}`, 1800);
         A.groan(); this.anim(P(e.on), 'fall'); if (RU.foulLimit) H.setFouls?.(g.fouls[0], g.fouls[1], RU.foulLimit); break;
       case 'fourSec': H.say(TEXT.fourSec + ' Saca el otro equipo', 1600); break;
@@ -385,7 +394,7 @@ export class FutbolMatch {
     H.tip(null);
     await new Promise(r2 => setTimeout(r2, 1400));
     const pos = S.poss[0] + S.poss[1] || 1, pct = (t) => Math.round(S.poss[t] / pos * 100) + ' %';
-    const rows = g.mode === 'penalties' && !g.cupPens ? [] : [[g.score[0], 'Goles', g.score[1]], [`${S.shots[0]} (${S.onTarget[0]})`, 'Tiros (a puerta)', `${S.shots[1]} (${S.onTarget[1]})`], [pct(0), 'Posesión', pct(1)], [S.passesOk[0], 'Pases buenos', S.passesOk[1]], [S.steals[0], 'Robos', S.steals[1]], [S.saves[0], 'Paradas', S.saves[1]]];
+    const rows = g.mode === 'penalties' && !g.cupPens ? [] : [[g.score[0], 'Goles', g.score[1]], [`${S.shots[0]} (${S.onTarget[0]})`, 'Tiros (a puerta)', `${S.shots[1]} (${S.onTarget[1]})`], [pct(0), 'Posesión', pct(1)], [S.passesOk[0], 'Pases buenos', S.passesOk[1]], [S.steals[0], 'Robos', S.steals[1]], [S.saves[0], 'Paradas', S.saves[1]], [S.fouls[0], 'Faltas', S.fouls[1]], [S.yellow[0], 'Amarillas', S.yellow[1]], [S.red[0], 'Rojas', S.red[1]]];
     const pens = r.pens ? ` (penaltis ${r.pens[0]}-${r.pens[1]})` : '';
     const title = r.win ? '¡Victoria!' : r.draw ? 'Empate' : 'Derrota';
     const score = g.mode === 'penalties' && !g.cupPens ? `${r.pens[0]} – ${r.pens[1]}` : `${g.score[0]} – ${g.score[1]}${pens}`;
@@ -453,7 +462,7 @@ export class FutbolMatch {
       ch.outer.visible = !g.noRefs;
       ch.outer.position.set(r.x, 0, r.z); ch.outer.rotation.y = r.h;
       ch.c.anim.setSpeed?.(Math.hypot(r.vx, r.vz)); ch.c.anim.update?.(dt);
-      ch.c.post?.({ arms: r.flag > 0 ? 'flag' : null }, dt);
+      ch.c.post?.({ arms: r.flag > 0 ? 'flag' : null, card: r.flag > 0 ? r.card : null }, dt);
     });
     // balón: rodando con giro coherente con la velocidad; en las manos del portero, con él
     const bp = B.p, bm = this.ball;
@@ -605,7 +614,7 @@ export class FutbolMatch {
     else if (g.mode !== 'penalties') H.setClock(Math.floor(((g.half - 1) + Math.min(1, g.clock / g.halfLen)) * (RU.period || 45) * 60), g.half);
     // botones según el momento; con tu portero: sacar (con la balón en las manos) o estirarse (llevándolo o con un tiro del rival)
     if (g.mode !== 'penalties' && !this.reto) H.setMode(g.gkCtl ? 'gkhands' : (g.me.role === 'POR' || (g.phase === 'play' && g.rivalShot())) ? 'gk' : g.owner ? (g.owner.team === g.me.team ? 'atk' : 'def') : 'loose');
-    H.bars(me.energy, g.charge);
+    H.bars(me.energy, g.charge, g.chargeKind);
     // flecha en el borde si tu jugador no se ve
     if (!this.ring.visible) { H.arrow(null); return; }
     const v = new THREE.Vector3(me.x, 1, me.z).project(this.camera);

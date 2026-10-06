@@ -91,7 +91,7 @@ PHYS_SALA.drag = PHYS_SALA.dragK * 0.25;   // (la aproximación de la IA para ca
 // 18 m/s², giro de 540 °/s (360 °/s con el balón); controla el balón a menos de 0,9 m y 0,8 m de altura
 const PLAYER_SALA = {
   run: 5.5, sprint: 7.2, acc: 14, brake: 24, grip: 9.5, drain: 1 / 4, regain: 1 / 6, radius: 0.36, turn: 540 * Math.PI / 180, turnBall: 360 * Math.PI / 180,
-  reach: 0.9, ctrlH: 0.8, keep: 1.3, touchSlow: 0.5, touchFast: 0.32, gkBody: 1.0,   // (el portero de sala tapa mucho con el cuerpo y las piernas)
+  reach: 0.9, ctrlH: 0.8, keep: 1.3, touchSlow: 0.5, touchFast: 0.32,
   cone: 35 * Math.PI / 180, passHold: 0.22, charge: 0.8, tackleWin: 0.25, trapMax: 12, loft: 0.3,
 };
 // Sistema 1-2-2: portero, cierre, dos alas y pívot
@@ -169,6 +169,7 @@ export const TEXT = {
   corner: 'Córner', goalkick: 'Saque de portería', foul: 'Falta', free: 'Tiro libre', kickoff: 'Saque de centro',
   post: '¡Al poste!', bar: '¡Al larguero!', save: '¡Paradón!', catch: '¡Blocada del portero!', steal: '¡Balón recuperado!',
   second: 'Segunda parte', kickin: 'Saque de banda', fourSec: '¡4 segundos!', fouls6: 'Sexta falta: tiro libre sin barrera', double: 'Tiro libre desde 10 m',
+  yellow: 'Tarjeta amarilla', red: 'Tarjeta roja', second2: 'Segunda amarilla: roja', advantage: 'Falta… ¡ventaja! Sigue el juego',
 };
 
 export const CAREER_KEY = 'mendimendiz-futbol-v1';

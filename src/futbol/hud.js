@@ -54,6 +54,9 @@ const CSS = `
 .fb-bars{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 10px);width:min(24vw,190px);display:flex;flex-direction:column;gap:4px;pointer-events:none}
 .fb-bar{height:4px;border-radius:3px;background:rgba(8,10,20,.4);overflow:hidden;box-shadow:0 0 0 .5px rgba(255,255,255,.4)}
 .fb-bar i{display:block;height:100%;width:100%;border-radius:6px;background:linear-gradient(90deg,#3fd36a,#a6f07a);transform-origin:left;transition:transform .05s linear}
+.fb-b.chg::after{content:'';position:absolute;inset:calc(-6px * var(--u));border-radius:50%;pointer-events:none;background:conic-gradient(#ffd700 0, #ff8a2a calc(var(--chg) * 300deg), #e0302a calc(var(--chg) * 360deg), rgba(255,255,255,.18) calc(var(--chg) * 360deg));-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 6px),#000 calc(100% - 5px));mask:radial-gradient(farthest-side,transparent calc(100% - 6px),#000 calc(100% - 5px))}
+.fb-cd{display:flex;gap:2px;align-items:center;font-style:normal}.fb-cd:empty{display:none}.fb-cd u{width:6px;height:9px;border-radius:1.5px;box-shadow:0 1px 2px rgba(0,0,0,.4)}.fb-cd u.y{background:#ffd400}.fb-cd u.r{background:#e3262b}
+.fb-msg.card-y h2::before,.fb-msg.card-r h2::before{content:'';display:inline-block;width:.62em;height:.86em;border-radius:.08em;margin-right:.32em;vertical-align:-.08em;transform:rotate(-8deg);box-shadow:0 2px 6px rgba(0,0,0,.35)}.fb-msg.card-y h2::before{background:#ffd400}.fb-msg.card-r h2::before{background:#e3262b}
 .fb-bar.pow{opacity:0;transition:opacity .15s}.fb-bar.pow.on{opacity:1}.fb-bar.pow i{background:linear-gradient(90deg,#ffd700,#ff8a2a,#e0302a)}
 .fb-arrow{position:absolute;width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-bottom:26px solid #ffe14a;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));display:none;transform-origin:50% 60%}
 /* consejo del tutorial y de los retos: pequeño, bajo el marcador (encima de la grada, no del campo); a los pocos segundos
@@ -140,9 +143,9 @@ export class FutbolHud {
     if (!document.getElementById('fb-css')) { const st = document.createElement('style'); st.id = 'fb-css'; st.textContent = CSS; document.head.appendChild(st); }
     const r = this.root = document.createElement('div'); r.className = 'fb-root';
     const t = o.touch;
-    r.innerHTML = `<div class="fb-top"><div class="fb-score"><div class="fb-team"><i style="background:${o.home.shirt}"></i><span class="fb-ln">${esc(o.home.name)}</span><span class="fb-sn">${esc(o.home.short || o.home.name)}</span><b class="fb-s0">0</b></div>
+    r.innerHTML = `<div class="fb-top"><div class="fb-score"><div class="fb-team"><i style="background:${o.home.shirt}"></i><span class="fb-ln">${esc(o.home.name)}</span><span class="fb-sn">${esc(o.home.short || o.home.name)}</span><em class="fb-cd fb-cd0"></em><b class="fb-s0">0</b></div>
       <div class="fb-clock"><span class="fb-time">0:00</span><small class="fb-half">1ª parte</small></div>
-      <div class="fb-team"><b class="fb-s1">0</b><span class="fb-ln">${esc(o.away.name)}</span><span class="fb-sn">${esc(o.away.short || o.away.name)}</span><i style="background:${o.away.shirt}"></i></div></div>
+      <div class="fb-team"><b class="fb-s1">0</b><em class="fb-cd fb-cd1"></em><span class="fb-ln">${esc(o.away.name)}</span><span class="fb-sn">${esc(o.away.short || o.away.name)}</span><i style="background:${o.away.shirt}"></i></div></div>
       <div class="fb-fouls"></div><div class="fb-pen"><span>${esc(o.home.short || o.home.name)}</span><span class="fb-p0"></span><span>${esc(o.away.short || o.away.name)}</span><span class="fb-p1"></span></div>
       <div class="fb-say"></div><div class="fb-tip"><i>?</i><span></span></div></div>
       <button class="fb-pause" aria-label="Pausa">${SVG_PAUSE}</button><button class="fb-cam" aria-label="Cambiar cámara">${SVG_CAM}</button>
@@ -180,6 +183,11 @@ export class FutbolHud {
   }
   setScore(a, b) { this.el.s0.textContent = a; this.el.s1.textContent = b; }
   // faltas acumuladas de la parte (fútbol sala): un punto por falta; desde la 6.ª, en rojo
+  // tarjetas de cada equipo junto a su nombre en el marcador (una por jugador amonestado o expulsado)
+  setCards(g) {
+    for (const t of [0, 1]) { const el = this.root.querySelector('.fb-cd' + t); if (!el) continue;
+      el.innerHTML = g.players.filter(p => p.team === t && g.cards[p.id]).map(p => `<u class="${g.cards[p.id] === 'red' ? 'r' : 'y'}"></u>`).join(''); }
+  }
   setFouls(a, b, lim = 5) {
     const el = this.root.querySelector('.fb-fouls'); if (!el) return;
     const dots = (n) => Array.from({ length: Math.max(lim, n) }, (_, i) => `<u class="${i < n ? (i >= lim ? 'x' : 'on') : ''}"></u>`).join('');
@@ -224,7 +232,9 @@ export class FutbolHud {
       p.querySelector('.fb-go').onclick = () => { p.remove(); res(); };
     });
   }
-  bars(energy, charge) {
+  bars(energy, charge, kind = null) {
+    // la fuerza también en el propio botón que mantienes: un aro que se llena
+    for (const k of ['pass', 'shoot']) { const el = this.el[k]; if (!el) continue; const on = kind === k && charge >= 0; el.classList.toggle('chg', on); if (on) el.style.setProperty('--chg', charge.toFixed(3)); }
     if (this.el.en) this.el.en.style.transform = `scaleX(${energy.toFixed(3)})`;
     if (this.el.pow) { this.el.pow.classList.toggle('on', charge >= 0); if (charge >= 0) this.el.pw.style.transform = `scaleX(${charge.toFixed(3)})`; }
   }

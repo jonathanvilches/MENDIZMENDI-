@@ -1,8 +1,8 @@
 // Torneo de mano (pelota) de cada comarca, por eliminatorias como los campeonatos de los frontones: ocho pelotaris (tú
-// y siete de los pueblos de la comarca y de alrededor), cuartos (a 5 tantos), semifinales (a 5) y final (a 7). Es parte
-// de la misión de la comarca: cada partido tuyo se juega en el frontón de un pueblo distinto (el del rival, si es un
-// pueblo del juego); hay que viajar allí y hablar con su pelotari. Los demás partidos se simulan según el nivel de cada
-// pelotari. Quien gana la final se lleva la txapela de la comarca.
+// y siete de los pueblos de la comarca y de alrededor), cuartos (a 5 tantos), semifinales (a 5) y final (a 7). Todo el
+// torneo se juega en el frontón donde lo empiezas (el del pueblo en el que estás o el que eliges en Campeonatos): los
+// rivales vienen a tu frontón, no hay que viajar. Los demás partidos se simulan según el nivel de cada pelotari. Quien
+// gana la final se lleva la txapela de la comarca.
 // Los pelotaris son personajes del juego (nombres inventados con su pueblo), no pelotaris reales.
 // Se guarda en localStorage ('mendimendiz-torneo-v1'), uno por comarca.
 import { lgPanel, lgEsc as esc } from '../futbol/liga.js';
@@ -48,22 +48,14 @@ export function yourMatch(T) {
   if (T.done) return null;
   const m = T.matches.find(x => T.players[x.a].you || T.players[x.b].you); if (!m) return null;
   const rv = T.players[T.players[m.a].you ? m.b : m.a], R = ROUNDS[T.round];
-  // dónde se juega: en el pueblo del rival si es un pueblo del juego y no se ha jugado ya allí; si no, en otro pueblo
-  // de la comarca (cada ronda en uno distinto)
-  if (!m.venue) {
-    const used = new Set((T.used || []));
-    const v = rv.townId && !used.has(rv.townId) ? T.venues.find(t => t.id === rv.townId) : null;
-    m.venue = v || T.venues.find(t => !used.has(t.id)) || T.venues[T.round % T.venues.length];
-    save(T);
-  }
-  return { rival: rv, target: R.target, round: R.name, level: rv.lv >= 3 ? 'dificil' : rv.lv <= 1 ? 'facil' : 'normal', venue: m.venue };
+  return { rival: rv, target: R.target, round: R.name, level: rv.lv >= 3 ? 'dificil' : rv.lv <= 1 ? 'facil' : 'normal' };
 }
 /** Apunta tu resultado (o null si ya estás eliminado), simula el resto de la ronda y prepara la siguiente. */
 export function playTorneoRound(T, you = null, rival = null) {
   const R = ROUNDS[T.round], r = rng(T.edition * 101 + T.round * 7);
   for (const m of T.matches) {
     const A = T.players[m.a], B = T.players[m.b];
-    if ((A.you || B.you) && you != null) { m.s = A.you ? [you, rival] : [rival, you]; if (m.venue) (T.used ||= []).push(m.venue.id); }
+    if ((A.you || B.you) && you != null) m.s = A.you ? [you, rival] : [rival, you];
     else {
       const pa = 0.5 + (A.lv - B.lv) * 0.15, aw = r() < pa, lose = Math.floor(r() * R.target * 0.85);
       m.s = aw ? [R.target, lose] : [lose, R.target];
@@ -106,7 +98,7 @@ function bracketHtml(T) {
   }).join('');
   return `<div class="tq-bracket">${cols}</div>`;
 }
-/** Pantalla del torneo. Devuelve 'play' | 'sim' | 'new' | 'exit'. */
+/** Pantalla del torneo (here: el nombre del pueblo del frontón donde se juega). Devuelve 'play' | 'sim' | 'new' | 'exit'. */
 const css = () => { if (!document.getElementById('tq-css')) { const st = document.createElement('style'); st.id = 'tq-css'; st.textContent = CSS; document.head.appendChild(st); } };
 export function torneoPanel(T, here = null) {
   css();
@@ -114,24 +106,23 @@ export function torneoPanel(T, here = null) {
     const m = yourMatch(T);
     const head = `<div class="lg-head tq-txa">${TXAPELA}<div><small>Torneo de mano · edición ${T.edition}</small><h2>Txapela de ${esc(T.comarcaName)}</h2><span class="lg-note">${T.txapelas ? `Tus txapelas: ${T.txapelas}` : 'Gana la final y la txapela es tuya'}</span></div></div>`;
     // cómo funciona: solo al empezar (en las rondas siguientes ya se sabe)
-    const how = T.round === 0 && !T.past.length && !T.done ? '<p class="lg-how"><b>Cómo funciona:</b> ocho pelotaris por eliminatorias (cuartos y semifinales a 5 tantos, final a 7). Cada partido tuyo se juega en el frontón de un pueblo distinto de la comarca: viaja allí y habla con su pelotari. Los demás partidos se simulan. Es parte de la misión de la comarca.</p>' : '';
+    const how = T.round === 0 && !T.past.length && !T.done ? '<p class="lg-how"><b>Cómo funciona:</b> ocho pelotaris por eliminatorias (cuartos y semifinales a 5 tantos, final a 7). Todos tus partidos se juegan en este frontón: los rivales vienen aquí. Los demás partidos se simulan.</p>' : '';
     let mid;
     if (T.done) { const C = T.players[T.champion]; mid = `<div class="lg-champ"><small>TXAPELDUN · CAMPEÓN DEL TORNEO</small><br><b>${esc(C.name)}</b><br>${C.you ? '¡La txapela es tuya! Zorionak!' : `${esc(C.town)} se lleva la txapela. ¡A por la próxima!`}</div>`; }
-    else if (m) mid = `<div class="lg-next"><div class="lg-t"><b>${esc(T.players[0].name)}</b><em>${esc(T.players[0].town)}</em></div><div class="lg-vs">VS<small>${esc(m.round.toUpperCase())} · A ${m.target} TANTOS</small><small>FRONTÓN DE ${esc(m.venue.name.toUpperCase())}</small></div><div class="lg-t"><b>${esc(m.rival.name)}</b><em>${esc(m.rival.town)} · ${'★'.repeat(m.rival.lv)}</em></div></div>`;
+    else if (m) mid = `<div class="lg-next"><div class="lg-t"><b>${esc(T.players[0].name)}</b><em>${esc(T.players[0].town)}</em></div><div class="lg-vs">VS<small>${esc(m.round.toUpperCase())} · A ${m.target} TANTOS</small>${here ? `<small>FRONTÓN DE ${esc(here.toUpperCase())}</small>` : ''}</div><div class="lg-t"><b>${esc(m.rival.name)}</b><em>${esc(m.rival.town)} · ${'★'.repeat(m.rival.lv)}</em></div></div>`;
     else mid = `<div class="lg-champ"><small>ELIMINADO</small><br>El torneo sigue sin ti: mira quién se lleva la txapela.</div>`;
-    const away = m && here && m.venue.id !== here;
-    const btns = T.done ? '<button class="lg-btn go" data-a="new">Nuevo torneo</button>' : m ? (away ? `<button class="lg-btn go" data-a="travel">Viajar a ${esc(m.venue.name)}</button>` : '<button class="lg-btn go" data-a="play">¡A jugar!</button>') : '<button class="lg-btn go" data-a="sim">Siguiente ronda</button>';
-    const r = lgPanel(`${head}${mid}${how}${bracketHtml(T)}<div class="lg-btns">${btns}<button class="lg-btn" data-a="exit">Salir</button></div>${away && !how ? `<p class="lg-note">Tu partido es en el frontón de ${esc(m.venue.name)}: viaja allí (en el mapa) y habla con su pelotari.</p>` : ''}<p class="lg-note lg-adapt">Pelotaris inventados para el juego.</p>`);
+    const btns = T.done ? '<button class="lg-btn go" data-a="new">Nuevo torneo</button>' : m ? '<button class="lg-btn go" data-a="play">¡A jugar!</button>' : '<button class="lg-btn go" data-a="sim">Siguiente ronda</button>';
+    const r = lgPanel(`${head}${mid}${how}${bracketHtml(T)}<div class="lg-btns">${btns}<button class="lg-btn" data-a="exit">Salir</button></div><p class="lg-note lg-adapt">Pelotaris inventados para el juego.</p>`);
     r.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; r.remove(); res(b.dataset.a); });
   });
 }
-/** Menú del pelotari: partido libre o torneo. */
+/** Menú del pelotari: partido libre o torneo (here: el nombre del pueblo del frontón). */
 export function pelotaMenu(T, here = null) {
   css();   // (antes solo lo ponía el cuadro del torneo: la primera vez, la txapela salía enorme)
   return new Promise(res => {
-    const m = yourMatch(T), away = m && here && m.venue.id !== here;
-    const r = lgPanel(`<div class="lg-head tq-txa">${TXAPELA}<div><small>Frontón del pueblo</small><h2>Pelota a mano</h2><span class="lg-note">${T.txapelas ? `Tus txapelas: ${T.txapelas}` : 'Partido libre o torneo por la txapela'}</span></div></div>
-      <div class="lg-btns"><button class="lg-btn go" data-a="torneo">Txapela de ${esc(T.comarcaName)}<br><small style="font:700 11px Nunito,sans-serif;opacity:.8">${T.done ? 'Nueva edición' : m ? `${m.round} contra ${esc(m.rival.name)}${away ? ' · en ' + esc(m.venue.name) : ' · aquí'}` : 'Siguiente ronda'}</small></button><button class="lg-btn" data-a="libre">Partido libre<br><small style="font:700 11px Nunito,sans-serif;opacity:.8">A 5 tantos</small></button><button class="lg-btn" data-a="exit">Salir</button></div>`);
+    const m = yourMatch(T);
+    const r = lgPanel(`<div class="lg-head tq-txa">${TXAPELA}<div><small>${here ? `Frontón de ${esc(here)}` : 'Frontón del pueblo'}</small><h2>Pelota a mano</h2><span class="lg-note">${T.txapelas ? `Tus txapelas: ${T.txapelas}` : 'Partido libre o torneo por la txapela'}</span></div></div>
+      <div class="lg-btns"><button class="lg-btn go" data-a="torneo">Txapela de ${esc(T.comarcaName)}<br><small style="font:700 11px Nunito,sans-serif;opacity:.8">${T.done ? 'Nueva edición' : m ? `${m.round} contra ${esc(m.rival.name)} · aquí` : 'Siguiente ronda'}</small></button><button class="lg-btn" data-a="libre">Partido libre<br><small style="font:700 11px Nunito,sans-serif;opacity:.8">A 5 tantos</small></button><button class="lg-btn" data-a="exit">Salir</button></div>`);
     r.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; r.remove(); res(b.dataset.a); });
   });
 }

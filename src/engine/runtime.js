@@ -223,7 +223,7 @@ export class Runtime {
       const want = this.quality === 'low' ? 32 : 45;
       // (en ordenador nunca por debajo de la resolución de la pantalla: se veía pixelado; en los partidos tampoco baja de
       // 1,5: los pelotaris y futbolistas se veían borrosos cuando el móvil iba justo)
-      const floor = this.boosted ? Math.min(1.5, this.maxRatio) : this.quality === 'low' ? 0.6 : Math.min(1, this.maxRatio);
+      const floor = this.boosted ? Math.min(this.quality === 'low' ? 1.45 : 1.5, this.maxRatio) : this.quality === 'low' ? 0.6 : Math.min(1, this.maxRatio);
       // (el cambio se aplica en el siguiente fotograma, antes de dibujar: sin destello. Tras bajar, no se vuelve a subir
       // en 25 s, y para subir tiene que sobrar bastante: así no sube y baja cada pocos segundos)
       if (fps < want && this.pixelRatio > floor) { if (++this.lowFps >= 2) { this.pixelRatio = Math.max(floor, this.pixelRatio - (fps < want * 0.6 ? 0.3 : 0.15)); this.ratioDirty = true; this.lowFps = 0; this.highFps = 0; this.ratioHold = this.elapsed + 25; } }
@@ -236,16 +236,19 @@ export class Runtime {
    *  veían con manchas porque la imagen se dibujaba a 1,25 en pantallas de 3. Si va lento, la resolución dinámica la baja. */
   boost(on) {
     this.boosted = !!on;
-    this.maxRatio = on ? Math.max(this.ratioFor(this.quality), Math.min(devicePixelRatio, 2)) : this.ratioFor(this.quality);
+    this.maxRatio = on ? this.boostRatio() : this.ratioFor(this.quality);
     this.pixelRatio = on ? this.maxRatio : Math.min(this.pixelRatio, this.maxRatio);
     this.ratioDirty = true; this.lowFps = this.highFps = 0;
   }
+  // resolución de los partidos: en calidad baja (móvil) 1,6 y no 2: a 2 el móvil no llegaba, la resolución dinámica la
+  // bajaba a saltos durante el partido y los pelotaris se veían cada vez más borrosos. A 1,6 se queda fija
+  boostRatio() { return Math.max(this.ratioFor(this.quality), Math.min(devicePixelRatio, this.quality === 'low' ? 1.6 : 2)); }
   /** Tamaño y resolución del lienzo: se aplican justo antes de dibujar (si no, un fotograma con el lienzo vacío). */
   applySize() {
     const r = this.renderer;
     if (this.sizeDirty) {
       this.sizeDirty = false; this.ratioDirty = false;
-      this.maxRatio = this.boosted ? Math.max(this.ratioFor(this.quality), Math.min(devicePixelRatio, 2)) : this.ratioFor(this.quality);
+      this.maxRatio = this.boosted ? this.boostRatio() : this.ratioFor(this.quality);
       if (this.pixelRatio > this.maxRatio) this.pixelRatio = this.maxRatio;
       if (r.getPixelRatio() !== this.pixelRatio) r.setPixelRatio(this.pixelRatio);
       r.setSize(innerWidth, innerHeight);
