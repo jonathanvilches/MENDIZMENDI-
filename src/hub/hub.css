@@ -207,8 +207,9 @@
 .sh-hero.key { position: relative; overflow: hidden; min-height: 250px; display: flex; flex-direction: column; justify-content: flex-end; padding-right: 42%; background: none; isolation: isolate; }
 .sh-hero.key::before { content: ''; position: absolute; inset: -8px; z-index: -2; background: var(--bg) 30% center / cover no-repeat; filter: blur(2px) saturate(1.06); }
 .sh-hero.key::after { content: ''; position: absolute; inset: 0; z-index: -1; background: radial-gradient(80% 90% at 80% 25%, rgba(255, 190, 110, .26), rgba(255, 190, 110, 0) 60%), linear-gradient(90deg, rgba(20, 6, 48, .7), rgba(20, 6, 48, .1) 60%, rgba(20, 6, 48, 0)), linear-gradient(180deg, transparent 55%, var(--plum)); }
-.sh-hero .sh-av { position: absolute; z-index: -1; right: 4%; bottom: -34%; height: 150%; width: auto; pointer-events: none; filter: drop-shadow(0 0 16px rgba(255, 170, 80, .4)) drop-shadow(0 10px 20px rgba(0, 0, 0, .45)); -webkit-mask: linear-gradient(180deg, #000 72%, transparent 92%); mask: linear-gradient(180deg, #000 72%, transparent 92%); }
+.sh-hero .sh-av { position: absolute; z-index: -1; right: 9%; bottom: -26%; height: 118%; width: auto; pointer-events: none; filter: drop-shadow(0 0 16px rgba(255, 170, 80, .4)) drop-shadow(0 10px 20px rgba(0, 0, 0, .45)); -webkit-mask: linear-gradient(180deg, #000 72%, transparent 92%); mask: linear-gradient(180deg, #000 72%, transparent 92%); }
 .sh-hero.key h1, .sh-hero.key p, .sh-hero.key small { text-shadow: 0 2px 8px rgba(0, 0, 0, .6); }
+@media (max-width: 560px) { .sh-hero.key { padding-right: 44%; min-height: 230px; } .sh-hero .sh-av { right: -4%; } .sh-hero.key p { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; } }
 .sh-hero h1 { margin: 4px 0 6px; font-family: 'Lilita One', 'Nunito', sans-serif; font-weight: 400; font-size: 38px; line-height: 1; } .sh-hero p { margin: 0; color: #eadfcf; font-weight: 600; }
 .sh-body { padding: 4px 24px 10px; overflow-y: auto; touch-action: pan-y; }
 .sh-body h3 { display: flex; align-items: center; gap: 8px; color: var(--gold); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; }
