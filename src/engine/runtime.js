@@ -2,7 +2,6 @@
 import { applyCharFill, skyFill, lampFill } from './charLight.js';
 import { Weather, pickWeather } from '../world/weather.js';
 import * as THREE from 'three';
-import { setOutfitTexMax } from '../actors/outfits.js';
 import { setMeshyTexMax } from '../actors/glbChar.js';
 import { setQuality } from '../util/quality.js';
 import { bake, initBridges, clearPlatforms } from '../world/heightfield.js';
@@ -59,7 +58,7 @@ function showContextLost(onReload) {
 export class Runtime {
   constructor({ canvas, input, sound, quality }) {
     this.canvas = canvas; this.input = input; this.sound = sound; this.quality = quality;
-    setBuilderQuality(quality); setOutfitTexMax(quality === 'low' ? 256 : 512); setMeshyTexMax(quality === 'low' ? 1024 : 2048); setQuality(quality);
+    setBuilderQuality(quality); setMeshyTexMax(quality === 'low' ? 1024 : 2048); setQuality(quality);
     // en móvil (calidad media/baja) sin antialias de hardware y con menos resolución: el búfer de imagen pesa mucho menos
     // en pantallas de mucha densidad (retina, 4K) la propia resolución ya suaviza los bordes: sin antialias de hardware,
     // que con tantos píxeles era lo que más frenaba los ordenadores

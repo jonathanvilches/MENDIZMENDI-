@@ -3,10 +3,8 @@
 // por combinación de colores y se comparten; la geometría es la del modelo (un solo juego para todo el pueblo).
 import * as THREE from 'three';
 import { fillMaterial } from '../engine/charLight.js';
-import { GlbChar, loadKayKit, loadMeshy, hasMeshy, MESHY_GAIT, MESHY_NAMES } from './glbChar.js';
-import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { applyOutfit, regionalOutfit, MYTHS, resetOutfitTextures, dressMeshy } from './outfits.js';
+import { GlbChar, loadMeshy, hasMeshy, MESHY_GAIT, MESHY_NAMES } from './glbChar.js';
+import { regionalOutfit, MYTHS, dressMeshy } from './outfits.js';
 
 // colores con los que se pintaron los modelos en Blender (build_protagonista.py / build_nerea.py)
 const BASE = {
@@ -23,16 +21,12 @@ const BASE = {
 };
 const GLTF = {};
 let ready = false;
-/** Carga los cuerpos de los vecinos (KayKit). Se llama antes de montar el pueblo; si no cargan, los vecinos salen
- *  con la figura sencilla de reserva. */
+/** Carga los cuerpos de los vecinos: los personajes propios (Meshy, versión ligera), también para los trajes de
+ *  carnaval y los seres de leyenda. Se llama antes de montar el pueblo; si no cargan, los vecinos salen con la figura
+ *  sencilla de reserva. */
 export async function preloadNpcs() {
-  // los vecinos son los personajes nuevos (Meshy, versión ligera); los cuerpos KayKit quedan solo para los seres de
-  // leyenda y los trajes de carnaval (cuernos, pieles, cencerros, máscaras), que los nuevos no tienen
-  // (los vecinos con traje también salen de los nuevos, vestidos: los KayKit solo se bajan si los nuevos no cargan. Antes
-  // se bajaban siempre: seis modelos y sus texturas, unos 24 MB de memoria en cada pueblo, sin salir nunca)
   await Promise.all(MESHY_NAMES.map(n => loadMeshy(n, true).then(g => { MESHY_LOD_NPC[n] = g; }))).then(() => { meshyReady = true; }).catch(e => console.warn('vecinos Meshy', e));
-  if (!meshyReady && !kkReady) await Promise.all(KK_BASES.map(n => loadKayKit(n).then(g => { KKG[n] = g; }))).then(() => { kkReady = true; }).catch(e => console.warn('vecinos KayKit', e));
-  return meshyReady || kkReady;
+  return meshyReady;
 }
 const MESHY_LOD_NPC = {}; let meshyReady = false;
 // trajes que solo existen en los cuerpos antiguos (carnaval, leyendas): esos vecinos siguen con ellos
@@ -128,41 +122,6 @@ function buildNpcMeshyCostume(L) {
   n.obj.userData.look = L; n.obj.userData.sex = female ? 'girl' : 'boy';
   return n;
 }
-const KK_BASES = ['Ranger', 'Rogue', 'Knight', 'Barbarian', 'Mage', 'Rogue_Hooded'];
-const KKG = {}; let kkReady = false;
-const KK_SEX = { boy: ['Ranger', 'Knight', 'Ranger'], girl: ['Rogue', 'Mage', 'Rogue_Hooded'], old: ['Barbarian'] };
-// todas las piezas con piel (cuerpo, cabeza, brazos, piernas) en una sola malla: una llamada de dibujo por vecino
-function mergeSkinned(root) {
-  const sk = []; root.traverse(o => { if (o.isSkinnedMesh && o.visible) sk.push(o); });
-  // al clonar, cada pieza recibe su propio esqueleto (con los mismos huesos): se comparan los huesos, no el objeto
-  const sameBones = (m) => m.skeleton === sk[0].skeleton || (m.skeleton.bones.length === sk[0].skeleton.bones.length && m.skeleton.bones.every((b, i) => b === sk[0].skeleton.bones[i]));
-  if (sk.length < 2 || sk.some(m => !sameBones(m) || !m.bindMatrix.equals(sk[0].bindMatrix) || m.parent !== sk[0].parent || m.material.map !== sk[0].material.map)) return;
-  const geos = sk.map(m => {
-    const src = m.geometry, n = src.attributes.position.count, out = new THREE.BufferGeometry();
-    const f32 = (name, k) => { const a = src.attributes[name], arr = new Float32Array(n * k); for (let i = 0; i < n; i++) for (let j = 0; j < k; j++) arr[i * k + j] = a.getComponent(i, j); return new THREE.BufferAttribute(arr, k); };
-    for (const [nm, k] of [['position', 3], ['normal', 3], ['uv', 2], ['skinWeight', 4]]) out.setAttribute(nm, f32(nm, k));
-    const si = src.attributes.skinIndex, sia = new Uint16Array(n * 4); for (let i = 0; i < n; i++) for (let j = 0; j < 4; j++) sia[i * 4 + j] = si.getComponent(i, j);
-    out.setAttribute('skinIndex', new THREE.BufferAttribute(sia, 4)); if (src.index) out.setIndex(Array.from(src.index.array));
-    return out;
-  });
-  const merged = mergeGeometries(geos); if (!merged) return;
-  const mesh = new THREE.SkinnedMesh(merged, sk[0].material); mesh.name = 'Body'; mesh.position.copy(sk[0].position); mesh.quaternion.copy(sk[0].quaternion); mesh.scale.copy(sk[0].scale);
-  sk[0].parent.add(mesh); mesh.bind(sk[0].skeleton, sk[0].bindMatrix);
-  for (const m of sk) m.removeFromParent();
-}
-// plantilla por cuerpo y traje (se comparte entre vecinos iguales)
-const KKT = new Map();
-function kkTemplate(base, outfit) {
-  const key = base + '|' + JSON.stringify(outfit);
-  if (!KKT.has(key)) {
-    const g = KKG[base], sc = SkeletonUtils.clone(g.scene);
-    applyOutfit(sc, base, outfit);
-    const gone = []; sc.traverse(o => { if (o.isMesh && o.visible === false) gone.push(o); }); gone.forEach(o => o.removeFromParent());
-    mergeSkinned(sc);
-    KKT.set(key, { scene: sc, animations: g.animations, userData: { ...g.userData } });
-  }
-  return KKT.get(key);
-}
 // traje del vecino a partir de su «look» (o el de su comarca si lo pide)
 function lookOutfit(L, female) {
   // pelo y piel de cada vecino (antes todos salían con el pelo castaño del modelo), también con el traje de su comarca
@@ -191,28 +150,7 @@ function lookOutfit(L, female) {
   if (L.handkerchief && !O.scarf) O.scarf = L.handkerchief;
   return O;
 }
-export function buildNpcKK(L) {
-  const M = L.myth && MYTHS[L.myth];   // ser de leyenda: su cuerpo, su traje y su altura de gigante
-  const female = M ? M.female : !!(L.female || L.skirt || L.ponytail || L.bun || L.braids || L.longHair || L.lashes);
-  const h = (JSON.stringify(L).split('').reduce((a, c) => (a * 31 + c.charCodeAt(0)) | 0, 7) >>> 0);
-  const list = L.old && !female ? KK_SEX.old : KK_SEX[female ? 'girl' : 'boy'], base = M ? M.base : L.base && KKG[L.base] ? L.base : list[h % list.length];   // base: el cuerpo del avatar del jugador (fútbol, encierro)
-  const gltf = kkTemplate(base, L.outfit || (M ? M.outfit : lookOutfit(L, female)));   // outfit: traje ya hecho (tu personaje)
-  const char = new GlbChar(gltf, { vary: true, walkAt: 0.2, runAt: 4.6, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / 3.0, 0.85) : Math.pow(Math.max(0.2, v) / 1.35, 0.8) });
-  const H = M ? M.height : L.height || (L.child ? 1.2 : 1.5);
-  const k = (gltf.userData.fit || 1) * (M ? H / 1.5 : THREE.MathUtils.clamp(H / 1.5, 0.7, H > 1.9 ? 1.7 : 1.15));   // gigantes de carnaval, más altos
-  char.root.scale.setScalar(k);
-  const obj = new THREE.Group(); obj.add(char.root); obj.userData.glbNpc = true; obj.userData.sex = female ? 'girl' : 'boy'; obj.userData.H = H; obj.userData.look = L;   // el retrato de los diálogos sale de su aspecto
-  const anim = {
-    t: 0, setExpr() {},
-    update(dt, s) {
-      if (s.wave > 0 && !char.oneShot && s.speed < 0.5) char.playOnce('Wave', Math.min(1.4, s.wave));
-      else if ((s.cheer > 0 || s.dance || s.clap > 0) && !char.oneShot) char.playOnce('Celebrate', 1.2);
-      char.setTalking?.(s.talking > 0); char.setSpeed(s.speed); char.update(dt);
-    },
-  };
-  return { obj, char, anim };
-}
-export const npcsReady = () => ready || kkReady || meshyReady;
+export const npcsReady = () => ready || meshyReady;
 
 // colores en sRGB (como están pintadas las texturas); getHex devuelve sRGB aunque Three trabaje en lineal
 const hex = (c) => { const h = new THREE.Color(c).getHex(); return [(h >> 16) & 255, (h >> 8) & 255, h & 255]; };
@@ -261,7 +199,7 @@ function palette(look, sex) {
 }
 const texCache = new Map();
 /** Al salir de un pueblo: se sueltan las texturas de sus vecinos (cada pueblo tiene los suyos). */
-export function resetNpcCache() { for (const v of texCache.values()) { v.body.dispose(); v.face.dispose(); v.body.image.width = v.face.image.width = 1; } texCache.clear(); KKT.clear(); resetOutfitTextures(); }
+export function resetNpcCache() { for (const v of texCache.values()) { v.body.dispose(); v.face.dispose(); v.body.image.width = v.face.image.width = 1; } texCache.clear(); }
 function variantTextures(sex, P, srcBody, srcFace) {
   const q = (c) => c.map(v => v >> 3).join('.');
   const key = sex + '|' + [P.skin, P.hair, P.shirt, P.vest, P.pants, P.boots, P.red, P.socks].map(q).join('|');
@@ -371,7 +309,6 @@ export function buildNpc(look = {}) {
   if (meshyReady && !COSTUME(L)) try { return buildNpcMeshy(L); } catch (e) { console.warn('vecino Meshy', e); }
   if (meshyReady && COSTUME(L)) try { return buildNpcMeshyCostume(L); } catch (e) { console.warn('vecino Meshy con traje', e); }
   if (L.meshy && MESHY_NPC[L.meshy]) try { return buildNpcMeshy(L); } catch (e) { console.warn('vecino Meshy', e); }
-  if (kkReady && !L.classic) try { return buildNpcKK(L); } catch (e) { console.warn('vecino KayKit', e); }
   if (!GLTF.boy) return null;   // sin cuerpo: la figura de reserva
   const sex = L.female || L.skirt || L.ponytail || L.bun || L.braids || L.longHair || L.lashes ? 'girl' : 'boy';
   const gltf = GLTF[sex] || GLTF.boy;

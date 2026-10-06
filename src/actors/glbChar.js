@@ -7,13 +7,6 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';   // modelos de Meshy comprimidos
-// personajes KayKit Adventurers 2.0 (CC0, Kay Lousberg, www.kaylousberg.com): modelo y animaciones del rig común
-const KK = {};
-for (const [p, u] of Object.entries(import.meta.glob('../assets/kaykit/*.glb', { eager: true, query: '?url', import: 'default' }))) KK[p.split('/').pop().replace('.glb', '')] = u;
-const KK_PICS = {};
-for (const [p, u] of Object.entries(import.meta.glob('../assets/kaykit/portraits/*.webp', { eager: true, query: '?url', import: 'default' }))) KK_PICS[p.split('/').pop().replace('.webp', '')] = u;
-// sus clips con los nombres que usa el juego
-const KK_CLIPS = { Idle: 'Idle_A', Walk: 'Walking_A', Run: 'Running_A', Jump_Start: 'Jump_Start', Jump_Loop: 'Jump_Idle', Land: 'Jump_Land', Wave: 'Interact', Celebrate: 'Jump_Full_Short', Talk: 'Idle_B', Hit: 'Throw', Scared: 'Hit_A', Ready: 'Idle_B', Pick: 'PickUp' };
 
 const cache = new Map();
 let loader = null;
@@ -40,18 +33,6 @@ function outlineMat(w) {
   return outlines.get(w);
 }
 
-/** Personaje KayKit: su modelo con los clips del rig común renombrados como los del juego y escalado a su altura. */
-export async function loadKayKit(name, height = 1.5) {
-  const key = 'kaykit:' + name;
-  if (!cache.has(key)) cache.set(key, (async () => {
-    const [ch, mv, gen] = await Promise.all([loadChar(KK[name]), loadChar(KK.Rig_Medium_MovementBasic), loadChar(KK.Rig_Medium_General)]);
-    const src = [...mv.animations, ...gen.animations], animations = [];
-    for (const [want, have] of Object.entries(KK_CLIPS)) { const c = src.find(a => a.name === have); if (c) { const k = c.clone(); k.name = want; animations.push(k); } }
-    const box = new THREE.Box3().setFromObject(ch.scene), fit = height / Math.max(0.1, box.max.y - box.min.y);
-    return { scene: ch.scene, animations, userData: { fit, kaykit: true } };
-  })());
-  return cache.get(key);
-}
 // personajes hechos con Meshy (los sube el usuario): un modelo con su propia textura y unos pocos clips (correr,
 // andar, salto completo y celebración). Los que faltan se recortan de esos mismos clips: estar quieto y hablar (el final
 // tranquilo de la celebración, de ida y vuelta para que no salte), saludar, celebrar, el impulso, el vuelo y la caída
@@ -456,10 +437,7 @@ export class GlbChar {
 
 // ---- personajes GLB elegibles como avatar del jugador ----
 
-// los personajes jugables: los seis importados (KayKit), tal cual
 export const GLB_AVATARS = {};
-for (const [id, name] of [['ranger', 'Ranger'], ['rogue', 'Rogue'], ['hooded', 'Rogue_Hooded'], ['knight', 'Knight'], ['barbarian', 'Barbarian'], ['mage', 'Mage']])
-  if (KK[name]) GLB_AVATARS[id] = { kaykit: name, bust: KK_PICS[id + '_bust'], full: KK_PICS[id + '_full'] };
 // personajes propios (Meshy) elegibles: el sanferminero, el pastor, el futbolista de Osasuna y el pelotari
 for (const id of ['sanfermin', 'pastor', 'osasuna', 'pelotari']) if (MESHY[id]) GLB_AVATARS[id] = { meshy: id, bust: MESHY_PICS[id + '_bust'], full: MESHY_PICS[id + '_full'], hero: MESHY_PICS[id + '_hero'] };   // (hero: el grande de la portada)
 export const hasMeshy = (id) => !!MESHY[id];
@@ -467,7 +445,7 @@ export const isGlbAvatar = id => !!GLB_AVATARS[id];
 export const loadGlbAvatar = (id) => {
   const d = GLB_AVATARS[id];
   if (d.meshy) { fullTexFor(d.meshy); return loadMeshy(d.meshy); }   // el del jugador, con su textura completa
-  return d.kaykit ? loadKayKit(d.kaykit) : loadChar(d.url);
+  return loadChar(d.url);
 };
 
 const EXPR = {
@@ -478,9 +456,8 @@ const EXPR = {
 /** Adaptador con la misma interfaz que MinifigRig (update, doWave, doCheer, setExpr, doAct, carry). */
 // las piernas del modelo son un 35 % más largas que las del diseño original: cada paso cubre más suelo
 const LEGS = 1.3;
-import { applyOutfit } from './outfits.js';
 export class GlbRig {
-  constructor(gltf, id = 'ranger') {
+  constructor(gltf, id = 'sanfermin') {
     const def = GLB_AVATARS[id] || {};
     this.id = id;
     if (gltf.userData?.meshy) this.speeds = MESHY_SPEEDS;   // el jugador anda y corre a su paso
@@ -494,9 +471,6 @@ export class GlbRig {
     this.char = gltf.userData?.meshy
       ? new GlbChar(gltf, { outline: 0.006, ...MESHY_GAIT })
       : new GlbChar(gltf, { outline: 0.006, walkAt: 0.2, runAt: 4.6, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / (2.5 * LEGS), 0.85) : Math.pow(Math.max(0.2, v) / (1.15 * LEGS), 0.8) });
-    // los aventureros de KayKit llevan mochila a la espalda (agua, comida y equipo; se quitan capa y carcaj); los
-    // personajes propios (sanferminero, pastor, futbolista, pelotari) van tal cual, sin mochila
-    if (def.kaykit) { try { applyOutfit(this.char.root, def.kaykit, { id: 'mochila', keep: true, backpack: {} }); } catch (e) { console.warn('mochila', e); } }
     this.char.root.scale.setScalar(def.scale || gltf.userData?.fit || 1);
     this.obj.add(this.char.root);
     this.wave = 0; this.cheer = 0; this.talking = 0; this.carry = false;

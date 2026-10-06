@@ -11,7 +11,7 @@ import { infoCard } from '../ui/minigames.js';
 import { buildPlaza, RO, RA } from './encierroPlaza.js';
 import { crowd3d } from '../actors/crowd3d.js';
 import { QUALITY } from '../util/quality.js';
-import { GLB_AVATARS, GlbChar, loadMeshy, MESHY_GAIT } from '../actors/glbChar.js';
+import { GlbChar, loadMeshy, MESHY_GAIT } from '../actors/glbChar.js';
 import { cobbleSet, ashlarSet, brickSet, woodSet, plasterSet, windowTex, railingTex, shopTex, SHOPS, plaqueTex, sandTex, archTex, flagNavarraTex, paverSet, stencilTex, bandTex, boardTex } from './encierroTex.js';
 
 const L = 230;          // largo de la Estafeta en la escena (m); luego el callejón vallado y la plaza
@@ -300,7 +300,7 @@ export class Encierro {
   // corredores (el jugador y los demás, todos de blanco y rojo), toros y cabestros
   async spawn() {
     await preloadAnimals(['bull', 'cabestro']);   // toros y cabestros (se descargan al empezar el encierro)
-    const S = this.scene, rnd = mulberry(11), av = this.G.P.avatar, def = GLB_AVATARS[av];
+    const S = this.scene, rnd = mulberry(11);
     const white = { shirt: '#f7f3ea', pants: '#f7f3ea', sash: '#d42f2f', scarf: '#d42f2f', shoes: '#efe6d0', espadrille: true };
     // el protagonista se pone su ropa de San Fermín (el modelo vestido de blanco y rojo); los aventureros, de blanco y rojo
     // el jugador y los demás corredores son el mismo personaje de San Fermín (blanco y rojo, todos del mismo tamaño);
@@ -313,7 +313,7 @@ export class Encierro {
       return { obj, char, anim: { update: (dt, st) => { char.setSpeed(st.speed || 0); char.update(dt); } } };
     };
     let me = sf ? sanfermin() : null;
-    me ||= buildNpc({ ...white, base: def?.kaykit, female: ['Rogue', 'Rogue_Hooded', 'Mage'].includes(def?.kaykit), height: 1.6 });
+    me ||= buildNpc({ ...white, height: 1.6 });
     S.add(me.obj); this.me = { ...me, x: 0, z: -14, speed: 0, fall: 0, safe: 0 };
     this.runners = [];
     const nR = QUALITY === 'low' ? 7 : 12;

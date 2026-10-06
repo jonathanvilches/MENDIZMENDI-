@@ -1,6 +1,5 @@
-// Trajes navarros para los personajes KayKit (CC0): se vuelve a pintar su atlas de colores (una rejilla de 8×4
-// degradados) solo en las casillas de la ropa, manteniendo el sombreado del degradado, y se les ponen prendas de
-// aquí cosidas a los huesos: txapela, pañuelico rojo y faja. Se quitan cascos, capas y sombreros de fantasía.
+// Trajes navarros para los vecinos (los personajes propios, de Meshy): prendas de aquí cosidas a los huesos
+// (txapela, pañuelico rojo, faja, faldas, gorros de carnaval, cencerros, pieles…) y los trajes de cada comarca.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
@@ -27,66 +26,6 @@ export const OUTFITS = [
   { id: 'pastor', name: 'Pastor', shirt: '#33476a', pants: '#5b4a38', shoes: '#3a2a1e', accent: '#2a241f', beret: '#1d1d22', scarf: '#d8cfae', trade: true },
   { id: 'almadiero', name: 'Almadiero', shirt: '#efe9da', pants: '#26262c', shoes: '#4a3424', accent: '#26262c', beret: '#1d1d22', sash: '#c8102e', trade: true },
 ];
-const HIDE = /Helmet|Visor|BearHat|Mage_Hat|Cape|Quiver|Mask/i;
-const COLS = 8, ROWS = 4;
-
-// casillas del atlas que usa cada pieza (cuántos vértices caen en cada una)
-// (por superficie: un botón con muchos vértices pesa menos que la tela de la camisa)
-function cellsOf(mesh) {
-  const G = mesh.geometry, uv = G.attributes.uv, P = G.attributes.position, out = new Map(); if (!uv) return out;
-  const idx = G.index, n = idx ? idx.count : P.count, a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
-  for (let t = 0; t < n; t += 3) {
-    const i0 = idx ? idx.getX(t) : t, i1 = idx ? idx.getX(t + 1) : t + 1, i2 = idx ? idx.getX(t + 2) : t + 2;
-    a.fromBufferAttribute(P, i0); b.fromBufferAttribute(P, i1); c.fromBufferAttribute(P, i2);
-    const area = b.sub(a).cross(c.sub(a)).length() / 2;
-    const u = (uv.getX(i0) + uv.getX(i1) + uv.getX(i2)) / 3, v = (uv.getY(i0) + uv.getY(i1) + uv.getY(i2)) / 3;
-    const cx = Math.min(COLS - 1, Math.max(0, Math.floor(u * COLS))), cy = Math.min(ROWS - 1, Math.max(0, Math.floor(v * ROWS))), k = cy * COLS + cx;
-    out.set(k, (out.get(k) || 0) + area);
-  }
-  return out;
-}
-const textures = new Map();
-let TEXMAX = 512;
-/** Tamaño máximo de las texturas de ropa (256 en calidad baja: en el móvil cada lienzo cuenta). */
-export const setOutfitTexMax = (n) => { TEXMAX = n; };
-/** Al salir de un pueblo: fuera las texturas de ropa (antes se acumulaban pueblo tras pueblo hasta llenar la memoria). */
-export function resetOutfitTextures() { for (const t of textures.values()) { t.dispose(); if (t.image?.getContext) t.image.width = t.image.height = 1; } textures.clear(); }
-// atlas repintado: cada casilla de ropa toma el color del traje con la luz de su degradado original
-function repaint(map, assign, key) {
-  if (textures.has(key)) return textures.get(key);
-  // a 512 px como mucho: las casillas son colores lisos y así cada traje ocupa 4 veces menos memoria gráfica
-  // (con muchos vecinos de trajes distintos, a 1024 px los móviles se quedaban sin memoria y se apagaba la pantalla)
-  const img = map.image, sc = Math.min(1, TEXMAX / Math.max(img.width, img.height)), w = Math.round(img.width * sc), h = Math.round(img.height * sc), c = document.createElement('canvas'); c.width = w; c.height = h;
-  const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0, w, h);
-  const cw = w / COLS, ch = h / ROWS, col = new THREE.Color();
-  for (const [cell, hex] of assign) {
-    const cx = cell % COLS, cy = cell / COLS | 0, x0 = cx * cw | 0, y0 = (map.flipY ? ROWS - 1 - cy : cy) * ch | 0;
-    const d = g.getImageData(x0, y0, cw | 0, ch | 0), p = d.data;
-    let mean = 0; for (let i = 0; i < p.length; i += 4) mean += p[i] * 0.3 + p[i + 1] * 0.59 + p[i + 2] * 0.11; mean /= p.length / 4;
-    col.set(hex); const T = [col.r, col.g, col.b].map(v => Math.pow(v, 1 / 2.2) * 255);   // color del traje en sRGB
-    for (let i = 0; i < p.length; i += 4) {
-      const l = (p[i] * 0.3 + p[i + 1] * 0.59 + p[i + 2] * 0.11) / Math.max(1, mean), k = 0.55 + 0.45 * l;   // conserva el degradado, más suave
-      p[i] = Math.min(255, T[0] * k); p[i + 1] = Math.min(255, T[1] * k); p[i + 2] = Math.min(255, T[2] * k);
-    }
-    g.putImageData(d, x0, y0);
-  }
-  const t = new THREE.CanvasTexture(c); t.colorSpace = map.colorSpace; t.flipY = map.flipY; t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearMipmapLinearFilter; t.anisotropy = 4;
-  textures.set(key, t); return t;
-}
-const avg = (map, cell) => {
-  const img = map.image, c = document.createElement('canvas'), cw = img.width / COLS, ch = img.height / ROWS; c.width = c.height = 4;
-  const g = c.getContext('2d', { willReadFrequently: true }), cx = cell % COLS, cy = cell / COLS | 0;
-  g.drawImage(img, cx * cw, (map.flipY ? ROWS - 1 - cy : cy) * ch, cw, ch, 0, 0, 4, 4);
-  const p = g.getImageData(0, 0, 4, 4).data, s = [0, 0, 0]; for (let i = 0; i < p.length; i += 4) { s[0] += p[i]; s[1] += p[i + 1]; s[2] += p[i + 2]; } return s.map(v => v / 16);
-};
-const lum = (map, cell) => {   // luz media de una casilla (para saber cuál es el calzado: la más oscura de las piernas)
-  const img = map.image, c = document.createElement('canvas'), cw = img.width / COLS, ch = img.height / ROWS; c.width = c.height = 4;
-  const g = c.getContext('2d', { willReadFrequently: true }), cx = cell % COLS, cy = cell / COLS | 0;
-  g.drawImage(img, cx * cw, (map.flipY ? ROWS - 1 - cy : cy) * ch, cw, ch, 0, 0, 4, 4);
-  const p = g.getImageData(0, 0, 4, 4).data; let s = 0; for (let i = 0; i < p.length; i += 4) s += p[i] + p[i + 1] + p[i + 2]; return s / 48;
-};
-
-/** Viste el personaje (la copia ya montada en la escena) con un traje. Devuelve las prendas añadidas. */
 // cada prenda (txapela, pañuelo, faja…) en una sola malla con sus colores por vértice y un material compartido:
 // una llamada de dibujo por prenda en vez de una por pieza (las metálicas, como el peine o la corona, se quedan igual)
 const ACC_MAT = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85, side: THREE.DoubleSide });
@@ -107,45 +46,9 @@ function bakeGroup(g) {
   const mesh = new THREE.Mesh(merged, ACC_MAT); mesh.position.copy(g.position); mesh.quaternion.copy(g.quaternion); mesh.scale.copy(g.scale);
   return mesh;
 }
-export function applyOutfit(root, kk, outfitId) {
-  const O = typeof outfitId === 'object' ? outfitId : OUTFITS.find(o => o.id === outfitId);
-  if (!O || O.id === 'original') return [];
-  const meshes = []; root.traverse(o => { if (o.isMesh && !o.userData.outline) meshes.push(o); });
-  // keep: se conserva el aspecto del personaje (solo se añaden prendas; para la mochila se quitan capa y carcaj)
-  const hideRe = O.keep ? /Cape|Quiver/i : HIDE;
-  const part = (re) => meshes.filter(m => re.test(m.name) && !hideRe.test(m.name));
-  for (const m of meshes) if (hideRe.test(m.name)) { m.visible = false; m.userData.want = false; for (const c of m.children) c.visible = false; }
-  const head = part(/Head/), body = part(/Body/), arms = part(/Arm/), legs = part(/Leg/);
-  const map = (body[0] || meshes[0])?.material?.map; if (!map?.image) return [];
-  // casillas: las de la cabeza (piel, pelo, ojos) no se tocan; el resto se reparten entre camisa, pantalón y calzado
-  const headCells = new Set(), headArea = new Map(); head.forEach(m => cellsOf(m).forEach((n, k) => { headCells.add(k); headArea.set(k, (headArea.get(k) || 0) + n); }));
-  const headTot = [...headArea.values()].reduce((a, b) => a + b, 0) || 1;
-  const count = (list) => { const t = new Map(); list.forEach(m => cellsOf(m).forEach((n, k) => { if (!headCells.has(k)) t.set(k, (t.get(k) || 0) + n); })); return [...t.entries()].sort((a, b) => b[1] - a[1]); };
-  const assign = new Map(), bodyC = count([...body, ...arms]), legC = count(legs);
-  // capuchas (casillas de la cabeza de color saturado verde o azul): pasan al color de la camisa
-  for (const k of headCells) { if (headArea.get(k) < headTot * 0.15) continue; const [r, g, b] = avg(map, k); if ((g > r * 1.2 && g > b) || (b > r * 1.3 && b > g * 1.05)) assign.set(k, O.hood || O.shirt); }
-  if (legC.length) { const dark = legC.slice().sort((a, b) => lum(map, a[0]) - lum(map, b[0]))[0][0]; if (legC.length > 1) assign.set(dark, O.shoes); }
-  legC.forEach(([k]) => { if (!assign.has(k)) assign.set(k, O.pants); });
-  // la tela grande (más del 30 % de la mayor) es la camisa; los trozos pequeños (cinturón, correas, chaleco) el acento
-  const top = bodyC[0]?.[1] || 1;
-  bodyC.forEach(([k, n]) => { if (!assign.has(k)) assign.set(k, n >= top * 0.3 ? O.shirt : O.accent); });
-  // en el atlas de los personajes nuevos la casilla 0 es la piel (cara y manos) y la 1 el pelo (o la barba)
-  const SKIN_CELL = 0, HAIR_CELL = 1, hairTint = O.hair || O.hairLong;
-  if (O.skin && headCells.has(SKIN_CELL)) assign.set(SKIN_CELL, O.skin);
-  if (hairTint && headCells.has(HAIR_CELL) && !assign.has(HAIR_CELL)) assign.set(HAIR_CELL, hairTint);
-  if (!O.keep) {
-    const tex = repaint(map, assign, kk + '|' + (O.id || [O.shirt, O.pants, O.shoes, O.accent].join()) + '|' + (O.hair || '') + (O.skin || ''));
-    for (const m of [...head, ...body, ...arms, ...legs]) { m.material = m.material.clone(); m.material.map = tex; }
-  }
-  // prendas cosidas a los huesos, colocadas sobre la pose de reposo
-  root.updateMatrixWorld(true);
-  const bone = (n) => { const n2 = n.replace(/\./g, ''); let b = null; root.traverse(o => { if (o.isBone && (o.name === n || o.name === n2)) b = o; }); return b; };   // el cargador quita los puntos («foot.l» → «footl»)
-  const box = (list) => { const b = new THREE.Box3(), t = new THREE.Box3(); list.forEach(m => { m.geometry.computeBoundingBox(); t.copy(m.geometry.boundingBox).applyMatrix4(m.matrixWorld); b.union(t); }); return b; };
-  return garments(root, O, { hasHead: head.length > 0, hasBody: body.length > 0, hb: box(head), bb: box(body), lb: box(legs), bone });
-}
 // Prendas y complementos (boina, faja, falda, gorros de carnaval, cencerros, pieles, melenas…) colgados de los huesos.
 // G: cajas de la cabeza (hb), el tronco (bb) y las piernas (lb) en reposo y bone(nombre) → hueso. Vale para los dos
-// esqueletos: el de KayKit y el de los personajes de Meshy (dressMeshy).
+// personajes de Meshy (dressMeshy).
 function garments(root, O, G) {
   const bone = G.bone, added = [], mat = (c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.85 });
   const hb = G.hb, bb = G.bb, sz = hb.getSize(new THREE.Vector3()), bs = bb.getSize(new THREE.Vector3()), hc = hb.getCenter(new THREE.Vector3()), bc = bb.getCenter(new THREE.Vector3());
