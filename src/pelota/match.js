@@ -21,7 +21,7 @@ export class PelotaMatch {
     this.names = { you: o.you?.name || this.txt.you, rival: o.rival?.name || 'Rival' };
     this.audio = new PelotaAudio(o.audio);
     this.hud = new PelotaHud(o.container || document.body, this.txt, this.names, this.touch);
-    this.input = { mx: 0, mz: 0, hit: false, drop: false, cut: false, keys: {}, stick: { id: null, x: 0, y: 0 } };
+    this.input = { mx: 0, mz: 0, hit: false, drop: false, cut: false, keys: {}, stick: { id: null, x: 0, y: 0 }, charge: null, power: 0.5 };
     this.active = true; this.t = 0;
     this.camPos = new this.T.Vector3(); this.camLook = new this.T.Vector3(); this.camInit = false;
     this.fov0 = this.cam.fov;
@@ -102,11 +102,12 @@ export class PelotaMatch {
       if (!mine.includes(k)) return;
       e.preventDefault(); e.stopPropagation();
       if (down && !I.keys[k]) {
-        if (k === ' ' || k === 'j' || k === 'e' || k === 'enter') I.hitQ = true;
+        if (k === ' ' || k === 'j' || k === 'e' || k === 'enter') this.chargeStart('hit');
         if (k === 'shift' || k === 'k') I.dropQ = true;
-        if (k === 'l') I.cutQ = true;
+        if (k === 'l') this.chargeStart('cut');
         if (k === 'escape') { if (hud.panelEl) return; this.confirmExit(); }
       }
+      if (!down && I.keys[k]) { if (k === ' ' || k === 'j' || k === 'e' || k === 'enter') this.chargeEnd('hit'); if (k === 'l') this.chargeEnd('cut'); }
       I.keys[k] = down;
     };
     addEventListener('keydown', this.onKey, true); addEventListener('keyup', this.onKey, true);
@@ -131,14 +132,23 @@ export class PelotaMatch {
     });
     const end = (e) => { if (e.pointerId !== I.stick.id) return; I.stick = { id: null, x: 0, y: 0 }; knob.style.display = 'none'; };
     zone.addEventListener('pointerup', end); zone.addEventListener('pointercancel', end); zone.addEventListener('lostpointercapture', end);
-    const btn = (sel, flag) => {
+    // botones: la dejada, al pulsar; el golpe y la cortada se cargan mientras se mantienen y salen al soltar
+    const btn = (sel, flag, charge) => {
       const b = hud.$(sel);
-      b.addEventListener('pointerdown', (e) => { e.preventDefault(); I[flag] = true; b.classList.add('down'); this.audio.ensure(); });
-      const up = () => b.classList.remove('down');
+      b.addEventListener('pointerdown', (e) => { e.preventDefault(); b.classList.add('down'); this.audio.ensure(); if (charge) this.chargeStart(charge); else I[flag] = true; });
+      const up = () => { b.classList.remove('down'); if (charge) this.chargeEnd(charge); };
       b.addEventListener('pointerup', up); b.addEventListener('pointerleave', up); b.addEventListener('pointercancel', up);
     };
-    btn('.pel-hit', 'hitQ'); btn('.pel-drop', 'dropQ'); btn('.pel-cut', 'cutQ');
+    btn('.pel-hit', 'hitQ', 'hit'); btn('.pel-drop', 'dropQ'); btn('.pel-cut', 'cutQ', 'cut');
     hud.$('.pel-exit').addEventListener('click', () => { if (!hud.panelEl) this.confirmExit(); });
+  }
+  // carga del golpe: cuanto más se mantiene, más fuerte (a tope en 0,7 s); un toque corto es un golpe suave
+  chargeStart(kind) { if (!this.input.charge) this.input.charge = { kind, t0: this.t }; }
+  chargeLevel() { const c = this.input.charge; return c ? Math.min(1, (this.t - c.t0) / 0.7) : 0; }
+  chargeEnd(kind) {
+    const I = this.input, c = I.charge; if (!c || c.kind !== kind) return;
+    I.power = 0.15 + this.chargeLevel() * 0.85; I.charge = null;
+    if (kind === 'cut') I.cutQ = true; else I.hitQ = true;
   }
   readInput() {
     const I = this.input, k = I.keys;
@@ -147,7 +157,7 @@ export class PelotaMatch {
     const m = Math.hypot(x, y); if (m > 1) { x /= m; y /= m; }
     if (Math.hypot(x, y) < 0.12) { x = 0; y = 0; }
     // la cámara mira al frontis: arriba en el joystick = hacia el frontis (−z)
-    const out = { mx: x, mz: -y, hit: !!I.hitQ, drop: !!I.dropQ, cut: !!I.cutQ, aimX: x, aimY: y };
+    const out = { mx: x, mz: -y, hit: !!I.hitQ, drop: !!I.dropQ, cut: !!I.cutQ, power: I.power, aimX: x, aimY: y };
     I.hitQ = I.dropQ = I.cutQ = false;
     return out;
   }
@@ -156,6 +166,9 @@ export class PelotaMatch {
   update(dt) {
     if (!this.active) return false;
     dt = Math.min(dt, 0.05); this.t += dt;
+    // con la carga a tope, si la pelota ya está a tu alcance, golpea sola (no hace falta soltar a ciegas)
+    if (this.input.charge && this.chargeLevel() >= 1 && this.game.hittable('you')) this.chargeEnd(this.input.charge.kind);
+    this.hud.charge(this.chargeLevel(), this.input.charge?.kind);
     const g = this.game, inp = this.paused || this.hud.panelEl ? {} : this.readInput();
     const ev = this.paused ? [] : g.update(dt, inp);
     for (const e of ev) { this.onEvent(e); this.o.onEvent?.(e); }
@@ -169,7 +182,7 @@ export class PelotaMatch {
       case 'serveReady': this.hud.setScore(g.mode === 'rally' ? g.streak : g.score.you, g.mode === 'rally' ? '' : g.score.rival, g.server); break;
       case 'hit': {
         A.hit(0.6 + e.q * 0.5); C.pop(e, 'z');
-        if (e.who === 'you') { const s = t.shots[e.shot] || ''; this.hud.quality(`${t.quality[e.label]}${s ? ' · ' + s : ''}`); }
+        if (e.who === 'you') { const s = t.shots[e.sub] || t.shots[e.shot] || ''; this.hud.quality(`${t.quality[e.label]}${s ? ' · ' + s : ''}`); }
         this.swingAnim(e.who); break;
       }
       case 'whiff': this.hud.quality(t.quality.whiff); break;
