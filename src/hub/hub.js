@@ -16,7 +16,7 @@ import { avatarPortrait, portraitImg, avatarPortraitImg } from '../ui/portraits.
 import { stampImg, landImg } from '../assets.js';
 import { Stage, releaseStage } from './stage.js';
 import { getLang, setLang, langChosen } from '../i18n.js';
-import { dioramaShot, heroShot } from './diorama.js';
+import { dioramaShot, heroAvatar } from './diorama.js';
 import { profile, saveProfile, levelOf, rankOf, townProgress, comarcaProgress, comarcaTowns, navarraProgress, stampCount, BADGES, checkBadges, resetProfile, salazarState } from '../game/profile.js';
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -170,7 +170,7 @@ export class Hub {
     const next = this.suggestions();
     return `
     <section class="hero3d">
-      ${heroShot(last.comarca, p.avatar) ? `<div class="hero-img scene" style="--hero-h:${heroShot(last.comarca, p.avatar)};--hero-v:${heroShot(last.comarca, p.avatar, true) || heroShot(last.comarca, p.avatar)}"></div>`
+      ${heroAvatar(p.avatar) ? `<div class="hero-img key" style="--bg:url(${landImg(last.comarca, 1280, 720, true)})"></div><img class="hero-av key" src="${heroAvatar(p.avatar)}" alt="">`
         : `<div class="hero-img" style="background-image:url(${landImg(last.comarca, 1280, 720, true)})">${avatarPortraitImg(p.avatar, 'hero').replace('<img ', '<img class="hero-av" ')}</div>`}
       <div class="h-shade"></div>
       <button class="chapter" data-comarca="${last.comarca}" style="--c:${cm?.color}"><img src="${stampImg(last.comarca)}" alt=""><span><small>Capítulo ${chapter} · ${esc(cm?.name || '')}</small><b>${cpr.stamps}/${cts.length} sellos de la comarca</b><span class="cbar"><i style="width:${cts.length ? cpr.stamps / cts.length * 100 : 0}%"></i></span></span></button>

@@ -518,9 +518,12 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .hero3d { position: relative; height: clamp(460px, 66vh, 640px); border-radius: 22px; overflow: hidden; border: 1px solid var(--line2); box-shadow: 0 20px 50px rgba(0, 0, 0, .45); background: #1c0b3a; isolation: isolate; }
 /* portada fija: la foto de la comarca y el personaje de pie a la derecha (en vertical, en el centro, encima del título) */
 .hero3d .hero-img { position: absolute; inset: 0; background: #1c0b3a center 60% / cover no-repeat; }
-.hero3d .hero-img.scene { background-image: var(--hero-h); background-position: 66% 50%; }   /* (el personaje está a dos tercios de la foto) */
-/* móvil de pie: la portada vertical, con el personaje entero y centrado (la apaisada se recortaba y ampliaba demasiado) */
-@media (orientation: portrait) { .hero3d .hero-img.scene { background-image: var(--hero-v); background-position: 50% 40%; } }
+/* estilo portada de videojuego: la vista de la comarca al atardecer, algo desenfocada y con luz dorada, y delante el
+   personaje en grande cortado por abajo (no parece flotar), con la misma luz */
+.hero3d .hero-img.key { overflow: hidden; }
+.hero3d .hero-img.key::before { content: ''; position: absolute; inset: -12px; background: var(--bg) center 55% / cover no-repeat; filter: blur(2.5px) saturate(1.08); transform: scale(1.03); }
+.hero3d .hero-img.key::after { content: ''; position: absolute; inset: 0; background: radial-gradient(120% 90% at 72% 30%, rgba(255, 190, 110, .28), rgba(255, 190, 110, 0) 55%), linear-gradient(90deg, rgba(20, 6, 48, .55) 0%, rgba(20, 6, 48, 0) 45%); }
+.hero3d .hero-av.key { left: 70%; bottom: 0; height: min(94%, 720px); filter: drop-shadow(0 0 18px rgba(255, 170, 80, .35)) drop-shadow(0 10px 24px rgba(0, 0, 0, .45)); }
 .hero3d .hero-av { position: absolute; left: 66%; bottom: 6%; height: min(80%, 560px); width: auto; transform: translateX(-50%); transform-origin: 50% 100%; filter: drop-shadow(0 16px 14px rgba(0, 0, 0, .42)); cursor: pointer; -webkit-user-drag: none; user-select: none; -webkit-tap-highlight-color: transparent; }
 .hero3d .hero-av.hop { animation: heroHop .6s cubic-bezier(.3, 1.5, .5, 1); }
 @keyframes heroHop { 35% { transform: translateX(-50%) translateY(-7%) scale(1.02, .98); } }
@@ -569,6 +572,8 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 
 @media (max-aspect-ratio: 1/1) {
   .hero3d .hero-av { left: 50%; bottom: auto; top: 76px; height: calc(100% - 76px - 270px); min-height: 150px; max-height: 420px; }
+  .hero3d .hero-av.key { top: auto; bottom: 0; height: min(calc(100% - 110px), 138vw); min-height: 0; max-height: none; }
+  .hero3d .hero-img.key::after { background: radial-gradient(120% 70% at 50% 25%, rgba(255, 190, 110, .26), rgba(255, 190, 110, 0) 60%); }
   .bubble { left: 14px; right: 14px; top: 74px; width: auto; max-width: 520px; }
   .bubble::after { left: 50%; bottom: -8px; margin-left: -9px; }
   .h-bot { width: 100%; padding: 0 16px 16px; }
