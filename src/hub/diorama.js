@@ -306,17 +306,12 @@ export function buildDiorama(comarcaId, { live = true } = {}) {
 // un degradado con los colores de la comarca que luego se sustituye.
 const BAKED = {};
 for (const [p, u] of Object.entries(import.meta.glob('../assets/portadas/*.webp', { eager: true, query: '?url', import: 'default' }))) BAKED[p.split('/').pop().replace('.webp', '')] = u;
-// las grandes son las portadas del menú (tools/herobake.mjs): el fondo de cada comarca a buena resolución (sirve también
-// para los fondos y la pantalla de carga) y, por cada personaje elegible, su capa (él con su sombra, transparente
-// alrededor) sacada del mismo render, que se pone encima con el mismo encuadre
-const HERO = {};
-for (const [p, u] of Object.entries(import.meta.glob('../assets/portadas/heroe/*.webp', { eager: true, query: '?url', import: 'default' }))) HERO[p.split('/').pop().replace('.webp', '')] = u;
-/** Portada de la comarca con ese personaje dentro de la escena, como lista de fondos CSS (capa encima, fondo debajo), o null.
- *  vert: la del móvil de pie (personaje entero y centrado). */
-export function heroShot(comarcaId, avatar, vert = false) {
-  const s = vert ? '-v' : '', f = HERO[comarcaId + '-' + avatar + s], bg = HERO[comarcaId + s];
-  return f && bg ? `url(${f}), url(${bg})` : null;
-}
+// la portada del menú, estilo portada de videojuego: la vista de la comarca (la de arriba) de fondo y delante el
+// personaje del jugador en grande, con la misma luz de atardecer (tools/heroav.mjs)
+const HERO_AV = {};
+for (const [p, u] of Object.entries(import.meta.glob('../assets/portadas/heroe/av-*.webp', { eager: true, query: '?url', import: 'default' }))) HERO_AV[p.split('/').pop().replace('av-', '').replace('.webp', '')] = u;
+/** El personaje para la portada del menú (o null si ese personaje no lo tiene). */
+export const heroAvatar = (avatar) => HERO_AV[avatar] || null;
 function drawShot(R, comarcaId, w, h) {
   const D = buildDiorama(comarcaId, { live: false });
   R.setClearColor(D.scene.fog.color, 1);
@@ -353,7 +348,7 @@ function swapIn(ph, url) {
 const waiting = new Map();     // clave → avisos pendientes (cada llamada guarda el suyo)
 export function dioramaShot(comarcaId, w = 1280, h = 720, { front = false, onReady } = {}) {
   // la horneada: la pequeña para las tarjetas, la grande para lo demás
-  const baked = (w <= 480 && BAKED[comarcaId + '-s']) || BAKED[comarcaId] || HERO[comarcaId];
+  const baked = (w <= 480 && BAKED[comarcaId + '-s']) || BAKED[comarcaId];
   if (baked) { onReady?.(baked); return baked; }
   if (w > 960) { h = Math.round(h * 960 / w); w = 960; }
   const key = comarcaId + w + 'x' + h;
