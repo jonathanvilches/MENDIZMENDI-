@@ -18,19 +18,24 @@ const sl = (p, ms) => p.waitForTimeout(ms);
   await sl(p, 500); await grab(p);
   await p.evaluate(() => document.querySelector('[data-pel-go]')?.click()); await sl(p, 9000); await grab(p);
   await p.screenshot({ path: '/tmp/claude-0/eu-pelota.png' }); await p.close(); console.log('pelota', all.size); writeFileSync('/tmp/eu-deportes.json', JSON.stringify([...all], null, 1)); }
-// fútbol
+// fútbol (desde el menú de campeonatos: elegir club, el menú del club, un partido en El Sadar)
 { const p = await b.newPage({ viewport: { width: 1100, height: 620 } }); await p.addInitScript(init); p.on('pageerror', e => errs.push(e.message));
-  await p.goto(`${URL}/?town=pamplona&q=low&skipintro=1&eufaltan`, { timeout: 300000 });
-  await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 900000 });
-  await p.evaluate(() => { const G = window.__game; import('/src/game/futbol.js').then(M => new M.Futbol(G, G.sadar).run()); });
-  await p.waitForFunction(() => window.__futbol && window.__futbol.hud && window.__game.altScene, null, { timeout: 600000 });
-  await p.evaluate(() => { const m = window.__futbol; for (let i = 0; i < 150; i++) m.update(1 / 30); }); await sl(p, 1500); await grab(p);
-  await p.evaluate(() => window.__futbol.exit({ quit: true, reto: 'pases' }));
-  await p.waitForFunction(() => document.querySelector('.fb-panel .fb-go'), null, { timeout: 120000 }).catch(async (e) => { await p.screenshot({ path: '/tmp/claude-0/eu-futbol-err.png' }); console.log(await p.evaluate(() => document.querySelector('.fb-panel')?.outerHTML.slice(0, 800))); throw e; });
-  await p.evaluate(() => document.querySelectorAll('.fb-panel button:not(.fb-go)').forEach(e => { try { e.click(); } catch (x) { } })); await sl(p, 600); await grab(p);
-  await p.evaluate(() => document.querySelector('.fb-panel .fb-go')?.click());
-  await p.waitForFunction(() => window.__futbol && window.__futbol.o.mode === 'match' && window.__game.altScene, null, { timeout: 600000 });
-  await p.evaluate(() => { const m = window.__futbol; m.game.autoplay = true; for (let i = 0; i < 30 * 40; i++) m.update(1 / 30); }); await sl(p, 2000); await grab(p);
+  await p.goto(`${URL}/?screen=sports&eufaltan`, { timeout: 300000 }); await p.waitForFunction(() => window.__hub, null, { timeout: 300000 });
+  await sl(p, 800); await grab(p);
+  await p.evaluate(() => window.__futbolSport());
+  await p.waitForFunction(() => document.querySelector('.lg-root .lg-rv'), null, { timeout: 120000 }); await grab(p);
+  await p.evaluate(() => document.querySelector('.lg-root .lg-rv').click());
+  await p.waitForFunction(() => document.querySelector('.lg-root [data-a="liga"]'), null, { timeout: 60000 }); await grab(p);
+  await p.evaluate(() => document.querySelector('.lg-root [data-a="liga"]').click());
+  await p.waitForFunction(() => document.querySelector('.lg-root [data-a="exit"]'), null, { timeout: 60000 }); await sl(p, 400); await grab(p);
+  await p.evaluate(() => document.querySelector('.lg-root [data-a="exit"]').click());
+  await p.waitForFunction(() => document.querySelector('.lg-root [data-a="amistoso"]'), null, { timeout: 60000 });
+  await p.evaluate(() => document.querySelector('.lg-root [data-a="amistoso"]').click());
+  await p.waitForFunction(() => document.querySelector('.lg-root .lg-rv'), null, { timeout: 60000 }); await grab(p);
+  await p.evaluate(() => document.querySelector('.lg-root .lg-rv').click());
+  await p.waitForFunction(() => window.__futbol && window.__futbol.game && document.body.classList.contains('futbol'), null, { timeout: 600000 });
+  await p.evaluate(() => { const m = window.__futbol; m.game.autoplay = true; for (let i = 0; i < 30 * 40; i++) m.update(1 / 30); }); await sl(p, 2500); await grab(p);
+  await p.evaluate(() => document.querySelector('.fb-root [class*="pause"], .fb-pause, [data-fb-pause]')?.click()); await sl(p, 800); await grab(p);
   await p.screenshot({ path: '/tmp/claude-0/eu-futbol.png' }); await p.close(); console.log('fútbol', all.size); }
 writeFileSync('/tmp/eu-deportes.json', JSON.stringify([...all], null, 1));
 console.log(errs.length ? errs.slice(0, 5).join('\n') : 'sin errores'); await b.close();
