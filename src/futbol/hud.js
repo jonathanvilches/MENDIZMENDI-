@@ -210,11 +210,13 @@ export class FutbolHud {
       const p = this.panel(`<h2>Controles</h2><p class="fb-kick">Cuatro botones: pase, tiro, sprint y cambiar</p>
         <table class="fb-ctrl"><tr><th></th><th>Acción</th><th>Teclado</th><th>Mando</th></tr>
         ${row('', 'Moverte', 'Joystick: toca y arrastra en la mitad izquierda', 'WASD / flechas', 'Stick izquierdo')}
-        ${row('pass', 'Pase', 'Al compañero hacia donde apuntas (por alto si hay rivales en medio)', 'J / espacio', 'A')}
+        ${row('pass', 'Pase', 'Un toque: al pie del compañero al que apuntas (por alto si hay rivales en medio). Mantén: al hueco, por delante de él; cuanto más lo mantienes, más lejos', 'J / espacio', 'A')}
         ${row('shoot', 'Tiro', 'Mantén para cargar la fuerza; apunta con el joystick', 'K (mantén)', 'B (mantén)')}
         ${row('sprint', 'Sprint', 'Mantén (gasta energía)', 'Mayús', 'RT')}
-        ${row('swap', 'Cambiar', 'Al compañero hacia donde apuntas; sin apuntar, al más cercano al balón. Cerca de tu área, al portero', 'L', 'LB')}
-        ${row('tackle', 'Portero: estirada', 'Con un tiro del rival (o llevando al portero), cualquier botón: se estira hacia donde apuntas', 'J / K', 'A / B')}
+        ${row('swap', 'Cambiar', 'Al compañero hacia donde apuntas (también al portero); sin apuntar, al más cercano al balón; cerca de tu área, al portero', 'L', 'LB')}
+        ${row('', 'Controlar el balón', 'Suelta el joystick y tu jugador frena en seco con el balón pegado al pie', '', '')}
+        ${row('tackle', 'Portero: estirada', 'Con un tiro del rival (o llevando al portero sin balón), cualquier botón: se estira hacia donde apuntas. El portero juega solo si no lo llevas tú', 'J / K', 'A / B')}
+        ${row('pass', 'Portero con el balón en los pies', 'Pasa, conduce y despeja como cualquier jugador; puede salir del área (fuera, sin manos)', 'J / K', 'A / B')}
         ${row('pass', 'Portero: sacar', 'Con el balón en sus manos: PASE con la mano al que apuntas; mantén TIRO para un saque largo', 'J / K', 'A / B')}
         ${row('tackle', 'Sin el balón: robar', 'Con el botón de PASE, pegado al rival', 'J', 'A')}
         ${row('slide', 'Sin el balón: entrada', 'Con el botón de TIRO (si llegas tarde, falta)', 'K', 'B')}

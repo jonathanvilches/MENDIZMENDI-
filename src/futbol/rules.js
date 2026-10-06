@@ -30,7 +30,7 @@ const PHYS11 = {
 const PLAYER11 = {
   run: 6, sprint: 8, acc: 14, brake: 26, grip: 8.5, drain: 1 / 5, regain: 1 / 7, radius: 0.36,
   reach: 0.9, ctrlH: 1, keep: 1.3, touchSlow: 0.5, touchFast: 0.35,
-  cone: 35 * Math.PI / 180, charge: 0.8, tackleWin: 0.25, trapMax: 12, loft: 0.3,
+  cone: 35 * Math.PI / 180, passHold: 0.22, charge: 0.8, tackleWin: 0.25, trapMax: 12, loft: 0.3,
 };
 
 // Niveles de la IA: tiempo de reacción, error de pase, umbral de tiro (probabilidad de gol), portero y presión.
@@ -92,7 +92,7 @@ PHYS_SALA.drag = PHYS_SALA.dragK * 0.25;   // (la aproximación de la IA para ca
 const PLAYER_SALA = {
   run: 5.5, sprint: 7.2, acc: 14, brake: 24, grip: 9.5, drain: 1 / 4, regain: 1 / 6, radius: 0.36, turn: 540 * Math.PI / 180, turnBall: 360 * Math.PI / 180,
   reach: 0.9, ctrlH: 0.8, keep: 1.3, touchSlow: 0.5, touchFast: 0.32, gkBody: 1.0,   // (el portero de sala tapa mucho con el cuerpo y las piernas)
-  cone: 35 * Math.PI / 180, charge: 0.8, tackleWin: 0.25, trapMax: 12, loft: 0.3,
+  cone: 35 * Math.PI / 180, passHold: 0.22, charge: 0.8, tackleWin: 0.25, trapMax: 12, loft: 0.3,
 };
 // Sistema 1-2-2: portero, cierre, dos alas y pívot
 const ROLES_SALA = ['POR', 'CIE', 'ALI', 'ALD', 'PIV'];

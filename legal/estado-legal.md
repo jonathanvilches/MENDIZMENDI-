@@ -33,6 +33,7 @@
 
 | Fecha | Función | Respuestas (1-8) | Color | Decisión |
 |---|---|---|---|---|
+| 2026-10-06 | Portadas de pueblo estilo ilustración con el personaje en acción; fútbol: portero jugable con los pies, pase al hueco mantenido, frenada con el balón | 1-8 No (imágenes propias renderizadas y pintadas por filtro; mecánica propia) | VERDE | Seguir. |
 | 2026-10-06 | Portadas de cada pueblo (foto del propio juego con el personaje y luz de estudio), marcador fino de pelota y control del portero en fútbol | 1-8 No (imágenes renderizadas por el juego con personajes propios; mecánica propia) | VERDE | Seguir. |
 | 2026-10-06 | Pelota: golpe con carga (cuanto más se mantiene, más fuerte) y cuatro tipos de dos paredes | 1-8 No (mecánica y textos propios) | VERDE | Seguir. |
 | 2026-10-06 | Pelota: cortada con su botón; dos paredes y dirección del golpe con el joystick | 1-6 No · 7 Sí: «cortada» y «dos paredes» descritos como golpes de la pelota a mano (dato cultural general, con palabras propias) · 8 No | VERDE | Seguir. |

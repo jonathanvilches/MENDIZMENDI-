@@ -54,4 +54,24 @@ const gx = -F.HL;   // tu portería (el equipo 0 ataca hacia +x)
   me.x = 0; me.z = 0; q.x = 6; q.z = 3; o.x = 9; o.z = 3; g.ball.set(8.6, 3); g.owner = o; o.react = 99; g.switchCD = 0;
   g.setMove(1, 0.3, 1, false); run(g, 0.5);
   ok(g.me === me, `moviéndote, sigues con tu jugador (${g.me.role})`); }
+// pase: un toque al pie; mantenido, al hueco y más lejos cuanto más se mantiene
+{ const res = [];
+  for (const hold of [0.05, 0.5, 1.1]) {
+    const g = setup(), me = g.me, q = g.byRole(0, 'DCI'); me.x = 0; me.z = 0; me.h = Math.PI / 2; q.x = 14; q.z = -4; q.vx = 3; g.ball.set(0.5, 0); g.owner = me;
+    g.setMove(0, 0, 0, false); g.press('pass'); run(g, hold); me.x = 0; me.z = 0; g.ball.set(0.5, 0); g.owner = me; q.x = 14; q.z = -4; const ev = []; g.release('pass'); g.step(1 / 120); ev.push(...g.drain());
+    const ahead = Math.hypot(g.ball.v.x, g.ball.v.z); res.push({ through: ev.some(e => e.t === 'through'), v: ahead });
+  }
+  ok(!res[0].through && res[1].through && res[2].through && res[2].v > res[1].v, `pase: toque al pie (${res[0].through ? 'hueco' : 'al pie'}), mantenido al hueco (${res[1].v.toFixed(1)} → ${res[2].v.toFixed(1)} m/s más carga)`); }
+// tu portero con el balón en los pies (cesión): pasa con el pie en vez de estirarse
+{ const g = setup(), k = g.gk(0), q = g.byRole(0, 'CTI'); k.x = gx + 6; k.z = 0; k.h = Math.PI / 2; q.x = gx + 20; q.z = -6; g.setMe(k, 'gk'); g.ball.set(k.x + 0.5, 0); g.owner = k; k.hands = false;
+  g.setMove(1, -0.4, 1, false); g.press('pass'); g.release('pass'); g.step(1 / 120);
+  ok(!k.dive && g.passTo === q, `portero con el balón en los pies: pasa al compañero (${g.passTo?.role}) sin estirarse`); }
+// apuntando hacia tu portero, CAMBIAR lo coge
+{ const g = setup(), me = g.me, k = g.gk(0); me.x = gx + 25; me.z = 0; k.x = gx + 2; k.z = 0; g.ball.set(gx + 26, 1); g.owner = null;
+  for (const q of g.team(0)) if (q !== me && q !== k) { q.x = gx + 30; q.z = 25; }
+  g.setMove(-1, 0, 1, false); g.press('switch'); ok(g.me === k, `cambiar apuntando a tu portería: llevas al portero (${g.me.role})`); }
+// con el balón, al soltar el joystick frenas en seco y no lo pierdes
+{ const g = setup(), me = g.me; me.x = 0; me.z = 0; me.h = Math.PI / 2; g.ball.set(0.5, 0); g.owner = me; g.setMove(1, 0, 1, true); run(g, 1.2);
+  const v0 = Math.hypot(me.vx, me.vz); g.setMove(0, 0, 0, false); run(g, 0.4); const v1 = Math.hypot(me.vx, me.vz);
+  ok(v0 > 6 && v1 < 1 && g.owner === me, `frenar con el balón: de ${v0.toFixed(1)} a ${v1.toFixed(1)} m/s en 0,4 s y sigue tuyo`); }
 console.log(fails ? `${fails} FALLOS` : 'Todo correcto'); process.exit(fails ? 1 : 0);
