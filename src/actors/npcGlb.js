@@ -28,9 +28,10 @@ let ready = false;
 export async function preloadNpcs() {
   // los vecinos son los personajes nuevos (Meshy, versión ligera); los cuerpos KayKit quedan solo para los seres de
   // leyenda y los trajes de carnaval (cuernos, pieles, cencerros, máscaras), que los nuevos no tienen
-  const meshy = Promise.all(MESHY_NAMES.map(n => loadMeshy(n, true).then(g => { MESHY_LOD_NPC[n] = g; }))).then(() => { meshyReady = true; }).catch(e => console.warn('vecinos Meshy', e));
-  const kk = Promise.all(KK_BASES.map(n => loadKayKit(n).then(g => { KKG[n] = g; }))).then(() => { kkReady = true; }).catch(e => console.warn('vecinos KayKit', e));
-  await Promise.all([meshy, kk]);
+  // (los vecinos con traje también salen de los nuevos, vestidos: los KayKit solo se bajan si los nuevos no cargan. Antes
+  // se bajaban siempre: seis modelos y sus texturas, unos 24 MB de memoria en cada pueblo, sin salir nunca)
+  await Promise.all(MESHY_NAMES.map(n => loadMeshy(n, true).then(g => { MESHY_LOD_NPC[n] = g; }))).then(() => { meshyReady = true; }).catch(e => console.warn('vecinos Meshy', e));
+  if (!meshyReady && !kkReady) await Promise.all(KK_BASES.map(n => loadKayKit(n).then(g => { KKG[n] = g; }))).then(() => { kkReady = true; }).catch(e => console.warn('vecinos KayKit', e));
   return meshyReady || kkReady;
 }
 const MESHY_LOD_NPC = {}; let meshyReady = false;
