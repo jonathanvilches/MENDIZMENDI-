@@ -1,71 +1,51 @@
-// Fotos de los pop-ups de la Liga Navarra, el torneo de mano, el menú y el final del fútbol y el inicio y el resultado
-// de la pelota, con datos de ejemplo y sin el mundo 3D, en móvil vertical, móvil horizontal y escritorio.
-// Uso: node tools/campeonatos.mjs <carpeta> [tamaños]   (URL=http://127.0.0.1:5173 por defecto)
+// Campeonatos desde el menú: la pantalla, el fútbol sin pueblo (elegir club, menú, partido, salir) y la pelota en el
+// frontón elegido (menú de pelota, partido, salir al inicio). Capturas en /tmp/claude-0/camp-*.png
+// Uso: node tools/campeonatos.mjs   (servidor en 5173)
 import { chromium } from 'playwright-core';
-import { mkdirSync } from 'fs';
-const [,, out = '/tmp/campeonatos', sizes = '390x844,844x390,1280x760'] = process.argv;
-mkdirSync(out, { recursive: true });
 const URL = process.env.URL || 'http://127.0.0.1:5173';
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const errs = [];
-for (const sz of sizes.split(',')) {
-  const [W, H] = sz.split('x').map(Number);
-  const p = await b.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 2, hasTouch: W < 900 });
-  p.on('pageerror', e => errs.push(`${sz} PAGEERROR ${e.message}`));
-  p.on('console', m => { if (m.type() === 'error') errs.push(`${sz} ${m.text().slice(0, 160)}`); });
-  p.on('response', r => { if (r.status() >= 400) errs.push(`${sz} HTTP ${r.status()} ${r.url().slice(-90)}`); });
-  for (let t = 0; ; t++) {
-    try {
-      if (process.env.EU) await p.addInitScript(() => { window.__EU = true; });
-      await p.goto(`${URL}/src/futbol/liga.js`, { timeout: 300000 });
-      await p.waitForTimeout(1500);
-      await p.evaluate(async () => {
-        await import('/src/style.css'); await import('/src/hub/hub.css');
-        await import('/node_modules/@fontsource/lilita-one/latin-400.css'); await import('/node_modules/@fontsource/nunito/latin-700.css'); await import('/node_modules/@fontsource/nunito/latin-900.css');
-        document.body.innerHTML = ''; document.body.style.background = '#2d6a3e';
-        localStorage.removeItem('mendimendiz-liga-v1'); localStorage.removeItem('mendimendiz-torneo-v1');
-        window.__L = await import('/src/futbol/liga.js'); window.__T = await import('/src/game/torneo.js'); window.__FH = await import('/src/futbol/hud.js');
-        window.__PH = await import('/src/pelota/hud.js'); window.__PR = await import('/src/pelota/rules.js');
-        if (window.__EU) { localStorage.setItem('mendimendiz-lang', 'eu'); (await import('/src/i18n.js')).startI18n(); } else localStorage.setItem('mendimendiz-lang', 'es');   // EU=1: euskaraz
-      });
-      break;
-    } catch (e) { if (t >= 3) throw e; console.log('reintento:', e.message.slice(0, 70)); await p.waitForTimeout(3000); }
-  }
-  const SHOTS = [
-    ['liga', `const S = L.season('baztan'); L.ligaPanel(S, 'baztan')`],
-    ['liga-fuera', `const S = L.season('baztan'); L.ligaPanel(S, 'aoiz')`],
-    ['liga-jornada', `const S = L.season('baztan'); const R = L.playRound(S, 2, 1); L.roundPanel(S, R, 0)`],
-    ['liga-final', `const S = L.season('baztan'); while (L.nextMatch(S)) L.playRound(S, 3, 0); L.ligaPanel(S, 'baztan')`],
-    ['club', `L.clubPanel('baztan', [['liga', 'Liga Navarra · jornada 1', 'La jornada se juega aquí'], ['sala', 'Fútbol sala: partido por el sello', '5 contra 5 contra los vecinos'], ['amistoso', 'Amistoso', 'Contra cualquier club de Navarra'], ['exit', 'Salir', '']], 'Elizondo · tu club')`],
-    ['amistoso', `L.rivalPanel('baztan')`],
-    ['torneo', `const T = T_.torneo({ name: 'Ane', town: 'Elizondo' }, CTX); T_.torneoPanel(T, 'elizondo')`],
-    ['torneo-fuera', `const T = T_.torneo({ name: 'Ane', town: 'Elizondo' }, CTX); T_.torneoPanel(T, 'ituren')`],
-    ['torneo-semis', `const T = T_.torneo({ name: 'Ane', town: 'Elizondo' }, CTX); T_.playTorneoRound(T, 5, 2); T_.torneoPanel(T, T_.yourMatch(T).venue.id)`],
-    ['torneo-fin', `const T = T_.torneo({ name: 'Ane', town: 'Elizondo' }, CTX); T_.playTorneoRound(T, 5, 2); T_.playTorneoRound(T, 5, 3); T_.playTorneoRound(T, 7, 4); T_.torneoPanel(T, 'elizondo')`],
-    ['pelota-menu', `const T = T_.torneo({ name: 'Ane', town: 'Elizondo' }, CTX); T_.pelotaMenu(T, 'elizondo')`],
-    ['futbol-menu', `FH.menuPanel({ title: 'El Sadar', sub: 'Pamplona / Iruña', modes: [['match', 'Partido'], ['cup', 'Eliminatoria'], ['penalties', 'Penaltis'], ['reto:conos', 'Regate entre conos'], ['reto:dianas', 'Tiro a las escuadras ✓'], ['reto:pases', 'Pases en movimiento']], rivals: [['visitante', 'Visitante'], ['vecinos', 'Vecinos']], values: { mode: 'match', rival: 'visitante', level: 'normal', duration: 3, assist: true } })`],
-    ['futbol-final', `const h = new FH.FutbolHud({ touch: true, home: { name: 'Osasuna', short: 'OSA', shirt: '#c41f2c' }, away: { name: 'Visitante', short: 'VIS', shirt: '#f4f4f2' } }); h.end({ title: '¡Victoria!', sub: 'Final del partido', score: '2 – 1', rows: [[2, 'Goles', 1], [7, 'Tiros', 4], [4, 'Tiros a puerta', 2], ['58 %', 'Posesión', '42 %'], [23, 'Pases buenos', 15], [6, 'Robos', 4], [1, 'Paradas', 2]], again: 'Revancha', exit: 'Salir' })`],
-    ['futbol-controles', `const h = new FH.FutbolHud({ touch: true, home: { name: 'Osasuna', short: 'OSA', shirt: '#c41f2c' }, away: { name: 'Visitante', short: 'VIS', shirt: '#f4f4f2' } }); h.controls()`],
-    ['pelota-inicio', `const t = PR.TEXT[window.__EU ? 'eu' : 'es'], hud = new PH.PelotaHud(document.body, t, { you: 'Ane', rival: 'Unai' }, true); hud.panel('<h2>' + t.title + '</h2><p class="pel-sub">Ane vs Unai · ' + t.to(5) + '</p><ol>' + t.rules.map(r => '<li>' + r + '</li>').join('') + '</ol><div class="pel-ctrl">' + t.ctrlTouch + '</div><small class="pel-lbl">' + t.level + '</small><div class="pel-levels" role="group" aria-label="' + t.level + '"><button aria-pressed="false">' + (window.__EU ? 'Erraza' : 'Fácil') + '</button><button aria-pressed="true">' + (window.__EU ? 'Normala' : 'Normal') + '</button><button aria-pressed="false">' + (window.__EU ? 'Zaila' : 'Difícil') + '</button></div><div class="pel-row"><button class="pel-go alt">' + t.later + '</button><button class="pel-go">' + t.play + '</button></div>')`],
-    ['pelota-fin', `const t = PR.TEXT[window.__EU ? 'eu' : 'es'], hud = new PH.PelotaHud(document.body, t, { you: 'Ane', rival: 'Unai' }, true); hud.panel('<h2>' + t.win + '</h2><p class="pel-sub">Ane – Unai</p><div class="pel-big">5 – 3</div><div class="pel-fact"><b>' + t.factsTitle + '</b><br>' + t.facts[2] + '</div><div class="pel-row"><button class="pel-go alt">' + t.again + '</button><button class="pel-go">' + t.cont + '</button></div>')`],
-  ];
-  for (const [name, code] of SHOTS) {
-    await p.evaluate((code) => {
-      document.querySelectorAll('.lg-root, .fb-root, .pel-root').forEach(o => o.remove());
-      localStorage.removeItem('mendimendiz-liga-v1'); localStorage.removeItem('mendimendiz-torneo-v1');
-      const L = window.__L, T_ = window.__T, FH = window.__FH, PH = window.__PH, PR = window.__PR;
-      const CTX = { comarca: 'bidasoa', comarcaName: 'Baztan-Bidasoa', towns: [{ id: 'lesaka', name: 'Lesaka' }, { id: 'etxalar', name: 'Etxalar' }, { id: 'zugarramurdi', name: 'Zugarramurdi' }, { id: 'amaiur-maya-del-baztan', name: 'Amaiur' }, { id: 'ituren', name: 'Ituren' }, { id: 'elizondo', name: 'Elizondo' }] };
-      window.__pr = eval(code); void (L, T_, FH, PH, PR, CTX);
-    }, code);
-    await p.waitForTimeout(700);
-    await p.screenshot({ path: `${out}/${sz}-${name}.png` });
-    const over = await p.evaluate(() => { const c = document.querySelector('.lg-card, .fb-card, .pel-card'); if (!c) return 0; const d = c.scrollHeight - c.clientHeight; if (d > 8) c.scrollTop = d; return d; });
-    if (over > 8) { await p.waitForTimeout(300); await p.screenshot({ path: `${out}/${sz}-${name}-abajo.png` }); }
-    // (una lista larga puede desplazarse dentro del panel, con la cabecera y los botones fijos: eso está bien)
-    const lista = await p.evaluate(() => { const l = document.querySelector('.lg-list'); return l ? l.scrollHeight - l.clientHeight : 0; });
-    console.log(sz, name, over > 8 ? `(se desplaza ${over}px)` : '', lista > 8 ? `(lista desplazable ${lista}px, botones fijos)` : '');
-  }
+const init = () => { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'pelotari', seen: { heroBenat: true, dog: true }, settings: { quality: 'low' } })); localStorage.setItem('mendimendiz-futbol-v1', JSON.stringify({ v: 1, tutorial: true })); };
+const shot = (p, n) => p.screenshot({ path: `/tmp/claude-0/camp-${n}.png` });
+for (const [w, h, tag] of [[1280, 720, 'pc'], [844, 390, 'movil']]) {
+  const p = await b.newPage({ viewport: { width: w, height: h } }); await p.addInitScript(init);
+  p.on('pageerror', e => errs.push(e.message));
+  await p.goto(URL + '/?screen=sports', { timeout: 300000 }); await p.waitForFunction(() => window.__hub, null, { timeout: 300000 });
+  await p.waitForTimeout(1200); await shot(p, tag + '-pantalla');
+  if (tag === 'movil') { await p.evaluate(() => document.querySelector('#hMain').scrollTo(0, 9999)); await p.waitForTimeout(300); await shot(p, tag + '-pantalla2'); }
   await p.close();
 }
-console.log(errs.length ? errs.join('\n') : 'sin errores');
-await b.close();
+// fútbol sin pueblo
+{ const p = await b.newPage({ viewport: { width: 844, height: 390 } }); await p.addInitScript(init); p.on('pageerror', e => errs.push(e.message));
+  await p.goto(URL + '/?screen=sports', { timeout: 300000 }); await p.waitForFunction(() => window.__hub, null, { timeout: 300000 });
+  await p.evaluate(() => document.querySelector('[data-sport="futbol"]').click());
+  await p.waitForFunction(() => document.querySelector('.lg-root .lg-rv'), null, { timeout: 120000 }); await shot(p, 'fut-club');
+  await p.evaluate(() => document.querySelector('.lg-root .lg-rv').click());
+  await p.waitForFunction(() => document.querySelector('.lg-root [data-a="amistoso"]'), null, { timeout: 60000 }); await shot(p, 'fut-menu');
+  await p.evaluate(() => document.querySelector('.lg-root [data-a="sadar"]').click());
+  await p.waitForFunction(() => window.__futbol && window.__futbol.game && document.body.classList.contains('futbol'), null, { timeout: 600000 }).catch(() => {});
+  const st = await p.evaluate(() => ({ fut: !!window.__futbol, mode: window.__futbol?.o?.mode }));
+  console.log('fútbol: partido', JSON.stringify(st));
+  await p.evaluate(() => { const m = window.__futbol; if (!m) return; m.game.autoplay = true; for (let i = 0; i < 30 * 8; i++) m.update(1 / 30); });
+  await p.waitForTimeout(2500); await shot(p, 'fut-partido');
+  await p.evaluate(() => window.__futbol?.exit({ quit: true }));
+  await p.waitForFunction(() => document.querySelector('.lg-root [data-a="exit"]'), null, { timeout: 60000 }); await shot(p, 'fut-vuelta');
+  await p.evaluate(() => document.querySelector('.lg-root [data-a="exit"]').click());
+  await p.waitForFunction(() => !document.querySelector('#hub.hidden'), null, { timeout: 30000 });
+  console.log('fútbol: de vuelta al menú', await p.evaluate(() => window.__hub.screen)); await p.close(); }
+// pelota en el frontón elegido
+{ const p = await b.newPage({ viewport: { width: 844, height: 390 } }); await p.addInitScript(init); p.on('pageerror', e => errs.push(e.message));
+  await p.goto(URL + '/?screen=sports', { timeout: 300000 }); await p.waitForFunction(() => window.__hub, null, { timeout: 300000 });
+  await p.evaluate(() => document.querySelector('[data-fronton="lumbier"]').click()); await p.waitForTimeout(300);
+  await p.evaluate(() => document.querySelector('[data-sport="pelota"]').click());
+  await p.waitForFunction(() => document.querySelector('.lg-root [data-a="torneo"]'), null, { timeout: 600000 }); await shot(p, 'pel-menu');
+  await p.evaluate(() => document.querySelector('.lg-root [data-a="libre"]').click());
+  await p.waitForFunction(() => document.querySelector('.pel-panel'), null, { timeout: 60000 }); await shot(p, 'pel-panel');
+  await p.evaluate(() => document.querySelector('[data-pel-go]').click()); await p.waitForTimeout(4000); await shot(p, 'pel-partido');
+  await p.evaluate(() => document.querySelector('.pel-exit').click()); await p.waitForTimeout(400);
+  await p.evaluate(() => document.querySelector('[data-pel-yes]').click());
+  await p.waitForFunction(() => document.querySelector('.lg-root [data-a="exit"]'), null, { timeout: 60000 });
+  await p.evaluate(() => document.querySelector('.lg-root [data-a="exit"]').click());
+  await p.waitForFunction(() => !document.querySelector('#hub.hidden') && !window.__game, null, { timeout: 60000 });
+  console.log('pelota: de vuelta al menú', await p.evaluate(() => window.__hub.screen)); await p.close(); }
+console.log(errs.length ? errs.join('\n') : 'sin errores'); await b.close();

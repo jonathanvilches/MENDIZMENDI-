@@ -107,8 +107,9 @@ function bracketHtml(T) {
   return `<div class="tq-bracket">${cols}</div>`;
 }
 /** Pantalla del torneo. Devuelve 'play' | 'sim' | 'new' | 'exit'. */
+const css = () => { if (!document.getElementById('tq-css')) { const st = document.createElement('style'); st.id = 'tq-css'; st.textContent = CSS; document.head.appendChild(st); } };
 export function torneoPanel(T, here = null) {
-  if (!document.getElementById('tq-css')) { const st = document.createElement('style'); st.id = 'tq-css'; st.textContent = CSS; document.head.appendChild(st); }
+  css();
   return new Promise(res => {
     const m = yourMatch(T);
     const head = `<div class="lg-head tq-txa">${TXAPELA}<div><small>Torneo de mano · edición ${T.edition}</small><h2>Txapela de ${esc(T.comarcaName)}</h2><span class="lg-note">${T.txapelas ? `Tus txapelas: ${T.txapelas}` : 'Gana la final y la txapela es tuya'}</span></div></div>`;
@@ -126,6 +127,7 @@ export function torneoPanel(T, here = null) {
 }
 /** Menú del pelotari: partido libre o torneo. */
 export function pelotaMenu(T, here = null) {
+  css();   // (antes solo lo ponía el cuadro del torneo: la primera vez, la txapela salía enorme)
   return new Promise(res => {
     const m = yourMatch(T), away = m && here && m.venue.id !== here;
     const r = lgPanel(`<div class="lg-head tq-txa">${TXAPELA}<div><small>Frontón del pueblo</small><h2>Pelota a mano</h2><span class="lg-note">${T.txapelas ? `Tus txapelas: ${T.txapelas}` : 'Partido libre o torneo por la txapela'}</span></div></div>
