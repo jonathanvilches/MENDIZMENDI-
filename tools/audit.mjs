@@ -72,7 +72,7 @@ async function auditSize(sz) {
     await log('bienvenida'); await shot('onb');
     await page.evaluate(() => { const i = document.querySelector('#oName'); if (i) { i.value = 'Aitziber'; document.querySelector('#oGo').click(); } });
     await page.waitForTimeout(900);
-    for (const s of ['home', 'map', 'towns', 'peaks', 'nature', 'avatars', 'badges', 'passport', 'profile']) { await page.evaluate((s) => window.__hub.go(s), s); await page.waitForTimeout(700); await log(s); await shot(s); }
+    for (const s of ['home', 'map', 'towns', 'sports', 'peaks', 'nature', 'avatars', 'badges', 'passport', 'profile']) { await page.evaluate((s) => window.__hub.go(s), s); await page.waitForTimeout(700); await log(s); await shot(s); }
     await page.evaluate(() => window.__hub.go('comarca', 'bidasoa')); await page.waitForTimeout(700); await log('comarca'); await shot('comarca');
     await page.evaluate(() => window.__hub.townSheet('etxalar')); await page.waitForTimeout(700); await log('ficha'); await shot('sheet');
     await page.evaluate(() => { window.__hub.go('home'); window.__hub.more(); }); await page.waitForTimeout(700); await log('más'); await shot('more');
