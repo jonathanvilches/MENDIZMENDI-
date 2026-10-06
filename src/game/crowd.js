@@ -20,6 +20,7 @@ export class Crowd {
     for (let tries = 0; seats.length < n && tries < 200; tries++) {
       const i = (rnd() * 3) | 0, z = L * 0.16 + rnd() * L * 0.72;
       if (seats.some(s => s.i === i && Math.abs(s.z - z) < 1.3)) continue;
+      if (i === 2 && fronton.court?.postZ?.some(pz => Math.abs(pz - z) < 0.8)) continue;   // pilar de la cubierta
       seats.push({ i, z, x: W / 2 + CONTRA + 0.55 + i * 1.1, y: 0.42 * (i + 1) });
     }
     const ry = fronton.spot.ry;

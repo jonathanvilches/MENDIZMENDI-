@@ -1,6 +1,7 @@
 // Casas pirenaicas del valle de Salazar (piedra, revoco, tejados muy inclinados, balcones de madera)
 import * as THREE from 'three';
 import { box, gable, archRing, archPanel, colored, M, MM } from './builder.js';
+import { addStep } from './heightfield.js';
 
 const SHUTTERS = ['#3e6b48', '#7b3f2a', '#2f4f6e', '#6d5231', '#8a2f2f', '#4a6b3a'];
 const FLOWERS = ['#e0304f', '#ff6f91', '#f25c2c', '#ffffff', '#c93a7a'];
@@ -37,6 +38,12 @@ function windowAt(B, T, x, y, w, h, o) {
   }
 }
 
+// escalón en coordenadas de la fachada (matriz T) → suelo en el mundo
+const _v = new THREE.Vector3();
+export function stepFrom(T, x, top, z, hw, hd) {
+  _v.set(x, top, z).applyMatrix4(T); const e = T.elements, ry = Math.atan2(e[8], e[10]);
+  addStep(_v.x, _v.z, ry, -hw, hw, -hd, hd, _v.y);
+}
 function doorAt(B, T, x, o) {
   const F = (mx) => MM(T, mx);
   const w = o.w || 1.7, h = o.h || 2.7;
@@ -60,8 +67,9 @@ function doorAt(B, T, x, o) {
     B.add('woodDark', box(w - 0.1, 0.16, 0.05), F(M(x, yy, 0.075)));
     for (let k = 0; k < nb; k++) B.add('iron', box(0.035, 0.035, 0.03), F(M(x - w / 2 + (k + 0.5) * w / nb, yy, 0.11)));
   }
-  // escalón
+  // escalón (también es suelo: quien llega a la puerta se sube a él, no se le hunden los pies)
   B.add('ashlar', box(w + 0.9, 0.2, 0.7), F(M(x, 0.02, 0.35)));
+  stepFrom(T, x, 0.12, 0.35, (w + 0.9) / 2, 0.35);
   // aldaba
   B.add('iron', new THREE.TorusGeometry(0.07, 0.015, 5, 10), F(M(x + w * 0.22, h * 0.45, 0.07)));
 }

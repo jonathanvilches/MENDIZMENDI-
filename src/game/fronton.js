@@ -13,10 +13,53 @@ import { QUALITY } from '../util/quality.js';
 import { Crowd } from './crowd.js';
 import { shieldSpec, drawShield } from '../world/heraldry.js';
 
+// Cómo es el frontón de cada sitio. Se parte de la comarca y de lo que cuentan las fuentes (legal/estado-legal.md): los
+// frontones viejos de los pueblos, junto a la iglesia y con el frontis de sillería (arenisca rojiza en Baztan y Bidasoa,
+// piedra oscura en el Pirineo, caliza dorada en la Navarra media); en las villas grandes, frontón cubierto con cerchas
+// de acero y franja translúcida (como Labrit en Iruña); cubiertas de madera laminada atirantada como las de la Cuenca y
+// la montaña húmeda; el ladrillo en la Ribera. Paredes de un solo color (verde, azul o pardo terroso, los que piden los
+// reglamentos) distinto del suelo, y el colchón de abajo de metal o pintado. Es el estilo de la comarca, no una copia
+// de un frontón concreto.
+const GREEN = '#5d8c74', BLUE = '#58799a', EARTH = '#a27e5c', OCHRE = '#c09a6a', PLASTER = '#e2dccd', GREY = '#cfcac0';
+const STONE = { red: '#b0876f', dark: '#77716a', gold: '#c4ab80', grey: '#9c958a' };
+const LOOK_COMARCA = {
+  bidasoa: { stone: STONE.red, wall: PLASTER, floor: '#8e918c', contra: '#a79d88', chapa: '#2f5a46', chapaMetal: false, cap: '#c99a84', stands: '#b9a58c' },
+  'larraun-leitzaldea': { roof: 'wood', frontis: GREEN, wall: GREEN, floor: '#7f8781', contra: '#9f9886', chapa: '#8a2f2a', chapaMetal: false },
+  pirineo: { stone: STONE.dark, wall: GREY, floor: '#8a8d8e', contra: '#a19a8c', chapa: '#5b3b28', chapaMetal: false, cap: '#8f8a82', stands: '#9a8a76' },
+  sakana: { frontis: GREEN, wall: GREEN, floor: '#80857f', contra: '#a59c88' },
+  pamplona: { roof: 'metal', frontis: '#4f8a70', wall: '#4f8a70', floor: '#6f7f78', contra: '#9d9583' },
+  prepirineo: { stone: STONE.gold, wall: EARTH, floor: '#8c8a84', contra: '#ab9f88' },
+  sanguesa: { stone: STONE.gold, wall: PLASTER, floor: '#8b8d88', contra: '#ab9f88', chapa: '#7d2a24', chapaMetal: false },
+  'tierra-estella': { stone: STONE.gold, wall: EARTH, floor: '#8d8b85', contra: '#ad9f86' },
+  'valdizarbe-novenera': { stone: STONE.gold, wall: OCHRE, floor: '#8f8b83', contra: '#ae9f84', chapa: '#2f4f6a', chapaMetal: false },
+  'zona-media': { stone: STONE.gold, wall: EARTH, floor: '#918c82', contra: '#b09f82' },
+  ribera: { frontis: '#c08a5e', wall: '#c08a5e', brick: true, floor: '#9a9183', contra: '#b6a487', chapa: '#7a2b22', chapaMetal: false, stands: '#c7a782' },
+};
+LOOK_COMARCA['ribera-alta'] = LOOK_COMARCA.ribera;
+const FAMILY = { atlantic: 'bidasoa', pyrenean: 'pirineo', central: 'zona-media', ribera: 'ribera', city: 'pamplona' };
+const COVERED = { stone: null, chapa: '#c9d0d4', chapaMetal: true };   // frontón cubierto moderno: hormigón pintado y chapa de metal
+const LOOK_TOWN = {
+  elizondo: { ...COVERED, roof: 'metal', frontis: GREEN, wall: GREEN },                  // el frontón Baztan (1975), cubierto
+  lekunberri: { frontis: BLUE, wall: BLUE },
+  'isaba-izaba': { roof: 'wood', roofTop: '#4b4f55' }, 'erronkari-roncal': { roof: 'wood', roofTop: '#4b4f55' },   // tejados de nieve
+  'altsasu-alsasua': { ...COVERED, roof: 'metal', frontis: BLUE, wall: BLUE },
+  irulegi: { ...COVERED, roof: 'wood', frontis: GREEN, wall: GREEN, floor: '#7f8781' },  // la Cuenca: madera laminada (Orkoien)
+  sanguesa: { ...COVERED, roof: 'metal', frontis: GREEN, wall: GREEN },
+  estella: { ...COVERED, roof: 'metal', frontis: BLUE, wall: BLUE },                      // Remontival, cubierto
+  tafalla: { ...COVERED, roof: 'metal', frontis: GREEN, wall: GREEN },
+  tudela: { roof: 'metal', chapa: '#c9d0d4', chapaMetal: true },
+  ujue: { stone: STONE.grey, wall: PLASTER }, javier: { stone: STONE.grey },
+};
+export function frontonLook(def = {}) {
+  const c = LOOK_COMARCA[def.comarca] || LOOK_COMARCA[FAMILY[def.family]] || {};
+  return { ...c, ...(LOOK_TOWN[def.id] || {}) };
+}
+
 // nombre del pueblo y su escudo para la pared izquierda (como el letrero del ayuntamiento en los frontones de verdad)
+// y cómo es el frontón de allí (look)
 export function frontonWall(def) {
   const spec = shieldSpec(def);
-  return { wallName: (def.name || '').split(/\s*\/\s*/).join(' · ').toUpperCase(), wallSub: 'AYUNTAMIENTO · UDALA', shield: (g, cx, top, h) => drawShield(g, cx, top, h, spec) };
+  return { wallName: (def.name || '').split(/\s*\/\s*/).join(' · ').toUpperCase(), wallSub: 'AYUNTAMIENTO · UDALA', shield: (g, cx, top, h) => drawShield(g, cx, top, h, spec), look: frontonLook(def) };
 }
 
 // huella del frontón en coordenadas locales (se calcula una vez)

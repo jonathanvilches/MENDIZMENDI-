@@ -40,14 +40,14 @@ const _near = [];
 function moversNear(x, z, r) { _near.length = 0; for (const c of MOVERS) if (Math.abs(c.x - x) < c.r + r + 0.5 && Math.abs(c.z - z) < c.r + r + 0.5) _near.push(c); return _near.slice(); }
 // Empuja un círculo (x,z,r) fuera de los obstáculos. Devuelve {x,z,hit}
 export function resolve(x, z, r, ignore) {
-  let hit = false;
+  let hit = false, mover = null;
   for (let it = 0; it < 3; it++) {
     let moved = false;
     for (const c of moversNear(x, z, r)) {
       if (c === ignore || c.ghost) continue;
       const who = c.actor || c.animal; if (who && (!who.obj?.parent || who.visible === false)) continue;   // fuera de la escena u oculto: no estorba
       const dx = x - c.x, dz = z - c.z, d = Math.hypot(dx, dz), m = c.r + r;
-      if (d < m && d > 1e-5) { x = c.x + dx / d * m; z = c.z + dz / d * m; hit = moved = true; }
+      if (d < m && d > 1e-5) { x = c.x + dx / d * m; z = c.z + dz / d * m; hit = moved = true; mover = c; }
     }
     for (const c of nearby(x, z, r + 2)) {
       if (c === ignore || c.ghost) continue;
@@ -76,9 +76,23 @@ export function resolve(x, z, r, ignore) {
     }
     if (!moved) break;
   }
-  return { x, z, hit };
+  return { x, z, hit, mover };
 }
 
+/** Como isFree pero sin crear listas (la rejilla de caminos de nav.js lo pregunta cientos de miles de veces). */
+export function freeFast(x, z, r) {
+  const i0 = Math.floor((x - r - 2) / CELL), i1 = Math.floor((x + r + 2) / CELL), j0 = Math.floor((z - r - 2) / CELL), j1 = Math.floor((z + r + 2) / CELL);
+  for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) {
+    const l = grid.get(key(i, j)); if (!l) continue;
+    for (const c of l) {
+      if (c.type === 'circle') { const dx = x - c.x, dz = z - c.z, m = c.r + r; if (dx * dx + dz * dz < m * m) return false; continue; }
+      const dx = x - c.x, dz = z - c.z, lx = dx * c.cos - dz * c.sin, lz = dx * c.sin + dz * c.cos;
+      const ex = Math.abs(lx) - c.hw, ez = Math.abs(lz) - c.hd;
+      if (ex < r && ez < r && (ex <= 0 || ez <= 0 || ex * ex + ez * ez < r * r)) return false;
+    }
+  }
+  return true;
+}
 // ¿Está libre un área circular?
 export function isFree(x, z, r) {
   for (const c of nearby(x, z, r + 2)) {

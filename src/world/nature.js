@@ -616,6 +616,7 @@ export class Nature {
     }
     const mat = snowable(windMaterial(), 0.55, 0.25, 0.8);
     const m4 = new THREE.Matrix4();
+    for (const o of vines.slice(0, cap)) addCircle(o.x, o.z, 0.28, { vine: true });   // (las cepas, como troncos: se anda entre las hileras)
     for (const [geo, list] of [[vine, vines.slice(0, cap)], [veg, vegs.slice(0, cap)]]) {
       if (!list.length) continue;
       for (const o of list) o.r = rnd() * 6;
@@ -700,6 +701,9 @@ export class Nature {
       if (f > 0.3 && rnd() < 0.5) fernSpots.push({ x, z, s: 0.7 + rnd() * 0.7 });
       else if ((f > 0.1 || (r.edge < 8 && villageMask(x, z) < 0.3)) && rnd() < 0.25) bushSpots.push({ x, z, s: 0.7 + rnd() * 0.9 });
     }
+    this.bushSpots = bushSpots;   // (para revisar choques: tools/movimiento.mjs)
+    // las matas no se atraviesan (antes el jugador, los vecinos y los animales pasaban por dentro); los helechos sí, son bajos
+    for (const b of bushSpots) addCircle(b.x, b.z, 0.36 * b.s, { bush: true });
     const matB = snowable(windMaterial({ map: TEX.foliage, alphaTest: 0.45, side: THREE.DoubleSide }), 0.65, 0.2, 0.8);
     const matF = snowable(windMaterial({ side: THREE.DoubleSide }, { fern: true }), 0.5, 0.25, 0.8);
     // por trozos del mapa y solo de cerca: una sola malla para todo el valle se dibujaba entera (también lo que queda

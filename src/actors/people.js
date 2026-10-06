@@ -1,7 +1,8 @@
 // Vecinos y seres de leyenda: figuras articuladas procedurales con animación propia
 import * as THREE from 'three';
 import { groundHeight } from '../world/heightfield.js';
-import { resolve, addMover } from '../world/colliders.js';
+import { resolve, addMover, MOVERS } from '../world/colliders.js';
+import { requestPath, walkable, segClear } from '../world/nav.js';
 import { damp, dampAngle } from '../util/math.js';
 import { buildMinifig, lookToMinifig, MinifigAnimator, setOutlines } from './minifig.js';
 import { buildNpc, npcsReady } from './npcGlb.js';
@@ -64,28 +65,49 @@ export class Actor {
   setPos(x, z, heading) { this.pos.set(x, groundHeight(x, z), z); this.home = { x, z }; if (heading != null) this.heading = heading; this.sync(); }
   update(dt, player) {
     this.t += dt;
+    // al empezar, si ha quedado dentro de algo que se puso después (un puesto, la tienda), sale a un lado
+    if (!this.settled) { this.settled = true; if (!this.frozen) { const r = resolve(this.pos.x, this.pos.z, this.radius, this.collider); if (r.hit && !r.mover) { this.pos.x = r.x; this.pos.z = r.z; this.home = { x: r.x, z: r.z }; } } }
     const dP = player ? Math.hypot(player.pos.x - this.pos.x, player.pos.z - this.pos.z) : 99;
     setOutlines(this.obj, dP < 22);
-    // mira al jugador si está cerca
-    const near = dP < 4.5 && !this.dance;
+    // mira al jugador si está cerca; los que pasean solo se paran si se les pone delante (antes se quedaban
+    // clavados en mitad de la calle en cuanto el jugador se acercaba)
+    const walker = !!(this.route || this.wander > 0);
+    const near = dP < 4.5 && !this.dance, blocking = walker ? dP < 2.2 && !this.dance : near;
     let moving = false;
-    if (this.talking > 0 || (near && this.state !== 'walk')) {
-      this.lookAt = player.pos;
-    } else this.lookAt = null;
+    if (this.chatWith && this.talking > 0) this.lookAt = this.chatWith.pos;
+    else if (this.talking > 0 || (near && this.state !== 'walk')) { this.lookAt = player.pos; this.chatWith = null; }
+    else { this.lookAt = null; this.chatWith = null; }
     if (this.talking <= 0 && !this.frozen && !this.dance) {
       if (this.state === 'idle') {
         this.wait -= dt;
-        if (this.wait <= 0 && !near) {
-          if (this.route) { this.target = this.route[this.routeI]; this.routeI = (this.routeI + 1) % this.route.length; this.state = 'walk'; }
-          else if (this.wander > 0) { this.target = this.pickWander(); if (this.target) this.state = 'walk'; }
+        if (this.wait <= 0 && !blocking) {
+          // seguir hacia donde iba (si se paró por el jugador) o elegir otro destino
+          let goal = this.goal && !this.arrived ? this.goal : null;
+          if (!goal && this.route) { goal = this.route[this.routeI]; this.routeI = (this.routeI + 1) % this.route.length; }
+          else if (!goal && this.wander > 0) goal = this.pickWander();
+          if (goal) this.goTo(goal);
           this.wait = 2 + Math.random() * 5;
+        } else if (this.arrived && !this.lookAt && walker) {
+          // en su destino: mira a un lado y a otro de vez en cuando (no se queda como una estatua)
+          if ((this.lookT = (this.lookT ?? 1.5) - dt) <= 0) { this.lookT = 1.5 + Math.random() * 3; this.lookHeading = this.heading + (Math.random() - 0.5) * 1.6; }
+          if (this.lookHeading != null) this.heading = dampAngle(this.heading, this.lookHeading, 2.5, dt);
         }
       } else if (this.state === 'walk' && this.target) {
         const dx = this.target.x - this.pos.x, dz = this.target.z - this.pos.z, d = Math.hypot(dx, dz);
-        if (d < 0.4 || (near && !this.ignorePlayer)) { this.state = 'idle'; this.target = d < 0.4 ? null : this.target; }
-        else {
-          this.heading = dampAngle(this.heading, Math.atan2(dx, dz), 6, dt);
-          this.speed = damp(this.speed, this.target.run ? this.walkSpeed * 3 : this.walkSpeed, 5, dt);
+        const last = !this.path || !this.path.length;
+        if (blocking && !this.ignorePlayer) { this.state = 'idle'; this.wait = 1 + Math.random(); }
+        // (un punto intermedio se da por alcanzado a 0,9 m solo si desde ahí se ve el siguiente; si no, al llegar: en
+        // una esquina, cortarla de lejos le llevaba contra la pared)
+        else if (d < (last ? 0.45 : 0.3) || (!last && d < 0.9 && segClear(this.pos.x, this.pos.z, this.path[0].x, this.path[0].z, this.radius))) {
+          if (!last) this.target = this.path.shift();
+          else this.arrive();
+        } else {
+          // esquivar a quien se le cruza: se aparta un poco hacia un lado mientras pasa
+          let want = Math.atan2(dx, dz);
+          if (this.dodge > 0) { this.dodge -= dt; want += this.dodgeSide * 0.85; }
+          this.heading = dampAngle(this.heading, want, 6, dt);
+          const run = this.goal?.run || this.target.run;
+          this.speed = damp(this.speed, run ? this.walkSpeed * 3 : this.walkSpeed, 5, dt);
           moving = true;
         }
       }
@@ -93,25 +115,56 @@ export class Actor {
     if (!moving) this.speed = damp(this.speed, 0, 8, dt);
     this.moved = 0;
     if (this.speed > 0.01) {
-      let nx = this.pos.x + Math.sin(this.heading) * this.speed * dt, nz = this.pos.z + Math.cos(this.heading) * this.speed * dt;
+      const want = this.speed * dt;
+      let nx = this.pos.x + Math.sin(this.heading) * want, nz = this.pos.z + Math.cos(this.heading) * want;
       const r = resolve(nx, nz, this.radius, this.collider);
-      // contra una pared o una persona: no se queda andando sin avanzar (antes empujaba 1,5 s y lo volvía a intentar)
-      if (r.hit && this.state === 'walk') { this.stuck = (this.stuck || 0) + dt; if (this.stuck > 0.6) { this.state = 'idle'; this.stuck = 0; this.target = null; this.wait = 0.8 + Math.random() * 1.5; } }
-      else this.stuck = 0;
       this.moved = Math.hypot(r.x - this.pos.x, r.z - this.pos.z);
+      if (this.state === 'walk') {
+        if (r.mover && !(this.dodge > 0)) { this.dodge = 0.7; this.dodgeSide = Math.sign((r.x - r.mover.x) * Math.cos(this.heading) - (r.z - r.mover.z) * Math.sin(this.heading)) || 1; }
+        // atascado (algo fijo delante o un corrillo): vuelve a buscar camino desde donde está; si sigue, lo deja
+        if (this.moved < want * 0.3) { this.stuck = (this.stuck || 0) + dt; if (this.stuck > 1) { this.stuck = 0; this.stuckN = (this.stuckN || 0) + 1;
+          if ((this.repaths = (this.repaths || 0) + 1) <= 2 && this.goal) this.goTo(this.goal, true);
+          else { this.state = 'idle'; this.target = null; this.goal = null; this.wait = 0.8 + Math.random() * 1.5; } } }
+        else this.stuck = Math.max(0, (this.stuck || 0) - dt);
+      }
       this.pos.x = r.x; this.pos.z = r.z;
       this.phase += this.speed * dt * 4.2;
     }
     // las piernas siguen a lo que avanza de verdad (si algo le frena, no anda en el sitio ni patina)
     this.vSpeed = damp(this.vSpeed || 0, dt > 0 ? this.moved / dt : 0, 10, dt);
     if (this.lookAt && this.speed < 0.3) this.heading = dampAngle(this.heading, Math.atan2(this.lookAt.x - this.pos.x, this.lookAt.z - this.pos.z), 5, dt);
-    this.pos.y = groundHeight(this.pos.x, this.pos.z);
+    // la altura sube y baja con el suelo poco a poco (un escalón se sube, no se salta de golpe)
+    const g = groundHeight(this.pos.x, this.pos.z);
+    this.pos.y = this.moved > 0 ? damp(this.pos.y, g, 16, dt) : g;
     this.collider.x = this.pos.x; this.collider.z = this.pos.z;
     // animación por distancia: fuera de cámara o lejos se anima a saltos (se acumula el tiempo), cerca en cada fotograma
     this.animAcc = (this.animAcc || 0) + dt;
     const every = this.onScreen === false ? 0.3 : dP > 60 ? 0.066 : dP > 40 ? 0.033 : 0;   // a la vista, fluidos hasta 40 m
     if (this.animAcc >= every) { this.animate(this.animAcc); this.animAcc = 0; }
     this.sync();
+  }
+  /** Ir a un sitio por las calles (camino de nav.js, que se busca en unos fotogramas: mientras, espera donde está). Sin
+   *  camino, se queda donde está y la próxima vez prueba otro destino. */
+  goTo(goal, again = false) {
+    this.cancelPath?.(); this.goal = goal; this.state = 'plan'; this.target = null; this.path = null; this.arrived = false; this.lookHeading = null;
+    if (!again) this.repaths = 0;
+    this.cancelPath = requestPath(this.pos.x, this.pos.z, goal.x, goal.z, (p) => {
+      this.cancelPath = null; if (this.state !== 'plan' || this.goal !== goal) return;
+      if (!p || !p.length) { this.state = 'idle'; this.goal = null; this.wait = 1 + Math.random() * 2; return; }
+      this.path = p; this.target = p.shift(); this.state = 'walk';
+    });
+    return true;
+  }
+  // al llegar: se queda un rato; si hay otro vecino parado al lado, se ponen a charlar
+  arrive() {
+    this.state = 'idle'; this.target = null; this.path = null; this.arrived = true; this.goal = null; this.wait = 3 + Math.random() * 6;
+    if (!this.route && !(this.wander > 0)) return;
+    for (const c of MOVERS) {
+      const o = c.actor; if (!o || o === this || o.state !== 'idle' || o.talking > 0 || o.frozen || o.dance) continue;
+      if (Math.hypot(o.pos.x - this.pos.x, o.pos.z - this.pos.z) > 3.5) continue;
+      const t = 3 + Math.random() * 3; this.talking = t; o.talking = t; this.chatWith = o; o.chatWith = this; this.wait = Math.max(this.wait, t + 0.5); o.wait = Math.max(o.wait || 0, t + 0.5);
+      break;
+    }
   }
   animate(dt) {
     if (this.talking > 0) this.talking -= dt;
@@ -126,15 +179,13 @@ export class Actor {
     if (this.clap > 0) this.clap -= dt;
   }
   say(sec = 3) { this.talking = sec; }
-  // un sitio al que pasear: dentro de su zona, sin caer dentro de una casa ni de un muro (y con el camino despejado a
-  // medias); si no encuentra ninguno, se queda donde está
+  // un sitio al que pasear dentro de su zona, en una casilla que se pueda pisar (el camino lo busca goTo); si no
+  // encuentra ninguno, se queda donde está
   pickWander() {
-    for (let k = 0; k < 6; k++) {
+    for (let k = 0; k < 8; k++) {
       const a = Math.random() * 6.28, r = (0.35 + Math.random() * 0.65) * this.wander;
       const x = this.home.x + Math.cos(a) * r, z = this.home.z + Math.sin(a) * r;
-      if (resolve(x, z, 0.45, this.collider).hit) continue;
-      if (resolve((x + this.pos.x) / 2, (z + this.pos.z) / 2, 0.4, this.collider).hit) continue;
-      return { x, z };
+      if (walkable(x, z)) return { x, z };
     }
     return null;
   }

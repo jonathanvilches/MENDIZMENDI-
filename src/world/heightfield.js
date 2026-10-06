@@ -113,31 +113,47 @@ export function bridgeAt(x, z) {
   return null;
 }
 
-// Altura del suelo caminable (terreno o tablero de puente)
+// Altura del suelo caminable (terreno, tablero de puente, cancha o tarima, escalón)
 export function groundHeight(x, z) {
   const t = terrainHeight(x, z);
   const b = bridgeAt(x, z);
   if (b) return Math.max(t, deckY(b, x));
-  for (const p of PLATFORMS) {
-    const dx = x - p.x, dz = z - p.z, lx = dx * p.c - dz * p.s, lz = dx * p.s + dz * p.c;
-    if (lx > p.x0 && lx < p.x1 && lz > p.z0 && lz < p.z1) return Math.max(t, p.y1 === undefined ? p.y : p.y + (p.y1 - p.y) * (lz - p.z0) / (p.z1 - p.z0));
+  const L = PGRID.get(pkey(Math.floor(x / PCELL), Math.floor(z / PCELL)));
+  if (L) {
+    let best = -Infinity;
+    for (const p of L) {
+      const dx = x - p.x, dz = z - p.z, lx = dx * p.c - dz * p.s, lz = dx * p.s + dz * p.c;
+      if (lx > p.x0 && lx < p.x1 && lz > p.z0 && lz < p.z1) best = Math.max(best, p.y1 === undefined ? p.y : p.y + (p.y1 - p.y) * (lz - p.z0) / (p.z1 - p.z0));
+    }
+    if (best > -Infinity) return Math.max(t, best);
   }
   return t;
 }
 
-// Superficies elevadas que cuentan como suelo (canchas de frontón, tarimas): rectángulo local girado ry; con y1 es una
-// rampa que va de la altura y (en z0) a y1 (en z1)
+// Superficies elevadas que cuentan como suelo (canchas de frontón, tarimas, escalones): rectángulo local girado ry; con
+// y1 es una rampa que va de la altura y (en z0) a y1 (en z1). Van en una rejilla de 8 m: hay cientos (un escalón por
+// puerta) y groundHeight se pregunta muchas veces por fotograma
 export const PLATFORMS = [];   // (exportada para revisar solapes: tools/solapes.mjs)
-export function addPlatform(x, z, ry, x0, x1, z0, z1, y, y1) { PLATFORMS.push({ x, z, c: Math.cos(ry), s: Math.sin(ry), x0, x1, z0, z1, y, y1 }); }
-export function clearPlatforms() { PLATFORMS.length = 0; }
+const PCELL = 8, PGRID = new Map(), pkey = (i, j) => i * 73856093 ^ j * 19349663;
+export function addPlatform(x, z, ry, x0, x1, z0, z1, y, y1) {
+  const p = { x, z, c: Math.cos(ry), s: Math.sin(ry), x0, x1, z0, z1, y, y1 }; PLATFORMS.push(p);
+  const r = Math.hypot(Math.max(Math.abs(x0), Math.abs(x1)), Math.max(Math.abs(z0), Math.abs(z1)));
+  for (let i = Math.floor((x - r) / PCELL); i <= Math.floor((x + r) / PCELL); i++) for (let j = Math.floor((z - r) / PCELL); j <= Math.floor((z + r) / PCELL); j++) {
+    const k = pkey(i, j); let l = PGRID.get(k); if (!l) PGRID.set(k, l = []); l.push(p);
+  }
+}
+export function clearPlatforms() { PLATFORMS.length = 0; PGRID.clear(); }
 /** ¿Cae (x, z) sobre una cancha o tarima, con margen m? Para no poner encima árboles, plantas, puestos ni otra pista. */
 export function onPlatform(x, z, m = 0) {
   for (const p of PLATFORMS) {
+    if (p.step) continue;   // (los escalones de las puertas no cuentan: son suelo, no una pista)
     const dx = x - p.x, dz = z - p.z, lx = dx * p.c - dz * p.s, lz = dx * p.s + dz * p.c;
     if (lx > p.x0 - m && lx < p.x1 + m && lz > p.z0 - m && lz < p.z1 + m) return true;
   }
   return false;
 }
+/** Escalón (de una puerta, de una escalinata): cuenta como suelo pero no como pista. */
+export function addStep(x, z, ry, x0, x1, z0, z1, y) { addPlatform(x, z, ry, x0, x1, z0, z1, y); PLATFORMS[PLATFORMS.length - 1].step = true; }
 
 // Nivel de agua en un punto (o -Infinity si no hay agua cerca)
 export function waterLevelAt(x, z) {

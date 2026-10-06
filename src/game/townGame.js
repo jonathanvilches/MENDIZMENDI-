@@ -311,7 +311,9 @@ export class TownGame {
         skirt: female && R() < 0.5 ? pick(pal.pants) : undefined, vest: !female && R() < 0.35 ? pick(pal.extras) : undefined, txapela: !female && old && R() < 0.7 ? '#1d1d24' : undefined,
         scarf: R() < 0.2 ? pick(pal.extras) : undefined, apron: female && old && R() < 0.4 ? '#f4f1ea' : undefined, basket: R() < 0.2, pattern: R() < 0.2 ? 'check' : undefined, moustache: !female && old && R() < 0.5 ? '#dcd7cf' : undefined,
         region: R() < 0.7 ? d.comarca : undefined, seed: 1 + Math.floor(R() * 1000) };   // la mayoría, con el traje tradicional de su comarca
-      const route = [0, 1, 2].map(() => { const p = pick(pts); const s = this.spot(p, 3); return { x: s.x, z: s.z }; });
+      // tres sitios de su barrio (cada uno a menos de 120 m del anterior): en Iruña ir de punta a punta no es pasear
+      const route = []; let prev = pick(pts);
+      for (let k = 0; k < 3; k++) { const near = pts.filter(q => q !== prev && Math.hypot(q.x - prev.x, q.z - prev.z) < 120); const p = k === 0 ? prev : (near.length ? pick(near) : pick(pts)); const s = this.spot(p, 3); route.push({ x: s.x, z: s.z }); prev = p; }
       const s0 = route[0];
       const a = new Actor({ id: 'w' + i, name: female ? ['Maite', 'Amaia', 'Nekane', 'Itziar', 'Leire', 'Ainhoa', 'Garazi', 'Miren'][i % 8] : ['Josu', 'Patxi', 'Koldo', 'Mikel', 'Fermín', 'Iñaki', 'Xabier', 'Unai'][i % 8], x: s0.x, z: s0.z, look, route, walkSpeed: 1 + R() * 0.4 }, this.scene);
       this.walkers.push(a);
