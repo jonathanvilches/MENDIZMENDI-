@@ -24,6 +24,6 @@ import os
 from PIL import Image
 out = 'src/assets/portadas/heroe'; os.makedirs(out, exist_ok=True); tot = 0
 for n in ${JSON.stringify(names)}:
-    d = os.path.join(out, n + '.webp'); Image.open(os.path.join('${tmp}', n + '.png')).convert('RGB').resize((960, 540), Image.LANCZOS).save(d, 'WEBP', quality=66, method=6); tot += os.path.getsize(d)
+    d = os.path.join(out, n + '.webp'); Image.open(os.path.join('${tmp}', n + '.png')).convert('RGB').resize((800, 450), Image.LANCZOS).save(d, 'WEBP', quality=44, method=6); tot += os.path.getsize(d)
 print('portadas', ${names.length}, 'total KB', tot // 1024)
 `], { stdio: 'inherit' });

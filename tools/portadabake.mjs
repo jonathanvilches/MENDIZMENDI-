@@ -1,5 +1,5 @@
-// Hornea la foto de cada comarca en WebP (src/assets/portadas/<comarca>.webp y <comarca>-s.webp, la pequeña para las
-// tarjetas) para que el móvil no tenga que montar el diorama 3D de la comarca en el menú ni en la pantalla de carga.
+// Hornea la foto pequeña de cada comarca en WebP (src/assets/portadas/<comarca>-s.webp, para las tarjetas; las grandes
+// son las portadas con el personaje, tools/herobake.mjs) para que el móvil no tenga que montar el diorama 3D de la comarca en el menú ni en la pantalla de carga.
 // Volver a ejecutar cuando cambien los dioramas (src/hub/diorama.js) o las comarcas.
 // Uso: node tools/portadabake.mjs [url base]   (ONLY=bidasoa,baztan para rehacer solo esas)
 import { chromium } from 'playwright-core';
@@ -28,7 +28,7 @@ for n in ${JSON.stringify(ids)}:
     f = os.path.join('${tmp}', n + '.png')
     if not os.path.exists(f): continue
     im = Image.open(f).convert('RGB')
-    for name, size, q in ((n, (${W}, ${H}), 80), (n + '-s', (480, 270), 82)):
+    for name, size, q in ((n + '-s', (480, 270), 82),):   # (las grandes son ahora las portadas con personaje: tools/herobake.mjs)
         d = os.path.join(out, name + '.webp'); im.resize(size, Image.LANCZOS).save(d, 'WEBP', quality=q, method=6); tot += os.path.getsize(d)
 print('fotos', len(${JSON.stringify(ids)}), 'total KB', tot // 1024)
 `], { stdio: 'inherit' });
