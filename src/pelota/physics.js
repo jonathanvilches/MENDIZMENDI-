@@ -8,7 +8,7 @@ export const vec = (x = 0, y = 0, z = 0) => ({ x, y, z });
 export class Ball {
   constructor() { this.p = vec(0, 1, 10); this.v = vec(); this.spin = 0; }
   set(p, v) { this.p = { ...p }; this.v = { ...v }; }
-  clone() { const b = new Ball(); b.set(this.p, this.v); return b; }
+  clone() { const b = new Ball(); b.set(this.p, this.v); b.spin = this.spin; return b; }
   // avanza dt (tiempo de juego) y devuelve los eventos ocurridos
   step(dt, out = []) {
     const { p, v } = this, { G, DRAG } = PHYS;
@@ -18,7 +18,9 @@ export class Ball {
     // frontis
     if (p.z < R && v.z < 0) {
       out.push({ type: 'front', x: p.x, y: p.y, z: 0 });
-      p.z = R; v.z = -v.z * PHYS.FRONT_E; v.x *= PHYS.FRONT_FX; v.y *= PHYS.FRONT_F;
+      // cortada (spin 1): sale del frontis con más fuerza y rasa, casi sin subir ni bajar
+      if (this.spin === 1) { p.z = R; v.z = -v.z * PHYS.CUT_E; v.x *= PHYS.FRONT_FX; v.y = Math.max(0.6, Math.abs(v.y) * 0.25); }
+      else { p.z = R; v.z = -v.z * PHYS.FRONT_E; v.x *= PHYS.FRONT_FX; v.y *= PHYS.FRONT_F; }
     }
     // pared izquierda
     if (p.x < -COURT.W / 2 + R && v.x < 0 && p.z < COURT.L + 2) {
@@ -29,8 +31,8 @@ export class Ball {
     if (p.y < R && v.y < 0) {
       out.push({ type: 'floor', x: p.x, y: 0, z: p.z, vy: v.y });
       p.y = R;
-      if (Math.abs(v.y) < 0.6) v.y = 0; else v.y = -v.y * PHYS.FLOOR_E;
-      v.x *= PHYS.FLOOR_F; v.z *= PHYS.FLOOR_F;
+      if (Math.abs(v.y) < 0.6) v.y = 0; else v.y = -v.y * (this.spin === 1 ? PHYS.CUT_FLOOR_E : PHYS.FLOOR_E);
+      const f = this.spin === 1 ? PHYS.CUT_FLOOR_F : PHYS.FLOOR_F; v.x *= f; v.z *= f;   // la cortada bota bajo y corre
     }
     return out;
   }

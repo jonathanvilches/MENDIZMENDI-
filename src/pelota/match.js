@@ -21,7 +21,7 @@ export class PelotaMatch {
     this.names = { you: o.you?.name || this.txt.you, rival: o.rival?.name || 'Rival' };
     this.audio = new PelotaAudio(o.audio);
     this.hud = new PelotaHud(o.container || document.body, this.txt, this.names, this.touch);
-    this.input = { mx: 0, mz: 0, hit: false, drop: false, keys: {}, stick: { id: null, x: 0, y: 0 } };
+    this.input = { mx: 0, mz: 0, hit: false, drop: false, cut: false, two: false, keys: {}, stick: { id: null, x: 0, y: 0 } };
     this.active = true; this.t = 0;
     this.camPos = new this.T.Vector3(); this.camLook = new this.T.Vector3(); this.camInit = false;
     this.fov0 = this.cam.fov;
@@ -98,12 +98,14 @@ export class PelotaMatch {
     this.onKey = (e) => {
       if (!this.active) return;
       const k = e.key.toLowerCase(), down = e.type === 'keydown';
-      const mine = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'shift', 'j', 'k', 'e', 'escape', 'enter'];
+      const mine = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'shift', 'j', 'k', 'l', 'i', 'e', 'escape', 'enter'];
       if (!mine.includes(k)) return;
       e.preventDefault(); e.stopPropagation();
       if (down && !I.keys[k]) {
         if (k === ' ' || k === 'j' || k === 'e' || k === 'enter') I.hitQ = true;
         if (k === 'shift' || k === 'k') I.dropQ = true;
+        if (k === 'l') I.cutQ = true;
+        if (k === 'i') I.twoQ = true;
         if (k === 'escape') { if (hud.panelEl) return; this.confirmExit(); }
       }
       I.keys[k] = down;
@@ -136,7 +138,7 @@ export class PelotaMatch {
       const up = () => b.classList.remove('down');
       b.addEventListener('pointerup', up); b.addEventListener('pointerleave', up); b.addEventListener('pointercancel', up);
     };
-    btn('.pel-hit', 'hitQ'); btn('.pel-drop', 'dropQ');
+    btn('.pel-hit', 'hitQ'); btn('.pel-drop', 'dropQ'); btn('.pel-cut', 'cutQ'); btn('.pel-two', 'twoQ');
     hud.$('.pel-exit').addEventListener('click', () => { if (!hud.panelEl) this.confirmExit(); });
   }
   readInput() {
@@ -146,8 +148,8 @@ export class PelotaMatch {
     const m = Math.hypot(x, y); if (m > 1) { x /= m; y /= m; }
     if (Math.hypot(x, y) < 0.12) { x = 0; y = 0; }
     // la cámara mira al frontis: arriba en el joystick = hacia el frontis (−z)
-    const out = { mx: x, mz: -y, hit: !!I.hitQ, drop: !!I.dropQ, aimX: x, aimY: y };
-    I.hitQ = I.dropQ = false;
+    const out = { mx: x, mz: -y, hit: !!I.hitQ, drop: !!I.dropQ, cut: !!I.cutQ, two: !!I.twoQ, aimX: x, aimY: y };
+    I.hitQ = I.dropQ = I.cutQ = I.twoQ = false;
     return out;
   }
 
