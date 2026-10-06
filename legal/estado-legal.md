@@ -33,6 +33,7 @@
 
 | Fecha | Función | Respuestas (1-8) | Color | Decisión |
 |---|---|---|---|---|
+| 2026-10-06 | Campeonatos de pelota y fútbol desde el menú; tormenta con rayos y truenos (cielo y sonido generados por el juego); vecinos nuevos vestidos sobre los personajes de Meshy del usuario; euskera ampliado (unas 1.500 frases traducidas por el asistente) | 1-8 No (mecánica, sonido e imagen propios; modelos del usuario) · traducción automática: VERIFICAR por un hablante nativo | VERDE | Seguir. Revisión del euskera por una persona nativa antes de publicar. |
 | 2026-10-06 | Pelota: joystick directo y reglas de la pared izquierda y del frontis; fútbol: sprint; revisión general (memoria, sonido, salir) | 1-8 No (mecánica y reglas descritas con palabras propias) | VERDE | Seguir. |
 | 2026-10-06 | Portadas de pueblo estilo ilustración con el personaje en acción; fútbol: portero jugable con los pies, pase al hueco mantenido, frenada con el balón | 1-8 No (imágenes propias renderizadas y pintadas por filtro; mecánica propia) | VERDE | Seguir. |
 | 2026-10-06 | Portadas de cada pueblo (foto del propio juego con el personaje y luz de estudio), marcador fino de pelota y control del portero en fútbol | 1-8 No (imágenes renderizadas por el juego con personajes propios; mecánica propia) | VERDE | Seguir. |
