@@ -268,7 +268,6 @@ export class Game {
     if (this.herd) this.updateHerding(dt);
     if (this.zarra) this.updateZarratrako(dt);
     if (this.mode === 'pelota' && this.pelotaTick) this.pelotaTick(dt);
-    if (this.crowds?.length) { for (const c of this.crowds) c.update(dt); this.crowds = this.crowds.filter(c => !c.disposed); }
     if (this.mode === 'dance') this.updateDance(dt);
     if (this.mode === 'bino') this.updateBino(dt);
     // detección de pasos por lugares

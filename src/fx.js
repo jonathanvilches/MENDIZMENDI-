@@ -202,7 +202,8 @@ export class Beacon {
   update(elapsed, player) {
     const t = this.target;
     this.mat.uniforms.uTime.value = elapsed;
-    if (!t) { this.beam.visible = this.arrow.visible = false; return; }
+    // (off: durante un partido el haz del objetivo no se ve; era una columna de luz plana sobre el frontón)
+    if (!t || this.off) { this.beam.visible = this.arrow.visible = false; return; }
     const d = Math.hypot(t.x - player.pos.x, t.z - player.pos.z);
     const y = t.y ?? terrainHeight(t.x, t.z);
     this.beam.visible = d > 12;

@@ -11,7 +11,8 @@ const CW = 96, CH = 144;   // tamaño de cada dibujo en la lámina
 // conjuntos de público: qué personaje es cada figura
 export const SETS = {
   futbol: ['osasuna', 'osasuna', 'sanfermin', 'osasuna', 'pastor', 'osasuna', 'pelotari', 'osasuna_fuera'],
-  pelota: ['pastor', 'sanfermin', 'pelotari', 'osasuna', 'pastor', 'sanfermin', 'osasuna_fuera', 'pelotari'],
+  // (en el frontón, vecinos: de fiesta, del pueblo y de calle; sin pelotaris en la grada, que se confundían con los que juegan)
+  pelota: ['sanfermin', 'pastor', 'osasuna', 'sanfermin', 'osasuna_fuera', 'pastor', 'sanfermin', 'osasuna'],
   toros: ['sanfermin', 'sanfermin', 'pastor', 'sanfermin', 'sanfermin', 'pastor', 'sanfermin', 'pelotari'],
 };
 const cache = new Map();

@@ -64,8 +64,17 @@ function bakeMesh(o) {
   }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  if (UV) g.setAttribute('uv', UV.clone());
   g.setIndex(geo.index ? geo.index.clone() : [...Array(n).keys()]);
   return g;
+}
+// con textura (el público del frontón, todo en 3D): la piel, la cara y la ropa con el mismo detalle que los jugadores,
+// y la misma luz propia que los personajes de Meshy. Una por figura (cada una trae su textura)
+const texMats = new Map();
+function texMat(map) {
+  if (!map) return MAT;
+  if (!texMats.has(map)) { const m = new THREE.MeshStandardMaterial({ map, roughness: 0.82, emissive: 0xffffff, emissiveMap: map, emissiveIntensity: 0.38 }); texMats.set(map, m); }
+  return texMats.get(map);
 }
 const shown = (o) => { for (let p = o; p; p = p.parent) if (!p.visible) return false; return true; };
 
@@ -83,8 +92,8 @@ function bakeSet(set, sit) {
         if (r === 1) c.playOnce?.('Celebrate', 1); c.update(r === 1 ? 0.45 : 0.3);
         if (r === 0 && sit) sitPose(c.root);
         c.root.rotation.y = (f % 3 - 1) * 0.12; c.root.updateMatrixWorld(true);
-        const parts = []; c.root.traverse(o => { if (o.isMesh && !o.userData.outline && shown(o)) parts.push(bakeMesh(o)); });
-        const g = mergeGeometries(parts); parts.forEach(p => p.dispose()); g.computeBoundingSphere();
+        const parts = []; let map = null; c.root.traverse(o => { if (o.isMesh && !o.userData.outline && shown(o)) { parts.push(bakeMesh(o)); map ||= [].concat(o.material)[0].map || null; } });
+        const g = mergeGeometries(parts); parts.forEach(p => p.dispose()); g.computeBoundingSphere(); g.userData.map = map;
         poses.push(g); c.dispose();
       }
       out.push(poses);
@@ -99,7 +108,7 @@ function bakeSet(set, sit) {
  * Público: spots = [[x, y, z, ry], …] (y = pies). Devuelve un grupo con .tick(t, ánimo, zFoco, cámara) y .cheer(on),
  * igual que las láminas: de cerca, figuras 3D (que saltan, saludan y celebran); de lejos, láminas.
  */
-export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false } = {}) {
+export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false, all3d = false } = {}) {
   const n = spots.length, figs = new Uint8Array(n);
   for (let i = 0; i < n; i++) figs[i] = Math.floor(Math.random() * FIGS);
   const group = new THREE.Group(), sprites = crowdMesh(spots, set, height, figs, sit);
@@ -109,7 +118,9 @@ export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false } = 
   // la ola (en el estadio): cada cierto rato da la vuelta a la grada; quien está en la cresta se levanta y alza los brazos
   const olaOn = set === 'futbol'; let olaA = -99;
   // (los personajes nuevos tienen más detalle: en el móvil, menos en 3D a la vez)
-  const Q = QUALITY, K = Q === 'low' ? 18 : Q === 'mid' ? 40 : 80, R = Q === 'low' ? 13 : Q === 'mid' ? 20 : 28;
+  // (all3d: todos en 3D con su textura y sin láminas; quien llama limita cuántos son)
+  const Q = QUALITY, K = all3d ? n : Q === 'low' ? 18 : Q === 'mid' ? 40 : 80, R = all3d ? 1e4 : Q === 'low' ? 13 : Q === 'mid' ? 20 : 28;
+  if (all3d) sprites.visible = false;
   const TT = sprites.geometry.attributes.aTint.array, tc = new THREE.Color();   // (de cerca, el mismo tono que en la lámina)
   const A = sprites.geometry.attributes.aAnim.array, C = sprites.geometry.attributes.aCell.array, IM = sprites.instanceMatrix, orig = IM.array.slice();
   const near = new Int32Array(K); let nNear = 0, meshes = null, cheer = 0, pick = 0;
@@ -117,7 +128,7 @@ export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false } = 
   const rot = new Float32Array(n), sc = new Float32Array(n);
   for (let i = 0; i < n; i++) { rot[i] = spots[i][3] + (Math.random() - 0.5) * 0.3; sc[i] = (0.92 + Math.random() * 0.16) * height / 1.5; }
   bakeSet(set, sit).then(G => {
-    meshes = G.map(poses => poses.map(g => { const im = new THREE.InstancedMesh(g, MAT, K); im.setColorAt(0, new THREE.Color(1, 1, 1)); im.count = 0; im.frustumCulled = false; group.add(im); return im; }));
+    meshes = G.map(poses => poses.map(g => { const im = new THREE.InstancedMesh(g, all3d ? texMat(g.userData.map) : MAT, K); im.setColorAt(0, new THREE.Color(1, 1, 1)); im.count = 0; im.frustumCulled = false; group.add(im); return im; }));
   }).catch(err => console.warn('público 3D', err));
   const cam = new THREE.Vector3(), frustum = new THREE.Frustum(), pm = new THREE.Matrix4(), sph = new THREE.Sphere(new THREE.Vector3(), 1.2);
   // elige los K espectadores más cercanos a la cámara (dentro de R) que se ven, para dibujarlos en 3D (los que quedan
@@ -157,7 +168,8 @@ export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false } = 
       const pose = Math.max((C[i * 2 + 1] + cheer) % 2, wave), im = meshes[figs[i] % meshes.length][pose];
       const jump = A[i * 3] * ex * Math.abs(Math.sin(t * 5.5 + A[i * 3 + 1])) + ola * 0.5;
       m4.compose(v.set(s[0], s[1] + jump, s[2]), q.setFromEuler(e.set(0, rot[i], 0)), s3.setScalar(sc[i]));
-      im.setColorAt(im.count, tc.setRGB(TT[i * 3], TT[i * 3 + 1], TT[i * 3 + 2])); im.setMatrixAt(im.count++, m4);
+      if (all3d) { const l = 0.9 + 0.1 * Math.abs(Math.sin(i * 12.9898)); tc.setRGB(l, l, l); } else tc.setRGB(TT[i * 3], TT[i * 3 + 1], TT[i * 3 + 2]);
+      im.setColorAt(im.count, tc); im.setMatrixAt(im.count++, m4);
     }
     for (const fig of meshes) for (const im of fig) if (im.count) { im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; }
   };

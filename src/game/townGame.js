@@ -527,7 +527,6 @@ export class TownGame {
     if (this.mode === 'bino') this.updateBino(dt);
     if (this.mode === 'pelota' && this.pelotaTick) this.pelotaTick(dt);
     if (this.mode === 'futbol') this.futbol?.update(dt);
-    if (this.crowds?.length) { for (const c of this.crowds) c.update(dt); this.crowds = this.crowds.filter(c => !c.disposed); }
     this.updateNight(dt);
     for (const M of this.missions) if (M.type === 'summit' && M.step === 1 && !M.done) this.updateSummit(M, dt);
     this.checkArrival();

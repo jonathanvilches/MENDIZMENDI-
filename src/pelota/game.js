@@ -86,7 +86,7 @@ export class PelotaGame {
       if (R.serve && R.bounces < 1) return false;           // el saque no se puede devolver de aire
     } else return false;
     const d = Math.hypot(b.x - pl.x, b.z - pl.z);
-    return d < reach && b.y > 0.15 && b.y < 2.2;
+    return d < reach && b.y > 0.1 && b.y < 2.2;   // (una dejada bota muy baja: se recoge casi a ras de suelo)
   }
   quality(who, swingElapsed) {
     const b = this.ball.p, pl = this.players[who];
@@ -128,7 +128,14 @@ export class PelotaGame {
       const speed = 27 + q * 5 + pow * 12;
       const tx = clamp(aim.x * 2.8 + gauss(rnd) * err * 1.1, -4.2, 4.6);
       const ty = cutHeight(pow, aim.y) + gauss(rnd) * err * 0.3;
-      v = aimVelocity(p, tx, ty, Math.max(0.2, p.z / speed));
+      // a dos paredes: con el joystick bien a la izquierda, pega primero en la pared izquierda y después bajo en el
+      // frontis, y sale cruzada hacia la derecha, rasa y rápida (como la dos paredes del golpe, pero cortada)
+      if (rawX < -0.72 && !serve) {
+        const ang = clamp((-rawX - 0.72) / 0.22, 0, 1), fz = clamp(0.6 - ang * 0.4 + gauss(rnd) * err * 0.06, 0.15, 0.8);
+        const r = solveTwoWalls(p, speed, clamp(9 + pow * 5 + aim.y, 7, 15), [fz, fz - 0.08, fz + 0.08, fz + 0.16], { low: 5, maxFront: ty + 0.9 });
+        if (r) { v = r.v; sub = 'cortDos'; }
+      }
+      if (!v) v = aimVelocity(p, tx, ty, Math.max(0.2, p.z / speed));
     } else {
       // el joystick manda: de lado (x) dónde cae a lo ancho y de arriba abajo (y) lo largo; el error solo depende de lo
       // bien que se golpee (antes cada golpe tenía mucho azar y no se notaba hacia dónde se apuntaba)
@@ -264,7 +271,8 @@ export class PelotaGame {
       const bounces = R.front ? R.bounces + s.bounces : s.bounces;
       if (bounces > 1) break;
       if (R.serve && bounces < 1) continue;
-      if (s.y < 0.35 || s.y > 1.5 || s.x > COURT.W / 2 + 1.5 || s.z > COURT.L + 1.5 || s.z < 1.5) continue;
+      // (tras el bote de una dejada la pelota apenas sube un palmo: antes se pedían 35 cm y no había dónde ir a por ella)
+      if (s.y < 0.14 || s.y > 1.5 || s.x > COURT.W / 2 + 1.5 || s.z > COURT.L + 1.5 || s.z < 1.5) continue;
       const need = Math.hypot(s.x - pl.x, s.z - pl.z) / speed + react, have = s.t / this.tempo;
       const c = { x: s.x, z: s.z + 0.25, t: have };
       if (need <= have) return c;
@@ -306,10 +314,11 @@ export class PelotaGame {
   }
   driveAI(who, dt) {
     const pl = this.players[who], lv = who === 'rival' ? this.lvl.rival : { speed: 5.4, react: 0.25, error: 0.12 };
-    let tx = pl.x, tz = pl.z;
+    let tx = pl.x, tz = pl.z, sprint = 1;
     if (this.phase === 'rally' && this.rally.turn === who) {
-      const c = this.interceptFor(who, lv.speed, lv.react);
-      if (c) { tx = c.x; tz = c.z; }
+      // a una pelota corta (la dejada) se sale en arrancada, como un pelotari de verdad: más rápido que en el peloteo
+      const dash = lv.dash ?? 1, c = this.interceptFor(who, lv.speed * dash, lv.react);
+      if (c) { tx = c.x; tz = c.z; if (c.z < 8) sprint = dash; }
       if (this.hittable(who)) {
         const bad = this.rnd() < (this.mode === 'rally' && who === 'rival' ? 0.03 : lv.error);
         const q = bad ? 0.1 + this.rnd() * 0.2 : 0.55 + this.rnd() * 0.4;
@@ -325,7 +334,7 @@ export class PelotaGame {
         const s = this.aiShot(who); return this.strike(who, 0.6 + this.rnd() * 0.35, s.aim, false);
       }
     }
-    this.moveTo(pl, tx, tz, lv.speed, dt);
+    this.moveTo(pl, tx, tz, lv.speed * sprint, dt);
   }
   moveTo(pl, tx, tz, speed, dt) {
     const dx = tx - pl.x, dz = tz - pl.z, d = Math.hypot(dx, dz);
