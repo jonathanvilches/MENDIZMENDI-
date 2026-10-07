@@ -163,7 +163,8 @@ export class GlbChar {
    */
   constructor(gltf, opt = {}) {
     this.root = SkeletonUtils.clone(gltf.scene);
-    this.root.name = 'GlbChar';
+    this.root.name = 'GlbChar'; this.root.userData.glbChar = this;   // (el vigía de las pruebas lo encuentra así)
+    this.switches = 0;
     this.opt = { timeScale: 1, walkAt: 0.15, runAt: 3.2, ...opt };
     // vecinos (vary): cada uno con su ritmo de reposo y empezando en un punto distinto del clip; si no, todo el pueblo
     // respiraba y se balanceaba a la vez, como un baile ensayado
@@ -254,10 +255,10 @@ export class GlbChar {
   play(name, fade = FADE) {
     const a = this.actions[name];
     if (!a || this.current === a) return a;
-    a.reset().setEffectiveWeight(1).play();
+    a.reset().setEffectiveWeight(1).play(); this.switches++;
     if (this.vary && /^(Idle|Talk)/.test(name)) a.time = Math.random() * a.getClip().duration;
     if (this.current) this.current.crossFadeTo(a, fade, false);
-    this.current = a;
+    this.current = a; this.playT = 0;
     this.currentName = name;
     if (!this.faceLock) this._clipFace(name);
     return a;
@@ -347,8 +348,17 @@ export class GlbChar {
       const v = this.speed, ts = this.opt.timeScale;
       let want = this.idleName && this.actions[this.idleName] ? this.idleName : 'Idle', scale = ts;
       const gait = this.opt.gait;
-      if (v > this.opt.runAt && this.actions.Run) { want = 'Run'; scale = ts * (gait ? gait(v, 'Run') : Math.max(0.6, v / RUN_REF)); }
-      else if (v > this.opt.walkAt && this.actions.Walk) { want = 'Walk'; scale = ts * (gait ? gait(v, 'Walk') : Math.max(0.35, v / WALK_REF)); }
+      // paso con margen (histéresis) y un mínimo de 0,25 s en cada uno: a ritmo de trote, justo en el umbral, la figura
+      // cambiaba de andar a correr (o de quieta a andar) varias veces por segundo y daba tirones
+      // (arrancar es inmediato; lo que espera es frenar a un paso más lento)
+      const g0 = this.gaitName || 'Idle', R = { Idle: 0, Walk: 1, Run: 2 };
+      const runAt = this.opt.runAt * (g0 === 'Run' ? 0.92 : 1.08), walkAt = this.opt.walkAt * (g0 === 'Idle' ? 2 : 1);
+      let gn = v > runAt ? 'Run' : v > walkAt ? 'Walk' : 'Idle';
+      this.gaitT = (this.gaitT || 0) + dt;
+      if (R[gn] < R[g0] && this.gaitT < 0.3 && v > 0.02) gn = g0;
+      if (gn !== g0) { this.gaitName = gn; this.gaitT = 0; }
+      if (gn === 'Run' && this.actions.Run) { want = 'Run'; scale = ts * (gait ? gait(v, 'Run') : Math.max(0.6, v / RUN_REF)); }
+      else if (gn !== 'Idle' && this.actions.Walk) { want = 'Walk'; scale = ts * (gait ? gait(v, 'Walk') : Math.max(0.35, v / WALK_REF)); }
       else if (this.talking && this.actions.Talk) want = 'Talk';
       if (want !== 'Walk' && want !== 'Run') scale *= (this.clipExtras[want]?.rate || 1) * this.idleRate;
       else if (this.back) scale = -scale;   // hacia atrás sin darse la vuelta (el pelotari, mirando al frontis): el paso al revés
@@ -358,6 +368,10 @@ export class GlbChar {
     // los huesos que se tocan después del mixer vuelven a su base (un clip puede no animarlos)
     for (const b of this.postBones) b.quaternion.copy(b.userData.q0);
     this.mixer.update(dt);
+    // vigía: si la acción en curso se ha parado o se ha quedado sin peso (se vería la postura en cruz del modelo), vuelve
+    const cur = this.current;
+    this.playT = (this.playT || 0) + dt;
+    if (cur && this.playT > FADE + 0.1 && (!cur.isRunning() || cur.getEffectiveWeight() < 0.05) && !cur.paused && cur.loop !== THREE.LoopOnce) { cur.reset().setEffectiveWeight(1).play(); this.fixes = (this.fixes || 0) + 1; }
     // expresión fijada
     if (this.faceLock > 0 && (this.faceLock -= dt) <= 0) {
       this.faceLock = 0;
