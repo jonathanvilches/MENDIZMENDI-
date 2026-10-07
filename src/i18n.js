@@ -4,8 +4,9 @@
 // plantillas con huecos (nombres de pueblo, números…).
 import { EU_EXACT, EU_RX } from './data/eu.js';
 import { EU_MAS, EU_RX_MAS, setTr } from './data/eu-mas.js';
+import { EU_CUENTOS, cuentosRx } from './data/cuentos.js';
 // la segunda parte de la traducción (menú completo, misiones, flora y fauna): sus frases y, por delante, sus plantillas
-Object.assign(EU_EXACT, EU_MAS); EU_RX.unshift(...EU_RX_MAS);
+Object.assign(EU_EXACT, EU_MAS, EU_CUENTOS); EU_RX.unshift(...EU_RX_MAS, ...cuentosRx((x) => EU_EXACT[x] ?? x));
 
 const KEY = 'mendimendiz-lang';
 export function getLang() { try { return localStorage.getItem(KEY) || 'es'; } catch (e) { return 'es'; } }

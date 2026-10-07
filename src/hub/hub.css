@@ -1113,6 +1113,8 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .armorial .ar-nt { font-style: italic; color: #d9c9a0 !important; font-size: 13px !important; }
 .armorial .ar-pend { background: rgba(0, 0, 0, .2); border-radius: 16px; padding: 10px 14px; } .armorial .ar-pend h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; } .armorial .ar-pend ul { margin: 4px 0; padding-left: 20px; color: #e3d8c4; }
 .armorial .ar-src { font-size: 13px; color: #bfb39c; }
+.cuentos .ct { grid-template-columns: 72px 1fr; } .cuentos .ct-ic { display: grid; place-items: center; width: 72px; height: 72px; border-radius: 16px; background: rgba(255, 255, 255, .06); }
+.cuentos .ct-pl { font-style: italic; color: #d9c9a0 !important; } .cuentos .ar-tx details p { font-size: 15px; } .cuentos .ct-go { margin-top: 6px; min-height: 44px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 6px; }
 @media (max-width: 560px), (orientation: landscape) and (max-height: 440px) { .armorial .ar-grid { grid-template-columns: 1fr; } .armorial .ar { grid-template-columns: 84px 1fr; } .armorial .ar canvas { width: 84px; } }
 .sh-arms { display: grid; grid-template-columns: 90px 1fr; gap: 12px; align-items: start; margin: 0 0 12px; } .sh-arms canvas { width: 90px; height: auto; } .sh-arms p { margin: 0; }
 .sh-arms .lnk { background: none; border: 0; color: #FFD700; font-weight: 800; text-decoration: underline; padding: 6px 0; cursor: pointer; font: inherit; }

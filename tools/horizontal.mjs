@@ -9,7 +9,7 @@ const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-119
 const p = await b.newPage({ viewport: { width: +W, height: +H }, isMobile: true, hasTouch: true }); await iphone(p); const errs = []; p.on('pageerror', e => errs.push(e.message));
 await p.addInitScript(() => { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', age: 'nino', seen: { heroBenat: true, dog: true }, xp: 900, last: 'lesaka', towns: { lesaka: { done: { 0: true }, visits: 1 } }, cards: ['armas:baztan'], settings: { quality: 'low' } })); });
 await p.goto('http://127.0.0.1:5173/', { timeout: 300000 }); await p.waitForFunction(() => window.__hub, null, { timeout: 300000 }); await p.waitForTimeout(1500);
-const screens = ['home', 'map', 'towns', 'sports', 'avatars', 'peaks', 'nature', 'escudos', 'badges', 'passport', 'profile'];
+const screens = ['home', 'map', 'towns', 'sports', 'avatars', 'peaks', 'nature', 'escudos', 'cuentos', 'badges', 'passport', 'profile'];
 const measure = () => p.evaluate(() => {
   const vis = (e) => { const r = e.getBoundingClientRect(), s = getComputedStyle(e); return r.width > 0 && r.height > 0 && s.visibility !== 'hidden' && s.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };
   const small = [...document.querySelectorAll('button, [role=button], a, select, input')].filter(vis).filter(e => { const r = e.getBoundingClientRect(); return Math.min(r.width, r.height) < 40; }).map(e => (e.className || e.tagName).toString().slice(0, 30) + ':' + Math.round(e.getBoundingClientRect().width) + 'x' + Math.round(e.getBoundingClientRect().height));

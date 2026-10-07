@@ -67,6 +67,7 @@ import { makeClue, makeAura } from './legendFx.js';
 import { Chase } from './chase.js';
 import { FloraSpots } from './floraSpots.js';
 import { showFicha } from '../ui/ficha.js';
+import { cuentoOfTown, KIND_LABEL } from '../data/cuentos.js';
 
 const CROP = {
   uva: ['racimos de uva', 'uva'], olivo: ['aceitunas', 'olivo'], piquillo: ['pimientos del piquillo', 'piquillo'], esparrago: ['manojos de espárragos', 'esparrago'],
@@ -345,6 +346,7 @@ export class TownGame {
     // plantas reales de la comarca para identificar (herbario)
     if (!/noflora/.test(location.search)) try { this.flora = new FloraSpots(this); } catch (e) { console.warn('flora', e); }
     this.spawnSabios();
+    this.spawnKontalari();
     this.spawnShepherds();
     // jornales: ayudar en los oficios del pueblo para ganar txanponak (esquilar, ordeñar, fragua, vendimia…); después
     // del pastor y la ganadera, que son los que dan los trabajos del ganado
@@ -410,6 +412,35 @@ export class TownGame {
       const a = new Actor({ id: 'sabio' + i, name: S.name, x: sp.x, z: sp.z, heading: Math.atan2(p.at.x - sp.x, p.at.z - sp.z), look, wander: 0 }, this.scene);
       a.sabio = p; this.actors.push(a);
     });
+  }
+  // Un contador o una contadora de cuentos en la plaza: cuenta la leyenda (o la historia) del lugar por partes
+  spawnKontalari() {
+    const list = cuentoOfTown(this.def.id); if (!list.length) return;
+    list.forEach((C, i) => {
+      const T = C.teller, f = !!T.female, P = PLACES.plaza, ang = 2.6 + i * 1.3;
+      const sp = this.spot({ x: P.x + Math.cos(ang) * ((P.r || 10) + 3), z: P.z + Math.sin(ang) * ((P.r || 10) + 3) }, 5);
+      const look = { old: true, female: f, hair: f ? '#cfc8bd' : '#bdb6aa', shirt: f ? '#2f4a6b' : '#7a3a2a', vest: f ? undefined : '#2b2630', skirt: f ? '#3a2a3a' : undefined, pants: '#2b2630', scarf: f ? '#c8a23a' : '#c8a23a', bun: f, txapela: f ? undefined : '#1d1d24', moustache: f ? undefined : '#d8d2c8', staff: true, bag: '#7a5a3a' };
+      const a = new Actor({ id: 'kontalari' + i, name: T.name, x: sp.x, z: sp.z, heading: Math.atan2(P.x - sp.x, P.z - sp.z), look, wander: 0 }, this.scene);
+      a.cuento = C; this.actors.push(a);
+    });
+  }
+  async kontalariTalk(a) {
+    const C = a.cuento, town = this.def.name.split(' /')[0], f = !!C.teller.female, n = C.parts.length;
+    a.say(5); this.player.frozen = true; this.speaker = a;
+    this.player.heading = Math.atan2(a.pos.x - this.player.pos.x, a.pos.z - this.player.pos.z);
+    let isNew = false;
+    try {
+      const heard = this.P.cards.includes('cuento:' + C.id);
+      await this.say(a, [heard ? `¡Otra vez por aquí, ${this.state.name}! ¿Quieres volver a oír «${C.title}»? Siéntate, que empiezo.`
+        : `Kaixo, ${this.state.name}. Soy ${a.name.replace(/^Kontalari /, '')}, ${f ? 'la contadora' : 'el contador'} de cuentos de ${town}. ¿Te cuento ${C.kind === 'historia' ? 'una historia que pasó de verdad' : 'una leyenda'}? Se llama «${C.title}».`]);
+      for (let i = 0; i < n; i++) await infoCard(this.ui, { icon: C.icon, kicker: `${KIND_LABEL[C.kind]} · ${i + 1} de ${n}`, title: C.title, text: C.parts[i], button: i < n - 1 ? 'Sigue…' : 'Fin' });
+      await infoCard(this.ui, { icon: 'visit', kicker: C.place, title: 'Lo que puedes ver hoy', text: C.today, button: 'Seguir' });
+      await choiceGame(this.ui, { title: C.title, icon: 'quiz', q: C.q.q, options: C.q.options, answer: C.q.answer, why: C.q.why });
+      isNew = addCard('cuento:' + C.id, C.kind === 'historia' ? 'historia' : 'tradiciones');
+      addXP(isNew ? 25 : 3); saveProfile();
+    } finally { this.player.frozen = false; a.talking = 0; this.speaker = null; }
+    for (const bd of checkBadges()) await infoCard(this.ui, { icon: bd.icon, kicker: 'Nueva insignia', title: bd.name, text: bd.text, button: '¡Bien!' });
+    if (isNew) this.ui.toast('Cuento guardado en tu libro de leyendas (menú · Leyendas)', 'book', 3000);
   }
   async sabioTalk(a) {
     const p = a.sabio, d = this.def, f = /^Sabia/.test(a.name);
@@ -683,7 +714,7 @@ export class TownGame {
     const list = [];
     if (this.townArms) list.push({ kind: 'armas', x: this.townArms.read.x, z: this.townArms.read.z, r: 3, label: this.P.cards.includes(this.townArms.id) ? `Volver a leer el escudo de ${this.def.name.split(' /')[0]}` : `Leer el escudo de ${this.def.name.split(' /')[0]}` });
     for (const b of this.blasones || []) list.push({ kind: 'escudo', b, x: b.read.x, z: b.read.z, r: 3, label: this.P.cards.includes(b.id) ? 'Volver a leer el escudo' : 'Leer el escudo de la casa' });
-    for (const a of this.actors) if (a.visible !== false) list.push({ kind: 'npc', a, x: a.pos.x, z: a.pos.z, r: 3, label: a.market ? `Puesto del mercado: ${a.market.toLowerCase()}` : a === this.pelotari ? `Jugar a pelota con ${a.name}` : a === this.coach ? 'Jugar un partido en El Sadar' : a === this.futsalCoach ? `Fútbol con ${clubOfTown(this.def.id)?.name || 'el club del pueblo'}` : a.sabio ? `${a.name}: la historia de ${a.sabio.name}` : `Hablar con ${a.name}` });
+    for (const a of this.actors) if (a.visible !== false) list.push({ kind: 'npc', a, x: a.pos.x, z: a.pos.z, r: 3, label: a.market ? `Puesto del mercado: ${a.market.toLowerCase()}` : a === this.pelotari ? `Jugar a pelota con ${a.name}` : a === this.coach ? 'Jugar un partido en El Sadar' : a === this.futsalCoach ? `Fútbol con ${clubOfTown(this.def.id)?.name || 'el club del pueblo'}` : a.sabio ? `${a.name}: la historia de ${a.sabio.name}` : a.cuento ? `${a.name}: escuchar «${a.cuento.title}»` : `Hablar con ${a.name}` });
     for (const a of this.walkers) list.push({ kind: 'walker', a, x: a.pos.x, z: a.pos.z, r: a.info || a.jobs ? 3 : 2.4, label: a.stall ? 'Productos del pueblo' : a.jobs ? `Ayudar a ${a.name.toLowerCase()} (txanponak)` : a.info ? `Hablar con ${a.name.toLowerCase() === 'pastor' ? 'el pastor' : 'la ganadera'}` : `Saludar a ${a.name}` });
     for (const o of this.agro?.list || []) list.push({ kind: 'agro', o, x: o.x, z: o.z, r: o.kind === 'combine' ? 6 : 4.5, label: `Mirar: ${o.info.title.toLowerCase()}` });
     for (const it of this.items) list.push({ kind: 'item', it, x: it.x, z: it.z, r: 2.2, label: it.label });
@@ -922,6 +953,7 @@ export class TownGame {
   }
   async talk(a) {
     if (a.sabio) return this.sabioTalk(a);
+    if (a.cuento) return this.kontalariTalk(a);
     // vecinos sin misión (pelotari, entrenador, puestos): lo suyo, o un saludo; nunca un diálogo de misión vacío
     if (!a.mission) {
       if (a === this.pelotari) return this.freePelota();
