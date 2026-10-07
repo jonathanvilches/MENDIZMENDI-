@@ -216,24 +216,26 @@ export class PelotaCourt {
       geo.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); geo.setAttribute('normal', new T.Float32BufferAttribute(nrm, 3)); geo.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
       const marks = new T.Mesh(geo, M({ map: markTex, alphaTest: 0.5, roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }));
       marks.receiveShadow = true; marks.name = 'cuadros'; g.add(marks); }
-    // nombre y escudo del pueblo pintados en lo alto de la pared izquierda, hacia el fondo de la cancha
+    // nombre y escudo del pueblo pintados en lo alto de la pared izquierda
     if (opts.wallName || opts.shield) {
-      const DW = 11, DH = 2.75, dz = opts.signAt?.z ?? C.CUADRO * 6.9, dy = opts.signAt?.y ?? C.LEFT_H - 0.5 - 0.35 - DH / 2;
+      // (centrado a lo largo de la pared, y el escudo con el nombre centrados en su cartel)
+      const DW = 11, DH = 2.75, dz = opts.signAt?.z ?? EXT / 2, dy = opts.signAt?.y ?? C.LEFT_H - 0.5 - 0.35 - DH / 2;
       const nameTex = canvasTex(T, 1536, 384, (c, w, h) => {
-        let tx = w * 0.04;
-        if (opts.shield) { opts.shield(c, h * 0.44, h * 0.03, h * 0.94); tx = h * 0.95; }
-        c.textAlign = 'left'; c.textBaseline = 'middle';
-        const fit = (text, y, size, weight) => {
-          let fs = size; c.font = `${weight} ${fs}px "Lilita One", Nunito, "Arial Black", sans-serif`;
-          const tw = c.measureText(text).width, max = w - tx - w * 0.03; if (tw > max) { fs *= max / tw; c.font = `${weight} ${fs}px "Lilita One", Nunito, "Arial Black", sans-serif`; }
-          c.fillStyle = 'rgba(0,0,0,.22)'; c.fillText(text, tx + fs * 0.04, y + fs * 0.05);
-          c.fillStyle = '#fbf8f0'; c.fillText(text, tx, y);
-        };
-        if (opts.wallName) fit(opts.wallName, h * 0.4, h * 0.36, '900');
-        if (opts.wallSub) fit(opts.wallSub, h * 0.76, h * 0.17, '700');
+        const font = (fs, weight) => `${weight} ${fs}px "Lilita One", Nunito, "Arial Black", sans-serif`;
+        const sw = opts.shield ? h * 0.95 : 0, max = w * 0.94 - sw;
+        const lines = [[opts.wallName, h * 0.4, h * 0.36, '900'], [opts.wallSub, h * 0.76, h * 0.17, '700']].filter(l => l[0]).map(([text, y, size, weight]) => {
+          c.font = font(size, weight); const tw = c.measureText(text).width, fs = tw > max ? size * max / tw : size;
+          c.font = font(fs, weight); return { text, y, fs, weight, tw: c.measureText(text).width }; });
+        const textW = Math.max(0, ...lines.map(l => l.tw)), x0 = (w - sw - textW) / 2, tc = x0 + sw + textW / 2;
+        if (opts.shield) opts.shield(c, x0 + h * 0.44, h * 0.03, h * 0.94);
+        c.textAlign = 'center'; c.textBaseline = 'middle';
+        for (const l of lines) { c.font = font(l.fs, l.weight);
+          c.fillStyle = 'rgba(0,0,0,.22)'; c.fillText(l.text, tc + l.fs * 0.04, l.y + l.fs * 0.05);
+          c.fillStyle = '#fbf8f0'; c.fillText(l.text, tc, l.y); }
+        const tx = x0;
         // pintura algo gastada, como las marcas de los cuadros
         c.globalCompositeOperation = 'destination-out';
-        for (let i = 0; i < 900; i++) { c.fillStyle = `rgba(0,0,0,${0.3 + Math.random() * 0.5})`; c.fillRect(tx + Math.random() * (w - tx), Math.random() * h, 1 + Math.random() * 3, 1 + Math.random() * 3); }
+        for (let i = 0; i < 900; i++) { c.fillStyle = `rgba(0,0,0,${0.3 + Math.random() * 0.5})`; c.fillRect(tx + Math.random() * (w - 2 * tx), Math.random() * h, 1 + Math.random() * 3, 1 + Math.random() * 3); }
         c.globalCompositeOperation = 'source-over';
       });
       const x = -W / 2 + 0.014, z0 = dz + DW / 2, z1 = dz - DW / 2, y0 = dy - DH / 2, y1 = dy + DH / 2;

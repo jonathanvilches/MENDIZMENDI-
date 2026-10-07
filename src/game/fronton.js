@@ -149,7 +149,7 @@ let LABRIT = null;
 function labritOpts() {
   // (en la pared izquierda, el escudo de Pamplona y su nombre, como en el de verdad, sin el logotipo del ayuntamiento)
   const A = armsOfTown('pamplona'), shield = A ? (g, cx, top, h) => drawOfficial(g, cx, top, h / officialHeight(1, A), A) : null;
-  return { labrit: true, wallName: 'IRUÑA · PAMPLONA', wallSub: 'FRONTÓN LABRIT', shield, signAt: { z: 3.5 * 3.3, y: 5.4 },
+  return { labrit: true, wallName: 'IRUÑA · PAMPLONA', wallSub: 'FRONTÓN LABRIT', shield, signAt: { y: 5.4 },
     look: { frontis: '#1d5846', wall: '#1d5846', floor: '#1a1f21', contra: '#d49a5c', parquet: true, line: '#f3f2ec', mark: '#f3f2ec', chapa: '#d9dcd8', chapaMetal: true, stone: null, brick: false, roof: null, cap: '#1d5846' } };
 }
 export function labrit(scene, out) {
