@@ -33,9 +33,9 @@ export const PHYS = {
 
 // Niveles: ritmo del partido (cámara lenta), ayuda al jugador y fuerza del rival
 export const LEVELS = {
-  facil: { tempo: 0.5, reach: 1.85, assist: 1.8, rival: { speed: 4.8, react: 0.36, error: 0.12, smart: 0.35 } },
-  normal: { tempo: 0.58, reach: 1.65, assist: 1.0, rival: { speed: 5.5, react: 0.25, error: 0.065, smart: 0.6 } },
-  dificil: { tempo: 0.68, reach: 1.4, assist: 0.35, rival: { speed: 6.2, react: 0.17, error: 0.03, smart: 0.85 } },
+  facil: { tempo: 0.5, reach: 1.85, assist: 1.8, rival: { speed: 4.8, react: 0.36, error: 0.12, smart: 0.35, dash: 0.93 } },
+  normal: { tempo: 0.58, reach: 1.65, assist: 1.0, rival: { speed: 5.5, react: 0.25, error: 0.065, smart: 0.6, dash: 1.0 } },
+  dificil: { tempo: 0.68, reach: 1.4, assist: 0.35, rival: { speed: 6.2, react: 0.17, error: 0.03, smart: 0.85, dash: 1.12 } },
 };
 
 const EU_NUM = ['hutsa', 'bat', 'bi', 'hiru', 'lau', 'bost', 'sei', 'zazpi', 'zortzi', 'bederatzi', 'hamar', 'hamaika', 'hamabi', 'hamahiru', 'hamalau', 'hamabost', 'hamasei', 'hamazazpi', 'hamazortzi', 'hemeretzi', 'hogei', 'hogeita bat', 'hogeita bi'];
@@ -85,7 +85,7 @@ export const TEXT = {
       tanto: ['¡Tanto!', ''],
     },
     quality: { perfect: '¡Perfecto!', good: '¡Bien!', ok: 'Justo', late: 'Tarde', whiff: '¡Al aire!' },
-    shots: { dejada: 'Dejada', cortada: 'Cortada', pared: 'A la pared', dosparedes: 'Dos paredes', dpCorta: 'Dos paredes corta', dpCruzada: 'Dos paredes cruzada', dpLarga: 'Dos paredes larga', dpPegada: 'Dos paredes pegada', ancho: 'Al ancho', largo: 'Largo', normal: '' },
+    shots: { dejada: 'Dejada', cortada: 'Cortada', pared: 'A la pared', dosparedes: 'Dos paredes', dpCorta: 'Dos paredes corta', dpCruzada: 'Dos paredes cruzada', dpLarga: 'Dos paredes larga', dpPegada: 'Dos paredes pegada', cortDos: 'Cortada a dos paredes', ancho: 'Al ancho', largo: 'Largo', normal: '' },
     pointYou: 'Tanto para ti', pointRival: (n) => `Tanto para ${n}`,
     finalCall: '¡Tanto y partido!', finalSub: 'Todo el frontón en pie aplaude.', matchPoint: 'Tanto de partido', matchPointSub: 'El que gane este tanto, gana el partido.',
     serveYou: 'Sacas tú', serveRival: (n) => `Saca ${n}`,
@@ -139,7 +139,7 @@ export const TEXT = {
       tanto: ['Tantoa!', ''],
     },
     quality: { perfect: 'Primeran!', good: 'Ondo!', ok: 'Justu', late: 'Berandu', whiff: 'Airera!' },
-    shots: { dejada: 'Dejada', cortada: 'Cortada', pared: 'Paretara', dosparedes: 'Bi pareta', dpCorta: 'Bi pareta motza', dpCruzada: 'Bi pareta zeharka', dpLarga: 'Bi pareta luzea', dpPegada: 'Bi pareta itsatsia', ancho: 'Zabalera', largo: 'Luzea', normal: '' },
+    shots: { dejada: 'Dejada', cortada: 'Cortada', pared: 'Paretara', dosparedes: 'Bi pareta', dpCorta: 'Bi pareta motza', dpCruzada: 'Bi pareta zeharka', dpLarga: 'Bi pareta luzea', dpPegada: 'Bi pareta itsatsia', cortDos: 'Bi paretako cortada', ancho: 'Zabalera', largo: 'Luzea', normal: '' },
     pointYou: 'Tantoa zuretzat', pointRival: (n) => `Tantoa ${n}rentzat`,
     finalCall: 'Tantoa eta partida!', finalSub: 'Pilotaleku osoa zutik, txaloka.', matchPoint: 'Partidarako tantoa', matchPointSub: 'Tanto hau irabazten duenak partida irabazten du.',
     serveYou: 'Zuk ateratzen duzu', serveRival: (n) => `${n}k ateratzen du`,

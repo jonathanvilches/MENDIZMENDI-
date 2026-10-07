@@ -77,7 +77,10 @@ export function aimVelocityTo(p, t, T) {
 // no sale ninguno (muy pegado a la pared o muy cerca del frontis)
 // fzs: dónde se busca el punto de la pared, como fracción de la distancia al frontis (poco: la pared pronto y sale más
 // cruzada; mucho: la pared cerca del frontis y sale más recta)
-export function solveTwoWalls(p, speed, landZ = 17, fzs = [0.28, 0.4, 0.52, 0.64]) {
+// opts.low: cuánto se premia que pegue bajo en el frontis (la cortada a dos paredes, rasa y cerca de la chapa);
+// opts.maxFront: lo más alto que puede pegar en el frontis
+export function solveTwoWalls(p, speed, landZ = 17, fzs = [0.28, 0.4, 0.52, 0.64], opts = {}) {
+  const low = opts.low || 0, maxFront = opts.maxFront ?? COURT.FRONT_TOP - 0.3;
   const xw = -COURT.W / 2 + R;
   let best = null, bs = -1e9;
   for (const fz of fzs) {
@@ -90,11 +93,11 @@ export function solveTwoWalls(p, speed, landZ = 17, fzs = [0.28, 0.4, 0.52, 0.64
       const ev = predict(b, 4).events;
       const iL = ev.findIndex(e => e.type === 'left'), iF = ev.findIndex(e => e.type === 'front');
       if (iL < 0 || iF < 0 || iL > iF) continue;
-      const F = ev[iF]; if (F.y < COURT.CHAPA + 0.35 || F.y > COURT.FRONT_TOP - 0.3) continue;
+      const F = ev[iF]; if (F.y < COURT.CHAPA + 0.35 || F.y > maxFront) continue;
       if (ev.some(e => e.type === 'floor' && e.t < F.t)) continue;
       const land = ev.find(e => e.type === 'floor' && e.n === 1);
       if (!land || land.x > COURT.W / 2 - 0.3 || land.z > COURT.L - 1 || land.z < 4) continue;
-      const score = -Math.abs(land.z - landZ) - Math.max(0, 1 - land.x) * 1.5;   // mejor cuanto más cruzado (hacia la derecha)
+      const score = -Math.abs(land.z - landZ) - Math.max(0, 1 - land.x) * 1.5 - low * (F.y - COURT.CHAPA);   // mejor cuanto más cruzado (hacia la derecha)
       if (score > bs) { bs = score; best = { v, land, wall: { x: xw, y: yw, z: zw } }; }
     }
   }
