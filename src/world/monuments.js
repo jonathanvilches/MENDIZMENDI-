@@ -176,7 +176,9 @@ export function castle(B, x, z, ry, big) {
   // lienzos, matacán sobre la puerta con su puerta de madera claveteada abierta y el puente sobre el foso
   for (const [lx, lz, w, d] of [[0, -D / 2, W, 2], [0, D / 2, W, 2], [-W / 2, 0, 2, D], [W / 2, 0, 2, D]]) {
     const along = w > d, len = along ? w : d, gate = lz === D / 2, out = along ? Math.sign(lz) : Math.sign(lx);
-    B.add('stoneDark', box(along ? w + 1.2 : 3.2, 1.6, along ? 3.2 : d + 1.2), MM(T, M(lx, 0.8, lz)));                                   // talud
+    // talud (en la muralla de la puerta, a los dos lados del portón: antes cruzaba la entrada como un muro de metro y medio)
+    if (gate) for (const sg of [-1, 1]) { const tl = (w + 1.2) / 2 - 3.6; B.add('stoneDark', box(tl, 1.6, 3.2), MM(T, M(lx + sg * (3.6 + tl / 2), 0.8, lz))); }
+    else B.add('stoneDark', box(along ? w + 1.2 : 3.2, 1.6, along ? 3.2 : d + 1.2), MM(T, M(lx, 0.8, lz)));
     B.add('ashlar', box(along ? w + 0.5 : 2.7, 0.35, along ? 2.7 : d + 0.5), MM(T, M(lx, Hh - 0.15, lz)));                              // cornisa
     for (let t = -len / 2 + 1.2; t < len / 2 - 1; t += 1.6) {
       if (gate && Math.abs(t) < 4.5) continue;
@@ -230,7 +232,9 @@ export function castleJavier(B, x, z, ry) {
   const W = 24, D = 18, Hh = 11, S = 'sandstone';
   // peña de la base
   for (let i = 0; i < 9; i++) { const a = i / 9 * Math.PI * 2, r = 15 + (i % 3); B.add('rock', new THREE.DodecahedronGeometry(3.4 + (i % 2), 0), MM(T, M(Math.cos(a) * r, -0.6, Math.sin(a) * r * 0.85, a, 0.3, 0, 1.4, 0.55, 1))); }
-  B.add('rock', box(W + 6, 2.2, D + 6, 3), MM(T, M(0, 0.5, 0)));
+  // (la peña acaba en la muralla de la puerta: antes salía 3 m por delante y el puente quedaba hundido dentro de la roca)
+  B.add('rock', box(W + 6, 2.2, D + 3, 3), MM(T, M(0, 0.5, -1.5)));
+  addPlatform(x, z, ry, -W / 2, W / 2, -D / 2 - 3, D / 2 + 1.2, y + 1.6);   // (el patio se pisa sobre la peña, no 1,3 m por debajo)
   // murallas con almenas y saeteras
   for (const [lx, lz, w, d] of [[0, -D / 2, W, 2], [-W / 2, 0, 2, D], [W / 2, 0, 2, D]]) {
     B.add(S, box(w, Hh, d, 2.4), MM(T, M(lx, Hh / 2, lz))); boxCol(x, z, ry, lx, lz, w + 0.4, d + 0.4, { solidView: true });
@@ -248,7 +252,8 @@ export function castleJavier(B, x, z, ry) {
   for (let k = 0; k < 6; k++) B.add('paint', colored(box(0.12, 0.6, 0.02), '#f2c230'), MM(T, M(-0.5 + k * 0.2, 7.6, D / 2 + 1.14)));
   // foso seco y puente de madera
   B.add('dark', box(W + 2, 0.4, 4.2), MM(T, M(0, -0.6, D / 2 + 3.4)));
-  for (let i = 0; i < 9; i++) B.add('woodDark', box(3.4, 0.22, 0.42), MM(T, M(0, 1.05 - i * 0.05, D / 2 + 1.4 + i * 0.48)));
+  for (let i = 0; i < 9; i++) B.add('woodDark', box(3.4, 0.22, 0.42), MM(T, M(0, 1.49 - i * 0.1, D / 2 + 1.4 + i * 0.48)));
+  addPlatform(x, z, ry, -1.7, 1.7, D / 2 + 1.2, D / 2 + 5.6, y + 1.6, y + 0.7);   // (el puente es una rampa hasta la puerta)
   for (const s2 of [-1, 1]) B.add('iron', box(0.08, 0.08, 4.6), MM(T, M(s2 * 1.6, 2.6, D / 2 + 2.6, 0, -0.5)));
   // torres redondas delanteras
   for (const s2 of [-1, 1]) {
@@ -272,6 +277,7 @@ export function castleJavier(B, x, z, ry) {
   tower(W / 2 - 1.5, -D / 2 + 3, 5.5, 18);
   // edificio interior con tejado
   B.add(S, box(W - 4, Hh - 1, 7), MM(T, M(1, (Hh - 1) / 2, -2)));
+  boxCol(x, z, ry, 1, -2, W - 4, 7.4, { solidView: true });
   roofHip(B, MM(T, M(1, 0, -2)), W - 4, 7, Hh - 1, 2.2, 'tile');
   // explanada de la entrada (foso y puente): reservada para que no se construyan casas encima; se puede pisar
   boxCol(x, z, ry, 0, D / 2 + 9, W + 12, 18, { ghost: true });
