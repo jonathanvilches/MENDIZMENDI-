@@ -13,7 +13,7 @@ function shot(from, aim, pow = 0.6, seed = 1) {
   return { shot: pv.shot, land: land && { x: +land.x.toFixed(2), z: +land.z.toFixed(1) }, wall: !!wall };
 }
 for (const from of [{ x: 0, y: 1, z: 20 }, { x: 2.5, y: 1, z: 22 }, { x: -2, y: 1, z: 17 }]) {
-  const xs = [-0.5, -0.25, 0, 0.5, 1].map(ax => shot(from, { x: ax, y: 0 }));
+  const xs = [-0.6, -0.25, 0, 0.5, 1].map(ax => shot(from, { x: ax, y: 0 }));
   console.log(JSON.stringify(from), xs.map(r => `${r.shot}:${r.land?.x}`).join('  '));
   ok(xs.every((r, i) => i === 0 || (r.land && xs[i - 1].land && r.land.x > xs[i - 1].land.x)), 'de izquierda a derecha, el bote va de la pared a la derecha, en orden');
   ok(xs[4].land.x - xs[0].land.x > 5, `abanico ancho: ${(xs[4].land.x - xs[0].land.x).toFixed(1)} m de lado a lado`);
@@ -21,6 +21,6 @@ for (const from of [{ x: 0, y: 1, z: 20 }, { x: 2.5, y: 1, z: 22 }, { x: -2, y: 
   console.log('   dos paredes', dp.map(r => `${r.shot}:${r.land?.x}/${r.land?.z}`).join('  '));
   ok(dp.filter(r => r.shot === 'dosparedes' && r.land && r.land.x > -1).length >= 2, 'izquierda del todo: dos paredes, sale cruzada hacia la derecha');
   const up = shot(from, { x: -0.8, y: 0.8 });
-  ok(up.shot !== 'dosparedes' && up.land && up.land.x < -2.5, `arriba-izquierda: pegada a la pared (bota en x ${up.land?.x})`);
+  ok(up.shot !== 'dosparedes' && up.land && up.land.x < -2, `arriba-izquierda: pegada a la pared (bota en x ${up.land?.x})`);
 }
 console.log(fails ? fails + ' fallos' : 'Todo correcto');

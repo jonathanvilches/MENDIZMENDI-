@@ -14,7 +14,7 @@ for (const town of towns.split(',')) {
     const P = G.player, S = { x: T.mesh.position.x, z: T.mesh.position.z }, bx = T.read.x + (T.read.x - S.x) * 0.6, bz = T.read.z + (T.read.z - S.z) * 0.6;
     P.place(bx, bz, Math.atan2(S.x - bx, S.z - bz)); G.follow?.snap?.(P);
     const pos = T.mesh.position, ry = T.mesh.rotation.y, V = G.camera.position.constructor;
-    G.follow.cinematic = { pos: new V(pos.x + Math.sin(ry) * 3.2, pos.y + 0.1, pos.z + Math.cos(ry) * 3.2), look: pos.clone(), t: 0 };
+    const far = +(window.__armFar || 9); G.follow.cinematic = { pos: new V(pos.x + Math.sin(ry) * far, P.pos.y + 2.2, pos.z + Math.cos(ry) * far), look: new V(pos.x, (pos.y + P.pos.y) / 2 + 0.6, pos.z), t: 0 };
     G.follow.update(0.1, P, { look: { dx: 0, dy: 0 }, zoom: 0, move: { x: 0, y: 0 } }, true);
     return { arms: T.A.id, it: G.interactables().some(i => i.kind === 'armas') }; });
   console.log(town, JSON.stringify(info));

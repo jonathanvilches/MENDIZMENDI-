@@ -54,15 +54,16 @@ export function profile() {
   if (!CAST.some(c => c.id === P.avatar)) P.avatar = CAST[0]?.id || 'sanfermin';
   return P;
 }
+import { missionSlots, edadDe } from '../data/edad.js';
 export function saveProfile() { try { localStorage.setItem(KEY, JSON.stringify(P)); } catch (e) { } }
 export function resetProfile() { const keep = { name: P?.name, avatar: P?.avatar, settings: P?.settings }; P = Object.assign(fresh(), keep); saveProfile(); }
 
 export const townState = (p, id) => (p.towns[id] ||= { done: {}, stamp: false, visits: 0 });
 export function townProgress(p, lv) {
   if (lv.special === 'salazar') { const s = salazarState(); const n = 9, d = s ? Object.values(s.quests || {}).filter(q => q.state === 'done').length : 0; return { done: Math.min(n, d), total: n, stamp: !!s?.done || !!p.towns[lv.id]?.stamp }; }
-  const t = p.towns[lv.id];
-  const total = lv.missions?.length || 0;
-  const done = t ? Object.keys(t.done).length : 0;
+  const t = p.towns[lv.id], slots = missionSlots(lv, edadDe(p));
+  const total = slots.length;
+  const done = t ? slots.filter(x => t.done[x.si]).length : 0;
   return { done, total, stamp: !!t?.stamp };
 }
 export function stampCount(p) { return LEVELS.filter(l => townProgress(p, l).stamp).length; }

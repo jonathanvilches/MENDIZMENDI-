@@ -349,14 +349,18 @@ export class FutbolGame {
     if ((this.defending() || loose) && this.switchCD <= 0 && !p.robo && !p.slide && !I.contain && !this.noAuto) {
       const b = this.ball.p; let best = null;
       // mientras mueves a tu jugador, solo cambia si otro llega claramente antes (no te quita el control a cada momento)
+      // (al compañero que llegará antes a donde va el balón, aunque estés moviendo al tuyo: solo se le da medio segundo
+      // de ventaja, para que no salte de uno a otro)
       const steering = I.mag > 0.2;
       if (loose) {
-        let bt = this.interceptPoint(p).t - (steering ? 1.1 : 0.35);
+        let bt = this.interceptPoint(p).t - (steering ? 0.5 : 0.25);
         for (const q of this.team(p.team)) if (q.role !== 'POR' && q !== p && q.down <= 0) { const t = this.interceptPoint(q).t; if (t < bt) { bt = t; best = q; } }
       } else {
-        const dme = hyp(p.x - b.x, p.z - b.z);
-        let bd = steering ? (dme > 18 ? dme - 8 : -1) : dme - 2;
-        for (const q of this.team(p.team)) if (q.role !== 'POR' && q !== p && q.down <= 0) { const d = hyp(q.x - b.x, q.z - b.z); if (d < bd) { bd = d; best = q; } }
+        // defendiendo: el más cercano a donde va el balón (dentro de medio segundo), con unos metros de ventaja para el tuyo
+        const bv = this.ball.v || { x: 0, z: 0 }, fx = b.x + (bv.x || 0) * 0.5, fz = b.z + (bv.z || 0) * 0.5;
+        const dme = hyp(p.x - fx, p.z - fz);
+        let bd = steering ? dme - 5 * SC : dme - 2.5 * SC;
+        for (const q of this.team(p.team)) if (q.role !== 'POR' && q !== p && q.down <= 0) { const d = hyp(q.x - fx, q.z - fz); if (d < bd) { bd = d; best = q; } }
       }
       if (best) this.setMe(best, 'auto');
     }
@@ -480,7 +484,9 @@ export class FutbolGame {
       for (let k = 0; k < 3; k++) { const d = hyp(tx - B.x, tz - B.z), T = d / (this.groundV(d) * this.firm(p) * 0.78); tx = q.x + q.vx * T; tz = q.z + q.vz * T; }
       d0 = hyp(tx - B.x, tz - B.z) || 1; dx = (tx - B.x) / d0; dz = (tz - B.z) / d0;
     }
-    const d = Math.max(3 * SC, q && this.assist ? d0 + (want - d0) * 0.55 : want);
+    // con un compañero, la fuerza solo ajusta: el pase va siempre a donde él llega, entre un poco corto (25 %) y un poco al
+    // hueco (35 %), para que sea preciso (antes la barra mandaba del todo y un pase mal cargado se perdía)
+    const d = Math.max(3 * SC, q ? d0 + (want > d0 ? 0.35 : 0.25) * d0 * Math.tanh((want - d0) / (0.6 * d0)) * (this.assist ? 0.55 : 0.85) : want);
     const tx = clamp(B.x + dx * d, -F.HL + 0.6, F.HL - 0.6), tz = clamp(B.z + dz * d, -F.HW + 0.6, F.HW - 0.6);
     const lane = q ? this.laneOpen(p.team, B.x, B.z, q.x, q.z) : 9;
     const loft = (power > 0.88 && d > 18 * SC) || (lane < 1.1 && d > 14 * SC) || d > 34 * SC;

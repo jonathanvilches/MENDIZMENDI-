@@ -184,8 +184,19 @@ export class FutbolHud {
       const knob = zone.querySelector('.fb-knob'), dot = knob.querySelector('i'), RAD = 56;
       zone.addEventListener('pointerdown', (e) => { if (this.stick.id !== null) return; e.preventDefault(); try { zone.setPointerCapture(e.pointerId); } catch { /* sin captura */ } const rc = zone.getBoundingClientRect(); this.stick = { id: e.pointerId, ox: e.clientX, oy: e.clientY, x: 0, y: 0 }; knob.style.display = 'block'; knob.style.left = (e.clientX - rc.left) + 'px'; knob.style.top = (e.clientY - rc.top) + 'px'; dot.style.transform = ''; if (this.el.hint) this.el.hint.style.opacity = 0; });
       zone.addEventListener('pointermove', (e) => { if (e.pointerId !== this.stick.id) return; let dx = e.clientX - this.stick.ox, dy = e.clientY - this.stick.oy; const l = Math.hypot(dx, dy); if (l > RAD) { dx *= RAD / l; dy *= RAD / l; } this.stick.x = dx / RAD; this.stick.y = -dy / RAD; dot.style.transform = `translate(${dx}px,${dy}px)`; });
-      const end = (e) => { if (e.pointerId !== this.stick.id) return; this.stick = { x: 0, y: 0, id: null }; knob.style.display = 'none'; };
-      zone.addEventListener('pointerup', end); zone.addEventListener('pointercancel', end);
+      const reset = () => { this.stick = { x: 0, y: 0, id: null }; knob.style.display = 'none'; };
+      const end = (e) => { if (e.pointerId !== this.stick.id) return; reset(); };
+      zone.addEventListener('pointerup', end); zone.addEventListener('pointercancel', end); zone.addEventListener('lostpointercapture', end);
+      // el joystick se quedaba «pulsado» si el dedo se levantaba sin que llegara el pointerup a la zona (otra capa encima,
+      // la zona oculta un momento, la app en segundo plano…): se suelta también al levantar todos los dedos, al perder el
+      // foco y si en medio segundo no llega ningún movimiento ni el dedo sigue en la pantalla
+      this.releaseAll = () => { if (this.stick.id !== null) reset(); for (const b of r.querySelectorAll('[data-a].down')) b.dispatchEvent(new PointerEvent('pointercancel')); };
+      this.onAllUp = (e) => { if (!e.touches || e.touches.length === 0) this.releaseAll(); };
+      this.onWinUp = (e) => { if (e.pointerId === this.stick.id) reset(); };
+      this.onHide = () => this.releaseAll();
+      addEventListener('touchend', this.onAllUp, true); addEventListener('touchcancel', this.onAllUp, true);
+      addEventListener('pointerup', this.onWinUp, true); addEventListener('pointercancel', this.onWinUp, true);
+      addEventListener('blur', this.onHide); document.addEventListener('visibilitychange', this.onHide);
     }
   }
   setScore(a, b) { this.el.s0.textContent = a; this.el.s1.textContent = b; }
@@ -317,5 +328,10 @@ export class FutbolHud {
   }
   /** Fundido breve a negro: tapa los cambios de sitio de golpe (saque de centro tras un gol, descanso). */
   cut() { let c = this.root.querySelector('.fb-cut'); if (!c) { c = document.createElement('div'); c.className = 'fb-cut'; this.root.prepend(c); } c.classList.remove('on'); void c.offsetWidth; c.classList.add('on'); }
-  dispose() { clearTimeout(this.mt); clearTimeout(this.st); this.root.remove(); }
+  dispose() {
+    clearTimeout(this.mt); clearTimeout(this.st); this.root.remove();
+    removeEventListener('touchend', this.onAllUp, true); removeEventListener('touchcancel', this.onAllUp, true);
+    removeEventListener('pointerup', this.onWinUp, true); removeEventListener('pointercancel', this.onWinUp, true);
+    removeEventListener('blur', this.onHide); document.removeEventListener('visibilitychange', this.onHide);
+  }
 }
