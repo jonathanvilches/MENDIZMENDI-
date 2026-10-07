@@ -202,6 +202,15 @@ void main(){
     o.si = lerp(a.si, b.si, k); o.hi = lerp(a.hi, b.hi, k);
     return o;
   }
+  // cuánto lucen los focos del frontón: ya al atardecer, a tope de noche
+  floodK() { return (this.flood || 0) * Math.min(1, this.night * 1.6); }
+  /** Luz de los focos: se aplica la última (después de la lluvia y la tormenta, que bajan la luz), así de noche la
+   *  cancha se ve siempre bien. */
+  applyFlood() {
+    const fk = this.floodK(); if (fk <= 0) return;
+    this.hemi.color.lerp(FLOOD_SKY, fk * 0.75); this.hemi.groundColor.lerp(FLOOD_GND, fk * 0.65); this.hemi.intensity += (1.7 - this.hemi.intensity) * fk;
+    this.sun.color.lerp(FLOOD_SUN, fk); this.sun.intensity += (2.4 - this.sun.intensity) * fk;
+  }
   update(dt, focus, elapsed, frozen) {
     if (!frozen) this.time = (this.time + dt * this.speed) % 24;
     const t = this.time;
@@ -224,12 +233,8 @@ void main(){
     // focos (un partido de pelota de noche): la luz de la luna y la del cielo suben a la de unos focos blancos desde
     // arriba; sin luces nuevas (en el móvil, añadir luces rehace todos los sombreadores y da un tirón). Antes, de noche,
     // no se veía nada en el frontón
-    const fk = (this.flood || 0) * this.night;
-    if (fk > 0) {
-      this.hemi.color.lerp(FLOOD_SKY, fk * 0.7); this.hemi.groundColor.lerp(FLOOD_GND, fk * 0.6); this.hemi.intensity += (1.45 - this.hemi.intensity) * fk;
-      this.sun.color.lerp(FLOOD_SUN, fk); this.sun.intensity += (1.9 - this.sun.intensity) * fk;
-      lightDir = lightDir.clone().lerp(FLOOD_DIR, fk).normalize();
-    }
+    const fk = this.floodK();
+    if (fk > 0) lightDir = lightDir.clone().lerp(FLOOD_DIR, fk).normalize();   // (la intensidad, en applyFlood: después de la lluvia)
     // sombras: nítidas al sol; con la luna, más suaves y claras (la noche no tiene sombras negras)
     this.sun.shadow.intensity = 1 - 0.45 * this.night;
     const snap = 2;

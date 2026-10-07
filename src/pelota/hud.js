@@ -140,6 +140,7 @@ export class PelotaHud {
     if (this.qT > 0 && (this.qT -= dt) <= 0) this.$('.pel-q').classList.remove('on');
   }
   panel(html) {
+    this.onPanel?.();   // (al salir un aviso encima, el joystick se suelta)
     this.closePanel();
     const p = document.createElement('div'); p.className = 'pel-panel'; p.innerHTML = `<div class="pel-card">${html}</div>`;
     this.root.appendChild(p); this.panelEl = p; this.root.classList.add('paneled'); return p;

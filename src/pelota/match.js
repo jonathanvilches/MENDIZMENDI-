@@ -22,6 +22,7 @@ export class PelotaMatch {
     this.names = { you: o.you?.name || this.txt.you, rival: o.rival?.name || 'Rival' };
     this.audio = new PelotaAudio(o.audio);
     this.hud = new PelotaHud(o.container || document.body, this.txt, this.names, this.touch);
+    this.hud.onPanel = () => this.resetStick?.();
     this.input = { mx: 0, mz: 0, hit: false, drop: false, cut: false, keys: {}, stick: { id: null, x: 0, y: 0 }, charge: null, power: 0.5 };
     this.active = true; this.t = 0;
     this.camPos = new this.T.Vector3(); this.camLook = new this.T.Vector3(); this.camInit = false;
@@ -112,7 +113,7 @@ export class PelotaMatch {
       I.keys[k] = down;
     };
     addEventListener('keydown', this.onKey, true); addEventListener('keyup', this.onKey, true);
-    this.onBlur = () => { I.keys = {}; };
+    this.onBlur = () => { I.keys = {}; this.resetStick?.(); };
     addEventListener('blur', this.onBlur);
     // joystick táctil
     const zone = hud.$('.pel-stick'), knob = hud.$('.pel-knob'), R = 56;
@@ -131,8 +132,18 @@ export class PelotaMatch {
       I.stick.x = dx / R; I.stick.y = -dy / R;
       knob.firstElementChild.style.transform = `translate(${dx}px,${dy}px)`;
     });
-    const end = (e) => { if (e.pointerId !== I.stick.id) return; I.stick = { id: null, x: 0, y: 0 }; knob.style.display = 'none'; };
+    const reset = this.resetStick = () => { I.stick = { id: null, x: 0, y: 0 }; knob.style.display = 'none'; };
+    const end = (e) => { if (e.pointerId === I.stick.id) reset(); };
     zone.addEventListener('pointerup', end); zone.addEventListener('pointercancel', end); zone.addEventListener('lostpointercapture', end);
+    // (en el iPhone, a veces el «soltar» no llega a la zona: un gesto del sistema desde el borde, un aviso que aparece encima
+    // o el dedo que sale de la pantalla; el joystick se quedaba enganchado hacia delante. Se suelta también desde la
+    // ventana y cuando ningún dedo queda dentro de la zona)
+    this.onPtrEnd = end; addEventListener('pointerup', end, true); addEventListener('pointercancel', end, true);
+    this.onTouchEnd = (e) => { if (I.stick.id === null) return; const zr = zone.getBoundingClientRect();
+      for (const t of e.touches) if (t.clientX >= zr.left && t.clientX <= zr.right && t.clientY >= zr.top && t.clientY <= zr.bottom) return;
+      reset(); };
+    addEventListener('touchend', this.onTouchEnd, true); addEventListener('touchcancel', this.onTouchEnd, true);
+    this.onHide = () => { if (document.hidden) { reset(); I.keys = {}; } }; document.addEventListener('visibilitychange', this.onHide);
     // botones: el golpe, la cortada y la dejada se cargan mientras se mantienen y salen al soltar (un toque, suave)
     const btn = (sel, flag, charge) => {
       const b = hud.$(sel);
@@ -325,7 +336,7 @@ export class PelotaMatch {
   destroy() {
     if (!this.active) return;
     this.active = false;
-    removeEventListener('keydown', this.onKey, true); removeEventListener('keyup', this.onKey, true); removeEventListener('blur', this.onBlur);
+    removeEventListener('keydown', this.onKey, true); removeEventListener('keyup', this.onKey, true); removeEventListener('blur', this.onBlur); removeEventListener('pointerup', this.onPtrEnd, true); removeEventListener('pointercancel', this.onPtrEnd, true); removeEventListener('touchend', this.onTouchEnd, true); removeEventListener('touchcancel', this.onTouchEnd, true); document.removeEventListener('visibilitychange', this.onHide);
     this.hud.destroy(); this.court.hideBall();
     for (const r of [this.court.landRing, this.court.spotRing, this.court.serveZone]) r.visible = false;
     if (this.cam.fov !== this.fov0) { this.cam.fov = this.fov0; this.cam.updateProjectionMatrix(); }
