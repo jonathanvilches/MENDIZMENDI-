@@ -1064,3 +1064,26 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .saberes .sb svg { grid-row: span 2; } .saberes .sb b { font-size: 22px; line-height: 1; color: #FFD700; } .saberes .sb span { font-weight: 900; font-size: 14px; }
 .saberes .sb small { grid-column: 1 / -1; color: #cfe5d4; font-size: 12px; margin-top: 4px; line-height: 1.3; }
 @media (max-width: 560px), (orientation: landscape) and (max-height: 440px) { .saberes .sb small { display: none; } .saberes .sb-grid { grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); } }
+.escudo .es-note { color: #d9c9a0; font-size: 13px; font-style: italic; margin: 6px 0 0; }
+/* Escudos de Navarra (armorial) */
+.saberes .sb.link { cursor: pointer; outline-offset: 2px; } .saberes .sb.link:hover { border-color: #FFD700; }
+.saberes .sb-arms { margin: 0 0 12px; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; white-space: normal; text-align: left; }
+.armorial { display: grid; gap: 14px; padding-bottom: 24px; }
+.armorial .ar-head h1 { margin: 2px 0 6px; } .armorial .ar-head p { margin: 0 0 8px; max-width: 75ch; font-weight: 600; color: #efe6d6; }
+.armorial .ar-count { color: #FFD700; }
+.armorial details > summary { cursor: pointer; font-weight: 900; min-height: 40px; display: flex; align-items: center; gap: 8px; }
+.armorial .ar-guia { background: rgba(0, 0, 0, .25); border: 1px solid rgba(255, 215, 0, .25); border-radius: 16px; padding: 10px 14px; }
+.armorial .ar-guia ol { margin: 6px 0 4px; padding-left: 22px; display: grid; gap: 6px; color: #efe6d6; }
+.armorial .ar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 10px; }
+.armorial .ar { display: grid; grid-template-columns: 112px 1fr; gap: 12px; align-items: start; padding: 12px; border-radius: 16px; background: rgba(0, 0, 0, .25); border: 1px solid rgba(255, 255, 255, .1); }
+.armorial .ar.on { border-color: rgba(255, 215, 0, .45); background: rgba(255, 215, 0, .08); }
+.armorial .ar canvas { width: 112px; height: auto; }
+.armorial .ar-tx { min-width: 0; } .armorial .ar-tx small { color: #cdbfa6; font-weight: 700; } .armorial .ar-tx h3 { margin: 2px 0 4px; font-size: 18px; }
+.armorial .ar-tx p { margin: 4px 0; font-size: 14px; color: #efe6d6; line-height: 1.35; } .armorial .ar-tx ul { margin: 4px 0; padding-left: 18px; font-size: 13.5px; color: #e3d8c4; display: grid; gap: 3px; }
+.armorial .ar-ok { display: inline-flex; align-items: center; gap: 4px; color: #FFD700; font-weight: 800; font-size: 13px; }
+.armorial .ar-nt { font-style: italic; color: #d9c9a0 !important; font-size: 13px !important; }
+.armorial .ar-pend { background: rgba(0, 0, 0, .2); border-radius: 16px; padding: 10px 14px; } .armorial .ar-pend h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; } .armorial .ar-pend ul { margin: 4px 0; padding-left: 20px; color: #e3d8c4; }
+.armorial .ar-src { font-size: 12.5px; color: #bfb39c; }
+@media (max-width: 560px), (orientation: landscape) and (max-height: 440px) { .armorial .ar-grid { grid-template-columns: 1fr; } .armorial .ar { grid-template-columns: 84px 1fr; } .armorial .ar canvas { width: 84px; } }
+.sh-arms { display: grid; grid-template-columns: 90px 1fr; gap: 12px; align-items: start; margin: 0 0 12px; } .sh-arms canvas { width: 90px; height: auto; } .sh-arms p { margin: 0; }
+.sh-arms .lnk { background: none; border: 0; color: #FFD700; font-weight: 800; text-decoration: underline; padding: 6px 0; cursor: pointer; font: inherit; }

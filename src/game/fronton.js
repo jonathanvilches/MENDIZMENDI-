@@ -13,6 +13,8 @@ import { QUALITY } from '../util/quality.js';
 import { Crowd } from './crowd.js';
 import { crowdMesh } from '../actors/crowdSprites.js';
 import { shieldSpec, drawShield } from '../world/heraldry.js';
+import { drawOfficial, officialHeight } from '../world/armas.js';
+import { armsOfTown } from '../data/armas-navarra.js';
 import { LEVELS } from '../data/levels.js';
 
 // Cómo es el frontón de cada sitio. Se parte de la comarca y de lo que cuentan las fuentes (legal/estado-legal.md): los
@@ -73,8 +75,10 @@ export function frontonLook(def = {}) {
 // nombre del pueblo y su escudo para la pared izquierda (como el letrero del ayuntamiento en los frontones de verdad)
 // y cómo es el frontón de allí (look)
 export function frontonWall(def) {
-  const spec = shieldSpec(def);
-  return { wallName: (def.name || '').split(/\s*\/\s*/).join(' · ').toUpperCase(), wallSub: 'AYUNTAMIENTO · UDALA', shield: (g, cx, top, h) => drawShield(g, cx, top, h, spec), look: frontonLook(def) };
+  // el escudo oficial del pueblo o de su valle cuando está comprobado; si no, uno propio del juego
+  const spec = shieldSpec(def), A = armsOfTown(def.id);
+  const shield = A ? (g, cx, top, h) => drawOfficial(g, cx, top, h / officialHeight(1, A), A) : (g, cx, top, h) => drawShield(g, cx, top, h, spec);
+  return { wallName: (def.name || '').split(/\s*\/\s*/).join(' · ').toUpperCase(), wallSub: 'AYUNTAMIENTO · UDALA', shield, look: frontonLook(def) };
 }
 
 // huella del frontón en coordenadas locales (se calcula una vez)

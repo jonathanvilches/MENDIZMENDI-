@@ -243,3 +243,5 @@ export function drawArms(g, cx, top, w, A, { stone = false } = {}) {
   if (stone) { g.strokeStyle = STONE_HI; g.lineWidth = Math.max(1, w * 0.01); shieldPath(g, x0 + w * 0.012, y0 + w * 0.012, w - w * 0.024, sh - w * 0.024); g.stroke(); }
   g.restore();
 }
+// (para los escudos oficiales de src/world/armas.js)
+export { charge, moreCharge, shieldPath, crown, helmet, rim, hatch, TINCT, STONE, STONE_HI, STONE_LO, GOLD, SILVER, DARK };

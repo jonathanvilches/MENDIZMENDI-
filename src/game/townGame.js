@@ -43,9 +43,11 @@ const loadFutbol = () => import('./futbol.js').then(m => m.Futbol);
 import { montesFrom, townLatLon } from '../data/miradores.js';
 import { Panorama } from '../world/panorama.js';
 import { houseArms } from '../data/blasones.js';
+import { armsOfTown } from '../data/armas-navarra.js';
+import { drawOfficial, officialHeight } from '../world/armas.js';
 import { CAT_BY_TYPE, SABERES } from '../data/saberes.js';
 import { drawArms } from '../world/heraldry.js';
-import { readArms } from '../ui/escudo.js';
+import { readArms, readTownArms } from '../ui/escudo.js';
 import { PARTS, CASTLE_QUIZ, CASTLE_TOWNS, CASTILLOS } from '../data/castillos.js';
 import { GearProps } from '../actors/gear3d.js';
 import { foodFrom } from '../data/equipo.js';
@@ -336,6 +338,7 @@ export class TownGame {
     this.agro = buildAgro(this.scene, d, this.rnd);
     // escudos de las fachadas: cada casa blasonada con sus armas talladas, para leerlas desde la calle
     try { this.buildShields(); } catch (e) { console.warn('escudos', e); }
+    try { this.buildTownArms(); } catch (e) { console.warn('escudo del pueblo', e); }
     // plantas reales de la comarca para identificar (herbario)
     if (!/noflora/.test(location.search)) try { this.flora = new FloraSpots(this); } catch (e) { console.warn('flora', e); }
     this.spawnSabios();
@@ -480,6 +483,10 @@ export class TownGame {
     this.elapsed += dt;
     const P = this.player;
     this.watchdog(dt);
+    // al pasar por la plaza se avisa del escudo del pueblo
+    if (this.townArms && !this.armsHint && !this.P.cards.includes(this.townArms.id) && Math.hypot(this.townArms.read.x - P.pos.x, this.townArms.read.z - P.pos.z) < 12) {
+      this.armsHint = true; this.ui.whisper(`En la plaza está el escudo de ${this.def.name.split(' /')[0]}. Acércate y aprende a leerlo: cada figura cuenta algo del pueblo.`, 5600);
+    }
     // al acercarse por primera vez a una casa con escudo, se avisa de que se puede leer
     if (this.blasones?.length && !this.shieldHint && (this.shieldT = (this.shieldT || 0) - dt) <= 0) {
       this.shieldT = 1;
@@ -623,6 +630,24 @@ export class TownGame {
       this.blasones.push({ ...sh, A, mesh: m, id: 'escudo:' + this.def.id + ':' + i });
     });
   }
+  // escudo oficial del pueblo (o de su valle) pintado en el pilar de la plaza
+  buildTownArms() {
+    const A = armsOfTown(this.def.id), S = TOWN.armsSpot; if (!A || !S) return;
+    const W = 200, c = document.createElement('canvas'); c.width = 256; c.height = Math.ceil(officialHeight(W, A)) + 10;
+    drawOfficial(c.getContext('2d'), 128, 4, W, A);
+    const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+    const h = 1.35 * c.height / c.width, m = new THREE.Mesh(new THREE.PlaneGeometry(1.35, h), new THREE.MeshStandardMaterial({ map: tex, transparent: true, alphaTest: 0.4, roughness: 0.85 }));
+    m.position.set(S.x + Math.sin(S.ry) * 0.222, S.y + 1.62, S.z + Math.cos(S.ry) * 0.222); m.rotation.y = S.ry; this.scene.add(m);
+    this.townArms = { A, mesh: m, read: S.read, id: 'armas:' + A.id };
+  }
+  async readTownArmsAt() {
+    const T = this.townArms, isNew = addCard(T.id, 'escudos'); this.player.frozen = true;
+    try { await readTownArms(this.ui, T.A, { town: this.def.name.split(' /')[0], isNew }); }
+    finally { this.player.frozen = false; }
+    addXP(isNew ? 30 : 4); saveProfile();
+    for (const bd of checkBadges()) await infoCard(this.ui, { icon: bd.icon, kicker: 'Nueva insignia', title: bd.name, text: bd.text, button: '¡Bien!' });
+    if (isNew) this.ui.toast('Escudo guardado en tu armorial de Navarra (Saberes · Escudos)', 'shield', 3000);
+  }
   async readShield(b) {
     const P = this.P, isNew = addCard(b.id, 'escudos'); this.player.frozen = true;
     try { await readArms(this.ui, b.A, { town: this.def.name.split(' /')[0], isNew, regla: (P.cards || []).filter(c => c.startsWith('escudo:')).length }); }
@@ -634,6 +659,7 @@ export class TownGame {
   }
   interactables() {
     const list = [];
+    if (this.townArms) list.push({ kind: 'armas', x: this.townArms.read.x, z: this.townArms.read.z, r: 3, label: this.P.cards.includes(this.townArms.id) ? `Volver a leer el escudo de ${this.def.name.split(' /')[0]}` : `Leer el escudo de ${this.def.name.split(' /')[0]}` });
     for (const b of this.blasones || []) list.push({ kind: 'escudo', b, x: b.read.x, z: b.read.z, r: 3, label: this.P.cards.includes(b.id) ? 'Volver a leer el escudo' : 'Leer el escudo de la casa' });
     for (const a of this.actors) if (a.visible !== false) list.push({ kind: 'npc', a, x: a.pos.x, z: a.pos.z, r: 3, label: a.market ? `Puesto del mercado: ${a.market.toLowerCase()}` : a === this.pelotari ? `Jugar a pelota con ${a.name}` : a === this.coach ? 'Jugar un partido en El Sadar' : a === this.futsalCoach ? `Fútbol con ${clubOfTown(this.def.id)?.name || 'el club del pueblo'}` : a.sabio ? `${a.name}: la historia de ${a.sabio.name}` : `Hablar con ${a.name}` });
     for (const a of this.walkers) list.push({ kind: 'walker', a, x: a.pos.x, z: a.pos.z, r: a.info || a.jobs ? 3 : 2.4, label: a.stall ? 'Productos del pueblo' : a.jobs ? `Ayudar a ${a.name.toLowerCase()} (txanponak)` : a.info ? `Hablar con ${a.name.toLowerCase() === 'pastor' ? 'el pastor' : 'la ganadera'}` : `Saludar a ${a.name}` });
@@ -700,6 +726,7 @@ export class TownGame {
     if (it.kind === 'walker' && it.a.stall) return this.buyStall();
     if (it.kind === 'agro') return this.showAgro(it.o);
     if (it.kind === 'escudo') return this.readShield(it.b);
+    if (it.kind === 'armas') return this.readTownArmsAt();
     if (it.kind === 'pet') return this.petAnimal(it.a);
     if (it.kind === 'flora') return this.flora.interact(it.s);
     if (it.kind === 'bell') return this.ringBell();
@@ -2093,6 +2120,7 @@ export class TownGame {
   applySettings() { const S = this.P.settings; this.sound.setMusic(S.music); this.sound.setVolume(S.volume); this.sky.speed = 24 / (16 * 60) * (S.timeSpeed ?? 1); }
   teleport(x, z) { const s = this.spot({ x, z }, 3); this.player.place(s.x, s.z, 0); this.follow.snap(this.player); }
   dispose() {
+    if (this.townArms) { const m = this.townArms.mesh; m.geometry.dispose(); m.material.map?.dispose(); m.material.dispose(); this.townArms = null; }
     for (const b of this.blasones || []) { b.mesh.geometry.dispose(); b.mesh.material.map?.dispose(); b.mesh.material.dispose(); }
     // (que la interfaz, que dura toda la partida, no siga apuntando al pueblo que se deja: lo dejaba entero en memoria)
     if (this.ui.onDialogLine) this.ui.onDialogLine = null; this.ui.onMiniHit = null; if (this.ui.stage3d?.show) this.ui.stage3d = null;
