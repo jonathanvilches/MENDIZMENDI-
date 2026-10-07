@@ -2,6 +2,7 @@
 // sonido (audio.js) y la entrada (teclado y táctil). El anfitrión llama a update(dt) en cada fotograma y dibuja
 // scene con camera. run() devuelve una promesa con el resultado cuando el jugador sale.
 import * as THREE from 'three';
+import { DATOS } from '../data/saberes.js';
 import { FIELD as F, PHYS as K, TEAMS, TEXT, RETOS, VENUES, RULES as RU, ROLES, useFormat, onFormat, FORMAT } from './rules.js';
 import { FutbolGame } from './game.js';
 import { buildField, ballTexture, roofShade } from './field.js';
@@ -412,7 +413,7 @@ export class FutbolMatch {
     const score = g.mode === 'penalties' && !g.cupPens ? `${r.pens[0]} – ${r.pens[1]}` : `${g.score[0]} – ${g.score[1]}${pens}`;
     this.result = { ...r, mode: this.o.mode, level: this.o.level };
     this.o.onResult?.(this.result);
-    const choice = await H.end({ title, sub: TEXT.end, score, rows, again: 'Revancha', exit: 'Salir' });
+    const choice = await H.end({ title, sub: TEXT.end, score, rows, again: 'Revancha', exit: 'Salir', fact: DATOS[Math.floor(Math.random() * DATOS.length)] });
     if (choice === 'again') this.restart(); else this.exit(this.result);
   }
   async onRetoEnd(r) {

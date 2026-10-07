@@ -18,6 +18,7 @@ import { Stage, releaseStage } from './stage.js';
 import { getLang, setLang, langChosen } from '../i18n.js';
 import { dioramaShot, heroAvatar, heroAction, townCover, heroPose } from './diorama.js';
 import { CLUBS } from '../futbol/clubs.js';
+import { SABERES, saberCounts } from '../data/saberes.js';
 import { profile, saveProfile, levelOf, rankOf, townProgress, comarcaProgress, comarcaTowns, navarraProgress, stampCount, BADGES, checkBadges, resetProfile, salazarState } from '../game/profile.js';
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -184,9 +185,14 @@ export class Hub {
         <div class="h-cta"><button class="btn primary big go" data-play="${last.id}">${I('play', 28)} <span>${lp.done ? '¡Seguimos!' : '¡A la aventura!'}</span></button><button class="btn ghost sq" data-go="map" aria-label="Elegir en el mapa">${I('map', 30)}<span>Mapa</span></button></div>
       </div>
     </section>
+    <section class="saberes">
+      <div class="sb-head"><small class="kicker">${I('book', 20)} Lo más importante</small><h2>Aprende Navarra jugando</h2>
+        <p>Cada misión, cada paseo y cada partido te enseñan algo de Navarra: su producto local, su arquitectura y sus escudos, su historia, su campo, su fauna, su flora y sus tradiciones. Cada cosa que aprendes es una carta.</p></div>
+      <div class="sb-grid">${(() => { const n = saberCounts(p); return SABERES.map(sb => `<div class="sb ${n[sb.id] ? 'on' : ''}" title="${esc(sb.text)}">${I(sb.icon, 34)}<b>${n[sb.id]}</b><span>${esc(sb.name)}</span><small>${esc(sb.text)}</small></div>`).join(''); })()}</div>
+    </section>
     <section class="story">
       <div class="st-txt"><small class="kicker">${I('book', 20)} La historia</small><h2>El Pasaporte Mendi</h2>
-        <p>Las páginas del viejo pasaporte se han quedado en blanco. Cada pueblo de Navarra guarda su sello, pero solo lo entrega a quien ayuda a su gente y aprende sus oficios, sus danzas y sus leyendas.</p></div>
+        <p>Las páginas del viejo pasaporte se han quedado en blanco. Cada pueblo de Navarra guarda su sello, pero solo lo entrega a quien ayuda a su gente y aprende de ella: su producto, sus casas y escudos, sus oficios, sus danzas y sus leyendas.</p></div>
       <ol class="hsteps"><li>${I('map', 56)}<b>Viaja</b><span>Elige un pueblo en el mapa</span></li><li>${I('exclaim', 56)}<b>Ayuda</b><span>Habla con su gente y cumple sus misiones</span></li><li>${I('stamp', 56)}<b>Consigue el sello</b><span>Y llena tu pasaporte</span></li></ol>
     </section>
     <button class="sports-cta" data-go="sports">${I('trophy', 44)}<div><b>Campeonatos</b><small>Pelota a mano y fútbol, sin entrar en un pueblo</small></div>${I('play', 26)}</button>

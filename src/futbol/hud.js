@@ -83,6 +83,7 @@ const CSS = `
 .fb-alt{display:block;width:100%;margin-top:10px;border:2px solid rgba(255,255,255,.4);border-radius:16px;padding:11px;font:800 16px Nunito,sans-serif;color:#fff;background:transparent;cursor:pointer;min-height:48px}
 /* (los botones de seguir y salir, siempre a la vista: si la tarjeta no cabe y se desplaza, se quedan pegados abajo) */
 .fb-card .fb-go,.fb-card .fb-alt{position:sticky;bottom:0;z-index:1}.fb-card .fb-alt{background:#1f0c40}
+.fb-fact{margin:8px 0 2px!important;padding:8px 12px;border-radius:12px;background:rgba(40,140,80,.22);border:1px solid rgba(120,220,150,.3);color:#e3f6e8!important;font-size:13.5px;line-height:1.35;text-align:left}.fb-fact b{display:block;color:#ffd84a;font-size:12px;letter-spacing:.06em;text-transform:uppercase}
 .fb-stats{width:100%;border-collapse:collapse;margin:8px 0 6px;font-size:15px}
 .fb-stats td{padding:5px 6px;border-bottom:1px solid rgba(255,255,255,.1)}.fb-stats td:first-child,.fb-stats td:last-child{font-weight:900;width:22%;font-variant-numeric:tabular-nums}.fb-stats td:nth-child(2){color:#cbbcf0;font-weight:700;font-size:13px}
 .fb-ctrl{width:100%;border-collapse:collapse;font-size:12.5px;text-align:left;margin:6px 0}.fb-ctrl th{font-size:11px;color:#cbbcf0;text-transform:uppercase;letter-spacing:.06em;padding:3px 4px}
@@ -301,10 +302,11 @@ export class FutbolHud {
     });
   }
   /** Pantalla final con las estadísticas. */
-  end({ title, sub, score, rows = [], again = 'Revancha', exit = 'Salir' }) {
+  end({ title, sub, score, rows = [], again = 'Revancha', exit = 'Salir', fact = '' }) {
     return new Promise(res => {
       const p = this.panel(`<p class="fb-kick">${esc(sub || '')}</p><h2>${esc(title)}</h2>${score ? `<div class="fb-big">${esc(score)}</div>` : ''}
         ${rows.length ? `<table class="fb-stats">${rows.map(([a, n, b]) => `<tr><td>${esc(a)}</td><td>${esc(n)}</td><td>${esc(b)}</td></tr>`).join('')}</table>` : ''}
+        ${fact ? `<p class="fb-fact"><b>Saber de Navarra</b>${esc(fact)}</p>` : ''}
         ${again ? `<button class="fb-go">${esc(again)}</button>` : ''}<button class="fb-alt">${esc(exit)}</button>`);
       p.querySelector('.fb-go')?.addEventListener('click', () => { p.remove(); res('again'); });
       p.querySelector('.fb-alt').addEventListener('click', () => { p.remove(); res('exit'); });

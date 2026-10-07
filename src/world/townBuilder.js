@@ -9,7 +9,7 @@ import { terrainHeight } from './heightfield.js';
 import { addBox, addCircle, isFree, rectFree } from './colliders.js';
 import { mulberry32, clamp } from '../util/math.js';
 
-export const TOWN = { houses: [], lamps: [], benches: [], church: null, fountain: null, landmarks: [], farm: null, pen: null };
+export const TOWN = { houses: [], shields: [], lamps: [], benches: [], church: null, fountain: null, landmarks: [], farm: null, pen: null };
 if (typeof window !== 'undefined') window.__TOWN = TOWN;   // (para las herramientas de capturas)
 
 function polyLen(pts) { let l = 0; for (let i = 1; i < pts.length; i++) l += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); return l; }
@@ -27,6 +27,11 @@ function minGround(x, z, w, d, ry) {
 }
 // en las cuestas la casa se apoya casi en lo alto de su planta (el lado de arriba no queda enterrado) y por debajo
 // lleva un zócalo de piedra hasta el suelo por el lado de abajo. Devuelve la altura de la planta baja.
+// escudo de una fachada: dónde queda en el mundo (para ponerle sus armas y poder leerlo desde la calle)
+function shieldAt(x, y, z, ry, [lx, ly, lz], palace) {
+  const c = Math.cos(ry), s = Math.sin(ry);
+  TOWN.shields.push({ x: x + lx * c + lz * s, y: y + ly, z: z - lx * s + lz * c, ry, palace, read: { x: x + lx * c + (lz + 2.4) * s, z: z - lx * s + (lz + 2.4) * c } });
+}
 function slopeBase(B, x, z, w, d, ry, g) {
   const y = Math.max(g.mn - 0.1, g.mx - 0.35), drop = y - g.mn;
   if (drop > 0.15) B.add('stone', new THREE.BoxGeometry(w + 0.12, drop + 0.6, d + 0.12), M(x, g.mn - 0.6 + (drop + 0.6) / 2, z, ry));
@@ -112,7 +117,9 @@ export function buildTown(scene, mats, def) {
       const p = pathQuery(lm.x, lm.z);
       const r2 = Math.atan2(PLACES.plaza.x - lm.x, PLACES.plaza.z - lm.z);
       const g = minGround(lm.x, lm.z, w, d, r2);
-      buildHouse(B, M(lm.x, slopeBase(B, lm.x, lm.z, w, d, r2, g), lm.z, r2), { w, d, h, wall: fam === 'ribera' ? 'brick' : 'ashlar', noQuoins: true, roof: fam === 'pyrenean' ? 'slate' : 'tile', roofType: 'hip', hipRise: 4.6, arch: true, doorX: 0, balcony: true, balconyW: 5, ironBalcony: true, shield: lm.kind === 'palace', cornice: true }, rnd);
+      const pb = slopeBase(B, lm.x, lm.z, w, d, r2, g), po = { w, d, h, wall: fam === 'ribera' ? 'brick' : 'ashlar', noQuoins: true, roof: fam === 'pyrenean' ? 'slate' : 'tile', roofType: 'hip', hipRise: 4.6, arch: true, doorX: 0, balcony: true, balconyW: 5, ironBalcony: true, shield: lm.kind === 'palace', cornice: true };
+      buildHouse(B, M(lm.x, pb, lm.z, r2), po, rnd);
+      if (po.shieldLocal) shieldAt(lm.x, pb, lm.z, r2, po.shieldLocal, true);
       addBox(lm.x, lm.z, w + 0.4, d + 0.4, r2, { solidView: true });
       spot = { x: lm.x + Math.sin(r2) * (d / 2 + 2), z: lm.z + Math.cos(r2) * (d / 2 + 2) };
     } else spot = landmark(B, lm, ctx);
@@ -155,7 +162,9 @@ export function buildTown(scene, mats, def) {
       if (rectFree(x, z, ry, -w / 2, w / 2, -d / 2, d / 2, 0.4) && !inKeep(x, z, Math.hypot(w, d) / 2) && cornersOk(x, z, w, d, ry)) {
         const g = minGround(x, z, w, d, ry);
         if (g.mx - g.mn < 2.4) {
-          buildHouse(B, M(x, slopeBase(B, x, z, w, d, ry, g), z, ry), { arch: st.wall === 'stone' || st.wall === 'ashlar' ? rnd() < 0.5 : rnd() < 0.2, balconyW: Math.min(w - 2, 3 + rnd() * 2.5), shield: rnd() < 0.1, cornice: rnd() < 0.4, ...st, w, d, h }, rnd);
+          const hb = slopeBase(B, x, z, w, d, ry, g), ho = { arch: st.wall === 'stone' || st.wall === 'ashlar' ? rnd() < 0.5 : rnd() < 0.2, balconyW: Math.min(w - 2, 3 + rnd() * 2.5), shield: rnd() < 0.1, cornice: rnd() < 0.4, ...st, w, d, h };
+          buildHouse(B, M(x, hb, z, ry), ho, rnd);
+          if (ho.shieldLocal) shieldAt(x, hb, z, ry, ho.shieldLocal, false);
           addBox(x, z, w + 0.3, d + 0.3, ry, { solidView: true });
           TOWN.houses.push({ x, z, ry, w, d, door: { x: x + Math.sin(ry) * (d / 2 + 1.2), z: z + Math.cos(ry) * (d / 2 + 1.2) } });
           count++; s += w + 1.2 + rnd() * 2.5; continue;

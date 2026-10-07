@@ -38,6 +38,7 @@ export const BADGES = [
   { id: 'runner', name: 'Pies ligeros', text: 'Gana tres carreras.', icon: 'running', test: p => missionTypeDone(p, 'race') >= 3 },
   { id: 'naturalist', name: 'Naturalista', text: 'Observa diez especies distintas.', icon: 'binoculars', test: p => p.species.length >= 10 },
   { id: 'collector', name: 'Coleccionista', text: 'Reúne treinta cartas.', icon: 'book', test: p => p.cards.length >= 30 },
+  { id: 'heraldist', name: 'Heraldista', text: 'Lee cinco escudos de las fachadas.', icon: 'shield', test: p => p.cards.filter(c => c.startsWith('escudo:')).length >= 5 },
   { id: 'peaks', name: 'Cumbres', text: 'Corona cinco cimas en las misiones de montaña.', icon: 'peak', test: p => p.peaks.length >= 5 },
 ];
 
@@ -92,4 +93,5 @@ export function checkBadges() {
   for (const b of BADGES) if (!p.badges.includes(b.id) && b.test(p)) { p.badges.push(b.id); fresh.push(b); }
   return fresh;
 }
-export function addCard(id) { const p = profile(); if (p.cards.includes(id)) return false; p.cards.push(id); return true; }
+// cat: el saber de Navarra al que pertenece la carta (producto, arquitectura, escudos…: ver data/saberes.js)
+export function addCard(id, cat) { const p = profile(); if (cat) (p.cardCat ||= {})[id] = cat; if (p.cards.includes(id)) return false; p.cards.push(id); return true; }
