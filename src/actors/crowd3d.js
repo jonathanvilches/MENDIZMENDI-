@@ -105,13 +105,14 @@ export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false } = 
   group.add(sprites);
   // (los personajes nuevos tienen más detalle: en el móvil, menos en 3D a la vez)
   const Q = QUALITY, K = Q === 'low' ? 18 : Q === 'mid' ? 40 : 80, R = Q === 'low' ? 13 : Q === 'mid' ? 20 : 28;
+  const TT = sprites.geometry.attributes.aTint.array, tc = new THREE.Color();   // (de cerca, el mismo tono que en la lámina)
   const A = sprites.geometry.attributes.aAnim.array, C = sprites.geometry.attributes.aCell.array, IM = sprites.instanceMatrix, orig = IM.array.slice();
   const near = new Int32Array(K); let nNear = 0, meshes = null, cheer = 0, pick = 0;
   const hide = new Uint8Array(n), m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), s3 = new THREE.Vector3();
   const rot = new Float32Array(n), sc = new Float32Array(n);
   for (let i = 0; i < n; i++) { rot[i] = spots[i][3] + (Math.random() - 0.5) * 0.3; sc[i] = (0.92 + Math.random() * 0.16) * height / 1.5; }
   bakeSet(set, sit).then(G => {
-    meshes = G.map(poses => poses.map(g => { const im = new THREE.InstancedMesh(g, MAT, K); im.count = 0; im.frustumCulled = false; group.add(im); return im; }));
+    meshes = G.map(poses => poses.map(g => { const im = new THREE.InstancedMesh(g, MAT, K); im.setColorAt(0, new THREE.Color(1, 1, 1)); im.count = 0; im.frustumCulled = false; group.add(im); return im; }));
   }).catch(err => console.warn('público 3D', err));
   const cam = new THREE.Vector3(), frustum = new THREE.Frustum(), pm = new THREE.Matrix4(), sph = new THREE.Sphere(new THREE.Vector3(), 1.2);
   // elige los K espectadores más cercanos a la cámara (dentro de R) que se ven, para dibujarlos en 3D (los que quedan
@@ -147,9 +148,9 @@ export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false } = 
       const pose = (C[i * 2 + 1] + cheer + wave) % 2, im = meshes[figs[i] % meshes.length][pose];
       const jump = A[i * 3] * ex * Math.abs(Math.sin(t * 5.5 + A[i * 3 + 1]));
       m4.compose(v.set(s[0], s[1] + jump, s[2]), q.setFromEuler(e.set(0, rot[i], 0)), s3.setScalar(sc[i]));
-      im.setMatrixAt(im.count++, m4);
+      im.setColorAt(im.count, tc.setRGB(TT[i * 3], TT[i * 3 + 1], TT[i * 3 + 2])); im.setMatrixAt(im.count++, m4);
     }
-    for (const fig of meshes) for (const im of fig) if (im.count) im.instanceMatrix.needsUpdate = true;
+    for (const fig of meshes) for (const im of fig) if (im.count) { im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; }
   };
   group.cheer = (on) => { cheer = on ? 1 : 0; sprites.cheer(on); };
   group.dispose = () => { sprites.geometry.dispose(); sprites.material.dispose(); for (const fig of meshes || []) for (const im of fig) im.dispose(); };

@@ -145,7 +145,7 @@ export class Futbol {
     const sound = G.sound?.ctx ? { ctx: G.sound.ctx, out: G.sound.sfx } : null;
     FutbolSystem.init({
       makeCharacter, quality: QUALITY, touch: G.input?.touch, audio: sound,
-      crowd: (spots) => crowd3d(spots, 'futbol', 1.3, { sit: true }),
+      crowd: (spots) => crowd3d(spots, 'futbol', 1.38, { sit: true }),
       host: {
         before: async () => { G.player.frozen = true; G.ui.setPrompt?.(null); await G.ui.fadeOut?.(); },
         attach: (scene, camera, update) => { G.altScene = scene; G.altCamera = camera; G.altUpdate = update; G.mode = 'futbol'; G.ui.hudVisible?.(false); document.body.classList.add('futbol'); G.rt?.boost?.(true); },

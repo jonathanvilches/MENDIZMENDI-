@@ -147,7 +147,7 @@ function linesGeometry() {
 // red: malla blanca de 12 cm con fondo transparente (recorte por alfa: sin problemas de orden al dibujar)
 function netTexture() {
   return canvasTex(64, 64, (g) => {
-    g.strokeStyle = 'rgba(255,255,255,1)'; g.lineWidth = 4;
+    g.strokeStyle = 'rgba(255,255,255,1)'; g.lineWidth = 6;
     g.beginPath(); g.moveTo(0, 2); g.lineTo(64, 2); g.moveTo(2, 0); g.lineTo(2, 64); g.stroke();
   }, { repeat: true, alpha: true });
 }
@@ -390,7 +390,9 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
   const frameMat = own(new THREE.MeshStandardMaterial({ color: '#cfd2d4', roughness: 0.5 }));
   const netT = own(netTexture()), nets = [];
   const hw = F.goalW / 2 + F.postR, H = F.goalH + F.postR, D = F.goalD;
-  const netMat = (w, h) => { const t = own(netT.clone()); t.needsUpdate = true; t.repeat.set(w / 0.12, h / 0.12); return own(new THREE.MeshStandardMaterial({ map: t, alphaTest: 0.35, side: THREE.DoubleSide, roughness: 0.9, color: '#ffffff' })); };
+  // (con transparencia y no recortada: de lejos, en el móvil, las cuerdas finas desaparecían y la portería parecía sin
+  // red; así se ve como un velo blanco y de cerca, la malla)
+  const netMat = (w, h) => { const t = own(netT.clone()); t.needsUpdate = true; t.repeat.set(w / 0.12, h / 0.12); return own(new THREE.MeshStandardMaterial({ map: t, transparent: true, alphaTest: 0.02, depthWrite: false, side: THREE.DoubleSide, roughness: 0.9, color: '#ffffff', emissive: '#d9dde0', emissiveMap: t, emissiveIntensity: 0.25 })); };
   const post = own(new THREE.CylinderGeometry(F.postR, F.postR, H + F.postR, 16)), barG = own(new THREE.CylinderGeometry(F.postR, F.postR, 2 * hw + 2 * F.postR, 16));
   const thin = (len) => own(new THREE.CylinderGeometry(0.025, 0.025, len, 8));
   for (const s of [-1, 1]) {
@@ -457,7 +459,7 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
 
   // gradas y estadio
   const seats = [], spots = [];
-  let people = null, board3 = null;
+  let people = null, board3 = null, ribbonT = null;
   if (stadium) {
     const ST = { x0: F.HL + 8, z0: F.HW + 7, r0: 10, rows: 30, run: 0.8, rise: 0.42, base: 1.1 };
     const N = 2 * (NX + NZ) + 4 * NC;
@@ -472,7 +474,7 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
     const bowl = new Geo(), backs = new Geo(), stairs = new Geo();
     const len = (P, i) => { const j = (i + 1) % N; return Math.hypot(P[j][0] - P[i][0], P[j][1] - P[i][1]); };
     const lerp = (P, i, t, d = 0) => { const j = (i + 1) % N; return [P[i][0] + (P[j][0] - P[i][0]) * t, P[i][1] + (P[j][1] - P[i][1]) * t]; };
-    const fill = low ? 0.42 : quality === 'mid' ? 0.62 : 0.8, rnd = mulberry(29);
+    const fill = low ? 0.6 : quality === 'mid' ? 0.75 : 0.88, rnd = mulberry(29);   // (más lleno: con huecos de asiento en asiento parecía medio vacío)
     // muro delantero (de 1,1 m, con la barandilla) entre el césped y la primera fila
     { const P = rr(ST.x0, ST.z0, ST.r0); for (let i = 0; i < N; i++) { const j = (i + 1) % N; bowl.quad([P[i][0], 0, P[i][1]], [P[j][0], 0, P[j][1]], [P[j][0], ST.base, P[j][1]], [P[i][0], ST.base, P[i][1]], [-P[i][2], 0, -P[i][3]], [0, 0, 1, 0, 1, 0.2, 0, 0.2]); } }
     for (let k = 0; k < ST.rows; k++) {
@@ -489,6 +491,9 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
         if (t1 > t0) {
           const a = lerp(PS, i, t0), b = lerp(PS, i, t1), u0 = (sS + lS * t0) / 0.5, u1 = (sS + lS * t1) / 0.5;
           backs.quad([a[0], y1 + 0.3, a[1]], [b[0], y1 + 0.3, b[1]], [b[0], y1 + 0.8, b[1]], [a[0], y1 + 0.8, a[1]], n, [u0, 0, u1, 0, u1, 1, u0, 1]);
+          // la cubeta del asiento (antes solo había respaldo pintado: la grada parecía plana)
+          const pa = [a[0] + n[0] * 0.38, a[1] + n[2] * 0.38], pb = [b[0] + n[0] * 0.38, b[1] + n[2] * 0.38];
+          backs.quad([pa[0], y1 + 0.36, pa[1]], [pb[0], y1 + 0.36, pb[1]], [b[0], y1 + 0.32, b[1]], [a[0], y1 + 0.32, a[1]], [0, 1, 0], [u0, 0.15, u1, 0.15, u1, 0.75, u0, 0.75]);
           // público: un sitio por asiento, con los pies en la huella y mirando al campo
           const L = lS * (t1 - t0), nSeat = Math.floor(L / 0.5);
           for (let q = 0; q < nSeat; q++) {
@@ -520,6 +525,29 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
     // franja de cristal oscuro a lo alto del muro del fondo (palcos y pasillo)
     { const g = new Geo(), P = rr(ST.x0 + dTop - 0.05, ST.z0 + dTop - 0.05, ST.r0 + dTop - 0.05); for (let i = 0; i < N; i++) { const j = (i + 1) % N; g.quad([P[i][0], yTop + 1.2, P[i][1]], [P[j][0], yTop + 1.2, P[j][1]], [P[j][0], yTop + 3.6, P[j][1]], [P[i][0], yTop + 3.6, P[i][1]], [-P[i][2], 0, -P[i][3]]); }
       add(g.build(), own(new THREE.MeshStandardMaterial({ color: '#1c2a36', roughness: 0.15, metalness: 0.6, emissive: '#2b3c4c', emissiveIntensity: 0.4 }))); }
+
+    // anillo de luces (rótulo luminoso corrido) justo encima de la última fila y, más arriba, la fila de palcos con sus
+    // ventanas encendidas y los pilares: antes el muro del fondo era una franja gris lisa hasta la cubierta
+    { const rib = new Geo(), pal = new Geo(), P = rr(ST.x0 + dTop - 0.08, ST.z0 + dTop - 0.08, ST.r0 + dTop - 0.08); let su = 0;
+      for (let i = 0; i < N; i++) { const j = (i + 1) % N, l = len(P, i), nn = [-P[i][2], 0, -P[i][3]];
+        rib.quad([P[i][0], yTop + 0.15, P[i][1]], [P[j][0], yTop + 0.15, P[j][1]], [P[j][0], yTop + 1.05, P[j][1]], [P[i][0], yTop + 1.05, P[i][1]], nn, [su / 24, 0, (su + l) / 24, 0, (su + l) / 24, 1, su / 24, 1]);
+        pal.quad([P[i][0], yTop + 3.7, P[i][1]], [P[j][0], yTop + 3.7, P[j][1]], [P[j][0], yTop + 8.6, P[j][1]], [P[i][0], yTop + 8.6, P[i][1]], nn, [su / 6, 0, (su + l) / 6, 0, (su + l) / 6, 1, su / 6, 1]);
+        su += l; }
+      ribbonT = own(canvasTex(1024, 40, (g, W, Hh) => { g.fillStyle = '#0b0d14'; g.fillRect(0, 0, W, Hh); g.font = '900 28px Nunito, Arial, sans-serif'; g.textBaseline = 'middle';
+        const words = ['AUPA', 'IRUÑA', 'NAFARROA', 'GORRITXOAK', 'ERREKA', 'MENDIMENDIZ']; let x = 10, k = 0;
+        while (x < W) { const w = words[k % words.length]; g.fillStyle = k % 2 ? '#ff3b47' : '#ffffff'; g.fillText(w, x, Hh / 2 + 2); x += g.measureText(w).width + 22; g.fillStyle = '#ffd34a'; g.fillRect(x - 14, Hh / 2 - 3, 6, 6); k++; } }, { repeat: true }));
+      ribbonT.wrapS = THREE.RepeatWrapping;
+      add(rib.build(), own(new THREE.MeshBasicMaterial({ map: ribbonT })));
+      const palT = own(canvasTex(256, 200, (g, W, Hh) => {
+        g.fillStyle = '#4d5157'; g.fillRect(0, 0, W, Hh);                                   // hormigón
+        g.fillStyle = '#3a3e44'; g.fillRect(0, 0, 18, Hh); g.fillRect(W - 18, 0, 18, Hh);      // pilares
+        g.fillStyle = '#1b2530'; g.fillRect(26, 40, W - 52, 96);                               // cristalera del palco
+        const gr = g.createLinearGradient(0, 40, 0, 136); gr.addColorStop(0, 'rgba(255,226,170,0.55)'); gr.addColorStop(1, 'rgba(255,226,170,0.12)');
+        g.fillStyle = gr; for (let k = 0; k < 4; k++) g.fillRect(30 + k * 50, 46, 44, 84);    // luz de dentro, por ventanas
+        g.fillStyle = '#c9ccd0'; g.fillRect(22, 136, W - 44, 8);                              // barandilla
+        g.fillStyle = '#5c6066'; g.fillRect(0, 160, W, 40);
+      }, { repeat: true }));
+      add(pal.build(), own(new THREE.MeshStandardMaterial({ map: palT, roughness: 0.6, emissive: '#ffffff', emissiveMap: palT, emissiveIntensity: 0.18 }))); }
 
     // cubierta continua (como en las fotos): por arriba roja con una banda blanca ancha alrededor del hueco e IRUÑA en
     // los fondos; baja hacia fuera. Por debajo, celosía de vigas: la banda de dentro es translúcida (clara) y la de fuera,
@@ -757,6 +785,7 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
       }
       pos.needsUpdate = true; n.dirty = n.hits.length > 0;
     }
+    if (ribbonT) ribbonT.offset.x = (t * 0.035) % 1;   // el rótulo luminoso corre
     people?.tick?.(t, excite, focus, camera);
   }
   // el mapa de sombras va con el juego: se centra donde mira la cámara (redondeado a su resolución para que no tiemble)

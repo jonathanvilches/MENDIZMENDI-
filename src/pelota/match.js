@@ -158,7 +158,12 @@ export class PelotaMatch {
     const m = Math.hypot(x, y); if (m > 1) { x /= m; y /= m; }
     if (Math.hypot(x, y) < 0.12) { x = 0; y = 0; }
     // la cámara mira al frontis: arriba en el joystick = hacia el frontis (−z)
-    const out = { mx: x, mz: -y, hit: !!I.hitQ, drop: !!I.dropQ, cut: !!I.cutQ, power: I.power, aimX: x, aimY: y };
+    // mientras se mantiene un golpe, el joystick apunta (izquierda, derecha, largo, corto, dos paredes) y el pelotari va
+    // solo hacia la pelota: antes apuntar y correr eran lo mismo y al ir a por la pelota se perdía la dirección
+    const aiming = !!I.charge, rel = I.hitQ || I.dropQ || I.cutQ;
+    if (aiming) I.lastAim = { x, y };
+    const aim = rel && I.lastAim ? I.lastAim : { x, y }; if (rel) I.lastAim = null;
+    const out = { mx: aiming ? 0 : x, mz: aiming ? 0 : -y, aiming, hit: !!I.hitQ, drop: !!I.dropQ, cut: !!I.cutQ, power: I.power, aimX: aim.x, aimY: aim.y };
     I.hitQ = I.dropQ = I.cutQ = false;
     return out;
   }
@@ -231,6 +236,21 @@ export class PelotaMatch {
         const x = ch.kind === 'cut' ? ax * 2.6 : you.x * 0.4 + ax * 2.2, y = ch.kind === 'cut' ? cutHeight(pow, ay) : dropHeight(pow, ay);
         C.aimMark.position.set(Math.max(-4.6, Math.min(4.8, x)), y, 0.06); C.aimMark.scale.setScalar(1 + 0.08 * Math.sin(this.t * 12)); }
     }
+    // camino previsto del golpe apuntado: a trazos hasta el primer bote, con el bote y (a dos paredes) la pared marcados
+    if (C.aimPath) {
+      const k = this.input.stick, keys = this.input.keys;
+      const ax = clamp1((keys.d || keys.arrowright ? 1 : 0) - (keys.a || keys.arrowleft ? 1 : 0) + k.x), ay = clamp1((keys.w || keys.arrowup ? 1 : 0) - (keys.s || keys.arrowdown ? 1 : 0) + k.y);
+      const pv = ch && (g.phase === 'rally' || g.phase === 'servePrep') ? g.previewShot?.({ x: ax, y: ay }, ch.kind === 'cut' ? 'cortada' : ch.kind === 'drop' ? 'dejada' : false, 0.15 + this.chargeLevel() * 0.85) : null;
+      C.aimPath.visible = !!pv; C.aimLand.visible = !!pv?.land; C.aimWall.visible = !!pv?.wall;
+      if (pv) {
+        const pos = C.aimPath.geometry.attributes.position, n = Math.min(pv.pts.length, pos.count);
+        for (let i = 0; i < n; i++) pos.setXYZ(i, pv.pts[i].x, Math.max(0.03, pv.pts[i].y), pv.pts[i].z);
+        pos.needsUpdate = true; C.aimPath.geometry.setDrawRange(0, n); C.aimPath.computeLineDistances();
+        if (pv.land) { C.aimLand.position.set(pv.land.x, 0.03, pv.land.z); C.aimLand.scale.setScalar(1 + 0.1 * Math.sin(this.t * 10)); }
+        if (pv.wall) C.aimWall.position.set(-COURT.W / 2 + 0.05, pv.wall.y, pv.wall.z);
+        C.aimLand.material.color.set(pv.shot === 'dosparedes' ? '#7ad7ff' : '#ffd84a'); C.aimPath.material.color.copy(C.aimLand.material.color);
+      }
+    }
     C.serveZone.visible = g.phase === 'serveWait' || g.phase === 'servePrep' || (g.phase === 'rally' && g.rally?.serve && !g.rally.front);
     this.hud.ready(h && h.hittable || (g.phase === 'servePrep' && g.server === 'you' && g.hittable('you')));
     // consejos
@@ -239,6 +259,7 @@ export class PelotaMatch {
     if (g.phase === 'serveWait' && g.server === 'you') tip = tt.tipServe;
     else if (g.phase === 'servePrep' && g.server === 'you') tip = g.hittable('you') ? tt.tipServe2 : '';
     else if (g.phase === 'serveWait' && g.server === 'rival') tip = tt.tipRivalServe;
+    else if (this.input.charge && g.phase === 'rally' && g.rally?.turn === 'you') tip = tt.tipAim;
     else if (h && h.hittable) tip = tt.tipHit;
     else if (h && h.yourTurn) tip = assist ? tt.tipMove : '';
     this.hud.tip(tip);

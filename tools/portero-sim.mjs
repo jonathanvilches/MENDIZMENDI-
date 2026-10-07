@@ -34,8 +34,10 @@ const gx = -F.HL;   // tu portería (el equipo 0 ataca hacia +x)
     const g = setup(), k = g.gk(0), r = g.byRole(1, 'MCD'); k.x = gx + 1; k.z = 0; r.x = gx + 16; r.z = 0;
     g.lvl = { ...g.lvl, keeperReact: 9 }; g.mates = { ...g.mates, keeperReact: 9 };   // (que no se tire solo antes)
     g.ball.set(gx + 15, 0); g.last = r; g.ball.kick(-22, 1.5, side * 4); g.shotLive = { team: 1, t: g.time }; g.owner = null;
-    g.setMove(0, side, 1, false); g.press('pass'); const d = k.dive;
-    ok(!!d && Math.sign(d.vz) === side, `estirada: hacia ${side > 0 ? 'un lado' : 'el otro'} al pulsar con un tiro del rival (vz ${d?.vz.toFixed(1)})`);
+    // (se lanza en el momento justo, no al pulsar: se espera a que se tire)
+    g.setMove(0, side, 1, false); g.press('pass'); const plan = k.humanDive; let d = null;
+    for (let t = 0; t < 1.2 && !d; t += 1 / 120) { g.step(1 / 120); g.drain(); d = k.dive && { vz: k.dive.vz }; }
+    ok(!!plan && !!d && Math.sign(d.vz) === side, `estirada: hacia ${side > 0 ? 'un lado' : 'el otro'} al pulsar con un tiro del rival (vz ${d?.vz.toFixed(1)})`);
   } }
 // cambiar con el balón cerca de tu área y sin apuntar: llevas al portero; lo mueves; si el balón se aleja, vuelves a un jugador de campo
 { const g = setup(), k = g.gk(0), o = g.byRole(1, 'MCD'); k.x = gx + 2; k.z = 0; o.x = gx + 20; o.z = 4; g.ball.set(o.x - 0.4, 4); g.owner = o; o.react = 99;
