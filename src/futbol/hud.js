@@ -81,10 +81,12 @@ const CSS = `
 .fb-chip.on{background:#ffd700;border-color:#ffd700;color:#2a1a00}
 .fb-go{display:block;width:100%;margin-top:8px;border:0;border-radius:16px;padding:14px;font:400 22px 'Lilita One',Nunito,sans-serif;color:#2a1a00;background:linear-gradient(180deg,#fff38f,#ffd700 55%,#f0b000);box-shadow:0 5px 0 #a86f00;cursor:pointer;min-height:52px}
 .fb-alt{display:block;width:100%;margin-top:10px;border:2px solid rgba(255,255,255,.4);border-radius:16px;padding:11px;font:800 16px Nunito,sans-serif;color:#fff;background:transparent;cursor:pointer;min-height:48px}
+/* (los botones de seguir y salir, siempre a la vista: si la tarjeta no cabe y se desplaza, se quedan pegados abajo) */
+.fb-card .fb-go,.fb-card .fb-alt{position:sticky;bottom:0;z-index:1}.fb-card .fb-alt{background:#1f0c40}
 .fb-stats{width:100%;border-collapse:collapse;margin:8px 0 6px;font-size:15px}
 .fb-stats td{padding:5px 6px;border-bottom:1px solid rgba(255,255,255,.1)}.fb-stats td:first-child,.fb-stats td:last-child{font-weight:900;width:22%;font-variant-numeric:tabular-nums}.fb-stats td:nth-child(2){color:#cbbcf0;font-weight:700;font-size:13px}
-.fb-ctrl{width:100%;border-collapse:collapse;font-size:12.5px;text-align:left;margin:6px 0}.fb-ctrl th{font-size:10px;color:#cbbcf0;text-transform:uppercase;letter-spacing:.06em;padding:3px 4px}
-.fb-ctrl td{padding:4px;border-top:1px solid rgba(255,255,255,.1);vertical-align:middle;font-weight:800}.fb-ctrl td small{font-weight:600;color:#cbbcf0}.fb-ctrl td.ic{width:30px}.fb-ctrl td.ic svg{width:22px;height:22px}
+.fb-ctrl{width:100%;border-collapse:collapse;font-size:12.5px;text-align:left;margin:6px 0}.fb-ctrl th{font-size:11px;color:#cbbcf0;text-transform:uppercase;letter-spacing:.06em;padding:3px 4px}
+.fb-ctrl td{padding:4px;border-top:1px solid rgba(255,255,255,.1);vertical-align:middle;font-weight:800}.fb-ctrl td small{font-weight:600;color:#cbbcf0;font-size:11.5px}.fb-ctrl td.ic{width:30px}.fb-ctrl td.ic svg{width:22px;height:22px}
 .fb-big{font-family:'Lilita One',Nunito,sans-serif;font-size:46px;line-height:1;margin:6px 0}
 @media (max-width:640px) and (orientation:portrait){
   .fb-top{left:58px;right:58px}.fb-team{padding:4px 7px;font-size:12px}.fb-team b{font-size:22px}.fb-team span{max-width:18vw}
@@ -98,8 +100,11 @@ const CSS = `
   .fb-card{width:min(860px,100%);padding:10px 16px 12px;display:grid;grid-template-columns:1fr 1fr;column-gap:16px;align-content:start}
   .fb-card>*{grid-column:1/-1}.fb-card .fb-row:not(:first-of-type){grid-column:auto}.fb-card .fb-row[data-row=reto]{grid-column:1/-1}.fb-card .fb-go,.fb-card .fb-alt{grid-column:auto;margin-top:4px;min-height:44px;padding:8px}
   .fb-ctrl{font-size:11px;margin:2px 0}.fb-ctrl td{padding:2px 4px}.fb-ctrl td small{display:none}.fb-ctrl td.ic svg{width:17px;height:17px}.fb-ctrl td br{display:none}
-  .fb-card h2{font-size:24px}.fb-row{margin:2px 0 6px;gap:5px}.fb-row label{font-size:11px}.fb-chip{min-height:34px;padding:5px 11px;font-size:13px}
+  .fb-card h2{font-size:24px}.fb-row{margin:2px 0 6px;gap:5px}.fb-row label{font-size:11px}.fb-chip{min-height:38px;padding:5px 11px;font-size:13px}
   .fb-stats{font-size:13px;margin:4px 0 2px}.fb-stats td{padding:3px 6px}.fb-big{font-size:36px;margin:2px 0}.fb-card p{margin:2px 0 6px}
+  /* estadísticas en dos columnas: con nueve filas, los botones quedaban fuera de la pantalla */
+  .fb-stats tbody{display:grid;grid-template-columns:1fr 1fr;column-gap:18px}.fb-stats tr{display:grid;grid-template-columns:minmax(3.6em,auto) 1fr minmax(3.6em,auto);align-items:center;border-bottom:1px solid rgba(255,255,255,.1)}
+  .fb-stats td{border:0!important;width:auto!important;white-space:nowrap}
 }
 @media (max-height:460px) and (orientation:landscape){
   .fb-top{top:calc(env(safe-area-inset-top,0px) + 4px)}.fb-team b{font-size:22px}
