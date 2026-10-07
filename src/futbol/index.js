@@ -13,6 +13,7 @@ import { FutbolMatch } from './match.js';
 import { menuPanel } from './hud.js';
 import { VENUES, TEAMS, RETOS, CAREER_KEY } from './rules.js';
 import { CLUBS, teamOfClub, awayKit } from './clubs.js';
+import { showChampion } from '../ui/champion.js';
 import { season, newSeason, nextMatch, playRound, levelFor, ligaPanel, roundPanel, rivalPanel, clubPanel } from './liga.js';
 export { CLUBS, TOWN_CLUB, clubOfTown, teamOfClub } from './clubs.js';
 export { clubPanel } from './liga.js';
@@ -110,6 +111,10 @@ export const FutbolSystem = {
       }
       const R = playRound(S, mine, theirs);
       await roundPanel(S, R, j);
+      if (S.champion && S.champion === club) {
+        const c = CLUBS[club] || {};
+        await showChampion({ kind: 'futbol', kicker: `Liga Navarra · temporada ${S.year || 1}`, title: '¡Campeones!', name: c.name || '', sub: `Aupa ${c.town || ''}! La copa de la Liga Navarra se queda en casa.`, score: S.titles > 1 ? `${S.titles} títulos` : 'Primer título', sound: window.__rt?.sound || window.__game?.sound, button: 'Levantar la copa' });
+      }
     }
   },
   /** Amistoso del club contra el que se elija. */

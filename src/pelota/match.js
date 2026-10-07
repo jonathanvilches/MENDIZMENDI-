@@ -33,6 +33,7 @@ export class PelotaMatch {
     if (o.autostart) { this.hud.controls(true); this.game.start(); } else this.intro();
   }
   newGame() {
+    this.hud?.root?.classList.remove('final');
     const o = this.o;
     this.game = new PelotaGame({ mode: o.mode || 'match', target: o.target, level: this.level, seed: o.seed, autoplay: o.autoplay });
     this.hud.setScore(0, 0, this.game.server, o.mode === 'rally' ? this.txt.rally(this.game.target) : this.txt.to(this.game.target));
@@ -65,7 +66,6 @@ export class PelotaMatch {
     const p = this.hud.panel(`<h2>${e.win ? (g.mode === 'rally' ? t.rallyWin : t.win) : t.lose}</h2><p class="pel-sub">${esc(this.names.you)} – ${esc(this.names.rival)}</p>
       <div class="pel-big">${big}</div><div class="pel-fact"><b>${t.factsTitle}</b><br>${fact}</div>
       <div class="pel-row"><button class="pel-go alt" data-pel-again>${t.again}</button><button class="pel-go" data-pel-cont>${t.cont}</button></div>`);
-    if (e.win) this.audio.crowd('clap'); else this.audio.crowd('oh');
     p.addEventListener('click', (ev) => {
       const b = ev.target.closest('button'); if (!b) return;
       if (b.hasAttribute('data-pel-again')) { this.hud.closePanel(); this.newGame(); this.hud.controls(true); this.game.start(); this.audio.whistle(); }
@@ -185,7 +185,9 @@ export class PelotaMatch {
   onEvent(e) {
     const t = this.txt, g = this.game, A = this.audio, C = this.court;
     switch (e.type) {
-      case 'serveReady': this.hud.setScore(g.mode === 'rally' ? g.streak : g.score.you, g.mode === 'rally' ? '' : g.score.rival, g.server); break;
+      case 'serveReady': this.hud.setScore(g.mode === 'rally' ? g.streak : g.score.you, g.mode === 'rally' ? '' : g.score.rival, g.server);
+        if (e.matchPoint) { this.hud.call(t.matchPoint, t.matchPointSub, '', 1.6); A.crowd('oh'); }   // tanto de partido: el frontón contiene el aliento
+        break;
       case 'hit': {
         // la fuerza también se oye y se nota: un golpe a tope suena más fuerte y sacude un poco la cámara
         const pw = e.pow ?? 0.5; A.hit((0.5 + e.q * 0.4) * (0.55 + pw * 0.75)); C.pop(e, 'z');
@@ -202,8 +204,9 @@ export class PelotaMatch {
         const [title, sub] = t.calls[e.call] || t.calls.tanto;
         const who = e.winner === 'you' ? t.pointYou : t.pointRival(this.names.rival);
         if (g.mode === 'rally') this.hud.call(title, sub, '', 2);
+        else if (e.final) { this.hud.call(t.finalCall, `${who}. ${t.finalSub}`, e.kantari, 4.4); this.hud.setScore(e.score.you, e.score.rival, e.winner); this.hud.root.classList.add('final'); }
         else { this.hud.call(title, `${sub ? sub + ' ' : ''}${who}.`, e.kantari, 2.2); this.hud.setScore(e.score.you, e.score.rival, e.winner); }
-        A.whistle(); A.crowd(e.winner === 'you' ? 'clap' : 'oh');
+        A.whistle(); if (e.final) A.ovation(); else A.crowd(e.winner === 'you' ? 'clap' : 'oh');
         break;
       }
       case 'end': this.endPanel(e); break;

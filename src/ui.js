@@ -97,7 +97,6 @@ export class UI {
         <div id="mini"><canvas width="248" height="248"></canvas><div id="clock"><span class="ci"></span><span class="ct">09:00</span></div></div>
       </div>
       <div id="prompt" class="hidden"><kbd>E</kbd><span></span></div>
-      <div id="toast"></div>
       <div id="mg" class="glass hidden"></div>
       <div id="stick"><i></i></div>
       <div id="stickHint"><i></i><span>Mover</span></div>
@@ -179,20 +178,20 @@ export class UI {
   setClock(s, night) { if (!this.hud) return; const E = this.questEls; if (E.clock.textContent !== s) E.clock.textContent = s; if (this.night !== night) { this.night = night; E.clockI.innerHTML = night ? ICON.moon : ICON.sun; } }
   showBinoButton() { $('#bBino', this.hud)?.classList.remove('hidden'); }
   hideBinoButton() { $('#bBino', this.hud)?.classList.add('hidden'); }
-  toast(text, icon = 'sparkle', ms = 2800) {
+  // Avisos en un solo carril: el aviso (con su icono) y la voz del narrador van uno debajo del otro, nunca encima. De
+  // cada clase hay como mucho uno: el nuevo sustituye al anterior; el mismo texto solo alarga su tiempo
+  note(kind, html, text, ms) {
     if (!this.hud) return;
-    const t = $('#toast', this.hud);
-    t.innerHTML = `${I(icon, 30)}<span>${esc(text)}</span>`;
-    t.classList.add('on');
-    clearTimeout(this.toastT); this.toastT = setTimeout(() => t.classList.remove('on'), ms);
+    let l = $('#lane', this.hud); if (!l) { l = el('<div id="lane" aria-live="polite"></div>'); this.hud.appendChild(l); }
+    let n = $('#' + kind, l);
+    if (!n) { n = el(`<div id="${kind}" class="note"></div>`); kind === 'toast' ? l.prepend(n) : l.appendChild(n); }
+    if (n.dataset.t !== text) { n.innerHTML = html; n.dataset.t = text; n.classList.remove('on'); void n.offsetWidth; }
+    n.classList.add('on'); n.hidden = false;
+    clearTimeout(n._t); n._t = setTimeout(() => { n.classList.remove('on'); n._t = setTimeout(() => { n.hidden = true; n.dataset.t = ''; }, 400); }, ms);
   }
-  // Voz del narrador: frase en cursiva que aparece y se desvanece (pistas y momentos de misterio)
-  whisper(text, ms = 4000) {
-    if (!this.hud) return;
-    let w = $('#whisper', this.hud); if (!w) { w = el('<div id="whisper"><span></span></div>'); this.hud.appendChild(w); }
-    $('span', w).textContent = text; w.classList.remove('on'); void w.offsetWidth; w.classList.add('on');
-    clearTimeout(this.whT); this.whT = setTimeout(() => w.classList.remove('on'), ms);
-  }
+  toast(text, icon = 'sparkle', ms = 2800) { this.note('toast', `${I(icon, 26)}<span>${esc(text)}</span>`, text, ms); }
+  // Voz del narrador: frase en cursiva (pistas y momentos de misterio)
+  whisper(text, ms = 4000) { this.note('whisper', `<span>${esc(text)}</span>`, text, ms); }
   hudVisible(v) { if (this.hud) this.hud.style.display = v ? '' : 'none'; }
   setMG(html) { if (!this.hud) return; const m = $('#mg', this.hud); if (!html) m.classList.add('hidden'); else { m.innerHTML = html; m.classList.remove('hidden'); } }
   setCinematic(on, text) { if (!this.cine) return; this.cine.classList.toggle('on', on); this.subtitle.textContent = text || ''; }
