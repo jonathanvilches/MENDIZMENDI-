@@ -223,7 +223,7 @@ export class Runtime {
       const want = this.quality === 'low' ? 32 : 45;
       // (en ordenador nunca por debajo de la resolución de la pantalla: se veía pixelado; en los partidos tampoco baja de
       // 1,5: los pelotaris y futbolistas se veían borrosos cuando el móvil iba justo)
-      const floor = this.boosted ? Math.min(this.quality === 'low' ? 1.45 : 1.5, this.maxRatio) : this.quality === 'low' ? 0.6 : Math.min(1, this.maxRatio);
+      const floor = this.boosted ? Math.min(this.quality === 'low' ? 1.45 : 1.5, this.maxRatio) : this.quality === 'low' ? 0.75 : Math.min(1, this.maxRatio);   // (por debajo de 0,75 los personajes se veían emborronados)
       // (el cambio se aplica en el siguiente fotograma, antes de dibujar: sin destello. Tras bajar, no se vuelve a subir
       // en 25 s, y para subir tiene que sobrar bastante: así no sube y baja cada pocos segundos)
       if (fps < want && this.pixelRatio > floor) { if (++this.lowFps >= 2) { this.pixelRatio = Math.max(floor, this.pixelRatio - (fps < want * 0.6 ? 0.3 : 0.15)); this.ratioDirty = true; this.lowFps = 0; this.highFps = 0; this.ratioHold = this.elapsed + 25; } }
@@ -242,7 +242,7 @@ export class Runtime {
   }
   // resolución de los partidos: en calidad baja (móvil) 1,6 y no 2: a 2 el móvil no llegaba, la resolución dinámica la
   // bajaba a saltos durante el partido y los pelotaris se veían cada vez más borrosos. A 1,6 se queda fija
-  boostRatio() { return Math.max(this.ratioFor(this.quality), Math.min(devicePixelRatio, this.quality === 'low' ? 1.6 : 2)); }
+  boostRatio() { return Math.max(this.ratioFor(this.quality), Math.min(devicePixelRatio, this.quality === 'low' ? 1.8 : 2)); }
   /** Tamaño y resolución del lienzo: se aplican justo antes de dibujar (si no, un fotograma con el lienzo vacío). */
   applySize() {
     const r = this.renderer;
@@ -259,7 +259,7 @@ export class Runtime {
   // (móviles) 1,25. Si va a tirones, la resolución dinámica la baja un poco y la recupera cuando sobra
   ratioFor(q) {
     const css = Math.max(1, innerWidth * innerHeight), budget = q === 'high' ? 3.7e6 : q === 'mid' ? 2.1e6 : 1.2e6;
-    return Math.max(0.75, Math.min(devicePixelRatio, q === 'high' ? 2 : q === 'mid' ? 1.5 : 1.25, Math.sqrt(budget / css)));
+    return Math.max(0.75, Math.min(devicePixelRatio, q === 'high' ? 2 : q === 'mid' ? 1.5 : 1.4, Math.sqrt(budget / css)));
   }
   // un error en una parte del juego no debe congelar la imagen: se anota (una vez por mensaje) y se sigue
   reportError(e) {
