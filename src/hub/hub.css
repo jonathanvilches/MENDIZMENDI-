@@ -1038,3 +1038,29 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 @media (orientation: landscape) and (max-height: 560px) { .sport { min-height: 250px; padding: 14px; gap: 8px; } .sp-txt h3 { font-size: 26px; } .sp-txt p { font-size: 12px; } .sport .sp-av { height: 80%; } }
 /* mochila en el móvil tumbado: los botones del perro uno junto al otro (el segundo quedaba debajo, fuera de la vista) */
 @media (orientation: landscape) and (max-height: 440px) { .bagpanel .bp-actions { display: flex; gap: 8px; } .bagpanel .bp-actions .btn { flex: 1 1 0; min-width: 0; margin: 0; } }
+/* leer el escudo: el escudo a un lado y las preguntas al otro */
+.escudo .mg-card { width: min(820px, 100%); display: grid; grid-template-columns: minmax(150px, 40%) 1fr; gap: 16px; text-align: left; align-items: start; background: linear-gradient(180deg, #3b2a14, #1d140a); }
+.escudo .es-pic { display: flex; flex-direction: column; align-items: center; gap: 4px; position: sticky; top: 0; }
+.escudo .es-pic canvas { width: 100%; max-width: 280px; height: auto; aspect-ratio: 360 / 420; }
+.escudo .es-cap { color: #e8cf96; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; font-size: 12px; }
+.escudo .es-txt { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.escudo .kicker { color: #FFD700; font-weight: 900; display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.escudo h2 { font-size: 26px; } .escudo .es-q { color: #f0e2c4; }
+.escudo .opts { flex-direction: column; align-items: stretch; width: 100%; }
+.escudo .opt { text-align: left; display: flex; align-items: center; gap: 10px; font-size: 16px; }
+.escudo .opt .sw { width: 20px; height: 20px; border-radius: 5px; border: 2px solid rgba(0,0,0,.35); flex: none; }
+.escudo .fb { color: #f6e7c1; font-weight: 700; min-height: 0; }
+.escudo .es-means { margin: 0; padding-left: 18px; color: #f0e2c4; display: grid; gap: 6px; font-weight: 600; }
+.escudo .badge { display: inline-flex; align-items: center; gap: 6px; background: #FFD700; color: #2e1d00; border-radius: 999px; padding: 4px 12px; font-weight: 900; }
+.escudo .next { align-self: flex-start; }
+@media (max-width: 560px) { .escudo .mg-card { grid-template-columns: 1fr; } .escudo .es-pic { position: static; } .escudo .es-pic canvas { max-width: 170px; } }
+@media (orientation: landscape) and (max-height: 440px) { .escudo .mg-card { grid-template-columns: 34% 1fr; padding: 14px; } .escudo h2 { font-size: 21px; } .escudo .es-pic canvas { max-width: 200px; } .escudo .opt { padding: 8px 12px; min-height: 40px; } }
+/* aprender Navarra: los saberes en la portada, a la vista nada más entrar */
+.saberes { margin-top: 16px; padding: 18px 20px; border-radius: var(--r); background: linear-gradient(135deg, rgba(24, 110, 70, .5), rgba(20, 60, 40, .72)); border: 1px solid var(--line2); }
+.saberes .sb-head h2 { margin: 2px 0 6px; } .saberes .sb-head p { margin: 0 0 12px; color: #e3f2e6; font-weight: 600; max-width: 70ch; }
+.saberes .sb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.saberes .sb { display: grid; grid-template-columns: 34px 1fr; grid-template-rows: auto auto; column-gap: 10px; align-items: center; padding: 10px 12px; border-radius: 14px; background: rgba(0, 0, 0, .22); border: 1px solid rgba(255, 255, 255, .1); opacity: .78; }
+.saberes .sb.on { opacity: 1; background: rgba(255, 215, 0, .12); border-color: rgba(255, 215, 0, .35); }
+.saberes .sb svg { grid-row: span 2; } .saberes .sb b { font-size: 22px; line-height: 1; color: #FFD700; } .saberes .sb span { font-weight: 900; font-size: 14px; }
+.saberes .sb small { grid-column: 1 / -1; color: #cfe5d4; font-size: 12px; margin-top: 4px; line-height: 1.3; }
+@media (max-width: 560px), (orientation: landscape) and (max-height: 440px) { .saberes .sb small { display: none; } .saberes .sb-grid { grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); } }

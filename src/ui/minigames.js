@@ -216,14 +216,14 @@ export function missionComplete(ui, opts) {
   if (window.__autoWin) return Promise.resolve();
   return missionComplete_(ui, opts);
 }
-function missionComplete_(ui, { title, text, xp, card, icon = 'star', progress, stamp = null, next = 'Seguir jugando' }) {
+function missionComplete_(ui, { title, text, xp, card, saber, icon = 'star', progress, stamp = null, next = 'Seguir jugando' }) {
   return new Promise(res => {
     ui.sound.fanfare?.();
     const o = overlay(ui, 'complete', `
       <div class="burst"></div>
       ${stamp ? `<img class="stampimg" src="${stamp}" alt="">` : `<div class="ic-icon big">${iconSVG(icon, 110)}</div>`}
       <small class="kicker">${stamp ? '¡Sello conseguido!' : '¡Misión cumplida!'}</small><h2>${esc(title)}</h2><p>${esc(text || '')}</p>
-      <div class="rewards">${xp ? `<span class="rw">${iconSVG('xp', 26)} +${xp} XP</span>` : ''}${card ? `<span class="rw">${iconSVG('book', 26)} Carta: ${esc(card)}</span>` : ''}</div>
+      <div class="rewards">${xp ? `<span class="rw">${iconSVG('xp', 26)} +${xp} XP</span>` : ''}${card ? `<span class="rw">${iconSVG('book', 26)} Carta: ${esc(card)}</span>` : ''}${saber ? `<span class="rw saber">${iconSVG(saber.icon, 26)} Saber de Navarra: ${esc(saber.name)}</span>` : ''}</div>
       ${progress ? `<div class="prog"><i style="width:${Math.round(progress.done / progress.total * 100)}%"></i><span>${progress.done}/${progress.total} misiones en ${esc(progress.name)}</span></div>` : ''}
       <button class="btn primary">${esc(next)}</button>`);
     const b = o.querySelector('button'); setTimeout(() => b.focus({ preventScroll: true }), 80);

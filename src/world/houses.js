@@ -198,12 +198,20 @@ export function buildHouse(B, T, o, rnd) {
   const shutter = SHUTTERS[Math.floor(rnd() * SHUTTERS.length)];
   const flowers = [FLOWERS[Math.floor(rnd() * FLOWERS.length)], FLOWERS[Math.floor(rnd() * FLOWERS.length)]];
   const front = MM(T, M(0, 0, d / 2));
+  // escudo: en el eje de la fachada, ocupando el sitio de una ventana de una planta alta (como en las casas barrocas),
+  // nunca tapando ventanas ni el balcón
+  let shF = -1, shX = 0;
+  if (o.shield) {
+    if (floors < 3) { o.gallery = false; o.balcony = false; }
+    shF = floors >= 3 ? floors - 2 : 1; shX = o.shieldX ?? 0;
+  }
   for (let f = 0; f < floors; f++) {
     const y = f * fh + fh * 0.58;
     if (o.gallery && f === floors - 1 && floors > 1) { gallery(B, front, w, f * fh + 0.3, fh - 0.5); continue; }
     for (let c = 0; c < cols; c++) {
       const x = cols === 1 ? (doorX === 0 ? 0 : -doorX * 0.6) : -w / 2 + (w / cols) * (c + 0.5);
       if (f === 0 && Math.abs(x - doorX) < 1.6) continue;
+      if (f === shF && Math.abs(x - shX) < 1.4) continue;
       if (f === 1 && o.balcony && Math.abs(x) < o.balconyW / 2) {
         // puerta-ventana al balcón
         windowAt(B, front, x, f * fh + 1.15, 0.95, 2.0, { shutter });
@@ -224,7 +232,7 @@ export function buildHouse(B, T, o, rnd) {
     for (let f = 1; f < floors; f++) for (let c = 0; c < sc; c++) if (rnd() < 0.55) windowAt(B, side, -d / 2 + (d / sc) * (c + 0.5), f * fh + fh * 0.55, 0.7, 1.0, { shutter });
   }
   // escudo
-  if (o.shield) B.add('shield', new THREE.PlaneGeometry(1.1, 1.3), MM(front, M(o.shieldX ?? 0, h * 0.62, 0.09)));
+  if (o.shield) { const sy = shF * fh + fh * 0.5; B.add('shield', new THREE.PlaneGeometry(1.1, 1.3), MM(front, M(shX, sy, 0.09))); o.shieldLocal = [shX, sy, d / 2 + 0.09]; }   // (dónde queda, para leerlo)
   // tejado
   const pitch = o.pitch ?? (0.9 + rnd() * 0.12);
   const roofMat = o.roof;
