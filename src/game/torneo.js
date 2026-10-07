@@ -77,7 +77,7 @@ const CSS = `.tq-bracket{display:grid;grid-template-columns:repeat(3,1fr);gap:8p
 .tq-wait{display:none;font-size:12px;color:#a99cc9;text-align:center;padding:2px 0 4px}
 @media (max-width:560px){.tq-bracket{grid-template-columns:1fr;gap:10px;align-items:start}.tq-col h4{text-align:left}.tq-m.tq-ph{display:none}.tq-col:has(.tq-wait){display:flex;align-items:baseline;gap:8px}.tq-col:has(.tq-wait) h4{margin:0}.tq-wait{display:block;text-align:left;padding:0}.tq-m{font-size:14px;padding:6px 10px}}
 @media (orientation:landscape) and (max-height:520px){.tq-bracket{gap:6px}.tq-m{font-size:12px;padding:3px 6px;gap:0}.tq-m small{display:none}.tq-col{gap:5px}.tq-col h4{font-size:12px;line-height:1.15;letter-spacing:0}.tq-col h4 small{display:block;font-size:12px;opacity:.75;text-transform:none}.tq-col h4 small i{display:none}}
-.tq-col{display:grid;gap:8px}.tq-col h4 small i{font-style:normal}.tq-col h4{margin:0;text-align:center;font-size:12px;color:#cbbcf0;text-transform:uppercase;letter-spacing:.04em}
+.tq-col{display:grid;gap:8px}.tq-col h4 small{font-size:12px}.tq-col h4 small i{font-style:normal}.tq-col h4{margin:0;text-align:center;font-size:12px;color:#cbbcf0;text-transform:uppercase;letter-spacing:.04em}
 .tq-m{border-radius:12px;background:rgba(255,255,255,.07);padding:5px 8px;font-size:13px;display:grid;gap:2px}
 .tq-m div{display:flex;justify-content:space-between;gap:6px}.tq-m b{font-variant-numeric:tabular-nums}.tq-m .w{color:#ffd84a;font-weight:900}.tq-m .you{text-decoration:underline;text-decoration-color:#ffd84a}
 .tq-m small{color:#a99cc9;font-size:12px}.tq-txa{display:flex;align-items:center;gap:10px}.tq-txa svg{width:44px;height:30px}`;
