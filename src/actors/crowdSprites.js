@@ -89,7 +89,7 @@ export function crowdMesh(spots, set = 'futbol', height = 1.45, figs = null, sit
   const anim = new Float32Array(spots.length * 3);   // salto (alto), fase y si saluda (agitando la mano)
   const tint = new Float32Array(spots.length * 3);
   for (let i = 0; i < spots.length; i++) { const k = 0.78 + Math.random() * 0.27, w = (Math.random() - 0.5) * 0.08; tint[i * 3] = k * (1 + w); tint[i * 3 + 1] = k; tint[i * 3 + 2] = k * (1 - w); }
-  const U = { uCols: { value: 1 }, uRows: { value: 2 }, uCheer: { value: 0 }, uTime: { value: 0 }, uExcite: { value: 0 }, uFocus: { value: 0 } };
+  const U = { uCols: { value: 1 }, uRows: { value: 2 }, uCheer: { value: 0 }, uTime: { value: 0 }, uExcite: { value: 0 }, uFocus: { value: 0 }, uWave: { value: -99 } };
   mat.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, U);
     // el ánimo crece cerca del foco; quien salta sube y baja, quien saluda alterna los brazos arriba y abajo
@@ -97,9 +97,9 @@ export function crowdMesh(spots, set = 'futbol', height = 1.45, figs = null, sit
     // (cada espectador con su tono: unos más a la sombra o con ropa más oscura, otros más claros; antes eran copias)
     sh.fragmentShader = 'uniform float uRows;\nvarying vec3 vTint;\n' + sh.fragmentShader.replace('#include <map_fragment>',
       '#ifdef USE_MAP\n  vec2 cuv = vMapUv; if (!gl_FrontFacing) cuv.y -= 2.0 / uRows;\n  diffuseColor *= texture2D(map, cuv);\n#endif\n  diffuseColor.rgb *= vTint;');
-    sh.vertexShader = 'attribute vec2 aCell;\nattribute vec3 aAnim;\nattribute vec3 aTint;\nvarying vec3 vTint;\nuniform float uCols, uRows, uCheer, uTime, uExcite, uFocus;\n' + sh.vertexShader.replace('#include <uv_vertex>',
-      '#include <uv_vertex>\n  vTint = aTint;\n  float ex = uExcite * (0.35 + 0.65 * exp(-abs(instanceMatrix[3].z - uFocus) / 14.0));\n  float wv = aAnim.z * step(0.15, ex) * step(0.0, sin(uTime * 7.0 + aAnim.y));\n#ifdef USE_MAP\n  float row = mod(aCell.y + uCheer + wv, 2.0);\n  vMapUv = vec2((uv.x + aCell.x) / uCols, (uv.y + (uRows - 1.0 - row)) / uRows);\n#endif')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\n  transformed.y += aAnim.x * ex * abs(sin(uTime * 5.5 + aAnim.y));');
+    sh.vertexShader = 'attribute vec2 aCell;\nattribute vec3 aAnim;\nattribute vec3 aTint;\nvarying vec3 vTint;\nuniform float uCols, uRows, uCheer, uTime, uExcite, uFocus, uWave;\n' + sh.vertexShader.replace('#include <uv_vertex>',
+      '#include <uv_vertex>\n  vTint = aTint;\n  float ex = uExcite * (0.35 + 0.65 * exp(-abs(instanceMatrix[3].z - uFocus) / 14.0));\n  float wv = aAnim.z * step(0.15, ex) * step(0.0, sin(uTime * 7.0 + aAnim.y));\n  float ola = uWave > -50.0 ? exp(-pow(mod(atan(instanceMatrix[3].z, instanceMatrix[3].x) - uWave + 9.42478, 6.28318) - 3.14159, 2.0) / 0.05) : 0.0;\n  wv = max(wv, step(0.3, ola));\n#ifdef USE_MAP\n  float row = max(mod(aCell.y + uCheer, 2.0), wv);\n  vMapUv = vec2((uv.x + aCell.x) / uCols, (uv.y + (uRows - 1.0 - row)) / uRows);\n#endif')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\n  transformed.y += aAnim.x * ex * abs(sin(uTime * 5.5 + aAnim.y)) + ola * 0.5;');
   };
   mat.customProgramCacheKey = () => 'crowdSprite';
   const im = new THREE.InstancedMesh(geo, mat, spots.length), m = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), s = new THREE.Vector3();
@@ -116,6 +116,6 @@ export function crowdMesh(spots, set = 'futbol', height = 1.45, figs = null, sit
   crowdAtlas(set, sit).then(A => { mat.map = A.tex; U.uCols.value = A.cols; U.uRows.value = A.rows; mat.needsUpdate = true; im.visible = true; for (let i = 0; i < spots.length; i++) cell[i * 2] = figs ? figs[i] % A.n : Math.floor(Math.random() * A.n); geo.attributes.aCell.needsUpdate = true; })
     .catch(err => console.warn('público', err));
   im.cheer = (on) => { U.uCheer.value = on ? 1 : 0; };
-  im.tick = (t, excite = 1, focus = 0) => { U.uTime.value = t; U.uExcite.value = excite; U.uFocus.value = focus; };
+  im.tick = (t, excite = 1, focus = 0, wave = -99) => { U.uTime.value = t; U.uExcite.value = excite; U.uFocus.value = focus; U.uWave.value = wave; };
   return im;
 }

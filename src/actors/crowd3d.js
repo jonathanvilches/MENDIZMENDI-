@@ -8,6 +8,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { GlbChar, loadMeshy, MESHY_GAIT } from './glbChar.js';
 import { crowdMesh, figure, FIGS, sitPose } from './crowdSprites.js';
 import { QUALITY } from '../util/quality.js';
+import { crowdProps } from './crowdProps.js';
 
 const baked = new Map();   // conjunto → promesa de [figura][pose] geometrías
 // con un poco de su propio color como luz propia (como los personajes de Meshy): a contraluz no se quedan oscuros y
@@ -103,6 +104,10 @@ export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false } = 
   for (let i = 0; i < n; i++) figs[i] = Math.floor(Math.random() * FIGS);
   const group = new THREE.Group(), sprites = crowdMesh(spots, set, height, figs, sit);
   group.add(sprites);
+  // banderas, bufandas y pañuelos de la afición
+  let props = null; try { props = crowdProps(spots, set, height, { sit }); group.add(props); } catch (e) { console.warn('afición', e); }
+  // la ola (en el estadio): cada cierto rato da la vuelta a la grada; quien está en la cresta se levanta y alza los brazos
+  const olaOn = set === 'futbol'; let olaA = -99;
   // (los personajes nuevos tienen más detalle: en el móvil, menos en 3D a la vez)
   const Q = QUALITY, K = Q === 'low' ? 18 : Q === 'mid' ? 40 : 80, R = Q === 'low' ? 13 : Q === 'mid' ? 20 : 28;
   const TT = sprites.geometry.attributes.aTint.array, tc = new THREE.Color();   // (de cerca, el mismo tono que en la lámina)
@@ -136,7 +141,10 @@ export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false } = 
     if (dirty) IM.needsUpdate = true;
   }
   group.tick = (t, excite = 1, focus = 0, camera = null) => {
-    sprites.tick(t, excite, focus);
+    // la ola: cada 50 s, si el partido está tranquilo, 14 s dando vuelta y media a la grada
+    const ot = t % 50; olaA = olaOn && t > 20 && ot < 14 && excite < 0.7 ? ot / 14 * Math.PI * 3 - Math.PI : -99;
+    sprites.tick(t, excite, focus, olaA);
+    props?.tick(t, excite);
     if (!meshes || !camera) return;
     if ((pick -= 1) <= 0) { pick = 12; choose(camera); }   // cada 12 fotogramas
     for (const fig of meshes) for (const im of fig) im.count = 0;
@@ -144,15 +152,16 @@ export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false } = 
       const i = near[k], s = spots[i];
       // como las láminas: el ánimo crece cerca del foco; unos saltan y otros saludan alternando la pose
       const ex = excite * (0.35 + 0.65 * Math.exp(-Math.abs(s[2] - focus) / 14));
-      const wave = A[i * 3 + 2] && ex > 0.15 && Math.sin(t * 7 + A[i * 3 + 1]) >= 0 ? 1 : 0;
-      const pose = (C[i * 2 + 1] + cheer + wave) % 2, im = meshes[figs[i] % meshes.length][pose];
-      const jump = A[i * 3] * ex * Math.abs(Math.sin(t * 5.5 + A[i * 3 + 1]));
+      let ola = 0; if (olaA > -50) { const d = ((Math.atan2(s[2], s[0]) - olaA) % (2 * Math.PI) + 3 * Math.PI) % (2 * Math.PI) - Math.PI; ola = Math.exp(-d * d / 0.05); }
+      const wave = (A[i * 3 + 2] && ex > 0.15 && Math.sin(t * 7 + A[i * 3 + 1]) >= 0) || ola > 0.3 ? 1 : 0;
+      const pose = Math.max((C[i * 2 + 1] + cheer) % 2, wave), im = meshes[figs[i] % meshes.length][pose];
+      const jump = A[i * 3] * ex * Math.abs(Math.sin(t * 5.5 + A[i * 3 + 1])) + ola * 0.5;
       m4.compose(v.set(s[0], s[1] + jump, s[2]), q.setFromEuler(e.set(0, rot[i], 0)), s3.setScalar(sc[i]));
       im.setColorAt(im.count, tc.setRGB(TT[i * 3], TT[i * 3 + 1], TT[i * 3 + 2])); im.setMatrixAt(im.count++, m4);
     }
     for (const fig of meshes) for (const im of fig) if (im.count) { im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; }
   };
-  group.cheer = (on) => { cheer = on ? 1 : 0; sprites.cheer(on); };
-  group.dispose = () => { sprites.geometry.dispose(); sprites.material.dispose(); for (const fig of meshes || []) for (const im of fig) im.dispose(); };
+  group.cheer = (on) => { cheer = on ? 1 : 0; sprites.cheer(on); props?.cheer(on); };
+  group.dispose = () => { sprites.geometry.dispose(); sprites.material.dispose(); props?.dispose(); for (const fig of meshes || []) for (const im of fig) im.dispose(); };
   return group;
 }
