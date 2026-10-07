@@ -203,7 +203,9 @@ export function buildHouse(B, T, o, rnd) {
   let shF = -1, shX = 0;
   if (o.shield) {
     if (floors < 3) { o.gallery = false; o.balcony = false; }
-    shF = floors >= 3 ? floors - 2 : 1; shX = o.shieldX ?? 0;
+    // (en la casa consistorial, en la planta de arriba, sobre el balcón del ayuntamiento)
+    if (o.townhall) o.gallery = false;
+    shF = o.townhall && floors >= 3 ? floors - 1 : floors >= 3 ? floors - 2 : 1; shX = o.shieldX ?? 0;
   }
   for (let f = 0; f < floors; f++) {
     const y = f * fh + fh * 0.58;
@@ -232,7 +234,15 @@ export function buildHouse(B, T, o, rnd) {
     for (let f = 1; f < floors; f++) for (let c = 0; c < sc; c++) if (rnd() < 0.55) windowAt(B, side, -d / 2 + (d / sc) * (c + 0.5), f * fh + fh * 0.55, 0.7, 1.0, { shutter });
   }
   // escudo
-  if (o.shield) { const sy = shF * fh + fh * 0.5; B.add('shield', new THREE.PlaneGeometry(1.1, 1.3), MM(front, M(shX, sy, 0.09))); o.shieldLocal = [shX, sy, d / 2 + 0.09]; }   // (dónde queda, para leerlo)
+  // escudo: una piedra armera en relieve (losa de sillería con su moldura, que sobresale del muro) y el escudo tallado
+  // encima; en la casa consistorial, más grande y con cornisa. shieldLocal: el centro de su cara, para pintarlo y leerlo
+  if (o.shield) {
+    const sy = shF * fh + fh * 0.5, big = !!o.townhall, sw = big ? 1.75 : 1.72, sh = big ? 2.45 : 2.22, dz = big ? 0.18 : 0.14;
+    B.add('ashlar', box(sw, sh, dz), MM(front, M(shX, sy + 0.04, dz / 2)));
+    B.add('stoneDark', box(sw + 0.16, 0.12, dz + 0.08), MM(front, M(shX, sy + 0.04 - sh / 2 - 0.04, (dz + 0.08) / 2)));
+    B.add('ashlar', box(sw + 0.22, 0.14, dz + 0.12), MM(front, M(shX, sy + 0.04 + sh / 2 + 0.05, (dz + 0.12) / 2)));
+    o.shieldLocal = [shX, sy, d / 2 + dz + 0.004]; o.plateY = shF * fh - 0.3;   // (la placa del ayuntamiento, bajo el escudo)
+  }
   // tejado
   const pitch = o.pitch ?? (0.9 + rnd() * 0.12);
   const roofMat = o.roof;

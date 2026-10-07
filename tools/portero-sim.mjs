@@ -51,11 +51,15 @@ const gx = -F.HL;   // tu portería (el equipo 0 ataca hacia +x)
   g.setMove(0, 1, 1, false); g.press('switch'); const pickB = g.me === b;
   g.setMe(me, 'force'); g.setMove(0, -1, 1, false); g.press('switch'); const pickA = g.me === a;
   ok(pickB && pickA, `cambiar apuntando: a un lado ${pickB ? b.role : '?'}, al otro ${pickA ? a.role : '?'}`); }
-// moviendo a tu jugador, el cambio automático no te lo quita aunque otro esté algo más cerca del balón
+// moviendo a tu jugador, el cambio automático no te lo quita si otro está solo un poco más cerca del balón; si está
+// claramente más cerca (de donde va el balón), cambia a él
 { const g = setup(), me = g.me, q = g.byRole(0, 'MCD'), o = g.byRole(1, 'MCD');
-  me.x = 0; me.z = 0; q.x = 6; q.z = 3; o.x = 9; o.z = 3; g.ball.set(8.6, 3); g.owner = o; o.react = 99; g.switchCD = 0;
-  g.setMove(1, 0.3, 1, false); run(g, 0.5);
-  ok(g.me === me, `moviéndote, sigues con tu jugador (${g.me.role})`); }
+  me.x = 4; me.z = 0; q.x = 6; q.z = 3; o.x = 9; o.z = 3; g.ball.set(8.6, 3); g.owner = o; o.react = 99; g.switchCD = 0;
+  g.setMove(1, 0.3, 1, false); run(g, 0.3); const kept = g.me === me;
+  const g2 = setup(), me2 = g2.me, q2 = g2.byRole(0, 'MCD'), o2 = g2.byRole(1, 'MCD');
+  me2.x = -14; me2.z = 0; q2.x = 6; q2.z = 3; o2.x = 9; o2.z = 3; g2.ball.set(8.6, 3); g2.owner = o2; o2.react = 99; g2.switchCD = 0;
+  g2.setMove(1, 0.3, 1, false); run(g2, 0.3);
+  ok(kept && g2.me === q2, `cambio automático: sigues con el tuyo si está cerca (${kept}); si otro está mucho más cerca, cambia a él (${g2.me.role})`); }
 // pase: un toque al pie (fuerza automática); mantenido, la barra pone la fuerza: más tiempo, más lejos y más fuerte
 { const res = [];
   for (const hold of [0.05, 0.3, 0.55, 0.8]) {

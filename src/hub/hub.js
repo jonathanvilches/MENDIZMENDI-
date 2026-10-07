@@ -19,6 +19,7 @@ import { getLang, setLang, langChosen } from '../i18n.js';
 import { dioramaShot, heroAvatar, heroAction, townCover, heroPose } from './diorama.js';
 import { CLUBS } from '../futbol/clubs.js';
 import { SABERES, saberCounts } from '../data/saberes.js';
+import { EDADES, edadDe, missionSlots } from '../data/edad.js';
 import { ARMAS, PENDIENTES, FIG, GUIA, armsOfTown } from '../data/armas-navarra.js';
 import { drawOfficial, officialHeight } from '../world/armas.js';
 import { profile, saveProfile, levelOf, rankOf, townProgress, comarcaProgress, comarcaTowns, navarraProgress, stampCount, BADGES, checkBadges, resetProfile, salazarState } from '../game/profile.js';
@@ -145,7 +146,7 @@ export class Hub {
   // frases de la historia que cuenta el personaje en la portada
   storyLines(p, av, last) {
     const town = last.name.split(' /')[0], lp = townProgress(p, last), done = p.towns[last.id]?.done || {};
-    const next = (last.missions || []).map((m, i) => ({ m, i })).find(x => !done[x.i]);
+    const next = missionSlots(last, edadDe(p)).map(({ m, si }) => ({ m, i: si })).find(x => !done[x.i]);
     const lines = [`¡Kaixo, ${p.name || 'amiga, amigo'}! Soy ${av.name}, ${av.role.toLowerCase()} de ${av.from.split(' /')[0]}.`];
     if (next) {
       const m = next.m, who = m.host?.name?.split(',')[0];
@@ -164,7 +165,7 @@ export class Hub {
     let doneM = 0, totM = 0; for (const l of LEVELS) { const t = townProgress(p, l); doneM += t.done; totM += t.total; }
     const av = AVATARS.find(a => a.id === p.avatar) || AVATARS[0];
     const done = p.towns[last.id]?.done || {};
-    const ms = (last.missions || []).map((m, i) => `<span class="mi ${done[i] ? 'ok' : ''}" title="${esc(m.title || m.name || TYPE_NAME[m.type] || '')}">${I(TYPE_ICON[m.type] || 'star', 40)}${done[i] ? `<i class="tick">${I('check', 16)}</i>` : ''}</span>`).join('');
+    const ms = missionSlots(last, edadDe(p)).map(({ m, si: i }) => `<span class="mi ${done[i] ? 'ok' : ''}" title="${esc(m.title || m.name || TYPE_NAME[m.type] || '')}">${I(TYPE_ICON[m.type] || 'star', 40)}${done[i] ? `<i class="tick">${I('check', 16)}</i>` : ''}</span>`).join('');
     this.after = () => {
       // portada de juego: una imagen fija con el personaje dentro de la escena de su comarca, sin escena 3D en vivo (en el
       // móvil montaba el diorama entero y un segundo WebGL solo para el menú). Si faltara, foto y personaje por separado
@@ -343,7 +344,7 @@ export class Hub {
     this.sound?.ui('open');
     const p = profile(), t = townProgress(p, l), c = comarca(l.comarca), ts = p.towns[id];
     const ms = l.special ? [{ type: 'visit', title: 'Ongi etorri a Otsagabia' }, { type: 'herd', title: 'El rebaño de Joxemari' }, { type: 'observe', title: 'Guardianes de Irati' }, { type: 'legend', title: 'Basajaun y la Lamia' }, { type: 'carnival', title: 'El Zarratrako' }, { type: 'dance', title: 'La fiesta de Muskilda' }]
-      : l.missions;
+      : missionSlots(l, edadDe(p)).map(x => x.m);
     const title = (m) => m.title || (m.type === 'visit' ? `Conoce ${l.name}` : m.type === 'quiz' ? `El sabio de ${l.name}` : m.name || m.product || TYPE_NAME[m.type]);
     const hero = heroAction(p.avatar, l.id);
     const s = el(`<div class="sheet"><div class="sheet-in" style="--c:${c?.color};--bg:url(${townImg(l)})">
@@ -351,7 +352,7 @@ export class Hub {
       <div class="sh-hero${hero ? ' key' : ''}" data-acc="${hero?.acc || ''}">${hero ? `<div class="sh-avW"><img class="sh-av" src="${hero.url}" alt=""></div>` : ''}<small class="kicker">${esc(c?.name)}</small><h1>${esc(l.name)}</h1><p>${esc(l.intro || '')}</p></div>
       <div class="sh-body">
         <h3>${I('check', 24)} Misiones (${t.done}/${t.total})</h3>
-        <ul class="mlist">${ms.map((m, i) => `<li class="${ts?.done?.[i] ? 'ok' : ''}">${I(TYPE_ICON[m.type], 34)}<div><b>${esc(title(m))}</b><small>${TYPE_NAME[m.type]}${m.host ? ' · con ' + esc(m.host.name) : ''}</small></div>${ts?.done?.[i] ? I('check', 26) : ''}</li>`).join('')}</ul>
+        <ul class="mlist">${ms.map((m, i) => { const k = l.missions?.includes(m) ? l.missions.indexOf(m) : i; return `<li class="${ts?.done?.[k] ? 'ok' : ''}">${I(TYPE_ICON[m.type], 34)}<div><b>${esc(title(m))}</b><small>${TYPE_NAME[m.type]}${m.host ? ' · con ' + esc(m.host.name) : ''}</small></div>${ts?.done?.[k] ? I('check', 26) : ''}</li>`; }).join('')}</ul>
         ${armsOfTown(l.id) ? `<h3>${I('shield', 24)} Su escudo</h3><div class="sh-arms"><canvas width="120" height="${Math.ceil(officialHeight(90, armsOfTown(l.id))) + 6}"></canvas><p><b>${esc(armsOfTown(l.id).name)}.</b> ${esc(armsOfTown(l.id).read)} <button class="lnk" data-go="escudos">Ver todos los escudos</button></p></div>` : ''}
         ${l.church ? `<h3>${I('church', 24)} Qué visitar</h3><ul class="plist"><li><b>${esc(l.church.name)}</b> ${esc(l.church.text)}</li>${(l.landmarks || []).map(x => `<li><b>${esc(x.name)}</b> ${esc(x.text)}</li>`).join('')}</ul>` : ''}
       </div>
@@ -515,6 +516,7 @@ export class Hub {
       $('#pVol', r).oninput = e => { S.volume = +e.target.value; saveProfile(); this.onSettings?.(S); };
       $('#pQ', r).value = S.quality || 'auto';
       $('#pLang', r).value = getLang(); $('#pLang', r).onchange = e => setLang(e.target.value);
+      $('#pAge', r).value = edadDe(p); $('#pAge', r).onchange = e => { p.age = e.target.value; saveProfile(); this.sound?.ui('click'); this.go('profile', undefined, true); };
       $('#pQ', r).onchange = e => { S.quality = e.target.value === 'auto' ? null : e.target.value; S.qualityAuto = false; saveProfile(); this.onSettings?.(S); };
       const rb = $('#pReset', r); rb.onclick = (e) => { e.stopPropagation(); if (rb.dataset.sure) { resetProfile(); try { localStorage.removeItem('mendimendiz-salazar-v2'); } catch (err) { } this.go('home'); } else { rb.dataset.sure = 1; rb.textContent = '¿Seguro? Pulsa otra vez para borrar todo'; this.sound?.ui('error'); } };
     };
@@ -526,6 +528,8 @@ export class Hub {
         <div class="pstats"><span>${I('stamp', 26)} ${stampCount(p)} sellos</span><span>${I('check', 26)} ${doneM} misiones</span><span>${I('book', 26)} ${p.cards.length} cartas</span><span>${I('peak', 26)} ${p.peaks.length} cimas</span><span>${I('binoculars', 26)} ${p.species.length} especies</span><span>${I('ribbon', 26)} ${sal?.ribbons?.length || 0}/8 cintas de Muskilda</span></div>
         <button class="btn" data-go="avatars">${I('person', 22)} Cambiar personaje</button></div></div>
       <div class="panel"><h2>${I('gear', 30)} Ajustes</h2>
+        <label class="set">Edad <select id="pAge">${EDADES.map(e => `<option value="${e.id}">${e.name}</option>`).join('')}</select></label>
+        <p class="set-note">${esc(EDADES.find(e => e.id === edadDe(p)).text)}. Cambiar de edad no borra nada de lo que ya has hecho.</p>
         <label class="set">Idioma <select id="pLang"><option value="eu">Euskara</option><option value="es">Castellano</option><option value="learn">Aprende euskera</option></select></label>
         <label class="set">Música <input type="checkbox" id="pMusic" ${S.music ? 'checked' : ''}></label>
         <label class="set">Volumen <input type="range" id="pVol" min="0" max="1" step="0.05" value="${S.volume}"></label>
@@ -553,18 +557,20 @@ export class Hub {
   // ---------- Primera vez: nombre y personaje ----------
   onboarding() {
     const p = profile();
-    let pick = p.avatar || AVATARS[0].id;
+    let pick = p.avatar || AVATARS[0].id, age = p.age || 'nino';
     const o = el(`<div class="onb"><div class="onb-in">
       <header class="onb-head"><div class="logo">MENDIMENDIZ</div><p class="tag">Navarra, pueblo a pueblo</p>
         <div class="langsel" role="group" aria-label="Idioma"><button data-lang="eu" class="${getLang() === 'eu' ? 'on' : ''}">Euskara</button><button data-lang="es" class="${getLang() === 'es' ? 'on' : ''}">Castellano</button><button data-lang="learn" class="${getLang() === 'learn' ? 'on' : ''}">Aprende euskera</button></div></header>
-      ${this.selector(castById(pick), { onb: true, extra: `<div class="onb-foot"><label>¿Cómo te llamas?<input id="oName" maxlength="14" autocomplete="off" placeholder="Tu nombre"></label>
+      ${this.selector(castById(pick), { onb: true, extra: `<div class="onb-foot"><label>¿Cómo te llamas?<input id="oName" maxlength="14" autocomplete="off" placeholder="¿Cómo te llamas?" aria-label="¿Cómo te llamas?"></label>
+        <div class="onb-age" role="radiogroup" aria-label="Tu edad"><span>¿Cuántos años tienes?</span>${EDADES.map(e => `<button type="button" role="radio" data-age="${e.id}" aria-checked="${e.id === age}" class="${e.id === age ? 'on' : ''}"><b>${e.name}</b><small>${e.text}</small></button>`).join('')}</div>
         <button class="btn primary big" id="oGo">${I('play', 26)} ¡Empezar la aventura!</button></div>` })}
     </div></div>`);
     this.root.appendChild(o);
     this.bindSelector(o, pick, (a) => { pick = a.id; this.sound?.init?.(); });
     o.querySelectorAll('[data-lang]').forEach(b => b.onclick = (e) => { e.stopPropagation(); if (b.dataset.lang !== getLang()) setLang(b.dataset.lang); });
     const inp = $('#oName', o); inp.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') go(); });
-    const go = () => { p.name = inp.value.trim() || 'Mendi'; p.avatar = pick; saveProfile(); this.sound?.init?.(); this.sound?.ui('open'); o.remove(); this.go('home', null, true); };
+    o.querySelectorAll('[data-age]').forEach(b => b.onclick = (e) => { e.stopPropagation(); age = b.dataset.age; o.querySelectorAll('[data-age]').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-checked', x === b); }); this.sound?.ui?.('click'); });
+    const go = () => { p.name = inp.value.trim() || 'Mendi'; p.avatar = pick; p.age = age; saveProfile(); this.sound?.init?.(); this.sound?.ui('open'); o.remove(); this.go('home', null, true); };
     $('#oGo', o).onclick = go;
   }
 }

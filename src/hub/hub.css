@@ -1087,3 +1087,64 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 @media (max-width: 560px), (orientation: landscape) and (max-height: 440px) { .armorial .ar-grid { grid-template-columns: 1fr; } .armorial .ar { grid-template-columns: 84px 1fr; } .armorial .ar canvas { width: 84px; } }
 .sh-arms { display: grid; grid-template-columns: 90px 1fr; gap: 12px; align-items: start; margin: 0 0 12px; } .sh-arms canvas { width: 90px; height: auto; } .sh-arms p { margin: 0; }
 .sh-arms .lnk { background: none; border: 0; color: #FFD700; font-weight: 800; text-decoration: underline; padding: 6px 0; cursor: pointer; font: inherit; }
+/* edad en la bienvenida y en el perfil */
+.onb-age { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: 100%; }
+.onb-age > span { grid-column: 1 / -1; font-weight: 800; }
+.onb-age button { min-height: 52px; border-radius: 14px; border: 2px solid rgba(255, 255, 255, .18); background: rgba(0, 0, 0, .28); color: #f7f0e6; padding: 6px 8px; display: grid; gap: 2px; text-align: left; cursor: pointer; font: inherit; }
+.onb-age button b { font-size: 14px; } .onb-age button small { font-size: 11.5px; opacity: .85; line-height: 1.2; }
+.onb-age button.on { border-color: #FFD700; background: rgba(255, 215, 0, .16); }
+@media (orientation: landscape) and (max-height: 440px) { .onb-age button small { display: none; } .onb-age button { min-height: 44px; } }
+.set-note { margin: -4px 0 8px; font-size: 13px; color: #d9cdb8; }
+
+/* ================= Móvil en horizontal: el formato principal =================
+   Pantalla baja (≤ 500 px de alto): todo a mano del pulgar, nada importante por debajo del pliegue, textos legibles
+   (12 px o más), dianas de 44 px, y las fichas en dos columnas (imagen a un lado, contenido y botón al otro). */
+@media (orientation: landscape) and (max-height: 500px) {
+  .hub-nav button { font-size: 11px; }
+  /* bienvenida: nombre y botón en una fila, la edad debajo en tres botones */
+  .onb-foot { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name go" "age age"; gap: 6px 10px; align-items: end; }
+  .onb-foot > label { grid-area: name; flex-direction: row; align-items: center; gap: 8px; font-size: 12px; }
+  .onb-foot > label input { flex: 1; min-width: 0; min-height: 44px; }
+  .onb-foot > .onb-age { grid-area: age; gap: 6px; }
+  .onb-foot > .onb-age > span { font-size: 12px; }
+  .onb-foot > .onb-age button { min-height: 44px; padding: 4px 8px; } .onb-foot > .onb-age button b { font-size: 13px; }
+  .onb-foot > #oGo { grid-area: go; width: auto; min-height: 44px; }
+  .onb .csel-info p, .onb .radar { display: none; }
+  /* pueblos: tres columnas con portadas más bajas */
+  .towns { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+  .tcard.has-cov .tcov { aspect-ratio: 16 / 6; }
+  .tcard { padding: 12px 14px 12px 16px; gap: 6px; } .tcard b { font-size: 16px; } .tcard p { -webkit-line-clamp: 2; font-size: 13px; }
+  /* ficha del pueblo: imagen a la izquierda; misiones y botón a la derecha, siempre a la vista */
+  .sheet { align-items: center; }
+  .sheet-in { width: min(920px, calc(100vw - 24px)); max-height: calc(100vh - 16px); display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; border-radius: 18px; }
+  .sh-hero, .sh-hero.key { grid-row: 1 / 3; grid-column: 1; min-height: 0; padding: 16px 16px 14px; justify-content: flex-end; }
+  .sh-hero.key { padding-right: 16px; }
+  .sh-hero .sh-avW { height: 62%; right: 4%; top: 6%; bottom: auto; }
+  .sh-hero h1 { font-size: 26px; } .sh-hero p { font-size: 13px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .sh-body { grid-column: 2; grid-row: 1; padding: 12px 16px 8px; min-height: 0; }
+  .sh-foot { grid-column: 2; grid-row: 2; padding: 10px 16px calc(env(safe-area-inset-bottom, 0px) + 10px); }
+  .sheet-in > .x { z-index: 4; }
+  /* dianas táctiles y textos pequeños */
+  .fr-chip { min-height: 40px; padding: 8px 14px; }
+  .set select { min-height: 44px; } .set input[type=checkbox] { width: 30px; height: 30px; }
+  .chapter small, .tcard small { font-size: 12px; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  /* (el texto «¿Cómo te llamas?» queda dentro del campo, para que el nombre tenga sitio) */
+  .onb-foot > label { font-size: 0; gap: 0; } .onb-foot > label input { font-size: 17px; }
+  .onb .langsel button { min-height: 40px; }
+  .hub-nav button span { font-size: 11px; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  /* campeonatos: las dos tarjetas caben enteras, con su botón de jugar a la vista */
+  .sp-hint { display: none; }
+  .sports { gap: 10px; }
+  .sport { min-height: 0; height: calc(100vh - 124px); max-height: 300px; padding: 14px; gap: 8px; }
+  .sport .sp-txt p { display: none; } .sport h3 { font-size: 24px; margin: 0; }
+  .sport .btn.big { min-height: 46px; padding: 8px 18px; font-size: 16px; }
+  .sport .sp-av { height: 78%; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .hub-main h2.sec { margin-top: 0; margin-bottom: 8px; }
+  .sport { height: calc(100vh - 112px); }
+}

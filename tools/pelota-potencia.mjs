@@ -22,5 +22,5 @@ for (const kind of ['cortada', 'dejada', false]) {
   if (kind) ok(r[0].wallY < r[1].wallY && r[1].wallY < r[2].wallY && r[0].wallY > COURT.CHAPA, `${kind}: más carga, más alta en el frontis (${r.map(x => x.wallY).join(' → ')} m; chapa ${COURT.CHAPA})`);
   else ok(r[0].land < r[2].land, `golpe: más carga, más largo (${r.map(x => x.land).join(' → ')} m)`);
 }
-ok(Math.abs(cutHeight(1) - COURT.FRONT_H * 0.47) < 0.05, `cortada a tope: a media altura del frontis (${cutHeight(1).toFixed(2)} m de ${COURT.FRONT_H})`);
+ok(cutHeight(1) <= COURT.FRONT_H * 0.32 && cutHeight(0) >= COURT.CHAPA + 0.4, `cortada: tensa y sin rozar la chapa (de ${cutHeight(0).toFixed(2)} a ${cutHeight(1).toFixed(2)} m; chapa ${COURT.CHAPA})`);
 console.log(fails ? fails + ' fallos' : 'Todo correcto');

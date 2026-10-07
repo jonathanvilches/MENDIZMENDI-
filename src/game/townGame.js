@@ -44,6 +44,7 @@ import { montesFrom, townLatLon } from '../data/miradores.js';
 import { Panorama } from '../world/panorama.js';
 import { houseArms } from '../data/blasones.js';
 import { armsOfTown } from '../data/armas-navarra.js';
+import { missionSlots, edadDe } from '../data/edad.js';
 import { drawOfficial, officialHeight } from '../world/armas.js';
 import { CAT_BY_TYPE, SABERES } from '../data/saberes.js';
 import { drawArms } from '../world/heraldry.js';
@@ -151,7 +152,8 @@ export class TownGame {
     this.elapsed = 0;
     this.rnd = mulberry32(def.id.length * 131 + 7);
     this.actors = []; this.walkers = []; this.items = []; this.gates = []; this.folk = []; this.clues = [];
-    this.missions = (def.missions || []).map((m, i) => this.makeMission(m, i));
+    // (según la edad de quien juega, sin las misiones que no tocan; cada una guarda su número en el pueblo)
+    this.missions = missionSlots(def, edadDe(this.P)).map(({ m, si }, i) => this.makeMission(m, i, si));
     this.state = { name: this.P.name || 'Mendi', settings: this.P.settings };
     // luz propia de las criaturas de la noche: se crea al cargar (apagada) para que encenderla
     // después no obligue a recompilar los materiales en mitad de la persecución
@@ -160,9 +162,9 @@ export class TownGame {
     }
   }
   // ---------- Definición de misiones y pasos ----------
-  makeMission(m, i) {
+  makeMission(m, i, si = i) {
     const d = this.def;
-    const M = { i, m, type: m.type, step: 0, count: 0, done: !!this.ts.done[i] };
+    const M = { i, si, m, type: m.type, step: 0, count: 0, done: !!this.ts.done[si] };
     const host = () => M.host?.name || 'tu guía';
     switch (m.type) {
       case 'visit': {
@@ -626,7 +628,7 @@ export class TownGame {
       drawArms(c.getContext('2d'), 64, 4, 92, A, { stone: true });
       const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
       const m = new THREE.Mesh(new THREE.PlaneGeometry(1.55, 2.03), new THREE.MeshStandardMaterial({ map: tex, transparent: true, alphaTest: 0.4, roughness: 0.9 }));
-      m.position.set(sh.x + Math.sin(sh.ry) * 0.03, sh.y + 0.06, sh.z + Math.cos(sh.ry) * 0.03); m.rotation.y = sh.ry; this.scene.add(m);
+      m.position.set(sh.x + Math.sin(sh.ry) * 0.01, sh.y + 0.04, sh.z + Math.cos(sh.ry) * 0.01); m.rotation.y = sh.ry; this.scene.add(m);
       this.blasones.push({ ...sh, A, mesh: m, id: 'escudo:' + this.def.id + ':' + i });
     });
   }
@@ -636,9 +638,19 @@ export class TownGame {
     const W = 200, c = document.createElement('canvas'); c.width = 256; c.height = Math.ceil(officialHeight(W, A)) + 10;
     drawOfficial(c.getContext('2d'), 128, 4, W, A);
     const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
-    const h = 1.35 * c.height / c.width, m = new THREE.Mesh(new THREE.PlaneGeometry(1.35, h), new THREE.MeshStandardMaterial({ map: tex, transparent: true, alphaTest: 0.4, roughness: 0.85 }));
-    m.position.set(S.x + Math.sin(S.ry) * 0.222, S.y + 1.62, S.z + Math.cos(S.ry) * 0.222); m.rotation.y = S.ry; this.scene.add(m);
-    this.townArms = { A, mesh: m, read: S.read, id: 'armas:' + A.id };
+    const W3 = S.hall ? 1.5 : 1.35, h = W3 * c.height / c.width, m = new THREE.Mesh(new THREE.PlaneGeometry(W3, h), new THREE.MeshStandardMaterial({ map: tex, transparent: true, alphaTest: 0.4, roughness: 0.85 }));
+    m.position.set(S.x + Math.sin(S.ry) * 0.01, S.y + (S.hall ? 0.02 : 0), S.z + Math.cos(S.ry) * 0.01); m.rotation.y = S.ry; this.scene.add(m);
+    // placa de la casa consistorial sobre la puerta, en euskera y en castellano
+    let plate = null;
+    if (S.hall) {
+      const pc = document.createElement('canvas'); pc.width = 512; pc.height = 96; const g = pc.getContext('2d');
+      g.fillStyle = '#e9e1cf'; g.fillRect(0, 0, 512, 96); g.strokeStyle = '#6b5a3e'; g.lineWidth = 8; g.strokeRect(4, 4, 504, 88);
+      g.fillStyle = '#3a2a1c'; g.font = '700 40px Georgia, serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('UDALA · AYUNTAMIENTO', 256, 50);
+      const pt = new THREE.CanvasTexture(pc); pt.colorSpace = THREE.SRGBColorSpace;
+      plate = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 0.32), new THREE.MeshStandardMaterial({ map: pt, roughness: 0.8 }));
+      plate.position.set(S.x - Math.sin(S.ry) * 0.165, S.plateY, S.z - Math.cos(S.ry) * 0.165); plate.rotation.y = S.ry; this.scene.add(plate);
+    }
+    this.townArms = { A, mesh: m, plate, read: S.read, id: 'armas:' + A.id };
   }
   async readTownArmsAt() {
     const T = this.townArms, isNew = addCard(T.id, 'escudos'); this.player.frozen = true;
@@ -2076,7 +2088,7 @@ export class TownGame {
   async complete(M, { card, cardText } = {}) {
     if (M.done) return;
     M.done = true; M.step = M.steps().length;
-    this.ts.done[M.i] = true;
+    this.ts.done[M.si ?? M.i] = true;
     const xp = { visit: 80, quiz: 60, summit: 150 }[M.type] || 100;
     // txanponak para la tienda y, en las tareas del campo, lo que se cosecha o se ordeña (sirve para el trueque)
     this.P.coins = (this.P.coins ?? 12) + 4;
@@ -2120,7 +2132,7 @@ export class TownGame {
   applySettings() { const S = this.P.settings; this.sound.setMusic(S.music); this.sound.setVolume(S.volume); this.sky.speed = 24 / (16 * 60) * (S.timeSpeed ?? 1); }
   teleport(x, z) { const s = this.spot({ x, z }, 3); this.player.place(s.x, s.z, 0); this.follow.snap(this.player); }
   dispose() {
-    if (this.townArms) { const m = this.townArms.mesh; m.geometry.dispose(); m.material.map?.dispose(); m.material.dispose(); this.townArms = null; }
+    if (this.townArms) { for (const m of [this.townArms.mesh, this.townArms.plate]) if (m) { m.geometry.dispose(); m.material.map?.dispose(); m.material.dispose(); } this.townArms = null; }
     for (const b of this.blasones || []) { b.mesh.geometry.dispose(); b.mesh.material.map?.dispose(); b.mesh.material.dispose(); }
     // (que la interfaz, que dura toda la partida, no siga apuntando al pueblo que se deja: lo dejaba entero en memoria)
     if (this.ui.onDialogLine) this.ui.onDialogLine = null; this.ui.onMiniHit = null; if (this.ui.stage3d?.show) this.ui.stage3d = null;

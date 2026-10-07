@@ -134,17 +134,6 @@ export function buildTown(scene, mats, def) {
     addCircle(P.x, P.z, 2.7);
     TOWN.fountain = { x: P.x, z: P.z, y };
   }
-  // escudo del pueblo: un pilar de sillería con el escudo pintado, a un lado de la plaza y mirando a su centro
-  if (!pamp) for (let i = 0; i < 16 && !TOWN.armsSpot; i++) {
-    const a = 1.9 + i / 16 * Math.PI * 2, r = Math.max(5.5, P.r - 2.2), x = P.x + Math.cos(a) * r, z = P.z + Math.sin(a) * r;
-    if (!isFree(x, z, 1.7) || Math.abs(terrainHeight(x, z) - terrainHeight(P.x, P.z)) > 1.2) continue;
-    const y = terrainHeight(x, z), ry = Math.atan2(P.x - x, P.z - z);
-    B.add('ashlar', new THREE.BoxGeometry(1.6, 3.2, 0.42), M(x, y + 1.6 - 0.3, z, ry));
-    B.add('ashlar', new THREE.BoxGeometry(1.9, 0.22, 0.6), M(x, y + 2.98, z, ry));
-    B.add('stoneDark', new THREE.BoxGeometry(1.9, 0.3, 0.6), M(x, y + 0.0, z, ry));
-    addBox(x, z, 1.7, 0.6, ry);
-    TOWN.armsSpot = { x, y, z, ry, read: { x: x + Math.sin(ry) * 2.3, z: z + Math.cos(ry) * 2.3 } };
-  }
   for (let i = 0; i < (pamp ? 0 : 6); i++) {
     const a = i / 6 * Math.PI * 2 + 0.3, x = P.x + Math.cos(a) * (P.r - 5), z = P.z + Math.sin(a) * (P.r - 5);
     if (isFree(x, z, 1.4)) bench(B, x, terrainHeight(x, z), z, Math.atan2(P.x - x, P.z - z));
@@ -173,9 +162,13 @@ export function buildTown(scene, mats, def) {
       if (rectFree(x, z, ry, -w / 2, w / 2, -d / 2, d / 2, 0.4) && !inKeep(x, z, Math.hypot(w, d) / 2) && cornersOk(x, z, w, d, ry)) {
         const g = minGround(x, z, w, d, ry);
         if (g.mx - g.mn < 2.4) {
+          // la primera casa que da a la plaza es la casa consistorial: lleva el escudo del pueblo en la fachada
+          const hall = !pamp && !TOWN.armsSpot && Math.hypot(x - P.x, z - P.z) < P.r + 16;
           const hb = slopeBase(B, x, z, w, d, ry, g), ho = { arch: st.wall === 'stone' || st.wall === 'ashlar' ? rnd() < 0.5 : rnd() < 0.2, balconyW: Math.min(w - 2, 3 + rnd() * 2.5), shield: rnd() < 0.1, cornice: rnd() < 0.4, ...st, w, d, h };
+          if (hall) Object.assign(ho, { shield: true, townhall: true, h: Math.max(h, 8.5), cornice: true, arch: true, doorX: 0, balcony: true, balconyW: Math.min(w - 2, 5), ironBalcony: true });
           buildHouse(B, M(x, hb, z, ry), ho, rnd);
-          if (ho.shieldLocal) shieldAt(x, hb, z, ry, ho.shieldLocal, false);
+          if (ho.shieldLocal && hall) { const [lx, ly, lz] = ho.shieldLocal, c = Math.cos(ry), sn = Math.sin(ry); TOWN.armsSpot = { x: x + lx * c + lz * sn, y: hb + ly, z: z - lx * sn + lz * c, ry, hall: true, base: hb, plateY: hb + ho.plateY, read: { x: x + lx * c + (lz + 2.6) * sn, z: z - lx * sn + (lz + 2.6) * c } }; }
+          else if (ho.shieldLocal) shieldAt(x, hb, z, ry, ho.shieldLocal, false);
           addBox(x, z, w + 0.3, d + 0.3, ry, { solidView: true });
           TOWN.houses.push({ x, z, ry, w, d, door: { x: x + Math.sin(ry) * (d / 2 + 1.2), z: z + Math.cos(ry) * (d / 2 + 1.2) } });
           count++; s += w + 1.2 + rnd() * 2.5; continue;
@@ -183,6 +176,17 @@ export function buildTown(scene, mats, def) {
       }
       s += 3;
     }
+  }
+  // si ninguna casa da a la plaza, el escudo va en un pilar de sillería a un lado de ella, mirando a su centro
+  if (!pamp) for (let i = 0; i < 16 && !TOWN.armsSpot; i++) {
+    const a = 1.9 + i / 16 * Math.PI * 2, r = Math.max(5.5, P.r - 2.2), x = P.x + Math.cos(a) * r, z = P.z + Math.sin(a) * r;
+    if (!isFree(x, z, 1.7) || Math.abs(terrainHeight(x, z) - terrainHeight(P.x, P.z)) > 1.2) continue;
+    const y = terrainHeight(x, z), ry = Math.atan2(P.x - x, P.z - z);
+    B.add('ashlar', new THREE.BoxGeometry(1.6, 3.2, 0.42), M(x, y + 1.6 - 0.3, z, ry));
+    B.add('ashlar', new THREE.BoxGeometry(1.9, 0.22, 0.6), M(x, y + 2.98, z, ry));
+    B.add('stoneDark', new THREE.BoxGeometry(1.9, 0.3, 0.6), M(x, y + 0.0, z, ry));
+    addBox(x, z, 1.7, 0.6, ry);
+    TOWN.armsSpot = { x: x + Math.sin(ry) * 0.212, y: y + 1.62, z: z + Math.cos(ry) * 0.212, ry, read: { x: x + Math.sin(ry) * 2.3, z: z + Math.cos(ry) * 2.3 } };
   }
   // farolas
   for (const path of streets) {
