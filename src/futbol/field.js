@@ -6,7 +6,7 @@
 //     y con las esquinas cerradas (asientos rojos, escaleras y respaldos), cubierta continua de celosía que vuela sobre
 //     las gradas hasta casi las líneas y da sombra al campo y, por fuera, el anillo rojo de chapa grecada (el borde de
 //     la cubierta) que parece flotar sobre un zócalo rectangular de chapa perforada oscura (proyecto «Muro Rojo»).
-//   · El campo de un pueblo: muro de piedra, un graderío sencillo, árboles y casas.
+//   · El campo de un pueblo: muro de piedra, un graderío sencillo y árboles.
 // Devuelve la escena y unas pocas funciones para animarla.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -298,17 +298,6 @@ function parkTexture() {
     g.fillStyle = '#6f8f4c'; g.fillRect(0, 0, W, H); const rnd = mulberry(13);
     for (let i = 0; i < 3000; i++) { const l = rnd(); g.fillStyle = l < 0.5 ? `rgba(40,70,25,${0.15 + rnd() * 0.2})` : `rgba(170,200,110,${0.1 + rnd() * 0.15})`; g.fillRect(rnd() * W, rnd() * H, 1, 1 + rnd() * 2); }
     for (let i = 0; i < 5; i++) { g.fillStyle = 'rgba(120,110,60,.12)'; g.beginPath(); g.ellipse(rnd() * W, rnd() * H, 8 + rnd() * 16, 5 + rnd() * 10, rnd() * 3, 0, Math.PI * 2); g.fill(); }
-  }, { repeat: true });
-}
-// fachada de un bloque de pisos (blanca: se tiñe con el color de cada bloque): una planta de 3 m y un módulo de 3,5 m
-// con su ventana, persiana, alféizar y el canto del forjado
-function flatsTexture() {
-  return canvasTex(64, 64, (g, W, H) => {
-    g.fillStyle = '#f2f0ec'; g.fillRect(0, 0, W, H);
-    g.fillStyle = '#d9d6d0'; g.fillRect(0, H - 5, W, 5);
-    g.fillStyle = '#3b4652'; g.fillRect(16, 14, 32, 30);
-    g.fillStyle = '#7c8794'; g.fillRect(16, 14, 32, 8);
-    g.fillStyle = '#ffffff'; g.fillRect(14, 44, 36, 3); g.fillRect(31, 22, 2, 22);
   }, { repeat: true });
 }
 // copa de árbol frondosa: tres o cuatro masas redondeadas de hojas (cada árbol de un verde algo distinto) con textura de
@@ -670,20 +659,19 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
       for (const s2 of [-1, 1]) tvcam(s2 * (F.HL + 3), 4.5, s2 > 0 ? Math.PI : 0);
       const m = add(mergeGeometries(parts), own(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.6 }))); m.castShadow = !low; parts.forEach(g => g.dispose()); }
     // alrededores (se ven en la llegada de la cámara y desde la grada; sin calles ni coches, como en el resto del juego):
-    // acera de adoquín con bandas de granito alrededor del zócalo, dos plazas con hileras de árboles en los fondos, un
-    // parque con alamedas alrededor y, más allá, bloques de pisos con sus ventanas
+    // acera de adoquín con bandas de granito alrededor del zócalo, dos plazas con hileras de árboles en los fondos y un
+    // parque con alamedas alrededor
     const flat = (x0, z0, x1, z1, tileM, y) => { const g = new THREE.PlaneGeometry(x1 - x0, z1 - z0).rotateX(-Math.PI / 2).translate((x0 + x1) / 2, y, (z0 + z1) / 2), uv = g.attributes.uv, p = g.attributes.position; for (let i = 0; i < uv.count; i++) uv.setXY(i, p.getX(i) / tileM, p.getZ(i) / tileM); return g; };
     apron.material.map = own(parkTexture()); apron.material.map.repeat.set(150, 150); apron.material.color.set('#ffffff'); apron.material.needsUpdate = true;
     const AX = FA[0] + 48, AZ = FA[1] + 52, K = [FA[0] + 10, FA[1] + 10];
     add(mergeGeometries([flat(-K[0], -K[1], K[0], -FA[1], 8, 0.01), flat(-K[0], FA[1], K[0], K[1], 8, 0.01), flat(-K[0], -FA[1], -FA[0], FA[1], 8, 0.01), flat(FA[0], -FA[1], K[0], FA[1], 8, 0.01),
       flat(-AX, -K[1], -K[0], K[1], 8, 0.01), flat(K[0], -K[1], AX, K[1], 8, 0.01)]),
       own(new THREE.MeshStandardMaterial({ map: own(pavingTexture()), roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 })), { receive: true });
-    const rnd2 = mulberry(5), trees = [], crowns = [], blocks = [], tops = [];
+    const rnd2 = mulberry(5), trees = [], crowns = [];
     // árboles: hileras en las plazas de los fondos y un parque alrededor
     const tree = (x, z, k = 1) => { const h = (4 + rnd2() * 2.5) * k; trees.push(new THREE.CylinderGeometry(0.2, 0.32, h, 7).translate(x, h / 2, z)); crowns.push(leafyCrown(x, h + 1.4 * k, z, (2.2 + rnd2() * 1.2) * k, rnd2)); };
     for (const sx of [-1, 1]) for (let x = K[0] + 5; x < AX - 3; x += 9) for (let z = -K[1] + 6; z < K[1] - 4; z += 9) tree(sx * x, z, 0.85);
     for (const sz of [-1, 1]) for (const d of [8, 20, 32, 44]) for (let x = -AX + 6; x < AX - 4; x += 10) tree(x + (d % 24 ? 5 : 0), sz * (K[1] + d), 0.9);
-    for (let i = 0; i < 90; i++) { const a = rnd2() * Math.PI * 2, r = 1 + rnd2() * 0.35, x = Math.cos(a) * (AX + 12) * r, z = Math.sin(a) * (AZ + 12) * r; tree(x, z); }
     // en la acera: puertas de acceso numeradas en el zócalo (hueco oscuro, marco rojo, tornos y cartel), farolas, bancos,
     // papeleras y jardineras
     { const furn = [], col = (g, c) => { g = g.index ? g.toNonIndexed() : g; const cc = new THREE.Color(c), a = []; for (let i = 0; i < g.attributes.position.count; i++) a.push(cc.r, cc.g, cc.b); g.setAttribute('color', new THREE.Float32BufferAttribute(a, 3)); return g; };
@@ -710,28 +698,13 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
       const along = (x0, z0, x1, z1, ry) => { const l = Math.hypot(x1 - x0, z1 - z0), n = Math.floor(l / 8); for (let i = 1; i < n; i++) { const t = i / n, x = x0 + (x1 - x0) * t, z = z0 + (z1 - z0) * t; if (gates.some(([gx, gz]) => Math.hypot(gx - x, gz - z) < 9)) continue; const k = i % 4; put(k === 0 ? lampG() : k === 1 ? bench() : k === 2 ? planter() : bin(), x, z, ry); } };
       along(-FA[0], FA[1] + 6, FA[0], FA[1] + 6, Math.PI); along(-FA[0], -FA[1] - 6, FA[0], -FA[1] - 6, 0); along(FA[0] + 6, -FA[1], FA[0] + 6, FA[1], -Math.PI / 2); along(-FA[0] - 6, -FA[1], -FA[0] - 6, FA[1], Math.PI / 2);
       const m = add(mergeGeometries(furn), own(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.7 }))); m.castShadow = !low; furn.forEach(g => g.dispose()); }
-    // bloques de pisos con ventanas (cada uno de un color) y su cubierta plana
-    const flatsM = own(new THREE.MeshStandardMaterial({ map: own(flatsTexture()), vertexColors: true, roughness: 0.9 }));
-    const WALLS = ['#e9dfcc', '#d8c3a5', '#f1ece2', '#c9a88a', '#e3d6bf', '#b98f74', '#dcd9d2'];
-    const blockG = (w, h, d, a, x, z, c) => {
-      const g = new THREE.BoxGeometry(w, h, d), uv = g.attributes.uv, col = new THREE.Color(c), cc = [];
-      // cada cara con sus ventanas a escala (módulo de 3,5 m de ancho y 3 m de alto); arriba y abajo, sin ventanas
-      for (let f = 0; f < 6; f++) { const fw = f < 2 ? d : f < 4 ? 0.01 : w; for (let k = 0; k < 4; k++) { const i = f * 4 + k; uv.setXY(i, uv.getX(i) * fw / 3.5, uv.getY(i) * (f >= 2 && f < 4 ? 0.01 : h / 3)); } }
-      for (let i = 0; i < g.attributes.position.count; i++) cc.push(col.r, col.g, col.b);
-      g.setAttribute('color', new THREE.Float32BufferAttribute(cc, 3));
-      return g.rotateY(-a).translate(x, h / 2, z);
-    };
-    for (let i = 0; i < 30; i++) {
-      const a = i / 30 * Math.PI * 2 + rnd2() * 0.08, r = 1.55 + rnd2() * 0.3, x = Math.cos(a) * (AX + 30) * r, z = Math.sin(a) * (AZ + 30) * r, w = 22 + rnd2() * 16, h = 15 + Math.floor(rnd2() * 7) * 3, d = 12 + rnd2() * 4;
-      blocks.push(blockG(w, h, d, a, x, z, WALLS[i % WALLS.length])); tops.push(new THREE.BoxGeometry(w + 0.6, 0.8, d + 0.6).rotateY(-a).translate(x, h + 0.4, z));
-    }
+    // (sin ciudad de relleno alrededor: los bloques de pisos genéricos parecían cajas y restaban; se ve el estadio con su
+    // acera, sus puertas y las plazas arboladas pegadas a él)
     add(mergeGeometries(trees), own(new THREE.MeshStandardMaterial({ color: '#4f3a2b', roughness: 1 })));
     add(mergeGeometries(crowns), own(new THREE.MeshStandardMaterial({ map: own(leafTexture()), vertexColors: true, roughness: 0.95 })));
-    add(mergeGeometries(blocks), flatsM);
-    add(mergeGeometries(tops), own(new THREE.MeshStandardMaterial({ color: '#7d7a76', roughness: 0.9 })));
-    trees.concat(crowns, blocks, tops).forEach(g => g.dispose());
+    trees.concat(crowns).forEach(g => g.dispose());
   } else {
-    // pueblo: muro de piedra junto a las vallas, un graderío sencillo en una banda, árboles y casas detrás
+    // pueblo: muro de piedra junto a las vallas, un graderío sencillo en una banda y árboles detrás
     const stoneMat = own(new THREE.MeshStandardMaterial({ color: '#a59a86', roughness: 0.95 }));
     const wallG = [];
     for (const [len, x, z, ry] of [[2 * bx + 0.8, 0, -bz - 0.3, 0], [2 * bx + 0.8, 0, bz + 0.3, 0], [2 * bz, -bx - 0.3, 0, Math.PI / 2], [2 * bz, bx + 0.3, 0, Math.PI / 2]]) {
@@ -750,22 +723,16 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
     add(mergeGeometries(steps), stoneMat, { receive: true }); steps.forEach(g => g.dispose());
     const rnd = mulberry(29);
     for (const [x, y, z, ry] of seats) if (rnd() < (low ? 0.42 : 0.62)) spots.push([x, y + 0.02, z, ry]);
-    const rnd3 = mulberry(11), trees = [], crowns = [], houses = [], roofsH = [];
+    const rnd3 = mulberry(11), trees = [], crowns = [];
     for (let i = 0; i < 60; i++) {
       const a = rnd3() * Math.PI * 2, rx = bx + 10 + rnd3() * 22, rz = bz + 10 + rnd3() * 18, x = Math.cos(a) * rx, z = Math.sin(a) * rz;
       const h = 3 + rnd3() * 3; trees.push(new THREE.CylinderGeometry(0.18, 0.26, h, 6).translate(x, h / 2, z));
       crowns.push(leafyCrown(x, h + 1.1, z, 1.8 + rnd3() * 1.4, rnd3));
     }
-    for (let i = 0; i < 12; i++) {
-      const x = -bx + 6 + i * (2 * bx - 12) / 11 + rnd3() * 3, z = -bz - (F.areaD ? 20 : 16) - rnd3() * 6, w = 7 + rnd3() * 3, h = 6 + rnd3() * 4;
-      houses.push(new THREE.BoxGeometry(w, h, 7).translate(x, h / 2, z));
-      const r = new THREE.ConeGeometry(w * 0.75, 2.4, 4); r.rotateY(Math.PI / 4); r.translate(x, h + 1.2, z); roofsH.push(r);
-    }
+    // (sin casas de relleno: cajas con un tejado de cono quedaban peor que nada; el campo con su muro, la grada y árboles)
     add(mergeGeometries(trees), own(new THREE.MeshStandardMaterial({ color: '#4f3a2b', roughness: 1 })));
     add(mergeGeometries(crowns), own(new THREE.MeshStandardMaterial({ map: own(leafTexture()), vertexColors: true, roughness: 0.95 })));
-    add(mergeGeometries(houses), own(new THREE.MeshStandardMaterial({ color: '#e8dcc4', roughness: 0.95 })));
-    add(mergeGeometries(roofsH), own(new THREE.MeshStandardMaterial({ color: '#a4482e', roughness: 0.9, flatShading: true })));
-    trees.concat(crowns, houses, roofsH).forEach(g => g.dispose());
+    trees.concat(crowns).forEach(g => g.dispose());
   }
   if (crowd && spots.length) { try { people = crowd(spots); if (people) S.add(people); } catch (e) { console.warn('público del fútbol', e); } }
 

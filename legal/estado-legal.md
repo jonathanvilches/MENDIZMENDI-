@@ -33,6 +33,7 @@
 
 | Fecha | Función | Respuestas (1-8) | Color | Decisión |
 |---|---|---|---|---|
+| 2026-10-07 | Fútbol: sin edificios de relleno alrededor de El Sadar y del campo del pueblo; solo el campo, su entorno inmediato y árboles | 1 no · 2 no · 3 no · 4 no · 5 no · 6 no · 7 no · 8 no | Verde | Solo se quita geometría propia; sin recursos ni datos nuevos |
 | 2026-10-07 | Fútbol: un solo fútbol (sin fútbol sala) y pases que llegan al compañero. Personajes: textura siempre por lienzo en el móvil. Pelota: cortada a dos paredes desde media izquierda, público de pie, cámara del peloteo y campos del paisaje sin dientes de sierra | 1 no · 2 no · 3 no · 4 no · 5 no · 6 no · 7 no · 8 no | Verde | Solo cambios del propio juego con los modelos del usuario; sin recursos, marcas ni datos nuevos |
 | 2026-10-07 | Pelota: la cámara retrocede cuando el rival está al fondo para ver su golpe; la cortada y la dejada botan a la vista | 1 no · 2 no · 3 no · 4 no · 5 no · 6 no · 7 no · 8 no | Verde | Solo cambios de cámara y de física del propio juego; sin recursos ni datos nuevos |
 | 2026-10-07 | Personajes con definición máxima: texturas de 2048 px rehechas desde los originales de Meshy del usuario, fondo entre piezas rellenado, lectura más nítida y resolución de render algo mayor en el móvil | 1 no · 2 no · 3 no · 4 no · 5 no · 6 no · 7 no · 8 no | Verde | Solo modelos propios del usuario (Meshy). Se mantiene el borrado de escudos, dorsales y patrocinadores: en las zonas donde el original los tenía se conserva la tela lisa ya limpia. Sin recursos de terceros nuevos |
