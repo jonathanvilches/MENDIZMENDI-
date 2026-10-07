@@ -11,7 +11,7 @@
 import * as THREE from 'three';
 import { FutbolMatch } from './match.js';
 import { menuPanel } from './hud.js';
-import { VENUES, TEAMS, RETOS, CAREER_KEY } from './rules.js';
+import { VENUES, TEAMS, RETOS, CAREER_KEY, SISTEMAS, sistemaElegido, elegirSistema } from './rules.js';
 import { CLUBS, teamOfClub, awayKit } from './clubs.js';
 import { showChampion } from '../ui/champion.js';
 import { season, newSeason, nextMatch, playRound, levelFor, ligaPanel, roundPanel, rivalPanel, clubPanel } from './liga.js';
@@ -137,7 +137,8 @@ export const FutbolSystem = {
     // (en el pueblo, solo equipos del pueblo: sin clubes de verdad)
     const rivals = Object.values(TEAMS).filter(t => t.id !== V.home && !(V.env === 'estadio' && t.id === 'pueblo') && !(V.env !== 'estadio' && t.model === 'osasuna_fuera') && !(V.env !== 'estadio' && t.id === 'osasuna')).map(t => [t.id, t.name]);
     const modes = [['match', 'Partido'], ['penalties', 'Penaltis']];   // (minijuego: partido o penaltis, sin retos de entrenamiento)
-    const v = await menuPanel({ title: title || V.name, sub: sub || (V.town || 'Fútbol'), modes, rivals, values: { mode: 'match', rival: V.away, level: 'normal', duration: 3, assist: true } });
+    const v = await menuPanel({ title: title || V.name, sub: sub || (V.town || 'Fútbol'), modes, rivals, values: { mode: 'match', rival: V.away, level: 'normal', duration: 3, assist: true, sistema: sistemaElegido(), sistemas: V.format === 'sala' ? null : Object.keys(SISTEMAS) } });
+    if (v?.sistema) elegirSistema(v.sistema);
     if (!v) return { quit: true };
     if (v.mode.startsWith('reto:')) return this.startReto({ campoId, reto: v.mode.slice(5), local });
     if (v.mode === 'penalties') return this.startPenaltis({ campoId, rival: v.rival, dificultad: v.level, local });

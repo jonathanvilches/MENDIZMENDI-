@@ -184,7 +184,7 @@ export function roundPanel(S, R, j) {
 export function clubPanel(clubId, items, sub = 'Tu club') {
   return new Promise(res => {
     const S = season(clubId);
-    const r = panel(`${head(S, sub)}<div class="lg-btns">${items.map(([id, t, s], i) => `<button class="lg-btn ${i === 0 ? 'go' : ''}" data-a="${id}">${esc(t)}${s ? `<br><small style="font:700 11px Nunito,sans-serif;opacity:.8">${esc(s)}</small>` : ''}</button>`).join('')}</div>`);
+    const r = panel(`${head(S, sub)}<div class="lg-btns">${items.map(([id, t, s], i) => `<button class="lg-btn ${i === 0 ? 'go' : ''}" data-a="${id}">${esc(t)}${s ? `<br><small style="font:700 12px Nunito,sans-serif;opacity:.8">${esc(s)}</small>` : ''}</button>`).join('')}</div>`);
     r.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; r.remove(); res(b.dataset.a); });
   });
 }

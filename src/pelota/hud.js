@@ -98,7 +98,7 @@ export class PelotaHud {
       <div class="pel-tip"></div>
       <div class="pel-stick"><div class="pel-knob"><i></i></div></div>
       ${touch ? '<div class="pel-stickhint"><svg viewBox="0 0 48 48" width="46" height="46"><path d="M24 6l6 7h-4v8h8v-4l7 7-7 7v-4h-8v8h4l-6 7-6-7h4v-8h-8v4l-7-7 7-7v4h8v-8h-4z" fill="#fff" opacity=".9"/></svg></div>' : ''}
-      <div class="pel-btns"><div class="pel-bcol"><button class="pel-btn pel-drop pel-cut" aria-label="${txt.cut}">${txt.cut}</button><button class="pel-btn pel-drop" aria-label="${txt.drop}">${txt.drop}</button></div><button class="pel-btn pel-hit" aria-label="${txt.hit}">${txt.hit}</button></div>`;
+      <div class="pel-btns"><div class="pel-bcol"><button class="pel-btn pel-drop pel-cut" data-k="cut" aria-label="${txt.cut}">${txt.cut}</button><button class="pel-btn pel-drop pel-dejada" data-k="drop" aria-label="${txt.drop}">${txt.drop}</button></div><button class="pel-btn pel-hit" aria-label="${txt.hit}">${txt.hit}</button></div>`;
     container.appendChild(r);
     this.$ = (s) => r.querySelector(s);
     this.callT = 0; this.qT = 0;
@@ -119,7 +119,7 @@ export class PelotaHud {
   ready(on) { this.$('.pel-hit').classList.toggle('ready', !!on); }
   // anillo de carga alrededor del botón que se mantiene (golpe o cortada)
   charge(p, kind) {
-    for (const [k, sel] of [['hit', '.pel-hit'], ['cut', '.pel-cut'], ['drop', '.pel-drop']]) {
+    for (const [k, sel] of [['hit', '.pel-hit'], ['cut', '.pel-cut'], ['drop', '.pel-dejada']]) {
       const b = this.$(sel); if (!b) continue;
       const v = kind === k ? p : 0; if (b._cp === v) continue; b._cp = v;
       b.style.setProperty('--cp', (v * 100).toFixed(0) + '%'); b.classList.toggle('charging', v > 0); b.classList.toggle('full', v >= 1);

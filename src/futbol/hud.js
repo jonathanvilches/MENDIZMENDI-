@@ -2,7 +2,10 @@
 // defender, Pase pasa a ser Robar y Tiro, Entrada), barras de energía y de carga, flecha del jugador fuera de pantalla,
 // tanda de penaltis, consejos del tutorial, menú previo, pausa y pantalla final. Todo con el prefijo «fb-», sin
 // solaparse en móvil (vertical y horizontal) y escritorio.
-const CSS = `
+const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;gap:16px;align-items:center;text-align:left;margin:4px 0 8px}.fb-board{width:100%;height:auto;display:block;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.fb-tac-t{margin:8px 0 6px;font-size:14px;line-height:1.3;color:#e8e2f6}.fb-tac-l{margin:0;font-size:12px;color:#c8bfe0;display:flex;gap:6px;align-items:center;flex-wrap:wrap}.fb-tac-l i{width:10px;height:10px;border-radius:50%;display:inline-block}
+@media (max-width:520px){.fb-tac{grid-template-columns:1fr}.fb-board{max-width:200px;margin:0 auto}}
+
 .fb-root{position:fixed;inset:0;z-index:900;pointer-events:none;font-family:Nunito,system-ui,sans-serif;color:#fff;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 .fb-root *{box-sizing:border-box}
 .fb-cut{position:absolute;inset:0;background:#05040a;opacity:0;pointer-events:none}.fb-cut.on{animation:fbcut .6s ease-out}@keyframes fbcut{0%,25%{opacity:1}100%{opacity:0}}
@@ -82,7 +85,9 @@ const CSS = `
 .fb-go{display:block;width:100%;margin-top:8px;border:0;border-radius:16px;padding:14px;font:400 22px 'Lilita One',Nunito,sans-serif;color:#2a1a00;background:linear-gradient(180deg,#fff38f,#ffd700 55%,#f0b000);box-shadow:0 5px 0 #a86f00;cursor:pointer;min-height:52px}
 .fb-alt{display:block;width:100%;margin-top:10px;border:2px solid rgba(255,255,255,.4);border-radius:16px;padding:11px;font:800 16px Nunito,sans-serif;color:#fff;background:transparent;cursor:pointer;min-height:48px}
 /* (los botones de seguir y salir, siempre a la vista: si la tarjeta no cabe y se desplaza, se quedan pegados abajo) */
-.fb-card .fb-go,.fb-card .fb-alt{position:sticky;bottom:0;z-index:1}.fb-card .fb-alt{background:#1f0c40}
+.fb-card{display:flex;flex-direction:column;overflow:hidden}.fb-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.fb-foot{flex:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;padding-top:10px;margin-top:2px;border-top:1px solid rgba(190,160,255,.18)}.fb-foot.n4{grid-template-columns:1fr 1fr}
+.fb-foot .fb-go,.fb-foot .fb-alt{margin:0;width:100%}.fb-foot .fb-go{order:2}.fb-foot.n1 .fb-go{max-width:340px;justify-self:center}.fb-card .fb-alt{background:#1f0c40}
 .fb-fact{margin:8px 0 2px!important;padding:8px 12px;border-radius:12px;background:rgba(40,140,80,.22);border:1px solid rgba(120,220,150,.3);color:#e3f6e8!important;font-size:14px;line-height:1.3;text-align:left}.fb-fact b{display:block;color:#ffd84a;font-size:12px;letter-spacing:.04em;text-transform:uppercase}
 .fb-stats{width:100%;border-collapse:collapse;margin:8px 0 6px;font-size:16px}
 .fb-stats td{padding:5px 6px;border-bottom:1px solid rgba(255,255,255,.1)}.fb-stats td:first-child,.fb-stats td:last-child{font-weight:900;width:22%;font-variant-numeric:tabular-nums}.fb-stats td:nth-child(2){color:#cbbcf0;font-weight:700;font-size:13px}
@@ -98,8 +103,10 @@ const CSS = `
 }
 @media (max-height:520px) and (orientation:landscape){
   .fb-panel{padding:calc(env(safe-area-inset-top,0px) + 8px) calc(env(safe-area-inset-right,0px) + 10px) calc(env(safe-area-inset-bottom,0px) + 8px) calc(env(safe-area-inset-left,0px) + 10px)}
-  .fb-card{width:min(860px,100%);padding:10px 16px 12px;display:grid;grid-template-columns:1fr 1fr;column-gap:16px;align-content:start}
-  .fb-card>*{grid-column:1/-1}.fb-card .fb-row:not(:first-of-type){grid-column:auto}.fb-card .fb-row[data-row=reto]{grid-column:1/-1}.fb-card .fb-go,.fb-card .fb-alt{grid-column:auto;margin-top:4px;min-height:44px;padding:8px}
+  .fb-card{width:min(860px,100%);padding:10px 16px 10px}
+  .fb-body{display:grid;grid-template-columns:1fr 1fr;column-gap:16px;align-content:start}
+  .fb-body>*{grid-column:1/-1}.fb-body .fb-row:not(:first-of-type){grid-column:auto}.fb-body .fb-row[data-row=reto]{grid-column:1/-1}
+  .fb-foot{padding-top:8px;gap:8px}.fb-foot .fb-go,.fb-foot .fb-alt{min-height:44px;padding:8px}.fb-foot .fb-go{font-size:20px}.fb-foot.n4{grid-template-columns:repeat(4,1fr)}
   .fb-ctrl{font-size:12px;margin:2px 0}.fb-ctrl td{padding:2px 4px}.fb-ctrl td small{display:none}.fb-ctrl td.ic svg{width:17px;height:17px}.fb-ctrl td br{display:none}
   .fb-card h2{font-size:24px}.fb-row{margin:2px 0 6px;gap:5px}.fb-row label{font-size:12px}.fb-chip{min-height:38px;padding:5px 11px;font-size:13px}
   .fb-stats{font-size:13px;margin:4px 0 2px}.fb-stats td{padding:3px 6px}.fb-big{font-size:40px;margin:2px 0}.fb-card p{margin:2px 0 6px}
@@ -276,7 +283,13 @@ export class FutbolHud {
   }
   // ---------------------------------------------------------------- paneles
   panel(html) {
-    const p = document.createElement('div'); p.className = 'fb-panel'; p.innerHTML = `<div class="fb-card">${html}</div>`;
+    // la tarjeta: arriba el contenido (que se desplaza si no cabe) y abajo, aparte, los botones; antes iban pegados
+    // dentro del contenido y en el móvil tumbado tapaban las últimas filas
+    const p = document.createElement('div'); p.className = 'fb-panel'; p.innerHTML = `<div class="fb-card"><div class="fb-body">${html}</div><div class="fb-foot"></div></div>`;
+    const body = p.querySelector('.fb-body'), foot = p.querySelector('.fb-foot');
+    for (const b of [...body.children].filter(e => e.matches('.fb-go, .fb-alt'))) foot.appendChild(b);
+    foot.classList.toggle('n1', foot.children.length === 1); foot.classList.toggle('n4', foot.children.length >= 4);
+    if (!foot.children.length) foot.remove();
     this.root.appendChild(p); return p;
   }
   /** Menú previo: modo, rival, dificultad, duración y asistencia. */
@@ -284,16 +297,16 @@ export class FutbolHud {
   menu({ title = 'Fútbol', sub = '', modes, rivals, values }) {
     return new Promise(res => {
       const v = { ...values };
-      const LABEL = { mode: 'Modo', reto: 'Retos de entrenamiento', rival: 'Rival', level: 'Dificultad', duration: 'Duración de cada parte', assist: 'Asistencia al pase y al tiro' };
+      const LABEL = { mode: 'Modo', reto: 'Retos de entrenamiento', rival: 'Rival', level: 'Dificultad', duration: 'Duración de cada parte', assist: 'Asistencia al pase y al tiro', sistema: 'Sistema' };
       const chips = (key, list, k = key) => `<div class="fb-row" data-row="${key}"><label>${LABEL[key]}</label>${list.map(([id, name]) => `<button class="fb-chip ${v[k] === id ? 'on' : ''}" data-k="${k}" data-v="${id}">${esc(name)}</button>`).join('')}</div>`;
       const main = modes.filter(([id]) => !String(id).startsWith('reto:')), retos = modes.filter(([id]) => String(id).startsWith('reto:'));
       const p = this.panel(`<p class="fb-kick">${esc(sub)}</p><h2>${esc(title)}</h2>
         ${chips('mode', main)}${retos.length ? chips('reto', retos, 'mode') : ''}${rivals.length > 1 ? chips('rival', rivals) : ''}${chips('level', [['facil', 'Fácil'], ['normal', 'Normal'], ['dificil', 'Difícil']])}
-        ${chips('duration', [[2, '2 min'], [3, '3 min'], [4, '4 min'], [5, '5 min']])}${chips('assist', [[true, 'Sí'], [false, 'No']])}
+        ${chips('duration', [[2, '2 min'], [3, '3 min'], [4, '4 min'], [5, '5 min']])}${chips('assist', [[true, 'Sí'], [false, 'No']])}${v.sistemas ? chips('sistema', v.sistemas.map(id => [id, id])) : ''}
         <button class="fb-go">¡A jugar!</button><button class="fb-alt">Salir</button>`);
       const refresh = () => {
         const m = String(v.mode), reto = m.startsWith('reto:'), pen = m === 'penalties';
-        const show = { rival: !reto, level: !reto, duration: !reto && !pen, assist: !reto && !pen };
+        const show = { rival: !reto, level: !reto, duration: !reto && !pen, assist: !reto && !pen, sistema: !reto && !pen };
         for (const row of p.querySelectorAll('.fb-row[data-row]')) if (row.dataset.row in show) row.style.display = show[row.dataset.row] ? '' : 'none';
       };
       refresh();
@@ -304,12 +317,25 @@ export class FutbolHud {
       });
     });
   }
-  pause() {
+  /** Pizarra para elegir el sistema: los once dibujados en su sitio (en ataque) y su explicación. */
+  tactic(T) {
     return new Promise(res => {
-      const p = this.panel(`<h2>Pausa</h2><p>El partido está parado.</p><button class="fb-go">Seguir</button><button class="fb-alt fb-ctl">Controles</button><button class="fb-alt">Abandonar</button>`);
+      const ids = Object.keys(T.sistemas); let cur = T.actual;
+      const board = (id) => { const S = T.sistemas[id], dots = Object.entries(S.roles).map(([k, f]) => { const x = 50 + f.atk[1] * 42, y = 92 - (f.atk[0] + 1) / 1.9 * 84; return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.2" fill="${f.line === 1 ? '#5ab0ff' : f.line === 2 ? '#ffd23a' : '#ff6a5a'}" stroke="#0b1b10" stroke-width="1.2"/>`; }).join('');
+        return `<svg viewBox="0 0 100 100" class="fb-board"><rect x="2" y="2" width="96" height="96" rx="4" fill="#2e7d3a" stroke="#e8f5e0" stroke-width="1.4"/><line x1="2" y1="50" x2="98" y2="50" stroke="#e8f5e0" stroke-width="1"/><circle cx="50" cy="50" r="10" fill="none" stroke="#e8f5e0" stroke-width="1"/><rect x="28" y="86" width="44" height="12" fill="none" stroke="#e8f5e0" stroke-width="1"/><rect x="28" y="2" width="44" height="12" fill="none" stroke="#e8f5e0" stroke-width="1"/><circle cx="50" cy="94" r="4.2" fill="#fff" stroke="#0b1b10" stroke-width="1.2"/>${dots}</svg>`; };
+      const p = this.panel(`<p class="fb-kick">Táctica</p><h2>Elige el sistema</h2><div class="fb-tac"><div class="fb-tac-b"></div><div class="fb-tac-r"><div class="fb-row">${ids.map(id => `<button class="fb-chip ${id === cur ? 'on' : ''}" data-s="${id}">${id}</button>`).join('')}</div><p class="fb-tac-t"></p><p class="fb-tac-l"><i style="background:#5ab0ff"></i>Defensa <i style="background:#ffd23a"></i>Medio <i style="background:#ff6a5a"></i>Delantera</p></div></div><button class="fb-go">Aplicar</button><button class="fb-alt">Volver</button>`);
+      const draw = () => { p.querySelector('.fb-tac-b').innerHTML = board(cur); p.querySelector('.fb-tac-t').textContent = T.sistemas[cur].text; p.querySelectorAll('[data-s]').forEach(b => b.classList.toggle('on', b.dataset.s === cur)); };
+      draw();
+      p.addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.s) { cur = b.dataset.s; draw(); return; } p.remove(); if (b.classList.contains('fb-go')) { T.pick(cur); T.actual = cur; res(cur); } else res(null); });
+    });
+  }
+  pause(T = null) {
+    return new Promise(res => {
+      const p = this.panel(`<h2>Pausa</h2><p>El partido está parado.</p><button class="fb-go">Seguir</button>${T ? `<button class="fb-alt fb-tac-btn">Táctica · ${T.actual}</button>` : ''}<button class="fb-alt fb-ctl">Controles</button><button class="fb-alt fb-quit">Abandonar</button>`);
       p.querySelector('.fb-go').onclick = () => { p.remove(); res('resume'); };
+      const tb = p.querySelector('.fb-tac-btn'); if (tb) tb.onclick = async (e) => { e.stopPropagation(); p.style.display = 'none'; const id = await this.tactic(T); if (id) tb.textContent = `Táctica · ${id}`; p.style.display = ''; };
       p.querySelector('.fb-ctl').onclick = async (e) => { e.stopPropagation(); p.style.display = 'none'; await this.controls(); p.style.display = ''; };
-      p.querySelector('.fb-alt:not(.fb-ctl)').onclick = () => { p.remove(); res('quit'); };
+      p.querySelector('.fb-quit').onclick = () => { p.remove(); res('quit'); };
     });
   }
   /** Pantalla final con las estadísticas. */

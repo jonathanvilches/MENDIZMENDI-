@@ -6,7 +6,7 @@
 //     de banda; sin fuera de juego.
 // La vista (match.js) le pasa la entrada del jugador (dirección en el mundo y botones) y recibe eventos para dibujar,
 // sonar y rotular. Se puede jugar sola (autoplay) para las pruebas, y sin gráficos (node).
-import { FIELD as F, PHYS as K, PLAYER as PL, LEVELS, FORM, ROLES, NUMBERS, LINE, KICKERS, RULES as RU, useFormat, onFormat } from './rules.js';
+import { FIELD as F, PHYS as K, PLAYER as PL, LEVELS, FORM, ROLES, NUMBERS, LINE, KICKERS, RULES as RU, useFormat, onFormat, SISTEMAS, FORMAT } from './rules.js';
 import { Ball, rollAhead } from './physics.js';
 
 let R, STEP, HW_G, N, SC;
@@ -50,6 +50,8 @@ export class FutbolGame {
       act: '', actT: 0, stun: 0, cool: 0, down: 0, recover: 0, touchT: 0, react: 0, think: 0, plan: null, tackleCD: 0, hands: false, holdT: 0, dive: null, slide: null,
       tx: 0, tz: 0, run: false, face: null, robo: null, sprinting: false }));
     this.teams = [0, 1].map(t => this.players.filter(p => p.team === t));
+    // el sistema de cada equipo (fútbol 11): el tuyo, el que elijas; el rival, el que le toque
+    if (FORMAT === 'f11') { this.setSistema(0, o.sistema || '4-4-2'); this.setSistema(1, o.sistemaRival || '4-4-2'); }
     this.team = (t) => this.teams[t];
     this.gk = (t) => this.players[t * N];
     this.me = this.byRole(0, RU.start);     // el delantero centro (el pívot en sala): el que lleva el jugador al empezar
@@ -70,6 +72,13 @@ export class FutbolGame {
     this.cards = {};   // tarjetas de cada jugador (id → 'yellow' | 'red')
     this.pen = null; this.result = null;
   }
+  /** Cambia el sistema de un equipo (también a mitad de partido): cada jugador pasa a su nuevo sitio y su nueva línea. */
+  setSistema(t, id) {
+    const S = SISTEMAS[id]; if (!S || FORMAT !== 'f11') return;
+    this.sistema ||= []; this.sistema[t] = id;
+    for (const p of this.teams[t]) { const f = S.roles[p.role]; if (!f) continue; p.form = f; p.line = f.line; p.puesto = f.name; }
+  }
+  form(p) { return p.form || FORM[p.role]; }
   byRole(t, role) { return this.players[t * N + ROLES.indexOf(role)]; }
   emit(e) { this.events.push({ ...e, at: this.time }); if (DEBUG()) console.log('[fútbol]', this.time.toFixed(2), e.t, e); }
   drain() { const e = this.events; this.events = []; return e; }
@@ -369,7 +378,7 @@ export class FutbolGame {
     if (!q || q === this.me || (q.role === 'POR' && why !== 'gk')) return;
     if (this.noSwitch && why !== 'force') return;   // en los retos siempre llevas al mismo
     // (tras un cambio que eliges tú, el automático espera más: no te quita al que acabas de coger)
-    const old = this.me; old.wx = old.vx; old.wz = old.vz; this.me = q; this.switchCD = why === 'manual' || why === 'gk' ? 1.6 : 0.6; q.plan = null;
+    const old = this.me; old.wx = old.vx; old.wz = old.vz; this.me = q; this.switchCD = why === 'manual' || why === 'gk' ? 1.6 : why === 'auto' ? 1.1 : 0.6; q.plan = null;
     if (old.role === 'POR') old.threat = null;
     this.emit({ t: 'switch', p: q.id, why });
   }
@@ -464,7 +473,7 @@ export class FutbolGame {
   humanPass(p, loft, power = null) {
     const I = this.input, f = fwd(p);
     let dx = I.mag > 0.25 ? I.x : f.x, dz = I.mag > 0.25 ? I.z : f.z; const l = hyp(dx, dz) || 1; dx /= l; dz /= l;
-    const cone = (this.assist ? PL.cone * 1.6 : PL.cone) * (I.mag > 0.85 ? 0.8 : 1);   // (con el joystick a tope, más exacto)
+    const cone = (this.assist ? PL.cone * 1.3 : PL.cone) * (I.mag > 0.85 ? 0.8 : 1);   // (con el joystick a tope, más exacto)
     const q = this.bestReceiver(p, dx, dz, cone) || (this.assist ? this.bestReceiver(p, dx, dz, Math.PI / 2) : null);
     this.stats.passes[p.team]++;
     if (power != null) return this.powerPass(p, dx, dz, power, q);
@@ -493,11 +502,18 @@ export class FutbolGame {
     const loft = (power > 0.88 && d > 18 * SC) || (lane < 1.1 && d > 14 * SC) || d > 34 * SC;
     return { x: tx, z: tz, d, loft, to: q && hyp(q.x - tx, q.z - tz) < 10 * SC ? q : null };
   }
+  /** El compañero que recibiría el pase si pasas ahora (el mismo que elige humanPass), o null. */
+  aimReceiver() {
+    const p = this.me; if (this.owner !== p || p.hands || this.defending() || this.phase !== 'play') return null;
+    const I = this.input, f = fwd(p); let dx = I.mag > 0.25 ? I.x : f.x, dz = I.mag > 0.25 ? I.z : f.z; const l = hyp(dx, dz) || 1; dx /= l; dz /= l;
+    const cone = (this.assist ? PL.cone * 1.3 : PL.cone) * (I.mag > 0.85 ? 0.8 : 1);
+    return this.bestReceiver(p, dx, dz, cone) || (this.assist ? this.bestReceiver(p, dx, dz, Math.PI / 2) : null);
+  }
   // dónde caerá el pase que se está cargando (la marca en el césped)
   passPreview() {
     const p = this.me; if (this.hold.pass < TAP || this.owner !== p || p.hands || this.defending()) return null;
     const I = this.input, f = fwd(p); let dx = I.mag > 0.25 ? I.x : f.x, dz = I.mag > 0.25 ? I.z : f.z; const l = hyp(dx, dz) || 1; dx /= l; dz /= l;
-    const cone = (this.assist ? PL.cone * 1.6 : PL.cone) * (I.mag > 0.85 ? 0.8 : 1);
+    const cone = (this.assist ? PL.cone * 1.3 : PL.cone) * (I.mag > 0.85 ? 0.8 : 1);
     const q = this.bestReceiver(p, dx, dz, cone) || (this.assist ? this.bestReceiver(p, dx, dz, Math.PI / 2) : null);
     const T = this.passTarget(p, dx, dz, this.charge, q); return { x: T.x, z: T.z, loft: T.loft, to: T.to?.id ?? null };
   }
@@ -539,7 +555,7 @@ export class FutbolGame {
       const ex = q.x - p.x, ez = q.z - p.z, d = hyp(ex, ez); if (d < 1.5 || d > 50) continue;
       const a = Math.acos(clamp((ex * dx + ez * dz) / d, -1, 1)); if (a > cone) continue;
       const lane = this.laneOpen(p.team, p.x, p.z, q.x, q.z);
-      const s = 1 - a / cone * 0.7 - Math.abs(d - 14 * SC) / (36 * SC) + Math.min(lane, 2.5) * 0.25 - (q.role === 'POR' ? 0.5 : 0) - (this.isOffside(q) ? 0.6 : 0) + (forward ? this.dir[p.team] * (q.x - p.x) / (20 * SC) : 0);
+      const s = 1 - a / cone * 1.35 - Math.abs(d - 14 * SC) / (48 * SC) + Math.min(lane, 2.5) * 0.25 - (q.role === 'POR' ? 0.5 : 0) - (this.isOffside(q) ? 0.6 : 0) + (forward ? this.dir[p.team] * (q.x - p.x) / (20 * SC) : 0);
       if (s > bs) { bs = s; best = q; }
     }
     return best;
@@ -1097,7 +1113,7 @@ export class FutbolGame {
   // ---------------------------------------------------------------- IA de equipo (4-4-2)
   /** Posición base de un jugador en ataque o en defensa, desplazada con el balón. */
   spot(p, state) {
-    const f = FORM[p.role]; if (!f) return { x: this.ownGoal(p.team) + this.dir[p.team] * 1, z: 0 };
+    const f = this.form(p); if (!f) return { x: this.ownGoal(p.team) + this.dir[p.team] * 1, z: 0 };
     const [u0, v0] = state === 'atk' ? f.atk : f.def, s = this.dir[p.team], B = this.ball.p;
     const bu = s * B.x / F.HL, bv = B.z / F.HW;
     // el bloque se mueve con el balón a lo largo y se cierra hacia su banda a lo ancho
@@ -1432,7 +1448,7 @@ export class FutbolGame {
     // cada uno en su campo con la formación de defensa; el portero bajo los palos
     for (const p of this.players) {
       if (p.off) { p.z = (p.offZ || -1) * (F.HW + 3.2); p.vx = p.vz = 0; continue; }
-      const s = this.dir[p.team], f = p.role === 'POR' ? null : FORM[p.role].def;
+      const s = this.dir[p.team], f = p.role === 'POR' ? null : this.form(p).def;
       p.x = p.role === 'POR' ? -s * (F.HL - (F.areaD ? 0.8 : 1.5)) : -s * Math.max(1.5, (-f[0]) * (F.HL - 4 * SC)); p.z = p.role === 'POR' ? 0 : s * f[1] * F.HW * 0.82;
       p.vx = p.vz = 0; p.h = s > 0 ? Math.PI / 2 : -Math.PI / 2; this.resetP(p);
     }

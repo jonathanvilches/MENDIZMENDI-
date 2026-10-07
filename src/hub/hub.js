@@ -563,9 +563,9 @@ export class Hub {
     const o = el(`<div class="onb"><div class="onb-in">
       <header class="onb-head"><div class="logo">MENDIMENDIZ</div><p class="tag">Navarra, pueblo a pueblo</p>
         <div class="langsel" role="group" aria-label="Idioma"><button data-lang="eu" class="${getLang() === 'eu' ? 'on' : ''}">Euskara</button><button data-lang="es" class="${getLang() === 'es' ? 'on' : ''}">Castellano</button><button data-lang="learn" class="${getLang() === 'learn' ? 'on' : ''}">Aprende euskera</button></div></header>
-      ${this.selector(castById(pick), { onb: true, extra: `<div class="onb-foot"><label>¿Cómo te llamas?<input id="oName" maxlength="14" autocomplete="off" placeholder="¿Cómo te llamas?" aria-label="¿Cómo te llamas?"></label>
+      ${this.selector(castById(pick), { onb: true, extra: `<div class="onb-foot"><label>¿Cómo te llamas?<input id="oName" maxlength="14" autocomplete="off" placeholder="Tu nombre" aria-label="¿Cómo te llamas?"></label>
         <div class="onb-age" role="radiogroup" aria-label="Tu edad"><span>¿Cuántos años tienes?</span>${EDADES.map(e => `<button type="button" role="radio" data-age="${e.id}" aria-checked="${e.id === age}" class="${e.id === age ? 'on' : ''}"><b>${e.name}</b><small>${e.text}</small></button>`).join('')}</div>
-        <button class="btn primary big" id="oGo">${I('play', 26)} ¡Empezar la aventura!</button></div>` })}
+        <button class="btn primary big" id="oGo">${I('play', 26)} ¡Empezar<span class="go-long"> la aventura</span>!</button></div>` })}
     </div></div>`);
     this.root.appendChild(o);
     this.bindSelector(o, pick, (a) => { pick = a.id; this.sound?.init?.(); });
