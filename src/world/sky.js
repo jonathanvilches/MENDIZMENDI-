@@ -2,30 +2,57 @@ import * as THREE from 'three';
 import { lerp, smoothstep } from '../util/math.js';
 import { groundHeight } from './heightfield.js';
 
-// texturas pintadas a mano en un lienzo: disco de la luna con sus mares y niebla suave
-function moonTex() {
-  // disco nítido con el borde algo más oscuro, mares grises de contorno irregular y cráteres con su brillo
-  const N = 256, c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d'), R = N * 0.46, C = N / 2;
-  let s = 11; const rnd = () => ((s = (s * 9301 + 49297) % 233280) / 233280);
+// texturas pintadas a mano en un lienzo: la luna con sus mares y su fase de hoy, su halo y niebla suave
+// la fase de la luna del día de hoy (0 = nueva, 0,5 = llena), contada desde una luna nueva conocida (6-1-2000)
+export function moonPhase(date = new Date()) { const syn = 29.530588853, d = (date.getTime() - Date.UTC(2000, 0, 6, 18, 14)) / 864e5; return ((d / syn) % 1 + 1) % 1; }
+// la luna pintada: disco con oscurecimiento del borde, los mares en su sitio (Lluvias, Serenidad, Tranquilidad, Crisis,
+// Fecundidad, Nubes y el gran Océano de las Tormentas), cráteres con su luz y los rayos de Tycho; la parte en sombra
+// según la fase, con la luz cenicienta (la Tierra la ilumina un poco)
+export function moonTex(phase = moonPhase()) {
+  const N = 512, c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d'), R = N * 0.44, C = N / 2;
+  let s = 7; const rnd = () => ((s = (s * 9301 + 49297) % 233280) / 233280);
   g.save(); g.beginPath(); g.arc(C, C, R, 0, Math.PI * 2); g.clip();
-  const base = g.createRadialGradient(C - R * 0.25, C - R * 0.25, R * 0.1, C, C, R);
-  base.addColorStop(0, '#fffdf2'); base.addColorStop(0.75, '#efe9d6'); base.addColorStop(1, '#cfc8b4');
+  const base = g.createRadialGradient(C - R * 0.2, C - R * 0.22, R * 0.05, C, C, R);
+  base.addColorStop(0, '#fbf8ee'); base.addColorStop(0.7, '#ece6d4'); base.addColorStop(1, '#bdb6a2');
   g.fillStyle = base; g.fillRect(0, 0, N, N);
-  for (const [x, y, r] of [[0.38, 0.36, 0.2], [0.55, 0.42, 0.14], [0.47, 0.6, 0.17], [0.66, 0.3, 0.09], [0.32, 0.58, 0.1], [0.62, 0.62, 0.08]]) {   // mares
-    for (let k = 0; k < 9; k++) { const a = rnd() * 6.28, d = rnd() * r * 0.6, rr = r * (0.5 + rnd() * 0.5); g.fillStyle = 'rgba(150,148,140,0.18)'; g.beginPath(); g.arc((x + Math.cos(a) * d) * N, (y + Math.sin(a) * d) * N, rr * N * 0.7, 0, 7); g.fill(); }
+  // mares: manchas grises de borde suave, en su sitio aproximado (vista desde el hemisferio norte)
+  const MARIA = [[-0.38, -0.32, 0.27], [0.12, -0.38, 0.17], [0.28, -0.1, 0.19], [0.62, -0.22, 0.11], [0.5, 0.18, 0.15], [-0.15, 0.32, 0.15], [-0.62, -0.02, 0.3], [-0.5, 0.42, 0.12], [0.02, -0.02, 0.1], [-0.08, -0.6, 0.12]];
+  for (const [x, y, r] of MARIA) for (let k = 0; k < 46; k++) {
+    const a = rnd() * 6.283, d = Math.sqrt(rnd()) * r * 0.85, rr = r * (0.22 + rnd() * 0.35), px = C + (x + Math.cos(a) * d) * R, py = C + (y + Math.sin(a) * d) * R;
+    const gr = g.createRadialGradient(px, py, 0, px, py, rr * R); gr.addColorStop(0, 'rgba(124,122,116,0.13)'); gr.addColorStop(1, 'rgba(118,116,112,0)');
+    g.fillStyle = gr; g.beginPath(); g.arc(px, py, rr * R, 0, 7); g.fill();
   }
-  for (let i = 0; i < 70; i++) {   // cráteres
-    const x = C + (rnd() - 0.5) * 2 * R, y = C + (rnd() - 0.5) * 2 * R, r = 1 + rnd() * rnd() * 9;
-    g.fillStyle = 'rgba(120,116,104,0.35)'; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
-    g.strokeStyle = 'rgba(255,255,248,0.45)'; g.lineWidth = Math.max(0.6, r * 0.25); g.beginPath(); g.arc(x - r * 0.15, y - r * 0.15, r, 3.4, 5.6); g.stroke();
+  // cráteres: pequeños y muchos, con el borde iluminado arriba a la izquierda y la sombra abajo
+  for (let i = 0; i < 200; i++) {
+    const a = rnd() * 6.283, d = Math.sqrt(rnd()) * R * 0.97, x = C + Math.cos(a) * d, y = C + Math.sin(a) * d, r = 1 + rnd() * rnd() * rnd() * 16;
+    const fore = 1 - (d / R) ** 2;   // cerca del borde se ven de lado (aplastados)
+    g.save(); g.translate(x, y); g.rotate(a); g.scale(Math.max(0.35, Math.sqrt(fore)), 1);
+    g.fillStyle = 'rgba(105,100,92,0.2)'; g.beginPath(); g.arc(0, 0, r, 0, 7); g.fill();
+    g.strokeStyle = 'rgba(255,255,248,0.38)'; g.lineWidth = Math.max(0.6, r * 0.2); g.beginPath(); g.arc(0, 0, r, 3.6, 5.4); g.stroke();
+    g.restore();
+  }
+  // Tycho y sus rayos (abajo), Copérnico (izquierda)
+  const ray = (cx, cy, n, L) => { for (let i = 0; i < n; i++) { const a = rnd() * 6.283, l = L * (0.4 + rnd() * 0.6); g.strokeStyle = 'rgba(255,253,240,0.16)'; g.lineWidth = 1.5 + rnd() * 2; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + Math.cos(a) * l, cy + Math.sin(a) * l); g.stroke(); } g.fillStyle = 'rgba(255,255,250,0.85)'; g.beginPath(); g.arc(cx, cy, 5, 0, 7); g.fill(); };
+  ray(C - R * 0.12, C + R * 0.7, 22, R * 0.9); ray(C - R * 0.36, C - R * 0.02, 12, R * 0.35);
+  // la fase: la parte de noche, en sombra (con un poco de luz cenicienta), con el terminador curvo
+  const ill = phase, k = Math.cos(ill * 2 * Math.PI);   // 1 nueva, -1 llena
+  if (Math.abs(ill - 0.5) < 0.485) {
+    g.fillStyle = 'rgba(14,20,40,0.86)'; g.beginPath();
+    const waxing = ill < 0.5;   // creciente: iluminada a la derecha (hemisferio norte)
+    // medio disco oscuro + elipse del terminador
+    if (waxing) { g.arc(C, C, R + 2, Math.PI / 2, Math.PI * 1.5); g.ellipse(C, C, Math.abs(k) * (R + 2), R + 2, 0, Math.PI * 1.5, Math.PI / 2, k < 0); }
+    else { g.arc(C, C, R + 2, -Math.PI / 2, Math.PI / 2); g.ellipse(C, C, Math.abs(k) * (R + 2), R + 2, 0, Math.PI / 2, Math.PI * 1.5, k < 0); }
+    g.filter = 'blur(3px)'; g.fill(); g.filter = 'none';
   }
   g.restore();
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
 }
 function moonGlowTex() {
-  const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'), r = g.createRadialGradient(64, 64, 0, 64, 64, 64);
-  r.addColorStop(0, 'rgba(220,230,255,0.55)'); r.addColorStop(0.25, 'rgba(200,215,255,0.22)'); r.addColorStop(1, 'rgba(200,215,255,0)');
-  g.fillStyle = r; g.fillRect(0, 0, 128, 128); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+  // halo en dos capas: un resplandor cercano y una aureola amplia y tenue
+  const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
+  let r = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+  r.addColorStop(0, 'rgba(225,232,255,0.6)'); r.addColorStop(0.12, 'rgba(210,222,255,0.32)'); r.addColorStop(0.35, 'rgba(190,205,250,0.1)'); r.addColorStop(1, 'rgba(190,205,250,0)');
+  g.fillStyle = r; g.fillRect(0, 0, 256, 256); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
 function mistTex() {
   const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
@@ -87,10 +114,7 @@ void main(){
   col += uSunCol * (pow(sd, 8.0) * 0.25 + pow(sd, 90.0) * 0.6) * (1.0 - uNight * 0.7);
   float disc = smoothstep(0.9993, 0.9996, sd);
   col = mix(col, vec3(1.0, 0.97, 0.9) * 1.6, disc * (1.0 - uNight));
-  // luna
-  float md = max(dot(d, normalize(-uSunDir)), 0.0);
-  col = mix(col, vec3(0.9, 0.92, 1.0), smoothstep(0.9990, 0.9994, md) * uNight);
-  col += vec3(0.5,0.55,0.8) * pow(md, 60.0) * 0.25 * uNight;
+  // (la luna es su propio disco, con su fase: ver moonTex)
   // estrellas
   if (uNight > 0.01 && h > 0.0) {
     vec2 sp = d.xz / (d.y + 0.25) * 90.0;
@@ -151,11 +175,12 @@ void main(){
     this.sunDir = new THREE.Vector3();
     this.night = 0;
     // luna visible (en la dirección de su luz) y niebla baja que se arrastra entre prados y calles de noche
-    this.moon = new THREE.Sprite(new THREE.SpriteMaterial({ map: moonTex(), transparent: true, depthWrite: false, fog: false, opacity: 0 }));
-    this.moon.scale.setScalar(95); this.moon.renderOrder = -8; scene.add(this.moon);
+    this.moonPhase = moonPhase();
+    this.moon = new THREE.Sprite(new THREE.SpriteMaterial({ map: moonTex(this.moonPhase), transparent: true, depthWrite: false, fog: false, opacity: 0 }));
+    this.moon.scale.setScalar(115); this.moon.renderOrder = -8; scene.add(this.moon);
     // halo suave alrededor de la luna (detrás del disco)
     this.moonGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: moonGlowTex(), transparent: true, depthWrite: false, fog: false, opacity: 0, blending: THREE.AdditiveBlending }));
-    this.moonGlow.scale.setScalar(420); this.moonGlow.renderOrder = -9; scene.add(this.moonGlow);
+    this.moonGlow.scale.setScalar(620); this.moonGlow.renderOrder = -9; scene.add(this.moonGlow);
     const mt = mistTex();
     this.mist = [];
     for (let i = 0; i < (quality === 'low' ? 10 : 18); i++) {
@@ -202,10 +227,14 @@ void main(){
     this.sun.position.set(fx + lightDir.x * 150, focus.y + lightDir.y * 150, fz + lightDir.z * 150);
     this.sun.target.position.set(fx, focus.y, fz);
     this.dome.position.set(focus.x, 0, focus.z);
-    const md = new THREE.Vector3(-this.sunDir.x, Math.max(0.3, -this.sunDir.y), -this.sunDir.z).normalize();
+    // la luna: sale baja y anaranjada por el horizonte y, alta, blanca; el halo, más fuerte cuanto más llena
+    const md = new THREE.Vector3(-this.sunDir.x, Math.max(0.16, -this.sunDir.y), -this.sunDir.z).normalize();
     this.moon.position.set(focus.x + md.x * 2000, focus.y + md.y * 2000, focus.z + md.z * 2000);
+    const low = 1 - smoothstep(0.16, 0.45, md.y), lit = 0.5 - 0.5 * Math.cos(this.moonPhase * Math.PI * 2);
+    this.moon.material.color.setRGB(1, 1 - 0.12 * low, 1 - 0.3 * low);
     this.moon.material.opacity = this.night; this.moon.visible = this.night > 0.02;
-    this.moonGlow.position.copy(this.moon.position); this.moonGlow.material.opacity = this.night * 0.8; this.moonGlow.visible = this.moon.visible;
+    this.moonGlow.position.copy(this.moon.position); this.moonGlow.material.opacity = this.night * (0.3 + 0.6 * lit); this.moonGlow.visible = this.moon.visible;
+    this.moonGlow.material.color.setRGB(1, 1 - 0.1 * low, 1 - 0.25 * low);
     const mo = this.night * 0.3;
     for (const s of this.mist) {
       s.visible = mo > 0.01; if (!s.visible) continue;
