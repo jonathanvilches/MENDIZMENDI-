@@ -87,7 +87,7 @@ function boxesGeo(T, list) {
   for (const b of list) {
     const g = b.plane ? new T.PlaneGeometry(b.w, b.d) : new T.BoxGeometry(b.w, b.h, b.d).toNonIndexed();
     const G = b.plane ? g.toNonIndexed() : g;
-    e.set(b.plane ? (b.up ? -Math.PI / 2 : Math.PI / 2) : 0, 0, b.rz || 0, 'ZYX'); q.setFromEuler(e); m.compose(v.set(b.x, b.y, b.z), q, one);
+    e.set(b.plane ? (b.up ? -Math.PI / 2 : Math.PI / 2) : (b.rx || 0), 0, b.rz || 0, 'ZYX'); q.setFromEuler(e); m.compose(v.set(b.x, b.y, b.z), q, one);
     G.applyMatrix4(m);
     pos.push(...G.attributes.position.array); nrm.push(...G.attributes.normal.array); uv.push(...G.attributes.uv.array);
     g.dispose(); if (G !== g) G.dispose();
@@ -340,14 +340,17 @@ export class PelotaCourt {
     const segs = (off) => { const out = []; for (let i = 0; i < path.length - 1; i++) { const [x0, z0] = path[i], [x1, z1] = path[i + 1], dx = x1 - x0, dz = z1 - z0, l = Math.hypot(dx, dz), nx = dz / l, nz = -dx / l;
       out.push({ x: (x0 + x1) / 2 + nx * off, z: (z0 + z1) / 2 + nz * off, l: l + off * (i > 0 && i < path.length - 2 ? 0.32 : 0.16) + 0.05, ry: Math.atan2(dx, dz), nx, nz }); } return out; };
     // fila: escalón, asiento de madera y respaldo, y los sitios del público mirando a la cancha
-    const row = (off, y, seats = true, step = 0.8) => { for (const s of segs(off)) {
-      const b = box(s.l, y, step, grey, s.x + s.nx * step / 2, y / 2, s.z + s.nz * step / 2, s.ry + Math.PI / 2);
+    // butacas de madera, una a una, como las del Labrit: concha de tablero curvado color miel (asiento y respaldo),
+    // reposabrazos de madera y pie de hierro; abajo, claras; en los anfiteatros, algo más oscuras
+    const seatsLo = [], seatsHi = [];
+    const row = (off, y, seats = true, step = 0.8, hi = false) => { for (const s of segs(off)) {
+      box(s.l, y, step, grey, s.x + s.nx * step / 2, y / 2, s.z + s.nz * step / 2, s.ry + Math.PI / 2);
+      box(s.l, 0.04, 0.05, cream, s.x + s.nx * 0.02, y + 0.02, s.z + s.nz * 0.02, s.ry + Math.PI / 2);   // el canto del escalón
       if (!seats) continue;
-      box(s.l, 0.07, 0.42, wood, s.x + s.nx * 0.32, y + 0.42, s.z + s.nz * 0.32, s.ry + Math.PI / 2);
-      box(s.l, 0.45, 0.06, woodDark, s.x + s.nx * 0.62, y + 0.7, s.z + s.nz * 0.62, s.ry + Math.PI / 2);
-      const n = Math.floor(s.l / 0.56), fy = Math.atan2(-s.nx, -s.nz);
-      for (let k = 0; k < n; k++) { const t = (k + 0.5) / n - 0.5, dx = Math.sin(s.ry), dz = Math.cos(s.ry);
-        this.standSpots.push([s.x + dx * t * s.l + s.nx * 0.36, y + 0.42, s.z + dz * t * s.l + s.nz * 0.36, fy]); } } };
+      const n = Math.floor(s.l / 0.54), fy = Math.atan2(-s.nx, -s.nz), dx = Math.sin(s.ry), dz = Math.cos(s.ry);
+      for (let k = 0; k < n; k++) { const t = (k + 0.5) / n - 0.5, x = s.x + dx * t * s.l + s.nx * 0.4, z = s.z + dz * t * s.l + s.nz * 0.4;
+        (hi ? seatsHi : seatsLo).push([x, y, z, fy]);
+        if (k % 2 === 0) this.standSpots.push([x - s.nx * 0.05, y + 0.44, z - s.nz * 0.05, fy]); } } };
     // grada baja: el antepecho de madera junto a la contracancha y diez filas de butacas de madera
     for (const s of segs(0.15)) { box(s.l, 1.05, 0.22, cream, s.x, 0.52, s.z, s.ry + Math.PI / 2); box(s.l, 0.1, 0.34, rail, s.x, 1.1, s.z, s.ry + Math.PI / 2); }
     for (let r = 0; r < 10; r++) row(0.5 + r * 0.8, 0.3 + r * 0.36);
@@ -355,10 +358,34 @@ export class PelotaCourt {
     const balc = (off0, y0, rows) => {
       for (const s of segs(off0)) { box(s.l, 1.0, 0.24, cream, s.x, y0 + 0.5, s.z, s.ry + Math.PI / 2); box(s.l, 0.12, 0.36, rail, s.x, y0 + 1.05, s.z, s.ry + Math.PI / 2);
         box(s.l, 0.55, rows * 0.8 + 0.4, cream, s.x + s.nx * (rows * 0.4 + 0.2), y0 - 0.28, s.z + s.nz * (rows * 0.4 + 0.2), s.ry + Math.PI / 2); }   // el forjado (por debajo, el techo escalonado)
-      for (let r = 0; r < rows; r++) row(off0 + 0.4 + r * 0.8, y0 + r * 0.4, true);
+      for (let r = 0; r < rows; r++) row(off0 + 0.4 + r * 0.8, y0 + r * 0.4, true, 0.8, true);
       for (const s of segs(off0 + 0.6)) { const dx = Math.sin(s.ry), dz = Math.cos(s.ry); for (let t = -0.5; t <= 0.5; t += 0.5) if (s.l > 4 || t === 0) box(0.32, y0 - 0.5, 0.32, cream, s.x + dx * t * s.l * 0.9, (y0 - 0.5) / 2, s.z + dz * t * s.l * 0.9); }
     };
     balc(8.2, 5.2, 4); balc(10.4, 8.6, 4);
+    { const shell = boxesGeo(T, [{ w: 0.46, h: 0.045, d: 0.42, x: 0, y: 0.44, z: 0.04 }, { w: 0.46, h: 0.5, d: 0.04, x: 0, y: 0.72, z: -0.2, rx: -0.2 },
+        { w: 0.05, h: 0.04, d: 0.36, x: -0.255, y: 0.64, z: 0.02 }, { w: 0.05, h: 0.04, d: 0.36, x: 0.255, y: 0.64, z: 0.02 }]);
+      const frame = boxesGeo(T, [{ w: 0.05, h: 0.44, d: 0.05, x: -0.255, y: 0.22, z: -0.08 }, { w: 0.05, h: 0.44, d: 0.05, x: 0.255, y: 0.22, z: -0.08 },
+        { w: 0.04, h: 0.22, d: 0.04, x: -0.255, y: 0.54, z: 0.14 }, { w: 0.04, h: 0.22, d: 0.04, x: 0.255, y: 0.54, z: 0.14 }]);
+      const woodLo = M({ color: '#d89c56', roughness: 0.42 }), woodHi = M({ color: '#a8703a', roughness: 0.48 }), iron = M({ color: '#2c2f33', roughness: 0.5, metalness: 0.5 });
+      const mt = new T.Matrix4(), q = new T.Quaternion(), up = new T.Vector3(0, 1, 0), one = new T.Vector3(1, 1, 1), v = new T.Vector3();
+      const inst = (geo, mat, list) => { if (!list.length) return; const im = new T.InstancedMesh(geo, mat, list.length);
+        list.forEach(([x, y, z, ry], i) => { q.setFromAxisAngle(up, ry); mt.compose(v.set(x, y, z), q, one); im.setMatrixAt(i, mt); });
+        im.instanceMatrix.needsUpdate = true; im.computeBoundingSphere?.(); im.receiveShadow = true; im.name = 'butacas'; g.add(im); };
+      inst(shell, woodLo, seatsLo); inst(shell, woodHi, seatsHi); if (TEX_K >= 1) inst(frame, iron, seatsLo.concat(seatsHi)); }   // (en el móvil, sin los pies de hierro: casi no se ven y pesan)
+    // la tarima de la contracancha: tablillas estrechas de haya clara, a lo largo de la cancha y a juntas
+    // encontradas, barnizadas y con brillo (lo más reconocible del Labrit)
+    { const PW = 1.3, PL = 2.6, tex = canvasTex(T, 512, 1024, (c, w, h) => {
+        const n = 20, sw = w / n;
+        for (let i = 0; i < n; i++) { let z = -Math.random() * h * 0.4; while (z < h) { const L = h * (0.2 + Math.random() * 0.26), t = 0.86 + Math.random() * 0.2;
+          const r = Math.round(222 * t), gg = Math.round(166 * t), bb = Math.round(100 * t); c.fillStyle = `rgb(${r},${gg},${bb})`; c.fillRect(i * sw + 0.6, z + 0.6, sw - 1.2, L - 1.2);
+          c.strokeStyle = `rgba(120,70,25,${0.12 + Math.random() * 0.1})`; c.lineWidth = 1;
+          for (let k = 0; k < 3; k++) { const gx = i * sw + 2 + Math.random() * (sw - 4); c.beginPath(); c.moveTo(gx, z + 2); c.bezierCurveTo(gx + 2, z + L * 0.3, gx - 2, z + L * 0.7, gx + 1, z + L - 2); c.stroke(); }
+          z += L; } }
+        c.fillStyle = 'rgba(255,245,220,.06)'; c.fillRect(0, 0, w, h); }, [CONTRA / PW, (EXT + 0.4) / PL]);
+      const par = new T.Mesh(new T.PlaneGeometry(CONTRA + 0.02, EXT + 0.4), M({ map: tex, roughness: 0.32, metalness: 0.02 }));
+      par.rotation.x = -Math.PI / 2; par.position.set(W / 2 + CONTRA / 2, 0.006, (EXT + 0.4) / 2); par.receiveShadow = true; g.add(par);
+      // la raya blanca que separa la cancha de la contracancha
+      box(0.1, 0.012, EXT + 0.4, white, W / 2, 0.007, (EXT + 0.4) / 2); }
     // --- el edificio por dentro: paredes verdes altas a la izquierda y detrás del frontis, blanco a la derecha del frontis
     const xa = -W / 2 - 0.6, xb = xr + 14.6, za = -1.0, zb = zf + 14.6;
     const brick = M({ color: '#a4583c', roughness: 0.9 });
@@ -415,8 +442,34 @@ export class PelotaCourt {
     const wallTex = canvasTex(T, 1024, 256, (c, w, h) => ashlar(c, w, h, 40, 10, '#b9a27e'), [3, 1]);
     const mur = new T.Mesh(new T.BoxGeometry(4, 10, 130), M({ map: wallTex, roughness: 0.95 })); mur.position.set(xa - 24, 5, (za + zb) / 2 + 10); mur.rotation.y = 0.06; g.add(mur);
     const leaf = M({ color: '#4c7a3e', roughness: 0.9 }), trunk = M({ color: '#5d4630', roughness: 0.9 });
-    for (let i = 0; i < 6; i++) { const tz = zb + 12 + (i % 2) * 8, tx = xa - 14 + Math.floor(i / 2) * 9;
+    for (let i = 0; i < 6; i++) { const tz = zb + 10 + (i % 3) * 7, tx = i < 3 ? xa - 6 : xb + 4;
       box(0.4, 3, 0.4, trunk, tx, 1.5, tz); const cr = new T.Mesh(new T.IcosahedronGeometry(2.2, 0), leaf); cr.position.set(tx, 4.2, tz); g.add(cr); }
+    // --- la ciudad alrededor: el Labrit está en pleno Iruña, entre casas de pisos de cinco y seis alturas con balcones,
+    // calles con farolas y, a un lado, la muralla y el baluarte
+    { const facade = (base) => canvasTex(T, 512, 512, (c, w, h) => {
+        const fl = 6, fh = h / fl, cols = 4, cw = w / cols;
+        c.fillStyle = base; c.fillRect(0, 0, w, h); grain(c, w, h, 4000, 0.05);
+        c.fillStyle = '#7d7466'; c.fillRect(0, h - fh, w, fh);   // bajo de piedra con los portales y las tiendas
+        for (let i = 0; i < cols; i++) { c.fillStyle = i % 2 ? '#2d3236' : '#3b2f27'; c.fillRect(i * cw + cw * 0.18, h - fh * 0.92, cw * 0.64, fh * 0.82); }
+        for (let f = 1; f < fl; f++) for (let i = 0; i < cols; i++) {
+          const x0 = i * cw + cw * 0.3, y0 = h - (f + 1) * fh + fh * 0.18, ww = cw * 0.4, hh = fh * 0.66;
+          c.fillStyle = '#f4f1ea'; c.fillRect(x0 - 3, y0 - 3, ww + 6, hh + 6); c.fillStyle = '#2a3a46'; c.fillRect(x0, y0, ww, hh);
+          c.fillStyle = '#4f6d5a'; c.fillRect(x0 - ww * 0.32, y0, ww * 0.28, hh); c.fillRect(x0 + ww * 1.04, y0, ww * 0.28, hh);   // contraventanas
+          if (f < fl - 1) { c.strokeStyle = '#1e1e1e'; c.lineWidth = 2; c.strokeRect(x0 - 6, y0 + hh * 0.6, ww + 12, hh * 0.4); for (let k = 0; k <= 6; k++) { c.beginPath(); c.moveTo(x0 - 6 + k * (ww + 12) / 6, y0 + hh * 0.6); c.lineTo(x0 - 6 + k * (ww + 12) / 6, y0 + hh); c.stroke(); } }
+        }
+        c.fillStyle = 'rgba(0,0,0,.18)'; c.fillRect(0, 0, w, fh * 0.12); });
+      const looks = ['#dcc39a', '#ece2cf', '#cf9c84', '#d7cdb3'].map(facade), roof = M({ color: '#94493a', roughness: 0.85 });
+      const block = (x, z, w, d, k) => { const H = 18, mats = [];
+        for (const len of [d, d, w, w]) { const t = looks[k % looks.length].clone(); t.needsUpdate = true; t.wrapS = T.RepeatWrapping; t.repeat.set(len / 12, 1); mats.push(M({ map: t, roughness: 0.9 })); }
+        const m = new T.Mesh(new T.BoxGeometry(w, H, d), [mats[0], mats[1], roof, roof, mats[2], mats[3]]); m.position.set(x, H / 2, z); g.add(m);
+        const r = new T.Mesh(new T.BoxGeometry(w + 0.6, 0.5, d + 0.6), roof); r.position.set(x, H + 0.25, z); g.add(r); };
+      block(-8, za - 26, 30, 20, 0); block(28, za - 26, 30, 20, 1);
+      block(xb + 25, 6, 20, 32, 2); block(xb + 25, 44, 20, 34, 3);
+      block(-6, zb + 48, 32, 20, 1); block(32, zb + 48, 32, 20, 0);
+      const lamp = M({ color: '#2b2e31', roughness: 0.5, metalness: 0.4 }), bulb = new T.MeshBasicMaterial({ color: '#fff3d6' });
+      for (const [lx, lz] of [[xb + 7, 4], [xb + 7, 22], [xb + 7, 40], [4, za - 8], [22, za - 8], [xc - 10, zb + 9], [xc + 10, zb + 9]]) {
+        box(0.14, 4.6, 0.14, lamp, lx, 2.3, lz); const b = new T.Mesh(new T.SphereGeometry(0.22, 8, 6), bulb); b.position.set(lx, 4.7, lz); g.add(b); }
+    }
     this.extent = { x0: xa - 1, x1: xb + 1, z0: za - 1, z1: zb + 1 };
     this.boxes = this.boxes.filter(b => b.d !== L * 0.78);
     this.boxes.push({ x: (xr + xb) / 2, z: (2.2 + zf) / 2, w: xb - xr, d: zf - 2.2 }, { x: (xa + xr) / 2, z: (zf + zb) / 2, w: xr - xa, d: zb - zf });
