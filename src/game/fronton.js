@@ -1,7 +1,7 @@
 // Frontón de los pueblos y partido de pelota a mano con el motor común de src/pelota.
 // Aquí solo se adapta el motor al juego: dónde va el frontón, colisiones, personajes, cámara e interfaz.
 import * as THREE from 'three';
-import { armSwing, GlbRig, loadMeshy, hasMeshy, loadedMeshy } from '../actors/glbChar.js';
+import { armSwing, GlbRig, loadMeshy, hasMeshy, loadedMeshy, fullTexFor } from '../actors/glbChar.js';
 import { PelotaCourt, PelotaMatch } from '../pelota/index.js';
 import { terrainHeight, waterLevelAt, addPlatform, onPlatform } from '../world/heightfield.js';
 import { addBox, rectFree } from '../world/colliders.js';
@@ -164,11 +164,11 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // (si ya juegas con el pelotari, no hace falta cambiar; los modelos se piden antes, al acercarte al frontón)
     const wait = !loadedMeshy('pelotari') || !loadedMeshy('pelotari_rojo');
     if (wait) G.ui.toast?.(isEU() ? 'Pilotariak prestatzen…' : 'Preparando a los pelotaris…', 'pelota', 1800);
-    if (rig0.id !== 'pelotari' && hasMeshy('pelotari')) try { pel = new GlbRig(await loadMeshy('pelotari'), 'pelotari'); } catch (e) { console.warn('pelotari', e); }
+    if (rig0.id !== 'pelotari' && hasMeshy('pelotari')) try { fullTexFor('pelotari'); pel = new GlbRig(await loadMeshy('pelotari'), 'pelotari'); } catch (e) { console.warn('pelotari', e); }
     // (el cuerpo de siempre se aparta del todo mientras dura el partido: así nada lo vuelve a mostrar)
     if (pel) { hidden.push(...P.obj.children); for (const c of hidden) P.obj.remove(c); P.obj.add(pel.char.root); rig = pel; }
     // y el rival juega de rojo (el pelotari colorado), como en los partidos de verdad: azules contra colorados
-    if (hasMeshy('pelotari_rojo')) try { red = new GlbRig(await loadMeshy('pelotari_rojo'), 'pelotari_rojo'); } catch (e) { console.warn('pelotari rojo', e); }
+    if (hasMeshy('pelotari_rojo')) try { fullTexFor('pelotari_rojo'); red = new GlbRig(await loadMeshy('pelotari_rojo'), 'pelotari_rojo'); } catch (e) { console.warn('pelotari rojo', e); }
     if (red) { hiddenR.push(...rival.obj.children); for (const c of hiddenR) rival.obj.remove(c); rival.obj.add(red.char.root); red.setStance('Ready'); }
     // el partido anima al jugador y coloca a los dos: el rig del jugador pasa a nuestras manos
     P.rig = { update() { }, doAct() { }, doCheer() { }, doWave() { }, setExpr() { } };

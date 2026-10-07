@@ -5,7 +5,7 @@
 // siguen en lámina (de lejos no se distinguen y cuestan casi nada). Cada espectador es la misma figura de cerca y de lejos.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { GlbChar, loadMeshy, MESHY_GAIT } from './glbChar.js';
+import { GlbChar, loadMeshy, MESHY_GAIT, sharpMap } from './glbChar.js';
 import { crowdMesh, figure, FIGS, sitPose } from './crowdSprites.js';
 import { QUALITY } from '../util/quality.js';
 import { crowdProps } from './crowdProps.js';
@@ -73,7 +73,7 @@ function bakeMesh(o) {
 const texMats = new Map();
 function texMat(map) {
   if (!map) return MAT;
-  if (!texMats.has(map)) { const m = new THREE.MeshStandardMaterial({ map, roughness: 0.82, emissive: 0xffffff, emissiveMap: map, emissiveIntensity: 0.38 }); texMats.set(map, m); }
+  if (!texMats.has(map)) { const m = new THREE.MeshStandardMaterial({ map, roughness: 0.82, emissive: 0xffffff, emissiveMap: map, emissiveIntensity: 0.38 }); sharpMap(m); texMats.set(map, m); }
   return texMats.get(map);
 }
 const shown = (o) => { for (let p = o; p; p = p.parent) if (!p.visible) return false; return true; };
