@@ -289,6 +289,8 @@ export class Runtime {
     this.terrain.update(this.camera.position);
     this.sky.update(dt, P.pos, this.elapsed, g.mode === 'dance');
     this.weather?.update(dt, this.camera, this.sky, this.sound, g.mode === 'futbol' || g.mode === 'pelota');
+    this.sky.applyFlood();   // (los focos del frontón, después de la lluvia)
+    g.fronton?.court?.setLights?.(Math.min(1, this.sky.night * 1.6));   // (los focos se encienden al anochecer)
     this.water.update(this.elapsed, this.sky);
     this.nature.update(this.camera.position, P.pos, this.elapsed, P.pos);
     updateDetail(this.camera.position, this.quality);

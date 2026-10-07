@@ -145,7 +145,7 @@ export class PelotaCourt {
       weather(c, w, h, C.FRONT_H, W + 0.6);
       const Y = (y) => h - y / C.FRONT_H * h;
       // nombre del pueblo en lo alto del frontis, como en los frontones de verdad
-      paintName(c, title, w / 2, Y(7.7), w * 0.86, h * 0.1);
+      // (sin el nombre del pueblo: va solo en la pared izquierda)
       c.fillStyle = th.mark; c.fillRect(0, Y(C.FRONT_TOP) - 12, w, 24);            // raya superior
       c.strokeStyle = th.line; c.lineWidth = 12; c.beginPath(); c.moveTo(w - 6, 0); c.lineTo(w - 6, h); c.stroke(); // raya lateral derecha
     });
@@ -155,8 +155,7 @@ export class PelotaCourt {
       else if (th.brick) bricks(c, w, h, W + 0.6, C.FRONT_H, '#a85c3e');
       else { c.fillStyle = th.wall; c.fillRect(0, 0, w, h); grain(c, w, h, 16000, 0.06); grain(c, w, h, 5000, 0.05, false); }
       weather(c, w, h, C.FRONT_H, W + 0.6);
-      paintName(c, title ? 'FRONTÓN' : '', w / 2, h * 0.3, w * 0.5, h * 0.06, '#fdfaf2');
-      paintName(c, title, w / 2, h * 0.42, w * 0.84, h * 0.11, '#fdfaf2');
+      paintName(c, title ? 'FRONTÓN' : '', w / 2, h * 0.36, w * 0.5, h * 0.07, '#fdfaf2');   // (el nombre del pueblo, solo en la pared izquierda)
     });
     const frontEnd = canvasTex(T, 256, 1024, (c, w, h) => { if (th.stone) ashlar(c, w, h, 0.8, C.FRONT_H, th.stone); else { c.fillStyle = th.frontis; c.fillRect(0, 0, w, h); grain(c, w, h, 6000, 0.06); grain(c, w, h, 2000, 0.05, false); } weather(c, w, h, C.FRONT_H, 0.8); });
     const front = new T.Mesh(new T.BoxGeometry(W + 0.6, C.FRONT_H, 0.8), [M({ map: frontEnd }), M({ map: frontEnd }), M({ color: th.stone || th.frontis }), M({ color: th.stone || th.frontis }), M({ map: frontTex }), M({ map: backTex })]);
@@ -277,6 +276,7 @@ export class PelotaCourt {
       { x: W / 2 + CONTRA + 1.65, z: L * 0.52, w: 3.3, d: L * 0.78 },
     ];
     if (th.roof) this.buildRoof(T, M, th, -W / 2 - 0.6, W / 2 + CONTRA + 3.3, -0.9, EXT + 0.5);
+    this.buildFloods(T, M, !!th.roof, W, CONTRA, EXT);
 
     // --- pelota, sombra, estela y ayudas
     const ball = this.ball = new T.Group();
@@ -313,6 +313,48 @@ export class PelotaCourt {
     const wd = this.aimWall = new T.Mesh(new T.RingGeometry(0.16, 0.26, 24), aim.material); wd.rotation.y = Math.PI / 2; wd.visible = false; wd.renderOrder = 3; g.add(wd);
     this.materials?.push(pathMat, aim.material, this.aimLand.material);
     this.hideBall();
+  }
+  // focos: proyectores sobre la pared izquierda y en torres junto a la grada (con cubierta, colgados de ella). De día
+  // son hierro gris; de noche (setLights) la cara se enciende blanca con su halo. La luz de la cancha la ponen el cielo
+  // y el juego (sin luces nuevas: en el móvil rehacen todos los sombreadores)
+  buildFloods(T, M, roof, W, CONTRA, EXT) {
+    const C = COURT, housing = M({ color: '#3a3f44', roughness: 0.5, metalness: 0.4 }), pole = M({ color: '#6b7176', roughness: 0.6, metalness: 0.3 });
+    const face = this.floodFace = new T.MeshBasicMaterial({ color: '#8a8d90' });
+    const gc = document.createElement('canvas'); gc.width = gc.height = 64; const gx = gc.getContext('2d'), gr = gx.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gr.addColorStop(0, 'rgba(255,250,230,1)'); gr.addColorStop(0.25, 'rgba(255,240,200,.55)'); gr.addColorStop(1, 'rgba(255,230,180,0)'); gx.fillStyle = gr; gx.fillRect(0, 0, 64, 64);
+    const glowMat = this.floodGlow = new T.SpriteMaterial({ map: srgb(T, new T.CanvasTexture(gc)), transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, fog: false });
+    const g = new T.Group(); g.name = 'focos'; this.group.add(g); this.floods = g;
+    const head = (x, y, z, rx, rz) => {
+      const h = new T.Group(); h.position.set(x, y, z); h.rotation.set(rx, 0, rz);
+      const box = new T.Mesh(new T.BoxGeometry(1.3, 0.28, 0.6), housing); h.add(box);
+      const f = new T.Mesh(new T.PlaneGeometry(1.15, 0.48), face); f.rotation.x = Math.PI / 2; f.position.y = -0.145; h.add(f);
+      const s = new T.Sprite(glowMat); s.scale.set(3.4, 3.4, 1); s.position.y = -0.4; h.add(s);
+      g.add(h);
+    };
+    const zs = [4, 12, 20, 28].filter(z => z < EXT);
+    if (roof) {
+      const y = C.FRONT_H + 0.6;
+      for (const z of zs) { head(-W / 2 + 1.2, y, z, 0, 0.35); head(W / 2 + CONTRA * 0.5, y, z, 0, -0.35); }
+    } else {
+      // brazos sobre la pared izquierda, inclinados hacia la cancha
+      for (const z of zs) {
+        const arm = new T.Mesh(new T.BoxGeometry(1.6, 0.12, 0.12), pole); arm.position.set(-W / 2 + 0.5, C.LEFT_H + 0.9, z); g.add(arm);
+        const up = new T.Mesh(new T.BoxGeometry(0.12, 1.0, 0.12), pole); up.position.set(-W / 2 - 0.25, C.LEFT_H + 0.45, z); g.add(up);
+        head(-W / 2 + 1.25, C.LEFT_H + 0.75, z, 0, 0.45);
+      }
+      // torres detrás de la grada
+      const px = W / 2 + CONTRA + 3.6, ph = 11.5;
+      for (const z of [6, 17, 28].filter(z => z < EXT)) {
+        const m = new T.Mesh(new T.CylinderGeometry(0.11, 0.16, ph, 8), pole); m.position.set(px, ph / 2, z); g.add(m);
+        head(px - 0.4, ph, z, 0, -0.55);
+      }
+    }
+    g.traverse(o => { if (o.isMesh) o.castShadow = o.receiveShadow = false; });
+  }
+  /** Enciende los focos (k de 0 a 1: de noche, 1). */
+  setLights(k) {
+    if (!this.floodFace || this._lk === k) return; this._lk = k;
+    this.floodFace.color.set('#8a8d90').lerp(new this.THREE.Color('#fffaf0'), k); this.floodGlow.opacity = 0.9 * k;
   }
   // cubierta: 'wood', pórticos de madera laminada atirantados con acero (como los frontones nuevos de la Cuenca y de la
   // montaña); 'metal', cerchas de acero con chapa y una franja translúcida junto a la cumbrera (como Labrit). A dos

@@ -18,7 +18,7 @@ for (const level of ['facil', 'normal', 'dificil']) {
   let dev = 0, n = 0;
   for (const x of [-3, -1, 1, 3]) for (const z of [12, 15, 18, 22]) for (const pow of [0.15, 0.5, 0.9]) for (const ax of [-0.5, 0, 0.5]) for (const seed of [1, 2]) { n++; if (one(level, { x, y: 1, z }, pow, ax, seed) === 'devuelta') dev++; }
   const pc = Math.round(dev / n * 100); console.log(level.padEnd(8), `devuelve ${dev} de ${n} dejadas (${pc} %)`);
-  if (pc < 15 || pc > 75) bad++;
+  if (pc < 40 || pc > 93) bad++;   // (llega a la mayoría: solo se le escapan las pegadas al frontis)
   if (level !== 'facil' && pc < prev) bad++; prev = pc;
 }
 console.log(bad ? 'Fuera de rango' : 'Todo correcto');
