@@ -138,7 +138,7 @@ export async function makeCharacter(d) {
 // El fútbol desde el pueblo: en El Sadar (fútbol 11, con la entrenadora de Osasuna) o en la pista del pueblo (fútbol
 // sala, con el entrenador del club del pueblo). opts: { campo, title, sub, local: { name, short } }
 export class Futbol {
-  constructor(G, lm, opts = {}) { this.G = G; this.lm = lm; this.opts = { campo: 'sadar', title: 'El Sadar', sub: 'Fútbol 11 con la cantera', ...opts }; }
+  constructor(G, lm, opts = {}) { this.G = G; this.lm = lm; this.opts = { campo: 'sadar', title: 'El Sadar', sub: 'Partido de fútbol', ...opts }; }
   update() {}
   setup() {
     const G = this.G;

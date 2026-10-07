@@ -211,17 +211,15 @@ async function boot() {
       for (;;) {
         if (!club) { club = await clubPick(); if (!club) break; P.futbolClub = club; saveProfile(); }
         const S = season(club), C = CLUBS[club];
-        const items = [['liga', S.j < S.rounds.length ? `Liga Navarra · jornada ${S.j + 1}` : 'Liga Navarra · nueva temporada', 'Fútbol 11 contra los clubes de tu grupo'],
-          ['amistoso', 'Amistoso', 'Contra cualquier club de Navarra'], ['sadar', 'El Sadar', 'Fútbol 11 en el estadio de Iruña'],
-          ['sala', 'Fútbol sala', '5 contra 5 en la pista del pueblo'], ['club', 'Cambiar de club', C.name], ['exit', 'Salir', '']];
+        const items = [['liga', S.j < S.rounds.length ? `Liga Navarra · jornada ${S.j + 1}` : 'Liga Navarra · nueva temporada', 'Contra los clubes de tu grupo'],
+          ['amistoso', 'Amistoso', 'Contra cualquier club de Navarra'], ['sadar', 'Partido en El Sadar', 'En el estadio de Iruña'], ['club', 'Cambiar de club', C.name], ['exit', 'Salir', '']];
         const pick = await clubPanel(club, items, 'Campeonato de fútbol');
         if (pick === 'exit') break;
         if (pick === 'club') { club = null; continue; }
-        const fut = new Futbol(G, null, pick === 'sala' ? { campo: 'pista', title: `Pista de ${C.town}`, sub: 'Fútbol sala 5 contra 5', local: teamOfClub(club) } : {});
+        const fut = new Futbol(G, null, {});   // (un solo fútbol: ya no hay fútbol sala)
         if (pick === 'liga') { const r = await fut.liga(club); if (!r.quit && r.win) addXP(30); }
         else if (pick === 'amistoso') await fut.friendly(club);
         else if (pick === 'sadar') await fut.match(undefined, 'normal', 3);
-        else await fut.match('vecinos', 'normal', 2);
       }
     } catch (e) { console.error('[fútbol] campeonato', e); }
     finally {
