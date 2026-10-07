@@ -1,9 +1,10 @@
 // Partido de pelota a mano: une la lógica (game.js), el frontón (court.js), la interfaz (hud.js) y el sonido.
 // El juego anfitrión pone el frontón en su escena, llama a update(dt) en cada fotograma y renderiza con su cámara.
 import { COURT, TEXT } from './rules.js';
-import { PelotaGame } from './game.js';
+import { PelotaGame, cutHeight, dropHeight } from './game.js';
 import { PelotaHud, esc } from './hud.js';
 import { PelotaAudio } from './audio.js';
+const clamp1 = (v) => Math.max(-1, Math.min(1, v));
 
 export class PelotaMatch {
   /**
@@ -103,11 +104,11 @@ export class PelotaMatch {
       e.preventDefault(); e.stopPropagation();
       if (down && !I.keys[k]) {
         if (k === ' ' || k === 'j' || k === 'e' || k === 'enter') this.chargeStart('hit');
-        if (k === 'shift' || k === 'k') I.dropQ = true;
+        if (k === 'shift' || k === 'k') this.chargeStart('drop');
         if (k === 'l') this.chargeStart('cut');
         if (k === 'escape') { if (hud.panelEl) return; this.confirmExit(); }
       }
-      if (!down && I.keys[k]) { if (k === ' ' || k === 'j' || k === 'e' || k === 'enter') this.chargeEnd('hit'); if (k === 'l') this.chargeEnd('cut'); }
+      if (!down && I.keys[k]) { if (k === ' ' || k === 'j' || k === 'e' || k === 'enter') this.chargeEnd('hit'); if (k === 'l') this.chargeEnd('cut'); if (k === 'shift' || k === 'k') this.chargeEnd('drop'); }
       I.keys[k] = down;
     };
     addEventListener('keydown', this.onKey, true); addEventListener('keyup', this.onKey, true);
@@ -132,14 +133,14 @@ export class PelotaMatch {
     });
     const end = (e) => { if (e.pointerId !== I.stick.id) return; I.stick = { id: null, x: 0, y: 0 }; knob.style.display = 'none'; };
     zone.addEventListener('pointerup', end); zone.addEventListener('pointercancel', end); zone.addEventListener('lostpointercapture', end);
-    // botones: la dejada, al pulsar; el golpe y la cortada se cargan mientras se mantienen y salen al soltar
+    // botones: el golpe, la cortada y la dejada se cargan mientras se mantienen y salen al soltar (un toque, suave)
     const btn = (sel, flag, charge) => {
       const b = hud.$(sel);
       b.addEventListener('pointerdown', (e) => { e.preventDefault(); b.classList.add('down'); this.audio.ensure(); if (charge) this.chargeStart(charge); else I[flag] = true; });
       const up = () => { b.classList.remove('down'); if (charge) this.chargeEnd(charge); };
       b.addEventListener('pointerup', up); b.addEventListener('pointerleave', up); b.addEventListener('pointercancel', up);
     };
-    btn('.pel-hit', 'hitQ', 'hit'); btn('.pel-drop', 'dropQ'); btn('.pel-cut', 'cutQ', 'cut');
+    btn('.pel-hit', 'hitQ', 'hit'); btn('.pel-drop', 'dropQ', 'drop'); btn('.pel-cut', 'cutQ', 'cut');
     hud.$('.pel-exit').addEventListener('click', () => { if (!hud.panelEl) this.confirmExit(); });
   }
   // carga del golpe: cuanto más se mantiene, más fuerte (a tope en 0,7 s); un toque corto es un golpe suave
@@ -148,7 +149,7 @@ export class PelotaMatch {
   chargeEnd(kind) {
     const I = this.input, c = I.charge; if (!c || c.kind !== kind) return;
     I.power = 0.15 + this.chargeLevel() * 0.85; I.charge = null;
-    if (kind === 'cut') I.cutQ = true; else I.hitQ = true;
+    if (kind === 'cut') I.cutQ = true; else if (kind === 'drop') I.dropQ = true; else I.hitQ = true;
   }
   readInput() {
     const I = this.input, k = I.keys;
@@ -219,6 +220,16 @@ export class PelotaMatch {
       C.spotRing.position.set(h.spot.x, 0.025, h.spot.z);
       const you = g.players.you, inside = Math.hypot(you.x - h.spot.x, you.z - h.spot.z) < 0.8;
       C.spotRing.material.color.set(inside ? '#7dff9c' : '#39d86b'); C.spotRing.material.opacity = inside ? 1 : 0.7;
+    }
+    // marca de puntería en el frontis mientras se carga la cortada o la dejada: sube con la fuerza (poca carga, rozando
+    // la chapa; a tope, a media altura) y se mueve a lo ancho con el joystick
+    const ch = this.input.charge;
+    if (C.aimMark) {
+      const on = !!ch && (ch.kind === 'cut' || ch.kind === 'drop') && (g.phase === 'rally' || g.phase === 'servePrep');
+      C.aimMark.visible = on;
+      if (on) { const k = this.input.stick, ax = clamp1((this.input.keys.d || this.input.keys.arrowright ? 1 : 0) - (this.input.keys.a || this.input.keys.arrowleft ? 1 : 0) + k.x), ay = clamp1((this.input.keys.w || this.input.keys.arrowup ? 1 : 0) - (this.input.keys.s || this.input.keys.arrowdown ? 1 : 0) + k.y), pow = 0.15 + this.chargeLevel() * 0.85, you = g.players.you;
+        const x = ch.kind === 'cut' ? ax * 2.6 : you.x * 0.4 + ax * 2.2, y = ch.kind === 'cut' ? cutHeight(pow, ay) : dropHeight(pow, ay);
+        C.aimMark.position.set(Math.max(-4.6, Math.min(4.8, x)), y, 0.06); C.aimMark.scale.setScalar(1 + 0.08 * Math.sin(this.t * 12)); }
     }
     C.serveZone.visible = g.phase === 'serveWait' || g.phase === 'servePrep' || (g.phase === 'rally' && g.rally?.serve && !g.rally.front);
     this.hud.ready(h && h.hittable || (g.phase === 'servePrep' && g.server === 'you' && g.hittable('you')));

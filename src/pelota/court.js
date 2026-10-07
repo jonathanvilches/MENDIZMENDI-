@@ -291,6 +291,9 @@ export class PelotaCourt {
     zone.rotation.x = -Math.PI / 2; zone.position.set(0, 0.015, (C.FALTA + C.PASA) / 2); zone.visible = false; g.add(zone);
     const flash = this.flash = new T.Mesh(new T.RingGeometry(0.1, 0.35, 28), new T.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0, depthWrite: false, side: T.DoubleSide }));
     flash.visible = false; g.add(flash);
+    // marca de puntería en el frontis (cortada y dejada): un aro amarillo que sube con la fuerza
+    const aim = this.aimMark = new T.Mesh(new T.RingGeometry(0.2, 0.32, 28), new T.MeshBasicMaterial({ color: '#ffd84a', transparent: true, opacity: 0.85, depthWrite: false, side: T.DoubleSide }));
+    aim.add(new T.Mesh(new T.CircleGeometry(0.06, 12), aim.material)); aim.visible = false; aim.renderOrder = 3; g.add(aim);
     this.hideBall();
   }
   // cubierta: 'wood', pórticos de madera laminada atirantados con acero (como los frontones nuevos de la Cuenca y de la

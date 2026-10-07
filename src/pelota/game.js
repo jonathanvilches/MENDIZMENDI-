@@ -7,6 +7,11 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const gauss = (rnd) => (rnd() + rnd() + rnd() - 1.5) / 1.5;
 const SERVE_Z = 16.5, RECV_Z = 22;
 
+// altura a la que pega en el frontis la cortada y la dejada según la fuerza (0 a 1, la carga del botón) y el joystick
+// arriba o abajo (−1 a 1). También la usa la marca de puntería que se ve en el frontis mientras se carga
+const pow01 = (pow) => clamp((pow - 0.15) / 0.85, 0, 1);
+export function cutHeight(pow, ay = 0) { return clamp(COURT.CHAPA + 0.15 + Math.pow(pow01(pow), 1.1) * (COURT.FRONT_H * 0.47 - COURT.CHAPA - 0.15) + ay * 0.45, COURT.CHAPA + 0.08, COURT.FRONT_H * 0.55); }
+export function dropHeight(pow, ay = 0) { return clamp(COURT.CHAPA + 0.12 + pow01(pow) * 1.0 + ay * 0.25, COURT.CHAPA + 0.06, 2.3); }
 export class PelotaGame {
   /**
    * @param {object} o { mode: 'match'|'rally', target, level: 'facil'|'normal'|'dificil', autoplay, seed }
@@ -95,17 +100,22 @@ export class PelotaGame {
       const landZ = 18.3 + pow * 2 + gauss(rnd) * err * 7.5;
       v = solveShot(p, tx, landZ, 17 + q * 3 + pow * 6).v; shot = 'saque';
     } else if (forceDrop) {
+      // dejada: la fuerza dice a qué altura pega: suave, justo encima de la chapa (muere enseguida); cargada, más
+      // arriba (hasta unos 2 m) y bota algo más lejos
       shot = 'dejada';
       const tx = clamp(p.x * 0.4 + aim.x * 2.2 + gauss(rnd) * err * 1.2, -4.2, 4);
-      const ty = COURT.CHAPA + 0.28 + err * 0.9 + gauss(rnd) * err * 0.55;
-      v = aimVelocity(p, tx, ty, p.z / (13 + q * 3));
+      const ty = dropHeight(pow, aim.y) + err * 0.6 + gauss(rnd) * err * 0.45;
+      v = aimVelocity(p, tx, ty, p.z / (12 + q * 3 + pow * 4));
     } else if (req === 'cortada') {
       // cortada: fuerte y raso, muy ajustada a la chapa: vuelve baja y rápida, botando pronto y corriendo. Cuanto peor
       // el golpe, más se arriesga: uno flojo puede dar en la chapa
+      // la fuerza dice a qué altura pega en el frontis: poco cargada, justo por encima de la chapa (rasa y peligrosa);
+      // cargada del todo, a media altura del frontis (más segura y vuelve más larga). El joystick arriba o abajo
+      // afina medio metro
       shot = 'cortada';
-      const speed = 20 + q * 4 + pow * 9;
+      const speed = 18 + q * 4 + pow * 12;
       const tx = clamp(aim.x * 2.6 + gauss(rnd) * err * 1.4, -4.2, 4.6);
-      const ty = COURT.CHAPA + 0.48 + gauss(rnd) * err * 0.45;   // (rasa pero no pegada a la chapa: medio metro por encima)   // bien dada roza la chapa por encima; floja, a veces da en ella
+      const ty = cutHeight(pow, aim.y) + gauss(rnd) * err * 0.45;
       v = aimVelocity(p, tx, ty, Math.max(0.2, p.z / speed));
     } else {
       // el joystick manda: de lado (x) dónde cae a lo ancho y de arriba abajo (y) lo largo; el error solo depende de lo
