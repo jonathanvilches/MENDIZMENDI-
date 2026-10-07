@@ -159,7 +159,7 @@ export class FutbolMatch {
     const stage = !this.lineup ? 2 : e < 3 ? 0 : e < 6 ? 1 : 2;
     const enter = stage !== this.introStage; this.introStage = stage;
     if (enter) this.camPos = null;   // corte de plano
-    if (enter && stage === 1) this.hud.msg(this.home.name, `${this.away.name} · 11 contra 11`, 2600);
+    if (enter && stage === 1) this.hud.msg(this.home.name, `contra ${this.away.name}`, 2600);
     this.confetti.mesh.visible = this.lineup && e > 2.6;
     if (this.confetti.mesh.visible) this.confetti.update(dt);
     if (stage < 2) {

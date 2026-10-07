@@ -182,7 +182,7 @@ export function roundPanel(S, R, j) {
     r.addEventListener('click', (e) => { if (!e.target.closest('[data-a]')) return; r.remove(); res(); });
   });
 }
-/** Menú del club en el pueblo: liga, amistoso, fútbol sala o salir. items: [[id, texto, sub]] */
+/** Menú del club en el pueblo: liga, amistoso, partido o salir. items: [[id, texto, sub]] */
 export function clubPanel(clubId, items, sub = 'Tu club') {
   return new Promise(res => {
     const S = season(clubId);
@@ -205,7 +205,7 @@ export function clubPick() {
   return new Promise(res => {
     const row = (k) => `<button class="lg-btn lg-rv" data-a="${k}">${kitSvg(k, 34)}<span><b>${esc(CLUBS[k].name)}</b><small>${esc(CLUBS[k].town)} · media ${CLUBS[k].ovr}</small></span></button>`;
     const ids = Object.keys(CLUBS).sort((a, b) => (CLUBS[a].group || '').localeCompare(CLUBS[b].group || '') || CLUBS[a].name.localeCompare(CLUBS[b].name));
-    const r = panel(`<div class="lg-head"><div><small>Campeonato de fútbol</small><h2>Elige tu club</h2><span class="lg-note">Con él juegas la Liga Navarra, los amistosos y el fútbol sala</span></div></div><div class="lg-btns lg-list">${ids.map(row).join('')}</div><div class="lg-btns"><button class="lg-btn" data-a="">Volver</button></div>`);
+    const r = panel(`<div class="lg-head"><div><small>Campeonato de fútbol</small><h2>Elige tu club</h2><span class="lg-note">Con él juegas la Liga Navarra y los amistosos</span></div></div><div class="lg-btns lg-list">${ids.map(row).join('')}</div><div class="lg-btns"><button class="lg-btn" data-a="">Volver</button></div>`);
     r.firstElementChild.classList.add('lg-pick');
     r.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; r.remove(); res(b.dataset.a || null); });
   });

@@ -630,7 +630,7 @@ export class FutbolGame {
   }
   isOffside(q) { if (!RU.offside) return false; const s = this.dir[q.team], u = s * q.x; return u > 0 && u > s * this.ball.p.x + 0.1 && u > this.offLine(q.team) + 0.1; }
   // tus pases rasos van más tensos (como en los juegos de fútbol): la defensa tiene menos tiempo para cortarlos
-  firm(p) { return this.human(p) ? 1.12 : 1; }
+  firm(p) { return this.human(p) ? 1.3 : 1; }
   // pase raso: llega al compañero a unos 5,5–10 m/s en fútbol 11 y a 4–6 m/s en sala (rodadura y aire de por medio)
   groundV(d) {
     if (K.dragK) { const va = 4 + Math.min(2, d * 0.14), dec = K.roll + 0.7; return clamp(Math.sqrt(va * va + 2 * dec * d), K.pass[0], K.pass[1]); }
@@ -646,7 +646,9 @@ export class FutbolGame {
       const d = hyp(tx - b.x, tz - b.z); v = loft ? this.loftV(d).vh : this.groundV(d) * this.firm(p);
       T = loft ? this.loftV(d).T : d / (v * 0.78);
       // (al tuyo, el pase va justo a donde llegará corriendo; a la IA, algo corto para que lo busque)
-      const lead = q.team === this.me.team && !this.autoplay ? 1 : 0.85;
+      // (tu pase va casi a los pies del compañero, que frena y sale a por él; antes iba a donde llegaría corriendo, el
+      // compañero seguía su carrera por delante del balón y lo cortaba un rival)
+      const lead = q.team === this.me.team && !this.autoplay ? (this.human(p) ? 0.25 : 1) : 0.85;
       tx = q.x + q.vx * T * lead; tz = q.z + q.vz * T * lead;
     }
     tx += (this.rnd() - 0.5) * 2 * err; tz += (this.rnd() - 0.5) * 2 * err;
@@ -664,6 +666,10 @@ export class FutbolGame {
     else { const v = Math.min(K.pass[1], this.groundV(d) * this.firm(p) * boost); this.kickBall(p, dx / d * v, 0, dz / d * v, 0, 'pass'); }
     this.passTo = q; this.passT = 3.2; this.passFrom = p;
     if (q) { q.plan = null; q.react = 0; }
+    // tu pase a un compañero: los rivales tardan su tiempo de reacción en ir a por él (como con el pase al hueco). Antes
+    // salían al instante y cortaban casi la mitad de los pases de 15 a 25 m
+    if (q && this.human(p) && q.team === p.team && hyp(q.x - tx, q.z - tz) < 3 * SC) { q.vx *= 0.35; q.vz *= 0.35; }   // (al pie: frena para recibir; al hueco sigue su carrera)
+    if (q && this.human(p) && q.team === p.team) for (const r of this.team(this.other(p.team))) if (r.role !== 'POR') r.react = Math.max(r.react, this.L(r).react * 0.9);
   }
   // saque de banda: con las dos manos desde encima de la cabeza, como mucho a unos 25 m
   throwBall(p, tx, tz, q = null) {

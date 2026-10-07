@@ -219,7 +219,7 @@ export class Hub {
   }
   // ---------- Campeonatos ----------
   // pelota a mano y fútbol sin entrar en las misiones de un pueblo: la pelota se juega en el frontón del pueblo que se
-  // elija; el fútbol, con tu club (Liga Navarra, amistosos, El Sadar y fútbol sala)
+  // elija; el fútbol, con tu club (Liga Navarra, amistosos y El Sadar)
   frontonId() { const p = profile(); return levelById(this.frontonTown)?.id || levelById(p.last)?.id || LEVELS[0].id; }
   s_sports() {
     const p = profile(), fl = levelById(this.frontonId()), club = CLUBS[p.futbolClub], tx = p.txapelas || 0;
@@ -242,7 +242,7 @@ export class Hub {
       <div class="sport" style="--bg:url(${townImg(sadar)})">
         ${avF ? `<img class="sp-av" src="${avF}" alt="">` : ''}
         <div class="sp-txt"><small class="kicker">${club ? 'Tu club: ' + esc(club.name) : 'Elige tu club'}</small><h3>Fútbol</h3>
-          <p>Liga Navarra con tu club, amistosos contra cualquier club, fútbol 11 en El Sadar y fútbol sala 5 contra 5.</p>
+          <p>Liga Navarra con tu club, amistosos contra cualquier club y partidos en El Sadar.</p>
           <span class="sp-stat">${I('balon', 22)} ${fb?.played || 0} partidos · ${fb?.won || 0} ganados</span></div>
         <button class="btn primary big" data-sport="futbol">${I('play', 26)} <span>Jugar a fútbol</span></button>
       </div>
@@ -504,7 +504,7 @@ export class Hub {
     return `<h1 class="title">${I('stamp', 40)} Pasaporte Mendi</h1><p class="lead">Cada pueblo completado estampa su sello. ¡Llena todas las páginas de Navarra!</p>
       <section class="passport">${COMARCAS.map(c => { const ts = comarcaTowns(c.id), pr = comarcaProgress(p, c.id);
         return `<div class="ppage" style="--c:${c.color}"><header><img class="${pr.stamps ? '' : 'gray'}" src="${stampImg(c.id)}" alt=""><div><b>${esc(c.name)}</b><small>${pr.stamps}/${ts.length} sellos</small></div></header>
-        <div class="pstamps">${ts.length ? ts.map(l => { const t = townProgress(p, l), fut = p.towns?.[l.id]?.futsal?.sello; return `<button class="pst ${t.stamp ? 'on' : ''}" data-town="${l.id}"><span class="ink">${I(t.stamp ? 'stamp' : 'lock', 30)}</span>${fut ? `<i class="fsello" title="Sello de fútbol sala">${I('balon', 18)}</i>` : ''}<small>${esc(l.name.split(' /')[0])}</small></button>`; }).join('') : '<small class="empty">Próximamente</small>'}</div></div>`; }).join('')}</section>`;
+        <div class="pstamps">${ts.length ? ts.map(l => { const t = townProgress(p, l), fut = p.towns?.[l.id]?.futsal?.sello; return `<button class="pst ${t.stamp ? 'on' : ''}" data-town="${l.id}"><span class="ink">${I(t.stamp ? 'stamp' : 'lock', 30)}</span>${fut ? `<i class="fsello" title="Sello de fútbol">${I('balon', 18)}</i>` : ''}<small>${esc(l.name.split(' /')[0])}</small></button>`; }).join('') : '<small class="empty">Próximamente</small>'}</div></div>`; }).join('')}</section>`;
   }
 
   // ---------- Perfil y ajustes ----------

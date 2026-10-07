@@ -187,6 +187,7 @@ export const EU_EXACT = {
   'Liga Navarra · nueva temporada': 'Nafarroako Liga · denboraldi berria', 'Fútbol 11 contra los clubes de la zona': '11ko futbola inguruko kluben aurka', 'la jornada se juega aquí': 'jardunaldia hemen jokatzen da', 'La jornada se juega aquí': 'Jardunaldia hemen jokatzen da', 'Tiros': 'Jaurtiketak', 'Tiros a puerta': 'Jaurtiketak atera',
   'Fútbol sala: entrenamiento': 'Areto futbola: entrenamendua', 'Pases en la pista (para el sello)': 'Paseak pistan (zigilurako)', 'Fútbol sala: partido por el sello': 'Areto futbola: partida zigiluaren alde',
   'Fútbol sala en la pista': 'Areto futbola pistan', 'Un partido 5 contra 5': 'Partida bat, 5 eta 5', 'Partido, penaltis o un reto': 'Partida, penaltiak edo erronka bat', 'Contra cualquier club de Navarra': 'Nafarroako edozein kluben aurka', 'Fútbol sala 5 contra 5': 'Areto futbola, 5 eta 5',
+  'Partido de fútbol': 'Futbol partida', 'Partido por el sello': 'Partida zigiluaren alde', 'En el campo del pueblo': 'Herriko zelaian', 'Contra los clubes de la zona': 'Inguruko kluben aurka', 'Contra los clubes de tu grupo': 'Zure taldeko kluben aurka', 'Partido en El Sadar': 'Partida El Sadarren', 'En el estadio de Iruña': 'Iruñeko estadioan', 'Vuelve cuando quieras a jugar otro partido.': 'Itzuli nahi duzunean beste partida bat jokatzera.',
   'Norte': 'Iparraldea', 'Sur': 'Hegoaldea',
   // --- esku pilota txapelketa ---
   'Gana la final y la txapela es tuya': 'Irabazi finala eta txapela zurea da', 'TXAPELDUN · CAMPEÓN DEL TORNEO': 'TXAPELDUNA · TXAPELKETAKO IRABAZLEA', '¡La txapela es tuya! Zorionak!': 'Txapela zurea da! Zorionak!',
@@ -244,7 +245,7 @@ export const EU_RX = [
   [/^La jornada se juega en el campo del (.+): viaja a (.+) \(en el mapa\) y habla con su entrenador\.$/, (m, a, b) => `Jardunaldia ${gen(a)} zelaian jokatzen da: bidaiatu ${ala(b)} (mapan) eta hitz egin entrenatzailearekin.`],
   [/^Resultados · jornada (\d+)$/, 'Emaitzak · $1. jardunaldia'], [/^(.+) · tu club$/, '$1 · zure kluba'], [/^(.+) · media (\d+)$/, '$1 · $2 maila'],
   [/^Liga Navarra · jornada (\d+)$/, 'Nafarroako Liga · $1. jardunaldia'], [/^(.+) · la jornada se juega aquí$/, '$1 · jardunaldia hemen jokatzen da'], [/^Jornada en (.+)$/, 'Jardunaldia: $1'],
-  [/^5 contra 5 contra (.+)$/, '5 eta 5, aurkaria: $1'], [/^Pista de (.+)$/, (m, a) => `${loc(a)} pista`],
+  [/^5 contra 5 contra (.+)$/, '5 eta 5, aurkaria: $1'], [/^Contra (.+)$/, '$1 taldearen aurka'], [/^contra (.+)$/, '$1 taldearen aurka'], [/^Sello de fútbol de (.+)$/, (m, a) => `${loc(a)} futbol zigilua`], [/^Pista de (.+)$/, (m, a) => `${loc(a)} pista`],
   [/^El (\d+)( visitante)?, expulsado$/, (m, n, v) => `${n} zenbakia${v ? ' (bisitaria)' : ''}, kanporatuta`], [/^El (\d+)( visitante)?$/, (m, n, v) => `${n} zenbakia${v ? ' (bisitaria)' : ''}`],
   [/^De (.+) · (\d+)\.ª falta$/, '$1 · $2. falta'], [/^De ([A-ZÁÉÍÓÚÑ][^\s·]+)$/, '$1 · falta'],
   [/^Fuera · saque de banda para (.+)$/, 'Kanpora · alboko sakea: $1'], [/^Córner para (.+)$/, 'Kornerra: $1'], [/^Saque de portería para (.+)$/, 'Ateko sakea: $1'], [/^Fuera de juego de (.+)$/, 'Jokoz kanpo: $1'],
