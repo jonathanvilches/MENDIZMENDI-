@@ -252,8 +252,8 @@ export function castleJavier(B, x, z, ry) {
   for (let k = 0; k < 6; k++) B.add('paint', colored(box(0.12, 0.6, 0.02), '#f2c230'), MM(T, M(-0.5 + k * 0.2, 7.6, D / 2 + 1.14)));
   // foso seco y puente de madera
   B.add('dark', box(W + 2, 0.4, 4.2), MM(T, M(0, -0.6, D / 2 + 3.4)));
-  for (let i = 0; i < 9; i++) B.add('woodDark', box(3.4, 0.22, 0.42), MM(T, M(0, 1.49 - i * 0.1, D / 2 + 1.4 + i * 0.48)));
-  addPlatform(x, z, ry, -1.7, 1.7, D / 2 + 1.2, D / 2 + 5.6, y + 1.6, y + 0.7);   // (el puente es una rampa hasta la puerta)
+  for (let i = 0; i < 15; i++) B.add('woodDark', box(3.4, 0.22, 0.42), MM(T, M(0, 1.49 - i * 0.1, D / 2 + 1.4 + i * 0.48)));
+  addPlatform(x, z, ry, -1.7, 1.7, D / 2 + 1.2, D / 2 + 8.4, y + 1.6, y + 0.15);   // (el puente es una rampa desde el suelo hasta la puerta)
   for (const s2 of [-1, 1]) B.add('iron', box(0.08, 0.08, 4.6), MM(T, M(s2 * 1.6, 2.6, D / 2 + 2.6, 0, -0.5)));
   // torres redondas delanteras
   for (const s2 of [-1, 1]) {
