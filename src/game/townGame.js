@@ -652,18 +652,28 @@ export class TownGame {
     }
     this.townArms = { A, mesh: m, plate, read: S.read, id: 'armas:' + A.id };
   }
+  // la cámara deja al jugador y se planta delante del escudo, a su altura y de frente, para verlo entero y bien; al
+  // cerrar la ficha vuelve detrás del jugador
+  async lookAtArms(mesh, ry, h) {
+    const c = mesh.position, n = new THREE.Vector3(Math.sin(ry), 0, Math.cos(ry)), fov = (this.camera.fov || 55) * Math.PI / 180;
+    const d = Math.max(2.6, (h * 0.5 * 1.7) / Math.tan(fov / 2));   // el escudo ocupa algo más de media pantalla de alto
+    this.follow.cinematic = { pos: c.clone().addScaledVector(n, d).add(new THREE.Vector3(0, -0.15, 0)), look: c.clone(), t: 0 };
+    this.ui.toast?.('Mira el escudo…', 'shield', 1300);
+    await new Promise(r => setTimeout(r, window.__autoWin ? 0 : 1500));
+  }
+  endLookAtArms() { this.follow.cinematic = null; this.follow.snap?.(this.player); }
   async readTownArmsAt() {
     const T = this.townArms, isNew = addCard(T.id, 'escudos'); this.player.frozen = true;
-    try { await readTownArms(this.ui, T.A, { town: this.def.name.split(' /')[0], isNew }); }
-    finally { this.player.frozen = false; }
+    try { await this.lookAtArms(T.mesh, TOWN.armsSpot?.ry ?? T.mesh.rotation.y, T.mesh.geometry.parameters.height); await readTownArms(this.ui, T.A, { town: this.def.name.split(' /')[0], isNew }); }
+    finally { this.endLookAtArms(); this.player.frozen = false; }
     addXP(isNew ? 30 : 4); saveProfile();
     for (const bd of checkBadges()) await infoCard(this.ui, { icon: bd.icon, kicker: 'Nueva insignia', title: bd.name, text: bd.text, button: '¡Bien!' });
     if (isNew) this.ui.toast('Escudo guardado en tu armorial de Navarra (Saberes · Escudos)', 'shield', 3000);
   }
   async readShield(b) {
     const P = this.P, isNew = addCard(b.id, 'escudos'); this.player.frozen = true;
-    try { await readArms(this.ui, b.A, { town: this.def.name.split(' /')[0], isNew, regla: (P.cards || []).filter(c => c.startsWith('escudo:')).length }); }
-    finally { this.player.frozen = false; }
+    try { await this.lookAtArms(b.mesh, b.ry, 2.03); await readArms(this.ui, b.A, { town: this.def.name.split(' /')[0], isNew, regla: (P.cards || []).filter(c => c.startsWith('escudo:')).length }); }
+    finally { this.endLookAtArms(); this.player.frozen = false; }
     addXP(isNew ? 20 : 4); saveProfile();
     for (const bd of checkBadges()) await infoCard(this.ui, { icon: bd.icon, kicker: 'Nueva insignia', title: bd.name, text: bd.text, button: '¡Bien!' });
     const left = this.blasones.filter(x => !P.cards.includes(x.id)).length;
