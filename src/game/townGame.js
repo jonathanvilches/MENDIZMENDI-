@@ -54,7 +54,7 @@ import { GearProps } from '../actors/gear3d.js';
 import { foodFrom } from '../data/equipo.js';
 import { PROCESOS, TRADICIONES } from '../data/procesos.js';
 import { bird } from '../actors/beasts.js';
-import { Fronton, findFrontonSpot, frontonWall, labrit } from './fronton.js';
+import { Fronton, findFrontonSpot, frontonWall, labrit, labritInTown } from './fronton.js';
 import { Pista, findPistaSpot } from './pista.js';
 import { clubOfTown, teamOfClub } from '../futbol/clubs.js';
 import { clubPanel } from '../futbol/liga.js';
@@ -275,6 +275,8 @@ export class TownGame {
   }
   // Frontón del pueblo: está siempre, con o sin misión de pelota
   ensureFronton() {
+    // (en Iruña, el Labrit: el edificio entero junto a la plaza de toros; si no cupiera, el frontón de siempre)
+    if (!this.fronton && this.def.id === 'pamplona') try { this.fronton = labritInTown(this.scene, PLACES.frontonNear || PLACES.plaza); } catch (e) { console.warn('labrit', e); }
     if (!this.fronton) { const sp = findFrontonSpot(PLACES.frontonNear || PLACES.plaza); if (sp) this.fronton = new Fronton(this.scene, sp, this.def.name.split(' /')[0], frontonWall(this.def)); }
     return this.fronton;
   }
@@ -936,7 +938,7 @@ export class TownGame {
       if (act === 'sim') { playTorneoRound(T); continue; }
       const m = yourMatch(T);
       // la final, en el frontón Labrit de Iruña (los cuartos y las semifinales, aquí)
-      const fin = m.round === 'Final', venue = fin ? this.labritVenue() : this.fronton;
+      const fin = m.round === 'Final', venue = fin ? (this.fronton?.court.labrit ? this.fronton : this.labritVenue()) : this.fronton;
       if (fin) await this.labritIntro(venue);
       const r = await venue.play(this, a, { target: m.target, level: m.level, rivalName: `${m.rival.name} (${m.rival.town})`, fixedLevel: true, returnTo: this.fronton });
       if (r.quit) return;   // (salir del partido es salir: de vuelta al pueblo, no al panel del torneo otra vez)

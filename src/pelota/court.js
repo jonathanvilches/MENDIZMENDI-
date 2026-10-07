@@ -104,12 +104,19 @@ export const THEMES = {
     chapa: '#c9d0d4', chapaMetal: true, cap: '#ddd6c6', stone: null, brick: false, roof: null },
 };
 
+// el Labrit: contracancha ancha y la huella del edificio entero (con los torreones y la escalinata), para buscarle sitio en Iruña
+export const LABRIT_CONTRA = 4.4;
+export function labritExtent() {
+  const W = COURT.W, EXT = COURT.L + 3, xr = W / 2 + LABRIT_CONTRA, zf = EXT + 0.3, xa = -W / 2 - 0.6, xb = xr + 14.6, za = -1.0, zb = zf + 14.6;
+  return { x0: xa - 4.9, x1: xb + 4.9, z0: za - 4.9, z1: zb + 6.5 };
+}
+
 export class PelotaCourt {
   constructor(THREE, opts = {}) {
     const T = THREE, C = COURT, th = Object.assign({}, THEMES[opts.theme] || THEMES.plaza, opts.look || {});
     this.THREE = T; TEX_K = opts.texScale || 1;
     const g = this.group = new T.Group(); g.name = 'Fronton';
-    const W = C.W, L = C.L, EXT = L + 3, CONTRA = 2.6;
+    const W = C.W, L = C.L, EXT = L + 3, CONTRA = opts.labrit ? LABRIT_CONTRA : 2.6;   // (el Labrit, con su contracancha ancha de tarima)
     const std = (o) => new T.MeshStandardMaterial(Object.assign({ roughness: 0.88, metalness: 0 }, o));
     this.materials = [];
     const M = (o) => { const m = std(o); this.materials.push(m); return m; };
@@ -279,7 +286,7 @@ export class PelotaCourt {
       { x: -0.3, z: EXT + 0.2, w: W + 0.6, d: 0.4 },
       { x: W / 2 + CONTRA + 1.65, z: L * 0.52, w: 3.3, d: L * 0.78 },
     ];
-    if (opts.labrit) this.buildLabrit(T, M, th, W, CONTRA, EXT, L);
+    if (opts.labrit) this.buildLabrit(T, M, th, W, CONTRA, EXT, L, opts);
     else if (th.roof) this.buildRoof(T, M, th, -W / 2 - 0.6, W / 2 + CONTRA + 3.3, -0.9, EXT + 0.5);
     if (!opts.labrit) this.buildFloods(T, M, !!th.roof, W, CONTRA, EXT);
 
@@ -325,8 +332,8 @@ export class PelotaCourt {
   // «la Bombonera»), cubierta de chapa con una franja translúcida, fachada de ladrillo con tres torreones de teja,
   // junto a las murallas y al baluarte de Labrit. Las paredes, verdes. Es una recreación para el juego: el aforo, las
   // alturas y los colores exactos se han simplificado.
-  buildLabrit(T, M, th, W, CONTRA, EXT, L) {
-    const C = COURT, g = this.group, HW = 13.6;
+  buildLabrit(T, M, th, W, CONTRA, EXT, L, opts = {}) {
+    const C = COURT, g = this.group, HW = 13.6, inTown = !!opts.inTown, D = inTown ? 9 : 0;   // (en Iruña, en la ciudad: con zócalo hasta el terreno)
     const cream = M({ color: '#e9e2d2', roughness: 0.9 }), white = M({ color: '#f1efe9', roughness: 0.92 }), green = M({ color: th.wall, roughness: 0.9 });
     const wood = M({ color: '#d29a5a', roughness: 0.6 }), woodDark = M({ color: '#b07a40', roughness: 0.65 }), rail = M({ color: '#cf9a5c', roughness: 0.55 });
     const steel = M({ color: '#4a5056', roughness: 0.5, metalness: 0.4 }), grey = M({ color: '#9a978f', roughness: 0.9 });
@@ -352,7 +359,11 @@ export class PelotaCourt {
         (hi ? seatsHi : seatsLo).push([x, y, z, fy]);
         if (k % 2 === 0) this.standSpots.push([x - s.nx * 0.05, y + 0.44, z - s.nz * 0.05, fy]); } } };
     // grada baja: el antepecho de madera junto a la contracancha y diez filas de butacas de madera
-    for (const s of segs(0.15)) { box(s.l, 1.05, 0.22, cream, s.x, 0.52, s.z, s.ry + Math.PI / 2); box(s.l, 0.1, 0.34, rail, s.x, 1.1, s.z, s.ry + Math.PI / 2); }
+    // (el antepecho, forrado de tablas verticales de madera barnizada, como la tarima)
+    const panelTex = canvasTex(T, 512, 128, (c, w, h) => { const n = 16, bw = w / n; for (let i = 0; i < n; i++) { const t = 0.86 + Math.random() * 0.2; c.fillStyle = `rgb(${Math.round(214 * t)},${Math.round(152 * t)},${Math.round(88 * t)})`; c.fillRect(i * bw + 1, 0, bw - 2, h);
+      c.strokeStyle = 'rgba(110,62,22,.18)'; c.lineWidth = 1; for (let k = 0; k < 2; k++) { const gx = i * bw + 3 + Math.random() * (bw - 6); c.beginPath(); c.moveTo(gx, 0); c.bezierCurveTo(gx + 2, h * 0.3, gx - 2, h * 0.7, gx, h); c.stroke(); } } }, [3, 1]);
+    const panel = M({ map: panelTex, roughness: 0.45 });
+    for (const s of segs(0.15)) { box(s.l, 1.05, 0.22, panel, s.x, 0.52, s.z, s.ry + Math.PI / 2); box(s.l, 0.1, 0.34, rail, s.x, 1.1, s.z, s.ry + Math.PI / 2); }
     for (let r = 0; r < 10; r++) row(0.5 + r * 0.8, 0.3 + r * 0.36);
     // dos anfiteatros volados, curvos, de hormigón claro con su barandilla de madera, sobre pilares
     const balc = (off0, y0, rows) => {
@@ -458,9 +469,9 @@ export class PelotaCourt {
     // torreones: ladrillo con esquinas de piedra, alero ancho y tejado de teja a cuatro aguas; arriba, tres ventanas en arco
     for (const [tx, tz] of [[xb + 1.6, za - 1.6], [xb + 1.6, zb + 1.6], [xa - 1.6, zb + 1.6]]) {
       const TH = HW + 3.6, tw = 5;
-      box(tw, TH, tw, brick, tx, TH / 2, tz);
+      box(tw, TH + D, tw, brick, tx, (TH - D) / 2, tz);
       for (const [dx, dz] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) sn.push({ w: 0.55, h: TH, d: 0.55, x: tx + dx * (tw / 2 - 0.2), y: TH / 2, z: tz + dz * (tw / 2 - 0.2) });
-      sn.push({ w: tw + 0.3, h: 1.6, d: tw + 0.3, x: tx, y: 0.8, z: tz }, { w: tw + 0.2, h: 0.3, d: tw + 0.2, x: tx, y: TH - 3.2, z: tz }, { w: tw + 1.4, h: 0.35, d: tw + 1.4, x: tx, y: TH + 0.1, z: tz });
+      sn.push({ w: tw + 0.3, h: 1.6 + D, d: tw + 0.3, x: tx, y: (1.6 - D) / 2, z: tz }, { w: tw + 0.2, h: 0.3, d: tw + 0.2, x: tx, y: TH - 3.2, z: tz }, { w: tw + 1.4, h: 0.35, d: tw + 1.4, x: tx, y: TH + 0.1, z: tz });
       const rf = new T.Mesh(new T.ConeGeometry((tw + 1.3) * 0.71, 1.8, 4), tile); rf.position.set(tx, TH + 1.17, tz); rf.rotation.y = Math.PI / 4; g.add(rf);
       for (const [ry, ox, oz] of [[0, 0, 1], [Math.PI, 0, -1], [Math.PI / 2, 1, 0], [-Math.PI / 2, -1, 0]]) {
         const c = Math.cos(ry), s = Math.sin(ry);
@@ -471,6 +482,12 @@ export class PelotaCourt {
     // frontón triangular de piedra sobre la entrada, como el del lado largo del edificio
     const xcE = (xa + xb) / 2, ped = new T.Shape(); ped.moveTo(-5, 0); ped.lineTo(5, 0); ped.lineTo(0, 2.2); ped.closePath();
     const pm = new T.Mesh(new T.ExtrudeGeometry(ped, { depth: 0.4, bevelEnabled: false }), stone); pm.position.set(xcE, HW + 0.05, zb + 0.4); g.add(pm);
+    const xcE2 = (xa + xb) / 2, zm2 = (za + zb) / 2;
+    if (inTown) {   // el zócalo de piedra hasta el terreno (el edificio se asienta en lo más alto de su planta) y la escalinata de la puerta
+      sn.push({ w: 1.6, h: D + 0.3, d: zb - za + 1.6, x: xa - 0.5, y: (0.3 - D) / 2, z: zm2 }, { w: 1.6, h: D + 0.3, d: zb - za + 1.6, x: xb + 0.5, y: (0.3 - D) / 2, z: zm2 },
+        { w: xb - xa + 1.6, h: D + 0.3, d: 1.6, x: xcE2, y: (0.3 - D) / 2, z: za - 0.5 }, { w: xb - xa + 1.6, h: D + 0.3, d: 1.6, x: xcE2, y: (0.3 - D) / 2, z: zb + 0.5 });
+      for (let k = 0; k < 4; k++) { const top = 0.3 - (3 - k) * 0.15; sn.push({ w: 9 - k * 0.6, h: D + top, d: 3.2 - k * 0.6, x: xcE2, y: (top - D) / 2, z: zb + 0.66 + (3.2 - k * 0.6) / 2 }); }
+    }
     const mk = (list, mat) => { if (!list.length) return; const m = new T.Mesh(boxesGeo(T, list), mat); m.receiveShadow = true; g.add(m); };
     mk(sn, stone); mk(dk, dark); mk(ar, archM);
     // cubierta a dos aguas, clara, de chapa, con el hastial liso en los dos extremos
@@ -483,6 +500,7 @@ export class PelotaCourt {
     const door = new T.Mesh(new T.PlaneGeometry(3.6, 3.4), dark); door.position.set(xc, 1.7, zb + 0.66); g.add(door);
     const signTex = canvasTex(T, 1024, 256, (c, w, h) => { c.fillStyle = '#d6cbaa'; c.fillRect(0, 0, w, h); c.strokeStyle = '#a89a76'; c.lineWidth = 10; c.strokeRect(8, 8, w - 16, h - 16); paintName(c, 'FRONTÓN LABRIT', w / 2, h * 0.5, w * 0.86, h * 0.48, '#5d5240'); });
     const sign = new T.Mesh(new T.PlaneGeometry(7, 1.5), M({ map: signTex, roughness: 0.8 })); sign.position.set(xc, 4.5, zb + 0.66); g.add(sign);
+    if (!inTown) {   // (fuera de la ciudad, en la final: la calle, la muralla, los árboles y las casas alrededor)
     const pave = new T.Mesh(new T.PlaneGeometry(220, 220), M({ color: '#8f8b83', roughness: 0.95 })); pave.rotation.x = -Math.PI / 2; pave.position.set(xc, -0.04, (za + zb) / 2); pave.receiveShadow = true; g.add(pave);
     const wallTex = canvasTex(T, 1024, 256, (c, w, h) => ashlar(c, w, h, 40, 10, '#b9a27e'), [3, 1]);
     const mur = new T.Mesh(new T.BoxGeometry(4, 10, 130), M({ map: wallTex, roughness: 0.95 })); mur.position.set(xa - 24, 5, (za + zb) / 2 + 10); mur.rotation.y = 0.06; g.add(mur);
@@ -515,10 +533,19 @@ export class PelotaCourt {
       for (const [lx, lz] of [[xb + 7, 4], [xb + 7, 22], [xb + 7, 40], [4, za - 8], [22, za - 8], [xc - 10, zb + 9], [xc + 10, zb + 9]]) {
         box(0.14, 4.6, 0.14, lamp, lx, 2.3, lz); const b = new T.Mesh(new T.SphereGeometry(0.22, 8, 6), bulb); b.position.set(lx, 4.7, lz); g.add(b); }
     }
+    }
     this.extent = { x0: xa - 1, x1: xb + 1, z0: za - 1, z1: zb + 1 };
     this.boxes = this.boxes.filter(b => b.d !== L * 0.78);
     this.boxes.push({ x: (xr + xb) / 2, z: (2.2 + zf) / 2, w: xb - xr, d: zf - 2.2 }, { x: (xa + xr) / 2, z: (zf + zb) / 2, w: xr - xa, d: zb - zf });
     this.entry = { x: W / 2 + CONTRA / 2, z: EXT - 1.6 };
+    if (inTown) {   // en Iruña: se entra por la puerta (el partido ya te pone en la cancha); los muros cierran el edificio por fuera
+      const E = labritExtent(); this.extent = E;
+      this.entry = { x: xcE2, z: zb + 0.66 + 3.2 + 1.6 }; this.out = { x: xcE2, z: zb + 40 };
+      this.platform = { x0: xa - 1.3, x1: xb + 1.3, z0: za - 1.3, z1: zb + 1.3 };
+      this.boxes.push({ x: xa - 0.5, z: zm2, w: 1.6, d: zb - za + 1.6 }, { x: xb + 0.5, z: zm2, w: 1.6, d: zb - za + 1.6 }, { x: xcE2, z: za - 0.5, w: xb - xa + 1.6, d: 1.6 }, { x: xcE2, z: zb + 0.5, w: xb - xa + 1.6, d: 1.6 },
+        { x: xcE2, z: zb + 0.66 + 1.6, w: 9, d: 3.2 });
+      for (const [tx, tz] of [[xb + 1.6, za - 1.6], [xb + 1.6, zb + 1.6], [xa - 1.6, zb + 1.6]]) this.boxes.push({ x: tx, z: tz, w: 5.4, d: 5.4 });
+    }
     this.labrit = true;
     g.traverse(o => { if (o.isMesh) o.castShadow = false; });   // (dentro, bajo la cubierta: sin sombras del sol sobre la cancha)
   }

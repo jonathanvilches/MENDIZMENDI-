@@ -3,6 +3,6 @@
 // y en cada fotograma m.update(dt) mientras devuelva true.
 export { COURT, TEXT, LEVELS, kantari, euNum } from './rules.js';
 export { PelotaGame } from './game.js';
-export { PelotaCourt } from './court.js';
+export { PelotaCourt, labritExtent } from './court.js';
 export { PelotaMatch } from './match.js';
 export const VERSION = '1.0.0';
