@@ -62,7 +62,7 @@ export class PelotaGame {
   start() { if (this.phase === 'intro') this.toServe(); }
   toServe() {
     this.phase = 'serveWait'; this.phaseT = 0; this.placeForServe();
-    this.emit({ type: 'serveReady', who: this.server });
+    this.emit({ type: 'serveReady', who: this.server, matchPoint: this.mode === 'match' && Math.max(this.score.you, this.score.rival) === this.target - 1 });
   }
   dropForServe() {
     const s = this.players[this.server];
@@ -210,7 +210,9 @@ export class PelotaGame {
     }
     this.score[winner]++;
     this.server = winner;
-    this.emit({ type: 'call', call, winner, score: { ...this.score }, kantari: kantari(this.score.rival, this.score.you) });
+    // el último tanto: el partido se decide y el frontón entero aplaude (se deja más tiempo antes del final)
+    this.finalPoint = this.score[winner] >= this.target;
+    this.emit({ type: 'call', call, winner, score: { ...this.score }, kantari: kantari(this.score.rival, this.score.you), final: this.finalPoint });
     const P = this.players[winner]; P.act = 'cheer'; P.actT = 0;
     const L = this.players[this.other(winner)]; L.act = 'sad'; L.actT = 0;
   }
@@ -347,7 +349,7 @@ export class PelotaGame {
 
     if (this.phase === 'intro' || this.phase === 'end') return this.events;
     if (this.phase === 'point') {
-      if (this.phaseT > 2.1) {
+      if (this.phaseT > (this.finalPoint ? 4.6 : 2.1)) {
         if (this.mode === 'match' && (this.score.you >= this.target || this.score.rival >= this.target)) this.finish();
         else this.toServe();
       }

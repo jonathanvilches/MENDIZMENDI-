@@ -38,7 +38,7 @@ if (!only || only === 'pueblo') {
   console.log('panel', await p.evaluate(() => { const b = document.querySelector('.pel-go[data-pel-go]'); const r = b.getBoundingClientRect(); const cs = getComputedStyle(b); const top = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); return JSON.stringify({ r, vis: cs.visibility, disp: cs.display, op: cs.opacity, top: top && (top.className || top.id || top.tagName) }); }));
   await p.click('.pel-go[data-pel-go]'); await p.waitForTimeout(1500);
   console.log('pueblo 1', await sim(p, 6)); await p.waitForTimeout(2500); await p.screenshot({ path: `${out}/pueblo-partido.png` });
-  console.log('pueblo 2', await sim(p, 400)); await p.waitForTimeout(2500); await p.screenshot({ path: `${out}/pueblo-final.png` });
+  console.log('pueblo 2', await sim(p, 900)); await p.waitForTimeout(2500); await p.screenshot({ path: `${out}/pueblo-final.png` });
   const cont = await p.$('.pel-go[data-pel-cont]'); if (cont) { await cont.click(); await p.waitForTimeout(3000); }
   console.log('pueblo resultado', await p.evaluate(() => JSON.stringify({ res: window.__res, mode: window.__game.mode, errores: window.__errors || [] })));
   await p.screenshot({ path: `${out}/pueblo-despues.png` });

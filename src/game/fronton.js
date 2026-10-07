@@ -216,7 +216,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       you: { obj: P.obj, name: profile().name || (isEU() ? 'Zu' : 'Tú'), animate: animYou },
       rival: { obj: rival.obj, name: rivalName || String(rival.name).split(',')[0], animate: animRival },
       onEnd: (r) => done(r), onExit: (r) => done(r),
-      onEvent: (e) => { if (e.type === 'call' && crowd) crowd.point(e.winner === 'you'); if (e.type === 'call' && seated) { seated.cheer(true); cheerT = 1.6; } },
+      onEvent: (e) => { if (e.type === 'call' && crowd) (e.final ? crowd.ovation?.() : crowd.point(e.winner === 'you')); if (e.type === 'call' && seated) { seated.cheer(true); cheerT = e.final ? 4.6 : 1.6; } },
     }); } catch (e) { console.warn('frontón', e); done({ win: false, error: true }); return; }   // (si no se monta, de vuelta al pueblo)
     G.pelotaTick = (dt) => { match.update(dt); crowd?.update(dt); if (seated) { seated.tick(match.t || 0, cheerT > 0 ? 1 : 0.15, seatedZ, G.camera); if (cheerT > 0 && (cheerT -= dt) <= 0) seated.cheer(false); } };
     })().catch(fail);

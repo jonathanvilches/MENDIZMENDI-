@@ -91,6 +91,8 @@ export class Crowd {
       else p.a.clap = 1.4 + Math.random() * 0.8;
     }
   }
+  // último tanto: todos en pie aplaudiendo un buen rato, sea quien sea el que gana
+  ovation() { for (const p of this.people) if (p.phase === 'watch') { p.a.clap = 4 + Math.random() * 1.2; p.a.cheer = Math.random() < 0.4 ? 2 : p.a.cheer; } }
   end(win) {
     for (const p of this.people) { if (p.phase === 'watch') { if (win) p.a.cheer = 2; else p.a.clap = 1.6; } }
     this.leaving = true;

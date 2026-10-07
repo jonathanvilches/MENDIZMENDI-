@@ -62,6 +62,7 @@ import { season as ligaSeason } from '../futbol/liga.js';
 import { TOWN_CLUB, CLUBS } from '../futbol/clubs.js';
 const CLUBS_NAME = (id) => CLUBS[id]?.name || '', CLUBS_TOWN = (id) => CLUBS[id]?.town || '';
 import { torneo, yourMatch, playTorneoRound, torneoPanel, pelotaMenu } from './torneo.js';
+import { showChampion } from '../ui/champion.js';
 import { makeClue, makeAura } from './legendFx.js';
 import { Chase } from './chase.js';
 import { FloraSpots } from './floraSpots.js';
@@ -907,8 +908,10 @@ export class TownGame {
       playTorneoRound(T, r.you, r.cpu);
       if (T.done && T.players[T.champion].you) {
         P.txapelas = (P.txapelas || 0) + 1; addXP(150); saveProfile();
-        this.player.rig.doCheer?.(); this.particles.confetti?.(this.player.pos, 120); this.sound.fanfare?.();
-        await this.say(a, [`¡Txapeldun! Eres campeón del torneo de mano de ${ctx.comarcaName}. La txapela es tuya.`]);
+        this.player.rig.doCheer?.(); this.particles.confetti?.(this.player.pos, 120);
+        // la gran celebración: la txapela baja, confeti, fuegos y el frontón en pie
+        await showChampion({ kind: 'pelota', kicker: `Torneo de mano · ${ctx.comarcaName}`, title: '¡Txapeldun!', name: P.name || 'Campeón', sub: `La txapela de ${ctx.comarcaName} es tuya. Zorionak!`, score: `Final · ${r.you} – ${r.cpu}`, sound: this.sound, button: 'Ponerme la txapela' });
+        await this.say(a, [`¡Txapeldun! Eres campeón del torneo de mano de ${ctx.comarcaName}. Llevas ${P.txapelas} ${P.txapelas === 1 ? 'txapela' : 'txapelas'}.`]);
       } else if (!r.win) await this.say(a, [`${r.you} a ${r.cpu}. ¡Qué pena! El torneo sigue: mira quién se lleva la txapela.`]);
       else if (!T.done) await this.say(a, [`¡${r.you} a ${r.cpu}! Pasas a ${yourMatch(T)?.round.toLowerCase() || 'la siguiente ronda'}. El próximo partido, aquí mismo.`]);
     }

@@ -10,6 +10,7 @@ import '@fontsource/nunito/latin-600.css';
 import '@fontsource/nunito/latin-700.css';
 import '@fontsource/nunito/latin-800.css';
 import '@fontsource/nunito/latin-900.css';
+import '@fontsource/nunito/latin-700-italic.css';   // (la voz del narrador va en cursiva de verdad, no inclinada a la fuerza)
 import './hub/hub.css';
 import * as HF from './world/heightfield.js';
 import * as LAYOUT from './world/layout.js';
