@@ -198,7 +198,7 @@
 
 /* ficha de pueblo */
 .sheet { position: fixed; inset: 0; z-index: 30; background: rgba(6, 4, 12, .6); display: grid; place-items: center; padding: 16px; animation: fadein .2s; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
-.sheet-in { position: relative; width: min(700px, 100%); max-height: 92vh; display: flex; flex-direction: column; background: var(--plum); border-radius: 20px; overflow: hidden; border: 1px solid var(--line2); box-shadow: 0 30px 80px rgba(0, 0, 0, .6); animation: pop .25s cubic-bezier(.2, 1.3, .4, 1); }
+.sheet-in { position: relative; width: min(700px, 100%); max-height: 92dvh; display: flex; flex-direction: column; background: var(--plum); border-radius: 20px; overflow: hidden; border: 1px solid var(--line2); box-shadow: 0 30px 80px rgba(0, 0, 0, .6); animation: pop .25s cubic-bezier(.2, 1.3, .4, 1); }
 .sheet-in::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--c); z-index: 3; }
 .sheet .x { position: absolute; right: 12px; top: 12px; z-index: 2; background: rgba(10, 8, 16, .6); border: 1px solid var(--line2); border-radius: 50%; width: 40px; height: 40px; display: grid; place-items: center; }
 .sh-hero { padding: 58px 24px 18px; background: linear-gradient(180deg, transparent, var(--plum)), linear-gradient(90deg, color-mix(in srgb, var(--c) 70%, #000), transparent), var(--bg) center/cover; }
@@ -321,7 +321,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .onb .logo { font-size: clamp(44px, 9vw, 84px); line-height: 1; color: #fff; text-shadow: 0 4px 0 #6d3b5c, 0 0 40px rgba(255, 215, 0, .35); }
 .onb .tag { margin: 4px 0 0; color: var(--gold); font-weight: 900; letter-spacing: .2em; text-transform: uppercase; font-size: 13px; }
 .onb-stage { grid-area: stage; min-width: 0; position: relative; display: flex; flex-direction: column; align-items: center; }
-.onb-stage .stage-host { width: 100%; height: min(52vh, 420px); filter: drop-shadow(0 20px 24px rgba(0, 0, 0, .5)); }
+.onb-stage .stage-host { width: 100%; height: min(52dvh, 420px); filter: drop-shadow(0 20px 24px rgba(0, 0, 0, .5)); }
 .onb-who { position: relative; z-index: 2; margin-top: 6px; text-align: center; display: flex; flex-direction: column; }
 .onb-who b { font-family: 'Lilita One', 'Nunito', sans-serif; font-weight: 400; font-size: 32px; line-height: 1; }
 .onb-who small { color: var(--gold); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; font-weight: 900; }
@@ -334,7 +334,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 /* ================= Minijuegos y fichas ================= */
 .mg-overlay { position: fixed; inset: 0; z-index: 25; display: grid; place-items: center; padding: 14px; background: rgba(8, 5, 16, .55); animation: fadein .2s; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
 .mg-overlay.out { opacity: 0; transition: opacity .25s; }
-.mg-card { width: min(560px, 100%); max-height: 94vh; overflow-y: auto; background: linear-gradient(180deg, #32136f, #1c0b3a); border-radius: 20px; padding: 22px; text-align: center; color: #f7f0e6; border: 1px solid rgba(255, 244, 228, .22); box-shadow: 0 30px 80px rgba(0, 0, 0, .6); animation: pop .3s cubic-bezier(.2, 1.3, .4, 1); display: flex; flex-direction: column; gap: 12px; align-items: center; }
+.mg-card { width: min(560px, 100%); max-height: 94dvh; overflow-y: auto; background: linear-gradient(180deg, #32136f, #1c0b3a); border-radius: 20px; padding: 22px; text-align: center; color: #f7f0e6; border: 1px solid rgba(255, 244, 228, .22); box-shadow: 0 30px 80px rgba(0, 0, 0, .6); animation: pop .3s cubic-bezier(.2, 1.3, .4, 1); display: flex; flex-direction: column; gap: 12px; align-items: center; }
 .mg-card h2 { margin: 0; font-family: 'Lilita One', 'Nunito', sans-serif; font-weight: 400; font-size: 32px; line-height: 1; } .mg-card p { margin: 0; color: #e2d6c4; font-weight: 600; }
 .mg-card .btn { min-width: 220px; min-height: 50px; }
 .mg-top { display: flex; gap: 12px; align-items: center; text-align: left; align-self: stretch; } .mg-top h3 { margin: 0; font-size: 24px; } .mg-top small { color: #c4b8a8; }
@@ -371,17 +371,17 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .fc-where span { padding: 3px 10px; border-radius: 999px; background: var(--c); color: #fff; font-size: 12px; font-weight: 800; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25); }
 .ficha .fc-body > .btn.primary { align-self: center; }
 /* en vertical y en escritorio: la cabecera fija, el texto se desplaza dentro de la tarjeta y el botón siempre a la vista */
-.ficha:not(.quiz) .mg-card { max-height: calc(100vh - 28px); max-height: calc(100dvh - 28px); overflow: hidden; display: flex; flex-direction: column; }
+.ficha:not(.quiz) .mg-card { max-height: calc(100dvh - 28px); max-height: calc(100dvh - 28px); overflow: hidden; display: flex; flex-direction: column; }
 .ficha:not(.quiz) .fc-head { flex: none; }
 .ficha:not(.quiz) .fc-body { flex: 1 1 auto; min-height: 0; }
 .ficha:not(.quiz) .fc-sec { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
 .ficha:not(.quiz) .fc-body > .btn.primary, .ficha:not(.quiz) .fc-where { flex: none; }
-@media (orientation: portrait) { .ficha .fc-pic { width: min(340px, 100%, 38vh * 13 / 11); } }
+@media (orientation: portrait) { .ficha .fc-pic { width: min(340px, 100%, 38dvh * 13 / 11); } }
 /* móvil tumbado: lámina y nombre a la izquierda; las cuatro secciones en una rejilla de 2x2, las comarcas y el botón a
    la derecha. Todo cabe en 667x375 sin desplazar; si un texto es muy largo, solo se desplaza la columna del texto y el
    botón sigue a la vista */
 @media (orientation: landscape) and (max-height: 560px) {
-  .ficha:not(.quiz) .mg-card { width: min(900px, 100%); height: calc(100vh - 24px); height: calc(100dvh - 24px); max-height: 470px; display: grid; grid-template-columns: minmax(200px, 37%) minmax(0, 1fr); column-gap: 16px; padding: 12px 14px; overflow: hidden; }
+  .ficha:not(.quiz) .mg-card { width: min(900px, 100%); height: calc(100dvh - 24px); height: calc(100dvh - 24px); max-height: 470px; display: grid; grid-template-columns: minmax(200px, 37%) minmax(0, 1fr); column-gap: 16px; padding: 12px 14px; overflow: hidden; }
   .ficha:not(.quiz) .fc-head { min-height: 0; height: 100%; justify-content: flex-start; }
   .ficha:not(.quiz) .fc-pic { flex: 1 1 0; min-height: 0; width: 100%; aspect-ratio: auto; }
   .ficha:not(.quiz) .fc-title { flex: none; }
@@ -492,11 +492,11 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   .cname { font-size: 48px; } .radar { width: 200px; align-self: center; }
   .prof { flex-direction: column; align-items: center; } .prof > img { height: 170px; }
   .sheet { padding: 0; place-items: end center; }
-  .sheet-in { width: 100%; max-height: 94vh; border-radius: 20px 20px 0 0; border-bottom: 0; animation: up .3s cubic-bezier(.2, 1, .3, 1); }
+  .sheet-in { width: 100%; max-height: 94dvh; border-radius: 20px 20px 0 0; border-bottom: 0; animation: up .3s cubic-bezier(.2, 1, .3, 1); }
   .sh-hero { padding: 54px 18px 14px; } .sh-hero h1 { font-size: 32px; } .sh-body { padding: 4px 18px 8px; } .sh-foot { padding-left: 18px; padding-right: 18px; }
   .onb-in { grid-template-columns: minmax(0, 1fr); grid-template-areas: "head" "stage" "side"; align-content: start; gap: 6px; }
   .onb .logo { font-size: 48px; } .onb .tag { font-size: 12px; }
-  .onb-stage .stage-host { height: min(36vh, 300px); }
+  .onb-stage .stage-host { height: min(36dvh, 300px); }
   .onb-who b { font-size: 28px; }
   .onb .cstrip { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
   .onb .cstrip button { width: 70px; } .onb .cstrip button img { width: 58px; height: 58px; }
@@ -524,14 +524,14 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   .hero-fig .stage-host { width: 200px; height: 220px; }
   .hero-cta { margin-top: 12px; }
   .tile { padding: 10px 12px; } .tile b { font-size: 20px; } .tile svg { width: 28px; height: 28px; }
-  .map-wrap { grid-template-columns: minmax(0, 1fr) 240px; } .bigmap { max-height: calc(100vh - 110px); display: flex; justify-content: center; } .bigmap .navarra { width: auto; height: calc(100vh - 130px); max-width: 100%; }
+  .map-wrap { grid-template-columns: minmax(0, 1fr) 240px; } .bigmap { max-height: calc(100dvh - 110px); display: flex; justify-content: center; } .bigmap .navarra { width: auto; height: calc(100dvh - 130px); max-width: 100%; }
   .chero { padding: 52px 20px 16px; } .bigstamp { width: 90px; height: 90px; }
-  .csel { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); } .stage-host.big { height: calc(100vh - 150px); min-height: 220px; }
+  .csel { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); } .stage-host.big { height: calc(100dvh - 150px); min-height: 220px; }
   .csel-side { padding: 14px 18px 14px 0; gap: 8px; } .cname { font-size: 40px; } .radar { width: 170px; } .csel-info p { font-size: 13px; }
-  .sheet-in { max-height: calc(100vh - 16px); } .sh-hero { padding: 44px 20px 10px; } .sh-hero h1 { font-size: 28px; }
+  .sheet-in { max-height: calc(100dvh - 16px); } .sh-hero { padding: 44px 20px 10px; } .sh-hero h1 { font-size: 28px; }
   .onb-in { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); grid-template-areas: "stage head" "stage side"; align-content: center; gap: 6px 20px; }
   .onb-head { text-align: left; } .onb .logo { font-size: 40px; }
-  .onb-stage .stage-host { height: calc(100vh - 90px); max-height: 340px; }
+  .onb-stage .stage-host { height: calc(100dvh - 90px); max-height: 340px; }
   .onb .cstrip { flex-wrap: nowrap; overflow-x: auto; }
   .onb .cstrip button { width: 64px; } .onb .cstrip button img { width: 52px; height: 52px; }
   .onb-side { gap: 8px; } .onb input { padding: 8px 12px; font-size: 18px; } .onb .btn.big { padding: 11px 18px; font-size: 16px; }
@@ -548,7 +548,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 @media (prefers-reduced-motion: reduce) { #hub *, .onb * { animation: none !important; } }
 
 /* ================= Portada con historia ================= */
-.hero3d { position: relative; height: clamp(460px, 66vh, 640px); border-radius: 22px; overflow: hidden; border: 1px solid var(--line2); box-shadow: 0 20px 50px rgba(0, 0, 0, .45); background: #1c0b3a; isolation: isolate; }
+.hero3d { position: relative; height: clamp(460px, 66dvh, 640px); border-radius: 22px; overflow: hidden; border: 1px solid var(--line2); box-shadow: 0 20px 50px rgba(0, 0, 0, .45); background: #1c0b3a; isolation: isolate; }
 /* portada fija: la foto de la comarca y el personaje de pie a la derecha (en vertical, en el centro, encima del título) */
 .hero3d .hero-img { position: absolute; inset: 0; background: #1c0b3a center 60% / cover no-repeat; }
 /* estilo portada de videojuego: la vista de la comarca al atardecer, algo desenfocada y con luz dorada, y delante el
@@ -620,7 +620,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   .hsteps { gap: 8px; } .hsteps li { padding: 10px 4px; } .hsteps li img, .hsteps li svg { width: 48px; height: 48px; } .hsteps b { font-size: 14px; } .hsteps span { font-size: 12px; }
 }
 @media (max-height: 520px) {
-  .hero3d { height: calc(100vh - 90px); min-height: 280px; }
+  .hero3d { height: calc(100dvh - 90px); min-height: 280px; }
   .hero3d .chapter img { width: 36px; height: 36px; } .hero3d .chapter { top: 10px; left: 10px; }
   .hero3d .bubble { top: 12px; left: auto; right: 14px; width: min(260px, 36%); } .hero3d .bubble p { font-size: 13px; } .hero3d .bubble::after { left: -8px; bottom: 18px; }
   .hero3d .h-bot { width: min(430px, 52%); padding: 0 18px 14px; } .hero3d .h-bot h1 { font-size: 32px; margin-bottom: 6px; } .hero3d .h-bot .kicker { margin-top: 0; }
@@ -677,21 +677,21 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   .cs-top { flex-direction: column; align-items: stretch; gap: 10px; } .cs-top .btn { width: 100%; }
   .cs-top { position: sticky; top: -18px; z-index: 3; }
   .csel2 { grid-template-columns: minmax(0, 1fr); grid-template-areas: "stage" "roster" "extra" "side"; }
-  .cs-stage { min-height: 0; height: min(52vh, 400px); }
+  .cs-stage { min-height: 0; height: min(52dvh, 400px); }
   .cs-side { padding: 16px 16px 18px; }
   .cs-roster { border-top: 0; border-bottom: 1px solid var(--line); }
   .csel2 .cstrip button { width: 64px; } .csel2 .cstrip button img { width: 54px; height: 54px; }
   .cname { font-size: 48px; } .stat { grid-template-columns: 88px minmax(0, 1fr) 28px; }
   .onb-foot { grid-template-columns: minmax(0, 1fr); } .onb-foot .btn { width: 100%; }
-  .onb .cs-stage { height: min(40vh, 330px); }
+  .onb .cs-stage { height: min(40dvh, 330px); }
 }
 @media (max-height: 520px) {
   .cs-top { margin-bottom: 8px; } .cs-top .title { font-size: 24px; } .cs-top .btn { padding-top: 9px; padding-bottom: 9px; font-size: 16px; }
   .csel2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); grid-template-areas: "stage side" "roster roster" "extra extra"; }
-  .cs-stage { min-height: 0; height: calc(100vh - 190px); min-height: 200px; }
+  .cs-stage { min-height: 0; height: calc(100dvh - 190px); min-height: 200px; }
   .cs-side { padding: 12px 16px 10px 4px; } .cname { font-size: 40px; } .cdesc { display: none; } .stats { gap: 3px; } .sbar { height: 8px; }
   .csel2 .cstrip { padding-top: 8px; } .csel2 .cstrip button { width: 56px; } .csel2 .cstrip button img { width: 46px; height: 46px; } .csel2 .cstrip button span { display: none; }
-  .onb .cs-stage { height: calc(100vh - 150px); }
+  .onb .cs-stage { height: calc(100dvh - 150px); }
   .onb-foot { grid-template-columns: minmax(0, 1fr) auto; }
   .cs-hint { display: none; }   /* (en pantallas bajas se montaba sobre la peana) */
   .cs-count { top: 8px; left: 12px; }
@@ -779,7 +779,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   -webkit-mask: radial-gradient(circle, transparent 58%, #000 60%); mask: radial-gradient(circle, transparent 58%, #000 60%); }
 .round.bag.low .ering { background: conic-gradient(#ff5a4a calc(var(--e, 100) * 1%), rgba(255, 255, 255, .14) 0); animation: pulse 1s infinite alternate; }
 @keyframes pulse { to { opacity: .45; } }
-.bagpanel .mg-card { max-width: 560px; width: 100%; max-height: 92vh; overflow-y: auto; text-align: left; }
+.bagpanel .mg-card { max-width: 560px; width: 100%; max-height: 92dvh; overflow-y: auto; text-align: left; }
 .bagpanel h3 { margin: 0 0 6px; } .bagpanel h4 { margin: 14px 0 6px; color: #FFD700; font-size: 16px; letter-spacing: .04em; text-transform: uppercase; }
 .bp-head { display: flex; gap: 12px; align-items: center; } .bp-head > div { flex: 1; }
 .ebar { height: 12px; border-radius: 6px; background: rgba(255, 255, 255, .12); overflow: hidden; margin-bottom: 4px; }
@@ -794,7 +794,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .gitem b { font-size: 14px; } .gitem small { grid-column: 1 / -1; font-size: 12px; opacity: .8; line-height: 1.3; margin-top: 4px; }
 .gitem.locked { opacity: .55; }
 @media (max-width: 520px) { .bp-gear { grid-template-columns: 1fr 1fr; } .gitem small { display: none; } .gitem.locked small { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; font-size: 12px; } }
-.bagpanel .mg-card.bp-card { display: flex; flex-direction: column; align-items: stretch; gap: 0; padding: 0; overflow: hidden; max-height: min(92vh, 92dvh); }
+.bagpanel .mg-card.bp-card { display: flex; flex-direction: column; align-items: stretch; gap: 0; padding: 0; overflow: hidden; max-height: min(92dvh, 92dvh); }
 .bp-scroll { overflow-y: auto; padding: 20px 20px 8px; min-height: 0; flex: 1 1 auto; }
 .bp-foot { padding: 12px 20px 16px; border-top: 1px solid rgba(255, 255, 255, .1); background: rgba(10, 6, 24, .35); display: flex; justify-content: center; }
 .bp-foot .btn { width: 100%; max-width: 320px; min-height: 50px; }
@@ -825,10 +825,10 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .dogpick-foot { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; width: 100%; } .dogpick-foot .btn { flex: 1 1 160px; max-width: 260px; }
 
 /* listado de castillos al terminar una visita y montes desde el mirador */
-.peaklist { list-style: none; margin: 8px 0 4px; padding: 0; display: grid; gap: 6px; text-align: left; max-height: 40vh; overflow-y: auto; }
+.peaklist { list-style: none; margin: 8px 0 4px; padding: 0; display: grid; gap: 6px; text-align: left; max-height: 40dvh; overflow-y: auto; }
 .peaklist li { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; font-size: 14px; padding: 6px 10px; border-radius: 10px; background: rgba(255, 255, 255, .06); }
 .peaklist b { color: #FFD700; } .peaklist i { font-style: normal; opacity: .85; text-align: right; } .peaklist span { grid-column: 1 / -1; opacity: .8; font-size: 13px; }
-.castlelist { list-style: none; margin: 8px 0 4px; padding: 0; display: grid; gap: 6px; text-align: left; max-height: 40vh; overflow-y: auto; }
+.castlelist { list-style: none; margin: 8px 0 4px; padding: 0; display: grid; gap: 6px; text-align: left; max-height: 40dvh; overflow-y: auto; }
 .castlelist li { font-size: 14px; line-height: 1.3; padding: 6px 10px; border-radius: 10px; background: rgba(255, 255, 255, .06); }
 .castlelist b { display: block; font-size: 14px; color: #FFD700; }
 
@@ -989,7 +989,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   .onb .cs-roster { padding: 2px 10px 8px; } .onb .csel2 .cstrip { padding-top: 6px; }
 }
 @media (orientation: landscape) and (max-height: 520px) {
-  .onb .cs-stage { min-height: calc(100vh - 150px); min-height: calc(100dvh - 150px); }
+  .onb .cs-stage { min-height: calc(100dvh - 150px); min-height: calc(100dvh - 150px); }
 }
 @media (orientation: landscape) and (max-height: 520px) and (max-width: 740px) {
   .onb-foot { grid-template-columns: minmax(0, 1fr); } .onb-foot .btn.big { width: 100%; }
@@ -1076,7 +1076,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 @media (max-width: 560px) { .escudo .mg-card { grid-template-columns: 1fr; } .escudo .es-frame canvas { max-width: 180px; } .escudo .es-secs { grid-template-columns: 1fr; } }
 /* móvil tumbado: alto fijo a la pantalla; las secciones se desplazan solas y el botón queda siempre a la vista */
 @media (orientation: landscape) and (max-height: 560px) {
-  .escudo .mg-card { height: calc(100vh - 24px); height: calc(100dvh - 24px); max-height: 470px; overflow: hidden; padding: 12px 14px; grid-template-columns: minmax(170px, 32%) minmax(0, 1fr); align-items: stretch; }
+  .escudo .mg-card { height: calc(100dvh - 24px); height: calc(100dvh - 24px); max-height: 470px; overflow: hidden; padding: 12px 14px; grid-template-columns: minmax(170px, 32%) minmax(0, 1fr); align-items: stretch; }
   .escudo .es-pic { justify-content: center; }
   .escudo .es-frame { flex: 0 1 auto; min-height: 0; padding: 6px; } .escudo .es-frame canvas { max-height: calc(100dvh - 130px); width: auto; max-width: 100%; }
   .escudo .es-txt { height: 100%; } .escudo h2 { font-size: 24px; } .escudo .es-blazon { font-size: 13px; }
@@ -1149,7 +1149,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   .tcard { padding: 12px 14px 12px 16px; gap: 6px; } .tcard b { font-size: 16px; } .tcard p { -webkit-line-clamp: 2; font-size: 13px; }
   /* ficha del pueblo: imagen a la izquierda; misiones y botón a la derecha, siempre a la vista */
   .sheet { align-items: center; }
-  .sheet-in { width: min(920px, calc(100vw - 24px)); max-height: calc(100vh - 16px); display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; border-radius: 18px; }
+  .sheet-in { width: min(920px, calc(100vw - 24px)); max-height: calc(100dvh - 16px); display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; border-radius: 18px; }
   .sh-hero, .sh-hero.key { grid-row: 1 / 3; grid-column: 1; min-height: 0; padding: 16px 16px 14px; justify-content: flex-end; }
   .sh-hero.key { padding-right: 16px; }
   .sh-hero .sh-avW { height: 62%; right: 4%; top: 6%; bottom: auto; }
@@ -1172,12 +1172,37 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   /* campeonatos: las dos tarjetas caben enteras, con su botón de jugar a la vista */
   .sp-hint { display: none; }
   .sports { gap: 10px; }
-  .sport { min-height: 0; height: calc(100vh - 124px); max-height: 300px; padding: 14px; gap: 8px; }
+  .sport { min-height: 0; height: calc(100dvh - 124px); max-height: 300px; padding: 14px; gap: 8px; }
   .sport .sp-txt p { display: none; } .sport h3 { font-size: 24px; margin: 0; }
   .sport .btn.big { min-height: 46px; padding: 8px 18px; font-size: 16px; }
   .sport .sp-av { height: 78%; }
 }
 @media (orientation: landscape) and (max-height: 500px) {
   .hub-main h2.sec { margin-top: 0; margin-bottom: 8px; }
-  .sport { height: calc(100vh - 112px); }
+  .sport { height: calc(100dvh - 112px); }
+}
+
+/* ================= iPhone en horizontal (Safari): el notch y la barra de inicio =================
+   Con viewport-fit=cover el notch se come 47 px de cada lado y la barra de inicio 21 px abajo; con la barra de Safari
+   quedan unos 340 px de alto. Nada importante dentro de esas zonas, y la barra lateral entera a la vista. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .hub-nav { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 4px); }
+  .hub-main { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); }
+  .sheet { padding: max(8px, env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) max(8px, env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)); }
+  .sheet-in { max-height: calc(100dvh - max(16px, env(safe-area-inset-bottom, 0px) + 8px)); }
+  .sheet:not(.more) .sheet-in { width: min(920px, 100%); }
+  .onb { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+}
+/* muy poca altura (iPhone con la barra de Safari): la barra lateral, más apretada, para que quepan los seis botones */
+@media (orientation: landscape) and (max-height: 380px) and (min-width: 561px) {
+  .hub-nav { justify-content: space-between; padding-top: 4px; }
+  .hub-nav button { padding: 2px 0 1px; gap: 1px; } .hub-nav button svg, .hub-nav button img { width: 20px; height: 20px; }
+  .hub-nav button.on::before { top: 4px; bottom: 4px; }
+}
+@media (orientation: landscape) and (max-height: 380px) {
+  /* la fila de comarcas de la ficha se desliza: el borde se difumina para que se vea que hay más */
+  .ficha:not(.quiz) .fc-where { -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); padding-right: 18px; }
+  /* tienda: el texto del producto en tres líneas como mucho, para que el botón de comprar quede a la vista */
+  .shop-star p { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 6px; font-size: 13px; }
+  .shop-card .shop-star { padding: 8px 12px; } .shop-card .shop-star > :first-child { width: 60px; height: 60px; } .shop-star h3 { font-size: 18px; margin: 0 0 2px; }
 }

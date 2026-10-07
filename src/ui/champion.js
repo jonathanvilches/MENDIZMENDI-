@@ -30,7 +30,7 @@ const CSS = `.champ{position:fixed;inset:0;z-index:6000;display:grid;place-items
 @keyframes chFloat{50%{transform:translateY(-8px)}}
 @keyframes chPop{0%{transform:scale(.2);opacity:0}100%{transform:none;opacity:1}}
 @keyframes chUp{from{transform:translateY(16px);opacity:0}}
-@media (orientation:landscape) and (max-height:520px){.ch-box{grid-template-columns:auto 1fr;column-gap:24px;text-align:left;justify-items:start;max-width:94vw}.ch-obj{grid-row:1/span 6;width:min(200px,40vh)}.ch-title{font-size:clamp(40px,13vh,64px)}.ch-name{font-size:20px}.ch-btn{min-height:44px}}`;
+@media (orientation:landscape) and (max-height:520px){.ch-box{grid-template-columns:auto 1fr;column-gap:24px;text-align:left;justify-items:start;max-width:94vw}.ch-obj{grid-row:1/span 6;width:min(200px,40dvh)}.ch-title{font-size:clamp(40px,13dvh,64px)}.ch-name{font-size:20px}.ch-btn{min-height:44px}}`;
 
 // confeti y fuegos artificiales en un lienzo (sin librerías)
 function party(cv, colors) {

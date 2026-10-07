@@ -3,6 +3,7 @@
 // contenido cortado (sin barra), texto que no cabe en su caja, botones de menos de 36 px, botones encima de otros y letra
 // de menos de 11 px. Guarda una foto de cada uno. Uso: node tools/popups-medir.mjs [carpeta] [tamaños]
 import { chromium } from 'playwright-core';
+import { iphone } from './iphone.mjs';
 import { mkdirSync, writeFileSync } from 'fs';
 const [,, out = 'entrega/popups-medidos', sizes = '667x375,844x390,932x430,1180x820,390x844'] = process.argv; mkdirSync(out, { recursive: true });
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
@@ -15,6 +16,9 @@ const MEDIR = () => {
   const name = (e) => (e.className && typeof e.className === 'string' ? '.' + e.className.trim().split(/\s+/).slice(0, 2).join('.') : e.tagName.toLowerCase()) + (e.id ? '#' + e.id : '') + (e.textContent ? ' «' + e.textContent.trim().slice(0, 28) + '»' : '');
   const add = (k, e, x = '') => { const key = k + name(e); if (seen.has(key)) return; seen.add(key); issues.push([k, name(e), x]); };
   const roots = [...document.querySelectorAll('.champ,.screen,#reward,#dialog,.mg-overlay,.fb-panel,.pel-panel,.lg-root,.tn-root,.fb-msg.on,.pel-call.on,.modal,[role=dialog]')].filter(allVis);
+  // zonas seguras (notch y barra de inicio del iPhone): texto o botones dentro
+  const pr = document.createElement('div'); pr.style.cssText = 'position:fixed;padding:0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)'; document.body.appendChild(pr);
+  const pcs = getComputedStyle(pr), SL = parseFloat(pcs.paddingLeft), SR = parseFloat(pcs.paddingRight), SB = parseFloat(pcs.paddingBottom); pr.remove();
   for (const R of roots) for (const e of [R, ...R.querySelectorAll('*')]) {
     if (!allVis(e)) continue;
     const r = e.getBoundingClientRect(), s = getComputedStyle(e), sc = scroller(e);
@@ -24,6 +28,8 @@ const MEDIR = () => {
     if (/(hidden|clip)/.test(s.overflowY) && e.scrollHeight > e.clientHeight + 4 && e.clientHeight > 20 && !/(ellipsis)/.test(s.textOverflow)) add('cortado', e, `${e.scrollHeight - e.clientHeight}px`);
     // texto que no cabe a lo ancho
     if (e.childElementCount === 0 && e.textContent.trim() && /(hidden|clip)/.test(s.overflowX) && e.scrollWidth > e.clientWidth + 2 && s.textOverflow !== 'ellipsis') add('texto no cabe', e, `${e.scrollWidth}>${e.clientWidth}`);
+    // dentro del notch o de la barra de inicio (solo texto y botones, no fondos)
+    if ((SL || SR || SB) && (e.tagName === 'BUTTON' || (e.childElementCount === 0 && e.textContent.trim())) && (r.left < SL - 2 || r.right > W - SR + 2 || (r.bottom > H - SB + 2 && r.top < H))) { const sc2 = scroller(e); const cut = sc2 && r.bottom > sc2.getBoundingClientRect().bottom; if (!cut) add('zona del notch', e, `${Math.round(r.left)}-${Math.round(r.right)} x ${Math.round(r.bottom)}`); }
     // botones pequeños
     if ((e.tagName === 'BUTTON' || e.getAttribute('role') === 'button' || (e.tagName === 'A' && e.href)) && (r.height < 36 || r.width < 36)) add('botón pequeño', e, `${Math.round(r.width)}x${Math.round(r.height)}`);
     // letra diminuta
@@ -45,7 +51,7 @@ const report = {};
 for (const sz of sizes.split(',')) {
   const [W, H] = sz.split('x').map(Number), touch = Math.min(W, H) < 900;
   const ctx = await b.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 2, isMobile: touch && W < 1000, hasTouch: touch });
-  const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
+  const p = await ctx.newPage(); await iphone(p); const errs = []; p.on('pageerror', e => errs.push(e.message));
   await p.addInitScript(() => { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'pelotari', seen: { heroBenat: true, dog: true }, settings: { quality: 'low' } })); });
   await p.goto(`http://127.0.0.1:5173/?town=lumbier&q=low&weather=clear&skipintro=1&noflora`, { timeout: 300000 });
   await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 500000 });

@@ -32,7 +32,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-msg h2{margin:0;font-family:'Lilita One',Nunito,sans-serif;font-weight:400;font-size:clamp(40px,10vw,84px);line-height:1;text-shadow:0 4px 0 rgba(0,0,0,.35),0 8px 26px rgba(0,0,0,.45);letter-spacing:0}
 .fb-msg p{margin:6px 0 0;font-size:clamp(15px,3.6vw,20px);font-weight:900;text-shadow:0 2px 8px rgba(0,0,0,.6)}
 .fb-msg.goal h2{color:#ffd84a}
-.fb-stick{position:absolute;left:0;bottom:0;width:50vw;height:78vh;pointer-events:auto;touch-action:none}
+.fb-stick{position:absolute;left:0;bottom:0;width:50vw;height:78dvh;pointer-events:auto;touch-action:none}
 .fb-knob{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;border:1.5px solid rgba(255,255,255,.6);background:rgba(8,10,20,.14);display:none}
 .fb-knob i{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:rgba(255,255,255,.72);box-shadow:0 1px 6px rgba(0,0,0,.25)}
 .fb-stickhint{position:absolute;left:calc(env(safe-area-inset-left,0px) + 18px);bottom:calc(env(safe-area-inset-bottom,0px) + 18px);width:96px;height:96px;border-radius:50%;border:1.5px dashed rgba(255,255,255,.5);display:grid;place-items:center;font-size:12px;font-weight:600;text-align:center;opacity:.7;padding:10px;transition:opacity .4s;text-shadow:0 1px 3px rgba(0,0,0,.6)}
@@ -99,7 +99,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
   .fb-team span.fb-ln{display:none}.fb-team span.fb-sn{display:inline}
   .fb-btns{--u:.96}.fb-tip{max-width:92vw}
   .fb-bars{left:auto;transform:none;right:calc(env(safe-area-inset-right,0px) + 12px);bottom:calc(env(safe-area-inset-bottom,0px) + 186px);width:140px}
-  .fb-stick{height:62vh}
+  .fb-stick{height:62dvh}
 }
 @media (max-height:520px) and (orientation:landscape){
   .fb-panel{padding:calc(env(safe-area-inset-top,0px) + 8px) calc(env(safe-area-inset-right,0px) + 10px) calc(env(safe-area-inset-bottom,0px) + 8px) calc(env(safe-area-inset-left,0px) + 10px)}

@@ -1,10 +1,11 @@
 // El público y el entorno del frontón durante un partido: capturas desde la cámara del juego y desde la grada,
 // y recuento de espectadores en 3D y en lámina. Uso: node tools/pelota-publico.mjs [pueblo] [carpeta] [ancho] [alto]
 import { chromium } from 'playwright-core';
+import { iphone } from './iphone.mjs';
 import { mkdirSync } from 'fs';
 const [,, town = 'lumbier', out = 'entrega/pelota-publico', W = '844', H = '390'] = process.argv; mkdirSync(out, { recursive: true });
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
-const p = await b.newPage({ viewport: { width: +W, height: +H }, isMobile: true, hasTouch: true }); const errs = []; p.on('pageerror', e => errs.push(e.message));
+const p = await b.newPage({ viewport: { width: +W, height: +H }, isMobile: true, hasTouch: true }); await iphone(p); const errs = []; p.on('pageerror', e => errs.push(e.message));
 await p.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); });
 await p.goto(`http://127.0.0.1:5173/?town=${town}&q=low&weather=clear&skipintro=1&noflora`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 600000 });
