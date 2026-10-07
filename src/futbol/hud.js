@@ -108,8 +108,12 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
   .fb-body>*{grid-column:1/-1}.fb-body .fb-row:not(:first-of-type){grid-column:auto}.fb-body .fb-row[data-row=reto]{grid-column:1/-1}
   .fb-foot{padding-top:8px;gap:8px}.fb-foot .fb-go,.fb-foot .fb-alt{min-height:44px;padding:8px}.fb-foot .fb-go{font-size:20px}.fb-foot.n4{grid-template-columns:repeat(4,1fr)}
   .fb-ctrl{font-size:12px;margin:2px 0}.fb-ctrl td{padding:2px 4px}.fb-ctrl td small{display:none}.fb-ctrl td.ic svg{width:17px;height:17px}.fb-ctrl td br{display:none}
-  .fb-card h2{font-size:24px}.fb-row{margin:2px 0 6px;gap:5px}.fb-row label{font-size:12px}.fb-chip{min-height:38px;padding:5px 11px;font-size:13px}
-  .fb-stats{font-size:13px;margin:4px 0 2px}.fb-stats td{padding:3px 6px}.fb-big{font-size:40px;margin:2px 0}.fb-card p{margin:2px 0 6px}
+  /* menú: el modo y el sistema ocupan todo el ancho con su nombre a la izquierda, así caben todas las filas sin desplazar */
+  .fb-menu .fb-body .fb-row[data-row=mode],.fb-menu .fb-body .fb-row[data-row=sistema]{grid-column:1/-1}
+  .fb-menu .fb-row[data-row=mode] label,.fb-menu .fb-row[data-row=sistema] label{width:auto;margin-right:6px}
+  .fb-menu .fb-card h2{margin:0 0 2px}.fb-menu .fb-kick{margin:0}
+.fb-card h2{font-size:24px}.fb-row{margin:2px 0 6px;gap:5px}.fb-row label{font-size:12px}.fb-chip{min-height:38px;padding:5px 11px;font-size:13px}
+  .fb-stats{font-size:13px;margin:4px 0 2px}.fb-stats td{padding:2px 6px}.fb-big{font-size:34px;line-height:1;margin:0 0 2px}.fb-fact{margin:4px 0 0!important;padding:6px 10px;font-size:13px;line-height:1.3}.fb-card p{margin:2px 0 6px}
   /* estadísticas en dos columnas: con nueve filas, los botones quedaban fuera de la pantalla */
   .fb-stats tbody{display:grid;grid-template-columns:1fr 1fr;column-gap:18px}.fb-stats tr{display:grid;grid-template-columns:minmax(3.6em,auto) 1fr minmax(3.6em,auto);align-items:center;border-bottom:1px solid rgba(255,255,255,.1)}
   .fb-stats td{border:0!important;width:auto!important;white-space:nowrap}
@@ -303,7 +307,7 @@ export class FutbolHud {
       const p = this.panel(`<p class="fb-kick">${esc(sub)}</p><h2>${esc(title)}</h2>
         ${chips('mode', main)}${retos.length ? chips('reto', retos, 'mode') : ''}${rivals.length > 1 ? chips('rival', rivals) : ''}${chips('level', [['facil', 'Fácil'], ['normal', 'Normal'], ['dificil', 'Difícil']])}
         ${chips('duration', [[2, '2 min'], [3, '3 min'], [4, '4 min'], [5, '5 min']])}${chips('assist', [[true, 'Sí'], [false, 'No']])}${v.sistemas ? chips('sistema', v.sistemas.map(id => [id, id])) : ''}
-        <button class="fb-go">¡A jugar!</button><button class="fb-alt">Salir</button>`);
+        <button class="fb-go">¡A jugar!</button><button class="fb-alt">Salir</button>`); p.classList.add('fb-menu');
       const refresh = () => {
         const m = String(v.mode), reto = m.startsWith('reto:'), pen = m === 'penalties';
         const show = { rival: !reto, level: !reto, duration: !reto && !pen, assist: !reto && !pen, sistema: !reto && !pen };
