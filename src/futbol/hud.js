@@ -5,6 +5,7 @@
 const CSS = `
 .fb-root{position:fixed;inset:0;z-index:900;pointer-events:none;font-family:Nunito,system-ui,sans-serif;color:#fff;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 .fb-root *{box-sizing:border-box}
+.fb-cut{position:absolute;inset:0;background:#05040a;opacity:0;pointer-events:none}.fb-cut.on{animation:fbcut .6s ease-out}@keyframes fbcut{0%,25%{opacity:1}100%{opacity:0}}
 .fb-top{position:absolute;top:calc(env(safe-area-inset-top,0px) + 8px);left:64px;right:64px;display:flex;flex-direction:column;align-items:center;gap:6px}
 .fb-score{display:flex;align-items:stretch;border-radius:14px;overflow:hidden;background:rgba(16,10,30,.86);border:1px solid rgba(255,255,255,.18);box-shadow:0 6px 18px rgba(0,0,0,.3);max-width:100%}
 .fb-team{display:flex;align-items:center;gap:7px;padding:5px 10px;font-weight:900;font-size:14px;letter-spacing:.04em;min-width:0}
@@ -307,5 +308,7 @@ export class FutbolHud {
   info({ kicker = '', title, text, button = 'Seguir' }) {
     return new Promise(res => { const p = this.panel(`<p class="fb-kick">${esc(kicker)}</p><h2>${esc(title)}</h2><p>${text}</p><button class="fb-go">${esc(button)}</button>`); p.querySelector('.fb-go').onclick = () => { p.remove(); res(); }; });
   }
+  /** Fundido breve a negro: tapa los cambios de sitio de golpe (saque de centro tras un gol, descanso). */
+  cut() { let c = this.root.querySelector('.fb-cut'); if (!c) { c = document.createElement('div'); c.className = 'fb-cut'; this.root.prepend(c); } c.classList.remove('on'); void c.offsetWidth; c.classList.add('on'); }
   dispose() { clearTimeout(this.mt); clearTimeout(this.st); this.root.remove(); }
 }

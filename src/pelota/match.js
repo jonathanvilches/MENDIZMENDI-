@@ -245,11 +245,19 @@ export class PelotaMatch {
     // pelotaris
     for (const who of ['you', 'rival']) {
       const P = g.players[who], side = this.o[who]; if (!side?.obj) continue;
-      this.v3.set(P.x, 0, P.z); grp.localToWorld(this.v3);
+      // vigía de saltos: al colocarse para el saque la lógica los pone en su sitio de golpe; la figura llega andando
+      const S = (this.slide ||= {})[who] ||= { x: P.x, z: P.z, ox: 0, oz: 0, v: 0 };
+      let px = P.x, pz = P.z; if (!Number.isFinite(px) || !Number.isFinite(pz)) { px = S.x; pz = S.z; }
+      if (Math.hypot(px - S.x, pz - S.z) > Math.max(0.35, 10 * dt)) { S.ox = S.x - px; S.oz = S.z - pz; }
+      S.v = 0;
+      if (S.ox || S.oz) { const k = Math.exp(-dt * 4), ox = S.ox * k, oz = S.oz * k; if (dt > 0) S.v = Math.hypot(S.ox - ox, S.oz - oz) / dt; S.ox = ox; S.oz = oz; if (Math.hypot(ox, oz) < 0.03) S.ox = S.oz = 0; px += S.ox; pz += S.oz; }
+      S.x = px; S.z = pz;
+      this.v3.set(px, 0, pz); grp.localToWorld(this.v3);
       side.obj.position.copy(this.v3);
       // mira al frontis salvo cuando corre hacia atrás o hacia un lado
       let yaw = Math.PI;
       if (P.speed > 1.2 && Math.abs(P.vx) > Math.abs(P.vz) * 0.6) yaw = Math.atan2(P.vx, P.vz);
+      else if (S.v > 0.8) yaw = Math.atan2(-S.ox, -S.oz);   // (yendo a su sitio para el saque, mira hacia donde va)
       if (g.phase === 'point' && (P.act === 'cheer')) yaw = Math.atan2(this.camPos.x - side.obj.position.x, this.camPos.z - side.obj.position.z) - grp.rotation.y;
       P.yaw = P.yaw == null ? yaw : P.yaw + Math.atan2(Math.sin(yaw - P.yaw), Math.cos(yaw - P.yaw)) * (1 - Math.exp(-12 * dt));
       side.obj.rotation.y = grp.rotation.y + P.yaw + (this.o.yawOffset || 0);
@@ -259,7 +267,7 @@ export class PelotaMatch {
       const dB = Math.hypot(ball.x - P.x, ball.z - P.z), wind = turn ? Math.max(0, Math.min(1, 1 - (dB - 1.0) / 5)) : 0;
       // ¿va hacia atrás? (de espaldas a donde corre: las piernas, al revés, en vez de correr hacia delante sin moverse así)
       const back = (P.speed || 0) > 0.4 && (P.vx * Math.sin(P.yaw) + P.vz * Math.cos(P.yaw)) < -0.35 * P.speed;
-      const st = { speed: P.speed || 0, back, act: P.act, actT: P.actT, wind, swing: swingAge < 0.4 ? swingAge / 0.4 : -1, won: g.phase === 'point' && P.act === 'cheer', lost: g.phase === 'point' && P.act === 'sad' };
+      const st = { speed: Math.max(P.speed || 0, S.v), back, act: P.act, actT: P.actT, wind, swing: swingAge < 0.4 ? swingAge / 0.4 : -1, won: g.phase === 'point' && P.act === 'cheer', lost: g.phase === 'point' && P.act === 'sad' };
       if (P.act === 'swing' && who === 'you' && swingAge > 0.4) { this.lastSwing[who] = this.t; }
       if (side.animate) side.animate(side.obj, st, dt); else basicAnimate(side.obj, st, dt, this.t);
     }

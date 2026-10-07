@@ -305,7 +305,7 @@ export class FutbolMatch {
     if (this.paused) { this.field.tick(dt, this.t, this.camera, 0.2, 0); return; }
     // hasta que run() arranca (el fundido de entrada), solo se dibuja la presentación
     if (!this.live) { this.sync(dt); this.cam(dt); return; }
-    if (this.intro > 0) { this.intro -= dt; this.introStep(dt); this.sync(dt); this.cam(dt); if (this.intro <= 0) { this.confetti.mesh.visible = false; this.begin(); this.cam(dt, true); } return; }
+    if (this.intro > 0) { this.intro -= dt; this.introStep(dt); this.sync(dt); this.cam(dt); if (this.intro <= 0) { this.confetti.mesh.visible = false; this.begin(); this.cut(); this.cam(dt, true); } return; }
     if (this.replay) { this.playReplay(dt); return; }
     this.moveInput();
     this.tuto?.update(dt); this.reto?.update(dt);
@@ -313,8 +313,10 @@ export class FutbolMatch {
     for (const e of g.drain()) this.onEvent(e);
     if (this.done) return;
     this.record();
-    this.sync(dt); this.cam(dt); this.drawHud();
+    this.sync(dt); this.cam(dt, !!this.cutCam); this.cutCam = false; this.drawHud();
   }
+  /** Fundido y cámara colocada de una vez (sin barrido de un lado del campo al otro). */
+  cut() { (this.vigia ||= { nan: 0, slide: 0, cut: 0, log: [] }).cut++; this.cutAt = this.t; this.hud.cut?.(); this.cutCam = true; }
   tension() {
     const g = this.game, B = g.ball.p; if (!g) return 0.25;
     if (g.phase !== 'play') return 0.25;
@@ -440,13 +442,30 @@ export class FutbolMatch {
     ch.kind = kind; ch.kindT = kind === 'slide' ? 1.0 : kind === 'fall' ? 1.2 : 0.4;
   }
   sync(dt) {
-    const g = this.game, B = g.ball;
+    const g = this.game, B = g.ball; let bigJump = false;
+    this.vigia ||= { nan: 0, slide: 0, cut: 0, log: [] };
     for (const p of g.players) {
       const ch = this.chars[p.id]; if (!ch) continue;
       // entre dos pasos de la física (120 Hz) se interpola la posición para que el dibujo vaya suave a cualquier frecuencia
-      const al = g.alpha ?? 1, ix = p.px === undefined ? p.x : p.px + (p.x - p.px) * al, iz = p.pz === undefined ? p.z : p.pz + (p.z - p.pz) * al;
+      const al = g.alpha ?? 1; let ix = p.px === undefined ? p.x : p.px + (p.x - p.px) * al, iz = p.pz === undefined ? p.z : p.pz + (p.z - p.pz) * al;
+      if (!Number.isFinite(ix) || !Number.isFinite(iz)) { ix = ch.sx ?? 0; iz = ch.sz ?? 0; this.vigia.nan++; }   // (nunca a un sitio imposible)
+      // vigía de saltos: la lógica recoloca de golpe en los saques (barrera, saque de puerta, de centro). Si el salto es corto,
+      // la figura llega corriendo en un momento; si es largo (saque de centro tras un gol, descanso), un fundido lo tapa
+      let sp = Math.hypot(p.vx, p.vz);
+      if (ch.ix !== undefined) {
+        const d = Math.hypot(ix - ch.ix, iz - ch.iz);   // (el salto del sitio de la lógica, no el de la figura que aún llega)
+        if (d > Math.max(1.0, 12 * dt)) { if (d < 6) { ch.ox = ch.sx - ix; ch.oz = ch.sz - iz; this.vigia.slide++; if (this.vigia.log.length < 30) this.vigia.log.push([+this.t.toFixed(2), g.phase, p.id, +d.toFixed(2)]); } else bigJump = true; }
+      }
+      if (ch.ox || ch.oz) {
+        // a paso de carrera (como mucho 8,5 m/s), no de un salto
+        const o = Math.hypot(ch.ox, ch.oz), go = Math.min(o, Math.max(o * (1 - Math.exp(-dt * 6)), 3 * dt), 8.5 * dt), k = (o - go) / o;
+        if (dt > 0) sp = Math.max(sp, go / dt);
+        ch.ox *= k; ch.oz *= k; if (o - go < 0.03) ch.ox = ch.oz = 0;
+        ix += ch.ox; iz += ch.oz;
+      }
+      ch.sx = ix; ch.sz = iz; ch.ix = ix - (ch.ox || 0); ch.iz = iz - (ch.oz || 0);
       ch.outer.position.set(ix, 0, iz); ch.outer.rotation.y = p.h;
-      const sp = Math.hypot(p.vx, p.vz), a = ch.c.anim;
+      const a = ch.c.anim;
       // poses del cuerpo entero: estirada del portero, entrada en plancha, caída y celebración
       const pv = ch.pivot; let rx = 0, rz = 0, py = 0, pz = 0;
       if (p.dive) {
@@ -460,17 +479,34 @@ export class FutbolMatch {
       if (ch.kindT > 0) ch.kindT -= dt;
       // celebración: brincos y el clip de celebrar
       if (p.act === 'celebrate') { if (ch.celeb <= 0) { a.once?.('Celebrate', 1.4); ch.celeb = 1.4; } ch.celeb -= dt; } else ch.celeb = 0;
-      a.setSpeed?.(p.dive || p.slide || p.down > 0 ? 0 : sp);
+      // la velocidad que mueve las piernas, suavizada: la IA frena y arranca a golpes de medio metro y la figura pasaba de
+      // quieta a andar varias veces por segundo
+      const want = p.dive || p.slide || p.down > 0 ? 0 : sp;
+      ch.leg = ch.leg === undefined || want === 0 && (p.dive || p.slide || p.down > 0) ? want : ch.leg + (want - ch.leg) * Math.min(1, dt * 5);
+      a.setSpeed?.(ch.leg);
       a.update?.(dt);
       // brazos arriba: el que saca de banda, con el balón sobre la cabeza
       ch.c.post?.({ arms: g.restart?.type === 'throwin' && RU.throwHands && g.restart.taker === p ? 'up' : null }, dt);
+    }
+    // un salto largo: fundido y todos a su sitio de una vez (sin que unos lleguen corriendo y otros aparezcan)
+    if (bigJump) {
+      if (!(this.intro > 0)) this.cut();
+      for (const p of g.players) { const ch = this.chars[p.id]; if (!ch || ch.ix === undefined) continue; ch.ox = ch.oz = 0; ch.sx = ch.ix; ch.sz = ch.iz; ch.outer.position.set(ch.ix, 0, ch.iz); }
     }
     // árbitro y asistentes (el asistente levanta el banderín en el fuera de juego)
     g.refs.forEach((r, i) => {
       const ch = this.refChars[i]; if (!ch) return;
       ch.outer.visible = !g.noRefs;
-      ch.outer.position.set(r.x, 0, r.z); ch.outer.rotation.y = r.h;
-      ch.c.anim.setSpeed?.(Math.hypot(r.vx, r.vz)); ch.c.anim.update?.(dt);
+      // (también el árbitro: en el saque de centro la lógica lo pone en su sitio de golpe; llega andando o con el fundido)
+      let rx = r.x, rz = r.z, rv = Math.hypot(r.vx, r.vz);
+      const rj = ch.ix === undefined ? 0 : Math.hypot(rx - ch.ix, rz - ch.iz);
+      if (!bigJump && rj > Math.max(1.0, 12 * dt)) { if (rj < 6) { ch.ox = ch.sx - rx; ch.oz = ch.sz - rz; } else { ch.ox = ch.oz = 0; this.cut(); } }
+      ch.ix = rx; ch.iz = rz;
+      if (bigJump) ch.ox = ch.oz = 0;
+      if (ch.ox || ch.oz) { const o = Math.hypot(ch.ox, ch.oz), go = Math.min(o, Math.max(o * (1 - Math.exp(-dt * 6)), 3 * dt), 8.5 * dt), k = (o - go) / o; if (dt > 0) rv = Math.max(rv, go / dt); ch.ox *= k; ch.oz *= k; if (o - go < 0.03) ch.ox = ch.oz = 0; rx += ch.ox; rz += ch.oz; }
+      ch.sx = rx; ch.sz = rz;
+      ch.outer.position.set(rx, 0, rz); ch.outer.rotation.y = r.h;
+      ch.c.anim.setSpeed?.(rv); ch.c.anim.update?.(dt);
       ch.c.post?.({ arms: r.flag > 0 ? 'flag' : null, card: r.flag > 0 ? r.card : null }, dt);
     });
     // balón: rodando con giro coherente con la velocidad; en las manos del portero, con él
@@ -530,12 +566,12 @@ export class FutbolMatch {
     const f = R2.frames[R2.i], g = this.game;
     g.players.forEach((p, j) => {
       const [x, z, h, sp, act, dive, slide, down] = f.p[j], ch = this.chars[p.id];
-      ch.outer.position.set(x, 0, z); ch.outer.rotation.y = h;
+      ch.outer.position.set(x, 0, z); ch.outer.rotation.y = h; ch.sx = ch.ix = x; ch.sz = ch.iz = z; ch.ox = ch.oz = 0;
       if (act === 'kick' && ch.ract !== 'kick') ch.c.anim.once?.('Hit', 0.6, true);
       ch.ract = act; ch.c.anim.setSpeed?.(dive || slide || down > 0 ? 0 : sp * (R2.len / R2.dur)); ch.c.anim.update?.(dt * (R2.len / R2.dur));
       const pv = ch.pivot; pv.rotation.z += ((dive ? -(Math.sign(-dive.side * Math.sin(h)) || dive.side) * 1.3 : 0) - pv.rotation.z) * Math.min(1, dt * 8); pv.rotation.x += ((slide ? -1.1 : 0) - pv.rotation.x) * Math.min(1, dt * 8);
     });
-    f.r?.forEach(([x, z, h, sp], i) => { const ch = this.refChars[i]; if (!ch) return; ch.outer.position.set(x, 0, z); ch.outer.rotation.y = h; ch.c.anim.setSpeed?.(sp * (R2.len / R2.dur)); ch.c.anim.update?.(dt * (R2.len / R2.dur)); });
+    f.r?.forEach(([x, z, h, sp], i) => { const ch = this.refChars[i]; if (!ch) return; ch.outer.position.set(x, 0, z); ch.sx = ch.ix = x; ch.sz = ch.iz = z; ch.ox = ch.oz = 0; ch.outer.rotation.y = h; ch.c.anim.setSpeed?.(sp * (R2.len / R2.dur)); ch.c.anim.update?.(dt * (R2.len / R2.dur)); });
     this.ball.position.set(f.b[0], f.b[1] + (K.scale - 1) * R, f.b[2]); this.ball.quaternion.copy(f.q);
     this.ballShadow.position.set(f.b[0], 0.012, f.b[2]);
     for (const sp of this.trail) sp.visible = false;   // (en la repetición, sin estela)
