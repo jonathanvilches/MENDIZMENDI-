@@ -100,7 +100,7 @@ export function solveTwoWalls(p, speed, landZ = 17, fzs = [0.28, 0.4, 0.52, 0.64
       if (ev.some(e => e.type === 'floor' && e.t < F.t)) continue;
       const land = ev.find(e => e.type === 'floor' && e.n === 1);
       if (!land || land.x > COURT.W / 2 - 0.3 || land.z > COURT.L - 1 || land.z < 4) continue;
-      const score = -Math.abs(land.z - landZ) - Math.max(0, 1 - land.x) * 1.5 - low * (F.y - COURT.CHAPA);   // mejor cuanto más cruzado (hacia la derecha)
+      const score = -Math.abs(land.z - landZ) * (opts.cross ? 0.5 : 1) - Math.max(0, 1 - land.x) * 1.5 + (opts.cross || 0) * land.x - low * (F.y - COURT.CHAPA);   // mejor cuanto más cruzado (hacia la derecha); con cross, cuanto más, mejor
       if (score > bs) { bs = score; best = { v, land, wall: { x: xw, y: yw, z: zw } }; }
     }
   }
