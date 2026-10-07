@@ -140,7 +140,8 @@ export class PelotaMatch {
       const up = () => { b.classList.remove('down'); if (charge) this.chargeEnd(charge); };
       b.addEventListener('pointerup', up); b.addEventListener('pointerleave', up); b.addEventListener('pointercancel', up);
     };
-    btn('.pel-hit', 'hitQ', 'hit'); btn('.pel-drop', 'dropQ', 'drop'); btn('.pel-cut', 'cutQ', 'cut');
+    // (cada botón por su nombre: la cortada lleva el estilo de los botones pequeños y antes se cogía como si fuese la dejada)
+    btn('.pel-hit', 'hitQ', 'hit'); btn('.pel-dejada', 'dropQ', 'drop'); btn('.pel-cut', 'cutQ', 'cut');
     hud.$('.pel-exit').addEventListener('click', () => { if (!hud.panelEl) this.confirmExit(); });
   }
   // carga del golpe: cuanto más se mantiene, más fuerte (a tope en 0,7 s); un toque corto es un golpe suave

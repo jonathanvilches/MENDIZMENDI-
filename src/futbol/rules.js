@@ -60,6 +60,34 @@ const FORM11 = {
   DCI: { atk: [0.62, -0.2], def: [-0.1, -0.14] },
   DCD: { atk: [0.66, 0.16], def: [-0.06, 0.12] },
 };
+// Sistemas para elegir (fútbol 11). Los once puestos son los mismos (y los mismos dorsales); cambia dónde juega cada
+// uno: su sitio en ataque y en defensa [u, v], su línea (1 defensa, 2 medio, 3 delantera) y cómo se llama su puesto.
+// El 4-4-2 es el de siempre (FORM11)
+const P = (atk, def, line, name) => ({ atk, def, line, name });
+export const SISTEMAS = {
+  '4-4-2': { name: '4-4-2', text: 'Dos líneas de cuatro y dos puntas. Equilibrado.', roles: Object.fromEntries(Object.entries(FORM11).map(([k, f]) => [k, { ...f, line: LINE11[k], name: ROLE_NAME11[k] }])) },
+  '4-3-3': { name: '4-3-3', text: 'Tres en el medio y tres arriba, con extremos abiertos. Más ataque por las bandas.', roles: {
+    LI: P([-0.2, -0.82], [-0.66, -0.6], 1, 'lateral izquierdo'), CTI: P([-0.48, -0.28], [-0.74, -0.2], 1, 'central'), CTD: P([-0.48, 0.28], [-0.74, 0.2], 1, 'central'), LD: P([-0.2, 0.82], [-0.66, 0.6], 1, 'lateral derecho'),
+    MCI: P([0.08, -0.34], [-0.4, -0.3], 2, 'interior izquierdo'), MCD: P([-0.12, 0], [-0.5, 0], 2, 'mediocentro'), DCI: P([0.08, 0.34], [-0.4, 0.3], 2, 'interior derecho'),
+    MI: P([0.6, -0.78], [-0.12, -0.62], 3, 'extremo izquierdo'), DCD: P([0.7, 0], [-0.04, 0], 3, 'delantero centro'), MD: P([0.6, 0.78], [-0.12, 0.62], 3, 'extremo derecho') } },
+  '4-2-3-1': { name: '4-2-3-1', text: 'Dos mediocentros que protegen, tres mediapuntas y un delantero.', roles: {
+    LI: P([-0.2, -0.82], [-0.66, -0.6], 1, 'lateral izquierdo'), CTI: P([-0.48, -0.28], [-0.74, -0.2], 1, 'central'), CTD: P([-0.48, 0.28], [-0.74, 0.2], 1, 'central'), LD: P([-0.2, 0.82], [-0.66, 0.6], 1, 'lateral derecho'),
+    MCI: P([-0.1, -0.2], [-0.5, -0.18], 2, 'mediocentro'), MCD: P([-0.1, 0.2], [-0.5, 0.18], 2, 'mediocentro'),
+    MI: P([0.38, -0.72], [-0.28, -0.6], 2, 'mediapunta izquierdo'), DCI: P([0.4, 0], [-0.22, 0], 2, 'mediapunta'), MD: P([0.38, 0.72], [-0.28, 0.6], 2, 'mediapunta derecho'),
+    DCD: P([0.72, 0], [-0.04, 0], 3, 'delantero centro') } },
+  '5-3-2': { name: '5-3-2', text: 'Cinco atrás con carrileros que suben. Muy difícil de superar.', roles: {
+    LI: P([0.05, -0.86], [-0.68, -0.7], 1, 'carrilero izquierdo'), CTI: P([-0.52, -0.3], [-0.78, -0.3], 1, 'central'), MCD: P([-0.56, 0], [-0.82, 0], 1, 'líbero'), CTD: P([-0.52, 0.3], [-0.78, 0.3], 1, 'central'), LD: P([0.05, 0.86], [-0.68, 0.7], 1, 'carrilero derecho'),
+    MI: P([0.18, -0.42], [-0.44, -0.36], 2, 'interior izquierdo'), MCI: P([0.02, 0], [-0.5, 0], 2, 'mediocentro'), MD: P([0.18, 0.42], [-0.44, 0.36], 2, 'interior derecho'),
+    DCI: P([0.62, -0.18], [-0.12, -0.14], 3, 'delantero'), DCD: P([0.66, 0.16], [-0.08, 0.12], 3, 'delantero centro') } },
+  '3-5-2': { name: '3-5-2', text: 'Tres centrales y cinco en el medio: se domina el balón.', roles: {
+    CTI: P([-0.5, -0.36], [-0.76, -0.34], 1, 'central'), MCD: P([-0.54, 0], [-0.8, 0], 1, 'central'), CTD: P([-0.5, 0.36], [-0.76, 0.34], 1, 'central'),
+    LI: P([0.2, -0.86], [-0.5, -0.74], 2, 'carrilero izquierdo'), MI: P([0.14, -0.36], [-0.42, -0.3], 2, 'interior izquierdo'), MCI: P([-0.04, 0], [-0.52, 0], 2, 'mediocentro'), MD: P([0.14, 0.36], [-0.42, 0.3], 2, 'interior derecho'), LD: P([0.2, 0.86], [-0.5, 0.74], 2, 'carrilero derecho'),
+    DCI: P([0.62, -0.18], [-0.1, -0.14], 3, 'delantero'), DCD: P([0.66, 0.16], [-0.06, 0.12], 3, 'delantero centro') } },
+};
+const SIS_KEY = 'mendimendiz-futbol-sistema';
+/** El sistema que ha elegido el jugador (se guarda). */
+export function sistemaElegido() { try { const s = localStorage.getItem(SIS_KEY); return SISTEMAS[s] ? s : '4-4-2'; } catch (e) { return '4-4-2'; } }
+export function elegirSistema(id) { if (SISTEMAS[id]) try { localStorage.setItem(SIS_KEY, id); } catch (e) { } }
 const NUMBERS11 = { POR: 1, LD: 2, LI: 3, CTI: 4, CTD: 5, MCD: 6, MD: 7, MCI: 8, DCD: 9, DCI: 10, MI: 11 };
 // quién tira los penaltis (en el partido y en la tanda) y quién saca de centro
 const KICKERS11 = ['DCD', 'DCI', 'MCI', 'MD', 'MI', 'MCD', 'CTI', 'LD', 'CTD', 'LI'];

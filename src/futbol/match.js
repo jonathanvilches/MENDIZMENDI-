@@ -3,7 +3,7 @@
 // scene con camera. run() devuelve una promesa con el resultado cuando el jugador sale.
 import * as THREE from 'three';
 import { DATOS } from '../data/saberes.js';
-import { FIELD as F, PHYS as K, TEAMS, TEXT, RETOS, VENUES, RULES as RU, ROLES, useFormat, onFormat, FORMAT } from './rules.js';
+import { FIELD as F, PHYS as K, TEAMS, TEXT, RETOS, VENUES, RULES as RU, ROLES, useFormat, onFormat, FORMAT, SISTEMAS, sistemaElegido, elegirSistema } from './rules.js';
 import { FutbolGame } from './game.js';
 import { buildField, ballTexture, roofShade } from './field.js';
 import { FutbolHud } from './hud.js';
@@ -214,7 +214,7 @@ export class FutbolMatch {
   }
   newGame() {
     const o = this.o; useFormat(o.format, o.surface);
-    const g = new FutbolGame({ format: o.format, surface: o.surface, mode: o.mode === 'penalties' ? 'penalties' : 'match', level: o.level, duration: o.duration, assist: o.assist, autoplay: o.autoplay, cup: o.cup, kicks: o.kicks, seed: o.seed });
+    const g = new FutbolGame({ sistema: o.sistema || sistemaElegido(), sistemaRival: o.sistemaRival || ['4-4-2', '4-3-3', '4-2-3-1', '5-3-2'][(Math.random() * 4) | 0], format: o.format, surface: o.surface, mode: o.mode === 'penalties' ? 'penalties' : 'match', level: o.level, duration: o.duration, assist: o.assist, autoplay: o.autoplay, cup: o.cup, kicks: o.kicks, seed: o.seed });
     if (o.mode === 'reto') this.reto = new Reto(o.reto, g, this);
     return g;
   }
@@ -293,7 +293,8 @@ export class FutbolMatch {
   nextCam() { this.camMode = CAMS[(CAMS.indexOf(this.camMode) + 1) % CAMS.length]; this.hud.say(CAM_NAME[this.camMode], 1200); }
   async pauseMenu() {
     if (this.paused || this.done) return; this.paused = true;
-    const r = await this.hud.pause(); this.paused = false;
+    const g = this.game, tactic = FORMAT === 'f11' && g.mode === 'match' ? { sistemas: SISTEMAS, actual: g.sistema?.[0] || '4-4-2', pick: (id) => { g.setSistema(0, id); elegirSistema(id); } } : null;
+    const r = await this.hud.pause(tactic); this.paused = false;
     if (r === 'quit') this.exit({ quit: true });
   }
 
@@ -380,7 +381,7 @@ export class FutbolMatch {
       case 'penTurn': this.penTurn(e); break;
       case 'penResult': H.pens(e.log, g.pen.kicks); H.say(e.res === 'goal' ? (e.team === 0 ? '¡Gol!' : 'Gol del rival') : e.res === 'save' ? (e.team === 0 ? 'Lo ha parado el portero' : '¡Lo has parado!') : '¡Fuera!', 1500); if (e.res !== 'goal') (e.team === 1 ? A.roar() : A.groan()); break;
       case 'end': this.onEnd(e.result); break;
-      case 'switch': break;
+      case 'switch': { const p = g.players[e.p]; if (p && e.why !== 'pass' && p.team === 0) this.hud.say(`${p.num} · ${p.puesto || p.role}`, 900); break; }
       case 'gkCtl': if (e.on && e.hands) H.say('Tu portero tiene el balón: apunta y PASE para sacar con la mano, o mantén TIRO para un saque largo', 2600); else if (e.on) H.say('Llevas al portero: sin tocar el joystick se coloca solo. Con un tiro, elige lado y pulsa PASE o TIRO', 2600); break;
       case 'gkPlan': if (!g.autoplay) H.say(e.side ? 'Tu portero se lanzará a ese lado' : 'Tu portero va a por el balón', 900); break;
     }
@@ -539,7 +540,8 @@ export class FutbolMatch {
     if (pp) { this.passAim.position.set(pp.x, 0.04, pp.z); this.passAim.material.color.set(pp.loft ? '#7fd3ff' : pp.to != null ? '#7dff9c' : '#ff8a2a');
       const pa = this.passLine.geometry.attributes.position; pa.setXYZ(0, me.x, 0.05, me.z); pa.setXYZ(1, pp.x, 0.05, pp.z); pa.needsUpdate = true; this.passLine.computeLineDistances(); }
     this.pin.material.color.copy(this.ring.children[0].material.color);
-    const q = g.passTo; this.mark.visible = !!q && q.team === 0 && q !== me; if (q) this.mark.position.set(q.x, 0.03, q.z);
+    // la marca: el que va a recibir el pase en vuelo o, si llevas el balón, el compañero al que irá si pasas ahora
+    const q = g.passTo || (!this.replay && g.aimReceiver?.()); this.mark.visible = !!q && q.team === 0 && q !== me; if (q) this.mark.position.set(q.x, 0.03, q.z);
     // público: se anima con las ocasiones y celebra los goles
     if (this.cheerT > 0 && (this.cheerT -= dt) <= 0) this.field.cheer(false);
     this.field.tick(dt, this.t, this.camera, this.cheerT > 0 ? 1 : 0.2 + this.tension() * 0.6, bp.z);

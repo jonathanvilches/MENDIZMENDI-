@@ -76,7 +76,7 @@ export const youOut = (T) => !T.done && !T.matches.some(m => T.players[m.a].you 
 const CSS = `.tq-bracket{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;align-items:center}
 .tq-wait{display:none;font-size:12px;color:#a99cc9;text-align:center;padding:2px 0 4px}
 @media (max-width:560px){.tq-bracket{grid-template-columns:1fr;gap:10px;align-items:start}.tq-col h4{text-align:left}.tq-m.tq-ph{display:none}.tq-col:has(.tq-wait){display:flex;align-items:baseline;gap:8px}.tq-col:has(.tq-wait) h4{margin:0}.tq-wait{display:block;text-align:left;padding:0}.tq-m{font-size:14px;padding:6px 10px}}
-@media (orientation:landscape) and (max-height:520px){.tq-bracket{gap:6px}.tq-m{font-size:12px;padding:3px 6px;gap:0}.tq-m small{display:none}.tq-col{gap:5px}.tq-col h4{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+@media (orientation:landscape) and (max-height:520px){.tq-bracket{gap:6px}.tq-m{font-size:12px;padding:3px 6px;gap:0}.tq-m small{display:none}.tq-col{gap:5px}.tq-col h4{font-size:12px;line-height:1.15}.tq-col h4 small{display:block;font-size:12px;opacity:.75;text-transform:none}}
 .tq-col{display:grid;gap:8px}.tq-col h4{margin:0;text-align:center;font-size:12px;color:#cbbcf0;text-transform:uppercase;letter-spacing:.04em}
 .tq-m{border-radius:12px;background:rgba(255,255,255,.07);padding:5px 8px;font-size:13px;display:grid;gap:2px}
 .tq-m div{display:flex;justify-content:space-between;gap:6px}.tq-m b{font-variant-numeric:tabular-nums}.tq-m .w{color:#ffd84a;font-weight:900}.tq-m .you{text-decoration:underline;text-decoration-color:#ffd84a}
@@ -94,7 +94,7 @@ function bracketHtml(T) {
       const aw = m.s && m.s[0] > m.s[1], bw = m.s && m.s[1] > m.s[0];
       return `<div class="tq-m">${card(T, m.a, m.s?.[0], aw)}${card(T, m.b, m.s?.[1], bw)}</div>`; }).join('');
     // (en el móvil las rondas van una debajo de otra y las que aún no se juegan solo dicen «por jugar»)
-    return `<div class="tq-col"><h4>${R.name} · a ${R.target}</h4>${ms.length ? '' : '<div class="tq-wait">Por jugar</div>'}${rows}</div>`;
+    return `<div class="tq-col"><h4>${R.name}<small> · a ${R.target}</small></h4>${ms.length ? '' : '<div class="tq-wait">Por jugar</div>'}${rows}</div>`;
   }).join('');
   return `<div class="tq-bracket">${cols}</div>`;
 }

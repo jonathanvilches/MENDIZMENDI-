@@ -1138,6 +1138,10 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   .onb-foot > .onb-age > span { font-size: 12px; }
   .onb-foot > .onb-age button { min-height: 44px; padding: 4px 8px; } .onb-foot > .onb-age button b { font-size: 13px; }
   .onb-foot > #oGo { grid-area: go; width: auto; min-height: 44px; }
+  .onb .csel2 { grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); }
+  .onb-foot > #oGo .go-long { display: none; }
+  .onb-foot > label { min-width: 0; }
+  .onb-foot > .onb-age button { padding: 4px 6px; text-align: center; place-items: center; } .onb-foot > .onb-age button b { white-space: nowrap; font-size: 13px; }
   .onb .csel-info p, .onb .radar { display: none; }
   /* pueblos: tres columnas con portadas más bajas */
   .towns { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
