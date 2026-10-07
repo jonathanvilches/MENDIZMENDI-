@@ -147,8 +147,11 @@ export class Fronton {
 let LABRIT = null;
 export function labrit(scene, out) {
   if (LABRIT && LABRIT.court.group.parent === scene) return LABRIT;
-  LABRIT = new Fronton(scene, { x: out.x, z: out.z, y: 2400, ry: 0 }, 'LABRIT', { labrit: true, noClear: true, wallName: 'LABRIT', wallSub: 'Iruña · Pamplona',
-    look: { frontis: '#3f6c58', wall: '#3f6c58', floor: '#6f7b75', contra: '#8b887f', chapa: '#c9d0d4', chapaMetal: true, stone: null, brick: false, roof: 'metal', cap: '#c9c3b6' } });
+  // (en la pared izquierda, el escudo de Pamplona y su nombre, como en el de verdad, sin el logotipo del ayuntamiento)
+  const A = armsOfTown('pamplona'), shield = A ? (g, cx, top, h) => drawOfficial(g, cx, top, h / officialHeight(1, A), A) : null;
+  LABRIT = new Fronton(scene, { x: out.x, z: out.z, y: 2400, ry: 0 }, 'LABRIT', { labrit: true, noClear: true, wallName: 'IRUÑA · PAMPLONA', wallSub: 'FRONTÓN LABRIT', shield,
+    signAt: { z: 3.5 * 3.3, y: 5.4 },
+    look: { frontis: '#1d5846', wall: '#1d5846', floor: '#1a1f21', contra: '#d49a5c', parquet: true, line: '#f3f2ec', mark: '#f3f2ec', chapa: '#d9dcd8', chapaMetal: true, stone: null, brick: false, roof: null, cap: '#1d5846' } });
   return LABRIT;
 }
 
@@ -197,7 +200,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // y el público sentado en los bancos de la grada (una sola llamada de dibujo; se va al acabar)
     // (los más cercanos a la cámara, en 3D; con pañuelos que se agitan en cada tanto)
     // todo el público en 3D con su textura (sin láminas planas a lo lejos): cuántos, según la calidad, repartidos por la grada
-    try { const C = fronton.court, all = C?.standSpots || [], full = C?.labrit ? 1.7 : 1, cap = Math.round((QUALITY === 'low' ? 44 : QUALITY === 'mid' ? 64 : 90) * full);   // (en el Labrit, la final: lleno)
+    try { const C = fronton.court, all = C?.standSpots || [], full = C?.labrit ? 3 : 1, cap = Math.round((QUALITY === 'low' ? 44 : QUALITY === 'mid' ? 64 : 90) * full);   // (en el Labrit, la final: lleno)
       const sp = all.filter(() => Math.random() < Math.min(1, cap / Math.max(1, all.length)));
       // (en coordenadas del mundo: el público 3D elige a los que tiene cerca de la cámara)
       C.group.updateMatrixWorld(true); const yaw = new THREE.Euler().setFromQuaternion(C.group.getWorldQuaternion(new THREE.Quaternion()), 'YXZ').y;
