@@ -15,7 +15,7 @@ export const SABERES = [
 ];
 // misión → saber de su carta
 export const CAT_BY_TYPE = { process: 'producto', harvest: 'agricultura', herd: 'ganaderia', feria: 'ganaderia', trade: 'oficios', visit: 'arquitectura', castle: 'historia', dolmen: 'historia', figure: 'historia', quiz: 'historia', dance: 'tradiciones', carnival: 'tradiciones', tradition: 'tradiciones', legend: 'tradiciones', race: 'tradiciones', pelota: 'tradiciones', summit: 'montes', mirador: 'montes', observe: 'fauna' };
-const PREFIX = { campo: 'agricultura', fauna: 'fauna', flora: 'flora', monte: 'montes', granja: 'ganaderia', escudo: 'escudos', pueblo: 'tradiciones', castillo: 'historia', dolmen: 'historia', cave: 'historia' };
+const PREFIX = { armas: 'escudos', campo: 'agricultura', fauna: 'fauna', flora: 'flora', monte: 'montes', granja: 'ganaderia', escudo: 'escudos', pueblo: 'tradiciones', castillo: 'historia', dolmen: 'historia', cave: 'historia' };
 /** Saber de una carta: por su prefijo o por lo que se anotó al ganarla. */
 export function catOf(id, p) { const pre = id.split(':')[0]; return PREFIX[pre] || p?.cardCat?.[id] || 'historia'; }
 /** Cuántas cartas hay de cada saber. */

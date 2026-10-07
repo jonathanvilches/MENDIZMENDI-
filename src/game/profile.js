@@ -39,6 +39,7 @@ export const BADGES = [
   { id: 'naturalist', name: 'Naturalista', text: 'Observa diez especies distintas.', icon: 'binoculars', test: p => p.species.length >= 10 },
   { id: 'collector', name: 'Coleccionista', text: 'Reúne treinta cartas.', icon: 'book', test: p => p.cards.length >= 30 },
   { id: 'heraldist', name: 'Heraldista', text: 'Lee cinco escudos de las fachadas.', icon: 'shield', test: p => p.cards.filter(c => c.startsWith('escudo:')).length >= 5 },
+  { id: 'armorial', name: 'Armorial de Navarra', text: 'Lee el escudo oficial de cinco pueblos o valles.', icon: 'shield', test: p => p.cards.filter(c => c.startsWith('armas:')).length >= 5 },
   { id: 'peaks', name: 'Cumbres', text: 'Corona cinco cimas en las misiones de montaña.', icon: 'peak', test: p => p.peaks.length >= 5 },
 ];
 

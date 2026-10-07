@@ -9,7 +9,7 @@ import { terrainHeight } from './heightfield.js';
 import { addBox, addCircle, isFree, rectFree } from './colliders.js';
 import { mulberry32, clamp } from '../util/math.js';
 
-export const TOWN = { houses: [], shields: [], lamps: [], benches: [], church: null, fountain: null, landmarks: [], farm: null, pen: null };
+export const TOWN = { houses: [], shields: [], armsSpot: null, lamps: [], benches: [], church: null, fountain: null, landmarks: [], farm: null, pen: null };
 if (typeof window !== 'undefined') window.__TOWN = TOWN;   // (para las herramientas de capturas)
 
 function polyLen(pts) { let l = 0; for (let i = 1; i < pts.length; i++) l += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); return l; }
@@ -133,6 +133,17 @@ export function buildTown(scene, mats, def) {
     fountain(B, P.x, y, P.z);
     addCircle(P.x, P.z, 2.7);
     TOWN.fountain = { x: P.x, z: P.z, y };
+  }
+  // escudo del pueblo: un pilar de sillería con el escudo pintado, a un lado de la plaza y mirando a su centro
+  if (!pamp) for (let i = 0; i < 16 && !TOWN.armsSpot; i++) {
+    const a = 1.9 + i / 16 * Math.PI * 2, r = Math.max(5.5, P.r - 2.2), x = P.x + Math.cos(a) * r, z = P.z + Math.sin(a) * r;
+    if (!isFree(x, z, 1.7) || Math.abs(terrainHeight(x, z) - terrainHeight(P.x, P.z)) > 1.2) continue;
+    const y = terrainHeight(x, z), ry = Math.atan2(P.x - x, P.z - z);
+    B.add('ashlar', new THREE.BoxGeometry(1.6, 3.2, 0.42), M(x, y + 1.6 - 0.3, z, ry));
+    B.add('ashlar', new THREE.BoxGeometry(1.9, 0.22, 0.6), M(x, y + 2.98, z, ry));
+    B.add('stoneDark', new THREE.BoxGeometry(1.9, 0.3, 0.6), M(x, y + 0.0, z, ry));
+    addBox(x, z, 1.7, 0.6, ry);
+    TOWN.armsSpot = { x, y, z, ry, read: { x: x + Math.sin(ry) * 2.3, z: z + Math.cos(ry) * 2.3 } };
   }
   for (let i = 0; i < (pamp ? 0 : 6); i++) {
     const a = i / 6 * Math.PI * 2 + 0.3, x = P.x + Math.cos(a) * (P.r - 5), z = P.z + Math.sin(a) * (P.r - 5);
