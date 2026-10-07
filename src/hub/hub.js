@@ -10,7 +10,7 @@ import { iconSVG, speciesIcon } from '../ui/icons.js';
 import { showFicha, allFichas } from '../ui/ficha.js';
 import { floraId } from '../data/flora.js';
 import { faunaId } from '../data/fauna.js';
-import { floraPortrait } from '../world/flora3d.js';
+import { floraIllustration } from '../ui/floraArt.js';
 import { releaseOffscreen } from '../util/offscreen.js';
 import { avatarPortrait, portraitImg, avatarPortraitImg } from '../ui/portraits.js';
 import { stampImg, landImg, townImg } from '../assets.js';
@@ -406,9 +406,9 @@ export class Hub {
     this.after = () => {
       this.root.querySelectorAll('.filters button').forEach(b => b.onclick = (e) => { e.stopPropagation(); this.go('nature', b.dataset.f); });
       this.root.querySelectorAll('.scard[data-k]').forEach(c => c.onclick = () => showFicha(c.dataset.k, { ui: { sound: this.sound }, button: 'Cerrar' }));
-      // retratos 3D de las plantas, de uno en uno (sin bloquear la pantalla)
+      // láminas de las plantas, de una en una (sin bloquear la pantalla)
       const imgs = [...this.root.querySelectorAll('img[data-flora]')], scr = this.screen;
-      (async () => { for (const img of imgs) { await new Promise(r => setTimeout(r, 40)); if (this.screen !== scr || !img.isConnected) return; const u = await floraPortrait(img.dataset.flora).catch(() => ''); if (u) { img.src = u; img.classList.add('on'); } } })();
+      (async () => { for (const img of imgs) { await new Promise(r => setTimeout(r, 16)); if (this.screen !== scr || !img.isConnected) return; const u = floraIllustration(img.dataset.flora, 260, 220); if (u) { img.src = u; img.classList.add('on'); } } })();
     };
     const fb = { trees: 'tree', plants: 'herbs', flowers: 'flower' };
     const pic = (d) => d.type === 'fauna' ? I(d.F.icon || speciesIcon(d.F.name) || 'bird', 64) : `<span class="spic">${I(speciesIcon(d.F.name) || fb[tab], 40)}<img alt="" data-flora="${d.id}"></span>`;
