@@ -28,7 +28,7 @@ import { buildAgro } from '../world/agro.js';
 import { PASTOR_INFO, VAQUERA_INFO } from '../data/campo.js';
 import { Mochila } from './mochila.js';
 import { Perro } from './perro.js';
-import { makeTrailSign, signSVG, ORIENTA, ORIENTA_TIPS } from './senales.js';
+import { makeTrailSign, makeSignpost, makeBalizas, signSVG, ORIENTA, ORIENTA_TIPS, MONTE_TIPS } from './senales.js';
 import { FOOD } from '../data/equipo.js';
 import { Tienda } from './tienda.js';
 import { Mercado, marketDay } from './mercado.js';
@@ -528,7 +528,7 @@ export class TownGame {
     if (this.mode === 'futbol') this.futbol?.update(dt);
     if (this.crowds?.length) { for (const c of this.crowds) c.update(dt); this.crowds = this.crowds.filter(c => !c.disposed); }
     this.updateNight(dt);
-    for (const M of this.missions) if (M.type === 'summit' && M.step === 1 && !M.done) this.updateSummit(M);
+    for (const M of this.missions) if (M.type === 'summit' && M.step === 1 && !M.done) this.updateSummit(M, dt);
     this.checkArrival();
     this.updateInteraction();
     this.updateHUD();
@@ -1421,6 +1421,28 @@ export class TownGame {
     M.cairns.forEach((c, i) => { if (c.top || i > 2) return; const k = ORIENTA[i].kind;
       put(k === 'mal' ? 'sigue' : k, c.x + px * 1.8, c.z + pz * 1.8, ang + Math.PI);
       if (k === 'mal') put('mal', c.x - px * 9 + dx0 / l0 * 2, c.z - pz * 9 + dz0 / l0 * 2, ang + Math.PI - 0.9); });
+    // al empezar la subida, ya fuera del pueblo: el poste indicador con la cima (altitud, distancia y desnivel reales
+    // de la ruta) y la vuelta al pueblo; y por el camino, balizas de madera con las dos franjas cada pocos metros
+    for (const o of M.posts || []) { this.scene.remove(o); o.userData.dispose?.(); }
+    M.posts = [];
+    try {
+      const pk = M.peak || {}, trail = []; let t0 = null;
+      for (let t = 0.04; t <= 0.97; t += 0.01) { const x = h0.x + dx0 * t, z = h0.z + dz0 * t; if (!this.nearHouses(x, z, 14)) { t0 = t; break; } }
+      if (t0 != null) {
+        const sx = h0.x + dx0 * t0 + px * 2.2, sz = h0.z + dz0 * t0 + pz * 2.2, sp = this.spot({ x: sx, z: sz }, 2);
+        const info = [pk.distance ? `${String(pk.distance).replace('.', ',')} km` : '', pk.gain ? `+${pk.gain} m de subida` : ''].filter(Boolean).join(' · ');
+        const post = makeSignpost({ peak: pk.name || 'Cima', alt: pk.altitude, info, town: this.def.name.split(' /')[0] });
+        post.position.set(sp.x, groundHeight(sp.x, sp.z), sp.z); post.rotation.y = ang + 0.7; this.scene.add(post); M.posts.push(post);   // (algo girado: se lee al llegar)
+        // balizas: a un lado del camino, cada 12 m, sin pisar los mojones
+        const L = l0 * (1 - t0); for (let d = 10; d < L - 6; d += 12) {
+          const t = t0 + d / l0, side = (Math.round(d / 12) % 2 ? 1 : -1) * 1.6, x = h0.x + dx0 * t + px * side, z = h0.z + dz0 * t + pz * side;
+          if (M.cairns.some(c => Math.hypot(c.x - x, c.z - z) < 4) || waterLevelAt(x, z) > groundHeight(x, z) - 0.2) continue;
+          trail.push([x, groundHeight(x, z) - 0.05, z, ang + Math.PI]);
+        }
+        if (trail.length) { const b = makeBalizas(trail); this.scene.add(b); M.posts.push(b); }
+      }
+    } catch (e) { console.warn('señales del monte', e); }
+    M.tipT = 25; M.tips = MONTE_TIPS.map((_, i) => i).sort(() => this.rnd() - 0.5);
     M.y0 = this.player.pos.y;
     this.spawnClimbFauna(M, top);
     this.ui.toast('Sigue los mojones blancos y amarillos', 'peak', 2800);
@@ -1458,8 +1480,10 @@ export class TownGame {
     try { await showFicha('fauna:' + w.id, { ui: this.ui, kicker: `Animal del monte · ${n} de ${M.wild.length}`, badge: isNew ? 'Nueva carta' : '', button: 'Seguir subiendo' }); await this.mochila.give('cuaderno'); }
     finally { this.player.frozen = false; }
   }
-  updateSummit(M) {
+  updateSummit(M, dt = 1 / 60) {
     if (this.mode !== 'play' || this.ui.busy) return;
+    // un consejo de montaña cada rato mientras se sube (sin repetir)
+    if (M.tips?.length && !M.done && (M.tipT -= dt) <= 0) { M.tipT = 38; const k = M.tips.shift(); this.ui.whisper?.(MONTE_TIPS[k], 7000); }
     for (const w of M.wild || []) if (!w.found && w.a.obj.visible && Math.hypot(w.a.pos.x - this.player.pos.x, w.a.pos.z - this.player.pos.z) < 11) { this.discoverClimb(M, w); return; }
     const c = M.cairns.find(c => !c.reached); if (!c) return;
     if (Math.hypot(c.x - this.player.pos.x, c.z - this.player.pos.z) > (c.top ? 4.5 : 4)) return;
