@@ -33,7 +33,10 @@ export class Ball {
     if (p.y < R && v.y < 0) {
       out.push({ type: 'floor', x: p.x, y: 0, z: p.z, vy: v.y });
       p.y = R;
-      if (Math.abs(v.y) < 0.6) v.y = 0; else v.y = -v.y * (this.spin === 1 ? PHYS.CUT_FLOOR_E : PHYS.FLOOR_E);
+      // rebote: un golpe fuerte (llega a 10 m/s o más) bota lo de siempre; una pelota que llega despacio (la dejada, el
+      // segundo bote) rebota algo más en proporción, como el cuero de verdad, y no se queda pegada al suelo
+      const soft = this.spin === 1 ? 0 : Math.max(0, Math.min(1, (10 - Math.abs(v.y)) / 5)) * PHYS.FLOOR_SOFT;   // (la cortada, siempre algo más baja)
+      if (Math.abs(v.y) < 0.4) v.y = 0; else v.y = -v.y * ((this.spin === 1 ? PHYS.CUT_FLOOR_E : PHYS.FLOOR_E) + soft);
       const f = this.spin === 1 ? PHYS.CUT_FLOOR_F : PHYS.FLOOR_F; v.x *= f; v.z *= f;   // la cortada bota bajo y corre
     }
     return out;

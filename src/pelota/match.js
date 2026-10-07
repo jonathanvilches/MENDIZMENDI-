@@ -304,8 +304,12 @@ export class PelotaMatch {
     // en vertical (móvil) algo más cerca que antes: los pelotaris se ven más grandes y con su detalle
     // (en horizontal, a 7 m y 4 de alto: el pelotari sale una cuarta parte más grande que antes, a 8,8 m, y más arriba,
     // fuera de los botones; el frontis entero se sigue viendo)
-    const lp = portrait ? [you.x * 0.45 + 0.4, 6.3, you.z + 9.6] : [you.x * 0.55 + 0.8, 4.0, you.z + 7.0];
-    const ll = portrait ? [you.x * 0.2, 1.2, you.z - 9.5] : [you.x * 0.25, 1.2, you.z - 12];
+    // si el rival está más al fondo que tú (le mandas la pelota atrás), la cámara retrocede y se eleva hasta verlo a él
+    // también: antes se quedaba detrás de ti y no se veía cómo ni hacia dónde golpeaba
+    const rv = g.players.rival, behind = Number.isFinite(rv?.z) ? Math.max(0, rv.z - you.z) : 0;
+    const cz = you.z + behind, cx = behind > 0.5 ? you.x * 0.6 + rv.x * 0.4 : you.x, up = Math.min(2.4, behind * 0.16);
+    const lp = portrait ? [cx * 0.45 + 0.4, 6.3 + up, cz + 9.6 + behind * 0.15] : [cx * 0.55 + 0.8, 4.0 + up, cz + 7.0 + behind * 0.15];
+    const ll = portrait ? [cx * 0.2, 1.2, cz - 9.5] : [cx * 0.25, 1.2, cz - 12];
     if (g.phase === 'intro') { const a = this.t * 0.25; lp[0] = Math.sin(a) * 18 + 2; lp[1] = 9; lp[2] = COURT.L * 0.5 + Math.cos(a) * 18 + 6; ll[0] = 0; ll[1] = 2; ll[2] = COURT.L * 0.4; }
     const wp = this.v3.set(lp[0], lp[1], Math.min(lp[2], COURT.L + 11)); grp.localToWorld(wp);
     const wl = new T.Vector3(ll[0], ll[1], ll[2]); grp.localToWorld(wl);
