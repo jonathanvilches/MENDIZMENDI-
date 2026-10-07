@@ -126,7 +126,7 @@ export class PelotaGame {
       // afina medio metro
       shot = 'cortada';
       const speed = 27 + q * 5 + pow * 12;
-      const tx = clamp(aim.x * 2.8 + gauss(rnd) * err * 1.1, -4.2, 4.6);
+      const tx = clamp(aim.x * 3.4 + gauss(rnd) * err * 1.1, -4.7, 4.6);   // (más a la izquierda, hasta casi la esquina)
       const ty = cutHeight(pow, aim.y) + gauss(rnd) * err * 0.3;
       // a dos paredes: con el joystick bien a la izquierda, pega primero en la pared izquierda y después bajo en el
       // frontis, y sale cruzada hacia la derecha, rasa y rápida (como la dos paredes del golpe, pero cortada)
@@ -134,8 +134,10 @@ export class PelotaGame {
       // había que llevar el joystick casi al tope y costaba controlarla. Cuanto más a la izquierda, antes toca la pared y
       // más cruzada sale; arriba, más larga; abajo, más corta)
       if (rawX < -0.45 && !serve) {
-        const ang = clamp((-rawX - 0.45) / 0.5, 0, 1), fz = clamp(0.65 - ang * 0.45 + gauss(rnd) * err * 0.05, 0.15, 0.8);
-        const r = solveTwoWalls(p, speed, clamp(9 + pow * 5 + aim.y * 2.5, 6.5, 16), [fz, fz - 0.08, fz + 0.08, fz + 0.16], { low: 5, maxFront: ty + 0.9 });
+        // (cuanto más a la izquierda, antes toca la pared, más cerca del frontis, y más cruzada sale hacia la derecha: con
+        // el joystick del todo a la izquierda, bota ya junto a la contracancha)
+        const ang = clamp((-rawX - 0.45) / 0.5, 0, 1), fz = clamp(0.78 - ang * 0.36 + gauss(rnd) * err * 0.05, 0.3, 0.85);
+        const r = solveTwoWalls(p, speed, clamp(9 + pow * 5 + aim.y * 2.5, 6.5, 16), [fz, fz - 0.06, fz + 0.06, fz + 0.12], { low: 2, maxFront: ty + 1.4, cross: 1 + ang * 5 });
         if (r) { v = r.v; sub = 'cortDos'; }
       }
       if (!v) v = aimVelocity(p, tx, ty, Math.max(0.2, p.z / speed));

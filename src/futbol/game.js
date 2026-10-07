@@ -253,7 +253,11 @@ export class FutbolGame {
       // planta el pie, frena en seco y sale hacia el otro lado
       const a0 = Math.atan2(p.vx, p.vz), d = angDiff(a0, Math.atan2(wx, wz));
       const omega = (PL.grip || 8.5) * (sprint ? 0.7 : 1) * (this.owner === p ? 0.88 : 1) * (p.recover > 0 ? 0.5 : 1) * (this.human(p) ? 1.7 : 1);   // (el tuyo responde antes al joystick: gira casi al momento, también con el balón)
-      if (Math.abs(d) > 2.1) {
+      if (Math.abs(d) > 2.1 && this.human(p)) {
+        // el tuyo, en un cambio brusco de sentido, pivota sobre el pie y sale ya hacia el otro lado con media velocidad:
+        // antes frenaba hasta casi pararse y, al girar el joystick hacia atrás, parecía que dejaba de correr
+        const a1 = Math.atan2(wx, wz), nv = Math.max(Math.min(v0, wv) * 0.55, Math.min(3, wv)); p.vx = Math.sin(a1) * nv; p.vz = Math.cos(a1) * nv;
+      } else if (Math.abs(d) > 2.1) {
         const nv = Math.max(0, v0 - (PL.brake || 26) * 1.15 * h);
         if (nv < 1.2) { const a1 = Math.atan2(wx, wz); p.vx = Math.sin(a1) * nv; p.vz = Math.cos(a1) * nv; }
         else { p.vx *= nv / v0; p.vz *= nv / v0; }
