@@ -48,7 +48,7 @@ const CSS = `
 .pel-card .pel-ctrl{font-size:14px;line-height:1.35;background:rgba(255,255,255,.06);border:1px solid rgba(190,160,255,.22);color:#cbc2e0;border-radius:12px;padding:10px 12px;margin:0 0 14px}
 .pel-card .pel-big{font-family:var(--pel-display,'Lilita One',Nunito,sans-serif);font-weight:400;font-size:52px;text-align:center;margin:6px 0;color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.35)}
 .pel-card .pel-fact{background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.35);color:#fff3c4;border-radius:12px;padding:10px 12px;margin:10px 0 14px;font-size:15px;line-height:1.35}.pel-card .pel-fact b{color:#FFD700}
-.pel-row{display:flex;gap:10px;position:sticky;bottom:-18px;z-index:1;margin:0 -4px -6px;padding:10px 4px 6px;background:linear-gradient(180deg,rgba(28,11,58,0),#1c0b3a 35%)}.pel-row .pel-go{flex:1 1 0;min-width:0;white-space:nowrap}@media (max-width:440px){.pel-row{flex-direction:column-reverse}.pel-row .pel-go{flex:none;width:100%}}
+.pel-force{position:absolute;right:calc(env(safe-area-inset-right,0px) + 16px);bottom:calc(env(safe-area-inset-bottom,0px) + 168px);min-width:190px;padding:6px 10px 8px;border-radius:12px;background:rgba(20,8,40,.82);color:#fff;font-weight:900;font-size:13px;opacity:0;transform:translateY(6px);transition:opacity .12s,transform .12s;pointer-events:none;z-index:6}.pel-force.on{opacity:1;transform:none}.pel-force i{display:block;height:7px;margin-top:5px;border-radius:4px;background:rgba(255,255,255,.18);overflow:hidden}.pel-force u{display:block;height:100%;width:0;background:var(--fc,#ffd84a);border-radius:4px}@media (orientation:landscape) and (max-height:500px){.pel-force{bottom:calc(env(safe-area-inset-bottom,0px) + 132px);right:calc(env(safe-area-inset-right,0px) + 132px)}}.pel-row{display:flex;gap:10px;position:sticky;bottom:-18px;z-index:1;margin:0 -4px -6px;padding:10px 4px 6px;background:linear-gradient(180deg,rgba(28,11,58,0),#1c0b3a 35%)}.pel-row .pel-go{flex:1 1 0;min-width:0;white-space:nowrap}@media (max-width:440px){.pel-row{flex-direction:column-reverse}.pel-row .pel-go{flex:none;width:100%}}
 .pel-lbl{display:block;font-size:11px;font-weight:900;color:#cbbcf0;text-transform:uppercase;letter-spacing:.06em;margin:0 0 6px}
 .pel-levels{display:flex;gap:8px;margin:0 0 14px;flex-wrap:wrap}
 .pel-levels button{flex:1;min-width:90px;border-radius:12px;border:1px solid rgba(190,160,255,.35);background:rgba(255,255,255,.06);color:#fff;padding:9px 6px;font:inherit;font-weight:900;cursor:pointer}
@@ -120,6 +120,16 @@ export class PelotaHud {
       const b = this.$(sel); if (!b) continue;
       const v = kind === k ? p : 0; if (b._cp === v) continue; b._cp = v;
       b.style.setProperty('--cp', (v * 100).toFixed(0) + '%'); b.classList.toggle('charging', v > 0); b.classList.toggle('full', v >= 1);
+    }
+    // rótulo de la fuerza encima de los botones mientras se carga: se lee de un vistazo cuánto vas a pegar
+    let f = this.$('.pel-force');
+    if (!f) { f = document.createElement('div'); f.className = 'pel-force'; f.innerHTML = '<b></b><i><u></u></i>'; this.root.appendChild(f); }
+    const on = !!kind && p > 0; f.classList.toggle('on', on);
+    if (on) {
+      const pw = 0.15 + p * 0.85, word = kind === 'drop' ? (pw < 0.45 ? 'muy corta' : pw < 0.75 ? 'corta' : 'algo más larga') : pw < 0.4 ? 'suave' : pw < 0.75 ? 'media' : pw < 0.97 ? 'fuerte' : 'a tope';
+      const name = kind === 'cut' ? 'Cortada' : kind === 'drop' ? 'Dejada' : 'Golpe';
+      f.querySelector('b').textContent = `${name}: ${word} · ${Math.round(pw * 100)} %`;
+      f.querySelector('u').style.width = (pw * 100).toFixed(0) + '%'; f.style.setProperty('--fc', `hsl(${Math.round(120 - pw * 120)} 85% 55%)`);
     }
   }
   tick(dt) {

@@ -26,7 +26,7 @@ for (const [k, hold] of [['pase-corto', 8], ['pase-largo', 24]]) {
   res[k] = await p.evaluate((hold) => { const m = window.__futbol, g = m.game, me = g.me;
     g.restart = null; g.phase = 'play'; me.x = 0; me.z = 0; g.ball.set(0.5 * g.dir[0], 0); g.owner = me;
     g.setMove(g.dir[0], 0.3, 1, false); g.hold.pass = -1; g.press('pass'); for (let i = 0; i < hold; i++) { m.update(1 / 30); me.vx = me.vz = 0; g.setMove(g.dir[0], 0.3, 1, false); }
-    const pp = g.passPreview(); return pp && { d: +Math.hypot(pp.x - me.x, pp.z - me.z).toFixed(1), loft: pp.loft, vis: m.passAim.visible }; }, hold);
+    const pp = g.passPreview(); return pp && { d: +Math.hypot(pp.x - me.x, pp.z - me.z).toFixed(1), loft: pp.loft, vis: m.passAim.visible, carga: +(g.charge || 0).toFixed(2), to: pp.to }; }, hold);
   await p.screenshot({ path: `${out}/${k}.png` });
   await p.evaluate(() => { const g = window.__futbol.game; g.hold.pass = -1; });
 }
