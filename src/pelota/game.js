@@ -328,7 +328,7 @@ export class PelotaGame {
     dt = Math.min(dt, 0.05);
     this.phaseT += dt; this.predT -= dt;
     const you = this.players.you, rival = this.players.rival;
-    for (const p of [you, rival]) { p.actT += dt; if (p.cool > 0) p.cool -= dt; if (p.act === 'hit' && p.actT > 0.35) p.act = 'idle'; }
+    for (const p of [you, rival]) { p.actT += dt; if (p.cool > 0) p.cool -= dt; if ((p.act === 'hit' || p.act === 'swing') && p.actT > 0.45) p.act = 'idle'; }   // (un golpe al aire también acaba: antes se quedaba en «swing» y el gesto se repetía sin parar)
 
     if (this.phase === 'intro' || this.phase === 'end') return this.events;
     if (this.phase === 'point') {

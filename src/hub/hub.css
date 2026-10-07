@@ -397,7 +397,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .slots li b { width: 28px; height: 28px; border-radius: 50%; background: rgba(255, 255, 255, .15); display: grid; place-items: center; flex: none; }
 .slots li.ok { border-style: solid; border-color: #8fd16a; background: rgba(143, 209, 106, .15); } .slots li.ok b { background: #8fd16a; color: #1b2a10; }
 .opts { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-.opt { padding: 10px 14px; border-radius: 12px; background: #FFD700; color: #2e1d00; font-weight: 900; box-shadow: 0 4px 0 #a88a00; }
+.opt { min-height: 40px; padding: 10px 14px; border-radius: 12px; background: #FFD700; color: #2e1d00; font-weight: 900; box-shadow: 0 4px 0 #a88a00; }
 .opt.used { visibility: hidden; } .opt.shake { animation: shake .35s; background: #e03c3c; color: #fff; box-shadow: 0 4px 0 #8a1f1f; }
 @keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
 .pads4 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; width: min(320px, 100%); }
@@ -991,7 +991,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   .simon .mg-card { gap: 8px; padding: 12px 16px; } .pads4 button { height: 74px; }
 }
 @media (orientation: landscape) and (max-height: 400px) {
-  .seq:not(.choice) .slots li { min-height: 34px; padding: 4px 10px; } .seq:not(.choice) .opt { padding: 6px 10px; }
+  .seq:not(.choice) .slots li { min-height: 36px; padding: 4px 10px; } .seq:not(.choice) .opt { min-height: 38px; padding: 6px 10px; }
   .antes-ahora div { padding: 5px 9px; font-size: 14px; } .info .mg-card p, .complete .mg-card p { font-size: 14px; }
   .pads4 button { height: 62px; } .ficha .fc-sec dd { font-size: 13px; }
 }
@@ -1036,3 +1036,5 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .fr-chip.on { background: var(--gold); color: #2a1300; border-color: var(--gold); }
 @media (max-width: 760px) { .sports { grid-template-columns: minmax(0, 1fr); } .sport { min-height: 300px; } }
 @media (orientation: landscape) and (max-height: 560px) { .sport { min-height: 250px; padding: 14px; gap: 8px; } .sp-txt h3 { font-size: 26px; } .sp-txt p { font-size: 12px; } .sport .sp-av { height: 80%; } }
+/* mochila en el móvil tumbado: los botones del perro uno junto al otro (el segundo quedaba debajo, fuera de la vista) */
+@media (orientation: landscape) and (max-height: 440px) { .bagpanel .bp-actions { display: flex; gap: 8px; } .bagpanel .bp-actions .btn { flex: 1 1 0; min-width: 0; margin: 0; } }

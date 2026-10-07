@@ -99,11 +99,11 @@ const CSS = `
 @keyframes lgIn{from{opacity:0}to{opacity:1}}
 .lg-card{width:min(860px,100%);max-height:100%;overflow:auto;display:grid;gap:12px;grid-template-columns:1fr;padding:16px;border-radius:22px;background:linear-gradient(180deg,rgba(60,30,130,.55),rgba(20,10,45,.9));border:1px solid rgba(190,160,255,.3);box-shadow:0 30px 80px rgba(0,0,0,.6)}
 .lg-head{display:flex;align-items:center;gap:12px}.lg-head h2{margin:0;font:400 26px 'Lilita One',Nunito,sans-serif;line-height:1}.lg-head small{display:block;color:#ffd84a;font-weight:900;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
-.lg-head .lg-ovr{margin-left:auto;text-align:center;background:linear-gradient(180deg,#ffe98a,#e0b020);color:#2a1a00;border-radius:12px;padding:4px 10px;font:900 22px Nunito,sans-serif;line-height:1}.lg-ovr small{color:#5a3a00!important;font-size:9px!important}
+.lg-head .lg-ovr{margin-left:auto;text-align:center;background:linear-gradient(180deg,#ffe98a,#e0b020);color:#2a1a00;border-radius:12px;padding:4px 10px;font:900 22px Nunito,sans-serif;line-height:1}.lg-ovr small{color:#5a3a00!important;font-size:11px!important}
 .lg-next{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:12px;border-radius:16px;background:rgba(255,255,255,.07);text-align:center}
 .lg-next .lg-t{display:flex;flex-direction:column;align-items:center;gap:4px}.lg-next b{font-size:15px;line-height:1.1}.lg-next em{font-style:normal;font-size:12px;color:#cbbcf0}
 .lg-vs{font:400 28px 'Lilita One',Nunito,sans-serif;color:#ffd84a}.lg-vs small{display:block;font:800 11px Nunito,sans-serif;color:#cbbcf0;letter-spacing:.06em}
-.lg-table{width:100%;border-collapse:collapse;font-size:13px}.lg-table th{font-size:10px;color:#cbbcf0;text-transform:uppercase;letter-spacing:.06em;padding:4px 3px;text-align:center}
+.lg-table{width:100%;border-collapse:collapse;font-size:13px}.lg-table th{font-size:11px;color:#cbbcf0;text-transform:uppercase;letter-spacing:.06em;padding:4px 3px;text-align:center}
 .lg-table td{padding:5px 3px;text-align:center;border-top:1px solid rgba(255,255,255,.08)}.lg-table td.n{text-align:left;font-weight:800;white-space:nowrap}.lg-table td.n i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px;border:1px solid rgba(0,0,0,.4)}
 .lg-table tr.me td{background:rgba(255,216,74,.16)}.lg-table tr.me td.n{color:#ffd84a}.lg-table td.pts{font-weight:900}
 .lg-res{display:grid;gap:4px;font-size:13px}.lg-res div{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;padding:5px 8px;border-radius:10px;background:rgba(255,255,255,.05)}.lg-res div.me{background:rgba(255,216,74,.16)}.lg-res span:first-child{text-align:right}.lg-res b{min-width:42px;text-align:center}
@@ -111,7 +111,7 @@ const CSS = `
 .lg-btn{border:0;border-radius:14px;padding:12px;min-height:50px;font:800 15px Nunito,sans-serif;color:#fff;background:rgba(255,255,255,.12);cursor:pointer}.lg-btn.go{background:linear-gradient(180deg,#fff38f,#ffd700 55%,#f0b000);color:#2a1a00;font:400 20px 'Lilita One',Nunito,sans-serif;box-shadow:0 4px 0 #a86f00}
 .lg-note{font-size:11px;color:#a99cc9;margin:0}
 /* elegir rival: solo se desplaza la lista; la cabecera y «Volver» quedan siempre a la vista */
-.lg-card.lg-pick{grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden}.lg-card.lg-pick>.lg-list{overflow:auto;min-height:0;overscroll-behavior:contain;padding:2px}
+.lg-card.lg-pick{grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden}.lg-card.lg-pick>.lg-list{overflow:auto;min-height:0;overscroll-behavior:contain;padding:2px}.lg-list.more{-webkit-mask-image:linear-gradient(180deg,#000 82%,transparent);mask-image:linear-gradient(180deg,#000 82%,transparent)}
 .lg-how{font-size:12.5px;line-height:1.35;color:#e6def7;margin:0;padding:8px 12px;border-radius:12px;background:rgba(255,216,74,.08);border:1px solid rgba(255,216,74,.25)}.lg-how b{color:#ffd84a}
 .lg-table td.dg{color:#cbbcf0;font-variant-numeric:tabular-nums}
 .lg-rv{display:flex;align-items:center;gap:8px;text-align:left;min-width:0;padding:8px 10px}.lg-rv>span{min-width:0;flex:1}.lg-rv b,.lg-rv small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lg-rv b{font-size:14px}.lg-rv small{font:700 11.5px Nunito,sans-serif;opacity:.75}
@@ -137,6 +137,8 @@ function panel(html) {
   const r = document.createElement('div'); r.className = 'lg-root'; r.innerHTML = `<div class="lg-card">${html}</div>`; document.body.appendChild(r);
   // (con clasificación o cuadro, en el móvil tumbado va a dos columnas: lo demás a la izquierda y la tabla a la derecha)
   if (r.querySelector('.lg-table, .tq-bracket')) r.firstElementChild.classList.add('lg-two');
+  // listas que se desplazan: un degradado abajo avisa de que hay más (en el móvil tumbado no se veían los últimos clubes)
+  for (const L of r.querySelectorAll('.lg-list')) { const upd = () => L.classList.toggle('more', L.scrollHeight - L.scrollTop - L.clientHeight > 6); L.addEventListener('scroll', upd, { passive: true }); requestAnimationFrame(upd); }
   return r;
 }
 // (en el móvil, solo PJ · DG · Pts; las demás columnas se ven en pantallas anchas)

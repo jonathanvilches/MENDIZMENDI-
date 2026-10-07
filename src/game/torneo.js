@@ -80,7 +80,7 @@ const CSS = `.tq-bracket{display:grid;grid-template-columns:repeat(3,1fr);gap:8p
 .tq-col{display:grid;gap:8px}.tq-col h4{margin:0;text-align:center;font-size:11px;color:#cbbcf0;text-transform:uppercase;letter-spacing:.06em}
 .tq-m{border-radius:12px;background:rgba(255,255,255,.07);padding:5px 8px;font-size:12.5px;display:grid;gap:2px}
 .tq-m div{display:flex;justify-content:space-between;gap:6px}.tq-m b{font-variant-numeric:tabular-nums}.tq-m .w{color:#ffd84a;font-weight:900}.tq-m .you{text-decoration:underline;text-decoration-color:#ffd84a}
-.tq-m small{color:#a99cc9;font-size:10px}.tq-txa{display:flex;align-items:center;gap:10px}.tq-txa svg{width:44px;height:30px}`;
+.tq-m small{color:#a99cc9;font-size:11px}.tq-txa{display:flex;align-items:center;gap:10px}.tq-txa svg{width:44px;height:30px}`;
 const TXAPELA = '<svg viewBox="0 0 64 40"><ellipse cx="32" cy="30" rx="29" ry="7" fill="#1b1b22"/><path d="M6 28c2-14 14-22 26-22s24 8 26 22c-8 4-44 4-52 0z" fill="#22232c"/><path d="M30 6c0-3 4-3 4 0" stroke="#22232c" stroke-width="3" fill="none"/><path d="M8 29c10 3 38 3 48 0" stroke="#c8222a" stroke-width="3" fill="none"/></svg>';
 function card(T, p, s, wIdx) {
   const P = T.players[p];
