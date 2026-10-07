@@ -22,6 +22,7 @@ import { CLUBS } from '../futbol/clubs.js';
 import { SABERES, saberCounts } from '../data/saberes.js';
 import { EDADES, edadDe, missionSlots } from '../data/edad.js';
 import { ARMAS, PENDIENTES, FIG, GUIA, armsOfTown } from '../data/armas-navarra.js';
+import { CUENTOS, KIND_LABEL } from '../data/cuentos.js';
 import { drawOfficial, officialHeight } from '../world/armas.js';
 import { profile, saveProfile, levelOf, rankOf, townProgress, comarcaProgress, comarcaTowns, navarraProgress, stampCount, BADGES, checkBadges, resetProfile, salazarState } from '../game/profile.js';
 
@@ -97,8 +98,8 @@ export class Hub {
       <nav class="hub-nav" id="hNav"></nav><main class="hub-main" id="hMain"></main></div>`);
     document.body.appendChild(this.root);
     // secciones: las principales siempre a la vista; las demás, en «Más» cuando falta sitio (móvil)
-    this.nav = [['home', 'Inicio', 'home'], ['map', 'Mapa', 'map'], ['towns', 'Pueblos', 'church'], ['sports', 'Torneos', 'trophy'], ['avatars', 'Personajes', 'person'], ['peaks', 'Cimas', 'peak', 1], ['nature', 'Naturaleza', 'leaf', 1], ['escudos', 'Escudos', 'shield', 1], ['badges', 'Insignias', 'badge', 1], ['passport', 'Pasaporte', 'stamp', 1], ['profile', 'Perfil', 'gear', 1]];
-    this.MORE = { peaks: 'Montañas de Navarra con su perfil', nature: 'Fauna, árboles, plantas y flores', escudos: 'Escudos de Navarra y cómo se leen', badges: 'Tus logros', passport: 'Los sellos de tus pueblos', profile: 'Nombre, nivel y ajustes' };
+    this.nav = [['home', 'Inicio', 'home'], ['map', 'Mapa', 'map'], ['towns', 'Pueblos', 'church'], ['sports', 'Torneos', 'trophy'], ['avatars', 'Personajes', 'person'], ['peaks', 'Cimas', 'peak', 1], ['nature', 'Naturaleza', 'leaf', 1], ['escudos', 'Escudos', 'shield', 1], ['cuentos', 'Leyendas', 'legend', 1], ['badges', 'Insignias', 'badge', 1], ['passport', 'Pasaporte', 'stamp', 1], ['profile', 'Perfil', 'gear', 1]];
+    this.MORE = { peaks: 'Montañas de Navarra con su perfil', nature: 'Fauna, árboles, plantas y flores', escudos: 'Escudos de Navarra y cómo se leen', cuentos: 'Cuentos, leyendas e historias de Navarra', badges: 'Tus logros', passport: 'Los sellos de tus pueblos', profile: 'Nombre, nivel y ajustes' };
     $('#hNav', this.root).innerHTML = this.nav.map(([id, n, ic, sec]) => `<button data-s="${id}" class="${sec ? 'nav2' : ''}">${I(ic, 26)}<span>${n}</span></button>`).join('') + `<button data-s="more" class="more-btn"><svg viewBox="0 0 24 24" width="26" height="26"><circle cx="5" cy="12" r="2.4" fill="#f7f0e6"/><circle cx="12" cy="12" r="2.4" fill="#f7f0e6"/><circle cx="19" cy="12" r="2.4" fill="#f7f0e6"/></svg><span>Más</span></button>`;
     $('#hNav', this.root).addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.s === 'more') return this.more(); this.go(b.dataset.s); });
     this.root.addEventListener('click', e => {
@@ -193,6 +194,7 @@ export class Hub {
       <div class="sb-head"><small class="kicker">${I('book', 20)} Lo más importante</small><h2>Aprende Navarra jugando</h2>
         <p>Cada misión, cada paseo y cada partido te enseñan algo de Navarra: su producto local, su arquitectura y sus escudos, su historia, su campo, su fauna, su flora y sus tradiciones. Cada cosa que aprendes es una carta.</p></div>
       <button class="btn ghost sb-arms" data-go="escudos">${I('shield', 26)} Escudos de Navarra: cómo se leen y qué significan</button>
+      <button class="btn ghost sb-arms" data-go="cuentos">${I('legend', 26)} Cuentos y leyendas de Navarra: escúchalos en cada pueblo</button>
       <div class="sb-grid">${(() => { const n = saberCounts(p); return SABERES.map(sb => `<div class="sb ${n[sb.id] ? 'on' : ''}${sb.id === 'escudos' ? ' link' : ''}" title="${esc(sb.text)}"${sb.id === 'escudos' ? ' data-go="escudos" role="button" tabindex="0"' : ''}>${I(sb.icon, 34)}<b>${n[sb.id]}</b><span>${esc(sb.name)}</span><small>${esc(sb.text)}</small></div>`).join(''); })()}</div>
     </section>
     <section class="story">
@@ -490,6 +492,22 @@ export class Hub {
       <div class="ar-pend"><h3>${I('binoculars', 22)} Por comprobar</h3><p>De estos pueblos del juego aún no hemos podido comprobar el escudo en una fuente fiable. Por eso no lo dibujamos: preferimos no inventarlo.</p>
         <ul>${PENDIENTES.map(x => `<li><b>${esc(x.name)}.</b> ${esc(x.note || '')}</li>`).join('')}</ul></div>
       <p class="ar-src">Fuentes: Heraldry of the World (blasones municipales), Ayuntamiento de Pamplona, Ayuntamiento de Sangüesa, Gran Enciclopedia de Navarra, Auñamendi Eusko Entziklopedia y Cátedra de Patrimonio de la Universidad de Navarra. Los dibujos son del juego, hechos a partir del blasón.</p>
+    </section>`;
+  }
+  // ---------- Cuentos y leyendas ----------
+  s_cuentos() {
+    const p = profile(), seen = new Set(p.cards || []), tn = (id) => (levelById(id)?.name || id).split(' /')[0];
+    const heard = CUENTOS.filter(C => seen.has('cuento:' + C.id)).length;
+    return `<section class="armorial cuentos">
+      <div class="ar-head"><small class="kicker">${I('legend', 20)} Saberes · Leyendas</small><h1>Cuentos y leyendas de Navarra</h1>
+        <p>En muchos pueblos hay un contador o una contadora de cuentos en la plaza. Escúchales y el cuento se guarda aquí. Cada relato dice si es una leyenda, lo que cuenta la tradición, o una historia que pasó de verdad, y qué puedes ver hoy en ese lugar.</p>
+        <b class="ar-count">${heard} de ${CUENTOS.length} escuchados</b></div>
+      <div class="ar-grid">${CUENTOS.map(C => { const on = seen.has('cuento:' + C.id); return `<article class="ar ct${on ? ' on' : ''}">
+        <div class="ct-ic">${I(on ? C.icon : 'lock', 64)}</div>
+        <div class="ar-tx"><small>${esc(KIND_LABEL[C.kind])} · ${esc(C.towns.map(tn).join(', '))}</small><h3>${esc(C.title)}</h3><p class="ct-pl">${esc(C.place)}</p>
+          ${on ? `<span class="ar-ok">${I('check', 16)} Escuchado</span><details><summary>Volver a leerlo</summary>${C.parts.map(t => `<p>${esc(t)}</p>`).join('')}<p><b>Lo que puedes ver hoy.</b> ${esc(C.today)}</p></details>`
+            : `<p>Ve a ${esc(tn(C.towns[0]))} y habla con ${esc(C.teller.name)} en la plaza.</p><button class="btn ct-go" data-play="${C.towns[0]}">${I('play', 20)} Ir a ${esc(tn(C.towns[0]))}</button>`}</div></article>`; }).join('')}</div>
+      <p class="ar-src">Fuentes: Cátedra de Patrimonio de la Universidad de Navarra, Auñamendi Eusko Entziklopedia, Senditur, Noticias de Navarra, culturanavarra.es y los santuarios y ayuntamientos de cada lugar. Las leyendas tienen muchas versiones: aquí está la más contada, adaptada para niños y niñas.</p>
     </section>`;
   }
   s_badges() {
