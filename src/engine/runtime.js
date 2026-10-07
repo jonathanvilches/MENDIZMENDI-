@@ -216,7 +216,7 @@ export class Runtime {
     try { this.renderer.render(alt || this.scene, (alt && g.altCamera) || this.camera); } catch (e) { this.reportError(e); }
     if (!alt) applyCharFill(null);
     input.endFrame();
-    this.frames++; this.fpsT += dt;
+    this.frames++; this.frameNo = (this.frameNo || 0) + 1; this.fpsT += dt;
     if (this.fpsT > 2) {
       const fps = this.frames / this.fpsT; this.frames = 0; this.fpsT = 0;
       // resolución dinámica: si va a tirones baja un poco la resolución; si sobra fluidez, la recupera poco a poco
@@ -290,7 +290,7 @@ export class Runtime {
     this.sky.update(dt, P.pos, this.elapsed, g.mode === 'dance');
     this.weather?.update(dt, this.camera, this.sky, this.sound, g.mode === 'futbol' || g.mode === 'pelota');
     this.sky.applyFlood();   // (los focos del frontón, después de la lluvia)
-    g.fronton?.court?.setLights?.(Math.min(1, this.sky.night * 1.6));   // (los focos se encienden al anochecer)
+    g.fronton?.court?.setLights?.(this.sky.flood ? 1 : Math.min(1, this.sky.night * 1.6));   // (en el partido, siempre encendidos; si no, al anochecer)
     this.water.update(this.elapsed, this.sky);
     this.nature.update(this.camera.position, P.pos, this.elapsed, P.pos);
     updateDetail(this.camera.position, this.quality);
@@ -299,7 +299,7 @@ export class Runtime {
     if (this.waterfall) this.waterfall.update(dt, this.elapsed, Math.hypot(P.pos.x - PLACES.waterfall.x, P.pos.z - PLACES.waterfall.z) < 80);
     this.smoke.update(dt);
     this.lights.update(this.sky.night, P);
-    lampFill(skyFill(this.charFill, this.sky.hemi, this.sky.sun, this.sky.night), this.lights.lampK || 0);
+    { const fl = this.sky.flood || 0; lampFill(skyFill(this.charFill, this.sky.hemi, this.sky.sun, this.sky.night * (1 - fl)), (this.lights.lampK || 0) * (1 - fl)); }   // (en el frontón, la luz de los focos: la misma de día y de noche)
     this.beacon.update(this.elapsed, P);
     this.sound.update(dt, P, this.follow.yaw, this.sky.night, iratiMask(P.pos.x, P.pos.z) > 0.5);
     g.ui.setClock(this.sky.clock(), this.sky.night > 0.5);

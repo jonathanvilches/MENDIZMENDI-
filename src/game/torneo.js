@@ -106,7 +106,7 @@ export function torneoPanel(T, here = null) {
     const m = yourMatch(T);
     const head = `<div class="lg-head tq-txa">${TXAPELA}<div><small>Torneo de mano · edición ${T.edition}</small><h2>Txapela de ${esc(T.comarcaName)}</h2><span class="lg-note">${T.txapelas ? `Tus txapelas: ${T.txapelas}` : 'Gana la final y la txapela es tuya'}</span></div></div>`;
     // cómo funciona: solo al empezar (en las rondas siguientes ya se sabe)
-    const how = T.round === 0 && !T.past.length && !T.done ? '<p class="lg-how"><b>Cómo funciona:</b> ocho pelotaris por eliminatorias (cuartos y semifinales a 5 tantos, final a 7). Todos tus partidos se juegan en este frontón: los rivales vienen aquí. Los demás partidos se simulan.</p>' : '';
+    const how = T.round === 0 && !T.past.length && !T.done ? '<p class="lg-how"><b>Cómo funciona:</b> ocho pelotaris por eliminatorias (cuartos y semifinales a 5 tantos, final a 7). Los cuartos y las semifinales se juegan en este frontón: los rivales vienen aquí. La final, en el frontón Labrit de Iruña. Los demás partidos se simulan.</p>' : '';
     let mid;
     if (T.done) { const C = T.players[T.champion]; mid = `<div class="lg-champ"><small>TXAPELDUN · CAMPEÓN DEL TORNEO</small><br><b>${esc(C.name)}</b><br>${C.you ? '¡La txapela es tuya! Zorionak!' : `${esc(C.town)} se lleva la txapela. ¡A por la próxima!`}</div>`; }
     else if (m) mid = `<div class="lg-next"><div class="lg-t"><b>${esc(T.players[0].name)}</b><em>${esc(T.players[0].town)}</em></div><div class="lg-vs">VS<small>${esc(m.round.toUpperCase())} · A ${m.target} TANTOS</small>${here ? `<small>FRONTÓN DE ${esc(here.toUpperCase())}</small>` : ''}</div><div class="lg-t"><b>${esc(m.rival.name)}</b><em>${esc(m.rival.town)} · ${'★'.repeat(m.rival.lv)}</em></div></div>`;
