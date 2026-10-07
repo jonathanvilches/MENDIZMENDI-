@@ -586,18 +586,25 @@ function liftScene(S) {
   const stoneM = texMat(S, 'rock', '#c8c0b0', { roughness: 0.9 }), SR = 0.19;
   const stone = S.mesh(uvScale(lathe([[0.001, -0.16], [SR - 0.02, -0.16], [SR, -0.14], [SR, 0.14], [SR - 0.02, 0.16], [0.001, 0.16]], 32), 2, 1), stoneM);
   let W = null, wob = 0;
-  const ready = worker(S, 'sanfermin', { height: 1.75 }).then(w => { W = w; if (W) W.obj.position.set(0, 0.12, -0.12); });
-  // la subida: del suelo a los muslos, al pecho y al hombro (como en las exhibiciones)
-  const KEYS = [
-    { p: 0, pos: [0, 0.12 + SR, 0.2], crouch: 0.12, bend: 0.55, lean: 0, rot: 0 },
-    { p: 0.35, pos: [0, 0.42, 0.14], crouch: 0.1, bend: 0.25, lean: 0, rot: 0.2 },
-    { p: 0.7, pos: [0, 0.68, 0.12], crouch: 0.03, bend: -0.18, lean: 0, rot: 0.5 },
-    { p: 1, pos: [-0.3, 0.98, 0.0], crouch: 0, bend: -0.06, lean: -0.12, rot: 0.9 },
+  // el hombro derecho del levantador (donde acaba la piedra): se mide en su esqueleto cuando carga
+  const SH = V(-0.19, 1.55, -0.12);
+  const ready = worker(S, 'sanfermin', { height: 1.75 }).then(w => { W = w; if (W) { W.obj.position.set(0, 0.12, -0.12); W.pose({}); W.arms[1].up?.getWorldPosition(SH); } });
+  // la subida, como en las exhibiciones (y en los vídeos de harri-jasotzaileak): la piedra del suelo a los muslos en
+  // cuclillas, rodando por la tripa hasta el pecho echando el cuerpo atrás, un golpe de piernas y arriba, al hombro,
+  // junto a la cabeza
+  const keys = () => [
+    { p: 0, pos: [0, 0.12 + SR, 0.26], crouch: 0.34, bend: 0.62, lean: 0, rot: 0 },
+    { p: 0.28, pos: [0, 0.6, 0.24], crouch: 0.3, bend: 0.38, lean: 0, rot: 0.25 },
+    { p: 0.52, pos: [0, 0.98, 0.21], crouch: 0.12, bend: 0.04, lean: 0, rot: 0.5 },
+    { p: 0.74, pos: [-0.04, 1.16, 0.22], crouch: 0.05, bend: -0.22, lean: -0.04, rot: 0.72 },
+    { p: 0.86, pos: [-0.1, 1.24, 0.18], crouch: 0.13, bend: -0.12, lean: -0.08, rot: 0.82 },   // el golpe de piernas
+    { p: 1, pos: [SH.x - 0.15, SH.y + 0.13, SH.z + 0.02], crouch: 0, bend: -0.06, lean: -0.16, rot: 1.0 },
   ];
-  const cur = { pos: V(0, 0, 0) }, L = V(0, 0, 0), R = V(0, 0, 0);
+  const cur = { pos: V(0, 0, 0) }, L = V(0, 0, 0), R = V(0, 0, 0), elL = V(0, 0, 0), elR = V(0, 0, 0);
   return {
-    ready, frame: { box: [[-0.62, 0, -0.5], [0.62, 1.62, 0.42]], dir: [0.3, 0.2, 1] },
+    ready, frame: { box: [[-0.7, 0, -0.5], [0.7, 1.95, 0.45]], dir: [0.35, 0.18, 1] },
     set(p, hit) {
+      const KEYS = keys();
       let i = 0; while (i < KEYS.length - 2 && p > KEYS[i + 1].p) i++;
       const A = KEYS[i], B = KEYS[i + 1], t = ease(THREE.MathUtils.clamp((p - A.p) / (B.p - A.p), 0, 1));
       cur.pos.set(...A.pos).lerp(V(...B.pos), t);
@@ -605,9 +612,12 @@ function liftScene(S) {
       wob = hit < 0.25 ? Math.sin(hit / 0.25 * Math.PI) * 0.025 : 0; cur.pos.y += wob;
       stone.position.copy(cur.pos); stone.rotation.set(0, 0, Math.PI / 2); stone.rotateX(A.rot + (B.rot - A.rot) * t);
       if (W) {
-        const sh = p > 0.85 ? (p - 0.85) / 0.15 : 0;   // al hombro: una mano encima y la otra detrás
-        L.copy(cur.pos).add(V(0.17 + 0.03 * sh, -0.02 + 0.14 * sh, 0.0)); R.copy(cur.pos).add(V(-0.17 - 0.05 * sh, -0.02 - 0.06 * sh, -0.04 * sh));
-        W.pose({ crouch: A.crouch + (B.crouch - A.crouch) * t, bend: A.bend + (B.bend - A.bend) * t, lean: A.lean + (B.lean - A.lean) * t, nod: 0.1, hands: [L, R] });
+        // abrazada por los lados; desde el pecho, la mano izquierda pasa por encima y la derecha la sujeta por detrás
+        const sh = p > 0.74 ? ease(Math.min(1, (p - 0.74) / 0.26)) : 0;
+        L.copy(cur.pos).add(V(0.18 - 0.1 * sh, -0.02 + 0.17 * sh, 0.07 * sh)); R.copy(cur.pos).add(V(-0.18 + 0.04 * sh, -0.02 - 0.1 * sh, -0.12 * sh));
+        // los codos abajo y hacia fuera (abrazando); al hombro, el izquierdo delante del pecho
+        elL.copy(cur.pos).add(V(0.38 - 0.2 * sh, -0.3 - 0.1 * sh, -0.05 + 0.25 * sh)); elR.copy(cur.pos).add(V(-0.38 + 0.05 * sh, -0.3 - 0.15 * sh, -0.1));
+        W.pose({ crouch: A.crouch + (B.crouch - A.crouch) * t, bend: A.bend + (B.bend - A.bend) * t, lean: A.lean + (B.lean - A.lean) * t, nod: 0.1 - 0.15 * sh, twist: 0.12 * sh, hands: [L, R], elbows: [elL, elR] });
       }
     },
   };
