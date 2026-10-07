@@ -102,6 +102,15 @@ export class FutbolMatch {
     ringG.rotateX(-Math.PI / 2); tri.computeVertexNormals();
     const ringM = new THREE.MeshBasicMaterial({ color: '#ffe14a', transparent: true, opacity: 0.92, depthWrite: false, side: THREE.DoubleSide });
     this.ring = new THREE.Group(); this.ring.add(new THREE.Mesh(ringG, ringM), new THREE.Mesh(tri, ringM)); this.ring.position.y = 0.03; this.ring.renderOrder = 2; this.scene.add(this.ring);
+    // puntería mientras cargas: diana en la portería (tiro) y marca en el césped con su línea (pase). Se mueven con el
+    // joystick y con la fuerza: lo que ves es a donde irá el balón
+    const aimM = new THREE.MeshBasicMaterial({ color: '#ff8a2a', transparent: true, opacity: 0.9, depthWrite: false, depthTest: false, side: THREE.DoubleSide });
+    this.goalAim = new THREE.Group(); this.goalAim.add(new THREE.Mesh(new THREE.RingGeometry(0.22, 0.34, 28), aimM), new THREE.Mesh(new THREE.CircleGeometry(0.07, 12), aimM));
+    this.goalAim.rotation.y = Math.PI / 2; this.goalAim.visible = false; this.goalAim.renderOrder = 5; this.scene.add(this.goalAim);
+    const passG = new THREE.RingGeometry(0.42, 0.62, 32); passG.rotateX(-Math.PI / 2);
+    this.passAim = new THREE.Mesh(passG, aimM.clone()); this.passAim.position.y = 0.04; this.passAim.visible = false; this.passAim.renderOrder = 4; this.scene.add(this.passAim);
+    this.passLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]), new THREE.LineDashedMaterial({ color: '#ffd84a', dashSize: 0.6, gapSize: 0.4, transparent: true, opacity: 0.85, depthTest: false }));
+    this.passLine.visible = false; this.passLine.renderOrder = 4; this.scene.add(this.passLine);
     // encima del jugador que llevas, una flecha amarilla que baja y sube (en el móvil el aro del suelo apenas se ve)
     this.pin = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.5, 4).rotateX(Math.PI), new THREE.MeshBasicMaterial({ color: '#ffe14a', depthTest: false, transparent: true }));
     this.pin.renderOrder = 3; this.scene.add(this.pin);
@@ -486,6 +495,11 @@ export class FutbolMatch {
     this.ring.visible = showRing && !this.replay && !(this.intro > 0); this.ring.position.set(me.x, 0.03, me.z); this.ring.rotation.y = me.h;
     this.ring.children[0].material.color.set(g.defending() ? '#ffb347' : '#ffe14a');
     this.pin.visible = this.ring.visible; this.pin.position.set(me.x, 2.25 + Math.sin(this.t * 6) * 0.12, me.z); this.pin.rotation.y = this.t * 2;
+    const sp = !this.replay && g.shotPreview?.(), pp = !this.replay && g.passPreview?.();
+    this.goalAim.visible = !!sp; if (sp) { this.goalAim.position.set(sp.x - Math.sign(sp.x) * 0.05, sp.y, sp.z); this.goalAim.scale.setScalar(1 + 0.1 * Math.sin(this.t * 14)); }
+    this.passAim.visible = this.passLine.visible = !!pp;
+    if (pp) { this.passAim.position.set(pp.x, 0.04, pp.z); this.passAim.material.color.set(pp.loft ? '#7fd3ff' : pp.to != null ? '#7dff9c' : '#ff8a2a');
+      const pa = this.passLine.geometry.attributes.position; pa.setXYZ(0, me.x, 0.05, me.z); pa.setXYZ(1, pp.x, 0.05, pp.z); pa.needsUpdate = true; this.passLine.computeLineDistances(); }
     this.pin.material.color.copy(this.ring.children[0].material.color);
     const q = g.passTo; this.mark.visible = !!q && q.team === 0 && q !== me; if (q) this.mark.position.set(q.x, 0.03, q.z);
     // público: se anima con las ocasiones y celebra los goles
@@ -525,7 +539,7 @@ export class FutbolMatch {
     this.ball.position.set(f.b[0], f.b[1] + (K.scale - 1) * R, f.b[2]); this.ball.quaternion.copy(f.q);
     this.ballShadow.position.set(f.b[0], 0.012, f.b[2]);
     for (const sp of this.trail) sp.visible = false;   // (en la repetición, sin estela)
-    this.ring.visible = false; this.mark.visible = false;
+    this.ring.visible = false; this.mark.visible = false; if (this.goalAim) this.goalAim.visible = this.passAim.visible = this.passLine.visible = false;
     // cámara: desde detrás de la portería, baja y a un lado
     const s = R2.side, c = this.camera, gz = f.b[2];
     c.fov = 38; c.updateProjectionMatrix();
@@ -630,7 +644,7 @@ export class FutbolMatch {
     this.reto?.dispose?.(); this.confetti?.dispose(); removeEventListener('pointerdown', this.onTap);
     this.ball?.geometry.dispose(); this.ball?.material.dispose(); this.ballTex?.dispose(); this.blobTex?.dispose(); this.trailTex?.dispose(); this.trail?.forEach(sp => sp.material.dispose());
     this.ballShadow?.geometry.dispose(); this.ballShadow?.material.dispose();
-    this.ring?.traverse(o => { if (o.isMesh) { o.geometry.dispose(); o.material.dispose(); } }); this.mark?.geometry.dispose(); this.mark?.material.dispose();
+    this.ring?.traverse(o => { if (o.isMesh) { o.geometry.dispose(); o.material.dispose(); } }); for (const o of [this.goalAim, this.passAim, this.passLine]) o?.traverse(m => { m.geometry?.dispose(); m.material?.dispose(); }); this.mark?.geometry.dispose(); this.mark?.material.dispose();
     this.field?.dispose(); this.hud?.dispose(); this.audio?.dispose();
   }
 }
