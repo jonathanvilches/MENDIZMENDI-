@@ -131,6 +131,8 @@ const CSS = `
 .lg-how{font-size:12px;line-height:1.3;padding:5px 9px}.lg-btn{min-height:38px;padding:6px}.lg-btn.go{font-size:18px}
 .lg-rv{padding:4px 8px;gap:6px}.lg-rv .lg-kit{width:21px;height:28px}
 }
+/* muy poca altura (iPhone con la barra de Safari): la explicación en dos líneas y los botones siempre a la vista */
+@media (orientation:landscape) and (max-height:380px){.lg-how{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.lg-card{gap:4px 12px;padding:8px 14px}.lg-next{padding:4px 8px}.lg-vs{font-size:20px}.lg-btn{min-height:36px}}
 `;
 function panel(html) {
   if (!document.getElementById('lg-css')) { const st = document.createElement('style'); st.id = 'lg-css'; st.textContent = CSS; document.head.appendChild(st); }

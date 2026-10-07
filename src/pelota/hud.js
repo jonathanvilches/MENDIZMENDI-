@@ -25,7 +25,7 @@ const CSS = `
 .pel-q.on{opacity:1}
 .pel-tip{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 18px);max-width:min(560px,calc(100vw - 330px));padding:8px 14px;border-radius:14px;background:rgba(28,11,58,.86);border:1px solid rgba(190,160,255,.3);font-size:16px;font-weight:700;line-height:1.3;text-align:center;opacity:0;transition:opacity .2s}
 .pel-tip.on{opacity:1}
-.pel-stick{position:absolute;left:0;bottom:0;width:46vw;height:62vh;pointer-events:auto;touch-action:none}
+.pel-stick{position:absolute;left:0;bottom:0;width:46vw;height:62dvh;pointer-events:auto;touch-action:none}
 .pel-knob{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;border:3px solid rgba(255,255,255,.55);background:rgba(28,11,58,.3);display:none}
 .pel-knob i{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;background:rgba(255,255,255,.85)}
 .pel-stickhint{position:absolute;left:calc(env(safe-area-inset-left,0px) + 26px);bottom:calc(env(safe-area-inset-bottom,0px) + 26px);width:120px;height:120px;border-radius:50%;border:3px dashed rgba(255,255,255,.55);display:grid;place-items:center;font-size:12px;font-weight:700;text-align:center;opacity:.8;padding:10px}
