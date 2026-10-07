@@ -87,7 +87,7 @@ function boxesGeo(T, list) {
   for (const b of list) {
     const g = b.plane ? new T.PlaneGeometry(b.w, b.d) : new T.BoxGeometry(b.w, b.h, b.d).toNonIndexed();
     const G = b.plane ? g.toNonIndexed() : g;
-    e.set(b.plane ? (b.up ? -Math.PI / 2 : Math.PI / 2) : (b.rx || 0), 0, b.rz || 0, 'ZYX'); q.setFromEuler(e); m.compose(v.set(b.x, b.y, b.z), q, one);
+    e.set(b.plane ? (b.up ? -Math.PI / 2 : Math.PI / 2) : (b.rx || 0), b.ry || 0, b.rz || 0, 'ZYX'); q.setFromEuler(e); m.compose(v.set(b.x, b.y, b.z), q, one);
     G.applyMatrix4(m);
     pos.push(...G.attributes.position.array); nrm.push(...G.attributes.normal.array); uv.push(...G.attributes.uv.array);
     g.dispose(); if (G !== g) G.dispose();
@@ -423,21 +423,66 @@ export class PelotaCourt {
     const board = new T.Mesh(new T.PlaneGeometry(3.6, 1.8), new T.MeshBasicMaterial({ map: st })); board.position.set(xr + 2.6, 7.6, za + 0.03); g.add(board);
     box(3.9, 2.1, 0.12, steel, xr + 2.6, 7.6, za - 0.03);
     this.setScore('', '', 0, 0);
-    // --- fuera: fachada de ladrillo con tres torreones de teja, la entrada con su letrero, la calle y la muralla
-    const brickTex = canvasTex(T, 1024, 512, (c, w, h) => { bricks(c, w, h, 12, 6, '#a4583c'); weather(c, w, h, 6, 12); });
+    // --- fuera, como el de verdad: ladrillo caravista amarillo ocre (llagas claras), pilastras, zócalo, recercados,
+    // impostas y cornisa de piedra beige; ventanas recercadas abajo, óculos y una fila de ventanas en arco de ladrillo
+    // arriba; torreones con alero y tejado de teja a cuatro aguas; cubierta clara a dos aguas con el hastial liso
+    const STONE = '#cdbf9c';
+    const brickTex = canvasTex(T, 1024, 512, (c, w, h) => {
+      const mW = 12, mH = 6, px = w / mW, py = h / mH, bh = 0.075, bl = 0.25;
+      c.fillStyle = '#ddd2b8'; c.fillRect(0, 0, w, h);   // llagas claras
+      for (let y = 0, r = 0; y < mH; y += bh, r++) for (let x = r % 2 ? -bl / 2 : 0; x < mW; x += bl) {
+        const t = 0.9 + Math.random() * 0.16, warm = Math.random() < 0.18 ? 0.9 : 1;
+        c.fillStyle = `rgb(${Math.round(206 * t)},${Math.round(178 * t * warm)},${Math.round(122 * t * warm)})`;
+        c.fillRect(x * px + 1, h - (y + bh) * py + 1, bl * px - 2, bh * py - 1.5); }
+      weather(c, w, h, 6, 12); });
     brickTex.wrapS = brickTex.wrapT = T.RepeatWrapping; brickTex.repeat.set(4, 2.2); brick.map = brickTex; brick.color.set('#ffffff');
-    const tile = M({ color: '#a4533a', roughness: 0.8 }), dark = M({ color: '#24201c', roughness: 0.9 });
-    for (const [tx, tz] of [[xb + 1.8, za - 1.8], [xb + 1.8, zb + 1.8], [xa - 1.8, zb + 1.8]]) {
-      const TH = HW + 3.2, tw = 4.4;
+    const stone = M({ color: STONE, roughness: 0.9 }), tile = M({ color: '#b5583e', roughness: 0.8 }), dark = M({ color: '#2a2c2e', roughness: 0.6 });
+    const archTex = canvasTex(T, 128, 192, (c, w, h) => {   // ventana en arco con su rosca de ladrillo
+      c.clearRect(0, 0, w, h); c.fillStyle = '#b8945e'; c.beginPath(); c.moveTo(0, h); c.lineTo(0, w / 2); c.arc(w / 2, w / 2, w / 2, Math.PI, 0); c.lineTo(w, h); c.fill();
+      c.strokeStyle = '#d9cbaa'; c.lineWidth = 2; for (let a = 0; a <= 12; a++) { const t = Math.PI + a / 12 * Math.PI; c.beginPath(); c.moveTo(w / 2 + Math.cos(t) * w * 0.3, w / 2 + Math.sin(t) * w * 0.3); c.lineTo(w / 2 + Math.cos(t) * w / 2, w / 2 + Math.sin(t) * w / 2); c.stroke(); }
+      c.fillStyle = '#23272b'; c.beginPath(); c.moveTo(w * 0.2, h); c.lineTo(w * 0.2, w / 2); c.arc(w / 2, w / 2, w * 0.3, Math.PI, 0); c.lineTo(w * 0.8, h); c.fill(); });
+    const archM = M({ map: archTex, transparent: true, alphaTest: 0.4, roughness: 0.7 });
+    const sn = [], dk = [], ar = [];
+    // una fachada: centro (cx, cz), largo, giro (su +z local mira hacia fuera); se reparte en vanos entre pilastras
+    const front = (cx, cz, len, ry, skip = 0) => {
+      const c = Math.cos(ry), s = Math.sin(ry), P = (u, y, n, b) => ({ ...b, x: cx + c * u + s * n, y, z: cz - s * u + c * n, ry });
+      sn.push(P(0, 0.8, 0.12, { w: len + 0.3, h: 1.6, d: 0.3 }), P(0, 9.4, 0.12, { w: len + 0.3, h: 0.28, d: 0.3 }), P(0, HW - 0.25, 0.2, { w: len + 0.9, h: 0.5, d: 0.5 }));
+      const n = Math.max(2, Math.round(len / 6)), bw = len / n;
+      for (let k = 0; k <= n; k++) sn.push(P(-len / 2 + k * bw, HW / 2, 0.1, { w: 0.7, h: HW, d: 0.24 }));
+      for (let k = 0; k < n; k++) { const u = -len / 2 + (k + 0.5) * bw; if (Math.abs(u) < skip) continue;
+        for (const [y, ww, hh] of [[2.6, 0.8, 0.7], [5.6, 1.1, 1.5]]) { sn.push(P(u, y, 0.05, { w: ww + 0.36, h: hh + 0.36, d: 0.14 })); dk.push(P(u, y, 0.13, { w: ww, h: hh, d: 0.02 })); }
+        sn.push(P(u, 7.9, 0.05, { w: 0.78, h: 0.78, d: 0.12 })); dk.push(P(u, 7.9, 0.12, { w: 0.42, h: 0.42, d: 0.02 }));   // óculo
+        for (const du of bw > 4.5 ? [-0.9, 0, 0.9] : [0]) ar.push(P(u + du, 11.2, 0.04, { w: 0.7, h: 1.05, d: 0.02 })); }   // ventanas en arco
+    };
+    front((xa + xb) / 2, zb + 0.5, xb - xa + 1, 0, 3.5); front((xa + xb) / 2, za - 0.5, xb - xa + 1, Math.PI); front(xb + 0.5, (za + zb) / 2, zb - za + 1, Math.PI / 2); front(xa - 0.5, (za + zb) / 2, zb - za + 1, -Math.PI / 2);
+    // torreones: ladrillo con esquinas de piedra, alero ancho y tejado de teja a cuatro aguas; arriba, tres ventanas en arco
+    for (const [tx, tz] of [[xb + 1.6, za - 1.6], [xb + 1.6, zb + 1.6], [xa - 1.6, zb + 1.6]]) {
+      const TH = HW + 3.6, tw = 5;
       box(tw, TH, tw, brick, tx, TH / 2, tz);
-      const rf = new T.Mesh(new T.ConeGeometry(tw * 0.78, 2.6, 4), tile); rf.position.set(tx, TH + 1.3, tz); rf.rotation.y = Math.PI / 4; g.add(rf);
-      for (let k = 0; k < 3; k++) for (const [dx, dz, ry] of [[tw / 2 + 0.02, 0, Math.PI / 2], [-tw / 2 - 0.02, 0, -Math.PI / 2], [0, tw / 2 + 0.02, 0], [0, -tw / 2 - 0.02, Math.PI]]) {
-        const win = new T.Mesh(new T.PlaneGeometry(0.8, 1.4), dark); win.position.set(tx + dx, 3 + k * 4.4, tz + dz); win.rotation.y = ry; g.add(win); }
+      for (const [dx, dz] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) sn.push({ w: 0.55, h: TH, d: 0.55, x: tx + dx * (tw / 2 - 0.2), y: TH / 2, z: tz + dz * (tw / 2 - 0.2) });
+      sn.push({ w: tw + 0.3, h: 1.6, d: tw + 0.3, x: tx, y: 0.8, z: tz }, { w: tw + 0.2, h: 0.3, d: tw + 0.2, x: tx, y: TH - 3.2, z: tz }, { w: tw + 1.4, h: 0.35, d: tw + 1.4, x: tx, y: TH + 0.1, z: tz });
+      const rf = new T.Mesh(new T.ConeGeometry((tw + 1.3) * 0.71, 1.8, 4), tile); rf.position.set(tx, TH + 1.17, tz); rf.rotation.y = Math.PI / 4; g.add(rf);
+      for (const [ry, ox, oz] of [[0, 0, 1], [Math.PI, 0, -1], [Math.PI / 2, 1, 0], [-Math.PI / 2, -1, 0]]) {
+        const c = Math.cos(ry), s = Math.sin(ry);
+        for (const du of [-1, 0, 1]) ar.push({ w: 0.75, h: 1.2, d: 0.02, x: tx + ox * (tw / 2 + 0.02) + c * du * 1.05, y: TH - 1.6, z: tz + oz * (tw / 2 + 0.02) - s * du * 1.05, ry });
+        sn.push({ w: 1.4, h: 1.8, d: 0.14, x: tx + ox * (tw / 2 + 0.05), y: 6.2, z: tz + oz * (tw / 2 + 0.05), ry }); dk.push({ w: 1.0, h: 1.4, d: 0.02, x: tx + ox * (tw / 2 + 0.13), y: 6.2, z: tz + oz * (tw / 2 + 0.13), ry });
+      }
     }
+    // frontón triangular de piedra sobre la entrada, como el del lado largo del edificio
+    const xcE = (xa + xb) / 2, ped = new T.Shape(); ped.moveTo(-5, 0); ped.lineTo(5, 0); ped.lineTo(0, 2.2); ped.closePath();
+    const pm = new T.Mesh(new T.ExtrudeGeometry(ped, { depth: 0.4, bevelEnabled: false }), stone); pm.position.set(xcE, HW + 0.05, zb + 0.4); g.add(pm);
+    const mk = (list, mat) => { if (!list.length) return; const m = new T.Mesh(boxesGeo(T, list), mat); m.receiveShadow = true; g.add(m); };
+    mk(sn, stone); mk(dk, dark); mk(ar, archM);
+    // cubierta a dos aguas, clara, de chapa, con el hastial liso en los dos extremos
+    { const hw = (xb - xa) / 2 + 0.6, rise = 3.6, a = Math.atan2(rise, hw), sl = Math.hypot(hw, rise), xm = (xa + xb) / 2, zm = (za + zb) / 2, D = zb - za + 1.2;
+      const roofM = M({ color: '#dcdedd', roughness: 0.55, metalness: 0.2 });
+      mk([{ w: sl, h: 0.16, d: D, x: xm - hw / 2, y: HW + rise / 2, z: zm, rz: a }, { w: sl, h: 0.16, d: D, x: xm + hw / 2, y: HW + rise / 2, z: zm, rz: -a }], roofM);
+      const tri = new T.Shape(); tri.moveTo(-hw, 0); tri.lineTo(hw, 0); tri.lineTo(0, rise); tri.closePath();
+      for (const z of [za - 0.55, zb + 0.15]) { const t = new T.Mesh(new T.ExtrudeGeometry(tri, { depth: 0.4, bevelEnabled: false }), M({ color: '#e6dfcd', roughness: 0.9 })); t.position.set(xm, HW, z); g.add(t); } }
     const xc = (xa + xb) / 2;
-    const door = new T.Mesh(new T.PlaneGeometry(4.2, 3.6), dark); door.position.set(xc, 1.8, zb + 0.52); g.add(door);
-    const signTex = canvasTex(T, 1024, 256, (c, w, h) => { c.fillStyle = '#efe6d2'; c.fillRect(0, 0, w, h); c.strokeStyle = '#7a3a26'; c.lineWidth = 10; c.strokeRect(8, 8, w - 16, h - 16); paintName(c, 'FRONTÓN LABRIT', w / 2, h * 0.46, w * 0.9, h * 0.5, '#7a3a26'); });
-    const sign = new T.Mesh(new T.PlaneGeometry(9, 2.2), M({ map: signTex, roughness: 0.8 })); sign.position.set(xc, 5.6, zb + 0.52); g.add(sign);
+    const door = new T.Mesh(new T.PlaneGeometry(3.6, 3.4), dark); door.position.set(xc, 1.7, zb + 0.66); g.add(door);
+    const signTex = canvasTex(T, 1024, 256, (c, w, h) => { c.fillStyle = '#d6cbaa'; c.fillRect(0, 0, w, h); c.strokeStyle = '#a89a76'; c.lineWidth = 10; c.strokeRect(8, 8, w - 16, h - 16); paintName(c, 'FRONTÓN LABRIT', w / 2, h * 0.5, w * 0.86, h * 0.48, '#5d5240'); });
+    const sign = new T.Mesh(new T.PlaneGeometry(7, 1.5), M({ map: signTex, roughness: 0.8 })); sign.position.set(xc, 4.5, zb + 0.66); g.add(sign);
     const pave = new T.Mesh(new T.PlaneGeometry(220, 220), M({ color: '#8f8b83', roughness: 0.95 })); pave.rotation.x = -Math.PI / 2; pave.position.set(xc, -0.04, (za + zb) / 2); pave.receiveShadow = true; g.add(pave);
     const wallTex = canvasTex(T, 1024, 256, (c, w, h) => ashlar(c, w, h, 40, 10, '#b9a27e'), [3, 1]);
     const mur = new T.Mesh(new T.BoxGeometry(4, 10, 130), M({ map: wallTex, roughness: 0.95 })); mur.position.set(xa - 24, 5, (za + zb) / 2 + 10); mur.rotation.y = 0.06; g.add(mur);
