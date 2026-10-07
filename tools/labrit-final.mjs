@@ -15,7 +15,7 @@ await p.evaluate(async () => { await window.__intro; const G = window.__game; wi
 await p.waitForSelector('.pel-panel [data-pel-go]', { timeout: 180000 });
 await p.evaluate(() => document.querySelector('.pel-panel [data-pel-go]').click());
 await p.waitForTimeout(15000); await p.screenshot({ path: `${out}/juego.jpg`, quality: 70 });
-const shots = [['foto1', [1.5, 1.7, 34], [3, 5, 0]], ['butacas', [6.5, 1.6, 20], [12, 1.5, 12]], ['foto3', [16, 7, 28], [-3, 2, 10]], ['tarima', [7.4, 1.3, 30], [8.6, 0, 18]], ['ciudad', [-60, 40, 90], [10, 5, 20]]];
+const shots = [['foto1', [1.5, 1.7, 34], [3, 5, 0]], ['butacas', [6.5, 1.6, 20], [12, 1.5, 12]], ['foto3', [16, 7, 28], [-3, 2, 10]], ['tarima', [7.4, 1.3, 30], [8.6, 0, 18]], ['esquina', [40, 8, 68], [12, 7, 30]], ['ciudad', [-60, 40, 90], [10, 5, 20]]];
 for (const [name, pos, look] of shots) {
   await p.evaluate(([pos, look]) => { const G = window.__game, C = window.__L.court.group, cam = G.camera, V = cam.position.constructor;
     const v = new V(...pos), l = new V(...look); C.localToWorld(v); C.localToWorld(l);
