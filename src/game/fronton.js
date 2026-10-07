@@ -192,7 +192,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       C.group.updateMatrixWorld(true); const yaw = new THREE.Euler().setFromQuaternion(C.group.getWorldQuaternion(new THREE.Quaternion()), 'YXZ').y;
       const wsp = sp.map(([x, y, z, ry]) => { const v = C.group.localToWorld(new THREE.Vector3(x, y, z)); return [v.x, v.y, v.z, ry + yaw]; });
       if (wsp.length) seatedZ = wsp.reduce((a, q) => a + q[2], 0) / wsp.length;
-      if (wsp.length && G.scene) { seated = crowd3d(wsp, 'pelota', 1.36, { sit: true, all3d: true }); G.scene.add(seated); } } catch (e) { console.warn('público del frontón', e); }
+      if (wsp.length && G.scene) { seated = crowd3d(wsp, 'pelota', 1.36, { sit: false, all3d: true }); /* de pie en los escalones: sentados en cuclillas se veían raros */ G.scene.add(seated); } } catch (e) { console.warn('público del frontón', e); }
     const once = (who, key, on, fn) => { if (on && !flags[who][key]) { flags[who][key] = true; fn(); } else if (!on) flags[who][key] = false; };
     const stYou = { v: null }, stRival = { v: null };
     armSwing(rig.char, () => stYou.v, { windOnly: !!pel }); armSwing(red ? red.char : rival.glb, () => stRival.v, { windOnly: !!red });

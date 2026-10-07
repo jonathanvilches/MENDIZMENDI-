@@ -109,9 +109,11 @@ export function sharpMap(m) {
   const key = m.customProgramCacheKey?.bind(m); m.customProgramCacheKey = () => (key ? key() : '') + '|sharp';
   m.needsUpdate = true;
 }
-function shrinkMap(m) {
-  const t = m.map, img = t?.image; if (!img || !(img.width > MESHY_TEX)) return;
-  const c = document.createElement('canvas'); c.width = c.height = MESHY_TEX; c.getContext('2d').drawImage(img, 0, 0, MESHY_TEX, MESHY_TEX);
+// la textura pasa siempre por un lienzo (a su tamaño o reducida): subida tal cual desde la imagen del modelo, en algunos
+// iPhone los personajes salían negros, sin color; por el lienzo es el camino que siempre ha funcionado en el móvil
+function shrinkMap(m, max = MESHY_TEX) {
+  const t = m.map, img = t?.image; if (!img || !img.width || t.isCanvasTexture) return;
+  const S = Math.min(max, img.width), c = document.createElement('canvas'); c.width = c.height = S; c.getContext('2d').drawImage(img, 0, 0, S, S);
   const n = new THREE.CanvasTexture(c); n.colorSpace = t.colorSpace; n.flipY = t.flipY; n.wrapS = t.wrapS; n.wrapT = t.wrapT; n.anisotropy = 4;
   m.map = n; m.needsUpdate = true; t.dispose(); img.close?.();
 }
@@ -133,7 +135,7 @@ export async function loadMeshy(name, lod = false) {
   if (!cache.has(key)) cache.set(key, (async () => {
     const g = await loadChar(lod ? MESHY_LOD[name] : MESHY[name]);
     // textura nítida también vista de lado (anisotropía); en el móvil se reduce salvo la del personaje del jugador
-    g.scene.traverse(o => { if (o.isMesh) { o.castShadow = true; for (const m of [].concat(o.material)) { if (!FULL_TEX.has(name)) shrinkMap(m); sharpMap(m); if (m.map) { m.map.anisotropy = 8; m.map.needsUpdate = true; }
+    g.scene.traverse(o => { if (o.isMesh) { o.castShadow = true; for (const m of [].concat(o.material)) { shrinkMap(m, FULL_TEX.has(name) ? 2048 : MESHY_TEX); sharpMap(m); if (m.map) { m.map.anisotropy = 8; m.map.needsUpdate = true; }
       // luz de relleno propia: la cámara va detrás y el sol suele darle de frente, así que se le veía siempre en sombra.
       // Un poco de su propio color como luz propia lo aclara desde cualquier lado sin tocar el resto de la escena
       if (m.map && m.emissive) { m.emissiveMap = m.map; fillMaterial(m, MESHY_FILL); m.needsUpdate = true; } } } });

@@ -130,9 +130,12 @@ export class PelotaGame {
       const ty = cutHeight(pow, aim.y) + gauss(rnd) * err * 0.3;
       // a dos paredes: con el joystick bien a la izquierda, pega primero en la pared izquierda y después bajo en el
       // frontis, y sale cruzada hacia la derecha, rasa y rápida (como la dos paredes del golpe, pero cortada)
-      if (rawX < -0.72 && !serve) {
-        const ang = clamp((-rawX - 0.72) / 0.22, 0, 1), fz = clamp(0.6 - ang * 0.4 + gauss(rnd) * err * 0.06, 0.15, 0.8);
-        const r = solveTwoWalls(p, speed, clamp(9 + pow * 5 + aim.y, 7, 15), [fz, fz - 0.08, fz + 0.08, fz + 0.16], { low: 5, maxFront: ty + 0.9 });
+      // (desde media izquierda ya va a dos paredes: con la cortada no hay golpe «a la pared» con el que confundirla, y antes
+      // había que llevar el joystick casi al tope y costaba controlarla. Cuanto más a la izquierda, antes toca la pared y
+      // más cruzada sale; arriba, más larga; abajo, más corta)
+      if (rawX < -0.45 && !serve) {
+        const ang = clamp((-rawX - 0.45) / 0.5, 0, 1), fz = clamp(0.65 - ang * 0.45 + gauss(rnd) * err * 0.05, 0.15, 0.8);
+        const r = solveTwoWalls(p, speed, clamp(9 + pow * 5 + aim.y * 2.5, 6.5, 16), [fz, fz - 0.08, fz + 0.08, fz + 0.16], { low: 5, maxFront: ty + 0.9 });
         if (r) { v = r.v; sub = 'cortDos'; }
       }
       if (!v) v = aimVelocity(p, tx, ty, Math.max(0.2, p.z / speed));

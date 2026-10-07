@@ -306,7 +306,7 @@ export class PelotaMatch {
     // fuera de los botones; el frontis entero se sigue viendo)
     // si el rival está más al fondo que tú (le mandas la pelota atrás), la cámara retrocede y se eleva hasta verlo a él
     // también: antes se quedaba detrás de ti y no se veía cómo ni hacia dónde golpeaba
-    const rv = g.players.rival, behind = Number.isFinite(rv?.z) ? Math.max(0, rv.z - you.z) : 0;
+    const rv = g.players.rival, rivalTurn = g.phase === 'rally' && g.rally?.turn === 'rival', behind = rivalTurn && Number.isFinite(rv?.z) ? Math.max(0, rv.z - you.z) : 0;   // (solo en el peloteo, cuando le toca a él: al sacar se queda contigo)
     const cz = you.z + behind, cx = behind > 0.5 ? you.x * 0.6 + rv.x * 0.4 : you.x, up = Math.min(2.4, behind * 0.16);
     const lp = portrait ? [cx * 0.45 + 0.4, 6.3 + up, cz + 9.6 + behind * 0.15] : [cx * 0.55 + 0.8, 4.0 + up, cz + 7.0 + behind * 0.15];
     const ll = portrait ? [cx * 0.2, 1.2, cz - 9.5] : [cx * 0.25, 1.2, cz - 12];
