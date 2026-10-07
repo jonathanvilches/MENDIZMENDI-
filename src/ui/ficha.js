@@ -1,4 +1,4 @@
-// Ficha descriptiva de cada especie (fauna y flora): la imagen (el modelo 3D de la planta o el icono del animal), su
+// Ficha descriptiva de cada especie (fauna y flora): la imagen (la lámina dibujada de la planta o el animal), su
 // nombre en castellano y en euskera, el científico, cómo reconocerla, dónde vive, cuándo verla y una curiosidad, con las
 // comarcas donde está. La misma ficha sale en el juego (al identificar una planta, observar un animal o acariciar uno de
 // granja) y en la sección Naturaleza del menú.
@@ -7,7 +7,7 @@
 import { FLORA, FLORA_KIND, floraOf } from '../data/flora.js';
 import { FAUNA, FAUNA_KIND, faunaOf } from '../data/fauna.js';
 import { iconSVG } from './icons.js';
-import { floraPortrait } from '../world/flora3d.js';
+import { floraIllustration } from './floraArt.js';
 import { leafImage } from './leafArt.js';
 import COMARCAS from '../data/comarcas.json';
 
@@ -32,15 +32,11 @@ function open(ui, cls, html) {
   return o;
 }
 function close(ui, o, k) { removeEventListener('keydown', k, true); o.classList.add('out'); setTimeout(() => o.remove(), 250); if (ui?.modal === o) ui.modal = null; }
-// la imagen: el retrato 3D de la planta (se dibuja la primera vez) o el icono del animal
+// la imagen: la lámina dibujada de la planta (con su hoja en un medallón) o el animal sobre el mismo papel
 function picture(d) {
-  if (d.type === 'fauna') return `<div class="fc-pic fauna">${iconSVG(d.F.icon || d.id, 150)}</div>`;
-  // la planta entera y, al lado, su hoja (es lo que mejor la identifica)
+  if (d.type === 'fauna') return `<div class="fc-pic fauna">${iconSVG(d.F.icon || d.id, 240)}</div>`;
   const leaf = leafImage(d.id);
-  return `<div class="fc-pics${leaf ? ' two' : ''}"><div class="fc-pic flora"><img alt="${esc(d.F.name)}" data-flora="${d.id}"></div>${leaf ? `<figure class="fc-leaf"><img src="${leaf}" alt="Hoja de ${esc(d.F.name)}"><figcaption>Su hoja</figcaption></figure>` : ''}</div>`;
-}
-function fillPictures(o) {
-  o.querySelectorAll('img[data-flora]').forEach(img => floraPortrait(img.dataset.flora).then(u => { if (u) { img.src = u; img.classList.add('on'); } }).catch(() => {}));
+  return `<div class="fc-pic flora"><img alt="${esc(d.F.name)}" src="${floraIllustration(d.id)}">${leaf ? `<figure class="fc-leaf"><img src="${leaf}" alt="Hoja de ${esc(d.F.name)}"><figcaption>Su hoja</figcaption></figure>` : ''}</div>`;
 }
 
 export function showFicha(key, { ui = null, badge = '', button = 'Seguir', kicker = '' } = {}) {
@@ -49,20 +45,20 @@ export function showFicha(key, { ui = null, badge = '', button = 'Seguir', kicke
   const F = d.F, kind = d.type === 'flora' ? FLORA_KIND[F.kind] : FAUNA_KIND[F.kind];
   return new Promise(res => {
     ui?.sound?.ui?.('card');
+    const sec = (t, x) => x ? `<div><dt>${t}</dt><dd>${esc(x)}</dd></div>` : '';
     const o = open(ui, '', `
-      <div class="fc-head">${picture(d)}${badge ? `<div class="ic-badge">${esc(badge)}</div>` : ''}</div>
-      <small class="kicker">${esc(kicker || `${kind || ''} · ficha de ${d.type === 'flora' ? 'flora' : 'fauna'}`)}</small>
-      <h2>${esc(F.name)}</h2>
-      <div class="fc-names">${F.eu ? `<span class="eu" lang="eu">${esc(F.eu)}</span>` : ''}${F.sci ? `<i class="sci">${esc(F.sci)}</i>` : ''}</div>
-      <dl class="fc-sec">
-        <dt>${d.type === 'flora' ? 'Cómo reconocerla' : 'Cómo reconocerlo'}</dt><dd>${esc(F.look)}</dd>
-        ${F.where ? `<dt>Dónde vive</dt><dd>${esc(F.where)}</dd>` : ''}
-        ${F.season ? `<dt>Cuándo verla</dt><dd>${esc(F.season)}</dd>` : ''}
-        <dt>¿Sabías que…?</dt><dd>${esc(F.fact)}</dd>
-      </dl>
-      ${d.comarcas.length ? `<div class="fc-where">${d.comarcas.map(c => `<span style="--c:${c.color}">${esc(c.name)}</span>`).join('')}</div>` : ''}
-      <button class="btn primary">${esc(button)}</button>`);
-    fillPictures(o);
+      <div class="fc-head">${picture(d)}${badge ? `<div class="ic-badge">${esc(badge)}</div>` : ''}
+        <div class="fc-title"><small class="kicker">${esc(kicker || `${kind || ''} · ficha de ${d.type === 'flora' ? 'flora' : 'fauna'}`)}</small>
+        <h2>${esc(F.name)}</h2>
+        <div class="fc-names">${F.eu ? `<span class="eu" lang="eu">${esc(F.eu)}</span>` : ''}${F.sci ? `<i class="sci">${esc(F.sci)}</i>` : ''}</div></div>
+      </div>
+      <div class="fc-body">
+        <dl class="fc-sec">
+          ${sec(d.type === 'flora' ? 'Cómo reconocerla' : 'Cómo reconocerlo', F.look)}${sec('Dónde vive', F.where)}${sec('Cuándo verla', F.season)}${sec('¿Sabías que…?', F.fact)}
+        </dl>
+        ${d.comarcas.length ? `<div class="fc-where">${d.comarcas.map(c => `<span style="--c:${c.color}">${esc(c.name)}</span>`).join('')}</div>` : ''}
+        <button class="btn primary">${esc(button)}</button>
+      </div>`);
     const b = o.querySelector('button'); setTimeout(() => b.focus({ preventScroll: true }), 60);
     const k = (e) => { e.stopImmediatePropagation(); if (['e', 'enter', ' ', 'escape'].includes(e.key.toLowerCase())) { e.preventDefault(); done(); } };
     const done = () => { ui?.sound?.ui?.('click'); close(ui, o, k); res(); };
@@ -79,12 +75,11 @@ export function identifyQuiz(key, options, { ui = null, right = 0, question = ''
   return new Promise(res => {
     ui?.sound?.ui?.('card');
     const o = open(ui, 'quiz', `
-      <div class="fc-head">${d.type === 'flora' ? picture(d) : picture(d)}</div>
+      <div class="fc-head">${picture(d)}</div>
       <small class="kicker">${d.type === 'flora' ? 'Identifica la planta' : 'Identifica el animal'}</small>
       <h2>${esc(question || (d.type === 'flora' ? '¿Qué planta es?' : '¿Qué animal es?'))}</h2>
       <p class="fc-hint">${esc(d.F.look)}</p>
       <div class="fc-opts">${options.map((t, i) => `<button class="btn fc-opt" data-i="${i}">${esc(t)}</button>`).join('')}</div>`);
-    fillPictures(o);
     let busy = false;
     const pick = (i) => {
       if (busy) return; busy = true;

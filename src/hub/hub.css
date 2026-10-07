@@ -344,46 +344,60 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .info .mg-card { background: linear-gradient(180deg, #3a1680, #1c0b3a); } .info .mg-card p { color: #cbc2e0; } .info .kicker { color: #FFD700; }
 /* ficha de fauna y flora (también se abre desde el menú: por encima de todo) */
 .mg-overlay.ficha { z-index: 4000; grid-template-columns: minmax(0, 1fr); justify-items: center; }
-.ficha .mg-card { width: min(600px, 100%); background: linear-gradient(180deg, #24502e, #10261a); text-align: left; align-items: stretch; gap: 8px; }
-.ficha .fc-head { align-self: center; position: relative; }
-.fc-pic { position: relative; width: min(300px, 72vw, 31vh); aspect-ratio: 6 / 5; border-radius: 16px; overflow: hidden; background: #eef4e6 radial-gradient(#ffffff, #dfe9d4); box-shadow: 0 8px 24px rgba(0, 0, 0, .35); }
-.fc-pic img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0; transition: opacity .35s; } .fc-pic img.on { opacity: 1; }
-.fc-pic.fauna { width: min(150px, 26vh); height: min(150px, 26vh); aspect-ratio: auto; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(rgba(255, 215, 0, .28), transparent 70%); box-shadow: none; }
-.fc-pic.fauna .ico { width: 82%; height: 82%; }
-.ficha .kicker { align-self: center; color: #b8f08a; text-align: center; }
+.ficha .mg-card { width: min(600px, 100%); padding: 16px; background: linear-gradient(180deg, #24502e, #10261a); text-align: left; align-items: stretch; gap: 10px; }
+.ficha .fc-head { position: relative; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.ficha .fc-head .ic-badge { right: 8px; top: 8px; z-index: 2; }
+/* la lámina: papel de naturalista con marco fino; el animal sobre el mismo papel */
+.fc-pic { position: relative; width: min(340px, 100%); aspect-ratio: 13 / 11; border-radius: 14px; overflow: hidden; background: #f3ecd8 radial-gradient(120% 90% at 50% 40%, #faf5e8, #e9dec2); box-shadow: 0 0 0 3px #f3ecd8, 0 0 0 4px rgba(90, 70, 40, .35), 0 10px 26px rgba(0, 0, 0, .4); }
+.fc-pic > img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.fc-pic.fauna { display: grid; place-items: center; }
+.fc-pic.fauna::after { content: ''; position: absolute; left: 22%; right: 22%; bottom: 9%; height: 7%; border-radius: 50%; background: radial-gradient(rgba(60, 50, 30, .32), transparent 70%); }
+.fc-pic.fauna .ico { position: relative; z-index: 1; width: 78%; height: 78%; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(60, 40, 10, .25)); }
+/* la hoja: medallón en la esquina de la lámina */
+.fc-leaf { position: absolute; left: 8px; top: 8px; width: 28%; aspect-ratio: 1; margin: 0; border-radius: 50%; background: #fbf8ef radial-gradient(circle at 45% 40%, #ffffff, #efe7d2 75%); box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(90, 70, 40, .4), 0 4px 10px rgba(0, 0, 0, .25); display: grid; place-items: center; }
+.fc-leaf img { width: 78%; height: 78%; object-fit: contain; }
+.fc-leaf figcaption { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 1px 8px; border-radius: 999px; background: #2f6a2a; color: #fff; font: 900 12px/1.3 'Nunito', sans-serif; }
+.fc-title { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }
+.ficha .kicker { color: #b8f08a; }
 .ficha h2 { text-align: center; }
-.fc-names { display: flex; gap: 6px 12px; justify-content: center; flex-wrap: wrap; font-size: 16px; }
+.fc-names { display: flex; gap: 4px 12px; justify-content: center; flex-wrap: wrap; font-size: 15px; }
 .fc-names .eu { font-weight: 900; color: #ffe38a; } .fc-names .sci { color: #cfe3c4; }
-.fc-sec { margin: 2px 0 0; display: grid; gap: 1px; }
-.fc-sec dt { font-weight: 900; color: #b8f08a; font-size: 12px; text-transform: uppercase; letter-spacing: .1em; margin-top: 8px; }
+.fc-body { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+.fc-sec { margin: 0; display: grid; gap: 8px; }
+.fc-sec > div { padding: 8px 11px 9px; border-radius: 12px; background: rgba(255, 255, 255, .06); box-shadow: inset 0 0 0 1px rgba(184, 240, 138, .12); }
+.fc-sec dt { font-weight: 900; color: #b8f08a; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; margin: 0 0 2px; }
 .fc-sec dd { margin: 0; color: #eef4e6; font-weight: 600; line-height: 1.34; font-size: 14.5px; }
-.fc-where { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 6px; }
+.fc-where { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
 .fc-where span { padding: 3px 10px; border-radius: 999px; background: var(--c); color: #fff; font-size: 12px; font-weight: 800; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25); }
-.ficha .btn.primary { align-self: center; margin-top: 6px; }
+.ficha .fc-body > .btn.primary { align-self: center; }
+/* móvil tumbado: lámina y nombre a la izquierda; las cuatro secciones en una rejilla de 2x2, las comarcas y el botón a
+   la derecha. Todo cabe en 667x375 sin desplazar; si un texto es muy largo, solo se desplaza la columna del texto y el
+   botón sigue a la vista */
+@media (orientation: landscape) and (max-height: 560px) {
+  .ficha:not(.quiz) .mg-card { width: min(900px, 100%); height: calc(100vh - 24px); height: calc(100dvh - 24px); max-height: 470px; display: grid; grid-template-columns: minmax(200px, 37%) minmax(0, 1fr); column-gap: 16px; padding: 12px 14px; overflow: hidden; }
+  .ficha:not(.quiz) .fc-head { min-height: 0; height: 100%; justify-content: flex-start; }
+  .ficha:not(.quiz) .fc-pic { flex: 1 1 0; min-height: 0; width: 100%; aspect-ratio: auto; }
+  .ficha:not(.quiz) .fc-title { flex: none; }
+  .ficha .fc-title h2 { font-size: 23px; } .ficha .fc-names { font-size: 13.5px; }
+  .ficha:not(.quiz) .fc-body { height: 100%; gap: 8px; }
+  .ficha:not(.quiz) .fc-sec { flex: 1 1 auto; min-height: 0; overflow-y: auto; grid-template-columns: 1fr 1fr; align-content: start; gap: 6px; overscroll-behavior: contain; }
+  .ficha .fc-sec > div { padding: 6px 9px 7px; }
+  .ficha .fc-sec dd { font-size: 13px; line-height: 1.3; }
+  .ficha:not(.quiz) .fc-where { flex: none; justify-content: flex-start; gap: 4px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; } .ficha .fc-where span { flex: none; }
+  .ficha .fc-where span { padding: 2px 8px; }
+  .ficha:not(.quiz) .fc-body > .btn.primary { flex: none; align-self: stretch; min-height: 44px; height: 44px; padding: 0 16px; margin: 0; }
+  .ficha.quiz .mg-card { width: min(760px, 100%); display: grid; grid-template-columns: minmax(180px, 40%) 1fr; column-gap: 16px; padding: 12px 16px; text-align: left; }
+  .ficha.quiz .fc-head { grid-row: 1 / span 4; align-self: center; } .ficha.quiz .fc-pic { width: 100%; max-height: calc(100dvh - 60px); }
+  .ficha.quiz .mg-card > :not(.fc-head) { grid-column: 2; }
+}
+@media (orientation: landscape) and (max-height: 400px) {
+  .ficha .fc-title h2 { font-size: 21px; } .ficha .fc-sec dd { font-size: 12.5px; line-height: 1.28; }
+}
 .ficha.quiz .mg-card { text-align: center; align-items: center; }
 .fc-hint { font-size: 14px; color: #d8e8cc !important; }
 .fc-opts { display: grid; gap: 8px; width: min(380px, 100%); }
 .fc-opt { min-height: 48px; font-weight: 900; font-size: 17px; background: #f4efe2; color: #1f3a1a; border-radius: 14px; box-shadow: 0 4px 0 rgba(0, 0, 0, .3); }
 .fc-opt.ok { background: #8fd16a; color: #1b2a10; } .fc-opt.ko { background: #e03c3c; color: #fff; animation: shake .35s; }
-/* planta y hoja: dos tarjetas una al lado de la otra (en vertical) o una encima de otra (en horizontal) */
-.fc-pics { display: flex; gap: 10px; justify-content: center; align-items: stretch; }
-.fc-pics.two { width: min(100%, 470px); }
-.fc-pics.two .fc-pic.flora { flex: 1.3 1 0; width: auto; min-width: 0; max-height: 34vh; }
-.fc-leaf { flex: 1 1 0; min-width: 0; margin: 0; padding: 8px 8px 6px; border-radius: 16px; background: #f6f9f0 radial-gradient(circle at 50% 42%, #ffffff, #e6efdc 75%); box-shadow: 0 8px 24px rgba(0, 0, 0, .35); display: flex; flex-direction: column; align-items: center; gap: 4px; overflow: hidden; }
-.fc-leaf img { flex: 1 1 0; min-height: 0; min-width: 0; width: 100%; height: 0; object-fit: contain; display: block; }
-.fc-leaf figcaption { flex: none; padding: 2px 10px; border-radius: 999px; background: #2f6a2a; color: #fff; font: 900 11px 'Nunito', sans-serif; letter-spacing: .06em; text-transform: uppercase; }
-@media (max-width: 360px) { .fc-pics.two { flex-direction: column; align-items: center; } .fc-pics.two .fc-pic.flora { width: 100%; flex: none; } .fc-leaf { width: 60%; flex: none; aspect-ratio: 1; } }
-/* móvil en horizontal: las imágenes a la izquierda, quietas, y el texto a la derecha con su propio desplazamiento */
-@media (orientation: landscape) and (max-height: 560px) {
-  .ficha .mg-card { width: min(860px, 100%); max-height: calc(100vh - 28px); max-height: calc(100dvh - 28px); display: grid; grid-template-columns: minmax(170px, 38%) 1fr; column-gap: 18px; align-items: start; padding: 16px 18px; }
-  .ficha .mg-card > :not(.fc-head) { grid-column: 2; } .ficha .fc-head { grid-column: 1; grid-row: 1 / span 8; align-self: start; position: sticky; top: 0; z-index: 1; }
-  .ficha .fc-pics, .ficha .fc-pics.two { width: 100%; flex-direction: column; }
-  .ficha .fc-pic, .ficha .fc-pics.two .fc-pic.flora { width: 100%; flex: none; max-height: none; aspect-ratio: auto; height: calc((100vh - 70px) * .56); height: calc((100dvh - 70px) * .56); }
-  .ficha .fc-leaf { flex: none; width: 100%; height: calc((100vh - 70px) * .44); height: calc((100dvh - 70px) * .44); }
-  .ficha .fc-pic.fauna { width: min(170px, 60vh); height: min(170px, 60vh); align-self: center; }
-  .ficha .kicker, .ficha h2 { text-align: left; align-self: start; } .fc-names { justify-content: flex-start; }
-  .ficha .fc-where { justify-content: flex-start; } .ficha .btn.primary { align-self: stretch; }
-}
 .tbar { position: relative; width: 100%; height: 46px; border-radius: 14px; background: linear-gradient(90deg, #32136f, #461d95); overflow: hidden; box-shadow: inset 0 3px 8px rgba(0, 0, 0, .4); }
 .tbar .zone { position: absolute; top: 0; bottom: 0; background: linear-gradient(180deg, #ff7a3a, #e03c3c); box-shadow: 0 0 18px #ff7a3a; border-radius: 8px; }
 .tbar .cursor { position: absolute; top: -4px; bottom: -4px; width: 8px; margin-left: -4px; background: #fff; border-radius: 4px; box-shadow: 0 0 10px #fff; }
@@ -736,7 +750,6 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   .seq:not(.choice) .slots li { min-height: 40px; padding: 6px 10px; } .seq:not(.choice) .opt { padding: 8px 12px; text-align: left; }
   .seq:not(.choice) .fb { min-height: 22px; font-size: 17px; }
   .mash .mbar { height: 140px; }
-  .ficha .fc-head .ic-badge { right: 6px; top: 6px; }
 }
 /* elegir una respuesta en el taller */
 .choice .opts { flex-direction: column; align-items: stretch; width: 100%; }
@@ -978,22 +991,13 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
    vista; las fotos de la izquierda sin pasarse de alto; melodía, ordenar y antes/ahora más compactos si la pantalla
    es muy baja */
 @media (orientation: landscape) and (max-height: 560px) {
-  .ficha .mg-card { width: min(920px, 100%); grid-template-columns: minmax(150px, 30%) 1fr; column-gap: 16px; row-gap: 2px; padding: 12px 16px; }
-  .ficha .fc-pic, .ficha .fc-pics.two .fc-pic.flora { height: calc((100vh - 104px) * .58); height: calc((100dvh - 104px) * .58); }
-  .ficha .fc-leaf { height: calc((100vh - 104px) * .42); height: calc((100dvh - 104px) * .42); }
-  .ficha h2 { font-size: 24px; margin: 0; } .fc-names { font-size: 14px; }
-  .ficha .fc-sec { display: block; columns: 2; column-gap: 18px; }
-  .ficha .fc-sec dt { margin-top: 6px; break-after: avoid; font-size: 11px; } .ficha .fc-sec dt:first-child { margin-top: 0; }
-  .ficha .fc-sec dd { break-inside: avoid; font-size: 13.5px; line-height: 1.3; }
-  .ficha .fc-where { margin-top: 4px; }
-  .ficha .mg-card > .btn.primary { position: sticky; bottom: -12px; margin-top: 4px; min-height: 44px; box-shadow: 0 -12px 14px #11291c, 0 4px 0 rgba(0, 0, 0, .3); }
   .ficha.quiz .fc-opts { gap: 6px; } .ficha.quiz .fc-opt { min-height: 42px; padding: 8px 12px; } .ficha.quiz .fc-hint { margin: 0; font-size: 13.5px; }
   .simon .mg-card { gap: 8px; padding: 12px 16px; } .pads4 button { height: 74px; }
 }
 @media (orientation: landscape) and (max-height: 400px) {
   .seq:not(.choice) .slots li { min-height: 36px; padding: 4px 10px; } .seq:not(.choice) .opt { min-height: 38px; padding: 6px 10px; }
   .antes-ahora div { padding: 5px 9px; font-size: 14px; } .info .mg-card p, .complete .mg-card p { font-size: 14px; }
-  .pads4 button { height: 62px; } .ficha .fc-sec dd { font-size: 13px; }
+  .pads4 button { height: 62px; }
 }
 /* mapa de Navarra con el móvil tumbado: la lista de comarcas en una columna (en dos, el recuento se salía por la derecha) */
 @media (orientation: landscape) and (max-height: 560px) { .clist { grid-template-columns: minmax(0, 1fr); } .clist button { min-width: 0; } .clist b { min-width: 0; } .clist small { flex: none; } }
