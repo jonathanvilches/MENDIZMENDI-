@@ -11,6 +11,7 @@ import { showFicha, allFichas } from '../ui/ficha.js';
 import { floraId } from '../data/flora.js';
 import { faunaId } from '../data/fauna.js';
 import { floraIllustration } from '../ui/floraArt.js';
+import { readTownArms } from '../ui/escudo.js';
 import { releaseOffscreen } from '../util/offscreen.js';
 import { avatarPortrait, portraitImg, avatarPortraitImg } from '../ui/portraits.js';
 import { stampImg, landImg, townImg } from '../assets.js';
@@ -473,10 +474,11 @@ export class Hub {
     const p = profile(), seen = new Set(p.cards || []), tn = (id) => (levelById(id)?.name || id).split(' /')[0];
     const KIND = { reino: 'Reino', ciudad: 'Ciudad', valle: 'Valle', municipio: 'Municipio' };
     const read = ARMAS.filter(A => seen.has('armas:' + A.id)).length;
-    this.after = () => this.root.querySelectorAll('.ar canvas[data-arm]').forEach(c => { const A = ARMAS.find(a => a.id === c.dataset.arm); try { drawOfficial(c.getContext('2d'), c.width / 2, 4, 120, A); } catch (e) { console.warn(A.id, e); } });
+    this.after = () => this.root.querySelectorAll('.ar canvas[data-arm]').forEach(c => { const A = ARMAS.find(a => a.id === c.dataset.arm); try { drawOfficial(c.getContext('2d'), c.width / 2, 4, 120, A); } catch (e) { console.warn(A.id, e); }
+      c.style.cursor = 'pointer'; c.onclick = () => readTownArms({ sound: this.sound }, A, { town: A.towns.length ? tn(A.towns[0]) : A.name }); });
     return `<section class="armorial">
       <div class="ar-head"><small class="kicker">${I('shield', 20)} Saberes · Escudos</small><h1>Escudos de Navarra</h1>
-        <p>Los escudos son una forma de escribir con dibujos: cada color, cada figura y cada sitio quieren decir algo. Aquí están los escudos oficiales del reino, de las ciudades, de los valles y de los pueblos del juego. En cada pueblo, el escudo está en un pilar de la plaza: léelo allí para guardarlo en tu armorial.</p>
+        <p>Los escudos son una forma de escribir con dibujos: cada color, cada figura y cada sitio quieren decir algo. Aquí están los escudos oficiales del reino, de las ciudades, de los valles y de los pueblos del juego. En cada pueblo, el escudo está en la fachada del ayuntamiento o en un pilar de la plaza: léelo allí para guardarlo en tu armorial. Toca un escudo para ver su ficha.</p>
         <b class="ar-count">${read} de ${ARMAS.length} leídos en el juego</b></div>
       <details class="ar-guia" open><summary>${I('book', 22)} Cómo se lee un escudo</summary><ol>${GUIA.map(([t, d]) => `<li><b>${esc(t)}.</b> ${esc(d)}</li>`).join('')}</ol></details>
       <div class="ar-grid">${ARMAS.map(A => `<article class="ar${seen.has('armas:' + A.id) ? ' on' : ''}">
