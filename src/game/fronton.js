@@ -2,7 +2,7 @@
 // Aquí solo se adapta el motor al juego: dónde va el frontón, colisiones, personajes, cámara e interfaz.
 import * as THREE from 'three';
 import { armSwing, GlbRig, loadMeshy, hasMeshy, loadedMeshy, fullTexFor } from '../actors/glbChar.js';
-import { PelotaCourt, PelotaMatch } from '../pelota/index.js';
+import { PelotaCourt, PelotaMatch, labritExtent } from '../pelota/index.js';
 import { terrainHeight, waterLevelAt, addPlatform, onPlatform } from '../world/heightfield.js';
 import { addBox, rectFree } from '../world/colliders.js';
 import { rx, pathQuery } from '../world/layout.js';
@@ -85,15 +85,14 @@ let EXTENT = null;
 function extent() { if (!EXTENT) { const c = new PelotaCourt(THREE, { texScale: 0.25 }); EXTENT = c.extent; c.dispose(); } return EXTENT; }
 
 // Busca un sitio llano y libre cerca de la plaza
-export function findFrontonSpot(plaza) {
+export function findFrontonSpot(plaza, E = extent()) {
   // primero cerca de la plaza y sin calles ni caminos debajo (las paredes los cortarían) y con sitio de sobra alrededor
   // (los tejados sobresalen del choque de las casas: antes quedaban esquinas de casa pegadas a la cancha); si así no
   // cabe, más lejos; luego dejando pasar algún camino; y al final con menos holgura: todos los pueblos tienen frontón
-  return frontonSearch(plaza, 34, 130, 3, 0.2, true) || frontonSearch(plaza, 130, 240, 3, 0.15, true)
-    || frontonSearch(plaza, 34, 240, 1.5, 0.2, false) || frontonSearch(plaza, 34, 260, 0.6, 0.15, false);
+  return frontonSearch(plaza, 34, 130, 3, 0.2, true, E) || frontonSearch(plaza, 130, 240, 3, 0.15, true, E)
+    || frontonSearch(plaza, 34, 240, 1.5, 0.2, false, E) || frontonSearch(plaza, 34, 260, 0.6, 0.15, false, E);
 }
-function frontonSearch(plaza, r0, r1, gap, da, noRoad) {
-  const E = extent();
+function frontonSearch(plaza, r0, r1, gap, da, noRoad, E) {
   let best = null, bs = 1e9;
   for (let r = r0; r <= r1; r += 8) for (let a = 0; a < Math.PI * 2; a += da) {
     const x = plaza.x + Math.cos(a) * r, z = plaza.z + Math.sin(a) * r, face = Math.atan2(plaza.x - x, plaza.z - z);
@@ -118,8 +117,8 @@ function frontonSearch(plaza, r0, r1, gap, da, noRoad) {
 }
 
 // Altura para que la cancha quede por encima del terreno en toda su huella
-export function courtHeight(x, z, ry) {
-  const E = extent(), c = Math.cos(ry), s = Math.sin(ry); let mx = -1e9;
+export function courtHeight(x, z, ry, E = extent()) {
+  const c = Math.cos(ry), s = Math.sin(ry); let mx = -1e9;
   for (let lx = E.x0; lx <= E.x1 + 0.01; lx += 1.5) for (let lz = E.z0; lz <= E.z1 + 0.01; lz += 1.5) mx = Math.max(mx, terrainHeight(x + lx * c + lz * s, z - lx * s + lz * c));
   return mx + 0.05;
 }
@@ -128,15 +127,17 @@ export class Fronton {
   // spot: centro del frontis a ras de suelo; ry: giro (la cancha crece hacia +z local); sin y, se calcula
   // extra: { wallName, wallSub, shield } → nombre y escudo pintados en la pared izquierda
   constructor(scene, spot, title = '', extra = {}) {
-    if (spot.y == null) spot = { ...spot, y: courtHeight(spot.x, spot.z, spot.ry) };
+    if (spot.y == null) spot = { ...spot, y: courtHeight(spot.x, spot.z, spot.ry, extra.inTown ? labritExtent() : undefined) };
     this.spot = spot;
     const court = this.court = new PelotaCourt(THREE, { title, texScale: QUALITY === 'low' ? 0.5 : 1, ...extra });
     const g = court.group; g.position.set(spot.x, spot.y, spot.z); g.rotation.y = spot.ry; scene.add(g); g.updateMatrixWorld(true);
     const E = court.extent, mid = this.toWorld((E.x0 + E.x1) / 2, 0);
     if (!extra.noClear) { clearGrass(mid.x, mid.z, E.x1 - E.x0, E.z1, spot.ry); clearTrees(mid.x, mid.z, E.x1 - E.x0, E.z1, spot.ry); }
     for (const b of court.boxes) { const p = this.toWorld(b.x, b.z); addBox(p.x, p.z, b.w, b.d, spot.ry, { solidView: true }); }
-    addPlatform(spot.x, spot.z, spot.ry, E.x0, E.x1 - 3.3, E.z0, E.z1, spot.y);   // la cancha es suelo (sin las gradas)
+    const PF = court.platform || { x0: E.x0, x1: E.x1 - 3.3, z0: E.z0, z1: E.z1 };
+    addPlatform(spot.x, spot.z, spot.ry, PF.x0, PF.x1, PF.z0, PF.z1, spot.y);   // la cancha es suelo (sin las gradas)
     this.entry = this.toWorld(court.entry.x, court.entry.z);
+    this.out = court.out ? this.toWorld(court.out.x, court.out.z) : null;   // (al salir, mirando a la calle y no a la pared)
   }
   toWorld(lx, lz) { const v = new THREE.Vector3(lx, 0, lz); this.court.group.localToWorld(v); return v; }
   play(G, rival, opts) { return playPelota(G, this, rival, opts); }
@@ -145,14 +146,21 @@ export class Fronton {
 // El frontón Labrit de Iruña, donde se juegan las finales: se monta una vez, muy por encima del pueblo y fuera de sus
 // límites (no toca casas, árboles ni caminos; dentro, cubierto, no se ve nada de fuera)
 let LABRIT = null;
-export function labrit(scene, out) {
-  if (LABRIT && LABRIT.court.group.parent === scene) return LABRIT;
+function labritOpts() {
   // (en la pared izquierda, el escudo de Pamplona y su nombre, como en el de verdad, sin el logotipo del ayuntamiento)
   const A = armsOfTown('pamplona'), shield = A ? (g, cx, top, h) => drawOfficial(g, cx, top, h / officialHeight(1, A), A) : null;
-  LABRIT = new Fronton(scene, { x: out.x, z: out.z, y: 2400, ry: 0 }, 'LABRIT', { labrit: true, noClear: true, wallName: 'IRUÑA · PAMPLONA', wallSub: 'FRONTÓN LABRIT', shield,
-    signAt: { z: 3.5 * 3.3, y: 5.4 },
-    look: { frontis: '#1d5846', wall: '#1d5846', floor: '#1a1f21', contra: '#d49a5c', parquet: true, line: '#f3f2ec', mark: '#f3f2ec', chapa: '#d9dcd8', chapaMetal: true, stone: null, brick: false, roof: null, cap: '#1d5846' } });
+  return { labrit: true, wallName: 'IRUÑA · PAMPLONA', wallSub: 'FRONTÓN LABRIT', shield, signAt: { z: 3.5 * 3.3, y: 5.4 },
+    look: { frontis: '#1d5846', wall: '#1d5846', floor: '#1a1f21', contra: '#d49a5c', parquet: true, line: '#f3f2ec', mark: '#f3f2ec', chapa: '#d9dcd8', chapaMetal: true, stone: null, brick: false, roof: null, cap: '#1d5846' } };
+}
+export function labrit(scene, out) {
+  if (LABRIT && LABRIT.court.group.parent === scene) return LABRIT;
+  LABRIT = new Fronton(scene, { x: out.x, z: out.z, y: 2400, ry: 0 }, 'LABRIT', { ...labritOpts(), noClear: true });
   return LABRIT;
+}
+// En Iruña, el frontón de la ciudad es el Labrit de verdad: el edificio entero en la calle, junto a la plaza de toros
+export function labritInTown(scene, near) {
+  const sp = findFrontonSpot(near, labritExtent());
+  return sp ? new Fronton(scene, sp, 'LABRIT', { ...labritOpts(), inTown: true }) : null;
 }
 
 /**
@@ -250,7 +258,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       G.rt?.boost?.(false);
       P.rig = rig0; P.frozen = false; G.mode = 'play'; G.ui.hudVisible?.(true); G.perro?.release?.();
       rival.frozen = false; rival.speed = 0; rival.setPos(home.x, home.z, home.h);
-      const back = returnTo || fronton, e = back.entry, c = back.toWorld(0, 12);
+      const back = returnTo || fronton, e = back.entry, c = back.out || back.toWorld(0, 12);
       P.place(e.x, e.z, Math.atan2(c.x - e.x, c.z - e.z));
       G.follow.cinematic = null; G.follow.snap(P);
       res({ win: !!r.win, you: r.score?.you ?? 0, cpu: r.score?.rival ?? 0, best: r.best ?? 0, quit: !!r.quit });

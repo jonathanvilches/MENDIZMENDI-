@@ -4,12 +4,12 @@ import { chromium } from 'playwright-core';
 import { mkdirSync } from 'fs';
 const [,, town = 'lumbier', out = 'entrega/labrit', hora = '23'] = process.argv; mkdirSync(out, { recursive: true });
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
-const p = await b.newPage({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true }); const errs = []; p.on('pageerror', e => errs.push(e.message));
+const p = await b.newPage({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true }); const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.text().startsWith('labrit')) console.log(m.text()); });
 await p.addInitScript(() => localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true } })));
 await p.goto(`http://127.0.0.1:5173/?town=${town}&q=low&weather=clear&skipintro=1&noflora&t=${hora}`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 600000 });
 await p.waitForTimeout(4000);
-await p.evaluate(() => { const G = window.__game, L = window.__L = G.labritVenue(); window.__intro = G.labritIntro(L); });
+await p.evaluate(() => { const G = window.__game, L = window.__L = G.fronton?.court.labrit ? G.fronton : G.labritVenue(); console.log('labrit', G.fronton?.court.labrit ? 'en el pueblo' : 'aparte', JSON.stringify(L.spot)); window.__intro = G.labritIntro(L); });
 for (const [n, ms] of [['llegada', 2000], ['puerta', 2400], ['dentro', 1800]]) { await p.waitForTimeout(ms); await p.screenshot({ path: `${out}/${n}.jpg`, quality: 70 }); }
 await p.evaluate(async () => { await window.__intro; const G = window.__game; window.__res = window.__L.play(G, G.pelotari || G.missions.find(M => M.type === 'pelota')?.host, { target: 7, returnTo: G.fronton, rivalName: 'Unai (Lesaka)' }); });
 await p.waitForSelector('.pel-panel [data-pel-go]', { timeout: 180000 });
