@@ -90,8 +90,10 @@ export class PelotaGame {
   // Elige el golpe: aim = {x, y} de −1 a 1 (x: izquierda/derecha, y: arriba = largo, abajo = dejada); req: golpe pedido
   // con su botón ('dejada' o 'cortada'; true es la dejada, como antes); pow: fuerza de 0 a 1 (cuanto más se mantiene
   // pulsado el golpe, más fuerte: más rápido y más largo; a tope cuesta más afinar)
-  strike(who, q, aim = { x: 0, y: 0 }, req = false, pow = 0.5) {
-    const b = this.ball, p = { ...b.p }, rnd = this.rnd, serve = this.phase === 'servePrep';
+  // at: desde dónde (para la vista previa: el sitio donde se va a golpear); dry: solo calcula el golpe, sin azar y sin
+  // tocar la pelota (la marca de puntería de la cancha)
+  strike(who, q, aim = { x: 0, y: 0 }, req = false, pow = 0.5, dry = false, at = null) {
+    const b = this.ball, p = { ...(at || b.p) }, rnd = dry ? () => 0.5 : this.rnd, serve = this.phase === 'servePrep';
     let shot = 'normal', sub = '', v;
     pow = clamp(pow, 0, 1);
     const err = (1 - q) + Math.max(0, pow - 0.8) * 0.6, forceDrop = req === true || req === 'dejada';
@@ -123,13 +125,15 @@ export class PelotaGame {
       let tx, landZ, speed = 20 + q * 5 + pow * 9;   // (golpe tenso: da en el frontis a 3–5 m, no en globo)
       // dos paredes: joystick en diagonal abajo-izquierda: pared izquierda, frontis y sale cruzada. El ángulo dice dónde
       // pega en la pared (cuanto más a la izquierda, antes la toca y más cruzada sale) y la fuerza, lo larga
-      if (aim.x < -0.5 && aim.y < -0.35) {
-        const ang = clamp((-aim.x - 0.5) / 0.5, 0, 1), lz = clamp(13 + pow * 6 + gauss(rnd) * err * 2.2, 10, 24);
+      // (antes había que ir a la diagonal exacta abajo-izquierda y casi nunca salía: ahora basta con el joystick bien a la
+      // izquierda sin subirlo; arriba-izquierda es la que va pegada a la pared, larga)
+      if (aim.x < -0.6 && aim.y < 0.3) {
+        const ang = clamp((-aim.x - 0.6) / 0.4 + Math.max(0, -aim.y) * 0.3, 0, 1), lz = clamp(13 + pow * 6 + aim.y * 1.5 + gauss(rnd) * err * 2.2, 10, 24);
         const fz = clamp(0.68 - ang * 0.4 + gauss(rnd) * err * 0.08, 0.2, 0.8);
         const r = solveTwoWalls(p, speed + 1, lz, [fz, fz - 0.06, fz + 0.06]);
         if (r) {
           shot = 'dosparedes'; v = r.v;
-          sub = pow > 0.8 && aim.y < -0.8 ? 'dpPegada' : lz < 12 || pow < 0.3 ? 'dpCorta' : ang < 0.4 ? 'dpCruzada' : lz > 16 ? 'dpLarga' : '';
+          sub = pow > 0.8 && aim.y < -0.6 ? 'dpPegada' : lz < 12 || pow < 0.3 ? 'dpCorta' : ang < 0.4 ? 'dpCruzada' : lz > 16 ? 'dpLarga' : '';
           if (sub === 'dpPegada') v.y = Math.min(v.y, v.y * 0.85);
         }
       }
@@ -148,14 +152,20 @@ export class PelotaGame {
         // desde más atrás llega algo más lejos (le da más alto en el frontis) y un golpe flojo se queda antes
         landZ = Math.min(landZ, 19 + q * 3 + pow * 5 + clamp(p.z - COURT.FALTA, -4, 8) * 0.22);
         tx = lx * 0.55;
-        for (let it = 0; it < 5; it++) {   // se corrige el punto del frontis hasta que el bote cae donde se apunta
-          const r = solveShot(p, tx, landZ, speed); v = r.v;
-          if (!r.land) break;
-          const dx = r.land.x - lx; if (Math.abs(dx) < 0.12) break;
+        // se corrige el punto del frontis hasta que el bote cae donde se apunta, quedándose con el mejor (si se apunta muy
+        // a la izquierda, una pelota larga puede tocar la pared y volver: más a la izquierda ya no es mejor)
+        let bestD = Infinity;
+        for (let it = 0; it < 6; it++) {
+          const r = solveShot(p, tx, landZ, speed);
+          if (!r.land) { v ||= r.v; break; }
+          const dx = r.land.x - lx;
+          if (Math.abs(dx) < bestD) { bestD = Math.abs(dx); v = r.v; } else break;
+          if (Math.abs(dx) < 0.12) break;
           tx = clamp(tx - dx * 0.65, -4.7, COURT.W / 2 - 0.15);
         }
       } else if (err > 0.2) { const k = 1 + gauss(rnd) * err * 0.06; v.x *= k; v.y *= 1 + gauss(rnd) * err * 0.05; v.z *= k; }   // a dos paredes, un golpe flojo se desvía un poco
     }
+    if (dry) return { p, v, shot, sub, spin: shot === 'cortada' ? 1 : 0 };
     // golpe muy malo: a veces a la chapa o demasiado alto
     if (!serve && q < 0.3 && rnd() < 0.45) {
       const T = p.z / 18;
@@ -244,6 +254,24 @@ export class PelotaGame {
       fallback = fallback || c;
     }
     return fallback;
+  }
+  /** Vista previa del golpe apuntado (el botón mantenido): desde donde se va a golpear (el sitio al que llega la
+   *  pelota, o la mano en el saque), el golpe sin azar y su camino hasta el primer bote. null si aún no hay golpe. */
+  previewShot(aim, req, pow) {
+    const you = this.players.you; let at = null;
+    if (this.phase === 'servePrep' && this.server === 'you') at = { ...this.ball.p };
+    else if (this.phase === 'rally' && this.rally?.turn === 'you') { const c = this.interceptFor('you', 6.2, 0.1); if (c) at = { x: c.x, y: 1.0, z: c.z - 0.25 }; }
+    if (!at) return null;
+    const key = [Math.round(aim.x * 12), Math.round(aim.y * 12), req || '', Math.round(pow * 10), Math.round(at.x * 3), Math.round(at.z * 3)].join();
+    if (this._pv?.key === key) return this._pv;
+    const r = this.strike('you', 1, aim, req, pow, true, at); if (!r?.v) return null;
+    const b = new Ball(); b.set(r.p, r.v); b.spin = r.spin;
+    const pr = predict(b, 4, 1 / 60), pts = [], step = Math.max(1, Math.ceil(pr.samples.length / 90));
+    const front = pr.events.find(e => e.type === 'front'), wall = pr.events.find(e => e.type === 'left' && (!front || e.t < front.t));
+    const land = pr.events.find(e => e.type === 'floor' && e.n === 1);
+    for (let i = 0; i < pr.samples.length; i += step) { const q = pr.samples[i]; pts.push(q); if (land && q.t >= land.t) break; }
+    this._pv = { key, pts, land, wall, front, shot: r.shot, at: you && at };
+    return this._pv;
   }
   aiShot(who) {
     const me = this.players[who], op = this.players[this.other(who)], rnd = this.rnd;
@@ -354,23 +382,24 @@ export class PelotaGame {
     else {
       const spd = 6.2, mx = clamp(inp.mx || 0, -1, 1), mz = clamp(inp.mz || 0, -1, 1);
       let vx = mx * spd, vz = mz * spd;
-      // ayuda: se acerca solo al sitio donde llegará la pelota
-      if (this.lvl.assist > 0 && this.phase === 'rally' && this.rally.turn === 'you') {
+      // ayuda: se acerca solo al sitio donde llegará la pelota (apuntando, con el botón mantenido, va solo del todo)
+      const help = inp.aiming ? Math.max(this.lvl.assist, 5.4) : this.lvl.assist;
+      if (help > 0 && this.phase === 'rally' && this.rally.turn === 'you') {
         const c = this.interceptFor('you', 6.2, 0.1);
-        if (c) { const dx = c.x - you.x, dz = c.z - you.z, d = Math.hypot(dx, dz); if (d > 0.25) { const k = Math.min(this.lvl.assist, d * 2); vx += dx / d * k; vz += dz / d * k; } }
+        if (c) { const dx = c.x - you.x, dz = c.z - you.z, d = Math.hypot(dx, dz); if (d > 0.25) { const k = Math.min(help, d * 2.5); vx += dx / d * k; vz += dz / d * k; } }
       }
       const a = 1 - Math.exp(-12 * dt);
       you.vx += (vx - you.vx) * a; you.vz += (vz - you.vz) * a;
       if (this.phase === 'serveWait' && this.server === 'you') { you.vx = you.vz = 0; }
       // golpe
       if ((inp.hit || inp.drop || inp.cut) && you.cool <= 0) {
-        if (this.phase === 'servePrep' || this.phase === 'rally') { you.swing = 0.3; you.swingT = 0; you.dropReq = inp.drop ? 'dejada' : inp.cut ? 'cortada' : false; you.pow = inp.power ?? 0.5; you.act = 'swing'; you.actT = 0; you.cool = 0.32; }
+        if (this.phase === 'servePrep' || this.phase === 'rally') { you.swing = 0.3; you.swingT = 0; you.dropReq = inp.drop ? 'dejada' : inp.cut ? 'cortada' : false; you.pow = inp.power ?? 0.5; you.aim = { x: inp.aimX || 0, y: inp.aimY || 0 }; you.act = 'swing'; you.actT = 0; you.cool = 0.32; }
       }
       if (you.swing > 0) {
         you.swingT += dt; you.swing -= dt;
         if (this.hittable('you')) {
           const q = this.quality('you', you.swingT);
-          this.strike('you', q, { x: inp.aimX || 0, y: inp.aimY || 0 }, you.dropReq, you.pow ?? 0.5);
+          this.strike('you', q, you.aim || { x: inp.aimX || 0, y: inp.aimY || 0 }, you.dropReq, you.pow ?? 0.5);
         } else if (you.swing <= 0) this.emit({ type: 'whiff' });
       }
     }

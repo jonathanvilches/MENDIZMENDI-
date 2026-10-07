@@ -258,6 +258,15 @@ export class PelotaCourt {
       const st = new T.Mesh(new T.BoxGeometry(1.1, 0.42 * (i + 1), L * 0.78), M({ color: th.stands, roughness: 0.9 }));
       st.position.set(W / 2 + CONTRA + 0.55 + i * 1.1, 0.21 * (i + 1), L * 0.52); st.castShadow = true; st.receiveShadow = true; g.add(st);
     }
+    // bancos corridos de tablas de madera sobre cada escalón (como en las gradas de los frontones de pueblo) y los sitios
+    // del público que viene a ver el partido (sentado en ellos, mirando a la cancha)
+    const benchM = M({ color: '#8a5a34', roughness: 0.7 }), benchG = new T.BoxGeometry(0.42, 0.06, L * 0.76);
+    this.standSpots = [];
+    for (let i = 0; i < 3; i++) {
+      const x = W / 2 + CONTRA + 0.42 + i * 1.1, y = 0.42 * (i + 1);
+      for (const dx of [0, 0.2]) { const b = new T.Mesh(benchG, benchM); b.position.set(x + dx - 0.1, y + 0.05, L * 0.52); b.castShadow = true; b.receiveShadow = true; g.add(b); }
+      for (let z = L * 0.52 - L * 0.37; z < L * 0.52 + L * 0.37; z += 0.58) this.standSpots.push([x + 0.05, y + 0.02, z + (Math.random() - 0.5) * 0.12, -Math.PI / 2]);
+    }
     this.extent = { x0: -W / 2 - 0.6, x1: W / 2 + CONTRA + 3.3, z0: -0.8, z1: EXT + 0.4 };
     this.entry = { x: W / 2 + CONTRA / 2, z: EXT - 0.6 };   // por donde se entra a la cancha (esquina de la contracancha)
     // cajas de colisión (locales): frontis, pared izquierda, fondo, gradas
@@ -294,6 +303,15 @@ export class PelotaCourt {
     // marca de puntería en el frontis (cortada y dejada): un aro amarillo que sube con la fuerza
     const aim = this.aimMark = new T.Mesh(new T.RingGeometry(0.2, 0.32, 28), new T.MeshBasicMaterial({ color: '#ffd84a', transparent: true, opacity: 0.85, depthWrite: false, side: T.DoubleSide }));
     aim.add(new T.Mesh(new T.CircleGeometry(0.06, 12), aim.material)); aim.visible = false; aim.renderOrder = 3; g.add(aim);
+    // golpe apuntado (con el botón mantenido): el camino previsto de la pelota (frontis, pared izquierda a dos paredes)
+    // a trazos, el bote marcado en el suelo y el punto de la pared
+    const pathMat = new T.LineDashedMaterial({ color: '#ffd84a', dashSize: 0.35, gapSize: 0.22, transparent: true, opacity: 0.9, depthWrite: false });
+    const pg = new T.BufferGeometry(); pg.setAttribute('position', new T.BufferAttribute(new Float32Array(96 * 3), 3)); pg.setDrawRange(0, 0);
+    this.aimPath = new T.Line(pg, pathMat); this.aimPath.visible = false; this.aimPath.frustumCulled = false; this.aimPath.renderOrder = 3; g.add(this.aimPath);
+    this.aimLand = ring(0.3, 0.46, '#ffd84a', 0.95); this.aimLand.renderOrder = 3;
+    this.aimLand.add(new T.Mesh(new T.CircleGeometry(0.1, 14), this.aimLand.material));
+    const wd = this.aimWall = new T.Mesh(new T.RingGeometry(0.16, 0.26, 24), aim.material); wd.rotation.y = Math.PI / 2; wd.visible = false; wd.renderOrder = 3; g.add(wd);
+    this.materials?.push(pathMat, aim.material, this.aimLand.material);
     this.hideBall();
   }
   // cubierta: 'wood', pórticos de madera laminada atirantados con acero (como los frontones nuevos de la Cuenca y de la

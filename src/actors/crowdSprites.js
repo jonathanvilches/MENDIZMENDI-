@@ -11,6 +11,7 @@ const CW = 96, CH = 144;   // tamaño de cada dibujo en la lámina
 // conjuntos de público: qué personaje es cada figura
 export const SETS = {
   futbol: ['osasuna', 'osasuna', 'sanfermin', 'osasuna', 'pastor', 'osasuna', 'pelotari', 'osasuna_fuera'],
+  pelota: ['pastor', 'sanfermin', 'pelotari', 'osasuna', 'pastor', 'sanfermin', 'osasuna_fuera', 'pelotari'],
   toros: ['sanfermin', 'sanfermin', 'pastor', 'sanfermin', 'sanfermin', 'pastor', 'sanfermin', 'pelotari'],
 };
 const cache = new Map();
@@ -86,15 +87,18 @@ export function crowdMesh(spots, set = 'futbol', height = 1.45, figs = null, sit
   const cell = new Float32Array(spots.length * 2);
   const mat = new THREE.MeshBasicMaterial({ transparent: false, alphaTest: 0.5, side: THREE.DoubleSide });
   const anim = new Float32Array(spots.length * 3);   // salto (alto), fase y si saluda (agitando la mano)
+  const tint = new Float32Array(spots.length * 3);
+  for (let i = 0; i < spots.length; i++) { const k = 0.78 + Math.random() * 0.27, w = (Math.random() - 0.5) * 0.08; tint[i * 3] = k * (1 + w); tint[i * 3 + 1] = k; tint[i * 3 + 2] = k * (1 - w); }
   const U = { uCols: { value: 1 }, uRows: { value: 2 }, uCheer: { value: 0 }, uTime: { value: 0 }, uExcite: { value: 0 }, uFocus: { value: 0 } };
   mat.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, U);
     // el ánimo crece cerca del foco; quien salta sube y baja, quien saluda alterna los brazos arriba y abajo
     // por detrás (la lámina vista desde atrás) se dibuja la misma figura de espaldas, dos filas más abajo
-    sh.fragmentShader = 'uniform float uRows;\n' + sh.fragmentShader.replace('#include <map_fragment>',
-      '#ifdef USE_MAP\n  vec2 cuv = vMapUv; if (!gl_FrontFacing) cuv.y -= 2.0 / uRows;\n  diffuseColor *= texture2D(map, cuv);\n#endif');
-    sh.vertexShader = 'attribute vec2 aCell;\nattribute vec3 aAnim;\nuniform float uCols, uRows, uCheer, uTime, uExcite, uFocus;\n' + sh.vertexShader.replace('#include <uv_vertex>',
-      '#include <uv_vertex>\n  float ex = uExcite * (0.35 + 0.65 * exp(-abs(instanceMatrix[3].z - uFocus) / 14.0));\n  float wv = aAnim.z * step(0.15, ex) * step(0.0, sin(uTime * 7.0 + aAnim.y));\n#ifdef USE_MAP\n  float row = mod(aCell.y + uCheer + wv, 2.0);\n  vMapUv = vec2((uv.x + aCell.x) / uCols, (uv.y + (uRows - 1.0 - row)) / uRows);\n#endif')
+    // (cada espectador con su tono: unos más a la sombra o con ropa más oscura, otros más claros; antes eran copias)
+    sh.fragmentShader = 'uniform float uRows;\nvarying vec3 vTint;\n' + sh.fragmentShader.replace('#include <map_fragment>',
+      '#ifdef USE_MAP\n  vec2 cuv = vMapUv; if (!gl_FrontFacing) cuv.y -= 2.0 / uRows;\n  diffuseColor *= texture2D(map, cuv);\n#endif\n  diffuseColor.rgb *= vTint;');
+    sh.vertexShader = 'attribute vec2 aCell;\nattribute vec3 aAnim;\nattribute vec3 aTint;\nvarying vec3 vTint;\nuniform float uCols, uRows, uCheer, uTime, uExcite, uFocus;\n' + sh.vertexShader.replace('#include <uv_vertex>',
+      '#include <uv_vertex>\n  vTint = aTint;\n  float ex = uExcite * (0.35 + 0.65 * exp(-abs(instanceMatrix[3].z - uFocus) / 14.0));\n  float wv = aAnim.z * step(0.15, ex) * step(0.0, sin(uTime * 7.0 + aAnim.y));\n#ifdef USE_MAP\n  float row = mod(aCell.y + uCheer + wv, 2.0);\n  vMapUv = vec2((uv.x + aCell.x) / uCols, (uv.y + (uRows - 1.0 - row)) / uRows);\n#endif')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\n  transformed.y += aAnim.x * ex * abs(sin(uTime * 5.5 + aAnim.y));');
   };
   mat.customProgramCacheKey = () => 'crowdSprite';
@@ -107,6 +111,7 @@ export function crowdMesh(spots, set = 'futbol', height = 1.45, figs = null, sit
   });
   geo.setAttribute('aCell', new THREE.InstancedBufferAttribute(cell, 2));
   geo.setAttribute('aAnim', new THREE.InstancedBufferAttribute(anim, 3));
+  geo.setAttribute('aTint', new THREE.InstancedBufferAttribute(tint, 3));
   im.visible = false; im.frustumCulled = false;
   crowdAtlas(set, sit).then(A => { mat.map = A.tex; U.uCols.value = A.cols; U.uRows.value = A.rows; mat.needsUpdate = true; im.visible = true; for (let i = 0; i < spots.length; i++) cell[i * 2] = figs ? figs[i] % A.n : Math.floor(Math.random() * A.n); geo.attributes.aCell.needsUpdate = true; })
     .catch(err => console.warn('público', err));

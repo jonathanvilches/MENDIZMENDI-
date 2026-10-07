@@ -148,7 +148,8 @@ export class FutbolGame {
     if (this.mode === 'penalties') { this.buffer = { ...a, t: 60 }; return; }
     if (this.restart && this.restart.taker === me) { if (this.restart.t >= this.restart.prep) this.takeRestart(me, a); else this.buffer = { ...a, t: this.restart.prep - this.restart.t + 0.6 }; return; }   // (se guarda hasta que se pueda sacar)
     if (this.phase !== 'play' && this.phase !== 'tuto') return;
-    if (this.owner === me && !me.hands) this.doAction(me, a); else this.buffer = { ...a, t: 0.32 };   // si el balón llega en ese momento, al primer toque
+    if (this.owner === me && !me.hands) this.doAction(me, a); else this.buffer = { ...a, t: a.kind === 'shot' ? 0.5 : 0.32 };   // (un tiro pedido espera algo más: si recuperas el balón enseguida, sale)
+      // si el balón llega en ese momento, al primer toque
   }
   doAction(p, a) {
     if (a.kind === 'pass') this.humanPass(p, a.loft, a.power);
@@ -394,6 +395,15 @@ export class FutbolGame {
   humanKeeperDive() {
     const k = this.gk(this.me.team); if (k.dive || k.hands || k.down > 0) return;
     const I = this.input, b = this.ball, B = b.p, s = -this.dir[k.team];
+    // un tiro entre los palos: eliges tú el lado (y si va arriba) y se lanza en el momento justo, a la altura del balón
+    // (antes se tiraba en cuanto pulsabas: en un tiro de lejos ya estaba en el suelo cuando llegaba el balón)
+    if (this.rivalShot() && b.v.x * s > 3) {
+      const Tg = (s * F.HL - B.x) / b.v.x, zg = B.z + b.v.z * Tg;
+      if (Tg > 0.12 && Math.abs(zg) < HW_G + 0.8) {
+        k.humanDive = { side: I.mag > 0.3 && Math.abs(I.z) > 0.25 ? Math.sign(I.z) : 0, high: I.mag > 0.3 && I.x * s < -0.5 };
+        k.threat = 0; this.emit({ t: 'gkPlan', p: k.id, side: k.humanDive.side }); return;
+      }
+    }
     let dx, dz;
     if (I.mag > 0.3) { dx = I.x; dz = I.z; }
     else { const T = Math.abs(b.v.x) > 1 ? clamp((k.x - B.x) / b.v.x, 0, 1.2) : 0; dx = B.x + b.v.x * T - k.x; dz = B.z + b.v.z * T - k.z; }
@@ -414,6 +424,9 @@ export class FutbolGame {
       const c = this.team(p.team).filter(q => q.role !== 'POR').sort((a, q) => hyp(a.x - b.x, a.z - b.z) - hyp(q.x - b.x, q.z - b.z));
       this.emit({ t: 'gkCtl', on: false }); this.setMe(this.owner?.team === p.team && this.owner.role !== 'POR' ? this.owner : c[0], 'force'); return;
     }
+    // sin tocar el joystick (o con la estirada ya pedida), se coloca y para solo, como el automático: llevarlo tú nunca
+    // es peor que dejarlo (antes se quedaba quieto donde lo cogías y paraba menos de la mitad)
+    if (!p.hands && (I.mag < 0.12 || p.humanDive)) { this.keeper(p, h); if (this.buffer && this.owner === p && !p.hands) { const a = this.buffer; this.buffer = null; this.doAction(p, a); } return; }
     const top = I.sprint ? PL.sprint : PL.run;
     p.wx = I.x * I.mag * top; p.wz = I.z * I.mag * top; p.wantSprint = I.sprint && I.mag > 0.5;
     // puede salir del área (fuera solo juega con los pies), pero no meterse dentro de la portería
@@ -654,7 +667,10 @@ export class FutbolGame {
     let o = this.owner;
     if (o && !o.hands) {
       const f = foot(o), d = hyp(B.x - f.x, B.z - f.z);
-      if (d > PL.keep || B.y > 1.25 || o.stun > 0 || o.down > 0 || o.slide || o.dive) { this.owner = null; o = null; }
+      // (el tuyo no pierde el balón por un giro brusco esprintando: antes, haciendo eses a toda velocidad, el balón se
+      // quedaba a metro y medio del pie y se soltaba solo, sin ningún rival cerca; un toque largo con un rival encima sí)
+      const keep = PL.keep + (this.human(o) && !o.heavy ? 0.5 : 0);
+      if (d > keep || B.y > 1.25 || o.stun > 0 || o.down > 0 || o.slide || o.dive) { this.owner = null; o = null; }
     }
     if (o?.hands) return;
     if (!o) {
@@ -751,7 +767,9 @@ export class FutbolGame {
     if ((o.touchT -= h) <= 0) {
       o.touchT = T; if (sp > 1) this.emit({ t: 'touch', p: o.id });
       // toque largo: corriendo con un rival encima, a veces el balón se va un metro más (menos a los buenos y al tuyo)
-      o.heavy = sp > PL.run * 0.65 && this.nearestFoe(o) < 2.5 * Math.max(SC, 0.6) && this.rnd() < (this.human(o) ? 0.03 : 0.12 + this.L(o).passErr * 0.08) + dash * 0.08;
+      // (el tuyo, solo con el rival encima de verdad y mucho menos a menudo: más control)
+      const hu = this.human(o);
+      o.heavy = sp > PL.run * 0.65 && this.nearestFoe(o) < (hu ? 1.6 : 2.5) * Math.max(SC, 0.6) && this.rnd() < (hu ? 0.015 + dash * 0.04 : 0.12 + this.L(o).passErr * 0.08 + dash * 0.08);
     }
     // distancia del centro del jugador al balón: la punta de la bota está a 0,32 m y el balón, justo delante
     const hm = this.human(o) ? 0.7 : 1;   // (el tuyo la lleva más pegada: los toques se separan menos)
@@ -759,7 +777,7 @@ export class FutbolGame {
     const off = lead + amp * Math.sin(Math.PI * clamp(1 - o.touchT / T, 0, 1));
     // a dónde tiene que ir el balón en el próximo paso y la velocidad para llegar (con un tope, sin teletransportes)
     const tx = o.x + o.vx * h + f.x * off, tz = o.z + o.vz * h + f.z * off;
-    let cx = (tx - B.x) * 20, cz = (tz - B.z) * 20; const cl = hyp(cx, cz), cmax = 5 + sp * 0.9;   // (en los giros el balón sigue a la bota)
+    let cx = (tx - B.x) * 20, cz = (tz - B.z) * 20; const cl = hyp(cx, cz), cmax = (5 + sp * 0.9) * (this.human(o) ? 1.5 : 1);   // (en los giros el balón sigue a la bota; al tuyo, más pegado)
     if (cl > cmax) { cx *= cmax / cl; cz *= cmax / cl; }
     // recién controlado, el balón se amortigua más despacio (no se queda clavado de golpe)
     const k = clamp((this.time - (o.gotT || 0)) / 0.18, 0.3, 1) * Math.min(1, h * 30);
@@ -942,11 +960,17 @@ export class FutbolGame {
       const zc = B.z + b.v.z * T, yc = Math.max(R, B.y + b.v.y * T - 0.5 * K.g * T * T);
       if (p.threat == null) p.threat = L.keeperReact;
       p.threat -= h;
-      if (p.threat <= 0 && Math.abs(zc) < HW_G + 1.2 && yc < F.goalH + 0.7) {
+      const HD = p.humanDive;
+      if ((p.threat <= 0 || HD) && Math.abs(zc) < HW_G + 1.2 && yc < F.goalH + 0.7) {
         // (si tiene que estirarse mucho, se lanza antes: lo que tarda en cubrir esa distancia más el impulso)
-        const GK = gkReach(), need = zc - p.z, lead = Math.max(0.4 + 0.1 * L.keeperReach, (Math.abs(need) - GK.hand) / (GK.v * L.keeperReach) + 0.16);
-        const high = yc > 2.05, low = yc < 0.45 && Math.abs(need) > 0.35;
+        // (la estirada pedida por ti: hacia el lado que elegiste; si es el malo, se lanza igual hacia ese lado)
+        const GK = gkReach(); let need = zc - p.z;
+        // (si el balón le va al cuerpo, no hace falta tirarse: lo bloca de pie aunque hayas pedido un lado)
+        if (HD?.side && Math.sign(need) !== HD.side && Math.abs(need) > 0.6) need = HD.side * Math.max(Math.abs(need), 1.6);
+        const lead = Math.max(0.4 + 0.1 * L.keeperReach, (Math.abs(need) - GK.hand) / (GK.v * L.keeperReach) + 0.16);
+        const high = yc > 2.05 || (HD?.high && yc > 1.5), low = yc < 0.45 && Math.abs(need) > 0.35;
         if (T <= lead && (Math.abs(need) > 0.5 || high || low)) {
+          p.humanDive = null;
           // (el impulso tarda una décima en arrancar: se cuenta para llegar a tiempo)
           // (el cuerpo va medio metro menos: las manos van por delante, a su lado)
           const reach = L.keeperReach, dur = Math.max(0.1, T - 0.12), v = clamp(Math.max(0, Math.abs(need) - GK.hand) / dur, 0, GK.v * reach);
@@ -956,7 +980,7 @@ export class FutbolGame {
         }
         tz = clamp(zc, -HW_G - 0.3, HW_G + 0.3); tx = p.x; shuffle = true;
       }
-    } else p.threat = null;
+    } else { p.threat = null; if (p.humanDive && !toward) p.humanDive = null; }
     if (p.spread > 0) p.spread -= h;
     // balón suelto en su área y él llega antes que nadie: sale a por él
     if (!this.owner && this.inArea(t, B.x, B.z) && b.hspeed < 9) {
@@ -1416,7 +1440,7 @@ export class FutbolGame {
     this.setPhase('kickoff'); this.emit({ t: 'restart', type: 'kickoff', team });
     this.emit({ t: 'whistle', n: 1 });
   }
-  resetP(p) { p.act = ''; p.actT = 0; p.stun = 0; p.down = 0; p.cool = 0; p.recover = 0; p.robo = null; p.slide = null; p.dive = null; p.hands = false; p.plan = null; p.react = 0; p.job = null; p.wx = p.wz = 0; p.threat = null; p.spread = 0; }
+  resetP(p) { p.act = ''; p.actT = 0; p.stun = 0; p.down = 0; p.cool = 0; p.recover = 0; p.robo = null; p.slide = null; p.dive = null; p.hands = false; p.plan = null; p.react = 0; p.job = null; p.wx = p.wz = 0; p.threat = null; p.spread = 0; p.humanDive = null; }
   setPiece(type, team, x, z, indirect = false, noWall = false) {
     const b = this.ball, s = this.dir[team], foe = this.other(team); this.owner = null; this.passTo = null; this.buffer = null; this.offs = null;
     for (const p of this.players) { p.robo = null; p.slide = null; p.dive = null; p.down = Math.min(p.down, 0.2); p.plan = null; p.wall = null; p.hands = false; }
