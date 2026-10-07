@@ -394,7 +394,8 @@ export class TownGame {
   // Moras en las zarzas del borde del bosque, avellanas y manzanas: comida para la mochila
   spawnForage() {
     const P = PLACES, R = this.rnd, farm = TOWN.farm || P.farm;
-    const put = (kind, c, n, r0, r1, label) => { if (!c) return; for (let i = 0; i < n; i++) { const a = R() * Math.PI * 2, r = r0 + R() * (r1 - r0), s = this.spot({ x: c.x + Math.cos(a) * r, z: c.z + Math.sin(a) * r }, 4, true);
+    const flat = (x, z) => { const g = terrainHeight(x, z); return [[1.5, 0], [-1.5, 0], [0, 1.5], [0, -1.5]].every(([dx, dz]) => Math.abs(terrainHeight(x + dx, z + dz) - g) < 0.4); };   // (nada en una ladera a la que no se puede subir)
+    const put = (kind, c, n, r0, r1, label) => { if (!c) return; for (let i = 0; i < n; i++) { let s; for (let k = 0; k < 8; k++) { const a = R() * Math.PI * 2, r = r0 + R() * (r1 - r0); s = this.spot({ x: c.x + Math.cos(a) * r, z: c.z + Math.sin(a) * r }, 4, true); if (flat(s.x, s.z)) break; }
       const o = makeItem(kind); o.position.set(s.x, terrainHeight(s.x, s.z), s.z); this.scene.add(o); this.items.push({ M: null, food: kind === 'berries' ? 'moras' : kind === 'hazelnut' ? 'avellanas' : 'manzana', x: s.x, z: s.z, obj: o, label, kind }); } };
     put('berries', P.forest, 4, 70, 120, 'Coger moras');
     put('hazelnut', P.forest, 3, 80, 130, 'Coger avellanas');
