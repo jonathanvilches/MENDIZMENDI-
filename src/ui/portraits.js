@@ -36,7 +36,7 @@ function portraitKK(look, mode) {
 }
 export function portrait(look, mode = 'bust', isMini = false) {
   const kk = npcsReady();
-  const key = (kk ? 'm2|' : '') + JSON.stringify(look) + mode + isMini;   // (m2: con los personajes nuevos; los retratos guardados de antes no valen)
+  const key = (kk ? 'm3|' : '') + JSON.stringify(look) + mode + isMini;   // (m3: con los personajes nuevos y las texturas nuevas; los retratos guardados antes, algunos vacíos en el iPhone, no valen)
   if (cache.has(key)) return cache.get(key);
   const st = getImg('p:' + key); if (st) { cache.set(key, st); return st; }
   try {
@@ -74,13 +74,15 @@ export const avatarPortrait = (id, mode = 'bust') => glbPortrait(id, mode) || po
 
 // <img> del retrato sin bloquear: si aún no está hecho, se dibuja en segundo plano y aparece luego
 const BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+const FALLBACK = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="24" r="12" fill="#f1c7a5"/><path d="M12 60c0-13 9-20 20-20s20 7 20 20z" fill="#c8222a"/><path d="M20 22c0-9 6-14 12-14s12 5 12 14c-3-5-7-7-12-7s-9 2-12 7z" fill="#3b2418"/></svg>');
 let PK = 0; const pkeys = new Map();
 export function portraitImg(look, mode = 'bust', isMini = false) {
-  const key = (npcsReady() ? 'm2|' : '') + JSON.stringify(look) + mode + isMini;   // (la misma clave que portrait)
+  const key = (npcsReady() ? 'm3|' : '') + JSON.stringify(look) + mode + isMini;   // (la misma clave que portrait)
   const hit = cache.get(key) || getImg('p:' + key);
   if (hit) return `<img src="${hit}" alt="">`;
   let id = pkeys.get(key); if (!id) { id = 'pk' + (++PK); pkeys.set(key, id); }
-  enqueue('p:' + key, () => { const u = portrait(look, mode, isMini); for (const i of document.querySelectorAll(`img[data-pk="${id}"]`)) { i.src = u; i.removeAttribute('data-pk'); } }, true);
+  // (si el retrato no se ha podido dibujar, una silueta en vez de un hueco)
+  enqueue('p:' + key, () => { const u = portrait(look, mode, isMini) || FALLBACK; for (const i of document.querySelectorAll(`img[data-pk="${id}"]`)) { i.src = u; i.removeAttribute('data-pk'); } }, true);
   return `<img src="${BLANK}" data-pk="${id}" alt="">`;
 }
 export const avatarPortraitImg = (id, mode = 'bust') => { const g = glbPortrait(id, mode); return g ? `<img src="${g}" alt="">` : portraitImg(COSTUMES[id] || COSTUMES.leire, mode, true); };

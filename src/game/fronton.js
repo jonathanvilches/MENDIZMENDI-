@@ -183,6 +183,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     const flags = { you: {}, rival: {} };
     // (el público es uno solo, el de la grada en 3D: antes llegaban además vecinos de otro estilo y se mezclaban dos diseños)
     if (G.beacon) G.beacon.off = true;   // sin el haz de luz del objetivo sobre el frontón
+    if (G.sky) G.sky.flood = 1;          // de noche, los focos del frontón encendidos
     // y el público sentado en los bancos de la grada (una sola llamada de dibujo; se va al acabar)
     // (los más cercanos a la cámara, en 3D; con pañuelos que se agitan en cada tanto)
     // todo el público en 3D con su textura (sin láminas planas a lo lejos): cuántos, según la calidad, repartidos por la grada
@@ -230,6 +231,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       if (pel) { P.obj.remove(pel.char.root); pel.dispose(); for (const c of hidden) P.obj.add(c); }
       if (bf) bf.visible = bfWas;
       if (G.beacon) G.beacon.off = false;
+      if (G.sky) G.sky.flood = 0;
       if (red) { red.char.post = null; rival.obj.remove(red.char.root); red.dispose(); for (const c of hiddenR) rival.obj.add(c); }
       G.rt?.boost?.(false);
       P.rig = rig0; P.frozen = false; G.mode = 'play'; G.ui.hudVisible?.(true); G.perro?.release?.();

@@ -12,7 +12,9 @@ import * as THREE from 'three';
 
 const W = 960, H = 720;
 let R = null, cw = W, ch = H, gen = 0, idle = null;
-let HOST = null, RT = null, last = null, rtIdle = null;
+let HOST = null, RT = null, last = null, rtIdle = null, noMSAA = false;
+// ¿no hay nada dibujado? (alfa a cero en una muestra de píxeles)
+const blank = (buf) => { for (let i = 3; i < buf.length; i += 4 * 97) if (buf[i] > 8) return false; return true; };
 const HS = 512;   // tamaño de la textura fuera de pantalla del modo anfitrión
 /** Número de renderizador: cambia cuando se libera y se vuelve a crear (lo que dependa de él hay que rehacerlo). */
 export const offscreenGen = () => gen;
@@ -36,7 +38,7 @@ const FACADE = {
   render(scene, cam) {
     const r = HOST, w = cw, h = ch;
     if (!RT) {
-      RT = new THREE.WebGLRenderTarget(HS, HS, { samples: 4 });
+      RT = new THREE.WebGLRenderTarget(HS, HS, { samples: noMSAA ? 0 : 4 });
       // (marcada como de realidad virtual para que three.js aplique el tono y el sRGB igual que al dibujar en la
       // pantalla; guardada en RGBA8 para que no se codifique dos veces)
       RT.texture.colorSpace = THREE.SRGBColorSpace; RT.texture.internalFormat = 'RGBA8'; RT.isXRRenderTarget = true;
@@ -49,7 +51,17 @@ const FACADE = {
       RT.viewport.set(0, 0, w, h); RT.scissor.set(0, 0, w, h); RT.scissorTest = true;
       r.setRenderTarget(RT); r.toneMapping = this.tone; r.toneMappingExposure = 1; r.autoClear = false;
       r.setClearColor(this.clr, this.alpha); r.clear(); r.shadowMap.needsUpdate = true; r.render(scene, cam);
-      const buf = new Uint8Array(w * h * 4); r.readRenderTargetPixels(RT, 0, 0, w, h, buf); last = { buf, w, h };
+      let buf = new Uint8Array(w * h * 4); r.readRenderTargetPixels(RT, 0, 0, w, h, buf);
+      // en algunos iPhone la lectura de una textura con suavizado sale vacía (los retratos de los diálogos no aparecían):
+      // si no hay nada dibujado, se repite sin suavizado y ya se queda así
+      if (!noMSAA && this.alpha === 0 && blank(buf)) {
+        noMSAA = true; RT.dispose(); RT = new THREE.WebGLRenderTarget(HS, HS, { samples: 0 });
+        RT.texture.colorSpace = THREE.SRGBColorSpace; RT.texture.internalFormat = 'RGBA8'; RT.isXRRenderTarget = true;
+        RT.viewport.set(0, 0, w, h); RT.scissor.set(0, 0, w, h); RT.scissorTest = true;
+        r.setRenderTarget(RT); r.setClearColor(this.clr, this.alpha); r.clear(); r.render(scene, cam);
+        buf = new Uint8Array(w * h * 4); r.readRenderTargetPixels(RT, 0, 0, w, h, buf);
+      }
+      last = { buf, w, h };
     } finally {
       r.setRenderTarget(prev); r.toneMapping = tone; r.toneMappingExposure = exp; r.autoClear = auto; r.setClearColor(c0, a0); r.shadowMap.needsUpdate = shadows;
     }

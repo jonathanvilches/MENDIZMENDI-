@@ -77,6 +77,7 @@ const KEYS = [
 ];
 const KC = KEYS.map(k => ({ t: k[0], zen: new THREE.Color(k[1]), hor: new THREE.Color(k[2]), sun: new THREE.Color(k[3]), si: k[4], hs: new THREE.Color(k[5]), hg: new THREE.Color(k[6]), hi: k[7] }));
 
+const FLOOD_SKY = new THREE.Color('#dfe6ff'), FLOOD_GND = new THREE.Color('#8a8478'), FLOOD_SUN = new THREE.Color('#fff1d6'), FLOOD_DIR = new THREE.Vector3(0.25, 1, 0.35).normalize();
 export class SkySystem {
   constructor(scene, renderer, quality) {
     this.scene = scene;
@@ -218,8 +219,17 @@ void main(){
     this.fog.color.copy(s.hor).lerp(s.zen, 0.12);
     this.hemi.color.copy(s.hs); this.hemi.groundColor.copy(s.hg); this.hemi.intensity = s.hi * 1.15;
     // Luz direccional: sol o luna
-    const lightDir = this.night > 0.5 ? new THREE.Vector3(-this.sunDir.x, Math.max(0.35, -this.sunDir.y), -this.sunDir.z).normalize() : this.sunDir;
+    let lightDir = this.night > 0.5 ? new THREE.Vector3(-this.sunDir.x, Math.max(0.35, -this.sunDir.y), -this.sunDir.z).normalize() : this.sunDir;
     this.sun.color.copy(s.sun); this.sun.intensity = s.si;
+    // focos (un partido de pelota de noche): la luz de la luna y la del cielo suben a la de unos focos blancos desde
+    // arriba; sin luces nuevas (en el móvil, añadir luces rehace todos los sombreadores y da un tirón). Antes, de noche,
+    // no se veía nada en el frontón
+    const fk = (this.flood || 0) * this.night;
+    if (fk > 0) {
+      this.hemi.color.lerp(FLOOD_SKY, fk * 0.7); this.hemi.groundColor.lerp(FLOOD_GND, fk * 0.6); this.hemi.intensity += (1.45 - this.hemi.intensity) * fk;
+      this.sun.color.lerp(FLOOD_SUN, fk); this.sun.intensity += (1.9 - this.sun.intensity) * fk;
+      lightDir = lightDir.clone().lerp(FLOOD_DIR, fk).normalize();
+    }
     // sombras: nítidas al sol; con la luna, más suaves y claras (la noche no tiene sombras negras)
     this.sun.shadow.intensity = 1 - 0.45 * this.night;
     const snap = 2;
