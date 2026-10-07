@@ -25,6 +25,7 @@ const TONES = {
   arid: { grassA: '#8f9a52', grassB: '#b2ac68', grassDry: '#d6c38a', meadow: '#98a353', hay: '#d0bb70', cut: '#decb8c', cut2: '#cfb876', soil: '#9b7a50', rock: '#c2ab82', rockDark: '#a58c66', gravel: '#b7a88a', forest: '#5d6e3a', snow: '#e9d9b8' },
 };
 let PAL = {};
+const _fc = new THREE.Color();   // (color auxiliar de los campos)
 function setPalette(tone) { PAL = {}; const t = { ...BASE, ...(TONES[tone] || {}) }; for (const k in t) PAL[k] = C(t[k]); }
 setPalette('alpine');
 
@@ -39,15 +40,17 @@ function vertexColor(i, j, out) {
   const mm = meadowMask(x, z);
   if (mm > 0) out.lerp(PAL.meadow, mm * 0.5);
   const fi = fieldInfo(x, z);
-  if (fi.mask > 0 && fi.edge > 0.8) {
-    const t = fi.type, m = fi.mask;
+  // (borde del campo y surcos suaves: el color va por vértices, cada 2 m, y con un corte brusco salían dientes de sierra
+  // y franjas pixeladas en los campos del fondo)
+  if (fi.mask > 0 && fi.edge > 0.5) {
+    const t = fi.type, m = fi.mask * smoothstep(0.5, 2.5, fi.edge), sw = 0.5 + 0.3 * (fi.stripe || 0);
     if (t === 1) out.lerp(PAL.hay, 0.55 * m);
-    else if (t === 2) out.lerp(fi.stripe > 0 ? PAL.cut : PAL.cut2, 0.8 * m);
-    else if (t === 3) out.lerp(fi.stripe > 0.2 ? PAL.soil : PAL.crop, 0.85 * m);
+    else if (t === 2) out.lerp(_fc.copy(PAL.cut2).lerp(PAL.cut, sw), 0.8 * m);
+    else if (t === 3) out.lerp(_fc.copy(PAL.crop).lerp(PAL.soil, sw), 0.85 * m);
     else if (t === 4) out.lerp(PAL.lush, 0.6 * m);
     else if (t === 5) out.lerp(PAL.vine, 0.75 * m);
     else if (t === 6) out.lerp(PAL.olive, 0.7 * m);
-    else if (t === 7) out.lerp(fi.stripe > 0.3 ? PAL.huertaG : PAL.huerta, 0.85 * m);
+    else if (t === 7) out.lerp(_fc.copy(PAL.huerta).lerp(PAL.huertaG, sw), 0.85 * m);
     else if (t === 8) out.lerp(PAL.lush, 0.4 * m);
   }
   const forest = SURF.forest[k] / 255;

@@ -10,7 +10,7 @@ await p.addInitScript((av) => { localStorage.setItem('mendimendiz-perfil-v1', JS
 await p.goto(`${process.env.BASE || 'http://127.0.0.1:5173/'}?town=${town}&q=low&weather=clear&skipintro=1&t=11&noflora`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 600000 });
 await p.waitForTimeout(3000);
-const info = await p.evaluate(() => { let m = null; window.__game.player.obj.traverse(o => { if (o.isMesh && o.material?.map && !m) m = o.material; }); return m ? { tex: m.map.image?.width, sharp: !!m.userData.sharp } : null; });
+const info = await p.evaluate(() => { let m = null; window.__game.player.obj.traverse(o => { if (o.isMesh && o.material?.map && !m) m = o.material; }); return m ? { tex: m.map.image?.width, lienzo: !!m.map.isCanvasTexture, sharp: !!m.userData.sharp } : null; });
 console.log('textura del jugador', JSON.stringify(info), 'ratio', await p.evaluate(() => window.__game.rt?.renderer?.getPixelRatio?.()));
 for (const [name, dist, h] of [['cara', 1.3, 1.45], ['cuerpo', 2.8, 1.0], ['lejos', 6.5, 1.0]]) {
   await p.evaluate(([dist, h]) => { const G = window.__game, P = G.player.pos, hd = G.player.heading, V = G.camera.position.constructor;
