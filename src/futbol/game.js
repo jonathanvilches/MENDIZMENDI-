@@ -484,9 +484,10 @@ export class FutbolGame {
       for (let k = 0; k < 3; k++) { const d = hyp(tx - B.x, tz - B.z), T = d / (this.groundV(d) * this.firm(p) * 0.78); tx = q.x + q.vx * T; tz = q.z + q.vz * T; }
       d0 = hyp(tx - B.x, tz - B.z) || 1; dx = (tx - B.x) / d0; dz = (tz - B.z) / d0;
     }
-    // con un compañero, la fuerza solo ajusta: el pase va siempre a donde él llega, entre un poco corto (25 %) y un poco al
-    // hueco (35 %), para que sea preciso (antes la barra mandaba del todo y un pase mal cargado se perdía)
-    const d = Math.max(3 * SC, q ? d0 + (want > d0 ? 0.35 : 0.25) * d0 * Math.tanh((want - d0) / (0.6 * d0)) * (this.assist ? 0.55 : 0.85) : want);
+    // con un compañero, la dirección va siempre hacia él (precisa) y la fuerza se nota en la distancia y en la
+    // velocidad: poca carga, al pie o algo corto (hasta un 30 % menos); mucha, por delante de él al hueco (hasta casi el
+    // 16 m por delante, al hueco), y el balón sale más rápido. Con la ayuda, algo más cerca de lo justo
+    const d = Math.max(3 * SC, q ? clamp(d0 + (want - d0) * (this.assist ? 0.65 : 0.8), d0 * 0.7, d0 + 16 * SC) : want);
     const tx = clamp(B.x + dx * d, -F.HL + 0.6, F.HL - 0.6), tz = clamp(B.z + dz * d, -F.HW + 0.6, F.HW - 0.6);
     const lane = q ? this.laneOpen(p.team, B.x, B.z, q.x, q.z) : 9;
     const loft = (power > 0.88 && d > 18 * SC) || (lane < 1.1 && d > 14 * SC) || d > 34 * SC;
@@ -502,7 +503,7 @@ export class FutbolGame {
   }
   powerPass(p, dx, dz, power, q) {
     const B = this.ball.p, T = this.passTarget(p, dx, dz, power, q), { d, loft, to } = T, tx = T.x, tz = T.z;
-    this.passToPoint(p, tx, tz, loft, to);
+    this.passToPoint(p, tx, tz, loft, to, power);
     if (to) this.setMe(to, 'pass');
     this.emit({ t: 'powerPass', p: p.id, power, d: +d.toFixed(1) });
   }
@@ -638,11 +639,13 @@ export class FutbolGame {
     // el balón va a un compañero tuyo (lo pasa el portero o la IA): pasas a llevar al que lo recibe
     if (q.team === this.me.team && p !== this.me && !this.autoplay) this.setMe(q, 'pass');
   }
-  passToPoint(p, tx, tz, loft, q = null) {
+  passToPoint(p, tx, tz, loft, q = null, power = null) {
     const b = this.ball.p, dx = tx - b.x, dz = tz - b.z, d = hyp(dx, dz) || 1;
     if (this.restart?.type === 'throwin' && RU.throwHands) return this.throwBall(p, tx, tz, q);
+    // (con la barra, la fuerza también se nota en lo rápido que sale el balón: flojo, más lento; a tope, tenso)
+    const boost = power == null ? 1 : 0.85 + power * 0.45;
     if (loft) { const L = this.loftV(d); this.kickBall(p, dx / d * L.vh, L.vy, dz / d * L.vh, 0, 'loft'); }
-    else { const v = Math.min(K.pass[1], this.groundV(d) * this.firm(p)); this.kickBall(p, dx / d * v, 0, dz / d * v, 0, 'pass'); }
+    else { const v = Math.min(K.pass[1], this.groundV(d) * this.firm(p) * boost); this.kickBall(p, dx / d * v, 0, dz / d * v, 0, 'pass'); }
     this.passTo = q; this.passT = 3.2; this.passFrom = p;
     if (q) { q.plan = null; q.react = 0; }
   }

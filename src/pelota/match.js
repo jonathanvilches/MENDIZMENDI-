@@ -1,7 +1,7 @@
 // Partido de pelota a mano: une la lógica (game.js), el frontón (court.js), la interfaz (hud.js) y el sonido.
 // El juego anfitrión pone el frontón en su escena, llama a update(dt) en cada fotograma y renderiza con su cámara.
 import { COURT, TEXT } from './rules.js';
-import { PelotaGame, cutHeight, dropHeight } from './game.js';
+import { PelotaGame, cutHeight, dropHeight, aimSide } from './game.js';
 import { PelotaHud, esc } from './hud.js';
 import { PelotaAudio } from './audio.js';
 const clamp1 = (v) => Math.max(-1, Math.min(1, v));
@@ -187,8 +187,10 @@ export class PelotaMatch {
     switch (e.type) {
       case 'serveReady': this.hud.setScore(g.mode === 'rally' ? g.streak : g.score.you, g.mode === 'rally' ? '' : g.score.rival, g.server); break;
       case 'hit': {
-        A.hit(0.6 + e.q * 0.5); C.pop(e, 'z');
-        if (e.who === 'you') { const s = t.shots[e.sub] || t.shots[e.shot] || ''; this.hud.quality(`${t.quality[e.label]}${s ? ' · ' + s : ''}`); }
+        // la fuerza también se oye y se nota: un golpe a tope suena más fuerte y sacude un poco la cámara
+        const pw = e.pow ?? 0.5; A.hit((0.5 + e.q * 0.4) * (0.55 + pw * 0.75)); C.pop(e, 'z');
+        if (e.who === 'you' && pw > 0.8 && e.shot !== 'dejada') this.shake = Math.max(this.shake || 0, 0.12 + (pw - 0.8) * 0.6);
+        if (e.who === 'you') { const s = t.shots[e.sub] || t.shots[e.shot] || ''; this.hud.quality(`${t.quality[e.label]}${s ? ' · ' + s : ''} · fuerza ${Math.round(pw * 100)} %`); }
         this.swingAnim(e.who); break;
       }
       case 'whiff': this.hud.quality(t.quality.whiff); break;
@@ -233,7 +235,7 @@ export class PelotaMatch {
       const on = !!ch && (ch.kind === 'cut' || ch.kind === 'drop') && (g.phase === 'rally' || g.phase === 'servePrep');
       C.aimMark.visible = on;
       if (on) { const k = this.input.stick, ax = clamp1((this.input.keys.d || this.input.keys.arrowright ? 1 : 0) - (this.input.keys.a || this.input.keys.arrowleft ? 1 : 0) + k.x), ay = clamp1((this.input.keys.w || this.input.keys.arrowup ? 1 : 0) - (this.input.keys.s || this.input.keys.arrowdown ? 1 : 0) + k.y), pow = 0.15 + this.chargeLevel() * 0.85, you = g.players.you;
-        const x = ch.kind === 'cut' ? ax * 2.6 : you.x * 0.4 + ax * 2.2, y = ch.kind === 'cut' ? cutHeight(pow, ay) : dropHeight(pow, ay);
+        const x = ch.kind === 'cut' ? aimSide(ax) * 2.8 : you.x * 0.4 + aimSide(ax) * 2.2, y = ch.kind === 'cut' ? cutHeight(pow, ay) : dropHeight(pow, ay);
         C.aimMark.position.set(Math.max(-4.6, Math.min(4.8, x)), y, 0.06); C.aimMark.scale.setScalar(1 + 0.08 * Math.sin(this.t * 12)); }
     }
     // camino previsto del golpe apuntado: a trazos hasta el primer bote, con el bote y (a dos paredes) la pared marcados
