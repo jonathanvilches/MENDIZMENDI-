@@ -54,7 +54,7 @@ import { GearProps } from '../actors/gear3d.js';
 import { foodFrom } from '../data/equipo.js';
 import { PROCESOS, TRADICIONES } from '../data/procesos.js';
 import { bird } from '../actors/beasts.js';
-import { Fronton, findFrontonSpot, frontonWall } from './fronton.js';
+import { Fronton, findFrontonSpot, frontonWall, labrit } from './fronton.js';
 import { Pista, findPistaSpot } from './pista.js';
 import { clubOfTown, teamOfClub } from '../futbol/clubs.js';
 import { clubPanel } from '../futbol/liga.js';
@@ -935,7 +935,10 @@ export class TownGame {
       if (act === 'new') { T = torneo({ name: P.name || 'Tú', town }, ctx, true); continue; }
       if (act === 'sim') { playTorneoRound(T); continue; }
       const m = yourMatch(T);
-      const r = await this.fronton.play(this, a, { target: m.target, level: m.level, rivalName: `${m.rival.name} (${m.rival.town})`, fixedLevel: true });
+      // la final, en el frontón Labrit de Iruña (los cuartos y las semifinales, aquí)
+      const fin = m.round === 'Final', venue = fin ? this.labritVenue() : this.fronton;
+      if (fin) await this.labritIntro(venue);
+      const r = await venue.play(this, a, { target: m.target, level: m.level, rivalName: `${m.rival.name} (${m.rival.town})`, fixedLevel: true, returnTo: this.fronton });
       if (r.quit) return;   // (salir del partido es salir: de vuelta al pueblo, no al panel del torneo otra vez)
       playTorneoRound(T, r.you, r.cpu);
       if (T.done && T.players[T.champion].you) {
@@ -945,8 +948,27 @@ export class TownGame {
         await showChampion({ kind: 'pelota', kicker: `Torneo de mano · ${ctx.comarcaName}`, title: '¡Txapeldun!', name: P.name || 'Campeón', sub: `La txapela de ${ctx.comarcaName} es tuya. Zorionak!`, score: `Final · ${r.you} – ${r.cpu}`, sound: this.sound, button: 'Ponerme la txapela' });
         await this.say(a, [`¡Txapeldun! Eres campeón del torneo de mano de ${ctx.comarcaName}. Llevas ${P.txapelas} ${P.txapelas === 1 ? 'txapela' : 'txapelas'}.`]);
       } else if (!r.win) await this.say(a, [`${r.you} a ${r.cpu}. ¡Qué pena! El torneo sigue: mira quién se lleva la txapela.`]);
-      else if (!T.done) await this.say(a, [`¡${r.you} a ${r.cpu}! Pasas a ${yourMatch(T)?.round.toLowerCase() || 'la siguiente ronda'}. El próximo partido, aquí mismo.`]);
+      else if (!T.done) await this.say(a, [yourMatch(T)?.round === 'Final' ? `¡${r.you} a ${r.cpu}! Pasas a la final. Se juega en el frontón Labrit de Pamplona.` : `¡${r.you} a ${r.cpu}! Pasas a ${yourMatch(T)?.round.toLowerCase() || 'la siguiente ronda'}. El próximo partido, aquí mismo.`]);
     }
+  }
+  // el frontón Labrit: muy por encima del pueblo y fuera de sus límites (solo se ve por dentro y en la llegada)
+  labritVenue() { return labrit(this.scene, { x: PLACES.plaza.x + 2600, z: PLACES.plaza.z }); }
+  // llegada a la final: la fachada de ladrillo con sus torreones y, dentro, la cancha llena
+  async labritIntro(L) {
+    if (window.__autoWin) return;
+    const g = L.court.group, V = (x, y, z) => g.localToWorld(new THREE.Vector3(x, y, z)), E = L.court.extent;
+    const xc = (E.x0 + E.x1) / 2, zb = E.z1;
+    const was = this.sky.flood; this.sky.flood = 1; this.ui.hudVisible?.(false); this.perro?.away?.();
+    this.player.place(L.entry.x, L.entry.z, 0); this.player.frozen = true;   // (el cielo y las sombras van con el jugador: que esté ya allí)
+    try {
+      // (cada plano dura su tiempo y, como poco, 40 imágenes: la primera vez, el móvil tarda en preparar el edificio)
+      const rt = this.rt, shot = async (pos, look, ms) => { this.follow.cinematic = { pos, look, t: 0, lookCur: look.clone() }; this.camera.position.copy(pos); this.camera.lookAt(look);
+        const f0 = rt?.frameNo ?? 0, t0 = performance.now(); await new Promise(r => { const k = () => (performance.now() - t0 >= ms && (rt?.frameNo ?? 1e9) - f0 >= 40) || performance.now() - t0 > ms + 15000 ? r() : setTimeout(k, 50); k(); }); };
+      this.ui.toast?.('La final, en el frontón Labrit de Iruña', 'pelota', 3600);
+      await shot(V(xc + 14, 7, zb + 34), V(xc, 7, zb), 2600);
+      await shot(V(xc - 6, 3, zb + 14), V(xc, 6, zb), 1600);
+      await shot(V(12, 7.5, 30), V(0, 3, 4), 2200);   // dentro: desde lo alto de la grada hacia el frontis
+    } finally { this.follow.cinematic = null; this.sky.flood = was; }   // (el jugador sigue quieto: el partido lo coloca y lo suelta al acabar)
   }
   say(a, lines) {
     const look = a.obj?.userData.look;

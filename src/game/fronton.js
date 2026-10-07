@@ -133,7 +133,7 @@ export class Fronton {
     const court = this.court = new PelotaCourt(THREE, { title, texScale: QUALITY === 'low' ? 0.5 : 1, ...extra });
     const g = court.group; g.position.set(spot.x, spot.y, spot.z); g.rotation.y = spot.ry; scene.add(g); g.updateMatrixWorld(true);
     const E = court.extent, mid = this.toWorld((E.x0 + E.x1) / 2, 0);
-    clearGrass(mid.x, mid.z, E.x1 - E.x0, E.z1, spot.ry); clearTrees(mid.x, mid.z, E.x1 - E.x0, E.z1, spot.ry);
+    if (!extra.noClear) { clearGrass(mid.x, mid.z, E.x1 - E.x0, E.z1, spot.ry); clearTrees(mid.x, mid.z, E.x1 - E.x0, E.z1, spot.ry); }
     for (const b of court.boxes) { const p = this.toWorld(b.x, b.z); addBox(p.x, p.z, b.w, b.d, spot.ry, { solidView: true }); }
     addPlatform(spot.x, spot.z, spot.ry, E.x0, E.x1 - 3.3, E.z0, E.z1, spot.y);   // la cancha es suelo (sin las gradas)
     this.entry = this.toWorld(court.entry.x, court.entry.z);
@@ -142,12 +142,22 @@ export class Fronton {
   play(G, rival, opts) { return playPelota(G, this, rival, opts); }
 }
 
+// El frontón Labrit de Iruña, donde se juegan las finales: se monta una vez, muy por encima del pueblo y fuera de sus
+// límites (no toca casas, árboles ni caminos; dentro, cubierto, no se ve nada de fuera)
+let LABRIT = null;
+export function labrit(scene, out) {
+  if (LABRIT && LABRIT.court.group.parent === scene) return LABRIT;
+  LABRIT = new Fronton(scene, { x: out.x, z: out.z, y: 2400, ry: 0 }, 'LABRIT', { labrit: true, noClear: true, wallName: 'LABRIT', wallSub: 'Iruña · Pamplona',
+    look: { frontis: '#3f6c58', wall: '#3f6c58', floor: '#6f7b75', contra: '#8b887f', chapa: '#c9d0d4', chapaMetal: true, stone: null, brick: false, roof: 'metal', cap: '#c9c3b6' } });
+  return LABRIT;
+}
+
 /**
  * Partido (o peloteo) en un frontón. Devuelve una promesa con { win, you, cpu, best, quit }.
  * G: juego (player, camera, follow, ui, mode); rival: Actor del pueblo.
  */
 // (torneo: rivalName para el nombre del rival en el marcador y fixedLevel para no elegir nivel)
-export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level, rivalName, fixedLevel = false } = {}) {
+export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level, rivalName, fixedLevel = false, returnTo = null } = {}) {
   if (window.__autoWin) return Promise.resolve({ win: true, you: target, cpu: 0 });
   return new Promise(res => {
     const P = G.player, rig0 = P.rig, home = { x: rival.pos.x, z: rival.pos.z, h: rival.heading };
@@ -187,7 +197,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // y el público sentado en los bancos de la grada (una sola llamada de dibujo; se va al acabar)
     // (los más cercanos a la cámara, en 3D; con pañuelos que se agitan en cada tanto)
     // todo el público en 3D con su textura (sin láminas planas a lo lejos): cuántos, según la calidad, repartidos por la grada
-    try { const C = fronton.court, all = C?.standSpots || [], cap = QUALITY === 'low' ? 44 : QUALITY === 'mid' ? 64 : 90;
+    try { const C = fronton.court, all = C?.standSpots || [], full = C?.labrit ? 1.7 : 1, cap = Math.round((QUALITY === 'low' ? 44 : QUALITY === 'mid' ? 64 : 90) * full);   // (en el Labrit, la final: lleno)
       const sp = all.filter(() => Math.random() < Math.min(1, cap / Math.max(1, all.length)));
       // (en coordenadas del mundo: el público 3D elige a los que tiene cerca de la cámara)
       C.group.updateMatrixWorld(true); const yaw = new THREE.Euler().setFromQuaternion(C.group.getWorldQuaternion(new THREE.Quaternion()), 'YXZ').y;
@@ -212,13 +222,14 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       once('rival', 'won', st.won, () => red?.doCheer());
       if (st.won) rival.cheer = 0.6;
     };
-    let match;
+    let match; const youName = profile().name || (isEU() ? 'Zu' : 'Tú'), rivName = rivalName || String(rival.name).split(',')[0];
+    fronton.court.setScore?.(youName, rivName, 0, 0);
     try { match = G.pelotaMatch = new PelotaMatch({
       THREE, court: fronton.court, camera: G.camera, lang: isEU() ? 'eu' : 'es', mode, target, level, fixedLevel,
       you: { obj: P.obj, name: profile().name || (isEU() ? 'Zu' : 'Tú'), animate: animYou },
       rival: { obj: rival.obj, name: rivalName || String(rival.name).split(',')[0], animate: animRival },
       onEnd: (r) => done(r), onExit: (r) => done(r),
-      onEvent: (e) => { if (e.type === 'call' && seated) { seated.cheer(true); cheerT = e.final ? 4.6 : 1.6; } },
+      onEvent: (e) => { if (e.type === 'call' && e.score) fronton.court.setScore?.(youName, rivName, e.score.you, e.score.rival); if (e.type === 'call' && seated) { seated.cheer(true); cheerT = e.final ? 4.6 : 1.6; } },
     }); } catch (e) { console.warn('frontón', e); done({ win: false, error: true }); return; }   // (si no se monta, de vuelta al pueblo)
     G.pelotaTick = (dt) => { match.update(dt); if (seated) { seated.tick(match.t || 0, cheerT > 0 ? 1 : 0.15, seatedZ, G.camera); if (cheerT > 0 && (cheerT -= dt) <= 0) seated.cheer(false); } };
     })().catch(fail);
@@ -236,7 +247,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       G.rt?.boost?.(false);
       P.rig = rig0; P.frozen = false; G.mode = 'play'; G.ui.hudVisible?.(true); G.perro?.release?.();
       rival.frozen = false; rival.speed = 0; rival.setPos(home.x, home.z, home.h);
-      const e = fronton.entry, c = fronton.toWorld(0, 12);
+      const back = returnTo || fronton, e = back.entry, c = back.toWorld(0, 12);
       P.place(e.x, e.z, Math.atan2(c.x - e.x, c.z - e.z));
       G.follow.cinematic = null; G.follow.snap(P);
       res({ win: !!r.win, you: r.score?.you ?? 0, cpu: r.score?.rival ?? 0, best: r.best ?? 0, quit: !!r.quit });

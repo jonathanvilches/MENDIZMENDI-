@@ -58,7 +58,7 @@ export class Player {
     nx = r.x; nz = r.z;
     // límites del mundo (montañas)
     const r4 = Math.pow(nx ** 4 + nz ** 4, 0.25);
-    if (r4 > BOUNDARY) { const k = BOUNDARY / r4; nx *= k; nz *= k; }
+    if (r4 > BOUNDARY && !this.frozen) { const k = BOUNDARY / r4; nx *= k; nz *= k; }   // (quieto, fuera de los límites: en el Labrit de la final)
     // pendiente máxima y agua profunda
     const gNew = groundHeight(nx, nz), gOld = groundHeight(this.pos.x, this.pos.z);
     const moved = Math.hypot(nx - this.pos.x, nz - this.pos.z);

@@ -5,7 +5,7 @@ export const EU_EXACT = {
   'Insignias': 'Intsigniak', 'Pasaporte': 'Pasaportea', 'Perfil': 'Profila', 'Más': 'Gehiago', 'Más secciones': 'Atal gehiago',
   'Montañas de Navarra con su perfil': 'Nafarroako mendiak eta haien profila', 'Fauna, árboles, plantas y flores': 'Fauna, zuhaitzak, landareak eta loreak',
   'Tus logros': 'Zure lorpenak', 'Los sellos de tus pueblos': 'Zure herrietako zigiluak', 'Nombre, nivel y ajustes': 'Izena, maila eta ezarpenak',
-  'Aventurero': 'Abenturazalea', 'Cerrar': 'Itxi', 'Seguir': 'Jarraitu', 'Anterior': 'Aurrekoa', 'Siguiente': 'Hurrengoa', 'Saltar ▸▸': 'Saltatu ▸▸',
+  'Aventurero': 'Abenturazalea', 'La final, en el frontón Labrit de Iruña': 'Finala, Iruñeko Labrit frontoian', 'Frontón Labrit · Iruña': 'Labrit frontoia · Iruña', 'Cerrar': 'Itxi', 'Seguir': 'Jarraitu', 'Anterior': 'Aurrekoa', 'Siguiente': 'Hurrengoa', 'Saltar ▸▸': 'Saltatu ▸▸',
   '¿Sabías que…?': 'Ba al zenekien…?', 'Preparando…': 'Prestatzen…', '¡Listo!': 'Prest!', 'Navarra, pueblo a pueblo': 'Nafarroa, herriz herri',
   // --- hasiera ---
   'Próxima parada': 'Hurrengo geltokia', 'Sigue tu aventura en': 'Jarraitu zure abentura hemen:', 'misiones': 'misio', '¡A la aventura!': 'Abenturara!', '¡Seguimos!': 'Jarraitu dezagun!',
@@ -191,8 +191,8 @@ export const EU_EXACT = {
   'Norte': 'Iparraldea', 'Sur': 'Hegoaldea',
   // --- esku pilota txapelketa ---
   'Gana la final y la txapela es tuya': 'Irabazi finala eta txapela zurea da', 'TXAPELDUN · CAMPEÓN DEL TORNEO': 'TXAPELDUNA · TXAPELKETAKO IRABAZLEA', '¡La txapela es tuya! Zorionak!': 'Txapela zurea da! Zorionak!',
-  'ocho pelotaris por eliminatorias (cuartos y semifinales a 5 tantos, final a 7). Todos tus partidos se juegan en este frontón: los rivales vienen aquí. Los demás partidos se simulan.':
-    'zortzi pilotari kanporaketetan (final-laurdenak eta finalerdiak 5 tantora, finala 7ra). Zure partida guztiak frontoi honetan jokatzen dira: aurkariak hona etortzen dira. Gainerako partidak simulatu egiten dira.',
+  'ocho pelotaris por eliminatorias (cuartos y semifinales a 5 tantos, final a 7). Los cuartos y las semifinales se juegan en este frontón: los rivales vienen aquí. La final, en el frontón Labrit de Iruña. Los demás partidos se simulan.':
+    'zortzi pilotari kanporaketetan (final-laurdenak eta finalerdiak 5 tantora, finala 7ra). Final-laurdenak eta finalerdiak frontoi honetan jokatzen dira: aurkariak hona etortzen dira. Finala, Iruñeko Labrit frontoian. Gainerako partidak simulatu egiten dira.',
   'CUARTOS DE FINAL': 'FINAL-LAURDENAK', 'SEMIFINALES': 'FINALERDIAK', 'FINAL': 'FINALA', 'Cuartos de final': 'Final-laurdenak', 'Semifinales': 'Finalerdiak', 'Final': 'Finala',
   'ELIMINADO': 'KANPORATUTA', 'El torneo sigue sin ti: mira quién se lleva la txapela.': 'Txapelketak zu gabe jarraitzen du: ikusi nork eramaten duen txapela.', 'Nuevo torneo': 'Txapelketa berria',
   'Siguiente ronda': 'Hurrengo erronda', 'Pelotaris inventados para el juego.': 'Jokorako asmatutako pilotariak.', 'Por jugar': 'Jokatzeko', 'Frontón del pueblo': 'Herriko frontoia', 'Pelota a mano': 'Esku pilota',
@@ -253,7 +253,7 @@ export const EU_RX = [
   [/^(.+): el (\d+)$/, '$1: $2.a'], [/^(\d+) pases$/, '$1 pase'], [/^(\d+) dianas$/, '$1 diana'], [/^(\d+) de (\d+)$/, '$2tik $1'],
   [/^Torneo de mano · edición (\d+)$/, 'Esku pilota txapelketa · $1. edizioa'], [/^Tus txapelas: (\d+)$/, 'Zure txapelak: $1'],
   [/^Txapela de (.+)$/, (m, a) => `${loc(eu(a))} txapela`],
-  [/^(CUARTOS DE FINAL|SEMIFINALES|FINAL) · A (\d+) TANTOS$/, '$1 · $2 TANTORA'], [/^Frontón de (.+)$/, (m, a) => `${loc(a)} frontoia`], [/^¡(\d+) a (\d+)! Pasas a (cuartos de final|semifinales|final)\. El próximo partido, aquí mismo\.$/, (m, a, b, c) => `${a}-${b}! Hurrengo txandara: ${eu(c[0].toUpperCase() + c.slice(1)).toLowerCase()}. Hurrengo partida, hementxe bertan.`], [/^FRONTÓN DE (.+)$/, (m, a) => `${loc(a[0] + a.slice(1).toLowerCase()).toUpperCase()} FRONTOIA`],
+  [/^(CUARTOS DE FINAL|SEMIFINALES|FINAL) · A (\d+) TANTOS$/, '$1 · $2 TANTORA'], [/^Frontón de (.+)$/, (m, a) => `${loc(a)} frontoia`], [/^¡(\d+) a (\d+)! Pasas a la final\. Se juega en el frontón Labrit de Pamplona\.$/, '$1-$2! Finalera zoaz. Iruñeko Labrit frontoian jokatzen da.'], [/^¡(\d+) a (\d+)! Pasas a (cuartos de final|semifinales|final)\. El próximo partido, aquí mismo\.$/, (m, a, b, c) => `${a}-${b}! Hurrengo txandara: ${eu(c[0].toUpperCase() + c.slice(1)).toLowerCase()}. Hurrengo partida, hementxe bertan.`], [/^FRONTÓN DE (.+)$/, (m, a) => `${loc(a[0] + a.slice(1).toLowerCase()).toUpperCase()} FRONTOIA`],
   [/^(.+) se lleva la txapela\. ¡A por la próxima!$/, (m, a) => `${loc(a)} pilotariak eraman du txapela. Hurrengora!`],
   [/^Tu partido es en el frontón de (.+): viaja allí \(en el mapa\) y habla con su pelotari\.$/, (m, a) => `Zure partida ${loc(a)} frontoian da: bidaiatu hara (mapan) eta hitz egin bertako pilotariarekin.`],
   [/^(Cuartos de final|Semifinales|Final) · a (\d+)$/, '$1 · $2ra'],
