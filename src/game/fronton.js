@@ -11,7 +11,7 @@ import { isEU } from '../i18n.js';
 import { profile } from './profile.js';
 import { QUALITY } from '../util/quality.js';
 import { Crowd } from './crowd.js';
-import { crowdMesh } from '../actors/crowdSprites.js';
+import { crowd3d } from '../actors/crowd3d.js';
 import { shieldSpec, drawShield } from '../world/heraldry.js';
 import { drawOfficial, officialHeight } from '../world/armas.js';
 import { armsOfTown } from '../data/armas-navarra.js';
@@ -152,7 +152,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
   if (window.__autoWin) return Promise.resolve({ win: true, you: target, cpu: 0 });
   return new Promise(res => {
     const P = G.player, rig0 = P.rig, home = { x: rival.pos.x, z: rival.pos.z, h: rival.heading };
-    let seated = null, cheerT = 0;
+    let seated = null, seatedZ = 0, cheerT = 0;
     let rig = rig0, pel = null, red = null, crowd = null, bf = null, bfWas = false, ended = false; const hidden = [], hiddenR = [];
     // si algo falla al montar el partido, de vuelta al pueblo con todo como estaba (nunca congelado en la cancha)
     const fail = (e) => {
@@ -185,8 +185,13 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // vecinos que se acercan a la grada a ver el partido
     crowd = G.pelotaCrowd = G.scene ? new Crowd(G, fronton, 7 + ((Math.random() * 4) | 0)) : null;
     // y el público sentado en los bancos de la grada (una sola llamada de dibujo; se va al acabar)
-    try { const C = fronton.court, sp = (C?.standSpots || []).filter(() => Math.random() < (QUALITY === 'low' ? 0.5 : 0.7));
-      if (sp.length && G.scene) { seated = crowdMesh(sp, 'pelota', 1.36, null, true); C.group.add(seated); } } catch (e) { console.warn('público del frontón', e); }
+    // (los más cercanos a la cámara, en 3D; con pañuelos que se agitan en cada tanto)
+    try { const C = fronton.court, sp = (C?.standSpots || []).filter(() => Math.random() < (QUALITY === 'low' ? 0.72 : 0.85));
+      // (en coordenadas del mundo: el público 3D elige a los que tiene cerca de la cámara)
+      C.group.updateMatrixWorld(true); const yaw = new THREE.Euler().setFromQuaternion(C.group.getWorldQuaternion(new THREE.Quaternion()), 'YXZ').y;
+      const wsp = sp.map(([x, y, z, ry]) => { const v = C.group.localToWorld(new THREE.Vector3(x, y, z)); return [v.x, v.y, v.z, ry + yaw]; });
+      if (wsp.length) seatedZ = wsp.reduce((a, q) => a + q[2], 0) / wsp.length;
+      if (wsp.length && G.scene) { seated = crowd3d(wsp, 'pelota', 1.36, { sit: true }); G.scene.add(seated); } } catch (e) { console.warn('público del frontón', e); }
     const once = (who, key, on, fn) => { if (on && !flags[who][key]) { flags[who][key] = true; fn(); } else if (!on) flags[who][key] = false; };
     const stYou = { v: null }, stRival = { v: null };
     armSwing(rig.char, () => stYou.v, { windOnly: !!pel }); armSwing(red ? red.char : rival.glb, () => stRival.v, { windOnly: !!red });
@@ -213,14 +218,14 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       onEnd: (r) => done(r), onExit: (r) => done(r),
       onEvent: (e) => { if (e.type === 'call' && crowd) crowd.point(e.winner === 'you'); if (e.type === 'call' && seated) { seated.cheer(true); cheerT = 1.6; } },
     }); } catch (e) { console.warn('frontón', e); done({ win: false, error: true }); return; }   // (si no se monta, de vuelta al pueblo)
-    G.pelotaTick = (dt) => { match.update(dt); crowd?.update(dt); if (seated) { seated.tick(match.t || 0, cheerT > 0 ? 1 : 0.15, 0); if (cheerT > 0 && (cheerT -= dt) <= 0) seated.cheer(false); } };
+    G.pelotaTick = (dt) => { match.update(dt); crowd?.update(dt); if (seated) { seated.tick(match.t || 0, cheerT > 0 ? 1 : 0.15, seatedZ, G.camera); if (cheerT > 0 && (cheerT -= dt) <= 0) seated.cheer(false); } };
     })().catch(fail);
     function done(r) {
       if (ended) return; ended = true;
       // el público aplaude el final y vuelve al pueblo (sigue moviéndose con el juego hasta que se va)
       if (crowd) { crowd.end(!!r.win); G.crowds = (G.crowds || []).filter(c => !c.disposed).concat(crowd); }
       G.pelotaTick = null; G.pelotaMatch = null; G.pelotaRig = null;
-      if (seated) { seated.parent?.remove(seated); seated.geometry.dispose(); seated.material.dispose(); seated = null; }
+      if (seated) { seated.parent?.remove(seated); seated.dispose(); seated = null; }
       if (rig.char) rig.char.post = null; if (rival.glb) rival.glb.post = null;
       rig.setStance?.(null);
       if (pel) { P.obj.remove(pel.char.root); pel.dispose(); for (const c of hidden) P.obj.add(c); }
