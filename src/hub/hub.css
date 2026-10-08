@@ -1027,7 +1027,8 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   .bp-equip { grid-column: auto; } .bp-head + .bp-eat { grid-column: span 2; }
   .bp-gear { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 8px; } .bagpanel .gitem small, .bagpanel .gitem b { display: none; }
   .bagpanel .gitem { grid-template-columns: 1fr; place-items: center; padding: 8px 0; min-height: 48px; } .bagpanel .gitem svg { width: 28px; height: 28px; }
-  .bagpanel .seg button svg { display: none; }   /* (el selector del perro, solo con su nombre: si no, «Con Gorri» no cabía) */
+  .bagpanel .seg button svg, .bagpanel .seg button img { display: none; }   /* (el selector del perro, solo con su nombre: si no, «Con Gorri» no cabía) */
+  .bagpanel .bp-sec h4 { margin-top: 8px; }   /* (todos los títulos de sección, con el mismo aire encima) */
   .bp-foot { padding: 8px 16px 8px; } .bp-foot .btn { min-height: 44px; }
 }
 @media (orientation: landscape) and (max-height: 560px) {

@@ -2,7 +2,7 @@
 // brillo del suelo en la captura; se repite sin el brillo del sol que depende de hacia dónde mira la cámara (reflejo
 // especular) para ver cuánto cambia por eso. Después, la luz de la escena (cielo, sol, dirección, niebla, focos) al
 // entrar en un partido de pelota, durante el partido y al salir.
-// Uso: node tools/luz-ver.mjs [pueblo] [carpeta] [hora] [pueblo|pelota|todo] [clear|rain]   (servidor en 5173)
+// Uso: node tools/luz-ver.mjs [pueblo] [carpeta] [hora] [pueblo|pelota|todo] [clear|rain]   (URL=http://127.0.0.1:5173 por defecto)
 import { chromium } from 'playwright-core';
 import { mkdirSync } from 'fs';
 import sharp from 'sharp';
@@ -11,7 +11,7 @@ const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-119
 const p = await b.newPage({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true });
 const errs = []; p.on('pageerror', e => errs.push(e.message));
 await p.addInitScript(() => { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Mendi', seen: { heroBenat: true, dog: true } })); });
-await p.goto(`http://127.0.0.1:5173/?town=${town}&q=low&weather=${weather}&skipintro=1&t=${hour}`, { timeout: 300000 });
+await p.goto(`${process.env.URL || "http://127.0.0.1:5173"}/?town=${town}&q=low&weather=${weather}&skipintro=1&t=${hour}`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 900000 }); await p.waitForTimeout(3000);
 let fails = 0; const ok = (c, m) => { console.log(`  ${c ? 'OK ' : 'FALLO'} ${m}`); if (!c) fails++; };
 // (la hora, quieta: así solo cambia la cámara)
