@@ -215,7 +215,7 @@ async function boot() {
         if (!club) { club = await clubPick(); if (!club) break; P.futbolClub = club; saveProfile(); }
         const S = season(club), C = CLUBS[club];
         const items = [['liga', S.j < S.rounds.length ? `Liga Navarra · jornada ${S.j + 1}` : 'Liga Navarra · nueva temporada', 'Contra los clubes de tu grupo'],
-          ['amistoso', 'Amistoso', 'Contra cualquier club de Navarra'], ['sadar', 'Partido en El Sadar', 'En el estadio de Iruña'], ['club', 'Cambiar de club', C.name], ['exit', 'Salir', '']];
+          ['amistoso', 'Amistoso', 'Contra cualquier club de Navarra'], ['sadar', 'Partido rápido', 'Iruña contra el visitante'], ['club', 'Cambiar de club', C.name], ['exit', 'Salir', '']];
         const pick = await clubPanel(club, items, 'Campeonato de fútbol');
         if (pick === 'exit') break;
         if (pick === 'club') { club = null; continue; }

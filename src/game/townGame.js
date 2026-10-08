@@ -59,8 +59,8 @@ import { Pista, findPistaSpot } from './pista.js';
 import { clubOfTown, teamOfClub } from '../futbol/clubs.js';
 import { clubPanel } from '../futbol/liga.js';
 import { season as ligaSeason } from '../futbol/liga.js';
-import { TOWN_CLUB, CLUBS } from '../futbol/clubs.js';
-const CLUBS_NAME = (id) => CLUBS[id]?.name || '', CLUBS_TOWN = (id) => CLUBS[id]?.town || '';
+import { CLUBS } from '../futbol/clubs.js';
+const CLUBS_NAME = (id) => CLUBS[id]?.name || '';
 import { torneo, yourMatch, playTorneoRound, torneoPanel, pelotaMenu } from './torneo.js';
 import { showChampion } from '../ui/champion.js';
 import { makeClue, makeAura } from './legendFx.js';
@@ -843,31 +843,30 @@ export class TownGame {
     // el rival del partido del pueblo: el club vecino más parecido de la liga (o el equipo de los vecinos)
     const rivalId = club ? ligaSeason(club.id).teams[1] : null, rivalTeam = rivalId ? teamOfClub(rivalId) : null, rivalName = rivalTeam?.name || 'los vecinos';
     const Futbol = await loadFutbol();
-    // (un solo fútbol: en el pueblo también se juega el partido de once, en el campo del pueblo; ya no hay fútbol sala)
-    const fut = new Futbol(this, null, { campo: 'pueblo', title: `Campo de ${town}`, sub: 'Partido de fútbol', local });
+    // (un solo fútbol, el de once, y todos los partidos en El Sadar: con sus gradas llenas es más espectacular que el
+    // campo del pueblo)
+    const fut = new Futbol(this, null, { campo: 'sadar', title: 'El Sadar', sub: 'Partido de fútbol', local });
     this.player.frozen = true;
     try {
       if (st.step === 0 && !st.met) {
         await this.say(a, [club ? `¡Kaixo! Entreno al equipo de ${club.name}. Aquí puedes jugar con nosotros.` : `¡Kaixo! Esta es la pista de ${town}.`,
-          this.pista ? 'Tienes la Liga Navarra contra los clubes de la zona, amistosos contra cualquier club de Navarra y un partido aquí, en el pueblo.' : 'Tienes la Liga Navarra contra los clubes de la zona y amistosos contra cualquier club de Navarra.',
+          this.pista ? 'Tienes la Liga Navarra contra los clubes de la zona, amistosos contra cualquier club de Navarra y el partido del pueblo. Todos se juegan en El Sadar, el estadio de Iruña.' : 'Tienes la Liga Navarra contra los clubes de la zona y amistosos contra cualquier club de Navarra. Todos se juegan en El Sadar, el estadio de Iruña.',
           ...(this.pista ? [`Juega un partido contra ${rivalName}. Si ganas, te pongo el sello de fútbol en el pasaporte.`] : [])].filter(Boolean));
         st.step = this.pista ? 2 : 0; if (!this.pista) st.met = true; saveProfile();
       } else await this.say(a, [club ? `¡Aupa ${club.name}! ¿Qué jugamos hoy?` : '¿Qué jugamos hoy?']);
     } finally { a.talking = 0; }   // (el jugador sigue quieto con el menú del club delante)
-    // menú del club (como en los juegos de fútbol): liga, partido en el pueblo, amistoso. En la liga juegas con «tu club» (el del primer pueblo
-    // en el que la empezaste); cada jornada se juega en el campo del de casa, así que se viaja de pueblo en pueblo
+    // menú del club (como en los juegos de fútbol): liga, partido del pueblo, amistoso. En la liga juegas con «tu club» (el del primer pueblo
+    // en el que la empezaste); todas las jornadas, en El Sadar, desde cualquier pueblo
     const P = profile(), myClub = P.futbolClub || club?.id, S = myClub ? ligaSeason(myClub) : null;
     if (st.step === 1) st.step = 2;   // (ya no hay entrenamiento previo: directo al partido por el sello)
-    const sala = !this.pista ? null : st.step === 2 ? ['sala', 'Partido por el sello', `Contra ${rivalName}`] : ['sala', 'Partido de fútbol', 'En el campo del pueblo'];
-    const nm = S && S.j < S.rounds.length ? S.rounds[S.j].find(x => x.h === myClub || x.a === myClub) : null;
-    const ligaSub = !nm ? 'Contra los clubes de la zona' : nm.h === club?.id ? `${P.futbolClub ? CLUBS_NAME(myClub) + ' · ' : ''}la jornada se juega aquí` : `Jornada en ${CLUBS_TOWN(nm.h)}`;
+    const sala = !this.pista ? null : st.step === 2 ? ['sala', 'Partido por el sello', `Contra ${rivalName} · en El Sadar`] : ['sala', 'Partido de fútbol', 'En El Sadar'];
+    const ligaSub = `${P.futbolClub ? CLUBS_NAME(myClub) + ' · ' : ''}en El Sadar`;
     const items = (club ? [['liga', S.j < S.rounds.length ? `Liga Navarra · jornada ${S.j + 1}` : 'Liga Navarra · nueva temporada', ligaSub], sala, ['amistoso', 'Amistoso', 'Contra cualquier club de Navarra'], ['exit', 'Salir', '']] : [sala, ['exit', 'Salir', '']]).filter(Boolean);
     const pick = club ? await clubPanel(club.id, items, `${town} · tu club`) : 'sala';
     if (pick === 'exit' || (pick === 'sala' && !this.pista)) return;
     if (pick === 'liga') {
       if (!P.futbolClub) { P.futbolClub = club.id; saveProfile(); }
-      const r = await fut.liga(myClub, club.id); if (!r.quit && r.win) addXP(30);
-      if (r.travel) return this.travelTo(this.townOfClub(r.travel));
+      const r = await fut.liga(myClub); if (!r.quit && r.win) addXP(30);
       return;
     }
     if (pick === 'amistoso') { const r = await fut.friendly(club.id); if (r.quit) return; await this.say(a, [r.win ? `¡${r.you} a ${r.cpu}! ¡Qué partidazo!` : r.you === r.cpu ? `${r.you} a ${r.cpu}. Empate.` : `${r.you} a ${r.cpu}. La próxima, seguro.`]); return; }
@@ -882,14 +881,6 @@ export class TownGame {
     }
     const r = await fut.run(); if (r.quit) return;
     await this.say(a, [r.win ? `¡${r.you} a ${r.cpu}! ¡Qué partidazo!` : r.you === r.cpu ? `${r.you} a ${r.cpu}. Empate.` : `${r.you} a ${r.cpu}. La próxima, seguro.`]);
-  }
-  // el pueblo del juego de un club (el que lleva su nombre o el primero de su lista)
-  townOfClub(id) { const ts = Object.keys(TOWN_CLUB).filter(t => TOWN_CLUB[t] === id); const c = clubOfTown(ts[0]); return ts.find(t => LEVELS.find(l => l.id === t)?.name.split(' /')[0] === c?.town) || ts[0]; }
-  // viajar a otro pueblo para jugar allí (el partido de liga o del torneo)
-  async travelTo(id) {
-    const L = LEVELS.find(l => l.id === id); if (!L || id === this.def.id) return;
-    await this.ui.toast?.(`De viaje a ${L.name.split(' /')[0]}…`, 'map', 1600);
-    this.onPlayTown ? this.onPlayTown(id) : this.onExit?.();
   }
   // los pueblos del juego donde se juega el torneo de la comarca: los de la comarca y, si son pocos, los más cercanos
   comarcaVenues() {

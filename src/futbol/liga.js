@@ -149,28 +149,28 @@ function tableHtml(S) {
     const c = CLUBS[t.id], dg = t.gf - t.gc; return `<tr class="${t.id === S.club ? 'me' : ''}"><td>${i + 1}</td><td class="n"><i style="background:${c.shirt}"></i>${esc(c.name)}</td><td>${t.pj}</td><td class="x">${t.g}</td><td class="x">${t.e}</td><td class="x">${t.p}</td><td class="x">${t.gf}</td><td class="x">${t.gc}</td><td class="dg">${dg > 0 ? '+' + dg : dg}</td><td class="pts">${t.pts}</td></tr>`; }).join('')}</table>`;
 }
 // cómo funciona (solo al empezar la temporada, para no repetirlo en cada jornada)
-const HOW = '<p class="lg-how"><b>Cómo funciona:</b> siete jornadas, todos contra todos con los clubes de tu grupo. Tus partidos los juegas tú (o los simulas); los demás se simulan solos. Se juega en el campo del equipo de casa, así que a veces hay que viajar. Tres puntos por victoria y uno por empate.</p>';
+const HOW = '<p class="lg-how"><b>Cómo funciona:</b> siete jornadas, todos contra todos con los clubes de tu grupo. Tus partidos los juegas tú (o los simulas); los demás se simulan solos. Todos los partidos se juegan en El Sadar. Tres puntos por victoria y uno por empate.</p>';
 function head(S, sub) {
   const c = CLUBS[S.club];
   return `<div class="lg-head">${kitSvg(S.club, 48)}<div><small>${esc(sub)}</small><h2>${esc(c.name)}</h2><span class="lg-note">${esc(c.town)} · Liga Navarra, grupo ${c.group === 'norte' ? 'Norte' : 'Sur'}${S.titles ? ` · ${S.titles} ${S.titles === 1 ? 'título' : 'títulos'}` : ''}</span></div><div class="lg-ovr">${c.ovr}<small>MEDIA</small></div></div>`;
 }
 /** Pantalla principal de la liga: próximo partido y clasificación. Devuelve 'play' | 'sim' | 'new' | 'exit'. */
-// here: el club del pueblo en el que estás (cada jornada se juega en el campo del de casa: si no estás allí, hay que viajar)
-export function ligaPanel(S, here = undefined) {
+// (todas las jornadas se juegan en El Sadar: se juegan desde donde estés, sin viajar)
+export function ligaPanel(S) {
   return new Promise(res => {
-    const m = nextMatch(S), c = CLUBS[S.club], away = m && here !== undefined && here !== m.h;
+    const m = nextMatch(S), c = CLUBS[S.club];
     let mid;
     if (m) {
       const H = CLUBS[m.h], A = CLUBS[m.a], home = m.h === S.club, rival = home ? m.a : m.h;
-      mid = `<div class="lg-next"><div class="lg-t">${kitSvg(m.h, 52)}<b>${esc(H.name)}</b><em>Media ${H.ovr}</em></div><div class="lg-vs">VS<small>JORNADA ${m.j + 1} DE ${S.rounds.length}</small><small>${esc(home ? (c.field ? 'Campo de ' + c.field : 'En casa') : (CLUBS[rival].field ? 'Campo de ' + CLUBS[rival].field : 'Fuera de casa'))}</small></div><div class="lg-t">${kitSvg(m.a, 52)}<b>${esc(A.name)}</b><em>Media ${A.ovr}</em></div></div>`;
+      mid = `<div class="lg-next"><div class="lg-t">${kitSvg(m.h, 52)}<b>${esc(H.name)}</b><em>Media ${H.ovr}</em></div><div class="lg-vs">VS<small>JORNADA ${m.j + 1} DE ${S.rounds.length}</small><small>${home ? 'EN CASA · EL SADAR' : 'FUERA · EL SADAR'}</small></div><div class="lg-t">${kitSvg(m.a, 52)}<b>${esc(A.name)}</b><em>Media ${A.ovr}</em></div></div>`;
     } else {
       const ch = CLUBS[S.champion];
       mid = `<div class="lg-champ"><small>CAMPEÓN DE LA LIGA NAVARRA</small><br><b>${esc(ch.name)}</b><br>${S.champion === S.club ? '¡Sois campeones! Aupa ' + esc(c.town) + '!' : 'La próxima temporada, a por el título.'}</div>`;
     }
     const adapt = Object.values(CLUBS).some(x => x.adapt) ? '<p class="lg-note lg-adapt">Equipos con el nombre de cada pueblo o valle, sin nombres ni escudos de clubes de verdad.</p>' : '';
-    const play = away ? `<button class="lg-btn go" data-a="travel">Viajar a ${esc(CLUBS[m.h].town)}</button>` : '<button class="lg-btn go" data-a="play">¡A jugar!</button>';
+    const play = '<button class="lg-btn go" data-a="play">¡A jugar!</button>';
     const r = panel(`${head(S, m ? `Temporada ${S.year}` : 'Fin de temporada')}${mid}${m && S.j === 0 ? HOW : ''}${tableHtml(S)}
-      <div class="lg-btns">${m ? `${play}<button class="lg-btn" data-a="sim">Simular partido</button>` : '<button class="lg-btn go" data-a="new">Nueva temporada</button>'}<button class="lg-btn" data-a="exit">Salir</button></div>${away && S.j !== 0 ? `<p class="lg-note">La jornada se juega en el campo del ${esc(CLUBS[m.h].name)}: viaja a ${esc(CLUBS[m.h].town)} (en el mapa) y habla con su entrenador.</p>` : ''}${adapt}`);
+      <div class="lg-btns">${m ? `${play}<button class="lg-btn" data-a="sim">Simular partido</button>` : '<button class="lg-btn go" data-a="new">Nueva temporada</button>'}<button class="lg-btn" data-a="exit">Salir</button></div>${adapt}`);
     r.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; r.remove(); res(b.dataset.a); });
   });
 }
