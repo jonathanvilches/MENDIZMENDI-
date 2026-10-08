@@ -287,6 +287,7 @@ export class Runtime {
     g.update(dt);
     navTick(this.quality === 'low' ? 1.5 : 2.5);   // caminos de los vecinos, unos milisegundos por fotograma
     this.terrain.update(this.camera.position);
+    { const c = this.camera, f = this.sky.ahead || (this.sky.ahead = new THREE.Vector3()); c.getWorldDirection(f); f.y = 0; if (f.lengthSq() < 1e-4) f.set(0, 0, 0); else f.normalize(); }   // (las sombras, por delante de la cámara)
     this.sky.update(dt, P.pos, this.elapsed, g.mode === 'dance');
     this.weather?.update(dt, this.camera, this.sky, this.sound, g.mode === 'futbol' || g.mode === 'pelota');
     this.sky.applyFlood();   // (los focos del frontón, después de la lluvia)
@@ -299,8 +300,8 @@ export class Runtime {
     if (this.waterfall) this.waterfall.update(dt, this.elapsed, Math.hypot(P.pos.x - PLACES.waterfall.x, P.pos.z - PLACES.waterfall.z) < 80);
     this.smoke.update(dt);
     this.lights.update(this.sky.night, P);
-    { const fl = this.sky.flood || 0; lampFill(skyFill(this.charFill, this.sky.hemi, this.sky.sun, this.sky.night * (1 - fl)), (this.lights.lampK || 0) * (1 - fl)); }   // (en el frontón, la luz de los focos: la misma de día y de noche)
-    this.beacon.update(this.elapsed, P);
+    { const fl = this.sky.floodK(); lampFill(skyFill(this.charFill, this.sky.hemi, this.sky.sun, this.sky.night * (1 - fl)), (this.lights.lampK || 0) * (1 - fl)); }   // (en el frontón, la luz de los focos: la misma de día y de noche)
+    this.beacon.update(this.elapsed, P, g.mode !== 'play' || !!this.follow.cinematic || !!g.ui.dialogOpen, dt);
     this.sound.update(dt, P, this.follow.yaw, this.sky.night, iratiMask(P.pos.x, P.pos.z) > 0.5);
     g.ui.setClock(this.sky.clock(), this.sky.night > 0.5);
   }

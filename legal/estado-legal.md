@@ -33,6 +33,7 @@
 
 | Fecha | Función | Respuestas (1-8) | Color | Decisión |
 |---|---|---|---|---|
+| 2026-10-08 | Luz: haz del objetivo fino y suave, rayos de tormenta más finos y espaciados, focos del partido que entran poco a poco, sombras que no tiemblan al andar | 1 no · 2 no · 3 no · 4 no · 5 no · 6 no · 7 no · 8 no | Verde | Código propio; sin recursos nuevos de terceros |
 | 2026-10-07 | Nombre y escudo de la localidad centrados en la pared izquierda de todos los frontones | 1 no · 2 no · 3 no · 4 no · 5 no · 6 no · 7 no · 8 no | Verde | Solo cambia la posición; escudos públicos y textos propios, sin logotipos |
 | 2026-10-07 | Frontón Labrit dentro de Pamplona con tarima y butacas de madera; cortada más cruzada; fútbol sin frenazo al girar | 1 no · 2 no · 3 no · 4 no · 5 no · 6 no · 7 no · 8 no | Verde | Modelo propio a partir de fotos de referencia; solo el escudo público de Pamplona; sin logotipos ni marcas |
 | 2026-10-07 | Labrit por fuera según la foto del usuario: ladrillo caravista ocre claro, pilastras, zócalo, impostas y cornisa de piedra beige, ventanas recercadas, óculos, ventanas en arco, torreones con alero y teja a cuatro aguas, cubierta clara a dos aguas | 1 no · 2 no · 3 no · 4 no · 5 no · 6 no · 7 no · 8 no | Verde | Modelado y texturas propias pintadas en el juego; la foto solo se mira como referencia y no se incluye. |
