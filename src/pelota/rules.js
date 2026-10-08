@@ -14,8 +14,8 @@ export const COURT = {
   FALTA: 14,        // cuadro 4: el saque tiene que botar más allá…
   PASA: 24.5,       // …y antes del cuadro 7
   BALL_R: 0.1,      // radio visible de la pelota (algo mayor que la real para verla bien)
-  REBOTE: 34.5,     // el rebote: la pared de atrás (baja), a 3 m de la última raya
-  REBOTE_H: 2.2,
+  REBOTE: 34.5,     // el rebote: la pared de atrás, a 3 m de la última raya
+  REBOTE_H: 8.5,     // tan alto como la pared izquierda
 };
 
 // Física (en «tiempo de juego»; el partido va a cámara algo lenta según el nivel)
@@ -91,6 +91,17 @@ export const TEXT = {
       'Si bota dentro y llega a la pared de atrás (el rebote), vuelve y se puede jugar antes del segundo bote. Si da en el rebote sin botar, es fuera.',
     ],
     level: 'Nivel', rulesTitle: 'Reglas y controles',
+    // las partes del frontón, una a una con la cámara (cada zona tiene su nombre, y hay que saberlo para seguir el juego)
+    tour: { btn: 'Partes del frontón', next: 'Siguiente', prev: 'Anterior', end: 'Volver', parts: [
+      ['Frontis', 'La pared de delante. Toda pelota tiene que dar en ella, por debajo de la raya de arriba.'],
+      ['Chapa', 'La franja de abajo del frontis, con su raya roja. Si la pelota da ahí, el tanto se pierde.'],
+      ['Pared izquierda', 'Con los números de los cuadros. Se puede jugar a ella, pero por debajo de su raya roja.'],
+      ['Cancha', 'El suelo de juego, en cuadros de 3,5 metros. La pelota tiene que botar dentro.'],
+      ['Falta', 'La raya del cuadro 4. El saque tiene que botar más allá; si bota antes, es falta.'],
+      ['Pasa', 'La raya del cuadro 7. Si el saque bota más allá, es pasa y se pierde el tanto.'],
+      ['Contracancha', 'La franja de la derecha, fuera de la cancha. Si la pelota bota ahí, es fuera.'],
+      ['Rebote', 'La pared del fondo. Si la pelota llega tras botar dentro, vuelve y se sigue jugando; si da sin botar, es fuera.'],
+    ] },
     stats: { fuerza: 'Fuerza', agilidad: 'Agilidad', velocidad: 'Velocidad', rival: (n) => `Así juega ${n}` },
     tips: { slow: 'Es lento: hazle dejadas cuando esté al fondo.', clumsy: 'Le cuesta lo pegado a la pared izquierda y lo muy bajo: ajústala a la pared.', strong: 'Pega muy fuerte: puede mandarla al rebote. No te adelantes.', fast: 'Es muy rápido: llega casi a todo. Busca la pared o las dos paredes.', weak: 'Le falta fuerza: juega largo, lejos del frontis.', agile: 'Tiene buenas manos: hasta lo pegado a la pared lo devuelve.' },
     rebote: '¡Al rebote!',
@@ -157,6 +168,16 @@ export const TEXT = {
       'Barruan bote egin eta atzeko paretara (errebotera) iristen bada, itzuli egiten da eta bigarren botea baino lehen jo daiteke. Bote egin gabe errebotean jotzen badu, kanpo da.',
     ],
     level: 'Maila', rulesTitle: 'Arauak eta kontrolak',
+    tour: { btn: 'Frontoiaren atalak', next: 'Hurrengoa', prev: 'Aurrekoa', end: 'Itzuli', parts: [
+      ['Frontisa', 'Aurreko horma. Pilota orok bertan jo behar du, goiko marraren azpitik.'],
+      ['Txapa', 'Frontisaren beheko zerrenda, bere marra gorriarekin. Pilotak bertan jotzen badu, tantoa galtzen da.'],
+      ['Ezker horma', 'Koadroen zenbakiekin. Bertara jo daiteke, baina bere marra gorriaren azpitik.'],
+      ['Kantxa', 'Jokoaren lurra, 3,5 metroko koadroetan. Pilotak barruan egin behar du bote.'],
+      ['Falta', '4. koadroko marra. Sakeak haratago egin behar du bote; lehenago egiten badu, falta da.'],
+      ['Pasa', '7. koadroko marra. Sakeak haratago egiten badu bote, pasa da eta tantoa galtzen da.'],
+      ['Kontrakantxa', 'Eskuineko zerrenda, kantxatik kanpo. Pilotak bertan bote egiten badu, kanpo da.'],
+      ['Errebotea', 'Atzeko horma. Pilota barruan bote egin ondoren iristen bada, itzuli egiten da eta jokoak jarraitzen du; bote egin gabe jotzen badu, kanpo da.'],
+    ] },
     stats: { fuerza: 'Indarra', agilidad: 'Arintasuna', velocidad: 'Abiadura', rival: (n) => `${n}: honela jokatzen du` },
     tips: { slow: 'Motela da: egin dejadak atzean dagoenean.', clumsy: 'Ezkerreko paretari itsatsitakoak eta oso baxuak kostatzen zaizkio: paretara estutu.', strong: 'Oso gogor jotzen du: errebotera bidal dezake. Ez aurreratu.', fast: 'Oso azkarra da: ia guztira iristen da. Bilatu pareta edo bi pareta.', weak: 'Indarra falta zaio: jokatu luze, frontisetik urrun.', agile: 'Esku onak ditu: paretari itsatsitakoak ere itzultzen ditu.' },
     rebote: 'Errebotera!',

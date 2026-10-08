@@ -60,7 +60,8 @@ export class PelotaMatch {
     // mano a mano o por parejas (y tú, de delantero o de zaguero): solo en los partidos libres
     const canPairs = !!this.o.mates && g.mode === 'match', P = t.pairs || TEXT.es.pairs;
     const mods = [['mano', P.single], ['delantero', P.front], ['zaguero', P.back]], cur = this.pairs ? this.role : 'mano';
-    const p = this.hud.panel(`<h2>${t.title}</h2><p class="pel-sub">${esc(this.label('you'))} vs ${esc(this.label('rival'))} · ${g.mode === 'rally' ? t.rally(g.target) : t.to(g.target)}</p>
+    const TT = t.tour || TEXT.es.tour;
+    const p = this.hud.panel(`<h2>${t.title}</h2><p class="pel-sub">${esc(this.label('you'))} vs ${esc(this.label('rival'))} · ${g.mode === 'rally' ? t.rally(g.target) : t.to(g.target)} <button class="pel-chip" data-pel-tour>${TT.btn}</button></p>
       ${canPairs ? `<div class="pel-levels pel-mod" role="group" aria-label="${P.label}">${mods.map(([k, l]) => `<button data-pel-mod="${k}" aria-pressed="${k === cur}">${l}</button>`).join('')}</div>` : ''}
       ${this.pairs ? `<p class="pel-pairs">${P.how(this.role === 'delantero')} ${P.energy}</p>` : ''}
       ${this.rivalHtml()}
@@ -76,10 +77,57 @@ export class PelotaMatch {
       const b = e.target.closest('button'); if (!b) return;
       if (b.dataset.pelLv) { this.level = b.dataset.pelLv; for (const x of p.querySelectorAll('[data-pel-lv]')) x.setAttribute('aria-pressed', x.dataset.pelLv === this.level); this.newGame(); }
       if (b.dataset.pelMod) { this.chooseMode(b.dataset.pelMod); return; }
+      if (b.hasAttribute('data-pel-tour')) { this.startTour(); return; }
       if (b.hasAttribute('data-pel-go') && this.loadingMates) return;
       if (b.hasAttribute('data-pel-go')) { this.audio.ensure(); this.hud.closePanel(); this.hud.controls(true); this.game.start(); this.audio.whistle(); }
       if (b.hasAttribute('data-pel-x')) this.exit(true);
     });
+  }
+  // ------------------------------------------------------------ las partes del frontón
+  // la cámara va de una a otra (frontis, chapa, pared izquierda, cancha, falta, pasa, contracancha y rebote), cada una
+  // resaltada en amarillo y con su nombre y para qué sirve
+  startTour() {
+    this.hud.closePanel(); this.hud.controls(false); this.tour = { i: 0 };
+    const C = this.court, W = COURT.W, L = COURT.L, EXT = L + 3, RH = C.reboteH || 2.2, CO = C.contra || 2.6, T = this.T;
+    if (!this.tourHi) {
+      // (separados unos centímetros de la pared o del suelo; sin polygonOffset, que en algunos móviles los escondía detrás)
+      const mat = new T.MeshBasicMaterial({ color: '#ffd84a', transparent: true, opacity: 0.5, depthWrite: false, side: T.DoubleSide });
+      const line = this.tourLine = new T.LineBasicMaterial({ color: '#fff27a', transparent: true, opacity: 0.95, depthWrite: false });
+      // (cada parte, en amarillo con su borde)
+      const plane = (w, h, x, y, z, rx = 0, ry = 0) => { const geo = new T.PlaneGeometry(w, h), m = new T.Mesh(geo, mat); m.add(new T.LineSegments(new T.EdgesGeometry(geo), line)); m.position.set(x, y, z); m.rotation.set(rx, ry, 0); m.visible = false; m.renderOrder = 6; C.group.add(m); return m; };
+      this.tourMat = mat;
+      this.tourHi = [
+        plane(W, COURT.FRONT_TOP - COURT.CHAPA, 0, (COURT.FRONT_TOP + COURT.CHAPA) / 2, 0.08),
+        plane(W, COURT.CHAPA, 0, COURT.CHAPA / 2, 0.1),
+        plane(EXT, COURT.LEFT_LINE, -W / 2 + 0.03, COURT.LEFT_LINE / 2, EXT / 2, 0, Math.PI / 2),
+        plane(W, L, 0, 0.03, L / 2, -Math.PI / 2),
+        plane(W, 0.8, 0, 0.035, COURT.FALTA, -Math.PI / 2),
+        plane(W, 0.8, 0, 0.035, COURT.PASA, -Math.PI / 2),
+        plane(CO, EXT, W / 2 + CO / 2, 0.03, EXT / 2, -Math.PI / 2),
+        plane(W + 0.6, RH, -0.3, RH / 2, EXT - 0.03),
+      ];
+    }
+    // (dónde se pone la cámara y a dónde mira, en las medidas de la cancha)
+    this.tourCams = [[[2.5, 4, 15], [0, 4.6, 0]], [[2.5, 3.2, 6.5], [0, -0.6, 0]], [[4.5, 5.5, 27], [-5, 3.5, 12]], [[4, 9, 33], [0, 0, 13]],
+      [[6, 4.5, 20], [0, 0, 14]], [[6, 4.5, 30.5], [0, 0, 24.5]], [[-2.5, 6, 27], [W / 2 + CO / 2, 0, 15]], [[3, 4.5, 21], [0, 3.5, EXT]]];
+    this.tourCard();
+  }
+  tourCard() {
+    const TT = this.txt.tour || TEXT.es.tour, i = this.tour.i, [name, text] = TT.parts[i], n = TT.parts.length;
+    this.tourEl?.remove();
+    const el = this.tourEl = document.createElement('div'); el.className = 'pel-tour';
+    el.innerHTML = `<b>${i + 1}/${n} · ${esc(name)}</b><p>${esc(text)}</p><div>${i > 0 ? `<button data-t="prev">${TT.prev}</button>` : ''}${i < n - 1 ? `<button class="go" data-t="next">${TT.next}</button>` : ''}<button data-t="end">${TT.end}</button></div>`;
+    el.addEventListener('click', (e) => { const b = e.target.closest('[data-t]'); if (!b) return; const a = b.dataset.t;
+      if (a === 'end') return this.endTour();
+      this.tour.i = Math.max(0, Math.min(n - 1, this.tour.i + (a === 'next' ? 1 : -1))); this.tourCard(); });
+    this.hud.root.appendChild(el);
+    this.tourHi.forEach((m, k) => { m.visible = k === i; });
+  }
+  endTour() {
+    if (!this.tour) return;
+    this.tour = null; this.tourEl?.remove(); this.tourEl = null;
+    for (const m of this.tourHi || []) m.visible = false;
+    if (this.active) this.intro();
   }
   // mano a mano o por parejas: la primera vez que se eligen parejas se preparan los otros dos pelotaris
   async chooseMode(k) {
@@ -388,6 +436,7 @@ export class PelotaMatch {
     const lp = portrait ? [cx * 0.45 + 0.4, 6.3 + up, cz + 9.6 + behind * 0.15] : [cx * 0.55 + 0.8, 4.0 + up, cz + 7.0 + behind * 0.15];
     const ll = portrait ? [cx * 0.2, 1.2, cz - 9.5] : [cx * 0.25, 1.2, cz - 12];
     if (g.phase === 'intro') { const a = this.t * 0.25; lp[0] = Math.sin(a) * 18 + 2; lp[1] = 9; lp[2] = COURT.L * 0.5 + Math.cos(a) * 18 + 6; ll[0] = 0; ll[1] = 2; ll[2] = COURT.L * 0.4; }
+    if (this.tour) { const [cp, cl] = this.tourCams[this.tour.i]; lp[0] = cp[0]; lp[1] = cp[1]; lp[2] = cp[2]; ll[0] = cl[0]; ll[1] = cl[1]; ll[2] = cl[2]; this.tourMat.opacity = 0.45 + 0.3 * Math.sin(this.t * 4); }   // (parpadea: se ve que está resaltada)
     const wp = this.v3.set(lp[0], lp[1], Math.min(lp[2], COURT.L + 11)); grp.localToWorld(wp);
     const wl = new T.Vector3(ll[0], ll[1], ll[2]); grp.localToWorld(wl);
     if (!this.camInit) { this.camPos.copy(wp); this.camLook.copy(wl); this.camInit = true; }
@@ -396,6 +445,8 @@ export class PelotaMatch {
     this.cam.position.copy(this.camPos);
     if (this.shake > 0) { this.shake -= dt; this.cam.position.x += (Math.random() - 0.5) * this.shake * 0.25; this.cam.position.y += (Math.random() - 0.5) * this.shake * 0.25; }
     this.cam.lookAt(this.camLook);
+    // el rebote, a través si la cámara queda detrás de él (si no, taparía la cancha)
+    const lc = grp.worldToLocal(this.v3.copy(this.camPos)); C.reboteSeeThrough?.(lc.z > COURT.REBOTE - 0.3, dt);
     const fov = portrait ? 62 : 55;
     if (Math.abs(this.cam.fov - fov) > 0.01) { this.cam.fov = fov; this.cam.updateProjectionMatrix(); }
   }
@@ -405,6 +456,9 @@ export class PelotaMatch {
     removeEventListener('keydown', this.onKey, true); removeEventListener('keyup', this.onKey, true); removeEventListener('blur', this.onBlur); removeEventListener('pointerup', this.onPtrEnd, true); removeEventListener('pointercancel', this.onPtrEnd, true); removeEventListener('touchend', this.onTouchEnd, true); removeEventListener('touchcancel', this.onTouchEnd, true); document.removeEventListener('visibilitychange', this.onHide);
     this.hud.destroy(); this.court.hideBall();
     if (this.pin) { this.pin.parent?.remove(this.pin); this.pin.geometry.dispose(); this.pin.material.dispose(); this.pin = null; }
+    this.tourEl?.remove(); this.tour = null;
+    if (this.tourHi) { for (const m of this.tourHi) { m.parent?.remove(m); m.geometry.dispose(); m.children[0]?.geometry.dispose(); } this.tourMat.dispose(); this.tourLine.dispose(); this.tourHi = null; }
+    this.court.reboteSeeThrough?.(false, 1);
     for (const r of [this.court.landRing, this.court.spotRing, this.court.serveZone]) r.visible = false;
     if (this.cam.fov !== this.fov0) { this.cam.fov = this.fov0; this.cam.updateProjectionMatrix(); }
   }

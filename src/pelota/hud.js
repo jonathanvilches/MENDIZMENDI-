@@ -65,6 +65,13 @@ const CSS = `
 .pel-rv p{margin:0;flex:1 1 100%;font-size:13px;line-height:1.3;color:#d8cff0}
 .pel-rv2 .pr{display:flex;flex-wrap:wrap;gap:2px 12px;flex:1 1 100%}.pel-rv2 .pr em{font-style:normal;font-weight:900;min-width:9em}
 .pel-pairs{margin:0 0 10px;font-size:13px;line-height:1.3;color:#d8cff0}
+/* las partes del frontón: el botón junto al título y la ficha de cada parte, abajo */
+.pel-chip{margin-left:8px;border:1px solid rgba(255,215,0,.6);background:rgba(255,215,0,.12);color:#FFD700;border-radius:999px;padding:3px 11px;font:inherit;font-size:12px;font-weight:900;letter-spacing:0;cursor:pointer;vertical-align:middle;min-height:30px}
+.pel-tour{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);transform:translateX(-50%);width:min(560px,calc(100vw - 32px));padding:10px 14px;border-radius:16px;background:linear-gradient(180deg,rgba(50,19,111,.95),rgba(28,11,58,.95));border:1px solid rgba(255,215,0,.45);pointer-events:auto;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.pel-tour b{display:block;font-family:var(--pel-display,'Lilita One',Nunito,sans-serif);font-size:22px;font-weight:400;color:#FFD700}
+.pel-tour p{margin:4px 0 8px;font-size:15px;line-height:1.3}.pel-tour div{display:flex;gap:8px;justify-content:flex-end}
+.pel-tour button{border-radius:12px;border:1px solid rgba(190,160,255,.4);background:rgba(255,255,255,.08);color:#fff;font:inherit;font-weight:900;padding:8px 14px;min-height:42px;cursor:pointer}
+.pel-tour button.go{background:linear-gradient(180deg,#fff08a,#FFD700 50%,#f0b400);color:#2e1d00;border:0}
 /* energía de cada pelotari: arriba a la izquierda, bajo el botón de salir (verde, amarilla y roja al cansarse) */
 .pel-en{position:absolute;top:calc(env(safe-area-inset-top,0px) + 62px);left:calc(env(safe-area-inset-left,0px) + 10px);display:flex;flex-direction:column;gap:3px;padding:5px 8px;border-radius:10px;background:rgba(14,10,24,.58);font-size:11px;font-weight:800;line-height:1}
 .pel-en[hidden]{display:none}.pel-en div{display:flex;align-items:center;gap:6px}
