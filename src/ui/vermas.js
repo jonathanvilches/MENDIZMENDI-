@@ -6,15 +6,16 @@
 const SEL = [
   '#hub .hub-main p', '#hub .hub-main dd', '#hub .sheet p', '#hub .sheet .plist li',
   '.mg-card p', '.ficha dd', '.ficha p', '.escudo p', '.escudo dd',
-  '.lg-root .lg-how', '.tq-st p', '.pel-card .pel-pairs', '.pel-card .pel-fact', '.fb-card p', '.fb-fact',
+  '.lg-root .lg-how', '.tq-st p', '.pel-card .pel-pairs', '.fb-card p',
   '#loading .ld-intro',
 ].join(',');
-// (estos se quedan siempre enteros: cifras, avisos, botones y textos de una línea que ya se leen de un vistazo)
-const SKIP = 'button, a, summary, label, .ar-count, .lnk, .vm-btn, #dialog, .pel-tip, .fb-tip, [data-vm="no"]';
+// (estos se quedan siempre enteros: cifras, avisos, botones, textos de una línea que ya se leen de un vistazo y los
+// «¿sabías que…?» del final de los partidos, de dos o tres líneas, que caben en la ventana)
+const SKIP = 'button, a, summary, label, .ar-count, .lnk, .vm-btn, #dialog, .pel-tip, .fb-tip, .pel-fact, .fb-fact, [data-vm="no"]';
 const CSS = `
 .vm-clamp:not(.vm-open){display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:var(--vm-lines,2);overflow:hidden}
 .vm-clamp.vm-open{display:block;-webkit-line-clamp:unset;overflow:visible}
-.vm-btn{position:relative;display:inline-flex;align-items:center;gap:4px;margin:2px 0 8px;padding:4px 12px;min-height:30px;border-radius:999px;border:1px solid rgba(255,215,0,.4);background:rgba(255,255,255,.07);color:#ffd84a;font:800 var(--fs-xs)/1 Nunito,system-ui,sans-serif;letter-spacing:.02em;cursor:pointer;pointer-events:auto}
+.vm-btn{position:relative;justify-self:start;align-self:flex-start;width:auto;display:inline-flex;align-items:center;gap:4px;margin:2px 0 8px;padding:4px 12px;min-height:30px;border-radius:999px;border:1px solid rgba(255,215,0,.4);background:rgba(255,255,255,.07);color:#ffd84a;font:800 var(--fs-xs)/1 Nunito,system-ui,sans-serif;letter-spacing:.02em;cursor:pointer;pointer-events:auto}
 .vm-btn::after{content:'';width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform .15s}
 .vm-btn[aria-expanded="true"]::after{transform:translateY(2px) rotate(-135deg)}
 li>.vm-btn{margin-top:0}
@@ -29,8 +30,10 @@ export function startVerMas(root = document.body) {
   const decide = (el) => {
     if (!el.isConnected || el.dataset.vm === 'ok') return;
     const cs = getComputedStyle(el), lh = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.35 || 20, lines = +el.style.getPropertyValue('--vm-lines') || 2;
-    // (si cabe en sus líneas, se queda entero; si no, se pliega: se lee lo justo y el resto, cuando se quiera)
-    if (el.scrollHeight <= lh * (lines + 0.5)) {
+    // (si cabe en sus líneas, se queda entero; si no, se pliega: se lee lo justo y el resto, cuando se quiera. El relleno
+    // de la caja no cuenta como texto)
+    const pad = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+    if (el.scrollHeight - pad <= lh * (lines + 0.5)) {
       el.classList.remove('vm-clamp'); el.dataset.vm = 'ok'; return;
     }
     el.dataset.vm = 'ok';

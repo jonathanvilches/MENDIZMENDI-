@@ -1,5 +1,5 @@
 // Vigía en un partido de pelota jugado solo (móvil horizontal, calidad baja): los dos pelotaris, fotograma a fotograma,
-// con tools/vigia-lib.mjs. Uso: node tools/vigia-pelota.mjs [pueblo] [segundos]   (servidor en 5173)
+// con tools/vigia-lib.mjs. Uso: node tools/vigia-pelota.mjs [pueblo] [segundos]   (URL=http://127.0.0.1:5173 por defecto)
 import { chromium } from 'playwright-core';
 import { VIGIA_SRC } from './vigia-lib.mjs';
 const [,, town = 'lumbier', secs = '120'] = process.argv;
@@ -7,7 +7,7 @@ const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-119
 const ctx = await b.newContext({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true });
 const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
 await p.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true }, settings: { quality: 'low' } })); });
-await p.goto(`http://127.0.0.1:5173/?town=${town}&q=low&weather=clear&skipintro=1&noflora`, { timeout: 300000 });
+await p.goto(`${process.env.URL || "http://127.0.0.1:5173"}/?town=${town}&q=low&weather=clear&skipintro=1&noflora`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 500000 });
 await p.evaluate(() => { const G = window.__game; G.fronton.play(G, G.pelotari || G.missions.find(M => M.type === 'pelota')?.host); });
 await p.waitForSelector('.pel-panel [data-pel-go]', { timeout: 180000 });

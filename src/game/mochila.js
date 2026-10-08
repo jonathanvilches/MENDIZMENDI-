@@ -103,7 +103,7 @@ export class Mochila {
         <h4>Comida</h4>
         <div class="bp-food">${food.length ? food.map(([k, n]) => `<button class="fooditem" data-f="${k}" title="${esc(FOOD[k].fact)}">${iconSVG(FOOD[k].icon, 34)}<b>${esc(FOOD[k].name)}</b><span>×${n} · +${FOOD[k].e}</span></button>`).join('') : '<p class="bp-note">Vacía. Busca moras, avellanas y manzanas por el campo, o gana comida en las misiones de productos.</p>'}</div>
         </section><section class="bp-sec bp-equip"><h4>Equipo</h4>
-        <div class="bp-gear">${GEAR_ORDER.map(id => { const G = GEAR[id], h = this.has(id); return `<button class="gitem ${h ? '' : 'locked'}" data-g="${id}" title="${esc(h ? G.use : G.how)}">${iconSVG(h ? G.icon : 'lock', 30)}<b>${esc(h ? G.name : 'Por descubrir')}</b><small>${esc(h ? G.use : G.how)}</small></button>`; }).join('')}</div></section>
+        <div class="bp-gear">${GEAR_ORDER.map(id => { const G = GEAR[id], h = this.has(id); return `<button class="gitem ${h ? '' : 'locked'}" data-g="${id}" title="${esc(h ? G.use : G.how)}" aria-label="${esc(h ? G.name : 'Por descubrir')}">${iconSVG(h ? G.icon : 'lock', 30)}<b>${esc(h ? G.name : 'Por descubrir')}</b><small>${esc(h ? G.use : G.how)}</small></button>`; }).join('')}</div></section>
         </div>
         <div class="bp-foot"><button class="btn primary" data-a="close">Cerrar</button></div></div>`;
     };

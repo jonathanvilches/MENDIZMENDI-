@@ -8,7 +8,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 
 .fb-root{position:fixed;inset:0;z-index:900;pointer-events:none;font-family:Nunito,system-ui,sans-serif;color:#fff;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 .fb-root *{box-sizing:border-box}
-.fb-top{position:absolute;top:calc(env(safe-area-inset-top,0px) + 8px);left:64px;right:64px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.fb-top{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,12px));left:64px;right:64px;display:flex;flex-direction:column;align-items:center;gap:8px}
 .fb-score{display:flex;align-items:stretch;border-radius:14px;overflow:hidden;background:rgba(16,10,30,.86);border:1px solid rgba(255,255,255,.18);box-shadow:0 6px 18px rgba(0,0,0,.3);max-width:100%}
 .fb-team{display:flex;align-items:center;gap:8px;padding:4px 8px;font-weight:900;font-size:var(--fs-sm);letter-spacing:.04em;min-width:0}
 .fb-team i{width:12px;height:20px;border-radius:3px;flex:none;box-shadow:0 0 0 1.5px rgba(255,255,255,.7)}
@@ -23,9 +23,9 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-pen.on{display:grid;grid-template-columns:auto auto;align-items:center}
 .fb-pen u{display:inline-block;width:12px;height:12px;border-radius:50%;margin:0 2px;background:rgba(255,255,255,.25);text-decoration:none;vertical-align:middle}
 .fb-pen u.g{background:#3fd36a}.fb-pen u.x{background:#e0453a}
-.fb-pause,.fb-cam{position:absolute;top:calc(env(safe-area-inset-top,0px) + 8px);width:40px;height:40px;border-radius:50%;border:1.5px solid rgba(255,255,255,.75);background:rgba(8,10,20,.25);color:#fff;pointer-events:auto;cursor:pointer;display:grid;place-items:center;padding:0;box-shadow:0 2px 10px rgba(0,0,0,.18)}
+.fb-pause,.fb-cam{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,12px));width:40px;height:40px;border-radius:50%;border:1.5px solid rgba(255,255,255,.75);background:rgba(8,10,20,.25);color:#fff;pointer-events:auto;cursor:pointer;display:grid;place-items:center;padding:0;box-shadow:0 2px 10px rgba(0,0,0,.18)}
 .fb-pause::before,.fb-cam::before{content:'';position:absolute;inset:-4px;border-radius:50%}   /* (zona táctil de 44 px; el dibujo no cambia) */
-.fb-pause{left:calc(env(safe-area-inset-left,0px) + 8px)}.fb-cam{right:calc(env(safe-area-inset-right,0px) + 8px)}
+.fb-pause{left:calc(env(safe-area-inset-left,0px) + var(--edge,12px))}.fb-cam{right:calc(env(safe-area-inset-right,0px) + var(--edge,12px))}
 .fb-pause svg,.fb-cam svg{width:18px;height:18px}
 .fb-msg{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%) scale(.85);opacity:0;transition:opacity .2s,transform .25s cubic-bezier(.2,1.4,.4,1);text-align:center;pointer-events:none;max-width:92vw}
 .fb-msg.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
@@ -35,12 +35,12 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-stick{position:absolute;left:0;bottom:0;width:50vw;height:78dvh;pointer-events:auto;touch-action:none}
 .fb-knob{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;border:1.5px solid rgba(255,255,255,.6);background:rgba(8,10,20,.14);display:none}
 .fb-knob i{position:absolute;left:50%;top:50%;width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:50%;background:rgba(255,255,255,.72);box-shadow:0 1px 6px rgba(0,0,0,.25)}
-.fb-stickhint{position:absolute;left:calc(env(safe-area-inset-left,0px) + 16px);bottom:calc(env(safe-area-inset-bottom,0px) + 16px);width:96px;height:96px;border-radius:50%;border:1.5px dashed rgba(255,255,255,.5);display:grid;place-items:center;font-size:var(--fs-xs);font-weight:800;line-height:1.15;color:#fff;text-align:center;opacity:.9;padding:8px;transition:opacity .4s;text-shadow:0 1px 2px rgba(0,0,0,.9),0 0 6px rgba(0,0,0,.6)}
+.fb-stickhint{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--thumb,16px) + 8px);bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb,16px) + 8px);width:96px;height:96px;border-radius:50%;border:1.5px dashed rgba(255,255,255,.5);display:grid;place-items:center;font-size:var(--fs-xs);font-weight:800;line-height:1.15;color:#fff;text-align:center;opacity:.9;padding:8px;transition:opacity .4s;text-shadow:0 1px 2px rgba(0,0,0,.9),0 0 6px rgba(0,0,0,.6)}
 /* cuatro botones minimalistas: un aro blanco fino, el icono de trazo fino y el nombre en pequeño. TIRO (el mayor) en la
    esquina; PASE a su izquierda; SPRINT encima de TIRO; CAMBIAR en diagonal, entre los dos (siempre en su sitio; con el
    balón en tus pies, apagado). Al pulsar, se rellenan con un toque de color. Al defender: ROBAR y ENTRADA. Medidas en
    --u (escala) para que no se toquen nunca: los centros están separados al menos 12 px más que la suma de los radios */
-.fb-btns{--u:1;position:absolute;right:calc(env(safe-area-inset-right,0px) + 8px);bottom:calc(env(safe-area-inset-bottom,0px) + 8px);width:calc(240px * var(--u));height:calc(172px * var(--u));pointer-events:none}
+.fb-btns{--u:1;position:absolute;right:calc(env(safe-area-inset-right,0px) + var(--thumb,16px));bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb,16px));width:calc(240px * var(--u));height:calc(172px * var(--u));pointer-events:none}
 .fb-b{position:absolute;border:1.5px solid rgba(255,255,255,.8);padding:0;border-radius:50%;background:rgba(8,10,20,.2);color:#fff;font:800 var(--fs-xs)/1.15 Nunito,system-ui,sans-serif;letter-spacing:0;text-shadow:0 1px 2px rgba(0,0,0,.55);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;touch-action:none;pointer-events:auto;text-align:center;line-height:1;box-shadow:0 2px 10px rgba(0,0,0,.18);-webkit-user-select:none;user-select:none;transition:transform .06s,background .08s,opacity .2s}
 .fb-b svg{width:calc(21px * var(--u));height:calc(21px * var(--u));flex:none;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.45));pointer-events:none}
 .fb-b span{pointer-events:none;max-width:100%;text-align:center}   /* (12 px, la letra más pequeña de la escala: antes 7,5 px por la escala, 6,8 en el móvil, y no se leía) */
@@ -122,9 +122,11 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
   /* estadísticas en dos columnas: con nueve filas, los botones quedaban fuera de la pantalla */
   .fb-stats tbody{display:grid;grid-template-columns:1fr 1fr;column-gap:16px}.fb-stats tr{display:grid;grid-template-columns:minmax(3.6em,auto) 1fr minmax(3.6em,auto);align-items:center;border-bottom:1px solid rgba(255,255,255,.1)}
   .fb-stats td{border:0!important;width:auto!important;white-space:nowrap}
+  /* controles: el título y las pestañas en la misma fila, y debajo las tarjetas de una línea: todo a la vista */
+  .fb-controls .fb-body{grid-template-columns:auto minmax(0,1fr);align-items:center}.fb-controls .fb-body>h2{grid-column:1;margin:0}.fb-controls .fb-ctabs{grid-column:2;margin:0}.fb-controls .fb-cpane{grid-column:1/-1;margin-top:8px}
 }
 @media (max-height:460px) and (orientation:landscape){
-  .fb-top{top:calc(env(safe-area-inset-top,0px) + 4px)}.fb-team b{font-size:var(--fs-xl)}
+  .fb-top{top:calc(env(safe-area-inset-top,0px) + var(--edge,12px))}.fb-team b{font-size:var(--fs-xl)}
   .fb-btns{--u:.9}
   .fb-bars{left:calc(env(safe-area-inset-left,0px) + 124px);transform:none;width:min(150px,22vw)}
   .fb-pause,.fb-cam{width:38px;height:38px}.fb-top{gap:4px}.fb-tip{font-size:var(--fs-sm)}
@@ -145,6 +147,8 @@ export const ICON = {
   slide: IC('<path d="M2.5 17.5h11M10.5 14.5l3 3-3 3"/><circle cx="19" cy="17.5" r="2.3"/>'),
   contain: IC('<path d="M12 3.5l7 2.8v5.2c0 4.4-3 7.3-7 9-4-1.7-7-4.6-7-9V6.3z"/>'),
   dive: IC('<path d="M4 18c3.5-6.5 8.5-9.5 14-9.5"/><circle cx="19" cy="8.5" r="2"/>'),
+  ctrl: IC('<circle cx="12" cy="11" r="5.5"/><path d="M4.5 19.5h15"/>'),
+  move: IC('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/><path d="M12 1.8v2.4M12 19.8v2.4M1.8 12h2.4M19.8 12h2.4"/>'),
 };
 const SVG_CAM = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"><rect x="3" y="7" width="13" height="10" rx="2"/><path d="M16 11l5-3v8l-5-3z"/></svg>';
 const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -252,19 +256,19 @@ export class FutbolHud {
     return new Promise(res => {
       const touch = !!this.o.touch;
       const TABS = [
-        ['Atacar', [['', 'Moverte', 'Joystick: toca y arrastra en la mitad izquierda', 'WASD / flechas', 'Stick izq.'],
-          ['pass', 'Pase', 'Toca: al pie del compañero. Mantén: al hueco, más lejos cuanto más', 'J / espacio', 'A'],
+        ['Atacar', [['move', 'Moverte', 'Joystick: toca y arrastra en la mitad izquierda', 'WASD / flechas', 'Stick izq.'],
+          ['pass', 'Pase', 'Toca: al pie. Mantén: al hueco; cuanto más, más lejos', 'J / espacio', 'A'],
           ['shoot', 'Tiro', 'Mantén para cargar; el joystick mueve la diana', 'K (mantén)', 'B (mantén)'],
           ['sprint', 'Sprint', 'Mantén para correr más (gasta energía)', 'Mayús', 'RT'],
           ['pass', 'Centro', 'En la banda, PASE hacia el área: llega por alto', 'J', 'A'],
           ['shoot', 'Remate de cabeza', 'Con el centro en el aire, mantén TIRO', 'K', 'B'],
-          ['swap', 'Cambiar', 'Al compañero al que apuntas; sin apuntar, al más cercano', 'L', 'LB'],
-          ['', 'Controlar', 'Suelta el joystick: frenas con el balón pegado', '', '']]],
+          ['swap', 'Cambiar', 'Al que apuntas; sin apuntar, al más cercano', 'L', 'LB'],
+          ['ctrl', 'Controlar', 'Suelta el joystick: frenas con el balón pegado', '', '']]],
         ['Defender', [['tackle', 'Robar', 'PASE, pegado al rival', 'J', 'A'],
           ['slide', 'Entrada', 'TIRO (si llegas tarde, es falta)', 'K', 'B'],
           ['swap', 'Cambiar', 'Al compañero más cerca del balón', 'L', 'LB'],
           ['sprint', 'Sprint', 'Mantén para llegar antes', 'Mayús', 'RT']]],
-        ['Portero', [['tackle', 'Estirada', 'Con un tiro del rival, cualquier botón: se estira hacia donde apuntas', 'J / K', 'A / B'],
+        ['Portero', [['dive', 'Estirada', 'Ante un tiro, cualquier botón, hacia donde apuntas', 'J / K', 'A / B'],
           ['pass', 'Con el balón en los pies', 'Pasa, conduce y despeja; fuera del área, sin manos', 'J / K', 'A / B'],
           ['pass', 'Sacar con la mano', 'Balón en las manos: PASE a quien apuntas', 'J', 'A'],
           ['shoot', 'Saque largo', 'Balón en las manos: mantén TIRO', 'K', 'B']]],
@@ -274,6 +278,7 @@ export class FutbolHud {
       const p = this.panel(`<h2>Controles</h2><div class="fb-ctabs" role="tablist">${TABS.map(([t], i) => `<button role="tab" data-t="${i}" aria-selected="${i === 0}">${t}</button>`).join('')}</div>
         <div class="fb-cpane" role="tabpanel">${pane(0)}</div><button class="fb-go">Entendido</button>`);
       p.querySelectorAll('.fb-ctabs button').forEach(b => b.onclick = () => { p.querySelectorAll('.fb-ctabs button').forEach(x => x.setAttribute('aria-selected', x === b)); p.querySelector('.fb-cpane').innerHTML = pane(+b.dataset.t); });
+      p.classList.add('fb-controls');
       p.querySelector('.fb-go').onclick = () => { p.remove(); res(); };
     });
   }

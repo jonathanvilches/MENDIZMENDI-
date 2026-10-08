@@ -40,6 +40,8 @@ function armsCard(ui, { kicker, title, sub, canvas, stone = false, secs, more = 
     const cv = o.querySelector('canvas'); canvas.draw(cv, false);
     o.querySelectorAll('.es-toggle button').forEach(b => b.onclick = () => { o.querySelectorAll('.es-toggle button').forEach(x => x.classList.toggle('on', x === b)); canvas.draw(cv, b.dataset.s === '1'); ui.sound?.ui?.('click'); });
     const pane = o.querySelector('.es-pane');
+    // (las pestañas van en una fila; solo si no caben, la fila se desliza y el borde se difumina para que se vea)
+    requestAnimationFrame(() => { const t = o.querySelector('.es-tabs'); t?.classList.toggle('over', t.scrollWidth > t.clientWidth + 1); });
     o.querySelectorAll('.es-tabs button').forEach(b => b.onclick = () => { o.querySelectorAll('.es-tabs button').forEach(x => x.setAttribute('aria-selected', x === b)); pane.innerHTML = all[+b.dataset.t][1]; pane.scrollTop = 0; upd(); b.scrollIntoView?.({ block: 'nearest', inline: 'nearest' }); ui.sound?.ui?.('click'); });
     const next = o.querySelector('.next'); setTimeout(() => next.focus({ preventScroll: true }), 60);
     // si el texto no cabe, un aviso al pie de la columna (se va al llegar al final)
@@ -66,11 +68,11 @@ export function readArms(ui, A, { town = '', isNew = false, regla = 0 } = {}) {
     badge: isNew ? 'Nueva carta en tu armorial' : '',
     secs: [
       ['La casa', `Casa del siglo ${esc(A.century)}. Su escudo de piedra, sobre la puerta, decía quién vivía en ella y de qué familia venía.${CASAS[A.house] ? ` <b>${esc(A.house)}</b> quiere decir ${esc(CASAS[A.house])} en euskera: en el norte, la casa da nombre a la familia.` : ''}`],
-      ['Cómo está dividido', `<b>${esc(PARTICIONES[A.part].name)}.</b> ${esc(PARTICIONES[A.part].text)}`],
-      ['Sus figuras', figs.map(k => `<b>${esc(FIGURAS[k].name)}.</b> ${esc(FIGURAS[k].text)}`).join('<br>')],
-      ['Sus esmaltes', tints.map(k => `<span class="es-sw"><i style="background:${ESMALTES[k].color}"></i>${esc(ESMALTES[k].name)} (${esc(ESMALTES[k].es)})</span>`).join(' ') + `<br>En la piedra no hay colores: el cantero los marcaba con rayas y puntos. ${tints.map(k => `${esc(ESMALTES[k].name[0].toUpperCase() + ESMALTES[k].name.slice(1))}: ${esc(ESMALTES[k].piedra)}.`).join(' ')}`],
+      ['Partes', `<b>${esc(PARTICIONES[A.part].name)}.</b> ${esc(PARTICIONES[A.part].text)}`],
+      ['Figuras', figs.map(k => `<b>${esc(FIGURAS[k].name)}.</b> ${esc(FIGURAS[k].text)}`).join('<br>')],
+      ['Esmaltes', tints.map(k => `<span class="es-sw"><i style="background:${ESMALTES[k].color}"></i>${esc(ESMALTES[k].name)} (${esc(ESMALTES[k].es)})</span>`).join(' ') + `<br>En la piedra no hay colores: el cantero los marcaba con rayas y puntos. ${tints.map(k => `${esc(ESMALTES[k].name[0].toUpperCase() + ESMALTES[k].name.slice(1))}: ${esc(ESMALTES[k].piedra)}.`).join(' ')}`],
     ],
-    more: [['El yelmo', esc(TIMBRE.yelmo.text)], ['Una regla', esc(R.why)]],
+    more: [['Yelmo', esc(TIMBRE.yelmo.text)], ['Regla', esc(R.why)]],
   });
 }
 
@@ -92,9 +94,9 @@ export function readTownArms(ui, A, { town = '', isNew = false } = {}) {
     note: A.conf === 'media' ? 'La fuente resume este escudo: el dibujo del juego puede simplificar algún detalle.' : '',
     secs: [
       ['Cómo se lee', `<b>${esc(PART_NAME[A.part] || A.part)}.</b> ${esc(A.read)}`],
-      ['Sus esmaltes', fields.map(k => `<span class="es-sw"><i style="background:${SW[k]}"></i>${esc(T[k])}</span>`).join(' ') + ' Oro y plata son metales; gules, azur, sinople y sable, colores.'],
-      ['Sus figuras', (A.figs || []).filter(k => FIG[k]).map(k => `<b>${esc(FIG[k][0])}.</b> ${esc(FIG[k][1])}`).join('<br>')],
-      ['Su historia', esc(A.mean)],
+      ['Esmaltes', fields.map(k => `<span class="es-sw"><i style="background:${SW[k]}"></i>${esc(T[k])}</span>`).join(' ') + ' Oro y plata son metales; gules, azur, sinople y sable, colores.'],
+      ['Figuras', (A.figs || []).filter(k => FIG[k]).map(k => `<b>${esc(FIG[k][0])}.</b> ${esc(FIG[k][1])}`).join('<br>')],
+      ['Historia', esc(A.mean)],
     ],
     more: [['Qué es', valley ? `El escudo oficial de todo el valle; ${esc(town)} lo usa como suyo. Lo verás en el ayuntamiento, en los sellos y en las banderas.` : `El escudo oficial de ${esc(A.name)}. Lo verás en el ayuntamiento, en los sellos y en las banderas.`]],
   });
