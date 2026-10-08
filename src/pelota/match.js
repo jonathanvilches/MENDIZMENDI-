@@ -12,13 +12,16 @@ export class PelotaMatch {
    *  THREE, court (PelotaCourt ya colocado en la escena), camera,
    *  you / rival: { obj (Object3D), animate(obj, estado, dt) opcional, name },
    *  mode 'match'|'rally', target, level, lang 'es'|'eu', container (DOM), yawOffset (si el modelo no mira a +Z),
-   *  onEnd(resultado), onExit(), audio (AudioContext opcional), touch (forzar controles táctiles)
+   *  onEnd(resultado), onExit(), audio (AudioContext opcional), touch (forzar controles táctiles),
+   *  mates() (opcional: promesa con { youMate, rivalMate }, cada uno { obj, name, stats, animate }: con ella se puede
+   *  elegir el partido por parejas)
    */
   constructor(o) {
     this.o = o; this.T = o.THREE; this.court = o.court; this.cam = o.camera;
     this.lang = o.lang === 'eu' ? 'eu' : 'es'; this.txt = TEXT[this.lang];
     this.touch = o.touch ?? (matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window);
     this.level = o.level || 'normal';
+    this.pairs = false; this.role = 'delantero'; this.mateObjs = null;   // por parejas: qué juegas tú y los otros dos
     this.names = { you: o.you?.name || this.txt.you, rival: o.rival?.name || 'Rival' };
     this.audio = new PelotaAudio(o.audio);
     this.hud = new PelotaHud(o.container || document.body, this.txt, this.names, this.touch);
@@ -36,34 +39,73 @@ export class PelotaMatch {
   newGame() {
     this.hud?.root?.classList.remove('final');
     const o = this.o;
-    this.game = new PelotaGame({ mode: o.mode || 'match', target: o.target, level: this.level, seed: o.seed, autoplay: o.autoplay, rivalStats: o.rivalStats, youStats: o.youStats });
+    const M = this.pairs ? this.mateObjs : null;
+    this.game = new PelotaGame({ mode: o.mode || 'match', target: o.target, level: this.level, seed: o.seed, autoplay: o.autoplay, rivalStats: o.rivalStats, youStats: o.youStats,
+      pairs: !!M, youRole: this.role, youMateStats: M?.youMate.stats, rivalMateStats: M?.rivalMate.stats });
+    for (const m of Object.values(this.mateObjs || {})) if (m.obj) m.obj.visible = !!M;
+    this.hud.setNames?.(this.label('you'), this.label('rival'));
     this.hud.setScore(0, 0, this.game.server, o.mode === 'rally' ? this.txt.rally(this.game.target) : this.txt.to(this.game.target));
     if (o.mode === 'rally') this.hud.setScore(0, '', this.game.server, this.txt.rally(this.game.target));
-    this.lastSwing = { you: 0, rival: 0 };
+    this.lastSwing = { you: 0, rival: 0, youMate: 0, rivalMate: 0 };
   }
+  // el nombre de cada lado: el pelotari o, por parejas, los dos
+  label(sd) { const m = this.pairs && this.mateObjs?.[sd + 'Mate']; return m ? `${this.names[sd]} · ${m.name}` : this.names[sd]; }
+  labels() { return [this.label('you'), this.label('rival')]; }
 
   // ------------------------------------------------------------ paneles
   intro() {
     const t = this.txt, g = this.game;
     this.hud.controls(false);
     const lv = [['facil', this.lang === 'eu' ? 'Erraza' : 'Fácil'], ['normal', this.lang === 'eu' ? 'Normala' : 'Normal'], ['dificil', this.lang === 'eu' ? 'Zaila' : 'Difícil']];
-    const p = this.hud.panel(`<h2>${t.title}</h2><p class="pel-sub">${esc(this.names.you)} vs ${esc(this.names.rival)} · ${g.mode === 'rally' ? t.rally(g.target) : t.to(g.target)}</p>
+    // mano a mano o por parejas (y tú, de delantero o de zaguero): solo en los partidos libres
+    const canPairs = !!this.o.mates && g.mode === 'match', P = t.pairs || TEXT.es.pairs;
+    const mods = [['mano', P.single], ['delantero', P.front], ['zaguero', P.back]], cur = this.pairs ? this.role : 'mano';
+    const p = this.hud.panel(`<h2>${t.title}</h2><p class="pel-sub">${esc(this.label('you'))} vs ${esc(this.label('rival'))} · ${g.mode === 'rally' ? t.rally(g.target) : t.to(g.target)}</p>
+      ${canPairs ? `<div class="pel-levels pel-mod" role="group" aria-label="${P.label}">${mods.map(([k, l]) => `<button data-pel-mod="${k}" aria-pressed="${k === cur}">${l}</button>`).join('')}</div>` : ''}
+      ${this.pairs ? `<p class="pel-pairs">${P.how(this.role === 'delantero')}</p>` : ''}
       ${this.rivalHtml()}
-      <ol>${t.rules.map(r => `<li>${r}</li>`).join('')}</ol>
-      <div class="pel-ctrl">${this.touch ? t.ctrlTouch : t.ctrlKeys}</div>
+      <details class="pel-more" open><summary>${t.rulesTitle || TEXT.es.rulesTitle}</summary><ol>${t.rules.map(r => `<li>${r}</li>`).join('')}</ol>
+      <div class="pel-ctrl">${this.touch ? t.ctrlTouch : t.ctrlKeys}</div></details>
       ${this.o.fixedLevel ? '' : `<small class="pel-lbl">${t.level || 'Nivel'}</small><div class="pel-levels" role="group" aria-label="${t.level || 'Nivel'}">${lv.map(([k, l]) => `<button data-pel-lv="${k}" aria-pressed="${k === this.level}">${l}</button>`).join('')}</div>`}
       <div class="pel-row"><button class="pel-go alt" data-pel-x>${t.later}</button><button class="pel-go" data-pel-go>${t.play}</button></div>`);
+    // (si no cabe todo, como en el móvil en horizontal, las reglas y los controles se pliegan: así se ve sin desplazar
+    // todo lo que hay que elegir y los botones de jugar)
+    const card = p.querySelector('.pel-card'), more = p.querySelector('.pel-more');
+    if (more && card && card.scrollHeight > card.clientHeight + 2) more.open = false;
     p.addEventListener('click', (e) => {
       const b = e.target.closest('button'); if (!b) return;
       if (b.dataset.pelLv) { this.level = b.dataset.pelLv; for (const x of p.querySelectorAll('[data-pel-lv]')) x.setAttribute('aria-pressed', x.dataset.pelLv === this.level); this.newGame(); }
+      if (b.dataset.pelMod) { this.chooseMode(b.dataset.pelMod); return; }
+      if (b.hasAttribute('data-pel-go') && this.loadingMates) return;
       if (b.hasAttribute('data-pel-go')) { this.audio.ensure(); this.hud.closePanel(); this.hud.controls(true); this.game.start(); this.audio.whistle(); }
       if (b.hasAttribute('data-pel-x')) this.exit(true);
     });
   }
-  // cómo juega el rival: sus cualidades (de 1 a 5) y un consejo para jugarle
+  // mano a mano o por parejas: la primera vez que se eligen parejas se preparan los otros dos pelotaris
+  async chooseMode(k) {
+    if (this.loadingMates) return;
+    const pairs = k !== 'mano';
+    if (pairs && !this.mateObjs) {
+      this.loadingMates = true;
+      const go = this.hud.panelEl?.querySelector('[data-pel-go]'); if (go) { go.disabled = true; go.textContent = (this.txt.pairs || TEXT.es.pairs).loading; }
+      try { this.mateObjs = await this.o.mates(); } catch (e) { console.warn('parejas', e); this.mateObjs = null; }
+      this.loadingMates = false;
+      if (!this.active) return;
+      if (!this.mateObjs) { this.intro(); return; }   // (sin los pelotaris, se queda el mano a mano)
+    }
+    this.pairs = pairs; if (pairs) this.role = k;
+    this.newGame(); this.intro();
+  }
+  // cómo juega el rival: sus cualidades (de 1 a 5) y un consejo para jugarle (por parejas, los dos rivales)
   rivalHtml() {
     const st = this.o.rivalStats; if (!st || this.o.mode === 'rally') return '';
     const t = this.txt, S = t.stats || TEXT.es.stats, dots = (v) => '●'.repeat(v) + '<u>' + '●'.repeat(5 - v) + '</u>';
+    const rm = this.pairs && this.mateObjs?.rivalMate;
+    if (rm) {
+      const P = t.pairs || TEXT.es.pairs, row = (name, role, q) => `<span class="pr"><em>${esc(name)} · ${role}</em>${['fuerza', 'agilidad', 'velocidad'].map(k => `<span class="st">${S[k]} <i>${dots(q[k])}</i></span>`).join('')}</span>`;
+      const tips = [...new Set([...statsTips(st, this.lang).slice(0, 1), ...statsTips(rm.stats, this.lang).slice(0, 1)])];
+      return `<div class="pel-rv pel-rv2"><b>${esc(P.rivals(this.names.rival, rm.name))}</b>${row(this.names.rival, P.frontName, st)}${row(rm.name, P.backName, rm.stats)}${tips.length ? `<p>${tips.join(' ')}</p>` : ''}</div>`;
+    }
     const tips = statsTips(st, this.lang);
     return `<div class="pel-rv"><b>${esc(S.rival(this.names.rival))}</b>${['fuerza', 'agilidad', 'velocidad'].map(k => `<span class="st">${S[k]} <i>${dots(st[k])}</i></span>`).join('')}${tips.length ? `<p>${tips.join(' ')}</p>` : ''}</div>`;
   }
@@ -72,7 +114,7 @@ export class PelotaMatch {
     this.hud.controls(false); this.hud.tip('');
     const fact = t.facts[(this.o.factIndex ?? Math.floor(Math.random() * t.facts.length)) % t.facts.length];
     const big = g.mode === 'rally' ? `${e.best}/${g.target}` : t.result(e.score.you, e.score.rival);
-    const p = this.hud.panel(`<h2>${e.win ? (g.mode === 'rally' ? t.rallyWin : t.win) : t.lose}</h2><p class="pel-sub">${esc(this.names.you)} – ${esc(this.names.rival)}</p>
+    const p = this.hud.panel(`<h2>${e.win ? (g.mode === 'rally' ? t.rallyWin : t.win) : t.lose}</h2><p class="pel-sub">${esc(this.label('you'))} – ${esc(this.label('rival'))}</p>
       <div class="pel-big">${big}</div><div class="pel-fact"><b>${t.factsTitle}</b><br>${fact}</div>
       <div class="pel-row"><button class="pel-go alt" data-pel-again>${t.again}</button><button class="pel-go" data-pel-cont>${t.cont}</button></div>`);
     p.addEventListener('click', (ev) => {
@@ -223,7 +265,7 @@ export class PelotaMatch {
       case 'streak': this.hud.setScore(e.n, '', g.server); break;
       case 'call': {
         const [title, sub] = t.calls[e.call] || t.calls.tanto;
-        const who = e.winner === 'you' ? t.pointYou : t.pointRival(this.names.rival);
+        const who = e.winner === 'you' ? (g.pairs ? (t.pairs || TEXT.es.pairs).pointUs : t.pointYou) : (g.pairs && this.mateObjs ? (t.pairs || TEXT.es.pairs).pointThem(this.names.rival, this.mateObjs.rivalMate.name) : t.pointRival(this.names.rival));
         if (g.mode === 'rally') this.hud.call(title, sub, '', 2);
         else if (e.final) { this.hud.call(t.finalCall, `${who}. ${t.finalSub}`, e.kantari, 4.4); this.hud.setScore(e.score.you, e.score.rival, e.winner); this.hud.root.classList.add('final'); }
         else { this.hud.call(title, `${sub ? sub + ' ' : ''}${who}.`, e.kantari, 2.2); this.hud.setScore(e.score.you, e.score.rival, e.winner); }
@@ -278,20 +320,23 @@ export class PelotaMatch {
       }
     }
     C.serveZone.visible = g.phase === 'serveWait' || g.phase === 'servePrep' || (g.phase === 'rally' && g.rally?.serve && !g.rally.front);
-    this.hud.ready(h && h.hittable || (g.phase === 'servePrep' && g.server === 'you' && g.hittable('you')));
+    this.hud.ready(h && h.hittable || (g.phase === 'servePrep' && g.serverP() === 'you' && g.hittable('you')));
     // consejos
     const tt = this.txt;
     let tip = '';
-    if (g.phase === 'serveWait' && g.server === 'you') tip = tt.tipServe;
-    else if (g.phase === 'servePrep' && g.server === 'you') tip = g.hittable('you') ? tt.tipServe2 : '';
-    else if (g.phase === 'serveWait' && g.server === 'rival') tip = tt.tipRivalServe;
+    const PT = tt.pairs || TEXT.es.pairs, sp = g.serverP();
+    if (g.phase === 'serveWait' && sp === 'you') tip = tt.tipServe;
+    else if (g.phase === 'servePrep' && sp === 'you') tip = g.hittable('you') ? tt.tipServe2 : '';
+    else if (g.phase === 'serveWait' && sp === 'youMate') tip = PT.mateServe;
+    else if (g.phase === 'serveWait' && g.server === 'rival') tip = g.pairs && this.role === 'delantero' ? PT.rivalServe : tt.tipRivalServe;
+    else if (h && h.mate && !h.hittable) tip = PT.mateBall;
     else if (this.input.charge && g.phase === 'rally' && g.rally?.turn === 'you') tip = tt.tipAim;
     else if (h && h.hittable) tip = tt.tipHit;
     else if (h && h.yourTurn) tip = assist ? tt.tipMove : '';
     this.hud.tip(tip);
     // pelotaris
-    for (const who of ['you', 'rival']) {
-      const P = g.players[who], side = this.o[who]; if (!side?.obj) continue;
+    for (const who of g.ids) {
+      const P = g.players[who], side = this.o[who] || this.mateObjs?.[who]; if (!side?.obj) continue;
       // vigía de saltos: al colocarse para el saque la lógica los pone en su sitio de golpe; la figura llega andando
       const S = (this.slide ||= {})[who] ||= { x: P.x, z: P.z, ox: 0, oz: 0, v: 0 };
       let px = P.x, pz = P.z; if (!Number.isFinite(px) || !Number.isFinite(pz)) { px = S.x; pz = S.z; }
@@ -310,7 +355,7 @@ export class PelotaMatch {
       side.obj.rotation.y = grp.rotation.y + P.yaw + (this.o.yawOffset || 0);
       const swingAge = this.t - (this.lastSwing[who] || -9);
       // preparación del golpe: cuando la pelota viene hacia quien le toca, echa el brazo atrás (más cuanto más cerca)
-      const ball = g.ball.p, turn = g.phase === 'rally' ? g.rally?.turn === who && g.rally?.front : g.phase === 'servePrep' && g.server === who;
+      const ball = g.ball.p, sd = g.side(who), turn = g.phase === 'rally' ? g.rally?.turn === sd && g.rally?.front && (!g.pairs || g.takerOf(sd) === who) : g.phase === 'servePrep' && g.serverP() === who;
       const dB = Math.hypot(ball.x - P.x, ball.z - P.z), wind = turn ? Math.max(0, Math.min(1, 1 - (dB - 1.0) / 5)) : 0;
       // ¿va hacia atrás? (de espaldas a donde corre: las piernas, al revés, en vez de correr hacia delante sin moverse así)
       const back = (P.speed || 0) > 0.4 && (P.vx * Math.sin(P.yaw) + P.vz * Math.cos(P.yaw)) < -0.35 * P.speed;
@@ -319,6 +364,11 @@ export class PelotaMatch {
       const sw = P.act === 'swing', SP = this.swPrev ||= {}; if (sw && !SP[who] && who === 'you' && swingAge > 0.4) this.lastSwing[who] = this.t; SP[who] = sw;
       if (side.animate) side.animate(side.obj, st, dt); else basicAnimate(side.obj, st, dt, this.t);
     }
+    // por parejas, una flecha sobre ti (tu compañero lleva la misma ropa)
+    if (g.pairs) {
+      if (!this.pin) { this.pin = new T.Mesh(new T.ConeGeometry(0.2, 0.36, 4).rotateX(Math.PI), new T.MeshBasicMaterial({ color: '#ffe14a', depthTest: false, transparent: true })); this.pin.renderOrder = 3; grp.add(this.pin); }
+      const Y = g.players.you; this.pin.visible = g.phase !== 'intro'; this.pin.position.set(Y.x, 2.35 + Math.sin(this.t * 6) * 0.08, Y.z); this.pin.rotation.y = this.t * 2;
+    } else if (this.pin) this.pin.visible = false;
     // cámara detrás del jugador, mirando al frontis
     const you = g.players.you, portrait = innerWidth < innerHeight;
     // en vertical (móvil) algo más cerca que antes: los pelotaris se ven más grandes y con su detalle
@@ -326,7 +376,7 @@ export class PelotaMatch {
     // fuera de los botones; el frontis entero se sigue viendo)
     // si el rival está más al fondo que tú (le mandas la pelota atrás), la cámara retrocede y se eleva hasta verlo a él
     // también: antes se quedaba detrás de ti y no se veía cómo ni hacia dónde golpeaba
-    const rv = g.players.rival, rivalTurn = g.phase === 'rally' && g.rally?.turn === 'rival', behind = rivalTurn && Number.isFinite(rv?.z) ? Math.max(0, rv.z - you.z) : 0;   // (solo en el peloteo, cuando le toca a él: al sacar se queda contigo)
+    const rv = g.players[g.pairs ? g.takerOf('rival') || 'rival' : 'rival'], rivalTurn = g.phase === 'rally' && g.rally?.turn === 'rival', behind = rivalTurn && Number.isFinite(rv?.z) ? Math.max(0, rv.z - you.z) : 0;   // (solo en el peloteo, cuando le toca a él: al sacar se queda contigo)
     const cz = you.z + behind, cx = behind > 0.5 ? you.x * 0.6 + rv.x * 0.4 : you.x, up = Math.min(2.4, behind * 0.16);
     const lp = portrait ? [cx * 0.45 + 0.4, 6.3 + up, cz + 9.6 + behind * 0.15] : [cx * 0.55 + 0.8, 4.0 + up, cz + 7.0 + behind * 0.15];
     const ll = portrait ? [cx * 0.2, 1.2, cz - 9.5] : [cx * 0.25, 1.2, cz - 12];
@@ -347,6 +397,7 @@ export class PelotaMatch {
     this.active = false;
     removeEventListener('keydown', this.onKey, true); removeEventListener('keyup', this.onKey, true); removeEventListener('blur', this.onBlur); removeEventListener('pointerup', this.onPtrEnd, true); removeEventListener('pointercancel', this.onPtrEnd, true); removeEventListener('touchend', this.onTouchEnd, true); removeEventListener('touchcancel', this.onTouchEnd, true); document.removeEventListener('visibilitychange', this.onHide);
     this.hud.destroy(); this.court.hideBall();
+    if (this.pin) { this.pin.parent?.remove(this.pin); this.pin.geometry.dispose(); this.pin.material.dispose(); this.pin = null; }
     for (const r of [this.court.landRing, this.court.spotRing, this.court.serveZone]) r.visible = false;
     if (this.cam.fov !== this.fov0) { this.cam.fov = this.fov0; this.cam.updateProjectionMatrix(); }
   }

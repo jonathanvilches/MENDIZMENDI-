@@ -6,6 +6,9 @@ import { Ball, predict, solveShot, solveTwoWalls, aimVelocity, vec } from './phy
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const gauss = (rnd) => (rnd() + rnd() + rnd() - 1.5) / 1.5;
 const SERVE_Z = 16.5, RECV_Z = 22;
+// por parejas: el delantero coge lo de delante (hasta el cuadro 5) y el zaguero lo de atrás; tu compañero juega como un
+// pelotari del nivel normal
+const SPLIT = 17.5, MATE_AI = { speed: 5.5, react: 0.25, error: 0.065, smart: 0.6, dash: 1.05 };
 
 // altura a la que pega en el frontis la cortada y la dejada según la fuerza (0 a 1, la carga del botón) y el joystick
 // arriba o abajo (−1 a 1). También la usa la marca de puntería que se ve en el frontis mientras se carga
@@ -23,7 +26,8 @@ function overLeft(p, v) {
 }
 export class PelotaGame {
   /**
-   * @param {object} o { mode: 'match'|'rally', target, level: 'facil'|'normal'|'dificil', autoplay, seed }
+   * @param {object} o { mode: 'match'|'rally', target, level: 'facil'|'normal'|'dificil', autoplay, seed,
+   *   pairs (partido por parejas), youRole ('delantero'|'zaguero'), youStats, rivalStats, youMateStats, rivalMateStats }
    */
   constructor(o = {}) {
     this.mode = o.mode || 'match';
@@ -31,7 +35,13 @@ export class PelotaGame {
     this.lvl = LEVELS[o.level] || LEVELS.normal;
     // cualidades (de 1 a 5): tú, un pelotari de los del medio; el rival, las suyas (fuerza, agilidad y velocidad)
     const Q = (s) => ({ fuerza: s?.fuerza ?? 3, agilidad: s?.agilidad ?? 3, velocidad: s?.velocidad ?? 3 });
-    this.qual = { you: Q(o.youStats), rival: Q(o.rivalStats) };
+    this.qual = { you: Q(o.youStats), rival: Q(o.rivalStats), youMate: Q(o.youMateStats), rivalMate: Q(o.rivalMateStats) };
+    // por parejas: cada lado con un delantero y un zaguero (tú eliges qué juegas; tu compañero, lo otro). El rival del
+    // pueblo juega de delantero y saca
+    this.pairs = !!o.pairs && this.mode === 'match';
+    const yr = o.youRole === 'zaguero' ? 'zaguero' : 'delantero';
+    this.role = this.pairs ? { you: yr, youMate: yr === 'delantero' ? 'zaguero' : 'delantero', rival: 'delantero', rivalMate: 'zaguero' } : {};
+    this.clock = 0;
     this.tempo = this.lvl.tempo;
     this.autoplay = !!o.autoplay;
     let s = o.seed || (Math.random() * 1e9) | 0;
@@ -43,6 +53,8 @@ export class PelotaGame {
       you: { id: 'you', x: 1, z: RECV_Z, vx: 0, vz: 0, swing: 0, cool: 0, act: 'idle', actT: 0, face: 0 },
       rival: { id: 'rival', x: -1, z: SERVE_Z, vx: 0, vz: 0, swing: 0, cool: 0, act: 'idle', actT: 0, face: 0, react: 0 },
     };
+    if (this.pairs) for (const id of ['youMate', 'rivalMate']) this.players[id] = { id, x: 0, z: 20, vx: 0, vz: 0, swing: 0, cool: 0, act: 'idle', actT: 0, face: 0, react: 0 };
+    this.ids = Object.keys(this.players);
     this.server = this.mode === 'rally' ? 'rival' : (o.firstServe || 'you');
     this.phase = 'intro'; this.phaseT = 0;
     this.events = [];
@@ -52,13 +64,30 @@ export class PelotaGame {
   }
   emit(e) { this.events.push(e); }
   other(w) { return w === 'you' ? 'rival' : 'you'; }
+  // lado de cada pelotari ('you' o 'rival') y los pelotaris de un lado
+  side(id) { return id === 'you' || id === 'youMate' ? 'you' : 'rival'; }
+  team(sd) { return this.pairs ? [sd, sd + 'Mate'] : [sd]; }
+  // quién saca: en el mano a mano, el del lado que saca; por parejas, su delantero
+  serverP() { return this.pairs ? this.team(this.server).find(id => this.role[id] === 'delantero') : this.server; }
 
   // ---------------------------------------------------------------- saque
   placeForServe() {
-    const s = this.players[this.server], r = this.players[this.other(this.server)];
-    s.x = this.server === 'you' ? 0.8 : -0.8; s.z = SERVE_Z;
-    r.x = this.server === 'you' ? -1.2 : 1.2; r.z = RECV_Z;
-    for (const p of [s, r]) { p.vx = p.vz = 0; p.swing = 0; p.act = 'idle'; }
+    const s = this.players[this.serverP()];
+    if (this.pairs) {
+      // el delantero que saca, en el cuadro 4 y medio; su zaguero, atrás; los que restan: el zaguero hacia el 6 y el
+      // delantero delante, hacia el otro lado
+      const S = this.server, sx = S === 'you' ? 1 : -1;
+      for (const id of this.ids) {
+        const p = this.players[id], del = this.role[id] === 'delantero';
+        if (this.side(id) === S) { p.x = del ? sx * 0.8 : sx * 2.2; p.z = del ? SERVE_Z : 25.5; }
+        else { p.x = del ? -sx * 2.6 : -sx * 1.2; p.z = del ? 12.5 : RECV_Z + 0.5; }
+      }
+    } else {
+      const r = this.players[this.other(this.server)];
+      s.x = this.server === 'you' ? 0.8 : -0.8; s.z = SERVE_Z;
+      r.x = this.server === 'you' ? -1.2 : 1.2; r.z = RECV_Z;
+    }
+    for (const id of this.ids) { const p = this.players[id]; p.vx = p.vz = 0; p.swing = 0; p.act = 'idle'; }
     this.ball.set(vec(s.x + 0.35, 1.05, s.z - 0.35), vec()); this.ball.spin = 0;
     this.rally = null; this.serveTries = 0;
   }
@@ -68,12 +97,12 @@ export class PelotaGame {
     this.emit({ type: 'serveReady', who: this.server, matchPoint: this.mode === 'match' && Math.max(this.score.you, this.score.rival) === this.target - 1 });
   }
   dropForServe() {
-    const s = this.players[this.server];
+    const s = this.players[this.serverP()];
     this.phase = 'servePrep'; this.phaseT = 0;
     this.ball.set(vec(s.x + 0.35, 1.05, s.z - 0.4), vec(0, 0.6, 0)); this.ball.spin = 0;
     this.prepBounces = 0;
     s.act = 'bounce'; s.actT = 0;
-    this.emit({ type: 'drop', who: this.server });
+    this.emit({ type: 'drop', who: this.serverP() });
   }
 
   // ---------------------------------------------------------------- golpeo
@@ -82,10 +111,10 @@ export class PelotaGame {
     const b = this.ball.p, pl = this.players[who];
     const reach = who === 'you' && !this.autoplay ? this.lvl.reach : 1.25;
     if (this.phase === 'servePrep') {
-      if (who !== this.server || this.prepBounces < 1) return false;
+      if (who !== this.serverP() || this.prepBounces < 1) return false;
     } else if (this.phase === 'rally') {
       const R = this.rally;
-      if (R.turn !== who || !R.front || R.bounces > 1) return false;
+      if (R.turn !== this.side(who) || !R.front || R.bounces > 1) return false;
       if (R.serve && R.bounces < 1) return false;           // el saque no se puede devolver de aire
     } else return false;
     const d = Math.hypot(b.x - pl.x, b.z - pl.z);
@@ -215,12 +244,12 @@ export class PelotaGame {
       v = rnd() < 0.6 ? aimVelocity(p, p.x * 0.5, COURT.CHAPA * (0.3 + rnd() * 0.5), T) : aimVelocity(p, p.x + gauss(rnd) * 3, COURT.FRONT_TOP + 0.6 + rnd(), T);
     }
     b.set(p, v); b.spin = shot === 'cortada' ? 1 : 0;
-    const pl = this.players[who]; pl.act = 'hit'; pl.actT = 0; pl.swing = 0; pl.cool = 0.3;
-    this.rally = { striker: who, turn: this.other(who), front: false, bounces: 0, serve, hits: (this.rally?.hits || 0) + 1 };
+    const pl = this.players[who], sd = this.side(who); pl.act = 'hit'; pl.actT = 0; pl.swing = 0; pl.cool = 0.3;
+    this.rally = { striker: sd, by: who, turn: this.other(sd), front: false, bounces: 0, serve, hits: (this.rally?.hits || 0) + 1 };
     this.phase = 'rally'; this.phaseT = 0; this.pred = null;
-    this.stats.hits[who]++;
+    this.stats.hits[sd]++;
     const label = q > 0.85 ? 'perfect' : q > 0.6 ? 'good' : q > 0.35 ? 'ok' : 'late';
-    this.emit({ type: 'hit', who, q, label, shot, sub, pow, x: p.x, y: p.y, z: p.z });
+    this.emit({ type: 'hit', who, side: sd, q, label, shot, sub, pow, x: p.x, y: p.y, z: p.z });
   }
 
   // ---------------------------------------------------------------- árbitro
@@ -241,11 +270,12 @@ export class PelotaGame {
     // el último tanto: el partido se decide y el frontón entero aplaude (se deja más tiempo antes del final)
     this.finalPoint = this.score[winner] >= this.target;
     this.emit({ type: 'call', call, winner, score: { ...this.score }, kantari: kantari(this.score.rival, this.score.you), final: this.finalPoint });
-    const P = this.players[winner]; P.act = 'cheer'; P.actT = 0;
-    const L = this.players[this.other(winner)]; L.act = 'sad'; L.actT = 0;
+    for (const id of this.team(winner)) { const P = this.players[id]; P.act = 'cheer'; P.actT = 0; }
+    for (const id of this.team(this.other(winner))) { const L = this.players[id]; L.act = 'sad'; L.actT = 0; }
   }
   onBallEvent(e) {
     const R = this.rally; if (!R || this.phase !== 'rally') return;
+    if (e.type !== 'floor' || R.bounces < 1) { R.taker = null; this.predT = 0; }   // (el camino cambia: por parejas, se vuelve a ver quién la coge)
     const striker = R.striker, receiver = R.turn;
     if (e.type === 'front') {
       if (R.front) return;                                    // ya había dado
@@ -288,7 +318,7 @@ export class PelotaGame {
   }
   // Dónde conviene estar para golpear: la primera muestra golpeable a la que se llega a tiempo
   interceptFor(who, speed, react) {
-    const R = this.rally; if (!R || R.turn !== who) return null;
+    const R = this.rally; if (!R || R.turn !== this.side(who)) return null;
     const pl = this.players[who], pr = this.prediction();
     // ¿va al fondo? (el primer bote en el último cuadro: un cañonazo que se deja botar y, si llega, se juega del rebote)
     const deep = this.deepShot();
@@ -319,7 +349,7 @@ export class PelotaGame {
    *  pelota, o la mano en el saque), el golpe sin azar y su camino hasta el primer bote. null si aún no hay golpe. */
   previewShot(aim, req, pow) {
     const you = this.players.you; let at = null;
-    if (this.phase === 'servePrep' && this.server === 'you') at = { ...this.ball.p };
+    if (this.phase === 'servePrep' && this.serverP() === 'you') at = { ...this.ball.p };
     else if (this.phase === 'rally' && this.rally?.turn === 'you') { const c = this.interceptFor('you', 6.2, 0.1); if (c) at = { x: c.x, y: 1.0, z: c.z - 0.25 }; }
     if (!at) return null;
     const key = [Math.round(aim.x * 12), Math.round(aim.y * 12), req || '', Math.round(pow * 10), Math.round(at.x * 3), Math.round(at.z * 3)].join();
@@ -334,9 +364,11 @@ export class PelotaGame {
     return this._pv;
   }
   aiShot(who) {
-    const me = this.players[who], op = this.players[this.other(who)], rnd = this.rnd;
-    const lv = this.lvl.rival, smart = who === 'rival' ? lv.smart : 0.5, S = this.qual[who].fuerza;
+    const me = this.players[who], sd = this.side(who), rnd = this.rnd;
+    const lv = this.lvl.rival, smart = sd === 'rival' ? lv.smart : who === 'youMate' ? MATE_AI.smart : 0.5, S = this.qual[who].fuerza;
     if (this.phase === 'servePrep') return { aim: { x: gauss(rnd) * 0.5, y: 0 }, drop: false };
+    if (this.pairs) return this.aiShotPairs(who, me, smart, S);
+    const op = this.players[this.other(sd)];
     if (this.mode === 'rally' && who === 'rival') return { aim: { x: (op.x - me.x) * 0.15, y: 0 }, drop: false };  // en el peloteo, pelotas fáciles
     // un pelotari fuerte, con el rival adelantado, la manda al rebote
     if (S >= 4 && op.z < 23 && me.z > 13 && rnd() < 0.18 + (S - 4) * 0.12) return { aim: { x: gauss(rnd) * 0.3, y: 1 }, drop: false, pow: 1 };
@@ -349,19 +381,62 @@ export class PelotaGame {
     }
     return { aim: { x: gauss(rnd) * 0.6, y: rnd() < 0.2 ? 1 : 0 }, drop: false };
   }
+  // por parejas se juega al hueco: dejada si los dos están atrás, larga si los dos están delante, a la pared o al ancho
+  // si se han ido a un lado, y si no, lejos del zaguero
+  aiShotPairs(who, me, smart, S) {
+    const rnd = this.rnd, ops = this.team(this.other(this.side(who))).map(id => this.players[id]);
+    const front = ops[0].z < ops[1].z ? ops[0] : ops[1], back = front === ops[0] ? ops[1] : ops[0];
+    if (S >= 4 && back.z < 23 && me.z > 13 && rnd() < 0.18 + (S - 4) * 0.12) return { aim: { x: gauss(rnd) * 0.3, y: 1 }, drop: false, pow: 1 };
+    if (rnd() < smart) {
+      if (front.z > 17 && me.z < 20 && rnd() < 0.55) return { aim: { x: 0, y: -1 }, drop: true };
+      if (back.z < 20 && rnd() < 0.5) return { aim: { x: gauss(rnd) * 0.3, y: 1 } };
+      if (front.x > 0.5 && back.x > 0.5) return { aim: me.x > -2 && rnd() < smart ? { x: -0.85, y: -0.55 } : { x: -0.9, y: 0 } };
+      if (front.x < -1 && back.x < -1) return { aim: { x: 1, y: 0 } };
+      if (front.z < 14 && rnd() < 0.35) return { aim: { x: front.x > 0 ? -0.6 : 0.6, y: 0 }, drop: 'cortada' };
+      return { aim: { x: back.x > 0 ? -0.75 : 0.75, y: rnd() < 0.5 ? 0.6 : 0 } };
+    }
+    return { aim: { x: gauss(rnd) * 0.6, y: rnd() < 0.25 ? 1 : 0 }, drop: false };
+  }
+  // por parejas, quién del lado sd va a por la pelota: el que antes llega, con ventaja para el de esa zona (el delantero,
+  // lo de delante del cuadro 5; el zaguero, lo de atrás). Se mira cada cuarto de segundo y no se cambia por poco
+  takerOf(sd) {
+    if (!this.pairs) return sd;
+    const R = this.rally; if (!R || this.phase !== 'rally' || R.turn !== sd) return null;
+    if (R.taker && this.clock - R.takerAt < 0.25) return R.taker;
+    let best = null, bc = Infinity, cur = Infinity;
+    for (const id of this.team(sd)) {
+      const pl = this.players[id], c = this.interceptFor(id, 6, 0.15); if (!c) continue;
+      const del = this.role[id] === 'delantero', zone = (c.z < SPLIT) === del ? 0 : 0.45;
+      const cost = Math.hypot(c.x - pl.x, c.z - pl.z) / 6 - c.t + zone;
+      if (id === R.taker) cur = cost;
+      if (cost < bc) { bc = cost; best = id; }
+    }
+    if (R.taker && best !== R.taker && bc > cur - 0.3) best = R.taker;
+    R.taker = best || R.taker || this.team(sd).find(id => this.role[id] === 'zaguero'); R.takerAt = this.clock;
+    return R.taker;
+  }
+  // por parejas, el sitio de cada uno mientras no va a por la pelota: el delantero por delante del cuadro 4, el
+  // zaguero hacia el 6 y medio; los dos se corren un poco hacia donde está la pelota
+  basePos(who) {
+    const b = this.ball.p, del = this.role[who] === 'delantero';
+    return del ? { x: clamp(b.x * 0.3 + 1.2, -2.5, 3), z: 12.5 } : { x: clamp(b.x * 0.3 - 0.3, -3, 3), z: 23.5 };
+  }
   driveAI(who, dt) {
-    const pl = this.players[who], base = who === 'rival' ? this.lvl.rival : { speed: 5.4, react: 0.25, error: 0.12 }, Q = this.qual[who];
+    const pl = this.players[who], sd = this.side(who), base = sd === 'rival' ? this.lvl.rival : who === 'youMate' ? MATE_AI : { speed: 5.4, react: 0.25, error: 0.12 }, Q = this.qual[who];
     // velocidad: lo que corre y la arrancada a las cortas (a uno lento le pillan las dejadas); agilidad: los reflejos
     const lv = { ...base, speed: base.speed * (0.85 + Q.velocidad * 0.05), dash: (base.dash ?? 1) * (0.94 + Q.velocidad * 0.02), react: base.react * (1.25 - Q.agilidad * 0.083) };
     let tx = pl.x, tz = pl.z, sprint = 1;
-    if (this.phase === 'rally' && this.rally.turn === who) {
+    if (this.phase === 'rally' && this.rally.turn === sd && this.pairs && this.takerOf(sd) !== who) {
+      // la coge el compañero: a su sitio
+      const p = this.basePos(who); tx = p.x; tz = p.z;
+    } else if (this.phase === 'rally' && this.rally.turn === sd) {
       // a una pelota corta (la dejada) se sale en arrancada, como un pelotari de verdad: más rápido que en el peloteo
       const dash = lv.dash, c = this.interceptFor(who, lv.speed * dash, lv.react);
       if (c) { tx = c.x; tz = c.z; if (c.z < 8) sprint = dash; }
       const cannon = this.rally.bounces < 1 && this.ball.p.z > 22 && this.deepShot();   // (ese cañonazo al fondo, no de aire)
       if (this.hittable(who) && !cannon) {
         // los diestros fallan más lo pegado a la pared izquierda (y lo muy bajo): menos cuanto más ágiles
-        const b = this.ball.p, rally = this.mode === 'rally' && who === 'rival';
+        const b = this.ball.p, rally = this.mode === 'rally' && sd === 'rival';
         // (y lo que llega al fondo, junto al rebote, cuesta devolverlo bien)
         const near = clamp((1.1 - (b.x + COURT.W / 2)) / 0.8, 0, 1), deep = clamp((b.z - 28.5) / 4, 0, 1);
         const wallErr = rally ? 0 : near * (0.55 - Q.agilidad * 0.09) + (b.y < 0.3 ? 0.2 - Q.agilidad * 0.04 : 0) + deep * (0.4 - Q.agilidad * 0.05);
@@ -371,11 +446,13 @@ export class PelotaGame {
         // fuerza: cuanto más fuerte, más cargados los golpes
         return this.strike(who, q, s.aim, s.drop, s.pow ?? clamp(0.18 + Q.fuerza * 0.1 + this.rnd() * 0.5, 0.15, 1));
       }
+    } else if (this.phase === 'rally' && this.pairs) {
+      const p = this.basePos(who); tx = p.x; tz = p.z;
     } else if (this.phase === 'rally') {
       // se recoloca: centro-fondo, algo al lado contrario del rival
-      const op = this.players[this.other(who)];
+      const op = this.players[this.other(sd)];
       tx = clamp(-op.x * 0.5, -2.5, 2.5); tz = 20.5;
-    } else if (this.phase === 'servePrep' && this.server === who) {
+    } else if (this.phase === 'servePrep' && this.serverP() === who) {
       if (this.hittable(who) && this.ball.v.y < 0.4 && this.ball.p.y < 1.1) {
         const s = this.aiShot(who); return this.strike(who, 0.6 + this.rnd() * 0.35, s.aim, false);
       }
@@ -398,9 +475,8 @@ export class PelotaGame {
   update(dt, inp = {}) {
     this.events = [];
     dt = Math.min(dt, 0.05);
-    this.phaseT += dt; this.predT -= dt;
-    const you = this.players.you, rival = this.players.rival;
-    for (const p of [you, rival]) { p.actT += dt; if (p.cool > 0) p.cool -= dt; if ((p.act === 'hit' || p.act === 'swing') && p.actT > 0.45) p.act = 'idle'; }   // (un golpe al aire también acaba: antes se quedaba en «swing» y el gesto se repetía sin parar)
+    this.phaseT += dt; this.predT -= dt; this.clock += dt;
+    for (const id of this.ids) { const p = this.players[id]; p.actT += dt; if (p.cool > 0) p.cool -= dt; if ((p.act === 'hit' || p.act === 'swing') && p.actT > 0.45) p.act = 'idle'; }   // (un golpe al aire también acaba: antes se quedaba en «swing» y el gesto se repetía sin parar)
 
     if (this.phase === 'intro' || this.phase === 'end') return this.events;
     if (this.phase === 'point') {
@@ -414,9 +490,9 @@ export class PelotaGame {
     }
     // saque: esperar a que el que saca bote la pelota
     if (this.phase === 'serveWait') {
-      const s = this.players[this.server];
+      const s = this.players[this.serverP()];
       this.ball.set(vec(s.x + 0.35, 1.05, s.z - 0.35), vec()); this.ball.spin = 0;
-      const humanServes = this.server === 'you' && !this.autoplay;
+      const humanServes = this.serverP() === 'you' && !this.autoplay;
       if (humanServes ? (inp.hit || this.phaseT > 9) : this.phaseT > 1.3) this.dropForServe();
       this.movePlayers(dt, { ...inp, hit: false, drop: false }, true);
       return this.events;
@@ -425,7 +501,7 @@ export class PelotaGame {
       this.stepBall(dt, true);
       if (this.prepBounces >= 2) {               // se le ha escapado: se repite el saque
         this.serveTries++; this.emit({ type: 'serveRetry' });
-        if (this.server === 'you' && this.serveTries >= 2 && !this.autoplay) { this.strike('you', 0.7, { x: 0, y: 0 }); }
+        if (this.serverP() === 'you' && this.serveTries >= 2 && !this.autoplay) { this.strike('you', 0.7, { x: 0, y: 0 }); }
         else this.dropForServe();
         return this.events;
       }
@@ -448,7 +524,7 @@ export class PelotaGame {
     if (this.phase === 'rally' && (b.z > COURT.L + 12 || b.x > COURT.W / 2 + 12)) this.point(this.rally.front ? this.rally.striker : this.rally.turn, 'fuera');
   }
   movePlayers(dt, inp, frozenServer) {
-    const you = this.players.you, rival = this.players.rival;
+    const you = this.players.you;
     // jugador humano (o piloto automático)
     if (this.autoplay) this.driveAI('you', dt);
     else {
@@ -456,13 +532,13 @@ export class PelotaGame {
       let vx = mx * spd, vz = mz * spd;
       // ayuda: se acerca solo al sitio donde llegará la pelota (apuntando, con el botón mantenido, va solo del todo)
       const help = inp.aiming ? Math.max(this.lvl.assist, 5.4) : this.lvl.assist;
-      if (help > 0 && this.phase === 'rally' && this.rally.turn === 'you') {
+      if (help > 0 && this.phase === 'rally' && this.rally.turn === 'you' && this.takerOf('you') === 'you') {   // (por parejas, solo si es tuya)
         const c = this.interceptFor('you', 6.2, 0.1);
         if (c) { const dx = c.x - you.x, dz = c.z - you.z, d = Math.hypot(dx, dz); if (d > 0.25) { const k = Math.min(help, d * 2.5); vx += dx / d * k; vz += dz / d * k; } }
       }
       const a = 1 - Math.exp(-12 * dt);
       you.vx += (vx - you.vx) * a; you.vz += (vz - you.vz) * a;
-      if (this.phase === 'serveWait' && this.server === 'you') { you.vx = you.vz = 0; }
+      if (this.phase === 'serveWait' && this.serverP() === 'you') { you.vx = you.vz = 0; }
       // golpe
       if ((inp.hit || inp.drop || inp.cut) && you.cool <= 0) {
         if (this.phase === 'servePrep' || this.phase === 'rally') { you.swing = 0.3; you.swingT = 0; you.dropReq = inp.drop ? 'dejada' : inp.cut ? 'cortada' : false; you.pow = inp.power ?? 0.5; you.aim = { x: inp.aimX || 0, y: inp.aimY || 0 }; you.act = 'swing'; you.actT = 0; you.cool = 0.32; }
@@ -475,17 +551,21 @@ export class PelotaGame {
         } else if (you.swing <= 0) this.emit({ type: 'whiff' });
       }
     }
-    if (!(this.phase === 'serveWait' && this.server === 'rival')) this.driveAI('rival', dt);
-    if (this.phase === 'serveWait' || (this.phase === 'servePrep')) { const s = this.players[this.server]; s.vx = s.vz = 0; }
-    for (const p of [you, rival]) {
+    // los demás (el rival y, por parejas, los compañeros), con la cabeza; el que saca espera quieto a botar la pelota
+    for (const id of this.ids) if (id !== 'you' && !(this.phase === 'serveWait' && this.serverP() === id)) this.driveAI(id, dt);
+    if (this.phase === 'serveWait' || (this.phase === 'servePrep')) { const s = this.players[this.serverP()]; s.vx = s.vz = 0; }
+    const all = this.ids.map(id => this.players[id]);
+    for (const p of all) {
       p.x = clamp(p.x + p.vx * dt, -COURT.W / 2 + 0.45, COURT.W / 2 + 2.5);
       p.z = clamp(p.z + p.vz * dt, 2, COURT.L + 3);
       const sp = Math.hypot(p.vx, p.vz); p.speed = sp;
       if (sp > 0.3) p.face = Math.atan2(p.vx, p.vz);
     }
     // no se atraviesan
-    const dx = you.x - rival.x, dz = you.z - rival.z, d = Math.hypot(dx, dz);
-    if (d < 0.9 && d > 1e-4) { const k = (0.9 - d) / 2; you.x += dx / d * k; you.z += dz / d * k; rival.x -= dx / d * k; rival.z -= dz / d * k; }
+    for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) {
+      const a = all[i], c = all[j], dx = a.x - c.x, dz = a.z - c.z, d = Math.hypot(dx, dz);
+      if (d < 0.9 && d > 1e-4) { const k = (0.9 - d) / 2; a.x += dx / d * k; a.z += dz / d * k; c.x -= dx / d * k; c.z -= dz / d * k; }
+    }
   }
 
   // ayudas para la vista: dónde botará y dónde conviene ponerse
@@ -494,7 +574,9 @@ export class PelotaGame {
     const R = this.rally, pr = this.prediction();
     let land = null;
     for (const e of pr.events) if (e.type === 'floor' && e.n === 1) { land = e; break; }
-    const spot = R.turn === 'you' ? this.interceptFor('you', 6.2, 0.1) : null;
-    return { land, spot, yourTurn: R.turn === 'you', hittable: this.hittable('you') };
+    // (por parejas, «te toca» solo si la pelota es tuya; si es de tu compañero, él va a por ella)
+    const mine = R.turn === 'you' && this.takerOf('you') === 'you';
+    const spot = mine ? this.interceptFor('you', 6.2, 0.1) : null;
+    return { land, spot, yourTurn: mine, mate: R.turn === 'you' && !mine, hittable: this.hittable('you') };
   }
 }
