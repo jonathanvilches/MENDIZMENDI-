@@ -10,14 +10,15 @@ const [,, town = 'lesaka', out = 'entrega/pelota-vs', weather = 'clear'] = proce
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true });
 const errs = []; p.on('pageerror', e => errs.push(e.message));
-await p.addInitScript(() => { window.__vs = true; localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Mendi', seen: { heroBenat: true, dog: true } })); });
+await p.addInitScript(() => { window.__vs = true; window.__vsMs = 600000; localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Mendi', seen: { heroBenat: true, dog: true } })); });
 await p.goto(`${URL}/?town=${town}&q=low&weather=${weather}&skipintro=1&t=12`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 900000 }); await p.waitForTimeout(2500);
 let fails = 0, n = 0; const ok = (c, m) => { console.log(`  ${c ? 'OK ' : 'FALLO'} ${m}`); if (!c) fails++; };
 const shot = (tag) => p.screenshot({ path: `${out}/${weather}-${String(++n).padStart(2, '0')}-${tag}.png` });
 const finish = () => p.evaluate(() => document.getAnimations?.().forEach(a => { try { if (a.effect?.getTiming?.().iterations !== Infinity) a.finish(); } catch (e) { } }));
 const talk = async () => {
-  await p.evaluate(() => { const G = window.__game, a = G.pelotari || G.missions.find(M => M.type === 'pelota')?.host; G.player.place(a.pos.x + 1.5, a.pos.z + 1.5, 0); G.follow.snap(G.player); G.talk(a); });
+  // (el partido libre del pueblo, como al hablar con su pelotari: en algunos pueblos el de la misión no lo ofrece)
+  await p.evaluate(() => { const G = window.__game, a = G.pelotari || G.missions.find(M => M.type === 'pelota')?.host; G.player.place(a.pos.x + 1.5, a.pos.z + 1.5, 0); G.follow.snap(G.player); G.freePelota(); });
   for (let i = 0; i < 14; i++) { await p.waitForTimeout(800); if (await p.evaluate(() => !!document.querySelector('[data-a="libre"]'))) return true; if (await p.evaluate(() => window.__game.ui.dialogOpen)) await p.evaluate(() => dispatchEvent(new KeyboardEvent('keydown', { key: 'e' }))); }
   return false;
 };
@@ -41,27 +42,44 @@ await p.evaluate(() => document.querySelector('.pel-panel [data-pel-court]').cli
 ok(await p.evaluate(() => !document.querySelector('.pel-court-what').hidden && /\./.test(document.querySelector('.pel-court-what').innerText)), 'al tocar el frontón se explica qué pasa con cada cosa');
 await shot('panel-fronton');
 await p.evaluate(() => document.querySelector('.pel-panel [data-pel-court]').click());
+// el golpe automático: en «Más opciones», y el resumen lo dice
+await p.evaluate(() => document.querySelector('.pel-panel [data-pel-auto]').click()); await p.waitForTimeout(500);
+const AU = await p.evaluate(() => ({ on: document.querySelector('.pel-panel [data-pel-auto]')?.getAttribute('aria-checked'), sum: document.querySelector('.pel-panel .pel-sum')?.innerText, game: window.__game.pelotaMatch?.game.autoHit, saved: localStorage.getItem('mendimendiz-pelota-auto'), scroll: (c => c.scrollHeight - c.clientHeight)(document.querySelector('.pel-card')) }));
+console.log('   golpe automático:', JSON.stringify(AU));
+ok(AU.on === 'true' && /automático/i.test(AU.sum || '') && AU.game === true && AU.saved === '1', 'el golpe automático se enciende, se ve en el resumen y se recuerda');
+ok(AU.scroll <= 0, `con el golpe automático, el panel sigue cabiendo (${AU.scroll} px)`);
 // 2. la pantalla VS
 console.log('2. la pantalla VS');
 await p.evaluate(() => document.querySelector('.pel-panel [data-pel-go]').click());
 await p.waitForSelector('.pvs', { timeout: 30000 }); await p.waitForTimeout(1500); await finish();
+await shot('vs');
 const V = await p.evaluate(async () => { const v = document.querySelector('.pvs'), R = (s) => v.querySelector(s)?.getBoundingClientRect();
   await Promise.all([...v.querySelectorAll('img')].map(i => i.decode?.().catch(() => {})));
   const inside = (r) => r && r.left >= -1 && r.top >= -1 && r.right <= innerWidth + 1 && r.bottom <= innerHeight + 1, hit = (a, c) => a && c && !(a.right <= c.left || c.right <= a.left || a.bottom <= c.top || c.bottom <= a.top);
   const nb = R('.pvs-name.blue'), nr = R('.pvs-name.red'), qu = R('.pvs-quote'), top = R('.pvs-top'), x = R('.pvs-x');
   return { imgs: [...v.querySelectorAll('img')].map(i => i.naturalWidth), names: [...v.querySelectorAll('.pvs-name b')].map(e => e.innerText), quote: v.querySelector('.pvs-quote')?.innerText, venue: v.querySelector('.pvs-venue')?.innerText,
-    tags: v.querySelector('.pvs-tags')?.innerText, inside: [nb, nr, qu, top, x].every(inside), overlap: hit(nb, qu) || hit(nr, qu) || hit(nb, x) || hit(nr, x) || hit(top, x) || hit(nb, nr), phase: window.__game.pelotaMatch.game.phase };
+    tags: v.querySelector('.pvs-tags')?.innerText, boxes: Object.fromEntries(Object.entries({ nb, nr, qu, top, x }).map(([k, r]) => [k, r && [r.left, r.top, r.right, r.bottom].map(Math.round)])), inside: [nb, nr, qu, top, x].every(inside), overlap: hit(nb, qu) || hit(nr, qu) || hit(nb, x) || hit(nr, x) || hit(top, x) || hit(nb, nr), phase: window.__game.pelotaMatch.game.phase };
 });
 console.log(`   ${V.names.join(' VS ')} · ${V.venue} · «${V.quote}» · ${V.tags?.replace(/\n/g, ' | ')}`);
 ok(V.imgs.length >= 2 && V.imgs.every(w => w > 0), 'las dos figuras (nuestros pelotaris azul y colorado)');
 ok(V.names.length === 2 && !!V.quote && !!V.venue, 'los nombres, el frontón y la frase del rival');
 ok(V.inside && !V.overlap, 'todo dentro de la pantalla y sin solaparse');
 ok(V.phase === 'intro', 'mientras se ve, el partido aún no ha empezado');
-await shot('vs');
+if (V.overlap || !V.inside) console.log('   cajas:', JSON.stringify(V.boxes));
 await p.evaluate(() => document.querySelector('.pvs').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })));
 await p.waitForFunction(() => !document.querySelector('.pvs'), null, { timeout: 10000 }).catch(() => {});
 ok(await p.evaluate(() => !document.querySelector('.pvs') && window.__game.pelotaMatch?.game.phase !== 'intro'), 'al tocar, empieza el partido');
 await p.evaluate(() => { const m = window.__game.pelotaMatch; for (let k = 0; k < 20; k++) m.update(1 / 30); });
+// en el partido: el marcador sobre el frontis, FALTA y PASA en la pared, tu energía abajo y AUTO en el botón de golpe
+await p.waitForTimeout(2500); await finish();
+const IN = await p.evaluate(() => { const C = window.__game.pelotaMatch.court.group, my = document.querySelector('.pel-myen'), r = my?.getBoundingClientRect(), st = document.querySelector('.pel-stick')?.getBoundingClientRect(), bt = document.querySelector('.pel-btns')?.getBoundingClientRect();
+  const hit = (a, c) => a && c && !(a.right <= c.left || c.right <= a.left || a.bottom <= c.top || c.bottom <= a.top);
+  return { big: !!C.getObjectByName('marcador-frontis'), falta: !!C.getObjectByName('raya-falta'), pasa: !!C.getObjectByName('raya-pasa'), myen: !!my && !my.hidden, overlap: hit(r, st) || hit(r, bt), auto: document.querySelector('.pel-root')?.classList.contains('autohit') }; });
+console.log('   en el partido:', JSON.stringify(IN));
+ok(IN.big && IN.falta && IN.pasa, 'el marcador sobre el frontis y FALTA y PASA en la pared');
+ok(IN.myen && !IN.overlap, 'tu energía abajo en el centro, sin tocar el joystick ni los botones');
+ok(IN.auto, 'con golpe automático, AUTO en el botón de golpe');
+await shot('partido');
 // salir del partido: el rival ya queda en la colección
 await p.evaluate(() => document.querySelector('.pel-exit').click()); await p.waitForTimeout(500);
 await p.evaluate(() => document.querySelector('.pel-panel [data-pel-yes]').click());

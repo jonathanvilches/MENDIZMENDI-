@@ -165,7 +165,7 @@ export const TEXT = {
       'Cada golpe cansa, más si es fuerte. Con poca energía se falla más; entre tanto y tanto se descansa.',
       'Si bota dentro y llega a la pared de atrás (el rebote), vuelve y se puede jugar antes del segundo bote. Si da en el rebote sin botar, es fuera.',
     ],
-    level: 'Nivel', rulesTitle: 'Reglas y controles', moreTitle: 'Más opciones', vsTap: 'Toca para empezar', fronton: (t) => `Frontón de ${t}`,
+    level: 'Nivel', rulesTitle: 'Reglas y controles', moreTitle: 'Más opciones', energy: 'Energía', autoHit: ['Golpe automático', 'Tú te mueves; el golpe sale solo cuando la pelota está a tu alcance.'], vsTap: 'Toca para empezar', fronton: (t) => `Frontón de ${t}`,
     levels: { iniciacion: 'Iniciación', facil: 'Fácil', normal: 'Normal', dificil: 'Difícil', experto: 'Experto' },
     // las partes del frontón, una a una con la cámara (cada zona tiene su nombre, y hay que saberlo para seguir el juego)
     tour: { btn: 'Partes del frontón', next: 'Siguiente', prev: 'Anterior', end: 'Volver', parts: [
@@ -249,7 +249,7 @@ export const TEXT = {
       'Kolpe bakoitzak nekatzen du, gogorra bada gehiago. Energia gutxirekin gehiago huts egiten da; tanto batetik bestera atseden hartzen da.',
       'Barruan bote egin eta atzeko paretara (errebotera) iristen bada, itzuli egiten da eta bigarren botea baino lehen jo daiteke. Bote egin gabe errebotean jotzen badu, kanpo da.',
     ],
-    level: 'Maila', rulesTitle: 'Arauak eta kontrolak', moreTitle: 'Aukera gehiago', vsTap: 'Ukitu hasteko', fronton: (t) => `Frontoia · ${t}`,
+    level: 'Maila', rulesTitle: 'Arauak eta kontrolak', moreTitle: 'Aukera gehiago', energy: 'Energia', autoHit: ['Kolpe automatikoa', 'Zu mugitu; kolpea bakarrik ateratzen da pilota zure eskura dagoenean.'], vsTap: 'Ukitu hasteko', fronton: (t) => `Frontoia · ${t}`,
     levels: { iniciacion: 'Hasiera', facil: 'Erraza', normal: 'Normala', dificil: 'Zaila', experto: 'Aditua' },
     tour: { btn: 'Frontoiaren atalak', next: 'Hurrengoa', prev: 'Aurrekoa', end: 'Itzuli', parts: [
       ['Frontisa', 'Aurreko horma. Pilota orok bertan jo behar du, goiko marraren azpitik.'],
