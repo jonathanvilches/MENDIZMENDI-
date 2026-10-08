@@ -336,13 +336,14 @@ export class Fauna {
     this._m = new THREE.Matrix4(); this._q = new THREE.Quaternion(); this._e = new THREE.Euler(); this._p = new THREE.Vector3(); this._s = new THREE.Vector3(1, 1, 1);
   }
   buildFireflies(scene, quality) {
-    const n = quality === 'low' ? 80 : 200;
+    const n = quality === 'low' ? 36 : 90;   // (pocas: muchas parecían motas raras por el camino)
     const g = new THREE.BufferGeometry();
     const p = new Float32Array(n * 3); this.ffBase = [];
     for (let i = 0; i < n; i++) this.ffBase.push({ x: (this.rnd() - 0.5) * 60, y: 0.5 + this.rnd() * 2.5, z: (this.rnd() - 0.5) * 60, ph: this.rnd() * 6.28 });
     g.setAttribute('position', new THREE.BufferAttribute(p, 3));
+    g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 3), 3));   // (el brillo de cada una: se enciende y se apaga poco a poco)
     const tex = glowTexture();
-    this.ffMat = new THREE.PointsMaterial({ size: 0.35, map: tex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, color: '#d6ff7a', opacity: 0 });
+    this.ffMat = new THREE.PointsMaterial({ size: 0.35, map: tex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, color: '#d6ff7a', opacity: 0, vertexColors: true });
     this.fireflies = new THREE.Points(g, this.ffMat); this.fireflies.frustumCulled = false;
     scene.add(this.fireflies);
   }
@@ -373,7 +374,8 @@ export class Fauna {
     out.push(...this.extraObservables);
     return out;
   }
-  update(dt, player, elapsed, night, sound) {
+  // flood: los focos de un partido (sin luciérnagas en la cancha); cam: la cámara (pegadas a ella, no se ven)
+  update(dt, player, elapsed, night, sound, flood = 0, cam = null) {
     this.extraObservables = [];
     const vd = this.visDist;
     for (const a of this.animals) {
@@ -478,16 +480,22 @@ export class Fauna {
     });
     this.bfMesh.instanceMatrix.needsUpdate = true;
     // luciérnagas de noche
-    this.ffMat.opacity = clamp((night - 0.4) * 2, 0, 1);
+    this.ffMat.opacity = clamp((night - 0.4) * 2, 0, 1) * (1 - flood);
     if (this.ffMat.opacity > 0) {
-      const p = this.fireflies.geometry.attributes.position;
+      // cada una da la vuelta por su cuenta alrededor del jugador (antes saltaban todas a la vez al pasar de 60 en 60 m)
+      // y se enciende y apaga poco a poco (antes aparecían y desaparecían de golpe); junto a la cámara, apagadas
+      const g = this.fireflies.geometry, p = g.attributes.position, c = g.attributes.color, w = (v) => ((v + 30) % 60 + 60) % 60 - 30;
       for (let i = 0; i < this.ffBase.length; i++) {
         const b = this.ffBase[i];
-        const x = Math.round(player.pos.x / 60) * 60 + b.x + Math.sin(elapsed * 0.4 + b.ph) * 2, z = Math.round(player.pos.z / 60) * 60 + b.z + Math.cos(elapsed * 0.3 + b.ph) * 2;
-        const blink = Math.sin(elapsed * 2 + b.ph * 3) > 0.2 ? 1 : 0;
-        p.setXYZ(i, x, terrainHeight(x, z) + b.y + Math.sin(elapsed + b.ph) * 0.3 - (blink ? 0 : 100), z);
+        const x = player.pos.x + w(b.x - player.pos.x + Math.sin(elapsed * 0.4 + b.ph) * 2), z = player.pos.z + w(b.z - player.pos.z + Math.cos(elapsed * 0.3 + b.ph) * 2);
+        const y = terrainHeight(x, z) + b.y + Math.sin(elapsed + b.ph) * 0.3;
+        p.setXYZ(i, x, y, z);
+        let k = clamp((Math.sin(elapsed * 2 + b.ph * 3) - 0.1) * 2.5, 0, 1);
+        k *= clamp((30 - Math.max(Math.abs(x - player.pos.x), Math.abs(z - player.pos.z))) / 4, 0, 1);   // (en el borde, donde dan la vuelta, apagadas)
+        if (cam) k *= clamp((Math.hypot(cam.x - x, cam.y - y, cam.z - z) - 2) / 3, 0, 1);
+        c.setXYZ(i, k, k, k);
       }
-      p.needsUpdate = true;
+      p.needsUpdate = c.needsUpdate = true;
     }
     this.fireflies.visible = this.ffMat.opacity > 0;
     // bandadas

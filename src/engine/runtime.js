@@ -287,7 +287,7 @@ export class Runtime {
     g.update(dt);
     navTick(this.quality === 'low' ? 1.5 : 2.5);   // caminos de los vecinos, unos milisegundos por fotograma
     this.terrain.update(this.camera.position);
-    { const c = this.camera, f = this.sky.ahead || (this.sky.ahead = new THREE.Vector3()); c.getWorldDirection(f); f.y = 0; if (f.lengthSq() < 1e-4) f.set(0, 0, 0); else f.normalize(); }   // (las sombras, por delante de la cámara)
+    { const c = this.camera, f = this.sky.ahead || (this.sky.ahead = new THREE.Vector3()); c.getWorldDirection(f); f.y = 0; if (f.lengthSq() < 1e-4) f.set(0, 0, 0); else f.normalize(); this.sky.camPos = c.position; }   // (las sombras, por delante de la cámara)
     this.sky.update(dt, P.pos, this.elapsed, g.mode === 'dance');
     this.weather?.update(dt, this.camera, this.sky, this.sound, g.mode === 'futbol' || g.mode === 'pelota');
     this.sky.applyFlood();   // (los focos del frontón, después de la lluvia)
@@ -295,7 +295,7 @@ export class Runtime {
     this.water.update(this.elapsed, this.sky);
     this.nature.update(this.camera.position, P.pos, this.elapsed, P.pos);
     updateDetail(this.camera.position, this.quality);
-    this.fauna.update(dt, P, this.elapsed, this.sky.night, this.sound);
+    this.fauna.update(dt, P, this.elapsed, this.sky.night, this.sound, this.sky.floodK(), this.camera.position);   // (en el partido, sin luciérnagas)
     this.particles.update(dt);
     if (this.waterfall) this.waterfall.update(dt, this.elapsed, Math.hypot(P.pos.x - PLACES.waterfall.x, P.pos.z - PLACES.waterfall.z) < 80);
     this.smoke.update(dt);
