@@ -234,7 +234,7 @@ export function torneoPanel(T, here = null) {
     const btns = T.done ? '<button class="lg-btn go" data-a="new">Nuevo torneo</button>' : m ? '<button class="lg-btn go" data-a="play">¡A jugar!</button>' : '<button class="lg-btn go" data-a="sim">Siguiente ronda</button>';
     const r = lgPanel(`${head}<div class="tq-left">${left}<div class="lg-btns lg-foot">${btns}<button class="lg-btn" data-a="exit">Salir</button></div></div><div class="tq-right">${bracketHtml(T)}</div>${how}`);
     const cardEl = r.firstElementChild; cardEl.classList.remove('lg-two'); cardEl.classList.add('tq-card');
-    const lines = () => drawLines(r); requestAnimationFrame(lines); addEventListener('resize', lines);
+    const lines = () => drawLines(r); requestAnimationFrame(lines); setTimeout(lines, 650); addEventListener('resize', lines);   // (y otra vez al acabar las entradas: las cajas ya en su sitio)
     r.addEventListener('click', (e) => {
       const f = e.target.closest('[data-f]'); if (f && m) { const L = fichaList(T, m); openFicha(L, Math.max(0, L.findIndex(p => p.id === f.dataset.f)), lang); return; }   // (la ficha, encima del cuadro)
       const inf = e.target.closest('[data-info]'); if (inf) { const h = r.querySelector('.tq-how'), on = h.hidden; h.hidden = !on; inf.setAttribute('aria-expanded', String(on)); requestAnimationFrame(lines); return; }

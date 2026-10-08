@@ -133,7 +133,7 @@ export class PelotaMatch {
     const C = this.court, W = COURT.W, L = COURT.L, EXT = L + 3, RH = C.reboteH || 2.2, CO = C.contra || 2.6, T = this.T;
     if (!this.tourHi) {
       // (separados unos centímetros de la pared o del suelo; sin polygonOffset, que en algunos móviles los escondía detrás)
-      const mat = new T.MeshBasicMaterial({ color: '#ffd84a', transparent: true, opacity: 0.5, depthWrite: false, side: T.DoubleSide });
+      const mat = new T.MeshBasicMaterial({ color: '#ff2bd6', transparent: true, opacity: 0.5, depthWrite: false, side: T.DoubleSide });
       const line = this.tourLine = new T.LineBasicMaterial({ color: '#fff27a', transparent: true, opacity: 0.95, depthWrite: false });
       // (cada parte, en amarillo con su borde)
       const plane = (w, h, x, y, z, rx = 0, ry = 0) => { const geo = new T.PlaneGeometry(w, h), m = new T.Mesh(geo, mat); m.add(new T.LineSegments(new T.EdgesGeometry(geo), line)); m.position.set(x, y, z); m.rotation.set(rx, ry, 0); m.visible = false; m.renderOrder = 6; C.group.add(m); return m; };
@@ -364,10 +364,10 @@ export class PelotaMatch {
         // la fuerza también se oye y se nota: un golpe a tope suena más fuerte y sacude un poco la cámara
         const pw = e.pow ?? 0.5; A.hit((0.5 + e.q * 0.4) * (0.55 + pw * 0.75)); C.pop(e, 'z');
         if (e.who === 'you' && pw > 0.8 && e.shot !== 'dejada') this.shake = Math.max(this.shake || 0, 0.12 + (pw - 0.8) * 0.6);
-        if (e.who === 'you') { const s = t.shots[e.sub] || t.shots[e.shot] || ''; this.hud.quality(`${t.quality[e.label]}${s ? ' · ' + s : ''} · fuerza ${Math.round(pw * 100)} %`); }
+        if (e.who === 'you') { const s = t.shots[e.sub] || t.shots[e.shot] || ''; this.hud.quality(t.quality[e.label], `${s ? s + ' · ' : ''}${this.lang === 'eu' ? 'indarra' : 'fuerza'} ${Math.round(pw * 100)} %`, e.label); }
         this.swingAnim(e.who); break;
       }
-      case 'whiff': this.hud.quality(t.quality.whiff); break;
+      case 'whiff': this.hud.quality(t.quality.whiff, '', 'whiff'); break;
       case 'claim': this.hud.quality((t.pairs || TEXT.es.pairs).claim); break;   // (pides la pelota de tu compañero)
       case 'front': if (e.chapa) { A.chapa(); C.chapaT = 0.6; this.shake = 0.35; } else A.front(); C.pop({ x: e.x, y: e.y, z: 0.02 }, 'z'); break;
       case 'wall': A.wall(); break;
@@ -403,7 +403,7 @@ export class PelotaMatch {
     if (C.spotRing.visible) {
       C.spotRing.position.set(h.spot.x, 0.025, h.spot.z);
       const you = g.players.you, inside = Math.hypot(you.x - h.spot.x, you.z - h.spot.z) < 0.8;
-      C.spotRing.material.color.set(inside ? '#7dff9c' : '#39d86b'); C.spotRing.material.opacity = inside ? 1 : 0.7;
+      C.spotRing.material.color.set(inside ? '#ffc2ec' : '#ff2bd6'); C.spotRing.material.opacity = inside ? 1 : 0.7;
     }
     // marca de puntería en el frontis mientras se carga la cortada o la dejada: sube con la fuerza (poca carga, rozando
     // la chapa; a tope, a media altura) y se mueve a lo ancho con el joystick
@@ -427,7 +427,7 @@ export class PelotaMatch {
         pos.needsUpdate = true; C.aimPath.geometry.setDrawRange(0, n); C.aimPath.computeLineDistances();
         if (pv.land) { C.aimLand.position.set(pv.land.x, 0.03, pv.land.z); C.aimLand.scale.setScalar(1 + 0.1 * Math.sin(this.t * 10)); }
         if (pv.wall) C.aimWall.position.set(-COURT.W / 2 + 0.05, pv.wall.y, pv.wall.z);
-        C.aimLand.material.color.set(pv.shot === 'dosparedes' ? '#7ad7ff' : '#ffd84a'); C.aimPath.material.color.copy(C.aimLand.material.color);
+        C.aimLand.material.color.set(pv.shot === 'dosparedes' ? '#c9b2ff' : '#ff7ac8'); C.aimPath.material.color.copy(C.aimLand.material.color);
       }
     }
     C.serveZone.visible = g.phase === 'serveWait' || g.phase === 'servePrep' || (g.phase === 'rally' && g.rally?.serve && !g.rally.front);
@@ -484,7 +484,7 @@ export class PelotaMatch {
     }
     // por parejas, una flecha sobre ti (tu compañero lleva la misma ropa)
     if (g.pairs) {
-      if (!this.pin) { this.pin = new T.Mesh(new T.ConeGeometry(0.2, 0.36, 4).rotateX(Math.PI), new T.MeshBasicMaterial({ color: '#ffe14a', depthTest: false, transparent: true })); this.pin.renderOrder = 3; grp.add(this.pin); }
+      if (!this.pin) { this.pin = new T.Mesh(new T.ConeGeometry(0.2, 0.36, 4).rotateX(Math.PI), new T.MeshBasicMaterial({ color: '#ff7ac8', depthTest: false, transparent: true })); this.pin.renderOrder = 3; grp.add(this.pin); }
       const Y = g.players.you; this.pin.visible = g.phase !== 'intro'; this.pin.position.set(Y.x, 2.35 + Math.sin(this.t * 6) * 0.08, Y.z); this.pin.rotation.y = this.t * 2;
     } else if (this.pin) this.pin.visible = false;
     // cámara detrás del jugador, mirando al frontis
