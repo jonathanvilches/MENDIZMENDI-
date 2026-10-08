@@ -80,7 +80,7 @@ export class PelotaMatch {
       if (b.hasAttribute('data-pel-tour')) { this.startTour(); return; }
       if (b.hasAttribute('data-pel-go') && this.loadingMates) return;
       if (b.hasAttribute('data-pel-go')) { this.audio.ensure(); this.hud.closePanel(); this.hud.controls(true); this.game.start(); this.audio.whistle(); }
-      if (b.hasAttribute('data-pel-x')) this.exit(true);
+      if (b.hasAttribute('data-pel-x')) this.exit(true, true);   // («Ahora no», antes de empezar: un paso atrás)
     });
   }
   // ------------------------------------------------------------ las partes del frontón
@@ -157,9 +157,12 @@ export class PelotaMatch {
     this.hud.controls(false); this.hud.tip('');
     const fact = t.facts[(this.o.factIndex ?? Math.floor(Math.random() * t.facts.length)) % t.facts.length];
     const big = g.mode === 'rally' ? `${e.best}/${g.target}` : t.result(e.score.you, e.score.rival);
+    // el botón dice a dónde se vuelve: al pueblo, al menú del campeonato o al cuadro del torneo (en el torneo, el
+    // resultado cuenta: sin «otra partida» para repetirlo)
+    const cont = this.o.back === 'torneo' ? (t.contTorneo || TEXT.es.contTorneo) : this.o.back === 'menu' ? (t.contMenu || TEXT.es.contMenu) : t.cont;
     const p = this.hud.panel(`<h2>${e.win ? (g.mode === 'rally' ? t.rallyWin : t.win) : t.lose}</h2><p class="pel-sub">${esc(this.label('you'))} – ${esc(this.label('rival'))}</p>
       <div class="pel-big">${big}</div><div class="pel-fact"><b>${t.factsTitle}</b><br>${fact}</div>
-      <div class="pel-row"><button class="pel-go alt" data-pel-again>${t.again}</button><button class="pel-go" data-pel-cont>${t.cont}</button></div>`);
+      <div class="pel-row">${this.o.back === 'torneo' ? '' : `<button class="pel-go alt" data-pel-again>${t.again}</button>`}<button class="pel-go" data-pel-cont>${cont}</button></div>`);
     p.addEventListener('click', (ev) => {
       const b = ev.target.closest('button'); if (!b) return;
       if (b.hasAttribute('data-pel-again')) { this.hud.closePanel(); this.newGame(); this.hud.controls(true); this.game.start(); this.audio.whistle(); }
@@ -176,10 +179,10 @@ export class PelotaMatch {
       else { this.hud.closePanel(); this.paused = wasPaused; }
     });
   }
-  exit(user) {
+  exit(user, later = false) {
     if (!this.active) return;
     this.destroy();
-    this.o.onExit?.({ win: false, quit: !!user, score: { ...this.game.score } });
+    this.o.onExit?.({ win: false, quit: !!user, later, score: { ...this.game.score } });
   }
   finish(e) {
     if (!this.active) return;

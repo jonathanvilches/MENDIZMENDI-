@@ -128,7 +128,8 @@ async function boot() {
     hub.hide(); queueMode('off');
     const cm = COMARCAS.find(c => c.id === d.comarca);
     const TI = { visit: 'church', process: 'basket', harvest: 'wheat', herd: 'sheep', dance: 'dance', carnival: 'mask', trade: 'anvil', legend: 'legend', race: 'running', observe: 'binoculars', tradition: 'music', quiz: 'quiz', summit: 'peak', pelota: 'pelota', figure: 'person', feria: 'cow', dolmen: 'dolmen', castle: 'castle', mirador: 'binoculars' };
-    ui.showLoading(opt.sport ? `${isEU() ? 'Esku pilota' : 'Pelota a mano'} · ${d.name.split(' /')[0]}` : d.name, TIPS[Math.floor(Math.random() * TIPS.length)], townImg(d), { hero: heroAction(P.avatar, d.id), comarca: cm?.name, stamp: stampImg(d.comarca, d.name.split(' /')[0]), avatar: avatarPortrait(P.avatar), intro: d.intro, missions: (d.missions || []).map(m => m.icon || TI[m.type] || 'star') });
+    // (al campeonato de pelota se va a jugar: sin la historia del pueblo ni sus misiones en la pantalla de carga)
+    ui.showLoading(opt.sport ? `${isEU() ? 'Esku pilota' : 'Pelota a mano'} · ${d.name.split(' /')[0]}` : d.name, opt.sport ? (isEU() ? 'Frontoia prestatzen…' : 'Preparando el frontón…') : TIPS[Math.floor(Math.random() * TIPS.length)], townImg(d), { hero: heroAction(P.avatar, d.id), comarca: cm?.name, stamp: stampImg(d.comarca, d.name.split(' /')[0]), avatar: avatarPortrait(P.avatar), intro: opt.sport ? '' : d.intro, missions: opt.sport ? [] : (d.missions || []).map(m => m.icon || TI[m.type] || 'star') });
     try {
       const npcP = preloadNpcs(); await preloadFood(); await Promise.all([rt.load(d, P.avatar, (p, m) => ui.progress(p, m)), npcP]);
       const ctx = { scene: rt.scene, camera: rt.camera, player: rt.player, follow: rt.follow, ui, sound, input, sky: rt.sky, fauna: rt.fauna, particles: rt.particles, beacon: rt.beacon, rt, onExit: exit };
@@ -228,7 +229,7 @@ async function boot() {
       document.querySelectorAll('.lg-root').forEach(r => r.remove()); fade.remove();
       rt.active = false; rt.game = null; if (ownScene && rt.scene === blank) rt.scene = null;
       canvas.style.visibility = 'hidden'; loading = false;
-      queueMode('all'); hub.show('home');
+      queueMode('all'); hub.show('sports');   // (de vuelta a Torneos, de donde se vino)
     }
   }
   window.__futbolSport = futbolSport;
@@ -255,7 +256,8 @@ async function boot() {
     if (window.__game === game) window.__game = null;
     if (ui.game === game) ui.game = null;
     game = null;
-    queueMode('all'); if (to === 'home') hub.show('home'); else hub.show('comarca', def?.comarca);
+    // (desde un campeonato, de vuelta a Torneos, de donde se vino)
+    queueMode('all'); if (to === 'home' || to === 'sports') hub.show(to); else hub.show('comarca', def?.comarca);
   }
   window.__exit = exit;
   // memoria gráfica perdida (en el iPhone, al volver de otra aplicación o con poca memoria): si el navegador la

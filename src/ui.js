@@ -204,7 +204,11 @@ export class UI {
     return new Promise(resolve => {
       this.closeModal();
       const d = el(`<div id="dialog" class="glass"><div class="face"></div><div class="body"><h3></h3><p></p><div class="choices"></div><div class="next">${this.input.touch ? 'Toca para seguir' : 'E / Espacio / clic'} <b>›</b></div></div></div>`);
-      (this.hud || document.body).appendChild(d);
+      // (con el interfaz del pueblo escondido —el campeonato de pelota desde el menú— el diálogo va aparte: dentro no se
+      // veía y el juego se quedaba esperando un toque sin nada en pantalla)
+      const host = this.hud && this.hud.style.display !== 'none' ? this.hud : document.body;
+      if (host === document.body) d.classList.add('solo');
+      host.appendChild(d);
       this.dialogOpen = true; document.body.classList.add('talking');
       let i = 0, typing = null, full = '', lastChoice = -1, lastFace = null;
       const show = () => {
