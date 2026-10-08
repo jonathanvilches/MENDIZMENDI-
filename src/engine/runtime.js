@@ -242,7 +242,7 @@ export class Runtime {
   }
   // resolución de los partidos: en calidad baja (móvil) 1,6 y no 2: a 2 el móvil no llegaba, la resolución dinámica la
   // bajaba a saltos durante el partido y los pelotaris se veían cada vez más borrosos. A 1,6 se queda fija
-  boostRatio() { return Math.max(this.ratioFor(this.quality), Math.min(devicePixelRatio, this.quality === 'low' ? 1.8 : 2)); }
+  boostRatio() { return Math.max(this.ratioFor(this.quality), Math.min(devicePixelRatio, this.quality === 'low' ? (this.def?.id === 'pamplona' ? 1.5 : 1.8) : 2)); }   // (en Pamplona, la ciudad entera ya llena la memoria del móvil)
   /** Tamaño y resolución del lienzo: se aplican justo antes de dibujar (si no, un fotograma con el lienzo vacío). */
   applySize() {
     const r = this.renderer;

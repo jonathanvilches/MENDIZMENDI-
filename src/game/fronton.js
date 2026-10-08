@@ -183,6 +183,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     (async () => {
     // para el partido te conviertes en el pelotari (camiseta, pantalón blanco y tacos en las manos); al acabar vuelves a ser tú
     // (si ya juegas con el pelotari, no hace falta cambiar; los modelos se piden antes, al acercarte al frontón)
+    G.pelotaLoading = true;   // (preparándose: si se pierde la memoria gráfica ahora, el pueblo se rehace junto al frontón)
     const wait = !loadedMeshy('pelotari') || !loadedMeshy('pelotari_rojo');
     if (wait) G.ui.toast?.(isEU() ? 'Pilotariak prestatzen…' : 'Preparando a los pelotaris…', 'pelota', 1800);
     if (rig0.id !== 'pelotari' && hasMeshy('pelotari')) try { fullTexFor('pelotari'); pel = new GlbRig(await loadMeshy('pelotari'), 'pelotari'); } catch (e) { console.warn('pelotari', e); }
@@ -190,6 +191,9 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     if (pel) { hidden.push(...P.obj.children); for (const c of hidden) P.obj.remove(c); P.obj.add(pel.char.root); rig = pel; }
     // y el rival juega de rojo (el pelotari colorado), como en los partidos de verdad: azules contra colorados
     if (hasMeshy('pelotari_rojo')) try { fullTexFor('pelotari_rojo'); red = new GlbRig(await loadMeshy('pelotari_rojo'), 'pelotari_rojo'); } catch (e) { console.warn('pelotari rojo', e); }
+    // (si mientras se preparaban los pelotaris el pueblo se ha rehecho —en el iPhone, al quedarse sin memoria gráfica—,
+    // este partido ya no se juega: antes salían sus controles sobre el pueblo nuevo, en la llegada)
+    if (G.disposed) { pel?.dispose(); red?.dispose(); G.pelotaLoading = false; res({ win: false, you: 0, cpu: 0, best: 0, quit: true }); return; }
     if (red) { hiddenR.push(...rival.obj.children); for (const c of hiddenR) rival.obj.remove(c); rival.obj.add(red.char.root); red.setStance('Ready'); }
     // el partido anima al jugador y coloca a los dos: el rig del jugador pasa a nuestras manos
     P.rig = { update() { }, doAct() { }, doCheer() { }, doWave() { }, setExpr() { } };
@@ -208,7 +212,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // y el público sentado en los bancos de la grada (una sola llamada de dibujo; se va al acabar)
     // (los más cercanos a la cámara, en 3D; con pañuelos que se agitan en cada tanto)
     // todo el público en 3D con su textura (sin láminas planas a lo lejos): cuántos, según la calidad, repartidos por la grada
-    try { const C = fronton.court, all = C?.standSpots || [], full = C?.labrit ? 3 : 1, cap = Math.round((QUALITY === 'low' ? 44 : QUALITY === 'mid' ? 64 : 90) * full);   // (en el Labrit, la final: lleno)
+    try { const C = fronton.court, all = C?.standSpots || [], full = C?.labrit ? (QUALITY === 'low' ? 1.6 : 3) : 1, cap = Math.round((QUALITY === 'low' ? 44 : QUALITY === 'mid' ? 64 : 90) * full);   // (en el Labrit, la final: lleno)
       const sp = all.filter(() => Math.random() < Math.min(1, cap / Math.max(1, all.length)));
       // (en coordenadas del mundo: el público 3D elige a los que tiene cerca de la cámara)
       C.group.updateMatrixWorld(true); const yaw = new THREE.Euler().setFromQuaternion(C.group.getWorldQuaternion(new THREE.Quaternion()), 'YXZ').y;
@@ -244,7 +248,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     }); } catch (e) { console.warn('frontón', e); done({ win: false, error: true }); return; }   // (si no se monta, de vuelta al pueblo)
     // (si el partido falla una y otra vez, se acaba y se vuelve al pueblo: nunca el marcador puesto en mitad de la calle)
     let bad = 0;
-    G.pelotaAbort = () => done({ win: false, quit: true, error: true });
+    G.pelotaAbort = () => done({ win: false, quit: true, error: true }); G.pelotaLoading = false;
     G.pelotaTick = (dt) => {
       try { match.update(dt); bad = 0; } catch (e) { console.warn('partido', e); if (++bad > 20) { done({ win: false, quit: true, error: true }); return; } }
       try { if (seated) { seated.tick(match.t || 0, cheerT > 0 ? 1 : 0.15, seatedZ, G.camera); if (cheerT > 0 && (cheerT -= dt) <= 0) seated.cheer(false); } } catch (e) { console.warn('público', e); seated = null; }
@@ -252,7 +256,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     })().catch(fail);
     function done(r) {
       if (ended) return; ended = true;
-      G.pelotaTick = null; G.pelotaMatch = null; G.pelotaRig = null; G.pelotaAbort = null;
+      G.pelotaTick = null; G.pelotaMatch = null; G.pelotaRig = null; G.pelotaAbort = null; G.pelotaLoading = false;
       // el marcador y los botones del partido, fuera siempre (también si algo falló al montarlo)
       try { match?.destroy(); } catch (e) { console.warn('frontón', e); }
       document.querySelectorAll('.pel-root').forEach(el => el.remove());

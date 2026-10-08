@@ -897,10 +897,10 @@ export class TownGame {
     const ctx = { comarca: this.def.comarca, comarcaName: cm, towns: this.comarcaVenues() };
     let T = torneo({ name: P.name || 'Tú', town }, ctx);
     const pick = await pelotaMenu(T, town);
-    if (pick === 'exit') return;
+    if (this.disposed || pick === 'exit') return;
     if (pick === 'torneo') return this.pelotaTorneo(a, ctx);
     const r = await this.fronton.play(this, a);
-    if (r.quit) return;
+    if (this.disposed || r.quit) return;
     const best = (townState(profile(), this.def.id).best ||= {});
     if (r.win) { best.pelota = (best.pelota || 0) + 1; saveProfile(); }
     await this.say(a, [r.win ? `¡${r.you} a ${r.cpu}! Juegas como un pelotari de verdad. Vuelve cuando quieras.` : `${r.you} a ${r.cpu}. ¡Casi! Aquí estaré para la revancha.`]);
@@ -919,16 +919,17 @@ export class TownGame {
       for (;;) {
         this.ui.hudVisible(false);
         const pick = await pelotaMenu(torneo({ name: P.name || 'Tú', town }, ctx), town);
-        if (pick === 'exit') return;
-        if (pick === 'torneo') { await this.pelotaTorneo(a, ctx); continue; }
+        if (this.disposed || pick === 'exit') return;
+        if (pick === 'torneo') { await this.pelotaTorneo(a, ctx); if (this.disposed) return; continue; }
         const r = await this.fronton.play(this, a);
+        if (this.disposed) return;
         if (r.quit) continue;
         const best = (townState(profile(), this.def.id).best ||= {});
         if (r.win) { best.pelota = (best.pelota || 0) + 1; saveProfile(); }
         this.ui.hudVisible(false);
         await this.say(a, [r.win ? `¡${r.you} a ${r.cpu}! Juegas como un pelotari de verdad.` : `${r.you} a ${r.cpu}. ¡Casi! ¿La revancha?`]);
       }
-    } finally { this.onExit?.('home'); }
+    } finally { if (!this.disposed) this.onExit?.('home'); }   // (si el pueblo se rehízo, el nuevo sigue: no se sale al menú)
   }
   // el torneo entero se juega en este frontón (los rivales vienen aquí): el del pueblo elegido en Campeonatos o el
   // del pueblo en el que estás
@@ -938,14 +939,16 @@ export class TownGame {
     for (;;) {
       this.ui.hudVisible(!this.sportMode);
       const act = await torneoPanel(T, town);
-      if (act === 'exit') return;
+      if (this.disposed || act === 'exit') return;   // (el pueblo se rehízo mientras tanto: este torneo ya no sigue)
       if (act === 'new') { T = torneo({ name: P.name || 'Tú', town }, ctx, true); continue; }
       if (act === 'sim') { playTorneoRound(T); continue; }
       const m = yourMatch(T);
       // la final, en el frontón Labrit de Iruña (los cuartos y las semifinales, aquí)
       const fin = m.round === 'Final', venue = fin ? (this.fronton?.court.labrit ? this.fronton : this.labritVenue()) : this.fronton;
       if (fin) await this.labritIntro(venue);
+      if (this.disposed) return;
       const r = await venue.play(this, a, { target: m.target, level: m.level, rivalName: `${m.rival.name} (${m.rival.town})`, fixedLevel: true, returnTo: this.fronton });
+      if (this.disposed) return;
       if (r.quit) return;   // (salir del partido es salir: de vuelta al pueblo, no al panel del torneo otra vez)
       playTorneoRound(T, r.you, r.cpu);
       if (T.done && T.players[T.champion].you) {
@@ -2231,6 +2234,11 @@ export class TownGame {
   applySettings() { const S = this.P.settings; this.sound.setMusic(S.music); this.sound.setVolume(S.volume); this.sky.speed = 24 / (16 * 60) * (S.timeSpeed ?? 1); }
   teleport(x, z) { const s = this.spot({ x, z }, 3); this.player.place(s.x, s.z, 0); this.follow.snap(this.player); }
   dispose() {
+    // (lo que estaba a medias —el menú de pelota, el cuadro del torneo, un partido preparándose— se para: el pueblo
+    // nuevo no debe recibir sus ventanas ni sus controles)
+    this.disposed = true;
+    try { this.pelotaAbort?.(); } catch (e) { }
+    document.querySelectorAll('.lg-root, .pel-root').forEach(o => o.remove());
     if (this.townArms) { for (const m of [this.townArms.mesh, this.townArms.plate]) if (m) { m.geometry.dispose(); m.material.map?.dispose(); m.material.dispose(); } this.townArms = null; }
     for (const b of this.blasones || []) { b.mesh.geometry.dispose(); b.mesh.material.map?.dispose(); b.mesh.material.dispose(); }
     // (que la interfaz, que dura toda la partida, no siga apuntando al pueblo que se deja: lo dejaba entero en memoria)
