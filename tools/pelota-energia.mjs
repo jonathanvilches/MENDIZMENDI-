@@ -1,4 +1,5 @@
-// Pelota: la energía de cada pelotari. Cada golpe cansa; en un peloteo largo baja y entre tanto y tanto se recupera.
+// Pelota: la energía de cada pelotari. Correr y los golpes caros (cortada, dos paredes, gancho) cansan; pelotear normal
+// la devuelve y entre tanto y tanto se recupera.
 // Cansado se falla más. Por parejas, el cansado deja más pelotas a su compañero y puedes pedir la pelota («¡mía!»)
 // manteniendo el golpe. Sin gráficos.
 // Uso: node tools/pelota-energia.mjs
@@ -8,29 +9,36 @@ let fails = 0;
 const ok = (c, m) => { console.log(`  ${c ? 'OK ' : 'FALLO'} ${m}`); if (!c) fails++; };
 const seed = (k) => 104729 * (k + 5) + 13;
 
-console.log('1. mano a mano: baja en el peloteo largo y se recupera entre tantos');
+console.log('1. mano a mano: los golpes caros y correr cansan; pelotear normal y el descanso entre tantos la devuelven');
 {
-  let minEn = 1, longHits = 0, rec = [], errors = 0;
-  for (let k = 0; k < 4; k++) {
-    const g = new PelotaGame({ mode: 'match', target: 5, level: 'normal', autoplay: true, seed: seed(k) });
-    g.start(); let t = 0, hits = 0, atPoint = null;
-    try {
-      while (g.phase !== 'end' && t < 900) {
-        const ev = g.update(1 / 30, {}); t += 1 / 30;
-        for (const e of ev) {
-          if (e.type === 'hit') hits++;
-          if (e.type === 'call') { if (hits > longHits) longHits = hits; hits = 0; atPoint = g.players.you.en; }
-          if (e.type === 'serveReady' && atPoint != null) { rec.push(g.players.you.en - atPoint); atPoint = null; }
+  // (dos pelotaris con el piloto automático; en la segunda tanda, el rival juega sobre todo cortadas y dos paredes)
+  const play = (style) => {
+    let minYou = 1, minRival = 1, longHits = 0, rec = [], errors = 0;
+    for (let k = 0; k < 4; k++) {
+      const g = new PelotaGame({ mode: 'match', target: 5, level: 'normal', autoplay: true, seed: seed(k), rivalStats: style ? { fuerza: 3, agilidad: 3, velocidad: 3, style } : undefined });
+      g.start(); let t = 0, hits = 0, atPoint = null;
+      try {
+        while (g.phase !== 'end' && t < 900) {
+          const ev = g.update(1 / 30, {}); t += 1 / 30;
+          for (const e of ev) {
+            if (e.type === 'hit') hits++;
+            // (el descanso entre tantos se mide desde cansado: si no, ya está casi llena y no se nota)
+            if (e.type === 'call') { if (hits > longHits) longHits = hits; hits = 0; g.players.you.en = 0.3; atPoint = 0.3; }
+            if (e.type === 'serveReady' && atPoint != null) { rec.push(g.players.you.en - atPoint); atPoint = null; }
+          }
+          if (atPoint == null) { minYou = Math.min(minYou, g.players.you.en); minRival = Math.min(minRival, g.players.rival.en); }
         }
-        minEn = Math.min(minEn, g.players.you.en, g.players.rival.en);
-      }
-    } catch (e) { errors++; console.log(e); }
-  }
-  const r = rec.reduce((a, b) => a + b, 0) / rec.length;
-  console.log(`   energía más baja ${minEn.toFixed(2)}, tanto más largo ${longHits} golpes, recuperación media entre tantos +${r.toFixed(2)}`);
-  ok(errors === 0, 'sin errores');
-  ok(minEn < 0.45, 'tras un peloteo largo, alguno acaba cansado (por debajo de la mitad)');
-  ok(r > 0.15, 'entre tanto y tanto se recupera');
+      } catch (e) { errors++; console.log(e); }
+    }
+    return { minYou, minRival, longHits, rec: rec.reduce((a, b) => a + b, 0) / Math.max(1, rec.length), errors };
+  };
+  const N = play(null), C = play({ cortada: 3, dosparedes: 3, gancho: 0, dejada: 0, largo: 0 });
+  console.log(`   peloteo normal: energía más baja ${Math.min(N.minYou, N.minRival).toFixed(2)}, tanto más largo ${N.longHits} golpes, recuperación entre tantos +${N.rec.toFixed(2)}`);
+  console.log(`   rival de cortadas y dos paredes: su energía más baja ${C.minRival.toFixed(2)}`);
+  ok(N.errors === 0 && C.errors === 0, 'sin errores');
+  ok(C.minRival < 0.5, 'jugando cortadas y dos paredes, el rival acaba cansado (por debajo de la mitad)');
+  ok(Math.min(N.minYou, N.minRival) > C.minRival + 0.15, 'peloteando normal se cansa bastante menos');
+  ok(N.rec > 0.15, 'entre tanto y tanto se recupera');
 }
 
 console.log('2. cansado se falla más');

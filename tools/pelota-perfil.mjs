@@ -6,7 +6,7 @@ import { pelotariStats, profileHtml, SHOTS } from '../src/pelota/rules.js';
 
 let fails = 0;
 const ok = (c, m) => { console.log(`  ${c ? 'OK ' : 'FALLO'} ${m}`); if (!c) fails++; };
-const kindOf = (e) => e.shot === 'cortada' ? 'cortada' : e.shot === 'dosparedes' ? 'dosparedes' : e.shot === 'pared' ? 'gancho' : e.shot === 'dejada' ? 'dejada' : (e.shot === 'largo' || e.shot === 'rebote') ? 'largo' : 'otro';
+const kindOf = (e) => e.shot === 'cortada' ? 'cortada' : e.shot === 'dosparedes' ? 'dosparedes' : (e.shot === 'pared' || e.shot === 'gancho') ? 'gancho' : e.shot === 'dejada' ? 'dejada' : (e.shot === 'largo' || e.shot === 'rebote') ? 'largo' : 'otro';
 function shares(style) {
   const n = {}; let tot = 0;
   for (let k = 0; k < 5; k++) {

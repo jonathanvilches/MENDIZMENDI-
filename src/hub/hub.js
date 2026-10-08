@@ -18,8 +18,10 @@ import { avatarPortrait, portraitImg, avatarPortraitImg } from '../ui/portraits.
 import { stampImg, landImg, townImg } from '../assets.js';
 import { Stage, releaseStage } from './stage.js';
 import { getLang, setLang, langChosen } from '../i18n.js';
-import { dioramaShot, heroAvatar, heroAction, townCover, heroPose } from './diorama.js';
+import { dioramaShot, heroAvatar, heroAction, townCover } from './diorama.js';
 import { CLUBS } from '../futbol/clubs.js';
+import { PELOTARI_IMG } from '../ui/sportCard.js';
+import OSASUNA_VS from '../assets/meshy/portraits/osasuna_vs.webp?url';
 import { SABERES, saberCounts } from '../data/saberes.js';
 import { EDADES, edadDe, missionSlots } from '../data/edad.js';
 import { ARMAS, PENDIENTES, FIG, GUIA, armsOfTown } from '../data/armas-navarra.js';
@@ -227,7 +229,8 @@ export class Hub {
   s_sports() {
     const p = profile(), fl = levelById(this.frontonId()), club = CLUBS[p.futbolClub], tx = p.txapelas || 0;
     let fb = null; try { fb = JSON.parse(localStorage.getItem('mendimendiz-futbol-v1') || 'null'); } catch (e) { }
-    const avP = heroPose('pelotari', 'golpea'), avF = heroPose('osasuna', 'celebra'), sadar = levelById('pamplona');
+    // (las figuras, las mismas de las cartas: en reposo, limpias, como el resto de pantallas de deporte)
+    const avP = PELOTARI_IMG.blue, avF = OSASUNA_VS, sadar = levelById('pamplona');
     const towns = LEVELS.filter(l => !l.special).map(l => `<button class="fr-chip ${l.id === fl.id ? 'on' : ''}" data-fronton="${l.id}">${esc(l.name.split(' /')[0])}</button>`).join('');
     this.after = () => { $('.fr-chip.on', this.root)?.scrollIntoView({ block: 'nearest', inline: 'center' }); };
     return `

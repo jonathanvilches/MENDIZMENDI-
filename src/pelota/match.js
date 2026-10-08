@@ -1,6 +1,6 @@
 // Partido de pelota a mano: une la lógica (game.js), el frontón (court.js), la interfaz (hud.js) y el sonido.
 // El juego anfitrión pone el frontón en su escena, llama a update(dt) en cada fotograma y renderiza con su cámara.
-import { COURT, TEXT, courtFeel, LEVEL_ORDER, rivalQuote, pelotariRating } from './rules.js';
+import { COURT, TEXT, courtFeel, LEVEL_ORDER, rivalQuote, pelotariRating, BALLS, BALL_ORDER } from './rules.js';
 import { showVs, courtIcon } from './vs.js';
 import { setFeel } from './physics.js';
 import { openFicha, playerChip, splitName } from './ficha.js';
@@ -26,8 +26,10 @@ export class PelotaMatch {
     this.lang = o.lang === 'eu' ? 'eu' : 'es'; this.txt = TEXT[this.lang];
     this.touch = o.touch ?? (matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window);
     this.level = o.level || 'normal';
-    // golpe automático (se recuerda de un partido a otro): tú te mueves y el golpe sale solo
-    try { this.autoHit = o.autoHit ?? localStorage.getItem('mendimendiz-pelota-auto') === '1'; } catch (e) { this.autoHit = !!o.autoHit; }
+    // la pelota elegida y la cámara dinámica (se recuerdan de un partido a otro)
+    const ls = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+    this.ballKind = BALLS[o.ball] ? o.ball : BALLS[ls('mendimendiz-pelota-bola')] ? ls('mendimendiz-pelota-bola') : 'normal';
+    this.camDyn = o.camDyn ?? ls('mendimendiz-pelota-cam') !== '0';
     this.pairs = false; this.role = 'delantero'; this.mateObjs = null;   // por parejas: qué juegas tú y los otros dos
     this.names = { you: o.you?.name || this.txt.you, rival: o.rival?.name || 'Rival' };
     this.audio = new PelotaAudio(o.audio);
@@ -36,23 +38,27 @@ export class PelotaMatch {
     this.input = { mx: 0, mz: 0, hit: false, drop: false, cut: false, keys: {}, stick: { id: null, x: 0, y: 0 }, charge: null, power: 0.5 };
     this.active = true; this.t = 0;
     this.camPos = new this.T.Vector3(); this.camLook = new this.T.Vector3(); this.camInit = false;
-    this.fov0 = this.cam.fov;
+    this.fov0 = this.cam.fov; this.roll = 0; this.kick = 0;
     this.court.group.updateMatrixWorld(true);
     this.v3 = new this.T.Vector3();
     // (el frontón también juega: su física, mientras dure el partido; al acabar, la de siempre)
-    this.feel = courtFeel(o.cond || {}, this.lang); setFeel(this.feel);
+    this.applyFeel();
     this.bindInput();
     this.newGame();
     if (o.autostart) { this.hud.controls(true); this.game.start(); } else { this.intro(); if (o.forcePairs) this.chooseMode('delantero'); }   // (torneo por parejas: ya por parejas)
+  }
+  // la física del partido: la del frontón por la de la pelota elegida
+  applyFeel() {
+    const f = this.feel = courtFeel(this.o.cond || {}, this.lang), B = BALLS[this.ballKind] || BALLS.normal;
+    f.front *= B.front; f.floor *= B.floor; f.run *= B.run; setFeel(f);
   }
   newGame() {
     this.hud?.root?.classList.remove('final');
     const o = this.o;
     const M = this.pairs ? this.mateObjs : null;
-    this.game = new PelotaGame({ mode: o.mode || 'match', target: o.target, level: this.level, seed: o.seed, autoplay: o.autoplay, autoHit: this.autoHit, rivalStats: o.rivalStats, youStats: o.youStats,
+    this.game = new PelotaGame({ mode: o.mode || 'match', target: o.target, level: this.level, seed: o.seed, autoplay: o.autoplay, rivalStats: o.rivalStats, youStats: o.youStats,
       pairs: !!M, youRole: this.role, youMateStats: M?.youMate.stats, rivalMateStats: M?.rivalMate.stats });
     for (const m of Object.values(this.mateObjs || {})) if (m.obj) m.obj.visible = !!M;
-    this.hud.root.classList.toggle('autohit', !!this.autoHit);   // (en el botón de golpe, «AUTO»)
     this.hud.setNames?.(this.label('you'), this.label('rival'));
     this.hud.setScore(0, 0, this.game.server, o.mode === 'rally' ? this.txt.rally(this.game.target) : this.txt.to(this.game.target));
     if (o.mode === 'rally') this.hud.setScore(0, '', this.game.server, this.txt.rally(this.game.target));
@@ -69,26 +75,48 @@ export class PelotaMatch {
     // mano a mano o por parejas (y tú, de delantero o de zaguero): solo en los partidos libres
     const canPairs = !!this.o.mates && g.mode === 'match', P = t.pairs || TEXT.es.pairs;
     const mods = [['mano', P.single], ['delantero', P.front], ['zaguero', P.back]].filter(([k]) => !(this.o.forcePairs && k === 'mano')), cur = this.pairs ? this.role : this.o.forcePairs ? this.role : 'mano';
-    const TT = t.tour || TEXT.es.tour, AH = t.autoHit || TEXT.es.autoHit, sum = [mods.find(([k]) => k === cur)?.[1] || P.single, g.mode === 'rally' ? t.rally(g.target) : t.to(g.target), this.autoHit ? AH[0] : ''].filter(Boolean).join(' · ');
+    const TT = t.tour || TEXT.es.tour, BL = t.ball || TEXT.es.ball, CD = t.camDyn || TEXT.es.camDyn, OT = t.optTabs || TEXT.es.optTabs;
+    const sum = [mods.find(([k]) => k === cur)?.[1] || P.single, g.mode === 'rally' ? t.rally(g.target) : t.to(g.target), `${BL.label} ${BL.kinds[this.ballKind][0].toLowerCase()}`].filter(Boolean).join(' · ');
     // arriba quién juega y dónde (el frontón y lo que se nota en él); lo que se elige poco, plegado en «Más opciones» con
     // lo elegido a la vista; abajo, en una fila, el nivel y los botones
     const p = this.hud.panel(`<h2>${t.title}</h2><p class="pel-sub">${esc(this.label('you'))} vs ${esc(this.label('rival'))} · ${g.mode === 'rally' ? t.rally(g.target) : t.to(g.target)} <button class="pel-chip" data-pel-tour>${TT.btn}</button></p>
       ${this.rivalHtml()}
       ${this.courtHtml()}
-      <details class="pel-more"${this.moreOpen ? ' open' : ''}><summary>${t.moreTitle || TEXT.es.moreTitle}<span class="pel-sum">${esc(sum)}</span></summary>
-      ${canPairs ? `<div class="pel-levels pel-mod" role="group" aria-label="${P.label}">${mods.map(([k, l]) => `<button data-pel-mod="${k}" aria-pressed="${k === cur}">${l}</button>`).join('')}</div>` : ''}
-      ${this.pairs ? `<p class="pel-pairs">${P.how(this.role === 'delantero')} ${P.energy}</p>` : ''}
-      <button class="pel-auto" data-pel-auto role="switch" aria-checked="${!!this.autoHit}"><span><b>${AH[0]}</b><small>${AH[1]}</small></span><i aria-hidden="true"></i></button>
-      <ol>${t.rules.map(r => `<li>${r}</li>`).join('')}</ol>
-      <div class="pel-ctrl">${this.touch ? t.ctrlTouch : t.ctrlKeys}</div></details>
+      <button class="pel-more" data-pel-more aria-expanded="false"><b>${t.moreTitle || TEXT.es.moreTitle}</b><span class="pel-sum">${esc(sum)}</span></button>
+      <section class="pel-opts"${this.moreOpen ? '' : ' hidden'}>
+        <div class="pel-otabs" role="tablist"><button class="pel-back" data-pel-back>${t.optBack || TEXT.es.optBack}</button>${OT.map((l, i) => `<button role="tab" data-pel-tab="${i}" aria-selected="${i === (this.optTab || 0)}">${l}</button>`).join('')}</div>
+        <div class="pel-opane" data-pane="0"${(this.optTab || 0) === 0 ? '' : ' hidden'}>
+        ${canPairs ? `<div class="pel-levels pel-mod" role="group" aria-label="${P.label}">${mods.map(([k, l]) => `<button data-pel-mod="${k}" aria-pressed="${k === cur}">${l}</button>`).join('')}</div>` : ''}
+        ${this.pairs ? `<p class="pel-pairs">${P.how(this.role === 'delantero')} ${P.energy}</p>` : ''}
+        <div class="pel-levels pel-balls" role="group" aria-label="${BL.label}"><small>${BL.label}</small>${BALL_ORDER.map(k => `<button data-pel-ball="${k}" aria-pressed="${k === this.ballKind}">${ballIcon(k)}<span>${BL.kinds[k][0]}</span></button>`).join('')}</div>
+        <div class="pel-orow"><p class="pel-ballwhat">${BL.kinds[this.ballKind][1]}</p>
+        <button class="pel-switch" data-pel-cam role="switch" aria-checked="${!!this.camDyn}"><span><b>${CD[0]}</b><small>${CD[1]}</small></span><i aria-hidden="true"></i></button></div></div>
+        <div class="pel-opane" data-pane="1"${this.optTab === 1 ? '' : ' hidden'}><ol>${t.rules.map(r => `<li>${r}</li>`).join('')}</ol></div>
+        <div class="pel-opane" data-pane="2"${this.optTab === 2 ? '' : ' hidden'}><div class="pel-ctrl">${this.touch ? t.ctrlTouch : t.ctrlKeys}</div></div>
+      </section>
       ${this.o.fixedLevel ? '' : `<small class="pel-lbl">${t.level || 'Nivel'}</small><div class="pel-levels pel-lv5" role="group" aria-label="${t.level || 'Nivel'}">${LEVEL_ORDER.map(k => `<button data-pel-lv="${k}" aria-pressed="${k === this.level}">${L[k]}</button>`).join('')}</div>`}
       <div class="pel-row"><button class="pel-go alt" data-pel-x>${t.later}</button><button class="pel-go" data-pel-go>${t.play}</button></div>`);
-    p.querySelector('.pel-more')?.addEventListener('toggle', (e) => { this.moreOpen = e.target.open; });
+    // «Más opciones» es otra vista del mismo panel (en vez de alargarlo): quién juega y el frontón se apartan y salen las
+    // opciones en pestañas, con el nivel y los botones de jugar siempre abajo
+    const card = p.querySelector('.pel-card') || p, opts = p.querySelector('.pel-opts');
+    const showOpts = (on) => { this.moreOpen = on; card.classList.toggle('opts', on); if (opts) opts.hidden = !on; p.querySelector('[data-pel-more]')?.setAttribute('aria-expanded', String(on)); };
+    showOpts(!!this.moreOpen);
     p.addEventListener('click', (e) => {
       const b = e.target.closest('button'); if (!b) return;
       if (b.dataset.pelLv) { this.level = b.dataset.pelLv; for (const x of p.querySelectorAll('[data-pel-lv]')) x.setAttribute('aria-pressed', x.dataset.pelLv === this.level); this.newGame(); }
       if (b.dataset.pelMod) { this.chooseMode(b.dataset.pelMod); return; }
-      if (b.hasAttribute('data-pel-auto')) { this.autoHit = !this.autoHit; try { localStorage.setItem('mendimendiz-pelota-auto', this.autoHit ? '1' : '0'); } catch (e) { } this.newGame(); this.intro(); return; }
+      if (b.hasAttribute('data-pel-more')) { showOpts(true); p.querySelector(`[data-pel-tab="${this.optTab || 0}"]`)?.focus({ preventScroll: true }); return; }
+      if (b.hasAttribute('data-pel-back')) { showOpts(false); p.querySelector('[data-pel-more]')?.focus({ preventScroll: true }); return; }
+      if (b.dataset.pelTab != null) { this.optTab = +b.dataset.pelTab;
+        for (const x of p.querySelectorAll('[data-pel-tab]')) x.setAttribute('aria-selected', String(x === b));
+        for (const x of p.querySelectorAll('.pel-opane')) x.hidden = +x.dataset.pane !== this.optTab; return; }
+      if (b.dataset.pelBall) {   // (se cambia en el sitio, sin volver a montar el panel)
+        this.ballKind = b.dataset.pelBall; try { localStorage.setItem('mendimendiz-pelota-bola', this.ballKind); } catch (e) { } this.applyFeel();
+        for (const x of p.querySelectorAll('[data-pel-ball]')) x.setAttribute('aria-pressed', String(x === b));
+        const w = p.querySelector('.pel-ballwhat'), sm = p.querySelector('.pel-sum'); if (w) w.textContent = BL.kinds[this.ballKind][1];
+        if (sm) sm.textContent = sm.textContent.replace(/[^·]*$/, ` ${BL.label} ${BL.kinds[this.ballKind][0].toLowerCase()}`);
+        return; }
+      if (b.hasAttribute('data-pel-cam')) { this.camDyn = !this.camDyn; try { localStorage.setItem('mendimendiz-pelota-cam', this.camDyn ? '1' : '0'); } catch (e) { } b.setAttribute('aria-checked', String(this.camDyn)); return; }
       if (b.dataset.pelFicha) { this.ficha(b.dataset.pelFicha); return; }
       if (b.hasAttribute('data-pel-court')) { const w = p.querySelector('.pel-court-what'); if (w) { w.hidden = !w.hidden; b.setAttribute('aria-expanded', String(!w.hidden)); } return; }
       if (b.hasAttribute('data-pel-tour')) { this.startTour(); return; }
@@ -344,8 +372,7 @@ export class PelotaMatch {
   update(dt) {
     if (!this.active) return false;
     dt = Math.min(dt, 0.05); this.t += dt;
-    // con la carga a tope, si la pelota ya está a tu alcance, golpea sola (no hace falta soltar a ciegas)
-    if (this.input.charge && this.chargeLevel() >= 1 && this.game.hittable('you')) this.chargeEnd(this.input.charge.kind);
+    // (el golpe sale siempre al soltar: con la carga a tope, espera a que tú decidas)
     this.hud.charge(this.chargeLevel(), this.input.charge?.kind);
     const g = this.game, inp = this.paused || this.hud.panelEl ? {} : this.readInput();
     const ev = this.paused ? [] : g.update(dt, inp);
@@ -364,10 +391,17 @@ export class PelotaMatch {
         // la fuerza también se oye y se nota: un golpe a tope suena más fuerte y sacude un poco la cámara
         const pw = e.pow ?? 0.5; A.hit((0.5 + e.q * 0.4) * (0.55 + pw * 0.75)); C.pop(e, 'z');
         if (e.who === 'you' && pw > 0.8 && e.shot !== 'dejada') this.shake = Math.max(this.shake || 0, 0.12 + (pw - 0.8) * 0.6);
-        if (e.who === 'you') { const s = t.shots[e.sub] || t.shots[e.shot] || ''; this.hud.quality(t.quality[e.label], `${s ? s + ' · ' : ''}${this.lang === 'eu' ? 'indarra' : 'fuerza'} ${Math.round(pw * 100)} %`, e.label); }
+        // (cámara dinámica: un empujón hacia la cancha, mayor cuanto más fuerte y mejor le das)
+        if (e.who === 'you' && e.shot !== 'dejada') this.kick = Math.max(this.kick || 0, Math.min(1, pw * 0.7 + (e.label === 'perfect' ? 0.35 : 0)));
+        if (e.who === 'you') {
+          // el aviso: cómo ha salido (perfecto, pronto, tarde…) y, debajo, el golpe, la fuerza y lo que ha costado en energía
+          const T0 = TEXT.es, s = t.shots[e.sub] || t.shots[e.shot] || '', vol = e.volea ? (t.volea || T0.volea) : '';
+          const en = e.cost > 0.04 ? (t.costs || T0.costs) : e.cost < -0.01 ? (t.gains || T0.gains) : '';
+          this.hud.quality(t.quality[e.label] || T0.quality[e.label], [vol && s ? `${s} ${vol.toLowerCase()}` : vol || s, `${t.force || T0.force} ${Math.round(pw * 100)} %`, en].filter(Boolean).join(' · '), e.label);
+        }
         this.swingAnim(e.who); break;
       }
-      case 'whiff': this.hud.quality(t.quality.whiff, '', 'whiff'); break;
+      case 'whiff': this.hud.quality(t.quality.whiff, e.early ? (t.quality.early || TEXT.es.quality.early) : '', 'whiff'); break;
       case 'claim': this.hud.quality((t.pairs || TEXT.es.pairs).claim); break;   // (pides la pelota de tu compañero)
       case 'front': if (e.chapa) { A.chapa(); C.chapaT = 0.6; this.shake = 0.35; } else A.front(); C.pop({ x: e.x, y: e.y, z: 0.02 }, 'z'); break;
       case 'wall': A.wall(); break;
@@ -432,6 +466,11 @@ export class PelotaMatch {
     }
     C.serveZone.visible = g.phase === 'serveWait' || g.phase === 'servePrep' || (g.phase === 'rally' && g.rally?.serve && !g.rally.front);
     this.hud.ready(h && h.hittable || (g.phase === 'servePrep' && g.serverP() === 'you' && g.hittable('you')));
+    // el aro del momento justo en el botón de golpe (se cierra sobre el botón cuando hay que soltar) y el nombre del golpe
+    // que saldría ahora: de volea, antes del bote; gancho, si viene alta
+    const toV = h?.toVolley, airNow = h?.volea && toV != null && toV > -0.05;
+    this.hud.timing(h?.yourTurn ? (airNow ? toV : h.toIdeal) : null);
+    const T1 = this.txt; this.hud.hitLabel(h?.gancho ? (T1.hitGancho || TEXT.es.hitGancho) : h?.volea ? (T1.hitVolley || TEXT.es.hitVolley) : T1.hit);
     // consejos
     const tt = this.txt;
     let tip = '';
@@ -505,6 +544,17 @@ export class PelotaMatch {
     if (g.phase === 'intro') { const a = this.t * 0.25; if (C.hall) { lp[0] = 3.5 + Math.sin(a) * 3; lp[1] = 8.5 + Math.sin(a * 0.7); lp[2] = 30 + Math.cos(a) * 2.5; ll[0] = 0; ll[1] = 3; ll[2] = 8; }   // (dentro del pabellón: un paseo lento desde lo alto del fondo)
       else { lp[0] = Math.sin(a) * 18 + 2; lp[1] = 9; lp[2] = COURT.L * 0.5 + Math.cos(a) * 18 + 6; ll[0] = 0; ll[1] = 2; ll[2] = COURT.L * 0.4; } }
     if (this.tour) { const [cp, cl] = this.tourCams[this.tour.i]; lp[0] = cp[0]; lp[1] = cp[1]; lp[2] = cp[2]; ll[0] = cl[0]; ll[1] = cl[1]; ll[2] = cl[2]; this.tourMat.opacity = 0.45 + 0.3 * Math.sin(this.t * 4); }   // (parpadea: se ve que está resaltada)
+    // cámara dinámica (se puede quitar en Más opciones): sigue un poco la pelota de lado, se acerca con cada golpe fuerte
+    // y se inclina apenas hacia donde va. Todo suave y pequeño, para dar vida sin perder de vista la cancha ni la pelota
+    let dyn = 0;
+    if (this.camDyn && !this.tour && (g.phase === 'rally' || g.phase === 'serveWait' || g.phase === 'servePrep')) {
+      const B = g.ball, bx = Math.max(-COURT.W * 0.5, Math.min(COURT.W * 0.5, B.p.x)), kk = this.kick || 0;
+      ll[0] += (bx - ll[0]) * 0.22; lp[0] += (bx - lp[0]) * 0.08;
+      ll[1] += Math.max(0, Math.min(2, B.p.y - 1.5)) * 0.15;
+      lp[2] -= kk * 1.1; lp[1] -= kk * 0.35;
+      dyn = kk; this.roll += ((Math.max(-1, Math.min(1, -(B.v?.x || 0) / 14)) * 0.018) - this.roll) * Math.min(1, dt * 3);
+    } else this.roll += (0 - this.roll) * Math.min(1, dt * 4);
+    if (this.kick > 0) this.kick = Math.max(0, this.kick - dt * 2.2);
     const wp = this.v3.set(lp[0], lp[1], Math.min(lp[2], COURT.L + 11)); grp.localToWorld(wp);
     const wl = new T.Vector3(ll[0], ll[1], ll[2]); grp.localToWorld(wl);
     if (!this.camInit) { this.camPos.copy(wp); this.camLook.copy(wl); this.camInit = true; }
@@ -513,9 +563,11 @@ export class PelotaMatch {
     this.cam.position.copy(this.camPos);
     if (this.shake > 0) { this.shake -= dt; this.cam.position.x += (Math.random() - 0.5) * this.shake * 0.25; this.cam.position.y += (Math.random() - 0.5) * this.shake * 0.25; }
     this.cam.lookAt(this.camLook);
+    if (this.roll) this.cam.rotateZ(this.roll);
     // el rebote, a través si la cámara queda detrás de él (si no, taparía la cancha)
     const lc = grp.worldToLocal(this.v3.copy(this.camPos)); C.reboteSeeThrough?.(lc.z > COURT.REBOTE - 0.3, dt);
-    const fov = portrait ? 62 : 54;
+    this.fovK = (this.fovK || 0) + (dyn - (this.fovK || 0)) * Math.min(1, dt * 10);
+    const fov = (portrait ? 62 : 54) - this.fovK * 3;
     if (Math.abs(this.cam.fov - fov) > 0.01) { this.cam.fov = fov; this.cam.updateProjectionMatrix(); }
   }
   destroy() {
@@ -538,4 +590,10 @@ function basicAnimate(obj, st, dt, t) {
   inner.position.y = st.speed > 0.5 ? Math.abs(Math.sin(t * 12)) * 0.06 : 0;
   inner.rotation.y = st.swing >= 0 ? Math.sin(st.swing * Math.PI) * -0.9 : 0;
   if (st.won) inner.position.y = Math.abs(Math.sin(t * 8)) * 0.25;
+}
+
+// la pelota de cada tipo, dibujada con su bote: la línea dice cuánto sale del frontis (lo largo) y cuánto bota (lo alto)
+function ballIcon(k) {
+  const B = BALLS[k] || BALLS.normal, far = 20 + (B.front - 0.9) * 90, high = 6 + (B.floor - 0.86) * 60;
+  return `<svg viewBox="0 0 44 26" width="44" height="26" aria-hidden="true"><path d="M3 22 Q${(3 + far) / 2} ${22 - high} ${far} 22 Q${far + 6} ${22 - high * 0.45} ${Math.min(42, far + 11)} 22" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="3 2.5" stroke-linecap="round"/><line x1="1" y1="23.5" x2="43" y2="23.5" stroke="currentColor" stroke-opacity=".35"/><circle cx="3" cy="20" r="3" fill="#fff"/></svg>`;
 }
