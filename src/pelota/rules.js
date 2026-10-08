@@ -40,7 +40,38 @@ export const LEVELS = {
   facil: { tempo: 0.5, reach: 1.85, assist: 1.8, rival: { speed: 4.8, react: 0.36, error: 0.12, smart: 0.35, dash: 1.0 } },
   normal: { tempo: 0.58, reach: 1.65, assist: 1.0, rival: { speed: 5.5, react: 0.25, error: 0.065, smart: 0.6, dash: 1.05 } },
   dificil: { tempo: 0.68, reach: 1.4, assist: 0.35, rival: { speed: 6.2, react: 0.17, error: 0.03, smart: 0.85, dash: 1.15 } },
+  // (los dos de los extremos: para empezar, más lento y con más ayuda que el fácil; para los que ya lo dominan, el rival
+  // casi no falla y apenas hay ayuda)
+  iniciacion: { tempo: 0.44, reach: 2.05, assist: 2.4, rival: { speed: 4.3, react: 0.44, error: 0.17, smart: 0.22, dash: 0.95 } },
+  experto: { tempo: 0.74, reach: 1.3, assist: 0.15, rival: { speed: 6.6, react: 0.13, error: 0.02, smart: 0.95, dash: 1.2 } },
 };
+// los cinco niveles, de menos a más, y lo fuerte que es el rival en cada uno (de 1 a 4, para sus cualidades)
+export const LEVEL_ORDER = ['iniciacion', 'facil', 'normal', 'dificil', 'experto'];
+export const levelTier = (lv) => ({ iniciacion: 1, facil: 1, normal: 2, dificil: 3, experto: 4 })[lv] || 2;
+
+// El frontón también juega: cómo es (a cubierto o al aire libre, con el frontis de piedra, con el suelo mojado por la
+// lluvia, o el Labrit de las finales) cambia un poco la pelota. Devuelve lo que se nota en la física (front, floor, run:
+// para setFeel de physics.js) y sus rasgos, cada uno con su nombre y lo que pasa, para contarlo antes del partido
+const FEEL_TXT = {
+  es: { covered: ['A cubierto', 'Sin viento ni lluvia: la pelota bota igual todo el partido.'], open: ['Al aire libre', 'Suelo seco: bote de siempre.'],
+    stone: ['Frontis de piedra', 'La pelota sale más lenta del frontis: da más tiempo, pero para llegar atrás hay que pegar fuerte.'],
+    wet: ['Suelo mojado', 'Llueve: la pelota bota menos y llega baja. Hay que agacharse antes.'],
+    labrit: ['Labrit', 'El frontón de las finales: pelota viva, sale rápida del frontis y bota alegre.'] },
+  eu: { covered: ['Estalita', 'Haizerik eta euririk gabe: pilotak berdin botatzen du partida osoan.'], open: ['Aire zabalean', 'Lur lehorra: betiko botea.'],
+    stone: ['Harrizko frontisa', 'Pilota motelago ateratzen da frontisetik: denbora gehiago dago, baina atzera iristeko gogor jo behar da.'],
+    wet: ['Lur bustia', 'Euria ari du: pilotak gutxiago botatzen du eta baxu iristen da. Lehenago makurtu behar da.'],
+    labrit: ['Labrit', 'Finaletako frontoia: pilota bizia, frontisetik azkar ateratzen da eta alai botatzen du.'] },
+};
+export function courtFeel({ covered = false, stone = false, wet = false, labrit = false } = {}, lang = 'es') {
+  const T = FEEL_TXT[lang] || FEEL_TXT.es, f = { front: 1, floor: 1, run: 1 }, tags = [];
+  const tag = (k) => tags.push({ k, name: T[k][0], what: T[k][1] });
+  if (labrit) { f.front *= 1.05; f.floor *= 1.05; tag('labrit'); }
+  else if (covered) tag('covered');
+  else if (wet) { f.floor *= 0.86; f.run *= 1.06; tag('wet'); }   // (al aire libre y lloviendo: el suelo, mojado)
+  else tag('open');
+  if (stone && !labrit) { f.front *= 0.95; tag('stone'); }
+  return { ...f, tags };
+}
 
 // Cualidades de cada pelotari (de 1 a 5): fuerza (lo largo y rápido que pega: los fuertes llegan al rebote), agilidad
 // (reflejos y manos: lo pegado a la pared izquierda o lo muy bajo les cuesta menos) y velocidad (lo que corren: a uno lento
@@ -69,6 +100,23 @@ export function pelotariStyle(seed = '', st = { fuerza: 3, agilidad: 3, velocida
   const fav = pick([]), sec = pick([fav]), sty = {};
   for (const k of SHOTS) sty[k] = k === fav ? 3 : k === sec ? 2 : r() < 0.3 ? 1 : 0;
   return sty;
+}
+// una frase del rival para la pantalla VS: lo que más se le nota (su golpe preferido o, si no tiene, su cualidad fuerte)
+const QUOTES = {
+  es: { cortada: 'Su cortada sale rasa, pegada a la chapa: no te deja respirar.', dosparedes: 'Busca la pared izquierda para cruzarte la pelota a dos paredes.',
+    gancho: 'Te arrincona contra la pared izquierda, tanto tras tanto.', dejada: 'Cuando menos lo esperas, te la deja muerta junto al frontis.',
+    largo: 'Te manda al fondo, al rebote, hasta que te canses.', fuerza: 'Pega tan fuerte que la pelota llega al rebote.',
+    agilidad: 'Saca pelotas imposibles con unas manos de seda.', velocidad: 'Llega a todas: no des ninguna por ganada.' },
+  eu: { cortada: 'Bere kortada txaparen ondotik doa: ez dizu arnasarik hartzen uzten.', dosparedes: 'Ezkerreko horma bilatzen du pilota bi hormatara gurutzatzeko.',
+    gancho: 'Ezkerreko hormaren kontra estutzen zaitu, tantoz tanto.', dejada: 'Gutxien uste duzunean, frontisaren ondoan hilda uzten dizu.',
+    largo: 'Atzera bidaltzen zaitu, errebotera, nekatu arte.', fuerza: 'Hain gogor jotzen du, pilota errebotera iristen dela.',
+    agilidad: 'Ezinezko pilotak ateratzen ditu, esku leunekin.', velocidad: 'Denetara iristen da: ez eman ezer irabazitzat.' },
+};
+export function rivalQuote(st = {}, lang = 'es') {
+  const Q = QUOTES[lang] || QUOTES.es, fav = SHOTS.find(k => st.style?.[k] === 3);
+  if (fav) return Q[fav];
+  const k = ['fuerza', 'agilidad', 'velocidad'].sort((a, b) => (st[b] || 0) - (st[a] || 0))[0];
+  return Q[k];
 }
 // la ficha del rival: cómo corre, cuánto pega, sus manos, sus golpes preferidos y de qué tener cuidado
 const word = (v, w) => v <= 2 ? w[0] : v >= 4 ? w[2] : w[1];
@@ -117,7 +165,8 @@ export const TEXT = {
       'Cada golpe cansa, más si es fuerte. Con poca energía se falla más; entre tanto y tanto se descansa.',
       'Si bota dentro y llega a la pared de atrás (el rebote), vuelve y se puede jugar antes del segundo bote. Si da en el rebote sin botar, es fuera.',
     ],
-    level: 'Nivel', rulesTitle: 'Reglas y controles',
+    level: 'Nivel', rulesTitle: 'Reglas y controles', moreTitle: 'Más opciones', vsTap: 'Toca para empezar', fronton: (t) => `Frontón de ${t}`,
+    levels: { iniciacion: 'Iniciación', facil: 'Fácil', normal: 'Normal', dificil: 'Difícil', experto: 'Experto' },
     // las partes del frontón, una a una con la cámara (cada zona tiene su nombre, y hay que saberlo para seguir el juego)
     tour: { btn: 'Partes del frontón', next: 'Siguiente', prev: 'Anterior', end: 'Volver', parts: [
       ['Frontis', 'La pared de delante. Toda pelota tiene que dar en ella, por debajo de la raya de arriba.'],
@@ -200,7 +249,8 @@ export const TEXT = {
       'Kolpe bakoitzak nekatzen du, gogorra bada gehiago. Energia gutxirekin gehiago huts egiten da; tanto batetik bestera atseden hartzen da.',
       'Barruan bote egin eta atzeko paretara (errebotera) iristen bada, itzuli egiten da eta bigarren botea baino lehen jo daiteke. Bote egin gabe errebotean jotzen badu, kanpo da.',
     ],
-    level: 'Maila', rulesTitle: 'Arauak eta kontrolak',
+    level: 'Maila', rulesTitle: 'Arauak eta kontrolak', moreTitle: 'Aukera gehiago', vsTap: 'Ukitu hasteko', fronton: (t) => `Frontoia · ${t}`,
+    levels: { iniciacion: 'Hasiera', facil: 'Erraza', normal: 'Normala', dificil: 'Zaila', experto: 'Aditua' },
     tour: { btn: 'Frontoiaren atalak', next: 'Hurrengoa', prev: 'Aurrekoa', end: 'Itzuli', parts: [
       ['Frontisa', 'Aurreko horma. Pilota orok bertan jo behar du, goiko marraren azpitik.'],
       ['Txapa', 'Frontisaren beheko zerrenda, bere marra gorriarekin. Pilotak bertan jotzen badu, tantoa galtzen da.'],

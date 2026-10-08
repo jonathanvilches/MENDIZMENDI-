@@ -7,6 +7,7 @@
 // Los pelotaris son personajes del juego (nombres inventados con su pueblo), no pelotaris reales.
 // Se guarda en localStorage ('mendimendiz-torneo-v1'): uno individual y uno por parejas por comarca.
 import { lgPanel, lgEsc as esc } from '../futbol/liga.js';
+import { pelotarisPanel, pelotarisCount } from './pelotaris.js';
 import { pelotariStats } from '../pelota/rules.js';
 import { openFicha, playerChip } from '../pelota/ficha.js';
 // (el idioma, el que marca la página: en euskera, «eu»)
@@ -175,8 +176,9 @@ export function pelotaMenu(T, here = null, T2 = null) {
     const sub = (X) => { const m = yourMatch(X); return X.done ? 'Nueva edición' : m ? `${m.round} contra ${esc(m.rival.name)} · aquí` : 'Siguiente ronda'; };
     const small = (t) => `<br><small style="font:700 var(--fs-xs) Nunito,sans-serif;opacity:.8">${t}</small>`, tx = (T.txapelas || 0) + (T2?.txapelas || 0);
     const r = lgPanel(`<div class="lg-head tq-txa">${TXAPELA}<div><small>${here ? `Frontón de ${esc(here)}` : 'Frontón del pueblo'}</small><h2>Pelota a mano</h2><span class="lg-note">${tx ? `Tus txapelas: ${tx}` : 'Partido libre o torneo por la txapela'}</span></div></div>
-      <div class="lg-btns tq-menu"><button class="lg-btn go" data-a="torneo">Torneo individual${small(sub(T))}</button>${T2 ? `<button class="lg-btn go" data-a="torneoParejas">Torneo por parejas${small(sub(T2))}</button>` : ''}<button class="lg-btn" data-a="libre">Partido libre${small('Mano a mano o parejas · a 5 tantos')}</button><button class="lg-btn" data-a="exit">Salir</button></div>`);
-    r.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; r.remove(); res(b.dataset.a); });
+      <div class="lg-btns tq-menu"><button class="lg-btn go" data-a="torneo">Torneo individual${small(sub(T))}</button>${T2 ? `<button class="lg-btn go" data-a="torneoParejas">Torneo por parejas${small(sub(T2))}</button>` : ''}<button class="lg-btn" data-a="libre">Partido libre${small('Mano a mano o parejas · a 5 tantos')}</button><button class="lg-btn" data-a="pelotaris">Pelotaris${small(`Tu colección · ${pelotarisCount().have}/${pelotarisCount().total}`)}</button><button class="lg-btn" data-a="exit">Salir</button></div>`);
+    // (la colección se abre encima y, al cerrarla, el menú sigue ahí)
+    r.addEventListener('click', async (e) => { const b = e.target.closest('[data-a]'); if (!b) return; if (b.dataset.a === 'pelotaris') { await pelotarisPanel(T.comarca); const c = pelotarisCount(); const s2 = b.querySelector('small'); if (s2) s2.textContent = `Tu colección · ${c.have}/${c.total}`; return; } r.remove(); res(b.dataset.a); });
   });
 }
 export { ROUNDS };

@@ -1,6 +1,7 @@
 // Retratos de un personaje de Meshy para el selector y los diálogos: busto (256×256) y cuerpo entero (256×384) con
 // fondo transparente, en su pose de reposo; y el de la portada del menú (cuerpo entero a 512×768, en WebP).
-// Uso: node tools/meshy-retratos.mjs [personaje]   (SOLO=hero para hacer solo alguno: bust, full, hero)
+// Y el de la pantalla VS de la pelota (vs: cuerpo entero a 384×512, con el gesto que se pida: CLIP=Celebrate T=0.8).
+// Uso: node tools/meshy-retratos.mjs [personaje]   (SOLO=hero para hacer solo alguno: bust, full, hero, vs)
 import { chromium } from 'playwright-core';
 import { writeFileSync } from 'fs';
 import { execFileSync } from 'child_process';
@@ -11,11 +12,13 @@ const p = await b.newPage();
 p.on('pageerror', e => console.log('PAGEERROR', e.message));
 await p.goto(URL + '/', { timeout: 300000 });
 await p.waitForFunction(() => window.__ready && window.__THREE, null, { timeout: 300000 });
-const SIZES = [['bust', 256, 256, 0.47, 1.1], ['full', 256, 384, -0.03, 1.07], ['hero', 512, 768, -0.03, 1.07]].filter(s => !process.env.SOLO || process.env.SOLO.split(',').includes(s[0]));
-const out = await p.evaluate(async ([who, SIZES]) => {
+const SIZES = [['bust', 256, 256, 0.47, 1.1], ['full', 256, 384, -0.03, 1.07], ['hero', 512, 768, -0.03, 1.07], ['vs', 384, 512, -0.03, 1.12]].filter(s => process.env.SOLO ? process.env.SOLO.split(',').includes(s[0]) : s[0] !== 'vs');
+const CLIP = process.env.CLIP || 'Idle', TT = +(process.env.T || 0.6);
+const out = await p.evaluate(async ([who, SIZES, CLIP, TT]) => {
   const THREE = window.__THREE, { loadMeshy, GlbChar } = await import('/src/actors/glbChar.js');
   const g = await loadMeshy(who), c = new GlbChar(g, {}); c.root.scale.setScalar(g.userData.fit);
-  c.play('Idle', 0); c.update(0.6);
+  if (CLIP === "Idle") c.play(CLIP, 0); else c.hold(CLIP);   // (un gesto se mantiene: si no, la figura vuelve a quedarse quieta)
+  for (let t = 0; t < TT; t += 0.05) c.update(0.05);
   const scene = new THREE.Scene(); scene.add(c.root);
   scene.add(new THREE.HemisphereLight('#fff8ee', '#5a5868', 2.1)); const sun = new THREE.DirectionalLight('#ffffff', 2.4); sun.position.set(1.6, 3, 4); scene.add(sun);
   const fill = new THREE.DirectionalLight('#cfe0ff', 0.8); fill.position.set(-3, 1.5, 2); scene.add(fill);
@@ -31,7 +34,7 @@ const out = await p.evaluate(async ([who, SIZES]) => {
     R.render(scene, cam); res[name] = R.domElement.toDataURL('image/png'); R.dispose();
   }
   return res;
-}, [who, SIZES]);
+}, [who, SIZES, CLIP, TT]);
 for (const [k, v] of Object.entries(out)) {
   const f = `src/assets/meshy/portraits/${who}_${k}.png`; writeFileSync(f, Buffer.from(v.split(',')[1], 'base64'));
   // en WebP con transparencia (pesa la sexta parte que el PNG)

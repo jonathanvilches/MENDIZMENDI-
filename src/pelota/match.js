@@ -1,6 +1,8 @@
 // Partido de pelota a mano: une la lógica (game.js), el frontón (court.js), la interfaz (hud.js) y el sonido.
 // El juego anfitrión pone el frontón en su escena, llama a update(dt) en cada fotograma y renderiza con su cámara.
-import { COURT, TEXT } from './rules.js';
+import { COURT, TEXT, courtFeel, LEVEL_ORDER, rivalQuote } from './rules.js';
+import { showVs, courtIcon } from './vs.js';
+import { setFeel } from './physics.js';
 import { openFicha, playerChip, splitName } from './ficha.js';
 import { PelotaGame, cutHeight, dropHeight, aimSide } from './game.js';
 import { PelotaHud, esc } from './hud.js';
@@ -17,7 +19,7 @@ export class PelotaMatch {
    *  mates() (opcional: promesa con { youMate, rivalMate }, cada uno { obj, name, stats, animate }: con ella se puede
    *  elegir el partido por parejas),
    *  town (el pueblo del frontón: el de los pelotaris que no traen el suyo en el nombre), youRecord ({ won, txapelas }: lo
-   *  que has ganado, para tu ficha)
+   *  que has ganado, para tu ficha), cond ({ covered, stone, wet, labrit }: cómo es el frontón; cambia un poco la pelota)
    */
   constructor(o) {
     this.o = o; this.T = o.THREE; this.court = o.court; this.cam = o.camera;
@@ -35,6 +37,8 @@ export class PelotaMatch {
     this.fov0 = this.cam.fov;
     this.court.group.updateMatrixWorld(true);
     this.v3 = new this.T.Vector3();
+    // (el frontón también juega: su física, mientras dure el partido; al acabar, la de siempre)
+    this.feel = courtFeel(o.cond || {}, this.lang); setFeel(this.feel);
     this.bindInput();
     this.newGame();
     if (o.autostart) { this.hud.controls(true); this.game.start(); } else { this.intro(); if (o.forcePairs) this.chooseMode('delantero'); }   // (torneo por parejas: ya por parejas)
@@ -57,32 +61,60 @@ export class PelotaMatch {
 
   // ------------------------------------------------------------ paneles
   intro() {
-    const t = this.txt, g = this.game;
+    const t = this.txt, g = this.game, L = t.levels || TEXT.es.levels;
     this.hud.controls(false);
-    const lv = [['facil', this.lang === 'eu' ? 'Erraza' : 'Fácil'], ['normal', this.lang === 'eu' ? 'Normala' : 'Normal'], ['dificil', this.lang === 'eu' ? 'Zaila' : 'Difícil']];
     // mano a mano o por parejas (y tú, de delantero o de zaguero): solo en los partidos libres
     const canPairs = !!this.o.mates && g.mode === 'match', P = t.pairs || TEXT.es.pairs;
     const mods = [['mano', P.single], ['delantero', P.front], ['zaguero', P.back]].filter(([k]) => !(this.o.forcePairs && k === 'mano')), cur = this.pairs ? this.role : this.o.forcePairs ? this.role : 'mano';
-    const TT = t.tour || TEXT.es.tour;
+    const TT = t.tour || TEXT.es.tour, sum = [mods.find(([k]) => k === cur)?.[1] || P.single, g.mode === 'rally' ? t.rally(g.target) : t.to(g.target)].join(' · ');
+    // arriba quién juega y dónde (el frontón y lo que se nota en él); lo que se elige poco, plegado en «Más opciones» con
+    // lo elegido a la vista; abajo, en una fila, el nivel y los botones
     const p = this.hud.panel(`<h2>${t.title}</h2><p class="pel-sub">${esc(this.label('you'))} vs ${esc(this.label('rival'))} · ${g.mode === 'rally' ? t.rally(g.target) : t.to(g.target)} <button class="pel-chip" data-pel-tour>${TT.btn}</button></p>
+      ${this.rivalHtml()}
+      ${this.courtHtml()}
+      <details class="pel-more"${this.moreOpen ? ' open' : ''}><summary>${t.moreTitle || TEXT.es.moreTitle}<span class="pel-sum">${esc(sum)}</span></summary>
       ${canPairs ? `<div class="pel-levels pel-mod" role="group" aria-label="${P.label}">${mods.map(([k, l]) => `<button data-pel-mod="${k}" aria-pressed="${k === cur}">${l}</button>`).join('')}</div>` : ''}
       ${this.pairs ? `<p class="pel-pairs">${P.how(this.role === 'delantero')} ${P.energy}</p>` : ''}
-      ${this.rivalHtml()}
-      <details class="pel-more"><summary>${t.rulesTitle || TEXT.es.rulesTitle}</summary><ol>${t.rules.map(r => `<li>${r}</li>`).join('')}</ol>
+      <ol>${t.rules.map(r => `<li>${r}</li>`).join('')}</ol>
       <div class="pel-ctrl">${this.touch ? t.ctrlTouch : t.ctrlKeys}</div></details>
-      ${this.o.fixedLevel ? '' : `<small class="pel-lbl">${t.level || 'Nivel'}</small><div class="pel-levels" role="group" aria-label="${t.level || 'Nivel'}">${lv.map(([k, l]) => `<button data-pel-lv="${k}" aria-pressed="${k === this.level}">${l}</button>`).join('')}</div>`}
+      ${this.o.fixedLevel ? '' : `<small class="pel-lbl">${t.level || 'Nivel'}</small><div class="pel-levels pel-lv5" role="group" aria-label="${t.level || 'Nivel'}">${LEVEL_ORDER.map(k => `<button data-pel-lv="${k}" aria-pressed="${k === this.level}">${L[k]}</button>`).join('')}</div>`}
       <div class="pel-row"><button class="pel-go alt" data-pel-x>${t.later}</button><button class="pel-go" data-pel-go>${t.play}</button></div>`);
-    // (las reglas y los controles, plegados: se abren cuando se quieren leer)
+    p.querySelector('.pel-more')?.addEventListener('toggle', (e) => { this.moreOpen = e.target.open; });
     p.addEventListener('click', (e) => {
       const b = e.target.closest('button'); if (!b) return;
       if (b.dataset.pelLv) { this.level = b.dataset.pelLv; for (const x of p.querySelectorAll('[data-pel-lv]')) x.setAttribute('aria-pressed', x.dataset.pelLv === this.level); this.newGame(); }
       if (b.dataset.pelMod) { this.chooseMode(b.dataset.pelMod); return; }
       if (b.dataset.pelFicha) { this.ficha(b.dataset.pelFicha); return; }
+      if (b.hasAttribute('data-pel-court')) { const w = p.querySelector('.pel-court-what'); if (w) { w.hidden = !w.hidden; b.setAttribute('aria-expanded', String(!w.hidden)); } return; }
       if (b.hasAttribute('data-pel-tour')) { this.startTour(); return; }
       if (b.hasAttribute('data-pel-go') && this.loadingMates) return;
-      if (b.hasAttribute('data-pel-go')) { this.audio.ensure(); this.hud.closePanel(); this.hud.controls(true); this.game.start(); this.audio.whistle(); }
+      if (b.hasAttribute('data-pel-go')) { this.audio.ensure(); this.hud.closePanel(); this.vsThenPlay(); }
       if (b.hasAttribute('data-pel-x')) this.exit(true, true);   // («Ahora no», antes de empezar: un paso atrás)
     });
+  }
+  // el frontón donde se juega: su dibujo, su nombre y lo que se nota (al tocarlo, qué pasa con cada cosa)
+  courtHtml() {
+    const f = this.feel, name = this.o.venue || (this.o.town ? (this.txt.fronton || TEXT.es.fronton)(this.o.town) : '');
+    if (!f?.tags?.length || !name) return '';
+    return `<button class="pel-court" data-pel-court aria-expanded="false">${courtIcon(this.o.cond)}<span class="pel-court-t"><b>${esc(name)}</b><span>${f.tags.map(x => `<i>${esc(x.name)}</i>`).join('')}</span></span></button>
+      <p class="pel-court-what" hidden>${f.tags.map(x => `<b>${esc(x.name)}.</b> ${esc(x.what)}`).join(' ')}</p>`;
+  }
+  // «¡A jugar!»: antes, la pantalla VS (azules contra colorados, el frontón y cómo juega el rival); después, el saque.
+  // (sin ella en el partido que empieza solo y en las pruebas automáticas, salvo que la pidan con window.__vs)
+  vsThenPlay() {
+    const go = () => { if (!this.active) return; this.vsOpen = false; this.hud.controls(true); this.game.start(); this.audio.whistle(); };
+    const V = this.o.vsImg;
+    if (!V || this.o.autostart || window.__autoWin || (navigator.webdriver && !window.__vs)) return go();
+    const t = this.txt, L = t.levels || TEXT.es.levels, M = this.pairs && this.mateObjs, P = t.pairs || TEXT.es.pairs, g = this.game;
+    const rt = splitName(this.names.rival).town || this.o.town || '';
+    const line = [M ? (this.role === 'delantero' ? P.front : P.back) : P.single, g.mode === 'rally' ? t.rally(g.target) : t.to(g.target), this.o.fixedLevel ? '' : L[this.level]].filter(Boolean).join(' · ');
+    this.vsOpen = true; this.met = true;
+    showVs(this.hud.root, {
+      you: { name: this.label('you'), sub: this.o.town || '', img: V.you, mateImg: M ? V.you : null },
+      rival: { name: this.label('rival').replace(/\s*\([^)]*\)/g, ''), sub: rt, img: V.rival, mateImg: M ? V.rival : null },
+      venue: this.o.venue || (this.o.town ? (t.fronton || TEXT.es.fronton)(this.o.town) : ''), cond: this.o.cond, tags: this.feel?.tags || [],
+      line, quote: rivalQuote(this.o.rivalStats || {}, this.lang), tap: t.vsTap || TEXT.es.vsTap,
+    }).then(go);
   }
   // ------------------------------------------------------------ las partes del frontón
   // la cámara va de una a otra (frontis, chapa, pared izquierda, cancha, falta, pasa, contracancha y rebote), cada una
@@ -474,7 +506,7 @@ export class PelotaMatch {
   }
   destroy() {
     if (!this.active) return;
-    this.active = false;
+    this.active = false; setFeel(null);
     removeEventListener('keydown', this.onKey, true); removeEventListener('keyup', this.onKey, true); removeEventListener('blur', this.onBlur); removeEventListener('pointerup', this.onPtrEnd, true); removeEventListener('pointercancel', this.onPtrEnd, true); removeEventListener('touchend', this.onTouchEnd, true); removeEventListener('touchcancel', this.onTouchEnd, true); document.removeEventListener('visibilitychange', this.onHide);
     this.hud.destroy(); this.court.hideBall();
     if (this.pin) { this.pin.parent?.remove(this.pin); this.pin.geometry.dispose(); this.pin.material.dispose(); this.pin = null; }
