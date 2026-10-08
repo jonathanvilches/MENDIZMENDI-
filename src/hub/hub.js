@@ -243,8 +243,8 @@ export class Hub {
       </div>
       <div class="sport" style="--bg:url(${townImg(sadar)})">
         ${avF ? `<img class="sp-av" src="${avF}" alt="">` : ''}
-        <div class="sp-txt"><small class="kicker">${club ? 'Tu club: ' + esc(club.name) : 'Elige tu club'}</small><h3>Fútbol</h3>
-          <p>Liga Navarra con tu club, amistosos contra cualquier club y partidos en El Sadar.</p>
+        <div class="sp-txt"><small class="kicker">${club ? 'En El Sadar · ' + esc(club.name) : 'En El Sadar · elige tu club'}</small><h3>Fútbol</h3>
+          <p>Liga Navarra con tu club y amistosos contra cualquier club. Todos los partidos, en El Sadar.</p>
           <span class="sp-stat">${I('balon', 22)} ${fb?.played || 0} partidos · ${fb?.won || 0} ganados</span></div>
         <button class="btn primary big" data-sport="futbol">${I('play', 26)} <span>Jugar a fútbol</span></button>
       </div>

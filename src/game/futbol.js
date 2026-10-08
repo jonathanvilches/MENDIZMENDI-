@@ -171,8 +171,8 @@ export class Futbol {
   async reto(id) { this.setup(); const o = this.opts; return this.result(await FutbolSystem.startReto({ campoId: o.campo, reto: id, local: o.local })); }
   /** Un partido directo contra un rival. */
   async match(rival, dificultad = 'normal', duracion = 2, awayTeam = null) { this.setup(); const o = this.opts; return this.result(await FutbolSystem.startMatch({ campoId: o.campo, rival, dificultad, duracion, local: o.local, awayTeam })); }
-  /** Liga Navarra con el club del pueblo (fútbol 11 en el campo de cada club). */
-  async liga(club, here) { this.setup(); const r = await FutbolSystem.startLeague({ club, here }); return { ...this.result(r), travel: r?.travel || null }; }
+  /** Liga Navarra con el club del pueblo (fútbol 11, todas las jornadas en El Sadar). */
+  async liga(club) { this.setup(); return this.result(await FutbolSystem.startLeague({ club })); }
   /** Amistoso del club contra el club que se elija. */
   async friendly(club) { this.setup(); return this.result(await FutbolSystem.startFriendly({ club })); }
 }

@@ -191,8 +191,13 @@ export const EU_EXACT = {
   'Fuera. En el partido sacará el rival; ahora, sigue practicando': 'Kanpora. Partidan aurkariak aterako du; orain, jarraitu praktikatzen',
   // --- liga eta klubaren menua ---
   'Club': 'Kluba', 'Cómo funciona:': 'Nola dabil:', 'MEDIA': 'MAILA', 'Fin de temporada': 'Denboraldiaren amaiera', 'VS': 'VS', 'En casa': 'Etxean', 'Fuera de casa': 'Kanpoan',
-  'siete jornadas, todos contra todos con los clubes de tu grupo. Tus partidos los juegas tú (o los simulas); los demás se simulan solos. Se juega en el campo del equipo de casa, así que a veces hay que viajar. Tres puntos por victoria y uno por empate.':
-    'zazpi jardunaldi, denak denen aurka zure taldeko klubekin. Zure partidak zuk jokatzen dituzu (edo simulatu); gainerakoak berez simulatzen dira. Etxeko taldearen zelaian jokatzen da, beraz batzuetan bidaiatu behar da. Hiru puntu irabaziz gero eta bat berdinduz gero.',
+  'siete jornadas, todos contra todos con los clubes de tu grupo. Tus partidos los juegas tú (o los simulas); los demás se simulan solos. Todos los partidos se juegan en El Sadar. Tres puntos por victoria y uno por empate.':
+    'zazpi jardunaldi, denak denen aurka zure taldeko klubekin. Zure partidak zuk jokatzen dituzu (edo simulatu); gainerakoak berez simulatzen dira. Partida guztiak El Sadarren jokatzen dira. Hiru puntu irabaziz gero eta bat berdinduz gero.',
+  'EN CASA · EL SADAR': 'ETXEAN · EL SADAR', 'FUERA · EL SADAR': 'KANPOAN · EL SADAR', 'En El Sadar': 'El Sadarren', 'en El Sadar': 'El Sadarren',
+  'Partido rápido': 'Partida azkarra', 'Iruña contra el visitante': 'Iruña bisitariaren aurka', 'En El Sadar · elige tu club': 'El Sadarren · aukeratu zure kluba',
+  'Liga Navarra con tu club y amistosos contra cualquier club. Todos los partidos, en El Sadar.': 'Nafarroako Liga zure klubarekin eta lagunartekoak edozein klubaren aurka. Partida guztiak, El Sadarren.',
+  'Tienes la Liga Navarra contra los clubes de la zona, amistosos contra cualquier club de Navarra y el partido del pueblo. Todos se juegan en El Sadar, el estadio de Iruña.': 'Nafarroako Liga duzu inguruko kluben aurka, lagunartekoak Nafarroako edozein klubaren aurka eta herriko partida. Denak El Sadarren jokatzen dira, Iruñeko estadioan.',
+  'Tienes la Liga Navarra contra los clubes de la zona y amistosos contra cualquier club de Navarra. Todos se juegan en El Sadar, el estadio de Iruña.': 'Nafarroako Liga duzu inguruko kluben aurka eta lagunartekoak Nafarroako edozein klubaren aurka. Denak El Sadarren jokatzen dira, Iruñeko estadioan.',
   'CAMPEÓN DE LA LIGA NAVARRA': 'NAFARROAKO LIGAKO TXAPELDUNA', 'La próxima temporada, a por el título.': 'Hurrengo denboraldian, titulura.',
   'Equipos con el nombre de cada pueblo o valle, sin nombres ni escudos de clubes de verdad.': 'Herri edo haran bakoitzaren izeneko taldeak, benetako klubeen izenik eta armarririk gabe.',
   'Simular partido': 'Partida simulatu', 'Nueva temporada': 'Denboraldi berria', 'Tu club': 'Zure kluba', 'Amistoso: elige rival': 'Lagunartekoa: aukeratu aurkaria', 'Amistoso': 'Lagunartekoa',
@@ -259,7 +264,7 @@ export const EU_RX = [
   [/^La jornada se juega en el campo del (.+): viaja a (.+) \(en el mapa\) y habla con su entrenador\.$/, (m, a, b) => `Jardunaldia ${gen(a)} zelaian jokatzen da: bidaiatu ${ala(b)} (mapan) eta hitz egin entrenatzailearekin.`],
   [/^Resultados · jornada (\d+)$/, 'Emaitzak · $1. jardunaldia'], [/^(.+) · tu club$/, '$1 · zure kluba'], [/^(.+) · media (\d+)$/, '$1 · $2 maila'],
   [/^Liga Navarra · jornada (\d+)$/, 'Nafarroako Liga · $1. jardunaldia'], [/^(.+) · la jornada se juega aquí$/, '$1 · jardunaldia hemen jokatzen da'], [/^Jornada en (.+)$/, 'Jardunaldia: $1'],
-  [/^5 contra 5 contra (.+)$/, '5 eta 5, aurkaria: $1'], [/^Contra (.+)$/, '$1 taldearen aurka'], [/^contra (.+)$/, '$1 taldearen aurka'], [/^Sello de fútbol de (.+)$/, (m, a) => `${loc(a)} futbol zigilua`], [/^Pista de (.+)$/, (m, a) => `${loc(a)} pista`],
+  [/^5 contra 5 contra (.+)$/, '5 eta 5, aurkaria: $1'], [/^Contra (.+) · en El Sadar$/, '$1 taldearen aurka · El Sadarren'], [/^(.+) · en El Sadar$/, '$1 · El Sadarren'], [/^En El Sadar · (.+)$/, 'El Sadarren · $1'], [/^Contra (.+)$/, '$1 taldearen aurka'], [/^contra (.+)$/, '$1 taldearen aurka'], [/^Sello de fútbol de (.+)$/, (m, a) => `${loc(a)} futbol zigilua`], [/^Pista de (.+)$/, (m, a) => `${loc(a)} pista`],
   [/^El (\d+)( visitante)?, expulsado$/, (m, n, v) => `${n} zenbakia${v ? ' (bisitaria)' : ''}, kanporatuta`], [/^El (\d+)( visitante)?$/, (m, n, v) => `${n} zenbakia${v ? ' (bisitaria)' : ''}`],
   [/^De (.+) · (\d+)\.ª falta$/, '$1 · $2. falta'], [/^De ([A-ZÁÉÍÓÚÑ][^\s·]+)$/, '$1 · falta'],
   [/^Fuera · saque de banda para (.+)$/, 'Kanpora · alboko sakea: $1'], [/^Córner para (.+)$/, 'Kornerra: $1'], [/^Saque de portería para (.+)$/, 'Ateko sakea: $1'], [/^Fuera de juego de (.+)$/, 'Jokoz kanpo: $1'],

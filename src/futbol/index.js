@@ -88,24 +88,24 @@ export const FutbolSystem = {
     const V = VENUES[campoId] || VENUES.sadar;
     return this.play({ mode: 'match', venue: V.id, home: V.home, away: rival || V.away, level: dificultad, duration: duracion, assist: asistencia, cup: modo === 'eliminatoria', autoplay, timeScale, seed, local, awayTeam, venueName });
   },
-  /** Partido de fútbol 11 entre dos clubes de los pueblos (en el campo del de casa). */
-  startClubMatch({ club, rival, campoDe = club, duracion = 2, autoplay = false, timeScale = 1 } = {}) {
-    const H = teamOfClub(club), A = awayKit(H, teamOfClub(rival)), F = CLUBS[campoDe];
-    return this.startMatch({ campoId: 'pueblo', local: H, awayTeam: A, dificultad: levelFor(club, rival), duracion, autoplay, timeScale, venueName: F.field ? `Campo de ${F.field} · ${F.town}` : `Campo municipal de ${F.town}` });
+  /** Partido de fútbol 11 entre dos clubes de los pueblos. Todos los partidos se juegan en El Sadar: las gradas
+   *  llenas y la cubierta lo hacen más espectacular que el campo de cada pueblo. */
+  startClubMatch({ club, rival, duracion = 2, autoplay = false, timeScale = 1 } = {}) {
+    const H = teamOfClub(club), A = awayKit(H, teamOfClub(rival));
+    return this.startMatch({ campoId: 'sadar', local: H, awayTeam: A, dificultad: levelFor(club, rival), duracion, autoplay, timeScale });
   },
-  /** Liga Navarra con el club del pueblo: pantalla de la liga, partido (o simulado), resultados de la jornada. */
-  // here: club del pueblo en el que estás (la jornada solo se juega en el campo del de casa; si no, «travel»)
-  async startLeague({ club, here = undefined, autoplay = false, timeScale = 1 } = {}) {
+  /** Liga Navarra con el club del pueblo: pantalla de la liga, partido (o simulado), resultados de la jornada. Cada
+   *  jornada se juega en El Sadar, desde donde estés: no hace falta viajar al pueblo del de casa. */
+  async startLeague({ club, autoplay = false, timeScale = 1 } = {}) {
     let S = season(club), last = null;
     for (;;) {
-      const a = await ligaPanel(S, here);
+      const a = await ligaPanel(S);
       if (a === 'exit') return last || { quit: true };
-      if (a === 'travel') return { quit: true, travel: nextMatch(S).h };
       if (a === 'new') { S = newSeason(club); continue; }
       const m = nextMatch(S), j = S.j, home = m.h === club, rival = home ? m.a : m.h;
       let mine = null, theirs = null;
       if (a === 'play') {
-        const r = await this.startClubMatch({ club, rival, campoDe: m.h, autoplay, timeScale });
+        const r = await this.startClubMatch({ club, rival, autoplay, timeScale });
         if (!r || r.quit) continue;   // abandonado: la jornada sigue pendiente
         mine = r.you ?? 0; theirs = r.cpu ?? 0; last = { ...r, liga: true };
       }
