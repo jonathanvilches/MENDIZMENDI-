@@ -284,7 +284,7 @@ export class Runtime {
     const P = this.player;
     P.update(dt, input, this.follow.yaw);
     if (g.mode !== 'bino') this.follow.update(dt, P, input);
-    g.update(dt);
+    try { g.update(dt); } catch (e) { this.reportError(e); }   // (si falla el juego, el cielo, la luz y lo demás siguen)
     navTick(this.quality === 'low' ? 1.5 : 2.5);   // caminos de los vecinos, unos milisegundos por fotograma
     this.terrain.update(this.camera.position);
     { const c = this.camera, f = this.sky.ahead || (this.sky.ahead = new THREE.Vector3()); c.getWorldDirection(f); f.y = 0; if (f.lengthSq() < 1e-4) f.set(0, 0, 0); else f.normalize(); this.sky.camPos = c.position; }   // (las sombras, por delante de la cámara)

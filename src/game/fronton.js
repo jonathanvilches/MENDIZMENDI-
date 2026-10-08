@@ -173,7 +173,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
   return new Promise(res => {
     const P = G.player, rig0 = P.rig, home = { x: rival.pos.x, z: rival.pos.z, h: rival.heading };
     let seated = null, seatedZ = 0, cheerT = 0;
-    let rig = rig0, pel = null, red = null, bf = null, bfWas = false, ended = false; const hidden = [], hiddenR = [];
+    let rig = rig0, pel = null, red = null, bf = null, bfWas = false, ended = false, match = null; const hidden = [], hiddenR = [];
     // si algo falla al montar el partido, de vuelta al pueblo con todo como estaba (nunca congelado en la cancha)
     const fail = (e) => {
       console.warn('frontón', e);
@@ -233,7 +233,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       once('rival', 'won', st.won, () => red?.doCheer());
       if (st.won) rival.cheer = 0.6;
     };
-    let match; const youName = profile().name || (isEU() ? 'Zu' : 'Tú'), rivName = rivalName || String(rival.name).split(',')[0];
+    const youName = profile().name || (isEU() ? 'Zu' : 'Tú'), rivName = rivalName || String(rival.name).split(',')[0];
     fronton.court.setScore?.(youName, rivName, 0, 0);
     try { match = G.pelotaMatch = new PelotaMatch({
       THREE, court: fronton.court, camera: G.camera, lang: isEU() ? 'eu' : 'es', mode, target, level, fixedLevel,
@@ -242,25 +242,35 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       onEnd: (r) => done(r), onExit: (r) => done(r),
       onEvent: (e) => { if (e.type === 'call' && e.score) fronton.court.setScore?.(youName, rivName, e.score.you, e.score.rival); if (e.type === 'call' && seated) { seated.cheer(true); cheerT = e.final ? 4.6 : 1.6; } },
     }); } catch (e) { console.warn('frontón', e); done({ win: false, error: true }); return; }   // (si no se monta, de vuelta al pueblo)
-    G.pelotaTick = (dt) => { match.update(dt); if (seated) { seated.tick(match.t || 0, cheerT > 0 ? 1 : 0.15, seatedZ, G.camera); if (cheerT > 0 && (cheerT -= dt) <= 0) seated.cheer(false); } };
+    // (si el partido falla una y otra vez, se acaba y se vuelve al pueblo: nunca el marcador puesto en mitad de la calle)
+    let bad = 0;
+    G.pelotaAbort = () => done({ win: false, quit: true, error: true });
+    G.pelotaTick = (dt) => {
+      try { match.update(dt); bad = 0; } catch (e) { console.warn('partido', e); if (++bad > 20) { done({ win: false, quit: true, error: true }); return; } }
+      try { if (seated) { seated.tick(match.t || 0, cheerT > 0 ? 1 : 0.15, seatedZ, G.camera); if (cheerT > 0 && (cheerT -= dt) <= 0) seated.cheer(false); } } catch (e) { console.warn('público', e); seated = null; }
+    };
     })().catch(fail);
     function done(r) {
       if (ended) return; ended = true;
-      G.pelotaTick = null; G.pelotaMatch = null; G.pelotaRig = null;
-      if (seated) { seated.parent?.remove(seated); seated.dispose(); seated = null; }
-      if (rig.char) rig.char.post = null; if (rival.glb) rival.glb.post = null;
-      rig.setStance?.(null);
-      if (pel) { P.obj.remove(pel.char.root); pel.dispose(); for (const c of hidden) P.obj.add(c); }
-      if (bf) bf.visible = bfWas;
-      if (G.beacon) G.beacon.off = false;
-      if (G.sky) G.sky.flood = 0;
-      if (red) { red.char.post = null; rival.obj.remove(red.char.root); red.dispose(); for (const c of hiddenR) rival.obj.add(c); }
-      G.rt?.boost?.(false);
-      P.rig = rig0; P.frozen = false; G.mode = 'play'; G.ui.hudVisible?.(true); G.perro?.release?.();
-      rival.frozen = false; rival.speed = 0; rival.setPos(home.x, home.z, home.h);
-      const back = returnTo || fronton, e = back.entry, c = back.out || back.toWorld(0, 12);
-      P.place(e.x, e.z, Math.atan2(c.x - e.x, c.z - e.z));
-      G.follow.cinematic = null; G.follow.snap(P);
+      G.pelotaTick = null; G.pelotaMatch = null; G.pelotaRig = null; G.pelotaAbort = null;
+      // el marcador y los botones del partido, fuera siempre (también si algo falló al montarlo)
+      try { match?.destroy(); } catch (e) { console.warn('frontón', e); }
+      document.querySelectorAll('.pel-root').forEach(el => el.remove());
+      // (cada paso por su cuenta: si uno falla, los demás se hacen igual y se vuelve al pueblo con todo en su sitio)
+      const safe = (f) => { try { f(); } catch (e) { console.warn('frontón', e); } };
+      safe(() => { if (seated) { seated.parent?.remove(seated); seated.dispose(); seated = null; } });
+      safe(() => { if (rig.char) rig.char.post = null; if (rival.glb) rival.glb.post = null; rig.setStance?.(null); });
+      safe(() => { if (pel) { P.obj.remove(pel.char.root); pel.dispose(); } });
+      safe(() => { for (const c of hidden) if (!c.parent) P.obj.add(c); });
+      safe(() => { if (bf) bf.visible = bfWas; if (G.beacon) G.beacon.off = false; if (G.sky) G.sky.flood = 0; });
+      safe(() => { if (red) { red.char.post = null; rival.obj.remove(red.char.root); red.dispose(); } });
+      safe(() => { for (const c of hiddenR) if (!c.parent) rival.obj.add(c); });
+      safe(() => G.rt?.boost?.(false));
+      P.rig = rig0; P.frozen = false; G.mode = 'play';
+      safe(() => G.ui.hudVisible?.(true)); safe(() => G.perro?.release?.());
+      safe(() => { rival.frozen = false; rival.speed = 0; rival.setPos(home.x, home.z, home.h); });
+      safe(() => { const back = returnTo || fronton, e = back.entry, c = back.out || back.toWorld(0, 12); P.place(e.x, e.z, Math.atan2(c.x - e.x, c.z - e.z)); });
+      safe(() => { G.follow.cinematic = null; G.follow.snap(P); });
       res({ win: !!r.win, you: r.score?.you ?? 0, cpu: r.score?.rival ?? 0, best: r.best ?? 0, quit: !!r.quit });
     }
   });

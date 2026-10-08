@@ -520,6 +520,12 @@ export class TownGame {
     this.elapsed += dt;
     const P = this.player;
     this.watchdog(dt);
+    // el partido de pelota, lo primero y aparte: si algo del pueblo falla, el partido sigue (antes se quedaba quieto,
+    // con el marcador puesto y la cámara en la calle)
+    if (this.mode === 'pelota') {
+      if (this.pelotaTick) { this.pelotaStuck = 0; try { this.pelotaTick(dt); } catch (e) { console.warn('partido', e); } }
+      else if ((this.pelotaStuck = (this.pelotaStuck || 0) + dt) > 3) { this.pelotaStuck = 0; this.mode = 'play'; P.frozen = false; this.ui.hudVisible?.(true); document.querySelectorAll('.pel-root').forEach(el => el.remove()); console.warn('[vigilante] partido sin partido: de vuelta al pueblo'); }
+    } else if ((this.pelHudT = (this.pelHudT || 0) + dt) > 1) { this.pelHudT = 0; if (!this.pelotaMatch) document.querySelectorAll('.pel-root').forEach(el => el.remove()); }
     // al pasar por la plaza se avisa del escudo del pueblo
     if (this.townArms && !this.armsHint && !this.P.cards.includes(this.townArms.id) && Math.hypot(this.townArms.read.x - P.pos.x, this.townArms.read.z - P.pos.z) < 12) {
       this.armsHint = true; this.ui.whisper(`En la plaza está el escudo de ${this.def.name.split(' /')[0]}. Acércate y aprende a leerlo: cada figura cuenta algo del pueblo.`, 5600);
@@ -559,7 +565,6 @@ export class TownGame {
     if (this.race) this.updateRace(dt);
     if (this.mode === 'dance') this.updateDance(dt);
     if (this.mode === 'bino') this.updateBino(dt);
-    if (this.mode === 'pelota' && this.pelotaTick) this.pelotaTick(dt);
     if (this.mode === 'futbol') this.futbol?.update(dt);
     this.updateNight(dt);
     for (const M of this.missions) if (M.type === 'summit' && M.step === 1 && !M.done) this.updateSummit(M, dt);
