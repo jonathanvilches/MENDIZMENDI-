@@ -97,6 +97,9 @@
 @media (hover: hover) { #hub :is(.ccard, .tile, .sb, .folkcard, .scard, .bcard, .sg, .tcard):hover { transform: translateY(-3px); border-color: var(--fx); box-shadow: 0 12px 28px rgba(0, 0, 0, .4), 0 0 18px rgba(255, 43, 214, .35); } }
 #hub :is(.ccard, .tile, .sb, .scard, .bcard, .sg, .tcard, .pst):active { transform: scale(.97); filter: brightness(1.12); }
 #hub .title { font-family: var(--f-display); text-transform: uppercase; }
+/* (Escudos y Cuentos tienen su título con rótulo encima: la misma letra y el mismo tamaño que los demás títulos) */
+#hub .ar-head h1 { font: 400 var(--fs-hero)/1 var(--f-display); text-transform: uppercase; letter-spacing: .01em; }
+@media (orientation: landscape) and (max-height: 560px) { #hub .ar-head h1 { font-size: var(--fs-xl); } }
 #hub .sec { font-family: var(--f-cond); font-weight: 800; letter-spacing: .12em; }
 #hub .sec::after { content: ''; flex: 1; height: 2px; margin-left: 8px; background: linear-gradient(90deg, rgba(255, 43, 214, .6), transparent); }
 #hub .btn.primary { background: var(--cta); color: #fff; border: 0; font-family: var(--f-display); text-transform: uppercase; letter-spacing: .04em; box-shadow: var(--glow); clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%); border-radius: 4px; }
