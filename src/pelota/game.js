@@ -1,6 +1,6 @@
 // Lógica del partido de pelota a mano (sin gráficos): saque, peloteo, árbitro, tanteo y rival.
 // La vista (match.js) le pasa la entrada del jugador y recibe eventos para dibujar, sonar y rotular.
-import { COURT, LEVELS, kantari } from './rules.js';
+import { COURT, LEVELS, SHOTS, kantari } from './rules.js';
 import { Ball, predict, solveShot, solveTwoWalls, aimVelocity, vec } from './physics.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -38,7 +38,7 @@ export class PelotaGame {
     this.target = o.target || (this.mode === 'rally' ? 6 : 7);
     this.lvl = LEVELS[o.level] || LEVELS.normal;
     // cualidades (de 1 a 5): tú, un pelotari de los del medio; el rival, las suyas (fuerza, agilidad y velocidad)
-    const Q = (s) => ({ fuerza: s?.fuerza ?? 3, agilidad: s?.agilidad ?? 3, velocidad: s?.velocidad ?? 3 });
+    const Q = (s) => ({ fuerza: s?.fuerza ?? 3, agilidad: s?.agilidad ?? 3, velocidad: s?.velocidad ?? 3, style: s?.style || null });
     this.qual = { you: Q(o.youStats), rival: Q(o.rivalStats), youMate: Q(o.youMateStats), rivalMate: Q(o.rivalMateStats) };
     // por parejas: cada lado con un delantero y un zaguero (tú eliges qué juegas; tu compañero, lo otro). El rival del
     // pueblo juega de delantero y saca
@@ -374,6 +374,7 @@ export class PelotaGame {
     const me = this.players[who], sd = this.side(who), rnd = this.rnd;
     const lv = this.lvl.rival, smart = sd === 'rival' ? lv.smart : who === 'youMate' ? MATE_AI.smart : 0.5, S = this.qual[who].fuerza;
     if (this.phase === 'servePrep') return { aim: { x: gauss(rnd) * 0.5, y: 0 }, drop: false };
+    const fav = this.mode === 'rally' ? null : this.styleShot(who, me); if (fav) return fav;   // (sus golpes preferidos)
     if (this.pairs) return this.aiShotPairs(who, me, smart, S);
     const op = this.players[this.other(sd)];
     if (this.mode === 'rally' && who === 'rival') return { aim: { x: (op.x - me.x) * 0.15, y: 0 }, drop: false };  // en el peloteo, pelotas fáciles
@@ -387,6 +388,18 @@ export class PelotaGame {
       if (op.z < 15) return { aim: { x: 0, y: 1 } };
     }
     return { aim: { x: gauss(rnd) * 0.6, y: rnd() < 0.2 ? 1 : 0 }, drop: false };
+  }
+  // sus golpes preferidos (los de su ficha): los busca a menudo, más cuantos más tiene
+  styleShot(who, me) {
+    const S = this.qual[who].style; if (!S) return null;
+    const tot = SHOTS.reduce((a, k) => a + (S[k] || 0), 0); if (!tot || this.rnd() > Math.min(0.42, tot * 0.06)) return null;
+    let x = this.rnd() * tot, k = SHOTS[0]; for (const s of SHOTS) { x -= S[s] || 0; if (x <= 0) { k = s; break; } }
+    const g = gauss(this.rnd);
+    if (k === 'cortada') return { aim: { x: this.rnd() < 0.5 ? -0.55 : 0.5, y: g * 0.3 }, drop: 'cortada' };
+    if (k === 'dosparedes') return me.x > -3.6 ? { aim: { x: -0.85, y: -0.5 } } : null;
+    if (k === 'gancho') return { aim: { x: -0.92, y: 0.35 } };   // pegada a la pared izquierda
+    if (k === 'dejada') return me.z < 21 ? { aim: { x: g * 0.3, y: -1 }, drop: true } : null;
+    return { aim: { x: g * 0.3, y: 1 }, pow: 0.9 + this.rnd() * 0.1 };   // largo, al rebote
   }
   // por parejas se juega al hueco: dejada si los dos están atrás, larga si los dos están delante, a la pared o al ancho
   // si se han ido a un lado, y si no, lejos del zaguero
@@ -444,7 +457,7 @@ export class PelotaGame {
     } else if (this.phase === 'rally' && this.rally.turn === sd) {
       // a una pelota corta (la dejada) se sale en arrancada, como un pelotari de verdad: más rápido que en el peloteo
       const dash = lv.dash, c = this.interceptFor(who, lv.speed * dash, lv.react);
-      if (c) { tx = c.x; tz = c.z; if (c.z < 8) sprint = dash; }
+      if (c) { const w = this.detour(pl, c.x, c.z); tx = w.x; tz = w.z; if (c.z < 8) sprint = dash; }
       const cannon = this.rally.bounces < 1 && this.ball.p.z > 22 && this.deepShot();   // (ese cañonazo al fondo, no de aire)
       if (this.hittable(who) && !cannon) {
         // los diestros fallan más lo pegado a la pared izquierda (y lo muy bajo): menos cuanto más ágiles
@@ -575,6 +588,7 @@ export class PelotaGame {
     // los demás (el rival y, por parejas, los compañeros), con la cabeza; el que saca espera quieto a botar la pelota
     for (const id of this.ids) if (id !== 'you' && !(this.phase === 'serveWait' && this.serverP() === id)) this.driveAI(id, dt);
     if (this.phase === 'serveWait' || (this.phase === 'servePrep')) { const s = this.players[this.serverP()]; s.vx = s.vz = 0; }
+    this.giveWay(dt, inp);
     const all = this.ids.map(id => this.players[id]);
     for (const p of all) {
       p.x = clamp(p.x + p.vx * dt, -COURT.W / 2 + 0.45, COURT.W / 2 + 2.5);
@@ -589,6 +603,40 @@ export class PelotaGame {
     }
   }
 
+  // Nadie estorba al que va a golpear: los demás se apartan de su carrera hacia la pelota y, sobre todo, del sitio donde
+  // la golpeará (el que acaba de golpear se retira, como en los partidos de verdad). Tú, si no mueves el joystick, también
+  // das un paso a un lado. (El que va a por ella, además, rodea a quien tenga delante: en driveAI)
+  giveWay(dt, inp = {}) {
+    if (this.phase !== 'rally') return;
+    const tk = this.pairs ? this.takerOf(this.rally.turn) : this.rally.turn; if (!tk) return;
+    const T = this.players[tk], c = this.interceptFor(tk, 6, 0.1); if (!c) return;
+    const ax = T.x, az = T.z, dx = c.x - ax, dz = c.z - az, l2 = dx * dx + dz * dz, k = Math.min(1, dt * 10);
+    for (const id of this.ids) {
+      if (id === tk) continue;
+      const q = this.players[id], human = id === 'you' && !this.autoplay;
+      if (human && (Math.hypot(inp.mx || 0, inp.mz || 0) > 0.1 || inp.aiming)) continue;   // (tú mandas: solo si estás quieto)
+      const u = l2 > 1e-4 ? clamp(((q.x - ax) * dx + (q.z - az) * dz) / l2, 0, 1) : 1, px = ax + dx * u, pz = az + dz * u;
+      let nx = q.x - px, nz = q.z - pz; const d = Math.hypot(nx, nz), R = u > 0.9 ? 2.3 : 1.6;
+      if (d >= R) continue;
+      if (d < 0.05) { nx = -dz; nz = dx; } const nl = Math.hypot(nx, nz) || 1; nx /= nl; nz /= nl;
+      // (hacia dentro de la cancha si la pared izquierda no deja: no se aparta contra la pared)
+      if (q.x < -COURT.W / 2 + 1.2 && nx < 0) { nx = 0.6; nz = Math.sign(nz || 1) * 0.8; }
+      const want = (R - d) / R * (human ? 2.5 : 5.5), vn = q.vx * nx + q.vz * nz;
+      if (vn < want) { q.vx += (want - vn) * nx * k; q.vz += (want - vn) * nz * k; }
+    }
+  }
+  // el que va a por la pelota no atraviesa a nadie: si alguien está en su carrera, apunta a un lado de él
+  detour(pl, tx, tz) {
+    const dx = tx - pl.x, dz = tz - pl.z, l2 = dx * dx + dz * dz; if (l2 < 0.5) return { x: tx, z: tz };
+    for (const id of this.ids) {
+      const q = this.players[id]; if (q === pl) continue;
+      const u = ((q.x - pl.x) * dx + (q.z - pl.z) * dz) / l2; if (u < 0.05 || u > 0.92) continue;
+      const px = pl.x + dx * u, pz = pl.z + dz * u, d = Math.hypot(q.x - px, q.z - pz); if (d > 1.1) continue;
+      const L = Math.sqrt(l2); let sx = -dz / L, sz = dx / L; if ((q.x - px) * sx + (q.z - pz) * sz > 0) { sx = -sx; sz = -sz; }
+      return { x: q.x + sx * 1.4, z: q.z + sz * 1.4 };
+    }
+    return { x: tx, z: tz };
+  }
   // ayudas para la vista: dónde botará y dónde conviene ponerse
   hints() {
     if (this.phase !== 'rally') return null;

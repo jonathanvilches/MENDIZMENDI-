@@ -173,7 +173,8 @@ export function labritInTown(scene, near) {
  */
 // (torneo: rivalName para el nombre del rival en el marcador y fixedLevel para no elegir nivel)
 // rivalStats: las cualidades del rival (fuerza, agilidad, velocidad, de 1 a 5); sin ellas, las suyas según su nombre
-export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level, rivalName, fixedLevel = false, returnTo = null, rivalStats = null } = {}) {
+// pairs: { partner: { name, stats }, rivalMate: { name, stats } } (el torneo por parejas: el partido es por parejas)
+export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level, rivalName, fixedLevel = false, returnTo = null, rivalStats = null, pairs = null } = {}) {
   if (window.__autoWin) return Promise.resolve({ win: true, you: target, cpu: 0 });
   return new Promise(res => {
     const P = G.player, rig0 = P.rig, home = { x: rival.pos.x, z: rival.pos.z, h: rival.heading };
@@ -247,8 +248,8 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // parejas, la primera vez, y se van al acabar
     const makeMates = async () => {
       if (mates) return mates;
-      const free = MATE_NAMES.filter(n => n !== youName && n !== rivName), n1 = free.splice(Math.floor(Math.random() * free.length), 1)[0], n2 = free[Math.floor(Math.random() * free.length)];
-      const mk = async (model, name, lv) => {
+      const free = MATE_NAMES.filter(n => n !== youName && n !== rivName), n1 = pairs?.partner?.name || free.splice(Math.floor(Math.random() * free.length), 1)[0], n2 = pairs?.rivalMate?.name || free.filter(n => n !== n1)[Math.floor(Math.random() * (free.length - 1))];
+      const mk = async (model, name, lv, stats = null) => {
         let r = null;
         if (hasMeshy(model)) try { fullTexFor(model); r = new GlbRig(await loadMeshy(model), model); } catch (e) { console.warn('pareja', e); }
         const obj = new THREE.Group(); obj.visible = false; G.scene.add(obj);
@@ -256,11 +257,11 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
         else { const m = new THREE.Mesh(new THREE.CapsuleGeometry(0.24, 1.1, 4, 8), new THREE.MeshStandardMaterial({ color: model === 'pelotari_rojo' ? '#c0392b' : '#f2f2f2' })); m.position.y = 0.8; obj.add(m); }
         const st = { v: null }, fl = {}; if (r) armSwing(r.char, () => st.v, { windOnly: true });
         const flag = (k, on, fn) => { if (on && !fl[k]) { fl[k] = true; fn(); } else if (!on) fl[k] = false; };
-        return { obj, name, stats: pelotariStats(name, lv),
+        return { obj, name, stats: stats || pelotariStats(name, lv),
           animate: (o, s2, dt = 1 / 60) => { st.v = s2; if (r) { r.char.back = s2.back; r.update(dt, s2.speed, true, 0); flag('swing', s2.swing >= 0, () => r.doAct('hit', 0.5)); flag('won', s2.won, () => r.doCheer()); } },
           dispose() { obj.parent?.remove(obj); if (r) { r.char.post = null; r.dispose(); } else obj.traverse(c => { c.geometry?.dispose(); c.material?.dispose?.(); }); } };
       };
-      const m = { youMate: await mk('pelotari', n1, 2), rivalMate: await mk('pelotari_rojo', n2, level === 'dificil' ? 3 : level === 'facil' ? 1 : 2) };
+      const m = { youMate: await mk('pelotari', n1, 2, pairs?.partner?.stats), rivalMate: await mk('pelotari_rojo', n2, level === 'dificil' ? 3 : level === 'facil' ? 1 : 2, pairs?.rivalMate?.stats) };
       if (ended || G.disposed) { for (const x of Object.values(m)) x.dispose(); throw new Error('partido acabado'); }
       return (mates = m);
     };
@@ -271,7 +272,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       you: { obj: P.obj, name: profile().name || (isEU() ? 'Zu' : 'Tú'), animate: animYou },
       rival: { obj: rival.obj, name: rivalName || String(rival.name).split(',')[0], animate: animRival },
       onEnd: (r) => done(r), onExit: (r) => done(r),
-      mates: mode === 'match' && !fixedLevel ? makeMates : null,   // (en el torneo, mano a mano)
+      mates: mode === 'match' && (!fixedLevel || pairs) ? makeMates : null, forcePairs: !!pairs,   // (en el torneo individual, mano a mano; en el de parejas, por parejas)
       onEvent: (e) => { if (e.type === 'call' && e.score) { const [a, b] = match?.labels?.() || [youName, rivName]; fronton.court.setScore?.(a, b, e.score.you, e.score.rival); } if (e.type === 'call' && seated) { seated.cheer(true); cheerT = e.final ? 4.6 : 1.6; } },
     }); } catch (e) { console.warn('frontón', e); done({ win: false, error: true }); return; }   // (si no se monta, de vuelta al pueblo)
     // (si el partido falla una y otra vez, se acaba y se vuelve al pueblo: nunca el marcador puesto en mitad de la calle)
