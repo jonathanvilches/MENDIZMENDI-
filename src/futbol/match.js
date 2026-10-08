@@ -330,7 +330,7 @@ export class FutbolMatch {
     const g = this.game, H = this.hud, A = this.audio, P = (id) => g.players[id];
     const name = (p) => p ? `el ${p.num}${p.team === 0 ? '' : ' visitante'}` : '';
     switch (e.t) {
-      case 'kick': if (e.kind !== 'throw') A.kick(e.power); this.anim(P(e.p), e.kind === 'throw' ? 'throw' : 'kick');
+      case 'kick': if (e.kind !== 'throw') A.kick(e.kind === 'head' ? e.power * 0.6 : e.power); this.anim(P(e.p), e.kind === 'throw' ? 'throw' : e.kind === 'head' ? 'head' : 'kick');
         if (P(e.p) === g.me && !g.autoplay) try { navigator.vibrate?.(e.kind === 'shot' ? 22 : 12); } catch (err) { /* sin vibración */ }
         break;
       case 'touch': if (P(e.p) === g.me) A.touch(); break;
@@ -343,6 +343,9 @@ export class FutbolMatch {
       case 'miss': A.groan(); if (e.team === 0) H.say('¡Fuera por poco!'); break;
       case 'blocked': H.say('¡Tiro bloqueado!'); break;
       case 'shot': A.bump(0.6, 1.2); break;
+      case 'cross': if (P(e.p).team === 0 && !g.autoplay) H.say(P(e.q) === g.me ? '¡Centro! Mantén TIRO para rematar de cabeza' : '¡Centro al área!', 1300); break;
+      case 'headPrep': this.anim(P(e.p), 'head'); break;
+      case 'header': if (e.kind === 'shot') { A.ooh(); H.say(e.team === 0 ? '¡Remate de cabeza!' : 'Remate de cabeza del rival', 1100); } break;
       case 'steal': if (P(e.p).team === 0) H.say(e.how === 'entrada' ? '¡Qué entrada!' : TEXT.steal, 1200); else if (P(e.from) === g.me) H.say('¡Te han robado el balón!', 1200); this.tuto?.stole(e); break;
       case 'tackle': this.anim(P(e.p), e.kind === 'slide' ? 'slide' : 'robo'); break;
       case 'advantage': H.say(TEXT.advantage, 1500); break;
@@ -437,12 +440,13 @@ export class FutbolMatch {
   // ---------------------------------------------------------------- personajes
   anim(p, kind) {
     if (!p) return; const ch = this.chars[p.id]; if (!ch) return;
+    if (kind === 'head' && ch.kind === 'head' && ch.kindT > 0.2) return;   // (ya saltaba para rematar)
     const a = ch.c.anim;
     if (kind === 'kick') a.once?.('Hit', 0.42, true);
     else if (kind === 'throw') a.once?.('Hit', 0.5, true);
     else if (kind === 'robo') a.once?.('Hit', 0.3, true);
     else if (kind === 'save') a.once?.('Pick', 0.5, true);
-    ch.kind = kind; ch.kindT = kind === 'slide' ? 1.0 : kind === 'fall' ? 1.2 : 0.4;
+    ch.kind = kind; ch.kindT = kind === 'slide' ? 1.0 : kind === 'fall' ? 1.2 : kind === 'head' ? 0.55 : 0.4;
   }
   sync(dt) {
     const g = this.game, B = g.ball; let bigJump = false;
@@ -476,6 +480,8 @@ export class FutbolMatch {
         const D = p.dive, k = clamp((D.el || 0) / 0.22, 0, 1), ls = Math.sign(-D.side * Math.sin(p.h)) || D.side;
         rz = -ls * 1.35 * k; py = clamp(D.hy - 0.7, 0, 1.0) * Math.sin(k * Math.PI * 0.5) * (D.t > 0.15 ? 1 : D.t / 0.15);
       } else if (p.slide) { const k = clamp((0.62 - p.slide.t) / 0.12, 0, 1); rx = -1.15 * k; py = -0.18 * k; pz = 0.35 * k; }
+      // remate de cabeza: salto (hasta 40 cm) y un golpe de cuello hacia delante
+      else if (ch.kind === 'head' && ch.kindT > 0) { const k = 1 - ch.kindT / 0.55; py = 0.4 * Math.sin(Math.PI * clamp(k * 1.15, 0, 1)); rx = 0.32 * Math.sin(Math.PI * clamp((k - 0.2) * 1.6, 0, 1)); }
       else if (p.down > 0) { if (ch.kind === 'fall') { const k = clamp((1.2 - (ch.kindT || 0)) / 0.25, 0, 1); rx = 1.35 * k; py = -0.05; } else if (p.role === 'POR') { rz = (pv.rotation.z || 0) * 0.92; } else rx = -1.1; }
       pv.rotation.x += (rx - pv.rotation.x) * Math.min(1, dt * 14); pv.rotation.z += (rz - pv.rotation.z) * Math.min(1, dt * 12);
       pv.position.y += (py - pv.position.y) * Math.min(1, dt * 12); pv.position.z += (pz - pv.position.z) * Math.min(1, dt * 12);
@@ -572,6 +578,9 @@ export class FutbolMatch {
       const [x, z, h, sp, act, dive, slide, down] = f.p[j], ch = this.chars[p.id];
       ch.outer.position.set(x, 0, z); ch.outer.rotation.y = h; ch.sx = ch.ix = x; ch.sz = ch.iz = z; ch.ox = ch.oz = 0;
       if (act === 'kick' && ch.ract !== 'kick') ch.c.anim.once?.('Hit', 0.6, true);
+      if (act === 'head' && ch.ract !== 'head') ch.rhead = 0;
+      if (ch.rhead != null) { ch.rhead += dt * (R2.len / R2.dur); if (ch.rhead > 0.55) ch.rhead = null; }
+      ch.pivot.position.y = ch.rhead != null ? 0.4 * Math.sin(Math.PI * clamp(ch.rhead / 0.55 * 1.15, 0, 1)) : 0;
       ch.ract = act; ch.c.anim.setSpeed?.(dive || slide || down > 0 ? 0 : sp * (R2.len / R2.dur)); ch.c.anim.update?.(dt * (R2.len / R2.dur));
       const pv = ch.pivot; pv.rotation.z += ((dive ? -(Math.sign(-dive.side * Math.sin(h)) || dive.side) * 1.3 : 0) - pv.rotation.z) * Math.min(1, dt * 8); pv.rotation.x += ((slide ? -1.1 : 0) - pv.rotation.x) * Math.min(1, dt * 8);
     });
@@ -709,7 +718,7 @@ class Tutorial {
     const tips = [
       this.v.hud.el.pass ? 'Muévete con el <b>joystick</b>: toca y arrastra a la izquierda' : 'Muévete con <b>WASD</b> o las flechas',
       `Pasa a tu compañero: apunta hacia él y suelta <b>${this.v.hud.el.pass ? 'PASE' : 'J'}</b>`,
-      `¡A puerta! Mantén <b>${this.v.hud.el.pass ? 'TIRO' : 'K'}</b> para cargar y suelta para chutar`,
+      `¡A puerta! Mantén <b>${this.v.hud.el.pass ? 'TIRO' : 'K'}</b>, lleva la diana con el joystick y suelta para chutar`,
       `Acércate al rival y pulsa <b>${this.v.hud.el.pass ? 'ROBAR' : 'J'}</b> pegado a él`,
       '¡Ya sabes jugar! Empieza el partido',
     ];

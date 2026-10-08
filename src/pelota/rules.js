@@ -14,6 +14,8 @@ export const COURT = {
   FALTA: 14,        // cuadro 4: el saque tiene que botar más allá…
   PASA: 24.5,       // …y antes del cuadro 7
   BALL_R: 0.1,      // radio visible de la pelota (algo mayor que la real para verla bien)
+  REBOTE: 34.5,     // el rebote: la pared de atrás (baja), a 3 m de la última raya
+  REBOTE_H: 2.2,
 };
 
 // Física (en «tiempo de juego»; el partido va a cámara algo lenta según el nivel)
@@ -26,6 +28,7 @@ export const PHYS = {
   FRONT_F: 0.9,
   FRONT_FX: 0.62,    // lo que conserva de lado al dar en el frontis (rozamiento: la pelota no sale cruzada)
   WALL_E: 0.74,      // rebote en la pared izquierda
+  BACK_E: 0.55,      // y en el rebote (la pared de atrás)
   CUT_E: 0.62,       // cortada: sale del frontis con más fuerza que un golpe normal…
   CUT_FLOOR_E: 0.36, // …bota algo más bajo que un golpe, pero se ve botar (con 0,18 apenas se despegaba del suelo)…
   CUT_FLOOR_F: 0.8,  // …y corre más al botar
@@ -39,6 +42,31 @@ export const LEVELS = {
   dificil: { tempo: 0.68, reach: 1.4, assist: 0.35, rival: { speed: 6.2, react: 0.17, error: 0.03, smart: 0.85, dash: 1.15 } },
 };
 
+// Cualidades de cada pelotari (de 1 a 5): fuerza (lo largo y rápido que pega: los fuertes llegan al rebote), agilidad
+// (reflejos y manos: lo pegado a la pared izquierda o lo muy bajo les cuesta menos) y velocidad (lo que corren: a uno lento
+// le pillan las dejadas). Salen del nombre y del nivel (1 a 3): siempre las mismas para el mismo pelotari
+export function pelotariStats(seed = '', lv = 2) {
+  let h = 2166136261; for (const ch of String(seed)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
+  const r = () => { h = Math.imul(h ^ (h >>> 15), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
+  const total = Math.max(5, Math.min(13, 5 + lv * 2 + Math.floor(r() * 2))), st = { fuerza: 1, agilidad: 1, velocidad: 1 }, k = Object.keys(st);
+  // un punto fuerte y uno flojo bien marcados (así se nota con quién juegas)
+  const si = Math.floor(r() * 3), strong = k[si], weak = k[(si + 1 + Math.floor(r() * 2)) % 3];
+  st[strong] = Math.min(5, 3 + Math.floor(r() * 2));
+  let left = total - st.fuerza - st.agilidad - st.velocidad;
+  for (let n = 0; left > 0 && n < 200; n++) { const c = k[Math.floor(r() * 3)]; if (st[c] < (c === weak && lv < 3 ? 2 : 5)) { st[c]++; left--; } }
+  return st;
+}
+/** Consejos para jugar contra un pelotari según sus cualidades (los dos que más se notan). */
+export function statsTips(st, lang = 'es') {
+  const T = TEXT[lang]?.tips || TEXT.es.tips, out = [];
+  if (st.velocidad <= 2) out.push(T.slow);
+  if (st.agilidad <= 2) out.push(T.clumsy);
+  if (st.fuerza >= 4) out.push(T.strong);
+  if (st.velocidad >= 4) out.push(T.fast);
+  if (st.fuerza <= 2) out.push(T.weak);
+  if (st.agilidad >= 4) out.push(T.agile);
+  return out.slice(0, 2);
+}
 const EU_NUM = ['hutsa', 'bat', 'bi', 'hiru', 'lau', 'bost', 'sei', 'zazpi', 'zortzi', 'bederatzi', 'hamar', 'hamaika', 'hamabi', 'hamahiru', 'hamalau', 'hamabost', 'hamasei', 'hamazazpi', 'hamazortzi', 'hemeretzi', 'hogei', 'hogeita bat', 'hogeita bi'];
 export const euNum = (n) => EU_NUM[n] || String(n);
 
@@ -59,9 +87,13 @@ export const TEXT = {
       'Devuélvela de aire o tras un bote. Al segundo bote, tanto para el otro.',
       'Es fuera si bota más allá de la raya derecha o de la última raya del fondo, si da en el frontis por encima de su raya o fuera de la raya de la derecha, y si da en la pared izquierda por encima de la raya roja.',
       'El saque debe botar entre la raya del 4 (falta) y la del 7 (pasa).',
+      'Si bota dentro y llega a la pared de atrás (el rebote), vuelve y se puede jugar antes del segundo bote. Si da en el rebote sin botar, es fuera.',
     ],
     level: 'Nivel',
-    ctrlTouch: 'Joystick: moverte · mantén GOLPE para cargar y apuntar: el pelotari va solo a la pelota y la línea marca el camino y el bote · suelta cuando brille · a la izquierda va a la izquierda y a la derecha, a la derecha; arriba larga, abajo corta · izquierda del todo: dos paredes · CORTADA rasa y rápida · DEJADA, junto al frontis.',
+    stats: { fuerza: 'Fuerza', agilidad: 'Agilidad', velocidad: 'Velocidad', rival: (n) => `Así juega ${n}` },
+    tips: { slow: 'Es lento: hazle dejadas cuando esté al fondo.', clumsy: 'Le cuesta lo pegado a la pared izquierda y lo muy bajo: ajústala a la pared.', strong: 'Pega muy fuerte: puede mandarla al rebote. No te adelantes.', fast: 'Es muy rápido: llega casi a todo. Busca la pared o las dos paredes.', weak: 'Le falta fuerza: juega largo, lejos del frontis.', agile: 'Tiene buenas manos: hasta lo pegado a la pared lo devuelve.' },
+    rebote: '¡Al rebote!',
+    ctrlTouch: 'Joystick: moverte · mantén GOLPE para cargar y apuntar: el pelotari va solo a la pelota y la línea marca el camino y el bote · suelta cuando brille · a la izquierda va a la izquierda y a la derecha, a la derecha; arriba larga, abajo corta · a tope y arriba: al rebote · izquierda del todo: dos paredes · CORTADA rasa y rápida · DEJADA, junto al frontis.',
     ctrlKeys: 'WASD o flechas para moverte · Espacio: golpe (mantén para cargar: cuanto más, más fuerte) · L: cortada (tan fuerte o más que el golpe, pero baja, cerca de la chapa) · Mayúsculas: dejada (suave, cae junto al frontis) · mientras mantienes el golpe, la dirección apunta y el pelotari va solo a la pelota (la línea enseña el camino): izquierda a la izquierda, derecha a la derecha, arriba larga, abajo corta; izquierda del todo, dos paredes; arriba-izquierda, pegada a la pared.',
     play: '¡A jugar!', later: 'Ahora no', again: 'Otra partida', cont: 'Volver al pueblo', exit: 'Salir', sure: '¿Seguro que quieres dejar el partido?', yes: 'Sí, salir', no: 'Seguir jugando',
     hit: 'GOLPE', drop: 'DEJADA', cut: 'CORTADA',
@@ -86,7 +118,7 @@ export const TEXT = {
       tanto: ['¡Tanto!', ''],
     },
     quality: { perfect: '¡Perfecto!', good: '¡Bien!', ok: 'Justo', late: 'Tarde', whiff: '¡Al aire!' },
-    shots: { dejada: 'Dejada', cortada: 'Cortada', pared: 'A la pared', dosparedes: 'Dos paredes', dpCorta: 'Dos paredes corta', dpCruzada: 'Dos paredes cruzada', dpLarga: 'Dos paredes larga', dpPegada: 'Dos paredes pegada', cortDos: 'Cortada a dos paredes', ancho: 'Al ancho', largo: 'Largo', normal: '' },
+    shots: { rebote: 'Al rebote', dejada: 'Dejada', cortada: 'Cortada', pared: 'A la pared', dosparedes: 'Dos paredes', dpCorta: 'Dos paredes corta', dpCruzada: 'Dos paredes cruzada', dpLarga: 'Dos paredes larga', dpPegada: 'Dos paredes pegada', cortDos: 'Cortada a dos paredes', ancho: 'Al ancho', largo: 'Largo', normal: '' },
     pointYou: 'Tanto para ti', pointRival: (n) => `Tanto para ${n}`,
     finalCall: '¡Tanto y partido!', finalSub: 'Todo el frontón en pie aplaude.', matchPoint: 'Tanto de partido', matchPointSub: 'El que gane este tanto, gana el partido.',
     serveYou: 'Sacas tú', serveRival: (n) => `Saca ${n}`,
@@ -113,8 +145,12 @@ export const TEXT = {
       'Itzuli airean edo bote baten ondoren. Bigarren botean, tantoa bestearentzat.',
       'Kanpo da eskuineko marratik edo atzeko azken marratik haratago bote egiten badu, frontisean bere marraren gainetik edo eskuineko marratik kanpo jotzen badu, eta ezkerreko paretan marra gorriaren gainetik jotzen badu.',
       'Sakeak 4ko marraren (falta) eta 7koaren (pasa) artean egin behar du bote.',
+      'Barruan bote egin eta atzeko paretara (errebotera) iristen bada, itzuli egiten da eta bigarren botea baino lehen jo daiteke. Bote egin gabe errebotean jotzen badu, kanpo da.',
     ],
     level: 'Maila',
+    stats: { fuerza: 'Indarra', agilidad: 'Arintasuna', velocidad: 'Abiadura', rival: (n) => `${n}: honela jokatzen du` },
+    tips: { slow: 'Motela da: egin dejadak atzean dagoenean.', clumsy: 'Ezkerreko paretari itsatsitakoak eta oso baxuak kostatzen zaizkio: paretara estutu.', strong: 'Oso gogor jotzen du: errebotera bidal dezake. Ez aurreratu.', fast: 'Oso azkarra da: ia guztira iristen da. Bilatu pareta edo bi pareta.', weak: 'Indarra falta zaio: jokatu luze, frontisetik urrun.', agile: 'Esku onak ditu: paretari itsatsitakoak ere itzultzen ditu.' },
+    rebote: 'Errebotera!',
     ctrlTouch: 'Joysticka: mugitu · eutsi JO kargatzeko eta zuzentzeko: pilotaria bera doa pilotara eta marrak bidea eta botea erakusten ditu · askatu distira egitean · ezkerrera ezkerrera doa eta eskuinera eskuinera; gora luzea, behera motza · ezkerrera erabat: bi pareta · CORTADA baxua eta azkarra · DEJADA, frontisaren ondoan.',
     ctrlKeys: 'WASD edo geziak mugitzeko · Zuriunea: jo (eutsi kargatzeko) · L: cortada (joa bezain indartsua edo gehiago, baina baxua, txapatik gertu) · Maiuskula: dejada (leuna, frontisaren ondoan erortzen da) · jokoari eusten diozun bitartean, norabideak zuzentzen du eta pilotaria bera doa pilotara (marrak bidea erakusten du): ezkerra ezkerrera, eskuina eskuinera, gora luzea, behera motza; ezkerra erabat, bi pareta; gora-ezkerra, paretari itsatsita.',
     play: 'Jolastera!', later: 'Orain ez', again: 'Beste partida bat', cont: 'Herrira itzuli', exit: 'Irten', sure: 'Ziur partida utzi nahi duzula?', yes: 'Bai, irten', no: 'Jolasten jarraitu',
@@ -140,7 +176,7 @@ export const TEXT = {
       tanto: ['Tantoa!', ''],
     },
     quality: { perfect: 'Primeran!', good: 'Ondo!', ok: 'Justu', late: 'Berandu', whiff: 'Airera!' },
-    shots: { dejada: 'Dejada', cortada: 'Cortada', pared: 'Paretara', dosparedes: 'Bi pareta', dpCorta: 'Bi pareta motza', dpCruzada: 'Bi pareta zeharka', dpLarga: 'Bi pareta luzea', dpPegada: 'Bi pareta itsatsia', cortDos: 'Bi paretako cortada', ancho: 'Zabalera', largo: 'Luzea', normal: '' },
+    shots: { rebote: 'Errebotera', dejada: 'Dejada', cortada: 'Cortada', pared: 'Paretara', dosparedes: 'Bi pareta', dpCorta: 'Bi pareta motza', dpCruzada: 'Bi pareta zeharka', dpLarga: 'Bi pareta luzea', dpPegada: 'Bi pareta itsatsia', cortDos: 'Bi paretako cortada', ancho: 'Zabalera', largo: 'Luzea', normal: '' },
     pointYou: 'Tantoa zuretzat', pointRival: (n) => `Tantoa ${n}rentzat`,
     finalCall: 'Tantoa eta partida!', finalSub: 'Pilotaleku osoa zutik, txaloka.', matchPoint: 'Partidarako tantoa', matchPointSub: 'Tanto hau irabazten duenak partida irabazten du.',
     serveYou: 'Zuk ateratzen duzu', serveRival: (n) => `${n}k ateratzen du`,

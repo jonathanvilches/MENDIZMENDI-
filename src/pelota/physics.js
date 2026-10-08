@@ -29,6 +29,11 @@ export class Ball {
       out.push({ type: 'left', x: -COURT.W / 2, y: p.y, z: p.z });
       p.x = -COURT.W / 2 + R; v.x = -v.x * PHYS.WALL_E; v.z *= 0.97;
     }
+    // el rebote: la pared de atrás, baja (por encima pasa y se pierde)
+    if (p.z > COURT.REBOTE - R && v.z > 0 && p.y < COURT.REBOTE_H && p.x > -COURT.W / 2 - 0.6 && p.x < COURT.W / 2 + 0.3) {
+      out.push({ type: 'back', x: p.x, y: p.y, z: COURT.REBOTE });
+      p.z = COURT.REBOTE - R; v.z = -v.z * PHYS.BACK_E; v.x *= 0.9;
+    }
     // suelo
     if (p.y < R && v.y < 0) {
       out.push({ type: 'floor', x: p.x, y: 0, z: p.z, vy: v.y });
@@ -55,7 +60,7 @@ export function predict(ball, T = 3.2, dt = 1 / 120, alreadyFront = false) {
       if (e.type === 'floor' && front) { bouncesAfterFront++; e.n = bouncesAfterFront; }
       events.push(e);
     }
-    samples.push({ t, x: b.p.x, y: b.p.y, z: b.p.z, front, bounces: bouncesAfterFront });
+    samples.push({ t, x: b.p.x, y: b.p.y, z: b.p.z, front, bounces: bouncesAfterFront, sp: Math.hypot(b.v.x, b.v.y, b.v.z) });
     if (bouncesAfterFront >= 2 && t > 0.2) break;
   }
   return { samples, events };

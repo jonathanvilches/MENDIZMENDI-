@@ -947,7 +947,7 @@ export class TownGame {
       const fin = m.round === 'Final', venue = fin ? (this.fronton?.court.labrit ? this.fronton : this.labritVenue()) : this.fronton;
       if (fin) await this.labritIntro(venue);
       if (this.disposed) return;
-      const r = await venue.play(this, a, { target: m.target, level: m.level, rivalName: `${m.rival.name} (${m.rival.town})`, fixedLevel: true, returnTo: this.fronton });
+      const r = await venue.play(this, a, { target: m.target, level: m.level, rivalName: `${m.rival.name} (${m.rival.town})`, fixedLevel: true, returnTo: this.fronton, rivalStats: m.stats });
       if (this.disposed) return;
       if (r.quit) return;   // (salir del partido es salir: de vuelta al pueblo, no al panel del torneo otra vez)
       playTorneoRound(T, r.you, r.cpu);

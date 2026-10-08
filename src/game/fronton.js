@@ -3,6 +3,7 @@
 import * as THREE from 'three';
 import { armSwing, GlbRig, loadMeshy, hasMeshy, loadedMeshy, fullTexFor } from '../actors/glbChar.js';
 import { PelotaCourt, PelotaMatch, labritExtent } from '../pelota/index.js';
+import { pelotariStats } from '../pelota/rules.js';
 import { terrainHeight, waterLevelAt, addPlatform, onPlatform } from '../world/heightfield.js';
 import { addBox, rectFree } from '../world/colliders.js';
 import { rx, pathQuery } from '../world/layout.js';
@@ -168,7 +169,8 @@ export function labritInTown(scene, near) {
  * G: juego (player, camera, follow, ui, mode); rival: Actor del pueblo.
  */
 // (torneo: rivalName para el nombre del rival en el marcador y fixedLevel para no elegir nivel)
-export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level, rivalName, fixedLevel = false, returnTo = null } = {}) {
+// rivalStats: las cualidades del rival (fuerza, agilidad, velocidad, de 1 a 5); sin ellas, las suyas según su nombre
+export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level, rivalName, fixedLevel = false, returnTo = null, rivalStats = null } = {}) {
   if (window.__autoWin) return Promise.resolve({ win: true, you: target, cpu: 0 });
   return new Promise(res => {
     const P = G.player, rig0 = P.rig, home = { x: rival.pos.x, z: rival.pos.z, h: rival.heading };
@@ -239,8 +241,9 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     };
     const youName = profile().name || (isEU() ? 'Zu' : 'Tú'), rivName = rivalName || String(rival.name).split(',')[0];
     fronton.court.setScore?.(youName, rivName, 0, 0);
+    const rStats = rivalStats || pelotariStats(rivName, level === 'dificil' ? 3 : level === 'facil' ? 1 : 2);
     try { match = G.pelotaMatch = new PelotaMatch({
-      THREE, court: fronton.court, camera: G.camera, lang: isEU() ? 'eu' : 'es', mode, target, level, fixedLevel,
+      THREE, court: fronton.court, camera: G.camera, lang: isEU() ? 'eu' : 'es', mode, target, level, fixedLevel, rivalStats: rStats,
       you: { obj: P.obj, name: profile().name || (isEU() ? 'Zu' : 'Tú'), animate: animYou },
       rival: { obj: rival.obj, name: rivalName || String(rival.name).split(',')[0], animate: animRival },
       onEnd: (r) => done(r), onExit: (r) => done(r),

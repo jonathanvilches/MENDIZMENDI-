@@ -26,13 +26,13 @@ ok(F.L === 40 && F.W === 20 && F.goalW === 3 && F.goalH === 2 && R === 0.1 && RO
   for (let i = 0; i < 60; i++) { vz0 = b.v.z; b.step(1 / 120); maxA = Math.max(maxA, Math.abs(b.v.z - vz0) * 120); }
   ok(b.p.z < -0.3, `giro +60 rad/s hacia +x: se curva hacia −z (${b.p.z.toFixed(2)} m en 0,5 s)`);
   ok(maxA <= 8.05, `aceleración lateral máxima ${maxA.toFixed(2)} m/s² (≤ 8)`); }
-// 4) el tiro del jugador se curva hacia el lado al que apunta el joystick
+// 4) el tiro del jugador va hacia el lado al que apunta el joystick (recto, sin efecto: el joystick mueve la diana)
 { const g = sala({ seed: 3 }); g.start(); g.restart = null; g.phase = 'play';
   for (const p of g.players) { p.x = -15; p.z = -9 + p.id; p.react = 99; }
   const me = g.me; me.x = HL - 11; me.z = 0; me.h = Math.PI / 2; g.ball.set(me.x + 0.5, 0); g.owner = me; g.drain();
   g.setMove(1, 0.45, 1, false); g.humanShot(me, 0.7);
-  const vz0 = g.ball.v.z; for (let i = 0; i < 30; i++) g.ball.step(1 / 120);
-  ok(g.ball.v.z - vz0 > 0.3, `joystick hacia +z: el balón se curva hacia +z (Δvz ${(g.ball.v.z - vz0).toFixed(2)} m/s)`); }
+  const vz0 = g.ball.v.z, spin = g.ball.w.y;
+  ok(vz0 > 0.3 && Math.abs(spin) < 1e-6, `joystick hacia +z: el tiro sale hacia +z (vz ${vz0.toFixed(2)} m/s) y sin efecto`); }
 // 5) colisión continua: 400 tiros a 30 m/s contra la portería nunca atraviesan postes, larguero ni red
 { let bad = 0, posts = 0, nets = 0;
   const rnd = (() => { let s = 7; return () => ((s = (s * 16807) % 2147483647) / 2147483647); })();
