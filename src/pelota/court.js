@@ -262,10 +262,21 @@ export class PelotaCourt {
     // la cara +x (hacia la cancha) lleva la textura; en BoxGeometry su u va de +z a −z
     left.position.set(-W / 2 - 0.3, C.LEFT_H / 2, EXT / 2); left.castShadow = true; left.receiveShadow = true; g.add(left);
 
-    // --- muro bajo del fondo y gradas de la contracancha
-    // muro bajo del fondo: solo detrás de la cancha, para poder entrar por la contracancha
-    const back = new T.Mesh(new T.BoxGeometry(W + 0.6, 2.2, 0.4), outer());
-    back.position.set(-0.3, 1.1, EXT + 0.2); back.castShadow = true; back.receiveShadow = true; g.add(back);
+    // --- el rebote (la pared del fondo) y las gradas de la contracancha
+    // el rebote cierra la cancha por detrás, tan alto como la pared izquierda (solo detrás de la cancha: se entra por la
+    // contracancha). En el Labrit, el muro bajo con la grada en herradura detrás. Cuando la cámara queda detrás de él,
+    // se ve a través, como en los dibujos de las partes del frontón
+    const RH = this.reboteH = opts.labrit ? 2.2 : C.LEFT_H;
+    const rebTex = canvasTex(T, 512, 512, (c, w, h) => {
+      if (th.brick) bricks(c, w, h, W + 0.6, RH, '#a85c3e');
+      else { c.fillStyle = th.wall; c.fillRect(0, 0, w, h); grain(c, w, h, 9000, 0.06); grain(c, w, h, 3000, 0.05, false); }
+      weather(c, w, h, RH, W + 0.6);
+    });
+    const rebIn = M({ map: rebTex, transparent: true }), rebOut = M({ map: outerTex, transparent: true }), rebCap = M({ color: th.cap, roughness: 0.8, transparent: true });
+    const back = new T.Mesh(new T.BoxGeometry(W + 0.6, RH, 0.4), [rebOut, rebOut, rebCap, rebOut, rebOut, rebIn]);
+    back.position.set(-0.3, RH / 2, EXT + 0.2); back.castShadow = true; back.receiveShadow = true; g.add(back);
+    if (!opts.labrit) { const capR = new T.Mesh(new T.BoxGeometry(W + 0.9, 0.2, 0.85), rebCap); capR.position.set(-0.3, RH + 0.1, EXT + 0.2); capR.castShadow = true; g.add(capR); }
+    this.rebMats = [rebIn, rebOut, rebCap]; this.rebFade = 1; this.contra = CONTRA;
     if (!opts.labrit) for (let i = 0; i < 3; i++) {
       const st = new T.Mesh(new T.BoxGeometry(1.1, 0.42 * (i + 1), L * 0.78), M({ color: th.stands, roughness: 0.9 }));
       st.position.set(W / 2 + CONTRA + 0.55 + i * 1.1, 0.21 * (i + 1), L * 0.52); st.castShadow = true; st.receiveShadow = true; g.add(st);
@@ -663,6 +674,11 @@ export class PelotaCourt {
     // pilares de la derecha: también chocan (los de dentro de las gradas ya están en su caja)
     for (const z of zs) this.boxes.push({ x: xb - 0.25, z, w: 0.4, d: 0.4 });
     this.postZ = zs;   // (el público no se sienta en la fila de arriba delante de un pilar)
+  }
+  /** El rebote, a través (on) cuando la cámara queda detrás de él; se funde poco a poco. */
+  reboteSeeThrough(on, dt = 1 / 60) {
+    const want = on ? 0.16 : 1, f = this.rebFade += (want - this.rebFade) * Math.min(1, dt * 8);
+    for (const m of this.rebMats || []) { m.opacity = f; m.depthWrite = f > 0.98; }
   }
   hideBall() { this.ball.visible = false; this.shadow.visible = false; for (const m of this.trail) m.visible = false; this.trailPts = []; }
   showBall(p, glow = 0, t = 0) {
