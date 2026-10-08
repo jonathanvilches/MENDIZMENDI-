@@ -231,7 +231,12 @@ export class PelotaGame {
         // un paso fijo se pasaba de un lado a otro; cada intento aprende cuánto se mueve)
         let bestD = Infinity, ptx = null, pdx = null, tx0 = tx;
         for (let it = 0; it < 7; it++) {
-          const r = solveShot(p, tx, landZ, speed);
+          let r = solveShot(p, tx, landZ, speed);
+          // (sin bote dentro, o al rebote sin botar en el último cuadro, con esa velocidad no hay trayectoria que caiga ahí:
+          // muy rápida desde cerca del frontis, la pelota subía a 20 m y se iba fuera por detrás. Se afloja poco a poco
+          // hasta que bota donde se apunta: antes el pelotari con más fuerza, a tope y al rebote, la sacaba fuera más que
+          // uno normal)
+          for (let k = 0; (!r.land || (rebote && Math.abs(r.land.z - landZ) > 1.2)) && k < 8 && speed > 18; k++) { speed *= 0.93; r = solveShot(p, tx, landZ, speed); }
           if (!r.land) { v ||= r.v; break; }
           const dx = r.land.x - lx;
           if (Math.abs(dx) < bestD) { bestD = Math.abs(dx); v = r.v; tx0 = tx; }

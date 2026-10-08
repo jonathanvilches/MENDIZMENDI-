@@ -1,6 +1,7 @@
 // Partido de pelota a mano: une la lógica (game.js), el frontón (court.js), la interfaz (hud.js) y el sonido.
 // El juego anfitrión pone el frontón en su escena, llama a update(dt) en cada fotograma y renderiza con su cámara.
-import { COURT, TEXT, profileHtml } from './rules.js';
+import { COURT, TEXT } from './rules.js';
+import { openFicha, playerChip, splitName } from './ficha.js';
 import { PelotaGame, cutHeight, dropHeight, aimSide } from './game.js';
 import { PelotaHud, esc } from './hud.js';
 import { PelotaAudio } from './audio.js';
@@ -14,7 +15,9 @@ export class PelotaMatch {
    *  mode 'match'|'rally', target, level, lang 'es'|'eu', container (DOM), yawOffset (si el modelo no mira a +Z),
    *  onEnd(resultado), onExit(), audio (AudioContext opcional), touch (forzar controles táctiles),
    *  mates() (opcional: promesa con { youMate, rivalMate }, cada uno { obj, name, stats, animate }: con ella se puede
-   *  elegir el partido por parejas)
+   *  elegir el partido por parejas),
+   *  town (el pueblo del frontón: el de los pelotaris que no traen el suyo en el nombre), youRecord ({ won, txapelas }: lo
+   *  que has ganado, para tu ficha)
    */
   constructor(o) {
     this.o = o; this.T = o.THREE; this.court = o.court; this.cam = o.camera;
@@ -74,6 +77,7 @@ export class PelotaMatch {
       const b = e.target.closest('button'); if (!b) return;
       if (b.dataset.pelLv) { this.level = b.dataset.pelLv; for (const x of p.querySelectorAll('[data-pel-lv]')) x.setAttribute('aria-pressed', x.dataset.pelLv === this.level); this.newGame(); }
       if (b.dataset.pelMod) { this.chooseMode(b.dataset.pelMod); return; }
+      if (b.dataset.pelFicha) { this.ficha(b.dataset.pelFicha); return; }
       if (b.hasAttribute('data-pel-tour')) { this.startTour(); return; }
       if (b.hasAttribute('data-pel-go') && this.loadingMates) return;
       if (b.hasAttribute('data-pel-go')) { this.audio.ensure(); this.hud.closePanel(); this.hud.controls(true); this.game.start(); this.audio.whistle(); }
@@ -141,13 +145,31 @@ export class PelotaMatch {
     this.pairs = pairs; if (pairs) this.role = k;
     this.newGame(); this.intro();
   }
-  // cómo juega el rival: cómo corre, cuánto pega, sus manos, sus golpes preferidos y de qué tener cuidado (por parejas,
-  // los dos rivales, cada uno con su puesto)
+  // quién juega contra quién: una tarjeta por pelotari (tú y tu compañero de azul, el rival y el suyo de colorado) con
+  // lo que más se le nota; al tocarla se abre su ficha entera (cualidades, golpes preferidos, cómo jugarle y sus datos).
+  // Antes se leía aquí todo el perfil del rival en texto corrido; ahora está en su ficha, cuando se quiere ver
   rivalHtml() {
-    const st = this.o.rivalStats; if (!st || this.o.mode === 'rally') return '';
-    const rm = this.pairs && this.mateObjs?.rivalMate, P = this.txt.pairs || TEXT.es.pairs;
-    if (rm) return `<div class="pel-rv pel-rv2"><div class="pf">${profileHtml(this.names.rival, st, this.lang, P.frontName)}</div><div class="pf">${profileHtml(rm.name, rm.stats, this.lang, P.backName)}</div></div>`;
-    return `<div class="pel-rv"><div class="pf">${profileHtml(this.names.rival, st, this.lang)}</div></div>`;
+    if (this.o.mode === 'rally') return '';
+    const L = this.fichaList(), chips = (side) => L.filter(p => p.side === side).map(p => playerChip(p, this.lang)).join('');
+    return `<div class="pel-rv pel-vs${this.pairs && this.mateObjs ? ' pel-rv2' : ''}"><div class="pel-team">${chips('you')}</div><span class="pel-vs-x" aria-hidden="true">VS</span><div class="pel-team">${chips('rival')}</div></div>`;
+  }
+  // los pelotaris del partido, para sus fichas (por parejas, el rival es el delantero y su compañero, el zaguero)
+  fichaList() {
+    const o = this.o, M = this.pairs && this.mateObjs, town = o.town || '', rt = splitName(this.names.rival).town || town;
+    const other = this.role === 'delantero' ? 'zaguero' : 'delantero';
+    const L = [{ id: 'you', name: this.names.you, town, stats: o.youStats, side: 'you', role: M ? this.role : 'mano', you: true, record: o.youRecord }];
+    if (M) L.push({ id: 'youMate', name: M.youMate.name, town, stats: M.youMate.stats, side: 'you', role: other });
+    L.push({ id: 'rival', name: this.names.rival, town: rt, stats: o.rivalStats, side: 'rival', role: M ? 'delantero' : 'mano' });
+    if (M) L.push({ id: 'rivalMate', name: M.rivalMate.name, town: rt, stats: M.rivalMate.stats, side: 'rival', role: 'zaguero' });
+    return L;
+  }
+  // abre la ficha (el partido se para mientras se mira y sigue al cerrarla)
+  async ficha(id = 'rival') {
+    if (this.fichaOpen || !this.active) return;
+    this.fichaOpen = true; const was = this.paused; this.paused = true; this.resetStick?.();
+    const L = this.fichaList();
+    try { await openFicha(L, Math.max(0, L.findIndex(p => p.id === id)), this.lang, this.hud.root); }
+    finally { this.fichaOpen = false; if (this.active) this.paused = was; }
   }
   endPanel(e) {
     const t = this.txt, g = this.game;
@@ -157,21 +179,25 @@ export class PelotaMatch {
     // el botón dice a dónde se vuelve: al pueblo, al menú del campeonato o al cuadro del torneo (en el torneo, el
     // resultado cuenta: sin «otra partida» para repetirlo)
     const cont = this.o.back === 'torneo' ? (t.contTorneo || TEXT.es.contTorneo) : this.o.back === 'menu' ? (t.contMenu || TEXT.es.contMenu) : t.cont;
-    const p = this.hud.panel(`<h2>${e.win ? (g.mode === 'rally' ? t.rallyWin : t.win) : t.lose}</h2><p class="pel-sub">${esc(this.label('you'))} – ${esc(this.label('rival'))}</p>
+    const p = this.hud.panel(`<h2>${e.win ? (g.mode === 'rally' ? t.rallyWin : t.win) : t.lose}</h2><p class="pel-sub">${esc(this.label('you'))} – ${esc(this.label('rival'))}${g.mode === 'rally' ? '' : ` <button class="pel-chip" data-pel-fichas>${t.fichas || TEXT.es.fichas}</button>`}</p>
       <div class="pel-big">${big}</div><div class="pel-fact"><b>${t.factsTitle}</b><br>${fact}</div>
       <div class="pel-row">${this.o.back === 'torneo' ? '' : `<button class="pel-go alt" data-pel-again>${t.again}</button>`}<button class="pel-go" data-pel-cont>${cont}</button></div>`);
     p.addEventListener('click', (ev) => {
       const b = ev.target.closest('button'); if (!b) return;
       if (b.hasAttribute('data-pel-again')) { this.hud.closePanel(); this.newGame(); this.hud.controls(true); this.game.start(); this.audio.whistle(); }
       if (b.hasAttribute('data-pel-cont')) this.finish(e);
+      if (b.hasAttribute('data-pel-fichas')) this.ficha('rival');
     });
     this.result = e;
   }
   confirmExit() {
     const t = this.txt; const wasPaused = this.paused; this.paused = true;
-    const p = this.hud.panel(`<h2>${t.exit}</h2><p>${t.sure}</p><div class="pel-row"><button class="pel-go alt" data-pel-yes>${t.yes}</button><button class="pel-go" data-pel-no>${t.no}</button></div>`);
+    // (en la pausa, también las fichas de los pelotaris: se miran sin salir del partido)
+    const fichas = this.game.mode === 'rally' ? '' : `<button class="pel-go alt pel-wide" data-pel-fichas>${t.fichas || TEXT.es.fichas}</button>`;
+    const p = this.hud.panel(`<h2>${t.exit}</h2><p>${t.sure}</p>${fichas}<div class="pel-row"><button class="pel-go alt" data-pel-yes>${t.yes}</button><button class="pel-go" data-pel-no>${t.no}</button></div>`);
     p.addEventListener('click', (e) => {
       const b = e.target.closest('button'); if (!b) return;
+      if (b.hasAttribute('data-pel-fichas')) { this.ficha('rival'); return; }
       if (b.hasAttribute('data-pel-yes')) this.exit(true);
       else { this.hud.closePanel(); this.paused = wasPaused; }
     });

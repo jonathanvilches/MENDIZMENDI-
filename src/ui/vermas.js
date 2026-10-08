@@ -14,10 +14,11 @@ const SKIP = 'button, a, summary, label, .ar-count, .lnk, .vm-btn, #dialog, .pel
 const CSS = `
 .vm-clamp:not(.vm-open){display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:var(--vm-lines,2);overflow:hidden}
 .vm-clamp.vm-open{display:block;-webkit-line-clamp:unset;overflow:visible}
-.vm-btn{display:inline-flex;align-items:center;gap:4px;margin:2px 0 8px;padding:4px 12px;min-height:30px;border-radius:999px;border:1px solid rgba(255,215,0,.4);background:rgba(255,255,255,.07);color:#ffd84a;font:800 var(--fs-xs)/1 Nunito,system-ui,sans-serif;letter-spacing:.02em;cursor:pointer;pointer-events:auto}
+.vm-btn{position:relative;display:inline-flex;align-items:center;gap:4px;margin:2px 0 8px;padding:4px 12px;min-height:30px;border-radius:999px;border:1px solid rgba(255,215,0,.4);background:rgba(255,255,255,.07);color:#ffd84a;font:800 var(--fs-xs)/1 Nunito,system-ui,sans-serif;letter-spacing:.02em;cursor:pointer;pointer-events:auto}
 .vm-btn::after{content:'';width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform .15s}
 .vm-btn[aria-expanded="true"]::after{transform:translateY(2px) rotate(-135deg)}
 li>.vm-btn{margin-top:0}
+.vm-btn::before{content:'';position:absolute;inset:-8px -4px}
 `;
 let started = false;
 export function startVerMas(root = document.body) {

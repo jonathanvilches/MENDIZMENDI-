@@ -345,7 +345,9 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
   // cielo y luz
   const skyT = own(canvasTex(2, 256, (g) => { const gr = g.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, V.sky[0]); gr.addColorStop(1, V.sky[1]); g.fillStyle = gr; g.fillRect(0, 0, 2, 256); }));
   S.background = skyT;
-  S.fog = new THREE.Fog(V.sky[1], 160, 520);
+  // (la niebla empieza más allá de donde vuela la cámara de la presentación, a unos 230 m: antes, a 160, el estadio se veía
+  // lechoso desde lo alto y se iba aclarando al bajar la cámara, como si cambiase la luz)
+  S.fog = new THREE.Fog(V.sky[1], 260, 680);
   S.add(new THREE.HemisphereLight('#eef6ff', '#4e6a3c', 1.25));
   const sun = new THREE.DirectionalLight('#fff3dc', 2.3), SUN = new THREE.Vector3(-18, 34, 22).normalize();
   sun.position.copy(SUN).multiplyScalar(60);

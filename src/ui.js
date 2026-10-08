@@ -350,8 +350,12 @@ export class UI {
         <div class="qlist">${g.missions.map(M => {
           const st = M.done ? 'done' : M.step > 0 ? 'active' : 'available';
           const steps = M.steps();
+          // (los pasos enteros, solo en la que sigues; en las demás, el siguiente paso, y al tocarla se despliegan: así caben
+          // más misiones a la vista)
+          const open = g.tracked === M.i && !M.done;
           return `<div class="qitem ${g.tracked === M.i ? 'active' : ''} ${st}" data-m="${M.i}"><div class="qi">${I(M.icon, 40)}</div><div class="qb"><b>${esc(M.title)}</b>
-            <ol class="steps">${steps.map((x, k) => `<li class="${M.done || k < M.step ? 'ok' : k === M.step ? 'now' : ''}">${esc(x)}</li>`).join('')}</ol>
+            ${open ? `<ol class="steps">${steps.map((x, k) => `<li class="${k < M.step ? 'ok' : k === M.step ? 'now' : ''}">${esc(x)}</li>`).join('')}</ol>`
+              : `<p class="qnext">${M.done ? `<span>${steps.length} pasos hechos</span>` : `<span class="qn">Paso ${Math.min(M.step + 1, steps.length)} de ${steps.length}</span> <span>${esc(steps[Math.min(M.step, steps.length - 1)] || '')}</span>`}</p>`}
             <small>${M.host ? 'Con ' + esc(M.host.name) : ''}</small></div>
             <span class="state">${{ done: 'Hecha', active: 'En curso', available: 'Nueva' }[st]}</span></div>`;
         }).join('')}</div><p class="keys">Toca una misión para seguirla con la luz dorada.</p>`;

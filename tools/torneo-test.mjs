@@ -1,4 +1,5 @@
-// Pruebas del torneo de mano de la comarca sin gráficos (node): cuadro, sedes distintas, rondas, txapela.
+// Pruebas del torneo de mano de la comarca sin gráficos (node): cuadro, rondas, txapela y el torneo por parejas. (Los
+// partidos se juegan en el frontón del pueblo elegido y la final en el Labrit: ya no cambian de sede ronda a ronda.)
 const mem = {}; globalThis.localStorage = { getItem: (k) => mem[k] ?? null, setItem: (k, v) => { mem[k] = String(v); } };
 globalThis.document = { getElementById: () => null };
 const { torneo, yourMatch, playTorneoRound, youOut, txapelas } = await import('../src/game/torneo.js');
@@ -7,17 +8,16 @@ const ctx = { comarca: 'bidasoa', comarcaName: 'Baztan-Bidasoa', towns: [{ id: '
 let T = torneo({ name: 'Ane', town: 'Lesaka' }, ctx);
 ok(T.players.length === 8 && T.matches.length === 4 && new Set(T.matches.flatMap(m => [m.a, m.b])).size === 8, 'cuadro de 8 pelotaris y 4 cuartos');
 ok(T.players.slice(1).some(p => p.townId === 'etxalar' || p.townId === 'elizondo'), 'rivales de pueblos de la comarca');
-const venues = [];
-while (!T.done) { const m = yourMatch(T); if (m) { venues.push(m.venue.id); playTorneoRound(T, m.target, 1); } else playTorneoRound(T); }
+const rounds = [];
+while (!T.done) { const m = yourMatch(T); if (m) { rounds.push(`${m.round} a ${m.target}`); playTorneoRound(T, m.target, 1); } else playTorneoRound(T); }
 ok(T.done && T.players[T.champion].you && T.txapelas === 1, 'ganando todo: txapela');
-ok(new Set(venues).size === venues.length && venues.length === 3, `cada partido en un pueblo distinto (${venues.join(', ')})`);
+ok(rounds.length === 3 && /7$/.test(rounds[2]) && /5$/.test(rounds[0]), `tres partidos: cuartos y semifinales a 5 y la final a 7 (${rounds.join(', ')})`);
 ok(txapelas().bidasoa === 1, 'la txapela queda apuntada en la comarca');
 T = torneo({ name: 'Ane', town: 'Lesaka' }, ctx); ok(T.done, 'el terminado se sigue viendo hasta pedir otro');
 T = torneo({ name: 'Ane', town: 'Lesaka' }, ctx, true); ok(!T.done && T.edition === 2 && T.txapelas === 1, 'nueva edición conserva las txapelas');
 // perdiendo en cuartos: el torneo sigue sin ti y termina
 { const m = yourMatch(T); playTorneoRound(T, 1, m.target); ok(youOut(T), 'eliminado en cuartos'); while (!T.done) playTorneoRound(T); ok(T.done && !T.players[T.champion].you, 'el torneo termina sin ti'); }
-// comarca con un solo pueblo del juego: también cambia de sede
-{ const T2 = torneo({ name: 'Ane', town: 'Aoiz' }, { comarca: 'prepirineo', comarcaName: 'Prepirineo', towns: [{ id: 'aoiz', name: 'Aoiz / Agoitz' }, { id: 'lumbier', name: 'Lumbier' }, { id: 'sanguesa', name: 'Sangüesa' }] }); const v = [];
-  while (!T2.done) { const m = yourMatch(T2); if (m) { v.push(m.venue.id); playTorneoRound(T2, m.target, 0); } else playTorneoRound(T2); }
-  ok(new Set(v).size === 3, `sedes distintas aunque la comarca tenga un pueblo (${v.join(', ')})`); }
+// por parejas: cuatro pelotaris por partido, cada uno con sus cualidades (también tu compañero)
+{ const T3 = torneo({ name: 'Ane', town: 'Lesaka' }, ctx, true, 'parejas'), m = yourMatch(T3);
+  ok(T3.kind === 'parejas' && T3.players.every(p => p.mates?.length === 2) && m.pairs && m.partner?.name && m.mate?.name && m.stats?.fuerza, 'por parejas: delantero y zaguero en cada pareja, con sus cualidades'); }
 console.log(fails ? `${fails} FALLOS` : 'Todo correcto'); process.exit(fails ? 1 : 0);

@@ -16,6 +16,7 @@ import { shieldSpec, drawShield } from '../world/heraldry.js';
 import { drawOfficial, officialHeight } from '../world/armas.js';
 import { armsOfTown } from '../data/armas-navarra.js';
 import { LEVELS } from '../data/levels.js';
+import { txapelas } from './torneo.js';
 
 // Cómo es el frontón de cada sitio. Se parte de la comarca y de lo que cuentan las fuentes (legal/estado-legal.md): los
 // frontones viejos de los pueblos, junto a la iglesia y con el frontis de sillería (arenisca rojiza en Baztan y Bidasoa,
@@ -81,6 +82,11 @@ export function frontonWall(def) {
   return { wallName: (def.name || '').split(/\s*\/\s*/).join(' · ').toUpperCase(), wallSub: 'AYUNTAMIENTO · UDALA', shield, look: frontonLook(def) };
 }
 
+// lo que has ganado a pelota (para tu ficha): los partidos ganados en todos los pueblos y tus txapelas
+function myRecord() {
+  try { const P = profile(), won = Object.values(P.towns || {}).reduce((a, t) => a + (t?.best?.pelota || 0), 0), tx = Object.values(txapelas()).reduce((a, n) => a + n, 0); return { won, txapelas: tx }; }
+  catch (e) { return { won: 0, txapelas: 0 }; }
+}
 // nombres para los compañeros de los partidos por parejas
 const MATE_NAMES = ['Unai', 'Ane', 'Jon', 'Maite', 'Iñaki', 'Nerea', 'Aitor', 'Leire', 'Ander', 'Amaia', 'Xabier', 'Garazi'];
 
@@ -274,6 +280,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       onEnd: (r) => done(r), onExit: (r) => done(r),
       mates: mode === 'match' && (!fixedLevel || pairs) ? makeMates : null, forcePairs: !!pairs,   // (en el torneo individual, mano a mano; en el de parejas, por parejas)
       back: fixedLevel ? 'torneo' : G.sportMode ? 'menu' : 'pueblo',   // (a dónde lleva el botón del final)
+      town: (G.def?.name || '').split(' /')[0], youRecord: myRecord(),   // (para las fichas: el pueblo del frontón y lo que has ganado)
       onEvent: (e) => { if (e.type === 'call' && e.score) { const [a, b] = match?.labels?.() || [youName, rivName]; fronton.court.setScore?.(a, b, e.score.you, e.score.rival); } if (e.type === 'call' && seated) { seated.cheer(true); cheerT = e.final ? 4.6 : 1.6; } },
     }); } catch (e) { console.warn('frontón', e); done({ win: false, error: true }); return; }   // (si no se monta, de vuelta al pueblo)
     // (si el partido falla una y otra vez, se acaba y se vuelve al pueblo: nunca el marcador puesto en mitad de la calle)

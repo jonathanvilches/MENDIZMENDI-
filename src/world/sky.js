@@ -209,8 +209,8 @@ void main(){
     o.si = lerp(a.si, b.si, k); o.hi = lerp(a.hi, b.hi, k);
     return o;
   }
-  // los focos del frontón: durante el partido la luz es siempre la misma, de día y de noche (la hora no cambia la cancha)
-  // (flood es lo que se pide: 1 en el partido; la luz llega a ella en menos de un segundo, sin cambio de golpe)
+  // los focos del frontón: de noche, durante el partido, la cancha se ve siempre bien (flood es lo que se pide: 1 en el
+  // partido; la luz llega a ella poco a poco, sin cambio de golpe)
   floodK() { const k = this.floodCur || 0; return k * k * (3 - 2 * k); }
   /** Luz de los focos: se aplica la última (después de la lluvia y la tormenta, que bajan la luz), así de noche la
    *  cancha se ve siempre bien. */
@@ -223,7 +223,6 @@ void main(){
   update(dt, focus, elapsed, frozen) {
     if (!frozen) this.time = (this.time + dt * this.speed) % 24;
     const t = this.time;
-    { const want = this.flood ? 1 : 0, c = this.floodCur || 0; this.floodCur = want > c ? Math.min(want, c + dt / 0.8) : Math.max(want, c - dt / 0.8); }
     // Sol: sale por el este (+x) a las 6, pone por el oeste a las 19
     const dayF = (t - 6.2) / (19.4 - 6.2);
     const ang = dayF * Math.PI;
@@ -231,6 +230,10 @@ void main(){
     this.sunDir.set(Math.cos(ang), Math.max(elev, -0.3) * 0.95 + 0.05, -0.35).normalize();
     const isNight = t < 6 || t > 19.6;
     this.night = 1 - smoothstep(-0.12, 0.1, elev);
+    // los focos del frontón (flood: 1 durante el partido) solo dan luz cuando falta: al anochecer y de noche. De día el
+    // partido se juega con la luz del pueblo, la misma de antes de entrar (antes se encendían también a mediodía y, al
+    // empezar y al acabar el partido, la luz de todo el pueblo cambiaba: un 30 % más clara, más blanca y desde arriba)
+    { const want = this.flood ? smoothstep(0.15, 0.6, this.night) : 0, c = this.floodCur || 0; this.floodCur = want > c ? Math.min(want, c + dt / 1.2) : Math.max(want, c - dt / 1.2); }
     const s = this.sample(t);
     this.uniforms.uZen.value.copy(s.zen); this.uniforms.uHor.value.copy(s.hor);
     this.uniforms.uSunDir.value.copy(this.sunDir); this.uniforms.uSunCol.value.copy(s.sun);

@@ -15,6 +15,13 @@ const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<':
 const el = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
 
 /** Datos de una ficha: { type, id, F, comarcas } (o null). */
+// letra que se lee sobre un color: oscura sobre los claros (amarillo, naranja) y blanca sobre los oscuros (antes, blanca
+// siempre: «Sakana» en blanco sobre amarillo no se leía)
+function inkOn(hex) {
+  const m = String(hex).replace('#', '').match(/^([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i); if (!m) return '#fff';
+  const [r, g, b] = m.slice(1).map(x => { const v = parseInt(x, 16) / 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.2 ? '#241500' : '#fff';
+}
 export function fichaOf(key) {
   const [type, id] = String(key).split(':');
   const F = type === 'flora' ? FLORA[id] : type === 'fauna' ? FAUNA[id] : null;
@@ -56,7 +63,7 @@ export function showFicha(key, { ui = null, badge = '', button = 'Seguir', kicke
         <dl class="fc-sec">
           ${sec(d.type === 'flora' ? 'Cómo reconocerla' : 'Cómo reconocerlo', F.look)}${sec('Dónde vive', F.where)}${sec('Cuándo verla', F.season)}${sec('¿Sabías que…?', F.fact)}
         </dl>
-        ${d.comarcas.length ? `<div class="fc-where">${d.comarcas.map(c => `<span style="--c:${c.color}">${esc(c.name)}</span>`).join('')}</div>` : ''}
+        ${d.comarcas.length ? `<div class="fc-where">${d.comarcas.map(c => `<span style="--c:${c.color};color:${inkOn(c.color)}">${esc(c.name)}</span>`).join('')}</div>` : ''}
         <button class="btn primary">${esc(button)}</button>
       </div>`);
     const b = o.querySelector('button'); setTimeout(() => b.focus({ preventScroll: true }), 60);
