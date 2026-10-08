@@ -14,13 +14,13 @@ const click = async (sel, ms = 120000) => { await p.waitForSelector(sel, { timeo
 await p.evaluate(() => { const G = window.__game, a = G.pelotari; G.player.place(a.pos.x + 1.5, a.pos.z + 1.5, 0); G.follow.snap(G.player); window.__fp = G.talk(a); });
 for (let i = 0; i < 12; i++) { await p.waitForTimeout(800); const d = await p.evaluate(() => window.__game.ui.dialogOpen); if (!d) break; await p.evaluate(() => dispatchEvent(new KeyboardEvent('keydown', { key: 'e' }))); }
 await click('[data-a="torneo"]'); await p.waitForTimeout(1500);
-// ficha del torneo: el bloque de cualidades bajo el «contra»
+// ficha del torneo: las dos cartas, la tuya y la del rival
 const box = (sel) => p.evaluate((sel) => { const e = document.querySelector(sel); if (!e) return null; const r = e.getBoundingClientRect(), vw = innerWidth, vh = innerHeight;
   const sc = e.closest('[class*="scroll"], .lg-body, .tq-body') || null;
   return { txt: e.innerText.replace(/\s+/g, ' ').slice(0, 220), x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), h: Math.round(r.height), dentro: r.x >= 0 && r.right <= vw + 1, desborda: e.scrollWidth > e.clientWidth + 1 }; }, sel);
-const ficha = await box('.tq-st');
+const ficha = await box('.tq-duel');   // (las cartas de tu partido, con la media y las cualidades)
 await p.screenshot({ path: `${out}/${lang}-torneo.png` });
-await p.evaluate(() => document.querySelector('.tq-st')?.scrollIntoView({ block: 'center' }));
+await p.evaluate(() => document.querySelector('.tq-duel')?.scrollIntoView({ block: 'center' }));
 await p.waitForTimeout(300);
 await p.screenshot({ path: `${out}/${lang}-torneo-cualidades.png` });
 await click('[data-a="play"]');

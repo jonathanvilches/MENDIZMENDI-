@@ -23,7 +23,7 @@ await p.evaluate(() => { const G = window.__game; G.ui.dialog = async () => 0; w
 // pelota: menú → torneo
 p.evaluate(() => window.__game.freePelota());
 await p.waitForSelector('.lg-root', { timeout: 60000 }); await p.waitForTimeout(400); await p.screenshot({ path: `${out}/pelota-menu.png` });
-await p.click('[data-a="torneo"]'); await p.waitForSelector('.tq-bracket', { timeout: 60000 }); await p.waitForTimeout(400); await p.screenshot({ path: `${out}/torneo.png` });
+await p.click('[data-a="torneo"]'); await p.waitForSelector('.tq-br', { timeout: 60000 }); await p.waitForTimeout(400); await p.screenshot({ path: `${out}/torneo.png` });
 const tv = await p.evaluate(() => !!document.querySelector('[data-a="travel"]'));
 if (tv) { await p.click('[data-a="travel"]'); await p.waitForTimeout(800); }
 else await p.click('[data-a="exit"]');
