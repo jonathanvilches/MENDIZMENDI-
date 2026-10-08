@@ -10,8 +10,9 @@ const SEL = [
   '#loading .ld-intro',
 ].join(',');
 // (estos se quedan siempre enteros: cifras, avisos, botones, textos de una línea que ya se leen de un vistazo y los
-// «¿sabías que…?» del final de los partidos, de dos o tres líneas, que caben en la ventana)
-const SKIP = 'button, a, summary, label, .ar-count, .lnk, .vm-btn, #dialog, .pel-tip, .fb-tip, .pel-fact, .fb-fact, [data-vm="no"]';
+// «¿sabías que…?» del final de los partidos, de dos o tres líneas, que caben en la ventana; y las fichas de
+// información, que enseñan su texto entero: una sección cada vez o con su caja desplazable)
+const SKIP = 'button, a, summary, label, .ar-count, .lnk, .vm-btn, #dialog, .pel-tip, .fb-tip, .pel-fact, .fb-fact, [data-vm="no"], .ix';
 const CSS = `
 .vm-clamp:not(.vm-open){display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:var(--vm-lines,2);overflow:hidden}
 .vm-clamp.vm-open{display:block;-webkit-line-clamp:unset;overflow:visible}

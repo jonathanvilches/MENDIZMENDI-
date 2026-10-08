@@ -1,4 +1,4 @@
-// Ficha descriptiva de cada especie (fauna y flora): la imagen (la lámina dibujada de la planta o el animal), su
+// Ficha descriptiva de cada especie (fauna y flora): la imagen (la foto real de la planta y de su hoja, o el animal), su
 // nombre en castellano y en euskera, el científico, cómo reconocerla, dónde vive, cuándo verla y una curiosidad, con las
 // comarcas donde está. La misma ficha sale en el juego (al identificar una planta, observar un animal o acariciar uno de
 // granja) y en la sección Naturaleza del menú.
@@ -9,19 +9,13 @@ import { FAUNA, FAUNA_KIND, faunaOf } from '../data/fauna.js';
 import { iconSVG } from './icons.js';
 import { floraIllustration } from './floraArt.js';
 import { leafImage } from './leafArt.js';
+import { floraFoto, floraCredito } from './floraFoto.js';
 import COMARCAS from '../data/comarcas.json';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const el = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
 
 /** Datos de una ficha: { type, id, F, comarcas } (o null). */
-// letra que se lee sobre un color: oscura sobre los claros (amarillo, naranja) y blanca sobre los oscuros (antes, blanca
-// siempre: «Sakana» en blanco sobre amarillo no se leía)
-function inkOn(hex) {
-  const m = String(hex).replace('#', '').match(/^([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i); if (!m) return '#fff';
-  const [r, g, b] = m.slice(1).map(x => { const v = parseInt(x, 16) / 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; });
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.2 ? '#241500' : '#fff';
-}
 export function fichaOf(key) {
   const [type, id] = String(key).split(':');
   const F = type === 'flora' ? FLORA[id] : type === 'fauna' ? FAUNA[id] : null;
@@ -34,16 +28,45 @@ export const allFichas = (type) => Object.keys(type === 'flora' ? FLORA : FAUNA)
 
 function open(ui, cls, html) {
   ui?.closeModal?.();
-  const o = el(`<div class="mg-overlay ficha ${cls}"><div class="mg-card fc">${html}</div></div>`);
+  const o = el(`<div class="mg-overlay ficha ${cls}"><div class="mg-card ix fc${/quiz/.test(cls) ? ' quiz fit' : ''}">${html}</div></div>`);
   document.body.appendChild(o); if (ui) ui.modal = o;
   return o;
 }
 function close(ui, o, k) { removeEventListener('keydown', k, true); o.classList.add('out'); setTimeout(() => o.remove(), 250); if (ui?.modal === o) ui.modal = null; }
-// la imagen: la lámina dibujada de la planta (con su hoja en un medallón) o el animal sobre el mismo papel
-function picture(d) {
-  if (d.type === 'fauna') return `<div class="fc-pic fauna">${iconSVG(d.F.icon || d.id, 240)}</div>`;
-  const leaf = leafImage(d.id);
-  return `<div class="fc-pic flora"><img alt="${esc(d.F.name)}" src="${floraIllustration(d.id)}">${leaf ? `<figure class="fc-leaf"><img src="${leaf}" alt="Hoja de ${esc(d.F.name)}"><figcaption>Su hoja</figcaption></figure>` : ''}</div>`;
+// la imagen: la foto real de la planta (y la de su hoja, con un selector debajo) o el animal dibujado; si no hay foto,
+// la lámina dibujada. La etiqueta de estado («Nueva carta», «Al herbario») va recta en la esquina de arriba
+function media(d, tag = '', shots = true) {
+  const t = tag ? `<span class="ix-tag">${esc(tag)}</span>` : '';
+  if (d.type === 'fauna') return `<div class="ix-media"><figure class="ix-frame icon">${iconSVG(d.F.icon || d.id, 240)}</figure>${t}</div>`;
+  const ph = floraFoto(d.id);
+  const A = ph ? { planta: ph.planta, hoja: ph.hoja, cp: floraCredito(ph.cr.planta), ch: floraCredito(ph.cr.hoja), cls: 'photo' }
+    : { planta: floraIllustration(d.id), hoja: leafImage(d.id), cp: '', ch: '', cls: 'draw' };
+  const two = shots && A.hoja;
+  return `<div class="ix-media"><figure class="ix-frame ${A.cls}" data-planta="${A.planta}" data-hoja="${A.hoja || ''}" data-cp="${esc(A.cp)}" data-ch="${esc(A.ch)}">
+      <img alt="${esc(d.F.name)}" src="${A.planta}">${A.cp ? `<figcaption class="ix-credit">${esc(A.cp)}</figcaption>` : ''}</figure>${t}
+    ${two ? `<div class="ix-shots" role="group"><button type="button" data-s="planta" aria-pressed="true">${d.F.kind === 'flor' ? 'La flor' : 'La planta'}</button><button type="button" data-s="hoja" aria-pressed="false">La hoja</button></div>` : ''}</div>`;
+}
+// (el selector de foto: planta u hoja)
+function wireShots(o, ui) {
+  const fr = o.querySelector('.ix-frame[data-planta]'); if (!fr) return;
+  const img = fr.querySelector('img'), cap = fr.querySelector('.ix-credit');
+  o.querySelectorAll('.ix-shots button').forEach(b => b.onclick = (e) => {
+    e.stopPropagation(); const s = b.dataset.s;
+    o.querySelectorAll('.ix-shots button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    img.src = fr.dataset[s]; img.alt = (s === 'hoja' ? 'Hoja de ' : '') + img.alt.replace(/^Hoja de /, '');
+    if (cap) cap.textContent = fr.dataset[s === 'hoja' ? 'ch' : 'cp'] || fr.dataset.cp;
+    ui?.sound?.ui?.('click');
+  });
+}
+// (las pestañas: una sección cada vez, entera)
+function wireTabs(o, secs, ui) {
+  const pane = o.querySelector('.ix-pane'); if (!pane) return;
+  o.querySelectorAll('.ix-tabs button').forEach(b => b.onclick = (e) => {
+    e.stopPropagation();
+    o.querySelectorAll('.ix-tabs button').forEach(x => x.setAttribute('aria-selected', String(x === b)));
+    pane.textContent = secs[+b.dataset.t][1]; pane.scrollTop = 0; pane.style.animation = 'none'; void pane.offsetWidth; pane.style.animation = '';
+    b.scrollIntoView?.({ block: 'nearest', inline: 'nearest' }); ui?.sound?.ui?.('click');
+  });
 }
 
 export function showFicha(key, { ui = null, badge = '', button = 'Seguir', kicker = '' } = {}) {
@@ -52,21 +75,20 @@ export function showFicha(key, { ui = null, badge = '', button = 'Seguir', kicke
   const F = d.F, kind = d.type === 'flora' ? FLORA_KIND[F.kind] : FAUNA_KIND[F.kind];
   return new Promise(res => {
     ui?.sound?.ui?.('card');
-    const sec = (t, x) => x ? `<div><dt>${t}</dt><dd>${esc(x)}</dd></div>` : '';
-    const o = open(ui, '', `
-      <div class="fc-head">${picture(d)}${badge ? `<div class="ic-badge">${esc(badge)}</div>` : ''}
-        <div class="fc-title"><small class="kicker">${esc(kicker || `${kind || ''} · ficha de ${d.type === 'flora' ? 'flora' : 'fauna'}`)}</small>
-        <h2>${esc(F.name)}</h2>
-        <div class="fc-names">${F.eu ? `<span class="eu" lang="eu">${esc(F.eu)}</span>` : ''}${F.sci ? `<i class="sci">${esc(F.sci)}</i>` : ''}</div></div>
-      </div>
-      <div class="fc-body">
-        <dl class="fc-sec">
-          ${sec(d.type === 'flora' ? 'Cómo reconocerla' : 'Cómo reconocerlo', F.look)}${sec('Dónde vive', F.where)}${sec('Cuándo verla', F.season)}${sec('¿Sabías que…?', F.fact)}
-        </dl>
-        ${d.comarcas.length ? `<div class="fc-where">${d.comarcas.map(c => `<span style="--c:${c.color};color:${inkOn(c.color)}">${esc(c.name)}</span>`).join('')}</div>` : ''}
-        <button class="btn primary">${esc(button)}</button>
+    const secs = [['Cómo es', F.look], ['Dónde vive', F.where], ['Cuándo', F.season], ['¿Sabías que…?', F.fact]].filter(x => x[1]);
+    const o = open(ui, 'ix-ov', `
+      ${media(d, badge)}
+      <div class="ix-main">
+        <header class="ix-head"><p class="ix-kicker">${esc(kicker || `${kind || ''} · ficha de ${d.type === 'flora' ? 'flora' : 'fauna'}`)}</p>
+          <h2 class="ix-title">${esc(F.name)}</h2>
+          <div class="ix-sub">${F.eu ? `<b lang="eu">${esc(F.eu)}</b>` : ''}${F.sci ? `<i>${esc(F.sci)}</i>` : ''}</div></header>
+        <div class="ix-tabs" role="tablist">${secs.map(([t], i) => `<button type="button" role="tab" data-t="${i}" aria-selected="${i === 0}">${esc(t)}</button>`).join('')}</div>
+        <div class="ix-pane" role="tabpanel">${esc(secs[0]?.[1] || '')}</div>
+        <div class="ix-end">${d.comarcas.length ? `<div class="ix-chips"><small>Comarcas</small>${d.comarcas.map(c => `<span style="--c:${c.color}">${esc(c.name)}</span>`).join('')}</div>` : ''}
+          <div class="ix-foot"><button class="btn primary ix-go">${esc(button)}</button></div></div>
       </div>`);
-    const b = o.querySelector('button'); setTimeout(() => b.focus({ preventScroll: true }), 60);
+    wireShots(o, ui); wireTabs(o, secs, ui);
+    const b = o.querySelector('.ix-go'); setTimeout(() => b.focus({ preventScroll: true }), 60);
     const k = (e) => { e.stopImmediatePropagation(); if (['e', 'enter', ' ', 'escape'].includes(e.key.toLowerCase())) { e.preventDefault(); done(); } };
     const done = () => { ui?.sound?.ui?.('click'); close(ui, o, k); res(); };
     setTimeout(() => addEventListener('keydown', k, true), 300);
@@ -81,12 +103,14 @@ export function identifyQuiz(key, options, { ui = null, right = 0, question = ''
   if (window.__autoWin) return Promise.resolve(right);
   return new Promise(res => {
     ui?.sound?.ui?.('card');
-    const o = open(ui, 'quiz', `
-      <div class="fc-head">${picture(d)}</div>
-      <small class="kicker">${d.type === 'flora' ? 'Identifica la planta' : 'Identifica el animal'}</small>
-      <h2>${esc(question || (d.type === 'flora' ? '¿Qué planta es?' : '¿Qué animal es?'))}</h2>
-      <p class="fc-hint">${esc(d.F.look)}</p>
-      <div class="fc-opts">${options.map((t, i) => `<button class="btn fc-opt" data-i="${i}">${esc(t)}</button>`).join('')}</div>`);
+    const o = open(ui, 'ix-ov quiz', `
+      ${media(d, '', false)}
+      <div class="ix-main">
+        <header class="ix-head"><p class="ix-kicker">${d.type === 'flora' ? 'Identifica la planta' : 'Identifica el animal'}</p>
+          <h2 class="ix-title">${esc(question || (d.type === 'flora' ? '¿Qué planta es?' : '¿Qué animal es?'))}</h2></header>
+        <div class="ix-body"><p class="ix-text fc-hint">${esc(d.F.look)}</p></div>
+        <div class="ix-opts">${options.map((t, i) => `<button class="btn fc-opt" data-i="${i}">${esc(t)}</button>`).join('')}</div>
+      </div>`);
     let busy = false;
     const pick = (i) => {
       if (busy) return; busy = true;

@@ -20,7 +20,7 @@ for (const sz of sizes.split(',')) {
       await p.goto(`${URL}/src/ui/minigames.js`, { timeout: 300000 });
       await p.waitForTimeout(1500);
       await p.evaluate(async () => {
-        await import('/src/style.css'); await import('/src/hub/hub.css');
+        await import('/src/style.css'); await import('/src/hub/hub.css'); await import('/src/ui/sport.css'); await import('/src/ui/infocard.css');
         document.body.innerHTML = ''; document.body.style.background = '#2d6a3e';
         const nop = () => {};
         window.__ui = { sound: { tone: nop, ui: nop, noiseBurst: nop, fanfare: nop, magic: nop, sfx: null }, closeModal: nop };

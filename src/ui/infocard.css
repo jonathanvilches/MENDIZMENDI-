@@ -1,0 +1,146 @@
+/* Fichas de información del juego (planta, animal, lugar, oficio, cima, escudo, misión cumplida…): todas con el mismo
+   orden y los mismos espacios, para que la información no se apile sin criterio.
+     1. la imagen, a la izquierda con el móvil tumbado (arriba en vertical), con su etiqueta de estado («Nueva carta»,
+        «Al herbario») recta en la esquina de arriba;
+     2. la cabecera: rótulo pequeño, título grande y, debajo, los otros nombres (euskera, científico);
+     3. el contenido: un texto, o pestañas con una sección cada vez y entera (sin «Ver más»);
+     4. las etiquetas (comarcas), todas iguales y con su color solo en una marca;
+     5. el botón, siempre abajo y a la vista.
+   Espacios: 16 px por fuera, 12 px entre bloques y 8 px dentro de cada bloque. Gama morada con fucsia de acento. */
+.mg-overlay.ix-ov { z-index: 4000; padding: 12px; }
+.mg-overlay.ix-ov > .mg-card.ix { --ix-pad: 16px; --ix-gap: 12px; --ix-in: 8px;
+  position: relative; width: min(880px, 100%); max-height: calc(100dvh - 24px); display: grid; grid-template-columns: minmax(0, 1fr); align-content: start;
+  gap: var(--ix-gap); padding: var(--ix-pad); text-align: left; align-items: stretch; justify-items: stretch; overflow: hidden;
+  color: #f3edff; border: 0; border-radius: 4px; box-shadow: 0 30px 80px rgba(0, 0, 0, .6);
+  clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+  background: radial-gradient(80% 60% at 100% 0%, rgba(255, 43, 214, .16), transparent 60%), linear-gradient(170deg, var(--v3) 0%, var(--v1) 78%);
+  animation: gx-rise .3s cubic-bezier(.2, .9, .3, 1) both; }
+.mg-card.ix::before { content: ''; position: absolute; left: 16px; right: 0; top: 0; height: 3px; background: var(--cta); box-shadow: var(--glow); pointer-events: none; z-index: 3; }
+
+/* 1. la imagen */
+.ix-media { position: relative; min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: var(--ix-in); }
+.ix-frame { position: relative; margin: 0; flex: 1 1 auto; min-height: 0; aspect-ratio: 4 / 3; border-radius: 4px; overflow: hidden; background: var(--v1);
+  box-shadow: inset 0 0 0 1px rgba(201, 178, 255, .25); }
+.ix-frame > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.ix-frame.draw > img { object-fit: contain; background: #f3ecd8; }
+/* (los dibujos: un icono, un animal o una señal, sobre un foco de luz) */
+.ix-frame.icon { display: grid; place-items: center; background: radial-gradient(60% 55% at 50% 48%, rgba(255, 122, 200, .3), transparent 70%), linear-gradient(160deg, var(--v3), var(--v1)); }
+.ix-frame.icon > :is(.ico, svg, img) { position: relative; inset: auto; width: 78%; height: 78%; object-fit: contain; filter: drop-shadow(0 8px 14px rgba(7, 2, 15, .55)); animation: bob 3s ease-in-out infinite; }
+.ix-frame.icon > img.ix-sign { width: 78%; height: 78%; animation: none; }
+.ix-tag { position: absolute; left: 0; top: 12px; z-index: 2; padding: 4px 14px 4px 10px; background: var(--cta); color: #fff; box-shadow: var(--glow);
+  font: 800 var(--fs-xs)/1.2 var(--f-cond); letter-spacing: .1em; text-transform: uppercase; clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 0 100%); }
+.ix-credit { position: absolute; left: 0; right: 0; bottom: 0; z-index: 1; padding: 12px 8px 4px; text-align: right; color: rgba(255, 255, 255, .86);
+  font: 600 var(--fs-xs)/1.2 var(--f-cond); letter-spacing: .02em; background: linear-gradient(transparent, rgba(7, 2, 15, .78)); pointer-events: none;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* (la planta y su hoja: dos fotos y un selector debajo, como en las guías de campo) */
+.ix-shots { flex: none; display: flex; gap: 4px; padding: 4px; border-radius: 6px; background: rgba(7, 2, 15, .5); }
+.ix-shots button { position: relative; flex: 1 1 0; min-height: 36px; padding: 4px 8px; border: 0; border-radius: 4px; background: transparent; color: var(--lila); cursor: pointer;
+  font: 800 var(--fs-sm)/1.1 var(--f-cond); letter-spacing: .06em; text-transform: uppercase; }
+.ix-shots button::before { content: ''; position: absolute; inset: -6px 0; }
+.ix-shots button[aria-pressed=true] { background: var(--cta); color: #fff; box-shadow: var(--glow); }
+
+/* 2. la cabecera */
+.ix-main { display: flex; flex-direction: column; gap: var(--ix-gap); min-width: 0; min-height: 0; }
+.ix-head { display: grid; gap: 4px; flex: none; }
+.ix-kicker { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--rosa); font: 800 var(--fs-xs)/1.2 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; }
+.ix-kicker::before { content: ''; flex: none; width: 18px; height: 4px; border-radius: 2px; background: var(--cta); transform: skewX(-20deg); }
+.mg-card.ix .ix-title { margin: 0; font: 400 var(--fs-2xl)/1 var(--f-display); text-transform: uppercase; letter-spacing: .01em; color: #fff; text-shadow: 0 3px 0 rgba(7, 2, 15, .5); overflow-wrap: anywhere; }
+.ix-sub { display: flex; flex-wrap: wrap; gap: 4px 12px; color: var(--lila); font: 600 var(--fs-sm)/1.3 'Nunito', sans-serif; }
+.ix-sub b { color: #fff; font-weight: 800; } .ix-sub i { color: var(--lila); }
+
+/* 3. el contenido */
+.ix-body { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: var(--ix-in); padding-right: 2px; }
+.mg-card.ix .ix-text { margin: 0; color: #ebe4fb; font: 600 var(--fs-md)/1.5 'Nunito', sans-serif; }
+.ix-tabs { flex: none; display: flex; gap: 4px; padding: 4px; border-radius: 6px; background: rgba(7, 2, 15, .5); overflow-x: auto; scrollbar-width: none; }
+.ix-tabs::-webkit-scrollbar { display: none; }
+.ix-tabs button { position: relative; flex: 1 0 auto; min-height: 36px; padding: 4px 12px; border: 0; border-radius: 4px; background: transparent; color: var(--lila); cursor: pointer; white-space: nowrap;
+  font: 800 var(--fs-sm)/1.1 var(--f-cond); letter-spacing: .06em; text-transform: uppercase; }
+.ix-tabs button::before { content: ''; position: absolute; inset: -6px 0; }
+.ix-tabs button[aria-selected=true] { background: var(--cta); color: #fff; box-shadow: var(--glow); }
+.ix-pane { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 12px 16px; border-radius: 0 4px 4px 0; border-left: 3px solid var(--fx);
+  background: rgba(255, 255, 255, .05); color: #f3edff; font: 600 var(--fs-md)/1.5 'Nunito', sans-serif; animation: ix-in .22s ease-out; }
+.ix-pane b { color: #fff; }
+@keyframes ix-in { from { opacity: 0; transform: translateX(8px); } }
+/* (antes y ahora, listas de herramientas, montes o castillos: en bloques iguales) */
+.mg-card.ix .antes-ahora { margin: 0; gap: var(--ix-in); grid-template-columns: 1fr 1fr; }
+.mg-card.ix .antes-ahora div { padding: 8px 12px; border-radius: 0 4px 4px 0; border-left: 3px solid var(--lila2); background: rgba(255, 255, 255, .05); color: #ebe4fb; font: 600 var(--fs-sm)/1.45 "Nunito", sans-serif; }
+.mg-card.ix .antes-ahora div + div { border-left-color: var(--fx); }
+.mg-card.ix .antes-ahora b { margin-bottom: 2px; color: var(--rosa); font: 800 var(--fs-xs)/1.2 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; }
+.mg-card.ix :is(ul.tools, ul.peaklist, ul.castles) { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; text-align: left; }
+.mg-card.ix :is(ul.tools, ul.peaklist, ul.castles) li { padding: 4px 8px; border-radius: 4px; background: rgba(255, 255, 255, .05); font-size: var(--fs-sm); }
+
+/* 4. las etiquetas */
+.ix-chips { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.ix-chips > small { margin-right: 4px; color: var(--lila2); font: 800 var(--fs-xs)/1.2 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; }
+.ix-chips > span { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px 2px 6px; border-radius: 4px; background: rgba(255, 255, 255, .08); color: #fff; white-space: nowrap;
+  font: 700 var(--fs-xs)/1.5 'Nunito', sans-serif; }
+.ix-chips > span::before { content: ''; width: 8px; height: 8px; border-radius: 2px; background: var(--c, var(--fx)); }
+/* (los premios de una misión cumplida y su progreso) */
+.mg-card.ix .rewards { justify-content: flex-start; gap: var(--ix-in); margin: 0; }
+.mg-card.ix .prog { margin: 0; }
+
+/* 5. el botón (con las etiquetas, al pie de la columna: lo que sobra de alto queda entre el texto y el pie) */
+.ix-end { flex: none; margin-top: auto; display: flex; flex-direction: column; gap: var(--ix-gap); }
+.ix-foot { flex: none; display: flex; gap: var(--ix-in); align-items: center; }
+.ix-main > .ix-foot { margin-top: auto; }
+.mg-card.ix .ix-foot .btn { flex: 1 1 auto; min-width: 0; min-height: 48px; margin: 0; }
+.ix-dots { flex: none; display: flex; gap: 4px; } .ix-dots i { width: 8px; height: 8px; border-radius: 2px; background: rgba(201, 178, 255, .3); transform: skewX(-20deg); }
+.ix-dots i.on { background: var(--fx); box-shadow: var(--glow); }
+
+/* ¿Qué planta es? La foto y las opciones en rejilla */
+.ix.quiz .ix-opts { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ix-in); }
+.ix.quiz .fc-opt { min-height: 48px; margin: 0; padding: 8px 12px; border: 0; border-radius: 4px; background: rgba(255, 255, 255, .08); color: #fff; box-shadow: inset 0 0 0 1px rgba(201, 178, 255, .3);
+  font: 800 var(--fs-md)/1.2 'Nunito', sans-serif; text-align: left; }
+.ix.quiz .fc-opt.ok { background: #2fd38a; color: #04150c; box-shadow: none; }
+.ix.quiz .fc-opt.ko { background: var(--hot); color: #fff; box-shadow: none; animation: shake .35s; }
+
+/* el escudo, sobre su papel */
+.ix-frame.paper { display: flex; align-items: center; justify-content: center; padding: 8px; aspect-ratio: auto; background: #efe6d2 radial-gradient(120% 90% at 50% 35%, #fbf6ea, #e2d5b8); }
+.ix-frame.paper canvas { position: relative; flex: none; width: auto; height: auto; max-width: 100%; max-height: 100%; display: block; }
+
+/* vertical: la imagen arriba, sin pasarse de alto */
+@media (orientation: portrait) {
+  .mg-overlay.ix-ov > .mg-card.ix { width: min(560px, 100%); }
+  .ix-frame { flex: none; max-height: 34dvh; width: 100%; }
+  .ix-frame.paper { height: 30dvh; max-height: none; }
+  .mg-card.ix .antes-ahora { grid-template-columns: 1fr; }
+  .ix-tabs button { flex: 1 1 auto; padding: 4px 6px; font-size: var(--fs-xs); letter-spacing: .03em; }
+}
+/* móvil tumbado y pantallas anchas: imagen a la izquierda y todo lo demás a la derecha; el alto se ajusta a la pantalla
+   y, si un texto no cabe, solo se desplaza su caja (el botón sigue a la vista) */
+@media (orientation: landscape) {
+  .mg-overlay.ix-ov > .mg-card.ix { grid-template-columns: minmax(200px, 38%) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); align-content: stretch; column-gap: 16px; height: min(470px, calc(100dvh - 24px)); }
+  .mg-overlay.ix-ov > .mg-card.ix.fit { grid-template-rows: auto; align-content: start; height: auto; max-height: min(470px, calc(100dvh - 24px)); align-items: center; }
+  .mg-card.ix > .ix-media { height: 100%; }
+  .mg-card.ix.fit > .ix-media { height: auto; max-height: calc(min(470px, 100dvh - 24px) - 32px); }
+  .ix-frame { aspect-ratio: auto; }
+  .mg-card.ix.fit .ix-frame { aspect-ratio: 1; flex: none; }
+  .mg-card.ix > .ix-main { height: 100%; }
+  .mg-card.ix.fit > .ix-main { height: auto; }
+}
+@media (orientation: landscape) and (max-height: 430px) {
+  .mg-overlay.ix-ov { padding: 8px; }
+  .mg-overlay.ix-ov > .mg-card.ix { --ix-pad: 12px; --ix-gap: 8px; height: calc(100dvh - 16px); max-height: none; padding: 12px 16px; grid-template-columns: minmax(180px, 36%) minmax(0, 1fr); }
+  .mg-overlay.ix-ov > .mg-card.ix.fit { height: auto; max-height: calc(100dvh - 16px); }
+  .mg-card.ix.fit > .ix-media { max-height: calc(100dvh - 40px); }
+  .mg-card.ix .ix-title { font-size: var(--fs-xl); }
+  .mg-card.ix .ix-text, .ix-pane { font-size: var(--fs-sm); }
+  .ix-pane { padding: 8px 12px; }
+  .mg-card.ix .ix-foot .btn { min-height: 44px; height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) { .mg-card.ix, .ix-pane, .ix-frame.icon > * { animation: none; } }
+
+/* ---------- la ficha de un sitio en el mapa del pueblo: icono y nombre arriba, los botones en una fila debajo */
+#mapbox .mapcard { left: 8px; right: auto; bottom: 34px; width: min(440px, calc(100% - 66px)); grid-template-columns: 40px minmax(0, 1fr); align-items: start; gap: 8px 12px; padding: 12px;
+  border: 0; border-radius: 4px; background: linear-gradient(170deg, rgba(49, 16, 107, .97), rgba(18, 5, 42, .97)); box-shadow: 0 12px 30px rgba(0, 0, 0, .5), inset 0 0 0 1px rgba(201, 178, 255, .25);
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); animation: gx-rise .22s ease-out both; }
+#mapbox .mapcard .mc-i { width: 40px; height: 40px; border-radius: 4px; background: rgba(255, 255, 255, .06); }
+#mapbox .mapcard .mc-i > * { width: 30px; height: 30px; }
+#mapbox .mapcard .mc-t { padding-right: 32px; }
+#mapbox .mapcard .mc-t b { font: 400 var(--fs-lg)/1.05 var(--f-display); text-transform: uppercase; color: #fff; overflow-wrap: normal; }
+#mapbox .mapcard .mc-t small { margin-top: 4px; color: var(--lila); font-size: var(--fs-sm); line-height: 1.35; }
+#mapbox .mapcard .mc-b { grid-column: 1 / -1; margin: 0; display: flex; gap: 8px; }
+#mapbox .mapcard .mc-b .btn { flex: 1 1 0; min-width: 0; min-height: 44px; padding: 8px 12px; font-size: var(--fs-sm); white-space: nowrap; }
+#mapbox .mapcard .btn.on { background: rgba(47, 211, 138, .12); border: 1px solid rgba(47, 211, 138, .55); color: #7dffc0; }
+#mapbox .mapcard .mc-x { top: 8px; right: 8px; border-radius: 4px; }
+@media (orientation: landscape) and (max-height: 520px) { #mapbox .mapcard { bottom: 8px; } }

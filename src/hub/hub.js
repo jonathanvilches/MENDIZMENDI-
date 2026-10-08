@@ -11,6 +11,7 @@ import { showFicha, allFichas } from '../ui/ficha.js';
 import { floraId } from '../data/flora.js';
 import { faunaId } from '../data/fauna.js';
 import { floraIllustration } from '../ui/floraArt.js';
+import { floraFoto } from '../ui/floraFoto.js';
 import { readTownArms } from '../ui/escudo.js';
 import { releaseOffscreen } from '../util/offscreen.js';
 import { avatarPortrait, portraitImg, avatarPortraitImg } from '../ui/portraits.js';
@@ -414,10 +415,11 @@ export class Hub {
       this.root.querySelectorAll('.scard[data-k]').forEach(c => c.onclick = () => showFicha(c.dataset.k, { ui: { sound: this.sound }, button: 'Cerrar' }));
       // láminas de las plantas, de una en una (sin bloquear la pantalla)
       const imgs = [...this.root.querySelectorAll('img[data-flora]')], scr = this.screen;
-      (async () => { for (const img of imgs) { await new Promise(r => setTimeout(r, 16)); if (this.screen !== scr || !img.isConnected) return; const u = floraIllustration(img.dataset.flora, 260, 220); if (u) { img.src = u; img.classList.add('on'); } } })();
+      // (con foto real, la foto; si no, la lámina dibujada)
+      (async () => { for (const img of imgs) { const ph = floraFoto(img.dataset.flora); if (ph) { img.src = ph.planta; img.classList.add('on', 'photo'); continue; } await new Promise(r => setTimeout(r, 16)); if (this.screen !== scr || !img.isConnected) return; const u = floraIllustration(img.dataset.flora, 260, 220); if (u) { img.src = u; img.classList.add('on'); } } })();
     };
     const fb = { trees: 'tree', plants: 'herbs', flowers: 'flower' };
-    const pic = (d) => d.type === 'fauna' ? I(d.F.icon || speciesIcon(d.F.name) || 'bird', 64) : `<span class="spic">${I(speciesIcon(d.F.name) || fb[tab], 40)}<img alt="" data-flora="${d.id}"></span>`;
+    const pic = (d) => d.type === 'fauna' ? I(d.F.icon || speciesIcon(d.F.name) || 'bird', 64) : `<span class="spic">${I(speciesIcon(d.F.name) || fb[tab], 40)}<img alt="" loading="lazy" decoding="async" data-flora="${d.id}"></span>`;
     return `<h1 class="title">${I('leaf', 40)} Naturaleza de Navarra</h1><p class="lead">Del hayedo atlántico a las Bardenas: cada comarca tiene sus animales y plantas. Toca uno para ver su ficha. En los pueblos, identifica las plantas marcadas con una hoja y observa los animales para completar tu cuaderno.</p>
       <div class="nprog"><span>${I('leaf', 22)} Herbario <b>${gotFl}</b> / ${nFl}</span><span>${I('binoculars', 22)} Cuaderno de fauna <b>${gotFa}</b> / ${nFa}</span></div>
       <div class="filters">${[['fauna', 'Fauna'], ['trees', 'Árboles'], ['plants', 'Arbustos y plantas'], ['flowers', 'Flores']].map(([k, n]) => `<button data-f="${k}" class="${tab === k ? 'on' : ''}">${n}</button>`).join('')}</div>
