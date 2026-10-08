@@ -1,6 +1,6 @@
 // Móvil en horizontal (el formato principal): captura cada pantalla del menú y mide lo que estorba al jugar con el
 // pulgar: botones de menos de 44 px, letra de menos de 12 px, scroll de lado y cuánto alto útil queda.
-// Uso: node tools/horizontal.mjs [carpeta] [ancho] [alto]   (servidor en 5173)
+// Uso: URL=http://127.0.0.1:5173 node tools/horizontal.mjs [carpeta] [ancho] [alto]
 import { chromium } from 'playwright-core';
 import { iphone } from './iphone.mjs';
 import { mkdirSync } from 'fs';
@@ -8,7 +8,7 @@ const [,, out = 'entrega/horizontal', W = '844', H = '390'] = process.argv; mkdi
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: +W, height: +H }, isMobile: true, hasTouch: true }); await iphone(p); const errs = []; p.on('pageerror', e => errs.push(e.message));
 await p.addInitScript(() => { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', age: 'nino', seen: { heroBenat: true, dog: true }, xp: 900, last: 'lesaka', towns: { lesaka: { done: { 0: true }, visits: 1 } }, cards: ['armas:baztan'], settings: { quality: 'low' } })); });
-await p.goto('http://127.0.0.1:5173/', { timeout: 300000 }); await p.waitForFunction(() => window.__hub, null, { timeout: 300000 }); await p.waitForTimeout(1500);
+await p.goto((process.env.URL || 'http://127.0.0.1:5173') + '/', { timeout: 300000 }); await p.waitForFunction(() => window.__hub, null, { timeout: 300000 }); await p.waitForTimeout(1500);
 const screens = ['home', 'map', 'towns', 'sports', 'avatars', 'peaks', 'nature', 'escudos', 'cuentos', 'badges', 'passport', 'profile'];
 const measure = () => p.evaluate(() => {
   const vis = (e) => { const r = e.getBoundingClientRect(), s = getComputedStyle(e); return r.width > 0 && r.height > 0 && s.visibility !== 'hidden' && s.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };
