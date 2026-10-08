@@ -187,7 +187,7 @@
 /* ---------- Pueblos ---------- */
 .filters { display: flex; gap: 4px; margin-bottom: 16px; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--line); touch-action: pan-x; }
 .filters::-webkit-scrollbar { display: none; }
-.filters button { position: relative; flex: none; padding: 8px 16px 12px; background: none; font-weight: 800; font-size: var(--fs-sm); color: var(--mute); white-space: nowrap; }
+.filters button { position: relative; flex: none; min-height: 44px; padding: 8px 16px 12px; background: none; font-weight: 800; font-size: var(--fs-sm); color: var(--mute); white-space: nowrap; }
 .filters button:hover { color: #fff; }
 .filters button.on { color: #fff; }
 .filters button.on::after { content: ''; position: absolute; left: 8px; right: 8px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--c, var(--cyan)); box-shadow: 0 0 10px var(--c, var(--cyan)); }

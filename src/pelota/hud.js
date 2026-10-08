@@ -21,8 +21,17 @@ const CSS = `
 .pel-call h3{margin:0;font-family:var(--pel-display,'MZ Display',Nunito,sans-serif);font-size:var(--fs-hero);line-height:1;letter-spacing:0}
 .pel-call p{margin:4px 0 0;font-size:var(--fs-sm);line-height:1.3;opacity:.95}
 .pel-call .pel-kantari{margin-top:8px;font-size:var(--fs-md);font-weight:800;color:#ff7ac8}
-.pel-q{position:absolute;left:50%;top:42%;white-space:nowrap;transform:translate(-50%,-50%);font-family:var(--pel-display,'MZ Display',Nunito,sans-serif);font-size:var(--fs-2xl);text-shadow:0 3px 10px rgba(0,0,0,.45);opacity:0;transition:opacity .15s}
+.pel-q{position:absolute;left:50%;top:40%;display:flex;flex-direction:column;align-items:center;gap:2px;white-space:nowrap;transform:translate(-50%,-50%);font-family:var(--pel-display,'MZ Display',Nunito,sans-serif);font-size:var(--fs-2xl);text-shadow:0 3px 10px rgba(0,0,0,.45);opacity:0;transition:opacity .15s;pointer-events:none}
 .pel-q.on{opacity:1}
+/* el aviso de cada golpe, como en los juegos de deportes: grande, con rebote, y su color según cómo le has dado */
+.pel-q b{font:400 var(--fs-4xl)/1 var(--f-display,'MZ Display'),Nunito,sans-serif;text-transform:uppercase;letter-spacing:.02em;color:#fff;filter:drop-shadow(0 4px 0 rgba(7,2,15,.6))}
+.pel-q.on b{animation:pel-qpop .45s cubic-bezier(.2,1.7,.4,1) both}
+.pel-q small{font:800 var(--fs-sm)/1.2 var(--f-cond,Nunito),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 10px;background:rgba(7,2,15,.72);clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%)}
+.pel-q small:empty{display:none}
+.pel-q.k-perfect b{background:linear-gradient(180deg,#fff 30%,#ff7ac8 60%,#ff2bd6);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 14px rgba(255,43,214,.9)) drop-shadow(0 4px 0 rgba(7,2,15,.6))}
+.pel-q.k-good b{color:#c9b2ff}.pel-q.k-late b,.pel-q.k-whiff b{color:#ff6fb5;animation:pel-qshake .4s ease both}
+@keyframes pel-qpop{from{transform:scale(2.2) rotate(-6deg);opacity:0}to{transform:none;opacity:1}}
+@keyframes pel-qshake{0%{transform:scale(1.4);opacity:0}30%{transform:translateX(-8px);opacity:1}60%{transform:translateX(6px)}100%{transform:none}}
 .pel-tip{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 16px);max-width:min(560px,calc(100vw - 330px));padding:8px 16px;border-radius:14px;background:rgba(28,11,58,.86);border:1px solid rgba(190,160,255,.3);font-size:var(--fs-md);font-weight:700;line-height:1.3;text-align:center;opacity:0;transition:opacity .2s}
 .pel-tip.on{opacity:1}
 .pel-stick{position:absolute;left:0;bottom:0;width:46vw;height:62dvh;pointer-events:auto;touch-action:none}
@@ -44,7 +53,7 @@ const CSS = `
 .pel-hit.full::after,.pel-cut.full::after,.pel-drop.full::after{background:#ff2e88;animation:pel-full .25s infinite alternate}
 @keyframes pel-full{to{filter:brightness(1.6)}}
 .pel-panel{position:absolute;inset:0;display:grid;place-items:center;background:rgba(14,4,34,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);pointer-events:auto;padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 16px)}
-.pel-card{position:relative;width:min(520px,100%);max-height:100%;overflow:auto;background:radial-gradient(80% 60% at 100% 0%,rgba(255,43,214,.2),transparent 60%),linear-gradient(170deg,#31106b 0%,#12052a 78%);color:#f6f3fc;border:1px solid rgba(201,178,255,.25);border-radius:4px;padding:24px 24px 16px;box-shadow:0 24px 70px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08);clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px);animation:gx-pop .4s cubic-bezier(.2,1.4,.4,1) both}
+.pel-card{position:relative;width:min(520px,100%);max-height:100%;overflow:auto;background:radial-gradient(80% 60% at 100% 0%,rgba(255,43,214,.2),transparent 60%),linear-gradient(170deg,#31106b 0%,#12052a 78%);color:#f6f3fc;border:1px solid rgba(201,178,255,.25);border-radius:4px;padding:24px 24px 16px;box-shadow:0 24px 70px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08);clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px);animation:gx-rise .3s cubic-bezier(.2,.9,.3,1) both}
 .pel-card::before{content:'';position:absolute;left:16px;right:0;top:0;height:3px;background:var(--cta,#ff2bd6);box-shadow:0 0 18px rgba(255,43,214,.5)}
 .pel-card h2{margin:0 0 4px;font-family:var(--pel-display,'MZ Display',Nunito,sans-serif);font-weight:400;font-size:var(--fs-2xl);line-height:1.15;color:#fff;text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.5)}
 .pel-card .pel-sub{margin:0 0 12px;font:800 var(--fs-sm)/1.2 var(--f-cond,Nunito),sans-serif;color:#ff7ac8;letter-spacing:.06em;text-transform:uppercase}
@@ -196,7 +205,12 @@ export class PelotaHud {
     const k = c.querySelector('.pel-kantari'); k.textContent = kant ? `«${kant}»` : ''; k.style.display = kant ? '' : 'none';
     c.classList.add('on'); this.callT = secs; this.root.classList.add('calling');
   }
-  quality(text) { const q = this.$('.pel-q'); q.textContent = text; q.classList.toggle('on', !!text); this.qT = 0.8; }
+  /** El aviso del golpe: text (lo grande), sub (el golpe y la fuerza) y kind (perfect, good, ok, late, whiff: su color) */
+  quality(text, sub = '', kind = '') {
+    const q = this.$('.pel-q'); q.className = 'pel-q' + (kind ? ' k-' + kind : '');
+    q.innerHTML = text ? `<b>${esc(text)}</b><small>${esc(sub)}</small>` : '';
+    void q.offsetWidth; q.classList.toggle('on', !!text); this.qT = kind ? 1 : 0.8;   // (se vuelve a poner para que rebote cada vez)
+  }
   tip(text) { const t = this.$('.pel-tip'); if (t.textContent !== (text || '')) t.textContent = text || ''; t.classList.toggle('on', !!text); }
   ready(on) { this.$('.pel-hit').classList.toggle('ready', !!on); }
   // anillo de carga alrededor del botón que se mantiene (golpe o cortada)

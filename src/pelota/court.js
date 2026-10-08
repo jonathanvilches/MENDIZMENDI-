@@ -338,21 +338,21 @@ export class PelotaCourt {
     for (let i = 0; i < 9; i++) { const m = new T.Mesh(trailGeo, trailMat); m.scale.setScalar(0.85 - i * 0.08); g.add(m); this.trail.push(m); }
     this.trailPts = [];
     const ring = (inner, outer, color, op) => { const m = new T.Mesh(new T.RingGeometry(inner, outer, 40), new T.MeshBasicMaterial({ color, transparent: true, opacity: op, depthWrite: false, side: T.DoubleSide })); m.rotation.x = -Math.PI / 2; m.visible = false; g.add(m); return m; };
-    this.landRing = ring(0.28, 0.42, '#ffb03a', 0.9);
-    this.spotRing = ring(0.55, 0.78, '#39d86b', 0.85);
-    const zone = this.serveZone = new T.Mesh(new T.PlaneGeometry(W, C.PASA - C.FALTA), new T.MeshBasicMaterial({ color: '#ffd84a', transparent: true, opacity: 0.26, depthWrite: false }));
+    this.landRing = ring(0.28, 0.42, '#c9b2ff', 0.9);
+    this.spotRing = ring(0.55, 0.78, '#ff2bd6', 0.85);
+    const zone = this.serveZone = new T.Mesh(new T.PlaneGeometry(W, C.PASA - C.FALTA), new T.MeshBasicMaterial({ color: '#ff2bd6', transparent: true, opacity: 0.22, depthWrite: false }));
     zone.rotation.x = -Math.PI / 2; zone.position.set(0, 0.015, (C.FALTA + C.PASA) / 2); zone.visible = false; g.add(zone);
     const flash = this.flash = new T.Mesh(new T.RingGeometry(0.1, 0.35, 28), new T.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0, depthWrite: false, side: T.DoubleSide }));
     flash.visible = false; g.add(flash);
     // marca de puntería en el frontis (cortada y dejada): un aro amarillo que sube con la fuerza
-    const aim = this.aimMark = new T.Mesh(new T.RingGeometry(0.2, 0.32, 28), new T.MeshBasicMaterial({ color: '#ffd84a', transparent: true, opacity: 0.85, depthWrite: false, side: T.DoubleSide }));
+    const aim = this.aimMark = new T.Mesh(new T.RingGeometry(0.2, 0.32, 28), new T.MeshBasicMaterial({ color: '#ff7ac8', transparent: true, opacity: 0.85, depthWrite: false, side: T.DoubleSide }));
     aim.add(new T.Mesh(new T.CircleGeometry(0.06, 12), aim.material)); aim.visible = false; aim.renderOrder = 3; g.add(aim);
     // golpe apuntado (con el botón mantenido): el camino previsto de la pelota (frontis, pared izquierda a dos paredes)
     // a trazos, el bote marcado en el suelo y el punto de la pared
-    const pathMat = new T.LineDashedMaterial({ color: '#ffd84a', dashSize: 0.35, gapSize: 0.22, transparent: true, opacity: 0.9, depthWrite: false });
+    const pathMat = new T.LineDashedMaterial({ color: '#ff7ac8', dashSize: 0.35, gapSize: 0.22, transparent: true, opacity: 0.9, depthWrite: false });
     const pg = new T.BufferGeometry(); pg.setAttribute('position', new T.BufferAttribute(new Float32Array(96 * 3), 3)); pg.setDrawRange(0, 0);
     this.aimPath = new T.Line(pg, pathMat); this.aimPath.visible = false; this.aimPath.frustumCulled = false; this.aimPath.renderOrder = 3; g.add(this.aimPath);
-    this.aimLand = ring(0.3, 0.46, '#ffd84a', 0.95); this.aimLand.renderOrder = 3;
+    this.aimLand = ring(0.3, 0.46, '#ff7ac8', 0.95); this.aimLand.renderOrder = 3;
     this.aimLand.add(new T.Mesh(new T.CircleGeometry(0.1, 14), this.aimLand.material));
     const wd = this.aimWall = new T.Mesh(new T.RingGeometry(0.16, 0.26, 24), aim.material); wd.rotation.y = Math.PI / 2; wd.visible = false; wd.renderOrder = 3; g.add(wd);
     this.materials?.push(pathMat, aim.material, this.aimLand.material);
