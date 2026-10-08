@@ -356,9 +356,10 @@ float bkN(vec3 x) {
 #endif`)
       .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
       {
-        // transparencia punteada cuando la cámara atraviesa la copa
+        // cuando la cámara atraviesa la copa, lo que queda pegado a ella desaparece (antes se iba punteando de 2 a 5 m y
+        // se veían motas sueltas por la pantalla; ahora el punteado es solo un borde fino)
         float dc = distance(vWPos, cameraPosition);
-        float a = smoothstep(2.2, 5.5, dc);
+        float a = smoothstep(3.2, 3.9, dc);
         vec2 fc = floor(mod(gl_FragCoord.xy, 4.0));
         float b = (fc.x * 4.0 + fc.y) / 16.0;
         b = fract(b * 7.0 / 16.0 * 16.0 / 7.0 + fc.x * 0.37 + fc.y * 0.61);
