@@ -30,7 +30,7 @@ const CSS = `
 .pel-knob i{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:rgba(255,255,255,.85)}
 .pel-stickhint{position:absolute;left:calc(env(safe-area-inset-left,0px) + 24px);bottom:calc(env(safe-area-inset-bottom,0px) + 24px);width:120px;height:120px;border-radius:50%;border:3px dashed rgba(255,255,255,.55);display:grid;place-items:center;font-size:var(--fs-xs);font-weight:700;text-align:center;opacity:.8;padding:8px}
 .pel-btns{position:absolute;right:calc(env(safe-area-inset-right,0px) + var(--thumb,16px));bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb,16px));display:flex;align-items:flex-end;gap:12px;pointer-events:auto}
-.pel-btn{padding:0;border:0;border-radius:50%;color:#2e1d00;font-family:var(--pel-display,'MZ Display',Nunito,sans-serif);font-weight:800;line-height:1.15;display:grid;place-items:center;cursor:pointer;touch-action:none;box-shadow:0 6px 0 rgba(0,0,0,.25),0 8px 22px rgba(0,0,0,.25);transition:transform .06s}
+.pel-btn{padding:0;border:0;border-radius:50%;color:#2a0638;font-family:var(--pel-display,'MZ Display',Nunito,sans-serif);font-weight:800;line-height:1.15;display:grid;place-items:center;cursor:pointer;touch-action:none;box-shadow:0 6px 0 rgba(0,0,0,.25),0 8px 22px rgba(0,0,0,.25);transition:transform .06s}
 .pel-btn:active,.pel-btn.down{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.25)}
 .pel-hit{width:104px;height:104px;font-size:var(--fs-xl);color:#fff;text-shadow:0 2px 0 rgba(74,10,94,.6);background:radial-gradient(circle at 50% 30%,#ff9bd8,#ff2bd6 60%,#c21cff);box-shadow:0 0 0 4px rgba(255,122,200,.35),0 6px 0 #8a1c8f,0 10px 22px rgba(0,0,0,.35)}
 .pel-hit.ready{animation:pel-pulse .5s infinite alternate}
@@ -44,9 +44,10 @@ const CSS = `
 .pel-hit.full::after,.pel-cut.full::after,.pel-drop.full::after{background:#ff2e88;animation:pel-full .25s infinite alternate}
 @keyframes pel-full{to{filter:brightness(1.6)}}
 .pel-panel{position:absolute;inset:0;display:grid;place-items:center;background:rgba(14,4,34,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);pointer-events:auto;padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 16px)}
-.pel-card{width:min(520px,100%);max-height:100%;overflow:auto;background:linear-gradient(180deg,#32136f 0%,#1c0b3a 100%);color:#f6f3fc;border:1px solid rgba(190,160,255,.3);border-radius:22px;padding:24px 24px 16px;box-shadow:0 24px 70px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08)}
-.pel-card h2{margin:0 0 4px;font-family:var(--pel-display,'MZ Display',Nunito,sans-serif);font-weight:400;font-size:var(--fs-2xl);line-height:1.15;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.3)}
-.pel-card .pel-sub{margin:0 0 12px;font-weight:900;color:#ff7ac8;font-size:var(--fs-sm);letter-spacing:0}
+.pel-card{position:relative;width:min(520px,100%);max-height:100%;overflow:auto;background:radial-gradient(80% 60% at 100% 0%,rgba(255,43,214,.2),transparent 60%),linear-gradient(170deg,#31106b 0%,#12052a 78%);color:#f6f3fc;border:1px solid rgba(201,178,255,.25);border-radius:4px;padding:24px 24px 16px;box-shadow:0 24px 70px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08);clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px);animation:gx-pop .4s cubic-bezier(.2,1.4,.4,1) both}
+.pel-card::before{content:'';position:absolute;left:16px;right:0;top:0;height:3px;background:var(--cta,#ff2bd6);box-shadow:0 0 18px rgba(255,43,214,.5)}
+.pel-card h2{margin:0 0 4px;font-family:var(--pel-display,'MZ Display',Nunito,sans-serif);font-weight:400;font-size:var(--fs-2xl);line-height:1.15;color:#fff;text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.5)}
+.pel-card .pel-sub{margin:0 0 12px;font:800 var(--fs-sm)/1.2 var(--f-cond,Nunito),sans-serif;color:#ff7ac8;letter-spacing:.06em;text-transform:uppercase}
 .pel-card ol{margin:0 0 12px;padding-left:24px;color:#e6def7}.pel-card li{margin:0 0 8px;line-height:1.3}.pel-card li::marker{color:#ff7ac8;font-weight:900}
 .pel-card .pel-ctrl{font-size:var(--fs-sm);line-height:1.45;background:rgba(255,255,255,.06);border:1px solid rgba(190,160,255,.22);color:#cbc2e0;border-radius:12px;padding:8px 12px;margin:0 0 16px}
 .pel-card .pel-big{font-family:var(--pel-display,'MZ Display',Nunito,sans-serif);font-weight:400;font-size:var(--fs-4xl);text-align:center;margin:8px 0;color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.35)}
@@ -56,7 +57,7 @@ const CSS = `
 .pel-levels{display:flex;gap:8px;margin:0 0 16px;flex-wrap:wrap}
 .pel-levels button{flex:1;min-width:90px;border-radius:12px;border:1px solid rgba(190,160,255,.35);background:rgba(255,255,255,.06);color:#fff;padding:8px 8px;font:inherit;font-weight:900;cursor:pointer}
 .pel-levels button[aria-pressed=true]{background:linear-gradient(180deg,#8338ec,#5e22c4);border-color:#c9a6ff;color:#fff;box-shadow:0 0 0 2px rgba(138,43,226,.35)}
-.pel-go{border:0;border-radius:14px;padding:12px 20px;font:inherit;font-weight:900;font-size:var(--fs-lg);min-height:48px;cursor:pointer;color:#2e1d00;background:linear-gradient(180deg,#ffc2ec 0%,#ff7ac8 50%,#ff3dbd 100%);box-shadow:0 4px 0 #8a1c8f,inset 0 1px 0 rgba(255,255,255,.6);text-shadow:0 1px 0 rgba(255,255,255,.45)}.pel-go:active{transform:translateY(2px);box-shadow:0 2px 0 #8a1c8f}
+.pel-go{border:0;border-radius:4px;padding:12px 24px;font:400 var(--fs-xl)/1 var(--f-display,'MZ Display'),Nunito,sans-serif;text-transform:uppercase;letter-spacing:.04em;min-height:48px;cursor:pointer;color:#fff;background:var(--cta,linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7));box-shadow:0 0 18px rgba(255,43,214,.45);text-shadow:0 2px 0 rgba(74,10,94,.5);clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%)}.pel-go:active{transform:translateY(2px);box-shadow:0 2px 0 #8a1c8f}
 .pel-go.alt{background:rgba(255,255,255,.08);border:1px solid rgba(190,160,255,.35);color:#fff;box-shadow:none;text-shadow:none}
 .pel-root.calling .pel-tip,.pel-root.calling .pel-q{opacity:0}
 .pel-root.paneled .pel-exit,.pel-root.paneled .pel-q,.pel-root.paneled .pel-call,.pel-root.paneled .pel-tip{visibility:hidden}
@@ -75,7 +76,7 @@ const CSS = `
 .pel-tour b{display:block;font-family:var(--pel-display,'MZ Display',Nunito,sans-serif);font-size:var(--fs-lg);font-weight:400;color:#ff7ac8}
 .pel-tour p{margin:4px 0 8px;font-size:var(--fs-sm);line-height:1.3}.pel-tour div{display:flex;gap:8px;justify-content:flex-end}
 .pel-tour button{border-radius:12px;border:1px solid rgba(190,160,255,.4);background:rgba(255,255,255,.08);color:#fff;font:inherit;font-weight:900;padding:8px 16px;min-height:44px;cursor:pointer}
-.pel-tour button.go{background:linear-gradient(180deg,#ffc2ec,#ff7ac8 50%,#ff3dbd);color:#2e1d00;border:0}
+.pel-tour button.go{background:linear-gradient(180deg,#ffc2ec,#ff7ac8 50%,#ff3dbd);color:#2a0638;border:0}
 /* energía de cada pelotari: arriba a la izquierda, bajo el botón de salir (verde, amarilla y roja al cansarse) */
 .pel-en{position:absolute;top:calc(env(safe-area-inset-top,0px) + 64px);left:calc(env(safe-area-inset-left,0px) + 8px);display:flex;flex-direction:column;gap:4px;padding:4px 8px;border-radius:10px;background:rgba(14,10,24,.58);font-size:var(--fs-xs);font-weight:800;line-height:1}
 .pel-en[hidden]{display:none}.pel-en div{display:flex;align-items:center;gap:8px}
@@ -136,8 +137,8 @@ const CSS = `
 .pel-auto span{flex:1;display:flex;flex-direction:column;gap:2px}.pel-auto b{font-size:var(--fs-sm);font-weight:900;line-height:1.3}.pel-auto small{font-size:var(--fs-xs);font-weight:600;line-height:1.3;color:#d8cff0}
 .pel-auto i{flex:none;position:relative;width:48px;height:28px;border-radius:999px;background:rgba(255,255,255,.18);transition:background .15s}
 .pel-auto i::after{content:'';position:absolute;top:4px;left:4px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .15s}
-.pel-auto[aria-checked=true] i{background:#ff7ac8}.pel-auto[aria-checked=true] i::after{transform:translateX(20px);background:#2e1d00}
-.pel-root.autohit .pel-hit::before{content:'AUTO';position:absolute;top:-8px;left:50%;transform:translateX(-50%);padding:2px 8px;border-radius:999px;background:#2e1d00;color:#ff7ac8;font:900 var(--fs-xs)/1.3 Nunito,sans-serif;letter-spacing:.06em}
+.pel-auto[aria-checked=true] i{background:#ff7ac8}.pel-auto[aria-checked=true] i::after{transform:translateX(20px);background:#2a0638}
+.pel-root.autohit .pel-hit::before{content:'AUTO';position:absolute;top:-8px;left:50%;transform:translateX(-50%);padding:2px 8px;border-radius:999px;background:#2a0638;color:#ff7ac8;font:900 var(--fs-xs)/1.3 Nunito,sans-serif;letter-spacing:.06em}
 `;
 
 export class PelotaHud {

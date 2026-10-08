@@ -25,7 +25,7 @@ const measure = (sel) => p.evaluate((sel) => {
 }, sel);
 const shot = async (name, sel) => { await p.waitForTimeout(1200); await p.screenshot({ path: `${out}/${name}.png` }); console.log(name.padEnd(12), JSON.stringify(await measure(sel))); };
 const want = (n) => !only || only.includes(n);
-for (const s of ['home', 'sports', 'avatars', 'map']) if (want(s)) { await p.evaluate((s) => window.__hub.go(s, undefined, true), s); await shot(s); }
+for (const s of ['home', 'sports', 'avatars', 'map', 'towns', 'nature', 'badges', 'passport', 'profile', 'escudos', 'cuentos', 'peaks']) if (want(s)) { await p.evaluate((s) => window.__hub.go(s, undefined, true), s); await shot(s); }
 if (want('menu')) { await p.evaluate(async () => { const t = await import('/src/game/torneo.js'); const ctx = { comarca: 'bidasoa', comarcaName: 'Bidasoa', towns: [{ id: 'lesaka', name: 'Lesaka' }, { id: 'bera', name: 'Bera' }] };
   window.__m = t.pelotaMenu(t.torneo({ name: 'Ane', town: 'Lesaka' }, ctx), 'Lesaka', t.torneo({ name: 'Ane', town: 'Lesaka' }, ctx, false, 'parejas')); }); await shot('menu', '.lg-root'); await p.evaluate(() => document.querySelector('.lg-root')?.remove()); }
 if (want('torneo')) { await p.evaluate(async () => { const t = await import('/src/game/torneo.js'); const ctx = { comarca: 'bidasoa', comarcaName: 'Bidasoa', towns: [{ id: 'lesaka', name: 'Lesaka' }, { id: 'bera', name: 'Bera' }] };

@@ -469,7 +469,7 @@ export class UI {
       const a0 = rel(target.x, target.z), out = Math.abs(a0) > span * 0.82, a = Math.max(-span * 0.82, Math.min(span * 0.82, a0));
       const x = W / 2 + a * k, sz = 6.5 * dpr;
       g.save(); g.translate(x, ty); g.shadowColor = 'rgba(255,122,200,.9)'; g.shadowBlur = 10 * dpr;
-      g.fillStyle = '#ff7ac8'; g.strokeStyle = '#2e1d00'; g.lineWidth = 1.5 * dpr; g.beginPath();
+      g.fillStyle = '#ff7ac8'; g.strokeStyle = '#2a0638'; g.lineWidth = 1.5 * dpr; g.beginPath();
       if (out) { const d = Math.sign(a0); g.moveTo(d * sz * 1.3, 0); g.lineTo(-d * sz * 0.4, -sz); g.lineTo(-d * sz * 0.4, sz); }
       else { g.moveTo(0, -sz); g.lineTo(sz, 0); g.lineTo(0, sz); g.lineTo(-sz, 0); }
       g.closePath(); g.fill(); g.shadowBlur = 0; g.stroke(); g.restore();
@@ -501,7 +501,7 @@ export class UI {
       const d = Math.hypot(x, y), R = S / 2 - 14;
       if (d > R) { x *= R / d; y *= R / d; }
       g.save(); g.translate(x, y); g.rotate(-camYaw);
-      g.fillStyle = '#ff7ac8'; g.strokeStyle = '#3a2200'; g.lineWidth = 2; g.beginPath(); g.arc(0, 0, 8, 0, 7); g.fill(); g.stroke();
+      g.fillStyle = '#ff7ac8'; g.strokeStyle = '#2a0638'; g.lineWidth = 2; g.beginPath(); g.arc(0, 0, 8, 0, 7); g.fill(); g.stroke();
       g.restore();
     }
     g.restore();
