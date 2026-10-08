@@ -19,18 +19,18 @@ const CSS = `.champ{position:fixed;inset:0;z-index:6000;display:grid;place-items
 .ch-rays{position:absolute;left:50%;top:42%;width:240vmax;height:240vmax;margin:-120vmax 0 0 -120vmax;background:repeating-conic-gradient(from 0deg,rgba(255,215,0,.16) 0 6deg,transparent 6deg 18deg);animation:chSpin 18s linear infinite;mask-image:radial-gradient(circle,#000 0,transparent 42%);-webkit-mask-image:radial-gradient(circle,#000 0,transparent 42%)}
 .ch-box{position:relative;display:grid;justify-items:center;gap:8px;text-align:center;padding:16px;max-width:min(560px,92vw)}
 .ch-obj{width:min(260px,52vmin);height:auto;filter:drop-shadow(0 0 30px rgba(255,210,80,.55)) drop-shadow(0 14px 18px rgba(0,0,0,.5));animation:chDrop 1.4s cubic-bezier(.2,1.4,.4,1) both, chFloat 3s ease-in-out 1.4s infinite}
-.ch-kick{font:900 14px/1.15 'Nunito',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#FFD700;animation:chUp .6s .9s both}
+.ch-kick{font:900 var(--fs-sm)/1.15 'Nunito',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#FFD700;animation:chUp .6s .9s both}
 .ch-title{margin:0;font:400 clamp(48px,11vmin,96px)/1 'Lilita One','Nunito',sans-serif;letter-spacing:.04em;background:linear-gradient(180deg,#fff6c8,#ffd23a 55%,#e08a12);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 0 #7a3a08) drop-shadow(0 10px 24px rgba(0,0,0,.5));animation:chPop .9s 1.1s cubic-bezier(.2,1.6,.4,1) both}
-.ch-name{font:900 24px/1.15 'Nunito',sans-serif;animation:chUp .6s 1.6s both}
-.ch-sub{font:700 16px/1.3 'Nunito',sans-serif;color:#e6dcff;animation:chUp .6s 1.9s both;text-wrap:balance}
-.ch-score{display:inline-flex;gap:10px;align-items:center;padding:6px 16px;border-radius:999px;background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(255,215,0,.35);font:900 20px/1.15 'Nunito',sans-serif;font-variant-numeric:tabular-nums;animation:chUp .6s 2.1s both}
-.ch-btn{margin-top:8px;min-width:220px;min-height:48px;border:0;border-radius:999px;background:linear-gradient(180deg,#ffe36a,#f2b92e);color:#2e1d00;font:900 18px/1.15 'Nunito',sans-serif;box-shadow:0 6px 0 #a87a12,0 12px 24px rgba(0,0,0,.35);cursor:pointer;animation:chUp .6s 2.6s both}
+.ch-name{font:900 var(--fs-xl)/1.15 'Nunito',sans-serif;animation:chUp .6s 1.6s both}
+.ch-sub{font:700 var(--fs-sm)/1.3 'Nunito',sans-serif;color:#e6dcff;animation:chUp .6s 1.9s both;text-wrap:balance}
+.ch-score{display:inline-flex;gap:10px;align-items:center;padding:6px 16px;border-radius:999px;background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(255,215,0,.35);font:900 var(--fs-lg)/1.15 'Nunito',sans-serif;font-variant-numeric:tabular-nums;animation:chUp .6s 2.1s both}
+.ch-btn{margin-top:8px;min-width:220px;min-height:48px;border:0;border-radius:999px;background:linear-gradient(180deg,#ffe36a,#f2b92e);color:#2e1d00;font:900 var(--fs-lg)/1.15 'Nunito',sans-serif;box-shadow:0 6px 0 #a87a12,0 12px 24px rgba(0,0,0,.35);cursor:pointer;animation:chUp .6s 2.6s both}
 @keyframes chIn{from{opacity:0}}@keyframes chSpin{to{transform:rotate(360deg)}}
 @keyframes chDrop{0%{transform:translateY(-70vh) rotate(-25deg) scale(.6)}70%{transform:translateY(0) rotate(4deg) scale(1.08)}100%{transform:none}}
 @keyframes chFloat{50%{transform:translateY(-8px)}}
 @keyframes chPop{0%{transform:scale(.2);opacity:0}100%{transform:none;opacity:1}}
 @keyframes chUp{from{transform:translateY(16px);opacity:0}}
-@media (orientation:landscape) and (max-height:520px){.ch-box{grid-template-columns:auto 1fr;column-gap:24px;text-align:left;justify-items:start;max-width:94vw}.ch-obj{grid-row:1/span 6;width:min(200px,40dvh)}.ch-title{font-size:clamp(40px,13dvh,64px)}.ch-name{font-size:20px}.ch-btn{min-height:44px}}`;
+@media (orientation:landscape) and (max-height:520px){.ch-box{grid-template-columns:auto 1fr;column-gap:24px;text-align:left;justify-items:start;max-width:94vw}.ch-obj{grid-row:1/span 6;width:min(200px,40dvh)}.ch-title{font-size:var(--fs-display)}.ch-name{font-size:var(--fs-lg)}.ch-btn{min-height:44px}}`;
 
 // confeti y fuegos artificiales en un lienzo (sin librerías)
 function party(cv, colors) {

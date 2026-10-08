@@ -65,14 +65,11 @@ export class PelotaMatch {
       ${canPairs ? `<div class="pel-levels pel-mod" role="group" aria-label="${P.label}">${mods.map(([k, l]) => `<button data-pel-mod="${k}" aria-pressed="${k === cur}">${l}</button>`).join('')}</div>` : ''}
       ${this.pairs ? `<p class="pel-pairs">${P.how(this.role === 'delantero')} ${P.energy}</p>` : ''}
       ${this.rivalHtml()}
-      <details class="pel-more" open><summary>${t.rulesTitle || TEXT.es.rulesTitle}</summary><ol>${t.rules.map(r => `<li>${r}</li>`).join('')}</ol>
+      <details class="pel-more"><summary>${t.rulesTitle || TEXT.es.rulesTitle}</summary><ol>${t.rules.map(r => `<li>${r}</li>`).join('')}</ol>
       <div class="pel-ctrl">${this.touch ? t.ctrlTouch : t.ctrlKeys}</div></details>
       ${this.o.fixedLevel ? '' : `<small class="pel-lbl">${t.level || 'Nivel'}</small><div class="pel-levels" role="group" aria-label="${t.level || 'Nivel'}">${lv.map(([k, l]) => `<button data-pel-lv="${k}" aria-pressed="${k === this.level}">${l}</button>`).join('')}</div>`}
       <div class="pel-row"><button class="pel-go alt" data-pel-x>${t.later}</button><button class="pel-go" data-pel-go>${t.play}</button></div>`);
-    // (si no cabe todo, como en el móvil en horizontal, las reglas y los controles se pliegan: así se ve sin desplazar
-    // todo lo que hay que elegir y los botones de jugar)
-    const card = p.querySelector('.pel-card'), more = p.querySelector('.pel-more');
-    if (more && card && card.scrollHeight > card.clientHeight + 2) more.open = false;
+    // (las reglas y los controles, plegados: se abren cuando se quieren leer)
     p.addEventListener('click', (e) => {
       const b = e.target.closest('button'); if (!b) return;
       if (b.dataset.pelLv) { this.level = b.dataset.pelLv; for (const x of p.querySelectorAll('[data-pel-lv]')) x.setAttribute('aria-pressed', x.dataset.pelLv === this.level); this.newGame(); }

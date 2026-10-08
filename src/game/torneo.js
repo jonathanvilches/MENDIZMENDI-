@@ -99,19 +99,19 @@ export const youOut = (T) => !T.done && !T.matches.some(m => T.players[m.a].you 
 
 // ---------------------------------------------------------------- pantalla: el cuadro del torneo
 const CSS = `.tq-bracket{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;align-items:center}
-.tq-wait{display:none;font-size:12px;color:#a99cc9;text-align:center;padding:2px 0 4px}
-@media (max-width:560px){.tq-bracket{grid-template-columns:1fr;gap:10px;align-items:start}.tq-col h4{text-align:left}.tq-m.tq-ph{display:none}.tq-col:has(.tq-wait){display:flex;align-items:baseline;gap:8px}.tq-col:has(.tq-wait) h4{margin:0}.tq-wait{display:block;text-align:left;padding:0}.tq-m{font-size:14px;padding:6px 10px}}
-@media (orientation:landscape) and (max-height:520px){.tq-bracket{gap:6px}.tq-m{font-size:12px;padding:3px 6px;gap:0}.tq-m small{display:none}.tq-col{gap:5px}.tq-col h4{font-size:12px;line-height:1.15;letter-spacing:0}.tq-col h4 small{display:block;font-size:12px;opacity:.75;text-transform:none}.tq-col h4 small i{display:none}}
-.tq-col{display:grid;gap:8px}.tq-col h4 small{font-size:12px}.tq-col h4 small i{font-style:normal}.tq-col h4{margin:0;text-align:center;font-size:12px;color:#cbbcf0;text-transform:uppercase;letter-spacing:.04em}
-.tq-m{border-radius:12px;background:rgba(255,255,255,.07);padding:5px 8px;font-size:13px;display:grid;gap:2px}
+.tq-wait{display:none;font-size:var(--fs-xs);color:#a99cc9;text-align:center;padding:2px 0 4px}
+@media (max-width:560px){.tq-bracket{grid-template-columns:1fr;gap:10px;align-items:start}.tq-col h4{text-align:left}.tq-m.tq-ph{display:none}.tq-col:has(.tq-wait){display:flex;align-items:baseline;gap:8px}.tq-col:has(.tq-wait) h4{margin:0}.tq-wait{display:block;text-align:left;padding:0}.tq-m{font-size:var(--fs-sm);padding:6px 10px}}
+@media (orientation:landscape) and (max-height:520px){.tq-bracket{gap:6px}.tq-m{font-size:var(--fs-xs);padding:3px 6px;gap:0}.tq-m small{display:none}.tq-col{gap:5px}.tq-col h4{font-size:var(--fs-xs);line-height:1.15;letter-spacing:0}.tq-col h4 small{display:block;font-size:var(--fs-xs);opacity:.75;text-transform:none}.tq-col h4 small i{display:none}}
+.tq-col{display:grid;gap:8px}.tq-col h4 small{font-size:var(--fs-xs)}.tq-col h4 small i{font-style:normal}.tq-col h4{margin:0;text-align:center;font-size:var(--fs-xs);color:#cbbcf0;text-transform:uppercase;letter-spacing:.04em}
+.tq-m{border-radius:12px;background:rgba(255,255,255,.07);padding:5px 8px;font-size:var(--fs-sm);display:grid;gap:2px}
 .tq-m div{display:flex;justify-content:space-between;gap:6px}.tq-m b{font-variant-numeric:tabular-nums}.tq-m .w{color:#ffd84a;font-weight:900}.tq-m .you{text-decoration:underline;text-decoration-color:#ffd84a}
-.tq-m small{color:#a99cc9;font-size:12px}
-.tq-st{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.32);border-radius:12px;padding:7px 12px;margin:2px 0 10px;font-size:14px}
-.tq-st b{color:#ffd84a}.tq-st span{white-space:nowrap}.tq-st i{font-style:normal;color:#ffd84a;letter-spacing:1px}.tq-st i u{color:rgba(255,255,255,.22);text-decoration:none}.tq-st p{margin:0;flex:1 1 100%;font-size:13px;color:#d8cff0}.tq-st p em{font-style:normal}
+.tq-m small{color:#a99cc9;font-size:var(--fs-xs)}
+.tq-st{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.32);border-radius:12px;padding:7px 12px;margin:2px 0 10px;font-size:var(--fs-sm)}
+.tq-st b{color:#ffd84a}.tq-st span{white-space:nowrap}.tq-st i{font-style:normal;color:#ffd84a;letter-spacing:1px}.tq-st i u{color:rgba(255,255,255,.22);text-decoration:none}.tq-st p{margin:0;flex:1 1 100%;font-size:var(--fs-sm);color:#d8cff0}.tq-st p em{font-style:normal}
 .tq-st2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 14px}.tq-st2 .pf{gap:2px 8px}.tq-st .pf-k{white-space:normal}
-.tq-pairs .tq-m{font-size:12px}.tq-pairs .tq-m small{display:none}
+.tq-pairs .tq-m{font-size:var(--fs-xs)}.tq-pairs .tq-m small{display:none}
 .tq-st>.pf{flex:1 1 100%;display:flex;flex-wrap:wrap;align-items:center;gap:2px 12px}.tq-st .pf>b{flex:1 1 100%}.tq-st .pf-k{color:#fff}.tq-st .pf-sh{flex:1 1 100%;white-space:normal}.tq-st .pf-sh em{font-style:normal;margin-right:10px;white-space:nowrap}.tq-st p strong{color:#ffb9a8}
-@media (orientation:landscape) and (max-height:520px){.tq-st{padding:4px 10px;margin:0 0 6px;font-size:12px}.tq-st p{font-size:12px}}.tq-txa{display:flex;align-items:center;gap:10px}.tq-txa svg{width:44px;height:30px}`;
+@media (orientation:landscape) and (max-height:520px){.tq-st{padding:4px 10px;margin:0 0 6px;font-size:var(--fs-xs)}.tq-st p{font-size:var(--fs-xs)}}.tq-txa{display:flex;align-items:center;gap:10px}.tq-txa svg{width:44px;height:30px}`;
 const TXAPELA = '<svg viewBox="0 0 64 40"><ellipse cx="32" cy="30" rx="29" ry="7" fill="#1b1b22"/><path d="M6 28c2-14 14-22 26-22s24 8 26 22c-8 4-44 4-52 0z" fill="#22232c"/><path d="M30 6c0-3 4-3 4 0" stroke="#22232c" stroke-width="3" fill="none"/><path d="M8 29c10 3 38 3 48 0" stroke="#c8222a" stroke-width="3" fill="none"/></svg>';
 function card(T, p, s, wIdx) {
   const P = T.players[p];
@@ -161,7 +161,7 @@ export function pelotaMenu(T, here = null, T2 = null) {
   css();   // (antes solo lo ponía el cuadro del torneo: la primera vez, la txapela salía enorme)
   return new Promise(res => {
     const sub = (X) => { const m = yourMatch(X); return X.done ? 'Nueva edición' : m ? `${m.round} contra ${esc(m.rival.name)} · aquí` : 'Siguiente ronda'; };
-    const small = (t) => `<br><small style="font:700 12px Nunito,sans-serif;opacity:.8">${t}</small>`, tx = (T.txapelas || 0) + (T2?.txapelas || 0);
+    const small = (t) => `<br><small style="font:700 var(--fs-xs) Nunito,sans-serif;opacity:.8">${t}</small>`, tx = (T.txapelas || 0) + (T2?.txapelas || 0);
     const r = lgPanel(`<div class="lg-head tq-txa">${TXAPELA}<div><small>${here ? `Frontón de ${esc(here)}` : 'Frontón del pueblo'}</small><h2>Pelota a mano</h2><span class="lg-note">${tx ? `Tus txapelas: ${tx}` : 'Partido libre o torneo por la txapela'}</span></div></div>
       <div class="lg-btns tq-menu"><button class="lg-btn go" data-a="torneo">Torneo individual${small(sub(T))}</button>${T2 ? `<button class="lg-btn go" data-a="torneoParejas">Torneo por parejas${small(sub(T2))}</button>` : ''}<button class="lg-btn" data-a="libre">Partido libre${small('Mano a mano o parejas · a 5 tantos')}</button><button class="lg-btn" data-a="exit">Salir</button></div>`);
     r.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; r.remove(); res(b.dataset.a); });
