@@ -85,3 +85,19 @@
 @keyframes gx-fill { from { width: 0; } }
 
 @media (prefers-reduced-motion: reduce) { .gx-bg::after, .gx-go::after, .gx-card .gx-face::after { animation: none; display: none; } .gx-stagger > *, .gx-card.pop, .gx-bar i u { animation: none; } }
+
+/* ---------- los bloques del menú (comarcas, pueblos, cartas de saberes, insignias, pasaporte, especies, escudos):
+   entran escalonados, y al pasar o tocar se elevan con un brillo fucsia */
+#hub :is(.ccard, .tile, .sb, .folkcard, .scard, .bcard, .ppage, .sg, .ar, .tcard, .cult) { animation: gx-in .45s cubic-bezier(.2, .9, .3, 1.15) both; transition: transform .18s, box-shadow .18s, border-color .18s, filter .18s; }
+#hub :is(.ccard, .tile, .sb, .folkcard, .scard, .bcard, .ppage, .sg, .ar, .tcard, .cult):nth-child(2) { animation-delay: .04s; }
+#hub :is(.ccard, .tile, .sb, .folkcard, .scard, .bcard, .ppage, .sg, .ar, .tcard, .cult):nth-child(3) { animation-delay: .08s; }
+#hub :is(.ccard, .tile, .sb, .folkcard, .scard, .bcard, .ppage, .sg, .ar, .tcard, .cult):nth-child(4) { animation-delay: .12s; }
+#hub :is(.ccard, .tile, .sb, .folkcard, .scard, .bcard, .ppage, .sg, .ar, .tcard, .cult):nth-child(5) { animation-delay: .16s; }
+#hub :is(.ccard, .tile, .sb, .folkcard, .scard, .bcard, .ppage, .sg, .ar, .tcard, .cult):nth-child(n+6) { animation-delay: .2s; }
+@media (hover: hover) { #hub :is(.ccard, .tile, .sb, .folkcard, .scard, .bcard, .sg, .tcard):hover { transform: translateY(-3px); border-color: var(--fx); box-shadow: 0 12px 28px rgba(0, 0, 0, .4), 0 0 18px rgba(255, 43, 214, .35); } }
+#hub :is(.ccard, .tile, .sb, .scard, .bcard, .sg, .tcard, .pst):active { transform: scale(.97); filter: brightness(1.12); }
+#hub .title { font-family: var(--f-display); text-transform: uppercase; }
+#hub .sec { font-family: var(--f-cond); font-weight: 800; letter-spacing: .12em; }
+#hub .sec::after { content: ''; flex: 1; height: 2px; margin-left: 8px; background: linear-gradient(90deg, rgba(255, 43, 214, .6), transparent); }
+#hub .btn.primary { background: var(--cta); color: #fff; border: 0; font-family: var(--f-display); text-transform: uppercase; letter-spacing: .04em; box-shadow: var(--glow); clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%); border-radius: 4px; }
+@media (prefers-reduced-motion: reduce) { #hub :is(.ccard, .tile, .sb, .folkcard, .scard, .bcard, .ppage, .sg, .ar, .tcard, .cult) { animation: none; } }

@@ -5,7 +5,7 @@
 // Los pelotaris del juego son inventados: sus datos salen de su nombre y de su pueblo (siempre los mismos para el mismo
 // pelotari, como sus cualidades) y van con ellas: el que pega fuerte es más alto y pesa más; el rápido, más ligero.
 // La tuya no lleva datos inventados: tus cualidades, tu pueblo y lo que has ganado en el juego.
-import { SHOTS, TEXT, statsTips } from './rules.js';
+import { SHOTS, TEXT, statsTips, pelotariRating } from './rules.js';
 
 const L = {
   es: { title: 'Ficha del pelotari', close: 'Cerrar', you: 'Tú', yours: 'Tu ficha', town: 'Pueblo', role: 'Puesto', age: 'Edad', height: 'Altura', weight: 'Peso',
@@ -65,8 +65,10 @@ function card(p, lang) {
   const shots = fav.length ? fav.map(k => `<li>${PT.names[k]}<i aria-label="${sty[k]}">${'★'.repeat(sty[k])}</i></li>`).join('') : `<li>${T.any}</li>`;
   // (un solo consejo: de qué tener cuidado o, si no hay, cómo ganarle)
   const warn = !p.you && top && sty[top] >= 3 ? PT.warn[top] : '', tip = warn ? '' : p.you ? T.yourTip : statsTips(st, lang)[0] || '';
+  // (la media, como en las cartas del torneo y de la colección: la misma cifra en todas partes)
+  const ovr = pelotariRating(st, `${name} ${town}`, p.you ? 2 + (p.record?.txapelas || 0) * 2 : 0).ovr, PT2 = TEXT[lang] || TEXT.es;
   return `<section class="pfx-id">
-      <div class="pfx-head"><span class="pfx-av ${p.side === 'rival' ? 'red' : 'blue'}" aria-hidden="true">${esc(initials(name))}</span>
+      <div class="pfx-head"><span class="pfx-av ${p.side === 'rival' ? 'red' : 'blue'}" aria-hidden="true"><b>${ovr}</b><small>${esc(PT2.ovr || 'Media')}</small></span>
         <div><small>${esc(p.you ? T.yours : `${p.side === 'rival' ? T.red : T.blue} · ${role}`)}</small><h3>${esc(name)}</h3>${kind ? `<span class="pfx-k">${esc(kind)}</span>` : ''}</div></div>
       <dl class="pfx-data">${data.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
       ${p.you ? '' : `<p class="pfx-note">${T.invented}</p>`}
@@ -81,32 +83,33 @@ function card(p, lang) {
 const CSS = `
 .pfx{position:fixed;inset:0;z-index:30010;display:grid;place-items:center;padding:calc(env(safe-area-inset-top,0px) + 12px) calc(env(safe-area-inset-right,0px) + 16px) calc(env(safe-area-inset-bottom,0px) + 12px) calc(env(safe-area-inset-left,0px) + 16px);background:rgba(10,4,24,.7);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);pointer-events:auto;font-family:Nunito,system-ui,sans-serif;color:#f6f3fc;animation:pfxIn .18s ease-out}
 @keyframes pfxIn{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:none}}
-.pfx-card{width:min(760px,100%);max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:12px;padding:16px 20px 20px;border-radius:20px;background:linear-gradient(180deg,#32136f 0%,#1c0b3a 100%);border:1px solid rgba(190,160,255,.3);box-shadow:0 24px 72px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08)}
+.pfx-card{position:relative;width:min(760px,100%);max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:12px;padding:16px 20px 20px;border-radius:4px;background:radial-gradient(80% 60% at 100% 0%,rgba(255,43,214,.22),transparent 60%),linear-gradient(170deg,#31106b 0%,#12052a 75%);border:1px solid rgba(201,178,255,.25);box-shadow:0 24px 72px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08);clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px);animation:gx-pop .4s cubic-bezier(.2,1.4,.4,1) both}
+.pfx-card::before{content:'';position:absolute;left:16px;right:0;top:0;height:3px;background:var(--cta);box-shadow:var(--glow)}
 .pfx-top{display:flex;align-items:center;gap:12px}
 .pfx-top>small{flex:1;font-size:var(--fs-xs);font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#cbbcf0}
 .pfx-tabs{flex:1;display:flex;gap:8px;min-width:0;overflow-x:auto}
 .pfx-tabs button{flex:0 0 auto;min-height:44px;padding:0 16px;border-radius:12px;border:1px solid rgba(190,160,255,.35);background:rgba(255,255,255,.06);color:#fff;font:900 var(--fs-sm)/1 Nunito,system-ui,sans-serif;cursor:pointer;display:flex;align-items:center;gap:8px}
-.pfx-tabs button i{width:8px;height:8px;border-radius:50%;background:#4aa3ff}.pfx-tabs button i.red{background:#ff5a4a}
-.pfx-tabs button[aria-selected=true]{background:linear-gradient(180deg,#8338ec,#5e22c4);border-color:#c9a6ff}
+.pfx-tabs button i{width:8px;height:8px;border-radius:50%;background:#5b4bff}.pfx-tabs button i.red{background:#ff2e88}
+.pfx-tabs button[aria-selected=true]{background:var(--cta);border-color:transparent}
 .pfx-x{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.08);display:grid;place-items:center;cursor:pointer}
 .pfx-x svg{width:20px;height:20px}
 .pfx-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px 24px}
 @media (max-width:600px){.pfx-body{grid-template-columns:1fr}}
 .pfx-head{display:flex;align-items:center;gap:12px;margin:0 0 12px}
-.pfx-av{flex:none;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-family:'MZ Display',Nunito,sans-serif;font-weight:400;font-size:var(--fs-xl);line-height:1;color:#fff;letter-spacing:.04em;border:2px solid rgba(255,255,255,.7)}
-.pfx-av.blue{background:linear-gradient(180deg,#2a6fe0,#17419e)}.pfx-av.red{background:linear-gradient(180deg,#d9412a,#9c1f17)}
-.pfx-head small{display:block;font-size:var(--fs-xs);font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#ff7ac8}
-.pfx-head h3{margin:0;font-family:'MZ Display',Nunito,sans-serif;font-weight:400;font-size:var(--fs-xl);line-height:1.15;color:#fff}
+.pfx-av{flex:none;min-width:66px;height:62px;padding:0 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}.pfx-av b{font:400 var(--fs-3xl)/.9 var(--f-display)}.pfx-av small{font:800 var(--fs-xs)/1.2 var(--f-cond)!important;letter-spacing:.1em!important;text-transform:uppercase;color:#fff!important}
+.pfx-av.blue{background:linear-gradient(160deg,#7b6bff,#3121b0)}.pfx-av.red{background:linear-gradient(160deg,#ff5fae,#a8135f)}
+.pfx-head small{display:block;font:800 var(--fs-sm)/1.2 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--rosa)}
+.pfx-head h3{margin:0;font:400 var(--fs-2xl)/1.05 var(--f-display);text-transform:uppercase;color:#fff}
 .pfx-k{display:block;font-size:var(--fs-sm);font-weight:800;color:#e6def7;line-height:1.3}
 .pfx-data{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0}
-.pfx-data div{padding:8px 12px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(190,160,255,.18);min-width:0}
-.pfx-data dt{font-size:var(--fs-xs);font-weight:900;letter-spacing:.04em;text-transform:uppercase;color:#cbbcf0;line-height:1.3}
-.pfx-data dd{margin:0;font-size:var(--fs-md);font-weight:900;color:#fff;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pfx-data div{padding:6px 12px;border-radius:2px;background:rgba(255,255,255,.05);border-left:3px solid var(--fx);min-width:0}
+.pfx-data dt{font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.08em;text-transform:uppercase;color:var(--lila)}
+.pfx-data dd{margin:0;font:400 var(--fs-lg)/1.2 var(--f-display);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pfx-sk h4{margin:0 0 8px;font-size:var(--fs-xs);font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#cbbcf0;line-height:1.3}
 .pfx-sk h4:not(:first-child){margin-top:12px}
 .pfx-bar{display:grid;grid-template-columns:88px 1fr 20px;align-items:center;gap:12px;min-height:28px;font-size:var(--fs-sm);font-weight:800}
-.pfx-bar i{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}.pfx-bar u{height:12px;border-radius:4px;background:rgba(255,255,255,.14)}.pfx-bar u.on{background:linear-gradient(180deg,#ffc2ec,#ff3dbd)}
-.pfx-bar b{text-align:right;color:#ff7ac8}
+.pfx-bar i{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;transform:skewX(-20deg)}.pfx-bar u{height:10px;border-radius:1px;background:rgba(255,255,255,.12)}.pfx-bar u.on{background:var(--cta);box-shadow:0 0 8px rgba(255,43,214,.5)}
+.pfx-bar b{text-align:right;color:#fff;font:400 var(--fs-lg)/1 var(--f-display)}
 .pfx-shots{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
 .pfx-shots li{padding:4px 12px;border-radius:999px;background:rgba(255,122,200,.1);border:1px solid rgba(255,122,200,.35);font-size:var(--fs-sm);font-weight:800;line-height:1.45;display:flex;gap:4px;align-items:center}
 .pfx-shots li i{font-style:normal;color:#ff7ac8;letter-spacing:.1em}
