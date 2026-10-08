@@ -18,9 +18,9 @@ await p.waitForSelector('[data-a="torneoParejas"]', { timeout: 120000 }); await 
 const menu = await p.evaluate(() => [...document.querySelectorAll('.lg-root [data-a]')].map(b => b.innerText.replace(/\s+/g, ' ')));
 await p.screenshot({ path: `${out}/${lang}-menu.png` });
 await click('[data-a="torneoParejas"]'); await p.waitForTimeout(2500);
-const panel = await p.evaluate(() => ({ cab: document.querySelector('.lg-head small')?.innerText, fichas: [...document.querySelectorAll('.tq-st .pf')].map(e => e.innerText.replace(/\s+/g, ' ').slice(0, 160)) }));
+const panel = await p.evaluate(() => ({ cab: document.querySelector('.lg-head small')?.innerText, fichas: [...document.querySelectorAll('.tq-duel .gx-card')].map(e => e.innerText.replace(/\s+/g, ' ').slice(0, 160)) }));   // (las cartas de tu partido)
 await p.screenshot({ path: `${out}/${lang}-torneo-parejas.png` });
-await p.evaluate(() => document.querySelector('.tq-st')?.scrollIntoView({ block: 'center' })); await p.waitForTimeout(300);
+await p.evaluate(() => document.querySelector('.tq-duel')?.scrollIntoView({ block: 'center' })); await p.waitForTimeout(300);
 await p.screenshot({ path: `${out}/${lang}-torneo-parejas-fichas.png` });
 await click('[data-a="play"]');
 await p.waitForFunction(() => window.__game.pelotaMatch?.pairs && !window.__game.pelotaMatch.loadingMates && document.querySelector('.pel-panel .pel-rv2'), null, { timeout: 300000 });
