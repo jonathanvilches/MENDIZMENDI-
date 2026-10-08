@@ -25,29 +25,23 @@ function armsCard(ui, { kicker, title, sub, canvas, stone = false, secs, more = 
   const all = [...secs, ...more].filter(x => x && x[1]);
   return new Promise(res => {
     ui.closeModal?.(); ui.sound?.ui?.('card');
-    const o = el(`<div class="mg-overlay escudo"><div class="mg-card">
-      <div class="es-pic"><div class="es-frame"><canvas width="${canvas.w}" height="${canvas.h}" aria-label="${esc(title)}"></canvas></div>
-        ${stone ? '<div class="es-toggle" role="group"><button class="on" data-s="0">En color</button><button data-s="1">En piedra</button></div>' : ''}
-        ${badge ? `<span class="badge">${iconSVG('book', 16)} ${esc(badge)}</span>` : ''}</div>
-      <div class="es-txt"><small class="kicker">${iconSVG('shield', 18)} ${esc(kicker)}</small><h2>${esc(title)}</h2>
-        ${sub ? `<p class="es-blazon">${esc(sub)}</p>` : ''}
-        <div class="es-tabs" role="tablist">${all.map(([t], i) => `<button role="tab" data-t="${i}" aria-selected="${i === 0}">${esc(t)}</button>`).join('')}</div>
-        <div class="es-scroll es-pane" role="tabpanel" data-vm="no">${all[0]?.[1] || ''}</div>
-        <div class="es-more" hidden>Desliza para leer más</div>
-        ${note ? `<p class="es-note">${esc(note)}</p>` : ''}
-        <button class="btn primary next">Seguir explorando</button></div></div></div>`);
+    const o = el(`<div class="mg-overlay escudo ix-ov"><div class="mg-card ix">
+      <div class="ix-media"><figure class="ix-frame paper"><canvas width="${canvas.w}" height="${canvas.h}" aria-label="${esc(title)}"></canvas></figure>
+        ${badge ? `<span class="ix-tag badge">${esc(badge)}</span>` : ''}
+        ${stone ? '<div class="ix-shots es-toggle" role="group"><button type="button" data-s="0" aria-pressed="true">En color</button><button type="button" data-s="1" aria-pressed="false">En piedra</button></div>' : ''}</div>
+      <div class="ix-main">
+        <header class="ix-head"><p class="ix-kicker">${esc(kicker)}</p><h2 class="ix-title">${esc(title)}</h2>${sub ? `<div class="ix-sub"><i class="es-blazon">${esc(sub)}</i></div>` : ''}</header>
+        <div class="ix-tabs es-tabs" role="tablist">${all.map(([t], i) => `<button type="button" role="tab" data-t="${i}" aria-selected="${i === 0}">${esc(t)}</button>`).join('')}</div>
+        <div class="ix-pane es-pane" role="tabpanel">${all[0]?.[1] || ''}</div>
+        ${note ? `<p class="ix-text es-note">${esc(note)}</p>` : ''}
+        <div class="ix-foot"><button class="btn primary next">Seguir explorando</button></div></div></div></div>`);
     document.body.appendChild(o); ui.modal = o;
     const cv = o.querySelector('canvas'); canvas.draw(cv, false);
-    o.querySelectorAll('.es-toggle button').forEach(b => b.onclick = () => { o.querySelectorAll('.es-toggle button').forEach(x => x.classList.toggle('on', x === b)); canvas.draw(cv, b.dataset.s === '1'); ui.sound?.ui?.('click'); });
+    o.querySelectorAll('.es-toggle button').forEach(b => b.onclick = () => { o.querySelectorAll('.es-toggle button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); canvas.draw(cv, b.dataset.s === '1'); ui.sound?.ui?.('click'); });
     const pane = o.querySelector('.es-pane');
-    // (las pestañas van en una fila; solo si no caben, la fila se desliza y el borde se difumina para que se vea)
-    requestAnimationFrame(() => { const t = o.querySelector('.es-tabs'); t?.classList.toggle('over', t.scrollWidth > t.clientWidth + 1); });
-    o.querySelectorAll('.es-tabs button').forEach(b => b.onclick = () => { o.querySelectorAll('.es-tabs button').forEach(x => x.setAttribute('aria-selected', x === b)); pane.innerHTML = all[+b.dataset.t][1]; pane.scrollTop = 0; upd(); b.scrollIntoView?.({ block: 'nearest', inline: 'nearest' }); ui.sound?.ui?.('click'); });
+    // (las pestañas van en una fila; si no caben, la fila se desliza de lado)
+    o.querySelectorAll('.es-tabs button').forEach(b => b.onclick = () => { o.querySelectorAll('.es-tabs button').forEach(x => x.setAttribute('aria-selected', x === b)); pane.innerHTML = all[+b.dataset.t][1]; pane.scrollTop = 0; b.scrollIntoView?.({ block: 'nearest', inline: 'nearest' }); ui.sound?.ui?.('click'); });
     const next = o.querySelector('.next'); setTimeout(() => next.focus({ preventScroll: true }), 60);
-    // si el texto no cabe, un aviso al pie de la columna (se va al llegar al final)
-    const sc = o.querySelector('.es-scroll'), mo = o.querySelector('.es-more');
-    const upd = () => { mo.hidden = !(sc.scrollHeight > sc.clientHeight + 4 && sc.scrollTop + sc.clientHeight < sc.scrollHeight - 8); };
-    sc.addEventListener('scroll', upd, { passive: true }); setTimeout(upd, 80);
     const close = () => { removeEventListener('keydown', k, true); o.classList.add('out'); setTimeout(() => o.remove(), 250); if (ui.modal === o) ui.modal = null; ui.sound?.ui?.('click'); res({ errors: 0 }); };
     const k = (e) => { e.stopImmediatePropagation(); if (['enter', ' ', 'e', 'escape'].includes(e.key.toLowerCase())) { e.preventDefault(); close(); } };
     setTimeout(() => addEventListener('keydown', k, true), 300);

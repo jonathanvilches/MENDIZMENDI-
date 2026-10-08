@@ -210,6 +210,8 @@ export const EU_EXACT = {
     'zazpi jardunaldi, denak denen aurka zure taldeko klubekin. Zure partidak zuk jokatzen dituzu (edo simulatu); gainerakoak berez simulatzen dira. Partida guztiak El Sadarren jokatzen dira. Hiru puntu irabaziz gero eta bat berdinduz gero.',
   'EN CASA · EL SADAR': 'ETXEAN · EL SADAR', 'FUERA · EL SADAR': 'KANPOAN · EL SADAR', 'En El Sadar': 'El Sadarren', 'en El Sadar': 'El Sadarren',
   'Ver más': 'Gehiago ikusi', 'Ver menos': 'Gutxiago ikusi',
+  // (fichas de información: pestañas y fotos)
+  'Cómo es': 'Nolakoa den', 'Dónde vive': 'Non bizi den', 'Cuándo': 'Noiz', 'La planta': 'Landarea', 'La flor': 'Lorea', 'La hoja': 'Hostoa', 'En color': 'Koloretan', 'En piedra': 'Harrian',
   'Partido rápido': 'Partida azkarra', 'Iruña contra el visitante': 'Iruña bisitariaren aurka', 'En El Sadar · elige tu club': 'El Sadarren · aukeratu zure kluba',
   'Liga Navarra con tu club y amistosos contra cualquier club. Todos los partidos, en El Sadar.': 'Nafarroako Liga zure klubarekin eta lagunartekoak edozein klubaren aurka. Partida guztiak, El Sadarren.',
   'Tienes la Liga Navarra contra los clubes de la zona, amistosos contra cualquier club de Navarra y el partido del pueblo. Todos se juegan en El Sadar, el estadio de Iruña.': 'Nafarroako Liga duzu inguruko kluben aurka, lagunartekoak Nafarroako edozein klubaren aurka eta herriko partida. Denak El Sadarren jokatzen dira, Iruñeko estadioan.',
@@ -262,6 +264,7 @@ const ala = (n) => /(ia|ea)$/.test(n) ? n.slice(0, -1) + 'ra' : /[aeiou]$/i.test
 const eu = (n) => EU_EXACT[n] ?? n;
 export const EU_RX = [
   [/^Saludar a (.+) · (.+)$/, (m, a, t) => `Agurtu: ${a} · ${eu(t)}`],
+  [/^Foto: (.+) · iNaturalist · CC0$/, 'Argazkia: $1 · iNaturalist · CC0'], [/^Foto: iNaturalist · CC0$/, 'Argazkia: iNaturalist · CC0'],
   [/^Frontón cubierto de (.+)$/, (m, a) => `${loc(a)} frontoi estalia`], [/^Torneo de mano · (.+)$/, (m, a) => `Buruz buruko txapelketa · ${eu(a)}`], [/^Torneo por parejas · (.+)$/, (m, a) => `Binakako txapelketa · ${eu(a)}`],
   [/^Liga Navarra · Jornada (\d+)$/, 'Nafarroako Liga · $1. jardunaldia'], [/^Fútbol 11 · (.+)$/, (m, a) => `11ko futbola · ${eu(a)}`], [/^Fútbol sala · (.+)$/, (m, a) => `Areto futbola · ${eu(a)}`],
   [/^(\d+)\/(\d+) descubiertos$/, '$1/$2 aurkituak'], [/^(\d+) txapelas$/, '$1 txapela'], [/^A (\d+) tantos$/, '$1 tantora'], [/^(Cuartos de final|Semifinales|Final) · rival: (.+)$/, (m, a, b) => `${eu(a)} · aurkaria: ${b}`],

@@ -13,6 +13,7 @@ import '@fontsource/nunito/latin-900.css';
 import '@fontsource/nunito/latin-700-italic.css';   // (la voz del narrador va en cursiva de verdad, no inclinada a la fuerza)
 import './hub/hub.css';
 import './ui/sport.css';
+import './ui/infocard.css';
 import * as HF from './world/heightfield.js';
 import * as LAYOUT from './world/layout.js';
 import { PLACES } from './world/layout.js';

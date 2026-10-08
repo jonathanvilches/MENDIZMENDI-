@@ -14,9 +14,9 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 const shuffle = (a, rnd = Math.random) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
 // Capa modal común: bloquea el juego, gestiona teclado y limpieza
-function overlay(ui, cls, html) {
+function overlay(ui, cls, html, card = '') {
   ui.closeModal?.();
-  const o = el(`<div class="mg-overlay ${cls}"><div class="mg-card">${html}</div></div>`);
+  const o = el(`<div class="mg-overlay ${cls}"><div class="mg-card${card ? ' ' + card : ''}">${html}</div></div>`);
   document.body.appendChild(o);
   ui.modal = o;
   return o;
@@ -31,11 +31,17 @@ export function infoCard(ui, opts) {
 function infoCard_(ui, { icon = 'church', kicker = '', title, text, extra = '', image = '', button = 'Seguir explorando', badge = '' }) {
   return new Promise(res => {
     ui.sound.ui('card');
-    const o = overlay(ui, 'info', `
-      <div class="ic-head">${image ? `<img class="ic-img" src="${image}" alt="">` : `<div class="ic-icon">${iconSVG(icon, 84)}</div>`}${badge ? `<div class="ic-badge">${badge}</div>` : ''}</div>
-      <small class="kicker">${esc(kicker)}</small><h2>${esc(title)}</h2><p>${esc(text)}</p>${extra}
-      <button class="btn primary">${esc(button)}</button>`);
-    const b = o.querySelector('button'); setTimeout(() => b.focus({ preventScroll: true }), 60);
+    // (las fichas de varias páginas dicen en cuál vas con unas marcas junto al botón: «Seguir (2/3)»)
+    const pg = /\((\d+)\/(\d+)\)/.exec(button) || /(\d+) de (\d+)/.exec(kicker);
+    const dots = pg && +pg[2] > 1 && +pg[2] <= 8 ? `<div class="ix-dots">${Array.from({ length: +pg[2] }, (_, i) => `<i class="${i < +pg[1] ? 'on' : ''}"></i>`).join('')}</div>` : '';
+    const o = overlay(ui, 'info ix-ov', `
+      <div class="ix-media"><figure class="ix-frame icon">${image ? `<img class="ix-sign" src="${image}" alt="">` : iconSVG(icon, 160)}</figure>${badge ? `<span class="ix-tag">${esc(badge)}</span>` : ''}</div>
+      <div class="ix-main">
+        <header class="ix-head"><p class="ix-kicker">${esc(kicker)}</p><h2 class="ix-title">${esc(title)}</h2></header>
+        <div class="ix-body">${text ? `<p class="ix-text">${esc(text)}</p>` : ''}${extra}</div>
+        <div class="ix-foot">${dots}<button class="btn primary">${esc(button)}</button></div>
+      </div>`, 'ix fit');
+    const b = o.querySelector('button.btn'); setTimeout(() => b.focus({ preventScroll: true }), 60);
     const k = (e) => { e.stopImmediatePropagation(); if (['e', 'enter', ' ', 'escape'].includes(e.key.toLowerCase())) { e.preventDefault(); close(); } };
     const close = () => { ui.sound.ui('click'); done(ui, o, k); res(); };
     setTimeout(() => addEventListener('keydown', k, true), 300);
@@ -219,13 +225,15 @@ export function missionComplete(ui, opts) {
 function missionComplete_(ui, { title, text, xp, card, saber, icon = 'star', progress, stamp = null, next = 'Seguir jugando' }) {
   return new Promise(res => {
     ui.sound.fanfare?.();
-    const o = overlay(ui, 'complete', `
-      <div class="burst"></div>
-      ${stamp ? `<img class="stampimg" src="${stamp}" alt="">` : `<div class="ic-icon big">${iconSVG(icon, 110)}</div>`}
-      <small class="kicker">${stamp ? '¡Sello conseguido!' : '¡Misión cumplida!'}</small><h2>${esc(title)}</h2><p>${esc(text || '')}</p>
-      <div class="rewards">${xp ? `<span class="rw">${iconSVG('xp', 26)} +${xp} XP</span>` : ''}${card ? `<span class="rw">${iconSVG('book', 26)} Carta: ${esc(card)}</span>` : ''}${saber ? `<span class="rw saber">${iconSVG(saber.icon, 26)} Saber de Navarra: ${esc(saber.name)}</span>` : ''}</div>
-      ${progress ? `<div class="prog"><i style="width:${Math.round(progress.done / progress.total * 100)}%"></i><span>${progress.done}/${progress.total} misiones en ${esc(progress.name)}</span></div>` : ''}
-      <button class="btn primary">${esc(next)}</button>`);
+    const o = overlay(ui, 'complete ix-ov', `
+      <div class="ix-media"><figure class="ix-frame icon"><div class="burst"></div>${stamp ? `<img class="stampimg" src="${stamp}" alt="">` : iconSVG(icon, 160)}</figure></div>
+      <div class="ix-main">
+        <header class="ix-head"><p class="ix-kicker">${stamp ? '¡Sello conseguido!' : '¡Misión cumplida!'}</p><h2 class="ix-title">${esc(title)}</h2></header>
+        <div class="ix-body">${text ? `<p class="ix-text">${esc(text)}</p>` : ''}
+          <div class="rewards">${xp ? `<span class="rw">${iconSVG('xp', 26)} +${xp} XP</span>` : ''}${card ? `<span class="rw">${iconSVG('book', 26)} Carta: ${esc(card)}</span>` : ''}${saber ? `<span class="rw saber">${iconSVG(saber.icon, 26)} Saber de Navarra: ${esc(saber.name)}</span>` : ''}</div>
+          ${progress ? `<div class="prog"><i style="width:${Math.round(progress.done / progress.total * 100)}%"></i><span>${progress.done}/${progress.total} misiones en ${esc(progress.name)}</span></div>` : ''}</div>
+        <div class="ix-foot"><button class="btn primary">${esc(next)}</button></div>
+      </div>`, 'ix fit');
     const b = o.querySelector('button'); setTimeout(() => b.focus({ preventScroll: true }), 80);
     const k = (e) => { e.stopImmediatePropagation(); if (['e', 'enter', ' ', 'escape'].includes(e.key.toLowerCase())) { e.preventDefault(); close(); } };
     const close = () => { ui.sound.ui('click'); done(ui, o, k); res(); };
