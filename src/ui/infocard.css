@@ -140,7 +140,9 @@
 #mapbox .mapcard .mc-t b { font: 400 var(--fs-lg)/1.05 var(--f-display); text-transform: uppercase; color: #fff; overflow-wrap: normal; }
 #mapbox .mapcard .mc-t small { margin-top: 4px; color: var(--lila); font-size: var(--fs-sm); line-height: 1.35; }
 #mapbox .mapcard .mc-b { grid-column: 1 / -1; margin: 0; display: flex; gap: 8px; }
-#mapbox .mapcard .mc-b .btn { flex: 1 1 0; min-width: 0; min-height: 44px; padding: 8px 12px; font-size: var(--fs-sm); white-space: nowrap; }
+#mapbox .mapcard .mc-b .btn { flex: 1 1 0; min-width: 0; min-height: 44px; padding: 8px 12px; font-size: var(--fs-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #mapbox .mapcard .btn.on { background: rgba(47, 211, 138, .12); border: 1px solid rgba(47, 211, 138, .55); color: #7dffc0; }
 #mapbox .mapcard .mc-x { top: 8px; right: 8px; border-radius: 4px; }
 @media (orientation: landscape) and (max-height: 520px) { #mapbox .mapcard { bottom: 8px; } }
+/* (en el móvil de pie, a todo el ancho y con un botón encima del otro: así los dos se leen enteros) */
+@media (max-width: 560px) { #mapbox .mapcard { width: calc(100% - 16px); } #mapbox .mapcard .mc-b { flex-direction: column; } #mapbox .mapcard .mc-b .btn { flex: none; width: 100%; } }
