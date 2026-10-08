@@ -510,10 +510,14 @@ export class TownGame {
   // Vigilante: si el jugador se queda congelado (o en modo minijuego) sin ninguna ventana, diálogo ni escena abiertos,
   // se le devuelve el control. Evita que un fallo en una ventana deje el juego bloqueado.
   watchdog(dt) {
-    const P = this.player, open = this.ui.busy || document.querySelector('.mg-overlay, .dogpick, .bagpanel, .ctxlost');
+    const P = this.player, open = this.ui.busy || this.sportBusy || document.querySelector('.mg-overlay, .dogpick, .bagpanel, .ctxlost, .lg-root');
     const stuck = !open && !this.follow.cinematic && ((this.mode === 'mini') || (this.mode === 'play' && P.frozen));
     this.stuckT = stuck ? (this.stuckT || 0) + dt : 0;
     if (this.stuckT > 15) { this.stuckT = 0; P.frozen = false; if (this.mode === 'mini') this.mode = 'play'; console.warn('[vigilante] control devuelto al jugador'); (window.__errors ||= []).push('vigilante'); }
+    // un menú o partido de pelota o fútbol que se quedó a medias sin nada en pantalla: el pueblo vuelve a responder
+    const idle = this.sportBusy && !this.sportMode && this.mode === 'play' && !this.ui.busy && !this.pelotaMatch && !this.pelotaLoading && !this.altScene && !document.querySelector('.lg-root, .pel-root, .mg-overlay, .fb-root, .champ, #fade.on');
+    this.sportIdleT = idle ? (this.sportIdleT || 0) + dt : 0;
+    if (this.sportIdleT > 45) { this.sportIdleT = 0; this.sportBusy = false; P.frozen = false; this.ui.hudVisible?.(true); console.warn('[vigilante] menú de deporte sin menú: el pueblo vuelve a responder'); (window.__errors ||= []).push('vigilante-deporte'); }
   }
   // ---------- Bucle ----------
   update(dt) {
@@ -555,10 +559,10 @@ export class TownGame {
     }
     for (const g of this.gates) if (g.obj.visible) g.obj.userData.torus.rotation.z += dt * (g.next ? 2 : 0.3);
     this.agro?.update(dt, P, this.particles);
-    if (this.mode === 'play') this.mochila?.update(dt, P);
+    if (this.mode === 'play' && !this.sportBusy) this.mochila?.update(dt, P);   // (en los menús de pelota no da hambre)
     this.flora?.update(dt, P.pos);
     if (this.mode !== 'futbol') this.perro?.update(dt);
-    if (!this.dogHi && this.mode === 'play' && !this.ui.busy && this.elapsed > 5) { this.dogHi = true; this.perro?.hello(); }
+    if (!this.dogHi && this.mode === 'play' && !this.ui.busy && !this.sportBusy && this.elapsed > 5) { this.dogHi = true; this.perro?.hello(); }
     this.gearProps?.night(this.isNight() ? 1 : 0);
     if (this.herd) this.updateHerd(dt);
     this.jornales?.update(dt);
@@ -743,7 +747,8 @@ export class TownGame {
   }
   updateInteraction() {
     if (this.mode === 'futbol') return;
-    if (this.mode !== 'play' || this.ui.busy) { this.ui.setPrompt(null); return; }
+    // (con un menú o un partido de pelota a medias, nada del pueblo: antes, con E, se empezaba otro partido detrás)
+    if (this.mode !== 'play' || this.ui.busy || this.sportBusy) { this.ui.setPrompt(null); return; }
     const P = this.player.pos;
     let best = null, bd = 1e9;
     for (const it of this.interactables()) { const d = Math.hypot(it.x - P.x, it.z - P.z); if (d < it.r && d < bd) { bd = d; best = it; } }
@@ -800,16 +805,25 @@ export class TownGame {
     if (it.kind === 'creature') return this.meetCreature(it.M);
     if (it.kind === 'fountain') { this.particles.emit({ x: it.x, y: TOWN.fountain.y + 1.4, z: it.z }, { n: 20, color: '#bfe8ff', speed: 1.5, size: 0.25, life: 0.8 }); this.sound.splash(this.player.pos, 0.6); return this.mochila.fountain(); }
   }
+  // un solo menú o partido a la vez (pelota o fútbol): mientras dura, nada del pueblo responde y el jugador no se mueve
+  // detrás de los menús; al acabar, todo como estaba (si el pueblo se ha rehecho o se ha viajado, el nuevo manda)
+  async sportGuard(fn) {
+    if (this.sportBusy || this.mode !== 'play') return;
+    this.sportBusy = true; this.player.frozen = true;
+    try { return await fn(); }
+    finally { if (!this.disposed) { this.sportBusy = false; this.player.frozen = false; this.ui.hudVisible(true); } }
+  }
   // Partido de fútbol en El Sadar con la entrenadora de la cantera
-  async playFutbol() {
-    const a = this.coach; if (!a || this.mode !== 'play') return;
+  playFutbol() { return this.sportGuard(() => this.futbolSadar()); }
+  async futbolSadar() {
+    const a = this.coach; if (!a) return;
     this.player.frozen = true;
     try {
       const first = !this.futSeen; this.futSeen = true;
       await this.say(a, first ? ['¡Kaixo! Soy Leire, entrenadora de la cantera de Iruña. ¿Te atreves a jugar en El Sadar?',
         'Un partido once contra once en el campo de El Sadar, con porteros y árbitro. ¡Al campo!',
         'Con el balón: PASE y TIRO (mantenlo pulsado para chutar más fuerte). Sin balón: ROBO cuando se le separe del pie, o ENTRADA. ¡Aupa Iruña!'] : ['¿Otro partido? ¡La grada está llena!']);
-    } finally { this.player.frozen = false; a.talking = 0; }
+    } finally { a.talking = 0; }
     const Futbol = await loadFutbol();
     this.futbol = new Futbol(this, this.sadar);
     const r = await this.futbol.run();
@@ -820,8 +834,9 @@ export class TownGame {
   }
   // Fútbol en el pueblo con el entrenador del club. Es un minijuego: la primera vez, un partido contra el equipo vecino
   // da el sello de fútbol del pasaporte; después, otro partido cuando quieras.
-  async playFutsal() {
-    const a = this.futsalCoach; if (!a || this.mode !== 'play') return;
+  playFutsal() { return this.sportGuard(() => this.futbolPueblo()); }
+  async futbolPueblo() {
+    const a = this.futsalCoach; if (!a) return;
     const st = (townState(profile(), this.def.id).futsal ||= { step: 0, tries: 0, sello: false });
     const town = this.def.name.split(' /')[0], club = clubOfTown(this.def.id);
     const local = club ? teamOfClub(club.id) : { name: town, short: town.normalize('NFD').replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase() };
@@ -838,7 +853,7 @@ export class TownGame {
           ...(this.pista ? [`Juega un partido contra ${rivalName}. Si ganas, te pongo el sello de fútbol en el pasaporte.`] : [])].filter(Boolean));
         st.step = this.pista ? 2 : 0; if (!this.pista) st.met = true; saveProfile();
       } else await this.say(a, [club ? `¡Aupa ${club.name}! ¿Qué jugamos hoy?` : '¿Qué jugamos hoy?']);
-    } finally { this.player.frozen = false; a.talking = 0; }
+    } finally { a.talking = 0; }   // (el jugador sigue quieto con el menú del club delante)
     // menú del club (como en los juegos de fútbol): liga, partido en el pueblo, amistoso. En la liga juegas con «tu club» (el del primer pueblo
     // en el que la empezaste); cada jornada se juega en el campo del de casa, así que se viaja de pueblo en pueblo
     const P = profile(), myClub = P.futbolClub || club?.id, S = myClub ? ligaSeason(myClub) : null;
@@ -883,33 +898,39 @@ export class TownGame {
     return [...own, ...near].slice(0, Math.max(own.length, 4)).map(l => ({ id: l.id, name: l.name.split(' /')[0] }));
   }
   // Partido libre en el frontón del pueblo (fuera de las misiones): contra el pelotari o el anfitrión de la misión
+  // (un solo menú o partido de pelota a la vez: mientras dura, el jugador quieto y sin los botones del pueblo debajo
+  // del menú; al acabar, todo como estaba)
   async freePelota() {
     const a = this.pelotari || this.missions.find(M => M.type === 'pelota')?.host;
-    if (!this.fronton || !a || this.mode !== 'play') return;
-    this.player.frozen = true;
+    if (!this.fronton || !a || this.mode !== 'play' || this.sportBusy) return;
+    this.sportBusy = true; this.player.frozen = true;
     try {
       const first = !this.pelotaSeen; this.pelotaSeen = true;
       await this.say(a, first ? ['¡Aupa! ¿Echamos un partido de pelota a mano?', 'La pelota tiene que dar en el frontis por encima de la chapa, la raya roja. Ve al círculo verde y pulsa GOLPE cuando brille.']
         : ['¿Otro partido? ¡Vamos!']);
-    } finally { this.player.frozen = false; a.talking = 0; }
-    // partido libre o el torneo de mano de la comarca (la txapela, parte de la misión de la comarca)
-    const P = profile(), town = this.def.name.split(' /')[0], cm = this.comarca?.name || 'la comarca';
-    const ctx = { comarca: this.def.comarca, comarcaName: cm, towns: this.comarcaVenues() };
-    const you = { name: P.name || 'Tú', town };
-    const pick = await pelotaMenu(torneo(you, ctx), town, torneo(you, ctx, false, 'parejas'));
-    if (this.disposed || pick === 'exit') return;
-    if (pick === 'torneo') return this.pelotaTorneo(a, ctx);
-    if (pick === 'torneoParejas') return this.pelotaTorneo(a, ctx, 'parejas');
-    const r = await this.fronton.play(this, a);
-    if (this.disposed || r.quit) return;
-    const best = (townState(profile(), this.def.id).best ||= {});
-    if (r.win) { best.pelota = (best.pelota || 0) + 1; saveProfile(); }
-    await this.say(a, [r.win ? `¡${r.you} a ${r.cpu}! Juegas como un pelotari de verdad. Vuelve cuando quieras.` : `${r.you} a ${r.cpu}. ¡Casi! Aquí estaré para la revancha.`]);
+      a.talking = 0;
+      // partido libre o el torneo de mano de la comarca (la txapela, parte de la misión de la comarca)
+      const P = profile(), town = this.def.name.split(' /')[0], cm = this.comarca?.name || 'la comarca';
+      const ctx = { comarca: this.def.comarca, comarcaName: cm, towns: this.comarcaVenues() };
+      const you = { name: P.name || 'Tú', town };
+      this.ui.hudVisible(false);
+      const pick = await pelotaMenu(torneo(you, ctx), town, torneo(you, ctx, false, 'parejas'));
+      if (this.disposed || pick === 'exit') return;
+      if (pick === 'torneo') return await this.pelotaTorneo(a, ctx);
+      if (pick === 'torneoParejas') return await this.pelotaTorneo(a, ctx, 'parejas');
+      const r = await this.fronton.play(this, a);
+      if (this.disposed || r.quit) return;
+      const best = (townState(profile(), this.def.id).best ||= {});
+      if (r.win) { best.pelota = (best.pelota || 0) + 1; saveProfile(); }
+      this.player.frozen = true;
+      await this.say(a, [r.win ? `¡${r.you} a ${r.cpu}! Juegas como un pelotari de verdad. Vuelve cuando quieras.` : `${r.you} a ${r.cpu}. ¡Casi! Aquí estaré para la revancha.`]);
+    } finally { if (!this.disposed) { this.sportBusy = false; this.player.frozen = false; a.talking = 0; this.ui.hudVisible(true); } }
   }
   // Campeonato de pelota desde el menú (sin misiones): el frontón del pueblo elegido con su menú de pelota (partido
   // libre o torneo por la txapela, todos los partidos aquí, sin viajar). Al salir del menú, de vuelta al inicio
   async sportOnly() {
-    this.sportMode = true; this.ui.hudVisible(false);
+    this.sportMode = true; this.sportBusy = true; this.ui.hudVisible(false);
+    this.perro?.away?.();   // (en el campeonato no hace falta el perro: ni saluda ni avisa entre partido y partido)
     const a = this.pelotari || this.missions.find(M => M.type === 'pelota')?.host;
     try {
       if (!this.fronton || !a) return;
@@ -918,7 +939,9 @@ export class TownGame {
       const P = profile(), town = this.def.name.split(' /')[0], cm = this.comarca?.name || 'la comarca';
       const ctx = { comarca: this.def.comarca, comarcaName: cm, towns: this.comarcaVenues() };
       for (;;) {
-        this.ui.hudVisible(false);
+        // (entre partido y partido, el jugador quieto en la puerta del frontón y sin el perro, que vuelve al acabar
+        // cada partido: el pueblo solo es el fondo de los menús)
+        this.ui.hudVisible(false); this.player.frozen = true; this.perro?.away?.();
         const you = { name: P.name || 'Tú', town };
         const pick = await pelotaMenu(torneo(you, ctx), town, torneo(you, ctx, false, 'parejas'));
         if (this.disposed || pick === 'exit') return;
@@ -928,10 +951,10 @@ export class TownGame {
         if (r.quit) continue;
         const best = (townState(profile(), this.def.id).best ||= {});
         if (r.win) { best.pelota = (best.pelota || 0) + 1; saveProfile(); }
-        this.ui.hudVisible(false);
+        this.ui.hudVisible(false); this.player.frozen = true;
         await this.say(a, [r.win ? `¡${r.you} a ${r.cpu}! Juegas como un pelotari de verdad.` : `${r.you} a ${r.cpu}. ¡Casi! ¿La revancha?`]);
       }
-    } finally { if (!this.disposed) this.onExit?.('home'); }   // (si el pueblo se rehízo, el nuevo sigue: no se sale al menú)
+    } finally { if (!this.disposed) this.onExit?.('sports'); }   // (de vuelta a Torneos, de donde se vino; si el pueblo se rehízo, el nuevo sigue)
   }
   // el torneo entero se juega en este frontón (los rivales vienen aquí): el del pueblo elegido en Campeonatos o el
   // del pueblo en el que estás
@@ -939,7 +962,7 @@ export class TownGame {
     const P = profile(), town = this.def.name.split(' /')[0], pairs = kind === 'parejas';
     let T = torneo({ name: P.name || 'Tú', town }, ctx, false, kind);
     for (;;) {
-      this.ui.hudVisible(!this.sportMode);
+      this.ui.hudVisible(false); this.player.frozen = true;   // (con el cuadro del torneo delante, nada del pueblo debajo)
       const act = await torneoPanel(T, town);
       if (this.disposed || act === 'exit') return;   // (el pueblo se rehízo mientras tanto: este torneo ya no sigue)
       if (act === 'new') { T = torneo({ name: P.name || 'Tú', town }, ctx, true, kind); continue; }
@@ -953,7 +976,9 @@ export class TownGame {
       const r = await venue.play(this, a, { target: m.target, level: m.level, rivalName: `${pairs ? m.rival.mates[0] : m.rival.name} (${m.rival.town})`, fixedLevel: true, returnTo: this.fronton, rivalStats: m.stats,
         pairs: pairs ? { partner: m.partner, rivalMate: m.mate } : null });
       if (this.disposed) return;
+      if (r.quit && r.later) continue;   // («Ahora no» antes de empezar: de vuelta al cuadro del torneo, de donde se vino)
       if (r.quit) return;   // (salir del partido es salir: de vuelta al pueblo, no al panel del torneo otra vez)
+      this.ui.hudVisible(false); this.player.frozen = true;   // (lo que dice el pelotari y el cuadro, sin el pueblo debajo)
       playTorneoRound(T, r.you, r.cpu);
       if (T.done && T.players[T.champion].you) {
         P.txapelas = (P.txapelas || 0) + 1; addXP(150); saveProfile();
@@ -1088,6 +1113,7 @@ export class TownGame {
           await S([m.text, 'Recuerda: en la vida real solo pueden correr las personas mayores de 18 años. Aquí, en el juego, sí puedes probar. ¿Preparado? Vamos a la Estafeta.']);
           const Encierro = await loadEncierro();
           const r = await new Encierro(this).run();
+          if (this.disposed || r.quit || r.error) return;   // (salir a medias o sin poder prepararlo no es «los toros son muy rápidos»)
           if (r.win) { M.step = 2; saveProfile(); await S(['¡Bravo! Has corrido el encierro hasta la plaza.']); await this.complete(M, { card: 'El encierro', cardText: m.text }); }
           else await S(['No pasa nada: los toros son muy rápidos. Habla conmigo cuando quieras intentarlo otra vez.']);
           return;
@@ -1123,7 +1149,9 @@ export class TownGame {
           M.step = 1;
         } else await S(['¿La revancha? ¡Vamos al frontón!']);
         a.talking = 0; this.player.frozen = false;
-        const r = await this.fronton.play(this, a);
+        this.sportBusy = true; let r;
+        try { r = await this.fronton.play(this, a); } finally { this.sportBusy = false; }
+        if (this.disposed || r.quit) return;   // (si se deja a medias, sin «¡Casi!» de un partido que no se ha jugado)
         if (r.win) { await S([`¡${r.you} a ${r.cpu}! Juegas como un pelotari de verdad.`]); await this.complete(M, { card: M.title, cardText: m.text }); }
         else await S([`${r.you} a ${r.cpu}. ¡Casi! Háblame otra vez para jugar la revancha.`]);
         return;

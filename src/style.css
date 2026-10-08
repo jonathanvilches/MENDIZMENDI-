@@ -191,6 +191,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; padding: 0; 
 #dialog { position: absolute; left: 50%; bottom: calc(var(--sb, 0px) + 14px); transform: translateX(-50%); width: min(760px, calc(100vw - 24px)); padding: 14px 18px 12px; display: flex; gap: 14px; align-items: flex-start;
   background: linear-gradient(180deg, rgba(16, 12, 24, .82), rgba(10, 8, 16, .92)) !important; border: 1px solid rgba(255, 244, 228, .18) !important; border-top: 2px solid rgba(255, 215, 0, .75) !important; border-radius: 18px; box-shadow: 0 16px 40px rgba(0, 0, 0, .45); animation: dlgIn .3s cubic-bezier(.2, 1.2, .4, 1); }
 @keyframes dlgIn { from { transform: translate(-50%, 20px); opacity: 0; } }
+#dialog.solo { position: fixed; z-index: 30001; bottom: calc(env(safe-area-inset-bottom, 0px) + 14px); color: #fff; font-family: Nunito, system-ui, sans-serif; }
 #dialog .face { flex: 0 0 68px; height: 68px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: radial-gradient(#6d5a9a, #2d2448); box-shadow: 0 0 0 2px #FFD700, 0 6px 16px rgba(0, 0, 0, .4); margin-top: -30px; }
 #dialog .face img { width: 100%; height: 100%; object-fit: cover; }
 #dialog .body { flex: 1; min-width: 0; }
