@@ -194,6 +194,7 @@ export const EU_EXACT = {
   'siete jornadas, todos contra todos con los clubes de tu grupo. Tus partidos los juegas tú (o los simulas); los demás se simulan solos. Todos los partidos se juegan en El Sadar. Tres puntos por victoria y uno por empate.':
     'zazpi jardunaldi, denak denen aurka zure taldeko klubekin. Zure partidak zuk jokatzen dituzu (edo simulatu); gainerakoak berez simulatzen dira. Partida guztiak El Sadarren jokatzen dira. Hiru puntu irabaziz gero eta bat berdinduz gero.',
   'EN CASA · EL SADAR': 'ETXEAN · EL SADAR', 'FUERA · EL SADAR': 'KANPOAN · EL SADAR', 'En El Sadar': 'El Sadarren', 'en El Sadar': 'El Sadarren',
+  'Ver más': 'Gehiago ikusi', 'Ver menos': 'Gutxiago ikusi',
   'Partido rápido': 'Partida azkarra', 'Iruña contra el visitante': 'Iruña bisitariaren aurka', 'En El Sadar · elige tu club': 'El Sadarren · aukeratu zure kluba',
   'Liga Navarra con tu club y amistosos contra cualquier club. Todos los partidos, en El Sadar.': 'Nafarroako Liga zure klubarekin eta lagunartekoak edozein klubaren aurka. Partida guztiak, El Sadarren.',
   'Tienes la Liga Navarra contra los clubes de la zona, amistosos contra cualquier club de Navarra y el partido del pueblo. Todos se juegan en El Sadar, el estadio de Iruña.': 'Nafarroako Liga duzu inguruko kluben aurka, lagunartekoak Nafarroako edozein klubaren aurka eta herriko partida. Denak El Sadarren jokatzen dira, Iruñeko estadioan.',

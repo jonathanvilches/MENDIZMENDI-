@@ -482,15 +482,15 @@ export class Hub {
       <div class="ar-head"><small class="kicker">${I('shield', 20)} Saberes · Escudos</small><h1>Escudos de Navarra</h1>
         <p>Los escudos son una forma de escribir con dibujos: cada color, cada figura y cada sitio quieren decir algo. Aquí están los escudos oficiales del reino, de las ciudades, de los valles y de los pueblos del juego. En cada pueblo, el escudo está en la fachada del ayuntamiento o en un pilar de la plaza: léelo allí para guardarlo en tu armorial. Toca un escudo para ver su ficha.</p>
         <b class="ar-count">${read} de ${ARMAS.length} leídos en el juego</b></div>
-      <details class="ar-guia" open><summary>${I('book', 22)} Cómo se lee un escudo</summary><ol>${GUIA.map(([t, d]) => `<li><b>${esc(t)}.</b> ${esc(d)}</li>`).join('')}</ol></details>
+      <details class="ar-guia"><summary>${I('book', 22)} Cómo se lee un escudo</summary><ol>${GUIA.map(([t, d]) => `<li><b>${esc(t)}.</b> ${esc(d)}</li>`).join('')}</ol></details>
       <div class="ar-grid">${ARMAS.map(A => `<article class="ar${seen.has('armas:' + A.id) ? ' on' : ''}">
         <canvas data-arm="${A.id}" width="160" height="${Math.ceil(officialHeight(120, A)) + 8}" aria-label="Escudo de ${esc(A.name)}"></canvas>
         <div class="ar-tx"><small>${KIND[A.kind] || ''}${A.towns.length ? ' · ' + esc(A.towns.map(tn).join(', ')) : ''}</small><h3>${esc(A.name)}</h3>${seen.has('armas:' + A.id) ? `<span class="ar-ok">${I('check', 16)} Leído en el juego</span>` : ''}
           <p><b>Blasón.</b> ${esc(A.blazon)}</p>
           <details><summary>Cómo se lee y qué significa</summary><p><b>Cómo se lee.</b> ${esc(A.read)}</p><p><b>Su historia.</b> ${esc(A.mean)}</p>
             <ul>${(A.figs || []).filter(k => FIG[k]).map(k => `<li><b>${esc(FIG[k][0])}.</b> ${esc(FIG[k][1])}</li>`).join('')}</ul>${A.conf === 'media' ? '<p class="ar-nt">La fuente resume este escudo: el dibujo puede simplificar algún detalle.</p>' : ''}</details></div></article>`).join('')}</div>
-      <div class="ar-pend"><h3>${I('binoculars', 22)} Por comprobar</h3><p>De estos pueblos del juego aún no hemos podido comprobar el escudo en una fuente fiable. Por eso no lo dibujamos: preferimos no inventarlo.</p>
-        <ul>${PENDIENTES.map(x => `<li><b>${esc(x.name)}.</b> ${esc(x.note || '')}</li>`).join('')}</ul></div>
+      <details class="ar-pend"><summary><h3>${I('binoculars', 22)} Por comprobar</h3></summary><p>De estos pueblos del juego aún no hemos podido comprobar el escudo en una fuente fiable. Por eso no lo dibujamos: preferimos no inventarlo.</p>
+        <ul>${PENDIENTES.map(x => `<li><b>${esc(x.name)}.</b> ${esc(x.note || '')}</li>`).join('')}</ul></details>
       <p class="ar-src">Fuentes: Heraldry of the World (blasones municipales), Ayuntamiento de Pamplona, Ayuntamiento de Sangüesa, Gran Enciclopedia de Navarra, Auñamendi Eusko Entziklopedia y Cátedra de Patrimonio de la Universidad de Navarra. Los dibujos son del juego, hechos a partir del blasón.</p>
     </section>`;
   }

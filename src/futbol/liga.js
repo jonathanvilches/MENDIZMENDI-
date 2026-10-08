@@ -98,25 +98,25 @@ const CSS = `
 .lg-root{position:fixed;inset:0;z-index:30000;display:grid;place-items:center;padding:calc(env(safe-area-inset-top,0px) + 10px) 10px calc(env(safe-area-inset-bottom,0px) + 10px);background:radial-gradient(circle at 50% 0%,#2a1460,#0d0820 70%);font-family:Nunito,system-ui,sans-serif;color:#fff;animation:lgIn .25s}
 @keyframes lgIn{from{opacity:0}to{opacity:1}}
 .lg-card{width:min(860px,100%);max-height:100%;overflow:auto;display:grid;gap:12px;grid-template-columns:1fr;padding:16px;border-radius:22px;background:linear-gradient(180deg,rgba(60,30,130,.55),rgba(20,10,45,.9));border:1px solid rgba(190,160,255,.3);box-shadow:0 30px 80px rgba(0,0,0,.6)}
-.lg-head{display:flex;align-items:center;gap:12px}.lg-head h2{margin:0;font:400 26px 'Lilita One',Nunito,sans-serif;line-height:1}.lg-head small{display:block;color:#ffd84a;font-weight:900;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
-.lg-head .lg-ovr{margin-left:auto;text-align:center;background:linear-gradient(180deg,#ffe98a,#e0b020);color:#2a1a00;border-radius:12px;padding:4px 10px;font:900 22px Nunito,sans-serif;line-height:1}.lg-ovr small{color:#5a3a00!important;font-size:12px!important}
+.lg-head{display:flex;align-items:center;gap:12px}.lg-head h2{margin:0;font:400 var(--fs-xl) 'Lilita One',Nunito,sans-serif;line-height:1}.lg-head small{display:block;color:#ffd84a;font-weight:900;font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase}
+.lg-head .lg-ovr{margin-left:auto;text-align:center;background:linear-gradient(180deg,#ffe98a,#e0b020);color:#2a1a00;border-radius:12px;padding:4px 10px;font:900 var(--fs-lg) Nunito,sans-serif;line-height:1}.lg-ovr small{color:#5a3a00!important;font-size:var(--fs-xs)!important}
 .lg-next{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:12px;border-radius:16px;background:rgba(255,255,255,.07);text-align:center}
-.lg-next .lg-t{display:flex;flex-direction:column;align-items:center;gap:4px}.lg-next b{font-size:16px;line-height:1.15}.lg-next em{font-style:normal;font-size:12px;color:#cbbcf0}
-.lg-vs{font:400 28px 'Lilita One',Nunito,sans-serif;color:#ffd84a}.lg-vs small{display:block;font:800 11px Nunito,sans-serif;color:#cbbcf0;letter-spacing:.04em}
-.lg-table{width:100%;border-collapse:collapse;font-size:13px}.lg-table th{font-size:12px;color:#cbbcf0;text-transform:uppercase;letter-spacing:.04em;padding:4px 3px;text-align:center}
+.lg-next .lg-t{display:flex;flex-direction:column;align-items:center;gap:4px}.lg-next b{font-size:var(--fs-md);line-height:1.15}.lg-next em{font-style:normal;font-size:var(--fs-xs);color:#cbbcf0}
+.lg-vs{font:400 var(--fs-xl) 'Lilita One',Nunito,sans-serif;color:#ffd84a}.lg-vs small{display:block;font:800 var(--fs-xs) Nunito,sans-serif;color:#cbbcf0;letter-spacing:.04em}
+.lg-table{width:100%;border-collapse:collapse;font-size:var(--fs-sm)}.lg-table th{font-size:var(--fs-xs);color:#cbbcf0;text-transform:uppercase;letter-spacing:.04em;padding:4px 3px;text-align:center}
 .lg-table td{padding:5px 3px;text-align:center;border-top:1px solid rgba(255,255,255,.08)}.lg-table td.n{text-align:left;font-weight:800;white-space:nowrap}.lg-table td.n i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px;border:1px solid rgba(0,0,0,.4)}
 .lg-table tr.me td{background:rgba(255,216,74,.16)}.lg-table tr.me td.n{color:#ffd84a}.lg-table td.pts{font-weight:900}
-.lg-res{display:grid;gap:4px;font-size:13px}.lg-res div{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;padding:5px 8px;border-radius:10px;background:rgba(255,255,255,.05)}.lg-res div.me{background:rgba(255,216,74,.16)}.lg-res span:first-child{text-align:right}.lg-res b{min-width:42px;text-align:center}
+.lg-res{display:grid;gap:4px;font-size:var(--fs-sm)}.lg-res div{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;padding:5px 8px;border-radius:10px;background:rgba(255,255,255,.05)}.lg-res div.me{background:rgba(255,216,74,.16)}.lg-res span:first-child{text-align:right}.lg-res b{min-width:42px;text-align:center}
 .lg-btns{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}.lg-btns>.lg-btn:only-child{grid-column:1/-1}
-.lg-btn{border:0;border-radius:14px;padding:12px;min-height:50px;font:800 15px Nunito,sans-serif;color:#fff;background:rgba(255,255,255,.12);cursor:pointer}.lg-btn.go{background:linear-gradient(180deg,#fff38f,#ffd700 55%,#f0b000);color:#2a1a00;font:400 20px 'Lilita One',Nunito,sans-serif;box-shadow:0 4px 0 #a86f00}
-.lg-note{font-size:12px;color:#a99cc9;margin:0}
+.lg-btn{border:0;border-radius:14px;padding:12px;min-height:50px;font:800 var(--fs-sm) Nunito,sans-serif;color:#fff;background:rgba(255,255,255,.12);cursor:pointer}.lg-btn.go{background:linear-gradient(180deg,#fff38f,#ffd700 55%,#f0b000);color:#2a1a00;font:400 var(--fs-lg) 'Lilita One',Nunito,sans-serif;box-shadow:0 4px 0 #a86f00}
+.lg-note{font-size:var(--fs-xs);color:#a99cc9;margin:0}
 /* elegir rival: solo se desplaza la lista; la cabecera y «Volver» quedan siempre a la vista */
 .lg-card.lg-pick{grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden}.lg-card.lg-pick>.lg-list{overflow:auto;min-height:0;overscroll-behavior:contain;padding:2px}.lg-list.more{-webkit-mask-image:linear-gradient(180deg,#000 82%,transparent);mask-image:linear-gradient(180deg,#000 82%,transparent)}
-.lg-how{font-size:13px;line-height:1.3;color:#e6def7;margin:0;padding:8px 12px;border-radius:12px;background:rgba(255,216,74,.08);border:1px solid rgba(255,216,74,.25)}.lg-how b{color:#ffd84a}
+.lg-how{font-size:var(--fs-sm);line-height:1.3;color:#e6def7;margin:0;padding:8px 12px;border-radius:12px;background:rgba(255,216,74,.08);border:1px solid rgba(255,216,74,.25)}.lg-how b{color:#ffd84a}
 .lg-table td.dg{color:#cbbcf0;font-variant-numeric:tabular-nums}
-.lg-rv{display:flex;align-items:center;gap:8px;text-align:left;min-width:0;padding:8px 10px}.lg-rv>span{min-width:0;flex:1}.lg-rv b,.lg-rv small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lg-rv b{font-size:14px}.lg-rv small{font:700 11.5px Nunito,sans-serif;opacity:.75}
-@media (max-width:560px){.lg-card{padding:14px 12px;gap:10px}.lg-head h2{font-size:24px}.lg-table .x{display:none}.lg-table{font-size:14px}.lg-table td{padding:6px 4px}.lg-table th{padding:4px}.lg-btns{grid-template-columns:1fr 1fr}.lg-btns .lg-btn.go{grid-column:1/-1}}
-.lg-champ{text-align:center;padding:10px;border-radius:16px;background:linear-gradient(180deg,rgba(255,216,74,.25),rgba(255,216,74,.05))}.lg-champ b{font:400 26px 'Lilita One',Nunito,sans-serif;color:#ffd84a}
+.lg-rv{display:flex;align-items:center;gap:8px;text-align:left;min-width:0;padding:8px 10px}.lg-rv>span{min-width:0;flex:1}.lg-rv b,.lg-rv small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lg-rv b{font-size:var(--fs-sm)}.lg-rv small{font:700 var(--fs-xs) Nunito,sans-serif;opacity:.75}
+@media (max-width:560px){.lg-card{padding:14px 12px;gap:10px}.lg-head h2{font-size:var(--fs-xl)}.lg-table .x{display:none}.lg-table{font-size:var(--fs-sm)}.lg-table td{padding:6px 4px}.lg-table th{padding:4px}.lg-btns{grid-template-columns:1fr 1fr}.lg-btns .lg-btn.go{grid-column:1/-1}}
+.lg-champ{text-align:center;padding:10px;border-radius:16px;background:linear-gradient(180deg,rgba(255,216,74,.25),rgba(255,216,74,.05))}.lg-champ b{font:400 var(--fs-xl) 'Lilita One',Nunito,sans-serif;color:#ffd84a}
 @media (orientation:landscape) and (max-height:520px){
 .lg-root{padding:8px}.lg-card{gap:6px 12px;padding:10px 16px}.lg-adapt{display:none}
 .lg-card.lg-two{grid-template-columns:1fr 1.15fr;grid-auto-rows:min-content;align-items:start}
@@ -126,13 +126,13 @@ const CSS = `
 .lg-card.lg-two>.lg-btns{grid-template-columns:1fr 1fr}.lg-card.lg-two>.lg-btns .lg-btn.go{grid-column:1/-1}
 /* con solo dos botones (jugar o viajar, y salir) van en la misma fila: así cabe todo sin desplazar, también en euskera */
 .lg-card.lg-two>.lg-btns:has(>.lg-btn:nth-child(2):last-child){grid-template-columns:1.7fr 1fr}.lg-card.lg-two>.lg-btns:has(>.lg-btn:nth-child(2):last-child)>.lg-btn.go{grid-column:auto}
-.lg-table{font-size:12px}.lg-table td{padding:2px}.lg-table th{padding:3px 2px}.lg-head{gap:10px}.lg-head .lg-kit{width:27px;height:36px}.lg-head h2{font-size:20px}.lg-head small{font-size:12px}
-.lg-next{padding:6px 8px}.lg-next .lg-kit{display:none}.lg-next b{font-size:14px}.lg-vs{font-size:24px}
-.lg-how{font-size:12px;line-height:1.3;padding:5px 9px}.lg-btn{min-height:38px;padding:6px}.lg-btn.go{font-size:18px}
+.lg-table{font-size:var(--fs-xs)}.lg-table td{padding:2px}.lg-table th{padding:3px 2px}.lg-head{gap:10px}.lg-head .lg-kit{width:27px;height:36px}.lg-head h2{font-size:var(--fs-lg)}.lg-head small{font-size:var(--fs-xs)}
+.lg-next{padding:6px 8px}.lg-next .lg-kit{display:none}.lg-next b{font-size:var(--fs-sm)}.lg-vs{font-size:var(--fs-xl)}
+.lg-how{font-size:var(--fs-xs);line-height:1.3;padding:5px 9px}.lg-btn{min-height:38px;padding:6px}.lg-btn.go{font-size:var(--fs-lg)}
 .lg-rv{padding:4px 8px;gap:6px}.lg-rv .lg-kit{width:21px;height:28px}
 }
 /* muy poca altura (iPhone con la barra de Safari): la explicación en dos líneas y los botones siempre a la vista */
-@media (orientation:landscape) and (max-height:380px){.lg-how{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.lg-card{gap:4px 12px;padding:8px 14px}.lg-next{padding:4px 8px}.lg-vs{font-size:20px}.lg-btn{min-height:36px}}
+@media (orientation:landscape) and (max-height:380px){.lg-how{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.lg-card{gap:4px 12px;padding:8px 14px}.lg-next{padding:4px 8px}.lg-vs{font-size:var(--fs-xl)}.lg-btn{min-height:36px}}
 `;
 function panel(html) {
   if (!document.getElementById('lg-css')) { const st = document.createElement('style'); st.id = 'lg-css'; st.textContent = CSS; document.head.appendChild(st); }
@@ -186,7 +186,7 @@ export function roundPanel(S, R, j) {
 export function clubPanel(clubId, items, sub = 'Tu club') {
   return new Promise(res => {
     const S = season(clubId);
-    const r = panel(`${head(S, sub)}<div class="lg-btns">${items.map(([id, t, s], i) => `<button class="lg-btn ${i === 0 ? 'go' : ''}" data-a="${id}">${esc(t)}${s ? `<br><small style="font:700 12px Nunito,sans-serif;opacity:.8">${esc(s)}</small>` : ''}</button>`).join('')}</div>`);
+    const r = panel(`${head(S, sub)}<div class="lg-btns">${items.map(([id, t, s], i) => `<button class="lg-btn ${i === 0 ? 'go' : ''}" data-a="${id}">${esc(t)}${s ? `<br><small style="font:700 var(--fs-xs) Nunito,sans-serif;opacity:.8">${esc(s)}</small>` : ''}</button>`).join('')}</div>`);
     r.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; r.remove(); res(b.dataset.a); });
   });
 }
