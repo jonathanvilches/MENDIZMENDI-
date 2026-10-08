@@ -26,6 +26,8 @@ export class PelotaMatch {
     this.lang = o.lang === 'eu' ? 'eu' : 'es'; this.txt = TEXT[this.lang];
     this.touch = o.touch ?? (matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window);
     this.level = o.level || 'normal';
+    // golpe automático (se recuerda de un partido a otro): tú te mueves y el golpe sale solo
+    try { this.autoHit = o.autoHit ?? localStorage.getItem('mendimendiz-pelota-auto') === '1'; } catch (e) { this.autoHit = !!o.autoHit; }
     this.pairs = false; this.role = 'delantero'; this.mateObjs = null;   // por parejas: qué juegas tú y los otros dos
     this.names = { you: o.you?.name || this.txt.you, rival: o.rival?.name || 'Rival' };
     this.audio = new PelotaAudio(o.audio);
@@ -47,9 +49,10 @@ export class PelotaMatch {
     this.hud?.root?.classList.remove('final');
     const o = this.o;
     const M = this.pairs ? this.mateObjs : null;
-    this.game = new PelotaGame({ mode: o.mode || 'match', target: o.target, level: this.level, seed: o.seed, autoplay: o.autoplay, rivalStats: o.rivalStats, youStats: o.youStats,
+    this.game = new PelotaGame({ mode: o.mode || 'match', target: o.target, level: this.level, seed: o.seed, autoplay: o.autoplay, autoHit: this.autoHit, rivalStats: o.rivalStats, youStats: o.youStats,
       pairs: !!M, youRole: this.role, youMateStats: M?.youMate.stats, rivalMateStats: M?.rivalMate.stats });
     for (const m of Object.values(this.mateObjs || {})) if (m.obj) m.obj.visible = !!M;
+    this.hud.root.classList.toggle('autohit', !!this.autoHit);   // (en el botón de golpe, «AUTO»)
     this.hud.setNames?.(this.label('you'), this.label('rival'));
     this.hud.setScore(0, 0, this.game.server, o.mode === 'rally' ? this.txt.rally(this.game.target) : this.txt.to(this.game.target));
     if (o.mode === 'rally') this.hud.setScore(0, '', this.game.server, this.txt.rally(this.game.target));
@@ -66,7 +69,7 @@ export class PelotaMatch {
     // mano a mano o por parejas (y tú, de delantero o de zaguero): solo en los partidos libres
     const canPairs = !!this.o.mates && g.mode === 'match', P = t.pairs || TEXT.es.pairs;
     const mods = [['mano', P.single], ['delantero', P.front], ['zaguero', P.back]].filter(([k]) => !(this.o.forcePairs && k === 'mano')), cur = this.pairs ? this.role : this.o.forcePairs ? this.role : 'mano';
-    const TT = t.tour || TEXT.es.tour, sum = [mods.find(([k]) => k === cur)?.[1] || P.single, g.mode === 'rally' ? t.rally(g.target) : t.to(g.target)].join(' · ');
+    const TT = t.tour || TEXT.es.tour, AH = t.autoHit || TEXT.es.autoHit, sum = [mods.find(([k]) => k === cur)?.[1] || P.single, g.mode === 'rally' ? t.rally(g.target) : t.to(g.target), this.autoHit ? AH[0] : ''].filter(Boolean).join(' · ');
     // arriba quién juega y dónde (el frontón y lo que se nota en él); lo que se elige poco, plegado en «Más opciones» con
     // lo elegido a la vista; abajo, en una fila, el nivel y los botones
     const p = this.hud.panel(`<h2>${t.title}</h2><p class="pel-sub">${esc(this.label('you'))} vs ${esc(this.label('rival'))} · ${g.mode === 'rally' ? t.rally(g.target) : t.to(g.target)} <button class="pel-chip" data-pel-tour>${TT.btn}</button></p>
@@ -75,6 +78,7 @@ export class PelotaMatch {
       <details class="pel-more"${this.moreOpen ? ' open' : ''}><summary>${t.moreTitle || TEXT.es.moreTitle}<span class="pel-sum">${esc(sum)}</span></summary>
       ${canPairs ? `<div class="pel-levels pel-mod" role="group" aria-label="${P.label}">${mods.map(([k, l]) => `<button data-pel-mod="${k}" aria-pressed="${k === cur}">${l}</button>`).join('')}</div>` : ''}
       ${this.pairs ? `<p class="pel-pairs">${P.how(this.role === 'delantero')} ${P.energy}</p>` : ''}
+      <button class="pel-auto" data-pel-auto role="switch" aria-checked="${!!this.autoHit}"><span><b>${AH[0]}</b><small>${AH[1]}</small></span><i aria-hidden="true"></i></button>
       <ol>${t.rules.map(r => `<li>${r}</li>`).join('')}</ol>
       <div class="pel-ctrl">${this.touch ? t.ctrlTouch : t.ctrlKeys}</div></details>
       ${this.o.fixedLevel ? '' : `<small class="pel-lbl">${t.level || 'Nivel'}</small><div class="pel-levels pel-lv5" role="group" aria-label="${t.level || 'Nivel'}">${LEVEL_ORDER.map(k => `<button data-pel-lv="${k}" aria-pressed="${k === this.level}">${L[k]}</button>`).join('')}</div>`}
@@ -84,6 +88,7 @@ export class PelotaMatch {
       const b = e.target.closest('button'); if (!b) return;
       if (b.dataset.pelLv) { this.level = b.dataset.pelLv; for (const x of p.querySelectorAll('[data-pel-lv]')) x.setAttribute('aria-pressed', x.dataset.pelLv === this.level); this.newGame(); }
       if (b.dataset.pelMod) { this.chooseMode(b.dataset.pelMod); return; }
+      if (b.hasAttribute('data-pel-auto')) { this.autoHit = !this.autoHit; try { localStorage.setItem('mendimendiz-pelota-auto', this.autoHit ? '1' : '0'); } catch (e) { } this.newGame(); this.intro(); return; }
       if (b.dataset.pelFicha) { this.ficha(b.dataset.pelFicha); return; }
       if (b.hasAttribute('data-pel-court')) { const w = p.querySelector('.pel-court-what'); if (w) { w.hidden = !w.hidden; b.setAttribute('aria-expanded', String(!w.hidden)); } return; }
       if (b.hasAttribute('data-pel-tour')) { this.startTour(); return; }

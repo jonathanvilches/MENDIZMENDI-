@@ -175,6 +175,14 @@ export class PelotaCourt {
     // albardilla de piedra que remata el frontis y la pared izquierda
     const capMat = M({ color: th.cap, roughness: 0.8 });
     const cap = new T.Mesh(new T.BoxGeometry(W + 0.9, 0.24, 1.05), capMat); cap.position.set(-0.3, C.FRONT_H + 0.12, -0.4); cap.castShadow = true; g.add(cap);
+    // el marcador grande, encima del frontis: los nombres y los tantos de los azules y los colorados, que se leen desde
+    // cualquier sitio de la cancha (sin anuncios ni escudos de clubes: solo el tanteo)
+    { const bc = this.bigCanvas = document.createElement('canvas'); bc.width = 1024; bc.height = 192;
+      const bt = this.bigTex = srgb(T, new T.CanvasTexture(bc));
+      const bw = 5.8, bh = bw * 192 / 1024, by = C.FRONT_H + 0.24 + bh / 2 + 0.06;
+      const big = new T.Mesh(new T.PlaneGeometry(bw, bh), new T.MeshBasicMaterial({ map: bt, toneMapped: false })); big.position.set(0, by, 0.15); big.name = 'marcador-frontis'; g.add(big);
+      const back = new T.Mesh(new T.BoxGeometry(bw + 0.2, bh + 0.2, 0.16), M({ color: '#24282c', roughness: 0.6, metalness: 0.3 })); back.position.set(0, by, 0.05); g.add(back);
+      this.setScore('', '', 0, 0); }
     const capL = new T.Mesh(new T.BoxGeometry(0.85, 0.2, EXT + 0.2), capMat); capL.position.set(-W / 2 - 0.3, C.LEFT_H + 0.1, EXT / 2 - 0.1); capL.castShadow = true; g.add(capL);
     // la chapa de abajo (el colchón): de metal o pintada del color del frontón de cada sitio
     const chapa = this.chapa = new T.Mesh(new T.BoxGeometry(W, C.CHAPA, 0.05), M(th.chapaMetal ? { color: th.chapa, metalness: 0.15, roughness: 0.45, emissive: '#000000' } : { color: th.chapa, roughness: 0.7, emissive: '#000000' }));
@@ -217,6 +225,12 @@ export class PelotaCourt {
       geo.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); geo.setAttribute('normal', new T.Float32BufferAttribute(nrm, 3)); geo.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
       const marks = new T.Mesh(geo, M({ map: markTex, alphaTest: 0.5, roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }));
       marks.receiveShadow = true; marks.name = 'cuadros'; g.add(marks); }
+    // y encima del 4 y del 7, sus nombres: FALTA y PASA, las rayas del saque (así se aprenden mientras se juega)
+    for (const [z, word] of [[C.FALTA, 'FALTA'], [C.PASA, 'PASA']]) {
+      const tex = canvasTex(T, 320, 96, (c, w, h) => { c.fillStyle = th.line; c.font = `900 ${h * 0.78}px "Lilita One", "Trebuchet MS", Nunito, Arial, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(word, w / 2, h * 0.54); });
+      const lab = new T.Mesh(new T.PlaneGeometry(1.7, 0.51), M({ map: tex, alphaTest: 0.5, roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }));
+      lab.position.set(-W / 2 + 0.014, MH + 0.42, z); lab.rotation.y = Math.PI / 2; lab.name = 'raya-' + word.toLowerCase(); g.add(lab);
+    }
     // nombre y escudo del pueblo pintados en lo alto de la pared izquierda
     if (opts.wallName || opts.shield) {
       // (centrado a lo largo de la pared, y el escudo con el nombre centrados en su cartel)
@@ -565,13 +579,30 @@ export class PelotaCourt {
   }
   /** El marcador del Labrit: los dos nombres con su color y los tantos. */
   setScore(you, rival, a, b) {
-    const c = this.scoreCanvas?.getContext('2d'); if (!c) return;
+    // (la pantalla de la pared derecha, solo en el Labrit; el grande del frontis, en todos)
+    const c = this.scoreCanvas?.getContext('2d');
+    if (c) {
     c.fillStyle = '#101418'; c.fillRect(0, 0, 512, 256);
     const row = (y, name, n, col) => { c.fillStyle = col; c.fillRect(14, y, 18, 92); c.fillStyle = '#f2f2ea'; c.font = '900 50px "Lilita One", Nunito, Arial, sans-serif'; c.textAlign = 'left'; c.textBaseline = 'middle';
       let t = String(name || '').toUpperCase(); while (t.length > 3 && c.measureText(t).width > 340) t = t.slice(0, -1); c.fillText(t, 46, y + 48);
       c.fillStyle = '#ffd23c'; c.font = '900 76px "Lilita One", Nunito, Arial, sans-serif'; c.textAlign = 'right'; c.fillText(String(n), 496, y + 50); };
     row(22, you, a, '#2f6fd0'); row(138, rival, b, '#d03a2f');
     this.scoreTex.needsUpdate = true;
+    }
+    // y el grande del frontis: azules a la izquierda y colorados a la derecha, con los tantos en el centro
+    const d = this.bigCanvas?.getContext('2d'); if (!d) return;
+    const W2 = 1024, H2 = 192, half = (x0, col, name, n, right) => {
+      d.fillStyle = col; d.fillRect(x0, 12, W2 / 2 - 18, H2 - 24);
+      d.fillStyle = '#ffffff'; d.font = '900 64px "Lilita One", Nunito, Arial, sans-serif'; d.textBaseline = 'middle';
+      let t = String(name || '').toUpperCase(); while (t.length > 3 && d.measureText(t).width > 300) t = t.slice(0, -1);
+      d.textAlign = right ? 'right' : 'left'; d.fillText(t, right ? x0 + W2 / 2 - 48 : x0 + 30, H2 / 2 + 4);
+      d.fillStyle = '#ffd23c'; d.font = '900 132px "Lilita One", Nunito, Arial, sans-serif'; d.textAlign = 'center';
+      d.fillText(String(n), right ? x0 + 70 : x0 + W2 / 2 - 88, H2 / 2 + 8);
+    };
+    d.fillStyle = '#101418'; d.fillRect(0, 0, W2, H2);
+    half(6, '#2f6fd0', you, a, false); half(W2 / 2 + 12, '#d03a2f', rival, b, true);
+    d.strokeStyle = '#ffd23c'; d.lineWidth = 6; d.strokeRect(3, 3, W2 - 6, H2 - 6);
+    this.bigTex.needsUpdate = true;
   }
   // focos: proyectores sobre la pared izquierda y en torres junto a la grada (con cubierta, colgados de ella). De día
   // son hierro gris; de noche (setLights) la cara se enciende blanca con su halo. La luz de la cancha la ponen el cielo

@@ -122,6 +122,22 @@ const CSS = `
 /* «Más opciones»: plegado, con lo elegido a la vista */
 .pel-more>summary .pel-sum{margin-left:auto;padding-left:12px;font-size:var(--fs-xs);font-weight:800;letter-spacing:0;text-transform:none;color:#FFD700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pel-lv5 button{min-width:0;font-size:var(--fs-sm)}
+/* golpe automático: el interruptor en «Más opciones» y, en el partido, «AUTO» en el botón de golpe */
+/* tu energía: grande, abajo en el centro (entre el joystick y los botones); verde, amarilla y roja al cansarte */
+.pel-myen{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb,16px));transform:translateX(-50%);width:min(280px,34vw);display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:none}
+.pel-myen[hidden]{display:none}.pel-myen span{font:900 var(--fs-xs)/1.3 Nunito,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.7)}
+.pel-myen i{position:relative;display:block;width:100%;height:12px;border-radius:999px;background:rgba(14,10,24,.62);box-shadow:0 0 0 2px rgba(255,255,255,.75);overflow:hidden}
+.pel-myen i b{position:absolute;inset:0;transform-origin:left;border-radius:999px;background:linear-gradient(90deg,#3fcf6a,#8be36a);transition:transform .2s}
+.pel-myen.mid i b{background:linear-gradient(90deg,#f0b400,#ffd23a)}.pel-myen.low i b{background:linear-gradient(90deg,#d9412a,#ff5a3a)}.pel-myen.low i{animation:pel-low .6s infinite alternate}
+@keyframes pel-low{to{box-shadow:0 0 0 2px #ff5a3a}}
+.pel-root.paneled .pel-myen{visibility:hidden}
+@media (orientation:portrait){.pel-myen{bottom:calc(env(safe-area-inset-bottom,0px) + 196px);width:min(240px,60vw)}}
+.pel-auto{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;margin:0 0 12px;padding:8px 12px;border-radius:12px;border:1px solid rgba(190,160,255,.35);background:rgba(255,255,255,.06);color:#fff;font:inherit;text-align:left;cursor:pointer}
+.pel-auto span{flex:1;display:flex;flex-direction:column;gap:2px}.pel-auto b{font-size:var(--fs-sm);font-weight:900;line-height:1.3}.pel-auto small{font-size:var(--fs-xs);font-weight:600;line-height:1.3;color:#d8cff0}
+.pel-auto i{flex:none;position:relative;width:48px;height:28px;border-radius:999px;background:rgba(255,255,255,.18);transition:background .15s}
+.pel-auto i::after{content:'';position:absolute;top:4px;left:4px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .15s}
+.pel-auto[aria-checked=true] i{background:#FFD700}.pel-auto[aria-checked=true] i::after{transform:translateX(20px);background:#2e1d00}
+.pel-root.autohit .pel-hit::before{content:'AUTO';position:absolute;top:-8px;left:50%;transform:translateX(-50%);padding:2px 8px;border-radius:999px;background:#2e1d00;color:#FFD700;font:900 var(--fs-xs)/1.3 Nunito,sans-serif;letter-spacing:.06em}
 `;
 
 export class PelotaHud {
@@ -149,16 +165,19 @@ export class PelotaHud {
   // energía: filas { id, name, en (0 a 1), side ('you'|'rival'), me }; null la esconde
   energy(rows) {
     let el = this.enEl;
-    if (!rows) { if (el) el.hidden = true; return; }
+    if (!rows) { if (el) el.hidden = true; if (this.myEn) this.myEn.hidden = true; return; }
     const key = rows.map(r => r.id + r.name).join();
+    // (la tuya, grande abajo en el centro, que se lee de un vistazo; la de los demás, pequeña arriba con su nombre)
+    if (!this.myEn) { const m = this.myEn = document.createElement('div'); m.className = 'pel-myen you'; m.dataset.en = 'you'; m.innerHTML = `<span>${esc(this.txt.energy || 'Energía')}</span><i><b></b></i>`; this.root.appendChild(m); }
+    this.myEn.hidden = !rows.some(r => r.me);
     if (!el || this.enKey !== key) {
       el?.remove(); el = this.enEl = document.createElement('div'); el.className = 'pel-en'; this.enKey = key;
-      el.innerHTML = rows.map(r => `<div class="${r.side}${r.me ? ' me' : ''}" data-en="${r.id}"><em></em><span>${esc(r.name)}</span><i><b></b></i></div>`).join('');
+      el.innerHTML = rows.filter(r => !r.me).map(r => `<div class="${r.side}" data-en="${r.id}"><em></em><span>${esc(r.name)}</span><i><b></b></i></div>`).join('');
       this.root.insertBefore(el, this.root.querySelector('.pel-call'));
     }
     el.hidden = false;
     for (const r of rows) {
-      const row = el.querySelector(`[data-en="${r.id}"]`); if (!row) continue;
+      const row = r.me ? this.myEn : el.querySelector(`[data-en="${r.id}"]`); if (!row) continue;
       const v = Math.round(r.en * 50) / 50; if (row._v === v) continue; row._v = v;
       row.querySelector('b').style.transform = `scaleX(${v})`;
       row.classList.toggle('mid', v < 0.5 && v >= 0.25); row.classList.toggle('low', v < 0.25);

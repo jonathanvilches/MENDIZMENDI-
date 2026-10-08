@@ -51,6 +51,7 @@ export class PelotaGame {
     this.clock = 0;
     this.tempo = this.lvl.tempo;
     this.autoplay = !!o.autoplay;
+    this.autoHit = !!o.autoHit;   // golpe automático: tú te mueves y el golpe sale solo (para los más pequeños)
     let s = o.seed || (Math.random() * 1e9) | 0;
     this.rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
     this.ball = new Ball();
@@ -118,7 +119,8 @@ export class PelotaGame {
   // ¿Puede «who» golpear ahora? (le toca, la pelota ya dio en el frontis, no ha botado dos veces, está a su alcance)
   hittable(who) {
     const b = this.ball.p, pl = this.players[who];
-    const reach = who === 'you' && !this.autoplay ? this.lvl.reach : 1.25;
+    // (con el golpe automático, el alcance es el de un pelotari normal: el golpe sale solo, pero hay que llegar a ella)
+    const reach = who === 'you' && !this.autoplay ? (this.autoHit ? Math.min(this.lvl.reach, 1.5) : this.lvl.reach) : 1.25;
     if (this.phase === 'servePrep') {
       if (who !== this.serverP() || this.prepBounces < 1) return false;
     } else if (this.phase === 'rally') {
@@ -534,7 +536,7 @@ export class PelotaGame {
     if (this.phase === 'serveWait') {
       const s = this.players[this.serverP()];
       const humanServes = this.serverP() === 'you' && !this.autoplay;
-      if (!this.runUp && (humanServes ? (inp.hit || this.phaseT > 9) : this.phaseT > 0.8)) { this.runUp = true; this.emit({ type: 'serveRun', who: this.serverP() }); }
+      if (!this.runUp && (humanServes ? (inp.hit || this.phaseT > 9 || (this.autoHit && this.phaseT > 1.2)) : this.phaseT > 0.8)) { this.runUp = true; this.emit({ type: 'serveRun', who: this.serverP() }); }
       this.movePlayers(dt, { ...inp, hit: false, drop: false }, true);
       this.ball.set(vec(s.x + 0.35, 1.05, s.z - 0.35), vec()); this.ball.spin = 0;
       if (this.runUp && s.z < SERVE_Z + 0.3) this.dropForServe();
@@ -580,7 +582,8 @@ export class PelotaGame {
       }
       let vx = mx * spd, vz = mz * spd;
       // ayuda: se acerca solo al sitio donde llegará la pelota (apuntando, con el botón mantenido, va solo del todo)
-      const help = inp.aiming ? Math.max(this.lvl.assist, 5.4) : this.lvl.assist;
+      // (con el golpe automático, la ayuda para acercarse es menor: el golpe sale solo, pero colocarse lo haces tú)
+      const help = inp.aiming ? Math.max(this.lvl.assist, 5.4) : this.autoHit ? Math.min(this.lvl.assist, 0.6) : this.lvl.assist;
       if (help > 0 && this.phase === 'rally' && this.rally.turn === 'you' && this.takerOf('you') === 'you') {   // (por parejas, solo si es tuya)
         const c = this.interceptFor('you', 6.2, 0.1);
         if (c) { const dx = c.x - you.x, dz = c.z - you.z, d = Math.hypot(dx, dz); if (d > 0.25) { const k = Math.min(help, d * 2.5); vx += dx / d * k; vz += dz / d * k; } }
@@ -588,9 +591,13 @@ export class PelotaGame {
       const a = 1 - Math.exp(-12 * dt);
       // (si sacas, la carrera hasta el 4 la haces solo: el joystick no cuenta hasta que golpeas)
       if (!((this.phase === 'serveWait' || this.phase === 'servePrep') && this.serverP() === 'you')) { you.vx += (vx - you.vx) * a; you.vz += (vz - you.vz) * a; }
-      // golpe
-      if ((inp.hit || inp.drop || inp.cut) && you.cool <= 0) {
-        if (this.phase === 'servePrep' || this.phase === 'rally') { you.swing = 0.3; you.swingT = 0; you.dropReq = inp.drop ? 'dejada' : inp.cut ? 'cortada' : false; you.pow = inp.power ?? 0.5; you.aim = { x: inp.aimX || 0, y: inp.aimY || 0 }; you.act = 'swing'; you.actT = 0; you.cool = 0.32; }
+      // golpe (con el golpe automático, sale solo cuando la pelota está a tu alcance y a buena altura, o antes de que se
+      // te vaya al suelo; los botones siguen valiendo para elegir otro golpe)
+      let auto = false;
+      if (this.autoHit && you.cool <= 0 && !(you.swing > 0) && this.hittable('you') && (!this.pairs || this.takerOf('you') === 'you')) { const B = this.ball; auto = (B.p.y >= 0.5 && B.p.y <= 1.35) || (B.v.y < 0 && B.p.y < 0.5); }
+      if ((inp.hit || inp.drop || inp.cut || auto) && you.cool <= 0) {
+        const own = inp.hit || inp.drop || inp.cut;
+        if (this.phase === 'servePrep' || this.phase === 'rally') { you.swing = 0.3; you.swingT = 0; you.dropReq = inp.drop ? 'dejada' : inp.cut ? 'cortada' : false; you.pow = own ? inp.power ?? 0.5 : 0.55; you.aim = own ? { x: inp.aimX || 0, y: inp.aimY || 0 } : { x: 0, y: 0 }; you.act = 'swing'; you.actT = 0; you.cool = 0.32; }
       }
       if (you.swing > 0) {
         you.swingT += dt; you.swing -= dt;

@@ -84,7 +84,7 @@ export function showVs(host, d) {
     const end = () => { if (done) return; done = true; clearTimeout(tm); removeEventListener('keydown', key, true); el.classList.add('out'); setTimeout(() => el.remove(), 230); res(); };
     const key = (e) => { e.stopImmediatePropagation(); e.preventDefault(); end(); };
     // (un momento sin aceptar toques: el mismo toque de «¡A jugar!» no se la salta antes de verla)
-    const tm = setTimeout(end, d.ms || 4200);
+    const tm = setTimeout(end, d.ms || window.__vsMs || 5000);   // (las pruebas la dejan más tiempo con window.__vsMs)
     setTimeout(() => { if (done) return; el.addEventListener('pointerdown', end); addEventListener('keydown', key, true); }, 450);
   });
 }
