@@ -1,12 +1,12 @@
 // Vigía en un partido de fútbol jugado solo (móvil horizontal, calidad baja): cada figura, fotograma a fotograma, con
-// tools/vigia-lib.mjs. Uso: node tools/vigia-futbol.mjs [sadar|pista] [segundos de juego]   (servidor en 5173)
+// tools/vigia-lib.mjs. Uso: node tools/vigia-futbol.mjs [sadar|pista] [segundos de juego]   (URL=http://127.0.0.1:5173 por defecto)
 import { chromium } from 'playwright-core';
 import { VIGIA_SRC } from './vigia-lib.mjs';
 const [,, venue = 'sadar', secs = '150'] = process.argv;
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true }); const errs = []; p.on('pageerror', e => errs.push(e.message));
 await p.addInitScript(() => { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'pelotari', seen: { heroBenat: true, dog: true }, settings: { quality: 'low' } })); localStorage.setItem('mendimendiz-futbol-v1', JSON.stringify({ v: 1, tutorial: true })); });
-await p.goto('http://127.0.0.1:5173/?screen=sports', { timeout: 300000 }); await p.waitForFunction(() => window.__hub, null, { timeout: 300000 });
+await p.goto((process.env.URL || 'http://127.0.0.1:5173') + '/?screen=sports', { timeout: 300000 }); await p.waitForFunction(() => window.__hub, null, { timeout: 300000 });
 await p.evaluate(() => document.querySelector('[data-sport="futbol"]').click());
 await p.waitForFunction(() => document.querySelector('.lg-root .lg-rv'), null, { timeout: 120000 }); await p.evaluate(() => document.querySelector('.lg-root .lg-rv').click());
 const sel = venue === 'sadar' ? '[data-a="sadar"]' : '[data-a="sala"]';

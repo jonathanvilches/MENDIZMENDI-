@@ -390,7 +390,8 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   .ficha:not(.quiz) .fc-sec { flex: 1 1 auto; min-height: 0; overflow-y: auto; grid-template-columns: 1fr 1fr; align-content: start; gap: 8px; overscroll-behavior: contain; }
   .ficha .fc-sec > div { padding: 8px 8px 8px; }
   .ficha .fc-sec dd { font-size: var(--fs-sm); line-height: 1.45; }
-  .ficha:not(.quiz) .fc-where { flex: none; justify-content: flex-start; gap: 4px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; } .ficha .fc-where span { flex: none; }
+  /* (las comarcas se ven todas: si no caben en una fila, bajan a la siguiente, nunca se cortan) */
+  .ficha:not(.quiz) .fc-where { flex: none; justify-content: flex-start; gap: 4px; flex-wrap: wrap; } .ficha .fc-where span { flex: none; }
   .ficha .fc-where span { padding: 2px 8px; }
   .ficha:not(.quiz) .fc-body > .btn.primary { flex: none; align-self: stretch; min-height: 44px; height: 44px; padding: 0 16px; margin: 0; }
   .ficha.quiz .mg-card { width: min(760px, 100%); display: grid; grid-template-columns: minmax(180px, 40%) 1fr; column-gap: 16px; padding: 12px 16px; text-align: left; }
@@ -430,7 +431,8 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .stampimg { width: 190px; height: 190px; object-fit: contain; animation: stamp .6s cubic-bezier(.2, 1.6, .4, 1); filter: drop-shadow(0 10px 14px rgba(0, 0, 0, .5)); }
 @keyframes stamp { from { transform: scale(2.4) rotate(-20deg); opacity: 0; } }
 .rewards { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; } .rw { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 12px; background: rgba(255, 255, 255, .1); font-weight: 900; }
-.prog { width: 100%; } .prog i { display: block; height: 10px; border-radius: 8px; background: linear-gradient(90deg, #8fd16a, #FFD700); } .prog { background: rgba(255, 255, 255, .1); border-radius: 8px; } .prog span { display: block; margin-top: 8px; font-size: var(--fs-sm); color: #c4b8a8; }
+/* (el fondo gris es solo la barra; el texto va debajo, fuera de ella) */
+.prog { position: relative; width: 100%; padding-top: 10px; } .prog::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 10px; border-radius: 8px; background: rgba(255, 255, 255, .1); } .prog i { position: absolute; left: 0; top: 0; height: 10px; border-radius: 8px; background: linear-gradient(90deg, #8fd16a, #FFD700); } .prog span { display: block; margin-top: 8px; font-size: var(--fs-sm); color: #c4b8a8; }
 /* pasos de cada misión: una fila por paso, el número al lado del texto (nunca encima) */
 .qitem .steps { list-style: none; margin: 8px 0 8px; padding: 0; display: grid; gap: 8px; counter-reset: qs; font-size: var(--fs-sm); line-height: 1.3; }
 .qitem .steps li { counter-increment: qs; display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; align-items: start; color: #b9aed6; overflow-wrap: anywhere; }
@@ -765,6 +767,8 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .opt.right { background: #8fd16a; color: #1b2a10; box-shadow: 0 4px 0 #4f8a36; }
 .opt.wrong { opacity: .45; }
 .choice .fb { min-height: 44px; font-size: var(--fs-md); line-height: 1.45; }
+/* (la pregunta es lo importante: en blanco y a tamaño de lectura, no como una nota) */
+.choice .mg-top small { display: block; margin-top: 4px; color: #fff; font-size: var(--fs-md); font-weight: 700; line-height: 1.45; }
 /* herramientas del taller */
 .tools { list-style: none; margin: 4px 0 8px; padding: 0; display: grid; gap: 8px; width: 100%; text-align: left; }
 .tools li { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; padding: 8px 8px; border-radius: 12px; background: rgba(255, 255, 255, .06); }
@@ -1021,7 +1025,9 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   /* (en tres columnas: perro, agua y comida, y el equipo en fichas de icono y nombre; su explicación, al tocarlo) */
   .bp-scroll { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .bp-equip { grid-column: auto; } .bp-head + .bp-eat { grid-column: span 2; }
-  .bp-gear { grid-template-columns: 1fr 1fr; margin-bottom: 8px; } .bagpanel .gitem small { display: none; }
+  .bp-gear { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 8px; } .bagpanel .gitem small, .bagpanel .gitem b { display: none; }
+  .bagpanel .gitem { grid-template-columns: 1fr; place-items: center; padding: 8px 0; min-height: 48px; } .bagpanel .gitem svg { width: 28px; height: 28px; }
+  .bagpanel .seg button svg { display: none; }   /* (el selector del perro, solo con su nombre: si no, «Con Gorri» no cabía) */
   .bp-foot { padding: 8px 16px 8px; } .bp-foot .btn { min-height: 44px; }
 }
 @media (orientation: landscape) and (max-height: 560px) {
@@ -1070,12 +1076,13 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .escudo .es-more { margin: -4px 0 0; text-align: center; color: #FFD700; font-weight: 800; font-size: var(--fs-xs); }
 .escudo .es-more[hidden] { display: none; }
 /* cómo se lee el escudo, en pestañas: una fila de botones (se desliza de lado si no caben) y la sección elegida entera */
-.escudo .es-tabs { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 4px 0; flex: none; -webkit-mask-image: linear-gradient(90deg, #000 90%, transparent); mask-image: linear-gradient(90deg, #000 90%, transparent); }
+.escudo .es-tabs { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 4px 0; flex: none; }
+.escudo .es-tabs.over { -webkit-mask-image: linear-gradient(90deg, #000 90%, transparent); mask-image: linear-gradient(90deg, #000 90%, transparent); }
 .escudo .es-tabs::-webkit-scrollbar { display: none; }
-.escudo .es-tabs button { flex: none; position: relative; min-height: 36px; padding: 4px 12px; border-radius: 999px; border: 1px solid rgba(255, 215, 0, .35); background: rgba(255, 230, 170, .07); color: #f0e2c4; font: 800 var(--fs-sm)/1.15 'Nunito', sans-serif; cursor: pointer; white-space: nowrap; }
+.escudo .es-tabs button { flex: 1 0 auto; position: relative; min-height: 36px; padding: 4px 12px; border-radius: 999px; border: 1px solid rgba(255, 215, 0, .35); background: rgba(255, 230, 170, .07); color: #f0e2c4; font: 800 var(--fs-sm)/1.15 'Nunito', sans-serif; cursor: pointer; white-space: nowrap; }
 .escudo .es-tabs button::before { content: ''; position: absolute; inset: -4px 0; }
 .escudo .es-tabs button[aria-selected=true] { background: #FFD700; border-color: #FFD700; color: #2e1d00; }
-.escudo .es-tabs button:last-child { margin-right: 24px; }
+.escudo .es-tabs.over button:last-child { margin-right: 24px; }
 .escudo .es-pane { padding: 12px 16px; border-radius: 12px; background: rgba(255, 230, 170, .07); box-shadow: inset 0 0 0 1px rgba(255, 215, 0, .14); color: #f0e2c4; font-weight: 600; font-size: var(--fs-sm); line-height: 1.45; }
 .escudo .es-secs { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-content: start; }
 .escudo .es-secs > div { padding: 8px 8px 8px; border-radius: 12px; background: rgba(255, 230, 170, .07); box-shadow: inset 0 0 0 1px rgba(255, 215, 0, .14); }
@@ -1218,8 +1225,6 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   .hub-nav button.on::before { top: 4px; bottom: 4px; }
 }
 @media (orientation: landscape) and (max-height: 380px) {
-  /* la fila de comarcas de la ficha se desliza: el borde se difumina para que se vea que hay más */
-  .ficha:not(.quiz) .fc-where { -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); padding-right: 16px; }
   /* tienda: el texto del producto en tres líneas como mucho, para que el botón de comprar quede a la vista */
   .shop-star p { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 8px; font-size: var(--fs-sm); }
   .shop-card .shop-star { padding: 8px 12px; } .shop-card .shop-star > :first-child { width: 60px; height: 60px; } .shop-star h3 { font-size: var(--fs-lg); margin: 0 0 2px; }

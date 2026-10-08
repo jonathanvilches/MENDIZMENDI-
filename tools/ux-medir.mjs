@@ -66,7 +66,7 @@ const MEDIR = (rootSel) => {
       if (s.textTransform === 'uppercase' && ls < 0.035) add('interletrado', e, `MAYÚSCULAS ${ls.toFixed(2)}em`);
       // contraste
       const bg = bgOf(e), fg = rgba(s.color), shadowed = [e, e.parentElement, e.parentElement?.parentElement].some(q => q && getComputedStyle(q).textShadow !== 'none');
-      if (shadowed && bg && !hasOpaque(e)) { /* texto con sombra sobre el pueblo: se lee por su sombra */ } else
+      if ((shadowed && bg && !hasOpaque(e)) || s.textShadow !== 'none') { /* texto con su sombra (sobre el pueblo): se lee por la sombra */ } else
       if (bg && fg.a > 0.3 && !(s.webkitTextFillColor && /0\)$|transparent/.test(s.webkitTextFillColor))) { const f2 = { r: fg.r * fg.a + bg.r * (1 - fg.a), g: fg.g * fg.a + bg.g * (1 - fg.a), b: fg.b * fg.a + bg.b * (1 - fg.a) }; const L1 = lumi(f2), L2 = lumi(bg), cr = (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05), big = fs >= 24 || (fs >= 18.6 && +s.fontWeight >= 700); if (cr < (big ? 3 : 4.5)) add('contraste', e, cr.toFixed(1)); }
     }
     // filas y columnas de botones: misma altura, mismo hueco, la principal a la derecha
