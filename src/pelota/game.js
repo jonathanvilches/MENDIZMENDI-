@@ -9,6 +9,10 @@ const SERVE_Z = 16.5, RECV_Z = 22;
 // por parejas: el delantero coge lo de delante (hasta el cuadro 5) y el zaguero lo de atrás; tu compañero juega como un
 // pelotari del nivel normal
 const SPLIT = 17.5, MATE_AI = { speed: 5.5, react: 0.25, error: 0.065, smart: 0.6, dash: 1.05 };
+// energía (de 0 a 1): cada golpe cansa (más si es fuerte y menos a quien tiene fuerza) y correr a tope también un poco;
+// durante el tanto apenas se recupera y entre tanto y tanto, mucho. Por debajo de la mitad se nota: golpes peores, más
+// fallos y algo menos de carrera (en un peloteo largo, el que más golpea acaba cansado)
+const EN = { hit: 0.045, pow: 0.045, rally: 0.004, run: 0.004, rest: 0.1, low: 0.5 };
 
 // altura a la que pega en el frontis la cortada y la dejada según la fuerza (0 a 1, la carga del botón) y el joystick
 // arriba o abajo (−1 a 1). También la usa la marca de puntería que se ve en el frontis mientras se carga
@@ -50,10 +54,10 @@ export class PelotaGame {
     this.score = { you: 0, rival: 0 };
     this.streak = 0; this.best = 0;
     this.players = {
-      you: { id: 'you', x: 1, z: RECV_Z, vx: 0, vz: 0, swing: 0, cool: 0, act: 'idle', actT: 0, face: 0 },
-      rival: { id: 'rival', x: -1, z: SERVE_Z, vx: 0, vz: 0, swing: 0, cool: 0, act: 'idle', actT: 0, face: 0, react: 0 },
+      you: { id: 'you', x: 1, z: RECV_Z, vx: 0, vz: 0, swing: 0, cool: 0, act: 'idle', actT: 0, face: 0, en: 1 },
+      rival: { id: 'rival', x: -1, z: SERVE_Z, vx: 0, vz: 0, swing: 0, cool: 0, act: 'idle', actT: 0, face: 0, react: 0, en: 1 },
     };
-    if (this.pairs) for (const id of ['youMate', 'rivalMate']) this.players[id] = { id, x: 0, z: 20, vx: 0, vz: 0, swing: 0, cool: 0, act: 'idle', actT: 0, face: 0, react: 0 };
+    if (this.pairs) for (const id of ['youMate', 'rivalMate']) this.players[id] = { id, x: 0, z: 20, vx: 0, vz: 0, swing: 0, cool: 0, act: 'idle', actT: 0, face: 0, react: 0, en: 1 };
     this.ids = Object.keys(this.players);
     this.server = this.mode === 'rally' ? 'rival' : (o.firstServe || 'you');
     this.phase = 'intro'; this.phaseT = 0;
@@ -69,6 +73,8 @@ export class PelotaGame {
   team(sd) { return this.pairs ? [sd, sd + 'Mate'] : [sd]; }
   // quién saca: en el mano a mano, el del lado que saca; por parejas, su delantero
   serverP() { return this.pairs ? this.team(this.server).find(id => this.role[id] === 'delantero') : this.server; }
+  // cansancio: 0 con media energía o más; 1, sin energía
+  tired(id) { const p = this.players[id]; return p ? clamp((EN.low - p.en) / EN.low, 0, 1) : 0; }
 
   // ---------------------------------------------------------------- saque
   placeForServe() {
@@ -128,7 +134,7 @@ export class PelotaGame {
     const qt = 1 - clamp(Math.abs(swingElapsed - 0.06) / 0.34, 0, 1);
     // (de diestro, lo pegado a la pared izquierda cuesta: el golpe sale peor cuanto más ajustada viene)
     const wall = clamp((1.0 - (b.x + COURT.W / 2)) / 0.7, 0, 1) * (0.2 - this.qual[who].agilidad * 0.025);
-    return clamp(0.42 * qh + 0.36 * qd + 0.22 * qt + (who === 'you' && !this.autoplay ? this.lvl.assist * 0.08 : 0) - wall, 0, 1);
+    return clamp(0.42 * qh + 0.36 * qd + 0.22 * qt + (who === 'you' && !this.autoplay ? this.lvl.assist * 0.08 : 0) - wall - this.tired(who) * 0.25, 0, 1);   // (cansado, peor)
   }
   // Elige el golpe: aim = {x, y} de −1 a 1 (x: izquierda/derecha, y: arriba = largo, abajo = dejada); req: golpe pedido
   // con su botón ('dejada' o 'cortada'; true es la dejada, como antes); pow: fuerza de 0 a 1 (cuanto más se mantiene
@@ -245,11 +251,12 @@ export class PelotaGame {
     }
     b.set(p, v); b.spin = shot === 'cortada' ? 1 : 0;
     const pl = this.players[who], sd = this.side(who); pl.act = 'hit'; pl.actT = 0; pl.swing = 0; pl.cool = 0.3;
+    pl.en = Math.max(0, pl.en - (EN.hit + EN.pow * pow) * (1.15 - this.qual[who].fuerza * 0.05));   // (cada golpe cansa)
     this.rally = { striker: sd, by: who, turn: this.other(sd), front: false, bounces: 0, serve, hits: (this.rally?.hits || 0) + 1 };
     this.phase = 'rally'; this.phaseT = 0; this.pred = null;
     this.stats.hits[sd]++;
     const label = q > 0.85 ? 'perfect' : q > 0.6 ? 'good' : q > 0.35 ? 'ok' : 'late';
-    this.emit({ type: 'hit', who, side: sd, q, label, shot, sub, pow, x: p.x, y: p.y, z: p.z });
+    this.emit({ type: 'hit', who, side: sd, q, label, shot, sub, pow, x: p.x, y: p.y, z: p.z, en: pl.en });
   }
 
   // ---------------------------------------------------------------- árbitro
@@ -386,6 +393,8 @@ export class PelotaGame {
   aiShotPairs(who, me, smart, S) {
     const rnd = this.rnd, ops = this.team(this.other(this.side(who))).map(id => this.players[id]);
     const front = ops[0].z < ops[1].z ? ops[0] : ops[1], back = front === ops[0] ? ops[1] : ops[0];
+    // si uno de los dos está mucho más cansado, se le busca a él: corta si es el de delante, larga si es el de atrás
+    if (Math.abs(front.en - back.en) > 0.2 && rnd() < smart * 0.5) return front.en < back.en ? { aim: { x: front.x > 0 ? 0.4 : -0.4, y: -0.6 }, drop: rnd() < 0.3 } : { aim: { x: back.x > 0 ? 0.35 : -0.35, y: 0.9 } };
     if (S >= 4 && back.z < 23 && me.z > 13 && rnd() < 0.18 + (S - 4) * 0.12) return { aim: { x: gauss(rnd) * 0.3, y: 1 }, drop: false, pow: 1 };
     if (rnd() < smart) {
       if (front.z > 17 && me.z < 20 && rnd() < 0.55) return { aim: { x: 0, y: -1 }, drop: true };
@@ -402,12 +411,13 @@ export class PelotaGame {
   takerOf(sd) {
     if (!this.pairs) return sd;
     const R = this.rally; if (!R || this.phase !== 'rally' || R.turn !== sd) return null;
+    if (R.claim && sd === 'you') return 'you';   // (la has pedido tú: «¡mía!»)
     if (R.taker && this.clock - R.takerAt < 0.25) return R.taker;
     let best = null, bc = Infinity, cur = Infinity;
     for (const id of this.team(sd)) {
       const pl = this.players[id], c = this.interceptFor(id, 6, 0.15); if (!c) continue;
       const del = this.role[id] === 'delantero', zone = (c.z < SPLIT) === del ? 0 : 0.45;
-      const cost = Math.hypot(c.x - pl.x, c.z - pl.z) / 6 - c.t + zone;
+      const cost = Math.hypot(c.x - pl.x, c.z - pl.z) / 6 - c.t + zone + this.tired(id) * 1.4;   // (el cansado deja más pelotas a su compañero)
       if (id === R.taker) cur = cost;
       if (cost < bc) { bc = cost; best = id; }
     }
@@ -417,14 +427,16 @@ export class PelotaGame {
   }
   // por parejas, el sitio de cada uno mientras no va a por la pelota: el delantero por delante del cuadro 4, el
   // zaguero hacia el 6 y medio; los dos se corren un poco hacia donde está la pelota
+  // (si el compañero está cansado, se acerca al centro para cubrir más cancha y que él descanse)
   basePos(who) {
-    const b = this.ball.p, del = this.role[who] === 'delantero';
-    return del ? { x: clamp(b.x * 0.3 + 1.2, -2.5, 3), z: 12.5 } : { x: clamp(b.x * 0.3 - 0.3, -3, 3), z: 23.5 };
+    const b = this.ball.p, del = this.role[who] === 'delantero', mt = this.tired(this.team(this.side(who)).find(id => id !== who));
+    return del ? { x: clamp(b.x * 0.3 + 1.2, -2.5, 3), z: 12.5 + mt * 4 } : { x: clamp(b.x * 0.3 - 0.3, -3, 3), z: 23.5 - mt * 3.5 };
   }
   driveAI(who, dt) {
     const pl = this.players[who], sd = this.side(who), base = sd === 'rival' ? this.lvl.rival : who === 'youMate' ? MATE_AI : { speed: 5.4, react: 0.25, error: 0.12 }, Q = this.qual[who];
     // velocidad: lo que corre y la arrancada a las cortas (a uno lento le pillan las dejadas); agilidad: los reflejos
-    const lv = { ...base, speed: base.speed * (0.85 + Q.velocidad * 0.05), dash: (base.dash ?? 1) * (0.94 + Q.velocidad * 0.02), react: base.react * (1.25 - Q.agilidad * 0.083) };
+    const tir = this.tired(who);   // (cansado, corre algo menos y falla más)
+    const lv = { ...base, speed: base.speed * (0.85 + Q.velocidad * 0.05) * (1 - tir * 0.15), dash: (base.dash ?? 1) * (0.94 + Q.velocidad * 0.02), react: base.react * (1.25 - Q.agilidad * 0.083) };
     let tx = pl.x, tz = pl.z, sprint = 1;
     if (this.phase === 'rally' && this.rally.turn === sd && this.pairs && this.takerOf(sd) !== who) {
       // la coge el compañero: a su sitio
@@ -440,8 +452,8 @@ export class PelotaGame {
         // (y lo que llega al fondo, junto al rebote, cuesta devolverlo bien)
         const near = clamp((1.1 - (b.x + COURT.W / 2)) / 0.8, 0, 1), deep = clamp((b.z - 28.5) / 4, 0, 1);
         const wallErr = rally ? 0 : near * (0.55 - Q.agilidad * 0.09) + (b.y < 0.3 ? 0.2 - Q.agilidad * 0.04 : 0) + deep * (0.4 - Q.agilidad * 0.05);
-        const bad = this.rnd() < (rally ? 0.03 : lv.error) + Math.max(0, wallErr);
-        const q = bad ? 0.1 + this.rnd() * 0.2 : 0.55 + this.rnd() * 0.4;
+        const bad = this.rnd() < (rally ? 0.03 : lv.error) + Math.max(0, wallErr) + (rally ? 0 : tir * 0.3);
+        const q = bad ? 0.1 + this.rnd() * 0.2 : 0.55 + this.rnd() * 0.4 - tir * 0.2;
         const s = this.aiShot(who);
         // fuerza: cuanto más fuerte, más cargados los golpes
         return this.strike(who, q, s.aim, s.drop, s.pow ?? clamp(0.18 + Q.fuerza * 0.1 + this.rnd() * 0.5, 0.15, 1));
@@ -476,6 +488,9 @@ export class PelotaGame {
     this.events = [];
     dt = Math.min(dt, 0.05);
     this.phaseT += dt; this.predT -= dt; this.clock += dt;
+    // energía: durante el tanto apenas se recupera (y correr a tope cansa); entre tanto y tanto, mucho
+    const live = this.phase === 'rally' || this.phase === 'servePrep';
+    for (const id of this.ids) { const p = this.players[id]; p.en = clamp(p.en + (live ? EN.rally - EN.run * Math.max(0, (p.speed || 0) - 3) / 3 : EN.rest) * dt, 0, 1); }
     for (const id of this.ids) { const p = this.players[id]; p.actT += dt; if (p.cool > 0) p.cool -= dt; if ((p.act === 'hit' || p.act === 'swing') && p.actT > 0.45) p.act = 'idle'; }   // (un golpe al aire también acaba: antes se quedaba en «swing» y el gesto se repetía sin parar)
 
     if (this.phase === 'intro' || this.phase === 'end') return this.events;
@@ -528,7 +543,13 @@ export class PelotaGame {
     // jugador humano (o piloto automático)
     if (this.autoplay) this.driveAI('you', dt);
     else {
-      const spd = 6.2, mx = clamp(inp.mx || 0, -1, 1), mz = clamp(inp.mz || 0, -1, 1);
+      const spd = 6.2 * (1 - this.tired('you') * 0.12), mx = clamp(inp.mx || 0, -1, 1), mz = clamp(inp.mz || 0, -1, 1);
+      // por parejas, mantener el golpe con la pelota de tu compañero en el aire es pedirla («¡mía!»): si llegas, es tuya
+      // y él se aparta (para que descanse si está cansado)
+      if (this.pairs && inp.aiming && this.phase === 'rally' && this.rally.turn === 'you' && !this.rally.claim && this.takerOf('you') !== 'you') {
+        const c = this.interceptFor('you', spd, 0.1);
+        if (c && Math.hypot(c.x - you.x, c.z - you.z) / spd + 0.1 <= c.t + 0.15) { this.rally.claim = true; this.rally.taker = 'you'; this.emit({ type: 'claim' }); }
+      }
       let vx = mx * spd, vz = mz * spd;
       // ayuda: se acerca solo al sitio donde llegará la pelota (apuntando, con el botón mantenido, va solo del todo)
       const help = inp.aiming ? Math.max(this.lvl.assist, 5.4) : this.lvl.assist;
@@ -577,6 +598,6 @@ export class PelotaGame {
     // (por parejas, «te toca» solo si la pelota es tuya; si es de tu compañero, él va a por ella)
     const mine = R.turn === 'you' && this.takerOf('you') === 'you';
     const spot = mine ? this.interceptFor('you', 6.2, 0.1) : null;
-    return { land, spot, yourTurn: mine, mate: R.turn === 'you' && !mine, hittable: this.hittable('you') };
+    return { land, spot, yourTurn: mine, mate: R.turn === 'you' && !mine, hittable: this.hittable('you'), tired: this.tired('you'), mateTired: this.pairs ? this.tired('youMate') : 0 };
   }
 }
