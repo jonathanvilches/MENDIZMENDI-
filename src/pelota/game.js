@@ -5,7 +5,10 @@ import { Ball, predict, solveShot, solveTwoWalls, aimVelocity, vec } from './phy
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const gauss = (rnd) => (rnd() + rnd() + rnd() - 1.5) / 1.5;
-const SERVE_Z = 16.5, RECV_Z = 22;
+// el saque, como en el frontón: el que saca sale del cuadro 7, corre hasta poco antes del 4, bota la pelota y saca; el
+// que resta espera junto a la pared izquierda, sobre el 7
+const SERVE_FROM = COURT.CUADRO * 7, SERVE_Z = COURT.FALTA + 0.75, SERVE_X = 0.6, RUN_V = 5.8;
+const RECV_X = -COURT.W / 2 + 1.3, RECV_Z = COURT.CUADRO * 7;
 // por parejas: el delantero coge lo de delante (hasta el cuadro 5) y el zaguero lo de atrás; tu compañero juega como un
 // pelotari del nivel normal
 const SPLIT = 17.5, MATE_AI = { speed: 5.5, react: 0.25, error: 0.065, smart: 0.6, dash: 1.05 };
@@ -80,22 +83,22 @@ export class PelotaGame {
   placeForServe() {
     const s = this.players[this.serverP()];
     if (this.pairs) {
-      // el delantero que saca, en el cuadro 4 y medio; su zaguero, atrás; los que restan: el zaguero hacia el 6 y el
-      // delantero delante, hacia el otro lado
-      const S = this.server, sx = S === 'you' ? 1 : -1;
+      // el delantero que saca, en el 7 (de ahí sale corriendo); su zaguero, atrás a la derecha; los que restan: el
+      // zaguero junto a la pared en el 7 y el delantero delante, cerca de la pared (fuera de la carrera del que saca)
+      const S = this.server;
       for (const id of this.ids) {
         const p = this.players[id], del = this.role[id] === 'delantero';
-        if (this.side(id) === S) { p.x = del ? sx * 0.8 : sx * 2.2; p.z = del ? SERVE_Z : 25.5; }
-        else { p.x = del ? -sx * 2.6 : -sx * 1.2; p.z = del ? 12.5 : RECV_Z + 0.5; }
+        if (this.side(id) === S) { p.x = del ? SERVE_X : 3; p.z = del ? SERVE_FROM : 27; }
+        else { p.x = del ? -2.6 : RECV_X; p.z = del ? 12.5 : RECV_Z; }
       }
     } else {
       const r = this.players[this.other(this.server)];
-      s.x = this.server === 'you' ? 0.8 : -0.8; s.z = SERVE_Z;
-      r.x = this.server === 'you' ? -1.2 : 1.2; r.z = RECV_Z;
+      s.x = SERVE_X; s.z = SERVE_FROM;
+      r.x = RECV_X; r.z = RECV_Z;
     }
     for (const id of this.ids) { const p = this.players[id]; p.vx = p.vz = 0; p.swing = 0; p.act = 'idle'; }
     this.ball.set(vec(s.x + 0.35, 1.05, s.z - 0.35), vec()); this.ball.spin = 0;
-    this.rally = null; this.serveTries = 0;
+    this.rally = null; this.serveTries = 0; this.runUp = false;
   }
   start() { if (this.phase === 'intro') this.toServe(); }
   toServe() {
@@ -443,7 +446,12 @@ export class PelotaGame {
   // (si el compañero está cansado, se acerca al centro para cubrir más cancha y que él descanse)
   basePos(who) {
     const b = this.ball.p, del = this.role[who] === 'delantero', mt = this.tired(this.team(this.side(who)).find(id => id !== who));
-    return del ? { x: clamp(b.x * 0.3 + 1.2, -2.5, 3), z: 12.5 + mt * 4 } : { x: clamp(b.x * 0.3 - 0.3, -3, 3), z: 23.5 - mt * 3.5 };
+    const p = del ? { x: clamp(b.x * 0.3 + 1.2, -2.5, 3), z: 12.5 + mt * 4 } : { x: clamp(b.x * 0.3 - 0.3, -3, 3), z: 23.5 - mt * 3.5 };
+    // (el de la otra pareja que juega en su misma zona quiere el mismo sitio: no se planta hombro con hombro con él, se
+    // queda a 2 m a un lado, hacia donde haya más cancha)
+    const o = this.players[this.team(this.other(this.side(who))).find(id => this.role[id] === this.role[who])];
+    if (o && Math.hypot(p.x - o.x, p.z - o.z) < 2) { const s = o.x > 0.5 ? -1 : o.x < -0.5 ? 1 : p.x >= o.x ? 1 : -1; p.x = clamp(o.x + s * 2, -COURT.W / 2 + 0.9, COURT.W / 2 - 0.9); }
+    return p;
   }
   driveAI(who, dt) {
     const pl = this.players[who], sd = this.side(who), base = sd === 'rival' ? this.lvl.rival : who === 'youMate' ? MATE_AI : { speed: 5.4, react: 0.25, error: 0.12 }, Q = this.qual[who];
@@ -516,13 +524,15 @@ export class PelotaGame {
       this.movePlayers(dt, inp, false);
       return this.events;
     }
-    // saque: esperar a que el que saca bote la pelota
+    // saque: el que saca sale corriendo desde el 7 (tú, al pulsar GOLPE) con la pelota en la mano y, poco antes del 4,
+    // la bota
     if (this.phase === 'serveWait') {
       const s = this.players[this.serverP()];
-      this.ball.set(vec(s.x + 0.35, 1.05, s.z - 0.35), vec()); this.ball.spin = 0;
       const humanServes = this.serverP() === 'you' && !this.autoplay;
-      if (humanServes ? (inp.hit || this.phaseT > 9) : this.phaseT > 1.3) this.dropForServe();
+      if (!this.runUp && (humanServes ? (inp.hit || this.phaseT > 9) : this.phaseT > 0.8)) { this.runUp = true; this.emit({ type: 'serveRun', who: this.serverP() }); }
       this.movePlayers(dt, { ...inp, hit: false, drop: false }, true);
+      this.ball.set(vec(s.x + 0.35, 1.05, s.z - 0.35), vec()); this.ball.spin = 0;
+      if (this.runUp && s.z < SERVE_Z + 0.3) this.dropForServe();
       return this.events;
     }
     if (this.phase === 'servePrep') {
@@ -571,8 +581,8 @@ export class PelotaGame {
         if (c) { const dx = c.x - you.x, dz = c.z - you.z, d = Math.hypot(dx, dz); if (d > 0.25) { const k = Math.min(help, d * 2.5); vx += dx / d * k; vz += dz / d * k; } }
       }
       const a = 1 - Math.exp(-12 * dt);
-      you.vx += (vx - you.vx) * a; you.vz += (vz - you.vz) * a;
-      if (this.phase === 'serveWait' && this.serverP() === 'you') { you.vx = you.vz = 0; }
+      // (si sacas, la carrera hasta el 4 la haces solo: el joystick no cuenta hasta que golpeas)
+      if (!((this.phase === 'serveWait' || this.phase === 'servePrep') && this.serverP() === 'you')) { you.vx += (vx - you.vx) * a; you.vz += (vz - you.vz) * a; }
       // golpe
       if ((inp.hit || inp.drop || inp.cut) && you.cool <= 0) {
         if (this.phase === 'servePrep' || this.phase === 'rally') { you.swing = 0.3; you.swingT = 0; you.dropReq = inp.drop ? 'dejada' : inp.cut ? 'cortada' : false; you.pow = inp.power ?? 0.5; you.aim = { x: inp.aimX || 0, y: inp.aimY || 0 }; you.act = 'swing'; you.actT = 0; you.cool = 0.32; }
@@ -587,7 +597,11 @@ export class PelotaGame {
     }
     // los demás (el rival y, por parejas, los compañeros), con la cabeza; el que saca espera quieto a botar la pelota
     for (const id of this.ids) if (id !== 'you' && !(this.phase === 'serveWait' && this.serverP() === id)) this.driveAI(id, dt);
-    if (this.phase === 'serveWait' || (this.phase === 'servePrep')) { const s = this.players[this.serverP()]; s.vx = s.vz = 0; }
+    if (this.phase === 'serveWait' || this.phase === 'servePrep') {
+      const s = this.players[this.serverP()];
+      if (this.phase === 'serveWait' && this.runUp) this.moveTo(s, SERVE_X, SERVE_Z, RUN_V, dt);
+      else { s.vx = s.vz = 0; }
+    }
     this.giveWay(dt, inp);
     const all = this.ids.map(id => this.players[id]);
     for (const p of all) {

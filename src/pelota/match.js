@@ -369,8 +369,8 @@ export class PelotaMatch {
     const tt = this.txt;
     let tip = '';
     const PT = tt.pairs || TEXT.es.pairs, sp = g.serverP();
-    if (g.phase === 'serveWait' && sp === 'you') tip = tt.tipServe;
-    else if (g.phase === 'servePrep' && sp === 'you') tip = g.hittable('you') ? tt.tipServe2 : '';
+    if (g.phase === 'serveWait' && sp === 'you') tip = g.runUp ? tt.tipServeRun : tt.tipServe;
+    else if (g.phase === 'servePrep' && sp === 'you') tip = g.hittable('you') ? tt.tipServe2 : tt.tipServeRun;
     else if (g.phase === 'serveWait' && sp === 'youMate') tip = PT.mateServe;
     else if (g.phase === 'serveWait' && g.server === 'rival') tip = g.pairs && this.role === 'delantero' ? PT.rivalServe : tt.tipRivalServe;
     else if (h && h.mate && !h.hittable && h.tired > 0.3) tip = PT.rest;
