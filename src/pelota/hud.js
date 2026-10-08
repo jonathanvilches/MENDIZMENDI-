@@ -65,6 +65,13 @@ const CSS = `
 .pel-rv p{margin:0;flex:1 1 100%;font-size:13px;line-height:1.3;color:#d8cff0}
 .pel-rv2 .pr{display:flex;flex-wrap:wrap;gap:2px 12px;flex:1 1 100%}.pel-rv2 .pr em{font-style:normal;font-weight:900;min-width:9em}
 .pel-pairs{margin:0 0 10px;font-size:13px;line-height:1.3;color:#d8cff0}
+/* energía de cada pelotari: arriba a la izquierda, bajo el botón de salir (verde, amarilla y roja al cansarse) */
+.pel-en{position:absolute;top:calc(env(safe-area-inset-top,0px) + 62px);left:calc(env(safe-area-inset-left,0px) + 10px);display:flex;flex-direction:column;gap:3px;padding:5px 8px;border-radius:10px;background:rgba(14,10,24,.58);font-size:11px;font-weight:800;line-height:1}
+.pel-en[hidden]{display:none}.pel-en div{display:flex;align-items:center;gap:6px}
+.pel-en span{width:62px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.9}.pel-en .me span{opacity:1;color:#ffe14a}
+.pel-en em{width:7px;height:7px;border-radius:50%;flex:none}.pel-en .you em{background:#2f6fe0}.pel-en .rival em{background:#e0392f}
+.pel-en i{width:64px;height:6px;border-radius:3px;background:rgba(255,255,255,.18);overflow:hidden;position:relative;display:block}
+.pel-en i b{position:absolute;inset:0;transform-origin:left;background:#5be37d;transition:transform .2s}.pel-en .mid i b{background:#ffd23a}.pel-en .low i b{background:#ff5a3a}
 .pel-more{margin:0 0 6px}.pel-more>summary{cursor:pointer;font-size:13px;font-weight:900;color:#cbbcf0;text-transform:uppercase;letter-spacing:.04em;margin:0 0 8px;min-height:28px;display:flex;align-items:center;gap:6px;list-style:none}
 .pel-more>summary::-webkit-details-marker{display:none}.pel-more>summary::before{content:'▸';color:#FFD700;font-size:14px}.pel-more[open]>summary::before{content:'▾'}
 @media (max-width:560px){.pel-mid{display:none}.pel-side{padding:2px 7px}.pel-side span{max-width:20vw}
@@ -110,6 +117,24 @@ export class PelotaHud {
     container.appendChild(r);
     this.$ = (s) => r.querySelector(s);
     this.callT = 0; this.qT = 0;
+  }
+  // energía: filas { id, name, en (0 a 1), side ('you'|'rival'), me }; null la esconde
+  energy(rows) {
+    let el = this.enEl;
+    if (!rows) { if (el) el.hidden = true; return; }
+    const key = rows.map(r => r.id + r.name).join();
+    if (!el || this.enKey !== key) {
+      el?.remove(); el = this.enEl = document.createElement('div'); el.className = 'pel-en'; this.enKey = key;
+      el.innerHTML = rows.map(r => `<div class="${r.side}${r.me ? ' me' : ''}" data-en="${r.id}"><em></em><span>${esc(r.name)}</span><i><b></b></i></div>`).join('');
+      this.root.insertBefore(el, this.root.querySelector('.pel-call'));
+    }
+    el.hidden = false;
+    for (const r of rows) {
+      const row = el.querySelector(`[data-en="${r.id}"]`); if (!row) continue;
+      const v = Math.round(r.en * 50) / 50; if (row._v === v) continue; row._v = v;
+      row.querySelector('b').style.transform = `scaleX(${v})`;
+      row.classList.toggle('mid', v < 0.5 && v >= 0.25); row.classList.toggle('low', v < 0.25);
+    }
   }
   setNames(you, rival) { const a = this.root.querySelector('.pel-blue span'), b = this.root.querySelector('.pel-red span'); if (a) a.textContent = you; if (b) b.textContent = rival; }
   setScore(you, rival, server, mid) {

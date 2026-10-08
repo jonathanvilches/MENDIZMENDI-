@@ -62,7 +62,7 @@ export class PelotaMatch {
     const mods = [['mano', P.single], ['delantero', P.front], ['zaguero', P.back]], cur = this.pairs ? this.role : 'mano';
     const p = this.hud.panel(`<h2>${t.title}</h2><p class="pel-sub">${esc(this.label('you'))} vs ${esc(this.label('rival'))} · ${g.mode === 'rally' ? t.rally(g.target) : t.to(g.target)}</p>
       ${canPairs ? `<div class="pel-levels pel-mod" role="group" aria-label="${P.label}">${mods.map(([k, l]) => `<button data-pel-mod="${k}" aria-pressed="${k === cur}">${l}</button>`).join('')}</div>` : ''}
-      ${this.pairs ? `<p class="pel-pairs">${P.how(this.role === 'delantero')}</p>` : ''}
+      ${this.pairs ? `<p class="pel-pairs">${P.how(this.role === 'delantero')} ${P.energy}</p>` : ''}
       ${this.rivalHtml()}
       <details class="pel-more" open><summary>${t.rulesTitle || TEXT.es.rulesTitle}</summary><ol>${t.rules.map(r => `<li>${r}</li>`).join('')}</ol>
       <div class="pel-ctrl">${this.touch ? t.ctrlTouch : t.ctrlKeys}</div></details>
@@ -258,6 +258,7 @@ export class PelotaMatch {
         this.swingAnim(e.who); break;
       }
       case 'whiff': this.hud.quality(t.quality.whiff); break;
+      case 'claim': this.hud.quality((t.pairs || TEXT.es.pairs).claim); break;   // (pides la pelota de tu compañero)
       case 'front': if (e.chapa) { A.chapa(); C.chapaT = 0.6; this.shake = 0.35; } else A.front(); C.pop({ x: e.x, y: e.y, z: 0.02 }, 'z'); break;
       case 'wall': A.wall(); break;
       case 'back': A.wall(); if (e.live) this.hud.quality(t.rebote || '¡Al rebote!'); break;   // el rebote: la pared de atrás
@@ -329,11 +330,17 @@ export class PelotaMatch {
     else if (g.phase === 'servePrep' && sp === 'you') tip = g.hittable('you') ? tt.tipServe2 : '';
     else if (g.phase === 'serveWait' && sp === 'youMate') tip = PT.mateServe;
     else if (g.phase === 'serveWait' && g.server === 'rival') tip = g.pairs && this.role === 'delantero' ? PT.rivalServe : tt.tipRivalServe;
+    else if (h && h.mate && !h.hittable && h.tired > 0.3) tip = PT.rest;
+    else if (h && h.mate && !h.hittable && h.mateTired > 0.4) tip = PT.mateTired(tt.hit);
     else if (h && h.mate && !h.hittable) tip = PT.mateBall;
     else if (this.input.charge && g.phase === 'rally' && g.rally?.turn === 'you') tip = tt.tipAim;
     else if (h && h.hittable) tip = tt.tipHit;
     else if (h && h.yourTurn) tip = assist ? tt.tipMove : '';
+    else if (h && h.tired > 0.5) tip = tt.tiredYou;
     this.hud.tip(tip);
+    // la energía de cada uno (tú, en amarillo)
+    this.hud.energy(g.phase === 'intro' || g.phase === 'end' ? null : ['you', 'youMate', 'rival', 'rivalMate'].filter(id => g.players[id]).map(id => ({ id, side: g.side(id), me: id === 'you', en: g.players[id].en,
+      name: id === 'you' ? this.names.you : id === 'rival' ? this.names.rival : this.mateObjs?.[id]?.name || '' })));
     // pelotaris
     for (const who of g.ids) {
       const P = g.players[who], side = this.o[who] || this.mateObjs?.[who]; if (!side?.obj) continue;
