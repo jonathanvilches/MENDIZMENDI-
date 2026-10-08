@@ -170,8 +170,10 @@ async function boot() {
         rt.start(game);
         ui.hideLoading(); queueMode('light');
         saveProfile();
+        if (opt.resumeAt) { rt.player.place(opt.resumeAt.x, opt.resumeAt.z, opt.resumeAt.h ?? 0); rt.follow.snap(rt.player); }
         if (opt.sport) { loading = false; game.sportOnly(); return; }
-        { const g = game; setTimeout(() => { if (g && g === game) g.ui.toast(`¡Ya estás en ${d.name}! Habla con ${g.missions[0]?.host?.name || 'tu guía'}`, 'exclaim', 4200); }, 700); }
+        if (opt.resumed) { const g = game; setTimeout(() => { if (g && g === game) g.ui.toast('Imagen recuperada: sigues donde estabas', 'exclaim', 3600); }, 700); }
+        else { const g = game; setTimeout(() => { if (g && g === game) g.ui.toast(`¡Ya estás en ${d.name}! Habla con ${g.missions[0]?.host?.name || 'tu guía'}`, 'exclaim', 4200); }, 700); }
       }
     } catch (e) {
       // antes se volvía al menú sin decir nada («me saca del juego»): ahora se avisa, y si no estaba ya en calidad
@@ -261,15 +263,21 @@ async function boot() {
   // tarjeta, así que no se pueden volver a subir tal cual); si no vuelve, el botón recarga y entra en el mismo pueblo
   rt.onContextRestored = () => {
     if (!game || !def || loading) return;
-    // en mitad de un minijuego, un partido, el encierro o un diálogo es más seguro recargar y volver al mismo pueblo
-    if (game.mode !== 'play' || game.altScene || ui.dialogOpen || document.querySelector('.mg-overlay:not(.ctxlost), .fb-root, .pel-root')) { rt.onReload(); return; }
-    const d = def;
+    // pelota (el menú, el torneo, un partido preparándose o en juego): se rehace el pueblo y se vuelve a la puerta del
+    // frontón, con el menú de pelota si venías de Campeonatos. Antes se volvía a la llegada del pueblo y el partido que
+    // se estaba preparando ponía sus controles encima («me ha llevado al inicio del juego con los controles del partido»)
+    const pelota = game.fronton && (game.mode === 'pelota' || game.pelotaLoading || game.pelotaMatch || game.sportMode || document.querySelector('.pel-root, .lg-root'));
+    // en mitad de un minijuego, el encierro o un diálogo es más seguro recargar y volver al mismo pueblo
+    if (!pelota && (game.mode !== 'play' || game.altScene || ui.dialogOpen || document.querySelector('.mg-overlay:not(.ctxlost), .fb-root'))) { rt.onReload(); return; }
+    const d = def, F = game.fronton, pp = rt.player?.pos;
+    const resumeAt = pelota ? (() => { const e = F.entry, c = F.out || F.toWorld(0, 12); return { x: e.x, z: e.z, h: Math.atan2(c.x - e.x, c.z - e.z) }; })() : pp ? { x: pp.x, z: pp.z, h: rt.player.heading } : null;
+    const sport = game.sportMode ? 'pelota' : undefined;
     try { game.save?.(); } catch (e) { }
     try { game.dispose?.(); } catch (e) { }
     ui.destroyHUD(); ui.setCinematic(false);
     try { rt.unload(); } catch (e) { }
     game = null;
-    play(d);
+    play(d, { resumeAt, sport, resumed: true });   // (donde estabas, y no en la llegada del pueblo)
   };
   rt.onReload = () => {
     try { game?.save?.(); } catch (e) { }

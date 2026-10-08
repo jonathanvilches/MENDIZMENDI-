@@ -33,6 +33,7 @@
 
 | Fecha | Función | Respuestas (1-8) | Color | Decisión |
 |---|---|---|---|---|
+| 2026-10-08 | Memoria gráfica recuperada en mitad de la pelota: el pueblo se rehace junto al frontón, se cancela lo que estaba a medias y no quedan controles del partido sueltos; menos memoria en el partido de Pamplona | 1 no · 2 no · 3 no · 4 no · 5 no · 6 no · 7 no · 8 no | Verde | Código propio; sin recursos nuevos de terceros |
 | 2026-10-08 | Copas de los árboles sin motas al atravesarlas con la cámara; el partido de pelota sigue aunque falle otra parte del pueblo y nunca deja el marcador en la calle | 1 no · 2 no · 3 no · 4 no · 5 no · 6 no · 7 no · 8 no | Verde | Código propio; sin recursos nuevos de terceros |
 | 2026-10-08 | Motas de luz al mover la cámara: niebla baja de pie y sin bordes, luciérnagas que se encienden poco a poco y no en el partido, cielo sin puntos sueltos | 1 no · 2 no · 3 no · 4 no · 5 no · 6 no · 7 no · 8 no | Verde | Código propio; sin recursos nuevos de terceros |
 | 2026-10-08 | Luz: haz del objetivo fino y suave, rayos de tormenta más finos y espaciados, focos del partido que entran poco a poco, sombras que no tiemblan al andar | 1 no · 2 no · 3 no · 4 no · 5 no · 6 no · 7 no · 8 no | Verde | Código propio; sin recursos nuevos de terceros |
