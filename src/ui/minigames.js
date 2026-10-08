@@ -241,7 +241,7 @@ export function townFinale(ui, { town, stamp, missions = [], xp = 0, next = null
   return new Promise(res => {
     ui.sound.fanfare?.();
     const o = overlay(ui, 'finale', `
-      <div class="fw">${Array.from({ length: 14 }, (_, i) => `<i style="--x:${(i * 37) % 100}%;--d:${(i % 5) * 0.35}s;--c:${['#FFD700', '#FF69B4', '#00BFFF', '#FF6347', '#8A2BE2'][i % 5]}"></i>`).join('')}</div>
+      <div class="fw">${Array.from({ length: 14 }, (_, i) => `<i style="--x:${(i * 37) % 100}%;--d:${(i % 5) * 0.35}s;--c:${['#ff7ac8', '#FF69B4', '#c9b2ff', '#ff2e88', '#8A2BE2'][i % 5]}"></i>`).join('')}</div>
       <small class="kicker">¡Pueblo completado!</small>
       <img class="stampimg big" src="${stamp}" alt="">
       <h2>${esc(town)}</h2>

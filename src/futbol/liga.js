@@ -87,39 +87,46 @@ export function levelFor(mine, rival) { const d = CLUBS[rival].ovr - CLUBS[mine]
 // ---------------------------------------------------------------- pantallas (como en los juegos de fútbol)
 const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // la equipación en pequeño: camiseta con su dibujo, pantalón y medias
-export function kitSvg(id, size = 44) {
-  const c = CLUBS[id], s2 = c.shirt2 || c.shirt, uid = 'k' + id + Math.random().toString(36).slice(2, 6);
+export function kitSvg(id, size = 44) { return kitSvgOf(CLUBS[id], size, 'k' + id); }
+/** La camiseta, el pantalón y las medias de un equipo (c: { shirt, shirt2, pattern, shorts, socks }) en SVG. */
+export function kitSvgOf(c, size = 44, key = 'kit') {
+  const s2 = c.shirt2 || c.shirt, uid = key.replace(/[^a-z0-9]/gi, '') + Math.random().toString(36).slice(2, 6);
   const fill = c.pattern === 'rayas' ? `url(#${uid})` : c.shirt;
   const defs = c.pattern === 'rayas' ? `<defs><pattern id="${uid}" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="4" height="8" fill="${c.shirt}"/><rect x="4" width="4" height="8" fill="${s2}"/></pattern></defs>` : '';
   const band = c.pattern === 'banda' ? `<path d="M12 8 L36 34 L36 40 L12 14 Z" fill="${s2}"/>` : '';
   return `<svg class="lg-kit" viewBox="0 0 48 64" width="${size * 0.75}" height="${size}">${defs}<path d="M14 4 L22 2 Q24 6 26 2 L34 4 L44 12 L38 20 L35 17 L35 40 L13 40 L13 17 L10 20 L4 12 Z" fill="${fill}" stroke="#1a1426" stroke-width="1.6" stroke-linejoin="round"/>${band}<path d="M13 41 L35 41 L36 50 L26 50 L24 46 L22 50 L12 50 Z" fill="${c.shorts}" stroke="#1a1426" stroke-width="1.6" stroke-linejoin="round"/><rect x="14" y="51" width="7" height="10" rx="2" fill="${c.socks}" stroke="#1a1426" stroke-width="1.4"/><rect x="27" y="51" width="7" height="10" rx="2" fill="${c.socks}" stroke="#1a1426" stroke-width="1.4"/></svg>`;
 }
 const CSS = `
-.lg-root{position:fixed;inset:0;z-index:30000;display:grid;place-items:center;padding:calc(env(safe-area-inset-top,0px) + 8px) 8px calc(env(safe-area-inset-bottom,0px) + 8px);background:radial-gradient(circle at 50% 0%,#2a1460,#0d0820 70%);font-family:Nunito,system-ui,sans-serif;color:#fff;animation:lgIn .25s}
+.lg-root{position:fixed;inset:0;z-index:30000;display:grid;place-items:center;padding:calc(env(safe-area-inset-top,0px) + 8px) calc(env(safe-area-inset-right,0px) + 8px) calc(env(safe-area-inset-bottom,0px) + 8px) calc(env(safe-area-inset-left,0px) + 8px);font-family:Nunito,system-ui,sans-serif;color:#fff;animation:lgIn .25s}
 @keyframes lgIn{from{opacity:0}to{opacity:1}}
-.lg-card{width:min(860px,100%);max-height:100%;overflow:auto;display:grid;gap:12px;grid-template-columns:1fr;padding:16px;border-radius:22px;background:linear-gradient(180deg,rgba(60,30,130,.55),rgba(20,10,45,.9));border:1px solid rgba(190,160,255,.3);box-shadow:0 30px 80px rgba(0,0,0,.6)}
-.lg-head{display:flex;align-items:center;gap:12px}.lg-head h2{margin:0;font:400 var(--fs-xl) 'Lilita One',Nunito,sans-serif;line-height:1}.lg-head small{display:block;color:#ffd84a;font-weight:900;font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase}
-.lg-head .lg-ovr{margin-left:auto;text-align:center;background:linear-gradient(180deg,#ffe98a,#e0b020);color:#2a1a00;border-radius:12px;padding:4px 8px;font:900 var(--fs-lg) Nunito,sans-serif;line-height:1}.lg-ovr small{color:#5a3a00!important;font-size:var(--fs-xs)!important}
-.lg-next{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:12px;border-radius:16px;background:rgba(255,255,255,.07);text-align:center}
-.lg-next .lg-t{display:flex;flex-direction:column;align-items:center;gap:4px}.lg-next b{font-size:var(--fs-md);line-height:1.15}.lg-next em{font-style:normal;font-size:var(--fs-xs);color:#cbbcf0}
-.lg-vs{font:400 var(--fs-xl) 'Lilita One',Nunito,sans-serif;color:#ffd84a}.lg-vs small{display:block;font:800 var(--fs-xs) Nunito,sans-serif;color:#cbbcf0;letter-spacing:.04em}
+/* (la tarjeta, como un rótulo de retransmisión: cristal morado, esquinas cortadas y una raya fucsia arriba) */
+.lg-card{position:relative;width:min(900px,100%);max-height:100%;overflow:auto;display:grid;gap:12px;grid-template-columns:1fr;padding:16px 20px;border-radius:4px;background:linear-gradient(180deg,rgba(49,16,107,.62),rgba(12,4,30,.9));border:1px solid rgba(201,178,255,.2);box-shadow:0 30px 80px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06);clip-path:polygon(18px 0,100% 0,100% calc(100% - 18px),calc(100% - 18px) 100%,0 100%,0 18px)}
+.lg-card::before{content:'';position:absolute;left:18px;right:0;top:0;height:3px;background:var(--cta);box-shadow:var(--glow)}
+.lg-card>*{animation:gx-in .42s cubic-bezier(.2,.9,.3,1.15) both}.lg-card>:nth-child(2){animation-delay:.05s}.lg-card>:nth-child(3){animation-delay:.1s}.lg-card>:nth-child(n+4){animation-delay:.15s}
+.lg-head{display:flex;align-items:center;gap:12px}.lg-head h2{margin:0;font:400 var(--fs-2xl)/1 var(--f-display);text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.5)}.lg-head small{display:block;color:var(--rosa);font:800 var(--fs-sm)/1.15 var(--f-cond);letter-spacing:.1em;text-transform:uppercase}
+.lg-head .lg-ovr{margin-left:auto;text-align:center;background:var(--cta);color:#fff;border-radius:4px;padding:4px 12px;font:400 var(--fs-2xl)/1 var(--f-display);clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);box-shadow:var(--glow)}.lg-ovr small{color:#fff!important;font:800 var(--fs-xs)/1 var(--f-cond)!important;letter-spacing:.1em!important}
+.lg-next{position:relative;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:12px;border-radius:4px;background:linear-gradient(90deg,rgba(91,75,255,.4),rgba(255,255,255,.04) 42%,rgba(255,255,255,.04) 58%,rgba(255,46,136,.4));text-align:center;overflow:hidden}
+.lg-next .lg-t{display:flex;flex-direction:column;align-items:center;gap:4px}.lg-next b{font:400 var(--fs-xl)/1.1 var(--f-display);text-transform:uppercase}.lg-next em{font:600 var(--fs-sm)/1.15 var(--f-cond);font-style:normal;letter-spacing:.04em;text-transform:uppercase;color:var(--lila)}
+.lg-vs{font:400 var(--fs-3xl)/1 var(--f-display);background:linear-gradient(180deg,#fff,var(--rosa));-webkit-background-clip:text;background-clip:text;color:transparent;animation:gx-pop .5s cubic-bezier(.2,1.5,.4,1) .2s both}.lg-vs small{display:block;font:800 var(--fs-xs)/1.3 var(--f-cond);color:var(--lila);-webkit-text-fill-color:var(--lila);letter-spacing:.1em}
 .lg-table{width:100%;border-collapse:collapse;font-size:var(--fs-sm)}.lg-table th{font-size:var(--fs-xs);color:#cbbcf0;text-transform:uppercase;letter-spacing:.04em;padding:4px 4px;text-align:center}
 .lg-table td{padding:4px 4px;text-align:center;border-top:1px solid rgba(255,255,255,.08)}.lg-table td.n{text-align:left;font-weight:800;white-space:nowrap}.lg-table td.n i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;vertical-align:-1px;border:1px solid rgba(0,0,0,.4)}
-.lg-table tr.me td{background:rgba(255,216,74,.16)}.lg-table tr.me td.n{color:#ffd84a}.lg-table td.pts{font-weight:900}
-.lg-res{display:grid;gap:4px;font-size:var(--fs-sm)}.lg-res div{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;padding:4px 8px;border-radius:10px;background:rgba(255,255,255,.05)}.lg-res div.me{background:rgba(255,216,74,.16)}.lg-res span:first-child{text-align:right}.lg-res b{min-width:42px;text-align:center}
+.lg-table tr.me td{background:rgba(255,155,216,.16)}.lg-table tr.me td.n{color:#ff9bd8}.lg-table td.pts{font-weight:900}
+.lg-res{display:grid;gap:4px;font-size:var(--fs-sm)}.lg-res div{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;padding:4px 8px;border-radius:10px;background:rgba(255,255,255,.05)}.lg-res div.me{background:rgba(255,155,216,.16)}.lg-res span:first-child{text-align:right}.lg-res b{min-width:42px;text-align:center}
 .lg-btns{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
 /* botones de acción al pie (como en todo el juego): salir a la izquierda y la acción principal a la derecha, donde está el
    pulgar de las acciones; en dos filas, la principal abajo y a todo lo ancho */
 .lg-foot>[data-a="exit"]{order:-1}.lg-foot>.lg-btn.go{order:2}.lg-btns>.lg-btn:only-child{grid-column:1/-1}
-.lg-btn{border:0;border-radius:14px;padding:12px;min-height:50px;font:800 var(--fs-sm)/1.3 Nunito,sans-serif;color:#fff;background:rgba(255,255,255,.12);cursor:pointer}.lg-btn.go{background:linear-gradient(180deg,#fff38f,#ffd700 55%,#f0b000);color:#2a1a00;font:400 var(--fs-lg) 'Lilita One',Nunito,sans-serif;box-shadow:0 4px 0 #a86f00}
+.lg-btn{position:relative;overflow:hidden;border:1px solid rgba(201,178,255,.3);border-radius:4px;padding:12px;min-height:50px;font:800 var(--fs-md)/1.15 var(--f-cond);letter-spacing:.04em;text-transform:uppercase;color:#fff;background:rgba(255,255,255,.07);cursor:pointer;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%)}
+.lg-btn.go{border:0;background:var(--cta);color:#fff;font:400 var(--fs-xl)/1 var(--f-display);box-shadow:var(--glow)}.lg-btn.go::after{content:'';position:absolute;top:0;bottom:0;left:0;width:40%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);transform:translateX(-150%) skewX(-20deg);animation:gx-sweep 3.2s ease-in-out .6s infinite;pointer-events:none}
+.lg-btn:active{transform:translateY(1px) scale(.98)}
 .lg-note{font-size:var(--fs-xs);color:#a99cc9;margin:0}
 /* elegir rival: solo se desplaza la lista; la cabecera y «Volver» quedan siempre a la vista */
 .lg-card.lg-pick{grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden}.lg-card.lg-pick>.lg-list{overflow:auto;min-height:0;overscroll-behavior:contain;padding:2px}.lg-list.more{-webkit-mask-image:linear-gradient(180deg,#000 82%,transparent);mask-image:linear-gradient(180deg,#000 82%,transparent)}
-.lg-how{font-size:var(--fs-sm);line-height:1.45;color:#e6def7;margin:0;padding:8px 12px;border-radius:12px;background:rgba(255,216,74,.08);border:1px solid rgba(255,216,74,.25)}.lg-how b{color:#ffd84a}
+.lg-how{font-size:var(--fs-sm);line-height:1.45;color:#e6def7;margin:0;padding:8px 12px;border-radius:12px;background:rgba(255,155,216,.08);border:1px solid rgba(255,155,216,.25)}.lg-how b{color:#ff9bd8}
 .lg-table td.dg{color:#cbbcf0;font-variant-numeric:tabular-nums}
 .lg-rv{display:flex;align-items:center;gap:8px;text-align:left;min-width:0;padding:8px 8px}.lg-rv>span{min-width:0;flex:1}.lg-rv b,.lg-rv small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lg-rv b{font-size:var(--fs-sm)}.lg-rv small{font:700 var(--fs-xs) Nunito,sans-serif;opacity:.75}
 @media (max-width:560px){.lg-card{padding:16px 12px;gap:8px}.lg-head h2{font-size:var(--fs-xl)}.lg-table .x{display:none}.lg-table{font-size:var(--fs-sm)}.lg-table td{padding:8px 4px}.lg-table th{padding:4px}.lg-btns{grid-template-columns:1fr 1fr}.lg-btns .lg-btn.go{grid-column:1/-1}}
-.lg-champ{text-align:center;padding:8px;border-radius:16px;background:linear-gradient(180deg,rgba(255,216,74,.25),rgba(255,216,74,.05))}.lg-champ b{font:400 var(--fs-xl) 'Lilita One',Nunito,sans-serif;color:#ffd84a}
+.lg-champ{text-align:center;padding:8px;border-radius:16px;background:linear-gradient(180deg,rgba(255,155,216,.25),rgba(255,155,216,.05))}.lg-champ b{font:400 var(--fs-xl) 'MZ Display',Nunito,sans-serif;color:#ff9bd8}
 @media (orientation:landscape) and (max-height:520px){
 .lg-root{padding:8px}.lg-card{gap:8px 12px;padding:8px 16px}.lg-adapt{display:none}
 .lg-card.lg-two{grid-template-columns:1fr 1.15fr;grid-auto-rows:min-content;align-items:start}
@@ -139,7 +146,7 @@ const CSS = `
 `;
 function panel(html) {
   if (!document.getElementById('lg-css')) { const st = document.createElement('style'); st.id = 'lg-css'; st.textContent = CSS; document.head.appendChild(st); }
-  const r = document.createElement('div'); r.className = 'lg-root'; r.innerHTML = `<div class="lg-card">${html}</div>`; document.body.appendChild(r);
+  const r = document.createElement('div'); r.className = 'lg-root gx-bg'; r.innerHTML = `<div class="lg-card">${html}</div>`; document.body.appendChild(r);
   // (con clasificación o cuadro, en el móvil tumbado va a dos columnas: lo demás a la izquierda y la tabla a la derecha)
   if (r.querySelector('.lg-table, .tq-bracket')) r.firstElementChild.classList.add('lg-two');
   // listas que se desplazan: un degradado abajo avisa de que hay más (en el móvil tumbado no se veían los últimos clubes)

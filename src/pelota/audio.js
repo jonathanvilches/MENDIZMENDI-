@@ -37,6 +37,8 @@ export class PelotaAudio {
   chapa() { const c = this.ensure(); if (!c) return; const t = c.currentTime; for (const [f, g] of [[620, 0.16], [1033, 0.12], [1710, 0.09], [2630, 0.06]]) this.tone(t, 0.55, f, g, 'triangle'); this.noise(t, 0.05, 3000, 1, 0.3); }
   floor(power = 1) { const c = this.ensure(); if (!c) return; const t = c.currentTime; this.noise(t, 0.05, 700, 1, 0.3 * power); this.tone(t, 0.07, 110, 0.25 * power, 'sine', 0.7); }
   wall() { this.front(0.6); }
+  // el golpe del «VS» de la presentación: un bombo grave con chasquido y el público que ruge
+  slam() { const c = this.ensure(); if (!c) return; const t = c.currentTime; this.tone(t, 0.7, 58, 0.6, 'sine', 0.35); this.tone(t, 0.25, 110, 0.3, 'triangle', 0.5); this.noise(t, 0.12, 2600, 0.7, 0.4); this.crowd('oh'); }
   // el público: «¡oooh!» (ruido filtrado que sube y baja) y aplausos
   crowd(kind = 'oh') {
     const c = this.ensure(); if (!c) return; const t = c.currentTime;

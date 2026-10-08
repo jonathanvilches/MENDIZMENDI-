@@ -5,11 +5,11 @@
 // Uso: node tools/pelota-frontones-juego.mjs
 import { PelotaGame } from '../src/pelota/game.js';
 import { courtFeel } from '../src/pelota/rules.js';
-import { setFeel, FEEL, predict } from '../src/pelota/physics.js';
+import { setFeel, FEEL, predict, Ball } from '../src/pelota/physics.js';
 
 let fails = 0;
 const ok = (c, m) => { console.log(`  ${c ? 'OK ' : 'FALLO'} ${m}`); if (!c) fails++; };
-const CASES = { 'al aire libre': {}, 'a cubierto': { covered: true }, 'frontis de piedra': { stone: true }, 'suelo mojado': { wet: true }, Labrit: { labrit: true, covered: true } };
+const CASES = { 'al aire libre': {}, 'a cubierto': { covered: true }, 'frontis de piedra': { stone: true }, 'suelo mojado': { wet: true }, Labrit: { labrit: true, covered: true }, 'frontón cubierto': { hall: true, covered: true } };
 
 // 1. el mismo golpe en cada frontón
 function shot(power, seed) {
@@ -32,6 +32,16 @@ for (const [name, c] of Object.entries(CASES)) {
   console.log(`   ${name.padEnd(18)} ${f.tags.map(t => t.name).join(' + ').padEnd(30)} sale del frontis a ${M[name].spd.toFixed(1)} m/s · primer bote ${M[name].first.toFixed(1)} m · sube ${M[name].peak.toFixed(2)} m · corre ${M[name].run.toFixed(1)} m hasta el 2.º bote · a tope llega al rebote ${Math.round(M[name].back * 100)} %`);
 }
 setFeel(null);
+// el frontón cubierto (los campeonatos): una pelota alta hacia el rebote, por encima de los 8,5 m de la pared de la calle,
+// y otra por encima de la pared izquierda: en el cubierto rebotan; en el de la calle, se salen
+const throwAt = (feel, p, v) => { setFeel(feel); const B = new Ball(); B.p = { ...p }; B.v = { ...v }; const ev = []; for (let t = 0; t < 2; t += 1 / 120) { const o = []; B.step(1 / 120, o); ev.push(...o); } setFeel(null); return ev; };
+{ const hall = courtFeel({ hall: true }), street = courtFeel({});
+  const hb = throwAt(hall, { x: 0, y: 10, z: 31 }, { x: 0, y: 0, z: 9 }), sb = throwAt(street, { x: 0, y: 10, z: 31 }, { x: 0, y: 0, z: 9 });
+  const hl = throwAt(hall, { x: -3, y: 9.5, z: 16 }, { x: -9, y: 0, z: 0 }), sl = throwAt(street, { x: -3, y: 9.5, z: 16 }, { x: -9, y: 0, z: 0 });
+  const high = (ev) => ev.some(e => e.type === 'back' && e.y > 8.6);   // (en la calle, por encima de los 8,5 m del rebote)
+  console.log(`   rebote a 10 m: cubierto ${high(hb) ? 'rebota' : 'se sale'} · calle ${high(sb) ? 'rebota' : 'se sale'} · pared izquierda a 9,5 m: cubierto ${hl.some(e => e.type === 'left' && !e.over) ? 'rebota (mala)' : 'pasa por encima'} · calle ${sl.some(e => e.type === 'left' && e.over) ? 'pasa por encima' : 'rebota'}`);
+  ok(high(hb) && !high(sb), 'en el frontón cubierto, la pelota alta rebota en el rebote (en la calle se sale)');
+  ok(hl.some(e => e.type === 'left' && !e.over && e.y > 8), 'y la que va por encima de la pared izquierda rebota en ella (sigue siendo mala)'); }
 const A = M['al aire libre'];
 ok(M['a cubierto'].first === A.first && M['a cubierto'].peak === A.peak, 'a cubierto y al aire libre con el suelo seco botan igual (lo que cambia es que no llueve)');
 ok(M['suelo mojado'].peak < A.peak * 0.92, `con el suelo mojado la pelota sube menos tras el bote (${M['suelo mojado'].peak.toFixed(2)} m frente a ${A.peak.toFixed(2)} m)`);

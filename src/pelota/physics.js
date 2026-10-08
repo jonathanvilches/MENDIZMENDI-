@@ -6,8 +6,10 @@ const R = COURT.BALL_R;
 // cómo es el frontón donde se juega: cuánto sale la pelota del frontis, cuánto bota en el suelo y cuánto corre al botar
 // (1 = lo de siempre). Lo pone el partido al empezar (setFeel, con courtFeel de rules.js) y lo quita al acabar; la
 // predicción de la IA usa la misma física, así que el rival también juega con el frontón como es
-export const FEEL = { front: 1, floor: 1, run: 1 };
-export function setFeel(f = null) { FEEL.front = f?.front ?? 1; FEEL.floor = f?.floor ?? 1; FEEL.run = f?.run ?? 1; }
+export const FEEL = { front: 1, floor: 1, run: 1, backH: 0, leftH: 0 };
+// (backH y leftH: alto del rebote y de la pared izquierda; en el frontón cubierto llegan hasta el techo y la pelota no
+// se sale: por encima de la raya sigue siendo mala, pero rebota en la pared)
+export function setFeel(f = null) { FEEL.front = f?.front ?? 1; FEEL.floor = f?.floor ?? 1; FEEL.run = f?.run ?? 1; FEEL.backH = f?.backH || 0; FEEL.leftH = f?.leftH || 0; }
 export const vec = (x = 0, y = 0, z = 0) => ({ x, y, z });
 
 export class Ball {
@@ -29,13 +31,13 @@ export class Ball {
     }
     // pared izquierda
     // (por encima de la pared no hay rebote: sale fuera, pero se avisa para el árbitro)
-    if (p.x < -COURT.W / 2 + R && v.x < 0 && p.z < COURT.L + 2 && p.y > COURT.LEFT_H) { if (!this.over) { this.over = true; out.push({ type: 'left', x: -COURT.W / 2, y: p.y, z: p.z, over: true }); } }
+    if (p.x < -COURT.W / 2 + R && v.x < 0 && p.z < COURT.L + 2 && p.y > (FEEL.leftH || COURT.LEFT_H)) { if (!this.over) { this.over = true; out.push({ type: 'left', x: -COURT.W / 2, y: p.y, z: p.z, over: true }); } }
     else if (p.x < -COURT.W / 2 + R && v.x < 0 && p.z < COURT.L + 2) {
       out.push({ type: 'left', x: -COURT.W / 2, y: p.y, z: p.z });
       p.x = -COURT.W / 2 + R; v.x = -v.x * PHYS.WALL_E; v.z *= 0.97;
     }
     // el rebote: la pared de atrás, baja (por encima pasa y se pierde)
-    if (p.z > COURT.REBOTE - R && v.z > 0 && p.y < COURT.REBOTE_H && p.x > -COURT.W / 2 - 0.6 && p.x < COURT.W / 2 + 0.3) {
+    if (p.z > COURT.REBOTE - R && v.z > 0 && p.y < (FEEL.backH || COURT.REBOTE_H) && p.x > -COURT.W / 2 - 0.6 && p.x < COURT.W / 2 + 0.3) {
       out.push({ type: 'back', x: p.x, y: p.y, z: COURT.REBOTE });
       p.z = COURT.REBOTE - R; v.z = -v.z * PHYS.BACK_E; v.x *= 0.9;
     }

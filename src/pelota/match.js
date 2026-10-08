@@ -1,6 +1,6 @@
 // Partido de pelota a mano: une la lógica (game.js), el frontón (court.js), la interfaz (hud.js) y el sonido.
 // El juego anfitrión pone el frontón en su escena, llama a update(dt) en cada fotograma y renderiza con su cámara.
-import { COURT, TEXT, courtFeel, LEVEL_ORDER, rivalQuote } from './rules.js';
+import { COURT, TEXT, courtFeel, LEVEL_ORDER, rivalQuote, pelotariRating } from './rules.js';
 import { showVs, courtIcon } from './vs.js';
 import { setFeel } from './physics.js';
 import { openFicha, playerChip, splitName } from './ficha.js';
@@ -114,11 +114,15 @@ export class PelotaMatch {
     const rt = splitName(this.names.rival).town || this.o.town || '';
     const line = [M ? (this.role === 'delantero' ? P.front : P.back) : P.single, g.mode === 'rally' ? t.rally(g.target) : t.to(g.target), this.o.fixedLevel ? '' : L[this.level]].filter(Boolean).join(' · ');
     this.vsOpen = true; this.met = true;
+    // (las cartas: la media y las tres cualidades de cada uno, como en el cuadro del torneo)
+    const N = t.card || TEXT.es.card, cardOf = (st, seed, bonus) => { const r = pelotariRating(st || {}, seed, bonus); return { ovr: r.ovr, ovrLabel: t.ovr || TEXT.es.ovr, stats: [r.vel, r.pot, r.man].map((v, i) => ({ k: N[i], v })) }; };
+    const yn = this.label('you'), rn = this.label('rival').replace(/\s*\([^)]*\)/g, '');
     showVs(this.hud.root, {
-      you: { name: this.label('you'), sub: this.o.town || '', img: V.you, mateImg: M ? V.you : null },
-      rival: { name: this.label('rival').replace(/\s*\([^)]*\)/g, ''), sub: rt, img: V.rival, mateImg: M ? V.rival : null },
+      comp: this.o.comp || t.friendly || TEXT.es.friendly,
+      you: { name: yn, sub: this.o.town || '', img: V.you, mateImg: M ? V.you : null, ...cardOf(this.o.youStats, `${splitName(this.names.you).name} ${this.o.town || ''}`, this.o.youBonus ?? 2) },
+      rival: { name: rn, sub: rt, img: V.rival, mateImg: M ? V.rival : null, ...cardOf(this.o.rivalStats, `${splitName(this.names.rival).name} ${rt}`, this.o.rivalBonus ?? 0) },
       venue: this.o.venue || (this.o.town ? (t.fronton || TEXT.es.fronton)(this.o.town) : ''), cond: this.o.cond, tags: this.feel?.tags || [],
-      line, quote: rivalQuote(this.o.rivalStats || {}, this.lang), tap: t.vsTap || TEXT.es.vsTap,
+      line, quote: rivalQuote(this.o.rivalStats || {}, this.lang), tap: t.vsTap || TEXT.es.vsTap, onSlam: () => this.audio.slam?.(),
     }).then(go);
   }
   // ------------------------------------------------------------ las partes del frontón
@@ -492,9 +496,14 @@ export class PelotaMatch {
     // también: antes se quedaba detrás de ti y no se veía cómo ni hacia dónde golpeaba
     const rv = g.players[g.pairs ? g.takerOf('rival') || 'rival' : 'rival'], rivalTurn = g.phase === 'rally' && g.rally?.turn === 'rival', behind = rivalTurn && Number.isFinite(rv?.z) ? Math.max(0, rv.z - you.z) : 0;   // (solo en el peloteo, cuando le toca a él: al sacar se queda contigo)
     const cz = you.z + behind, cx = behind > 0.5 ? you.x * 0.6 + rv.x * 0.4 : you.x, up = Math.min(2.4, behind * 0.16);
-    const lp = portrait ? [cx * 0.45 + 0.4, 6.3 + up, cz + 9.6 + behind * 0.15] : [cx * 0.55 + 0.8, 4.0 + up, cz + 7.0 + behind * 0.15];
-    const ll = portrait ? [cx * 0.2, 1.2, cz - 9.5] : [cx * 0.25, 1.2, cz - 12];
-    if (g.phase === 'intro') { const a = this.t * 0.25; lp[0] = Math.sin(a) * 18 + 2; lp[1] = 9; lp[2] = COURT.L * 0.5 + Math.cos(a) * 18 + 6; ll[0] = 0; ll[1] = 2; ll[2] = COURT.L * 0.4; }
+    // cámara de retransmisión: alta y por detrás, como en la tele (se ve la cancha entera con sus rayas, los dos pelotaris
+    // y el frontis), y sigue al jugador con suavidad. En el frontón cubierto no pasa del rebote: si tú estás muy atrás,
+    // sube en vez de retroceder
+    const lp = portrait ? [cx * 0.3 + 0.6, 7.4 + up, cz + 10.5 + behind * 0.12] : [cx * 0.32 + 1.1, 6.0 + up * 0.7, cz + 8.6 + behind * 0.12];
+    const ll = portrait ? [cx * 0.18, 1.4, cz - 9] : [cx * 0.2, 1.5, cz - 11];
+    if (C.hall && g.phase !== 'intro') { const zMax = COURT.REBOTE - 0.7, over = Math.max(0, lp[2] - zMax); lp[2] -= over; lp[1] += over * 0.32; ll[2] -= over * 0.4; }
+    if (g.phase === 'intro') { const a = this.t * 0.25; if (C.hall) { lp[0] = 3.5 + Math.sin(a) * 3; lp[1] = 8.5 + Math.sin(a * 0.7); lp[2] = 30 + Math.cos(a) * 2.5; ll[0] = 0; ll[1] = 3; ll[2] = 8; }   // (dentro del pabellón: un paseo lento desde lo alto del fondo)
+      else { lp[0] = Math.sin(a) * 18 + 2; lp[1] = 9; lp[2] = COURT.L * 0.5 + Math.cos(a) * 18 + 6; ll[0] = 0; ll[1] = 2; ll[2] = COURT.L * 0.4; } }
     if (this.tour) { const [cp, cl] = this.tourCams[this.tour.i]; lp[0] = cp[0]; lp[1] = cp[1]; lp[2] = cp[2]; ll[0] = cl[0]; ll[1] = cl[1]; ll[2] = cl[2]; this.tourMat.opacity = 0.45 + 0.3 * Math.sin(this.t * 4); }   // (parpadea: se ve que está resaltada)
     const wp = this.v3.set(lp[0], lp[1], Math.min(lp[2], COURT.L + 11)); grp.localToWorld(wp);
     const wl = new T.Vector3(ll[0], ll[1], ll[2]); grp.localToWorld(wl);
@@ -506,7 +515,7 @@ export class PelotaMatch {
     this.cam.lookAt(this.camLook);
     // el rebote, a través si la cámara queda detrás de él (si no, taparía la cancha)
     const lc = grp.worldToLocal(this.v3.copy(this.camPos)); C.reboteSeeThrough?.(lc.z > COURT.REBOTE - 0.3, dt);
-    const fov = portrait ? 62 : 55;
+    const fov = portrait ? 62 : 54;
     if (Math.abs(this.cam.fov - fov) > 0.01) { this.cam.fov = fov; this.cam.updateProjectionMatrix(); }
   }
   destroy() {

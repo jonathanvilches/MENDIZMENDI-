@@ -1,0 +1,87 @@
+/* Estilo deportivo de todo el juego (pelota, fútbol, campeonatos y menú), al modo de las retransmisiones y de los juegos
+   de fútbol: letra condensada, gruesa y en cursiva para títulos, cifras y botones; fondos morados oscuros con haces de
+   luz; fucsia y rosa como únicos acentos; cartas de jugador con su media y sus cualidades, y entradas con movimiento.
+   La letra es Barlow Condensed (licencia OFL), incrustada como las demás. */
+@font-face { font-family: 'MZ Display'; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url('../../node_modules/@fontsource/barlow-condensed/files/barlow-condensed-latin-800-italic.woff2') format('woff2'); }
+@font-face { font-family: 'MZ Cond'; font-style: normal; font-weight: 100 650; font-display: swap;
+  src: url('../../node_modules/@fontsource/barlow-condensed/files/barlow-condensed-latin-600-normal.woff2') format('woff2'); }
+@font-face { font-family: 'MZ Cond'; font-style: normal; font-weight: 651 900; font-display: swap;
+  src: url('../../node_modules/@fontsource/barlow-condensed/files/barlow-condensed-latin-800-normal.woff2') format('woff2'); }
+:root {
+  --f-display: 'MZ Display', 'Nunito', system-ui, sans-serif;
+  --f-cond: 'MZ Cond', 'Nunito', system-ui, sans-serif;
+  /* morados (del casi negro al violeta eléctrico), lila para los textos secundarios, fucsia y rosa para destacar */
+  --v0: #07020f; --v1: #12052a; --v2: #1e0a44; --v3: #31106b; --v4: #4c1a9e; --v5: #7b2ff7;
+  --lila: #c9b2ff; --lila2: #9d86d6; --fx: #ff2bd6; --fx2: #c21cff; --rosa: #ff7ac8; --hot: #ff2e88;
+  /* los dos bandos de un partido dentro de la misma gama: el azul tira a índigo y el colorado a magenta */
+  --azul: #5b4bff; --azul2: #24127a; --rojo: #ff2e88; --rojo2: #6e0b4c;
+  --cta: linear-gradient(100deg, #ff2bd6 0%, #c21cff 55%, #7b2ff7 100%);
+  --glow: 0 0 24px rgba(255, 43, 214, .45);
+}
+
+/* ---------- fondo de retransmisión: morado oscuro, haces de luz y rayas finas en diagonal, y un brillo que lo cruza */
+.gx-bg { position: relative; isolation: isolate; overflow: hidden;
+  background: radial-gradient(90% 70% at 88% -10%, rgba(255, 43, 214, .32), transparent 60%), radial-gradient(80% 80% at -10% 110%, rgba(123, 47, 247, .5), transparent 62%), linear-gradient(160deg, var(--v2), var(--v0) 72%); }
+.gx-bg::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: repeating-linear-gradient(115deg, transparent 0 46px, rgba(255, 255, 255, .03) 46px 48px), linear-gradient(115deg, transparent 30%, rgba(201, 178, 255, .1) 42%, transparent 54%); }
+.gx-bg::after { content: ''; position: absolute; top: -20%; bottom: -20%; left: 0; width: 30%; z-index: -1; pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255, 122, 200, .14), transparent); transform: translateX(-120%) skewX(-18deg); animation: gx-sweep 7s ease-in-out 1s infinite; }
+@keyframes gx-sweep { 0% { transform: translateX(-120%) skewX(-18deg); } 40%, 100% { transform: translateX(460%) skewX(-18deg); } }
+
+/* ---------- títulos y rótulos */
+.gx-kick { display: inline-flex; align-items: center; gap: 8px; font: 800 var(--fs-sm)/1.15 var(--f-cond); letter-spacing: .1em; text-transform: uppercase; color: var(--rosa); }
+.gx-kick::before { content: ''; width: 18px; height: 4px; border-radius: 2px; background: var(--cta); transform: skewX(-20deg); }
+.gx-title { margin: 0; font: 400 var(--fs-3xl)/1 var(--f-display); text-transform: uppercase; letter-spacing: 0; color: #fff; text-shadow: 0 3px 0 rgba(7, 2, 15, .5); }
+
+/* ---------- botón principal: paralelogramo fucsia con brillo que pasa */
+.gx-go { position: relative; overflow: hidden; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 8px 28px; border: 0; border-radius: 6px;
+  background: var(--cta); color: #fff; font: 400 var(--fs-lg)/1 var(--f-display); text-transform: uppercase; letter-spacing: .04em; cursor: pointer;
+  clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%); box-shadow: var(--glow); transition: transform .12s, filter .12s; }
+.gx-go::after { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 40%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .45), transparent); transform: translateX(-150%) skewX(-20deg); animation: gx-sweep 3.2s ease-in-out .6s infinite; pointer-events: none; }
+.gx-go:active { transform: translateY(1px) scale(.98); filter: brightness(1.1); }
+.gx-alt { min-height: 48px; padding: 8px 20px; border-radius: 6px; border: 1px solid rgba(201, 178, 255, .4); background: rgba(255, 255, 255, .06); color: #fff; font: 800 var(--fs-md)/1 var(--f-cond); text-transform: uppercase; letter-spacing: .04em; cursor: pointer;
+  clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%); }
+
+/* ---------- carta de jugador (como las de los juegos de fútbol): media y puesto, figura, nombre y tres cualidades.
+   Su tamaño sale de --w; la holografía cruza la carta de vez en cuando */
+.gx-card { --w: 150px; --c1: var(--v5); --c2: var(--v2); --ac: var(--rosa); position: relative; flex: none; width: var(--w); height: calc(var(--w) * 1.38); color: #fff; isolation: isolate;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, .5)); font-family: var(--f-cond); text-align: center; }
+.gx-card.azul { --c1: var(--azul); --c2: var(--azul2); --ac: #b6aaff; }
+.gx-card.rojo { --c1: var(--rojo); --c2: var(--rojo2); --ac: #ffb3dc; }
+.gx-card .gx-face, .gx-card::before { position: absolute; inset: 0; clip-path: polygon(16% 0, 84% 0, 100% 8%, 100% 90%, 84% 100%, 16% 100%, 0 90%, 0 8%); }
+.gx-card::before { content: ''; z-index: -2; background: linear-gradient(160deg, rgba(255, 255, 255, .9), var(--ac) 30%, var(--c2) 70%, var(--ac)); }
+.gx-card .gx-face { inset: 2px; z-index: -1; overflow: hidden;
+  background: radial-gradient(120% 60% at 50% 0%, rgba(255, 255, 255, .3), transparent 60%), repeating-linear-gradient(125deg, transparent 0 10px, rgba(255, 255, 255, .05) 10px 11px), linear-gradient(170deg, var(--c1), var(--c2) 78%); }
+.gx-card .gx-face::after { content: ''; position: absolute; top: -10%; bottom: -10%; left: 0; width: 45%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .38), transparent); transform: translateX(-160%) skewX(-18deg); animation: gx-sweep 5s ease-in-out var(--d, 0s) infinite; }
+.gx-card img { position: absolute; z-index: 0; right: 2%; top: 5%; height: 60%; width: 76%; object-fit: cover; object-position: 50% 4%; -webkit-mask-image: linear-gradient(180deg, #000 70%, transparent); mask-image: linear-gradient(180deg, #000 70%, transparent); }
+.gx-card .gx-ovr { position: absolute; z-index: 1; left: 9%; top: 9%; display: flex; flex-direction: column; align-items: center; line-height: .9; }
+.gx-card .gx-ovr b { font: 400 calc(var(--w) * .24)/.9 var(--f-display); letter-spacing: -.02em; text-shadow: 0 2px 0 rgba(0, 0, 0, .3); }
+.gx-card .gx-ovr small { font: 800 max(12px, calc(var(--w) * .085))/1 var(--f-cond); letter-spacing: .06em; text-transform: uppercase; color: var(--ac); }
+.gx-card .gx-nm { position: absolute; z-index: 1; left: 6%; right: 6%; top: 56.5%; padding-bottom: 2px; border-bottom: 1px solid rgba(255, 255, 255, .3); font: 400 max(14px, calc(var(--w) * .135))/1.1 var(--f-display); text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 2px 0 rgba(0, 0, 0, .3); }
+.gx-card .gx-tw { position: absolute; z-index: 1; left: 6%; right: 6%; top: 68.5%; font: 600 max(12px, calc(var(--w) * .075))/1.1 var(--f-cond); letter-spacing: .06em; text-transform: uppercase; color: var(--ac); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gx-card .gx-st { position: absolute; z-index: 1; left: 6%; right: 6%; bottom: 5%; display: grid; grid-template-columns: repeat(3, 1fr); }
+.gx-card .gx-st span { display: flex; flex-direction: column; align-items: center; line-height: 1; }
+.gx-card .gx-st b { font: 800 max(13px, calc(var(--w) * .11))/1 var(--f-cond); }
+.gx-card .gx-st small { font: 600 max(12px, calc(var(--w) * .07))/1.05 var(--f-cond); letter-spacing: .04em; color: var(--ac); text-transform: uppercase; }
+.gx-card.mini .gx-nm, .gx-card.mini .gx-tw, .gx-card.mini .gx-st, .gx-card.mini .gx-ovr small { display: none; }
+.gx-card.lock { --c1: #2a1f44; --c2: #120a24; --ac: #6f6292; }
+.gx-card.lock img { filter: brightness(0); opacity: .55; }
+.gx-card.lock .gx-face::after { display: none; }
+.gx-card.pop { animation: gx-pop .5s cubic-bezier(.2, 1.5, .4, 1) var(--d, 0s) both; }
+@keyframes gx-pop { from { opacity: 0; transform: translateY(24px) rotateY(70deg) scale(.86); } to { opacity: 1; transform: none; } }
+
+/* ---------- entradas escalonadas: cada hijo llega con un pequeño retraso (--i lo pone el código o el orden) */
+.gx-stagger > * { animation: gx-in .42s cubic-bezier(.2, .9, .3, 1.15) both; }
+.gx-stagger > :nth-child(2) { animation-delay: .05s; } .gx-stagger > :nth-child(3) { animation-delay: .1s; } .gx-stagger > :nth-child(4) { animation-delay: .15s; }
+.gx-stagger > :nth-child(5) { animation-delay: .2s; } .gx-stagger > :nth-child(6) { animation-delay: .25s; } .gx-stagger > :nth-child(n+7) { animation-delay: .3s; }
+@keyframes gx-in { from { opacity: 0; transform: translateX(-18px) skewX(-6deg); } to { opacity: 1; transform: none; } }
+
+/* ---------- barra de una cualidad que se llena */
+.gx-bar { display: grid; grid-template-columns: minmax(64px, auto) 1fr 32px; align-items: center; gap: 8px; font: 800 var(--fs-sm)/1.15 var(--f-cond); text-transform: uppercase; letter-spacing: .04em; }
+.gx-bar i { height: 8px; border-radius: 2px; background: rgba(255, 255, 255, .12); overflow: hidden; transform: skewX(-20deg); }
+.gx-bar i u { display: block; height: 100%; width: var(--v, 50%); background: var(--cta); box-shadow: var(--glow); animation: gx-fill .9s cubic-bezier(.2, .9, .3, 1) .2s both; }
+.gx-bar b { text-align: right; font: 400 var(--fs-lg)/1 var(--f-display); }
+@keyframes gx-fill { from { width: 0; } }
+
+@media (prefers-reduced-motion: reduce) { .gx-bg::after, .gx-go::after, .gx-card .gx-face::after { animation: none; display: none; } .gx-stagger > *, .gx-card.pop, .gx-bar i u { animation: none; } }

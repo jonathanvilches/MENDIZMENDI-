@@ -54,14 +54,14 @@ import { GearProps } from '../actors/gear3d.js';
 import { foodFrom } from '../data/equipo.js';
 import { PROCESOS, TRADICIONES } from '../data/procesos.js';
 import { bird } from '../actors/beasts.js';
-import { Fronton, findFrontonSpot, frontonWall, labrit, labritInTown } from './fronton.js';
+import { Fronton, findFrontonSpot, frontonWall, labrit, labritInTown, hallVenue } from './fronton.js';
 import { Pista, findPistaSpot } from './pista.js';
 import { clubOfTown, teamOfClub } from '../futbol/clubs.js';
 import { clubPanel } from '../futbol/liga.js';
 import { season as ligaSeason } from '../futbol/liga.js';
 import { CLUBS } from '../futbol/clubs.js';
 const CLUBS_NAME = (id) => CLUBS[id]?.name || '';
-import { torneo, yourMatch, playTorneoRound, torneoPanel, pelotaMenu } from './torneo.js';
+import { torneo, yourMatch, playTorneoRound, torneoPanel, pelotaMenu, youBonus } from './torneo.js';
 import { showChampion } from '../ui/champion.js';
 import { makeClue, makeAura } from './legendFx.js';
 import { Chase } from './chase.js';
@@ -937,7 +937,10 @@ export class TownGame {
         const pick = await pelotaMenu(torneo(you, ctx), town, torneo(you, ctx, false, 'parejas'));
         if (this.disposed || pick === 'exit') return;
         if (pick === 'torneo' || pick === 'torneoParejas') { await this.pelotaTorneo(a, ctx, pick === 'torneoParejas' ? 'parejas' : 'mano'); if (this.disposed) return; continue; }
-        const r = await this.fronton.play(this, a);
+        // (el partido de Campeonatos, como el torneo, en el frontón cubierto; el de la calle queda para las misiones)
+        const hv = this.fronton.court.labrit ? this.fronton : this.hallVenue(); if (hv !== this.fronton) await this.hallIntro(hv);
+        if (this.disposed) return;
+        const r = await hv.play(this, a, { returnTo: this.fronton, comp: 'Partido de exhibición' });
         if (this.disposed) return;
         if (r.quit) continue;
         const best = (townState(profile(), this.def.id).best ||= {});
@@ -960,12 +963,14 @@ export class TownGame {
       if (act === 'sim') { playTorneoRound(T); continue; }
       const m = yourMatch(T);
       // la final, en el frontón Labrit de Iruña (los cuartos y las semifinales, aquí)
-      const fin = m.round === 'Final', venue = fin ? (this.fronton?.court.labrit ? this.fronton : this.labritVenue()) : this.fronton;
-      if (fin) await this.labritIntro(venue);
+      // (los cuartos y las semifinales, en el frontón cubierto del pueblo; en Iruña, en el Labrit)
+      const fin = m.round === 'Final', venue = this.fronton?.court.labrit ? this.fronton : fin ? this.labritVenue() : this.hallVenue();
+      if (fin) await this.labritIntro(venue); else if (venue.court.hall) await this.hallIntro(venue);
       if (this.disposed) return;
       // (por parejas: juegas con tu compañero contra el delantero y el zaguero rivales)
       const r = await venue.play(this, a, { target: m.target, level: m.level, rivalName: `${pairs ? m.rival.mates[0] : m.rival.name} (${m.rival.town})`, fixedLevel: true, returnTo: this.fronton, rivalStats: m.stats,
-        pairs: pairs ? { partner: m.partner, rivalMate: m.mate } : null, rivalTown: m.rival.townId ? { id: m.rival.townId, name: m.rival.town } : null });
+        pairs: pairs ? { partner: m.partner, rivalMate: m.mate } : null, rivalTown: m.rival.townId ? { id: m.rival.townId, name: m.rival.town } : null,
+        comp: `${pairs ? 'Torneo por parejas' : 'Torneo de mano'} · ${m.round}`, youBonus: youBonus(T), rivalBonus: ((m.rival.lv || 2) - 2) * 3 });
       if (this.disposed) return;
       if (r.quit && r.later) continue;   // («Ahora no» antes de empezar: de vuelta al cuadro del torneo, de donde se vino)
       if (r.quit) return;   // (salir del partido es salir: de vuelta al pueblo, no al panel del torneo otra vez)
@@ -988,6 +993,21 @@ export class TownGame {
   }
   // el frontón Labrit: muy por encima del pueblo y fuera de sus límites (solo se ve por dentro y en la llegada)
   labritVenue() { return labrit(this.scene, { x: PLACES.plaza.x + 2600, z: PLACES.plaza.z }); }
+  // el frontón cubierto del pueblo (los campeonatos): también muy por encima y fuera de sus límites, al otro lado
+  hallVenue() { return hallVenue(this.scene, { x: PLACES.plaza.x - 2600, z: PLACES.plaza.z }, this.def); }
+  // llegada al frontón cubierto: un plano desde lo alto del fondo, con la grada llena y las luces encendidas
+  async hallIntro(L) {
+    if (window.__autoWin) return;
+    const g = L.court.group, V = (x, y, z) => g.localToWorld(new THREE.Vector3(x, y, z));
+    this.sky.flood = 1; this.sky.indoor = true; this.sky.floodCur = 1; this.ui.hudVisible?.(false); this.perro?.away?.();
+    this.player.place(L.entry.x, L.entry.z, 0); this.player.frozen = true;   // (el cielo y las sombras van con el jugador)
+    try {
+      const rt = this.rt, shot = async (pos, look, ms) => { this.follow.cinematic = { pos, look, t: 0, lookCur: look.clone() }; this.camera.position.copy(pos); this.camera.lookAt(look);
+        const f0 = rt?.frameNo ?? 0, t0 = performance.now(); await new Promise(r => { const k = () => (performance.now() - t0 >= ms && (rt?.frameNo ?? 1e9) - f0 >= 30) || performance.now() - t0 > ms + 12000 ? r() : setTimeout(k, 50); k(); }); };
+      this.ui.toast?.(`Frontón cubierto de ${this.def.name.split(' /')[0]}`, 'pelota', 2600);
+      await shot(V(12.5, 7.6, 31), V(0, 3, 6), 1800);
+    } finally { this.follow.cinematic = null; }
+  }
   // llegada a la final: la fachada de ladrillo con sus torreones y, dentro, la cancha llena
   async labritIntro(L) {
     if (window.__autoWin) return;

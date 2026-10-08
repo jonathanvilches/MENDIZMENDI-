@@ -84,15 +84,15 @@ export const FutbolSystem = {
   },
   // local: { name, short } para el equipo de casa (el del pueblo, con el nombre del pueblo)
   // awayTeam / venueName: rival que es un club (de clubs.js) y nombre del campo
-  startMatch({ campoId = 'sadar', modo = 'amistoso', rival, dificultad = 'normal', duracion = 3, asistencia = true, autoplay = false, timeScale = 1, seed, local, awayTeam, venueName } = {}) {
+  startMatch({ campoId = 'sadar', modo = 'amistoso', rival, dificultad = 'normal', duracion = 3, asistencia = true, autoplay = false, timeScale = 1, seed, local, awayTeam, venueName, comp } = {}) {
     const V = VENUES[campoId] || VENUES.sadar;
-    return this.play({ mode: 'match', venue: V.id, home: V.home, away: rival || V.away, level: dificultad, duration: duracion, assist: asistencia, cup: modo === 'eliminatoria', autoplay, timeScale, seed, local, awayTeam, venueName });
+    return this.play({ mode: 'match', venue: V.id, home: V.home, away: rival || V.away, level: dificultad, duration: duracion, assist: asistencia, cup: modo === 'eliminatoria', autoplay, timeScale, seed, local, awayTeam, venueName, comp });
   },
   /** Partido de fútbol 11 entre dos clubes de los pueblos. Todos los partidos se juegan en El Sadar: las gradas
    *  llenas y la cubierta lo hacen más espectacular que el campo de cada pueblo. */
-  startClubMatch({ club, rival, duracion = 2, autoplay = false, timeScale = 1 } = {}) {
+  startClubMatch({ club, rival, duracion = 2, autoplay = false, timeScale = 1, comp = null } = {}) {
     const H = teamOfClub(club), A = awayKit(H, teamOfClub(rival));
-    return this.startMatch({ campoId: 'sadar', local: H, awayTeam: A, dificultad: levelFor(club, rival), duracion, autoplay, timeScale });
+    return this.startMatch({ campoId: 'sadar', local: H, awayTeam: A, dificultad: levelFor(club, rival), duracion, autoplay, timeScale, comp });
   },
   /** Liga Navarra con el club del pueblo: pantalla de la liga, partido (o simulado), resultados de la jornada. Cada
    *  jornada se juega en El Sadar, desde donde estés: no hace falta viajar al pueblo del de casa. */
@@ -105,7 +105,7 @@ export const FutbolSystem = {
       const m = nextMatch(S), j = S.j, home = m.h === club, rival = home ? m.a : m.h;
       let mine = null, theirs = null;
       if (a === 'play') {
-        const r = await this.startClubMatch({ club, rival, autoplay, timeScale });
+        const r = await this.startClubMatch({ club, rival, autoplay, timeScale, comp: `Liga Navarra · Jornada ${j + 1}` });
         if (!r || r.quit) continue;   // abandonado: la jornada sigue pendiente
         mine = r.you ?? 0; theirs = r.cpu ?? 0; last = { ...r, liga: true };
       }

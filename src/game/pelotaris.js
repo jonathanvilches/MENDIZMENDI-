@@ -8,7 +8,7 @@ import { profile, saveProfile } from './profile.js';
 import { openFicha } from '../pelota/ficha.js';
 import { isEU } from '../i18n.js';
 import { lgPanel, lgEsc as esc } from '../futbol/liga.js';
-import face from '../assets/meshy/portraits/pelotari_rojo_vs.webp?url';
+import { pelotariCard } from '../ui/sportCard.js';
 
 // los pueblos con partido de pelota (el valle de Salazar va con su peloteo, sin rival)
 export const pelotaTowns = () => LEVELS.filter(l => !l.special);
@@ -27,25 +27,22 @@ export function meetPelotari(town, p, win = null) {
 export function pelotarisCount() { const C = profile().pelotaris || {}, all = pelotaTowns(); return { have: all.filter(l => C[l.id]).length, total: all.length }; }
 
 const CSS = `
-.pc-head{display:flex;align-items:center;gap:12px}.pc-head h2{margin:0;font:400 var(--fs-xl)/1.15 'Lilita One',Nunito,sans-serif}
-.pc-head small{display:block;color:#ffd84a;font-weight:900;font-size:var(--fs-xs);letter-spacing:.04em;text-transform:uppercase}
-.pc-count{margin-left:auto;font:900 var(--fs-md)/1.15 Nunito,sans-serif;color:#2a1a00;background:linear-gradient(180deg,#ffe98a,#e0b020);border-radius:12px;padding:8px 12px;white-space:nowrap}
+.pc-head{display:flex;align-items:center;gap:12px}.pc-head h2{margin:0;font:400 var(--fs-2xl)/1 var(--f-display);text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.5)}
+.pc-head small{display:block;color:var(--rosa);font:800 var(--fs-sm)/1.15 var(--f-cond);letter-spacing:.1em;text-transform:uppercase}
+.pc-count{margin-left:auto;display:flex;flex-direction:column;align-items:center;font:400 var(--fs-2xl)/1 var(--f-display);color:#fff;background:var(--cta);padding:4px 14px;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);box-shadow:var(--glow)}
+.pc-count small{font:800 var(--fs-xs)/1 var(--f-cond);letter-spacing:.1em;color:#fff}
 .pc-tabs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px 0}.pc-tabs::-webkit-scrollbar{display:none}
-.pc-tabs button{flex:none;min-height:44px;padding:4px 12px;border-radius:999px;border:1px solid rgba(255,215,0,.35);background:rgba(255,255,255,.06);color:#fff;font:800 var(--fs-sm)/1.15 Nunito,sans-serif;cursor:pointer;white-space:nowrap}
-.pc-tabs button i{font-style:normal;margin-left:4px;color:#FFD700}.pc-tabs button[aria-selected=true]{background:#FFD700;border-color:#FFD700;color:#2a1640}.pc-tabs button[aria-selected=true] i{color:#2a1640}
-.pc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:8px}
-.pc-card{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:44px;padding:8px 8px 8px;border-radius:14px;border:1px solid rgba(255,106,74,.5);background:linear-gradient(180deg,rgba(224,71,58,.28),rgba(94,17,13,.35));color:#fff;font:inherit;text-align:center;cursor:pointer}
-.pc-card img{width:64px;height:64px;object-fit:cover;object-position:50% 8%;border-radius:50%;background:radial-gradient(circle at 50% 35%,#e0473a,#7a1a14);border:2px solid rgba(255,255,255,.7)}
-.pc-card b{font-size:var(--fs-sm);font-weight:900;line-height:1.3;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pc-card small{font-size:var(--fs-xs);font-weight:700;line-height:1.3;color:#f3d9d4}.pc-card em{font-style:normal;font-size:var(--fs-xs);font-weight:900;line-height:1.3;color:#FFD700}
-.pc-card.locked{border-style:dashed;border-color:rgba(190,160,255,.35);background:rgba(255,255,255,.04);cursor:default}
-.pc-card.locked img{filter:brightness(0);opacity:.45;background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2)}
-.pc-card.locked small{color:#cbbcf0}
-.pc-lock{position:absolute;top:44px;left:50%;transform:translateX(-50%);width:24px;height:24px}
-.pc-note{margin:0;font-size:var(--fs-xs);line-height:1.3;color:#cbbcf0}
-@media (orientation:landscape) and (max-height:500px){.pc-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}.pc-card img{width:56px;height:56px}.pc-lock{top:36px}}
+.pc-tabs button{flex:none;min-height:44px;padding:4px 14px;border:1px solid rgba(201,178,255,.3);background:rgba(255,255,255,.05);color:#fff;font:800 var(--fs-sm)/1.15 var(--f-cond);letter-spacing:.04em;text-transform:uppercase;cursor:pointer;white-space:nowrap;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
+.pc-tabs button i{font-style:normal;margin-left:6px;color:var(--rosa)}.pc-tabs button[aria-selected=true]{background:var(--cta);border-color:transparent}.pc-tabs button[aria-selected=true] i{color:#fff}
+.pc-grid{display:flex;gap:12px;overflow-x:auto;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent);overscroll-behavior-x:contain;scrollbar-width:none;padding:8px 4px 4px;min-height:0}.pc-grid::-webkit-scrollbar{display:none}
+.pc-it{flex:none;display:flex;flex-direction:column;align-items:center;gap:4px}
+.pc-it button.gx-card{border:0;padding:0;background:none;cursor:pointer;font:inherit}.pc-it .gx-card.lock{cursor:default}
+.pc-it em{font:800 var(--fs-xs)/1.3 var(--f-cond);font-style:normal;letter-spacing:.06em;text-transform:uppercase;color:var(--rosa)}.pc-it em.l{color:var(--lila2)}
+.pc-lock{position:absolute;z-index:2;left:50%;top:30%;transform:translate(-50%,-50%);width:28px;height:28px}
+.pc-note{margin:0;font-size:var(--fs-xs);line-height:1.3;color:var(--lila2)}
+@media (orientation:landscape) and (max-height:500px){.pc-note{display:none}.pc-head h2{font-size:var(--fs-xl)}}
 `;
-const LOCK = '<svg class="pc-lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2" fill="#FFD700"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="#FFD700" stroke-width="2.4"/><circle cx="12" cy="15.5" r="1.6" fill="#2a1640"/></svg>';
+const LOCK = '<svg class="pc-lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2" fill="#ff7ac8"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="#ff7ac8" stroke-width="2.4"/><circle cx="12" cy="15.5" r="1.6" fill="#2a0638"/></svg>';
 
 /** La colección, encima de lo que haya (el menú de pelota); start: la comarca que se abre primero. Promesa al cerrar */
 export function pelotarisPanel(start = null) {
@@ -55,12 +52,12 @@ export function pelotarisPanel(start = null) {
   let cur = Math.max(0, groups.findIndex(g => g.c.id === start));
   const { have, total } = pelotarisCount();
   return new Promise(res => {
-    const card = (l) => { const p = C[l.id];
-      return p ? `<button class="pc-card" data-t="${l.id}"><img src="${face}" alt=""><b>${esc(p.name)}</b><small>${esc(short(l.name))}</small><em>${p.won} G · ${p.lost} P</em></button>`
-        : `<div class="pc-card locked" aria-label="${esc(eu ? 'Ezezaguna' : 'Por descubrir')}"><img src="${face}" alt="">${LOCK}<b>?</b><small>${esc(short(l.name))}</small><em>${eu ? 'Jokatu bere frontoian' : 'Juega en su frontón'}</em></div>`; };
-    const grid = () => groups[cur].towns.map(card).join('');
+    const card = (l, i) => { const p = C[l.id], w = innerHeight < 500 && innerWidth > innerHeight ? 112 : 128, tw = short(l.name);
+      return p ? `<div class="pc-it">${pelotariCard({ name: p.name, town: tw, stats: p.stats, side: 'rojo', w, tag: 'button', attr: `data-t="${l.id}"`, pop: true, d: i * 0.05, lang: eu ? 'eu' : 'es' })}<em>${p.won} G · ${p.lost} P</em></div>`
+        : `<div class="pc-it" aria-label="${esc(eu ? 'Ezezaguna' : 'Por descubrir')}">${pelotariCard({ name: '?', town: tw, side: 'rojo', w, lock: true, pop: true, d: i * 0.05 }).replace('<span class="gx-ovr">', LOCK + '<span class="gx-ovr">')}<em class="l">${eu ? 'Jokatu bere frontoian' : 'Juega en su frontón'}</em></div>`; };
+    const grid = () => groups[cur].towns.map((l, i) => card(l, i)).join('');
     const tabs = () => groups.map((g, i) => `<button role="tab" data-g="${i}" aria-selected="${i === cur}">${esc(g.c.name)}<i>${g.towns.filter(l => C[l.id]).length}/${g.towns.length}</i></button>`).join('');
-    const r = lgPanel(`<div class="pc-head"><div><small>${eu ? 'Bilduma' : 'Colección'}</small><h2>${eu ? 'Nafarroako pilotariak' : 'Pelotaris de Navarra'}</h2></div><span class="pc-count">${have}/${total}</span></div>
+    const r = lgPanel(`<div class="pc-head"><div><small>${eu ? 'Bilduma' : 'Colección'}</small><h2>${eu ? 'Nafarroako pilotariak' : 'Pelotaris de Navarra'}</h2></div><span class="pc-count">${have}/${total}<small>${eu ? 'AURKITUAK' : 'DESCUBIERTOS'}</small></span></div>
       <div class="pc-tabs" role="tablist">${tabs()}</div><div class="pc-grid" role="tabpanel">${grid()}</div>
       <p class="pc-note">${eu ? 'Herri bakoitzeko pilotari bat. Asmatutako pilotariak eta datuak.' : 'Un pelotari por pueblo: juega contra él y queda su carta. Pelotaris y datos inventados para el juego.'}</p>
       <div class="lg-btns lg-foot"><button class="lg-btn go" data-a="close">${eu ? 'Itxi' : 'Cerrar'}</button></div>`);

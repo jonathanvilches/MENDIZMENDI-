@@ -233,7 +233,8 @@ void main(){
     // los focos del frontón (flood: 1 durante el partido) solo dan luz cuando falta: al anochecer y de noche. De día el
     // partido se juega con la luz del pueblo, la misma de antes de entrar (antes se encendían también a mediodía y, al
     // empezar y al acabar el partido, la luz de todo el pueblo cambiaba: un 30 % más clara, más blanca y desde arriba)
-    { const want = this.flood ? smoothstep(0.15, 0.6, this.night) : 0, c = this.floodCur || 0; this.floodCur = want > c ? Math.min(want, c + dt / 1.2) : Math.max(want, c - dt / 1.2); }
+    // (a cubierto, en el frontón cerrado o en el Labrit, la luz del pabellón está siempre encendida, de día también)
+    { const want = this.flood ? (this.indoor ? 1 : smoothstep(0.15, 0.6, this.night)) : 0, c = this.floodCur || 0; this.floodCur = want > c ? Math.min(want, c + dt / 1.2) : Math.max(want, c - dt / 1.2); }
     const s = this.sample(t);
     this.uniforms.uZen.value.copy(s.zen); this.uniforms.uHor.value.copy(s.hor);
     this.uniforms.uSunDir.value.copy(this.sunDir); this.uniforms.uSunCol.value.copy(s.sun);

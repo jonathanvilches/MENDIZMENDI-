@@ -94,9 +94,9 @@ function myRecord() {
 // cómo es el frontón para jugar: con cubierta o al aire libre, con el frontis de sillería, el suelo mojado si llueve
 // en un frontón sin cubierta (con nieve, también) y el Labrit de las finales
 export function frontonCond(G, fronton) {
-  const C = fronton?.court || {}, L = C.look || {}, labrit = !!C.labrit, covered = labrit || !!L.roof, W = G?.rt?.weather;
+  const C = fronton?.court || {}, L = C.look || {}, labrit = !!C.labrit, hall = !!C.hall, covered = labrit || hall || !!L.roof, W = G?.rt?.weather;
   const wet = !covered && !!W && W.kind !== 'clear' && (W.kind === 'snow' || W.raining) && (W.k ?? 1) > 0.25;
-  return { covered, stone: !!L.stone && !labrit, wet, labrit };
+  return { covered, stone: !!L.stone && !labrit && !hall, wet, labrit, hall };
 }
 // nombres para los compañeros de los partidos por parejas
 const MATE_NAMES = ['Unai', 'Ane', 'Jon', 'Maite', 'Iñaki', 'Nerea', 'Aitor', 'Leire', 'Ander', 'Amaia', 'Xabier', 'Garazi'];
@@ -178,6 +178,19 @@ export function labrit(scene, out) {
   LABRIT = new Fronton(scene, { x: out.x, z: out.z, y: 2400, ry: 0 }, 'LABRIT', { ...labritOpts(), noClear: true });
   return LABRIT;
 }
+// El frontón cubierto del pueblo, donde se juegan los campeonatos (el torneo y los partidos de Campeonatos): cerrado y
+// con la grada a lo largo de la contracancha. Se monta una vez por pueblo, muy por encima y fuera de sus límites, como
+// el Labrit (dentro no se ve nada de fuera). Los frontones de la calle quedan para las misiones y los partidos sueltos.
+let HALL = null;
+const HALL_LOOK = { frontis: '#2b6a56', wall: '#2b6a56', floor: '#5b6461', contra: '#7c8583', line: '#f3f2ec', mark: '#d8333f', chapa: '#cfd4d6', chapaMetal: true, cap: '#2b6a56', stone: null, brick: false, roof: null, stands: '#8c8794' };
+export function hallVenue(scene, out, def) {
+  if (HALL && HALL.court.group.parent === scene && HALL.town === def?.id) return HALL;
+  if (HALL) { try { HALL.court.group.parent?.remove(HALL.court.group); HALL.court.dispose?.(); } catch (e) { console.warn('frontón cubierto', e); } }
+  const W = frontonWall(def || {}), town = (def?.name || '').split(' /')[0];
+  HALL = new Fronton(scene, { x: out.x, z: out.z, y: 2400, ry: 0 }, town, { ...W, look: HALL_LOOK, hall: true, wallSub: 'FRONTÓN CUBIERTO', hallName: `Frontón ${town}`, hallSub: 'Pilotaleku estalia', noClear: true });
+  HALL.town = def?.id;
+  return HALL;
+}
 // En Iruña, el frontón de la ciudad es el Labrit de verdad: el edificio entero en la calle, junto a la plaza de toros
 export function labritInTown(scene, near) {
   const sp = findFrontonSpot(near, labritExtent());
@@ -192,7 +205,7 @@ export function labritInTown(scene, near) {
 // rivalStats: las cualidades del rival (fuerza, agilidad, velocidad, de 1 a 5); sin ellas, las suyas según su nombre
 // pairs: { partner: { name, stats }, rivalMate: { name, stats } } (el torneo por parejas: el partido es por parejas)
 // rivalTown: { id, name } del pueblo del rival (en el torneo, el suyo; si no, el del frontón): para la colección
-export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level, rivalName, fixedLevel = false, returnTo = null, rivalStats = null, pairs = null, rivalTown = null } = {}) {
+export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level, rivalName, fixedLevel = false, returnTo = null, rivalStats = null, pairs = null, rivalTown = null, comp = null, youBonus = 2, rivalBonus = 0 } = {}) {
   if (window.__autoWin) return Promise.resolve({ win: true, you: target, cpu: 0 });
   return new Promise(res => {
     const P = G.player, rig0 = P.rig, home = { x: rival.pos.x, z: rival.pos.z, h: rival.heading };
@@ -232,17 +245,19 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     const flags = { you: {}, rival: {} };
     // (el público es uno solo, el de la grada en 3D: antes llegaban además vecinos de otro estilo y se mezclaban dos diseños)
     if (G.beacon) G.beacon.off = true;   // sin el haz de luz del objetivo sobre el frontón
-    if (G.sky) G.sky.flood = 1;          // de noche, los focos del frontón encendidos
+    if (G.sky) { G.sky.flood = 1; G.sky.indoor = !!(fronton.court.hall || fronton.court.labrit); if (G.sky.indoor) G.sky.floodCur = 1; }   // de noche, los focos; a cubierto, la luz del pabellón siempre
     // y el público sentado en los bancos de la grada (una sola llamada de dibujo; se va al acabar)
     // (los más cercanos a la cámara, en 3D; con pañuelos que se agitan en cada tanto)
     // todo el público en 3D con su textura (sin láminas planas a lo lejos): cuántos, según la calidad, repartidos por la grada
-    try { const C = fronton.court, all = C?.standSpots || [], full = C?.labrit ? (QUALITY === 'low' ? 1.6 : 3) : 1, cap = Math.round((QUALITY === 'low' ? 44 : QUALITY === 'mid' ? 64 : 90) * full);   // (en el Labrit, la final: lleno)
+    try { const C = fronton.court, all = C?.standSpots || [], full = C?.labrit || C?.hall ? (QUALITY === 'low' ? 1.6 : 3) : 1, cap = Math.round((QUALITY === 'low' ? 44 : QUALITY === 'mid' ? 64 : 90) * full);   // (en el Labrit, la final: lleno)
       const sp = all.filter(() => Math.random() < Math.min(1, cap / Math.max(1, all.length)));
       // (en coordenadas del mundo: el público 3D elige a los que tiene cerca de la cámara)
       C.group.updateMatrixWorld(true); const yaw = new THREE.Euler().setFromQuaternion(C.group.getWorldQuaternion(new THREE.Quaternion()), 'YXZ').y;
       const wsp = sp.map(([x, y, z, ry]) => { const v = C.group.localToWorld(new THREE.Vector3(x, y, z)); return [v.x, v.y, v.z, ry + yaw]; });
       if (wsp.length) seatedZ = wsp.reduce((a, q) => a + q[2], 0) / wsp.length;
-      if (wsp.length && G.scene) { seated = crowd3d(wsp, 'pelota', 1.36, { sit: false, all3d: true }); /* de pie en los escalones: sentados en cuclillas se veían raros */ G.scene.add(seated); } } catch (e) { console.warn('público del frontón', e); }
+      // (en el frontón cubierto, sentados en sus asientos: el sitio es el asiento y la figura, algo adelantada y más baja)
+      const sit = !!C.seated, wsp2 = sit ? wsp.map(([x, y, z, ry]) => [x + Math.sin(ry) * 0.3, y - 0.4, z + Math.cos(ry) * 0.3, ry]) : wsp;
+      if (wsp.length && G.scene) { seated = crowd3d(wsp2, 'pelota', 1.36, { sit, all3d: true }); /* en las gradas de pueblo, de pie en los escalones: sentados en cuclillas se veían raros */ G.scene.add(seated); } } catch (e) { console.warn('público del frontón', e); }
     const once = (who, key, on, fn) => { if (on && !flags[who][key]) { flags[who][key] = true; fn(); } else if (!on) flags[who][key] = false; };
     const stYou = { v: null }, stRival = { v: null };
     armSwing(rig.char, () => stYou.v, { windOnly: !!pel }); armSwing(red ? red.char : rival.glb, () => stRival.v, { windOnly: !!red });
@@ -294,7 +309,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       back: fixedLevel ? 'torneo' : G.sportMode ? 'menu' : 'pueblo',   // (a dónde lleva el botón del final)
       town: (G.def?.name || '').split(' /')[0], youRecord: myRecord(),   // (para las fichas: el pueblo del frontón y lo que has ganado)
       cond: frontonCond(G, fronton),   // (cómo es el frontón: a cubierto o al aire libre, de piedra, mojado o el Labrit)
-      venue: fronton.court.labrit ? (isEU() ? 'Labrit frontoia · Iruña' : 'Frontón Labrit · Iruña') : null, vsImg: { you: vsBlue, rival: vsRed },
+      venue: fronton.court.labrit ? (isEU() ? 'Labrit frontoia · Iruña' : 'Frontón Labrit · Iruña') : fronton.court.hall ? (isEU() ? `${(G.def?.name || '').split(' /')[0]} · frontoi estalia` : `Frontón cubierto de ${(G.def?.name || '').split(' /')[0]}`) : null, vsImg: { you: vsBlue, rival: vsRed }, comp, youBonus, rivalBonus,   // (la presentación: qué se juega y la media de cada uno)
       onEvent: (e) => { if (e.type === 'call' && e.score) { const [a, b] = match?.labels?.() || [youName, rivName]; fronton.court.setScore?.(a, b, e.score.you, e.score.rival); } if (e.type === 'call' && seated) { seated.cheer(true); cheerT = e.final ? 4.6 : 1.6; } },
     }); } catch (e) { console.warn('frontón', e); done({ win: false, error: true }); return; }   // (si no se monta, de vuelta al pueblo)
     // (si el partido falla una y otra vez, se acaba y se vuelve al pueblo: nunca el marcador puesto en mitad de la calle)
@@ -318,7 +333,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       safe(() => { if (rig.char) rig.char.post = null; if (rival.glb) rival.glb.post = null; rig.setStance?.(null); });
       safe(() => { if (pel) { P.obj.remove(pel.char.root); pel.dispose(); } });
       safe(() => { for (const c of hidden) if (!c.parent) P.obj.add(c); });
-      safe(() => { if (bf) bf.visible = bfWas; if (G.beacon) G.beacon.off = false; if (G.sky) G.sky.flood = 0; });
+      safe(() => { if (bf) bf.visible = bfWas; if (G.beacon) G.beacon.off = false; if (G.sky) { G.sky.flood = 0; G.sky.indoor = false; } });
       safe(() => { if (red) { red.char.post = null; rival.obj.remove(red.char.root); red.dispose(); } });
       safe(() => { for (const c of hiddenR) if (!c.parent) rival.obj.add(c); });
       safe(() => G.rt?.boost?.(false));
