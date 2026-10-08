@@ -81,6 +81,9 @@ export function frontonWall(def) {
   return { wallName: (def.name || '').split(/\s*\/\s*/).join(' · ').toUpperCase(), wallSub: 'AYUNTAMIENTO · UDALA', shield, look: frontonLook(def) };
 }
 
+// nombres para los compañeros de los partidos por parejas
+const MATE_NAMES = ['Unai', 'Ane', 'Jon', 'Maite', 'Iñaki', 'Nerea', 'Aitor', 'Leire', 'Ander', 'Amaia', 'Xabier', 'Garazi'];
+
 // huella del frontón en coordenadas locales (se calcula una vez)
 let EXTENT = null;
 function extent() { if (!EXTENT) { const c = new PelotaCourt(THREE, { texScale: 0.25 }); EXTENT = c.extent; c.dispose(); } return EXTENT; }
@@ -175,7 +178,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
   return new Promise(res => {
     const P = G.player, rig0 = P.rig, home = { x: rival.pos.x, z: rival.pos.z, h: rival.heading };
     let seated = null, seatedZ = 0, cheerT = 0;
-    let rig = rig0, pel = null, red = null, bf = null, bfWas = false, ended = false, match = null; const hidden = [], hiddenR = [];
+    let rig = rig0, pel = null, red = null, bf = null, bfWas = false, ended = false, match = null, mates = null; const hidden = [], hiddenR = [];
     // si algo falla al montar el partido, de vuelta al pueblo con todo como estaba (nunca congelado en la cancha)
     const fail = (e) => {
       console.warn('frontón', e);
@@ -240,6 +243,27 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       if (st.won) rival.cheer = 0.6;
     };
     const youName = profile().name || (isEU() ? 'Zu' : 'Tú'), rivName = rivalName || String(rival.name).split(',')[0];
+    // por parejas: tu compañero (vestido como tú) y el del rival (de colorado). Se preparan solo si eliges jugar por
+    // parejas, la primera vez, y se van al acabar
+    const makeMates = async () => {
+      if (mates) return mates;
+      const free = MATE_NAMES.filter(n => n !== youName && n !== rivName), n1 = free.splice(Math.floor(Math.random() * free.length), 1)[0], n2 = free[Math.floor(Math.random() * free.length)];
+      const mk = async (model, name, lv) => {
+        let r = null;
+        if (hasMeshy(model)) try { fullTexFor(model); r = new GlbRig(await loadMeshy(model), model); } catch (e) { console.warn('pareja', e); }
+        const obj = new THREE.Group(); obj.visible = false; G.scene.add(obj);
+        if (r) { obj.add(r.char.root); r.setStance?.('Ready'); }
+        else { const m = new THREE.Mesh(new THREE.CapsuleGeometry(0.24, 1.1, 4, 8), new THREE.MeshStandardMaterial({ color: model === 'pelotari_rojo' ? '#c0392b' : '#f2f2f2' })); m.position.y = 0.8; obj.add(m); }
+        const st = { v: null }, fl = {}; if (r) armSwing(r.char, () => st.v, { windOnly: true });
+        const flag = (k, on, fn) => { if (on && !fl[k]) { fl[k] = true; fn(); } else if (!on) fl[k] = false; };
+        return { obj, name, stats: pelotariStats(name, lv),
+          animate: (o, s2, dt = 1 / 60) => { st.v = s2; if (r) { r.char.back = s2.back; r.update(dt, s2.speed, true, 0); flag('swing', s2.swing >= 0, () => r.doAct('hit', 0.5)); flag('won', s2.won, () => r.doCheer()); } },
+          dispose() { obj.parent?.remove(obj); if (r) { r.char.post = null; r.dispose(); } else obj.traverse(c => { c.geometry?.dispose(); c.material?.dispose?.(); }); } };
+      };
+      const m = { youMate: await mk('pelotari', n1, 2), rivalMate: await mk('pelotari_rojo', n2, level === 'dificil' ? 3 : level === 'facil' ? 1 : 2) };
+      if (ended || G.disposed) { for (const x of Object.values(m)) x.dispose(); throw new Error('partido acabado'); }
+      return (mates = m);
+    };
     fronton.court.setScore?.(youName, rivName, 0, 0);
     const rStats = rivalStats || pelotariStats(rivName, level === 'dificil' ? 3 : level === 'facil' ? 1 : 2);
     try { match = G.pelotaMatch = new PelotaMatch({
@@ -247,7 +271,8 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       you: { obj: P.obj, name: profile().name || (isEU() ? 'Zu' : 'Tú'), animate: animYou },
       rival: { obj: rival.obj, name: rivalName || String(rival.name).split(',')[0], animate: animRival },
       onEnd: (r) => done(r), onExit: (r) => done(r),
-      onEvent: (e) => { if (e.type === 'call' && e.score) fronton.court.setScore?.(youName, rivName, e.score.you, e.score.rival); if (e.type === 'call' && seated) { seated.cheer(true); cheerT = e.final ? 4.6 : 1.6; } },
+      mates: mode === 'match' && !fixedLevel ? makeMates : null,   // (en el torneo, mano a mano)
+      onEvent: (e) => { if (e.type === 'call' && e.score) { const [a, b] = match?.labels?.() || [youName, rivName]; fronton.court.setScore?.(a, b, e.score.you, e.score.rival); } if (e.type === 'call' && seated) { seated.cheer(true); cheerT = e.final ? 4.6 : 1.6; } },
     }); } catch (e) { console.warn('frontón', e); done({ win: false, error: true }); return; }   // (si no se monta, de vuelta al pueblo)
     // (si el partido falla una y otra vez, se acaba y se vuelve al pueblo: nunca el marcador puesto en mitad de la calle)
     let bad = 0;
@@ -266,6 +291,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       // (cada paso por su cuenta: si uno falla, los demás se hacen igual y se vuelve al pueblo con todo en su sitio)
       const safe = (f) => { try { f(); } catch (e) { console.warn('frontón', e); } };
       safe(() => { if (seated) { seated.parent?.remove(seated); seated.dispose(); seated = null; } });
+      safe(() => { if (mates) for (const m of Object.values(mates)) m.dispose(); mates = null; });
       safe(() => { if (rig.char) rig.char.post = null; if (rival.glb) rival.glb.post = null; rig.setStance?.(null); });
       safe(() => { if (pel) { P.obj.remove(pel.char.root); pel.dispose(); } });
       safe(() => { for (const c of hidden) if (!c.parent) P.obj.add(c); });
