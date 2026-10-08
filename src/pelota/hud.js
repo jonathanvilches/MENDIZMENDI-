@@ -103,6 +103,7 @@ const CSS = `
   .pel-card>.pel-lbl{display:none}
   .pel-card>.pel-levels{flex:3 1 0;min-width:0;margin:0;align-self:center;flex-wrap:nowrap}.pel-card>.pel-levels button{min-width:0;min-height:44px}
   .pel-card>.pel-levels+.pel-row{flex:2 1 0;min-width:0;align-self:center}.pel-card>.pel-levels+.pel-row .pel-go{min-height:44px}
+  .pel-card>.pel-court{margin-bottom:8px}.pel-card>.pel-lv5 button{padding:4px 4px}
   .pel-card>.pel-mod{flex:1 1 100%;margin:0 0 8px}.pel-card>.pel-mod button{min-height:44px;padding:4px 8px}.pel-card>.pel-pairs{margin-bottom:8px;font-size:var(--fs-xs)}}
 @media (hover:hover) and (pointer:fine){.pel-stick,.pel-stickhint{display:none}}
 /* zona táctil de 44 px en las píldoras pequeñas (el dibujo no cambia) */
@@ -112,6 +113,15 @@ const CSS = `
 .pel-team{display:flex;flex-direction:column;gap:8px;min-width:0}
 .pel-vs-x{font:400 var(--fs-lg)/1 var(--pel-display,'Lilita One',Nunito,sans-serif);color:#FFD700;letter-spacing:.04em}
 .pel-wide{display:block;width:100%;margin:0 0 12px}
+/* el frontón: su dibujo, su nombre y lo que se nota al jugar en él (al tocarlo, qué pasa con cada cosa) */
+.pel-court{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;margin:0 0 12px;padding:4px 12px;border-radius:12px;border:1px solid rgba(255,215,0,.32);background:rgba(255,215,0,.08);color:#fff;font:inherit;text-align:left;cursor:pointer}
+.pel-court svg{flex:none;width:48px;height:36px}.pel-court-t{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pel-court-t b{font-size:var(--fs-sm);font-weight:900;line-height:1.3}.pel-court-t span{display:flex;flex-wrap:wrap;gap:4px}
+.pel-court-t i{font-style:normal;font-size:var(--fs-xs);font-weight:800;line-height:1.3;padding:0 8px;border-radius:999px;background:rgba(255,255,255,.1);color:#FFD700}
+.pel-court-what{margin:-4px 0 12px;font-size:var(--fs-sm);line-height:1.45;color:#e6def7}.pel-court-what b{color:#FFD700}
+/* «Más opciones»: plegado, con lo elegido a la vista */
+.pel-more>summary .pel-sum{margin-left:auto;padding-left:12px;font-size:var(--fs-xs);font-weight:800;letter-spacing:0;text-transform:none;color:#FFD700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pel-lv5 button{min-width:0;font-size:var(--fs-sm)}
 `;
 
 export class PelotaHud {

@@ -230,7 +230,7 @@ export const EU_EXACT = {
   'CUARTOS DE FINAL': 'FINAL-LAURDENAK', 'SEMIFINALES': 'FINALERDIAK', 'FINAL': 'FINALA', 'Cuartos de final': 'Final-laurdenak', 'Semifinales': 'Finalerdiak', 'Final': 'Finala',
   'ELIMINADO': 'KANPORATUTA', 'El torneo sigue sin ti: mira quién se lleva la txapela.': 'Txapelketak zu gabe jarraitzen du: ikusi nork eramaten duen txapela.', 'Nuevo torneo': 'Txapelketa berria',
   'Siguiente ronda': 'Hurrengo erronda', 'Pelotaris inventados para el juego.': 'Jokorako asmatutako pilotariak.', 'Por jugar': 'Jokatzeko', 'Frontón del pueblo': 'Herriko frontoia', 'Pelota a mano': 'Esku pilota',
-  'Partido libre o torneo por la txapela': 'Partida librea edo txapelketa txapelaren alde', 'Nueva edición': 'Edizio berria', 'Partido libre': 'Partida librea', 'A 5 tantos': '5 tantora',
+  'Partido libre o torneo por la txapela': 'Partida librea edo txapelketa txapelaren alde', 'Pelotaris': 'Pilotariak', 'Nueva edición': 'Edizio berria', 'Partido libre': 'Partida librea', 'A 5 tantos': '5 tantora',
   'Baztan-Bidasoa': 'Baztan-Bidasoa', 'Larraun-Leitzaldea': 'Larraun-Leitzaldea', 'Sakana': 'Sakana', 'Valdizarbe-Novenera': 'Valdizarbe-Novenera',
   'Recuperando la imagen…': 'Irudia berreskuratzen…', 'Saludando a los vecinos…': 'Bizilagunak agurtzen…', 'Volver a cargar': 'Berriro kargatu',
   'El dispositivo se ha quedado sin memoria para dibujar. Tu progreso está guardado. Si en unos segundos no vuelve, toca el botón y seguirás en el mismo pueblo.': 'Gailuak marrazteko memoriarik gabe geratu da. Zure aurrerapena gordeta dago. Segundo batzuetan itzultzen ez bada, ukitu botoia eta herri berean jarraituko duzu.',
@@ -243,6 +243,7 @@ const ine = (n) => /(ia|ea)$/.test(n) ? n.slice(0, -1) + 'n' : /[aeiou]$/i.test(
 const ala = (n) => /(ia|ea)$/.test(n) ? n.slice(0, -1) + 'ra' : /[aeiou]$/i.test(n) ? n + 'ra' : n + 'era';
 const eu = (n) => EU_EXACT[n] ?? n;
 export const EU_RX = [
+  [/^Tu colección · (\d+)\/(\d+)$/, 'Zure bilduma · $1/$2'],
   [/^Paso (\d+) de (\d+)$/, '$1/$2 urratsa'], [/^(\d+) pasos hechos$/, '$1 urrats eginda'],
   [/^Teclado (.+) · Mando (.+)$/, 'Teklatua $1 · Mandoa $2'], [/^Teclado (.+)$/, 'Teklatua $1'],
   [/^Así juega (.+)$/, '$1: honela jokatzen du'],

@@ -965,7 +965,7 @@ export class TownGame {
       if (this.disposed) return;
       // (por parejas: juegas con tu compañero contra el delantero y el zaguero rivales)
       const r = await venue.play(this, a, { target: m.target, level: m.level, rivalName: `${pairs ? m.rival.mates[0] : m.rival.name} (${m.rival.town})`, fixedLevel: true, returnTo: this.fronton, rivalStats: m.stats,
-        pairs: pairs ? { partner: m.partner, rivalMate: m.mate } : null });
+        pairs: pairs ? { partner: m.partner, rivalMate: m.mate } : null, rivalTown: m.rival.townId ? { id: m.rival.townId, name: m.rival.town } : null });
       if (this.disposed) return;
       if (r.quit && r.later) continue;   // («Ahora no» antes de empezar: de vuelta al cuadro del torneo, de donde se vino)
       if (r.quit) return;   // (salir del partido es salir: de vuelta al pueblo, no al panel del torneo otra vez)

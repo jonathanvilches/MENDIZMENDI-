@@ -115,6 +115,7 @@ export class PelotaCourt {
   constructor(THREE, opts = {}) {
     const T = THREE, C = COURT, th = Object.assign({}, THEMES[opts.theme] || THEMES.plaza, opts.look || {});
     this.THREE = T; TEX_K = opts.texScale || 1;
+    this.look = th;   // (cómo es: con cubierta, frontis de piedra... de ahí sale cómo se juega en él, courtFeel)
     const g = this.group = new T.Group(); g.name = 'Fronton';
     const W = C.W, L = C.L, EXT = L + 3, CONTRA = opts.labrit ? LABRIT_CONTRA : 2.6;   // (el Labrit, con su contracancha ancha de tarima)
     const std = (o) => new T.MeshStandardMaterial(Object.assign({ roughness: 0.88, metalness: 0 }, o));

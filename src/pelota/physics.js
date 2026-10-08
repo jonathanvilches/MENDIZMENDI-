@@ -3,6 +3,11 @@
 import { COURT, PHYS } from './rules.js';
 
 const R = COURT.BALL_R;
+// cómo es el frontón donde se juega: cuánto sale la pelota del frontis, cuánto bota en el suelo y cuánto corre al botar
+// (1 = lo de siempre). Lo pone el partido al empezar (setFeel, con courtFeel de rules.js) y lo quita al acabar; la
+// predicción de la IA usa la misma física, así que el rival también juega con el frontón como es
+export const FEEL = { front: 1, floor: 1, run: 1 };
+export function setFeel(f = null) { FEEL.front = f?.front ?? 1; FEEL.floor = f?.floor ?? 1; FEEL.run = f?.run ?? 1; }
 export const vec = (x = 0, y = 0, z = 0) => ({ x, y, z });
 
 export class Ball {
@@ -19,8 +24,8 @@ export class Ball {
     if (p.z < R && v.z < 0) {
       out.push({ type: 'front', x: p.x, y: p.y, z: 0 });
       // cortada (spin 1): sale del frontis con más fuerza y rasa, casi sin subir ni bajar
-      if (this.spin === 1) { p.z = R; v.z = -v.z * PHYS.CUT_E; v.x *= PHYS.FRONT_FX; v.y = Math.max(0.6, Math.abs(v.y) * 0.25); }
-      else { p.z = R; v.z = -v.z * PHYS.FRONT_E; v.x *= PHYS.FRONT_FX; v.y *= PHYS.FRONT_F; }
+      if (this.spin === 1) { p.z = R; v.z = -v.z * PHYS.CUT_E * FEEL.front; v.x *= PHYS.FRONT_FX; v.y = Math.max(0.6, Math.abs(v.y) * 0.25); }
+      else { p.z = R; v.z = -v.z * PHYS.FRONT_E * FEEL.front; v.x *= PHYS.FRONT_FX; v.y *= PHYS.FRONT_F; }
     }
     // pared izquierda
     // (por encima de la pared no hay rebote: sale fuera, pero se avisa para el árbitro)
@@ -41,8 +46,8 @@ export class Ball {
       // rebote: un golpe fuerte (llega a 10 m/s o más) bota lo de siempre; una pelota que llega despacio (la dejada, el
       // segundo bote) rebota algo más en proporción, como el cuero de verdad, y no se queda pegada al suelo
       const soft = this.spin === 1 ? 0 : Math.max(0, Math.min(1, (10 - Math.abs(v.y)) / 5)) * PHYS.FLOOR_SOFT;   // (la cortada, siempre algo más baja)
-      if (Math.abs(v.y) < 0.4) v.y = 0; else v.y = -v.y * ((this.spin === 1 ? PHYS.CUT_FLOOR_E : PHYS.FLOOR_E) + soft);
-      const f = this.spin === 1 ? PHYS.CUT_FLOOR_F : PHYS.FLOOR_F; v.x *= f; v.z *= f;   // la cortada bota bajo y corre
+      if (Math.abs(v.y) < 0.4) v.y = 0; else v.y = -v.y * ((this.spin === 1 ? PHYS.CUT_FLOOR_E : PHYS.FLOOR_E) + soft) * FEEL.floor;
+      const f = Math.min(0.95, (this.spin === 1 ? PHYS.CUT_FLOOR_F : PHYS.FLOOR_F) * FEEL.run); v.x *= f; v.z *= f;   // la cortada bota bajo y corre
     }
     return out;
   }

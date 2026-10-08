@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { armSwing, GlbRig, loadMeshy, hasMeshy, loadedMeshy, fullTexFor } from '../actors/glbChar.js';
 import { PelotaCourt, PelotaMatch, labritExtent } from '../pelota/index.js';
-import { pelotariStats } from '../pelota/rules.js';
+import { pelotariStats, levelTier } from '../pelota/rules.js';
 import { terrainHeight, waterLevelAt, addPlatform, onPlatform } from '../world/heightfield.js';
 import { addBox, rectFree } from '../world/colliders.js';
 import { rx, pathQuery } from '../world/layout.js';
@@ -17,6 +17,10 @@ import { drawOfficial, officialHeight } from '../world/armas.js';
 import { armsOfTown } from '../data/armas-navarra.js';
 import { LEVELS } from '../data/levels.js';
 import { txapelas } from './torneo.js';
+import { meetPelotari } from './pelotaris.js';
+// las figuras de la pantalla VS (nuestros pelotaris en 3D, en pleno golpe: tools/meshy-retratos.mjs con CLIP=Hit T=0.2)
+import vsBlue from '../assets/meshy/portraits/pelotari_vs.webp?url';
+import vsRed from '../assets/meshy/portraits/pelotari_rojo_vs.webp?url';
 
 // Cómo es el frontón de cada sitio. Se parte de la comarca y de lo que cuentan las fuentes (legal/estado-legal.md): los
 // frontones viejos de los pueblos, junto a la iglesia y con el frontis de sillería (arenisca rojiza en Baztan y Bidasoa,
@@ -86,6 +90,13 @@ export function frontonWall(def) {
 function myRecord() {
   try { const P = profile(), won = Object.values(P.towns || {}).reduce((a, t) => a + (t?.best?.pelota || 0), 0), tx = Object.values(txapelas()).reduce((a, n) => a + n, 0); return { won, txapelas: tx }; }
   catch (e) { return { won: 0, txapelas: 0 }; }
+}
+// cómo es el frontón para jugar: con cubierta o al aire libre, con el frontis de sillería, el suelo mojado si llueve
+// en un frontón sin cubierta (con nieve, también) y el Labrit de las finales
+export function frontonCond(G, fronton) {
+  const C = fronton?.court || {}, L = C.look || {}, labrit = !!C.labrit, covered = labrit || !!L.roof, W = G?.rt?.weather;
+  const wet = !covered && !!W && W.kind !== 'clear' && (W.kind === 'snow' || W.raining) && (W.k ?? 1) > 0.25;
+  return { covered, stone: !!L.stone && !labrit, wet, labrit };
 }
 // nombres para los compañeros de los partidos por parejas
 const MATE_NAMES = ['Unai', 'Ane', 'Jon', 'Maite', 'Iñaki', 'Nerea', 'Aitor', 'Leire', 'Ander', 'Amaia', 'Xabier', 'Garazi'];
@@ -180,12 +191,13 @@ export function labritInTown(scene, near) {
 // (torneo: rivalName para el nombre del rival en el marcador y fixedLevel para no elegir nivel)
 // rivalStats: las cualidades del rival (fuerza, agilidad, velocidad, de 1 a 5); sin ellas, las suyas según su nombre
 // pairs: { partner: { name, stats }, rivalMate: { name, stats } } (el torneo por parejas: el partido es por parejas)
-export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level, rivalName, fixedLevel = false, returnTo = null, rivalStats = null, pairs = null } = {}) {
+// rivalTown: { id, name } del pueblo del rival (en el torneo, el suyo; si no, el del frontón): para la colección
+export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level, rivalName, fixedLevel = false, returnTo = null, rivalStats = null, pairs = null, rivalTown = null } = {}) {
   if (window.__autoWin) return Promise.resolve({ win: true, you: target, cpu: 0 });
   return new Promise(res => {
     const P = G.player, rig0 = P.rig, home = { x: rival.pos.x, z: rival.pos.z, h: rival.heading };
     let seated = null, seatedZ = 0, cheerT = 0;
-    let rig = rig0, pel = null, red = null, bf = null, bfWas = false, ended = false, match = null, mates = null; const hidden = [], hiddenR = [];
+    let rig = rig0, pel = null, red = null, bf = null, bfWas = false, ended = false, match = null, mates = null, rivName = rivalName || String(rival.name).split(',')[0], rStatsKeep = null; const hidden = [], hiddenR = [];
     // si algo falla al montar el partido, de vuelta al pueblo con todo como estaba (nunca congelado en la cancha)
     const fail = (e) => {
       console.warn('frontón', e);
@@ -249,7 +261,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       once('rival', 'won', st.won, () => red?.doCheer());
       if (st.won) rival.cheer = 0.6;
     };
-    const youName = profile().name || (isEU() ? 'Zu' : 'Tú'), rivName = rivalName || String(rival.name).split(',')[0];
+    const youName = profile().name || (isEU() ? 'Zu' : 'Tú');
     // por parejas: tu compañero (vestido como tú) y el del rival (de colorado). Se preparan solo si eliges jugar por
     // parejas, la primera vez, y se van al acabar
     const makeMates = async () => {
@@ -267,12 +279,12 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
           animate: (o, s2, dt = 1 / 60) => { st.v = s2; if (r) { r.char.back = s2.back; r.update(dt, s2.speed, true, 0); flag('swing', s2.swing >= 0, () => r.doAct('hit', 0.5)); flag('won', s2.won, () => r.doCheer()); } },
           dispose() { obj.parent?.remove(obj); if (r) { r.char.post = null; r.dispose(); } else obj.traverse(c => { c.geometry?.dispose(); c.material?.dispose?.(); }); } };
       };
-      const m = { youMate: await mk('pelotari', n1, 2, pairs?.partner?.stats), rivalMate: await mk('pelotari_rojo', n2, level === 'dificil' ? 3 : level === 'facil' ? 1 : 2, pairs?.rivalMate?.stats) };
+      const m = { youMate: await mk('pelotari', n1, 2, pairs?.partner?.stats), rivalMate: await mk('pelotari_rojo', n2, levelTier(level), pairs?.rivalMate?.stats) };
       if (ended || G.disposed) { for (const x of Object.values(m)) x.dispose(); throw new Error('partido acabado'); }
       return (mates = m);
     };
     fronton.court.setScore?.(youName, rivName, 0, 0);
-    const rStats = rivalStats || pelotariStats(rivName, level === 'dificil' ? 3 : level === 'facil' ? 1 : 2);
+    const rStats = rivalStats || pelotariStats(rivName, levelTier(level)); rStatsKeep = rStats;
     try { match = G.pelotaMatch = new PelotaMatch({
       THREE, court: fronton.court, camera: G.camera, lang: isEU() ? 'eu' : 'es', mode, target, level, fixedLevel, rivalStats: rStats,
       you: { obj: P.obj, name: profile().name || (isEU() ? 'Zu' : 'Tú'), animate: animYou },
@@ -281,6 +293,8 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       mates: mode === 'match' && (!fixedLevel || pairs) ? makeMates : null, forcePairs: !!pairs,   // (en el torneo individual, mano a mano; en el de parejas, por parejas)
       back: fixedLevel ? 'torneo' : G.sportMode ? 'menu' : 'pueblo',   // (a dónde lleva el botón del final)
       town: (G.def?.name || '').split(' /')[0], youRecord: myRecord(),   // (para las fichas: el pueblo del frontón y lo que has ganado)
+      cond: frontonCond(G, fronton),   // (cómo es el frontón: a cubierto o al aire libre, de piedra, mojado o el Labrit)
+      venue: fronton.court.labrit ? (isEU() ? 'Labrit frontoia · Iruña' : 'Frontón Labrit · Iruña') : null, vsImg: { you: vsBlue, rival: vsRed },
       onEvent: (e) => { if (e.type === 'call' && e.score) { const [a, b] = match?.labels?.() || [youName, rivName]; fronton.court.setScore?.(a, b, e.score.you, e.score.rival); } if (e.type === 'call' && seated) { seated.cheer(true); cheerT = e.final ? 4.6 : 1.6; } },
     }); } catch (e) { console.warn('frontón', e); done({ win: false, error: true }); return; }   // (si no se monta, de vuelta al pueblo)
     // (si el partido falla una y otra vez, se acaba y se vuelve al pueblo: nunca el marcador puesto en mitad de la calle)
@@ -313,6 +327,8 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       safe(() => { rival.frozen = false; rival.speed = 0; rival.setPos(home.x, home.z, home.h); });
       safe(() => { const back = returnTo || fronton, e = back.entry, c = back.out || back.toWorld(0, 12); P.place(e.x, e.z, Math.atan2(c.x - e.x, c.z - e.z)); });
       safe(() => { G.follow.cinematic = null; G.follow.snap(P); });
+      // (la colección de pelotaris: el rival queda en su pueblo en cuanto se juega contra él; el resultado, si se acabó)
+      safe(() => { if (mode === 'match' && (match?.met || match?.game?.phase !== 'intro') && !r.later && !r.error) { const tw = rivalTown || { id: G.def?.id, name: (G.def?.name || '').split(' /')[0] }; meetPelotari(tw, { name: rivName, stats: rStatsKeep }, r.quit ? null : !!r.win); } });
       res({ win: !!r.win, you: r.score?.you ?? 0, cpu: r.score?.rival ?? 0, best: r.best ?? 0, quit: !!r.quit, later: !!r.later });
     }
   });
