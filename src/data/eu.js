@@ -212,6 +212,7 @@ export const EU_EXACT = {
   'Ver más': 'Gehiago ikusi', 'Ver menos': 'Gutxiago ikusi',
   // (fichas de información: pestañas y fotos)
   'Cómo es': 'Nolakoa den', 'Dónde vive': 'Non bizi den', 'Cuándo': 'Noiz', 'La planta': 'Landarea', 'La flor': 'Lorea', 'La hoja': 'Hostoa', 'En color': 'Koloretan', 'En piedra': 'Harrian',
+  'Identifica la planta': 'Identifikatu landarea', '¿Qué planta es?': 'Zer landare da?', 'Identifica el animal': 'Identifikatu animalia', '¿Qué animal es?': 'Zer animalia da?',
   'Partido rápido': 'Partida azkarra', 'Iruña contra el visitante': 'Iruña bisitariaren aurka', 'En El Sadar · elige tu club': 'El Sadarren · aukeratu zure kluba',
   'Liga Navarra con tu club y amistosos contra cualquier club. Todos los partidos, en El Sadar.': 'Nafarroako Liga zure klubarekin eta lagunartekoak edozein klubaren aurka. Partida guztiak, El Sadarren.',
   'Tienes la Liga Navarra contra los clubes de la zona, amistosos contra cualquier club de Navarra y el partido del pueblo. Todos se juegan en El Sadar, el estadio de Iruña.': 'Nafarroako Liga duzu inguruko kluben aurka, lagunartekoak Nafarroako edozein klubaren aurka eta herriko partida. Denak El Sadarren jokatzen dira, Iruñeko estadioan.',
