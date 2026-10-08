@@ -13,6 +13,8 @@ const errs = []; p.on('pageerror', e => errs.push(e.message));
 await p.addInitScript(() => { window.__vs = true; window.__vsMs = 600000; localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Mendi', seen: { heroBenat: true, dog: true } })); });
 await p.goto(`${URL}/?town=${town}&q=low&weather=${weather}&skipintro=1&t=12`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 900000 }); await p.waitForTimeout(2500);
+// (con lluvia: que esté lloviendo justo ahora; la lluvia va a ratos y, si no, el frontón sale seco)
+if (weather === 'rain') await p.evaluate(() => { const W = window.__game.rt?.weather; if (W) { W.raining = true; W.k = 1; W.phaseT = 9999; } });
 let fails = 0, n = 0; const ok = (c, m) => { console.log(`  ${c ? 'OK ' : 'FALLO'} ${m}`); if (!c) fails++; };
 const shot = (tag) => p.screenshot({ path: `${out}/${weather}-${String(++n).padStart(2, '0')}-${tag}.png` });
 const finish = () => p.evaluate(() => document.getAnimations?.().forEach(a => { try { if (a.effect?.getTiming?.().iterations !== Infinity) a.finish(); } catch (e) { } }));
@@ -56,13 +58,15 @@ await shot('vs');
 const V = await p.evaluate(async () => { const v = document.querySelector('.pvs'), R = (s) => v.querySelector(s)?.getBoundingClientRect();
   await Promise.all([...v.querySelectorAll('img')].map(i => i.decode?.().catch(() => {})));
   const inside = (r) => r && r.left >= -1 && r.top >= -1 && r.right <= innerWidth + 1 && r.bottom <= innerHeight + 1, hit = (a, c) => a && c && !(a.right <= c.left || c.right <= a.left || a.bottom <= c.top || c.bottom <= a.top);
-  const nb = R('.pvs-name.blue'), nr = R('.pvs-name.red'), qu = R('.pvs-quote'), top = R('.pvs-top'), x = R('.pvs-x');
-  return { imgs: [...v.querySelectorAll('img')].map(i => i.naturalWidth), names: [...v.querySelectorAll('.pvs-name b')].map(e => e.innerText), quote: v.querySelector('.pvs-quote')?.innerText, venue: v.querySelector('.pvs-venue')?.innerText,
-    tags: v.querySelector('.pvs-tags')?.innerText, boxes: Object.fromEntries(Object.entries({ nb, nr, qu, top, x }).map(([k, r]) => [k, r && [r.left, r.top, r.right, r.bottom].map(Math.round)])), inside: [nb, nr, qu, top, x].every(inside), overlap: hit(nb, qu) || hit(nr, qu) || hit(nb, x) || hit(nr, x) || hit(top, x) || hit(nb, nr), phase: window.__game.pelotaMatch.game.phase };
+  // (los rótulos de cada uno, el del centro, el de arriba y la frase de abajo: ninguno pisa a otro)
+  const nb = R('.pvs-plate.azul'), nr = R('.pvs-plate.rojo'), qu = R('.pvs-tick'), top = R('.pvs-top .pvs-bar'), x = R('.pvs-x'), mid = R('.pvs-mid');
+  return { imgs: [...v.querySelectorAll('img')].map(i => i.naturalWidth), names: [...v.querySelectorAll('.pvs-who > b')].map(e => e.innerText), quote: v.querySelector('.pvs-tick .q')?.innerText, venue: v.querySelector('.pvs-venue')?.innerText, ovr: [...v.querySelectorAll('.pvs-ovr b')].map(e => +e.innerText),
+    tags: v.querySelector('.pvs-tags')?.innerText, boxes: Object.fromEntries(Object.entries({ nb, nr, qu, top, x, mid }).map(([k, r]) => [k, r && [r.left, r.top, r.right, r.bottom].map(Math.round)])), inside: [nb, nr, qu, top, x, mid].every(inside), overlap: hit(nb, qu) || hit(nr, qu) || hit(nb, x) || hit(nr, x) || hit(top, x) || hit(nb, nr) || hit(mid, nb) || hit(mid, nr) || hit(mid, x), phase: window.__game.pelotaMatch.game.phase };
 });
 console.log(`   ${V.names.join(' VS ')} · ${V.venue} · «${V.quote}» · ${V.tags?.replace(/\n/g, ' | ')}`);
 ok(V.imgs.length >= 2 && V.imgs.every(w => w > 0), 'las dos figuras (nuestros pelotaris azul y colorado)');
 ok(V.names.length === 2 && !!V.quote && !!V.venue, 'los nombres, el frontón y la frase del rival');
+ok(V.ovr.length === 2 && V.ovr.every(n => n >= 40 && n <= 99), `la media de cada uno, como en las cartas (${V.ovr.join(' y ')})`);
 ok(V.inside && !V.overlap, 'todo dentro de la pantalla y sin solaparse');
 ok(V.phase === 'intro', 'mientras se ve, el partido aún no ha empezado');
 if (V.overlap || !V.inside) console.log('   cajas:', JSON.stringify(V.boxes));
@@ -72,7 +76,9 @@ ok(await p.evaluate(() => !document.querySelector('.pvs') && window.__game.pelot
 await p.evaluate(() => { const m = window.__game.pelotaMatch; for (let k = 0; k < 20; k++) m.update(1 / 30); });
 // en el partido: el marcador sobre el frontis, FALTA y PASA en la pared, tu energía abajo y AUTO en el botón de golpe
 await p.waitForTimeout(2500); await finish();
-const IN = await p.evaluate(() => { const C = window.__game.pelotaMatch.court.group, my = document.querySelector('.pel-myen'), r = my?.getBoundingClientRect(), st = document.querySelector('.pel-stick')?.getBoundingClientRect(), bt = document.querySelector('.pel-btns')?.getBoundingClientRect();
+const IN = await p.evaluate(() => { const C = window.__game.pelotaMatch.court.group, my = document.querySelector('.pel-myen'), r = my?.getBoundingClientRect(), bt = document.querySelector('.pel-btns')?.getBoundingClientRect(), sr = document.querySelector('.pel-stick')?.getBoundingClientRect();
+  // (el joystick aparece donde se pone el pulgar, abajo a la izquierda: su aro mide 120 px; la zona táctil invisible es más ancha y no cuenta)
+  const st = sr && { left: sr.left, right: sr.left + 200, top: innerHeight - 200, bottom: innerHeight };
   const hit = (a, c) => a && c && !(a.right <= c.left || c.right <= a.left || a.bottom <= c.top || c.bottom <= a.top);
   return { big: !!C.getObjectByName('marcador-frontis'), falta: !!C.getObjectByName('raya-falta'), pasa: !!C.getObjectByName('raya-pasa'), myen: !!my && !my.hidden, overlap: hit(r, st) || hit(r, bt), auto: document.querySelector('.pel-root')?.classList.contains('autohit') }; });
 console.log('   en el partido:', JSON.stringify(IN));
@@ -92,12 +98,12 @@ console.log('3. la colección');
 ok(await talk(), 'el menú de pelota se abre otra vez');
 await p.evaluate(() => document.querySelector('[data-a="pelotaris"]').click());
 await p.waitForSelector('.pc-root .pc-grid', { timeout: 30000 }); await p.waitForTimeout(600); await finish();
-const C = await p.evaluate(() => { const c = document.querySelector('.pc-root .lg-card'); return { have: document.querySelectorAll('.pc-card:not(.locked)').length, locked: document.querySelectorAll('.pc-card.locked').length, tabs: document.querySelectorAll('.pc-tabs button').length, count: document.querySelector('.pc-count')?.innerText, scroll: c.scrollHeight - c.clientHeight }; });
+const C = await p.evaluate(() => { const c = document.querySelector('.pc-root .lg-card'); return { have: document.querySelectorAll('.pc-it .gx-card:not(.lock)').length, locked: document.querySelectorAll('.pc-it .gx-card.lock').length, tabs: document.querySelectorAll('.pc-tabs button').length, count: document.querySelector('.pc-count')?.innerText, scroll: c.scrollHeight - c.clientHeight }; });
 console.log(`   ${C.count} · en esta comarca ${C.have} conocidos y ${C.locked} por descubrir · ${C.tabs} comarcas`);
 ok(C.have >= 1 && C.locked >= 1, 'el conocido con su carta y los demás en silueta con candado');
 ok(C.scroll <= 0, `cabe sin desplazar (${C.scroll} px)`);
 await shot('coleccion');
-await p.evaluate(() => document.querySelector('.pc-card:not(.locked)').click()); await p.waitForSelector('.pfx', { timeout: 10000 }).catch(() => {}); await p.waitForTimeout(600); await finish();
+await p.evaluate(() => document.querySelector('.pc-it button.gx-card').click()); await p.waitForSelector('.pfx', { timeout: 10000 }).catch(() => {}); await p.waitForTimeout(600); await finish();
 ok(await p.evaluate(() => !!document.querySelector('.pfx')), 'al tocar la carta, su ficha');
 await shot('coleccion-ficha');
 await p.evaluate(() => document.querySelector('.pfx-x')?.click()); await p.waitForTimeout(400);
