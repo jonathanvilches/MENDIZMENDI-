@@ -57,6 +57,10 @@ function moonGlowTex() {
 function mistTex() {
   const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
   for (let i = 0; i < 7; i++) { const x = 30 + Math.random() * 68, y = 44 + Math.random() * 40, rr = 26 + Math.random() * 26; const r = g.createRadialGradient(x, y, 0, x, y, rr); r.addColorStop(0, 'rgba(255,255,255,0.35)'); r.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = r; g.fillRect(0, 0, 128, 128); }
+  // los bordes, a cero: si no, se veía el canto recto del recuadro (una franja de luz)
+  g.globalCompositeOperation = 'destination-in'; g.save(); g.translate(64, 64); g.scale(1, 0.6);
+  const m = g.createRadialGradient(0, 0, 0, 0, 0, 64); m.addColorStop(0, 'rgba(0,0,0,1)'); m.addColorStop(0.6, 'rgba(0,0,0,0.85)'); m.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = m; g.fillRect(-64, -110, 128, 220); g.restore(); g.globalCompositeOperation = 'source-over';
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
 
@@ -77,7 +81,7 @@ const KEYS = [
 ];
 const KC = KEYS.map(k => ({ t: k[0], zen: new THREE.Color(k[1]), hor: new THREE.Color(k[2]), sun: new THREE.Color(k[3]), si: k[4], hs: new THREE.Color(k[5]), hg: new THREE.Color(k[6]), hi: k[7] }));
 
-const UP = new THREE.Vector3(0, 1, 0), LIGHT_STEP = Math.PI / 600;
+const UP = new THREE.Vector3(0, 1, 0), LIGHT_STEP = Math.PI / 600, MIST_GEO = new THREE.PlaneGeometry(1, 1);
 const FLOOD_SKY = new THREE.Color('#d8e4fb'), FLOOD_GND = new THREE.Color('#857f72'), FLOOD_SUN = new THREE.Color('#fff3df'), FLOOD_DIR = new THREE.Vector3(0.25, 1, 0.35).normalize();
 export class SkySystem {
   constructor(scene, renderer, quality) {
@@ -94,7 +98,7 @@ export class SkySystem {
     };
     this.mat = new THREE.ShaderMaterial({
       uniforms: this.uniforms, side: THREE.BackSide, depthWrite: false, fog: false, defines: quality === 'low' ? { LOWQ: 1 } : {},   // móvil: nubes con menos capas de ruido
-      vertexShader: `varying vec3 vDir; void main(){ vDir = normalize(position); vec4 p = projectionMatrix * modelViewMatrix * vec4(position,1.0); gl_Position = p.xyww; }`,
+      vertexShader: `varying vec3 vDir; void main(){ vDir = normalize(position); vec4 p = projectionMatrix * modelViewMatrix * vec4(position,1.0); gl_Position = vec4(p.xy, p.w * 0.99999, p.w); }`,
       fragmentShader: `
 uniform vec3 uZen, uHor, uSunDir, uSunCol, uFlashDir; uniform float uTime, uNight, uCloud, uStorm, uFlash; varying vec3 vDir;
 float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }
@@ -186,7 +190,9 @@ void main(){
     const mt = mistTex();
     this.mist = [];
     for (let i = 0; i < (quality === 'low' ? 10 : 18); i++) {
-      const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: mt, color: '#c8d4ea', transparent: true, depthWrite: false, opacity: 0 }));
+      // (de pie y girando solo a los lados: antes eran sprites que se inclinaban con la cámara y, al subirla o bajarla,
+      // se veían como manchas de luz sobre el suelo)
+      const s = new THREE.Mesh(MIST_GEO, new THREE.MeshBasicMaterial({ map: mt, color: '#c8d4ea', transparent: true, depthWrite: false, opacity: 0 }));
       const a = i / 18 * Math.PI * 2 * 3.1, r = 10 + (i * 37 % 60);
       s.userData.off = new THREE.Vector2(Math.cos(a) * r, Math.sin(a) * r); s.scale.set(16 + (i % 4) * 5, 4 + (i % 3), 1);
       scene.add(s); this.mist.push(s);
@@ -265,13 +271,14 @@ void main(){
     this.moon.material.opacity = this.night; this.moon.visible = this.night > 0.02;
     this.moonGlow.position.copy(this.moon.position); this.moonGlow.material.opacity = this.night * (0.3 + 0.6 * lit); this.moonGlow.visible = this.moon.visible;
     this.moonGlow.material.color.setRGB(1, 1 - 0.1 * low, 1 - 0.25 * low);
-    const mo = this.night * 0.3;
+    const mo = this.night * 0.3 * (1 - fk), cam = this.camPos || focus;   // (en el partido, con los focos, sin niebla)
     for (const s of this.mist) {
       s.visible = mo > 0.01; if (!s.visible) continue;
       const o = s.userData.off, drift = (elapsed * 0.6) % 140;
       let x = focus.x + o.x + drift, z = focus.z + o.y;
       x = focus.x + (((x - focus.x) + 70) % 140 + 140) % 140 - 70;          // la niebla rodea al jugador aunque se mueva
-      s.position.set(x, groundHeight(x, z) + 0.9, z); s.material.opacity = mo;
+      s.position.set(x, groundHeight(x, z) + 0.9, z); s.rotation.set(0, Math.atan2(cam.x - x, cam.z - z), 0);
+      const d = Math.hypot(cam.x - x, cam.z - z); s.material.opacity = mo * Math.min(1, Math.max(0, (d - 6) / 10));   // (pegada a la cámara, no: se apaga)
     }
     return { night: this.night, isNight };
   }
