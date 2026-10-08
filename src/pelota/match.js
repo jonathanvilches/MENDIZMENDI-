@@ -418,7 +418,8 @@ export class PelotaMatch {
       let px = P.x, pz = P.z; if (!Number.isFinite(px) || !Number.isFinite(pz)) { px = S.x; pz = S.z; }
       if (Math.hypot(px - S.x, pz - S.z) > Math.max(0.35, 10 * dt)) { S.ox = S.x - px; S.oz = S.z - pz; }
       S.v = 0;
-      if (S.ox || S.oz) { const k = Math.exp(-dt * 4), ox = S.ox * k, oz = S.oz * k; if (dt > 0) S.v = Math.hypot(S.ox - ox, S.oz - oz) / dt; S.ox = ox; S.oz = oz; if (Math.hypot(ox, oz) < 0.03) S.ox = S.oz = 0; px += S.ox; pz += S.oz; }
+      // (se acerca cada vez más despacio, pero nunca más rápido que un esprint: desde lejos, antes, cruzaba la cancha volando)
+      if (S.ox || S.oz) { const d = Math.hypot(S.ox, S.oz), step = Math.min(d * (1 - Math.exp(-dt * 5)), 14 * dt), k = d > 0 ? (d - step) / d : 0, ox = S.ox * k, oz = S.oz * k; if (dt > 0) S.v = step / dt; S.ox = ox; S.oz = oz; if (Math.hypot(ox, oz) < 0.03) S.ox = S.oz = 0; px += S.ox; pz += S.oz; }
       S.x = px; S.z = pz;
       this.v3.set(px, 0, pz); grp.localToWorld(this.v3);
       side.obj.position.copy(this.v3);

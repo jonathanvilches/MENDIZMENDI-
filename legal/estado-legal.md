@@ -33,6 +33,7 @@
 
 | Fecha | Función | Respuestas (1-8) | Color | Decisión |
 |---|---|---|---|---|
+| 2026-10-08 | Auditoría del móvil tumbado: luz estable al cambiar de cámara, ficha técnica de cada pelotari, ventanas sin desplazar con espacios iguales y pruebas de fútbol, pelota y minijuegos de cada comarca | 1 no · 2 no · 3 no · 4 no · 5 no · 6 no · 7 no · 8 no | Verde | Código y estilos propios. Los pelotaris rivales y sus datos son inventados y la ficha lo dice. Sin marcas, logotipos ni datos de personas reales. |
 | 2026-10-08 | Interfaz: una sola escala de tamaños de letra en todo el juego y textos largos plegados con «Ver más» y desplegables | 1 no · 2 no · 3 no · 4 no · 5 no · 6 no · 7 no · 8 no | Verde | Código y estilos propios; mismas tipografías libres incrustadas, sin cambio de identidad visual |
 | 2026-10-08 | Fútbol: todos los partidos en El Sadar, la liga, los amistosos y el partido de cada pueblo; la liga ya no pide viajar | 1 no · 2 no · 3 no · 4 no · 5 no · 6 no · 7 no · 8 no | Verde | El Sadar como lugar, ya usado en el juego; clubes con el nombre de cada pueblo, sin escudos ni marcas de clubes reales |
 | 2026-10-08 | Flujo de entrar y salir de los partidos: un solo partido o menú a la vez, jugador quieto detrás de los menús, diálogos visibles en los campeonatos, botón del final según a dónde se vuelve, sin repetir partidos del torneo y salida de los campeonatos a Torneos | 1 no · 2 no · 3 no · 4 no · 5 no · 6 no · 7 no · 8 no | Verde | Código y textos propios; sin marcas ni logos |
