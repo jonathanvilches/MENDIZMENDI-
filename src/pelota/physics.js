@@ -129,8 +129,11 @@ export function solveShot(p, tx, landZ, speed, tyMin = COURT.CHAPA + 0.25, tyMax
   for (let i = 0; i < 14; i++) {
     const ty = (lo + hi) / 2, v = aimVelocity(p, tx, ty, T);
     const r = landingOf(p, v);
-    const z = r.land ? r.land.z : 99;
-    best = { ty, v, land: r.land };
+    // (si da en el rebote, la pared de atrás, antes de botar, es que va demasiado larga: así se busca más bajo en el
+    // frontis. Antes los golpes muy rápidos acababan arriba del todo y la pelota pasaba por encima del rebote, fuera)
+    const backFirst = r.pred.events.find(e => e.type === 'back' && (!r.land || e.t < r.land.t));
+    const z = r.land && !backFirst ? r.land.z : 99;
+    best = { ty, v, land: backFirst ? null : r.land };
     // más alto en el frontis → bote más lejano
     if (z < landZ) lo = ty; else hi = ty;
   }

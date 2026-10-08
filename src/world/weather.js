@@ -136,15 +136,18 @@ export class Weather {
     this.raining = true; this.phaseT = 50 + Math.random() * 40;
   }
   // cada fotograma, después del cielo: cae la lluvia o la nieve, el cielo se agrisa y la nieve se va posando
-  // hold: durante un partido (fútbol o pelota) deja de llover o nevar y se despeja, para ver bien el juego
+  // hold: durante un partido (fútbol o pelota) no se ve caer nada sobre la cancha, con la misma luz
   update(dt, camera, sky, sound, hold = false) {
     if (this.kind === 'clear') return;
     this.t += dt;
-    if (this.kind === 'rain' && (this.phaseT -= dt) <= 0) { this.raining = !this.raining; this.phaseT = this.raining ? 40 + Math.random() * 50 : 30 + Math.random() * 45; }
-    const target = hold || !this.raining ? 0 : 1;
-    // entra en unos segundos; escampa despacio (o deprisa si empieza un partido)
-    this.k = target > this.k ? Math.min(target, this.k + dt * 0.25) : Math.max(target, this.k - dt * (hold ? 1.5 : 0.08));
-    this.fx.visible = this.k > 0.02;
+    // durante un partido no cae nada sobre la cancha (no se ven gotas ni copos y no hay rayos), pero la luz se queda como
+    // estaba y no cambia mientras se juega: antes escampaba de golpe al empezar y la luz del pueblo se aclaraba en un
+    // segundo (y al acabar se oscurecía otra vez)
+    if (this.kind === 'rain' && !hold && (this.phaseT -= dt) <= 0) { this.raining = !this.raining; this.phaseT = this.raining ? 40 + Math.random() * 50 : 30 + Math.random() * 45; }
+    const target = this.raining ? 1 : 0;
+    // entra en unos segundos y escampa despacio
+    this.k = target > this.k ? Math.min(target, this.k + dt * 0.25) : Math.max(target, this.k - dt * 0.08);
+    this.fx.visible = this.k > 0.02 && !hold;
     this.agePrints(dt);
     const U = this.fx.userData.U; U.uTime.value = this.t; U.uCam.value.copy(camera.position); U.uAmt.value = this.kind === 'rain' ? this.k : Math.min(1, this.k * 1.5);
     if (U.uScale) U.uScale.value = innerHeight * 0.55;
@@ -158,9 +161,9 @@ export class Weather {
       sky.hemi.intensity *= 1 + (this.kind === 'snow' ? 0.15 : -0.1) * this.k;
     }
     sound?.setRain?.(this.kind === 'rain' ? this.k : 0);
-    if (this.kind === 'rain') this.storm(dt, camera, sky, sound);
+    if (this.kind === 'rain') this.storm(dt, camera, sky, sound, hold);
   }
-  storm(dt, camera, sky, sound) {
+  storm(dt, camera, sky, sound, hold = false) {
     if (!sky?.uniforms) return;
     const U = sky.uniforms, k = this.k; this.sky = sky;
     U.uStorm.value = k; U.uCloud.value = 0.55 + 0.43 * k;
@@ -169,7 +172,7 @@ export class Weather {
     sky.sun.intensity *= 1 - 0.35 * k; sky.hemi.intensity *= 1 - 0.22 * k; sky.fog.color.lerp(this.grey, 0.35 * k);
     // un rayo cada 5 a 17 s mientras llueve fuerte
     // (un rayo cada 14 a 34 s; antes, cada pocos segundos, y la luz del pueblo saltaba sin parar)
-    if (k > 0.55 && (this.boltT = (this.boltT ?? 8 + Math.random() * 6) - dt) <= 0) { this.boltT = 14 + Math.random() * 20; this.strike(camera, sound); }
+    if (!hold && k > 0.55 && (this.boltT = (this.boltT ?? 8 + Math.random() * 6) - dt) <= 0) { this.boltT = 14 + Math.random() * 20; this.strike(camera, sound); }
     // destello: dos o tres fogonazos seguidos que se apagan enseguida
     let I = 0;
     if (this.strikeT != null) {

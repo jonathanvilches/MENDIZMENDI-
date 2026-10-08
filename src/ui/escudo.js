@@ -19,7 +19,10 @@ function paint(canvas, A, stone) {
 }
 
 // la ficha: { kicker, title, sub, canvas: { w, h, draw(cv, stone) }, stone (si se puede ver en piedra), secs: [[título, html]], badge }
+// (cómo se lee, en pestañas: una sección cada vez y entera, sin desplazar ni «Ver más»; antes iban las cuatro en rejilla,
+// plegadas, y en el móvil tumbado no cabían)
 function armsCard(ui, { kicker, title, sub, canvas, stone = false, secs, more = [], badge = '', note = '' }) {
+  const all = [...secs, ...more].filter(x => x && x[1]);
   return new Promise(res => {
     ui.closeModal?.(); ui.sound?.ui?.('card');
     const o = el(`<div class="mg-overlay escudo"><div class="mg-card">
@@ -28,14 +31,16 @@ function armsCard(ui, { kicker, title, sub, canvas, stone = false, secs, more = 
         ${badge ? `<span class="badge">${iconSVG('book', 16)} ${esc(badge)}</span>` : ''}</div>
       <div class="es-txt"><small class="kicker">${iconSVG('shield', 18)} ${esc(kicker)}</small><h2>${esc(title)}</h2>
         ${sub ? `<p class="es-blazon">${esc(sub)}</p>` : ''}
-        <div class="es-scroll"><dl class="es-secs">${secs.filter(x => x && x[1]).map(([t, h]) => `<div><dt>${esc(t)}</dt><dd>${h}</dd></div>`).join('')}</dl>
-        ${more.length ? `<dl class="es-secs es-extra">${more.filter(x => x && x[1]).map(([t, h]) => `<div><dt>${esc(t)}</dt><dd>${h}</dd></div>`).join('')}</dl>` : ''}</div>
+        <div class="es-tabs" role="tablist">${all.map(([t], i) => `<button role="tab" data-t="${i}" aria-selected="${i === 0}">${esc(t)}</button>`).join('')}</div>
+        <div class="es-scroll es-pane" role="tabpanel" data-vm="no">${all[0]?.[1] || ''}</div>
         <div class="es-more" hidden>Desliza para leer más</div>
         ${note ? `<p class="es-note">${esc(note)}</p>` : ''}
         <button class="btn primary next">Seguir explorando</button></div></div></div>`);
     document.body.appendChild(o); ui.modal = o;
     const cv = o.querySelector('canvas'); canvas.draw(cv, false);
     o.querySelectorAll('.es-toggle button').forEach(b => b.onclick = () => { o.querySelectorAll('.es-toggle button').forEach(x => x.classList.toggle('on', x === b)); canvas.draw(cv, b.dataset.s === '1'); ui.sound?.ui?.('click'); });
+    const pane = o.querySelector('.es-pane');
+    o.querySelectorAll('.es-tabs button').forEach(b => b.onclick = () => { o.querySelectorAll('.es-tabs button').forEach(x => x.setAttribute('aria-selected', x === b)); pane.innerHTML = all[+b.dataset.t][1]; pane.scrollTop = 0; upd(); b.scrollIntoView?.({ block: 'nearest', inline: 'nearest' }); ui.sound?.ui?.('click'); });
     const next = o.querySelector('.next'); setTimeout(() => next.focus({ preventScroll: true }), 60);
     // si el texto no cabe, un aviso al pie de la columna (se va al llegar al final)
     const sc = o.querySelector('.es-scroll'), mo = o.querySelector('.es-more');

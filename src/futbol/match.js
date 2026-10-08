@@ -318,7 +318,10 @@ export class FutbolMatch {
     this.sync(dt); this.cam(dt, !!this.cutCam); this.cutCam = false; this.drawHud();
   }
   /** Fundido y cámara colocada de una vez (sin barrido de un lado del campo al otro). */
-  cut() { (this.vigia ||= { nan: 0, slide: 0, cut: 0, log: [] }).cut++; this.cutAt = this.t; this.hud.cut?.(); this.cutCam = true; }
+  // corte de cámara, como en la tele: la cámara salta a su sitio en el mismo fotograma en que se recoloca a los jugadores
+  // (antes había además un fundido a negro de medio segundo en cada saque de centro, de puerta o con barrera: la imagen se
+  // oscurecía y volvía a aclararse, y parecía que la luz del estadio cambiaba con la cámara)
+  cut() { (this.vigia ||= { nan: 0, slide: 0, cut: 0, log: [] }).cut++; this.cutAt = this.t; this.cutCam = true; }
   tension() {
     const g = this.game, B = g.ball.p; if (!g) return 0.25;
     if (g.phase !== 'play') return 0.25;
@@ -457,7 +460,7 @@ export class FutbolMatch {
       const al = g.alpha ?? 1; let ix = p.px === undefined ? p.x : p.px + (p.x - p.px) * al, iz = p.pz === undefined ? p.z : p.pz + (p.z - p.pz) * al;
       if (!Number.isFinite(ix) || !Number.isFinite(iz)) { ix = ch.sx ?? 0; iz = ch.sz ?? 0; this.vigia.nan++; }   // (nunca a un sitio imposible)
       // vigía de saltos: la lógica recoloca de golpe en los saques (barrera, saque de puerta, de centro). Si el salto es corto,
-      // la figura llega corriendo en un momento; si es largo (saque de centro tras un gol, descanso), un fundido lo tapa
+      // la figura llega corriendo en un momento; si es largo (saque de centro tras un gol, descanso), un corte de cámara lo tapa
       let sp = Math.hypot(p.vx, p.vz);
       if (ch.ix !== undefined) {
         const d = Math.hypot(ix - ch.ix, iz - ch.iz);   // (el salto del sitio de la lógica, no el de la figura que aún llega)
@@ -497,7 +500,7 @@ export class FutbolMatch {
       // brazos arriba: el que saca de banda, con el balón sobre la cabeza
       ch.c.post?.({ arms: g.restart?.type === 'throwin' && RU.throwHands && g.restart.taker === p ? 'up' : null }, dt);
     }
-    // un salto largo: fundido y todos a su sitio de una vez (sin que unos lleguen corriendo y otros aparezcan)
+    // un salto largo: corte de cámara y todos a su sitio de una vez (sin que unos lleguen corriendo y otros aparezcan)
     if (bigJump) {
       if (!(this.intro > 0)) this.cut();
       for (const p of g.players) { const ch = this.chars[p.id]; if (!ch || ch.ix === undefined) continue; ch.ox = ch.oz = 0; ch.sx = ch.ix; ch.sz = ch.iz; ch.outer.position.set(ch.ix, 0, ch.iz); }
@@ -506,7 +509,7 @@ export class FutbolMatch {
     g.refs.forEach((r, i) => {
       const ch = this.refChars[i]; if (!ch) return;
       ch.outer.visible = !g.noRefs;
-      // (también el árbitro: en el saque de centro la lógica lo pone en su sitio de golpe; llega andando o con el fundido)
+      // (también el árbitro: en el saque de centro la lógica lo pone en su sitio de golpe; llega andando o con el corte)
       let rx = r.x, rz = r.z, rv = Math.hypot(r.vx, r.vz);
       const rj = ch.ix === undefined ? 0 : Math.hypot(rx - ch.ix, rz - ch.iz);
       if (!bigJump && rj > Math.max(1.0, 12 * dt)) { if (rj < 6) { ch.ox = ch.sx - rx; ch.oz = ch.sz - rz; } else { ch.ox = ch.oz = 0; this.cut(); } }

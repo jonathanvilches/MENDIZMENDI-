@@ -23,7 +23,7 @@ const CSS = `.champ{position:fixed;inset:0;z-index:6000;display:grid;place-items
 .ch-title{margin:0;font:400 clamp(48px,11vmin,96px)/1 'Lilita One','Nunito',sans-serif;letter-spacing:.04em;background:linear-gradient(180deg,#fff6c8,#ffd23a 55%,#e08a12);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 0 #7a3a08) drop-shadow(0 10px 24px rgba(0,0,0,.5));animation:chPop .9s 1.1s cubic-bezier(.2,1.6,.4,1) both}
 .ch-name{font:900 var(--fs-xl)/1.15 'Nunito',sans-serif;animation:chUp .6s 1.6s both}
 .ch-sub{font:700 var(--fs-sm)/1.3 'Nunito',sans-serif;color:#e6dcff;animation:chUp .6s 1.9s both;text-wrap:balance}
-.ch-score{display:inline-flex;gap:10px;align-items:center;padding:6px 16px;border-radius:999px;background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(255,215,0,.35);font:900 var(--fs-lg)/1.15 'Nunito',sans-serif;font-variant-numeric:tabular-nums;animation:chUp .6s 2.1s both}
+.ch-score{display:inline-flex;gap:8px;align-items:center;padding:8px 16px;border-radius:999px;background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(255,215,0,.35);font:900 var(--fs-lg)/1.15 'Nunito',sans-serif;font-variant-numeric:tabular-nums;animation:chUp .6s 2.1s both}
 .ch-btn{margin-top:8px;min-width:220px;min-height:48px;border:0;border-radius:999px;background:linear-gradient(180deg,#ffe36a,#f2b92e);color:#2e1d00;font:900 var(--fs-lg)/1.15 'Nunito',sans-serif;box-shadow:0 6px 0 #a87a12,0 12px 24px rgba(0,0,0,.35);cursor:pointer;animation:chUp .6s 2.6s both}
 @keyframes chIn{from{opacity:0}}@keyframes chSpin{to{transform:rotate(360deg)}}
 @keyframes chDrop{0%{transform:translateY(-70vh) rotate(-25deg) scale(.6)}70%{transform:translateY(0) rotate(4deg) scale(1.08)}100%{transform:none}}

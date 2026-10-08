@@ -7,7 +7,8 @@
 // Los pelotaris son personajes del juego (nombres inventados con su pueblo), no pelotaris reales.
 // Se guarda en localStorage ('mendimendiz-torneo-v1'): uno individual y uno por parejas por comarca.
 import { lgPanel, lgEsc as esc } from '../futbol/liga.js';
-import { pelotariStats, profileHtml } from '../pelota/rules.js';
+import { pelotariStats } from '../pelota/rules.js';
+import { openFicha, playerChip } from '../pelota/ficha.js';
 // (el idioma, el que marca la página: en euskera, «eu»)
 const isEU = () => typeof document !== 'undefined' && document.documentElement?.lang === 'eu';
 /** Las cualidades de un pelotari del torneo y sus golpes preferidos (los de los torneos guardados antes sin golpes se
@@ -100,18 +101,19 @@ export const youOut = (T) => !T.done && !T.matches.some(m => T.players[m.a].you 
 // ---------------------------------------------------------------- pantalla: el cuadro del torneo
 const CSS = `.tq-bracket{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;align-items:center}
 .tq-wait{display:none;font-size:var(--fs-xs);color:#a99cc9;text-align:center;padding:2px 0 4px}
-@media (max-width:560px){.tq-bracket{grid-template-columns:1fr;gap:10px;align-items:start}.tq-col h4{text-align:left}.tq-m.tq-ph{display:none}.tq-col:has(.tq-wait){display:flex;align-items:baseline;gap:8px}.tq-col:has(.tq-wait) h4{margin:0}.tq-wait{display:block;text-align:left;padding:0}.tq-m{font-size:var(--fs-sm);padding:6px 10px}}
-@media (orientation:landscape) and (max-height:520px){.tq-bracket{gap:6px}.tq-m{font-size:var(--fs-xs);padding:3px 6px;gap:0}.tq-m small{display:none}.tq-col{gap:5px}.tq-col h4{font-size:var(--fs-xs);line-height:1.15;letter-spacing:0}.tq-col h4 small{display:block;font-size:var(--fs-xs);opacity:.75;text-transform:none}.tq-col h4 small i{display:none}}
+@media (max-width:560px){.tq-bracket{grid-template-columns:1fr;gap:8px;align-items:start}.tq-col h4{text-align:left}.tq-m.tq-ph{display:none}.tq-col:has(.tq-wait){display:flex;align-items:baseline;gap:8px}.tq-col:has(.tq-wait) h4{margin:0}.tq-wait{display:block;text-align:left;padding:0}.tq-m{font-size:var(--fs-sm);padding:8px 8px}}
+@media (orientation:landscape) and (max-height:520px){.tq-bracket{gap:8px}.tq-m{font-size:var(--fs-xs);padding:4px 8px;gap:0}.tq-m small{display:none}.tq-col{gap:4px}.tq-col h4{font-size:var(--fs-xs);line-height:1.15;letter-spacing:0}.tq-col h4 small{display:block;font-size:var(--fs-xs);opacity:.75;text-transform:none}.tq-col h4 small i{display:none}}
 .tq-col{display:grid;gap:8px}.tq-col h4 small{font-size:var(--fs-xs)}.tq-col h4 small i{font-style:normal}.tq-col h4{margin:0;text-align:center;font-size:var(--fs-xs);color:#cbbcf0;text-transform:uppercase;letter-spacing:.04em}
-.tq-m{border-radius:12px;background:rgba(255,255,255,.07);padding:5px 8px;font-size:var(--fs-sm);display:grid;gap:2px}
-.tq-m div{display:flex;justify-content:space-between;gap:6px}.tq-m b{font-variant-numeric:tabular-nums}.tq-m .w{color:#ffd84a;font-weight:900}.tq-m .you{text-decoration:underline;text-decoration-color:#ffd84a}
+.tq-m{border-radius:12px;background:rgba(255,255,255,.07);padding:4px 8px;font-size:var(--fs-sm);display:grid;gap:2px}
+.tq-m div{display:flex;justify-content:space-between;gap:8px}.tq-m b{font-variant-numeric:tabular-nums}.tq-m .w{color:#ffd84a;font-weight:900}.tq-m .you{text-decoration:underline;text-decoration-color:#ffd84a}
 .tq-m small{color:#a99cc9;font-size:var(--fs-xs)}
-.tq-st{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.32);border-radius:12px;padding:7px 12px;margin:2px 0 10px;font-size:var(--fs-sm)}
+.tq-st{display:flex;flex-wrap:wrap;align-items:center;gap:4px 16px;background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.32);border-radius:12px;padding:8px 12px;margin:2px 0 8px;font-size:var(--fs-sm)}
 .tq-st b{color:#ffd84a}.tq-st span{white-space:nowrap}.tq-st i{font-style:normal;color:#ffd84a;letter-spacing:1px}.tq-st i u{color:rgba(255,255,255,.22);text-decoration:none}.tq-st p{margin:0;flex:1 1 100%;font-size:var(--fs-sm);color:#d8cff0}.tq-st p em{font-style:normal}
-.tq-st2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 14px}.tq-st2 .pf{gap:2px 8px}.tq-st .pf-k{white-space:normal}
+.tq-st.tq-chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;padding:0;margin:0 0 12px;background:none;border:0}
+.tq-st2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px 16px}.tq-st2 .pf{gap:2px 8px}.tq-st .pf-k{white-space:normal}
 .tq-pairs .tq-m{font-size:var(--fs-xs)}.tq-pairs .tq-m small{display:none}
-.tq-st>.pf{flex:1 1 100%;display:flex;flex-wrap:wrap;align-items:center;gap:2px 12px}.tq-st .pf>b{flex:1 1 100%}.tq-st .pf-k{color:#fff}.tq-st .pf-sh{flex:1 1 100%;white-space:normal}.tq-st .pf-sh em{font-style:normal;margin-right:10px;white-space:nowrap}.tq-st p strong{color:#ffb9a8}
-@media (orientation:landscape) and (max-height:520px){.tq-st{padding:4px 10px;margin:0 0 6px;font-size:var(--fs-xs)}.tq-st p{font-size:var(--fs-xs)}}.tq-txa{display:flex;align-items:center;gap:10px}.tq-txa svg{width:44px;height:30px}`;
+.tq-st>.pf{flex:1 1 100%;display:flex;flex-wrap:wrap;align-items:center;gap:2px 12px}.tq-st .pf>b{flex:1 1 100%}.tq-st .pf-k{color:#fff}.tq-st .pf-sh{flex:1 1 100%;white-space:normal}.tq-st .pf-sh em{font-style:normal;margin-right:8px;white-space:nowrap}.tq-st p strong{color:#ffb9a8}
+@media (orientation:landscape) and (max-height:520px){.tq-st{padding:4px 8px;margin:0 0 8px;font-size:var(--fs-xs)}.tq-st p{font-size:var(--fs-xs)}}.tq-txa{display:flex;align-items:center;gap:8px}.tq-txa svg{width:44px;height:30px}`;
 const TXAPELA = '<svg viewBox="0 0 64 40"><ellipse cx="32" cy="30" rx="29" ry="7" fill="#1b1b22"/><path d="M6 28c2-14 14-22 26-22s24 8 26 22c-8 4-44 4-52 0z" fill="#22232c"/><path d="M30 6c0-3 4-3 4 0" stroke="#22232c" stroke-width="3" fill="none"/><path d="M8 29c10 3 38 3 48 0" stroke="#c8222a" stroke-width="3" fill="none"/></svg>';
 function card(T, p, s, wIdx) {
   const P = T.players[p];
@@ -129,11 +131,19 @@ function bracketHtml(T) {
   }).join('');
   return `<div class="tq-bracket${T.kind === 'parejas' ? ' tq-pairs' : ''}">${cols}</div>`;
 }
-// cómo juega tu próximo rival: cómo corre, cuánto pega, sus manos, sus golpes preferidos y de qué tener cuidado
-function statsBox(p, T) {
+// los pelotaris de tu próximo partido, para sus fichas: tú (y tu compañero) y el rival (y el suyo). La tarjeta de cada
+// uno abre su ficha entera (cualidades, golpes preferidos, cómo jugarle y sus datos)
+function fichaList(T, m) {
+  const yp = T.players.find(p => p.you), rv = m.rival;
+  if (T.kind === 'parejas') return [{ id: 'you', name: yp.mates[0], town: yp.town, side: 'you', role: 'delantero', you: true, record: { txapelas: T.txapelas || 0 } },
+    { id: 'youMate', name: yp.mates[1], town: yp.town, stats: mateStats(yp, 1), side: 'you', role: 'zaguero' },
+    { id: 'rival', name: rv.mates[0], town: rv.town, stats: mateStats(rv, 0), side: 'rival', role: 'delantero' },
+    { id: 'rivalMate', name: rv.mates[1], town: rv.town, stats: mateStats(rv, 1), side: 'rival', role: 'zaguero' }];
+  return [{ id: 'you', name: yp.name, town: yp.town, side: 'you', role: 'mano', you: true, record: { txapelas: T.txapelas || 0 } }, { id: 'rival', name: rv.name, town: rv.town, stats: statsOf(rv), side: 'rival', role: 'mano' }];
+}
+function statsBox(T, m) {
   const lang = isEU() ? 'eu' : 'es';
-  if (T?.kind === 'parejas') { const R = lang === 'eu' ? ['aurrelaria', 'atzelaria'] : ['delantero', 'zaguero']; return `<div class="tq-st tq-st2">${[0, 1].map(i => `<div class="pf">${profileHtml(p.mates[i], mateStats(p, i), lang, R[i])}</div>`).join('')}</div>`; }
-  return `<div class="tq-st"><div class="pf">${profileHtml(p.name, statsOf(p), lang)}</div></div>`;
+  return `<div class="tq-st tq-chips">${fichaList(T, m).filter(p => p.side === 'rival').map(p => playerChip(p, lang, 'data-f')).join('')}</div>`;
 }
 /** Pantalla del torneo (here: el nombre del pueblo del frontón donde se juega). Devuelve 'play' | 'sim' | 'new' | 'exit'. */
 const css = () => { if (!document.getElementById('tq-css')) { const st = document.createElement('style'); st.id = 'tq-css'; st.textContent = CSS; document.head.appendChild(st); } };
@@ -148,11 +158,13 @@ export function torneoPanel(T, here = null) {
       : '<p class="lg-how"><b>Cómo funciona:</b> ocho pelotaris por eliminatorias (cuartos y semifinales a 5 tantos, final a 7). Los cuartos y las semifinales se juegan en este frontón: los rivales vienen aquí. La final, en el frontón Labrit de Iruña. Los demás partidos se simulan.</p>') : '';
     let mid;
     if (T.done) { const C = T.players[T.champion]; mid = `<div class="lg-champ"><small>TXAPELDUN · CAMPEÓN DEL TORNEO</small><br><b>${esc(C.name)}</b><br>${C.you ? '¡La txapela es tuya! Zorionak!' : `${esc(C.town)} se lleva la txapela. ¡A por la próxima!`}</div>`; }
-    else if (m) mid = `<div class="lg-next${pairs ? ' tq-pair' : ''}"><div class="lg-t"><b>${esc(T.players[0].name)}</b><em>${esc(T.players[0].town)}</em></div><div class="lg-vs">VS<small>${esc(m.round.toUpperCase())} · A ${m.target} TANTOS</small>${here ? `<small>FRONTÓN DE ${esc(here.toUpperCase())}</small>` : ''}</div><div class="lg-t"><b>${esc(m.rival.name)}</b><em>${esc(m.rival.town)} · ${'★'.repeat(m.rival.lv)}</em></div></div>${statsBox(m.rival, T)}`;
+    else if (m) mid = `<div class="lg-next${pairs ? ' tq-pair' : ''}"><div class="lg-t"><b>${esc(T.players[0].name)}</b><em>${esc(T.players[0].town)}</em></div><div class="lg-vs">VS<small>${esc(m.round.toUpperCase())} · A ${m.target} TANTOS</small>${here ? `<small>FRONTÓN DE ${esc(here.toUpperCase())}</small>` : ''}</div><div class="lg-t"><b>${esc(m.rival.name)}</b><em>${esc(m.rival.town)} · ${'★'.repeat(m.rival.lv)}</em></div></div>${statsBox(T, m)}`;
     else mid = `<div class="lg-champ"><small>ELIMINADO</small><br>El torneo sigue sin ti: mira quién se lleva la txapela.</div>`;
     const btns = T.done ? '<button class="lg-btn go" data-a="new">Nuevo torneo</button>' : m ? '<button class="lg-btn go" data-a="play">¡A jugar!</button>' : '<button class="lg-btn go" data-a="sim">Siguiente ronda</button>';
-    const r = lgPanel(`${head}${mid}${how}${bracketHtml(T)}<div class="lg-btns">${btns}<button class="lg-btn" data-a="exit">Salir</button></div><p class="lg-note lg-adapt">Pelotaris inventados para el juego.</p>`);
-    r.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; r.remove(); res(b.dataset.a); });
+    const r = lgPanel(`${head}${mid}${how}${bracketHtml(T)}<div class="lg-btns lg-foot">${btns}<button class="lg-btn" data-a="exit">Salir</button></div><p class="lg-note lg-adapt">Pelotaris inventados para el juego.</p>`);
+    r.addEventListener('click', (e) => {
+      const f = e.target.closest('[data-f]'); if (f && m) { const L = fichaList(T, m); openFicha(L, Math.max(0, L.findIndex(p => p.id === f.dataset.f)), isEU() ? 'eu' : 'es'); return; }   // (la ficha, encima del cuadro)
+      const b = e.target.closest('[data-a]'); if (!b) return; r.remove(); res(b.dataset.a); });
   });
 }
 /** Menú del pelotari: torneo individual, torneo por parejas o partido libre (here: el nombre del pueblo del frontón;
