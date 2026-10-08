@@ -82,7 +82,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 | `ventanas-casos.mjs` | Cómo se abre cada ventana del juego para las auditorías (`popups-medir`, `ux-medir`) |
 | `pelota-ficha-ver.mjs` | Las fichas de los pelotaris: antes del partido, por parejas, en la pausa y en el torneo |
 | `pelota-frontones-juego.mjs` | El frontón que juega: el mismo golpe en cada tipo de frontón y partidos enteros de la IA en todos (sin gráficos) |
-| `pelota-vs-ver.mjs` | El panel del partido, la pantalla VS y la colección de pelotaris en el móvil tumbado (con `clear` o `rain`) |
+| `pelota-vs-ver.mjs` | El panel del partido, la pantalla VS, el partido (marcador sobre el frontis, FALTA y PASA, tu energía, AUTO) y la colección en el móvil tumbado (con `clear` o `rain`) |
+| `pelota-golpe-auto.mjs` | Golpe automático: quieto no se gana, moviéndose sí; los botones siguen valiendo (sin gráficos) |
 | `minijuegos-comarcas.mjs` | Un pueblo de cada comarca: misiones con anfitrión y datos válidos, y sus minijuegos jugados con sus datos |
 | `blender/fauna/derivar.py` | Crea la oveja, la cabra, el cerdo y el jabalí a partir de otros modelos |
 | `blender/fauna/sentado.py` | Crea la pose «Sentado» de los perros |
