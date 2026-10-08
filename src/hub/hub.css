@@ -1129,7 +1129,8 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   .sport { min-height: 0; height: calc(100dvh - 124px); max-height: 300px; padding: 16px; gap: 8px; }
   .sport .sp-txt p { display: none; } .sport h3 { font-size: var(--fs-xl); margin: 0; }
   .sport .gx-go { min-height: 46px; padding: 8px 22px; }
-  .sport h3 { font-size: var(--fs-3xl) !important; }
+  /* (el título en una línea: en dos, con el rótulo, el frontón y el botón, no cabía y el rótulo se cortaba arriba) */
+  .sport h3 { font-size: var(--fs-2xl) !important; white-space: nowrap; }
   .sport .sp-av { height: 78%; }
 }
 @media (orientation: landscape) and (max-height: 500px) {

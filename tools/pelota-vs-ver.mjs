@@ -31,7 +31,7 @@ await p.evaluate(() => document.querySelector('[data-a="libre"]').click());
 await p.waitForSelector('.pel-panel .pel-court', { timeout: 300000 }); await p.waitForTimeout(800); await finish();
 const P1 = await p.evaluate(() => { const c = document.querySelector('.pel-card'), q = (s) => document.querySelector('.pel-panel ' + s);
   return { scroll: c.scrollHeight - c.clientHeight, levels: [...document.querySelectorAll('.pel-panel [data-pel-lv]')].map(x => x.innerText), court: q('.pel-court-t b')?.innerText, tags: [...document.querySelectorAll('.pel-court-t i')].map(x => x.innerText),
-    sum: q('.pel-more .pel-sum')?.innerText, open: q('.pel-more')?.open, feel: window.__game.pelotaMatch?.feel };
+    sum: q('.pel-more .pel-sum')?.innerText, open: !q('.pel-opts')?.hidden, feel: window.__game.pelotaMatch?.feel };
 });
 console.log(`   frontón: ${P1.court} · ${P1.tags.join(' + ')} · niveles: ${P1.levels.join(' / ')} · más opciones: ${P1.sum} · física ${JSON.stringify({ front: P1.feel?.front, floor: P1.feel?.floor, run: P1.feel?.run })}`);
 ok(P1.levels.length === 5, 'cinco niveles');
@@ -44,12 +44,32 @@ await p.evaluate(() => document.querySelector('.pel-panel [data-pel-court]').cli
 ok(await p.evaluate(() => !document.querySelector('.pel-court-what').hidden && /\./.test(document.querySelector('.pel-court-what').innerText)), 'al tocar el frontón se explica qué pasa con cada cosa');
 await shot('panel-fronton');
 await p.evaluate(() => document.querySelector('.pel-panel [data-pel-court]').click());
-// el golpe automático: en «Más opciones», y el resumen lo dice
-await p.evaluate(() => document.querySelector('.pel-panel [data-pel-auto]').click()); await p.waitForTimeout(500);
-const AU = await p.evaluate(() => ({ on: document.querySelector('.pel-panel [data-pel-auto]')?.getAttribute('aria-checked'), sum: document.querySelector('.pel-panel .pel-sum')?.innerText, game: window.__game.pelotaMatch?.game.autoHit, saved: localStorage.getItem('mendimendiz-pelota-auto'), scroll: (c => c.scrollHeight - c.clientHeight)(document.querySelector('.pel-card')) }));
-console.log('   golpe automático:', JSON.stringify(AU));
-ok(AU.on === 'true' && /automático/i.test(AU.sum || '') && AU.game === true && AU.saved === '1', 'el golpe automático se enciende, se ve en el resumen y se recuerda');
-ok(AU.scroll <= 0, `con el golpe automático, el panel sigue cabiendo (${AU.scroll} px)`);
+// «Más opciones»: otra vista del mismo panel, en pestañas (Partido, Reglas, Controles), sin desplazar; en Partido se
+// elige la pelota y la cámara dinámica, y el resumen dice qué pelota
+await p.evaluate(() => document.querySelector('.pel-panel [data-pel-more]').click()); await p.waitForTimeout(400); await finish();
+await p.evaluate(() => document.querySelector('.pel-panel [data-pel-ball="viva"]').click()); await p.waitForTimeout(300);
+await shot('opciones-partido');
+const fitOf = () => p.evaluate(() => { const c = document.querySelector('.pel-card'), pane = [...document.querySelectorAll('.pel-opane')].find(x => !x.hidden), go = document.querySelector('[data-pel-go]').getBoundingClientRect();
+  const hit = (a, b) => !(a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top);
+  return { card: c.scrollHeight - c.clientHeight, pane: pane ? pane.scrollHeight - pane.clientHeight : null, goIn: go.bottom <= innerHeight + 1, overGo: [...pane.querySelectorAll('button,p,li')].some(e => hit(e.getBoundingClientRect(), go)) }; });
+const BA = await p.evaluate(() => ({ on: document.querySelector('.pel-panel [data-pel-ball][aria-pressed="true"]')?.dataset.pelBall, what: document.querySelector('.pel-panel .pel-ballwhat')?.innerText, sum: document.querySelector('.pel-panel .pel-sum')?.innerText,
+  game: window.__game.pelotaMatch?.ballKind, front: window.__game.pelotaMatch?.feel?.front, saved: localStorage.getItem('mendimendiz-pelota-bola'), cam: document.querySelector('.pel-panel [data-pel-cam]')?.getAttribute('aria-checked'),
+  vsHidden: getComputedStyle(document.querySelector('.pel-panel .pel-rv')).display === 'none',
+  names: [...document.querySelectorAll('.pel-panel [data-pel-ball] span')].map(e => [e.innerText, e.scrollWidth <= e.clientWidth + 1 && e.getBoundingClientRect().height < 40]) }));
+const F0 = await fitOf();
+console.log('   pelota:', JSON.stringify(BA), 'cabe:', JSON.stringify(F0));
+ok(BA.on === 'viva' && BA.game === 'viva' && BA.saved === 'viva' && /viva/i.test(BA.sum || '') && !!BA.what, 'se elige la pelota viva: se marca, se explica, sale en el resumen y se recuerda');
+ok(BA.names.length === 5 && BA.names.every(([t, fit]) => t.length > 2 && fit), 'los cinco nombres de pelota, enteros, sin cortar');
+ok(BA.cam === 'true' || BA.cam === 'false', 'el interruptor de la cámara dinámica está');
+ok(BA.vsHidden && F0.card <= 0 && !F0.overGo && F0.goIn, `la pestaña Partido cabe sin desplazar y sin pisar los botones (${F0.card} px)`);
+for (const [i, tag] of [[1, 'reglas'], [2, 'controles']]) {
+  await p.evaluate((i) => document.querySelector(`.pel-panel [data-pel-tab="${i}"]`).click(), i); await p.waitForTimeout(300); await finish();
+  const F = await fitOf(); await shot('opciones-' + tag);
+  console.log(`   ${tag}:`, JSON.stringify(F));
+  ok(F.card <= 0 && !F.overGo, `la pestaña ${tag} no alarga el panel${F.pane > 0 ? ` (su texto se desplaza ${F.pane} px por dentro)` : ' y su texto cabe entero'}`);
+}
+await p.evaluate(() => { document.querySelector('.pel-panel [data-pel-tab="0"]').click(); document.querySelector('.pel-panel [data-pel-ball="normal"]').click(); document.querySelector('.pel-panel [data-pel-back]').click(); }); await p.waitForTimeout(300);
+ok(await p.evaluate(() => (c => c.scrollHeight - c.clientHeight)(document.querySelector('.pel-card')) <= 0 && document.querySelector('.pel-opts').hidden && getComputedStyle(document.querySelector('.pel-panel .pel-rv')).display !== 'none'), 'al volver, el panel de antes, sin desplazar');
 // 2. la pantalla VS
 console.log('2. la pantalla VS');
 await p.evaluate(() => document.querySelector('.pel-panel [data-pel-go]').click());
@@ -80,11 +100,11 @@ const IN = await p.evaluate(() => { const C = window.__game.pelotaMatch.court.gr
   // (el joystick aparece donde se pone el pulgar, abajo a la izquierda: su aro mide 120 px; la zona táctil invisible es más ancha y no cuenta)
   const st = sr && { left: sr.left, right: sr.left + 200, top: innerHeight - 200, bottom: innerHeight };
   const hit = (a, c) => a && c && !(a.right <= c.left || c.right <= a.left || a.bottom <= c.top || c.bottom <= a.top);
-  return { big: !!C.getObjectByName('marcador-frontis'), falta: !!C.getObjectByName('raya-falta'), pasa: !!C.getObjectByName('raya-pasa'), myen: !!my && !my.hidden, overlap: hit(r, st) || hit(r, bt), auto: document.querySelector('.pel-root')?.classList.contains('autohit') }; });
+  return { big: !!C.getObjectByName('marcador-frontis'), falta: !!C.getObjectByName('raya-falta'), pasa: !!C.getObjectByName('raya-pasa'), myen: !!my && !my.hidden, overlap: hit(r, st) || hit(r, bt), hl: document.querySelector('.pel-hit .pel-hl')?.innerText, ring: !!document.querySelector('.pel-hit .pel-tring'), auto: !!window.__game.pelotaMatch.game.autoHit }; });
 console.log('   en el partido:', JSON.stringify(IN));
 ok(IN.big && IN.falta && IN.pasa, 'el marcador sobre el frontis y FALTA y PASA en la pared');
 ok(IN.myen && !IN.overlap, 'tu energía abajo en el centro, sin tocar el joystick ni los botones');
-ok(IN.auto, 'con golpe automático, AUTO en el botón de golpe');
+ok(!IN.auto && IN.ring && /GOLPE/.test(IN.hl || ''), 'sin golpe automático: el botón dice GOLPE y lleva el aro del momento justo');
 await shot('partido');
 // salir del partido: el rival ya queda en la colección
 await p.evaluate(() => document.querySelector('.pel-exit').click()); await p.waitForTimeout(500);

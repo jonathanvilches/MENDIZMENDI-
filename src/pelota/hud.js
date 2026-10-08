@@ -29,7 +29,7 @@ const CSS = `
 .pel-q small{font:800 var(--fs-sm)/1.2 var(--f-cond,Nunito),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 10px;background:rgba(7,2,15,.72);clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%)}
 .pel-q small:empty{display:none}
 .pel-q.k-perfect b{background:linear-gradient(180deg,#fff 30%,#ff7ac8 60%,#ff2bd6);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 14px rgba(255,43,214,.9)) drop-shadow(0 4px 0 rgba(7,2,15,.6))}
-.pel-q.k-good b{color:#c9b2ff}.pel-q.k-late b,.pel-q.k-whiff b{color:#ff6fb5;animation:pel-qshake .4s ease both}
+.pel-q.k-good b{color:#c9b2ff}.pel-q.k-early b,.pel-q.k-late b,.pel-q.k-whiff b{color:#ff6fb5;animation:pel-qshake .4s ease both}
 @keyframes pel-qpop{from{transform:scale(2.2) rotate(-6deg);opacity:0}to{transform:none;opacity:1}}
 @keyframes pel-qshake{0%{transform:scale(1.4);opacity:0}30%{transform:translateX(-8px);opacity:1}60%{transform:translateX(6px)}100%{transform:none}}
 .pel-tip{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 16px);max-width:min(560px,calc(100vw - 330px));padding:8px 16px;border-radius:14px;background:rgba(28,11,58,.86);border:1px solid rgba(190,160,255,.3);font-size:var(--fs-md);font-weight:700;line-height:1.3;text-align:center;opacity:0;transition:opacity .2s}
@@ -93,8 +93,6 @@ const CSS = `
 .pel-en em{width:7px;height:7px;border-radius:50%;flex:none}.pel-en .you em{background:#5b4bff}.pel-en .rival em{background:#ff2e88}
 .pel-en i{width:64px;height:6px;border-radius:3px;background:rgba(255,255,255,.18);overflow:hidden;position:relative;display:block}
 .pel-en i b{position:absolute;inset:0;transform-origin:left;background:#c9b2ff;transition:transform .2s}.pel-en .mid i b{background:#ff9bd8}.pel-en .low i b{background:#ff5a3a}
-.pel-more{margin:0 0 8px}.pel-more>summary{cursor:pointer;font-size:var(--fs-sm);font-weight:900;color:#cbbcf0;text-transform:uppercase;letter-spacing:.04em;margin:0 0 8px;min-height:44px;display:flex;align-items:center;gap:8px;list-style:none}
-.pel-more:not([open])>summary{margin-bottom:0}.pel-more>summary::-webkit-details-marker{display:none}.pel-more>summary::before{content:'▸';color:#ff7ac8;font-size:var(--fs-sm)}.pel-more[open]>summary::before{content:'▾'}
 @media (max-width:560px){.pel-mid{display:none}.pel-side{padding:2px 8px}.pel-side span{max-width:20vw}
   .pel-tip{max-width:calc(100vw - 32px);bottom:auto;top:calc(env(safe-area-inset-top,0px) + 64px)}}
 @media (max-height:520px){.pel-hit{width:86px;height:86px;font-size:var(--fs-lg)}.pel-drop{width:60px;height:60px}
@@ -114,7 +112,13 @@ const CSS = `
   .pel-card>.pel-levels{flex:3 1 0;min-width:0;margin:0;align-self:center;flex-wrap:nowrap}.pel-card>.pel-levels button{min-width:0;min-height:44px}
   .pel-card>.pel-levels+.pel-row{flex:2 1 0;min-width:0;align-self:center}.pel-card>.pel-levels+.pel-row .pel-go{min-height:44px}
   .pel-card>.pel-court{margin-bottom:8px}.pel-card>.pel-lv5 button{padding:4px 4px}
-  .pel-card>.pel-mod{flex:1 1 100%;margin:0 0 8px}.pel-card>.pel-mod button{min-height:44px;padding:4px 8px}.pel-card>.pel-pairs{margin-bottom:8px;font-size:var(--fs-xs)}}
+  .pel-card>.pel-mod{flex:1 1 100%;margin:0 0 8px}.pel-card>.pel-mod button{min-height:44px;padding:4px 8px}.pel-card>.pel-pairs{margin-bottom:8px;font-size:var(--fs-xs)}
+  .pel-card.opts>.pel-sub{display:none}.pel-opts{display:contents}.pel-card.opts>h2{align-self:center;margin-bottom:8px}
+  .pel-otabs{flex:1 1 0;min-width:0;margin-bottom:8px}.pel-opane{flex:1 1 100%}.pel-opane .pel-mod{margin-bottom:8px}.pel-opane .pel-mod button{min-height:44px;padding:4px 8px}.pel-opane .pel-pairs{margin:0 0 8px;font-size:var(--fs-xs)}
+  .pel-balls{margin-bottom:8px}
+  .pel-orow{margin-bottom:8px}.pel-orow .pel-switch{min-height:44px;padding:4px 12px}
+  .pel-opane[data-pane="1"],.pel-opane[data-pane="2"]{max-height:calc(100dvh - 156px);overflow:auto;overscroll-behavior:contain}
+  .pel-opane ol{columns:2;column-gap:24px;margin-bottom:8px}.pel-opane .pel-ctrl{margin-bottom:8px}}
 @media (hover:hover) and (pointer:fine){.pel-stick,.pel-stickhint{display:none}}
 /* zona táctil de 44 px en las píldoras pequeñas (el dibujo no cambia) */
 .pel-chip::before{content:'';position:absolute;inset:-8px -4px}
@@ -130,9 +134,24 @@ const CSS = `
 .pel-court-t i{font-style:normal;font-size:var(--fs-xs);font-weight:800;line-height:1.3;padding:0 8px;border-radius:999px;background:rgba(255,255,255,.1);color:#ff7ac8}
 .pel-court-what{margin:-4px 0 12px;font-size:var(--fs-sm);line-height:1.45;color:#e6def7}.pel-court-what b{color:#ff7ac8}
 /* «Más opciones»: plegado, con lo elegido a la vista */
-.pel-more>summary .pel-sum{margin-left:auto;padding-left:12px;font-size:var(--fs-xs);font-weight:800;letter-spacing:0;text-transform:none;color:#ff7ac8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* «Más opciones»: un botón con lo elegido a la vista. Al tocarlo, el mismo panel pasa a la vista de opciones, en
+   pestañas (Partido, Reglas, Controles), en vez de alargarse: quién juega y el frontón se apartan, y el nivel y los
+   botones de jugar siguen abajo */
+.pel-more{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;margin:0 0 8px;padding:0;border:0;background:none;color:#cbbcf0;font:inherit;font-size:var(--fs-sm);font-weight:900;text-transform:uppercase;letter-spacing:.04em;text-align:left;cursor:pointer}
+.pel-more::before{content:'';flex:none;width:8px;height:8px;border:solid #ff7ac8;border-width:0 2px 2px 0;transform:rotate(-45deg);margin:0 4px 0 2px}
+.pel-more .pel-sum{margin-left:auto;padding-left:12px;min-width:0;font-size:var(--fs-xs);font-weight:800;letter-spacing:0;text-transform:none;color:#ff7ac8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pel-card.opts>.pel-rv,.pel-card.opts>.pel-court,.pel-card.opts>.pel-court-what,.pel-card.opts>.pel-more{display:none}
+.pel-opts[hidden],.pel-opane[hidden]{display:none}
+.pel-otabs{display:flex;align-items:stretch;gap:4px;margin:0 0 12px;border-bottom:1px solid rgba(190,160,255,.25)}
+.pel-otabs button{flex:1 1 0;min-width:0;min-height:44px;padding:0 8px;border:0;border-bottom:3px solid transparent;margin-bottom:-1px;background:none;color:#cbbcf0;font:800 var(--fs-sm)/1.2 var(--f-cond,Nunito),sans-serif;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.pel-otabs button[aria-selected=true]{color:#fff;border-bottom-color:#ff2bd6}
+.pel-otabs .pel-back{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:0 12px 0 4px;color:#ff7ac8;letter-spacing:.04em}
+.pel-otabs .pel-back::before{content:'';width:8px;height:8px;border:solid currentColor;border-width:0 0 2px 2px;transform:rotate(45deg)}
+.pel-opane{animation:pel-pane .18s ease both}@keyframes pel-pane{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.pel-opane ol{margin:0 0 12px}.pel-opane .pel-ctrl{margin:0 0 12px}
+.pel-orow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:center;margin:0 0 12px}
+.pel-orow .pel-ballwhat,.pel-orow .pel-switch{margin:0}
 .pel-lv5 button{min-width:0;font-size:var(--fs-sm)}
-/* golpe automático: el interruptor en «Más opciones» y, en el partido, «AUTO» en el botón de golpe */
 /* tu energía: grande, abajo en el centro (entre el joystick y los botones); verde, amarilla y roja al cansarte */
 .pel-myen{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb,16px));transform:translateX(-50%);width:min(280px,34vw);display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:none}
 .pel-myen[hidden]{display:none}.pel-myen span{font:800 var(--fs-xs)/1.3 var(--f-cond,Nunito),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.7)}
@@ -142,12 +161,23 @@ const CSS = `
 @keyframes pel-low{to{box-shadow:0 0 0 2px #ff5a3a}}
 .pel-root.paneled .pel-myen{visibility:hidden}
 @media (orientation:portrait){.pel-myen{bottom:calc(env(safe-area-inset-bottom,0px) + 196px);width:min(240px,60vw)}}
-.pel-auto{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;margin:0 0 12px;padding:8px 12px;border-radius:12px;border:1px solid rgba(190,160,255,.35);background:rgba(255,255,255,.06);color:#fff;font:inherit;text-align:left;cursor:pointer}
-.pel-auto span{flex:1;display:flex;flex-direction:column;gap:2px}.pel-auto b{font-size:var(--fs-sm);font-weight:900;line-height:1.3}.pel-auto small{font-size:var(--fs-xs);font-weight:600;line-height:1.3;color:#d8cff0}
-.pel-auto i{flex:none;position:relative;width:48px;height:28px;border-radius:999px;background:rgba(255,255,255,.18);transition:background .15s}
-.pel-auto i::after{content:'';position:absolute;top:4px;left:4px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .15s}
-.pel-auto[aria-checked=true] i{background:#ff7ac8}.pel-auto[aria-checked=true] i::after{transform:translateX(20px);background:#2a0638}
-.pel-root.autohit .pel-hit::before{content:'AUTO';position:absolute;top:-8px;left:50%;transform:translateX(-50%);padding:2px 8px;border-radius:999px;background:#2a0638;color:#ff7ac8;font:900 var(--fs-xs)/1.3 Nunito,sans-serif;letter-spacing:.06em}
+/* interruptores de «Más opciones» (la cámara dinámica) */
+.pel-switch{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;margin:0 0 12px;padding:8px 12px;border-radius:6px;border:1px solid rgba(190,160,255,.35);background:rgba(255,255,255,.06);color:#fff;font:inherit;text-align:left;cursor:pointer}
+.pel-switch span{flex:1;display:flex;flex-direction:column;gap:2px}.pel-switch b{font-size:var(--fs-sm);font-weight:900;line-height:1.3}.pel-switch small{font-size:var(--fs-xs);font-weight:600;line-height:1.3;color:#d8cff0}
+.pel-switch i{flex:none;position:relative;width:48px;height:28px;border-radius:999px;background:rgba(255,255,255,.18);transition:background .15s}
+.pel-switch i::after{content:'';position:absolute;top:4px;left:4px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .15s}
+.pel-switch[aria-checked=true] i{background:#ff2bd6}.pel-switch[aria-checked=true] i::after{transform:translateX(20px)}
+/* la pelota: cinco botones con su bote dibujado y, debajo, lo que hace la elegida */
+.pel-balls{display:grid;grid-template-columns:auto repeat(5,minmax(0,1fr));align-items:center;gap:4px}
+.pel-balls>small{padding-right:8px;font-size:var(--fs-xs);font-weight:900;color:#cbbcf0;text-transform:uppercase;letter-spacing:.04em}
+.pel-balls button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:58px;padding:4px 4px 6px;line-height:1.1;white-space:normal;text-align:center}
+.pel-balls button span{font-size:var(--fs-xs);font-weight:800}
+.pel-balls button[aria-pressed=true] svg{color:#fff}.pel-balls button svg{color:#c9b2ff}
+.pel-ballwhat{margin:6px 0 12px;font-size:var(--fs-sm);line-height:1.4;color:#e7defa}
+/* el momento justo: un aro que se cierra sobre el botón de golpe; cuando lo toca, suelta. Fucsia y brillante en el momento */
+.pel-tring{position:absolute;inset:-4px;border-radius:50%;border:3px solid #fff;pointer-events:none;opacity:0;transform:scale(1.9);will-change:transform,opacity}
+.pel-tring.on{opacity:.9}.pel-tring.now{border-color:#fff;box-shadow:0 0 0 4px #ff2bd6,0 0 22px #ff2bd6;opacity:1}
+.pel-hit .pel-hl{position:relative;z-index:1}
 `;
 
 export class PelotaHud {
@@ -167,7 +197,7 @@ export class PelotaHud {
       <div class="pel-tip"></div>
       <div class="pel-stick"><div class="pel-knob"><i></i></div></div>
       ${touch ? '<div class="pel-stickhint"><svg viewBox="0 0 48 48" width="46" height="46"><path d="M24 6l6 7h-4v8h8v-4l7 7-7 7v-4h-8v8h4l-6 7-6-7h4v-8h-8v4l-7-7 7-7v4h8v-8h-4z" fill="#fff" opacity=".9"/></svg></div>' : ''}
-      <div class="pel-btns"><div class="pel-bcol"><button class="pel-btn pel-drop pel-cut" data-k="cut" aria-label="${txt.cut}">${txt.cut}</button><button class="pel-btn pel-drop pel-dejada" data-k="drop" aria-label="${txt.drop}">${txt.drop}</button></div><button class="pel-btn pel-hit" aria-label="${txt.hit}">${txt.hit}</button></div>`;
+      <div class="pel-btns"><div class="pel-bcol"><button class="pel-btn pel-drop pel-cut" data-k="cut" aria-label="${txt.cut}">${txt.cut}</button><button class="pel-btn pel-drop pel-dejada" data-k="drop" aria-label="${txt.drop}">${txt.drop}</button></div><button class="pel-btn pel-hit" aria-label="${txt.hit}"><span class="pel-hl">${txt.hit}</span><i class="pel-tring" aria-hidden="true"></i></button></div>`;
     container.appendChild(r);
     this.$ = (s) => r.querySelector(s);
     this.callT = 0; this.qT = 0;
@@ -213,6 +243,16 @@ export class PelotaHud {
   }
   tip(text) { const t = this.$('.pel-tip'); if (t.textContent !== (text || '')) t.textContent = text || ''; t.classList.toggle('on', !!text); }
   ready(on) { this.$('.pel-hit').classList.toggle('ready', !!on); }
+  /** El aro del momento justo: t, segundos hasta el momento de soltar el golpe (null, sin aro). Llega al botón a tiempo */
+  timing(t) {
+    const r = this._tr ||= this.$('.pel-tring'); if (!r) return;
+    const on = t != null && t > -0.12 && t < 0.9, k = on ? Math.max(0, Math.min(1, (t - 0.03) / 0.75)) : 1, v = on ? Math.round((1 + k * 0.95) * 100) / 100 : 0;
+    if (r._v === v) return; r._v = v;
+    r.classList.toggle('on', on); r.classList.toggle('now', on && Math.abs(t - 0.03) < 0.07);
+    if (on) r.style.transform = `scale(${v})`;
+  }
+  /** El nombre del golpe que saldría ahora (GOLPE, VOLEA o GANCHO) */
+  hitLabel(text) { const l = this._hl ||= this.$('.pel-hl'); if (l && l.textContent !== text) l.textContent = text; }
   // anillo de carga alrededor del botón que se mantiene (golpe o cortada)
   charge(p, kind) {
     for (const [k, sel] of [['hit', '.pel-hit'], ['cut', '.pel-cut'], ['drop', '.pel-dejada']]) {
