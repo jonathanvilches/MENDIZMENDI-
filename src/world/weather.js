@@ -168,7 +168,8 @@ export class Weather {
     // luz de tormenta (además de lo que ya baja con la lluvia): más oscuro y con la niebla gris plomo
     sky.sun.intensity *= 1 - 0.35 * k; sky.hemi.intensity *= 1 - 0.22 * k; sky.fog.color.lerp(this.grey, 0.35 * k);
     // un rayo cada 5 a 17 s mientras llueve fuerte
-    if (k > 0.55 && (this.boltT = (this.boltT ?? 3 + Math.random() * 3) - dt) <= 0) { this.boltT = 5 + Math.random() * 12; this.strike(camera, sound); }
+    // (un rayo cada 14 a 34 s; antes, cada pocos segundos, y la luz del pueblo saltaba sin parar)
+    if (k > 0.55 && (this.boltT = (this.boltT ?? 8 + Math.random() * 6) - dt) <= 0) { this.boltT = 14 + Math.random() * 20; this.strike(camera, sound); }
     // destello: dos o tres fogonazos seguidos que se apagan enseguida
     let I = 0;
     if (this.strikeT != null) {
@@ -178,8 +179,8 @@ export class Weather {
     }
     U.uFlash.value = I;
     if (I > 0.01) {
-      sky.hemi.intensity += I * 2.4; sky.fog.color.lerp(FLASH, I * 0.3);
-      if (this.bolt) { this.bolt.visible = I > 0.12; this.bolt.children[0].material.opacity = Math.min(1, I * 1.4); this.bolt.children[1].material.opacity = Math.min(0.5, I * 0.6); }
+      sky.hemi.intensity += I * 0.7; sky.fog.color.lerp(FLASH, I * 0.12);   // (el relámpago aclara el cielo y las nubes; en el pueblo, solo un poco)
+      if (this.bolt) { this.bolt.visible = I > 0.15; this.bolt.children[0].material.opacity = Math.min(0.9, I * 1.2); this.bolt.children[1].material.opacity = Math.min(0.25, I * 0.3); }
     }
   }
   strike(camera, sound) {
@@ -194,7 +195,7 @@ export class Weather {
     }
     const [core, glow] = this.bolt.children; core.geometry.dispose(); glow.geometry.dispose();
     let s = (rnd() * 1e6) | 0; const r1 = () => ((s = (s * 9301 + 49297) % 233280) / 233280), s0 = s; const r2 = () => ((s = (s * 9301 + 49297) % 233280) / 233280);
-    core.geometry = boltGeometry(P, top, bottom, 2.4, r1); s = s0; glow.geometry = boltGeometry(P, top, bottom, 11, r2);   // (la misma forma para los dos)
+    core.geometry = boltGeometry(P, top, bottom, 1.3, r1); s = s0; glow.geometry = boltGeometry(P, top, bottom, 5, r2);   // (la misma forma para los dos; fino, como un rayo, y no una franja ancha)
     this.bolt.visible = true;
     this.pulses = [[0, 1], [0.11 + rnd() * 0.05, 0.6 + rnd() * 0.3], ...(rnd() < 0.6 ? [[0.3 + rnd() * 0.1, 0.35 + rnd() * 0.2]] : [])];
     this.strikeT = 0;

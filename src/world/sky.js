@@ -77,6 +77,7 @@ const KEYS = [
 ];
 const KC = KEYS.map(k => ({ t: k[0], zen: new THREE.Color(k[1]), hor: new THREE.Color(k[2]), sun: new THREE.Color(k[3]), si: k[4], hs: new THREE.Color(k[5]), hg: new THREE.Color(k[6]), hi: k[7] }));
 
+const UP = new THREE.Vector3(0, 1, 0), LIGHT_STEP = Math.PI / 600;
 const FLOOD_SKY = new THREE.Color('#d8e4fb'), FLOOD_GND = new THREE.Color('#857f72'), FLOOD_SUN = new THREE.Color('#fff3df'), FLOOD_DIR = new THREE.Vector3(0.25, 1, 0.35).normalize();
 export class SkySystem {
   constructor(scene, renderer, quality) {
@@ -203,7 +204,8 @@ void main(){
     return o;
   }
   // los focos del frontón: durante el partido la luz es siempre la misma, de día y de noche (la hora no cambia la cancha)
-  floodK() { return this.flood || 0; }
+  // (flood es lo que se pide: 1 en el partido; la luz llega a ella en menos de un segundo, sin cambio de golpe)
+  floodK() { const k = this.floodCur || 0; return k * k * (3 - 2 * k); }
   /** Luz de los focos: se aplica la última (después de la lluvia y la tormenta, que bajan la luz), así de noche la
    *  cancha se ve siempre bien. */
   applyFlood() {
@@ -215,6 +217,7 @@ void main(){
   update(dt, focus, elapsed, frozen) {
     if (!frozen) this.time = (this.time + dt * this.speed) % 24;
     const t = this.time;
+    { const want = this.flood ? 1 : 0, c = this.floodCur || 0; this.floodCur = want > c ? Math.min(want, c + dt / 0.8) : Math.max(want, c - dt / 0.8); }
     // Sol: sale por el este (+x) a las 6, pone por el oeste a las 19
     const dayF = (t - 6.2) / (19.4 - 6.2);
     const ang = dayF * Math.PI;
@@ -229,7 +232,11 @@ void main(){
     this.fog.color.copy(s.hor).lerp(s.zen, 0.12);
     this.hemi.color.copy(s.hs); this.hemi.groundColor.copy(s.hg); this.hemi.intensity = s.hi * 1.15;
     // Luz direccional: sol o luna
-    let lightDir = this.night > 0.5 ? new THREE.Vector3(-this.sunDir.x, Math.max(0.35, -this.sunDir.y), -this.sunDir.z).normalize() : this.sunDir;
+    // (la luz y sus sombras giran a pasitos de 0,3 grados y no un poco en cada imagen: si no, los bordes de las sombras
+    // tiemblan sin parar mientras el sol se mueve)
+    const angQ = Math.round(ang / LIGHT_STEP) * LIGHT_STEP, elevQ = Math.sin(angQ);
+    const sunQ = new THREE.Vector3(Math.cos(angQ), Math.max(elevQ, -0.3) * 0.95 + 0.05, -0.35).normalize();
+    let lightDir = this.night > 0.5 ? new THREE.Vector3(-sunQ.x, Math.max(0.35, -sunQ.y), -sunQ.z).normalize() : sunQ;
     this.sun.color.copy(s.sun); this.sun.intensity = s.si;
     // focos (un partido de pelota de noche): la luz de la luna y la del cielo suben a la de unos focos blancos desde
     // arriba; sin luces nuevas (en el móvil, añadir luces rehace todos los sombreadores y da un tirón). Antes, de noche,
@@ -238,10 +245,17 @@ void main(){
     if (fk > 0) lightDir = lightDir.clone().lerp(FLOOD_DIR, fk).normalize();   // (la intensidad, en applyFlood: después de la lluvia)
     // sombras: nítidas al sol; con la luna, más suaves y claras (la noche no tiene sombras negras)
     this.sun.shadow.intensity = 1 - 0.45 * this.night;
-    const snap = 2;
-    const fx = Math.round(focus.x / snap) * snap, fz = Math.round(focus.z / snap) * snap;
-    this.sun.position.set(fx + lightDir.x * 150, focus.y + lightDir.y * 150, fz + lightDir.z * 150);
-    this.sun.target.position.set(fx, focus.y, fz);
+    // el mapa de sombras: centrado algo por delante de la cámara (lo de detrás no se ve, y así el borde donde se acaban
+    // las sombras queda lejos) y movido de texel en texel en el plano de la luz (si no, al andar, los bordes de las
+    // sombras parpadean y se ven franjas que cambian)
+    const S = this.shadowSize, ah = this.ahead, cx = focus.x + (ah ? ah.x * S * 0.45 : 0), cz = focus.z + (ah ? ah.z * S * 0.45 : 0);
+    const texel = 2 * S / this.sun.shadow.mapSize.x, R = this._r || (this._r = new THREE.Vector3()), U = this._u || (this._u = new THREE.Vector3());
+    R.crossVectors(UP, lightDir).normalize(); U.crossVectors(lightDir, R);
+    const P = this._p || (this._p = new THREE.Vector3()); P.set(cx, focus.y, cz);
+    const ru = Math.round(P.dot(R) / texel) * texel - P.dot(R), uu = Math.round(P.dot(U) / texel) * texel - P.dot(U);
+    P.addScaledVector(R, ru).addScaledVector(U, uu);
+    this.sun.position.copy(P).addScaledVector(lightDir, 150);
+    this.sun.target.position.copy(P);
     this.dome.position.set(focus.x, focus.y > 600 ? focus.y : 0, focus.z);   // (en el Labrit, muy alto, el cielo va con él)
     // la luna: sale baja y anaranjada por el horizonte y, alta, blanca; el halo, más fuerte cuanto más llena
     const md = new THREE.Vector3(-this.sunDir.x, Math.max(0.16, -this.sunDir.y), -this.sunDir.z).normalize();

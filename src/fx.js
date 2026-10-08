@@ -180,13 +180,16 @@ export class NightLights {
 // ---------- Marcador de objetivo ----------
 export class Beacon {
   constructor(scene) {
-    const g = new THREE.CylinderGeometry(0.5, 0.5, 60, 16, 1, true);
-    g.translate(0, 30, 0);
+    // haz del objetivo: una columna fina y suave, más clara en el centro que en los bordes (sin las rayas que subían
+    // parpadeando), que se apaga hacia arriba y aparece o se va poco a poco con la distancia (antes saltaba a los 12 m)
+    const g = new THREE.CylinderGeometry(0.35, 0.35, 40, 16, 1, true);
+    g.translate(0, 20, 0);
     this.mat = new THREE.ShaderMaterial({
-      uniforms: { uTime: { value: 0 }, uColor: { value: new THREE.Color('#ffd34d') } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
-      vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
-      fragmentShader: `uniform float uTime; uniform vec3 uColor; varying vec2 vUv; void main(){ float a = (1.0 - vUv.y) * 0.5 * (0.7 + 0.3 * sin(uTime * 3.0 + vUv.y * 20.0)); a *= smoothstep(0.0, 0.03, vUv.y); gl_FragColor = vec4(uColor * a, a); }`,
+      uniforms: { uTime: { value: 0 }, uColor: { value: new THREE.Color('#ffd34d') }, uK: { value: 0 } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.FrontSide,
+      vertexShader: `varying vec2 vUv; varying float vRim; void main(){ vUv = uv; vec3 n = normalize(normalMatrix * normal); vec4 mv = modelViewMatrix * vec4(position,1.0); vRim = abs(dot(n, normalize(-mv.xyz))); gl_Position = projectionMatrix * mv; }`,
+      fragmentShader: `uniform float uTime, uK; uniform vec3 uColor; varying vec2 vUv; varying float vRim; void main(){ float a = pow(1.0 - vUv.y, 1.6) * 0.5 * vRim * (0.9 + 0.1 * sin(uTime * 1.6)); a *= smoothstep(0.0, 0.04, vUv.y) * uK; gl_FragColor = vec4(uColor * a, a); }`,
     });
+    this.k = 0;
     this.beam = new THREE.Mesh(g, this.mat); this.beam.visible = false; this.beam.frustumCulled = false;
     scene.add(this.beam);
     // flecha flotante
@@ -199,16 +202,19 @@ export class Beacon {
     this.target = target;
     this.mat.uniforms.uColor.value.set(color); this.arrow.material.color.set(color);
   }
-  update(elapsed, player) {
+  // hide: en las escenas (cinemáticas, diálogos, partidos) no se ve
+  update(elapsed, player, hide = false, dt = 1 / 60) {
     const t = this.target;
     this.mat.uniforms.uTime.value = elapsed;
     // (off: durante un partido el haz del objetivo no se ve; era una columna de luz plana sobre el frontón)
-    if (!t || this.off) { this.beam.visible = this.arrow.visible = false; return; }
+    if (!t || this.off || hide) { this.k = 0; this.mat.uniforms.uK.value = 0; this.beam.visible = this.arrow.visible = false; return; }
     const d = Math.hypot(t.x - player.pos.x, t.z - player.pos.z);
     const y = t.y ?? terrainHeight(t.x, t.z);
-    this.beam.visible = d > 12;
+    const want = Math.min(1, Math.max(0, (d - 14) / 16));   // de 14 a 30 m aparece poco a poco
+    this.k += (want - this.k) * Math.min(1, dt * 3); this.mat.uniforms.uK.value = this.k;
+    this.beam.visible = this.k > 0.01;
     this.beam.position.set(t.x, y, t.z);
-    this.beam.scale.set(1 + d / 150, 1, 1 + d / 150);
+    this.beam.scale.set(1 + d / 120, 1, 1 + d / 120);
     this.arrow.visible = d <= 25 && !t.noArrow;
     this.arrow.position.set(t.x, y + (t.h ?? 2.6) + Math.sin(elapsed * 3) * 0.2, t.z);
     this.arrow.rotation.y = elapsed * 2;

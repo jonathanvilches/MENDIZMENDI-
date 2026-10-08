@@ -960,7 +960,7 @@ export class TownGame {
     if (window.__autoWin) return;
     const g = L.court.group, V = (x, y, z) => g.localToWorld(new THREE.Vector3(x, y, z)), E = L.court.extent;
     const xc = (E.x0 + E.x1) / 2, zb = E.z1;
-    const was = this.sky.flood; this.sky.flood = 1; this.ui.hudVisible?.(false); this.perro?.away?.();
+    this.sky.flood = 1; this.ui.hudVisible?.(false); this.perro?.away?.();   // (los focos ya encendidos: el partido sigue con la misma luz, sin apagar y encender)
     this.player.place(L.entry.x, L.entry.z, 0); this.player.frozen = true;   // (el cielo y las sombras van con el jugador: que esté ya allí)
     try {
       // (cada plano dura su tiempo y, como poco, 40 imágenes: la primera vez, el móvil tarda en preparar el edificio)
@@ -970,7 +970,7 @@ export class TownGame {
       await shot(V(xc + 14, 7, zb + 34), V(xc, 7, zb), 2600);
       await shot(V(xc - 6, 3, zb + 14), V(xc, 6, zb), 1600);
       await shot(V(12, 7.5, 30), V(0, 3, 4), 2200);   // dentro: desde lo alto de la grada hacia el frontis
-    } finally { this.follow.cinematic = null; this.sky.flood = was; }   // (el jugador sigue quieto: el partido lo coloca y lo suelta al acabar)
+    } finally { this.follow.cinematic = null; }   // (el jugador sigue quieto: el partido lo coloca y lo suelta al acabar)
   }
   say(a, lines) {
     const look = a.obj?.userData.look;
