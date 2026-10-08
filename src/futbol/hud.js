@@ -248,7 +248,9 @@ export class FutbolHud {
         <table class="fb-ctrl"><tr><th></th><th>Acción</th><th>Teclado</th><th>Mando</th></tr>
         ${row('', 'Moverte', 'Joystick: toca y arrastra en la mitad izquierda', 'WASD / flechas', 'Stick izquierdo')}
         ${row('pass', 'Pase', 'Un toque: al pie del compañero al que apuntas (por alto si hay rivales en medio). Mantén: al hueco, por delante de él; cuanto más lo mantienes, más lejos', 'J / espacio', 'A')}
-        ${row('shoot', 'Tiro', 'Mantén para cargar la fuerza; apunta con el joystick', 'K (mantén)', 'B (mantén)')}
+        ${row('shoot', 'Tiro', 'Mantén para cargar la fuerza. Mientras cargas, el joystick mueve la diana de palo a palo y el balón va a donde la ves', 'K (mantén)', 'B (mantén)')}
+        ${row('pass', 'Centro', 'En la banda, cerca del área: PASE hacia un compañero del área y el balón le llega por alto a la cabeza', 'J', 'A')}
+        ${row('shoot', 'Remate de cabeza', 'Con el centro en el aire, mantén TIRO: tu jugador salta y remata hacia la diana. Con PASE, la toca de cabeza a un compañero', 'K', 'B')}
         ${row('sprint', 'Sprint', 'Mantén (gasta energía)', 'Mayús', 'RT')}
         ${row('swap', 'Cambiar', 'Al compañero hacia donde apuntas (también al portero); sin apuntar, al más cercano al balón; cerca de tu área, al portero', 'L', 'LB')}
         ${row('', 'Controlar el balón', 'Suelta el joystick y tu jugador frena en seco con el balón pegado al pie', '', '')}

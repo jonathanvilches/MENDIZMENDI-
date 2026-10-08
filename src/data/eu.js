@@ -149,7 +149,19 @@ export const EU_EXACT = {
   'Controles': 'Kontrolak', 'Cuatro botones: pase, tiro, sprint y cambiar': 'Lau botoi: pasea, jaurtiketa, esprinta eta aldatu', 'Teclado': 'Teklatua', 'Mando': 'Mandoa',
   'Moverte': 'Mugitu', 'Joystick: toca y arrastra en la mitad izquierda': 'Joystick-a: ukitu eta arrastatu ezkerreko erdian', 'WASD / flechas': 'WASD / geziak', 'Stick izquierdo': 'Ezkerreko stick-a',
   'Al compañero hacia donde apuntas (por alto si hay rivales en medio)': 'Apuntatzen duzun norabideko lagunari (goitik, tartean aurkariak badaude)', 'J / espacio': 'J / zuriunea',
-  'Mantén para cargar la fuerza; apunta con el joystick': 'Eutsi indarra kargatzeko; apuntatu joystick-arekin', 'K (mantén)': 'K (eutsi)', 'B (mantén)': 'B (eutsi)',
+  'Mantén para cargar la fuerza; apunta con el joystick': 'Eutsi indarra kargatzeko; apuntatu joystick-arekin',
+  'Mantén para cargar la fuerza. Mientras cargas, el joystick mueve la diana de palo a palo y el balón va a donde la ves': 'Eutsi indarra kargatzeko. Kargatzen ari zarela, joystick-ak itua mugitzen du zutoin batetik bestera, eta baloia ikusten duzun tokira doa',
+  'Centro': 'Erdiraketa', 'En la banda, cerca del área: PASE hacia un compañero del área y el balón le llega por alto a la cabeza': 'Bandan, areatik gertu: PASEA areako lagun baterantz, eta baloia goitik iristen zaio burura',
+  'Remate de cabeza': 'Buruko errematea', 'Con el centro en el aire, mantén TIRO: tu jugador salta y remata hacia la diana. Con PASE, la toca de cabeza a un compañero': 'Erdiraketa airean dagoela, eutsi JAURTIKETARI: zure jokalariak salto egin eta itura errematatzen du. PASEAREKIN, buruz lagun bati ematen dio',
+  '¡Centro! Mantén TIRO para rematar de cabeza': 'Erdiraketa! Eutsi JAURTIKETARI buruz errematatzeko', '¡Centro al área!': 'Erdiraketa areara!',
+  '¡Remate de cabeza!': 'Buruko errematea!', 'Remate de cabeza del rival': 'Aurkariaren buruko errematea',
+  // pelota: cualidades del rival en la ficha del torneo (las mismas frases que en el partido)
+  'Velocidad': 'Abiadura', 'Es lento: hazle dejadas cuando esté al fondo.': 'Motela da: egin dejadak atzean dagoenean.',
+  'Le cuesta lo pegado a la pared izquierda y lo muy bajo: ajústala a la pared.': 'Ezkerreko paretari itsatsitakoak eta oso baxuak kostatzen zaizkio: paretara estutu.',
+  'Pega muy fuerte: puede mandarla al rebote. No te adelantes.': 'Oso gogor jotzen du: errebotera bidal dezake. Ez aurreratu.',
+  'Es muy rápido: llega casi a todo. Busca la pared o las dos paredes.': 'Oso azkarra da: ia guztira iristen da. Bilatu pareta edo bi pareta.',
+  'Le falta fuerza: juega largo, lejos del frontis.': 'Indarra falta zaio: jokatu luze, frontisetik urrun.',
+  'Tiene buenas manos: hasta lo pegado a la pared lo devuelve.': 'Esku onak ditu: paretari itsatsitakoak ere itzultzen ditu.', 'K (mantén)': 'K (eutsi)', 'B (mantén)': 'B (eutsi)',
   'Mantén (gasta energía)': 'Eutsi (energia gastatzen du)', 'Mayús': 'Maius', 'Al compañero mejor colocado (también cambia solo)': 'Hobekien kokatutako lagunari (berez ere aldatzen da)',
   'Sin el balón: robar': 'Baloirik gabe: kendu', 'Con el botón de PASE, pegado al rival': 'PASEA botoiarekin, aurkariari itsatsita', 'Sin el balón: entrada': 'Baloirik gabe: sarrera',
   'Con el botón de TIRO (si llegas tarde, falta)': 'JAURTIKETA botoiarekin (berandu iritsiz gero, falta)', 'El jugador que llevas cambia solo según va el balón': 'Daramazun jokalaria berez aldatzen da baloiaren arabera',
@@ -174,7 +186,7 @@ export const EU_EXACT = {
   '¡Lo has parado!': 'Gelditu duzu!', '¡Fuera!': 'Kanpora!', 'En propia puerta': 'Norberaren atean', 'Muerte súbita': 'Bat-bateko heriotza', 'Mando conectado': 'Mandoa konektatuta', 'Repetición': 'Errepikapena',
   'Te toca parar: elige lado con el joystick y pulsa': 'Zuri gelditzea tokatzen zaizu: aukeratu aldea joystick-arekin eta sakatu', 'Apunta a un lado de la portería, mantén': 'Apuntatu atearen alde batera, eutsi',
   'y suelta para chutar': 'eta askatu jaurtitzeko', 'Muévete con el': 'Mugitu', ': toca y arrastra a la izquierda': '-arekin: ukitu eta arrastatu ezkerrean', 'Muévete con': 'Mugitu', 'o las flechas': 'edo geziekin',
-  'Pasa a tu compañero: apunta hacia él y suelta': 'Pasatu lagunari: apuntatu berarengana eta askatu', '¡A puerta! Mantén': 'Atera! Eutsi', 'para cargar y suelta para chutar': 'kargatzeko eta askatu jaurtitzeko',
+  'Pasa a tu compañero: apunta hacia él y suelta': 'Pasatu lagunari: apuntatu berarengana eta askatu', '¡A puerta! Mantén': 'Atera! Eutsi', 'para cargar y suelta para chutar': 'kargatzeko eta askatu jaurtitzeko', ', lleva la diana con el joystick y suelta para chutar': ', eraman itua joystick-arekin eta askatu jaurtitzeko',
   'Acércate al rival y pulsa': 'Hurbildu aurkariarengana eta sakatu', 'pegado a él': 'berari itsatsita', '¡Ya sabes jugar! Empieza el partido': 'Badakizu jolasten! Partida hasten da', '¡Muy bien!': 'Oso ondo!',
   'Fuera. En el partido sacará el rival; ahora, sigue practicando': 'Kanpora. Partidan aurkariak aterako du; orain, jarraitu praktikatzen',
   // --- liga eta klubaren menua ---
@@ -209,6 +221,7 @@ const ine = (n) => /(ia|ea)$/.test(n) ? n.slice(0, -1) + 'n' : /[aeiou]$/i.test(
 const ala = (n) => /(ia|ea)$/.test(n) ? n.slice(0, -1) + 'ra' : /[aeiou]$/i.test(n) ? n + 'ra' : n + 'era';
 const eu = (n) => EU_EXACT[n] ?? n;
 export const EU_RX = [
+  [/^Así juega (.+)$/, '$1: honela jokatzen du'],
   [/^Capítulo (\d+) · (.+)$/, '$1. kapitulua · $2'],
   [/^(\d+)\/(\d+) sellos de la comarca$/, 'Eskualdeko $1/$2 zigilu'],
   [/^(\d+) pueblos? jugables? · (\d+) sellos?$/, '$1 herri jolasteko · $2 zigilu'],

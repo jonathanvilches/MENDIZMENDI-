@@ -60,6 +60,9 @@ const CSS = `
 .pel-go.alt{background:rgba(255,255,255,.08);border:1px solid rgba(190,160,255,.35);color:#fff;box-shadow:none;text-shadow:none}
 .pel-root.calling .pel-tip,.pel-root.calling .pel-q{opacity:0}
 .pel-root.paneled .pel-exit,.pel-root.paneled .pel-q,.pel-root.paneled .pel-call,.pel-root.paneled .pel-tip{visibility:hidden}
+.pel-rv{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.32);border-radius:12px;padding:8px 12px;margin:0 0 12px;font-size:14px;color:#f3ecff}
+.pel-rv b{color:#FFD700;font-weight:900}.pel-rv .st{white-space:nowrap}.pel-rv .st i{font-style:normal;color:#FFD700;letter-spacing:1px}.pel-rv .st i u{color:rgba(255,255,255,.22);text-decoration:none}
+.pel-rv p{margin:0;flex:1 1 100%;font-size:13px;line-height:1.3;color:#d8cff0}
 @media (max-width:560px){.pel-mid{display:none}.pel-side{padding:2px 7px}.pel-side span{max-width:20vw}
   .pel-tip{max-width:calc(100vw - 32px);bottom:auto;top:calc(env(safe-area-inset-top,0px) + 66px)}}
 @media (max-height:520px){.pel-hit{width:86px;height:86px;font-size:18px}.pel-drop{width:60px;height:60px}
@@ -67,7 +70,7 @@ const CSS = `
   .pel-call{top:calc(env(safe-area-inset-top,0px) + 58px);padding:6px 14px}
   .pel-card{width:min(780px,100%);padding:14px 18px 12px}.pel-card h2{font-size:24px}.pel-card .pel-sub{margin-bottom:8px}
   .pel-card ol{columns:2;column-gap:22px;font-size:14px;margin-bottom:8px}.pel-card li{break-inside:avoid;margin-bottom:4px}
-  .pel-card .pel-ctrl{font-size:13px;padding:7px 10px;margin-bottom:10px}.pel-levels{margin-bottom:10px}.pel-levels button{padding:7px 6px}
+  .pel-card .pel-ctrl{font-size:13px;padding:7px 10px;margin-bottom:10px}.pel-rv{padding:5px 10px;margin-bottom:8px;font-size:13px}.pel-rv p{font-size:12px}.pel-levels{margin-bottom:10px}.pel-levels button{padding:7px 6px}
   .pel-go{padding:9px 16px;font-size:16px}.pel-card .pel-big{font-size:40px;margin:2px 0}.pel-card .pel-fact{margin:6px 0 10px;font-size:14px}}
 /* móvil en horizontal con poca altura: título y marcador en una línea, sin la etiqueta «Nivel» (el grupo la lleva como
    aria-label) y los niveles junto a los botones de jugar, para que todo quepa sin desplazar */

@@ -1,6 +1,6 @@
 // Partido de pelota a mano: une la lógica (game.js), el frontón (court.js), la interfaz (hud.js) y el sonido.
 // El juego anfitrión pone el frontón en su escena, llama a update(dt) en cada fotograma y renderiza con su cámara.
-import { COURT, TEXT } from './rules.js';
+import { COURT, TEXT, statsTips } from './rules.js';
 import { PelotaGame, cutHeight, dropHeight, aimSide } from './game.js';
 import { PelotaHud, esc } from './hud.js';
 import { PelotaAudio } from './audio.js';
@@ -36,7 +36,7 @@ export class PelotaMatch {
   newGame() {
     this.hud?.root?.classList.remove('final');
     const o = this.o;
-    this.game = new PelotaGame({ mode: o.mode || 'match', target: o.target, level: this.level, seed: o.seed, autoplay: o.autoplay });
+    this.game = new PelotaGame({ mode: o.mode || 'match', target: o.target, level: this.level, seed: o.seed, autoplay: o.autoplay, rivalStats: o.rivalStats, youStats: o.youStats });
     this.hud.setScore(0, 0, this.game.server, o.mode === 'rally' ? this.txt.rally(this.game.target) : this.txt.to(this.game.target));
     if (o.mode === 'rally') this.hud.setScore(0, '', this.game.server, this.txt.rally(this.game.target));
     this.lastSwing = { you: 0, rival: 0 };
@@ -48,6 +48,7 @@ export class PelotaMatch {
     this.hud.controls(false);
     const lv = [['facil', this.lang === 'eu' ? 'Erraza' : 'Fácil'], ['normal', this.lang === 'eu' ? 'Normala' : 'Normal'], ['dificil', this.lang === 'eu' ? 'Zaila' : 'Difícil']];
     const p = this.hud.panel(`<h2>${t.title}</h2><p class="pel-sub">${esc(this.names.you)} vs ${esc(this.names.rival)} · ${g.mode === 'rally' ? t.rally(g.target) : t.to(g.target)}</p>
+      ${this.rivalHtml()}
       <ol>${t.rules.map(r => `<li>${r}</li>`).join('')}</ol>
       <div class="pel-ctrl">${this.touch ? t.ctrlTouch : t.ctrlKeys}</div>
       ${this.o.fixedLevel ? '' : `<small class="pel-lbl">${t.level || 'Nivel'}</small><div class="pel-levels" role="group" aria-label="${t.level || 'Nivel'}">${lv.map(([k, l]) => `<button data-pel-lv="${k}" aria-pressed="${k === this.level}">${l}</button>`).join('')}</div>`}
@@ -58,6 +59,13 @@ export class PelotaMatch {
       if (b.hasAttribute('data-pel-go')) { this.audio.ensure(); this.hud.closePanel(); this.hud.controls(true); this.game.start(); this.audio.whistle(); }
       if (b.hasAttribute('data-pel-x')) this.exit(true);
     });
+  }
+  // cómo juega el rival: sus cualidades (de 1 a 5) y un consejo para jugarle
+  rivalHtml() {
+    const st = this.o.rivalStats; if (!st || this.o.mode === 'rally') return '';
+    const t = this.txt, S = t.stats || TEXT.es.stats, dots = (v) => '●'.repeat(v) + '<u>' + '●'.repeat(5 - v) + '</u>';
+    const tips = statsTips(st, this.lang);
+    return `<div class="pel-rv"><b>${esc(S.rival(this.names.rival))}</b>${['fuerza', 'agilidad', 'velocidad'].map(k => `<span class="st">${S[k]} <i>${dots(st[k])}</i></span>`).join('')}${tips.length ? `<p>${tips.join(' ')}</p>` : ''}</div>`;
   }
   endPanel(e) {
     const t = this.txt, g = this.game;
@@ -210,6 +218,7 @@ export class PelotaMatch {
       case 'whiff': this.hud.quality(t.quality.whiff); break;
       case 'front': if (e.chapa) { A.chapa(); C.chapaT = 0.6; this.shake = 0.35; } else A.front(); C.pop({ x: e.x, y: e.y, z: 0.02 }, 'z'); break;
       case 'wall': A.wall(); break;
+      case 'back': A.wall(); if (e.live) this.hud.quality(t.rebote || '¡Al rebote!'); break;   // el rebote: la pared de atrás
       case 'floor': A.floor(e.soft ? 0.5 : 0.8); break;
       case 'streak': this.hud.setScore(e.n, '', g.server); break;
       case 'call': {

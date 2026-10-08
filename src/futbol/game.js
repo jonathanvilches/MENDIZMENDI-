@@ -132,7 +132,7 @@ export class FutbolGame {
     if (a === 'through') { if (def) { I.contain = true; I.mate = true; } else this.hold.through = 0; return; }
     if (a === 'lob') { if (def) this.tackle(this.me, 'robo'); else this.hold.lob = 0; return; }
     if (a === 'pass') { if (def) this.tackle(this.me, 'robo'); else this.hold.pass = 0; }
-    if (a === 'shoot') { if (def) this.tackle(this.me, 'slide'); else this.hold.shoot = 0; }
+    if (a === 'shoot') { if (def) this.tackle(this.me, 'slide'); else { this.hold.shoot = 0; this.aim = null; } }
   }
   release(a) {
     if (this.autoplay) return;
@@ -157,7 +157,10 @@ export class FutbolGame {
     if (this.mode === 'penalties') { this.buffer = { ...a, t: 60 }; return; }
     if (this.restart && this.restart.taker === me) { if (this.restart.t >= this.restart.prep) this.takeRestart(me, a); else this.buffer = { ...a, t: this.restart.prep - this.restart.t + 0.6 }; return; }   // (se guarda hasta que se pueda sacar)
     if (this.phase !== 'play' && this.phase !== 'tuto') return;
-    if (this.owner === me && !me.hands) this.doAction(me, a); else this.buffer = { ...a, t: a.kind === 'shot' ? 0.5 : 0.32 };   // (un tiro pedido espera algo más: si recuperas el balón enseguida, sale)
+    // (un tiro pedido espera algo más: si recuperas el balón enseguida, sale; con un balón por alto que te llega, como un
+    // centro, espera hasta que te llegue a la cabeza)
+    const hp = this.owner !== me && !me.hands && (a.kind === 'shot' || a.kind === 'pass') ? this.headPoint(me) : null;
+    if (this.owner === me && !me.hands) this.doAction(me, a); else this.buffer = { ...a, t: hp ? Math.min(2.5, hp.t + 0.35) : a.kind === 'shot' ? 0.5 : 0.32 };
       // si el balón llega en ese momento, al primer toque
   }
   doAction(p, a) {
@@ -181,7 +184,7 @@ export class FutbolGame {
   step(h) {
     this.time += h; this.phaseT += h;
     if (this.hold.pass >= 0) this.hold.pass += h;
-    if (this.hold.shoot >= 0) this.hold.shoot += h;
+    if (this.hold.shoot >= 0) { this.hold.shoot += h; this.aimStep(h); }
     if (this.hold.through >= 0) this.hold.through += h;
     if (this.hold.lob >= 0) this.hold.lob += h;
     this.switchCD -= h;
@@ -211,7 +214,7 @@ export class FutbolGame {
     this.separate();
     this.officials(h);
     // balón
-    if (ph === 'play' || ph === 'tuto') this.control(h);
+    if (ph === 'play' || ph === 'tuto') { this.headers(); this.control(h); }
     const ev = this.ball.step(h, []);
     for (const e of ev) this.ballEvent(e);
     if (this.owner?.hands) this.holdBall(this.owner);
@@ -321,6 +324,14 @@ export class FutbolGame {
     if (I.mag < 0.1 && this.passTo === p && !this.owner) { const q = this.interceptPoint(p); this.seek(p, q.x, q.z, PL.run); p.face = { x: this.ball.p.x, z: this.ball.p.z }; return; }
     const top = I.sprint ? PL.sprint : PL.run;
     p.wx = wx * top; p.wz = wz * top; p.wantSprint = I.sprint && I.mag > 0.5;
+    // cargando el tiro con el balón: el joystick mueve la diana (no al jugador), que sigue su carrera hacia donde iba, algo
+    // más despacio; con la carga llena y sin soltar, casi parado (para apuntar sin salirse del campo)
+    if (this.hold.shoot >= 0 && this.owner === p && !p.hands) {
+      const A = this.aim || (this.aim = { tz: null, run: null });
+      if (!A.run) { const v = hyp(p.vx, p.vz), f = fwd(p); A.run = v > 0.8 ? { x: p.vx / v, z: p.vz / v, v: Math.min(v, PL.run * 0.85) } : { x: f.x, z: f.z, v: 0 }; }
+      const k = this.hold.shoot > PL.charge + 0.25 ? 0.3 : 1;
+      p.wx = A.run.x * A.run.v * k; p.wz = A.run.z * A.run.v * k; p.wantSprint = false;
+    }
     // recibiendo un pase con el joystick en la mano: la carrera se corrige sola hacia la línea del balón (lo justo
     // para no pasar de largo; la dirección general la sigue marcando el jugador)
     if (this.passTo === p && !this.owner && I.mag >= 0.1) {
@@ -339,6 +350,12 @@ export class FutbolGame {
       }
     }
     p.face = I.mag < 0.1 && !this.owner ? { x: this.ball.p.x, z: this.ball.p.z } : null;
+    // un centro hacia ti (o un balón por alto con TIRO o PASE pedido): tu jugador va solo a donde lo cabeceará y el
+    // joystick apunta el remate (antes, al apuntar, el jugador se iba corriendo hacia ese lado y no llegaba)
+    if (!this.owner && (this.cross?.to === p || this.hold.shoot >= 0 || this.hold.pass >= 0 || this.buffer) && !this.ball.grounded) {
+      const hp = this.headPoint(p);
+      if (hp) { const d = hyp(hp.x - p.x, hp.z - p.z); this.seek(p, hp.x, hp.z, PL.sprint, d / PL.run > hp.t - 0.15); p.face = { x: this.ball.p.x, z: this.ball.p.z }; }
+    }
     // presionar (contener): se pone entre el que lleva el balón y su portería, a 1,3 m, de cara al balón, y le sigue
     const o = this.owner;
     p.shielding = false;
@@ -477,9 +494,10 @@ export class FutbolGame {
   humanPass(p, loft, power = null) {
     const I = this.input, f = fwd(p);
     let dx = I.mag > 0.25 ? I.x : f.x, dz = I.mag > 0.25 ? I.z : f.z; const l = hyp(dx, dz) || 1; dx /= l; dz /= l;
-    const cone = (this.assist ? PL.cone * 1.3 : PL.cone) * (I.mag > 0.85 ? 0.8 : 1);   // (con el joystick a tope, más exacto)
-    const q = this.bestReceiver(p, dx, dz, cone) || (this.assist ? this.bestReceiver(p, dx, dz, Math.PI / 2) : null);
+    const { q, cross } = this.passPick(p, dx, dz);
     this.stats.passes[p.team]++;
+    // desde la banda, cerca del área rival: centro por alto al compañero del área al que apuntas
+    if (cross) return this.crossBall(p, q, power ?? 0.5);
     if (power != null) return this.powerPass(p, dx, dz, power, q);
     // pase inteligente: raso; por alto si hay un rival en la línea del pase y el compañero está lejos (o muy lejos)
     if (q) { const B = this.ball.p, d = hyp(q.x - p.x, q.z - p.z); loft ||= (this.laneOpen(p.team, B.x, B.z, q.x, q.z) < 1.1 && d > 12 * SC) || d > 32 * SC; this.passBall(p, q, loft, 0); this.setMe(q, 'pass'); }
@@ -506,19 +524,27 @@ export class FutbolGame {
     const loft = (power > 0.88 && d > 18 * SC) || (lane < 1.1 && d > 14 * SC) || d > 34 * SC;
     return { x: tx, z: tz, d, loft, to: q && hyp(q.x - tx, q.z - tz) < 10 * SC ? q : null };
   }
+  // a quién va tu pase hacia (dx, dz): el compañero del cono de 40° (con la ayuda, si no hay nadie, el de 90°). Desde la
+  // banda, si ese compañero está en el área (o no hay nadie en el cono y sí en el área hacia donde apuntas), es un centro
+  passPick(p, dx, dz) {
+    const I = this.input, cone = (this.assist ? PL.cone * 1.3 : PL.cone) * (I.mag > 0.85 ? 0.8 : 1);   // (con el joystick a tope, más exacto)
+    const q0 = this.bestReceiver(p, dx, dz, cone);
+    if (this.crossZone(p)) { const c = q0 ? (this.inBox(p.team, q0) ? q0 : null) : this.crossReceiver(p, dx, dz); if (c) return { q: c, cross: true }; }
+    return { q: q0 || (this.assist ? this.bestReceiver(p, dx, dz, Math.PI / 2) : null), cross: false };
+  }
   /** El compañero que recibiría el pase si pasas ahora (el mismo que elige humanPass), o null. */
   aimReceiver() {
     const p = this.me; if (this.owner !== p || p.hands || this.defending() || this.phase !== 'play') return null;
     const I = this.input, f = fwd(p); let dx = I.mag > 0.25 ? I.x : f.x, dz = I.mag > 0.25 ? I.z : f.z; const l = hyp(dx, dz) || 1; dx /= l; dz /= l;
-    const cone = (this.assist ? PL.cone * 1.3 : PL.cone) * (I.mag > 0.85 ? 0.8 : 1);
-    return this.bestReceiver(p, dx, dz, cone) || (this.assist ? this.bestReceiver(p, dx, dz, Math.PI / 2) : null);
+    return this.passPick(p, dx, dz).q;
   }
   // dónde caerá el pase que se está cargando (la marca en el césped)
   passPreview() {
     const p = this.me; if (this.hold.pass < TAP || this.owner !== p || p.hands || this.defending()) return null;
     const I = this.input, f = fwd(p); let dx = I.mag > 0.25 ? I.x : f.x, dz = I.mag > 0.25 ? I.z : f.z; const l = hyp(dx, dz) || 1; dx /= l; dz /= l;
-    const cone = (this.assist ? PL.cone * 1.3 : PL.cone) * (I.mag > 0.85 ? 0.8 : 1);
-    const q = this.bestReceiver(p, dx, dz, cone) || (this.assist ? this.bestReceiver(p, dx, dz, Math.PI / 2) : null);
+    const { q, cross } = this.passPick(p, dx, dz);
+    // (desde la banda, el centro: la marca va a donde caerá, a la cabeza del compañero del área)
+    if (cross) { const C = this.crossTarget(p, q, this.charge); return { x: C.x, z: C.z, loft: true, to: q.id }; }
     const T = this.passTarget(p, dx, dz, this.charge, q); return { x: T.x, z: T.z, loft: T.loft, to: T.to?.id ?? null };
   }
   powerPass(p, dx, dz, power, q) {
@@ -568,34 +594,46 @@ export class FutbolGame {
   // a dónde va el tiro: hacia donde apunta el joystick (cortado con la línea de gol), a la altura que da la fuerza. La
   // misma cuenta la usa la diana que se ve en la portería mientras se carga
   shotAim(p, charge) {
-    const I = this.input, s = this.dir[p.team], gx = s * F.HL, b = this.ball.p;
-    const keeper = this.gk(this.other(p.team));
-    let tz;
-    const ax = I.mag > 0.25 ? I.x : fwd(p).x, az = I.mag > 0.25 ? I.z : fwd(p).z;
-    // el joystick apunta respecto al centro de la portería: ±0.5 rad cubren de palo a palo (antes un toque mínimo ya iba al palo)
-    if (ax * s > 0.12) {
-      const dl = hyp(gx - b.x, b.z) || 1, ux = b.z / dl * s, uz = (gx - b.x) / dl * s, am = hyp(ax, az) || 1;
-      tz = clamp((ax * ux + az * uz) / am / 0.48, -1.25, 1.25) * (HW_G - 0.3);
-    }
-    else tz = (keeper.z > b.z * 0.2 ? -1 : 1) * (HW_G - 0.35);
+    const s = this.dir[p.team], gx = s * F.HL;
+    let tz = this.aim?.tz ?? this.aimTarget(p) ?? this.aimDefault(p);
     if (this.assist) tz = clamp(tz, -HW_G + 0.3, HW_G - 0.3);
     // altura: de raso a casi la escuadra según la fuerza (la portería de sala mide 2 m: a tope iba por encima del larguero)
     return { gx, tz, ty: 0.25 + charge * (F.goalH - 0.55) };
   }
+  // la diana (mientras se mantiene TIRO): el joystick la lleva de palo a palo según cuánto lo inclinas hacia un lado de
+  // la portería (antes contaba el ángulo de la carrera: un toque mínimo ya iba al palo y apuntar era correr hacia
+  // allí). Con el joystick a medias, a medio camino; soltándolo, la diana se queda donde estaba
+  aimTarget(p) {
+    const I = this.input; if (I.mag <= 0.25) return null;
+    const s = this.dir[p.team], gx = s * F.HL, b = this.ball.p, dl = hyp(gx - b.x, b.z) || 1, ux = b.z / dl * s, uz = (gx - b.x) / dl * s;
+    const lat = (I.x * ux + I.z * uz) * Math.min(1, I.mag / 0.85);
+    return clamp(lat / 0.87, -1, 1) * (HW_G - 0.25);
+  }
+  // sin apuntar: al palo que tiene más lejos el portero
+  aimDefault(p) { const keeper = this.gk(this.other(p.team)), b = this.ball.p; return (keeper.z > b.z * 0.2 ? -1 : 1) * (HW_G - 0.35); }
+  // la diana se desliza hacia donde apunta el joystick (en unos 80 ms): se puede afinar sin que dé saltos
+  aimStep(h) {
+    const p = this.me, A = this.aim || (this.aim = { tz: null, run: null }), t = this.aimTarget(p);
+    if (A.tz == null) A.tz = t ?? this.aimDefault(p);
+    else if (t != null) A.tz += (t - A.tz) * Math.min(1, h * 12);
+  }
   shotPreview() {
-    const p = this.me; if (this.hold.shoot < 0 || this.owner !== p || p.hands || this.mode === 'penalties') return null;
-    const A = this.shotAim(p, this.charge); return { x: A.gx, y: A.ty, z: A.tz };
+    const p = this.me; if (this.hold.shoot < 0 || p.hands || this.mode === 'penalties' || p.role === 'POR') return null;
+    // (también con un centro por alto que te llega: a donde irá el remate de cabeza)
+    const head = !this.owner && this.cross?.to === p && this.time - this.cross.t < this.cross.T + 0.6;
+    if (this.owner !== p && !head) return null;
+    const A = this.shotAim(p, this.charge); return { x: A.gx, y: head ? 0.5 : A.ty, z: A.tz };
   }
   humanShot(p, charge, finesse = false) {
     const I = this.input, b = this.ball.p, A = this.shotAim(p, charge), gx = A.gx;
     let tz = A.tz;
     const ax = I.mag > 0.25 ? I.x : fwd(p).x, s = this.dir[p.team];
-    // efecto: el joystick de lado respecto al tiro al soltar
-    const curl = clamp(-(I.x * (tz - b.z) - I.z * (gx - b.x)) / (hyp(gx - b.x, tz - b.z) || 1), -1, 1) * (I.mag > 0.5 ? 1 : 0);
-    // precisión: carga, postura (mirando hacia otro lado) y presión de un rival encima
-    const f = fwd(p), toG = Math.atan2(gx - b.x, tz - b.z), pose = Math.abs(angDiff(p.h, toG)) > 1.1 ? 0.05 : 0;
-    const press = this.nearestFoe(p) < 1.4 ? 0.05 : 0;
-    const err = 0.01 + charge * charge * 0.032 + pose + press + (this.assist ? 0 : 0.02);
+    this.aim = null;
+    // precisión: carga, postura (mirando hacia otro lado), presión de un rival encima y carrera (parado o al trote,
+    // más fino que a la carrera)
+    const toG = Math.atan2(gx - b.x, tz - b.z), pose = Math.abs(angDiff(p.h, toG)) > 1.1 ? 0.05 : 0;
+    const press = this.nearestFoe(p) < 1.4 ? 0.05 : 0, run = clamp((hyp(p.vx, p.vz) - 2) / (PL.sprint - 2), 0, 1) * 0.012;
+    const err = 0.008 + charge * charge * 0.03 + pose + press + run + (this.assist ? 0 : 0.02);
     const ty = A.ty;
     if (finesse) {
       // tiro colocado: al palo largo, con rosca hacia dentro, menos fuerte y más preciso
@@ -604,10 +642,182 @@ export class FutbolGame {
       const spin = -Math.sign(tzF - b.z) * s * 45;
       return this.shoot(p, tzF - Math.sign(tzF) * 0.6, 0.5 + charge * 1.1, Math.min(0.62, 0.3 + charge * 0.4), err * 0.55, spin);
     }
-    // (el balón se curva hacia el lado al que apunta el joystick: giro de hasta 60 rad/s)
-    this.shoot(p, tz, ty, charge, err, -curl * 60);
+    // (sin efecto: el joystick ya no curva el balón, lo apunta; va recto a la diana)
+    this.shoot(p, tz, ty, charge, err, 0);
   }
   nearestFoe(p) { let m = 1e9; for (const q of this.team(this.other(p.team))) m = Math.min(m, hyp(q.x - p.x, q.z - p.z)); return m; }
+
+  // ---------------------------------------------------------------- centros al área y remates de cabeza
+  /** ¿Está el balón en una banda, cerca del área rival (desde donde se centra)? */
+  crossZone(p) {
+    const s = this.dir[p.team], B = this.ball.p, u = s * B.x;
+    return u > F.HL - 30 * SC && u < F.HL + 0.5 && Math.abs(B.z) > F.areaW / 2 - 4 * SC;
+  }
+  // el área rival (con un poco de margen: el que entra corriendo también vale)
+  inBox(t, q) { return this.inArea(this.other(t), q.x, q.z, F.areaD ? 3 : 2); }
+  /** El compañero del área rival al que irá el centro: el mejor situado hacia donde apuntas. */
+  crossReceiver(p, dx, dz) {
+    let best = null, bs = -1e9;
+    for (const q of this.team(p.team)) {
+      if (q === p || q.role === 'POR' || q.down > 0 || this.isOffside(q) || !this.inBox(p.team, q)) continue;
+      const ex = q.x - p.x, ez = q.z - p.z, d = hyp(ex, ez) || 1, cos = (ex * dx + ez * dz) / d;
+      if (cos < 0.5) continue;
+      const sc = cos * 1.2 + Math.min(this.openness(q), 4 * SC) * 0.3 / SC;
+      if (sc > bs) { bs = sc; best = q; }
+    }
+    return best;
+  }
+  // altura del balón (su centro) al llegar a la cabeza del que remata
+  get headY() { return F.areaD ? 1.6 : 1.7; }
+  /** Velocidad de salida para que el balón pase por (tx, ty, tz) dentro de T s (el aire se corrige simulando el vuelo). */
+  aerial(tx, ty, tz, T) {
+    const B = this.ball.p, sim = this.simBall || (this.simBall = new Ball()), n = Math.max(1, Math.round(T / STEP));
+    let ax = tx, ay = ty, az = tz, v = null;
+    for (let k = 0; k < 4; k++) {
+      v = { x: (ax - B.x) / T, y: (ay - B.y) / T + 0.5 * K.g * T, z: (az - B.z) / T };
+      sim.set(B.x, B.z, Math.max(B.y, R)); sim.kick(v.x, v.y, v.z, 0);
+      for (let i = 0; i < n; i++) sim.step(STEP);
+      const ex = sim.p.x - tx, ey = sim.p.y - ty, ez = sim.p.z - tz;
+      if (hyp(ex, ey, ez) < 0.08) break;
+      ax -= ex; ay -= ey; az -= ez;
+    }
+    return v;
+  }
+  // centro: por alto, para que el balón llegue a la altura de la cabeza (1,7 m) justo donde estará el compañero cuando
+  // llegue. Con PASE mantenido, la fuerza lo alarga (al segundo palo) o lo acorta (al primero)
+  crossTarget(p, q, power = 0.5, err = 0) {
+    const B = this.ball.p, s = this.dir[p.team];
+    let tx = q.x, tz = q.z, T = 1.2;
+    // (a tu compañero, casi a donde está: frena y lo espera; a la IA, a donde llegará corriendo)
+    const lead = q.team === this.me.team && !this.autoplay ? 0.25 : 0.75;
+    for (let k = 0; k < 3; k++) { const d = hyp(tx - B.x, tz - B.z); T = clamp(0.7 + d * (F.areaD ? 0.05 : 0.034), 0.9, 1.75); tx = q.x + q.vx * T * lead; tz = q.z + q.vz * T * lead; }
+    const ux = tx - B.x, uz = tz - B.z, ul = hyp(ux, uz) || 1, ext = (power - 0.5) * 7 * SC;
+    tx += ux / ul * ext + (err ? (this.rnd() - 0.5) * 2 * err : 0); tz += uz / ul * ext + (err ? (this.rnd() - 0.5) * 2 * err : 0);
+    return { x: s * Math.min(s * tx, F.HL - 1.2), z: clamp(tz, -F.HW + 1, F.HW - 1), T };
+  }
+  crossBall(p, q, power = 0.5, err = 0) {
+    const { x: tx, z: tz, T } = this.crossTarget(p, q, power, err);
+    const v = this.aerial(tx, this.headY, tz, T);
+    this.kickBall(p, v.x, v.y, v.z, 0, 'cross');
+    if (q.team === this.me.team && !this.autoplay) { q.vx *= 0.35; q.vz *= 0.35; }
+    this.passTo = q; this.passT = T + 1; this.passFrom = p; q.plan = null; q.react = 0;
+    this.cross = { to: q, team: p.team, t: this.time, T, x: tx, z: tz };
+    // los rivales tardan su reacción en ir a por él (como en el pase al hueco)
+    if (this.human(p)) for (const r of this.team(this.other(p.team))) if (r.role !== 'POR') r.react = Math.max(r.react, this.L(r).react * 0.7);
+    if (q.team === this.me.team && !this.autoplay && q !== this.me) this.setMe(q, 'pass');
+    this.emit({ t: 'cross', p: p.id, q: q.id });
+  }
+  /** Dónde y cuándo puede p rematar de cabeza el balón que viene por alto (o null). */
+  headPoint(p) {
+    const b = this.ball; if (b.grounded || this.owner) return null;
+    // (mejor donde el balón baja a 1,6–2,1 m, a la altura de la frente; si no llega a tiempo, más arriba, saltando)
+    const sp = PL.sprint; let hi = null;
+    for (let t = 0.05; t <= 2.5; t += 0.05) {
+      const q = rollAhead(b, t); if (q.y == null) break;
+      if (q.y < 1.15 || q.y > 2.5) continue;
+      if (hyp(q.x - p.x, q.z - p.z) / sp + 0.1 <= t) { const r = { x: q.x, z: q.z, y: q.y, t }; if (q.y <= 2.1) return r; hi ||= r; }
+    }
+    return hi;
+  }
+  // qué quiere hacer de cabeza cada uno: el tuyo, lo que hayas pedido (TIRO, a portería; PASE, a un compañero); la IA
+  // remata en el área rival y despeja en la suya (en el resto del campo, el balón se controla cuando baja)
+  headWant(p) {
+    if (this.human(p)) {
+      if (this.hold.shoot >= 0 || this.buffer?.kind === 'shot') return 'shot';
+      if (this.hold.pass >= 0 || this.buffer?.kind === 'pass') return 'pass';
+      // con la ayuda, el centro que va a por ti en el área se remata solo
+      return this.assist && this.cross?.to === p && this.inBox(p.team, p) ? 'shot' : null;
+    }
+    if (this.inArea(this.other(p.team), this.ball.p.x, this.ball.p.z, F.areaD ? 3 : 2.5)) return 'shot';
+    if (this.inArea(p.team, this.ball.p.x, this.ball.p.z, F.areaD ? 3 : 4)) return 'clear';
+    return null;
+  }
+  // un balón por alto que pasa a la altura de la cabeza (de 1,15 a 2,5 m, saltando) al alcance de alguien
+  headers() {
+    const b = this.ball, B = b.p;
+    if (this.owner || b.held || B.y < 1.15 || B.y > 2.5 || b.hspeed < 2.5) return;
+    const kick = this.lastKick?.t ?? -1;
+    let best = null, bs = 1e9;
+    for (const p of this.players) {
+      if (p.off || p.cool > 0 || p.stun > 0 || p.down > 0 || p.slide || p.dive || p.hands || p.role === 'POR' || p.headMiss === kick) continue;
+      if (this.restart && this.restart.taker !== p) continue;
+      // (alto, a más de 2,15 m, solo llega saltando justo debajo)
+      const hu = this.human(p), reach = (hu ? (this.assist ? 1.05 : 0.9) : 0.75) * (B.y > 2.15 ? 0.55 : 1), d = hyp(B.x - p.x, B.z - p.z);
+      if (d > reach) {
+        // a punto de llegarle (en menos de 0,2 s): salta ya, para llegar arriba a la vez que el balón
+        if (d < reach + 4 && p.headPrep !== kick) {
+          const rx = B.x - p.x, rz = B.z - p.z, vv = b.v.x * b.v.x + b.v.z * b.v.z, tc = -(rx * b.v.x + rz * b.v.z) / vv;
+          if (tc > 0 && tc < 0.2 && hyp(rx + b.v.x * tc, rz + b.v.z * tc) < reach && B.y + b.v.y * tc > 1.1 && this.headWant(p)) { p.headPrep = kick; this.emit({ t: 'headPrep', p: p.id }); }
+        }
+        continue;
+      }
+      const want = this.headWant(p); if (!want) continue;
+      // la IA no siempre llega bien: una vez por balón decide si lo toca (el que despeja, más a menudo)
+      // (al que va el centro, más a menudo que a uno al que le cae un rebote)
+      // (y un rechace del portero que sale por alto, a bote pronto, se cabecea mal)
+      if (!hu) { const L = this.L(p), aim = this.cross?.to === p, ok = want === 'clear' ? 0.78 : (aim ? 0.68 : this.last?.role === 'POR' ? 0.22 : 0.35) + (1 - L.passErr / 2) * 0.15; if (this.rnd() > ok) { p.headMiss = kick; continue; } }
+      const sc = d / reach + (B.y > 2.1 ? 0.2 : 0);
+      if (sc < bs) { bs = sc; best = { p, want }; }
+    }
+    if (!best) return;
+    // el portero rival, debajo del balón dentro de su área, llega antes con las manos (saltando, hasta 2,75 m)
+    const k = this.gk(this.other(best.p.team));
+    if (this.inArea(k.team, B.x, B.z) && hyp(B.x - k.x, B.z - k.z) < (k.claim ? 1.1 : 0.8) && B.y < 2.75 && !k.down && !k.dive && !k.hands && this.last?.team !== k.team) return this.claimCross(k);
+    this.header(best.p, best.want);
+  }
+  // el portero atrapa el centro (o, si viene muy fuerte o se le escapa, lo despeja de puños)
+  claimCross(k) {
+    const b = this.ball, L = this.L(k), s = -this.dir[k.team];
+    if (b.speed < L.catchV + 6 && this.rnd() < 0.6 + L.keeperReach * 0.25) { this.catchBall(k); k.act = 'save'; k.actT = 0.5; this.emit({ t: 'save', p: k.id, catch: true }); }
+    else { const side = Math.sign(b.p.z || this.rnd() - 0.5); b.kick(-s * (5 + this.rnd() * 5), 3 + this.rnd() * 2.5, side * (3 + this.rnd() * 4)); this.last = k; k.cool = 0.3; this.emit({ t: 'save', p: k.id, catch: false }); }
+    this.cross = null;
+  }
+  // golpe con la cabeza hacia (tx, ty, tz) con velocidad horizontal v y un error de dirección err (rad)
+  headTo(p, tx, ty, tz, v, err) {
+    const B = this.ball.p, dx = tx - B.x, dz = tz - B.z, d = hyp(dx, dz) || 1;
+    const a = Math.atan2(dz, dx) + (this.rnd() + this.rnd() - 1) * err, T = d / (v * (1 - 0.004 * v));
+    let vy = (ty - B.y) / T + 0.5 * K.g * T; vy += (this.rnd() + this.rnd() - 1) * err * v * 0.35;
+    this.kickBall(p, Math.cos(a) * v, vy, Math.sin(a) * v, 0, 'head');
+  }
+  header(p, kind) {
+    // (el que estaba en fuera de juego cuando salió el centro no puede rematarlo: como al controlar el balón)
+    if (this.offs) { const o = this.offs; this.offs = null; if (o.team === p.team && o.ids.includes(p.id) && this.phase === 'play') return this.offside(p); }
+    const b = this.ball, B = b.p, t = p.team, s = this.dir[t], L = this.L(p), hu = this.human(p);
+    const charge = hu ? (this.hold.shoot >= 0 ? this.charge : this.buffer?.charge ?? 0.5) : 0.4 + this.rnd() * 0.5;
+    if (kind === 'shot' && s * B.x < 0) kind = 'clear';   // (en tu campo, rematar es despejar)
+    if (hu) { this.hold.shoot = -1; this.hold.pass = -1; this.buffer = null; }
+    const press = (this.nearestFoe(p) < 1.2 ? 0.04 : 0) + (this.last?.role === 'POR' && this.last.team !== t ? 0.07 : 0);
+    if (kind === 'shot') {
+      // a portería: el tuyo, a la diana (el joystick); la IA, al palo que tiene más lejos el portero. Hacia abajo: el
+      // buen remate bota antes de la línea (con más carga, más fuerte y más alto)
+      // (el cabezazo pierde fuerza y puntería con la distancia: de lejos, a más de 9 m, casi nunca es gol)
+      let tz;
+      if (hu) tz = this.shotAim(p, charge).tz;
+      else { const k = this.gk(this.other(t)); tz = (k.z > B.z * 0.3 ? -1 : 1) * (HW_G - 1.1) + (this.rnd() - 0.5) * L.passErr * 0.8; }
+      const far = Math.max(0, hyp(s * F.HL - B.x, B.z) - 9 * SC) / SC;
+      const v = (F.areaD ? 8 : 10) + charge * (F.areaD ? 5 : hu ? 8.5 : 5), ty = hu ? 0.3 + charge * 0.7 + this.rnd() * 0.3 : 0.3 + this.rnd() * 1.6;
+      this.headTo(p, s * (F.HL + 0.3), ty, tz, v, (hu ? 0.035 : 0.12 + L.passErr * 0.04) + press * (hu ? 1 : 1.5) + far * 0.012);
+      this.aim = null; this.stats.shots[t]++; this.shotLive = { team: t, t: this.time };
+      this.emit({ t: 'shot', p: p.id, power: v });
+    } else if (kind === 'pass') {
+      // de cabeza al compañero hacia donde apuntas (o hacia delante si no hay nadie)
+      const I = this.input, f = fwd(p); let dx = I.mag > 0.25 ? I.x : f.x, dz = I.mag > 0.25 ? I.z : f.z; const l = hyp(dx, dz) || 1; dx /= l; dz /= l;
+      const q = this.bestReceiver(p, dx, dz, PL.cone * 1.3);
+      const tx = q ? q.x + q.vx * 0.6 : B.x + dx * 8 * SC, tz = q ? q.z + q.vz * 0.6 : B.z + dz * 8 * SC, d = hyp(tx - B.x, tz - B.z);
+      this.headTo(p, clamp(tx, -F.HL + 0.5, F.HL - 0.5), R, clamp(tz, -F.HW + 0.5, F.HW - 0.5), clamp(4 + d * 0.5, 6, 12), 0.05 + press);
+      this.stats.passes[t]++;
+      if (q) { this.passTo = q; this.passT = 2; this.passFrom = p; if (hu) this.setMe(q, 'pass'); }
+    } else {
+      // despeje: lejos de tu portería, hacia la banda más cercana y por alto
+      const side = Math.sign(B.z || this.rnd() - 0.5), dx = s * (0.75 + this.rnd() * 0.25), dz = side * (0.35 + this.rnd() * 0.5), l = hyp(dx, dz);
+      const v = (F.areaD ? 8 : 11) + this.rnd() * (F.areaD ? 4 : 6);
+      this.kickBall(p, dx / l * v, (F.areaD ? 3 : 4.5) + this.rnd() * 2.5, dz / l * v, 0, 'head');
+      if (this.shotLive && this.shotLive.team !== t) this.emit({ t: 'blocked', p: p.id });
+    }
+    p.act = 'head'; p.actT = 0.5; p.cool = 0.3;
+    if (this.cross) this.cross = null;
+    this.emit({ t: 'header', p: p.id, kind, team: t });
+  }
 
   // ---------------------------------------------------------------- golpeos
   kickBall(p, vx, vy, vz, spin = 0, kind = 'pass') {
@@ -617,7 +827,7 @@ export class FutbolGame {
     b.held = null; this.owner = null;
     if (b.p.y < R) b.p.y = R;
     b.kick(vx, vy, vz, spin);
-    p.cool = 0.24; p.act = kind === 'throw' ? 'throw' : 'kick'; p.actT = 0.4; this.last = p;
+    p.cool = 0.24; p.act = kind === 'throw' ? 'throw' : 'kick'; p.actT = 0.4; this.last = p; this.cross = null;
     p.h = Math.atan2(vx, vz);
     this.lastKick = { p, kind, t: this.time, x: b.p.x, z: b.p.z };
     // no vale gol directo (hasta que la toque otro): saque de banda (con la mano o, en sala, con el pie), tiro libre
@@ -765,7 +975,7 @@ export class FutbolGame {
   takeBall(p) {
     const b = this.ball, prev = this.owner;
     if (this.offs) { const o = this.offs; this.offs = null; if (o.team === p.team && o.ids.includes(p.id) && this.phase === 'play') return this.offside(p); }
-    this.owner = p; this.last = p; p.touchT = 0.1; p.gotT = this.time;
+    this.owner = p; this.last = p; p.touchT = 0.1; p.gotT = this.time; this.cross = null;
     // primer toque: el balón se amortigua y queda con el jugador
     const k = 0.25; b.v.x = p.vx + (b.v.x - p.vx) * k; b.v.z = p.vz + (b.v.z - p.vz) * k; if (b.v.y > 0) b.v.y *= 0.3;
     b.w.x = b.w.y = b.w.z = 0;
@@ -1023,6 +1233,16 @@ export class FutbolGame {
       let foe = 1e9; for (const q of this.team(this.other(t))) foe = Math.min(foe, hyp(B.x - q.x, B.z - q.z) / 6.5);
       if (mine < foe - 0.1) { const q = rollAhead(b, mine * 0.7); tx = q.x; tz = q.z; sprint = true; }
     }
+    // un centro del rival que cae en el área pequeña: sale a por él si llega a tiempo y lo atrapa por encima de las
+    // cabezas (headers); antes se quedaba en la línea y el remate a dos metros era gol casi siempre
+    const C = this.cross; p.claim = false;
+    if (C && C.team !== t && !this.owner && !this.human(p)) {
+      const depth = s * (gx - C.x), wz = F.areaD ? HW_G + 1.5 : F.boxW / 2 + 0.5;
+      if (depth < (F.areaD ? 3.5 : F.box + 1) && Math.abs(C.z) < wz) {
+        const left = C.T - (this.time - C.t), need = hyp(C.x - p.x, C.z - p.z) / (PL.sprint * 0.95);
+        if (need < left + 0.25 * L.keeperReach) { tx = C.x; tz = C.z; sprint = true; p.claim = true; }
+      }
+    }
     // un rival se le planta con el balón: sale a taparle
     const o = this.owner;
     // (cuando está cerca de él, abierto de brazos y piernas: tapa el tiro con el cuerpo)
@@ -1146,7 +1366,8 @@ export class FutbolGame {
   // punto en el que un jugador puede alcanzar el balón suelto (y en cuánto tiempo)
   interceptPoint(p) {
     const b = this.ball, sp = PL.run * 1.05;
-    for (let t = 0; t <= 3; t += 0.1) { const q = rollAhead(b, t); if (hyp(q.x - p.x, q.z - p.z) / sp + 0.15 <= t) return { x: q.x, z: q.z, t }; }
+    // (un balón que pasa por encima de la cabeza no se alcanza: se va a donde baja a la altura de la cabeza o al suelo)
+    for (let t = 0; t <= 3; t += 0.1) { const q = rollAhead(b, t); if (q.y > 2.4) continue; if (hyp(q.x - p.x, q.z - p.z) / sp + 0.15 <= t) return { x: q.x, z: q.z, t }; }
     const q = rollAhead(b, 3); return { x: q.x, z: q.z, t: 3 + hyp(q.x - p.x, q.z - p.z) / sp };
   }
   teamThink(t) {
@@ -1261,7 +1482,11 @@ export class FutbolGame {
     if ((p.think -= h) <= 0) { p.think = 0.2; p.plan = this.decide(p, L); }
     const pl = p.plan; if (!pl) return;
     if (pl.kind === 'shoot') { p.plan = null; return this.aiShoot(p, L); }
-    if (pl.kind === 'pass') { p.plan = null; this.stats.passes[p.team]++; return this.passBall(p, pl.q, pl.loft, L.passErr); }
+    if (pl.kind === 'pass') {
+      p.plan = null; this.stats.passes[p.team]++;
+      if (pl.cross) return this.crossBall(p, pl.q, 0.35 + this.rnd() * 0.3, 0.4 + L.passErr * 0.6);
+      return this.passBall(p, pl.q, pl.loft, L.passErr);
+    }
     if (pl.kind === 'dribble') { this.seek(p, p.x + pl.dx * 6, p.z + pl.dz * 6, pl.speed || (pl.sprint ? PL.sprint : PL.run), pl.sprint); p.face = null; return; }
     // proteger: de espaldas al rival, despacio
     const r = pl.from; const ax = p.x - r.x, az = p.z - r.z, al = hyp(ax, az) || 1;
@@ -1279,16 +1504,16 @@ export class FutbolGame {
       if (q === p || q.down > 0) continue;
       const d = hyp(q.x - p.x, q.z - p.z); if (d < 3 * Math.max(SC, 0.7) || d > 45) continue;
       if (this.isOffside(q)) continue;
-      const lane = this.laneOpen(t, B.x, B.z, q.x, q.z), open = this.openness(q) / SC, loft = lane < 1.1 && d > 12 * SC;
+      const lane = this.laneOpen(t, B.x, B.z, q.x, q.z), open = this.openness(q) / SC, cross = this.crossZone(p) && this.inBox(t, q), loft = cross || (lane < 1.1 && d > 12 * SC);
       const prog = s * (q.x - p.x) / (18 * SC);
-      let v = 0.35 + prog * 0.55 + Math.min(open, 6) * 0.07 - (!loft && lane < 1.3 ? (1.3 - lane) * 1.1 : 0) - (d > 25 * SC ? (d - 25 * SC) * 0.035 / SC : 0) - (loft ? 0.22 : 0);
-      if (loft && open < 3) v -= 0.4;
+      let v = 0.35 + prog * 0.55 + Math.min(open, 6) * 0.07 - (!loft && lane < 1.3 ? (1.3 - lane) * 1.1 : 0) - (d > 25 * SC ? (d - 25 * SC) * 0.035 / SC : 0) - (loft && !cross ? 0.22 : 0);
+      if (loft && !cross && open < 3) v -= 0.4;
       if (q.role === 'POR') v -= s * p.x > -14 * SC || pressure > 2 ? 2 : 0.3;
       if (s * q.x > F.HL - 20 * SC && open > 2.5 && (lane > 1.3 || loft)) v += 0.3;
       // centro al área desde la banda
-      if (loft && Math.abs(B.z) > F.areaW / 2 - 2 && s * B.x > F.HL - 26 * SC && this.inArea(this.other(t), q.x, q.z)) v += 0.35;
+      if (cross) v += 0.2 + (open > 1.5 ? 0.15 : 0);
       if (pressure < 1.6) v += 0.15;
-      opts.push({ kind: 'pass', q, v, loft });
+      opts.push({ kind: 'pass', q, v, loft, cross });
     }
     // regate: hacia la portería o hacia el hueco
     const toG = Math.atan2(-B.z * 0.6, gx - B.x);
@@ -1571,11 +1796,16 @@ export class FutbolGame {
     const I = this.input, f = fwd(p), dx = I.mag > 0.25 ? I.x : f.x, dz = I.mag > 0.25 ? I.z : f.z;
     // TIRO en un saque de banda: saque largo; en un córner: centro al área
     if (a.kind === 'shot' && r.type === 'throwin') { this.stats.passes[p.team]++; return this.throwBall(p, p.x + dx * 24, p.z + dz * 24); }
-    if (a.kind === 'shot' && r.type === 'corner') { this.stats.passes[p.team]++; const s = this.dir[p.team]; return this.passToPoint(p, s * (F.HL - 9), clamp(dz * 9 - Math.sign(r.z) * 2, -9, 9), true); }
+    if (a.kind === 'shot' && r.type === 'corner') {
+      this.stats.passes[p.team]++; const s = this.dir[p.team], c = this.crossReceiver(p, dx, dz) || this.team(p.team).filter(q => q !== p && q.role !== 'POR' && this.inBox(p.team, q)).sort((a, q) => this.openness(q) - this.openness(a))[0];
+      if (c) return this.crossBall(p, c, a.charge ?? 0.5);
+      return this.passToPoint(p, s * (F.HL - 9), clamp(dz * 9 - Math.sign(r.z) * 2, -9, 9), true);
+    }
     if (a.kind === 'shot' && !r.indirect) return this.humanShot(p, a.charge);
     if (a.kind === 'through' && r.type !== 'kickoff') return this.humanThrough(p);
     this.stats.passes[p.team]++;
     const q = this.bestReceiver(p, dx, dz, r.type === 'kickoff' && I.mag < 0.25 ? Math.PI : PL.cone * 1.4);
+    if (r.type === 'corner' && q && this.inBox(p.team, q)) return this.crossBall(p, q, a.power ?? 0.5);
     if (a.power != null && r.type !== 'kickoff') return this.powerPass(p, dx, dz, a.power, q);   // (también en los saques: tú pones la fuerza)
     if (q) { this.passBall(p, q, a.loft, 0); this.setMe(q, 'pass'); } else this.passToPoint(p, p.x + dx * 12, p.z + dz * 12, a.loft);
   }
@@ -1589,7 +1819,7 @@ export class FutbolGame {
     if (r.type === 'corner') {
       const box = this.team(t).filter(q => q !== p && this.inArea(this.other(t), q.x, q.z)).sort((a, q) => this.openness(q) - this.openness(a));
       this.stats.passes[t]++;
-      if (box[0] && this.rnd() < 0.85) return this.passBall(p, box[0], true, 1.2 + L.passErr);
+      if (box[0] && this.rnd() < 0.85) return this.crossBall(p, box[0], 0.3 + this.rnd() * 0.4, 0.8 + L.passErr * 0.7);
       return this.passToPoint(p, s * (F.HL - 10), (this.rnd() - 0.5) * 10, true);
     }
     // saque de meta: en corto a un defensa libre o en largo hacia los de arriba

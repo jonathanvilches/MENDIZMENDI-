@@ -6,6 +6,9 @@
 // Los pelotaris son personajes del juego (nombres inventados con su pueblo), no pelotaris reales.
 // Se guarda en localStorage ('mendimendiz-torneo-v1'), uno por comarca.
 import { lgPanel, lgEsc as esc } from '../futbol/liga.js';
+import { pelotariStats, statsTips } from '../pelota/rules.js';
+/** Las cualidades de un pelotari del torneo (las de los torneos guardados antes, según su nombre y nivel). */
+export const statsOf = (p) => p.st || (p.st = pelotariStats(`${p.name} ${p.town}`, p.lv || 2));
 
 const KEY = 'mendimendiz-torneo-v1';
 const ROUNDS = [{ name: 'Cuartos de final', target: 5 }, { name: 'Semifinales', target: 5 }, { name: 'Final', target: 7 }];
@@ -13,6 +16,7 @@ const NAMES = ['Unai', 'Mikel', 'Aitor', 'Iñaki', 'Oihana', 'Garazi', 'Ander', 
 const TOWNS = ['Leitza', 'Lesaka', 'Elizondo', 'Altsasu', 'Lekunberri', 'Aoiz', 'Sangüesa', 'Estella-Lizarra', 'Tafalla', 'Olite', 'Tudela', 'Puente la Reina', 'Viana', 'Lumbier', 'Doneztebe', 'Irurtzun'];
 const loadAll = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } };
 const save = (T) => { try { const all = loadAll(); all[T.comarca] = T; localStorage.setItem(KEY, JSON.stringify(all)); } catch (e) { /* sin guardado */ } };
+const clamp01 = (v) => Math.max(0.1, Math.min(0.9, v));
 function rng(seed) { let s = seed | 0 || 1; return () => ((s = (s * 16807) % 2147483647) / 2147483647); }
 
 /** Txapelas ganadas en cada comarca: { comarca: n } */
@@ -48,7 +52,7 @@ export function yourMatch(T) {
   if (T.done) return null;
   const m = T.matches.find(x => T.players[x.a].you || T.players[x.b].you); if (!m) return null;
   const rv = T.players[T.players[m.a].you ? m.b : m.a], R = ROUNDS[T.round];
-  return { rival: rv, target: R.target, round: R.name, level: rv.lv >= 3 ? 'dificil' : rv.lv <= 1 ? 'facil' : 'normal' };
+  return { rival: rv, stats: statsOf(rv), target: R.target, round: R.name, level: rv.lv >= 3 ? 'dificil' : rv.lv <= 1 ? 'facil' : 'normal' };
 }
 /** Apunta tu resultado (o null si ya estás eliminado), simula el resto de la ronda y prepara la siguiente. */
 export function playTorneoRound(T, you = null, rival = null) {
@@ -57,7 +61,9 @@ export function playTorneoRound(T, you = null, rival = null) {
     const A = T.players[m.a], B = T.players[m.b];
     if ((A.you || B.you) && you != null) m.s = A.you ? [you, rival] : [rival, you];
     else {
-      const pa = 0.5 + (A.lv - B.lv) * 0.15, aw = r() < pa, lose = Math.floor(r() * R.target * 0.85);
+      // (el nivel y las cualidades: el más completo gana más a menudo)
+      const sum = (p) => { const s = statsOf(p); return s.fuerza + s.agilidad + s.velocidad; };
+      const pa = clamp01(0.5 + (A.lv - B.lv) * 0.12 + (sum(A) - sum(B)) * 0.03), aw = r() < pa, lose = Math.floor(r() * R.target * 0.85);
       m.s = aw ? [R.target, lose] : [lose, R.target];
     }
   }
@@ -80,7 +86,10 @@ const CSS = `.tq-bracket{display:grid;grid-template-columns:repeat(3,1fr);gap:8p
 .tq-col{display:grid;gap:8px}.tq-col h4 small{font-size:12px}.tq-col h4 small i{font-style:normal}.tq-col h4{margin:0;text-align:center;font-size:12px;color:#cbbcf0;text-transform:uppercase;letter-spacing:.04em}
 .tq-m{border-radius:12px;background:rgba(255,255,255,.07);padding:5px 8px;font-size:13px;display:grid;gap:2px}
 .tq-m div{display:flex;justify-content:space-between;gap:6px}.tq-m b{font-variant-numeric:tabular-nums}.tq-m .w{color:#ffd84a;font-weight:900}.tq-m .you{text-decoration:underline;text-decoration-color:#ffd84a}
-.tq-m small{color:#a99cc9;font-size:12px}.tq-txa{display:flex;align-items:center;gap:10px}.tq-txa svg{width:44px;height:30px}`;
+.tq-m small{color:#a99cc9;font-size:12px}
+.tq-st{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.32);border-radius:12px;padding:7px 12px;margin:2px 0 10px;font-size:14px}
+.tq-st b{color:#ffd84a}.tq-st span{white-space:nowrap}.tq-st i{font-style:normal;color:#ffd84a;letter-spacing:1px}.tq-st i u{color:rgba(255,255,255,.22);text-decoration:none}.tq-st p{margin:0;flex:1 1 100%;font-size:13px;color:#d8cff0}.tq-st p em{font-style:normal}
+@media (orientation:landscape) and (max-height:520px){.tq-st{padding:4px 10px;margin:0 0 6px;font-size:12px}.tq-st p{font-size:12px}}.tq-txa{display:flex;align-items:center;gap:10px}.tq-txa svg{width:44px;height:30px}`;
 const TXAPELA = '<svg viewBox="0 0 64 40"><ellipse cx="32" cy="30" rx="29" ry="7" fill="#1b1b22"/><path d="M6 28c2-14 14-22 26-22s24 8 26 22c-8 4-44 4-52 0z" fill="#22232c"/><path d="M30 6c0-3 4-3 4 0" stroke="#22232c" stroke-width="3" fill="none"/><path d="M8 29c10 3 38 3 48 0" stroke="#c8222a" stroke-width="3" fill="none"/></svg>';
 function card(T, p, s, wIdx) {
   const P = T.players[p];
@@ -98,6 +107,11 @@ function bracketHtml(T) {
   }).join('');
   return `<div class="tq-bracket">${cols}</div>`;
 }
+// cómo juega tu próximo rival: fuerza, agilidad y velocidad (de 1 a 5) y un consejo para jugarle
+function statsBox(p) {
+  const st = statsOf(p), dots = (v) => '●'.repeat(v) + '<u>' + '●'.repeat(5 - v) + '</u>', tips = statsTips(st);
+  return `<div class="tq-st"><b>Así juega ${esc(p.name)}</b>${[['Fuerza', st.fuerza], ['Agilidad', st.agilidad], ['Velocidad', st.velocidad]].map(([k, v]) => `<span>${k} <i>${dots(v)}</i></span>`).join('')}${tips.length ? `<p>${tips.map(t => `<em>${t}</em>`).join(' ')}</p>` : ''}</div>`;   // (cada consejo, aparte: se traduce entero)
+}
 /** Pantalla del torneo (here: el nombre del pueblo del frontón donde se juega). Devuelve 'play' | 'sim' | 'new' | 'exit'. */
 const css = () => { if (!document.getElementById('tq-css')) { const st = document.createElement('style'); st.id = 'tq-css'; st.textContent = CSS; document.head.appendChild(st); } };
 export function torneoPanel(T, here = null) {
@@ -109,7 +123,7 @@ export function torneoPanel(T, here = null) {
     const how = T.round === 0 && !T.past.length && !T.done ? '<p class="lg-how"><b>Cómo funciona:</b> ocho pelotaris por eliminatorias (cuartos y semifinales a 5 tantos, final a 7). Los cuartos y las semifinales se juegan en este frontón: los rivales vienen aquí. La final, en el frontón Labrit de Iruña. Los demás partidos se simulan.</p>' : '';
     let mid;
     if (T.done) { const C = T.players[T.champion]; mid = `<div class="lg-champ"><small>TXAPELDUN · CAMPEÓN DEL TORNEO</small><br><b>${esc(C.name)}</b><br>${C.you ? '¡La txapela es tuya! Zorionak!' : `${esc(C.town)} se lleva la txapela. ¡A por la próxima!`}</div>`; }
-    else if (m) mid = `<div class="lg-next"><div class="lg-t"><b>${esc(T.players[0].name)}</b><em>${esc(T.players[0].town)}</em></div><div class="lg-vs">VS<small>${esc(m.round.toUpperCase())} · A ${m.target} TANTOS</small>${here ? `<small>FRONTÓN DE ${esc(here.toUpperCase())}</small>` : ''}</div><div class="lg-t"><b>${esc(m.rival.name)}</b><em>${esc(m.rival.town)} · ${'★'.repeat(m.rival.lv)}</em></div></div>`;
+    else if (m) mid = `<div class="lg-next"><div class="lg-t"><b>${esc(T.players[0].name)}</b><em>${esc(T.players[0].town)}</em></div><div class="lg-vs">VS<small>${esc(m.round.toUpperCase())} · A ${m.target} TANTOS</small>${here ? `<small>FRONTÓN DE ${esc(here.toUpperCase())}</small>` : ''}</div><div class="lg-t"><b>${esc(m.rival.name)}</b><em>${esc(m.rival.town)} · ${'★'.repeat(m.rival.lv)}</em></div></div>${statsBox(m.rival)}`;
     else mid = `<div class="lg-champ"><small>ELIMINADO</small><br>El torneo sigue sin ti: mira quién se lleva la txapela.</div>`;
     const btns = T.done ? '<button class="lg-btn go" data-a="new">Nuevo torneo</button>' : m ? '<button class="lg-btn go" data-a="play">¡A jugar!</button>' : '<button class="lg-btn go" data-a="sim">Siguiente ronda</button>';
     const r = lgPanel(`${head}${mid}${how}${bracketHtml(T)}<div class="lg-btns">${btns}<button class="lg-btn" data-a="exit">Salir</button></div><p class="lg-note lg-adapt">Pelotaris inventados para el juego.</p>`);
