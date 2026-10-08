@@ -4,6 +4,7 @@
 // solaparse en móvil (vertical y horizontal) y escritorio.
 const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;gap:16px;align-items:center;text-align:left;margin:4px 0 8px}.fb-board{width:100%;height:auto;display:block;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
 .fb-tac-t{margin:8px 0 8px;font-size:var(--fs-sm);line-height:1.3;color:#e8e2f6}.fb-tac-l{margin:0;font-size:var(--fs-xs);color:#c8bfe0;display:flex;gap:8px;align-items:center;flex-wrap:wrap}.fb-tac-l i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.fb-tac-r .fb-row{justify-content:flex-start}   /* (los sistemas, alineados a la izquierda con su explicación) */
 @media (max-width:520px){.fb-tac{grid-template-columns:1fr}.fb-board{max-width:200px;margin:0 auto}}
 
 .fb-root{position:fixed;inset:0;z-index:900;pointer-events:none;font-family:Nunito,system-ui,sans-serif;color:#fff;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
