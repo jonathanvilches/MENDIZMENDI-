@@ -33,6 +33,7 @@
 
 | Fecha | Función | Respuestas (1-8) | Color | Decisión |
 |---|---|---|---|---|
+| 2026-10-08 | Pelota: los pelotaris se turnan sin estorbarse al golpear, torneo individual y torneo por parejas en el menú del frontón, ficha clara del rival con lo que corre, su potencia, sus manos y sus golpes preferidos, y la IA juega según esa ficha | 1 no · 2 no · 3 no · 4 no · 5 no · 6 no · 7 no · 8 no | Verde | Código y textos propios; pelotaris y estilos inventados; sin marcas ni logos |
 | 2026-10-08 | Frontón como el dibujo de sus partes: rebote alto que cierra la cancha y se ve a través si la cámara queda detrás; recorrido «Partes del frontón» con frontis, chapa, pared izquierda, cancha, falta, pasa, contracancha y rebote | 1 no · 2 no · 3 no · 4 no · 5 no · 6 no · 7 no · 8 no | Verde | Código y textos propios; la imagen de referencia solo se miró, no se incluye |
 | 2026-10-08 | Pelota: energía de cada pelotari que baja con cada golpe y se recupera entre tantos; cansado se falla más; por parejas el cansado deja más pelotas a su compañero y se puede pedir la pelota manteniendo el golpe | 1 no · 2 no · 3 no · 4 no · 5 no · 6 no · 7 no · 8 no | Verde | Código propio; sin recursos nuevos de terceros |
 | 2026-10-08 | Pelota por parejas: elegir mano a mano o parejas, jugar de delantero o de zaguero, compañero y pareja rival con nombres vascos comunes; reglas plegables en la presentación | 1 no · 2 no · 3 no · 4 no · 5 no · 6 no · 7 no · 8 no | Verde | Código propio; los pelotaris son los modelos propios de Meshy ya usados |

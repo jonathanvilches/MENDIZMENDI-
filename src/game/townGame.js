@@ -895,10 +895,11 @@ export class TownGame {
     // partido libre o el torneo de mano de la comarca (la txapela, parte de la misión de la comarca)
     const P = profile(), town = this.def.name.split(' /')[0], cm = this.comarca?.name || 'la comarca';
     const ctx = { comarca: this.def.comarca, comarcaName: cm, towns: this.comarcaVenues() };
-    let T = torneo({ name: P.name || 'Tú', town }, ctx);
-    const pick = await pelotaMenu(T, town);
+    const you = { name: P.name || 'Tú', town };
+    const pick = await pelotaMenu(torneo(you, ctx), town, torneo(you, ctx, false, 'parejas'));
     if (this.disposed || pick === 'exit') return;
     if (pick === 'torneo') return this.pelotaTorneo(a, ctx);
+    if (pick === 'torneoParejas') return this.pelotaTorneo(a, ctx, 'parejas');
     const r = await this.fronton.play(this, a);
     if (this.disposed || r.quit) return;
     const best = (townState(profile(), this.def.id).best ||= {});
@@ -918,9 +919,10 @@ export class TownGame {
       const ctx = { comarca: this.def.comarca, comarcaName: cm, towns: this.comarcaVenues() };
       for (;;) {
         this.ui.hudVisible(false);
-        const pick = await pelotaMenu(torneo({ name: P.name || 'Tú', town }, ctx), town);
+        const you = { name: P.name || 'Tú', town };
+        const pick = await pelotaMenu(torneo(you, ctx), town, torneo(you, ctx, false, 'parejas'));
         if (this.disposed || pick === 'exit') return;
-        if (pick === 'torneo') { await this.pelotaTorneo(a, ctx); if (this.disposed) return; continue; }
+        if (pick === 'torneo' || pick === 'torneoParejas') { await this.pelotaTorneo(a, ctx, pick === 'torneoParejas' ? 'parejas' : 'mano'); if (this.disposed) return; continue; }
         const r = await this.fronton.play(this, a);
         if (this.disposed) return;
         if (r.quit) continue;
@@ -933,21 +935,23 @@ export class TownGame {
   }
   // el torneo entero se juega en este frontón (los rivales vienen aquí): el del pueblo elegido en Campeonatos o el
   // del pueblo en el que estás
-  async pelotaTorneo(a, ctx) {
-    const P = profile(), town = this.def.name.split(' /')[0];
-    let T = torneo({ name: P.name || 'Tú', town }, ctx);
+  async pelotaTorneo(a, ctx, kind = 'mano') {
+    const P = profile(), town = this.def.name.split(' /')[0], pairs = kind === 'parejas';
+    let T = torneo({ name: P.name || 'Tú', town }, ctx, false, kind);
     for (;;) {
       this.ui.hudVisible(!this.sportMode);
       const act = await torneoPanel(T, town);
       if (this.disposed || act === 'exit') return;   // (el pueblo se rehízo mientras tanto: este torneo ya no sigue)
-      if (act === 'new') { T = torneo({ name: P.name || 'Tú', town }, ctx, true); continue; }
+      if (act === 'new') { T = torneo({ name: P.name || 'Tú', town }, ctx, true, kind); continue; }
       if (act === 'sim') { playTorneoRound(T); continue; }
       const m = yourMatch(T);
       // la final, en el frontón Labrit de Iruña (los cuartos y las semifinales, aquí)
       const fin = m.round === 'Final', venue = fin ? (this.fronton?.court.labrit ? this.fronton : this.labritVenue()) : this.fronton;
       if (fin) await this.labritIntro(venue);
       if (this.disposed) return;
-      const r = await venue.play(this, a, { target: m.target, level: m.level, rivalName: `${m.rival.name} (${m.rival.town})`, fixedLevel: true, returnTo: this.fronton, rivalStats: m.stats });
+      // (por parejas: juegas con tu compañero contra el delantero y el zaguero rivales)
+      const r = await venue.play(this, a, { target: m.target, level: m.level, rivalName: `${pairs ? m.rival.mates[0] : m.rival.name} (${m.rival.town})`, fixedLevel: true, returnTo: this.fronton, rivalStats: m.stats,
+        pairs: pairs ? { partner: m.partner, rivalMate: m.mate } : null });
       if (this.disposed) return;
       if (r.quit) return;   // (salir del partido es salir: de vuelta al pueblo, no al panel del torneo otra vez)
       playTorneoRound(T, r.you, r.cpu);
@@ -955,8 +959,13 @@ export class TownGame {
         P.txapelas = (P.txapelas || 0) + 1; addXP(150); saveProfile();
         this.player.rig.doCheer?.(); this.particles.confetti?.(this.player.pos, 120);
         // la gran celebración: la txapela baja, confeti, fuegos y el frontón en pie
-        await showChampion({ kind: 'pelota', kicker: `Torneo de mano · ${ctx.comarcaName}`, title: '¡Txapeldun!', name: P.name || 'Campeón', sub: `La txapela de ${ctx.comarcaName} es tuya. Zorionak!`, score: `Final · ${r.you} – ${r.cpu}`, sound: this.sound, button: 'Ponerme la txapela' });
-        await this.say(a, [`¡Txapeldun! Eres campeón del torneo de mano de ${ctx.comarcaName}. Llevas ${P.txapelas} ${P.txapelas === 1 ? 'txapela' : 'txapelas'}.`]);
+        if (pairs) {
+          await showChampion({ kind: 'pelota', kicker: `Torneo por parejas · ${ctx.comarcaName}`, title: '¡Txapeldunak!', name: T.players[T.champion].name, sub: `La txapela de parejas de ${ctx.comarcaName} es vuestra. Zorionak!`, score: `Final · ${r.you} – ${r.cpu}`, sound: this.sound, button: 'Ponerme la txapela' });
+          await this.say(a, [`¡Txapeldunak! Sois campeones del torneo por parejas de ${ctx.comarcaName}. Llevas ${P.txapelas} ${P.txapelas === 1 ? 'txapela' : 'txapelas'}.`]);
+        } else {
+          await showChampion({ kind: 'pelota', kicker: `Torneo de mano · ${ctx.comarcaName}`, title: '¡Txapeldun!', name: P.name || 'Campeón', sub: `La txapela de ${ctx.comarcaName} es tuya. Zorionak!`, score: `Final · ${r.you} – ${r.cpu}`, sound: this.sound, button: 'Ponerme la txapela' });
+          await this.say(a, [`¡Txapeldun! Eres campeón del torneo de mano de ${ctx.comarcaName}. Llevas ${P.txapelas} ${P.txapelas === 1 ? 'txapela' : 'txapelas'}.`]);
+        }
       } else if (!r.win) await this.say(a, [`${r.you} a ${r.cpu}. ¡Qué pena! El torneo sigue: mira quién se lleva la txapela.`]);
       else if (!T.done) await this.say(a, [yourMatch(T)?.round === 'Final' ? `¡${r.you} a ${r.cpu}! Pasas a la final. Se juega en el frontón Labrit de Pamplona.` : `¡${r.you} a ${r.cpu}! Pasas a ${yourMatch(T)?.round.toLowerCase() || 'la siguiente ronda'}. El próximo partido, aquí mismo.`]);
     }

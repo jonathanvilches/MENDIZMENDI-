@@ -1,6 +1,6 @@
 // Partido de pelota a mano: une la lógica (game.js), el frontón (court.js), la interfaz (hud.js) y el sonido.
 // El juego anfitrión pone el frontón en su escena, llama a update(dt) en cada fotograma y renderiza con su cámara.
-import { COURT, TEXT, statsTips } from './rules.js';
+import { COURT, TEXT, profileHtml } from './rules.js';
 import { PelotaGame, cutHeight, dropHeight, aimSide } from './game.js';
 import { PelotaHud, esc } from './hud.js';
 import { PelotaAudio } from './audio.js';
@@ -34,7 +34,7 @@ export class PelotaMatch {
     this.v3 = new this.T.Vector3();
     this.bindInput();
     this.newGame();
-    if (o.autostart) { this.hud.controls(true); this.game.start(); } else this.intro();
+    if (o.autostart) { this.hud.controls(true); this.game.start(); } else { this.intro(); if (o.forcePairs) this.chooseMode('delantero'); }   // (torneo por parejas: ya por parejas)
   }
   newGame() {
     this.hud?.root?.classList.remove('final');
@@ -59,7 +59,7 @@ export class PelotaMatch {
     const lv = [['facil', this.lang === 'eu' ? 'Erraza' : 'Fácil'], ['normal', this.lang === 'eu' ? 'Normala' : 'Normal'], ['dificil', this.lang === 'eu' ? 'Zaila' : 'Difícil']];
     // mano a mano o por parejas (y tú, de delantero o de zaguero): solo en los partidos libres
     const canPairs = !!this.o.mates && g.mode === 'match', P = t.pairs || TEXT.es.pairs;
-    const mods = [['mano', P.single], ['delantero', P.front], ['zaguero', P.back]], cur = this.pairs ? this.role : 'mano';
+    const mods = [['mano', P.single], ['delantero', P.front], ['zaguero', P.back]].filter(([k]) => !(this.o.forcePairs && k === 'mano')), cur = this.pairs ? this.role : this.o.forcePairs ? this.role : 'mano';
     const TT = t.tour || TEXT.es.tour;
     const p = this.hud.panel(`<h2>${t.title}</h2><p class="pel-sub">${esc(this.label('you'))} vs ${esc(this.label('rival'))} · ${g.mode === 'rally' ? t.rally(g.target) : t.to(g.target)} <button class="pel-chip" data-pel-tour>${TT.btn}</button></p>
       ${canPairs ? `<div class="pel-levels pel-mod" role="group" aria-label="${P.label}">${mods.map(([k, l]) => `<button data-pel-mod="${k}" aria-pressed="${k === cur}">${l}</button>`).join('')}</div>` : ''}
@@ -144,18 +144,13 @@ export class PelotaMatch {
     this.pairs = pairs; if (pairs) this.role = k;
     this.newGame(); this.intro();
   }
-  // cómo juega el rival: sus cualidades (de 1 a 5) y un consejo para jugarle (por parejas, los dos rivales)
+  // cómo juega el rival: cómo corre, cuánto pega, sus manos, sus golpes preferidos y de qué tener cuidado (por parejas,
+  // los dos rivales, cada uno con su puesto)
   rivalHtml() {
     const st = this.o.rivalStats; if (!st || this.o.mode === 'rally') return '';
-    const t = this.txt, S = t.stats || TEXT.es.stats, dots = (v) => '●'.repeat(v) + '<u>' + '●'.repeat(5 - v) + '</u>';
-    const rm = this.pairs && this.mateObjs?.rivalMate;
-    if (rm) {
-      const P = t.pairs || TEXT.es.pairs, row = (name, role, q) => `<span class="pr"><em>${esc(name)} · ${role}</em>${['fuerza', 'agilidad', 'velocidad'].map(k => `<span class="st">${S[k]} <i>${dots(q[k])}</i></span>`).join('')}</span>`;
-      const tips = [...new Set([...statsTips(st, this.lang).slice(0, 1), ...statsTips(rm.stats, this.lang).slice(0, 1)])];
-      return `<div class="pel-rv pel-rv2"><b>${esc(P.rivals(this.names.rival, rm.name))}</b>${row(this.names.rival, P.frontName, st)}${row(rm.name, P.backName, rm.stats)}${tips.length ? `<p>${tips.join(' ')}</p>` : ''}</div>`;
-    }
-    const tips = statsTips(st, this.lang);
-    return `<div class="pel-rv"><b>${esc(S.rival(this.names.rival))}</b>${['fuerza', 'agilidad', 'velocidad'].map(k => `<span class="st">${S[k]} <i>${dots(st[k])}</i></span>`).join('')}${tips.length ? `<p>${tips.join(' ')}</p>` : ''}</div>`;
+    const rm = this.pairs && this.mateObjs?.rivalMate, P = this.txt.pairs || TEXT.es.pairs;
+    if (rm) return `<div class="pel-rv pel-rv2"><div class="pf">${profileHtml(this.names.rival, st, this.lang, P.frontName)}</div><div class="pf">${profileHtml(rm.name, rm.stats, this.lang, P.backName)}</div></div>`;
+    return `<div class="pel-rv"><div class="pf">${profileHtml(this.names.rival, st, this.lang)}</div></div>`;
   }
   endPanel(e) {
     const t = this.txt, g = this.game;

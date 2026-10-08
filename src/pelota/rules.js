@@ -54,7 +54,34 @@ export function pelotariStats(seed = '', lv = 2) {
   st[strong] = Math.min(5, 3 + Math.floor(r() * 2));
   let left = total - st.fuerza - st.agilidad - st.velocidad;
   for (let n = 0; left > 0 && n < 200; n++) { const c = k[Math.floor(r() * 3)]; if (st[c] < (c === weak && lv < 3 ? 2 : 5)) { st[c]++; left--; } }
+  st.style = pelotariStyle(seed, st);
   return st;
+}
+// Golpes preferidos (de 0 a 3 estrellas): cortada, dos paredes, gancho (a la pared izquierda), dejada y largo (al fondo,
+// al rebote). Uno que le gusta mucho y otro bastante; van con sus cualidades: el fuerte suele ir a la cortada o al
+// largo, el ágil a las dos paredes o al gancho y el rápido a la dejada. La IA los busca (juega como dice su ficha)
+export const SHOTS = ['cortada', 'dosparedes', 'gancho', 'dejada', 'largo'];
+export function pelotariStyle(seed = '', st = { fuerza: 3, agilidad: 3, velocidad: 3 }) {
+  let h = 2166136261; for (const ch of 'golpes ' + String(seed)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
+  const r = () => { h = Math.imul(h ^ (h >>> 15), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
+  const base = { cortada: st.fuerza, largo: st.fuerza, dosparedes: st.agilidad, gancho: st.agilidad, dejada: (st.velocidad + st.agilidad) / 2 };
+  const pick = (skip) => { const ks = SHOTS.filter(k => !skip.includes(k)), w = ks.map(k => base[k] ** 2), t = w.reduce((a, b) => a + b, 0); let x = r() * t; for (let i = 0; i < ks.length; i++) { x -= w[i]; if (x <= 0) return ks[i]; } return ks[ks.length - 1]; };
+  const fav = pick([]), sec = pick([fav]), sty = {};
+  for (const k of SHOTS) sty[k] = k === fav ? 3 : k === sec ? 2 : r() < 0.3 ? 1 : 0;
+  return sty;
+}
+// la ficha del rival: cómo corre, cuánto pega, sus manos, sus golpes preferidos y de qué tener cuidado
+const word = (v, w) => v <= 2 ? w[0] : v >= 4 ? w[2] : w[1];
+// (compact: por parejas, dos fichas juntas: solo los golpes de dos o tres estrellas y el aviso)
+export function profileHtml(name, st, lang = 'es', role = '', compact = !!role) {
+  const T = TEXT[lang] || TEXT.es, P = T.profile || TEXT.es.profile, sty = st.style || {}, esc = (x) => String(x).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const dots = (v) => '●'.repeat(v) + '<u>' + '●'.repeat(5 - v) + '</u>', stars = (n) => '★'.repeat(n);
+  const fav = SHOTS.filter(k => sty[k] > (compact ? 1 : 0)).sort((a, b) => sty[b] - sty[a]), top = fav[0];
+  const kind = [top && sty[top] >= 3 ? P.arch[top] : '', st.velocidad >= 4 ? P.fast : st.velocidad <= 2 ? P.slow : '', st.fuerza >= 4 ? P.strong : ''].filter(Boolean).join(', ');
+  const rows = [[P.run, st.velocidad, P.runW], [P.power, st.fuerza, P.powerW], [P.hands, st.agilidad, P.handsW]].map(([k, v, w]) => `<span class="st">${k} <i>${dots(v)}</i> ${word(v, w)}</span>`).join('');
+  const shots = fav.length ? `<span class="pf-sh">${P.shots}: ${fav.map(k => `<em>${P.names[k]} <i>${stars(sty[k])}</i></em>`).join(' ')}</span>` : '';
+  const warn = top && sty[top] >= 3 ? P.warn[top] : '', tip = compact && warn ? '' : statsTips(st, lang)[0] || '';
+  return `<b>${esc(P.title(name, role))}${kind ? ` · <span class="pf-k">${kind}</span>` : ''}</b>${rows}${shots}${warn || tip ? `<p>${warn ? `<strong>${warn}</strong> ` : ''}${tip}</p>` : ''}`;
 }
 /** Consejos para jugar contra un pelotari según sus cualidades (los dos que más se notan). */
 export function statsTips(st, lang = 'es') {
@@ -103,6 +130,11 @@ export const TEXT = {
       ['Rebote', 'La pared del fondo. Si la pelota llega tras botar dentro, vuelve y se sigue jugando; si da sin botar, es fuera.'],
     ] },
     stats: { fuerza: 'Fuerza', agilidad: 'Agilidad', velocidad: 'Velocidad', rival: (n) => `Así juega ${n}` },
+    profile: { title: (n, r) => r ? `${n} · ${r}` : `Así juega ${n}`, run: 'Corre', power: 'Potencia', hands: 'Manos', runW: ['poco', 'normal', 'mucho'], powerW: ['poca', 'normal', 'mucha'], handsW: ['torpes', 'normales', 'finas'],
+      shots: 'Sus golpes', names: { cortada: 'Cortada', dosparedes: 'Dos paredes', gancho: 'Gancho a la izquierda', dejada: 'Dejada', largo: 'Largo, al rebote' },
+      arch: { cortada: 'cortador', dosparedes: 'de dos paredes', gancho: 'de ganchos a la izquierda', dejada: 'dejador', largo: 'pegador de fondo' },
+      fast: 'muy rápido', slow: 'lento', strong: 'pega muy fuerte',
+      warn: { cortada: '¡Cuidado con su cortada: rasa y rápida!', dosparedes: '¡Cuidado con sus dos paredes: cúbrete a la derecha!', gancho: '¡Cuidado con sus ganchos a la izquierda: no te despegues de la pared!', dejada: '¡Cuidado con sus dejadas: no te quedes atrás!', largo: '¡Cuidado: pega largo, al rebote! No te adelantes.' } },
     tips: { slow: 'Es lento: hazle dejadas cuando esté al fondo.', clumsy: 'Le cuesta lo pegado a la pared izquierda y lo muy bajo: ajústala a la pared.', strong: 'Pega muy fuerte: puede mandarla al rebote. No te adelantes.', fast: 'Es muy rápido: llega casi a todo. Busca la pared o las dos paredes.', weak: 'Le falta fuerza: juega largo, lejos del frontis.', agile: 'Tiene buenas manos: hasta lo pegado a la pared lo devuelve.' },
     rebote: '¡Al rebote!',
     ctrlTouch: 'Joystick: moverte · mantén GOLPE para cargar y apuntar: el pelotari va solo a la pelota y la línea marca el camino y el bote · suelta cuando brille · a la izquierda va a la izquierda y a la derecha, a la derecha; arriba larga, abajo corta · a tope y arriba: al rebote · izquierda del todo: dos paredes · CORTADA rasa y rápida · DEJADA, junto al frontis.',
@@ -179,6 +211,11 @@ export const TEXT = {
       ['Errebotea', 'Atzeko horma. Pilota barruan bote egin ondoren iristen bada, itzuli egiten da eta jokoak jarraitzen du; bote egin gabe jotzen badu, kanpo da.'],
     ] },
     stats: { fuerza: 'Indarra', agilidad: 'Arintasuna', velocidad: 'Abiadura', rival: (n) => `${n}: honela jokatzen du` },
+    profile: { title: (n, r) => r ? `${n} · ${r}` : `${n}: honela jokatzen du`, run: 'Korrika', power: 'Indarra', hands: 'Eskuak', runW: ['gutxi', 'normal', 'asko'], powerW: ['gutxi', 'normala', 'handia'], handsW: ['traketsak', 'normalak', 'finak'],
+      shots: 'Bere kolpeak', names: { cortada: 'Cortada', dosparedes: 'Bi pareta', gancho: 'Ezkerrerako ganchoa', dejada: 'Dejada', largo: 'Luzea, errebotera' },
+      arch: { cortada: 'cortadazalea', dosparedes: 'bi paretakoa', gancho: 'ezkerreko ganchoetakoa', dejada: 'dejadazalea', largo: 'atzeko jotzailea' },
+      fast: 'oso azkarra', slow: 'motela', strong: 'oso gogor jotzen du',
+      warn: { cortada: 'Kontuz bere cortadarekin: baxua eta azkarra!', dosparedes: 'Kontuz bere bi paretekin: babestu eskuinaldea!', gancho: 'Kontuz bere ezkerrerako ganchoekin: ez urrundu paretatik!', dejada: 'Kontuz bere dejadekin: ez geratu atzean!', largo: 'Kontuz: luze jotzen du, errebotera! Ez aurreratu.' } },
     tips: { slow: 'Motela da: egin dejadak atzean dagoenean.', clumsy: 'Ezkerreko paretari itsatsitakoak eta oso baxuak kostatzen zaizkio: paretara estutu.', strong: 'Oso gogor jotzen du: errebotera bidal dezake. Ez aurreratu.', fast: 'Oso azkarra da: ia guztira iristen da. Bilatu pareta edo bi pareta.', weak: 'Indarra falta zaio: jokatu luze, frontisetik urrun.', agile: 'Esku onak ditu: paretari itsatsitakoak ere itzultzen ditu.' },
     rebote: 'Errebotera!',
     ctrlTouch: 'Joysticka: mugitu · eutsi JO kargatzeko eta zuzentzeko: pilotaria bera doa pilotara eta marrak bidea eta botea erakusten ditu · askatu distira egitean · ezkerrera ezkerrera doa eta eskuinera eskuinera; gora luzea, behera motza · ezkerrera erabat: bi pareta · CORTADA baxua eta azkarra · DEJADA, frontisaren ondoan.',

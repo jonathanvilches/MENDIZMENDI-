@@ -63,7 +63,11 @@ const CSS = `
 .pel-rv{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.32);border-radius:12px;padding:8px 12px;margin:0 0 12px;font-size:14px;color:#f3ecff}
 .pel-rv b{color:#FFD700;font-weight:900}.pel-rv .st{white-space:nowrap}.pel-rv .st i{font-style:normal;color:#FFD700;letter-spacing:1px}.pel-rv .st i u{color:rgba(255,255,255,.22);text-decoration:none}
 .pel-rv p{margin:0;flex:1 1 100%;font-size:13px;line-height:1.3;color:#d8cff0}
-.pel-rv2 .pr{display:flex;flex-wrap:wrap;gap:2px 12px;flex:1 1 100%}.pel-rv2 .pr em{font-style:normal;font-weight:900;min-width:9em}
+/* la ficha del rival: cómo corre, cuánto pega, sus manos, sus golpes preferidos y de qué tener cuidado */
+.pel-rv>.pf{flex:1 1 100%}.pf{display:flex;flex-wrap:wrap;align-items:center;gap:2px 12px;min-width:0}.pf>b{flex:1 1 100%}.pf .pf-k{color:#fff}
+.pf .pf-sh{flex:1 1 100%;font-size:13px}.pf .pf-sh em{font-style:normal;margin-right:12px;white-space:nowrap}.pf .pf-sh em i{font-style:normal;color:#FFD700;letter-spacing:1px}
+.pf p strong{color:#ffb9a8}.pel-rv.pel-rv2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 18px}
+@media (max-width:560px){.pel-rv.pel-rv2{grid-template-columns:1fr}}
 .pel-pairs{margin:0 0 10px;font-size:13px;line-height:1.3;color:#d8cff0}
 /* las partes del frontón: el botón junto al título y la ficha de cada parte, abajo */
 .pel-chip{margin-left:8px;border:1px solid rgba(255,215,0,.6);background:rgba(255,215,0,.12);color:#FFD700;border-radius:999px;padding:3px 11px;font:inherit;font-size:12px;font-weight:900;letter-spacing:0;cursor:pointer;vertical-align:middle;min-height:30px}
