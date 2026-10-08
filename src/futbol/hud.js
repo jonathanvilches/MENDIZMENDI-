@@ -14,7 +14,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-team{display:flex;align-items:center;gap:8px;padding:4px 8px;font-weight:900;font-size:var(--fs-sm);letter-spacing:.04em;min-width:0}
 .fb-team i{width:12px;height:20px;border-radius:3px;flex:none;box-shadow:0 0 0 1.5px rgba(255,255,255,.7)}
 .fb-team span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:22vw}.fb-team span.fb-sn{display:none}
-.fb-team b{font-family:'Lilita One',Nunito,sans-serif;font-weight:400;font-size:var(--fs-xl);line-height:1;min-width:1em;text-align:center}
+.fb-team b{font-family:'MZ Display',Nunito,sans-serif;font-weight:400;font-size:var(--fs-xl);line-height:1;min-width:1em;text-align:center}
 .fb-clock{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px 8px;background:rgba(255,255,255,.1);font-weight:900;font-size:var(--fs-md);line-height:1;font-variant-numeric:tabular-nums}
 .fb-clock small{font-size:var(--fs-xs);opacity:.8;font-weight:800;text-transform:uppercase;letter-spacing:.1em}
 .fb-say{display:none;font-size:var(--fs-sm);font-weight:800;padding:4px 12px;border-radius:12px;background:rgba(16,10,30,.62);max-width:min(92vw,480px);text-align:center;line-height:1.3}
@@ -30,9 +30,9 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-pause svg,.fb-cam svg{width:18px;height:18px}
 .fb-msg{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%) scale(.85);opacity:0;transition:opacity .2s,transform .25s cubic-bezier(.2,1.4,.4,1);text-align:center;pointer-events:none;max-width:92vw}
 .fb-msg.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
-.fb-msg h2{margin:0;font-family:'Lilita One',Nunito,sans-serif;font-weight:400;font-size:var(--fs-display);line-height:1;text-shadow:0 4px 0 rgba(0,0,0,.35),0 8px 26px rgba(0,0,0,.45);letter-spacing:0}
+.fb-msg h2{margin:0;font-family:'MZ Display',Nunito,sans-serif;font-weight:400;font-size:var(--fs-display);line-height:1;text-shadow:0 4px 0 rgba(0,0,0,.35),0 8px 26px rgba(0,0,0,.45);letter-spacing:0}
 .fb-msg p{margin:8px 0 0;font-size:var(--fs-lg);font-weight:900;text-shadow:0 2px 8px rgba(0,0,0,.6)}
-.fb-msg.goal h2{color:#ffd84a}
+.fb-msg.goal h2{color:#ff9bd8}
 .fb-stick{position:absolute;left:0;bottom:0;width:50vw;height:78dvh;pointer-events:auto;touch-action:none}
 .fb-knob{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;border:1.5px solid rgba(255,255,255,.6);background:rgba(8,10,20,.14);display:none}
 .fb-knob i{position:absolute;left:50%;top:50%;width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:50%;background:rgba(255,255,255,.72);box-shadow:0 1px 6px rgba(0,0,0,.25)}
@@ -58,48 +58,48 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-bars{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 8px);width:min(24vw,190px);display:flex;flex-direction:column;gap:4px;pointer-events:none}
 .fb-bar{height:4px;border-radius:3px;background:rgba(8,10,20,.4);overflow:hidden;box-shadow:0 0 0 .5px rgba(255,255,255,.4)}
 .fb-bar i{display:block;height:100%;width:100%;border-radius:6px;background:linear-gradient(90deg,#3fd36a,#a6f07a);transform-origin:left;transition:transform .05s linear}
-.fb-b.chg::after{content:'';position:absolute;inset:calc(-6px * var(--u));border-radius:50%;pointer-events:none;background:conic-gradient(#ffd700 0, #ff8a2a calc(var(--chg) * 300deg), #e0302a calc(var(--chg) * 360deg), rgba(255,255,255,.18) calc(var(--chg) * 360deg));-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 6px),#000 calc(100% - 5px));mask:radial-gradient(farthest-side,transparent calc(100% - 6px),#000 calc(100% - 5px))}
+.fb-b.chg::after{content:'';position:absolute;inset:calc(-6px * var(--u));border-radius:50%;pointer-events:none;background:conic-gradient(#ff7ac8 0, #ff8a2a calc(var(--chg) * 300deg), #e0302a calc(var(--chg) * 360deg), rgba(255,255,255,.18) calc(var(--chg) * 360deg));-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 6px),#000 calc(100% - 5px));mask:radial-gradient(farthest-side,transparent calc(100% - 6px),#000 calc(100% - 5px))}
 .fb-cd{display:flex;gap:2px;align-items:center;font-style:normal}.fb-cd:empty{display:none}.fb-cd u{width:6px;height:9px;border-radius:1.5px;box-shadow:0 1px 2px rgba(0,0,0,.4)}.fb-cd u.y{background:#ffd400}.fb-cd u.r{background:#e3262b}
 .fb-msg.card-y h2::before,.fb-msg.card-r h2::before{content:'';display:inline-block;width:.62em;height:.86em;border-radius:.08em;margin-right:.32em;vertical-align:-.08em;transform:rotate(-8deg);box-shadow:0 2px 6px rgba(0,0,0,.35)}.fb-msg.card-y h2::before{background:#ffd400}.fb-msg.card-r h2::before{background:#e3262b}
-.fb-bar.pow{opacity:0;transition:opacity .15s}.fb-bar.pow.on{opacity:1}.fb-bar.pow i{background:linear-gradient(90deg,#ffd700,#ff8a2a,#e0302a)}
+.fb-bar.pow{opacity:0;transition:opacity .15s}.fb-bar.pow.on{opacity:1}.fb-bar.pow i{background:linear-gradient(90deg,#ff7ac8,#ff8a2a,#e0302a)}
 .fb-arrow{position:absolute;width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-bottom:26px solid #ffe14a;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));display:none;transform-origin:50% 60%}
 /* consejo del tutorial y de los retos: pequeño, bajo el marcador (encima de la grada, no del campo); a los pocos segundos
    se recoge en un botón «?» que lo vuelve a abrir */
-.fb-tip{display:none;align-items:center;gap:8px;max-width:min(500px,64vw);padding:4px 12px 4px 4px;border-radius:13px;background:rgba(36,14,80,.8);border:1px solid rgba(255,215,0,.45);font-size:var(--fs-sm);font-weight:800;line-height:1.3;text-align:left;box-shadow:0 4px 14px rgba(0,0,0,.3);pointer-events:auto;cursor:pointer}
-.fb-tip.on{display:flex;animation:fbin .18s ease-out}.fb-tip b{color:#ffd84a}
-.fb-tip i{flex:none;width:20px;height:20px;border-radius:50%;background:#ffd84a;color:#2a1a00;font:900 var(--fs-sm)/20px Nunito,sans-serif;font-style:normal;text-align:center}
+.fb-tip{display:none;align-items:center;gap:8px;max-width:min(500px,64vw);padding:4px 12px 4px 4px;border-radius:13px;background:rgba(36,14,80,.8);border:1px solid rgba(255,122,200,.45);font-size:var(--fs-sm);font-weight:800;line-height:1.3;text-align:left;box-shadow:0 4px 14px rgba(0,0,0,.3);pointer-events:auto;cursor:pointer}
+.fb-tip.on{display:flex;animation:fbin .18s ease-out}.fb-tip b{color:#ff9bd8}
+.fb-tip i{flex:none;width:20px;height:20px;border-radius:50%;background:#ff9bd8;color:#2a0638;font:900 var(--fs-sm)/20px Nunito,sans-serif;font-style:normal;text-align:center}
 .fb-tip.mini{padding:4px;border-radius:50%;background:rgba(36,14,80,.6)}.fb-tip.mini span{display:none}
 .fb-keys{position:absolute;left:calc(env(safe-area-inset-left,0px) + 12px);bottom:calc(env(safe-area-inset-bottom,0px) + 8px);font-size:var(--fs-xs);font-weight:800;padding:4px 8px;border-radius:10px;background:rgba(16,10,30,.6);max-width:calc(100vw - 24px)}
 .fb-fouls{display:none;align-self:center;gap:8px;align-items:center;margin-top:4px;padding:2px 8px;border-radius:9px;background:rgba(14,10,30,.72);font:900 var(--fs-xs) Nunito,sans-serif;letter-spacing:.1em;color:#cbbcf0}
 .fb-fouls.show{display:flex}.fb-fouls span{display:flex;gap:2px}.fb-fouls u{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.22);text-decoration:none}
-.fb-fouls u.on{background:#ffd84a}.fb-fouls u.x{background:#ff4a4a}
+.fb-fouls u.on{background:#ff9bd8}.fb-fouls u.x{background:#ff4a4a}
 .fb-panel{position:absolute;inset:0;display:grid;place-items:center;background:rgba(10,4,24,.62);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);pointer-events:auto;padding:calc(env(safe-area-inset-top,0px) + 12px) 12px calc(env(safe-area-inset-bottom,0px) + 12px)}
 .fb-card{width:min(540px,100%);max-height:100%;overflow:auto;background:linear-gradient(180deg,#32136f,#1c0b3a);border:1px solid rgba(190,160,255,.3);border-radius:22px;padding:20px 20px 16px;box-shadow:0 24px 70px rgba(0,0,0,.55);text-align:center}
-.fb-card h2{margin:0 0 4px;font-family:'Lilita One',Nunito,sans-serif;font-weight:400;font-size:var(--fs-2xl);line-height:1.15}
+.fb-card h2{margin:0 0 4px;font-family:'MZ Display',Nunito,sans-serif;font-weight:400;font-size:var(--fs-2xl);line-height:1.15}
 .fb-card p{margin:4px 0 8px;color:#e6def7;font-weight:600;font-size:var(--fs-sm);line-height:1.3}
-.fb-card .fb-kick{color:#ffd84a;font-weight:900;font-size:var(--fs-sm);letter-spacing:.04em;text-transform:uppercase;margin:0}
+.fb-card .fb-kick{color:#ff9bd8;font-weight:900;font-size:var(--fs-sm);letter-spacing:.04em;text-transform:uppercase;margin:0}
 .fb-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:8px 0 8px;align-items:center}
 .fb-row label{width:100%;font-size:var(--fs-xs);font-weight:900;color:#cbbcf0;text-transform:uppercase;letter-spacing:.04em}
 .fb-chip{border:2px solid rgba(255,255,255,.35);background:rgba(255,255,255,.07);color:#fff;border-radius:999px;padding:8px 16px;font:800 var(--fs-sm)/1.3 Nunito,sans-serif;cursor:pointer;min-height:40px;min-width:44px}
-.fb-chip.on{background:#ffd700;border-color:#ffd700;color:#2a1a00}
-.fb-go{display:block;width:100%;margin-top:8px;border:0;border-radius:16px;padding:16px;font:400 var(--fs-lg) 'Lilita One',Nunito,sans-serif;color:#2a1a00;background:linear-gradient(180deg,#fff38f,#ffd700 55%,#f0b000);box-shadow:0 5px 0 #a86f00;cursor:pointer;min-height:52px}
+.fb-chip.on{background:#ff7ac8;border-color:#ff7ac8;color:#2a0638}
+.fb-go{display:block;width:100%;margin-top:8px;border:0;border-radius:16px;padding:16px;font:400 var(--fs-lg) 'MZ Display',Nunito,sans-serif;color:#2a0638;background:linear-gradient(180deg,#ffc2ec,#ff7ac8 55%,#ff3dbd);box-shadow:0 5px 0 #8a1c8f;cursor:pointer;min-height:52px}
 .fb-alt{display:block;width:100%;margin-top:8px;border:2px solid rgba(255,255,255,.4);border-radius:16px;padding:12px;font:800 var(--fs-md) Nunito,sans-serif;color:#fff;background:transparent;cursor:pointer;min-height:48px}
 /* (los botones de seguir y salir, siempre a la vista: si la tarjeta no cabe y se desplaza, se quedan pegados abajo) */
 .fb-card{display:flex;flex-direction:column;overflow:hidden}.fb-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
 .fb-foot{flex:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;padding-top:8px;margin-top:2px;border-top:1px solid rgba(190,160,255,.18)}.fb-foot.n4{grid-template-columns:1fr 1fr}
 .fb-foot .fb-go,.fb-foot .fb-alt{margin:0;width:100%}.fb-foot .fb-go{order:2}.fb-foot.n1 .fb-go{max-width:340px;justify-self:center}.fb-card .fb-alt{background:#1f0c40}
-.fb-fact{margin:8px 0 2px!important;padding:8px 12px;border-radius:12px;background:rgba(40,140,80,.22);border:1px solid rgba(120,220,150,.3);color:#e3f6e8!important;font-size:var(--fs-sm);line-height:1.45;text-align:left}.fb-fact b{display:block;color:#ffd84a;font-size:var(--fs-xs);letter-spacing:.04em;text-transform:uppercase}
+.fb-fact{margin:8px 0 2px!important;padding:8px 12px;border-radius:12px;background:rgba(40,140,80,.22);border:1px solid rgba(120,220,150,.3);color:#e3f6e8!important;font-size:var(--fs-sm);line-height:1.45;text-align:left}.fb-fact b{display:block;color:#ff9bd8;font-size:var(--fs-xs);letter-spacing:.04em;text-transform:uppercase}
 .fb-stats{width:100%;border-collapse:collapse;margin:8px 0 8px;font-size:var(--fs-md)}
 .fb-stats td{padding:4px 8px;border-bottom:1px solid rgba(255,255,255,.1)}.fb-stats td:first-child,.fb-stats td:last-child{font-weight:900;width:22%;font-variant-numeric:tabular-nums}.fb-stats td:nth-child(2){color:#cbbcf0;font-weight:700;font-size:var(--fs-sm)}
 .fb-ctabs{display:flex;gap:8px;margin:8px 0 12px}.fb-ctabs button{flex:1;min-height:44px;border-radius:12px;border:1px solid rgba(190,160,255,.35);background:rgba(255,255,255,.06);color:#fff;font:900 var(--fs-sm)/1.15 Nunito,system-ui,sans-serif;cursor:pointer}.fb-ctabs button[aria-selected=true]{background:linear-gradient(180deg,#8338ec,#5e22c4);border-color:#c9a6ff}
 .fb-cgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;text-align:left}
 .fb-ck{display:flex;align-items:flex-start;gap:8px;padding:8px 12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(190,160,255,.16);min-width:0}
 .fb-ck>i{flex:none;width:24px;height:24px;display:grid;place-items:center}.fb-ck>i svg{width:22px;height:22px}
-.fb-ck b{display:block;font-size:var(--fs-sm);font-weight:900;line-height:1.3}.fb-ck small{display:block;font-size:var(--fs-xs);font-weight:600;color:#d8cff0;line-height:1.3}.fb-ck em{display:block;font-style:normal;font-size:var(--fs-xs);font-weight:800;color:#FFD700;line-height:1.3;margin-top:2px}
+.fb-ck b{display:block;font-size:var(--fs-sm);font-weight:900;line-height:1.3}.fb-ck small{display:block;font-size:var(--fs-xs);font-weight:600;color:#d8cff0;line-height:1.3}.fb-ck em{display:block;font-style:normal;font-size:var(--fs-xs);font-weight:800;color:#ff7ac8;line-height:1.3;margin-top:2px}
 @media (max-width:520px){.fb-cgrid{grid-template-columns:1fr}}
 .fb-ctrl{width:100%;border-collapse:collapse;font-size:var(--fs-sm);text-align:left;margin:8px 0}.fb-ctrl th{font-size:var(--fs-xs);color:#cbbcf0;text-transform:uppercase;letter-spacing:.04em;padding:4px 4px}
 .fb-ctrl td{padding:4px;border-top:1px solid rgba(255,255,255,.1);vertical-align:middle;font-weight:800}.fb-ctrl td small{font-weight:600;color:#cbbcf0;font-size:var(--fs-xs)}.fb-ctrl td.ic{width:30px}.fb-ctrl td.ic svg{width:22px;height:22px}
-.fb-big{font-family:'Lilita One',Nunito,sans-serif;font-size:var(--fs-4xl);line-height:1;margin:8px 0}
+.fb-big{font-family:'MZ Display',Nunito,sans-serif;font-size:var(--fs-4xl);line-height:1;margin:8px 0}
 @media (max-width:640px) and (orientation:portrait){
   .fb-top{left:58px;right:58px}.fb-team{padding:4px 8px;font-size:var(--fs-xs)}.fb-team b{font-size:var(--fs-xl)}.fb-team span{max-width:18vw}
   .fb-team span.fb-ln{display:none}.fb-team span.fb-sn{display:inline}
@@ -347,9 +347,9 @@ export class FutbolHud {
   tactic(T) {
     return new Promise(res => {
       const ids = Object.keys(T.sistemas); let cur = T.actual;
-      const board = (id) => { const S = T.sistemas[id], dots = Object.entries(S.roles).map(([k, f]) => { const x = 50 + f.atk[1] * 42, y = 92 - (f.atk[0] + 1) / 1.9 * 84; return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.2" fill="${f.line === 1 ? '#5ab0ff' : f.line === 2 ? '#ffd23a' : '#ff6a5a'}" stroke="#0b1b10" stroke-width="1.2"/>`; }).join('');
+      const board = (id) => { const S = T.sistemas[id], dots = Object.entries(S.roles).map(([k, f]) => { const x = 50 + f.atk[1] * 42, y = 92 - (f.atk[0] + 1) / 1.9 * 84; return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.2" fill="${f.line === 1 ? '#5ab0ff' : f.line === 2 ? '#ff9bd8' : '#ff6a5a'}" stroke="#0b1b10" stroke-width="1.2"/>`; }).join('');
         return `<svg viewBox="0 0 100 100" class="fb-board"><rect x="2" y="2" width="96" height="96" rx="4" fill="#2e7d3a" stroke="#e8f5e0" stroke-width="1.4"/><line x1="2" y1="50" x2="98" y2="50" stroke="#e8f5e0" stroke-width="1"/><circle cx="50" cy="50" r="10" fill="none" stroke="#e8f5e0" stroke-width="1"/><rect x="28" y="86" width="44" height="12" fill="none" stroke="#e8f5e0" stroke-width="1"/><rect x="28" y="2" width="44" height="12" fill="none" stroke="#e8f5e0" stroke-width="1"/><circle cx="50" cy="94" r="4.2" fill="#fff" stroke="#0b1b10" stroke-width="1.2"/>${dots}</svg>`; };
-      const p = this.panel(`<p class="fb-kick">Táctica</p><h2>Elige el sistema</h2><div class="fb-tac"><div class="fb-tac-b"></div><div class="fb-tac-r"><div class="fb-row">${ids.map(id => `<button class="fb-chip ${id === cur ? 'on' : ''}" data-s="${id}">${id}</button>`).join('')}</div><p class="fb-tac-t"></p><p class="fb-tac-l"><i style="background:#5ab0ff"></i>Defensa <i style="background:#ffd23a"></i>Medio <i style="background:#ff6a5a"></i>Delantera</p></div></div><button class="fb-go">Aplicar</button><button class="fb-alt">Volver</button>`);
+      const p = this.panel(`<p class="fb-kick">Táctica</p><h2>Elige el sistema</h2><div class="fb-tac"><div class="fb-tac-b"></div><div class="fb-tac-r"><div class="fb-row">${ids.map(id => `<button class="fb-chip ${id === cur ? 'on' : ''}" data-s="${id}">${id}</button>`).join('')}</div><p class="fb-tac-t"></p><p class="fb-tac-l"><i style="background:#5ab0ff"></i>Defensa <i style="background:#ff9bd8"></i>Medio <i style="background:#ff6a5a"></i>Delantera</p></div></div><button class="fb-go">Aplicar</button><button class="fb-alt">Volver</button>`);
       const draw = () => { p.querySelector('.fb-tac-b').innerHTML = board(cur); p.querySelector('.fb-tac-t').textContent = T.sistemas[cur].text; p.querySelectorAll('[data-s]').forEach(b => b.classList.toggle('on', b.dataset.s === cur)); };
       draw();
       p.addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.s) { cur = b.dataset.s; draw(); return; } p.remove(); if (b.classList.contains('fb-go')) { T.pick(cur); T.actual = cur; res(cur); } else res(null); });

@@ -78,7 +78,7 @@ function mapLayout() {
   return (MAPL = { badges, names });
 }
 
-function ring(p, size = 54, color = '#FFD700', label = '') {
+function ring(p, size = 54, color = '#ff7ac8', label = '') {
   const r = size / 2 - 5, C = 2 * Math.PI * r;
   return `<svg class="ring" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="6"/><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${color}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${C * p} ${C}" transform="rotate(-90 ${size / 2} ${size / 2})"/><text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" fill="#fff" font-size="${size * 0.26}" font-weight="900">${label || Math.round(p * 100) + '%'}</text></svg>`;
 }
@@ -297,7 +297,7 @@ export class Hub {
     const p = profile();
     return `<h1 class="title">${I('map', 36)} Mapa de Navarra</h1><p class="lead">Toca una comarca para ver sus pueblos. Las comarcas se iluminan a medida que completas sus pueblos.</p>
       <div class="map-wrap"><div class="bigmap">${this.navarraSVG({ pins: true })}</div>
-      <aside class="legend2"><div class="navstats">${ring(navarraProgress(p).stamps / LEVELS.length, 84, '#FFD700')}<span>de Navarra sellada</span></div>
+      <aside class="legend2"><div class="navstats">${ring(navarraProgress(p).stamps / LEVELS.length, 84, '#ff7ac8')}<span>de Navarra sellada</span></div>
         <div class="lg"><span><i class="pin0"></i> Por descubrir</span><span><i class="pin1"></i> Empezado</span><span><i class="pin2"></i> Sellado</span></div>
         <div class="clist">${COMARCAS.filter(c => comarcaTowns(c.id).length).map((c, i) => { const pr = comarcaProgress(p, c.id); return `<button data-comarca="${c.id}" style="--c:${c.color}"><i>${i + 1}</i><b>${esc(c.name)}</b><small>${pr.stamps}/${pr.towns}</small></button>`; }).join('')}</div></aside></div>`;
   }

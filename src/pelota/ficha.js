@@ -93,10 +93,10 @@ const CSS = `
 .pfx-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px 24px}
 @media (max-width:600px){.pfx-body{grid-template-columns:1fr}}
 .pfx-head{display:flex;align-items:center;gap:12px;margin:0 0 12px}
-.pfx-av{flex:none;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-family:'Lilita One',Nunito,sans-serif;font-weight:400;font-size:var(--fs-xl);line-height:1;color:#fff;letter-spacing:.04em;border:2px solid rgba(255,255,255,.7)}
+.pfx-av{flex:none;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-family:'MZ Display',Nunito,sans-serif;font-weight:400;font-size:var(--fs-xl);line-height:1;color:#fff;letter-spacing:.04em;border:2px solid rgba(255,255,255,.7)}
 .pfx-av.blue{background:linear-gradient(180deg,#2a6fe0,#17419e)}.pfx-av.red{background:linear-gradient(180deg,#d9412a,#9c1f17)}
-.pfx-head small{display:block;font-size:var(--fs-xs);font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#FFD700}
-.pfx-head h3{margin:0;font-family:'Lilita One',Nunito,sans-serif;font-weight:400;font-size:var(--fs-xl);line-height:1.15;color:#fff}
+.pfx-head small{display:block;font-size:var(--fs-xs);font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#ff7ac8}
+.pfx-head h3{margin:0;font-family:'MZ Display',Nunito,sans-serif;font-weight:400;font-size:var(--fs-xl);line-height:1.15;color:#fff}
 .pfx-k{display:block;font-size:var(--fs-sm);font-weight:800;color:#e6def7;line-height:1.3}
 .pfx-data{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0}
 .pfx-data div{padding:8px 12px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(190,160,255,.18);min-width:0}
@@ -105,22 +105,22 @@ const CSS = `
 .pfx-sk h4{margin:0 0 8px;font-size:var(--fs-xs);font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#cbbcf0;line-height:1.3}
 .pfx-sk h4:not(:first-child){margin-top:12px}
 .pfx-bar{display:grid;grid-template-columns:88px 1fr 20px;align-items:center;gap:12px;min-height:28px;font-size:var(--fs-sm);font-weight:800}
-.pfx-bar i{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}.pfx-bar u{height:12px;border-radius:4px;background:rgba(255,255,255,.14)}.pfx-bar u.on{background:linear-gradient(180deg,#ffe36a,#f0b400)}
-.pfx-bar b{text-align:right;color:#FFD700}
+.pfx-bar i{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}.pfx-bar u{height:12px;border-radius:4px;background:rgba(255,255,255,.14)}.pfx-bar u.on{background:linear-gradient(180deg,#ffc2ec,#ff3dbd)}
+.pfx-bar b{text-align:right;color:#ff7ac8}
 .pfx-shots{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
-.pfx-shots li{padding:4px 12px;border-radius:999px;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.35);font-size:var(--fs-sm);font-weight:800;line-height:1.45;display:flex;gap:4px;align-items:center}
-.pfx-shots li i{font-style:normal;color:#FFD700;letter-spacing:.1em}
+.pfx-shots li{padding:4px 12px;border-radius:999px;background:rgba(255,122,200,.1);border:1px solid rgba(255,122,200,.35);font-size:var(--fs-sm);font-weight:800;line-height:1.45;display:flex;gap:4px;align-items:center}
+.pfx-shots li i{font-style:normal;color:#ff7ac8;letter-spacing:.1em}
 .pfx-tip{margin:0;font-size:var(--fs-sm);line-height:1.45;color:#e6def7}
 .pfx-note{margin:8px 0 0;font-size:var(--fs-xs);line-height:1.3;color:#cbbcf0}.pfx-tip strong{color:#ffb9a8}
 /* tarjeta de un pelotari (en el partido y en el torneo): al tocarla se abre su ficha */
 .pfx-pl{display:flex;align-items:center;gap:8px;min-width:0;min-height:48px;padding:4px 8px 4px 4px;border-radius:12px;border:1px solid rgba(190,160,255,.35);background:rgba(255,255,255,.06);color:#fff;text-align:left;font:inherit;cursor:pointer}
 .pfx-pl.blue{border-color:rgba(74,163,255,.55)}.pfx-pl.red{border-color:rgba(255,106,74,.55)}.pfx-pl:active{transform:translateY(1px)}
-.pfx-pl-av{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-family:'Lilita One',Nunito,sans-serif;font-weight:400;font-size:var(--fs-md);line-height:1;color:#fff;letter-spacing:.04em;border:2px solid rgba(255,255,255,.7)}
+.pfx-pl-av{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-family:'MZ Display',Nunito,sans-serif;font-weight:400;font-size:var(--fs-md);line-height:1;color:#fff;letter-spacing:.04em;border:2px solid rgba(255,255,255,.7)}
 .pfx-pl.blue .pfx-pl-av{background:linear-gradient(180deg,#2a6fe0,#17419e)}.pfx-pl.red .pfx-pl-av{background:linear-gradient(180deg,#d9412a,#9c1f17)}
 .pfx-pl-t{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.3}
 .pfx-pl-t b{font-size:var(--fs-md);font-weight:900;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pfx-pl-t small{font-size:var(--fs-xs);font-weight:800;color:#e6def7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pfx-pl-go{flex:none;padding:4px 8px;border-radius:999px;background:rgba(255,215,0,.14);border:1px solid rgba(255,215,0,.5);color:#FFD700;font-size:var(--fs-xs);font-weight:900;letter-spacing:.04em;text-transform:uppercase;line-height:1.3}
+.pfx-pl-go{flex:none;padding:4px 8px;border-radius:999px;background:rgba(255,122,200,.14);border:1px solid rgba(255,122,200,.5);color:#ff7ac8;font-size:var(--fs-xs);font-weight:900;letter-spacing:.04em;text-transform:uppercase;line-height:1.3}
 @media (max-width:520px){.pfx-pl-go{display:none}}
 @media (orientation:landscape) and (max-height:500px){.pfx-card{padding:12px 16px 16px;gap:8px}.pfx-head{margin-bottom:8px}.pfx-av{width:48px;height:48px}.pfx-data div{padding:4px 8px}.pfx-data dd{font-size:var(--fs-sm)}.pfx-bar{min-height:24px}.pfx-sk h4:not(:first-child){margin-top:8px}.pfx-shots{gap:4px}.pfx-shots li{padding:0 8px}}
 `;

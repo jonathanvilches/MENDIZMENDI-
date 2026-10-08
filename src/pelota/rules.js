@@ -53,19 +53,22 @@ export const levelTier = (lv) => ({ iniciacion: 1, facil: 1, normal: 2, dificil:
 // lluvia, o el Labrit de las finales) cambia un poco la pelota. Devuelve lo que se nota en la física (front, floor, run:
 // para setFeel de physics.js) y sus rasgos, cada uno con su nombre y lo que pasa, para contarlo antes del partido
 const FEEL_TXT = {
-  es: { covered: ['A cubierto', 'Sin viento ni lluvia: la pelota bota igual todo el partido.'], open: ['Al aire libre', 'Suelo seco: bote de siempre.'],
+  es: { hall: ['Frontón cubierto', 'Cerrado y con el rebote hasta el techo: la pelota no se sale. Luz de pabellón.'], covered: ['A cubierto', 'Sin viento ni lluvia: la pelota bota igual todo el partido.'], open: ['Al aire libre', 'Suelo seco: bote de siempre.'],
     stone: ['Frontis de piedra', 'La pelota sale más lenta del frontis: da más tiempo, pero para llegar atrás hay que pegar fuerte.'],
     wet: ['Suelo mojado', 'Llueve: la pelota bota menos y llega baja. Hay que agacharse antes.'],
     labrit: ['Labrit', 'El frontón de las finales: pelota viva, sale rápida del frontis y bota alegre.'] },
-  eu: { covered: ['Estalita', 'Haizerik eta euririk gabe: pilotak berdin botatzen du partida osoan.'], open: ['Aire zabalean', 'Lur lehorra: betiko botea.'],
+  eu: { hall: ['Frontoi estalia', 'Itxia eta errebotea sabairaino: pilota ez da ateratzen. Pabiloiko argia.'], covered: ['Estalita', 'Haizerik eta euririk gabe: pilotak berdin botatzen du partida osoan.'], open: ['Aire zabalean', 'Lur lehorra: betiko botea.'],
     stone: ['Harrizko frontisa', 'Pilota motelago ateratzen da frontisetik: denbora gehiago dago, baina atzera iristeko gogor jo behar da.'],
     wet: ['Lur bustia', 'Euria ari du: pilotak gutxiago botatzen du eta baxu iristen da. Lehenago makurtu behar da.'],
     labrit: ['Labrit', 'Finaletako frontoia: pilota bizia, frontisetik azkar ateratzen da eta alai botatzen du.'] },
 };
-export function courtFeel({ covered = false, stone = false, wet = false, labrit = false } = {}, lang = 'es') {
+export function courtFeel({ covered = false, stone = false, wet = false, labrit = false, hall = false } = {}, lang = 'es') {
   const T = FEEL_TXT[lang] || FEEL_TXT.es, f = { front: 1, floor: 1, run: 1 }, tags = [];
+  // (cerrado por todas partes: el rebote llega al techo y la pelota no se sale por detrás)
+  if (hall) { f.backH = 30; f.leftH = 30; }
   const tag = (k) => tags.push({ k, name: T[k][0], what: T[k][1] });
   if (labrit) { f.front *= 1.05; f.floor *= 1.05; tag('labrit'); }
+  else if (hall) tag('hall');
   else if (covered) tag('covered');
   else if (wet) { f.floor *= 0.86; f.run *= 1.06; tag('wet'); }   // (al aire libre y lloviendo: el suelo, mojado)
   else tag('open');
@@ -76,6 +79,16 @@ export function courtFeel({ covered = false, stone = false, wet = false, labrit 
 // Cualidades de cada pelotari (de 1 a 5): fuerza (lo largo y rápido que pega: los fuertes llegan al rebote), agilidad
 // (reflejos y manos: lo pegado a la pared izquierda o lo muy bajo les cuesta menos) y velocidad (lo que corren: a uno lento
 // le pillan las dejadas). Salen del nombre y del nivel (1 a 3): siempre las mismas para el mismo pelotari
+// la carta de un pelotari, como en los juegos de fútbol: cada cualidad (de 1 a 5) en la escala de 0 a 99, con un pequeño
+// ajuste que sale del nombre (siempre el mismo para el mismo pelotari) para que no salgan todas iguales, y la media
+const fnv = (s) => { let h = 2166136261; for (const ch of String(s)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
+/** Una cualidad de 1 a 5 en la escala de 0 a 99 (k distingue cada cualidad del mismo jugador). */
+export const rate99 = (v, seed = '', k = 0) => Math.max(40, Math.min(99, Math.round(38 + (v || 3) * 11 + ((fnv(seed + k) % 7) - 3))));
+/** { vel, pot, man, ovr } de un pelotari; bonus: lo que sube la media (la tuya, con cada txapela; la del rival, con su nivel). */
+export function pelotariRating(st = {}, seed = '', bonus = 0) {
+  const vel = rate99(st.velocidad, seed, 1), pot = rate99(st.fuerza, seed, 2), man = rate99(st.agilidad, seed, 3);
+  return { vel, pot, man, ovr: Math.max(45, Math.min(99, Math.round((vel + pot + man) / 3 + bonus))) };
+}
 export function pelotariStats(seed = '', lv = 2) {
   let h = 2166136261; for (const ch of String(seed)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
   const r = () => { h = Math.imul(h ^ (h >>> 15), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
@@ -165,7 +178,7 @@ export const TEXT = {
       'Cada golpe cansa, más si es fuerte. Con poca energía se falla más; entre tanto y tanto se descansa.',
       'Si bota dentro y llega a la pared de atrás (el rebote), vuelve y se puede jugar antes del segundo bote. Si da en el rebote sin botar, es fuera.',
     ],
-    level: 'Nivel', rulesTitle: 'Reglas y controles', moreTitle: 'Más opciones', energy: 'Energía', autoHit: ['Golpe automático', 'Tú te mueves; el golpe sale solo cuando la pelota está a tu alcance.'], vsTap: 'Toca para empezar', fronton: (t) => `Frontón de ${t}`,
+    level: 'Nivel', rulesTitle: 'Reglas y controles', moreTitle: 'Más opciones', energy: 'Energía', autoHit: ['Golpe automático', 'Tú te mueves; el golpe sale solo cuando la pelota está a tu alcance.'], vsTap: 'Toca para empezar', fronton: (t) => `Frontón de ${t}`, card: ['Vel', 'Pot', 'Man'], ovr: 'Media', friendly: 'Partido amistoso',
     levels: { iniciacion: 'Iniciación', facil: 'Fácil', normal: 'Normal', dificil: 'Difícil', experto: 'Experto' },
     // las partes del frontón, una a una con la cámara (cada zona tiene su nombre, y hay que saberlo para seguir el juego)
     tour: { btn: 'Partes del frontón', next: 'Siguiente', prev: 'Anterior', end: 'Volver', parts: [
@@ -249,7 +262,7 @@ export const TEXT = {
       'Kolpe bakoitzak nekatzen du, gogorra bada gehiago. Energia gutxirekin gehiago huts egiten da; tanto batetik bestera atseden hartzen da.',
       'Barruan bote egin eta atzeko paretara (errebotera) iristen bada, itzuli egiten da eta bigarren botea baino lehen jo daiteke. Bote egin gabe errebotean jotzen badu, kanpo da.',
     ],
-    level: 'Maila', rulesTitle: 'Arauak eta kontrolak', moreTitle: 'Aukera gehiago', energy: 'Energia', autoHit: ['Kolpe automatikoa', 'Zu mugitu; kolpea bakarrik ateratzen da pilota zure eskura dagoenean.'], vsTap: 'Ukitu hasteko', fronton: (t) => `Frontoia · ${t}`,
+    level: 'Maila', rulesTitle: 'Arauak eta kontrolak', moreTitle: 'Aukera gehiago', energy: 'Energia', autoHit: ['Kolpe automatikoa', 'Zu mugitu; kolpea bakarrik ateratzen da pilota zure eskura dagoenean.'], vsTap: 'Ukitu hasteko', fronton: (t) => `Frontoia · ${t}`, card: ['Abi', 'Ind', 'Esk'], ovr: 'Batez', friendly: 'Lagunarteko partida',
     levels: { iniciacion: 'Hasiera', facil: 'Erraza', normal: 'Normala', dificil: 'Zaila', experto: 'Aditua' },
     tour: { btn: 'Frontoiaren atalak', next: 'Hurrengoa', prev: 'Aurrekoa', end: 'Itzuli', parts: [
       ['Frontisa', 'Aurreko horma. Pilota orok bertan jo behar du, goiko marraren azpitik.'],

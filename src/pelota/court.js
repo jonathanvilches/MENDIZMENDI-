@@ -106,6 +106,8 @@ export const THEMES = {
 
 // el Labrit: contracancha ancha y la huella del edificio entero (con los torreones y la escalinata), para buscarle sitio en Iruña
 export const LABRIT_CONTRA = 4.4;
+// el frontón cubierto de los campeonatos: alto hasta el techo y contracancha algo más ancha (con la grada al lado)
+export const HALL_H = 13, HALL_CONTRA = 3.4, HALL_ROWS = 7;
 export function labritExtent() {
   const W = COURT.W, EXT = COURT.L + 3, xr = W / 2 + LABRIT_CONTRA, zf = EXT + 0.3, xa = -W / 2 - 0.6, xb = xr + 14.6, za = -1.0, zb = zf + 14.6;
   return { x0: xa - 4.9, x1: xb + 4.9, z0: za - 4.9, z1: zb + 6.5 };
@@ -117,7 +119,8 @@ export class PelotaCourt {
     this.THREE = T; TEX_K = opts.texScale || 1;
     this.look = th;   // (cómo es: con cubierta, frontis de piedra... de ahí sale cómo se juega en él, courtFeel)
     const g = this.group = new T.Group(); g.name = 'Fronton';
-    const W = C.W, L = C.L, EXT = L + 3, CONTRA = opts.labrit ? LABRIT_CONTRA : 2.6;   // (el Labrit, con su contracancha ancha de tarima)
+    const HALL = !!opts.hall && !opts.labrit;   // (frontón cubierto y cerrado: el de los campeonatos)
+    const W = C.W, L = C.L, EXT = L + 3, CONTRA = opts.labrit ? LABRIT_CONTRA : HALL ? HALL_CONTRA : 2.6;   // (el Labrit, con su contracancha ancha de tarima)
     const std = (o) => new T.MeshStandardMaterial(Object.assign({ roughness: 0.88, metalness: 0 }, o));
     this.materials = [];
     const M = (o) => { const m = std(o); this.materials.push(m); return m; };
@@ -281,7 +284,7 @@ export class PelotaCourt {
     // el rebote cierra la cancha por detrás, tan alto como la pared izquierda (solo detrás de la cancha: se entra por la
     // contracancha). En el Labrit, el muro bajo con la grada en herradura detrás. Cuando la cámara queda detrás de él,
     // se ve a través, como en los dibujos de las partes del frontón
-    const RH = this.reboteH = opts.labrit ? 2.2 : C.LEFT_H;
+    const RH = this.reboteH = opts.labrit ? 2.2 : HALL ? HALL_H : C.LEFT_H;
     const rebTex = canvasTex(T, 512, 512, (c, w, h) => {
       if (th.brick) bricks(c, w, h, W + 0.6, RH, '#a85c3e');
       else { c.fillStyle = th.wall; c.fillRect(0, 0, w, h); grain(c, w, h, 9000, 0.06); grain(c, w, h, 3000, 0.05, false); }
@@ -290,9 +293,9 @@ export class PelotaCourt {
     const rebIn = M({ map: rebTex, transparent: true }), rebOut = M({ map: outerTex, transparent: true }), rebCap = M({ color: th.cap, roughness: 0.8, transparent: true });
     const back = new T.Mesh(new T.BoxGeometry(W + 0.6, RH, 0.4), [rebOut, rebOut, rebCap, rebOut, rebOut, rebIn]);
     back.position.set(-0.3, RH / 2, EXT + 0.2); back.castShadow = true; back.receiveShadow = true; g.add(back);
-    if (!opts.labrit) { const capR = new T.Mesh(new T.BoxGeometry(W + 0.9, 0.2, 0.85), rebCap); capR.position.set(-0.3, RH + 0.1, EXT + 0.2); capR.castShadow = true; g.add(capR); }
+    if (!opts.labrit && !HALL) { const capR = new T.Mesh(new T.BoxGeometry(W + 0.9, 0.2, 0.85), rebCap); capR.position.set(-0.3, RH + 0.1, EXT + 0.2); capR.castShadow = true; g.add(capR); }
     this.rebMats = [rebIn, rebOut, rebCap]; this.rebFade = 1; this.contra = CONTRA;
-    if (!opts.labrit) for (let i = 0; i < 3; i++) {
+    if (!opts.labrit && !HALL) for (let i = 0; i < 3; i++) {
       const st = new T.Mesh(new T.BoxGeometry(1.1, 0.42 * (i + 1), L * 0.78), M({ color: th.stands, roughness: 0.9 }));
       st.position.set(W / 2 + CONTRA + 0.55 + i * 1.1, 0.21 * (i + 1), L * 0.52); st.castShadow = true; st.receiveShadow = true; g.add(st);
     }
@@ -300,7 +303,7 @@ export class PelotaCourt {
     // del público que viene a ver el partido (sentado en ellos, mirando a la cancha)
     const benchM = M({ color: '#8a5a34', roughness: 0.7 }), benchG = new T.BoxGeometry(0.42, 0.06, L * 0.76);
     this.standSpots = [];
-    if (!opts.labrit) for (let i = 0; i < 3; i++) {
+    if (!opts.labrit && !HALL) for (let i = 0; i < 3; i++) {
       const x = W / 2 + CONTRA + 0.42 + i * 1.1, y = 0.42 * (i + 1);
       for (const dx of [0, 0.2]) { const b = new T.Mesh(benchG, benchM); b.position.set(x + dx - 0.1, y + 0.05, L * 0.52); b.castShadow = true; b.receiveShadow = true; g.add(b); }
       for (let z = L * 0.52 - L * 0.37; z < L * 0.52 + L * 0.37; z += 0.58) this.standSpots.push([x + 0.05, y + 0.02, z + (Math.random() - 0.5) * 0.12, -Math.PI / 2]);
@@ -315,8 +318,9 @@ export class PelotaCourt {
       { x: W / 2 + CONTRA + 1.65, z: L * 0.52, w: 3.3, d: L * 0.78 },
     ];
     if (opts.labrit) this.buildLabrit(T, M, th, W, CONTRA, EXT, L, opts);
+    else if (HALL) this.buildHall(T, M, th, W, CONTRA, EXT, L, opts);
     else if (th.roof) this.buildRoof(T, M, th, -W / 2 - 0.6, W / 2 + CONTRA + 3.3, -0.9, EXT + 0.5);
-    if (!opts.labrit) this.buildFloods(T, M, !!th.roof, W, CONTRA, EXT);
+    if (!opts.labrit && !HALL) this.buildFloods(T, M, !!th.roof, W, CONTRA, EXT);
 
     // --- pelota, sombra, estela y ayudas
     const ball = this.ball = new T.Group();
@@ -577,6 +581,76 @@ export class PelotaCourt {
     this.labrit = true;
     g.traverse(o => { if (o.isMesh) o.castShadow = false; });   // (dentro, bajo la cubierta: sin sombras del sol sobre la cancha)
   }
+  // ---------- frontón cubierto (los campeonatos) ----------
+  // Como los frontones municipales cubiertos de Navarra: cerrado por todas partes, con el frontis, la pared izquierda y el
+  // rebote verdes hasta el techo (la pelota no se sale), la grada a lo largo de la contracancha con sus asientos, la pared
+  // derecha con ventanales altos, el techo con sus cerchas y las filas de luces del pabellón, y el nombre del pueblo en
+  // grande. Sin anuncios ni escudos de clubes. Dentro no se ve nada de fuera: no hace falta paisaje.
+  buildHall(T, M, th, W, CONTRA, EXT, L, opts = {}) {
+    const C = COURT, g = this.group, H = HALL_H, xs = W / 2 + CONTRA + 0.2, RD = 0.8, RU = 0.42, xr = xs + HALL_ROWS * RD + 0.5, za = -0.8, zb = EXT + 0.4;
+    const box = (w, h, d, mat, x, y, z) => { const m = new T.Mesh(new T.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); m.receiveShadow = true; g.add(m); return m; };
+    const wallM = M({ color: th.wall, roughness: 0.9 }), concrete = M({ color: '#8c8794', roughness: 0.95 }), dark = M({ color: '#24202c', roughness: 0.8 });
+    const steel = M({ color: '#5d5a66', roughness: 0.5, metalness: 0.45 });
+    // el muro alto: la pared izquierda sube hasta el techo con una franja de ventanales arriba (luz de día, sin sol directo)
+    const winTex = canvasTex(T, 1024, 256, (c, w, h) => {
+      c.fillStyle = th.wall; c.fillRect(0, 0, w, h); grain(c, w, h, 5000, 0.05);
+      const n = 12, pw = w / n; for (let i = 0; i < n; i++) { const gr = c.createLinearGradient(0, h * 0.2, 0, h * 0.8); gr.addColorStop(0, '#e9f0ff'); gr.addColorStop(1, '#b9c4e6');
+        c.fillStyle = gr; c.fillRect(i * pw + pw * 0.12, h * 0.22, pw * 0.76, h * 0.56); c.fillStyle = 'rgba(40,40,60,.55)'; c.fillRect(i * pw + pw * 0.5 - 2, h * 0.22, 4, h * 0.56); c.fillRect(i * pw + pw * 0.12, h * 0.5 - 2, pw * 0.76, 4); }
+    });
+    const upH = H - C.LEFT_H - 0.2, upL = new T.Mesh(new T.BoxGeometry(0.6, upH, EXT + 1.2), [M({ map: winTex, emissive: '#ffffff', emissiveMap: winTex, emissiveIntensity: 0.25 }), wallM, wallM, wallM, wallM, wallM]);
+    upL.position.set(-W / 2 - 0.3, C.LEFT_H + 0.2 + upH / 2, EXT / 2); g.add(upL);
+    // por encima del frontis, hasta el techo, oscuro (así resalta el marcador); y la pared de delante de la contracancha
+    box(xr - (-W / 2 - 0.6), H - C.FRONT_H, 0.6, dark, (xr + (-W / 2 - 0.6)) / 2, C.FRONT_H + (H - C.FRONT_H) / 2, za);
+    box(xr - (W / 2 + 0.3), C.FRONT_H, 0.6, wallM, (xr + W / 2 + 0.3) / 2, C.FRONT_H / 2, za);
+    // el fondo, detrás de la contracancha y de la grada (el rebote ya llega al techo)
+    box(xr - (W / 2 + 0.3), H, 0.6, wallM, (xr + W / 2 + 0.3) / 2, H / 2, zb);
+    // la pared derecha, detrás de la grada: el nombre del frontón en grande y ventanales arriba
+    const name = (opts.hallName || 'FRONTÓN').toUpperCase(), sub = (opts.hallSub || '').toUpperCase();
+    const rTex = canvasTex(T, 2048, 512, (c, w, h) => {
+      c.fillStyle = th.wall; c.fillRect(0, 0, w, h); grain(c, w, h, 12000, 0.05); grain(c, w, h, 4000, 0.04, false);
+      const n = 14, pw = w / n; for (let i = 0; i < n; i++) { c.fillStyle = '#d8e2fa'; c.fillRect(i * pw + pw * 0.15, h * 0.04, pw * 0.7, h * 0.16); }
+      c.fillStyle = '#fbf8f0'; let fs = h * 0.26; c.font = `900 ${fs}px "Lilita One", Nunito, "Arial Black", sans-serif`;
+      const tw = c.measureText(name).width; if (tw > w * 0.8) { fs *= w * 0.8 / tw; c.font = `900 ${fs}px "Lilita One", Nunito, "Arial Black", sans-serif`; }
+      c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(name, w / 2, h * 0.42);
+      if (sub) { c.font = `700 ${h * 0.09}px "Lilita One", Nunito, Arial, sans-serif`; c.fillText(sub, w / 2, h * 0.6); }
+      c.fillStyle = th.mark; c.fillRect(w * 0.2, h * 0.66, w * 0.6, h * 0.012);
+    });
+    const rw = new T.Mesh(new T.BoxGeometry(0.6, H, zb - za), [wallM, M({ map: rTex }), wallM, wallM, wallM, wallM]);   // (la cara −x mira a la cancha)
+    rw.position.set(xr + 0.3, H / 2, (za + zb) / 2); g.add(rw);
+    // el techo: oscuro, con cerchas de acero de lado a lado y filas de luces del pabellón (paneles blancos encendidos)
+    box(xr - (-W / 2 - 0.6) + 0.6, 0.3, zb - za + 0.6, dark, (xr + (-W / 2 - 0.6)) / 2, H + 0.15, (za + zb) / 2);
+    for (let z = 2; z < zb; z += 4) { box(xr + W / 2 + 0.6, 0.5, 0.18, steel, (xr + (-W / 2 - 0.6)) / 2, H - 0.45, z); }
+    box(0.2, 0.6, zb - za, steel, 0, H - 0.75, (za + zb) / 2); box(0.2, 0.6, zb - za, steel, xs - 0.5, H - 0.75, (za + zb) / 2);
+    const lampM = new T.MeshBasicMaterial({ color: '#fbfaff', toneMapped: false }), lampG = new T.BoxGeometry(1.5, 0.12, 0.7);
+    const lamps = []; for (const x of [-W / 4, W / 4, xs + 1.6]) for (let z = 2.8; z < EXT - 0.5; z += 4) lamps.push([x, z]);
+    const LI = new T.InstancedMesh(lampG, lampM, lamps.length), m4 = new T.Matrix4();
+    lamps.forEach(([x, z], i) => LI.setMatrixAt(i, m4.makeTranslation(x, H - 1.1, z))); LI.name = 'luces-pabellon'; g.add(LI);
+    // la grada: escalones de hormigón a lo largo de la contracancha, con su barandilla y los asientos (una sola llamada)
+    const z0 = 1.6, z1 = EXT - 1.6, len = z1 - z0;
+    for (let i = 0; i < HALL_ROWS; i++) { const top = 0.5 + i * RU; box(RD, top, len, concrete, xs + i * RD + RD / 2, top / 2, (z0 + z1) / 2); }
+    box(0.08, 1.05, len, steel, xs - 0.04, 0.52, (z0 + z1) / 2);   // (el murete con la barandilla delante de la grada)
+    // (cada asiento: el respaldo detrás y el asiento a 0,45 m del escalón; dos piezas, cada una una sola llamada)
+    const seatG = new T.BoxGeometry(0.4, 0.08, 0.44).translate(0, 0.41, 0), backG = new T.BoxGeometry(0.06, 0.44, 0.44).translate(0.2, 0.62, 0), legG = new T.BoxGeometry(0.08, 0.37, 0.3).translate(0.08, 0.185, 0);
+    const seats = []; this.standSpots = [];
+    for (let i = 0; i < HALL_ROWS; i++) for (let z = z0 + 0.35; z < z1 - 0.2; z += 0.52) {
+      if (Math.abs(z - (z0 + len / 3)) < 0.5 || Math.abs(z - (z0 + 2 * len / 3)) < 0.5) continue;   // (dos pasillos para subir)
+      const x = xs + i * RD + 0.42, y = 0.5 + i * RU; seats.push([x, y, z]); this.standSpots.push([x, y + 0.45, z, -Math.PI / 2]);   // (la altura del asiento)
+    }
+    const seatM = M({ color: '#ffffff', roughness: 0.6 }), col = new T.Color();
+    for (const [geo, nm] of [[seatG, 'asientos'], [backG, 'respaldos'], [legG, 'patas']]) {
+      const SI = new T.InstancedMesh(geo, nm === 'patas' ? steel : seatM, seats.length);
+      seats.forEach(([x, y, z], i) => { SI.setMatrixAt(i, m4.makeTranslation(x, y, z)); if (nm !== 'patas') SI.setColorAt(i, col.set(i % 11 === 0 ? '#8e6ae8' : '#5b34c4')); });
+      SI.receiveShadow = true; SI.name = nm; g.add(SI);
+    }
+    this.seated = true;   // (el público, sentado en sus asientos)
+    this.extent = { x0: -W / 2 - 0.9, x1: xr + 0.9, z0: za - 0.6, z1: zb + 0.6 };
+    this.platform = { x0: -W / 2 - 0.6, x1: xs, z0: za, z1: zb };   // (se anda por la cancha y la contracancha; la grada, no)
+    this.boxes = this.boxes.filter(b => b.d !== L * 0.78);
+    this.boxes.push({ x: (xs + xr) / 2, z: (z0 + z1) / 2, w: xr - xs, d: len }, { x: (xr + W / 2 + 0.3) / 2, z: za, w: xr - W / 2 - 0.3, d: 0.6 }, { x: (xr + W / 2 + 0.3) / 2, z: zb, w: xr - W / 2 - 0.3, d: 0.6 });
+    this.entry = { x: W / 2 + CONTRA / 2, z: EXT - 1.2 };
+    this.hall = true;
+    g.traverse(o => { if (o.isMesh) o.castShadow = false; });   // (bajo techo, con la luz del pabellón: sin sombras que crucen la cancha)
+  }
   /** El marcador del Labrit: los dos nombres con su color y los tantos. */
   setScore(you, rival, a, b) {
     // (la pantalla de la pared derecha, solo en el Labrit; el grande del frontis, en todos)
@@ -593,15 +667,15 @@ export class PelotaCourt {
     const d = this.bigCanvas?.getContext('2d'); if (!d) return;
     const W2 = 1024, H2 = 192, half = (x0, col, name, n, right) => {
       d.fillStyle = col; d.fillRect(x0, 12, W2 / 2 - 18, H2 - 24);
-      d.fillStyle = '#ffffff'; d.font = '900 64px "Lilita One", Nunito, Arial, sans-serif'; d.textBaseline = 'middle';
+      d.fillStyle = '#ffffff'; d.font = '400 72px "MZ Display", "Lilita One", Nunito, Arial, sans-serif'; d.textBaseline = 'middle';
       let t = String(name || '').toUpperCase(); while (t.length > 3 && d.measureText(t).width > 300) t = t.slice(0, -1);
       d.textAlign = right ? 'right' : 'left'; d.fillText(t, right ? x0 + W2 / 2 - 48 : x0 + 30, H2 / 2 + 4);
-      d.fillStyle = '#ffd23c'; d.font = '900 132px "Lilita One", Nunito, Arial, sans-serif'; d.textAlign = 'center';
+      d.fillStyle = '#ffffff'; d.font = '400 140px "MZ Display", "Lilita One", Nunito, Arial, sans-serif'; d.textAlign = 'center';
       d.fillText(String(n), right ? x0 + 70 : x0 + W2 / 2 - 88, H2 / 2 + 8);
     };
-    d.fillStyle = '#101418'; d.fillRect(0, 0, W2, H2);
-    half(6, '#2f6fd0', you, a, false); half(W2 / 2 + 12, '#d03a2f', rival, b, true);
-    d.strokeStyle = '#ffd23c'; d.lineWidth = 6; d.strokeRect(3, 3, W2 - 6, H2 - 6);
+    d.fillStyle = '#0b0618'; d.fillRect(0, 0, W2, H2);
+    half(6, '#4b3cff', you, a, false); half(W2 / 2 + 12, '#e8247c', rival, b, true);
+    d.strokeStyle = '#ff2bd6'; d.lineWidth = 6; d.strokeRect(3, 3, W2 - 6, H2 - 6);
     this.bigTex.needsUpdate = true;
   }
   // focos: proyectores sobre la pared izquierda y en torres junto a la grada (con cubierta, colgados de ella). De día
