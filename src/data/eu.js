@@ -234,6 +234,24 @@ export const EU_EXACT = {
   'Baztan-Bidasoa': 'Baztan-Bidasoa', 'Larraun-Leitzaldea': 'Larraun-Leitzaldea', 'Sakana': 'Sakana', 'Valdizarbe-Novenera': 'Valdizarbe-Novenera',
   'Recuperando la imagen…': 'Irudia berreskuratzen…', 'Saludando a los vecinos…': 'Bizilagunak agurtzen…', 'Volver a cargar': 'Berriro kargatu',
   'El dispositivo se ha quedado sin memoria para dibujar. Tu progreso está guardado. Si en unos segundos no vuelve, toca el botón y seguirás en el mismo pueblo.': 'Gailuak marrazteko memoriarik gabe geratu da. Zure aurrerapena gordeta dago. Segundo batzuetan itzultzen ez bada, ukitu botoia eta herri berean jarraituko duzu.',
+  // estilo deportivo: cuadro del torneo, menú de pelota, colección, VS, frontón cubierto y tareas de los vecinos
+  'Toca su carta para ver su ficha': 'Ukitu bere txartela fitxa ikusteko', 'Cómo funciona': 'Nola dabilen', 'Eliminado': 'Kanporatua', 'El torneo sigue': 'Txapelketak jarraitzen du',
+  'Mira quién se lleva la txapela.': 'Begira nork eramaten duen txapela.', 'Txapeldun · campeón del torneo': 'Txapeldun · txapelketako irabazlea', 'Txapela': 'Txapela', 'TXAPELAS': 'TXAPELAK',
+  'Por la txapela': 'Txapelaren alde', 'Delantero y zaguero': 'Aurrelaria eta atzelaria', 'Mano a mano o parejas': 'Buruz burukoa edo binaka', 'Tu colección': 'Zure bilduma', 'DESCUBIERTOS': 'AURKITUAK',
+  'Navarra sellada': 'Nafarroa zigilatuta', 'Partido amistoso': 'Lagunarteko partida', 'Partido de exhibición': 'Erakustaldiko partida', 'Toca para empezar': 'Ukitu hasteko', 'Tus txapelas': 'Zure txapelak',
+  'Mano': 'Eskua', 'Del': 'Aur', 'Zag': 'Atz', 'Par': 'Bik', 'Ata': 'Era', 'Med': 'Erd', 'Def': 'Def', 'Frontón cubierto': 'Frontoi estalia', 'Pilotaleku estalia': 'Pilotaleku estalia',
+  'va a misa': 'mezatara doa', 'hace la compra': 'erosketak egiten ari da', 'charla en la plaza': 'plazan berriketan', 'juega a pillar': 'harrapaketan jolasten', 'va a por agua': 'ur bila doa',
+  'lleva el pan a casa': 'ogia etxera darama', 'da su paseo': 'bere ibilaldia egiten du',
+  'Voy a misa de doce. Luego, a tomar algo a la plaza con las vecinas.': 'Hamabietako mezara noa. Gero, plazara zerbait hartzera auzokideekin.',
+  'La iglesia es lo más antiguo del pueblo: fíjate en la portada al pasar.': 'Eliza da herriko zaharrena: begiratu atariari pasatzean.',
+  'Vengo de la tienda: queso, pan y unas alubias para la cena.': 'Dendatik nator: gazta, ogia eta babarrun batzuk afaltzeko.',
+  'Lo de aquí es lo mejor: lo hacen vecinos del pueblo.': 'Hemengoa da onena: herriko bizilagunek egiten dute.',
+  'Aquí, arreglando el mundo con la vecina.': 'Hemen, mundua konpontzen auzokidearekin.', '¿Sabes lo último? Dicen que este año la fiesta será por todo lo alto.': 'Badakizu azkena? Aurten jaiak handiak izango omen dira.',
+  '¡Estamos jugando a pillar! ¡A que no me coges!': 'Harrapaketan ari gara! Ez nauzu harrapatuko!', '¡Uf, qué cansancio! Pero ahora la llevo yo.': 'Uf, ze nekea! Baina orain neu naiz harrapatzailea.',
+  'Vengo a por agua fresca a la fuente: esta agua baja del monte.': 'Iturrira nator ur fresko bila: ur hau menditik dator.', 'Antes todo el pueblo venía aquí con sus cántaros.': 'Lehen herri osoa etortzen zen hona pegarrekin.',
+  'Llevo el pan a casa, que se enfría. ¡Huele de maravilla!': 'Ogia etxera daramat, hozten ari da. Usain zoragarria du!', 'Recién hecho: la corteza cruje.': 'Egin berria: azalak kraska egiten du.',
+  'Doy mi paseo de todos los días. El médico dice que es lo mejor.': 'Egunero bezala, nire ibilaldia egiten ari naiz. Medikuak dio hori dela onena.',
+  'Desde aquí se ve todo el valle. Cuando era joven subía al monte cada domingo.': 'Hemendik haran osoa ikusten da. Gaztea nintzenean igandero igotzen nintzen mendira.',
 };
 // Plantillak (hutsuneekin)
 // Deklinabidea: -ko (nongo) eta -ren (noren), izenaren bukaeraren arabera
@@ -243,6 +261,10 @@ const ine = (n) => /(ia|ea)$/.test(n) ? n.slice(0, -1) + 'n' : /[aeiou]$/i.test(
 const ala = (n) => /(ia|ea)$/.test(n) ? n.slice(0, -1) + 'ra' : /[aeiou]$/i.test(n) ? n + 'ra' : n + 'era';
 const eu = (n) => EU_EXACT[n] ?? n;
 export const EU_RX = [
+  [/^Saludar a (.+) · (.+)$/, (m, a, t) => `Agurtu: ${a} · ${eu(t)}`],
+  [/^Frontón cubierto de (.+)$/, (m, a) => `${loc(a)} frontoi estalia`], [/^Torneo de mano · (.+)$/, (m, a) => `Buruz buruko txapelketa · ${eu(a)}`], [/^Torneo por parejas · (.+)$/, (m, a) => `Binakako txapelketa · ${eu(a)}`],
+  [/^Liga Navarra · Jornada (\d+)$/, 'Nafarroako Liga · $1. jardunaldia'], [/^Fútbol 11 · (.+)$/, (m, a) => `11ko futbola · ${eu(a)}`], [/^Fútbol sala · (.+)$/, (m, a) => `Areto futbola · ${eu(a)}`],
+  [/^(\d+)\/(\d+) descubiertos$/, '$1/$2 aurkituak'], [/^(\d+) txapelas$/, '$1 txapela'], [/^A (\d+) tantos$/, '$1 tantora'], [/^(Cuartos de final|Semifinales|Final) · rival: (.+)$/, (m, a, b) => `${eu(a)} · aurkaria: ${b}`],
   [/^Tu colección · (\d+)\/(\d+)$/, 'Zure bilduma · $1/$2'],
   [/^Paso (\d+) de (\d+)$/, '$1/$2 urratsa'], [/^(\d+) pasos hechos$/, '$1 urrats eginda'],
   [/^Teclado (.+) · Mando (.+)$/, 'Teklatua $1 · Mandoa $2'], [/^Teclado (.+)$/, 'Teklatua $1'],

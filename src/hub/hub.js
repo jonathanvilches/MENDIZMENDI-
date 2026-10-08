@@ -239,14 +239,14 @@ export class Hub {
           <p>Partido libre o el torneo de mano por la txapela de la comarca: cuartos, semifinal y final.</p>
           <span class="sp-stat">${I('txapela', 22)} ${tx} ${tx === 1 ? 'txapela' : 'txapelas'}</span></div>
         <div class="fr-pick"><small>Elige frontón</small><div class="fr-rail">${towns}</div></div>
-        <button class="btn primary big" data-sport="pelota">${I('play', 26)} <span>Jugar a pelota</span></button>
+        <button class="gx-go" data-sport="pelota">${I('play', 24)} <span>Jugar a pelota</span></button><span class="sp-shine"></span>
       </div>
       <div class="sport" style="--bg:url(${townImg(sadar)})">
         ${avF ? `<img class="sp-av" src="${avF}" alt="">` : ''}
         <div class="sp-txt"><small class="kicker">${club ? 'En El Sadar · ' + esc(club.name) : 'En El Sadar · elige tu club'}</small><h3>Fútbol</h3>
           <p>Liga Navarra con tu club y amistosos contra cualquier club. Todos los partidos, en El Sadar.</p>
           <span class="sp-stat">${I('balon', 22)} ${fb?.played || 0} partidos · ${fb?.won || 0} ganados</span></div>
-        <button class="btn primary big" data-sport="futbol">${I('play', 26)} <span>Jugar a fútbol</span></button>
+        <button class="gx-go" data-sport="futbol">${I('play', 24)} <span>Jugar a fútbol</span></button><span class="sp-shine"></span>
       </div>
     </section>`;
   }
@@ -283,23 +283,26 @@ export class Hub {
     const paths = COMARCAS.map(c => {
       const pr = comarcaProgress(p, c.id), done = pr.towns && pr.stamps === pr.towns;
       const op = done ? 1 : 0.35 + pr.pct * 0.55;
-      return `<path d="${c.path}" data-comarca="${c.id}" class="cpath ${done ? 'done' : ''} ${focus && focus !== c.id ? 'dim' : ''}" style="fill:${c.color};fill-opacity:${op}"/>`;
+      // (en la gama del juego: sin empezar, morado oscuro; empezada, violeta; completa, fucsia)
+      const col = done ? '#ff2bd6' : pr.stamps ? '#a77bff' : '#6a4bc4';
+      return `<path d="${c.path}" data-comarca="${c.id}" class="cpath ${done ? 'done' : ''} ${focus && focus !== c.id ? 'dim' : ''}" style="fill:${col};fill-opacity:${op}"/>`;
     }).join('');
     const labels = small ? '' : COMARCAS.map(c => `<text x="${c.label.x}" y="${c.label.y}" class="clabel" text-anchor="middle">${c.label.lines.map((l, i) => `<tspan x="${c.label.x}" dy="${i ? 12 : 0}">${esc(l)}</tspan>`).join('')}</text>`).join('')
       // en el móvil, números en lugar de nombres (la lista de debajo lleva los mismos números)
-      + COMARCAS.filter(c => comarcaTowns(c.id).length).map((c, i) => { const [bx, by] = mapLayout().badges[c.id]; return `<g class="cnum" data-comarca="${c.id}" transform="translate(${bx.toFixed(1)} ${by.toFixed(1)})"><circle r="15" fill="${c.color}"/><text y="6" text-anchor="middle">${i + 1}</text></g>`; }).join('');
+      + COMARCAS.filter(c => comarcaTowns(c.id).length).map((c, i) => { const [bx, by] = mapLayout().badges[c.id]; return `<g class="cnum" data-comarca="${c.id}" transform="translate(${bx.toFixed(1)} ${by.toFixed(1)})"><circle r="15" fill="#c21cff"/><text y="6" text-anchor="middle">${i + 1}</text></g>`; }).join('');
     const pinsSvg = pins ? LEVELS.filter(l => !focus || l.comarca === focus).map(l => { const [x, y] = XY.get(l.id), t = townProgress(p, l), nm = mapLayout().names[l.id]; return `<g class="pin ${t.stamp ? 'ok' : t.done ? 'go' : ''}" data-town="${l.id}" transform="translate(${x} ${y})"><circle r="${small ? 5 : 7}"/>${small || !nm ? '' : `<text x="${nm.x}" y="${nm.y}" text-anchor="${nm.anchor}">${esc(l.name.split(' /')[0])}</text>`}</g>`; }).join('') : '';
     return `<svg class="navarra" viewBox="10 10 725 780">${paths}${labels}${pinsSvg}</svg>`;
   }
 
   // ---------- Mapa ----------
   s_map() {
-    const p = profile();
-    return `<h1 class="title">${I('map', 36)} Mapa de Navarra</h1><p class="lead">Toca una comarca para ver sus pueblos. Las comarcas se iluminan a medida que completas sus pueblos.</p>
-      <div class="map-wrap"><div class="bigmap">${this.navarraSVG({ pins: true })}</div>
-      <aside class="legend2"><div class="navstats">${ring(navarraProgress(p).stamps / LEVELS.length, 84, '#ff7ac8')}<span>de Navarra sellada</span></div>
+    const p = profile(), pct = Math.round(navarraProgress(p).stamps / LEVELS.length * 100);
+    // (en el móvil tumbado, el mapa a toda la altura y al lado lo que llevas sellado y las comarcas, sin desplazar)
+    return `<h1 class="title map-title">${I('map', 36)} Mapa de Navarra</h1><p class="lead map-lead">Toca una comarca para ver sus pueblos. Las comarcas se iluminan a medida que completas sus pueblos.</p>
+      <div class="map-wrap"><div class="bigmap">${this.navarraSVG({ pins: true })}<div class="map-ov" aria-hidden="true"><small>Navarra sellada</small><b>${pct}<small>%</small></b></div></div>
+      <aside class="legend2"><div class="map-head"><small class="gx-kick">Navarra sellada</small><b class="map-pct">${pct}<small>%</small></b><i class="map-bar"><u style="width:${pct}%"></u></i></div>
         <div class="lg"><span><i class="pin0"></i> Por descubrir</span><span><i class="pin1"></i> Empezado</span><span><i class="pin2"></i> Sellado</span></div>
-        <div class="clist">${COMARCAS.filter(c => comarcaTowns(c.id).length).map((c, i) => { const pr = comarcaProgress(p, c.id); return `<button data-comarca="${c.id}" style="--c:${c.color}"><i>${i + 1}</i><b>${esc(c.name)}</b><small>${pr.stamps}/${pr.towns}</small></button>`; }).join('')}</div></aside></div>`;
+        <div class="clist">${COMARCAS.filter(c => comarcaTowns(c.id).length).map((c, i) => { const pr = comarcaProgress(p, c.id); return `<button data-comarca="${c.id}" style="--d:${(i * 0.04).toFixed(2)}s"><i>${i + 1}</i><b>${esc(c.name)}</b><small>${pr.stamps}/${pr.towns}</small><em class="cbar2"><u style="width:${pr.towns ? pr.stamps / pr.towns * 100 : 0}%"></u></em></button>`; }).join('')}</div></aside></div>`;
   }
 
   // ---------- Comarca ----------
@@ -423,21 +426,23 @@ export class Hub {
 
   // ---------- Personajes: selección con el modelo 3D en grande ----------
   castInfo(a) {
-    return `<div class="ci-head"><span class="crole">${esc(a.role)}</span><small class="cfrom">${I('pin', 16)} ${esc(a.from)}</small></div>
-      <b class="cname">${esc(a.name)}</b><em class="tl">«${esc(a.tagline)}»</em><p class="cdesc">${esc(a.desc)}</p>
-      <div class="stats">${a.stats.map((v, i) => `<div class="stat"><span>${STAT_LABELS[i]}</span><span class="sbar"><i style="--v:${v}%"></i></span><b>${v}</b></div>`).join('')}</div>
+    // (como la carta de un jugador: la media grande, el puesto y de dónde es, y las cinco cualidades en cifras)
+    const ovr = Math.round(a.stats.reduce((x, y) => x + y, 0) / a.stats.length);
+    return `<div class="ci-top"><div class="ci-ovr"><b>${ovr}</b><small>MEDIA</small></div><div class="ci-id"><span class="crole">${esc(a.role)}</span><b class="cname">${esc(a.name)}</b><small class="cfrom">${I('pin', 16)} ${esc(a.from)}</small></div></div>
+      <em class="tl">«${esc(a.tagline)}»</em><p class="cdesc">${esc(a.desc)}</p>
+      <div class="stats">${a.stats.map((v, i) => `<div class="stat" style="--d:${i * 0.06}s"><b>${v}</b><span>${STAT_LABELS[i]}</span><span class="sbar"><i style="--v:${v}%"></i></span></div>`).join('')}</div>
       <div class="abil"><span class="aic">${I('sparkle', 26)}</span><span><small>Habilidad especial</small>${esc(a.ability)}</span></div>`;
   }
   castStrip(cur) { return `<div class="cstrip">${AVATARS.map(a => `<button data-av="${a.id}" class="${cur === a.id ? 'on' : ''}" style="--c:${a.color}" aria-label="${esc(a.name)}">${avatarPortraitImg(a.id)}<span>${esc(a.name)}</span></button>`).join('')}</div>`; }
   // selector de personaje estilo videojuego (pantalla Personajes y primera vez)
-  selector(cur, { onb = false, extra = '' } = {}) {
+  selector(cur, { onb = false, extra = '', cta = '' } = {}) {
     const i = AVATARS.findIndex(a => a.id === cur.id);
     return `<section class="csel2 ${onb ? 'onbsel' : ''}" style="--c:${cur.color}">
       <div class="cs-stage"><div class="cs-bgname" aria-hidden="true">${esc(cur.name)}</div><div id="avStage" class="stage-host"></div>
         <button class="cs-arrow prev" data-step="-1" aria-label="Anterior"><svg viewBox="0 0 24 24" width="28" height="28"><path d="M15 4l-8 8 8 8" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <button class="cs-arrow next" data-step="1" aria-label="Siguiente"><svg viewBox="0 0 24 24" width="28" height="28"><path d="M9 4l8 8-8 8" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <span class="cs-count"><b>${i + 1}</b>/${AVATARS.length}</span><span class="cs-hint">Arrastra para girarlo · tócalo para saludar</span></div>
-      <div class="cs-side"><div class="csel-info" id="csInfo">${this.castInfo(cur)}</div></div>
+      <div class="cs-side">${cta ? '<small class="gx-kick cs-kick">Elige tu personaje</small>' : ''}<div class="csel-info" id="csInfo">${this.castInfo(cur)}</div>${cta ? `<div class="cs-cta">${cta}</div>` : ''}</div>
       <div class="cs-roster">${this.castStrip(cur.id)}</div>${extra ? `<div class="cs-extra">${extra}</div>` : ''}
     </section>`;
   }
@@ -465,9 +470,9 @@ export class Hub {
   }
   s_avatars() {
     const p = profile(), cur = castById(p.avatar);
-    this.after = () => this.bindSelector(this.root, p.avatar, (a) => { p.avatar = a.id; saveProfile(); this.renderChip(); $('#csGo', this.root).innerHTML = `${I('play', 26)} Jugar con ${esc(a.name)}`; });
-    return `<div class="cs-top"><h1 class="title">Elige tu personaje</h1><button class="btn primary big" id="csGo" data-go="home">${I('play', 26)} Jugar con ${esc(cur.name)}</button></div>
-      ${this.selector(cur)}`;
+    this.after = () => this.bindSelector(this.root, p.avatar, (a) => { p.avatar = a.id; saveProfile(); this.renderChip(); $('#csGo', this.root).innerHTML = `${I('play', 24)} Jugar con ${esc(a.name)}`; });
+    // (el título y el botón de jugar van dentro del selector: en el móvil tumbado todo cabe en una pantalla)
+    return `<h1 class="title cs-title">Elige tu personaje</h1>${this.selector(cur, { cta: `<button class="gx-go" id="csGo" data-go="home">${I('play', 24)} Jugar con ${esc(cur.name)}</button>` })}`;
   }
 
   // ---------- Insignias ----------

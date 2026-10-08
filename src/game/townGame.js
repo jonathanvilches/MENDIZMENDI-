@@ -68,6 +68,7 @@ import { Chase } from './chase.js';
 import { FloraSpots } from './floraSpots.js';
 import { showFicha } from '../ui/ficha.js';
 import { cuentoOfTown, KIND_LABEL } from '../data/cuentos.js';
+import { repartirTareas, TAREAS } from './rutinas.js';
 
 const CROP = {
   uva: ['racimos de uva', 'uva'], olivo: ['aceitunas', 'olivo'], piquillo: ['pimientos del piquillo', 'piquillo'], esparrago: ['manojos de espárragos', 'esparrago'],
@@ -311,27 +312,29 @@ export class TownGame {
         wb.position.set(p2.x, groundHeight(p2.x, p2.z), p2.z); wb.rotation.y = Math.atan2(pos.x - p2.x, pos.z - p2.z); this.scene.add(wb); M.bench = { x: p2.x, z: p2.z, obj: wb };
       }
     }
-    // vecinos que pasean
+    // la tienda del pueblo (productos locales, producto estrella y trueque)
+    try { this.tienda = new Tienda(this); } catch (e) { console.warn('tienda', e); }
+    // (antes que los vecinos: la compra se hace en ella)
+    // los vecinos: cada uno con su tarea del día (ir a misa, la compra, la charla en la plaza, jugar a pillar, la fuente,
+    // el pan, el paseo), con sus paradas y lo que hace en cada una; nadie pasea porque sí (rutinas.js)
     const pal = PALETTE[d.family] || PALETTE.central;
-    const pts = [PLACES.plaza, PLACES.market, TOWN.church?.door || PLACES.church, ...TOWN.houses.filter((_, i) => i % 7 === 0).map(h => h.door)].filter(Boolean);
-    const nW = d.family === 'city' ? 10 : 6;
-    for (let i = 0; i < nW && pts.length > 2; i++) {
-      const R = this.rnd, pick = (a) => a[Math.floor(R() * a.length)];
-      const female = R() < 0.5, old = R() < 0.25, kid = !old && R() < 0.25;
+    const nW = d.family === 'city' ? 10 : 7;
+    const hs = TOWN.houses.filter((_, i) => i % 5 === 0).map(h => h.door).filter(Boolean).filter(h => Math.hypot(h.x - PLACES.plaza.x, h.z - PLACES.plaza.z) < 110);
+    const shop = this.tienda?.pos || PLACES.market || null, view = TOWN.landmarks?.find?.(l => l.kind === 'mirador' || l.kind === 'ermita') || null;
+    const tareas = repartirTareas(this, nW, { plaza: PLACES.plaza, church: TOWN.church?.door || PLACES.church || null, shop, fountain: TOWN.fountain, houses: hs, view });
+    for (let i = 0; i < nW; i++) {
+      const R = this.rnd, pick = (a) => a[Math.floor(R() * a.length)], T = tareas[i], tk = TAREAS[T.kind];
+      const female = R() < 0.5, old = tk.old || (!tk.kid && R() < 0.2), kid = !!tk.kid;
       const look = { skin: pick(SKINS), hair: old ? '#dcd7cf' : pick(HAIRS), shirt: pick(pal.shirts), pants: pick(pal.pants), old,
         height: kid ? 1.3 : undefined, bun: female && !kid && R() < 0.5, braids: female && kid, longHair: female && R() < 0.4, female,
         skirt: female && R() < 0.5 ? pick(pal.pants) : undefined, vest: !female && R() < 0.35 ? pick(pal.extras) : undefined, txapela: !female && old && R() < 0.7 ? '#1d1d24' : undefined,
-        scarf: R() < 0.2 ? pick(pal.extras) : undefined, apron: female && old && R() < 0.4 ? '#f4f1ea' : undefined, basket: R() < 0.2, pattern: R() < 0.2 ? 'check' : undefined, moustache: !female && old && R() < 0.5 ? '#dcd7cf' : undefined,
+        scarf: R() < 0.2 ? pick(pal.extras) : undefined, apron: female && old && R() < 0.4 ? '#f4f1ea' : undefined, basket: !!tk.basket, staff: T.kind === 'paseo', pattern: R() < 0.2 ? 'check' : undefined, moustache: !female && old && R() < 0.5 ? '#dcd7cf' : undefined,
         region: R() < 0.7 ? d.comarca : undefined, seed: 1 + Math.floor(R() * 1000) };   // la mayoría, con el traje tradicional de su comarca
-      // tres sitios de su barrio (cada uno a menos de 120 m del anterior): en Iruña ir de punta a punta no es pasear
-      const route = []; let prev = pick(pts);
-      for (let k = 0; k < 3; k++) { const near = pts.filter(q => q !== prev && Math.hypot(q.x - prev.x, q.z - prev.z) < 120); const p = k === 0 ? prev : (near.length ? pick(near) : pick(pts)); const s = this.spot(p, 3); route.push({ x: s.x, z: s.z }); prev = p; }
-      const s0 = route[0];
-      const a = new Actor({ id: 'w' + i, name: female ? ['Maite', 'Amaia', 'Nekane', 'Itziar', 'Leire', 'Ainhoa', 'Garazi', 'Miren'][i % 8] : ['Josu', 'Patxi', 'Koldo', 'Mikel', 'Fermín', 'Iñaki', 'Xabier', 'Unai'][i % 8], x: s0.x, z: s0.z, look, route, walkSpeed: 1 + R() * 0.4 }, this.scene);
+      const route = T.steps, s0 = route[route.length - 1];   // (empieza en su última parada: en casa, en la plaza…)
+      const a = new Actor({ id: 'w' + i, name: female ? ['Maite', 'Amaia', 'Nekane', 'Itziar', 'Leire', 'Ainhoa', 'Garazi', 'Miren'][i % 8] : ['Josu', 'Patxi', 'Koldo', 'Mikel', 'Fermín', 'Iñaki', 'Xabier', 'Unai'][i % 8], x: s0.x, z: s0.z, look, route, walkSpeed: kid ? 1.25 : old ? 0.8 + R() * 0.15 : 1 + R() * 0.3 }, this.scene);
+      a.tarea = T.kind;
       this.walkers.push(a);
     }
-    // la tienda del pueblo (productos locales, producto estrella y trueque)
-    try { this.tienda = new Tienda(this); } catch (e) { console.warn('tienda', e); }
     // algunos días hay mercado en la plaza
     try { if (marketDay(d, this.rnd)) { this.mercado = new Mercado(this); this.marketToast = true; } } catch (e) { console.warn('mercado', e); }
     // mochila del explorador: equipo visible, agua, comida y energía; frutos del campo para recoger
@@ -727,7 +730,7 @@ export class TownGame {
     if (this.townArms) list.push({ kind: 'armas', x: this.townArms.read.x, z: this.townArms.read.z, r: 3, label: this.P.cards.includes(this.townArms.id) ? `Volver a leer el escudo de ${this.def.name.split(' /')[0]}` : `Leer el escudo de ${this.def.name.split(' /')[0]}` });
     for (const b of this.blasones || []) list.push({ kind: 'escudo', b, x: b.read.x, z: b.read.z, r: 3, label: this.P.cards.includes(b.id) ? 'Volver a leer el escudo' : 'Leer el escudo de la casa' });
     for (const a of this.actors) if (a.visible !== false) list.push({ kind: 'npc', a, x: a.pos.x, z: a.pos.z, r: 3, label: a.market ? `Puesto del mercado: ${a.market.toLowerCase()}` : a === this.pelotari ? `Jugar a pelota con ${a.name}` : a === this.coach ? 'Jugar un partido en El Sadar' : a === this.futsalCoach ? `Fútbol con ${clubOfTown(this.def.id)?.name || 'el club del pueblo'}` : a.sabio ? `${a.name}: la historia de ${a.sabio.name}` : a.cuento ? `${a.name}: escuchar «${a.cuento.title}»` : `Hablar con ${a.name}` });
-    for (const a of this.walkers) list.push({ kind: 'walker', a, x: a.pos.x, z: a.pos.z, r: a.info || a.jobs ? 3 : 2.4, label: a.stall ? 'Productos del pueblo' : a.jobs ? `Ayudar a ${a.name.toLowerCase()} (txanponak)` : a.info ? `Hablar con ${a.name.toLowerCase() === 'pastor' ? 'el pastor' : 'la ganadera'}` : `Saludar a ${a.name}` });
+    for (const a of this.walkers) list.push({ kind: 'walker', a, x: a.pos.x, z: a.pos.z, r: a.info || a.jobs ? 3 : 2.4, label: a.stall ? 'Productos del pueblo' : a.jobs ? `Ayudar a ${a.name.toLowerCase()} (txanponak)` : a.info ? `Hablar con ${a.name.toLowerCase() === 'pastor' ? 'el pastor' : 'la ganadera'}` : `Saludar a ${a.name}${TAREAS[a.tarea] ? ' · ' + TAREAS[a.tarea].name : ''}` });
     for (const o of this.agro?.list || []) list.push({ kind: 'agro', o, x: o.x, z: o.z, r: o.kind === 'combine' ? 6 : 4.5, label: `Mirar: ${o.info.title.toLowerCase()}` });
     for (const it of this.items) list.push({ kind: 'item', it, x: it.x, z: it.z, r: 2.2, label: it.label });
     for (const M of this.missions) if (M.bench && M.step === 1 && !M.done) list.push({ kind: 'bench', M, x: M.bench.x, z: M.bench.z, r: 3, label: M.oficio ? 'Entrar al taller' : M.trade.verb });
@@ -797,7 +800,7 @@ export class TownGame {
     if (it.kind === 'flora') return this.flora.interact(it.s);
     if (it.kind === 'bell') return this.ringBell();
     if (it.kind === 'seat') return this.restBench(it.b);
-    if (it.kind === 'walker') { it.a.say(2.5); it.a.wave = 1.2; const L = WALKER_LINES[this.walkers.indexOf(it.a) % WALKER_LINES.length]; return this.say(it.a, L); }
+    if (it.kind === 'walker') { it.a.chatWith = null; it.a.talkTo = null; it.a.say(2.5); it.a.wave = 1.2; const L = TAREAS[it.a.tarea]?.lines || WALKER_LINES[this.walkers.indexOf(it.a) % WALKER_LINES.length]; return this.say(it.a, L); }   // (lo que cuenta: lo que está haciendo)
     if (it.kind === 'item') return this.pick(it.it);
     if (it.kind === 'bench') return this.doTrade(it.M);
     if (it.kind === 'clue') return this.examineClue(it.k);

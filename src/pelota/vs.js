@@ -39,7 +39,7 @@ const CSS = `
 .pvs-x{position:absolute;left:50%;top:44%;z-index:5;transform:translate(-50%,-50%);font:400 clamp(72px,16vh,140px)/1 var(--f-display);letter-spacing:-.02em;padding:0 .08em;
   background:linear-gradient(180deg,#fff 0%,#fff 42%,var(--rosa) 58%,var(--fx2) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 18px rgba(255,43,214,.85)) drop-shadow(0 6px 0 rgba(7,2,15,.7));
   animation:pvs-x .45s .5s cubic-bezier(.2,1.6,.4,1) both}
-.pvs-mid{position:absolute;left:50%;top:calc(44% + clamp(40px,9vh,76px));z-index:5;transform:translateX(-50%);width:min(300px,34%);display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;animation:pvs-up .35s 1.05s ease-out both}
+.pvs-mid{position:absolute;left:50%;top:calc(44% + clamp(50px,12vh,84px));z-index:5;transform:translateX(-50%);width:min(300px,34%);display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;animation:pvs-upc .35s 1.05s ease-out both}
 .pvs-line{font:800 var(--fs-sm)/1.2 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;text-shadow:0 1px 3px rgba(0,0,0,.8)}
 .pvs-tags{display:flex;flex-wrap:wrap;justify-content:center;gap:4px}
 .pvs-tags span{padding:2px 8px;background:rgba(7,2,15,.75);border:1px solid rgba(201,178,255,.35);font:700 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;color:var(--lila);clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%)}
@@ -73,13 +73,14 @@ const CSS = `
 @keyframes pvs-shake{0%,100%{transform:none}20%{transform:translate(-6px,3px)}40%{transform:translate(5px,-4px)}60%{transform:translate(-4px,2px)}80%{transform:translate(3px,-1px)}}
 @keyframes pvs-drop{from{transform:translateY(-80px)}to{transform:none}}
 @keyframes pvs-up{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+@keyframes pvs-upc{from{transform:translate(-50%,24px);opacity:0}to{transform:translateX(-50%);opacity:1}}
 @keyframes pvs-pl{from{transform:translateX(-120%) skewX(-10deg)}to{transform:none}}@keyframes pvs-pr{from{transform:translateX(120%) skewX(10deg)}to{transform:none}}
 @keyframes pvs-spark{0%{transform:translate(0,0);opacity:0}10%{opacity:1}100%{transform:translate(var(--x,20px),-110vh);opacity:0}}
 @keyframes pvs-marq{0%,12%{transform:translateX(0)}100%{transform:translateX(-100%)}}
 @keyframes pvs-tap{from{filter:brightness(.85)}to{filter:brightness(1.2)}}
 @media (orientation:landscape){.pvs-fig.azul{left:2%}.pvs-fig.rojo{right:2%}}
 @media (orientation:landscape) and (max-height:500px){.pvs-who b{font-size:var(--fs-xl)}.pvs-ovr b{font-size:var(--fs-2xl)}.pvs-plate{width:min(300px,36%)}.pvs-fig{height:80%}.pvs-x{font-size:clamp(80px,24vh,120px)}}
-@media (orientation:portrait){.pvs-bar{flex-wrap:wrap;justify-content:center;row-gap:4px}.pvs-venue{margin-left:0}.pvs-fig{height:46%}.pvs-fig.azul{left:-4%}.pvs-fig.rojo{right:-4%}.pvs-plate{width:calc(50% - 20px);bottom:calc(env(safe-area-inset-bottom,0px) + 48px)}.pvs-who b{font-size:var(--fs-xl)}.pvs-x{top:34%}.pvs-mid{top:calc(34% + 64px);width:calc(100% - 32px)}.pvs-comp{font-size:var(--fs-md)}}
+@media (orientation:portrait){.pvs-bar{flex-wrap:wrap;justify-content:center;row-gap:4px}.pvs-venue{margin-left:0}.pvs-fig{height:46%}.pvs-fig.azul{left:-4%}.pvs-fig.rojo{right:-4%}.pvs-plate{width:calc(50% - 20px);bottom:calc(env(safe-area-inset-bottom,0px) + 48px)}.pvs-who b{font-size:var(--fs-xl)}.pvs-x{top:34%}.pvs-mid{top:calc(34% + 72px);width:calc(100% - 32px)}.pvs-comp{font-size:var(--fs-md)}}
 @media (prefers-reduced-motion:reduce){.pvs,.pvs *{animation:none!important}.pvs-flash{display:none}}
 `;
 

@@ -246,7 +246,7 @@ export function torneoPanel(T, here = null) {
 export function pelotaMenu(T, here = null, T2 = null) {
   css();   // (antes solo lo ponía el cuadro del torneo: la primera vez, la txapela salía enorme)
   return new Promise(res => {
-    const sub = (X) => { const m = yourMatch(X); return X.done ? 'Nueva edición' : m ? `${m.round} contra ${esc(m.rival.name)}` : 'Siguiente ronda'; };
+    const sub = (X) => { const m = yourMatch(X); return X.done ? 'Nueva edición' : m ? `${m.round} · rival: ${esc(m.rival.name)}` : 'Siguiente ronda'; };
     const tx = (T.txapelas || 0) + (T2?.txapelas || 0), C = pelotarisCount(), lang = isEU() ? 'eu' : 'es';
     const fan = [{ n: 'Mikel', st: { fuerza: 4, agilidad: 3, velocidad: 2 }, r: -10 }, { n: 'Garazi', st: { fuerza: 2, agilidad: 4, velocidad: 4 }, r: 0 }, { n: 'Unai', st: { fuerza: 3, agilidad: 5, velocidad: 3 }, r: 10 }]
       .map((q, i) => pelotariCard({ name: q.n, town: '', side: i === 1 ? 'azul' : 'rojo', w: 76, stats: q.st, lock: i > 0 && C.have <= i, mini: true, lang }).replace('style="', `style="--r:${q.r};`)).join('');

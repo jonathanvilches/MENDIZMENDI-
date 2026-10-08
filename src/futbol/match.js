@@ -229,7 +229,7 @@ export class FutbolMatch {
       const go = () => { if (this.done) return; this.live = true; this.hud.msg(o.venueName || V.name, `${this.home.name} – ${this.away.name}`, 2600); this.audio.resume(); this.audio.whistle(1); };
       // antes del partido, la presentación «VS» de los dos clubes (como en la pelota); en las pruebas, directo al partido
       if (o.mode !== 'match' || o.autoplay || o.tutorial || (navigator.webdriver && !window.__vs)) return go();
-      const card = (t) => { const v = t.ovr || 70, h = [...String(t.name)].reduce((a, c) => a + c.charCodeAt(0), 0); return { ovr: v, ovrLabel: 'Media', stats: [['Ata', 2], ['Med', 0], ['Def', -2]].map(([k, d], i) => ({ k, v: Math.max(40, Math.min(99, v + d + ((h >> i) % 5) - 2)) })) }; };
+      const card = (t) => { const v = t.ovr || 70, h = [...String(t.name)].reduce((a, c) => a + c.charCodeAt(0), 0); return { ovr: v, ovrLabel: 'MEDIA', stats: [['Ata', 2], ['Med', 0], ['Def', -2]].map(([k, d], i) => ({ k, v: Math.max(40, Math.min(99, v + d + ((h >> i) % 5) - 2)) })) }; };
       showVs(this.hud.root, {
         comp: o.comp || 'Partido amistoso', venue: o.venueName || V.name, venueIcon: STADIUM,
         you: { name: this.home.name, sub: this.home.town || '', figHtml: kitSvgOf(this.home, 320, 'vsh'), ...card(this.home) },

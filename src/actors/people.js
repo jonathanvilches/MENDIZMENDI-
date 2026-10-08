@@ -75,7 +75,8 @@ export class Actor {
     const near = dP < 4.5 && !this.dance, blocking = walker ? dP < 2.2 && !this.dance : near;
     let moving = false;
     if (this.chatWith && this.talking > 0) this.lookAt = this.chatWith.pos;
-    else if (this.talking > 0 || (near && this.state !== 'walk')) { this.lookAt = player.pos; this.chatWith = null; }
+    else if (this.talkTo && this.talking > 0) this.lookAt = this.talkTo;   // (en su tarea: hablando con quien atiende en la tienda, por ejemplo)
+    else if (this.talking > 0 || (near && this.state !== 'walk')) { this.lookAt = player.pos; this.chatWith = null; this.talkTo = null; }
     else { this.lookAt = null; this.chatWith = null; }
     if (this.talking <= 0 && !this.frozen && !this.dance) {
       if (this.state === 'idle') {
@@ -157,8 +158,16 @@ export class Actor {
   }
   // al llegar: se queda un rato; si hay otro vecino parado al lado, se ponen a charlar
   arrive() {
+    const st = this.goal;
     this.state = 'idle'; this.target = null; this.path = null; this.arrived = true; this.goal = null; this.wait = 3 + Math.random() * 6;
     if (!this.route && !(this.wander > 0)) return;
+    // una parada de su tarea (rutinas.js): lo que se queda, hacia dónde mira y lo que hace (charlar, mirar, celebrar)
+    if (st?.wait != null) {
+      this.wait = st.wait * (0.85 + Math.random() * 0.3); this.talkTo = null;
+      if (st.face != null) this.lookHeading = st.face;
+      if (st.act === 'talk') { this.talking = this.wait; this.wait = 0.4; if (st.face != null) this.talkTo = { x: this.pos.x + Math.sin(st.face) * 2, z: this.pos.z + Math.cos(st.face) * 2 }; }
+      else if (st.act === 'cheer') this.cheer = 1.2;
+    }
     for (const c of MOVERS) {
       const o = c.actor; if (!o || o === this || o.state !== 'idle' || o.talking > 0 || o.frozen || o.dance) continue;
       if (Math.hypot(o.pos.x - this.pos.x, o.pos.z - this.pos.z) > 3.5) continue;
