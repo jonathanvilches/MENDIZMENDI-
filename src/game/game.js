@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { RIBBONS, QUESTS, CARDS, SPECIES_OBS, QUIZ, EGUZKILORES } from './content.js';
 import { npcDefs, walkerDefs, WALKER_LINES } from './npcs.js';
+import { greet } from './saludo.js';
 import { Actor, cullActor, frameFrustum } from '../actors/people.js';
 import { Animal } from '../actors/animals.js';
 import { PLACES, BRIDGES, rx, MEADOW, riverInfo } from '../world/layout.js';
@@ -425,7 +426,7 @@ export class Game {
   }
   say(who, lines) {
     const look = who.obj?.userData.look, icon = who.icon;
-    return this.ui.dialog(lines.map(t => typeof t === 'string' ? { who: who.name, look, icon, text: t } : { who: who.name, look, icon, ...t }));
+    return this.ui.dialog(lines.map(t => typeof t === 'string' ? { who: who.name, look, icon, text: greet(this, t) } : { who: who.name, look, icon, ...t }));   // (greet: el saludo a la hora y con el tiempo de ahora)
   }
 
   // ---------- Conversaciones ----------
@@ -463,7 +464,7 @@ export class Game {
           const left = RIBBONS.filter(r => !st.ribbons.includes(r.id));
           if (!left.length) return S(['¡Tienes las ocho cintas! Corre a Muskilda: el Bobo y los danzantes te esperan en la explanada del santuario.']);
           const hints = { horia: 'Itziar sabe mucho de los palacios y sus escudos.', zuria: 'Joxemari, el pastor, tiene problemas con su rebaño en la borda, al oeste.', berdea: 'Kike está en el frontón. ¡Le encanta la pelota!', urdina: 'Iñaki, el guarda, vigila la entrada de Irati, al norte.', laranja: 'Dicen que en lo más profundo de Irati vive el Basajaun…', morea: 'En la balsa de Irati, al noreste, a veces se ve a una Lamia peinándose.', arrosa: 'Amaia está junto al río. ¡Dice que ha visto al Zarratrako!' };
-          return S([`Te faltan ${left.length} cintas.`, hints[left[0].id]]);
+          return S([left.length === 1 ? 'Te falta 1 cinta.' : `Te faltan ${left.length} cintas.`, hints[left[0].id]]);
         }
         return S(['¡Sigue la flecha dorada! Primero el puente medieval, luego la fuente y después la iglesia.']);
       }
@@ -485,7 +486,7 @@ export class Game {
           await S(['¡Los has encontrado todos! Tienes ojos de halcón.', 'Muchas casas del pueblo tienen escudos de los siglos XVIII y XIX. Ahora ya sabrás verlos.']);
           return this.completeQuest('escudos');
         }
-        if (e.state === 'active') return S([`Te faltan ${3 - st.palaces.length} escudos. Busca casas grandes de piedra, con balcón de hierro.`]);
+        if (e.state === 'active') return S([`${3 - st.palaces.length === 1 ? 'Te falta 1 escudo' : `Te faltan ${3 - st.palaces.length} escudos`}. Busca casas grandes de piedra, con balcón de hierro.`]);
         return this.quiz(a);
       }
       case 'garazi': return this.quiz(a, true);
@@ -613,7 +614,7 @@ export class Game {
     const Q = QUIZ[idx];
     let ok = false;
     await this.say(a, [{ text: `¿Te hago una pregunta? ${Q.q}`, choices: Q.a, onChoice: (j) => { ok = j === Q.ok; return [{ who: a.name, look: a.obj.userData.look, text: (ok ? '¡Correcto! ' : 'Casi… ') + Q.why }]; } }]);
-    if (ok) { st.quiz.push(idx); st.stars++; this.sound.ui('coin'); this.ui.toast(`¡Una estrella! Tienes ${st.stars} estrellas`, 'star'); this.save(); }
+    if (ok) { st.quiz.push(idx); st.stars++; this.sound.ui('coin'); this.ui.toast(st.stars === 1 ? '¡Tu primera estrella!' : `¡Una estrella! Tienes ${st.stars} estrellas`, 'star'); this.save(); }
     else this.sound.ui('error');
   }
 

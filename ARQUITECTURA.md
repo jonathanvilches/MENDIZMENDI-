@@ -64,6 +64,21 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **Sin propiedad ajena:** nada de personajes o logotipos de terceros. Solo recursos propios o con licencia CC0
   (las licencias están junto a los recursos, en `src/assets/*/LICENSE_*`).
 - **Textos:** se escriben en castellano; el traductor (`i18n.js` + `data/eu.js`) los pasa al euskera.
+  - Con números, singular y plural: «1 sello», «2 sellos» (`cnt` en `hub.js`); nunca «1 sellos».
+  - Los saludos de los vecinos van a la hora y con el tiempo de ahora (`game/saludo.js`): «Egun on», «Arratsalde on»
+    o «Gabon», y nadie dice «qué día más bonito» si llueve o nieva.
+- **El tiempo con lógica:**
+  - Bajo techo no cae nada: en los partidos (fútbol y pelota) y con `sky.indoor` (frontón cubierto y dentro del Labrit,
+    también en su plano de llegada), la lluvia y la nieve no se ven ni hay rayos nuevos (`Weather.update(…, hold)`).
+  - Las caras de dentro de un frontón con cubierta o cerrado no llevan chorreones de lluvia (`weather(…, dry)` en
+    `pelota/court.js`).
+  - Si en un frontón abierto nieva, se dice «Suelo con nieve» y no «Llueve» (`cond.snow`).
+  - Con lluvia o nieve no salen mariposas ni luciérnagas (`fauna.wet`).
+- **Pantallas de menú con composición fija:**
+  - Torneos (`s_sports`): las dos cartas comparten filas (rótulo, título, texto, marca, elección y botón) y la figura va
+    en su propia columna, sin pisar nada.
+  - Mochila: cabecera en una fila y debajo tres columnas iguales (perro, agua y comida, equipo), cada una con su
+    rótulo y su caja; en vertical o por debajo de 700 px, una columna.
 - **Comentarios en castellano**, explicando el porqué.
 
 ## Herramientas y pruebas (`tools/`)

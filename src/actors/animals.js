@@ -470,7 +470,7 @@ export class Fauna {
       const glide = Math.sin(u * 0.9) > 0.75, fl = Math.sin(b.t * b.beat), wingA = glide ? 0.18 + fl * 0.06 : 0.45 + fl * 0.85;
       const y = terrainHeight(x, z) + 0.6 + Math.sin(b.t * 2) * 0.3 + (glide ? 0 : fl * 0.025);
       const yaw = Math.atan2(Math.cos(u * 0.7) * 0.7 * 2.5, -Math.sin(u * 0.5) * 0.5 * 2.5);
-      const sc = night < 0.5 ? 1 : 0;
+      const sc = night < 0.5 && !(this.wet > 0.3) ? 1 : 0;   // (de día y sin lluvia ni nieve)
       for (const [k, s2] of [[0, 1], [1, -1]]) {
         E.set(-0.2, yaw, s2 * wingA, 'YXZ'); Q.setFromEuler(E);
         S.set(s2 * sc, sc, sc);
@@ -480,7 +480,7 @@ export class Fauna {
     });
     this.bfMesh.instanceMatrix.needsUpdate = true;
     // luciérnagas de noche
-    this.ffMat.opacity = clamp((night - 0.4) * 2, 0, 1) * (1 - flood);
+    this.ffMat.opacity = clamp((night - 0.4) * 2, 0, 1) * (1 - flood) * (this.wet > 0.3 ? 0 : 1);   // (lloviendo no salen)
     if (this.ffMat.opacity > 0) {
       // cada una da la vuelta por su cuenta alrededor del jugador (antes saltaban todas a la vez al pasar de 60 en 60 m)
       // y se enciende y apaga poco a poco (antes aparecían y desaparecían de golpe); junto a la cámara, apagadas

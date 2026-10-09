@@ -19,7 +19,7 @@ export class PelotaMatch {
    *  mates() (opcional: promesa con { youMate, rivalMate }, cada uno { obj, name, stats, animate }: con ella se puede
    *  elegir el partido por parejas),
    *  town (el pueblo del frontón: el de los pelotaris que no traen el suyo en el nombre), youRecord ({ won, txapelas }: lo
-   *  que has ganado, para tu ficha), cond ({ covered, stone, wet, labrit }: cómo es el frontón; cambia un poco la pelota)
+   *  que has ganado, para tu ficha), cond ({ covered, stone, wet, snow, labrit }: cómo es el frontón; cambia un poco la pelota)
    */
   constructor(o) {
     this.o = o; this.T = o.THREE; this.court = o.court; this.cam = o.camera;

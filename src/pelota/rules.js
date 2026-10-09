@@ -56,17 +56,19 @@ const FEEL_TXT = {
   es: { hall: ['Frontón cubierto', 'Cerrado y con el rebote hasta el techo: la pelota no se sale. Luz de pabellón.'], covered: ['A cubierto', 'Sin viento ni lluvia: la pelota bota igual todo el partido.'], open: ['Al aire libre', 'Suelo seco: bote de siempre.'],
     stone: ['Frontis de piedra', 'La pelota sale más lenta del frontis: da más tiempo, pero para llegar atrás hay que pegar fuerte.'],
     wet: ['Suelo mojado', 'Llueve: la pelota bota menos y llega baja. Hay que agacharse antes.'],
+    snow: ['Suelo con nieve', 'Nieva: la pelota bota menos y llega baja. Hay que agacharse antes.'],
     labrit: ['Labrit', 'El frontón de las finales: pelota viva, sale rápida del frontis y bota alegre.'] },
   eu: { hall: ['Frontoi estalia', 'Itxia eta errebotea sabairaino: pilota ez da ateratzen. Pabiloiko argia.'], covered: ['Estalita', 'Haizerik eta euririk gabe: pilotak berdin botatzen du partida osoan.'], open: ['Aire zabalean', 'Lur lehorra: betiko botea.'],
     stone: ['Harrizko frontisa', 'Pilota motelago ateratzen da frontisetik: denbora gehiago dago, baina atzera iristeko gogor jo behar da.'],
     wet: ['Lur bustia', 'Euria ari du: pilotak gutxiago botatzen du eta baxu iristen da. Lehenago makurtu behar da.'],
+    snow: ['Lurra elurtuta', 'Elurra ari du: pilotak gutxiago botatzen du eta baxu iristen da. Lehenago makurtu behar da.'],
     labrit: ['Labrit', 'Finaletako frontoia: pilota bizia, frontisetik azkar ateratzen da eta alai botatzen du.'] },
 };
 // las pelotas que se pueden elegir: cuánto sale del frontis (front), cuánto bota (floor) y cuánto corre al botar (run)
 export const BALLS = { normal: { front: 1, floor: 1, run: 1 }, viva: { front: 1.08, floor: 1.05, run: 1 }, muerta: { front: 0.9, floor: 0.94, run: 0.98 },
   botona: { front: 1, floor: 1.12, run: 0.97 }, rasa: { front: 1, floor: 0.86, run: 1.06 } };
 export const BALL_ORDER = ['normal', 'viva', 'muerta', 'botona', 'rasa'];
-export function courtFeel({ covered = false, stone = false, wet = false, labrit = false, hall = false } = {}, lang = 'es') {
+export function courtFeel({ covered = false, stone = false, wet = false, snow = false, labrit = false, hall = false } = {}, lang = 'es') {
   const T = FEEL_TXT[lang] || FEEL_TXT.es, f = { front: 1, floor: 1, run: 1 }, tags = [];
   // (cerrado por todas partes: el rebote llega al techo y la pelota no se sale por detrás)
   if (hall) { f.backH = 30; f.leftH = 30; }
@@ -74,7 +76,7 @@ export function courtFeel({ covered = false, stone = false, wet = false, labrit 
   if (labrit) { f.front *= 1.05; f.floor *= 1.05; tag('labrit'); }
   else if (hall) tag('hall');
   else if (covered) tag('covered');
-  else if (wet) { f.floor *= 0.86; f.run *= 1.06; tag('wet'); }   // (al aire libre y lloviendo: el suelo, mojado)
+  else if (wet) { f.floor *= 0.86; f.run *= 1.06; tag(snow ? 'snow' : 'wet'); }   // (al aire libre y lloviendo o nevando: el suelo, mojado)
   else tag('open');
   if (stone && !labrit) { f.front *= 0.95; tag('stone'); }
   return { ...f, tags };

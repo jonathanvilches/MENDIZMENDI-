@@ -10,6 +10,7 @@ import { PLACES, pathQuery } from '../world/layout.js';
 import { profile, saveProfile } from './profile.js';
 import { FOOD } from '../data/equipo.js';
 import { GOODS, STOCK, STAR, SHOPKEEPERS } from '../data/tiendas.js';
+import { kaixo } from './saludo.js';
 import { iconSVG } from '../ui/icons.js';
 import { mergeByMaterial } from '../world/products3d.js';
 
@@ -83,7 +84,7 @@ export class Tienda {
     return new Promise(res => {
       const prev = g.mode; g.mode = 'mini'; g.player.frozen = true;
       const o = document.createElement('div'); o.className = 'mg-overlay shop';
-      let tab = 'star', said = `¡Egun on! Soy ${keeper}. ¿Conoces nuestro producto estrella? ¡${S.name}!`;   // con sus mayúsculas (Urbasa, Andia, Olite…)
+      let tab = 'star', said = `¡${kaixo(g)}! Soy ${keeper}. ¿Conoces nuestro producto estrella? ¡${S.name}!`;   // con sus mayúsculas (Urbasa, Andia, Olite…)
       const goods = () => Object.entries(P.bag.goods).filter(([k, n]) => n > 0 && GOODS[k]);
       const paint = () => {
         const stock = { [S.food]: STOCK[S.food] || 5, ...STOCK };

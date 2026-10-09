@@ -15,14 +15,15 @@ const CSS = `
 .pvs-side{position:absolute;top:0;bottom:0;width:60%;overflow:hidden}
 .pvs-side.azul{left:0;background:radial-gradient(90% 80% at 25% 70%,#7b6bff 0%,var(--azul) 30%,var(--azul2) 72%,#0b0530 100%);clip-path:polygon(0 0,100% 0,72% 100%,0 100%);animation:pvs-l .45s cubic-bezier(.2,.9,.3,1) both}
 .pvs-side.rojo{right:0;background:radial-gradient(90% 80% at 75% 70%,#ff6fb5 0%,var(--rojo) 30%,var(--rojo2) 72%,#2a0420 100%);clip-path:polygon(28% 0,100% 0,100% 100%,0 100%);animation:pvs-r .45s cubic-bezier(.2,.9,.3,1) both}
-/* rayas de velocidad que corren hacia el centro */
-.pvs-side::before{content:'';position:absolute;inset:-20%;background:repeating-linear-gradient(100deg,rgba(255,255,255,.07) 0 3px,transparent 3px 38px);animation:pvs-run 1.6s linear infinite}
+/* rayas de velocidad que corren hacia el centro, tumbadas y en trazos (casi verticales parecían lluvia cayendo sobre el frontón) */
+.pvs-side::before{content:'';position:absolute;top:0;bottom:0;left:-240px;right:-240px;background:repeating-linear-gradient(180deg,transparent 0 30px,rgba(255,255,255,.08) 30px 32px);-webkit-mask-image:repeating-linear-gradient(90deg,transparent 0,#000 120px,transparent 240px);mask-image:repeating-linear-gradient(90deg,transparent 0,#000 120px,transparent 240px);animation:pvs-run 1.6s linear infinite}
 .pvs-side.rojo::before{animation-direction:reverse}
 /* foco que barre cada lado */
 .pvs-side::after{content:'';position:absolute;top:-30%;left:30%;width:40%;height:160%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.16),transparent);transform-origin:50% 0;animation:pvs-beam 3.2s ease-in-out infinite alternate}
 .pvs-side.rojo::after{animation-delay:-1.6s}
 .pvs-split{position:absolute;top:-10%;bottom:-10%;left:50%;width:8px;transform:translateX(-50%) skewX(-13deg);background:#fff;box-shadow:0 0 18px #fff,0 0 42px var(--fx),0 0 80px var(--fx);animation:pvs-split .5s .3s ease-out both}
-.pvs-flash{position:absolute;inset:0;z-index:6;background:#fff;opacity:0;pointer-events:none;animation:pvs-flash .5s .62s ease-out both}
+/* el golpe del VS: un destello que sale del centro, rosa; a toda pantalla y blanco parecía un relámpago */
+.pvs-flash{position:absolute;inset:0;z-index:6;background:radial-gradient(60% 70% at 50% 45%,rgba(255,255,255,.9) 0%,rgba(255,122,200,.55) 35%,rgba(255,43,214,0) 70%);opacity:0;pointer-events:none;animation:pvs-flash .5s .62s ease-out both}
 .pvs-sparks{position:absolute;inset:0;z-index:2;pointer-events:none}
 .pvs-sparks i{position:absolute;bottom:-10px;width:4px;height:4px;border-radius:50%;background:#fff;box-shadow:0 0 8px 2px var(--rosa);opacity:0;animation:pvs-spark var(--t,3s) linear var(--d,0s) infinite}
 .pvs-top{position:absolute;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:5;display:flex;justify-content:center;animation:pvs-drop .4s .9s cubic-bezier(.2,1.3,.4,1) both}
@@ -67,7 +68,7 @@ const CSS = `
 @keyframes pvs-in{from{opacity:0}to{opacity:1}}@keyframes pvs-out{to{opacity:0;transform:scale(1.04)}}
 @keyframes pvs-l{from{transform:translateX(-100%)}to{transform:none}}@keyframes pvs-r{from{transform:translateX(100%)}to{transform:none}}
 @keyframes pvs-figl{from{transform:translateX(-70%) scale(.9);opacity:0}to{transform:none;opacity:1}}@keyframes pvs-figr{from{transform:translateX(70%) scale(.9);opacity:0}to{transform:none;opacity:1}}
-@keyframes pvs-run{from{background-position:0 0}to{background-position:200px 0}}
+@keyframes pvs-run{from{transform:translateX(-240px)}to{transform:none}}
 @keyframes pvs-beam{from{transform:rotate(-22deg)}to{transform:rotate(22deg)}}
 @keyframes pvs-split{from{transform:translateX(-50%) skewX(-13deg) scaleY(0)}to{transform:translateX(-50%) skewX(-13deg) scaleY(1)}}
 @keyframes pvs-flash{0%{opacity:0}12%{opacity:.75}100%{opacity:0}}
@@ -87,7 +88,7 @@ const CSS = `
 `;
 
 // dibujo del frontón: el frontis y la pared izquierda con la cancha; con tejado si es cubierto, sillares si es de
-// piedra, gotas si llueve y el Labrit con su fachada
+// piedra, gotas si llueve, copos si nieva y el Labrit con su fachada
 export function courtIcon(c = {}) {
   const roof = c.covered || c.labrit, wall = c.labrit ? '#b05a8a' : c.stone ? '#a99ac8' : '#6a5aa8';
   return `<svg viewBox="0 0 64 48" aria-hidden="true"><path d="M6 44h52l-8-10H14z" fill="#3a2a5e" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/>`
@@ -95,7 +96,7 @@ export function courtIcon(c = {}) {
     + `<path d="M14 31h22" stroke="#ff2bd6" stroke-width="2"/>`
     + (c.stone && !c.labrit ? `<path d="M14 20h22M14 26h22M25 14v6M20 20v6M30 20v6M25 26v5" stroke="rgba(0,0,0,.28)" stroke-width="1"/>` : '')
     + (roof ? `<path d="M2 16L32 4l30 12" fill="none" stroke="#ff7ac8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>` : `<circle cx="52" cy="9" r="4" fill="#ff7ac8"/>`)
-    + (c.wet && !roof ? `<path d="M44 18l-2 5M50 20l-2 5M56 18l-2 5" stroke="#c9b2ff" stroke-width="2" stroke-linecap="round"/>` : '')
+    + (c.wet && !roof ? (c.snow ? `<g fill="#fff"><circle cx="44" cy="19" r="1.6"/><circle cx="50" cy="23" r="1.6"/><circle cx="56" cy="19" r="1.6"/></g>` : `<path d="M44 18l-2 5M50 20l-2 5M56 18l-2 5" stroke="#c9b2ff" stroke-width="2" stroke-linecap="round"/>`) : '')
     + `<circle cx="40" cy="38" r="2.2" fill="#fff"/></svg>`;
 }
 

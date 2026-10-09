@@ -33,6 +33,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const el = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const I = (n, s = 24, c = '') => iconSVG(n, s, c);
+const cnt = (n, one, many) => `${n} ${n === 1 ? one : many}`;   // (1 sello, 2 sellos: nunca «1 sellos»)
 const comarca = (id) => COMARCAS.find(c => c.id === id);
 const TYPE_NAME = { visit: 'Visita', process: 'Producto', harvest: 'Cosecha', herd: 'Ganadería', dance: 'Danza', carnival: 'Carnaval', trade: 'Oficio', legend: 'Leyenda', race: 'Carrera', observe: 'Naturaleza', tradition: 'Tradición', quiz: 'Preguntas', summit: 'Montaña', pelota: 'Pelota', figure: 'Personajes', feria: 'Feria', dolmen: 'Arqueología', castle: 'Castillo', mirador: 'Mirador' };
 const TYPE_ICON = { visit: 'church', process: 'basket', harvest: 'wheat', herd: 'sheep', dance: 'dance', carnival: 'mask', trade: 'anvil', legend: 'legend', race: 'running', observe: 'binoculars', tradition: 'music', quiz: 'quiz', summit: 'peak', pelota: 'pelota', figure: 'person', feria: 'cow', dolmen: 'dolmen', castle: 'castle', mirador: 'binoculars' };
@@ -168,7 +169,9 @@ export class Hub {
       if (m.type === 'visit') lines.push(`Primero vamos a conocer ${town}: ${last.church?.name ? 'su ' + last.church.name.replace(/^Iglesia/, 'iglesia') : 'sus calles'} y sus rincones.`);
       else lines.push(`${who ? who + ' nos espera en ' + town : 'En ' + town + ' nos esperan'}: «${m.title || m.name || TYPE_NAME[m.type]}». ¡Hay que ayudar!`);
     }
-    lines.push(lp.stamp ? `¡El sello de ${town} ya es tuyo! Elige otro pueblo en el mapa.` : `Si completas las ${lp.total} misiones, el sello de ${town} será tuyo.`);
+    // (si ya has hecho alguna, las que te quedan: antes decía «si completas las 6» aunque ya llevaras 4)
+    const left = lp.total - lp.done;
+    lines.push(lp.stamp ? `¡El sello de ${town} ya es tuyo! Elige otro pueblo en el mapa.` : lp.done ? `Te ${left === 1 ? 'queda 1 misión' : `quedan ${left} misiones`} para ganar el sello de ${town}.` : `Si completas las ${lp.total} misiones, el sello de ${town} será tuyo.`);
     lines.push('Las páginas del Pasaporte Mendi están en blanco. ¡Cada pueblo guarda un sello!');
     return lines;
   }
@@ -242,24 +245,28 @@ export class Hub {
     // (las figuras, las mismas de las cartas: en reposo, limpias, como el resto de pantallas de deporte)
     const avP = PELOTARI_IMG.blue, avF = OSASUNA_VS, sadar = levelById('pamplona');
     const towns = LEVELS.filter(l => !l.special).map(l => `<button class="fr-chip ${l.id === fl.id ? 'on' : ''}" data-fronton="${l.id}">${esc(l.name.split(' /')[0])}</button>`).join('');
-    this.after = () => { $('.fr-chip.on', this.root)?.scrollIntoView({ block: 'nearest', inline: 'center' }); };
+    this.after = () => { $('.fr-chip.on', this.root)?.scrollIntoView({ block: 'nearest', inline: 'nearest' }); };
+    // (las dos cartas, iguales: rótulo, título, el dato, una fila para elegir o ver y el botón abajo, a todo lo ancho; la
+    // figura en su columna, a la derecha, sin tocar nada)
+    const kit = club ? `<i class="sp-kit" style="--a:${club.shirt};--b:${club.shirt2 || club.shorts || club.shirt}"></i>` : '';
     return `
     <h2 class="sec">${I('trophy', 34)} Campeonatos</h2>
     <p class="hint sp-hint">Juega sin entrar en las misiones de un pueblo. Lo que ganes cuenta igual.</p>
     <section class="sports">
       <div class="sport" style="--bg:url(${townImg(fl)})">
-        ${avP ? `<img class="sp-av" src="${avP}" alt="">` : ''}
-        <div class="sp-txt"><small class="kicker">Frontón de ${esc(fl.name.split(' /')[0])}</small><h3>Pelota a mano</h3>
-          <p>Partido libre o el torneo de mano por la txapela de la comarca: cuartos, semifinal y final.</p>
+        <div class="sp-txt"><small class="kicker">Torneo de mano</small><h3>Pelota a mano</h3>
+          <p>Partido libre o el torneo por la txapela de la comarca: cuartos, semifinal y final.</p>
           <span class="sp-stat">${I('txapela', 22)} ${tx} ${tx === 1 ? 'txapela' : 'txapelas'}</span></div>
-        <div class="fr-pick"><small>Elige frontón</small><div class="fr-rail">${towns}</div></div>
+        <div class="sp-row"><small>Elige frontón</small><div class="fr-rail">${towns}</div></div>
+        <div class="sp-fig">${avP ? `<img class="sp-av" src="${avP}" alt="">` : ''}</div>
         <button class="gx-go" data-sport="pelota">${I('play', 24)} <span>Jugar a pelota</span></button><span class="sp-shine"></span>
       </div>
       <div class="sport" style="--bg:url(${townImg(sadar)})">
-        ${avF ? `<img class="sp-av" src="${avF}" alt="">` : ''}
-        <div class="sp-txt"><small class="kicker">${club ? 'En El Sadar · ' + esc(club.name) : 'En El Sadar · elige tu club'}</small><h3>Fútbol</h3>
-          <p>Liga Navarra con tu club y amistosos contra cualquier club. Todos los partidos, en El Sadar.</p>
-          <span class="sp-stat">${I('balon', 22)} ${fb?.played || 0} partidos · ${fb?.won || 0} ganados</span></div>
+        <div class="sp-txt"><small class="kicker">Liga Navarra</small><h3>Fútbol</h3>
+          <p>Liga con tu club y amistosos contra cualquier club. Todos los partidos, en El Sadar.</p>
+          <span class="sp-stat">${I('balon', 22)} ${fb?.played || 0} ${(fb?.played || 0) === 1 ? 'partido' : 'partidos'} · ${fb?.won || 0} ${(fb?.won || 0) === 1 ? 'ganado' : 'ganados'}</span></div>
+        <div class="sp-row"><small>Tu club</small><div class="sp-club">${club ? `${kit}<b>${esc(club.name)}</b><span>En El Sadar</span>` : '<b>Sin club</b><span>Lo eliges al jugar</span>'}</div></div>
+        <div class="sp-fig">${avF ? `<img class="sp-av" src="${avF}" alt="">` : ''}</div>
         <button class="gx-go" data-sport="futbol">${I('play', 24)} <span>Jugar a fútbol</span></button><span class="sp-shine"></span>
       </div>
     </section>`;
@@ -284,7 +291,7 @@ export class Hub {
     return `<button class="ccard ${ts.length ? '' : 'soon'}" data-comarca="${c.id}" style="--c:${c.color}">
       <div class="cimg" data-land="${c.id}:480:300"></div>
       <img class="cstamp ${pr.stamps ? '' : 'gray'}" src="${stampImg(c.id)}" alt="">
-      <div class="cbody"><b>${esc(c.name)}</b><small>${ts.length} pueblos jugables · ${pr.stamps} sellos${ts.length ? ` · ${TXAPELAS()[c.id] ? '¡txapela de pelota!' : 'txapela: por ganar'}` : ''}</small></div>
+      <div class="cbody"><b>${esc(c.name)}</b><small>${cnt(ts.length, 'pueblo jugable', 'pueblos jugables')} · ${cnt(pr.stamps, 'sello', 'sellos')}${ts.length ? ` · ${TXAPELAS()[c.id] ? '¡txapela de pelota!' : 'txapela: por ganar'}` : ''}</small></div>
       <div class="cring">${ring(pr.pct, 50, '#fff')}</div>
       <span class="cgo">${ts.length ? 'Elegir pueblo' : 'Próximamente'}</span></button>`;
   }
@@ -333,7 +340,7 @@ export class Hub {
     <section class="chero" style="--c:${c.color};--bg:url(${landImg(id)})">
       <button class="back" data-go="map">${I('back', 26)} Mapa</button>
       <img class="bigstamp ${pr.stamps ? '' : 'gray'}" src="${stampImg(id)}" alt="">
-      <div><small class="kicker">Comarca</small><h1>${esc(c.full || c.name)}</h1><p>${ts.length} pueblos para jugar · río ${esc(c.river || '')}</p></div>
+      <div><small class="kicker">Comarca</small><h1>${esc(c.full || c.name)}</h1><p>${cnt(ts.length, 'pueblo para jugar', 'pueblos para jugar')} · río ${esc(c.river || '')}</p></div>
       <div class="cring">${ring(pr.pct, 96, '#fff')}</div>
     </section>
     <h2 class="sec">${I('church', 30)} Pueblos y ciudades</h2>
@@ -566,7 +573,7 @@ export class Hub {
       <section class="two"><div class="panel prof"><img src="${avatarPortrait(p.avatar, 'full')}" alt=""><div>
         <label>Tu nombre<input id="pName" maxlength="14" value="${esc(p.name)}" autocomplete="off"></label>
         <div class="lvl"><b>Nivel ${L.lv}</b> · ${rankOf(L.lv)}<div class="xp big"><i style="width:${L.cur / L.need * 100}%"></i></div><small>${L.cur}/${L.need} XP para el siguiente nivel</small></div>
-        <div class="pstats"><span>${I('stamp', 26)} ${stampCount(p)} sellos</span><span>${I('check', 26)} ${doneM} misiones</span><span>${I('book', 26)} ${p.cards.length} cartas</span><span>${I('peak', 26)} ${p.peaks.length} cimas</span><span>${I('binoculars', 26)} ${p.species.length} especies</span><span>${I('ribbon', 26)} ${sal?.ribbons?.length || 0}/8 cintas de Muskilda</span></div>
+        <div class="pstats"><span>${I('stamp', 26)} ${cnt(stampCount(p), 'sello', 'sellos')}</span><span>${I('check', 26)} ${cnt(doneM, 'misión', 'misiones')}</span><span>${I('book', 26)} ${cnt(p.cards.length, 'carta', 'cartas')}</span><span>${I('peak', 26)} ${cnt(p.peaks.length, 'cima', 'cimas')}</span><span>${I('binoculars', 26)} ${cnt(p.species.length, 'especie', 'especies')}</span><span>${I('ribbon', 26)} ${sal?.ribbons?.length || 0}/8 cintas de Muskilda</span></div>
         <button class="btn" data-go="avatars">${I('person', 22)} Cambiar personaje</button></div></div>
       <div class="panel"><h2>${I('gear', 30)} Ajustes</h2>
         <label class="set">Edad <select id="pAge">${EDADES.map(e => `<option value="${e.id}">${e.name}</option>`).join('')}</select></label>

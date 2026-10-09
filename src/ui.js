@@ -67,7 +67,9 @@ export class UI {
     $('.ld-intro', L).textContent = info.intro || '';
     const st = $('.ld-stamp', L); st.style.display = info.stamp ? '' : 'none'; if (info.stamp) st.src = info.stamp;
     const av = $('.ld-av', L); av.style.display = info.avatar ? '' : 'none'; if (info.avatar) av.src = info.avatar;
-    $('.ld-ms', L).innerHTML = info.missions?.length ? `<span>${info.missions.length} misiones te esperan</span><div>${info.missions.map(ic => I(ic, 34)).join('')}</div>` : '';
+    // (las de tu edad y las que te quedan: antes contaba todas, aunque ya las hubieras hecho)
+    const left = info.left ?? info.missions?.length ?? 0;
+    $('.ld-ms', L).innerHTML = info.missions?.length ? `<span>${left === 0 ? 'Ya has hecho todas sus misiones' : left === 1 ? 'Te espera 1 misión' : `${left} misiones te esperan`}</span><div>${info.missions.map(ic => I(ic, 34)).join('')}</div>` : '';
     $('.ld-bulb', L).innerHTML = I('sparkle', 30);
     $('.tip', L).textContent = tip;
     this.progress(0, 'Preparando…');
@@ -327,7 +329,7 @@ export class UI {
         body.querySelectorAll('.card').forEach(c => c.onclick = () => { if (!c.classList.contains('locked')) { c.classList.toggle('flip'); this.sound.ui('click'); } });
       } else {
         const r = st.ribbons.length;
-        body.innerHTML = `<div class="stats"><div>${I('ribbon')} ${r}/8 cintas</div><div>${I('eguzkilore')} ${st.eguz.length}/${EGUZKILORES.length} eguzkilores</div><div>${I('book')} ${st.cards.length} cartas</div><div>${I('star')} ${st.stars} estrellas</div></div>
+        body.innerHTML = `<div class="stats"><div>${I('ribbon')} ${r}/8 cintas</div><div>${I('eguzkilore')} ${st.eguz.length}/${EGUZKILORES.length} eguzkilores</div><div>${I('book')} ${st.cards.length} ${st.cards.length === 1 ? 'carta' : 'cartas'}</div><div>${I('star')} ${st.stars} ${st.stars === 1 ? 'estrella' : 'estrellas'}</div></div>
           <div class="sectionT">Cintas para la fiesta</div><div class="cards">${RIBBONS.map(rb => `<div class="card ${st.ribbons.includes(rb.id) ? '' : 'locked'}" style="height:120px"><div class="in"><div class="f" style="align-items:center;justify-content:center"><div style="width:22px;height:54px;background:${rb.color};clip-path:polygon(0 0,100% 0,100% 100%,50% 80%,0 100%)"></div><b style="text-align:center">${rb.name}</b><small>${rb.eu}</small></div></div></div>`).join('')}</div>
           <div class="sectionT">Sello del pasaporte</div><p>${st.done ? '¡Sellado en Muskilda! Eres parte de la fiesta del valle.' : 'Consigue las ocho cintas y baila en Muskilda para sellarlo.'}</p>
           <p class="keys">Otsagabia/Ochagavía está en el Pirineo navarro. El pueblo del juego es una interpretación: la posición de casas y calles no es un plano exacto.</p>`;

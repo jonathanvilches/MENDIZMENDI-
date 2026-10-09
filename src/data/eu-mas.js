@@ -107,7 +107,7 @@ export const EU_RX_MAS = [
   [/^El castillo de ([A-ZÁÉÍÓÚÑ][^\s.,]*(?: [^\s.,]+){0,2})$/, (m, a) => `${loc(e(a))} gaztelua`],
   [/^Productos de ([^.…!?]+)$/, (m, a) => `${loc(e(a))} produktuak`],
   [/^El sabio de ([^.…!?]+)$/, (m, a) => `${loc(e(a))} jakintsua`], [/^La sabia de ([^.…!?]+)$/, (m, a) => `${loc(e(a))} jakintsua`],
-  [/^(\d+) misiones te esperan$/, '$1 misio zure zain'],
+  [/^(\d+) misiones te esperan$/, '$1 misio zure zain'], [/^Te espera 1 misión$/, 'Misio 1 zure zain'], [/^Ya has hecho todas sus misiones$/, 'Bere misio guztiak egin dituzu'],
   [/^¡Kaixo, (.+?)! Ongi etorri: ¡te damos la bienvenida a (.+)!$/, (m, a, b) => `Kaixo, ${a}! Ongi etorri ${ala(e(b))}!`],
   [/^Aquí hay (\d+) lugares que tienes que conocer: (.+)\.$/, (m, n, l) => `Hemen ${n} leku dituzu ezagutzeko: ${l.split(', ').map(e).join(', ')}.`],
   [/^Visita los lugares importantes \((\d+)\/(\d+)\)$/, 'Bisitatu leku garrantzitsuak ($1/$2)'],
