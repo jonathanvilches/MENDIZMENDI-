@@ -347,6 +347,7 @@ export class FutbolMatch {
     switch (e.t) {
       case 'kick': if (e.kind !== 'throw') A.kick(e.kind === 'head' ? e.power * 0.6 : e.power); this.anim(P(e.p), e.kind === 'throw' ? 'throw' : e.kind === 'head' ? 'head' : 'kick');
         if (P(e.p) === g.me && !g.autoplay) try { navigator.vibrate?.(e.kind === 'shot' ? 22 : 12); } catch (err) { /* sin vibración */ }
+        if (P(e.p)?.team === 0 && e.kind === 'shot') this.kickK = Math.max(this.kickK || 0, clamp(((e.power || 20) - 12) / 18, 0.25, 1));   // (un tiro de los tuyos, más cuanto más fuerte, en m/s: la cámara se cierra un instante)
         break;
       case 'touch': if (P(e.p) === g.me) A.touch(); break;
       case 'post': case 'bar': A.post(); A.ooh(); H.say(e.t === 'post' ? TEXT.post : TEXT.bar); break;
@@ -655,7 +656,13 @@ export class FutbolMatch {
     // esprintando, la cámara abre un poco el plano (sensación de velocidad)
     this.sprintK = (this.sprintK || 0) + (((this.game.me?.sprinting && this.game.phase === 'play') ? 1 : 0) - (this.sprintK || 0)) * Math.min(1, dt * 4);
     fov *= 1 + this.sprintK * 0.1;
-    if (Math.abs(c.fov - fov) > 0.01) { c.fov += (fov - c.fov) * Math.min(1, dt * 2.5); if (snap) c.fov = fov; c.updateProjectionMatrix(); }
+    // el plano va suave hacia su sitio; encima, al chutar fuerte, un golpe de zoom que se suelta enseguida (como en las
+    // retransmisiones). (Si otra parte cambió el plano, la repetición por ejemplo, se parte de ahí)
+    if (this.fovBase == null || c.fov !== this.fovOut) this.fovBase = c.fov;
+    this.fovBase += (fov - this.fovBase) * Math.min(1, dt * 2.5); if (snap) this.fovBase = fov;
+    const fOut = this.fovBase * (1 - (this.kickK || 0) * 0.07); if (this.kickK > 0) this.kickK = Math.max(0, this.kickK - dt * 2.4);
+    if (Math.abs(c.fov - fOut) > 0.01) { c.fov = fOut; c.updateProjectionMatrix(); }
+    this.fovOut = c.fov;
     if (!this.camPos || snap) { this.camPos = pos.clone(); this.camLook = look.clone(); }
     const k = 1 - Math.exp(-4 * dt);
     this.camPos.lerp(pos, k); this.camLook.lerp(look, k);

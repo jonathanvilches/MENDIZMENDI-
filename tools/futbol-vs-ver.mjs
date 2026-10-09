@@ -27,7 +27,7 @@ ok(!!V.comp, `la competición arriba (${V.comp})`);
 ok(V.inside && !V.overlap, 'todo dentro de la pantalla y sin solaparse');
 ok(!V.live, 'mientras se ve, el partido no ha empezado');
 await p.evaluate(() => document.querySelector('.pvs').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })));
-await p.waitForFunction(() => window.__futbol?.live, null, { timeout: 60000 }).catch(() => {});
+await p.waitForFunction(() => window.__futbol?.live && !document.querySelector('.pvs'), null, { timeout: 60000 }).catch(() => {});   // (la VS se va con una salida de 230 ms)
 ok(await p.evaluate(() => !!window.__futbol?.live && !document.querySelector('.pvs')), 'al tocar, empieza la presentación en el campo');
 console.log(errs.length ? 'errores: ' + errs.slice(0, 4).join(' | ') : 'sin errores');
 console.log(fails ? `\n${fails} FALLOS` : '\nTodo correcto');

@@ -10,13 +10,15 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-root{position:fixed;inset:0;z-index:900;pointer-events:none;font-family:Nunito,system-ui,sans-serif;color:#fff;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 .fb-root *{box-sizing:border-box}
 .fb-top{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,12px));left:64px;right:64px;display:flex;flex-direction:column;align-items:center;gap:8px}
-.fb-score{display:flex;align-items:stretch;border-radius:14px;overflow:hidden;background:rgba(16,10,30,.86);border:1px solid rgba(255,255,255,.18);box-shadow:0 6px 18px rgba(0,0,0,.3);max-width:100%}
-.fb-team{display:flex;align-items:center;gap:8px;padding:4px 8px;font-weight:900;font-size:var(--fs-sm);letter-spacing:.04em;min-width:0}
+/* el marcador, el mismo de la pelota y de las pantallas de deporte: placa en ángulo, filete fucsia arriba, nombres en
+   letra estrecha y mayúsculas, el reloj en lila (como en las retransmisiones y en los juegos de fútbol) */
+.fb-score{display:flex;align-items:stretch;border-radius:3px;overflow:hidden;background:rgba(7,2,15,.9);border-top:2px solid var(--fx,#ff2bd6);box-shadow:0 6px 20px rgba(0,0,0,.35);max-width:100%;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%)}
+.fb-team{display:flex;align-items:center;gap:8px;padding:4px 12px;font:800 var(--fs-sm)/1 var(--f-cond,Nunito),sans-serif;letter-spacing:.06em;text-transform:uppercase;min-width:0}
 .fb-team i{width:12px;height:20px;border-radius:3px;flex:none;box-shadow:0 0 0 1.5px rgba(255,255,255,.7)}
 .fb-team span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:22vw}.fb-team span.fb-sn{display:none}
 .fb-team b{font-family:'MZ Display',Nunito,sans-serif;font-weight:400;font-size:var(--fs-xl);line-height:1;min-width:1em;text-align:center}
-.fb-clock{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px 8px;background:rgba(255,255,255,.1);font-weight:900;font-size:var(--fs-md);line-height:1;font-variant-numeric:tabular-nums}
-.fb-clock small{font-size:var(--fs-xs);opacity:.8;font-weight:800;text-transform:uppercase;letter-spacing:.1em}
+.fb-clock{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:2px 12px;background:linear-gradient(180deg,rgba(123,47,247,.55),rgba(49,16,107,.7));font:800 var(--fs-md)/1 var(--f-cond,Nunito),sans-serif;font-variant-numeric:tabular-nums}
+.fb-clock small{font-size:var(--fs-xs);color:var(--lila,#c9b2ff);font-weight:800;text-transform:uppercase;letter-spacing:.1em}
 .fb-say{display:none;font-size:var(--fs-sm);font-weight:800;padding:4px 12px;border-radius:12px;background:rgba(16,10,30,.62);max-width:min(92vw,480px);text-align:center;line-height:1.3}
 .fb-say.on{display:block;animation:fbin .18s ease-out}
 @keyframes fbin{from{opacity:0;transform:translateY(-4px)}}
@@ -134,6 +136,18 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
   .fb-stickhint{width:84px;height:84px;font-size:var(--fs-xs)}
   .fb-msg{top:42%}.fb-msg h2{font-size:var(--fs-hero)}
 }
+/* la identidad de todo el juego (la de las fichas, la pelota y las pantallas de deporte): tarjetas en ángulo con filete
+   fucsia arriba, título en mayúsculas, el botón principal con el degradado fucsia y morado y letra blanca, los demás con
+   borde lila, y la opción elegida en morado. Los botones del partido no cambian: ya son los finos de los juegos de fútbol */
+.fb-card{position:relative;border-radius:4px;border:1px solid rgba(201,178,255,.25);background:radial-gradient(80% 60% at 100% 0%,rgba(255,43,214,.2),transparent 60%),linear-gradient(170deg,#31106b 0%,#12052a 78%);clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px)}
+.fb-card::before{content:'';position:absolute;left:16px;right:0;top:0;height:3px;background:var(--cta,linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7));box-shadow:0 0 24px rgba(255,43,214,.45);pointer-events:none;z-index:1}
+.fb-card h2{text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.5)}
+.fb-card .fb-kick{font-family:var(--f-cond,Nunito),sans-serif;font-weight:800;letter-spacing:.1em}
+.fb-go{border-radius:4px;color:#fff;text-transform:uppercase;letter-spacing:.04em;background:var(--cta,linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7));box-shadow:0 0 18px rgba(255,43,214,.45);text-shadow:0 2px 0 rgba(74,10,94,.5);clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%)}
+.fb-go:active{transform:translateY(2px)}
+.fb-alt,.fb-card .fb-alt{border-radius:4px;border:1px solid rgba(190,160,255,.35);background:rgba(255,255,255,.08);font-family:var(--f-cond,Nunito),sans-serif;text-transform:uppercase;letter-spacing:.06em;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%)}
+.fb-chip{border-radius:4px;border:1px solid rgba(190,160,255,.35)}
+.fb-chip.on{background:linear-gradient(180deg,#8338ec,#5e22c4);border-color:#c9a6ff;color:#fff;box-shadow:0 0 0 2px rgba(138,43,226,.35)}
 `;
 const SVG_PAUSE = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"><path d="M9 6v12M15 6v12"/></svg>';
 // iconos de los botones: trazo blanco fino (24 × 24), lo justo para reconocerlos
