@@ -81,9 +81,19 @@ function mapLayout() {
   return (MAPL = { badges, names });
 }
 
+// el mapa de Navarra se dibuja en su propia escala (725 de ancho) y en el móvil se ve a menos de la mitad: --k es cuántas
+// unidades del mapa hay en un píxel, para que los números de las comarcas nunca bajen de 12 px en la pantalla
+function fitMaps(root) {
+  const fit = () => { for (const s of root.querySelectorAll('svg.navarra')) { const w = s.getBoundingClientRect().width; if (!w) continue; const k = s.viewBox.baseVal.width / w; s.style.setProperty('--k', k.toFixed(3)); s.classList.toggle('tiny', k > 1.6);
+    // (también en el atributo: así el círculo tiene su tamaño aunque el navegador no lea «r» en el CSS)
+    for (const c of s.querySelectorAll('.cnum circle')) c.setAttribute('r', ((k > 1.6 ? 10 : 13) * k).toFixed(1)); } };
+  requestAnimationFrame(fit);
+  if (!fitMaps.on) { fitMaps.on = true; addEventListener('resize', () => fitMaps.root && requestAnimationFrame(() => fitMaps(fitMaps.root))); }
+  fitMaps.root = root;
+}
 function ring(p, size = 54, color = '#ff7ac8', label = '') {
   const r = size / 2 - 5, C = 2 * Math.PI * r;
-  return `<svg class="ring" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="6"/><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${color}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${C * p} ${C}" transform="rotate(-90 ${size / 2} ${size / 2})"/><text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" fill="#fff" font-size="${size * 0.26}" font-weight="900">${label || Math.round(p * 100) + '%'}</text></svg>`;
+  return `<svg class="ring" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="6"/><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${color}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${C * p} ${C}" transform="rotate(-90 ${size / 2} ${size / 2})"/><text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" fill="#fff" font-size="${size < 80 ? 12 : 24}" font-weight="900">${label || Math.round(p * 100) + '%'}</text></svg>`;
 }
 function spark(profile, w = 160, h = 44) {
   if (!profile?.length) return '';
@@ -130,7 +140,7 @@ export class Hub {
     const m = $('#hMain', this.root);
     if (!this['s_' + screen]) { screen = this.screen = 'home'; this.root.dataset.screen = screen; }   // pantalla desconocida: la portada
     m.innerHTML = this['s_' + screen](arg);
-    m.scrollTop = 0;
+    m.scrollTop = 0; fitMaps(m);
     this.after?.(); this.after = null;
     this.renderChip();
   }
@@ -293,7 +303,7 @@ export class Hub {
     }).join('');
     const labels = small ? '' : COMARCAS.map(c => `<text x="${c.label.x}" y="${c.label.y}" class="clabel" text-anchor="middle">${c.label.lines.map((l, i) => `<tspan x="${c.label.x}" dy="${i ? 12 : 0}">${esc(l)}</tspan>`).join('')}</text>`).join('')
       // en el móvil, números en lugar de nombres (la lista de debajo lleva los mismos números)
-      + COMARCAS.filter(c => comarcaTowns(c.id).length).map((c, i) => { const [bx, by] = mapLayout().badges[c.id]; return `<g class="cnum" data-comarca="${c.id}" transform="translate(${bx.toFixed(1)} ${by.toFixed(1)})"><circle r="15" fill="#c21cff"/><text y="6" text-anchor="middle">${i + 1}</text></g>`; }).join('');
+      + COMARCAS.filter(c => comarcaTowns(c.id).length).map((c, i) => { const [bx, by] = mapLayout().badges[c.id]; return `<g class="cnum" data-comarca="${c.id}" transform="translate(${bx.toFixed(1)} ${by.toFixed(1)})"><circle r="15" fill="#c21cff"/><text dy=".36em" text-anchor="middle">${i + 1}</text></g>`; }).join('');
     const pinsSvg = pins ? LEVELS.filter(l => !focus || l.comarca === focus).map(l => { const [x, y] = XY.get(l.id), t = townProgress(p, l), nm = mapLayout().names[l.id]; return `<g class="pin ${t.stamp ? 'ok' : t.done ? 'go' : ''}" data-town="${l.id}" transform="translate(${x} ${y})"><circle r="${small ? 5 : 7}"/>${small || !nm ? '' : `<text x="${nm.x}" y="${nm.y}" text-anchor="${nm.anchor}">${esc(l.name.split(' /')[0])}</text>`}</g>`; }).join('') : '';
     return `<svg class="navarra" viewBox="10 10 725 780">${paths}${labels}${pinsSvg}</svg>`;
   }

@@ -904,7 +904,7 @@ export class Game {
     this.player.frozen = false; this.mode = 'play';
     this.npcs.maite.wave = 2;
     this.state.introDone = true; this.save();
-    this.ui.toast(this.input.touch ? 'Habla con Maite: acércate y toca el botón amarillo' : 'Habla con Maite: acércate y pulsa E', 'talk', 4500);
+    this.ui.toast(this.input.touch ? 'Habla con Maite: acércate y toca el botón de hablar' : 'Habla con Maite: acércate y pulsa E', 'talk', 4500);
   }
   teleport(x, z) {
     let X = x, Z = z;

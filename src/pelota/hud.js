@@ -1,5 +1,6 @@
 // Interfaz del partido (DOM): marcador, avisos del juez y del kantari, consejos, joystick y botones.
 // Todo lleva el prefijo «pel-» y se coloca sin solaparse en móvil (vertical y horizontal) y escritorio.
+import { fitCircle, fitCircles } from '../ui/fitlabel.js';
 const CSS = `
 .pel-root{position:fixed;inset:0;z-index:900;pointer-events:none;font-family:var(--pel-font,Nunito,sans-serif);color:#fff;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 .pel-root *{box-sizing:border-box}
@@ -10,7 +11,7 @@ const CSS = `
 .pel-side b{font-family:var(--pel-display,'MZ Display',Nunito,sans-serif);font-size:var(--fs-lg);line-height:1;min-width:1em;text-align:center}
 .pel-side span{font:800 var(--fs-sm)/1 var(--f-cond,Nunito),sans-serif;letter-spacing:.04em;text-transform:uppercase;opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:min(16vw,90px)}
 .pel-red{background:linear-gradient(180deg,#ff2e88,#a8135f)}.pel-blue{background:linear-gradient(180deg,#5b4bff,#3121b0)}
-.pel-mid{display:grid;place-items:center;padding:0 10px;font:800 var(--fs-xs)/1 var(--f-cond,Nunito),sans-serif;color:var(--lila,#c9b2ff);text-transform:uppercase;letter-spacing:.1em;white-space:nowrap}
+.pel-mid{display:grid;place-items:center;padding:0 8px;font:800 var(--fs-xs)/1 var(--f-cond,Nunito),sans-serif;color:var(--lila,#c9b2ff);text-transform:uppercase;letter-spacing:.1em;white-space:nowrap}
 .pel-serve{width:7px;height:7px;border-radius:50%;background:#fff6d8;box-shadow:0 0 0 2px rgba(0,0,0,.25);visibility:hidden;flex:none}
 .pel-serve.on{visibility:visible}
 .pel-call{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 72px);transform:translateX(-50%) scale(.9);opacity:0;transition:opacity .18s,transform .18s;text-align:center;max-width:min(92vw,520px);padding:8px 16px;border-radius:18px;background:linear-gradient(180deg,rgba(50,19,111,.94),rgba(28,11,58,.94));border:1px solid rgba(190,160,255,.35);box-shadow:0 10px 30px rgba(0,0,0,.35)}
@@ -24,9 +25,9 @@ const CSS = `
 .pel-q{position:absolute;left:50%;top:40%;display:flex;flex-direction:column;align-items:center;gap:2px;white-space:nowrap;transform:translate(-50%,-50%);font-family:var(--pel-display,'MZ Display',Nunito,sans-serif);font-size:var(--fs-2xl);text-shadow:0 3px 10px rgba(0,0,0,.45);opacity:0;transition:opacity .15s;pointer-events:none}
 .pel-q.on{opacity:1}
 /* el aviso de cada golpe, como en los juegos de deportes: grande, con rebote, y su color según cómo le has dado */
-.pel-q b{font:400 var(--fs-4xl)/1 var(--f-display,'MZ Display'),Nunito,sans-serif;text-transform:uppercase;letter-spacing:.02em;color:#fff;filter:drop-shadow(0 4px 0 rgba(7,2,15,.6))}
+.pel-q b{font:400 var(--fs-4xl)/1 var(--f-display,'MZ Display'),Nunito,sans-serif;text-transform:uppercase;letter-spacing:0;color:#fff;filter:drop-shadow(0 4px 0 rgba(7,2,15,.6))}
 .pel-q.on b{animation:pel-qpop .45s cubic-bezier(.2,1.7,.4,1) both}
-.pel-q small{font:800 var(--fs-sm)/1.2 var(--f-cond,Nunito),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 10px;background:rgba(7,2,15,.72);clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%)}
+.pel-q small{font:800 var(--fs-sm)/1.2 var(--f-cond,Nunito),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 8px;background:rgba(7,2,15,.72);clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%)}
 .pel-q small:empty{display:none}
 .pel-q.k-perfect b{background:linear-gradient(180deg,#fff 30%,#ff7ac8 60%,#ff2bd6);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 14px rgba(255,43,214,.9)) drop-shadow(0 4px 0 rgba(7,2,15,.6))}
 .pel-q.k-good b{color:#c9b2ff}.pel-q.k-early b,.pel-q.k-late b,.pel-q.k-whiff b{color:#ff6fb5;animation:pel-qshake .4s ease both}
@@ -55,8 +56,8 @@ const CSS = `
 .pel-panel{position:absolute;inset:0;display:grid;place-items:center;background:rgba(14,4,34,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);pointer-events:auto;padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 16px)}
 .pel-card{position:relative;width:min(520px,100%);max-height:100%;overflow:auto;background:radial-gradient(80% 60% at 100% 0%,rgba(255,43,214,.2),transparent 60%),linear-gradient(170deg,#31106b 0%,#12052a 78%);color:#f6f3fc;border:1px solid rgba(201,178,255,.25);border-radius:4px;padding:24px 24px 16px;box-shadow:0 24px 70px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08);clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px);animation:gx-rise .3s cubic-bezier(.2,.9,.3,1) both}
 .pel-card::before{content:'';position:absolute;left:16px;right:0;top:0;height:3px;background:var(--cta,#ff2bd6);box-shadow:0 0 18px rgba(255,43,214,.5)}
-.pel-card h2{margin:0 0 4px;font-family:var(--pel-display,'MZ Display',Nunito,sans-serif);font-weight:400;font-size:var(--fs-2xl);line-height:1.15;color:#fff;text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.5)}
-.pel-card .pel-sub{margin:0 0 12px;font:800 var(--fs-sm)/1.2 var(--f-cond,Nunito),sans-serif;color:#ff7ac8;letter-spacing:.06em;text-transform:uppercase}
+.pel-card h2{margin:0 0 var(--t-mb);font-family:var(--pel-display,'MZ Display',Nunito,sans-serif);font-weight:400;font-size:var(--fs-2xl);line-height:1;color:#fff;text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.5)}
+.pel-card .pel-sub{margin:0 0 12px;font:800 var(--fs-sm)/1.2 var(--f-cond,Nunito),sans-serif;color:#ff7ac8;letter-spacing:.04em;text-transform:uppercase}
 .pel-card ol{margin:0 0 12px;padding-left:24px;color:#e6def7}.pel-card li{margin:0 0 8px;line-height:1.3}.pel-card li::marker{color:#ff7ac8;font-weight:900}
 .pel-card .pel-ctrl{font-size:var(--fs-sm);line-height:1.45;background:rgba(255,255,255,.06);border:1px solid rgba(190,160,255,.22);color:#cbc2e0;border-radius:12px;padding:8px 12px;margin:0 0 16px}
 .pel-card .pel-big{font-family:var(--pel-display,'MZ Display',Nunito,sans-serif);font-weight:400;font-size:var(--fs-4xl);text-align:center;margin:8px 0;color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.35)}
@@ -67,7 +68,7 @@ const CSS = `
 .pel-levels button{flex:1;min-width:90px;border-radius:12px;border:1px solid rgba(190,160,255,.35);background:rgba(255,255,255,.06);color:#fff;padding:8px 8px;font:inherit;font-weight:900;cursor:pointer}
 .pel-levels button[aria-pressed=true]{background:linear-gradient(180deg,#8338ec,#5e22c4);border-color:#c9a6ff;color:#fff;box-shadow:0 0 0 2px rgba(138,43,226,.35)}
 .pel-go{border:0;border-radius:4px;padding:12px 24px;font:400 var(--fs-xl)/1 var(--f-display,'MZ Display'),Nunito,sans-serif;text-transform:uppercase;letter-spacing:.04em;min-height:48px;cursor:pointer;color:#fff;background:var(--cta,linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7));box-shadow:0 0 18px rgba(255,43,214,.45);text-shadow:0 2px 0 rgba(74,10,94,.5);clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%)}.pel-go:active{transform:translateY(2px);box-shadow:0 2px 0 #8a1c8f}
-.pel-go.alt{background:rgba(255,255,255,.08);border:1px solid rgba(190,160,255,.35);color:#fff;box-shadow:none;text-shadow:none}
+.pel-go.alt{font:800 var(--fs-md)/1.15 var(--f-cond,'MZ Cond'),Nunito,sans-serif;letter-spacing:.04em;background:rgba(255,255,255,.08);border:1px solid rgba(190,160,255,.35);color:#fff;box-shadow:none;text-shadow:none}
 .pel-root.calling .pel-tip,.pel-root.calling .pel-q{opacity:0}
 .pel-root.paneled .pel-exit,.pel-root.paneled .pel-q,.pel-root.paneled .pel-call,.pel-root.paneled .pel-tip{visibility:hidden}
 .pel-rv{display:flex;flex-wrap:wrap;align-items:center;gap:4px 16px;background:rgba(255,122,200,.08);border:1px solid rgba(255,122,200,.32);border-radius:12px;padding:8px 12px;margin:0 0 12px;font-size:var(--fs-sm);color:#f3ecff}
@@ -89,7 +90,7 @@ const CSS = `
 /* energía de cada pelotari: arriba a la izquierda, bajo el botón de salir (verde, amarilla y roja al cansarse) */
 .pel-en{position:absolute;top:calc(env(safe-area-inset-top,0px) + 64px);left:calc(env(safe-area-inset-left,0px) + 8px);display:flex;flex-direction:column;gap:4px;padding:4px 8px;border-radius:10px;background:rgba(14,10,24,.58);font-size:var(--fs-xs);font-weight:800;line-height:1}
 .pel-en[hidden]{display:none}.pel-en div{display:flex;align-items:center;gap:8px}
-.pel-en span{width:62px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.9}.pel-en .me span{opacity:1;color:#ffe14a}
+.pel-en span{min-width:62px;white-space:nowrap;opacity:.9}.pel-en .me span{opacity:1;color:#ff7ac8}
 .pel-en em{width:7px;height:7px;border-radius:50%;flex:none}.pel-en .you em{background:#5b4bff}.pel-en .rival em{background:#ff2e88}
 .pel-en i{width:64px;height:6px;border-radius:3px;background:rgba(255,255,255,.18);overflow:hidden;position:relative;display:block}
 .pel-en i b{position:absolute;inset:0;transform-origin:left;background:#c9b2ff;transition:transform .2s}.pel-en .mid i b{background:#ff9bd8}.pel-en .low i b{background:#ff5a3a}
@@ -143,7 +144,7 @@ const CSS = `
 .pel-card.opts>.pel-rv,.pel-card.opts>.pel-court,.pel-card.opts>.pel-court-what,.pel-card.opts>.pel-more{display:none}
 .pel-opts[hidden],.pel-opane[hidden]{display:none}
 .pel-otabs{display:flex;align-items:stretch;gap:4px;margin:0 0 12px;border-bottom:1px solid rgba(190,160,255,.25)}
-.pel-otabs button{flex:1 1 0;min-width:0;min-height:44px;padding:0 8px;border:0;border-bottom:3px solid transparent;margin-bottom:-1px;background:none;color:#cbbcf0;font:800 var(--fs-sm)/1.2 var(--f-cond,Nunito),sans-serif;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.pel-otabs button{flex:1 1 0;min-width:0;min-height:44px;padding:0 8px;border:0;border-bottom:3px solid transparent;margin-bottom:-1px;background:none;color:#cbbcf0;font:800 var(--fs-sm)/1.2 var(--f-cond,Nunito),sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
 .pel-otabs button[aria-selected=true]{color:#fff;border-bottom-color:#ff2bd6}
 .pel-otabs .pel-back{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:0 12px 0 4px;color:#ff7ac8;letter-spacing:.04em}
 .pel-otabs .pel-back::before{content:'';width:8px;height:8px;border:solid currentColor;border-width:0 0 2px 2px;transform:rotate(45deg)}
@@ -170,10 +171,10 @@ const CSS = `
 /* la pelota: cinco botones con su bote dibujado y, debajo, lo que hace la elegida */
 .pel-balls{display:grid;grid-template-columns:auto repeat(5,minmax(0,1fr));align-items:center;gap:4px}
 .pel-balls>small{padding-right:8px;font-size:var(--fs-xs);font-weight:900;color:#cbbcf0;text-transform:uppercase;letter-spacing:.04em}
-.pel-balls button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:58px;padding:4px 4px 6px;line-height:1.1;white-space:normal;text-align:center}
+.pel-balls button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:58px;padding:4px 4px 8px;line-height:1.15;white-space:normal;text-align:center}
 .pel-balls button span{font-size:var(--fs-xs);font-weight:800}
 .pel-balls button[aria-pressed=true] svg{color:#fff}.pel-balls button svg{color:#c9b2ff}
-.pel-ballwhat{margin:6px 0 12px;font-size:var(--fs-sm);line-height:1.4;color:#e7defa}
+.pel-ballwhat{margin:8px 0 12px;font-size:var(--fs-sm);line-height:1.45;color:#e7defa}
 /* el momento justo: un aro que se cierra sobre el botón de golpe; cuando lo toca, suelta. Fucsia y brillante en el momento */
 .pel-tring{position:absolute;inset:-4px;border-radius:50%;border:3px solid #fff;pointer-events:none;opacity:0;transform:scale(1.9);will-change:transform,opacity}
 .pel-tring.on{opacity:.9}.pel-tring.now{border-color:#fff;box-shadow:0 0 0 4px #ff2bd6,0 0 22px #ff2bd6;opacity:1}
@@ -197,9 +198,10 @@ export class PelotaHud {
       <div class="pel-tip"></div>
       <div class="pel-stick"><div class="pel-knob"><i></i></div></div>
       ${touch ? '<div class="pel-stickhint"><svg viewBox="0 0 48 48" width="46" height="46"><path d="M24 6l6 7h-4v8h8v-4l7 7-7 7v-4h-8v8h4l-6 7-6-7h4v-8h-8v4l-7-7 7-7v4h8v-8h-4z" fill="#fff" opacity=".9"/></svg></div>' : ''}
-      <div class="pel-btns"><div class="pel-bcol"><button class="pel-btn pel-drop pel-cut" data-k="cut" aria-label="${txt.cut}">${txt.cut}</button><button class="pel-btn pel-drop pel-dejada" data-k="drop" aria-label="${txt.drop}">${txt.drop}</button></div><button class="pel-btn pel-hit" aria-label="${txt.hit}"><span class="pel-hl">${txt.hit}</span><i class="pel-tring" aria-hidden="true"></i></button></div>`;
+      <div class="pel-btns"><div class="pel-bcol"><button class="pel-btn pel-drop pel-cut" data-k="cut" aria-label="${txt.cut}"><span>${txt.cut}</span></button><button class="pel-btn pel-drop pel-dejada" data-k="drop" aria-label="${txt.drop}"><span>${txt.drop}</span></button></div><button class="pel-btn pel-hit" aria-label="${txt.hit}"><span class="pel-hl">${txt.hit}</span><i class="pel-tring" aria-hidden="true"></i></button></div>`;
     container.appendChild(r);
     this.$ = (s) => r.querySelector(s);
+    fitCircles(r.querySelector('.pel-btns')); this.onFit = () => fitCircles(r.querySelector('.pel-btns')); addEventListener('resize', this.onFit);
     this.callT = 0; this.qT = 0;
   }
   // energía: filas { id, name, en (0 a 1), side ('you'|'rival'), me }; null la esconde
@@ -252,7 +254,7 @@ export class PelotaHud {
     if (on) r.style.transform = `scale(${v})`;
   }
   /** El nombre del golpe que saldría ahora (GOLPE, VOLEA o GANCHO) */
-  hitLabel(text) { const l = this._hl ||= this.$('.pel-hl'); if (l && l.textContent !== text) l.textContent = text; }
+  hitLabel(text) { const l = this._hl ||= this.$('.pel-hl'); if (l && l.textContent !== text) { l.textContent = text; fitCircle(l.parentElement); } }
   // anillo de carga alrededor del botón que se mantiene (golpe o cortada)
   charge(p, kind) {
     for (const [k, sel] of [['hit', '.pel-hit'], ['cut', '.pel-cut'], ['drop', '.pel-dejada']]) {
@@ -283,6 +285,6 @@ export class PelotaHud {
   }
   closePanel() { if (this.panelEl) { this.panelEl.remove(); this.panelEl = null; } this.root.classList.remove('paneled'); }
   controls(on) { for (const s of ['.pel-stick', '.pel-btns', '.pel-stickhint']) { const e = this.$(s); if (e) e.style.visibility = on ? '' : 'hidden'; } }
-  destroy() { this.root.remove(); }
+  destroy() { removeEventListener('resize', this.onFit); this.root.remove(); }
 }
 export function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }

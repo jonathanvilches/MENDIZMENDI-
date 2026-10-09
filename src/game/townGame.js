@@ -2127,7 +2127,7 @@ export class TownGame {
       if (far) goal = `<b>Los montes desde el mirador</b>Desde aquí no se ven bien. Sal de los prismáticos y ve al mirador: lo marca la flecha amarilla del mapa.`;
       else {
         const list = this.monteObs(eye), next = list.find(o => !o.seen);
-        goal = `<b>Busca ${MM.need} montes con los prismáticos (${MM.count}/${MM.need})</b>Centra la marca «?» de una cumbre y pulsa ${this.input.touch ? 'el botón amarillo' : 'E'}.<ul>${list.map(o => `<li class="${o.seen ? 'ok' : o === next ? 'next' : ''}">${o.seen ? '✔ ' + o.monte.name : '? Monte al ' + o.monte.dir + ' · ' + Math.round(o.monte.km) + ' km'}</li>`).join('')}</ul>`;
+        goal = `<b>Busca ${MM.need} montes con los prismáticos (${MM.count}/${MM.need})</b>Centra la marca «?» de una cumbre y pulsa ${this.input.touch ? 'el botón de acción' : 'E'}.<ul>${list.map(o => `<li class="${o.seen ? 'ok' : o === next ? 'next' : ''}">${o.seen ? '✔ ' + o.monte.name : '? Monte al ' + o.monte.dir + ' · ' + Math.round(o.monte.km) + ' km'}</li>`).join('')}</ul>`;
         if (!best && next) { const q = next.pos.clone().project(cam); const behind = q.z > 1; monteHint = Math.atan2(behind ? -q.y : q.y, behind ? -q.x : q.x); }
       }
     }

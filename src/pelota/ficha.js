@@ -102,7 +102,7 @@ const CSS = `
 .pfx-head h3{margin:0;font:400 var(--fs-2xl)/1.05 var(--f-display);text-transform:uppercase;color:#fff}
 .pfx-k{display:block;font-size:var(--fs-sm);font-weight:800;color:#e6def7;line-height:1.3}
 .pfx-data{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0}
-.pfx-data div{padding:6px 12px;border-radius:2px;background:rgba(255,255,255,.05);border-left:3px solid var(--fx);min-width:0}
+.pfx-data div{padding:8px 12px;border-radius:2px;background:rgba(255,255,255,.05);border-left:3px solid var(--fx);min-width:0}
 .pfx-data dt{font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.08em;text-transform:uppercase;color:var(--lila)}
 .pfx-data dd{margin:0;font:400 var(--fs-lg)/1.2 var(--f-display);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pfx-sk h4{margin:0 0 8px;font-size:var(--fs-xs);font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#cbbcf0;line-height:1.3}

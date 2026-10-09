@@ -14,7 +14,8 @@ await p.waitForFunction(() => window.__game && window.__game.mode === 'play', nu
 await p.evaluate(() => { const G = window.__game; window.__run = import('/src/game/futbol.js').then(M => new M.Futbol(G, G.sadar).run()).then(r => { window.__res = r; }); });
 // (minijuego: sin menú ni entrenamiento, al hablar con la entrenadora empieza el partido)
 await p.waitForFunction(() => window.__futbol && window.__futbol.o.mode === 'match' && window.__futbol.live, null, { timeout: 600000 });
-await p.waitForFunction(() => { const m = window.__futbol; return m.introLen - m.intro > 4; }, null, { timeout: 300000 });
+// (a mitad de la presentación: dura 8,5 s con la alineación y 3 s en el partido directo)
+await p.waitForFunction(() => { const m = window.__futbol; return m.introLen - m.intro > Math.min(4, m.introLen / 2); }, null, { timeout: 300000 });
 await p.screenshot({ path: `${out}/2-presentacion.png` });
 await p.waitForFunction(() => window.__futbol.intro <= 0, null, { timeout: 300000 });
 const st = () => p.evaluate(() => { const g = window.__futbol.game; return { phase: g.phase, me: g.me.role, x: +g.me.x.toFixed(1), z: +g.me.z.toFixed(1), ball: [+g.ball.p.x.toFixed(1), +g.ball.p.z.toFixed(1)], owner: g.owner ? g.owner.team + g.owner.role : null, score: g.score.join('-'), n: g.players.length }; });

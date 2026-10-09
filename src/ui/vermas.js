@@ -6,7 +6,7 @@
 const SEL = [
   '#hub .hub-main p', '#hub .hub-main dd', '#hub .sheet p', '#hub .sheet .plist li',
   '.mg-card p', '.ficha dd', '.ficha p', '.escudo p', '.escudo dd',
-  '.lg-root .lg-how', '.tq-st p', '.pel-card .pel-pairs', '.fb-card p',
+  '.lg-root .lg-how', '.tq-st p', '.shop-star p', '.pel-card .pel-pairs', '.fb-card p',
   '#loading .ld-intro',
 ].join(',');
 // (estos se quedan siempre enteros: cifras, avisos, botones, textos de una línea que ya se leen de un vistazo y los

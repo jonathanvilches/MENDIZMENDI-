@@ -103,7 +103,12 @@
 @media (orientation: landscape) and (max-height: 560px) { #hub .ar-head h1 { font-size: var(--fs-xl); } }
 #hub .sec { font-family: var(--f-cond); font-weight: 800; letter-spacing: .12em; }
 #hub .sec::after { content: ''; flex: 1; height: 2px; margin-left: 8px; background: linear-gradient(90deg, rgba(255, 43, 214, .6), transparent); }
-#hub .btn.primary { background: var(--cta); color: #fff; border: 0; font-family: var(--f-display); text-transform: uppercase; letter-spacing: .04em; box-shadow: var(--glow); clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%); border-radius: 4px; }
+/* botones: el mismo sistema en todo el juego (menú, pueblo, ventanas y deportes). El principal, en la letra de rótulos
+   grandes y en mayúsculas sobre el degradado, con los lados inclinados; los demás, en la letra estrecha en mayúsculas
+   sobre cristal, con las esquinas casi rectas, como los de los torneos. El rótulo se parte en dos líneas antes que
+   cortarse o salirse */
+.btn { border-radius: 4px; font-family: var(--f-cond); font-weight: 800; text-transform: uppercase; letter-spacing: .04em; line-height: 1.15; white-space: normal; text-wrap: balance; }
+.btn.primary { font-weight: 400; background: var(--cta); color: #fff; border: 0; font-family: var(--f-display); text-transform: uppercase; letter-spacing: .04em; box-shadow: var(--glow); clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%); border-radius: 4px; }
 @media (prefers-reduced-motion: reduce) { #hub :is(.ccard, .tile, .sb, .folkcard, .scard, .bcard, .ppage, .sg, .ar, .tcard, .cult) { animation: none; } }
 
 /* ---------- ventanas del juego (pausa, libro de misiones, mapa…): el mismo cristal morado con esquinas cortadas */
