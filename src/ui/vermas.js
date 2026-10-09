@@ -14,7 +14,7 @@ const SEL = [
 // información, que enseñan su texto entero: una sección cada vez o con su caja desplazable)
 const SKIP = 'button, a, summary, label, .ar-count, .lnk, .vm-btn, #dialog, .pel-tip, .fb-tip, .pel-fact, .fb-fact, [data-vm="no"], .ix';
 const CSS = `
-.vm-clamp:not(.vm-open){display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:var(--vm-lines,2);overflow:hidden}
+.vm-clamp:not(.vm-open){display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:var(--vm-lines,4);overflow:hidden}
 .vm-clamp.vm-open{display:block;-webkit-line-clamp:unset;overflow:visible}
 .vm-btn{position:relative;justify-self:start;align-self:flex-start;width:auto;display:inline-flex;align-items:center;gap:4px;margin:2px 0 8px;padding:4px 12px;min-height:30px;border-radius:999px;border:1px solid rgba(255,122,200,.4);background:rgba(255,255,255,.07);color:#ff9bd8;font:800 var(--fs-xs)/1 Nunito,system-ui,sans-serif;letter-spacing:.02em;cursor:pointer;pointer-events:auto}
 .vm-btn::after{content:'';width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform .15s}
@@ -30,11 +30,11 @@ export function startVerMas(root = document.body) {
   const ro = new ResizeObserver((es) => { for (const e of es) if (e.contentRect.height > 0) { ro.unobserve(e.target); decide(e.target); } });
   const decide = (el) => {
     if (!el.isConnected || el.dataset.vm === 'ok') return;
-    const cs = getComputedStyle(el), lh = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.35 || 20, lines = +el.style.getPropertyValue('--vm-lines') || 2;
-    // (si cabe en sus líneas, se queda entero; si no, se pliega: se lee lo justo y el resto, cuando se quiera. El relleno
-    // de la caja no cuenta como texto)
+    const cs = getComputedStyle(el), lh = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.35 || 20, lines = +el.style.getPropertyValue('--vm-lines') || 4;
+    // (si cabe en sus líneas y una más, se queda entero: plegar para esconder una línea solo corta el texto; si no, se
+    // pliega: se lee lo justo y el resto, cuando se quiera. El relleno de la caja no cuenta como texto)
     const pad = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
-    if (el.scrollHeight - pad <= lh * (lines + 0.5)) {
+    if (el.scrollHeight - pad <= lh * (lines + 1.5)) {
       el.classList.remove('vm-clamp'); el.dataset.vm = 'ok'; return;
     }
     el.dataset.vm = 'ok';
@@ -46,7 +46,7 @@ export function startVerMas(root = document.body) {
     if (el.dataset.vm || el.closest(SKIP)) return;
     const d = getComputedStyle(el).display; if (!['block', 'flow-root', 'list-item', '-webkit-box'].includes(d)) { el.dataset.vm = 'no'; return; }   // (en filas o rejillas, no)
     el.dataset.vm = 'wait'; el.classList.add('vm-clamp');
-    const lines = +(el.closest('[data-vm-lines]')?.dataset.vmLines || 2); el.style.setProperty('--vm-lines', lines);
+    const lines = +(el.closest('[data-vm-lines]')?.dataset.vmLines || 4); el.style.setProperty('--vm-lines', lines);
     ro.observe(el);
   };
   const scan = (n) => { if (n.nodeType !== 1) return; if (n.matches(SEL)) apply(n); for (const e of n.querySelectorAll(SEL)) apply(e); };

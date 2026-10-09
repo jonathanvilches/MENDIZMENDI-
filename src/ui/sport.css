@@ -54,11 +54,12 @@
 .gx-card .gx-face { inset: 2px; z-index: -1; overflow: hidden;
   background: radial-gradient(120% 60% at 50% 0%, rgba(255, 255, 255, .3), transparent 60%), repeating-linear-gradient(125deg, transparent 0 10px, rgba(255, 255, 255, .05) 10px 11px), linear-gradient(170deg, var(--c1), var(--c2) 78%); }
 .gx-card .gx-face::after { content: ''; position: absolute; top: -10%; bottom: -10%; left: 0; width: 45%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .38), transparent); transform: translateX(-160%) skewX(-18deg); animation: gx-sweep 5s ease-in-out var(--d, 0s) infinite; }
-.gx-card img { position: absolute; z-index: 0; right: 2%; top: 5%; height: 60%; width: 76%; object-fit: cover; object-position: 50% 4%; -webkit-mask-image: linear-gradient(180deg, #000 70%, transparent); mask-image: linear-gradient(180deg, #000 70%, transparent); }
+/* (la figura, de busto, se desvanece justo encima del nombre: antes el nombre caía sobre el pantalón blanco y no se leía) */
+.gx-card img { position: absolute; z-index: 0; right: 2%; top: 5%; height: 51.5%; width: 76%; object-fit: cover; object-position: 50% 4%; -webkit-mask-image: linear-gradient(180deg, #000 74%, transparent); mask-image: linear-gradient(180deg, #000 74%, transparent); }
 .gx-card .gx-ovr { position: absolute; z-index: 1; left: 9%; top: 9%; display: flex; flex-direction: column; align-items: center; line-height: .9; }
 .gx-card .gx-ovr b { font: 400 calc(var(--w) * .24)/.9 var(--f-display); letter-spacing: -.02em; text-shadow: 0 2px 0 rgba(0, 0, 0, .3); }
 .gx-card .gx-ovr small { font: 800 max(12px, calc(var(--w) * .085))/1 var(--f-cond); letter-spacing: .06em; text-transform: uppercase; color: var(--ac); }
-.gx-card .gx-nm { position: absolute; z-index: 1; left: 6%; right: 6%; top: 56.5%; padding-bottom: 2px; border-bottom: 1px solid rgba(255, 255, 255, .3); font: 400 max(14px, calc(var(--w) * .135))/1.1 var(--f-display); text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 2px 0 rgba(0, 0, 0, .3); }
+.gx-card .gx-nm { position: absolute; z-index: 1; left: 6%; right: 6%; top: 56.5%; padding-bottom: 2px; border-bottom: 1px solid rgba(255, 255, 255, .3); font: 400 max(14px, calc(var(--w) * .135))/1.1 var(--f-display); text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 2px 0 rgba(0, 0, 0, .35), 0 0 10px rgba(7, 2, 15, .55); }
 .gx-card .gx-tw { position: absolute; z-index: 1; left: 6%; right: 6%; top: 68.5%; font: 600 max(12px, calc(var(--w) * .075))/1.1 var(--f-cond); letter-spacing: .06em; text-transform: uppercase; color: var(--ac); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .gx-card .gx-st { position: absolute; z-index: 1; left: 6%; right: 6%; bottom: 5%; display: grid; grid-template-columns: repeat(3, 1fr); }
 .gx-card .gx-st span { display: flex; flex-direction: column; align-items: center; line-height: 1; }

@@ -38,6 +38,7 @@ import { releaseOffscreen, setOffscreenHost } from './util/offscreen.js';
 import { loadStore, queueMode } from './util/store.js';
 import { startI18n, isEU } from './i18n.js';
 import { startVerMas } from './ui/vermas.js';
+import { startFrames } from './ui/frames.js';
 
 const q = new URLSearchParams(location.search);
 const TIPS = [
@@ -78,7 +79,7 @@ async function warmPortraits(g, ui) {
 
 async function boot() {
   startI18n();
-  startVerMas();   // (los textos largos, plegados con «Ver más»)
+  startVerMas(); startFrames();   // (los textos largos, plegados con «Ver más»)
   await loadStore();
   const canvas = document.getElementById('c');
   const input = new Input(canvas);
