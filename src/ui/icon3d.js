@@ -152,7 +152,8 @@ const ITEM = { grapes: 'uva', olive: 'olivo', pepper: 'piquillo', asparagus: 'es
 const ANIMAL = { sheep: 'sheep', latxa: 'sheep', lamb: 'sheep', cow: 'cow', horse: 'pottoka', pottoka: 'pottoka', dog: 'dog', deer: 'corzo', corzo: 'corzo', ciervo: 'ciervo', chamois: 'goat', goat: 'goat', boar: 'jabali', jabali: 'jabali', fox: 'zorro', zorro: 'zorro' };
 const SMALL = { ardilla: squirrel, squirrel, pito: woodpecker, woodpecker, lechuza: owl, owl, trucha: trout };
 const FLY = { vulture: 'buitre', eagle: 'aguila', stork: 'ciguena' };
-export const has3D = (name) => !!(UI3D[name] || CUSTOM[name] || ITEM[name] || ANIMAL[name] || SMALL[name] || BIRDS[name] || FLY[name]);
+// (también los que solo tienen su imagen en src/assets/icons3d: así un icono nuevo de la familia única se usa con solo añadir el archivo)
+export const has3D = (name) => !!(BAKED[name] || UI3D[name] || CUSTOM[name] || ITEM[name] || ANIMAL[name] || SMALL[name] || BIRDS[name] || FLY[name]);
 // todos los nombres con modelo 3D (para hornearlos con tools/iconbake.mjs)
 export const ICON3D_NAMES = () => [...new Set([UI3D, CUSTOM, ITEM, ANIMAL, SMALL, BIRDS, FLY].flatMap(o => Object.keys(o)))];
 // iconos ya horneados (imágenes WebP generadas una vez con tools/iconbake.mjs): no hay que dibujarlos en el móvil
