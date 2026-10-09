@@ -80,6 +80,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   - Mochila: cabecera en una fila con «Cerrar» a la derecha, como «Salir» en la tienda, y debajo tres columnas iguales
     (perro, agua y comida, equipo), cada una con su rótulo y su caja; en vertical o por debajo de 700 px, una columna.
     Sin franja abajo: así cabe sin desplazar aunque la mochila esté vacía. Los iconos, a su tamaño de siempre.
+- **Iconografía de una sola familia:** un archivo `src/assets/icons3d/<nombre>.webp` sustituye al icono de ese nombre
+  sin tocar el código (`has3D` mira también los archivos horneados).
 - **Comentarios en castellano**, explicando el porqué.
 
 ## Herramientas y pruebas (`tools/`)
