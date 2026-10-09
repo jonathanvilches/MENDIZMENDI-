@@ -23,6 +23,7 @@ for (const sz of sizes.split(',')) {
     window.__FH = await import('/src/futbol/hud.js'); window.__PH = await import('/src/pelota/hud.js'); window.__PR = await import('/src/pelota/rules.js');
     await document.fonts.ready;
   });
+  if (process.env.DETALLE) await p.evaluate(() => { window.__auditDetail = true; });
   const audit = async (name, sel) => {
     await p.waitForTimeout(450); await p.evaluate(() => document.getAnimations?.().forEach(a => { try { if (a.effect?.getTiming?.().iterations !== Infinity) a.finish(); } catch (e) { } }));
     await p.screenshot({ path: `${out}/${sz}-${name}.png` });

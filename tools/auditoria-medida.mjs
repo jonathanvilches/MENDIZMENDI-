@@ -6,6 +6,11 @@
 //     base de uno a lo alto de las mayúsculas del siguiente)
 //   · letra: tamaño fuera de la escala (12 14 16 20 24 y de 32 en adelante) o fuente que no es del juego
 //   · color: texto de un color fuera de la gama (blancos, lilas, morados y rosas)
+//   · desborda: una caja (con fondo o borde) que se sale de la caja que la contiene
+//   · estrecho: texto en una columna tan estrecha que va palabra a palabra, una por línea
+//   · desplaza: una ventana o un bloque que hay que desplazar para verlo entero (solo vale si no se puede evitar)
+//   · forma: caja con esquinas redondeadas de más de 8 px (la identidad: esquinas casi rectas, cortadas o círculos)
+//   · boton: botón con letra de lectura (Nunito) en lugar de la de los botones (estrecha o de rótulos grandes)
 // Con window.__auditTodo = true, «espacio» lista todas las distancias medidas (no solo las que se salen).
 export const auditar = (sel) => {
   const root = sel ? document.querySelector(sel) : document.body; if (!root) return { falta: sel };
@@ -19,7 +24,7 @@ export const auditar = (sel) => {
   const hasText = (e) => [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
   const all = [...root.querySelectorAll('*')].filter(e => !['SCRIPT', 'STYLE', 'CANVAS'].includes(e.tagName));
   const texts = all.filter(e => hasText(e) && vis(e));
-  const R = { cortado: [], encima: [], verde: [], esquina: [], sobresale: [], espacio: [], letra: [], color: [] };
+  const R = { cortado: [], encima: [], verde: [], esquina: [], sobresale: [], espacio: [], letra: [], color: [], desborda: [], estrecho: [], desplaza: [], forma: [], boton: [] };
   // (tapado: lo que queda debajo de una capa opaca, como el HUD detrás de un panel, no se ve y no cuenta para «encima»
   // ni para «sobresale»; se mira qué hay encima en el centro de su primera línea, con todo tocable un momento)
   const pe = document.createElement('style'); pe.textContent = '*{pointer-events:auto!important}'; document.head.appendChild(pe);
@@ -173,10 +178,50 @@ export const auditar = (sel) => {
     // (el bloque que va justo debajo, en la misma columna y en la misma caja)
     let best = null; for (const B of blocks) { if (B === A || B.box !== A.box || A.e.contains(B.e) || B.e.contains(A.e)) continue; const ov = Math.min(A.right, B.right) - Math.max(A.left, B.left);
       if (ov < Math.min(A.right - A.left, B.right - B.left) * 0.5) continue; const g = B.top - A.base; if (g < -4 || g > 40) continue; if (!best || g < best.g) best = { B, g }; }
-    if (!best) continue; const kind = `${A.role}→${best.B.role}`; const w = want[kind]; if (!w) continue; const g = Math.round(best.g);
+    if (!best) continue;
+    // (si entre los dos hay otra cosa con texto, como una fila de pestañas o de botones, no son título y texto seguidos)
+    if (blocks.some(C => C !== A && C !== best.B && !A.e.contains(C.e) && !C.e.contains(A.e) && C.top > A.base - 1 && C.base < best.B.top + 1 && Math.min(A.right, C.right) > Math.max(A.left, C.left))) continue;
+    // (ni si entre los dos, en el orden de la página, van unas pestañas: es la cabecera de un panel y su contenido)
+    const after = (x, y) => !!(x.compareDocumentPosition(y) & Node.DOCUMENT_POSITION_FOLLOWING);
+    if ([...root.querySelectorAll('[role=tablist], .tabs')].some(T => vis(T) && after(A.e, T) && after(T, best.B.e))) continue;
+    const kind = `${A.role}→${best.B.role}`; const w = want[kind]; if (!w) continue; const g = Math.round(best.g);
     // (con window.__auditDetail, también los márgenes, interlineados y el hueco del contenedor, para corregirlo)
     const det = (e) => { const s = st(e), pa = st(e.parentElement); return `[${e.parentElement.className || e.parentElement.tagName}|${pa.display} gap ${pa.rowGap}] mt ${s.marginTop} mb ${s.marginBottom} lh ${s.lineHeight} fs ${s.fontSize} pt ${s.paddingTop} pb ${s.paddingBottom}`; };
     if (window.__auditTodo || g < w[0] || g > w[1]) R.espacio.push(`${kind} ${g} px: ${name(A.e)} «${txt(A.e).slice(0, 22)}» → ${name(best.B.e)} «${txt(best.B.e).slice(0, 22)}»` + (window.__auditDetail ? `\n        A ${det(A.e)}\n        B ${det(best.B.e)}` : '')); }
+
+  // (la regla de las hojas de estilo que pone una propiedad a un elemento: la última que le aplica, para saber dónde tocar)
+  const ruleOf = (e, prop) => { let last = '?'; const walk = (rules) => { for (const r of rules) { if (r.cssRules && !r.selectorText) { if (!r.media || matchMedia(r.media.mediaText).matches) walk(r.cssRules); continue; }
+    if (r.style?.[prop] && r.selectorText) { try { if (e.matches(r.selectorText)) last = r.selectorText; } catch (x) { } } } };
+    for (const sh of document.styleSheets) { try { walk(sh.cssRules); } catch (x) { } } return last.slice(0, 80); };
+  // 9. cajas que se salen de su caja: lo que va en el flujo (no lo colocado aparte a propósito, como una etiqueta en la esquina)
+  for (const e of all) { if (!vis(e) || hidden.has(e) || e.closest('svg')) continue; const s = st(e);
+    // (el retrato de quien habla asoma a propósito por encima del cuadro del diálogo, como un medallón)
+    if (!painted(e) || /absolute|fixed|sticky/.test(s.position) || s.transform !== 'none' || e.closest('.gx-card') || e.matches('#dialog .face')) continue;
+    let P = null; for (let q = e.parentElement; q && q !== document.body; q = q.parentElement) { if (/(auto|scroll)/.test(st(q).overflowX + st(q).overflowY)) break; if (painted(q)) { P = q; break; } }
+    if (!P) continue; const a = e.getBoundingClientRect(), b = P.getBoundingClientRect();
+    const d = Math.max(b.left - a.left, a.right - b.right, b.top - a.top, a.bottom - b.bottom);
+    if (d > 1.5) R.desborda.push(`${name(e)} «${txt(e).slice(0, 24)}» se sale de ${name(P)} (${Math.round(d)} px)`); }
+  // 10. columnas tan estrechas que el texto va una palabra por línea
+  for (const e of texts) { if (hidden.has(e)) continue; const words = (e.textContent || '').trim().split(/\s+/).filter(Boolean).length; if (words < 3) continue;
+    const ys = new Set(); for (const n of e.childNodes) if (n.nodeType === 3 && n.textContent.trim()) { const rg = document.createRange(); rg.selectNodeContents(n); for (const q of rg.getClientRects()) if (q.width > 2) ys.add(Math.round(q.top)); }
+    if (ys.size >= 3 && words / ys.size < 1.6) R.estrecho.push(`${name(e)} «${txt(e).slice(0, 30)}» en ${ys.size} líneas de una palabra`); }
+  // 11. lo que hay que desplazar para verlo entero (dentro de una ventana; la página del menú se desplaza por naturaleza)
+  for (const e of all) { if (!vis(e) || e === root || e.matches('.hub-main, #hMain, .hub-main *:not(.mg-card, .mg-card *)')) continue; const s = st(e);
+    if (!/(auto|scroll)/.test(s.overflowY)) continue; const d = e.scrollHeight - e.clientHeight; if (d > 4) R.desplaza.push(`${name(e)} esconde ${d} px que hay que desplazar`); }
+  // 12. esquinas: casi rectas (hasta 8 px), cortadas o círculos
+  // (los interruptores de sí o no van en su píldora, como en todos los juegos)
+  for (const e of all) { if (!vis(e) || hidden.has(e) || e.closest('svg, .gx-card, [role=switch], .pel-switch') || !painted(e)) continue; const s = st(e), r = e.getBoundingClientRect();
+    const rad = Math.max(...['TopLeft', 'TopRight', 'BottomLeft', 'BottomRight'].map(k => { const v = s['border' + k + 'Radius'].split(' ')[0]; return /%$/.test(v) ? parseFloat(v) / 100 * Math.min(r.width, r.height) : parseFloat(v) || 0; }));
+    const circle = Math.abs(r.width - r.height) < 2 && rad >= r.width / 2 - 1;
+    // (las barras y los puntos, de menos de 17 px de alto, van redondeados: es su forma)
+    if (rad > 8.5 && !circle && r.height > 16 && s.clipPath === 'none') R.forma.push(`${name(e)}${hasText(e) ? ` «${txt(e).slice(0, 20)}»` : ''} con esquinas de ${Math.round(Math.min(rad, r.height / 2))} px` + (window.__auditDetail ? ` [${ruleOf(e, 'borderRadius')}]` : '')); }
+  // 13. botones con letra de lectura: los botones van en la letra estrecha o en la de rótulos grandes; las respuestas
+  // de un cuestionario y las del diálogo, que son frases para leer, en la de lectura
+  // (una tarjeta entera que se toca, con su nombre y sus datos, no es un rótulo de botón: se mira solo el botón de una
+  // sola etiqueta)
+  const label = (b) => [b, ...b.querySelectorAll('*')].filter(x => hasText(x)).length === 1 && (b.textContent || '').trim().length <= 40;
+  for (const e of texts) { if (hidden.has(e)) continue; const b = e.closest('button, .btn, [role=button], [role=tab]'); if (!b || !label(b) || b.closest('.choices, .opt, .opts, .fc-opts, .q-opts') || b.matches('.opt')) continue;
+    const f0 = st(e).fontFamily.split(',')[0].replace(/["']/g, '').trim(); if (!/^MZ (Cond|Display)$/.test(f0)) R.boton.push(`${name(b)} «${txt(b).slice(0, 24)}» en ${f0}` + (window.__auditDetail ? ` [${ruleOf(e, 'fontFamily') + ' | ' + ruleOf(e, 'font')}]` : '')); }
   for (const k of Object.keys(R)) R[k] = [...new Set(R[k])];
   return R;
 };

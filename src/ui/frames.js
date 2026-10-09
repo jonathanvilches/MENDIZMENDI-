@@ -38,7 +38,7 @@ const RULES = [
   ['.csel2 .cstrip button img', cut, 10, LILA(0.25), 2], ['.csel2 .cstrip button.on img', cut, 10, FX, 2],
   ['.lg-btn:not(.go)', skew, 10, LILA(0.3)], ['.pel-go.alt', skew, 10, 'rgba(190,160,255,.35)'], ['.fb-alt', skew, 10, 'rgba(190,160,255,.35)'],
   ['.clist button', skew, 8, LILA(0.16)], ['.clist button:hover', skew, 8, FX], ['.pc-tabs button:not([aria-selected=true])', skew, 8, LILA(0.3)],
-  ['.abil', skew, 8, 'rgba(255,122,200,.35)'], ['.screen .paper', cut, 16, 'rgba(190,160,255,.3)'], ['#reward .card2', cut, 16, 'rgba(190,160,255,.35)'],
+  ['.abil', skew, 8, 'rgba(255,122,200,.35)'], ['.screen .paper', cut, 16, 'rgba(190,160,255,.3)'], ['.pvs-tags span', skew, 5, 'rgba(201,178,255,.35)'], ['#reward .card2', cut, 16, 'rgba(190,160,255,.35)'],
   ['.fr-chip:not(.on)', skew, 6, LILA(0.3)], ['.sp-stat', skew, 6, LILA(0.3)], ['.crole', skew, 6, LILA(0.35)],
 ];
 let done = false;
