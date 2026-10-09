@@ -4,7 +4,8 @@
 //   · verde: colores verdes fuera de sitio (texto, fondos, bordes y degradados); se avisa de todos para revisarlos
 //   · esquina: caja con esquinas en ángulo (clip-path) y borde, cuyo borde no sigue el corte
 // Mide toda la página (también lo que queda por debajo, al desplazar), no solo lo que se ve. Hace capturas.
-// Uso: URL=http://127.0.0.1:5173/ node tools/auditoria-diseno.mjs [carpeta] [pantallas separadas por comas]   (TAM=844x390)
+// Uso: URL=http://127.0.0.1:5173/ node tools/auditoria-diseno.mjs [carpeta] [pantallas separadas por comas]   (TAM=844x390;
+// TODO=1 lista todas las distancias de rótulo a título y de título a texto, no solo las que se salen de la común)
 import { chromium } from 'playwright-core';
 import { mkdirSync, writeFileSync } from 'fs';
 import { auditar } from './auditoria-medida.mjs';
@@ -15,11 +16,11 @@ const [W, H] = (process.env.TAM || '844x390').split('x').map(Number);
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: W, height: H }, isMobile: W < 1000, hasTouch: true }); const errs = []; p.on('pageerror', e => errs.push(e.message));
 // (un perfil con datos de verdad: textos largos como «2 partidos · 0 ganados», txapelas, club elegido, cartas y rivales)
-await p.addInitScript(() => { window.__vs = true; window.__vsMs = 600000; localStorage.setItem('mendimendiz-lang', 'es');
+await p.addInitScript((todo) => { window.__auditTodo = todo; window.__auditDetail = todo; window.__vs = true; window.__vsMs = 600000; localStorage.setItem('mendimendiz-lang', 'es');
   localStorage.setItem('mendimendiz-futbol-v1', JSON.stringify({ played: 12, won: 7, goals: 23, tutorial: true }));
   localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', age: 'nino', seen: { heroBenat: true, dog: true }, xp: 900, last: 'altsasu-alsasua', futbolClub: 'osasuna', txapelas: 1,
     towns: { lesaka: { done: { 0: true }, visits: 1 }, 'altsasu-alsasua': { done: { 0: true, 1: true }, visits: 2 } }, cards: ['armas:baztan'],
-    pelotaris: { lesaka: { name: 'Mikel', town: 'Lesaka', won: 2, lost: 1, stats: { fuerza: 4, agilidad: 3, velocidad: 2 } }, leitza: { name: 'Garazi', town: 'Leitza', won: 0, lost: 1, stats: { fuerza: 2, agilidad: 4, velocidad: 4 } } }, settings: { quality: 'low' } })); });
+    pelotaris: { lesaka: { name: 'Mikel', town: 'Lesaka', won: 2, lost: 1, stats: { fuerza: 4, agilidad: 3, velocidad: 2 } }, leitza: { name: 'Garazi', town: 'Leitza', won: 0, lost: 1, stats: { fuerza: 2, agilidad: 4, velocidad: 4 } } }, settings: { quality: 'low' } })); }, !!process.env.TODO);
 await p.goto(URL, { timeout: 300000 }); await p.waitForFunction(() => window.__hub, null, { timeout: 300000 }); await p.waitForTimeout(1500);
 
 const audit = (sel) => p.evaluate(auditar, sel);

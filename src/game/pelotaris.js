@@ -27,7 +27,7 @@ export function meetPelotari(town, p, win = null) {
 export function pelotarisCount() { const C = profile().pelotaris || {}, all = pelotaTowns(); return { have: all.filter(l => C[l.id]).length, total: all.length }; }
 
 const CSS = `
-.pc-head{display:flex;align-items:center;gap:12px}.pc-head h2{margin:0;font:400 var(--fs-2xl)/1 var(--f-display);text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.5)}
+.pc-head{display:flex;align-items:center;gap:12px}.pc-head small+h2{margin-top:var(--t-mt)}.pc-head h2{margin:0;font:400 var(--fs-2xl)/1 var(--f-display);text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.5)}
 .pc-head small{display:block;color:var(--rosa);font:800 var(--fs-sm)/1.15 var(--f-cond);letter-spacing:.1em;text-transform:uppercase}
 .pc-count{margin-left:auto;display:flex;flex-direction:column;align-items:center;font:400 var(--fs-2xl)/1 var(--f-display);color:#fff;background:var(--cta);padding:4px 14px;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);box-shadow:var(--glow)}
 .pc-count small{font:800 var(--fs-xs)/1 var(--f-cond);letter-spacing:.1em;color:#fff}

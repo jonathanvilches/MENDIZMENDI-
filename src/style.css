@@ -10,9 +10,16 @@
      pelota y el fútbol: edge para lo de arriba (objetivo, marcador, iconos, pausa) y thumb para los mandos de abajo
      (joystick y botones de acción, donde va el pulgar) */
   --edge: 12px; --thumb: 16px;
+  /* bloque de título, el mismo en todo el juego: rótulo (letra estrecha, 14 px, en mayúsculas), título (letra de rótulos
+     grandes, interlineado 1) y texto. De la línea base del rótulo a lo alto de las mayúsculas del título hay 10 px, y de
+     la línea base del título a lo alto de las mayúsculas del texto, 12 px, sea cual sea el tamaño del título: el «em»
+     descuenta el aire que la letra lleva por encima de las mayúsculas y por debajo de la línea base, que crece con ella.
+     --t-mt va arriba del título que sigue a un rótulo y --t-mb debajo del título que va antes de un texto.
+     tools/auditoria-medida.mjs lo mide en todas las pantallas */
+  --t-mt: calc(7.5px - .19em); --t-mb: calc(8px - .1em);
 }
 :root {
-  --ink: #fdf8ef; --muted: #d9ccb8; --panel: rgba(34, 26, 44, .82); --panel-solid: #2a2036; --line: rgba(255, 255, 255, .16);
+  --ink: #f6f3fc; --muted: #cbc2e0;   /* (blanco y gris de la gama: fríos, con un punto de lila, como en el menú) */ --panel: rgba(34, 26, 44, .82); --panel-solid: #2a2036; --line: rgba(255, 255, 255, .16);
   --sun: #ff7ac8; --leaf: #c9b2ff;   /* (hecho, visto, conseguido: en la gama del juego; antes verde) */ --rose: #FF69B4; --sky: #7cc8ff; --plum: #6d3b5c;
   --paper: #fbf3e2; --paper-ink: #2a0638; --paper-line: #e6d6b8;
   color-scheme: light;
@@ -314,8 +321,8 @@ summary { line-height: 1.3; }
 #reward .card2 { width: min(420px, 100%); text-align: center; background: var(--paper); color: var(--paper-ink); border-radius: 26px; padding: 24px 24px 20px; box-shadow: 0 20px 60px rgba(0, 0, 0, .45), inset 0 0 0 6px #efe2c4; animation: pop .5s cubic-bezier(.2, 1.5, .4, 1); }
 #reward .big { display: flex; justify-content: center; font-size: var(--fs-5xl); line-height: 1; margin-bottom: 8px; filter: drop-shadow(0 6px 6px rgba(0, 0, 0, .2)); animation: bob 2s ease-in-out infinite; }
 #reward .rib { width: 44px; height: 96px; margin: 0 auto 8px; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%); box-shadow: inset 0 -10px 0 rgba(0, 0, 0, .12); animation: bob 2s ease-in-out infinite; }
-#reward h2 { font-family: 'MZ Display', 'Nunito', sans-serif; font-weight: 400; font-size: var(--fs-2xl); margin: 4px 0; color: #6d3b5c; }
-#reward p { margin: 8px 0 16px; font-weight: 700; }
+#reward h2 { font-family: 'MZ Display', 'Nunito', sans-serif; font-weight: 400; font-size: var(--fs-2xl); line-height: 1; margin: 4px 0 var(--t-mb); color: #6d3b5c; }
+#reward p { margin: 0 0 16px; font-weight: 700; }
 #reward .stamp { width: 180px; height: 180px; margin: 8px auto 16px; border-radius: 50%; border: 6px double #c2334d; color: #c2334d; display: grid; place-items: center; transform: rotate(-9deg); font-family: 'MZ Display', 'Nunito', sans-serif; font-size: var(--fs-xl); line-height: 1; padding: 20px; animation: stamp .6s cubic-bezier(.2, 1.6, .4, 1); }
 @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 @keyframes bob { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-8px) rotate(3deg); } }
@@ -467,7 +474,9 @@ body.bino-on #lane { display: none; }
 .keys { color: #cbc2e0; } .keys kbd { background: rgba(255, 255, 255, .1); color: #fff; }
 .plist { color: #cbc2e0; } .plist b { color: #fff; }
 #reward { background: radial-gradient(circle at 50% 45%, rgba(138, 43, 226, .35), rgba(14, 4, 34, .75) 60%); }
-#reward .card2 { background: linear-gradient(180deg, #3a1680, #1c0b3a); color: #f6f3fc; border: 1px solid rgba(190, 160, 255, .35); box-shadow: 0 24px 70px rgba(0, 0, 0, .55); }
+#reward .card2 { position: relative; background: radial-gradient(80% 60% at 100% 0%, rgba(255, 43, 214, .16), transparent 60%), linear-gradient(170deg, #31106b 0%, #12052a 78%); color: #f6f3fc; border: 1px solid rgba(190, 160, 255, .35); box-shadow: 0 24px 70px rgba(0, 0, 0, .55);
+  border-radius: 4px; clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px); }
+#reward .card2::before { content: ''; position: absolute; left: 16px; right: 0; top: 0; height: 3px; background: var(--cta); z-index: 2; pointer-events: none; }
 #reward h2 { color: #fff; }
 #reward .stamp { border-color: #ff7ac8; color: #ff7ac8; }
 

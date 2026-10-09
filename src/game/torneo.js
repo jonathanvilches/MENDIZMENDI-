@@ -116,7 +116,7 @@ const CSS = `
 .tq-mid{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;min-width:72px}
 .tq-mid b{font:400 var(--fs-4xl)/1 var(--f-display);background:linear-gradient(180deg,#fff,var(--rosa));-webkit-background-clip:text;background-clip:text;color:transparent;animation:gx-pop .5s cubic-bezier(.2,1.5,.4,1) .35s both}
 .tq-mid small{font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--lila)}.tq-mid small.r{color:#fff;font-size:var(--fs-sm)}
-.tq-ficha{font:600 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;color:var(--rosa);text-align:center;margin:-4px 0 0}
+.tq-ficha{font:600 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.04em;text-transform:uppercase;color:var(--rosa);text-align:center;margin:-4px 0 0}
 .tq-where{display:flex;justify-content:center;flex-wrap:wrap;gap:4px 12px;font:600 var(--fs-sm)/1.3 var(--f-cond);letter-spacing:.04em;text-transform:uppercase;color:var(--lila)}.tq-where b{color:#fff;font-weight:800}
 .tq-left .lg-btns{grid-template-columns:1fr 1.6fr}.tq-left .lg-btns>.lg-btn:only-child{grid-column:1/-1}
 .tq-banner{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px;text-align:center}
@@ -124,7 +124,7 @@ const CSS = `
 .tq-banner b{font:400 var(--fs-3xl)/1 var(--f-display);text-transform:uppercase}.tq-banner p{margin:0;font:600 var(--fs-md)/1.3 var(--f-cond);color:var(--lila)}
 .tq-banner .gx-card{margin:4px 0}
 .tq-right{position:relative;min-width:0;display:flex;flex-direction:column}
-.tq-br{position:relative;flex:1;display:grid;grid-template-columns:1fr 1fr .9fr;gap:0 22px;min-height:0}
+.tq-br{position:relative;flex:1;display:grid;grid-template-columns:1fr 1fr .9fr;gap:0 24px;min-height:0}
 .tq-br svg.tq-lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
 .tq-lines path{fill:none;stroke:rgba(201,178,255,.35);stroke-width:2}.tq-lines path.you{stroke:var(--fx);filter:drop-shadow(0 0 4px rgba(255,43,214,.8))}
 .tq-lines path{stroke-dasharray:400;stroke-dashoffset:400;animation:tq-draw .7s ease-out .35s forwards}@keyframes tq-draw{to{stroke-dashoffset:0}}
@@ -134,11 +134,11 @@ const CSS = `
 .tq-ms{flex:1;display:flex;flex-direction:column;justify-content:space-around;gap:4px}
 .tq-m{position:relative;z-index:1;display:grid;border-radius:3px;overflow:hidden;background:rgba(18,5,42,.92);border:1px solid rgba(201,178,255,.22);clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px)}
 .tq-m.me{border-color:var(--fx);box-shadow:0 0 14px rgba(255,43,214,.45)}
-.tq-m>div{display:flex;align-items:center;gap:4px;padding:2px 8px;min-height:22px;font:600 var(--fs-sm)/1.15 var(--f-cond);letter-spacing:.02em;text-transform:uppercase}
+.tq-m>div{display:flex;align-items:center;gap:4px;padding:2px 8px;min-height:22px;font:600 var(--fs-sm)/1.15 var(--f-cond);letter-spacing:0;text-transform:uppercase}
 .tq-m>div+div{border-top:1px solid rgba(201,178,255,.12)}
 .tq-m span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tq-m small{display:none}
 .tq-m b{font:400 var(--fs-md)/1 var(--f-display);min-width:14px;text-align:right}
-.tq-m .w{color:#fff;font-weight:800}.tq-m .w b{color:var(--rosa)}.tq-m .l{color:var(--lila2)}.tq-m .you span{color:#fff;font-weight:800}.tq-m .you span::before{content:'';display:inline-block;width:6px;height:6px;margin:0 6px 1px 0;border-radius:1px;background:var(--fx);transform:skewX(-20deg)}
+.tq-m .w{color:#fff;font-weight:800}.tq-m .w b{color:var(--rosa)}.tq-m .l{color:var(--lila2)}.tq-m .you span{color:#fff;font-weight:800}.tq-m .you span::before{content:'';display:inline-block;width:6px;height:6px;margin:0 8px 1px 0;border-radius:1px;background:var(--fx);transform:skewX(-20deg)}
 .tq-m.ph>div{color:rgba(201,178,255,.4)}
 .tq-cup{display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:8px;text-align:center;font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--lila)}
 .tq-cup svg{width:64px;height:40px;filter:drop-shadow(0 0 10px rgba(255,43,214,.5));animation:tq-float 3s ease-in-out infinite}@keyframes tq-float{50%{transform:translateY(-4px)}}
@@ -147,21 +147,21 @@ const CSS = `
 .tq-txa{display:flex;align-items:center;gap:12px}.tq-txa>svg{width:52px;height:34px;flex:none}
 /* menú de pelota: losas grandes como el menú de un juego de deportes, cada una con su figura */
 .tq-tiles{display:grid;grid-template-columns:1.25fr 1fr 1fr 1fr;gap:12px;min-height:0}
-.tq-tile{position:relative;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:2px;min-height:190px;padding:12px 14px;border:1px solid rgba(201,178,255,.25);border-radius:4px;color:#fff;text-align:left;cursor:pointer;font:inherit;
+.tq-tile{position:relative;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:2px;min-height:190px;padding:12px 16px;border:1px solid rgba(201,178,255,.25);border-radius:4px;color:#fff;text-align:left;cursor:pointer;font:inherit;
   background:linear-gradient(160deg,var(--t1,#3b1590),var(--t2,#12052a) 75%);clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px);transition:transform .15s,border-color .15s}
 .tq-tile::before{content:'';position:absolute;inset:0;z-index:-1;background:repeating-linear-gradient(125deg,transparent 0 14px,rgba(255,255,255,.035) 14px 15px)}
 .tq-tile::after{content:'';position:absolute;top:-10%;bottom:-10%;left:0;width:40%;z-index:2;background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);transform:translateX(-160%) skewX(-18deg);animation:gx-sweep 6s ease-in-out var(--d,0s) infinite;pointer-events:none}
 .tq-tile:active{transform:scale(.97)}.tq-tile:hover{border-color:var(--rosa)}
 /* (la figura arriba, en su sitio, y el texto debajo: nunca se pisan. Por parejas, los dos pelotaris uno al lado del otro) */
-.tq-tile .figs{flex:1 1 0;min-height:0;align-self:stretch;display:flex;justify-content:center;align-items:flex-end;margin:0 -8px 6px;pointer-events:none}
+.tq-tile .figs{flex:1 1 0;min-height:0;align-self:stretch;display:flex;justify-content:center;align-items:flex-end;margin:0 -8px 8px;pointer-events:none}
 .tq-tile img.fig{display:block;height:100%;width:auto;max-width:100%;min-width:0;object-fit:contain;object-position:50% 100%;filter:drop-shadow(0 6px 14px rgba(0,0,0,.5));transition:transform .3s}.tq-tile:hover img.fig{transform:scale(1.04) translateY(-3px)}
 .tq-tile .figs img.fig+img.fig{margin-left:-14%}.tq-tile .figs img.fig:only-child{max-width:100%}.tq-tile.pair img.fig{max-width:58%}
 .tq-tile img.flip{transform:scaleX(-1)}.tq-tile:hover img.flip{transform:scaleX(-1) scale(1.04) translateY(-3px)}
 .tq-tile .k{font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--rosa);text-shadow:0 1px 3px rgba(0,0,0,.8)}
 .tq-tile b{font:400 var(--fs-2xl)/1 var(--f-display);text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.55);max-width:100%}
-.tq-tile small{font:600 var(--fs-sm)/1.2 var(--f-cond);letter-spacing:.02em;color:#ece4ff;text-shadow:0 1px 3px rgba(0,0,0,.9);max-width:100%}
+.tq-tile small{font:600 var(--fs-sm)/1.2 var(--f-cond);letter-spacing:0;color:#ece4ff;text-shadow:0 1px 3px rgba(0,0,0,.9);max-width:100%}
 .tq-tile.main{--t1:#ff2bd6;--t2:#3a0b6b}.tq-tile.pair{--t1:#7b2ff7;--t2:#160636}.tq-tile.free{--t1:#5b4bff;--t2:#120a40}.tq-tile.col{--t1:#c21cff;--t2:#2a0638}
-.tq-tile .fan{position:absolute;z-index:-1;top:10px;right:8px;display:flex}.tq-tile .fan .gx-card{margin-left:-46px;transform:rotate(calc(var(--r) * 1deg));transform-origin:50% 120%}.tq-tile .fan .gx-card:first-child{margin-left:0}
+.tq-tile .fan{position:absolute;z-index:-1;top:8px;right:8px;display:flex}.tq-tile .fan .gx-card{margin-left:-48px;transform:rotate(calc(var(--r) * 1deg));transform-origin:50% 120%}.tq-tile .fan .gx-card:first-child{margin-left:0}
 .tq-menu-foot{display:flex;justify-content:space-between;align-items:center;gap:12px}
 @media (orientation:landscape) and (max-height:520px){
 .lg-card.tq-card{gap:4px 16px;padding:8px 16px 12px}.tq-txa>svg{width:40px;height:26px}.tq-top .lg-head h2{font-size:var(--fs-xl)}

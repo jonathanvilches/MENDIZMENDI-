@@ -313,6 +313,6 @@ boot().catch(e => {
   console.error(e);
   const d = document.createElement('div');
   d.style.cssText = 'position:fixed;inset:0;display:grid;place-items:center;background:#1e1830;color:#fff;font:600 18px system-ui;padding:24px;text-align:center;z-index:99';
-  d.innerHTML = `<div><p>No se ha podido cargar el juego en este dispositivo.</p><p style="color:#d9ccb8;font-size:14px">${String(e.message || e)}</p><p style="color:#d9ccb8;font-size:14px">Prueba a recargar o a usar un navegador actualizado con WebGL.</p></div>`;
+  d.innerHTML = `<div><p>No se ha podido cargar el juego en este dispositivo.</p><p style="color:#cbc2e0;font-size:14px">${String(e.message || e)}</p><p style="color:#cbc2e0;font-size:14px">Prueba a recargar o a usar un navegador actualizado con WebGL.</p></div>`;
   document.body.appendChild(d);
 });
