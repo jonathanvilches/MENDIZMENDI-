@@ -4,8 +4,8 @@ import { fitCircle, fitCircles } from '../ui/fitlabel.js';
 const CSS = `
 .pel-root{position:fixed;inset:0;z-index:900;pointer-events:none;font-family:var(--pel-font,Nunito,sans-serif);color:#fff;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 .pel-root *{box-sizing:border-box}
-.pel-top{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,12px));right:calc(env(safe-area-inset-right,0px) + var(--edge,12px));display:flex;justify-content:flex-end}
-.pel-exit{padding:0;position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,12px));left:calc(env(safe-area-inset-left,0px) + var(--edge,12px));width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.82);background:rgba(14,10,24,.66);box-shadow:0 3px 12px rgba(0,0,0,.35);color:#fff;pointer-events:auto;cursor:pointer;display:grid;place-items:center}.pel-exit svg{width:20px;height:20px;display:block}
+.pel-top{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px));right:calc(env(safe-area-inset-right,0px) + var(--edge,16px));display:flex;justify-content:flex-end}
+.pel-exit{padding:0;position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px));left:calc(env(safe-area-inset-left,0px) + var(--edge,16px));width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.82);background:rgba(14,10,24,.66);box-shadow:0 3px 12px rgba(0,0,0,.35);color:#fff;pointer-events:auto;cursor:pointer;display:grid;place-items:center}.pel-exit svg{width:20px;height:20px;display:block}
 .pel-score{display:flex;align-items:stretch;gap:0;border-radius:3px;opacity:.95;overflow:hidden;background:rgba(7,2,15,.9);border-top:2px solid var(--fx,#ff2bd6);box-shadow:0 6px 20px rgba(0,0,0,.35);max-width:100%;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
 .pel-side{display:flex;align-items:center;gap:4px;padding:2px 8px;min-width:0;height:28px}
 .pel-side b{font-family:var(--pel-display,'MZ Display',Nunito,sans-serif);font-size:var(--fs-lg);line-height:1;min-width:1em;text-align:center}
@@ -38,7 +38,7 @@ const CSS = `
 .pel-stick{position:absolute;left:0;bottom:0;width:46vw;height:62dvh;pointer-events:auto;touch-action:none}
 .pel-knob{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;border:3px solid rgba(255,255,255,.55);background:rgba(28,11,58,.3);display:none}
 .pel-knob i{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:rgba(255,255,255,.85)}
-.pel-stickhint{position:absolute;left:calc(env(safe-area-inset-left,0px) + 24px);bottom:calc(env(safe-area-inset-bottom,0px) + 24px);width:120px;height:120px;border-radius:50%;border:3px dashed rgba(255,255,255,.55);display:grid;place-items:center;font-size:var(--fs-xs);font-weight:700;text-align:center;opacity:.8;padding:8px}
+.pel-stickhint{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--thumb,16px));bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb,16px));width:120px;height:120px;border-radius:50%;border:3px dashed rgba(255,255,255,.55);display:grid;place-items:center;font-size:var(--fs-xs);font-weight:700;text-align:center;opacity:.8;padding:8px}
 .pel-btns{position:absolute;right:calc(env(safe-area-inset-right,0px) + var(--thumb,16px));bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb,16px));display:flex;align-items:flex-end;gap:12px;pointer-events:auto}
 .pel-btn{padding:0;border:0;border-radius:50%;color:#2a0638;font-family:var(--pel-display,'MZ Display',Nunito,sans-serif);font-weight:800;line-height:1.15;display:grid;place-items:center;cursor:pointer;touch-action:none;box-shadow:0 6px 0 rgba(0,0,0,.25),0 8px 22px rgba(0,0,0,.25);transition:transform .06s}
 .pel-btn:active,.pel-btn.down{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.25)}
@@ -88,7 +88,7 @@ const CSS = `
 .pel-tour button{border-radius:12px;border:1px solid rgba(190,160,255,.4);background:rgba(255,255,255,.08);color:#fff;font:inherit;font-weight:900;padding:8px 16px;min-height:44px;cursor:pointer}
 .pel-tour button.go{background:linear-gradient(180deg,#ffc2ec,#ff7ac8 50%,#ff3dbd);color:#2a0638;border:0}
 /* energía de cada pelotari: arriba a la izquierda, bajo el botón de salir (verde, amarilla y roja al cansarse) */
-.pel-en{position:absolute;top:calc(env(safe-area-inset-top,0px) + 64px);left:calc(env(safe-area-inset-left,0px) + 8px);display:flex;flex-direction:column;gap:4px;padding:4px 8px;border-radius:10px;background:rgba(14,10,24,.58);font-size:var(--fs-xs);font-weight:800;line-height:1}
+.pel-en{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px) + 52px);left:calc(env(safe-area-inset-left,0px) + var(--edge,16px));display:flex;flex-direction:column;gap:4px;padding:4px 8px;border-radius:10px;background:rgba(14,10,24,.58);font-size:var(--fs-xs);font-weight:800;line-height:1}
 .pel-en[hidden]{display:none}.pel-en div{display:flex;align-items:center;gap:8px}
 .pel-en span{min-width:62px;white-space:nowrap;opacity:.9}.pel-en .me span{opacity:1;color:#ff7ac8}
 .pel-en em{width:7px;height:7px;border-radius:50%;flex:none}.pel-en .you em{background:#5b4bff}.pel-en .rival em{background:#ff2e88}

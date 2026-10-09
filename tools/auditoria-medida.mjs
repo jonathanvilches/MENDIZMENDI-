@@ -11,6 +11,8 @@
 //   · desplaza: una ventana o un bloque que hay que desplazar para verlo entero (solo vale si no se puede evitar)
 //   · forma: caja con esquinas redondeadas de más de 8 px (la identidad: esquinas casi rectas, cortadas o círculos)
 //   · boton: botón con letra de lectura (Nunito) en lugar de la de los botones (estrecha o de rótulos grandes)
+//   · composicion: bloques y botones que van juntos con alturas, anchos, bordes o huecos distintos; cajas con más relleno
+//     a un lado que al otro; rellenos y huecos fuera de la rejilla de 4 px; bordes que casi coinciden (de 2 a 12 px)
 // Con window.__auditTodo = true, «espacio» lista todas las distancias medidas (no solo las que se salen).
 export const auditar = (sel) => {
   const root = sel ? document.querySelector(sel) : document.body; if (!root) return { falta: sel };
@@ -24,7 +26,7 @@ export const auditar = (sel) => {
   const hasText = (e) => [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
   const all = [...root.querySelectorAll('*')].filter(e => !['SCRIPT', 'STYLE', 'CANVAS'].includes(e.tagName));
   const texts = all.filter(e => hasText(e) && vis(e));
-  const R = { cortado: [], encima: [], verde: [], esquina: [], sobresale: [], espacio: [], letra: [], color: [], desborda: [], estrecho: [], desplaza: [], forma: [], boton: [] };
+  const R = { cortado: [], encima: [], verde: [], esquina: [], sobresale: [], espacio: [], letra: [], color: [], desborda: [], estrecho: [], desplaza: [], forma: [], boton: [], composicion: [] };
   // (tapado: lo que queda debajo de una capa opaca, como el HUD detrás de un panel, no se ve y no cuenta para «encima»
   // ni para «sobresale»; se mira qué hay encima en el centro de su primera línea, con todo tocable un momento)
   const pe = document.createElement('style'); pe.textContent = '*{pointer-events:auto!important}'; document.head.appendChild(pe);
@@ -222,6 +224,138 @@ export const auditar = (sel) => {
   const label = (b) => [b, ...b.querySelectorAll('*')].filter(x => hasText(x)).length === 1 && (b.textContent || '').trim().length <= 40;
   for (const e of texts) { if (hidden.has(e)) continue; const b = e.closest('button, .btn, [role=button], [role=tab]'); if (!b || !label(b) || b.closest('.choices, .opt, .opts, .fc-opts, .q-opts') || b.matches('.opt')) continue;
     const f0 = st(e).fontFamily.split(',')[0].replace(/["']/g, '').trim(); if (!/^MZ (Cond|Display)$/.test(f0)) R.boton.push(`${name(b)} «${txt(b).slice(0, 24)}» en ${f0}` + (window.__auditDetail ? ` [${ruleOf(e, 'fontFamily') + ' | ' + ruleOf(e, 'font')}]` : '')); }
+
+  // 14. composición: lo que va junto, exacto. Los bloques (cajas con fondo o borde, botones) hermanos de una fila han de
+  // tener la misma altura (si se estiran) o el mismo centro, y entre ellos el mismo hueco; los de una columna, el mismo
+  // borde izquierdo y, si se estiran, el mismo ancho; una caja con bloques dentro, el mismo relleno arriba que abajo y a
+  // la izquierda que a la derecha; y los rellenos y huecos, en la rejilla de 4 px (0, 1 y 2 px valen para filetes)
+  const isBlock = (q) => vis(q) && !hidden.has(q) && !/absolute|fixed/.test(st(q).position) && (painted(q) || q.matches('button, .btn, [role=button]')) && q.getBoundingClientRect().width > 8;
+  const px = (v) => parseFloat(v) || 0, grid = (v) => { v = Math.round(v * 100) / 100; return v <= 2 || Math.abs(v / 4 - Math.round(v / 4)) < 0.01; };
+  const near = (a, b, t = 1) => Math.abs(a - b) <= t;
+  for (const P of [root, ...root.querySelectorAll('*')]) { if (!vis(P) || hidden.has(P) || P.closest('svg, .gx-card')) continue; const ps = st(P);
+    if (!/flex|grid/.test(ps.display) || /(auto|scroll)/.test(ps.overflowX + ps.overflowY)) continue;
+    const kids = [...P.children].filter(isBlock); if (kids.length < 2) continue;
+    // (en una rejilla, lo que ocupa varias filas, como un número al lado de un nombre y su barra, no se compara con
+    // lo de una sola fila)
+    const span = (k) => { const q = st(k); return /span\s*([2-9])/.test(q.gridRowStart + ' ' + q.gridRowEnd) || (+q.gridRowEnd - +q.gridRowStart > 1); };
+    const scaledK = (k) => { const m = st(k).transform.match(/^matrix\(([^)]+)\)/); if (!m) return false; const v = m[1].split(',').map(Number); return Math.abs(v[1]) < 1e-6 && Math.abs(v[2]) < 1e-6 && (Math.abs(v[0] - 1) > 0.01 || Math.abs(v[3] - 1) > 0.01); };
+    const R2 = kids.filter(k => (!/grid/.test(ps.display) || !span(k)) && !scaledK(k)).map(k => ({ k, r: k.getBoundingClientRect() }));
+    // filas: los que se solapan en vertical más de la mitad
+    const rows = []; for (const x of R2) { const row = rows.find(rw => { const a = rw[0].r; return Math.min(a.bottom, x.r.bottom) - Math.max(a.top, x.r.top) > Math.min(a.height, x.r.height) * 0.5; }); row ? row.push(x) : rows.push([x]); }
+    const ai = ps.alignItems, colDir = /column/.test(ps.flexDirection) && /flex/.test(ps.display);
+    for (const row of rows) { if (row.length < 2) continue; row.sort((a, b) => a.r.left - b.r.left);
+      const hs = row.map(x => x.r.height), cs = row.map(x => x.r.top + x.r.height / 2), ts = row.map(x => x.r.top);
+      const self = row.map(x => st(x.k).alignSelf);
+      const stretch = /normal|stretch/.test(ai) && self.every(v => /auto|normal|stretch/.test(v));
+      if (stretch && !hs.every(h => near(h, hs[0]))) R.composicion.push(`${name(P)}: fila de bloques de alturas distintas (${hs.map(Math.round).join(', ')} px)`);
+      else if (/center/.test(ai) && !cs.every(c => near(c, cs[0], 1.5))) R.composicion.push(`${name(P)}: fila de bloques descentrados entre sí (${cs.map(c => Math.round(c - cs[0])).join(', ')} px)` + (window.__auditDetail ? ` [${row.map(x => name(x.k)).join(' + ')}]` : ''));
+      else if (/start|baseline/.test(ai) && !ts.every(t => near(t, ts[0]))) R.composicion.push(`${name(P)}: fila de bloques que no empiezan a la misma altura`);
+      // (los botones de una misma fila, del mismo alto aunque vayan centrados; no los redondos de solo icono, que son otra pieza)
+      const bt = row.filter(x => x.k.matches('button, .btn, [role=button]') && !st(x.k).borderRadius.startsWith('50%') && (x.k.textContent || '').trim());
+      if (bt.length > 1 && !bt.every(x => near(x.r.height, bt[0].r.height))) R.composicion.push(`${name(P)}: botones de una fila de alturas distintas (${bt.map(x => Math.round(x.r.height)).join(', ')} px)` + (window.__auditDetail ? ` [${bt.map(x => name(x.k)).join(' + ')}]` : ''));
+      const gaps = row.slice(1).map((x, i) => x.r.left - row[i].r.right);
+      if (gaps.length > 1 && !gaps.every(g => near(g, gaps[0]))) R.composicion.push(`${name(P)}: huecos distintos entre bloques de una fila (${gaps.map(Math.round).join(', ')} px)`);
+    }
+    // columnas: un bloque por fila, uno encima de otro
+    if (rows.length >= 2 && rows.every(rw => rw.length === 1) && !colDir || (colDir && rows.length >= 2)) {
+      const col = rows.map(rw => rw[0]).sort((a, b) => a.r.top - b.r.top);
+      const ls = col.map(x => x.r.left), ws = col.map(x => x.r.width);
+      const st2 = (/normal|stretch/.test(ai) || !colDir) && col.every(x => /auto|normal|stretch/.test(st(x.k).alignSelf)) && col.every(x => st(x.k).width === 'auto' || /%/.test(x.k.style.width));
+      if (!/center/.test(ai) && !ls.every(l => near(l, ls[0]))) R.composicion.push(`${name(P)}: columna de bloques que no empiezan en el mismo borde (${ls.map(l => Math.round(l - ls[0])).join(', ')} px)`);
+      if (st2 && /grid/.test(ps.display) === false && !ws.every(w => near(w, ws[0]))) R.composicion.push(`${name(P)}: columna de bloques de anchos distintos (${ws.map(Math.round).join(', ')} px)`);
+      const vg = col.slice(1).map((x, i) => x.r.top - col[i].r.bottom);
+      if (vg.length > 1 && !vg.every(g => near(g, vg[0]))) R.composicion.push(`${name(P)}: huecos distintos entre bloques de una columna (${vg.map(Math.round).join(', ')} px)`);
+    }
+    // la rejilla de los huecos
+    for (const k of ['rowGap', 'columnGap']) { const v = px(ps[k]); if (v && !grid(v)) R.composicion.push(`${name(P)}: hueco de ${+v.toFixed(1)} px fuera de la rejilla de 4 px`); }
+  }
+  // cajas con bloques dentro: si su relleno es el mismo a los dos lados (lo que quiso quien la diseñó), lo que se ve ha de
+  // serlo también; lo descuadran los márgenes de lo de dentro o un hijo que no llena el ancho. Se mide con las cajas de
+  // los hijos (no con el texto, que acaba donde acaba la línea)
+  for (const B of [root, ...root.querySelectorAll('*')]) { if (!vis(B) || hidden.has(B) || !painted(B) || B.closest('svg, .gx-card') || /^(TD|TH|TR|TABLE)$/.test(B.tagName)) continue; const bs = st(B);
+    if (/(auto|scroll)/.test(bs.overflowY + bs.overflowX) || /inline/.test(bs.display) && !/inline-(flex|grid|block)/.test(bs.display)) continue;
+    // (también los iconos, que van con aria-hidden: ocupan su sitio)
+    const shown = (q) => { const r = q.getBoundingClientRect(), qs = st(q); return r.width > 0 && r.height > 0 && qs.visibility !== 'hidden' && qs.display !== 'none' && +qs.opacity > 0.05; };
+    const kids = [...B.children].filter(q => shown(q) && !/absolute|fixed/.test(st(q).position) && !q.matches('script, style'));
+    if (!kids.length || !kids.some(isBlock)) continue;
+    // (de la cabecera de una ventana, sin fondo ni borde, cuenta lo que lleva dentro, no su caja)
+    const extent = (q) => { if (!q.matches('header, [class*=head]') || painted(q) || q.matches('button, .btn, [role=button], img, svg, canvas, input, select, textarea') || hasText(q)) return [q.getBoundingClientRect()];
+      const sub = [...q.children].filter(shown); return sub.length ? sub.flatMap(extent) : [q.getBoundingClientRect()]; };
+    const rs = kids.flatMap(extent).filter(r => r.width > 0 && r.height > 0);
+    for (const n of B.childNodes) if (n.nodeType === 3 && n.textContent.trim()) { const rg = document.createRange(); rg.selectNodeContents(n); const r = rg.getBoundingClientRect(); if (r.width) rs.push(r); }
+    if (!rs.length) continue;
+    const br = B.getBoundingClientRect(), bl = px(bs.borderLeftWidth), brr = px(bs.borderRightWidth), bt = px(bs.borderTopWidth), bb = px(bs.borderBottomWidth);
+    const U = { l: Math.min(...rs.map(r => r.left)), r: Math.max(...rs.map(r => r.right)), t: Math.min(...rs.map(r => r.top)), b: Math.max(...rs.map(r => r.bottom)) };
+    const L = U.l - br.left - bl, Rr = br.right - brr - U.r, T = U.t - br.top - bt, Bo = br.bottom - bb - U.b;
+    if (L < -1 || Rr < -1 || T < -1 || Bo < -1) continue;   // (lo que se sale ya lo dice «desborda»)
+    // (no se mide la barra de progreso, que se llena a medias a propósito, ni la caja con algo puesto aparte a un lado, como
+    // una flecha o una etiqueta; ni arriba y abajo la tarjeta con su foto pegada al borde de arriba)
+    const deco = [...B.children].some(q => shown(q) && /absolute/.test(st(q).position) && q.getBoundingClientRect().width > 6);
+    const cover = kids[0] && /^(IMG|PICTURE|CANVAS|FIGURE)$/.test(kids[0].tagName) || (kids[0] && st(kids[0]).backgroundImage.includes('url'));
+    if (br.height <= 16 || deco) { /* (sin comparar a los lados) */ } else {
+    const centeredH = /center/.test(bs.justifyContent) && !/column/.test(bs.flexDirection) || /center/.test(bs.alignItems) && /column/.test(bs.flexDirection);
+    // (una fila alineada a la izquierda que acaba donde acaba lo de dentro deja aire a la derecha a propósito: no cuenta)
+    const ragged = !centeredH && Math.abs(Rr - L) > 24;
+    if ((near(px(bs.paddingLeft), px(bs.paddingRight), 0.5) || centeredH) && !ragged && !near(L, Rr, 1.5) && !/start|left|end|right/.test(bs.justifyItems + bs.justifyContent) && kids.some(q => !/start|end/.test(st(q).alignSelf + st(q).justifySelf)))
+      R.composicion.push(`${name(B)}: relleno distinto a la izquierda y a la derecha (${Math.round(L)} y ${Math.round(Rr)} px)` + (window.__auditDetail ? ` [${ruleOf(B, 'padding')}]` : ''));
+    const natural = (() => { const old = B.style.cssText; B.style.setProperty('height', 'auto', 'important'); B.style.setProperty('min-height', '0', 'important'); B.style.setProperty('flex', 'none', 'important'); B.style.setProperty('align-self', 'flex-start', 'important'); const h = B.getBoundingClientRect().height; B.style.cssText = old; return h; })();
+    const centeredV = /center/.test(bs.alignItems) && !/column/.test(bs.flexDirection) && /flex/.test(bs.display) || /center/.test(bs.justifyContent) && /column/.test(bs.flexDirection) || /center/.test(bs.alignContent) && /grid/.test(bs.display);
+    if (!(cover && T < 1) && (near(px(bs.paddingTop), px(bs.paddingBottom), 0.5) && near(natural, br.height, 1) || centeredV) && !near(T, Bo, 1.5))
+      R.composicion.push(`${name(B)}: relleno distinto arriba y abajo (${Math.round(T)} y ${Math.round(Bo)} px)` + (window.__auditDetail ? ` [${ruleOf(B, 'padding')}]` : ''));
+    }
+    for (const k of ['paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft']) { const v = px(bs[k]); if (v && !grid(v)) { R.composicion.push(`${name(B)}: relleno de ${+v.toFixed(1)} px fuera de la rejilla de 4 px`); break; } }
+  }
+  // 15. alineación: dentro de una misma caja (la caja pintada o el botón más cercano), lo que va uno encima de otro
+  // empieza en el mismo borde, y lo que va uno al lado de otro con la misma altura, a la misma altura. Un borde que casi
+  // coincide con otro (de 2 a 12 px) es un descuadre, no una decisión. Del texto cuenta donde empieza la letra, y solo si
+  // va alineado a la izquierda; de las cajas, el borde de la caja (los dos lados)
+  // (lo que va centrado en su fila o en su columna no se alinea por los bordes; y lo que crece un momento al pulsarlo o
+  // al sonar, como un botón encendido, se mide sin ese aumento)
+  const centeredIn = (q) => { const P = q.parentElement; if (!P) return false; const ps = st(P);
+    return /flex/.test(ps.display) && (!/column/.test(ps.flexDirection) && /center|space-around|space-evenly/.test(ps.justifyContent) || /column/.test(ps.flexDirection) && /center/.test(ps.alignItems)) || /grid/.test(ps.display) && /center/.test(ps.justifyItems + st(q).justifySelf); };
+  const holder = (q) => { for (let a = q.parentElement; a && a !== document.body; a = a.parentElement) if (a === root || painted(a) || a.matches('button, .btn, [role=button]') || /(auto|scroll)/.test(st(a).overflowX + st(a).overflowY)) return a; return document.body; };
+  const groups = new Map();
+  for (const q of root.querySelectorAll('*')) {
+    if (['SCRIPT', 'STYLE'].includes(q.tagName) || q.closest('svg, .gx-card') || !vis(q) || hidden.has(q)) continue;
+    // (una figura recortada, con fondo transparente, no enseña el borde de su caja: solo cuentan las fotos que la llenan)
+    const pic = q.matches('img, picture, canvas') && (/cover|fill/.test(st(q).objectFit) || q.tagName === 'CANVAS');
+    const blk = (painted(q) || q.matches('button, .btn, [role=button]') || pic) && !/inline$/.test(st(q).display), tx = !blk && hasText(q) && !/^inline$/.test(st(q).display);
+    if (!blk && !tx) continue;
+    const r0 = q.getBoundingClientRect(); if (r0.width < 16 || r0.height < 8) continue;
+    // (una caja inclinada, como las barras y los botones en paralelogramo, se mide por su eje: sin las puntas)
+    const mt = st(q).transform.match(/^matrix\(([^)]+)\)/), mv = mt ? mt[1].split(',').map(Number) : null, sk = mv && Math.abs(mv[1]) < 1e-6 && Math.abs(mv[2]) > 1e-6 ? Math.abs(mv[2]) * q.offsetHeight / 2 : 0;
+    const r = { left: r0.left + sk, right: r0.right - sk, top: r0.top, bottom: r0.bottom, width: r0.width - 2 * sk, height: r0.height };
+    let left = r.left;
+    if (tx) { if (!/start|left/.test(st(q).textAlign) || /center/.test(st(q.parentElement).justifyContent + st(q.parentElement).alignItems) && /column/.test(st(q.parentElement).flexDirection)) continue;
+      const rg = document.createRange(); rg.selectNodeContents(q); const lr = rg.getClientRects()[0]; if (!lr) continue; left = lr.left; }
+    const h = holder(q); if (!groups.has(h)) groups.set(h, []);
+    const sc = mv && Math.abs(mv[1]) < 1e-6 && Math.abs(mv[2]) < 1e-6 && (Math.abs(mv[0] - 1) > 0.01 || Math.abs(mv[3] - 1) > 0.01);
+    groups.get(h).push({ q, blk, cen: centeredIn(q), scaled: sc, round: blk && st(q).borderRadius.startsWith('50%'), l: left, r: r.right, t: r.top, b: r.bottom, hgt: r.height, w: r.width });
+  }
+  const miss = (d) => d > 1.5 && d <= 12;
+  // (de una fila de cosas, cuenta el borde de la primera, a la izquierda, y el de la última, a la derecha)
+  // (las filas que se parten solas, como las de etiquetas, acaban donde acaban: su borde derecho no cuenta)
+  const wraps = (q) => q.parentElement && /wrap/.test(st(q.parentElement).flexWrap) && !/nowrap/.test(st(q.parentElement).flexWrap);
+  const beside = (a, c) => Math.min(a.b, c.b) - Math.max(a.t, c.t) > Math.min(a.hgt, c.hgt) * 0.3;
+  for (const [h, m] of groups) { if (m.length < 2) continue; const out = new Set();
+    // (lo que va de borde a borde de su caja, como una franja, no se alinea con lo de dentro: no cuenta)
+    const hr = h.getBoundingClientRect(), hs = st(h), hl = hr.left + px(hs.borderLeftWidth), hrr = hr.right - px(hs.borderRightWidth);
+    for (const a of m) { a.bleedL = a.blk && a.l <= hl + 1.5; a.bleedR = a.blk && a.r >= hrr - 1.5; }
+    for (const a of m) { a.lead = !m.some(c => c !== a && !c.q.contains(a.q) && !a.q.contains(c.q) && c.r <= a.l + 1 && beside(a, c)); a.trail = !m.some(c => c !== a && !c.q.contains(a.q) && !a.q.contains(c.q) && c.l >= a.r - 1 && beside(a, c)); }
+    for (let i = 0; i < m.length; i++) for (let j = i + 1; j < m.length; j++) { const a = m[i], c = m[j];
+      if (a.q.contains(c.q) || c.q.contains(a.q)) continue;
+      const stacked = (a.b <= c.t + 1 || c.b <= a.t + 1) && Math.min(a.r, c.r) - Math.max(a.l, c.l) > 0;
+      const side = (a.r <= c.l + 1 || c.r <= a.l + 1) && Math.min(a.b, c.b) - Math.max(a.t, c.t) > 0;
+      // (dos botones redondos uno encima del otro van centrados entre sí: cuenta su centro, no sus bordes)
+      // (o alineados por un borde: también vale)
+      if (a.round && c.round) { if (stacked && miss(Math.abs((a.l + a.r) / 2 - (c.l + c.r) / 2)) && Math.abs(a.l - c.l) > 1.5 && Math.abs(a.r - c.r) > 1.5) out.add(`${name(h)}: botones redondos casi centrados (${Math.round(Math.abs((a.l + a.r) / 2 - (c.l + c.r) / 2))} px de diferencia) [${name(a.q)} · ${name(c.q)}]`); continue; }
+      if (a.cen || c.cen || a.scaled || c.scaled) continue;
+      if (stacked && a.lead && c.lead && !a.bleedL && !c.bleedL && miss(Math.abs(a.l - c.l))) out.add(`${name(h)}: bordes izquierdos casi iguales (${Math.round(Math.abs(a.l - c.l))} px de diferencia) [${name(a.q)} · ${name(c.q)}]`);
+      if (stacked && a.trail && c.trail && a.blk && c.blk && !a.bleedR && !c.bleedR && !wraps(a.q) && !wraps(c.q) && miss(Math.abs(a.r - c.r)) && a.w > 40 && c.w > 40) out.add(`${name(h)}: bordes derechos casi iguales (${Math.round(Math.abs(a.r - c.r))} px de diferencia) [${name(a.q)} · ${name(c.q)}]`);
+      if (side && a.blk && c.blk && near(a.hgt, c.hgt) && miss(Math.abs(a.t - c.t))) out.add(`${name(h)}: cajas iguales a alturas casi iguales (${Math.round(Math.abs(a.t - c.t))} px de diferencia) [${name(a.q)} · ${name(c.q)}]`);
+    }
+    R.composicion.push(...out);
+  }
   for (const k of Object.keys(R)) R[k] = [...new Set(R[k])];
   return R;
 };

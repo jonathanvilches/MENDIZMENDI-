@@ -256,3 +256,60 @@ export function leafImage(id) {
   const url = cv.toDataURL('image/png'); cache.set(id, url); return url;
 }
 export const hasLeaf = (id) => !!LEAF[id];
+
+// ---------- la ramita de cada especie, para vestir las copas en 3D ----------
+// Unas cuantas hojas de la especie (o su mechón de agujas) en una ramita, sobre fondo transparente y sin sombra: la base
+// de la ramita abajo en el centro y la punta arriba, para que en el árbol salga de su rama hacia fuera. Las hojas, cada
+// una de un verde un poco distinto, como en el árbol de verdad.
+const hexShade = (hex, k) => { const n = parseInt(hex.slice(1), 16), f = (v) => Math.max(0, Math.min(255, Math.round(k > 1 ? v + (255 - v) * (k - 1) : v * k))); return '#' + [n >> 16, (n >> 8) & 255, n & 255].map(v => f(v).toString(16).padStart(2, '0')).join(''); };
+const leafOf = (D, k) => ({ ...D.c, c: hexShade(D.c.c, k) });
+function sprigTwig(g, len, col, w) { g.strokeStyle = col; g.lineWidth = w; g.lineCap = 'round'; g.beginPath(); g.moveTo(0, 0); g.quadraticCurveTo(w * 1.5, -len * 0.5, 0, -len); g.stroke(); }
+const sprigCache = new Map();
+/** La ramita de una especie en un lienzo cuadrado (o null si no hay dibujo). */
+export function leafSprig(id, N = 256) {
+  const key = id + ':' + N; if (sprigCache.has(key)) return sprigCache.get(key);
+  const D = LEAF[id]; if (!D || typeof document === 'undefined') return null;
+  const cv = document.createElement('canvas'); cv.width = cv.height = N; const g = cv.getContext('2d');
+  g.scale(N / 256, N / 256); g.translate(128, 252);
+  let r = 1; const rnd = () => (r = (r * 16807) % 2147483647) / 2147483647;
+  const bark = D.o?.bark || hexShade(D.c.c, 0.55);
+  if (D.k === 'simple' || D.k === 'palm' || D.k === 'pinnate') {
+    // hojas alternas a lo largo de la ramita, de más tumbadas abajo a más derechas arriba, y una en la punta
+    const n = D.k === 'pinnate' ? 2 : D.k === 'palm' ? 4 : 6, len = D.k === 'pinnate' ? 120 : 150;
+    sprigTwig(g, len, bark, 4);
+    const size = D.k === 'palm' ? D.o.R * 2 + (D.st || 0) : D.k === 'pinnate' ? D.o.L : D.o.L + (D.st || 0);
+    const k = (D.k === 'palm' ? 112 : D.k === 'pinnate' ? 112 : 88) / size;
+    const draw = (sc, ang, x, y, kk) => {
+      g.save(); g.translate(x, y); g.rotate(ang); g.scale(sc, sc);
+      const L = leafOf(D, kk);
+      if (D.k === 'simple') { if (D.st) { g.translate(0, -D.st); stalk(g, D.st, hexShade(D.c.c, 0.6), 3 / sc); } simple(g, D.o, L); }
+      else if (D.k === 'palm') { const st = (D.st || 30) * 0.8; g.translate(0, -st - D.o.R * 0.08); stalk(g, st, hexShade(D.c.c, 0.6), 3 / sc); palm(g, D.o, L); }
+      else pinnate(g, D.o, L);
+      g.restore();
+    };
+    for (let i = 0; i < n; i++) {
+      const t = 0.18 + i / Math.max(1, n - 1) * 0.62, s = i % 2 ? 1 : -1, sc = k * (0.82 + 0.18 * t) * (0.92 + rnd() * 0.16);
+      draw(sc, s * (1.05 - t * 0.45) + (rnd() - 0.5) * 0.2, s * 1.5, -len * t, 0.86 + rnd() * 0.24);
+    }
+    draw(k * 0.95, (rnd() - 0.5) * 0.15, 0, -len * 0.97, 0.95 + rnd() * 0.15);
+  } else if (D.k === 'needles') {
+    // pinos: el mechón de agujas de la punta de una rama, denso, abierto hacia delante (así se ven en el árbol)
+    sprigTwig(g, 150, bark, 5);
+    const L0 = Math.min(96, D.o.len * 1.05);
+    for (let i = 0; i < 22; i++) {
+      const t = 0.25 + i / 21 * 0.75, y = -150 * t;
+      for (let j = 0; j < 9; j++) {
+        const a = (j / 8 - 0.5) * 2 * (0.95 - t * 0.35) + (rnd() - 0.5) * 0.2, L = L0 * (0.75 + rnd() * 0.3) * (0.7 + t * 0.3);
+        g.strokeStyle = hexShade(D.c.c, 0.72 + rnd() * 0.5); g.lineWidth = (D.o.w || 2) * 0.9; g.lineCap = 'round';
+        g.beginPath(); g.moveTo(0, y); g.quadraticCurveTo(Math.sin(a) * L * 0.5, y - Math.cos(a) * L * 0.55, Math.sin(a) * L, y - Math.cos(a) * L); g.stroke();
+      }
+    }
+  } else if (D.k === 'frond') { g.translate(0, -8); g.scale(1, 1.02); frond(g, D.o, D.c); }
+  else if (D.k === 'strap') { g.translate(0, -110); g.scale(1, 1.05); strap(g, D.o, D.c); }
+  else {
+    // agujas, escamas y ramitas de hojitas: el dibujo de siempre, de pie y llenando el lienzo
+    const len = D.o.twig || 220; g.translate(0, -122); g.scale(236 / Math.max(len, 200), 236 / Math.max(len, 200));
+    ({ needles, flat2, whorl, scales, spines, opposite })[D.k](g, D.o, D.c);
+  }
+  sprigCache.set(key, cv); return cv;
+}
