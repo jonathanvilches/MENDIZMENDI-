@@ -90,20 +90,25 @@ export class Mochila {
     const draw = () => {
       const food = Object.entries(P.bag.food).filter(([k, n]) => n > 0 && FOOD[k]);
       const D = g.perro, on = !!D?.dog;
+      // (la cabecera en una fila: el icono, el título, la energía y las monedas; debajo, tres columnas iguales: el perro,
+      // el agua y la comida, y el equipo, cada una con su rótulo y su caja)
+      const dogBox = D ? `<div class="bp-box">
+          <div class="seg" role="group" aria-label="Ir con perro o sin perro"><button data-a="dogon" class="${on ? 'on' : ''}" aria-pressed="${on}"><span>Con ${esc(D.name)}</span></button><button data-a="dogoff" class="${on ? '' : 'on'}" aria-pressed="${!on}"><span>Sin perro</span></button></div>
+          <div class="bp-actions">${on ? `<button class="btn" data-a="dog">${iconSVG('compass', 22)}<span>Enséñame el camino</span></button>` : ''}<button class="btn" data-a="breed">${iconSVG('dog', 22)}<span>${on ? 'Cambiar de perro' : 'Elegir perro'}</span></button></div>
+        </div>` : `<div class="bp-box"><p class="bp-note">Aquí vas sin perro.</p></div>`;
+      const water = this.has('cantimplora') ? `<div class="bp-box bp-water"><div class="drops">${[0, 1, 2].map(i => `<span class="${i < P.bag.agua ? 'on' : ''}">${iconSVG('water', 22)}</span>`).join('')}</div><button class="btn" data-a="drink" ${P.bag.agua ? '' : 'disabled'}>${iconSVG('canteen', 22)}<span>Beber</span></button></div>`
+        : `<div class="bp-box bp-water"><p class="bp-note" data-vm="no">Bebe en la fuente de una plaza: te darán una cantimplora.</p></div>`;
+      const foods = food.length ? `<div class="bp-food">${food.map(([k, n]) => `<button class="fooditem" data-f="${k}" title="${esc(FOOD[k].fact)}">${iconSVG(FOOD[k].icon, 28)}<b>${esc(FOOD[k].name)}</b><span>×${n} · +${FOOD[k].e}</span></button>`).join('')}</div>`
+        : '<p class="bp-note" data-vm="no">Vacía. Busca moras, avellanas y manzanas por el campo, o gana comida en las misiones de productos.</p>';
       root.innerHTML = `<div class="mg-card bp-card">
         <div class="bp-scroll">
-        <div class="bp-head">${iconSVG('backpack', 44)}<div><h3>Tu mochila</h3><div class="ebar"><i style="width:${P.energy.toFixed(0)}%"></i></div><small>Energía ${P.energy.toFixed(0)} %${P.energy < 25 ? ' · ¡come o bebe algo!' : ''} · ${iconSVG('medal', 14)} ${P.coins ?? 12} txanpon</small></div></div>
-        ${D ? `<section class="bp-sec bp-dog"><h4>Perro</h4>
-        <div class="bp-box">
-          <div class="seg" role="group" aria-label="Ir con perro o sin perro"><button data-a="dogon" class="${on ? 'on' : ''}" aria-pressed="${on}">${iconSVG('dog', 22)}<span>Con ${esc(D.name)}</span></button><button data-a="dogoff" class="${on ? '' : 'on'}" aria-pressed="${!on}"><span>Sin perro</span></button></div>
-          <div class="bp-actions">${on ? `<button class="btn" data-a="dog">${iconSVG('compass', 22)}<span>Enséñame el camino</span></button>` : ''}<button class="btn" data-a="breed">${iconSVG('dog', 22)}<span>${on ? 'Cambiar de perro' : 'Elegir perro'}</span></button></div>
-        </div></section>` : ''}
-        <section class="bp-sec bp-eat"><h4>Agua</h4>
-        ${this.has('cantimplora') ? `<div class="bp-box bp-water"><div class="drops">${[0, 1, 2].map(i => `<span class="${i < P.bag.agua ? 'on' : ''}">${iconSVG('water', 24)}</span>`).join('')}</div><button class="btn" data-a="drink" ${P.bag.agua ? '' : 'disabled'}>${iconSVG('canteen', 22)}<span>Beber</span></button></div>` : `<p class="bp-note" data-vm="no">Bebe en la fuente de una plaza: te darán una cantimplora.</p>`}
-        <h4>Comida</h4>
-        <div class="bp-food">${food.length ? food.map(([k, n]) => `<button class="fooditem" data-f="${k}" title="${esc(FOOD[k].fact)}">${iconSVG(FOOD[k].icon, 34)}<b>${esc(FOOD[k].name)}</b><span>×${n} · +${FOOD[k].e}</span></button>`).join('') : '<p class="bp-note" data-vm="no">Vacía. Busca moras, avellanas y manzanas por el campo, o gana comida en las misiones de productos.</p>'}</div>
-        </section><section class="bp-sec bp-equip"><h4>Equipo</h4>
-        <div class="bp-gear">${GEAR_ORDER.map(id => { const G = GEAR[id], h = this.has(id); return `<button class="gitem ${h ? '' : 'locked'}" data-g="${id}" title="${esc(h ? G.use : G.how)}" aria-label="${esc(h ? G.name : 'Por descubrir')}">${iconSVG(h ? G.icon : 'lock', 30)}<b>${esc(h ? G.name : 'Por descubrir')}</b><small>${esc(h ? G.use : G.how)}</small></button>`; }).join('')}</div></section>
+        <header class="bp-head">${iconSVG('backpack', 36)}<h3>Tu mochila</h3><div class="ebar" role="img" aria-label="Energía ${P.energy.toFixed(0)} %"><i style="width:${P.energy.toFixed(0)}%"></i></div><small>Energía ${P.energy.toFixed(0)} % · ${iconSVG('medal', 14)} ${P.coins ?? 12} txanpon</small></header>
+        ${P.energy < 25 ? '<p class="bp-warn">¡Come o bebe algo!</p>' : ''}
+        <div class="bp-cols">
+          <section class="bp-sec bp-dog"><h4>Perro</h4>${dogBox}</section>
+          <section class="bp-sec bp-eat"><h4>Agua</h4>${water}<h4>Comida</h4><div class="bp-box bp-foodbox">${foods}</div></section>
+          <section class="bp-sec bp-equip"><h4>Equipo</h4><div class="bp-box"><div class="bp-gear">${GEAR_ORDER.map(id => { const G = GEAR[id], h = this.has(id); return `<button class="gitem ${h ? '' : 'locked'}" data-g="${id}" title="${esc(h ? G.use : G.how)}" aria-label="${esc(h ? G.name : 'Por descubrir')}">${iconSVG(h ? G.icon : 'lock', 28)}<b>${esc(h ? G.name : 'Por descubrir')}</b></button>`; }).join('')}</div></div></section>
+        </div>
         </div>
         <div class="bp-foot"><button class="btn primary" data-a="close">Cerrar</button></div></div>`;
     };

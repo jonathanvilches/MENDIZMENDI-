@@ -289,12 +289,14 @@ export class Runtime {
     this.terrain.update(this.camera.position);
     { const c = this.camera, f = this.sky.ahead || (this.sky.ahead = new THREE.Vector3()); c.getWorldDirection(f); f.y = 0; if (f.lengthSq() < 1e-4) f.set(0, 0, 0); else f.normalize(); this.sky.camPos = c.position; }   // (las sombras, por delante de la cámara)
     this.sky.update(dt, P.pos, this.elapsed, g.mode === 'dance');
-    this.weather?.update(dt, this.camera, this.sky, this.sound, g.mode === 'futbol' || g.mode === 'pelota');
+    // (en los partidos y bajo techo no cae nada: antes, en la llegada al frontón cubierto llovía dentro del pabellón)
+    this.weather?.update(dt, this.camera, this.sky, this.sound, g.mode === 'futbol' || g.mode === 'pelota' || !!this.sky.indoor);
     this.sky.applyFlood();   // (los focos del frontón, después de la lluvia)
     g.fronton?.court?.setLights?.(this.sky.flood ? 1 : Math.min(1, this.sky.night * 1.6));   // (en el partido, siempre encendidos; si no, al anochecer)
     this.water.update(this.elapsed, this.sky);
     this.nature.update(this.camera.position, P.pos, this.elapsed, P.pos);
     updateDetail(this.camera.position, this.quality);
+    { const W = this.weather; this.fauna.wet = !W || W.kind === 'clear' ? 0 : W.kind === 'snow' ? 1 : W.k; }   // (con lluvia o nieve, sin mariposas ni luciérnagas)
     this.fauna.update(dt, P, this.elapsed, this.sky.night, this.sound, this.sky.floodK(), this.camera.position);   // (en el partido, sin luciérnagas)
     this.particles.update(dt);
     if (this.waterfall) this.waterfall.update(dt, this.elapsed, Math.hypot(P.pos.x - PLACES.waterfall.x, P.pos.z - PLACES.waterfall.z) < 80);

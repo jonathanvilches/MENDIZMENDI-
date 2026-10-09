@@ -26,6 +26,7 @@ import MOUNTAINS from '../data/mountains.json';
 import { viewFrom } from '../data/panorama.js';
 import { buildAgro } from '../world/agro.js';
 import { PASTOR_INFO, VAQUERA_INFO } from '../data/campo.js';
+import { greet } from './saludo.js';
 import { Mochila } from './mochila.js';
 import { Perro } from './perro.js';
 import { makeTrailSign, makeSignpost, makeBalizas, signSVG, ORIENTA, ORIENTA_TIPS, MONTE_TIPS } from './senales.js';
@@ -1025,12 +1026,13 @@ export class TownGame {
       this.ui.toast?.('La final, en el frontón Labrit de Iruña', 'pelota', 3600);
       await shot(V(xc + 14, 7, zb + 34), V(xc, 7, zb), 2600);
       await shot(V(xc - 6, 3, zb + 14), V(xc, 6, zb), 1600);
+      this.sky.indoor = true;   // (ya dentro: la luz del Labrit y, si llueve fuera, nada cae sobre la cancha)
       await shot(V(12, 7.5, 30), V(0, 3, 4), 2200);   // dentro: desde lo alto de la grada hacia el frontis
     } finally { this.follow.cinematic = null; }   // (el jugador sigue quieto: el partido lo coloca y lo suelta al acabar)
   }
   say(a, lines) {
     const look = a.obj?.userData.look;
-    return this.ui.dialog(lines.map(t => ({ who: a.name, look, ...(typeof t === 'string' ? { text: t } : t) })));
+    return this.ui.dialog(lines.map(t => ({ who: a.name, look, ...(typeof t === 'string' ? { text: greet(this, t) } : t) })));   // (greet: el saludo a la hora y con el tiempo de ahora)
   }
   async talk(a) {
     if (a.sabio) return this.sabioTalk(a);
@@ -1085,7 +1087,7 @@ export class TownGame {
         return;
       case 'harvest':
         if (M.step === 0) { await S([m.text, `Recoge ${M.need} ${CROP[m.crop]?.[0] || 'frutos'} en los campos. Te los marco con un brillo.`]); this.startGather(M, M.item, 'Recoger ' + (CROP[m.crop]?.[0] || ''), 'fields'); }
-        else if (M.step === 1) await S([`Te faltan ${M.need - M.count}. ¡Mira en los campos!`]);
+        else if (M.step === 1) await S([`${M.need - M.count === 1 ? 'Te falta 1' : `Te faltan ${M.need - M.count}`}. ¡Mira en los campos!`]);
         else { this.player.rig.doAct('pick', 0.8); await S(['¡Qué buena cosecha! Esto lo llevaremos al mercado.']); await this.complete(M, { card: CROP[m.crop]?.[0], cardText: m.text }); }
         return;
       case 'herd':
@@ -1101,12 +1103,12 @@ export class TownGame {
         if (M.night) {
           if (M.step === 0) { await S([...M.night.story, m.text || ''].filter(Boolean)); M.step = 1; }
           if (M.step === 1) { if (this.isNight()) { await S([M.night.night]); this.startCarnival(M); } else await this.offerNight(a, M.night.wait, () => this.startCarnival(M)); }
-          else if (M.step === 2) await S([`Te faltan ${M.need - M.count}. Escucha los cencerros…`]);
+          else if (M.step === 2) await S([`${M.need - M.count === 1 ? 'Te falta 1' : `Te faltan ${M.need - M.count}`}. Escucha los cencerros…`]);
           else { await S([`¡Los has encontrado a todos! Así se vive el carnaval de ${this.def.name.split(' /')[0]}: una tradición que se remonta a tiempos muy antiguos.`]); await this.complete(M, { card: M.folk?.name, cardText: M.folk?.fact }); }
           return;
         }
         if (M.step === 0) { await S([m.text || M.folk?.fact || '', M.folk?.culture || '', `Hay ${M.need} escondidos por el pueblo. No los verás desde lejos: escucha sus cencerros, suenan más fuerte cuando estás cerca.`].filter(Boolean)); this.startCarnival(M); }
-        else if (M.step === 1) await S([`Te faltan ${M.need - M.count}. Escucha…`]);
+        else if (M.step === 1) await S([`${M.need - M.count === 1 ? 'Te falta 1' : `Te faltan ${M.need - M.count}`}. Escucha…`]);
         else { await S([`¡Los has encontrado a todos! ${M.folk?.clue ? '' : ''}Así se vive el carnaval en ${this.comarca?.name}.`]); await this.complete(M, { card: M.folk?.name, cardText: M.folk?.fact }); }
         return;
       case 'trade':

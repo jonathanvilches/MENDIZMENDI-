@@ -96,7 +96,7 @@ function myRecord() {
 export function frontonCond(G, fronton) {
   const C = fronton?.court || {}, L = C.look || {}, labrit = !!C.labrit, hall = !!C.hall, covered = labrit || hall || !!L.roof, W = G?.rt?.weather;
   const wet = !covered && !!W && W.kind !== 'clear' && (W.kind === 'snow' || W.raining) && (W.k ?? 1) > 0.25;
-  return { covered, stone: !!L.stone && !labrit && !hall, wet, labrit, hall };
+  return { covered, stone: !!L.stone && !labrit && !hall, wet, snow: wet && W.kind === 'snow', labrit, hall };   // (snow: si lo que cae es nieve, se dice «nieva» y no «llueve»)
 }
 // nombres para los compañeros de los partidos por parejas
 const MATE_NAMES = ['Unai', 'Ane', 'Jon', 'Maite', 'Iñaki', 'Nerea', 'Aitor', 'Leire', 'Ander', 'Amaia', 'Xabier', 'Garazi'];

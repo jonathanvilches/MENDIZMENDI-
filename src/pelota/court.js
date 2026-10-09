@@ -26,11 +26,13 @@ function grain(g, w, h, n, a, dark = true) {
   }
 }
 
-// pared de hormigón pintada: juntas de encofrado muy suaves y chorreones de lluvia desde arriba
-function weather(c, w, h, mH, mW) {
+// pared de hormigón pintada: juntas de encofrado muy suaves y chorreones de lluvia desde arriba. dry: la cara de dentro
+// de un frontón con cubierta o cerrado, donde no llueve: solo las juntas (con chorreones parecía que llovía dentro)
+function weather(c, w, h, mH, mW, dry = false) {
   c.strokeStyle = 'rgba(0,0,0,.07)'; c.lineWidth = Math.max(1, w / 400);
   for (let y = 2.5; y < mH; y += 2.5) { const Y = h - y / mH * h; c.beginPath(); c.moveTo(0, Y); c.lineTo(w, Y); c.stroke(); }
   for (let x = 3.3; x < mW; x += 3.3) { const X = x / mW * w; c.beginPath(); c.moveTo(X, 0); c.lineTo(X, h); c.stroke(); }
+  if (dry) return;
   for (let i = 0; i < 26; i++) {
     const x = Math.random() * w, len = h * (0.08 + Math.random() * 0.35), wd = w * (0.004 + Math.random() * 0.012);
     const gr = c.createLinearGradient(0, 0, 0, len); gr.addColorStop(0, 'rgba(40,45,40,.16)'); gr.addColorStop(1, 'rgba(40,45,40,0)');
@@ -120,6 +122,7 @@ export class PelotaCourt {
     this.look = th;   // (cómo es: con cubierta, frontis de piedra... de ahí sale cómo se juega en él, courtFeel)
     const g = this.group = new T.Group(); g.name = 'Fronton';
     const HALL = !!opts.hall && !opts.labrit;   // (frontón cubierto y cerrado: el de los campeonatos)
+    const DRY = HALL || !!opts.labrit || !!th.roof;   // (bajo techo: las caras de dentro, sin chorreones de lluvia)
     const W = C.W, L = C.L, EXT = L + 3, CONTRA = opts.labrit ? LABRIT_CONTRA : HALL ? HALL_CONTRA : 2.6;   // (el Labrit, con su contracancha ancha de tarima)
     const std = (o) => new T.MeshStandardMaterial(Object.assign({ roughness: 0.88, metalness: 0 }, o));
     this.materials = [];
@@ -157,7 +160,7 @@ export class PelotaCourt {
     const frontTex = canvasTex(T, 1024, 1024, (c, w, h) => {
       if (th.stone) ashlar(c, w, h, W + 0.6, C.FRONT_H, th.stone);
       else { c.fillStyle = th.frontis; c.fillRect(0, 0, w, h); grain(c, w, h, 16000, 0.06); grain(c, w, h, 5000, 0.05, false); }
-      weather(c, w, h, C.FRONT_H, W + 0.6);
+      weather(c, w, h, C.FRONT_H, W + 0.6, DRY);
       const Y = (y) => h - y / C.FRONT_H * h;
       // nombre del pueblo en lo alto del frontis, como en los frontones de verdad
       // (sin el nombre del pueblo: va solo en la pared izquierda)
@@ -196,7 +199,7 @@ export class PelotaCourt {
     // --- pared izquierda (lisa, con la raya roja de arriba)
     const leftTex = canvasTex(T, 2048, 512, (c, w, h) => {
       c.fillStyle = th.wall; c.fillRect(0, 0, w, h); grain(c, w, h, 12000, 0.06); grain(c, w, h, 3000, 0.05, false);
-      weather(c, w, h, C.LEFT_H, EXT);
+      weather(c, w, h, C.LEFT_H, EXT, DRY);
       const Y = (y) => h - y / C.LEFT_H * h;
       c.fillStyle = th.mark; c.fillRect(0, Y(C.LEFT_LINE) - 6, w, 12);   // raya roja: por encima es mala
     });
@@ -288,7 +291,7 @@ export class PelotaCourt {
     const rebTex = canvasTex(T, 512, 512, (c, w, h) => {
       if (th.brick) bricks(c, w, h, W + 0.6, RH, '#a85c3e');
       else { c.fillStyle = th.wall; c.fillRect(0, 0, w, h); grain(c, w, h, 9000, 0.06); grain(c, w, h, 3000, 0.05, false); }
-      weather(c, w, h, RH, W + 0.6);
+      weather(c, w, h, RH, W + 0.6, DRY);
     });
     const rebIn = M({ map: rebTex, transparent: true }), rebOut = M({ map: outerTex, transparent: true }), rebCap = M({ color: th.cap, roughness: 0.8, transparent: true });
     const back = new T.Mesh(new T.BoxGeometry(W + 0.6, RH, 0.4), [rebOut, rebOut, rebCap, rebOut, rebOut, rebIn]);
