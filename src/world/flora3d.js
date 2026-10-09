@@ -10,6 +10,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { FLORA } from '../data/flora.js';
 import { offscreen, offscreenCanvas } from '../util/offscreen.js';
+import { leafSprig } from '../ui/leafArt.js';
 
 function mulberry(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 const C = (hex) => new THREE.Color(hex);
@@ -106,6 +107,157 @@ function leaves(n, bl, size, c1, c2, rnd, { long = 1 } = {}) {
   return g;
 }
 
+// ---------------------------------------------------------------- copas hechas de ramitas
+// La copa de los árboles y de los arbustos de hoja se viste con cientos de ramitas planas: dos triángulos con el dibujo
+// de las hojas de su especie (src/ui/leafArt.js, leafSprig), repartidas por la silueta de cada especie. De lejos se
+// reconoce el porte del árbol; de cerca, la forma de su hoja. Las ramitas de dentro van más oscuras y las de fuera y las
+// de arriba, más claras; la luz de cada una es la de la copa entera (hacia fuera), para que no parpadee al girar.
+// El porte de cada árbol: env, la forma de la copa (ovoid, dome, broad, column, cone, tiers, umbrella, vase); pk, a qué
+// altura es más ancha; base, dónde empieza (en parte de la altura); limbs y up, las ramas principales y cuánto suben (0
+// tumbadas, 1 derechas); lead, el tronco sigue hasta arriba; lumps, la copa en varios bultos (robles, castaños);
+// gnarl, ramas torcidas; open, copa clara; droop, ramitas que cuelgan (sauce); n, ramitas; size, su lado en metros
+const HABIT = {
+  haya: { env: 'ovoid', pk: 0.42, base: 0.3, limbs: 6, up: 0.8, n: 760, size: 1.35, lead: true },
+  roble: { env: 'broad', pk: 0.4, base: 0.3, limbs: 6, up: 0.4, n: 720, size: 1.4, lumps: 7, gnarl: 1 },
+  castano: { env: 'dome', pk: 0.36, base: 0.3, limbs: 6, up: 0.5, n: 760, size: 1.45, lumps: 6 },
+  fresno: { env: 'ovoid', pk: 0.48, base: 0.4, limbs: 5, up: 0.85, n: 520, size: 1.45, open: true, lead: true },
+  avellano: { env: 'vase', base: 0.2, n: 480, size: 0.95 },
+  tejo: { env: 'ovoid', pk: 0.3, base: 0.12, limbs: 8, up: 0.3, n: 900, size: 0.95, lead: true, dark: 0.95, thin: 0.3, core: 0.7 },
+  arce: { env: 'dome', pk: 0.42, base: 0.35, limbs: 5, up: 0.6, n: 600, size: 1.1 },
+  quejigo: { env: 'broad', pk: 0.42, base: 0.32, limbs: 5, up: 0.5, n: 580, size: 1.15, lumps: 5, gnarl: 0.6 },
+  encina: { env: 'dome', pk: 0.34, base: 0.26, limbs: 5, up: 0.45, n: 820, size: 1, lumps: 5, dark: 0.9, core: 0.55 },
+  pino_negro: { env: 'cone', base: 0.16, n: 0, size: 1.3, lead: true, conifer: true, whorls: 12, tufts: 4 },
+  abeto: { env: 'tiers', base: 0.07, n: 0, size: 1.3, lead: true, conifer: true, whorls: 16, flat: true, per: 8, step: 0.3 },
+  pino_silvestre: { env: 'umbrella', pk: 0.42, base: 0.62, limbs: 6, up: 0.35, n: 720, size: 1.6, conifer: true, clumps: 0.46 },
+  chopo: { env: 'column', pk: 0.42, base: 0.07, limbs: 10, up: 0.95, n: 1100, size: 1.2, lead: true },
+  alamo: { env: 'broad', pk: 0.44, base: 0.36, limbs: 6, up: 0.6, n: 680, size: 1.25, lumps: 6 },
+  sauce: { env: 'dome', pk: 0.42, base: 0.32, limbs: 6, up: 0.65, n: 700, size: 1.2, droop: 0.9 },
+  olivo: { env: 'dome', pk: 0.4, base: 0.4, limbs: 4, up: 0.55, n: 560, size: 1, lumps: 5, gnarl: 1.4 },
+  pino_carrasco: { env: 'umbrella', pk: 0.4, base: 0.5, limbs: 6, up: 0.45, n: 640, size: 1.5, conifer: true, clumps: 0.42, gnarl: 0.8 },
+  aliso: { env: 'ovoid', pk: 0.36, base: 0.22, limbs: 7, up: 0.55, n: 680, size: 1.2, lead: true },
+};
+// el radio de la copa a una altura (0 abajo, 1 arriba), en parte de su radio mayor
+function envR(h, y) {
+  if (y < 0 || y > 1) return 0;
+  if (h.env === 'cone' || h.env === 'tiers') return (1 - y) * Math.min(1, 0.5 + y * 6);
+  if (h.env === 'vase') return 0.35 + 0.65 * Math.sin(Math.PI * Math.min(1, y * 0.62 + 0.18));
+  const pk = h.pk ?? 0.4, d = y < pk ? (pk - y) / pk : (y - pk) / (1 - pk);
+  return Math.pow(Math.max(0, 1 - d * d), { ovoid: 0.5, dome: 0.42, broad: 0.3, umbrella: 0.45, column: 0.55 }[h.env] ?? 0.5);
+}
+const UP = new THREE.Vector3(0, 1, 0), _cd = new THREE.Vector3(), _cw = new THREE.Vector3(), _cr = new THREE.Vector3(), _cn = new THREE.Vector3(), _cs = new THREE.Vector3();
+class Cards {
+  constructor(cx, cy, cz, sy) { this.pos = []; this.nor = []; this.uv = []; this.col = []; this.c = new THREE.Vector3(cx, cy, cz); this.sy = sy; this.top = 0; }
+  // una ramita: su base en p, apuntando hacia d, de lado s y con brillo b; flat, tumbada (las del abeto)
+  add(p, d, s, b, rnd, flat = false) {
+    _cd.copy(d).normalize();
+    if (flat) _cw.crossVectors(_cd, UP); else _cw.crossVectors(_cd, _cr.set(rnd() - 0.5, rnd() - 0.5, rnd() - 0.5));
+    if (_cw.lengthSq() < 1e-6) _cw.set(1, 0, 0); _cw.normalize();
+    // (las tumbadas, un poco ladeadas: de lado también se ven)
+    if (flat) { const t = (rnd() < 0.5 ? -1 : 1) * (0.35 + rnd() * 0.35); _cr.crossVectors(_cd, _cw); _cw.multiplyScalar(Math.cos(t)).addScaledVector(_cr, Math.sin(t)).normalize(); }
+    _cn.crossVectors(_cw, _cd).normalize();
+    const hw = s / 2, V = [p.clone().addScaledVector(_cw, -hw), p.clone().addScaledVector(_cw, hw)];
+    V.push(V[1].clone().addScaledVector(_cd, s), V[0].clone().addScaledVector(_cd, s));
+    const f = rnd() < 0.5, U = f ? [[1, 0], [0, 0], [0, 1], [1, 1]] : [[0, 0], [1, 0], [1, 1], [0, 1]];
+    const warm = 0.94 + Math.min(1, Math.max(0, b - 0.8)) * 0.1;
+    for (const k of [0, 1, 2, 0, 2, 3]) {
+      const v = V[k]; this.pos.push(v.x, v.y, v.z); this.uv.push(U[k][0], U[k][1]); this.col.push(b, b, b * warm);
+      _cs.set(v.x - this.c.x, (v.y - this.c.y) * this.sy, v.z - this.c.z).normalize();
+      const sg = _cn.dot(_cs) < 0 ? -1 : 1, nx = _cs.x * 0.72 + _cn.x * sg * 0.28, ny = _cs.y * 0.72 + _cn.y * sg * 0.28 + (flat ? 0.3 : 0), nz = _cs.z * 0.72 + _cn.z * sg * 0.28, nl = Math.hypot(nx, ny, nz) || 1;
+      this.nor.push(nx / nl, ny / nl, nz / nl); if (v.y > this.top) this.top = v.y;
+    }
+  }
+  geometry() {
+    if (!this.pos.length) return null;
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(this.pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(this.nor, 3));
+    g.setAttribute('uv', new THREE.Float32BufferAttribute(this.uv, 2)); g.setAttribute('color', new THREE.Float32BufferAttribute(this.col, 3));
+    g.computeBoundingBox(); g.computeBoundingSphere(); return g;
+  }
+}
+const rv = (rnd, k = 1) => new THREE.Vector3((rnd() - 0.5) * k, (rnd() - 0.5) * k, (rnd() - 0.5) * k);
+const angDiff = (a, b) => Math.abs(((a - b) % (Math.PI * 2) + Math.PI * 3) % (Math.PI * 2) - Math.PI);
+// el árbol con su porte: tronco, ramas principales, ramillas hasta cada ramillete y las ramitas con hojas
+function treeReal(m, h, rnd) {
+  const wood = [], bl = [], H = m.h, Rw = m.cw / 2, yb = Math.max(0.8, H * (h.base ?? 0.3)), ch = H - yb, cyMid = yb + ch * (h.pk ?? 0.45);
+  const K = new Cards(0, cyMid, 0, Rw / Math.max(1, ch / 2)), size = h.size, rc = size * 0.75;
+  const spot = (y) => (y - yb) / ch, sideR = (y) => envR(h, Math.min(1, Math.max(0, spot(y)))) * Rw;
+  // brillo: más claro por fuera y arriba, más oscuro dentro
+  const bright = (q) => { const yy = Math.min(1, Math.max(0, spot(q.y))), out = Math.min(1, Math.hypot(q.x, q.z) / (sideR(q.y) + 0.3)); return (0.48 + 0.42 * out + 0.22 * yy + (rnd() - 0.5) * 0.12) * (h.dark || 1); };
+  const sprigAt = (q, out, extra = 0.25) => {
+    const d = _cd.set(q.x - 0, (q.y - cyMid) * 0.8, q.z).normalize().clone().add(rv(rnd, 1.15)).addScaledVector(UP, extra);
+    if (h.droop) { const o = Math.min(1, Math.hypot(q.x, q.z) / (sideR(q.y) + 0.3)); d.y -= h.droop * o * 1.4; }
+    K.add(q, d, size * (0.75 + rnd() * 0.5), bright(q), rnd);
+  };
+  // tronco (o tallos, en el avellano)
+  if (m.stems > 1) {
+    const stems = [];
+    for (let i = 0; i < m.stems; i++) { const a = i / m.stems * Math.PI * 2 + rnd() * 0.5, lean = 0.16 + rnd() * 0.12, L = H * (0.8 + rnd() * 0.2); const top = new THREE.Vector3(Math.cos(a) * lean * L, L, Math.sin(a) * lean * L); stems.push(top); wood.push(branch(Math.cos(a) * 0.12, 0, Math.sin(a) * 0.12, top.x, top.y, top.z, m.tr * 1.2, m.trunk, rnd)); }
+    const per = Math.round(h.n / stems.length);
+    for (const t of stems) for (let j = 0; j < per; j++) { const f = 0.35 + rnd() * 0.65, q = new THREE.Vector3(t.x * f, t.y * f, t.z * f).add(rv(rnd, Rw * 0.55)); q.y = Math.max(H * 0.18, q.y); bl.push({ r: rc, x: q.x, y: q.y, z: q.z, sy: 1 }); sprigAt(q, 1, 0.4); }
+    return { wood, K, bl };
+  }
+  // (el tronco llega hasta arriba en las coníferas y el chopo; en las frondosas se abre en ramas a media copa)
+  const trunkH = h.lead ? (h.conifer || h.env === 'column' ? H * 0.95 : yb + ch * 0.5) : yb + ch * (h.env === 'umbrella' ? 0.2 : 0.15);
+  wood.push(trunkGeo(trunkH, m.tr * 1.25, m.trunk, rnd, { top: m.top, twist: m.twist || 0, segs: 9 }));
+  // coníferas en pisos: ramas en corro a lo largo del tronco, de largas abajo a cortas arriba, con sus ramitas
+  if (h.env === 'cone' || h.env === 'tiers') {
+    const W = h.whorls, per = h.per || (h.flat ? 6 : 5);
+    for (let t = 0; t < W; t++) {
+      const yy = (t + 0.4) / W, Y = yb + yy * ch, R = envR(h, yy) * Rw * (0.9 + rnd() * 0.15);
+      for (let k = 0; k < per; k++) {
+        const a = k / per * Math.PI * 2 + t * 0.62 + rnd() * 0.35, dx = Math.cos(a), dz = Math.sin(a), ey = Y - R * (h.flat ? 0.2 : 0.02) + (h.flat ? 0 : R * 0.12);
+        wood.push(branch(0, Y, 0, dx * R, ey, dz * R, m.tr * 0.2 * (1.1 - yy * 0.6), m.trunk, rnd));
+        const nn = Math.max(2, Math.round(R / (size * (h.step || 0.42))));
+        for (let s2 = 0; s2 < nn; s2++) {
+          const f = 0.2 + 0.8 * (s2 + rnd() * 0.6) / nn, q = new THREE.Vector3(dx * R * f, Y + (ey - Y) * f, dz * R * f);
+          bl.push({ r: size * 0.5, x: q.x, y: q.y, z: q.z, sy: 0.6 });
+          if (h.flat) for (const sd of [-1, 1]) { const d = new THREE.Vector3(dx * 0.75 - dz * sd * 0.85, -0.12 - f * 0.15, dz * 0.75 + dx * sd * 0.85); K.add(q, d, size * (0.8 + rnd() * 0.35), Math.min(1, 0.55 + 0.3 * f + 0.15 * yy + (rnd() - 0.5) * 0.1) * (h.dark || 1), rnd, true); }
+          else for (let j = 0; j < (h.tufts || 3); j++) { const d = new THREE.Vector3(dx, 0.45 + rnd() * 0.3, dz).add(rv(rnd, 1.1)); K.add(q, d, size * (0.75 + rnd() * 0.45), 0.55 + 0.35 * f + 0.2 * yy + (rnd() - 0.5) * 0.12, rnd); }
+        }
+      }
+    }
+    // la guía de arriba
+    for (let j = 0; j < 4; j++) K.add(new THREE.Vector3(0, H * 0.93, 0), new THREE.Vector3((rnd() - 0.5) * 0.4, 1, (rnd() - 0.5) * 0.4), size * 0.8, 1.05, rnd);
+    return { wood, K, bl };
+  }
+  // frondosas y pinos de copa alta: ramas principales que salen hacia fuera y hacia arriba
+  const L = h.limbs || 5, limbs = [];
+  for (let i = 0; i < L; i++) {
+    const a = i / L * Math.PI * 2 + (rnd() - 0.5) * 0.9;
+    const y0 = h.lead ? yb + ch * (0.04 + (h.env === 'column' ? 0.7 : 0.42) * i / L) : yb - 0.25 + rnd() * ch * 0.14;
+    const len = Math.max(0.6, sideR(y0 + ch * 0.2) * (0.62 + rnd() * 0.16)), ex = Math.cos(a) * len, ez = Math.sin(a) * len, ey = Math.min(H * 0.92, y0 + len * (0.2 + (h.up ?? 0.6) * 0.95));
+    if (h.gnarl) { const mx = ex * 0.5 + (rnd() - 0.5) * len * 0.45 * h.gnarl, mz = ez * 0.5 + (rnd() - 0.5) * len * 0.45 * h.gnarl, my = y0 + (ey - y0) * 0.42; wood.push(branch(0, y0, 0, mx, my, mz, m.tr * 0.62, m.trunk, rnd), branch(mx, my, mz, ex, ey, ez, m.tr * 0.4, m.trunk, rnd)); }
+    else wood.push(branch(0, y0, 0, ex, ey, ez, m.tr * 0.55 * (h.thin || 1), m.trunk, rnd));
+    limbs.push({ a, x: ex, y: ey, z: ez });
+  }
+  // (las copas muy cerradas, como el tejo o la encina, por dentro oscuras y macizas: no se ve el cielo a través)
+  if (h.core) wood.push(blob(Rw * h.core, 0, cyMid, 0, darker(m.c1, 0.5), darker(m.c2, 0.55), rnd, { sy: ch / 2 / Rw * 0.9, detail: 1, jit: 0.18 }));
+  // bultos de la copa: los robles y castaños, en varios; los pinos, mechones al final de cada rama
+  let lumps = null;
+  if (h.clumps) lumps = limbs.map(l => ({ x: l.x * 1.1, y: l.y + 0.2, z: l.z * 1.1, R: Rw * h.clumps, sy: 0.55 })).concat([{ x: 0, y: H - ch * 0.25, z: 0, R: Rw * h.clumps, sy: 0.55 }]);
+  else if (h.lumps) { lumps = Array.from({ length: h.lumps }, (_, i) => { const a = i / h.lumps * Math.PI * 2 + rnd() * 0.8, y = 0.3 + rnd() * 0.45, r = envR(h, y) * Rw * 0.58; return { x: Math.cos(a) * r, y: yb + y * ch, z: Math.sin(a) * r, R: Rw * (0.42 + rnd() * 0.12), sy: 0.85 }; }); lumps.push({ x: 0, y: yb + ch * 0.74, z: 0, R: Rw * 0.48, sy: 0.85 }); }
+  const per = 11, NC = Math.round(h.n / per);
+  for (let c = 0, tries = 0; c < NC && tries < NC * 30; tries++) {
+    let p;
+    if (lumps) {
+      const L0 = lumps[c % lumps.length], o = rv(rnd, 2).normalize(), f = 0.5 + 0.5 * Math.sqrt(rnd());
+      p = new THREE.Vector3(L0.x + o.x * L0.R * f, L0.y + o.y * L0.R * f * L0.sy, L0.z + o.z * L0.R * f);
+      const yy = spot(p.y); if (yy < -0.05 || yy > 1.02 || Math.hypot(p.x, p.z) > envR(h, Math.min(1, Math.max(0, yy))) * Rw * 1.08 + 0.3) continue;
+    } else {
+      let y = rnd(), rr = envR(h, y); if (rnd() > rr * rr + 0.06) continue;
+      const a = rnd() * Math.PI * 2, f = h.open ? 0.45 + 0.55 * Math.sqrt(rnd()) : 0.62 + 0.38 * Math.sqrt(rnd());
+      p = new THREE.Vector3(Math.cos(a) * rr * Rw * f, yb + y * ch, Math.sin(a) * rr * Rw * f);
+    }
+    c++;
+    // la ramilla que lo une a la rama principal de su lado
+    const ang = Math.atan2(p.z, p.x); let best = limbs[0], bd = 9; for (const l of limbs) { const d = angDiff(ang, l.a); if (d < bd) { bd = d; best = l; } }
+    if (Math.hypot(best.x - p.x, best.y - p.y, best.z - p.z) > 0.6) wood.push(branch(best.x, best.y, best.z, p.x * 0.9, p.y - 0.15, p.z * 0.9, m.tr * 0.1, m.trunk, rnd));
+    bl.push({ r: rc, x: p.x, y: p.y, z: p.z, sy: 1 });
+    for (let j = 0; j < per; j++) sprigAt(p.clone().add(rv(rnd, rc * 2)), 1, h.clumps ? 0.55 : 0.25);
+  }
+  return { wood, K, bl };
+}
+
 // ---------------------------------------------------------------- árboles
 function tree(m, rnd) {
   const parts = [], bl = [], H = m.h, cw = m.cw / 2, ch = m.ch / 2, c1 = m.c1, c2 = m.c2;
@@ -192,14 +344,19 @@ function tree(m, rnd) {
 }
 
 // ---------------------------------------------------------------- arbustos
-function shrub(m, rnd) {
-  const parts = [], bl = [], w = m.w / 2, h = m.h;
-  const B = (r, x, y, z, o) => parts.push(blob(r, x, y, z, m.c1, m.c2, rnd, { cx: 0, cy: h * 0.45, cz: 0, bl, ...o }));
+// (los arbustos de hoja: un bulto oscuro por dentro y, por encima, las ramitas con sus hojas)
+const CARD_FORMS = new Set(['mound', 'round', 'cone', 'upright', 'cushion', 'feather']);
+const darker = (hex, k) => '#' + C(hex).multiplyScalar(k).getHexString();
+function shrub(m, rnd, id) {
+  const parts = [], bl = [], w = m.w / 2, h = m.h, cards = CARD_FORMS.has(m.form) && !!leafSprig(id, 64);
+  // (el color se oscurece en luz lineal: 0,22 es la mitad de claro a la vista)
+  const c1 = cards ? darker(m.c1, 0.22) : m.c1, c2 = cards ? darker(m.c2, 0.26) : m.c2, kr = !cards ? 1 : m.form === 'cushion' ? 0.6 : 0.72;
+  const B = (r, x, y, z, o) => parts.push(blob(r * kr, x, y, z, c1, c2, rnd, { cx: 0, cy: h * 0.45, cz: 0, bl, ...o }));
   let leafN = 260, leafS = Math.max(0.035, w * 0.09), leafL = 1.2;
   switch (m.form) {
     case 'mound': for (let i = 0; i < 11; i++) { const a = rnd() * 6.28, r = rnd() * w * 0.6; B(w * 0.45, Math.cos(a) * r, h * 0.35 + rnd() * h * 0.2, Math.sin(a) * r, { sy: h / w * 1.1, detail: 2, jit: 0.14 }); } break;
     case 'round': for (let i = 0; i < 12; i++) { const a = rnd() * 6.28, r = rnd() * w * 0.4; B(w * 0.5, Math.cos(a) * r, h * 0.5 + (rnd() - 0.5) * h * 0.3, Math.sin(a) * r, { detail: 2, jit: 0.1 }); } leafS = 0.05; leafN = 420; break;
-    case 'cushion': for (let i = 0; i < 14; i++) { const a = rnd() * 6.28, r = rnd() * w * 0.55; B(w * 0.42, Math.cos(a) * r, h * 0.3, Math.sin(a) * r, { sy: h / w * 1.4, detail: 2, jit: 0.1 }); } leafN = 340; leafS = 0.022; leafL = 1.6; break;
+    case 'cushion': for (let i = 0; i < 14; i++) { const a = rnd() * 6.28, r = rnd() * w * 0.55; B(w * 0.42, Math.cos(a) * r, h * (cards ? 0.2 : 0.3), Math.sin(a) * r, { sy: h / w * (cards ? 0.8 : 1.4), detail: 2, jit: 0.1 }); } leafN = 340; leafS = 0.022; leafL = 1.6; break;
     case 'cone': for (let i = 0; i < 12; i++) { const t = i / 11; B(w * (1 - t * 0.75) * 0.75, (rnd() - 0.5) * 0.2, h * (0.15 + t * 0.75), (rnd() - 0.5) * 0.2, { sy: 0.9, detail: 2, jit: 0.14 }); } leafN = 360; break;
     case 'upright': {
       for (let i = 0; i < 5; i++) { const a = i * 1.3; parts.push(branch(0, 0, 0, Math.cos(a) * w * 0.4, h * 0.7, Math.sin(a) * w * 0.4, 0.035, '#5a4632', rnd)); }
@@ -233,7 +390,13 @@ function shrub(m, rnd) {
       return parts;
     }
   }
-  if (leafN) parts.push(leaves(Math.round(leafN * 1.8), bl, leafS * 1.15, m.c1, m.c2, rnd, { long: leafL }));
+  if (cards) {
+    // (las matas bajas y las de agujas, con las ramitas más hacia arriba, como crecen)
+    const upB = { cushion: 1.1, cone: 0.6, feather: 0.8 }[m.form] ?? 0.35, low = m.form === 'cushion';
+    const K = new Cards(0, h * 0.45, 0, w / Math.max(0.2, h / 2)), s = Math.min(0.7, Math.max(0.12, Math.max(w, h * 0.5) * (low ? 0.6 : 0.5))), n = Math.round(leafN * (low ? 1.5 : 1.15));
+    for (let i = 0; i < n; i++) { const { p, n: nn } = surface(bl, rnd, 0.5), q = p.clone().addScaledVector(nn, -s * 0.15), d = nn.clone().multiplyScalar(low ? 0.5 : 1).add(rv(rnd, 1.1)).addScaledVector(UP, upB); K.add(q, d, s * (0.75 + rnd() * 0.5), 0.6 + Math.max(0, nn.y) * 0.3 + Math.max(0, q.y / h) * 0.15 + (rnd() - 0.5) * 0.12, rnd); }
+    parts.cards = K;
+  } else if (leafN) parts.push(leaves(Math.round(leafN * 1.8), bl, leafS * 1.15, m.c1, m.c2, rnd, { long: leafL }));
   // flores: bolitas (brezo, tojo, romero, tomillo…) o flores abiertas de cinco pétalos (espino, jara, rododendro)
   if (m.bloom) parts.push(...dots(m.bloomN || 80, bl, m.bloomS || 0.035, m.bloom, rnd, { top: 0.6, shape: (m.bloomS || 0) >= 0.045 || m.form === 'upright' && m.bloomN > 100 ? 'flower' : 'ball' }));
   if (m.berry) parts.push(...dots(m.berryN || 40, bl, m.berryS || 0.03, m.berry, rnd, { top: 0.25 }));
@@ -374,26 +537,59 @@ function materialFor(m) {
   }
   return MAT.get(key);
 }
+// el material de las ramitas de una especie: su dibujo como textura recortada. Los píxeles transparentes llevan el color
+// medio de las hojas (sin él, el borde de cada hoja sale oscuro al alejarse) y la ramita va de pie, con la base abajo
+const CMAT = new Map();
+function cardMaterial(id) {
+  if (CMAT.has(id)) return CMAT.get(id);
+  const cv = leafSprig(id, 256); if (!cv) return null;
+  const N = cv.width, src = cv.getContext('2d').getImageData(0, 0, N, N).data, out = new Uint8Array(N * N * 4);
+  let r = 0, g = 0, b = 0, n = 0; for (let i = 0; i < src.length; i += 4) if (src[i + 3] > 200) { r += src[i]; g += src[i + 1]; b += src[i + 2]; n++; }
+  r = n ? r / n : 80; g = n ? g / n : 120; b = n ? b / n : 60;
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const si = (y * N + x) * 4, di = ((N - 1 - y) * N + x) * 4, a = src[si + 3];
+    if (a) { out[di] = src[si]; out[di + 1] = src[si + 1]; out[di + 2] = src[si + 2]; } else { out[di] = r; out[di + 1] = g; out[di + 2] = b; }
+    out[di + 3] = a;
+  }
+  const t = new THREE.DataTexture(out, N, N, THREE.RGBAFormat); t.colorSpace = THREE.SRGBColorSpace; t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter; t.needsUpdate = true;
+  const mat = new THREE.MeshStandardMaterial({ map: t, vertexColors: true, roughness: 0.82, side: THREE.DoubleSide, alphaTest: 0.42 });
+  mat.onBeforeCompile = (sh) => { useFill(sh); sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>' + FILL_DECL).replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n totalEmissiveRadiance += diffuseColor.rgb * 0.2 * uCharFill;'); };
+  mat.customProgramCacheKey = () => 'flora-cards';
+  CMAT.set(id, mat); return mat;
+}
 const GEO = new Map();
-/** Geometría (cacheada por especie y semilla) del ejemplar. */
-export function floraGeometry(id, seed = 1) {
+// el ejemplar entero (cacheado por especie y semilla): la madera y las flores con su color en cada vértice, en una
+// malla, y las ramitas con hojas, en otra
+function build(id, seed) {
   const k = id + ':' + seed;
   if (GEO.has(k)) return GEO.get(k);
   const F = FLORA[id]; if (!F) return null;
   const rnd = mulberry(seed * 7919 + id.length * 104729), m = F.m;
-  const parts = m.t === 'tree' ? tree(m, rnd) : m.t === 'shrub' ? shrub(m, rnd) : m.t === 'fern' ? fern(m, rnd) : flower(m, rnd);
-  const g = mergeGeometries(parts.map(p => { for (const a of Object.keys(p.attributes)) if (!['position', 'normal', 'color'].includes(a)) p.deleteAttribute(a); return p.index ? p.toNonIndexed() : p; }));
-  parts.forEach(p => p.dispose()); g.computeBoundingBox(); g.computeBoundingSphere();
-  GEO.set(k, g); return g;
+  let parts, K = null;
+  if (m.t === 'tree' && HABIT[id] && leafSprig(id, 64)) {
+    const r = treeReal(m, HABIT[id], rnd); parts = r.wood; K = r.K;
+    if (m.fruit) parts.push(...dots(55, r.bl, m.crown === 'round' ? 0.14 : 0.1, m.fruit, rnd, { top: 0.2, lift: 0.1 }));
+  } else { parts = m.t === 'tree' ? tree(m, rnd) : m.t === 'shrub' ? shrub(m, rnd, id) : m.t === 'fern' ? fern(m, rnd) : flower(m, rnd); K = parts.cards || null; }
+  const wood = mergeGeometries(parts.map(p => { for (const a of Object.keys(p.attributes)) if (!['position', 'normal', 'color'].includes(a)) p.deleteAttribute(a); return p.index ? p.toNonIndexed() : p; }));
+  parts.forEach(p => p.dispose()); wood.computeBoundingBox(); wood.computeBoundingSphere();
+  const cards = K?.geometry() || null;
+  const B = { wood, cards, top: Math.max(wood.boundingBox.max.y, cards?.boundingBox.max.y || 0) };
+  GEO.set(k, B); return B;
 }
-/** Ejemplar listo para el mundo: los pies en y = 0, proyecta y recibe sombra. */
+/** Geometría (cacheada por especie y semilla) de la madera y las flores del ejemplar. */
+export function floraGeometry(id, seed = 1) { return build(id, seed)?.wood || null; }
+/** Ejemplar listo para el mundo: los pies en y = 0, proyecta y recibe sombra (userData.top: lo más alto). */
 export function floraModel(id, seed = 1) {
-  const g = floraGeometry(id, seed); if (!g) return null;
-  const mesh = new THREE.Mesh(g, materialFor(FLORA[id].m)); mesh.castShadow = true; mesh.receiveShadow = true;
-  const o = new THREE.Group(); o.add(mesh); o.userData.flora = id; return o;
+  const B = build(id, seed); if (!B) return null;
+  const o = new THREE.Group(), mesh = new THREE.Mesh(B.wood, materialFor(FLORA[id].m)); mesh.castShadow = true; mesh.receiveShadow = true; o.add(mesh);
+  const cm = B.cards && cardMaterial(id); if (cm) { const c = new THREE.Mesh(B.cards, cm); c.castShadow = true; c.receiveShadow = true; o.add(c); }
+  o.userData.flora = id; o.userData.top = B.top; return o;
 }
-/** Libera las geometrías guardadas (al salir de un pueblo). */
-export function releaseFlora() { for (const g of GEO.values()) g.dispose(); GEO.clear(); }
+/** Libera las geometrías y las texturas de hojas guardadas (al salir de un pueblo). */
+export function releaseFlora() {
+  for (const B of GEO.values()) { B.wood.dispose(); B.cards?.dispose(); } GEO.clear();
+  for (const m of CMAT.values()) { m.map?.dispose(); m.dispose(); } CMAT.clear();
+}
 
 // retrato para la ficha: el ejemplar entero, de tres cuartos y con luz de día, sobre fondo claro
 const PORTRAIT = new Map();
@@ -401,11 +597,13 @@ export function floraPortrait(id, w = 360, h = 300) {
   if (PORTRAIT.has(id)) return PORTRAIT.get(id);
   const p = (async () => {
     const F = FLORA[id]; if (!F) return '';
-    const S = new THREE.Scene(), g = floraGeometry(id, 3);
+    const S = new THREE.Scene(), Bd = build(id, 3), g = Bd.wood;
     S.add(new THREE.HemisphereLight('#ffffff', '#6a7a5a', 1.6));
     const sun = new THREE.DirectionalLight('#fff4e0', 2.4); sun.position.set(3, 6, 4); S.add(sun);
     const mesh = new THREE.Mesh(g, materialFor(F.m)); S.add(mesh);
-    const box = g.boundingBox, size = box.getSize(new THREE.Vector3()), ctr = box.getCenter(new THREE.Vector3());
+    const cm = Bd.cards && cardMaterial(id); if (cm) S.add(new THREE.Mesh(Bd.cards, cm));
+    const box = g.boundingBox.clone(); if (Bd.cards) box.union(Bd.cards.boundingBox);
+    const size = box.getSize(new THREE.Vector3()), ctr = box.getCenter(new THREE.Vector3());
     // suelo: un disco de hierba bajo la planta
     const R2 = Math.max(size.x, size.z) * 0.75 + 0.05, ground = new THREE.Mesh(new THREE.CircleGeometry(R2, 32).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: '#7aa452', roughness: 1 })); ground.position.y = -0.002; S.add(ground);
     const cam = new THREE.PerspectiveCamera(32, w / h, 0.01, 200), dist = Math.max(size.y * 1.15, Math.max(size.x, size.z) * 1.1) / (2 * Math.tan(THREE.MathUtils.degToRad(16)));

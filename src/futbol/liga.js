@@ -110,6 +110,8 @@ const CSS = `
 .lg-vs{font:400 var(--fs-3xl)/1 var(--f-display);background:linear-gradient(180deg,#fff,var(--rosa));-webkit-background-clip:text;background-clip:text;color:transparent;animation:gx-pop .5s cubic-bezier(.2,1.5,.4,1) .2s both}.lg-vs small{display:block;font:800 var(--fs-xs)/1.3 var(--f-cond);color:var(--lila);-webkit-text-fill-color:var(--lila);letter-spacing:.1em}
 .lg-table{width:100%;border-collapse:collapse;font-size:var(--fs-sm)}.lg-table th{font-size:var(--fs-xs);color:#cbbcf0;text-transform:uppercase;letter-spacing:.04em;padding:4px 4px;text-align:center}
 .lg-table td{padding:4px 4px;text-align:center;border-top:1px solid rgba(255,255,255,.08)}.lg-table td.n{text-align:left;font-weight:800;white-space:nowrap}.lg-table td.n i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;vertical-align:-1px;border:1px solid rgba(0,0,0,.4)}
+/* (la columna del puesto, del ancho de la camiseta de la cabecera, y el nombre del club con su mismo hueco: el club empieza justo donde empieza el título) */
+.lg-table tr>:first-child{width:36px;padding-left:0;padding-right:0}.lg-table tr>:nth-child(2){padding-left:12px}
 .lg-table tr.me td{background:rgba(255,155,216,.16)}.lg-table tr.me td.n{color:#ff9bd8}.lg-table td.pts{font-weight:900}
 .lg-res{display:grid;gap:4px;font-size:var(--fs-sm)}.lg-res div{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;padding:4px 8px;border-radius:10px;background:rgba(255,255,255,.05)}.lg-res div.me{background:rgba(255,155,216,.16)}.lg-res span:first-child{text-align:right}.lg-res b{min-width:42px;text-align:center}
 .lg-btns{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}

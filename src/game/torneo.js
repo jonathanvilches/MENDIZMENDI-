@@ -140,6 +140,7 @@ const CSS = `
 .tq-m b{font:400 var(--fs-md)/1 var(--f-display);min-width:14px;text-align:right}
 .tq-m .w{color:#fff;font-weight:800}.tq-m .w b{color:var(--rosa)}.tq-m .l{color:var(--lila2)}.tq-m .you span{color:#fff;font-weight:800}.tq-m .you span::before{content:'';display:inline-block;width:6px;height:6px;margin:0 8px 1px 0;border-radius:1px;background:var(--fx);transform:skewX(-20deg)}
 .tq-m.ph>div{color:rgba(201,178,255,.4)}
+.tq-fin{justify-content:center}.tq-finm{position:relative}.tq-fin .tq-cup{position:absolute;left:0;right:0;top:100%}
 .tq-cup{display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:8px;text-align:center;font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--lila)}
 .tq-cup svg{width:64px;height:40px;filter:drop-shadow(0 0 10px rgba(255,43,214,.5));animation:tq-float 3s ease-in-out infinite}@keyframes tq-float{50%{transform:translateY(-4px)}}
 .tq-cup b{color:#fff;font:400 var(--fs-md)/1.1 var(--f-display)}
@@ -186,7 +187,9 @@ function bracketHtml(T) {
       const aw = m.s && m.s[0] > m.s[1], bw = m.s && m.s[1] > m.s[0], me = T.players[m.a].you || T.players[m.b].you;
       return `<div class="tq-m${me ? ' me' : ''}" data-r="${i}" data-k="${k}">${card(T, m.a, m.s?.[0], aw, bw)}${card(T, m.b, m.s?.[1], bw, aw)}</div>`; }).join('');
     const champ = i === 2 ? `<div class="tq-cup">${TXAPELA}${T.done ? `<b>${esc(T.players[T.champion].name)}</b>` : 'Txapela'}</div>` : '';
-    return `<div class="tq-rd${i === T.round && !T.done ? ' now' : ''}"><h4>${R.name} <small>· a ${R.target}</small></h4><div class="tq-ms">${rows}${champ}</div></div>`;
+    // (la final, justo a media altura: entre las dos semifinales; la txapela, colgada debajo, sin moverla)
+    const body = i === 2 ? `<div class="tq-ms tq-fin"><div class="tq-finm">${rows}${champ}</div></div>` : `<div class="tq-ms">${rows}</div>`;
+    return `<div class="tq-rd${i === T.round && !T.done ? ' now' : ''}"><h4>${R.name} <small>· a ${R.target}</small></h4>${body}</div>`;
   }).join('');
   return `<div class="tq-br${T.kind === 'parejas' ? ' tq-pairs' : ''}">${cols}<svg class="tq-lines" aria-hidden="true"></svg></div>`;
 }

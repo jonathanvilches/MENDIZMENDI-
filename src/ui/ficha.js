@@ -43,20 +43,22 @@ function media(d, tag = '', shots = true) {
     : { planta: floraIllustration(d.id), hoja: leafImage(d.id), cp: '', ch: '', cls: 'draw' };
   const two = shots && A.hoja;
   return `<div class="ix-media"><figure class="ix-frame ${A.cls}" data-planta="${A.planta}" data-hoja="${A.hoja || ''}" data-cp="${esc(A.cp)}" data-ch="${esc(A.ch)}">
-      <img alt="${esc(d.F.name)}" src="${A.planta}">${A.cp ? `<figcaption class="ix-credit">${esc(A.cp)}</figcaption>` : ''}</figure>${t}
+      <img alt="${esc(d.F.name)}" src="${A.planta}">${two ? `<button type="button" class="ix-inset" aria-label="Ver la hoja"><img alt="" src="${A.hoja}"></button>` : ''}${A.cp ? `<figcaption class="ix-credit">${esc(A.cp)}</figcaption>` : ''}</figure>${t}
     ${two ? `<div class="ix-shots" role="group"><button type="button" data-s="planta" aria-pressed="true">${d.F.kind === 'flor' ? 'La flor' : 'La planta'}</button><button type="button" data-s="hoja" aria-pressed="false">La hoja</button></div>` : ''}</div>`;
 }
-// (el selector de foto: planta u hoja)
+// (el selector de foto: planta u hoja. La otra foto va en el círculo de la esquina: tocándolo, se cambian)
 function wireShots(o, ui) {
   const fr = o.querySelector('.ix-frame[data-planta]'); if (!fr) return;
-  const img = fr.querySelector('img'), cap = fr.querySelector('.ix-credit');
-  o.querySelectorAll('.ix-shots button').forEach(b => b.onclick = (e) => {
-    e.stopPropagation(); const s = b.dataset.s;
-    o.querySelectorAll('.ix-shots button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  const img = fr.querySelector(':scope > img'), cap = fr.querySelector('.ix-credit'), ins = fr.querySelector('.ix-inset');
+  const show = (s) => {
+    o.querySelectorAll('.ix-shots button').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.s === s)));
     img.src = fr.dataset[s]; img.alt = (s === 'hoja' ? 'Hoja de ' : '') + img.alt.replace(/^Hoja de /, '');
     if (cap) cap.textContent = fr.dataset[s === 'hoja' ? 'ch' : 'cp'] || fr.dataset.cp;
+    if (ins) { const other = s === 'hoja' ? 'planta' : 'hoja'; ins.querySelector('img').src = fr.dataset[other]; ins.dataset.s = other; ins.setAttribute('aria-label', other === 'hoja' ? 'Ver la hoja' : 'Ver la planta'); }
     ui?.sound?.ui?.('click');
-  });
+  };
+  o.querySelectorAll('.ix-shots button').forEach(b => b.onclick = (e) => { e.stopPropagation(); show(b.dataset.s); });
+  if (ins) { ins.dataset.s = 'hoja'; ins.onclick = (e) => { e.stopPropagation(); show(ins.dataset.s); }; }
 }
 // (las pestañas: una sección cada vez, entera)
 function wireTabs(o, secs, ui) {

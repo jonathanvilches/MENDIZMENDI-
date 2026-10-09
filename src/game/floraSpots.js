@@ -56,7 +56,7 @@ export class FloraSpots {
       const o = floraModel(id, 1 + used.length); if (!o) continue;
       const y = groundHeight(at.x, at.z); o.position.set(at.x, y - 0.02, at.z); o.rotation.y = rnd() * Math.PI * 2; this.group.add(o);
       if (big) addCircle(at.x, at.z, FLORA[id].m.tr * 1.4 + 0.15, { tree: true });
-      const top = (o.children[0].geometry.boundingBox?.max.y || 1) + 0.7;
+      const top = (o.userData.top ?? o.children[0].geometry.boundingBox?.max.y ?? 1) + 0.7;
       const mk = new THREE.Sprite(this.mats[this.known(id) ? 1 : 0]); mk.scale.setScalar(big ? 1.4 : 0.7); mk.position.set(at.x, y + Math.min(top, big ? 5 : 2), at.z); this.group.add(mk);
       used.push({ id, x: at.x, z: at.z, o, mk, y: mk.position.y, big, ph: rnd() * 6 });
     }
