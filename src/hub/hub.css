@@ -6,7 +6,7 @@
   --ink: #f6f3fc; --mute: #cbc2e0; --dim: #a097bd; --gold: #ff7ac8; --gold-d: #8a1c8f; --leaf: #c9b2ff;
   --violet: #7b2ff7; --violet-d: #4c1a9e; --plum: #1c0b3a; --plum2: #2b1062;
   --cyan: #c9b2ff; --tomato: #ff2e88; --pink: #ff2bd6;
-  --glass: rgba(52, 18, 104, .56); --glass2: rgba(30, 10, 64, .9); --line: rgba(190, 160, 255, .16); --line2: rgba(190, 160, 255, .34); --r: 16px;
+  --glass: rgba(52, 18, 104, .56); --glass2: rgba(30, 10, 64, .9); --line: rgba(190, 160, 255, .16); --line2: rgba(190, 160, 255, .34); --r: 6px; --rL: 8px;   /* (el mismo corte seco de las fichas y las cartas de deporte; antes, 16 px) */
 }
 #hub {
   --nav-w: 102px; --top-h: 64px;
@@ -86,7 +86,7 @@
 .gray { filter: grayscale(1) brightness(.85) opacity(.7) !important; }
 
 /* ---------- Inicio ---------- */
-.hero { position: relative; display: grid; grid-template-columns: 1.3fr 1fr; grid-template-areas: "txt fig" "cta fig"; align-items: end; column-gap: 20px; min-height: 360px; border-radius: 22px; overflow: hidden; padding: 32px 32px;
+.hero { position: relative; display: grid; grid-template-columns: 1.3fr 1fr; grid-template-areas: "txt fig" "cta fig"; align-items: end; column-gap: 20px; min-height: 360px; border-radius: var(--rL); overflow: hidden; padding: 32px 32px;
   background: linear-gradient(90deg, rgba(12, 9, 20, .9) 0%, rgba(12, 9, 20, .55) 50%, rgba(12, 9, 20, .05) 100%), var(--bg) center/cover; border: 1px solid var(--line); box-shadow: 0 24px 60px rgba(0, 0, 0, .45); }
 .hero-txt { grid-area: txt; align-self: end; }
 .hero h1 { font-family: 'MZ Display', 'Nunito', sans-serif; font-weight: 400; font-size: var(--fs-hero); line-height: 1; margin: 8px 0 12px; text-shadow: 0 4px 0 rgba(0, 0, 0, .3); }
@@ -170,7 +170,7 @@
 .cbar2 { grid-column: 2 / -1; height: 4px; background: rgba(255, 255, 255, .1); overflow: hidden; } .cbar2 u { display: block; height: 100%; background: var(--cta); }
 
 /* ---------- Comarca ---------- */
-.chero { position: relative; display: grid; grid-template-columns: auto 1fr auto; gap: 24px; align-items: center; padding: 64px 32px 24px; border-radius: 22px; overflow: hidden;
+.chero { position: relative; display: grid; grid-template-columns: auto 1fr auto; gap: 24px; align-items: center; padding: 64px 32px 24px; border-radius: var(--rL); overflow: hidden;
   background: linear-gradient(90deg, color-mix(in srgb, var(--c) 85%, #000) 0%, color-mix(in srgb, var(--c) 45%, transparent) 55%, transparent 100%), linear-gradient(0deg, rgba(0, 0, 0, .35), transparent 50%), var(--bg) center/cover; border: 1px solid var(--line); box-shadow: 0 20px 50px rgba(0, 0, 0, .4); }
 .chero h1 { font-family: 'MZ Display', 'Nunito', sans-serif; font-weight: 400; font-size: var(--fs-hero); line-height: 1; margin: 8px 0; text-shadow: 0 3px 0 rgba(0, 0, 0, .3); }
 .chero .kicker { color: #fff; opacity: .85; }
@@ -206,7 +206,7 @@
 
 /* ficha de pueblo */
 .sheet { position: fixed; inset: 0; z-index: 30; background: rgba(6, 4, 12, .6); display: grid; place-items: center; padding: 16px; animation: fadein .2s; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
-.sheet-in { position: relative; width: min(700px, 100%); max-height: 92dvh; display: flex; flex-direction: column; background: var(--plum); border-radius: 20px; overflow: hidden; border: 1px solid var(--line2); box-shadow: 0 30px 80px rgba(0, 0, 0, .6); animation: pop .25s cubic-bezier(.2, 1.3, .4, 1); }
+.sheet-in { position: relative; width: min(700px, 100%); max-height: 92dvh; display: flex; flex-direction: column; background: var(--plum); border-radius: var(--rL); overflow: hidden; border: 1px solid var(--line2); box-shadow: 0 30px 80px rgba(0, 0, 0, .6); animation: pop .25s cubic-bezier(.2, 1.3, .4, 1); }
 .sheet-in::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--c); z-index: 3; }
 .sheet .x { position: absolute; right: 12px; top: 12px; z-index: 2; background: rgba(10, 8, 16, .6); border: 1px solid var(--line2); border-radius: 50%; width: 40px; height: 40px; display: grid; place-items: center; }
 .sh-hero { padding: 56px 24px 16px; background: linear-gradient(180deg, transparent, var(--plum)), linear-gradient(90deg, color-mix(in srgb, var(--c) 70%, #000), transparent), var(--bg) center/cover; }
@@ -235,7 +235,7 @@
 
 /* hoja «Más» */
 .sheet.more { place-items: end center; padding: 0; }
-.more-in { width: min(520px, 100%); background: var(--plum); border: 1px solid var(--line2); border-bottom: 0; border-radius: 22px 22px 0 0; padding: 8px 16px calc(env(safe-area-inset-bottom, 0px) + 16px); display: flex; flex-direction: column; gap: 8px; animation: up .28s cubic-bezier(.2, 1, .3, 1); }
+.more-in { width: min(520px, 100%); background: var(--plum); border: 1px solid var(--line2); border-bottom: 0; border-radius: var(--rL) var(--rL) 0 0; padding: 8px 16px calc(env(safe-area-inset-bottom, 0px) + 16px); display: flex; flex-direction: column; gap: 8px; animation: up .28s cubic-bezier(.2, 1, .3, 1); }
 .more-in .grab { width: 44px; height: 5px; border-radius: 5px; background: var(--line2); margin: 2px auto 8px; }
 .more-in .kicker { margin: 0 4px 4px; }
 .more-in button { display: flex; align-items: center; gap: 16px; padding: 8px 12px; border-radius: 14px; background: rgba(255, 255, 255, .04); border: 1px solid var(--line); text-align: left; }
@@ -269,7 +269,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .seenb { position: absolute; top: 8px; right: 8px; font-size: var(--fs-xs); background: var(--leaf); color: #06243a; border-radius: 10px; padding: 2px 8px 2px 4px; display: flex; align-items: center; gap: 4px; }
 
 /* ---------- Personajes: selección ---------- */
-.csel { position: relative; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 8px; align-items: center; border-radius: 22px; overflow: hidden; border: 1px solid var(--line);
+.csel { position: relative; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 8px; align-items: center; border-radius: var(--rL); overflow: hidden; border: 1px solid var(--line);
   background: radial-gradient(60% 70% at 30% 70%, color-mix(in srgb, var(--c) 45%, transparent), transparent 70%), linear-gradient(135deg, rgba(14, 11, 22, .5), rgba(14, 11, 22, .85)); transition: background .4s; }
 .csel::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--c); }
 .csel-stage { min-height: 300px; }
@@ -342,7 +342,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 /* ================= Minijuegos y fichas ================= */
 .mg-overlay { position: fixed; inset: 0; z-index: 25; display: grid; place-items: center; padding: 16px; background: rgba(8, 5, 16, .55); animation: fadein .2s; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
 .mg-overlay.out { opacity: 0; transition: opacity .25s; }
-.mg-card { width: min(560px, 100%); max-height: 94dvh; overflow-y: auto; background: linear-gradient(180deg, #32136f, #1c0b3a); border-radius: 20px; padding: 24px; text-align: center; color: #f7f0e6; border: 1px solid rgba(255, 244, 228, .22); box-shadow: 0 30px 80px rgba(0, 0, 0, .6); animation: pop .3s cubic-bezier(.2, 1.3, .4, 1); display: flex; flex-direction: column; gap: 12px; align-items: center; }
+.mg-card { width: min(560px, 100%); max-height: 94dvh; overflow-y: auto; background: linear-gradient(180deg, #32136f, #1c0b3a); border-radius: var(--rL); padding: 24px; text-align: center; color: #f7f0e6; border: 1px solid rgba(255, 244, 228, .22); box-shadow: 0 30px 80px rgba(0, 0, 0, .6); animation: pop .3s cubic-bezier(.2, 1.3, .4, 1); display: flex; flex-direction: column; gap: 12px; align-items: center; }
 .mg-card h2 { margin: 0; font-family: 'MZ Display', 'Nunito', sans-serif; font-weight: 400; font-size: var(--fs-xl); line-height: 1; } .mg-card p { margin: 0; color: #e2d6c4; font-weight: 600; }
 .mg-card .btn { min-width: 220px; min-height: 50px; }
 .mg-top { display: flex; gap: 12px; align-items: center; text-align: left; align-self: stretch; } .mg-top h3 { margin: 0; font-size: var(--fs-xl); } .mg-top small { color: #c4b8a8; }
@@ -435,7 +435,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   .cname { font-size: var(--fs-4xl); } .radar { width: 200px; align-self: center; }
   .prof { flex-direction: column; align-items: center; } .prof > img { height: 170px; }
   .sheet { padding: 0; place-items: end center; }
-  .sheet-in { width: 100%; max-height: 94dvh; border-radius: 20px 20px 0 0; border-bottom: 0; animation: up .3s cubic-bezier(.2, 1, .3, 1); }
+  .sheet-in { width: 100%; max-height: 94dvh; border-radius: var(--rL) var(--rL) 0 0; border-bottom: 0; animation: up .3s cubic-bezier(.2, 1, .3, 1); }
   .sh-hero { padding: 56px 16px 16px; } .sh-hero h1 { font-size: var(--fs-2xl); } .sh-body { padding: 4px 16px 8px; } .sh-foot { padding-left: 16px; padding-right: 16px; }
   .onb-in { grid-template-columns: minmax(0, 1fr); grid-template-areas: "head" "stage" "side"; align-content: start; gap: 8px; }
   .onb .logo { font-size: var(--fs-4xl); } .onb .tag { font-size: var(--fs-xs); }
@@ -491,7 +491,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 @media (prefers-reduced-motion: reduce) { #hub *, .onb * { animation: none !important; } }
 
 /* ================= Portada con historia ================= */
-.hero3d { position: relative; height: clamp(460px, 66dvh, 640px); border-radius: 22px; overflow: hidden; border: 1px solid var(--line2); box-shadow: 0 20px 50px rgba(0, 0, 0, .45); background: #1c0b3a; isolation: isolate; }
+.hero3d { position: relative; height: clamp(460px, 66dvh, 640px); border-radius: var(--rL); overflow: hidden; border: 1px solid var(--line2); box-shadow: 0 20px 50px rgba(0, 0, 0, .45); background: #1c0b3a; isolation: isolate; }
 /* portada fija: la foto de la comarca y el personaje de pie a la derecha (en vertical, en el centro, encima del título) */
 .hero3d .hero-img { position: absolute; inset: 0; background: #1c0b3a center 60% / cover no-repeat; }
 /* estilo portada de videojuego: la vista de la comarca al atardecer, algo desenfocada y con luz dorada, y delante el
@@ -556,7 +556,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   .h-bot { width: 100%; padding: 0 16px 16px; }
 }
 @media (max-width: 760px) {
-  .hero3d { height: max(440px, calc(100svh - 158px)); max-height: 760px; margin: -8px -4px 0; border-radius: 20px; }
+  .hero3d { height: max(440px, calc(100svh - 158px)); max-height: 760px; margin: -8px -4px 0; border-radius: var(--rL); }
   .h-bot h1 { font-size: var(--fs-4xl); margin-bottom: 8px; }
   .mrow { gap: 4px; margin-bottom: 12px; } .mrow .mi { width: 44px; height: 44px; border-radius: 12px; } .mrow .mi img, .mrow .mi svg { width: 34px; height: 34px; }
   .story { grid-template-columns: minmax(0, 1fr); padding: 16px 16px; }
@@ -854,7 +854,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 /* selector de ropa de los personajes KayKit */
 /* tienda del pueblo: interior con estanterías, quien atiende y pestañas de producto estrella, compra y trueque */
 .mg-overlay.shop { display: grid; place-items: center; padding: 12px; }
-.shop-room { position: relative; width: min(900px, 100%); max-height: calc(100dvh - 24px); border-radius: 22px; overflow: hidden; display: flex; flex-direction: column;
+.shop-room { position: relative; width: min(900px, 100%); max-height: calc(100dvh - 24px); border-radius: var(--rL); overflow: hidden; display: flex; flex-direction: column;
   background: linear-gradient(180deg, #3a2618, #24160e); box-shadow: 0 20px 60px rgba(0,0,0,.5); }
 /* la estantería con los productos: una franja de adorno arriba, nunca detrás del texto */
 .shop-shelves { flex: none; display: flex; justify-content: space-around; align-items: flex-end; gap: 4px; height: 58px; padding: 8px 16px 0; pointer-events: none;
