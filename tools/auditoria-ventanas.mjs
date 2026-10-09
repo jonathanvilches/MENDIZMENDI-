@@ -31,6 +31,7 @@ for (const sz of sizes.split(',')) {
       break;
     } catch (e) { if (t >= 3) throw e; console.log('reintento:', e.message.slice(0, 70)); await p.waitForTimeout(3000); }
   }
+  if (process.env.DETALLE) await p.evaluate(() => { window.__auditDetail = true; });
   const keys = await p.evaluate(() => { const f = window.__FI.allFichas('flora')[0], a = window.__FI.allFichas('fauna')[0]; return [f.type + ':' + f.id, a.type + ':' + a.id]; });
   const ANTES = `<div class="antes-ahora"><div><b>Antes</b>Se segaba a mano con la hoz, gavilla a gavilla, y toda la familia ayudaba en la era.</div><div><b>Ahora</b>Una cosechadora siega, trilla y limpia el grano en una sola pasada.</div></div>`;
   const SHOTS = [

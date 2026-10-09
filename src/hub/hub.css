@@ -771,17 +771,22 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .round.bag.low .ering { background: conic-gradient(#ff5a4a calc(var(--e, 100) * 1%), rgba(255, 255, 255, .14) 0); animation: pulse 1s infinite alternate; }
 @keyframes pulse { to { opacity: .45; } }
 .bagpanel .mg-card { max-width: 560px; width: 100%; max-height: 92dvh; overflow-y: auto; text-align: left; }
-.bagpanel h3 { margin: 0 0 8px; font-size: var(--fs-xl); } .bagpanel h4 { margin: 16px 0 8px; color: #ff7ac8; font-size: var(--fs-md); letter-spacing: .04em; text-transform: uppercase; }
+/* (la mochila con la identidad de las fichas: título en la letra de rótulos grandes, secciones con su rótulo de raya
+   inclinada, energía en lila y cajas de esquinas casi rectas) */
+.bagpanel h3 { margin: 0 0 8px; font: 400 var(--fs-xl)/1 var(--f-display); text-transform: uppercase; color: #fff; text-shadow: 0 3px 0 rgba(7, 2, 15, .5); }
+.bagpanel h4 { display: flex; align-items: center; gap: 8px; margin: 16px 0 8px; color: var(--rosa); font: 800 var(--fs-sm)/1.15 var(--f-cond); letter-spacing: .1em; text-transform: uppercase; }
+.bagpanel h4::before { content: ''; flex: none; width: 18px; height: 4px; border-radius: 2px; background: var(--cta); transform: skewX(-20deg); }
+.bp-head small { color: var(--lila); font: 800 var(--fs-sm)/1.2 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; }
 .bp-head { display: flex; gap: 12px; align-items: center; } .bp-head > div { flex: 1; }
 .ebar { height: 12px; border-radius: 6px; background: rgba(255, 255, 255, .12); overflow: hidden; margin-bottom: 4px; }
-.ebar i { display: block; height: 100%; background: linear-gradient(90deg, #f5c542, #7ee05a); border-radius: 6px; }
+.ebar i { display: block; height: 100%; background: linear-gradient(90deg, #c9b2ff, #ff7ac8); border-radius: 6px; }   /* (la energía, en lila como en el pueblo y los partidos) */
 .bp-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .drops { display: flex; gap: 4px; } .drops span { opacity: .25; } .drops span.on { opacity: 1; }
 .bp-food { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; } .bp-food .bp-note { grid-column: 1 / -1; }
-.fooditem { display: grid; justify-items: center; gap: 2px; padding: 8px 8px; border-radius: 12px; background: rgba(255, 255, 255, .07); border: 2px solid transparent; color: inherit; font: inherit; cursor: pointer; }
+.fooditem { display: grid; justify-items: center; gap: 2px; padding: 8px 8px; border-radius: 4px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(201, 178, 255, .2); color: inherit; font: inherit; cursor: pointer; }
 .fooditem:hover { border-color: #ff7ac8; } .fooditem b { font-size: var(--fs-sm); } .fooditem span { font-size: var(--fs-xs); opacity: .8; }
 .bp-gear { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-bottom: 12px; }
-.gitem { display: grid; grid-template-columns: 34px 1fr; column-gap: 8px; align-items: center; padding: 8px; border-radius: 12px; background: rgba(255, 255, 255, .07); color: inherit; text-align: left; min-height: 44px; }
+.gitem { display: grid; grid-template-columns: 34px 1fr; column-gap: 8px; align-items: center; padding: 8px; border-radius: 4px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(201, 178, 255, .2); color: inherit; text-align: left; min-height: 44px; }
 .gitem b { font-size: var(--fs-sm); } .gitem small { grid-column: 1 / -1; font-size: var(--fs-xs); opacity: .8; line-height: 1.3; margin-top: 4px; }
 .gitem.locked { opacity: .55; }
 @media (max-width: 520px) { .bp-gear { grid-template-columns: 1fr 1fr; } .gitem small { display: none; } .gitem.locked small { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; font-size: var(--fs-xs); } }
@@ -789,14 +794,15 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .bp-scroll { overflow-y: auto; padding: 20px 20px 8px; min-height: 0; flex: 1 1 auto; }
 .bp-foot { padding: 12px 20px 16px; border-top: 1px solid rgba(255, 255, 255, .1); background: rgba(10, 6, 24, .35); display: flex; justify-content: center; }
 .bp-foot .btn { width: 100%; max-width: 320px; min-height: 50px; }
-.bp-box { display: grid; gap: 8px; padding: 8px; border-radius: 16px; background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .08); }
-.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 14px; background: rgba(0, 0, 0, .28); }
-.seg button { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 8px; border: 0; border-radius: 11px; background: transparent; color: rgba(255, 255, 255, .78); font: 800 var(--fs-md) Nunito, sans-serif; cursor: pointer; }
-.seg button.on { background: #ff7ac8; color: #2a1640; box-shadow: 0 2px 0 rgba(0, 0, 0, .25); }
+.bp-box { display: grid; gap: 8px; padding: 8px; border-radius: 4px; background: rgba(255, 255, 255, .05); border: 1px solid rgba(201, 178, 255, .2); }
+/* (ir con perro o sin él: como las pestañas de las fichas, la elegida en el degradado) */
+.seg { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 4px; padding: 4px; border-radius: 6px; background: rgba(7, 2, 15, .5); }
+.seg button { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 8px; border: 0; border-radius: 4px; background: transparent; color: var(--lila); font: 800 var(--fs-sm)/1.1 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; cursor: pointer; }
+.seg button.on { background: var(--cta); color: #fff; box-shadow: var(--glow); }
 .seg button:not(.on):hover { background: rgba(255, 255, 255, .08); color: #fff; }
 .bp-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; }
-.bp-box .btn, .bp-actions .btn { box-sizing: border-box; min-width: 0; max-width: 100%; width: 100%; min-height: 46px; padding: 8px 12px; font-size: var(--fs-md); border-radius: 12px; }
-.bp-box .btn span, .seg span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bp-box .btn, .bp-actions .btn { box-sizing: border-box; min-width: 0; max-width: 100%; width: 100%; min-height: 46px; padding: 8px 12px; font-size: var(--fs-md); border-radius: 4px; }
+.bp-box .btn span, .seg span { white-space: normal; text-wrap: balance; }   /* (el rótulo entero: en dos líneas antes que cortado) */
 .bp-water { grid-template-columns: minmax(0, 1fr) minmax(0, 180px); align-items: center; } .seg button { box-sizing: border-box; min-width: 0; }
 .bp-water .btn[disabled] { opacity: .45; cursor: default; }
 .bp-note { margin: 0; font-size: var(--fs-sm); opacity: .85; line-height: 1.45; }
@@ -1006,7 +1012,8 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 /* mochila con el móvil tumbado: más ancha y en dos columnas (perro a la izquierda; agua y comida a la derecha; el
    equipo debajo, a lo ancho) para ver casi todo sin desplazar */
 .bp-sec > h4:first-child { margin-top: 16px; }
-@media (orientation: landscape) and (max-height: 560px) {
+/* (con la pantalla tumbada, en el móvil y en la tableta, la mochila entera de un vistazo, sin desplazar) */
+@media (orientation: landscape) and (min-width: 700px) {
   .bagpanel .mg-card { max-width: min(880px, 100%); }
   .bp-scroll { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 16px; align-content: start; padding: 16px 16px 8px; }
   .bp-head, .bp-equip { grid-column: 1 / -1; }
@@ -1021,7 +1028,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   .bagpanel .bp-sec h4 { margin-top: 8px; }   /* (todos los títulos de sección, con el mismo aire encima) */
   .bp-foot { padding: 8px 16px 8px; } .bp-foot .btn { min-height: 44px; }
 }
-@media (orientation: landscape) and (max-height: 560px) {
+@media (orientation: landscape) and (min-width: 700px) {
   .bp-actions .btn { white-space: normal; line-height: 1.15; min-height: 44px; padding: 8px 8px; font-size: var(--fs-sm); }
   .bp-actions .btn span { white-space: normal; overflow: visible; text-overflow: clip; }
 }

@@ -108,6 +108,20 @@
    sobre cristal, con las esquinas casi rectas, como los de los torneos. El rótulo se parte en dos líneas antes que
    cortarse o salirse */
 .btn { border-radius: 4px; font-family: var(--f-cond); font-weight: 800; text-transform: uppercase; letter-spacing: .04em; line-height: 1.15; white-space: normal; text-wrap: balance; }
+/* pestañas, filtros, chips, notas y todo botón de una sola etiqueta: la letra estrecha en mayúsculas, como los botones;
+   las respuestas de un cuestionario largo y las del diálogo, que son frases para leer, se quedan en la letra de lectura.
+   tools/auditoria-medida.mjs («boton») lo comprueba */
+:root :is(.filters button, .nchip, .back, .lnk, .vm-btn, .pst, .seg button, .fb-ctabs button, .pads4 button, .ix.quiz .fc-opt, .screen .tabs button,
+  .pel-levels button, .pel-chip, .pel-tour button, .pfx-tabs button) {
+  font-family: var(--f-cond); font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+/* esquinas: casi rectas (4 px), cortadas en ángulo o círculos, en todo el juego; nada de cajas ni pastillas muy
+   redondeadas. Las barras y los puntos pequeños sí van redondeados. tools/auditoria-medida.mjs («forma») lo comprueba */
+:root :is(.nchip, button.scard, .armorial .ar, .mrow .mi, .mlist li, .sheet-in, .sg, .set select, .pst, .prof input, .onb input, .ppage,
+  .lg-how, .hsteps li, .folkcard img, .cult, .chapter, .ccard .cring, .back, .rw, .shop-bubble, .seg, .seg button, .bp-box, .bp-box .btn,
+  .bp-actions .btn, .fooditem, .gitem, .qitem, .pbody, .card .f, .card .b, #compass, #clock, .vm-btn, .pel-en, .pel-call, .fb-say, .fb-tip,
+  .fb-fouls, .fb-ck, .fb-ctabs button, .pads4 button, .ebar, #mapbox, .pel-tip, .pel-card .pel-ctrl, .pel-card .pel-fact, .pel-force,
+  .pel-levels button, .pel-rv, .pel-chip, .pel-tour, .pel-tour button, .pel-court, .pel-court-t i, .pfx-tabs button, .pfx-shots li, .pfx-pl,
+  .pfx-pl-go) { border-radius: 4px; }
 .btn.primary { font-weight: 400; background: var(--cta); color: #fff; border: 0; font-family: var(--f-display); text-transform: uppercase; letter-spacing: .04em; box-shadow: var(--glow); clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%); border-radius: 4px; }
 @media (prefers-reduced-motion: reduce) { #hub :is(.ccard, .tile, .sb, .folkcard, .scard, .bcard, .ppage, .sg, .ar, .tcard, .cult) { animation: none; } }
 

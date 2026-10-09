@@ -39,7 +39,8 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-stick{position:absolute;left:0;bottom:0;width:50vw;height:78dvh;pointer-events:auto;touch-action:none}
 .fb-knob{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;border:1.5px solid rgba(255,255,255,.6);background:rgba(8,10,20,.14);display:none}
 .fb-knob i{position:absolute;left:50%;top:50%;width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:50%;background:rgba(255,255,255,.72);box-shadow:0 1px 6px rgba(0,0,0,.25)}
-.fb-stickhint{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--thumb,16px) + 8px);bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb,16px) + 8px);width:96px;height:96px;border-radius:50%;border:1.5px dashed rgba(255,255,255,.5);display:grid;place-items:center;font-size:var(--fs-xs);font-weight:800;line-height:1.15;color:#fff;text-align:center;opacity:.9;padding:8px;transition:opacity .4s;text-shadow:0 1px 2px rgba(0,0,0,.9),0 0 6px rgba(0,0,0,.6)}
+/* (la ayuda del joystick, como en el pueblo y en la pelota: las flechas y «Mover» en la letra estrecha) */
+.fb-stickhint{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--thumb,16px) + 8px);bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb,16px) + 8px);width:96px;height:96px;border-radius:50%;border:1.5px dashed rgba(255,255,255,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:800 var(--fs-xs)/1.15 var(--f-cond,Nunito),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#fff;text-align:center;opacity:.9;padding:8px;transition:opacity .4s;text-shadow:0 1px 2px rgba(0,0,0,.9),0 0 6px rgba(0,0,0,.6)}
 /* cuatro botones minimalistas: un aro blanco fino, el icono de trazo fino y el nombre en pequeño. TIRO (el mayor) en la
    esquina; PASE a su izquierda; SPRINT encima de TIRO; CAMBIAR en diagonal, entre los dos (siempre en su sitio; con el
    balón en tus pies, apagado). Al pulsar, se rellenan con un toque de color. Al defender: ROBAR y ENTRADA. Medidas en
@@ -198,7 +199,7 @@ export class FutbolHud {
       <div class="fb-say"></div><div class="fb-tip"><i>?</i><span></span></div></div>
       <button class="fb-pause" aria-label="Pausa">${SVG_PAUSE}</button><button class="fb-cam" aria-label="Cambiar cámara">${SVG_CAM}</button>
       <div class="fb-msg"><h2></h2><p></p></div><div class="fb-arrow"></div>
-      ${t ? `<div class="fb-stick"><div class="fb-knob"><i></i></div></div><div class="fb-stickhint">Toca y arrastra para moverte</div>
+      ${t ? `<div class="fb-stick"><div class="fb-knob"><i></i></div></div><div class="fb-stickhint"><svg viewBox="0 0 48 48" width="34" height="34"><path d="M24 6l6 7h-4v8h8v-4l7 7-7 7v-4h-8v8h4l-6 7-6-7h4v-8h-8v4l-7-7 7-7v4h8v-8h-4z" fill="#fff" opacity=".9"/></svg><span>Mover</span></div>
       <div class="fb-bars"><div class="fb-bar"><i class="fb-en"></i></div><div class="fb-bar pow"><i class="fb-pw"></i></div></div>
       <div class="fb-btns atk"><button class="fb-b fb-sprint" data-a="sprint" aria-label="Sprint">${ICON.sprint}<span>Sprint</span></button><button class="fb-b fb-swap" data-a="switch" aria-label="Cambiar de jugador">${ICON.swap}<span>Cambiar</span></button><button class="fb-b fb-pass" data-a="pass" aria-label="Pase">${ICON.pass}<span>Pase</span></button><button class="fb-b fb-shoot" data-a="shoot" aria-label="Tiro">${ICON.shoot}<span>Tiro</span></button></div>`
       : `<div class="fb-bars" style="bottom:calc(env(safe-area-inset-bottom,0px) + 44px)"><div class="fb-bar"><i class="fb-en"></i></div><div class="fb-bar pow"><i class="fb-pw"></i></div></div>

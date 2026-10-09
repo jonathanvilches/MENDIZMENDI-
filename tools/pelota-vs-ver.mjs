@@ -5,6 +5,7 @@
 // Uso: node tools/pelota-vs-ver.mjs [pueblo] [carpeta] [clear|rain]   (URL=http://127.0.0.1:5173 por defecto)
 import { chromium } from 'playwright-core';
 import { mkdirSync } from 'fs';
+import { auditar } from './auditoria-medida.mjs';
 const URL = process.env.URL || 'http://127.0.0.1:5173';
 const [,, town = 'lesaka', out = 'entrega/pelota-vs', weather = 'clear'] = process.argv; mkdirSync(out, { recursive: true });
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
@@ -16,7 +17,11 @@ await p.waitForFunction(() => window.__game && window.__game.mode === 'play', nu
 // (con lluvia: que esté lloviendo justo ahora; la lluvia va a ratos y, si no, el frontón sale seco)
 if (weather === 'rain') await p.evaluate(() => { const W = window.__game.rt?.weather; if (W) { W.raining = true; W.k = 1; W.phaseT = 9999; } });
 let fails = 0, n = 0; const ok = (c, m) => { console.log(`  ${c ? 'OK ' : 'FALLO'} ${m}`); if (!c) fails++; };
-const shot = (tag) => p.screenshot({ path: `${out}/${weather}-${String(++n).padStart(2, '0')}-${tag}.png` });
+// (con AUD=1, cada captura pasa también la auditoría de diseño, tools/auditoria-medida.mjs, y se cuenta como fallo lo que
+// encuentre, salvo los verdes y lo que se desplaza, que se revisan a mano)
+const AUD = {}; const shot = async (tag) => { await p.screenshot({ path: `${out}/${weather}-${String(++n).padStart(2, '0')}-${tag}.png` });
+  if (!process.env.AUD) return; const sel = await p.evaluate(() => ['.pel-panel', '.pvs', '.lg-root', '.pel-root'].find(s => document.querySelector(s)));
+  const r = await p.evaluate(auditar, sel); for (const [k, v] of Object.entries(r)) if (v.length && !['verde', 'desplaza'].includes(k)) { AUD[k] = (AUD[k] || 0) + v.length; for (const x of v.slice(0, 6)) console.log(`   auditoría ${tag} ${k}: ${x}`); } };
 const finish = () => p.evaluate(() => document.getAnimations?.().forEach(a => { try { if (a.effect?.getTiming?.().iterations !== Infinity) a.finish(); } catch (e) { } }));
 const talk = async () => {
   // (el partido libre del pueblo, como al hablar con su pelotari: en algunos pueblos el de la misión no lo ofrece)
@@ -134,3 +139,4 @@ ok(await p.evaluate(() => !document.querySelector('.pc-root') && !!document.quer
 console.log(errs.length ? errs.slice(0, 3) : 'sin errores'); ok(!errs.length, 'sin errores');
 console.log(fails ? `\n${fails} FALLOS` : '\nTodo correcto');
 await b.close();
+if (process.env.AUD) console.log('auditoría de diseño:', JSON.stringify(AUD));
