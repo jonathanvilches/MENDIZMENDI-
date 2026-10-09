@@ -90,7 +90,7 @@ function spark(profile, w = 160, h = 44) {
   const xs = profile.map(p => p[0]), ys = profile.map(p => p[1]);
   const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
   const P = profile.map(([x, y]) => [(x - x0) / (x1 - x0 || 1) * w, h - 4 - (y - y0) / (y1 - y0 || 1) * (h - 8)]);
-  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><path d="M0 ${h} ${P.map(p => 'L' + p.join(' ')).join(' ')} L${w} ${h}Z" fill="rgba(143,209,106,.25)"/><path d="M${P.map(p => p.join(' ')).join(' L')}" fill="none" stroke="#8fd16a" stroke-width="2.5"/></svg>`;
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><path d="M0 ${h} ${P.map(p => 'L' + p.join(' ')).join(' ')} L${w} ${h}Z" fill="rgba(201,178,255,.22)"/><path d="M${P.map(p => p.join(' ')).join(' L')}" fill="none" stroke="#c9b2ff" stroke-width="2.5"/></svg>`;
 }
 
 export class Hub {
@@ -211,7 +211,7 @@ export class Hub {
       <div class="tile">${I('shield', 44)}<b>${N.comarcas}<small>/${N.comarcasTotal}</small></b><span>Comarcas</span></div>
       <div class="tile">${I('check', 44)}<b>${doneM}<small>/${totM}</small></b><span>Misiones</span></div>
       <div class="tile">${I('badge', 44)}<b>${p.badges.length}<small>/${BADGES.length}</small></b><span>Insignias</span></div>
-      <div class="tile">${I('star', 44)}<b>${L.lv}</b><span>Nivel · ${p.xp} XP</span></div>
+      <div class="tile">${I('star', 44)}<b>${L.lv}</b><span>Nivel · ${p.xp}\u00a0XP</span></div>
     </section>
     <section class="two">
       <div class="panel next-panel"><h2 class="sec">${I('exclaim', 34)} Te esperan</h2>${next}</div>

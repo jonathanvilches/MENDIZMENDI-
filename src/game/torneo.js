@@ -152,8 +152,11 @@ const CSS = `
 .tq-tile::before{content:'';position:absolute;inset:0;z-index:-1;background:repeating-linear-gradient(125deg,transparent 0 14px,rgba(255,255,255,.035) 14px 15px)}
 .tq-tile::after{content:'';position:absolute;top:-10%;bottom:-10%;left:0;width:40%;z-index:2;background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);transform:translateX(-160%) skewX(-18deg);animation:gx-sweep 6s ease-in-out var(--d,0s) infinite;pointer-events:none}
 .tq-tile:active{transform:scale(.97)}.tq-tile:hover{border-color:var(--rosa)}
-.tq-tile img.fig{position:absolute;z-index:-1;right:-6%;bottom:0;height:88%;filter:drop-shadow(0 6px 14px rgba(0,0,0,.5));transition:transform .3s}.tq-tile:hover img.fig{transform:scale(1.05) translateY(-4px)}
-.tq-tile img.fig.b{right:auto;left:-8%;height:78%;opacity:.85}.tq-tile img.flip{transform:scaleX(-1)}.tq-tile:hover img.flip{transform:scaleX(-1) scale(1.05) translateY(-4px)}
+/* (la figura arriba, en su sitio, y el texto debajo: nunca se pisan. Por parejas, los dos pelotaris uno al lado del otro) */
+.tq-tile .figs{flex:1 1 0;min-height:0;align-self:stretch;display:flex;justify-content:center;align-items:flex-end;margin:0 -8px 6px;pointer-events:none}
+.tq-tile img.fig{display:block;height:100%;width:auto;max-width:100%;min-width:0;object-fit:contain;object-position:50% 100%;filter:drop-shadow(0 6px 14px rgba(0,0,0,.5));transition:transform .3s}.tq-tile:hover img.fig{transform:scale(1.04) translateY(-3px)}
+.tq-tile .figs img.fig+img.fig{margin-left:-14%}.tq-tile .figs img.fig:only-child{max-width:100%}.tq-tile.pair img.fig{max-width:58%}
+.tq-tile img.flip{transform:scaleX(-1)}.tq-tile:hover img.flip{transform:scaleX(-1) scale(1.04) translateY(-3px)}
 .tq-tile .k{font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--rosa);text-shadow:0 1px 3px rgba(0,0,0,.8)}
 .tq-tile b{font:400 var(--fs-2xl)/1 var(--f-display);text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.55);max-width:100%}
 .tq-tile small{font:600 var(--fs-sm)/1.2 var(--f-cond);letter-spacing:.02em;color:#ece4ff;text-shadow:0 1px 3px rgba(0,0,0,.9);max-width:100%}
@@ -251,9 +254,9 @@ export function pelotaMenu(T, here = null, T2 = null) {
     const fan = [{ n: 'Mikel', st: { fuerza: 4, agilidad: 3, velocidad: 2 }, r: -10 }, { n: 'Garazi', st: { fuerza: 2, agilidad: 4, velocidad: 4 }, r: 0 }, { n: 'Unai', st: { fuerza: 3, agilidad: 5, velocidad: 3 }, r: 10 }]
       .map((q, i) => pelotariCard({ name: q.n, town: '', side: i === 1 ? 'azul' : 'rojo', w: 76, stats: q.st, lock: i > 0 && C.have <= i, mini: true, lang }).replace('style="', `style="--r:${q.r};`)).join('');
     const r = lgPanel(`<div class="lg-head tq-txa">${TXAPELA}<div><small>${here ? `Frontón de ${esc(here)}` : 'Frontón del pueblo'}</small><h2>Pelota a mano</h2></div>${tx ? `<div class="lg-ovr">${tx}<small>TXAPELAS</small></div>` : ''}</div>
-      <div class="tq-tiles"><button class="tq-tile main" data-a="torneo" style="--d:.2s"><img class="fig" src="${PELOTARI_IMG.red}" alt=""><span class="k">${T.txapelas ? `${T.txapelas} txapelas` : 'Por la txapela'}</span><b>Torneo individual</b><small>${sub(T)}</small></button>
-        ${T2 ? `<button class="tq-tile pair" data-a="torneoParejas" style="--d:.8s"><img class="fig b" src="${PELOTARI_IMG.blue}" alt=""><img class="fig flip" src="${PELOTARI_IMG.red}" alt=""><span class="k">Delantero y zaguero</span><b>Torneo por parejas</b><small>${sub(T2)}</small></button>` : ''}
-        <button class="tq-tile free" data-a="libre" style="--d:1.4s"><img class="fig" src="${PELOTARI_IMG.blue}" alt=""><span class="k">A 5 tantos</span><b>Partido libre</b><small>Mano a mano o parejas</small></button>
+      <div class="tq-tiles"><button class="tq-tile main" data-a="torneo" style="--d:.2s"><span class="figs"><img class="fig" src="${PELOTARI_IMG.red}" alt=""></span><span class="k">${T.txapelas ? `${T.txapelas} txapelas` : 'Por la txapela'}</span><b>Torneo individual</b><small>${sub(T)}</small></button>
+        ${T2 ? `<button class="tq-tile pair" data-a="torneoParejas" style="--d:.8s"><span class="figs"><img class="fig" src="${PELOTARI_IMG.blue}" alt=""><img class="fig flip" src="${PELOTARI_IMG.red}" alt=""></span><span class="k">Delantero y zaguero</span><b>Torneo por parejas</b><small>${sub(T2)}</small></button>` : ''}
+        <button class="tq-tile free" data-a="libre" style="--d:1.4s"><span class="figs"><img class="fig" src="${PELOTARI_IMG.blue}" alt=""></span><span class="k">A 5 tantos</span><b>Partido libre</b><small>Mano a mano o parejas</small></button>
         <button class="tq-tile col" data-a="pelotaris" style="--d:2s"><span class="fan" aria-hidden="true">${fan}</span><span class="k">Tu colección</span><b>Pelotaris</b><small class="pc-n">${C.have}/${C.total} descubiertos</small></button></div>
       <div class="tq-menu-foot"><button class="lg-btn" data-a="exit">Salir</button></div>`);
     r.firstElementChild.classList.add('tq-menu-card');

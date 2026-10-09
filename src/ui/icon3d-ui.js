@@ -89,7 +89,7 @@ export const UI3D = {
   },
   check: () => {
     const c = new THREE.Shape(); c.moveTo(-0.3, 0.02); c.lineTo(-0.1, -0.18); c.lineTo(0.3, 0.24); c.lineTo(0.22, 0.32); c.lineTo(-0.1, -0.02); c.lineTo(-0.22, 0.1); c.closePath();
-    return tilt(G(M(X(circle(0.5), 0.14, 0.07), '#3ac06a'), M(X(c, 0.08, 0.04), '#ffffff', 0, -0.02, 0.14)), 0.15, -0.3);
+    return tilt(G(M(X(circle(0.5), 0.14, 0.07), '#c21cff'), M(X(c, 0.08, 0.04), '#ffffff', 0, -0.02, 0.14)), 0.15, -0.3);   // (en la gama del juego: morado fucsia, no verde)
   },
   exclaim: () => {
     const b = new THREE.Shape(); b.moveTo(-0.1, -0.05); b.lineTo(0.1, -0.05); b.lineTo(0.14, 0.5); b.quadraticCurveTo(0, 0.6, -0.14, 0.5); b.closePath();

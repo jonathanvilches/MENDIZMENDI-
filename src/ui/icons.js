@@ -177,7 +177,7 @@ export const ICONS = {
   binoculars: c(18, 42, 12, '#4a4d52') + c(46, 42, 12, '#4a4d52') + s('M12 30l4-18h8l2 18M52 30l-4-18h-8l-2 18', '#6b6f75') + s('M26 36h12v8H26z', '#4a4d52') + c(18, 42, 6, '#8fc7e8', false) + c(46, 42, 6, '#8fc7e8', false),
   quiz: c(32, 32, 26, '#6d3b5c') + s('M24 24c0-6 4-10 8-10s8 4 8 9c0 6-8 7-8 13', 'none') + ln('M24 24c0-6 4-10 8-10s8 4 8 9c0 6-8 7-8 13', '#fff', 5) + c(32, 46, 3, '#fff', false),
   talk: s('M6 12h52v30H30l-12 12v-12H6z', '#f7f1e2') + ln('M16 22h32M16 32h20', '#8a6a4a', 3),
-  check: c(32, 32, 26, '#3ca05a') + ln('M18 32l10 10 18-20', '#fff', 6),
+  check: c(32, 32, 26, '#c21cff') + ln('M18 32l10 10 18-20', '#fff', 6),   // (hecho y jugar, en la gama del juego: antes verdes)
   lock: s('M14 28h36v28H14z', '#c9935a') + s('M20 28V18a12 12 0 0124 0v10', 'none') + ln('M20 28V18a12 12 0 0124 0v10', O, 5) + c(32, 40, 4, O, false) + ln('M32 42v6', O, 3),
   home: s('M8 30L32 8l24 22', '#e03c3c') + s('M14 28v28h36V28', '#f7f1e2') + s('M27 56V40h10v16z', '#8a5a32'),
   gear: [...Array(8)].map((_, i) => { const a = i * Math.PI / 4; return `<rect x="28" y="2" width="8" height="12" rx="2" fill="#8a9aa6" stroke="${O}" stroke-width="3" transform="rotate(${a * 180 / Math.PI} 32 32)"/>`; }).join('') + c(32, 32, 20, '#8a9aa6') + c(32, 32, 8, '#f2e6c4'),
@@ -189,7 +189,7 @@ export const ICONS = {
   hand: s('M20 58V28l-6-8c-2-4 4-8 8-4l4 6V8c0-4 6-4 6 0v14V6c0-4 6-4 6 0v16V8c0-4 6-4 6 0v18l2-6c2-4 8-2 6 2l-4 16c-2 10-6 20-18 20z', '#eac1a0'),
   target: c(32, 32, 26, '#f7f1e2') + c(32, 32, 17, '#d42f2f') + c(32, 32, 8, '#f7f1e2') + c(32, 32, 3, '#d42f2f', false),
   sparkle: s('M32 6l5 21 21 5-21 5-5 21-5-21-21-5 21-5z', '#fff3b0'),
-  play: c(32, 32, 26, '#3ca05a') + s('M26 20l18 12-18 12z', '#fff'),
+  play: c(32, 32, 26, '#fff') + s('M26 20l18 12-18 12z', '#c21cff'),   // (blanco con el triángulo morado: se ve sobre el botón fucsia y sobre fondo oscuro)
   back: s('M40 10L18 32l22 22', 'none') + ln('M40 10L18 32l22 22', O, 8) + ln('M40 10L18 32l22 22', '#fff', 4),
   close: ln('M14 14l36 36M50 14L14 50', O, 8) + ln('M14 14l36 36M50 14L14 50', '#fff', 4),
   menu: ln('M10 16h44M10 32h44M10 48h44', O, 8) + ln('M10 16h44M10 32h44M10 48h44', '#fff', 4),
