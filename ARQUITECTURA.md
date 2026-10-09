@@ -77,8 +77,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **Pantallas de menú con composición fija:**
   - Torneos (`s_sports`): las dos cartas comparten filas (rótulo, título, texto, marca, elección y botón) y la figura va
     en su propia columna, sin pisar nada.
-  - Mochila: cabecera en una fila y debajo tres columnas iguales (perro, agua y comida, equipo), cada una con su
-    rótulo y su caja; en vertical o por debajo de 700 px, una columna.
+  - Mochila: cabecera en una fila con «Cerrar» a la derecha, como «Salir» en la tienda, y debajo tres columnas iguales
+    (perro, agua y comida, equipo), cada una con su rótulo y su caja; en vertical o por debajo de 700 px, una columna.
+    Sin franja abajo: así cabe sin desplazar aunque la mochila esté vacía. Los iconos, a su tamaño de siempre.
 - **Comentarios en castellano**, explicando el porqué.
 
 ## Herramientas y pruebas (`tools/`)

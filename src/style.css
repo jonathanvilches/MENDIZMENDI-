@@ -597,8 +597,9 @@ body.mg3d-on .learn-btn { bottom: auto; top: calc(env(safe-area-inset-top, 0px) 
   /* (los botones a la izquierda y los ajustes a la derecha van en las mismas filas: todos de 56 px de alto, con 8 px
      entre filas, para que las dos columnas queden alineadas; la letra, la de los botones) */
   .menu .pbody { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-auto-flow: row dense; gap: 8px 16px; align-items: stretch; }
-  /* (los lugares del pueblo, en una fila que cabe entera bajo su texto) */
-  .cards .card { height: 160px; }
+  /* (los lugares del pueblo, en una fila que cabe entera bajo su texto, también cuando el texto ocupa dos líneas: con
+     160 px sobraban 9 px y había que desplazar) */
+  .cards .card { height: 148px; }
   .menu .pbody .btns.top { display: contents; }
   .menu .pbody .btns.top .btn { grid-column: 1; min-height: 52px; margin: 0; padding: 8px 12px; font-size: var(--fs-md); }
   .menu .pbody > label { grid-column: 2; min-height: 52px; padding: 4px 4px 4px 12px; font-size: var(--fs-md); }
