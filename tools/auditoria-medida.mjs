@@ -14,6 +14,8 @@
 //   · composicion: bloques y botones que van juntos con alturas, anchos, bordes o huecos distintos; cajas con más relleno
 //     a un lado que al otro; rellenos y huecos fuera de la rejilla de 4 px; bordes que casi coinciden (de 2 a 12 px)
 //   · justo: texto de un botón que se sale de él o que va a menos de 2 px de su borde
+//   · imagen: imagen deformada, descentrada en su caja, recortada por un lado, con bandas vacías, desigual con sus
+//     hermanas o con un encuadre que pierde mucho (va aparte: tools/auditoria-medida.mjs, sección 16)
 // Con window.__auditTodo = true, «espacio» lista todas las distancias medidas (no solo las que se salen).
 // MUESCA=1: los márgenes de la muesca del iPhone 12 tumbado (47 px a cada lado y 21 abajo), que estrechan las pantallas
 // y los botones que respetan env(safe-area-inset-*); MUESCA=izq,der,arriba,abajo para otros. Se pone al crear la página.
@@ -22,7 +24,7 @@ export async function muesca(p, W, H) {
   const [left, right, top, bottom] = v === '1' ? (W > H ? [47, 47, 0, 21] : [0, 0, 47, 34]) : v.split(',').map(Number);
   const c = await p.context().newCDPSession(p); await c.send('Emulation.setSafeAreaInsetsOverride', { insets: { left, right, top, bottom } });
 }
-export const auditar = (sel) => {
+export const auditar = async (sel) => {
   const root = sel ? document.querySelector(sel) : document.body; if (!root) return { falta: sel };
   const st = (e) => getComputedStyle(e);
   // (visible de verdad: con tamaño, sin ocultar y sin un contenedor transparente por encima)
@@ -34,7 +36,7 @@ export const auditar = (sel) => {
   const hasText = (e) => [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
   const all = [...root.querySelectorAll('*')].filter(e => !['SCRIPT', 'STYLE', 'CANVAS'].includes(e.tagName));
   const texts = all.filter(e => hasText(e) && vis(e));
-  const R = { cortado: [], encima: [], verde: [], esquina: [], sobresale: [], espacio: [], letra: [], color: [], desborda: [], estrecho: [], desplaza: [], forma: [], boton: [], composicion: [], justo: [] };
+  const R = { cortado: [], encima: [], verde: [], esquina: [], sobresale: [], espacio: [], letra: [], color: [], desborda: [], estrecho: [], desplaza: [], forma: [], boton: [], composicion: [], justo: [], imagen: [] };
   // (tapado: lo que queda debajo de una capa opaca, como el HUD detrás de un panel, no se ve y no cuenta para «encima»
   // ni para «sobresale»; se mira qué hay encima en el centro de su primera línea, con todo tocable un momento)
   const pe = document.createElement('style'); pe.textContent = '*{pointer-events:auto!important}'; document.head.appendChild(pe);
@@ -378,6 +380,73 @@ export const auditar = (sel) => {
     if (peor === Infinity) continue;
     if (peor < -0.5 || alto > 0.5) R.justo.push(`${name(b)} «${txt(b).slice(0, 30)}» se sale de su botón (${Math.round(Math.max(-peor, alto))} px)`);
     else if (peor < 2 && painted(b)) R.justo.push(`${name(b)} «${txt(b).slice(0, 30)}» pegado al borde (${peor.toFixed(1)} px)`); }
+  // 16. imagen: cada imagen (las <img> y los fondos con url) centrada, cuadrada y entera en su marco
+  //   · deformada: estirada, sin su proporción
+  //   · descentrada: en una caja que la centra (o casi a ras) queda más a un lado que al otro, más de 1,5 px
+  //   · recortada: la caja que la recorta le quita más por un lado que por el otro
+  //   · bandas: una foto o lámina encajada entera que deja huecos vacíos en su marco
+  //   · desiguales: las imágenes de tarjetas hermanas, de tamaños distintos o a alturas distintas
+  //   · encuadre: cuánto se ve de una lámina o foto grande recortada (menos del 70 %: se pierde mucho)
+  const nat = new Map();
+  const bgUrl = (e) => { const m = st(e).backgroundImage.match(/url\(["']?([^"')]+)["']?\)/); return m ? m[1] : null; };
+  const pics = all.filter(e => vis(e) && !hidden.has(e) && !e.closest('svg') && (e.tagName === 'IMG' ? e.naturalWidth > 0 : !!bgUrl(e)));
+  for (const e of pics) if (e.tagName !== 'IMG') { const u = bgUrl(e); if (!nat.has(u)) { const im = new Image(); im.src = u; try { await im.decode(); } catch (x) { } nat.set(u, [im.naturalWidth, im.naturalHeight]); } }
+  const box = (e) => { const r = e.getBoundingClientRect(), s = st(e), px = (k) => parseFloat(s[k]) || 0;
+    return { l: r.left + px('borderLeftWidth') + px('paddingLeft'), r: r.right - px('borderRightWidth') - px('paddingRight'), t: r.top + px('borderTopWidth') + px('paddingTop'), b: r.bottom - px('borderBottomWidth') - px('paddingBottom') }; };
+  const nm = (e) => `${name(e)}${e.tagName === 'IMG' ? ' ' + (e.currentSrc || e.src).split('/').pop().split('?')[0].slice(0, 28) : ''}`;
+  for (const e of pics) {
+    const s = st(e), r = e.getBoundingClientRect(), isImg = e.tagName === 'IMG';
+    const [nw, nh] = isImg ? [e.naturalWidth, e.naturalHeight] : nat.get(bgUrl(e)) || [0, 0]; if (!nw || !nh || r.width < 8 || r.height < 8) continue;
+    const c = box(e), cw = c.r - c.l, ch = c.b - c.t; if (cw < 8 || ch < 8) continue;
+    const big = nw >= 300 && nh >= 200 && cw >= 120;   // (una lámina o una foto, no un icono)
+    // el tamaño con que se dibuja: object-fit o background-size
+    let fit = isImg ? s.objectFit : 'bg', pw = cw, ph = ch;
+    if (isImg) { if (fit === 'cover') { const k = Math.max(cw / nw, ch / nh); pw = nw * k; ph = nh * k; } else if (fit === 'contain' || fit === 'scale-down') { const k = Math.min(cw / nw, ch / nh, fit === 'scale-down' ? 1 : 1e9); pw = nw * k; ph = nh * k; } else if (fit === 'none') { pw = nw; ph = nh; } }
+    else { const layers = s.backgroundImage.split(/,(?![^(]*\))/), i = layers.findIndex(x => /url\(/.test(x)); const sz = (s.backgroundSize.split(/,\s*/)[i] || s.backgroundSize.split(/,\s*/)[0] || 'auto').trim();
+      if (sz === 'cover') { const k = Math.max(cw / nw, ch / nh); pw = nw * k; ph = nh * k; fit = 'cover'; } else if (sz === 'contain') { const k = Math.min(cw / nw, ch / nh); pw = nw * k; ph = nh * k; fit = 'contain'; }
+      else { const v = sz.split(/\s+/), dim = (x, L, n) => /%$/.test(x) ? L * parseFloat(x) / 100 : /px$/.test(x) ? parseFloat(x) : null; let a = dim(v[0], cw), b2 = v[1] ? dim(v[1], ch) : null;
+        if (a == null && b2 == null) { a = nw; b2 = nh; } else if (a == null) a = b2 * nw / nh; else if (b2 == null) b2 = a * nh / nw; pw = a; ph = b2; fit = 'size'; } }
+    if (Math.abs((pw / ph) / (nw / nh) - 1) > 0.04) R.imagen.push(`${nm(e)} deformada: ${Math.round(cw)}×${Math.round(ch)} con una imagen de ${nw}×${nh}`);
+    // (una figura con fondo transparente no deja bandas a la vista, ni una foto con su copia difuminada detrás)
+    const clear = () => { if (!isImg) return false; try { const cv = document.createElement('canvas'); cv.width = cv.height = 8; const g = cv.getContext('2d'); g.drawImage(e, 0, 0, 8, 8); const d = g.getImageData(0, 0, 8, 8).data; return d[3] < 200 || d[31] < 200 || d[227] < 200 || d[255] < 200; } catch (x) { return false; } };
+    const filled = () => [...(e.parentElement?.children || [])].some(x => x !== e && /url\(/.test(st(x).backgroundImage));
+    if (big && (fit === 'contain' || fit === 'scale-down') && (cw - pw > 4 || ch - ph > 4) && !clear() && !filled()) R.imagen.push(`${nm(e)} con bandas vacías de ${Math.round(Math.max(cw - pw, ch - ph))} px en su marco`);
+    if (big && fit === 'cover' && !/blur/.test(s.filter)) { const vis2 = (cw * ch) / (pw * ph); if (vis2 < 0.7) R.imagen.push(`${nm(e)} encuadre: se ve el ${Math.round(vis2 * 100)} % (${Math.round(cw)}×${Math.round(ch)})`); }
+    // recortada de un lado por la caja que la contiene
+    for (let q = e.parentElement; q && q !== document.body; q = q.parentElement) { const qs = st(q); if (/(auto|scroll)/.test(qs.overflowX + qs.overflowY)) break;
+      if (!(/(hidden|clip)/.test(qs.overflowX + qs.overflowY) || qs.clipPath !== 'none')) continue; const qr = q.getBoundingClientRect();
+      const cl = Math.max(0, qr.left - r.left), cr = Math.max(0, r.right - qr.right), ct = Math.max(0, qr.top - r.top), cb = Math.max(0, r.bottom - qr.bottom);
+      if ((cl > 2 || cr > 2) && Math.abs(cl - cr) > 2 && s.position !== 'absolute' && s.position !== 'fixed') R.imagen.push(`${nm(e)} recortada ${Math.round(cl)} px por la izquierda y ${Math.round(cr)} por la derecha (${name(q)})`);
+      if ((ct > 2 || cb > 2) && Math.abs(ct - cb) > 2 && s.position !== 'absolute' && s.position !== 'fixed') R.imagen.push(`${nm(e)} recortada ${Math.round(ct)} px por arriba y ${Math.round(cb)} por abajo (${name(q)})`);
+      break; }
+    // centrada en su caja: la caja que la contiene (saltando envoltorios de su mismo tamaño)
+    let p = e.parentElement; while (p && p !== document.body && st(p).display === 'contents') p = p.parentElement;
+    for (let k = 0; p && k < 3; k++) { const pr = p.getBoundingClientRect(); if (Math.abs(pr.width - r.width) < 1 && Math.abs(pr.height - r.height) < 1 && p.parentElement) p = p.parentElement; else break; }
+    if (!p || s.position === 'absolute' || s.position === 'fixed') continue;
+    const ps = st(p), pc = box(p), kids = [...p.children].filter(x => x !== e && !x.contains(e) && vis(x) && !['absolute', 'fixed'].includes(st(x).position));
+    const row = kids.some(x => { const xr = x.getBoundingClientRect(); return xr.bottom > r.top + 2 && xr.top < r.bottom - 2; });
+    const col = kids.some(x => { const xr = x.getBoundingClientRect(); return xr.right > r.left + 2 && xr.left < r.right - 2; });
+    const flex = /flex/.test(ps.display), grid = /grid/.test(ps.display), dir = ps.flexDirection;
+    const wantX = (flex && dir.startsWith('column') && ps.alignItems === 'center') || (flex && dir.startsWith('row') && ps.justifyContent === 'center' && !row) || (grid && /center/.test(ps.justifyItems + s.justifySelf)) || (!flex && !grid && ps.textAlign === 'center' && /inline/.test(s.display));
+    const wantY = (flex && dir.startsWith('row') && ps.alignItems === 'center') || (flex && dir.startsWith('column') && ps.justifyContent === 'center' && !col) || (grid && /center/.test(ps.alignItems + s.alignSelf));
+    const gl = r.left - pc.l, gr = pc.r - r.right, gt = r.top - pc.t, gb = pc.b - r.bottom;
+    if (!row && Math.abs(gl - gr) > 1.5 && (wantX || (Math.max(gl, gr) <= 24 && Math.min(gl, gr) >= -1))) R.imagen.push(`${nm(e)} descentrada en ${name(p)}: ${Math.round(gl)} px a la izquierda y ${Math.round(gr)} a la derecha`);
+    if (!col && wantY && Math.abs(gt - gb) > 1.5) R.imagen.push(`${nm(e)} descentrada en vertical en ${name(p)}: ${Math.round(gt)} px arriba y ${Math.round(gb)} abajo`);
+  }
+  // desiguales: las imágenes que ocupan el mismo sitio en tarjetas hermanas (misma clase) han de medir lo mismo y estar a la misma altura
+  const sig = (x) => x.tagName + '.' + [...x.classList].filter(k => !/^(on|seen|gray|got|done|ready|sel|active|locked|lock|new|pend|has-cov)$/.test(k)).sort().join('.');
+  const igroups = new Map();
+  for (const e of pics) { if (st(e).transform !== 'none') continue;   // (la elegida, agrandada a propósito)
+    let a = e; while (a.parentElement && a.parentElement !== document.body) { const sib = [...a.parentElement.children].filter(x => x !== a && sig(x) === sig(a)); if (sib.length) break; a = a.parentElement; }
+    if (!a.parentElement) continue; const path = []; for (let x = e; x && x !== a; x = x.parentElement) path.push(sig(x));
+    const k2 = [sig(a), path.join('<'), sig(e)].join('|'); if (!igroups.has(a.parentElement)) igroups.set(a.parentElement, new Map());
+    const g = igroups.get(a.parentElement); if (!g.has(k2)) g.set(k2, []); g.get(k2).push([e, a]); }
+  for (const [par, g] of igroups) for (const [k2, list] of g) { if (list.length < 2) continue;
+    const m = list.map(([e, a]) => { const r = e.getBoundingClientRect(), ar = a.getBoundingClientRect(); return { e, w: e.offsetWidth ?? r.width, h: e.offsetHeight ?? r.height, dx: r.left - ar.left, dy: r.top - ar.top, rx: ar.right - r.right, by: ar.bottom - r.bottom }; });   // (el tamaño sin la escala de la selección o de una animación)
+    const sp = (f) => Math.max(...m.map(f)) - Math.min(...m.map(f));
+    if (sp(x => x.w) > 1.5 || sp(x => x.h) > 1.5) R.imagen.push(`${nm(list[0][0])} desiguales en ${name(par)}: de ${Math.round(Math.min(...m.map(x => x.w)))}×${Math.round(Math.min(...m.map(x => x.h)))} a ${Math.round(Math.max(...m.map(x => x.w)))}×${Math.round(Math.max(...m.map(x => x.h)))}`);
+    else if ((sp(x => x.dy) > 1.5 && sp(x => x.by) > 1.5) || (sp(x => x.dx) > 1.5 && sp(x => x.rx) > 1.5))   // (apoyadas abajo o arriba, o a un lado, ya están en su sitio)
+      R.imagen.push(`${nm(list[0][0])} desiguales en ${name(par)}: no están en el mismo sitio de su tarjeta (${Math.round(sp(x => x.dx))} px de lado, ${Math.round(sp(x => x.dy))} de alto)`); }
   for (const k of Object.keys(R)) R[k] = [...new Set(R[k])];
   return R;
 };

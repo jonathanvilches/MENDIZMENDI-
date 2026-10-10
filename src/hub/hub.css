@@ -113,7 +113,7 @@
 .stage3d { display: block; }
 .hero-fig .stage-host { filter: drop-shadow(0 20px 22px rgba(0, 0, 0, .45)); }
 
-.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); margin-top: 16px; border-radius: var(--r); background: var(--glass); border: 1px solid var(--line); overflow: hidden; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); margin-top: 16px; border-radius: var(--r); background: var(--glass); border: 1px solid var(--line); overflow: hidden; }
 .tile { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 8px; align-items: center; padding: 16px 16px; border-left: 1px solid var(--line); min-width: 0; }
 .tile span { white-space: normal; line-height: 1.3; }   /* (entero, en dos líneas si hace falta: antes «COMARC…») */
 .tile:first-child { border-left: 0; }
@@ -181,7 +181,7 @@
 .clist button { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: auto auto; align-items: center; gap: 2px 8px; padding: 8px 12px 8px 8px; border-radius: 3px; background: rgba(255, 255, 255, .04); border: 1px solid rgba(201, 178, 255, .16); text-align: left; clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%); animation: gx-in .4s cubic-bezier(.2, .9, .3, 1.15) var(--d, 0s) both; }
 .clist button:hover { background: rgba(255, 43, 214, .12); border-color: var(--fx); }
 .clist i { grid-row: span 2; width: 26px; height: 26px; background: var(--cta); flex: none; display: grid; place-items: center; font: 400 var(--fs-md)/1 var(--f-display); font-style: normal; color: #fff; clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%); }
-.clist b { font: 800 var(--fs-sm)/1.15 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .clist small { font: 400 var(--fs-md)/1 var(--f-display); color: var(--rosa); }
+.clist b { font: 800 var(--fs-sm)/1.15 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; color: #fff; min-width: 0; overflow-wrap: break-word; }   /* (en dos líneas si no cabe: sin puntos suspensivos) */ .clist small { font: 400 var(--fs-md)/1 var(--f-display); color: var(--rosa); }
 .map-ov { display: none; }
 .cbar2 { grid-column: 2 / -1; height: 4px; background: rgba(255, 255, 255, .1); overflow: hidden; } .cbar2 u { display: block; height: 100%; background: var(--cta); }
 
@@ -207,8 +207,8 @@
 .filters button.on { color: #fff; }
 .filters button.on::after { content: ''; position: absolute; left: 8px; right: 8px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--c, var(--cyan)); box-shadow: 0 0 10px var(--c, var(--cyan)); }
 .towns { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 12px; }
-.tcard { position: relative; text-align: left; padding: 16px 16px 16px 20px; border-radius: var(--r); background: linear-gradient(160deg, color-mix(in srgb, var(--c) 22%, rgba(38, 24, 76, .75)), rgba(34, 12, 70, .84) 70%); border: 1px solid var(--line); transition: transform .15s, border-color .15s; display: flex; flex-direction: column; gap: 8px; }
-.tcard.has-cov { padding-top: 0; overflow: hidden; } .tcard .tcov { display: block; width: calc(100% + 36px); margin: 0 -16px 2px -20px; aspect-ratio: 16 / 7; object-fit: cover; object-position: 30% 55%; -webkit-mask: linear-gradient(180deg, #000 70%, transparent); mask: linear-gradient(180deg, #000 70%, transparent); }
+.tcard { position: relative; text-align: left; --tp-l: 20px; --tp-r: 16px; padding: 16px var(--tp-r) 16px var(--tp-l); border-radius: var(--r); background: linear-gradient(160deg, color-mix(in srgb, var(--c) 22%, rgba(38, 24, 76, .75)), rgba(34, 12, 70, .84) 70%); border: 1px solid var(--line); transition: transform .15s, border-color .15s; display: flex; flex-direction: column; gap: 8px; }
+.tcard.has-cov { padding-top: 0; overflow: hidden; } .tcard .tcov { display: block; width: calc(100% + var(--tp-l) + var(--tp-r)); margin: 0 calc(-1 * var(--tp-r)) 2px calc(-1 * var(--tp-l));   /* (de borde a borde de la tarjeta, sea cual sea su relleno) */ aspect-ratio: 16 / 7; object-fit: cover; object-position: 30% 55%; -webkit-mask: linear-gradient(180deg, #000 70%, transparent); mask: linear-gradient(180deg, #000 70%, transparent); }
 .tcard.has-cov .tstamp { top: auto; }
 .tcard::before { content: ''; position: absolute; left: 0; top: 16px; bottom: 16px; width: 3px; border-radius: 0 3px 3px 0; background: var(--c); }
 .tcard:hover { transform: translateY(-3px); border-color: var(--line2); }
@@ -1105,7 +1105,9 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .cuentos .ct-lam.locked img { filter: blur(3px) grayscale(.5) brightness(.55); transform: scale(1.04); }
 .cuentos .ct-lam span { position: relative; display: grid; place-items: center; width: 72px; height: 72px; border-radius: 50%; background: rgba(20, 6, 46, .6); border: 1px solid rgba(201, 178, 255, .35); }
 .cuentos .ct-pl { font-style: italic; color: var(--lila) !important; } .cuentos .ar-tx details p { font-size: var(--fs-sm); } .cuentos .ct-go { margin-top: 8px; min-height: 44px; padding: 8px 16px; display: inline-flex; align-items: center; gap: 8px; }
-@media (max-width: 560px), (orientation: landscape) and (max-height: 440px) { .armorial .ar-grid { grid-template-columns: 1fr; } .armorial .ar { grid-template-columns: 84px 1fr; } .armorial .ar canvas { width: 84px; } .cuentos .ct { grid-template-columns: 240px 1fr; } }
+@media (max-width: 560px), (orientation: landscape) and (max-height: 440px) { .armorial .ar-grid { grid-template-columns: 1fr; } .armorial .ar { grid-template-columns: 84px 1fr; } .armorial .ar canvas { width: 84px; } }
+/* (el cuento con su lámina al lado solo en el móvil tumbado; de pie, la lámina entera arriba y el texto debajo) */
+@media (orientation: landscape) and (max-height: 440px) { .cuentos .ct { grid-template-columns: 240px minmax(0, 1fr); } }
 .sh-arms { display: grid; grid-template-columns: 90px 1fr; gap: 12px; align-items: start; margin: 0 0 12px; } .sh-arms canvas { width: 90px; height: auto; } .sh-arms p { margin: 0; }
 .sh-arms .lnk { background: none; border: 0; color: #ff7ac8; font-weight: 800; text-decoration: underline; padding: 8px 0; cursor: pointer; font: inherit; }
 /* edad en la bienvenida y en el perfil */
@@ -1138,7 +1140,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   /* pueblos: tres columnas con portadas más bajas */
   .towns { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
   .tcard.has-cov .tcov { aspect-ratio: 16 / 6; }
-  .tcard { padding: 12px 16px 12px 16px; gap: 8px; } .tcard b { font-size: var(--fs-md); } .tcard p { font-size: var(--fs-sm); }
+  .tcard { --tp-l: 16px; --tp-r: 16px; padding: 12px var(--tp-r) 12px var(--tp-l); gap: 8px; } .tcard b { font-size: var(--fs-md); } .tcard p { font-size: var(--fs-sm); }
   /* ficha del pueblo: imagen a la izquierda; misiones y botón a la derecha, siempre a la vista */
   .sheet { align-items: center; }
   .sheet-in { width: min(920px, calc(100vw - 24px)); max-height: calc(100dvh - 16px); display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; border-radius: 18px; }
@@ -1270,3 +1272,21 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   .sh-foot { grid-column: 2; grid-row: 2; }
   .sheet-in > .x { z-index: 4; }
 }
+/* tarjeta de comarca: su lámina entera, en 16:9, y el sello a caballo entre la lámina y el texto */
+.ccard { container-type: inline-size; }
+.ccard .cimg { height: auto; aspect-ratio: 16 / 9; background-position: center; }
+.ccard .cstamp { top: calc(100cqw * 9 / 16 - 54px); }
+/* torneos: las dos figuras (pelota y fútbol) del mismo tamaño, apoyadas abajo y centradas en su hueco */
+.sport { --fig-h: 232px; } .sport .sp-fig { min-height: var(--fig-h); } .sport .sp-av { height: var(--fig-h); top: auto; }
+@media (orientation: landscape) and (max-height: 560px) { .sport { --fig-h: 220px; } }
+@media (max-width: 599px), (orientation: portrait) { .sport { --fig-h: 180px; } .sport .sp-fig { align-self: start; height: var(--fig-h); } }   /* (de pie, arriba de su fila: las dos a la misma altura) */
+/* inicio en vertical (móvil o iPad de pie): la lámina entera arriba, en 16:9, y debajo el pueblo, sus misiones y el botón */
+@media (max-aspect-ratio: 1/1) {
+  .hero3d { height: auto; min-height: 0; max-height: none; display: flex; flex-direction: column; }
+  .hero3d .hero-img { position: relative; inset: auto; flex: none; width: 100%; aspect-ratio: 16 / 9; background-position: center;
+    -webkit-mask: linear-gradient(180deg, #000 80%, transparent); mask: linear-gradient(180deg, #000 80%, transparent); }
+  .hero3d .h-shade { display: none; }
+  .hero3d .h-bot { position: relative; left: auto; bottom: auto; width: 100%; padding: 0 16px 16px; }
+}
+/* el iPad de pie: las cinco cifras del inicio en una fila, con el icono menor para que cada rótulo quepa en una línea */
+@media (orientation: portrait) and (min-width: 600px) { .tile { padding: 12px; } .tile :is(img.ico, svg) { width: 32px; height: 32px; } .tile b { white-space: nowrap; } }

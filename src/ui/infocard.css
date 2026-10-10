@@ -23,6 +23,10 @@
   box-shadow: inset 0 0 0 1px rgba(201, 178, 255, .25); }
 .ix-frame > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 .ix-frame.draw > img { object-fit: contain; background: #f3ecd8; }
+/* (la foto real, entera y centrada en su marco: lo que sobra a los lados o arriba y abajo, con la misma foto difuminada
+   detrás, así no se pierde media planta ni quedan bandas vacías) */
+.ix-frame.photo > .ix-bd { position: absolute; inset: -24px; background: #1c0b3a center / cover no-repeat; filter: blur(16px) brightness(.5) saturate(1.1); pointer-events: none; }
+.ix-frame.photo > img { object-fit: contain; object-position: 50% 50%; }
 /* (los dibujos: un icono, un animal o una señal, sobre un foco de luz) */
 .ix-frame.icon { display: grid; place-items: center; background: radial-gradient(60% 55% at 50% 48%, rgba(255, 122, 200, .3), transparent 70%), linear-gradient(160deg, var(--v3), var(--v1)); }
 .ix-frame.icon > :is(.ico, svg, img) { position: relative; inset: auto; width: 78%; height: 78%; object-fit: contain; filter: drop-shadow(0 8px 14px rgba(7, 2, 15, .55)); animation: bob 3s ease-in-out infinite; }
@@ -101,8 +105,8 @@
 .ix-dots i.on { background: var(--fx); box-shadow: var(--glow); }
 
 /* ¿Qué planta es? La foto y las opciones en rejilla */
-.ix.quiz .ix-opts { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ix-in); }
-.ix.quiz .fc-opt { min-height: 48px; margin: 0; padding: 8px 12px; border: 0; border-radius: 4px; background: rgba(255, 255, 255, .08); color: #fff; box-shadow: inset 0 0 0 1px rgba(201, 178, 255, .3);
+.ix.quiz .ix-opts { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--ix-in); }   /* (dos columnas iguales que no se salen de la ficha) */
+.ix.quiz .fc-opt { min-width: 0; min-height: 48px; margin: 0; padding: 8px 12px; border: 0; border-radius: 4px; background: rgba(255, 255, 255, .08); color: #fff; box-shadow: inset 0 0 0 1px rgba(201, 178, 255, .3);
   font: 800 var(--fs-md)/1.2 'Nunito', sans-serif; text-align: left; }
 .ix.quiz .fc-opt.ok { background: #2fd38a; color: #04150c; box-shadow: none; }
 .ix.quiz .fc-opt.ko { background: var(--hot); color: #fff; box-shadow: none; animation: shake .35s; }

@@ -170,9 +170,9 @@ const CSS = `
 .tq-m>div{min-height:20px;padding:1px 8px;font-size:var(--fs-xs)}.tq-m b{font-size:var(--fs-sm)}.tq-cup{margin-top:4px}.tq-cup svg{width:48px;height:30px}
 .tq-tile{min-height:0;height:100%;padding:8px 12px}.tq-tile b{font-size:var(--fs-xl)}.tq-tiles{flex:1}.lg-card.tq-menu-card{grid-template-rows:auto minmax(0,1fr) auto;height:100%}
 }
-@media (max-width:620px) and (orientation:portrait){
+@media (max-width:900px) and (orientation:portrait){
 .lg-card.tq-card{grid-template-columns:1fr;grid-template-rows:none}.tq-br{grid-template-columns:1fr 1fr .8fr;min-height:260px}
-.tq-tiles{grid-template-columns:1fr 1fr}.tq-tile{min-height:150px}.tq-tile.main{grid-column:1/-1}
+.tq-tiles{grid-template-columns:1fr 1fr}.tq-tile{min-height:150px}.tq-tile.main{grid-column:1/-1}.tq-tile b{font-size:var(--fs-xl)}
 }`;
 const TXAPELA = '<svg viewBox="0 0 64 40"><ellipse cx="32" cy="30" rx="29" ry="7" fill="#1b1b22"/><path d="M6 28c2-14 14-22 26-22s24 8 26 22c-8 4-44 4-52 0z" fill="#22232c"/><path d="M30 6c0-3 4-3 4 0" stroke="#22232c" stroke-width="3" fill="none"/><path d="M8 29c10 3 38 3 48 0" stroke="#c8222a" stroke-width="3" fill="none"/></svg>';
 function card(T, p, s, w, l) {
