@@ -8,6 +8,7 @@ import { iconSVG, iconImage } from './ui/icons.js';
 import { icon3DReady } from './ui/icon3d.js';
 import { portraitImg } from './ui/portraits.js';
 import { mountMapView } from './ui/mapview.js';
+import { tr } from './i18n.js';
 import { buildMapVectorsIdle } from './ui/mapvector.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -218,7 +219,7 @@ export class UI {
       if (host === document.body) d.classList.add('solo');
       host.appendChild(d);
       this.dialogOpen = true; document.body.classList.add('talking');
-      let i = 0, typing = null, full = '', lastChoice = -1, lastFace = null;
+      let i = 0, typing = null, full = '', shown = '', lastChoice = -1, lastFace = null;
       const show = () => {
         const L = lines[i];
         this.onDialogLine?.(L);
@@ -229,15 +230,17 @@ export class UI {
           $('.face', d).innerHTML = L.look ? portraitImg(L.look, 'bust', true) : I(L.icon || 'talk', 64);
         }
         $('h3', d).textContent = L.who || '';
-        full = L.text || ''; let k = 0;
-        const p = $('p', d); p.textContent = '';
+        // (en euskera se escribe ya traducido: si no, se veía el castellano letra a letra y cambiaba al final; al
+        // acabar se deja el original para que el traductor lo apunte y el botón «Itzuli» pueda enseñarlo)
+        full = L.text || ''; shown = tr(full); let k = 0;
+        const p = $('p', d); p.textContent = ''; p.dataset.notr = '';
         const ch = $('.choices', d); ch.innerHTML = '';
         $('.next', d).style.display = L.choices ? 'none' : '';
         clearInterval(typing);
         typing = setInterval(() => {
-          k += 2; p.textContent = full.slice(0, k);
+          k += 2; p.textContent = shown.slice(0, k);
           if (k % 6 === 0) this.sound.ui('talk');
-          if (k >= full.length) { clearInterval(typing); typing = null; if (L.choices) showChoices(L); }
+          if (k >= shown.length) { clearInterval(typing); typing = null; delete p.dataset.notr; p.textContent = full; if (L.choices) showChoices(L); }
         }, 20);
         L.onShow?.();
       };
@@ -251,7 +254,7 @@ export class UI {
       };
       const advance = (fromChoice) => {
         const L = lines[i];
-        if (typing) { clearInterval(typing); typing = null; $('p', d).textContent = full; if (L.choices) showChoices(L); return; }
+        if (typing) { clearInterval(typing); typing = null; const p = $('p', d); delete p.dataset.notr; p.textContent = full; if (L.choices) showChoices(L); return; }
         if (L.choices && !fromChoice) return;
         i++;
         if (i >= lines.length) { cleanup(); resolve(lastChoice); return; }

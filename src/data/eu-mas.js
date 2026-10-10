@@ -55,11 +55,13 @@ const e = (x) => T[x] ?? EU_EXACT[x] ?? MAS[x] ?? pair(x) ?? (TR && x.length < 3
 const cap = (x) => x.charAt(0).toUpperCase() + x.slice(1);
 const DIRS = { norte: 'Iparraldera', sur: 'Hegoaldera', este: 'Ekialdera', oeste: 'Mendebaldera', noreste: 'Ipar-ekialdera', noroeste: 'Ipar-mendebaldera', sureste: 'Hego-ekialdera', suroeste: 'Hego-mendebaldera' };
 const low = (x) => x.charAt(0).toLowerCase() + x.slice(1);
+const ec = (a) => { const t = e(a); return t !== a ? t : low(e(cap(a))); };   // («tomate» → «tomatea»: el nombre en minúscula)
 const MES = { enero: 'urtarrila', febrero: 'otsaila', marzo: 'martxoa', abril: 'apirila', mayo: 'maiatza', junio: 'ekaina', julio: 'uztaila', agosto: 'abuztua', septiembre: 'iraila', octubre: 'urria', noviembre: 'azaroa', diciembre: 'abendua' };
 // «10–14 septiembre» → «irailaren 10–14», «31 julio – 6 agosto» → «uztailaren 31 – abuztuaren 6»
-const fecha = (x) => { const t = e(x); if (t !== x) return t; let ok = true;
+const mes = (x) => { let ok = true;
   const r = x.replace(/(\d+(?:–\d+)?)\s+(?:de\s+)?([a-z]+)/g, (m, d, k) => MES[k] ? `${MES[k].slice(0, -1)}aren ${d}` : ((ok = false), m));
-  return ok && r !== x ? r : x; };
+  return ok && r !== x ? r : null; };
+const fecha = (x) => { const t = e(x); return t !== x ? t : mes(x) ?? x; };
 const FOODS = 'Pan|Moras|Avellanas|Manzana|Queso|Cuajada|Miel|Txistorra|Pimientos asados|Uvas|Tomate|Almendras|Talo con txistorra|Pochas|Espárragos|Alcachofa';
 const supply = (s) => s.replace(/\bagua\b/g, 'ura').replace(/\bcomida\b/g, 'janaria').replace(/\by\b/g, 'eta');
 
@@ -67,6 +69,24 @@ export const EU_MAS = { ...MAS, ...T };
 export const EU_RX_MAS = [
   // herriko fitxak, oroigarriak, mendiak eta begiratokiak (2026-10, bigarren itzulia)
   [/^Patrimonio de (.+)$/, (m, a) => `${loc(e(a))} ondarea`],
+  // herriko liburua, mapa, motxila eta denda
+  [/^hacia (\d+)$/, '$1 inguruan'], [/^hacia (\d+) – (\d+)$/, '$1 inguru – $2'], [/^siglo ([IVXL]+)$/, '$1. mendea'],
+  [/^Aros (\d+)\/(\d+)$/, 'Uztaiak $1/$2'], [/^Nivel( \d+)? · (\d+) XP$/, 'Maila$1 · $2 XP'], [/^(.+) · comparsa$/, (m, a) => `${e(a)} · konpartsa`],
+  [/^(\d+)\/(\d+) misiones · completa todas para ganar el sello$/, '$1/$2 misio · osatu denak zigilua irabazteko'],
+  [/^[Cc]on ([A-ZÁÉÍÓÚÑ][^.!?]*)$/, (m, a) => { const t = e(a); return /[aeiou]$/i.test(t) ? t + 'rekin' : rr(t) + 'ekin'; }],
+  [/^Naturaleza de (.+)$/, (m, a) => `${loc(e(a))} natura`], [/^Mapa de (.+)$/, (m, a) => `${loc(e(a))} mapa`],
+  [/^Energía (\d+) % ·$/, 'Energia $1 % ·'], [/^\+(\d+) energía$/, '+$1 energia'],
+  [/^¡(.+?)! Soy (.+?)\. ¿Conoces nuestro producto estrella\? ¡(.+)!$/, (m, h, k, p) => `${e(h)}! ${k} naiz. Ezagutzen duzu gure produktu izarra? ${e(p)}!`],
+  [/^Producto estrella de la comarca · (.+)$/, (m, a) => `Eskualdeko produktu izarra · ${e(a)}`], [/^Comprar por (\d+)$/, 'Erosi: $1'],
+  [/^(.+), de la tienda$/, (m, a) => `${e(a)}, dendakoa`], [/^¡Que aproveche! (.+)$/, (m, a) => `On egin! ${e(a)}`],
+  [/^¡Eskerrik asko! (.+) a cambio de (\d+) txanpon\. Ahora puedes llevarte comida\.$/, (m, a, n) => `Eskerrik asko! ${e(a)}, ${n} txanponen truke. Orain janaria eraman dezakezu.`],
+  [/^La tienda del pueblo está a (\d+) m, hacia el (norte|sur|este|oeste|noreste|noroeste|sureste|suroeste): compra comida o cámbiala por lo que traigas del campo\.$/, (m, d, k) => `Herriko denda ${d} m-ra dago, ${low(DIRS[k])}: erosi janaria edo aldatu landatik ekartzen duzunarengatik.`],
+  [/^(\d+(?:–\d+)?) (enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)$/, (m) => mes(m)],
+  [/^Seguir \((\d+)\/(\d+)\)$/, 'Jarraitu ($1/$2)'], [/^Seguir buscando \((\d+)\/(\d+)\)$/, 'Jarraitu bilatzen ($1/$2)'],
+  [/^Seguir paseando por (.+)$/, (m, a) => `Jarraitu ${ine(e(a))} paseatzen`], [/^Frontón cubierto de (.+)$/, (m, a) => `${loc(e(a))} pilotaleku estalia`],
+  [/^(Torneo por parejas|Torneo de mano) · edición (\d+)$/, (m, a, n) => `${e(a)} · ${n}. edizioa`],
+  [/^Seguir jugando en (.+)$/, (m, a) => `Jarraitu jolasten ${ine(e(a))}`], [/^Jugar en (.+)$/, (m, a) => `Jolastu ${ine(e(a))}`],
+  [/^(.*?) ?· ficha de (flora|fauna)$/, (m, k, f) => `${k ? e(k) + ' · ' : ''}${f}-fitxa`],
   [/^Has completado una misión en (.+)\.$/, (m, a) => `Misio bat osatu duzu ${ine(e(a))}.`],
   [/^Sabio de (.+)$/, (m, a) => `${loc(e(a))} jakintsua`], [/^Mirador de (.+)$/, (m, a) => `${loc(e(a))} begiratokia`],
   [/^Desde aquí se ven (.+)\.$/, (m, a) => `Hemendik ikusten dira: ${a.split(', ').map(e).join(', ')}.`],
@@ -150,7 +170,7 @@ export const EU_RX_MAS = [
   [/^Fíjate bien: (.+)$/, (m, a) => `Erreparatu ondo: ${e(a)}`],
   [/^Recoge (\d+) (.+) en los campos\. Te los marco con un brillo\.$/, (m, n, a) => `Bildu ${n} ${e(a)} soroetan. Distira batez markatuko dizkizut.`],
   [/^Recoge (.+) \((\d+)\/(\d+)\)$/, (m, a, n, k) => `Bildu ${e(a)} (${n}/${k})`], [/^Lleva la cosecha a (.+)$/, (m, a) => `Eraman uzta ${pers(e(a))}`],
-  [/^A la mochila: (.+) ×(\d+) \(para el trueque en la tienda\)$/, (m, a, n) => `Motxilara: ${e(a)} ×${n} (dendako trukerako)`], [/^A la mochila: (.+)$/, (m, a) => `Motxilara: ${e(a)}`],
+  [/^A la mochila: (.+) ×(\d+) \(para el trueque en la tienda\)$/, (m, a, n) => `Motxilara: ${ec(a)} ×${n} (dendako trukerako)`], [/^A la mochila: (.+)$/, (m, a) => `Motxilara: ${ec(a)}`],
   [/^¡Hola, (.+?)! Soy quien más sabe de (.+)\. ¿Aceptas mi reto\? Tres preguntas sobre el pueblo y la comarca\.$/, (m, a, b) => `Kaixo, ${a}! ${gen(e(b))} gauzei buruz gehien dakiena naiz. Nire erronka onartzen duzu? Hiru galdera herriari eta eskualdeari buruz.`],
   [/^Responde bien las preguntas \((\d+)\/(\d+)\)$/, 'Erantzun ondo galderei ($1/$2)'],
   [/^Sabi[oa] (\S+): la historia de (.+)$/, (m, a, b) => `${a} jakintsua: ${gen(e(b))} historia`],
@@ -167,4 +187,8 @@ export const EU_RX_MAS = [
   // «Izena, lanbidea» (gidaria, artzaina…) eta «Mota · Izena, lanbidea»: lanbidea ezaguna denean bakarrik
   [/^([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+), ([^,.;:!?]+)$/, (m, a, b) => EU_ROLES[b] ? `${a}, ${EU_ROLES[b]}` : null],
   [/^Guía (\S+)$/, (m, a) => `${a} gidaria`], [/^Sabi[oa] (\S+)$/, (m, a) => `${a} jakintsua`],
+];
+// zerrendak («Orkatza, Basurdea…»): elementu guztiak itzultzen badira bakarrik; beste plantilla guztien ondoren
+export const EU_RX_LISTA = [
+  [/^([^,.:;!?]{2,32}(?:, [^,.:;!?]{2,32})+)$/, (m, a) => { const L = a.split(', '), T = L.map(x => e(x)); return T.every((t, i) => t !== L[i]) ? T.join(', ') : null; }],
 ];

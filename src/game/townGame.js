@@ -656,7 +656,7 @@ export class TownGame {
   mapLabels() {
     const L = [{ x: PLACES.plaza.x, z: PLACES.plaza.z - 18, label: this.def.name }];
     if (TOWN.church) L.push({ x: TOWN.church.x ?? PLACES.church.x, z: TOWN.church.z ?? PLACES.church.z, icon: 'church', label: 'Iglesia' });
-    for (const l of TOWN.landmarks) L.push({ x: l.spot.x, z: l.spot.z, icon: l.kind, label: l.name.length > 24 ? l.name.slice(0, 23).replace(/\s+\S*$/, '') + '…' : l.name })   // (se corta por palabra entera);
+    for (const l of TOWN.landmarks) L.push({ x: l.spot.x, z: l.spot.z, icon: l.kind, label: (n => n.length > 24 ? n.slice(0, 23).replace(/\s+\S*$/, '') + '…' : n)(tr(l.name)) })   // (se corta por palabra entera, ya traducido);
     if (TOWN.farm) L.push({ x: TOWN.farm.x, z: TOWN.farm.z, icon: 'sheep', label: 'Granja' });
     L.push({ x: PLACES.fields.x, z: PLACES.fields.z, icon: 'wheat', label: 'Campos' });
     if (this.fronton) L.push({ x: this.fronton.spot.x, z: this.fronton.spot.z, icon: 'pelota', label: 'Frontón', text: 'Acércate al frontón para jugar a pelota', fronton: true, go: false });
