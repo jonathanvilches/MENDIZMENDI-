@@ -18,6 +18,9 @@ const FOTOS = WEB || (!process.argv.includes('build') && !process.env.MINI) ? 'w
 // tercio menos) y los personajes de Meshy con la textura a 1024 px (tools/meshy-textura.mjs); src/util/glb.js los
 // descomprime al cargarlos. La web y el servidor de pruebas siguen con los modelos tal cual y la textura de 2048 px
 const MINI = FOTOS === 'mini';
+// LIGERO=1 npx vite build: archivo único aún más pequeño (unos 6 MB menos) con los personajes de Meshy en su versión
+// ligera (src/assets/meshy/lod: un tercio de triángulos y textura de 512 px), para visores que no abren el normal
+const MESHY_FULL = MINI ? (process.env.LIGERO ? './src/assets/meshy/lod' : './src/assets/meshy-1024') : './src/assets/meshy';
 const glbGzip = { name: 'glb-gzip', enforce: 'pre', load(id) {
   if (!/\.glb\?url$/.test(id)) return;
   return `export default ${JSON.stringify('data:application/gzip;base64,' + gzipSync(readFileSync(id.replace(/\?url$/, '')), { level: 9 }).toString('base64'))}`;
@@ -45,7 +48,7 @@ const app = {
 
 export default defineConfig({
   base: './',
-  resolve: { alias: { '@flora-fotos': fileURLToPath(new URL(`./src/assets/flora/${FOTOS}`, import.meta.url)), '@laminas': fileURLToPath(new URL(`./src/assets/laminas/${FOTOS}`, import.meta.url)), '@meshy-full': fileURLToPath(new URL(MINI ? './src/assets/meshy-1024' : './src/assets/meshy', import.meta.url)) } },
+  resolve: { alias: { '@flora-fotos': fileURLToPath(new URL(`./src/assets/flora/${FOTOS}`, import.meta.url)), '@laminas': fileURLToPath(new URL(`./src/assets/laminas/${FOTOS}`, import.meta.url)), '@meshy-full': fileURLToPath(new URL(MESHY_FULL, import.meta.url)) } },
   plugins: WEB ? [sinRedir, app] : MINI ? [sinRedir, glbGzip, viteSingleFile()] : [sinRedir, viteSingleFile()],
   define: { __WEB__: JSON.stringify(WEB) },
   build: WEB

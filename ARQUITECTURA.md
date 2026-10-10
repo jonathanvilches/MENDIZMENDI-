@@ -152,6 +152,8 @@ El archivo único (`npx vite build`) es el que se abre en el móvil con Sitecase
 van comprimidos con gzip (`vite.config.js`, plugin `glb-gzip`; los descomprime `src/util/glb.js` con el fflate de
 three.js) y los personajes de Meshy con la textura a 1024 px (`src/assets/meshy-1024`, `tools/meshy-textura.mjs`).
 Con `MINI=1 npx vite` el servidor de pruebas carga lo mismo que el archivo único. La web (`WEB=1`) no cambia.
+Con `LIGERO=1 npx vite build` sale una variante unos 6 MB más pequeña (`MENDIMENDIZ-jugar-ligero.html`): los
+personajes de Meshy van en su versión ligera (`src/assets/meshy/lod`) y todo lo demás es igual.
 
 ```
 npx vite build
