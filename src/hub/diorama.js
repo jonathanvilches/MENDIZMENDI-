@@ -1,6 +1,6 @@
 // Diorama 3D de cada comarca para el centro de mando: un pueblo de verdad (las mismas casas e iglesia
 // que en la partida), prados con hierba que se mueve, árboles, montes, nubes, ovejas y pájaros.
-// Se usa en vivo (portada con el personaje) y como foto fija para fondos y pantallas de carga.
+// Hoy solo lo usa el laboratorio (lab/portadabake.html) para sacar fotos fijas: las portadas del juego son las láminas.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { buildTextures, TEX } from '../world/textures.js';
@@ -11,15 +11,12 @@ import { lamp } from '../world/village.js';
 import { houseStyle } from '../world/townBuilder.js';
 import { TREE_MAKERS } from '../world/nature.js';
 import { quadruped, SPECIES } from '../actors/animals.js';
-import { laminaUrl } from '../ui/laminas.js';
 import { buildAnimal, preloadAnimals } from '../actors/animalGlb.js';
 import { TONES } from '../ui/art.js';
 import { fbm } from '../util/noise.js';
 import { mulberry32, smoothstep, clamp } from '../util/math.js';
 import COMARCAS from '../data/comarcas.json';
 import { LEVELS } from '../data/levels.js';
-import { getImg, putImg, enqueue } from '../util/store.js';
-import { offscreen, offscreenCanvas } from '../util/offscreen.js';
 
 const FAM = {};
 for (const l of LEVELS) FAM[l.comarca] ||= l.family;
@@ -301,22 +298,7 @@ export function buildDiorama(comarcaId, { live = true } = {}) {
   return { scene, update, sun, hf, tone, T };
 }
 
-// Foto fija de la comarca (portada, fondos, fichas y pantalla de carga). Viene ya hecha con el juego
-// (src/assets/portadas, tools/portadabake.mjs): montar el diorama entero en el móvil costaba tiempo y memoria. Si
-// faltara alguna, se genera como antes: en segundo plano, de una en una, guardada en IndexedDB y, mientras tanto, con
-// un degradado con los colores de la comarca que luego se sustituye.
-const BAKED = {};
-for (const [p, u] of Object.entries(import.meta.glob('../assets/portadas/*.webp', { eager: true, query: '?url', import: 'default' }))) BAKED[p.split('/').pop().replace('.webp', '')] = u;
-// la portada del menú, estilo portada de videojuego: la vista de la comarca (la de arriba) de fondo y delante el
-// personaje del jugador en grande, con la misma luz de atardecer (tools/heroav.mjs)
-const HERO_AV = {};
-for (const [p, u] of Object.entries(import.meta.glob('../assets/portadas/heroe/av-*.webp', { eager: true, query: '?url', import: 'default' }))) HERO_AV[p.split('/').pop().replace('av-', '').replace('.webp', '')] = u;
-// la portada de cada pueblo: su lámina (src/data/laminas.js), la ilustración de su monumento con el explorador. Las
-// portadas anteriores, fotos del propio juego con el personaje en acción delante, están en tools/portadas-anteriores
-/** La portada del pueblo (o null si no la tiene: entonces se usa la de su comarca); small: la de las tarjetas. */
-export const townCover = (id, small = false) => laminaUrl(id, small);
-/** El personaje para la portada del menú (o null si ese personaje no lo tiene). */
-export const heroAvatar = (avatar) => HERO_AV[avatar] || null;
+// Foto fija de la comarca, solo para el laboratorio (lab/portadabake.html): el juego ya usa las láminas de portada
 function drawShot(R, comarcaId, w, h) {
   const D = buildDiorama(comarcaId, { live: false });
   R.setClearColor(D.scene.fog.color, 1);
@@ -326,47 +308,5 @@ function drawShot(R, comarcaId, w, h) {
   R.render(D.scene, cam);
   D.scene.traverse(o => { if (o.geometry) o.geometry.dispose(); });
 }
-function renderShot(comarcaId, w, h) {
-  drawShot(offscreen(w, h), comarcaId, w, h);
-  return offscreenCanvas().toDataURL('image/jpeg', 0.84);
-}
 /** Para hornear las fotos (tools/portadabake.mjs): con un renderizador propio del tamaño pedido. */
 export function bakeShot(R, comarcaId, w, h) { R.setSize(w, h, false); drawShot(R, comarcaId, w, h); return R.domElement.toDataURL('image/png'); }
-const holders = new Map();
-function placeholder(comarcaId, key) {
-  if (holders.has(key)) return holders.get(key);
-  const c = COMARCAS.find(x => x.id === comarcaId) || COMARCAS[0];
-  const col = (c.color || '#8A2BE2').replace('#', '%23');
-  // el comentario con la clave hace única la cadena, para poder encontrarla y cambiarla después
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 9"><!--mm-${key}--><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="%2387c7ef"/><stop offset=".45" stop-color="%23cfe8f5"/><stop offset=".7" stop-color="${col}"/><stop offset="1" stop-color="%232a1a40"/></linearGradient></defs><rect width="16" height="9" fill="url%28%23g%29"/></svg>`;
-  const u = 'data:image/svg+xml,' + svg.replace(/"/g, '%22').replace(/</g, '%3C').replace(/>/g, '%3E').replace(/ /g, '%20');
-  holders.set(key, u);
-  return u;
-}
-// cambia el degradado provisional por la foto en todos los sitios donde se haya usado
-function swapIn(ph, url) {
-  for (const e of document.querySelectorAll('[style]')) {
-    const st = e.getAttribute('style');
-    if (st.includes(ph)) e.setAttribute('style', st.split(ph).join(url));
-  }
-}
-const waiting = new Map();     // clave → avisos pendientes (cada llamada guarda el suyo)
-export function dioramaShot(comarcaId, w = 1280, h = 720, { front = false, onReady } = {}) {
-  // la horneada: la pequeña para las tarjetas, la grande para lo demás
-  const baked = (w <= 480 && BAKED[comarcaId + '-s']) || BAKED[comarcaId];
-  if (baked) { onReady?.(baked); return baked; }
-  if (w > 960) { h = Math.round(h * 960 / w); w = 960; }
-  const key = comarcaId + w + 'x' + h;
-  const hit = getImg('d:' + key);
-  if (hit) { onReady?.(hit); return hit; }
-  const ph = placeholder(comarcaId, key);
-  if (onReady) { if (!waiting.has(key)) waiting.set(key, []); waiting.get(key).push(onReady); }
-  enqueue('d:' + key, () => {
-    let url = getImg('d:' + key);
-    if (!url) { try { url = renderShot(comarcaId, w, h); } catch (e) { console.warn('foto de comarca', e); return; } putImg('d:' + key, url); }
-    swapIn(ph, url);
-    for (const f of waiting.get(key) || []) f(url);
-    waiting.delete(key);
-  }, front);
-  return ph;
-}

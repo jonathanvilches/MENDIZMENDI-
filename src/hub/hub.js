@@ -15,12 +15,11 @@ import { floraFoto } from '../ui/floraFoto.js';
 import { readTownArms } from '../ui/escudo.js';
 import { releaseOffscreen } from '../util/offscreen.js';
 import { avatarPortrait, portraitImg, avatarPortraitImg } from '../ui/portraits.js';
-import { stampImg, landImg, townImg } from '../assets.js';
+import { stampImg } from '../assets.js';
 import { Stage, releaseStage } from './stage.js';
 import { getLang, setLang, langChosen } from '../i18n.js';
-import { dioramaShot, heroAvatar, townCover } from './diorama.js';
-import { laminaUrl, laminasDe, laminaRail, bindLaminas } from '../ui/laminas.js';
-import { LAMINAS, CUENTO_LAMINA, COMARCA_LAMINA } from '../data/laminas.js';
+import { laminaUrl, laminasDe, laminaRail, bindLaminas, townCover, comarcaCover, townImg } from '../ui/laminas.js';
+import { LAMINAS, CUENTO_LAMINA } from '../data/laminas.js';
 import { CLUBS } from '../futbol/clubs.js';
 import { PELOTARI_IMG } from '../ui/sportCard.js';
 import OSASUNA_VS from '../assets/meshy/portraits/osasuna_vs.webp?url';
@@ -138,7 +137,7 @@ export class Hub {
     const secScreen = this.nav.find(n => n[0] === screen)?.[3];
     this.root.querySelectorAll('#hNav button').forEach(b => b.classList.toggle('on', !!(b.dataset.s === screen || (screen === 'comarca' && b.dataset.s === 'map') || (b.dataset.s === 'more' && secScreen))));
     const bgc = screen === 'comarca' ? arg : (levelById(profile().last) || LEVELS[0]).comarca;
-    if (this.bgc !== bgc) { this.bgc = bgc; $('.bgimg', this.root).style.backgroundImage = `url(${landImg(bgc, 1280, 720, true)})`; }
+    if (this.bgc !== bgc) { this.bgc = bgc; $('.bgimg', this.root).style.backgroundImage = `url(${comarcaCover(bgc, true)})`; }
     this.root.dataset.screen = screen;
     const m = $('#hMain', this.root);
     if (!this['s_' + screen]) { screen = this.screen = 'home'; this.root.dataset.screen = screen; }   // pantalla desconocida: la portada
@@ -187,18 +186,12 @@ export class Hub {
     const done = p.towns[last.id]?.done || {};
     const ms = missionSlots(last, edadDe(p)).map(({ m, si: i }) => `<span class="mi ${done[i] ? 'ok' : ''}" title="${esc(m.title || m.name || TYPE_NAME[m.type] || '')}">${I(TYPE_ICON[m.type] || 'star', 40)}${done[i] ? `<i class="tick">${I('check', 16)}</i>` : ''}</span>`).join('');
     this.after = () => {
-      // portada de juego: una imagen fija con el personaje dentro de la escena de su comarca, sin escena 3D en vivo (en el
-      // móvil montaba el diorama entero y un segundo WebGL solo para el menú). Si faltara, foto y personaje por separado
-      const fig = $('.hero-av', this.root);
-      if (fig) fig.onclick = () => { fig.classList.remove('hop'); void fig.offsetWidth; fig.classList.add('hop'); this.sound?.ui('click'); };
       this.drawMiniMap($('#homeMap', this.root));
-      this.lazyLand();
     };
     const next = this.suggestions();
     return `
     <section class="hero3d">
-      ${heroAvatar(p.avatar) ? `<div class="hero-img key" style="--bg:url(${landImg(last.comarca, 1280, 720, true)})"></div><img class="hero-av key" src="${heroAvatar(p.avatar)}" alt="">`
-        : `<div class="hero-img" style="background-image:url(${landImg(last.comarca, 1280, 720, true)})">${avatarPortraitImg(p.avatar, 'hero').replace('<img ', '<img class="hero-av" ')}</div>`}
+      <div class="hero-img" style="background-image:url(${townImg(last)})"></div>
       <div class="h-shade"></div>
       <button class="chapter" data-comarca="${last.comarca}" style="--c:${cm?.color}"><img src="${stampImg(last.comarca)}" alt=""><span><small>Capítulo ${chapter} · ${esc(cm?.name || '')}</small><b>${cpr.stamps}/${cts.length} sellos de la comarca</b><span class="cbar"><i style="width:${cts.length ? cpr.stamps / cts.length * 100 : 0}%"></i></span></span></button>
       <div class="h-bot">
@@ -273,16 +266,6 @@ export class Hub {
       </div>
     </section>`;
   }
-  // fotos 3D de las comarcas: se generan de una en una sin bloquear la pantalla
-  lazyLand() {
-    const els = [...this.root.querySelectorAll('[data-land]')];
-    const step = () => {
-      const e = els.shift(); if (!e) return;
-      if (e.isConnected) { const [id, w, h] = e.dataset.land.split(':'); dioramaShot(id, +w || 640, +h || 360, { onReady: (u) => { if (e.isConnected) { e.style.backgroundImage = `url(${u})`; e.classList.add('ready'); } } }); }
-      step();
-    };
-    step();
-  }
   suggestions() {
     const p = profile();
     const list = LEVELS.filter(l => !townProgress(p, l).stamp).slice(0, 4);
@@ -291,7 +274,7 @@ export class Hub {
   comarcaCard(c) {
     const p = profile(), pr = comarcaProgress(p, c.id), ts = comarcaTowns(c.id);
     return `<button class="ccard ${ts.length ? '' : 'soon'}" data-comarca="${c.id}" style="--c:${c.color}">
-      <div class="cimg" data-land="${c.id}:480:300"></div>
+      <div class="cimg ready" style="background-image:url(${comarcaCover(c.id, true)})"></div>
       <img class="cstamp ${pr.stamps ? '' : 'gray'}" src="${stampImg(c.id)}" alt="">
       <div class="cbody"><b>${esc(c.name)}</b><small>${cnt(ts.length, 'pueblo jugable', 'pueblos jugables')} · ${cnt(pr.stamps, 'sello', 'sellos')}${ts.length ? ` · ${TXAPELAS()[c.id] ? '¡txapela de pelota!' : 'txapela: por ganar'}` : ''}</small></div>
       <div class="cring">${ring(pr.pct, 50, '#fff')}</div>
@@ -339,7 +322,7 @@ export class Hub {
     const chips = (arr, fb) => (arr || []).map(n => { const k = floraId(n); return chip(n, fb, k && 'flora:' + k); }).join('');
     this.after = () => this.root.querySelectorAll('.nchip[data-k]').forEach(b => b.onclick = () => showFicha(b.dataset.k, { ui: { sound: this.sound }, button: 'Cerrar' }));
     return `
-    <section class="chero" style="--c:${c.color};--bg:url(${laminaUrl(COMARCA_LAMINA[id]) || landImg(id)})">
+    <section class="chero" style="--c:${c.color};--bg:url(${comarcaCover(id)})">
       <button class="back" data-go="map">${I('back', 26)} Mapa</button>
       <img class="bigstamp ${pr.stamps ? '' : 'gray'}" src="${stampImg(id)}" alt="">
       <div><small class="kicker">Comarca</small><h1>${esc(c.full || c.name)}</h1><p>${cnt(ts.length, 'pueblo para jugar', 'pueblos para jugar')} · río ${esc(c.river || '')}</p></div>
@@ -377,9 +360,9 @@ export class Hub {
       : missionSlots(l, edadDe(p)).map(x => x.m);
     const title = (m) => m.title || (m.type === 'visit' ? `Conoce ${l.name}` : m.type === 'quiz' ? `El sabio de ${l.name}` : m.name || m.product || TYPE_NAME[m.type]);
     const lams = laminasDe({ town: l.id });
-    const s = el(`<div class="sheet"><div class="sheet-in" style="--c:${c?.color};--bg:url(${townImg(l)})">
+    const s = el(`<div class="sheet"><div class="sheet-in" style="--c:${c?.color}">
       <button class="x" aria-label="Cerrar">${I('close', 22)}</button>
-      <div class="sh-hero"><small class="kicker">${esc(c?.name)}</small><h1>${esc(l.name)}</h1><p>${esc(l.intro || '')}</p></div>
+      <div class="sh-hero"><img class="sh-cov" src="${townImg(l)}" alt=""><div class="sh-txt"><small class="kicker">${esc(c?.name)}</small><h1>${esc(l.name)}</h1><p>${esc(l.intro || '')}</p></div></div>
       <div class="sh-body">
         <h3>${I('check', 24)} Misiones (${t.done}/${t.total})</h3>
         <ul class="mlist">${ms.map((m, i) => { const k = l.missions?.includes(m) ? l.missions.indexOf(m) : i; return `<li class="${ts?.done?.[k] ? 'ok' : ''}">${I(TYPE_ICON[m.type], 34)}<div><b>${esc(title(m))}</b><small>${TYPE_NAME[m.type]}${m.host ? ' · con ' + esc(m.host.name) : ''}</small></div>${ts?.done?.[k] ? I('check', 26) : ''}</li>`; }).join('')}</ul>
