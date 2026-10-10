@@ -82,7 +82,8 @@ async function warmPortraits(g, ui) {
 async function boot() {
   startI18n();
   startVerMas(); startFrames();   // (los textos largos, plegados con «Ver más»)
-  await loadStore();
+  // (con tope de 2,5 s: en algunos visores de iPhone la base de datos del navegador no responde nunca)
+  await Promise.race([loadStore(), new Promise(r => setTimeout(r, 2500))]);
   const canvas = document.getElementById('c');
   const input = new Input(canvas);
   const sound = new Sound();
