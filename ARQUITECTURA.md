@@ -91,7 +91,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   el autor. Cada pueblo tiene su portada (su monumento) y otras de sus leyendas, oficios, cosechas, animales y fiestas;
   las comarcas, sus paisajes. Se ven en la carga, en la ficha y la tarjeta del pueblo, en la cabecera de cada comarca,
   en los cuentos, en el taller de cada oficio, en Torneos y en el álbum (Más · Láminas), en tiras que se deslizan de
-  lado y con un visor a pantalla completa. En la web van todas, a 1280 × 720 y con copia de 480 × 270 para tarjetas;
+  lado y con un visor a pantalla completa. Van en WebP, que lee cualquier iPhone: en AVIF, algunos visores no las
+  enseñaban. En la web van todas, a 1280 × 720 y con copia de 480 × 270 para tarjetas;
   en el archivo único, a 640 × 360, solo las que se ven fuera del álbum (alias `@laminas` de `vite.config.js`). Las
   portadas anteriores, con el personaje del jugador delante, están guardadas en `tools/portadas-anteriores`.
 - **Iconografía de una sola familia:** un archivo `src/assets/icons3d/<nombre>.webp` sustituye al icono de ese nombre

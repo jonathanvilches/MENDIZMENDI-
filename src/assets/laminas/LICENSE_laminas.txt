@@ -1,4 +1,4 @@
 Láminas del explorador por Navarra (web/ y mini/).
 Ilustraciones entregadas por el autor del proyecto MENDIMENDIZ el 2026-10-10, en dos archivos ZIP («fotos.juego», partes 1 y 2).
 Titularidad: el autor del proyecto. Pendiente de anotar con qué herramienta se hicieron y sus condiciones de uso (legal/registro-licencias.csv).
-Cambios: redimensionadas (1280 × 720, 640 × 360 y 480 × 270) y convertidas a AVIF. El reparto de cada una está en src/data/laminas.js.
+Cambios: redimensionadas (1280 × 720, 640 × 360 y 480 × 270) y convertidas a WebP. El reparto de cada una está en src/data/laminas.js.
