@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import { viteSingleFile } from 'vite-plugin-singlefile';
 import { readFileSync } from 'node:fs';
+import { gzipSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
@@ -11,7 +12,16 @@ import { fileURLToPath } from 'node:url';
 //    queda guardado (caché del navegador y de la app instalada): menos memoria, arranque rápido y juego sin conexión.
 const WEB = !!process.env.WEB;
 // las fotos de la flora y las láminas: grandes en la web y en el servidor de pruebas; más ligeras en el archivo único
-const FOTOS = WEB || !process.argv.includes('build') ? 'web' : 'mini';
+// (MINI=1 con el servidor de pruebas: carga lo mismo que el archivo único, para probarlo)
+const FOTOS = WEB || (!process.argv.includes('build') && !process.env.MINI) ? 'web' : 'mini';
+// en el archivo único (el que se abre en el móvil con Sitecase), los modelos 3D van comprimidos con gzip (casi un
+// tercio menos) y los personajes de Meshy con la textura a 1024 px (tools/meshy-textura.mjs); src/util/glb.js los
+// descomprime al cargarlos. La web y el servidor de pruebas siguen con los modelos tal cual y la textura de 2048 px
+const MINI = FOTOS === 'mini';
+const glbGzip = { name: 'glb-gzip', enforce: 'pre', load(id) {
+  if (!/\.glb\?url$/.test(id)) return;
+  return `export default ${JSON.stringify('data:application/gzip;base64,' + gzipSync(readFileSync(id.replace(/\?url$/, '')), { level: 9 }).toString('base64'))}`;
+} };
 // la redirección a docs/ de index.html solo sirve sin compilar (GitHub Pages desde la raíz): fuera al compilar
 const sinRedir = { name: 'sin-redireccion', transformIndexHtml: (html) => html.replace(/<!-- en GitHub Pages[\s\S]*?<script id="ir-a-docs">[\s\S]*?<\/script>\n?/, '') };
 // en la web: la app se puede instalar (añadir a la pantalla de inicio) y abre a pantalla completa
@@ -35,8 +45,8 @@ const app = {
 
 export default defineConfig({
   base: './',
-  resolve: { alias: { '@flora-fotos': fileURLToPath(new URL(`./src/assets/flora/${FOTOS}`, import.meta.url)), '@laminas': fileURLToPath(new URL(`./src/assets/laminas/${FOTOS}`, import.meta.url)) } },
-  plugins: WEB ? [sinRedir, app] : [sinRedir, viteSingleFile()],
+  resolve: { alias: { '@flora-fotos': fileURLToPath(new URL(`./src/assets/flora/${FOTOS}`, import.meta.url)), '@laminas': fileURLToPath(new URL(`./src/assets/laminas/${FOTOS}`, import.meta.url)), '@meshy-full': fileURLToPath(new URL(MINI ? './src/assets/meshy-1024' : './src/assets/meshy', import.meta.url)) } },
+  plugins: WEB ? [sinRedir, app] : MINI ? [sinRedir, glbGzip, viteSingleFile()] : [sinRedir, viteSingleFile()],
   define: { __WEB__: JSON.stringify(WEB) },
   build: WEB
     ? { target: 'es2020', outDir: 'docs', emptyOutDir: true, assetsInlineLimit: 2048, chunkSizeWarningLimit: 5000, copyPublicDir: true,

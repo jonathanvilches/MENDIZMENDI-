@@ -3,6 +3,7 @@
 // perros pastores…), a su tamaño real, y elige su animación según lo que hace: pastar, quieto, andar o galopar.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { loadGLB } from '../util/glb.js';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { mergeGeometries, toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';   // los modelos van comprimidos
@@ -48,7 +49,7 @@ function loadModel(name) {
   if (LOADS[name]) return LOADS[name];
   if (!URLS[name]) return Promise.resolve();
   if (!LOADER) { LOADER = new GLTFLoader(); LOADER.setMeshoptDecoder(MeshoptDecoder); }
-  return (LOADS[name] = LOADER.loadAsync(URLS[name]).then(g => { GLTF[name] = g; }).catch(e => console.warn('animal', name, e)));
+  return (LOADS[name] = loadGLB(LOADER, URLS[name]).then(g => { GLTF[name] = g; }).catch(e => console.warn('animal', name, e)));
 }
 /** Descarga todos los modelos (o los de la lista de especies). */
 export function preloadAnimals(kinds) {

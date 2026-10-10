@@ -4,6 +4,7 @@
 // almendras, nueces, tomates, alubias, talo. Cada producto es un grupo pequeño (~0,1–0,4 m) listo para colocar.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { loadGLB } from '../util/glb.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';   // el modelo va comprimido
 import foodUrl from '../assets/food/food.glb?url';
 
@@ -15,7 +16,7 @@ const FOODCOL = { DarkRed: '#c0261c', DarkBrown: '#5a3a22', DarkGreen: '#3f7a2c'
   LightBrown: '#c8a888', Green: '#3f8a2e', White: '#f2efe8', PalePink2: '#b04a8a', Purple: '#4a2a5a', LightGreen: '#5aa83a', PaleRed: '#c84a3a', Yellow: '#f0c83a' };
 /** Carga los modelos de fruta y verdura (una vez). */
 export function preloadFood() {
-  if (!foodP) foodP = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(foodUrl).then(g => {
+  if (!foodP) foodP = loadGLB(new GLTFLoader().setMeshoptDecoder(MeshoptDecoder), foodUrl).then(g => {
     // cada producto es un nodo del archivo (a veces con varias piezas, una por material): se centra y se escala
     // a su medida real dentro de un grupo que luego se copia
     for (const node of [...g.scene.children]) {
