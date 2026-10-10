@@ -38,7 +38,7 @@ function hud(ui, { title, hint, icon, buttons = '', extra = '' }) {
 let live = null;   // el minijuego 3D en marcha: si empieza otro, el anterior se cierra del todo antes
 
 export function play3d(ui, opts, setup) {
-  if (window.__autoWin) return Promise.resolve({ win: true });
+  if (window.__autoWin) { window.__autoSeen?.(opts); return Promise.resolve({ win: true }); }
   live?.abort();
   return new Promise((res) => {
     const H = hud(ui, opts), S = new Stage(ui, opts.stage);

@@ -1,0 +1,925 @@
+[
+ {
+  "town": "elizondo",
+  "misiones": [
+   {
+    "i": 0,
+    "type": "visit",
+    "title": "Conoce Elizondo",
+    "host": "Guía Ane",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 1,
+    "type": "trade",
+    "title": "El cestero",
+    "host": "Martín, cestero",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 2,
+    "type": "process",
+    "title": "Del rebaño al queso",
+    "host": "Ane, pastora",
+    "steps": [
+     "Ordeñar las ovejas latxas",
+     "Cuajar la leche",
+     "Cortar y prensar la cuajada",
+     "Salar y dejar madurar"
+    ],
+    "bad": []
+   },
+   {
+    "i": 3,
+    "type": "legend",
+    "title": "La lamia de Xorroxin",
+    "host": "Maddi, lavandera",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 4,
+    "type": "dance",
+    "title": "Baztan dantza",
+    "host": "Leire, dantzari",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 5,
+    "type": "feria",
+    "title": "Feria de ganado del Baztan",
+    "host": "Tratante de ganado",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 6,
+    "type": "quiz",
+    "title": "El sabio de Elizondo",
+    "host": "Sabio del concejo",
+    "steps": null,
+    "bad": []
+   }
+  ],
+  "juegos": [
+   {
+    "juego": "ordenar",
+    "mision": "Del rebaño al queso",
+    "win": true,
+    "errors": 0
+   },
+   {
+    "juego": "pregunta",
+    "mision": "El sabio de Elizondo",
+    "preguntas": 10,
+    "win": true,
+    "errors": 0
+   }
+  ],
+  "errores": []
+ },
+ {
+  "town": "leitza",
+  "misiones": [
+   {
+    "i": 0,
+    "type": "visit",
+    "title": "Conoce Leitza",
+    "host": "Guía Ane",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 1,
+    "type": "trade",
+    "title": "Levantar la piedra",
+    "host": "Iñaki, harrijasotzaile",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 2,
+    "type": "trade",
+    "title": "Corta el tronco",
+    "host": "Maialen, aizkolari",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 3,
+    "type": "quiz",
+    "title": "El sabio de Leitza",
+    "host": "Sabio del concejo",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 4,
+    "type": "summit",
+    "title": "Sube al Ttutturre",
+    "host": "Josu, montañero",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 5,
+    "type": "pelota",
+    "title": "Partido en el frontón",
+    "host": "Aitor, pelotari",
+    "steps": null,
+    "bad": []
+   }
+  ],
+  "juegos": [
+   {
+    "juego": "pregunta",
+    "mision": "El sabio de Leitza",
+    "preguntas": 8,
+    "win": true,
+    "errors": 0
+   }
+  ],
+  "errores": []
+ },
+ {
+  "town": "isaba-izaba",
+  "misiones": [
+   {
+    "i": 0,
+    "type": "visit",
+    "title": "Conoce Isaba / Izaba",
+    "host": "Guía Iker",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 1,
+    "type": "process",
+    "title": "De la leche al queso Roncal",
+    "host": "Arantxa, quesera",
+    "steps": [
+     "Ordeñar las ovejas",
+     "Cuajar la leche cruda",
+     "Moldear y prensar",
+     "Salar y madurar al menos cuatro meses"
+    ],
+    "bad": []
+   },
+   {
+    "i": 2,
+    "type": "herd",
+    "title": "El Tributo de las Tres Vacas",
+    "host": "Alcalde de Isaba",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 3,
+    "type": "dance",
+    "title": "Ttun-ttun",
+    "host": "Dantzari roncalesa",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 4,
+    "type": "figure",
+    "title": "Las golondrinas",
+    "host": "Amona Kontxi",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 5,
+    "type": "mirador",
+    "title": "Los montes desde el mirador",
+    "host": "Koldo, guarda forestal",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 6,
+    "type": "quiz",
+    "title": "El sabio de Isaba / Izaba",
+    "host": "Sabio del concejo",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 7,
+    "type": "observe",
+    "title": "El ave que rompe huesos",
+    "host": "Iratxe, guarda de Belagua",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 8,
+    "type": "summit",
+    "title": "Sube al Mesa de los Tres Reyes",
+    "host": "Amaia, guía de montaña",
+    "steps": null,
+    "bad": []
+   }
+  ],
+  "juegos": [
+   {
+    "juego": "ordenar",
+    "mision": "De la leche al queso Roncal",
+    "win": true,
+    "errors": 0
+   },
+   {
+    "juego": "pregunta",
+    "mision": "El sabio de Isaba / Izaba",
+    "preguntas": 10,
+    "win": true,
+    "errors": 0
+   }
+  ],
+  "errores": []
+ },
+ {
+  "town": "otsagabia-ochagavia",
+  "misiones": [],
+  "juegos": [],
+  "errores": []
+ },
+ {
+  "town": "altsasu-alsasua",
+  "misiones": [
+   {
+    "i": 0,
+    "type": "visit",
+    "title": "Conoce Altsasu / Alsasua",
+    "host": "Guía Iker",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 1,
+    "type": "carnival",
+    "title": "Momotxorros",
+    "host": "Unai",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 2,
+    "type": "process",
+    "title": "Queso de Urbasa",
+    "host": "Garazi, pastora",
+    "steps": [
+     "Subir el rebaño a la sierra",
+     "Ordeñar",
+     "Hacer la cuajada",
+     "Madurar el queso"
+    ],
+    "bad": []
+   },
+   {
+    "i": 3,
+    "type": "herd",
+    "title": "Al redil: ovejas",
+    "host": "Pastor de Urbasa",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 4,
+    "type": "feria",
+    "title": "Feria de ganado de Sakana",
+    "host": "Tratante de ganado",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 5,
+    "type": "dolmen",
+    "title": "El secreto del dolmen",
+    "host": "Ainhoa, arqueóloga",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 6,
+    "type": "quiz",
+    "title": "El sabio de Altsasu / Alsasua",
+    "host": "Sabio del concejo",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 7,
+    "type": "summit",
+    "title": "Sube al Beriain",
+    "host": "Amaia, guía de montaña",
+    "steps": null,
+    "bad": []
+   }
+  ],
+  "juegos": [
+   {
+    "juego": "ordenar",
+    "mision": "Queso de Urbasa",
+    "win": true,
+    "errors": 0
+   },
+   {
+    "juego": "pregunta",
+    "mision": "El sabio de Altsasu / Alsasua",
+    "preguntas": 10,
+    "win": true,
+    "errors": 0
+   }
+  ],
+  "errores": []
+ },
+ {
+  "town": "pamplona",
+  "misiones": [
+   {
+    "i": 0,
+    "type": "visit",
+    "title": "Conoce Pamplona / Iruña",
+    "host": "Guía Ane",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 1,
+    "type": "carnival",
+    "title": "Gigantes y cabezudos",
+    "host": "Kiliki",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 2,
+    "type": "race",
+    "title": "El encierro de San Fermín",
+    "host": "Pastor del encierro",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 3,
+    "type": "process",
+    "title": "La txistorra",
+    "host": "Carnicera Itziar",
+    "steps": [
+     "Picar la carne",
+     "Mezclar con pimentón, ajo y sal",
+     "Embutir en la tripa",
+     "Dejar orear"
+    ],
+    "bad": []
+   },
+   {
+    "i": 4,
+    "type": "figure",
+    "title": "Pablo Sarasate",
+    "host": "Leire, violinista",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 5,
+    "type": "figure",
+    "title": "Miguel Induráin",
+    "host": "Iñigo, ciclista",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 6,
+    "type": "mirador",
+    "title": "Los montes desde el mirador",
+    "host": "Edurne, montañera",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 7,
+    "type": "quiz",
+    "title": "El sabio de Pamplona / Iruña",
+    "host": "Sabio del concejo",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 8,
+    "type": "summit",
+    "title": "Sube al Ezkaba",
+    "host": "Josu, montañero",
+    "steps": null,
+    "bad": []
+   }
+  ],
+  "juegos": [
+   {
+    "juego": "ordenar",
+    "mision": "La txistorra",
+    "win": true,
+    "errors": 0
+   },
+   {
+    "juego": "pregunta",
+    "mision": "El sabio de Pamplona / Iruña",
+    "preguntas": 16,
+    "win": true,
+    "errors": 0
+   }
+  ],
+  "errores": []
+ },
+ {
+  "town": "aoiz",
+  "misiones": [
+   {
+    "i": 0,
+    "type": "visit",
+    "title": "Conoce Aoiz / Agoitz",
+    "host": "Guía Ane",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 1,
+    "type": "carnival",
+    "title": "Cascabobos",
+    "host": "Irati",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 2,
+    "type": "process",
+    "title": "De la flor a la miel",
+    "host": "Apicultora Maite",
+    "steps": [
+     "Las abejas liban las flores",
+     "Guardan el néctar en los panales",
+     "El apicultor retira los cuadros",
+     "Se extrae y se envasa la miel"
+    ],
+    "bad": []
+   },
+   {
+    "i": 3,
+    "type": "quiz",
+    "title": "El sabio de Aoiz / Agoitz",
+    "host": "Sabio del concejo",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 4,
+    "type": "summit",
+    "title": "Sube al Izaga",
+    "host": "Josu, montañero",
+    "steps": null,
+    "bad": []
+   }
+  ],
+  "juegos": [
+   {
+    "juego": "ordenar",
+    "mision": "De la flor a la miel",
+    "win": true,
+    "errors": 0
+   },
+   {
+    "juego": "pregunta",
+    "mision": "El sabio de Aoiz / Agoitz",
+    "preguntas": 9,
+    "win": true,
+    "errors": 0
+   }
+  ],
+  "errores": []
+ },
+ {
+  "town": "lumbier",
+  "misiones": [
+   {
+    "i": 0,
+    "type": "visit",
+    "title": "Conoce Lumbier",
+    "host": "Guía Iker",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 1,
+    "type": "carnival",
+    "title": "Oridos e iraskos",
+    "host": "Mikel",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 2,
+    "type": "observe",
+    "title": "Los buitres de la foz",
+    "host": "Guarda de la foz",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 3,
+    "type": "harvest",
+    "title": "La cosecha: aceitunas",
+    "host": "Olivarero",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 4,
+    "type": "quiz",
+    "title": "El sabio de Lumbier",
+    "host": "Sabio del concejo",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 5,
+    "type": "summit",
+    "title": "Sube al Arangoiti",
+    "host": "Amaia, guía de montaña",
+    "steps": null,
+    "bad": []
+   }
+  ],
+  "juegos": [
+   {
+    "juego": "pregunta",
+    "mision": "El sabio de Lumbier",
+    "preguntas": 10,
+    "win": true,
+    "errors": 0
+   }
+  ],
+  "errores": []
+ },
+ {
+  "town": "estella",
+  "misiones": [
+   {
+    "i": 0,
+    "type": "visit",
+    "title": "Conoce Estella-Lizarra",
+    "host": "Guía Iker",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 1,
+    "type": "carnival",
+    "title": "Los palokis",
+    "host": "Amaia",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 2,
+    "type": "harvest",
+    "title": "La cosecha: pimientos del piquillo",
+    "host": "Agricultor de Lodosa",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 3,
+    "type": "feria",
+    "title": "La feria de San Andrés",
+    "host": "Tratante de ganado",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 4,
+    "type": "mirador",
+    "title": "Los montes desde el mirador",
+    "host": "Koldo, guarda forestal",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 5,
+    "type": "quiz",
+    "title": "El sabio de Estella-Lizarra",
+    "host": "Sabio del concejo",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 6,
+    "type": "observe",
+    "title": "Las colas de tijera",
+    "host": "Unai, anillador de aves",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 7,
+    "type": "summit",
+    "title": "Sube al Montejurra",
+    "host": "Amaia, guía de montaña",
+    "steps": null,
+    "bad": []
+   }
+  ],
+  "juegos": [
+   {
+    "juego": "pregunta",
+    "mision": "El sabio de Estella-Lizarra",
+    "preguntas": 13,
+    "win": true,
+    "errors": 0
+   }
+  ],
+  "errores": []
+ },
+ {
+  "town": "puente-la-reina",
+  "misiones": [
+   {
+    "i": 0,
+    "type": "visit",
+    "title": "Conoce Puente la Reina / Gares",
+    "host": "Guía Iker",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 1,
+    "type": "race",
+    "title": "Los caminos se juntan",
+    "host": "Peregrina",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 2,
+    "type": "trade",
+    "title": "El cantero",
+    "host": "Cantero",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 3,
+    "type": "harvest",
+    "title": "La cosecha: racimos de uva",
+    "host": "Viticultor",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 4,
+    "type": "quiz",
+    "title": "El sabio de Puente la Reina / Gares",
+    "host": "Sabio del concejo",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 5,
+    "type": "pelota",
+    "title": "Partido en el frontón",
+    "host": "Ane, pelotari",
+    "steps": null,
+    "bad": []
+   }
+  ],
+  "juegos": [
+   {
+    "juego": "pregunta",
+    "mision": "El sabio de Puente la Reina / Gares",
+    "preguntas": 10,
+    "win": true,
+    "errors": 0
+   }
+  ],
+  "errores": []
+ },
+ {
+  "town": "olite",
+  "misiones": [
+   {
+    "i": 0,
+    "type": "visit",
+    "title": "Conoce Olite / Erriberri",
+    "host": "Guía Ane",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 1,
+    "type": "harvest",
+    "title": "La cosecha: racimos de uva",
+    "host": "Vendimiador",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 2,
+    "type": "tradition",
+    "title": "Los trovadores de la corte",
+    "host": "Trovadora",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 3,
+    "type": "figure",
+    "title": "Blanca I de Navarra",
+    "host": "Ane, guía del palacio",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 4,
+    "type": "castle",
+    "title": "El palacio real de Olite",
+    "host": "Íñigo, guía del palacio",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 5,
+    "type": "quiz",
+    "title": "El sabio de Olite / Erriberri",
+    "host": "Sabio del concejo",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 6,
+    "type": "observe",
+    "title": "Las viajeras del cielo",
+    "host": "Ainhoa, guía de Pitillas",
+    "steps": null,
+    "bad": []
+   }
+  ],
+  "juegos": [
+   {
+    "juego": "melodía",
+    "mision": "Los trovadores de la corte",
+    "win": true
+   },
+   {
+    "juego": "pregunta",
+    "mision": "El sabio de Olite / Erriberri",
+    "preguntas": 10,
+    "win": true,
+    "errors": 0
+   }
+  ],
+  "errores": []
+ },
+ {
+  "town": "marcilla",
+  "misiones": [
+   {
+    "i": 0,
+    "type": "visit",
+    "title": "Conoce Marcilla",
+    "host": "Guía Ane",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 1,
+    "type": "castle",
+    "title": "El castillo que salvó una mujer",
+    "host": "Ana, guía del castillo",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 2,
+    "type": "harvest",
+    "title": "La cosecha: manojos de espárragos",
+    "host": "Esparraguera",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 3,
+    "type": "figure",
+    "title": "Julia Álvarez Resano",
+    "host": "Itziar, abogada",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 4,
+    "type": "quiz",
+    "title": "El sabio de Marcilla",
+    "host": "Sabio del concejo",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 5,
+    "type": "pelota",
+    "title": "Partido en el frontón",
+    "host": "Oihane, pelotari",
+    "steps": null,
+    "bad": []
+   }
+  ],
+  "juegos": [
+   {
+    "juego": "pregunta",
+    "mision": "El sabio de Marcilla",
+    "preguntas": 9,
+    "win": true,
+    "errors": 0
+   }
+  ],
+  "errores": []
+ },
+ {
+  "town": "tudela",
+  "misiones": [
+   {
+    "i": 0,
+    "type": "visit",
+    "title": "Conoce Tudela",
+    "host": "Guía Ane",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 1,
+    "type": "harvest",
+    "title": "La cosecha: alcachofas",
+    "host": "Hortelano de Tudela",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 2,
+    "type": "carnival",
+    "title": "Los zipoteros",
+    "host": "Iker",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 3,
+    "type": "tradition",
+    "title": "La Bajada del Ángel",
+    "host": "Organizadora",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 4,
+    "type": "figure",
+    "title": "Benjamín de Tudela",
+    "host": "Yusuf, guía de la judería",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 5,
+    "type": "quiz",
+    "title": "El sabio de Tudela",
+    "host": "Sabio del concejo",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 6,
+    "type": "observe",
+    "title": "Las cigüeñas de la catedral",
+    "host": "Javier, sacristán",
+    "steps": null,
+    "bad": []
+   }
+  ],
+  "juegos": [
+   {
+    "juego": "melodía",
+    "mision": "La Bajada del Ángel",
+    "win": true
+   },
+   {
+    "juego": "pregunta",
+    "mision": "El sabio de Tudela",
+    "preguntas": 11,
+    "win": true,
+    "errors": 0
+   }
+  ],
+  "errores": []
+ }
+]

@@ -216,7 +216,7 @@ async function boot() {
       get altScene() { return alt || blank; }, set altScene(v) { alt = v; }, get altCamera() { return altCam || cam; }, set altCamera(v) { altCam = v; } };
     const ownScene = !rt.scene; if (ownScene) rt.scene = blank;
     try {
-      const [{ Futbol }, { CLUBS, teamOfClub }, { season, clubPick, clubPanel }, { addXP }] = await Promise.all([import('./game/futbol.js'), import('./futbol/clubs.js'), import('./futbol/liga.js'), import('./game/profile.js')]);
+      const [{ Futbol }, { CLUBS }, { season, clubPick, clubPanel }, { addXP }] = await Promise.all([import('./game/futbol.js'), import('./futbol/clubs.js'), import('./futbol/liga.js'), import('./game/profile.js')]);
       rt.start(G); loading = false; game = null;
       let club = CLUBS[P.futbolClub] ? P.futbolClub : null;
       for (;;) {

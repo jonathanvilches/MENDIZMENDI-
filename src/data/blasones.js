@@ -98,5 +98,23 @@ function figura(x) {
 export function blazon(A) {
   const P = PARTICIONES[A.part].name;
   const body = A.q.length === 1 ? figura(A.q[0]) : A.q.map((x, i) => `${ORD[i]} ${figura(x)}`).join('; ');
-  return `${A.part === 'entero' ? '' : P + ': '}${body}. Timbrado de yelmo con lambrequines.`;
+  return `${A.part === 'entero' ? body[0].toUpperCase() + body.slice(1) : P + ': ' + body}. Timbrado de yelmo con lambrequines.`;
+}
+// el mismo blasón en euskera: «Eremu gorrian, urrezko gaztelu bat»; los metales van delante de la figura (urrezko,
+// zilarrezko) y los colores detrás (otso beltz bat)
+const EU_ADJ = { oro: 'urrezko', plata: 'zilarrezko', gules: 'gorri', azur: 'urdin', sinople: 'berde', sable: 'beltz' };
+const EU_CAMPO = { oro: 'urrezko eremuan', plata: 'zilarrezko eremuan', gules: 'eremu gorrian', azur: 'eremu urdinean', sinople: 'eremu berdean', sable: 'eremu beltzean' };
+const EU_FIG = { castle: 'gaztelu', tower: 'dorre', oak: 'zuhaitz', wolf: 'otso', panelas: 'panela', star: 'izar', crescent: 'ilargi-adar', lion: 'lehoi', bend: 'banda' };
+const EU_NUM = ['', 'bat', 'bi', 'hiru', 'lau'];
+const EU_PART = { partido: 'Zatitua', cortado: 'Ebakia', cuartelado: 'Laurdendua' };
+function figuraEU(x) {
+  if (x.c === 'chequy') return x.f === 'plata' && x.t === 'sable' ? 'xake-taula, zilarrezko eta beltzezko laukiekin' : `xake-taula, ${EU_ADJ[x.f]} eta ${EU_ADJ[x.t]}`;
+  const n = x.c === 'panelas' ? Math.max(3, x.n) : x.n, F = EU_FIG[x.c], adj = EU_ADJ[x.t], metal = x.t === 'oro' || x.t === 'plata';
+  const fig = metal ? (n > 1 ? `${EU_NUM[n]} ${adj} ${F}` : `${adj} ${F} bat`) : (n > 1 ? `${EU_NUM[n]} ${F} ${adj}` : `${F} ${adj} bat`);
+  return `${EU_CAMPO[x.f]}, ${fig}`;
+}
+const up = (s) => s[0].toUpperCase() + s.slice(1);
+export function blazonEU(A) {
+  const body = A.q.length === 1 ? up(figuraEU(A.q[0])) : `${EU_PART[A.part]}: ` + A.q.map((x, i) => `${i + 1}.ean, ${figuraEU(x)}`).join('; ');
+  return `${body}. Gainean, kasko bat lanbrekinekin.`;
 }

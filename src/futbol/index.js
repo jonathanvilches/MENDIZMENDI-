@@ -11,10 +11,10 @@
 import * as THREE from 'three';
 import { FutbolMatch } from './match.js';
 import { menuPanel } from './hud.js';
-import { VENUES, TEAMS, RETOS, CAREER_KEY, SISTEMAS, sistemaElegido, elegirSistema } from './rules.js';
+import { VENUES, TEAMS, CAREER_KEY, SISTEMAS, sistemaElegido, elegirSistema } from './rules.js';
 import { CLUBS, teamOfClub, awayKit } from './clubs.js';
 import { showChampion } from '../ui/champion.js';
-import { season, newSeason, nextMatch, playRound, levelFor, ligaPanel, roundPanel, rivalPanel, clubPanel } from './liga.js';
+import { season, newSeason, nextMatch, playRound, levelFor, ligaPanel, roundPanel, rivalPanel } from './liga.js';
 export { CLUBS, TOWN_CLUB, clubOfTown, teamOfClub } from './clubs.js';
 export { clubPanel } from './liga.js';
 export { FutbolGame } from './game.js';

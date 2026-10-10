@@ -22,6 +22,8 @@ await p.addInitScript((todo) => { window.__auditTodo = todo; window.__auditDetai
     towns: { lesaka: { done: { 0: true }, visits: 1 }, 'altsasu-alsasua': { done: { 0: true, 1: true }, visits: 2 } }, cards: ['armas:baztan'],
     pelotaris: { lesaka: { name: 'Mikel', town: 'Lesaka', won: 2, lost: 1, stats: { fuerza: 4, agilidad: 3, velocidad: 2 } }, leitza: { name: 'Garazi', town: 'Leitza', won: 0, lost: 1, stats: { fuerza: 2, agilidad: 4, velocidad: 4 } } }, settings: { quality: 'low' } })); }, !!process.env.TODO);
 if (process.env.DETALLE) await p.addInitScript(() => { window.__auditDetail = true; });
+// IDIOMA=eu: la misma auditoría en euskera (los textos son más largos)
+if (process.env.IDIOMA) await p.addInitScript((l) => localStorage.setItem('mendimendiz-lang', l), process.env.IDIOMA);
 await p.goto(URL, { timeout: 300000 }); await p.waitForFunction(() => window.__hub, null, { timeout: 300000 }); await p.waitForTimeout(1500);
 
 const audit = (sel) => p.evaluate(auditar, sel);

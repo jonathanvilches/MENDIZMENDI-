@@ -1,7 +1,7 @@
 // Retos de entrenamiento: regate entre conos contra reloj, tiro a las dianas de las escuadras y pases a compañeros que se
 // mueven. Usan la misma lógica del partido en una fase libre (sin árbitro ni reloj del partido).
 import * as THREE from 'three';
-import { FIELD as F, PHYS as K, RETOS, RULES as RU, ROLES } from './rules.js';
+import { FIELD as F, RETOS, RULES as RU, ROLES } from './rules.js';
 
 const hyp = Math.hypot;
 

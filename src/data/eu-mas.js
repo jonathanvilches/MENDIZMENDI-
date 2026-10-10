@@ -38,13 +38,14 @@ export const EU_ROLES = {
 };
 const T = { ...EU_TOWNS, ...EU_ROLES };
 // deklinabidea (eu.js-en berdinak, hemen ere bai)
-const loc = (n) => /ak$/.test(n) ? n.slice(0, -2) + 'etako' : /(ia|ea)$/.test(n) ? n.slice(0, -1) + 'ko' : /[aeiou]$/i.test(n) ? n + 'ko' : /[nl]$/i.test(n) ? n + 'go' : n + 'ko';
-const gen = (n) => /[aeiou]$/i.test(n) ? n + 'ren' : n + 'en';
-const ine = (n) => /(ia|ea)$/.test(n) ? n.slice(0, -1) + 'n' : /[aeiou]$/i.test(n) ? n + 'n' : n + 'en';
-const ala = (n) => /(ia|ea)$/.test(n) ? n.slice(0, -1) + 'ra' : /[aeiou]$/i.test(n) ? n + 'ra' : n + 'era';
-const abl = (n) => /(ia|ea)$/.test(n) ? n.slice(0, -1) + 'tik' : /[aeiou]$/i.test(n) ? n + 'tik' : n + 'etik';
-const erg = (n) => /[aeiou]$/i.test(n) ? n + 'k' : n + 'ek';
-const pers = (n) => /[aeiou]$/i.test(n) ? n + 'rengana' : n + 'engana';   // «itzuli X-rengana»
+const loc = (n) => /ak$/.test(n) ? n.slice(0, -2) + 'etako' : /pirinioa$/i.test(n) ? n.slice(0, -1) + 'ko' : /(ia|ea)$/.test(n) ? n.slice(0, -1) + 'ko' : /[aeiou]$/i.test(n) ? n + 'ko' : /[nl]$/i.test(n) ? n + 'go' : n + 'ko';
+const rr = (n) => /[aeiou]r$/i.test(n) ? n + 'r' : n;   // «Etxalar» → «Etxalarr-en», «Xabier» → «Xabierr-era»
+const gen = (n) => /ak$/.test(n) ? n.slice(0, -2) + 'en' : /[aeiou]$/i.test(n) ? n + 'ren' : rr(n) + 'en';
+const ine = (n) => /(ia|ea)$/.test(n) ? n.slice(0, -1) + 'n' : /[aeiou]$/i.test(n) ? n + 'n' : rr(n) + 'en';
+const ala = (n) => /(ia|ea)$/.test(n) ? n.slice(0, -1) + 'ra' : /[aeiou]$/i.test(n) ? n + 'ra' : rr(n) + 'era';
+const abl = (n) => /(ia|ea)$/.test(n) ? n.slice(0, -1) + 'tik' : /[aeiou]$/i.test(n) ? n + 'tik' : rr(n) + 'etik';
+const erg = (n) => /[aeiou]$/i.test(n) ? n + 'k' : rr(n) + 'ek';
+const pers = (n) => /[aeiou]$/i.test(n) ? n + 'rengana' : rr(n) + 'engana';   // «itzuli X-rengana»
 // lo que cae en un hueco: diccionario o, si no está, el traductor entero (con sus plantillas: «Guía Maite»…)
 let TR = null; export const setTr = (f) => { TR = f; };
 // «Amaiur / Maya» moduko izen bikoitzak: zerrendan ez badago, euskarazkoa dirudiena (tx, tz, k… eta ez ñ, ll, ch, que…)
@@ -53,18 +54,46 @@ const pair = (x) => { const m = /^(.+?)\s*\/\s*(.+)$/.exec(x); if (!m) return nu
 const e = (x) => T[x] ?? EU_EXACT[x] ?? MAS[x] ?? pair(x) ?? (TR && x.length < 300 ? TR(x) : x);
 const cap = (x) => x.charAt(0).toUpperCase() + x.slice(1);
 const DIRS = { norte: 'Iparraldera', sur: 'Hegoaldera', este: 'Ekialdera', oeste: 'Mendebaldera', noreste: 'Ipar-ekialdera', noroeste: 'Ipar-mendebaldera', sureste: 'Hego-ekialdera', suroeste: 'Hego-mendebaldera' };
+const low = (x) => x.charAt(0).toLowerCase() + x.slice(1);
+const MES = { enero: 'urtarrila', febrero: 'otsaila', marzo: 'martxoa', abril: 'apirila', mayo: 'maiatza', junio: 'ekaina', julio: 'uztaila', agosto: 'abuztua', septiembre: 'iraila', octubre: 'urria', noviembre: 'azaroa', diciembre: 'abendua' };
+// «10–14 septiembre» → «irailaren 10–14», «31 julio – 6 agosto» → «uztailaren 31 – abuztuaren 6»
+const fecha = (x) => { const t = e(x); if (t !== x) return t; let ok = true;
+  const r = x.replace(/(\d+(?:–\d+)?)\s+(?:de\s+)?([a-z]+)/g, (m, d, k) => MES[k] ? `${MES[k].slice(0, -1)}aren ${d}` : ((ok = false), m));
+  return ok && r !== x ? r : x; };
+const FOODS = 'Pan|Moras|Avellanas|Manzana|Queso|Cuajada|Miel|Txistorra|Pimientos asados|Uvas|Tomate|Almendras|Talo con txistorra|Pochas|Espárragos|Alcachofa';
 const supply = (s) => s.replace(/\bagua\b/g, 'ura').replace(/\bcomida\b/g, 'janaria').replace(/\by\b/g, 'eta');
 
 export const EU_MAS = { ...MAS, ...T };
 export const EU_RX_MAS = [
+  // herriko fitxak, oroigarriak, mendiak eta begiratokiak (2026-10, bigarren itzulia)
+  [/^Patrimonio de (.+)$/, (m, a) => `${loc(e(a))} ondarea`],
+  [/^Has completado una misión en (.+)\.$/, (m, a) => `Misio bat osatu duzu ${ine(e(a))}.`],
+  [/^Sabio de (.+)$/, (m, a) => `${loc(e(a))} jakintsua`], [/^Mirador de (.+)$/, (m, a) => `${loc(e(a))} begiratokia`],
+  [/^Desde aquí se ven (.+)\.$/, (m, a) => `Hemendik ikusten dira: ${a.split(', ').map(e).join(', ')}.`],
+  [/^Buzón de cumbre · (.+)$/, (m, a) => `Gailurreko postontzia · ${e(a)}`],
+  [/^Altitud: ([\d.]+) m\.$/, 'Altuera: $1 m.'], [/^En el juego has subido (\d+) m\.$/, 'Jokoan $1 m igo dituzu.'],
+  [/^Desde (.+): ([\d,.]+) km y (\d+) m de desnivel\.$/, (m, a, k, g) => `Irteera: ${e(a)} · ${k} km eta ${g} m-ko desnibela.`],
+  [/^En la subida has descubierto: (.+)\.$/, (m, a) => `Igoeran aurkitu duzu: ${a.split(', ').map(x => low(e(cap(x)))).join(', ')}.`],
+  [/^Desde ((?:[A-ZÁÉÍÓÚÑ][^\s.,:]*)(?: (?:de|del|la|las|los|[A-ZÁÉÍÓÚÑ][^\s.,:]*))*)$/, (m, a) => abl(e(a))],
+  [/^([\d,.]+) km · está en el juego$/, '$1 km · jokoan dago'], [/^Hallazgo (\d+) de (\d+)$/, 'Aurkikuntza $1/$2'],
+  [/^(Danza|Carnaval|Fiesta|Traje) · (.+)$/, (m, k, a) => `${e(k)} · ${fecha(a)}`],
+  [new RegExp(`^(${FOODS}) y (${FOODS})$`), (m, a, b) => `${e(a)} eta ${low(e(b))}`],
+  [/^La placa de (.+)$/, (m, a) => `${gen(e(a))} plaka`],
+  [/^Ver el recuerdo de (.+)$/, (m, a) => `Ikusi ${gen(e(a))} oroigarria`], [/^Ve a ver el recuerdo de (.+)$/, (m, a) => `Joan ${gen(e(a))} oroigarria ikustera`],
+  [/^Ve al recuerdo de (.+): lo verás con el aro dorado\.$/, (m, a) => `Joan ${gen(e(a))} oroigarrira: urrezko uztaiarekin ikusiko duzu.`],
+  [/^Has conocido todos los pueblos de (.+)\. Se ilumina en tu mapa de Navarra\.$/, (m, a) => `${loc(e(a))} herri guztiak ezagutu dituzu. Nafarroako zure mapan argitzen da.`],
+  [/^Vuelve con (.+) y cierra el trato$/, (m, a) => `Itzuli ${pers(e(a))} eta itxi tratua`], [/^Lleva todo a (.+)$/, (m, a) => `Eraman dena ${pers(e(a))}`],
+  [/^(.+) · (\d+) de (\d+)$/, (m, a, n, k) => { const t = e(a); return t === a ? null : `${t} · ${n}/${k}`; }],
+  [/^Busca a (.+) entre las casas de (.+)\. Puede huir por las calles de tierra\.$/, (m, a, b) => `Bilatu ${e(a)} ${loc(e(b))} etxeen artean. Lur-kaleetatik ihes egin dezake.`],
+  [/^Encuentra a los ([^()—]+)$/, (m, a) => { const t = e('los ' + a); return t === 'los ' + a ? null : `Aurkitu ${t}`; }],
   // misioen esaldi errepikatuak
   [/^¡Ya conoces (.+)! Ahora la gente del pueblo te pedirá ayuda\.$/, (m, a) => `${e(a)} ezagutzen duzu jada! Orain herriko jendeak laguntza eskatuko dizu.`],
   [/^Soy ([^,]+), ([^.]+)\. Ven al banco de trabajo y te enseño cómo se hacía, paso a paso\.$/, (m, a, b) => `${a} naiz, ${e(b)}. Etorri lan-mahaira eta nola egiten zen erakutsiko dizut, pausoz pauso.`],
   [/^Primero: (.+)\. Necesito (\d+)\.$/, (m, a, n) => { const t = e(cap(a)); return t === cap(a) ? null : `Lehenik: ${t.charAt(0).toLowerCase() + t.slice(1)}. ${n} behar ditut.`; }],
   [/^Taller de (.+): paso (\d+) de (\d+)$/, (m, a, n, k) => `${cap(e(a))}aren tailerra: ${n}. urratsa (${k})`],
-  [/^Encuentra a (.+)$/, (m, a) => `Aurkitu ${e(a)}`], [/^([^–]+) – ([^–]+)$/, (m, a, b) => { const t = e(a), u = e(b); return t === a && u === b ? null : `${t} – ${u}`; }],
+  [/^Encuentra a ([^()]+)$/, (m, a) => `Aurkitu ${e(a)}`], [/^([^–]+) – ([^–]+)$/, (m, a, b) => { const t = e(a), u = e(b); return t === a && u === b ? null : `${t} – ${u}`; }],
   [/^(.+) · (\d+) contra (\d+)$/, (m, a, n, k) => `${e(a)} · ${n}en kontra ${k}`], [/^Comarca · (.+)$/, (m, a) => `Eskualdea · ${e(a)}`], [/^Encuentra (\d+) montes\.$/, 'Aurkitu $1 mendi.'],
-  [/^Recoge ([^.!?]+)$/, (m, a) => { const t = e(a); return t === a ? null : `Bildu ${t}`; }],
+  [/^Recoge ([^.!?()]+)$/, (m, a) => { const t = e(a); return t === a ? null : `Bildu ${t}`; }],
   // lanbidea aurretik: «Apicultora Maite» → «Maite erlezaina»
   [/^(Apicultora|Apicultor|Carnicera|Carnicero|Hospitalera|Hospitalero|Panadera|Panadero|Pastora|Pastor|Quesera|Quesero|Molinera|Molinero) (\S+)$/, (m, r, a) => `${a} ${({ Apicultora: 'erlezaina', Apicultor: 'erlezaina', Carnicera: 'harakina', Carnicero: 'harakina', Hospitalera: 'ospitalaria', Hospitalero: 'ospitalaria', Panadera: 'okina', Panadero: 'okina', Pastora: 'artzaina', Pastor: 'artzaina', Quesera: 'gaztagilea', Quesero: 'gaztagilea', Molinera: 'errotaria', Molinero: 'errotaria' })[r]}`],
   [/^Soy ([^,.]+)\. Ven al banco de trabajo y te enseño cómo se hacía, paso a paso\.$/, (m, a) => `${e(a)} naiz. Etorri lan-mahaira eta nola egiten zen erakutsiko dizut, pausoz pauso.`],
@@ -112,7 +141,7 @@ export const EU_RX_MAS = [
   [/^Aquí hay (\d+) lugares que tienes que conocer: (.+)\.$/, (m, n, l) => `Hemen ${n} leku dituzu ezagutzeko: ${l.split(', ').map(e).join(', ')}.`],
   [/^Visita los lugares importantes \((\d+)\/(\d+)\)$/, 'Bisitatu leku garrantzitsuak ($1/$2)'],
   [/^Cada piedra de (.+) guarda un secreto… ¿serás capaz de descubrirlos todos\?$/, (m, a) => `${loc(e(a))} harri bakoitzak sekretu bat gordetzen du… denak aurkitzeko gai izango zara?`],
-  [/^¡Encontrado! (.+)$/, (m, a) => `Aurkituta! ${a}`],
+  [/^¡Encontrado! (.+)$/, (m, a) => `Aurkituta! ${e(a)}`],
   [/^Encuentra a los (.+?) \((\d+)\/(\d+)\) — escucha sus cencerros$/, (m, a, n, k) => `Aurkitu ${e(a)} (${n}/${k}) — entzun haien joareak`],
   [/^Encuentra a (.+?) \((\d+)\/(\d+)\) — escucha sus cencerros$/, (m, a, n, k) => `Aurkitu ${e(a)} (${n}/${k}) — entzun haren joareak`],
   [/^¡Todos encontrados! Vuelve con (.+)$/, (m, a) => `Denak aurkituta! Itzuli ${pers(e(a))}`],
