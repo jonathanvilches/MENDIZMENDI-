@@ -1,0 +1,5 @@
+48 iconos de esta carpeta son del autor del proyecto MENDIMENDIZ, entregados el 2026-10-10 en tres láminas de 4 × 4
+(«MENDIMENDIZ-48-iconos»): apple back backpack balon bell binoculars boot camera canteen castle close compass energy
+footprint fullscreen gear globe hand heart home info jump key leaf legend map medal menu mushroom mute olive pause peak
+(y mountain, la misma) pelota play quiz retry river robin scroll search sheep sound star talk tree water wheat.
+Cambios: recortados, fondo limpiado, 192 × 192 y WebP. El resto de iconos de la carpeta son renders del propio juego.

@@ -180,7 +180,7 @@ summary { line-height: 1.3; }
 .rbtns { display: flex; gap: 8px; }
 .round { position: relative; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: rgba(14, 10, 24, .66); border: 2px solid rgba(255, 255, 255, .82); box-shadow: 0 3px 12px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .15); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); transition: transform .12s, background .12s, border-color .12s; }
 .round:hover { border-color: #ff7ac8; background: rgba(12, 9, 20, .65); } .round:active { transform: scale(.92); }
-.round svg { width: 26px; height: 26px; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .6)); }
+.round :is(svg, .hico) { width: 26px; height: 26px; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .6)); }
 .round.badge::after { content: ''; position: absolute; width: 10px; height: 10px; border-radius: 50%; background: #FF69B4; top: -1px; right: -1px; }
 #mini { width: 112px; height: 112px; border-radius: 50%; overflow: hidden; position: relative; background: #5b8a3c; cursor: pointer; border: 2.5px solid #fff; box-shadow: 0 0 0 4px rgba(12, 9, 20, .45), 0 6px 18px rgba(0, 0, 0, .35); }
 #mini canvas { width: 100%; height: 100%; display: block; }
@@ -210,12 +210,12 @@ summary { line-height: 1.3; }
 #cRun { grid-column: 1; grid-row: 2; }
 #cAct { grid-column: 2; grid-row: 2; }
 .cbtn { position: relative; width: 62px; height: 62px; border-radius: 50%; padding: 0; background: radial-gradient(circle at 50% 30%, rgba(80, 40, 150, .82), rgba(28, 11, 58, .88)); border: 2.5px solid #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; color: #fff; box-shadow: 0 0 0 3px rgba(138, 43, 226, .45), 0 5px 0 rgba(10, 4, 24, .55), 0 8px 16px rgba(0, 0, 0, .3); transition: transform .1s, background .15s, box-shadow .15s, opacity .2s; -webkit-tap-highlight-color: transparent; }
-.cbtn svg { width: 40px; height: 40px; flex: none; overflow: visible; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .35)); }
+.cbtn :is(svg, .hico) { width: 40px; height: 40px; flex: none; overflow: visible; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .35)); }
 .cbtn b { font: 900 var(--fs-xs)/1 Nunito, sans-serif; letter-spacing: .04em; text-transform: uppercase; color: #fff; text-shadow: 0 1px 0 #1f1a26; white-space: nowrap; }
 .cbtn:active { transform: translateY(3px) scale(.95); box-shadow: 0 0 0 3px rgba(138, 43, 226, .45), 0 2px 0 rgba(10, 4, 24, .55), 0 4px 10px rgba(0, 0, 0, .3); }
 .cbtn.on { background: radial-gradient(circle at 50% 30%, #ff9d8a, #ff2e88 70%); box-shadow: 0 0 0 3px rgba(255, 122, 200, .8), 0 5px 0 rgba(120, 30, 10, .6), 0 0 18px rgba(255, 99, 71, .6); }
 .cbtn.big { width: 80px; height: 80px; background: radial-gradient(circle at 50% 30%, #ffc2ec, #ff7ac8 60%, #ff3dbd); box-shadow: 0 0 0 4px rgba(255, 122, 200, .35), 0 5px 0 #8a1c8f, 0 10px 22px rgba(0, 0, 0, .35); animation: actPulse 1.6s ease-in-out infinite; }
-.cbtn.big svg { width: 50px; height: 50px; }
+.cbtn.big :is(svg, .hico) { width: 50px; height: 50px; }
 .cbtn.big b { font-size: var(--fs-xs); color: #2a0638; text-shadow: 0 1px 0 rgba(255, 255, 255, .6); }
 .cbtn.big.off { background: radial-gradient(circle at 50% 30%, rgba(80, 40, 150, .7), rgba(28, 11, 58, .8)); box-shadow: 0 0 0 3px rgba(138, 43, 226, .35), 0 5px 0 rgba(10, 4, 24, .5), 0 8px 16px rgba(0, 0, 0, .25); animation: none; }
 .cbtn.big.off svg { opacity: .55; }
@@ -276,8 +276,8 @@ summary { line-height: 1.3; }
   #quest b.qt { font-size: var(--fs-md); } #quest .ic { flex-basis: 36px; height: 36px; } #quest .ic svg, #quest .ic img { width: 26px; height: 26px; }
   #ribbons { padding-left: 48px; }
   #mini { width: 92px; height: 92px; }
-  .round { width: 38px; height: 38px; } .round svg { width: 23px; height: 23px; }
-  .cbtn { width: 56px; height: 56px; } .cbtn svg { width: 36px; height: 36px; } .cbtn.big { width: 70px; height: 70px; } .cbtn.big svg { width: 44px; height: 44px; }
+  .round { width: 38px; height: 38px; } .round :is(svg, .hico) { width: 23px; height: 23px; }
+  .cbtn { width: 56px; height: 56px; } .cbtn :is(svg, .hico) { width: 36px; height: 36px; } .cbtn.big { width: 70px; height: 70px; } .cbtn.big :is(svg, .hico) { width: 44px; height: 44px; }
   #stickHint { width: 88px; height: 88px; bottom: calc(var(--sb) + var(--thumb) + 18px); }
   #lane { top: auto; bottom: calc(var(--sb) + var(--thumb)); left: calc(50% - 22px); width: calc(100vw - var(--sl) - var(--sr) - 450px); flex-direction: column-reverse; } #lane .note { font-size: var(--fs-sm); padding: 8px 12px; } #toast svg, #toast img { width: 22px; height: 22px; }
   #dialog { padding: 8px 16px; } #dialog p { font-size: var(--fs-md); min-height: 40px; }
@@ -409,7 +409,7 @@ body.bino-on #lane { display: none; }
   .qitem b { font-size: var(--fs-md); }
 }
 @media (max-width: 380px) {
-  .cbtn { width: 56px; height: 56px; } .cbtn svg { width: 35px; height: 35px; } .cbtn.big { width: 68px; height: 68px; } .cbtn.big svg { width: 43px; height: 43px; } #controls { gap: 8px; right: calc(var(--sr, 0px) + var(--thumb)); }
+  .cbtn { width: 56px; height: 56px; } .cbtn :is(svg, .hico) { width: 35px; height: 35px; } .cbtn.big { width: 68px; height: 68px; } .cbtn.big :is(svg, .hico) { width: 43px; height: 43px; } #controls { gap: 8px; right: calc(var(--sr, 0px) + var(--thumb)); }
   #stickHint { width: 92px; height: 92px; left: calc(var(--sl, 0px) + var(--thumb)); }
   .round { width: 40px; height: 40px; }
   #quest b.qt { font-size: var(--fs-md); }
@@ -502,6 +502,9 @@ body.bino-on #lane { display: none; }
 
 /* iconos 3D que se dibujan en segundo plano: aparecen con un fundido cuando están listos */
 img.ico3d.pend { opacity: 0; }
+/* sobre el degradado rosa y morado de los botones principales, el icono lleva un contorno oscuro fino: así el
+   triángulo de jugar y los demás se leen igual que sobre el fondo oscuro */
+:is(.gx-go, .btn.primary) img.ico3d { filter: drop-shadow(0 0 1px rgba(20, 6, 46, .95)) drop-shadow(0 1px 2px rgba(20, 6, 46, .6)); }
 
 img[data-pk] { opacity: 0; }
 /* durante un diálogo el carril de avisos sube arriba, bajo el objetivo, para no tapar la conversación */
@@ -589,11 +592,11 @@ body.mg3d-on .learn-btn { bottom: auto; top: calc(env(safe-area-inset-top, 0px) 
   #quest .ic { flex-basis: 50px; height: 50px; } #quest .ic svg, #quest .ic img { width: 36px; height: 36px; }
   #quest b.qt { font-size: var(--fs-md); } #quest small { font-size: var(--fs-sm); }
   #ribbons { padding-left: 60px; } #ribbons .tname { font-size: var(--fs-sm); } #ribbons .dots i { width: 12px; height: 12px; }
-  .round { width: 54px; height: 54px; } .round svg { width: 32px; height: 32px; }
+  .round { width: 54px; height: 54px; } .round :is(svg, .hico) { width: 32px; height: 32px; }
   #topright { gap: 12px; }
   #mini { width: 140px; height: 140px; }
-  .cbtn { width: 72px; height: 72px; } .cbtn svg { width: 46px; height: 46px; }
-  .cbtn.big { width: 92px; height: 92px; } .cbtn.big svg { width: 58px; height: 58px; }
+  .cbtn { width: 72px; height: 72px; } .cbtn :is(svg, .hico) { width: 46px; height: 46px; }
+  .cbtn.big { width: 92px; height: 92px; } .cbtn.big :is(svg, .hico) { width: 58px; height: 58px; }
   #stick { width: 140px; height: 140px; } #stick i { width: 64px; height: 64px; margin: -32px 0 0 -32px; }
   #stickHint { width: 120px; height: 120px; } #stickHint i { width: 48px; height: 48px; } #stickHint span { font-size: var(--fs-sm); }
   #dialog { width: min(880px, calc(100vw - 24px)); padding: 16px 24px 16px; }

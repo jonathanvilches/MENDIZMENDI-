@@ -96,6 +96,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   portadas anteriores, con el personaje del jugador delante, están guardadas en `tools/portadas-anteriores`.
 - **Iconografía de una sola familia:** un archivo `src/assets/icons3d/<nombre>.webp` sustituye al icono de ese nombre
   sin tocar el código (`has3D` mira también los archivos horneados).
+  - Los 48 iconos del autor (controles, exploración, naturaleza, cultura y deportes) están ya ahí, a 192 px, con el
+    mismo margen que los demás. Los botones del HUD y los táctiles los usan también (`ICON` en `ui.js`): la bota para
+    correr, las flechas para saltar y, en el de acción, la mano, hablar, beber, mirar y pelota. Sobre el degradado de
+    los botones principales llevan un contorno oscuro fino.
 - **Comentarios en castellano**, explicando el porqué.
 
 ## Herramientas y pruebas (`tools/`)
