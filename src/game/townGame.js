@@ -15,6 +15,7 @@ import { infoCard, timingGame, mashGame, sequenceGame, simonGame, choiceGame, mi
 import { OFICIOS } from '../data/oficios.js';
 import { OFICIO_LAMINA } from '../data/laminas.js';
 import { laminaUrl } from '../ui/laminas.js';
+import { isEU, tr } from '../i18n.js';
 import { PERSONAJES } from '../data/personajes.js';
 import { makeItem, makeGate, makeWorkbench, makeMemorial } from './items.js';
 import COMARCAS from '../data/comarcas.json';
@@ -1271,7 +1272,7 @@ export class TownGame {
         const F = M.fig;
         if (M.step === 0) {
           await S([F.hello]);
-          for (let i = 0; i < F.pages.length; i++) await infoCard(this.ui, { icon: F.icon, kicker: F.kicker, title: `${F.name}${F.eu ? ' · ' + F.eu : ''}`, text: F.pages[i], badge: F.years, button: i < F.pages.length - 1 ? `Seguir (${i + 1}/${F.pages.length})` : 'Ir a ver su recuerdo' });
+          for (let i = 0; i < F.pages.length; i++) await infoCard(this.ui, { icon: F.icon, kicker: F.kicker, title: isEU() ? (F.eu || F.name) : `${F.name}${F.eu ? ' · ' + F.eu : ''}`, text: F.pages[i], badge: F.years, button: i < F.pages.length - 1 ? `Seguir (${i + 1}/${F.pages.length})` : 'Ir a ver su recuerdo' });
           await S([`Su recuerdo está aquí al lado. Acércate y lee la placa: luego te haré una pregunta.`]);
           M.step = 1; M.memo.obj.userData.ring.visible = true;
         } else await S([`Ve al recuerdo de ${F.name}: lo verás con el aro dorado.`]);
@@ -1692,7 +1693,7 @@ export class TownGame {
       const F = FAUNA[M.raptor], isNew = addCard('fauna:' + M.raptor);
       C.look = new THREE.Vector3(c0.x, c0.y + 22, c0.z); C.pos = eye.clone().add(new THREE.Vector3(6, -0.5, 6));
       await wait(1800);
-      await infoCard(this.ui, { icon: F.icon, kicker: 'Sobre la cumbre', title: `${F.name} · ${F.eu}`, text: `${F.look} ${F.fact}`, badge: isNew ? 'Nueva carta' : '', button: 'Seguir mirando' });
+      await infoCard(this.ui, { icon: F.icon, kicker: 'Sobre la cumbre', title: isEU() ? F.eu : `${F.name} · ${F.eu}`, text: `${F.look} ${F.fact}`, badge: isNew ? 'Nueva carta' : '', button: 'Seguir mirando' });
     }
     if (list.length) {
       const li = list.map(v => `<li><b>${v.name}</b><i>al ${v.dir}</i><span>${v.km < 10 ? v.km.toFixed(1).replace('.', ',') : Math.round(v.km)} km${v.inGame ? ' · está en el juego' : ''}</span></li>`).join('');
@@ -1916,20 +1917,22 @@ export class TownGame {
 
   async doWorkshop(M) {
     const of = M.oficio, t = M.trade, n = of.steps.length;
+    // (en euskera, el oficio con su nombre vasco y las frases que se componen ya montadas en euskera)
+    const eu = isEU(), oname = eu ? (of.eu || of.name) : of.name;
     this.player.frozen = true; this.mode = 'mini';
     this.player.heading = Math.atan2(M.bench.x - this.player.pos.x, M.bench.z - this.player.pos.z);
     this.ui.onMiniHit = (ok) => { if (ok) { this.player.rig.doAct(of.act === 'wave' ? 'point' : of.act, 0.45); this.particles.emit({ x: M.bench.x, y: groundHeight(M.bench.x, M.bench.z) + 1, z: M.bench.z }, { n: 10, color: of.act === 'hammer' ? ['#ffb34a', '#ffe38a'] : ['#c9a27a', '#ffffff'], speed: 2.5, size: 0.18, life: 0.5 }); } };
     let finished = false;
     try {
       if (!M.tstep) {
-        const list = of.tools.map(([es, eu, what]) => `<li><b>${es}</b>${eu ? `<i>${eu}</i>` : '<i></i>'}<span>${what}</span></li>`).join('');
-        await infoCard(this.ui, { icon: of.icon, lamina: laminaUrl(OFICIO_LAMINA[M.m.kind]), kicker: 'Las herramientas', title: `${of.name}${of.eu ? ' · ' + of.eu : ''}`, text: 'Esto es lo que se usaba en el taller:', extra: `<ul class="tools">${list}</ul>`, button: '¡A trabajar!' });
+        const list = of.tools.map(([es, ek, what]) => eu ? `<li><b>${ek || es}</b><i></i><span>${what}</span></li>` : `<li><b>${es}</b>${ek ? `<i>${ek}</i>` : '<i></i>'}<span>${what}</span></li>`).join('');
+        await infoCard(this.ui, { icon: of.icon, lamina: laminaUrl(OFICIO_LAMINA[M.m.kind]), kicker: 'Las herramientas', title: eu ? oname : `${of.name}${of.eu ? ' · ' + of.eu : ''}`, text: 'Esto es lo que se usaba en el taller:', extra: `<ul class="tools">${list}</ul>`, button: '¡A trabajar!' });
       }
       while (M.tstep < n) {
         const st = of.steps[M.tstep], title = `Paso ${M.tstep + 1} de ${n}: ${st.title}`;
-        if (st.game !== 'choice') await infoCard(this.ui, { icon: of.icon, kicker: `${of.name} · paso ${M.tstep + 1} de ${n}`, title: st.title, text: st.text, button: st.game === 'order' ? 'Ordenar' : st.verb || 'Hacerlo' });
+        if (st.game !== 'choice') await infoCard(this.ui, { icon: of.icon, kicker: eu ? `${oname} · ${M.tstep + 1}/${n} urratsa` : `${of.name} · paso ${M.tstep + 1} de ${n}`, title: st.title, text: st.text, button: st.game === 'order' ? 'Ordenar' : st.verb || 'Hacerlo' });
         let r;
-        if (st.game === 'choice') r = await choiceGame(this.ui, { title, icon: of.icon, q: `${st.text} ${st.q}`, options: st.options, answer: st.answer, why: st.why });
+        if (st.game === 'choice') r = await choiceGame(this.ui, { title, icon: of.icon, q: eu ? `${tr(st.text)} ${tr(st.q)}` : `${st.text} ${st.q}`, options: st.options, answer: st.answer, why: st.why });
         else if (st.game === 'order') r = await sequenceGame(this.ui, { title, icon: of.icon, hint: 'Toca los pasos en el orden en que se hacían', steps: st.items });
         else if (st.game === 'mash') r = await mashGame(this.ui, { title, hint: st.text, icon: of.icon, verb: st.verb, seconds: 7, goal: 28, art: st.art });
         else if (st.game === 'forge') r = await play3d('forgeGame', this.ui, { title: st.title });
@@ -1945,9 +1948,9 @@ export class TownGame {
     } finally { this.ui.onMiniHit = null; this.player.frozen = false; this.mode = 'play'; }
     if (!finished) return;
     this.player.rig.doCheer();
-    await infoCard(this.ui, { icon: of.icon, lamina: laminaUrl(OFICIO_LAMINA[M.m.kind]), kicker: 'Antes y ahora', title: of.product, text: `Así trabajaba ${of.name === 'Panadera' || of.name === 'Alpargatera' || of.name === 'Hilandera' ? 'la' : 'el'} ${of.name.toLowerCase()}.`, extra: `<div class="antes-ahora"><div><b>Antes</b>${of.then}</div><div><b>Ahora</b>${of.now}</div></div>`, button: '¡Lo he aprendido!' });
+    await infoCard(this.ui, { icon: of.icon, lamina: laminaUrl(OFICIO_LAMINA[M.m.kind]), kicker: 'Antes y ahora', title: of.product, text: eu ? `Horrela aritzen zen ${oname.toLowerCase()}.` : `Así trabajaba ${of.name === 'Panadera' || of.name === 'Alpargatera' || of.name === 'Hilandera' ? 'la' : 'el'} ${of.name.toLowerCase()}.`, extra: `<div class="antes-ahora"><div><b>Antes</b>${of.then}</div><div><b>Ahora</b>${of.now}</div></div>`, button: '¡Lo he aprendido!' });
     const ord = of.steps.find(s => s.game === 'order')?.items, low = (x) => x[0].toLowerCase() + x.slice(1);
-    await this.complete(M, { card: M.title, cardText: `Cómo se hacía: ${(ord || of.steps.filter(s => s.game !== 'choice').map(s => s.title)).map(low).join(', ')}.` });
+    await this.complete(M, { card: M.title, cardText: eu ? `Nola egiten zen: ${(ord || of.steps.filter(s => s.game !== 'choice').map(s => s.title)).map(x => low(tr(x))).join(', ')}.` : `Cómo se hacía: ${(ord || of.steps.filter(s => s.game !== 'choice').map(s => s.title)).map(low).join(', ')}.` });
   }
 
   // ---------- Carrera por aros ----------

@@ -24,8 +24,9 @@ function overlay(ui, cls, html, card = '') {
 function done(ui, o, keyFn) { if (keyFn) removeEventListener('keydown', keyFn, true); o.classList.add('out'); setTimeout(() => o.remove(), 250); if (ui.modal === o) ui.modal = null; }
 
 // ---------- Ficha de lugar (iglesias, monumentos, productos) ----------
+// (en las pruebas automáticas la ficha no se abre; window.__autoSeen, si lo hay, recibe sus textos para revisarlos)
 export function infoCard(ui, opts) {
-  if (window.__autoWin) return Promise.resolve();
+  if (window.__autoWin) { window.__autoSeen?.(opts); return Promise.resolve(); }
   return infoCard_(ui, opts);
 }
 // lamina: una ilustración 16:9 entera en vez del icono (los oficios de antes)
@@ -54,7 +55,7 @@ function infoCard_(ui, { icon = 'church', kicker = '', title, text, extra = '', 
 // rounds: nº de golpes; zone: anchura de la zona buena (0..1); speed: vueltas por segundo
 // con «art» (el paso de un oficio) y el escenario 3D del juego, se juega en su diorama 3D; si algo falla, la barra sola
 export async function timingGame(ui, opts) {
-  if (window.__autoWin) return { win: true, hits: 5, errors: 0 };
+  if (window.__autoWin) { window.__autoSeen?.(opts); return { win: true, hits: 5, errors: 0 }; }
   if (opts.art && ui.stage3d) { const M = await mini3d().catch(() => null); if (M?.has3DArt(opts.art)) { const r = await M.timing3d(ui, opts); if (!r.error) return r; } }
   return timingGame_(ui, opts);
 }
@@ -92,7 +93,7 @@ function timingGame_(ui, { title, hint, icon = 'hammer', rounds = 5, zone = 0.18
 
 // ---------- Pulsar rápido (harrijasotzaile, subir la piedra; remar la almadía…) ----------
 export async function mashGame(ui, opts) {
-  if (window.__autoWin) return { win: true, hits: 5, errors: 0 };
+  if (window.__autoWin) { window.__autoSeen?.(opts); return { win: true, hits: 5, errors: 0 }; }
   if (opts.art && ui.stage3d) { const M = await mini3d().catch(() => null); if (M?.has3DArt(opts.art)) { const r = await M.mash3d(ui, opts); if (!r.error) return r; } }
   return mashGame_(ui, opts);
 }
@@ -122,7 +123,7 @@ function mashGame_(ui, { title, hint, icon = 'stone', seconds = 6, goal = 30, ve
 
 // ---------- Ordenar pasos (del producto a la mesa) ----------
 export function sequenceGame(ui, opts) {
-  if (window.__autoWin) return Promise.resolve({ win: true, hits: 5, errors: 0 });
+  if (window.__autoWin) { window.__autoSeen?.(opts); return Promise.resolve({ win: true, hits: 5, errors: 0 }); }
   return sequenceGame_(ui, opts);
 }
 function sequenceGame_(ui, { title, hint, icon = 'basket', steps }) {
@@ -149,7 +150,7 @@ function sequenceGame_(ui, { title, hint, icon = 'basket', steps }) {
 // ---------- Elegir una respuesta (herramienta, material, por qué se hace así) ----------
 // answer: índice correcto, o −1 si todas valen (p. ej. elegir tu marca de cantero)
 export function choiceGame(ui, opts) {
-  if (window.__autoWin) return Promise.resolve({ win: true, errors: 0 });
+  if (window.__autoWin) { window.__autoSeen?.(opts); return Promise.resolve({ win: true, errors: 0 }); }
   return choiceGame_(ui, opts);
 }
 function choiceGame_(ui, { title, icon = 'quiz', q, options, answer, why }) {
@@ -178,7 +179,7 @@ function choiceGame_(ui, { title, icon = 'quiz', q, options, answer, why }) {
 // ---------- Repetir melodía / secuencia (canto, txistu, Bajada del Ángel) ----------
 const PADS = [{ c: '#e03c3c', f: 392 }, { c: '#f2c230', f: 440 }, { c: '#3a8fd6', f: 523 }, { c: '#3ca05a', f: 587 }];
 export function simonGame(ui, opts) {
-  if (window.__autoWin) return Promise.resolve({ win: true, hits: 5, errors: 0 });
+  if (window.__autoWin) { window.__autoSeen?.(opts); return Promise.resolve({ win: true, hits: 5, errors: 0 }); }
   return simonGame_(ui, opts);
 }
 function simonGame_(ui, { title, hint, icon = 'music', rounds = 4, labels = null }) {
@@ -220,7 +221,7 @@ function simonGame_(ui, { title, hint, icon = 'music', rounds = 4, labels = null
 
 // ---------- Resultado de misión (XP, carta y progreso) ----------
 export function missionComplete(ui, opts) {
-  if (window.__autoWin) return Promise.resolve();
+  if (window.__autoWin) { window.__autoSeen?.(opts); return Promise.resolve(); }
   return missionComplete_(ui, opts);
 }
 function missionComplete_(ui, { title, text, xp, card, saber, icon = 'star', progress, stamp = null, next = 'Seguir jugando' }) {

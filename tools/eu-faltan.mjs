@@ -34,7 +34,10 @@ async function town(t) {
     await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 400000 });
     await p.evaluate(async () => { const { tr } = await import('/src/i18n.js'); const G = window.__game;
       window.__trLines = (lines) => { for (const L of lines || []) { if (typeof L === 'string') tr(L); else { if (L?.text) tr(L.text); if (L?.who) tr(L.who); for (const c of L?.choices || []) tr(typeof c === 'string' ? c : c.text || c.label || ''); } } };
-      const ui = G.ui; const orig = ui.toast?.bind(ui); if (orig) ui.toast = (m, ...r) => { tr(String(m)); return orig(m, ...r); }; });
+      const ui = G.ui; const orig = ui.toast?.bind(ui); if (orig) ui.toast = (m, ...r) => { tr(String(m)); return orig(m, ...r); };
+      // las fichas y minijuegos que la prueba se salta (window.__autoWin) también pasan sus textos por el traductor
+      window.__autoSeen = (o) => { const walk = (v, d) => { if (v == null || d > 3) return; if (typeof v === 'string') { if (v.includes('<')) { const t = document.createElement('template'); t.innerHTML = v; const w = document.createTreeWalker(t.content, NodeFilter.SHOW_TEXT); let n; while ((n = w.nextNode())) tr(n.nodeValue); } else tr(v); }
+        else if (Array.isArray(v)) v.forEach(x => walk(x, d + 1)); else if (typeof v === 'object' && Object.getPrototypeOf(v) === Object.prototype) for (const k in v) walk(v[k], d + 1); }; walk(o, 0); }; });
     // el recorrido de las misiones (cambia el diálogo por uno automático: antes se pasa cada línea por el traductor)
     const f = flow.replace('G.ui.dialog = async (lines) => {', 'G.ui.dialog = async (lines) => { window.__trLines(lines);');
     await p.evaluate(f).catch(e => console.log('  recorrido:', e.message.split('\n')[0]));
