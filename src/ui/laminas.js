@@ -1,15 +1,15 @@
 // Las láminas del juego (src/data/laminas.js): su archivo, las de cada pueblo y comarca, y el visor a pantalla completa.
 // En la web, cada lámina tiene además su copia pequeña (<id>-s, 480 × 270) para tarjetas y miniaturas: así el móvil no
 // guarda en memoria imágenes grandes que se ven pequeñas. En el archivo único solo está la de 640 × 360.
+// En WebP y no en AVIF: los visores de HTML del iPhone no siempre enseñan AVIF, y sin ellas las portadas salían vacías.
 import { LAMINAS } from '../data/laminas.js';
-import { leeAvif } from './floraFoto.js';
 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const URLS = Object.fromEntries(Object.entries(import.meta.glob('@laminas/*.avif', { eager: true, query: '?url', import: 'default' })).map(([k, v]) => [k.split('/').pop().replace('.avif', ''), v]));
+const URLS = Object.fromEntries(Object.entries(import.meta.glob('@laminas/*.webp', { eager: true, query: '?url', import: 'default' })).map(([k, v]) => [k.split('/').pop().replace('.webp', ''), v]));
 const BY_ID = Object.fromEntries(LAMINAS.map(l => [l.id, l]));
 
-/** La lámina por su id (o null si no está en esta versión o el navegador no lee AVIF); small: la copia pequeña. */
-export const laminaUrl = (id, small = false) => (id && leeAvif() && ((small && URLS[id + '-s']) || URLS[id])) || null;
+/** La lámina por su id (o null si no está en esta versión); small: la copia pequeña. */
+export const laminaUrl = (id, small = false) => (id && ((small && URLS[id + '-s']) || URLS[id])) || null;
 export const laminaById = (id) => BY_ID[id] || null;
 /** Las láminas que hay en esta versión: de un pueblo (la portada primero), de una comarca o de un grupo. */
 export const laminasDe = ({ town, comarca, group } = {}) => LAMINAS.filter(l => laminaUrl(l.id) && (town ? l.town === town : comarca ? l.comarca === comarca : l.group === group))
