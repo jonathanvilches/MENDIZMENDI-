@@ -18,7 +18,9 @@ import { avatarPortrait, portraitImg, avatarPortraitImg } from '../ui/portraits.
 import { stampImg, landImg, townImg } from '../assets.js';
 import { Stage, releaseStage } from './stage.js';
 import { getLang, setLang, langChosen } from '../i18n.js';
-import { dioramaShot, heroAvatar, heroAction, townCover } from './diorama.js';
+import { dioramaShot, heroAvatar, townCover } from './diorama.js';
+import { laminaUrl, laminasDe, laminaRail, bindLaminas } from '../ui/laminas.js';
+import { LAMINAS, CUENTO_LAMINA, COMARCA_LAMINA } from '../data/laminas.js';
 import { CLUBS } from '../futbol/clubs.js';
 import { PELOTARI_IMG } from '../ui/sportCard.js';
 import OSASUNA_VS from '../assets/meshy/portraits/osasuna_vs.webp?url';
@@ -112,8 +114,8 @@ export class Hub {
       <nav class="hub-nav" id="hNav"></nav><main class="hub-main" id="hMain"></main></div>`);
     document.body.appendChild(this.root);
     // secciones: las principales siempre a la vista; las demás, en «Más» cuando falta sitio (móvil)
-    this.nav = [['home', 'Inicio', 'home'], ['map', 'Mapa', 'map'], ['towns', 'Pueblos', 'church'], ['sports', 'Torneos', 'trophy'], ['avatars', 'Personajes', 'person'], ['peaks', 'Cimas', 'peak', 1], ['nature', 'Naturaleza', 'leaf', 1], ['escudos', 'Escudos', 'shield', 1], ['cuentos', 'Leyendas', 'legend', 1], ['badges', 'Insignias', 'badge', 1], ['passport', 'Pasaporte', 'stamp', 1], ['profile', 'Perfil', 'gear', 1]];
-    this.MORE = { peaks: 'Montañas de Navarra con su perfil', nature: 'Fauna, árboles, plantas y flores', escudos: 'Escudos de Navarra y cómo se leen', cuentos: 'Cuentos, leyendas e historias de Navarra', badges: 'Tus logros', passport: 'Los sellos de tus pueblos', profile: 'Nombre, nivel y ajustes' };
+    this.nav = [['home', 'Inicio', 'home'], ['map', 'Mapa', 'map'], ['towns', 'Pueblos', 'church'], ['sports', 'Torneos', 'trophy'], ['avatars', 'Personajes', 'person'], ['peaks', 'Cimas', 'peak', 1], ['nature', 'Naturaleza', 'leaf', 1], ['escudos', 'Escudos', 'shield', 1], ['cuentos', 'Leyendas', 'legend', 1], ['album', 'Láminas', 'scroll', 1], ['badges', 'Insignias', 'badge', 1], ['passport', 'Pasaporte', 'stamp', 1], ['profile', 'Perfil', 'gear', 1]];
+    this.MORE = { peaks: 'Montañas de Navarra con su perfil', nature: 'Fauna, árboles, plantas y flores', escudos: 'Escudos de Navarra y cómo se leen', cuentos: 'Cuentos, leyendas e historias de Navarra', album: 'Las ilustraciones de cada pueblo y comarca', badges: 'Tus logros', passport: 'Los sellos de tus pueblos', profile: 'Nombre, nivel y ajustes' };
     $('#hNav', this.root).innerHTML = this.nav.map(([id, n, ic, sec]) => `<button data-s="${id}" class="${sec ? 'nav2' : ''}">${I(ic, 26)}<span>${n}</span></button>`).join('') + `<button data-s="more" class="more-btn"><svg viewBox="0 0 24 24" width="26" height="26"><circle cx="5" cy="12" r="2.4" fill="#f7f0e6"/><circle cx="12" cy="12" r="2.4" fill="#f7f0e6"/><circle cx="19" cy="12" r="2.4" fill="#f7f0e6"/></svg><span>Más</span></button>`;
     $('#hNav', this.root).addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.s === 'more') return this.more(); this.go(b.dataset.s); });
     this.root.addEventListener('click', e => {
@@ -142,7 +144,7 @@ export class Hub {
     if (!this['s_' + screen]) { screen = this.screen = 'home'; this.root.dataset.screen = screen; }   // pantalla desconocida: la portada
     m.innerHTML = this['s_' + screen](arg);
     m.scrollTop = 0; fitMaps(m);
-    this.after?.(); this.after = null;
+    this.after?.(); this.after = null; bindLaminas(m, this.sound);
     this.renderChip();
   }
   more() {
@@ -246,14 +248,14 @@ export class Hub {
     const avP = PELOTARI_IMG.blue, avF = OSASUNA_VS, sadar = levelById('pamplona');
     const towns = LEVELS.filter(l => !l.special).map(l => `<button class="fr-chip ${l.id === fl.id ? 'on' : ''}" data-fronton="${l.id}">${esc(l.name.split(' /')[0])}</button>`).join('');
     this.after = () => { $('.fr-chip.on', this.root)?.scrollIntoView({ block: 'nearest', inline: 'nearest' }); };
-    // (las dos cartas, iguales: rótulo, título, el dato, una fila para elegir o ver y el botón abajo, a todo lo ancho; la
-    // figura en su columna, a la derecha, sin tocar nada)
+    // (una carta por fila, en horizontal y con aire: la figura a la izquierda; en el centro, el rótulo, el título, el texto
+    // y el dato, y debajo la fila para elegir frontón o ver tu club; el botón de jugar, a la derecha. Las dos cartas, iguales)
     const kit = club ? `<i class="sp-kit" style="--a:${club.shirt};--b:${club.shirt2 || club.shorts || club.shirt}"></i>` : '';
     return `
     <h2 class="sec">${I('trophy', 34)} Campeonatos</h2>
     <p class="hint sp-hint">Juega sin entrar en las misiones de un pueblo. Lo que ganes cuenta igual.</p>
     <section class="sports">
-      <div class="sport" style="--bg:url(${townImg(fl)})">
+      <div class="sport" style="--bg:url(${laminaUrl('dep-fronton') || townImg(fl)})">
         <div class="sp-txt"><small class="kicker">Torneo de mano</small><h3>Pelota a mano</h3>
           <p>Partido libre o el torneo por la txapela de la comarca: cuartos, semifinal y final.</p>
           <span class="sp-stat">${I('txapela', 22)} ${tx} ${tx === 1 ? 'txapela' : 'txapelas'}</span></div>
@@ -261,7 +263,7 @@ export class Hub {
         <div class="sp-fig">${avP ? `<img class="sp-av" src="${avP}" alt="">` : ''}</div>
         <button class="gx-go" data-sport="pelota">${I('play', 24)} <span>Jugar a pelota</span></button><span class="sp-shine"></span>
       </div>
-      <div class="sport" style="--bg:url(${townImg(sadar)})">
+      <div class="sport" style="--bg:url(${laminaUrl('dep-estadio') || townImg(sadar)})">
         <div class="sp-txt"><small class="kicker">Liga Navarra</small><h3>Fútbol</h3>
           <p>Liga con tu club y amistosos contra cualquier club. Todos los partidos, en El Sadar.</p>
           <span class="sp-stat">${I('balon', 22)} ${fb?.played || 0} ${(fb?.played || 0) === 1 ? 'partido' : 'partidos'} · ${fb?.won || 0} ${(fb?.won || 0) === 1 ? 'ganado' : 'ganados'}</span></div>
@@ -337,12 +339,13 @@ export class Hub {
     const chips = (arr, fb) => (arr || []).map(n => { const k = floraId(n); return chip(n, fb, k && 'flora:' + k); }).join('');
     this.after = () => this.root.querySelectorAll('.nchip[data-k]').forEach(b => b.onclick = () => showFicha(b.dataset.k, { ui: { sound: this.sound }, button: 'Cerrar' }));
     return `
-    <section class="chero" style="--c:${c.color};--bg:url(${landImg(id)})">
+    <section class="chero" style="--c:${c.color};--bg:url(${laminaUrl(COMARCA_LAMINA[id]) || landImg(id)})">
       <button class="back" data-go="map">${I('back', 26)} Mapa</button>
       <img class="bigstamp ${pr.stamps ? '' : 'gray'}" src="${stampImg(id)}" alt="">
       <div><small class="kicker">Comarca</small><h1>${esc(c.full || c.name)}</h1><p>${cnt(ts.length, 'pueblo para jugar', 'pueblos para jugar')} · río ${esc(c.river || '')}</p></div>
       <div class="cring">${ring(pr.pct, 96, '#fff')}</div>
     </section>
+    ${(L => L.length ? `<h2 class="sec">${I('scroll', 30)} Láminas</h2>${laminaRail(L)}` : '')(this.comarcaLaminas(id))}
     <h2 class="sec">${I('church', 30)} Pueblos y ciudades</h2>
     <section class="towns">${ts.length ? ts.map(l => this.townCard(l)).join('') : '<p class="empty">Muy pronto habrá pueblos jugables en esta comarca.</p>'}</section>
     <section class="two">
@@ -373,18 +376,19 @@ export class Hub {
     const ms = l.special ? [{ type: 'visit', title: 'Ongi etorri a Otsagabia' }, { type: 'herd', title: 'El rebaño de Joxemari' }, { type: 'observe', title: 'Guardianes de Irati' }, { type: 'legend', title: 'Basajaun y la Lamia' }, { type: 'carnival', title: 'El Zarratrako' }, { type: 'dance', title: 'La fiesta de Muskilda' }]
       : missionSlots(l, edadDe(p)).map(x => x.m);
     const title = (m) => m.title || (m.type === 'visit' ? `Conoce ${l.name}` : m.type === 'quiz' ? `El sabio de ${l.name}` : m.name || m.product || TYPE_NAME[m.type]);
-    const hero = heroAction(p.avatar, l.id);
+    const lams = laminasDe({ town: l.id });
     const s = el(`<div class="sheet"><div class="sheet-in" style="--c:${c?.color};--bg:url(${townImg(l)})">
       <button class="x" aria-label="Cerrar">${I('close', 22)}</button>
-      <div class="sh-hero${hero ? ' key' : ''}" data-acc="${hero?.acc || ''}">${hero ? `<div class="sh-avW"><img class="sh-av" src="${hero.url}" alt=""></div>` : ''}<small class="kicker">${esc(c?.name)}</small><h1>${esc(l.name)}</h1><p>${esc(l.intro || '')}</p></div>
+      <div class="sh-hero"><small class="kicker">${esc(c?.name)}</small><h1>${esc(l.name)}</h1><p>${esc(l.intro || '')}</p></div>
       <div class="sh-body">
         <h3>${I('check', 24)} Misiones (${t.done}/${t.total})</h3>
         <ul class="mlist">${ms.map((m, i) => { const k = l.missions?.includes(m) ? l.missions.indexOf(m) : i; return `<li class="${ts?.done?.[k] ? 'ok' : ''}">${I(TYPE_ICON[m.type], 34)}<div><b>${esc(title(m))}</b><small>${TYPE_NAME[m.type]}${m.host ? ' · con ' + esc(m.host.name) : ''}</small></div>${ts?.done?.[k] ? I('check', 26) : ''}</li>`; }).join('')}</ul>
+        ${lams.length > 1 ? `<h3>${I('scroll', 24)} Láminas</h3>${laminaRail(lams)}` : ''}
         ${armsOfTown(l.id) ? `<h3>${I('shield', 24)} Su escudo</h3><div class="sh-arms"><canvas width="120" height="${Math.ceil(officialHeight(90, armsOfTown(l.id))) + 6}"></canvas><p><b>${esc(armsOfTown(l.id).name)}.</b> ${esc(armsOfTown(l.id).read)} <button class="lnk" data-go="escudos">Ver todos los escudos</button></p></div>` : ''}
         ${l.church ? `<h3>${I('church', 24)} Qué visitar</h3><ul class="plist"><li><b>${esc(l.church.name)}</b> ${esc(l.church.text)}</li>${(l.landmarks || []).map(x => `<li><b>${esc(x.name)}</b> ${esc(x.text)}</li>`).join('')}</ul>` : ''}
       </div>
       <div class="sh-foot"><button class="btn primary big" data-play="${l.id}">${I('play', 28)} ${t.done ? 'Seguir jugando' : 'Jugar'} en ${esc(l.name)}</button></div></div></div>`);
-    this.sheet?.remove(); this.sheet = s; this.root.appendChild(s);
+    this.sheet?.remove(); this.sheet = s; this.root.appendChild(s); bindLaminas(s, this.sound);
     { const A = armsOfTown(l.id), c = s.querySelector('.sh-arms canvas'); if (A && c) drawOfficial(c.getContext('2d'), c.width / 2, 3, 90, A); }
     s.addEventListener('click', e => { if (e.target === s || e.target.closest('.x')) { s.remove(); this.sheet = null; } });
   }
@@ -522,6 +526,15 @@ export class Hub {
       <p class="ar-src">Fuentes: Heraldry of the World (blasones municipales), Ayuntamiento de Pamplona, Ayuntamiento de Sangüesa, Gran Enciclopedia de Navarra, Auñamendi Eusko Entziklopedia y Cátedra de Patrimonio de la Universidad de Navarra. Los dibujos son del juego, hechos a partir del blasón.</p>
     </section>`;
   }
+  // ---------- Álbum de láminas ----------
+  // (una tira horizontal por comarca, con sus paisajes y las de sus pueblos; luego los oficios y los deportes)
+  comarcaLaminas(id) { return [...LAMINAS.filter(l => l.comarca === id && laminaUrl(l.id)), ...comarcaTowns(id).flatMap(t => laminasDe({ town: t.id }))]; }
+  s_album() {
+    const groups = [...COMARCAS.map(c => ({ name: c.name, color: c.color, list: this.comarcaLaminas(c.id) })),
+      { name: 'Oficios de antes', list: laminasDe({ group: 'oficios' }) }, { name: 'Deportes', list: laminasDe({ group: 'deportes' }) }].filter(g => g.list.length);
+    return `<h1 class="title">${I('scroll', 40)} Láminas de Navarra</h1><p class="lead">Las ilustraciones del explorador por toda Navarra: el monumento de cada pueblo, sus leyendas, sus oficios, sus cosechas, sus animales y sus fiestas. Toca una para verla en grande.</p>
+      ${groups.map(g => `<section class="album-sec" style="--c:${g.color || '#c9b2ff'}"><h2 class="sec"><i class="adot"></i>${esc(g.name)}</h2>${laminaRail(g.list)}</section>`).join('')}`;
+  }
   // ---------- Cuentos y leyendas ----------
   s_cuentos() {
     const p = profile(), seen = new Set(p.cards || []), tn = (id) => (levelById(id)?.name || id).split(' /')[0];
@@ -531,7 +544,7 @@ export class Hub {
         <p>En muchos pueblos hay un contador o una contadora de cuentos en la plaza. Escúchales y el cuento se guarda aquí. Cada relato dice si es una leyenda, lo que cuenta la tradición, o una historia que pasó de verdad, y qué puedes ver hoy en ese lugar.</p>
         <b class="ar-count">${heard} de ${CUENTOS.length} escuchados</b></div>
       <div class="ar-grid">${CUENTOS.map(C => { const on = seen.has('cuento:' + C.id); return `<article class="ar ct${on ? ' on' : ''}">
-        <div class="ct-ic">${I(on ? C.icon : 'lock', 64)}</div>
+        ${(u => u ? `<figure class="ct-lam${on ? '' : ' locked'}"><img src="${u}" alt="" loading="lazy" decoding="async">${on ? '' : `<span>${I('lock', 40)}</span>`}</figure>` : `<div class="ct-ic">${I(on ? C.icon : 'lock', 64)}</div>`)(laminaUrl(CUENTO_LAMINA[C.id], true))}
         <div class="ar-tx"><small>${esc(KIND_LABEL[C.kind])} · ${esc(C.towns.map(tn).join(', '))}</small><h3>${esc(C.title)}</h3><p class="ct-pl">${esc(C.place)}</p>
           ${on ? `<span class="ar-ok">${I('check', 16)} Escuchado</span><details><summary>Volver a leerlo</summary>${C.parts.map(t => `<p>${esc(t)}</p>`).join('')}<p><b>Lo que puedes ver hoy.</b> ${esc(C.today)}</p></details>`
             : `<p>Ve a ${esc(tn(C.towns[0]))} y habla con ${esc(C.teller.name)} en la plaza.</p><button class="btn ct-go" data-play="${C.towns[0]}">${I('play', 20)} Ir a ${esc(tn(C.towns[0]))}</button>`}</div></article>`; }).join('')}</div>

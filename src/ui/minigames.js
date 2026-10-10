@@ -28,19 +28,20 @@ export function infoCard(ui, opts) {
   if (window.__autoWin) return Promise.resolve();
   return infoCard_(ui, opts);
 }
-function infoCard_(ui, { icon = 'church', kicker = '', title, text, extra = '', image = '', button = 'Seguir explorando', badge = '' }) {
+// lamina: una ilustración 16:9 entera en vez del icono (los oficios de antes)
+function infoCard_(ui, { icon = 'church', kicker = '', title, text, extra = '', image = '', lamina = '', button = 'Seguir explorando', badge = '' }) {
   return new Promise(res => {
     ui.sound.ui('card');
     // (las fichas de varias páginas dicen en cuál vas con unas marcas junto al botón: «Seguir (2/3)»)
     const pg = /\((\d+)\/(\d+)\)/.exec(button) || /(\d+) de (\d+)/.exec(kicker);
     const dots = pg && +pg[2] > 1 && +pg[2] <= 8 ? `<div class="ix-dots">${Array.from({ length: +pg[2] }, (_, i) => `<i class="${i < +pg[1] ? 'on' : ''}"></i>`).join('')}</div>` : '';
     const o = overlay(ui, 'info ix-ov', `
-      <div class="ix-media"><figure class="ix-frame icon">${image ? `<img class="ix-sign" src="${image}" alt="">` : iconSVG(icon, 160)}</figure>${badge ? `<span class="ix-tag">${esc(badge)}</span>` : ''}</div>
+      <div class="ix-media">${lamina ? `<figure class="ix-frame lam"><img src="${lamina}" alt=""></figure>` : `<figure class="ix-frame icon">${image ? `<img class="ix-sign" src="${image}" alt="">` : iconSVG(icon, 160)}</figure>`}${badge ? `<span class="ix-tag">${esc(badge)}</span>` : ''}</div>
       <div class="ix-main">
         <header class="ix-head"><p class="ix-kicker">${esc(kicker)}</p><h2 class="ix-title">${esc(title)}</h2></header>
         <div class="ix-body">${text ? `<p class="ix-text">${esc(text)}</p>` : ''}${extra}</div>
         <div class="ix-foot">${dots}<button class="btn primary">${esc(button)}</button></div>
-      </div>`, 'ix fit');
+      </div>`, `ix fit${lamina ? ' has-lam' : ''}`);
     const b = o.querySelector('button.btn'); setTimeout(() => b.focus({ preventScroll: true }), 60);
     const k = (e) => { e.stopImmediatePropagation(); if (['e', 'enter', ' ', 'escape'].includes(e.key.toLowerCase())) { e.preventDefault(); close(); } };
     const close = () => { ui.sound.ui('click'); done(ui, o, k); res(); };
@@ -233,7 +234,7 @@ function missionComplete_(ui, { title, text, xp, card, saber, icon = 'star', pro
           <div class="rewards">${xp ? `<span class="rw">${iconSVG('xp', 26)} +${xp} XP</span>` : ''}${card ? `<span class="rw">${iconSVG('book', 26)} Carta: ${esc(card)}</span>` : ''}${saber ? `<span class="rw saber">${iconSVG(saber.icon, 26)} Saber de Navarra: ${esc(saber.name)}</span>` : ''}</div>
           ${progress ? `<div class="prog"><i style="width:${Math.round(progress.done / progress.total * 100)}%"></i><span>${progress.done}/${progress.total} misiones en ${esc(progress.name)}</span></div>` : ''}</div>
         <div class="ix-foot"><button class="btn primary">${esc(next)}</button></div>
-      </div>`, 'ix fit');
+      </div>`, `ix fit${lamina ? ' has-lam' : ''}`);
     const b = o.querySelector('button'); setTimeout(() => b.focus({ preventScroll: true }), 80);
     const k = (e) => { e.stopImmediatePropagation(); if (['e', 'enter', ' ', 'escape'].includes(e.key.toLowerCase())) { e.preventDefault(); close(); } };
     const close = () => { ui.sound.ui('click'); done(ui, o, k); res(); };

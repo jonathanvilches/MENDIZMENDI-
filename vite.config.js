@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 //    página es pequeña y cada modelo, textura o sonido es un archivo aparte que solo se descarga cuando hace falta y
 //    queda guardado (caché del navegador y de la app instalada): menos memoria, arranque rápido y juego sin conexión.
 const WEB = !!process.env.WEB;
-// las fotos de la flora: grandes en la web y en el servidor de pruebas; más ligeras en el archivo único
+// las fotos de la flora y las láminas: grandes en la web y en el servidor de pruebas; más ligeras en el archivo único
 const FOTOS = WEB || !process.argv.includes('build') ? 'web' : 'mini';
 // la redirección a docs/ de index.html solo sirve sin compilar (GitHub Pages desde la raíz): fuera al compilar
 const sinRedir = { name: 'sin-redireccion', transformIndexHtml: (html) => html.replace(/<!-- en GitHub Pages[\s\S]*?<script id="ir-a-docs">[\s\S]*?<\/script>\n?/, '') };
@@ -35,7 +35,7 @@ const app = {
 
 export default defineConfig({
   base: './',
-  resolve: { alias: { '@flora-fotos': fileURLToPath(new URL(`./src/assets/flora/${FOTOS}`, import.meta.url)) } },
+  resolve: { alias: { '@flora-fotos': fileURLToPath(new URL(`./src/assets/flora/${FOTOS}`, import.meta.url)), '@laminas': fileURLToPath(new URL(`./src/assets/laminas/${FOTOS}`, import.meta.url)) } },
   plugins: WEB ? [sinRedir, app] : [sinRedir, viteSingleFile()],
   define: { __WEB__: JSON.stringify(WEB) },
   build: WEB

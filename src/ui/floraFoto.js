@@ -19,6 +19,8 @@ try {
   im.onload = () => { avif = im.width > 0; };
   im.src = 'data:image/avif;base64,AAAAHGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZgAAAOptZXRhAAAAAAAAACFoZGxyAAAAAAAAAABwaWN0AAAAAAAAAAAAAAAAAAAAAA5waXRtAAAAAAABAAAAImlsb2MAAAAAREAAAQABAAAAAAEOAAEAAAAAAAAAHAAAACNpaW5mAAAAAAABAAAAFWluZmUCAAAAAAEAAGF2MDEAAAAAamlwcnAAAABLaXBjbwAAABNjb2xybmNseAABAA0ABoAAAAAMYXYxQ4EgAgAAAAAUaXNwZQAAAAAAAAACAAAAAgAAABBwaXhpAAAAAAMICAgAAAAXaXBtYQAAAAAAAAABAAEEAYIDBAAAACRtZGF0EgAKBzgANhAQ0GkyDxgAAABAALATcJd22xW6wA==';
 } catch (e) { avif = false; }
+/** ¿Lee AVIF este navegador? (también para las láminas) */
+export const leeAvif = () => avif;
 
 export function floraFoto(id) {
   const F = FOTOS[id]; if (!F || !avif) return null;

@@ -785,58 +785,52 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .round.bag.low .ering { background: conic-gradient(#ff5a4a calc(var(--e, 100) * 1%), rgba(255, 255, 255, .14) 0); animation: pulse 1s infinite alternate; }
 @keyframes pulse { to { opacity: .45; } }
 /* ---------- la mochila ----------
-   Arriba, en una fila, el icono, el título, la energía y las monedas. Debajo, tres columnas del mismo ancho: el perro, el
-   agua y la comida, y el equipo. Cada columna con su rótulo y su caja; todas las cajas con el mismo relleno (12 px), el
-   mismo borde y el mismo fondo, y acaban a la misma altura. El botón de cerrar, abajo y siempre a la vista. Cabe entera
-   en el móvil tumbado, sin desplazar */
-.bagpanel .mg-card.bp-card { display: flex; flex-direction: column; align-items: stretch; gap: 0; padding: 0; width: min(880px, 100%); max-width: none; max-height: 92dvh; overflow: hidden; text-align: left; }
-.bp-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
-.bp-head { display: flex; align-items: center; gap: 12px; min-width: 0; }
+   Arriba, en una fila, el icono, el título, la energía, las monedas y «Cerrar». Debajo, una franja por cosa (perro, agua,
+   comida y equipo): el rótulo a la izquierda, en una columna del mismo ancho para todas, y lo suyo en fila a la derecha.
+   Mucho aire: 24 px de margen, 24 px entre franjas y una raya fina entre ellas. Si no cabe, se desplaza */
+.bagpanel .mg-card.bp-card { display: flex; flex-direction: column; align-items: stretch; gap: 0; padding: 0; width: min(920px, 100%); max-width: none; max-height: 92dvh; overflow: hidden; text-align: left; }
+.bp-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 24px; -webkit-overflow-scrolling: touch; }
+.bp-head { display: flex; align-items: center; gap: 16px; min-width: 0; }
 .bp-head > svg, .bp-head > img { flex: none; width: 44px; height: 44px; }   /* (la iconografía de siempre, a su tamaño) */
 .bagpanel .bp-head h3 { flex: none; margin: 0; font: 400 var(--fs-xl)/1 var(--f-display); text-transform: uppercase; color: #fff; text-shadow: 0 3px 0 rgba(7, 2, 15, .5); }
 .ebar { flex: 1 1 auto; min-width: 64px; height: 8px; border-radius: 4px; background: rgba(255, 255, 255, .12); overflow: hidden; }
 .ebar i { display: block; height: 100%; background: linear-gradient(90deg, #c9b2ff, #ff7ac8); }   /* (la energía, en lila como en el pueblo y los partidos) */
 .bp-head small { flex: none; display: inline-flex; align-items: center; gap: 4px; color: var(--lila); font: 800 var(--fs-sm)/1.2 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+.bp-head .bp-close { flex: none; }   /* (como «Salir» en la tienda: arriba a la derecha) */
 .bp-warn { margin: -8px 0 0; color: #ff7ac8; font: 800 var(--fs-sm)/1.2 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; }
-.bp-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
-.bp-sec { display: flex; flex-direction: column; min-width: 0; }
-.bagpanel h4 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; color: var(--rosa); font: 800 var(--fs-sm)/1.15 var(--f-cond); letter-spacing: .1em; text-transform: uppercase; }
+.bp-rows { display: flex; flex-direction: column; }
+.bp-sec { display: grid; grid-template-columns: 120px minmax(0, 1fr); column-gap: 24px; align-items: center; min-width: 0; padding: 24px 0; border-top: 1px solid rgba(201, 178, 255, .16); }
+.bp-sec:first-child { padding-top: 0; border-top: 0; } .bp-sec:last-child { padding-bottom: 0; }
+.bagpanel h4 { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--rosa); font: 800 var(--fs-sm)/1.15 var(--f-cond); letter-spacing: .1em; text-transform: uppercase; }
 .bagpanel h4::before { content: ''; flex: none; width: 18px; height: 4px; border-radius: 2px; background: var(--cta); transform: skewX(-20deg); }
-.bp-box { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 4px; background: rgba(255, 255, 255, .05); border: 1px solid rgba(201, 178, 255, .2); min-width: 0; }
-.bp-sec > .bp-box:last-child { flex: 1 1 auto; }   /* (la última caja de cada columna llega abajo: las tres acaban igual) */
-.bp-box + h4 { margin-top: 16px; }
+.bp-line { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; min-width: 0; }
 /* (ir con perro o sin él: como las pestañas de las fichas, la elegida en el degradado) */
-.seg { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 4px; padding: 4px; border-radius: 4px; background: rgba(7, 2, 15, .5); }
-.seg button { box-sizing: border-box; min-width: 0; display: flex; align-items: center; justify-content: center; min-height: 40px; padding: 0 8px; border: 0; border-radius: 4px; background: transparent; color: var(--lila); font: 800 var(--fs-sm)/1.1 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; cursor: pointer; }
+.seg { display: inline-grid; grid-auto-flow: column; grid-auto-columns: minmax(120px, auto); gap: 4px; padding: 4px; border-radius: 4px; background: rgba(7, 2, 15, .5); }
+.seg button { box-sizing: border-box; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 16px; border: 0; border-radius: 4px; background: transparent; color: var(--lila); font: 800 var(--fs-sm)/1.1 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; cursor: pointer; }
 .seg button.on { background: var(--cta); color: #fff; box-shadow: var(--glow); }
-.seg button { gap: 8px; } .seg button svg { flex: none; width: 22px; height: 22px; }   /* (el perro junto a su nombre, como antes) */
+.seg button svg { flex: none; width: 22px; height: 22px; }   /* (el perro junto a su nombre, como antes) */
 .seg button:not(.on):hover { background: rgba(255, 255, 255, .08); color: #fff; }
-.seg span { white-space: normal; text-wrap: balance; text-align: center; }
-.bp-actions { display: flex; flex-direction: column; gap: 8px; }
-.bp-box .btn { box-sizing: border-box; width: 100%; min-width: 0; min-height: 44px; margin: 0; padding: 8px 12px; font-size: var(--fs-sm); line-height: 1.15; border-radius: 4px; white-space: normal; }
-.bp-box .btn span { white-space: normal; text-wrap: balance; }   /* (el rótulo entero: en dos líneas antes que cortado) */
-.bp-water { flex-direction: row; align-items: center; gap: 12px; }
-.bp-water .btn { flex: 1 1 auto; width: auto; } .bp-water .btn[disabled] { opacity: .45; cursor: default; }
-.drops { flex: none; display: flex; gap: 4px; } .drops span { opacity: .25; } .drops span.on { opacity: 1; }
-/* (la comida, en una fila que se desliza si no cabe; cada cosa con su icono, su nombre y cuánto da) */
-.bp-food { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent); } .bp-food::-webkit-scrollbar { display: none; }
-.bp-food > :last-child { margin-right: 24px; }
-.fooditem { flex: none; display: grid; grid-template-columns: 34px auto; column-gap: 8px; align-items: center; min-height: 44px; padding: 4px 12px 4px 8px; border-radius: 4px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(201, 178, 255, .2); color: inherit; text-align: left; cursor: pointer; }
+.seg span { white-space: nowrap; }
+.bp-line .btn { box-sizing: border-box; width: auto; min-width: 0; min-height: 44px; margin: 0; padding: 8px 20px; font-size: var(--fs-sm); line-height: 1.15; border-radius: 4px; white-space: nowrap; }
+.bp-line .btn[disabled] { opacity: .45; cursor: default; }
+.drops { flex: none; display: flex; gap: 8px; } .drops span { opacity: .25; } .drops span.on { opacity: 1; }
+/* (la comida y el equipo, en una fila que se desliza si no cabe; cada cosa con su icono y su nombre) */
+.bp-food, .bp-gear { flex: 1 1 100%; min-width: 0; display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent); }
+.bp-food::-webkit-scrollbar, .bp-gear::-webkit-scrollbar { display: none; }
+.bp-food > :last-child, .bp-gear > :last-child { margin-right: 24px; }
+.fooditem { flex: none; display: grid; grid-template-columns: 34px auto; column-gap: 12px; align-items: center; min-height: 56px; padding: 8px 16px 8px 12px; border-radius: 4px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(201, 178, 255, .2); color: inherit; text-align: left; cursor: pointer; }
 .fooditem svg, .fooditem img { grid-row: span 2; width: 34px; height: 34px; }
 .fooditem b { font: 800 var(--fs-sm)/1.15 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; } .fooditem span { font: 600 var(--fs-xs)/1.2 var(--f-cond); color: var(--mute); white-space: nowrap; }
 .fooditem:hover { border-color: #ff7ac8; }
-/* (el equipo, en fichas cuadradas de icono; su nombre y para qué sirve, al tocarlo) */
-.bp-gear { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.gitem { box-sizing: border-box; aspect-ratio: 1; min-width: 0; display: grid; place-items: center; padding: 0; border-radius: 4px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(201, 178, 255, .2); color: inherit; cursor: pointer; }
-.gitem svg, .gitem img { width: 30px; height: 30px; } .gitem b { display: none; } .gitem.locked { opacity: .55; }
-.bp-note { margin: 0; font-size: var(--fs-sm); line-height: 1.45; color: var(--mute); }
-.bp-head .bp-close { flex: none; }   /* (como «Salir» en la tienda: arriba a la derecha) */
-/* (en vertical o en una pantalla estrecha, las columnas una debajo de otra, y el equipo con su nombre) */
-@media (max-width: 699px), (orientation: portrait) {
-  .bp-cols { grid-template-columns: minmax(0, 1fr); }
+.gitem { box-sizing: border-box; flex: none; width: 104px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 88px; padding: 12px 8px; border-radius: 4px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(201, 178, 255, .2); color: inherit; cursor: pointer; }
+.gitem svg, .gitem img { flex: none; width: 30px; height: 30px; }
+.gitem b { font: 800 var(--fs-xs)/1.15 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; text-align: center; text-wrap: balance; }
+.gitem.locked { opacity: .55; } .gitem:hover { border-color: #ff7ac8; }
+.bp-note { margin: 0; max-width: 52ch; font-size: var(--fs-sm); line-height: 1.5; color: var(--mute); }
+/* (en vertical o en una pantalla estrecha, el rótulo encima de su fila) */
+@media (max-width: 599px), (orientation: portrait) {
+  .bp-sec { grid-template-columns: minmax(0, 1fr); row-gap: 12px; }
   .bp-head { flex-wrap: wrap; } .ebar { flex-basis: 100%; order: 3; }
-  .bp-gear { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
-  .gitem { aspect-ratio: auto; grid-template-columns: 28px minmax(0, 1fr); justify-items: start; column-gap: 8px; min-height: 44px; padding: 8px; } .gitem b { display: block; font: 800 var(--fs-sm)/1.15 var(--f-cond); text-transform: uppercase; letter-spacing: .04em; }
 }
 .gender { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 8px; }
 .gender button { flex: 1 1 140px; max-width: 220px; min-height: 46px; border-radius: 14px; border: 2px solid rgba(255, 255, 255, .35); background: rgba(255, 255, 255, .08); color: #fff; font: 800 var(--fs-md) Nunito, sans-serif; cursor: pointer; }
@@ -1045,10 +1039,10 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .sports-cta:active { transform: scale(.98); }
 .sports-cta div { flex: 1; min-width: 0; } .sports-cta b { display: block; font-size: var(--fs-lg); font-weight: 900; } .sports-cta small { color: var(--mute); }
 .sp-hint { margin: -4px 0 12px; }
-.sports { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.sports { display: flex; flex-direction: column; gap: 24px; }   /* (una carta por fila, ancha y con aire: si no caben las dos, se desplaza) */
 /* cada carta, igual que la otra: a la izquierda el texto y la fila para elegir; a la derecha la figura, en su columna; y
    abajo el botón, a todo lo ancho. Las mismas filas a la misma altura en las dos, y nada se pisa */
-.sport { position: relative; overflow: hidden; isolation: isolate; min-height: 340px; padding: 24px; border-radius: 4px; border: 1px solid rgba(201, 178, 255, .25); display: grid; grid-template-columns: minmax(0, 1fr) 36%; grid-template-rows: auto auto minmax(0, 1fr) auto; grid-template-areas: "txt fig" "row fig" "gap fig" "cta cta"; gap: 16px; clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px); animation: gx-in .5s cubic-bezier(.2, .9, .3, 1.15) both; }
+.sport { position: relative; overflow: hidden; isolation: isolate; min-height: 0; padding: 32px; border-radius: 4px; border: 1px solid rgba(201, 178, 255, .25); display: grid; grid-template-columns: 200px minmax(0, 1fr) auto; grid-template-rows: auto auto; grid-template-areas: "fig txt cta" "fig row row"; gap: 24px 32px; align-items: center; clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px); animation: gx-in .5s cubic-bezier(.2, .9, .3, 1.15) both; }
 .sport + .sport { animation-delay: .1s; }
 .sport::before { content: ''; position: absolute; inset: 0; z-index: -3; background: var(--bg) center / cover no-repeat, #1f0a48; filter: grayscale(1) contrast(1.15) brightness(.8); }
 /* (sin rayas finas en diagonal: sobre la foto del frontón parecía que llovía) */
@@ -1057,7 +1051,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 /* (el marco de la tarjeta, con sus esquinas en ángulo, va en la capa del brillo: el fondo de la tarjeta, que es su ::before,
    se pinta por encima de su propio borde y lo tapaba arriba a la izquierda. Ver src/ui/frames.js) */
 .sport { border-color: transparent; } .sport .sp-shine { inset: -1px; border: 0 solid transparent; }
-.sport .sp-fig { grid-area: fig; position: relative; min-height: 0; pointer-events: none; }
+.sport .sp-fig { grid-area: fig; align-self: stretch; position: relative; min-height: 220px; pointer-events: none; }
 .sport .sp-av { position: absolute; left: 0; right: 0; bottom: 0; margin: 0 auto; z-index: 0; height: 100%; width: auto; max-width: 100%; object-fit: contain; object-position: 50% 100%; filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 18px rgba(255, 43, 214, .7)); animation: sp-in .6s cubic-bezier(.2, 1.15, .4, 1) .15s both; }
 .sp-txt { position: relative; z-index: 1; grid-area: txt; min-width: 0; } .sp-txt h3 { margin: var(--t-mt) 0 var(--t-mb); font: 400 var(--fs-4xl)/1 var(--f-display); text-transform: uppercase; letter-spacing: 0; text-shadow: 0 4px 0 rgba(7, 2, 15, .6); }
 .sp-txt p { margin: 0 0 8px; color: var(--mute); font-size: var(--fs-sm); line-height: 1.45; }
@@ -1065,7 +1059,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .sport .sp-stat { white-space: nowrap; }
 .sport .sp-row { grid-area: row; position: relative; z-index: 1; min-width: 0; }
 .sp-row small { display: block; color: var(--gold); font: 800 var(--fs-xs)/1.2 var(--f-cond); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 8px; }
-.sport .gx-go { grid-area: cta; position: relative; z-index: 1; justify-self: stretch; }
+.sport .gx-go { grid-area: cta; position: relative; z-index: 1; justify-self: end; align-self: center; }
 /* (los frontones, en una fila que se desliza; se apaga por los dos lados para que se vea que hay más) */
 .fr-rail { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; -webkit-overflow-scrolling: touch; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 24px), transparent 100%); mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 24px), transparent 100%); }
 .fr-rail > :last-child { margin-right: 24px; }
@@ -1077,8 +1071,9 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .sp-club b { font: 800 var(--fs-sm)/1.15 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; color: #fff; white-space: nowrap; }
 .sp-club span { font: 600 var(--fs-xs)/1.2 var(--f-cond); color: var(--mute); white-space: nowrap; }
 .sp-kit { flex: none; width: 16px; height: 16px; border-radius: 2px; background: linear-gradient(135deg, var(--a) 50%, var(--b) 50%); box-shadow: 0 0 0 1px rgba(255, 255, 255, .5); }
-@media (max-width: 760px) { .sports { grid-template-columns: minmax(0, 1fr); } .sport { min-height: 300px; } }
-@media (orientation: landscape) and (max-height: 560px) { .sport { min-height: 250px; padding: 16px; gap: 8px 12px; } .sp-txt h3 { font-size: var(--fs-xl); } .sp-txt p { font-size: var(--fs-xs); } }
+/* (en vertical: el texto y la figura arriba, la elección y el botón debajo, a todo lo ancho) */
+@media (max-width: 599px), (orientation: portrait) { .sport { grid-template-columns: minmax(0, 1fr) 32%; grid-template-areas: "txt fig" "row row" "cta cta"; padding: 24px; gap: 16px; } .sport .sp-fig { min-height: 180px; } .sport .gx-go { justify-self: stretch; } }
+@media (orientation: landscape) and (max-height: 560px) { .sport { grid-template-columns: 140px minmax(0, 1fr) auto; padding: 24px; gap: 16px 24px; } .sport .sp-fig { min-height: 180px; } }
 /* mochila en el móvil tumbado: los botones del perro uno junto al otro (el segundo quedaba debajo, fuera de la vista) */
 /* (la ficha de un escudo va en src/ui/infocard.css; aquí, las muestras de color de sus esmaltes) */
 .escudo .es-sw { display: inline-flex; align-items: center; gap: 4px; margin-right: 8px; font-weight: 800; } .escudo .es-sw i { width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid rgba(0, 0, 0, .4); }
@@ -1115,9 +1110,14 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .armorial .ar-nt { font-style: italic; color: var(--lila) !important; font-size: var(--fs-sm) !important; }
 .armorial .ar-pend { background: rgba(0, 0, 0, .2); border-radius: 16px; padding: 8px 16px; } .armorial .ar-pend h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font-size: var(--fs-md); } .armorial .ar-pend ul { margin: 4px 0; padding-left: 20px; color: #eae4f6; }
 .armorial .ar-src { font-size: var(--fs-sm); color: #bfb39c; }
-.cuentos .ct { grid-template-columns: 72px 1fr; } .cuentos .ct-ic { display: grid; place-items: center; width: 72px; height: 72px; border-radius: 16px; background: rgba(255, 255, 255, .06); }
+.cuentos .ct { grid-template-columns: 1fr; align-content: start; }
+/* la lámina del cuento a todo el ancho de su tarjeta, en 16:9 (y el icono, si no la tiene, en el mismo marco) */
+.cuentos :is(.ct-lam, .ct-ic) { position: relative; margin: 0; width: 100%; aspect-ratio: 16 / 9; border-radius: 4px; overflow: hidden; background: rgba(255, 255, 255, .06); display: grid; place-items: center; }
+.cuentos .ct-lam img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.cuentos .ct-lam.locked img { filter: blur(3px) grayscale(.5) brightness(.55); transform: scale(1.04); }
+.cuentos .ct-lam span { position: relative; display: grid; place-items: center; width: 72px; height: 72px; border-radius: 50%; background: rgba(20, 6, 46, .6); border: 1px solid rgba(201, 178, 255, .35); }
 .cuentos .ct-pl { font-style: italic; color: var(--lila) !important; } .cuentos .ar-tx details p { font-size: var(--fs-sm); } .cuentos .ct-go { margin-top: 8px; min-height: 44px; padding: 8px 16px; display: inline-flex; align-items: center; gap: 8px; }
-@media (max-width: 560px), (orientation: landscape) and (max-height: 440px) { .armorial .ar-grid { grid-template-columns: 1fr; } .armorial .ar { grid-template-columns: 84px 1fr; } .armorial .ar canvas { width: 84px; } }
+@media (max-width: 560px), (orientation: landscape) and (max-height: 440px) { .armorial .ar-grid { grid-template-columns: 1fr; } .armorial .ar { grid-template-columns: 84px 1fr; } .armorial .ar canvas { width: 84px; } .cuentos .ct { grid-template-columns: 240px 1fr; } }
 .sh-arms { display: grid; grid-template-columns: 90px 1fr; gap: 12px; align-items: start; margin: 0 0 12px; } .sh-arms canvas { width: 90px; height: auto; } .sh-arms p { margin: 0; }
 .sh-arms .lnk { background: none; border: 0; color: #ff7ac8; font-weight: 800; text-decoration: underline; padding: 8px 0; cursor: pointer; font: inherit; }
 /* edad en la bienvenida y en el perfil */
@@ -1175,18 +1175,12 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 @media (orientation: landscape) and (max-height: 500px) {
   .tile { padding: 8px 8px; column-gap: 8px; } .tile img.ico { width: 32px; height: 32px; } .tile span { letter-spacing: .04em; }
   .story { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 16px 20px; } .story p { max-width: none; }
-  /* campeonatos: las dos tarjetas caben enteras, con su botón de jugar a la vista */
-  .sp-hint { display: none; }
-  .sports { gap: 8px; }
-  .sport { min-height: 0; height: calc(100dvh - 124px); max-height: 300px; padding: 16px; gap: 8px 12px; }
-  .sport .sp-txt p { display: none; } .sport .sp-stat { margin-top: 0; }
+  /* campeonatos: una carta por fila, con su texto entero y aire; la segunda, desplazando */
   .sport .gx-go { min-height: 46px; padding: 8px 24px; }
-  /* (el título en una línea: en dos, con el rótulo, el frontón y el botón, no cabía y el rótulo se cortaba arriba) */
   .sport h3 { font-size: var(--fs-2xl) !important; white-space: nowrap; }
 }
 @media (orientation: landscape) and (max-height: 500px) {
   .hub-main h2.sec { margin-top: 0; margin-bottom: 8px; }
-  .sport { height: calc(100dvh - 120px); }
 }
 
 /* ================= iPhone en horizontal (Safari): el notch y la barra de inicio =================
@@ -1230,3 +1224,24 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   .map-wrap .cbar2 { display: none; }
   .map-wrap .clist b { font-size: var(--fs-xs); } .map-wrap .clist small { font-size: var(--fs-sm); }
 }
+
+/* ---------- Láminas ----------
+   Tira horizontal: todas las láminas del mismo tamaño (16:9) y con el mismo hueco; se desliza de lado, con aire y
+   sin apilar. Debajo de cada una, su título. El visor: la lámina entera, tan grande como quepa, y su título. */
+.lam-rail { display: flex; gap: 16px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; padding: 4px 0 16px; scrollbar-width: thin; }
+.lam-rail .lam { flex: none; width: clamp(200px, 26vw, 320px); display: flex; flex-direction: column; gap: 8px; padding: 0; border: 0; background: none; color: #f6f3fc; text-align: left; cursor: pointer; scroll-snap-align: start; font: inherit; }
+.lam-rail .lam img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; border-radius: 4px; border: 1px solid rgba(201, 178, 255, .3); background: rgba(255, 255, 255, .06); transition: transform .2s; }
+.lam-rail .lam:hover img, .lam-rail .lam:focus-visible img { transform: translateY(-2px); border-color: #ff7ac8; }
+.lam-rail .lam span { font: 800 var(--fs-sm)/1.2 var(--f-cond); letter-spacing: .04em; }
+.album-sec { margin-bottom: 8px; }
+.album-sec .sec { display: flex; align-items: center; gap: 12px; }
+.album-sec .adot { width: 12px; height: 12px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 3px rgba(255, 255, 255, .12); }
+.lam-view { position: fixed; inset: 0; z-index: 5000; display: grid; place-items: center; padding: calc(env(safe-area-inset-top, 0px) + 24px) calc(max(env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + 88px) calc(env(safe-area-inset-bottom, 0px) + 24px); background: rgba(10, 2, 26, .92); animation: lvin .25s ease both; }
+@keyframes lvin { from { opacity: 0; } }
+.lam-view figure { margin: 0; display: flex; flex-direction: column; gap: 12px; width: min(100%, calc((100dvh - 120px) * 16 / 9)); }
+.lam-view img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 4px; border: 1px solid rgba(201, 178, 255, .35); box-shadow: 0 16px 40px rgba(0, 0, 0, .6); }
+.lam-view figcaption { display: flex; align-items: baseline; gap: 12px; } .lam-view figcaption b { font: 400 var(--fs-lg)/1.1 var(--f-display); } .lam-view figcaption small { color: #c9b2ff; font-weight: 800; font-size: var(--fs-sm); }
+.lam-view :is(.lv-x, .lv-a) { position: absolute; display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; border: 1px solid rgba(201, 178, 255, .35); background: rgba(43, 16, 98, .85); cursor: pointer; }
+.lam-view .lv-x { top: calc(env(safe-area-inset-top, 0px) + 16px); right: calc(max(env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + 16px); width: 48px; height: 48px; }
+.lam-view .lv-a { top: 50%; margin-top: -28px; } .lam-view .prev { left: calc(max(env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + 16px); } .lam-view .next { right: calc(max(env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + 16px); }
+@media (orientation: portrait) { .lam-view { padding: 88px 16px; } .lam-view img { width: 100%; } .lam-view .lv-a { top: auto; bottom: 16px; margin: 0; } }

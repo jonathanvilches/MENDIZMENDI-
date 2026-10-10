@@ -28,8 +28,8 @@ import { TownGame } from './game/townGame.js';
 import { profile, saveProfile, townState, checkBadges, salazarState, townProgress } from './game/profile.js';
 import { missionSlots, edadDe } from './data/edad.js';
 import { levelById, LEVELS } from './data/levels.js';
-import { stampImg, townImg } from './assets.js';
-import { heroAction } from './hub/diorama.js';
+import { townImg } from './assets.js';
+import { laminaUrl, laminaById } from './ui/laminas.js';
 import COMARCAS from './data/comarcas.json';
 import { preloadNpcs } from './actors/npcGlb.js';
 import { animalsSettled } from './actors/animalGlb.js';
@@ -45,11 +45,12 @@ const q = new URLSearchParams(location.search);
 const TIPS = [
   'Sigue la luz dorada: te lleva al siguiente objetivo de tu misión.',
   'Las personas con una exclamación amarilla encima tienen una misión para ti.',
-  'Pulsa C para abrir el cuaderno con todas las misiones y sus pasos.',
+  'Pulsa C para abrir el cuaderno con todas las misiones y sus pasos.',   // (en pantalla táctil, TIP_TOQUE)
   'Si corres cerca de los animales se asustan: acércate despacio.',
   'Completa todas las misiones de un pueblo para ganar su sello.',
   'Cuando tengas todos los pueblos de una comarca, se iluminará en el mapa de Navarra.',
 ];
+const TIP_TOQUE = 'Toca el cuaderno, arriba a la derecha, para ver todas las misiones y sus pasos.';
 
 // ordenador: siempre alta (mejor menos cosas y con calidad); solo sin aceleración gráfica, baja
 function desktopTier() {
@@ -135,7 +136,7 @@ async function boot() {
     const cm = COMARCAS.find(c => c.id === d.comarca);
     const TI = { visit: 'church', process: 'basket', harvest: 'wheat', herd: 'sheep', dance: 'dance', carnival: 'mask', trade: 'anvil', legend: 'legend', race: 'running', observe: 'binoculars', tradition: 'music', quiz: 'quiz', summit: 'peak', pelota: 'pelota', figure: 'person', feria: 'cow', dolmen: 'dolmen', castle: 'castle', mirador: 'binoculars' };
     // (al campeonato de pelota se va a jugar: sin la historia del pueblo ni sus misiones en la pantalla de carga)
-    ui.showLoading(opt.sport ? `${isEU() ? 'Esku pilota' : 'Pelota a mano'} · ${d.name.split(' /')[0]}` : d.name, opt.sport ? (isEU() ? 'Frontoia prestatzen…' : 'Preparando el frontón…') : TIPS[Math.floor(Math.random() * TIPS.length)], townImg(d), { hero: heroAction(P.avatar, d.id), comarca: cm?.name, stamp: stampImg(d.comarca, d.name.split(' /')[0]), avatar: avatarPortrait(P.avatar), intro: opt.sport ? '' : d.intro, missions: opt.sport ? [] : missionSlots(d, edadDe(P)).map(({ m }) => m.icon || TI[m.type] || 'star'), left: opt.sport ? 0 : (pr => Math.max(0, pr.total - pr.done))(townProgress(P, d)) });
+    ui.showLoading(opt.sport ? `${isEU() ? 'Esku pilota' : 'Pelota a mano'} · ${d.name.split(' /')[0]}` : d.name, opt.sport ? (isEU() ? 'Frontoia prestatzen…' : 'Preparando el frontón…') : (t => input.touch && t.startsWith('Pulsa C') ? TIP_TOQUE : t)(TIPS[Math.floor(Math.random() * TIPS.length)]), (opt.sport && laminaUrl('dep-fronton')) || townImg(d), { comarca: cm?.name, caption: (k => laminaUrl(k) ? laminaById(k).title : '')(opt.sport ? 'dep-fronton' : d.id), avatar: avatarPortrait(P.avatar), intro: opt.sport ? '' : d.intro, missions: opt.sport ? [] : missionSlots(d, edadDe(P)).map(({ m }) => m.icon || TI[m.type] || 'star'), left: opt.sport ? 0 : (pr => Math.max(0, pr.total - pr.done))(townProgress(P, d)) });
     try {
       const npcP = preloadNpcs(); await preloadFood(); await Promise.all([rt.load(d, P.avatar, (p, m) => ui.progress(p, m)), npcP]);
       const ctx = { scene: rt.scene, camera: rt.camera, player: rt.player, follow: rt.follow, ui, sound, input, sky: rt.sky, fauna: rt.fauna, particles: rt.particles, beacon: rt.beacon, rt, onExit: exit };

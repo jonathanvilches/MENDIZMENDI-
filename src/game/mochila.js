@@ -90,25 +90,26 @@ export class Mochila {
     const draw = () => {
       const food = Object.entries(P.bag.food).filter(([k, n]) => n > 0 && FOOD[k]);
       const D = g.perro, on = !!D?.dog;
-      // (la cabecera en una fila: el icono, el título, la energía, las monedas y «Cerrar», como «Salir» en la tienda; debajo,
-      // tres columnas iguales: el perro, el agua y la comida, y el equipo, cada una con su rótulo y su caja. Sin franja abajo
-      // para el botón: en el móvil tumbado, con la mochila vacía, había que desplazar)
-      const dogBox = D ? `<div class="bp-box">
-          <div class="seg" role="group" aria-label="Ir con perro o sin perro"><button data-a="dogon" class="${on ? 'on' : ''}" aria-pressed="${on}">${iconSVG('dog', 22)}<span>Con ${esc(D.name)}</span></button><button data-a="dogoff" class="${on ? '' : 'on'}" aria-pressed="${!on}"><span>Sin perro</span></button></div>
-          <div class="bp-actions">${on ? `<button class="btn" data-a="dog">${iconSVG('compass', 22)}<span>Enséñame el camino</span></button>` : ''}<button class="btn" data-a="breed">${iconSVG('dog', 22)}<span>${on ? 'Cambiar de perro' : 'Elegir perro'}</span></button></div>
-        </div>` : `<div class="bp-box"><p class="bp-note">Aquí vas sin perro.</p></div>`;
-      const water = this.has('cantimplora') ? `<div class="bp-box bp-water"><div class="drops">${[0, 1, 2].map(i => `<span class="${i < P.bag.agua ? 'on' : ''}">${iconSVG('water', 24)}</span>`).join('')}</div><button class="btn" data-a="drink" ${P.bag.agua ? '' : 'disabled'}>${iconSVG('canteen', 22)}<span>Beber</span></button></div>`
-        : `<div class="bp-box bp-water"><p class="bp-note" data-vm="no">Bebe en la fuente de una plaza: te darán una cantimplora.</p></div>`;
+      // (arriba, en una fila, el icono, el título, la energía, las monedas y «Cerrar», como «Salir» en la tienda; debajo,
+      // una franja por cosa: el perro, el agua, la comida y el equipo, con el rótulo a la izquierda y lo suyo en fila, con
+      // aire entre franjas. Si no cabe, se desplaza: mejor espacio y claridad que todo apretado y apilado)
+      const dogLine = D ? `<div class="seg" role="group" aria-label="Ir con perro o sin perro"><button data-a="dogon" class="${on ? 'on' : ''}" aria-pressed="${on}">${iconSVG('dog', 22)}<span>Con ${esc(D.name)}</span></button><button data-a="dogoff" class="${on ? '' : 'on'}" aria-pressed="${!on}"><span>Sin perro</span></button></div>`
+          + (on ? `<button class="btn" data-a="dog">${iconSVG('compass', 22)}<span>Enséñame el camino</span></button>` : '') + `<button class="btn" data-a="breed">${iconSVG('dog', 22)}<span>${on ? 'Cambiar de perro' : 'Elegir perro'}</span></button>`
+        : `<p class="bp-note">Aquí vas sin perro.</p>`;
+      const water = this.has('cantimplora') ? `<div class="drops" role="img" aria-label="${P.bag.agua} de 3 tragos">${[0, 1, 2].map(i => `<span class="${i < P.bag.agua ? 'on' : ''}">${iconSVG('water', 24)}</span>`).join('')}</div><button class="btn" data-a="drink" ${P.bag.agua ? '' : 'disabled'}>${iconSVG('canteen', 22)}<span>Beber</span></button>`
+        : `<p class="bp-note" data-vm="no">Bebe en la fuente de una plaza: te darán una cantimplora.</p>`;
       const foods = food.length ? `<div class="bp-food">${food.map(([k, n]) => `<button class="fooditem" data-f="${k}" title="${esc(FOOD[k].fact)}">${iconSVG(FOOD[k].icon, 34)}<b>${esc(FOOD[k].name)}</b><span>×${n} · +${FOOD[k].e}</span></button>`).join('')}</div>`
         : '<p class="bp-note" data-vm="no">Vacía. Busca moras, avellanas y manzanas por el campo, o gana comida en las misiones de productos.</p>';
+      const gear = `<div class="bp-gear">${GEAR_ORDER.map(id => { const G = GEAR[id], h = this.has(id); return `<button class="gitem ${h ? '' : 'locked'}" data-g="${id}" title="${esc(h ? G.use : G.how)}">${iconSVG(h ? G.icon : 'lock', 30)}<b>${esc(h ? G.name : 'Por descubrir')}</b></button>`; }).join('')}</div>`;
       root.innerHTML = `<div class="mg-card bp-card">
         <div class="bp-scroll">
         <header class="bp-head">${iconSVG('backpack', 44)}<h3>Tu mochila</h3><div class="ebar" role="img" aria-label="Energía ${P.energy.toFixed(0)} %"><i style="width:${P.energy.toFixed(0)}%"></i></div><small>Energía ${P.energy.toFixed(0)} % · ${iconSVG('medal', 14)} ${P.coins ?? 12} txanpon</small><button class="shop-exit bp-close" data-a="close" aria-label="Cerrar la mochila">${iconSVG('close', 18)}<span>Cerrar</span></button></header>
         ${P.energy < 25 ? '<p class="bp-warn">¡Come o bebe algo!</p>' : ''}
-        <div class="bp-cols">
-          <section class="bp-sec bp-dog"><h4>Perro</h4>${dogBox}</section>
-          <section class="bp-sec bp-eat"><h4>Agua</h4>${water}<h4>Comida</h4><div class="bp-box bp-foodbox">${foods}</div></section>
-          <section class="bp-sec bp-equip"><h4>Equipo</h4><div class="bp-box"><div class="bp-gear">${GEAR_ORDER.map(id => { const G = GEAR[id], h = this.has(id); return `<button class="gitem ${h ? '' : 'locked'}" data-g="${id}" title="${esc(h ? G.use : G.how)}" aria-label="${esc(h ? G.name : 'Por descubrir')}">${iconSVG(h ? G.icon : 'lock', 30)}<b>${esc(h ? G.name : 'Por descubrir')}</b></button>`; }).join('')}</div></div></section>
+        <div class="bp-rows">
+          <section class="bp-sec"><h4>Perro</h4><div class="bp-line">${dogLine}</div></section>
+          <section class="bp-sec"><h4>Agua</h4><div class="bp-line">${water}</div></section>
+          <section class="bp-sec"><h4>Comida</h4><div class="bp-line">${foods}</div></section>
+          <section class="bp-sec"><h4>Equipo</h4><div class="bp-line">${gear}</div></section>
         </div>
         </div></div>`;
     };
@@ -124,7 +125,7 @@ export class Mochila {
       if (b.dataset.a === 'dogoff') { if (g.perro.dog) { g.perro.setOn(false); draw(); } return; }
       if (b.dataset.a === 'dogon') { if (!g.perro.dog) { g.perro.setOn(true); draw(); } return; }
       if (b.dataset.a === 'drink') { this.drink(); g.ui.toast('¡Glu, glu! +22 de energía', 'water', 1600); }
-      // (en el móvil tumbado el equipo va sin su explicación, para que quepa todo: al tocarlo, sale en un aviso)
+      // (al tocar una cosa del equipo, para qué sirve o cómo se consigue, en un aviso)
       if (b.dataset.g) { const G = GEAR[b.dataset.g], h = this.has(b.dataset.g); g.ui.toast(h ? `${G.name}: ${G.use}` : G.how, h ? G.icon : 'lock', 3600); return; }
       if (b.dataset.f) { const F = FOOD[b.dataset.f]; if (this.eat(b.dataset.f)) g.ui.toast(`¡Ñam! ${F.name}: +${F.e}. ${F.fact}`, F.icon, 4200); }
       draw();
