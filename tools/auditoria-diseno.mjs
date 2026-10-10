@@ -8,13 +8,14 @@
 // TODO=1 lista todas las distancias de rótulo a título y de título a texto, no solo las que se salen de la común)
 import { chromium } from 'playwright-core';
 import { mkdirSync, writeFileSync } from 'fs';
-import { auditar } from './auditoria-medida.mjs';
+import { auditar, muesca } from './auditoria-medida.mjs';
 const URL = process.env.URL || 'http://127.0.0.1:5173/';
 const out = process.argv[2] || 'entrega/auditoria'; mkdirSync(out, { recursive: true });
 const only = process.argv[3] ? process.argv[3].split(',') : null;
 const [W, H] = (process.env.TAM || '844x390').split('x').map(Number);
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: W, height: H }, isMobile: W < 1000, hasTouch: true }); const errs = []; p.on('pageerror', e => errs.push(e.message));
+await muesca(p, W, H);
 // (un perfil con datos de verdad: textos largos como «2 partidos · 0 ganados», txapelas, club elegido, cartas y rivales)
 await p.addInitScript((todo) => { window.__auditTodo = todo; window.__auditDetail = todo; window.__vs = true; window.__vsMs = 600000; localStorage.setItem('mendimendiz-lang', 'es');
   localStorage.setItem('mendimendiz-futbol-v1', JSON.stringify({ played: 12, won: 7, goals: 23, tutorial: true }));

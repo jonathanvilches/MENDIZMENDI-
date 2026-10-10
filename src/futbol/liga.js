@@ -144,7 +144,7 @@ const CSS = `
 .lg-rv{padding:4px 8px;gap:8px}.lg-rv .lg-kit{width:21px;height:28px}
 }
 /* muy poca altura (iPhone con la barra de Safari): la explicación en dos líneas y los botones siempre a la vista */
-@media (orientation:landscape) and (max-height:380px){.lg-how{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.lg-card{gap:4px 12px;padding:8px 16px}.lg-next{padding:4px 8px}.lg-vs{font-size:var(--fs-xl)}.lg-btn{min-height:44px}}
+@media (orientation:landscape) and (max-height:380px){.lg-card{gap:4px 12px;padding:8px 16px}.lg-next{padding:4px 8px}.lg-vs{font-size:var(--fs-xl)}.lg-btn{min-height:44px}}
 `;
 function panel(html) {
   if (!document.getElementById('lg-css')) { const st = document.createElement('style'); st.id = 'lg-css'; st.textContent = CSS; document.head.appendChild(st); }

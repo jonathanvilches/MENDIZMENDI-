@@ -13,7 +13,15 @@
 //   · boton: botón con letra de lectura (Nunito) en lugar de la de los botones (estrecha o de rótulos grandes)
 //   · composicion: bloques y botones que van juntos con alturas, anchos, bordes o huecos distintos; cajas con más relleno
 //     a un lado que al otro; rellenos y huecos fuera de la rejilla de 4 px; bordes que casi coinciden (de 2 a 12 px)
+//   · justo: texto de un botón que se sale de él o que va a menos de 2 px de su borde
 // Con window.__auditTodo = true, «espacio» lista todas las distancias medidas (no solo las que se salen).
+// MUESCA=1: los márgenes de la muesca del iPhone 12 tumbado (47 px a cada lado y 21 abajo), que estrechan las pantallas
+// y los botones que respetan env(safe-area-inset-*); MUESCA=izq,der,arriba,abajo para otros. Se pone al crear la página.
+export async function muesca(p, W, H) {
+  const v = process.env.MUESCA; if (!v) return;
+  const [left, right, top, bottom] = v === '1' ? (W > H ? [47, 47, 0, 21] : [0, 0, 47, 34]) : v.split(',').map(Number);
+  const c = await p.context().newCDPSession(p); await c.send('Emulation.setSafeAreaInsetsOverride', { insets: { left, right, top, bottom } });
+}
 export const auditar = (sel) => {
   const root = sel ? document.querySelector(sel) : document.body; if (!root) return { falta: sel };
   const st = (e) => getComputedStyle(e);
@@ -26,7 +34,7 @@ export const auditar = (sel) => {
   const hasText = (e) => [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
   const all = [...root.querySelectorAll('*')].filter(e => !['SCRIPT', 'STYLE', 'CANVAS'].includes(e.tagName));
   const texts = all.filter(e => hasText(e) && vis(e));
-  const R = { cortado: [], encima: [], verde: [], esquina: [], sobresale: [], espacio: [], letra: [], color: [], desborda: [], estrecho: [], desplaza: [], forma: [], boton: [], composicion: [] };
+  const R = { cortado: [], encima: [], verde: [], esquina: [], sobresale: [], espacio: [], letra: [], color: [], desborda: [], estrecho: [], desplaza: [], forma: [], boton: [], composicion: [], justo: [] };
   // (tapado: lo que queda debajo de una capa opaca, como el HUD detrás de un panel, no se ve y no cuenta para «encima»
   // ni para «sobresale»; se mira qué hay encima en el centro de su primera línea, con todo tocable un momento)
   const pe = document.createElement('style'); pe.textContent = '*{pointer-events:auto!important}'; document.head.appendChild(pe);
@@ -356,6 +364,20 @@ export const auditar = (sel) => {
     }
     R.composicion.push(...out);
   }
+  // 15. justo: texto de un botón que se sale de él, o que va a menos de 2 px de su borde por un lado (en el iPhone la
+  // letra puede salir un pelo más ancha y entonces ya se sale). Se mide cada línea de texto contra el botón sin su borde;
+  // lo de ir pegado solo cuenta en un botón con fondo o borde (un enlace o el pie de una lámina van a ras, es su forma)
+  for (const b of all) { if (!b.matches('button, .btn, [role=button], [role=tab], summary') || !vis(b) || hidden.has(b) || b.closest('svg')) continue;
+    const s = st(b), r = b.getBoundingClientRect(); if (r.width < 12 || r.height < 12) continue;
+    const L = r.left + parseFloat(s.borderLeftWidth), Rt = r.right - parseFloat(s.borderRightWidth);
+    let peor = Infinity, alto = 0; const w = document.createTreeWalker(b, NodeFilter.SHOW_TEXT);
+    for (let n; (n = w.nextNode());) { const pe2 = n.parentElement; if (!n.textContent.trim() || !vis(pe2) || hidden.has(pe2)) continue;
+      const rg = document.createRange(); rg.selectNodeContents(n);
+      for (const q of rg.getClientRects()) { if (q.width < 2) continue; const h = q.height * 0.2;
+        peor = Math.min(peor, q.left - L, Rt - q.right); alto = Math.max(alto, r.top - (q.top + h), (q.bottom - h) - r.bottom); } }
+    if (peor === Infinity) continue;
+    if (peor < -0.5 || alto > 0.5) R.justo.push(`${name(b)} «${txt(b).slice(0, 30)}» se sale de su botón (${Math.round(Math.max(-peor, alto))} px)`);
+    else if (peor < 2 && painted(b)) R.justo.push(`${name(b)} «${txt(b).slice(0, 30)}» pegado al borde (${peor.toFixed(1)} px)`); }
   for (const k of Object.keys(R)) R[k] = [...new Set(R[k])];
   return R;
 };

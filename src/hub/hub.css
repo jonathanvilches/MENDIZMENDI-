@@ -315,7 +315,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .ppage header { display: flex; align-items: center; gap: 12px; } .ppage header img { width: 66px; height: 66px; object-fit: contain; }
 .ppage header div { display: flex; flex-direction: column; }
 .ppage b { font-size: var(--fs-md); font-weight: 900; } .ppage small { color: var(--mute); }
-.pstamps { display: grid; grid-template-columns: repeat(auto-fill, minmax(74px, 1fr)); gap: 8px; margin-top: 12px; }
+.pstamps { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; margin-top: 12px; }
 .pst { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px; border-radius: 12px; border: 2px dashed rgba(190, 160, 255, .3); background: rgba(255, 255, 255, .03); color: var(--ink); }
 .pst .ink { opacity: .35; } .pst.on { border-style: solid; border-color: var(--c); background: color-mix(in srgb, var(--c) 12%, transparent); } .pst.on .ink { opacity: 1; transform: rotate(-10deg); }
 .pst small { font-size: var(--fs-xs); font-weight: 800; text-align: center; color: var(--ink); }
@@ -669,7 +669,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 @media (orientation: landscape) and (max-height: 500px) {
   .hub-main:has(> .csel2:not(.onbsel)) { overflow: hidden; padding-top: 8px; padding-bottom: 8px; display: flex; flex-direction: column; }
   .cs-title { display: none; }
-  .csel2:not(.onbsel) { flex: 1; min-height: 0; grid-template-columns: 76px minmax(0, 1fr) minmax(260px, 40%); grid-template-rows: minmax(0, 1fr); grid-template-areas: "roster stage side"; }
+  .csel2:not(.onbsel) { flex: 1; min-height: 0; grid-template-columns: 76px minmax(0, 1fr) minmax(300px, 44%); grid-template-rows: minmax(0, 1fr); grid-template-areas: "roster stage side"; }
   .csel2:not(.onbsel) .cs-stage { height: auto; min-height: 0; }
   .csel2:not(.onbsel) .cs-roster { border-top: 0; border-right: 1px solid var(--line); padding: 16px 4px 8px; overflow: hidden; display: flex; }
   .csel2:not(.onbsel) .cstrip { flex: 1; flex-direction: column; align-items: center; overflow-y: auto; overflow-x: hidden; padding: 0; gap: 8px; touch-action: pan-y; }
@@ -684,6 +684,15 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   .csel2:not(.onbsel) .cs-kick { display: none; }
   .csel2:not(.onbsel) .cs-arrow { width: 44px; height: 44px; margin-top: -24px; } .csel2:not(.onbsel) .cs-bgname { font-size: clamp(80px, 22vh, 120px); }
   .csel2:not(.onbsel) .cs-cta .gx-go { min-height: 44px; font-size: var(--fs-lg); }
+  /* (con la muesca del iPhone queda menos alto: fuera la frase del personaje, y si aun así no cabe, los datos se
+     desplazan y el botón de jugar sigue abajo, entero) */
+  .csel2:not(.onbsel) .tl { display: none; }
+  .csel2:not(.onbsel) .csel-info { flex: 0 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; touch-action: pan-y; }
+  .csel2:not(.onbsel) .cs-cta { flex: none; margin-top: auto; }
+}
+/* (aún más bajo, con la barra del visor: el nombre un punto menor y sin la línea del pueblo, y la carta entera a la vista) */
+@media (orientation: landscape) and (max-height: 370px) {
+  .csel2:not(.onbsel) .cname { font-size: var(--fs-xl); margin-top: 4px; } .csel2:not(.onbsel) .cfrom { display: none; }
 }
 .cs-extra { grid-area: extra; position: relative; padding: 16px 16px 16px; border-top: 1px solid var(--line); background: rgba(10, 4, 26, .55); }
 .csel2 .cs-roster { overflow: hidden; }
@@ -1199,7 +1208,8 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   .map-wrap .clist { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 44px; gap: 4px 8px; overflow-y: auto; min-height: 0; padding-right: 2px; align-content: start; }
   .map-wrap .clist button { padding: 2px 8px 2px 4px; min-height: 44px; grid-template-rows: 1fr; } .map-wrap .clist i { width: 24px; height: 24px; font-size: var(--fs-sm); grid-row: auto; }
   .map-wrap .cbar2 { display: none; }
-  .map-wrap .clist b { font-size: var(--fs-xs); } .map-wrap .clist small { font-size: var(--fs-sm); }
+  /* (el nombre de la comarca en dos líneas si no cabe en una: con la muesca del iPhone las columnas son más estrechas) */
+  .map-wrap .clist b { font-size: var(--fs-xs); line-height: 1.1; white-space: normal; overflow: visible; text-overflow: clip; } .map-wrap .clist small { font-size: var(--fs-sm); }
 }
 
 /* ---------- Láminas ----------

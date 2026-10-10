@@ -4,12 +4,13 @@
 // Uso: node tools/auditoria-pueblo.mjs [carpeta] [pueblo]   (URL=http://127.0.0.1:5173 por defecto; TAM=844x390)
 import { chromium } from 'playwright-core';
 import { mkdirSync } from 'fs';
-import { auditar } from './auditoria-medida.mjs';
+import { auditar, muesca } from './auditoria-medida.mjs';
 const [,, out = '/tmp/auditoria-pueblo', town = 'lesaka'] = process.argv; mkdirSync(out, { recursive: true });
 const URL = process.env.URL || 'http://127.0.0.1:5173';
 const [W, H] = (process.env.TAM || '844x390').split('x').map(Number);
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: W, height: H }, isMobile: W < 1000, hasTouch: true }); const errs = [];
+await muesca(p, W, H);
 p.on('pageerror', e => errs.push(e.message));
 await p.addInitScript(() => { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true }, coins: 14, settings: { quality: 'low' } })); });
 if (process.env.IDIOMA) await p.addInitScript((l) => localStorage.setItem('mendimendiz-lang', l), process.env.IDIOMA);   // (IDIOMA=eu: en euskera)

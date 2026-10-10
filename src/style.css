@@ -28,7 +28,8 @@
 /* composición del texto: kerning y ligaduras de la fuente, sin sílabas sueltas en una línea y la misma escala de tamaños
    (12 13 14 16 18 20 24 28 32 40 48), interlineados (1 · 1,15 · 1,3 · 1,45) e interletrados (0 · 0,04 · 0,1 em) en
    todo el juego: tools/tipografia.py los mantiene */
-html { font-kerning: normal; font-feature-settings: 'kern' 1, 'liga' 1; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+/* (en horizontal, el iPhone agranda la letra por su cuenta y la saca de los botones: el tamaño es siempre el que pone aquí) */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; font-kerning: normal; font-feature-settings: 'kern' 1, 'liga' 1; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 h1, h2, h3, .title { text-wrap: balance; } p, dd, li { text-wrap: pretty; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: #9fd0f5; color: var(--ink); font: 600 var(--fs-md)/1.45 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif; -webkit-user-select: none; user-select: none; touch-action: none; overscroll-behavior: none; }
 canvas#c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; outline: none; }
