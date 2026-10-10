@@ -399,7 +399,7 @@ export const EU_ARMAS = {
   'Casa del Indiano': 'Indianoaren etxea',
   'Hasta 7 años': '7 urte arte',
   'Misiones cortas, sin sustos ni mucha lectura': 'Misio laburrak, ikararik eta irakurketa askorik gabe',
-  'De 8 a 12 años': '8 eta 12 urte artean',
+  'De 8 a 12 años': '8-12 urte',
   'Todas las misiones': 'Misio guztiak',
   '13 años o más': '13 urte edo gehiago',
   'Producto local': 'Tokiko produktua',

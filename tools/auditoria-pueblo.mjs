@@ -13,7 +13,8 @@ const p = await b.newPage({ viewport: { width: W, height: H }, isMobile: W < 100
 p.on('pageerror', e => errs.push(e.message));
 await p.addInitScript(() => { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true }, coins: 14, settings: { quality: 'low' } })); });
 if (process.env.IDIOMA) await p.addInitScript((l) => localStorage.setItem('mendimendiz-lang', l), process.env.IDIOMA);   // (IDIOMA=eu: en euskera)
-await p.goto(`${URL}/?town=${town}&q=low&weather=clear&skipintro=1&t=12`, { timeout: 300000 });
+// (EUFALTAN=1, con IDIOMA=eu: apunta los textos que se quedan sin traducir en estas ventanas y los escribe al final)
+await p.goto(`${URL}/?${process.env.EUFALTAN ? 'eufaltan&' : ''}town=${town}&q=low&weather=clear&skipintro=1&t=12`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 900000 }); await p.waitForTimeout(3000);
 if (process.env.DETALLE) await p.evaluate(() => { window.__auditDetail = true; });
 const TOT = {};
@@ -49,4 +50,5 @@ await close(); await p.evaluate(() => document.querySelectorAll('.mg-overlay').f
 await p.evaluate(() => { const G = window.__game; G.player.frozen = false; G.mode = 'play'; });
 await ui(`U.reward({ icon: 'church', title: 'Iglesia de San Martín', text: 'Has descubierto la iglesia gótica de Lesaka, con su torre y su pórtico.', stamp: null })`); await audit('recompensa', '#reward, .screen'); await close();
 console.log('\nTOTAL', JSON.stringify(TOT)); console.log(errs.length ? 'errores: ' + errs.slice(0, 4).join(' | ') : 'sin errores');
+if (process.env.EUFALTAN) console.log('sin traducir:', JSON.stringify(await p.evaluate(() => [...(window.__euMiss || [])])));
 await b.close();
