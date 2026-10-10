@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#1e1830">
 <title>MENDIMENDIZ</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2214%22 fill=%22%238A2BE2%22/%3E%3Cpath d=%22M8 50 26 20l10 16 6-8 14 22z%22 fill=%22%23FFD700%22/%3E%3C/svg%3E">
-  <script type="module" crossorigin src="./assets/index-BHbJJxiP.js"></script>
+  <script type="module" crossorigin src="./assets/index-BywMncJd.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/rolldown-runtime-DK3Fl9T5.js">
   <link rel="modulepreload" crossorigin href="./assets/three-DPd7DEEE.js">
   <link rel="stylesheet" crossorigin href="./assets/index-Bdyruc4L.css">
@@ -20,5 +20,36 @@
 <body>
 <canvas id="c" tabindex="0"></canvas>
 <div id="ui"></div>
+<!-- solo se ven si el visor no ejecuta el juego: el primero si no ejecuta JavaScript; el segundo si lo ejecuta pero el
+     juego no llega a montar su interfaz en 20 s (el script de abajo pone ahí los errores y el navegador, para arreglarlo) -->
+<noscript><div style="position:fixed;inset:0;z-index:9999;display:grid;place-content:center;gap:12px;padding:24px;background:#1e1830;color:#f6f3fc;text-align:center;font:600 16px/1.45 system-ui,-apple-system,sans-serif;overflow:auto;user-select:text;-webkit-user-select:text">
+  <b style="font-size:22px">Este visor no ejecuta el juego</b>
+  <span>Ábrelo con Safari o con otro visor de HTML que ejecute JavaScript.</span>
+</div></noscript>
+<div id="arranque" style="position:fixed;inset:0;z-index:9999;display:grid;place-content:center;gap:12px;padding:24px;background:#1e1830;color:#f6f3fc;text-align:center;font:600 16px/1.45 system-ui,-apple-system,sans-serif;overflow:auto;user-select:text;-webkit-user-select:text;display:none"></div>
+<script id="aviso-arranque">
+(function () {
+  var box = document.getElementById('arranque'), errs = [], t0 = Date.now();
+  addEventListener('error', function (e) {
+    var t = e.target;
+    if (t && t !== window && t.tagName) errs.push('No carga un ' + t.tagName.toLowerCase());
+    else errs.push(String(e.message || e.error || 'Error') + (e.lineno ? ' · línea ' + e.lineno + ', columna ' + e.colno : ''));
+  }, true);
+  addEventListener('unhandledrejection', function (e) { var r = e.reason; errs.push(String(r && r.message || r)); });
+  function line(txt, css) { var d = document.createElement('div'); d.textContent = txt; if (css) d.style.cssText = css; return d; }
+  var iv = setInterval(function () {
+    var ui = document.getElementById('ui');
+    if (window.__hub || window.__game || (ui && ui.childElementCount)) { box.style.display = 'none'; clearInterval(iv); return; }
+    if (Date.now() - t0 < 20000) return;
+    box.textContent = '';
+    box.appendChild(line('El juego no ha arrancado', 'font-size:22px;font-weight:800'));
+    box.appendChild(line('Haz una captura de esta pantalla y envíala.'));
+    var det = errs.length ? errs.slice(0, 5) : ['Sin errores a la vista: puede que aún esté cargando o que falte memoria.'];
+    for (var i = 0; i < det.length; i++) box.appendChild(line(det[i].slice(0, 240), 'font:500 13px/1.4 ui-monospace,Menlo,monospace;overflow-wrap:anywhere;color:#ffd27a'));
+    box.appendChild(line(navigator.userAgent + ' · ' + innerWidth + ' × ' + innerHeight + ' · ' + Math.round((Date.now() - t0) / 1000) + ' s', 'font:500 12px/1.4 ui-monospace,Menlo,monospace;overflow-wrap:anywhere;opacity:.75'));
+    box.style.display = 'grid';
+  }, 2000);
+})();
+</script>
 </body>
 </html>
