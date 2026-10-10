@@ -5,7 +5,7 @@
 // Uso: node tools/auditoria-partidos.mjs [carpeta] [tamaños: 844x390,1180x820]   (URL=http://127.0.0.1:5173 por defecto)
 import { chromium } from 'playwright-core';
 import { mkdirSync } from 'fs';
-import { auditar } from './auditoria-medida.mjs';
+import { auditar, muesca } from './auditoria-medida.mjs';
 const [,, out = '/tmp/auditoria-partidos', sizes = '844x390,1180x820'] = process.argv; const TOT = {};
 mkdirSync(out, { recursive: true });
 const URL = process.env.URL || 'http://127.0.0.1:5173';
@@ -14,6 +14,7 @@ const errs = [];
 for (const sz of sizes.split(',')) {
   const [W, H] = sz.split('x').map(Number);
   const p = await b.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 2, hasTouch: true, isMobile: W < 1000 });
+  await muesca(p, W, H);
   p.on('pageerror', e => errs.push(`${sz} PAGEERROR ${e.message}`));
   await p.goto(`${URL}/src/ui/fitlabel.js`, { timeout: 300000 }); await p.waitForTimeout(800);
   await p.evaluate(async () => {

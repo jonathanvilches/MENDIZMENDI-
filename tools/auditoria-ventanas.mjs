@@ -3,7 +3,7 @@
 // Uso: node tools/auditoria-ventanas.mjs <carpeta> [tamaños: 844x390,1180x820]   (URL=http://127.0.0.1:5173 por defecto)
 import { chromium } from 'playwright-core';
 import { mkdirSync } from 'fs';
-import { auditar } from './auditoria-medida.mjs';
+import { auditar, muesca } from './auditoria-medida.mjs';
 const [,, out = '/tmp/auditoria-ventanas', sizes = '844x390,1180x820'] = process.argv; const TOT = {};
 mkdirSync(out, { recursive: true });
 const URL = process.env.URL || 'http://127.0.0.1:5173';
@@ -12,6 +12,7 @@ const errs = [];
 for (const sz of sizes.split(',')) {
   const [W, H] = sz.split('x').map(Number);
   const p = await b.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 2, hasTouch: W < 900 });
+  await muesca(p, W, H);
   if (process.env.IDIOMA) await p.addInitScript((l) => localStorage.setItem('mendimendiz-lang', l), process.env.IDIOMA);   // (IDIOMA=eu: en euskera)
   p.on('pageerror', e => errs.push(`${sz} PAGEERROR ${e.message}`));
   p.on('console', m => { if (m.type() === 'error') errs.push(`${sz} ${m.text().slice(0, 160)}`); });
