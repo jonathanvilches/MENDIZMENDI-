@@ -13,6 +13,8 @@ import { clamp, lerp, angleDiff, mulberry32 } from '../util/math.js';
 import { profile, saveProfile, townState, addXP, checkBadges, addCard, comarcaDone, levelOf } from './profile.js';
 import { infoCard, timingGame, mashGame, sequenceGame, simonGame, choiceGame, missionComplete, townFinale, play3d } from '../ui/minigames.js';
 import { OFICIOS } from '../data/oficios.js';
+import { OFICIO_LAMINA } from '../data/laminas.js';
+import { laminaUrl } from '../ui/laminas.js';
 import { PERSONAJES } from '../data/personajes.js';
 import { makeItem, makeGate, makeWorkbench, makeMemorial } from './items.js';
 import COMARCAS from '../data/comarcas.json';
@@ -1921,7 +1923,7 @@ export class TownGame {
     try {
       if (!M.tstep) {
         const list = of.tools.map(([es, eu, what]) => `<li><b>${es}</b>${eu ? `<i>${eu}</i>` : '<i></i>'}<span>${what}</span></li>`).join('');
-        await infoCard(this.ui, { icon: of.icon, kicker: 'Las herramientas', title: `${of.name}${of.eu ? ' · ' + of.eu : ''}`, text: 'Esto es lo que se usaba en el taller:', extra: `<ul class="tools">${list}</ul>`, button: '¡A trabajar!' });
+        await infoCard(this.ui, { icon: of.icon, lamina: laminaUrl(OFICIO_LAMINA[M.m.kind]), kicker: 'Las herramientas', title: `${of.name}${of.eu ? ' · ' + of.eu : ''}`, text: 'Esto es lo que se usaba en el taller:', extra: `<ul class="tools">${list}</ul>`, button: '¡A trabajar!' });
       }
       while (M.tstep < n) {
         const st = of.steps[M.tstep], title = `Paso ${M.tstep + 1} de ${n}: ${st.title}`;
@@ -1943,7 +1945,7 @@ export class TownGame {
     } finally { this.ui.onMiniHit = null; this.player.frozen = false; this.mode = 'play'; }
     if (!finished) return;
     this.player.rig.doCheer();
-    await infoCard(this.ui, { icon: of.icon, kicker: 'Antes y ahora', title: of.product, text: `Así trabajaba ${of.name === 'Panadera' || of.name === 'Alpargatera' || of.name === 'Hilandera' ? 'la' : 'el'} ${of.name.toLowerCase()}.`, extra: `<div class="antes-ahora"><div><b>Antes</b>${of.then}</div><div><b>Ahora</b>${of.now}</div></div>`, button: '¡Lo he aprendido!' });
+    await infoCard(this.ui, { icon: of.icon, lamina: laminaUrl(OFICIO_LAMINA[M.m.kind]), kicker: 'Antes y ahora', title: of.product, text: `Así trabajaba ${of.name === 'Panadera' || of.name === 'Alpargatera' || of.name === 'Hilandera' ? 'la' : 'el'} ${of.name.toLowerCase()}.`, extra: `<div class="antes-ahora"><div><b>Antes</b>${of.then}</div><div><b>Ahora</b>${of.now}</div></div>`, button: '¡Lo he aprendido!' });
     const ord = of.steps.find(s => s.game === 'order')?.items, low = (x) => x[0].toLowerCase() + x.slice(1);
     await this.complete(M, { card: M.title, cardText: `Cómo se hacía: ${(ord || of.steps.filter(s => s.game !== 'choice').map(s => s.title)).map(low).join(', ')}.` });
   }

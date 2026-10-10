@@ -74,12 +74,25 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     `pelota/court.js`).
   - Si en un frontón abierto nieva, se dice «Suelo con nieve» y no «Llueve» (`cond.snow`).
   - Con lluvia o nieve no salen mariposas ni luciérnagas (`fauna.wet`).
-- **Pantallas de menú con composición fija:**
-  - Torneos (`s_sports`): las dos cartas comparten filas (rótulo, título, texto, marca, elección y botón) y la figura va
-    en su propia columna, sin pisar nada.
-  - Mochila: cabecera en una fila con «Cerrar» a la derecha, como «Salir» en la tienda, y debajo tres columnas iguales
-    (perro, agua y comida, equipo), cada una con su rótulo y su caja; en vertical o por debajo de 700 px, una columna.
-    Sin franja abajo: así cabe sin desplazar aunque la mochila esté vacía. Los iconos, a su tamaño de siempre.
+- **Aire antes que caber:** se puede desplazar. Mejor elementos con espacio, que se entiendan, y colocados en filas
+  horizontales que todo apilado en columnas estrechas para que quepa sin desplazar.
+  - Torneos (`s_sports`): una carta por fila, ancha. La figura a la izquierda; en el centro el rótulo, el título, el
+    texto y el dato, y debajo la fila para elegir frontón o ver tu club; el botón de jugar a la derecha. En vertical,
+    el texto y la figura arriba y la elección y el botón debajo.
+  - Mochila: cabecera en una fila con «Cerrar» a la derecha, como «Salir» en la tienda. Debajo, una franja por cosa
+    (perro, agua, comida y equipo), con el rótulo a la izquierda y lo suyo en fila, 24 px de aire y una raya fina entre
+    franjas. La comida y el equipo, en filas que se deslizan. Los iconos, a su tamaño de siempre.
+  - Pantalla de carga (`showLoading` en `ui.js`): retícula de dos columnas en proporción áurea, con los mismos márgenes
+    en los cuatro lados y un mismo hueco entre columnas y filas. A la izquierda el pueblo, su comarca, su presentación
+    y sus misiones; a la derecha su lámina entera. Debajo, el consejo bajo el texto y la barra bajo la lámina. Todo el
+    bloque centrado y, de fondo, la misma lámina desenfocada.
+- **Láminas** (`data/laminas.js`, `ui/laminas.js`, `src/assets/laminas`): las ilustraciones del explorador que ha hecho
+  el autor. Cada pueblo tiene su portada (su monumento) y otras de sus leyendas, oficios, cosechas, animales y fiestas;
+  las comarcas, sus paisajes. Se ven en la carga, en la ficha y la tarjeta del pueblo, en la cabecera de cada comarca,
+  en los cuentos, en el taller de cada oficio, en Torneos y en el álbum (Más · Láminas), en tiras que se deslizan de
+  lado y con un visor a pantalla completa. En la web van todas, a 1280 × 720 y con copia de 480 × 270 para tarjetas;
+  en el archivo único, a 640 × 360, solo las que se ven fuera del álbum (alias `@laminas` de `vite.config.js`). Las
+  portadas anteriores, con el personaje del jugador delante, están guardadas en `tools/portadas-anteriores`.
 - **Iconografía de una sola familia:** un archivo `src/assets/icons3d/<nombre>.webp` sustituye al icono de ese nombre
   sin tocar el código (`has3D` mira también los archivos horneados).
 - **Comentarios en castellano**, explicando el porqué.

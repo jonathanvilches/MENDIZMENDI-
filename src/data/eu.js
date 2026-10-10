@@ -75,6 +75,7 @@ export const EU_EXACT = {
   'Sigue la luz dorada: te lleva al siguiente objetivo de tu misión.': 'Jarraitu urrezko argiari: zure misioaren hurrengo helburura eramango zaitu.',
   'Las personas con una exclamación amarilla encima tienen una misión para ti.': 'Gainean harridura ikur horia dutenek misio bat dute zuretzat.',
   'Pulsa C para abrir el cuaderno con todas las misiones y sus pasos.': 'Sakatu C misio guztiak eta haien urratsak dituen koadernoa irekitzeko.',
+  'Toca el cuaderno, arriba a la derecha, para ver todas las misiones y sus pasos.': 'Ukitu koadernoa, goian eskuinean, misio guztiak eta haien urratsak ikusteko.',
   'Si corres cerca de los animales se asustan: acércate despacio.': 'Animalien ondoan korrika eginez gero, beldurtu egiten dira: hurbildu poliki.',
   'Completa todas las misiones de un pueblo para ganar su sello.': 'Osatu herri bateko misio guztiak haren zigilua irabazteko.',
   'Cuando tengas todos los pueblos de una comarca, se iluminará en el mapa de Navarra.': 'Eskualde bateko herri guztiak dituzunean, Nafarroako mapan argituko da.',

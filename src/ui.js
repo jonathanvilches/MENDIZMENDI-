@@ -42,30 +42,29 @@ export class UI {
     this.buildLoading();
   }
   // ---------- Carga ----------
+  // (en horizontal, una retícula de dos columnas en proporción áurea: a la izquierda el pueblo, su comarca, su
+  // presentación y sus misiones; a la derecha su lámina, enmarcada y entera. Debajo, en la misma retícula, el consejo
+  // bajo el texto y la barra de carga bajo la lámina. De fondo, la misma lámina desenfocada. En vertical, en columna)
   buildLoading() {
-    this.loading = el(`<div id="loading" class="hidden"><div class="ld-bg"></div><div class="ld-shade"></div><div class="ld-heroW"><img class="ld-hero" alt=""></div>
+    this.loading = el(`<div id="loading" class="hidden"><div class="ld-bg"></div><div class="ld-shade"></div>
       <div class="ld-in">
-        <div class="ld-top"><small class="ld-k"></small></div>
-        <div class="ld-mid"><img class="ld-stamp" alt=""><div class="ld-name"></div><p class="ld-intro"></p><div class="ld-ms"></div></div>
-        <div class="ld-bot">
-          <div class="ld-tip"><span class="ld-bulb"></span><div><b>¿Sabías que…?</b><p class="tip"></p></div></div>
-          <div class="ld-prog"><div class="bar"><i></i><img class="ld-av" alt=""></div><div class="ld-row"><span class="msg">Preparando…</span><span class="ld-pc">0%</span></div></div>
-        </div>
+        <section class="ld-txt"><div class="ld-head"><small class="ld-k"></small><div class="ld-name"></div><p class="ld-intro"></p></div><div class="ld-ms"></div></section>
+        <figure class="ld-pic"><img alt=""><figcaption></figcaption></figure>
+        <div class="ld-tip"><span class="ld-bulb"></span><div><b>¿Sabías que…?</b><p class="tip"></p></div></div>
+        <div class="ld-prog"><div class="bar"><i></i><img class="ld-av" alt=""></div><div class="ld-row"><span class="msg">Preparando…</span><span class="ld-pc">0%</span></div></div>
       </div></div>`);
     document.body.appendChild(this.loading);
   }
-  // info: { comarca, stamp, avatar, missions: [iconos], intro }
+  // info: { comarca, avatar, missions: [iconos], left, intro, caption }
   showLoading(title, tip = '', image = '', info = {}) {
     const L = this.loading;
     L.classList.remove('hidden'); L.style.opacity = 1; L.style.transition = '';
     $('.ld-bg', L).style.backgroundImage = image ? `url(${image})` : '';
-    // portada del pueblo: el personaje del jugador en grande delante de su pueblo
-    const hero = $('.ld-hero', L), H = info.hero; L.classList.toggle('has-hero', !!H); L.dataset.acc = H?.acc || '';
-    if (H) hero.src = H.url; else hero.removeAttribute('src');
+    const pic = $('.ld-pic img', L); L.classList.toggle('no-pic', !image); if (image) pic.src = image; else pic.removeAttribute('src');
+    $('.ld-pic figcaption', L).textContent = info.caption || '';
     $('.ld-k', L).textContent = info.comarca ? 'Comarca · ' + info.comarca : 'Navarra';
     $('.ld-name', L).textContent = title.split(' /')[0];
     $('.ld-intro', L).textContent = info.intro || '';
-    const st = $('.ld-stamp', L); st.style.display = info.stamp ? '' : 'none'; if (info.stamp) st.src = info.stamp;
     const av = $('.ld-av', L); av.style.display = info.avatar ? '' : 'none'; if (info.avatar) av.src = info.avatar;
     // (las de tu edad y las que te quedan: antes contaba todas, aunque ya las hubieras hecho)
     const left = info.left ?? info.missions?.length ?? 0;
@@ -74,7 +73,7 @@ export class UI {
     $('.tip', L).textContent = tip;
     this.progress(0, 'Preparando…');
   }
-  progress(p, msg) { const L = this.loading, v = Math.max(0, Math.min(1, p)); $('.bar i', L).style.width = (v * 100).toFixed(0) + '%'; $('.ld-av', L).style.left = `calc(${(v * 100).toFixed(1)}% - 22px)`; $('.ld-pc', L).textContent = Math.round(v * 100) + '%'; if (msg) $('.msg', L).textContent = msg; }
+  progress(p, msg) { const L = this.loading, v = Math.max(0, Math.min(1, p)); $('.bar i', L).style.width = (v * 100).toFixed(0) + '%'; $('.ld-av', L).style.left = `${(v * 100).toFixed(1)}%`; $('.ld-pc', L).textContent = Math.round(v * 100) + '%'; if (msg) $('.msg', L).textContent = msg; }
   hideLoading() { this.loading.style.transition = 'opacity .6s'; this.loading.style.opacity = 0; setTimeout(() => this.loading.classList.add('hidden'), 650); }
 
   // ---------- HUD ----------

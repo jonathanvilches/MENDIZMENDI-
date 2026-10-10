@@ -30,7 +30,7 @@ const shot = async (n, sel) => { await p.waitForTimeout(1200); await p.evaluate(
   await p.screenshot({ path: `${out}/${n}.png`, fullPage: false }); const r = res[n] = await audit(sel);
   console.log(`\n== ${n}: ${Object.entries(r).map(([k, v]) => `${k} ${v.length}`).join(' · ')}`); for (const [k, v] of Object.entries(r)) for (const x of v.slice(0, 12)) console.log(`   ${k}: ${x}`); };
 const want = (n) => !only || only.includes(n);
-for (const s of ['home', 'sports', 'avatars', 'map', 'towns', 'nature', 'badges', 'passport', 'profile', 'escudos', 'cuentos', 'peaks']) if (want(s)) { await p.evaluate((s) => window.__hub.go(s, undefined, true), s); await shot(s, '.hub-main'); }
+for (const s of ['home', 'sports', 'avatars', 'map', 'towns', 'nature', 'badges', 'passport', 'profile', 'escudos', 'cuentos', 'album', 'peaks']) if (want(s)) { await p.evaluate((s) => window.__hub.go(s, undefined, true), s); await shot(s, '.hub-main'); }
 if (want('comarca')) { await p.evaluate(() => window.__hub.go('comarca', 'sakana', true)); await shot('comarca', '.hub-main'); }
 if (want('pueblo')) { await p.evaluate(() => window.__hub.townSheet('altsasu-alsasua')); await p.waitForTimeout(600); await shot('pueblo', '.sheet'); await p.evaluate(() => { window.__hub.sheet?.remove(); window.__hub.sheet = null; }); }
 const ctx = { comarca: 'sakana', comarcaName: 'Sakana', towns: [{ id: 'altsasu', name: 'Altsasu' }, { id: 'irurtzun', name: 'Irurtzun' }] };
