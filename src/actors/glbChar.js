@@ -5,6 +5,7 @@
 import { fillMaterial } from '../engine/charLight.js';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { loadGLB } from '../util/glb.js';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';   // modelos de Meshy comprimidos
 
@@ -37,7 +38,8 @@ function outlineMat(w) {
 // andar, salto completo y celebración). Los que faltan se recortan de esos mismos clips: estar quieto y hablar (el final
 // tranquilo de la celebración, de ida y vuelta para que no salte), saludar, celebrar, el impulso, el vuelo y la caída
 const MESHY = {}, MESHY_PICS = {};
-for (const [p, u] of Object.entries(import.meta.glob('../assets/meshy/*.glb', { eager: true, query: '?url', import: 'default' }))) MESHY[p.split('/').pop().replace('.glb', '')] = u;
+// (en el archivo único, los de textura a 1024 px: el alias @meshy-full de vite.config.js)
+for (const [p, u] of Object.entries(import.meta.glob('@meshy-full/*.glb', { eager: true, query: '?url', import: 'default' }))) MESHY[p.split('/').pop().replace('.glb', '')] = u;
 for (const [p, u] of Object.entries(import.meta.glob('../assets/meshy/portraits/*.{png,webp}', { eager: true, query: '?url', import: 'default' }))) MESHY_PICS[p.split('/').pop().replace(/\.(png|webp)$/, '')] = u;
 // versión ligera de cada uno (tools/meshy-lod.mjs: ~1/3 de triángulos y textura de 512 px) para cuando salen muchos a la
 // vez: vecinos, corredores, futbolistas
@@ -158,7 +160,7 @@ export async function loadMeshy(name, lod = false) {
 export function loadChar(url) {
   if (!cache.has(url)) {
     if (!loader) { loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder); }
-    cache.set(url, loader.loadAsync(url));
+    cache.set(url, loadGLB(loader, url));
   }
   return cache.get(url);
 }
