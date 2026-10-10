@@ -219,7 +219,7 @@ export class Hub {
       <div class="tile">${I('shield', 44)}<b>${N.comarcas}<small>/${N.comarcasTotal}</small></b><span>Comarcas</span></div>
       <div class="tile">${I('check', 44)}<b>${doneM}<small>/${totM}</small></b><span>Misiones</span></div>
       <div class="tile">${I('badge', 44)}<b>${p.badges.length}<small>/${BADGES.length}</small></b><span>Insignias</span></div>
-      <div class="tile">${I('star', 44)}<b>${L.lv}</b><span>Nivel · ${p.xp}\u00a0XP</span></div>
+      <div class="tile">${I('star', 44)}<b>${p.xp}<small>\u00a0XP</small></b><span>Nivel ${L.lv}</span></div>
     </section>
     <section class="two">
       <div class="panel next-panel"><h2 class="sec">${I('exclaim', 34)} Te esperan</h2>${next}</div>

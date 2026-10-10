@@ -43,7 +43,7 @@ function media(d, tag = '', shots = true) {
     : { planta: floraIllustration(d.id), hoja: leafImage(d.id), cp: '', ch: '', cls: 'draw' };
   const two = shots && A.hoja;
   return `<div class="ix-media"><figure class="ix-frame ${A.cls}" data-planta="${A.planta}" data-hoja="${A.hoja || ''}" data-cp="${esc(A.cp)}" data-ch="${esc(A.ch)}">
-      <img alt="${esc(d.F.name)}" src="${A.planta}">${two ? `<button type="button" class="ix-inset" aria-label="Ver la hoja"><img alt="" src="${A.hoja}"></button>` : ''}${A.cp ? `<figcaption class="ix-credit">${esc(A.cp)}</figcaption>` : ''}</figure>${t}
+      ${A.cls === 'photo' ? `<span class="ix-bd" style="background-image:url(${A.planta})"></span>` : ''}<img alt="${esc(d.F.name)}" src="${A.planta}">${two ? `<button type="button" class="ix-inset" aria-label="Ver la hoja"><img alt="" src="${A.hoja}"></button>` : ''}${A.cp ? `<figcaption class="ix-credit">${esc(A.cp)}</figcaption>` : ''}</figure>${t}
     ${two ? `<div class="ix-shots" role="group"><button type="button" data-s="planta" aria-pressed="true">${d.F.kind === 'flor' ? 'La flor' : 'La planta'}</button><button type="button" data-s="hoja" aria-pressed="false">La hoja</button></div>` : ''}</div>`;
 }
 // (el selector de foto: planta u hoja. La otra foto va en el círculo de la esquina: tocándolo, se cambian)
@@ -53,6 +53,7 @@ function wireShots(o, ui) {
   const show = (s) => {
     o.querySelectorAll('.ix-shots button').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.s === s)));
     img.src = fr.dataset[s]; img.alt = (s === 'hoja' ? 'Hoja de ' : '') + img.alt.replace(/^Hoja de /, '');
+    const bd = fr.querySelector('.ix-bd'); if (bd) bd.style.backgroundImage = `url(${fr.dataset[s]})`;
     if (cap) cap.textContent = fr.dataset[s === 'hoja' ? 'ch' : 'cp'] || fr.dataset.cp;
     if (ins) { const other = s === 'hoja' ? 'planta' : 'hoja'; ins.querySelector('img').src = fr.dataset[other]; ins.dataset.s = other; ins.setAttribute('aria-label', other === 'hoja' ? 'Ver la hoja' : 'Ver la planta'); }
     ui?.sound?.ui?.('click');
