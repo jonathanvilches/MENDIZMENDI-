@@ -234,7 +234,7 @@ function missionComplete_(ui, { title, text, xp, card, saber, icon = 'star', pro
           <div class="rewards">${xp ? `<span class="rw">${iconSVG('xp', 26)} +${xp} XP</span>` : ''}${card ? `<span class="rw">${iconSVG('book', 26)} Carta: ${esc(card)}</span>` : ''}${saber ? `<span class="rw saber">${iconSVG(saber.icon, 26)} Saber de Navarra: ${esc(saber.name)}</span>` : ''}</div>
           ${progress ? `<div class="prog"><i style="width:${Math.round(progress.done / progress.total * 100)}%"></i><span>${progress.done}/${progress.total} misiones en ${esc(progress.name)}</span></div>` : ''}</div>
         <div class="ix-foot"><button class="btn primary">${esc(next)}</button></div>
-      </div>`, `ix fit${lamina ? ' has-lam' : ''}`);
+      </div>`, 'ix fit');
     const b = o.querySelector('button'); setTimeout(() => b.focus({ preventScroll: true }), 80);
     const k = (e) => { e.stopImmediatePropagation(); if (['e', 'enter', ' ', 'escape'].includes(e.key.toLowerCase())) { e.preventDefault(); close(); } };
     const close = () => { ui.sound.ui('click'); done(ui, o, k); res(); };

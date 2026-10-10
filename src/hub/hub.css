@@ -804,6 +804,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .bagpanel h4 { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--rosa); font: 800 var(--fs-sm)/1.15 var(--f-cond); letter-spacing: .1em; text-transform: uppercase; }
 .bagpanel h4::before { content: ''; flex: none; width: 18px; height: 4px; border-radius: 2px; background: var(--cta); transform: skewX(-20deg); }
 .bp-line { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; min-width: 0; }
+.bp-line .bp-grp { display: flex; flex-wrap: wrap; gap: 16px; }
 /* (ir con perro o sin él: como las pestañas de las fichas, la elegida en el degradado) */
 .seg { display: inline-grid; grid-auto-flow: column; grid-auto-columns: minmax(120px, auto); gap: 4px; padding: 4px; border-radius: 4px; background: rgba(7, 2, 15, .5); }
 .seg button { box-sizing: border-box; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 16px; border: 0; border-radius: 4px; background: transparent; color: var(--lila); font: 800 var(--fs-sm)/1.1 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; cursor: pointer; }

@@ -94,7 +94,8 @@ export class Mochila {
       // una franja por cosa: el perro, el agua, la comida y el equipo, con el rótulo a la izquierda y lo suyo en fila, con
       // aire entre franjas. Si no cabe, se desplaza: mejor espacio y claridad que todo apretado y apilado)
       const dogLine = D ? `<div class="seg" role="group" aria-label="Ir con perro o sin perro"><button data-a="dogon" class="${on ? 'on' : ''}" aria-pressed="${on}">${iconSVG('dog', 22)}<span>Con ${esc(D.name)}</span></button><button data-a="dogoff" class="${on ? '' : 'on'}" aria-pressed="${!on}"><span>Sin perro</span></button></div>`
-          + (on ? `<button class="btn" data-a="dog">${iconSVG('compass', 22)}<span>Enséñame el camino</span></button>` : '') + `<button class="btn" data-a="breed">${iconSVG('dog', 22)}<span>${on ? 'Cambiar de perro' : 'Elegir perro'}</span></button>`
+          // (los dos botones van juntos: si no caben al lado del selector, bajan los dos a la fila de abajo, nunca uno solo)
+          + `<div class="bp-grp">${on ? `<button class="btn" data-a="dog">${iconSVG('compass', 22)}<span>Enséñame el camino</span></button>` : ''}<button class="btn" data-a="breed">${iconSVG('dog', 22)}<span>${on ? 'Cambiar de perro' : 'Elegir perro'}</span></button></div>`
         : `<p class="bp-note">Aquí vas sin perro.</p>`;
       const water = this.has('cantimplora') ? `<div class="drops" role="img" aria-label="${P.bag.agua} de 3 tragos">${[0, 1, 2].map(i => `<span class="${i < P.bag.agua ? 'on' : ''}">${iconSVG('water', 24)}</span>`).join('')}</div><button class="btn" data-a="drink" ${P.bag.agua ? '' : 'disabled'}>${iconSVG('canteen', 22)}<span>Beber</span></button>`
         : `<p class="bp-note" data-vm="no">Bebe en la fuente de una plaza: te darán una cantimplora.</p>`;

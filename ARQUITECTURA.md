@@ -81,7 +81,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     el texto y la figura arriba y la elección y el botón debajo.
   - Mochila: cabecera en una fila con «Cerrar» a la derecha, como «Salir» en la tienda. Debajo, una franja por cosa
     (perro, agua, comida y equipo), con el rótulo a la izquierda y lo suyo en fila, 24 px de aire y una raya fina entre
-    franjas. La comida y el equipo, en filas que se deslizan. Los iconos, a su tamaño de siempre.
+    franjas. La comida y el equipo, en filas que se deslizan. Los iconos, a su tamaño de siempre. Los botones del perro van
+    juntos: si no caben junto al selector, bajan los dos a la fila de abajo.
   - Pantalla de carga (`showLoading` en `ui.js`): retícula de dos columnas en proporción áurea, con los mismos márgenes
     en los cuatro lados y un mismo hueco entre columnas y filas. A la izquierda el pueblo, su comarca, su presentación
     y sus misiones; a la derecha su lámina entera. Debajo, el consejo bajo el texto y la barra bajo la lámina. Todo el
