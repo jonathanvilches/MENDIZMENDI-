@@ -1,10 +1,11 @@
 // Interfaz en partida: HUD, diálogos con retrato, cuaderno, mapa, menú, premios, prismáticos y ritmo.
-// Todos los iconos son dibujos propios (src/ui/icons.js).
+// Todos los iconos son de la familia del juego: los horneados (src/assets/icons3d) y, si falta alguno, los dibujos de src/ui/icons.js.
 import { RIBBONS, QUESTS, CARDS, SPECIES_OBS, EGUZKILORES } from './game/content.js';
 import { HALF, N, PLACES } from './world/layout.js';
 import { H, SURF } from './world/heightfield.js';
 import { clamp } from './util/math.js';
 import { iconSVG, iconImage } from './ui/icons.js';
+import { icon3DReady } from './ui/icon3d.js';
 import { portraitImg } from './ui/portraits.js';
 import { mountMapView } from './ui/mapview.js';
 import { buildMapVectorsIdle } from './ui/mapvector.js';
@@ -32,6 +33,12 @@ const ICON = {
   drop: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round"><g transform="translate(0 0.25)"><path d="M12 2.2c3.6 4.7 6.8 8.5 6.8 12.3a6.8 6.8 0 01-13.6 0c0-3.8 3.2-7.6 6.8-12.3z" fill="#7fd6ff"/><path d="M9 14.8a3 3 0 002.2 3" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></g></svg>',
   look: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round"><g transform="translate(-0.35 -0.4)"><path d="M14.4 16.6l2.1-2.1 5.1 5.1a1.5 1.5 0 01-2.1 2.1z" fill="#ff7ac8"/><circle cx="9.8" cy="9.8" r="7" fill="#fff"/><circle cx="9.8" cy="9.8" r="4.4" fill="#cfefff"/><path d="M7.6 7.8a3 3 0 012.4-1.4" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></g></svg>',
 };
+
+// los botones del HUD y los táctiles llevan los iconos de la familia del juego (src/assets/icons3d): mapa, menú,
+// prismáticos, cuaderno, correr (la bota), saltar, y en el botón de acción la mano, hablar, beber, mirar y pelota.
+// Si faltara alguno, se queda el dibujo de antes.
+{ const IMG = (n) => { const u = icon3DReady(n); return u ? `<img class="hico" src="${u}" alt="" aria-hidden="true">` : null; };
+  for (const [k, n] of [['map', 'map'], ['menu', 'menu'], ['bino', 'binoculars'], ['book', 'book'], ['run', 'boot'], ['jump', 'jump'], ['hand', 'hand'], ['talk', 'talk'], ['wave', 'hand'], ['drop', 'water'], ['look', 'search'], ['pelota', 'pelota']]) ICON[k] = IMG(n) || ICON[k]; }
 
 export class UI {
   constructor(input, sound) {
