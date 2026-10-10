@@ -225,16 +225,6 @@
 .sheet-in::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--c); z-index: 3; }
 .sheet .x { position: absolute; right: 12px; top: 12px; z-index: 2; background: rgba(10, 8, 16, .6); border: 1px solid var(--line2); border-radius: 50%; width: 40px; height: 40px; display: grid; place-items: center; }
 .sh-hero { padding: 56px 24px 16px; background: linear-gradient(180deg, transparent, var(--plum)), linear-gradient(90deg, color-mix(in srgb, var(--c) 70%, #000), transparent), var(--bg) center/cover; }
-/* portada del pueblo con el personaje: el pueblo de fondo algo desenfocado, el personaje nítido a la derecha con
-   contraluz dorado, y el nombre a la izquierda */
-.sh-hero.key { position: relative; overflow: hidden; min-height: 250px; display: flex; flex-direction: column; justify-content: flex-end; padding-right: 42%; background: none; isolation: isolate; }
-.sh-hero.key::before { content: ''; position: absolute; inset: -8px; z-index: -2; background: var(--bg) 30% center / cover no-repeat; }
-.sh-hero.key::after { content: ''; position: absolute; inset: 0; z-index: -1; background: radial-gradient(80% 90% at 80% 25%, rgba(255, 190, 110, .26), rgba(255, 190, 110, 0) 60%), linear-gradient(90deg, rgba(20, 6, 48, .7), rgba(20, 6, 48, .1) 60%, rgba(20, 6, 48, 0)), linear-gradient(180deg, transparent 55%, var(--plum)); }
-.sh-hero .sh-avW { position: absolute; z-index: -1; right: 8%; bottom: 4%; height: 92%; pointer-events: none; isolation: isolate; }
-.sh-hero .sh-av { display: block; height: 100%; width: auto; filter: drop-shadow(0 0 14px rgba(255, 43, 214, .42)); }
-.sh-hero .sh-avW::after { content: ''; position: absolute; left: 18%; right: 18%; bottom: -2%; height: 6%; border-radius: 50%; background: radial-gradient(closest-side, rgba(30, 10, 30, .5), rgba(30, 10, 30, 0)); z-index: -1; }
-.sh-hero.key h1, .sh-hero.key p, .sh-hero.key small { text-shadow: 0 2px 8px rgba(0, 0, 0, .6); }
-@media (max-width: 560px) { .sh-hero.key { padding-right: 44%; min-height: 230px; } .sh-hero .sh-avW { right: 2%; } .sh-hero.key p { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; } }
 .sh-hero h1 { margin: var(--t-mt) 0 var(--t-mb); font-family: 'MZ Display', 'Nunito', sans-serif; font-weight: 400; font-size: var(--fs-3xl); line-height: 1; } .sh-hero p { margin: 0; color: #eae4f6; font-weight: 600; }
 .sh-body { padding: 4px 24px 8px; overflow-y: auto; touch-action: pan-y; }
 .sh-body h3 { display: flex; align-items: center; gap: 8px; color: var(--gold); font-size: var(--fs-xs); letter-spacing: .1em; text-transform: uppercase; }
@@ -526,15 +516,6 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .hero3d { position: relative; height: clamp(460px, 66dvh, 640px); border-radius: var(--rL); overflow: hidden; border: 1px solid var(--line2); box-shadow: 0 20px 50px rgba(0, 0, 0, .45); background: #1c0b3a; isolation: isolate; }
 /* portada fija: la foto de la comarca y el personaje de pie a la derecha (en vertical, en el centro, encima del título) */
 .hero3d .hero-img { position: absolute; inset: 0; background: #1c0b3a center 60% / cover no-repeat; }
-/* estilo portada de videojuego: la vista de la comarca al atardecer, algo desenfocada y con luz dorada, y delante el
-   personaje en grande cortado por abajo (no parece flotar), con la misma luz */
-.hero3d .hero-img.key { overflow: hidden; }
-.hero3d .hero-img.key::before { content: ''; position: absolute; inset: -12px; background: var(--bg) center 55% / cover no-repeat; filter: blur(2.5px) saturate(1.08); transform: scale(1.03); }
-.hero3d .hero-img.key::after { content: ''; position: absolute; inset: 0; background: radial-gradient(120% 90% at 72% 30%, rgba(255, 190, 110, .28), rgba(255, 190, 110, 0) 55%), linear-gradient(90deg, rgba(20, 6, 48, .55) 0%, rgba(20, 6, 48, 0) 45%); }
-.hero3d .hero-av.key { left: 70%; bottom: 0; height: min(94%, 720px); filter: drop-shadow(0 0 18px rgba(255, 43, 214, .35)) drop-shadow(0 10px 24px rgba(0, 0, 0, .45)); }
-.hero3d .hero-av { position: absolute; left: 66%; bottom: 6%; height: min(80%, 560px); width: auto; transform: translateX(-50%); transform-origin: 50% 100%; filter: drop-shadow(0 16px 14px rgba(0, 0, 0, .42)); cursor: pointer; -webkit-user-drag: none; user-select: none; -webkit-tap-highlight-color: transparent; }
-.hero3d .hero-av.hop { animation: heroHop .6s cubic-bezier(.3, 1.5, .5, 1); }
-@keyframes heroHop { 35% { transform: translateX(-50%) translateY(-7%) scale(1.02, .98); } }
 .h-shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(20, 6, 48, .5) 0%, rgba(20, 6, 48, 0) 20%, rgba(20, 6, 48, 0) 52%, rgba(20, 6, 48, .8) 80%, rgba(20, 6, 48, .96) 100%); }
 .chapter { position: absolute; left: 24px; top: 24px; z-index: 2; display: flex; gap: 8px; align-items: center; padding: 4px 16px 4px 4px; border-radius: 40px; background: rgba(20, 6, 48, .74); border: 1px solid var(--line2); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); color: #fff; max-width: calc(100% - 48px); text-align: left; font: inherit; cursor: pointer; }
 .chapter img { width: 46px; height: 46px; flex: none; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .4)); }
@@ -580,9 +561,6 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .ccard .cimg:not(.ready) { opacity: .6; }
 
 @media (max-aspect-ratio: 1/1) {
-  .hero3d .hero-av { left: 50%; bottom: auto; top: 76px; height: calc(100% - 76px - 270px); min-height: 150px; max-height: 420px; }
-  .hero3d .hero-av.key { top: auto; bottom: 0; height: min(calc(100% - 110px), 138vw); min-height: 0; max-height: none; }
-  .hero3d .hero-img.key::after { background: radial-gradient(120% 70% at 50% 25%, rgba(255, 190, 110, .26), rgba(255, 190, 110, 0) 60%); }
   .bubble { left: 16px; right: 16px; top: 74px; width: auto; max-width: 520px; }
   .bubble::after { left: 50%; bottom: -8px; margin-left: -8px; }
   .h-bot { width: 100%; padding: 0 16px 16px; } .chapter { left: 16px; top: 16px; max-width: calc(100% - 32px); }
@@ -1155,9 +1133,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   /* ficha del pueblo: imagen a la izquierda; misiones y botón a la derecha, siempre a la vista */
   .sheet { align-items: center; }
   .sheet-in { width: min(920px, calc(100vw - 24px)); max-height: calc(100dvh - 16px); display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; border-radius: 18px; }
-  .sh-hero, .sh-hero.key { grid-row: 1 / 3; grid-column: 1; min-height: 0; padding: 16px 16px 16px; justify-content: flex-end; }
-  .sh-hero.key { padding-right: 16px; }
-  .sh-hero .sh-avW { height: 62%; right: 4%; top: 6%; bottom: auto; }
+  .sh-hero { grid-row: 1 / 3; grid-column: 1; min-height: 0; padding: 16px 16px 16px; justify-content: flex-end; }
   .sh-hero h1 { font-size: var(--fs-xl); } .sh-hero p { font-size: var(--fs-sm); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
   .sh-body { grid-column: 2; grid-row: 1; padding: 12px 16px 8px; min-height: 0; }
   .sh-foot { grid-column: 2; grid-row: 2; padding: 8px 16px calc(env(safe-area-inset-bottom, 0px) + 8px); }
@@ -1246,3 +1222,41 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .lam-view .lv-x { top: calc(env(safe-area-inset-top, 0px) + 16px); right: calc(max(env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + 16px); width: 48px; height: 48px; }
 .lam-view .lv-a { top: 50%; margin-top: -28px; } .lam-view .prev { left: calc(max(env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + 16px); } .lam-view .next { right: calc(max(env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + 16px); }
 @media (orientation: portrait) { .lam-view { padding: 88px 16px; } .lam-view img { width: 100%; } .lam-view .lv-a { top: auto; bottom: 16px; margin: 0; } }
+
+/* ================= Portadas: las láminas, enteras y con un degradado común =================
+   Todas las portadas son láminas (src/ui/laminas.js). En las tarjetas y en la ficha del pueblo la lámina se ve entera,
+   en 16:9, sin cortar al explorador ni el monumento. Donde el texto va encima de la lámina (inicio y comarca), el
+   degradado es siempre el mismo: oscuro y neutro solo detrás del texto, y la lámina con sus colores en el resto. */
+:root { --cov-side: linear-gradient(90deg, rgba(14, 7, 32, .84) 0%, rgba(14, 7, 32, .58) 28%, rgba(14, 7, 32, .16) 52%, rgba(14, 7, 32, 0) 66%);
+  --cov-foot: linear-gradient(0deg, rgba(14, 7, 32, .72) 0%, rgba(14, 7, 32, 0) 42%); --cov-head: linear-gradient(180deg, rgba(14, 7, 32, .42) 0%, rgba(14, 7, 32, 0) 24%); }
+/* tarjetas de pueblo: la lámina entera; solo su borde de abajo se funde con la tarjeta */
+.tcard.has-cov .tcov { aspect-ratio: 16 / 9; object-position: 50% 50%; -webkit-mask: linear-gradient(180deg, #000 82%, transparent); mask: linear-gradient(180deg, #000 82%, transparent); }
+/* tarjetas de comarca */
+.ccard .cimg { background-size: cover; background-position: center 40%; opacity: 1; }
+.ccard .cimg::after { background: linear-gradient(180deg, transparent 55%, var(--plum) 100%); }
+/* inicio: la lámina del pueblo, nítida, con el texto a la izquierda */
+.hero3d .hero-img { background-color: #1c0b3a; background-position: center 42%; background-size: cover; background-repeat: no-repeat; }
+.h-shade { background: var(--cov-head), var(--cov-foot), var(--cov-side); }
+@media (max-aspect-ratio: 1/1) { .h-shade { background: var(--cov-head), linear-gradient(0deg, rgba(14, 7, 32, .92) 0%, rgba(14, 7, 32, .62) 34%, rgba(14, 7, 32, 0) 60%); } }
+/* cabecera de la comarca: más alta para que la lámina no quede en una tira, y el texto abajo a la izquierda */
+.chero { min-height: clamp(200px, 36vw, 56dvh); align-items: end; background: var(--cov-head), var(--cov-foot), var(--cov-side), var(--bg) center 38% / cover no-repeat, #1c0b3a; }
+@media (max-width: 599px), (orientation: portrait) { .chero { min-height: 240px; } }
+/* ficha del pueblo: la lámina entera arriba y, debajo, el nombre y la presentación */
+.sh-hero { padding: 0; background: none; display: flex; flex-direction: column; justify-content: flex-start; min-height: 0; flex: none; }   /* (en vertical no se encoge: las misiones bajan) */
+.sh-hero .sh-cov { display: block; flex: none; width: 100%; aspect-ratio: 16 / 9; max-height: 42dvh; object-fit: cover; object-position: 50% 45%; background: #1c0b3a;
+  -webkit-mask: linear-gradient(180deg, #000 84%, transparent); mask: linear-gradient(180deg, #000 84%, transparent); }
+.sh-hero .sh-txt { padding: 4px 24px 12px; min-height: 0; }
+.sh-hero .sh-txt .kicker { margin-top: 0; }
+/* en horizontal (iPhone tumbado e iPad): dos columnas, la lámina con su texto a la izquierda y las misiones a la derecha */
+@media (orientation: landscape) and (min-width: 600px) {
+  .sheet { align-items: center; }
+  .sheet-in { width: min(980px, calc(100vw - 32px)); max-height: min(760px, calc(100dvh - 16px)); display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
+  .sh-hero { grid-row: 1 / 3; grid-column: 1; overflow-y: auto; border-right: 1px solid var(--line); background: linear-gradient(180deg, color-mix(in srgb, var(--c) 14%, var(--plum)), var(--plum) 70%); }
+  .sh-hero .sh-cov { max-height: none; }
+  .sh-hero .sh-txt { padding: 4px 16px 16px; }
+  .sh-hero h1 { font-size: var(--fs-xl); }
+  .sh-hero p { font-size: var(--fs-sm); display: block; -webkit-line-clamp: unset; overflow: visible; }
+  .sh-body { grid-column: 2; grid-row: 1; padding: 16px 16px 8px; min-height: 0; }
+  .sh-foot { grid-column: 2; grid-row: 2; }
+  .sheet-in > .x { z-index: 4; }
+}
