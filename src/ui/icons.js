@@ -24,7 +24,6 @@ function shaded(tag, attrs, fill, extra = '', stroke = true) {
   return `<clipPath id="${id}"><${tag} ${attrs}/></clipPath><${tag} ${attrs} fill="${dk(fill)}" ${extra}/><g clip-path="url(#${id})"><${tag} ${lit} fill="${fill}"/></g>` +
     (stroke ? `<${tag} ${attrs} fill="none" stroke="${O}" stroke-width="${SW}" stroke-linejoin="round" stroke-linecap="round"/>` : '');
 }
-const gf = (c) => c;
 const s = (d, fill, extra = '') => shaded('path', `d="${d}"`, fill, extra);
 const ln = (d, c = O, w = 3) => `<path d="${d}" fill="none" stroke="${c}" stroke-width="${c === O ? Math.min(w, SW + 0.6) : w}" stroke-linecap="round" stroke-linejoin="round"/>`;
 const c = (x, y, r, fill, st = true) => r < 3.5 || !st ? `<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" ${st ? `stroke="${O}" stroke-width="${SW}"` : ''}/>` : shaded('circle', `cx="${x}" cy="${y}" r="${r}"`, fill);

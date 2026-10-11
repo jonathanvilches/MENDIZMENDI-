@@ -370,7 +370,7 @@ export class PelotaCourt {
   buildLabrit(T, M, th, W, CONTRA, EXT, L, opts = {}) {
     const C = COURT, g = this.group, HW = 13.6, inTown = !!opts.inTown, D = inTown ? 9 : 0;   // (en Iruña, en la ciudad: con zócalo hasta el terreno)
     const cream = M({ color: '#e9e2d2', roughness: 0.9 }), white = M({ color: '#f1efe9', roughness: 0.92 }), green = M({ color: th.wall, roughness: 0.9 });
-    const wood = M({ color: '#d29a5a', roughness: 0.6 }), woodDark = M({ color: '#b07a40', roughness: 0.65 }), rail = M({ color: '#cf9a5c', roughness: 0.55 });
+    const rail = M({ color: '#cf9a5c', roughness: 0.55 });
     const steel = M({ color: '#4a5056', roughness: 0.5, metalness: 0.4 }), grey = M({ color: '#9a978f', roughness: 0.9 });
     const box = (w, h, d, mat, x, y, z, ry = 0) => { const m = new T.Mesh(new T.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); m.rotation.y = ry; m.receiveShadow = true; g.add(m); return m; };
     this.standSpots = [];

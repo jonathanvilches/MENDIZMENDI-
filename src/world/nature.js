@@ -647,7 +647,7 @@ export class Nature {
       else if (slope > 0.45 && rnd() < 0.25) put(x, z, 0.5 + rnd() * 1.4, 0.4, 0.3);
     }
     const m = rockMaterial(this.quality);
-    const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler();
+    const q = new THREE.Quaternion(), e = new THREE.Euler();
     for (let v = 0; v < parts.length; v++) {
       const list = spots.filter(s => s.v === v);
       if (!list.length) continue;

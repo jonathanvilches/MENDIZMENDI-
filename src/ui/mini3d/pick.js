@@ -116,17 +116,16 @@ export function pickGame(ui, { title = 'La vendimia', icon = 'grapes', kind = 'u
     S.mesh(new THREE.TorusGeometry(0.17, 0.011, 8, 30, Math.PI), texMat(S, 'braid', '#a8844e'), 0, 0.158, 0, basket);   // asa
     const inBasket = new THREE.Group(); basket.add(inBasket);
 
-    const fwd = new THREE.Vector3(0, -0.12, -1).normalize();
     // la cámara va despacio a lo largo de la hilera, cerca de las plantas y un poco por encima
     const camAt = (t) => [X0 + 1.5 + Math.min(1, t / seconds) * (LEN - 3), C.y - 0.04, 0.1];
     S.frame(camAt(0), 0.5, [0, 0.2, 1], 44);
     const flying = [];
-    let got = 0, bad = 0, t = 0;
+    let got = 0, t = 0;
     const pick = (e) => {
       if (isOver()) return;
       const h = S.pick(e, items.filter(i => i.alive).map(i => i.hit), false)[0]; if (!h) return;
       const it = h.object.userData.item;
-      if (!it.ripe) { bad++; ui.sound?.ui?.('error'); H.fb.textContent = C.bad; it.obj.rotation.z += 0.3; setTimeout(() => { it.obj.rotation.z -= 0.3; }, 160); return; }
+      if (!it.ripe) { ui.sound?.ui?.('error'); H.fb.textContent = C.bad; it.obj.rotation.z += 0.3; setTimeout(() => { it.obj.rotation.z -= 0.3; }, 160); return; }
       it.alive = false; got++; blip(ui, 600 + got * 30); ui.onMiniHit?.(true);
       flying.push({ it, from: it.obj.getWorldPosition(new THREE.Vector3()), k: 0 });
       H.fb.textContent = got < need * 0.5 ? '¡A la cesta!' : got < need ? '¡Ya pesa la cesta!' : '';

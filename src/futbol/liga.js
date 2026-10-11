@@ -176,7 +176,7 @@ export function ligaPanel(S) {
     const m = nextMatch(S), c = CLUBS[S.club];
     let mid;
     if (m) {
-      const H = CLUBS[m.h], A = CLUBS[m.a], home = m.h === S.club, rival = home ? m.a : m.h;
+      const H = CLUBS[m.h], A = CLUBS[m.a], home = m.h === S.club;
       mid = `<div class="lg-next"><div class="lg-t">${crest(m.h, 52)}<b>${esc(H.name)}</b><em>Media ${H.ovr}</em></div><div class="lg-vs">VS<small>JORNADA ${m.j + 1} DE ${S.rounds.length}</small><small>${home ? 'EN CASA · EL SADAR' : 'FUERA · EL SADAR'}</small></div><div class="lg-t">${crest(m.a, 52)}<b>${esc(A.name)}</b><em>Media ${A.ovr}</em></div></div>`;
     } else {
       const ch = CLUBS[S.champion];

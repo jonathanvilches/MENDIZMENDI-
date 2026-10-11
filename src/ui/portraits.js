@@ -32,6 +32,9 @@ function portraitKK(look, mode) {
   R.setClearColor(0x000000, 0); R.render(scene, cam);
   const url = offscreenCanvas().toDataURL('image/png');
   scene.remove(obj);
+  // (lo hecho solo para la foto se libera, como en las minifiguras: si no, cada retrato nuevo dejaba sus piezas y su
+  // esqueleto en la memoria gráfica, y al ir de pueblo en pueblo se iban sumando)
+  obj.traverse(o => { if (o.geometry) o.geometry.dispose(); }); n.char?.dispose?.();
   return url;
 }
 export function portrait(look, mode = 'bust', isMini = false) {
@@ -48,7 +51,6 @@ export function portrait(look, mode = 'bust', isMini = false) {
     J.head.rotation.y = 0.25; J.torso.rotation.y = 0.12;
     scene.add(fig);
     fig.updateMatrixWorld(true);
-    const H = fig.userData.H;
     const box = new THREE.Box3().setFromObject(fig);
     if (mode === 'bust') {
       const hp = new THREE.Vector3(); J.head.getWorldPosition(hp);

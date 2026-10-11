@@ -248,7 +248,6 @@ export class Encierro {
       leaf: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9, flatShading: true }),
     };
     for (const k in B) { if (!B[k].length) continue; const city = new THREE.Mesh(mergeGeometries(B[k]), mats[k]); city.castShadow = city.receiveShadow = true; S.add(city); }
-    const mat = mats.plaster;
     // ventanas, barandillas y bajos (bares, tiendas y portales): planos dibujados, una llamada por dibujo
     const q = new THREE.Quaternion(), e = new THREE.Euler(), m4 = new THREE.Matrix4(), v3 = new THREE.Vector3(), scl = new THREE.Vector3();
     const inst = (map, w, h, list, extra = {}) => {

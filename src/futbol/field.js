@@ -665,7 +665,7 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
     // parque con alamedas alrededor
     const flat = (x0, z0, x1, z1, tileM, y) => { const g = new THREE.PlaneGeometry(x1 - x0, z1 - z0).rotateX(-Math.PI / 2).translate((x0 + x1) / 2, y, (z0 + z1) / 2), uv = g.attributes.uv, p = g.attributes.position; for (let i = 0; i < uv.count; i++) uv.setXY(i, p.getX(i) / tileM, p.getZ(i) / tileM); return g; };
     apron.material.map = own(parkTexture()); apron.material.map.repeat.set(150, 150); apron.material.color.set('#ffffff'); apron.material.needsUpdate = true;
-    const AX = FA[0] + 48, AZ = FA[1] + 52, K = [FA[0] + 10, FA[1] + 10];
+    const AX = FA[0] + 48, K = [FA[0] + 10, FA[1] + 10];
     add(mergeGeometries([flat(-K[0], -K[1], K[0], -FA[1], 8, 0.01), flat(-K[0], FA[1], K[0], K[1], 8, 0.01), flat(-K[0], -FA[1], -FA[0], FA[1], 8, 0.01), flat(FA[0], -FA[1], K[0], FA[1], 8, 0.01),
       flat(-AX, -K[1], -K[0], K[1], 8, 0.01), flat(K[0], -K[1], AX, K[1], 8, 0.01)]),
       own(new THREE.MeshStandardMaterial({ map: own(pavingTexture()), roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 })), { receive: true });

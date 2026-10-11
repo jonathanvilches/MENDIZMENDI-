@@ -282,7 +282,7 @@ function groundDetail(size) {
 function grassGround(size) {
   const rnd = mulberry32(17);
   const layer = () => { const c = canvas(size), g = c.getContext('2d'); g.fillStyle = '#000'; g.fillRect(0, 0, size, size); return [c, g]; };
-  const [cr, gr] = layer(), [cg, gg] = layer(), [cb, gb] = layer();
+  const [, gr] = layer(), [, gg] = layer(), [, gb] = layer();   // (layer() sortea: se llama igual, aunque solo se use su segundo valor)
   gr.fillStyle = 'rgb(96,96,96)'; gr.fillRect(0, 0, size, size);
   const k = size / 512;
   // briznas: trazos cortos en todas direcciones, oscuros abajo y claros arriba

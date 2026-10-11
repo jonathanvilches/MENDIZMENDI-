@@ -422,7 +422,7 @@ function fern(m, rnd) {
 // ---------------------------------------------------------------- flores
 // una flor (corola) en el origen mirando hacia +y
 function corolla(f, rnd) {
-  const out = [], P = C(f.petal), Cc = C(f.center), s = f.size;
+  const out = [], s = f.size;
   const petal = (len, wid, tilt, a, hex = f.petal, y = 0) => { const g = new THREE.CircleGeometry(1, 8); g.scale(len / 2, wid / 2, 1); g.translate(len / 2, 0, 0); g.rotateX(-Math.PI / 2); g.rotateZ(tilt); g.rotateY(a); g.translate(0, y, 0); return solid(g, hex, 0.12, rnd); };
   switch (f.form) {
     case 'cup': case 'rosette': { const n = f.petals || 5; for (let i = 0; i < n; i++) out.push(petal(s * 1.1, s * (f.petals === 4 ? 1.1 : 0.8), 0.45, i / n * Math.PI * 2)); out.push(solid(new THREE.SphereGeometry(s * 0.28, 8, 6).translate(0, s * 0.12, 0), f.center)); break; }

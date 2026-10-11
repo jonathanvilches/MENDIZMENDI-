@@ -217,7 +217,6 @@ function buildChurch(B, rnd) {
     B.add('stone', box(5.2, 1.2 + 2, 0.6, 2), M(X, g - 2 + 1.6, Z, -ang + Math.PI / 2));
     addBox(X, Z, 5.2, 0.8, -ang + Math.PI / 2);
   }
-  const fx = c.x + Math.sin(Math.PI / 2) * 0, fz = c.z;
   addBox(c.x, c.z, L + 2, W + 3.2, Math.PI / 2, { solidView: true });
   addBox(c.x + Math.sin(Math.PI / 2) * tz + Math.cos(Math.PI / 2) * tx, c.z + Math.cos(Math.PI / 2) * tz - Math.sin(Math.PI / 2) * tx, TW + 0.4, TW + 0.4, Math.PI / 2, { solidView: true });
   VILLAGE.church = { x: c.x, z: c.z, door: { x: c.x + L / 2 + 5.5, z: c.z }, y };

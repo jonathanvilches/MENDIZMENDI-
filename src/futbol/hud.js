@@ -258,7 +258,13 @@ export class FutbolHud {
     const dots = (n) => Array.from({ length: Math.max(lim, n) }, (_, i) => `<u class="${i < n ? (i >= lim ? 'x' : 'on') : ''}"></u>`).join('');
     el.innerHTML = `<span>${dots(a)}</span><b>FALTAS</b><span>${dots(b)}</span>`; el.classList.add('show');
   }
-  setClock(sec, half, label) { const s = Math.max(0, Math.ceil(sec)); this.el.time.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; this.el.half.textContent = label || (half === 1 ? '1ª parte' : '2ª parte'); }
+  // (se llama en cada fotograma: solo se escribe lo que cambia, y lo último escrito va en el elemento (_t), porque en
+  // euskera el texto que se lee ya está traducido y no coincidiría nunca)
+  setClock(sec, half, label) {
+    const s = Math.max(0, Math.ceil(sec)), t = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`, h = label || (half === 1 ? '1ª parte' : '2ª parte'), E = this.el;
+    if (E.time._t !== t) { E.time._t = t; E.time.textContent = t; }
+    if (E.half._t !== h) { E.half._t = h; E.half.textContent = h; }
+  }
   // los botones según el momento: con el balón (atk), sin él (def: ROBAR y ENTRADA) o suelto (loose)
   setMode(mode) {
     if (this.mode === mode || !this.el.btns) return; this.mode = mode;

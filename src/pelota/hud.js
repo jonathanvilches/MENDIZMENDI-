@@ -243,7 +243,8 @@ export class PelotaHud {
     q.innerHTML = text ? `<b>${esc(text)}</b><small>${esc(sub)}</small>` : '';
     void q.offsetWidth; q.classList.toggle('on', !!text); this.qT = kind ? 1 : 0.8;   // (se vuelve a poner para que rebote cada vez)
   }
-  tip(text) { const t = this.$('.pel-tip'); if (t.textContent !== (text || '')) t.textContent = text || ''; t.classList.toggle('on', !!text); }
+  // (lo último escrito va en el propio elemento, _t: en euskera, el texto que se lee ya está traducido y no coincidiría)
+  tip(text) { const t = this.$('.pel-tip'), v = text || ''; if (t._t !== v) { t._t = v; t.textContent = v; } t.classList.toggle('on', !!text); }
   ready(on) { this.$('.pel-hit').classList.toggle('ready', !!on); }
   /** El aro del momento justo: t, segundos hasta el momento de soltar el golpe (null, sin aro). Llega al botón a tiempo */
   timing(t) {
@@ -254,7 +255,7 @@ export class PelotaHud {
     if (on) r.style.transform = `scale(${v})`;
   }
   /** El nombre del golpe que saldría ahora (GOLPE, VOLEA o GANCHO) */
-  hitLabel(text) { const l = this._hl ||= this.$('.pel-hl'); if (l && l.textContent !== text) { l.textContent = text; fitCircle(l.parentElement); } }
+  hitLabel(text) { const l = this._hl ||= this.$('.pel-hl'); if (l && l._t !== text) { l._t = text; l.textContent = text; fitCircle(l.parentElement); } }
   // anillo de carga alrededor del botón que se mantiene (golpe o cortada)
   charge(p, kind) {
     for (const [k, sel] of [['hit', '.pel-hit'], ['cut', '.pel-cut'], ['drop', '.pel-dejada']]) {
@@ -269,7 +270,7 @@ export class PelotaHud {
     if (on) {
       const pw = 0.15 + p * 0.85, word = kind === 'drop' ? (pw < 0.45 ? 'muy corta' : pw < 0.75 ? 'corta' : 'algo más larga') : pw < 0.4 ? 'suave' : pw < 0.75 ? 'media' : pw < 0.97 ? 'fuerte' : 'a tope';
       const name = kind === 'cut' ? 'Cortada' : kind === 'drop' ? 'Dejada' : 'Golpe';
-      f.querySelector('b').textContent = `${name}: ${word} · ${Math.round(pw * 100)} %`;
+      const fb = f.firstChild, ft = `${name}: ${word} · ${Math.round(pw * 100)} %`; if (fb._t !== ft) { fb._t = ft; fb.textContent = ft; }   // (solo si cambia)
       f.querySelector('u').style.width = (pw * 100).toFixed(0) + '%'; f.style.setProperty('--fc', `hsl(${Math.round(120 - pw * 120)} 85% 55%)`);
     }
   }

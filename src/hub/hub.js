@@ -184,7 +184,6 @@ export class Hub {
     const lp = townProgress(p, last), cm = comarca(last.comarca), cpr = comarcaProgress(p, last.comarca), cts = comarcaTowns(last.comarca);
     const chapter = COMARCAS.findIndex(c => c.id === last.comarca) + 1;
     let doneM = 0, totM = 0; for (const l of LEVELS) { const t = townProgress(p, l); doneM += t.done; totM += t.total; }
-    const av = AVATARS.find(a => a.id === p.avatar) || AVATARS[0];
     const done = p.towns[last.id]?.done || {};
     const ms = missionSlots(last, edadDe(p)).map(({ m, si: i }) => `<span class="mi ${done[i] ? 'ok' : ''}" title="${esc(m.title || m.name || TYPE_NAME[m.type] || '')}">${I(TYPE_ICON[m.type] || 'star', 40)}${done[i] ? `<i class="tick">${I('check', 16)}</i>` : ''}</span>`).join('');
     this.after = () => {

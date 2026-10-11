@@ -44,8 +44,7 @@ function herb(color) {
 // pedazo del olifante (cuerno de marfil)
 function horn(color) {
   const curve = new THREE.CatmullRomCurve3([new THREE.Vector3(-0.2, 0, 0), new THREE.Vector3(0, 0.05, 0.03), new THREE.Vector3(0.2, 0.14, 0)]);
-  const geo = new THREE.TubeGeometry(curve, 20, 0.05, 12); const p = geo.attributes.position;
-  for (let i = 0; i < p.count; i++) { const k = 0.4 + (p.getX(i) + 0.2) * 1.8; p.setY(i, p.getY(i) * 1); }
+  const geo = new THREE.TubeGeometry(curve, 20, 0.05, 12);
   const m = new THREE.Mesh(geo, lit('#f2ead6', color, 0.6)); m.position.y = 0.3; m.rotation.z = 0.3;
   const band = new THREE.Mesh(new THREE.TorusGeometry(0.055, 0.012, 8, 20), lit('#d9a93a', '#8a6010', 0.8, { metalness: 0.7 })); band.position.set(0, 0.33, 0.02); band.rotation.y = Math.PI / 2; const g = new THREE.Group(); g.add(m, band); return g;
 }

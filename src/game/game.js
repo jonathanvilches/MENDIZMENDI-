@@ -186,7 +186,7 @@ export class Game {
   // Destino de la misión seguida
   questTarget(id = this.state.tracked) {
     const q = this.state.quests[id]; if (!q) return null;
-    const N = this.npcs, P = PLACES;
+    const N = this.npcs;
     const at = (a, h = 2.6) => a ? { x: a.pos.x, z: a.pos.z, h: a.obj.userData.H ? a.obj.userData.H + 0.6 : h } : null;
     if (q.state === 'available') return at(N[QUESTS[id].giver]);
     if (q.state !== 'active') return null;
@@ -439,7 +439,6 @@ export class Game {
   }
   async dialogFor(id, a, name) {
     const st = this.state, S = (lines) => this.say(a, lines);
-    const qs = st.quests;
     switch (id) {
       case 'maite': {
         const q = this.q('bienvenida');
@@ -591,7 +590,7 @@ export class Game {
         return S(['El agua limpia del río es mi casa. ¡Cuídala!']);
       }
       case 'bobo': {
-        const q = this.q('muskilda');
+        this.q('muskilda');   // (deja creado su estado)
         if (st.done) return S(['¡Qué fiesta más bonita! Vuelve el año que viene, que aquí te esperamos.']);
         if (st.ribbons.length < 8) return S(['¡Hola, hola! Soy el Bobo. Acompaño a los ocho danzantes de Muskilda con mis castañuelas.', `Pero sin sus cintas no pueden bailar… Tienes ${st.ribbons.length} de 8. ¡Tráelas todas y bailaremos juntos!`]);
         await S(['¡Las ocho cintas! ¡Los danzantes ya pueden ponerse sus trajes!', 'Bailan danzas de palos, de pañuelos y una jota. Yo marco el ritmo y tú bailas con nosotros.', `Cuando la flecha llegue a la línea, pulsa la misma dirección ${this.input.touch ? 'en los botones' : 'con las flechas o WASD'}. ¿Preparado?`]);
