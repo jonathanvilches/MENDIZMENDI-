@@ -14,7 +14,7 @@ import { profile, saveProfile, townState, addXP, checkBadges, addCard, comarcaDo
 import { infoCard, timingGame, mashGame, sequenceGame, simonGame, choiceGame, missionComplete, townFinale, play3d } from '../ui/minigames.js';
 import { OFICIOS } from '../data/oficios.js';
 import { OFICIO_LAMINA } from '../data/laminas.js';
-import { laminaUrl, leyendaUrl, cimaUrl } from '../ui/laminas.js';
+import { laminaUrl, leyendaUrl, cimaUrl, personajeUrl } from '../ui/laminas.js';
 import { isEU, tr } from '../i18n.js';
 import { PERSONAJES } from '../data/personajes.js';
 import { makeItem, makeGate, makeWorkbench, makeMemorial } from './items.js';
@@ -213,7 +213,7 @@ export class TownGame {
         M.steps = () => ['Habla con ' + host(), `Recorre las partes del castillo: busca las banderas (${M.count}/${M.need})`, 'Vuelve con ' + host()]; break; }
       case 'feria': M.title = m.title || 'Feria de ganado'; M.icon = 'cow';
         M.steps = () => ['Habla con ' + host(), 'Ve a los corrales: juez por un día', 'Vuelve con ' + host() + ' y cierra el trato']; break;
-      case 'figure': { const F = M.fig = PERSONAJES[m.who]; M.title = F.name; M.icon = F.icon;
+      case 'figure': { const F = M.fig = PERSONAJES[m.who]; M.figImg = personajeUrl(m.who) || ''; M.title = F.name; M.icon = F.icon;
         M.steps = () => ['Habla con ' + host(), `Ve a ver el recuerdo de ${F.name}`, 'Responde la pregunta']; break; }
       case 'pelota': M.title = m.title || 'Partido en el frontón'; M.icon = 'pelota';
         M.steps = () => ['Habla con ' + host(), 'Gana el partido de pelota a 5 tantos']; break;
@@ -1274,7 +1274,7 @@ export class TownGame {
         const F = M.fig;
         if (M.step === 0) {
           await S([F.hello]);
-          for (let i = 0; i < F.pages.length; i++) await infoCard(this.ui, { icon: F.icon, kicker: F.kicker, title: isEU() ? (F.eu || F.name) : `${F.name}${F.eu ? ' · ' + F.eu : ''}`, text: F.pages[i], badge: F.years, button: i < F.pages.length - 1 ? `Seguir (${i + 1}/${F.pages.length})` : 'Ir a ver su recuerdo' });
+          for (let i = 0; i < F.pages.length; i++) await infoCard(this.ui, { icon: F.icon, lamina: M.figImg, kicker: F.kicker, title: isEU() ? (F.eu || F.name) : `${F.name}${F.eu ? ' · ' + F.eu : ''}`, text: F.pages[i], badge: F.years, button: i < F.pages.length - 1 ? `Seguir (${i + 1}/${F.pages.length})` : 'Ir a ver su recuerdo' });
           await S([`Su recuerdo está aquí al lado. Acércate y lee la placa: luego te haré una pregunta.`]);
           M.step = 1; M.memo.obj.userData.ring.visible = true;
         } else await S([`Ve al recuerdo de ${F.name}: lo verás con el aro dorado.`]);
@@ -1376,7 +1376,7 @@ export class TownGame {
   // ---------- Recuerdo de un personaje: placa, pregunta y su huella hoy ----------
   async doMemorial(M) {
     const F = M.fig;
-    if (M.step !== 1 || M.done) { await infoCard(this.ui, { icon: F.icon, kicker: F.kicker, title: F.name, text: `${F.years}. ${F.today}`, button: 'Seguir explorando' }); return; }
+    if (M.step !== 1 || M.done) { await infoCard(this.ui, { icon: F.icon, lamina: M.figImg, kicker: F.kicker, title: F.name, text: `${F.years}. ${F.today}`, button: 'Seguir explorando' }); return; }
     this.player.frozen = true; this.mode = 'mini';
     let ok = false;
     try {
@@ -1388,7 +1388,7 @@ export class TownGame {
     if (!ok) { this.ui.toast('Vuelve a leer la historia: habla otra vez y prueba de nuevo', F.icon, 3200); M.step = 0; M.memo.obj.userData.ring.visible = false; return; }
     M.memo.obj.userData.ring.visible = false;
     this.player.rig.doCheer();
-    await infoCard(this.ui, { icon: F.icon, kicker: 'Su huella hoy', title: F.name, text: F.today, badge: F.women ? 'Mujeres de Navarra' : 'Personajes de Navarra', button: '¡Lo recordaré!' });
+    await infoCard(this.ui, { icon: F.icon, lamina: M.figImg, kicker: 'Su huella hoy', title: F.name, text: F.today, badge: F.women ? 'Mujeres de Navarra' : 'Personajes de Navarra', button: '¡Lo recordaré!' });
     await this.complete(M, { card: F.name, cardText: F.today });
   }
 
