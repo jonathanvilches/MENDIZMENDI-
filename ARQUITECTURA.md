@@ -105,6 +105,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   las tarjetas y cabeceras de comarca, las tarjetas y la ficha de cada pueblo y la pantalla de carga. En tarjetas y
   fichas se ven enteras, en 16:9; donde el texto va encima, con el mismo degradado neutro (`--cov-side`, `--cov-foot` y
   `--cov-head` en `hub.css`). Las fotos 3D de antes (el diorama de la comarca con el personaje delante) ya no están.
+  Los cuatro botones del menú de pelota llevan las figuras del autor (`src/assets/pelota`), centradas y apoyadas abajo.
 - **Iconografía de una sola familia:** un archivo `src/assets/icons3d/<nombre>.webp` sustituye al icono de ese nombre
   sin tocar el código (`has3D` mira también los archivos horneados).
   - Los 48 iconos del autor (controles, exploración, naturaleza, cultura y deportes) están ya ahí, a 192 px, con el
