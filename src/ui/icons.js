@@ -247,10 +247,10 @@ function flat(k) {
 export function iconSVG(name, size = 32, cls = '') {
   const k = has3D(name) ? name : ICONS[name] ? name : ICONS[ALIAS[name]] ? ALIAS[name] : 'star';
   if (has3D(k)) {
-    const u = icon3DReady(k); if (u) return `<img class="ico ico3d ${cls}" src="${u}" width="${size}" height="${size}" alt="" aria-hidden="true">`;
+    const u = icon3DReady(k); if (u) return `<img class="ico ico3d i-${k} ${cls}" src="${u}" width="${size}" height="${size}" alt="" aria-hidden="true">`;
     // mientras se dibuja el 3D se ve su versión plana (si la hay)
     want3D(k); const f = flat(k);
-    return `<img class="ico ico3d ${f ? '' : 'pend'} ${cls}" data-i3d="${k}" src="${f || BLANK}" width="${size}" height="${size}" alt="" aria-hidden="true">`;
+    return `<img class="ico ico3d i-${k} ${f ? '' : 'pend'} ${cls}" data-i3d="${k}" src="${f || BLANK}" width="${size}" height="${size}" alt="" aria-hidden="true">`;
   }
   (window.__svgIcons ||= new Set()).add(k);
   return `<svg class="ico ${cls}" viewBox="0 0 64 64" width="${size}" height="${size}" aria-hidden="true">${uniq(withDefs(k))}</svg>`;

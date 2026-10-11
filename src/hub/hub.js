@@ -120,8 +120,10 @@ export class Hub {
     $('#hNav', this.root).innerHTML = this.nav.map(([id, n, ic, sec]) => `<button data-s="${id}" class="${sec ? 'nav2' : ''}">${I(ic, 26)}<span>${n}</span></button>`).join('') + `<button data-s="more" class="more-btn"><svg viewBox="0 0 24 24" width="26" height="26"><circle cx="5" cy="12" r="2.4" fill="#f7f0e6"/><circle cx="12" cy="12" r="2.4" fill="#f7f0e6"/><circle cx="19" cy="12" r="2.4" fill="#f7f0e6"/></svg><span>Más</span></button>`;
     $('#hNav', this.root).addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.s === 'more') return this.more(); this.go(b.dataset.s); });
     this.root.addEventListener('click', e => {
-      const t = e.target.closest('[data-go],[data-town],[data-comarca],[data-play],[data-sport],[data-fronton]'); if (!t) return;
-      if (t.dataset.fronton) { this.frontonTown = t.dataset.fronton; this.sound?.ui('click'); return this.go('sports', undefined, true); }
+      const t = e.target.closest('[data-go],[data-town],[data-comarca],[data-play],[data-sport],[data-fronton],[data-frpick]'); if (!t) return;
+      if (t.dataset.frpick != null) return this.frontonPicker();
+      // (el frontón elegido cambia en su caja, sin volver a pintar la pantalla ni subirla arriba)
+      if (t.dataset.fronton) { this.frontonTown = t.dataset.fronton; this.sound?.ui('click'); this.sheet?.remove(); this.sheet = null; const b = $('.sp-pick', this.root); if (b) b.outerHTML = this.frontonBox(); else this.go('sports', undefined, true); return; }
       if (t.dataset.sport) { this.sound?.ui('open'); return this.onSport?.(t.dataset.sport, t.dataset.sport === 'pelota' ? this.frontonId() : null); }
       if (t.dataset.play) return this.play(t.dataset.play);
       if (t.dataset.town) return this.townSheet(t.dataset.town);
@@ -240,32 +242,45 @@ export class Hub {
     let fb = null; try { fb = JSON.parse(localStorage.getItem('mendimendiz-futbol-v1') || 'null'); } catch (e) { }
     // (las figuras, las mismas de las cartas: en reposo, limpias, como el resto de pantallas de deporte)
     const avP = PELOTARI_IMG.blue, avF = OSASUNA_VS, sadar = levelById('pamplona');
-    const towns = LEVELS.filter(l => !l.special).map(l => `<button class="fr-chip ${l.id === fl.id ? 'on' : ''}" data-fronton="${l.id}">${esc(l.name.split(' /')[0])}</button>`).join('');
-    this.after = () => { $('.fr-chip.on', this.root)?.scrollIntoView({ block: 'nearest', inline: 'nearest' }); };
-    // (una carta por fila, en horizontal y con aire: la figura a la izquierda; en el centro, el rótulo, el título, el texto
-    // y el dato, y debajo la fila para elegir frontón o ver tu club; el botón de jugar, a la derecha. Las dos cartas, iguales)
-    const kit = club ? (clubImg(p.futbolClub) ? `<img class="sp-em" src="${clubImg(p.futbolClub)}" alt="">` : `<i class="sp-kit" style="--a:${club.shirt};--b:${club.shirt2 || club.shorts || club.shirt}"></i>`) : '';
+    // (una carta por fila: la figura a la izquierda y, en una sola columna, el rótulo con tu marca a su derecha, el título
+    // y el texto; abajo, lo que se elige (el frontón, que abre la lista por comarcas, o tu club) con el botón de jugar al
+    // lado. Las dos cartas, iguales; en el iPhone tumbado, cada una cabe entera a la vista)
+    const kit = club ? (clubImg(p.futbolClub) ? `<img class="sp-media sp-em" src="${clubImg(p.futbolClub)}" alt="">` : `<i class="sp-media sp-kit" style="--a:${club.shirt};--b:${club.shirt2 || club.shorts || club.shirt}"></i>`) : `<i class="sp-media sp-ico">${I('balon', 32)}</i>`;
     return `
     <h2 class="sec">${I('trophy', 34)} Campeonatos</h2>
     <p class="hint sp-hint">Juega sin entrar en las misiones de un pueblo. Lo que ganes cuenta igual.</p>
     <section class="sports">
       <div class="sport" style="--bg:url(${laminaUrl('dep-fronton') || townImg(fl)})">
+        <div class="sp-fig">${avP ? `<img class="sp-av" src="${avP}" alt="">` : ''}</div>
         <div class="sp-txt"><small class="kicker">Torneo de mano</small><h3>Pelota a mano</h3>
           <p>Partido libre o el torneo por la txapela de la comarca: cuartos, semifinal y final.</p>
           <span class="sp-stat">${I('txapela', 22)} ${tx} ${tx === 1 ? 'txapela' : 'txapelas'}</span></div>
-        <div class="sp-row"><small>Elige frontón</small><div class="fr-rail">${towns}</div></div>
-        <div class="sp-fig">${avP ? `<img class="sp-av" src="${avP}" alt="">` : ''}</div>
-        <button class="gx-go" data-sport="pelota">${I('play', 24)} <span>Jugar a pelota</span></button><span class="sp-shine"></span>
+        <div class="sp-bar"><div class="sp-row"><small>Elige frontón</small>${this.frontonBox(fl)}</div>
+          <button class="gx-go" data-sport="pelota">${I('play', 24)} <span>Jugar</span></button></div><span class="sp-shine"></span>
       </div>
       <div class="sport" style="--bg:url(${laminaUrl('dep-estadio') || townImg(sadar)})">
+        <div class="sp-fig">${avF ? `<img class="sp-av" src="${avF}" alt="">` : ''}</div>
         <div class="sp-txt"><small class="kicker">Liga Navarra</small><h3>Fútbol</h3>
           <p>Liga con tu club y amistosos contra cualquier club. Todos los partidos, en El Sadar.</p>
           <span class="sp-stat">${I('balon', 22)} ${fb?.played || 0} ${(fb?.played || 0) === 1 ? 'partido' : 'partidos'} · ${fb?.won || 0} ${(fb?.won || 0) === 1 ? 'ganado' : 'ganados'}</span></div>
-        <div class="sp-row"><small>Tu club</small><div class="sp-club">${club ? `${kit}<b>${esc(club.name)}</b><span>En El Sadar</span>` : '<b>Sin club</b><span>Lo eliges al jugar</span>'}</div></div>
-        <div class="sp-fig">${avF ? `<img class="sp-av" src="${avF}" alt="">` : ''}</div>
-        <button class="gx-go" data-sport="futbol">${I('play', 24)} <span>Jugar a fútbol</span></button><span class="sp-shine"></span>
+        <div class="sp-bar"><div class="sp-row"><small>Tu club</small><div class="sp-box">${kit}<span><b>${club ? esc(club.name) : 'Sin club'}</b><small>${club ? 'En El Sadar' : 'Lo eliges al jugar'}</small></span></div></div>
+          <button class="gx-go" data-sport="futbol">${I('play', 24)} <span>Jugar</span></button></div><span class="sp-shine"></span>
       </div>
     </section>`;
+  }
+  // el frontón elegido: su portada, el pueblo y la comarca; al tocarlo, la lista de todos los frontones por comarcas
+  frontonBox(l = levelById(this.frontonId())) {
+    return `<button class="sp-box sp-pick" data-frpick aria-haspopup="dialog"><img class="sp-media" src="${townImg(l)}" alt=""><span><b>${esc(l.name.split(' /')[0])}</b><small>${esc(comarca(l.comarca)?.name || '')}</small></span><i class="sp-chev" aria-hidden="true"></i></button>`;
+  }
+  frontonPicker() {
+    this.sound?.ui('open');
+    const cur = this.frontonId(), groups = COMARCAS.map(c => [c, LEVELS.filter(l => !l.special && l.comarca === c.id)]).filter(([, ts]) => ts.length);
+    const s = el(`<div class="sheet frs"><div class="frs-in" role="dialog" aria-label="Elige frontón">
+      <div class="frs-head"><small class="kicker">Torneo de mano</small><h2>Elige frontón</h2></div><button class="x" aria-label="Cerrar">${I('close', 22)}</button>
+      <div class="frs-list">${groups.map(([c, ts]) => `<section><h3>${esc(c.name)}</h3><div class="frs-grid">${ts.map(l => `<button class="fr-chip ${l.id === cur ? 'on' : ''}" data-fronton="${l.id}">${esc(l.name.split(' /')[0])}</button>`).join('')}</div></section>`).join('')}</div></div></div>`);
+    this.sheet?.remove(); this.sheet = s; this.root.appendChild(s);
+    s.addEventListener('click', e => { if (e.target === s || e.target.closest('.x')) { s.remove(); this.sheet = null; } });
+    s.querySelector('.fr-chip.on')?.scrollIntoView({ block: 'nearest' });
   }
   suggestions() {
     const p = profile();

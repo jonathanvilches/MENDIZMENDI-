@@ -36,7 +36,7 @@ for (const [w, h, tag] of [[1280, 720, 'pc'], [844, 390, 'movil']]) {
 // pelota en el frontón elegido
 { const p = await b.newPage({ viewport: { width: 844, height: 390 } }); await p.addInitScript(init); p.on('pageerror', e => errs.push(e.message));
   await p.goto(URL + '/?screen=sports', { timeout: 300000 }); await p.waitForFunction(() => window.__hub, null, { timeout: 300000 });
-  await p.evaluate(() => document.querySelector('[data-fronton="lumbier"]').click()); await p.waitForTimeout(300);
+  await p.evaluate(() => { document.querySelector('[data-frpick]').click(); document.querySelector('[data-fronton="lumbier"]').click(); }); await p.waitForTimeout(300);   // (el frontón se elige en su lista)
   await p.evaluate(() => document.querySelector('[data-sport="pelota"]').click());
   await p.waitForFunction(() => document.querySelector('.lg-root [data-a="torneo"]'), null, { timeout: 600000 }); await shot(p, 'pel-menu');
   await p.evaluate(() => document.querySelector('.lg-root [data-a="libre"]').click());

@@ -506,6 +506,8 @@ img.ico3d.pend { opacity: 0; }
 /* sobre el degradado rosa y morado de los botones principales, el icono lleva un contorno oscuro fino: así el
    triángulo de jugar y los demás se leen igual que sobre el fondo oscuro */
 :is(.gx-go, .btn.primary) img.ico3d { filter: drop-shadow(0 0 1px rgba(20, 6, 46, .95)) drop-shadow(0 1px 2px rgba(20, 6, 46, .6)); }
+/* (el triángulo de jugar, en blanco con su relieve: el verde oliva de su dibujo se apagaba sobre el fucsia) */
+:is(.gx-go, .btn.primary) img.i-play { filter: grayscale(1) brightness(2.3) drop-shadow(0 0 1px rgba(20, 6, 46, .95)) drop-shadow(0 1px 2px rgba(20, 6, 46, .6)); }
 
 img[data-pk] { opacity: 0; }
 /* durante un diálogo el carril de avisos sube arriba, bajo el objetivo, para no tapar la conversación */
