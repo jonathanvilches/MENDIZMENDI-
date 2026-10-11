@@ -1,0 +1,9 @@
+/* Tipografías incrustadas (las mismas de @fontsource que antes, juego latino), solo en WOFF2: lo leen todos los
+   navegadores que mueven el juego (iPhone e iPad desde iOS 10). Sin la copia WOFF de reserva, el archivo único pesa
+   unos 150 KB menos. */
+@font-face { font-family: 'Lilita One'; font-style: normal; font-display: swap; font-weight: 400; src: url('../../node_modules/@fontsource/lilita-one/files/lilita-one-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Nunito'; font-style: normal; font-display: swap; font-weight: 600; src: url('../../node_modules/@fontsource/nunito/files/nunito-latin-600-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Nunito'; font-style: normal; font-display: swap; font-weight: 700; src: url('../../node_modules/@fontsource/nunito/files/nunito-latin-700-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Nunito'; font-style: normal; font-display: swap; font-weight: 800; src: url('../../node_modules/@fontsource/nunito/files/nunito-latin-800-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Nunito'; font-style: normal; font-display: swap; font-weight: 900; src: url('../../node_modules/@fontsource/nunito/files/nunito-latin-900-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Nunito'; font-style: italic; font-display: swap; font-weight: 700; src: url('../../node_modules/@fontsource/nunito/files/nunito-latin-700-italic.woff2') format('woff2'); }

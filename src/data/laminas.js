@@ -120,6 +120,9 @@ export const LAMINAS = [
 
 // la lámina del pueblo que recuerda cada cuento: solo se usa si falta su ilustración propia (src/assets/leyendas)
 export const CUENTO_LAMINA = { aralar: 'lekunberri-cadenas', ujue: 'ujue-paloma', estella: 'estella-estrellas', txori: 'puente-txori', cristo: 'javier-camino', leon: 'olite-leon', amaiur: 'amaiur-noche', olentzero: 'etxalar-olentzero', vacas: 'isaba-vacas', muskilda: 'otsagabia-roble', almadias: 'burgui-almadia', velasco: 'marcilla' };
+// la de los personajes de Navarra que no tienen ilustración propia (src/assets/personajes): Sancho, la colegiata donde
+// está enterrado; las golondrinas, la alpargatera
+export const PERSONAJE_LAMINA = { sancho: 'orreaga-roncesvalles', golondrinas: 'of-alpargatas' };
 // la de cada oficio de antes (el taller del pueblo)
 export const OFICIO_LAMINA = { herrero: 'of-herreria', palomero: 'etxalar-palomeras', cantero: 'puente-cantero', aizkolari: 'leitza-aizkolari', harrijasotzaile: 'leitza-harrijasotzaile', alpargatero: 'of-alpargatas', cestero: 'of-cesteria', carbonero: 'aribe-carbonera', hilandera: 'of-telar', panadero: 'of-pan', tonelero: 'viana-tonelero' };
 // la de la cabecera de cada comarca: su paisaje (o, si no tiene, la de un pueblo suyo)

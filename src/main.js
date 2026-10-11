@@ -5,12 +5,8 @@ import * as THREE from 'three';
 // (decenas de avisos al arrancar). Mismo resultado, sin el aviso.
 { const tni = THREE.BufferGeometry.prototype.toNonIndexed; THREE.BufferGeometry.prototype.toNonIndexed = function () { return this.index === null ? this : tni.call(this); }; }
 // tipografías incrustadas: el juego funciona igual sin conexión
-import '@fontsource/lilita-one/latin-400.css';
-import '@fontsource/nunito/latin-600.css';
-import '@fontsource/nunito/latin-700.css';
-import '@fontsource/nunito/latin-800.css';
-import '@fontsource/nunito/latin-900.css';
-import '@fontsource/nunito/latin-700-italic.css';   // (la voz del narrador va en cursiva de verdad, no inclinada a la fuerza)
+// (Lilita One y Nunito 600, 700, 800, 900 y 700 cursiva, la voz del narrador: src/ui/fonts.css, solo en WOFF2)
+import './ui/fonts.css';
 import './hub/hub.css';
 import './ui/sport.css';
 import './ui/infocard.css';

@@ -1,6 +1,7 @@
 // Personajes de Navarra: gente que dejó huella en la música, el deporte, la ciencia, los viajes, el gobierno
 // y el trabajo. Cada uno tiene un recuerdo en su pueblo (busto o estela de bronce, diseño propio sin parecido
-// con la persona real), tres páginas de historia contadas para niños, una pregunta y «su huella hoy».
+// con la persona real), tres páginas de historia contadas para niños, una pregunta y «su huella hoy». Las fichas llevan
+// además la ilustración del autor (src/assets/personajes: interpretación artística; ver legal/estado-legal.md, F).
 // attr: objeto que acompaña al recuerdo (violín, corona, bici, libro, cadena, barco, alpargata, balanza, partitura)
 
 const GUIA = (name, look) => ({ name, look });

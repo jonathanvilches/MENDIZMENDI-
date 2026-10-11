@@ -2,7 +2,7 @@
 // En la web, cada lámina tiene además su copia pequeña (<id>-s, 480 × 270) para tarjetas y miniaturas: así el móvil no
 // guarda en memoria imágenes grandes que se ven pequeñas. En el archivo único solo está la de 640 × 360.
 // En WebP y no en AVIF: los visores de HTML del iPhone no siempre enseñan AVIF, y sin ellas las portadas salían vacías.
-import { LAMINAS, COMARCA_LAMINA, CUENTO_LAMINA } from '../data/laminas.js';
+import { LAMINAS, COMARCA_LAMINA, CUENTO_LAMINA, PERSONAJE_LAMINA } from '../data/laminas.js';
 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const byId = (g) => Object.fromEntries(Object.entries(g).map(([k, v]) => [k.split('/').pop().replace('.webp', ''), v]));
@@ -22,6 +22,11 @@ const CIMA = byId(import.meta.glob('@cimas/*.webp', { eager: true, query: '?url'
 const CIMA_BIG = byId(import.meta.glob('@cimas-big/*.webp', { eager: true, query: '?url', import: 'default' }));
 /** La escena de una cima (o null si no la tiene); big: la grande. */
 export const cimaUrl = (id, big = false) => (big && CIMA_BIG[id]) || CIMA[id] || null;
+// Los personajes de Navarra (src/assets/personajes), con su id de data/personajes.js, en 16:9: en la web, los de 1536;
+// en el archivo único, los de 320. Sancho y las golondrinas llevan una lámina que ya estaba en el juego.
+const PERS = byId(import.meta.glob('@personajes/*.webp', { eager: true, query: '?url', import: 'default' }));
+/** La ilustración de un personaje de Navarra (o null si no la tiene). */
+export const personajeUrl = (id) => PERS[id] || laminaUrl(PERSONAJE_LAMINA[id]) || null;
 /** La ilustración de un cuento (o, si no tiene, la lámina de su pueblo que lo recuerda); big: la grande. */
 export const leyendaUrl = (id, big = false) => (big && LEY_BIG[id]) || LEY[id] || laminaUrl(CUENTO_LAMINA[id], !big);
 // Las portadas son todas láminas: la de cada pueblo, la de cada comarca y, si un pueblo no tiene, la de su comarca.
