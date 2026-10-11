@@ -14,7 +14,7 @@ import { profile, saveProfile, townState, addXP, checkBadges, addCard, comarcaDo
 import { infoCard, timingGame, mashGame, sequenceGame, simonGame, choiceGame, missionComplete, townFinale, play3d } from '../ui/minigames.js';
 import { OFICIOS } from '../data/oficios.js';
 import { OFICIO_LAMINA } from '../data/laminas.js';
-import { laminaUrl } from '../ui/laminas.js';
+import { laminaUrl, leyendaUrl } from '../ui/laminas.js';
 import { isEU, tr } from '../i18n.js';
 import { PERSONAJES } from '../data/personajes.js';
 import { makeItem, makeGate, makeWorkbench, makeMemorial } from './items.js';
@@ -445,7 +445,7 @@ export class TownGame {
       const heard = this.P.cards.includes('cuento:' + C.id);
       await this.say(a, [heard ? `¡Otra vez por aquí, ${this.state.name}! ¿Quieres volver a oír «${C.title}»? Siéntate, que empiezo.`
         : `Kaixo, ${this.state.name}. Soy ${a.name.replace(/^Kontalari /, '')}, ${f ? 'la contadora' : 'el contador'} de cuentos de ${town}. ¿Te cuento ${C.kind === 'historia' ? 'una historia que pasó de verdad' : 'una leyenda'}? Se llama «${C.title}».`]);
-      for (let i = 0; i < n; i++) await infoCard(this.ui, { icon: C.icon, kicker: `${KIND_LABEL[C.kind]} · ${i + 1} de ${n}`, title: C.title, text: C.parts[i], button: i < n - 1 ? 'Sigue…' : 'Fin' });
+      for (let i = 0; i < n; i++) await infoCard(this.ui, { icon: C.icon, lamina: leyendaUrl(C.id, true) || '', kicker: `${KIND_LABEL[C.kind]} · ${i + 1} de ${n}`, title: C.title, text: C.parts[i], button: i < n - 1 ? 'Sigue…' : 'Fin' });
       await infoCard(this.ui, { icon: 'visit', kicker: C.place, title: 'Lo que puedes ver hoy', text: C.today, button: 'Seguir' });
       await choiceGame(this.ui, { title: C.title, icon: 'quiz', q: C.q.q, options: C.q.options, answer: C.q.answer, why: C.q.why });
       isNew = addCard('cuento:' + C.id, C.kind === 'historia' ? 'historia' : 'tradiciones');

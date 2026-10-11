@@ -2,15 +2,22 @@
 // En la web, cada lámina tiene además su copia pequeña (<id>-s, 480 × 270) para tarjetas y miniaturas: así el móvil no
 // guarda en memoria imágenes grandes que se ven pequeñas. En el archivo único solo está la de 640 × 360.
 // En WebP y no en AVIF: los visores de HTML del iPhone no siempre enseñan AVIF, y sin ellas las portadas salían vacías.
-import { LAMINAS, COMARCA_LAMINA } from '../data/laminas.js';
+import { LAMINAS, COMARCA_LAMINA, CUENTO_LAMINA } from '../data/laminas.js';
 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const URLS = Object.fromEntries(Object.entries(import.meta.glob('@laminas/*.webp', { eager: true, query: '?url', import: 'default' })).map(([k, v]) => [k.split('/').pop().replace('.webp', ''), v]));
+const byId = (g) => Object.fromEntries(Object.entries(g).map(([k, v]) => [k.split('/').pop().replace('.webp', ''), v]));
+const URLS = byId(import.meta.glob('@laminas/*.webp', { eager: true, query: '?url', import: 'default' }));
+// Las ilustraciones de las leyendas (src/assets/leyendas), una por cuento y con su mismo id, en 16:9. En la web, la de
+// 768 para el libro y la de 1536 para el relato y el visor; en el archivo único, una sola de 640 (el alias @leyendas).
+const LEY = byId(import.meta.glob('@leyendas/*.webp', { eager: true, query: '?url', import: 'default' }));
+const LEY_BIG = byId(import.meta.glob('@leyendas-big/*.webp', { eager: true, query: '?url', import: 'default' }));
 const BY_ID = Object.fromEntries(LAMINAS.map(l => [l.id, l]));
 
 /** La lámina por su id (o null si no está en esta versión); small: la copia pequeña. */
 export const laminaUrl = (id, small = false) => (id && ((small && URLS[id + '-s']) || URLS[id])) || null;
 export const laminaById = (id) => BY_ID[id] || null;
+/** La ilustración de un cuento (o, si no tiene, la lámina de su pueblo que lo recuerda); big: la grande. */
+export const leyendaUrl = (id, big = false) => (big && LEY_BIG[id]) || LEY[id] || laminaUrl(CUENTO_LAMINA[id], !big);
 // Las portadas son todas láminas: la de cada pueblo, la de cada comarca y, si un pueblo no tiene, la de su comarca.
 // (Las fotos 3D de antes, con el diorama de la comarca y el personaje delante, ya no se usan.)
 /** La portada del pueblo (o null si no tiene); small: la copia de las tarjetas. */
@@ -28,12 +35,15 @@ export const laminaRail = (list) => list.length ? `<div class="lam-rail">${list.
 
 /** El visor: la lámina en grande con su título, y flechas para pasar a la anterior y a la siguiente de la tira. */
 export function openLamina(id, list = [id], sound) {
-  let i = Math.max(0, list.indexOf(id));
+  openVisor(list.map(k => ({ src: laminaUrl(k), title: laminaById(k).title })), Math.max(0, list.indexOf(id)), sound);
+}
+/** El mismo visor para cualquier lista de ilustraciones ({ src, title }), empezando por la i. */
+export function openVisor(list, i = 0, sound) {
   const o = document.createElement('div'); o.className = 'lam-view';
   o.innerHTML = `<figure><img alt=""><figcaption><small></small><b></b></figcaption></figure>
     <button class="lv-x" aria-label="Cerrar"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 6l12 12M18 6L6 18" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg></button>
     ${list.length > 1 ? `<button class="lv-a prev" aria-label="Anterior"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M15 4l-8 8 8 8" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="lv-a next" aria-label="Siguiente"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M9 4l8 8-8 8" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>` : ''}`;
-  const show = () => { const L = laminaById(list[i]); o.querySelector('img').src = laminaUrl(L.id); o.querySelector('b').textContent = L.title; o.querySelector('small').textContent = `${i + 1} / ${list.length}`; };
+  const show = () => { const L = list[i]; o.querySelector('img').src = L.src; o.querySelector('b').textContent = L.title; o.querySelector('small').textContent = `${i + 1} / ${list.length}`; };
   const step = (d) => { i = (i + d + list.length) % list.length; sound?.ui?.('click'); show(); };
   const close = () => { removeEventListener('keydown', key, true); o.remove(); };
   const key = (e) => { if (e.key === 'Escape') { e.stopImmediatePropagation(); close(); } else if (e.key === 'ArrowRight') step(1); else if (e.key === 'ArrowLeft') step(-1); };

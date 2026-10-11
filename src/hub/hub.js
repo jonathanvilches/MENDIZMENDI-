@@ -19,8 +19,8 @@ import { avatarPortrait, portraitImg, avatarPortraitImg } from '../ui/portraits.
 import { stampImg } from '../assets.js';
 import { Stage, releaseStage } from './stage.js';
 import { getLang, setLang, langChosen } from '../i18n.js';
-import { laminaUrl, laminasDe, laminaRail, bindLaminas, townCover, comarcaCover, townImg } from '../ui/laminas.js';
-import { LAMINAS, CUENTO_LAMINA } from '../data/laminas.js';
+import { laminaUrl, laminasDe, laminaRail, bindLaminas, townCover, comarcaCover, townImg, leyendaUrl, openVisor } from '../ui/laminas.js';
+import { LAMINAS } from '../data/laminas.js';
 import { CLUBS } from '../futbol/clubs.js';
 import { PELOTARI_IMG } from '../ui/sportCard.js';
 import OSASUNA_VS from '../assets/meshy/portraits/osasuna_vs.webp?url';
@@ -524,12 +524,15 @@ export class Hub {
   s_cuentos() {
     const p = profile(), seen = new Set(p.cards || []), tn = (id) => (levelById(id)?.name || id).split(' /')[0];
     const heard = CUENTOS.filter(C => seen.has('cuento:' + C.id)).length;
+    // (la ilustración de un cuento ya escuchado se abre en grande, con las de los otros escuchados para pasar de una a otra)
+    this.after = () => { const on = CUENTOS.filter(C => seen.has('cuento:' + C.id) && leyendaUrl(C.id, true)), list = on.map(C => ({ src: leyendaUrl(C.id, true), title: C.title }));
+      this.root.querySelectorAll('.ct-lam[data-ley]').forEach(f => f.onclick = () => openVisor(list, Math.max(0, on.findIndex(C => C.id === f.dataset.ley)), this.sound)); };
     return `<section class="armorial cuentos">
       <div class="ar-head"><small class="kicker">${I('legend', 20)} Saberes · Leyendas</small><h1>Cuentos y leyendas de Navarra</h1>
         <p>En muchos pueblos hay un contador o una contadora de cuentos en la plaza. Escúchales y el cuento se guarda aquí. Cada relato dice si es una leyenda, lo que cuenta la tradición, o una historia que pasó de verdad, y qué puedes ver hoy en ese lugar.</p>
         <b class="ar-count">${heard} de ${CUENTOS.length} escuchados</b></div>
       <div class="ar-grid">${CUENTOS.map(C => { const on = seen.has('cuento:' + C.id); return `<article class="ar ct${on ? ' on' : ''}">
-        ${(u => u ? `<figure class="ct-lam${on ? '' : ' locked'}"><img src="${u}" alt="" loading="lazy" decoding="async">${on ? '' : `<span>${I('lock', 40)}</span>`}</figure>` : `<div class="ct-ic">${I(on ? C.icon : 'lock', 64)}</div>`)(laminaUrl(CUENTO_LAMINA[C.id], true))}
+        ${(u => u ? `<figure class="ct-lam${on ? '' : ' locked'}"${on ? ` data-ley="${C.id}"` : ''}><img src="${u}" alt="" loading="lazy" decoding="async">${on ? '' : `<span>${I('lock', 40)}</span>`}</figure>` : `<div class="ct-ic">${I(on ? C.icon : 'lock', 64)}</div>`)(leyendaUrl(C.id))}
         <div class="ar-tx"><small>${esc(KIND_LABEL[C.kind])} · ${esc(C.towns.map(tn).join(', '))}</small><h3>${esc(C.title)}</h3><p class="ct-pl">${esc(C.place)}</p>
           ${on ? `<span class="ar-ok">${I('check', 16)} Escuchado</span><details><summary>Volver a leerlo</summary>${C.parts.map(t => `<p>${esc(t)}</p>`).join('')}<p><b>Lo que puedes ver hoy.</b> ${esc(C.today)}</p></details>`
             : `<p>Ve a ${esc(tn(C.towns[0]))} y habla con ${esc(C.teller.name)} en la plaza.</p><button class="btn ct-go" data-play="${C.towns[0]}">${I('play', 20)} Ir a ${esc(tn(C.towns[0]))}</button>`}</div></article>`; }).join('')}</div>
