@@ -6,6 +6,7 @@
 //   identifyQuiz('flora:haya', opciones, { ui }) → promesa del índice elegido (¿qué planta es?)
 import { FLORA, FLORA_KIND, floraOf } from '../data/flora.js';
 import { FAUNA, FAUNA_KIND, faunaOf } from '../data/fauna.js';
+import { faunaImg } from './faunaImg.js';
 import { iconSVG } from './icons.js';
 import { floraIllustration } from './floraArt.js';
 import { leafImage } from './leafArt.js';
@@ -37,7 +38,8 @@ function close(ui, o, k) { removeEventListener('keydown', k, true); o.classList.
 // la lámina dibujada. La etiqueta de estado («Nueva carta», «Al herbario») va recta en la esquina de arriba
 function media(d, tag = '', shots = true) {
   const t = tag ? `<span class="ix-tag">${esc(tag)}</span>` : '';
-  if (d.type === 'fauna') return `<div class="ix-media"><figure class="ix-frame icon">${iconSVG(d.F.icon || d.id, 240)}</figure>${t}</div>`;
+  if (d.type === 'fauna') { const fi = faunaImg(d.id);
+    return `<div class="ix-media"><figure class="ix-frame icon">${fi ? `<img class="ix-animal" src="${fi.big}" alt="${esc(d.F.name)}">` : iconSVG(d.F.icon || d.id, 240)}</figure>${t}</div>`; }
   const ph = floraFoto(d.id);
   const A = ph ? { planta: ph.planta, hoja: ph.hoja, cp: floraCredito(ph.cr.planta), ch: floraCredito(ph.cr.hoja), cls: 'photo' }
     : { planta: floraIllustration(d.id), hoja: leafImage(d.id), cp: '', ch: '', cls: 'draw' };

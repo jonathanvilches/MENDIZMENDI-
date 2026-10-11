@@ -23,6 +23,7 @@ import FOLKLORE from '../data/folklore.json';
 import { LEVELS } from '../data/levels.js';
 import { COSTUMES } from '../actors/minifig.js';
 import { stampImg } from '../assets.js';
+import { faunaImg } from '../ui/faunaImg.js';
 import { FAUNA, faunaName } from '../data/fauna.js';
 import { LEGENDS, NIGHT_CARNIVAL } from '../data/legends.js';
 import MOUNTAINS from '../data/mountains.json';
@@ -1693,7 +1694,7 @@ export class TownGame {
       const F = FAUNA[M.raptor], isNew = addCard('fauna:' + M.raptor);
       C.look = new THREE.Vector3(c0.x, c0.y + 22, c0.z); C.pos = eye.clone().add(new THREE.Vector3(6, -0.5, 6));
       await wait(1800);
-      await infoCard(this.ui, { icon: F.icon, kicker: 'Sobre la cumbre', title: isEU() ? F.eu : `${F.name} · ${F.eu}`, text: `${F.look} ${F.fact}`, badge: isNew ? 'Nueva carta' : '', button: 'Seguir mirando' });
+      await infoCard(this.ui, { icon: F.icon, animal: faunaImg(M.raptor)?.big, kicker: 'Sobre la cumbre', title: isEU() ? F.eu : `${F.name} · ${F.eu}`, text: `${F.look} ${F.fact}`, badge: isNew ? 'Nueva carta' : '', button: 'Seguir mirando' });
     }
     if (list.length) {
       const li = list.map(v => `<li><b>${v.name}</b><i>al ${v.dir}</i><span>${v.km < 10 ? v.km.toFixed(1).replace('.', ',') : Math.round(v.km)} km${v.inGame ? ' · está en el juego' : ''}</span></li>`).join('');

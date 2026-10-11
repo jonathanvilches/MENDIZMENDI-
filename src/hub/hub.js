@@ -12,6 +12,7 @@ import { floraId } from '../data/flora.js';
 import { faunaId } from '../data/fauna.js';
 import { floraIllustration } from '../ui/floraArt.js';
 import { floraFoto } from '../ui/floraFoto.js';
+import { faunaImg } from '../ui/faunaImg.js';
 import { readTownArms } from '../ui/escudo.js';
 import { releaseOffscreen } from '../util/offscreen.js';
 import { avatarPortrait, portraitImg, avatarPortraitImg } from '../ui/portraits.js';
@@ -427,7 +428,7 @@ export class Hub {
     };
     const fb = { trees: 'tree', plants: 'herbs', flowers: 'flower' };
     // (de las plantas, la foto de la planta entera de borde a borde por arriba y su hoja en un círculo encima)
-    const pic = (d) => d.type === 'fauna' ? I(d.F.icon || speciesIcon(d.F.name) || 'bird', 64) : `<span class="spic">${I(speciesIcon(d.F.name) || fb[tab], 40)}<img alt="" loading="lazy" decoding="async" data-flora="${d.id}"><img class="sleaf" alt="" decoding="async"></span>`;
+    const pic = (d) => d.type === 'fauna' ? (fi => fi ? `<img class="fpic" src="${fi.small}" alt="" loading="lazy" decoding="async">` : I(d.F.icon || speciesIcon(d.F.name) || 'bird', 64))(faunaImg(d.id)) : `<span class="spic">${I(speciesIcon(d.F.name) || fb[tab], 40)}<img alt="" loading="lazy" decoding="async" data-flora="${d.id}"><img class="sleaf" alt="" decoding="async"></span>`;
     return `<h1 class="title">${I('leaf', 40)} Naturaleza de Navarra</h1><p class="lead">Del hayedo atlántico a las Bardenas: cada comarca tiene sus animales y plantas. Toca uno para ver su ficha. En los pueblos, identifica las plantas marcadas con una hoja y observa los animales para completar tu cuaderno.</p>
       <div class="nprog"><span>${I('leaf', 22)} Herbario <b>${gotFl}</b> / ${nFl}</span><span>${I('binoculars', 22)} Cuaderno de fauna <b>${gotFa}</b> / ${nFa}</span></div>
       <div class="filters">${[['fauna', 'Fauna'], ['trees', 'Árboles'], ['plants', 'Arbustos y plantas'], ['flowers', 'Flores']].map(([k, n]) => `<button data-f="${k}" class="${tab === k ? 'on' : ''}">${n}</button>`).join('')}</div>
