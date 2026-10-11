@@ -118,7 +118,7 @@ export const LAMINAS = [
   { id: 'dep-futbol', group: 'deportes', kind: 'deporte', title: 'Partido de fútbol', eu: 'Futbol partida' },
 ];
 
-// la lámina de cada cuento (el de Leyre no tiene: se queda con su icono)
+// la lámina del pueblo que recuerda cada cuento: solo se usa si falta su ilustración propia (src/assets/leyendas)
 export const CUENTO_LAMINA = { aralar: 'lekunberri-cadenas', ujue: 'ujue-paloma', estella: 'estella-estrellas', txori: 'puente-txori', cristo: 'javier-camino', leon: 'olite-leon', amaiur: 'amaiur-noche', olentzero: 'etxalar-olentzero', vacas: 'isaba-vacas', muskilda: 'otsagabia-roble', almadias: 'burgui-almadia', velasco: 'marcilla' };
 // la de cada oficio de antes (el taller del pueblo)
 export const OFICIO_LAMINA = { herrero: 'of-herreria', palomero: 'etxalar-palomeras', cantero: 'puente-cantero', aizkolari: 'leitza-aizkolari', harrijasotzaile: 'leitza-harrijasotzaile', alpargatero: 'of-alpargatas', cestero: 'of-cesteria', carbonero: 'aribe-carbonera', hilandera: 'of-telar', panadero: 'of-pan', tonelero: 'viana-tonelero' };

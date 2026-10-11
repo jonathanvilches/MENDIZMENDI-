@@ -15,6 +15,7 @@ const WEB = !!process.env.WEB;
 // en el archivo único (los animales: 1280 px en la web y 512 en el archivo único; las miniaturas, de 256 en los dos)
 // (los escudos: los de 512 en todas partes y, en la web, los de 1024 para la ficha; los emblemas de los equipos, de 512 en
 // la web y de 256 en el archivo único)
+// (las leyendas: en la web, las de 768 para el libro y las de 1536 para el relato; en el archivo único, solo las de 640)
 // (MINI=1 con el servidor de pruebas: carga lo mismo que el archivo único, para probarlo)
 const FOTOS = WEB || (!process.argv.includes('build') && !process.env.MINI) ? 'web' : 'mini';
 // en el archivo único (el que se abre en el móvil con Sitecase), los modelos 3D van comprimidos con gzip (casi un
@@ -51,7 +52,7 @@ const app = {
 
 export default defineConfig({
   base: './',
-  resolve: { alias: { '@flora-fotos': fileURLToPath(new URL(`./src/assets/flora/${FOTOS}`, import.meta.url)), '@laminas': fileURLToPath(new URL(`./src/assets/laminas/${FOTOS}`, import.meta.url)), '@fauna-big': fileURLToPath(new URL(`./src/assets/fauna/${FOTOS === 'web' ? 1280 : 512}`, import.meta.url)), '@fauna-small': fileURLToPath(new URL('./src/assets/fauna/256', import.meta.url)), '@escudos': fileURLToPath(new URL('./src/assets/escudos/heraldica/512', import.meta.url)), '@escudos-big': fileURLToPath(new URL(`./src/assets/escudos/heraldica/${FOTOS === 'web' ? 1024 : 512}`, import.meta.url)), '@emblemas': fileURLToPath(new URL(`./src/assets/escudos/equipos/${FOTOS === 'web' ? 512 : 256}`, import.meta.url)), '@meshy-full': fileURLToPath(new URL(MESHY_FULL, import.meta.url)) } },
+  resolve: { alias: { '@flora-fotos': fileURLToPath(new URL(`./src/assets/flora/${FOTOS}`, import.meta.url)), '@laminas': fileURLToPath(new URL(`./src/assets/laminas/${FOTOS}`, import.meta.url)), '@fauna-big': fileURLToPath(new URL(`./src/assets/fauna/${FOTOS === 'web' ? 1280 : 512}`, import.meta.url)), '@fauna-small': fileURLToPath(new URL('./src/assets/fauna/256', import.meta.url)), '@escudos': fileURLToPath(new URL('./src/assets/escudos/heraldica/512', import.meta.url)), '@escudos-big': fileURLToPath(new URL(`./src/assets/escudos/heraldica/${FOTOS === 'web' ? 1024 : 512}`, import.meta.url)), '@emblemas': fileURLToPath(new URL(`./src/assets/escudos/equipos/${FOTOS === 'web' ? 512 : 256}`, import.meta.url)), '@leyendas': fileURLToPath(new URL(`./src/assets/leyendas/${FOTOS === 'web' ? 768 : 640}`, import.meta.url)), '@leyendas-big': fileURLToPath(new URL(`./src/assets/leyendas/${FOTOS === 'web' ? 1536 : 640}`, import.meta.url)), '@meshy-full': fileURLToPath(new URL(MESHY_FULL, import.meta.url)) } },
   plugins: WEB ? [sinRedir, app] : MINI ? [sinRedir, glbGzip, viteSingleFile()] : [sinRedir, viteSingleFile()],
   define: { __WEB__: JSON.stringify(WEB) },
   build: WEB
