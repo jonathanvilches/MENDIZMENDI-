@@ -7,7 +7,7 @@ const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-119
 const p = await b.newPage({ viewport: { width: 844, height: 390 } }); const errs = []; p.on('pageerror', e => errs.push(e.message));
 await p.addInitScript(() => { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.removeItem('mendimendiz-torneo-v1'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'pelotari', last: 'lesaka', seen: { heroBenat: true, dog: true }, settings: { quality: 'low' } })); });
 await p.goto('http://127.0.0.1:5173/?screen=sports', { timeout: 300000 }); await p.waitForFunction(() => window.__hub, null, { timeout: 300000 });
-await p.evaluate((t) => document.querySelector(`[data-fronton="${t}"]`).click(), town); await p.waitForTimeout(300);
+await p.evaluate((t) => { document.querySelector('[data-frpick]').click(); document.querySelector(`[data-fronton="${t}"]`).click(); }, town); await p.waitForTimeout(300);   // (el frontón se elige en su lista)
 const kicker = await p.evaluate(() => document.querySelector('.sport .kicker')?.textContent);
 await p.evaluate(() => document.querySelector('[data-sport="pelota"]').click());
 await p.waitForFunction(() => document.querySelector('.lg-root [data-a="torneo"]'), null, { timeout: 600000 });

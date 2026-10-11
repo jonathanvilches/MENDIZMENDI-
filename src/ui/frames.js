@@ -40,6 +40,7 @@ const RULES = [
   ['.clist button', skew, 8, LILA(0.16)], ['.clist button:hover', skew, 8, FX], ['.pc-tabs button:not([aria-selected=true])', skew, 8, LILA(0.3)],
   ['.abil', skew, 8, 'rgba(255,122,200,.35)'], ['.screen .paper', cut, 16, 'rgba(190,160,255,.3)'], ['.pvs-tags span', skew, 5, 'rgba(201,178,255,.35)'], ['#reward .card2', cut, 16, 'rgba(190,160,255,.35)'],
   ['.fr-chip:not(.on)', skew, 6, LILA(0.3)], ['.sp-stat', skew, 6, LILA(0.3)], ['.crole', skew, 6, LILA(0.35)],
+  ['.frs-in', cut, 18, 'rgba(190,160,255,.34)'],
 ];
 let done = false;
 export function startFrames() {

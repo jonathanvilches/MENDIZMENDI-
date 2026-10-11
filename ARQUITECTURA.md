@@ -94,9 +94,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   - Con lluvia o nieve no salen mariposas ni luciérnagas (`fauna.wet`).
 - **Aire antes que caber:** se puede desplazar. Mejor elementos con espacio, que se entiendan, y colocados en filas
   horizontales que todo apilado en columnas estrechas para que quepa sin desplazar.
-  - Torneos (`s_sports`): una carta por fila, ancha. La figura a la izquierda; en el centro el rótulo, el título, el
-    texto y el dato, y debajo la fila para elegir frontón o ver tu club; el botón de jugar a la derecha. En vertical,
-    el texto y la figura arriba y la elección y el botón debajo.
+  - Torneos (`s_sports`): una carta por fila, ancha. La figura a la izquierda y, en una columna, el rótulo con tu marca
+    a su derecha, el título y el texto; abajo, a la altura de los pies de la figura, lo elegido (el frontón o tu club)
+    en una caja y el botón «Jugar» al lado: primero se elige y luego se juega. Las cajas miden lo mismo en las dos
+    cartas, así los botones quedan uno encima del otro. La caja del frontón abre la lista de los 31 frontones por
+    comarcas (`frontonPicker`); al elegir, cambia la caja sin volver a pintar la pantalla. En el iPhone tumbado con la
+    barra de Sitecase (844 × 312) cada carta cabe entera. En vertical, el texto y la figura arriba y la elección y el
+    botón debajo, a todo lo ancho.
+  - El triángulo de jugar va en blanco con su relieve sobre los botones fucsia (`img.i-play` en `style.css`; cada
+    icono 3D lleva la clase `i-<nombre>`).
   - Mochila: cabecera en una fila con «Cerrar» a la derecha, como «Salir» en la tienda. Debajo, una franja por cosa
     (perro, agua, comida y equipo), con el rótulo a la izquierda y lo suyo en fila, 24 px de aire y una raya fina entre
     franjas. La comida y el equipo, en filas que se deslizan. Los iconos, a su tamaño de siempre. Los botones del perro van
