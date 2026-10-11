@@ -11,7 +11,8 @@ import { fileURLToPath } from 'node:url';
 //    página es pequeña y cada modelo, textura o sonido es un archivo aparte que solo se descarga cuando hace falta y
 //    queda guardado (caché del navegador y de la app instalada): menos memoria, arranque rápido y juego sin conexión.
 const WEB = !!process.env.WEB;
-// las fotos de la flora y las láminas: grandes en la web y en el servidor de pruebas; más ligeras en el archivo único
+// las fotos de la flora, las láminas y los animales de la fauna: grandes en la web y en el servidor de pruebas; más ligeras
+// en el archivo único (los animales: 1280 px en la web y 512 en el archivo único; las miniaturas, de 256 en los dos)
 // (MINI=1 con el servidor de pruebas: carga lo mismo que el archivo único, para probarlo)
 const FOTOS = WEB || (!process.argv.includes('build') && !process.env.MINI) ? 'web' : 'mini';
 // en el archivo único (el que se abre en el móvil con Sitecase), los modelos 3D van comprimidos con gzip (casi un
@@ -48,7 +49,7 @@ const app = {
 
 export default defineConfig({
   base: './',
-  resolve: { alias: { '@flora-fotos': fileURLToPath(new URL(`./src/assets/flora/${FOTOS}`, import.meta.url)), '@laminas': fileURLToPath(new URL(`./src/assets/laminas/${FOTOS}`, import.meta.url)), '@meshy-full': fileURLToPath(new URL(MESHY_FULL, import.meta.url)) } },
+  resolve: { alias: { '@flora-fotos': fileURLToPath(new URL(`./src/assets/flora/${FOTOS}`, import.meta.url)), '@laminas': fileURLToPath(new URL(`./src/assets/laminas/${FOTOS}`, import.meta.url)), '@fauna-big': fileURLToPath(new URL(`./src/assets/fauna/${FOTOS === 'web' ? 1280 : 512}`, import.meta.url)), '@fauna-small': fileURLToPath(new URL('./src/assets/fauna/256', import.meta.url)), '@meshy-full': fileURLToPath(new URL(MESHY_FULL, import.meta.url)) } },
   plugins: WEB ? [sinRedir, app] : MINI ? [sinRedir, glbGzip, viteSingleFile()] : [sinRedir, viteSingleFile()],
   define: { __WEB__: JSON.stringify(WEB) },
   build: WEB

@@ -1290,3 +1290,5 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 }
 /* el iPad de pie: las cinco cifras del inicio en una fila, con el icono menor para que cada rótulo quepa en una línea */
 @media (orientation: portrait) and (min-width: 600px) { .tile { padding: 12px; } .tile :is(img.ico, svg) { width: 32px; height: 32px; } .tile b { white-space: nowrap; } }
+/* cuaderno de fauna: el animal entero y centrado en su tarjeta, del mismo tamaño en todas */
+.scard .fpic { display: block; flex: none; width: 104px; height: 104px; object-fit: contain; object-position: 50% 50%; filter: drop-shadow(0 6px 10px rgba(7, 2, 15, .45)); }

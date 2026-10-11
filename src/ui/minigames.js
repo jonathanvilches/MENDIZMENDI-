@@ -29,15 +29,15 @@ export function infoCard(ui, opts) {
   if (window.__autoWin) { window.__autoSeen?.(opts); return Promise.resolve(); }
   return infoCard_(ui, opts);
 }
-// lamina: una ilustración 16:9 entera en vez del icono (los oficios de antes)
-function infoCard_(ui, { icon = 'church', kicker = '', title, text, extra = '', image = '', lamina = '', button = 'Seguir explorando', badge = '' }) {
+// lamina: una ilustración 16:9 entera en vez del icono (los oficios de antes); animal: la ilustración de un animal de la fauna
+function infoCard_(ui, { icon = 'church', kicker = '', title, text, extra = '', image = '', lamina = '', animal = '', button = 'Seguir explorando', badge = '' }) {
   return new Promise(res => {
     ui.sound.ui('card');
     // (las fichas de varias páginas dicen en cuál vas con unas marcas junto al botón: «Seguir (2/3)»)
     const pg = /\((\d+)\/(\d+)\)/.exec(button) || /(\d+) de (\d+)/.exec(kicker);
     const dots = pg && +pg[2] > 1 && +pg[2] <= 8 ? `<div class="ix-dots">${Array.from({ length: +pg[2] }, (_, i) => `<i class="${i < +pg[1] ? 'on' : ''}"></i>`).join('')}</div>` : '';
     const o = overlay(ui, 'info ix-ov', `
-      <div class="ix-media">${lamina ? `<figure class="ix-frame lam"><img src="${lamina}" alt=""></figure>` : `<figure class="ix-frame icon">${image ? `<img class="ix-sign" src="${image}" alt="">` : iconSVG(icon, 160)}</figure>`}${badge ? `<span class="ix-tag">${esc(badge)}</span>` : ''}</div>
+      <div class="ix-media">${lamina ? `<figure class="ix-frame lam"><img src="${lamina}" alt=""></figure>` : `<figure class="ix-frame icon">${animal ? `<img class="ix-animal" src="${animal}" alt="">` : image ? `<img class="ix-sign" src="${image}" alt="">` : iconSVG(icon, 160)}</figure>`}${badge ? `<span class="ix-tag">${esc(badge)}</span>` : ''}</div>
       <div class="ix-main">
         <header class="ix-head"><p class="ix-kicker">${esc(kicker)}</p><h2 class="ix-title">${esc(title)}</h2></header>
         <div class="ix-body">${text ? `<p class="ix-text">${esc(text)}</p>` : ''}${extra}</div>
