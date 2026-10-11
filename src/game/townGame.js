@@ -24,6 +24,7 @@ import { LEVELS } from '../data/levels.js';
 import { COSTUMES } from '../actors/minifig.js';
 import { stampImg } from '../assets.js';
 import { faunaImg } from '../ui/faunaImg.js';
+import { drawTownArms } from '../ui/escudoImg.js';
 import { FAUNA, faunaName } from '../data/fauna.js';
 import { LEGENDS, NIGHT_CARNIVAL } from '../data/legends.js';
 import MOUNTAINS from '../data/mountains.json';
@@ -50,7 +51,7 @@ import { Panorama } from '../world/panorama.js';
 import { houseArms } from '../data/blasones.js';
 import { armsOfTown } from '../data/armas-navarra.js';
 import { missionSlots, edadDe } from '../data/edad.js';
-import { drawOfficial, officialHeight } from '../world/armas.js';
+import { officialHeight } from '../world/armas.js';
 import { CAT_BY_TYPE, SABERES } from '../data/saberes.js';
 import { drawArms } from '../world/heraldry.js';
 import { readArms, readTownArms } from '../ui/escudo.js';
@@ -687,7 +688,7 @@ export class TownGame {
   buildTownArms() {
     const A = armsOfTown(this.def.id), S = TOWN.armsSpot; if (!A || !S) return;
     const W = 200, c = document.createElement('canvas'); c.width = 256; c.height = Math.ceil(officialHeight(W, A)) + 10;
-    drawOfficial(c.getContext('2d'), 128, 4, W, A);
+    drawTownArms(c.getContext('2d'), 128, 4, W, A);
     const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
     const W3 = S.hall ? 1.5 : 1.35, h = W3 * c.height / c.width, m = new THREE.Mesh(new THREE.PlaneGeometry(W3, h), new THREE.MeshStandardMaterial({ map: tex, transparent: true, alphaTest: 0.4, roughness: 0.85 }));
     m.position.set(S.x + Math.sin(S.ry) * 0.01, S.y + (S.hall ? 0.02 : 0), S.z + Math.cos(S.ry) * 0.01); m.rotation.y = S.ry; this.scene.add(m);

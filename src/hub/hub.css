@@ -1292,3 +1292,9 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 @media (orientation: portrait) and (min-width: 600px) { .tile { padding: 12px; } .tile :is(img.ico, svg) { width: 32px; height: 32px; } .tile b { white-space: nowrap; } }
 /* cuaderno de fauna: el animal entero y centrado en su tarjeta, del mismo tamaño en todas */
 .scard .fpic { display: block; flex: none; width: 104px; height: 104px; object-fit: contain; object-position: 50% 50%; filter: drop-shadow(0 6px 10px rgba(7, 2, 15, .45)); }
+/* escudos con el acabado del autor: la imagen es cuadrada y trae aire alrededor, así que se pinta un poco mayor que su
+   columna (con márgenes negativos) para que el escudo mida lo mismo que el dibujo de antes, centrado arriba */
+.armorial .ar img.ar-img { display: block; width: 128px; height: 128px; margin: -10px -8px -8px; object-fit: contain; cursor: pointer; }
+@media (max-width: 560px), (orientation: landscape) and (max-height: 440px) { .armorial .ar img.ar-img { width: 96px; height: 96px; margin: -8px -6px -6px; } }
+.sh-arms img.sh-armimg { display: block; width: 104px; height: 104px; margin: -8px -7px -6px; object-fit: contain; }
+.sp-em { flex: none; width: 18px; height: 22px; object-fit: contain; }   /* (el emblema de tu club, en lugar del color de su camiseta) */

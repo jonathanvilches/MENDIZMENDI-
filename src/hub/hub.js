@@ -29,6 +29,7 @@ import { EDADES, edadDe, missionSlots } from '../data/edad.js';
 import { ARMAS, PENDIENTES, FIG, GUIA, armsOfTown } from '../data/armas-navarra.js';
 import { CUENTOS, KIND_LABEL } from '../data/cuentos.js';
 import { drawOfficial, officialHeight } from '../world/armas.js';
+import { armsImg, clubImg } from '../ui/escudoImg.js';
 import { profile, saveProfile, levelOf, rankOf, townProgress, comarcaProgress, comarcaTowns, navarraProgress, stampCount, BADGES, checkBadges, resetProfile, salazarState } from '../game/profile.js';
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -244,7 +245,7 @@ export class Hub {
     this.after = () => { $('.fr-chip.on', this.root)?.scrollIntoView({ block: 'nearest', inline: 'nearest' }); };
     // (una carta por fila, en horizontal y con aire: la figura a la izquierda; en el centro, el rótulo, el título, el texto
     // y el dato, y debajo la fila para elegir frontón o ver tu club; el botón de jugar, a la derecha. Las dos cartas, iguales)
-    const kit = club ? `<i class="sp-kit" style="--a:${club.shirt};--b:${club.shirt2 || club.shorts || club.shirt}"></i>` : '';
+    const kit = club ? (clubImg(p.futbolClub) ? `<img class="sp-em" src="${clubImg(p.futbolClub)}" alt="">` : `<i class="sp-kit" style="--a:${club.shirt};--b:${club.shirt2 || club.shorts || club.shirt}"></i>`) : '';
     return `
     <h2 class="sec">${I('trophy', 34)} Campeonatos</h2>
     <p class="hint sp-hint">Juega sin entrar en las misiones de un pueblo. Lo que ganes cuenta igual.</p>
@@ -368,7 +369,7 @@ export class Hub {
         <h3>${I('check', 24)} Misiones (${t.done}/${t.total})</h3>
         <ul class="mlist">${ms.map((m, i) => { const k = l.missions?.includes(m) ? l.missions.indexOf(m) : i; return `<li class="${ts?.done?.[k] ? 'ok' : ''}">${I(TYPE_ICON[m.type], 34)}<div><b>${esc(title(m))}</b><small>${TYPE_NAME[m.type]}${m.host ? ' · con ' + esc(m.host.name) : ''}</small></div>${ts?.done?.[k] ? I('check', 26) : ''}</li>`; }).join('')}</ul>
         ${lams.length > 1 ? `<h3>${I('scroll', 24)} Láminas</h3>${laminaRail(lams)}` : ''}
-        ${armsOfTown(l.id) ? `<h3>${I('shield', 24)} Su escudo</h3><div class="sh-arms"><canvas width="120" height="${Math.ceil(officialHeight(90, armsOfTown(l.id))) + 6}"></canvas><p><b>${esc(armsOfTown(l.id).name)}.</b> ${esc(armsOfTown(l.id).read)} <button class="lnk" data-go="escudos">Ver todos los escudos</button></p></div>` : ''}
+        ${armsOfTown(l.id) ? `<h3>${I('shield', 24)} Su escudo</h3><div class="sh-arms">${armsImg(armsOfTown(l.id).id) ? `<img class="sh-armimg" src="${armsImg(armsOfTown(l.id).id)}" alt="">` : `<canvas width="120" height="${Math.ceil(officialHeight(90, armsOfTown(l.id))) + 6}"></canvas>`}<p><b>${esc(armsOfTown(l.id).name)}.</b> ${esc(armsOfTown(l.id).read)} <button class="lnk" data-go="escudos">Ver todos los escudos</button></p></div>` : ''}
         ${l.church ? `<h3>${I('church', 24)} Qué visitar</h3><ul class="plist"><li><b>${esc(l.church.name)}</b> ${esc(l.church.text)}</li>${(l.landmarks || []).map(x => `<li><b>${esc(x.name)}</b> ${esc(x.text)}</li>`).join('')}</ul>` : ''}
       </div>
       <div class="sh-foot"><button class="btn primary big" data-play="${l.id}">${I('play', 28)} ${t.done ? 'Seguir jugando' : 'Jugar'} en ${esc(l.name)}</button></div></div></div>`);
@@ -492,7 +493,7 @@ export class Hub {
     const p = profile(), seen = new Set(p.cards || []), tn = (id) => (levelById(id)?.name || id).split(' /')[0];
     const KIND = { reino: 'Reino', ciudad: 'Ciudad', valle: 'Valle', municipio: 'Municipio' };
     const read = ARMAS.filter(A => seen.has('armas:' + A.id)).length;
-    this.after = () => this.root.querySelectorAll('.ar canvas[data-arm]').forEach(c => { const A = ARMAS.find(a => a.id === c.dataset.arm); try { drawOfficial(c.getContext('2d'), c.width / 2, 4, 120, A); } catch (e) { console.warn(A.id, e); }
+    this.after = () => this.root.querySelectorAll('.ar [data-arm]').forEach(c => { const A = ARMAS.find(a => a.id === c.dataset.arm); if (c.tagName === 'CANVAS') try { drawOfficial(c.getContext('2d'), c.width / 2, 4, 120, A); } catch (e) { console.warn(A.id, e); }
       c.style.cursor = 'pointer'; c.onclick = () => readTownArms({ sound: this.sound }, A, { town: A.towns.length ? tn(A.towns[0]) : A.name }); });
     return `<section class="armorial">
       <div class="ar-head"><small class="kicker">${I('shield', 20)} Saberes · Escudos</small><h1>Escudos de Navarra</h1>
@@ -500,14 +501,14 @@ export class Hub {
         <b class="ar-count">${read} de ${ARMAS.length} leídos en el juego</b></div>
       <details class="ar-guia"><summary>${I('book', 22)} Cómo se lee un escudo</summary><ol>${GUIA.map(([t, d]) => `<li><b>${esc(t)}.</b> ${esc(d)}</li>`).join('')}</ol></details>
       <div class="ar-grid">${ARMAS.map(A => `<article class="ar${seen.has('armas:' + A.id) ? ' on' : ''}">
-        <canvas data-arm="${A.id}" width="160" height="${Math.ceil(officialHeight(120, A)) + 8}" aria-label="Escudo de ${esc(A.name)}"></canvas>
+        ${armsImg(A.id) ? `<img class="ar-img" data-arm="${A.id}" src="${armsImg(A.id)}" alt="Escudo de ${esc(A.name)}" loading="lazy" decoding="async">` : `<canvas data-arm="${A.id}" width="160" height="${Math.ceil(officialHeight(120, A)) + 8}" aria-label="Escudo de ${esc(A.name)}"></canvas>`}
         <div class="ar-tx"><small>${KIND[A.kind] || ''}${A.towns.length ? ' · ' + esc(A.towns.map(tn).join(', ')) : ''}</small><h3>${esc(A.name)}</h3>${seen.has('armas:' + A.id) ? `<span class="ar-ok">${I('check', 16)} Leído en el juego</span>` : ''}
           <p><b>Blasón.</b> ${esc(A.blazon)}</p>
           <details><summary>Cómo se lee y qué significa</summary><p><b>Cómo se lee.</b> ${esc(A.read)}</p><p><b>Su historia.</b> ${esc(A.mean)}</p>
             <ul>${(A.figs || []).filter(k => FIG[k]).map(k => `<li><b>${esc(FIG[k][0])}.</b> ${esc(FIG[k][1])}</li>`).join('')}</ul>${A.conf === 'media' ? '<p class="ar-nt">La fuente resume este escudo: el dibujo puede simplificar algún detalle.</p>' : ''}</details></div></article>`).join('')}</div>
       <details class="ar-pend"><summary><h3>${I('binoculars', 22)} Por comprobar</h3></summary><p>De estos pueblos del juego aún no hemos podido comprobar el escudo en una fuente fiable. Por eso no lo dibujamos: preferimos no inventarlo.</p>
         <ul>${PENDIENTES.map(x => `<li><b>${esc(x.name)}.</b> ${esc(x.note || '')}</li>`).join('')}</ul></details>
-      <p class="ar-src">Fuentes: Heraldry of the World (blasones municipales), Ayuntamiento de Pamplona, Ayuntamiento de Sangüesa, Gran Enciclopedia de Navarra, Auñamendi Eusko Entziklopedia y Cátedra de Patrimonio de la Universidad de Navarra. Los dibujos son del juego, hechos a partir del blasón.</p>
+      <p class="ar-src">Fuentes: Heraldry of the World (blasones municipales), NAVARCHIVO, Ayuntamiento de Pamplona, Ayuntamiento de Sangüesa, Gran Enciclopedia de Navarra, Auñamendi Eusko Entziklopedia y Cátedra de Patrimonio de la Universidad de Navarra. Los dibujos son del juego, hechos a partir del blasón.</p>
     </section>`;
   }
   // ---------- Álbum de láminas ----------

@@ -13,7 +13,8 @@ import { profile } from './profile.js';
 import { QUALITY } from '../util/quality.js';
 import { crowd3d } from '../actors/crowd3d.js';
 import { shieldSpec, drawShield } from '../world/heraldry.js';
-import { drawOfficial, officialHeight } from '../world/armas.js';
+import { officialHeight } from '../world/armas.js';
+import { drawTownArms } from '../ui/escudoImg.js';
 import { armsOfTown } from '../data/armas-navarra.js';
 import { LEVELS } from '../data/levels.js';
 import { txapelas } from './torneo.js';
@@ -82,7 +83,7 @@ export function frontonLook(def = {}) {
 export function frontonWall(def) {
   // el escudo oficial del pueblo o de su valle cuando está comprobado; si no, uno propio del juego
   const spec = shieldSpec(def), A = armsOfTown(def.id);
-  const shield = A ? (g, cx, top, h) => drawOfficial(g, cx, top, h / officialHeight(1, A), A) : (g, cx, top, h) => drawShield(g, cx, top, h, spec);
+  const shield = A ? (g, cx, top, h) => drawTownArms(g, cx, top, h / officialHeight(1, A), A) : (g, cx, top, h) => drawShield(g, cx, top, h, spec);
   return { wallName: (def.name || '').split(/\s*\/\s*/).join(' · ').toUpperCase(), wallSub: 'AYUNTAMIENTO · UDALA', shield, look: frontonLook(def) };
 }
 
@@ -169,7 +170,7 @@ export class Fronton {
 let LABRIT = null;
 function labritOpts() {
   // (en la pared izquierda, el escudo de Pamplona y su nombre, como en el de verdad, sin el logotipo del ayuntamiento)
-  const A = armsOfTown('pamplona'), shield = A ? (g, cx, top, h) => drawOfficial(g, cx, top, h / officialHeight(1, A), A) : null;
+  const A = armsOfTown('pamplona'), shield = A ? (g, cx, top, h) => drawTownArms(g, cx, top, h / officialHeight(1, A), A) : null;
   return { labrit: true, wallName: 'IRUÑA · PAMPLONA', wallSub: 'FRONTÓN LABRIT', shield, signAt: { y: 5.4 },
     look: { frontis: '#1d5846', wall: '#1d5846', floor: '#1a1f21', contra: '#d49a5c', parquet: true, line: '#f3f2ec', mark: '#f3f2ec', chapa: '#d9dcd8', chapaMetal: true, stone: null, brick: false, roof: null, cap: '#1d5846' } };
 }

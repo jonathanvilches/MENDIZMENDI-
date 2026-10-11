@@ -29,6 +29,8 @@ import { profile, saveProfile, townState, checkBadges, salazarState, townProgres
 import { missionSlots, edadDe } from './data/edad.js';
 import { levelById, LEVELS } from './data/levels.js';
 import { townImg } from './assets.js';
+import { armsReady } from './ui/escudoImg.js';
+import { armsOfTown } from './data/armas-navarra.js';
 import { laminaUrl, laminaById } from './ui/laminas.js';
 import COMARCAS from './data/comarcas.json';
 import { preloadNpcs } from './actors/npcGlb.js';
@@ -139,7 +141,9 @@ async function boot() {
     // (al campeonato de pelota se va a jugar: sin la historia del pueblo ni sus misiones en la pantalla de carga)
     ui.showLoading(opt.sport ? `${isEU() ? 'Esku pilota' : 'Pelota a mano'} · ${d.name.split(' /')[0]}` : d.name, opt.sport ? (isEU() ? 'Frontoia prestatzen…' : 'Preparando el frontón…') : (t => input.touch && t.startsWith('Pulsa C') ? TIP_TOQUE : t)(TIPS[Math.floor(Math.random() * TIPS.length)]), (opt.sport && laminaUrl('dep-fronton')) || townImg(d), { comarca: cm?.name, caption: (k => laminaUrl(k) ? laminaById(k).title : '')(opt.sport ? 'dep-fronton' : d.id), avatar: avatarPortrait(P.avatar), intro: opt.sport ? '' : d.intro, missions: opt.sport ? [] : missionSlots(d, edadDe(P)).map(({ m }) => m.icon || TI[m.type] || 'star'), left: opt.sport ? 0 : (pr => Math.max(0, pr.total - pr.done))(townProgress(P, d)) });
     try {
-      const npcP = preloadNpcs(); await preloadFood(); await Promise.all([rt.load(d, P.avatar, (p, m) => ui.progress(p, m)), npcP]);
+      // (el escudo del pueblo, y el de Pamplona del Labrit, con su acabado: listos antes de montar la plaza y el frontón)
+    await Promise.all([armsReady(armsOfTown(d.id)?.id), armsReady('pamplona')]);
+    const npcP = preloadNpcs(); await preloadFood(); await Promise.all([rt.load(d, P.avatar, (p, m) => ui.progress(p, m)), npcP]);
       const ctx = { scene: rt.scene, camera: rt.camera, player: rt.player, follow: rt.follow, ui, sound, input, sky: rt.sky, fauna: rt.fauna, particles: rt.particles, beacon: rt.beacon, rt, onExit: exit };
       hookPlayer(rt.player);
       if (d.special === 'salazar') {

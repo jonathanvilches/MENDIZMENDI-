@@ -2,7 +2,10 @@
 // defender, Pase pasa a ser Robar y Tiro, Entrada), barras de energía y de carga, flecha del jugador fuera de pantalla,
 // tanda de penaltis, consejos del tutorial, menú previo, pausa y pantalla final. Todo con el prefijo «fb-», sin
 // solaparse en móvil (vertical y horizontal) y escritorio.
+import { clubImg } from '../ui/escudoImg.js';
 import { fitCircle, fitCircles } from '../ui/fitlabel.js';
+// (en el marcador, el emblema de un equipo de la liga; si no lo tiene, el color de su camiseta)
+const em = (t) => t?.club && clubImg(t.club) ? `<img class="fb-em" src="${clubImg(t.club)}" alt="">` : `<i style="background:${t.shirt}"></i>`;
 const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;gap:16px;align-items:center;text-align:left;margin:4px 0 8px}.fb-board{width:100%;height:auto;display:block;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
 .fb-tac-t{margin:8px 0 8px;font-size:var(--fs-sm);line-height:1.3;color:#e8e2f6}.fb-tac-l{margin:0;font-size:var(--fs-xs);color:#c8bfe0;display:flex;gap:8px;align-items:center;flex-wrap:wrap}.fb-tac-l i{width:10px;height:10px;border-radius:50%;display:inline-block}
 .fb-tac-r .fb-row{justify-content:flex-start}   /* (los sistemas, alineados a la izquierda con su explicación) */
@@ -15,7 +18,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
    letra estrecha y mayúsculas, el reloj en lila (como en las retransmisiones y en los juegos de fútbol) */
 .fb-score{display:flex;align-items:stretch;border-radius:3px;overflow:hidden;background:rgba(7,2,15,.9);border-top:2px solid var(--fx,#ff2bd6);box-shadow:0 6px 20px rgba(0,0,0,.35);max-width:100%;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%)}
 .fb-team{display:flex;align-items:center;gap:8px;padding:4px 12px;font:800 var(--fs-sm)/1 var(--f-cond,Nunito),sans-serif;letter-spacing:.04em;text-transform:uppercase;min-width:0}
-.fb-team i{width:12px;height:20px;border-radius:3px;flex:none;box-shadow:0 0 0 1.5px rgba(255,255,255,.7)}
+.fb-team img.fb-em{width:20px;height:24px;object-fit:contain;flex:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}.fb-team i{width:12px;height:20px;border-radius:3px;flex:none;box-shadow:0 0 0 1.5px rgba(255,255,255,.7)}
 .fb-team span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:22vw}.fb-team span.fb-sn{display:none}
 .fb-team b{font-family:'MZ Display',Nunito,sans-serif;font-weight:400;font-size:var(--fs-xl);line-height:1;min-width:1em;text-align:center}
 .fb-clock{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:2px 12px;background:linear-gradient(180deg,rgba(123,47,247,.55),rgba(49,16,107,.7));font:800 var(--fs-md)/1 var(--f-cond,Nunito),sans-serif;font-variant-numeric:tabular-nums}
@@ -192,9 +195,9 @@ export class FutbolHud {
     if (!document.getElementById('fb-css')) { const st = document.createElement('style'); st.id = 'fb-css'; st.textContent = CSS; document.head.appendChild(st); }
     const r = this.root = document.createElement('div'); r.className = 'fb-root';
     const t = o.touch;
-    r.innerHTML = `<div class="fb-top"><div class="fb-score"><div class="fb-team"><i style="background:${o.home.shirt}"></i><span class="fb-ln">${esc(o.home.name)}</span><span class="fb-sn">${esc(o.home.short || o.home.name)}</span><em class="fb-cd fb-cd0"></em><b class="fb-s0">0</b></div>
+    r.innerHTML = `<div class="fb-top"><div class="fb-score"><div class="fb-team">${em(o.home)}<span class="fb-ln">${esc(o.home.name)}</span><span class="fb-sn">${esc(o.home.short || o.home.name)}</span><em class="fb-cd fb-cd0"></em><b class="fb-s0">0</b></div>
       <div class="fb-clock"><span class="fb-time">0:00</span><small class="fb-half">1ª parte</small></div>
-      <div class="fb-team"><b class="fb-s1">0</b><em class="fb-cd fb-cd1"></em><span class="fb-ln">${esc(o.away.name)}</span><span class="fb-sn">${esc(o.away.short || o.away.name)}</span><i style="background:${o.away.shirt}"></i></div></div>
+      <div class="fb-team"><b class="fb-s1">0</b><em class="fb-cd fb-cd1"></em><span class="fb-ln">${esc(o.away.name)}</span><span class="fb-sn">${esc(o.away.short || o.away.name)}</span>${em(o.away)}</div></div>
       <div class="fb-fouls"></div><div class="fb-pen"><span>${esc(o.home.short || o.home.name)}</span><span class="fb-p0"></span><span>${esc(o.away.short || o.away.name)}</span><span class="fb-p1"></span></div>
       <div class="fb-say"></div><div class="fb-tip"><i>?</i><span></span></div></div>
       <button class="fb-pause" aria-label="Pausa">${SVG_PAUSE}</button><button class="fb-cam" aria-label="Cambiar cámara">${SVG_CAM}</button>
