@@ -1,0 +1,6 @@
+Tradiciones de MENDIMENDIZ (1536/ y 320/).
+Ilustraciones entregadas por el autor del proyecto el 2026-10-11 en un ZIP («MENDIMENDIZ-tradiciones-responsive»), una por misión:
+el canto de Gayarre (Roncal), los trovadores de la corte (Olite), la Bajada del Ángel (Tudela) y el Ttun-ttun (Isaba).
+Son escenas artísticas generadas con IA, no reconstrucciones documentales de plazas, arquitectura o personas. Titularidad: el autor del proyecto. Pendiente de anotar la herramienta y sus condiciones de uso (legal/registro-licencias.csv).
+Referencias culturales que acompañaban a las ilustraciones: el Ttun-ttun y la indumentaria de Isaba (Dantzatlas, Archivo de Navarra), la Bajada del Ángel (Visit Navarra y Ayuntamiento de Tudela).
+Cambios: ninguno; se usan las de 1536 y 320 px tal como llegaron (la de 768 no hace falta en el juego).

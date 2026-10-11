@@ -14,7 +14,7 @@ import { profile, saveProfile, townState, addXP, checkBadges, addCard, comarcaDo
 import { infoCard, timingGame, mashGame, sequenceGame, simonGame, choiceGame, missionComplete, townFinale, play3d } from '../ui/minigames.js';
 import { OFICIOS } from '../data/oficios.js';
 import { OFICIO_LAMINA } from '../data/laminas.js';
-import { laminaUrl, leyendaUrl, cimaUrl, personajeUrl } from '../ui/laminas.js';
+import { laminaUrl, leyendaUrl, cimaUrl, personajeUrl, tradicionUrl } from '../ui/laminas.js';
 import { isEU, tr } from '../i18n.js';
 import { PERSONAJES } from '../data/personajes.js';
 import { makeItem, makeGate, makeWorkbench, makeMemorial } from './items.js';
@@ -1106,7 +1106,13 @@ export class TownGame {
         else { await S([m.outro || '¡Todos dentro! Buen trabajo de pastor.']); await this.complete(M, { card: m.card || M.title, cardText: m.cardText || m.text }); }
         return;
       case 'dance':
-        if (M.step === 0) { await S([m.text, 'Ven al centro de la plaza y sigue el ritmo con las flechas.']); M.step = 1; }
+        if (M.step === 0) {
+          // (si la danza tiene su ilustración, la ficha la enseña con lo que se cuenta de ella)
+          const lam = tradicionUrl(m.ilus);
+          if (lam) { await infoCard(this.ui, { icon: 'dance', lamina: lam, kicker: 'Danza', title: m.name, text: m.text, button: '¡Vamos!' }); await S(['Ven al centro de la plaza y sigue el ritmo con las flechas.']); }
+          else await S([m.text, 'Ven al centro de la plaza y sigue el ritmo con las flechas.']);
+          M.step = 1;
+        }
         else await S(['¡La plaza nos espera! Ponte en el centro.']);
         return;
       case 'carnival':
@@ -1158,11 +1164,12 @@ export class TownGame {
       }
       case 'tradition': {
         await S([m.text]);
-        if (M.step === 0) { await this.explain(TRADICIONES[m.title], m.title, 'what'); await this.explain(TRADICIONES[m.title], m.title, 'how'); }
+        const lam = tradicionUrl(m.ilus) || '';   // (su ilustración, en las fichas de qué es, cómo se hace y antes y ahora)
+        if (M.step === 0) { await this.explain(TRADICIONES[m.title], m.title, 'what', lam); await this.explain(TRADICIONES[m.title], m.title, 'how', lam); }
         await S([m.kind === 'angel' ? 'Repite los movimientos en el mismo orden.' : 'Escucha la melodía y repítela.']);
         M.step = 1;
         const r = await simonGame(this.ui, { title: M.title, icon: M.icon, rounds: 4, labels: m.kind === 'angel' ? ['Cuerda', 'Alas', 'Bajar', 'Saludo'] : null });
-        if (r.win) { await S(['¡Precioso! Así se mantiene viva la tradición.']); await this.explain(TRADICIONES[m.title], m.title, 'then'); await this.complete(M, { card: M.title, cardText: m.text }); }
+        if (r.win) { await S(['¡Precioso! Así se mantiene viva la tradición.']); await this.explain(TRADICIONES[m.title], m.title, 'then', lam); await this.complete(M, { card: M.title, cardText: m.text }); }
         else await S(['No pasa nada, inténtalo otra vez cuando quieras.']);
         return;
       }
@@ -1294,12 +1301,12 @@ export class TownGame {
   }
 
   // Tarjetas que explican un producto o una tradición: qué es, cómo se hace, y antes/ahora
-  async explain(X, title, part) {
+  async explain(X, title, part, lamina = '') {
     if (!X) return;
     const icon = this.missions.find(M => M.m.product === title || M.m.title === title)?.icon || 'book';
-    if (part === 'what') return infoCard(this.ui, { icon, kicker: '¿Qué es?', title, text: X.what, button: 'Entendido' });
-    if (part === 'how') return infoCard(this.ui, { icon, kicker: 'Cómo se hace', title, text: X.how, button: '¡Vamos!' });
-    return infoCard(this.ui, { icon, kicker: 'Antes y ahora', title, text: 'Así ha cambiado:', extra: `<div class="antes-ahora"><div><b>Antes</b>${X.then}</div><div><b>Ahora</b>${X.now}</div></div>`, button: '¡Lo he aprendido!' });
+    if (part === 'what') return infoCard(this.ui, { icon, lamina, kicker: '¿Qué es?', title, text: X.what, button: 'Entendido' });
+    if (part === 'how') return infoCard(this.ui, { icon, lamina, kicker: 'Cómo se hace', title, text: X.how, button: '¡Vamos!' });
+    return infoCard(this.ui, { icon, lamina, kicker: 'Antes y ahora', title, text: 'Así ha cambiado:', extra: `<div class="antes-ahora"><div><b>Antes</b>${X.then}</div><div><b>Ahora</b>${X.now}</div></div>`, button: '¡Lo he aprendido!' });
   }
   // Feria de ganado: corrales con vacas, ovejas y caballos junto al mercado, un puesto y gente mirando
   buildFair(M, hostPos) {

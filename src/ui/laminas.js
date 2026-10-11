@@ -27,6 +27,11 @@ export const cimaUrl = (id, big = false) => (big && CIMA_BIG[id]) || CIMA[id] ||
 const PERS = byId(import.meta.glob('@personajes/*.webp', { eager: true, query: '?url', import: 'default' }));
 /** La ilustración de un personaje de Navarra (o null si no la tiene). */
 export const personajeUrl = (id) => PERS[id] || laminaUrl(PERSONAJE_LAMINA[id]) || null;
+// Las tradiciones (src/assets/tradiciones), una por misión con su id en el campo «ilus» de data/levels.js, en 16:9: el
+// explorador viendo la tradición. En la web, las de 1536; en el archivo único, las de 320.
+const TRAD = byId(import.meta.glob('@tradiciones/*.webp', { eager: true, query: '?url', import: 'default' }));
+/** La ilustración de una tradición (o null si no está en esta versión). */
+export const tradicionUrl = (id) => (id && TRAD[id]) || null;
 /** La ilustración de un cuento (o, si no tiene, la lámina de su pueblo que lo recuerda); big: la grande. */
 export const leyendaUrl = (id, big = false) => (big && LEY_BIG[id]) || LEY[id] || laminaUrl(CUENTO_LAMINA[id], !big);
 // Las portadas son todas láminas: la de cada pueblo, la de cada comarca y, si un pueblo no tiene, la de su comarca.
