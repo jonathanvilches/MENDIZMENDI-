@@ -5,6 +5,7 @@
 // family: atlantic | pyrenean | central | ribera | city  → estilo de casas
 // relief: valley | hills | plain | hilltop                → forma del terreno
 // river: { name, x (desvío respecto al centro), w (semiancho), amp (meandro) } o null
+// ilus (en una misión de tradición o de danza): el id de su ilustración en src/assets/tradiciones (tradicionUrl)
 
 const H = (name, look) => ({ name, look });
 const PASTOR = { txapela: '#1d1d24', shirt: '#efe9dc', vest: '#2d2b33', pants: '#3a3530', staff: true, hair: '#d6d0c6', moustache: '#ece8e0', old: true };
@@ -190,7 +191,7 @@ export const LEVELS = [
         steps: ['Ordeñar las ovejas', 'Cuajar la leche cruda', 'Moldear y prensar', 'Salar y madurar al menos cuatro meses'] },
       { type: 'herd', animal: 'cows', n: 3, title: 'El Tributo de las Tres Vacas', host: H('Alcalde de Isaba', { shirt: '#1a1a1a', pants: '#1a1a1a', vest: '#1a1a1a', hair: '#bdb6aa', hat: 'mask', hatColor: '#1a1a1a' }),
         text: 'Lleva las tres vacas hasta la piedra de San Martín, como en el tributo que se celebra cada 13 de julio.' },
-      { type: 'dance', name: 'Ttun-ttun', text: 'La danza ttun-ttun del Roncal se acompaña con un instrumento de cuerdas que se golpea con un palo.', host: H('Dantzari roncalesa', { shirt: '#ffffff', skirt: '#2b2630', pants: '#ffffff', hair: '#3b2418', bun: true }), colors: ['#1a1a1a', '#ffffff'] },
+      { type: 'dance', name: 'Ttun-ttun', ilus: 'ttun_roncal', text: 'La danza ttun-ttun del Roncal se acompaña con un instrumento de cuerdas que se golpea con un palo.', host: H('Dantzari roncalesa', { shirt: '#ffffff', skirt: '#2b2630', pants: '#ffffff', hair: '#3b2418', bun: true }), colors: ['#1a1a1a', '#ffffff'] },
       { type: 'quiz' },
       { type: 'observe', species: ['quebrantahuesos', 'buitre', 'aguila'], n: 3, title: 'El ave que rompe huesos', host: H('Iratxe, guarda de Belagua', { shirt: '#4f6b3a', vest: '#3f5530', pants: '#3f4a33', hair: '#6b3b1f', bun: true, female: true, bag: '#8a6a3a' }),
         story: ['En Belagua los pastores cuentan una historia muy rara: un ave de fuego que sube huesos al cielo… y los deja caer sobre las piedras.', 'No es magia: es el quebrantahuesos. Rompe los huesos para comerse el tuétano. Su pecho es naranja porque se baña en fuentes de agua con hierro, como si se maquillara.', 'Casi se extingue, y hoy los guardas del Pirineo lo cuidamos como un tesoro. Por aquí también vuelan buitres y águilas reales.'],
@@ -209,7 +210,7 @@ export const LEVELS = [
         text: 'Solo los siete pueblos del valle elaboran el queso Roncal. Ayuda a preparar las piezas.',
         gather: { item: 'milk', n: 3, label: 'Llevar leche', near: 'farm' },
         steps: ['Recoger la leche', 'Cuajar', 'Moldear las piezas', 'Madurar en la cava'] },
-      { type: 'tradition', kind: 'song', title: 'El canto de Gayarre', host: H('Maestro de música', { shirt: '#1a1a1a', vest: '#8a2f2f', pants: '#1a1a1a', hair: '#bdb6aa', moustache: '#bdb6aa' }),
+      { type: 'tradition', kind: 'song', title: 'El canto de Gayarre', ilus: 'canto_gayarre', host: H('Maestro de música', { shirt: '#1a1a1a', vest: '#8a2f2f', pants: '#1a1a1a', hair: '#bdb6aa', moustache: '#bdb6aa' }),
         text: 'Julián Gayarre tenía una voz prodigiosa. Repite las notas en el orden correcto.' },
       { type: 'quiz' },
     ] },
@@ -435,7 +436,7 @@ export const LEVELS = [
     missions: [
       { type: 'visit' },
       { type: 'harvest', crop: 'uva', n: 10, host: H('Vendimiador', VITI), text: 'Olite es tierra de vino. Vendimia los racimos del viñedo.' },
-      { type: 'tradition', kind: 'song', title: 'Los trovadores de la corte', host: H('Trovadora', { shirt: '#6d3b5c', skirt: '#f2c230', pants: '#f2c230', hair: '#c9772f', longHair: true }), text: 'En la corte del rey sonaba la música. Repite la melodía.' },
+      { type: 'tradition', kind: 'song', title: 'Los trovadores de la corte', ilus: 'trovadores_olite', host: H('Trovadora', { shirt: '#6d3b5c', skirt: '#f2c230', pants: '#f2c230', hair: '#c9772f', longHair: true }), text: 'En la corte del rey sonaba la música. Repite la melodía.' },
       { type: 'quiz' },
       { type: 'observe', species: ['grulla', 'ciguena', 'milano'], n: 4, title: 'Las viajeras del cielo', host: H('Ainhoa, guía de Pitillas', { shirt: '#3a8fd6', vest: '#3f5530', pants: '#3a3530', hair: '#3b2418', ponytail: true, female: true, bag: '#8a6a3a' }),
         story: ['Escucha… ¿oyes ese «krrruuu, krrruuu» que llega desde muy arriba? Son las grullas.', 'Cada otoño y cada febrero, miles de grullas cruzan Navarra en su viaje entre el norte de Europa y el sur. Vuelan en forma de V para cansarse menos: la de delante corta el aire a las demás.', 'Muchas descansan en la Laguna de Pitillas, aquí al lado. Y en las torres de las iglesias viven las cigüeñas, que vuelven cada primavera a su mismo nido.'],
@@ -464,7 +465,7 @@ export const LEVELS = [
       { type: 'visit' },
       { type: 'harvest', crop: 'alcachofa', n: 10, host: H('Hortelano de Tudela', HUERTA), text: 'La alcachofa de Tudela es un tesoro de la huerta. Se cortan las cabezas cuando están cerradas.' },
       { type: 'carnival', character: 'zipotero', title: 'Los zipoteros', host: H('Iker', { shirt: '#f2c230', pants: '#34495e', hair: '#2e2018', messy: true, height: 1.4 }), text: 'Los zipoteros llevan la cara tapada y reparten caramelos. ¡Encuéntralos!' },
-      { type: 'tradition', kind: 'angel', title: 'La Bajada del Ángel', host: H('Organizadora', { shirt: '#ffffff', skirt: '#3a8fd6', pants: '#3a8fd6', hair: '#c9772f', bun: true }), text: 'Un niño vestido de ángel baja colgado de una cuerda hasta la Virgen en la plaza. Repite la secuencia para prepararlo.' },
+      { type: 'tradition', kind: 'angel', title: 'La Bajada del Ángel', ilus: 'bajada_angel', host: H('Organizadora', { shirt: '#ffffff', skirt: '#3a8fd6', pants: '#3a8fd6', hair: '#c9772f', bun: true }), text: 'Un niño vestido de ángel baja colgado de una cuerda hasta la Virgen en la plaza. Repite la secuencia para prepararlo.' },
       { type: 'quiz' },
       { type: 'observe', species: ['ciguena', 'grulla', 'milano'], n: 3, title: 'Las cigüeñas de la catedral', host: H('Javier, sacristán', { shirt: '#2b2630', pants: '#2b2630', hair: '#bdb6aa', glasses: '#3a2a1a', old: true }),
         story: ['Cuando era pequeño, mi abuelo me decía: «Por San Blas, la cigüeña verás». Y cada febrero, sin fallar, aparecían sobre las torres de Tudela.', 'Hacen nidos tan grandes que pesan como un piano, con ramas que traen del río Ebro. Y cuando se saludan, castañetean el pico: tac-tac-tac, como un tambor.', 'Sube la vista, que hoy vuelan muchas sobre la ciudad. Anota tres en tu cuaderno.'],
