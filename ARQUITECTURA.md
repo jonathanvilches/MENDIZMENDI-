@@ -95,8 +95,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   - Con lluvia o nieve no salen mariposas ni luciérnagas (`fauna.wet`).
 - **Aire antes que caber:** se puede desplazar. Mejor elementos con espacio, que se entiendan, y colocados en filas
   horizontales que todo apilado en columnas estrechas para que quepa sin desplazar.
-  - Torneos (`s_sports`): una carta por fila, ancha. La figura a la izquierda y, en una columna, el rótulo con tu marca
-    a su derecha, el título y el texto; abajo, a la altura de los pies de la figura, lo elegido (el frontón o tu club)
+  - Torneos (`s_sports`): una carta por fila, ancha, con su portada: la lámina del protagonista en acción
+    (`dep-pelotari` y `dep-futbol`), a todo color, pegada a la derecha y fundida con el fondo (en vertical, entera arriba).
+    A la izquierda, en una columna, el rótulo con tu marca a su derecha, el título y el texto; abajo, a la altura de los pies de la figura, lo elegido (el frontón o tu club)
     en una caja y el botón «Jugar» al lado: primero se elige y luego se juega. Las cajas miden lo mismo en las dos
     cartas, así los botones quedan uno encima del otro. La caja del frontón abre la lista de los 31 frontones por
     comarcas (`frontonPicker`); al elegir, cambia la caja sin volver a pintar la pantalla. En el iPhone tumbado con la
