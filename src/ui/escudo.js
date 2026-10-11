@@ -7,6 +7,7 @@ import { ESMALTES, PARTICIONES, FIGURAS, TIMBRE, REGLAS, CASAS, blazon, blazonEU
 import { isEU, tr } from '../i18n.js';
 import { FIG } from '../data/armas-navarra.js';
 import { drawOfficial, officialHeight } from '../world/armas.js';
+import { armsImgBig } from './escudoImg.js';
 
 const el = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -21,12 +22,12 @@ function paint(canvas, A, stone) {
 // la ficha: { kicker, title, sub, canvas: { w, h, draw(cv, stone) }, stone (si se puede ver en piedra), secs: [[título, html]], badge }
 // (cómo se lee, en pestañas: una sección cada vez y entera, sin desplazar ni «Ver más»; antes iban las cuatro en rejilla,
 // plegadas, y en el móvil tumbado no cabían)
-function armsCard(ui, { kicker, title, sub, canvas, stone = false, secs, more = [], badge = '', note = '' }) {
+function armsCard(ui, { kicker, title, sub, canvas, image = '', stone = false, secs, more = [], badge = '', note = '' }) {
   const all = [...secs, ...more].filter(x => x && x[1]);
   return new Promise(res => {
     ui.closeModal?.(); ui.sound?.ui?.('card');
     const o = el(`<div class="mg-overlay escudo ix-ov"><div class="mg-card ix">
-      <div class="ix-media"><figure class="ix-frame paper"><canvas width="${canvas.w}" height="${canvas.h}" aria-label="${esc(title)}"></canvas></figure>
+      <div class="ix-media"><figure class="ix-frame paper${image ? ' img' : ''}">${image ? `<img src="${image}" alt="${esc(title)}">` : `<canvas width="${canvas.w}" height="${canvas.h}" aria-label="${esc(title)}"></canvas>`}</figure>
         ${badge ? `<span class="ix-tag badge">${esc(badge)}</span>` : ''}
         ${stone ? '<div class="ix-shots es-toggle" role="group"><button type="button" data-s="0" aria-pressed="true">En color</button><button type="button" data-s="1" aria-pressed="false">En piedra</button></div>' : ''}</div>
       <div class="ix-main">
@@ -36,7 +37,7 @@ function armsCard(ui, { kicker, title, sub, canvas, stone = false, secs, more = 
         ${note ? `<p class="ix-text es-note">${esc(note)}</p>` : ''}
         <div class="ix-foot"><button class="btn primary next">Seguir explorando</button></div></div></div></div>`);
     document.body.appendChild(o); ui.modal = o;
-    const cv = o.querySelector('canvas'); canvas.draw(cv, false);
+    const cv = o.querySelector('.ix-frame canvas'); if (cv) canvas.draw(cv, false);
     o.querySelectorAll('.es-toggle button').forEach(b => b.onclick = () => { o.querySelectorAll('.es-toggle button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); canvas.draw(cv, b.dataset.s === '1'); ui.sound?.ui?.('click'); });
     const pane = o.querySelector('.es-pane');
     // (las pestañas van en una fila; si no caben, la fila se desliza de lado)
@@ -87,11 +88,11 @@ export function readTownArms(ui, A, { town = '', isNew = false } = {}) {
   return armsCard(ui, {
     kicker: eu ? (valley ? `Haranaren armarria · ${town}` : `Armarria · ${town}`) : valley ? `El escudo del valle · ${town}` : `El escudo de ${town}`, title: A.name, sub: A.blazon,
     canvas: { w: 360, h: Math.round(H * 360 / (W + 60)) + 4, draw: (cv) => { const g = cv.getContext('2d'); g.clearRect(0, 0, cv.width, cv.height); g.save(); g.scale(cv.width / (W + 60), cv.width / (W + 60)); drawOfficial(g, (W + 60) / 2, 6, W, A); g.restore(); } },
-    badge: isNew ? 'Nueva carta en tu armorial' : '',
+    image: armsImgBig(A.id) || '', badge: isNew ? 'Nueva carta en tu armorial' : '',
     note: A.conf === 'media' ? 'La fuente resume este escudo: el dibujo del juego puede simplificar algún detalle.' : '',
     secs: [
       ['Cómo se lee', `<b>${esc(PART_NAME[A.part] || A.part)}.</b> ${esc(A.read)}`],
-      ['Esmaltes', fields.map(k => `<span class="es-sw"><i style="background:${SW[k]}"></i>${esc(T[k])}</span>`).join(' ') + ' Oro y plata son metales; gules, azur, sinople y sable, colores.'],
+      ['Esmaltes', fields.length && fields.map(k => `<span class="es-sw"><i style="background:${SW[k]}"></i>${esc(T[k])}</span>`).join(' ') + ' Oro y plata son metales; gules, azur, sinople y sable, colores.'],
       ['Figuras', (A.figs || []).filter(k => FIG[k]).map(k => `<b>${esc(FIG[k][0])}.</b> ${esc(FIG[k][1])}`).join('<br>')],
       ['Historia', esc(A.mean)],
     ],

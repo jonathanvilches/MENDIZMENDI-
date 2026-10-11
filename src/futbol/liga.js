@@ -2,6 +2,7 @@
 // Norte o Sur), todos contra todos a una vuelta (siete jornadas). Tu partido lo juegas tú; los demás de la jornada se
 // simulan según la media de cada club. Clasificación con puntos, goles y diferencia; al final, el campeón.
 // La temporada se guarda en localStorage ('mendimendiz-liga-v1'), una por club.
+import { clubImg } from '../ui/escudoImg.js';
 import { CLUBS, clubById } from './clubs.js';
 
 const KEY = 'mendimendiz-liga-v1';
@@ -88,6 +89,8 @@ export function levelFor(mine, rival) { const d = CLUBS[rival].ovr - CLUBS[mine]
 const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // la equipación en pequeño: camiseta con su dibujo, pantalón y medias
 export function kitSvg(id, size = 44) { return kitSvgOf(CLUBS[id], size, 'k' + id); }
+/** El emblema del equipo (src/ui/escudoImg.js) en el mismo hueco que su camiseta; si no lo tiene, la camiseta. */
+export const crest = (id, size = 44) => clubImg(id) ? `<img class="lg-kit lg-em" src="${clubImg(id)}" width="${Math.round(size * 0.75)}" height="${size}" alt="">` : kitSvg(id, size);
 /** La camiseta, el pantalón y las medias de un equipo (c: { shirt, shirt2, pattern, shorts, socks }) en SVG. */
 export function kitSvgOf(c, size = 44, key = 'kit') {
   const s2 = c.shirt2 || c.shirt, uid = key.replace(/[^a-z0-9]/gi, '') + Math.random().toString(36).slice(2, 6);
@@ -109,7 +112,7 @@ const CSS = `
 .lg-next .lg-t{display:flex;flex-direction:column;align-items:center;gap:4px}.lg-next b{font:400 var(--fs-xl)/1.1 var(--f-display);text-transform:uppercase}.lg-next em{font:600 var(--fs-sm)/1.15 var(--f-cond);font-style:normal;letter-spacing:.04em;text-transform:uppercase;color:var(--lila)}
 .lg-vs{font:400 var(--fs-3xl)/1 var(--f-display);background:linear-gradient(180deg,#fff,var(--rosa));-webkit-background-clip:text;background-clip:text;color:transparent;animation:gx-pop .5s cubic-bezier(.2,1.5,.4,1) .2s both}.lg-vs small{display:block;font:800 var(--fs-xs)/1.3 var(--f-cond);color:var(--lila);-webkit-text-fill-color:var(--lila);letter-spacing:.1em}
 .lg-table{width:100%;border-collapse:collapse;font-size:var(--fs-sm)}.lg-table th{font-size:var(--fs-xs);color:#cbbcf0;text-transform:uppercase;letter-spacing:.04em;padding:4px 4px;text-align:center}
-.lg-table td{padding:4px 4px;text-align:center;border-top:1px solid rgba(255,255,255,.08)}.lg-table td.n{text-align:left;font-weight:800;white-space:nowrap}.lg-table td.n i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;vertical-align:-1px;border:1px solid rgba(0,0,0,.4)}
+.lg-table td{padding:4px 4px;text-align:center;border-top:1px solid rgba(255,255,255,.08)}.lg-table td.n{text-align:left;font-weight:800;white-space:nowrap}.lg-em{object-fit:contain;object-position:50% 50%;flex:none}.lg-table td.n img.lg-dot{display:inline-block;width:18px;height:20px;object-fit:contain;margin:-4px 6px -4px 0;vertical-align:middle}.lg-table td.n i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;vertical-align:-1px;border:1px solid rgba(0,0,0,.4)}
 /* (la columna del puesto, del ancho de la camiseta de la cabecera, y el nombre del club con su mismo hueco: el club empieza justo donde empieza el título) */
 .lg-table tr>:first-child{width:36px;padding-left:0;padding-right:0}.lg-table tr>:nth-child(2){padding-left:12px}
 .lg-table tr.me td{background:rgba(255,155,216,.16)}.lg-table tr.me td.n{color:#ff9bd8}.lg-table td.pts{font-weight:900}
@@ -158,13 +161,13 @@ function panel(html) {
 // (en el móvil, solo PJ · DG · Pts; las demás columnas se ven en pantallas anchas)
 function tableHtml(S) {
   return `<table class="lg-table"><tr><th></th><th style="text-align:left">Club</th><th>PJ</th><th class="x">G</th><th class="x">E</th><th class="x">P</th><th class="x">GF</th><th class="x">GC</th><th>DG</th><th>Pts</th></tr>${table(S).map((t, i) => {
-    const c = CLUBS[t.id], dg = t.gf - t.gc; return `<tr class="${t.id === S.club ? 'me' : ''}"><td>${i + 1}</td><td class="n"><i style="background:${c.shirt}"></i>${esc(c.name)}</td><td>${t.pj}</td><td class="x">${t.g}</td><td class="x">${t.e}</td><td class="x">${t.p}</td><td class="x">${t.gf}</td><td class="x">${t.gc}</td><td class="dg">${dg > 0 ? '+' + dg : dg}</td><td class="pts">${t.pts}</td></tr>`; }).join('')}</table>`;
+    const c = CLUBS[t.id], dg = t.gf - t.gc; return `<tr class="${t.id === S.club ? 'me' : ''}"><td>${i + 1}</td><td class="n">${clubImg(t.id) ? `<img class="lg-dot" src="${clubImg(t.id)}" alt="">` : `<i style="background:${c.shirt}"></i>`}${esc(c.name)}</td><td>${t.pj}</td><td class="x">${t.g}</td><td class="x">${t.e}</td><td class="x">${t.p}</td><td class="x">${t.gf}</td><td class="x">${t.gc}</td><td class="dg">${dg > 0 ? '+' + dg : dg}</td><td class="pts">${t.pts}</td></tr>`; }).join('')}</table>`;
 }
 // cómo funciona (solo al empezar la temporada, para no repetirlo en cada jornada)
 const HOW = '<p class="lg-how"><b>Cómo funciona:</b> siete jornadas, todos contra todos con los clubes de tu grupo. Tus partidos los juegas tú (o los simulas); los demás se simulan solos. Todos los partidos se juegan en El Sadar. Tres puntos por victoria y uno por empate.</p>';
 function head(S, sub) {
   const c = CLUBS[S.club];
-  return `<div class="lg-head">${kitSvg(S.club, 48)}<div><small>${esc(sub)}</small><h2>${esc(c.name)}</h2><span class="lg-note">${esc(c.town)} · Liga Navarra, grupo ${c.group === 'norte' ? 'Norte' : 'Sur'}${S.titles ? ` · ${S.titles} ${S.titles === 1 ? 'título' : 'títulos'}` : ''}</span></div><div class="lg-ovr">${c.ovr}<small>MEDIA</small></div></div>`;
+  return `<div class="lg-head">${crest(S.club, 48)}<div><small>${esc(sub)}</small><h2>${esc(c.name)}</h2><span class="lg-note">${esc(c.town)} · Liga Navarra, grupo ${c.group === 'norte' ? 'Norte' : 'Sur'}${S.titles ? ` · ${S.titles} ${S.titles === 1 ? 'título' : 'títulos'}` : ''}</span></div><div class="lg-ovr">${c.ovr}<small>MEDIA</small></div></div>`;
 }
 /** Pantalla principal de la liga: próximo partido y clasificación. Devuelve 'play' | 'sim' | 'new' | 'exit'. */
 // (todas las jornadas se juegan en El Sadar: se juegan desde donde estés, sin viajar)
@@ -174,7 +177,7 @@ export function ligaPanel(S) {
     let mid;
     if (m) {
       const H = CLUBS[m.h], A = CLUBS[m.a], home = m.h === S.club, rival = home ? m.a : m.h;
-      mid = `<div class="lg-next"><div class="lg-t">${kitSvg(m.h, 52)}<b>${esc(H.name)}</b><em>Media ${H.ovr}</em></div><div class="lg-vs">VS<small>JORNADA ${m.j + 1} DE ${S.rounds.length}</small><small>${home ? 'EN CASA · EL SADAR' : 'FUERA · EL SADAR'}</small></div><div class="lg-t">${kitSvg(m.a, 52)}<b>${esc(A.name)}</b><em>Media ${A.ovr}</em></div></div>`;
+      mid = `<div class="lg-next"><div class="lg-t">${crest(m.h, 52)}<b>${esc(H.name)}</b><em>Media ${H.ovr}</em></div><div class="lg-vs">VS<small>JORNADA ${m.j + 1} DE ${S.rounds.length}</small><small>${home ? 'EN CASA · EL SADAR' : 'FUERA · EL SADAR'}</small></div><div class="lg-t">${crest(m.a, 52)}<b>${esc(A.name)}</b><em>Media ${A.ovr}</em></div></div>`;
     } else {
       const ch = CLUBS[S.champion];
       mid = `<div class="lg-champ"><small>CAMPEÓN DE LA LIGA NAVARRA</small><br><b>${esc(ch.name)}</b><br>${S.champion === S.club ? '¡Sois campeones! Aupa ' + esc(c.town) + '!' : 'La próxima temporada, a por el título.'}</div>`;
@@ -206,7 +209,7 @@ export function clubPanel(clubId, items, sub = 'Tu club') {
 export function rivalPanel(clubId) {
   return new Promise(res => {
     const S = season(clubId);
-    const list = Object.keys(CLUBS).filter(k => k !== clubId).map(k => `<button class="lg-btn lg-rv" data-a="${k}">${kitSvg(k, 34)}<span><b>${esc(CLUBS[k].name)}</b><small>${esc(CLUBS[k].town)} · media ${CLUBS[k].ovr}</small></span></button>`).join('');
+    const list = Object.keys(CLUBS).filter(k => k !== clubId).map(k => `<button class="lg-btn lg-rv" data-a="${k}">${crest(k, 34)}<span><b>${esc(CLUBS[k].name)}</b><small>${esc(CLUBS[k].town)} · media ${CLUBS[k].ovr}</small></span></button>`).join('');
     const r = panel(`${head(S, 'Amistoso: elige rival')}<div class="lg-btns lg-list">${list}</div><div class="lg-btns"><button class="lg-btn" data-a="">Volver</button></div>`);
     r.firstElementChild.classList.add('lg-pick');
     r.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; r.remove(); res(b.dataset.a || null); });
@@ -215,7 +218,7 @@ export function rivalPanel(clubId) {
 /** Elegir tu club (campeonato desde el menú): todos los clubes, por grupos. Devuelve su id o null. */
 export function clubPick() {
   return new Promise(res => {
-    const row = (k) => `<button class="lg-btn lg-rv" data-a="${k}">${kitSvg(k, 34)}<span><b>${esc(CLUBS[k].name)}</b><small>${esc(CLUBS[k].town)} · media ${CLUBS[k].ovr}</small></span></button>`;
+    const row = (k) => `<button class="lg-btn lg-rv" data-a="${k}">${crest(k, 34)}<span><b>${esc(CLUBS[k].name)}</b><small>${esc(CLUBS[k].town)} · media ${CLUBS[k].ovr}</small></span></button>`;
     const ids = Object.keys(CLUBS).sort((a, b) => (CLUBS[a].group || '').localeCompare(CLUBS[b].group || '') || CLUBS[a].name.localeCompare(CLUBS[b].name));
     const r = panel(`<div class="lg-head"><div><small>Campeonato de fútbol</small><h2>Elige tu club</h2><span class="lg-note">Con él juegas la Liga Navarra y los amistosos</span></div></div><div class="lg-btns lg-list">${ids.map(row).join('')}</div><div class="lg-btns"><button class="lg-btn" data-a="">Volver</button></div>`);
     r.firstElementChild.classList.add('lg-pick');
