@@ -22,8 +22,6 @@ import { getLang, setLang, langChosen } from '../i18n.js';
 import { laminaUrl, laminasDe, laminaRail, bindLaminas, townCover, comarcaCover, townImg, leyendaUrl, openVisor, cimaUrl } from '../ui/laminas.js';
 import { LAMINAS } from '../data/laminas.js';
 import { CLUBS } from '../futbol/clubs.js';
-import { PELOTARI_IMG } from '../ui/sportCard.js';
-import OSASUNA_VS from '../assets/meshy/portraits/osasuna_vs.webp?url';
 import { SABERES, saberCounts } from '../data/saberes.js';
 import { EDADES, edadDe, missionSlots } from '../data/edad.js';
 import { ARMAS, PENDIENTES, FIG, GUIA, armsOfTown } from '../data/armas-navarra.js';
@@ -241,25 +239,26 @@ export class Hub {
     const p = profile(), fl = levelById(this.frontonId()), club = CLUBS[p.futbolClub], tx = p.txapelas || 0;
     let fb = null; try { fb = JSON.parse(localStorage.getItem('mendimendiz-futbol-v1') || 'null'); } catch (e) { }
     // (las figuras, las mismas de las cartas: en reposo, limpias, como el resto de pantallas de deporte)
-    const avP = PELOTARI_IMG.blue, avF = OSASUNA_VS, sadar = levelById('pamplona');
-    // (una carta por fila: la figura a la izquierda y, en una sola columna, el rótulo con tu marca a su derecha, el título
-    // y el texto; abajo, lo que se elige (el frontón, que abre la lista por comarcas, o tu club) con el botón de jugar al
-    // lado. Las dos cartas, iguales; en el iPhone tumbado, cada una cabe entera a la vista)
+    const sadar = levelById('pamplona');
+    // (una carta por fila con su portada: la lámina del protagonista en acción, a todo color, a la derecha; a la izquierda,
+    // en una sola columna, el rótulo con tu marca a su derecha, el título y el texto, y abajo lo que se elige (el frontón,
+    // que abre la lista por comarcas, o tu club) con el botón de jugar al lado. Las dos cartas, iguales; en el iPhone
+    // tumbado, cada una cabe entera a la vista. En vertical, la portada entera arriba y lo demás debajo)
     const kit = club ? (clubImg(p.futbolClub) ? `<img class="sp-media sp-em" src="${clubImg(p.futbolClub)}" alt="">` : `<i class="sp-media sp-kit" style="--a:${club.shirt};--b:${club.shirt2 || club.shorts || club.shirt}"></i>`) : `<i class="sp-media sp-ico">${I('balon', 32)}</i>`;
     return `
     <h2 class="sec">${I('trophy', 34)} Campeonatos</h2>
     <p class="hint sp-hint">Juega sin entrar en las misiones de un pueblo. Lo que ganes cuenta igual.</p>
     <section class="sports">
-      <div class="sport" style="--bg:url(${laminaUrl('dep-fronton') || townImg(fl)})">
-        <div class="sp-fig">${avP ? `<img class="sp-av" src="${avP}" alt="">` : ''}</div>
+      <div class="sport sp-pelota">
+        <span class="sp-cover" aria-hidden="true" style="background-image:url(${laminaUrl('dep-pelotari') || laminaUrl('dep-fronton') || townImg(fl)})"></span>
         <div class="sp-txt"><small class="kicker">Torneo de mano</small><h3>Pelota a mano</h3>
           <p>Partido libre o el torneo por la txapela de la comarca: cuartos, semifinal y final.</p>
           <span class="sp-stat">${I('txapela', 22)} ${tx} ${tx === 1 ? 'txapela' : 'txapelas'}</span></div>
         <div class="sp-bar"><div class="sp-row"><small>Elige frontón</small>${this.frontonBox(fl)}</div>
           <button class="gx-go" data-sport="pelota">${I('play', 24)} <span>Jugar</span></button></div><span class="sp-shine"></span>
       </div>
-      <div class="sport" style="--bg:url(${laminaUrl('dep-estadio') || townImg(sadar)})">
-        <div class="sp-fig">${avF ? `<img class="sp-av" src="${avF}" alt="">` : ''}</div>
+      <div class="sport sp-futbol">
+        <span class="sp-cover" aria-hidden="true" style="background-image:url(${laminaUrl('dep-futbol') || laminaUrl('dep-estadio') || townImg(sadar)})"></span>
         <div class="sp-txt"><small class="kicker">Liga Navarra</small><h3>Fútbol</h3>
           <p>Liga con tu club y amistosos contra cualquier club. Todos los partidos, en El Sadar.</p>
           <span class="sp-stat">${I('balon', 22)} ${fb?.played || 0} ${(fb?.played || 0) === 1 ? 'partido' : 'partidos'} · ${fb?.won || 0} ${(fb?.won || 0) === 1 ? 'ganado' : 'ganados'}</span></div>
