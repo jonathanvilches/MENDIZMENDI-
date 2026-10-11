@@ -157,8 +157,12 @@ export const has3D = (name) => !!(BAKED[name] || UI3D[name] || CUSTOM[name] || I
 // todos los nombres con modelo 3D (para hornearlos con tools/iconbake.mjs)
 export const ICON3D_NAMES = () => [...new Set([UI3D, CUSTOM, ITEM, ANIMAL, SMALL, BIRDS, FLY].flatMap(o => Object.keys(o)))];
 // iconos ya horneados (imágenes WebP generadas una vez con tools/iconbake.mjs): no hay que dibujarlos en el móvil
+// (los que tienen dos nombres y la misma imagen, byte a byte, se cargan una vez: el segundo nombre apunta al primero y
+// el archivo único no lleva la misma imagen dos veces. Si un día se dibujan distintos, se quita la pareja de SAME)
+const SAME = { aguila: 'eagle', ardilla: 'squirrel', boar: 'jabali', vulture: 'buitre', chamois: 'goat', stork: 'ciguena', deer: 'corzo', trout: 'fish', zorro: 'fox', herbs: 'herb', pottoka: 'horse', owl: 'lechuza', mountain: 'peak', woodpecker: 'pito' };
 const BAKED = {};
-for (const [p, u] of Object.entries(import.meta.glob('../assets/icons3d/*.webp', { eager: true, query: '?url', import: 'default' }))) BAKED[p.split('/').pop().replace('.webp', '')] = u;
+for (const [p, u] of Object.entries(import.meta.glob(['../assets/icons3d/*.webp', '!../assets/icons3d/{aguila,ardilla,boar,vulture,chamois,stork,deer,trout,zorro,herbs,pottoka,owl,mountain,woodpecker}.webp'], { eager: true, query: '?url', import: 'default' }))) BAKED[p.split('/').pop().replace('.webp', '')] = u;
+for (const [a, b] of Object.entries(SAME)) if (BAKED[b]) BAKED[a] = BAKED[b];
 
 function build(name) {
   if (UI3D[name]) return UI3D[name]();

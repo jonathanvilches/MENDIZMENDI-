@@ -254,6 +254,8 @@
 .pcard.done { background: rgba(194, 28, 255, .12); border-color: rgba(201, 178, 255, .5); }
 .pcard .phead { display: flex; align-items: center; gap: 8px; } .pcard .phead div { flex: 1; } .pcard b { font-size: var(--fs-md); display: block; } .pcard small { color: var(--mute); font-size: var(--fs-xs); }
 .pcard .alt { font-weight: 900; color: var(--gold); font-size: var(--fs-md); white-space: nowrap; }
+.pcard .pc-img { position: relative; margin: 0; width: 100%; aspect-ratio: 16 / 9; border-radius: 4px; overflow: hidden; background: rgba(255, 255, 255, .06); }
+.pcard .pc-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 .spark { width: 100%; height: 44px; }
 .pmeta { display: flex; gap: 12px; align-items: center; font-size: var(--fs-sm); color: var(--mute); flex-wrap: wrap; } .pmeta span { display: inline-flex; align-items: center; gap: 4px; }
 .diff i { display: inline-block; width: 9px; height: 9px; transform: rotate(45deg); border-radius: 2px; background: #ff8c42; margin-right: 4px; } .diff i.o { background: rgba(255, 255, 255, .15); }

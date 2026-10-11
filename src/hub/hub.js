@@ -19,7 +19,7 @@ import { avatarPortrait, portraitImg, avatarPortraitImg } from '../ui/portraits.
 import { stampImg } from '../assets.js';
 import { Stage, releaseStage } from './stage.js';
 import { getLang, setLang, langChosen } from '../i18n.js';
-import { laminaUrl, laminasDe, laminaRail, bindLaminas, townCover, comarcaCover, townImg, leyendaUrl, openVisor } from '../ui/laminas.js';
+import { laminaUrl, laminasDe, laminaRail, bindLaminas, townCover, comarcaCover, townImg, leyendaUrl, openVisor, cimaUrl } from '../ui/laminas.js';
 import { LAMINAS } from '../data/laminas.js';
 import { CLUBS } from '../futbol/clubs.js';
 import { PELOTARI_IMG } from '../ui/sportCard.js';
@@ -402,7 +402,8 @@ export class Hub {
   }
   peakCard(m, town = null) {
     const done = profile().peaks.includes(m.id), c = comarca(m.region);
-    return `<div class="pcard ${done ? 'done' : ''}" style="--c:${c?.color || '#6d3b5c'}"><div class="phead">${I('peak', 40)}<div><b>${esc(m.name)}</b><small>${esc(m.zone || '')}</small></div><span class="alt">${m.altitude} m</span></div>
+    // (las cimas de las misiones llevan arriba su escena, entera en 16:9, como las tarjetas de los pueblos)
+    return `<div class="pcard ${done ? 'done' : ''}" style="--c:${c?.color || '#6d3b5c'}">${(u => u ? `<figure class="pc-img"><img src="${u}" alt="" loading="lazy" decoding="async"></figure>` : '')(cimaUrl(m.id))}<div class="phead">${I('peak', 40)}<div><b>${esc(m.name)}</b><small>${esc(m.zone || '')}</small></div><span class="alt">${m.altitude} m</span></div>
       ${spark(m.profile)}<div class="pmeta"><span>${String(Math.round(m.distance * 10) / 10).replace('.', ',')} km</span><span>+${m.gain} m</span><span class="diff">${'<i></i>'.repeat(m.difficulty)}${'<i class="o"></i>'.repeat(Math.max(0, 5 - m.difficulty))}</span></div>
       <p>${esc(m.intro || '')}</p>
       ${town ? (done ? `<span class="pbadge ok">${I('check', 18)} Cima conseguida</span>` : `<button class="btn small primary" data-town="${town.id}">${I('play', 18)} Misión en ${esc(town.name.split(' /')[0])}</button>`) : ''}</div>`;

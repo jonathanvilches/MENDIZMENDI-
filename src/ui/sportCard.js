@@ -17,7 +17,7 @@ const STAT_NAMES = { es: ['Vel', 'Pot', 'Man'], eu: ['Abi', 'Ind', 'Esk'] };
  */
 export function pelotariCard(o) {
   const r = pelotariRating(o.stats, `${o.name} ${o.town || ''}`, o.bonus || 0), N = STAT_NAMES[o.lang] || STAT_NAMES.es, tag = o.tag || 'div';
-  const img = o.img || (o.side === 'azul' ? blue : red);
+  const img = o.img || (o.side === 'azul' ? PELOTARI_IMG.blue : PELOTARI_IMG.red);   // (del objeto: con blue y red sueltos, el compilador pegaba las imágenes dos veces)
   return `<${tag} class="gx-card ${o.side || 'rojo'}${o.lock ? ' lock' : ''}${o.pop ? ' pop' : ''}${o.mini ? ' mini' : ''}" style="--w:${o.w || 140}px;--d:${o.d || 0}s" ${o.attr || ''}>
     <span class="gx-face"></span><img src="${img}" alt="" draggable="false">
     <span class="gx-ovr"><b>${o.lock ? '?' : r.ovr}</b><small>${esc(o.role || 'Mano')}</small></span>
