@@ -16,6 +16,12 @@ const BY_ID = Object.fromEntries(LAMINAS.map(l => [l.id, l]));
 /** La lámina por su id (o null si no está en esta versión); small: la copia pequeña. */
 export const laminaUrl = (id, small = false) => (id && ((small && URLS[id + '-s']) || URLS[id])) || null;
 export const laminaById = (id) => BY_ID[id] || null;
+// Las escenas de las cimas de las misiones de montaña (src/assets/cimas), con el id del monte, en 16:9: el explorador en
+// la subida. En la web, la de 768 para las tarjetas y la de 1536 para el buzón de cumbre; en el archivo único, la de 320.
+const CIMA = byId(import.meta.glob('@cimas/*.webp', { eager: true, query: '?url', import: 'default' }));
+const CIMA_BIG = byId(import.meta.glob('@cimas-big/*.webp', { eager: true, query: '?url', import: 'default' }));
+/** La escena de una cima (o null si no la tiene); big: la grande. */
+export const cimaUrl = (id, big = false) => (big && CIMA_BIG[id]) || CIMA[id] || null;
 /** La ilustración de un cuento (o, si no tiene, la lámina de su pueblo que lo recuerda); big: la grande. */
 export const leyendaUrl = (id, big = false) => (big && LEY_BIG[id]) || LEY[id] || laminaUrl(CUENTO_LAMINA[id], !big);
 // Las portadas son todas láminas: la de cada pueblo, la de cada comarca y, si un pueblo no tiene, la de su comarca.

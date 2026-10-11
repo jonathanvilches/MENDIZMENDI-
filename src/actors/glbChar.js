@@ -40,7 +40,8 @@ function outlineMat(w) {
 const MESHY = {}, MESHY_PICS = {};
 // (en el archivo único, los de textura a 1024 px: el alias @meshy-full de vite.config.js)
 for (const [p, u] of Object.entries(import.meta.glob('@meshy-full/*.glb', { eager: true, query: '?url', import: 'default' }))) MESHY[p.split('/').pop().replace('.glb', '')] = u;
-for (const [p, u] of Object.entries(import.meta.glob('../assets/meshy/portraits/*.{png,webp}', { eager: true, query: '?url', import: 'default' }))) MESHY_PICS[p.split('/').pop().replace(/\.(png|webp)$/, '')] = u;
+// (solo los retratos de busto y de cuerpo entero: las figuras de la pantalla VS las carga sportCard.js, y así no van dos veces)
+for (const [p, u] of Object.entries(import.meta.glob('../assets/meshy/portraits/*_{bust,full}.{png,webp}', { eager: true, query: '?url', import: 'default' }))) MESHY_PICS[p.split('/').pop().replace(/\.(png|webp)$/, '')] = u;
 // versión ligera de cada uno (tools/meshy-lod.mjs: ~1/3 de triángulos y textura de 512 px) para cuando salen muchos a la
 // vez: vecinos, corredores, futbolistas
 const MESHY_LOD = {};

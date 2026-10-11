@@ -14,7 +14,7 @@ import { profile, saveProfile, townState, addXP, checkBadges, addCard, comarcaDo
 import { infoCard, timingGame, mashGame, sequenceGame, simonGame, choiceGame, missionComplete, townFinale, play3d } from '../ui/minigames.js';
 import { OFICIOS } from '../data/oficios.js';
 import { OFICIO_LAMINA } from '../data/laminas.js';
-import { laminaUrl, leyendaUrl } from '../ui/laminas.js';
+import { laminaUrl, leyendaUrl, cimaUrl } from '../ui/laminas.js';
 import { isEU, tr } from '../i18n.js';
 import { PERSONAJES } from '../data/personajes.js';
 import { makeItem, makeGate, makeWorkbench, makeMemorial } from './items.js';
@@ -1668,7 +1668,7 @@ export class TownGame {
     await new Promise(r => setTimeout(r, 2600));
     if (!this.P.peaks.includes(pk.id)) this.P.peaks.push(pk.id);
     saveProfile();
-    await infoCard(this.ui, { icon: 'peak', kicker: `Buzón de cumbre · ${pk.zone}`, title: `${pk.name}${pk.altName ? ' · ' + pk.altName : ''}`, text: `${pk.intro} Altitud: ${pk.altitude.toLocaleString('es')} m. Desde ${pk.start}: ${String(pk.distance).replace('.', ',')} km y ${pk.gain} m de desnivel. En el juego has subido ${climbed} m.`, badge: 'Cima conseguida', button: 'Mirar alrededor' });
+    await infoCard(this.ui, { icon: 'peak', lamina: cimaUrl(pk.id, true) || '', kicker: `Buzón de cumbre · ${pk.zone}`, title: `${pk.name}${pk.altName ? ' · ' + pk.altName : ''}`, text: `${pk.intro} Altitud: ${pk.altitude.toLocaleString('es')} m. Desde ${pk.start}: ${String(pk.distance).replace('.', ',')} km y ${pk.gain} m de desnivel. En el juego has subido ${climbed} m.`, badge: 'Cima conseguida', button: 'Mirar alrededor' });
     await this.panorama(M, c0);
     // almuerzo en la cima, como los pastores
     const b = this.P.bag?.food || {}, eat = ['queso', 'pan', 'miel', 'txistorra', 'manzana', 'avellanas', 'moras'].filter(k => b[k] > 0).slice(0, 2);

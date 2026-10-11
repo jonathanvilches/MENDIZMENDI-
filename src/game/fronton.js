@@ -20,8 +20,8 @@ import { LEVELS } from '../data/levels.js';
 import { txapelas } from './torneo.js';
 import { meetPelotari } from './pelotaris.js';
 // las figuras de la pantalla VS (nuestros pelotaris en 3D, en pleno golpe: tools/meshy-retratos.mjs con CLIP=Hit T=0.2)
-import vsBlue from '../assets/meshy/portraits/pelotari_vs.webp?url';
-import vsRed from '../assets/meshy/portraits/pelotari_rojo_vs.webp?url';
+import { PELOTARI_IMG } from '../ui/sportCard.js';   // (las mismas imágenes que las cartas: así no van dos veces en el archivo único)
+const vsBlue = PELOTARI_IMG.blue, vsRed = PELOTARI_IMG.red;
 
 // Cómo es el frontón de cada sitio. Se parte de la comarca y de lo que cuentan las fuentes (legal/estado-legal.md): los
 // frontones viejos de los pueblos, junto a la iglesia y con el frontis de sillería (arenisca rojiza en Baztan y Bidasoa,
