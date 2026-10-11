@@ -157,14 +157,16 @@ export class UI {
     const b = $('#quest', this.hud), E = this.questEls;
     if (!q) { if (!this.questHidden) { b.classList.add('hidden'); this.questHidden = true; } return; }
     if (this.questHidden !== false) { b.classList.remove('hidden'); this.questHidden = false; }
-    // (solo se toca lo que cambia: escribir el mismo texto en cada fotograma también obliga a redibujar la página)
+    // (solo se toca lo que cambia: escribir el mismo texto en cada fotograma también obliga a redibujar la página. Lo
+    // último escrito se guarda en el propio elemento (_t): en euskera, lo que se lee del elemento ya está traducido y no
+    // coincidiría nunca con el texto en castellano, y se reescribía y volvía a latir en cada fotograma)
     if (this.lastQuestIcon !== q.icon) { E.qe.innerHTML = I(q.icon, 34); this.lastQuestIcon = q.icon; }
-    if (E.qt.textContent !== q.step) { E.qt.textContent = q.step; b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse'); this.refreshDots(); }
-    if (E.small.textContent !== q.title) E.small.textContent = q.title;
+    if (E.qt._t !== q.step) { E.qt._t = q.step; E.qt.textContent = q.step; b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse'); this.refreshDots(); }
+    if (E.small._t !== q.title) { E.small._t = q.title; E.small.textContent = q.title; }
     const pips = E.pips, key = (q.nSteps || 0) + ':' + (q.stepIdx ?? -1);
     if (pips.dataset.k !== key) { pips.dataset.k = key; pips.innerHTML = q.nSteps ? Array.from({ length: q.nSteps }, (_, i) => `<i class="${i < q.stepIdx ? 'ok' : i === q.stepIdx ? 'now' : ''}"></i>`).join('') : ''; }
     const dt = q.dist != null ? (q.dist < 1000 ? `${Math.round(q.dist)} m` : '') : '';
-    if (E.qd.textContent !== dt) E.qd.textContent = dt;
+    if (E.qd._t !== dt) { E.qd._t = dt; E.qd.textContent = dt; }
   }
   setRibbons(have, eg) {
     if (!this.hud) return;
@@ -184,7 +186,7 @@ export class UI {
     }
     p.classList.remove('hidden'); a.classList.remove('off');
   }
-  setClock(s, night) { if (!this.hud) return; const E = this.questEls; if (E.clock.textContent !== s) E.clock.textContent = s; if (this.night !== night) { this.night = night; E.clockI.innerHTML = night ? ICON.moon : ICON.sun; } }
+  setClock(s, night) { if (!this.hud) return; const E = this.questEls; if (E.clock._t !== s) { E.clock._t = s; E.clock.textContent = s; } if (this.night !== night) { this.night = night; E.clockI.innerHTML = night ? ICON.moon : ICON.sun; } }
   showBinoButton() { $('#bBino', this.hud)?.classList.remove('hidden'); }
   hideBinoButton() { $('#bBino', this.hud)?.classList.add('hidden'); }
   // Avisos en un solo carril: el aviso (con su icono) y la voz del narrador van uno debajo del otro, nunca encima. De
@@ -484,7 +486,7 @@ export class UI {
       if (out) { const d = Math.sign(a0); g.moveTo(d * sz * 1.3, 0); g.lineTo(-d * sz * 0.4, -sz); g.lineTo(-d * sz * 0.4, sz); }
       else { g.moveTo(0, -sz); g.lineTo(sz, 0); g.lineTo(0, sz); g.lineTo(-sz, 0); }
       g.closePath(); g.fill(); g.shadowBlur = 0; g.stroke(); g.restore();
-      if (dEl) { const d = Math.round(Math.hypot(target.x - player.pos.x, target.z - player.pos.z)); const t = d + ' m'; if (dEl.textContent !== t) dEl.textContent = t; const l = Math.round(Math.max(24, Math.min(W / dpr - 24, x / dpr))) + 'px'; if (dEl.style.left !== l) dEl.style.left = l; if (dEl.style.display) dEl.style.display = ''; }
+      if (dEl) { const d = Math.round(Math.hypot(target.x - player.pos.x, target.z - player.pos.z)); const t = d + ' m'; if (dEl._t !== t) { dEl._t = t; dEl.textContent = t; } const l = Math.round(Math.max(24, Math.min(W / dpr - 24, x / dpr))) + 'px'; if (dEl.style.left !== l) dEl.style.left = l; if (dEl.style.display) dEl.style.display = ''; }
     } else if (dEl && dEl.style.display !== 'none') dEl.style.display = 'none';
     // marca central
     g.fillStyle = '#ffffff'; g.beginPath(); g.moveTo(W / 2 - 5 * dpr, 0); g.lineTo(W / 2 + 5 * dpr, 0); g.lineTo(W / 2, 6 * dpr); g.closePath(); g.fill();

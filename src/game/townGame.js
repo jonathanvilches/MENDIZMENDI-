@@ -519,6 +519,9 @@ export class TownGame {
   // Vigilante: si el jugador se queda congelado (o en modo minijuego) sin ninguna ventana, diálogo ni escena abiertos,
   // se le devuelve el control. Evita que un fallo en una ventana deje el juego bloqueado.
   watchdog(dt) {
+    // (mira cuatro veces por segundo, con el tiempo que ha pasado: sus plazos son de 15 y 45 s, y buscar ventanas abiertas
+    // en toda la página en cada fotograma costaba casi medio milisegundo)
+    this.wdT = (this.wdT || 0) + dt; if (this.wdT < 0.25) return; dt = this.wdT; this.wdT = 0;
     const P = this.player, open = this.ui.busy || this.sportBusy || document.querySelector('.mg-overlay, .dogpick, .bagpanel, .ctxlost, .lg-root');
     const stuck = !open && !this.follow.cinematic && ((this.mode === 'mini') || (this.mode === 'play' && P.frozen));
     this.stuckT = stuck ? (this.stuckT || 0) + dt : 0;
@@ -731,18 +734,20 @@ export class TownGame {
     const left = this.blasones.filter(x => !P.cards.includes(x.id)).length;
     if (isNew) this.ui.toast(left ? `Escudo leído. Quedan ${left} en ${this.def.name.split(' /')[0]}` : `¡Has leído todos los escudos de ${this.def.name.split(' /')[0]}!`, 'shield', 2600);
   }
-  interactables() {
-    const list = [];
-    if (this.townArms) list.push({ kind: 'armas', x: this.townArms.read.x, z: this.townArms.read.z, r: 3, label: this.P.cards.includes(this.townArms.id) ? `Volver a leer el escudo de ${this.def.name.split(' /')[0]}` : `Leer el escudo de ${this.def.name.split(' /')[0]}` });
-    for (const b of this.blasones || []) list.push({ kind: 'escudo', b, x: b.read.x, z: b.read.z, r: 3, label: this.P.cards.includes(b.id) ? 'Volver a leer el escudo' : 'Leer el escudo de la casa' });
-    for (const a of this.actors) if (a.visible !== false) list.push({ kind: 'npc', a, x: a.pos.x, z: a.pos.z, r: 3, label: a.market ? `Puesto del mercado: ${a.market.toLowerCase()}` : a === this.pelotari ? `Jugar a pelota con ${a.name}` : a === this.coach ? 'Jugar un partido en El Sadar' : a === this.futsalCoach ? `Fútbol con ${clubOfTown(this.def.id)?.name || 'el club del pueblo'}` : a.sabio ? `${a.name}: la historia de ${a.sabio.name}` : a.cuento ? `${a.name}: escuchar «${a.cuento.title}»` : `Hablar con ${a.name}` });
-    for (const a of this.walkers) list.push({ kind: 'walker', a, x: a.pos.x, z: a.pos.z, r: a.info || a.jobs ? 3 : 2.4, label: a.stall ? 'Productos del pueblo' : a.jobs ? `Ayudar a ${a.name.toLowerCase()} (txanponak)` : a.info ? `Hablar con ${a.name.toLowerCase() === 'pastor' ? 'el pastor' : 'la ganadera'}` : `Saludar a ${a.name}${TAREAS[a.tarea] ? ' · ' + TAREAS[a.tarea].name : ''}` });
-    for (const o of this.agro?.list || []) list.push({ kind: 'agro', o, x: o.x, z: o.z, r: o.kind === 'combine' ? 6 : 4.5, label: `Mirar: ${o.info.title.toLowerCase()}` });
-    for (const it of this.items) list.push({ kind: 'item', it, x: it.x, z: it.z, r: 2.2, label: it.label });
-    for (const M of this.missions) if (M.bench && M.step === 1 && !M.done) list.push({ kind: 'bench', M, x: M.bench.x, z: M.bench.z, r: 3, label: M.oficio ? 'Entrar al taller' : M.trade.verb });
-    for (const M of this.missions) if (M.memo) list.push({ kind: 'memorial', M, x: M.memo.x, z: M.memo.z, r: 2.8, label: M.step === 1 && !M.done ? `Ver el recuerdo de ${M.fig.name}` : `Leer la placa` });
-    for (const k of this.clues) if (!k.found && k.obj.visible) list.push({ kind: 'clue', k, x: k.x, z: k.z, r: 2.6, label: 'Examinar' });
-    for (const M of this.missions) if (M.creature && M.creature.shown && !M.done && !M.chase) list.push({ kind: 'creature', M, x: M.creature.pos.x, z: M.creature.pos.z, r: 3.6, label: `Hablar con ${M.leg.creature}` });
+  // near: solo lo que está a unos pasos (el bucle de cada fotograma); sin near, todo (lo usan las pruebas). Se mira la
+  // distancia antes de crear cada objeto con su texto: así no se fabrican cien rótulos por fotograma para quedarse con uno
+  interactables(near = null) {
+    const list = [], ok = (x, z) => !near || (Math.abs(x - near.x) < 7 && Math.abs(z - near.z) < 7);
+    if (this.townArms && ok(this.townArms.read.x, this.townArms.read.z)) list.push({ kind: 'armas', x: this.townArms.read.x, z: this.townArms.read.z, r: 3, label: this.P.cards.includes(this.townArms.id) ? `Volver a leer el escudo de ${this.def.name.split(' /')[0]}` : `Leer el escudo de ${this.def.name.split(' /')[0]}` });
+    for (const b of this.blasones || []) if (ok(b.read.x, b.read.z)) list.push({ kind: 'escudo', b, x: b.read.x, z: b.read.z, r: 3, label: this.P.cards.includes(b.id) ? 'Volver a leer el escudo' : 'Leer el escudo de la casa' });
+    for (const a of this.actors) if (a.visible !== false && ok(a.pos.x, a.pos.z)) list.push({ kind: 'npc', a, x: a.pos.x, z: a.pos.z, r: 3, label: a.market ? `Puesto del mercado: ${a.market.toLowerCase()}` : a === this.pelotari ? `Jugar a pelota con ${a.name}` : a === this.coach ? 'Jugar un partido en El Sadar' : a === this.futsalCoach ? `Fútbol con ${clubOfTown(this.def.id)?.name || 'el club del pueblo'}` : a.sabio ? `${a.name}: la historia de ${a.sabio.name}` : a.cuento ? `${a.name}: escuchar «${a.cuento.title}»` : `Hablar con ${a.name}` });
+    for (const a of this.walkers) if (ok(a.pos.x, a.pos.z)) list.push({ kind: 'walker', a, x: a.pos.x, z: a.pos.z, r: a.info || a.jobs ? 3 : 2.4, label: a.stall ? 'Productos del pueblo' : a.jobs ? `Ayudar a ${a.name.toLowerCase()} (txanponak)` : a.info ? `Hablar con ${a.name.toLowerCase() === 'pastor' ? 'el pastor' : 'la ganadera'}` : `Saludar a ${a.name}${TAREAS[a.tarea] ? ' · ' + TAREAS[a.tarea].name : ''}` });
+    for (const o of this.agro?.list || []) if (ok(o.x, o.z)) list.push({ kind: 'agro', o, x: o.x, z: o.z, r: o.kind === 'combine' ? 6 : 4.5, label: `Mirar: ${o.info.title.toLowerCase()}` });
+    for (const it of this.items) if (ok(it.x, it.z)) list.push({ kind: 'item', it, x: it.x, z: it.z, r: 2.2, label: it.label });
+    for (const M of this.missions) if (M.bench && M.step === 1 && !M.done && ok(M.bench.x, M.bench.z)) list.push({ kind: 'bench', M, x: M.bench.x, z: M.bench.z, r: 3, label: M.oficio ? 'Entrar al taller' : M.trade.verb });
+    for (const M of this.missions) if (M.memo && ok(M.memo.x, M.memo.z)) list.push({ kind: 'memorial', M, x: M.memo.x, z: M.memo.z, r: 2.8, label: M.step === 1 && !M.done ? `Ver el recuerdo de ${M.fig.name}` : `Leer la placa` });
+    for (const k of this.clues) if (!k.found && k.obj.visible && ok(k.x, k.z)) list.push({ kind: 'clue', k, x: k.x, z: k.z, r: 2.6, label: 'Examinar' });
+    for (const M of this.missions) if (M.creature && M.creature.shown && !M.done && !M.chase && ok(M.creature.pos.x, M.creature.pos.z)) list.push({ kind: 'creature', M, x: M.creature.pos.x, z: M.creature.pos.z, r: 3.6, label: `Hablar con ${M.leg.creature}` });
     // animales de granja cercanos (los del rebaño de una misión no)
     const Pp = this.player.pos;
     for (const a of this.fauna.animals) if (PET[a.kind] && !a.herd && Math.abs(a.pos.x - Pp.x) < 4 && Math.abs(a.pos.z - Pp.z) < 4) list.push({ kind: 'pet', a, x: a.pos.x, z: a.pos.z, r: a.kind === 'cow' ? 2.8 : 2.2, label: `Acariciar a ${PET[a.kind].name}` });
@@ -760,7 +765,7 @@ export class TownGame {
     if (this.mode !== 'play' || this.ui.busy || this.sportBusy) { this.ui.setPrompt(null); return; }
     const P = this.player.pos;
     let best = null, bd = 1e9;
-    for (const it of this.interactables()) { const d = Math.hypot(it.x - P.x, it.z - P.z); if (d < it.r && d < bd) { bd = d; best = it; } }
+    for (const it of this.interactables(P)) { const d = Math.hypot(it.x - P.x, it.z - P.z); if (d < it.r && d < bd) { bd = d; best = it; } }
     this.ui.setPrompt(best ? best.label : null);
     if (this.input.consume('e') && best) this.safeInteract(best);
     if (this.input.consume('f') && this.binoOn) this.toggleBinoculars();
@@ -1309,7 +1314,7 @@ export class TownGame {
     const wood = new THREE.MeshStandardMaterial({ color: '#8a5a32', roughness: 0.85 }), dark = new THREE.MeshStandardMaterial({ color: '#5a3a22', roughness: 0.9 });
     const pens = [];
     [['cow', 4, 11, 8], ['sheep', 7, 8, 6], ['pottoka', 2, 8, 6]].forEach(([kind, n, w, d], i) => {
-      const px = c.x + (i - 1) * 13, pz = c.z, y0 = groundHeight(px, pz);
+      const px = c.x + (i - 1) * 13, pz = c.z;
       for (const [x0, z0, x1, z1] of [[-w / 2, -d / 2, w / 2, -d / 2], [w / 2, -d / 2, w / 2, d / 2], [w / 2, d / 2, -w / 2, d / 2], [-w / 2, d / 2, -w / 2, -d / 2]]) {
         const len = Math.hypot(x1 - x0, z1 - z0), ang = Math.atan2(x1 - x0, z1 - z0), mx = px + (x0 + x1) / 2, mz = pz + (z0 + z1) / 2;
         for (const hh of [0.45, 0.95]) { const r_ = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.12, len), wood); r_.position.set(mx, groundHeight(mx, mz) + hh, mz); r_.rotation.y = ang; r_.castShadow = true; g.add(r_); }
@@ -1600,7 +1605,7 @@ export class TownGame {
   }
   async discoverClimb(M, w) {
     w.found = true; this.sound.magic?.();
-    const F = FAUNA[w.id], n = M.wild.filter(x => x.found).length;
+    const n = M.wild.filter(x => x.found).length;
     const isNew = addCard('fauna:' + w.id);
     this.player.frozen = true;
     try { await showFicha('fauna:' + w.id, { ui: this.ui, kicker: `Animal del monte · ${n} de ${M.wild.length}`, badge: isNew ? 'Nueva carta' : '', button: 'Seguir subiendo' }); await this.mochila.give('cuaderno'); }
@@ -1918,7 +1923,7 @@ export class TownGame {
   }
 
   async doWorkshop(M) {
-    const of = M.oficio, t = M.trade, n = of.steps.length;
+    const of = M.oficio, n = of.steps.length;
     // (en euskera, el oficio con su nombre vasco y las frases que se componen ya montadas en euskera)
     const eu = isEU(), oname = eu ? (of.eu || of.name) : of.name;
     this.player.frozen = true; this.mode = 'mini';

@@ -8,7 +8,6 @@
 
 const H = (name, look) => ({ name, look });
 const PASTOR = { txapela: '#1d1d24', shirt: '#efe9dc', vest: '#2d2b33', pants: '#3a3530', staff: true, hair: '#d6d0c6', moustache: '#ece8e0', old: true };
-const LAB = { shirt: '#6b8fb3', pants: '#3f4a5a', hair: '#4a3020' };
 const QUESERA = { shirt: '#b5485d', apron: '#ffffff', skirt: '#4a3b35', hair: '#a0522d', bun: true };
 const VITI = { shirt: '#8a4f7d', pants: '#3a3530', hat: 'straw', hair: '#2e2018' };
 const HUERTA = { shirt: '#d9a03a', pants: '#4a5b3a', hat: 'straw', hair: '#6b4a2e' };

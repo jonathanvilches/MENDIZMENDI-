@@ -64,7 +64,7 @@ export class Tienda {
     // cajas con fruta, verdura, quesos y tarros
     const goods = [['#c8302a', 0.12], ['#e8b04a', 0.13], ['#6a9a3a', 0.12], ['#f1d9a0', 0.16], ['#7a3a8a', 0.1], ['#e07a2a', 0.12]];
     goods.forEach(([c, r], i) => {
-      const x = -1.2 + i * 0.48, cr = box(0.42, 0.18, 0.34, x, 1.15, 0.3, wood);
+      const x = -1.2 + i * 0.48; box(0.42, 0.18, 0.34, x, 1.15, 0.3, wood);
       const m = new THREE.MeshStandardMaterial({ color: c, roughness: 0.6 });
       for (let k = 0; k < 5; k++) { const b = new THREE.Mesh(new THREE.SphereGeometry(r * 0.55, 8, 6), m); b.position.set(x + (k % 3 - 1) * 0.12, 1.28 + Math.floor(k / 3) * 0.06, 0.3 + (k % 2 - 0.5) * 0.12); G.add(b); }
     });

@@ -78,7 +78,7 @@ async function warmPortraits(g, ui) {
 }
 
 async function boot() {
-  startI18n();
+  await startI18n();   // (en euskera, espera a sus diccionarios: se cargan aparte)
   startVerMas(); startFrames();   // (los textos largos, plegados con «Ver más»)
   // (con tope de 2,5 s: en algunos visores de iPhone la base de datos del navegador no responde nunca)
   await Promise.race([loadStore(), new Promise(r => setTimeout(r, 2500))]);

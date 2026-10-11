@@ -201,7 +201,6 @@ const horn = (pts, r0, r1, base, tip) => loft({ pts, r: pts.map((_, i) => { cons
 // ---------- Especies ----------
 // Cada especie define: cuerpo (tronco), cabeza+cuello (pivota en la base del cuello),
 // patas delanteras/traseras (pivotan en la cadera y el hombro) y cola.
-const shade = (hex, k) => C(hex).multiplyScalar(k);
 export const BEASTS = {
   // Oveja latxa (cara negra): lana basta de mechas largas que cuelgan, cara y patas negras, orejas horizontales
   sheep: (rnd) => {
@@ -363,7 +362,6 @@ export const BEASTS = {
       // orejas grandes y caídas hacia delante, tapando casi los ojos
       ...[-1, 1].map(s => ear(0.27, 0.17, 0.014, K, '#3a2c2a').applyMatrix4(Mx(s * 0.1, 0.15, 0.02, 2.05, s * 0.25, -s * 0.2))),
     ]);
-    const lc = (p, t) => p.z < -0.1 ? C(K) : C(P);
     const fl = (x) => leg([[V(x, 0, 0), [0.1, 0.1, 0.11]], [V(x, -0.15, 0.01), [0.065, 0.065, 0.065]], [V(x, -0.28, 0), [0.042, 0.042, 0.042]], [V(x, -0.38, 0.02), [0.04, 0.04, 0.04]]], P, '#6a5048', { hoofH: 0.045, split: true });
     const hl = (x) => leg([[V(x, 0, 0), [0.11, 0.11, 0.13]], [V(x, -0.13, 0.05), [0.07, 0.07, 0.07]], [V(x, -0.25, -0.05), [0.042, 0.042, 0.046]], [V(x, -0.36, -0.02), [0.04, 0.04, 0.04]]], K, '#161110', { hoofH: 0.045, split: true });
     const curl = []; for (let i = 0; i <= 10; i++) { const a = i / 10 * Math.PI * 2.2; curl.push(V(Math.sin(a) * 0.035, -0.02 - i * 0.006 + Math.cos(a) * 0.03, -0.02 - i * 0.004)); }

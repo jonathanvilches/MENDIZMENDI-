@@ -70,7 +70,6 @@ export class Input {
     const l = Math.hypot(x, y);
     if (l > 1) { x /= l; y /= l; }
     this.move.x = x; this.move.y = y;
-    const stickMag = this.stick.id !== null ? Math.hypot(this.stick.x, this.stick.y) : 0;
     this.run = this.enabled && (k.has('shift') || this.runToggle);
   }
   consume(action) { const has = this.pressed.has(action); this.pressed.delete(action); return has; }

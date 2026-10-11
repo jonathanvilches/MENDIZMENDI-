@@ -114,7 +114,6 @@ export function buildTown(scene, mats, def) {
     } else if (lm.kind === 'bridge' || lm.kind === 'plaza') spot = { x: lm.x, z: lm.z };
     else if (lm.kind === 'palace' || lm.kind === 'house') {
       const w = lm.kind === 'palace' ? 13 : 9, d = lm.kind === 'palace' ? 11 : 9, h = lm.kind === 'palace' ? 11 : 9;
-      const p = pathQuery(lm.x, lm.z);
       const r2 = Math.atan2(PLACES.plaza.x - lm.x, PLACES.plaza.z - lm.z);
       const g = minGround(lm.x, lm.z, w, d, r2);
       const pb = slopeBase(B, lm.x, lm.z, w, d, r2, g), po = { w, d, h, wall: fam === 'ribera' ? 'brick' : 'ashlar', noQuoins: true, roof: fam === 'pyrenean' ? 'slate' : 'tile', roofType: 'hip', hipRise: 4.6, arch: true, doorX: 0, balcony: true, balconyW: 5, ironBalcony: true, shield: lm.kind === 'palace', cornice: true };

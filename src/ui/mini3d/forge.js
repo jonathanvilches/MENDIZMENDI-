@@ -29,10 +29,10 @@ export function anvil(S) {
   sh.moveTo(-0.3, 0.3); sh.lineTo(-0.3, 0.38); sh.lineTo(0.17, 0.38); sh.lineTo(0.17, 0.28);
   sh.quadraticCurveTo(0.09, 0.27, 0.07, 0.17); sh.quadraticCurveTo(0.08, 0.07, 0.17, 0.04); sh.lineTo(0.17, 0); sh.lineTo(-0.22, 0); sh.lineTo(-0.22, 0.04);
   sh.quadraticCurveTo(-0.12, 0.07, -0.12, 0.17); sh.quadraticCurveTo(-0.14, 0.27, -0.22, 0.29); sh.lineTo(-0.3, 0.3);
-  const body = S.mesh(new THREE.ExtrudeGeometry(sh, { depth: 0.13, bevelEnabled: true, bevelSize: 0.012, bevelThickness: 0.012, bevelSegments: 3, curveSegments: 12 }).translate(0, 0, -0.065), iron, 0, 0, 0, g);
+  S.mesh(new THREE.ExtrudeGeometry(sh, { depth: 0.13, bevelEnabled: true, bevelSize: 0.012, bevelThickness: 0.012, bevelSegments: 3, curveSegments: 12 }).translate(0, 0, -0.065), iron, 0, 0, 0, g);
   S.mesh(rbox(0.47, 0.012, 0.145, 0.004), face, -0.065, 0.392, 0, g);                                         // la cara pulida
   const horn = S.mesh(lathe([[0.001, 0], [0.06, 0], [0.058, 0.04], [0.045, 0.1], [0.025, 0.16], [0.006, 0.2], [0.001, 0.205]], 24), iron, 0.17, 0.34, 0, g); horn.rotation.z = -Math.PI / 2; horn.scale.set(1, 1, 0.95);
-  const stump = S.mesh(new THREE.CylinderGeometry(0.26, 0.3, 0.42, 28), texMat(S, 'bark', '#9a8270'), -0.04, -0.21, 0, g);
+  S.mesh(new THREE.CylinderGeometry(0.26, 0.3, 0.42, 28), texMat(S, 'bark', '#9a8270'), -0.04, -0.21, 0, g);
   const top = S.mesh(new THREE.CircleGeometry(0.26, 28), S.mat('#c8a678', { roughness: 0.9 }), -0.04, 0.0, 0, g); top.rotation.x = -Math.PI / 2;
   for (let k = 1; k < 5; k++) { const r = S.mesh(new THREE.RingGeometry(k * 0.05, k * 0.05 + 0.004, 28), S.mat('#9a7a52'), -0.04, 0.002, 0, g); r.rotation.x = -Math.PI / 2; r.castShadow = false; }
   g.position.y = 0.42; return { g, faceY: 0.42 + 0.4 };

@@ -68,7 +68,7 @@ function chopScene(S, side) {
   const L = 1.4, R = 0.2, Y = R + 0.03, geo = new THREE.CylinderGeometry(R, R, L, 64, 84, false); geo.rotateZ(Math.PI / 2);
   uvScale(geo, 3, 2);
   const P = geo.attributes.position, base = new Float32Array(P.array), cw = new THREE.BufferAttribute(new Float32Array(P.count), 1); geo.setAttribute('cutw', cw);
-  const log = S.mesh(geo, cutMat(S, texMat(S, 'bark', '#b0947a')), 0, Y, 0);
+  S.mesh(geo, cutMat(S, texMat(S, 'bark', '#b0947a')), 0, Y, 0);
   const sc = document.createElement('canvas'); sc.width = sc.height = 128; const sg = sc.getContext('2d'), gr = sg.createRadialGradient(64, 64, 20, 64, 64, 64);
   gr.addColorStop(0, '#fff'); gr.addColorStop(0.75, '#ccc'); gr.addColorStop(1, '#000'); sg.fillStyle = gr; sg.fillRect(0, 0, 128, 128);
   const sawA = S.own(new THREE.CanvasTexture(sc));
@@ -158,7 +158,7 @@ function stoneScene(S, stage) {
   uvScale(geo, 0.6, 0.4);
   const cw = new THREE.BufferAttribute(new Float32Array(P.count), 1); geo.setAttribute('cutw', cw);
   const stoneM = cutMat(S, rockM, '#f2ead8');
-  const block = S.mesh(geo, stoneM, 0, B0, 0);
+  S.mesh(geo, stoneM, 0, B0, 0);
   const rnd = ((sd) => () => ((sd = (sd * 16807) % 2147483647) / 2147483647))(stage ? 11 : 7);
   const waves = Array.from({ length: 7 }, () => ({ d: V(rnd() - 0.5, rnd() - 0.5, rnd() - 0.5).normalize(), f: 14 + rnd() * 16, ph: rnd() * 6, a: 0.4 + rnd() * 0.6 }));
   // planos que cortan esquinas y aristas (lo que salta con el pico): hacia cada esquina, con su hondura
@@ -200,7 +200,7 @@ function stoneScene(S, stage) {
   const ready = worker(S, 'pastor', { height: 1.72 }).then(w => { W = w; if (W) W.obj.position.set(0, 0, WZ); });
   let last = -1, prev = 9, tx = 0;
   const E = V(0, 0, 0), H = V(0, 0, 0), hi = V(0, 0, 0), dir = V(0, 0, 0), q = new THREE.Quaternion(), hr = V(0, 0, 0), ct = V(0, 0, 0), ax = V(0, 0, 0);
-  const L1 = 0.34, L2 = 0.13, BA = Math.atan2(L2, L1), TI = Math.PI / 2 + 0.3, UP = -0.8;
+  const L1 = 0.34, L2 = 0.13, TI = Math.PI / 2 + 0.3, UP = -0.8;
   return {
     ready, frame: { box: [[-0.55, 0, -0.75], [0.4, 1.45, 0.3]], dir: [-0.85, 0.5, 0.8] },
     set(p, hit, ok) {
@@ -305,7 +305,6 @@ function spinScene(S) {
   const D0 = V(0.14, 0.2, 0.1), D1 = V(0.56, 1.18, 0.28), dAx = D1.clone().sub(D0), dLen = dAx.length(); dAx.normalize();
   const distaff = new THREE.Group(); distaff.position.copy(D0); distaff.quaternion.setFromUnitVectors(V(0, 1, 0), dAx); g.add(distaff);
   S.mesh(lathe([[0.001, 0], [0.012, 0], [0.01, dLen * 0.6], [0.013, dLen * 0.62], [0.009, dLen], [0.001, dLen + 0.01]], 12), S.mat('#9a6a3a', { roughness: 0.55 }), 0, 0, 0, distaff);
-  const woolM = texMat(S, 'leaves', '#f8f2e6', { roughness: 1, normalScale: new THREE.Vector2(0.6, 0.6) });
   const wool = S.mesh(lumpy(new THREE.IcosahedronGeometry(0.1, 4), 0.18, 9, 3), S.mat('#f4eee2', { roughness: 1 }), 0, dLen * 0.82, 0, distaff); wool.scale.set(1, 1.7, 1);
   S.mesh(new THREE.TorusGeometry(0.06, 0.006, 8, 24), S.mat('#c8202a', { roughness: 0.7 }), 0, dLen * 0.7, 0, distaff).rotation.x = Math.PI / 2;   // la cinta que la ata
   // el huso: vara fina con la tortera abajo y el ovillo de hilo que crece
@@ -353,7 +352,7 @@ function ovenScene(S) {
     if (!(z > 0.25 && Math.abs(x) < 0.31 && (y < 0.2 || x * x + (y - 0.2) ** 2 < 0.31 * 0.31))) keep.push(t); }
   const domeG = new THREE.BufferGeometry(); for (const [name, at] of Object.entries(A)) { const a = new Float32Array(keep.length * 3 * at.itemSize); keep.forEach((t, j) => { for (let k = 0; k < 3 * at.itemSize; k++) a[j * 3 * at.itemSize + k] = at.array[t * at.itemSize + k]; }); domeG.setAttribute(name, new THREE.BufferAttribute(a, at.itemSize)); }
   dg0.dispose();
-  const dome = S.mesh(domeG, texMat(S, 'brick', '#e8d0b8', { side: THREE.DoubleSide }), 0, 0.75, 0, g);
+  S.mesh(domeG, texMat(S, 'brick', '#e8d0b8', { side: THREE.DoubleSide }), 0, 0.75, 0, g);
   const arch = new THREE.Shape(); arch.moveTo(-0.3, 0); arch.lineTo(-0.3, 0.2); arch.absarc(0, 0.2, 0.3, Math.PI, 0, true); arch.lineTo(0.3, 0); arch.lineTo(0.36, 0); arch.lineTo(0.36, 0.2); arch.absarc(0, 0.2, 0.36, 0, Math.PI, false); arch.lineTo(-0.36, 0); arch.closePath();
   S.mesh(new THREE.ExtrudeGeometry(arch, { depth: 0.12, bevelEnabled: true, bevelSize: 0.01, bevelThickness: 0.01, bevelSegments: 2, curveSegments: 20 }), texMat(S, 'stone', '#d8ccb4'), 0, 0.75, 0.62, g);
   S.mesh(new THREE.CircleGeometry(0.71, 40).rotateX(-Math.PI / 2), S.mat('#2a1c14', { roughness: 1 }), 0, 0.752, 0, g);

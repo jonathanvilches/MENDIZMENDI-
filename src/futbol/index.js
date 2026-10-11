@@ -68,7 +68,7 @@ export const FutbolSystem = {
     return this;
   },
   async play(opts) {
-    const C = this.cfg, data = career.load();
+    const C = this.cfg;
     const m = new FutbolMatch({ ...opts, makeCharacter: C.makeCharacter, crowd: C.crowd, quality: C.quality, touch: C.touch, audio: C.audio,
       tutorial: false, onResult: (r) => career.record(r), onTutorialDone: () => career.set('tutorial', true) });   // (es un minijuego: sin entrenamiento previo, al partido)
     window.__futbol = m;
@@ -132,7 +132,7 @@ export const FutbolSystem = {
   },
   /** Menú previo: modo (partido, penaltis o un reto), rival, dificultad, duración y asistencia. */
   async openMenu({ campoId = 'sadar', title, sub, local } = {}) {
-    const V = VENUES[campoId] || VENUES.sadar, d = career.load();
+    const V = VENUES[campoId] || VENUES.sadar;
     // (en El Sadar no se juega contra el equipo rojo del pueblo: se confundiría con Osasuna)
     // (en el pueblo, solo equipos del pueblo: sin clubes de verdad)
     const rivals = Object.values(TEAMS).filter(t => t.id !== V.home && !(V.env === 'estadio' && t.id === 'pueblo') && !(V.env !== 'estadio' && t.model === 'osasuna_fuera') && !(V.env !== 'estadio' && t.id === 'osasuna')).map(t => [t.id, t.name]);

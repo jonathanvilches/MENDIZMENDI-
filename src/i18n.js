@@ -2,17 +2,23 @@
 // La interfaz está escrita en castellano; en euskera, un traductor vigila el documento y cambia
 // cada texto (y aria-label, placeholder y title) por su versión en euskera: frases exactas y
 // plantillas con huecos (nombres de pueblo, números…).
-import { EU_EXACT, EU_RX } from './data/eu.js';
-import { EU_MAS, EU_RX_MAS, EU_RX_LISTA, setTr } from './data/eu-mas.js';
 import { EU_CUENTOS, cuentosRx } from './data/cuentos.js';
 import { EU_LAMINAS } from './data/laminas.js';
-import { EU_ARMAS, EU_RX_ARMAS } from './data/eu-armas.js';
-import { EU_OFICIOS, EU_RX_OFICIOS } from './data/eu-oficios.js';
-// la segunda parte de la traducción (menú completo, misiones, flora y fauna): sus frases y, por delante, sus plantillas
-Object.assign(EU_EXACT, EU_MAS, EU_CUENTOS); for (const k in EU_LAMINAS) EU_EXACT[k] ??= EU_LAMINAS[k];   // (las láminas no pisan una traducción que ya hubiera)
-for (const k in EU_ARMAS) EU_EXACT[k] ??= EU_ARMAS[k];         // (los escudos, los saberes y las edades, igual)
-for (const k in EU_OFICIOS) EU_EXACT[k] ??= EU_OFICIOS[k];     // (los oficios de antes y las fichas de las misiones, igual)
-EU_RX.unshift(...EU_RX_MAS, ...cuentosRx((x) => EU_EXACT[x] ?? x)); EU_RX.push(...EU_RX_ARMAS, ...EU_RX_OFICIOS, ...EU_RX_LISTA);
+// Los diccionarios de euskera (unos 550 KB de frases) se cargan aparte y solo en los modos de euskera: en castellano no
+// hacen falta, y así el juego arranca antes y gasta menos memoria. startI18n() los espera antes de pintar nada.
+let EU_EXACT = {}, EU_RX = [], euReady = null;
+/** Carga los diccionarios de euskera y los junta (una sola vez). */
+export function loadEU() {
+  return euReady ||= Promise.all([import('./data/eu.js'), import('./data/eu-mas.js'), import('./data/eu-armas.js'), import('./data/eu-oficios.js')]).then(([E, M, A, O]) => {
+    EU_EXACT = E.EU_EXACT; EU_RX = E.EU_RX;
+    // la segunda parte de la traducción (menú completo, misiones, flora y fauna): sus frases y, por delante, sus plantillas
+    Object.assign(EU_EXACT, M.EU_MAS, EU_CUENTOS); for (const k in EU_LAMINAS) EU_EXACT[k] ??= EU_LAMINAS[k];   // (las láminas no pisan una traducción que ya hubiera)
+    for (const k in A.EU_ARMAS) EU_EXACT[k] ??= A.EU_ARMAS[k];         // (los escudos, los saberes y las edades, igual)
+    for (const k in O.EU_OFICIOS) EU_EXACT[k] ??= O.EU_OFICIOS[k];     // (los oficios de antes y las fichas de las misiones, igual)
+    EU_RX.unshift(...M.EU_RX_MAS, ...cuentosRx((x) => EU_EXACT[x] ?? x)); EU_RX.push(...A.EU_RX_ARMAS, ...O.EU_RX_OFICIOS, ...M.EU_RX_LISTA);
+    M.setTr((x) => tr(x)); cache.clear();
+  });
+}
 
 const KEY = 'mendimendiz-lang';
 export function getLang() { try { return localStorage.getItem(KEY) || 'es'; } catch (e) { return 'es'; } }
@@ -31,7 +37,6 @@ const sub = (x) => x == null ? '' : EU_EXACT[x] ?? (x.length < 300 ? trCore(x) :
 // para revisar la traducción (tools/eu-faltan.mjs): con ?eufaltan, apunta los textos que se quedan sin traducir
 const MISS = (() => { try { return /[?&]eufaltan\b/.test(location.search) ? (window.__euMiss = new Set()) : null; } catch (e) { return null; } })();
 function trCore(core) { return tr(core); }
-setTr((x) => tr(x));
 let depth = 0;
 export function tr(s) {
   if (!isEU() || !s || peek) return s;
@@ -103,9 +108,10 @@ function learnButton() {
     clearInterval(timer); timer = setInterval(() => { t--; if (t <= 0) off(); else b.innerHTML = `<b>EU</b><small>${t} s</small>`; }, 1000); };
   document.body.appendChild(b);
 }
-export function startI18n() {
+export async function startI18n() {
   document.documentElement.lang = isEU() ? 'eu' : 'es';
   if (!isEU()) return;
+  await loadEU();
   if (isLearn()) learnButton();
   walk(document.body);
   new MutationObserver((ms) => { for (const m of ms) { if (m.type === 'characterData') walk(m.target); else for (const n of m.addedNodes) walk(n); if (m.type === 'attributes') walk(m.target); } })

@@ -59,7 +59,7 @@ export function stitchGame(ui, { title = 'Coser la alpargata', icon = 'espadrill
       S.mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([o2, p.clone().setY(sole.top * 0.95), top, inn]), 14, 0.0014, 6), threadM, 0, 0, 0, root);
     };
     S.frame([cx, benchY + 0.01, cz], 0.13, [0.12, 1.2, 0.7], 40);
-    let k = 0, t = 0, miss = 0, push = 0; const needleBase = new THREE.Vector3(), needleDir = new THREE.Vector3();
+    let k = 0, t = 0, push = 0; const needleBase = new THREE.Vector3(), needleDir = new THREE.Vector3();
     const tmpW = new THREE.Vector3();
     const place = () => {
       if (k >= n) { marker.visible = false; return; }
@@ -77,7 +77,7 @@ export function stitchGame(ui, { title = 'Coser la alpargata', icon = 'espadrill
       if (d < Math.max(34, innerWidth * 0.045)) {
         stitchDone(k); k++; push = 1; blip(ui, 500 + k * 25); ui.onMiniHit?.(true); H.fb.textContent = k < n ? `Puntada ${k} de ${n}` : '';
         if (k >= n) end({ win: true }, '¡Suela cosida! A andar con ellas'); else place();
-      } else if (pts.some((q, i) => i !== k && (root.localToWorld(tmpW.copy(q.p)), Math.hypot(S.toScreen(tmpW).x - e.clientX, S.toScreen(tmpW).y - e.clientY) < 30))) { miss++; ui.sound?.ui?.('error'); H.fb.textContent = 'En orden: la puntada que brilla'; }
+      } else if (pts.some((q, i) => i !== k && (root.localToWorld(tmpW.copy(q.p)), Math.hypot(S.toScreen(tmpW).x - e.clientX, S.toScreen(tmpW).y - e.clientY) < 30))) { ui.sound?.ui?.('error'); H.fb.textContent = 'En orden: la puntada que brilla'; }
     };
     H.cap.addEventListener('pointerdown', tap);
     H.keys((e) => { if ([' ', 'enter', 'e'].includes(e.key.toLowerCase())) { e.preventDefault(); root.localToWorld(tmpW.copy(pts[k].p)); const sp = S.toScreen(tmpW); tap({ clientX: sp.x, clientY: sp.y }); } });

@@ -548,7 +548,7 @@ export class FutbolGame {
     const T = this.passTarget(p, dx, dz, this.charge, q); return { x: T.x, z: T.z, loft: T.loft, to: T.to?.id ?? null };
   }
   powerPass(p, dx, dz, power, q) {
-    const B = this.ball.p, T = this.passTarget(p, dx, dz, power, q), { d, loft, to } = T, tx = T.x, tz = T.z;
+    const T = this.passTarget(p, dx, dz, power, q), { d, loft, to } = T, tx = T.x, tz = T.z;
     this.passToPoint(p, tx, tz, loft, to, power);
     if (to) this.setMe(to, 'pass');
     this.emit({ t: 'powerPass', p: p.id, power, d: +d.toFixed(1) });
@@ -931,7 +931,6 @@ export class FutbolGame {
         if (B.y < PL.ctrlH + (mine ? 0.2 : 0) && (d < reach || body < (mine ? 0.8 : 0.45)) && d - (mine ? 0.3 : 0) < bd) { bd = d - (mine ? 0.3 : 0); best = p; }
       }
       if (best) {
-        const rel = hyp(b.v.x - best.vx, b.v.z - best.vz, b.v.y);
         const keeperHands = best.role === 'POR' && this.inArea(best.team, B.x, B.z);
         if (keeperHands && this.last?.team !== best.team) {
           // el portero de pie: un balón fuerte lo para (o lo rechaza) con las manos y el cuerpo si le llega a su alcance, el
@@ -1199,7 +1198,6 @@ export class FutbolGame {
     // bloca de pie; si va alto y a él, salta; si va lejos o raso a un lado, se estira.
     const toward = !this.owner && b.v.x * s > 3 && ((this.shotLive && this.shotLive.team !== t) || b.speed > 14);
     const Tg = toward ? (gx - B.x) / b.v.x : -1, zg = B.z + b.v.z * Tg, yg = B.y + b.v.y * Tg - 0.5 * K.g * Tg * Tg;
-    let shuffle = false;
     if (toward && Tg > 0 && Tg < 2.8 && Math.abs(zg) < HW_G + 0.6 && yg < F.goalH + 0.4) {
       const T = Math.max(0.03, (p.x - B.x) / b.v.x);   // cuándo pasa el balón por donde está él
       const zc = B.z + b.v.z * T, yc = Math.max(R, B.y + b.v.y * T - 0.5 * K.g * T * T);
@@ -1223,7 +1221,7 @@ export class FutbolGame {
           p.act = 'dive'; p.actT = 0.9; this.emit({ t: 'dive', p: p.id, side: p.dive.side, high: yc > 1.2 });
           return;
         }
-        tz = clamp(zc, -HW_G - 0.3, HW_G + 0.3); tx = p.x; shuffle = true;
+        tz = clamp(zc, -HW_G - 0.3, HW_G + 0.3); tx = p.x;
       }
     } else { p.threat = null; if (p.humanDive && !toward) p.humanDive = null; }
     if (p.spread > 0) p.spread -= h;
@@ -1852,7 +1850,7 @@ export class FutbolGame {
     this.nextPenalty();
   }
   nextPenalty() {
-    const P = this.pen, t = P.turn, s = 1, gx = F.HL;
+    const P = this.pen, t = P.turn, gx = F.HL;
     const ks = KICKERS.map(r => this.byRole(t, r)).filter(q => !q.off), shooter = ks[P.n[t] % ks.length] || this.byRole(t, KICKERS[0]), keeper = this.gk(this.other(t));
     // los demás, en el círculo central; el portero que no para, en el borde del área
     for (const p of this.players) { this.resetP(p); p.vx = p.vz = 0; if (p !== shooter && p !== keeper) { const i = p.id % N; p.x = -5 + i * 1.0; p.z = p.team ? -1.5 : 1.5; p.h = Math.PI / 2; if (p.role === 'POR') { p.x = F.HL - F.area - 1; p.z = (p.team ? -1 : 1) * Math.min(14, F.HW - 1.5); } } }
