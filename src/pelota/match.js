@@ -7,6 +7,7 @@ import { openFicha, playerChip, splitName } from './ficha.js';
 import { PelotaGame, cutHeight, dropHeight, aimSide } from './game.js';
 import { PelotaHud, esc } from './hud.js';
 import { PelotaAudio } from './audio.js';
+import { tap } from '../util/tap.js';
 const clamp1 = (v) => Math.max(-1, Math.min(1, v));
 
 export class PelotaMatch {
@@ -101,8 +102,7 @@ export class PelotaMatch {
     const card = p.querySelector('.pel-card') || p, opts = p.querySelector('.pel-opts');
     const showOpts = (on) => { this.moreOpen = on; card.classList.toggle('opts', on); if (opts) opts.hidden = !on; p.querySelector('[data-pel-more]')?.setAttribute('aria-expanded', String(on)); };
     showOpts(!!this.moreOpen);
-    p.addEventListener('click', (e) => {
-      const b = e.target.closest('button'); if (!b) return;
+    tap(p, (b) => {
       if (b.dataset.pelLv) { this.level = b.dataset.pelLv; for (const x of p.querySelectorAll('[data-pel-lv]')) x.setAttribute('aria-pressed', x.dataset.pelLv === this.level); this.newGame(); }
       if (b.dataset.pelMod) { this.chooseMode(b.dataset.pelMod); return; }
       if (b.hasAttribute('data-pel-more')) { showOpts(true); p.querySelector(`[data-pel-tab="${this.optTab || 0}"]`)?.focus({ preventScroll: true }); return; }
@@ -187,9 +187,9 @@ export class PelotaMatch {
     this.tourEl?.remove();
     const el = this.tourEl = document.createElement('div'); el.className = 'pel-tour';
     el.innerHTML = `<b>${i + 1}/${n} · ${esc(name)}</b><p>${esc(text)}</p><div>${i > 0 ? `<button data-t="prev">${TT.prev}</button>` : ''}${i < n - 1 ? `<button class="go" data-t="next">${TT.next}</button>` : ''}<button data-t="end">${TT.end}</button></div>`;
-    el.addEventListener('click', (e) => { const b = e.target.closest('[data-t]'); if (!b) return; const a = b.dataset.t;
+    tap(el, (b) => { const a = b.dataset.t;
       if (a === 'end') return this.endTour();
-      this.tour.i = Math.max(0, Math.min(n - 1, this.tour.i + (a === 'next' ? 1 : -1))); this.tourCard(); });
+      this.tour.i = Math.max(0, Math.min(n - 1, this.tour.i + (a === 'next' ? 1 : -1))); this.tourCard(); }, '[data-t]');
     this.hud.root.appendChild(el);
     this.tourHi.forEach((m, k) => { m.visible = k === i; });
   }
@@ -251,8 +251,7 @@ export class PelotaMatch {
     const p = this.hud.panel(`<h2>${e.win ? (g.mode === 'rally' ? t.rallyWin : t.win) : t.lose}</h2><p class="pel-sub">${esc(this.label('you'))} – ${esc(this.label('rival'))}${g.mode === 'rally' ? '' : ` <button class="pel-chip" data-pel-fichas>${t.fichas || TEXT.es.fichas}</button>`}</p>
       <div class="pel-big">${big}</div><div class="pel-fact"><b>${t.factsTitle}</b><br>${fact}</div>
       <div class="pel-row">${this.o.back === 'torneo' ? '' : `<button class="pel-go alt" data-pel-again>${t.again}</button>`}<button class="pel-go" data-pel-cont>${cont}</button></div>`);
-    p.addEventListener('click', (ev) => {
-      const b = ev.target.closest('button'); if (!b) return;
+    tap(p, (b) => {
       if (b.hasAttribute('data-pel-again')) { this.hud.closePanel(); this.newGame(); this.hud.controls(true); this.game.start(); this.audio.whistle(); }
       if (b.hasAttribute('data-pel-cont')) this.finish(e);
       if (b.hasAttribute('data-pel-fichas')) this.ficha('rival');
@@ -264,8 +263,7 @@ export class PelotaMatch {
     // (en la pausa, también las fichas de los pelotaris: se miran sin salir del partido)
     const fichas = this.game.mode === 'rally' ? '' : `<button class="pel-go alt pel-wide" data-pel-fichas>${t.fichas || TEXT.es.fichas}</button>`;
     const p = this.hud.panel(`<h2>${t.exit}</h2><p>${t.sure}</p>${fichas}<div class="pel-row"><button class="pel-go alt" data-pel-yes>${t.yes}</button><button class="pel-go" data-pel-no>${t.no}</button></div>`);
-    p.addEventListener('click', (e) => {
-      const b = e.target.closest('button'); if (!b) return;
+    tap(p, (b) => {
       if (b.hasAttribute('data-pel-fichas')) { this.ficha('rival'); return; }
       if (b.hasAttribute('data-pel-yes')) this.exit(true);
       else { this.hud.closePanel(); this.paused = wasPaused; }
@@ -290,6 +288,8 @@ export class PelotaMatch {
       const k = e.key.toLowerCase(), down = e.type === 'keydown';
       const mine = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'shift', 'j', 'k', 'l', 'e', 'escape', 'enter'];
       if (!mine.includes(k)) return;
+      // (con una ventana abierta, Intro y espacio pulsan su botón elegido: antes golpeaban y no se podía confirmar «Sí, salir»)
+      if (hud.panelEl && (k === 'enter' || k === ' ') && hud.panelEl.contains(document.activeElement)) return;
       e.preventDefault(); e.stopPropagation();
       if (down && !I.keys[k]) {
         if (k === ' ' || k === 'j' || k === 'e' || k === 'enter') this.chargeStart('hit');
@@ -341,7 +341,8 @@ export class PelotaMatch {
     };
     // (cada botón por su nombre: la cortada lleva el estilo de los botones pequeños y antes se cogía como si fuese la dejada)
     btn('.pel-hit', 'hitQ', 'hit'); btn('.pel-dejada', 'dropQ', 'drop'); btn('.pel-cut', 'cutQ', 'cut');
-    hud.$('.pel-exit').addEventListener('click', () => { if (!hud.panelEl) this.confirmExit(); });
+    // (la X responde al levantar el dedo: en el iPhone, en pleno partido, el clic a veces no llegaba y no se podía salir)
+    tap(hud.$('.pel-exit'), () => { if (!hud.panelEl) this.confirmExit(); });
   }
   // carga del golpe: cuanto más se mantiene, más fuerte (a tope en 0,7 s); un toque corto es un golpe suave
   chargeStart(kind) { if (!this.input.charge) this.input.charge = { kind, t0: this.t }; }

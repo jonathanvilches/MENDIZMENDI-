@@ -68,6 +68,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   - Cada animal y cada vecino es una sola malla con piel.
   - Las animaciones lejanas se actualizan a saltos.
   - Los iconos 3D se hornean a WebP.
+- **Botones en pleno partido:** responden al levantar el dedo (`tap` de `util/tap.js`), no al clic. En el iPhone,
+  mientras el partido cambia la pantalla sin parar, Safari a veces se traga el clic: la X de la pelota no dejaba salir.
+  Lo usan la X y las ventanas de la pelota, y la pausa, la cámara, la ventana de pausa y la final del fútbol. Con el
+  teclado y desde el código (`boton.click()`) vale el clic de siempre.
 - **Sin propiedad ajena:** nada de personajes o logotipos de terceros. Solo recursos propios o con licencia CC0
   (las licencias están junto a los recursos, en `src/assets/*/LICENSE_*`).
 - **Textos:** se escriben en castellano; el traductor (`i18n.js` + `data/eu.js`) los pasa al euskera.
