@@ -42,6 +42,9 @@ const MESHY = {}, MESHY_PICS = {};
 for (const [p, u] of Object.entries(import.meta.glob('@meshy-full/*.glb', { eager: true, query: '?url', import: 'default' }))) MESHY[p.split('/').pop().replace('.glb', '')] = u;
 // (solo los retratos de busto y de cuerpo entero: las figuras de la pantalla VS las carga sportCard.js, y así no van dos veces)
 for (const [p, u] of Object.entries(import.meta.glob('../assets/meshy/portraits/*_{bust,full}.{png,webp}', { eager: true, query: '?url', import: 'default' }))) MESHY_PICS[p.split('/').pop().replace(/\.(png|webp)$/, '')] = u;
+// (y, solo en la web, el de cuerpo entero a 512 × 768 para el perfil, que se ve a 240 px de alto: el de 256 × 384 salía
+// ampliado casi al doble en el iPhone; el alias @retratos del archivo único apunta a una carpeta que no existe)
+for (const [p, u] of Object.entries(import.meta.glob('@retratos/*_hero.webp', { eager: true, query: '?url', import: 'default' }))) MESHY_PICS[p.split('/').pop().replace('.webp', '')] = u;
 // versión ligera de cada uno (tools/meshy-lod.mjs: ~1/3 de triángulos y textura de 512 px) para cuando salen muchos a la
 // vez: vecinos, corredores, futbolistas
 const MESHY_LOD = {};

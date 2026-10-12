@@ -11,6 +11,7 @@ import { FutbolAudio } from './audio.js';
 import { Reto } from './retos.js';
 import { showVs } from '../pelota/vs.js';
 import { kitSvgOf } from './liga.js';
+import { jugadorFig } from './jugadorFig.js';
 // (el estadio de la presentación: la grada en óvalo con su cubierta)
 const STADIUM = '<svg viewBox="0 0 64 48" aria-hidden="true"><ellipse cx="32" cy="30" rx="28" ry="13" fill="#3a2a5e" stroke="#fff" stroke-width="1.5"/><ellipse cx="32" cy="30" rx="17" ry="7" fill="#6a5aa8" stroke="#fff" stroke-width="1.2"/><path d="M6 24c4-10 48-10 52 0" fill="none" stroke="#ff7ac8" stroke-width="2.5" stroke-linecap="round"/><path d="M32 23v14" stroke="#fff" stroke-width="1"/></svg>';
 
@@ -237,8 +238,9 @@ export class FutbolMatch {
       const card = (t) => { const v = t.ovr || 70, h = [...String(t.name)].reduce((a, c) => a + c.charCodeAt(0), 0); return { ovr: v, ovrLabel: 'MEDIA', stats: [['Ata', 2], ['Med', 0], ['Def', -2]].map(([k, d], i) => ({ k, v: Math.max(40, Math.min(99, v + d + ((h >> i) % 5) - 2)) })) }; };
       showVs(this.hud.root, {
         comp: o.comp || 'Partido amistoso', venue: o.venueName || V.name, venueIcon: STADIUM,
-        you: { name: this.home.name, sub: this.home.town || '', figHtml: kitSvgOf(this.home, 320, 'vsh'), ...card(this.home) },
-        rival: { name: this.away.name, sub: this.away.town || '', figHtml: kitSvgOf(this.away, 320, 'vsa'), ...card(this.away) },
+        // (el jugador del autor de cada equipo, en la web; si no está, la camiseta dibujada)
+        you: { name: this.home.name, sub: this.home.town || '', ...(jugadorFig(this.home) ? { pf: jugadorFig(this.home) } : { figHtml: kitSvgOf(this.home, 320, 'vsh') }), ...card(this.home) },
+        rival: { name: this.away.name, sub: this.away.town || '', ...(jugadorFig(this.away) ? { pf: jugadorFig(this.away) } : { figHtml: kitSvgOf(this.away, 320, 'vsa') }), ...card(this.away) },
         line: `${o.format === 'f11' ? 'Fútbol 11' : 'Fútbol sala'} · ${({ facil: 'Fácil', normal: 'Normal', dificil: 'Difícil' })[o.level] || 'Normal'}`,
         quote: o.quote || null, quoteBy: 'El Sadar', tap: 'Toca para empezar', onSlam: () => this.audio.whistle?.(0.4),
       }).then(go);

@@ -1,5 +1,5 @@
 // Las láminas del juego (src/data/laminas.js): su archivo, las de cada pueblo y comarca, y el visor a pantalla completa.
-// En la web, cada lámina tiene además su copia pequeña (<id>-s, 480 × 270) para tarjetas y miniaturas: así el móvil no
+// En la web, cada lámina tiene además su copia pequeña (<id>-s, 640 × 360) para tarjetas y miniaturas: así el móvil no
 // guarda en memoria imágenes grandes que se ven pequeñas. En el archivo único solo está la de 640 × 360.
 // En WebP y no en AVIF: los visores de HTML del iPhone no siempre enseñan AVIF, y sin ellas las portadas salían vacías.
 import { LAMINAS, COMARCA_LAMINA, CUENTO_LAMINA, PERSONAJE_LAMINA } from '../data/laminas.js';
@@ -17,7 +17,7 @@ const BY_ID = Object.fromEntries(LAMINAS.map(l => [l.id, l]));
 export const laminaUrl = (id, small = false) => (id && ((small && URLS[id + '-s']) || URLS[id])) || null;
 export const laminaById = (id) => BY_ID[id] || null;
 // Las escenas de las cimas de las misiones de montaña (src/assets/cimas), con el id del monte, en 16:9: el explorador en
-// la subida. En la web, la de 768 para las tarjetas y la de 1536 para el buzón de cumbre; en el archivo único, la de 320.
+// la subida. En la web, la de 1024 para las tarjetas y la de 1536 para el buzón de cumbre; en el archivo único, la de 320.
 const CIMA = byId(import.meta.glob('@cimas/*.webp', { eager: true, query: '?url', import: 'default' }));
 const CIMA_BIG = byId(import.meta.glob('@cimas-big/*.webp', { eager: true, query: '?url', import: 'default' }));
 /** La escena de una cima (o null si no la tiene); big: la grande. */

@@ -17,8 +17,8 @@ function setup() {
   const rim = new THREE.DirectionalLight('#9fd0ff', 1.2); rim.position.set(-2, 1.5, -2); scene.add(rim);
   cam = new THREE.PerspectiveCamera(26, 1, 0.1, 20);
 }
-// look: aspecto nuevo (minifig) o antiguo; mode: 'bust' (cabeza y hombros) | 'full' (cuerpo entero; 'hero', el grande de
-// la portada del menú, solo lo traen hecho los personajes GLB: para los demás es como 'full')
+// look: aspecto nuevo (minifig) o antiguo; mode: 'bust' (cabeza y hombros) | 'full' (cuerpo entero; 'hero', el grande del
+// perfil, solo lo traen hecho los personajes GLB en la web: si no, es como 'full')
 // retrato con el cuerpo de los personajes nuevos (el mismo traje que lleva en el juego)
 function portraitKK(look, mode) {
   const n = buildNpc(look), obj = n.obj;

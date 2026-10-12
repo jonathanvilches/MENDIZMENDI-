@@ -1,5 +1,6 @@
 // Retratos de un personaje de Meshy para el selector y los diálogos: busto (256×256) y cuerpo entero (256×384) con
-// fondo transparente, en su pose de reposo; y el de la portada del menú (cuerpo entero a 512×768, en WebP).
+// fondo transparente, en su pose de reposo; y el del perfil (hero: cuerpo entero a 512×768, solo para la web, en
+// src/assets/meshy/portraits/web).
 // Y el de la pantalla VS de la pelota (vs: cuerpo entero a 384×512, con el gesto que se pida: CLIP=Celebrate T=0.8).
 // Uso: node tools/meshy-retratos.mjs [personaje]   (SOLO=hero para hacer solo alguno: bust, full, hero, vs)
 import { chromium } from 'playwright-core';
@@ -36,7 +37,7 @@ const out = await p.evaluate(async ([who, SIZES, CLIP, TT]) => {
   return res;
 }, [who, SIZES, CLIP, TT]);
 for (const [k, v] of Object.entries(out)) {
-  const f = `src/assets/meshy/portraits/${who}_${k}.png`; writeFileSync(f, Buffer.from(v.split(',')[1], 'base64'));
+  const f = `src/assets/meshy/portraits/${k === 'hero' ? 'web/' : ''}${who}_${k}.png`; writeFileSync(f, Buffer.from(v.split(',')[1], 'base64'));
   // en WebP con transparencia (pesa la sexta parte que el PNG)
   execFileSync('python3', ['-c', `from PIL import Image; import os; Image.open('${f}').save('${f.replace('.png', '.webp')}', 'WEBP', quality=90, alpha_quality=90, method=6); os.remove('${f}')`]);
   console.log(who + '_' + k);

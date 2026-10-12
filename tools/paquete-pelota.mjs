@@ -1,6 +1,6 @@
 // Prepara las imágenes del paquete del autor «pelota, sellos y fútbol» (el ZIP ya descomprimido en su carpeta):
 //  · pelotaris: 22 chicos y chicas, de azul y de rojo. La web lleva los de 512 × 768 del autor tal cual
-//    (src/assets/pelotaris/web/{azul,rojo}); el archivo único, por peso, los de 256 en rojo y, para el azul, solo la
+//    (src/assets/pelotaris/web/{azul,rojo}) y, para la pantalla VS, los de 1024 × 1536 (web/vs/{azul,rojo}); el archivo único, por peso, los de 256 en rojo y, para el azul, solo la
 //    camiseta azul del autor, que el juego pone encima del rojo (src/assets/pelotaris/mini/{rojo,camiseta})
 //  · sellos de comarca: los 12 de 512 del autor en la web (src/assets/sellos/web) y de 176 en el archivo único
 //    (src/assets/sellos/mini)
@@ -45,6 +45,11 @@ for (const id of ids) {
   for (const c of ['azul', 'rojo']) {
     const b = readFileSync(join(src, `pelotaris/webp/512/${c}/${id}.webp`)); if (!webp(b)) throw new Error(`no es WebP: ${c}/${id}`);
     writeFileSync(join(dir(`${OUT}/pelotaris/web/${c}`), `${id}.webp`), b); bytes.web += b.length;
+  }
+  // (los de 1024 del autor, solo en la web y solo para la pantalla VS, donde la figura ocupa casi todo el alto)
+  for (const c of ['azul', 'rojo']) {
+    const b = readFileSync(join(src, `pelotaris/webp/1024/${c}/${id}.webp`)); if (!webp(b)) throw new Error(`no es WebP: 1024 ${c}/${id}`);
+    writeFileSync(join(dir(`${OUT}/pelotaris/web/vs/${c}`), `${id}.webp`), b); bytes.web += b.length;
   }
   const fa = join(src, `pelotaris/png/512/azul/${id}.png`), fr = join(src, `pelotaris/png/512/rojo/${id}.png`);
   const r = await sharp(fr).resize(256).webp({ quality: 68, alphaQuality: 55, effort: 6 }).toBuffer(), cm = await camiseta(fa, fr, 256);

@@ -225,7 +225,7 @@ export const EU_EXACT = {
   'Club': 'Kluba', 'Cómo funciona:': 'Nola dabil:', 'MEDIA': 'MAILA', 'Fin de temporada': 'Denboraldiaren amaiera', 'VS': 'VS', 'En casa': 'Etxean', 'Fuera de casa': 'Kanpoan',
   'siete jornadas, todos contra todos con los clubes de tu grupo. Tus partidos los juegas tú (o los simulas); los demás se simulan solos. Todos los partidos se juegan en El Sadar. Tres puntos por victoria y uno por empate.':
     'zazpi jardunaldi, denak denen aurka zure taldeko klubekin. Zure partidak zuk jokatzen dituzu (edo simulatu); gainerakoak berez simulatzen dira. Partida guztiak El Sadarren jokatzen dira. Hiru puntu irabaziz gero eta bat berdinduz gero.',
-  'EN CASA · EL SADAR': 'ETXEAN · EL SADAR', 'FUERA · EL SADAR': 'KANPOAN · EL SADAR', 'En El Sadar': 'El Sadarren', 'en El Sadar': 'El Sadarren',
+  'EN CASA · EL SADAR': 'ETXEAN · EL SADAR', 'EN CASA': 'ETXEAN', 'FUERA': 'KANPOAN', 'FUERA · EL SADAR': 'KANPOAN · EL SADAR', 'En El Sadar': 'El Sadarren', 'en El Sadar': 'El Sadarren',
   'Ver más': 'Gehiago ikusi', 'Ver menos': 'Gutxiago ikusi',
   // (fichas de información: pestañas y fotos)
   'Cómo es': 'Nolakoa den', 'Dónde vive': 'Non bizi den', 'Cuándo': 'Noiz', 'La planta': 'Landarea', 'La flor': 'Lorea', 'La hoja': 'Hostoa', 'En color': 'Koloretan', 'En piedra': 'Harrian',

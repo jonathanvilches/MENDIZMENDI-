@@ -1,0 +1,8 @@
+Jugadores de fútbol del autor del proyecto MENDIMENDIZ, entregados el 2026-10-12 en un ZIP («MENDIMENDIZ-jugadores-futbol»):
+25 equipos del juego y 2 segundas equipaciones (blanca y azul marino), un chico y una chica por equipación, de cuerpo
+entero, en WebP transparente de 256 × 384, 512 × 768 y 1024 × 1536, en PNG de 512 × 768 y en parejas. Según su LEEME,
+son renders 3D hechos con una herramienta de IA a partir de los colores y dibujos de las camisetas del juego, sin
+patrocinadores; según sus PROMPTS, sin escudos, logotipos, letras ni marcas (la de Iruña es roja lisa, sin escudo).
+Cambios: web/ lleva los WebP de 1024 del autor tal cual (tools/paquete-futbol.mjs) y web/busto/, la cabeza y el pecho de
+cada uno a 240 × 320, recortados de esos (tools/jugadores-busto.mjs). No van en el archivo único: allí siguen las
+camisetas dibujadas. Las parejas, el index.html, el catalogo.json y el PROMPTS.json del ZIP no se usan.

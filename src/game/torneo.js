@@ -158,13 +158,13 @@ const CSS = `
 .tq-tile::after{content:'';position:absolute;top:-10%;bottom:-10%;left:0;width:40%;z-index:2;background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);transform:translateX(-160%) skewX(-18deg);animation:gx-sweep 6s ease-in-out var(--d,0s) infinite;pointer-events:none}
 .tq-tile:active{transform:scale(.97)}.tq-tile:hover{border-color:var(--rosa)}
 /* (la ilustración arriba, centrada y apoyada abajo, y el texto debajo: nunca se pisan) */
-.tq-tile .figs{flex:1 1 0;min-height:0;align-self:stretch;display:flex;justify-content:center;align-items:flex-end;margin:0 -8px 8px;pointer-events:none}
-.tq-tile .pf.fig{height:100%;filter:drop-shadow(0 6px 14px rgba(0,0,0,.5));transition:transform .3s}.tq-tile:hover .pf.fig{transform:scale(1.04) translateY(-3px)}
-/* (dos o tres figuras, apiladas en la misma celda y abiertas en abanico: el desplazamiento va en su propio ancho, así
-   nunca se salen de la portada; en la colección, la del medio delante y las de los lados algo menores) */
-.tq-tile .figs.duo,.tq-tile .figs.trio{display:grid;grid-template:minmax(0,1fr)/minmax(0,1fr);place-items:end center}.tq-tile .figs.duo .pf.fig,.tq-tile .figs.trio .pf.fig{grid-area:1/1;transform-origin:50% 100%}
-.tq-tile .figs.duo .pf.fig:first-child{transform:translateX(-24%)}.tq-tile .figs.duo .pf.fig:last-child{transform:translateX(24%)}
-.tq-tile .figs.trio .pf.fig:nth-child(1){transform:translateX(-40%) scale(.86)}.tq-tile .figs.trio .pf.fig:nth-child(3){transform:translateX(40%) scale(.86)}.tq-tile .figs.trio .pf.fig:nth-child(2){z-index:1}
+.tq-tile .figs{flex:1 1 0;min-height:0;align-self:stretch;display:flex;justify-content:center;align-items:flex-end;margin:0 -8px 8px;pointer-events:none;position:relative}
+/* (las figuras, cada una en posición absoluta en la caja de la portada: alto de la caja, ancho por su proporción y
+   apoyadas abajo; con dos o tres, abiertas en abanico, el desplazamiento en su propio ancho: nunca se salen) */
+.tq-tile .figs img.pf{position:absolute;bottom:0;left:50%;height:100%;width:auto;max-width:none;transform:translateX(-50%);transform-origin:50% 100%;filter:drop-shadow(0 6px 14px rgba(0,0,0,.5));transition:transform .3s}
+.tq-tile:hover .figs img.pf:only-child{transform:translateX(-50%) scale(1.04) translateY(-3px)}
+.tq-tile .figs.duo img.pf:first-child{transform:translateX(-80%)}.tq-tile .figs.duo img.pf:last-child{transform:translateX(-20%)}
+.tq-tile .figs.trio img.pf:nth-child(1){transform:translateX(-92%) scale(.86)}.tq-tile .figs.trio img.pf:nth-child(2){z-index:1}.tq-tile .figs.trio img.pf:nth-child(3){transform:translateX(-8%) scale(.86)}
 .tq-tile .k{font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--rosa);text-shadow:0 1px 3px rgba(0,0,0,.8)}
 .tq-tile b{font:400 var(--fs-2xl)/1 var(--f-display);text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.55);max-width:100%}
 .tq-tile small{font:600 var(--fs-sm)/1.2 var(--f-cond);letter-spacing:0;color:#ece4ff;text-shadow:0 1px 3px rgba(0,0,0,.9);max-width:100%}
