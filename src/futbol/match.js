@@ -3,7 +3,7 @@
 // scene con camera. run() devuelve una promesa con el resultado cuando el jugador sale.
 import * as THREE from 'three';
 import { DATOS } from '../data/saberes.js';
-import { FIELD as F, PHYS as K, TEAMS, TEXT, RETOS, VENUES, RULES as RU, ROLES, useFormat, onFormat, FORMAT, SISTEMAS, sistemaElegido, elegirSistema } from './rules.js';
+import { FIELD as F, PHYS as K, TEAMS, TEXT, RETOS, VENUES, RULES as RU, ROLES, LINE, useFormat, onFormat, FORMAT, SISTEMAS, sistemaElegido, elegirSistema } from './rules.js';
 import { FutbolGame } from './game.js';
 import { buildField, ballTexture, roofShade } from './field.js';
 import { FutbolHud } from './hud.js';
@@ -32,6 +32,10 @@ export function defaultCharacter({ team, keeper }) {
     dispose: () => obj.traverse(o => { if (o.isMesh) { o.geometry.dispose(); o.material.dispose(); } }) };
 }
 
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+// por qué saca el árbitro la tarjeta (lo que dice el reglamento, en corto)
+const WHY = { portero: 'Falta del portero', 'ocasión en el área': 'Cortó una ocasión en el área', 'ocasión manifiesta': 'Cortó una ocasión clara de gol', 'juego brusco': 'Juego brusco',
+  'entrada por detrás': 'Entrada por detrás', 'entrada temeraria': 'Entrada temeraria', contraataque: 'Cortó un contraataque', reiterada: 'Faltas repetidas', 'falta táctica': 'Falta táctica' };
 const CAMS = ['tv', 'detras'], CAM_NAME = { tv: 'Cámara de televisión', detras: 'Detrás del jugador' };
 const RESTART_NAME = { throwin: TEXT.throwin, corner: TEXT.corner, goalkick: TEXT.goalkick, free: TEXT.free, penalty: TEXT.penalty, kickoff: TEXT.kickoff };
 
@@ -123,8 +127,9 @@ export class FutbolMatch {
     this.mark = new THREE.Mesh(new THREE.RingGeometry(0.4, 0.5, 28).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#7ad7ff', transparent: true, opacity: 0.8, depthWrite: false })); this.mark.visible = false; this.scene.add(this.mark);
     this.audio = new FutbolAudio(o.audio || {});
     this.hud = new FutbolHud({ touch: o.touch ?? matchMedia('(pointer:coarse)').matches, home: this.home, away: this.away,
-      onPress: (a) => this.press(a), onRelease: (a) => this.release(a), onPause: () => this.pauseMenu(), onCam: () => this.nextCam() });
+      onPress: (a) => this.press(a), onRelease: (a) => this.release(a), onPause: () => this.pauseMenu(), onCam: () => this.nextCam(), onSubs: () => this.openSubs() });
     if (RU.foulLimit && o.mode === 'match') this.hud.setFouls(0, 0, RU.foulLimit);
+    this.meChip(); // ya en la presentación, con su número y su puesto
     this.keys = new Set();
     this.onKey = (e) => this.key(e, true); this.onKeyUp = (e) => this.key(e, false);
     addEventListener('keydown', this.onKey, true); addEventListener('keyup', this.onKeyUp, true);
@@ -306,8 +311,42 @@ export class FutbolMatch {
   async pauseMenu() {
     if (this.paused || this.done) return; this.paused = true;
     const g = this.game, tactic = FORMAT === 'f11' && g.mode === 'match' ? { sistemas: SISTEMAS, actual: g.sistema?.[0] || '4-4-2', pick: (id) => { g.setSistema(0, id); elegirSistema(id); } } : null;
-    const r = await this.hud.pause(tactic); this.paused = false;
+    const subs = g.mode === 'match' && !this.reto && !this.tuto ? { label: () => g.subsAvail(0) === Infinity ? 'Cambios' : `Cambios · quedan ${g.subsAvail(0)}`, model: this.subsModel() } : null;
+    const r = await this.hud.pause(tactic, subs); this.paused = false; this.hud.subAlert(this.needsSub());
     if (r === 'quit') this.exit({ quit: true });
+  }
+
+  // ---------------------------------------------------------------- cambios
+  // la plantilla de un equipo para el panel de cambios: los del campo (por líneas) y el banquillo, con su energía, su
+  // forma, sus tarjetas, si está lesionado y si ya va a salir o a entrar
+  squad(t) {
+    const g = this.game, plan = g.subPlan[t];
+    const field = g.players.filter(p => p.team === t).sort((a, b) => (LINE[a.role] - LINE[b.role]) || a.num - b.num).map(p => {
+      const x = plan.find(q => q.out === p.id), B = x && g.bench[t][x.b];
+      return { id: p.id, num: p.num, line: LINE[p.role], energy: p.off ? 0 : p.energy, fit: p.off ? 0 : p.fit, card: g.cards[p.id], inj: p.inj?.sev, dis: !!p.off,
+        cls: [x ? 'out' : '', !p.off && (p.inj?.sev === 'grave' || p.energy < 0.3) ? 'low' : ''].join(' '),
+        note: p.off ? 'Expulsado' : x ? `Sale · entra el ${B.num}` : '' };   // (lesionado y agotado se ven en su barra naranja y en la cruz)
+    });
+    const bench = g.bench[t].map((B, i) => {
+      const x = plan.find(q => q.b === i), O = x && g.players[x.out];
+      return { b: i, num: B.num, line: B.line, energy: B.fit, fit: B.fit, card: B.card, inj: B.inj?.sev, dis: B.used || B.inj?.sev === 'grave', cls: x ? 'sel' : '',
+        note: B.used ? 'Ya ha entrado' : x ? `Entra por el ${O.num}` : '' };
+    });
+    return { field, bench };
+  }
+  subsModel() {
+    const g = this.game;
+    return { left: () => g.subsAvail(0), list: (t) => this.squad(t), plan: (o, b) => g.planSub(0, o, b), cancel: (o) => g.cancelSub(0, o), auto: () => g.autoSubs, setAuto: (v) => { g.autoSubs = v; } };
+  }
+  // ¿hay que hacer un cambio? Uno de los tuyos lesionado grave o agotado (sin un cambio ya pedido) y te quedan cambios
+  needsSub() {
+    const g = this.game; if (!g || g.mode !== 'match' || this.reto || this.tuto || g.subsAvail(0) <= 0) return false;
+    return g.team(0).some(p => !g.subPlan[0].some(q => q.out === p.id) && (p.inj?.sev === 'grave' || (p.role !== 'POR' && p.fit < 0.4)));
+  }
+  // el aviso de cambio abre los cambios (con el partido en pausa mientras eliges)
+  async openSubs() {
+    if (this.done || this.paused || !this.live) return; this.paused = true;
+    await this.hud.subs(this.subsModel()); this.paused = false; this.hud.subAlert(this.needsSub());
   }
 
   // ---------------------------------------------------------------- bucle
@@ -366,11 +405,22 @@ export class FutbolMatch {
       case 'tackle': this.anim(P(e.p), e.kind === 'slide' ? 'slide' : 'robo'); break;
       case 'advantage': H.say(TEXT.advantage, 1500); break;
       case 'card': {
-        const red = e.color === 'red', who = name(P(e.p));
-        H.msg(red ? (e.second ? TEXT.second2 : TEXT.red) : TEXT.yellow, red ? `${who.charAt(0).toUpperCase() + who.slice(1)}, expulsado` : who.charAt(0).toUpperCase() + who.slice(1), 2400, red ? 'card-r' : 'card-y');
+        // (a quién y por qué, el tiempo justo para leerlo)
+        const red = e.color === 'red', who = cap(name(P(e.p))), why = WHY[e.why] ? ` · ${WHY[e.why]}` : '';
+        H.msg(red ? (e.second ? TEXT.second2 : TEXT.red) : TEXT.yellow, (red ? `${who}, expulsado` : who) + why, 2800, red ? 'card-r' : 'card-y');
         H.setCards?.(g); if (red) A.groan(); break;
       }
       case 'sentOff': H.say(e.back ? 'Uno menos durante 2 minutos (o hasta encajar un gol)' : (P(e.p).team === 0 ? 'Jugáis con uno menos' : 'El rival juega con uno menos'), 2400); break;
+      // lesiones: la grave, con su cartel (y el aviso de cambio si es de los tuyos); la leve, un aviso corto
+      case 'injury': {
+        const p = P(e.p); this.anim(p, 'fall'); A.groan();
+        if (e.sev === 'grave') H.msg('Lesión', `${cap(name(p))} · no puede seguir bien`, 2400, 'inj'); else H.say(`${cap(name(p))} se ha hecho daño: cojea un poco`, 2000);
+        if (p.team === 0) H.subAlert(this.needsSub()); break;
+      }
+      case 'healed': if (P(e.p).team === 0) H.say(`${cap(name(P(e.p)))} ya no cojea`, 1500); break;
+      case 'needSub': if (e.left > 0) { H.say(e.why === 'grave' ? `${cap(name(P(e.p)))} está lesionado: haz un cambio` : `${cap(name(P(e.p)))} está agotado: piensa en un cambio`, 2600); H.subAlert(true); } break;
+      case 'subPlan': if (e.team === 0 && !e.now) H.say(`Cambio preparado: entra el ${e.in} por el ${e.out} en la próxima parada`, 2400); break;
+      case 'sub': H.msg(e.team === 0 ? 'Cambio' : 'Cambio del rival', `Sale el ${e.out} · Entra el ${e.in}`, 2200, 'sub'); H.subAlert(this.needsSub()); break;
       case 'backOn': H.say(P(e.p).team === 0 ? 'Entra un compañero: volvéis a estar completos' : 'El rival vuelve a estar completo', 1800); break;
       case 'foul':
         if (e.advantage) { A.groan(); this.anim(P(e.on), 'fall'); if (RU.foulLimit) H.setFouls?.(g.fouls[0], g.fouls[1], RU.foulLimit); break; }
@@ -427,7 +477,7 @@ export class FutbolMatch {
     H.tip(null);
     await new Promise(r2 => setTimeout(r2, 1400));
     const pos = S.poss[0] + S.poss[1] || 1, pct = (t) => Math.round(S.poss[t] / pos * 100) + ' %';
-    const rows = g.mode === 'penalties' && !g.cupPens ? [] : [[g.score[0], 'Goles', g.score[1]], [`${S.shots[0]} (${S.onTarget[0]})`, 'Tiros (a puerta)', `${S.shots[1]} (${S.onTarget[1]})`], [pct(0), 'Posesión', pct(1)], [S.passesOk[0], 'Pases buenos', S.passesOk[1]], [S.steals[0], 'Robos', S.steals[1]], [S.saves[0], 'Paradas', S.saves[1]], [S.fouls[0], 'Faltas', S.fouls[1]], [S.yellow[0], 'Amarillas', S.yellow[1]], [S.red[0], 'Rojas', S.red[1]]];
+    const rows = g.mode === 'penalties' && !g.cupPens ? [] : [[g.score[0], 'Goles', g.score[1]], [`${S.shots[0]} (${S.onTarget[0]})`, 'Tiros (a puerta)', `${S.shots[1]} (${S.onTarget[1]})`], [pct(0), 'Posesión', pct(1)], [S.passesOk[0], 'Pases buenos', S.passesOk[1]], [S.steals[0], 'Robos', S.steals[1]], [S.saves[0], 'Paradas', S.saves[1]], [S.fouls[0], 'Faltas', S.fouls[1]], [S.yellow[0], 'Amarillas', S.yellow[1]], [S.red[0], 'Rojas', S.red[1]], [g.subsDone[0], 'Cambios', g.subsDone[1]]];
     const pens = r.pens ? ` (penaltis ${r.pens[0]}-${r.pens[1]})` : '';
     const title = r.win ? '¡Victoria!' : r.draw ? 'Empate' : 'Derrota';
     const score = g.mode === 'penalties' && !g.cupPens ? `${r.pens[0]} – ${r.pens[1]}` : `${g.score[0]} – ${g.score[1]}${pens}`;
@@ -446,7 +496,7 @@ export class FutbolMatch {
   restart() {
     this.ended = false; this.replay = null; this.snaps = []; this.tuto = null;
     this.hud.setScore(0, 0); this.field.setScore?.(0, 0); this.hud.tip(null); this.hud.el.pen.classList.remove('on');
-    this.game = this.newGame(); this.intro = 1.2; this.camPos = null; this.prepIntro(false);
+    this.game = this.newGame(); this.intro = 1.2; this.camPos = null; this.prepIntro(false); this.meChip();
   }
   exit(result) {
     if (this.done) return; this.done = true;
@@ -499,6 +549,8 @@ export class FutbolMatch {
       // remate de cabeza: salto (hasta 40 cm) y un golpe de cuello hacia delante
       else if (ch.kind === 'head' && ch.kindT > 0) { const k = 1 - ch.kindT / 0.55; py = 0.4 * Math.sin(Math.PI * clamp(k * 1.15, 0, 1)); rx = 0.32 * Math.sin(Math.PI * clamp((k - 0.2) * 1.6, 0, 1)); }
       else if (p.down > 0) { if (ch.kind === 'fall') { const k = clamp((1.2 - (ch.kindT || 0)) / 0.25, 0, 1); rx = 1.35 * k; py = -0.05; } else if (p.role === 'POR') { rz = (pv.rotation.z || 0) * 0.92; } else rx = -1.1; }
+      // lesionado: cojea (el cuerpo se le va a un lado en cada paso)
+      else if (p.inj) rz = Math.sin(this.t * 9) * 0.08 * Math.min(1, sp / 2);
       pv.rotation.x += (rx - pv.rotation.x) * Math.min(1, dt * 14); pv.rotation.z += (rz - pv.rotation.z) * Math.min(1, dt * 12);
       pv.position.y += (py - pv.position.y) * Math.min(1, dt * 12); pv.position.z += (pz - pv.position.z) * Math.min(1, dt * 12);
       if (ch.kindT > 0) ch.kindT -= dt;
@@ -691,6 +743,8 @@ export class FutbolMatch {
     const fov = clamp(2 * Math.atan(span / 2 / dist) * 180 / Math.PI, phone ? 11 : 16, sala ? 45 : 42);
     return { pos: new THREE.Vector3(x, cy, cz), look: new THREE.Vector3(x, 0, lz), fov };
   }
+  // la ficha de tu jugador: número, puesto, energía, forma, tarjeta y lesión
+  meChip() { const g = this.game, me = g.me; this.hud.meChip({ num: me.num, line: LINE[me.role], energy: me.energy, fit: me.fit, card: g.cards[me.id], inj: me.inj?.sev }); }
   drawHud() {
     const g = this.game, H = this.hud, me = g.me;
     // reloj como en la tele: de 0 a 45 minutos en la primera parte y de 45 a 90 en la segunda (en sala, 20 y 40); en
@@ -700,6 +754,7 @@ export class FutbolMatch {
     // botones según el momento; con tu portero: sacar (con la balón en las manos) o estirarse (llevándolo o con un tiro del rival)
     if (g.mode !== 'penalties' && !this.reto) H.setMode(g.gkCtl ? 'gkhands' : (g.me.role === 'POR' || (g.phase === 'play' && g.rivalShot())) ? 'gk' : g.owner ? (g.owner.team === g.me.team ? 'atk' : 'def') : 'loose');
     H.bars(me.energy, g.charge, g.chargeKind);
+    this.meChip();
     // flecha en el borde si tu jugador no se ve
     if (!this.ring.visible) { H.arrow(null); return; }
     const v = new THREE.Vector3(me.x, 1, me.z).project(this.camera);

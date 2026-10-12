@@ -30,6 +30,12 @@ function segDist(px, pz, ax, az, bx, bz) {
 // alcance de fútbol 11 lo paraba todo
 const gkReach = () => F.areaD ? { v: 3.6, hand: 0.35, dive: 0.6, stand: 0.9, spread: 0.95 } : { v: 6.2, hand: 0.45, dive: 0.7, stand: 0.6, spread: 1.05 };
 const TAP = 0.15;   // (un toque de PASE dura menos que esto; mantenido más, se carga la fuerza)
+// forma (fit, de 1 a 0,2): el cansancio de todo el partido, que no se recupera. Lo que baja en un partido entero: algo por
+// estar en el campo (base), mucho más por cada momento esprintando (sprint) y poco el portero. La energía del sprint no
+// pasa de la forma y, cansado, el jugador corre menos
+const FIT = { base: 0.34, sprint: 1.3, gk: 0.06 };
+// cuánto corre según su forma y si está lesionado (leve: cojea un poco; grave: cojea y no puede esprintar)
+const legs = (p) => (0.86 + 0.14 * p.fit) * (p.inj ? (p.inj.sev === 'grave' ? 0.6 : 0.86) : 1);
 export class FutbolGame {
   /**
    * @param {object} o { mode: 'match'|'penalties'|'reto'|'tutorial', level: 'facil'|'normal'|'dificil', duration (min por
@@ -40,7 +46,7 @@ export class FutbolGame {
     this.o = o; this.mode = o.mode || 'match'; this.format = o.format || 'f11';
     this.lvl = LEVELS[o.level] || LEVELS.normal; this.mates = LEVELS.normal;
     this.halfLen = clamp(o.duration ?? 3, 2, 5) * 60; this.assist = o.assist !== false; this.autoplay = !!o.autoplay;
-    this.cup = !!o.cup; this.replays = o.replays !== false;
+    this.cup = !!o.cup; this.replays = o.replays !== false; this.autoSubs = !!o.autoSubs;
     let s = (o.seed || (Math.random() * 1e9)) | 0 || 1;
     this.rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
     this.ball = new Ball();
@@ -48,7 +54,7 @@ export class FutbolGame {
     this.players = [];
     for (const t of [0, 1]) ROLES.forEach((role, i) => this.players.push({ id: t * N + i, team: t, role, line: LINE[role], num: NUMBERS[role], x: 0, z: 0, vx: 0, vz: 0, h: 0, energy: 1,
       act: '', actT: 0, stun: 0, cool: 0, down: 0, recover: 0, touchT: 0, react: 0, think: 0, plan: null, tackleCD: 0, hands: false, holdT: 0, dive: null, slide: null,
-      tx: 0, tz: 0, run: false, face: null, robo: null, sprinting: false }));
+      tx: 0, tz: 0, run: false, face: null, robo: null, sprinting: false, fit: 1, inj: null }));
     this.teams = [0, 1].map(t => this.players.filter(p => p.team === t));
     // el sistema de cada equipo (fútbol 11): el tuyo, el que elijas; el rival, el que le toque
     if (FORMAT === 'f11') { this.setSistema(0, o.sistema || '4-4-2'); this.setSistema(1, o.sistemaRival || '4-4-2'); }
@@ -70,6 +76,11 @@ export class FutbolGame {
     this.ts = [{ state: '', t: 0 }, { state: '', t: 0.1 }];
     this.stats = { shots: [0, 0], onTarget: [0, 0], passes: [0, 0], passesOk: [0, 0], poss: [0, 0], steals: [0, 0], fouls: [0, 0], saves: [0, 0], yellow: [0, 0], red: [0, 0] };
     this.cards = {};   // tarjetas de cada jugador (id → 'yellow' | 'red')
+    // banquillo: los suplentes de cada equipo (dorsal, línea, su forma, su tarjeta y su lesión) y los cambios que quedan.
+    // El que entra ocupa el sitio del que sale (su puesto en el sistema) con la forma entera. En sala son «volantes»: el
+    // que sale vuelve al banquillo y puede entrar otra vez
+    this.bench = [0, 1].map(() => (RU.bench || []).map(([num, line]) => ({ num, line, fit: 1, card: null, inj: null, used: false })));
+    this.subsLeft = [RU.subs ?? 5, RU.subs ?? 5]; this.subPlan = [[], []]; this.subsDone = [0, 0];
     this.pen = null; this.result = null;
   }
   /** Cambia el sistema de un equipo (también a mitad de partido): cada jugador pasa a su nuevo sitio y su nueva línea. */
@@ -198,6 +209,13 @@ export class FutbolGame {
     if (ph === 'half' && this.phaseT > 3) this.secondHalf();
     if (ph === 'dead' && this.phaseT > 1.0) { const d = this.pendingRestart; this.pendingRestart = null; this.setPiece(d.type, d.team, d.x, d.z, d.indirect, d.noWall); }
     if (ph === 'foulstop' && this.phaseT > 1.1) { const d = this.pendingRestart; this.pendingRestart = null; this.setPiece(d.type, d.team, d.x, d.z, d.indirect, d.noWall); }
+    // cambios: en cada parada, los que estaban pedidos y los del entrenador; con el balón en juego, los avisos
+    if (this.mode === 'match' && this.canSub()) {
+      if (this.subPlan[0].length) this.applySubs(0);
+      if (this.subPlan[1].length) this.applySubs(1);
+      if (this.subCheck !== this.stopN) { this.subCheck = this.stopN; this.aiSubs(); }
+    }
+    if (this.mode === 'match' && ph === 'play' && (this.warnT = (this.warnT || 0) - h) <= 0) { this.warnT = 0.5; this.subWarn(); this.benchRest(0.5); }
     // jugadores
     for (const p of this.players) this.timers(p, h);
     if (ph !== 'play' && ph !== 'tuto') this.gkCtl = null;
@@ -222,11 +240,12 @@ export class FutbolGame {
     if (ph === 'play' && this.clock >= this.halfLen) this.endHalf();
     if (this.passTo && ((this.passT -= h) <= 0 || this.owner)) this.passTo = null;
   }
-  setPhase(p) { this.phase = p; this.phaseT = 0; this.emit({ t: 'phase', phase: p }); }
+  setPhase(p) { if (p !== 'play' && this.phase === 'play') this.stopN = (this.stopN || 0) + 1; this.phase = p; this.phaseT = 0; this.emit({ t: 'phase', phase: p }); }
   timers(p, h) {
     // sala: pasados los 2 minutos de la expulsión, entra otro jugador (solo con el balón en juego)
     if (p.off && Number.isFinite(p.offT) && (this.phase === 'play' || this.phase === 'dead') && (p.offT -= h) <= 0) this.backOn(p);
     p.cool = Math.max(0, p.cool - h); p.stun = Math.max(0, p.stun - h); p.down = Math.max(0, p.down - h); p.recover = Math.max(0, p.recover - h);
+    if (p.inj && this.phase === 'play' && (p.inj.t -= h) <= 0) { p.inj = null; this.emit({ t: 'healed', p: p.id, team: p.team }); }   // (la leve se pasa)
     p.tackleCD = Math.max(0, p.tackleCD - h); p.actT = Math.max(0, p.actT - h); if (p.actT <= 0 && p.act !== 'celebrate') p.act = '';
     if (p.robo) { p.robo.t -= h; this.roboCheck(p); if (p.robo && p.robo.t <= 0) { if (!p.robo.hit) { p.recover = 0.35; this.emit({ t: 'tackleMiss', p: p.id }); } p.robo = null; } }
     if (p.slide) this.slideStep(p, h);
@@ -242,12 +261,18 @@ export class FutbolGame {
     if (this.restart?.taker === p) { wx = 0; wz = 0; }
     const want = hyp(wx, wz);
     // sprint: gasta energía (se agota en 4 s) y se recupera en 6 s sin correr a tope
-    const sprint = p.wantSprint && p.energy > 0.01 && want > PL.run * 0.8;
+    const sprint = p.wantSprint && p.energy > 0.01 && want > PL.run * 0.8 && p.inj?.sev !== 'grave';
     p.sprinting = sprint;
-    p.energy = clamp(p.energy + (sprint ? -PL.drain : PL.regain) * h, 0, 1);
+    // (con el balón en juego baja la forma; la energía se recupera más despacio cuanto más cansado)
+    if (this.phase === 'play') {
+      p.fit = Math.max(0.2, p.fit - h / (2 * this.halfLen) * (p.role === 'POR' ? FIT.gk : FIT.base + (sprint ? FIT.sprint : 0)));
+      // sin fuerzas y esprintando a tope, a veces se resiente un músculo
+      if (sprint && p.energy < 0.05 && p.fit < 0.5 && !p.inj && this.rnd() < 0.03 * h) this.hurt(p, 'muscular', 'leve');
+    }
+    p.energy = clamp(p.energy + (sprint ? -PL.drain : PL.regain * (0.55 + 0.45 * p.fit)) * h, 0, p.fit);
     // el sprint del tuyo se nota: un 15 % más de punta y arrancada más explosiva (se gasta igual)
     const hs = sprint && this.human(p);
-    const top = (sprint ? PL.sprint * (hs ? 1.15 : 1) : PL.run) * (p.team === 1 ? this.lvl.speed : 1) * (this.owner === p ? 0.88 : 1) * (p.recover > 0 ? 0.55 : 1);
+    const top = (sprint ? PL.sprint * (hs ? 1.15 : 1) : PL.run) * (p.team === 1 ? this.lvl.speed : 1) * (this.owner === p ? 0.88 : 1) * (p.recover > 0 ? 0.55 : 1) * legs(p);
     if (want > top) { wx *= top / want; wz *= top / want; }
     const wv = Math.min(want, top), v0 = hyp(p.vx, p.vz);
     if (v0 > 0.6 && wv > 0.6) {
@@ -1065,7 +1090,11 @@ export class FutbolGame {
     if (this.rnd() < chance) {
       o.stun = 0.45; this.takeBall(p); this.stats.steals[p.team]++;
       this.emit({ t: 'steal', p: p.id, from: o.id, how: 'robo' });
-    } else { p.recover = 0.45; this.emit({ t: 'tackleMiss', p: p.id }); }
+    } else {
+      // el robo falla y, si va a destiempo y le toca, es zancadilla: falta (más fácil si el que lleva el balón va lanzado)
+      if (contact && this.rnd() < (0.3 + clamp(hyp(o.vx, o.vz) / PL.sprint, 0, 1) * 0.2) * (this.human(p) ? 0.8 : 1)) return this.foul(p, o, { trip: true });
+      p.recover = 0.45; this.emit({ t: 'tackleMiss', p: p.id });
+    }
   }
   slideStep(p, h) {
     const S = p.slide; S.t -= h;
@@ -1095,7 +1124,10 @@ export class FutbolGame {
     const x = q.x, z = q.z, pen = this.inArea(p.team, x, z), B = this.ball.p;
     const had = this.owner === q || (this.last === q && hyp(B.x - q.x, B.z - q.z) < 2.5);   // ¿llevaba él el balón?
     q.down = 0.9; q.act = 'fall'; q.actT = 0.9; p.robo = null; if (p.slide) { p.slide = null; p.down = 0.6; }
-    this.stats.fouls[p.team]++; this.owner = null; this.fouls[p.team]++;
+    // la falta puede lesionar al que la recibe: más una entrada en plancha, y sobre todo por detrás
+    { const pr = how.slide ? (how.behind ? 0.3 : 0.14) : how.behind ? 0.08 : 0.04;
+      if (this.rnd() < pr) this.hurt(q, how.slide ? 'entrada' : 'golpe', this.rnd() < (how.slide && how.behind ? 0.45 : 0.25) ? 'grave' : 'leve'); }
+    this.stats.fouls[p.team]++; this.owner = null; this.fouls[p.team]++; p.fls = (p.fls || 0) + 1;   // (las de cada jugador)
     // sala: desde la sexta falta acumulada de la parte, tiro libre directo sin barrera desde el segundo punto de penalti
     // (o desde donde fue la falta, si está más cerca de la portería)
     const t = q.team, over = RU.foulLimit && this.fouls[p.team] > RU.foulLimit && !pen;
@@ -1132,7 +1164,8 @@ export class FutbolGame {
     if (how.slide && how.behind && !how.ball) return r < 0.12 ? why('juego brusco', 'red') : why('entrada por detrás', 'yellow');
     if (how.slide && !how.ball) return r < 0.4 ? why('entrada temeraria', 'yellow') : null;
     if (had && s * q.x > -10 * SC && hyp(q.vx, q.vz) > PL.run * 0.85) return r < 0.35 ? why('contraataque', 'yellow') : null;   // contraataque
-    return r < 0.08 ? why('reiterada', 'yellow') : null;
+    if (p.fls >= 3 && !this.cards[p.id]) return why('reiterada', 'yellow');   // (a la tercera falta de un mismo jugador)
+    return r < (how.trip ? 0.3 : 0.16) ? why('falta táctica', 'yellow') : null;
   }
   // el árbitro se para y enseña la tarjeta; la segunda amarilla es roja y la roja, expulsión
   book(p, color) {
@@ -1176,6 +1209,87 @@ export class FutbolGame {
     for (const r of this.team(t)) if (r !== q && r.down <= 0) mine = Math.min(mine, hyp(B.x - r.x, B.z - r.z));
     for (const r of this.team(this.other(t))) if (r !== by && r.down <= 0) foe = Math.min(foe, hyp(B.x - r.x, B.z - r.z));   // (el que hizo la falta, no)
     return mine < 3.5 && mine < foe - 1;
+  }
+
+  // ---------------------------------------------------------------- lesiones y cambios
+  // lesión: leve (cojea un rato y se le pasa) o grave (cojea, no puede esprintar y hay que cambiarlo)
+  hurt(p, why, sev) {
+    if (p.off || p.inj?.sev === 'grave') return;
+    p.inj = { sev, why, t: sev === 'leve' ? 35 : Infinity };
+    if (sev === 'grave') { p.down = Math.max(p.down, 2.2); p.fit = Math.min(p.fit, 0.6); p.energy = Math.min(p.energy, p.fit); }
+    this.emit({ t: 'injury', p: p.id, team: p.team, sev, why });
+  }
+  // ¿se puede cambiar ahora? Con el balón parado (fuera, falta, gol, descanso o un saque aún sin sacar)
+  canSub() { const ph = this.phase; return ph === 'dead' || ph === 'foulstop' || ph === 'goal' || ph === 'replay' || ph === 'half' || ph === 'kickoff' || ph === 'setpiece'; }
+  /** Cambios que quedan a un equipo (sin contar los ya pedidos). */
+  subsAvail(t) { return this.subsLeft[t] - this.subPlan[t].length; }
+  /** Pide un cambio: sale el jugador outId y entra el suplente b (su sitio en el banquillo). Se hace en la siguiente
+   *  parada (o al momento, si el balón ya está parado). Devuelve si se ha podido pedir. */
+  planSub(t, outId, b) {
+    const p = this.players[outId], B = this.bench[t]?.[b];
+    if (!p || p.team !== t || p.off || !B || B.used || B.planned || this.subsAvail(t) <= 0 || this.subPlan[t].some(x => x.out === outId)) return false;
+    B.planned = true; this.subPlan[t].push({ out: outId, b });
+    this.emit({ t: 'subPlan', team: t, p: outId, out: p.num, in: B.num, now: this.canSub() });
+    if (this.canSub()) this.applySubs(t);
+    return true;
+  }
+  /** Quita un cambio pedido que aún no se ha hecho. */
+  cancelSub(t, outId) {
+    const i = this.subPlan[t].findIndex(x => x.out === outId); if (i < 0) return false;
+    const [x] = this.subPlan[t].splice(i, 1); this.bench[t][x.b].planned = false; return true;
+  }
+  // el cambio: el que entra ocupa el sitio del que sale (mismo puesto en el sistema), con su forma, sin tarjetas ni
+  // lesión (en sala, el que sale se sienta en el banquillo con las suyas y puede volver a entrar)
+  applySubs(t) {
+    for (const x of this.subPlan[t]) {
+      const p = this.players[x.out], B = this.bench[t][x.b]; B.planned = false;
+      if (!p || p.off) continue;   // (expulsado mientras esperaba: ya no se puede cambiar)
+      const out = { num: p.num, line: LINE[p.role] ?? 2, fit: p.fit, card: this.cards[p.id] || null, inj: p.inj, fls: p.fls || 0 };
+      p.num = B.num; p.fit = B.fit; p.energy = B.fit; p.inj = B.inj; p.down = 0; p.stun = 0; p.warn = null; p.fls = B.fls || 0;
+      if (B.card) this.cards[p.id] = B.card; else delete this.cards[p.id];
+      if (RU.rolling) Object.assign(B, out, { used: false }); else B.used = true;
+      this.subsLeft[t]--; this.subsDone[t]++;
+      this.emit({ t: 'sub', team: t, p: p.id, out: out.num, in: p.num, inj: !!out.inj });
+    }
+    this.subPlan[t] = [];
+  }
+  // el entrenador del rival (y el tuyo si juega la máquina): cambia enseguida al lesionado grave y, pasado algo más de
+  // la mitad del partido, al más cansado si está muy tocado (uno por parada), guardando un cambio para una lesión hasta
+  // el final
+  aiSubs() {
+    const prog = ((this.half - 1) * this.halfLen + this.clock) / (2 * this.halfLen);
+    for (const t of [0, 1]) {
+      if (t === 0 && !this.autoplay && !this.autoSubs) continue;
+      const cand = this.team(t).filter(p => p.inj?.sev === 'grave').concat(this.team(t).filter(p => !p.inj && p.role !== 'POR' && prog > 0.55 && p.fit < 0.5).sort((a, b) => a.fit - b.fit).slice(0, 1));
+      for (const p of cand) {
+        const grave = p.inj?.sev === 'grave';
+        if (this.subsAvail(t) <= 0 || (!grave && this.subsAvail(t) < 2 && prog < 0.85)) break;
+        const bi = this.benchFor(t, p); if (bi >= 0) this.planSub(t, p.id, bi);
+      }
+    }
+  }
+  /** El mejor suplente para el puesto de p: de su misma línea y con más forma (el portero, por otro portero). */
+  benchFor(t, p) {
+    const want = LINE[p.role] ?? 2; let bi = -1, bs = -1e9;
+    this.bench[t].forEach((B, i) => {
+      if (B.used || B.planned || B.inj?.sev === 'grave') return;
+      const sc = (B.line === want ? 3 : (B.line === 0) !== (want === 0) ? -4 : 2 - Math.abs(B.line - want)) + B.fit;
+      if (sc > bs) { bs = sc; bi = i; }
+    });
+    return bi;
+  }
+  // avisos a tu equipo (una vez por jugador y motivo): un lesionado grave o uno sin fuerzas
+  subWarn() {
+    if (this.autoplay) return;
+    for (const p of this.team(0)) {
+      const why = p.inj?.sev === 'grave' ? 'grave' : p.role !== 'POR' && p.fit < 0.4 ? 'tired' : null;
+      if (why && p.warn !== why) { p.warn = why; this.emit({ t: 'needSub', p: p.id, why, left: this.subsAvail(0) }); }
+    }
+  }
+  // en el banquillo (sala), los que han salido descansan y se les pasa la lesión leve
+  benchRest(h) {
+    if (!RU.rolling) return;
+    for (const b of this.bench) for (const B of b) { B.fit = Math.min(1, B.fit + h / (2 * this.halfLen) * 1.2); if (B.inj?.sev === 'leve' && (B.inj.t -= h) <= 0) B.inj = null; }
   }
 
   // ---------------------------------------------------------------- portero
@@ -1231,6 +1345,16 @@ export class FutbolGame {
       let foe = 1e9; for (const q of this.team(this.other(t))) foe = Math.min(foe, hyp(B.x - q.x, B.z - q.z) / 6.5);
       if (mine < foe - 0.1) { const q = rollAhead(b, mine * 0.7); tx = q.x; tz = q.z; sprint = true; }
     }
+    // un pase al hueco hacia su área (rodando o a media altura) que nadie controla: si llega antes que nadie a donde va
+    // a estar el balón, sale a cortarlo (antes solo salía cuando el balón ya iba despacio y el delantero llegaba antes)
+    else if (!this.owner && !toward && b.v.x * s > 2 && B.y < 1.4 && b.hspeed >= 9 && this.last?.team !== t && !this.human(p)) {
+      for (let T = 0.3; T <= 2.4; T += 0.3) {
+        const q = rollAhead(b, T); if ((q.y ?? 0) > 1.6 || !this.inArea(t, q.x, q.z, -0.5)) continue;
+        const mine = hyp(q.x - p.x, q.z - p.z) / (PL.sprint * 0.95) + 0.2;
+        let foe = 1e9; for (const r of this.team(this.other(t))) foe = Math.min(foe, hyp(q.x - r.x, q.z - r.z) / PL.sprint);
+        if (mine <= T && mine < foe - 0.15) { tx = q.x; tz = q.z; sprint = true; p.sweep = true; break; }
+      }
+    }
     // un centro del rival que cae en el área pequeña: sale a por él si llega a tiempo y lo atrapa por encima de las
     // cabezas (headers); antes se quedaba en la línea y el remate a dos metros era gol casi siempre
     const C = this.cross; p.claim = false;
@@ -1281,7 +1405,8 @@ export class FutbolGame {
     const edge = dmin / r, lim = D ? 0.55 : spread ? 0.5 : 0.7;
     // (más difícil arriba, a la escuadra, y cuanto más fuerte va)
     if (edge > lim && this.rnd() > 1 - (edge - lim) / (1 - lim) * (0.62 + Math.max(0, v - 22) * 0.012 + (D && D.hy > 1.85 && !D.jump ? 0.15 : 0)) * (1.15 - 0.25 * L.keeperReach)) { p.missKick = kick; return; }
-    if (v < L.catchV * (D ? 0.8 : 1) && this.rnd() < 0.9) { this.catchBall(p); return; }
+    // (los flojos y los de media fuerza que le van al cuerpo los bloca: antes casi todo lo despejaba y el balón volvía al área)
+    if ((v < L.catchV * (D ? 0.85 : 1.15) || (!D && edge < 0.35 && v < L.catchV * 1.5)) && this.rnd() < 0.9) { this.catchBall(p); return; }
     // despeje: hacia fuera y a un lado
     const side = Math.sign(B.z || this.rnd() - 0.5);
     b.kick(-s * (3 + this.rnd() * 4), 1.6 + this.rnd() * 2.6, side * (3 + this.rnd() * 4));
@@ -1470,7 +1595,7 @@ export class FutbolGame {
       if (d < 1.05) {
         const want = (exposed ? 0.85 : 0.45) * L.press;
         if (this.rnd() < want * h * 6 * (this.human(o) ? 0.55 : 1)) { this.tackle(p, 'robo'); p.tackleCD = 2.0 - L.press * 0.6 + (this.human(o) ? 0.6 : 0); }   // (a tu jugador le entran menos veces)
-        else if (L.coord && hyp(o.x - p.x, o.z - p.z) < 2.2 && this.rnd() < 0.08 * h && Math.abs(angDiff(o.h, Math.atan2(p.x - o.x, p.z - o.z))) < 1.4) { this.tackle(p, 'slide'); p.tackleCD = 2.5; }
+        else if (hyp(o.x - p.x, o.z - p.z) < 2.2 && this.rnd() < (L.coord ? 0.1 : L.press >= 0.8 ? 0.08 : 0.04) * h && Math.abs(angDiff(o.h, Math.atan2(p.x - o.x, p.z - o.z))) < 1.4) { this.tackle(p, 'slide'); p.tackleCD = 2.5; }
       }
     }
   }

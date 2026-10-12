@@ -72,7 +72,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-btns.def .fb-pass{--cd:rgba(240,138,58,.55)}.fb-btns.def .fb-shoot{--cd:rgba(196,42,42,.55)}
 .fb-btns.gk .fb-pass,.fb-btns.gk .fb-shoot{--cd:rgba(40,170,90,.6)}.fb-btns.gkhands .fb-pass,.fb-btns.gkhands .fb-shoot{--cd:rgba(40,170,90,.6)}
 .fb-btns.pen .fb-swap,.fb-btns.pen .fb-sprint{display:none}
-.fb-bars{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 8px);width:min(24vw,190px);display:flex;flex-direction:column;gap:4px;pointer-events:none}
+.fb-bars{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 8px);width:min(30vw,220px);display:flex;flex-direction:column;gap:4px;pointer-events:none}
 .fb-bar{height:4px;border-radius:3px;background:rgba(8,10,20,.4);overflow:hidden;box-shadow:0 0 0 .5px rgba(255,255,255,.4)}
 .fb-bar i{display:block;height:100%;width:100%;border-radius:6px;background:linear-gradient(90deg,#c9b2ff,#efe8ff);transform-origin:left;transition:transform .05s linear}
 .fb-b.chg::after{content:'';position:absolute;inset:calc(-6px * var(--u));border-radius:50%;pointer-events:none;background:conic-gradient(#ff7ac8 0, #ff8a2a calc(var(--chg) * 300deg), #e0302a calc(var(--chg) * 360deg), rgba(255,255,255,.18) calc(var(--chg) * 360deg));-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 6px),#000 calc(100% - 5px));mask:radial-gradient(farthest-side,transparent calc(100% - 6px),#000 calc(100% - 5px))}
@@ -141,12 +141,15 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
   .fb-stats tbody{display:grid;grid-template-columns:1fr 1fr;column-gap:16px}.fb-stats tr{display:grid;grid-template-columns:minmax(3.6em,auto) 1fr minmax(3.6em,auto);align-items:center;border-bottom:1px solid rgba(255,255,255,.1)}
   .fb-stats td{border:0!important;width:auto!important;white-space:nowrap}
   /* controles: el título y las pestañas en la misma fila, y debajo las tarjetas de una línea: todo a la vista */
+  .fb-subsp .fb-body{grid-template-columns:auto minmax(0,1fr) auto;align-items:center}.fb-subsp .fb-body>h2{grid-column:1;margin:0}.fb-subsp .fb-ctabs{grid-column:2;margin:0}.fb-subsp .fb-subs-n{grid-column:3;margin:0!important}.fb-subsp .fb-subs{grid-column:1/-1;margin-top:8px}
+  .fb-subsp .fb-pl{height:36px;padding:2px 8px 2px 4px}.fb-subsp .fb-sf,.fb-subsp .fb-sb{gap:4px}
+  .fb-subsp .fb-subs{grid-template-columns:minmax(0,3fr) minmax(0,1fr)}.fb-subsp .fb-sf{grid-template-columns:repeat(3,minmax(0,1fr))}   /* (los once en tres columnas: caben sin desplazar) */
   .fb-controls .fb-body{grid-template-columns:auto minmax(0,1fr);align-items:center}.fb-controls .fb-body>h2{grid-column:1;margin:0}.fb-controls .fb-ctabs{grid-column:2;margin:0}.fb-controls .fb-cpane{grid-column:1/-1;margin-top:8px}
 }
 @media (max-height:460px) and (orientation:landscape){
   .fb-top{top:calc(env(safe-area-inset-top,0px) + var(--edge,16px))}.fb-team b{font-size:var(--fs-xl)}
   .fb-btns{--u:.9}
-  .fb-bars{left:calc(env(safe-area-inset-left,0px) + 124px);transform:none;width:min(150px,22vw)}
+  .fb-bars{left:calc(env(safe-area-inset-left,0px) + 124px);transform:none;width:min(196px,26vw)}
   .fb-pause,.fb-cam{width:38px;height:38px}.fb-top{gap:4px}.fb-tip{font-size:var(--fs-sm)}
   .fb-stickhint{width:84px;height:84px;font-size:var(--fs-xs)}
   .fb-msg{top:42%}.fb-msg h2{font-size:var(--fs-hero)}
@@ -163,6 +166,41 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-alt,.fb-card .fb-alt{border-radius:4px;border:1px solid rgba(190,160,255,.35);background:rgba(255,255,255,.08);font-family:var(--f-cond,Nunito),sans-serif;text-transform:uppercase;letter-spacing:.04em;font-weight:800;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%)}
 .fb-chip{border-radius:4px;border:1px solid rgba(190,160,255,.35)}
 .fb-chip.on{background:linear-gradient(180deg,#8338ec,#5e22c4);border-color:#c9a6ff;color:#fff;box-shadow:0 0 0 2px rgba(138,43,226,.35)}
+/* tu jugador, abajo: dorsal, línea (POR, DEF, MED, DEL), su energía (la barra) y la forma que le queda (lo rayado del
+   final es el cansancio del partido, que ya no vuelve); en naranja cuando le queda poca. Con su tarjeta y una cruz si
+   está lesionado */
+.fb-me{display:flex;align-items:center;gap:8px;padding:2px 8px 2px 2px;border-radius:4px;background:rgba(14,8,30,.74);border:1px solid rgba(201,178,255,.3);color:#fff;font:800 var(--fs-xs)/1 var(--f-cond,Nunito),sans-serif;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.fb-me>b{flex:none;width:24px;height:24px;border-radius:3px;display:grid;place-items:center;background:var(--cta,linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7));font:400 var(--fs-sm)/1 'MZ Display',Nunito,sans-serif;letter-spacing:0}
+.fb-me-e{position:relative;flex:1 1 auto;min-width:32px;height:6px;border-radius:3px;background:rgba(255,255,255,.14);overflow:hidden}
+.fb-me-e i{position:absolute;inset:0;border-radius:3px;background:linear-gradient(90deg,#c9b2ff,#efe8ff);transform-origin:left}
+.fb-me-e s{position:absolute;top:0;bottom:0;right:0;width:0;background:repeating-linear-gradient(-45deg,rgba(255,255,255,.24) 0 2px,transparent 2px 5px)}
+.fb-me.low .fb-me-e i,.fb-pl.low .fb-me-e i{background:linear-gradient(90deg,#ff6a2a,#ffb36b)}
+.fb-me-p{flex:none;min-width:3.2em;text-align:right;font-variant-numeric:tabular-nums}
+.fb-me-ic{display:flex;gap:4px;align-items:center}.fb-me-ic:empty{display:none}
+.fb-me-ic u{width:8px;height:11px;border-radius:1.5px;box-shadow:0 1px 2px rgba(0,0,0,.4)}.fb-me-ic u.y{background:#ffd400}.fb-me-ic u.r{background:#e3262b}
+.fb-me-ic i{position:relative;width:12px;height:12px;border-radius:2px;background:#fff}.fb-me-ic i::before,.fb-me-ic i::after{content:'';position:absolute;left:5px;top:2px;width:2px;height:8px;background:#e3262b}.fb-me-ic i::after{transform:rotate(90deg)}
+/* aviso de cambio: bajo la pausa, cuando uno de los tuyos está lesionado o agotado; abre los cambios */
+.fb-subalert{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px) + 48px);left:calc(env(safe-area-inset-left,0px) + var(--edge,16px));display:flex;align-items:center;gap:8px;min-height:40px;padding:4px 12px 4px 8px;border-radius:4px;border:1.5px solid #ff7ac8;background:rgba(42,6,56,.86);color:#fff;font:800 var(--fs-xs)/1 var(--f-cond,Nunito),sans-serif;letter-spacing:.06em;text-transform:uppercase;pointer-events:auto;cursor:pointer;animation:fbpulse 1.4s ease-in-out infinite}
+.fb-subalert[hidden]{display:none}.fb-subalert img.fbi,.fb-subalert svg{width:22px;height:22px;flex:none;pointer-events:none}.fb-subalert span{pointer-events:none}
+@keyframes fbpulse{50%{box-shadow:0 0 0 6px rgba(255,122,200,.28)}}
+/* lesión y cambio: el cartel lleva su señal (la cruz del médico o las flechas del cuarto árbitro) */
+.fb-msg.inj h2::before{content:'+';display:inline-grid;place-items:center;width:.86em;height:.86em;margin-right:.3em;border-radius:.12em;background:#fff;color:#e3262b;font-size:.9em;line-height:1;vertical-align:-.06em}
+.fb-msg.sub h2{color:#ffd9f1}
+/* cambios: los once (en dos columnas) y el banquillo; cada uno con su dorsal, su línea, su energía, su forma y su estado */
+.fb-subs-n{margin:0 0 8px!important;font:800 var(--fs-xs)/1.3 var(--f-cond,Nunito),sans-serif!important;color:#cbbcf0!important;text-transform:uppercase;letter-spacing:.06em}
+.fb-subs{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);grid-template-areas:'hf hb' 'sf sb';column-gap:12px;row-gap:4px;text-align:left}
+.fb-hf{grid-area:hf}.fb-hb{grid-area:hb}.fb-sf{grid-area:sf}.fb-sb{grid-area:sb}
+.fb-sf{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;align-content:start}.fb-sb{display:grid;gap:8px;align-content:start}
+.fb-subs small.h{align-self:end;font:800 var(--fs-xs)/1.2 var(--f-cond,Nunito),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#ff7ac8}
+.fb-pl{display:grid;grid-template-columns:24px auto minmax(20px,1fr) auto;align-items:center;column-gap:8px;height:40px;padding:4px 8px 4px 4px;border-radius:4px;border:1px solid rgba(190,160,255,.22);background:rgba(255,255,255,.05);color:#fff;font:800 var(--fs-xs)/1.15 var(--f-cond,Nunito),sans-serif;letter-spacing:.04em;text-transform:uppercase;text-align:left;cursor:pointer;min-width:0}
+.fb-pl>b{width:24px;height:24px;border-radius:3px;display:grid;place-items:center;background:rgba(255,255,255,.12);font:400 var(--fs-sm)/1 'MZ Display',Nunito,sans-serif;letter-spacing:0}
+.fb-pl .fb-me-e{min-width:20px}
+.fb-pl em{font-style:normal;font-variant-numeric:tabular-nums;color:#e6def7;display:flex;gap:4px;align-items:center;justify-content:flex-end}
+.fb-pl small{color:#ff9bd8;font-weight:800;font-size:var(--fs-xs);line-height:1.1;white-space:normal;min-width:0}
+.fb-pl.sel{border-color:#ff7ac8;background:rgba(255,122,200,.2);box-shadow:0 0 0 2px rgba(255,122,200,.3)}
+.fb-pl.out{border-style:dashed;border-color:#ff7ac8}
+.fb-pl[disabled]{opacity:.5;cursor:default}
+@media (max-width:640px) and (orientation:portrait){.fb-subs{grid-template-columns:1fr;grid-template-areas:'hf' 'sf' 'hb' 'sb'}}
 `;
 const SVG_PAUSE = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"><path d="M9 6v12M15 6v12"/></svg>';
 // iconos de los botones: trazo blanco fino (24 × 24), lo justo para reconocerlos
@@ -187,6 +225,8 @@ const I3 = (n) => { const u = icon3DReady(n); return u ? `<img class="fbi" src="
 for (const [k, n] of [['shoot', 'shoot'], ['pass', 'pass'], ['through', 'through'], ['sprint', 'sprint'], ['swap', 'swap'], ['tackle', 'tackle'], ['slide', 'slide'], ['contain', 'contain'], ['dive', 'dive'], ['ctrl', 'control'], ['move', 'move']]) ICON[k] = I3(n) || ICON[k];
 const ICO_PAUSE = I3('pause') || SVG_PAUSE, ICO_CAM = I3('camera') || SVG_CAM;
 const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// la línea de cada uno, en tres letras: portero, defensa, medio y delantero
+const LINES = ['POR', 'DEF', 'MED', 'DEL'];
 
 /** Menú suelto (antes de empezar): usa los mismos estilos sin crear el resto de la interfaz. */
 export function menuPanel(opts) {
@@ -213,14 +253,16 @@ export class FutbolHud {
       <button class="fb-pause" aria-label="Pausa">${ICO_PAUSE}</button><button class="fb-cam" aria-label="Cambiar cámara">${ICO_CAM}</button>
       <div class="fb-msg"><h2></h2><p></p></div><div class="fb-arrow"></div>
       ${t ? `<div class="fb-stick"><div class="fb-knob"><i></i></div></div><div class="fb-stickhint"><svg viewBox="0 0 48 48" width="34" height="34"><path d="M24 6l6 7h-4v8h8v-4l7 7-7 7v-4h-8v8h4l-6 7-6-7h4v-8h-8v4l-7-7 7-7v4h8v-8h-4z" fill="#fff" opacity=".9"/></svg><span>Mover</span></div>
-      <div class="fb-bars"><div class="fb-bar"><i class="fb-en"></i></div><div class="fb-bar pow"><i class="fb-pw"></i></div></div>
+      <div class="fb-bars"><div class="fb-me"><b class="fb-me-n">0</b><span class="fb-me-r"></span><span class="fb-me-e"><i class="fb-en"></i><s class="fb-me-f"></s></span><em class="fb-me-p">100 %</em><span class="fb-me-ic"></span></div><div class="fb-bar pow"><i class="fb-pw"></i></div></div>
       <div class="fb-btns atk"><button class="fb-b fb-sprint" data-a="sprint" aria-label="Sprint">${ICON.sprint}<span>Sprint</span></button><button class="fb-b fb-swap" data-a="switch" aria-label="Cambiar de jugador">${ICON.swap}<span>Cambiar</span></button><button class="fb-b fb-pass" data-a="pass" aria-label="Pase">${ICON.pass}<span>Pase</span></button><button class="fb-b fb-shoot" data-a="shoot" aria-label="Tiro">${ICON.shoot}<span>Tiro</span></button></div>`
-      : `<div class="fb-bars" style="bottom:calc(env(safe-area-inset-bottom,0px) + 44px)"><div class="fb-bar"><i class="fb-en"></i></div><div class="fb-bar pow"><i class="fb-pw"></i></div></div>
+      : `<div class="fb-bars" style="bottom:calc(env(safe-area-inset-bottom,0px) + 44px)"><div class="fb-me"><b class="fb-me-n">0</b><span class="fb-me-r"></span><span class="fb-me-e"><i class="fb-en"></i><s class="fb-me-f"></s></span><em class="fb-me-p">100 %</em><span class="fb-me-ic"></span></div><div class="fb-bar pow"><i class="fb-pw"></i></div></div>
       <div class="fb-keys">WASD/flechas mover · <b>J</b> pase / robar · <b>K</b> tiro (mantén: fuerza) / entrada · <b>Mayús</b> sprint · <b>L</b> cambiar · <b>Esc</b> pausa · <b>H</b> controles · también con mando</div>`}`;
+    // (el aviso de cambio, el último: encima del joystick; los paneles, que llegan después, lo tapan)
+    r.insertAdjacentHTML('beforeend', `<button class="fb-subalert" hidden aria-label="Cambio">${ICON.swap}<span>Cambio</span></button>`);
     document.body.appendChild(r);
     const $ = (s) => r.querySelector(s);
     this.el = { s0: $('.fb-s0'), s1: $('.fb-s1'), time: $('.fb-time'), half: $('.fb-half'), say: $('.fb-say'), msg: $('.fb-msg'), tip: $('.fb-tip'), arrow: $('.fb-arrow'),
-      en: $('.fb-en'), pw: $('.fb-pw'), pow: $('.fb-bar.pow'), pass: $('.fb-pass'), shoot: $('.fb-shoot'), swap: $('.fb-swap'), btns: $('.fb-btns'), pen: $('.fb-pen'), p0: $('.fb-p0'), p1: $('.fb-p1'), hint: $('.fb-stickhint') };
+      en: $('.fb-en'), me: $('.fb-me'), meN: $('.fb-me-n'), meR: $('.fb-me-r'), meF: $('.fb-me-f'), meP: $('.fb-me-p'), meI: $('.fb-me-ic'), subAlert: $('.fb-subalert'), pw: $('.fb-pw'), pow: $('.fb-bar.pow'), pass: $('.fb-pass'), shoot: $('.fb-shoot'), swap: $('.fb-swap'), btns: $('.fb-btns'), pen: $('.fb-pen'), p0: $('.fb-p0'), p1: $('.fb-p1'), hint: $('.fb-stickhint') };
     // (los rótulos de los botones, siempre dentro del círculo; otra vez al girar o cambiar el tamaño)
     fitCircles(this.el.btns); this.onFit = () => fitCircles(this.el.btns); addEventListener('resize', this.onFit);
     // (la pausa y la cámara responden al levantar el dedo: en el iPhone, en pleno partido, el clic a veces no llegaba)
@@ -228,6 +270,7 @@ export class FutbolHud {
     // el consejo se abre y se recoge tocándolo
     this.el.tip.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); this.tipOpen(this.el.tip.classList.contains('mini')); });
     tap($('.fb-cam'), (b, e) => { e.stopPropagation(); o.onCam?.(); });
+    tap($('.fb-subalert'), (b, e) => { e.stopPropagation(); o.onSubs?.(); });
     this.held = { sprint: false };
     for (const b of r.querySelectorAll('[data-a]')) {
       const a = b.dataset.a;
@@ -330,8 +373,53 @@ export class FutbolHud {
   bars(energy, charge, kind = null) {
     // la fuerza también en el propio botón que mantienes: un aro que se llena
     for (const k of ['pass', 'shoot']) { const el = this.el[k]; if (!el) continue; const on = kind === k && charge >= 0; el.classList.toggle('chg', on); if (on) el.style.setProperty('--chg', charge.toFixed(3)); }
-    if (this.el.en) this.el.en.style.transform = `scaleX(${energy.toFixed(3)})`;
     if (this.el.pow) { this.el.pow.classList.toggle('on', charge >= 0); if (charge >= 0) this.el.pw.style.transform = `scaleX(${charge.toFixed(3)})`; }
+  }
+  /** Tu jugador (abajo): x { num, line, energy, fit, card, inj }. Solo se escribe lo que cambia. */
+  meChip(x) {
+    const E = this.el; if (!E.me) return;
+    const code = LINES[x.line] ?? 'MED', pc = Math.round(x.energy * 100), low = x.inj === 'grave' || x.energy < 0.3;
+    if (E.meN._t !== x.num) { E.meN._t = x.num; E.meN.textContent = x.num; }
+    if (E.meR._t !== code) { E.meR._t = code; E.meR.textContent = code; }
+    if (E.meP._t !== pc) { E.meP._t = pc; E.meP.textContent = pc + ' %'; E.en.style.transform = `scaleX(${(pc / 100).toFixed(2)})`; }
+    const f = Math.round((1 - x.fit) * 100); if (E.meF._t !== f) { E.meF._t = f; E.meF.style.width = f + '%'; }
+    const ic = `${x.card ? `<u class="${x.card === 'red' ? 'r' : 'y'}"></u>` : ''}${x.inj ? '<i></i>' : ''}`; if (E.meI._t !== ic) { E.meI._t = ic; E.meI.innerHTML = ic; }
+    if (E.me._low !== low) { E.me._low = low; E.me.classList.toggle('low', low); }
+  }
+  /** El aviso de cambio bajo la pausa (lesionado o agotado en tu equipo). */
+  subAlert(on) { const b = this.el.subAlert; if (b && b.hidden === !!on) b.hidden = !on; }
+  /** Cambios: tus once y el banquillo; en la otra pestaña, cómo va el rival (solo para ver). Toca quién sale y después
+   *  quién entra; tocar a uno que ya va a salir lo deja en el campo. S: { left(), list(t) → { field, bench },
+   *  plan(outId, b), cancel(outId), auto(), setAuto(on) }. Promesa al cerrar. */
+  subs(S) {
+    return new Promise(res => {
+      let tab = 0, sel = null;
+      const bar = (x) => `<span class="fb-me-e"><i style="transform:scaleX(${x.energy.toFixed(2)})"></i><s style="width:${Math.round((1 - x.fit) * 100)}%"></s></span>`;
+      const ic = (x) => `<span class="fb-me-ic">${x.card ? `<u class="${x.card === 'red' ? 'r' : 'y'}"></u>` : ''}${x.inj ? '<i></i>' : ''}</span>`;
+      const row = (x, attr, pick) => `<button class="fb-pl ${x.cls || ''}${pick && sel === x.id ? ' sel' : ''}" ${attr} ${x.dis || tab ? 'disabled' : ''}><b>${x.num}</b><span>${LINES[x.line] ?? 'MED'}</span>${x.note ? `<small>${esc(x.note)}</small><em>${ic(x)}</em>` : `${bar(x)}<em>${Math.round(x.energy * 100)} %${ic(x)}</em>`}</button>`;   // (con nota, sin el % para que quepa)
+      const p = this.panel(`<h2>Cambios</h2><div class="fb-ctabs" role="tablist"><button role="tab" data-t="0" aria-selected="true">Tu equipo</button><button role="tab" data-t="1" aria-selected="false">Rival</button></div>
+        <p class="fb-subs-n"></p><div class="fb-subs"></div><button class="fb-alt fb-auto"></button><button class="fb-go">Listo</button>`);
+      p.classList.add('fb-subsp');
+      const draw = () => {
+        const L = S.list(tab), left = S.left();
+        p.querySelectorAll('.fb-ctabs button').forEach(b => b.setAttribute('aria-selected', String(+b.dataset.t === tab)));
+        p.querySelector('.fb-subs-n').textContent = tab ? 'Así va el rival' : left === Infinity ? 'Cambios sin límite' : left > 0 ? (left === 1 ? 'Queda 1 cambio' : `Quedan ${left} cambios`) : 'Ya no quedan cambios';
+        const can = !tab && left > 0;
+        p.querySelector('.fb-subs').innerHTML = `<small class="h fb-hf">${can ? 'En el campo · toca quién sale' : 'En el campo'}</small><small class="h fb-hb">${can ? 'Banquillo · toca quién entra' : 'Banquillo'}</small>
+          <div class="fb-sf">${L.field.map(x => row(x, `data-o="${x.id}"`, true)).join('')}</div><div class="fb-sb">${L.bench.map(x => row(x, `data-b="${x.b}"`, false)).join('')}</div>`;
+        const a = p.querySelector('.fb-auto'); if (a) a.textContent = `Cambios automáticos: ${S.auto() ? 'sí' : 'no'}`;
+      };
+      draw();
+      tap(p, (b, e) => {
+        e.stopPropagation();
+        if (b.dataset.t != null) { tab = +b.dataset.t; sel = null; draw(); return; }
+        if (b.classList.contains('fb-go')) { p.remove(); res(); return; }
+        if (b.classList.contains('fb-auto')) { S.setAuto(!S.auto()); draw(); return; }
+        if (tab) return;
+        if (b.dataset.o != null) { const id = +b.dataset.o; if (b.classList.contains('out')) { S.cancel(id); sel = null; } else sel = sel === id ? null : id; draw(); return; }
+        if (b.dataset.b != null) { if (sel == null) { this.say('Elige primero quién sale', 1500); return; } if (S.plan(sel, +b.dataset.b)) sel = null; draw(); }
+      }, 'button');
+    });
   }
   msg(title, sub = '', ms = 1800, cls = '') {
     const m = this.el.msg; m.querySelector('h2').textContent = title; m.querySelector('p').textContent = sub; m.className = 'fb-msg on ' + cls;
@@ -399,9 +487,9 @@ export class FutbolHud {
       p.addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.s) { cur = b.dataset.s; draw(); return; } p.remove(); if (b.classList.contains('fb-go')) { T.pick(cur); T.actual = cur; res(cur); } else res(null); });
     });
   }
-  pause(T = null) {
+  pause(T = null, SB = null) {
     return new Promise(res => {
-      const p = this.panel(`<h2>Pausa</h2><p>El partido está parado.</p><button class="fb-go">Seguir</button>${T ? `<button class="fb-alt fb-tac-btn">Táctica · ${T.actual}</button>` : ''}<button class="fb-alt fb-ctl">Controles</button><button class="fb-alt fb-quit">Abandonar</button>`);
+      const p = this.panel(`<h2>Pausa</h2><p>El partido está parado.</p><button class="fb-go">Seguir</button>${T ? `<button class="fb-alt fb-tac-btn">Táctica · ${T.actual}</button>` : ''}${SB ? `<button class="fb-alt fb-subs-btn">${esc(SB.label())}</button>` : ''}<button class="fb-alt fb-ctl">Controles</button><button class="fb-alt fb-quit">Abandonar</button>`);
       // (cada botón responde al levantar el dedo: en el iPhone el clic a veces no llegaba y no se podía abandonar)
       tap(p, async (b, e) => {
         e.stopPropagation();
@@ -409,6 +497,7 @@ export class FutbolHud {
         else if (b.classList.contains('fb-quit')) { p.remove(); res('quit'); }
         else if (b.classList.contains('fb-tac-btn')) { p.style.display = 'none'; const id = await this.tactic(T); if (id) b.textContent = `Táctica · ${id}`; p.style.display = ''; }
         else if (b.classList.contains('fb-ctl')) { p.style.display = 'none'; await this.controls(); p.style.display = ''; }
+        else if (b.classList.contains('fb-subs-btn')) { p.style.display = 'none'; await this.subs(SB.model); b.textContent = SB.label(); p.style.display = ''; }
       });
     });
   }
