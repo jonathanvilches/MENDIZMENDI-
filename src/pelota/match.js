@@ -147,8 +147,9 @@ export class PelotaMatch {
     const yn = this.label('you'), rn = this.label('rival').replace(/\s*\([^)]*\)/g, '');
     showVs(this.hud.root, {
       comp: this.o.comp || t.friendly || TEXT.es.friendly,
-      you: { name: yn, sub: this.o.town || '', img: V.you, mateImg: M ? V.you : null, ...cardOf(this.o.youStats, `${splitName(this.names.you).name} ${this.o.town || ''}`, this.o.youBonus ?? 2) },
-      rival: { name: rn, sub: rt, img: V.rival, mateImg: M ? V.rival : null, ...cardOf(this.o.rivalStats, `${splitName(this.names.rival).name} ${rt}`, this.o.rivalBonus ?? 0) },
+      // (V.fig: la figura de cada uno por su nombre, si el juego la da; si no, las imágenes V.you y V.rival)
+      you: { name: yn, sub: this.o.town || '', img: V.you, pf: V.fig?.(splitName(this.names.you).name, 'azul'), mateImg: M ? V.you : null, matePf: M ? V.fig?.(M.youMate?.name, 'azul') : null, ...cardOf(this.o.youStats, `${splitName(this.names.you).name} ${this.o.town || ''}`, this.o.youBonus ?? 2) },
+      rival: { name: rn, sub: rt, img: V.rival, pf: V.fig?.(splitName(this.names.rival).name, 'rojo'), mateImg: M ? V.rival : null, matePf: M ? V.fig?.(M.rivalMate?.name, 'rojo') : null, ...cardOf(this.o.rivalStats, `${splitName(this.names.rival).name} ${rt}`, this.o.rivalBonus ?? 0) },
       venue: this.o.venue || (this.o.town ? (t.fronton || TEXT.es.fronton)(this.o.town) : ''), cond: this.o.cond, tags: this.feel?.tags || [],
       line, quote: rivalQuote(this.o.rivalStats || {}, this.lang), tap: t.vsTap || TEXT.es.vsTap, onSlam: () => this.audio.slam?.(),
     }).then(go);

@@ -20,8 +20,7 @@ import { LEVELS } from '../data/levels.js';
 import { txapelas } from './torneo.js';
 import { meetPelotari } from './pelotaris.js';
 // las figuras de la pantalla VS (nuestros pelotaris en 3D, en pleno golpe: tools/meshy-retratos.mjs con CLIP=Hit T=0.2)
-import { PELOTARI_IMG } from '../ui/sportCard.js';   // (las mismas imágenes que las cartas: así no van dos veces en el archivo único)
-const vsBlue = PELOTARI_IMG.blue, vsRed = PELOTARI_IMG.red;
+import { pelotariFig, RIVALES } from '../ui/pelotariFig.js';   // (las mismas figuras que las cartas: así no van dos veces en el archivo único)
 
 // Cómo es el frontón de cada sitio. Se parte de la comarca y de lo que cuentan las fuentes (legal/estado-legal.md): los
 // frontones viejos de los pueblos, junto a la iglesia y con el frontis de sillería (arenisca rojiza en Baztan y Bidasoa,
@@ -100,7 +99,7 @@ export function frontonCond(G, fronton) {
   return { covered, stone: !!L.stone && !labrit && !hall, wet, snow: wet && W.kind === 'snow', labrit, hall };   // (snow: si lo que cae es nieve, se dice «nieva» y no «llueve»)
 }
 // nombres para los compañeros de los partidos por parejas
-const MATE_NAMES = ['Unai', 'Ane', 'Jon', 'Maite', 'Iñaki', 'Nerea', 'Aitor', 'Leire', 'Ander', 'Amaia', 'Xabier', 'Garazi'];
+const MATE_NAMES = RIVALES;   // (los compañeros y los rivales por parejas: de la plantilla del autor, cada uno con su figura)
 
 // huella del frontón en coordenadas locales (se calcula una vez)
 let EXTENT = null;
@@ -310,7 +309,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       back: fixedLevel ? 'torneo' : G.sportMode ? 'menu' : 'pueblo',   // (a dónde lleva el botón del final)
       town: (G.def?.name || '').split(' /')[0], youRecord: myRecord(),   // (para las fichas: el pueblo del frontón y lo que has ganado)
       cond: frontonCond(G, fronton),   // (cómo es el frontón: a cubierto o al aire libre, de piedra, mojado o el Labrit)
-      venue: fronton.court.labrit ? (isEU() ? 'Labrit frontoia · Iruña' : 'Frontón Labrit · Iruña') : fronton.court.hall ? (isEU() ? `${(G.def?.name || '').split(' /')[0]} · frontoi estalia` : `Frontón cubierto de ${(G.def?.name || '').split(' /')[0]}`) : null, vsImg: { you: vsBlue, rival: vsRed }, comp, youBonus, rivalBonus,   // (la presentación: qué se juega y la media de cada uno)
+      venue: fronton.court.labrit ? (isEU() ? 'Labrit frontoia · Iruña' : 'Frontón Labrit · Iruña') : fronton.court.hall ? (isEU() ? `${(G.def?.name || '').split(' /')[0]} · frontoi estalia` : `Frontón cubierto de ${(G.def?.name || '').split(' /')[0]}`) : null, vsImg: { fig: (name, side) => pelotariFig(name, side) }, comp, youBonus, rivalBonus,   // (la presentación: qué se juega y la media de cada uno)
       onEvent: (e) => { if (e.type === 'call' && e.score) { const [a, b] = match?.labels?.() || [youName, rivName]; fronton.court.setScore?.(a, b, e.score.you, e.score.rival); } if (e.type === 'call' && seated) { seated.cheer(true); cheerT = e.final ? 4.6 : 1.6; } },
     }); } catch (e) { console.warn('frontón', e); done({ win: false, error: true }); return; }   // (si no se monta, de vuelta al pueblo)
     // (si el partido falla una y otra vez, se acaba y se vuelve al pueblo: nunca el marcador puesto en mitad de la calle)

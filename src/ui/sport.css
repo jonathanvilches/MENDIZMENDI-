@@ -56,6 +56,11 @@
 .gx-card .gx-face::after { content: ''; position: absolute; top: -10%; bottom: -10%; left: 0; width: 45%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .38), transparent); transform: translateX(-160%) skewX(-18deg); animation: gx-sweep 5s ease-in-out var(--d, 0s) infinite; }
 /* (la figura, de busto, se desvanece justo encima del nombre: antes el nombre caía sobre el pantalón blanco y no se leía) */
 .gx-card img { position: absolute; z-index: 0; right: 2%; top: 5%; height: 51.5%; width: 76%; object-fit: cover; object-position: 50% 4%; -webkit-mask-image: linear-gradient(180deg, #000 74%, transparent); mask-image: linear-gradient(180deg, #000 74%, transparent); }
+/* figura de pelotari en su caja (src/ui/pelotariFig.js): en el archivo único, la camiseta azul va encima del rojo, en la
+   misma caja; en la carta, las dos imágenes llevan la misma regla y caen una sobre otra */
+.pf { position: relative; display: block; flex: none; line-height: 0; }
+.pf > img { display: block; height: 100%; width: auto; }
+.pf > img.pf-azul { position: absolute; inset: 0; width: 100%; height: 100%; }
 .gx-card .gx-ovr { position: absolute; z-index: 1; left: 9%; top: 9%; display: flex; flex-direction: column; align-items: center; line-height: .9; }
 .gx-card .gx-ovr b { font: 400 calc(var(--w) * .24)/.9 var(--f-display); letter-spacing: -.02em; text-shadow: 0 2px 0 rgba(0, 0, 0, .3); }
 .gx-card .gx-ovr small { font: 800 max(12px, calc(var(--w) * .085))/1 var(--f-cond); letter-spacing: .06em; text-transform: uppercase; color: var(--ac); }

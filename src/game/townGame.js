@@ -75,6 +75,7 @@ import { FloraSpots } from './floraSpots.js';
 import { showFicha } from '../ui/ficha.js';
 import { cuentoOfTown, KIND_LABEL } from '../data/cuentos.js';
 import { repartirTareas, TAREAS } from './rutinas.js';
+import { townPelotari, pelotariGirl } from '../ui/pelotariFig.js';
 
 const CROP = {
   uva: ['racimos de uva', 'uva'], olivo: ['aceitunas', 'olivo'], piquillo: ['pimientos del piquillo', 'piquillo'], esparrago: ['manojos de espárragos', 'esparrago'],
@@ -365,11 +366,13 @@ export class TownGame {
     // pelotari del pueblo: espera junto al frontón para jugar cuando se quiera
     if (this.fronton && !this.missions.some(M => M.type === 'pelota')) {
       const e = this.fronton.entry, c = this.fronton.toWorld(0, 12), s = this.spot({ x: e.x - 2.5, z: e.z + 1 }, 3);
-      const R = this.rnd, name = ['Unai', 'Mikel', 'Aitor', 'Iñaki', 'Oihana', 'Garazi'][Math.floor(R() * 6)];
+      // (de la plantilla del autor, siempre el mismo en cada pueblo: el de su carta en la colección; R() se sigue
+      // llamando para que el resto del pueblo salga igual que antes)
+      const R = this.rnd, name = townPelotari(this.def.id); R();
       const blue = R() < 0.5;
       this.pelotari = new Actor({ id: 'pelotari', name, x: s.x, z: s.z, heading: Math.atan2(c.x - s.x, c.z - s.z),
         look: { shirt: '#f6f3ec', pants: '#f6f3ec', sash: blue ? '#2f5fb3' : '#c8222a', espadrille: true, laces: blue ? '#2f5fb3' : '#c8222a',
-          skin: SKINS[Math.floor(R() * SKINS.length)], hair: HAIRS[Math.floor(R() * HAIRS.length)], female: name === 'Oihana' || name === 'Garazi', ponytail: name === 'Garazi' } }, this.scene);
+          skin: SKINS[Math.floor(R() * SKINS.length)], hair: HAIRS[Math.floor(R() * HAIRS.length)], female: pelotariGirl(name), ponytail: pelotariGirl(name) } }, this.scene);
       this.actors.push(this.pelotari);
     }
     // El Sadar: la entrenadora de la cantera de Osasuna espera junto al túnel para jugar un partido

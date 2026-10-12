@@ -1,7 +1,7 @@
 // Antes del partido de pelota, en el móvil tumbado: el panel (el frontón con lo que se nota en él, «Más opciones» plegado
 // con lo elegido a la vista y los cinco niveles en una fila), la pantalla VS (azules contra colorados, el frontón, la
-// frase del rival; se toca para empezar) y la colección de pelotaris (la carta del rival queda al jugar; los demás, en
-// silueta con candado). Comprueba que todo cabe sin desplazar y sin solaparse, y hace capturas.
+// frase del rival; se toca para empezar) y la colección de pelotaris (la carta del rival queda al jugar; los demás, con
+// su figura y un candado). Comprueba que todo cabe sin desplazar y sin solaparse, y hace capturas.
 // Uso: node tools/pelota-vs-ver.mjs [pueblo] [carpeta] [clear|rain]   (URL=http://127.0.0.1:5173 por defecto)
 import { chromium } from 'playwright-core';
 import { mkdirSync } from 'fs';
@@ -125,7 +125,7 @@ await p.evaluate(() => document.querySelector('[data-a="pelotaris"]').click());
 await p.waitForSelector('.pc-root .pc-grid', { timeout: 30000 }); await p.waitForTimeout(600); await finish();
 const C = await p.evaluate(() => { const c = document.querySelector('.pc-root .lg-card'); return { have: document.querySelectorAll('.pc-it .gx-card:not(.lock)').length, locked: document.querySelectorAll('.pc-it .gx-card.lock').length, tabs: document.querySelectorAll('.pc-tabs button').length, count: document.querySelector('.pc-count')?.innerText, scroll: c.scrollHeight - c.clientHeight }; });
 console.log(`   ${C.count} · en esta comarca ${C.have} conocidos y ${C.locked} por descubrir · ${C.tabs} comarcas`);
-ok(C.have >= 1 && C.locked >= 1, 'el conocido con su carta y los demás en silueta con candado');
+ok(C.have >= 1 && C.locked >= 1, 'el conocido con su carta y los demás con su figura y candado');
 ok(C.scroll <= 0, `cabe sin desplazar (${C.scroll} px)`);
 await shot('coleccion');
 await p.evaluate(() => document.querySelector('.pc-it button.gx-card').click()); await p.waitForSelector('.pfx', { timeout: 10000 }).catch(() => {}); await p.waitForTimeout(600); await finish();

@@ -33,10 +33,10 @@ const CSS = `
 .pvs-venue{background:rgba(7,2,15,.86);font:800 var(--fs-sm)/1.15 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--lila);margin-left:-10px;clip-path:polygon(12px 0,100% 0,calc(100% - 12px) 100%,0 100%);padding-left:22px!important;padding-right:22px!important}
 .pvs-venue svg{width:34px;height:26px;flex:none}
 .pvs-fig{position:absolute;bottom:0;height:min(84%,600px);display:flex;align-items:flex-end;z-index:3;pointer-events:none}
-.pvs-fig img,.pvs-fig .kit{height:100%;width:auto;flex:none}
+.pvs-fig img,.pvs-fig .kit,.pvs-fig .pf{height:100%;width:auto;flex:none}
 .pvs-fig.azul{left:6%;animation:pvs-figl .55s .25s cubic-bezier(.2,1.15,.4,1) both}.pvs-fig.rojo{right:6%;animation:pvs-figr .55s .25s cubic-bezier(.2,1.15,.4,1) both}
-.pvs-fig.azul img{filter:drop-shadow(0 0 2px #fff) drop-shadow(-8px 0 18px rgba(123,107,255,.85)) drop-shadow(0 14px 18px rgba(0,0,0,.5))}
-.pvs-fig.rojo img{transform:scaleX(-1);filter:drop-shadow(0 0 2px #fff) drop-shadow(-8px 0 18px rgba(255,111,181,.85)) drop-shadow(0 14px 18px rgba(0,0,0,.5))}
+.pvs-fig.azul>img,.pvs-fig.azul>.pf{filter:drop-shadow(0 0 2px #fff) drop-shadow(-8px 0 18px rgba(123,107,255,.85)) drop-shadow(0 14px 18px rgba(0,0,0,.5))}
+.pvs-fig.rojo>img,.pvs-fig.rojo>.pf{transform:scaleX(-1);filter:drop-shadow(0 0 2px #fff) drop-shadow(-8px 0 18px rgba(255,111,181,.85)) drop-shadow(0 14px 18px rgba(0,0,0,.5))}
 .pvs-fig .mate{height:80%;margin:0 -14% 0 0;opacity:.9}.pvs-fig.rojo .mate{margin:0 0 0 -14%}
 .pvs-fig .kit{display:grid;place-items:end center;height:74%;padding-bottom:16%}.pvs-fig .kit svg{width:auto;height:100%;filter:drop-shadow(0 0 2px #fff) drop-shadow(0 14px 18px rgba(0,0,0,.5))}
 .pvs-x{position:absolute;left:50%;top:44%;z-index:5;transform:translate(-50%,-50%);font:400 clamp(72px,16vh,140px)/1 var(--f-display);letter-spacing:-.02em;padding:0 .08em;
@@ -103,11 +103,13 @@ export function courtIcon(c = {}) {
 let styled = false;
 const plate = (s, side) => `<div class="pvs-plate ${side}">${s.ovr != null ? `<div class="pvs-ovr"><b>${esc(s.ovr)}</b><small>${esc(s.ovrLabel || 'Media')}</small></div>` : '<span></span>'}
   <div class="pvs-who"><b>${esc(s.name)}</b><small>${esc(s.sub || '')}</small>${s.stats?.length ? `<div class="pvs-st">${s.stats.map(q => `<span>${esc(q.k)}<b>${esc(q.v)}</b></span>`).join('')}</div>` : ''}</div></div>`;
-const fig = (s, side) => s.figHtml ? `<div class="pvs-fig ${side}"><div class="kit">${s.figHtml}</div></div>`
-  : `<div class="pvs-fig ${side}">${side === 'rojo' && s.mateImg ? `<img class="mate" src="${s.mateImg}" alt="">` : ''}<img src="${s.img}" alt="">${side === 'azul' && s.mateImg ? `<img class="mate" src="${s.mateImg}" alt="">` : ''}</div>`;
+// (la figura: pf, el HTML de una figura en su caja .pf, o img, una imagen; la del compañero, matePf o mateImg)
+const fig = (s, side) => { if (s.figHtml) return `<div class="pvs-fig ${side}"><div class="kit">${s.figHtml}</div></div>`;
+  const mate = s.matePf ? s.matePf.replace('class="pf', 'class="pf mate') : s.mateImg ? `<img class="mate" src="${s.mateImg}" alt="">` : '';
+  return `<div class="pvs-fig ${side}">${side === 'rojo' ? mate : ''}${s.pf || `<img src="${s.img}" alt="">`}${side === 'azul' ? mate : ''}</div>`; };
 /**
  * host: donde se pone (la capa del partido); d: { comp (competición o ronda), venue, cond (frontón) o venueIcon (html),
- * you, rival: { name, sub, img o figHtml, mateImg?, ovr?, ovrLabel?, stats?: [{ k, v }] }, tags: [{ name, what }], line,
+ * you, rival: { name, sub, pf, img o figHtml, matePf o mateImg?, ovr?, ovrLabel?, stats?: [{ k, v }] }, tags: [{ name, what }], line,
  * quote, quoteBy, tap, ms, onSlam }. Devuelve una promesa que se cumple al tocar, al pulsar una tecla o a los pocos segundos.
  */
 export function showVs(host, d) {

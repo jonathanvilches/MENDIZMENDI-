@@ -161,9 +161,11 @@ export const ICON3D_NAMES = () => [...new Set([UI3D, CUSTOM, ITEM, ANIMAL, SMALL
 // vite.config.js); los pocos que el autor no ha dibujado son renders del propio juego (tools/iconbake.mjs).
 // (un animal con dos nombres usa una sola imagen: el nombre en castellano apunta al icono del autor y su render de antes
 // se queda en la carpeta, sin cargarse; owl y lechuza son la misma imagen, byte a byte)
+// (los 13 del fútbol, como los botones de pase, tiro o la pausa, tampoco se cargan: el partido usa los símbolos de
+// los controles del autor, de trazo, en src/futbol/hud.js)
 const SAME = { aguila: 'eagle', ardilla: 'squirrel', jabali: 'boar', buitre: 'vulture', ciguena: 'stork', ciervo: 'deer', trucha: 'trout', zorro: 'fox', pottoka: 'horse', pito: 'woodpecker', owl: 'lechuza' };
 const BAKED = {};
-for (const [p, u] of Object.entries(import.meta.glob(['@icons3d/*.webp', '!@icons3d/{aguila,ardilla,jabali,buitre,ciguena,ciervo,trucha,zorro,pottoka,pito,owl}.webp'], { eager: true, query: '?url', import: 'default' }))) BAKED[p.split('/').pop().replace('.webp', '')] = u;
+for (const [p, u] of Object.entries(import.meta.glob(['@icons3d/*.webp', '!@icons3d/{aguila,ardilla,jabali,buitre,ciguena,ciervo,trucha,zorro,pottoka,pito,owl}.webp', '!@icons3d/{shoot,pass,through,sprint,swap,tackle,slide,contain,dive,control,move,pause,camera}.webp'], { eager: true, query: '?url', import: 'default' }))) BAKED[p.split('/').pop().replace('.webp', '')] = u;
 for (const [a, b] of Object.entries(SAME)) if (BAKED[b]) BAKED[a] = BAKED[b];
 
 function build(name) {

@@ -5,7 +5,6 @@
 import { clubImg } from '../ui/escudoImg.js';
 import { fitCircle, fitCircles } from '../ui/fitlabel.js';
 import { tap } from '../util/tap.js';
-import { icon3DReady } from '../ui/icon3d.js';
 // (en el marcador, el emblema de un equipo de la liga; si no lo tiene, el color de su camiseta)
 const em = (t) => t?.club && clubImg(t.club) ? `<img class="fb-em" src="${clubImg(t.club)}" alt="">` : `<i style="background:${t.shirt}"></i>`;
 const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;gap:16px;align-items:center;text-align:left;margin:4px 0 8px}.fb-board{width:100%;height:auto;display:block;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
@@ -32,11 +31,10 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-pen.on{display:grid;grid-template-columns:auto auto;align-items:center}
 .fb-pen u{display:inline-block;width:12px;height:12px;border-radius:50%;margin:0 2px;background:rgba(255,255,255,.25);text-decoration:none;vertical-align:middle}
 .fb-pen u.g{background:#3fd36a}.fb-pen u.x{background:#e0453a}
-.fb-pause,.fb-cam{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px));width:40px;height:40px;border-radius:50%;border:1.5px solid rgba(255,255,255,.75);background:rgba(8,10,20,.25);color:#fff;pointer-events:auto;cursor:pointer;display:grid;place-items:center;padding:0;box-shadow:0 2px 10px rgba(0,0,0,.18)}
+.fb-pause,.fb-cam{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px));width:40px;height:40px;border-radius:50%;border:1.5px solid #ecd8ff;background:rgba(38,19,63,.94);color:#fff;pointer-events:auto;cursor:pointer;display:grid;place-items:center;padding:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.19),0 2px 4px rgba(16,6,29,.5)}
 .fb-pause::before,.fb-cam::before{content:'';position:absolute;inset:-4px;border-radius:50%}   /* (zona táctil de 44 px; el dibujo no cambia) */
 .fb-pause{left:calc(env(safe-area-inset-left,0px) + var(--edge,16px))}.fb-cam{right:calc(env(safe-area-inset-right,0px) + var(--edge,16px))}
-.fb-pause svg,.fb-cam svg{width:18px;height:18px}
-.fb-pause img.fbi,.fb-cam img.fbi{width:24px;height:24px;object-fit:contain;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));pointer-events:none}
+.fb-pause svg,.fb-cam svg{width:20px;height:20px;filter:drop-shadow(0 1px 1px rgba(18,6,27,.5));pointer-events:none}
 .fb-msg{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%) scale(.85);opacity:0;transition:opacity .2s,transform .25s cubic-bezier(.2,1.4,.4,1);text-align:center;pointer-events:none;max-width:92vw}
 .fb-msg.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
 .fb-msg h2{margin:0;font-family:'MZ Display',Nunito,sans-serif;font-weight:400;font-size:var(--fs-display);line-height:1;text-shadow:0 4px 0 rgba(0,0,0,.35),0 8px 26px rgba(0,0,0,.45);letter-spacing:0}
@@ -52,25 +50,26 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
    balón en tus pies, apagado). Al pulsar, se rellenan con un toque de color. Al defender: ROBAR y ENTRADA. Medidas en
    --u (escala) para que no se toquen nunca: los centros están separados al menos 12 px más que la suma de los radios */
 .fb-btns{--u:1;position:absolute;right:calc(env(safe-area-inset-right,0px) + var(--thumb,16px));bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb,16px));width:calc(240px * var(--u));height:calc(178px * var(--u));pointer-events:none}
-.fb-b{position:absolute;border:1.5px solid rgba(255,255,255,.8);padding:0;border-radius:50%;background:rgba(8,10,20,.2);color:#fff;font:800 var(--fs-xs)/1.05 var(--f-cond,Nunito),system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase;text-shadow:0 1px 2px rgba(0,0,0,.55);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;touch-action:none;pointer-events:auto;text-align:center;line-height:1;box-shadow:0 2px 10px rgba(0,0,0,.18);-webkit-user-select:none;user-select:none;transition:transform .06s,background .08s,opacity .2s}
-.fb-b svg{width:calc(18px * var(--u));height:calc(18px * var(--u));flex:none;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.45));pointer-events:none}
-/* (los iconos 3D del autor, algo mayores que el trazo para leerse igual; con sombra para despegarse del césped) */
-.fb-b img.fbi{width:calc(24px * var(--u));height:calc(24px * var(--u));flex:none;object-fit:contain;filter:drop-shadow(0 1px 2px rgba(0,0,0,.55));pointer-events:none}
+.fb-b{position:absolute;--mm-top:#6551b5;--mm-bottom:#24154a;border:1.5px solid #f2dcff;padding:0;border-radius:50%;background:linear-gradient(155deg,var(--mm-top),var(--mm-bottom));color:#fff;font:800 var(--fs-xs)/1.05 var(--f-cond,Nunito),system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase;text-shadow:0 1px 2px #090411;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;touch-action:none;pointer-events:auto;text-align:center;line-height:1;box-shadow:inset 0 2px 0 rgba(255,255,255,.27),inset 0 -3px 0 rgba(22,7,37,.5),0 3px 0 #12061b,0 5px 10px rgba(14,6,29,.4);-webkit-user-select:none;user-select:none;transition:transform .08s,box-shadow .08s,opacity .2s}
+/* (los símbolos de los controles del autor: trazo blanco grueso, nunca por debajo de 20 px) */
+.fb-b svg{width:max(20px,calc(24px * var(--u)));height:max(20px,calc(24px * var(--u)));flex:none;filter:drop-shadow(0 1px 1px rgba(18,6,27,.5));pointer-events:none}
 /* (el rótulo, en la letra estrecha del juego y en mayúsculas, siempre dentro del círculo y nunca por debajo de 12 px, la
    letra más pequeña de la escala: el icono es pequeño para que el rótulo quede cerca del centro, donde el círculo es más
    ancho; si no cabe en una línea, en dos. fitCircle() (src/ui/fitlabel.js) lo comprueba con el texto de verdad) */
 .fb-b span{pointer-events:none;max-width:78%;text-align:center;overflow-wrap:normal;hyphens:none}
-.fb-b.down{background:var(--cd,rgba(255,255,255,.3));transform:scale(.94)}
+.fb-b.down{background:linear-gradient(155deg,var(--mm-bottom),var(--mm-top));transform:translateY(2px) scale(.96);box-shadow:inset 0 2px 5px rgba(9,4,17,.5),0 1px 0 #12061b}
+.fb-b:focus-visible,.fb-pause:focus-visible,.fb-cam:focus-visible{outline:3px solid #fff;outline-offset:3px}
 /* (del tamaño justo para que el rótulo más largo de cada uno quepa a 12 px, como ESTIRADA o CAMBIAR, con --u .9 del móvil
    tumbado; los círculos, separados al menos 12 px) */
-.fb-shoot{--cd:rgba(232,71,60,.5);width:calc(84px * var(--u));height:calc(84px * var(--u));right:calc(10px * var(--u));bottom:calc(8px * var(--u))}
-.fb-shoot svg{width:calc(22px * var(--u));height:calc(22px * var(--u))}.fb-shoot img.fbi{width:calc(28px * var(--u));height:calc(28px * var(--u))}
-.fb-pass{--cd:rgba(47,168,224,.5);width:calc(72px * var(--u));height:calc(72px * var(--u));right:calc(106px * var(--u));bottom:calc(6px * var(--u))}
-.fb-sprint{--cd:rgba(63,191,90,.5);width:calc(68px * var(--u));height:calc(68px * var(--u));right:calc(18px * var(--u));bottom:calc(108px * var(--u))}
-.fb-swap{--cd:rgba(242,194,48,.5);width:calc(68px * var(--u));height:calc(68px * var(--u));right:calc(108px * var(--u));bottom:calc(92px * var(--u))}
-.fb-btns.atk .fb-swap{opacity:.35}
-.fb-btns.def .fb-pass{--cd:rgba(240,138,58,.55)}.fb-btns.def .fb-shoot{--cd:rgba(196,42,42,.55)}
-.fb-btns.gk .fb-pass,.fb-btns.gk .fb-shoot{--cd:rgba(40,170,90,.6)}.fb-btns.gkhands .fb-pass,.fb-btns.gkhands .fb-shoot{--cd:rgba(40,170,90,.6)}
+.fb-shoot{--mm-top:#b12bb7;--mm-bottom:#4a1559;border-color:#ffd8fa;width:calc(84px * var(--u));height:calc(84px * var(--u));right:calc(10px * var(--u));bottom:calc(8px * var(--u))}
+.fb-shoot svg{width:max(24px,calc(28px * var(--u)));height:max(24px,calc(28px * var(--u)))}
+.fb-pass{--mm-top:#2a61b5;--mm-bottom:#10294f;border-color:#d8ecff;width:calc(72px * var(--u));height:calc(72px * var(--u));right:calc(106px * var(--u));bottom:calc(6px * var(--u))}
+.fb-sprint{width:calc(68px * var(--u));height:calc(68px * var(--u));right:calc(18px * var(--u));bottom:calc(108px * var(--u))}
+.fb-swap{--mm-top:#81552e;--mm-bottom:#352033;border-color:#ffe0a0;width:calc(68px * var(--u));height:calc(68px * var(--u));right:calc(108px * var(--u));bottom:calc(92px * var(--u))}
+.fb-btns.atk .fb-swap{opacity:.5}
+.fb-btns.def .fb-pass{--mm-top:#81502f;--mm-bottom:#3c1d37}.fb-btns.def .fb-shoot{--mm-top:#982e65;--mm-bottom:#471437}
+.fb-btns.gk .fb-pass,.fb-btns.gk .fb-shoot,.fb-btns.gkhands .fb-pass,.fb-btns.gkhands .fb-shoot{--mm-top:#1d8aa3;--mm-bottom:#0b2f3d;border-color:#d4f6ff}   /* (con tu portero, turquesa: sin verdes en los mandos) */
+@media (prefers-reduced-motion:reduce){.fb-b{transition:none}}
 .fb-btns.pen .fb-swap,.fb-btns.pen .fb-sprint{display:none}
 .fb-bars{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 8px);width:min(30vw,220px);display:flex;flex-direction:column;gap:4px;pointer-events:none}
 .fb-bar{height:4px;border-radius:3px;background:rgba(8,10,20,.4);overflow:hidden;box-shadow:0 0 0 .5px rgba(255,255,255,.4)}
@@ -111,7 +110,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-ctabs{display:flex;gap:8px;margin:8px 0 12px}.fb-ctabs button{flex:1;min-height:44px;border-radius:12px;border:1px solid rgba(190,160,255,.35);background:rgba(255,255,255,.06);color:#fff;font:900 var(--fs-sm)/1.15 Nunito,system-ui,sans-serif;cursor:pointer}.fb-ctabs button[aria-selected=true]{background:linear-gradient(180deg,#8338ec,#5e22c4);border-color:#c9a6ff}
 .fb-cgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;text-align:left}
 .fb-ck{display:flex;align-items:flex-start;gap:8px;padding:8px 12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(190,160,255,.16);min-width:0}
-.fb-ck>i{flex:none;width:28px;height:28px;display:grid;place-items:center}.fb-ck>i svg{width:22px;height:22px}.fb-ck>i img.fbi{width:28px;height:28px;object-fit:contain}
+.fb-ck>i{flex:none;width:32px;height:32px;display:grid;place-items:center;border-radius:50%;border:1px solid #f2dcff;background:linear-gradient(155deg,#6551b5,#24154a);box-shadow:inset 0 1px 0 rgba(255,255,255,.27),0 2px 0 #12061b}.fb-ck>i:empty{visibility:hidden}.fb-ck>i.k-shoot{background:linear-gradient(155deg,#b12bb7,#4a1559);border-color:#ffd8fa}.fb-ck>i.k-pass,.fb-ck>i.k-through{background:linear-gradient(155deg,#2a61b5,#10294f);border-color:#d8ecff}.fb-ck>i.k-swap{background:linear-gradient(155deg,#81552e,#352033);border-color:#ffe0a0}.fb-ck>i svg{width:20px;height:20px}
 .fb-ck b{display:block;font-size:var(--fs-sm);font-weight:900;line-height:1.3}.fb-ck small{display:block;font-size:var(--fs-xs);font-weight:600;color:#d8cff0;line-height:1.3}.fb-ck em{display:block;font-style:normal;font-size:var(--fs-xs);font-weight:800;color:#ff7ac8;line-height:1.3;margin-top:2px}
 @media (max-width:520px){.fb-cgrid{grid-template-columns:1fr}}
 .fb-ctrl{width:100%;border-collapse:collapse;font-size:var(--fs-sm);text-align:left;margin:8px 0}.fb-ctrl th{font-size:var(--fs-xs);color:#cbbcf0;text-transform:uppercase;letter-spacing:.04em;padding:4px 4px}
@@ -181,7 +180,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-me-ic i{position:relative;width:12px;height:12px;border-radius:2px;background:#fff}.fb-me-ic i::before,.fb-me-ic i::after{content:'';position:absolute;left:5px;top:2px;width:2px;height:8px;background:#e3262b}.fb-me-ic i::after{transform:rotate(90deg)}
 /* aviso de cambio: bajo la pausa, cuando uno de los tuyos está lesionado o agotado; abre los cambios */
 .fb-subalert{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px) + 48px);left:calc(env(safe-area-inset-left,0px) + var(--edge,16px));display:flex;align-items:center;gap:8px;min-height:40px;padding:4px 12px 4px 8px;border-radius:4px;border:1.5px solid #ff7ac8;background:rgba(42,6,56,.86);color:#fff;font:800 var(--fs-xs)/1 var(--f-cond,Nunito),sans-serif;letter-spacing:.06em;text-transform:uppercase;pointer-events:auto;cursor:pointer;animation:fbpulse 1.4s ease-in-out infinite}
-.fb-subalert[hidden]{display:none}.fb-subalert img.fbi,.fb-subalert svg{width:22px;height:22px;flex:none;pointer-events:none}.fb-subalert span{pointer-events:none}
+.fb-subalert[hidden]{display:none}.fb-subalert svg{width:22px;height:22px;flex:none;pointer-events:none}.fb-subalert span{pointer-events:none}
 @keyframes fbpulse{50%{box-shadow:0 0 0 6px rgba(255,122,200,.28)}}
 /* lesión y cambio: el cartel lleva su señal (la cruz del médico o las flechas del cuarto árbitro) */
 .fb-msg.inj h2::before{content:'+';display:inline-grid;place-items:center;width:.86em;height:.86em;margin-right:.3em;border-radius:.12em;background:#fff;color:#e3262b;font-size:.9em;line-height:1;vertical-align:-.06em}
@@ -202,9 +201,9 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-pl[disabled]{opacity:.5;cursor:default}
 @media (max-width:640px) and (orientation:portrait){.fb-subs{grid-template-columns:1fr;grid-template-areas:'hf' 'sf' 'hb' 'sb'}}
 `;
-const SVG_PAUSE = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"><path d="M9 6v12M15 6v12"/></svg>';
-// iconos de los botones: trazo blanco fino (24 × 24), lo justo para reconocerlos
-const IC = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+// iconos de los botones: los símbolos de los controles del autor (trazo blanco grueso, 24 × 24)
+const IC = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const ICO_PAUSE = IC('<path d="M8 5v14M16 5v14"/>'), ICO_CAM = IC('<rect x="3" y="7" width="12" height="10" rx="2"/><path d="M15 10l6-3v10l-6-3z"/>');
 export const ICON = {
   shoot: IC('<circle cx="15" cy="12" r="5"/><path d="M3.5 9.5h5M2.5 12h6M3.5 14.5h5"/>'),
   pass: IC('<path d="M5.5 18.5L18.5 5.5"/><path d="M10 5.5h8.5V14"/>'),
@@ -218,12 +217,6 @@ export const ICON = {
   ctrl: IC('<circle cx="12" cy="11" r="5.5"/><path d="M4.5 19.5h15"/>'),
   move: IC('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/><path d="M12 1.8v2.4M12 19.8v2.4M1.8 12h2.4M19.8 12h2.4"/>'),
 };
-const SVG_CAM = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"><rect x="3" y="7" width="13" height="10" rx="2"/><path d="M16 11l5-3v8l-5-3z"/></svg>';
-// los iconos 3D del autor (src/assets/icons3d) sustituyen al trazo blanco en los botones, la pausa, la cámara y la
-// pantalla de controles; si faltara alguno, se queda el trazo
-const I3 = (n) => { const u = icon3DReady(n); return u ? `<img class="fbi" src="${u}" alt="" aria-hidden="true">` : null; };
-for (const [k, n] of [['shoot', 'shoot'], ['pass', 'pass'], ['through', 'through'], ['sprint', 'sprint'], ['swap', 'swap'], ['tackle', 'tackle'], ['slide', 'slide'], ['contain', 'contain'], ['dive', 'dive'], ['ctrl', 'control'], ['move', 'move']]) ICON[k] = I3(n) || ICON[k];
-const ICO_PAUSE = I3('pause') || SVG_PAUSE, ICO_CAM = I3('camera') || SVG_CAM;
 const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // la línea de cada uno, en tres letras: portero, defensa, medio y delantero
 const LINES = ['POR', 'DEF', 'MED', 'DEL'];
@@ -361,7 +354,7 @@ export class FutbolHud {
           ['pass', 'Sacar con la mano', 'Balón en las manos: PASE a quien apuntas', 'J', 'A'],
           ['shoot', 'Saque largo', 'Balón en las manos: mantén TIRO', 'K', 'B']]],
       ];
-      const card = ([ic, a, b, k, m]) => `<div class="fb-ck">${ic ? `<i>${ICON[ic]}</i>` : '<i></i>'}<div><b>${a}</b><small>${b}</small>${!touch && (k || m) ? `<em>${k ? `Teclado ${k}` : ''}${k && m ? ' · ' : ''}${m ? `Mando ${m}` : ''}</em>` : ''}</div></div>`;
+      const card = ([ic, a, b, k, m]) => `<div class="fb-ck">${ic ? `<i class="k-${ic}">${ICON[ic]}</i>` : '<i></i>'}<div><b>${a}</b><small>${b}</small>${!touch && (k || m) ? `<em>${k ? `Teclado ${k}` : ''}${k && m ? ' · ' : ''}${m ? `Mando ${m}` : ''}</em>` : ''}</div></div>`;
       const pane = (i) => `<div class="fb-cgrid">${TABS[i][1].map(card).join('')}</div>`;
       const p = this.panel(`<h2>Controles</h2><div class="fb-ctabs" role="tablist">${TABS.map(([t], i) => `<button role="tab" data-t="${i}" aria-selected="${i === 0}">${t}</button>`).join('')}</div>
         <div class="fb-cpane" role="tabpanel">${pane(0)}</div><button class="fb-go">Entendido</button>`);

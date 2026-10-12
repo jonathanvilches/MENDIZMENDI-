@@ -1,0 +1,8 @@
+Pelotaris del autor del proyecto MENDIMENDIZ, entregados el 2026-10-12 en un ZIP («MENDIMENDIZ-pelota-sellos-futbol»):
+22 pelotaris inventados (11 chicos y 11 chicas), de cuerpo entero, cada uno de azul y de rojo, en WebP transparente de
+256 × 384, 512 × 768 y 1024 × 1536 y en PNG de 512 × 768. Según su LEEME, la morfología y el estilo salen del explorador
+del juego, y Nerea, Leire, Ane, Miren y Uxue se añadieron para igualar chicos y chicas.
+Cambios: web/ lleva los WebP de 512 del autor tal cual; mini/ (el archivo único) lleva el rojo a 256 px y, del azul,
+solo la camiseta (lo que en el rojo es rojo vivo y en el azul es azul), que el juego pone encima del rojo.
+Lo hace tools/paquete-pelota.mjs. El index.html, el pelotaris.css y el catalogo.json del ZIP no se usan.
+Lista: mendi unai mikel aitor inaki ander xabier jokin ekaitz julen asier oihana garazi maialen amaia irati nahia nerea leire ane miren uxue
