@@ -142,9 +142,13 @@ const KICKERS_SALA = ['PIV', 'ALI', 'ALD', 'CIE'];
 // equipo arbitral (árbitro y asistentes, o dos árbitros de banda)
 const FORMATS = {
   f11: { id: 'f11', name: 'Fútbol 11', FIELD: FIELD11, PHYS: PHYS11, PLAYER: PLAYER11, ROLES: ROLES11, ROLE_NAME: ROLE_NAME11, LINE: LINE11, FORM: FORM11, NUMBERS: NUMBERS11, KICKERS: KICKERS11,
-    RULES: { offside: true, throwHands: true, goalkickHands: false, foulLimit: 0, fourSec: false, kick: ['DCD', 'DCI'], start: 'DCD', refs: 'f11', scale: 1, period: 45 } },
+    RULES: { offside: true, throwHands: true, goalkickHands: false, foulLimit: 0, fourSec: false, kick: ['DCD', 'DCI'], start: 'DCD', refs: 'f11', scale: 1, period: 45,
+      // banquillo: cinco suplentes [dorsal, línea] y cinco cambios, como en la liga; el que sale ya no vuelve
+      subs: 5, bench: [[13, 0], [12, 1], [14, 2], [15, 2], [16, 3]] } },
   sala: { id: 'sala', name: 'Fútbol sala', FIELD: FIELD_SALA, PHYS: PHYS_SALA, PLAYER: PLAYER_SALA, ROLES: ROLES_SALA, ROLE_NAME: ROLE_NAME_SALA, LINE: LINE_SALA, FORM: FORM_SALA, NUMBERS: NUMBERS_SALA, KICKERS: KICKERS_SALA,
-    RULES: { offside: false, throwHands: false, goalkickHands: true, foulLimit: 5, fourSec: true, kick: ['PIV', 'ALI'], start: 'PIV', refs: 'sala', scale: 0.55, period: 20 } },
+    RULES: { offside: false, throwHands: false, goalkickHands: true, foulLimit: 5, fourSec: true, kick: ['PIV', 'ALI'], start: 'PIV', refs: 'sala', scale: 0.55, period: 20,
+      // en sala, cambios sin límite y «volantes»: el que sale vuelve al banquillo y puede entrar otra vez
+      subs: Infinity, rolling: true, bench: [[12, 0], [5, 1], [9, 2], [11, 3]] } },
 };
 export let FIELD = FIELD11, PHYS = PHYS11, PLAYER = PLAYER11, ROLES = ROLES11, ROLE_NAME = ROLE_NAME11, LINE = LINE11, FORM = FORM11, NUMBERS = NUMBERS11, KICKERS = KICKERS11, RULES = FORMATS.f11.RULES, FORMAT = 'f11';
 const hooks = [];

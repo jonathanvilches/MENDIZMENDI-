@@ -21,6 +21,7 @@ for (const sz of sizes.split(',')) {
     await import('/src/style.css'); await import('/src/ui/sport.css');
     document.body.innerHTML = ''; document.body.style.background = 'linear-gradient(#3a6d4a,#2d5a3a)';
     (await import('/src/ui/frames.js')).startFrames();
+    (await import('/src/ui/frames.js')).startFrames();   // (los marcos en ángulo, como en el juego)
     window.__FH = await import('/src/futbol/hud.js'); window.__PH = await import('/src/pelota/hud.js'); window.__PR = await import('/src/pelota/rules.js');
     await document.fonts.ready;
   });
@@ -36,9 +37,24 @@ for (const sz of sizes.split(',')) {
   await p.evaluate(() => { window.__fh = new window.__FH.FutbolHud({ touch: true, home: { name: 'Osasuna', short: 'OSA', shirt: '#c8102e' }, away: { name: 'Real Sociedad', short: 'RSO', shirt: '#0067b1' } }); window.__fh.setClock(754, 1); window.__fh.setScore(2, 1); });
   const F = [['atk', 'h.setMode("atk")'], ['def', 'h.setMode("def")'], ['portero', 'h.setMode("gk")'], ['portero-manos', 'h.setMode("gkhands")'],
     ['penaltis', 'h.setButtons("Tiro", "PARAR")'], ['aviso', 'h.setMode("atk"); h.msg("¡GOOOL!", "Osasuna 3 – 1 Real Sociedad", 9000); h.say("¡Qué golazo de Moncayola!", 9000)'],
-    ['consejo', 'h.tip("Mantén <b>TIRO</b> para cargar y apunta con el joystick hacia la portería")'], ['faltas', 'h.setFouls(3, 6, 5)']];
+    ['consejo', 'h.tip("Mantén <b>TIRO</b> para cargar y apunta con el joystick hacia la portería")'], ['faltas', 'h.setFouls(3, 6, 5)'],
+    // tu jugador (dorsal, línea, energía y forma), cansado y lesionado con el aviso de cambio, y los carteles de tarjeta, lesión y cambio
+    ['jugador', 'h.tip(null); h.meChip({ num: 8, line: 2, energy: 0.62, fit: 0.78, card: "yellow", inj: null })'],
+    ['lesionado', 'h.meChip({ num: 8, line: 2, energy: 0.18, fit: 0.35, card: null, inj: "grave" }); h.subAlert(true); h.say("El 8 está lesionado: haz un cambio", 9000)'],
+    ['tarjeta', 'h.msg("Tarjeta amarilla", "El 5 visitante · Cortó una ocasión clara de gol", 9000, "card-y")'], ['lesion', 'h.msg("Lesión", "El 8 · no puede seguir bien", 9000, "inj")'],
+    ['cambio', 'h.say("", 1); h.msg("Cambio", "Sale el 8 · Entra el 14", 9000, "sub")']];
   for (const [n, code] of F) { await p.evaluate((code) => { const h = window.__fh; eval(code); }, code); await audit('futbol-' + n, '.fb-root'); }
   await p.evaluate(() => { const h = window.__fh; h.tip(null); h.el.msg.classList.remove('on'); h.el.say.classList.remove('on'); h.controls(); }); await audit('futbol-controles', '.fb-root');
+  // los cambios: los once (uno lesionado, uno que va a salir, uno con amarilla) y el banquillo; y la pausa con su botón
+  await p.evaluate(() => { const h = window.__fh; document.querySelectorAll('.fb-panel').forEach(e => e.remove());
+    const L = [0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3], N = [1, 3, 4, 5, 2, 11, 8, 6, 7, 10, 9], E = [0.9, 0.7, 0.8, 0.55, 0.95, 0.4, 0.62, 0.85, 0.2, 0.75, 0.5], FT = [1, 0.8, 0.9, 0.7, 0.95, 0.5, 0.78, 0.88, 0.35, 0.8, 0.6];
+    const field = N.map((num, i) => ({ id: i, num, line: L[i], energy: E[i], fit: FT[i], card: i === 6 ? 'yellow' : null, inj: i === 8 ? 'grave' : null, cls: i === 5 ? 'out' : i === 8 ? 'low' : '', note: i === 5 ? 'Sale · entra el 14' : '' }));
+    const bench = [[13, 0], [12, 1], [14, 2], [15, 2], [16, 3]].map(([num, line], b) => ({ b, num, line, energy: 1, fit: 1, cls: b === 2 ? 'sel' : '', note: b === 2 ? 'Entra por el 11' : '' }));
+    window.__subsM = { left: () => 4, list: () => ({ field, bench }), plan: () => true, cancel: () => true, auto: () => false, setAuto() {} };
+    h.subs(window.__subsM); });
+  await audit('futbol-cambios', '.fb-root');
+  await p.evaluate(() => { const h = window.__fh; document.querySelectorAll('.fb-panel').forEach(e => e.remove()); h.pause({ sistemas: {}, actual: '4-4-2', pick() {} }, { label: () => 'Cambios · quedan 4', model: window.__subsM }); });
+  await audit('futbol-pausa', '.fb-root');
   await p.evaluate(() => { window.__fh.destroy?.(); document.querySelectorAll('.fb-root').forEach(e => e.remove()); });
   // pelota, en los dos idiomas
   for (const lang of ['es', 'eu']) {
