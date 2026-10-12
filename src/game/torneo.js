@@ -135,6 +135,8 @@ const CSS = `
 .tq-rd{display:flex;flex-direction:column;min-width:0}
 .tq-rd h4{margin:0 0 4px;font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--lila);white-space:nowrap}.tq-rd h4 small{color:var(--lila2);font:inherit;letter-spacing:.04em}
 .tq-rd.now h4{color:var(--rosa)}
+/* (en los móviles más estrechos, la ronda sin «a 5»: si no, los rótulos de las columnas se pisan; los tantos van en la carta del partido) */
+@media (orientation:landscape) and (max-width:760px){.tq-rd h4 small{display:none}}
 .tq-ms{flex:1;display:flex;flex-direction:column;justify-content:space-around;gap:4px}
 .tq-m{position:relative;z-index:1;display:grid;border-radius:3px;overflow:hidden;background:rgba(18,5,42,.92);border:1px solid rgba(201,178,255,.22);clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px)}
 .tq-m.me{border-color:var(--fx);box-shadow:0 0 14px rgba(255,43,214,.45)}

@@ -3,8 +3,9 @@
 // simulan según la media de cada club. Clasificación con puntos, goles y diferencia; al final, el campeón.
 // La temporada se guarda en localStorage ('mendimendiz-liga-v1'), una por club.
 import { clubImg } from '../ui/escudoImg.js';
-import { jugadorBusto } from './jugadorFig.js';
+import { jugadorBusto, jugadorDuo, bustoSrc } from './jugadorFig.js';
 import { CLUBS, clubById } from './clubs.js';
+import { TEAMS } from './rules.js';
 
 const KEY = 'mendimendiz-liga-v1';
 const N_TEAMS = 8;
@@ -113,8 +114,8 @@ const CSS = `
 .lg-next.con-j{grid-template-columns:auto minmax(0,1fr) auto minmax(0,1fr) auto;gap:4px;padding-top:0;padding-bottom:0}
 /* (con los jugadores a los lados, cada línea del centro y el nombre de cada club en una sola línea: si no, «Jornada 1 de 7» se partía
    en dos; el sitio va en dos líneas, «en casa» y «El Sadar», para que el centro sea estrecho) */
-.lg-next.con-j .lg-vs small{white-space:nowrap;letter-spacing:.04em;line-height:1.15}.lg-next.con-j b{white-space:nowrap}
-.lg-next .lg-jf{display:block;align-self:end;width:75px;height:100px;object-fit:contain;-webkit-mask-image:linear-gradient(180deg,#000 78%,transparent);mask-image:linear-gradient(180deg,#000 78%,transparent)}.lg-next .lg-jf.r{transform:scaleX(-1)}
+.lg-next.con-j .lg-vs small{white-space:nowrap;letter-spacing:.04em;line-height:1.15}.lg-next.con-j b,.lg-next.con-j em{white-space:nowrap}
+.lg-next .lg-jf{display:block;align-self:stretch;width:75px;height:auto;min-height:100px;object-fit:contain;object-position:50% 100%;-webkit-mask-image:linear-gradient(180deg,#000 78%,transparent);mask-image:linear-gradient(180deg,#000 78%,transparent)}.lg-next .lg-jf.r{transform:scaleX(-1)}
 .lg-next .lg-t{display:flex;flex-direction:column;align-items:center;gap:4px}.lg-next b{font:400 var(--fs-xl)/1.1 var(--f-display);text-transform:uppercase}.lg-next em{font:600 var(--fs-sm)/1.15 var(--f-cond);font-style:normal;letter-spacing:.04em;text-transform:uppercase;color:var(--lila)}
 .lg-vs{font:400 var(--fs-3xl)/1 var(--f-display);background:linear-gradient(180deg,#fff,var(--rosa));-webkit-background-clip:text;background-clip:text;color:transparent;animation:gx-pop .5s cubic-bezier(.2,1.5,.4,1) .2s both}.lg-vs small{display:block;font:800 var(--fs-xs)/1.3 var(--f-cond);color:var(--lila);-webkit-text-fill-color:var(--lila);letter-spacing:.1em}
 .lg-table{width:100%;border-collapse:collapse;font-size:var(--fs-sm)}.lg-table th{font-size:var(--fs-xs);color:#cbbcf0;text-transform:uppercase;letter-spacing:.04em;padding:4px 4px;text-align:center}
@@ -150,12 +151,63 @@ const CSS = `
 /* con solo dos botones (jugar o viajar, y salir) van en la misma fila: así cabe todo sin desplazar, también en euskera */
 .lg-card.lg-two>.lg-btns:has(>.lg-btn:nth-child(2):last-child){grid-template-columns:1.7fr 1fr}.lg-card.lg-two>.lg-btns:has(>.lg-btn:nth-child(2):last-child)>.lg-btn.go{grid-column:auto}
 .lg-table{font-size:var(--fs-xs)}.lg-table td{padding:2px}.lg-table th{padding:4px 2px}.lg-head{gap:8px}.lg-head .lg-kit{width:27px;height:36px}.lg-head h2{font-size:var(--fs-lg)}.lg-head small{font-size:var(--fs-xs)}
-.lg-next{padding:8px 8px}.lg-next .lg-kit{display:none}.lg-next .lg-jf{width:60px;height:80px}.lg-next b{font-size:var(--fs-sm)}.lg-vs{font-size:var(--fs-xl)}
+.lg-next{padding:8px 8px}.lg-next .lg-kit{display:none}.lg-next .lg-jf{width:60px;min-height:80px}.lg-next b{font-size:var(--fs-sm)}.lg-vs{font-size:var(--fs-xl)}
 .lg-how{font-size:var(--fs-xs);line-height:1.45;padding:4px 8px}.lg-btn{min-height:44px;padding:8px}.lg-btn.go{font-size:var(--fs-lg)}
 .lg-rv{padding:4px 8px;gap:8px}.lg-rv .lg-kit{width:21px;height:28px}
 }
+/* portadas de equipo: la pareja del autor de cada equipo (el chico y la chica con su equipación); en el archivo único, su
+   camiseta dibujada. El menú del club va en losas, como el de pelota; elegir club o rival, en cartas que se pasan de lado */
+.lg-card.eq-menu{grid-template-rows:auto minmax(0,1fr) auto}
+.eq-tiles{display:grid;grid-auto-flow:column;grid-template-columns:1.3fr;grid-auto-columns:1fr;gap:12px;min-height:0}
+.eq-tile,.eq-team{position:relative;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;gap:2px;min-width:0;border:1px solid rgba(201,178,255,.25);border-radius:4px;color:#fff;text-align:left;cursor:pointer;font:inherit;background:linear-gradient(160deg,var(--t1,#5b4bff),var(--t2,#120a40) 75%);transition:transform .15s,border-color .15s}
+.eq-tile{min-height:220px;padding:12px 16px;clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px)}
+.eq-tile::before,.eq-team::before{content:'';position:absolute;inset:0;z-index:-1;background:repeating-linear-gradient(125deg,transparent 0 14px,rgba(255,255,255,.035) 14px 15px)}
+.eq-tile::after{content:'';position:absolute;top:-10%;bottom:-10%;left:0;width:40%;z-index:2;background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);transform:translateX(-160%) skewX(-18deg);animation:gx-sweep 6s ease-in-out var(--d,0s) infinite;pointer-events:none}
+.eq-tile:active,.eq-team:active{transform:scale(.97)}.eq-tile:hover,.eq-team:hover{border-color:var(--rosa)}
+.eq-tile:focus-visible,.eq-team:focus-visible{outline:3px solid #fff;outline-offset:-3px}
+/* (la portada arriba, apoyada abajo y entera dentro de su caja, y el texto debajo: nunca se pisan; una sola imagen) */
+.eq-tile .art,.eq-team .art{flex:1 1 0;min-height:0;position:relative;pointer-events:none}.eq-tile .art{margin:0 -8px 8px}
+.eq-tile .art>img,.eq-tile .art>svg,.eq-team .art>img,.eq-team .art>svg{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain;object-position:50% 100%;filter:drop-shadow(0 6px 14px rgba(0,0,0,.5))}
+.eq-tile .art.trio>*{left:50%;width:auto;height:94%;top:auto;bottom:0;transform:translateX(-50%);transform-origin:50% 100%;-webkit-mask-image:linear-gradient(180deg,#000 82%,transparent);mask-image:linear-gradient(180deg,#000 82%,transparent)}
+.eq-tile .art.trio>:nth-child(1){transform:translateX(-96%) scale(.84)}.eq-tile .art.trio>:nth-child(2){z-index:1}.eq-tile .art.trio>:nth-child(3){transform:translateX(-4%) scale(.84)}
+.eq-tile .k,.eq-team .k{font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--rosa);text-shadow:0 1px 3px rgba(0,0,0,.8)}
+.eq-tile b{font:400 var(--fs-2xl)/1 var(--f-display);text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.55)}
+.eq-tile small,.eq-team small{font:600 var(--fs-sm)/1.2 var(--f-cond);color:#ece4ff;text-shadow:0 1px 3px rgba(0,0,0,.9)}
+.eq-tile.main{--t1:#ff2bd6;--t2:#3a0b6b}.eq-tile.pair{--t1:#7b2ff7;--t2:#160636}.eq-tile.free{--t1:#5b4bff;--t2:#120a40}.eq-tile.col{--t1:#c21cff;--t2:#2a0638}
+.eq-foot{display:flex;justify-content:flex-start}.eq-foot .lg-btn{min-width:144px}
+.lg-card.eq-pick,.lg-card.eq-menu{width:min(1100px,100%)}
+.eq-teams{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(144px,168px);gap:8px;overflow-x:auto;overflow-y:hidden;overscroll-behavior:contain;scroll-snap-type:x proximity;min-height:0;padding:2px;scrollbar-width:none}
+.eq-teams::-webkit-scrollbar{display:none}
+.eq-teams.mr{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent)}.eq-teams.ml{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px);mask-image:linear-gradient(90deg,transparent,#000 40px)}.eq-teams.ml.mr{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent)}
+.eq-team{min-height:240px;padding:8px 12px 12px;scroll-snap-align:start;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)}
+.eq-team.on{--t1:#ff2bd6;--t2:#3a0b6b;border-color:var(--rosa)}
+.eq-team .art{margin:32px -4px 8px}
+.eq-team .em{position:absolute;top:8px;left:12px;width:24px;height:28px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
+.eq-team .ovr{position:absolute;top:8px;right:12px;text-align:center;font:400 var(--fs-lg)/1 var(--f-display);text-shadow:0 2px 0 rgba(7,2,15,.5)}.eq-team .ovr small{display:block;font:800 var(--fs-xs)/1 var(--f-cond);letter-spacing:.08em;color:var(--lila);text-shadow:none}
+.eq-team b{font:400 var(--fs-lg)/1.05 var(--f-display);text-transform:uppercase;white-space:nowrap;text-shadow:0 3px 0 rgba(7,2,15,.55)}
+.eq-team small{min-height:2.4em}
+/* (el campeón de la liga, con su pareja al lado) */
+.lg-champ.con-d{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:12px;text-align:left}.lg-champ .duo{display:block;height:112px;width:auto;filter:drop-shadow(0 6px 12px rgba(0,0,0,.5))}
+@media (orientation:portrait) and (max-width:700px){
+.lg-card.eq-menu{grid-template-rows:none}.eq-tiles{grid-auto-flow:row;grid-template-columns:1fr 1fr;grid-auto-columns:auto}.eq-tile.main,.eq-tiles>.eq-tile:last-child:nth-child(even){grid-column:1/-1}.eq-tile{min-height:200px}.eq-tile .art{min-height:112px}.eq-tile.main .art{min-height:150px}.eq-tile b{font-size:var(--fs-xl)}
+.eq-teams{grid-auto-flow:row;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-columns:auto;overflow-x:hidden;overflow-y:auto;scroll-snap-type:none}.eq-team{min-height:212px}
+.eq-teams.mr,.eq-teams.ml{-webkit-mask-image:none;mask-image:none}.eq-teams.mb{-webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(180deg,#000 calc(100% - 40px),transparent)}
+}
+@media (orientation:landscape) and (max-height:520px){
+.lg-card.eq-menu,.lg-card.eq-pick{height:100%}.eq-tile{min-height:0;padding:8px 12px}.eq-tile b{font-size:var(--fs-xl)}.eq-tile .art{margin-bottom:4px}
+.eq-teams{grid-auto-columns:clamp(128px,18vw,160px)}.eq-team{min-height:0;padding:8px 10px 10px}.eq-team .art{margin-top:28px}.lg-champ .duo{height:84px}
+}
+/* (en los móviles más estrechos, las losas iguales y el título algo menor: «Lagunartekoa» cabe entero) */
+@media (orientation:landscape) and (max-width:720px){.eq-tiles{grid-template-columns:1fr}.eq-tile b{font-size:var(--fs-lg)}}
+/* (muy poca altura: sin el grupo encima del nombre, para que la portada no se quede pequeña) */
+@media (orientation:landscape) and (max-height:380px){.eq-team .k,.eq-team small,.lg-card.eq-pick .lg-head .lg-note{display:none}}
+/* (en pantallas altas, como el iPad tumbado, la portada con su altura: no se queda diminuta encima del texto) */
+@media (min-height:561px) and (orientation:landscape){.eq-tile .art{min-height:clamp(150px,26vh,240px)}.eq-team{min-height:clamp(240px,40vh,320px)}}
 /* muy poca altura (iPhone con la barra de Safari): la explicación en dos líneas y los botones siempre a la vista */
-@media (orientation:landscape) and (max-height:380px){.lg-card{gap:4px 12px;padding:8px 16px}.lg-next{padding:4px 8px}.lg-next .lg-jf{width:54px;height:72px}.lg-vs{font-size:var(--fs-xl)}.lg-btn{min-height:44px}}
+/* (la explicación de la liga, plegada en dos líneas: en el móvil tumbado cabe todo sin desplazar; mientras está plegada, sin
+   relleno abajo, que dejaba asomar el principio de la línea siguiente) */
+@media (orientation:landscape) and (max-height:400px){.lg-root .lg-how.vm-clamp{--vm-lines:2!important}.lg-root .lg-how.vm-clamp:not(.vm-open){padding-bottom:0}}
+@media (orientation:landscape) and (max-height:380px){.lg-card{gap:4px 12px;padding:8px 16px}.lg-next{padding:4px 8px}.lg-next .lg-jf{width:54px;min-height:72px}.lg-vs{font-size:var(--fs-xl)}.lg-btn{min-height:44px}}
 `;
 function panel(html) {
   if (!document.getElementById('lg-css')) { const st = document.createElement('style'); st.id = 'lg-css'; st.textContent = CSS; document.head.appendChild(st); }
@@ -189,8 +241,9 @@ export function ligaPanel(S) {
       const fh = jugadorBusto(m.h, 'lg-jf'), fa = jugadorBusto(m.a, 'lg-jf r');
       mid = `<div class="lg-next${fh && fa ? ' con-j' : ''}">${fh && fa ? fh : ''}<div class="lg-t">${crest(m.h, 52)}<b>${esc(H.name)}</b><em>Media ${H.ovr}</em></div><div class="lg-vs">VS<small>JORNADA ${m.j + 1} DE ${S.rounds.length}</small><small>${home ? 'EN CASA' : 'FUERA'}</small><small>EL SADAR</small></div><div class="lg-t">${crest(m.a, 52)}<b>${esc(A.name)}</b><em>Media ${A.ovr}</em></div>${fh && fa ? fa : ''}</div>`;
     } else {
-      const ch = CLUBS[S.champion];
-      mid = `<div class="lg-champ"><small>CAMPEÓN DE LA LIGA NAVARRA</small><br><b>${esc(ch.name)}</b><br>${S.champion === S.club ? '¡Sois campeones! Aupa ' + esc(c.town) + '!' : 'La próxima temporada, a por el título.'}</div>`;
+      const ch = CLUBS[S.champion], d = jugadorDuo(S.champion);
+      // (en la web, la pareja del club campeón al lado)
+      mid = `<div class="lg-champ${d ? ' con-d' : ''}">${d}<div><small>CAMPEÓN DE LA LIGA NAVARRA</small><br><b>${esc(ch.name)}</b><br>${S.champion === S.club ? '¡Sois campeones! Aupa ' + esc(c.town) + '!' : 'La próxima temporada, a por el título.'}</div></div>`;
     }
     const adapt = Object.values(CLUBS).some(x => x.adapt) ? '<p class="lg-note lg-adapt">Equipos con el nombre de cada pueblo o valle, sin nombres ni escudos de clubes de verdad.</p>' : '';
     const play = '<button class="lg-btn go" data-a="play">¡A jugar!</button>';
@@ -207,32 +260,62 @@ export function roundPanel(S, R, j) {
     r.addEventListener('click', (e) => { if (!e.target.closest('[data-a]')) return; r.remove(); res(); });
   });
 }
-/** Menú del club en el pueblo: liga, amistoso, partido o salir. items: [[id, texto, sub]] */
+// las portadas de equipo: la pareja del autor (el chico y la chica con su equipación) en la web y, en el archivo único, la
+// camiseta dibujada del equipo (un club o uno de los equipos sin club: Iruña, el visitante, el pueblo, los vecinos)
+const teamArt = (id) => jugadorDuo(id) || ((CLUBS[id] || TEAMS[id]) ? kitSvgOf(CLUBS[id] || TEAMS[id], 120, 'ta' + id) : '');
+// tres jugadores de clubes distintos, en abanico: sus bustos o sus camisetas
+const trioArt = (ids) => ids.every(k => bustoSrc(k)) ? ids.map(k => `<img src="${bustoSrc(k)}" alt="" draggable="false">`).join('') : ids.map(k => kitSvgOf(CLUBS[k], 120, 'tt' + k)).join('');
+/** Menú del club: liga, amistoso, partido o salir, en losas con la portada de cada equipo, como el menú de pelota.
+ *  items: [[id, título, texto, rótulo?]] (el rótulo, encima del título; si no se da, uno según la opción) */
 export function clubPanel(clubId, items, sub = 'Tu club') {
   return new Promise(res => {
-    const S = season(clubId);
-    const r = panel(`${head(S, sub)}<div class="lg-btns">${items.map(([id, t, s], i) => `<button class="lg-btn ${i === 0 ? 'go' : ''}" data-a="${id}">${esc(t)}${s ? `<br><small style="font:700 var(--fs-xs) Nunito,sans-serif;opacity:.8">${esc(s)}</small>` : ''}</button>`).join('')}</div>`);
+    const S = season(clubId), C = CLUBS[clubId], day = Math.floor(Date.now() / 864e5);
+    const others = Object.keys(CLUBS).filter(k => k !== clubId), away = others.filter(k => CLUBS[k].group !== C?.group);
+    const pick = (L, i) => L[(day + i) % L.length];
+    // (cada opción con su equipo: la liga, el tuyo; el amistoso, uno del otro grupo, que cambia cada día; el partido
+    // rápido, Iruña; el del sello, los vecinos; cambiar de club, tres jugadores de otros clubes)
+    const ART = { liga: [clubId, 'main'], amistoso: [pick(away.length ? away : others, 0), 'pair'], sadar: ['osasuna', 'free'], sala: ['vecinos', 'free'], club: [null, 'col'] };
+    const KICK = { liga: S.j < S.rounds.length ? `Jornada ${S.j + 1} de ${S.rounds.length}` : 'Nueva temporada', amistoso: 'Tú eliges rival', sadar: 'En El Sadar', sala: 'En El Sadar', club: 'Tu club' };
+    const tiles = items.filter(([id]) => id !== 'exit').map(([id, t, x, k], i) => {
+      const [team, tone] = ART[id] || [clubId, 'free'];
+      const art = id === 'club' ? `<span class="art trio">${trioArt([pick(others, 3), pick(others, 10), pick(others, 17)])}</span>` : `<span class="art">${teamArt(team)}</span>`;
+      return `<button class="eq-tile ${tone}" data-a="${id}" style="--d:${(0.2 + i * 0.6).toFixed(1)}s">${art}<span class="k">${esc(k || KICK[id] || '')}</span><b>${esc(t)}</b>${x ? `<small>${esc(x)}</small>` : ''}</button>`;
+    }).join('');
+    const exit = items.find(([id]) => id === 'exit');
+    const r = panel(`${head(S, sub)}<div class="eq-tiles">${tiles}</div>${exit ? `<div class="eq-foot"><button class="lg-btn" data-a="exit">${esc(exit[1] || 'Salir')}</button></div>` : ''}`);
+    r.firstElementChild.classList.add('eq-menu');
     r.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; r.remove(); res(b.dataset.a); });
+  });
+}
+// las cartas de los clubes para elegir: la portada del equipo, su escudo, su media, el grupo, el nombre y el pueblo (o
+// su campo, si el club se llama como el pueblo); por grupos y por nombre
+const byGroup = (ids) => ids.slice().sort((a, b) => (CLUBS[a].group || '').localeCompare(CLUBS[b].group || '') || CLUBS[a].name.localeCompare(CLUBS[b].name));
+function teamCards(ids, cur) {
+  return ids.map(k => {
+    const c = CLUBS[k], em = clubImg(k), where = c.town && c.town !== c.name ? c.town : c.field ? `Campo de ${c.field}` : '';
+    return `<button class="eq-team${k === cur ? ' on' : ''}" data-a="${k}" aria-label="${esc(c.name)}"><span class="art">${teamArt(k)}</span>${em ? `<img class="em" src="${em}" alt="">` : ''}<span class="ovr">${c.ovr}<small>MEDIA</small></span><span class="k">Grupo ${c.group === 'norte' ? 'Norte' : 'Sur'}</span><b>${esc(c.name)}</b><small>${esc(where)}</small></button>`;
+  }).join('');
+}
+// la tira de cartas: se pasa de lado (en el móvil de pie, hacia abajo), con un degradado en el borde si hay más; la rueda
+// del ratón también la mueve de lado; empieza en el club elegido
+function teamPicker(top, ids, cur, back = 'Volver') {
+  return new Promise(res => {
+    const r = panel(`${top}<div class="eq-teams">${teamCards(ids, cur)}</div><div class="eq-foot"><button class="lg-btn" data-a="">${esc(back)}</button></div>`);
+    r.firstElementChild.classList.add('lg-pick', 'eq-pick');
+    const L = r.querySelector('.eq-teams');
+    const upd = () => { const x = L.scrollWidth - L.clientWidth > 4; L.classList.toggle('mr', x && L.scrollWidth - L.scrollLeft - L.clientWidth > 6); L.classList.toggle('ml', x && L.scrollLeft > 6); L.classList.toggle('mb', !x && L.scrollHeight - L.scrollTop - L.clientHeight > 6); };
+    L.addEventListener('scroll', upd, { passive: true });
+    L.addEventListener('wheel', (e) => { if (L.scrollWidth > L.clientWidth + 4 && Math.abs(e.deltaY) > Math.abs(e.deltaX)) { L.scrollLeft += e.deltaY; e.preventDefault(); } }, { passive: false });
+    requestAnimationFrame(() => { const on = L.querySelector('.on'); if (on) { L.scrollLeft = Math.max(0, on.offsetLeft - (L.clientWidth - on.offsetWidth) / 2); L.scrollTop = Math.max(0, on.offsetTop - (L.clientHeight - on.offsetHeight) / 2); } upd(); });
+    r.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; r.remove(); res(b.dataset.a || null); });
   });
 }
 /** Elegir rival para un amistoso (todos los clubes). */
 export function rivalPanel(clubId) {
-  return new Promise(res => {
-    const S = season(clubId);
-    const list = Object.keys(CLUBS).filter(k => k !== clubId).map(k => `<button class="lg-btn lg-rv" data-a="${k}">${crest(k, 34)}<span><b>${esc(CLUBS[k].name)}</b><small>${esc(CLUBS[k].town)} · media ${CLUBS[k].ovr}</small></span></button>`).join('');
-    const r = panel(`${head(S, 'Amistoso: elige rival')}<div class="lg-btns lg-list">${list}</div><div class="lg-btns"><button class="lg-btn" data-a="">Volver</button></div>`);
-    r.firstElementChild.classList.add('lg-pick');
-    r.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; r.remove(); res(b.dataset.a || null); });
-  });
+  return teamPicker(head(season(clubId), 'Amistoso: elige rival'), byGroup(Object.keys(CLUBS).filter(k => k !== clubId)), null);
 }
-/** Elegir tu club (campeonato desde el menú): todos los clubes, por grupos. Devuelve su id o null. */
-export function clubPick() {
-  return new Promise(res => {
-    const row = (k) => `<button class="lg-btn lg-rv" data-a="${k}">${crest(k, 34)}<span><b>${esc(CLUBS[k].name)}</b><small>${esc(CLUBS[k].town)} · media ${CLUBS[k].ovr}</small></span></button>`;
-    const ids = Object.keys(CLUBS).sort((a, b) => (CLUBS[a].group || '').localeCompare(CLUBS[b].group || '') || CLUBS[a].name.localeCompare(CLUBS[b].name));
-    const r = panel(`<div class="lg-head"><div><small>Campeonato de fútbol</small><h2>Elige tu club</h2><span class="lg-note">Con él juegas la Liga Navarra y los amistosos</span></div></div><div class="lg-btns lg-list">${ids.map(row).join('')}</div><div class="lg-btns"><button class="lg-btn" data-a="">Volver</button></div>`);
-    r.firstElementChild.classList.add('lg-pick');
-    r.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; r.remove(); res(b.dataset.a || null); });
-  });
+/** Elegir tu club (campeonato desde el menú): todos los clubes, por grupos. cur: el que tenías. Devuelve su id o null. */
+export function clubPick(cur = null) {
+  return teamPicker('<div class="lg-head"><div><small>Campeonato de fútbol</small><h2>Elige tu club</h2><span class="lg-note">Con él juegas la Liga Navarra y los amistosos</span></div></div>', byGroup(Object.keys(CLUBS)), cur);
 }
 export { clubById, panel as lgPanel, esc as lgEsc };

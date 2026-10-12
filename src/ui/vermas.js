@@ -30,7 +30,7 @@ export function startVerMas(root = document.body) {
   const ro = new ResizeObserver((es) => { for (const e of es) if (e.contentRect.height > 0) { ro.unobserve(e.target); decide(e.target); } });
   const decide = (el) => {
     if (!el.isConnected || el.dataset.vm === 'ok') return;
-    const cs = getComputedStyle(el), lh = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.35 || 20, lines = +el.style.getPropertyValue('--vm-lines') || 4;
+    const cs = getComputedStyle(el), lh = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.35 || 20, lines = +cs.getPropertyValue('--vm-lines') || +el.style.getPropertyValue('--vm-lines') || 4;   // (una hoja puede pedir menos líneas en pantallas bajas)
     // (si cabe en sus líneas y una más, se queda entero: plegar para esconder una línea solo corta el texto; si no, se
     // pliega: se lee lo justo y el resto, cuando se quiera. El relleno de la caja no cuenta como texto)
     const pad = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);

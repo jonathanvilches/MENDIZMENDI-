@@ -11,7 +11,10 @@ import { FutbolAudio } from './audio.js';
 import { Reto } from './retos.js';
 import { showVs } from '../pelota/vs.js';
 import { kitSvgOf } from './liga.js';
-import { jugadorFig } from './jugadorFig.js';
+import { jugadorDuo, jugadorFig } from './jugadorFig.js';
+// la figura de cada equipo en la pantalla VS: su pareja (el chico y la chica con la equipación del partido); si esta
+// versión no la tiene, el jugador solo y, en el archivo único, la camiseta dibujada
+const vsFig = (t, key) => { const pf = jugadorDuo(t, '', true) || jugadorFig(t); return pf ? { pf } : { figHtml: kitSvgOf(t, 320, key) }; };
 // (el estadio de la presentación: la grada en óvalo con su cubierta)
 const STADIUM = '<svg viewBox="0 0 64 48" aria-hidden="true"><ellipse cx="32" cy="30" rx="28" ry="13" fill="#3a2a5e" stroke="#fff" stroke-width="1.5"/><ellipse cx="32" cy="30" rx="17" ry="7" fill="#6a5aa8" stroke="#fff" stroke-width="1.2"/><path d="M6 24c4-10 48-10 52 0" fill="none" stroke="#ff7ac8" stroke-width="2.5" stroke-linecap="round"/><path d="M32 23v14" stroke="#fff" stroke-width="1"/></svg>';
 
@@ -239,8 +242,8 @@ export class FutbolMatch {
       showVs(this.hud.root, {
         comp: o.comp || 'Partido amistoso', venue: o.venueName || V.name, venueIcon: STADIUM,
         // (el jugador del autor de cada equipo, en la web; si no está, la camiseta dibujada)
-        you: { name: this.home.name, sub: this.home.town || '', ...(jugadorFig(this.home) ? { pf: jugadorFig(this.home) } : { figHtml: kitSvgOf(this.home, 320, 'vsh') }), ...card(this.home) },
-        rival: { name: this.away.name, sub: this.away.town || '', ...(jugadorFig(this.away) ? { pf: jugadorFig(this.away) } : { figHtml: kitSvgOf(this.away, 320, 'vsa') }), ...card(this.away) },
+        you: { name: this.home.name, sub: this.home.town || '', ...vsFig(this.home, 'vsh'), ...card(this.home) },
+        rival: { name: this.away.name, sub: this.away.town || '', ...vsFig(this.away, 'vsa'), ...card(this.away) },
         line: `${o.format === 'f11' ? 'Fútbol 11' : 'Fútbol sala'} · ${({ facil: 'Fácil', normal: 'Normal', dificil: 'Difícil' })[o.level] || 'Normal'}`,
         quote: o.quote || null, quoteBy: 'El Sadar', tap: 'Toca para empezar', onSlam: () => this.audio.whistle?.(0.4),
       }).then(go);

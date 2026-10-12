@@ -218,15 +218,16 @@ async function boot() {
     try {
       const [{ Futbol }, { CLUBS }, { season, clubPick, clubPanel }, { addXP }] = await Promise.all([import('./game/futbol.js'), import('./futbol/clubs.js'), import('./futbol/liga.js'), import('./game/profile.js')]);
       rt.start(G); loading = false; game = null;
-      let club = CLUBS[P.futbolClub] ? P.futbolClub : null;
+      let club = CLUBS[P.futbolClub] ? P.futbolClub : null, prev = null;
       for (;;) {
-        if (!club) { club = await clubPick(); if (!club) break; P.futbolClub = club; saveProfile(); }
+        // (al cambiar de club, «Volver» deja el que tenías)
+        if (!club) { const c = await clubPick(prev); if (!c) { if (!prev) break; club = prev; } else { club = c; P.futbolClub = club; saveProfile(); } }
         const S = season(club), C = CLUBS[club];
-        const items = [['liga', S.j < S.rounds.length ? `Liga Navarra · jornada ${S.j + 1}` : 'Liga Navarra · nueva temporada', 'Contra los clubes de tu grupo'],
+        const items = [['liga', 'Liga Navarra', 'Contra los clubes de tu grupo', S.j < S.rounds.length ? `Jornada ${S.j + 1} de ${S.rounds.length}` : 'Nueva temporada'],
           ['amistoso', 'Amistoso', 'Contra cualquier club de Navarra'], ['sadar', 'Partido rápido', 'Iruña contra el visitante'], ['club', 'Cambiar de club', C.name], ['exit', 'Salir', '']];
         const pick = await clubPanel(club, items, 'Campeonato de fútbol');
         if (pick === 'exit') break;
-        if (pick === 'club') { club = null; continue; }
+        if (pick === 'club') { prev = club; club = null; continue; }
         const fut = new Futbol(G, null, {});   // (un solo fútbol: ya no hay fútbol sala)
         if (pick === 'liga') { const r = await fut.liga(club); if (!r.quit && r.win) addXP(30); }
         else if (pick === 'amistoso') await fut.friendly(club);

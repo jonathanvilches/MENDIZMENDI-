@@ -143,10 +143,17 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   absoluta dentro de su caja. En la web, la pantalla VS lleva además los de 1024 (`big` en `pelotariFig`). Las figuras
   miran a su izquierda: en la pantalla VS solo se gira la roja.
 - **Jugadores de fútbol del autor** (`src/futbol/jugadorFig.js`, `src/assets/jugadores`): un chico y una chica por
-  equipación de cuerpo entero (1024 × 1536) para la pantalla VS, y su busto (240 × 320, `jugadorBusto`) para la caja del
-  próximo partido de la liga; el visitante, con la segunda equipación blanca o azul marino. Solo en la web: en el
-  archivo único no caben nítidos y siguen las camisetas dibujadas (`kitSvgOf`). En el móvil de pie, la caja de la liga
-  va sin bustos, que no caben.
+  equipación, de cuerpo entero (1024 × 1536), su busto (360 × 480, `jugadorBusto`) y la pareja de los dos juntos
+  (`jugadorDuo`: 960 de alto para la pantalla VS y 480 para los menús); el visitante, con la segunda equipación blanca o
+  azul marino (`duoId`). Solo en la web: en el archivo único no caben nítidos y siguen las camisetas dibujadas
+  (`kitSvgOf`).
+  - **VS de equipo:** cada equipo sale con su pareja; la del rival, girada. En vertical, cada pareja en su mitad.
+  - **Portadas de equipo** (`liga.js`, clases `eq-`, que no chocan con las del marcador del partido, `fb-`): el menú del
+    club en losas como el de pelota (la liga con tu pareja, el amistoso con la de un club del otro grupo que cambia
+    cada día, el partido rápido con Iruña, el del sello con los vecinos y cambiar de club con tres bustos en abanico);
+    elegir club y rival en cartas que se pasan de lado (en vertical, hacia abajo), con escudo, media, grupo y pueblo o
+    campo; y el campeón de la liga con su pareja.
+  - La caja del próximo partido de la liga lleva los bustos; en el móvil de pie, sin bustos, que no caben.
 - **Nitidez** (`tools/nitidez.mjs`): cada imagen a la vista en el iPhone 12 tumbado (densidad 3) se mide por los píxeles
   de pantalla que le tocan a cada píxel suyo; más de 1,5, pixelada, y de 1,2 a 1,5, blanda. Para la web: copias
   pequeñas de las láminas de 640 × 360, cimas de 1024, fauna de 512 en las tarjetas, retrato del perfil de 512 × 768
@@ -210,10 +217,16 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 | `futbol-vs-ver.mjs` | La presentación VS del fútbol: camisetas, medias, competición y que al tocar empieza el partido |
 | `paquete-pelota.mjs` | Prepara los pelotaris y los sellos del autor desde su ZIP descomprimido: los de 512 y, para la VS, los de 1024 para la web y, para el archivo único, el rojo de 256, la camiseta azul suelta y los sellos de 176 |
 | `paquete-futbol.mjs` | Prepara los jugadores de fútbol del autor desde su ZIP descomprimido: los de 1024 para la web |
-| `jugadores-busto.mjs` | Recorta el busto de cada jugador de fútbol para la caja de la liga |
+| `jugadores-busto.mjs` | Recorta el busto de cada jugador de fútbol para la caja de la liga y el menú del club |
+| `jugadores-duos.mjs` | Recorta las parejas de cada equipación del ZIP del autor: 960 de alto para la VS y 480 para los menús |
 | `laminas-pequenas.mjs` | Las copias pequeñas de las láminas de la web, de 640 × 360 |
 | `cimas-tarjetas.mjs` | Las escenas de las cimas de 1024 para las tarjetas de la web |
 | `nitidez.mjs` | Nitidez de las imágenes en el iPhone 12 tumbado: cuánto se amplía cada una, por pantallas (URL de la web o del archivo único con MINI=1) |
+
+Tamaños con que se revisa el diseño (`auditoria-diseno`, `-partidos`, `-ventanas` y `-pueblo`): móvil tumbado 667 × 375,
+740 × 360, 844 × 390, 932 × 430 y 844 × 312 con muesca (Safari con sus barras), vertical 390 × 844 e iPad 1180 × 820 y
+820 × 1180. Las auditorías de partidos y ventanas ponen la etiqueta viewport del juego en su página de pruebas: sin ella,
+el móvil se pintaba a 980 px de ancho y no a su tamaño.
 | `cambios-sim.mjs` | Cambios, lesiones y forma sin gráficos: el cambio espera a la parada, el suplente entra con la forma entera y sin tarjeta, cinco cambios en fútbol 11 y sin límite en sala, el expulsado no se cambia, la lesión grave frena y avisa, la leve se pasa y la tercera falta es amarilla |
 | `vecinos-tareas.mjs` | Cada vecino con su tarea: llegan a sus paradas, se quedan haciendo lo suyo, los del corrillo charlan y los niños corren |
 | `rediseno-ver.mjs` | Capturas del menú y de las pantallas de deporte en el móvil tumbado (campeonatos, personajes, mapa, torneo, colección, liga y VS) con lo que se sale, la letra pequeña y lo que obliga a desplazar |

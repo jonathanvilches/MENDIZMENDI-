@@ -236,7 +236,7 @@ export const EU_EXACT = {
   'Tienes la Liga Navarra contra los clubes de la zona y amistosos contra cualquier club de Navarra. Todos se juegan en El Sadar, el estadio de Iruña.': 'Nafarroako Liga duzu inguruko kluben aurka eta lagunartekoak Nafarroako edozein klubaren aurka. Denak El Sadarren jokatzen dira, Iruñeko estadioan.',
   'CAMPEÓN DE LA LIGA NAVARRA': 'NAFARROAKO LIGAKO TXAPELDUNA', 'La próxima temporada, a por el título.': 'Hurrengo denboraldian, titulura.',
   'Equipos con el nombre de cada pueblo o valle, sin nombres ni escudos de clubes de verdad.': 'Herri edo haran bakoitzaren izeneko taldeak, benetako klubeen izenik eta armarririk gabe.',
-  'Simular partido': 'Partida simulatu', 'Nueva temporada': 'Denboraldi berria', 'Tu club': 'Zure kluba', 'Amistoso: elige rival': 'Lagunartekoa: aukeratu aurkaria', 'Amistoso': 'Lagunartekoa',
+  'Simular partido': 'Partida simulatu', 'Nueva temporada': 'Denboraldi berria', 'Liga Navarra': 'Nafarroako Liga', 'Tú eliges rival': 'Zuk aukeratzen duzu aurkaria', 'Cambiar de club': 'Kluba aldatu', 'Elige tu club': 'Aukeratu zure kluba', 'Campeonato de fútbol': 'Futbol txapelketa', 'Grupo Norte': 'Ipar taldea', 'Grupo Sur': 'Hego taldea', 'Tu club': 'Zure kluba', 'Amistoso: elige rival': 'Lagunartekoa: aukeratu aurkaria', 'Amistoso': 'Lagunartekoa',
   'Liga Navarra · nueva temporada': 'Nafarroako Liga · denboraldi berria', 'Fútbol 11 contra los clubes de la zona': '11ko futbola inguruko kluben aurka', 'la jornada se juega aquí': 'jardunaldia hemen jokatzen da', 'La jornada se juega aquí': 'Jardunaldia hemen jokatzen da', 'Tiros': 'Jaurtiketak', 'Tiros a puerta': 'Jaurtiketak atera',
   'Fútbol sala: entrenamiento': 'Areto futbola: entrenamendua', 'Pases en la pista (para el sello)': 'Paseak pistan (zigilurako)', 'Fútbol sala: partido por el sello': 'Areto futbola: partida zigiluaren alde',
   'Fútbol sala en la pista': 'Areto futbola pistan', 'Un partido 5 contra 5': 'Partida bat, 5 eta 5', 'Partido, penaltis o un reto': 'Partida, penaltiak edo erronka bat', 'Contra cualquier club de Navarra': 'Nafarroako edozein kluben aurka', 'Fútbol sala 5 contra 5': 'Areto futbola, 5 eta 5',
@@ -322,7 +322,7 @@ export const EU_RX = [
   [/^¡Kaixo, (.+)! Soy (\S+), (.+) de (.+)\.$/, (m, a, b, c, d) => `Kaixo, ${a}! ${b} naiz, ${d}ko ${(EU_EXACT[c[0].toUpperCase() + c.slice(1)] || c).toLowerCase()}.`],
   // --- futbola, liga eta pilota txapelketa (hutsuneekin) ---
   [/^(.+) ✓$/, '$1 ✓'],
-  [/^Temporada (\d+)$/, '$1. denboraldia'], [/^Media (\d+)$/, '$1 maila'], [/^JORNADA (\d+) DE (\d+)$/, '$1/$2 JARDUNALDIA'], [/^Campo de (.+)$/, '$1 zelaia'],
+  [/^Temporada (\d+)$/, '$1. denboraldia'], [/^Media (\d+)$/, '$1 maila'], [/^Jornada (\d+) de (\d+)$/, '$1/$2 jardunaldia'], [/^JORNADA (\d+) DE (\d+)$/, '$1/$2 JARDUNALDIA'], [/^Campo de (.+)$/, '$1 zelaia'],
   [/^(.+) · Liga Navarra, grupo (Norte|Sur)(.*)$/, (m, a, b, c) => `${EU_EXACT[a] ?? a} · Nafarroako Liga, ${b === 'Norte' ? 'Ipar' : 'Hego'} taldea${c.replace(/ · (\d+) títulos?$/, ' · $1 titulu')}`],
   [/^¡Sois campeones! Aupa (.+)!$/, 'Txapeldunak zarete! Aupa $1!'], [/^Viajar a (.+)$/, 'Bidaiatu: $1'],
   [/^La jornada se juega en el campo del (.+): viaja a (.+) \(en el mapa\) y habla con su entrenador\.$/, (m, a, b) => `Jardunaldia ${gen(a)} zelaian jokatzen da: bidaiatu ${ala(b)} (mapan) eta hitz egin entrenatzailearekin.`],
