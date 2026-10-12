@@ -1,7 +1,8 @@
 // Colección de pelotaris: uno por pueblo. En cuanto juegas contra el pelotari de un pueblo (en su frontón, en una misión
 // o en el torneo de la comarca) queda su carta: su nombre, sus cualidades y cómo te ha ido contra él. Los que aún no
-// conoces salen con su figura, un candado en la esquina y el nombre de su pueblo, para saber dónde buscarlos. Las cartas van por
-// comarcas (una pestaña por comarca) para que quepan sin desplazar en el móvil tumbado. Los pelotaris son inventados.
+// conoces salen con su figura (la del pelotari del frontón de ese pueblo), un candado en la esquina y el nombre de su
+// pueblo, para saber dónde buscarlos. Las cartas van por comarcas (una pestaña por comarca) para que quepan sin desplazar
+// en el móvil tumbado. Los pelotaris son inventados.
 import { LEVELS } from '../data/levels.js';
 import COMARCAS from '../data/comarcas.json';
 import { profile, saveProfile } from './profile.js';
@@ -9,10 +10,13 @@ import { openFicha } from '../pelota/ficha.js';
 import { isEU } from '../i18n.js';
 import { lgPanel, lgEsc as esc } from '../futbol/liga.js';
 import { pelotariCard } from '../ui/sportCard.js';
+import { townPelotari } from '../ui/pelotariFig.js';
 
 // los pueblos con partido de pelota (el valle de Salazar va con su peloteo, sin rival)
 export const pelotaTowns = () => LEVELS.filter(l => !l.special);
 const short = (n) => String(n || '').split(' /')[0];
+/** El pelotari que espera en el frontón de un pueblo (el de su misión de pelota, si la tiene) */
+export const pelotariDe = (l) => townPelotari(l.id, l.missions?.find(m => m.type === 'pelota')?.host?.name);
 
 /** Apunta al pelotari de un pueblo: town { id, name }, p { name, stats }; win: true/false (el resultado) o null (sin acabar) */
 export function meetPelotari(town, p, win = null) {
@@ -54,7 +58,7 @@ export function pelotarisPanel(start = null) {
   return new Promise(res => {
     const card = (l, i) => { const p = C[l.id], w = innerHeight < 500 && innerWidth > innerHeight ? 112 : 128, tw = short(l.name);
       return p ? `<div class="pc-it">${pelotariCard({ name: p.name, town: tw, stats: p.stats, side: 'rojo', w, tag: 'button', attr: `data-t="${l.id}"`, pop: true, d: i * 0.05, lang: eu ? 'eu' : 'es' })}<em>${p.won} G · ${p.lost} P</em></div>`
-        : `<div class="pc-it" aria-label="${esc(eu ? 'Ezezaguna' : 'Por descubrir')}">${pelotariCard({ name: '?', town: tw, side: 'rojo', w, lock: true, pop: true, d: i * 0.05, lang: eu ? 'eu' : 'es' }).replace('<span class="gx-ovr">', LOCK + '<span class="gx-ovr">')}<em class="l">${eu ? 'Jokatu bere frontoian' : 'Juega en su frontón'}</em></div>`; };
+        : `<div class="pc-it" aria-label="${esc(eu ? 'Ezezaguna' : 'Por descubrir')}">${pelotariCard({ name: '?', fig: pelotariDe(l), town: tw, side: 'rojo', w, lock: true, pop: true, d: i * 0.05, lang: eu ? 'eu' : 'es' }).replace('<span class="gx-ovr">', LOCK + '<span class="gx-ovr">')}<em class="l">${eu ? 'Jokatu bere frontoian' : 'Juega en su frontón'}</em></div>`; };
     const grid = () => groups[cur].towns.map((l, i) => card(l, i)).join('');
     const tabs = () => groups.map((g, i) => `<button role="tab" data-g="${i}" aria-selected="${i === cur}">${esc(g.c.name)}<i>${g.towns.filter(l => C[l.id]).length}/${g.towns.length}</i></button>`).join('');
     const r = lgPanel(`<div class="pc-head"><div><small>${eu ? 'Bilduma' : 'Colección'}</small><h2>${eu ? 'Nafarroako pilotariak' : 'Pelotaris de Navarra'}</h2></div><span class="pc-count">${have}/${total}<small>${eu ? 'AURKITUAK' : 'DESCUBIERTOS'}</small></span></div>
