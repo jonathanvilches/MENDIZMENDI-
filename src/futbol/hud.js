@@ -4,6 +4,7 @@
 // solaparse en móvil (vertical y horizontal) y escritorio.
 import { clubImg } from '../ui/escudoImg.js';
 import { fitCircle, fitCircles } from '../ui/fitlabel.js';
+import { tap } from '../util/tap.js';
 // (en el marcador, el emblema de un equipo de la liga; si no lo tiene, el color de su camiseta)
 const em = (t) => t?.club && clubImg(t.club) ? `<img class="fb-em" src="${clubImg(t.club)}" alt="">` : `<i style="background:${t.shirt}"></i>`;
 const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;gap:16px;align-items:center;text-align:left;margin:4px 0 8px}.fb-board{width:100%;height:auto;display:block;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
@@ -213,10 +214,11 @@ export class FutbolHud {
       en: $('.fb-en'), pw: $('.fb-pw'), pow: $('.fb-bar.pow'), pass: $('.fb-pass'), shoot: $('.fb-shoot'), swap: $('.fb-swap'), btns: $('.fb-btns'), pen: $('.fb-pen'), p0: $('.fb-p0'), p1: $('.fb-p1'), hint: $('.fb-stickhint') };
     // (los rótulos de los botones, siempre dentro del círculo; otra vez al girar o cambiar el tamaño)
     fitCircles(this.el.btns); this.onFit = () => fitCircles(this.el.btns); addEventListener('resize', this.onFit);
-    $('.fb-pause').addEventListener('click', (e) => { e.stopPropagation(); o.onPause?.(); });
+    // (la pausa y la cámara responden al levantar el dedo: en el iPhone, en pleno partido, el clic a veces no llegaba)
+    tap($('.fb-pause'), (b, e) => { e.stopPropagation(); o.onPause?.(); });
     // el consejo se abre y se recoge tocándolo
     this.el.tip.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); this.tipOpen(this.el.tip.classList.contains('mini')); });
-    $('.fb-cam').addEventListener('click', (e) => { e.stopPropagation(); o.onCam?.(); });
+    tap($('.fb-cam'), (b, e) => { e.stopPropagation(); o.onCam?.(); });
     this.held = { sprint: false };
     for (const b of r.querySelectorAll('[data-a]')) {
       const a = b.dataset.a;
@@ -391,10 +393,14 @@ export class FutbolHud {
   pause(T = null) {
     return new Promise(res => {
       const p = this.panel(`<h2>Pausa</h2><p>El partido está parado.</p><button class="fb-go">Seguir</button>${T ? `<button class="fb-alt fb-tac-btn">Táctica · ${T.actual}</button>` : ''}<button class="fb-alt fb-ctl">Controles</button><button class="fb-alt fb-quit">Abandonar</button>`);
-      p.querySelector('.fb-go').onclick = () => { p.remove(); res('resume'); };
-      const tb = p.querySelector('.fb-tac-btn'); if (tb) tb.onclick = async (e) => { e.stopPropagation(); p.style.display = 'none'; const id = await this.tactic(T); if (id) tb.textContent = `Táctica · ${id}`; p.style.display = ''; };
-      p.querySelector('.fb-ctl').onclick = async (e) => { e.stopPropagation(); p.style.display = 'none'; await this.controls(); p.style.display = ''; };
-      p.querySelector('.fb-quit').onclick = () => { p.remove(); res('quit'); };
+      // (cada botón responde al levantar el dedo: en el iPhone el clic a veces no llegaba y no se podía abandonar)
+      tap(p, async (b, e) => {
+        e.stopPropagation();
+        if (b.classList.contains('fb-go')) { p.remove(); res('resume'); }
+        else if (b.classList.contains('fb-quit')) { p.remove(); res('quit'); }
+        else if (b.classList.contains('fb-tac-btn')) { p.style.display = 'none'; const id = await this.tactic(T); if (id) b.textContent = `Táctica · ${id}`; p.style.display = ''; }
+        else if (b.classList.contains('fb-ctl')) { p.style.display = 'none'; await this.controls(); p.style.display = ''; }
+      });
     });
   }
   /** Pantalla final con las estadísticas. */
@@ -404,8 +410,7 @@ export class FutbolHud {
         ${rows.length ? `<table class="fb-stats">${rows.map(([a, n, b]) => `<tr><td>${esc(a)}</td><td>${esc(n)}</td><td>${esc(b)}</td></tr>`).join('')}</table>` : ''}
         ${fact ? `<p class="fb-fact"><b>Saber de Navarra</b>${esc(fact)}</p>` : ''}
         ${again ? `<button class="fb-go">${esc(again)}</button>` : ''}<button class="fb-alt">${esc(exit)}</button>`);
-      p.querySelector('.fb-go')?.addEventListener('click', () => { p.remove(); res('again'); });
-      p.querySelector('.fb-alt').addEventListener('click', () => { p.remove(); res('exit'); });
+      tap(p, (b) => { if (!b.matches('.fb-go, .fb-alt')) return; p.remove(); res(b.classList.contains('fb-go') ? 'again' : 'exit'); });
     });
   }
   info({ kicker = '', title, text, button = 'Seguir' }) {
