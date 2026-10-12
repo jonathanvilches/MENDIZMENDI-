@@ -116,7 +116,8 @@ export function sharpMap(m) {
 // iPhone los personajes salían negros, sin color; por el lienzo es el camino que siempre ha funcionado en el móvil
 function shrinkMap(m, max = MESHY_TEX) {
   const t = m.map, img = t?.image; if (!img || !img.width || t.isCanvasTexture) return;
-  const S = Math.min(max, img.width), c = document.createElement('canvas'); c.width = c.height = S; c.getContext('2d').drawImage(img, 0, 0, S, S);
+  // (si el iPhone no deja crear el lienzo, por memoria, se queda la textura de siempre: mejor que un personaje sin cargar)
+  const S = Math.min(max, img.width), c = document.createElement('canvas'); c.width = c.height = S; const g = c.getContext('2d'); if (!g) return; g.drawImage(img, 0, 0, S, S);
   const n = new THREE.CanvasTexture(c); n.colorSpace = t.colorSpace; n.flipY = t.flipY; n.wrapS = t.wrapS; n.wrapT = t.wrapT; n.anisotropy = 4;
   m.map = n; m.needsUpdate = true; t.dispose(); img.close?.();
 }

@@ -1,6 +1,6 @@
 // Colección de pelotaris: uno por pueblo. En cuanto juegas contra el pelotari de un pueblo (en su frontón, en una misión
 // o en el torneo de la comarca) queda su carta: su nombre, sus cualidades y cómo te ha ido contra él. Los que aún no
-// conoces salen en silueta con un candado y el nombre de su pueblo, para saber dónde buscarlos. Las cartas van por
+// conoces salen con su figura, un candado en la esquina y el nombre de su pueblo, para saber dónde buscarlos. Las cartas van por
 // comarcas (una pestaña por comarca) para que quepan sin desplazar en el móvil tumbado. Los pelotaris son inventados.
 import { LEVELS } from '../data/levels.js';
 import COMARCAS from '../data/comarcas.json';
@@ -38,7 +38,7 @@ const CSS = `
 .pc-it{flex:none;display:flex;flex-direction:column;align-items:center;gap:4px}
 .pc-it button.gx-card{border:0;padding:0;background:none;cursor:pointer;font:inherit}.pc-it .gx-card.lock{cursor:default}
 .pc-it em{font:800 var(--fs-xs)/1.3 var(--f-cond);font-style:normal;letter-spacing:.06em;text-transform:uppercase;color:var(--rosa)}.pc-it em.l{color:var(--lila2)}
-.pc-lock{position:absolute;z-index:2;left:50%;top:30%;transform:translate(-50%,-50%);width:28px;height:28px}
+.pc-lock{position:absolute;z-index:2;right:7%;top:5%;width:24px;height:24px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}   /* (en la esquina: la cara de la figura se ve) */
 .pc-note{margin:0;font-size:var(--fs-xs);line-height:1.3;color:var(--lila2)}
 @media (orientation:landscape) and (max-height:500px){.pc-note{display:none}.pc-head h2{font-size:var(--fs-xl)}}
 `;
