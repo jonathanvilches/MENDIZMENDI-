@@ -93,7 +93,7 @@ export const FAUNA = {
     where: 'Bosques y pinares de toda la mitad norte.', season: 'Todo el año; muy activa en otoño.',
     fact: 'Entierra avellanas y bellotas para el invierno. Las que olvida se convierten en árboles nuevos.' },
   // ---------------------------------------------------------------- peces y anfibios
-  trucha: { name: 'Trucha común', eu: 'Amuarraina', sci: 'Salmo trutta', kind: 'pez', icon: 'fish',
+  trucha: { name: 'Trucha común', eu: 'Amuarraina', sci: 'Salmo trutta', kind: 'pez', icon: 'trout',
     look: 'Lomo pardo con motas negras y rojas rodeadas de un halo claro.',
     where: 'Ríos de agua fría y limpia del norte de Navarra.', season: 'Todo el año.',
     fact: 'Si hay truchas, el río está sano.' },

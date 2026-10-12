@@ -156,12 +156,14 @@ const FLY = { vulture: 'buitre', eagle: 'aguila', stork: 'ciguena' };
 export const has3D = (name) => !!(BAKED[name] || UI3D[name] || CUSTOM[name] || ITEM[name] || ANIMAL[name] || SMALL[name] || BIRDS[name] || FLY[name]);
 // todos los nombres con modelo 3D (para hornearlos con tools/iconbake.mjs)
 export const ICON3D_NAMES = () => [...new Set([UI3D, CUSTOM, ITEM, ANIMAL, SMALL, BIRDS, FLY].flatMap(o => Object.keys(o)))];
-// iconos ya horneados (imágenes WebP generadas una vez con tools/iconbake.mjs): no hay que dibujarlos en el móvil
-// (los que tienen dos nombres y la misma imagen, byte a byte, se cargan una vez: el segundo nombre apunta al primero y
-// el archivo único no lleva la misma imagen dos veces. Si un día se dibujan distintos, se quita la pareja de SAME)
-const SAME = { aguila: 'eagle', ardilla: 'squirrel', boar: 'jabali', vulture: 'buitre', chamois: 'goat', stork: 'ciguena', deer: 'corzo', trout: 'fish', zorro: 'fox', herbs: 'herb', pottoka: 'horse', owl: 'lechuza', mountain: 'peak', woodpecker: 'pito' };
+// iconos ya horneados: no hay que dibujarlos en el móvil. Casi todos son los 182 iconos 3D del autor del proyecto
+// (src/assets/icons3d, a 192 px; el archivo único lleva la copia de 128 px de icons3d/128, por peso: alias @icons3d en
+// vite.config.js); los pocos que el autor no ha dibujado son renders del propio juego (tools/iconbake.mjs).
+// (un animal con dos nombres usa una sola imagen: el nombre en castellano apunta al icono del autor y su render de antes
+// se queda en la carpeta, sin cargarse; owl y lechuza son la misma imagen, byte a byte)
+const SAME = { aguila: 'eagle', ardilla: 'squirrel', jabali: 'boar', buitre: 'vulture', ciguena: 'stork', ciervo: 'deer', trucha: 'trout', zorro: 'fox', pottoka: 'horse', pito: 'woodpecker', owl: 'lechuza' };
 const BAKED = {};
-for (const [p, u] of Object.entries(import.meta.glob(['../assets/icons3d/*.webp', '!../assets/icons3d/{aguila,ardilla,boar,vulture,chamois,stork,deer,trout,zorro,herbs,pottoka,owl,mountain,woodpecker}.webp'], { eager: true, query: '?url', import: 'default' }))) BAKED[p.split('/').pop().replace('.webp', '')] = u;
+for (const [p, u] of Object.entries(import.meta.glob(['@icons3d/*.webp', '!@icons3d/{aguila,ardilla,jabali,buitre,ciguena,ciervo,trucha,zorro,pottoka,pito,owl}.webp'], { eager: true, query: '?url', import: 'default' }))) BAKED[p.split('/').pop().replace('.webp', '')] = u;
 for (const [a, b] of Object.entries(SAME)) if (BAKED[b]) BAKED[a] = BAKED[b];
 
 function build(name) {

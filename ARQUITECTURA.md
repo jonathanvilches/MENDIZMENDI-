@@ -131,10 +131,17 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   Los cuatro botones del menú de pelota llevan las figuras del autor (`src/assets/pelota`), centradas y apoyadas abajo.
 - **Iconografía de una sola familia:** un archivo `src/assets/icons3d/<nombre>.webp` sustituye al icono de ese nombre
   sin tocar el código (`has3D` mira también los archivos horneados).
-  - Los 48 iconos del autor (controles, exploración, naturaleza, cultura y deportes) están ya ahí, a 192 px, con el
-    mismo margen que los demás. Los botones del HUD y los táctiles los usan también (`ICON` en `ui.js`): la bota para
-    correr, las flechas para saltar y, en el de acción, la mano, hablar, beber, mirar y pelota. Sobre el degradado de
-    los botones principales llevan un contorno oscuro fino.
+  - Son los 182 iconos 3D del autor (los 165 nombres de `ICONS` en `src/ui/icons.js` y 17 controles: los del fútbol,
+    pausa, cámara y los del mapa), recortados y centrados con el mismo margen: el lado mayor ocupa el 89 % del cuadro.
+    La web los lleva a 192 px; el archivo único, la copia de 128 px de `icons3d/128` (alias `@icons3d`), por peso. La
+    lista está en `icons3d/LICENSE_iconos-autor.txt` y `tools/iconbake.mjs` no la vuelve a hornear.
+  - Los usan también los botones del HUD y los táctiles (`ICON` en `ui.js`: correr, saltar y, en el de acción, la
+    mano, hablar, beber, la lupa para mirar y pelota), los botones del fútbol y su pantalla de controles (`ICON` en
+    `futbol/hud.js`), la pausa y la cámara del fútbol, la X de la pelota y los botones del mapa (acercar, alejar,
+    centrar y viajar). Sobre el degradado de los botones principales llevan un contorno oscuro fino.
+  - Un animal con dos nombres usa el icono del autor (`SAME` en `icon3d.js`: águila, ardilla, jabalí, buitre, cigüeña,
+    ciervo, trucha, zorro, pottoka y pito); sus renders de antes siguen en la carpeta sin cargarse. Los pocos que el
+    autor no ha dibujado (corzo, grulla, lechuza, milano, quebrantahuesos, cabra) son renders del juego.
 - **Comentarios en castellano**, explicando el porqué.
 
 ## Herramientas y pruebas (`tools/`)

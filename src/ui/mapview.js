@@ -8,18 +8,13 @@ import { iconImage, iconSVG } from './icons.js';
 import { buildMapVectors, drawMapVectors } from './mapvector.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const SVG = {
-  plus: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/></svg>',
-  minus: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M5 12h14" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/></svg>',
-  go: '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 11.2L20 4l-7.2 16-1.9-6.9z" fill="#fff" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>',
-  me: '<svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="6.2" fill="none" stroke="#fff" stroke-width="2.4"/><circle cx="12" cy="12" r="2.6" fill="#ff4f6d"/><path d="M12 1.8v3.4M12 18.8v3.4M1.8 12h3.4M18.8 12h3.4" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg>',
-};
+// (los botones del mapa llevan los iconos 3D de la familia: acercar, alejar, centrar en mí y viajar)
 const hitsRect = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
 function pill(g, x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
 
 export function mountMapView(ui, box, opts = {}) {
   const game = ui.game, cv = box.querySelector('canvas'), g = cv.getContext('2d');
-  box.insertAdjacentHTML('beforeend', `<div class="mapctl"><button data-z="in" aria-label="Ampliar">${SVG.plus}</button><button data-z="out" aria-label="Alejar">${SVG.minus}</button><button data-z="me" aria-label="Centrar en mí">${SVG.me}</button></div><div class="mapcard" hidden></div>`);
+  box.insertAdjacentHTML('beforeend', `<div class="mapctl"><button data-z="in" aria-label="Ampliar">${iconSVG('zoom_in', 28)}</button><button data-z="out" aria-label="Alejar">${iconSVG('zoom_out', 28)}</button><button data-z="me" aria-label="Centrar en mí">${iconSVG('locate', 28)}</button></div><div class="mapcard" hidden></div>`);
   const card = box.querySelector('.mapcard');
   let W = 0, H = 0, dpr = 1, raf = 0, sel = null, anim = null, hits = [];
   const v = { cx: 0, cz: 0, s: 1 };
@@ -145,8 +140,8 @@ export function mountMapView(ui, box, opts = {}) {
     const btn = [];
     // la brújula de arriba marca una misión: aquí se elige cuál (y se dice claro qué hace)
     if (it.act === 'track') btn.push(tracked ? `<button class="btn on" disabled title="La flecha de la brújula te lleva hasta esta misión">${iconSVG('compass', 20)} La brújula te lleva aquí</button>` : `<button class="btn primary" data-a="track" title="La flecha de la brújula te llevará hasta esta misión">${iconSVG('compass', 20)} Llévame con la brújula</button>`);
-    if (it.go) btn.push(`<button class="btn" data-a="go" title="Viajas al instante hasta allí">${SVG.go} Viajar ahora</button>`);
-    card.innerHTML = `<div class="mc-i">${iconSVG(it.icon || 'home', 34)}</div><div class="mc-t"><b>${esc(it.title || it.label)}</b>${it.text ? `<small>${esc(it.text)}</small>` : ''}</div><div class="mc-b">${btn.join('')}</div><button class="mc-x" aria-label="Cerrar">${SVG.plus.replace('M12 5v14M5 12h14', 'M7 7l10 10M17 7L7 17')}</button>`;
+    if (it.go) btn.push(`<button class="btn" data-a="go" title="Viajas al instante hasta allí">${iconSVG('navigate', 20)} Viajar ahora</button>`);
+    card.innerHTML = `<div class="mc-i">${iconSVG(it.icon || 'home', 34)}</div><div class="mc-t"><b>${esc(it.title || it.label)}</b>${it.text ? `<small>${esc(it.text)}</small>` : ''}</div><div class="mc-b">${btn.join('')}</div><button class="mc-x" aria-label="Cerrar">${iconSVG('close', 18)}</button>`;
     card.hidden = false;
     card.querySelector('.mc-x').onclick = () => select(null);
     card.querySelectorAll('[data-a]').forEach(b => b.onclick = () => {

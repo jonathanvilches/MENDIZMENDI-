@@ -1,5 +1,12 @@
-48 iconos de esta carpeta son del autor del proyecto MENDIMENDIZ, entregados el 2026-10-10 en tres láminas de 4 × 4
-(«MENDIMENDIZ-48-iconos»): apple back backpack balon bell binoculars boot camera canteen castle close compass energy
-footprint fullscreen gear globe hand heart home info jump key leaf legend map medal menu mushroom mute olive pause peak
-(y mountain, la misma) pelota play quiz retry river robin scroll search sheep sound star talk tree water wheat.
-Cambios: recortados, fondo limpiado, 192 × 192 y WebP. El resto de iconos de la carpeta son renders del propio juego.
+Iconos 3D del autor del proyecto MENDIMENDIZ, entregados el 2026-10-12 en un ZIP («MENDIMENDIZ-todos-iconos-3D»):
+182 iconos (165 nombres base y 17 controles) en WebP transparente de 64, 128, 256 y 512 px. Sustituyen a los 48 iconos
+que el autor entregó el 2026-10-10 en tres láminas de 4 × 4 («MENDIMENDIZ-48-iconos») y a los renders del juego de los
+mismos nombres.
+Cambios: de los de 512 px, recortados a su dibujo y centrados con el mismo margen que el resto de la familia (el lado
+mayor ocupa el 89 % del cuadro); en esta carpeta, a 192 × 192 (la web) y en 128/, a 128 × 128 (el archivo único).
+Los demás iconos de la carpeta son renders del propio juego (tools/iconbake.mjs) o de las láminas del 2026-10-10:
+boot fullscreen globe info key mute retry search sound (del autor, láminas) y _bell goat corzo grulla lechuza owl milano
+quebrantahuesos, más los renders de antes de aguila ardilla jabali buitre ciguena ciervo trucha zorro pottoka pito, que ya
+no se cargan: esos nombres usan el icono del autor del mismo animal.
+tools/iconbake.mjs no vuelve a hornear los nombres de esta lista.
+Lista: almond angel anvil apple arch arrow artichoke asparagus axe back backpack badge balon basajaun basket beans bee bell berries bike binoculars bird bishop boar book bread bridge bull bustard butterfly camera camino canteen cardo castle cathedral cave chamois check cheese chistorra church clock close cloud compass contain control corn cow cross dance deer dive dog dolmen eagle egg eguzkilore energy espadrille exclaim fire fish flag flower footprint fountain fox frog gear giant gorge grapes hammer hand hazelnut heart herb herbs heron home honey horreo horse house jump kiosk lamb lamia lantern latxa leaf legend litter locate lock lookout map marmot mask medal menu milk mill monolith moon mountain move mushroom music navigate net olive palace pass pause pañuelo peak pelota pen pepper person pig pin pine play plaza potato quiz rabbit raft ribbon ring river robin ruin run running scroll seed sheep shield shoot sickle slide snow sorgina sparkle sprint squirrel stamp star stelae stick stone stork sun swap tackle talk target through tomato towerhouse townhall tree trophy trout tunnel txapela txistu vulture walls water wheat wine woodpecker wool xp zoom_in zoom_out

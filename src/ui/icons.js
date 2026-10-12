@@ -226,7 +226,7 @@ export const ALIAS = {
 // Icono para un nombre de especie o planta en castellano
 export function speciesIcon(name = '') {
   const n = name.toLowerCase();
-  const T = [['corzo', 'corzo'], ['ciervo', 'ciervo'], ['sarrio', 'goat'], ['zorro', 'zorro'], ['jabal', 'jabali'], ['vaca', 'cow'], ['oveja', 'sheep'], ['latxa', 'sheep'], ['rana', 'frog'], ['quebrantahuesos', 'quebrantahuesos'], ['buitre', 'buitre'], ['alimoche', 'buitre'],
+  const T = [['corzo', 'corzo'], ['ciervo', 'ciervo'], ['sarrio', 'chamois'], ['zorro', 'zorro'], ['jabal', 'jabali'], ['vaca', 'cow'], ['oveja', 'sheep'], ['latxa', 'sheep'], ['rana', 'frog'], ['quebrantahuesos', 'quebrantahuesos'], ['buitre', 'buitre'], ['alimoche', 'buitre'],
     ['águila', 'aguila'], ['milano', 'milano'], ['cernícalo', 'eagle'], ['cigüeña', 'ciguena'], ['grulla', 'grulla'], ['garza', 'heron'], ['marmota', 'marmot'], ['conejo', 'rabbit'], ['sisón', 'bustard'], ['petirrojo', 'robin'], ['chova', 'bird'], ['trucha', 'trucha'], ['ardilla', 'ardilla'], ['pito', 'pito'], ['lechuza', 'lechuza'], ['pottoka', 'pottoka'],
     ['pino', 'pine'], ['abeto', 'pine'], ['tejo', 'pine'], ['enebro', 'pine'], ['olivo', 'olive'], ['helecho', 'leaf'], ['acebo', 'leaf'], ['boj', 'herbs'], ['brezo', 'herbs'], ['tojo', 'herbs'], ['romero', 'herbs'], ['tomillo', 'herbs'], ['lavanda', 'herbs'], ['arándano', 'grapes'], ['rododendro', 'flower'], ['cardo', 'eguzkilore'], ['ontina', 'herbs'], ['tamariz', 'herbs'], ['jara', 'flower']];
   for (const [k, v] of T) if (n.includes(k)) return v;
