@@ -3,6 +3,7 @@
 // simulan según la media de cada club. Clasificación con puntos, goles y diferencia; al final, el campeón.
 // La temporada se guarda en localStorage ('mendimendiz-liga-v1'), una por club.
 import { clubImg } from '../ui/escudoImg.js';
+import { jugadorBusto } from './jugadorFig.js';
 import { CLUBS, clubById } from './clubs.js';
 
 const KEY = 'mendimendiz-liga-v1';
@@ -109,6 +110,11 @@ const CSS = `
 .lg-head{display:flex;align-items:center;gap:12px}.lg-head h2{margin:0;font:400 var(--fs-2xl)/1 var(--f-display);text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.5)}.lg-head small{display:block;color:var(--rosa);font:800 var(--fs-sm)/1.15 var(--f-cond);letter-spacing:.1em;text-transform:uppercase}
 .lg-head .lg-ovr{margin-left:auto;text-align:center;background:var(--cta);color:#fff;border-radius:4px;padding:4px 12px;font:400 var(--fs-2xl)/1 var(--f-display);clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);box-shadow:var(--glow)}.lg-ovr small{color:#fff!important;font:800 var(--fs-xs)/1 var(--f-cond)!important;letter-spacing:.1em!important}
 .lg-next{position:relative;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:12px;border-radius:4px;background:linear-gradient(90deg,rgba(91,75,255,.4),rgba(255,255,255,.04) 42%,rgba(255,255,255,.04) 58%,rgba(255,46,136,.4));text-align:center;overflow:hidden}
+.lg-next.con-j{grid-template-columns:auto minmax(0,1fr) auto minmax(0,1fr) auto;gap:4px;padding-top:0;padding-bottom:0}
+/* (con los jugadores a los lados, cada línea del centro y el nombre de cada club en una sola línea: si no, «Jornada 1 de 7» se partía
+   en dos; el sitio va en dos líneas, «en casa» y «El Sadar», para que el centro sea estrecho) */
+.lg-next.con-j .lg-vs small{white-space:nowrap;letter-spacing:.04em;line-height:1.15}.lg-next.con-j b{white-space:nowrap}
+.lg-next .lg-jf{display:block;align-self:end;width:75px;height:100px;object-fit:contain;-webkit-mask-image:linear-gradient(180deg,#000 78%,transparent);mask-image:linear-gradient(180deg,#000 78%,transparent)}.lg-next .lg-jf.r{transform:scaleX(-1)}
 .lg-next .lg-t{display:flex;flex-direction:column;align-items:center;gap:4px}.lg-next b{font:400 var(--fs-xl)/1.1 var(--f-display);text-transform:uppercase}.lg-next em{font:600 var(--fs-sm)/1.15 var(--f-cond);font-style:normal;letter-spacing:.04em;text-transform:uppercase;color:var(--lila)}
 .lg-vs{font:400 var(--fs-3xl)/1 var(--f-display);background:linear-gradient(180deg,#fff,var(--rosa));-webkit-background-clip:text;background-clip:text;color:transparent;animation:gx-pop .5s cubic-bezier(.2,1.5,.4,1) .2s both}.lg-vs small{display:block;font:800 var(--fs-xs)/1.3 var(--f-cond);color:var(--lila);-webkit-text-fill-color:var(--lila);letter-spacing:.1em}
 .lg-table{width:100%;border-collapse:collapse;font-size:var(--fs-sm)}.lg-table th{font-size:var(--fs-xs);color:#cbbcf0;text-transform:uppercase;letter-spacing:.04em;padding:4px 4px;text-align:center}
@@ -130,6 +136,8 @@ const CSS = `
 .lg-how{font-size:var(--fs-sm);line-height:1.45;color:#e6def7;margin:0;padding:8px 12px;border-radius:12px;background:rgba(255,155,216,.08);border:1px solid rgba(255,155,216,.25)}.lg-how b{color:#ff9bd8}
 .lg-table td.dg{color:#cbbcf0;font-variant-numeric:tabular-nums}
 .lg-rv{display:flex;align-items:center;gap:8px;text-align:left;min-width:0;padding:8px 8px}.lg-rv>span{min-width:0;flex:1}.lg-rv b,.lg-rv small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lg-rv b{font-size:var(--fs-sm)}.lg-rv small{font:700 var(--fs-xs) Nunito,sans-serif;opacity:.75}
+/* (en el móvil en vertical no caben los jugadores a los lados del próximo partido: se quedan los nombres) */
+@media (max-width:560px){.lg-next .lg-jf{display:none}.lg-next.con-j{grid-template-columns:1fr auto 1fr;padding:12px}}
 @media (max-width:560px){.lg-card{padding:16px 12px;gap:8px}.lg-head h2{font-size:var(--fs-xl)}.lg-table .x{display:none}.lg-table{font-size:var(--fs-sm)}.lg-table td{padding:8px 4px}.lg-table th{padding:4px}.lg-btns{grid-template-columns:1fr 1fr}.lg-btns .lg-btn.go{grid-column:1/-1}}
 .lg-champ{text-align:center;padding:8px;border-radius:16px;background:linear-gradient(180deg,rgba(255,155,216,.25),rgba(255,155,216,.05))}.lg-champ b{font:400 var(--fs-xl) 'MZ Display',Nunito,sans-serif;color:#ff9bd8}
 @media (orientation:landscape) and (max-height:520px){
@@ -142,12 +150,12 @@ const CSS = `
 /* con solo dos botones (jugar o viajar, y salir) van en la misma fila: así cabe todo sin desplazar, también en euskera */
 .lg-card.lg-two>.lg-btns:has(>.lg-btn:nth-child(2):last-child){grid-template-columns:1.7fr 1fr}.lg-card.lg-two>.lg-btns:has(>.lg-btn:nth-child(2):last-child)>.lg-btn.go{grid-column:auto}
 .lg-table{font-size:var(--fs-xs)}.lg-table td{padding:2px}.lg-table th{padding:4px 2px}.lg-head{gap:8px}.lg-head .lg-kit{width:27px;height:36px}.lg-head h2{font-size:var(--fs-lg)}.lg-head small{font-size:var(--fs-xs)}
-.lg-next{padding:8px 8px}.lg-next .lg-kit{display:none}.lg-next b{font-size:var(--fs-sm)}.lg-vs{font-size:var(--fs-xl)}
+.lg-next{padding:8px 8px}.lg-next .lg-kit{display:none}.lg-next .lg-jf{width:60px;height:80px}.lg-next b{font-size:var(--fs-sm)}.lg-vs{font-size:var(--fs-xl)}
 .lg-how{font-size:var(--fs-xs);line-height:1.45;padding:4px 8px}.lg-btn{min-height:44px;padding:8px}.lg-btn.go{font-size:var(--fs-lg)}
 .lg-rv{padding:4px 8px;gap:8px}.lg-rv .lg-kit{width:21px;height:28px}
 }
 /* muy poca altura (iPhone con la barra de Safari): la explicación en dos líneas y los botones siempre a la vista */
-@media (orientation:landscape) and (max-height:380px){.lg-card{gap:4px 12px;padding:8px 16px}.lg-next{padding:4px 8px}.lg-vs{font-size:var(--fs-xl)}.lg-btn{min-height:44px}}
+@media (orientation:landscape) and (max-height:380px){.lg-card{gap:4px 12px;padding:8px 16px}.lg-next{padding:4px 8px}.lg-next .lg-jf{width:54px;height:72px}.lg-vs{font-size:var(--fs-xl)}.lg-btn{min-height:44px}}
 `;
 function panel(html) {
   if (!document.getElementById('lg-css')) { const st = document.createElement('style'); st.id = 'lg-css'; st.textContent = CSS; document.head.appendChild(st); }
@@ -177,7 +185,9 @@ export function ligaPanel(S) {
     let mid;
     if (m) {
       const H = CLUBS[m.h], A = CLUBS[m.a], home = m.h === S.club;
-      mid = `<div class="lg-next"><div class="lg-t">${crest(m.h, 52)}<b>${esc(H.name)}</b><em>Media ${H.ovr}</em></div><div class="lg-vs">VS<small>JORNADA ${m.j + 1} DE ${S.rounds.length}</small><small>${home ? 'EN CASA · EL SADAR' : 'FUERA · EL SADAR'}</small></div><div class="lg-t">${crest(m.a, 52)}<b>${esc(A.name)}</b><em>Media ${A.ovr}</em></div></div>`;
+      // (en la web, el busto del jugador de cada club a los lados, sin texto encima; en el archivo único no hay imagen)
+      const fh = jugadorBusto(m.h, 'lg-jf'), fa = jugadorBusto(m.a, 'lg-jf r');
+      mid = `<div class="lg-next${fh && fa ? ' con-j' : ''}">${fh && fa ? fh : ''}<div class="lg-t">${crest(m.h, 52)}<b>${esc(H.name)}</b><em>Media ${H.ovr}</em></div><div class="lg-vs">VS<small>JORNADA ${m.j + 1} DE ${S.rounds.length}</small><small>${home ? 'EN CASA' : 'FUERA'}</small><small>EL SADAR</small></div><div class="lg-t">${crest(m.a, 52)}<b>${esc(A.name)}</b><em>Media ${A.ovr}</em></div>${fh && fa ? fa : ''}</div>`;
     } else {
       const ch = CLUBS[S.champion];
       mid = `<div class="lg-champ"><small>CAMPEÓN DE LA LIGA NAVARRA</small><br><b>${esc(ch.name)}</b><br>${S.champion === S.club ? '¡Sois campeones! Aupa ' + esc(c.town) + '!' : 'La próxima temporada, a por el título.'}</div>`;

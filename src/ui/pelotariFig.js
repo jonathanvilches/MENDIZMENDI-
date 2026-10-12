@@ -1,8 +1,9 @@
 // Los pelotaris del autor (src/assets/pelotaris): 22 chicos y chicas de cuerpo entero, cada uno de azul y de rojo, para
 // las cartas, la pantalla VS, la colección y las portadas del menú de pelota. Cada nombre de la plantilla tiene su figura;
 // otro nombre (el tuyo, si lo has cambiado, o el de un compañero) toma una del mismo género, siempre la misma.
-// En la web van los de 512 de los dos colores; en el archivo único, el rojo de 256 y la camiseta azul suelta, que se pone
-// encima del rojo (el resto del dibujo es igual): la figura azul sale de dos imágenes, una sobre otra.
+// En la web van los de 512 de los dos colores; en el archivo único, el rojo de 256 y la camiseta azul suelta (el resto
+// del dibujo es igual): la figura azul es una sola imagen, la camiseta, con el rojo de fondo de esa misma imagen. Así
+// las dos capas ocupan siempre la misma caja (con dos imágenes, Safari en el iPhone dejaba la camiseta suelta a un lado).
 // Las figuras miran a su izquierda (a la derecha de la pantalla): en la pantalla VS se gira solo la roja, una vez.
 import { nameGender } from '../data/nombres.js';
 
@@ -10,6 +11,8 @@ const byId = (g) => Object.fromEntries(Object.entries(g).map(([k, v]) => [k.spli
 const ROJO = byId(import.meta.glob('@pelotaris/rojo/*.webp', { eager: true, query: '?url', import: 'default' }));
 const AZUL = byId(import.meta.glob('@pelotaris/azul/*.webp', { eager: true, query: '?url', import: 'default' }));
 const CAMISETA = byId(import.meta.glob('@pelotaris/camiseta/*.webp', { eager: true, query: '?url', import: 'default' }));
+// (en la web, para la pantalla VS, donde la figura ocupa casi todo el alto: los de 1024 del autor)
+const VS = { azul: byId(import.meta.glob('@pelotaris/vs/azul/*.webp', { eager: true, query: '?url', import: 'default' })), rojo: byId(import.meta.glob('@pelotaris/vs/rojo/*.webp', { eager: true, query: '?url', import: 'default' })) };
 
 // la plantilla del autor: 11 chicos y 11 chicas (Mendi es el protagonista: no sale de rival)
 const CHICOS = ['Mendi', 'Unai', 'Mikel', 'Aitor', 'Iñaki', 'Ander', 'Xabier', 'Jokin', 'Ekaitz', 'Julen', 'Asier'];
@@ -43,11 +46,11 @@ export function townPelotari(townId, host = null) {
 
 /** La imagen (la de color entera; la roja, si el azul se monta encima) */
 export const pelotariSrc = (name, side = 'rojo') => { const id = pelotariId(name); return (side === 'azul' && AZUL[id]) || ROJO[id]; };
-/** HTML de la figura: una imagen o, en el archivo único y de azul, el rojo con la camiseta azul encima (class: la de las imágenes) */
-export function pelotariImgs(name, side = 'rojo', cls = '') {
-  const id = pelotariId(name), c = cls ? ` class="${cls}"` : '';
-  if (side === 'azul' && !AZUL[id] && CAMISETA[id]) return `<img${c} src="${ROJO[id]}" alt="" draggable="false"><img class="${cls ? cls + ' ' : ''}pf-azul" src="${CAMISETA[id]}" alt="" draggable="false">`;
-  return `<img${c} src="${pelotariSrc(name, side)}" alt="" draggable="false">`;
+/** HTML de la figura, siempre una sola imagen (class: «pf» y la que se pida; pf-az si lleva el rojo de fondo; big: la
+ *  grande de la pantalla VS, si esta versión la tiene) */
+export function pelotariFig(name, side = 'rojo', cls = '', big = false) {
+  const id = pelotariId(name), c = `pf${cls ? ' ' + cls : ''}`;
+  if (big && VS[side === 'azul' ? 'azul' : 'rojo'][id]) return `<img class="${c}" src="${VS[side === 'azul' ? 'azul' : 'rojo'][id]}" alt="" draggable="false">`;
+  if (side === 'azul' && !AZUL[id] && CAMISETA[id]) return `<img class="${c} pf-az" src="${CAMISETA[id]}" style="background-image:url(${ROJO[id]})" alt="" draggable="false">`;
+  return `<img class="${c}" src="${pelotariSrc(name, side)}" alt="" draggable="false">`;
 }
-/** La figura en su caja (.pf): para ponerla donde va una sola imagen (pantalla VS, portadas del menú) */
-export const pelotariFig = (name, side = 'rojo', cls = '') => `<span class="pf${cls ? ' ' + cls : ''}">${pelotariImgs(name, side)}</span>`;

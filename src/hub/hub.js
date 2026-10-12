@@ -585,7 +585,7 @@ export class Hub {
     };
     let doneM = 0; for (const l of LEVELS) doneM += townProgress(p, l).done;
     return `<h1 class="title">${I('gear', 40)} Perfil y ajustes</h1>
-      <section class="two"><div class="panel prof"><img src="${avatarPortrait(p.avatar, 'full')}" alt=""><div>
+      <section class="two"><div class="panel prof"><img src="${avatarPortrait(p.avatar, 'hero')}" alt=""><div>
         <label>Tu nombre<input id="pName" maxlength="14" value="${esc(p.name)}" autocomplete="off"></label>
         <div class="lvl"><b>Nivel ${L.lv}</b> · ${rankOf(L.lv)}<div class="xp big"><i style="width:${L.cur / L.need * 100}%"></i></div><small>${L.cur}/${L.need} XP para el siguiente nivel</small></div>
         <div class="pstats"><span>${I('stamp', 26)} ${cnt(stampCount(p), 'sello', 'sellos')}</span><span>${I('check', 26)} ${cnt(doneM, 'misión', 'misiones')}</span><span>${I('book', 26)} ${cnt(p.cards.length, 'carta', 'cartas')}</span><span>${I('peak', 26)} ${cnt(p.peaks.length, 'cima', 'cimas')}</span><span>${I('binoculars', 26)} ${cnt(p.species.length, 'especie', 'especies')}</span><span>${I('ribbon', 26)} ${sal?.ribbons?.length || 0}/8 cintas de Muskilda</span></div>
