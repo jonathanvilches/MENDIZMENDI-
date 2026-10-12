@@ -650,3 +650,5 @@ body.mg3d-on .learn-btn { bottom: auto; top: calc(env(safe-area-inset-top, 0px) 
     padding-bottom: max(8px, env(safe-area-inset-bottom, 0px)) !important; padding-top: max(8px, env(safe-area-inset-top, 0px)) !important;
   }
 }
+/* (en los móviles tumbados más bajos, la pausa sin la línea de ayuda de los mandos: se cortaba abajo y obligaba a desplazar) */
+@media (orientation: landscape) and (max-height: 400px) { .menu .keys { display: none; } }

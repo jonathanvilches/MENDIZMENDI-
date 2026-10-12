@@ -177,7 +177,8 @@ function choiceGame_(ui, { title, icon = 'quiz', q, options, answer, why }) {
 }
 
 // ---------- Repetir melodía / secuencia (canto, txistu, Bajada del Ángel) ----------
-const PADS = [{ c: '#e03c3c', f: 392 }, { c: '#f2c230', f: 440 }, { c: '#3a8fd6', f: 523 }, { c: '#3ca05a', f: 587 }];
+// (rojo, amarillo, azul y morado: sin verde, como el resto de la interfaz)
+const PADS = [{ c: '#e03c3c', f: 392 }, { c: '#f2c230', f: 440 }, { c: '#3a8fd6', f: 523 }, { c: '#b34fc4', f: 587 }];
 export function simonGame(ui, opts) {
   if (window.__autoWin) { window.__autoSeen?.(opts); return Promise.resolve({ win: true, hits: 5, errors: 0 }); }
   return simonGame_(ui, opts);

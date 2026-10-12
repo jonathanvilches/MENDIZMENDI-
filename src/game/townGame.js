@@ -878,7 +878,7 @@ export class TownGame {
     if (st.step === 1) st.step = 2;   // (ya no hay entrenamiento previo: directo al partido por el sello)
     const sala = !this.pista ? null : st.step === 2 ? ['sala', 'Partido por el sello', `Contra ${rivalName} · en El Sadar`] : ['sala', 'Partido de fútbol', 'En El Sadar'];
     const ligaSub = `${P.futbolClub ? CLUBS_NAME(myClub) + ' · ' : ''}en El Sadar`;
-    const items = (club ? [['liga', S.j < S.rounds.length ? `Liga Navarra · jornada ${S.j + 1}` : 'Liga Navarra · nueva temporada', ligaSub], sala, ['amistoso', 'Amistoso', 'Contra cualquier club de Navarra'], ['exit', 'Salir', '']] : [sala, ['exit', 'Salir', '']]).filter(Boolean);
+    const items = (club ? [['liga', 'Liga Navarra', ligaSub, S.j < S.rounds.length ? `Jornada ${S.j + 1} de ${S.rounds.length}` : 'Nueva temporada'], sala, ['amistoso', 'Amistoso', 'Contra cualquier club de Navarra'], ['exit', 'Salir', '']] : [sala, ['exit', 'Salir', '']]).filter(Boolean);
     const pick = club ? await clubPanel(club.id, items, `${town} · tu club`) : 'sala';
     if (pick === 'exit' || (pick === 'sala' && !this.pista)) return;
     if (pick === 'liga') {

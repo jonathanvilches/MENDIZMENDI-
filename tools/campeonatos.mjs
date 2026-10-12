@@ -19,8 +19,8 @@ for (const [w, h, tag] of [[1280, 720, 'pc'], [844, 390, 'movil']]) {
 { const p = await b.newPage({ viewport: { width: 844, height: 390 } }); await p.addInitScript(init); p.on('pageerror', e => errs.push(e.message));
   await p.goto(URL + '/?screen=sports', { timeout: 300000 }); await p.waitForFunction(() => window.__hub, null, { timeout: 300000 });
   await p.evaluate(() => document.querySelector('[data-sport="futbol"]').click());
-  await p.waitForFunction(() => document.querySelector('.lg-root .lg-rv'), null, { timeout: 120000 }); await shot(p, 'fut-club');
-  await p.evaluate(() => document.querySelector('.lg-root .lg-rv').click());
+  await p.waitForFunction(() => document.querySelector('.lg-root .eq-team'), null, { timeout: 120000 }); await shot(p, 'fut-club');
+  await p.evaluate(() => document.querySelector('.lg-root .eq-team').click());
   await p.waitForFunction(() => document.querySelector('.lg-root [data-a="amistoso"]'), null, { timeout: 60000 }); await shot(p, 'fut-menu');
   await p.evaluate(() => document.querySelector('.lg-root [data-a="sadar"]').click());
   await p.waitForFunction(() => window.__futbol && window.__futbol.game && document.body.classList.contains('futbol'), null, { timeout: 600000 }).catch(() => {});

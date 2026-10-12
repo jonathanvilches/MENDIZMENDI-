@@ -8,7 +8,7 @@ const p = await b.newPage({ viewport: { width: 844, height: 390 }, hasTouch: tru
 await p.addInitScript(() => { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'pelotari', seen: { heroBenat: true, dog: true }, settings: { quality: 'low' } })); localStorage.setItem('mendimendiz-futbol-v1', JSON.stringify({ v: 1, tutorial: true })); });
 await p.goto((process.env.URL || 'http://127.0.0.1:5173') + '/?screen=sports', { timeout: 300000 }); await p.waitForFunction(() => window.__hub, null, { timeout: 300000 });
 await p.evaluate(() => document.querySelector('[data-sport="futbol"]').click());
-await p.waitForFunction(() => document.querySelector('.lg-root .lg-rv'), null, { timeout: 120000 }); await p.evaluate(() => document.querySelector('.lg-root .lg-rv').click());
+await p.waitForFunction(() => document.querySelector('.lg-root .eq-team'), null, { timeout: 120000 }); await p.evaluate(() => document.querySelector('.lg-root .eq-team').click());
 const sel = venue === 'sadar' ? '[data-a="sadar"]' : '[data-a="sala"]';
 await p.waitForFunction((s) => document.querySelector('.lg-root ' + s), sel, { timeout: 60000 }); await p.evaluate((s) => document.querySelector('.lg-root ' + s).click(), sel);
 await p.waitForFunction(() => window.__futbol && window.__futbol.game && document.body.classList.contains('futbol'), null, { timeout: 600000 });

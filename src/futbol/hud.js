@@ -37,6 +37,9 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-pause svg,.fb-cam svg{width:20px;height:20px;filter:drop-shadow(0 1px 1px rgba(18,6,27,.5));pointer-events:none}
 .fb-msg{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%) scale(.85);opacity:0;transition:opacity .2s,transform .25s cubic-bezier(.2,1.4,.4,1);text-align:center;pointer-events:none;max-width:92vw}
 .fb-msg.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+/* (mientras se ve el rótulo grande, el aviso y el consejo de debajo del marcador esperan escondidos: en el móvil tumbado se
+   pisaban; vuelven al quitarse el rótulo, si les queda tiempo) */
+.fb-root:has(>.fb-msg.on) :is(.fb-say,.fb-tip).on{visibility:hidden}
 .fb-msg h2{margin:0;font-family:'MZ Display',Nunito,sans-serif;font-weight:400;font-size:var(--fs-display);line-height:1;text-shadow:0 4px 0 rgba(0,0,0,.35),0 8px 26px rgba(0,0,0,.45);letter-spacing:0}
 .fb-msg p{margin:8px 0 0;font-size:var(--fs-lg);font-weight:900;text-shadow:0 2px 8px rgba(0,0,0,.6)}
 .fb-msg.goal h2{color:#ff9bd8}
@@ -142,8 +145,12 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
   /* controles: el título y las pestañas en la misma fila, y debajo las tarjetas de una línea: todo a la vista */
   .fb-subsp .fb-body{grid-template-columns:auto minmax(0,1fr) auto;align-items:center}.fb-subsp .fb-body>h2{grid-column:1;margin:0}.fb-subsp .fb-ctabs{grid-column:2;margin:0}.fb-subsp .fb-subs-n{grid-column:3;margin:0!important}.fb-subsp .fb-subs{grid-column:1/-1;margin-top:8px}
   .fb-subsp .fb-pl{height:36px;padding:2px 8px 2px 4px}.fb-subsp .fb-sf,.fb-subsp .fb-sb{gap:4px}
-  .fb-subsp .fb-subs{grid-template-columns:minmax(0,3fr) minmax(0,1fr)}.fb-subsp .fb-sf{grid-template-columns:repeat(3,minmax(0,1fr))}   /* (los once en tres columnas: caben sin desplazar) */
+  .fb-subsp .fb-subs{grid-template-columns:minmax(0,2.4fr) minmax(0,1.2fr)}.fb-subsp .fb-sf{grid-template-columns:repeat(3,minmax(0,1fr))}   /* (los once en tres columnas: caben sin desplazar) */
+  .fb-subsp .fb-subs small.h{letter-spacing:.04em;white-space:nowrap}   /* (el rótulo del banquillo en una línea: en dos, la lista bajaba y había que desplazar) */
+  @media (max-width:700px){.fb-subsp .fb-subs{grid-template-columns:minmax(0,3fr) minmax(0,1fr)}.fb-subsp .fb-subs small.h{white-space:normal}}   /* (en los más estrechos, como antes: el que sale necesita su ancho) */
   .fb-controls .fb-body{grid-template-columns:auto minmax(0,1fr);align-items:center}.fb-controls .fb-body>h2{grid-column:1;margin:0}.fb-controls .fb-ctabs{grid-column:2;margin:0}.fb-controls .fb-cpane{grid-column:1/-1;margin-top:8px}
+  /* (en los móviles tumbados más estrechos, los controles en tres columnas y más juntos: caben sin desplazar) */
+  @media (max-width:800px){.fb-controls .fb-cgrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}.fb-controls .fb-ck{padding:4px 8px}.fb-controls .fb-ck>i{width:28px;height:28px}}
 }
 @media (max-height:460px) and (orientation:landscape){
   .fb-top{top:calc(env(safe-area-inset-top,0px) + var(--edge,16px))}.fb-team b{font-size:var(--fs-xl)}
