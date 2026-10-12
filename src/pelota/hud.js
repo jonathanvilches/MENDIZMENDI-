@@ -1,11 +1,12 @@
 // Interfaz del partido (DOM): marcador, avisos del juez y del kantari, consejos, joystick y botones.
 // Todo lleva el prefijo «pel-» y se coloca sin solaparse en móvil (vertical y horizontal) y escritorio.
 import { fitCircle, fitCircles } from '../ui/fitlabel.js';
+import { icon3DReady } from '../ui/icon3d.js';
 const CSS = `
 .pel-root{position:fixed;inset:0;z-index:900;pointer-events:none;font-family:var(--pel-font,Nunito,sans-serif);color:#fff;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 .pel-root *{box-sizing:border-box}
 .pel-top{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px));right:calc(env(safe-area-inset-right,0px) + var(--edge,16px));display:flex;justify-content:flex-end}
-.pel-exit{padding:0;position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px));left:calc(env(safe-area-inset-left,0px) + var(--edge,16px));width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.82);background:rgba(14,10,24,.66);box-shadow:0 3px 12px rgba(0,0,0,.35);color:#fff;pointer-events:auto;cursor:pointer;display:grid;place-items:center}.pel-exit svg{width:20px;height:20px;display:block}
+.pel-exit{padding:0;position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px));left:calc(env(safe-area-inset-left,0px) + var(--edge,16px));width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.82);background:rgba(14,10,24,.66);box-shadow:0 3px 12px rgba(0,0,0,.35);color:#fff;pointer-events:auto;cursor:pointer;display:grid;place-items:center}.pel-exit svg{width:20px;height:20px;display:block}.pel-exit .pel-xi{width:22px;height:22px;display:block;pointer-events:none}
 .pel-score{display:flex;align-items:stretch;gap:0;border-radius:3px;opacity:.95;overflow:hidden;background:rgba(7,2,15,.9);border-top:2px solid var(--fx,#ff2bd6);box-shadow:0 6px 20px rgba(0,0,0,.35);max-width:100%;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
 .pel-side{display:flex;align-items:center;gap:4px;padding:2px 8px;min-width:0;height:28px}
 .pel-side b{font-family:var(--pel-display,'MZ Display',Nunito,sans-serif);font-size:var(--fs-lg);line-height:1;min-width:1em;text-align:center}
@@ -182,13 +183,16 @@ const CSS = `
 .pel-hit .pel-hl{position:relative;z-index:1}
 `;
 
+// la X de salir, con el icono 3D de cerrar de la familia (src/assets/icons3d); si faltara, el trazo blanco
+const X_ICON = icon3DReady('close') ? `<img class="pel-xi" src="${icon3DReady('close')}" alt="" aria-hidden="true">` : '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>';
+
 export class PelotaHud {
   constructor(container, txt, names, touch) {
     this.txt = txt; this.touch = touch;
     if (!document.getElementById('pel-style')) { const st = document.createElement('style'); st.id = 'pel-style'; st.textContent = CSS; document.head.appendChild(st); }
     const r = this.root = document.createElement('div'); r.className = 'pel-root';
     r.innerHTML = `
-      <button class="pel-exit" aria-label="${txt.exit}"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg></button>
+      <button class="pel-exit" aria-label="${txt.exit}">${X_ICON}</button>
       <div class="pel-top"><div class="pel-score">
         <div class="pel-side pel-blue"><i class="pel-serve" data-pel-s="you"></i><span>${esc(names.you)}</span><b data-pel-n="you">0</b></div>
         <div class="pel-mid" data-pel-mid></div>

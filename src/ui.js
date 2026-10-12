@@ -36,10 +36,10 @@ const ICON = {
 };
 
 // los botones del HUD y los táctiles llevan los iconos de la familia del juego (src/assets/icons3d): mapa, menú,
-// prismáticos, cuaderno, correr (la bota), saltar, y en el botón de acción la mano, hablar, beber, mirar y pelota.
+// prismáticos, cuaderno, correr, saltar, y en el botón de acción la mano, hablar, beber, mirar (la lupa) y pelota.
 // Si faltara alguno, se queda el dibujo de antes.
 { const IMG = (n) => { const u = icon3DReady(n); return u ? `<img class="hico" src="${u}" alt="" aria-hidden="true">` : null; };
-  for (const [k, n] of [['map', 'map'], ['menu', 'menu'], ['bino', 'binoculars'], ['book', 'book'], ['run', 'boot'], ['jump', 'jump'], ['hand', 'hand'], ['talk', 'talk'], ['wave', 'hand'], ['drop', 'water'], ['look', 'search'], ['pelota', 'pelota']]) ICON[k] = IMG(n) || ICON[k]; }
+  for (const [k, n] of [['map', 'map'], ['menu', 'menu'], ['bino', 'binoculars'], ['book', 'book'], ['run', 'run'], ['jump', 'jump'], ['hand', 'hand'], ['talk', 'talk'], ['wave', 'hand'], ['drop', 'water'], ['look', 'zoom_in'], ['pelota', 'pelota']]) ICON[k] = IMG(n) || ICON[k]; }
 
 export class UI {
   constructor(input, sound) {

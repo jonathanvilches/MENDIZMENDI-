@@ -2,7 +2,7 @@
 // móvil mientras se juega. Volver a ejecutar cuando cambien los modelos de los iconos.
 // Uso: node tools/iconbake.mjs [url base] [tamaño]
 import { chromium } from 'playwright-core';
-import { writeFileSync, mkdirSync } from 'fs';
+import { writeFileSync, mkdirSync, readFileSync } from 'fs';
 import { execFileSync } from 'child_process';
 const [,, base = 'http://127.0.0.1:5173/', size = '192'] = process.argv;
 const tmp = '/tmp/iconbake'; mkdirSync(tmp, { recursive: true });
@@ -12,6 +12,9 @@ p.on('pageerror', e => console.log('PAGEERROR', e.message));
 await p.goto(base + 'lab/iconbake.html', { timeout: 300000 });
 await p.waitForFunction(() => window.__ready, null, { timeout: 300000 });
 const names = (await p.evaluate(() => window.__names)).filter(n => !process.env.ONLY || process.env.ONLY.split(',').includes(n));   // ONLY=boar,jabali para rehacer solo esos
+// (los iconos del autor no se hornean: su lista está en src/assets/icons3d/LICENSE_iconos-autor.txt)
+const AUTOR = new Set((readFileSync('src/assets/icons3d/LICENSE_iconos-autor.txt', 'utf8').match(/^Lista: (.*)$/m)?.[1] || '').split(' '));
+for (let i = names.length - 1; i >= 0; i--) if (AUTOR.has(names[i])) names.splice(i, 1);
 console.log(names.length, 'iconos');
 let n = 0;
 for (const name of names) {
@@ -28,6 +31,7 @@ out = 'src/assets/icons3d'; os.makedirs(out, exist_ok=True); tot = 0
 for f in [os.path.join('${tmp}', n + '.png') for n in ${JSON.stringify(names)} if os.path.exists(os.path.join('${tmp}', n + '.png'))]:
     im = Image.open(f).convert('RGBA').resize((${size}, ${size}), Image.LANCZOS)
     d = os.path.join(out, os.path.basename(f)[:-4] + '.webp'); im.save(d, 'WEBP', quality=88, method=6); tot += os.path.getsize(d)
+    os.makedirs(out + '/128', exist_ok=True); im.resize((128, 128), Image.LANCZOS).save(os.path.join(out, '128', os.path.basename(d)), 'WEBP', quality=80, method=6)   # (la copia del archivo único)
 print('webp', len(glob.glob(out + '/*.webp')), 'total KB', tot // 1024)
 `], { stdio: 'inherit' });
 console.log('horneados', n);
