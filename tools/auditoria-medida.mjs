@@ -14,6 +14,7 @@
 //   · composicion: bloques y botones que van juntos con alturas, anchos, bordes o huecos distintos; cajas con más relleno
 //     a un lado que al otro; rellenos y huecos fuera de la rejilla de 4 px; bordes que casi coinciden (de 2 a 12 px)
 //   · justo: texto de un botón que se sale de él o que va a menos de 2 px de su borde
+//   · aire: en un botón con fondo o borde, menos de 12 px entre lo de dentro y su borde por los lados
 //   · imagen: imagen deformada, descentrada en su caja, recortada por un lado, con bandas vacías, desigual con sus
 //     hermanas o con un encuadre que pierde mucho (va aparte: tools/auditoria-medida.mjs, sección 16)
 // Con window.__auditTodo = true, «espacio» lista todas las distancias medidas (no solo las que se salen).
@@ -36,7 +37,7 @@ export const auditar = async (sel) => {
   const hasText = (e) => [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
   const all = [...root.querySelectorAll('*')].filter(e => !['SCRIPT', 'STYLE', 'CANVAS'].includes(e.tagName));
   const texts = all.filter(e => hasText(e) && vis(e));
-  const R = { cortado: [], encima: [], verde: [], esquina: [], sobresale: [], espacio: [], letra: [], color: [], desborda: [], estrecho: [], desplaza: [], forma: [], boton: [], composicion: [], justo: [], imagen: [] };
+  const R = { cortado: [], encima: [], verde: [], esquina: [], sobresale: [], espacio: [], letra: [], color: [], desborda: [], estrecho: [], desplaza: [], forma: [], boton: [], composicion: [], justo: [], imagen: [], aire: [] };
   // (tapado: lo que queda debajo de una capa opaca, como el HUD detrás de un panel, no se ve y no cuenta para «encima»
   // ni para «sobresale»; se mira qué hay encima en el centro de su primera línea, con todo tocable un momento)
   const pe = document.createElement('style'); pe.textContent = '*{pointer-events:auto!important}'; document.head.appendChild(pe);
@@ -448,5 +449,27 @@ export const auditar = async (sel) => {
     else if ((sp(x => x.dy) > 1.5 && sp(x => x.by) > 1.5) || (sp(x => x.dx) > 1.5 && sp(x => x.rx) > 1.5))   // (apoyadas abajo o arriba, o a un lado, ya están en su sitio)
       R.imagen.push(`${nm(list[0][0])} desiguales en ${name(par)}: no están en el mismo sitio de su tarjeta (${Math.round(sp(x => x.dx))} px de lado, ${Math.round(sp(x => x.dy))} de alto)`); }
   for (const k of Object.keys(R)) R[k] = [...new Set(R[k])];
+  // 17. aire: en un botón con fondo o borde, lo que queda entre lo de dentro (texto e iconos) y su borde por los lados,
+  // medido a la altura del texto: en los botones inclinados o recortados (clip-path), desde el borde inclinado. Menos de
+  // AIRE px (12) se ve pegado
+  const AIRE = 12;
+  const clipX = (b, r, yRel) => { const cp = st(b).clipPath; const m = cp && cp.match(/^polygon\((.+)\)$/); if (!m) return null;
+    const val = (v, ref) => v.trim().endsWith('%') ? parseFloat(v) / 100 * ref : v.includes('calc') ? NaN : parseFloat(v);
+    const pts = m[1].split(',').map(q => { const [x, y] = q.trim().split(/\s+/); return [val(x, r.width), val(y, r.height)]; });
+    if (pts.some(([x, y]) => isNaN(x) || isNaN(y))) return null;
+    const xs = []; for (let i = 0; i < pts.length; i++) { const [x1, y1] = pts[i], [x2, y2] = pts[(i + 1) % pts.length];
+      if ((y1 <= yRel && y2 >= yRel) || (y2 <= yRel && y1 >= yRel)) xs.push(y1 === y2 ? x1 : x1 + (yRel - y1) / (y2 - y1) * (x2 - x1)); }
+    return xs.length >= 2 ? [Math.min(...xs), Math.max(...xs)] : null; };
+  for (const b of all) { if (!b.matches('button, .btn, [role=button], [role=tab]') || !vis(b) || hidden.has(b) || b.closest('svg') || !painted(b)) continue;
+    const s2 = st(b), r = b.getBoundingClientRect(); if (r.width < 24 || r.height < 16) continue;
+    let l = Infinity, rr = -Infinity, t = Infinity, bt = -Infinity, txt0 = false; const w = document.createTreeWalker(b, NodeFilter.SHOW_TEXT);
+    for (let n; (n = w.nextNode());) { const pe2 = n.parentElement; if (!n.textContent.trim() || !vis(pe2) || hidden.has(pe2)) continue;
+      const rg = document.createRange(); rg.selectNodeContents(n); for (const q of rg.getClientRects()) { if (q.width < 2) continue; txt0 = true; l = Math.min(l, q.left); rr = Math.max(rr, q.right); t = Math.min(t, q.top); bt = Math.max(bt, q.bottom); } }
+    if (!txt0) continue;   // (solo icono: es su forma)
+    for (const ic of b.querySelectorAll('img, svg, canvas')) { if (ic.closest('svg') !== ic && ic.tagName !== 'svg' && ic.closest('svg')) continue; if (!vis(ic)) continue; const q = ic.getBoundingClientRect(); if (q.width < 4 || q.width > r.width * 0.45) continue; l = Math.min(l, q.left); rr = Math.max(rr, q.right); }   // (una foto de portada que llena la tarjeta no es un icono: no cuenta)
+    let L = r.left + parseFloat(s2.borderLeftWidth), Rt = r.right - parseFloat(s2.borderRightWidth);
+    const c = clipX(b, r, (t + bt) / 2 - r.top); if (c) { L = Math.max(L, r.left + c[0]); Rt = Math.min(Rt, r.left + c[1]); }
+    const gap = Math.min(l - L, Rt - rr);
+    if (gap < AIRE) R.aire.push(`${name(b)} «${txt(b).slice(0, 30)}» ${gap.toFixed(0)} px de aire por un lado (izq ${(l - L).toFixed(0)}, dcha ${(Rt - rr).toFixed(0)}${c ? ', borde inclinado' : ''})`); }
   return R;
 };

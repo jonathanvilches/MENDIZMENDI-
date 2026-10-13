@@ -480,6 +480,8 @@ export const EU_ARMAS = {
   'Blasón': 'Blasoia',
   'Leído en el juego': 'Jokoan irakurria',
   'Por comprobar': 'Egiaztatzeko',
+  'Siete pasos para leer cualquier escudo': 'Edozein armarri irakurtzeko zazpi urrats', 'Un escudo que aún no dibujamos': 'Oraindik marrazten ez dugun armarri bat',
+  'Un escudo se lee como una frase: primero el campo, luego las figuras, sus colores y su sitio.': 'Armarri bat esaldi bat bezala irakurtzen da: lehenik eremua, gero irudiak, haien koloreak eta lekua.',
   'La fuente resume este escudo: el dibujo puede simplificar algún detalle.': 'Iturriak armarri hau laburtzen du: marrazkiak xehetasunen bat sinplifika dezake.',
   'La fuente resume este escudo: el dibujo del juego puede simplificar algún detalle.': 'Iturriak armarri hau laburtzen du: jokoko marrazkiak xehetasunen bat sinplifika dezake.',
   'Nueva carta en tu armorial': 'Karta berria zure armarri-bilduman',
@@ -555,6 +557,7 @@ export const EU_ARMAS = {
 };
 // plantillas de las pantallas de escudos (los huecos se traducen también)
 export const EU_RX_ARMAS = [
+  [/^(\d+) escudos que aún no dibujamos$/, '$1 armarri oraindik marrazten ez ditugunak'],
   [/^(Reino|Ciudad|Valle|Municipio) · (.+)$/, '$1 · $2'],
   [/^Escudo de (.+)$/, 'Armarria: $1'],
   [/^(\d+) de (\d+) leídos en el juego$/, '$2 armarritik $1 jokoan irakurriak'],
