@@ -128,7 +128,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   en los cuentos que no tengan su ilustración propia, en el taller de cada oficio, en Torneos y en el álbum (Más · Láminas), en tiras que se deslizan de
   lado y con un visor a pantalla completa. Van en WebP, que lee cualquier iPhone: en AVIF, algunos visores no las
   enseñaban. En la web van todas, a 1280 × 720 y con copia de 640 × 360 para tarjetas (tools/laminas-pequenas.mjs);
-  en el archivo único, a 640 × 360, solo las que se ven fuera del álbum (alias `@laminas` de `vite.config.js`). Todas
+  en el archivo único, a 640 × 360, solo las que se ven fuera del álbum (alias `@laminas` de `vite.config.js`). En un
+  ordenador con conexión, el archivo único cambia cada ilustración que en pantalla se ve más grande de lo que mide por la
+  grande de la web publicada (`src/web/hd.js`, con la lista `hd.json` que escribe la compilación web): láminas, leyendas,
+  cimas, personajes, tradiciones, fauna y flora; sin conexión se queda con las de dentro. Todas
   las portadas son láminas (`townCover`, `comarcaCover` y `townImg` en `ui/laminas.js`): el inicio, el fondo del menú,
   las tarjetas y cabeceras de comarca, las tarjetas y la ficha de cada pueblo y la pantalla de carga. En tarjetas y
   fichas se ven enteras, en 16:9; donde el texto va encima, con el mismo degradado neutro (`--cov-side`, `--cov-foot` y

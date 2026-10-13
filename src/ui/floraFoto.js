@@ -8,9 +8,11 @@
 //   floraFoto('boj') → { planta, hoja, cr: { planta, hoja } } (o null si no hay foto: entonces la ficha usa la lámina
 //   dibujada de siempre)
 import FOTOS from '../assets/flora/fotos.json';
+import { hdTable } from '../web/hd.js';
 
 const URLS = Object.fromEntries(Object.entries(import.meta.glob('@flora-fotos/*.webp', { eager: true, query: '?url', import: 'default' })).map(([k, v]) => [k.split('/').pop(), v]));
 const url = (id, k) => URLS[`${id}-${k}.webp`] || null;
+hdTable('flora', Object.fromEntries(Object.entries(URLS).map(([k, v]) => [k.replace('.webp', ''), v])));   // (src/web/hd.js)
 
 export function floraFoto(id) {
   const F = FOTOS[id]; if (!F) return null;
