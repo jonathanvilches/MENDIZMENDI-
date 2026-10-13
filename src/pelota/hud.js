@@ -34,7 +34,7 @@ const CSS = `
 .pel-q.k-good b{color:#c9b2ff}.pel-q.k-early b,.pel-q.k-late b,.pel-q.k-whiff b{color:#ff6fb5;animation:pel-qshake .4s ease both}
 @keyframes pel-qpop{from{transform:scale(2.2) rotate(-6deg);opacity:0}to{transform:none;opacity:1}}
 @keyframes pel-qshake{0%{transform:scale(1.4);opacity:0}30%{transform:translateX(-8px);opacity:1}60%{transform:translateX(6px)}100%{transform:none}}
-.pel-tip{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 16px);max-width:min(560px,calc(100vw - 330px));padding:8px 16px;border-radius:14px;background:rgba(28,11,58,.86);border:1px solid rgba(190,160,255,.3);font-size:var(--fs-md);font-weight:700;line-height:1.3;text-align:center;opacity:0;transition:opacity .2s}
+.pel-tip{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 16px);width:max-content;max-width:min(560px,calc(100vw - 330px));padding:8px 16px;border-radius:14px;background:rgba(28,11,58,.86);border:1px solid rgba(190,160,255,.3);font-size:var(--fs-md);font-weight:700;line-height:1.3;text-align:center;opacity:0;transition:opacity .2s}
 .pel-tip.on{opacity:1}
 .pel-stick{position:absolute;left:0;bottom:0;width:46vw;height:62dvh;pointer-events:auto;touch-action:none}
 .pel-knob{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;border:3px solid rgba(255,255,255,.55);background:rgba(28,11,58,.3);display:none}
@@ -97,9 +97,9 @@ const CSS = `
 .pel-en i{width:64px;height:6px;border-radius:3px;background:rgba(255,255,255,.18);overflow:hidden;position:relative;display:block}
 .pel-en i b{position:absolute;inset:0;transform-origin:left;background:#c9b2ff;transition:transform .2s}.pel-en .mid i b{background:#ff9bd8}.pel-en .low i b{background:#ff5a3a}
 @media (max-width:560px){.pel-mid{display:none}.pel-side{padding:2px 8px}.pel-side span{max-width:20vw}
-  .pel-tip{max-width:calc(100vw - 32px);bottom:auto;top:calc(env(safe-area-inset-top,0px) + 64px)}}
+  .pel-tip{max-width:min(calc(100vw - 32px),var(--pel-tip-w,100vw));bottom:auto;top:var(--pel-tip-top,calc(env(safe-area-inset-top,0px) + 64px))}}
 @media (max-height:520px){.pel-hit{width:86px;height:86px;font-size:var(--fs-lg)}.pel-drop{width:60px;height:60px}
-  .pel-tip{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 48px);max-width:calc(100vw - 240px);font-size:var(--fs-sm);padding:8px 12px}
+  .pel-tip{bottom:auto;top:var(--pel-tip-top,calc(env(safe-area-inset-top,0px) + 48px));max-width:min(calc(100vw - 240px),var(--pel-tip-w,100vw));font-size:var(--fs-sm);padding:8px 12px}
   .pel-call{top:calc(env(safe-area-inset-top,0px) + 56px);padding:8px 16px}
   .pel-card{width:min(780px,100%);padding:16px 16px 12px}.pel-card h2{font-size:var(--fs-xl)}.pel-card .pel-sub{margin-bottom:8px}
   .pel-card ol{columns:2;column-gap:24px;font-size:var(--fs-sm);margin-bottom:8px}.pel-card li{break-inside:avoid;margin-bottom:4px}
@@ -194,9 +194,9 @@ export class PelotaHud {
     r.innerHTML = `
       <button class="pel-exit" aria-label="${txt.exit}">${X_ICON}</button>
       <div class="pel-top"><div class="pel-score">
-        <div class="pel-side pel-blue"><i class="pel-serve" data-pel-s="you"></i><span>${esc(names.you)}</span><b data-pel-n="you">0</b></div>
+        <div class="pel-side pel-blue"><i class="pel-serve" data-pel-s="you"></i><span>${esc(short(names.you))}</span><b data-pel-n="you">0</b></div>
         <div class="pel-mid" data-pel-mid></div>
-        <div class="pel-side pel-red"><b data-pel-n="rival">0</b><span>${esc(names.rival)}</span><i class="pel-serve" data-pel-s="rival"></i></div>
+        <div class="pel-side pel-red"><b data-pel-n="rival">0</b><span>${esc(short(names.rival))}</span><i class="pel-serve" data-pel-s="rival"></i></div>
       </div></div>
       <div class="pel-call"><h3></h3><p></p><div class="pel-kantari"></div></div>
       <div class="pel-q"></div>
@@ -206,23 +206,24 @@ export class PelotaHud {
       <div class="pel-btns"><div class="pel-bcol"><button class="pel-btn pel-drop pel-cut" data-k="cut" aria-label="${txt.cut}"><span>${txt.cut}</span></button><button class="pel-btn pel-drop pel-dejada" data-k="drop" aria-label="${txt.drop}"><span>${txt.drop}</span></button></div><button class="pel-btn pel-hit" aria-label="${txt.hit}"><span class="pel-hl">${txt.hit}</span><i class="pel-tring" aria-hidden="true"></i></button></div>`;
     container.appendChild(r);
     this.$ = (s) => r.querySelector(s);
-    fitCircles(r.querySelector('.pel-btns')); this.onFit = () => fitCircles(r.querySelector('.pel-btns')); addEventListener('resize', this.onFit);
+    fitCircles(r.querySelector('.pel-btns')); this.onFit = () => { fitCircles(r.querySelector('.pel-btns')); this.placeTip(); }; addEventListener('resize', this.onFit);
     this.callT = 0; this.qT = 0;
   }
   // energía: filas { id, name, en (0 a 1), side ('you'|'rival'), me }; null la esconde
   energy(rows) {
     let el = this.enEl;
-    if (!rows) { if (el) el.hidden = true; if (this.myEn) this.myEn.hidden = true; return; }
+    if (!rows) { if (el && !el.hidden) { el.hidden = true; this.placeTip(); } if (this.myEn) this.myEn.hidden = true; return; }
     const key = rows.map(r => r.id + r.name).join();
     // (la tuya, grande abajo en el centro, que se lee de un vistazo; la de los demás, pequeña arriba con su nombre)
     if (!this.myEn) { const m = this.myEn = document.createElement('div'); m.className = 'pel-myen you'; m.dataset.en = 'you'; m.innerHTML = `<span>${esc(this.txt.energy || 'Energía')}</span><i><b></b></i>`; this.root.appendChild(m); }
     this.myEn.hidden = !rows.some(r => r.me);
     if (!el || this.enKey !== key) {
       el?.remove(); el = this.enEl = document.createElement('div'); el.className = 'pel-en'; this.enKey = key;
-      el.innerHTML = rows.filter(r => !r.me).map(r => `<div class="${r.side}" data-en="${r.id}"><em></em><span>${esc(r.name)}</span><i><b></b></i></div>`).join('');
+      el.innerHTML = rows.filter(r => !r.me).map(r => `<div class="${r.side}" data-en="${r.id}"><em></em><span>${esc(short(r.name))}</span><i><b></b></i></div>`).join('');
       this.root.insertBefore(el, this.root.querySelector('.pel-call'));
     }
-    el.hidden = false;
+    if (el.hidden !== false) { el.hidden = false; this.placeTip(); } else if (this.tipFor !== key) this.placeTip();
+    this.tipFor = key;
     for (const r of rows) {
       const row = r.me ? this.myEn : el.querySelector(`[data-en="${r.id}"]`); if (!row) continue;
       const v = Math.round(r.en * 50) / 50; if (row._v === v) continue; row._v = v;
@@ -230,7 +231,19 @@ export class PelotaHud {
       row.classList.toggle('mid', v < 0.5 && v >= 0.25); row.classList.toggle('low', v < 0.25);
     }
   }
-  setNames(you, rival) { const a = this.root.querySelector('.pel-blue span'), b = this.root.querySelector('.pel-red span'); if (a) a.textContent = you; if (b) b.textContent = rival; }
+  // el aviso de arriba no pisa la etiqueta de energía de los demás (arriba a la izquierda): si cabe a su lado con al menos
+  // 280 px, se estrecha lo justo; si no, baja por debajo de ella. Solo cuenta cuando el aviso va arriba (móvil)
+  placeTip() {
+    cancelAnimationFrame(this.tipRaf);
+    this.tipRaf = requestAnimationFrame(() => {
+      const st = this.root.style, e = this.enEl;
+      st.removeProperty('--pel-tip-w'); st.removeProperty('--pel-tip-top');
+      if (!e || e.hidden) return;
+      const r = e.getBoundingClientRect(), w = Math.floor(innerWidth - 2 * (r.right + 8));
+      if (w >= 280) st.setProperty('--pel-tip-w', w + 'px'); else st.setProperty('--pel-tip-top', Math.ceil(r.bottom + 8) + 'px');
+    });
+  }
+  setNames(you, rival) { const a = this.root.querySelector('.pel-blue span'), b = this.root.querySelector('.pel-red span'); if (a) a.textContent = short(you); if (b) b.textContent = short(rival); }
   setScore(you, rival, server, mid) {
     this.$('[data-pel-n=you]').textContent = you; this.$('[data-pel-n=rival]').textContent = rival;
     for (const el of this.root.querySelectorAll('.pel-serve')) el.classList.toggle('on', el.dataset.pelS === server);
@@ -291,6 +304,9 @@ export class PelotaHud {
   }
   closePanel() { if (this.panelEl) { this.panelEl.remove(); this.panelEl = null; } this.root.classList.remove('paneled'); }
   controls(on) { for (const s of ['.pel-stick', '.pel-btns', '.pel-stickhint']) { const e = this.$(s); if (e) e.style.visibility = on ? '' : 'hidden'; } }
-  destroy() { removeEventListener('resize', this.onFit); this.root.remove(); }
+  destroy() { removeEventListener('resize', this.onFit); cancelAnimationFrame(this.tipRaf); this.root.remove(); }
 }
+// el nombre sin su pueblo entre paréntesis («Jokin (Altsasu)» → «Jokin»): en el marcador y en la energía, que son
+// estrechos (el pueblo ya sale en la pantalla VS y en el frontón)
+const short = (n) => String(n).replace(/\s*\([^)]*\)/g, '');
 export function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
