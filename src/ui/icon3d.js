@@ -10,6 +10,7 @@ import { getImg, putImg } from '../util/store.js';
 import { offscreen, offscreenCanvas, offscreenGen } from '../util/offscreen.js';
 import { BIRDS, bird, squirrel, woodpecker, owl, trout } from '../actors/beasts.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { hdTable } from '../web/hd.js';
 
 let R = null, scene, cam;
 const cache = new Map();
@@ -167,6 +168,7 @@ const SAME = { aguila: 'eagle', ardilla: 'squirrel', jabali: 'boar', buitre: 'vu
 const BAKED = {};
 for (const [p, u] of Object.entries(import.meta.glob(['@icons3d/*.webp', '!@icons3d/{aguila,ardilla,jabali,buitre,ciguena,ciervo,trucha,zorro,pottoka,pito,owl}.webp', '!@icons3d/{shoot,pass,through,sprint,swap,tackle,slide,contain,dive,control,move,pause,camera}.webp'], { eager: true, query: '?url', import: 'default' }))) BAKED[p.split('/').pop().replace('.webp', '')] = u;
 for (const [a, b] of Object.entries(SAME)) if (BAKED[b]) BAKED[a] = BAKED[b];
+hdTable('iconos', BAKED);   // (en el archivo único, con conexión: los de la web, src/web/hd.js)
 
 function build(name) {
   if (UI3D[name]) return UI3D[name]();
