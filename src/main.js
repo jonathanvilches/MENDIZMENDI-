@@ -261,9 +261,11 @@ async function boot() {
     try { game.save?.(); } catch (e) { }
     // el valle de Salazar completo cuenta como sello
     if (def?.special === 'salazar') { const s = salazarState(); if (s?.done) { townState(P, def.id).stamp = true; checkBadges(); saveProfile(); } }
-    game.dispose?.();
-    ui.destroyHUD(); ui.setCinematic(false);
-    rt.unload();
+    // (cada paso por su cuenta: si soltar el pueblo falla, se vuelve al menú igual; antes la imagen se quedaba
+    // congelada con el aviso de error encima)
+    try { game.dispose?.(); } catch (e) { console.error('[salir]', e); (window.__errors ||= []).push('salir'); }
+    try { ui.destroyHUD(); ui.setCinematic(false); } catch (e) { console.error('[salir]', e); }
+    try { rt.unload(); } catch (e) { console.error('[salir]', e); (window.__errors ||= []).push('salir'); rt.active = false; rt.game = null; canvas.style.visibility = 'hidden'; }
     // (que nada siga apuntando al pueblo que se deja: si no, se queda en memoria mientras se carga el siguiente)
     if (window.__game === game) window.__game = null;
     if (ui.game === game) ui.game = null;
