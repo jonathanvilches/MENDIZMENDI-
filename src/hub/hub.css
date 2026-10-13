@@ -57,9 +57,12 @@
   .app-sheet .more-in { width: min(760px, calc(100vw - 2 * max(12px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)))); max-height: calc(100dvh - 8px); overflow-y: auto; overscroll-behavior: contain; padding-top: 16px; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); }
   .app-sheet .grab { display: none; }
   .app-sheet .ap-head { margin-bottom: 0; } .app-sheet .ap-ico { width: 48px; height: 48px; }
-  .ap-steps { flex-direction: row; } .ap-steps li { flex: 1 1 0; min-width: 0; align-items: flex-start; gap: 8px; padding: 8px; position: relative; }
-  .ap-steps .ap-n { position: absolute; left: 4px; top: 4px; width: 20px; height: 20px; font-size: var(--fs-xs); z-index: 1; box-shadow: 0 0 0 2px var(--plum); }
-  .ap-steps .ap-g { width: 40px; height: 40px; margin: 8px 0 0 8px; }
+  .ap-steps { flex-direction: row; }
+  /* (el número encima del dibujo, cada uno en su fila: no se pisan) */
+  .ap-steps li { flex: 1 1 0; min-width: 0; display: grid; grid-template-columns: 40px minmax(0, 1fr); grid-template-rows: auto 1fr; align-items: start; gap: 8px; padding: 8px; }
+  .ap-steps .ap-n { grid-column: 1; grid-row: 1; justify-self: center; width: 22px; height: 22px; font-size: var(--fs-xs); }
+  .ap-steps .ap-g { grid-column: 1; grid-row: 2; width: 40px; height: 40px; }
+  .ap-steps li > div { grid-column: 2; grid-row: 1 / span 2; }
   .ap-row .btn { min-height: 44px; }
 }
 .chip { display: flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; border-radius: 40px; background: var(--glass); border: 1px solid var(--line); cursor: pointer; min-width: 0; }
