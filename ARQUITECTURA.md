@@ -263,6 +263,15 @@ navegador, y lo demás sale de la caché. La app instalada en el iPhone vuelve d
 momento (con `?v=…`, una sola vez por versión); si se está jugando, sale en el menú un aviso «Versión nueva» para
 actualizar con un toque.
 
+La web se instala como app (prototipo para enseñar). `src/web/install.js` pone en la barra de arriba del menú un
+botón «Instalar app» (en vertical, donde no cabe, es la primera fila de «Más»): en Android y en Chrome o Edge del
+ordenador abre el aviso del navegador; en el iPhone y el iPad enseña los tres pasos de Safari, y deja compartir el
+enlace. No sale en la app ya instalada ni en el archivo único. El icono, la portada con la que arranca la página
+(`#portada-app` en `index.html`, se quita sola cuando sale el menú) y las pantallas de arranque del iPhone y del iPad
+(`public/splash`, 17 tamaños de `src/web/splash.js` en vertical y en horizontal, enlazadas por `vite.config.js`) son
+el busto de Mendi del autor sobre el morado del juego: `node tools/app-iconos.mjs` los rehace todos. Las capturas del
+aviso de instalación (`public/capturas`) salen de `tools/app-capturas.mjs` con el servidor de pruebas.
+
 En el iPhone, el iPad y Safari, `src/util/glb.js` hace que GLTFLoader lea las texturas de los modelos como imagen
 normal y no como ImageBitmap (un complemento del cargador cambia su `textureLoader` por un `TextureLoader`). Con
 ImageBitmap, Safari en iOS a veces subía la textura en negro: pelotaris y espectadores como siluetas. GLTFLoader ya

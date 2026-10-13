@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <radialGradient id="mzbg" cx="50%" cy="36%" r="78%"><stop offset="0" stop-color="#6a35e8"/><stop offset=".5" stop-color="#2e1080"/><stop offset="1" stop-color="#12062e"/></radialGradient>
+    <linearGradient id="mzm1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8ad0"/><stop offset=".55" stop-color="#ff2bd6"/><stop offset="1" stop-color="#9a1fd0"/></linearGradient>
+    <linearGradient id="mzm2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c9a6ff"/><stop offset="1" stop-color="#5b2fd6"/></linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#mzbg)"/>
+  <circle cx="712" cy="318" r="104" fill="#fff"/>
+  <path d="M640 252c-26 44-26 88 0 132M784 252c26 44 26 88 0 132" fill="none" stroke="#ff2bd6" stroke-width="16" stroke-linecap="round"/>
+  <path d="M408 792L660 432L912 792Z" fill="url(#mzm2)"/>
+  <path d="M112 792L426 316L740 792Z" fill="url(#mzm1)"/>
+  <path d="M426 316L512 446L472 426L430 470L390 424L344 440Z" fill="#fff"/>
+  <path d="M660 432L716 512L690 500L662 528L636 500L608 508Z" fill="#fff" opacity=".9"/>
+  <rect x="112" y="792" width="800" height="22" rx="11" fill="#fff" opacity=".9"/>
+</svg>
