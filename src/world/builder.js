@@ -7,6 +7,39 @@ import { HALF, CELL } from './layout.js';
 // Altura del suelo para el envejecimiento de las fachadas (la pone la naturaleza al conocer el terreno)
 export const groundUniforms = { uGround: { value: new THREE.DataTexture(new Float32Array([0]), 1, 1, THREE.RedFormat, THREE.FloatType) } };
 groundUniforms.uGround.value.needsUpdate = true;
+// (el reloj y el color del horizonte, para el agua de las fuentes: los pone el bucle del juego en cada fotograma)
+groundUniforms.uTime = { value: 0 }; groundUniforms.uSkyHor = { value: new THREE.Color('#9fc3dc') };
+
+// Agua quieta de fuentes y pilas: antes era un plano azul liso, como de plástico. Ahora es oscura al mirarla de frente y
+// refleja el horizonte al mirarla de lado (en el pueblo no hay mapa de entorno: el reflejo se dibuja aquí), con rizos
+// que se mueven: cuatro trenes de ondas pequeñas con su pendiente exacta (sin lecturas de textura) que se apagan de lejos
+function stillWater() {
+  const m = new THREE.MeshStandardMaterial({ color: '#1d4b5c', roughness: 0.14, metalness: 0 });
+  m.onBeforeCompile = (sh) => {
+    sh.uniforms.uTime = groundUniforms.uTime; sh.uniforms.uSkyHor = groundUniforms.uSkyHor;
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWW;')
+      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vWW; uniform float uTime; uniform vec3 uSkyHor;')
+      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+{
+  vec2 q = vWW.xz; float t = uTime, k = 1.0 - smoothstep(12.0, 45.0, length(vWW - cameraPosition));
+  vec2 d1 = vec2(0.8, 0.6), d2 = vec2(-0.5, 0.866), d3 = vec2(0.96, -0.28), d4 = vec2(-0.707, -0.707);
+  vec2 g = d1 * cos(dot(q, d1) * 9.0 + t * 2.1) * 0.05 + d2 * cos(dot(q, d2) * 13.0 - t * 2.7) * 0.06
+         + d3 * cos(dot(q, d3) * 19.0 + t * 3.4) * 0.06 + d4 * cos(dot(q, d4) * 29.0 - t * 3.9) * 0.05
+         + vec2(0.6, -0.8) * cos(dot(q, vec2(0.6, -0.8)) * 37.0 + t * 4.6) * 0.04;
+  normal = normalize((viewMatrix * vec4(normalize(vec3(-g.x * k, 1.0, -g.y * k)), 0.0)).xyz);
+}`)
+      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+{
+  vec3 V = normalize(cameraPosition - vWW), wn = normalize((vec4(normal, 0.0) * viewMatrix).xyz);
+  float fres = 0.04 + 0.86 * pow(1.0 - max(dot(wn, V), 0.0), 4.0);
+  totalEmissiveRadiance += uSkyHor * fres * 0.7;
+  diffuseColor.rgb *= 1.0 - fres * 0.6;
+}`);
+  };
+  m.customProgramCacheKey = () => 'still-water';
+  return m;
+}
 // Envejecimiento en coordenadas del mundo (rompe la repetición de la textura):
 //  · manchas amplias más claras y más oscuras · humedad y salpicaduras de barro en el primer metro sobre el suelo
 //  · musgo verdoso al pie de la piedra · churretes de lluvia que bajan de ventanas y aleros
@@ -74,7 +107,7 @@ export function makeMaterials() {
     // cristal mate (Lambert, sin brillo especular): no hace reflejos al girar la cámara; de noche se enciende con el emisivo
     // y con prioridad de profundidad sobre la pared, para que no parpadee de lejos ni en móviles con poca precisión
     glass: new THREE.MeshLambertMaterial({ color: '#3b5166', emissive: new THREE.Color('#ffb85a'), emissiveIntensity: 0, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }),
-    water: std({ color: '#3b7f9c', roughness: 0.05, metalness: 0.3, envMapIntensity: 1.2 }),
+    water: stillWater(),
     // chorro de las fuentes: agua clara y algo transparente
     jet: std({ color: '#d8edf3', roughness: 0.1, transparent: true, opacity: 0.6, emissive: new THREE.Color('#29434d') }),
     paint: std({ vertexColors: true, roughness: 0.7 }),
