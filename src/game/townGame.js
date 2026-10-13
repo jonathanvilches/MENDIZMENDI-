@@ -2092,7 +2092,9 @@ export class TownGame {
     this.binoYaw = this.follow.yaw + Math.PI; this.binoPitch = 0.25;
     // en el mirador: la vista lejana con los montes de verdad en su dirección
     const v = this.miradorSpot(), P = this.player.pos, montes = this.panoMontes();
-    if (v && montes.length && Math.hypot(P.x - v.x, P.z - v.z) < 30) {
+    // (con la misión de las aves y sin la de los montes, el pueblo de verdad: en la vista lejana no hay aves que buscar)
+    const aves = this.missions.some(x => x.type === 'observe' && x.step === 1), mir = this.missions.some(x => x.type === 'mirador' && x.step === 1);
+    if (v && montes.length && Math.hypot(P.x - v.x, P.z - v.z) < 30 && (mir || !aves)) {
       try {
         // colores del cielo según la hora (los del pueblo pueden venir sin actualizar)
         const sk = this.sky?.sample?.(this.sky.time ?? 10);
@@ -2121,13 +2123,28 @@ export class TownGame {
     if (pano) pano.look(this.binoYaw, this.binoPitch, fov);
     else { cam.fov = fov; cam.updateProjectionMatrix(); cam.position.copy(eye); cam.lookAt(eye.clone().add(dir)); }
     this.follow.yaw = this.binoYaw + Math.PI;
-    let best = null, ba = 1;
+    const keyOf = (o) => o.obj?.uuid || o.id + ':' + Math.round(o.pos.x) + ',' + Math.round(o.pos.z);
+    const fresh = (o) => o.monte ? !o.seen : !this.obsSeen?.has(keyOf(o));
+    // lo que queda en la marca (best) y, cerca de ella, lo que todavía no has anotado (near): la ayuda al apuntar lo
+    // acaba de centrar (sin ella, con el dedo, acertar con un ave que vuela o con la cumbre era casi imposible)
+    let best = null, ba = 1, near = null, na = Infinity, nearDir = null;
     const obs = pano ? this.monteObs(eye) : [...this.fauna.observables(), ...this.monteObs(eye)];
     for (const o of obs) {
-      const to = new THREE.Vector3(o.pos.x - eye.x, o.pos.y + (o.h || 0.5) - eye.y, o.pos.z - eye.z);
+      // (en los montes se apunta a su marca, el «?» o el nombre que se ve encima de la cumbre)
+      const at = o.monte && o.pin ? o.pin.position : null;
+      const to = at ? at.clone().sub(eye) : new THREE.Vector3(o.pos.x - eye.x, o.pos.y + (o.h || 0.5) - eye.y, o.pos.z - eye.z);
       const d = to.length(); if ((!o.pano && d > (o.far ? 320 : 110)) || d < 1) continue;
-      const ang = to.normalize().angleTo(dir), tol = o.pano ? 0.06 : Math.max(0.035, (o.far ? 3 : 1.4) / d);
-      if (ang < tol && ang < ba && (o.far || !segmentBlocked(eye.x, eye.z, o.pos.x, o.pos.z))) { ba = ang; best = o; }
+      const ang = to.normalize().angleTo(dir), tol = o.pano ? 0.08 : Math.max(0.045, (o.far ? 3.5 : 1.6) / d);
+      if (ang > tol * 2.6) continue;
+      if (!o.far && segmentBlocked(eye.x, eye.z, o.pos.x, o.pos.z)) continue;
+      if (ang < tol && ang < ba) { ba = ang; best = o; }
+      if (fresh(o) && ang / tol < na) { na = ang / tol; near = o; nearDir = to.clone(); }
+    }
+    const dragging = this.input.look.dx || this.input.look.dy || mv.x || mv.y;
+    if (near && nearDir && !dragging) {
+      const yawT = Math.atan2(nearDir.x, nearDir.z), pitT = Math.asin(clamp(nearDir.y, -1, 1)), k = Math.min(1, dt * (near === best ? 5 : 3));
+      this.binoYaw += Math.atan2(Math.sin(yawT - this.binoYaw), Math.cos(yawT - this.binoYaw)) * k;
+      this.binoPitch = clamp(this.binoPitch + (pitT - this.binoPitch) * k, -0.6, 1.3);
     }
     // un ave detrás de una casa o de la iglesia no se puede anotar: comprobamos que no haya nada en medio
     if (best && best.far && !best.monte) {
@@ -2138,28 +2155,36 @@ export class TownGame {
       if (this.ray.intersectObjects(town, false).length) best = null;
     }
     const M = this.missions.find(x => x.type === 'observe' && x.step === 1);
-    const key = best ? (best.obj?.uuid || best.id + ':' + Math.round(best.pos.x) + ',' + Math.round(best.pos.z)) : null;
-    const counts = M && best && (!M.species.length || M.species.includes(best.id));
-    const isNew = best && (best.monte ? !best.seen : !this.obsSeen?.has(key));
-    const F = best ? (best.monte ? { name: best.seen ? best.monte.name : '¡Un monte! Pulsa para descubrir su nombre' } : FAUNA[best.id]) : null;
-    // misión del mirador: panel con los montes por descubrir, brújula y flecha al siguiente
+    const key = best ? keyOf(best) : null;
+    const want = M ? [].concat(M.species || []) : [];
+    const counts = M && best && (!want.length || want.includes(best.id));
+    const isNew = best && fresh(best);
+    const touch = this.input.touch, NOTE = touch ? 'toca Anotar' : 'pulsa E para anotar';
+    const F = best ? (best.monte ? { name: best.seen ? best.monte.name : `¡Un monte! ${touch ? 'Toca Anotar' : 'Pulsa E'} para saber cuál es` } : FAUNA[best.id]) : null;
+    const pips = (n, need) => `<span class="pips">${Array.from({ length: need }, (_, i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('')}</span>`;
+    // el recuadro: cuántos llevas y lo siguiente que buscar, en dos líneas (la lista entera tapaba medio visor)
     const MM = this.missions.find(x => x.type === 'mirador' && x.step === 1), DIRS = ['NORTE', 'NORESTE', 'ESTE', 'SURESTE', 'SUR', 'SUROESTE', 'OESTE', 'NOROESTE'];
     const brg = ((Math.atan2(dir.x, -dir.z) * 180 / Math.PI) + 360) % 360;
     let goal = '', monteHint = null;
     if (MM) {
       const v = this.miradorSpot(), far = !pano && (!v || Math.hypot(P.x - v.x, P.z - v.z) > 30);
-      if (far) goal = `<b>Los montes desde el mirador</b>Desde aquí no se ven bien. Sal de los prismáticos y ve al mirador: lo marca la flecha amarilla del mapa.`;
+      if (far) goal = `<b>Montes</b><span class="bnext">Desde aquí no se ven: ve al mirador</span>`;
       else {
         const list = this.monteObs(eye), next = list.find(o => !o.seen);
-        goal = `<b>Busca ${MM.need} montes con los prismáticos (${MM.count}/${MM.need})</b>Centra la marca «?» de una cumbre y pulsa ${this.input.touch ? 'el botón de acción' : 'E'}.<ul>${list.map(o => `<li class="${o.seen ? 'ok' : o === next ? 'next' : ''}">${o.seen ? '✔ ' + o.monte.name : '? Monte al ' + o.monte.dir + ' · ' + Math.round(o.monte.km) + ' km'}</li>`).join('')}</ul>`;
-        if (!best && next) { const q = next.pos.clone().project(cam); const behind = q.z > 1; monteHint = Math.atan2(behind ? -q.y : q.y, behind ? -q.x : q.x); }
+        goal = `<b>Montes ${MM.count}/${MM.need} ${pips(MM.count, MM.need)}</b><span class="bnext">${next ? `Busca el monte del ${next.monte.dir} · ${Math.round(next.monte.km)} km` : '¡Ya los tienes!'}</span>`;
+        if (!best && next) { const q = (next.pin?.position || next.pos).clone().project(cam); const behind = q.z > 1; monteHint = Math.atan2(behind ? -q.y : q.y, behind ? -q.x : q.x); }
       }
+    } else if (M) {
+      // las aves (o los animales) de la misión: el más cercano que te falta, con su distancia
+      const t = this.obsNearest(M), aves = want.length && want.every(id => FAUNA[id]?.kind === 'ave');
+      goal = `<b>${aves ? 'Aves' : 'Animales'} ${M.count}/${M.need} ${pips(M.count, M.need)}</b><span class="bnext">${t ? `Busca: ${FAUNA[t.id]?.name || t.id} · ${Math.round(Math.hypot(t.pos.x - P.x, t.pos.z - P.z))} m` : 'Mira al cielo y a los riscos'}</span>`;
     }
-    this.ui.binoInfo?.(goal, 'MIRAS AL ' + DIRS[Math.round(brg / 45) % 8]);
+    this.ui.binoInfo?.(goal, 'Miras al ' + DIRS[Math.round(brg / 45) % 8].toLowerCase());
     // sin nada en el visor: flecha hacia el animal buscado más cercano
     let hint = monteHint;
     if (!best && M) { const t = this.obsNearest(M); if (t) { const v = new THREE.Vector3(t.pos.x, t.pos.y + (t.h || 0.4), t.pos.z).project(cam); const behind = v.z > 1; hint = Math.atan2(behind ? -v.y : v.y, behind ? -v.x : v.x); } }
-    this.ui.binoTarget(best ? (best.monte ? (best.seen ? `${best.monte.name} · ${best.monte.altitude} m` : F.name) : `${F?.name || best.id}${isNew ? (counts || !M ? ' — pulsa E para anotar' : ' — anótalo en tu cuaderno') : ' — anotado'}`) : (M || monteHint != null ? 'Sigue la flecha' : ''), !!best, hint);
+    const label = best ? (best.monte ? (best.seen ? `${best.monte.name} · ${best.monte.altitude} m` : F.name) : `${F?.name || best.id}${isNew ? (counts || !M ? ` · ${NOTE}` : ' · no es de los que buscas') : ' · ya anotado'}`) : '';
+    this.ui.binoTarget(label, !!best, hint, !!best && isNew && (!!best.monte || counts || !M));
     if (this.input.consume('e') || this.input.consume(' ')) {
       this.sound.ui('photo');
       if (best?.monte && !best.seen) { this.seeMonte(best); }
@@ -2190,7 +2215,8 @@ export class TownGame {
       });
     }
     const M = this.missions.find(x => x.type === 'mirador'), v = this.miradorSpot();
-    if (!M || M.step < 1 || !v || Math.hypot(eye.x - v.x, eye.z - v.z) > 30) { if (this.montePins) this.montePins.forEach(p => p.visible = false); return []; }
+    // (solo mientras se buscan: acabada la misión, sus marcas ya no están en el pueblo ni la ayuda al apuntar lleva a ellas)
+    if (!M || M.step !== 1 || !v || Math.hypot(eye.x - v.x, eye.z - v.z) > 30) { if (this.montePins) this.montePins.forEach(p => p.visible = false); return []; }
     if (!this.montePins) this.montePins = M.montes.map(mt => { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: pinTex('?'), depthTest: false, transparent: true })); sp.scale.set(14, 14, 1); sp.renderOrder = 20; this.scene.add(sp); return sp; });
     return M.montes.map((mt, i) => {
       const b = mt.bearing * Math.PI / 180, pos = new THREE.Vector3(eye.x + Math.sin(b) * 300, eye.y + 14 + Math.min(20, mt.altitude / 120), eye.z - Math.cos(b) * 300);
