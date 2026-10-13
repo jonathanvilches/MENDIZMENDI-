@@ -38,7 +38,7 @@ export function defaultCharacter({ team, keeper }) {
 
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 // por qué saca el árbitro la tarjeta (lo que dice el reglamento, en corto)
-const WHY = { portero: 'Falta del portero', 'ocasión en el área': 'Cortó una ocasión en el área', 'ocasión manifiesta': 'Cortó una ocasión clara de gol', 'juego brusco': 'Juego brusco',
+const WHY = { portero: 'Falta del portero', 'falta al portero': 'Falta al portero', 'ocasión en el área': 'Cortó una ocasión en el área', 'ocasión manifiesta': 'Cortó una ocasión clara de gol', 'juego brusco': 'Juego brusco',
   'entrada por detrás': 'Entrada por detrás', 'entrada temeraria': 'Entrada temeraria', contraataque: 'Cortó un contraataque', reiterada: 'Faltas repetidas', 'falta táctica': 'Falta táctica' };
 const CAMS = ['tv', 'detras'], CAM_NAME = { tv: 'Cámara de televisión', detras: 'Detrás del jugador' };
 const RESTART_NAME = { throwin: TEXT.throwin, corner: TEXT.corner, goalkick: TEXT.goalkick, free: TEXT.free, penalty: TEXT.penalty, kickoff: TEXT.kickoff };
@@ -440,6 +440,7 @@ export class FutbolMatch {
       }
       case 'noGoal': H.msg('No vale el gol', e.why === 'throwin' ? 'No se puede marcar directamente de un saque de banda' : e.why === 'indirect' ? 'Tiro libre indirecto: la tiene que tocar otro jugador' : e.why === 'own' ? 'Un saque directo a tu propia portería es córner' : 'El portero no puede marcar lanzando con la mano', 2200); A.groan(); break;
       case 'offside': H.say(`${TEXT.offside}${P(e.p).team === 0 ? ' de ' + name(P(e.p)) : ''}`, 1600); break;
+      case 'gkRoom': H.say('El portero tiene el balón en las manos: no se le puede presionar', 1800); break;   // (el árbitro te aparta)
       case 'restart':
         if (e.type === 'penalty') H.msg(TEXT.penalty, e.team === 0 ? 'Apunta con el joystick y mantén TIRO' : 'Para el tiro… ¡tu portero está atento!', 2000);
         else if (this.reto || this.tuto) break;   // (en los retos y el tutorial no hay saques que anunciar)

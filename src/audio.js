@@ -164,8 +164,8 @@ export class Sound {
   // ---- música generativa por ambiente ----
   // explore: txistu y tamboril (día) · night: arpa lenta y bordón suave · mystery: notas sueltas, tritono y
   // un latido grave (leyendas) · tension: ostinato rápido en menor con timbal (encierro, persecuciones) ·
-  // game: aire alegre y saltarín con bajo (minijuegos) · fiesta: charanga (San Fermín, carnaval) · none: nada (los
-  // partidos de pelota y fútbol y los campeonatos: solo la grada)
+  // game: aire alegre y saltarín con bajo (minijuegos) · fiesta: charanga (San Fermín, carnaval) · sport: tema de
+  // estadio (partidos de pelota y fútbol y campeonatos) · none: nada
   setMood(m) { if (m && m !== this.mood) { this.mood = m; this.moodT = 0; } }
   startMusic() {
     const ctx = this.ctx;
@@ -179,6 +179,8 @@ export class Sound {
       tension: [[0, 0, 3, 0, 4, 0, 3, 2, 0, 0, 3, 0, 5, 4, 3, 2], [0, 0, 2, 0, 3, 0, 2, 1, 0, 0, 2, 0, 4, 3, 1, 0]],
       game: [[0, 2, 4, 2, 5, 4, 2, 4, 3, 5, 7, 5, 4, 2, 1, 2], [4, 4, 5, 7, 5, 4, 2, 0, 1, 2, 4, 2, 1, 0, 1, -1]],
       fiesta: [[4, 4, 4, 2, 4, 5, 7, -1, 7, 6, 5, 4, 5, 4, 2, -1], [2, 2, 2, 0, 2, 4, 5, -1, 5, 4, 2, 1, 2, 4, 0, -1]],
+      // (los partidos: un tema de estadio, con estribillo que se pega)
+      sport: [[7, -1, 7, 6, 4, -1, 4, 5, 6, -1, 6, 5, 4, 2, 4, -1], [4, -1, 4, 5, 7, -1, 5, 4, 2, -1, 2, 4, 5, 4, 2, -1], [0, 2, 4, 7, 6, 4, 5, -1, 4, 5, 7, 8, 7, 5, 4, -1], [7, 7, 6, 5, 4, 4, 5, 6, 7, -1, 8, 7, 6, 5, 4, -1]],
     };
     const MOOD = {
       explore: { sc: D, beat: 0.3, lead: 'flute', oct: 2, drum: 'tamboril', drone: 0.05 },
@@ -187,6 +189,9 @@ export class Sound {
       tension: { sc: A, beat: 0.16, lead: 'pluck', oct: 1, drum: 'timpani', drone: 0.07, bass: true },
       game: { sc: G, beat: 0.2, lead: 'flute', oct: 1, drum: 'pop', drone: 0, bass: true },
       fiesta: { sc: G, beat: 0.24, lead: 'brass', oct: 1, drum: 'banda', drone: 0, bass: true },
+      // la música de los partidos de fútbol y pelota y de los campeonatos: rápida (143 por minuto), metales, bajo que empuja
+      // en cada corchea (re, si, sol, la) y batería de estadio (bombo, palmada en el segundo y el cuarto, charles)
+      sport: { sc: [293.66, 329.63, 369.99, 392.0, 440.0, 493.88, 554.37, 587.33, 659.25], beat: 0.21, lead: 'brass', oct: 1, drum: 'stadium', drone: 0, drive: [0, 5, 3, 4] },
     };
     this.mood = this.mood || 'explore';
     let bar = 0, next = ctx.currentTime + 1, cur = this.mood;
@@ -210,7 +215,14 @@ export class Sound {
           else if (dr === 'timpani') { this.tone(sc[0] / 4, 0.18, 'sine', i % 2 ? 0.12 : 0.22, this.musicBus, t, 0.003, sc[0] / 5); if (i % 2) this.noiseBurst(0.04, 3200, 1.5, 0.08, this.musicBus, t); }
           else if (dr === 'heart') { if (i === 0 || i === 1) this.tone(55, 0.22, 'sine', 0.18, this.musicBus, t + (i ? 0.05 : 0), 0.004, 42); }
           else if (dr === 'pop') { if (i % 2 === 0) this.noiseBurst(0.06, 160, 1, 0.3, this.musicBus, t, 'lowpass'); else this.noiseBurst(0.04, 3000, 2, 0.1, this.musicBus, t); }
+          else if (dr === 'stadium') {
+            if (i % 4 === 0) this.tone(62, 0.18, 'sine', 0.5, this.musicBus, t, 0.002, 36);   // bombo
+            if (i % 4 === 2) { this.noiseBurst(0.13, 1700, 0.7, 0.3, this.musicBus, t); this.noiseBurst(0.05, 3200, 1.2, 0.12, this.musicBus, t + 0.012); }   // palmada
+            this.noiseBurst(0.03, 8000, 1.6, i % 2 ? 0.045 : 0.075, this.musicBus, t + (i % 2 ? beat * 0.04 : 0), 'highpass');   // charles
+            if (i === 0 && bar % 4 === 0) this.noiseBurst(0.7, 6500, 0.5, 0.1, this.musicBus, t, 'highpass');   // platillo al empezar la frase
+          }
           else if (dr === 'banda') { if (i % 2 === 0) this.noiseBurst(0.09, 120, 1, 0.42, this.musicBus, t, 'lowpass'); if (i % 2 === 1) this.noiseBurst(0.12, 5000, 0.8, 0.12, this.musicBus, t); }   // bombo y platillos
+          if (M.drive) this.tone(sc[M.drive[bar % 4]] / (i % 2 ? 2 : 4), beat * 0.9, 'triangle', 0.1, this.musicBus, t, 0.004);
           if (M.bass && i % 2 === 0) this.tone(sc[[0, 0, 4, 3][(bar + (i >> 1)) % 4] % sc.length] / (cur === 'tension' ? 4 : 2), beat * 1.6, cur === 'tension' ? 'sawtooth' : 'triangle', cur === 'tension' ? 0.035 : 0.06, this.musicBus, t, 0.01);
         }
         if (M.drone) this.tone(sc[0] / 2, beat * 8, 'triangle', M.drone, this.musicBus, next - ctx.currentTime, 0.3);

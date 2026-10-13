@@ -4,6 +4,7 @@
 // vean en la misma dirección y con el mismo ángulo que en la realidad, aunque las distancias del juego sean menores.
 import MOUNTAINS from './mountains.json';
 import SETTLEMENTS from './settlements.json';
+import { horizonteReal } from '../world/relieve.js';
 
 // altitud de cada pueblo del juego (m) y coordenadas de los que no están en settlements.json
 const ALT = {
@@ -24,6 +25,8 @@ const rad = (d) => d * Math.PI / 180;
 
 /** tangente del ángulo del horizonte real en 360 direcciones (índice = rumbo en grados desde el norte), o null */
 export function skylineFor(def) {
+  // el de verdad, con el relieve (si está abierto: tools/relieve/perfiles.py); si no, el aproximado con los montes
+  const real = horizonteReal(def.id); if (real) return real;
   const s = COORD[def.id] || SETTLEMENTS.find(s => first(s[2]) === first(def.name));
   const alt0 = ALT[def.id];
   if (!s || alt0 == null) return null;

@@ -1,6 +1,6 @@
 // Sonidos sintetizados (sin archivos): golpe de mano, frontis, chapa metálica, bote y el público (la gente de la grada:
 // su murmullo, el «¡oooh!» y el aplauso de todos a la vez, de src/crowdAudio.js).
-import { Crowd } from '../crowdAudio.js';
+import { Crowd, PUBLICO } from '../crowdAudio.js';
 const SHARED = { ctx: null };
 export class PelotaAudio {
   constructor(ctx) { this.ctx = ctx || null; this.muted = false; }
@@ -18,7 +18,7 @@ export class PelotaAudio {
       }
     } catch (e) { return null; }
     // (el público, desde el primer toque: murmura en la presentación y durante todo el partido)
-    if (!this.crowdN && !this.stopped) try { this.crowdN = new Crowd(this.ctx, this.ctx.destination); this.crowdN.setLevel(0.4); } catch (e) { console.warn('público', e); this.crowdN = null; }
+    if (PUBLICO && !this.crowdN && !this.stopped) try { this.crowdN = new Crowd(this.ctx, this.ctx.destination); this.crowdN.setLevel(0.4); } catch (e) { console.warn('público', e); this.crowdN = null; }
     return this.ctx;
   }
   /** Cómo está la grada: callada al sacar, más metida cuanto más largo es el peloteo, encendida tras un tanto */
@@ -27,7 +27,7 @@ export class PelotaAudio {
   /** Un tanto: si es limpio (dos botes, un tanto ganador), todo el frontón aplaude a la vez; si es un fallo (chapa,
    *  fuera, falta), primero el «¡oooh!» y luego un aplauso más corto. El último tanto, la ovación */
   point(clean, mine, final) {
-    const c = this.ensure(); if (!c) return;
+    const c = this.ensure(); if (!c || !PUBLICO) return;
     if (final) { this.ovation(); this.mood(0.6, 0.2); return; }
     const C = this.crowdN;
     if (!C?.B) { this.crowd(clean && mine ? 'clap' : 'oh'); return; }
@@ -55,10 +55,10 @@ export class PelotaAudio {
   floor(power = 1) { const c = this.ensure(); if (!c) return; const t = c.currentTime; this.noise(t, 0.05, 700, 1, 0.3 * power); this.tone(t, 0.07, 110, 0.25 * power, 'sine', 0.7); }
   wall() { this.front(0.6); }
   // el golpe del «VS» de la presentación: un bombo seco con chasquido y el público que ruge (largo y más grave sonaba a trueno)
-  slam() { const c = this.ensure(); if (!c) return; const t = c.currentTime; this.tone(t, 0.35, 72, 0.6, 'sine', 0.35); this.tone(t, 0.25, 110, 0.3, 'triangle', 0.5); this.noise(t, 0.12, 2600, 0.7, 0.4); if (!this.crowdN?.roar(0.55)) this.crowd('oh'); else this.crowdN.applause(0.7, 0.25); }
+  slam() { const c = this.ensure(); if (!c) return; const t = c.currentTime; this.tone(t, 0.35, 72, 0.6, 'sine', 0.35); this.tone(t, 0.25, 110, 0.3, 'triangle', 0.5); this.noise(t, 0.12, 2600, 0.7, 0.4); if (!PUBLICO) return; if (!this.crowdN?.roar(0.55)) this.crowd('oh'); else this.crowdN.applause(0.7, 0.25); }
   // el público: «¡oooh!» y el aplauso de todo el frontón (si aún no están calculados, ruido filtrado como antes)
   crowd(kind = 'oh', k = 1) {
-    const c = this.ensure(); if (!c) return; const t = c.currentTime;
+    const c = this.ensure(); if (!c || !PUBLICO) return; const t = c.currentTime;
     if (kind === 'clap' && this.crowdN?.applause(k)) return;
     if (kind === 'oh' && this.crowdN?.ooh(k)) return;
     if (kind === 'clap') { for (let i = 0; i < 22; i++) this.noise(t + Math.random() * 1.1, 0.04, 2400 + Math.random() * 1200, 1.5, 0.12); return; }
@@ -69,7 +69,7 @@ export class PelotaAudio {
   }
   // ovación del último tanto: todo el frontón en pie, cuatro segundos de aplausos que crecen y se apagan, y el rugido
   ovation() {
-    const c = this.ensure(); if (!c) return; const t = c.currentTime;
+    const c = this.ensure(); if (!c || !PUBLICO) return; const t = c.currentTime;
     if (this.crowdN?.ovation()) return;
     for (let i = 0; i < 160; i++) { const u = Math.random() * 4.2, k = Math.min(1, u / 0.5) * Math.min(1, (4.4 - u) / 1.4); this.noise(t + u, 0.035, 2000 + Math.random() * 1800, 1.4, 0.14 * k); }
     const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
