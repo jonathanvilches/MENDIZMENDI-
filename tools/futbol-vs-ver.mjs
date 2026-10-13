@@ -1,5 +1,5 @@
 // La presentación «VS» antes de un partido de fútbol, en el móvil tumbado: las camisetas de los dos clubes, su media y
-// sus líneas, la competición y el estadio. Comprueba que sale antes del partido, que todo cabe sin solaparse y que al
+// sus líneas, la competición y el estadio (en la web, la pareja de jugadores de cada club). Comprueba que sale antes del partido, que todo cabe sin solaparse y que al
 // tocar empieza la presentación en el campo. Uso: URL=http://127.0.0.1:5173 node tools/futbol-vs-ver.mjs [carpeta]
 import { chromium } from 'playwright-core';
 import { mkdirSync } from 'fs';
@@ -17,11 +17,11 @@ await p.screenshot({ path: `${out}/vs.png` });
 const V = await p.evaluate(() => { const v = document.querySelector('.pvs'), R = (s) => v.querySelector(s)?.getBoundingClientRect(), hit = (a, c) => a && c && !(a.right <= c.left || c.right <= a.left || a.bottom <= c.top || c.bottom <= a.top);
   const nb = R('.pvs-plate.azul'), nr = R('.pvs-plate.rojo'), x = R('.pvs-x'), top = R('.pvs-top .pvs-bar'), mid = R('.pvs-mid'), qu = R('.pvs-tick');
   const inside = [nb, nr, x, top, mid, qu].every(r => r && r.left >= -1 && r.right <= innerWidth + 1 && r.top >= -1 && r.bottom <= innerHeight + 1);
-  return { names: [...v.querySelectorAll('.pvs-who > b')].map(e => e.innerText), kits: v.querySelectorAll('.pvs-fig .kit svg').length, ovr: [...v.querySelectorAll('.pvs-ovr b')].map(e => +e.innerText), comp: v.querySelector('.pvs-comp')?.innerText,
+  return { names: [...v.querySelectorAll('.pvs-who > b')].map(e => e.innerText), kits: v.querySelectorAll('.pvs-fig .kit svg, .pvs-fig img.duo').length, ovr: [...v.querySelectorAll('.pvs-ovr b')].map(e => +e.innerText), comp: v.querySelector('.pvs-comp')?.innerText,
     inside, overlap: hit(nb, nr) || hit(nb, x) || hit(nr, x) || hit(mid, x) || hit(mid, nb) || hit(mid, nr) || hit(top, x), live: !!window.__futbol?.live };
 });
 console.log('   ', JSON.stringify(V));
-ok(V.names.length === 2 && V.kits === 2, 'los dos clubes con su camiseta');
+ok(V.names.length === 2 && V.kits === 2, 'los dos clubes con su pareja (en la web) o su camiseta (en el archivo único)');
 ok(V.ovr.length === 2 && V.ovr.every(n => n >= 40 && n <= 99), `la media de cada club (${V.ovr.join(' y ')})`);
 ok(!!V.comp, `la competición arriba (${V.comp})`);
 ok(V.inside && !V.overlap, 'todo dentro de la pantalla y sin solaparse');

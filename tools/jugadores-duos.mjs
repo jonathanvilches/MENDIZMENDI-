@@ -1,7 +1,8 @@
 // Las parejas de cada equipación del autor (un chico y una chica juntos) desde su ZIP descomprimido
 // («MENDIMENDIZ-jugadores-futbol», carpeta duos/webp/1536), recortadas a lo que ocupan (en el lienzo del autor la pareja
 // es poco más de la mitad del ancho) y con un margen igual alrededor. Solo para la web:
-//  · src/assets/jugadores/web/duo: de 960 px de alto, para la pantalla VS (la figura ocupa casi todo el alto)
+//  · src/assets/jugadores/web/duo: a su alto completo (unos 1.040 px; como mucho 1.280), para la pantalla VS, donde en
+//    un móvil grande tumbado ocupa casi todo el alto: a 960 se veía algo ampliada en los de pantalla de triple densidad
 //  · src/assets/jugadores/web/duo-s: de 480 px de alto, para las portadas de equipo de los menús
 // Uso: node tools/jugadores-duos.mjs <carpeta del paquete>
 import { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
@@ -23,7 +24,7 @@ for (const f of readdirSync(dir).filter(ok)) {
   const pad = Math.round((y1 - y0) * 0.02), left = Math.max(0, x0 - pad), top = Math.max(0, y0 - pad);
   const width = Math.min(W, x1 + pad + 1) - left, height = Math.min(H, y1 + pad + 1) - top;
   const cut = await sharp(b).extract({ left, top, width, height }).toBuffer();
-  for (const [d, h, q] of [[A, 960, 82], [B, 480, 80]]) {
+  for (const [d, h, q] of [[A, 1280, 84], [B, 480, 80]]) {
     const o = await sharp(cut).resize({ height: Math.min(h, height), kernel: 'lanczos3' }).webp({ quality: q, alphaQuality: 90, effort: 6 }).toBuffer();
     writeFileSync(join(d, f), o); bytes += o.length;
   }
