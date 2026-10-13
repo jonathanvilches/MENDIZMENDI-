@@ -1,7 +1,7 @@
 [
  {
   "id": "lesaka",
-  "s": 25,
+  "s": 51,
   "misiones": "visit,dance,process,trade,pelota",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
@@ -12,7 +12,7 @@
  },
  {
   "id": "etxalar",
-  "s": 25,
+  "s": 49,
   "misiones": "visit,trade,herd,mirador,quiz,summit",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
@@ -23,7 +23,7 @@
  },
  {
   "id": "zugarramurdi",
-  "s": 23,
+  "s": 54,
   "misiones": "visit,legend,process,quiz,summit",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
@@ -34,7 +34,7 @@
  },
  {
   "id": "amaiur-maya-del-baztan",
-  "s": 28,
+  "s": 41,
   "misiones": "visit,process,legend,quiz,summit",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
@@ -45,7 +45,7 @@
  },
  {
   "id": "ituren",
-  "s": 31,
+  "s": 56,
   "misiones": "visit,carnival,herd,quiz,summit",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
@@ -56,7 +56,7 @@
  },
  {
   "id": "elizondo",
-  "s": 24,
+  "s": 41,
   "misiones": "visit,trade,process,legend,dance,feria,quiz",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
@@ -67,7 +67,7 @@
  },
  {
   "id": "leitza",
-  "s": 24,
+  "s": 56,
   "misiones": "visit,trade,trade,quiz,summit,pelota",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
@@ -78,7 +78,7 @@
  },
  {
   "id": "lekunberri",
-  "s": 29,
+  "s": 55,
   "misiones": "visit,herd,mirador,dolmen,quiz",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
@@ -89,7 +89,7 @@
  },
  {
   "id": "orreaga-roncesvalles",
-  "s": 25,
+  "s": 58,
   "misiones": "visit,race,legend,figure,mirador,quiz,observe,summit",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
@@ -100,7 +100,7 @@
  },
  {
   "id": "aribe",
-  "s": 21,
+  "s": 58,
   "misiones": "visit,trade,herd,harvest,quiz,summit",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
@@ -111,7 +111,7 @@
  },
  {
   "id": "isaba-izaba",
-  "s": 22,
+  "s": 62,
   "misiones": "visit,process,herd,dance,figure,mirador,quiz,observe,summit",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
@@ -122,7 +122,7 @@
  },
  {
   "id": "erronkari-roncal",
-  "s": 21,
+  "s": 59,
   "misiones": "visit,trade,process,tradition,figure,quiz,summit",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
@@ -133,7 +133,7 @@
  },
  {
   "id": "burgui-burgi",
-  "s": 21,
+  "s": 61,
   "misiones": "visit,race,trade,quiz",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
@@ -144,7 +144,7 @@
  },
  {
   "id": "altsasu-alsasua",
-  "s": 21,
+  "s": 65,
   "misiones": "visit,carnival,process,herd,feria,dolmen,quiz,summit",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
@@ -155,7 +155,7 @@
  },
  {
   "id": "irurtzun",
-  "s": 13,
+  "s": 40,
   "misiones": "visit,harvest,race,mirador,quiz,summit",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
@@ -166,7 +166,7 @@
  },
  {
   "id": "pamplona",
-  "s": 13,
+  "s": 42,
   "misiones": "visit,carnival,race,process,figure,figure,mirador,quiz,summit",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
@@ -177,7 +177,7 @@
  },
  {
   "id": "aoiz",
-  "s": 22,
+  "s": 66,
   "misiones": "visit,carnival,process,quiz,summit",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
@@ -188,7 +188,7 @@
  },
  {
   "id": "lumbier",
-  "s": 22,
+  "s": 56,
   "misiones": "visit,carnival,observe,harvest,quiz,summit",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
@@ -199,7 +199,7 @@
  },
  {
   "id": "irulegi",
-  "s": 26,
+  "s": 56,
   "misiones": "visit,dolmen,mirador,quiz",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
@@ -210,7 +210,7 @@
  },
  {
   "id": "sanguesa",
-  "s": 33,
+  "s": 63,
   "misiones": "visit,harvest,race,quiz,pelota",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
@@ -221,7 +221,7 @@
  },
  {
   "id": "estella",
-  "s": 31,
+  "s": 65,
   "misiones": "visit,carnival,harvest,feria,mirador,quiz,observe,summit",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
@@ -232,7 +232,7 @@
  },
  {
   "id": "viana",
-  "s": 28,
+  "s": 68,
   "misiones": "visit,trade,harvest,process,quiz",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
@@ -243,7 +243,7 @@
  },
  {
   "id": "puente-la-reina",
-  "s": 31,
+  "s": 66,
   "misiones": "visit,race,trade,harvest,quiz,pelota",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
@@ -254,7 +254,7 @@
  },
  {
   "id": "artajona",
-  "s": 27,
+  "s": 58,
   "misiones": "visit,trade,harvest,carnival,mirador,dolmen,quiz",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
@@ -265,7 +265,7 @@
  },
  {
   "id": "tafalla",
-  "s": 30,
+  "s": 61,
   "misiones": "visit,carnival,process,figure,mirador,quiz,summit,pelota",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
@@ -276,7 +276,7 @@
  },
  {
   "id": "javier",
-  "s": 28,
+  "s": 60,
   "misiones": "visit,castle,race,figure,mirador,quiz",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
@@ -287,7 +287,7 @@
  },
  {
   "id": "ujue",
-  "s": 31,
+  "s": 66,
   "misiones": "visit,race,harvest,mirador,quiz",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
@@ -298,7 +298,7 @@
  },
  {
   "id": "olite",
-  "s": 32,
+  "s": 70,
   "misiones": "visit,harvest,tradition,figure,castle,quiz,observe",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
@@ -309,7 +309,7 @@
  },
  {
   "id": "marcilla",
-  "s": 31,
+  "s": 66,
   "misiones": "visit,castle,harvest,figure,quiz,pelota",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
@@ -320,7 +320,7 @@
  },
  {
   "id": "tudela",
-  "s": 32,
+  "s": 70,
   "misiones": "visit,harvest,carnival,tradition,figure,quiz,observe",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
@@ -331,13 +331,13 @@
  },
  {
   "id": "cortes",
-  "s": 29,
+  "s": 50,
   "misiones": "visit,harvest,process,castle,quiz",
   "sinAnfitrion": 0,
   "jugadorSuelo": 0,
   "perro": 148.8,
   "objetivo": true,
-  "interactuables": 58,
+  "interactuables": 59,
   "errores": []
  }
 ]
