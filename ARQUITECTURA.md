@@ -144,10 +144,19 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   miran a su izquierda: en la pantalla VS solo se gira la roja.
 - **Jugadores de fútbol del autor** (`src/futbol/jugadorFig.js`, `src/assets/jugadores`): un chico y una chica por
   equipación, de cuerpo entero (1024 × 1536), su busto (360 × 480, `jugadorBusto`) y la pareja de los dos juntos
-  (`jugadorDuo`: 960 de alto para la pantalla VS y 480 para los menús); el visitante, con la segunda equipación blanca o
+  (`jugadorDuo`: a su alto completo, unos 1.040 px, para la pantalla VS y 480 para los menús); el visitante, con la segunda equipación blanca o
   azul marino (`duoId`). Solo en la web: en el archivo único no caben nítidos y siguen las camisetas dibujadas
   (`kitSvgOf`).
-  - **VS de equipo:** cada equipo sale con su pareja; la del rival, girada. En vertical, cada pareja en su mitad.
+  - **VS de equipo:** cada equipo sale con su pareja; la del rival, girada.
+- **Composición de la pantalla VS** (`layoutVs` en `src/pelota/vs.js`, la misma para pelota y fútbol): se mide en cada
+  pantalla al abrirla, al cargar las imágenes y las letras y al girar el móvil. En horizontal, una columna central tan
+  ancha como el VS y las etiquetas (en columna si así deja más sitio); la línea del partido sube a la barra de arriba si
+  cabe en una fila. Cada bando, lo más grande que cabe en su lado sin pisar esa columna, los dos a la misma altura, con
+  la cabeza bajo la barra de arriba o, si no llega abajo, de pie sobre la barra de abajo. Ninguna placa tapa una cara
+  (`FACE`: hasta dónde llega la cara en la imagen). En pelota por parejas, la figura delantera junto al centro y el
+  compañero detrás, algo más pequeño (`MS`), hacia fuera: puede salirse del borde, pero no su cara. En vertical, arriba
+  los azules y abajo los colorados, partidos por una diagonal con el VS en medio, cada placa sobre la cintura de los
+  suyos y las etiquetas bajo la barra de arriba. La prueba visual: una página que solo abre la VS con figuras reales.
   - **Portadas de equipo** (`liga.js`, clases `eq-`, que no chocan con las del marcador del partido, `fb-`): el menú del
     club en losas como el de pelota (la liga con tu pareja, el amistoso con la de un club del otro grupo que cambia
     cada día, el partido rápido con Iruña, el del sello con los vecinos y cambiar de club con tres bustos en abanico);
@@ -218,7 +227,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 | `paquete-pelota.mjs` | Prepara los pelotaris y los sellos del autor desde su ZIP descomprimido: los de 512 y, para la VS, los de 1024 para la web y, para el archivo único, el rojo de 256, la camiseta azul suelta y los sellos de 176 |
 | `paquete-futbol.mjs` | Prepara los jugadores de fútbol del autor desde su ZIP descomprimido: los de 1024 para la web |
 | `jugadores-busto.mjs` | Recorta el busto de cada jugador de fútbol para la caja de la liga y el menú del club |
-| `jugadores-duos.mjs` | Recorta las parejas de cada equipación del ZIP del autor: 960 de alto para la VS y 480 para los menús |
+| `jugadores-duos.mjs` | Recorta las parejas de cada equipación del ZIP del autor: a su alto completo para la VS y 480 para los menús |
 | `laminas-pequenas.mjs` | Las copias pequeñas de las láminas de la web, de 640 × 360 |
 | `cimas-tarjetas.mjs` | Las escenas de las cimas de 1024 para las tarjetas de la web |
 | `nitidez.mjs` | Nitidez de las imágenes en el iPhone 12 tumbado: cuánto se amplía cada una, por pantallas (URL de la web o del archivo único con MINI=1) |

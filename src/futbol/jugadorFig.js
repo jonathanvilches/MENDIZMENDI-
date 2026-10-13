@@ -8,7 +8,7 @@ const byId = (g) => Object.fromEntries(Object.entries(g).map(([k, v]) => [k.spli
 const IMG = byId(import.meta.glob('@jugadores/*.webp', { eager: true, query: '?url', import: 'default' }));
 // (y su busto, cabeza y pecho a 360 × 480, para la caja del próximo partido de la liga y el menú del club: tools/jugadores-busto.mjs)
 const BUSTO = byId(import.meta.glob('@jugadores/busto/*.webp', { eager: true, query: '?url', import: 'default' }));
-// (y la pareja de cada equipación, el chico y la chica juntos, recortada: la de 960 de alto para la pantalla VS y la de
+// (y la pareja de cada equipación, el chico y la chica juntos, recortada: la de su alto completo para la pantalla VS y la de
 // 480 para las portadas de equipo de los menús; tools/jugadores-duos.mjs)
 const DUO = byId(import.meta.glob('@jugadores/duo/*.webp', { eager: true, query: '?url', import: 'default' }));
 const DUO_S = byId(import.meta.glob('@jugadores/duo-s/*.webp', { eager: true, query: '?url', import: 'default' }));

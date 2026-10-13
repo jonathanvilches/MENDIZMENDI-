@@ -5,6 +5,6 @@ son renders 3D hechos con una herramienta de IA a partir de los colores y dibujo
 patrocinadores; según sus PROMPTS, sin escudos, logotipos, letras ni marcas (la de Iruña es roja lisa, sin escudo).
 Cambios: web/ lleva los WebP de 1024 del autor tal cual (tools/paquete-futbol.mjs); web/busto/, la cabeza y el pecho de
 cada uno a 360 × 480, recortados de esos (tools/jugadores-busto.mjs); y web/duo/ y web/duo-s/, las parejas del autor
-(el chico y la chica juntos) de 1536, recortadas a lo que ocupan y a 960 y 480 de alto (tools/jugadores-duos.mjs). No
+(el chico y la chica juntos) de 1536, recortadas a lo que ocupan, a su alto completo (unos 1.040 px) y a 480 de alto (tools/jugadores-duos.mjs). No
 van en el archivo único: allí siguen las camisetas dibujadas. El index.html, el catalogo.json y el PROMPTS.json del ZIP
 no se usan.
