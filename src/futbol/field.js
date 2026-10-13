@@ -431,7 +431,7 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
   }
   // vallas de publicidad a 5 m de las líneas, con rótulos propios (con hueco para los banquillos)
   const BH = 0.9, bx = F.HL + F.margin, bz = F.HW + F.margin;
-  const boardLines = stadium ? ['MENDIMENDIZ', 'IRUÑA · PAMPLONA', 'NAFARROA', 'AUPA!', 'GORRITXOAK'] : ['MENDIMENDIZ', 'HERRIKO TALDEA', 'AUPA!', 'NAFARROA'];
+  const boardLines = stadium ? ['HERRIZHERRI', 'IRUÑA · PAMPLONA', 'NAFARROA', 'AUPA!', 'GORRITXOAK'] : ['HERRIZHERRI', 'HERRIKO TALDEA', 'AUPA!', 'NAFARROA'];
   const bT1 = own(boardTexture(boardLines, '#c41f2c', '#ffffff')), bT2 = own(boardTexture(boardLines.slice().reverse(), '#16224a', '#ffffff'));
   const boardBack = own(new THREE.MeshStandardMaterial({ color: '#2a2a30', roughness: 0.8 }));
   const board = (len, x, z, ry, tex) => {
@@ -525,7 +525,7 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
         pal.quad([P[i][0], yTop + 3.7, P[i][1]], [P[j][0], yTop + 3.7, P[j][1]], [P[j][0], yTop + 8.6, P[j][1]], [P[i][0], yTop + 8.6, P[i][1]], nn, [su / 6, 0, (su + l) / 6, 0, (su + l) / 6, 1, su / 6, 1]);
         su += l; }
       ribbonT = own(canvasTex(1024, 40, (g, W, Hh) => { g.fillStyle = '#0b0d14'; g.fillRect(0, 0, W, Hh); g.font = '900 28px Nunito, Arial, sans-serif'; g.textBaseline = 'middle';
-        const words = ['AUPA', 'IRUÑA', 'NAFARROA', 'GORRITXOAK', 'ERREKA', 'MENDIMENDIZ']; let x = 10, k = 0;
+        const words = ['AUPA', 'IRUÑA', 'NAFARROA', 'GORRITXOAK', 'ERREKA', 'HERRIZHERRI']; let x = 10, k = 0;
         while (x < W) { const w = words[k % words.length]; g.fillStyle = k % 2 ? '#ff3b47' : '#ffffff'; g.fillText(w, x, Hh / 2 + 2); x += g.measureText(w).width + 22; g.fillStyle = '#ffd34a'; g.fillRect(x - 14, Hh / 2 - 3, 6, 6); k++; } }, { repeat: true }));
       ribbonT.wrapS = THREE.RepeatWrapping;
       add(rib.build(), own(new THREE.MeshBasicMaterial({ map: ribbonT })));
@@ -606,7 +606,7 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
     const nameT = own(canvasTex(1024, 128, (g, W, Hh) => { g.font = '900 104px Nunito, Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#8a7f84'; g.fillText('EL SADAR', W / 2, Hh / 2 + 6); }, { alpha: true }));
     { const m = add(new THREE.PlaneGeometry(40, 5), own(new THREE.MeshStandardMaterial({ map: nameT, alphaTest: 0.5, roughness: 0.6, polygonOffset: true, polygonOffsetFactor: -2 }))); m.position.set(0, 6.4, -(FA[1] + 0.06)); m.rotation.y = Math.PI; m.updateMatrix(); }
     // vallas LED azules delante de la primera fila
-    { const ledT = own(boardTexture(['AUPA GORRITXOAK', 'IRUÑA', 'MENDIMENDIZ', 'NAFARROA'], '#14295e', '#ffffff')), g = new Geo(), P = rr(ST.x0 - 0.06, ST.z0 - 0.06, ST.r0 - 0.06); let u = 0;
+    { const ledT = own(boardTexture(['AUPA GORRITXOAK', 'IRUÑA', 'HERRIZHERRI', 'NAFARROA'], '#14295e', '#ffffff')), g = new Geo(), P = rr(ST.x0 - 0.06, ST.z0 - 0.06, ST.r0 - 0.06); let u = 0;
       for (let i = 0; i < N; i++) { const j = (i + 1) % N, l = len(P, i); g.quad([P[i][0], 0.2, P[i][1]], [P[j][0], 0.2, P[j][1]], [P[j][0], 1.0, P[j][1]], [P[i][0], 1.0, P[i][1]], [-P[i][2], 0, -P[i][3]], [u / 16, 0, (u + l) / 16, 0, (u + l) / 16, 1, u / 16, 1]); u += l; }
       add(g.build(), own(new THREE.MeshStandardMaterial({ map: ledT, roughness: 0.4, emissive: '#ffffff', emissiveMap: ledT, emissiveIntensity: 0.55 }))); }
     // dos videomarcadores en esquinas opuestas, encima de la grada

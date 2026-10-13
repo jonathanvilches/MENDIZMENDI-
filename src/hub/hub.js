@@ -110,7 +110,7 @@ export class Hub {
   constructor({ sound, onPlay }) {
     this.sound = sound; this.onPlay = onPlay;
     this.root = el(`<div id="hub"><div class="hub-bg"><div class="bgimg"></div>${Array.from({ length: 12 }, (_, i) => `<i class="mote" style="left:${(i * 37) % 100}%;animation-delay:${-i * 1.7}s;animation-duration:${16 + (i % 5) * 3}s"></i>`).join('')}</div>
-      <header class="hub-top"><div class="brand logo">MENDIMENDIZ</div><button type="button" class="app-btn" data-app hidden><svg viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><rect x="13" y="4" width="22" height="40" rx="5"/><path d="M24 14v14M18 22l6 6 6-6M21 38h6"/></svg><span>Instalar app</span></button><div class="chip" id="hChip"></div></header>
+      <header class="hub-top"><div class="brand logo">HERRIZHERRI</div><button type="button" class="app-btn" data-app hidden><svg viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><rect x="13" y="4" width="22" height="40" rx="5"/><path d="M24 14v14M18 22l6 6 6-6M21 38h6"/></svg><span>Instalar app</span></button><div class="chip" id="hChip"></div></header>
       <nav class="hub-nav" id="hNav"></nav><main class="hub-main" id="hMain"></main></div>`);
     document.body.appendChild(this.root);
     // (instalar el juego como app: solo en la web y si no se está jugando ya desde la app instalada)
@@ -608,7 +608,7 @@ export class Hub {
   // ---------- Primera vez: el idioma (antes que nada; en los dos idiomas, porque aún no se sabe cuál) ----------
   langPicker() {
     const o = el(`<div class="onb langpick"><div class="lp-in">
-      <div class="logo">MENDIMENDIZ</div>
+      <div class="logo">HERRIZHERRI</div>
       <h2>Hautatu hizkuntza <span>· Elige idioma</span></h2>
       <div class="lp-opts">
         <button data-lang="eu"><b>Euskara</b><small>Jolastu euskaraz</small></button>
@@ -626,7 +626,7 @@ export class Hub {
     const p = profile();
     let pick = p.avatar || AVATARS[0].id, age = p.age || 'nino';
     const o = el(`<div class="onb"><div class="onb-in">
-      <header class="onb-head"><div class="logo">MENDIMENDIZ</div><p class="tag">Navarra, pueblo a pueblo</p>
+      <header class="onb-head"><div class="logo">HERRIZHERRI</div><p class="tag">Navarra, pueblo a pueblo</p>
         <div class="langsel" role="group" aria-label="Idioma"><button data-lang="eu" class="${getLang() === 'eu' ? 'on' : ''}">Euskara</button><button data-lang="es" class="${getLang() === 'es' ? 'on' : ''}">Castellano</button><button data-lang="learn" class="${getLang() === 'learn' ? 'on' : ''}">Aprende euskera</button></div></header>
       ${this.selector(castById(pick), { onb: true, extra: `<div class="onb-foot"><label>¿Cómo te llamas?<input id="oName" maxlength="14" autocomplete="off" placeholder="Tu nombre" aria-label="¿Cómo te llamas?"></label>
         <div class="onb-age" role="radiogroup" aria-label="Tu edad"><span>¿Cuántos años tienes?</span>${EDADES.map(e => `<button type="button" role="radio" data-age="${e.id}" aria-checked="${e.id === age}" class="${e.id === age ? 'on' : ''}"><b>${e.name}</b><small>${e.text}</small></button>`).join('')}</div>

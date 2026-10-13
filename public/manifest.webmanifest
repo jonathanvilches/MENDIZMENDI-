@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "MENDIMENDIZ",
-  "short_name": "Mendimendiz",
+  "name": "HERRIZHERRI",
+  "short_name": "Herrizherri",
   "description": "Explora los pueblos de Navarra: misiones, montes, pelota, fútbol, encierro y mucho más.",
   "lang": "es",
   "dir": "ltr",
@@ -9,7 +9,7 @@
   "scope": "./",
   "display": "fullscreen",
   "display_override": ["fullscreen", "standalone"],
-  "orientation": "any",
+  "orientation": "landscape",
   "background_color": "#1e0a44",
   "theme_color": "#1e1830",
   "categories": ["games", "education", "travel"],
@@ -19,11 +19,9 @@
     { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "screenshots": [
-    { "src": "capturas/home-h.jpg", "sizes": "1688x780", "type": "image/jpeg", "form_factor": "wide", "label": "Inicio: la próxima parada de tu aventura" },
-    { "src": "capturas/map-h.jpg", "sizes": "1688x780", "type": "image/jpeg", "form_factor": "wide", "label": "El mapa de Navarra por comarcas" },
-    { "src": "capturas/sports-h.jpg", "sizes": "1688x780", "type": "image/jpeg", "form_factor": "wide", "label": "Torneos de pelota y fútbol" },
-    { "src": "capturas/home-v.jpg", "sizes": "780x1688", "type": "image/jpeg", "form_factor": "narrow", "label": "Inicio" },
-    { "src": "capturas/sports-v.jpg", "sizes": "780x1688", "type": "image/jpeg", "form_factor": "narrow", "label": "Torneos" }
+    { "src": "capturas/home-h.jpg", "sizes": "1688x780", "type": "image/jpeg", "label": "Inicio: la próxima parada de tu aventura" },
+    { "src": "capturas/map-h.jpg", "sizes": "1688x780", "type": "image/jpeg", "label": "El mapa de Navarra por comarcas" },
+    { "src": "capturas/sports-h.jpg", "sizes": "1688x780", "type": "image/jpeg", "label": "Torneos de pelota y fútbol" }
   ],
   "shortcuts": [
     { "name": "Mapa de Navarra", "short_name": "Mapa", "url": "./?screen=map", "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }] },
