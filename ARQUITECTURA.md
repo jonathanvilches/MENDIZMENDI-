@@ -267,7 +267,9 @@ En el iPhone, el iPad y Safari, `src/util/glb.js` hace que GLTFLoader lea las te
 normal y no como ImageBitmap (un complemento del cargador cambia su `textureLoader` por un `TextureLoader`). Con
 ImageBitmap, Safari en iOS a veces subía la textura en negro: pelotaris y espectadores como siluetas. GLTFLoader ya
 lo evita en Safari anterior al 17, pero lo reconoce por el nombre del navegador y la app instalada en la pantalla de
-inicio no lo lleva. En los demás navegadores no cambia nada.
+inicio no lo lleva. En los demás navegadores no cambia nada. Esas imágenes se descodifican al cargar el modelo, fuera
+del hilo principal (`decodeAll`), y `shrinkMap` (`glbChar.js`) no las copia a un lienzo si no hay que reducirlas; si las
+reduce, vacía la original. Copiarlas dejaba dos copias en memoria y el iPhone cerraba el juego al entrar.
 
 ```
 npx vite build

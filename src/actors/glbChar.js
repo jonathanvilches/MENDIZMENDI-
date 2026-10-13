@@ -117,12 +117,18 @@ export function sharpMap(m) {
 }
 // la textura pasa siempre por un lienzo (a su tamaño o reducida): subida tal cual desde la imagen del modelo, en algunos
 // iPhone los personajes salían negros, sin color; por el lienzo es el camino que siempre ha funcionado en el móvil
+// En el iPhone y en Safari la textura llega como imagen normal (util/glb.js), que sube bien tal cual: si no hay que
+// reducirla, se queda como está. Copiarla al lienzo dejaba dos copias en memoria (la imagen, que no se puede cerrar como
+// un ImageBitmap, y el lienzo): con los pelotaris a 2048 px eran 32 MB de más y el iPhone cerraba el juego al entrar
 function shrinkMap(m, max = MESHY_TEX) {
   const t = m.map, img = t?.image; if (!img || !img.width || t.isCanvasTexture) return;
+  const S = Math.min(max, img.width), isImg = typeof HTMLImageElement !== 'undefined' && img instanceof HTMLImageElement;
+  if (isImg && S >= img.width) return;
   // (si el iPhone no deja crear el lienzo, por memoria, se queda la textura de siempre: mejor que un personaje sin cargar)
-  const S = Math.min(max, img.width), c = document.createElement('canvas'); c.width = c.height = S; const g = c.getContext('2d'); if (!g) return; g.drawImage(img, 0, 0, S, S);
+  const c = document.createElement('canvas'); c.width = c.height = S; const g = c.getContext('2d'); if (!g) return; g.drawImage(img, 0, 0, S, S);
   const n = new THREE.CanvasTexture(c); n.colorSpace = t.colorSpace; n.flipY = t.flipY; n.wrapS = t.wrapS; n.wrapT = t.wrapT; n.anisotropy = 4;
-  m.map = n; m.needsUpdate = true; t.dispose(); img.close?.();
+  // (la original ya no hace falta: el ImageBitmap se cierra y la imagen se vacía, que si no seguía ocupando memoria)
+  m.map = n; m.needsUpdate = true; t.dispose(); if (isImg) img.removeAttribute('src'); else img.close?.();
 }
 // altura de cada personaje (m): una sola para todo el juego, así el mismo modelo se carga una vez aunque salga como
 // jugador, como vecino o en un partido
