@@ -217,6 +217,17 @@ function wood(size, base, seed) {
     d[k] *= 1 + n; d[k + 1] *= 1 + n; d[k + 2] *= 1 + n;
   }
   g.putImageData(img, 0, 0);
+  // nudos: un óvalo oscuro con sus anillos, que tuerce la veta de alrededor, y en el relieve un poco hundido
+  const k = size / 256;
+  for (let i = 0; i < 2.2 * k * k; i++) {
+    const p = (rnd() * planks) | 0, x = p * pw + pw * (0.3 + rnd() * 0.4), y = rnd() * size, r = (1.4 + rnd() * 2) * k;
+    wrapDraw(size, x, y, r * 4, (X, Y) => {
+      for (let j = 3; j >= 1; j--) { g.strokeStyle = `rgba(70,42,22,${0.05 + 0.03 * j})`; g.lineWidth = 0.7 * k; g.beginPath(); g.ellipse(X, Y, r * (1 + j * 0.5), r * (2.4 + j * 1.1), 0, 0, 7); g.stroke(); }
+      g.fillStyle = 'rgba(70,40,20,.38)'; g.beginPath(); g.ellipse(X, Y, r, r * 1.7, 0, 0, 7); g.fill();
+      g.fillStyle = 'rgba(60,34,16,.3)'; g.beginPath(); g.ellipse(X, Y, r * 0.5, r * 0.9, 0, 0, 7); g.fill();
+      h.fillStyle = '#9a9a9a'; h.beginPath(); h.ellipse(X, Y, r, r * 1.7, 0, 0, 7); h.fill();
+    });
+  }
   return { map: toTex(col), normalMap: toTex(normalFromHeight(hc, 2), false) };
 }
 
@@ -536,9 +547,9 @@ export const FOLIAGE = { leafA: [0, 0.5, 0.5, 1], leafB: [0, 0, 0.5, 0.5], needl
 
 export const TEX = {};
 export function buildTextures(quality = 'high') {
-  const S = quality === 'low' ? 256 : 512;
-  if (TEX._S === S) return TEX;
-  TEX._S = S;
+  const S = quality === 'low' ? 256 : 512, key = quality === 'high' ? 'h' : S;
+  if (TEX._S === key) return TEX;
+  TEX._S = key;
   TEX.stoneWall = masonry(S, { seed: 3, rows: 9, mortar: '#8d8375', hue: 36, hueVar: 16, sat: 14, light: 62, lightVar: 18 });
   TEX.stoneDark = masonry(S, { seed: 7, rows: 8, mortar: '#6f685f', hue: 30, hueVar: 14, sat: 9, light: 50, lightVar: 16 });
   TEX.ashlar = masonry(S, { seed: 11, rows: 7, mortar: '#9d9281', hue: 38, hueVar: 8, sat: 20, light: 68, lightVar: 10 });
@@ -546,8 +557,10 @@ export function buildTextures(quality = 'high') {
   TEX.plasterCream = plaster(S, '#e6d4b4', 2);
   TEX.roofSlate = roofTiles(S, { seed: 4, rows: 16, cols: 8, dark: '#1f2126', hue: 220, hueVar: 12, sat: 8, light: 30, lightVar: 10 });
   TEX.roofTile = roofTiles(S, { seed: 5, rows: 14, cols: 9, dark: '#3d1d14', hue: 12, hueVar: 10, sat: 45, light: 38, lightVar: 12, round: true });
-  TEX.wood = wood(S / 2, [25, 42, 30], 8);
-  TEX.woodDark = wood(S / 2, [20, 35, 27], 12);   // (roble oscuro, pero no negro: a la sombra las puertas se veían como un hueco)
+  // (la madera, a la mitad; en el ordenador, entera: puertas, balcones y entramados se ven de cerca)
+  const W = quality === 'high' ? S : S / 2;
+  TEX.wood = wood(W, [25, 42, 30], 8);
+  TEX.woodDark = wood(W, [20, 35, 27], 12);   // (roble oscuro, pero no negro: a la sombra las puertas se veían como un hueco)
   TEX.cobble = cobbles(S);
   TEX.brick = bricks(S);
   TEX.plasterOcher = plaster(S, '#e3c48f', 3);
