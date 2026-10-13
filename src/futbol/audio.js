@@ -1,7 +1,7 @@
 // Sonidos del fútbol, sintetizados: golpeo según la potencia, toques de conducción, postes, red, silbato del árbitro y el
 // público de El Sadar (src/crowdAudio.js: el murmullo de la grada, que sube con las ocasiones, el «uyyy», el lamento, y
 // el estallido con el aplauso de todo el estadio en los goles). Usa el contexto de audio del juego si lo hay.
-import { Crowd } from '../crowdAudio.js';
+import { Crowd, PUBLICO } from '../crowdAudio.js';
 export class FutbolAudio {
   constructor({ ctx = null, out = null } = {}) {
     try { this.ctx = ctx || new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { this.ctx = null; }
@@ -22,7 +22,7 @@ export class FutbolAudio {
     }
     this.level = 0.25; this.target = 0.25;
     // (la gente de verdad en cuanto está calculada; hasta entonces, el ruido de antes)
-    try { this.cr = new Crowd(c, this.out); this.cr.ready.then(ok => { if (!ok || this.gone) return; for (const s of this.loops || []) try { s.stop(); } catch (e) { } this.loops = []; this.crowd.disconnect(); }); } catch (e) { this.cr = null; }
+    if (PUBLICO) try { this.cr = new Crowd(c, this.out); this.cr.ready.then(ok => { if (!ok || this.gone) return; for (const s of this.loops || []) try { s.stop(); } catch (e) { } this.loops = []; this.crowd.disconnect(); }); } catch (e) { this.cr = null; }
   }
   resume() { if (this.ctx?.state === 'suspended') this.ctx.resume().catch(() => {}); }
   tone(f, dur, type = 'sine', vol = 0.2, t0 = 0, glide = null) {
@@ -54,10 +54,10 @@ export class FutbolAudio {
     if (n === 3) { blow(0, 0.28); blow(0.36, 0.28); blow(0.72, 0.9); } else if (n === 2) { blow(0, 0.18); blow(0.26, 0.18); } else blow(0, 0.35);
   }
   /** El público: «uyyy» en una ocasión, estallido en el gol, murmullo en los saques. */
-  ooh() { if (!this.cr?.ooh(0.9)) { this.hiss(1.1, 900, 0.7, 0.3); this.tone(330, 0.9, 'sawtooth', 0.025, 0, 230); } else this.cr.applause(0.45, 0.7); this.bump(0.75, 1.4); }
+  ooh() { if (!PUBLICO) return; if (!this.cr?.ooh(0.9)) { this.hiss(1.1, 900, 0.7, 0.3); this.tone(330, 0.9, 'sawtooth', 0.025, 0, 230); } else this.cr.applause(0.45, 0.7); this.bump(0.75, 1.4); }
   /** el gol: el estallido y todo el estadio aplaudiendo a la vez (rival: solo el aplauso, que es menor) */
-  roar(k = 1) { if (!this.cr?.roar(k)) { this.hiss(2.8, 800, 0.4, 0.45); this.hiss(2.4, 1700, 0.6, 0.3, 0.1); } else { this.cr.applause(k, 0.15); this.cr.applause(0.8 * k, 1.9); } this.bump(1, 3.5); }
-  groan() { if (!this.cr?.groan(0.8)) this.hiss(1.0, 500, 0.6, 0.18); this.bump(0.5, 1); }
+  roar(k = 1) { if (!PUBLICO) return; if (!this.cr?.roar(k)) { this.hiss(2.8, 800, 0.4, 0.45); this.hiss(2.4, 1700, 0.6, 0.3, 0.1); } else { this.cr.applause(k, 0.15); this.cr.applause(0.8 * k, 1.9); } this.bump(1, 3.5); }
+  groan() { if (!PUBLICO) return; if (!this.cr?.groan(0.8)) this.hiss(1.0, 500, 0.6, 0.18); this.bump(0.5, 1); }
   /** aplauso de toda la grada (el final de cada parte, una buena parada) */
   clap(k = 1) { this.cr?.applause(k); }
   bump(v, secs) { this.target = Math.max(this.target, v); this.bumpT = secs; }
@@ -65,7 +65,7 @@ export class FutbolAudio {
     if (!this.ctx) return;
     if ((this.bumpT -= dt) <= 0) this.target = tension;
     this.level += (this.target - this.level) * Math.min(1, dt * 2.5);
-    this.crowd.gain.setTargetAtTime(0.05 + this.level * 0.22, this.ctx.currentTime, 0.1);
+    this.crowd.gain.setTargetAtTime(PUBLICO ? 0.05 + this.level * 0.22 : 0, this.ctx.currentTime, 0.1);
     // (el murmullo de la grada: el estadio lleno siempre suena, y sube con las ocasiones y los goles)
     if (this.cr && Math.abs(this.level - (this.crL ?? -1)) > 0.02) { this.crL = this.level; this.cr.setLevel(0.32 + this.level * 0.5, 0.25); }
   }

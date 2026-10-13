@@ -540,8 +540,12 @@ export class PelotaMatch {
     // fuera de los botones; el frontis entero se sigue viendo)
     // si el rival está más al fondo que tú (le mandas la pelota atrás), la cámara retrocede y se eleva hasta verlo a él
     // también: antes se quedaba detrás de ti y no se veía cómo ni hacia dónde golpeaba
-    const rv = g.players[g.pairs ? g.takerOf('rival') || 'rival' : 'rival'], rivalTurn = g.phase === 'rally' && g.rally?.turn === 'rival', behind = rivalTurn && Number.isFinite(rv?.z) ? Math.max(0, rv.z - you.z) : 0;   // (solo en el peloteo, cuando le toca a él: al sacar se queda contigo)
-    const cz = you.z + behind, cx = behind > 0.5 ? you.x * 0.6 + rv.x * 0.4 : you.x, up = Math.min(2.4, behind * 0.16);
+    // por parejas, lo mismo con tu compañero: si juegas de delantero, el zaguero golpea a tu espalda y antes su golpe no
+    // se veía. Se mira quién va a golpear (de los dos equipos) y, si está más atrás que tú, la cámara lo coge también
+    const turn = g.phase === 'rally' ? g.rally?.turn : null;   // (solo en el peloteo: al sacar se queda contigo)
+    const tkId = turn ? (g.pairs ? g.takerOf(turn) || (turn === 'rival' ? 'rival' : null) : turn) : null;
+    const rv = tkId && tkId !== 'you' ? g.players[tkId] : null, behind = rv && Number.isFinite(rv.z) ? Math.max(0, rv.z - you.z) : 0;
+    const cz = you.z + behind, cx = behind > 0.5 ? you.x * 0.6 + rv.x * 0.4 : you.x, up = Math.min(2.4, behind * 0.16) + (g.pairs ? 0.8 : 0);
     // cámara de retransmisión: alta y por detrás, como en la tele (se ve la cancha entera con sus rayas, los dos pelotaris
     // y el frontis), y sigue al jugador con suavidad. En el frontón cubierto no pasa del rebote: si tú estás muy atrás,
     // sube en vez de retroceder
@@ -574,7 +578,7 @@ export class PelotaMatch {
     // el rebote, a través si la cámara queda detrás de él (si no, taparía la cancha)
     const lc = grp.worldToLocal(this.v3.copy(this.camPos)); C.reboteSeeThrough?.(lc.z > COURT.REBOTE - 0.3, dt);
     this.fovK = (this.fovK || 0) + (dyn - (this.fovK || 0)) * Math.min(1, dt * 10);
-    const fov = (portrait ? 62 : 54) - this.fovK * 3;
+    const fov = (portrait ? 62 : 54) + (g.pairs ? 4 : 0) - this.fovK * 3;   // (por parejas, algo más abierta: cuatro pelotaris en la cancha)
     if (Math.abs(this.cam.fov - fov) > 0.01) { this.cam.fov = fov; this.cam.updateProjectionMatrix(); }
   }
   destroy() {

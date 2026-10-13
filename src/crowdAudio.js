@@ -5,6 +5,8 @@
 // · aplauso: ciento sesenta personas que arrancan a la vez, cada una con su ritmo, su fuerza y el timbre de sus manos
 // · «¡oooh!» (casi), «¡ohhh…!» (el lamento) y «¡eeeh!» (el estallido): todas las voces a la vez en la misma vocal
 // Se calculan una sola vez, poco a poco (sin parar el juego), y sirven para todos los partidos.
+// (apagado por ahora: en los partidos suena su música de estadio y no el público; el código se queda para volver a usarlo)
+export const PUBLICO = false;
 const SR = 22050;
 let READY = null;
 let NOISE = null;

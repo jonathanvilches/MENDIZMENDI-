@@ -47,6 +47,7 @@ import { SABIOS, STYLE_TIP, LABEL_TIP, KIND_TIP, NO_SABIO } from '../data/sabios
 const loadEncierro = () => import('./encierro.js').then(m => m.Encierro);
 const loadFutbol = () => import('./futbol.js').then(m => m.Futbol);
 import { montesFrom, townLatLon } from '../data/miradores.js';
+import { relieveMirador } from '../world/relieve.js';
 import { Panorama } from '../world/panorama.js';
 import { houseArms } from '../data/blasones.js';
 import { armsOfTown } from '../data/armas-navarra.js';
@@ -206,7 +207,7 @@ export class TownGame {
         M.steps = () => ['Habla con ' + host(), m.kind === 'angel' ? 'Prepara la bajada: repite la secuencia' : 'Repite la melodía']; break;
       case 'summit': { const pk = M.peak = MOUNTAINS.find(x => x.id === m.peak); M.title = `Sube al ${pk?.name || 'monte'}`; M.icon = 'peak'; M.need = 4;
         M.steps = () => [M.prep ? `Prepara la mochila: ${this.supplyText()} y vuelve con ${host()}` : 'Habla con ' + host(), `Sigue los mojones hasta la cima (${M.count}/${M.need})${M.wild ? ` · animales ${M.wild.filter(w => w.found).length}/${M.wild.length}` : ''}`, `Llega a la cima del ${pk?.name || 'monte'}`]; break; }
-      case 'mirador': { const ll = townLatLon(d); M.montes = ll ? montesFrom(ll.lat, ll.lon, 4) : []; M.title = m.title || 'Los montes desde el mirador'; M.icon = 'binoculars'; M.need = Math.min(3, M.montes.length) || 1;
+      case 'mirador': { const ll = townLatLon(d); M.montes = ll ? montesFrom(ll.lat, ll.lon, 4, d.id) : []; M.title = m.title || 'Los montes desde el mirador'; M.icon = 'binoculars'; M.need = Math.min(3, M.montes.length) || 1;
         M.steps = () => ['Habla con ' + host(), `Ve al mirador y busca los montes con los prismáticos (${M.count}/${M.need})`, 'Vuelve con ' + host()]; break; }
       case 'dolmen': { const st = M.site = SITES[m.site || 'dolmen']; M.title = m.title || 'El secreto del dolmen'; M.icon = st.icon; M.need = st.finds.length;
         M.steps = () => ['Habla con ' + host(), `Excava ${st.where} con cuidado (${M.count}/${M.need})`, 'Vuelve con ' + host()]; break; }
@@ -2098,10 +2099,10 @@ export class TownGame {
       try {
         // colores del cielo según la hora (los del pueblo pueden venir sin actualizar)
         const sk = this.sky?.sample?.(this.sky.time ?? 10);
-        if (!this.pano) this.pano = new Panorama(montes, { quality: this.rt?.quality, sun: this.sky?.sunDir, zenith: sk?.zen, horizon: sk?.hor });
+        if (!this.pano) this.pano = new Panorama(montes, { quality: this.rt?.quality, sun: this.sky?.sunDir, zenith: sk?.zen, horizon: sk?.hor, relieve: relieveMirador(this.def.id), snow: this.rt?.weather?.kind === 'snow' });
         this.panoOn = true; this.altScene = this.pano.scene; this.altCamera = this.pano.camera; this.altUpdate = (dt) => this.updateBino(dt);
         const M = this.missions.find(x => x.type === 'mirador'), next = this.pano.peaks.find(pk => !(M?.seenIds?.has(pk.m.id))) || this.pano.peaks[0];
-        this.binoYaw = Math.PI - next.m.bearing * Math.PI / 180 + 0.12; this.binoPitch = Math.atan2(next.summit.y * 0.6 - this.pano.eye.y, next.ds);
+        this.binoYaw = Math.PI - next.m.bearing * Math.PI / 180 + 0.12; this.binoPitch = this.pano.real ? Math.atan2(next.summit.y - this.pano.eye.y, next.ds) - 0.02 : Math.atan2(next.summit.y * 0.6 - this.pano.eye.y, next.ds);
         this.pano.camera.fov = 45;
       } catch (e) { console.warn('vista del mirador', e); this.panoOn = false; }
     }
@@ -2109,7 +2110,7 @@ export class TownGame {
   // montes que se ven desde el mirador: los de la misión o, si no la hay, los cuatro más vistosos desde el pueblo
   panoMontes() {
     const M = this.missions.find(x => x.type === 'mirador'); if (M?.montes?.length) return M.montes;
-    if (!this._panoM) { const ll = townLatLon(this.def); this._panoM = ll ? montesFrom(ll.lat, ll.lon, 4) : []; }
+    if (!this._panoM) { const ll = townLatLon(this.def); this._panoM = ll ? montesFrom(ll.lat, ll.lon, 4, this.def.id) : []; }
     return this._panoM;
   }
   updateBino(dt) {
@@ -2117,7 +2118,7 @@ export class TownGame {
     const sens = (this.input.touch ? 0.0012 : 0.0009) * (pano ? cam.fov / 10 : 1);
     this.binoYaw -= this.input.look.dx * sens; this.binoPitch = clamp(this.binoPitch - this.input.look.dy * sens, -0.6, 1.3);
     const mv = this.input.move; this.binoYaw -= mv.x * dt * 0.8; this.binoPitch = clamp(this.binoPitch + mv.y * dt * 0.6, -0.6, 1.3);
-    const fov = lerp(cam.fov, pano ? 24 : 10, 1 - Math.exp(-(pano ? 2.5 : 8) * dt));
+    const fov = lerp(cam.fov, pano ? (pano.real ? 20 : 24) : 10, 1 - Math.exp(-(pano ? 2.5 : 8) * dt));
     const eye = pano ? pano.eye.clone() : new THREE.Vector3(P.x, P.y + 1.55, P.z);
     const dir = new THREE.Vector3(Math.sin(this.binoYaw) * Math.cos(this.binoPitch), Math.sin(this.binoPitch), Math.cos(this.binoYaw) * Math.cos(this.binoPitch));
     if (pano) pano.look(this.binoYaw, this.binoPitch, fov);

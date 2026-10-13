@@ -102,6 +102,89 @@ float rn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
   };
 }
 
+// el paisaje real visto con los prismáticos: parcelas de cultivo en lo llano, copas en el bosque, en las laderas
+// lomos y barrancos que bajan (en la luz y en el color), estratos en la roca, sombras de nubes y la bruma con la
+// distancia real (más espesa en lo bajo). El relieve menudo es un «bump» en metros, con proyección triplanar (las
+// laderas empinadas no se estiran) y se apaga con la distancia antes de hacerse más fino que un píxel
+function realShader(mat, haze) {
+  mat.onBeforeCompile = (sh) => {
+    sh.uniforms.uHazeL = { value: 40000 / Math.max(0.3, haze) };
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute float aAlt, aSlope, aFld, aFor, aWet, aBand; varying float vAlt, vSlope, vFld, vFor, vWet, vBand; varying vec3 vWP, vWN;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvAlt = aAlt; vSlope = aSlope; vFld = aFld; vFor = aFor; vWet = aWet; vBand = aBand; vWP = (modelMatrix * vec4(transformed, 1.0)).xyz; vWN = normalize(mat3(modelMatrix) * objectNormal);');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>
+uniform float uHazeL; varying float vAlt, vSlope, vFld, vFor, vWet, vBand; varying vec3 vWP, vWN; float gH = 0.0, gG = 0.5;
+float gh(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float gn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(gh(i), gh(i + vec2(1, 0)), f.x), mix(gh(i + vec2(0, 1)), gh(i + vec2(1, 1)), f.x), f.y); }
+float rdg(vec2 p){ float k = 1.0 - abs(gn(p) * 2.0 - 1.0); return k * k; }
+// manchas de bosque y prado: de unos 250 m con el borde irregular (dos octavas más finas)
+float fpat(vec2 q){ return gn(q / 260.0) * 0.55 + gn(q / 70.0) * 0.3 + gn(q / 22.0) * 0.15; }
+// en una ladera: lomos y barrancos (alargados hacia abajo) y menudo; en lo llano, ondulaciones y matas
+// (lomos y barrancos con el trazado torcido: rectos parecían rayas)
+float gully(vec2 q){ return rdg(vec2(q.x / 110.0 + (gn(q / 300.0) - 0.5) * 2.2, q.y / 420.0)); }
+float slopeH(vec2 q, float d){ return gully(q) * 34.0 * (1.0 - smoothstep(45000.0, 95000.0, d)) + gn(q / 38.0) * 7.0 * (1.0 - smoothstep(7000.0, 18000.0, d)) + gn(q / 9.0) * 1.6 * (1.0 - smoothstep(1500.0, 4000.0, d)); }
+float flatH(vec2 q, float d){ return gn(q / 240.0) * 16.0 * (1.0 - smoothstep(20000.0, 50000.0, d)) + gn(q / 45.0) * 4.0 * (1.0 - smoothstep(6000.0, 15000.0, d)) + gn(q / 7.0) * 1.0 * (1.0 - smoothstep(800.0, 2500.0, d)); }
+vec3 bumpN(vec3 sp, vec3 n, float H){
+  vec3 sx = dFdx(sp), sy = dFdy(sp), r1 = cross(sy, n), r2 = cross(n, sx); float det = dot(sx, r1);
+  return normalize(abs(det) * n - sign(det) * (dFdx(H) * r1 + dFdy(H) * r2));
+}`)
+      .replace('#include <color_fragment>', `#include <color_fragment>
+{
+  vec2 P = vWP.xz; float dist = length(vWP - cameraPosition);
+  // coordenadas del relieve menudo: cerca, las del suelo (triplanar: las laderas no se estiran); lejos, las de la vista
+  // (rumbo y ángulo, a la escala de su término), que no se aplastan en las laderas vistas de frente
+  vec3 w = pow(abs(vWN), vec3(4.0)); w /= (w.x + w.y + w.z);
+  float L = max(1.0, length(P)), sa = vWP.x / L, ca = -vWP.z / L, vv = vWP.y / L * vBand, far = smoothstep(900.0, 2200.0, dist);
+  vec2 qa = vec2(sa * vBand, vv), qb = vec2(ca * vBand, vv); float wa = ca * ca, wb = sa * sa;
+  float hNear = slopeH(vec2(vWP.z, vAlt), dist) * w.x + slopeH(vec2(vWP.x, vAlt), dist) * w.z + flatH(P, dist) * w.y;
+  gH = mix(hNear, slopeH(qa, dist) * wa + slopeH(qb, dist) * wb, far);
+  gG = mix(rdg(vec2(vWP.z / 110.0, vAlt / 420.0)) * w.x + rdg(vec2(vWP.x / 110.0, vAlt / 420.0)) * w.z + gn(P / 240.0) * w.y, gully(qa) * wa + gully(qb) * wb, far);   // (0 barranco, 1 lomo)
+  // parcelas (bloques de unos 600 m, cada uno con su orientación) con lindes y caminos, cerca
+  float fk = clamp(vFld, 0.0, 1.0) * (1.0 - smoothstep(2500.0, 8000.0, dist)) * smoothstep(0.8, 0.93, vWN.y);
+  if (fk > 0.01) {
+    vec2 g0 = floor(P / 600.0), rid = g0; float d1 = 1e9, d2 = 1e9;
+    for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) {
+      vec2 g = g0 + vec2(x, y), c = (g + 0.15 + 0.7 * vec2(gh(g), gh(g + 9.1))) * 600.0; float d = length(P - c);
+      if (d < d1) { d2 = d1; d1 = d; rid = g; } else if (d < d2) d2 = d;
+    }
+    float reg = gh(rid + 0.5), an = reg * 3.1416; vec2 q = mat2(cos(an), -sin(an), sin(an), cos(an)) * P;
+    vec2 sz = vec2(70.0 + reg * 90.0, 45.0 + gh(rid + 3.0) * 50.0), cid = floor(q / sz), f = fract(q / sz); float hc = gh(cid + reg * 17.0);
+    vec3 crop = hc < 0.3 ? vec3(0.78, 0.68, 0.40) : hc < 0.55 ? vec3(0.46, 0.57, 0.27) : hc < 0.7 ? vec3(0.58, 0.46, 0.32) : hc < 0.85 ? vec3(0.56, 0.63, 0.33) : vec3(0.70, 0.64, 0.38);
+    crop = pow(crop, vec3(2.2)) * (0.9 + 0.2 * gn(P / 13.0));
+    float edge = min(min(f.x, 1.0 - f.x) * sz.x, min(f.y, 1.0 - f.y) * sz.y);
+    crop = mix(crop, pow(vec3(0.22, 0.31, 0.16), vec3(2.2)), (1.0 - smoothstep(1.5, 4.0, edge)) * step(0.35, gh(cid + 5.0)) * 0.8);
+    crop = mix(crop, pow(vec3(0.66, 0.6, 0.5), vec3(2.2)), (1.0 - smoothstep(3.0, 7.0, (d2 - d1) * 0.5)) * 0.8);
+    diffuseColor.rgb = mix(diffuseColor.rgb, crop, fk * 0.85);
+  }
+  // bosque: manchas con su borde (triplanar: también en las laderas), más en los barrancos que en los lomos; robles y
+  // encinas abajo, hayas a media altura y pinos en lo alto y seco; copas cerca y umbría lejos
+  float tf = mix(fpat(vec2(vWP.z, vAlt)) * w.x + fpat(vec2(vWP.x, vAlt)) * w.z + fpat(P) * w.y, fpat(qa) * wa + fpat(qb) * wb, far);
+  float steep = mix(1.0 - w.y, 1.0, far * 0.7), fo = smoothstep(0.49, 0.52, tf + (clamp(vFor, 0.0, 1.0) - 0.5) * 0.9 - (gG - 0.5) * 0.3 * steep) * (1.0 - fk * 0.9);
+  vec3 fc = mix(vec3(0.075, 0.1, 0.045), vec3(0.04, 0.075, 0.03), smoothstep(650.0, 1050.0, vAlt));
+  fc = mix(fc, vec3(0.035, 0.05, 0.035), (1.0 - clamp(vWet, 0.0, 1.0)) * smoothstep(1000.0, 1400.0, vAlt));
+  float cn = mix(gn(P / 140.0), gn(P / 11.0) * 0.6 + gn(P / 4.0) * 0.4, 1.0 - smoothstep(1500.0, 6000.0, dist));
+  fc *= 0.7 + 0.6 * mix(0.5, cn, 1.0 - smoothstep(9000.0, 30000.0, dist));
+  diffuseColor.rgb = mix(diffuseColor.rgb, fc, fo * 0.92);
+  diffuseColor.rgb *= mix(1.0, 0.78 + 0.4 * gG, steep * 0.8 * (1.0 - smoothstep(12000.0, 40000.0, dist) * 0.6));
+  // roca: en lo empinado y en los lomos de lo alto, con estratos y alguna grieta
+  float rk = max(smoothstep(0.55, 0.95, vSlope) * (1.0 - fo * 0.7), smoothstep(1550.0, 1900.0, vAlt + (gG - 0.5) * 350.0) * (0.45 + 0.55 * gG));
+  vec3 rock = pow(vec3(0.6, 0.58, 0.54), vec3(2.2)) * (0.85 + 0.3 * gn(P / 60.0 + vAlt / 50.0));
+  float strata = 0.82 + 0.26 * (0.5 + 0.5 * sin(mix(vAlt, vv, far) * 0.11 + gn(P / 400.0) * 5.0)), crack = smoothstep(0.7, 0.9, gn(vec2(mix(P.x + P.y, qa.x, far), mix(vAlt, vv, far) * 2.0) / 35.0));
+  rock *= mix(1.0, strata * (1.0 - crack * 0.35), 1.0 - smoothstep(3000.0, 12000.0, dist));
+  diffuseColor.rgb = mix(diffuseColor.rgb, rock, rk * 0.75);
+  // sombras de nubes
+  diffuseColor.rgb *= 0.8 + 0.2 * smoothstep(0.32, 0.6, gn(P / 5200.0 + 3.0));
+}`)
+      .replace('#include <normal_fragment_begin>', `#include <normal_fragment_begin>
+  normal = bumpN(-vViewPosition, normal, gH);`)
+      .replace('#include <fog_fragment>', `{
+  // bruma: crece con la distancia real; en lo alto el aire está más limpio
+  float d = length(vWP - cameraPosition), fd = (1.0 - exp(-d / uHazeL)) * mix(1.0, 0.72, smoothstep(700.0, 2200.0, vAlt));
+  gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, clamp(fd, 0.0, 0.8));
+}`);
+  };
+}
+
 const C = (h) => new THREE.Color(h);
 const PAL = {
   forest: C('#2c4527'), forest2: C('#3a5a2e'), meadow: C('#7d9450'), meadowDry: C('#9a9a5a'),
@@ -146,6 +229,8 @@ export class Panorama {
     S.add(new THREE.HemisphereLight(zen.clone().lerp(C('#ffffff'), 0.5), C('#6a7a50'), 1.5));
     const sun = new THREE.DirectionalLight('#fff1dc', 2.2); sun.position.copy((o.sun || new THREE.Vector3(0.4, 0.7, -0.3)).clone().normalize().multiplyScalar(1000)); S.add(sun);
     this.detail = detailTexture(); this.owned.push(this.detail);
+    // con el relieve real del mirador (src/world/relieve.js), el paisaje de verdad; si no, los montes hechos a mano
+    if (o.relieve) { try { this.buildReal(o.relieve, hor, zen); return; } catch (e) { console.warn('relieve del mirador', e); } }
     // los montes de verdad
     // relieve general del terreno (antes de los montes, que se asientan sobre él)
     this.gnz = makeNoise(7);
@@ -313,6 +398,124 @@ export class Panorama {
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, map: this.detail, roughness: 1 });
     groundShader(mat, rough);
     const m = new THREE.Mesh(geo, mat); this.scene.add(m); this.owned.push(geo, mat);
+  }
+  // Paisaje real: el terreno visto desde el mirador, hecho con lo que se ve de verdad en cada dirección (el máximo del
+  // ángulo de elevación hasta cada distancia, «término» a término: relieve.js). Cada punto queda en su rumbo, a su
+  // distancia y con su ángulo reales (algo realzado en vertical, igual para todo, para que se lean las formas): las
+  // sierras se tapan unas a otras como en la realidad. Los colores salen de la altitud y la pendiente reales (campos y
+  // pueblos abajo, bosque, pastos, roca y nieve arriba) y la bruma, de la distancia real.
+  buildReal(R, hor, zen) {
+    const S = this.scene, low = this.o.quality === 'low', E = R.edges, NE = E.length, VX = 1.0;
+    // rumbos y anillos (km): siete al pie del mirador y, entre cada dos términos, dos o tres
+    const A = low ? 720 : 1440, sub = low ? 2 : 3, rings = [0.015, 0.03, 0.05, 0.08, 0.12, 0.18, 0.24];
+    for (let k = 0; k < NE - 1; k++) for (let q = 0; q < sub; q++) rings.push(E[k] * Math.pow(E[k + 1] / E[k], q / sub));
+    rings.push(E[NE - 1]);
+    const NR = rings.length, D2R = Math.PI / 180;
+    // lo más alto que se ve hasta cada término, en cada rumbo de la malla (curva suave entre los grados de los datos)
+    const Mk = E.map(() => new Float32Array(A)), cr = (p0, p1, p2, p3, t) => p1 + 0.5 * t * (p2 - p0 + t * (2 * p0 - 5 * p1 + 4 * p2 - p3 + t * (3 * (p1 - p2) + p3 - p0)));
+    for (let k = 0; k < NE; k++) { const m = R.M[k]; for (let i = 0; i < A; i++) { const b = i * 360 / A, j = Math.floor(b), t = b - j; Mk[k][i] = cr(m[(j + 359) % 360], m[j], m[(j + 1) % 360], m[(j + 2) % 360], t); } }
+    // la silueta fina de cada monte (con su cumbre a la altitud real), que sustituye a la de los datos generales
+    const keep = new Float32Array(A);   // (cuánto hay que respetar la silueta: sin ruido encima)
+    for (const m of this.montes) {
+      const F = R.montes[m.id]; if (!F) continue;
+      const lo = m.bearing - F.n * F.st, span = 2 * F.n * F.st;
+      for (let i0 = Math.floor(lo * A / 360), i1 = Math.ceil((lo + span) * A / 360), ii = i0; ii <= i1; ii++) {
+        const i = ((ii % A) + A) % A, x = (ii * 360 / A - lo) / F.st; if (x < 0 || x > 2 * F.n) continue;
+        const j = Math.min(2 * F.n - 1, Math.floor(x)), t = x - j, v = F.prof[j] * (1 - t) + F.prof[j + 1] * t;
+        const u = Math.min(x, 2 * F.n - x) / (2 * F.n), w = smooth(0, 0.18, u);   // (se funde con la general en los bordes)
+        Mk[F.k][i] += (v - Mk[F.k][i]) * w; keep[i] = Math.max(keep[i], w);
+      }
+    }
+    // las crestas de los datos generales salen redondeadas (un dato por grado): unos metros de rugosidad, siempre la
+    // misma en cada sitio
+    const rough = makeNoise(23);
+    for (let k = 1; k < NE; k++) { const r = E[k] * 1000, amp = Math.atan(30 / r) / D2R * 2; for (let i = 0; i < A; i++) { const a = i * 2 * Math.PI / A; Mk[k][i] += (rough.fbm(Math.sin(a) * r / 380 + k * 3.1, -Math.cos(a) * r / 380, 3) - 0.47) * amp * (1 - keep[i]); } }
+    // (en los términos cercanos, un suavizado entre rumbos vecinos: los datos de allí son más gruesos que la malla)
+    for (let k = 0; k < NE; k++) { if (E[k] > 20) break; const m = Mk[k], c = m.slice(); for (let i = 0; i < A; i++) m[i] = c[i] + ((c[(i + A - 1) % A] + 2 * c[i] + c[(i + 1) % A]) / 4 - c[i]) * (1 - keep[i]); }   // (salvo en la silueta fina de los montes)
+    for (let i = 0; i < A; i++) for (let k = 1; k < NE; k++) if (Mk[k][i] < Mk[k - 1][i]) Mk[k][i] = Mk[k - 1][i];
+    // vértices: posición en la escena, altitud y pendiente reales
+    const cnt = A * NR, pos = new Float32Array(cnt * 3), alt = new Float32Array(cnt), dist = new Float32Array(cnt), th = new Float32Array(cnt), band = new Float32Array(cnt), rise = new Float32Array(cnt);
+    const nz = makeNoise(11), ey = 0, curv = (r) => r * r * 0.87 / (2 * 6371000);
+    for (let j = 0; j < NR; j++) {
+      const rk = rings[j], r = rk * 1000; let k = 0; while (k < NE - 2 && E[k + 1] < rk) k++;
+      const t = rk <= E[0] ? 0 : Math.min(1, Math.log(rk / E[k]) / Math.log(E[k + 1] / E[k]));
+      for (let i = 0; i < A; i++) {
+        const a = i * 2 * Math.PI / A, v = j * A + i;
+        let deg;
+        if (rk < E[0]) {
+          // al pie del mirador: una ladera suave desde el suelo, unos metros por debajo de los ojos, hasta el primer
+          // término, con algún bulto
+          const a0 = -14, a1 = E[0] * 1000 * Math.tan(Mk[0][i] * D2R), u = rk / E[0];
+          deg = Math.atan((a0 + (a1 - a0) * u + 6 * (nz.n(Math.sin(a) * r / 35 + 7, -Math.cos(a) * r / 35) - 0.5) * Math.sin(Math.PI * u)) / r) / D2R;
+        } else deg = Mk[k][i] + (Mk[k + 1][i] - Mk[k][i]) * Math.pow(t, 1.6);   // (la ladera, hacia el fondo del término)
+        const x = Math.sin(a) * r, z = -Math.cos(a) * r;
+        th[v] = deg; dist[v] = r; band[v] = rk < E[0] ? r : Math.sqrt(E[k] * E[k + 1]) * 1000; rise[v] = rk < E[0] ? 0 : Mk[k + 1][i] - Mk[k][i];
+        const tn = Math.tan(deg * D2R);
+        alt[v] = R.alt + r * tn + curv(r);
+        pos[v * 3] = x; pos[v * 3 + 1] = ey + r * Math.tan(deg * VX * D2R); pos[v * 3 + 2] = z;
+      }
+    }
+    const idx = new Uint32Array((NR - 1) * A * 6); let n = 0;
+    for (let j = 0; j < NR - 1; j++) for (let i = 0; i < A; i++) {
+      const a = j * A + i, b = j * A + (i + 1) % A, c = (j + 1) * A + i, d = (j + 1) * A + (i + 1) % A;
+      idx[n++] = a; idx[n++] = b; idx[n++] = c; idx[n++] = b; idx[n++] = d; idx[n++] = c;
+    }
+    // pendiente real (a partir de las altitudes de los vecinos) y colores
+    const col = new Float32Array(cnt * 3), slope = new Float32Array(cnt), fld = new Float32Array(cnt), fo = new Float32Array(cnt), wt = new Float32Array(cnt), c = new THREE.Color(), lat0 = R.lat;
+    const P = { field: C('#b0a065'), field2: C('#87914f'), dry: C('#b09b70'), meadow: C('#7a8c4e'), forest: C('#33452e'), beech: C('#3b5230'), oak: C('#56603e'), pine: C('#2f3d2f'), alpine: C('#9c9a64'), rock: C('#9a958c'), lime: C('#bdb6a8'), snow: C('#f2f4f7') };
+    for (let j = 0; j < NR; j++) for (let i = 0; i < A; i++) {
+      const v = j * A + i, r = dist[v], jr = Math.min(NR - 1, j + 1), jl = Math.max(0, j - 1);
+      const dr = Math.max(1, dist[jr * A + i] - dist[jl * A + i]), dh = alt[jr * A + i] - alt[jl * A + i];
+      const s = Math.abs(dh / dr); slope[v] = s;   // (de frente: entre rumbos vecinos, lo tapado engaña)
+      const h = alt[v], a = i * 2 * Math.PI / A, x = Math.sin(a) * r, z = -Math.cos(a) * r;
+      // clima: más verde al norte (vertiente atlántica) que en el sur (Ribera y Zona Media)
+      const lat = lat0 + (-z / 1000) / 111.2, wet = smooth(42.55, 43.0, lat + (nz.n(x / 9000, z / 9000) - 0.5) * 0.15);
+      const p1 = nz.fbm(x / 1400 + 5, z / 1400, 4), p2 = nz.n(x / 300, z / 300);
+      // abajo: campos (cereal, verdes, barbecho) en lo llano, y bosque o pasto en las laderas
+      const flat = 1 - smooth(0.12, 0.3, s);
+      c.copy(P.field).lerp(P.field2, smooth(0.42, 0.6, p2)).lerp(P.dry, (1 - wet) * smooth(0.5, 0.7, p1) * 0.7).lerp(P.meadow, wet * 0.7);
+      // bosque: aquí solo cuánto le va al sitio (más en las laderas, en lo húmedo y a media altura; nada por encima de
+      // unos 1.500 m); las manchas de bosque y de prado, con su borde, las pinta el material
+      const forestK = Math.min(1, Math.max(0, 0.3 + (1 - flat) * 0.3 + wet * 0.2 + smooth(500, 1000, h) * 0.15 - smooth(1350, 1650, h) * 1.3 + (p1 - 0.5) * 0.5));
+      // arriba, pasto de montaña; roca en lo empinado y en lo más alto; nieve en las cumbres altas
+      c.lerp(P.alpine, smooth(1350, 1650, h));
+      const rockK = Math.max(smooth(0.55, 0.9, s + (p2 - 0.5) * 0.3) * smooth(400, 900, h), smooth(1650, 2000, h + (p1 - 0.5) * 300 + (p2 - 0.5) * 200) * 0.85);
+      c.lerp(h > 1000 && wet < 0.7 ? P.lime : P.rock, rockK);
+      const snowLine = this.o.snow ? 1100 : 2150;
+      c.lerp(P.snow, smooth(snowLine, snowLine + 180, h + (p1 - 0.5) * 260) * (1 - smooth(0.75, 1.1, s)) * 0.95);
+      c.multiplyScalar(0.9 + p2 * 0.2);
+      col[v * 3] = c.r; col[v * 3 + 1] = c.g; col[v * 3 + 2] = c.b; wt[v] = wet;
+      // (las parcelas, en el llano de verdad: no en una ladera que sube más de un grado en su término)
+      fld[v] = flat * (1 - forestK * 0.6) * (1 - smooth(900, 1300, h)) * (1 - smooth(0.6, 1.5, rise[v])); fo[v] = forestK;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    geo.setAttribute('aAlt', new THREE.BufferAttribute(alt, 1)); geo.setAttribute('aSlope', new THREE.BufferAttribute(slope, 1)); geo.setAttribute('aFld', new THREE.BufferAttribute(fld, 1)); geo.setAttribute('aFor', new THREE.BufferAttribute(fo, 1)); geo.setAttribute('aWet', new THREE.BufferAttribute(wt, 1)); geo.setAttribute('aBand', new THREE.BufferAttribute(band, 1));
+    geo.setIndex(new THREE.BufferAttribute(idx, 1)); geo.computeVertexNormals();
+    // (las normales, suavizadas entre rumbos vecinos: donde una columna sube y la de al lado queda tapada, la luz hacía
+    // rayas verticales)
+    { const nr = geo.attributes.normal.array, src = nr.slice(), W = [1, 2, 3, 2, 1];
+      for (let j = 0; j < NR; j++) for (let i = 0; i < A; i++) { let x = 0, y = 0, z = 0; for (let q = -2; q <= 2; q++) { const o = (j * A + (i + q + A) % A) * 3, w = W[q + 2]; x += src[o] * w; y += src[o + 1] * w; z += src[o + 2] * w; } const l = Math.hypot(x, y, z) || 1, o = (j * A + i) * 3; nr[o] = x / l; nr[o + 1] = y / l; nr[o + 2] = z / l; } }
+    const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 });
+    realShader(mat, this.o.haze ?? 1);
+    // la escena: el cielo más grande que todo el paisaje, la bruma a escala real (la pone el material) y los ojos en 0
+    const mesh = new THREE.Mesh(geo, mat); mesh.frustumCulled = false; S.add(mesh); this.owned.push(geo, mat); this.realMesh = mesh;
+    this.real = true; this.eye.set(0, 0, 0);
+    // (con el sol muy alto el relieve no se lee: como mucho a 35° sobre el horizonte, en su mismo rumbo)
+    const sunL = S.children.find(c => c.isDirectionalLight);
+    if (sunL) { const d = sunL.position.clone().normalize(), e = Math.sin(35 * D2R); if (d.y > e) { const hz = Math.hypot(d.x, d.z); if (hz < 1e-3) d.set(0, e, Math.cos(35 * D2R)); else d.set(d.x / hz * Math.cos(35 * D2R), e, d.z / hz * Math.cos(35 * D2R)); } sunL.position.copy(d.multiplyScalar(1000)); }
+    const cam = this.camera; cam.near = 20; cam.far = 260000; cam.updateProjectionMatrix();
+    const sky = S.children.find(c => c.isMesh && c !== mesh); if (sky) sky.scale.setScalar(20);
+    S.fog = new THREE.Fog(hor.clone().lerp(zen, 0.3).multiplyScalar(0.93), 1, 2);
+    // las cumbres de los montes de la misión: en su rumbo, a su distancia y con su ángulo reales
+    this.peaks = this.montes.map((m) => {
+      const F = R.montes[m.id], r = m.km * 1000;
+      const bd = F ? m.bearing + F.j * F.st : m.bearing, b = bd * D2R, i = Math.round(bd * A / 360 + A) % A;
+      const deg = F ? F.prof[F.j + F.n] : Mk[NE - 1][i], below = F ? Mk[Math.max(0, F.k - 1)][i] : Mk[0][i];
+      const y = ey + r * Math.tan(deg * VX * D2R);
+      const summit = new THREE.Vector3(Math.sin(b) * r, y, -Math.cos(b) * r);
+      return { m, mesh, summit, H: r * Math.tan(Math.max(0.4, deg - below) * VX * D2R), ds: r, type: 'real', b, base: 0, aw: Math.atan(3000 / r) };
+    });
   }
   /** Mira con el ángulo de los prismáticos (yaw como en el juego: dirección (sin yaw, cos yaw)). */
   look(yaw, pitch, fov) {

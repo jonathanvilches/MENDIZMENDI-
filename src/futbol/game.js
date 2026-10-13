@@ -230,6 +230,7 @@ export class FutbolGame {
     else for (const p of this.players) this.drift(p, ph);
     for (const p of this.players) this.integrate(p, h);
     this.separate();
+    if (this.owner?.hands && this.owner.role === 'POR' && (ph === 'play' || ph === 'setpiece')) this.keeperRoom(this.owner, h);
     this.officials(h);
     // balón
     if (ph === 'play' || ph === 'tuto') { this.headers(); this.control(h); }
@@ -239,6 +240,22 @@ export class FutbolGame {
     if (ph === 'play') { this.referee(); if (this.owner) this.stats.poss[this.owner.team] += h; }
     if (ph === 'play' && this.clock >= this.halfLen) this.endHalf();
     if (this.passTo && ((this.passT -= h) <= 0 || this.owner)) this.passTo = null;
+  }
+  // con el balón en las manos del portero nadie puede presionarle ni ponerse delante para estorbar su saque (Regla 12:
+  // impedir que el portero suelte el balón es infracción): los rivales se quedan a 5 m (en sala, a 3) y, si eres tú el
+  // que se acerca, te lo dice el árbitro una vez
+  keeperRoom(k, h) {
+    const R0 = 5 * Math.max(SC, 0.6);
+    for (const q of this.team(this.other(k.team))) {
+      if (q.off) continue;
+      const dx = q.x - k.x, dz = q.z - k.z, d = hyp(dx, dz);
+      if (d >= R0) continue;
+      const ux = d > 1e-3 ? dx / d : -this.dir[k.team], uz = d > 1e-3 ? dz / d : 0, nd = d + (R0 - d) * Math.min(1, h * 30);
+      q.x = k.x + ux * nd; q.z = k.z + uz * nd;
+      const vin = q.vx * ux + q.vz * uz; if (vin < 0) { q.vx -= vin * ux; q.vz -= vin * uz; }   // (no sigue hacia él)
+      q.robo = null;
+      if (this.human(q) && this.gkRoomWarned !== k.holdId) { this.gkRoomWarned = k.holdId; this.emit({ t: 'gkRoom', p: q.id }); }
+    }
   }
   setPhase(p) { if (p !== 'play' && this.phase === 'play') this.stopN = (this.stopN || 0) + 1; this.phase = p; this.phaseT = 0; this.emit({ t: 'phase', phase: p }); }
   timers(p, h) {
@@ -1160,6 +1177,8 @@ export class FutbolGame {
     const r = this.rnd();
     const why = (w, c) => { this.cardWhy = w; return c; };
     if (p.role === 'POR') return dogso || (how.slide && how.behind) ? why('portero', 'yellow') : null;
+    // al portero no se le toca: con el balón en las manos o dentro de su área, roja directa (juego brusco grave); fuera, amarilla
+    if (q.role === 'POR') return had || q.hands || this.inArea(q.team, q.x, q.z) ? why('falta al portero', 'red') : why('falta al portero', 'yellow');
     if (dogso) return pen ? why('ocasión en el área', 'yellow') : why('ocasión manifiesta', 'red');
     if (how.slide && how.behind && !how.ball) return r < 0.12 ? why('juego brusco', 'red') : why('entrada por detrás', 'yellow');
     if (how.slide && !how.ball) return r < 0.4 ? why('entrada temeraria', 'yellow') : null;
@@ -1389,7 +1408,8 @@ export class FutbolGame {
     if (this.owner || (this.lastKick?.p === p && this.time - this.lastKick.t < 0.4)) return;
     const b = this.ball, B = b.p, t = p.team, s = -this.dir[t];
     if (!this.inArea(t, B.x, B.z, 0.3)) return;   // fuera de su área no puede tocarla con las manos (ni estirándose)
-    if (this.last?.team === t && this.lastKick?.p === this.last && this.lastKick.kind !== 'throw') return;   // cesión de un compañero: con el pie
+    // cesión de un compañero con el pie o de su saque de banda: con el pie (la mano, solo si se la manda de cabeza)
+    if (this.last?.team === t && this.last !== p && this.lastKick?.p === this.last && this.lastKick.kind !== 'head') return;
     // (estirado, las manos van hacia su lado; saltando, por encima de la cabeza; abierto ante un delantero, el cuerpo
     // entero tapa un metro a cada lado hasta la altura del pecho)
     const GK = gkReach(), D = p.dive, spread = !D && p.spread > 0, hx = p.x + (D ? -s * 0.1 : 0), hz = p.z + (D && !D.jump ? D.side * GK.hand : 0), hy = D ? D.hy : 1.1;
@@ -1415,7 +1435,7 @@ export class FutbolGame {
     this.emit({ t: 'save', p: p.id, catch: false });
   }
   catchBall(p) {
-    const b = this.ball; this.offs = null; this.owner = p; this.last = p; p.hands = true; p.holdT = 0.9 + this.rnd() * 0.9; b.held = p; b.stop();
+    const b = this.ball; this.offs = null; this.owner = p; this.last = p; p.hands = true; p.holdT = 0.9 + this.rnd() * 0.9; b.held = p; b.stop(); p.holdId = (p.holdId || 0) + 1;
     if (this.shotLive && this.shotLive.team !== p.team) { this.stats.saves[p.team]++; this.stats.onTarget[this.other(p.team)]++; this.shotLive = null; this.emit({ t: 'save', p: p.id, catch: true }); }
     else this.emit({ t: 'gkBall', p: p.id });
     if (this.passTo) this.passTo = null;
@@ -1511,6 +1531,11 @@ export class FutbolGame {
       else if (!rec && best && !(humanNear && this.passTo !== best)) best.job = { kind: 'chase', x: best.ip.x, z: best.ip.z };
       const st = this.last?.team === t ? 'atk' : 'def';
       for (const p of field) if (!p.job) { const s = this.spot(p, st); p.job = { kind: 'spot', x: s.x, z: s.z }; }
+      return;
+    }
+    if (state === 'def' && o.hands && o.role === 'POR') {
+      // el portero rival tiene el balón en las manos: nadie le presiona; todos a su sitio, fuera de su área
+      for (const p of field) { const sp = this.spot(p, 'def'); let x = sp.x; if (this.inArea(o.team, x, sp.z, 1)) x = this.ownGoal(o.team) + this.dir[o.team] * (F.area + 2); p.job = { kind: 'spot', x, z: sp.z }; }
       return;
     }
     if (state === 'def') {

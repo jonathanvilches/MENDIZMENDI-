@@ -117,6 +117,29 @@ for (const format of ['f11', 'sala']) {
   const near = Math.min(...g.team(1).filter(p => p.role !== 'POR').map(p => Math.hypot(p.x, p.z)));
   ok(near >= F.wall - 0.4, `${format}: en un tiro libre los rivales a ${near.toFixed(1)} m (mínimo ${F.wall} m)`);
 }
+// el portero con el balón en las manos: ningún rival a menos de 5 m (no se le presiona ni se le estorba el saque)
+for (const format of ['f11', 'sala']) {
+  const g = new FutbolGame({ autoplay: true, seed: 5, replays: false, format }); g.start(); g.restart = null; g.phase = 'play';
+  const k = g.gk(0), s = -g.dir[0]; k.x = s * (F.HL - 4); k.z = 0; g.catchBall(k); k.holdT = 9;
+  const f = g.byRole(1, format === 'f11' ? 'DCD' : 'PIV'); f.x = k.x - s * 1; f.z = 0.3;
+  let near = 99; for (let i = 0; i < 360; i++) { g.step(1 / 120); g.drain(); if (!k.hands) break; if (i < 60) continue; for (const q of g.team(1)) near = Math.min(near, Math.hypot(q.x - k.x, q.z - k.z)); }
+  const R0 = 5 * Math.max(format === 'sala' ? 0.55 : 1, 0.6);
+  ok(near >= R0 - 0.6, `${format}: con el balón en manos del portero, el rival más cercano a ${near.toFixed(1)} m (mínimo ${R0.toFixed(1)} m)`);
+}
+// falta al portero: con el balón en las manos o en su área, roja directa; fuera del área, amarilla
+{ const g = new FutbolGame({ autoplay: true, seed: 9, replays: false }); g.start(); g.restart = null; g.phase = 'play';
+  const k = g.gk(0), s = -g.dir[0]; k.x = s * (F.HL - 6); k.z = 0; const f = g.byRole(1, 'DCD'); f.x = k.x - s * 0.5; f.z = 0;
+  let card = null; g.emit = ((orig) => (e) => { if (e.t === 'card') card = e.color; return orig.call(g, e); })(g.emit);
+  g.owner = k; k.hands = true; g.foul(f, k, { slide: true }); ok(card === 'red', `falta al portero con el balón en su área: ${card || 'sin tarjeta'} (roja)`); }
+{ const g = new FutbolGame({ autoplay: true, seed: 9, replays: false }); g.start(); g.restart = null; g.phase = 'play';
+  const k = g.gk(0), s = -g.dir[0]; k.x = s * (F.HL - F.area - 8); k.z = 0; const f = g.byRole(1, 'DCD'); f.x = k.x - s * 0.5; f.z = 0;
+  let card = null; g.emit = ((orig) => (e) => { if (e.t === 'card') card = e.color; return orig.call(g, e); })(g.emit);
+  g.owner = null; k.hands = false; g.foul(f, k, { trip: true }); ok(card === 'yellow' || card === 'red', `falta al portero fuera de su área: ${card || 'sin tarjeta'} (amarilla como poco)`); }
+// cesión con un saque de banda de un compañero: tampoco con las manos
+{ const g = game('f11', 1), k = g.gk(0), s = -g.dir[0], gx = s * F.HL; g.keeper = FutbolGame.prototype.keeper.bind(g); k.cool = 0;
+  const d = g.byRole(0, 'LD'); k.x = gx - s * 2; k.z = 0; g.ball.set(gx - s * 9, 0.5, 1.5); g.kickBall(d, s * 9, 1, 0, 0, 'throw'); d.cool = 99;
+  let hands = false; for (let i = 0; i < 240; i++) { g.step(1 / 120); g.drain(); if (k.hands) hands = true; }
+  ok(!hands, 'saque de banda de un compañero hacia el portero: no la coge con las manos'); }
 function g0dir(format, half, t) { const g = game(format, half); return g.dir[t]; }
 console.log(fails ? `${fails} fallos` : 'Todo correcto');
 process.exit(fails ? 1 : 0);

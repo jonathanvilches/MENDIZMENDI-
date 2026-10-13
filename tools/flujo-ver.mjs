@@ -67,8 +67,7 @@ if (scen === 'menu') {
   await strayE(); await snap('E de más con el menú abierto: nada detrás', { menus: 1, ...NOPEL, dialogo: false });
   await click('[data-a="libre"]'); await waitFor(() => document.querySelector('.pel-panel [data-pel-go]'), 300000);
   await startMatch(); await stepMatch(90);
-  await waitFor(() => window.__game?.pelotaMatch?.audio?.crowdN?.B, 60000).catch(() => {});
-  await snap('jugando: sin música y con el público', { partido: true, menus: 0, panelPelota: 0, musica: 'none', publico: true });
+  await snap('jugando: con la música de los partidos', { partido: true, menus: 0, panelPelota: 0, musica: 'sport' });
   await click('.pel-exit'); await snap('X: ¿salir?', { panelPelota: 1 });
   await click('[data-pel-yes]'); await waitFor(() => document.querySelector('.lg-root [data-a="libre"]'), 60000);
   await snap('salir del partido: vuelve al menú de pelota', { menus: 1, ...NOPEL });
@@ -77,7 +76,7 @@ if (scen === 'menu') {
   await snap('partido ganado: panel del final', { panelPelota: 1, botones: (v) => has(v, 'Volver al menú') && !has(v, 'Volver al pueblo') });
   // (en el campeonato, del partido al menú de pelota sin pasar por el pueblo: ni charla del pelotari, ni botones del pueblo)
   await click('[data-pel-cont]'); await waitFor(() => document.querySelector('.lg-root [data-a="libre"]'), 60000); await p.waitForTimeout(900);
-  await snap('Seguir tras ganar: directo al menú de pelota, sin pueblo', { menus: 1, ...NOPEL, dialogo: false, hudPueblo: false, congelado: true, musica: 'none' });
+  await snap('Seguir tras ganar: directo al menú de pelota, sin pueblo', { menus: 1, ...NOPEL, dialogo: false, hudPueblo: false, congelado: true, musica: 'sport' });
   // ---- torneo individual
   await click('[data-a="torneo"]'); await waitFor(() => document.querySelector('.lg-root [data-a="play"], .lg-root [data-a="new"], .lg-root [data-a="sim"]'), 60000);
   await snap('cuadro del torneo', { menus: 1, ...NOPEL });
@@ -120,9 +119,7 @@ if (scen === 'menu') {
   await p.evaluate(() => document.querySelector('.lg-root .eq-teams [data-a]')?.click()); await p.waitForTimeout(600);
   await waitFor(() => document.body.classList.contains('futbol') && document.querySelector('.fb-root'), 900000).catch(() => {});
   await p.waitForTimeout(1500);
-  await waitFor(() => window.__futbol?.audio?.cr?.B, 60000).catch(() => {});
-  await snap('fútbol: partido, sin música y con el público', { menus: 0, musica: 'none' });
-  if (!(await p.evaluate(() => !!window.__futbol?.audio?.cr?.B))) problems.push('fútbol: el público (murmullo y aplausos) no está listo');
+  await snap('fútbol: partido, con la música de los partidos', { menus: 0, musica: 'sport' });
   await p.evaluate(() => dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))); await p.waitForTimeout(1200);
   await snap('fútbol: pausa');
   await p.evaluate(() => { const b = [...document.querySelectorAll('.fb-root button, .fb-panel button')].find(x => /salir|abandon|quit/i.test(x.innerText + (x.dataset.a || x.dataset.r || ''))); b?.click(); }); await p.waitForTimeout(1500);

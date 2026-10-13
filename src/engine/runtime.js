@@ -18,6 +18,7 @@ import { Nature } from '../world/nature.js';
 import { setLevel, PLACES, iratiMask } from '../world/layout.js';
 import * as SALAZAR from '../levels/salazar.js';
 import { createTownLevel } from '../levels/town.js';
+import { cargarRelieve } from '../world/relieve.js';
 import { resetColliders } from '../world/colliders.js';
 import { resetNav, navTick } from '../world/nav.js';
 import { MinifigRig, COSTUMES } from '../actors/minifig.js';
@@ -109,6 +110,8 @@ export class Runtime {
     resetColliders(); resetVillage(); clearPlatforms(); resetDetail(); resetNav();
     for (const k of Object.keys(LANDMARKS)) delete LANDMARKS[k];
     const salazar = def.special === 'salazar';
+    // el relieve real (horizonte del pueblo y vista del mirador): se abre una vez, antes de levantar el terreno
+    await Promise.race([cargarRelieve(), new Promise(r => setTimeout(r, 1500))]);
     const mod = salazar ? SALAZAR : createTownLevel(def);
     setLevel(mod, def, salazar ? 'salazar' : 'town');
     bake();
@@ -275,8 +278,8 @@ export class Runtime {
     if (!g) return 'explore';
     const m = g.mode, night = (this.sky?.night || 0) > 0.5;
     if (m === 'encierro') return g.encierro?.started && !g.encierro?.done ? 'tension' : 'fiesta';
-    // (en los partidos y en los campeonatos no suena música: se oye la grada)
-    if (m === 'futbol' || m === 'pelota' || m === 'menu' || g.sportMode) return 'none';
+    // (en los partidos y en los campeonatos, su música de estadio)
+    if (m === 'futbol' || m === 'pelota' || m === 'menu' || g.sportMode) return 'sport';
     if (m === 'mini') return 'game';
     if (m === 'dance') return 'fiesta';
     if (g.missions?.some(M => M.chase)) return 'tension';

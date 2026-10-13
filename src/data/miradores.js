@@ -2,6 +2,7 @@
 // real (calculada con las coordenadas del pueblo y de cada cima) y se aprende su nombre, altura y distancia.
 import SETTLEMENTS from './settlements.json';
 import MOUNTAINS from './mountains.json';
+import { RELIEVE } from './relieve.js';
 
 // cimas famosas de fuera de Navarra que se ven desde muchos pueblos
 const EXTRA = [
@@ -21,8 +22,15 @@ export function townLatLon(lv) {
   const hit = SETTLEMENTS.find(s => names.includes(norm(s[2]))) || SETTLEMENTS.find(s => norm(s[2]).startsWith(names[0]));
   return hit ? { lat: hit[0], lon: hit[1] } : null;
 }
-// montes que se ven desde un punto: entre 4 y 70 km, los más altos y cercanos, repartidos en direcciones distintas
-export function montesFrom(lat, lon, n = 6) {
+// montes que se ven desde un punto: entre 4 y 70 km, los más altos y cercanos, repartidos en direcciones distintas. Desde
+// el mirador de un pueblo con el relieve real calculado (id), los que de verdad se ven desde él (tools/relieve/perfiles.py)
+export function montesFrom(lat, lon, n = 6, id = null) {
+  const T = id && RELIEVE.towns[id];
+  if (T) {
+    const byId = new Map([...MOUNTAINS, ...EXTRA].map(m => [m.id, m]));
+    const vis = T.m.map(x => byId.get(x.id)).filter(Boolean).slice(0, n).map(m => ({ m, ...rel(T.lat, T.lon, m.lat, m.lon) }));
+    if (vis.length) return vis.map(x => ({ id: x.m.id, name: x.m.name, alt: x.m.altName, altitude: x.m.altitude, zone: x.m.zone, intro: x.m.intro, km: x.km, dir: x.dir, bearing: x.bearing }));
+  }
   const all = [...MOUNTAINS, ...EXTRA].filter(m => m.lat).map(m => ({ m, ...rel(lat, lon, m.lat, m.lon) }))
     .filter(x => x.km > 4 && x.km < (x.m.altitude > 2000 ? 110 : 60))
     .sort((a, b) => b.m.altitude / Math.sqrt(b.km) - a.m.altitude / Math.sqrt(a.km));
