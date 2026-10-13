@@ -32,7 +32,7 @@ export class Input {
   down(e) {
     if (!this.enabled) return;
     this.canvas.focus?.();
-    if (e.pointerType === 'touch' && e.clientX < innerWidth * 0.45 && this.stick.id === null) {
+    if (e.pointerType === 'touch' && !this.lookOnly && e.clientX < innerWidth * 0.45 && this.stick.id === null) {
       this.stick = { id: e.pointerId, ox: e.clientX, oy: e.clientY, x: 0, y: 0 };
       this.onStick?.(true, e.clientX, e.clientY, 0, 0);
     } else if (this.lookPtr.id === null) {

@@ -763,18 +763,25 @@ export class Game {
     const dir = new THREE.Vector3(Math.sin(this.binoYaw) * Math.cos(this.binoPitch), Math.sin(this.binoPitch), Math.cos(this.binoYaw) * Math.cos(this.binoPitch));
     cam.position.copy(eye); cam.lookAt(eye.clone().add(dir));
     this.follow.yaw = this.binoYaw + Math.PI;
-    // buscar animal en el centro
-    let best = null, ba = 1;
+    // buscar animal en el centro (y, cerca de la marca, el que no tienes anotado: la ayuda al apuntar lo acaba de centrar)
+    let best = null, ba = 1, near = null, na = Infinity, nearDir = null;
     for (const o of this.fauna.observables()) {
       const to = new THREE.Vector3(o.pos.x - eye.x, o.pos.y + (o.h || 0.5) - eye.y, o.pos.z - eye.z);
       const d = to.length(); if (d > (o.far ? 260 : 90) || d < 1) continue;
       const ang = to.normalize().angleTo(dir);
-      const tol = Math.max(0.025, 1.2 / d);
-      if (ang < tol && ang < ba && (o.far || !segmentBlocked(eye.x, eye.z, o.pos.x, o.pos.z))) { ba = ang; best = o; }
+      const tol = Math.max(0.04, 1.8 / d);
+      if (ang > tol * 2.6 || (!o.far && segmentBlocked(eye.x, eye.z, o.pos.x, o.pos.z))) continue;
+      if (ang < tol && ang < ba) { ba = ang; best = o; }
+      if (!this.state.observed.includes(o.id) && ang / tol < na) { na = ang / tol; near = o; nearDir = to.clone(); }
+    }
+    if (near && !(this.input.look.dx || this.input.look.dy || mv.x || mv.y)) {
+      const yawT = Math.atan2(nearDir.x, nearDir.z), pitT = Math.asin(clamp(nearDir.y, -1, 1)), k = Math.min(1, dt * (near === best ? 5 : 3));
+      this.binoYaw += Math.atan2(Math.sin(yawT - this.binoYaw), Math.cos(yawT - this.binoYaw)) * k;
+      this.binoPitch = clamp(this.binoPitch + (pitT - this.binoPitch) * k, -0.6, 1.2);
     }
     const name = best ? SPECIES_OBS[best.id] : null;
     const isNew = best && !this.state.observed.includes(best.id);
-    this.ui.binoTarget(best ? `${name}${isNew ? ' — ¡nuevo! pulsa para anotar' : ' — anotado'}` : '', !!best);
+    this.ui.binoTarget(best ? `${name}${isNew ? ` · ¡nuevo! ${this.input.touch ? 'Toca Anotar' : 'Pulsa E para anotar'}` : ' · ya anotado'}` : '', !!best, null, !!best && isNew);
     if (this.input.consume('e') || this.input.consume(' ')) {
       if (best && isNew) {
         this.state.observed.push(best.id); this.sound.ui('photo');

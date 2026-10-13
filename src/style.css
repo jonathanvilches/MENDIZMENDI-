@@ -348,23 +348,44 @@ summary { line-height: 1.3; }
 @keyframes stamp { from { transform: scale(2.4) rotate(-20deg); opacity: 0; } to { transform: scale(1) rotate(-9deg); opacity: 1; } }
 
 /* ---------- Prismáticos ---------- */
-#bino { position: fixed; inset: 0; z-index: 3; pointer-events: none; }
-body.bino-on #lane { display: none; }
-#bino .bcomp.note { background: rgba(255, 122, 200, .92); color: #1c0b3a; letter-spacing: 0; }
+/* ---------- Prismáticos: el visor, encima de todo lo del pueblo (que no se ve mientras miras) ---------- */
+#bino { position: fixed; inset: 0; z-index: 3; pointer-events: none; --bs: env(safe-area-inset-top, 0px); --bl: env(safe-area-inset-left, 0px); --br: env(safe-area-inset-right, 0px); --bb: env(safe-area-inset-bottom, 0px); }
+body.bino-on #lane, body.bino-on #hud { visibility: hidden; }
 #bino .mask { position: absolute; inset: 0; }
-#bino .mask2 { position: absolute; inset: 0; background: #0b0a10; -webkit-mask: radial-gradient(ellipse 34% 44% at 36% 50%, #000 94%, transparent 96%), radial-gradient(ellipse 34% 44% at 64% 50%, #000 94%, transparent 96%); mask: radial-gradient(ellipse 34% 44% at 36% 50%, #000 94%, transparent 96%), radial-gradient(ellipse 34% 44% at 64% 50%, #000 94%, transparent 96%); -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0; }
-#bino .cross { position: absolute; left: 50%; top: 50%; width: 64px; height: 64px; margin: -32px; border: 2px solid rgba(255, 255, 255, .6); border-radius: 50%; }
-#bino .cross.lock { border-color: var(--sun); box-shadow: 0 0 0 4px rgba(255, 122, 200, .35); }
+#bino .cross { position: absolute; left: 50%; top: 50%; width: 72px; height: 72px; margin: -36px; border: 2px solid rgba(255, 255, 255, .7); border-radius: 50%; box-shadow: 0 0 0 1px rgba(0, 0, 0, .25); transition: border-color .15s, box-shadow .15s, transform .15s; }
+#bino .cross.lock { border-color: #ff7ac8; border-width: 3px; box-shadow: 0 0 0 5px rgba(255, 122, 200, .35), 0 0 18px rgba(255, 43, 214, .6); transform: scale(1.06); }
+/* flecha hacia lo que se busca, fuera de la marca y bien grande */
 #bino .bdir { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transition: opacity .3s; }
-#bino .bdir i { position: absolute; left: 70px; top: -16px; width: 0; height: 0; border-left: 22px solid #ff7ac8; border-top: 14px solid transparent; border-bottom: 14px solid transparent; filter: drop-shadow(0 2px 3px rgba(0,0,0,.6)); animation: bdirP 1s ease-in-out infinite; }
-@keyframes bdirP { 50% { transform: translateX(8px); } }
-#bino .label { position: absolute; left: 50%; top: calc(50% + 48px); transform: translateX(-50%); max-width: 88vw; padding: 8px 16px; border-radius: 12px; background: rgba(10, 12, 20, .88); border: 2px solid rgba(255, 122, 200, .7); color: #fff; font-weight: 900; font-size: var(--fs-md); text-align: center; text-shadow: none; }
-#bino .bgoal { position: absolute; left: 50%; top: max(12px, env(safe-area-inset-top)); transform: translateX(-50%); width: min(92vw, 460px); padding: 8px 16px; border-radius: 14px; background: rgba(10, 12, 20, .9); color: #fff; font: 800 clamp(13px, 3.4vw, 15px) Nunito, sans-serif; line-height: 1.3; }
-#bino .bgoal b { display: block; color: #ff9bd8; font-size: 1.08em; margin-bottom: 4px; }
-#bino .bgoal ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
-#bino .bgoal li.ok { color: #9ff0a8; } #bino .bgoal li.next { color: #ff9bd8; }
-#bino .bcomp { position: absolute; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 72px); transform: translateX(-50%); padding: 4px 12px; border-radius: 10px; background: rgba(10, 12, 20, .85); color: #fff; font: 900 var(--fs-sm) Nunito, sans-serif; letter-spacing: .04em; }
-#bino .bhint { position: absolute; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 24px); transform: translateX(-50%); max-width: 92vw; padding: 8px 12px; border-radius: 10px; background: rgba(10, 12, 20, .85); color: #fff; font-weight: 800; font-size: var(--fs-sm); text-shadow: none; text-align: center; }
+#bino .bdir i { position: absolute; left: 62px; top: -18px; width: 0; height: 0; border-left: 28px solid #ff7ac8; border-top: 18px solid transparent; border-bottom: 18px solid transparent; filter: drop-shadow(0 2px 4px rgba(0,0,0,.7)); animation: bdirP 1s ease-in-out infinite; }
+@keyframes bdirP { 50% { transform: translateX(10px); } }
+/* el nombre de lo que queda en la marca, justo debajo */
+#bino .label { position: absolute; left: 50%; top: calc(50% + 52px); transform: translateX(-50%); max-width: min(60vw, 480px); padding: 8px 16px; border-radius: 12px; background: rgba(10, 12, 20, .88); border: 2px solid rgba(255, 122, 200, .7); color: #fff; font-weight: 900; font-size: var(--fs-md); line-height: 1.25; text-align: center; text-shadow: none; }
+/* el recuadro: lo que buscas y hacia dónde miras, pequeño y en la esquina */
+#bino .bgoal { position: absolute; left: calc(var(--bl) + 12px); top: calc(var(--bs) + 10px); max-width: min(44vw, 330px); padding: 8px 14px 9px; border-radius: 14px; background: rgba(10, 12, 20, .84); border: 1px solid rgba(255, 244, 228, .14); color: #fff; font: 800 var(--fs-sm)/1.3 Nunito, sans-serif; }
+#bino .bgoal b { display: flex; align-items: center; gap: 8px; color: #ff9bd8; font-size: var(--fs-md); margin-bottom: 2px; }
+#bino .bgoal .pips { display: inline-flex; gap: 4px; }
+#bino .bgoal .pips i { width: 9px; height: 9px; border-radius: 50%; border: 2px solid #ff9bd8; }
+#bino .bgoal .pips i.on { background: #ff7ac8; border-color: #ff7ac8; }
+#bino .bgoal .bnext { display: block; }
+#bino .bgoal .bcomp { display: block; margin-top: 2px; color: #cbc2e0; font-weight: 800; letter-spacing: .02em; }
+#bino .bgoal .bcomp.note { display: inline-block; padding: 0 8px; border-radius: 8px; background: #ff7ac8; color: #1c0b3a; }
+/* los dos botones del visor, propios y por encima de él: salir (arriba) y anotar (abajo, donde va el pulgar) */
+#bino .bbtn { position: absolute; pointer-events: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .7); background: rgba(10, 12, 20, .78); color: #fff; font: 900 11px/1 Nunito, sans-serif; letter-spacing: .02em; padding: 0; cursor: pointer; touch-action: none; -webkit-tap-highlight-color: transparent; }
+#bino .bbtn :is(svg, .hico) { width: 30px; height: 30px; }
+#bino .bexit { right: calc(var(--br) + 12px); top: calc(var(--bs) + 10px); width: 60px; height: 60px; }
+#bino .bact { right: calc(var(--br) + 16px); bottom: calc(var(--bb) + 16px); width: 80px; height: 80px; font-size: 12px; opacity: .6; transition: opacity .15s, transform .15s; }
+#bino .bact :is(svg, .hico) { width: 38px; height: 38px; }
+#bino .bact.ready { opacity: 1; border-color: #fff; background: linear-gradient(140deg, #ff2bd6, #c21cff 60%, #7b2ff7); box-shadow: 0 0 0 4px rgba(255, 122, 200, .4), 0 0 24px rgba(255, 43, 214, .7); animation: bactP 1s ease-in-out infinite; }
+#bino .bact:active { transform: scale(.94); }
+@keyframes bactP { 50% { box-shadow: 0 0 0 8px rgba(255, 122, 200, .25), 0 0 30px rgba(255, 43, 214, .8); } }
+/* cómo se usa: los primeros segundos, abajo en el centro */
+#bino .bhint { position: absolute; left: 50%; bottom: calc(var(--bb) + 18px); transform: translateX(-50%); max-width: min(56vw, 460px); padding: 8px 14px; border-radius: 12px; background: rgba(10, 12, 20, .85); color: #fff; font-weight: 800; font-size: var(--fs-sm); line-height: 1.3; text-shadow: none; text-align: center; transition: opacity .6s; }
+#bino .bhint.off { opacity: 0; }
+@media (orientation: portrait) {
+  #bino .bgoal { max-width: calc(100vw - var(--bl) - var(--br) - 100px); }
+  #bino .bhint { bottom: calc(var(--bb) + 112px); max-width: 86vw; }
+  #bino .label { max-width: 86vw; }
+}
 
 /* ---------- Minijuegos ---------- */
 #mg { position: absolute; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 56px); transform: translateX(-50%); padding: 8px 16px; font-weight: 900; font-size: var(--fs-md); text-align: center; }

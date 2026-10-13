@@ -554,28 +554,45 @@ export class UI {
   }
 
   // ---------- Prismáticos ----------
+  // El visor: los dos círculos, la marca del centro, la flecha hacia lo que se busca y, encima de todo, solo lo que hace
+  // falta: un recuadro pequeño con lo que buscas y hacia dónde miras, el nombre de lo que queda en la marca y dos
+  // botones propios (Anotar y Salir). El marcador del pueblo no se ve mientras miras: antes asomaba por detrás, sus
+  // botones quedaban debajo del visor y había cinco rótulos a la vez
   binoculars(on) {
-    // con los prismáticos, los avisos generales no salen (se montaban detrás del panel de la misión); los prismáticos
-    // ya dicen lo que se ve y lo que se anota
     document.body.classList.toggle('bino-on', !!on);
+    this.input.lookOnly = !!on;   // (con los prismáticos no se anda: arrastrar en cualquier sitio mira)
     if (on && !this.bino) {
-      this.bino = el(`<div id="bino"><svg class="mask" viewBox="0 0 160 100" preserveAspectRatio="xMidYMid slice" width="100%" height="100%"><defs><mask id="bm"><rect x="-200" y="-200" width="560" height="500" fill="#fff"/><circle cx="58" cy="50" r="36" fill="#000"/><circle cx="102" cy="50" r="36" fill="#000"/></mask></defs><rect x="-200" y="-200" width="560" height="500" fill="#0b0a10" mask="url(#bm)"/></svg><div class="cross"></div><div class="bdir"><i></i></div><div class="bcomp"></div><div class="bgoal"></div><div class="label"></div><div class="bhint">${this.input.touch ? 'Arrastra para mirar · botón amarillo para anotar · botón de prismáticos para salir' : 'Mueve el ratón para mirar · E para anotar · F para salir'}</div></div>`);
+      const touch = this.input.touch;
+      this.bino = el(`<div id="bino"><svg class="mask" viewBox="0 0 160 100" preserveAspectRatio="xMidYMid slice" width="100%" height="100%"><defs><mask id="bm"><rect x="-200" y="-200" width="560" height="500" fill="#fff"/><circle cx="58" cy="50" r="36" fill="#000"/><circle cx="102" cy="50" r="36" fill="#000"/></mask></defs><rect x="-200" y="-200" width="560" height="500" fill="#0b0a10" mask="url(#bm)"/></svg>
+        <div class="cross"></div><div class="bdir"><i></i></div><div class="bgoal"></div><div class="label"></div>
+        <div class="bhint">${touch ? 'Arrastra para mirar. Cuando algo quede en el círculo, toca Anotar' : 'Mueve el ratón para mirar · E para anotar · F para salir'}</div>
+        <button class="bbtn bexit" aria-label="Salir de los prismáticos">${ICON.bino}<span>Salir</span></button>
+        <button class="bbtn bact" aria-label="Anotar">${ICON.book}<span>Anotar</span></button></div>`);
       document.body.appendChild(this.bino);
-    } else if (!on && this.bino) { this.bino.remove(); this.bino = null; }
+      const tap = (s, fn) => $(s, this.bino).addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); fn(); });
+      tap('.bact', () => this.input.press('e'));
+      tap('.bexit', () => this.game?.toggleBinoculars?.());
+      // (la ayuda de cómo se usa, solo los primeros segundos)
+      clearTimeout(this._bhT); this._bhT = setTimeout(() => this.bino?.querySelector('.bhint')?.classList.add('off'), 6500);
+    } else if (!on && this.bino) { clearTimeout(this._bhT); this.bino.remove(); this.bino = null; }
   }
   binoNote(text, ms = 2000) { this._bnote = { text, until: performance.now() + ms }; }
-  binoTarget(label, lock, hint = null) {
-    if (!this.bino) return; $('.label', this.bino).textContent = label || ''; $('.cross', this.bino).classList.toggle('lock', !!lock);
-    const d = $('.bdir', this.bino); d.style.opacity = hint == null ? 0 : 1; if (hint != null) d.style.transform = `rotate(${-hint}rad)`;
-    $('.label', this.bino).style.display = label ? '' : 'none';
+  /** Lo que hay en la marca: su nombre, si la marca lo ha cogido (lock), la flecha hacia lo buscado (hint, en radianes) y
+   *  si se puede anotar (ready: el botón Anotar se enciende) */
+  binoTarget(label, lock, hint = null, ready = lock) {
+    if (!this.bino) return; const L = $('.label', this.bino); L.textContent = label || ''; L.style.display = label ? '' : 'none';
+    $('.cross', this.bino).classList.toggle('lock', !!lock);
+    $('.bact', this.bino).classList.toggle('ready', !!ready);
+    if (lock) $('.bhint', this.bino).classList.add('off');
+    const d = $('.bdir', this.bino); d.style.opacity = hint == null || lock ? 0 : 1; if (hint != null) d.style.transform = `rotate(${-hint}rad)`;
   }
-  /** Panel del objetivo (montes por descubrir) y brújula de hacia dónde se mira. */
+  /** El recuadro: lo que se busca (goalHtml) y hacia dónde se mira; un aviso corto (p. ej. «Halcón anotado») ocupa un
+   *  momento el sitio de la dirección */
   binoInfo(goalHtml, compass) {
     if (!this.bino) return;
-    const g = $('.bgoal', this.bino); if (g._h !== goalHtml) { g._h = goalHtml; g.innerHTML = goalHtml || ''; g.style.display = goalHtml ? '' : 'none'; }
-    // un aviso corto (p. ej. «Halcón anotado») ocupa un momento el sitio de la dirección
     const note = this._bnote && performance.now() < this._bnote.until ? this._bnote.text : null;
-    $('.bcomp', this.bino).textContent = note || compass || ''; $('.bcomp', this.bino).classList.toggle('note', !!note);
+    const h = (goalHtml || '') + ((note || compass) ? `<span class="bcomp${note ? ' note' : ''}">${esc(note || compass)}</span>` : '');
+    const g = $('.bgoal', this.bino); if (g._h !== h) { g._h = h; g.innerHTML = h; g.style.display = h ? '' : 'none'; }
   }
 
   // ---------- Ritmo (danza) ----------
