@@ -28,6 +28,7 @@ import { ARMAS, PENDIENTES, FIG, GUIA, armsOfTown } from '../data/armas-navarra.
 import { CUENTOS, KIND_LABEL } from '../data/cuentos.js';
 import { drawOfficial, officialHeight } from '../world/armas.js';
 import { armsImg, clubImg } from '../ui/escudoImg.js';
+import { setupInstall, offer, openInstall } from '../web/install.js';
 import { profile, saveProfile, levelOf, rankOf, townProgress, comarcaProgress, comarcaTowns, navarraProgress, stampCount, BADGES, checkBadges, resetProfile, salazarState } from '../game/profile.js';
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -109,9 +110,11 @@ export class Hub {
   constructor({ sound, onPlay }) {
     this.sound = sound; this.onPlay = onPlay;
     this.root = el(`<div id="hub"><div class="hub-bg"><div class="bgimg"></div>${Array.from({ length: 12 }, (_, i) => `<i class="mote" style="left:${(i * 37) % 100}%;animation-delay:${-i * 1.7}s;animation-duration:${16 + (i % 5) * 3}s"></i>`).join('')}</div>
-      <header class="hub-top"><div class="brand logo">MENDIMENDIZ</div><div class="chip" id="hChip"></div></header>
+      <header class="hub-top"><div class="brand logo">MENDIMENDIZ</div><button type="button" class="app-btn" data-app hidden><svg viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><rect x="13" y="4" width="22" height="40" rx="5"/><path d="M24 14v14M18 22l6 6 6-6M21 38h6"/></svg><span>Instalar app</span></button><div class="chip" id="hChip"></div></header>
       <nav class="hub-nav" id="hNav"></nav><main class="hub-main" id="hMain"></main></div>`);
     document.body.appendChild(this.root);
+    // (instalar el juego como app: solo en la web y si no se está jugando ya desde la app instalada)
+    setupInstall(this.root, this.root.querySelector('[data-app]'));
     // secciones: las principales siempre a la vista; las demás, en «Más» cuando falta sitio (móvil)
     this.nav = [['home', 'Inicio', 'home'], ['map', 'Mapa', 'map'], ['towns', 'Pueblos', 'church'], ['sports', 'Torneos', 'trophy'], ['avatars', 'Personajes', 'person'], ['peaks', 'Cimas', 'peak', 1], ['nature', 'Naturaleza', 'leaf', 1], ['escudos', 'Escudos', 'shield', 1], ['cuentos', 'Leyendas', 'legend', 1], ['album', 'Láminas', 'scroll', 1], ['badges', 'Insignias', 'badge', 1], ['passport', 'Pasaporte', 'stamp', 1], ['profile', 'Perfil', 'gear', 1]];
     this.MORE = { peaks: 'Montañas de Navarra con su perfil', nature: 'Fauna, árboles, plantas y flores', escudos: 'Escudos de Navarra y cómo se leen', cuentos: 'Cuentos, leyendas e historias de Navarra', album: 'Las ilustraciones de cada pueblo y comarca', badges: 'Tus logros', passport: 'Los sellos de tus pueblos', profile: 'Nombre, nivel y ajustes' };
@@ -151,9 +154,10 @@ export class Hub {
   more() {
     this.sound?.ui('open');
     const s = el(`<div class="sheet more"><div class="more-in"><div class="grab"></div><small class="kicker">Más secciones</small>
-      ${this.nav.filter(n => n[3]).map(([id, n, ic]) => `<button data-go="${id}" class="${this.screen === id ? 'on' : ''}">${I(ic, 34)}<div><b>${n}</b><small>${this.MORE[id]}</small></div>${I('play', 20)}</button>`).join('')}</div></div>`);
+      ${offer() ? `<button data-install class="more-app"><img src="./icon-180.png" alt=""><div><b>Instalar app</b><small>A pantalla completa y sin conexión</small></div>${I('play', 20)}</button>` : ''}${this.nav.filter(n => n[3]).map(([id, n, ic]) => `<button data-go="${id}" class="${this.screen === id ? 'on' : ''}">${I(ic, 34)}<div><b>${n}</b><small>${this.MORE[id]}</small></div>${I('play', 20)}</button>`).join('')}</div></div>`);
     this.sheet?.remove(); this.sheet = s; this.root.appendChild(s);
     s.addEventListener('click', e => { if (e.target === s) { s.remove(); this.sheet = null; } });
+    s.querySelector('[data-install]')?.addEventListener('click', () => { s.remove(); this.sheet = null; openInstall(this.root); });
   }
   renderChip() {
     const p = profile(), L = levelOf(p.xp);

@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { splashLinks } from './src/web/splash.js';
 
 // Dos compilaciones:
 //  · normal (npx vite build): un solo archivo con todo dentro (dist/index.html → MENDIMENDIZ-jugar.html), para ordenador
@@ -41,11 +42,13 @@ const glbGzip = { name: 'glb-gzip', enforce: 'pre', load(id) {
 } };
 // la redirección a docs/ de index.html solo sirve sin compilar (GitHub Pages desde la raíz): fuera al compilar
 const sinRedir = { name: 'sin-redireccion', transformIndexHtml: (html) => html.replace(/<!-- en GitHub Pages[\s\S]*?<script id="ir-a-docs">[\s\S]*?<\/script>\n?/, '') };
-// en la web: la app se puede instalar (añadir a la pantalla de inicio) y abre a pantalla completa
+// en la web: la app se puede instalar (añadir a la pantalla de inicio) y abre a pantalla completa, con su icono y, en el
+// iPhone y el iPad, su pantalla de arranque (public/splash, tools/app-iconos.mjs)
 const app = {
   name: 'app-instalable',
   transformIndexHtml: (html) => html.replace('</head>', `<link rel="manifest" href="./manifest.webmanifest">
-<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-180.png">
+${splashLinks()}
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
