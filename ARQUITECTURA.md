@@ -247,6 +247,12 @@ Con `MINI=1 npx vite` el servidor de pruebas carga lo mismo que el archivo únic
 Con `LIGERO=1 npx vite build` sale una variante unos 6 MB más pequeña (`MENDIMENDIZ-jugar-ligero.html`): los
 personajes de Meshy van en su versión ligera (`src/assets/meshy/lod`) y todo lo demás es igual.
 
+En el iPhone, el iPad y Safari, `src/util/glb.js` hace que GLTFLoader lea las texturas de los modelos como imagen
+normal y no como ImageBitmap (un complemento del cargador cambia su `textureLoader` por un `TextureLoader`). Con
+ImageBitmap, Safari en iOS a veces subía la textura en negro: pelotaris y espectadores como siluetas. GLTFLoader ya
+lo evita en Safari anterior al 17, pero lo reconoce por el nombre del navegador y la app instalada en la pantalla de
+inicio no lo lleva. En los demás navegadores no cambia nada.
+
 ```
 npx vite build
 cp dist/index.html docs/index.html
