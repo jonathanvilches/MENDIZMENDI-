@@ -20,10 +20,20 @@ function imgTextures(loader) {
   });
 }
 
+// (y esas imágenes se descodifican al cargar el modelo, fuera del hilo principal: si no, se descodificaban de golpe al
+// subirlas a la tarjeta gráfica o al copiarlas, y el juego se paraba al entrar en un pueblo o en un partido)
+async function decodeAll(gltf) {
+  if (!APPLE || !gltf?.scene) return gltf;
+  const imgs = new Set();
+  gltf.scene.traverse(o => { for (const m of [].concat(o.material || [])) for (const k in m) { const i = m[k]?.isTexture && m[k].image; if (i && typeof i.decode === 'function') imgs.add(i); } });
+  await Promise.all([...imgs].map(i => i.decode().catch(() => {})));
+  return gltf;
+}
+
 export async function loadGLB(loader, url) {
   imgTextures(loader);
-  if (!String(url).startsWith('data:application/gzip')) return loader.loadAsync(url);
+  if (!String(url).startsWith('data:application/gzip')) return decodeAll(await loader.loadAsync(url));
   const gz = new Uint8Array(await (await fetch(url)).arrayBuffer());
   const raw = gunzipSync(gz);
-  return loader.parseAsync(raw.buffer.slice(raw.byteOffset, raw.byteOffset + raw.byteLength), '');
+  return decodeAll(await loader.parseAsync(raw.buffer.slice(raw.byteOffset, raw.byteOffset + raw.byteLength), ''));
 }
