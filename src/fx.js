@@ -150,9 +150,32 @@ export class Smoke {
 }
 
 // ---------- Luces nocturnas de farolas y ventanas ----------
+// Charco de luz de una farola en el suelo: blanco en el centro que se apaga hacia el borde (el color lo pone el material)
+function poolTexture() {
+  const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
+  const r = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(0.25, 'rgba(255,255,255,.75)'); r.addColorStop(0.6, 'rgba(255,255,255,.22)'); r.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = r; g.fillRect(0, 0, 128, 128);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+
 export class NightLights {
   constructor(scene, lamps, mats) {
     this.mats = mats;
+    // de noche, la luz de cada farola en el suelo: un disco que sigue el relieve, con un degradado cálido que se suma al
+    // color del empedrado (antes el suelo bajo las farolas quedaba tan azul como el resto). Todas en una sola malla
+    if (lamps.length) {
+      const R = 4.4, n = 8, geos = lamps.map(l => {
+        const pg = new THREE.PlaneGeometry(R * 2, R * 2, n, n); pg.rotateX(-Math.PI / 2);
+        const pp = pg.attributes.position;
+        for (let i = 0; i < pp.count; i++) { const x = l.x + pp.getX(i), z = l.z + pp.getZ(i); pp.setXYZ(i, x, terrainHeight(x, z) + 0.05, z); }
+        return pg;
+      });
+      this.poolMat = new THREE.MeshBasicMaterial({ map: poolTexture(), color: '#ffae58', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0, fog: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 });
+      this.pools = new THREE.Mesh(mergeGeometries(geos), this.poolMat); geos.forEach(q => q.dispose());
+      this.pools.renderOrder = 1; this.pools.visible = false; this.pools.name = 'charcos de luz';
+      scene.add(this.pools);
+    }
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(lamps.flatMap(l => [l.x, l.y, l.z]), 3));
     this.mat = new THREE.PointsMaterial({ map: GLOW, color: '#ffc46b', size: 3.4, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0, sizeAttenuation: true });
@@ -166,6 +189,7 @@ export class NightLights {
   update(night, player) {
     const on = clamp((night - 0.3) * 2.5, 0, 1);
     this.mat.opacity = on * 0.85; this.points.visible = on > 0.01;
+    if (this.pools) { this.poolMat.opacity = on * 0.5; this.pools.visible = on > 0.01; }
     this.mats.lamp.emissiveIntensity = on * 3;
     this.mats.glass.emissiveIntensity = on * 0.55;
     // otros materiales que se encienden de noche (la fachada de El Sadar): [de día, de noche]
