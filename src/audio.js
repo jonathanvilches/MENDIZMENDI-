@@ -164,7 +164,8 @@ export class Sound {
   // ---- música generativa por ambiente ----
   // explore: txistu y tamboril (día) · night: arpa lenta y bordón suave · mystery: notas sueltas, tritono y
   // un latido grave (leyendas) · tension: ostinato rápido en menor con timbal (encierro, persecuciones) ·
-  // game: aire alegre y saltarín con bajo (minijuegos, pelota, fútbol) · fiesta: charanga (San Fermín, carnaval)
+  // game: aire alegre y saltarín con bajo (minijuegos) · fiesta: charanga (San Fermín, carnaval) · none: nada (los
+  // partidos de pelota y fútbol y los campeonatos: solo la grada)
   setMood(m) { if (m && m !== this.mood) { this.mood = m; this.moodT = 0; } }
   startMusic() {
     const ctx = this.ctx;
@@ -193,7 +194,11 @@ export class Sound {
       if (!this.musicOn || document.hidden) { next = ctx.currentTime + 0.5; return; }
       while (next < ctx.currentTime + 1.2) {
         // cambio de ambiente al empezar compás, con un pequeño fundido del bus
-        if (this.mood !== cur) { cur = this.mood; bar = 0; const g = this.musicBus.gain, v = this.musicOn ? 0.32 : 0; g.cancelScheduledValues(ctx.currentTime); g.setValueAtTime(v * 0.25, next); g.linearRampToValueAtTime(v, next + 1.2); }
+        if (this.mood !== cur) {
+          cur = this.mood; bar = 0; const g = this.musicBus.gain, v = this.musicOn ? 0.32 : 0; g.cancelScheduledValues(ctx.currentTime);
+          if (cur === 'none') g.setTargetAtTime(0, ctx.currentTime, 0.35); else { g.setValueAtTime(v * 0.25, next); g.linearRampToValueAtTime(v, next + 1.2); }
+        }
+        if (cur === 'none') { next += 0.5; continue; }   // (sin música: en los partidos se oye el público)
         const M = MOOD[cur] || MOOD.explore, sc = M.sc, beat = M.beat, list = PH[cur] || PH.explore;
         const ph = list[(bar >> 1) % list.length], half = (bar % 2) * 8;
         for (let i = 0; i < 8; i++) {

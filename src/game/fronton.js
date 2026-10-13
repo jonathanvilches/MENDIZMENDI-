@@ -21,6 +21,7 @@ import { txapelas } from './torneo.js';
 import { meetPelotari } from './pelotaris.js';
 // las figuras de la pantalla VS (nuestros pelotaris en 3D, en pleno golpe: tools/meshy-retratos.mjs con CLIP=Hit T=0.2)
 import { pelotariFig, RIVALES } from '../ui/pelotariFig.js';   // (las mismas figuras que las cartas: así no van dos veces en el archivo único)
+import { crowdBuffers } from '../crowdAudio.js';
 
 // Cómo es el frontón de cada sitio. Se parte de la comarca y de lo que cuentan las fuentes (legal/estado-legal.md): los
 // frontones viejos de los pueblos, junto a la iglesia y con el frontis de sillería (arenisca rojiza en Baztan y Bidasoa,
@@ -167,11 +168,14 @@ export class Fronton {
 // El frontón Labrit de Iruña, donde se juegan las finales: se monta una vez, muy por encima del pueblo y fuera de sus
 // límites (no toca casas, árboles ni caminos; dentro, cubierto, no se ve nada de fuera)
 let LABRIT = null;
+// la chapa de los campeonatos, en el cubierto y en el Labrit: de metal pintado algo naranja (se distingue bien del
+// verde del frontis y de la raya)
+const CHAPA_CAMP = '#c8763a';
 function labritOpts() {
   // (en la pared izquierda, el escudo de Pamplona y su nombre, como en el de verdad, sin el logotipo del ayuntamiento)
   const A = armsOfTown('pamplona'), shield = A ? (g, cx, top, h) => drawTownArms(g, cx, top, h / officialHeight(1, A), A) : null;
   return { labrit: true, wallName: 'IRUÑA · PAMPLONA', wallSub: 'FRONTÓN LABRIT', shield, signAt: { y: 5.4 },
-    look: { frontis: '#1d5846', wall: '#1d5846', floor: '#1a1f21', contra: '#d49a5c', parquet: true, line: '#f3f2ec', mark: '#f3f2ec', chapa: '#d9dcd8', chapaMetal: true, stone: null, brick: false, roof: null, cap: '#1d5846' } };
+    look: { frontis: '#1d5846', wall: '#1d5846', floor: '#1a1f21', contra: '#d49a5c', parquet: true, line: '#f3f2ec', mark: '#f3f2ec', chapa: CHAPA_CAMP, chapaMetal: true, stone: null, brick: false, roof: null, cap: '#1d5846' } };
 }
 export function labrit(scene, out) {
   if (LABRIT && LABRIT.court.group.parent === scene) return LABRIT;
@@ -182,7 +186,7 @@ export function labrit(scene, out) {
 // con la grada a lo largo de la contracancha. Se monta una vez por pueblo, muy por encima y fuera de sus límites, como
 // el Labrit (dentro no se ve nada de fuera). Los frontones de la calle quedan para las misiones y los partidos sueltos.
 let HALL = null;
-const HALL_LOOK = { frontis: '#2b6a56', wall: '#2b6a56', floor: '#5b6461', contra: '#7c8583', line: '#f3f2ec', mark: '#d8333f', chapa: '#cfd4d6', chapaMetal: true, cap: '#2b6a56', stone: null, brick: false, roof: null, stands: '#8c8794' };
+const HALL_LOOK = { frontis: '#2b6a56', wall: '#2b6a56', floor: '#5b6461', contra: '#7c8583', line: '#f3f2ec', mark: '#d8333f', chapa: CHAPA_CAMP, chapaMetal: true, cap: '#2b6a56', stone: null, brick: false, roof: null, stands: '#8c8794' };
 export function hallVenue(scene, out, def) {
   if (HALL && HALL.court.group.parent === scene && HALL.town === def?.id) return HALL;
   if (HALL) { try { HALL.court.group.parent?.remove(HALL.court.group); HALL.court.dispose?.(); } catch (e) { console.warn('frontón cubierto', e); } }
@@ -205,7 +209,8 @@ export function labritInTown(scene, near) {
 // rivalStats: las cualidades del rival (fuerza, agilidad, velocidad, de 1 a 5); sin ellas, las suyas según su nombre
 // pairs: { partner: { name, stats }, rivalMate: { name, stats } } (el torneo por parejas: el partido es por parejas)
 // rivalTown: { id, name } del pueblo del rival (en el torneo, el suyo; si no, el del frontón): para la colección
-export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level, rivalName, fixedLevel = false, returnTo = null, rivalStats = null, pairs = null, rivalTown = null, comp = null, youBonus = 2, rivalBonus = 0 } = {}) {
+// stay: al acabar no se vuelve al pueblo (los campeonatos y el torneo siguen con su menú)
+export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level, rivalName, fixedLevel = false, returnTo = null, rivalStats = null, pairs = null, rivalTown = null, comp = null, youBonus = 2, rivalBonus = 0, stay = false } = {}) {
   if (window.__autoWin) return Promise.resolve({ win: true, you: target, cpu: 0 });
   return new Promise(res => {
     const P = G.player, rig0 = P.rig, home = { x: rival.pos.x, z: rival.pos.z, h: rival.heading };
@@ -221,6 +226,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // para el partido te conviertes en el pelotari (camiseta, pantalón blanco y tacos en las manos); al acabar vuelves a ser tú
     // (si ya juegas con el pelotari, no hace falta cambiar; los modelos se piden antes, al acercarte al frontón)
     G.pelotaLoading = true;   // (preparándose: si se pierde la memoria gráfica ahora, el pueblo se rehace junto al frontón)
+    crowdBuffers(G.sound?.ctx);   // (las voces y los aplausos del público se calculan mientras se preparan los pelotaris)
     const wait = !loadedMeshy('pelotari') || !loadedMeshy('pelotari_rojo');
     if (wait) G.ui.toast?.(isEU() ? 'Pilotariak prestatzen…' : 'Preparando a los pelotaris…', 'pelota', 1800);
     if (rig0.id !== 'pelotari' && hasMeshy('pelotari')) try { fullTexFor('pelotari'); pel = new GlbRig(await loadMeshy('pelotari'), 'pelotari'); } catch (e) { console.warn('pelotari', e); }
@@ -337,8 +343,10 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       safe(() => { if (red) { red.char.post = null; rival.obj.remove(red.char.root); red.dispose(); } });
       safe(() => { for (const c of hiddenR) if (!c.parent) rival.obj.add(c); });
       safe(() => G.rt?.boost?.(false));
-      P.rig = rig0; P.frozen = false; G.mode = 'play';
-      safe(() => G.ui.hudVisible?.(true)); safe(() => G.perro?.release?.());
+      // (en los campeonatos, stay: del partido se pasa al menú o al cuadro del torneo sin volver al pueblo, ni sus
+      // botones ni el perro; el jugador sigue quieto en la puerta del frontón, de fondo)
+      P.rig = rig0; P.frozen = !!stay; G.mode = 'play';
+      if (!stay) { safe(() => G.ui.hudVisible?.(true)); safe(() => G.perro?.release?.()); }
       safe(() => { rival.frozen = false; rival.speed = 0; rival.setPos(home.x, home.z, home.h); });
       safe(() => { const back = returnTo || fronton, e = back.entry, c = back.out || back.toWorld(0, 12); P.place(e.x, e.z, Math.atan2(c.x - e.x, c.z - e.z)); });
       safe(() => { G.follow.cinematic = null; G.follow.snap(P); });
