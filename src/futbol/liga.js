@@ -128,7 +128,7 @@ const CSS = `
 /* botones de acción al pie (como en todo el juego): salir a la izquierda y la acción principal a la derecha, donde está el
    pulgar de las acciones; en dos filas, la principal abajo y a todo lo ancho */
 .lg-foot>[data-a="exit"]{order:-1}.lg-foot>.lg-btn.go{order:2}.lg-btns>.lg-btn:only-child{grid-column:1/-1}
-.lg-btn{position:relative;overflow:hidden;border:1px solid rgba(201,178,255,.3);border-radius:4px;padding:12px;min-height:50px;font:800 var(--fs-md)/1.15 var(--f-cond);letter-spacing:.04em;text-transform:uppercase;color:#fff;background:rgba(255,255,255,.07);cursor:pointer;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%)}
+.lg-btn{position:relative;overflow:hidden;border:1px solid rgba(201,178,255,.3);border-radius:4px;padding:12px 20px;min-height:50px;font:800 var(--fs-md)/1.15 var(--f-cond);letter-spacing:.04em;text-transform:uppercase;color:#fff;background:rgba(255,255,255,.07);cursor:pointer;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%)}
 .lg-btn.go{border:0;background:var(--cta);color:#fff;font:400 var(--fs-xl)/1 var(--f-display);box-shadow:var(--glow)}.lg-btn.go::after{content:'';position:absolute;top:0;bottom:0;left:0;width:40%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);transform:translateX(-150%) skewX(-20deg);animation:gx-sweep 3.2s ease-in-out .6s infinite;pointer-events:none}
 .lg-btn:active{transform:translateY(1px) scale(.98)}
 .lg-note{font-size:var(--fs-xs);color:#a99cc9;margin:0}.lg-head small+h2{margin-top:var(--t-mt)}.lg-head h2:not(:last-child){margin-bottom:var(--t-mb)}.lg-head .lg-note{display:block}
@@ -152,7 +152,7 @@ const CSS = `
 .lg-card.lg-two>.lg-btns:has(>.lg-btn:nth-child(2):last-child){grid-template-columns:1.7fr 1fr}.lg-card.lg-two>.lg-btns:has(>.lg-btn:nth-child(2):last-child)>.lg-btn.go{grid-column:auto}
 .lg-table{font-size:var(--fs-xs)}.lg-table td{padding:2px}.lg-table th{padding:4px 2px}.lg-head{gap:8px}.lg-head .lg-kit{width:27px;height:36px}.lg-head h2{font-size:var(--fs-lg)}.lg-head small{font-size:var(--fs-xs)}
 .lg-next{padding:8px 8px}.lg-next .lg-kit{display:none}.lg-next .lg-jf{width:60px;min-height:80px}.lg-next b{font-size:var(--fs-sm)}.lg-vs{font-size:var(--fs-xl)}
-.lg-how{font-size:var(--fs-xs);line-height:1.45;padding:4px 8px}.lg-btn{min-height:44px;padding:8px}.lg-btn.go{font-size:var(--fs-lg)}
+.lg-how{font-size:var(--fs-xs);line-height:1.45;padding:4px 8px}.lg-btn{min-height:44px;padding:8px 20px}.lg-btn.go{font-size:var(--fs-lg)}
 .lg-rv{padding:4px 8px;gap:8px}.lg-rv .lg-kit{width:21px;height:28px}
 }
 /* portadas de equipo: la pareja del autor de cada equipo (el chico y la chica con su equipación); en el archivo único, su
@@ -160,7 +160,7 @@ const CSS = `
 .lg-card.eq-menu{grid-template-rows:auto minmax(0,1fr) auto}
 .eq-tiles{display:grid;grid-auto-flow:column;grid-template-columns:1.3fr;grid-auto-columns:1fr;gap:12px;min-height:0}
 .eq-tile,.eq-team{position:relative;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;gap:2px;min-width:0;border:1px solid rgba(201,178,255,.25);border-radius:4px;color:#fff;text-align:left;cursor:pointer;font:inherit;background:linear-gradient(160deg,var(--t1,#5b4bff),var(--t2,#120a40) 75%);transition:transform .15s,border-color .15s}
-.eq-tile{min-height:220px;padding:12px 16px;clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px)}
+.eq-tile{min-height:220px;padding:12px 22px;clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px)}
 .eq-tile::before,.eq-team::before{content:'';position:absolute;inset:0;z-index:-1;background:repeating-linear-gradient(125deg,transparent 0 14px,rgba(255,255,255,.035) 14px 15px)}
 .eq-tile::after{content:'';position:absolute;top:-10%;bottom:-10%;left:0;width:40%;z-index:2;background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);transform:translateX(-160%) skewX(-18deg);animation:gx-sweep 6s ease-in-out var(--d,0s) infinite;pointer-events:none}
 .eq-tile:active,.eq-team:active{transform:scale(.97)}.eq-tile:hover,.eq-team:hover{border-color:var(--rosa)}
@@ -179,7 +179,7 @@ const CSS = `
 .eq-teams{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(144px,168px);gap:8px;overflow-x:auto;overflow-y:hidden;overscroll-behavior:contain;scroll-snap-type:x proximity;min-height:0;padding:2px;scrollbar-width:none}
 .eq-teams::-webkit-scrollbar{display:none}
 .eq-teams.mr{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent)}.eq-teams.ml{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px);mask-image:linear-gradient(90deg,transparent,#000 40px)}.eq-teams.ml.mr{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent)}
-.eq-team{min-height:240px;padding:8px 12px 12px;scroll-snap-align:start;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)}
+.eq-team{min-height:240px;padding:8px 20px 12px;scroll-snap-align:start;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)}
 .eq-team.on{--t1:#ff2bd6;--t2:#3a0b6b;border-color:var(--rosa)}
 .eq-team .art{margin:32px -4px 8px}
 .eq-team .em{position:absolute;top:8px;left:12px;width:24px;height:28px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
@@ -195,7 +195,7 @@ const CSS = `
 }
 @media (orientation:landscape) and (max-height:520px){
 .lg-card.eq-menu,.lg-card.eq-pick{height:100%}.eq-tile{min-height:0;padding:8px 12px}.eq-tile b{font-size:var(--fs-xl)}.eq-tile .art{margin-bottom:4px}
-.eq-teams{grid-auto-columns:clamp(128px,18vw,160px)}.eq-team{min-height:0;padding:8px 10px 10px}.eq-team .art{margin-top:28px}.lg-champ .duo{height:84px}
+.eq-teams{grid-auto-columns:clamp(128px,18vw,160px)}.eq-team{min-height:0;padding:8px 18px 10px}.eq-team .art{margin-top:28px}.lg-champ .duo{height:84px}
 }
 /* (en los móviles más estrechos, las losas iguales y el título algo menor: «Lagunartekoa» cabe entero) */
 @media (orientation:landscape) and (max-width:720px){.eq-tiles{grid-template-columns:1fr}.eq-tile b{font-size:var(--fs-lg)}}

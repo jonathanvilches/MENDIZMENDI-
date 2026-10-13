@@ -350,7 +350,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .ppage header div { display: flex; flex-direction: column; }
 .ppage b { font-size: var(--fs-md); font-weight: 900; } .ppage small { color: var(--mute); }
 .pstamps { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; margin-top: 12px; }
-.pst { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px; border-radius: 12px; border: 2px dashed rgba(190, 160, 255, .3); background: rgba(255, 255, 255, .03); color: var(--ink); }
+.pst { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 12px; border-radius: 12px; border: 2px dashed rgba(190, 160, 255, .3); background: rgba(255, 255, 255, .03); color: var(--ink); }
 .pst .ink { opacity: .35; } .pst.on { border-style: solid; border-color: var(--c); background: color-mix(in srgb, var(--c) 12%, transparent); } .pst.on .ink { opacity: 1; transform: rotate(-10deg); }
 .pst small { font-size: var(--fs-xs); font-weight: 800; text-align: center; color: var(--ink); }
 
@@ -1050,7 +1050,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   .simon .mg-card { gap: 8px; padding: 12px 16px; } .pads4 button { height: 74px; }
 }
 @media (orientation: landscape) and (max-height: 400px) {
-  .seq:not(.choice) .slots li { min-height: 36px; padding: 4px 8px; } .seq:not(.choice) .opt { min-height: 44px; padding: 8px 8px; }
+  .seq:not(.choice) .slots li { min-height: 36px; padding: 4px 8px; } .seq:not(.choice) .opt { min-height: 44px; padding: 8px 12px; }
   .seq:not(.choice) .mg-card { padding: 12px 16px; row-gap: 4px; } .seq:not(.choice) .opts, .seq:not(.choice) .slots { gap: 4px; }   /* (los cinco pasos y sus respuestas caben sin desplazar en los móviles más bajos) */
   .antes-ahora div { padding: 4px 8px; font-size: var(--fs-sm); }
   .pads4 button { height: 62px; }
@@ -1168,6 +1168,18 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .armorial .ar-nt { font-style: italic; color: var(--lila) !important; font-size: var(--fs-sm) !important; }
 .armorial .ar-pend { background: rgba(0, 0, 0, .2); border-radius: 16px; padding: 8px 16px; } .armorial .ar-pend h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font-size: var(--fs-md); } .armorial .ar-pend ul { margin: 4px 0; padding-left: 20px; color: #eae4f6; }
 .armorial .ar-src { font-size: var(--fs-sm); color: #bfb39c; }
+/* cada escudo es una tarjeta que se toca para abrir su ficha (ya no se despliega dentro de la lista); la guía y los que
+   faltan por comprobar, igual: un botón que abre su ficha */
+.armorial button.ar { width: 100%; grid-template-columns: 128px minmax(0, 1fr) auto; align-items: center; font: inherit; color: inherit; text-align: left; cursor: pointer; transition: border-color .15s, background .15s; }
+.armorial button.ar:hover, .armorial button.ar:focus-visible { border-color: #ff7ac8; }
+.armorial button.ar > :last-child { flex: none; margin-right: 4px; }
+/* (el escudo, centrado en su columna: los márgenes negativos de antes, pensados para la tarjeta alineada arriba, lo descentraban) */
+.armorial button.ar img.ar-img { margin: -8px 0; } .armorial button.ar > :first-child { align-self: start; }   /* (todos a la misma altura de su tarjeta, también en las que llevan «Leído en el juego») */
+.armorial .ar-nm { display: block; margin: var(--t-mt) 0 var(--t-mb); font: 400 var(--fs-lg)/1 var(--f-display); }
+.armorial .ar-btn { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 64px; padding: 12px 16px; border-radius: 4px; background: rgba(0, 0, 0, .25); border: 1px solid rgba(255, 122, 200, .25); font: inherit; color: inherit; text-align: left; cursor: pointer; transition: border-color .15s; }
+.armorial .ar-btn:hover, .armorial .ar-btn:focus-visible { border-color: #ff7ac8; }
+.armorial .ar-btn > :first-child, .armorial .ar-btn > :last-child { flex: none; }
+.armorial .ar-btn span { flex: 1; min-width: 0; } .armorial .ar-btn b { display: block; font-size: var(--fs-md); } .armorial .ar-btn small { display: block; color: var(--mute); font-size: var(--fs-sm); }
 .armorial.cuentos .ct { grid-template-columns: 1fr; align-content: start; }   /* (más fuerte que el 84 px de los escudos en el móvil de pie) */
 /* la lámina del cuento a todo el ancho de su tarjeta, en 16:9 (y el icono, si no la tiene, en el mismo marco) */
 .cuentos :is(.ct-lam, .ct-ic) { position: relative; margin: 0; width: 100%; aspect-ratio: 16 / 9; border-radius: 4px; overflow: hidden; background: rgba(255, 255, 255, .06); display: grid; place-items: center; }
@@ -1176,7 +1188,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .cuentos .ct-lam[data-ley] { cursor: zoom-in; }
 .cuentos .ct-lam span { position: relative; display: grid; place-items: center; width: 72px; height: 72px; border-radius: 50%; background: rgba(20, 6, 46, .6); border: 1px solid rgba(201, 178, 255, .35); }
 .cuentos .ct-pl { font-style: italic; color: var(--lila) !important; } .cuentos .ar-tx details p { font-size: var(--fs-sm); } .cuentos .ct-go { margin-top: 8px; min-height: 44px; padding: 8px 16px; display: inline-flex; align-items: center; gap: 8px; }
-@media (max-width: 560px), (orientation: landscape) and (max-height: 440px) { .armorial .ar-grid { grid-template-columns: 1fr; } .armorial .ar { grid-template-columns: 84px 1fr; } .armorial .ar canvas { width: 84px; } }
+@media (max-width: 560px), (orientation: landscape) and (max-height: 440px) { .armorial .ar-grid { grid-template-columns: 1fr; } .armorial .ar { grid-template-columns: 84px 1fr; } .armorial .ar canvas { width: 84px; } .armorial button.ar { grid-template-columns: 96px minmax(0, 1fr) auto; } .armorial button.ar img.ar-img { margin: -6px 0; } }
 /* (el cuento con su lámina al lado solo en el móvil tumbado; de pie, la lámina entera arriba y el texto debajo) */
 @media (orientation: landscape) and (max-height: 440px) { .armorial.cuentos .ct { grid-template-columns: 240px minmax(0, 1fr); } }
 .sh-arms { display: grid; grid-template-columns: 90px 1fr; gap: 12px; align-items: start; margin: 0 0 12px; } .sh-arms canvas { width: 90px; height: auto; } .sh-arms p { margin: 0; }
@@ -1276,11 +1288,11 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   .map-ov small { font: 800 var(--fs-xs)/1.2 var(--f-cond); letter-spacing: .1em; text-transform: uppercase; color: var(--rosa); }
   .map-ov b { font: 400 var(--fs-3xl)/1 var(--f-display); color: #fff; text-shadow: 0 3px 0 rgba(7, 2, 15, .6); } .map-ov b small { font-size: .5em; color: var(--rosa); }
   .map-wrap .clist { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 44px; gap: 4px 8px; overflow-y: auto; min-height: 0; padding-right: 2px; align-content: start; }
-  .map-wrap .clist button { padding: 2px 8px 2px 4px; min-height: 44px; grid-template-rows: 1fr; } .map-wrap .clist i { width: 24px; height: 24px; font-size: var(--fs-sm); grid-row: auto; }
+  .map-wrap .clist button { padding: 2px 12px 2px 8px; min-height: 44px; grid-template-rows: 1fr; } .map-wrap .clist i { width: 24px; height: 24px; font-size: var(--fs-sm); grid-row: auto; }
   .map-wrap .cbar2 { display: none; }
   /* (el nombre de la comarca en dos líneas si no cabe en una: con la muesca del iPhone las columnas son más estrechas) */
   .map-wrap .clist b { font-size: var(--fs-xs); line-height: 1.1; white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: normal; word-break: normal; }   /* (se parte por los espacios o el guion, nunca a mitad de palabra) */
-@media (orientation: landscape) and (max-width: 720px) and (max-height: 560px) { .map-wrap .clist button { column-gap: 4px; padding: 2px 4px; } .map-wrap .clist i { width: 20px; height: 20px; font-size: var(--fs-xs); } .map-wrap .clist b { letter-spacing: .02em; } .map-wrap .clist small { font-size: var(--fs-xs); } }   /* (en los móviles más estrechos, más sitio para el nombre de la comarca) */ .map-wrap .clist small { font-size: var(--fs-sm); }
+@media (orientation: landscape) and (max-width: 720px) and (max-height: 560px) { .map-wrap .clist button { column-gap: 4px; padding: 2px 12px 2px 6px; } .map-wrap .clist i { width: 20px; height: 20px; font-size: var(--fs-xs); } .map-wrap .clist b { letter-spacing: .02em; } .map-wrap .clist small { font-size: var(--fs-xs); } }   /* (en los móviles más estrechos, más sitio para el nombre de la comarca) */ .map-wrap .clist small { font-size: var(--fs-sm); }
 }
 
 /* ---------- Láminas ----------

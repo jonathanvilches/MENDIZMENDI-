@@ -22,22 +22,22 @@ function paint(canvas, A, stone) {
 // la ficha: { kicker, title, sub, canvas: { w, h, draw(cv, stone) }, stone (si se puede ver en piedra), secs: [[título, html]], badge }
 // (cómo se lee, en pestañas: una sección cada vez y entera, sin desplazar ni «Ver más»; antes iban las cuatro en rejilla,
 // plegadas, y en el móvil tumbado no cabían)
-function armsCard(ui, { kicker, title, sub, canvas, image = '', stone = false, secs, more = [], badge = '', note = '' }) {
+function armsCard(ui, { kicker, title, sub, canvas, image = '', media = '', stone = false, secs, more = [], badge = '', note = '' }) {
   const all = [...secs, ...more].filter(x => x && x[1]);
   return new Promise(res => {
     ui.closeModal?.(); ui.sound?.ui?.('card');
     const o = el(`<div class="mg-overlay escudo ix-ov"><div class="mg-card ix">
-      <div class="ix-media"><figure class="ix-frame paper${image ? ' img' : ''}">${image ? `<img src="${image}" alt="${esc(title)}">` : `<canvas width="${canvas.w}" height="${canvas.h}" aria-label="${esc(title)}"></canvas>`}</figure>
+      <div class="ix-media"><figure class="ix-frame paper${image || media ? ' img' : ''}">${media || (image ? `<img src="${image}" alt="${esc(title)}">` : `<canvas width="${canvas.w}" height="${canvas.h}" aria-label="${esc(title)}"></canvas>`)}</figure>
         ${badge ? `<span class="ix-tag badge">${esc(badge)}</span>` : ''}
         ${stone ? '<div class="ix-shots es-toggle" role="group"><button type="button" data-s="0" aria-pressed="true">En color</button><button type="button" data-s="1" aria-pressed="false">En piedra</button></div>' : ''}</div>
       <div class="ix-main">
         <header class="ix-head"><p class="ix-kicker">${esc(kicker)}</p><h2 class="ix-title">${esc(title)}</h2>${sub ? `<div class="ix-sub"><i class="es-blazon">${esc(sub)}</i></div>` : ''}</header>
-        <div class="ix-tabs es-tabs" role="tablist">${all.map(([t], i) => `<button type="button" role="tab" data-t="${i}" aria-selected="${i === 0}">${esc(t)}</button>`).join('')}</div>
+        ${all.length > 1 ? `<div class="ix-tabs es-tabs" role="tablist">${all.map(([t], i) => `<button type="button" role="tab" data-t="${i}" aria-selected="${i === 0}">${esc(t)}</button>`).join('')}</div>` : ''}
         <div class="ix-pane es-pane" role="tabpanel">${all[0]?.[1] || ''}</div>
         ${note ? `<p class="ix-text es-note">${esc(note)}</p>` : ''}
         <div class="ix-foot"><button class="btn primary next">Seguir explorando</button></div></div></div></div>`);
     document.body.appendChild(o); ui.modal = o;
-    const cv = o.querySelector('.ix-frame canvas'); if (cv) canvas.draw(cv, false);
+    const cv = o.querySelector('.ix-frame canvas'); if (cv && canvas) canvas.draw(cv, false);
     o.querySelectorAll('.es-toggle button').forEach(b => b.onclick = () => { o.querySelectorAll('.es-toggle button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); canvas.draw(cv, b.dataset.s === '1'); ui.sound?.ui?.('click'); });
     const pane = o.querySelector('.es-pane');
     // (las pestañas van en una fila; si no caben, la fila se desliza de lado)
@@ -100,3 +100,7 @@ export function readTownArms(ui, A, { town = '', isNew = false } = {}) {
       : valley ? `El escudo oficial de todo el valle; ${esc(town)} lo usa como suyo. Lo verás en el ayuntamiento, en los sellos y en las banderas.` : `El escudo oficial de ${esc(A.name)}. Lo verás en el ayuntamiento, en los sellos y en las banderas.`]],
   });
 }
+
+/** Ficha de información con la misma forma que la de un escudo (para la guía de cómo se lee un escudo, por ejemplo):
+ * opts { kicker, title, sub, image | media (html), secs: [[pestaña, html]], note } → Promise */
+export function infoCard(ui, opts) { return armsCard(ui, opts); }
