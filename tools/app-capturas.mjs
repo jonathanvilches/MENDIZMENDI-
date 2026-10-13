@@ -1,12 +1,13 @@
 // Capturas para el aviso de instalación de la app (Android y Chrome del ordenador las enseñan antes de instalar): el
-// inicio, el mapa y los torneos, en horizontal (1688 × 780) y en vertical (780 × 1688). Van en public/capturas.
+// inicio, el mapa y los torneos, en horizontal (1688 × 780), que es como se juega la app. Van en public/capturas
+// (las de vertical, home-v y sports-v, son de antes de fijar la app en horizontal: ya no van en el manifest).
 // Uso: URL=http://127.0.0.1:5173 node tools/app-capturas.mjs   (el servidor de pruebas, con la web)
 import { chromium } from 'playwright-core';
 import { writeFileSync, mkdirSync } from 'node:fs';
 const URL = process.env.URL || 'http://127.0.0.1:5173';
 mkdirSync('public/capturas', { recursive: true });
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
-for (const [W, H, tag, screens] of [[844, 390, 'h', ['home', 'map', 'sports']], [390, 844, 'v', ['home', 'sports']]]) {
+for (const [W, H, tag, screens] of [[844, 390, 'h', ['home', 'map', 'sports']]]) {
   const ctx = await b.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
   const p = await ctx.newPage();
   // (como si ya se jugase desde la app instalada: sin el botón de instalar)

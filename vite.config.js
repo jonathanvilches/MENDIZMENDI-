@@ -52,7 +52,7 @@ ${splashLinks()}
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Mendimendiz">
+<meta name="apple-mobile-web-app-title" content="Herrizherri">
 </head>`),
   // el service worker, con el nombre de su caché sacado de los archivos de esta versión y la lista de esos archivos
   generateBundle(_, bundle) {

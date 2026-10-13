@@ -30,7 +30,7 @@ const ico = (k) => k === 'app' ? '<img src="./icon-180.png" alt="">' : `<svg vie
 const STEPS = IOS ? [
   ['share', 'Toca Compartir', 'En la barra de Safari o en su menú ···'],
   ['add', 'Añadir a pantalla de inicio', 'Si no lo ves, desliza la lista hacia arriba'],
-  ['app', 'Toca Añadir', 'El icono de Mendimendiz sale junto a tus apps'],
+  ['app', 'Toca Añadir', 'El icono de Herrizherri sale junto a tus apps'],
 ] : ANDROID ? [
   ['dots', 'Abre el menú del navegador', 'Los tres puntos, arriba a la derecha'],
   ['add', 'Instalar app', 'O «Añadir a pantalla de inicio»'],
@@ -43,7 +43,7 @@ const STEPS = IOS ? [
 
 function sheet(root) {
   const s = document.createElement('div'); s.className = 'sheet more app-sheet';
-  s.innerHTML = `<div class="more-in" role="dialog" aria-label="Instalar app"><div class="grab"></div><small class="kicker">Mendimendiz como app</small>
+  s.innerHTML = `<div class="more-in" role="dialog" aria-label="Instalar app"><div class="grab"></div><small class="kicker">Herrizherri como app</small>
     <div class="ap-head"><span class="ap-ico">${ico('app')}</span><div><b>Instálala en tu pantalla de inicio</b><small>A pantalla completa, sin barras del navegador y también sin conexión</small></div></div>
     <ol class="ap-steps">${STEPS.map(([k, b, t], i) => `<li><span class="ap-n">${i + 1}</span><span class="ap-g${k === 'app' ? ' ap-me' : ''}">${ico(k)}</span><div><b>${b}</b><small>${t}</small></div></li>`).join('')}</ol>
     <div class="ap-row"><button type="button" class="btn ghost ap-share">${ico('share')}<span>Compartir el enlace</span></button><button type="button" class="btn primary ap-ok"><span>Listo</span></button></div></div>`;
@@ -52,7 +52,7 @@ function sheet(root) {
   s.querySelector('.ap-ok').addEventListener('click', close);
   s.querySelector('.ap-share').addEventListener('click', async (e) => {
     const b = e.currentTarget, url = link();
-    try { if (navigator.share) { await navigator.share({ title: 'MENDIMENDIZ', text: 'Explora los pueblos de Navarra jugando', url }); return; } } catch (err) { if (err?.name === 'AbortError') return; }
+    try { if (navigator.share) { await navigator.share({ title: 'HERRIZHERRI', text: 'Explora los pueblos de Navarra jugando', url }); return; } } catch (err) { if (err?.name === 'AbortError') return; }
     try { await navigator.clipboard.writeText(url); b.querySelector('span').textContent = 'Enlace copiado'; } catch (err) { b.querySelector('span').textContent = url; }
   });
   root.appendChild(s); root.__hubSheet = s;

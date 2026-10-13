@@ -200,6 +200,8 @@ export class Runtime {
     requestAnimationFrame(this.loop);
     const dt = Math.min(this.clock.getDelta(), 0.05);
     if (!this.active || !this.scene) return;
+    // (la app instalada puesta en vertical: sale la pantalla de girar, index.html, y el juego espera)
+    if (window.__girado) return;
     this.elapsed += dt;
     if (this.contextLost) return;
     const g = this.game, input = this.input;

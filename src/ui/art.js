@@ -16,7 +16,7 @@ export function stampURL(comarcaId, town = null, emblem = null) {
   return memo('s' + comarcaId + (town || '') + (emblem || ''), () => {
     const c = COMARCAS.find(x => x.id === comarcaId) || { name: 'Navarra', color: '#6d3b5c' };
     const col = c.color, dark = shade(col, -0.45), light = shade(col, 0.55);
-    const top = 'MENDIMENDIZ', bottom = (town || c.name).toUpperCase();
+    const top = 'HERRIZHERRI', bottom = (town || c.name).toUpperCase();
     const ek = emblem || EMBLEM[comarcaId]; const ic = withDefs(ICONS[ek] ? ek : 'star');
     const teeth = Array.from({ length: 36 }, (_, i) => { const a = i / 36 * Math.PI * 2; return `${(100 + Math.cos(a) * 96).toFixed(1)},${(100 + Math.sin(a) * 96).toFixed(1)} ${(100 + Math.cos(a + Math.PI / 36) * 90).toFixed(1)},${(100 + Math.sin(a + Math.PI / 36) * 90).toFixed(1)}`; }).join(' ');
     const fs = bottom.length > 16 ? 11 : bottom.length > 11 ? 13 : 15;

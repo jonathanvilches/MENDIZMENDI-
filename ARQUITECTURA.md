@@ -1,4 +1,8 @@
-# MENDIMENDIZ · Arquitectura del código
+# HERRIZHERRI · Arquitectura del código
+
+El juego se llama Herrizherri desde el 2026-10-13 (antes, Mendimendiz). Solo cambia el nombre que se ve: las claves
+de guardado (`mendimendiz-…`), la caché, los nombres de archivo y el repositorio siguen como estaban, así nadie pierde
+su progreso.
 
 Este documento recoge las bases del proyecto: qué hace cada parte y cómo se relacionan. Hay que mantenerlo al día
 cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAAA-MM-DD` (el proxy no deja subir etiquetas).
@@ -269,8 +273,12 @@ ordenador abre el aviso del navegador; en el iPhone y el iPad enseña los tres p
 enlace. No sale en la app ya instalada ni en el archivo único. El icono, la portada con la que arranca la página
 (`#portada-app` en `index.html`, se quita sola cuando sale el menú) y las pantallas de arranque del iPhone y del iPad
 (`public/splash`, 17 tamaños de `src/web/splash.js` en vertical y en horizontal, enlazadas por `vite.config.js`) son
-el busto de Mendi del autor sobre el morado del juego: `node tools/app-iconos.mjs` los rehace todos. Las capturas del
-aviso de instalación (`public/capturas`) salen de `tools/app-capturas.mjs` con el servidor de pruebas.
+Mendi delante de la lámina de Isaba (las dos del autor) con el morado del juego: `node tools/app-iconos.mjs` los rehace
+todos. Las capturas del aviso de instalación (`public/capturas`) salen de `tools/app-capturas.mjs` con el servidor de
+pruebas. La app instalada se juega en horizontal: en Android lo fija el manifest; el iPhone y el iPad no dejan fijarlo,
+así que si se abre o se gira en vertical sale la pantalla «Gira la pantalla · Biratu pantaila» (`#girar-app` en
+`index.html`, la misma que su pantalla de arranque en vertical) y `window.__girado` pone en pausa el bucle del juego
+(`src/engine/runtime.js`) hasta volver a horizontal. En el navegador, sin instalar, se sigue pudiendo jugar en vertical.
 
 En el iPhone, el iPad y Safari, `src/util/glb.js` hace que GLTFLoader lea las texturas de los modelos como imagen
 normal y no como ImageBitmap (un complemento del cargador cambia su `textureLoader` por un `TextureLoader`). Con
