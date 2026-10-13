@@ -273,8 +273,9 @@ ordenador abre el aviso del navegador; en el iPhone y el iPad enseña los tres p
 enlace. No sale en la app ya instalada ni en el archivo único. El icono, la portada con la que arranca la página
 (`#portada-app` en `index.html`, se quita sola cuando sale el menú) y las pantallas de arranque del iPhone y del iPad
 (`public/splash`, 17 tamaños de `src/web/splash.js` en vertical y en horizontal, enlazadas por `vite.config.js`) son
-Mendi delante de la lámina de Isaba (las dos del autor) con el morado del juego: `node tools/app-iconos.mjs` los rehace
-todos. Las capturas del aviso de instalación (`public/capturas`) salen de `tools/app-capturas.mjs` con el servidor de
+el explorador de la lámina de Ezkaba (del autor), de rodillas sobre el mapa y señalando a Navarra, que va como una
+pegatina con un marcador (el contorno de `src/data/comarcas.json`, el del mapa del juego): `node tools/app-iconos.mjs`
+los rehace todos. Las capturas del aviso de instalación (`public/capturas`) salen de `tools/app-capturas.mjs` con el servidor de
 pruebas. La app instalada se juega en horizontal: en Android lo fija el manifest; el iPhone y el iPad no dejan fijarlo,
 así que si se abre o se gira en vertical sale la pantalla «Gira la pantalla · Biratu pantaila» (`#girar-app` en
 `index.html`, la misma que su pantalla de arranque en vertical) y `window.__girado` pone en pausa el bucle del juego
