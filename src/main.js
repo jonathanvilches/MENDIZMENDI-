@@ -38,6 +38,7 @@ import { loadStore, queueMode } from './util/store.js';
 import { startI18n, isEU } from './i18n.js';
 import { startVerMas } from './ui/vermas.js';
 import { startFrames } from './ui/frames.js';
+import { watchUpdates } from './web/update.js';
 
 const q = new URLSearchParams(location.search);
 const TIPS = [
@@ -312,6 +313,7 @@ async function boot() {
 // versión web: el service worker guarda lo descargado (la segunda vez carga al momento y funciona sin conexión)
 if (typeof __WEB__ !== 'undefined' && __WEB__ && 'serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(e => console.warn('service worker', e)));
+  watchUpdates();
 }
 boot().catch(e => {
   console.error(e);

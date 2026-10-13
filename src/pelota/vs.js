@@ -53,7 +53,7 @@ const CSS = `
 .pvs-tags span{padding:2px 8px;background:rgba(7,2,15,.75);border:1px solid rgba(201,178,255,.35);font:700 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;color:var(--lila);clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%)}
 .pvs-tags b{color:#fff;font-weight:800}
 .pvs [hidden]{display:none!important}.pvs-tags span{white-space:nowrap}.pvs-mid.stack .pvs-tags{flex-direction:column;align-items:center}
-.pvs-plate{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 46px);z-index:5;width:min(330px,38%);display:grid;grid-template-columns:auto minmax(0,1fr);align-items:stretch;filter:drop-shadow(0 8px 16px rgba(0,0,0,.55))}
+.pvs-plate{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 46px);z-index:5;width:max-content;max-width:min(330px,38%);display:grid;grid-template-columns:auto minmax(0,1fr);align-items:stretch;filter:drop-shadow(0 8px 16px rgba(0,0,0,.55))}
 .pvs-plate.azul{left:calc(env(safe-area-inset-left,0px) + 16px);animation:pvs-pl .4s .85s cubic-bezier(.2,1.2,.4,1) both}
 .pvs-plate.rojo{right:calc(env(safe-area-inset-right,0px) + 16px);grid-template-columns:minmax(0,1fr) auto;text-align:right;animation:pvs-pr .4s .95s cubic-bezier(.2,1.2,.4,1) both}
 .pvs-ovr{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 12px;background:#fff;color:var(--v2);clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
@@ -88,7 +88,7 @@ const CSS = `
 @keyframes pvs-spark{0%{transform:translate(0,0);opacity:0}10%{opacity:1}100%{transform:translate(var(--x,20px),-110vh);opacity:0}}
 @keyframes pvs-marq{0%,12%{transform:translateX(0)}100%{transform:translateX(-100%)}}
 @keyframes pvs-tap{from{filter:brightness(.85)}to{filter:brightness(1.2)}}
-@media (orientation:landscape) and (max-height:500px){.pvs-who b{font-size:var(--fs-xl)}.pvs-ovr b{font-size:var(--fs-2xl)}.pvs-plate{width:min(300px,36%)}}
+@media (orientation:landscape) and (max-height:500px){.pvs-who b{font-size:var(--fs-xl)}.pvs-ovr b{font-size:var(--fs-2xl)}.pvs-plate{max-width:min(300px,36%)}}
 @media (orientation:portrait){.pvs-bar{flex-wrap:wrap;justify-content:center;row-gap:4px}.pvs-venue{margin-left:0}.pvs-who b{font-size:var(--fs-xl)}.pvs-comp{font-size:var(--fs-md)}}
 /* (placas compactas en pantallas muy bajas: Safari con sus barras en el móvil tumbado) */
 @media (orientation:landscape) and (max-height:340px){.pvs-who{padding:2px 12px}.pvs-who b{font-size:var(--fs-lg)}.pvs-ovr{padding:2px 10px}.pvs-ovr b{font-size:var(--fs-xl)}.pvs-st b{font-size:var(--fs-xs)}}
@@ -146,7 +146,7 @@ function layoutVs(el) {
   if (lineB) { lineB.hidden = false; const need = [...bar.children].reduce((t, c) => t + c.scrollWidth, 0) - 10 * (bar.children.length - 1);
     lineB.hidden = !port && need > W - sL - sR - 32; if (lineM) lineM.hidden = !lineB.hidden; }
   mid.hidden = ![...mid.children].some(c => !c.hidden);
-  for (const k of K) { for (const p of ['left', 'right', 'top', 'bottom', 'width']) plates[k].style[p] = ''; Object.assign(sides[k].style, { width: '', left: '', right: '', clipPath: '' }); figs[k].style.clipPath = ''; }
+  for (const k of K) { for (const p of ['left', 'right', 'top', 'bottom', 'maxWidth']) plates[k].style[p] = ''; Object.assign(sides[k].style, { width: '', left: '', right: '', clipPath: '' }); figs[k].style.clipPath = ''; }
   Object.assign(split.style, { left: '', width: '', top: '', bottom: '', height: '', animationName: '' }); split.style.removeProperty('--rot');
   // el centro (las etiquetas): su ancho natural, en columna si así deja más sitio a las figuras
   const midSize = (stack, max) => { mid.classList.toggle('stack', stack); Object.assign(mid.style, { width: 'max-content', alignItems: '', textAlign: '' });
@@ -191,7 +191,7 @@ function layoutVs(el) {
   Object.assign(split.style, { left: '-10%', width: '120%', top: px(C), bottom: 'auto', height: '6px', animationName: 'pvs-splitp' }); split.style.setProperty('--rot', `${(-Math.atan2(2 * dd, W) * 180 / Math.PI).toFixed(2)}deg`);
   Object.assign(x.style, { fontSize: px(F), top: px(C) });
   const pw = Math.min(W * 0.72, 320);
-  for (const k of K) plates[k].style.width = px(pw);
+  for (const k of K) plates[k].style.maxWidth = px(pw);
   const PH = Math.max(plates.azul.offsetHeight, plates.rojo.offsetHeight);
   // cada placa, sobre la cintura de los suyos y del lado contrario a su figura delantera
   Object.assign(plates.azul.style, { left: 'auto', right: px(16 + sR), bottom: 'auto', top: px(C - gap - 6 - PH) });

@@ -48,7 +48,9 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(caches.open(ASSETS).then(async c => (await c.match(r)) || fetch(r).then(res => { if (res.ok) c.put(r, res.clone()); return res; })));
     return;
   }
-  // la página: red primero (versión nueva), y si no hay red, la guardada
-  e.respondWith(fetch(r).then(res => { if (res.ok) caches.open(CACHE).then(c => c.put(r, res.clone())); return res; })
+  // la página: red primero (versión nueva), y si no hay red, la guardada. Se pide sin la copia del navegador
+  // (GitHub Pages deja guardar la página 10 minutos: la app instalada abría a veces la versión de antes)
+  const net = r.mode === 'navigate' || u.pathname.endsWith('/') || u.pathname.endsWith('.html') ? fetch(r.url, { cache: 'no-cache', credentials: 'same-origin' }) : fetch(r);
+  e.respondWith(net.then(res => { if (res.ok) caches.open(CACHE).then(c => c.put(r, res.clone())); return res; })
     .catch(async () => (await caches.match(r)) || (await caches.match('./'))));
 });

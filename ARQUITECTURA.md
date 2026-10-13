@@ -156,7 +156,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   (`FACE`: hasta dónde llega la cara en la imagen). En pelota por parejas, la figura delantera junto al centro y el
   compañero detrás, algo más pequeño (`MS`), hacia fuera: puede salirse del borde, pero no su cara. En vertical, arriba
   los azules y abajo los colorados, partidos por una diagonal con el VS en medio, cada placa sobre la cintura de los
-  suyos y las etiquetas bajo la barra de arriba. La prueba visual: una página que solo abre la VS con figuras reales.
+  suyos y las etiquetas bajo la barra de arriba. Las placas, del ancho de su texto, sin hueco oscuro de más. La prueba
+  visual: una página que solo abre la VS con figuras reales.
   - **Portadas de equipo** (`liga.js`, clases `eq-`, que no chocan con las del marcador del partido, `fb-`): el menú del
     club en losas como el de pelota (la liga con tu pareja, el amistoso con la de un club del otro grupo que cambia
     cada día, el partido rápido con Iruña, el del sello con los vecinos y cambiar de club con tres bustos en abanico);
@@ -255,6 +256,12 @@ three.js) y los personajes de Meshy con la textura a 1024 px (`src/assets/meshy-
 Con `MINI=1 npx vite` el servidor de pruebas carga lo mismo que el archivo único. La web (`WEB=1`) no cambia.
 Con `LIGERO=1 npx vite build` sale una variante unos 6 MB más pequeña (`MENDIMENDIZ-jugar-ligero.html`): los
 personajes de Meshy van en su versión ligera (`src/assets/meshy/lod`) y todo lo demás es igual.
+
+La web se guarda con un service worker (`src/web/sw.js`): la página se pide primero a la red y sin la copia del
+navegador, y lo demás sale de la caché. La app instalada en el iPhone vuelve de segundo plano tal como estaba, así que
+`src/web/update.js` mira al volver qué versión hay publicada: si ha cambiado y se está en el menú, carga la nueva al
+momento (con `?v=…`, una sola vez por versión); si se está jugando, sale en el menú un aviso «Versión nueva» para
+actualizar con un toque.
 
 En el iPhone, el iPad y Safari, `src/util/glb.js` hace que GLTFLoader lea las texturas de los modelos como imagen
 normal y no como ImageBitmap (un complemento del cargador cambia su `textureLoader` por un `TextureLoader`). Con

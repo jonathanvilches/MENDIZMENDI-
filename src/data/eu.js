@@ -258,7 +258,7 @@ export const EU_EXACT = {
   'Toca su carta para ver su ficha': 'Ukitu bere txartela fitxa ikusteko', 'Cómo funciona': 'Nola dabilen', 'Eliminado': 'Kanporatua', 'El torneo sigue': 'Txapelketak jarraitzen du',
   'Mira quién se lleva la txapela.': 'Begira nork eramaten duen txapela.', 'Txapeldun · campeón del torneo': 'Txapeldun · txapelketako irabazlea', 'Txapela': 'Txapela', 'TXAPELAS': 'TXAPELAK',
   'Por la txapela': 'Txapelaren alde', 'Delantero y zaguero': 'Aurrelaria eta atzelaria', 'Mano a mano o parejas': 'Buruz burukoa edo binaka', 'Tu colección': 'Zure bilduma', 'DESCUBIERTOS': 'AURKITUAK',
-  'Navarra sellada': 'Nafarroa zigilatuta', 'Partido amistoso': 'Lagunarteko partida', 'Partido de exhibición': 'Erakustaldiko partida', 'Toca para empezar': 'Ukitu hasteko', 'Tus txapelas': 'Zure txapelak',
+  'Navarra sellada': 'Nafarroa zigilatuta', 'Partido amistoso': 'Lagunarteko partida', 'Partido de exhibición': 'Erakustaldiko partida', 'Toca para empezar': 'Ukitu hasteko', 'Versión nueva': 'Bertsio berria', 'Toca para actualizar': 'Ukitu eguneratzeko', 'Tus txapelas': 'Zure txapelak',
   'Mano': 'Eskua', 'Del': 'Aur', 'Zag': 'Atz', 'Par': 'Bik', 'Ata': 'Era', 'Med': 'Erd', 'Def': 'Def', 'Frontón cubierto': 'Frontoi estalia', 'Pilotaleku estalia': 'Pilotaleku estalia',
   'va a misa': 'mezatara doa', 'hace la compra': 'erosketak egiten ari da', 'charla en la plaza': 'plazan berriketan', 'juega a pillar': 'harrapaketan jolasten', 'va a por agua': 'ur bila doa',
   'lleva el pan a casa': 'ogia etxera darama', 'da su paseo': 'bere ibilaldia egiten du',
