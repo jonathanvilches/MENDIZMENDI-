@@ -60,6 +60,13 @@ ${splashLinks()}
     this.emitFile({ type: 'asset', fileName: '.nojekyll', source: '' });   // GitHub Pages sirve los archivos tal cual
     const files = Object.keys(bundle).filter(f => f.startsWith('assets/')).map(f => f.slice(7));
     this.emitFile({ type: 'asset', fileName: 'sw.js', source: readFileSync('src/web/sw.js', 'utf8').replace('__VERSION__', v).replace('__FILES__', JSON.stringify(files)) });
+    // la lista de las ilustraciones grandes de esta versión, para el archivo único cuando se abre en un ordenador
+    // (src/web/hd.js): «carpeta/id» → su archivo en assets/
+    const HD = [[/laminas\/web\/([^/]+)\.webp$/, 'laminas'], [/leyendas\/1536\/([^/]+)\.webp$/, 'leyendas'], [/cimas\/1536\/([^/]+)\.webp$/, 'cimas'],
+      [/personajes\/1536\/([^/]+)\.webp$/, 'personajes'], [/tradiciones\/1536\/([^/]+)\.webp$/, 'tradiciones'], [/fauna\/1280\/([^/]+)\.webp$/, 'fauna'], [/flora\/web\/([^/]+)\.webp$/, 'flora']];
+    const hd = {};
+    for (const [f, a] of Object.entries(bundle)) for (const o of a.originalFileNames || []) for (const [re, k] of HD) { const m = o.match(re); if (m && !(k === 'laminas' && m[1].endsWith('-s'))) hd[k + '/' + m[1]] = f; }
+    this.emitFile({ type: 'asset', fileName: 'hd.json', source: JSON.stringify(hd) });
   },
 };
 

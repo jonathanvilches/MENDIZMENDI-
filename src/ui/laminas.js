@@ -3,6 +3,7 @@
 // guarda en memoria imágenes grandes que se ven pequeñas. En el archivo único solo está la de 640 × 360.
 // En WebP y no en AVIF: los visores de HTML del iPhone no siempre enseñan AVIF, y sin ellas las portadas salían vacías.
 import { LAMINAS, COMARCA_LAMINA, CUENTO_LAMINA, PERSONAJE_LAMINA } from '../data/laminas.js';
+import { hdTable } from '../web/hd.js';
 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const byId = (g) => Object.fromEntries(Object.entries(g).map(([k, v]) => [k.split('/').pop().replace('.webp', ''), v]));
@@ -12,6 +13,7 @@ const URLS = byId(import.meta.glob('@laminas/*.webp', { eager: true, query: '?ur
 const LEY = byId(import.meta.glob('@leyendas/*.webp', { eager: true, query: '?url', import: 'default' }));
 const LEY_BIG = byId(import.meta.glob('@leyendas-big/*.webp', { eager: true, query: '?url', import: 'default' }));
 const BY_ID = Object.fromEntries(LAMINAS.map(l => [l.id, l]));
+hdTable('laminas', URLS); hdTable('leyendas', LEY_BIG);   // (en el archivo único, en un ordenador: src/web/hd.js)
 
 /** La lámina por su id (o null si no está en esta versión); small: la copia pequeña. */
 export const laminaUrl = (id, small = false) => (id && ((small && URLS[id + '-s']) || URLS[id])) || null;
@@ -20,16 +22,19 @@ export const laminaById = (id) => BY_ID[id] || null;
 // la subida. En la web, la de 1024 para las tarjetas y la de 1536 para el buzón de cumbre; en el archivo único, la de 320.
 const CIMA = byId(import.meta.glob('@cimas/*.webp', { eager: true, query: '?url', import: 'default' }));
 const CIMA_BIG = byId(import.meta.glob('@cimas-big/*.webp', { eager: true, query: '?url', import: 'default' }));
+hdTable('cimas', CIMA_BIG);
 /** La escena de una cima (o null si no la tiene); big: la grande. */
 export const cimaUrl = (id, big = false) => (big && CIMA_BIG[id]) || CIMA[id] || null;
 // Los personajes de Navarra (src/assets/personajes), con su id de data/personajes.js, en 16:9: en la web, los de 1536;
 // en el archivo único, los de 320. Sancho y las golondrinas llevan una lámina que ya estaba en el juego.
 const PERS = byId(import.meta.glob('@personajes/*.webp', { eager: true, query: '?url', import: 'default' }));
+hdTable('personajes', PERS);
 /** La ilustración de un personaje de Navarra (o null si no la tiene). */
 export const personajeUrl = (id) => PERS[id] || laminaUrl(PERSONAJE_LAMINA[id]) || null;
 // Las tradiciones (src/assets/tradiciones), una por misión con su id en el campo «ilus» de data/levels.js, en 16:9: el
 // explorador viendo la tradición. En la web, las de 1536; en el archivo único, las de 320.
 const TRAD = byId(import.meta.glob('@tradiciones/*.webp', { eager: true, query: '?url', import: 'default' }));
+hdTable('tradiciones', TRAD);
 /** La ilustración de una tradición (o null si no está en esta versión). */
 export const tradicionUrl = (id) => (id && TRAD[id]) || null;
 /** La ilustración de un cuento (o, si no tiene, la lámina de su pueblo que lo recuerda); big: la grande. */
