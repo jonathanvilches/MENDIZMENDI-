@@ -1,0 +1,106 @@
+[
+ {
+  "id": "isaba-izaba",
+  "s": 35,
+  "misiones": "visit,process,herd,dance,figure,mirador,quiz,observe,summit",
+  "sinAnfitrion": 0,
+  "jugadorSuelo": 0,
+  "perro": 150.8,
+  "objetivo": true,
+  "interactuables": 72,
+  "errores": [
+   "ERR Failed to load resource: the server responded with a status of 403 (Forbidden)"
+  ]
+ },
+ {
+  "id": "orreaga-roncesvalles",
+  "s": 33,
+  "misiones": "visit,race,legend,figure,mirador,quiz,observe,summit",
+  "sinAnfitrion": 0,
+  "jugadorSuelo": 0,
+  "perro": 120.9,
+  "objetivo": true,
+  "interactuables": 67,
+  "errores": [
+   "ERR Failed to load resource: the server responded with a status of 403 (Forbidden)"
+  ]
+ },
+ {
+  "id": "pamplona",
+  "s": 20,
+  "misiones": "visit,carnival,race,process,figure,figure,mirador,quiz,summit",
+  "sinAnfitrion": 0,
+  "jugadorSuelo": 0,
+  "perro": 156,
+  "objetivo": true,
+  "interactuables": 65,
+  "errores": [
+   "ERR Failed to load resource: the server responded with a status of 403 (Forbidden)"
+  ]
+ },
+ {
+  "id": "ujue",
+  "s": 33,
+  "misiones": "visit,race,harvest,mirador,quiz",
+  "sinAnfitrion": 0,
+  "jugadorSuelo": 0,
+  "perro": 129.6,
+  "objetivo": true,
+  "interactuables": 53,
+  "errores": [
+   "ERR Failed to load resource: the server responded with a status of 403 (Forbidden)"
+  ]
+ },
+ {
+  "id": "tudela",
+  "s": 36,
+  "misiones": "visit,harvest,carnival,tradition,figure,quiz,observe",
+  "sinAnfitrion": 0,
+  "jugadorSuelo": 0,
+  "perro": 209.4,
+  "objetivo": true,
+  "interactuables": 62,
+  "errores": [
+   "ERR Failed to load resource: the server responded with a status of 403 (Forbidden)"
+  ]
+ },
+ {
+  "id": "estella",
+  "s": 38,
+  "misiones": "visit,carnival,harvest,feria,mirador,quiz,observe,summit",
+  "sinAnfitrion": 0,
+  "jugadorSuelo": 0,
+  "perro": 175.4,
+  "objetivo": true,
+  "interactuables": 76,
+  "errores": [
+   "ERR Failed to load resource: the server responded with a status of 403 (Forbidden)"
+  ]
+ },
+ {
+  "id": "irurtzun",
+  "s": 34,
+  "misiones": "visit,harvest,race,mirador,quiz,summit",
+  "sinAnfitrion": 0,
+  "jugadorSuelo": 0,
+  "perro": 147,
+  "objetivo": true,
+  "interactuables": 63,
+  "errores": [
+   "ERR Failed to load resource: the server responded with a status of 403 (Forbidden)"
+  ]
+ },
+ {
+  "id": "javier",
+  "s": 32,
+  "misiones": "visit,castle,race,figure,mirador,quiz",
+  "sinAnfitrion": 0,
+  "jugadorSuelo": 0,
+  "perro": 129.6,
+  "objetivo": true,
+  "interactuables": 57,
+  "errores": [
+   "ERR Failed to load resource: the server responded with a status of 403 (Forbidden)"
+  ]
+ }
+]
