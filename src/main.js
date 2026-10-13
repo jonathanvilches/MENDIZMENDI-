@@ -82,7 +82,7 @@ async function warmPortraits(g, ui) {
 async function boot() {
   await startI18n();   // (en euskera, espera a sus diccionarios: se cargan aparte)
   startVerMas(); startFrames();   // (los textos largos, plegados con «Ver más»)
-  startHD();   // (archivo único en un ordenador: las ilustraciones grandes, de la web publicada)
+  startHD();   // (archivo único con conexión: las imágenes grandes, de la web publicada)
   // (con tope de 2,5 s: en algunos visores de iPhone la base de datos del navegador no responde nunca)
   await Promise.race([loadStore(), new Promise(r => setTimeout(r, 2500))]);
   const canvas = document.getElementById('c');

@@ -13,7 +13,7 @@ const URLS = byId(import.meta.glob('@laminas/*.webp', { eager: true, query: '?ur
 const LEY = byId(import.meta.glob('@leyendas/*.webp', { eager: true, query: '?url', import: 'default' }));
 const LEY_BIG = byId(import.meta.glob('@leyendas-big/*.webp', { eager: true, query: '?url', import: 'default' }));
 const BY_ID = Object.fromEntries(LAMINAS.map(l => [l.id, l]));
-hdTable('laminas', URLS); hdTable('leyendas', LEY_BIG);   // (en el archivo único, en un ordenador: src/web/hd.js)
+hdTable('laminas', URLS); hdTable('leyendas', LEY_BIG);   // (en el archivo único, con conexión: los de la web, src/web/hd.js)
 
 /** La lámina por su id (o null si no está en esta versión); small: la copia pequeña. */
 export const laminaUrl = (id, small = false) => (id && ((small && URLS[id + '-s']) || URLS[id])) || null;

@@ -3,6 +3,7 @@
 // src/futbol/clubs.js (no son escudos de clubes de verdad). La heráldica, de 512 px; en la web, la de 1024 para la ficha;
 // los emblemas, de 512 en la web y de 256 en el archivo único (alias @escudos, @escudos-big y @emblemas de vite.config.js).
 import { drawOfficial, officialHeight } from '../world/armas.js';
+import { hdTable } from '../web/hd.js';
 
 const byId = (g) => Object.fromEntries(Object.entries(g).map(([k, v]) => [k.split('/').pop().replace('.webp', ''), v]));
 // (Luzaide y Zugarramurdi tienen el mismo blasón y su imagen es la misma, byte a byte: se carga una vez)
@@ -10,6 +11,7 @@ const SAME = { 'luzaide-valcarlos': 'zugarramurdi' }, same = (o) => { for (const
 const HER = same(byId(import.meta.glob(['@escudos/*.webp', '!@escudos/luzaide-valcarlos.webp'], { eager: true, query: '?url', import: 'default' })));
 const BIG = same(byId(import.meta.glob(['@escudos-big/*.webp', '!@escudos-big/luzaide-valcarlos.webp'], { eager: true, query: '?url', import: 'default' })));
 const CLUB = byId(import.meta.glob('@emblemas/*.webp', { eager: true, query: '?url', import: 'default' }));
+hdTable('escudos', HER); hdTable('escudos', BIG); hdTable('emblemas', CLUB);   // (archivo único con conexión: src/web/hd.js)
 
 export const armsImg = (id) => HER[id] || null;
 export const armsImgBig = (id) => BIG[id] || HER[id] || null;

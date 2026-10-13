@@ -60,12 +60,23 @@ ${splashLinks()}
     this.emitFile({ type: 'asset', fileName: '.nojekyll', source: '' });   // GitHub Pages sirve los archivos tal cual
     const files = Object.keys(bundle).filter(f => f.startsWith('assets/')).map(f => f.slice(7));
     this.emitFile({ type: 'asset', fileName: 'sw.js', source: readFileSync('src/web/sw.js', 'utf8').replace('__VERSION__', v).replace('__FILES__', JSON.stringify(files)) });
-    // la lista de las ilustraciones grandes de esta versión, para el archivo único cuando se abre en un ordenador
-    // (src/web/hd.js): «carpeta/id» → su archivo en assets/
-    const HD = [[/laminas\/web\/([^/]+)\.webp$/, 'laminas'], [/leyendas\/1536\/([^/]+)\.webp$/, 'leyendas'], [/cimas\/1536\/([^/]+)\.webp$/, 'cimas'],
-      [/personajes\/1536\/([^/]+)\.webp$/, 'personajes'], [/tradiciones\/1536\/([^/]+)\.webp$/, 'tradiciones'], [/fauna\/1280\/([^/]+)\.webp$/, 'fauna'], [/flora\/web\/([^/]+)\.webp$/, 'flora']];
+    // la lista de las imágenes grandes de esta versión, para el archivo único (src/web/hd.js): «grupo/id» → sus tamaños
+    // [ancho, archivo en assets/], del más pequeño al más grande, para que elija el justo según lo que ocupe en pantalla
+    const HD = [[/laminas\/web\/([^/]+)\.webp$/, 'laminas', 1280], [/leyendas\/768\/([^/]+)\.webp$/, 'leyendas', 768], [/leyendas\/1536\/([^/]+)\.webp$/, 'leyendas', 1536],
+      [/cimas\/1024\/([^/]+)\.webp$/, 'cimas', 1024], [/cimas\/1536\/([^/]+)\.webp$/, 'cimas', 1536], [/personajes\/1536\/([^/]+)\.webp$/, 'personajes', 1536],
+      [/tradiciones\/1536\/([^/]+)\.webp$/, 'tradiciones', 1536], [/fauna\/512\/([^/]+)\.webp$/, 'fauna', 512], [/fauna\/1280\/([^/]+)\.webp$/, 'fauna', 1280],
+      [/flora\/web\/([^/]+)\.webp$/, 'flora', 720], [/icons3d\/([^/]+)\.webp$/, 'iconos', 192], [/heraldica\/1024\/([^/]+)\.webp$/, 'escudos', 1024],
+      [/equipos\/512\/([^/]+)\.webp$/, 'emblemas', 512], [/sellos\/web\/([^/]+)\.webp$/, 'sellos', 512],
+      [/pelotaris\/web\/rojo\/([^/]+)\.webp$/, 'pelotari-rojo', 512], [/pelotaris\/web\/vs\/rojo\/([^/]+)\.webp$/, 'pelotari-rojo', 1024],
+      [/pelotaris\/web\/azul\/([^/]+)\.webp$/, 'pelotari-azul', 512], [/pelotaris\/web\/vs\/azul\/([^/]+)\.webp$/, 'pelotari-azul', 1024],
+      [/portraits\/web\/([^/]+)_hero\.webp$/, 'retratos', 512, (id) => id + '_full']];
     const hd = {};
-    for (const [f, a] of Object.entries(bundle)) for (const o of a.originalFileNames || []) for (const [re, k] of HD) { const m = o.match(re); if (m && !(k === 'laminas' && m[1].endsWith('-s'))) hd[k + '/' + m[1]] = f; }
+    for (const [f, a] of Object.entries(bundle)) for (const o of a.originalFileNames || []) for (const [re, k, w, as] of HD) {
+      const m = o.match(re); if (!m || (k === 'laminas' && m[1].endsWith('-s'))) continue;
+      // (el retrato grande de la web, «hero», ocupa el sitio del de cuerpo entero del archivo único)
+      const e = hd[k + '/' + (as ? as(m[1]) : m[1])] ||= []; if (!e.some(x => x[1] === f)) e.push([w, f]);
+    }
+    for (const e of Object.values(hd)) e.sort((x, y) => x[0] - y[0]);
     this.emitFile({ type: 'asset', fileName: 'hd.json', source: JSON.stringify(hd) });
   },
 };

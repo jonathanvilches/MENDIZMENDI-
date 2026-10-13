@@ -6,11 +6,15 @@
 // las dos capas ocupan siempre la misma caja (con dos imágenes, Safari en el iPhone dejaba la camiseta suelta a un lado).
 // Las figuras miran a su izquierda (a la derecha de la pantalla): en la pantalla VS se gira solo la roja, una vez.
 import { nameGender } from '../data/nombres.js';
+import { hdTable } from '../web/hd.js';
 
 const byId = (g) => Object.fromEntries(Object.entries(g).map(([k, v]) => [k.split('/').pop().replace('.webp', ''), v]));
 const ROJO = byId(import.meta.glob('@pelotaris/rojo/*.webp', { eager: true, query: '?url', import: 'default' }));
 const AZUL = byId(import.meta.glob('@pelotaris/azul/*.webp', { eager: true, query: '?url', import: 'default' }));
 const CAMISETA = byId(import.meta.glob('@pelotaris/camiseta/*.webp', { eager: true, query: '?url', import: 'default' }));
+// (en el archivo único, con conexión, la figura roja y la camiseta se cambian por las figuras enteras de la web: la azul
+// tapa del todo a la roja de debajo, con la misma silueta; src/web/hd.js)
+hdTable('pelotari-rojo', ROJO); hdTable('pelotari-azul', CAMISETA);
 // (en la web, para la pantalla VS, donde la figura ocupa casi todo el alto: los de 1024 del autor)
 const VS = { azul: byId(import.meta.glob('@pelotaris/vs/azul/*.webp', { eager: true, query: '?url', import: 'default' })), rojo: byId(import.meta.glob('@pelotaris/vs/rojo/*.webp', { eager: true, query: '?url', import: 'default' })) };
 

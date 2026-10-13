@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { loadGLB } from '../util/glb.js';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
+import { hdTable } from '../web/hd.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';   // modelos de Meshy comprimidos
 
 const cache = new Map();
@@ -45,6 +46,7 @@ for (const [p, u] of Object.entries(import.meta.glob('../assets/meshy/portraits/
 // (y, solo en la web, el de cuerpo entero a 512 × 768 para el perfil, que se ve a 240 px de alto: el de 256 × 384 salía
 // ampliado casi al doble en el iPhone; el alias @retratos del archivo único apunta a una carpeta que no existe)
 for (const [p, u] of Object.entries(import.meta.glob('@retratos/*_hero.webp', { eager: true, query: '?url', import: 'default' }))) MESHY_PICS[p.split('/').pop().replace('.webp', '')] = u;
+hdTable('retratos', MESHY_PICS);   // (archivo único con conexión: el de cuerpo entero, por el grande de la web; src/web/hd.js)
 // versión ligera de cada uno (tools/meshy-lod.mjs: ~1/3 de triángulos y textura de 512 px) para cuando salen muchos a la
 // vez: vecinos, corredores, futbolistas
 const MESHY_LOD = {};

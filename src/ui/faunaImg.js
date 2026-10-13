@@ -6,7 +6,8 @@
 import { hdTable } from '../web/hd.js';
 const byId = (g) => Object.fromEntries(Object.entries(g).map(([k, v]) => [k.split('/').pop().replace('.webp', ''), v]));
 const BIG = byId(import.meta.glob('@fauna-big/*.webp', { eager: true, query: '?url', import: 'default' }));
-hdTable('fauna', BIG);   // (en el archivo único, en un ordenador: src/web/hd.js)
+hdTable('fauna', BIG);   // (en el archivo único, con conexión: los de la web, src/web/hd.js)
 const SMALL = byId(import.meta.glob('@fauna-small/*.webp', { eager: true, query: '?url', import: 'default' }));
+hdTable('fauna', SMALL);
 
 export const faunaImg = (id) => BIG[id] ? { big: BIG[id], small: SMALL[id] || BIG[id] } : null;
