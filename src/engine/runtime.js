@@ -9,7 +9,7 @@ import { buildTextures, TEX } from '../world/textures.js';
 import { Terrain } from '../world/terrain.js';
 import { SkySystem } from '../world/sky.js';
 import { Water } from '../world/water.js';
-import { makeMaterials, resetDetail, updateDetail, setBuilderQuality } from '../world/builder.js';
+import { makeMaterials, resetDetail, updateDetail, setBuilderQuality, groundUniforms } from '../world/builder.js';
 import { resetNpcCache } from '../actors/npcGlb.js';
 import { buildVillage, VILLAGE, resetVillage } from '../world/village.js';
 import { buildLandmarks, LANDMARKS } from '../world/landmarks.js';
@@ -296,6 +296,7 @@ export class Runtime {
     this.sky.applyFlood();   // (los focos del frontón, después de la lluvia)
     g.fronton?.court?.setLights?.(this.sky.flood ? 1 : Math.min(1, this.sky.night * 1.6));   // (en el partido, siempre encendidos; si no, al anochecer)
     this.water.update(this.elapsed, this.sky);
+    groundUniforms.uTime.value = this.elapsed; groundUniforms.uSkyHor.value.copy(this.sky.uniforms.uHor.value);   // (agua de las fuentes)
     this.nature.update(this.camera.position, P.pos, this.elapsed, P.pos);
     updateDetail(this.camera.position, this.quality);
     { const W = this.weather; this.fauna.wet = !W || W.kind === 'clear' ? 0 : W.kind === 'snow' ? 1 : W.k; }   // (con lluvia o nieve, sin mariposas ni luciérnagas)
