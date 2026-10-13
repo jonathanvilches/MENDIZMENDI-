@@ -150,8 +150,10 @@ export class Futbol {
         before: async () => { G.player.frozen = true; G.ui.setPrompt?.(null); await G.ui.fadeOut?.(); },
         attach: (scene, camera, update) => { G.altScene = scene; G.altCamera = camera; G.altUpdate = update; G.mode = 'futbol'; G.ui.hudVisible?.(false); document.body.classList.add('futbol'); G.rt?.boost?.(true); },
         shown: async () => { await G.ui.fadeIn?.(); },
-        detach: () => { G.altScene = null; G.altCamera = null; G.altUpdate = null; G.mode = 'play'; G.ui.hudVisible?.(true); document.body.classList.remove('futbol'); G.rt?.boost?.(false); },
-        after: async () => { G.player.frozen = false; G.follow?.snap?.(G.player); },
+        // (en la liga, entre jornada y jornada, del partido a la clasificación sin volver al pueblo: ni sus botones ni
+        // el jugador suelto; todo vuelve al salir de la liga)
+        detach: () => { G.altScene = null; G.altCamera = null; G.altUpdate = null; G.mode = 'play'; if (!this.champ) G.ui.hudVisible?.(true); document.body.classList.remove('futbol'); G.rt?.boost?.(false); },
+        after: async () => { if (this.champ) return; G.player.frozen = false; G.follow?.snap?.(G.player); },
       },
     });
     // directamente al menú (el partido once contra once viene elegido; los retos de entrenamiento, en la misma lista)
@@ -172,7 +174,11 @@ export class Futbol {
   /** Un partido directo contra un rival. */
   async match(rival, dificultad = 'normal', duracion = 2, awayTeam = null) { this.setup(); const o = this.opts; return this.result(await FutbolSystem.startMatch({ campoId: o.campo, rival, dificultad, duracion, local: o.local, awayTeam })); }
   /** Liga Navarra con el club del pueblo (fútbol 11, todas las jornadas en El Sadar). */
-  async liga(club) { this.setup(); return this.result(await FutbolSystem.startLeague({ club })); }
+  async liga(club) {
+    this.setup(); this.champ = true; const G = this.G;
+    try { return this.result(await FutbolSystem.startLeague({ club })); }
+    finally { this.champ = false; G.player.frozen = false; G.ui.hudVisible?.(true); G.follow?.snap?.(G.player); }
+  }
   /** Amistoso del club contra el club que se elija. */
   async friendly(club) { this.setup(); return this.result(await FutbolSystem.startFriendly({ club })); }
 }

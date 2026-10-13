@@ -957,13 +957,12 @@ export class TownGame {
         // (el partido de Campeonatos, como el torneo, en el frontón cubierto; el de la calle queda para las misiones)
         const hv = this.fronton.court.labrit ? this.fronton : this.hallVenue(); if (hv !== this.fronton) await this.hallIntro(hv);
         if (this.disposed) return;
-        const r = await hv.play(this, a, { returnTo: this.fronton, comp: 'Partido de exhibición' });
+        // (al acabar, de vuelta al menú de pelota sin pasar por el pueblo: el resultado ya se ha visto en la cancha)
+        const r = await hv.play(this, a, { returnTo: this.fronton, comp: 'Partido de exhibición', stay: true });
         if (this.disposed) return;
         if (r.quit) continue;
         const best = (townState(profile(), this.def.id).best ||= {});
         if (r.win) { best.pelota = (best.pelota || 0) + 1; saveProfile(); }
-        this.ui.hudVisible(false); this.player.frozen = true;
-        await this.say(a, [r.win ? `¡${r.you} a ${r.cpu}! Juegas como un pelotari de verdad.` : `${r.you} a ${r.cpu}. ¡Casi! ¿La revancha?`]);
       }
     } finally { if (!this.disposed) this.onExit?.('sports'); }   // (de vuelta a Torneos, de donde se vino; si el pueblo se rehízo, el nuevo sigue)
   }
@@ -971,42 +970,43 @@ export class TownGame {
   // del pueblo en el que estás
   async pelotaTorneo(a, ctx, kind = 'mano') {
     const P = profile(), town = this.def.name.split(' /')[0], pairs = kind === 'parejas';
-    let T = torneo({ name: P.name || 'Tú', town }, ctx, false, kind);
-    for (;;) {
-      this.ui.hudVisible(false); this.player.frozen = true;   // (con el cuadro del torneo delante, nada del pueblo debajo)
-      const act = await torneoPanel(T, town);
-      if (this.disposed || act === 'exit') return;   // (el pueblo se rehízo mientras tanto: este torneo ya no sigue)
-      if (act === 'new') { T = torneo({ name: P.name || 'Tú', town }, ctx, true, kind); continue; }
-      if (act === 'sim') { playTorneoRound(T); continue; }
-      const m = yourMatch(T);
-      // la final, en el frontón Labrit de Iruña (los cuartos y las semifinales, aquí)
-      // (los cuartos y las semifinales, en el frontón cubierto del pueblo; en Iruña, en el Labrit)
-      const fin = m.round === 'Final', venue = this.fronton?.court.labrit ? this.fronton : fin ? this.labritVenue() : this.hallVenue();
-      if (fin) await this.labritIntro(venue); else if (venue.court.hall) await this.hallIntro(venue);
-      if (this.disposed) return;
-      // (por parejas: juegas con tu compañero contra el delantero y el zaguero rivales)
-      const r = await venue.play(this, a, { target: m.target, level: m.level, rivalName: `${pairs ? m.rival.mates[0] : m.rival.name} (${m.rival.town})`, fixedLevel: true, returnTo: this.fronton, rivalStats: m.stats,
-        pairs: pairs ? { partner: m.partner, rivalMate: m.mate } : null, rivalTown: m.rival.townId ? { id: m.rival.townId, name: m.rival.town } : null,
-        comp: `${pairs ? 'Torneo por parejas' : 'Torneo de mano'} · ${m.round}`, youBonus: youBonus(T), rivalBonus: ((m.rival.lv || 2) - 2) * 3 });
-      if (this.disposed) return;
-      if (r.quit && r.later) continue;   // («Ahora no» antes de empezar: de vuelta al cuadro del torneo, de donde se vino)
-      if (r.quit) return;   // (salir del partido es salir: de vuelta al pueblo, no al panel del torneo otra vez)
-      this.ui.hudVisible(false); this.player.frozen = true;   // (lo que dice el pelotari y el cuadro, sin el pueblo debajo)
-      playTorneoRound(T, r.you, r.cpu);
-      if (T.done && T.players[T.champion].you) {
-        P.txapelas = (P.txapelas || 0) + 1; addXP(150); saveProfile();
-        this.player.rig.doCheer?.(); this.particles.confetti?.(this.player.pos, 120);
-        // la gran celebración: la txapela baja, confeti, fuegos y el frontón en pie
-        if (pairs) {
-          await showChampion({ kind: 'pelota', kicker: `Torneo por parejas · ${ctx.comarcaName}`, title: '¡Txapeldunak!', name: T.players[T.champion].name, sub: `La txapela de parejas de ${ctx.comarcaName} es vuestra. Zorionak!`, score: `Final · ${r.you} – ${r.cpu}`, sound: this.sound, button: 'Ponerme la txapela' });
-          await this.say(a, [`¡Txapeldunak! Sois campeones del torneo por parejas de ${ctx.comarcaName}. Llevas ${P.txapelas} ${P.txapelas === 1 ? 'txapela' : 'txapelas'}.`]);
-        } else {
-          await showChampion({ kind: 'pelota', kicker: `Torneo de mano · ${ctx.comarcaName}`, title: '¡Txapeldun!', name: P.name || 'Campeón', sub: `La txapela de ${ctx.comarcaName} es tuya. Zorionak!`, score: `Final · ${r.you} – ${r.cpu}`, sound: this.sound, button: 'Ponerme la txapela' });
-          await this.say(a, [`¡Txapeldun! Eres campeón del torneo de mano de ${ctx.comarcaName}. Llevas ${P.txapelas} ${P.txapelas === 1 ? 'txapela' : 'txapelas'}.`]);
+    let T = torneo({ name: P.name || 'Tú', town }, ctx, false, kind), played = false;
+    try {
+      for (;;) {
+        this.ui.hudVisible(false); this.player.frozen = true;   // (con el cuadro del torneo delante, nada del pueblo debajo)
+        const act = await torneoPanel(T, town);
+        if (this.disposed || act === 'exit') return;   // (el pueblo se rehízo mientras tanto: este torneo ya no sigue)
+        if (act === 'new') { T = torneo({ name: P.name || 'Tú', town }, ctx, true, kind); continue; }
+        if (act === 'sim') { playTorneoRound(T); continue; }
+        const m = yourMatch(T);
+        // la final, en el frontón Labrit de Iruña (los cuartos y las semifinales, aquí)
+        // (los cuartos y las semifinales, en el frontón cubierto del pueblo; en Iruña, en el Labrit)
+        const fin = m.round === 'Final', venue = this.fronton?.court.labrit ? this.fronton : fin ? this.labritVenue() : this.hallVenue();
+        if (fin) await this.labritIntro(venue); else if (venue.court.hall) await this.hallIntro(venue);
+        if (this.disposed) return;
+        // (por parejas: juegas con tu compañero contra el delantero y el zaguero rivales)
+        // (stay: del partido, al cuadro del torneo, sin volver al pueblo entre ronda y ronda)
+        const r = await venue.play(this, a, { target: m.target, level: m.level, rivalName: `${pairs ? m.rival.mates[0] : m.rival.name} (${m.rival.town})`, fixedLevel: true, returnTo: this.fronton, rivalStats: m.stats, stay: true,
+          pairs: pairs ? { partner: m.partner, rivalMate: m.mate } : null, rivalTown: m.rival.townId ? { id: m.rival.townId, name: m.rival.town } : null,
+          comp: `${pairs ? 'Torneo por parejas' : 'Torneo de mano'} · ${m.round}`, youBonus: youBonus(T), rivalBonus: ((m.rival.lv || 2) - 2) * 3 });
+        if (this.disposed) return;
+        played = true;
+        if (r.quit && r.later) continue;   // («Ahora no» antes de empezar: de vuelta al cuadro del torneo, de donde se vino)
+        if (r.quit) return;   // (salir del partido es salir: de vuelta al pueblo, no al panel del torneo otra vez)
+        playTorneoRound(T, r.you, r.cpu);
+        if (T.done && T.players[T.champion].you) {
+          P.txapelas = (P.txapelas || 0) + 1; addXP(150); saveProfile();
+          this.player.rig.doCheer?.(); this.particles.confetti?.(this.player.pos, 120);
+          // la gran celebración: la txapela baja, confeti, fuegos y el frontón en pie
+          if (pairs) {
+            await showChampion({ kind: 'pelota', kicker: `Torneo por parejas · ${ctx.comarcaName}`, title: '¡Txapeldunak!', name: T.players[T.champion].name, sub: `La txapela de parejas de ${ctx.comarcaName} es vuestra. Llevas ${P.txapelas} ${P.txapelas === 1 ? 'txapela' : 'txapelas'}. Zorionak!`, score: `Final · ${r.you} – ${r.cpu}`, sound: this.sound, button: 'Ponerme la txapela' });
+          } else {
+            await showChampion({ kind: 'pelota', kicker: `Torneo de mano · ${ctx.comarcaName}`, title: '¡Txapeldun!', name: P.name || 'Campeón', sub: `La txapela de ${ctx.comarcaName} es tuya. Llevas ${P.txapelas} ${P.txapelas === 1 ? 'txapela' : 'txapelas'}. Zorionak!`, score: `Final · ${r.you} – ${r.cpu}`, sound: this.sound, button: 'Ponerme la txapela' });
+          }
         }
-      } else if (!r.win) await this.say(a, [`${r.you} a ${r.cpu}. ¡Qué pena! El torneo sigue: mira quién se lleva la txapela.`]);
-      else if (!T.done) await this.say(a, [yourMatch(T)?.round === 'Final' ? `¡${r.you} a ${r.cpu}! Pasas a la final. Se juega en el frontón Labrit de Pamplona.` : `¡${r.you} a ${r.cpu}! Pasas a ${yourMatch(T)?.round.toLowerCase() || 'la siguiente ronda'}. El próximo partido, aquí mismo.`]);
-    }
+        // (sin charla en el pueblo entre ronda y ronda: el cuadro del torneo ya dice si sigues, la ronda que viene y dónde)
+      }
+    } finally { if (played && !this.sportMode && !this.disposed) this.perro?.release?.(); }   // (el perro, que se quedó en casa durante el torneo, vuelve al acabar)
   }
   // el frontón Labrit: muy por encima del pueblo y fuera de sus límites (solo se ve por dentro y en la llegada)
   labritVenue() { return labrit(this.scene, { x: PLACES.plaza.x + 2600, z: PLACES.plaza.z }); }

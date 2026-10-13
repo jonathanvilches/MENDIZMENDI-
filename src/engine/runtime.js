@@ -170,7 +170,8 @@ export class Runtime {
       if (o.geometry) geos.add(o.geometry);
       if (o.material) (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => mats.add(m));
     });
-    const keep = new Set(Object.values(TEX).flatMap(t => t.isTexture ? [t] : [t.map, t.normalMap]));
+    // (en calidad baja algunas comunes no llevan relieve y su hueco está vacío: antes eso rompía la salida del pueblo)
+    const keep = new Set(Object.values(TEX).flatMap(t => !t ? [] : t.isTexture ? [t] : [t.map, t.normalMap]).filter(Boolean));
     for (const g of geos) g.dispose();
     // todas las texturas de los materiales (también las de los shaders propios), salvo las comunes del juego
     const free = (t) => { if (t && t.isTexture && !keep.has(t) && !t.userData?.shared) t.dispose(); };
@@ -274,7 +275,9 @@ export class Runtime {
     if (!g) return 'explore';
     const m = g.mode, night = (this.sky?.night || 0) > 0.5;
     if (m === 'encierro') return g.encierro?.started && !g.encierro?.done ? 'tension' : 'fiesta';
-    if (m === 'futbol' || m === 'pelota' || m === 'mini') return 'game';
+    // (en los partidos y en los campeonatos no suena música: se oye la grada)
+    if (m === 'futbol' || m === 'pelota' || m === 'menu' || g.sportMode) return 'none';
+    if (m === 'mini') return 'game';
     if (m === 'dance') return 'fiesta';
     if (g.missions?.some(M => M.chase)) return 'tension';
     if (night && g.missions?.some(M => !M.done && (M.type === 'legend' || (M.type === 'carnival' && M.night)))) return 'mystery';

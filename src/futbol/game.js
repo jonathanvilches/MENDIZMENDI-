@@ -1788,7 +1788,7 @@ export class FutbolGame {
   }
   afterGoal() { for (const p of this.players) if (p.act === 'celebrate') { p.act = ''; p.actT = 0; } this.kickoff(this.concede); }
   endHalf() {
-    this.emit({ t: 'whistle', n: 3 }); this.owner = null;
+    this.emit({ t: 'whistle', n: 3, end: true }); this.owner = null;
     if (this.half === 1) { this.setPhase('half'); this.emit({ t: 'half' }); return; }
     if (this.cup && this.score[0] === this.score[1]) { this.emit({ t: 'toPenalties' }); this.cupPens = true; return this.startShootout(5); }
     this.finish();

@@ -14,6 +14,7 @@ import { menuPanel } from './hud.js';
 import { VENUES, TEAMS, CAREER_KEY, SISTEMAS, sistemaElegido, elegirSistema } from './rules.js';
 import { CLUBS, teamOfClub, awayKit } from './clubs.js';
 import { showChampion } from '../ui/champion.js';
+import { crowdBuffers } from '../crowdAudio.js';
 import { season, newSeason, nextMatch, playRound, levelFor, ligaPanel, roundPanel, rivalPanel } from './liga.js';
 export { CLUBS, TOWN_CLUB, clubOfTown, teamOfClub } from './clubs.js';
 export { clubPanel } from './liga.js';
@@ -72,6 +73,7 @@ export const FutbolSystem = {
     const m = new FutbolMatch({ ...opts, makeCharacter: C.makeCharacter, crowd: C.crowd, quality: C.quality, touch: C.touch, audio: C.audio,
       tutorial: false, onResult: (r) => career.record(r), onTutorialDone: () => career.set('tutorial', true) });   // (es un minijuego: sin entrenamiento previo, al partido)
     window.__futbol = m;
+    crowdBuffers(C.audio?.ctx);   // (el público de la grada se calcula mientras se carga el estadio)
     await C.host?.before?.();
     try { await m.load(); }
     catch (e) { console.error('[fútbol] carga', e); m.dispose(); await C.host?.after?.(); return { quit: true, error: String(e) }; }

@@ -135,7 +135,7 @@ export class PelotaMatch {
   // «¡A jugar!»: antes, la pantalla VS (azules contra colorados, el frontón y cómo juega el rival); después, el saque.
   // (sin ella en el partido que empieza solo y en las pruebas automáticas, salvo que la pidan con window.__vs)
   vsThenPlay() {
-    const go = () => { if (!this.active) return; this.vsOpen = false; this.hud.controls(true); this.game.start(); this.audio.whistle(); };
+    const go = () => { if (!this.active) return; this.vsOpen = false; this.hud.controls(true); this.game.start(); this.audio.mood(0.22, 0.6); };   // (sin silbato: en la pelota no hay; la grada se calla para el saque)
     const V = this.o.vsImg;
     if (!V || this.o.autostart || window.__autoWin || (navigator.webdriver && !window.__vs)) return go();
     const t = this.txt, L = t.levels || TEXT.es.levels, M = this.pairs && this.mateObjs, P = t.pairs || TEXT.es.pairs, g = this.game;
@@ -253,7 +253,7 @@ export class PelotaMatch {
       <div class="pel-big">${big}</div><div class="pel-fact"><b>${t.factsTitle}</b><br>${fact}</div>
       <div class="pel-row">${this.o.back === 'torneo' ? '' : `<button class="pel-go alt" data-pel-again>${t.again}</button>`}<button class="pel-go" data-pel-cont>${cont}</button></div>`);
     tap(p, (b) => {
-      if (b.hasAttribute('data-pel-again')) { this.hud.closePanel(); this.newGame(); this.hud.controls(true); this.game.start(); this.audio.whistle(); }
+      if (b.hasAttribute('data-pel-again')) { this.hud.closePanel(); this.newGame(); this.hud.controls(true); this.game.start(); this.audio.mood(0.22, 0.6); }
       if (b.hasAttribute('data-pel-cont')) this.finish(e);
       if (b.hasAttribute('data-pel-fichas')) this.ficha('rival');
     });
@@ -387,11 +387,15 @@ export class PelotaMatch {
     const t = this.txt, g = this.game, A = this.audio, C = this.court;
     switch (e.type) {
       case 'serveReady': this.hud.setScore(g.mode === 'rally' ? g.streak : g.score.you, g.mode === 'rally' ? '' : g.score.rival, g.server);
-        if (e.matchPoint) { this.hud.call(t.matchPoint, t.matchPointSub, '', 1.6); A.crowd('oh'); }   // tanto de partido: el frontón contiene el aliento
+        // (la grada se calla para el saque; en el tanto de partido, contiene el aliento)
+        this.rallyN = 0; A.mood(0.2, 0.5);
+        if (e.matchPoint) { this.hud.call(t.matchPoint, t.matchPointSub, '', 1.6); A.crowd('oh', 0.5); }
         break;
       case 'hit': {
         // la fuerza también se oye y se nota: un golpe a tope suena más fuerte y sacude un poco la cámara
         const pw = e.pow ?? 0.5; A.hit((0.5 + e.q * 0.4) * (0.55 + pw * 0.75)); C.pop(e, 'z');
+        // (cuanto más largo el peloteo, más se mete la grada: el murmullo sube poco a poco)
+        this.rallyN = (this.rallyN || 0) + 1; A.mood(Math.min(0.52, 0.2 + this.rallyN * 0.03), 0.8);
         if (e.who === 'you' && pw > 0.8 && e.shot !== 'dejada') this.shake = Math.max(this.shake || 0, 0.12 + (pw - 0.8) * 0.6);
         // (cámara dinámica: un empujón hacia la cancha, mayor cuanto más fuerte y mejor le das)
         if (e.who === 'you' && e.shot !== 'dejada') this.kick = Math.max(this.kick || 0, Math.min(1, pw * 0.7 + (e.label === 'perfect' ? 0.35 : 0)));
@@ -416,7 +420,8 @@ export class PelotaMatch {
         if (g.mode === 'rally') this.hud.call(title, sub, '', 2);
         else if (e.final) { this.hud.call(t.finalCall, `${who}. ${t.finalSub}`, e.kantari, 4.4); this.hud.setScore(e.score.you, e.score.rival, e.winner); this.hud.root.classList.add('final'); }
         else { this.hud.call(title, `${sub ? sub + ' ' : ''}${who}.`, e.kantari, 2.2); this.hud.setScore(e.score.you, e.score.rival, e.winner); }
-        A.whistle(); if (e.final) A.ovation(); else A.crowd(e.winner === 'you' ? 'clap' : 'oh');
+        // (sin silbato: el juez de pelota canta el tanto; la grada aplaude toda a la vez)
+        A.point(e.call === 'bote' || e.call === 'tanto' || !t.calls[e.call], e.winner === 'you', e.final);
         break;
       }
       case 'end': this.endPanel(e); break;
@@ -574,7 +579,7 @@ export class PelotaMatch {
   }
   destroy() {
     if (!this.active) return;
-    this.active = false; setFeel(null);
+    this.active = false; setFeel(null); this.audio.stop();
     removeEventListener('keydown', this.onKey, true); removeEventListener('keyup', this.onKey, true); removeEventListener('blur', this.onBlur); removeEventListener('pointerup', this.onPtrEnd, true); removeEventListener('pointercancel', this.onPtrEnd, true); removeEventListener('touchend', this.onTouchEnd, true); removeEventListener('touchcancel', this.onTouchEnd, true); document.removeEventListener('visibilitychange', this.onHide);
     this.hud.destroy(); this.court.hideBall();
     if (this.pin) { this.pin.parent?.remove(this.pin); this.pin.geometry.dispose(); this.pin.material.dispose(); this.pin = null; }

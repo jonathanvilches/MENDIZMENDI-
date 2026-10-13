@@ -190,11 +190,38 @@ export class PelotaCourt {
       const back = new T.Mesh(new T.BoxGeometry(bw + 0.2, bh + 0.2, 0.16), M({ color: '#24282c', roughness: 0.6, metalness: 0.3 })); back.position.set(0, by, 0.05); g.add(back);
       this.setScore('', '', 0, 0); }
     const capL = new T.Mesh(new T.BoxGeometry(0.85, 0.2, EXT + 0.2), capMat); capL.position.set(-W / 2 - 0.3, C.LEFT_H + 0.1, EXT / 2 - 0.1); capL.castShadow = true; g.add(capL);
-    // la chapa de abajo (el colchón): de metal o pintada del color del frontón de cada sitio
-    const chapa = this.chapa = new T.Mesh(new T.BoxGeometry(W, C.CHAPA, 0.05), M(th.chapaMetal ? { color: th.chapa, metalness: 0.15, roughness: 0.45, emissive: '#000000' } : { color: th.chapa, roughness: 0.7, emissive: '#000000' }));
-    chapa.position.set(0, C.CHAPA / 2, 0.025); chapa.receiveShadow = true; g.add(chapa);
+    // la chapa de abajo (el colchón): la plancha que sobresale del frontis, hecha de paneles atornillados con sus juntas,
+    // de metal o pintada del color del frontón de cada sitio, con las marcas de los pelotazos; arriba, el remate de chapa
+    // doblada y la raya. Antes era una losa lisa de un solo color, sin nada que dijera que es una chapa
+    const chapaTex = canvasTex(T, 2048, 192, (c, w, h) => {
+      const n = Math.max(4, Math.round(W / 1.25)), pw = w / n;
+      c.fillStyle = th.chapa; c.fillRect(0, 0, w, h);
+      for (let i = 0; i < n; i++) {
+        const x0 = i * pw, k = (Math.random() - 0.5) * 0.08;
+        c.fillStyle = k > 0 ? `rgba(255,255,255,${k})` : `rgba(0,0,0,${-k})`; c.fillRect(x0, 0, pw, h);   // (cada panel, de un tono apenas distinto)
+        if (th.chapaMetal) for (let y = 0; y < h; y += 2) { c.fillStyle = `rgba(${Math.random() < 0.5 ? '255,255,255' : '0,0,0'},${0.012 + Math.random() * 0.022})`; c.fillRect(x0, y, pw, 1); }   // (cepillado)
+        c.fillStyle = 'rgba(0,0,0,.42)'; c.fillRect(x0, 0, 3, h); c.fillStyle = 'rgba(255,255,255,.16)'; c.fillRect(x0 + 3, 0, 2, h);   // (la junta)
+        for (const y of [h * 0.13, h * 0.87]) for (const fx of [0.12, 0.5, 0.88]) {   // (los tornillos)
+          const x = x0 + pw * fx; c.fillStyle = 'rgba(0,0,0,.35)'; c.beginPath(); c.arc(x + 1, y + 1, 5, 0, 7); c.fill();
+          c.fillStyle = 'rgba(255,255,255,.28)'; c.beginPath(); c.arc(x - 0.5, y - 0.5, 4, 0, 7); c.fill();
+        }
+      }
+      const gr = c.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, 'rgba(255,255,255,.10)'); gr.addColorStop(0.18, 'rgba(255,255,255,0)'); gr.addColorStop(0.82, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,.2)');
+      c.fillStyle = gr; c.fillRect(0, 0, w, h);   // (la luz de arriba y la sombra del suelo)
+      // (las marcas de los pelotazos: pocas y suaves, casi todas en el centro; con muchas parecía óxido)
+      for (let i = 0; i < 22; i++) { const x = w * (0.2 + Math.random() * 0.6), y = h * (0.35 + Math.random() * 0.45), r = 10 + Math.random() * 16, m = c.createRadialGradient(x, y, 0, x, y, r);
+        m.addColorStop(0, 'rgba(40,34,30,.10)'); m.addColorStop(1, 'rgba(40,34,30,0)'); c.fillStyle = m; c.fillRect(x - r, y - r, r * 2, r * 2); }
+      if (!th.chapaMetal) grain(c, w, h, 1200, 0.03);
+    });
+    const chapa = this.chapa = new T.Mesh(new T.BoxGeometry(W, C.CHAPA, 0.07), [M({ color: th.chapa, roughness: 0.6 }), M({ color: th.chapa, roughness: 0.6 }), M({ color: th.chapa, roughness: 0.6 }), M({ color: th.chapa, roughness: 0.6 }),
+      M(th.chapaMetal ? { map: chapaTex, metalness: 0.25, roughness: 0.42, emissive: '#000000' } : { map: chapaTex, roughness: 0.66, emissive: '#000000' }), M({ color: th.chapa })]);
+    chapa.position.set(0, C.CHAPA / 2, 0.035); chapa.castShadow = false; chapa.receiveShadow = true; g.add(chapa);
+    this.chapaMat = chapa.material[4];
+    // el remate: la chapa doblada de arriba, que sale un poco más y hace sombra sobre el panel
+    const chapaTop = new T.Mesh(new T.BoxGeometry(W, 0.045, 0.1), M({ color: th.chapa, metalness: th.chapaMetal ? 0.35 : 0, roughness: 0.5 }));
+    chapaTop.position.set(0, C.CHAPA - 0.0625, 0.05); chapaTop.castShadow = true; g.add(chapaTop);
     const chapaLine = new T.Mesh(new T.BoxGeometry(W, 0.08, 0.07), M({ color: th.mark, roughness: 0.6 }));
-    chapaLine.position.set(0, C.CHAPA, 0.035); g.add(chapaLine);
+    chapaLine.position.set(0, C.CHAPA, 0.035); g.add(chapaLine);   // (la raya, donde siempre: lo que da por debajo es chapa)
 
     // --- pared izquierda (lisa, con la raya roja de arriba)
     const leftTex = canvasTex(T, 2048, 512, (c, w, h) => {
@@ -806,7 +833,7 @@ export class PelotaCourt {
   }
   tick(dt) {
     if (this.flashT > 0) { this.flashT -= dt; const k = 1 - this.flashT / 0.35; this.flash.scale.setScalar(0.6 + k * 2.2); this.flash.material.opacity = 0.9 * (1 - k); if (this.flashT <= 0) this.flash.visible = false; }
-    if (this.chapaT > 0) { this.chapaT -= dt; this.chapa.material.emissive.setRGB(this.chapaT * 1.6, 0.1 * this.chapaT, 0.1 * this.chapaT); }
+    if (this.chapaT > 0) { this.chapaT = Math.max(0, this.chapaT - dt); this.chapaMat.emissive.setRGB(this.chapaT * 1.6, 0.1 * this.chapaT, 0.1 * this.chapaT); }
   }
   dispose() {
     this.group.traverse(o => { if (o.geometry) o.geometry.dispose(); });
