@@ -84,6 +84,11 @@
 .hub-nav .more-btn { display: none; }
 
 .hub-main { grid-row: 2; overflow-y: auto; overflow-x: hidden; padding: 24px var(--gut) 60px; touch-action: pan-y; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
+/* escritorio: en pantallas anchas el contenido no pasa de 1440 px y va centrado (antes se estiraba de borde a borde: las
+   portadas, de 1280 px, se veían estiradas y borrosas, y el mapa quedaba lejos de su lista) */
+@media (min-width: 1600px) { .hub-main { padding-left: max(var(--gut), calc((100% - 1440px) / 2)); padding-right: max(var(--gut), calc((100% - 1440px) / 2)); } }
+/* (y el mapa, que no pasa de 820 px, junto a su lista y los dos centrados: antes quedaba un hueco grande entre ellos) */
+@media (min-width: 1200px) and (min-height: 700px) { .map-wrap { grid-template-columns: minmax(0, 820px) 300px; justify-content: center; gap: 32px; } }
 .hub-main::-webkit-scrollbar { width: 8px; } .hub-main::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, .14); border-radius: 8px; }
 .hub-main > * { animation: rise .4s cubic-bezier(.2, .9, .3, 1) both; }
 .hub-main > *:nth-child(2) { animation-delay: .04s; } .hub-main > *:nth-child(3) { animation-delay: .08s; } .hub-main > *:nth-child(4) { animation-delay: .12s; } .hub-main > *:nth-child(n+5) { animation-delay: .16s; }

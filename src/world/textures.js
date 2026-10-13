@@ -279,7 +279,7 @@ function groundDetail(size) {
 
 // ---- Suelo de hierba (vista cenital) ----
 // R: briznas (luminancia), G: manchas de trébol, B: florecillas
-function grassGround(size) {
+function grassGround(size, relief = true) {
   const rnd = mulberry32(17);
   const layer = () => { const c = canvas(size), g = c.getContext('2d'); g.fillStyle = '#000'; g.fillRect(0, 0, size, size); return [c, g]; };
   const [, gr] = layer(), [, gg] = layer(), [, gb] = layer();   // (layer() sortea: se llama igual, aunque solo se use su segundo valor)
@@ -308,7 +308,60 @@ function grassGround(size) {
   const R = gr.getImageData(0, 0, size, size).data, G = gg.getImageData(0, 0, size, size).data, B = gb.getImageData(0, 0, size, size).data;
   for (let i = 0; i < size * size; i++) { d[i * 4] = R[i * 4]; d[i * 4 + 1] = G[i * 4 + 1]; d[i * 4 + 2] = B[i * 4 + 2]; d[i * 4 + 3] = 255; }
   og.putImageData(img, 0, 0);
-  return toTex(out, false);
+  // relieve de las briznas (las puntas claras salen hacia fuera): con el sol de lado el prado deja de verse liso
+  return { map: toTex(out, false), normalMap: relief ? toTex(normalFromHeight(gr.canvas, 1.4), false) : null };
+}
+
+// ---- Tierra de camino: tierra apisonada con arena, grava menuda, alguna piedra mayor y grietas de secado ----
+// Color (con sus tonos de tierra) y relieve; el sombreador del terreno le suma las manchas grandes y los guijarros
+function dirtGround(size, relief = true) {
+  const rnd = mulberry32(29);
+  const col = canvas(size), hc = canvas(size);
+  const g = col.getContext('2d'), h = hc.getContext('2d'), k = size / 512;
+  const per = (x, y, f) => {   // (sin costura y sin remolinos, como en groundDetail)
+    const u = x / size, v = y / size, s = f * 2.2, n = (px, py) => noise2(px * s + 10, py * s + 3);
+    return n(u, v) * (1 - u) * (1 - v) + n(u - 1, v) * u * (1 - v) + n(u, v - 1) * (1 - u) * v + n(u - 1, v - 1) * u * v;
+  };
+  // tierra: parda clara que se vuelve gris donde está más pisada, con grano de arena
+  const img = g.createImageData(size, size), d = img.data, him = h.createImageData(size, size), e = him.data;
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const n1 = per(x, y, 2), n2 = per(x, y, 11), r = rnd() - 0.5, i = (y * size + x) * 4;
+    const t = Math.max(0, Math.min(1, 0.5 + n1 * 1.1)), l = 0.92 + n2 * 0.16 + r * 0.16;
+    d[i] = (170 + (152 - 170) * t) * l; d[i + 1] = (146 + (143 - 146) * t) * l; d[i + 2] = (114 + (130 - 114) * t) * l; d[i + 3] = 255;
+    e[i] = e[i + 1] = e[i + 2] = 118 + n2 * 34 + n1 * 20 + r * 22; e[i + 3] = 255;
+  }
+  g.putImageData(img, 0, 0); h.putImageData(him, 0, 0);
+  // grietas de secado: trazos finos que se ramifican, hundidos en el relieve
+  for (let c = 0; c < 7; c++) {
+    let x = rnd() * size, y = rnd() * size, a = rnd() * 6.28;
+    const pts = [[x, y]];
+    for (let j = 0; j < 12; j++) { a += (rnd() - 0.5) * 1.1; x += Math.cos(a) * 9 * k; y += Math.sin(a) * 9 * k; pts.push([x, y]); }
+    wrapDraw(size, pts[0][0], pts[0][1], 120 * k, (X, Y) => {
+      const ox = X - pts[0][0], oy = Y - pts[0][1];
+      for (const [cg, cs, lw] of [[g, 'rgba(70,52,36,.35)', 0.9 * k], [h, '#3a3a3a', 1.4 * k]]) {
+        cg.strokeStyle = cs; cg.lineWidth = lw; cg.beginPath(); pts.forEach(([px, py], j) => j ? cg.lineTo(px + ox, py + oy) : cg.moveTo(px + ox, py + oy)); cg.stroke();
+      }
+    });
+  }
+  // grava menuda y alguna piedra mayor: cada una con su tono, un brillo arriba y su sombra abajo, y abombada en el relieve
+  const stone = (n, r0, r1) => { for (let i = 0; i < n; i++) {
+    const x = rnd() * size, y = rnd() * size, r = (r0 + rnd() * (r1 - r0)) * k, ry = r * (0.6 + rnd() * 0.3), a = rnd() * 3.14;
+    const warm = rnd() < 0.35, L = 52 + rnd() * 24, hue = warm ? 30 + rnd() * 10 : 35 + rnd() * 30, sat = warm ? 14 + rnd() * 10 : 3 + rnd() * 5;
+    wrapDraw(size, x, y, r * 1.6, (X, Y) => {
+      g.fillStyle = 'rgba(40,28,18,.32)'; g.beginPath(); g.ellipse(X + r * 0.18, Y + r * 0.28, r * 1.05, ry * 1.1, a, 0, 7); g.fill();
+      g.fillStyle = hsl(hue, sat, L); g.beginPath(); g.ellipse(X, Y, r, ry, a, 0, 7); g.fill();
+      g.fillStyle = `rgba(255,250,240,${0.12 + rnd() * 0.1})`; g.beginPath(); g.ellipse(X - r * 0.22, Y - ry * 0.3, r * 0.5, ry * 0.4, a, 0, 7); g.fill();
+      // (abombada con tres elipses una dentro de otra: un degradado por piedra costaba demasiado con tantas)
+      h.fillStyle = '#9a9a9a'; h.beginPath(); h.ellipse(X, Y, r * 1.05, ry * 1.05, a, 0, 7); h.fill();
+      h.fillStyle = '#c8c8c8'; h.beginPath(); h.ellipse(X - r * 0.08, Y - ry * 0.1, r * 0.75, ry * 0.75, a, 0, 7); h.fill();
+      h.fillStyle = '#ececec'; h.beginPath(); h.ellipse(X - r * 0.15, Y - ry * 0.2, r * 0.4, ry * 0.4, a, 0, 7); h.fill();
+    });
+  } };
+  stone(1400 * k * k, 0.8, 2.2);
+  stone(160 * k * k, 2.4, 5);
+  stone(14 * k * k, 6, 11);
+  grain(g, size, 0.1, rnd, 0.5);
+  return { map: toTex(col), normalMap: relief ? toTex(normalFromHeight(hc, 3), false) : null };
 }
 
 // ---- Roca de montaña: bloques fracturados, estratos, grietas y líquenes ----
@@ -501,7 +554,9 @@ export function buildTextures(quality = 'high') {
   TEX.plasterRose = plaster(S, '#e6b9a0', 4);
   TEX.plasterBlue = plaster(S, '#c9d6de', 5);
   TEX.detail = groundDetail(S);
-  TEX.grass = grassGround(S);
+  // (el relieve de la hierba y de la tierra solo se usa en calidad media y alta: en baja no se hace)
+  { const g = grassGround(S, quality !== 'low'); TEX.grass = g.map; TEX.grassN = g.normalMap; }
+  TEX.dirt = dirtGround(S, quality !== 'low');
   { const r = rockFace(S); TEX.rock = r.map; TEX.rockN = r.normalMap; }
   TEX.foliage = foliageAtlas(S);
   return TEX;

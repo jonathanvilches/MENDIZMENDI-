@@ -135,6 +135,9 @@ export function makeTerrainMaterial({ outer = false, quality = 'high' } = {}) {
     sh.uniforms.tRockN = { value: TEX.rockN };
     sh.uniforms.tCobble = { value: TEX.cobble.map };
     sh.uniforms.tCobbleN = { value: TEX.cobble.normalMap };
+    sh.uniforms.tDirt = { value: TEX.dirt.map };
+    sh.uniforms.tDirtN = { value: TEX.dirt.normalMap };
+    sh.uniforms.tGrassN = { value: TEX.grassN };
     sh.uniforms.uRock = { value: rockCol };
     sh.uniforms.uSnowY = { value: TONE === 'alpine' ? 212 : 1e5 };   // cota de la nieve perpetua (solo en el Pirineo)
     sh.uniforms.uRockSlope = { value: new THREE.Vector2(...(({ alpine: [0.3, 0.44], dry: [0.36, 0.5], arid: [0.33, 0.47] })[TONE] || [0.46, 0.62])) };
@@ -146,7 +149,7 @@ export function makeTerrainMaterial({ outer = false, quality = 'high' } = {}) {
       .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvSurf = aSurf;\nvWP = (modelMatrix * vec4(transformed,1.0)).xyz;\nvNW = normalize(mat3(modelMatrix) * objectNormal);');
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>
-uniform sampler2D tDetail; uniform sampler2D tGrass; uniform sampler2D tRock; uniform sampler2D tRockN; uniform sampler2D tCobble; uniform sampler2D tCobbleN; uniform vec3 uRock; uniform vec2 uRockSlope; uniform float uSnowY;
+uniform sampler2D tDetail; uniform sampler2D tGrass; uniform sampler2D tRock; uniform sampler2D tRockN; uniform sampler2D tCobble; uniform sampler2D tCobbleN; uniform sampler2D tDirt; uniform sampler2D tDirtN; uniform sampler2D tGrassN; uniform vec3 uRock; uniform vec2 uRockSlope; uniform float uSnowY;
 varying vec4 vSurf; varying vec3 vWP; varying vec3 vNW;
 vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.x + texture2D(tRock, p.xz / s) * bw.y + texture2D(tRock, p.xy / s) * bw.z; }
 #ifdef OUTER
@@ -157,6 +160,7 @@ vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.
 #define ROCK_S2 2.6
 #endif`)
       .replace('#include <color_fragment>', `#include <color_fragment>
+float grassM = 0.0, dirtM = 0.0, dirtB = 0.0;   // (para el relieve, más abajo)
 {
   vec3 nw = normalize(vNW);
   float slope = 1.0 - nw.y;                       // 0 llano · 0.29 a 45°
@@ -170,11 +174,16 @@ vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.
   float big = texture2D(tDetail, vWP.xz / 70.0).r;
   float huge = texture2D(tDetail, vWP.xz / 260.0).r;
 #endif
+  // los vértices de calles y caminos se marcan aclarando su color hacia el blanco: aquí se deshace (hasta un tope, donde ya
+  // lo tapan el empedrado o la tierra) para que el borde tome el color del suelo de al lado y no quede una franja blanquecina
   vec3 base = diffuseColor.rgb;
+  { float wd = min(vSurf.y, 0.9), ws = min(vSurf.x, 0.9);
+    base = clamp((base - wd) / (1.0 - wd), 0.0, 1.0); base = clamp((base - ws) / (1.0 - ws), 0.0, 1.0); }
   // campos, grava, nieve…: detalle suave como antes
   vec3 soft = base * (0.78 + 0.44 * d1.r) * (0.9 + 0.2 * d2.g) * (0.88 + 0.24 * big);
   // hierba: briznas a dos escalas, manchas de color, tréboles y florecillas
   float grassy = smoothstep(0.015, 0.07, base.g - max(base.r, base.b)) * (1.0 - vSurf.z);
+  grassM = grassy;
   vec4 g1 = texture2D(tGrass, vWP.xz / 1.3);
 #ifdef LOWQ
   // móvil: la escala más fina de briznas y las matas salen de lecturas que ya están hechas (dos lecturas menos por píxel)
@@ -195,6 +204,11 @@ vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.
   gc = mix(gc, gc * vec3(0.76, 0.94, 0.88), smoothstep(0.5, 0.08, hz) * 0.45);
   gc = mix(gc, gc * vec3(1.06, 1.02, 0.8), smoothstep(0.62, 0.85, d1.g) * 0.3);
   gc *= 0.84 + 0.26 * smoothstep(0.25, 0.75, clump);
+#ifndef LOWQ
+  // rodales de unos veinte metros: hierba más alta y oscura, o más rala y clara (de lejos el prado ya no es de un verde liso)
+  float pz = texture2D(tDetail, vWP.xz / 23.0 + 0.17).r;
+  gc *= mix(vec3(0.86, 0.91, 0.88), vec3(1.07, 1.05, 0.95), smoothstep(0.3, 0.7, pz));
+#endif
   gc *= vec3(0.8, 0.93, 0.74);                                   // suelo algo más oscuro y verde que las briznas
   gc = mix(gc, base * vec3(0.66, 0.95, 0.72), g1.g * 0.45);
   float fl = max(g1.b, g2.b * 0.8) * smoothstep(0.35, 0.65, d1.g) * (1.0 - vSurf.w) * (1.0 - smoothstep(0.12, 0.25, slope));
@@ -263,14 +277,20 @@ vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.
   // tierra y senderos
   // tierra: grano fino, piedrecitas y huellas de rodadas (sin remolinos)
   // tierra y empedrado, solo donde los hay (en el prado no se leen sus texturas)
-  float dm = smoothstep(0.1, 0.9, vSurf.y + (d1.g - 0.5) * 0.5 + (clump - 0.5) * 0.35);
+  // (el color de los vértices del camino va hacia el blanco, que es solo la marca: la tierra tiene que cubrirlo antes de
+  // que se aclare, o en el borde queda una franja blanquecina)
+  float dm = smoothstep(0.03, 0.5, vSurf.y + (d1.g - 0.5) * 0.32 + (clump - 0.5) * 0.22);
   if (dm > 0.002) {
+    // tierra apisonada con grava, piedras y grietas (su propia textura); en escritorio a dos escalas fundidas por
+    // manchas, para que en un camino ancho no se vea la repetición
+    dirtM = dm;
 #ifdef LOWQ
-    float grit = g1.r;
+    vec3 dirt = texture2D(tDirt, vWP.xz / 2.4).rgb;
 #else
-    float grit = texture2D(tGrass, vWP.xz / 0.35).r;
+    dirtB = smoothstep(0.38, 0.62, d1.r);
+    vec3 dirt = mix(texture2D(tDirt, vWP.xz / 2.4).rgb, texture2D(tDirt, vWP.xz / 3.7 + 0.43).rgb, dirtB);
 #endif
-    vec3 dirt = mix(vec3(0.5, 0.39, 0.27), vec3(0.6, 0.5, 0.36), big) * (0.82 + 0.28 * grit) * (0.9 + 0.16 * g1.r);
+    dirt *= mix(0.9, 1.1, big) * (0.94 + 0.12 * g1.r);
     dirt = mix(dirt, dirt * vec3(0.78, 0.76, 0.74), smoothstep(0.5, 0.75, d1.r) * 0.5);          // manchas húmedas
     float peb = texture2D(tDetail, vWP.xz / 6.0 + 0.5).b;                                          // guijarros de 2 a 8 cm
     dirt *= 1.0 - smoothstep(0.15, 0.4, peb) * (1.0 - smoothstep(0.4, 0.6, peb)) * 0.3;           // su sombra alrededor
@@ -340,7 +360,26 @@ vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.
     vec3 up = normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz);
     normal = normalize(mix(normal, normalize(normal + (nv - up) * 0.9), sm));
   }
-}`)
+}
+#ifndef LOWQ
+{
+  // relieve de la tierra (grava, piedras y grietas) y de las briznas del prado; de lejos ya no se aprecia y se salta
+  float noCob = 1.0 - smoothstep(0.15, 0.85, vSurf.x), dc = length(vWP - cameraPosition);
+  float dn = dirtM * noCob * (1.0 - smoothstep(40.0, 90.0, dc));
+  float gn = grassM * (1.0 - dirtM) * noCob * (1.0 - smoothstep(25.0, 70.0, dc));
+  vec3 up = normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz);
+  if (dn > 0.01) {
+    vec3 tn = mix(texture2D(tDirtN, vWP.xz / 2.4).xyz, texture2D(tDirtN, vWP.xz / 3.7 + 0.43).xyz, dirtB) * 2.0 - 1.0;
+    vec3 nv = normalize((viewMatrix * vec4(normalize(vec3(tn.x, tn.z, -tn.y)), 0.0)).xyz);
+    normal = normalize(mix(normal, normalize(normal + (nv - up) * 0.8), dn));
+  }
+  if (gn > 0.01) {
+    vec3 tn = texture2D(tGrassN, vWP.xz / 1.3).xyz * 2.0 - 1.0;
+    vec3 nv = normalize((viewMatrix * vec4(normalize(vec3(tn.x, tn.z, -tn.y)), 0.0)).xyz);
+    normal = normalize(mix(normal, normalize(normal + (nv - up) * 0.55), gn));
+  }
+}
+#endif`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
 roughnessFactor = mix(roughnessFactor, 0.8, smoothstep(0.2,0.9,vSurf.x));`);
   };
