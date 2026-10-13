@@ -21,7 +21,7 @@ const CSS = `
 /* foco que barre cada lado */
 .pvs-side::after{content:'';position:absolute;top:-30%;left:30%;width:40%;height:160%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.16),transparent);transform-origin:50% 0;animation:pvs-beam 3.2s ease-in-out infinite alternate}
 .pvs-side.rojo::after{animation-delay:-1.6s}
-.pvs-split{position:absolute;top:-10%;bottom:-10%;left:50%;width:8px;transform:translateX(-50%) skewX(-13deg);background:#fff;box-shadow:0 0 18px #fff,0 0 42px var(--fx),0 0 80px var(--fx);animation:pvs-split .5s .3s ease-out both}
+/* (sin líneas separadoras: los dos lados se separan solos por su color; la raya blanca del centro cruzaba los rótulos) */
 /* el golpe del VS: un destello que sale del centro, rosa; a toda pantalla y blanco parecía un relámpago */
 .pvs-flash{position:absolute;inset:0;z-index:6;background:radial-gradient(60% 70% at 50% 45%,rgba(255,255,255,.9) 0%,rgba(255,122,200,.55) 35%,rgba(255,43,214,0) 70%);opacity:0;pointer-events:none;animation:pvs-flash .5s .62s ease-out both}
 .pvs-sparks{position:absolute;inset:0;z-index:2;pointer-events:none}
@@ -65,7 +65,7 @@ const CSS = `
 .pvs-who small{display:block;font:700 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--lila);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pvs-st{display:flex;gap:10px;font:700 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;color:var(--lila)}.pvs-plate.rojo .pvs-st{justify-content:flex-end}
 .pvs-st b{display:inline;font:800 var(--fs-sm)/1 var(--f-cond);color:#fff;margin-left:3px}
-.pvs-tick{position:absolute;left:0;right:0;bottom:0;z-index:5;height:calc(env(safe-area-inset-bottom,0px) + 36px);padding-bottom:env(safe-area-inset-bottom,0px);display:flex;align-items:center;background:rgba(7,2,15,.9);border-top:2px solid var(--fx);animation:pvs-up .35s 1.2s ease-out both}
+.pvs-tick{position:absolute;left:0;right:0;bottom:0;z-index:5;height:calc(env(safe-area-inset-bottom,0px) + 36px);padding-bottom:env(safe-area-inset-bottom,0px);display:flex;align-items:center;background:rgba(7,2,15,.9);animation:pvs-up .35s 1.2s ease-out both}
 .pvs-tick .q{flex:1;min-width:0;overflow:hidden;white-space:nowrap;padding-left:calc(env(safe-area-inset-left,0px) + 16px);font:600 var(--fs-sm)/1.3 var(--f-cond);font-style:italic;letter-spacing:.02em}
 .pvs-tick .q span{display:inline-block;padding-right:40px}.pvs-tick .q.run span{animation:pvs-marq var(--mt,12s) linear 1.6s infinite}
 .pvs-tick .q em{font-style:normal;color:var(--rosa);font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-right:8px}
@@ -76,8 +76,6 @@ const CSS = `
 @keyframes pvs-figl{from{transform:translateX(-70%) scale(.9);opacity:0}to{transform:none;opacity:1}}@keyframes pvs-figr{from{transform:translateX(70%) scale(.9);opacity:0}to{transform:none;opacity:1}}
 @keyframes pvs-run{from{transform:translateX(-240px)}to{transform:none}}
 @keyframes pvs-beam{from{transform:rotate(-22deg)}to{transform:rotate(22deg)}}
-@keyframes pvs-split{from{transform:translateX(-50%) skewX(-13deg) scaleY(0)}to{transform:translateX(-50%) skewX(-13deg) scaleY(1)}}
-@keyframes pvs-splitp{from{transform:translateY(-50%) rotate(var(--rot,0deg)) scaleX(0)}to{transform:translateY(-50%) rotate(var(--rot,0deg)) scaleX(1)}}
 @keyframes pvs-flash{0%{opacity:0}12%{opacity:.75}100%{opacity:0}}
 @keyframes pvs-x{from{transform:translate(-50%,-50%) scale(3.2) rotate(-8deg);opacity:0}to{transform:translate(-50%,-50%) scale(1);opacity:1}}
 @keyframes pvs-shake{0%,100%{transform:none}20%{transform:translate(-6px,3px)}40%{transform:translate(5px,-4px)}60%{transform:translate(-4px,2px)}80%{transform:translate(3px,-1px)}}
@@ -141,13 +139,12 @@ function layoutVs(el) {
   const sp = getComputedStyle($('.pvs-safe')), sL = parseFloat(sp.paddingLeft) || 0, sR = parseFloat(sp.paddingRight) || 0;
   const top = $('.pvs-top'), bar = $('.pvs-bar'), tick = $('.pvs-tick'), x = $('.pvs-x'), mid = $('.pvs-mid'), lineM = $('.pvs-mid .pvs-line'), lineB = $('.pvs-lineb');
   const figs = { azul: $('.pvs-fig.azul'), rojo: $('.pvs-fig.rojo') }, plates = { azul: $('.pvs-plate.azul'), rojo: $('.pvs-plate.rojo') };
-  const sides = { azul: $('.pvs-side.azul'), rojo: $('.pvs-side.rojo') }, split = $('.pvs-split'), K = ['azul', 'rojo'];
+  const sides = { azul: $('.pvs-side.azul'), rojo: $('.pvs-side.rojo') }, K = ['azul', 'rojo'];
   // la línea del partido: arriba, en la barra (en vertical, en su propia fila); en horizontal, solo si cabe en una fila
   if (lineB) { lineB.hidden = false; const need = [...bar.children].reduce((t, c) => t + c.scrollWidth, 0) - 10 * (bar.children.length - 1);
     lineB.hidden = !port && need > W - sL - sR - 32; if (lineM) lineM.hidden = !lineB.hidden; }
   mid.hidden = ![...mid.children].some(c => !c.hidden);
   for (const k of K) { for (const p of ['left', 'right', 'top', 'bottom', 'maxWidth']) plates[k].style[p] = ''; Object.assign(sides[k].style, { width: '', left: '', right: '', clipPath: '' }); figs[k].style.clipPath = ''; }
-  Object.assign(split.style, { left: '', width: '', top: '', bottom: '', height: '', animationName: '' }); split.style.removeProperty('--rot');
   // el centro (las etiquetas): su ancho natural, en columna si así deja más sitio a las figuras
   const midSize = (stack, max) => { mid.classList.toggle('stack', stack); Object.assign(mid.style, { width: 'max-content', alignItems: '', textAlign: '' });
     const w = mid.hidden ? 0 : Math.min(Math.ceil(mid.getBoundingClientRect().width) + 1, max); mid.style.width = `${w}px`; return [w, mid.hidden ? 0 : mid.offsetHeight]; };
@@ -188,7 +185,6 @@ function layoutVs(el) {
   const C = Math.round((T + B - gap) / 2), dd = W * 0.07;
   Object.assign(sides.azul.style, { width: '100%', left: '0', right: '0', clipPath: `polygon(0 0,100% 0,100% ${px(C - dd)},0 ${px(C + dd)})` });
   Object.assign(sides.rojo.style, { width: '100%', left: '0', right: '0', clipPath: `polygon(0 ${px(C + dd)},100% ${px(C - dd)},100% 100%,0 100%)` });
-  Object.assign(split.style, { left: '-10%', width: '120%', top: px(C), bottom: 'auto', height: '6px', animationName: 'pvs-splitp' }); split.style.setProperty('--rot', `${(-Math.atan2(2 * dd, W) * 180 / Math.PI).toFixed(2)}deg`);
   Object.assign(x.style, { fontSize: px(F), top: px(C) });
   const pw = Math.min(W * 0.72, 320);
   for (const k of K) plates[k].style.maxWidth = px(pw);
@@ -226,7 +222,7 @@ export function showVs(host, d) {
     const el = document.createElement('div'); el.className = 'pvs'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', `${d.you.name} VS ${d.rival.name}`);
     // chispas que suben (unas pocas y solo con CSS: en el móvil no pesan)
     const sparks = Array.from({ length: 22 }, (_, i) => `<i style="left:${(i * 37 + 11) % 100}%;--d:${((i * 0.29) % 3).toFixed(2)}s;--t:${2.4 + (i % 5) * 0.5}s;--x:${(i % 2 ? 1 : -1) * (10 + (i * 7) % 40)}px"></i>`).join('');
-    el.innerHTML = `<div class="pvs-side azul"></div><div class="pvs-side rojo"></div><div class="pvs-split"></div><div class="pvs-sparks" aria-hidden="true">${sparks}</div>
+    el.innerHTML = `<div class="pvs-side azul"></div><div class="pvs-side rojo"></div><div class="pvs-sparks" aria-hidden="true">${sparks}</div>
       ${fig(d.you, 'azul')}${fig(d.rival, 'rojo')}
       <div class="pvs-top"><div class="pvs-bar">${d.comp ? `<span class="pvs-comp">${esc(d.comp)}</span>` : ''}${d.venue ? `<span class="pvs-venue">${d.venueIcon || (d.cond ? courtIcon(d.cond) : '')}${esc(d.venue)}</span>` : ''}${d.line ? `<span class="pvs-lineb" hidden>${esc(d.line)}</span>` : ''}</div></div>
       <div class="pvs-x" aria-hidden="true">VS</div>
