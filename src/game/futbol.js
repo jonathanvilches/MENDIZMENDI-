@@ -8,6 +8,7 @@ import { GlbChar, loadMeshy, hasMeshy, MESHY_GAIT } from '../actors/glbChar.js';
 import { crowd3d } from '../actors/crowd3d.js';
 import { QUALITY } from '../util/quality.js';
 import { REFEREE } from '../futbol/rules.js';
+import { hairFor, seedOf, hairMaterial, hairTint } from '../actors/hairColor.js';
 
 // la camiseta roja del modelo pasa a otro color (porteros y árbitros): solo los píxeles de rojo muy saturado, la piel no.
 // El brillo sigue el del color pedido (el negro del árbitro sale oscuro, no granate)
@@ -113,6 +114,9 @@ export async function makeCharacter(d) {
   // cada jugador un poco distinto de alto; los porteros, algo más altos
   char.root.scale.multiplyScalar(d.keeper ? 1.05 : [1, 0.97, 1.03, 0.99, 1.02][((d.num || 0) + d.side) % 5]);
   const mats = d.keeper ? recolor(char.root, d.team.keeper) : d.referee ? recolor(char.root, REFEREE.shirt, 0) : d.team.club ? kitRecolor(char.root, d.team) : d.team.recolor ? recolor(char.root, d.team.shirt) : [];
+  // cada uno con su pelo (moreno, castaño, rubio, pelirrojo…), siempre el mismo para el mismo dorsal del mismo equipo
+  const hair = hairFor(seedOf(d.referee ? 'arbitro' + d.role : d.teamId + ':' + d.num));
+  if (mats.length) char.root.traverse(o => { if (o.isSkinnedMesh) [].concat(o.material).forEach(m => hairMaterial(m, o.geometry, model, hair)); }); else hairTint(char.root, model, hair);
   const B = {}; char.root.traverse(o => { if (o.isBone) B[o.name.replace(/[.:]/g, '').replace(/^mixamorig/, '')] = o; });
   const arms = ['Left', 'Right'].map(s => [B[s + 'Arm'], B[s + 'ForeArm'], B[s + 'Hand']]).filter(a => a.every(Boolean));
   // el banderín, en la mano derecha (con la escala del mundo: el esqueleto de Mixamo va a 1/100)

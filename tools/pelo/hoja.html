@@ -1,0 +1,40 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:#2a1650}canvas{display:block}</style></head><body>
+<script type="module">
+import * as THREE from 'three';
+import { GlbChar, loadMeshy, MESHY_NAMES } from '/src/actors/glbChar.js';
+import { hairTint, HAIR_COLORS } from '/src/actors/hairColor.js';
+const P = new URLSearchParams(location.search);
+const models = (P.get('m') || 'sanfermin,pastor,osasuna,osasuna_fuera,pelotari').split(',').filter(n => MESHY_NAMES.includes(n));
+const cols = (P.get('c') || ['orig', ...Object.values(HAIR_COLORS)].join(',')).split(',');
+const face = P.get('cara') !== '0', W = +(P.get('w') || 220), H = +(P.get('h') || 240);
+const R = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true }); R.setPixelRatio(1); R.setSize(W * cols.length, H * models.length);
+R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.ACESFilmicToneMapping; R.toneMappingExposure = 1.05; document.body.appendChild(R.domElement);
+const sc = new THREE.Scene(); sc.background = new THREE.Color('#5a4b78');
+sc.add(new THREE.HemisphereLight(0xf4ecff, 0x3b2163, 1.2)); const sun = new THREE.DirectionalLight(0xffffff, 2.2); sun.position.set(1.5, 3, 3); sc.add(sun);
+const cam = new THREE.PerspectiveCamera(face ? 22 : 30, W / H, 0.05, 50);
+window.__done = false; window.__info = [];
+(async () => {
+  const groups = [];
+  for (const [r, name] of models.entries()) {
+    const g = await loadMeshy(name);
+    for (const [c, col] of cols.entries()) {
+      const ch = new GlbChar(g, {}); ch.root.scale.setScalar(g.userData.fit || 1);
+      if (col !== 'orig') hairTint(ch.root, name, col);
+      ch.play?.('Idle'); ch.setSpeed?.(0); ch.update?.(0.016);
+      groups.push({ r, c, ch, name });
+    }
+  }
+  const rot = +(P.get('rot') || 0) * Math.PI / 180;
+  R.setScissorTest(true);
+  for (const { r, c, ch } of groups) {
+    for (const o of groups) o.ch.root.visible = o.ch === ch;
+    if (!ch.root.parent) sc.add(ch.root);
+    ch.root.rotation.y = rot; ch.root.updateMatrixWorld(true);
+    const y = face ? 1.38 : 0.85, d = face ? 1.25 : 4.2;
+    cam.position.set(0, y + (face ? 0.05 : 0.2), d); cam.lookAt(0, y, 0);
+    const x = c * W, yy = (models.length - 1 - r) * H;
+    R.setViewport(x, yy, W, H); R.setScissor(x, yy, W, H); R.render(sc, cam);
+  }
+  window.__done = true;
+})().catch(e => { window.__err = String(e && e.stack || e); });
+</script></body></html>

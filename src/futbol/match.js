@@ -88,10 +88,11 @@ export class FutbolMatch {
       this.refChars[i] = { c, outer };
     }));
     // bajo la cubierta de El Sadar los jugadores también quedan a la sombra: sus materiales (copiados, para no tocar los
-    // de los vecinos del pueblo, que usan los mismos modelos) llevan el cálculo de la sombra de la cubierta
+    // de los vecinos del pueblo, que usan los mismos modelos; los que ya son suyos, como el del pelo teñido, no: la copia
+    // perdería el tinte) llevan el cálculo de la sombra de la cubierta
     if (this.field.roof) {
       const copies = new Map(); this.roofMats = [];
-      const patch = (m) => { if (!copies.has(m)) { const c2 = m.userData.fbOwn ? m : m.clone(); roofShade(c2, this.field.roof); copies.set(m, c2); this.roofMats.push(c2); } return copies.get(m); };
+      const patch = (m) => { if (!copies.has(m)) { const c2 = m.userData.fbOwn || m.userData.own ? m : m.clone(); roofShade(c2, this.field.roof); copies.set(m, c2); this.roofMats.push(c2); } return copies.get(m); };
       for (const ch of [...this.chars, ...this.refChars]) ch.c.obj.traverse(m => { if (m.isMesh && m.material) m.material = Array.isArray(m.material) ? m.material.map(patch) : patch(m.material); });
     }
     // balón (de su tamaño real) con su sombra

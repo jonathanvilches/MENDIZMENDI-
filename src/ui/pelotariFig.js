@@ -7,6 +7,7 @@
 // Las figuras miran a su izquierda (a la derecha de la pantalla): en la pantalla VS se gira solo la roja, una vez.
 import { nameGender } from '../data/nombres.js';
 import { hdTable } from '../web/hd.js';
+import { HAIR_COLORS } from '../actors/hairColor.js';
 
 const byId = (g) => Object.fromEntries(Object.entries(g).map(([k, v]) => [k.split('/').pop().replace('.webp', ''), v]));
 const ROJO = byId(import.meta.glob('@pelotaris/rojo/*.webp', { eager: true, query: '?url', import: 'default' }));
@@ -25,6 +26,11 @@ const fold = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toL
 export const PLANTILLA = [...CHICOS.map(name => ({ id: fold(name), name, girl: false })), ...CHICAS.map(name => ({ id: fold(name), name, girl: true }))];
 const BY = new Map(PLANTILLA.map(p => [p.id, p]));
 const ALIAS = { oihane: 'oihana' };
+// el pelo de cada uno en su figura, para que el pelotari en 3D lo lleve igual (sin nombre: castaño oscuro, el del modelo)
+const PELO = { unai: 'negro', mikel: 'rubio', inaki: 'negro', ander: 'pelirrojo', xabier: 'castano', jokin: 'negro', ekaitz: 'negro', julen: 'castanoClaro', asier: 'negro',
+  oihana: 'negro', garazi: 'castano', maialen: 'cobrizo', irati: 'rubio', nahia: 'castano', nerea: 'castano', leire: 'pelirrojo', ane: 'negro', miren: 'castanoClaro' };
+/** Color del pelo del pelotari de la plantilla para un nombre (null: el del modelo) */
+export const pelotariHair = (name) => HAIR_COLORS[PELO[pelotariId(name)]] || null;
 /** Los nombres de los rivales (toda la plantilla menos Mendi) */
 export const RIVALES = PLANTILLA.filter(p => p.id !== 'mendi').map(p => p.name);
 /** ¿Es chica? (por la plantilla o por el nombre) */
