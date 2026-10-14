@@ -1,12 +1,13 @@
 // Ropa propia de cada vecino sobre los personajes de Meshy: el mismo modelo (pastor, sanferminero, pelotari o futbolista)
-// con la camisa, el pantalón, el chaleco y el pañuelo del color de su «look», el pelo de su color y, encima, las
-// prendas que le tocan (falda y melena, barba, delantal, makila). Así el sabio, la tendera y los vecinos son personas
-// distintas y no copias del protagonista.
+// con la camisa, el pantalón, el chaleco y el pañuelo del color de su «look», el pelo de su color (hairColor.js) y,
+// encima, las prendas que le tocan (falda y melena, barba, delantal, makila). Así el sabio, la tendera y los vecinos
+// son personas distintas y no copias del protagonista.
 // Cada zona de la ropa se reconoce en el sombreador por su color en la textura y por su altura en el cuerpo (en la
 // pose de reposo): tools/tmp/uvdump.mjs y el estudio de colores por franjas de altura de cada modelo. El sombreado
 // pintado se conserva: el color nuevo toma el brillo del original.
 import * as THREE from 'three';
 import { fillMaterial } from '../engine/charLight.js';
+import { hairMaterial } from './hairColor.js';
 
 const HSV = `
 vec3 noHsv(vec3 c){ vec4 K=vec4(0.,-1./3.,2./3.,-1.); vec4 p=mix(vec4(c.bg,K.wz),vec4(c.gb,K.xy),step(c.b,c.g)); vec4 q=mix(vec4(p.xyw,c.r),vec4(c.r,p.yzx),step(p.x,c.r)); float d=q.x-min(q.w,q.y); return vec3(abs(q.z+(q.w-q.y)/(6.*d+1e-10)),d/(q.x+1e-10),q.x); }
@@ -52,7 +53,7 @@ const hsv = (c) => { if (!c) return new THREE.Vector4(0, 0, 0, 0); const o = new
 /** Tiñe la ropa y el pelo de un vecino de Meshy. model: nombre del modelo; O: { shirt, pants, vest, acc, hair }. */
 export function outfitTint(root, model, O) {
   const Z = ZONES[model]; if (!Z) return;
-  const U = { uShirt: hsv(O.shirt), uPants: hsv(O.pants), uVest: hsv(O.vest), uAcc: hsv(O.acc), uHair: new THREE.Color(O.hair || '#000'), uHairOn: O.hair ? 1 : 0 };
+  const U = { uShirt: hsv(O.shirt), uPants: hsv(O.pants), uVest: hsv(O.vest), uAcc: hsv(O.acc) };
   root.traverse(o => {
     if (!o.isSkinnedMesh || !o.material?.map) return;
     const g = o.geometry; if (!g.boundingBox) g.computeBoundingBox();
@@ -63,19 +64,17 @@ export function outfitTint(root, model, O) {
       sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying float vNoY; uniform vec2 uKitY;')
         .replace('#include <begin_vertex>', '#include <begin_vertex>\nvNoY = (position.y - uKitY.x) / uKitY.y;');
       sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>
-uniform vec4 uShirt, uPants, uVest, uAcc; uniform vec3 uHair; uniform float uHairOn; varying float vNoY;
+uniform vec4 uShirt, uPants, uVest, uAcc; varying float vNoY;
 ${HSV}
 vec3 noOutfit(vec3 lin){
   vec3 cs = pow(max(lin, vec3(0.)), vec3(0.4545)); vec3 q = noHsv(cs); float h = q.x, s = q.y, v = q.z, y = vNoY;
-  // pelo: castaño oscuro y rojizo (más rojo que verde, poco azul) en la cabeza; la boina negra y los ojos no
-  if (uHairOn > 0.5 && y > 0.68 && cs.r > cs.g * 1.25 && cs.b < cs.r * 0.6 && v < 0.4) { vec3 t = pow(uHair, vec3(0.4545)); return t * clamp(v / 0.2, 0.35, 1.6); }
   ${Z}
   return cs;
 }`).replace('#include <map_fragment>', '#include <map_fragment>\n diffuseColor.rgb = pow(noOutfit(diffuseColor.rgb), vec3(2.2));')
         .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance = emissive * diffuseColor.rgb;');
     };
     m.customProgramCacheKey = () => 'npc-outfit-' + model;
-    o.material = m;
+    o.material = hairMaterial(m, g, model, O.hair);   // el pelo, con su tinte (hairColor.js)
   });
 }
 

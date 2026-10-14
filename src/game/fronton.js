@@ -2,6 +2,7 @@
 // Aquí solo se adapta el motor al juego: dónde va el frontón, colisiones, personajes, cámara e interfaz.
 import * as THREE from 'three';
 import { armSwing, GlbRig, loadMeshy, hasMeshy, loadedMeshy, fullTexFor } from '../actors/glbChar.js';
+import { hairTint } from '../actors/hairColor.js';
 import { PelotaCourt, PelotaMatch, labritExtent } from '../pelota/index.js';
 import { pelotariStats, levelTier } from '../pelota/rules.js';
 import { terrainHeight, waterLevelAt, addPlatform, onPlatform } from '../world/heightfield.js';
@@ -20,7 +21,7 @@ import { LEVELS } from '../data/levels.js';
 import { txapelas } from './torneo.js';
 import { meetPelotari } from './pelotaris.js';
 // las figuras de la pantalla VS (nuestros pelotaris en 3D, en pleno golpe: tools/meshy-retratos.mjs con CLIP=Hit T=0.2)
-import { pelotariFig, RIVALES } from '../ui/pelotariFig.js';   // (las mismas figuras que las cartas: así no van dos veces en el archivo único)
+import { pelotariFig, RIVALES, pelotariHair } from '../ui/pelotariFig.js';   // (las mismas figuras que las cartas: así no van dos veces en el archivo único)
 import { crowdBuffers, PUBLICO } from '../crowdAudio.js';
 
 // Cómo es el frontón de cada sitio. Se parte de la comarca y de lo que cuentan las fuentes (legal/estado-legal.md): los
@@ -237,7 +238,8 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // (si mientras se preparaban los pelotaris el pueblo se ha rehecho —en el iPhone, al quedarse sin memoria gráfica—,
     // este partido ya no se juega: antes salían sus controles sobre el pueblo nuevo, en la llegada)
     if (G.disposed) { pel?.dispose(); red?.dispose(); G.pelotaLoading = false; res({ win: false, you: 0, cpu: 0, best: 0, quit: true }); return; }
-    if (red) { hiddenR.push(...rival.obj.children); for (const c of hiddenR) rival.obj.remove(c); rival.obj.add(red.char.root); red.setStance('Ready'); }
+    // (con el pelo de su figura: el rubio Mikel, la pelirroja Leire…)
+    if (red) { hairTint(red.char.root, 'pelotari_rojo', pelotariHair(rivName)); hiddenR.push(...rival.obj.children); for (const c of hiddenR) rival.obj.remove(c); rival.obj.add(red.char.root); red.setStance('Ready'); }
     // el partido anima al jugador y coloca a los dos: el rig del jugador pasa a nuestras manos
     P.rig = { update() { }, doAct() { }, doCheer() { }, doWave() { }, setExpr() { } };
     P.frozen = true; G.mode = 'pelota'; G.ui.hudVisible?.(false); G.ui.setPrompt?.(null);
@@ -292,7 +294,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
         let r = null;
         if (hasMeshy(model)) try { fullTexFor(model); r = new GlbRig(await loadMeshy(model), model); } catch (e) { console.warn('pareja', e); }
         const obj = new THREE.Group(); obj.visible = false; G.scene.add(obj);
-        if (r) { obj.add(r.char.root); r.setStance?.('Ready'); }
+        if (r) { hairTint(r.char.root, model, pelotariHair(name)); obj.add(r.char.root); r.setStance?.('Ready'); }
         else { const m = new THREE.Mesh(new THREE.CapsuleGeometry(0.24, 1.1, 4, 8), new THREE.MeshStandardMaterial({ color: model === 'pelotari_rojo' ? '#c0392b' : '#f2f2f2' })); m.position.y = 0.8; obj.add(m); }
         const st = { v: null }, fl = {}; if (r) armSwing(r.char, () => st.v, { windOnly: true });
         const flag = (k, on, fn) => { if (on && !fl[k]) { fl[k] = true; fn(); } else if (!on) fl[k] = false; };
