@@ -326,7 +326,7 @@ function ceñida(mesh, sel, grosor, mat, uvY = 1, forma = null) {
       for (let c = 0; c < 4; c++) { S[k * 4 + c] = SI.getComponent(i, c); W[k * 4 + c] = SW.getComponent(i, c); }
     }
     // (la costura de atrás: que el triángulo no recorra toda la textura de un lado al otro)
-    if (typeof uvY !== 'function' && Math.max(...us) - Math.min(...us) > 0.5) for (let j = 0; j < 3; j++) if (us[j] < 0.5) us[j] += 1;
+    if (Math.max(...us) - Math.min(...us) > 0.5) for (let j = 0; j < 3; j++) if (us[j] < 0.5) us[j] += 1;
     for (let j = 0; j < 3; j++) U[(k - 3 + j) * 2] = us[j];
   }
   const g = new THREE.BufferGeometry();
@@ -462,7 +462,7 @@ function cuerno(l, s) {
   g.setAttribute('color', new THREE.BufferAttribute(c, 3));
   return new THREE.Mesh(g, tela({ color: '#ffffff', vertexColors: true, roughness: 0.5 }));
 }
-// sombrero de tres picos (kilikis) o de dos (el coronel): copa baja y ala ancha levantada en picos, con el galón dorado
+// sombrero de picos (de dos, el del coronel Lagunero): copa baja y ala ancha levantada en picos, con el galón dorado
 // cosido por todo el borde del ala
 function picos(r, n, color, galon = '#d8b04a') {
   const alza = (a, d) => d > r * 0.7 ? (d - r * 0.7) * (Math.pow(Math.abs(Math.cos(a * n / 2)), 4) * 0.7 + 0.25) * 1.4 : 0;
@@ -474,7 +474,7 @@ function picos(r, n, color, galon = '#d8b04a') {
   s.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, true), 96, r * 0.028, 5, true), metal({ color: galon, roughness: 0.4 })));
   return s;
 }
-// Cabezudo (la cabeza grande de cartón piedra de los kilikis y del coronel, o la cabeza de un solo ojo de Tartalo): la
+// Cabezudo (la cabeza grande de cartón piedra del coronel Lagunero, o la cabeza de un solo ojo de Tartalo): la
 // cara pintada en su lienzo, nariz, orejas, pelo y bigote; tapa la cabeza del personaje, que se encoge dentro
 function cabezudo(r, o) {
   const g = new THREE.Group(), piel = tela({ color: o.piel, roughness: 0.6 });
@@ -551,14 +551,15 @@ const melena = (mesh, mat, { a0 = Math.PI * 0.62, a1 = Math.PI * 1.38, n = 13, d
 };
 // La forma lisa de una capucha o un saco: la cabeza (con el pelo) envuelta en un elipsoide; hacia el cuello y hacia el
 // borde de la cara vuelve a ceñirse al cuerpo
-function lisa(mesh) {
+// (E: un elipsoide { c, r } dado, el del cráneo para el pelo recogido; sin él, el que envuelve la cabeza con su pelo)
+function lisa(mesh, E = null) {
   const B = cuerpo(mesh), lo = new V3(1, 1, 1), hi = new V3(-1, -1, -1), v = new V3();
   // (el ancho y el fondo, del cráneo con el pelo: de la frente para arriba; sin la nariz, que no abombe la capucha)
   let y0 = 1, y1 = 0;
   for (let i = 0; i < B.n; i++) if (B.zone[i] === 1) { v.set(B.pos[i * 3] / B.H, (B.pos[i * 3 + 1] - B.y0) / B.H, B.pos[i * 3 + 2] / B.H); if (v.y > 0.68) { y0 = Math.min(y0, v.y); y1 = Math.max(y1, v.y); } if (v.y > 0.8) { lo.min(v); hi.max(v); } }
   lo.y = y0; hi.y = y1;
-  const c = new V3().addVectors(lo, hi).multiplyScalar(0.5), R = new V3().subVectors(hi, lo).multiplyScalar(0.54).addScalar(0.006);
-  c.y = Math.min(c.y, 0.83); R.y = Math.max(R.y, hi.y - c.y + 0.008);
+  const c = E ? E.c.clone() : new V3().addVectors(lo, hi).multiplyScalar(0.5), R = E ? E.r.clone() : new V3().subVectors(hi, lo).multiplyScalar(0.54).addScalar(0.006);
+  if (!E) { c.y = Math.min(c.y, 0.83); R.y = Math.max(R.y, hi.y - c.y + 0.008); }
   return (p, n) => {
     const d = new V3().subVectors(p, c).divide(R), s = d.length(); if (s < 1e-4) return;
     const e = d.clone().divideScalar(s).multiply(R).add(c), en = d.clone().divide(R).normalize();
@@ -675,19 +676,6 @@ export const TRAJES = {
       nudo.position.copy(P(0, 0.75, -0.17)); V.put(nudo, 'Head');
       V.hold(cesto(u(0.17), pa), 'LeftHand');
       V.hold(gerren(u(0.62)), 'RightHand');
-    },
-  },
-  // Kilikis de Pamplona (Caravinagre, 1941, de taller valenciano: cabeza grande de cartón piedra muy expresiva y sombrero
-  // de tres picos; persiguen a los críos con su vejiga de espuma); casaca de faldones, calzón y medias blancas
-  caravinagre: {
-    model: 'pastor', ropa: { shirt: '#f4f1e8', vest: '#2f6b3a', pants: '#f1ede2', acc: '#f4f1e8' },
-    vestir(V) {
-      const { mesh: m, P, u } = V, w = contorno(m, 0.43), r = u(0.25);
-      campana(m, [[w * 1.08, 0.445], [w * 1.25, 0.39], [w * 1.4, 0.3]], tela({ color: '#2f6b3a' }), { pliegues: 6, hondo: 0.03, hueco: 1.5, vuelo: 0.4 });
-      const c = cabezudo(r, { id: 'caravinagre', piel: '#d86a5a', mejilla: 'rgba(170,20,30,.6)', cejas: '#f2efe6', enfado: true, nariz: 0.3, bigote: '#f2efe6', pelo: '#e8e4da' });
-      const t = picos(r * 0.95, 3, '#1a1a1e'); t.position.y = r * 0.93; c.add(t);
-      V.hideHead(); c.position.copy(P(0, 0.62 + 0.25 * 1.12 * 0.95, 0.005)); V.put(c, 'Neck');
-      V.hold(vejiga(u(0.5)), 'RightHand');
     },
   },
   // El coronel Lagunero de Tafalla (el muñeco grotesco que se cuelga en la plaza y se quema el martes de carnaval):
@@ -920,12 +908,6 @@ const telaPaloki = (base, a, b) => lienzo('paloki' + base + a + b, 128, 256, (g,
   g.fillStyle = a; g.fillRect(0, h * 0.04, w, h * 0.07); g.fillStyle = b; g.fillRect(0, h * 0.11, w, h * 0.02); g.fillRect(0, h * 0.02, w, h * 0.015);
   for (let i = 0; i < 4; i++) { const cx = (i + 0.5) * w / 4, cy = h * 0.17; g.fillStyle = a; for (let k = 0; k < 5; k++) { const t = k / 5 * TAU; g.beginPath(); g.arc(cx + Math.cos(t) * 4, cy + Math.sin(t) * 4, 3, 0, TAU); g.fill(); } g.fillStyle = b; g.beginPath(); g.arc(cx, cy, 2.2, 0, TAU); g.fill(); }
 });
-// vejiga de los kilikis: palo con la bola de espuma atada colgando
-function vejiga(l) {
-  const g = new THREE.Group(), pa = new THREE.Mesh(new THREE.CylinderGeometry(l * 0.02, l * 0.025, l * 0.6, 8), tela({ color: '#8a5a32' })); pa.position.y = l * 0.1; g.add(pa);
-  const b = new THREE.Mesh(new THREE.SphereGeometry(l * 0.14, 16, 12), tela({ color: '#e8d8b8', roughness: 0.7 })); b.scale.y = 1.25; b.position.set(0, l * 0.58, l * 0.05); g.add(b);
-  return g;
-}
 // pañuelo de colores: fondo con florecillas y su cenefa
 const panuelo = (base, flor, borde) => lienzo('panuelo' + base + flor + borde, 128, 128, (g, w, h, R) => {
   g.fillStyle = base; g.fillRect(0, 0, w, h);
@@ -972,10 +954,8 @@ function gerren(l) {
   return g;
 }
 
-/** Viste a un personaje de Meshy (ya a su tamaño, en su pose de reposo del juego) con un traje de TRAJES. Devuelve
- *  { update(dt, velocidad) } para lo que se mueve (cencerros) o null si no hay traje. char: su GlbChar. */
-export function vestirTraje(char, id) {
-  const T = TRAJES[id]; if (!T) return null;
+// El personaje listo para coserle piezas: su malla, sus huesos y cómo colgar de ellos lo hecho en la pose de reposo
+function contexto(char) {
   const root = char.root; let mesh = null; root.traverse(o => { if (!mesh && o.isSkinnedMesh && o.material?.map) mesh = o; });
   if (!mesh) return null;
   char.setSpeed?.(0); char.update?.(0.05); root.updateMatrixWorld(true); mesh.skeleton.update();
@@ -985,7 +965,7 @@ export function vestirTraje(char, id) {
   const toWorld = (bone) => { const [b, i] = bones[bone] || bones.Hips; return M.multiplyMatrices(b.matrixWorld, mesh.skeleton.boneInverses[i]).multiply(mesh.bindMatrix); };
   const hang = (obj, bone) => { const [b] = bones[bone] || bones.Hips; const w = new THREE.Group(); root.add(w); w.updateMatrixWorld(true); w.add(obj);
     w.matrix.copy(new THREE.Matrix4().copy(root.matrixWorld).invert().multiply(M)); w.matrix.decompose(w.position, w.quaternion, w.scale); w.updateMatrixWorld(true); b.attach(w);
-    obj.traverse(o => { if (o.isMesh) { o.castShadow = true; o.userData.traje = true; } }); };
+    obj.traverse(o => { if (o.isMesh) { o.castShadow = o.userData.sombra ?? true; o.userData.traje = true; } }); };
   const V = {
     mesh, H, u: (f) => f * H, P: (x, y, z) => new V3(x * H, y0 + y * H, z * H),
     // pieza hecha en el espacio del modelo en reposo: va con su hueso tal como está ahora
@@ -998,7 +978,131 @@ export function vestirTraje(char, id) {
     tick(f) { ticks.push(f); },
     // los cabezudos: la cabeza del personaje se encoge dentro de la de cartón
     hideHead() { bones.Head?.[0].scale.setScalar(0.001); },
+    update(dt, speed = 0) { V.t = (V.t ?? t0) + dt; for (const f of ticks) f(V.t, speed); },
   };
+  return V;
+}
+/** Viste a un personaje de Meshy (ya a su tamaño, en su pose de reposo del juego) con un traje de TRAJES. Devuelve
+ *  { update(dt, velocidad) } para lo que se mueve (cencerros) o null si no hay traje. char: su GlbChar. */
+export function vestirTraje(char, id) {
+  const T = TRAJES[id], V = T && contexto(char); if (!V) return null;
   T.vestir(V);
-  return { update(dt, speed = 0) { V.t = (V.t ?? t0) + dt; for (const f of ticks) f(V.t, speed); } };
+  return { update: V.update };
+}
+
+// ---------- rasgos y peinado de chica (los personajes de Meshy son todos chicos) ----------
+// El borde de arriba de cada ojo, medido en la textura de cada modelo (tools/pelo/parpados.mjs): x, y, z en fracción
+// de la altura, del lagrimal a la sien
+const PARPADOS = {"osasuna":[[[-0.086,0.811,0.081],[-0.081,0.811,0.085],[-0.076,0.807,0.091],[-0.071,0.813,0.093],[-0.067,0.81,0.096],[-0.061,0.807,0.098],[-0.057,0.807,0.099],[-0.052,0.804,0.103],[-0.047,0.804,0.105],[-0.042,0.804,0.106],[-0.038,0.801,0.107],[-0.033,0.797,0.109],[-0.028,0.791,0.11]],[[0.042,0.799,0.106],[0.045,0.804,0.105],[0.049,0.81,0.107],[0.052,0.808,0.101],[0.056,0.813,0.098],[0.059,0.816,0.099],[0.063,0.815,0.096],[0.067,0.814,0.095],[0.07,0.813,0.093],[0.074,0.811,0.091],[0.077,0.807,0.088],[0.081,0.801,0.086],[0.084,0.799,0.082]]],"osasuna_fuera":[[[-0.093,0.768,0.076],[-0.087,0.775,0.085],[-0.082,0.781,0.088],[-0.077,0.787,0.092],[-0.071,0.792,0.096],[-0.066,0.795,0.1],[-0.06,0.797,0.1],[-0.055,0.799,0.106],[-0.049,0.798,0.108],[-0.044,0.798,0.11],[-0.039,0.795,0.113],[-0.033,0.793,0.115],[-0.028,0.789,0.119]],[[0.026,0.79,0.121],[0.032,0.792,0.116],[0.038,0.795,0.113],[0.043,0.798,0.11],[0.049,0.8,0.108],[0.055,0.799,0.105],[0.061,0.797,0.102],[0.066,0.795,0.1],[0.071,0.789,0.095],[0.077,0.782,0.09],[0.083,0.782,0.088],[0.089,0.77,0.083],[0.094,0.763,0.073]]],"sanfermin":[[[-0.084,0.806,0.087],[-0.079,0.806,0.093],[-0.074,0.804,0.1],[-0.069,0.805,0.1],[-0.065,0.805,0.108],[-0.06,0.805,0.106],[-0.055,0.803,0.11],[-0.051,0.809,0.109],[-0.046,0.804,0.113],[-0.042,0.804,0.113],[-0.037,0.809,0.115],[-0.032,0.809,0.116],[-0.027,0.81,0.117]],[[0.028,0.791,0.116],[0.033,0.798,0.115],[0.037,0.81,0.115],[0.042,0.804,0.113],[0.046,0.814,0.113],[0.051,0.815,0.111],[0.056,0.815,0.108],[0.061,0.814,0.106],[0.065,0.813,0.103],[0.07,0.803,0.1],[0.074,0.807,0.097],[0.079,0.799,0.092],[0.084,0.791,0.087]]],"pelotari":[[[-0.087,0.787,0.095],[-0.082,0.792,0.102],[-0.077,0.787,0.102],[-0.073,0.803,0.104],[-0.068,0.804,0.108],[-0.064,0.807,0.11],[-0.058,0.81,0.111],[-0.054,0.796,0.112],[-0.049,0.801,0.111],[-0.045,0.807,0.115],[-0.04,0.804,0.116],[-0.035,0.799,0.117],[-0.031,0.787,0.115]],[[0.028,0.792,0.117],[0.033,0.797,0.116],[0.038,0.801,0.117],[0.042,0.805,0.115],[0.047,0.807,0.114],[0.052,0.808,0.112],[0.057,0.808,0.111],[0.061,0.808,0.11],[0.067,0.807,0.109],[0.071,0.803,0.106],[0.076,0.801,0.105],[0.081,0.796,0.102],[0.086,0.79,0.093]]],"pelotari_rojo":[[[-0.083,0.817,0.087],[-0.078,0.814,0.091],[-0.073,0.811,0.097],[-0.068,0.807,0.097],[-0.064,0.809,0.1],[-0.059,0.808,0.101],[-0.055,0.808,0.111],[-0.05,0.804,0.109],[-0.045,0.815,0.106],[-0.041,0.813,0.107],[-0.036,0.81,0.11],[-0.031,0.815,0.113],[-0.026,0.817,0.117]],[[0.026,0.771,0.116],[0.031,0.784,0.112],[0.036,0.801,0.111],[0.041,0.805,0.113],[0.045,0.815,0.106],[0.05,0.815,0.103],[0.055,0.816,0.103],[0.059,0.817,0.11],[0.064,0.815,0.099],[0.068,0.813,0.097],[0.073,0.801,0.094],[0.078,0.794,0.092],[0.083,0.782,0.089]]],"pastor":[[[-0.061,0.791,0.118],[-0.058,0.795,0.118],[-0.056,0.794,0.119],[-0.054,0.809,0.115],[-0.052,0.809,0.116],[-0.049,0.809,0.116],[-0.047,0.809,0.118],[-0.045,0.804,0.117],[-0.042,0.804,0.117],[-0.04,0.807,0.12],[-0.038,0.798,0.119],[-0.035,0.8,0.12],[-0.033,0.791,0.12]],[[0.026,0.771,0.118],[0.03,0.782,0.119],[0.035,0.791,0.12],[0.039,0.791,0.12],[0.044,0.814,0.12],[0.049,0.814,0.118],[0.053,0.798,0.117],[0.058,0.814,-1000000000],[0.062,0.811,0.115],[0.067,0.801,0.108],[0.071,0.806,0.108],[0.076,0.801,0.104],[0.081,0.791,0.1]]]};
+// El cráneo sin el pelo (en fracción de la altura): el pelo de chico, mucho y de punta, se aplasta contra él en el
+// sombreador y encima va el pelo recogido, pegado a la cabeza
+const CRANEO = { c: new V3(0, 0.8, -0.022), r: new V3(0.152, 0.183, 0.163) };
+// Aplasta el pelo de la malla del cuerpo contra el cráneo (en el sombreador, antes de la piel: sigue andando igual)
+function aplanarPelo(mesh, E = CRANEO) {
+  const B = cuerpo(mesh), U = { uAplC: { value: E.c }, uAplR: { value: E.r }, uAplHY: { value: new V2(B.H, B.y0) } };
+  for (const m of [].concat(mesh.material)) {
+    const prev = m.onBeforeCompile, key = m.customProgramCacheKey;
+    m.onBeforeCompile = (sh, r) => {
+      prev?.call(m, sh, r); Object.assign(sh.uniforms, U);
+      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform vec3 uAplC, uAplR; uniform vec2 uAplHY;')
+        .replace('#include <begin_vertex>', `#include <begin_vertex>
+{ vec3 hp = vec3(transformed.x, transformed.y - uAplHY.y, transformed.z) / uAplHY.x;
+  // (fuera la cara: delante, bajo la frente; y el cuello, que no se toca)
+  float w = smoothstep(0.65, 0.71, hp.y) * (1. - smoothstep(0.0, 0.04, hp.z) * (1. - smoothstep(0.84, 0.87, hp.y)) * (1. - smoothstep(0.11, 0.135, abs(hp.x))));
+  vec3 d = (hp - uAplC) / uAplR; float s = length(d);
+  if (s > 1. && w > 0.) { hp = mix(hp, uAplC + d / s * uAplR, w); transformed = vec3(hp.x, hp.y, hp.z) * uAplHY.x + vec3(0., uAplHY.y, 0.); } }`);
+    };
+    m.customProgramCacheKey = () => (key ? key.call(m) : '') + '+aplanar';
+    m.needsUpdate = true;
+  }
+}
+// pelo liso de verdad: mechones finos de varios tonos a lo largo (v), las raíces algo más oscuras y una franja de brillo
+// de través, donde la luz se refleja en el pelo peinado
+const peloTex = (base) => lienzo('pelo' + base, 256, 256, (g, w, h, R) => {
+  g.fillStyle = css(base, 0.75); g.fillRect(0, 0, w, h);
+  for (let i = 0; i < 900; i++) {
+    const x = R() * w, k = 0.6 + R() * 0.75, cw = 0.6 + R() * 1.6, y0 = R() * h * 0.2;
+    tile(w, h, x, h / 2, 6, (px) => { g.strokeStyle = css(base, k); g.globalAlpha = 0.5 + R() * 0.5; g.lineWidth = cw; g.beginPath(); g.moveTo(px, y0 - 2); g.bezierCurveTo(px + (R() - 0.5) * 6, h * 0.4, px + (R() - 0.5) * 6, h * 0.7, px + (R() - 0.5) * 4, h + 2); g.stroke(); });
+  }
+  g.globalAlpha = 1;
+  const sh = g.createLinearGradient(0, 0, 0, h); sh.addColorStop(0, 'rgba(255,240,220,0)'); sh.addColorStop(0.38, 'rgba(255,240,220,0)'); sh.addColorStop(0.5, 'rgba(255,240,220,.28)'); sh.addColorStop(0.62, 'rgba(255,240,220,0)'); sh.addColorStop(1, 'rgba(0,0,0,.18)');
+  g.fillStyle = sh; g.fillRect(0, 0, w, h);
+  // (y algún mechón suelto más claro, que coge la luz)
+  for (let i = 0; i < 40; i++) { const x = R() * w; g.strokeStyle = css(base, 1.5); g.globalAlpha = 0.25; g.lineWidth = 1; g.beginPath(); g.moveTo(x, 0); g.lineTo(x + (R() - 0.5) * 8, h); g.stroke(); }
+  g.globalAlpha = 1;
+});
+// pestañas: tiras de trazos finos que nacen del párpado y se curvan hacia arriba y hacia fuera, más largas hacia la sien
+const pestanasTex = () => lienzo('pestanas', 256, 64, (g, w, h, R) => {
+  for (let i = 0; i < 70; i++) {
+    const t = i / 69, x = 4 + t * (w - 8), len = h * (0.55 + 0.45 * t) * (0.8 + R() * 0.25), lean = 10 + 22 * t;
+    g.strokeStyle = `rgba(22,14,10,${0.85 + R() * 0.15})`; g.lineWidth = 2.2 - t * 0.6; g.lineCap = 'round';
+    g.beginPath(); g.moveTo(x, h); g.quadraticCurveTo(x + lean * 0.2, h - len * 0.6, x + lean, h - len); g.stroke();
+  }
+  g.fillStyle = 'rgba(22,14,10,.95)'; g.fillRect(0, h - 5, w, 5);
+});
+function pestanas(V, model) {
+  const ojos = PARPADOS[model] || PARPADOS.osasuna, Pz = [], Uv = [], I = []; let base = 0;
+  const C = new V3(0, 0.79, -0.03), up = new V3(0, 1, 0);
+  for (const ojo of ojos) {
+    // (del lagrimal a la sien, con la altura suavizada: la medida va píxel a píxel)
+    const pts = [...ojo].sort((a, b) => Math.abs(a[0]) - Math.abs(b[0])).map(p => new V3(...p)), n = pts.length;
+    const sm = pts.map((p, i) => { const a = pts[Math.max(0, i - 1)], b = pts[Math.min(n - 1, i + 1)]; return new V3(p.x, (a.y + 2 * p.y + b.y) / 4, p.z); });
+    sm.forEach((p, i) => {
+      const t = i / (n - 1), nor = new V3().subVectors(p, C).normalize(), side = new V3(Math.sign(p.x), 0, 0);
+      const dir = nor.clone().multiplyScalar(0.6).addScaledVector(up, 0.85).addScaledVector(side, 0.3 + 0.4 * t).normalize();
+      const b = p.clone().addScaledVector(nor, 0.0012).addScaledVector(up, -0.0015), tip = b.clone().addScaledVector(dir, 0.006 + 0.012 * Math.pow(t, 1.2));
+      for (const q of [b, tip]) Pz.push(q.x * V.H, V.P(0, q.y, 0).y, q.z * V.H);
+      Uv.push(t, 0, t, 1);
+      if (i) I.push(base + i * 2 - 2, base + i * 2 - 1, base + i * 2, base + i * 2 - 1, base + i * 2 + 1, base + i * 2);
+    });
+    base += n * 2;
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(Pz, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(Uv, 2)); g.setIndex(I); g.computeVertexNormals();
+  const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ map: pestanasTex(), alphaTest: 0.35, side: THREE.DoubleSide, roughness: 0.6, color: '#ffffff' }));
+  m.userData.sombra = false; V.put(m, 'Head');
+}
+// tubo de grosor variable (radio r(t) a lo largo de la curva) con la textura a lo largo: la coleta
+function tuboPerfil(curve, r, seg = 20, rad = 10) {
+  const g = new THREE.TubeGeometry(curve, seg, 1, rad, false), p = g.attributes.position, uv = g.attributes.uv, pts = curve.getSpacedPoints(seg);
+  for (let i = 0; i <= seg; i++) for (let j = 0; j <= rad; j++) {
+    const k = i * (rad + 1) + j, c = pts[i], f = r(i / seg);
+    p.setXYZ(k, c.x + (p.getX(k) - c.x) * f, c.y + (p.getY(k) - c.y) * f, c.z + (p.getZ(k) - c.z) * f);
+    uv.setXY(k, j / rad, 1 - i / seg);   // (los mechones, a lo largo)
+  }
+  g.computeVertexNormals(); return g;
+}
+/** Rasgos de chica para un personaje de Meshy: el pelo recogido en una coleta (de su color: pelo, como se ve en el
+ *  juego) y pestañas sobre los párpados. lazo: el color de la goma. Devuelve { update(dt, velocidad) } (la coleta se
+ *  mueve al correr). */
+export function chica(char, model, { pelo = '#3a2418', lazo = '#16161a', albedo = (c) => c } = {}) {
+  const V = contexto(char); if (!V) return null;
+  const { mesh: m, P, u } = V, E = CRANEO, col = albedo(pelo);
+  aplanarPelo(m, E);
+  // el pelo recogido: liso sobre el cráneo, de la frente y las sienes hacia atrás; los mechones van hacia la coleta
+  const T = new V3(0, 0.875, -0.17), A = new V3(0, 0.76, 0.2).sub(T).normalize(), Yp = new V3(0, 1, 0).addScaledVector(A, -A.y).normalize(), X = new V3().crossVectors(Yp, A);
+  const uvPelo = (x, y, z) => { const d = new V3(x, y, z).sub(T); return [Math.atan2(d.dot(X), d.dot(Yp)) / TAU + 0.5, d.length() / 0.3]; };
+  const Ec = { c: E.c, r: E.r.clone().addScalar(0.006) };
+  // (entero sobre el elipsoide: un mechón de chico a medio llevar asomaba como una astilla al correr; solo junto a la
+  // frente sigue un poco a la cara, para que no quede un borde de casco)
+  const sobre = (pp, nn) => {
+    const d = new V3().subVectors(pp, Ec.c).divide(Ec.r), s = d.length(); if (s < 1e-4) return;
+    const e = d.clone().divideScalar(s).multiply(Ec.r).add(Ec.c), en = d.clone().divide(Ec.r).normalize();
+    const fr = pp.z > 0.02 ? sstep(pp.y, 0.9, 0.86) * (1 - sstep(Math.abs(pp.x), 0.1, 0.14)) * 0.5 : 0;
+    pp.lerp(e, 1 - fr); nn.lerp(en, 1 - fr);
+  };
+  ceñida(m, (x, y, z, zn) => zn === 1 && y > 0.7 && !(z > 0.03 && y < 0.858 && Math.abs(x) < 0.125), (x, y, z) => 0.004 + 0.002 * noise(x * 60, y * 60, z * 60),
+    tela({ map: rep(peloTex(col), 9, 1), roughness: 0.45 }), uvPelo, sobre);
+  // la coleta: de la goma, un poco hacia atrás y luego cayendo; gruesa en medio y fina en la punta
+  const cur = curva([0, 0, 0], [0, -u(0.02), -u(0.045)], [0, -u(0.085), -u(0.07)], [0, -u(0.16), -u(0.06)], [0, -u(0.215), -u(0.04)]);
+  const perfil = (t) => u(t < 0.15 ? lerp(0.021, 0.03, t / 0.15) : t < 0.45 ? lerp(0.03, 0.033, (t - 0.15) / 0.3) : lerp(0.033, 0.004, Math.pow((t - 0.45) / 0.55, 1.3)));
+  const cola = new THREE.Mesh(tuboPerfil(cur, perfil), tela({ map: rep(peloTex(col), 3, 1), roughness: 0.45 }));
+  const tg = cur.getTangentAt(0), goma = new THREE.Mesh(new THREE.TorusGeometry(u(0.022), u(0.0065), 6, 18), tela({ color: lazo, roughness: 0.5 }));
+  goma.quaternion.setFromUnitVectors(new V3(0, 0, 1), tg); goma.position.copy(tg).multiplyScalar(u(0.004));
+  const piv = new THREE.Group(); piv.add(cola, goma);
+  const pT = E.c.clone().add(new V3().subVectors(T, E.c).divide(E.r).normalize().multiply(Ec.r));   // (la goma, sobre el pelo)
+  piv.position.copy(P(pT.x, pT.y, pT.z)); V.put(piv, 'Head');
+  // al correr se levanta hacia atrás y bota con cada zancada; parada, apenas se mece
+  V.tick((t, v) => { const k = Math.min(1, v / 5); cola.rotation.x = -0.35 * k + Math.sin(t * 9) * 0.12 * k + Math.sin(t * 1.3) * 0.03; cola.rotation.z = Math.sin(t * 4.5) * 0.16 * k + Math.sin(t * 0.9) * 0.025; });
+  pestanas(V, model);
+  return { update: V.update };
 }

@@ -3,7 +3,7 @@
 // Uso: node tools/trajes/ver.mjs <carpeta> [nombres separados por comas] [pueblo]   (servidor en 5173; CERCA=1: también la cara; ANDAR=1: andando, también de lado)
 import { chromium } from 'playwright-core';
 import { mkdirSync } from 'node:fs';
-const [,, out, names = 'joaldun,momotxorro,cascabobo,zipotero,caravinagre,lagunero,irasko,paloki,comparsa-mendigorria,miel-otxin,lamia,basajaun,sorgina,tartalo', town = 'ituren'] = process.argv;
+const [,, out, names = 'joaldun,momotxorro,cascabobo,zipotero,lagunero,irasko,paloki,comparsa-mendigorria,miel-otxin,lamia,basajaun,sorgina,tartalo', town = 'ituren'] = process.argv;
 mkdirSync(out, { recursive: true });
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: 520, height: 640 } }); const errs = [];

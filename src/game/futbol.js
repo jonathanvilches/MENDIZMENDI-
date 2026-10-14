@@ -8,7 +8,8 @@ import { GlbChar, loadMeshy, hasMeshy, MESHY_GAIT } from '../actors/glbChar.js';
 import { crowd3d } from '../actors/crowd3d.js';
 import { QUALITY } from '../util/quality.js';
 import { REFEREE } from '../futbol/rules.js';
-import { hairFor, seedOf, hairMaterial, hairTint } from '../actors/hairColor.js';
+import { hairFor, seedOf, hairMaterial, hairTint, hairShade } from '../actors/hairColor.js';
+import { chica } from '../actors/trajes.js';
 
 // la camiseta roja del modelo pasa a otro color (porteros y árbitros): solo los píxeles de rojo muy saturado, la piel no.
 // El brillo sigue el del color pedido (el negro del árbitro sale oscuro, no granate)
@@ -114,9 +115,18 @@ export async function makeCharacter(d) {
   // cada jugador un poco distinto de alto; los porteros, algo más altos
   char.root.scale.multiplyScalar(d.keeper ? 1.05 : [1, 0.97, 1.03, 0.99, 1.02][((d.num || 0) + d.side) % 5]);
   const mats = d.keeper ? recolor(char.root, d.team.keeper) : d.referee ? recolor(char.root, REFEREE.shirt, 0) : d.team.club ? kitRecolor(char.root, d.team) : d.team.recolor ? recolor(char.root, d.team.shirt) : [];
+  // equipos mixtos: chicas y chicos (más o menos la mitad, siempre las mismas para el mismo dorsal del mismo equipo); ellas
+  // con el pelo recogido en coleta y pestañas. También alguna árbitra
+  // (el número bien mezclado: con los textos tan parecidos, el resto de una sola multiplicación salía casi siempre alto)
+  const mix = (h) => { h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); return (h ^ (h >>> 16)) >>> 0; };
+  const seed = mix(seedOf(d.referee ? 'arbitra' + d.role : d.teamId + ':' + d.num + ':chica')), girl = d.female ?? (seed % 100 < (d.referee ? 35 : 50));
   // cada uno con su pelo (moreno, castaño, rubio, pelirrojo…), siempre el mismo para el mismo dorsal del mismo equipo
-  const hair = hairFor(seedOf(d.referee ? 'arbitro' + d.role : d.teamId + ':' + d.num));
+  // (ellas siempre con un color propio: así llevan sus materiales y lo que se les cambia no pasa a sus compañeros)
+  const hair = hairFor(seedOf(d.referee ? 'arbitro' + d.role : d.teamId + ':' + d.num)) || (girl ? ['#553321', '#8a5a34', '#171312', '#aa844d'][seed % 4] : null);
   if (mats.length) char.root.traverse(o => { if (o.isSkinnedMesh) [].concat(o.material).forEach(m => hairMaterial(m, o.geometry, model, hair)); }); else hairTint(char.root, model, hair);
+  let ella = null;
+  if (girl) try { ella = chica(char, model, { pelo: hair, albedo: hairShade, lazo: d.referee ? '#16161a' : d.keeper ? d.team.keeper : (d.team.shirt2 || d.team.shorts || '#16161a') }); } catch (e) { console.warn('jugadora', e); }
+  let vel = 0;
   const B = {}; char.root.traverse(o => { if (o.isBone) B[o.name.replace(/[.:]/g, '').replace(/^mixamorig/, '')] = o; });
   const arms = ['Left', 'Right'].map(s => [B[s + 'Arm'], B[s + 'ForeArm'], B[s + 'Hand']]).filter(a => a.every(Boolean));
   // el banderín, en la mano derecha (con la escala del mundo: el esqueleto de Mixamo va a 1/100)
@@ -124,7 +134,7 @@ export async function makeCharacter(d) {
   // el árbitro lleva las tarjetas: la que enseña aparece en su mano derecha, en alto
   let card = null; if (d.referee && !d.line && B.RightHand) { card = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.105, 0.006), new THREE.MeshBasicMaterial({ color: '#ffd400' })); card.position.set(0, 0.09, 0.02); card.visible = false; B.RightHand.add(card); char.root.updateMatrixWorld(true); card.scale.setScalar(1 / B.RightHand.getWorldScale(new THREE.Vector3()).x); card.position.multiplyScalar(card.scale.x); }
   const up = new THREE.Vector3(0, 1, 0), fw = new THREE.Vector3(), out = new THREE.Vector3(), w = new THREE.Quaternion();
-  return { obj: char.root, anim: { setSpeed: (v) => char.setSpeed(v), once: (n, s, fit) => char.playOnce(n, s, fit), update: (dt) => char.update(dt) },
+  return { obj: char.root, female: girl, anim: { setSpeed: (v) => { vel = v; char.setSpeed(v); }, once: (n, s, fit) => char.playOnce(n, s, fit), update: (dt) => { char.update(dt); ella?.update(dt, vel); } },
     // brazos arriba sobre la cabeza (saque de banda) o el derecho en alto con el banderín (fuera de juego)
     post: (st) => {
       if (card) { card.visible = !!st?.card; if (st?.card) card.material.color.set(st.card === 'red' ? '#e3262b' : '#ffd400'); }
