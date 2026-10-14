@@ -297,6 +297,11 @@ Las pruebas usan Chromium con SwiftShader (muy lento), así que **simulan el tie
 El archivo único (`npx vite build`) es el que se abre en el móvil con Sitecase. Para que pese menos, los modelos 3D
 van comprimidos con gzip (`vite.config.js`, plugin `glb-gzip`; los descomprime `src/util/glb.js` con el fflate de
 three.js) y los personajes de Meshy con la textura a 1024 px (`src/assets/meshy-1024`, `tools/meshy-textura.mjs`).
+El código del juego también va comprimido con gzip (plugin `js-gzip`): de unos 3,8 MB a 1,7 MB. Solo el código: las
+imágenes, sonidos y modelos que van dentro ya están comprimidos, así que se sacan aparte (cada «data:…» suelto del
+código, buscado en su árbol con `rolldown/parseAst`, pasa a ser `__hzD[n]` y sus textos van en el bloque `#hz-datos`).
+Al abrir el archivo, el cargador `#hz-cargador` (unos 4,6 KB, con el mismo fflate) lo descomprime y lo ejecuta como el
+módulo que era; si falla, lo recoge el aviso de arranque. Así quedan unos 2 MB libres dentro de los 30 MB de Sitecase.
 Con `MINI=1 npx vite` el servidor de pruebas carga lo mismo que el archivo único. La web (`WEB=1`) no cambia.
 Con `LIGERO=1 npx vite build` sale una variante unos 6 MB más pequeña (`MENDIMENDIZ-jugar-ligero.html`): los
 personajes de Meshy van en su versión ligera (`src/assets/meshy/lod`) y todo lo demás es igual.
