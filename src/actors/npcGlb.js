@@ -6,6 +6,7 @@ import { GlbChar, loadMeshy, hasMeshy, MESHY_GAIT, MESHY_NAMES } from './glbChar
 import { regionalOutfit, MYTHS, dressMeshy } from './outfits.js';
 import { outfitTint, adultBody } from './npcOutfit.js';
 import { hairTint, hairShade } from './hairColor.js';
+import { TRAJES, vestirTraje } from './trajes.js';
 
 // colores con los que se pintaron los modelos en Blender (build_protagonista.py / build_nerea.py)
 const BASE = {
@@ -31,7 +32,7 @@ export async function preloadNpcs() {
 }
 const MESHY_LOD_NPC = {}; let meshyReady = false;
 // trajes que solo existen en los cuerpos antiguos (carnaval, leyendas): esos vecinos siguen con ellos
-const COSTUME = (L) => !!(L.myth || L.fur || L.shaggy || L.horns || L.bells || L.bell || L.crown || L.ribbons || L.base || L.outfit || ['cone', 'mask', 'bicorne', 'mitre', 'basket'].includes(L.hat));
+const COSTUME = (L) => !!(L.traje || L.myth || L.fur || L.shaggy || L.horns || L.bells || L.bell || L.crown || L.ribbons || L.base || L.outfit || ['cone', 'mask', 'bicorne', 'mitre', 'basket'].includes(L.hat));
 const hashOf = (L) => JSON.stringify(L).split('').reduce((a, c) => (a * 31 + c.charCodeAt(0)) | 0, 7) >>> 0;
 /** Qué personaje nuevo hace de este vecino según su aspecto: boina, chaleco o mayor → el pastor; de blanco con faja o
  *  pañuelo rojo → el sanferminero; los demás, repartidos (sobre todo esos dos, alguno con la camiseta de Osasuna o de
@@ -53,14 +54,15 @@ export function preloadNpcMeshy(names) {
 }
 const MESHY_NPC = {};
 // vecino con un personaje de Meshy: su modelo con sus clips, con la misma forma de animarse que los demás
-function buildNpcMeshy(L, costume = false) {
+function buildNpcMeshy(L, costume = false, ropa = null) {
   const name = meshyFor(L), g = MESHY_LOD_NPC[name] || MESHY_NPC[name];
   const char = new GlbChar(g, { ...MESHY_GAIT, vary: true });   // zancada real (sin patinar); cada uno a su ritmo
   const female = !!(L.female || L.skirt || L.ponytail || L.bun || L.braids || L.longHair || L.lashes);
   const hair = L.hair || (L.old ? '#d6d0c6' : null);
   // con traje (carnaval, leyendas), su ropa de siempre y el pelo; los demás, vestidos con los colores de su «look»
   // (el pelo de su color con hairColor.js: rubio, castaño claro, pelirrojo, canoso…; sin color, el suyo de siempre)
-  if (costume || L.meshy) hairTint(char.root, name, hair);
+  if (ropa) outfitTint(char.root, name, { ...ropa, hair });   // (los trajes de trajes.js: su ropa pintada, de sus colores)
+  else if (costume || L.meshy) hairTint(char.root, name, hair);
   else outfitTint(char.root, name, { shirt: L.shirt, pants: L.pants || L.skirt, vest: L.vest, acc: L.scarf || L.sash || L.vest || L.pants || L.skirt, hair });
   // su altura: niños más bajos, el resto con un poco de variedad; los mayores, algo más bajos
   const H = L.height || (L.child ? 1.22 : (L.old ? 1.5 : 1.55) + (hashOf(L) % 7) * 0.02), k = H / 1.6;
@@ -93,6 +95,9 @@ function buildNpcMeshy(L, costume = false) {
 // le va (de blanco, el sanferminero; los seres del monte, el pastor), a su altura (los gigantes, gigantes) y con las
 // prendas del traje cosidas a sus huesos: gorros, cencerros, pieles, cintas, máscaras, melenas, barbas…
 function buildNpcMeshyCostume(L) {
+  // (los seres de leyenda, con su traje de trajes.js si lo tiene: lamia, Basajaun, sorgina, Roldán)
+  const id = TRAJES[L.traje] ? L.traje : TRAJES[L.myth] ? L.myth : null;
+  if (id) return buildNpcTraje({ ...L, traje: id, height: L.height || MYTHS[L.myth]?.height }, TRAJES[id]);
   const M = L.myth && MYTHS[L.myth], female = M ? M.female : !!(L.female || L.skirt || L.ponytail || L.bun || L.braids || L.longHair || L.lashes);
   const white = /^#(f|e[89a-f])/i.test(L.shirt || '');
   const n = buildNpcMeshy({ ...L, meshy: M || !white ? 'pastor' : 'sanfermin', height: M ? M.height : L.height }, true);
@@ -102,6 +107,14 @@ function buildNpcMeshyCostume(L) {
     n.char.root.updateMatrixWorld(true); dressMeshy(n.char.root, D);
   }
   n.obj.userData.look = L; n.obj.userData.sex = female ? 'girl' : 'boy';
+  return n;
+}
+// Traje hecho como el de verdad (trajes.js): el modelo que pide, su ropa de sus colores y las prendas cosidas a él
+function buildNpcTraje(L, T) {
+  const n = buildNpcMeshy({ ...L, meshy: T.model }, true, T.ropa);
+  const tr = vestirTraje(n.char, L.traje);
+  if (tr) { const up = n.anim.update; n.anim.update = (dt, s) => { up.call(n.anim, dt, s); tr.update(dt, s.speed); }; }
+  n.obj.userData.look = L; n.obj.userData.sex = T.female ? 'girl' : 'boy';
   return n;
 }
 // traje del vecino a partir de su «look» (o el de su comarca si lo pide)
