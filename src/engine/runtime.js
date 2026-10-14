@@ -297,8 +297,11 @@ export class Runtime {
     this.terrain.update(this.camera.position);
     { const c = this.camera, f = this.sky.ahead || (this.sky.ahead = new THREE.Vector3()); c.getWorldDirection(f); f.y = 0; if (f.lengthSq() < 1e-4) f.set(0, 0, 0); else f.normalize(); this.sky.camPos = c.position; }   // (las sombras, por delante de la cámara)
     this.sky.update(dt, P.pos, this.elapsed, g.mode === 'dance');
-    // (en los partidos y bajo techo no cae nada: antes, en la llegada al frontón cubierto llovía dentro del pabellón)
-    this.weather?.update(dt, this.camera, this.sky, this.sound, g.mode === 'futbol' || g.mode === 'pelota' || !!this.sky.indoor);
+    // (en los partidos y bajo techo no cae nada: antes, en la llegada al frontón cubierto llovía dentro del pabellón; y
+    // en los deportes, con sus menús, no se oye la lluvia: antes sonaba a toda fuerza durante los partidos)
+    { const hold = g.mode === 'futbol' || g.mode === 'pelota' || !!this.sky.indoor;
+      const mute = this.sportQuiet = hold || this.moodOf(g) === 'sport' || !!g.pelotaMatch || !!g.pelotaLoading || !!g.altScene || !!document.querySelector('.lg-root, .pel-root, .fb-root, .champ');
+      this.weather?.update(dt, this.camera, this.sky, this.sound, hold, mute); }
     this.sky.applyFlood();   // (los focos del frontón, después de la lluvia)
     g.fronton?.court?.setLights?.(this.sky.flood ? 1 : Math.min(1, this.sky.night * 1.6));   // (en el partido, siempre encendidos; si no, al anochecer)
     this.water.update(this.elapsed, this.sky);
@@ -313,7 +316,7 @@ export class Runtime {
     this.lights.update(this.sky.night, P);
     { const fl = this.sky.floodK(); lampFill(skyFill(this.charFill, this.sky.hemi, this.sky.sun, this.sky.night * (1 - fl)), (this.lights.lampK || 0) * (1 - fl)); }   // (en el frontón, la luz de los focos: la misma de día y de noche)
     this.beacon.update(this.elapsed, P, g.mode !== 'play' || !!this.follow.cinematic || !!g.ui.dialogOpen, dt);
-    this.sound.update(dt, P, this.follow.yaw, this.sky.night, iratiMask(P.pos.x, P.pos.z) > 0.5);
+    this.sound.update(dt, P, this.follow.yaw, this.sky.night, iratiMask(P.pos.x, P.pos.z) > 0.5, this.sportQuiet);   // (en los deportes, sin el río: sonaba como la lluvia)
     g.ui.setClock(this.sky.clock(), this.sky.night > 0.5);
   }
 }
