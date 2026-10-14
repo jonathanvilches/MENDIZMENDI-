@@ -247,6 +247,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 | `laminas-pequenas.mjs` | Las copias pequeñas de las láminas de la web, de 640 × 360 |
 | `cimas-tarjetas.mjs` | Las escenas de las cimas de 1024 para las tarjetas de la web |
 | `nitidez.mjs` | Nitidez de las imágenes en el iPhone 12 tumbado: cuánto se amplía cada una, por pantallas (URL de la web o del archivo único con MINI=1) |
+| `nitidez-hd.mjs` | Nitidez del archivo único con red (las imágenes grandes de `hd.json` se sirven desde `docs/`) o sin ella (`SIN_RED=1`): al llegar a cada pantalla y 5 s después |
 
 Tamaños con que se revisa el diseño (`auditoria-diseno`, `-partidos`, `-ventanas` y `-pueblo`): móvil tumbado 667 × 375,
 740 × 360, 844 × 390, 932 × 430 y 844 × 312 con muesca (Safari con sus barras), vertical 390 × 844 e iPad 1180 × 820 y
@@ -259,6 +260,8 @@ el móvil se pintaba a 980 px de ancho y no a su tamaño.
 | `blender/fauna/derivar.py` | Crea la oveja, la cabra, el cerdo y el jabalí a partir de otros modelos |
 | `blender/fauna/sentado.py` | Crea la pose «Sentado» de los perros |
 | `blender/arq/` | Puente de Ochagavía (blockout) |
+| `glb-abrir.mjs` | Descomprime un GLB de Meshy (meshopt y cuantización) para abrirlo en Blender. Su salida no es para three.js |
+| `blender/pelotari-chica/` | Prototipo de la versión chica del pelotari sobre su mismo cuerpo: cara repintada, nariz menor, coletas atadas al hueso de la cabeza. Los pasos van en la cabecera de `chica.py` |
 
 Las pruebas usan Chromium con SwiftShader (muy lento), así que **simulan el tiempo de juego** llamando a
 `update(1/30)` en bucle, en vez de esperar a los fotogramas.
