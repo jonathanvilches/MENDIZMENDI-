@@ -170,7 +170,7 @@ function garments(root, O, G) {
     for (let i = 0; i < 4; i++) { const ring = new THREE.Mesh(new THREE.TorusGeometry(r * (0.87 + i * 0.05), r * 0.04, 4, 18), mat('#6a4a22')); ring.rotation.x = Math.PI / 2; ring.position.y = -r * 0.1 + i * r * 0.25; g.add(ring); }
     onHead(g);
   }
-  if (O.bicorne && G.hasHead) {   // bicornio (lagunero, caravinagre)
+  if (O.bicorne && G.hasHead) {   // bicornio (lagunero)
     const g = new THREE.Group(), r = sz.x * 0.5;
     const b = new THREE.Mesh(new THREE.CylinderGeometry(r * 1.4, r * 1.4, r * 0.5, 3, 1), mat(O.bicorne)); b.rotation.set(Math.PI / 2, 0, Math.PI / 2); b.scale.set(1, 0.35, 1); b.position.y = r * 0.3; g.add(b);
     const cock = new THREE.Mesh(new THREE.SphereGeometry(r * 0.16, 8, 6), mat('#c8102e')); cock.position.set(0, r * 0.55, r * 0.15); g.add(cock);

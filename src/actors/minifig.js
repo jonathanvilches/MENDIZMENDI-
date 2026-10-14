@@ -725,7 +725,6 @@ export const COSTUMES = {
   pelotari: { skin: '#eac1a0', hair: '#2a1a12', hairStyle: 'ponytail', lashes: true, shirt: '#f4f1ea', pants: '#f4f1ea', sash: '#d42f2f', shoes: '#f4f1ea', glove: '#8a5a32', face: 'brave', placket: false, eyes: '#3a6a3a' },
   sanferminero: { skin: '#f3c9a4', hair: '#5a321c', hairStyle: 'spiky', shirt: '#f4f1ea', pants: '#f4f1ea', sash: '#d42f2f', scarf: '#d42f2f', shoes: '#efe6d0', espadrille: true, laces: '#d42f2f', face: 'happy', freckles: true, child: true, height: 1.4, eyes: '#4a2a1a' },
   rojilla: { skin: '#d9a57f', hair: '#2a1a12', hairStyle: 'curly', lashes: true, shirt: '#d4002a', print: 'rojilla', pants: '#1c2a4a', shorts: true, socks: '#d4002a', longSocks: true, shoes: '#1d1d24', ball: '#ffffff', face: 'happy' },
-  caravinagre: { skin: '#eab89a', hair: '#dcd7cf', hairStyle: 'short', shirt: '#2f6b3a', print: 'coat', pants: '#f4f1ea', socks: '#f4f1ea', longSocks: true, shoes: '#1a1a1a', hat: 'bicorne', bigHead: true, bladder: true, face: 'angry', moustache: '#dcd7cf', moustacheCurl: true, bigNose: true },
   'pastor-navarro': { skin: '#dba882', hair: '#6a6a6a', beard: '#8a8a88', txapela: '#1d1d24', shirt: '#efe9dc', vest: '#3a2a22', scarf: '#c0392b', pants: '#4a3f36', kneePatch: true, shoes: '#4a2f1c', boots: true, staff: 'crook', strap: '#6a4a2a', bag: '#8a6a3a', face: 'smile', old: true, bigNose: true },
 };
 

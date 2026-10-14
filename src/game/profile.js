@@ -13,6 +13,7 @@ const fresh = () => ({
   badges: [],         // insignias ganadas
   seen: {},           // avisos ya mostrados
   settings: { music: true, volume: 0.8, quality: null, timeSpeed: 1 },
+  mig: { pamplona1: true },   // arreglos ya hechos en el guardado (ver profile)
 });
 
 export const LEVEL_XP = (lv) => 120 * lv * (lv + 1) / 2;   // XP total necesaria para alcanzar el nivel lv+1
@@ -46,7 +47,16 @@ export const BADGES = [
 let P = null;
 export function profile() {
   if (P) return P;
-  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.v === 1) P = Object.assign(fresh(), s, { settings: Object.assign(fresh().settings, s.settings) }); } catch (e) { }
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY));
+    if (s && s.v === 1) {
+      P = Object.assign(fresh(), s, { settings: Object.assign(fresh().settings, s.settings), mig: { ...s.mig, pamplona1: true } });
+      // Pamplona tenía una misión de carnaval en el segundo puesto que ya no está: lo hecho después de ella baja un puesto
+      // (las misiones hechas se guardan por su puesto en la lista del pueblo)
+      const t = !s.mig?.pamplona1 && P.towns?.pamplona;
+      if (t?.done) { const d = {}; for (const [k, v] of Object.entries(t.done)) { const i = +k; if (i !== 1) d[i > 1 ? i - 1 : i] = v; } t.done = d; }
+    }
+  } catch (e) { }
   P ||= fresh();
   // solo los seis personajes importados: si el guardado tenía otro (Beñat, Nerea, Haritz…), pasa al primero
   if (!CAST.some(c => c.id === P.avatar)) P.avatar = CAST[0].id;
