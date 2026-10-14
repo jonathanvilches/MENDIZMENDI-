@@ -713,10 +713,11 @@ function lisa(mesh, E = null, bajo = [0.66, 0.74], borde = [0.72, 1.15]) {
     const k = sstep(p.y, bajo[0], bajo[1]) * (1 - cara);
     // (con el cráneo: lo que sobresale de él es pelo de punta y se lleva a él también junto a la cara; si no, el borde
     // de la capucha copiaba el flequillo en dientes)
-    const fuera = E && s > 1 ? sstep(p.y, 0.72, 0.76) : 0;
+    // (en la cara, solo de las cejas para arriba: la nariz y la barbilla también sobresalen del cráneo y no son pelo)
+    const pelo = Math.max(1 - cara, sstep(p.y, 0.815, 0.835)), fuera = E && s > 1 ? sstep(p.y, 0.72, 0.76) * pelo : 0;
     if (fuera > 0) { p.lerp(e, Math.max(k, fuera)); n.lerp(en, Math.max(k, fuera * sstep(s, 1, 1.03))); }
     else { p.lerp(e, k); n.lerp(en, k); }
-    return 1 - Math.max(k, fuera);   // (lo que sigue al cuerpo: ceñida lo alisa)
+    return (1 - Math.max(k, fuera)) * pelo;   // (lo que sigue al cuerpo fuera de la cara: ceñida lo alisa; la nariz no)
   };
 }
 // Ajustada a la cabeza: el pelo de chico se aplasta contra el cráneo (en el sombreador) y la capucha, la toca o el
@@ -858,10 +859,10 @@ export const TRAJES = {
       // la camisa vieja, con remiendos
       ceñida(m, (x, y, z, zn) => (zn === 0 || zn === 2) ? Math.min(y - 0.41, 0.665 - y) : -1, (x, y, z, f) => 0.009 + 0.005 * (1 - sstep(f, 0, 0.01)), tela({ map: rep(remiendos('#a89878'), 2, 1), roughness: 0.95, relieve: 'arrugas', relieveRep: [2, 2] }), 1);
       // el trapo que tapa la cara, con dos agujeros para ver
-      ceñida(m, (x, y, z, zn) => zn === 1 && z > -0.035 && y > 0.64 && y < 0.9, (x, y, z) => 0.008 + 0.005 * noise(x * 30, y * 30, z * 30), tela({ map: trapoCara(), alphaTest: 0.5, roughness: 0.95 }), CARA, ajustada(m, 0.009, 0.8));
+      ceñida(m, (x, y, z, zn) => zn === 1 ? Math.min(z + 0.035, y - 0.64, 0.9 - y) : -1, (x, y, z) => 0.008 + 0.005 * noise(x * 30, y * 30, z * 30), tela({ map: trapoCara(), alphaTest: 0.5, roughness: 0.95 }), CARA, ajustada(m, 0.009, 0.8));
       // el pañuelo de colores atado a la cabeza, con el nudo en la nuca
       const pa = panuelo('#24418c', '#f2c230', '#c8202a');
-      ceñida(m, (x, y, z, zn) => zn === 1 && (y > 0.872 || (z < -0.035 && y > 0.74)), (x, y, z) => 0.017 + 0.006 * noise(x * 30, y * 30, z * 30), tela({ map: rep(pa, 3, 2) }), 2, ajustada(m, 0.016));
+      ceñida(m, (x, y, z, zn) => zn === 1 ? Math.max(y - 0.872, Math.min(-0.035 - z, y - 0.74)) : -1, (x, y, z) => 0.017 + 0.006 * noise(x * 30, y * 30, z * 30), tela({ map: rep(pa, 3, 2) }), 2, ajustada(m, 0.016));
       const nudo = new THREE.Group(), pn = tela({ map: pa });
       nudo.add(new THREE.Mesh(new THREE.SphereGeometry(u(0.024), 10, 8), pn));
       for (const s of [-1, 1]) { const c = new THREE.Mesh(new THREE.ConeGeometry(u(0.032), u(0.1), 4, 1, true), pn); c.rotation.set(Math.PI - 0.35, 0, s * 0.45); c.position.set(s * u(0.02), -u(0.045), -u(0.01)); c.scale.z = 0.3; nudo.add(c); }
@@ -898,8 +899,8 @@ export const TRAJES = {
       campana(m, [[w * 1.06, 0.45], [w * 1.3, 0.33], [w * 1.44, 0.235]], sa, { pliegues: 8, hondo: 0.06, vuelo: 0.7 });
       // el saco de la cabeza: por delante con los agujeros, por detrás liso; atado al cuello con una cuerda
       const L = ajustada(m, 0.016, 0.8);
-      ceñida(m, (x, y, z, zn) => zn === 1 && y > 0.6 && z > 0, (x, y, z) => 0.016 + 0.006 * noise(x * 30, y * 30, z * 30), tela({ map: sacoCara(), alphaTest: 0.5, roughness: 1 }), CARA, L);
-      ceñida(m, (x, y, z, zn) => zn === 1 && y > 0.6 && z < 0.02, (x, y, z) => 0.014 + 0.006 * noise(x * 30, y * 30, z * 30), sa, 4, L);
+      ceñida(m, (x, y, z, zn) => zn === 1 ? Math.min(y - 0.6, z) : -1, (x, y, z) => 0.016 + 0.006 * noise(x * 30, y * 30, z * 30), tela({ map: sacoCara(), alphaTest: 0.5, roughness: 1 }), CARA, L);
+      ceñida(m, (x, y, z, zn) => zn === 1 ? Math.min(y - 0.6, 0.02 - z) : -1, (x, y, z) => 0.014 + 0.006 * noise(x * 30, y * 30, z * 30), sa, 4, L);
       const cu = tela({ color: '#a88a58', roughness: 0.9 });
       for (const [y, rr] of [[0.636, 0.085], [0.44, w * 1.12]]) { const tg = new THREE.TorusGeometry(u(rr), u(0.007), 5, 32); tg.rotateX(Math.PI / 2); tg.scale(1, 1, 0.85); const t = new THREE.Mesh(tg, cu); t.position.copy(P(0, y, 0.005)); V.put(t, y > 0.6 ? 'Neck' : 'Hips'); }
       const g = cestaCuernos(u(0.2), 1.0); g.position.copy(P(0, 0.87, 0)); V.put(g, 'Head');
