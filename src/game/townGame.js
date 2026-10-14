@@ -96,25 +96,25 @@ const TRADE = {
 const guideName = (g, me = '') => (g ? ['Ane', 'Maite'] : ['Iker', 'Unai']).find(n => n.toLowerCase() !== String(me).trim().toLowerCase());
 const RACE = { camino: ['El Camino de Santiago', 'camino', 'Sigue las conchas y flechas amarillas'], almadia: ['Bajada en almadía', 'raft', 'Guía la almadía por el río'], encierro: ['Carrera del encierro', 'bull', '¡Corre delante de los toros!'], romeria: ['Romería', 'footprint', 'Sube por el camino de los romeros'], bici: ['Vía verde', 'bike', 'Recorre el viejo trazado del tren'] };
 // Aspecto de los personajes de carnaval y leyenda
-const FOLK = {
-  joaldun: { shirt: '#f4f1ea', fur: '#ece4d2', hat: 'cone', hatColor: '#f4f1ea', skirt: '#f4f1ea', pants: '#1d2a4a', bells: true, scarf: '#3a8fd6', handkerchief: '#e8e0cc', face: 'brave' },
+export const FOLK = {
+  joaldun: { traje: 'joaldun', shirt: '#f4f1ea', fur: '#ece4d2', hat: 'cone', hatColor: '#f4f1ea', skirt: '#f4f1ea', pants: '#1d2a4a', bells: true, scarf: '#3a8fd6', handkerchief: '#e8e0cc', face: 'brave' },
   mozorro: { shirt: '#6b8a3a', pattern: 'check', pattern2: '#e03c3c', pants: '#3a2a1a', hat: 'mask', hatColor: '#6b4a2e', maskColor: '#f1e7d6', stick: '#8a5a32' },
-  momotxorro: COSTUMES.momotxorro,
-  'miel-otxin': { shirt: '#e03c3c', ribbons: true, pants: '#f2c230', hat: 'cone', hatColor: '#3a8fd6', height: 2.1, build: 1.2, face: 'angry' },
+  momotxorro: { ...COSTUMES.momotxorro, traje: 'momotxorro', height: 1.8 },   // (un mozo alto: la cesta y los cuernos ya lo agrandan)
+  'miel-otxin': { traje: 'miel-otxin', shirt: '#e03c3c', ribbons: true, pants: '#f2c230', hat: 'cone', hatColor: '#3a8fd6', height: 2.1, build: 1.2, face: 'angry' },
   zarratrako: { shirt: '#8a6a4a', pattern: 'stripes', pattern2: '#3ca05a', pants: '#6b4a2e', fur: '#b08650', hat: 'mask', hatColor: '#3a2a1a', bell: true, stick: '#6b4a2e' },
-  cascabobo: { shirt: '#f2c230', pattern: 'dots', pattern2: '#e03c3c', pants: '#e03c3c', hat: 'cone', hatColor: '#e03c3c', bladder: true, face: 'happy' },
-  irasko: { shirt: '#3ca05a', pattern: 'check', pattern2: '#f2c230', pants: '#2b3a6b', hat: 'mask', hatColor: '#3ca05a', bell: true },
-  paloki: { shirt: '#b34fc4', ribbons: true, pants: '#f4f1ea', hat: 'cone', hatColor: '#f2c230', height: 2.0 },
-  'comparsa-mendigorria': { shirt: '#3a8fd6', pattern: 'stripes', pattern2: '#f4f1ea', pants: '#e03c3c', hat: 'mask', hatColor: '#3a8fd6' },
-  lagunero: { shirt: '#2b3a6b', print: 'coat', pants: '#f4f1ea', hat: 'bicorne', bigHead: true, face: 'angry', moustache: '#2a1a12', moustacheCurl: true },
-  zipotero: { shirt: '#3a8fd6', pattern: 'stripes', pattern2: '#f2c230', pants: '#e03c3c', hat: 'mask', hatColor: '#f2c230', bladder: true, face: 'angry' },
-  caravinagre: COSTUMES.caravinagre,
+  cascabobo: { traje: 'cascabobo', shirt: '#f2c230', pattern: 'dots', pattern2: '#e03c3c', pants: '#e03c3c', hat: 'cone', hatColor: '#e03c3c', bladder: true, face: 'happy' },
+  irasko: { traje: 'irasko', shirt: '#3ca05a', pattern: 'check', pattern2: '#f2c230', pants: '#2b3a6b', hat: 'mask', hatColor: '#3ca05a', bell: true },
+  paloki: { traje: 'paloki', shirt: '#b34fc4', ribbons: true, pants: '#f4f1ea', hat: 'cone', hatColor: '#f2c230', height: 2.0 },
+  'comparsa-mendigorria': { traje: 'comparsa-mendigorria', shirt: '#3a8fd6', pattern: 'stripes', pattern2: '#f4f1ea', pants: '#e03c3c', hat: 'mask', hatColor: '#3a8fd6' },
+  lagunero: { traje: 'lagunero', shirt: '#2b3a6b', print: 'coat', pants: '#f4f1ea', hat: 'bicorne', bigHead: true, face: 'angry', moustache: '#2a1a12', moustacheCurl: true },
+  zipotero: { traje: 'zipotero', shirt: '#3a8fd6', pattern: 'stripes', pattern2: '#f2c230', pants: '#e03c3c', hat: 'mask', hatColor: '#f2c230', bladder: true, face: 'angry' },
+  caravinagre: { ...COSTUMES.caravinagre, traje: 'caravinagre' },
   // criaturas de la noche: claramente más grandes que una persona (1,5 a 2,5 veces)
-  lamia: { skin: '#e6e2cf', hair: '#e8c34a', hairStyle: 'long', hairLen: 5.2, duck: true, lashes: true, eyes: '#2f9f8a', shirt: '#6ab0a0', print: 'blouse', bodice: '#3a8a7a', skirt: '#4a9a8a', pants: '#4a9a8a', comb: true, height: 2.55, build: 0.95, face: 'smirk', female: true },
-  basajaun: { skin: '#b08462', hair: '#4e3420', hairStyle: 'long', hairLen: 2.6, shaggy: '#5a3e26', beard: '#4e3420', brows: '#2e1c10', fur: '#5a3e26', shirt: '#5a3e26', pants: '#4a3420', staff: true, height: 3.4, build: 1.45, face: 'brave' },
-  sorgina: { skin: '#e8d0b8', hair: '#dcd7cf', hairStyle: 'long', shirt: '#3d3350', print: 'shawl', shawl: '#2a2440', skirt: '#2a2440', pants: '#2a2440', kerchief: '#3d3350', old: true, staff: true, height: 2.4 },
-  roldan: { skin: '#dfe6ff', hair: '#c9d4ff', beard: '#c9d4ff', shirt: '#aab6d8', print: 'coat', pants: '#8a96b8', shoes: '#6a7698', boots: true, staff: true, height: 2.7, build: 1.15, face: 'brave' },
-  tartalo: { skin: '#c9a27a', hair: '#3b2418', shirt: '#6b4a2e', fur: '#8a6a4a', pants: '#4a3a2a', height: 2.6, build: 1.4, face: 'angry', staff: true },
+  lamia: { traje: 'lamia', skin: '#e6e2cf', hair: '#e8c34a', hairStyle: 'long', hairLen: 5.2, duck: true, lashes: true, eyes: '#2f9f8a', shirt: '#6ab0a0', print: 'blouse', bodice: '#3a8a7a', skirt: '#4a9a8a', pants: '#4a9a8a', comb: true, height: 2.55, build: 0.95, face: 'smirk', female: true },
+  basajaun: { traje: 'basajaun', skin: '#b08462', hair: '#4e3420', hairStyle: 'long', hairLen: 2.6, shaggy: '#5a3e26', beard: '#4e3420', brows: '#2e1c10', fur: '#5a3e26', shirt: '#5a3e26', pants: '#4a3420', staff: true, height: 3.4, build: 1.45, face: 'brave' },
+  sorgina: { traje: 'sorgina', skin: '#e8d0b8', hair: '#dcd7cf', hairStyle: 'long', shirt: '#3d3350', print: 'shawl', shawl: '#2a2440', skirt: '#2a2440', pants: '#2a2440', kerchief: '#3d3350', old: true, staff: true, height: 2.4 },
+  roldan: { traje: 'roldan', skin: '#dfe6ff', hair: '#c9d4ff', beard: '#c9d4ff', shirt: '#aab6d8', print: 'coat', pants: '#8a96b8', shoes: '#6a7698', boots: true, staff: true, height: 2.7, build: 1.15, face: 'brave' },
+  tartalo: { traje: 'tartalo', skin: '#c9a27a', hair: '#3b2418', shirt: '#6b4a2e', fur: '#8a6a4a', pants: '#4a3a2a', height: 2.6, build: 1.4, face: 'angry', staff: true },
 };
 // Paletas de trajes para los vecinos según la zona
 const PALETTE = {
