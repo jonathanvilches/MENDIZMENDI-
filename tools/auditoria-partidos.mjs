@@ -50,7 +50,7 @@ for (const sz of sizes.split(',')) {
   // los cambios: los once (uno lesionado, uno que va a salir, uno con amarilla) y el banquillo; y la pausa con su botón
   await p.evaluate(() => { const h = window.__fh; document.querySelectorAll('.fb-panel').forEach(e => e.remove());
     const L = [0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3], N = [1, 3, 4, 5, 2, 11, 8, 6, 7, 10, 9], E = [0.9, 0.7, 0.8, 0.55, 0.95, 0.4, 0.62, 0.85, 0.2, 0.75, 0.5], FT = [1, 0.8, 0.9, 0.7, 0.95, 0.5, 0.78, 0.88, 0.35, 0.8, 0.6];
-    const field = N.map((num, i) => ({ id: i, num, line: L[i], energy: E[i], fit: FT[i], card: i === 6 ? 'yellow' : null, inj: i === 8 ? 'grave' : null, cls: i === 5 ? 'out' : i === 8 ? 'low' : '', note: i === 5 ? 'Sale · entra el 14' : '' }));
+    const field = N.map((num, i) => ({ id: i, num, line: L[i], energy: E[i], fit: FT[i], card: i === 6 ? 'yellow' : null, inj: i === 8 ? 'grave' : null, cls: i === 5 ? 'out' : i === 8 ? 'low' : '', note: i === 5 ? 'Sale por el 14' : '' }));
     const bench = [[13, 0], [12, 1], [14, 2], [15, 2], [16, 3]].map(([num, line], b) => ({ b, num, line, energy: 1, fit: 1, cls: b === 2 ? 'sel' : '', note: b === 2 ? 'Entra por el 11' : '' }));
     window.__subsM = { left: () => 4, list: () => ({ field, bench }), plan: () => true, cancel: () => true, auto: () => false, setAuto() {} };
     h.subs(window.__subsM); });

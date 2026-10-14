@@ -345,7 +345,7 @@ export const EU_RX = [
   [/^El (\d+) ya no cojea$/, '$1 zenbakiak ez du herren egiten jada'], [/^El (\d+) está lesionado: haz un cambio$/, '$1 zenbakia lesionatuta dago: egin aldaketa bat'],
   [/^El (\d+) está agotado: piensa en un cambio$/, '$1 zenbakia lehertuta dago: pentsatu aldaketa batean'],
   [/^Quedan (\d+) cambios$/, '$1 aldaketa geratzen dira'],
-  [/^Cambios · quedan (\d+)$/, 'Aldaketak · $1 geratzen dira'], [/^Sale · entra el (\d+)$/, 'Irten · $1 zenbakia sartuko da'], [/^Entra por el (\d+)$/, '$1 zenbakiaren ordez sartuko da'],
+  [/^Cambios · quedan (\d+)$/, 'Aldaketak · $1 geratzen dira'], [/^Sale por el (\d+)$/, 'Ordezkoa: $1'], [/^Entra por el (\d+)$/, '$1 zenbakiaren ordez'],
   [/^Sale el (\d+) · Entra el (\d+)$/, '$1 zenbakia irteten da · $2 zenbakia sartzen da'],
   [/^Cambio preparado: entra el (\d+) por el (\d+) en la próxima parada$/, 'Aldaketa prest: $1 zenbakia sartuko da $2 zenbakiaren ordez hurrengo geldialdian'],
   [/^El (\d+)( visitante)?, expulsado$/, (m, n, v) => `${n} zenbakia${v ? ' (bisitaria)' : ''}, kanporatuta`], [/^El (\d+)( visitante)?$/, (m, n, v) => `${n} zenbakia${v ? ' (bisitaria)' : ''}`],

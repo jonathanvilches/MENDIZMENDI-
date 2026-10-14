@@ -330,7 +330,7 @@ export class FutbolMatch {
       const x = plan.find(q => q.out === p.id), B = x && g.bench[t][x.b];
       return { id: p.id, num: p.num, line: LINE[p.role], energy: p.off ? 0 : p.energy, fit: p.off ? 0 : p.fit, card: g.cards[p.id], inj: p.inj?.sev, dis: !!p.off,
         cls: [x ? 'out' : '', !p.off && (p.inj?.sev === 'grave' || p.energy < 0.3) ? 'low' : ''].join(' '),
-        note: p.off ? 'Expulsado' : x ? `Sale · entra el ${B.num}` : '' };   // (lesionado y agotado se ven en su barra naranja y en la cruz)
+        note: p.off ? 'Expulsado' : x ? `Sale por el ${B.num}` : '' };   // (lesionado y agotado se ven en su barra naranja y en la cruz)
     });
     const bench = g.bench[t].map((B, i) => {
       const x = plan.find(q => q.b === i), O = x && g.players[x.out];
