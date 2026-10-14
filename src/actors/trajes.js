@@ -228,12 +228,18 @@ const sacoCara = () => fija(lienzo('sacoCara', 256, 256, (g, w, h, R) => {
   g.strokeStyle = 'rgba(60,40,20,.8)'; g.lineWidth = 3; for (const s of [-1, 1]) { g.beginPath(); g.ellipse(w * (0.5 + s * OJO_U), h * (1 - OJO_V), w * 0.072, h * 0.05, 0, 0, TAU); g.stroke(); }
   ojos(g, w, h, 0.064, 0.042);
 }));
-// tela tejida de un color (capuchas): la trama y alguna arruga
-const tejido = (c) => lienzo('tejido' + c, 128, 128, (g, w, h, R) => {
+// tela tejida de un color (capuchas, faldas, capas): sarga, algún hilo desigual y el tinte no del todo parejo
+const tejido = (c) => lienzo('tejido' + c, 256, 256, (g, w, h, R) => {
   g.fillStyle = c; g.fillRect(0, 0, w, h);
-  for (let y = 0; y < h; y += 2) { g.fillStyle = `rgba(0,0,0,${0.05 + R() * 0.05})`; g.fillRect(0, y, w, 1); }
-  for (let x = 0; x < w; x += 2) { g.fillStyle = `rgba(255,255,255,${0.02 + R() * 0.04})`; g.fillRect(x, 0, 1, h); }
-  for (let i = 0; i < 10; i++) { const x = R() * w, y = R() * h; tile(w, h, x, y, 30, (px, py) => { const gr = g.createLinearGradient(px - 12, py, px + 12, py + 6); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(0.5, 'rgba(0,0,0,.12)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(px - 12, py - 14, 24, 28); }); }
+  // sarga: diagonales finas de hilo en sombra y en luz (cada 4 píxeles: casa al repetirse)
+  g.lineWidth = 1.2;
+  for (let d = 0; d < w + h; d += 4) { g.strokeStyle = `rgba(0,0,0,${0.08 + R() * 0.05})`; g.beginPath(); g.moveTo(d - h, h); g.lineTo(d, 0); g.stroke(); }
+  g.lineWidth = 0.8;
+  for (let d = 2; d < w + h; d += 4) { g.strokeStyle = `rgba(255,255,255,${0.035 + R() * 0.03})`; g.beginPath(); g.moveTo(d - h, h); g.lineTo(d, 0); g.stroke(); }
+  // hilos de trama más gruesos o más claros aquí y allá, como sale del telar
+  for (let i = 0; i < 46; i++) { g.fillStyle = `rgba(${R() < 0.5 ? '0,0,0' : '255,255,255'},${0.025 + R() * 0.04})`; g.fillRect(0, R() * h, w, 0.7 + R() * 1.1); }
+  // y el tinte desigual, en manchas suaves sin borde
+  for (let i = 0; i < 16; i++) { const x = R() * w, y = R() * h, r = 24 + R() * 44, a = 0.035 + R() * 0.04; tile(w, h, x, y, r, (px, py) => { const gr = g.createRadialGradient(px, py, 0, px, py, r); gr.addColorStop(0, `rgba(0,0,0,${a})`); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(px - r, py - r, r * 2, r * 2); }); }
 });
 // arpillera de saco (iraskos): trama gruesa de yute con hilos desiguales
 const arpillera = () => lienzo('arpillera', 128, 128, (g, w, h, R) => {
@@ -257,8 +263,38 @@ const mechones = (base) => lienzo('mechones' + base, 256, 64, (g, w, h, R) => {
 const liso = (c) => lienzo('liso' + c, 4, 4, (g) => { g.fillStyle = c; g.fillRect(0, 0, 4, 4); });
 // la misma textura repetida rx × ry veces (una copia: la imagen se comparte)
 const rep = (t, rx, ry = rx) => { const c = t.clone(); c.repeat.set(rx, ry); c.needsUpdate = true; return c; };
+// Relieve de la tela: un mapa de normales sacado de una altura alt(x, y) en un lienzo que se repite (la luz marca así la
+// trama, los pliegues que caen y las arrugas donde la tela se recoge)
+function relieve(key, w, h, alt, fuerza = 2.2) {
+  return lienzo('relieve' + key, w, h, (g, W, Hh, R) => {
+    const A = new Float32Array(W * Hh); for (let y = 0; y < Hh; y++) for (let x = 0; x < W; x++) A[y * W + x] = alt(x, y, R);
+    const img = g.createImageData(W, Hh), d = img.data;
+    for (let y = 0; y < Hh; y++) for (let x = 0; x < W; x++) {
+      const dx = A[y * W + (x + 1) % W] - A[y * W + (x - 1 + W) % W], dy = A[((y + 1) % Hh) * W + x] - A[((y - 1 + Hh) % Hh) * W + x];
+      let nx = -dx * fuerza, ny = dy * fuerza, nz = 1; const l = Math.hypot(nx, ny, nz); nx /= l; ny /= l; nz /= l;
+      const k = (y * W + x) * 4; d[k] = (nx * 0.5 + 0.5) * 255; d[k + 1] = (ny * 0.5 + 0.5) * 255; d[k + 2] = (nz * 0.5 + 0.5) * 255; d[k + 3] = 255;
+    }
+    g.putImageData(img, 0, 0);
+  }, false);
+}
+const RELIEVES = {
+  // trama del tejido: hilos que pasan por encima y por debajo
+  trama: () => relieve('trama', 64, 64, (x, y) => { const a = Math.sin(x / 64 * TAU * 16), b = Math.sin(y / 64 * TAU * 16); return ((Math.floor(x / 2) + Math.floor(y / 2)) % 2 ? a : b) * 0.35; }, 3),
+  // pliegues que caen (a lo largo de v) y algo de trama
+  pliegues: () => relieve('pliegues', 256, 128, (x, y, R) => { let h = 0; for (const [k, a, ph] of [[3, 1, 0.3], [5, 0.6, 1.7], [8, 0.35, 4.1], [13, 0.18, 2.2]]) h += a * Math.sin(x / 256 * TAU * k + ph + Math.sin(y / 128 * TAU) * 0.6); return h * 3 + Math.sin(x * 0.8) * Math.sin(y * 0.8) * 0.05; }, 1.6),
+  // arrugas de través (donde la tela se recoge: rodillas, codos, cintura), que se cortan y se cruzan
+  arrugas: () => relieve('arrugas', 256, 256, (x, y) => { let h = 0; for (const [k, a, ph, sk] of [[6, 1, 0.5, 0.35], [9, 0.6, 2.1, -0.5], [14, 0.35, 1.2, 0.8]]) h += a * Math.max(0, Math.sin(y / 256 * TAU * k + ph + Math.sin(x / 256 * TAU * 2) * sk * 3)) ** 2; return h * 4; }, 1.5),
+  // trama gruesa de saco
+  saco: () => relieve('saco', 64, 64, (x, y) => (Math.sin(x / 64 * TAU * 16) + Math.sin(y / 64 * TAU * 16)) * 0.6, 2.5),
+};
 function tela(opt) {
   if (!opt.map && opt.color && !opt.vertexColors) opt = { ...opt, map: liso(opt.color), color: '#ffffff' };
+  // (el relieve: trama por defecto en la tela que no transparenta; o el que se pida: pliegues, arrugas, saco)
+  const { relieve: rl = opt.alphaTest || opt.bumpMap ? false : 'trama', relieveRep = null, ...o2 } = opt; opt = o2;
+  if (rl && RELIEVES[rl]) {
+    const r = opt.map?.repeat || new V2(1, 1), k = rl === 'trama' ? 6 : rl === 'saco' ? 4 : 1, rr = relieveRep || [r.x * k, r.y * k];
+    const ns = rl === 'trama' ? 0.45 : rl === 'arrugas' ? 0.55 : 0.85; opt = { ...opt, normalMap: rep(RELIEVES[rl](), rr[0], rr[1]), normalScale: new V2(ns, ns) };
+  }
   const m = new THREE.MeshStandardMaterial({ roughness: 0.88, metalness: 0, side: THREE.DoubleSide, ...opt });
   if (m.map && !m.vertexColors) { m.emissiveMap = m.map; fillMaterial(m, 0.28); }
   return m;
@@ -306,33 +342,101 @@ const bonePos = (mesh, name) => {
 // uvY: la textura da la vuelta al cuerpo y se repite uvY veces por altura; o una función (x, y, z) → [u, v] (las caretas).
 // forma(p, n): cambia el sitio y la normal de cada punto ya hinchado (en fracción de la altura), para lo que no sigue el
 // cuerpo al pie de la letra (la capucha, que no copia los mechones del pelo de debajo)
+// sel puede decir sí o no, o dar un número (positivo dentro, negativo fuera, en fracción de la altura): los triángulos que
+// cruzan el borde se recortan justo por él, y el borde de la prenda queda limpio, sin dientes de sierra. grosor recibe
+// también ese número (f), para engrosar el dobladillo junto al borde
 function ceñida(mesh, sel, grosor, mat, uvY = 1, forma = null) {
   const B = cuerpo(mesh), { pos, nor, rep, zone, H, y0, idx } = B, SI = B.geo.attributes.skinIndex, SW = B.geo.attributes.skinWeight;
-  const keep = [];
-  const ok = (i) => { const r = rep[i]; return sel(pos[r * 3] / H, (pos[r * 3 + 1] - y0) / H, pos[r * 3 + 2] / H, zone[i]); };
-  for (let t = 0; t < idx.length; t += 3) if (ok(idx[t]) && ok(idx[t + 1]) && ok(idx[t + 2])) keep.push(t);
-  const m = keep.length * 3, P = new Float32Array(m * 3), Nn = new Float32Array(m * 3), U = new Float32Array(m * 2), S = new Uint16Array(m * 4), W = new Float32Array(m * 4);
+  const val = new Float32Array(B.n).fill(NaN);
+  const f = (i) => { if (Number.isNaN(val[i])) { const r = rep[i], v = sel(pos[r * 3] / H, (pos[r * 3 + 1] - y0) / H, pos[r * 3 + 2] / H, zone[i]); val[i] = v === true ? 1 : v === false || v == null ? -1 : v; } return val[i]; };
+  // cada punto de la prenda: un vértice del cuerpo o uno entre dos (i, j, t), recortado en el borde
+  const pts = [];
+  for (let t = 0; t < idx.length; t += 3) {
+    const v = [idx[t], idx[t + 1], idx[t + 2]], fv = v.map(f);
+    if (fv[0] < 0 && fv[1] < 0 && fv[2] < 0) continue;
+    if (fv[0] >= 0 && fv[1] >= 0 && fv[2] >= 0) { pts.push([[v[0], v[0], 0], [v[1], v[1], 0], [v[2], v[2], 0]]); continue; }
+    const poly = [];
+    for (let k = 0; k < 3; k++) {
+      const a = v[k], b = v[(k + 1) % 3], fa = fv[k], fb = fv[(k + 1) % 3];
+      if (fa >= 0) poly.push([a, a, 0]);
+      if ((fa >= 0) !== (fb >= 0)) poly.push([a, b, fa / (fa - fb)]);
+    }
+    for (let k = 1; k + 1 < poly.length; k++) pts.push([poly[0], poly[k], poly[k + 1]]);
+  }
+  const m = pts.length * 3, P = new Float32Array(m * 3), Nn = new Float32Array(m * 3), U = new Float32Array(m * 2), S = new Uint16Array(m * 4), W = new Float32Array(m * 4);
+  const F = new Float32Array(m * 3), libre = forma ? new Float32Array(m) : null, clave = forma ? new Array(m) : null;
+  const pa = new V3(), pb = new V3(), na = new V3(), nb = new V3(), bw = new Map();
   let k = 0;
-  for (const t of keep) {
-    const us = [];
-    for (let j = 0; j < 3; j++, k++) {
-      const i = idx[t + j], r = rep[i], x = pos[r * 3] / H, y = (pos[r * 3 + 1] - y0) / H, z = pos[r * 3 + 2] / H, d = grosor(x, y, z) * H;
-      for (let c = 0; c < 3; c++) { P[k * 3 + c] = pos[r * 3 + c] + nor[r * 3 + c] * d; Nn[k * 3 + c] = nor[r * 3 + c]; }
+  for (const tri of pts) {
+    for (const [a, b, t] of tri) {
+      const ra = rep[a], rb = rep[b];
+      pa.set(pos[ra * 3], pos[ra * 3 + 1], pos[ra * 3 + 2]).lerp(pb.set(pos[rb * 3], pos[rb * 3 + 1], pos[rb * 3 + 2]), t);
+      na.set(nor[ra * 3], nor[ra * 3 + 1], nor[ra * 3 + 2]).lerp(nb.set(nor[rb * 3], nor[rb * 3 + 1], nor[rb * 3 + 2]), t).normalize();
+      const x = pa.x / H, y = (pa.y - y0) / H, z = pa.z / H, fv = a === b ? f(a) : 0, d = grosor(x, y, z, fv) * H;
+      P[k * 3] = pa.x + na.x * d; P[k * 3 + 1] = pa.y + na.y * d; P[k * 3 + 2] = pa.z + na.z * d; Nn.set([na.x, na.y, na.z], k * 3); F.set([x, y, z], k * 3);
       if (forma) {
-        const q = new V3(P[k * 3] / H, (P[k * 3 + 1] - y0) / H, P[k * 3 + 2] / H), nq = new V3(Nn[k * 3], Nn[k * 3 + 1], Nn[k * 3 + 2]); forma(q, nq);
+        const q = new V3(P[k * 3] / H, (P[k * 3 + 1] - y0) / H, P[k * 3 + 2] / H), nq = na.clone(); libre[k] = forma(q, nq) ?? 0;
         P.set([q.x * H, y0 + q.y * H, q.z * H], k * 3); Nn.set(nq.normalize().toArray(), k * 3);
+        // (el mismo punto en los triángulos de al lado, para alisar entre ellos)
+        clave[k] = a === b ? ra : ra < rb ? ra + ':' + rb + ':' + t.toFixed(4) : rb + ':' + ra + ':' + (1 - t).toFixed(4);
       }
-      if (typeof uvY === 'function') { const [a, b] = uvY(x, y, z); us.push(a); U[k * 2 + 1] = b; } else { us.push(Math.atan2(x, z) / TAU + 0.5); U[k * 2 + 1] = y * uvY; }
-      for (let c = 0; c < 4; c++) { S[k * 4 + c] = SI.getComponent(i, c); W[k * 4 + c] = SW.getComponent(i, c); }
+      // (los huesos de los dos vértices, con su peso repartido: los cuatro que más pesan)
+      bw.clear();
+      for (const [vi, wt] of [[a, 1 - t], [b, t]]) if (wt > 0) for (let c = 0; c < 4; c++) { const w = SW.getComponent(vi, c) * wt; if (w > 0) { const s = SI.getComponent(vi, c); bw.set(s, (bw.get(s) || 0) + w); } }
+      const top = [...bw.entries()].sort((p, q) => q[1] - p[1]).slice(0, 4), sum = top.reduce((s, e) => s + e[1], 0) || 1;
+      for (let c = 0; c < 4; c++) { S[k * 4 + c] = top[c] ? top[c][0] : 0; W[k * 4 + c] = top[c] ? top[c][1] / sum : 0; }
+      k++;
+    }
+  }
+  if (forma) alisar(P, Nn, libre, clave, m);
+  for (let t = 0; t < m; t += 3) {
+    const us = [];
+    for (let j = t; j < t + 3; j++) {
+      // (con forma, la textura va por donde queda la prenda: los mechones de punta de debajo, llevados todos al mismo
+      // sitio, se pisaban con texturas distintas y salían manchas)
+      const ux = forma ? P[j * 3] / H : F[j * 3], uy = forma ? (P[j * 3 + 1] - y0) / H : F[j * 3 + 1], uz = forma ? P[j * 3 + 2] / H : F[j * 3 + 2];
+      if (typeof uvY === 'function') { const [u, vv] = uvY(ux, uy, uz); us.push(u); U[j * 2 + 1] = vv; } else { us.push(Math.atan2(ux, uz) / TAU + 0.5); U[j * 2 + 1] = uy * uvY; }
     }
     // (la costura de atrás: que el triángulo no recorra toda la textura de un lado al otro)
     if (Math.max(...us) - Math.min(...us) > 0.5) for (let j = 0; j < 3; j++) if (us[j] < 0.5) us[j] += 1;
-    for (let j = 0; j < 3; j++) U[(k - 3 + j) * 2] = us[j];
+    for (let j = 0; j < 3; j++) U[(t + j) * 2] = us[j];
   }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(P, 3)); g.setAttribute('normal', new THREE.BufferAttribute(Nn, 3)); g.setAttribute('uv', new THREE.BufferAttribute(U, 2));
   g.setAttribute('skinIndex', new THREE.BufferAttribute(S, 4)); g.setAttribute('skinWeight', new THREE.BufferAttribute(W, 4));
   return piel(mesh, g, mat);
+}
+// Alisa lo que la forma deja libre (libre: de 0, quieto, a 1; el borde de una capucha junto a la cara, que copiaba los
+// mechones de debajo): cada punto se acerca a la media de sus vecinos, unas cuantas veces, y su normal sale de la
+// superficie ya lisa. Los triángulos que quedan del revés al llevar el pelo de punta al cráneo se aplastan: con dos
+// caras, pintaban manchas de luz al revés
+function alisar(P, N, libre, clave, m) {
+  const id = new Map(), u = new Int32Array(m); let n = 0;
+  for (let i = 0; i < m; i++) { let v = id.get(clave[i]); if (v === undefined) { v = n++; id.set(clave[i], v); } u[i] = v; }
+  const X = new Float32Array(n * 3), L = new Float32Array(n), vec = Array.from({ length: n }, () => new Set());
+  for (let i = 0; i < m; i++) { X.set(P.subarray(i * 3, i * 3 + 3), u[i] * 3); L[u[i]] = Math.max(L[u[i]], libre[i]); }
+  for (let t = 0; t < m; t += 3) for (let j = 0; j < 3; j++) { const a = u[t + j], b = u[t + (j + 1) % 3]; if (a !== b) { vec[a].add(b); vec[b].add(a); } }
+  const Y = new Float32Array(n * 3);
+  for (let it = 0; it < 10; it++) {
+    Y.set(X);
+    for (let v = 0; v < n; v++) { if (L[v] <= 0 || !vec[v].size) continue; let sx = 0, sy = 0, sz = 0; for (const w of vec[v]) { sx += X[w * 3]; sy += X[w * 3 + 1]; sz += X[w * 3 + 2]; } const c = vec[v].size, k = 0.5 * L[v];
+      Y[v * 3] = lerp(X[v * 3], sx / c, k); Y[v * 3 + 1] = lerp(X[v * 3 + 1], sy / c, k); Y[v * 3 + 2] = lerp(X[v * 3 + 2], sz / c, k); }
+    X.set(Y);
+  }
+  // normales de la superficie alisada (por área), para los puntos libres
+  const A = new Float32Array(n * 3), e1 = new V3(), e2 = new V3(), c = new V3(), o = new V3();
+  for (let t = 0; t < m; t += 3) {
+    const a = u[t], b = u[t + 1], d = u[t + 2];
+    e1.set(X[b * 3] - X[a * 3], X[b * 3 + 1] - X[a * 3 + 1], X[b * 3 + 2] - X[a * 3 + 2]); e2.set(X[d * 3] - X[a * 3], X[d * 3 + 1] - X[a * 3 + 1], X[d * 3 + 2] - X[a * 3 + 2]); c.crossVectors(e1, e2);
+    o.set(N[t * 3] + N[t * 3 + 3] + N[t * 3 + 6], N[t * 3 + 1] + N[t * 3 + 4] + N[t * 3 + 7], N[t * 3 + 2] + N[t * 3 + 5] + N[t * 3 + 8]);
+    if (c.dot(o) < 0) { for (let j = 0; j < 3; j++) u[t + j] = -1 - a; continue; }   // (del revés: fuera)
+    for (const v of [a, b, d]) { A[v * 3] += c.x; A[v * 3 + 1] += c.y; A[v * 3 + 2] += c.z; }
+  }
+  for (let i = 0; i < m; i++) {
+    const v = u[i] < 0 ? -1 - u[i] : u[i]; P.set(X.subarray(v * 3, v * 3 + 3), i * 3);
+    if (u[i] < 0 || L[v] <= 0) continue;
+    o.set(A[v * 3], A[v * 3 + 1], A[v * 3 + 2]); if (o.lengthSq() < 1e-20) continue; o.normalize(); c.set(N[i * 3], N[i * 3 + 1], N[i * 3 + 2]).lerp(o, Math.min(1, L[v] * 2)).normalize(); N.set([c.x, c.y, c.z], i * 3);
+  }
 }
 // una malla nueva con el esqueleto del cuerpo, junto a él
 function piel(mesh, g, mat) {
@@ -343,19 +447,36 @@ function piel(mesh, g, mat) {
 // Falda en campana (perfil: [radio, altura] de la cintura al bajo, en fracción de la altura) con pliegues; arriba va con
 // la cadera y hacia el bajo se reparte entre la cadera y cada muslo
 // (hueso: la cuelga entera de otro hueso, sin repartirla entre las piernas: las esclavinas y los chales, del pecho)
-function campana(mesh, perfil, mat, { pliegues = 14, hondo = 0.035, seg = 40, ovalo = 0.82, vuelo = 0.75, hueco = 0, centro = 0, hueso = 'Hips' } = {}) {
-  const B = cuerpo(mesh), H = B.H, y0 = B.y0, hip = bonePos(mesh, hueso), L = bonePos(mesh, 'LeftUpLeg'), R = bonePos(mesh, 'RightUpLeg');
+// (rango: las alturas [arriba, abajo] con las que crecen los pliegues, si no son las del perfil: el ribete del bajo
+// lleva los mismos pliegues que su falda)
+function campana(mesh, perfil, mat, { pliegues = 14, hondo = 0.035, seg = 40, ovalo = 0.82, vuelo = 0.75, hueco = 0, centro = 0, hueso = 'Hips', rango = null } = {}) {
+  // (el perfil, en tramos de 0,03 como mucho: cada anillo se ajusta al cuerpo, y entre dos lejanos el talón o la rodilla
+  // asomaban por la recta)
+  perfil = perfil.flatMap(([r, y], i) => { if (!i) return [[r, y]]; const [r0, y1] = perfil[i - 1], n = Math.max(1, Math.ceil(Math.abs(y1 - y) / 0.03 - 1e-9)); return Array.from({ length: n }, (_, k) => [lerp(r0, r, (k + 1) / n), lerp(y1, y, (k + 1) / n)]); });
+  const B = cuerpo(mesh), H = B.H, y0 = B.y0, hip = bonePos(mesh, hueso), L = bonePos(mesh, 'LeftUpLeg'), R = bonePos(mesh, 'RightUpLeg'), LL = bonePos(mesh, 'LeftLeg'), RL = bonePos(mesh, 'RightLeg');
+  const rodilla = LL ? (LL.p.y - y0) / H : 0.25;
   // (hueco: lo que queda abierto, en radianes, por delante o hacia centro: los faldones de una casaca, la sábana por detrás)
   const g = new THREE.LatheGeometry(perfil.map(([r, y]) => new V2(r * H, y0 + y * H)), seg, centro + hueco / 2, TAU - hueco), p = g.attributes.position, n = p.count;
-  const S = new Uint16Array(n * 4), W = new Float32Array(n * 4), top = perfil[0][1], bot = perfil[perfil.length - 1][1];
+  const S = new Uint16Array(n * 4), W = new Float32Array(n * 4), [top, bot] = rango || [perfil[0][1], perfil[perfil.length - 1][1]], np = perfil.length, zonasC = hueso === 'Hips' ? [0, 3] : [0, 1, 2];
   const hc = bonePos(mesh, 'Hips') || hip, cx = hc ? hc.p.x : 0, cz = hc ? hc.p.z : 0, lx = L ? Math.sign(L.p.x - cx) : 1;
   for (let i = 0; i < n; i++) {
     const x = p.getX(i), z = p.getZ(i), y = p.getY(i), t = clamp((top - (y - y0) / H) / (top - bot), 0, 1), a = Math.atan2(x, z);
     const f = 1 + hondo * (0.25 + t) * Math.sin(a * pliegues + (i % 3) * 0.0);
-    p.setXYZ(i, cx + x * f, y, cz + z * f * ovalo);
+    // (arriba, pegada al cuerpo en cada ángulo: sin huecos en la cintura ni en el cuello; más abajo, nunca por dentro de él)
+    // (y abajo, también los pies: el talón asomaba por detrás de las faldas largas)
+    const yy = (y - y0) / H, j = i % np, cuerpoR = Math.max(radio(mesh, yy, a, zonasC, 1, 1), hueso === 'Hips' && yy < 0.1 ? radio(mesh, yy, a, [4], 2, 2) : 0) * H;
+    let X = cx + x * f, Z = cz + z * f * ovalo, rr = Math.hypot(X, Z);
+    const quiere = j === 0 ? cuerpoR + 0.004 * H : Math.max(rr, cuerpoR + (j === 1 ? 0.007 : 0.005) * H);
+    if (j === 0 || rr < quiere) { const k = quiere / Math.max(rr, 1e-6); X *= k; Z *= k; }
+    p.setXYZ(i, X, y, Z);
     // peso de cada pierna: más cuanto más abajo y más de su lado
-    const side = clamp((x * lx) / (Math.hypot(x, z) + 1e-6) * 0.5 + 0.5, 0, 1), w = hueso === 'Hips' ? vuelo * t * t : 0;
-    S.set([hip ? hip.i : 0, L ? L.i : 0, R ? R.i : 0, 0], i * 4); W.set([1 - w, w * side, w * (1 - side), 0], i * 4);
+    // (en medio, delante y detrás, menos con las piernas: repartido entre las dos, el bajo se metía entre ellas y asomaba
+    // lo de debajo)
+    const side = clamp((x * lx) / (Math.hypot(x, z) + 1e-6) * 0.5 + 0.5, 0, 1), w = hueso === 'Hips' ? vuelo * t * t * (0.5 + 0.5 * Math.abs(side - 0.5) * 2) : 0;
+    // (por debajo de la rodilla, el lado que más pesa va también con la espinilla: con las rodillas algo dobladas, la
+    // falda iba con el muslo hacia delante y el talón, que se queda atrás, asomaba por detrás)
+    const k = LL && RL ? 0.75 * clamp((rodilla - yy) / rodilla, 0, 1) : 0, M = side >= 0.5, sm = M ? side : 1 - side;
+    S.set([hip ? hip.i : 0, (M ? L : R)?.i ?? 0, (M ? R : L)?.i ?? 0, k ? (M ? LL : RL).i : 0], i * 4); W.set([1 - w, w * sm * (1 - k), w * (1 - sm), w * sm * k], i * 4);
   }
   g.computeVertexNormals(); g.setAttribute('skinIndex', new THREE.BufferAttribute(S, 4)); g.setAttribute('skinWeight', new THREE.BufferAttribute(W, 4));
   return piel(mesh, g, mat);
@@ -500,39 +621,63 @@ function cabezudo(r, o) {
 const blanca = () => tela({ color: '#f6f3ea', roughness: 0.92 });
 // ¿en la elipse de la careta? (en la proyección de la cara; k > 1, algo más grande)
 const enCara = (x, y, z, k = 1) => { const [a, b] = CARA(x, y); return z > 0.03 && ((a - 0.5) / (0.47 * k)) ** 2 + ((b - 0.47) / (0.44 * k)) ** 2 < 1; };
+// lo que queda fuera de la abertura de la cara (el óvalo k, hasta la altura alto), con signo y en fracción de la altura:
+// para ceñida, que recorta por él un borde liso (con sí o no, el borde seguía los triángulos del flequillo)
+const sinCara = (x, y, z, k = 1, alto = 0.842) => { const [a, b] = CARA(x, y), q = Math.hypot((a - 0.5) / (0.47 * k), (b - 0.47) / (0.44 * k)); return Math.max((q - 1) * 0.11 * k, y - alto, 0.03 - z); };
+// la careta por la frente: lo que sobresale del cráneo es el flequillo de debajo y se lleva a él, y la franja de la
+// frente se alisa (el borde de arriba copiaba los mechones); la nariz y la boca, como son
+function frenteLisa(extra) {
+  const E = { c: CRANEO.c, r: CRANEO.r.clone().addScalar(extra) };
+  return (p, n) => {
+    const d = new V3().subVectors(p, E.c).divide(E.r), s = d.length();
+    if (s > 1) { const k = sstep(p.y, 0.8, 0.83); p.lerp(d.clone().divideScalar(s).multiply(E.r).add(E.c), k); n.lerp(d.clone().divide(E.r).normalize(), k); }
+    return sstep(p.y, 0.815, 0.835);
+  };
+}
 // careta de cartón pintada sobre la cara (sigue su forma: nariz, pómulos, barbilla; por los agujeros se ven los ojos) y
 // capucha de tela de su color ceñida al resto de la cabeza y al cuello
 function caretaYCapucha(V, color, cara) {
   const m = V.mesh;
   // (con su esclavina por los hombros, hasta el pecho: así se ve que es una capucha)
   const tc = tela({ map: rep(tejido(color), 3, 3) });
-  ceñida(m, (x, y, z, zn) => zn === 1 && y > 0.6 && !(enCara(x, y, z, 0.86) && y < 0.842), (x, y, z) => 0.017 + 0.003 * noise(x * 30, y * 30, z * 30), tc, 3, lisa(m));
-  ceñida(m, (x, y, z, zn) => zn === 1 && z > 0 && enCara(x, y, z, 1.1) && y < 0.858, () => 0.015, tela({ map: careta(cara.id, cara), alphaTest: 0.5, roughness: 0.6 }), CARA);
+  ceñida(m, (x, y, z, zn) => zn === 1 ? Math.min(y - 0.6, sinCara(x, y, z, 0.86)) : -1, (x, y, z) => 0.017 + 0.003 * noise(x * 30, y * 30, z * 30), tc, 3, ajustada(m, 0.014, 0.8));
+  ceñida(m, (x, y, z, zn) => zn === 1 ? -sinCara(x, y, z, 1.1, 0.858) : -1, () => 0.015, tela({ map: careta(cara.id, cara), alphaTest: 0.5, roughness: 0.6 }), CARA, frenteLisa(0.01));
   // la esclavina de la capucha, por los hombros hasta el pecho
   campana(m, [[0.08, 0.648], [0.15, 0.61], [0.205, 0.555], [0.21, 0.54]], tc, { pliegues: 10, hondo: 0.04, hueso: 'Spine2', ovalo: 0.78 });
 }
-// el radio del cuerpo a una altura y en una dirección (a: ángulo desde delante; en fracción de la altura), para que el pelo
-// y las barbas caigan rozándolo
-function radio(mesh, y, a, zonas = [0, 1]) {
-  const B = cuerpo(mesh), key = 'r' + zonas.join() + ':' + Math.round(y * 200) + ':' + Math.round(a * 20); B.cache ??= {}; if (B.cache[key] != null) return B.cache[key];
-  let r = 0;
+// El cuerpo en una rejilla polar (alturas de 0,005 y ángulos de 5°, desde el eje del cuerpo): en cada casilla, lo más
+// alejado del eje. Una vez por modelo y zonas; luego cada consulta es inmediata
+const POLAR_Y = 210, POLAR_A = 72;
+function polar(mesh, zonas) {
+  const B = cuerpo(mesh), key = 'polar' + zonas.join(); B.cache ??= {}; if (B.cache[key]) return B.cache[key];
+  const G = new Float32Array(POLAR_Y * POLAR_A);
   for (let i = 0; i < B.n; i++) {
     if (!zonas.includes(B.zone[i])) continue;
-    const x = B.pos[i * 3] / B.H, yy = (B.pos[i * 3 + 1] - B.y0) / B.H, z = B.pos[i * 3 + 2] / B.H; if (Math.abs(yy - y) > 0.014) continue;
-    let d = Math.atan2(x, z) - a; d = Math.atan2(Math.sin(d), Math.cos(d)); if (Math.abs(d) < 0.22) r = Math.max(r, Math.hypot(x, z));
+    const x = B.pos[i * 3] / B.H, y = (B.pos[i * 3 + 1] - B.y0) / B.H, z = B.pos[i * 3 + 2] / B.H;
+    const iy = Math.min(POLAR_Y - 1, Math.max(0, Math.floor(y / 0.005))), ia = ((Math.floor((Math.atan2(x, z) / TAU + 1) * POLAR_A) % POLAR_A) + POLAR_A) % POLAR_A, r = Math.hypot(x, z);
+    if (r > G[iy * POLAR_A + ia]) G[iy * POLAR_A + ia] = r;
   }
-  return (B.cache[key] = r || 0.08);
+  return (B.cache[key] = G);
+}
+// el radio del cuerpo a una altura y en una dirección (a: ángulo desde delante; en fracción de la altura): lo más alejado
+// en las casillas de alrededor (dy y da casillas a cada lado), para que lo que cae rozándolo no lo atraviese
+function radio(mesh, y, a, zonas = [0, 1], dy = 3, da = 2) {
+  const G = polar(mesh, zonas), iy = Math.floor(y / 0.005), ia = Math.floor((a / TAU + 1) * POLAR_A); let r = 0;
+  for (let e = -dy; e <= dy; e++) { const yy = iy + e; if (yy < 0 || yy >= POLAR_Y) continue; for (let d = -da; d <= da; d++) r = Math.max(r, G[yy * POLAR_A + (((ia + d) % POLAR_A) + POLAR_A) % POLAR_A]); }
+  return r || 0.08;
 }
 // Mechones y barbas con piel: tiras que bajan rozando el cuerpo, de un ángulo a desde la altura y0 a la y1; arriba van con
 // la cabeza y, al bajar, con el pecho o la espalda (al andar no se despegan ni lo atraviesan)
 function cortina(mesh, tiras, mat) {
   const B = cuerpo(mesh), H = B.H, y0 = B.y0, idx = {}; mesh.skeleton.bones.forEach((b, i) => { idx[b.name.replace(/^mixamorig:?/, '')] = i; });
   const pesos = (y) => { const t = clamp((y - 0.62) / 0.12, 0, 1); return [[idx.Head ?? 0, t], [idx.Spine2 ?? 0, 1 - t]]; };
-  const P = [], U = [], S = [], W = [], I = []; let base = 0;
+  const P = [], U = [], S = [], W = [], I = []; let base = 0, apl = mesh.userData.aplanado;
   tiras.forEach(({ a, y0: ya, y1: yb, ancho, sep = 0.018, n = 10, u0 = 0, zonas = [0, 1], vuelo = 0 }) => {
     const sa = Math.sin(a), ca = Math.cos(a), cx = Math.cos(a), cz = -Math.sin(a);   // (lo ancho de la tira va de lado)
     for (let k = 0; k <= n; k++) {
-      const t = k / n, y = lerp(ya, yb, t), r = radio(mesh, y, a, zonas) + sep + vuelo * t * t, w = ancho * (1 - 0.35 * t) / 2;
+      // (con el pelo de debajo aplastado, por la cabeza bajan rozando el cráneo y no por las puntas que ya no están)
+      const t = k / n, y = lerp(ya, yb, t), rc = apl && y > 0.68 ? rCraneo(y, a, 0.012) : 0, w = ancho * (1 - 0.35 * t) / 2;
+      const r = (rc ? Math.min(radio(mesh, y, a, zonas), rc) : radio(mesh, y, a, zonas)) + sep + vuelo * t * t;
       for (const s of [-1, 1]) { P.push((sa * r + s * cx * w) * H, y0 + y * H, (ca * r + s * cz * w) * H); U.push(u0 + (s + 1) * 0.25, 1 - t); const pw = pesos(y); S.push(pw[0][0], pw[1][0], 0, 0); W.push(pw[0][1], pw[1][1], 0, 0); }
       if (k) I.push(base + k * 2 - 2, base + k * 2 - 1, base + k * 2, base + k * 2 - 1, base + k * 2 + 1, base + k * 2);
     }
@@ -552,7 +697,7 @@ const melena = (mesh, mat, { a0 = Math.PI * 0.62, a1 = Math.PI * 1.38, n = 13, d
 // La forma lisa de una capucha o un saco: la cabeza (con el pelo) envuelta en un elipsoide; hacia el cuello y hacia el
 // borde de la cara vuelve a ceñirse al cuerpo
 // (E: un elipsoide { c, r } dado, el del cráneo para el pelo recogido; sin él, el que envuelve la cabeza con su pelo)
-function lisa(mesh, E = null) {
+function lisa(mesh, E = null, bajo = [0.66, 0.74], borde = [0.72, 1.15]) {
   const B = cuerpo(mesh), lo = new V3(1, 1, 1), hi = new V3(-1, -1, -1), v = new V3();
   // (el ancho y el fondo, del cráneo con el pelo: de la frente para arriba; sin la nariz, que no abombe la capucha)
   let y0 = 1, y1 = 0;
@@ -564,10 +709,23 @@ function lisa(mesh, E = null) {
     const d = new V3().subVectors(p, c).divide(R), s = d.length(); if (s < 1e-4) return;
     const e = d.clone().divideScalar(s).multiply(R).add(c), en = d.clone().divide(R).normalize();
     // (a pleno elipsoide arriba y detrás; abajo, hacia el cuello, y junto a la cara, lo que pida el cuerpo)
-    const [a, b] = CARA(p.x, p.y), cara = p.z > 0 && p.y < 0.85 ? 1 - sstep(((a - 0.5) / 0.47) ** 2 + ((b - 0.47) / 0.44) ** 2, 0.72, 1.15) : 0;
-    const k = sstep(p.y, 0.66, 0.74) * (1 - cara);
-    p.lerp(e, k); n.lerp(en, k);
+    const [a, b] = CARA(p.x, p.y), cara = p.z > 0 && p.y < 0.85 ? 1 - sstep(((a - 0.5) / 0.47) ** 2 + ((b - 0.47) / 0.44) ** 2, borde[0], borde[1]) : 0;
+    const k = sstep(p.y, bajo[0], bajo[1]) * (1 - cara);
+    // (con el cráneo: lo que sobresale de él es pelo de punta y se lleva a él también junto a la cara; si no, el borde
+    // de la capucha copiaba el flequillo en dientes)
+    const fuera = E && s > 1 ? sstep(p.y, 0.72, 0.76) : 0;
+    if (fuera > 0) { p.lerp(e, Math.max(k, fuera)); n.lerp(en, Math.max(k, fuera * sstep(s, 1, 1.03))); }
+    else { p.lerp(e, k); n.lerp(en, k); }
+    return 1 - Math.max(k, fuera);   // (lo que sigue al cuerpo: ceñida lo alisa)
   };
+}
+// Ajustada a la cabeza: el pelo de chico se aplasta contra el cráneo (en el sombreador) y la capucha, la toca o el
+// pañuelo van pegados a él, a extra de distancia (en fracción de la altura). Entera sobre el cráneo hasta la nuca: a
+// medias, un mechón de punta asomaba por debajo como una astilla
+// (frente: ver aplanarPelo; con capucha o trapo, 0,8)
+function ajustada(m, extra = 0.012, frente = 0.855) {
+  if (!m.userData.aplanado) { aplanarPelo(m, CRANEO, frente); m.userData.aplanado = true; }
+  return lisa(m, { c: CRANEO.c, r: CRANEO.r.clone().addScalar(extra) }, [0.63, 0.68], [0.9, 1.0]);
 }
 // cesta de mimbre puesta del revés en la cabeza, con cuernos de vaca a los lados (momotxorros, iraskos); el origen,
 // en el centro de la boca de la cesta
@@ -578,6 +736,38 @@ function cestaCuernos(r, cuernos = 1.15) {
   const ag = new THREE.TorusGeometry(r * 1.06, r * 0.045, 6, 36); ag.rotateX(Math.PI / 2); g.add(new THREE.Mesh(ag, tela({ color: '#7a5226' })));
   for (const s of [-1, 1]) { const c = cuerno(r * cuernos, s); c.position.set(s * r * 0.9, r * 0.42, r * 0.05); g.add(c); }
   return g;
+}
+// abarcas (joaldunak, momotxorros): la abarca de cuero en el pie, la pierna envuelta en lana blanca hasta media
+// pantorrilla y las correas negras cruzadas por encima (en la proyección de cada pierna: u alrededor de ella)
+const cuero = (c) => lienzo('cuero' + c, 128, 128, (g, w, h, R) => {
+  g.fillStyle = c; g.fillRect(0, 0, w, h);
+  for (let i = 0; i < 500; i++) { g.fillStyle = `rgba(${R() < 0.5 ? '0,0,0' : '255,230,200'},${0.04 + R() * 0.06})`; g.beginPath(); g.arc(R() * w, R() * h, 0.6 + R() * 1.6, 0, TAU); g.fill(); }
+  g.strokeStyle = 'rgba(240,220,180,.55)'; g.lineWidth = 1.2; g.setLineDash([3, 3]); g.beginPath(); g.moveTo(0, h * 0.82); g.lineTo(w, h * 0.82); g.stroke();
+});
+const correas = (c) => lienzo('correas' + c, 128, 128, (g, w, h) => {
+  g.strokeStyle = c; g.lineWidth = 7; g.lineCap = 'round';
+  for (let k = -1; k <= 1; k++) for (const s of [-1, 1]) { g.beginPath(); g.moveTo(w * (0.5 + k) - s * w * 0.5, 0); g.lineTo(w * (0.5 + k) + s * w * 0.5, h); g.stroke(); }
+  g.strokeStyle = 'rgba(255,255,255,.18)'; g.lineWidth = 2; for (let k = -1; k <= 1; k++) for (const s of [-1, 1]) { g.beginPath(); g.moveTo(w * (0.5 + k) - s * w * 0.5 - 2, 0); g.lineTo(w * (0.5 + k) + s * w * 0.5 - 2, h); g.stroke(); }
+});
+// lo que se ve de los pies bajo una falda larga (zapatos de cuero o los pies de pato de la lamia), sobre las zapatillas
+// del modelo
+const escamas = (c) => lienzo('escamas' + c, 128, 128, (g, w, h) => {
+  g.fillStyle = c; g.fillRect(0, 0, w, h);
+  for (let y = 0; y < h + 8; y += 8) for (let x = 0; x < w + 8; x += 8) { const cx = x + ((y / 8) % 2) * 4; g.strokeStyle = 'rgba(90,40,0,.45)'; g.lineWidth = 1.2; g.beginPath(); g.arc(cx, y, 4.2, 0.15 * Math.PI, 0.85 * Math.PI); g.stroke(); g.strokeStyle = 'rgba(255,240,200,.25)'; g.lineWidth = 0.8; g.beginPath(); g.arc(cx, y - 1.2, 3.2, 0.25 * Math.PI, 0.75 * Math.PI); g.stroke(); }
+});
+// (hasta el tobillo, como un botín: con la pierna atrás, el tobillo asomaba bajo el bajo de la falda)
+function zapatos(V, mat) {
+  ceñida(V.mesh, (x, y, z, zn) => zn === 4 || (zn === 3 && y < 0.11) ? 0.105 - y : -1, (x, y, z, f) => 0.005 + 0.004 * (1 - sstep(f, 0, 0.006)), mat, 8);
+}
+function abarcas(V, { calcetin = '#efe9dc', correa = '#17140f', abarca = '#5a3a22', hasta = 0.2 } = {}) {
+  const m = V.mesh, B = cuerpo(m);
+  // (el eje de cada pierna, por la pantorrilla)
+  const ejes = [-1, 1].map(s => { let sx = 0, sz = 0, n = 0; for (let i = 0; i < B.n; i++) { if (B.zone[i] !== 3) continue; const x = B.pos[i * 3] / B.H, y = (B.pos[i * 3 + 1] - B.y0) / B.H; if (Math.sign(x) === s && y > 0.1 && y < 0.14) { sx += x; sz += B.pos[i * 3 + 2] / B.H; n++; } } return n ? [sx / n, sz / n] : [s * 0.05, 0]; });
+  const pierna = (x, y, z) => { const e = ejes[x < 0 ? 0 : 1]; return [Math.atan2(x - e[0], z - e[1]) / TAU + 0.5, y / 0.06]; };
+  const lan = lana(calcetin, 0.6);
+  ceñida(m, (x, y, z, zn) => (zn === 3 || zn === 4) ? Math.min(y - 0.045, hasta - y) : -1, (x, y, z, f) => 0.006 + 0.004 * (1 - sstep(f, 0, 0.008)), tela({ map: rep(lan, 2, 2), bumpMap: rep(lan, 2, 2), bumpScale: 1, roughness: 1 }), pierna);
+  ceñida(m, (x, y, z, zn) => (zn === 3 || zn === 4) ? Math.min(y - 0.05, hasta - 0.02 - y) : -1, () => 0.011, tela({ map: correas(correa), alphaTest: 0.5, roughness: 0.6 }), pierna);
+  ceñida(m, (x, y, z, zn) => zn === 4 || (zn === 3 && y < 0.07) ? 0.075 - y : -1, (x, y, z, f) => 0.005 + 0.004 * (1 - sstep(f, 0, 0.006)), tela({ map: rep(cuero(abarca), 2, 1), roughness: 0.65, relieve: false }), pierna);
 }
 const PLUMAS = ['#d42f2f', '#f2c230', '#2f7fd6', '#3aa05a', '#e86aa8', '#f08a2a', '#ffffff'];
 /** Los trajes: id → { model, ropa, vestir(V) }. */
@@ -608,6 +798,7 @@ export const TRAJES = {
       }
       const h = ttuntturro(u(0.158), u(0.34), PLUMAS); h.position.copy(P(0, 0.915, -0.01)); V.put(h, 'Head');
       V.hold(isipu(u(0.34)), 'RightHand');
+      abarcas(V, { hasta: 0.17 });
     },
   },
   // Momotxorro de Altsasu (crónicas del carnaval de Altsasu): cesta en la cabeza de la que salen cuernos de vaca, entre
@@ -619,7 +810,7 @@ export const TRAJES = {
     vestir(V) {
       const { mesh: m, P, u } = V, w = contorno(m, 0.43);
       // la sábana, por delante del pecho a las rodillas (por detrás, abierta)
-      const sb = tela({ map: sabana(), roughness: 0.95 });
+      const sb = tela({ map: sabana(), roughness: 0.95, relieve: 'pliegues' });
       ceñida(m, (x, y, z, zn) => zn === 0 && z > -0.005 && y > 0.425 && y < 0.625 && Math.abs(x) < 0.15, () => 0.016, sb, (x, y) => [0.5 + x * 1.6, y * 1.6]);
       campana(m, [[w * 1.04, 0.45], [w * 1.22, 0.34], [w * 1.36, 0.21]], sb, { pliegues: 7, hondo: 0.035, hueco: Math.PI * 1.1, centro: Math.PI, vuelo: 0.6 });
       // la piel de oveja a la espalda, con su borde de mechones
@@ -642,6 +833,7 @@ export const TRAJES = {
       g.add(junta(pl));
       g.position.copy(P(0, 0.86, 0)); V.put(g, 'Head');
       V.hold(sarde(u(0.95)), 'RightHand');
+      abarcas(V, { calcetin: '#e8e2d4', hasta: 0.16 });
     },
   },
   // Cascabobos de Aoiz (programa del carnaval de Aoiz): calzones a rayas de colores, camisa blanca suelta, ttuntturro con
@@ -650,7 +842,7 @@ export const TRAJES = {
     model: 'sanfermin', ropa: { shirt: '#f6f2e8', acc: '#f6f2e8' },
     vestir(V) {
       const { mesh: m, P, u } = V;
-      ceñida(m, (x, y, z, zn) => (zn === 3 || zn === 0) && y > 0.17 && y < 0.43, () => 0.009, tela({ map: rep(rayas(['#d42f2f', '#f2c230', '#2f6fd0', '#3aa05a', '#f08a2a', '#7a3ab0']), 5, 1) }), 1);
+      ceñida(m, (x, y, z, zn) => (zn === 3 || zn === 0) ? Math.min(y - 0.17, 0.43 - y) : -1, (x, y, z, f) => 0.009 + 0.006 * (1 - sstep(f, 0, 0.012)), tela({ map: rep(rayas(['#d42f2f', '#f2c230', '#2f6fd0', '#3aa05a', '#f08a2a', '#7a3ab0']), 5, 1), relieve: 'arrugas', relieveRep: [5, 2] }), 1);
       const h = ttuntturro(u(0.15), u(0.27), ['#d42f2f', '#f2c230', '#2f7fd6', '#3aa05a', '#ffffff'], '#d42f2f'); h.position.copy(P(0, 0.915, -0.01)); V.put(h, 'Head');
       // el antifaz sobre los ojos, con su cordón por detrás
       ceñida(m, (x, y, z, zn) => zn === 1 && z > 0.02 && y > 0.735 && y < 0.85, () => 0.008, tela({ map: antifazTex(), alphaTest: 0.5, roughness: 0.7 }), CARA);
@@ -664,16 +856,16 @@ export const TRAJES = {
     vestir(V) {
       const { mesh: m, P, u } = V;
       // la camisa vieja, con remiendos
-      ceñida(m, (x, y, z, zn) => (zn === 0 || zn === 2) && y > 0.41 && y < 0.665, () => 0.009, tela({ map: rep(remiendos('#a89878'), 2, 1), roughness: 0.95 }), 1);
+      ceñida(m, (x, y, z, zn) => (zn === 0 || zn === 2) ? Math.min(y - 0.41, 0.665 - y) : -1, (x, y, z, f) => 0.009 + 0.005 * (1 - sstep(f, 0, 0.01)), tela({ map: rep(remiendos('#a89878'), 2, 1), roughness: 0.95, relieve: 'arrugas', relieveRep: [2, 2] }), 1);
       // el trapo que tapa la cara, con dos agujeros para ver
-      ceñida(m, (x, y, z, zn) => zn === 1 && z > -0.035 && y > 0.64 && y < 0.9, (x, y, z) => 0.008 + 0.005 * noise(x * 30, y * 30, z * 30), tela({ map: trapoCara(), alphaTest: 0.5, roughness: 0.95 }), CARA);
+      ceñida(m, (x, y, z, zn) => zn === 1 && z > -0.035 && y > 0.64 && y < 0.9, (x, y, z) => 0.008 + 0.005 * noise(x * 30, y * 30, z * 30), tela({ map: trapoCara(), alphaTest: 0.5, roughness: 0.95 }), CARA, ajustada(m, 0.009, 0.8));
       // el pañuelo de colores atado a la cabeza, con el nudo en la nuca
       const pa = panuelo('#24418c', '#f2c230', '#c8202a');
-      ceñida(m, (x, y, z, zn) => zn === 1 && (y > 0.872 || (z < -0.035 && y > 0.74)), (x, y, z) => 0.017 + 0.006 * noise(x * 30, y * 30, z * 30), tela({ map: rep(pa, 3, 2) }), 2);
+      ceñida(m, (x, y, z, zn) => zn === 1 && (y > 0.872 || (z < -0.035 && y > 0.74)), (x, y, z) => 0.017 + 0.006 * noise(x * 30, y * 30, z * 30), tela({ map: rep(pa, 3, 2) }), 2, ajustada(m, 0.016));
       const nudo = new THREE.Group(), pn = tela({ map: pa });
       nudo.add(new THREE.Mesh(new THREE.SphereGeometry(u(0.024), 10, 8), pn));
       for (const s of [-1, 1]) { const c = new THREE.Mesh(new THREE.ConeGeometry(u(0.032), u(0.1), 4, 1, true), pn); c.rotation.set(Math.PI - 0.35, 0, s * 0.45); c.position.set(s * u(0.02), -u(0.045), -u(0.01)); c.scale.z = 0.3; nudo.add(c); }
-      nudo.position.copy(P(0, 0.75, -0.17)); V.put(nudo, 'Head');
+      nudo.position.copy(P(0, 0.755, -0.198)); V.put(nudo, 'Head');
       V.hold(cesto(u(0.17), pa), 'LeftHand');
       V.hold(gerren(u(0.62)), 'RightHand');
     },
@@ -701,11 +893,11 @@ export const TRAJES = {
   irasko: {
     model: 'sanfermin', ropa: { shirt: '#8a7350', pants: '#5a4630', acc: '#8a7350' },
     vestir(V) {
-      const { mesh: m, P, u } = V, w = contorno(m, 0.43), sa = tela({ map: rep(arpillera(), 6, 6), roughness: 1 });
+      const { mesh: m, P, u } = V, w = contorno(m, 0.43), sa = tela({ map: rep(arpillera(), 6, 6), roughness: 1, relieve: 'saco', relieveRep: [10, 10] });
       ceñida(m, (x, y, z, zn) => (zn === 0 || zn === 2) && y > 0.42 && y < 0.64, (x, y, z) => 0.012 + 0.004 * noise(x * 40, y * 40, z * 40), sa, 4);
       campana(m, [[w * 1.06, 0.45], [w * 1.3, 0.33], [w * 1.44, 0.235]], sa, { pliegues: 8, hondo: 0.06, vuelo: 0.7 });
       // el saco de la cabeza: por delante con los agujeros, por detrás liso; atado al cuello con una cuerda
-      const L = lisa(m);
+      const L = ajustada(m, 0.016, 0.8);
       ceñida(m, (x, y, z, zn) => zn === 1 && y > 0.6 && z > 0, (x, y, z) => 0.016 + 0.006 * noise(x * 30, y * 30, z * 30), tela({ map: sacoCara(), alphaTest: 0.5, roughness: 1 }), CARA, L);
       ceñida(m, (x, y, z, zn) => zn === 1 && y > 0.6 && z < 0.02, (x, y, z) => 0.014 + 0.006 * noise(x * 30, y * 30, z * 30), sa, 4, L);
       const cu = tela({ color: '#a88a58', roughness: 0.9 });
@@ -754,8 +946,11 @@ export const TRAJES = {
     model: 'sanfermin', female: true, ropa: { shirt: '#d6ece6', pants: '#3a8a7a', acc: '#3a8a7a' },
     vestir(V) {
       const { mesh: m, P, u } = V, w = contorno(m, 0.43);
-      campana(m, [[w * 1.02, 0.45], [w * 1.25, 0.33], [w * 1.55, 0.16], [w * 1.74, 0.02]], tela({ map: rep(tejido('#3f8f86'), 6, 4) }), { pliegues: 16, hondo: 0.05, vuelo: 0.85 });
-      campana(m, [[w * 1.71, 0.05], [w * 1.75, 0.02]], tela({ color: '#d8b04a', roughness: 0.5 }), { pliegues: 16, hondo: 0.05, vuelo: 0.85 });
+      // (hasta el tobillo, con el ribete dorado por fuera del bajo y sus mismos pliegues; debajo, los pies de pato)
+      campana(m, [[w * 1.02, 0.45], [w * 1.25, 0.33], [w * 1.5, 0.17], [w * 1.66, 0.08]], tela({ map: rep(tejido('#3f8f86'), 6, 4), relieve: 'pliegues', relieveRep: [3, 1] }), { pliegues: 16, hondo: 0.05, vuelo: 0.85 });
+      campana(m, [[w * 1.6 * 1.03, 0.11], [w * 1.66 * 1.03, 0.078]], tela({ color: '#d8b04a', roughness: 0.5 }), { pliegues: 16, hondo: 0.05, vuelo: 0.85, rango: [0.45, 0.08] });
+      zapatos(V, tela({ map: escamas('#e89a2a'), roughness: 0.55, relieve: false }));
+      ceñida(m, (x, y, z, zn) => zn === 0 ? Math.min(y - 0.432, 0.462 - y) : -1, (x, y, z, f) => 0.012 + 0.004 * (1 - sstep(f, 0, 0.006)), tela({ color: '#1f5c55', roughness: 0.6 }), 1);
       ceñida(m, (x, y, z, zn) => zn === 0 && y > 0.43 && y < 0.6, () => 0.011, tela({ map: corpino('#2c7268', '#e8d8a8') }), 1 / 0.17);
       gorroPelo(V, '#e8c34a');
       melena(m, tela({ map: crin('#e8c34a'), alphaTest: 0.45, roughness: 0.6 }), { fin: 0.4, ancho: 0.07 });
@@ -775,7 +970,7 @@ export const TRAJES = {
       const me = tela({ map: rep(mechones(base), 7, 1), alphaTest: 0.45, roughness: 1 });
       campana(m, [[0.09, 0.645], [0.19, 0.59], [0.215, 0.53], [0.215, 0.51]], me, { pliegues: 9, hondo: 0.08, hueso: 'Spine2' });
       for (const [y, k] of [[0.47, 1.45], [0.33, 1.5]]) campana(m, [[w * k, y], [w * (k + 0.06), y - 0.07], [w * (k + 0.05), y - 0.09]], me, { pliegues: 9, hondo: 0.1, vuelo: 0.7 });
-      gorroPelo(V, '#4e3420');
+      gorroPelo(V, '#4e3420', false);   // (Basajaun, con todo su pelo)
       const cr = tela({ map: crin('#4e3420'), alphaTest: 0.45, roughness: 0.8 });
       melena(m, cr, { fin: 0.46, ancho: 0.075 });
       // la barba, desde la barbilla hasta el pecho
@@ -790,14 +985,17 @@ export const TRAJES = {
     model: 'sanfermin', female: true, ropa: { shirt: '#3d3350', pants: '#2a2440', acc: '#2a2440' },
     vestir(V) {
       const { mesh: m, u } = V, w = contorno(m, 0.43), tn = tejido('#2a2440');
-      campana(m, [[w * 1.02, 0.45], [w * 1.22, 0.33], [w * 1.45, 0.15], [w * 1.6, 0.02]], tela({ map: rep(tn, 6, 4) }), { pliegues: 14, hondo: 0.05, vuelo: 0.85 });
+      // (hasta el tobillo; debajo, zapatos negros de cuero)
+      campana(m, [[w * 1.02, 0.45], [w * 1.22, 0.33], [w * 1.42, 0.17], [w * 1.54, 0.08]], tela({ map: rep(tn, 6, 4), relieve: 'pliegues', relieveRep: [3, 1] }), { pliegues: 14, hondo: 0.05, vuelo: 0.85 });
+      zapatos(V, tela({ map: rep(cuero('#1c1814'), 2, 1), roughness: 0.55, relieve: false }));
+      ceñida(m, (x, y, z, zn) => zn === 0 ? Math.min(y - 0.432, 0.462 - y) : -1, (x, y, z, f) => 0.012 + 0.004 * (1 - sstep(f, 0, 0.006)), tela({ color: '#16121e', roughness: 0.6 }), 1);
       // el delantal, por delante
       campana(m, [[w * 1.06, 0.445], [w * 1.28, 0.3], [w * 1.42, 0.16]], tela({ map: rep(tejido('#4a4058'), 3, 3) }), { pliegues: 6, hondo: 0.03, hueco: Math.PI * 1.25, centro: Math.PI, vuelo: 0.6 });
       const chal = tela({ map: rep(tejido('#3d3350'), 4, 3) });
       campana(m, [[0.085, 0.645], [0.17, 0.6], [0.215, 0.53], [0.2, 0.47]], chal, { pliegues: 10, hondo: 0.05, hueso: 'Spine2' });
       campana(m, [[0.2, 0.48], [0.205, 0.44], [0.2, 0.43]], tela({ map: rep(mechones('#3d3350'), 8, 1), alphaTest: 0.45 }), { pliegues: 10, hondo: 0.05, hueso: 'Spine2' });
       // la toca: liso por la cabeza, dejando la cara al aire; el pelo blanco asoma por la nuca
-      ceñida(m, (x, y, z, zn) => zn === 1 && y > 0.7 && (y > 0.85 || z < 0.03), (x, y, z) => 0.016 + 0.003 * noise(x * 30, y * 30, z * 30), tela({ map: rep(tn, 3, 3) }), 3, lisa(m));
+      ceñida(m, (x, y, z, zn) => zn === 1 ? Math.min(y - 0.7, sinCara(x, y, z, 0.86, 0.848)) : -1, (x, y, z) => 0.016 + 0.003 * noise(x * 30, y * 30, z * 30), tela({ map: rep(tn, 3, 3) }), 3, ajustada(m, 0.013, 0.8));
       melena(m, tela({ map: crin('#dcd7cf'), alphaTest: 0.45, roughness: 0.8 }), { desde: 0.76, fin: 0.6, n: 9, a0: Math.PI * 0.7, a1: Math.PI * 1.3, lados: false });
       V.hold(escoba(u(1)), 'RightHand');
     },
@@ -827,19 +1025,21 @@ export const TRAJES = {
       const { mesh: m, P, u } = V, w = contorno(m, 0.43);
       const ma = metal({ map: rep(malla(), 10, 8), color: '#ffffff', metalness: 0.35, roughness: 0.5, side: THREE.DoubleSide });
       ceñida(m, (x, y, z, zn) => (zn === 0 || zn === 2 || zn === 3) && y > 0.12 && y < 0.655, () => 0.01, ma, 6);
-      ceñida(m, (x, y, z, zn) => zn === 1 && y > 0.62 && !(enCara(x, y, z, 0.86) && y < 0.845), () => 0.014, ma, 6, lisa(m));
+      ceñida(m, (x, y, z, zn) => zn === 1 ? Math.min(y - 0.62, sinCara(x, y, z, 0.86, 0.845)) : -1, () => 0.014, ma, 6, ajustada(m, 0.012, 0.8));
       const sv = tela({ map: rep(cenefa('#d9dff0', '#c9a43a'), 4, 1) });
       ceñida(m, (x, y, z, zn) => zn === 0 && y > 0.44 && y < 0.64, () => 0.02, sv, 1);
       campana(m, [[w * 1.15, 0.45], [w * 1.32, 0.33], [w * 1.42, 0.24]], sv, { pliegues: 8, hondo: 0.04, vuelo: 0.75 });
       campana(m, [[0.09, 0.645], [0.2, 0.6], [0.23, 0.45], [0.24, 0.3]], tela({ map: rep(tejido('#3a4a7a'), 4, 4) }), { pliegues: 9, hondo: 0.05, hueso: 'Spine2', hueco: 2.3 });
-      const y = yelmo(u(0.205)); y.position.copy(P(0, 0.82, 0)); V.put(y, 'Head');
+      const y = yelmo(u); y.position.copy(P(0, 0.836, -0.022)); V.put(y, 'Head');
       V.hold(espada(u(0.62)), 'RightHand');
     },
   },
 };
+// el nacimiento del pelo: redondeado, más alto en medio de la frente y bajando por las sienes hasta las patillas
+const frentePelo = (x, y, z) => sinCara(x, y, z, 1, 0.866);
 // pelo de la cabeza: liso sobre el cráneo, de la frente para arriba y por detrás, sin tapar la cara
-function gorroPelo(V, color) {
-  ceñida(V.mesh, (x, y, z, zn) => zn === 1 && y > 0.7 && (y > 0.858 || z < 0.035), (x, y, z) => 0.012 + 0.004 * noise(x * 40, y * 40, z * 40), tela({ map: rep(crin(color, false), 4, 2), roughness: 0.6 }), 2, lisa(V.mesh));
+function gorroPelo(V, color, pegado = true) {
+  ceñida(V.mesh, (x, y, z, zn) => zn === 1 ? Math.min(y - 0.7, frentePelo(x, y, z)) : -1, (x, y, z) => 0.012 + 0.004 * noise(x * 40, y * 40, z * 40), tela({ map: rep(peloTex(color), 4, 1), roughness: 0.5 }), 2, pegado ? ajustada(V.mesh, 0.01) : lisa(V.mesh));
 }
 // corpiño con el lazo cruzado por delante (u = 0,5)
 const corpino = (base, lazo) => lienzo('corpino' + base + lazo, 256, 64, (g, w, h) => {
@@ -884,11 +1084,15 @@ function escoba(l) {
   return g;
 }
 // yelmo cónico de nasal (el origen, a la altura de las cejas)
-function yelmo(r) {
-  const g = new THREE.Group(), hi = metal({ color: '#9aa4b8', roughness: 0.35 });
-  g.add(new THREE.Mesh(new THREE.LatheGeometry([new V2(r * 1.02, 0), new V2(r * 1.03, r * 0.3), new V2(r * 0.9, r * 0.75), new V2(r * 0.5, r * 1.12), new V2(0.001, r * 1.3)], 28), hi));
-  const ba = new THREE.Mesh(new THREE.TorusGeometry(r * 1.03, r * 0.04, 5, 28), hi); ba.rotation.x = Math.PI / 2; g.add(ba);
-  const na = new THREE.Mesh(new THREE.BoxGeometry(r * 0.12, r * 0.5, r * 0.06), hi); na.position.set(0, -r * 0.2, r * 1.04); g.add(na);
+function yelmo(u) {
+  // yelmo normando, cónico, a la medida del cráneo con la cofia de malla (elíptico: más fondo que ancho), con el borde
+  // justo encima de las cejas y el nasal hasta la punta de la nariz (en fracción de la altura; el origen, en el borde)
+  const g = new THREE.Group(), hi = metal({ color: '#9aa4b8', roughness: 0.35 }), rx = 0.172, rz = 0.185;
+  const lg = new THREE.LatheGeometry([[1.0, 0], [1.0, 0.02], [0.93, 0.05], [0.8, 0.1], [0.57, 0.14], [0.3, 0.172], [0.001, 0.2]].map(([r, y]) => new V2(u(r * rx), u(y))), 32);
+  lg.scale(1, 1, rz / rx); lg.computeVertexNormals(); g.add(new THREE.Mesh(lg, hi));
+  // (el refuerzo del borde y la cresta de delante atrás)
+  const ba = new THREE.Mesh(new THREE.TorusGeometry(u(rx * 1.01), u(0.006), 6, 32), hi); ba.rotation.x = Math.PI / 2; ba.scale.set(1, rz / rx, 1); ba.position.y = u(0.008); g.add(ba);
+  const na = new THREE.Mesh(new THREE.BoxGeometry(u(0.024), u(0.07), u(0.01)), hi); na.position.set(0, -u(0.025), u(rz + 0.004)); na.rotation.x = -0.12; g.add(na);
   return g;
 }
 // espada (Durandal) con la punta hacia abajo: la mano en el puño
@@ -997,18 +1201,29 @@ const PARPADOS = {"osasuna":[[[-0.086,0.811,0.081],[-0.081,0.811,0.085],[-0.076,
 // El cráneo sin el pelo (en fracción de la altura): el pelo de chico, mucho y de punta, se aplasta contra él en el
 // sombreador y encima va el pelo recogido, pegado a la cabeza
 const CRANEO = { c: new V3(0, 0.8, -0.022), r: new V3(0.152, 0.183, 0.163) };
+// lo que hay del eje del cuerpo al cráneo (más extra) a una altura y en una dirección (como radio)
+function rCraneo(y, a, extra = 0) {
+  const { c, r } = CRANEO, f = 1 - ((y - c.y) / (r.y + extra)) ** 2; if (f <= 0) return 0;
+  const ax = (r.x + extra) * Math.sqrt(f), az = (r.z + extra) * Math.sqrt(f), sa = Math.sin(a), ca = Math.cos(a);
+  const A = (sa / ax) ** 2 + (ca / az) ** 2, B = -2 * ca * c.z / az ** 2, C = (c.z / az) ** 2 - 1;
+  return (-B + Math.sqrt(Math.max(0, B * B - 4 * A * C))) / (2 * A);
+}
 // Aplasta el pelo de la malla del cuerpo contra el cráneo (en el sombreador, antes de la piel: sigue andando igual)
-function aplanarPelo(mesh, E = CRANEO) {
-  const B = cuerpo(mesh), U = { uAplC: { value: E.c }, uAplR: { value: E.r }, uAplHY: { value: new V2(B.H, B.y0) } };
+// (frente: hasta qué altura se respeta la cara; con capucha, solo los ojos, la nariz y la boca: el flequillo también se
+// aplasta y no asoma entre la capucha y la careta)
+function aplanarPelo(mesh, E = CRANEO, frente = 0.855) {
+  const B = cuerpo(mesh), U = { uAplC: { value: E.c }, uAplR: { value: E.r }, uAplHY: { value: new V3(B.H, B.y0, frente) } };
   for (const m of [].concat(mesh.material)) {
     const prev = m.onBeforeCompile, key = m.customProgramCacheKey;
     m.onBeforeCompile = (sh, r) => {
       prev?.call(m, sh, r); Object.assign(sh.uniforms, U);
-      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform vec3 uAplC, uAplR; uniform vec2 uAplHY;')
+      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform vec3 uAplC, uAplR, uAplHY;')
         .replace('#include <begin_vertex>', `#include <begin_vertex>
 { vec3 hp = vec3(transformed.x, transformed.y - uAplHY.y, transformed.z) / uAplHY.x;
   // (fuera la cara: delante, bajo la frente; y el cuello, que no se toca)
-  float w = smoothstep(0.65, 0.71, hp.y) * (1. - smoothstep(0.0, 0.04, hp.z) * (1. - smoothstep(0.84, 0.87, hp.y)) * (1. - smoothstep(0.11, 0.135, abs(hp.x))));
+  float w = smoothstep(0.65, 0.71, hp.y) * (1. - smoothstep(0.0, 0.04, hp.z) * (1. - smoothstep(uAplHY.z - 0.015, uAplHY.z + 0.015, hp.y)) * (1. - smoothstep(0.11, 0.135, abs(hp.x))));
+  // (y los ojos con sus párpados, siempre: con la frente baja de las capuchas, el rabillo se estiraba hacia la sien)
+  w *= 1. - smoothstep(0.03, 0.05, hp.z) * (1. - smoothstep(0.1, 0.112, abs(hp.x))) * smoothstep(0.765, 0.775, hp.y) * (1. - smoothstep(0.822, 0.832, hp.y));
   vec3 d = (hp - uAplC) / uAplR; float s = length(d);
   if (s > 1. && w > 0.) { hp = mix(hp, uAplC + d / s * uAplR, w); transformed = vec3(hp.x, hp.y, hp.z) * uAplHY.x + vec3(0., uAplHY.y, 0.); } }`);
     };
@@ -1087,10 +1302,11 @@ export function chica(char, model, { pelo = '#3a2418', lazo = '#16161a', albedo 
   const sobre = (pp, nn) => {
     const d = new V3().subVectors(pp, Ec.c).divide(Ec.r), s = d.length(); if (s < 1e-4) return;
     const e = d.clone().divideScalar(s).multiply(Ec.r).add(Ec.c), en = d.clone().divide(Ec.r).normalize();
-    const fr = pp.z > 0.02 ? sstep(pp.y, 0.9, 0.86) * (1 - sstep(Math.abs(pp.x), 0.1, 0.14)) * 0.5 : 0;
+    const fr = pp.z > 0.02 ? (1 - sstep(pp.y, 0.86, 0.9)) * (1 - sstep(Math.abs(pp.x), 0.1, 0.14)) * 0.5 : 0;
     pp.lerp(e, 1 - fr); nn.lerp(en, 1 - fr);
+    return fr;
   };
-  ceñida(m, (x, y, z, zn) => zn === 1 && y > 0.7 && !(z > 0.03 && y < 0.858 && Math.abs(x) < 0.125), (x, y, z) => 0.004 + 0.002 * noise(x * 60, y * 60, z * 60),
+  ceñida(m, (x, y, z, zn) => zn === 1 ? Math.min(y - 0.7, frentePelo(x, y, z)) : -1, (x, y, z) => 0.004 + 0.002 * noise(x * 60, y * 60, z * 60),
     tela({ map: rep(peloTex(col), 9, 1), roughness: 0.45 }), uvPelo, sobre);
   // la coleta: de la goma, un poco hacia atrás y luego cayendo; gruesa en medio y fina en la punta
   const cur = curva([0, 0, 0], [0, -u(0.02), -u(0.045)], [0, -u(0.085), -u(0.07)], [0, -u(0.16), -u(0.06)], [0, -u(0.215), -u(0.04)]);

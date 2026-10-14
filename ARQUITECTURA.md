@@ -177,6 +177,29 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   ven a través. Todas las texturas se pintan al vuelo en un lienzo: no ocupan imágenes. Los «looks» de `FOLK`
   (townGame) llevan `traje`, y los seres de leyenda lo toman de su `myth`. Se revisan con `tools/trajes/ver.mjs`
   (de frente, de espaldas, la cara de cerca y andando de lado) y `tools/trajes/hoja.py`.
+  Para que la ropa vaya pegada al cuerpo y no parezca un añadido:
+  - **Bordes limpios**: `ceñida` acepta en vez de sí o no un número con signo (dentro, fuera) y recorta los
+    triángulos por donde cruzan el borde; el dobladillo engorda junto a él. Las aberturas de la cara (`sinCara`) y el
+    nacimiento del pelo (`frentePelo`, redondeado por las sienes) se dan así.
+  - **Capuchas, tocas y pañuelos a la medida del cráneo** (`ajustada`): el pelo de punta del modelo se aplasta contra
+    el cráneo en el sombreador (`aplanarPelo`, que respeta siempre ojos y párpados) y la prenda va sobre él (`lisa`); lo
+    que sobresale junto a la cara se lleva al cráneo, y lo que sigue al cuerpo se alisa (`alisar`: cada punto hacia la
+    media de sus vecinos, con su normal rehecha; los triángulos que quedan del revés se quitan). La textura va por donde
+    queda la prenda, así las capas coinciden sin manchas. La careta, igual por la frente (`frenteLisa`).
+  - **Faldas que siguen al cuerpo** (`campana`): el perfil va en tramos de 0,03 y cada anillo se ajusta al contorno del
+    cuerpo en su ángulo (`polar`/`radio`, también los pies abajo); bajo la rodilla, el bajo va también con la espinilla,
+    y en medio, delante y detrás, menos con las piernas (no se mete entre ellas). Las faldas largas llegan al tobillo,
+    con botines (`zapatos`) o los pies de pato de la lamia. El ribete del bajo lleva los mismos pliegues (`rango`).
+  - **Volumen**: relieves de tela con mapas de normales (`relieve`: trama, pliegues, arrugas, saco), la tela tejida en
+    sarga (`tejido`) y las abarcas con su lana y sus correas (`abarcas`). Melenas y barbas bajan rozando el cráneo cuando
+    el pelo de debajo está aplastado (`rCraneo`).
+- **Chicas y chicos en el fútbol** (`src/game/futbol.js`, `chica` en `src/actors/trajes.js`): la mitad de los
+  jugadores y un tercio de los árbitros son chicas, por dorsal y equipo (un número fijo, mezclado con `mix` para que
+  salgan repartidas). Llevan el pelo recogido sobre el cráneo con el nacimiento redondeado, una coleta que bota al
+  correr y pestañas sobre los párpados medidos de cada modelo (`PARPADOS`, de `tools/pelo/parpados.mjs`). Se revisan
+  con `tools/futbol/jugadoras.mjs` (SOLA=1 para verla sola).
+- **Caravinagre fuera**: no sale en Pamplona ni en ningún sitio; las partidas guardadas pasan solas a la lista de
+  misiones de Pamplona sin él (`mig.pamplona1` en `profile.js`).
 - **Jugadores de fútbol del autor** (`src/futbol/jugadorFig.js`, `src/assets/jugadores`): un chico y una chica por
   equipación, de cuerpo entero (1024 × 1536), su busto (360 × 480, `jugadorBusto`) y la pareja de los dos juntos
   (`jugadorDuo`: a su alto completo, unos 1.040 px, para la pantalla VS y 480 para los menús); el visitante, con la segunda equipación blanca o
@@ -287,6 +310,8 @@ el móvil se pintaba a 980 px de ancho y no a su tamaño.
 | `glb-abrir.mjs` | Descomprime un GLB de Meshy (meshopt y cuantización) para abrirlo en Blender. Su salida no es para three.js |
 | `trajes/ver.mjs`, `trajes/hoja.py`, `trajes/caja.mjs`, `trajes/hueso.mjs` y `trajes/rayo.mjs` | Trajes: cada personaje con traje de cerca (frente, espalda, cara y andando) y su hoja; y para depurar, dónde acaba cada prenda con la piel, sus huesos y pesos, y qué tapa un punto de la cara |
 | `pelo/zonas.mjs` y `pelo/ver.mjs` | Pelo de otro color: dónde están los ojos y cuánto brilla el pelo pintado de cada personaje de Meshy (píxel a píxel de su textura, en la pose de reposo) y la hoja de prueba con cada personaje y cada color de cerca |
+| `pelo/parpados.mjs` | La línea del párpado de arriba de cada personaje de Meshy, medida en su textura, para poner las pestañas de las chicas |
+| `futbol/jugadoras.mjs` y `futbol/cajas.mjs` | Chicas y chicos del fútbol de cerca (frente, espalda, cara, nuca, perfil y corriendo) y el tamaño de cada pieza del pelo |
 | `blender/pelotari-chica/` | Prototipo de la versión chica del pelotari sobre su mismo cuerpo: cara repintada, nariz menor, coletas atadas al hueso de la cabeza. Los pasos van en la cabecera de `chica.py` |
 
 Las pruebas usan Chromium con SwiftShader (muy lento), así que **simulan el tiempo de juego** llamando a
