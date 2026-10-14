@@ -42,6 +42,14 @@ const TYPE_ICON = { visit: 'church', process: 'basket', harvest: 'wheat', herd: 
 // Proyección de coordenadas geográficas al mapa de comarcas
 const proj = (lat, lon) => [19 + (lon + 2.52) / 1.80 * 709, 17 + (43.325 - lat) / 1.43 * 765];
 const norm = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z]/g, '');
+// El nombre corto de un pueblo: el del juego o, si no está en el juego, el de su núcleo en settlements.json; nunca su
+// identificador (en euskera salía en minúsculas, como «uztarroz-uztarroze»)
+function townName(id) {
+  const lv = levelById(id); if (lv) return lv.name.split(' /')[0];
+  const n = norm(id), ps = id.split('-').map(norm);
+  const s = SETTLEMENTS.find(s => norm(s[2]) === n) || SETTLEMENTS.find(s => { const q = norm(s[2].split(' /')[0]); return ps.length > 1 && q.startsWith(ps[0]) && q.endsWith(ps.at(-1)); }) || SETTLEMENTS.find(s => s[2].split(/[/()]/).some(q => ps.includes(norm(q))));
+  return s ? s[2].split(/\s*[/(]/)[0].trim() : id.replace(/-/g, ' ').replace(/^./, c => c.toUpperCase());
+}
 function townXY(lv) {
   const names = (lv.mapName || lv.name).split('/').map(s => norm(s));
   const hit = SETTLEMENTS.find(s => names.includes(norm(s[2])) || norm(s[2]).startsWith(names[0])) || SETTLEMENTS.find(s => names.some(n => norm(s[2]).includes(n)));
@@ -508,8 +516,10 @@ export class Hub {
   // ---------- Insignias ----------
   // ---------- Escudos de Navarra ----------
   s_escudos() {
-    const p = profile(), seen = new Set(p.cards || []), tn = (id) => (levelById(id)?.name || id).split(' /')[0];
+    const p = profile(), seen = new Set(p.cards || []), tn = townName;
     const KIND = { reino: 'Reino', ciudad: 'Ciudad', valle: 'Valle', municipio: 'Municipio' };
+    // (los pueblos de cada escudo, debajo de su nombre y en letra de leer; no los que ya dice el nombre, como Pamplona)
+    const pueblos = (A) => A.towns.map(tn).filter(t => !norm(A.name).includes(norm(t)));
     const read = ARMAS.filter(A => seen.has('armas:' + A.id)).length;
     // (cada escudo es una tarjeta que abre su ficha, la misma que en el pueblo: el blasón, cómo se lee, los esmaltes, las
     // figuras y su historia, en pestañas; la guía de cómo se lee un escudo y los que faltan por comprobar, también en ficha)
@@ -531,7 +541,7 @@ export class Hub {
       <button type="button" class="ar-btn" data-guia>${I('book', 32)}<span><b>Cómo se lee un escudo</b><small>Siete pasos para leer cualquier escudo</small></span>${I('play', 20)}</button>
       <div class="ar-grid">${ARMAS.map(A => `<button type="button" class="ar${seen.has('armas:' + A.id) ? ' on' : ''}" data-arm="${A.id}">
         ${armsImg(A.id) ? `<img class="ar-img" src="${armsImg(A.id)}" alt="Escudo de ${esc(A.name)}" loading="lazy" decoding="async">` : `<canvas data-draw="${A.id}" width="160" height="${Math.ceil(officialHeight(120, A)) + 8}" aria-label="Escudo de ${esc(A.name)}"></canvas>`}
-        <span class="ar-tx"><small>${KIND[A.kind] || ''}${A.towns.length ? ' · ' + esc(A.towns.map(tn).join(', ')) : ''}</small><b class="ar-nm">${esc(A.name)}</b>${seen.has('armas:' + A.id) ? `<span class="ar-ok">${I('check', 16)} Leído en el juego</span>` : ''}</span>${I('play', 20)}</button>`).join('')}</div>
+        <span class="ar-tx"><small>${KIND[A.kind] || ''}</small><b class="ar-nm">${esc(A.name)}</b>${(t => t.length ? `<span class="ar-pu">${esc(t.join(', '))}</span>` : '')(pueblos(A))}${seen.has('armas:' + A.id) ? `<span class="ar-ok">${I('check', 16)} Leído en el juego</span>` : ''}</span>${I('play', 20)}</button>`).join('')}</div>
       ${PENDIENTES.length ? `<button type="button" class="ar-btn" data-pend>${I('binoculars', 32)}<span><b>Por comprobar</b><small>${PENDIENTES.length === 1 ? 'Un escudo que aún no dibujamos' : `${PENDIENTES.length} escudos que aún no dibujamos`}</small></span>${I('play', 20)}</button>` : ''}
       <p class="ar-src">Fuentes: Heraldry of the World (blasones municipales), NAVARCHIVO, Ayuntamiento de Pamplona, Ayuntamiento de Sangüesa, Gran Enciclopedia de Navarra, Auñamendi Eusko Entziklopedia y Cátedra de Patrimonio de la Universidad de Navarra. Los dibujos son del juego, hechos a partir del blasón.</p>
     </section>`;
@@ -547,7 +557,7 @@ export class Hub {
   }
   // ---------- Cuentos y leyendas ----------
   s_cuentos() {
-    const p = profile(), seen = new Set(p.cards || []), tn = (id) => (levelById(id)?.name || id).split(' /')[0];
+    const p = profile(), seen = new Set(p.cards || []), tn = townName;
     const heard = CUENTOS.filter(C => seen.has('cuento:' + C.id)).length;
     // (la ilustración de un cuento ya escuchado se abre en grande, con las de los otros escuchados para pasar de una a otra)
     this.after = () => { const on = CUENTOS.filter(C => seen.has('cuento:' + C.id) && leyendaUrl(C.id, true)), list = on.map(C => ({ src: leyendaUrl(C.id, true), title: C.title }));

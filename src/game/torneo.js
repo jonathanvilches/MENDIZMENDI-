@@ -133,7 +133,8 @@ const CSS = `
 .tq-lines path{fill:none;stroke:rgba(201,178,255,.35);stroke-width:2}.tq-lines path.you{stroke:var(--fx);filter:drop-shadow(0 0 4px rgba(255,43,214,.8))}
 .tq-lines path{stroke-dasharray:400;stroke-dashoffset:400;animation:tq-draw .7s ease-out .35s forwards}@keyframes tq-draw{to{stroke-dashoffset:0}}
 .tq-rd{display:flex;flex-direction:column;min-width:0}
-.tq-rd h4{margin:0 0 4px;font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--lila);white-space:nowrap}.tq-rd h4 small{color:var(--lila2);font:inherit;letter-spacing:.04em}
+/* (la ronda y, debajo, a cuántos tantos: en una sola línea, «Cuartos de final · a 5» pisaba la columna de al lado) */
+.tq-rd h4{margin:0 0 4px;font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;color:var(--lila);white-space:nowrap}.tq-rd h4 small{display:block;color:var(--lila2);font:inherit;letter-spacing:.04em}
 .tq-rd.now h4{color:var(--rosa)}
 /* (en los móviles más estrechos, la ronda sin «a 5»: si no, los rótulos de las columnas se pisan; los tantos van en la carta del partido) */
 @media (orientation:landscape) and (max-width:760px){.tq-rd h4 small{display:none}}
@@ -184,8 +185,17 @@ const CSS = `
 .tq-tile .figs{min-height:96px}.tq-tile.main .figs{min-height:120px}
 }
 @media (orientation:portrait) and (min-width:600px){.tq-tile .figs{min-height:170px}.tq-tile.main .figs{min-height:200px}}
+/* tumbado: las cuatro losas en fila con las mismas filas (figura, rótulo, título y texto) para todas, así las figuras
+   salen del mismo alto y los textos alineados aunque uno ocupe más líneas; las dos primeras, que llevan más texto,
+   algo más anchas (si no, sus títulos iban en dos o tres líneas y sus figuras salían a la mitad) */
+@media (orientation:landscape){
+.tq-tiles{grid-template-columns:1.15fr 1.15fr .85fr .85fr;grid-template-rows:minmax(0,1fr) auto auto auto;row-gap:0}
+.tq-tile{display:grid;grid-row:span 4;grid-template-rows:subgrid;align-content:stretch;justify-items:start;padding-left:16px;padding-right:16px}
+.tq-tile .figs{justify-self:stretch;align-self:stretch}.tq-tile>:not(.figs){align-self:end}
+.tq-tile .k{letter-spacing:.06em}.tq-tile b{font-size:var(--fs-xl)}
+}
 /* (en pantallas altas, como el iPad tumbado, la ilustración con su altura: no se queda diminuta encima del texto) */
-@media (min-height:561px) and (orientation:landscape){.tq-tile .figs{min-height:clamp(150px,26vh,240px)}}`;
+@media (min-height:561px) and (orientation:landscape){.tq-tile .figs{min-height:clamp(150px,32vh,300px)}}`;
 const TXAPELA = '<svg viewBox="0 0 64 40"><ellipse cx="32" cy="30" rx="29" ry="7" fill="#1b1b22"/><path d="M6 28c2-14 14-22 26-22s24 8 26 22c-8 4-44 4-52 0z" fill="#22232c"/><path d="M30 6c0-3 4-3 4 0" stroke="#22232c" stroke-width="3" fill="none"/><path d="M8 29c10 3 38 3 48 0" stroke="#c8222a" stroke-width="3" fill="none"/></svg>';
 function card(T, p, s, w, l) {
   const P = T.players[p];
@@ -201,22 +211,25 @@ function bracketHtml(T) {
     const champ = i === 2 ? `<div class="tq-cup">${TXAPELA}${T.done ? `<b>${esc(T.players[T.champion].name)}</b>` : 'Txapela'}</div>` : '';
     // (la final, justo a media altura: entre las dos semifinales; la txapela, colgada debajo, sin moverla)
     const body = i === 2 ? `<div class="tq-ms tq-fin"><div class="tq-finm">${rows}${champ}</div></div>` : `<div class="tq-ms">${rows}</div>`;
-    return `<div class="tq-rd${i === T.round && !T.done ? ' now' : ''}"><h4>${R.name} <small>· a ${R.target}</small></h4>${body}</div>`;
+    return `<div class="tq-rd${i === T.round && !T.done ? ' now' : ''}"><h4>${R.name}<small>A ${R.target} tantos</small></h4>${body}</div>`;
   }).join('');
   return `<div class="tq-br${T.kind === 'parejas' ? ' tq-pairs' : ''}">${cols}<svg class="tq-lines" aria-hidden="true"></svg></div>`;
 }
 // las líneas del cuadro: de cada par de eliminatorias a la siguiente (la de tu camino, en fucsia)
+// (medidas en el cuadro sin transformaciones: las cajas entran deslizándose y, medidas con getBoundingClientRect a
+// mitad de la entrada, las líneas quedaban corridas y sueltas)
 function drawLines(root) {
   const br = root.querySelector('.tq-br'), svg = br?.querySelector('.tq-lines'); if (!svg) return;
-  const B = br.getBoundingClientRect(), box = (r, k) => br.querySelector(`.tq-rd:nth-child(${r + 1}) .tq-m:nth-child(${k + 1})`)?.getBoundingClientRect();
+  const box = (r, k) => { const e = br.querySelector(`.tq-rd:nth-child(${r + 1}) .tq-m:nth-child(${k + 1})`); if (!e) return null;
+    let x = 0, y = 0; for (let n = e; n && n !== br; n = n.offsetParent) { x += n.offsetLeft; y += n.offsetTop; }
+    return { e, left: x, right: x + e.offsetWidth, mid: y + e.offsetHeight / 2 }; };
   let d = '';
   for (let r = 0; r < 2; r++) for (let k = 0; k < [4, 2][r]; k++) {
     const a = box(r, k), b = box(r + 1, k >> 1); if (!a || !b) continue;
-    const x0 = a.right - B.left, y0 = a.top + a.height / 2 - B.top, x1 = b.left - B.left, y1 = b.top + b.height / 2 - B.top, xm = (x0 + x1) / 2;
-    const me = br.querySelector(`.tq-rd:nth-child(${r + 1}) .tq-m:nth-child(${k + 1})`).classList.contains('me');
-    d += `<path class="${me ? 'you' : ''}" d="M${x0.toFixed(1)} ${y0.toFixed(1)}H${xm.toFixed(1)}V${y1.toFixed(1)}H${x1.toFixed(1)}"/>`;
+    const x0 = a.right, y0 = a.mid, x1 = b.left, y1 = b.mid, xm = (x0 + x1) / 2;
+    d += `<path class="${a.e.classList.contains('me') ? 'you' : ''}" d="M${x0.toFixed(1)} ${y0.toFixed(1)}H${xm.toFixed(1)}V${y1.toFixed(1)}H${x1.toFixed(1)}"/>`;
   }
-  svg.innerHTML = d;
+  if (svg.dataset.d !== d) { svg.dataset.d = d; svg.innerHTML = d; }   // (sin volver a empezar su animación si no cambian)
 }
 // los pelotaris de tu próximo partido, para sus fichas: tú (y tu compañero) y el rival (y el suyo). La carta de cada
 // uno abre su ficha entera (cualidades, golpes preferidos, cómo jugarle y sus datos)
@@ -252,11 +265,12 @@ export function torneoPanel(T, here = null) {
     const btns = T.done ? '<button class="lg-btn go" data-a="new">Nuevo torneo</button>' : m ? '<button class="lg-btn go" data-a="play">¡A jugar!</button>' : '<button class="lg-btn go" data-a="sim">Siguiente ronda</button>';
     const r = lgPanel(`${head}<div class="tq-left">${left}<div class="lg-btns lg-foot">${btns}<button class="lg-btn" data-a="exit">Salir</button></div></div><div class="tq-right">${bracketHtml(T)}</div>${how}`);
     const cardEl = r.firstElementChild; cardEl.classList.remove('lg-two'); cardEl.classList.add('tq-card');
-    const lines = () => drawLines(r); requestAnimationFrame(lines); setTimeout(lines, 650); addEventListener('resize', lines);   // (y otra vez al acabar las entradas: las cajas ya en su sitio)
+    // (y otra vez si cambia el tamaño del cuadro o de sus columnas, por ejemplo al cargar las fuentes)
+    const lines = () => drawLines(r); requestAnimationFrame(lines); const ro = new ResizeObserver(lines); r.querySelectorAll('.tq-br, .tq-rd').forEach(e => ro.observe(e));
     r.addEventListener('click', (e) => {
       const f = e.target.closest('[data-f]'); if (f && m) { const L = fichaList(T, m); openFicha(L, Math.max(0, L.findIndex(p => p.id === f.dataset.f)), lang); return; }   // (la ficha, encima del cuadro)
       const inf = e.target.closest('[data-info]'); if (inf) { const h = r.querySelector('.tq-how'), on = h.hidden; h.hidden = !on; inf.setAttribute('aria-expanded', String(on)); requestAnimationFrame(lines); return; }
-      const b = e.target.closest('[data-a]'); if (!b) return; removeEventListener('resize', lines); r.remove(); res(b.dataset.a); });
+      const b = e.target.closest('[data-a]'); if (!b) return; ro.disconnect(); r.remove(); res(b.dataset.a); });
   });
 }
 /** Menú del pelotari: torneo individual, torneo por parejas o partido libre (here: el nombre del pueblo del frontón;
