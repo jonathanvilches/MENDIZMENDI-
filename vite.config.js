@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import { viteSingleFile } from 'vite-plugin-singlefile';
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
@@ -39,6 +40,45 @@ const MESHY_FULL = MINI ? (process.env.LIGERO ? './src/assets/meshy/lod' : './sr
 const glbGzip = { name: 'glb-gzip', enforce: 'pre', load(id) {
   if (!/\.glb\?url$/.test(id)) return;
   return `export default ${JSON.stringify('data:application/gzip;base64,' + gzipSync(readFileSync(id.replace(/\?url$/, '')), { level: 9 }).toString('base64'))}`;
+} };
+// En el archivo único, además, el código del juego va comprimido con gzip (un tercio de lo que ocupa: deja sitio dentro
+// de los 30 MB de Sitecase). Solo el código: las imágenes, sonidos y modelos que lleva dentro ya van comprimidos y en
+// base64 no ganarían nada, así que se sacan aparte (cada «data:…» del código pasa a ser __hzD[n], y sus textos van en
+// un bloque de texto). Al abrirlo, un cargador pequeño lo descomprime con el fflate de three.js (el mismo que abre los
+// modelos 3D del archivo único) y lo ejecuta como el módulo que era
+const jsGzip = { name: 'js-gzip', enforce: 'post', async writeBundle(out) {
+  const f = join(out.dir, 'index.html'); let html = readFileSync(f, 'utf8');
+  const re = /<script type="module" crossorigin>([\s\S]*?)<\/script>\n?/, m = html.match(re); if (!m) return;
+  // (los «data:…» se buscan en el árbol del código: solo los textos sueltos, no los que van dentro de otro texto o de
+  // una plantilla con más cosas, ni los que hacen de nombre de una propiedad)
+  const src = m[1], datos = [], cortes = [], { parseAst } = await import('rolldown/parseAst');
+  const walk = (n, padre) => {
+    if (!n || typeof n !== 'object') return;
+    if (Array.isArray(n)) { for (const x of n) walk(x, padre); return; }
+    // (el minificador los escribe entre comillas o como plantilla sin nada dentro: `data:…`)
+    const v = n.type === 'Literal' ? n.value : n.type === 'TemplateLiteral' && !n.expressions.length && padre?.type !== 'TaggedTemplateExpression' ? n.quasis[0]?.value.cooked : null;
+    if (typeof v === 'string' && /^data:[\w/+.-]+;base64,[A-Za-z0-9+/=]+$/.test(v) && !(padre?.type === 'Property' && padre.key === n && !padre.computed) && !/^(Import|Export)/.test(padre?.type || '')) { cortes.push({ start: n.start, end: n.end, value: v }); return; }
+    for (const k in n) if (k !== 'type' && n[k] && typeof n[k] === 'object') walk(n[k], n);
+  };
+  walk(parseAst(src), null);
+  let code = '', at = 0;
+  for (const n of cortes.sort((a, b) => a.start - b.start)) { code += src.slice(at, n.start) + `__hzD[${datos.length}]`; datos.push(n.value); at = n.end; }
+  code += src.slice(at);
+  const { rolldown } = await import('rolldown');
+  const b = await rolldown({ input: 'cargador', logLevel: 'silent', plugins: [{ name: 'cargador', resolveId: (id) => (id === 'cargador' ? id : null), load: (id) => (id !== 'cargador' ? null : `
+    import { gunzipSync } from 'three/examples/jsm/libs/fflate.module.js';
+    const el = (id) => document.getElementById(id), z = atob(el('hz-codigo').textContent), u = new Uint8Array(z.length);
+    for (let i = 0; i < z.length; i++) u[i] = z.charCodeAt(i);
+    window.__hzD = el('hz-datos').textContent.split('\\n');
+    const s = document.createElement('script'); s.type = 'module'; s.textContent = new TextDecoder().decode(gunzipSync(u));
+    el('hz-codigo').remove(); el('hz-datos').remove(); document.body.appendChild(s);`) }] });
+  const cargador = (await b.generate({ format: 'iife', minify: true })).output[0].code.trim();
+  const gz = gzipSync(Buffer.from(code), { level: 9 }).toString('base64');
+  html = html.replace(re, () => '');
+  const fin = html.lastIndexOf('</body>');
+  html = html.slice(0, fin) + `<script type="text/plain" id="hz-datos">${datos.join('\n')}</script>\n<script type="text/plain" id="hz-codigo">${gz}</script>\n<script id="hz-cargador">${cargador}</script>\n` + html.slice(fin);
+  writeFileSync(f, html);
+  console.log(`código comprimido: ${(src.length / 1e6).toFixed(2)} MB → ${((gz.length + datos.join('\n').length) / 1e6).toFixed(2)} MB (${datos.length} datos aparte, cargador de ${cargador.length} bytes)`);
 } };
 // la redirección a docs/ de index.html solo sirve sin compilar (GitHub Pages desde la raíz): fuera al compilar
 const sinRedir = { name: 'sin-redireccion', transformIndexHtml: (html) => html.replace(/<!-- en GitHub Pages[\s\S]*?<script id="ir-a-docs">[\s\S]*?<\/script>\n?/, '') };
@@ -84,7 +124,7 @@ ${splashLinks()}
 export default defineConfig({
   base: './',
   resolve: { alias: { '@jugadores': fileURLToPath(new URL(`./src/assets/jugadores/${FOTOS}`, import.meta.url)), '@pelotaris': fileURLToPath(new URL(`./src/assets/pelotaris/${FOTOS}`, import.meta.url)), '@sellos': fileURLToPath(new URL(`./src/assets/sellos/${FOTOS}`, import.meta.url)), '@retratos': fileURLToPath(new URL(`./src/assets/meshy/portraits/${FOTOS}`, import.meta.url)), '@flora-fotos': fileURLToPath(new URL(`./src/assets/flora/${FOTOS}`, import.meta.url)), '@laminas': fileURLToPath(new URL(`./src/assets/laminas/${FOTOS}`, import.meta.url)), '@fauna-big': fileURLToPath(new URL(`./src/assets/fauna/${FOTOS === 'web' ? 1280 : 512}`, import.meta.url)), '@fauna-small': fileURLToPath(new URL(`./src/assets/fauna/${FOTOS === 'web' ? 512 : 256}`, import.meta.url)), '@escudos': fileURLToPath(new URL('./src/assets/escudos/heraldica/512', import.meta.url)), '@escudos-big': fileURLToPath(new URL(`./src/assets/escudos/heraldica/${FOTOS === 'web' ? 1024 : 512}`, import.meta.url)), '@emblemas': fileURLToPath(new URL(`./src/assets/escudos/equipos/${FOTOS === 'web' ? 512 : 256}`, import.meta.url)), '@leyendas': fileURLToPath(new URL(`./src/assets/leyendas/${FOTOS === 'web' ? 768 : 640}`, import.meta.url)), '@leyendas-big': fileURLToPath(new URL(`./src/assets/leyendas/${FOTOS === 'web' ? 1536 : 640}`, import.meta.url)), '@cimas': fileURLToPath(new URL(`./src/assets/cimas/${FOTOS === 'web' ? 1024 : 320}`, import.meta.url)), '@cimas-big': fileURLToPath(new URL(`./src/assets/cimas/${FOTOS === 'web' ? 1536 : 320}`, import.meta.url)), '@personajes': fileURLToPath(new URL(`./src/assets/personajes/${FOTOS === 'web' ? 1536 : 320}`, import.meta.url)), '@tradiciones': fileURLToPath(new URL(`./src/assets/tradiciones/${FOTOS === 'web' ? 1536 : 320}`, import.meta.url)), '@icons3d': fileURLToPath(new URL(`./src/assets/icons3d${FOTOS === 'web' ? '' : '/128'}`, import.meta.url)), '@meshy-full': fileURLToPath(new URL(MESHY_FULL, import.meta.url)) } },
-  plugins: WEB ? [sinRedir, app] : MINI ? [sinRedir, glbGzip, viteSingleFile()] : [sinRedir, viteSingleFile()],
+  plugins: WEB ? [sinRedir, app] : MINI ? [sinRedir, glbGzip, viteSingleFile(), jsGzip] : [sinRedir, viteSingleFile()],
   define: { __WEB__: JSON.stringify(WEB) },
   build: WEB
     ? { target: 'es2020', outDir: 'docs', emptyOutDir: true, assetsInlineLimit: 2048, chunkSizeWarningLimit: 5000, copyPublicDir: true,
