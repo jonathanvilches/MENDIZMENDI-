@@ -137,7 +137,8 @@ export class Weather {
   }
   // cada fotograma, después del cielo: cae la lluvia o la nieve, el cielo se agrisa y la nieve se va posando
   // hold: durante un partido (fútbol o pelota) no se ve caer nada sobre la cancha, con la misma luz
-  update(dt, camera, sky, sound, hold = false) {
+  // mute: en los deportes (partidos, campeonatos y sus menús) no se oyen ni la lluvia ni los truenos
+  update(dt, camera, sky, sound, hold = false, mute = hold) {
     if (this.kind === 'clear') return;
     this.t += dt;
     // durante un partido no cae nada sobre la cancha (no se ven gotas ni copos y no hay rayos), pero la luz se queda como
@@ -160,8 +161,8 @@ export class Weather {
       sky.sun.intensity *= 1 - 0.55 * this.k;
       sky.hemi.intensity *= 1 + (this.kind === 'snow' ? 0.15 : -0.1) * this.k;
     }
-    sound?.setRain?.(this.kind === 'rain' ? this.k : 0);
-    if (this.kind === 'rain') this.storm(dt, camera, sky, sound, hold);
+    sound?.setRain?.(this.kind === 'rain' && !mute ? this.k : 0, mute);
+    if (this.kind === 'rain') this.storm(dt, camera, sky, mute ? null : sound, hold);
   }
   storm(dt, camera, sky, sound, hold = false) {
     if (!sky?.uniforms) return;

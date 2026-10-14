@@ -142,15 +142,15 @@ export class Sound {
   crowd(v = 0.3) { if (!this.ctx) return; this.noiseBurst(1.3, 700, 0.6, 0.12 * v, this.sfx, 0, 'bandpass'); this.noiseBurst(1.1, 1500, 0.8, 0.05 * v, this.sfx, 0.1, 'bandpass'); }
   pelota(v = 1) { if (this.ctx) { this.tone(160, 0.08, 'sine', 0.3 * v, this.sfx); this.noiseBurst(0.06, 2500, 1.2, 0.5 * v, this.sfx); } }
   // ---- ambiente continuo ----
-  update(dt, player, camYaw, night, inIrati) {
+  update(dt, player, camYaw, night, inIrati, sport = false) {
     if (!this.ctx) return;
     // (una posición sin número, por un salto raro o un fallo, no puede romper el bucle del juego: se ignora)
     if (!Number.isFinite(player.pos.x) || !Number.isFinite(player.pos.y) || !Number.isFinite(player.pos.z)) return;
-    this.listener = { x: player.pos.x, y: player.pos.y, z: player.pos.z, yaw: camYaw + Math.PI };
+    this.listener = { x: player.pos.x, y: player.pos.y, z: player.pos.z, yaw: camYaw + Math.PI }; this.ambAt = performance.now(); this.ambQuiet = false;
     const r = riverInfo(player.pos.x, player.pos.z);
     const wf = PLACES.waterfall, dp = wf ? Math.hypot(player.pos.x - wf.x, player.pos.z - wf.z) : 1e9;
     const rv = clamp(1 - r.edge / 30, 0, 1) ** 1.6 * 0.5 + clamp(1 - dp / 60, 0, 1) ** 1.5 * 0.7;
-    if (Number.isFinite(rv)) this.river.g.gain.setTargetAtTime(rv, this.ctx.currentTime, 0.3);
+    if (Number.isFinite(rv)) this.river.g.gain.setTargetAtTime(sport ? 0 : rv, this.ctx.currentTime, sport ? 0.12 : 0.3);
     this.wind.g.gain.setTargetAtTime(0.03 + clamp((player.pos.y - 20) / 60, 0, 0.1), this.ctx.currentTime, 0.5);
     this.birdT -= dt;
     if (this.birdT < 0) {
@@ -196,6 +196,7 @@ export class Sound {
     this.mood = this.mood || 'explore';
     let bar = 0, next = ctx.currentTime + 1, cur = this.mood;
     this.musicTimer = setInterval(() => {
+      this.quietAmbient();
       if (!this.musicOn || document.hidden) { next = ctx.currentTime + 0.5; return; }
       while (next < ctx.currentTime + 1.2) {
         // cambio de ambiente al empezar compás, con un pequeño fundido del bus
@@ -267,7 +268,6 @@ export class Sound {
     this.noiseBurst(0.05, 3000, 1, 0.03, this.musicBus, t0);
   }
   setMusic(on) { this.musicOn = on; if (this.musicBus) { this.musicBus.gain.cancelScheduledValues(this.ctx.currentTime); this.musicBus.gain.setTargetAtTime(on ? 0.32 : 0, this.ctx.currentTime, 0.3); } }
-  // lluvia: rumor de ruido filtrado agudo que sube con la intensidad
   // trueno: si el rayo cae cerca, primero un chasquido seco; luego el retumbar grave y largo, que va y viene (ruido muy
   // filtrado con varios golpes) y resuena en el eco. dist en metros: más lejos, más tarde, más grave y más flojo
   thunder(dist = 600, pan = 0) {
@@ -285,6 +285,16 @@ export class Sound {
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     s.connect(f); f.connect(g); g.connect(bus); s.start(t); s.stop(t + dur + 0.1);
   }
-  setRain(k) { if (!this.ctx) return; if (!this.rain && k > 0) this.rain = this.loopNoise(2600, 0.35); if (this.rain) this.rain.g.gain.setTargetAtTime(k * 0.08, this.ctx.currentTime, 0.5); }
+  // (sutil: un rumor suave de fondo, más grave y más bajo que antes, que no tapa nada; fast, para callarla enseguida al
+  // empezar un partido)
+  setRain(k, fast = false) { if (!this.ctx) return; this.rainAt = performance.now(); this.rainQuiet = false; if (!this.rain && k > 0) this.rain = this.loopNoise(1900, 0.5); if (this.rain) this.rain.g.gain.setTargetAtTime(k * 0.03, this.ctx.currentTime, fast ? 0.12 : 0.6); }
+  // el ambiente del pueblo (lluvia, río y viento) lo manda el pueblo en cada fotograma: si deja de mandarlo (en el menú,
+  // en el fútbol desde Torneos, al salir del pueblo), se apaga solo; antes se quedaba sonando como estaba (1,5 s: un
+  // tirón del pueblo en un móvil lento no lo corta)
+  quietAmbient() {
+    const now = performance.now(), t = this.ctx.currentTime;
+    if (this.rain && !this.rainQuiet && now - (this.rainAt || 0) > 1500) { this.rainQuiet = true; this.rain.g.gain.setTargetAtTime(0, t, 0.12); }
+    if (!this.ambQuiet && now - (this.ambAt || 0) > 1500) { this.ambQuiet = true; this.river.g.gain.setTargetAtTime(0, t, 0.12); this.wind.g.gain.setTargetAtTime(0, t, 0.12); }
+  }
   setVolume(v) { if (this.master) this.master.gain.value = v; }
 }
