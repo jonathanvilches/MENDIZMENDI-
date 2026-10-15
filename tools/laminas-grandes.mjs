@@ -16,7 +16,7 @@ import sharp from 'sharp';
 
 const GRUPOS = { laminas: ['src/assets/laminas/web', 'src/assets/laminas/grande'], leyendas: ['src/assets/leyendas/1536', 'src/assets/leyendas/2560'], cimas: ['src/assets/cimas/1536', 'src/assets/cimas/2560'], personajes: ['src/assets/personajes/1536', 'src/assets/personajes/2560'], tradiciones: ['src/assets/tradiciones/1536', 'src/assets/tradiciones/2560'] };
 const args = process.argv.slice(2), grupo = GRUPOS[args[0]] ? args.shift() : 'laminas', [SRC, OUT] = GRUPOS[grupo], PY = process.env.PYTHON || 'python3';
-const todas = readdirSync(SRC).filter(f => /^[a-z0-9][a-z0-9-]*\.webp$/.test(f) && !f.endsWith('-s.webp')).map(f => f.replace('.webp', ''));
+const todas = readdirSync(SRC).filter(f => /^[a-z0-9][a-z0-9_-]*\.webp$/.test(f) && !f.endsWith('-s.webp')).map(f => f.replace('.webp', ''));
 const ids = args.length ? args : todas.filter(id => !existsSync(join(OUT, `${id}.webp`)));
 const paso = mkdtempSync(join(process.env.TMPDIR || tmpdir(), 'laminas-'));
 let bytes = 0, n = 0;
