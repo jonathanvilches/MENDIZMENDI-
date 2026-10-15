@@ -3253,7 +3253,8 @@ function soundSample(t, db, pk) {
 function soundVerdict(voiced, all, clips, file) {
   if (voiced.length < 30 || all.length < 60) return null;    // aún no has hablado bastante
   const lvl = median(voiced), fl = pctl(all, .1), snr = lvl - fl, clip = clips / voiced.length;
-  if (clip > .01 && clips >= 3) return { k: 'bad', t: 'El sonido satura',   // con la voz limpia no hay ni un pico al máximo fix: 'Aleja un poco el micrófono o baja su ganancia: en los picos la voz se rompe.' };
+  // con la voz limpia no hay ni un pico al máximo: con unos pocos ya se oye roto
+  if (clip > .01 && clips >= 3) return { k: 'bad', t: 'El sonido satura', fix: 'Aleja un poco el micrófono o baja su ganancia: en los picos la voz se rompe.' };
   if (!file && lvl < -42) return { k: 'warn', t: 'Se te oye bajo', fix: 'Acerca el micrófono (a un palmo de la boca) o habla un poco más alto.' };
   // ruido: la voz destaca poco del fondo (en un vídeo exportado el nivel absoluto no dice nada)
   if (snr < 20 || (!file && fl > -45 && snr < 28)) return { k: 'warn', t: 'Ruido de fondo', fix: 'Busca un sitio más silencioso: cierra ventanas y apaga ventiladores o el aire. Un micrófono de solapa ayuda mucho.' };
