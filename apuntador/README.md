@@ -70,7 +70,7 @@ tiempo se te vio serio»), cuánto encaja, qué corregir y cada parte del cuerpo
 
 **Grabar la versión mejorada.** Del informe salen hasta tres objetivos: lo que más tiempo te alejó del mensaje
 («😄 Sonríe más», «👐 Brazos sin cruzar», «🎵 Varía la entonación»…), cada uno con el porcentaje del tiempo que pasó y
-cómo hacerlo. «Grabar la versión mejorada» abre la cámara con el teleprompter (si el guion no está, te lo pide) y:
+cómo hacerlo. «Grabarlo mejor» abre la cámara con el teleprompter (si el guion no está, te lo pide) y:
 - al entrar te enseña los objetivos;
 - en el monitor quedan marcados: en verde si los estás cumpliendo, en ámbar si ahora mismo fallan;
 - sus avisos salen antes y con prioridad («🎯 Sonríe más»), y celebra cuando los corriges («¡Objetivo cumplido!») o
@@ -78,7 +78,7 @@ cómo hacerlo. «Grabar la versión mejorada» abre la cámara con el teleprompt
 - el informe de la toma nueva compara antes y después: ajuste al tono, lo que transmitías y, por objetivo, la parte
   del tiempo con el problema («antes 64% → ahora 22%», ✅ Mejorado / ➖ Igual / ⚠️ Peor).
 
-Lo mismo vale de una toma a la siguiente: «Repetir con estos objetivos» sigue mejorando sobre la última toma. Los
+Lo mismo vale de una toma a la siguiente: «Grabar otra vez» sigue mejorando sobre la última toma. Los
 objetivos se ven también en la pantalla de inicio y se pueden quitar.
 
 **Videollamada o directo.** Sin guion. Distingue si hablas tú o escuchas (tu voz y, además, que se te mueva la
@@ -106,6 +106,20 @@ abre la llamada en otra pestaña del mismo navegador.
 - En Ajustes se elige el motor (Automático, Mis palabras, Navegador o Desactivado) y el margen al parar.
 - Al terminar se guarda también ese margen, así que el final del vídeo incluye tu «corten»: recórtalo al editar o
   pon el margen a 0.
+
+## Diseño
+
+- Fuera del plató, claro y amable: fondo gris muy suave, tarjetas blancas de 24 px de radio, botones negros en
+  píldora y un acento lima. Con el modo oscuro del sistema, todo pasa a oscuro con el lima como botón principal.
+- En el plató, la cámara a pantalla completa con «hojas» claras encima (avisos, tarjetas del ensayo y de objetivos,
+  monitor) y una barra de controles oscura y translúcida.
+- Una sola tipografía, Lexend (pensada para leer con fluidez), en la interfaz y en el teleprompter. Escala de letra
+  1,25; interlineado único (1,5 en texto y 1,2 en títulos; el teleprompter, 1,4); espacios en la rejilla de 8 px.
+- Una sola columna centrada en la mesa de trabajo y en el informe, con la acción principal fija abajo.
+- El texto de los botones nunca se parte: en pantallas pequeñas pasan a otra fila o se quedan solo con el icono.
+  Comprobado sin desbordes ni botones partidos en 320, 360, 375, 390, 414, 430, 768 y 1280 px.
+- Movimiento solo donde dice algo: la palabra que cambia en el titular, la cuenta atrás, el anillo de la nota que se
+  llena mientras cuenta y la respuesta de los botones al pulsarlos. Se desactiva si el sistema pide menos movimiento.
 
 ## En pantalla
 
