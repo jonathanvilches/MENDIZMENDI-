@@ -110,6 +110,12 @@ async function boot() {
   // campeonatos desde el menú, sin misiones: la pelota en el frontón del pueblo elegido; el fútbol, en su propia escena
   hub.onSport = (kind, townId) => kind === 'futbol' ? futbolSport() : play(levelById(townId) || LEVELS[0], { sport: 'pelota' });
   hub.onSettings = (S) => { sound.setMusic(S.music); sound.setVolume(S.volume); };
+  // el tema de inicio (audio.js, INICIO) suena en el menú: desde el primer toque o tecla (antes, el navegador no deja
+  // sonar nada) y al volver de un pueblo o de un campeonato (exit y futbolSport). En los pueblos y en los partidos, la
+  // música la elige runtime.js según lo que pasa
+  sound.setMood('inicio');
+  { const first = () => { removeEventListener('pointerup', first, true); removeEventListener('keydown', first, true); if (!game && !loading) sound.init(); };
+    addEventListener('pointerup', first, true); addEventListener('keydown', first, true); }
   window.__hub = hub;
   // el fútbol, el encierro, los minijuegos 3D de los oficios y Pamplona van en archivos aparte (se cargan al entrar): se descargan
   // sin prisa cuando el navegador está desocupado, así quedan guardados para jugar sin conexión y no esperan al tocarlos
@@ -241,7 +247,7 @@ async function boot() {
       document.querySelectorAll('.lg-root').forEach(r => r.remove()); fade.remove();
       rt.active = false; rt.game = null; if (ownScene && rt.scene === blank) rt.scene = null;
       canvas.style.visibility = 'hidden'; loading = false;
-      queueMode('all'); hub.show('sports');   // (de vuelta a Torneos, de donde se vino)
+      sound.setMood('inicio'); queueMode('all'); hub.show('sports');   // (de vuelta a Torneos, de donde se vino)
     }
   }
   window.__futbolSport = futbolSport;
@@ -270,8 +276,8 @@ async function boot() {
     if (window.__game === game) window.__game = null;
     if (ui.game === game) ui.game = null;
     game = null;
-    // (desde un campeonato, de vuelta a Torneos, de donde se vino)
-    queueMode('all'); if (to === 'home' || to === 'sports') hub.show(to); else hub.show('comarca', def?.comarca);
+    // (desde un campeonato, de vuelta a Torneos, de donde se vino; y en el menú, su tema)
+    sound.setMood('inicio'); queueMode('all'); if (to === 'home' || to === 'sports') hub.show(to); else hub.show('comarca', def?.comarca);
   }
   window.__exit = exit;
   // memoria gráfica perdida (en el iPhone, al volver de otra aplicación o con poca memoria): si el navegador la

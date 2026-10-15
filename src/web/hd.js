@@ -5,16 +5,19 @@
 // se cambia por la de la web del tamaño justo (la más pequeña que basta), en cuanto ha llegado: sin parpadeo y, si no
 // llega, se queda la de dentro. Solo las que están a la vista (o a punto de estarlo al deslizar): una lista larga de
 // tarjetas no descarga ni guarda en memoria las grandes de todas. Sin conexión, o si la web no contesta, todo sigue con
-// las de dentro. En la web y en el servidor de pruebas no se usa: ya llevan las grandes.
+// las de dentro. En la web (y en el servidor de pruebas) la lista no hace falta: las grandes van en la propia web, y
+// las que pesan más de la cuenta (las láminas de 2560, para las portadas a pantalla entera) se piden con este mismo
+// mecanismo, solo cuando la pantalla las necesita (hdTable con la tabla de las grandes).
 // (Solo se descargan la lista y las imágenes que se ven: no se manda nada del jugador.)
 const SITE = 'https://jonathanvilches.github.io/MENDIZMENDI-/docs/';
 const TABLES = [];          // [grupo de la lista, { id: url pequeña }]
 const REV = new Map();      // url pequeña → [{ w, u }] (de menor a mayor)
 let MAP = null;
 
-/** Cada módulo de imágenes da su tabla (id → url pequeña) con el grupo de su carpeta en la lista de la web. */
-export function hdTable(group, table) {
-  if (__WEB__ || import.meta.env.DEV) return;
+/** Cada módulo de imágenes da su tabla (id → url pequeña) con el grupo de su carpeta en la lista de la web; big y w, si
+ * la web lleva además una copia más grande de cada una (id → url, de w píxeles de ancho) que solo se pide cuando hace falta. */
+export function hdTable(group, table, big = null, w = 0) {
+  if (__WEB__ || import.meta.env.DEV) { if (big) for (const [id, u] of Object.entries(table)) { const b = big[id]; if (b && b !== u) REV.set(u, [{ w, u: b }]); } return; }
   TABLES.push([group, table]); if (MAP) fill(group, table);
 }
 function fill(group, table) {
@@ -25,7 +28,8 @@ function fill(group, table) {
 }
 
 export function startHD() {
-  if (__WEB__ || import.meta.env.DEV || navigator.onLine === false) return;
+  if (__WEB__ || import.meta.env.DEV) { if (REV.size) watch(); return; }   // (las grandes de la propia web)
+  if (navigator.onLine === false) return;
   const ac = new AbortController(), t = setTimeout(() => ac.abort(), 8000);
   fetch(SITE + 'hd.json', { signal: ac.signal, cache: 'no-cache', credentials: 'omit', referrerPolicy: 'no-referrer' })
     .then(r => r.ok ? r.json() : null)

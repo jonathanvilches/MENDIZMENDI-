@@ -278,7 +278,7 @@ export class Runtime {
     if (!g) return 'explore';
     const m = g.mode, night = (this.sky?.night || 0) > 0.5;
     if (m === 'encierro') return g.encierro?.started && !g.encierro?.done ? 'tension' : 'fiesta';
-    // (en los partidos y en los campeonatos, su música de estadio)
+    // (en los partidos y en los campeonatos, su música de estadio; el tema de inicio del menú lo pone main.js)
     if (m === 'futbol' || m === 'pelota' || m === 'menu' || g.sportMode) return 'sport';
     if (m === 'mini') return 'game';
     if (m === 'dance') return 'fiesta';
