@@ -203,6 +203,8 @@ body:not([data-app="llamada"]) .only-call{display:none!important}
 #cue.k-idea{--cc:var(--spot)}
 #studio.app-llamada #prompter,#studio.app-llamada .shade,#studio.app-llamada #slower,#studio.app-llamada #faster,#studio.app-llamada #fontDown,#studio.app-llamada #fontUp{display:none}
 #studio:not(.app-llamada) #pipBtn{display:none}
+#studio.app-llamada #txtBtn{display:none}
+#studio.no-text #prompter,#studio.no-text .shade{display:none}
 .pip-note{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:7;width:min(440px,calc(100% - 32px));display:flex;flex-direction:column;gap:12px;padding:20px;border-radius:16px;background:var(--glass);border:1px solid var(--line);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 .pip-note b{font:400 1.3rem/1.2 var(--f-display)}
 .pip-note p{margin:0;color:var(--mute);font-size:.92rem}
@@ -261,7 +263,8 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
 .toast{position:absolute;left:50%;bottom:calc(136px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:9;background:var(--glass);border:1px solid var(--line);border-radius:12px;padding:10px 16px;font-size:.9rem;max-width:calc(100% - 32px)}
 
 @media (max-width:760px){
-  #prompter{width:calc(100% - 24px);height:50%}
+  #cue,#monitor,.busy,.calib,.cam-alert,.voice-hint,.stage-card,.toast{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:rgba(17,15,23,.93)}
+  #prompter{width:calc(100% - 24px);height:42%}
   #monitor{left:max(8px,env(safe-area-inset-left,0px));right:max(8px,env(safe-area-inset-right,0px));width:auto;bottom:calc(76px + env(safe-area-inset-bottom,0px));padding:10px 12px;max-height:38%}
   #meters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 10px}
   .meter{grid-template-columns:16px 1fr;font-size:.72rem}
@@ -543,6 +546,7 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
     <button class="btn stop" id="stop" hidden title="Terminar toma (Esc)"><svg class="ico"><use href="#i-ok"/></svg><span class="lbl">Terminar</span></button>
     <button class="btn" id="fontDown" title="Letra más pequeña (-)"><svg class="ico"><use href="#i-texto"/></svg><span class="sr">Letra más pequeña</span>−</button>
     <button class="btn" id="fontUp" title="Letra más grande (+)"><svg class="ico"><use href="#i-texto"/></svg><span class="sr">Letra más grande</span>+</button>
+    <button class="btn" id="txtBtn" title="Ocultar o mostrar el texto para verte entero (T)"><svg class="ico"><use href="#i-texto"/></svg><span class="lbl">Texto</span></button>
     <button class="btn" id="skel" title="Esqueleto (S)"><svg class="ico"><use href="#i-esqueleto"/></svg><span class="sr">Esqueleto</span></button>
     <button class="btn" id="mon" title="Monitor completo o compacto (M)"><svg class="ico"><use href="#i-monitor"/></svg><span class="sr">Monitor</span></button>
     <button class="btn" id="pipBtn" title="Ventana flotante para tenerlo encima de la videollamada"><svg class="ico"><use href="#i-flotante"/></svg><span class="lbl">Ventana flotante</span></button>
@@ -965,25 +969,31 @@ function attachStream(stream) {
   }
 }
 function cameraLost(why) {
-  if (!S.live || !$('#camAlert').hidden) return;
+  if (!S.live || S.restarting || !$('#camAlert').hidden) return;
+  // si se corta en mitad de una toma, se guarda lo grabado hasta ahí
+  if (S.take) { toast('La cámara se ha parado: guardo lo grabado hasta aquí.', 5000); stopTake(true); return; }
   $('#camAlertTxt').textContent = why + ' Suele pasar si otra aplicación coge la cámara o el móvil pausa la página.';
   $('#camAlert').hidden = false;
 }
 async function restartCamera() {
+  if (S.restarting) return;
+  S.restarting = true;
   $('#camAlert').hidden = true;
-  if (S.take) stopTake(false);
-  if (S.stream) for (const tr of S.stream.getTracks()) tr.stop();
-  if (S.audio) { try { S.audio.ctx.close(); } catch {} S.audio = null; }
+  if (S.take) stopTake(true);
+  const old = S.stream;
+  // en iPhone solo puede haber una captura: la vieja se para antes de pedir la nueva
+  if (old) for (const tr of old.getTracks()) tr.stop();
   try {
     attachStream(await openCamera());
-    await setupAudio(S.stream);
+    await withTimeout(setupAudio(S.stream), 6000).catch(() => {});
     toast('Cámara reactivada.');
   } catch (e) { cameraError(e); }
+  finally { S.restarting = false; }
 }
 $('#camRetry').addEventListener('click', restartCamera);
 // vigilancia: pista apagada o silenciada, o imagen que no avanza
 function cameraWatch(t) {
-  if (!S.stream || !$('#camAlert').hidden) return;
+  if (!S.stream || S.restarting || !$('#camAlert').hidden) return;
   const tr = S.stream.getVideoTracks()[0];
   if (!tr || tr.readyState === 'ended') return cameraLost('La cámara se ha apagado.');
   if (tr._mutedAt && t - tr._mutedAt > 2.5) return cameraLost('El sistema ha pausado la cámara.');
@@ -994,13 +1004,17 @@ function cameraWatch(t) {
 }
 document.addEventListener('visibilitychange', () => {
   if (document.hidden || !S.live || !S.stream) return;
-  const tr = S.stream.getVideoTracks()[0];
-  if (!tr || tr.readyState === 'ended' || tr.muted) restartCamera();
-  else { video.play().catch(() => {}); S.lastVTat = now(); }
-  if (S.audio && S.audio.ctx.state === 'suspended') S.audio.ctx.resume().catch(() => {});
+  video.play().catch(() => {}); S.lastVTat = now();
+  // al volver, la pista puede seguir silenciada un momento: solo se reinicia si sigue mal al cabo de 1,5 s
+  setTimeout(() => {
+    if (document.hidden || !S.live || !S.stream || S.restarting) return;
+    const tr = S.stream.getVideoTracks()[0];
+    if (!tr || tr.readyState === 'ended' || tr.muted) restartCamera();
+  }, 1500);
+  if (S.audio && S.audio.ctx.state !== 'running') S.audio.ctx.resume().catch(() => {});
 });
 // en iPhone el audio puede arrancar en pausa hasta que tocas la pantalla
-$('#studio').addEventListener('pointerdown', () => { if (S.audio && S.audio.ctx.state === 'suspended') S.audio.ctx.resume().catch(() => {}); if (video.paused) video.play().catch(() => {}); });
+$('#studio').addEventListener('pointerdown', () => { if (S.audio && S.audio.ctx.state !== 'running') S.audio.ctx.resume().catch(() => {}); if (video.paused) video.play().catch(() => {}); });
 
 function busy(txt) { const b = $('#busy'); if (!txt) { b.hidden = true; return; } $('#busyTxt').textContent = txt; b.hidden = false; }
 
@@ -1017,6 +1031,7 @@ async function enterStudio() {
   $('#monitor').classList.toggle('compact', compact);
   $('#studio').classList.toggle('mon-full', !compact);
   $('#skel').classList.toggle('on', S.opts.skeleton);
+  $('#txtBtn').classList.toggle('on', !$('#studio').classList.contains('no-text'));
   renderMeters();
   setupPrompter();
   setTakeUI(false);
@@ -1038,12 +1053,13 @@ async function enterStudio() {
     try { S.vision = await loadVisionWorker(prog); }
     catch (e) {
       console.warn('Análisis en segundo plano no disponible; uso el hilo principal', e);
-      try { S.vision = await withTimeout(loadVision(prog), 90000); }
-      catch (e2) { console.error(e2); S.visionErr = e2; toast('No se pudo cargar el análisis de imagen (¿sin conexión?). Te sigo ayudando con la voz y el texto.', 7000); }
+      const late = loadVision(prog);
+      try { S.vision = await withTimeout(late, 90000); }
+      catch (e2) { late.then(v => { for (const k of ['pose', 'face', 'hands']) try { v[k].close(); } catch {} }).catch(() => {}); console.error(e2); S.visionErr = e2; toast('No se pudo cargar el análisis de imagen (¿sin conexión?). Te sigo ayudando con la voz y el texto.', 7000); }
     }
     busy(null);
   }
-  if (!S.live) return;
+  if (!S.live || S.take || S.countdown) return;
   startCalibration();
 }
 $('#stageMsg').addEventListener('click', e => {
@@ -1128,7 +1144,8 @@ function visionWorkerMain() {
           let last;
           for (const delegate of m.cpu ? ['CPU'] : ['GPU', 'CPU']) {
             try {
-              const t = await Cls.createFromOptions(fileset, { baseOptions: { modelAssetPath: url, delegate }, runningMode: 'VIDEO', ...opts });
+              const canvas = typeof OffscreenCanvas !== 'undefined' ? new OffscreenCanvas(1, 1) : undefined;
+              const t = await Cls.createFromOptions(fileset, { baseOptions: { modelAssetPath: url, delegate }, runningMode: 'VIDEO', canvas, ...opts });
               t._delegate = delegate; done++;
               postMessage({ type: 'progress', text: label + ' listo (' + done + '/3)…', p: 20 + done * 26 });
               return t;
@@ -1176,7 +1193,11 @@ function loadVisionWorker(progress) {
       const m = e.data;
       if (m.type === 'progress') progress(m.text, m.p);
       else if (m.type === 'error') fail(new Error(m.message));
-      else if (m.type === 'ready') { clearTimeout(to); w.onmessage = onWorkerMessage; resolve({ worker: w, conn: m.conn, delegate: m.delegate }); }
+      else if (m.type === 'ready') {
+        clearTimeout(to); w.onmessage = onWorkerMessage;
+        w.onerror = ev => { ev.preventDefault?.(); switchToMainThread('error en segundo plano'); };
+        resolve({ worker: w, conn: m.conn, delegate: m.delegate });
+      }
     };
     w.onerror = ev => { ev.preventDefault?.(); fail(new Error(ev.message || 'worker')); };
     progress('Descargando modelos…', 16);
@@ -1208,26 +1229,23 @@ function visionPump(t) {
   if (vsrc.readyState < 2 || !video.videoWidth) return;
   if (!S.vision.worker) {
     if (t < VW.nextAt) return;
-    const [which, ts] = nextTask(), t0 = performance.now();
+    let [which, ts] = nextTask();
+    if (IS_MOBILE && which === 'hands') [which, ts] = nextTask();
+    // imagen reducida a 320 px: mucho menos trabajo para el hilo de la pantalla
+    const sc = VW.small || (VW.small = document.createElement('canvas')), vw = video.videoWidth, vh = video.videoHeight;
+    if (sc.width !== 320) { sc.width = 320; sc.height = Math.round(320 * vh / vw); }
+    sc.getContext('2d').drawImage(vsrc, 0, 0, sc.width, sc.height);
+    const t0 = performance.now();
     let res = null;
-    try { res = which === 'pose' ? S.vision.pose.detectForVideo(vsrc, ts) : which === 'face' ? S.vision.face.detectForVideo(vsrc, ts) : S.vision.hands.recognizeForVideo(vsrc, ts); }
+    try { res = which === 'pose' ? S.vision.pose.detectForVideo(sc, ts) : which === 'face' ? S.vision.face.detectForVideo(sc, ts) : S.vision.hands.recognizeForVideo(sc, ts); }
     catch (e) { console.warn(which, e); }
     const ms = performance.now() - t0;
-    VW.nextAt = t + Math.max(1 / 30, ms / 1000);
+    VW.nextAt = t + Math.max(IS_MOBILE ? .15 : 1 / 30, 1.5 * ms / 1000);
     if (res) handleVisionResult(which, res, ts / 1000, ms);
     return;
   }
   if (VW.busy && performance.now() - VW.sentAt < 3000) return;
-  if (VW.busy) {
-    VW.stalls = (VW.stalls || 0) + 1;
-    if (VW.stalls >= 3 && !VW.switching) {
-      VW.switching = true; console.warn('El análisis en segundo plano no contesta: paso al hilo principal');
-      try { S.vision.worker.terminate(); } catch {}
-      const old = S.vision; S.vision = null; VW.busy = false;
-      loadVision(() => {}).then(v => { S.vision = v; }).catch(e => { S.vision = null; S.visionErr = e; old && toast('El análisis de imagen se ha parado. Te sigo ayudando con la voz.', 6000); });
-      return;
-    }
-  }
+  if (VW.busy) { VW.stalls = (VW.stalls || 0) + 1; if (VW.stalls >= 3) { switchToMainThread('no contesta'); return; } }
   if (t - VW.lastSend < (IS_MOBILE ? 1 / 15 : 1 / 30)) return;
   const [which, ts] = nextTask();
   VW.busy = true; VW.sentAt = performance.now(); VW.lastSend = t;
@@ -1238,11 +1256,19 @@ function visionPump(t) {
   p.then(bmp => S.vision.worker.postMessage({ type: 'frame', which, ts, bitmap: bmp }, [bmp]))
     .catch(() => { VW.busy = false; VW.fails = (VW.fails || 0) + 1; if (VW.fails > 3) VW.noResize = true; });
 }
+function switchToMainThread(why) {
+  if (VW.switching || !S.vision || !S.vision.worker) return;
+  VW.switching = true; console.warn('Análisis en segundo plano: ' + why + '. Paso al hilo principal.');
+  try { S.vision.worker.terminate(); } catch {}
+  S.vision = null; VW.busy = false;
+  loadVision(() => {}).then(v => { S.vision = v; }).catch(e => { S.visionErr = e; toast('El análisis de imagen se ha parado. Te sigo ayudando con la voz y el texto.', 6000); });
+}
 function onWorkerMessage(e) {
   const m = e.data;
   if (m.type !== 'result') return;
   VW.busy = false; VW.stalls = 0;
-  if (m.err) console.warn(m.which, m.err);
+  if (m.err) { console.warn(m.which, m.err); VW.errs = (VW.errs || 0) + 1; if (VW.errs >= 6) switchToMainThread('errores seguidos'); return; }
+  VW.errs = 0;
   try { if (S.live && m.out) handleVisionResult(m.which, m.out, m.ts / 1000, m.ms); } catch (err) { console.warn(err); }
 }
 function handleVisionResult(which, res, t, ms) {
@@ -1529,7 +1555,8 @@ class ApuntadorMeter extends AudioWorkletProcessor {
 registerProcessor('apuntador-meter', ApuntadorMeter);`;
 
 async function setupAudio(stream) {
-  if (S.audio) return;
+  if (S.audio && S.audio.stream === stream) return;
+  if (S.audio) { try { S.audio.ctx.close(); } catch {} S.audio = null; }
   let ctx;
   try {
     ctx = S.actx && S.actx.state !== 'closed' ? S.actx : new (window.AudioContext || window.webkitAudioContext)();
@@ -1543,12 +1570,12 @@ async function setupAudio(stream) {
       const mute = ctx.createGain(); mute.gain.value = 0;
       src.connect(node); node.connect(mute); mute.connect(ctx.destination);
       node.port.onmessage = e => { try { const m = e.data; processAudio(now() - Math.max(0, ctx.currentTime - m.t), m.db, m.f0); } catch (err) { console.warn(err); } };
-      S.audio = { ctx, node, mode: 'worklet' };
+      S.audio = { ctx, node, mode: 'worklet', stream };
     } catch (e) {
       console.warn('AudioWorklet no disponible, uso AnalyserNode', e);
       const an = ctx.createAnalyser(); an.fftSize = 2048;
       src.connect(an);
-      S.audio = { ctx, an, mode: 'analyser', buf: new Float32Array(an.fftSize), half: new Float32Array(an.fftSize / 2), sr: ctx.sampleRate / 2, d: null };
+      S.audio = { ctx, an, mode: 'analyser', stream, buf: new Float32Array(an.fftSize), half: new Float32Array(an.fftSize / 2), sr: ctx.sampleRate / 2, d: null };
     }
   } catch (e) { console.warn('audio', e); }
 }
@@ -1569,6 +1596,7 @@ function onDoubleClap() {
 }
 function processAudio(t, db, f0) {
   if (!S.live) return;
+  V.lastMsgT = t;
   V.db = db;
   if (db < V.floor) V.floor = V.floor * .7 + db * .3; else V.floor += .012;
   V.floor = clamp(V.floor, -95, -40);
@@ -1690,6 +1718,7 @@ function onVoice(e) {
     }
     if (r.isFinal) FOL.curRes = -1;
   }
+  FOL.lastResult = now();
 }
 function same(a, b) {
   if (a === b) return true;
@@ -1752,12 +1781,18 @@ function setFont(px) {
 }
 function prompterFrame(t, dt) {
   const n = wordEls.length; if (!n) return;
+  if (S.take && FOL.follow && t - S.take.t0 > 5 && V.speaking && t - Math.max(FOL.lastResult || 0, S.take.t0) > 4) {
+    FOL.follow = false; PR.running = true;
+    toast('No consigo seguir tu voz: el texto avanza a velocidad fija (ajústala con + y −).', 5000);
+  }
   const following = S.take && FOL.follow && FOL.ok;
   if (following) {
     const i = Math.min(FOL.pointer, n - 1);
     PR.target = PR.tops[i] - PR.readY;
   } else if (PR.running) {
-    const wantMove = !(S.opts.pauseSilent && S.take && t - S.take.t0 > 2.5 && !V.speaking && t - V.lastVoiced > 1.1);
+    // solo se para por silencio si el micrófono está mandando audio de verdad
+    const audioAlive = t - (V.lastMsgT || -99) < 1.5;
+    const wantMove = !(S.opts.pauseSilent && audioAlive && S.take && t - S.take.t0 > 2.5 && !V.speaking && t - V.lastVoiced > 1.1);
     PR.speedF += ((wantMove ? 1 : 0) - PR.speedF) * Math.min(1, dt * 3);
     const pxs = (S.opts.wpm / 60) / Math.max(1, PR.wpl) * PR.lineH;
     PR.target += pxs * PR.speedF * dt;
@@ -1863,7 +1898,7 @@ const gapLow = (c, m, margin = .07) => c.M[m] != null && c.M[m] < c.T[m][0] - ma
 const gapHigh = (c, m, margin = .1) => c.M[m] != null && c.M[m] > c.T[m][1] + margin ? c.M[m] - c.T[m][1] : 0;
 const RULES = [
   { id: 'nadie', kind: 'crit', pri: 100, hold: 2, cool: 6, icon: 'encuadre',
-    test: c => t0(c) && !(F.ok && fresh('face', F.lastSeen, c.t, 1.5)) && !(B.ok && fresh('pose', B.lastOk, c.t, 1.5)),
+    test: c => t0(c) && S.vision && perf.at.face && !(F.ok && fresh('face', F.lastSeen, c.t, 1.5)) && !(B.ok && fresh('pose', B.lastOk, c.t, 1.5)),
     title: () => 'No te veo', detail: () => 'Colócate frente a la cámara, con luz de frente.' },
   { id: 'cerca', kind: 'crit', pri: 90, hold: 2, cool: 12, icon: 'encuadre',
     test: c => F.ok && (F.h > .5 || (!B.shOk && fresh('pose', B.lastSeen, c.t, 1) && F.h > .3)),
@@ -2290,7 +2325,9 @@ function updateMonitor(c, perceived, parts) {
   };
   for (const sp of monEl.querySelectorAll('.seen span')) sp.classList.toggle('on', !!on[sp.dataset.s]);
   const neg = STATES[perceived]?.neg, m = c.match;
-  const [mood, mc] = !on.cara && !on.cuerpo ? ['👀 Esperando a verte…', 'var(--mute)']
+  const [mood, mc] = S.visionErr && !S.vision ? ['📷 Te ves, pero el análisis de imagen no está disponible', 'var(--mute)']
+    : !S.vision ? ['⏳ Preparando el análisis de imagen…', 'var(--mute)']
+    : !on.cara && !on.cuerpo ? ['👀 Esperando a verte…', 'var(--mute)']
     : perceived === 'defensivo' ? ['🙅 Se te ve a la defensiva', 'var(--bad)']
     : perceived === 'nervioso' ? ['😬 Se notan los nervios', 'var(--warn)']
     : perceived === 'distraido' ? ['👀 Parece que no escuchas', 'var(--warn)']
@@ -2343,7 +2380,7 @@ function updateStatus(t) {
   else parts.push('visión: cargando…');
   parts.push(`voz ${V.db > -99 ? Math.round(V.db) + ' dB' : '—'}${V.speaking ? ' · hablando' : ''}`);
   if (isCall()) parts.push(coach.last?.parts?.voz?.[0] === 'Hablando' ? 'hablas tú' : 'escuchas');
-  else parts.push(S.opts.mode === 'voz' && !FOL.failed ? (FOL.follow ? 'texto: sigue tu voz' : 'texto: seguirá tu voz') : `texto: ${S.opts.wpm} ppm`);
+  else parts.push(S.opts.mode === 'voz' && !FOL.failed && S.opts.voiceCmd && SR ? (FOL.follow ? 'texto: sigue tu voz' : 'texto: seguirá tu voz') : `texto: ${S.opts.wpm} ppm`);
   if (!isCall()) parts.push(FOL.on ? 'órdenes de voz: activas' : S.opts.voiceCmd ? 'órdenes de voz: no disponibles' : 'órdenes de voz: desactivadas');
   const hint = $('#voiceHint');
   hint.hidden = !(S.live && !isCall() && !S.take && !S.countdown && !S.calibrating);
@@ -2427,8 +2464,14 @@ function drawBodyGhost(g, P, cx, cy, s, lw, mode) {
   g.lineCap = 'round'; g.lineJoin = 'round';
   const col = mode === 'sombra' ? 'rgba(255,255,255,.9)' : '#8DB8FF';
   g.strokeStyle = col; g.fillStyle = col;
-  if (mode === 'sombra') { g.shadowColor = 'rgba(141,184,255,1)'; g.shadowBlur = lw * 2.2; }
-  else {
+  if (mode === 'sombra') {
+    // halo azul barato (sin shadowBlur): primero los brazos anchos y translúcidos, luego la línea blanca
+    g.strokeStyle = 'rgba(141,184,255,.4)'; g.lineWidth = lw * 2.2;
+    g.beginPath(); g.moveTo(...lS); g.lineTo(...rS);
+    for (const side of ['l', 'r']) { const S0 = side === 'l' ? lS : rS; g.moveTo(...S0); g.lineTo(...pt(P[side + 'E'], sh * .6)); g.lineTo(...pt(P[side + 'W'], sh * .3)); }
+    g.stroke();
+    g.strokeStyle = col;
+  } else {
     const [hx, hy] = pt([0, -.95 + P.dhead], sh * .5);
     g.fillStyle = 'rgba(244,239,230,.16)';
     g.beginPath(); g.moveTo(...lS); g.lineTo(...rS); g.lineTo(...pt([.4, 1.75])); g.lineTo(...pt([-.4, 1.75])); g.closePath(); g.fill();
@@ -2473,7 +2516,7 @@ function drawFaceGhost(g, kind, ph, fl, W, Hh, X, lw, C) {
   const P = i => [X(fl[i].x * W), fl[i].y * Hh], fh = Math.abs(fl[152].y - fl[10].y) * Hh;
   const wave = Math.sin(ph * Math.PI * 2) * .5 + .5, k = ease(Math.min(1, ph * 1.6));
   g.save(); g.lineCap = 'round'; g.lineJoin = 'round';
-  g.strokeStyle = 'rgba(255,255,255,.9)'; g.shadowColor = 'rgba(141,184,255,1)'; g.shadowBlur = lw * 3; g.lineWidth = lw * 1.6;
+  g.strokeStyle = 'rgba(255,255,255,.95)'; g.lineWidth = lw * 2;
   const shifted = (edges, dy) => { g.beginPath(); for (const { start, end } of edges) { const a = P(start), b = P(end); g.moveTo(a[0], a[1] - dy); g.lineTo(b[0], b[1] - dy); } g.stroke(); };
   if (kind === 'smile') {
     const L = P(61), Rr = P(291), m = P(14), lift = k * fh * .05;
@@ -2564,18 +2607,22 @@ const LINE = { ok: '#55D6A6', warn: '#F4B942', bad: '#FF6E64' };
 function drawOverlay() {
   const W = video.videoWidth, Hh = video.videoHeight;
   if (!W) return;
-  if (overlay.width !== W || overlay.height !== Hh) { overlay.width = W; overlay.height = Hh; }
+  const k = Math.min(1, (IS_MOBILE ? 640 : 960) / W), cw = Math.round(W * k), ch = Math.round(Hh * k);
+  if (overlay.width !== cw || overlay.height !== ch) { overlay.width = cw; overlay.height = ch; }
   const g = octx;
+  g.setTransform(k, 0, 0, k, 0, 0);
   g.clearRect(0, 0, W, Hh);
   const showDet = !!(S.opts.skeleton && S.vision);
   const t = now(), C = S.vision ? S.vision.conn : null, parts = coach.parts || {};
   const X = x => W - x;
   // tamaños en píxeles de pantalla, sea cual sea la resolución de la cámara
-  const scale = Math.max((overlay.clientWidth || W) / W, (overlay.clientHeight || Hh) / Hh) || 1;
+  const scale = Math.max((overlay.clientWidth || W) / W, (overlay.clientHeight || Hh) / Hh) || 1;   // pantalla por unidad de vídeo
   // zona libre para las etiquetas: ni bajo el monitor ni bajo la barra de botones (en coordenadas del lienzo)
   // (con object-fit: cover, en pantallas estrechas solo se ve una franja del lienzo)
   let xMin = 0, yMin = 0, xMax = W, yMax = Hh;
-  if (overlay.clientWidth) {
+  const box = S.labelBox;
+  if (box && box.W === W && now() - box.at < .5) ({ xMin, yMin, xMax, yMax } = box);
+  else if (overlay.clientWidth) {
     const ov = overlay.getBoundingClientRect(), offX = (ov.width - W * scale) / 2, offY = (ov.height - Hh * scale) / 2;
     const toX = px => (px - ov.left - offX) / scale, toY = px => (px - ov.top - offY) / scale;
     xMin = Math.max(0, toX(ov.left)); xMax = Math.min(W, toX(ov.right)); yMin = Math.max(0, toY(ov.top)); yMax = Math.min(Hh, toY(ov.bottom));
@@ -2586,6 +2633,7 @@ function drawOverlay() {
     }
     const bar = $('.bar-ctl').getBoundingClientRect();
     if (bar.height) yMax = Math.min(yMax, toY(bar.top + 14));
+    S.labelBox = { W, at: now(), xMin, yMin, xMax, yMax };
   }
   const lw = Math.max(1.2, 2.2 / scale), fs = Math.max(9, Math.round(14 / scale));
   const stroke = (k, fallback) => LINE[k] || fallback;
@@ -2657,7 +2705,8 @@ function drawOverlay() {
   }
   }
   // la sombra del gesto que toca, encima de ti (en su capa, por encima de la franja del teleprompter)
-  if (ghostCv.width !== W || ghostCv.height !== Hh) { ghostCv.width = W; ghostCv.height = Hh; }
+  if (ghostCv.width !== cw || ghostCv.height !== ch) { ghostCv.width = cw; ghostCv.height = ch; }
+  gctx.setTransform(k, 0, 0, k, 0, 0);
   gctx.clearRect(0, 0, W, Hh);
   const cue = coach.active, G = cue && cue.g && GEST[cue.g];
   if (G) {
@@ -2689,7 +2738,7 @@ function startLoops() {
     safe('dibujo', drawOverlay);
     safe('aviso', () => drawCueVis(t));
     if (S.pipCanvas) safe('ventana', drawPip);
-    if (S.take) $('#clock').innerHTML = `<i class="live"></i>${fmtTime(t - S.take.t0)}`;
+    if (S.take) { const c = fmtTime(t - S.take.t0); if (c !== S.clockTxt) { S.clockTxt = c; $('#clock').innerHTML = `<i class="live"></i>${c}`; } }
   };
   rafId = raf(loopFrame);
 }
@@ -2712,11 +2761,11 @@ async function togglePip() {
   const pv = d.createElement('video'); pv.id = 'pipVideo'; pv.muted = true; pv.playsInline = true; pv.autoplay = true; pv.srcObject = S.stream;
   const pc = d.createElement('canvas'); pc.id = 'pipOverlay';
   view.append(pv, pc, cueEl);
-  d.body.append(view, monEl);
-  try { await pv.play(); } catch {}
   Object.assign(S, { pip: w, pipVideo: pv, pipCanvas: pc, pipWasCompact: monEl.classList.contains('compact') });
+  d.body.append(view, monEl);
   monEl.classList.remove('compact');
   pipNote.hidden = false; pipBtn.classList.add('on');
+  pv.play().catch(() => {});
   w.addEventListener('pagehide', () => {
     $('#prompter').after(cueEl, monEl);
     monEl.classList.toggle('compact', !!S.pipWasCompact);
@@ -2743,6 +2792,7 @@ function setTakeUI(on, rec = false) {
 }
 async function startTake(record) {
   if (S.take || !S.live || S.countdown) return;
+  if (record && typeof MediaRecorder === 'undefined') { record = false; toast('Este navegador no puede grabar vídeo: hago un ensayo.'); }
   if (S.calibrating) finishCalibration(true);
   S.countdown = true;
   setTakeUI(true, record);
@@ -2768,10 +2818,11 @@ async function startTake(record) {
   if (!call) { stageMsg('<div class="count-big">¡Acción!</div>'); setTimeout(() => { if (S.take && !S.countdown) stageMsg(null); }, 650); }
   if (record) {
     const types = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4'];
-    const mime = types.find(m => MediaRecorder.isTypeSupported?.(m)) || '';
+    const tk = S.take;
     try {
+      const mime = types.find(m => MediaRecorder.isTypeSupported?.(m)) || '';
       const mr = new MediaRecorder(S.stream, mime ? { mimeType: mime, videoBitsPerSecond: 5_000_000 } : undefined);
-      mr.ondataavailable = e => { if (e.data && e.data.size) S.take?.chunks.push(e.data); };
+      mr.ondataavailable = e => { if (e.data && e.data.size) tk.chunks.push(e.data); };
       mr.start(1000);
       S.take.mr = mr; S.take.mime = mr.mimeType || mime || 'video/webm';
     } catch (e) { console.warn(e); toast('No se pudo grabar en este navegador; sigo como ensayo.'); S.take.record = false; }
@@ -2800,9 +2851,14 @@ $('#faster').addEventListener('click', () => changeSpeed(10));
 $('#slower').addEventListener('click', () => changeSpeed(-10));
 $('#fontUp').addEventListener('click', () => setFont(S.opts.font + 4));
 $('#fontDown').addEventListener('click', () => setFont(S.opts.font - 4));
+$('#txtBtn').addEventListener('click', () => {
+  const st = $('#studio'); st.classList.toggle('no-text');
+  $('#txtBtn').classList.toggle('on', !st.classList.contains('no-text'));
+  toast(st.classList.contains('no-text') ? 'Texto oculto: te ves entero. Pulsa «Texto» para volver a verlo.' : 'Texto visible.', 2500);
+});
 $('#skel').addEventListener('click', () => { S.opts.skeleton = !S.opts.skeleton; store.set('opts', S.opts); $('#skel').classList.toggle('on', S.opts.skeleton); });
 $('#mon').addEventListener('click', () => {
-  const m = $('#monitor'); m.classList.toggle('compact'); S.opts.compact = m.classList.contains('compact'); store.set('opts', S.opts);
+  monEl.classList.toggle('compact'); S.opts.compact = monEl.classList.contains('compact'); store.set('opts', S.opts);
   $('#studio').classList.toggle('mon-full', !S.opts.compact);
   const k = PR.idx; requestAnimationFrame(() => { layoutPrompter(); PR.offset = PR.target = (PR.tops[k] || 0) - PR.readY; applyOffset(); });
 });
@@ -2820,6 +2876,7 @@ addEventListener('keydown', e => {
   else if (e.key === '+' || e.key === '=') setFont(S.opts.font + 4);
   else if (e.key === '-') setFont(S.opts.font - 4);
   else if (e.key === 's' || e.key === 'S') $('#skel').click();
+  else if (e.key === 't' || e.key === 'T') $('#txtBtn').click();
   else if (e.key === 'm' || e.key === 'M') $('#mon').click();
 });
 
