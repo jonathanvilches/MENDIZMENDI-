@@ -1112,6 +1112,23 @@ body.pip #monitor{opacity:1;transform:none;visibility:visible;pointer-events:aut
   #monitor.open>*{animation:none}
   .mon-pill{transition:none}
 }
+/* fallos al leer: aviso rojo arriba (también en «solo la línea») y la palabra marcada en el texto */
+.read-alert{position:absolute;z-index:9;top:calc(env(safe-area-inset-top,0px) + 12px);left:12px;right:12px;margin-inline:auto;width:fit-content;max-width:min(560px,calc(100% - 24px));
+  display:flex;flex-direction:column;align-items:center;gap:4px;padding:calc(var(--u) * 1.5) calc(var(--u) * 2.5);border-radius:var(--r-lg);text-align:center;
+  background:#E5443F;color:#fff;box-shadow:0 12px 36px rgba(229,68,63,.45),0 2px 6px rgba(0,0,0,.3)}
+.read-alert b{font:700 var(--t-md)/1.2 var(--f-display);letter-spacing:-.01em}
+.read-alert span{font-size:var(--t-sm);line-height:var(--lh)}
+.read-alert small{font-size:var(--t-xs);opacity:.92}
+.read-alert small b{font:inherit;font-weight:700}
+.read-alert.pop{animation:readpop .5s var(--spring)}
+@keyframes readpop{0%{transform:translateY(-14px) scale(.9);opacity:0}60%{transform:translateX(-6px)}75%{transform:translateX(5px)}90%{transform:translateX(-2px)}}
+#studio.mon-full .read-alert{right:352px}
+@media (max-width:760px){.read-alert{right:72px;max-width:none}}
+#track .w.rmiss{text-decoration:underline wavy #FF5F5A 2px;text-underline-offset:.18em;color:#FFD2D0}
+.reads{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--u)}
+.reads li{display:flex;align-items:center;gap:calc(var(--u) * 1.5);font-size:var(--t-sm);line-height:var(--lh)}
+.reads .ghost{min-height:36px;padding:0 calc(var(--u) * 1.5);font-variant-numeric:tabular-nums;flex:none}
+@media (prefers-reduced-motion: reduce){.read-alert.pop{animation:none}}
 </style>
 </head>
 <body>
@@ -1339,6 +1356,7 @@ body.pip #monitor{opacity:1;transform:none;visibility:visible;pointer-events:aut
           </div>
           <label class="row"><span class="row-t"><b>Parar el texto si me callo</b><small>En el modo de velocidad fija.</small></span><input type="checkbox" class="switch" id="pauseSilent" role="switch"></label>
           <label class="row"><span class="row-t"><b>Avisarme de los gestos del guion</b></span><input type="checkbox" class="switch" id="cuesOn" role="switch"></label>
+          <label class="row"><span class="row-t"><b>Avisarme si me equivoco al leer</b><small>Dudas y pausas a mitad de frase en todos; palabras saltadas, repetidas o cambiadas con Chrome o Edge de ordenador.</small></span><input type="checkbox" class="switch" id="readCheck" role="switch"></label>
           <label class="row"><span class="row-t"><b>Texto en espejo</b><small>Para un cristal de teleprompter.</small></span><input type="checkbox" class="switch" id="mirror" role="switch"></label>
         </div>
       </details>
@@ -1374,6 +1392,7 @@ body.pip #monitor{opacity:1;transform:none;visibility:visible;pointer-events:aut
     <div class="cue-txt"><small class="cue-pre" hidden></small><b></b><span class="cue-detail"></span></div>
     <i class="cue-bar" hidden><i></i></i>
   </div>
+  <div class="read-alert" id="readAlert" hidden role="alert"><b>✋ Fallo al leer</b><span id="raTxt"></span><small id="raHint"></small></div>
   <div class="lane" id="lane" hidden><i class="lane-line"></i><span class="lane-txt" id="laneTxt"></span></div>
   <svg class="frame-guide" id="frameGuide" aria-hidden="true"></svg>
   <div class="horizon" id="horizon" aria-hidden="true"><i class="hz-ref"></i><i class="hz-line" id="hzLine"></i><i class="hz-ref"></i><span class="hz-txt" id="hzTxt"></span></div>
@@ -1910,7 +1929,7 @@ const DEFAULT_CALIB = { smile: .05, brow: .12, pitch: .47, yaw: 0, neck: .62, re
 const S = {
   text: store.get('text', SAMPLE),
   tone: store.get('tone', 'animado'),
-  opts: Object.assign({ app: 'video', tab: {}, voiceEngine: 'auto', stopMargin: 3, rehearseFirst: true, takeHelp: 'linea', mode: 'voz', wpm: 140, font: 46, mirror: false, pauseSilent: true, cues: true, skeleton: true, lang: 'es-ES', compact: null }, store.get('opts', {})),
+  opts: Object.assign({ app: 'video', tab: {}, voiceEngine: 'auto', stopMargin: 3, rehearseFirst: true, takeHelp: 'linea', mode: 'voz', wpm: 140, font: 46, mirror: false, pauseSilent: true, cues: true, readCheck: true, skeleton: true, lang: 'es-ES', compact: null }, store.get('opts', {})),
   calib: Object.assign({}, DEFAULT_CALIB, store.get('calib', {})),
   sc: null, live: false, take: null, vision: null, visionErr: null, audio: null, stream: null,
 };
@@ -2096,7 +2115,7 @@ function bindOpts() {
     if (el.selectedIndex < 0) { o[k] = { stopMargin: 3, voiceEngine: 'auto', takeHelp: 'linea' }[k]; el.value = String(o[k]); }
     el.addEventListener('change', () => { o[k] = k === 'stopMargin' ? +el.value : el.value; save(); });
   }
-  for (const k of ['pauseSilent', 'cues', 'mirror', 'skeleton', 'rehearseFirst']) {
+  for (const k of ['pauseSilent', 'cues', 'mirror', 'skeleton', 'rehearseFirst', 'readCheck']) {
     const el = $('#' + (k === 'cues' ? 'cuesOn' : k));
     el.checked = !!o[k]; el.addEventListener('change', () => { o[k] = el.checked; save(); });
   }
@@ -3190,6 +3209,7 @@ function processAudio(t, db, f0, pk = 0) {
   V.valley = Math.min(V.valley, e2);
   V.e0 = V.e1; V.e1 = e2;
   if (S.calibrating) { S.calibrating.db.push(db); if (voiced) S.calibrating.vdb.push(db); }
+  fluencyTick(t, voiced, f0);
 }
 
 /* ---------------- luz y sonido ----------------
@@ -3709,7 +3729,10 @@ function onVoice(e) {
       const p = alignPhrase(unread, FOL.phraseStart);
       if (p > FOL.pointer) { ser.words.push(now(), p - FOL.pointer); FOL.pointer = p; }
     }
-    if (r.isFinal) FOL.curRes = -1;
+    if (r.isFinal) {
+      if (readingOn() && i !== FOL.cmdRes && now() - S.take.t0 > 1) readCheckPhrase(ws);
+      FOL.curRes = -1;
+    }
   }
   FOL.lastResult = now();
 }
@@ -3953,7 +3976,8 @@ function showRehearsal(tk) {
     : `Querías transmitir un mensaje <b style="--tc:${T0.color}">${T0.adj}</b>` + (P ? (topP === mainTone ? ` y lo conseguiste el <b style="--tc:${P.color}">${Math.round(pc[topP] / pTot * 100)}%</b> del tiempo.`
       : ` y se te vio sobre todo <b style="--tc:${P.color}">${P.name.toLowerCase()}</b> (${Math.round(pc[topP] / pTot * 100)}%).`) : '.')
       + (worst.length ? ` Lo que más te alejó: ${worst.map(g => g.below >= g.above ? g.m.low : g.m.high).join(' y ')}.` : '');
-  $('#rehNotes').innerHTML = [hookNote(tk, mainTone), durNote(tk)].filter(Boolean).map(n => `<p>${esc(n)}</p>`).join('');
+  const rf = readFails(tk);
+  $('#rehNotes').innerHTML = [rf.length ? `📖 ${rf.length} ${rf.length === 1 ? 'fallo' : 'fallos'} al leer: ${rf.slice(0, 2).map(r => `${fmtTime(r.t)} ${r.txt}`).join(' · ')}` : '', hookNote(tk, mainTone), durNote(tk)].filter(Boolean).map(n => `<p>${esc(n)}</p>`).join('');
   const kit = setupReview(tk), bad = kit.filter(k => k.k !== 'ok');
   $('#rehKit').innerHTML = bad.length ? bad.map(k => `<li class="${k.k}"><b>${k.e} ${esc(k.t)}</b> ${esc(k.fix)}${k.fig ? `<div class="kfig">${k.fig()}</div>` : ''}</li>`).join('')
     : kit.length ? `<li class="ok"><b>✅ ${listaY(kit.map((k, i) => i ? k.area.toLowerCase() : k.area))}: bien</b></li>` : '';
@@ -3992,6 +4016,145 @@ function alignPhrase(ws, start) {
   }
   return p;
 }
+
+/* ---------------- fallos al leer ----------------
+   Mientras lees, compara lo que dices con el guion y te avisa en el momento si te equivocas, para que cortes y
+   repitas («otra vez»). Con el reconocimiento de voz del navegador (Chrome o Edge de ordenador), palabra a palabra:
+   un trozo que te saltas, una frase que vuelves a empezar o repites, palabras cambiadas o algo que no está en el
+   guion. En todos los dispositivos (también en el iPhone, donde ese reconocimiento corta la cámara), por la voz: un
+   «eeeh» alargado o pararte en seco a mitad de frase. Para no avisar por un error del reconocedor, una sola palabra
+   distinta no basta: se apunta en el informe como «posible» y solo se avisa si hay más. */
+const RD = { pos: 0, lastAlert: -9, sil: null, silDone: false, hold: null };
+const READ_STOP = new Set(['el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'de', 'del', 'a', 'al', 'en', 'y', 'e', 'o', 'u', 'que', 'por', 'para', 'con', 'sin', 'se', 'su', 'sus', 'mi', 'mis', 'tu', 'tus', 'lo', 'le', 'les', 'me', 'te', 'nos', 'os', 'es', 'son', 'muy', 'mas', 'pero', 'como', 'esto', 'este', 'esta', 'eso', 'ese', 'esa', 'hay', 'ya', 'si', 'no']);
+const READ_FILL = new Set(['eh', 'ehh', 'em', 'emm', 'mm', 'mmm', 'ah', 'eeh', 'este', 'pues', 'bueno']);
+const readingOn = () => !!(S.take && !S.take.call && !S.take.file && S.opts.readCheck !== false && S.sc?.words.length);
+function resetReading() {
+  Object.assign(RD, { pos: 0, lastAlert: -9, sil: null, silDone: false, hold: null });
+  for (const el of wordEls) el.classList.remove('rmiss');
+  $('#readAlert').hidden = true;
+  if (S.take) S.take.sr = !!FOL.on;   // con reconocimiento de voz se comprueban también las palabras
+}
+const readFails = tk => (tk.reads || []).filter(r => r.kind !== 'posible');
+function lev(a, b) {
+  if (a === b) return 0;
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    const cur = [i];
+    for (let j = 1; j <= b.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    prev = cur;
+  }
+  return prev[b.length];
+}
+const wsim = (a, b) => 1 - lev(a, b) / Math.max(a.length, b.length, 1);
+// la misma palabra para el reconocedor (que a veces cambia una letra o un acento)
+const readEq = (a, b) => a === b || same(a, b) || (a.length >= 4 && b.length >= 4 && wsim(a, b) >= .75);
+// alineación de lo dicho (entero) con un trozo del guion: coincide, cambia, sobra (dicho de más) o falta (saltado)
+function readAlign(ws, sw, rel = 0) {
+  const n = ws.length, m = sw.length, D = [], B = [];
+  for (let i = 0; i <= n; i++) { D.push(new Float32Array(m + 1)); B.push(new Uint8Array(m + 1)); }
+  for (let j = 0; j <= m; j++) D[0][j] = .4 * Math.abs(j - rel);   // empezar lejos de donde ibas cuesta un poco por palabra
+  for (let i = 1; i <= n; i++) { D[i][0] = D[0][0] + i; B[i][0] = 2; }
+  for (let i = 1; i <= n; i++) for (let j = 1; j <= m; j++) {
+    let best = D[i - 1][j - 1] + (readEq(ws[i - 1], sw[j - 1]) ? 0 : .95), b = 1;
+    if (D[i - 1][j] + 1 < best) { best = D[i - 1][j] + 1; b = 2; }
+    if (D[i][j - 1] + 1 < best) { best = D[i][j - 1] + 1; b = 3; }
+    D[i][j] = best; B[i][j] = b;
+  }
+  let j = 0; for (let k = 1; k <= m; k++) if (D[n][k] < D[n][j]) j = k;
+  const ops = []; let i = n;
+  while (i > 0) {
+    const b = B[i][j];
+    if (b === 1) { ops.push({ op: readEq(ws[i - 1], sw[j - 1]) ? 'm' : 's', w: ws[i - 1], s: j - 1 }); i--; j--; }
+    else if (b === 2) { ops.push({ op: 'i', w: ws[i - 1], s: j }); i--; }
+    else { ops.push({ op: 'd', s: j - 1 }); j--; }
+  }
+  return ops.reverse();
+}
+const scriptWords = (a, b) => S.sc.words.slice(a, b).map(w => w.text.replace(/^[«"“¿¡(]+|[»"”?!.,;:)…]+$/g, '')).join(' ');
+// una frase reconocida (final) frente al guion
+function readCheckPhrase(ws) {
+  ws = ws.filter(w => w && !READ_FILL.has(w));
+  const SW = S.sc.words; if (ws.length < 2 || !SW.length) return;
+  const base = Math.max(0, RD.pos - 12), end = Math.min(SW.length, RD.pos + ws.length * 2 + 12);
+  const ops = readAlign(ws, SW.slice(base, end).map(w => w.norm), RD.pos - base);
+  const ms = ops.filter(o => o.op === 'm');
+  if (ms.length < Math.max(1, ws.length * .3)) {
+    // casi nada coincide: o te has perdido o estás improvisando
+    if (ws.length >= 5) flagRead('fuera', `Eso no está en el guion: «${ws.slice(0, 5).join(' ')}…»`, RD.pos);
+    return;
+  }
+  const first = base + ms[0].s, last = base + ms[ms.length - 1].s;
+  // vuelves a empezar la frase: lo que dices empieza antes de donde ibas
+  if (RD.pos > 3 && first < RD.pos - 2) flagRead('repite', `Has vuelto a empezar: «${scriptWords(first, Math.min(RD.pos, first + 5))}…»`, first);
+  let dels = [], ins = [];
+  const subs = [];
+  const closeDel = () => { if (dels.length >= 3) flagRead('salto', `Te has saltado «${scriptWords(base + dels[0], base + dels[dels.length - 1] + 1)}»`, base + dels[0]); dels = []; };
+  const closeIns = o => {
+    if (ins.length >= 2) {
+      // lo dicho de más repite lo que hay justo al lado en el guion: te has trabado
+      const at = base + (o ? o.s : ms[ms.length - 1].s + 1), near = SW.slice(Math.max(0, at - ins.length - 2), at + ins.length + 2).map(w => w.norm);
+      const rep = ins.filter(w => near.some(p => readEq(p, w))).length >= ins.length * .7;
+      if (rep) flagRead('repite', `Te has trabado: has repetido «${ins.join(' ')}»`, Math.max(0, at - 1));
+      else if (ins.length >= 3) flagRead('fuera', `Has añadido «${ins.join(' ')}», que no está en el guion`, Math.max(0, at - 1));
+    }
+    ins = [];
+  };
+  for (const o of ops) {
+    if (o.op !== 'd') closeDel();
+    if (o.op !== 'i') closeIns(o);
+    if (o.op === 'd') dels.push(o.s);
+    else if (o.op === 'i') ins.push(o.w);
+    else if (o.op === 's') { const sw = SW[base + o.s].norm; if (sw.length >= 4 && !READ_STOP.has(sw) && wsim(o.w, sw) < .6) subs.push(o); }
+  }
+  closeDel(); closeIns(null);
+  if (subs.length >= 2 && subs.length <= ws.length * .4) flagRead('cambio', `Has cambiado palabras: ${subs.slice(0, 2).map(o => `«${o.w}» por «${scriptWords(base + o.s, base + o.s + 1)}»`).join(', ')}`, base + subs[0].s);
+  else if (subs.length === 1) flagRead('posible', `¿«${subs[0].w}» por «${scriptWords(base + subs[0].s, base + subs[0].s + 1)}»?`, base + subs[0].s, false);
+  RD.pos = Math.max(RD.pos, last + 1);
+}
+// dudas y pausas, por la voz (en todos los dispositivos)
+const readIdx = () => FOL.follow && FOL.ok ? FOL.pointer : PR.idx;
+function nearBreak(idx) {
+  const W = S.sc.words;
+  // quien lee va por la franja, a veces un poco por delante: se mira toda la zona
+  for (let k = Math.max(0, idx - 4); k <= Math.min(W.length - 1, idx + 3); k++) if (/[.,;:!?…»”")\]]$/.test(W[k].text)) return true;
+  return S.sc.cues.some(c => c.type === 'pausa' && Math.abs(c.at - idx) <= 3) || S.sc.paras.some(p => Math.abs(p.start - idx) <= 1);
+}
+function fluencyTick(t, voiced, f0) {
+  const tk = S.take; if (!readingOn() || t - tk.t0 < 2.5 || S.stopping) return;
+  // te paras en seco a mitad de frase (no en una coma, un punto o una pausa marcada)
+  if (!voiced) {
+    if (RD.sil == null) { RD.sil = t; RD.silIdx = readIdx(); RD.silTalk = t - V.talkStart; }
+    else if (!RD.silDone && t - RD.sil >= 1.8) {
+      RD.silDone = true;
+      const n = S.sc.words.length, idx = RD.silIdx;
+      if (RD.silTalk >= 1.2 && idx > 2 && idx < n - 2 && !nearBreak(idx)) flagRead('pausa', `Te has parado a mitad de frase, en «${scriptWords(Math.max(0, idx - 2), idx + 1)}»`, idx);
+    }
+  } else { RD.sil = null; RD.silDone = false; }
+  // «eeeh»: voz sostenida en el mismo tono y sin sílabas
+  if (voiced && f0 > 70 && f0 < 450) {
+    const st = 12 * Math.log2(f0 / 55), h = RD.hold;
+    if (h && Math.abs(st - h.ref) <= .8 && t - h.last < .35 && V.lastPeak <= h.t0 + .05) {
+      h.last = t; h.n++; h.ref = h.ref * .9 + st * .1;
+      if (!h.done && t - h.t0 >= .65 && h.n >= 6) { h.done = true; flagRead('duda', 'Un «eeeh» alargado: suena a duda', readIdx()); }
+    } else RD.hold = { t0: t, ref: st, last: t, n: 1 };
+  } else if (!voiced && RD.hold && t - RD.hold.last > .15) RD.hold = null;
+}
+const READ_LOOK = { salto: '⏭️', repite: '🔁', cambio: '🔀', fuera: '🧭', pausa: '⏸️', duda: '🤔', posible: '❔' };
+function flagRead(kind, txt, idx, alert = true) {
+  const tk = S.take; if (!tk) return;
+  const t = now(), e = { t: takeT(t), kind, txt, idx };
+  (tk.reads ||= []).push(e);
+  if (alert && idx != null) wordEls[idx]?.classList.add('rmiss');
+  if (!alert || S.opts.readCheck === false || t - RD.lastAlert < 2.5) return;
+  RD.lastAlert = t;
+  const el = $('#readAlert');
+  $('#raTxt').textContent = `${READ_LOOK[kind] || '✋'} ${txt}`;
+  $('#raHint').innerHTML = FOL.on || (kwsOn() && KWS.tpl) ? 'Di <b>«otra vez»</b> para repetir desde el principio, o sigue si no importa' : 'Pulsa <b>Terminar</b> para repetir, o sigue si no importa';
+  el.hidden = false; el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+  try { navigator.vibrate?.(180); } catch {}
+  clearTimeout(RD.alertTimer); RD.alertTimer = setTimeout(() => { el.hidden = true; }, 5000);
+}
+S.dbg.read = { readCheckPhrase, readAlign, RD, flagRead, processAudio, get PR() { return PR; } };
 
 /* ---------------- teleprompter ---------------- */
 const PR = { offset: 0, target: 0, idx: 0, tops: [], readY: 140, lineH: 60, wpl: 8, running: false, speedF: 1, marked: 0, nextCue: 0, lastT: 0 };
@@ -5231,6 +5394,7 @@ async function startTake(record) {
   S.take = { t0: t, record, call, file: file ? S.file.name : null, url: file ? S.file.url : null,
     plan: !call && !file && S.plan?.ids.length ? S.plan : null, log: [], events: [], chunks: [], endAt: 0, tone: S.tone, nods: 0 };
   ser.words.clear();
+  resetReading();
   for (const k in RS) { RS[k].on = 0; RS[k].lastEnd = -99; RS[k].lastOn = t; }
   PR.running = true; PR.speedF = 1;
   PR.nextCue = S.sc.cues.findIndex(c => c.at >= PR.idx); if (PR.nextCue < 0) PR.nextCue = S.sc.cues.length;
@@ -5537,8 +5701,12 @@ function buildReport(tk) {
   // en qué fallas: los objetivos para la próxima (lo que más tiempo estuvo mal); en una llamada, los avisos que más salieron
   const badItems = plan ? plan.ids.map(id => { const [e, l] = goalTxt(id); const prev = ba?.find(r => r.id === id)?.b; return { e, l, pct: plan.base[id], prev, how: firstSentence(TIPS[id]) }; })
     : fixes.slice(0, 3).map(([id, f]) => ({ e: (RULE_LOOK[id] || ['⚠️'])[0], l: f.title, pct: null, n: f.n, how: firstSentence(TIPS[id]) }));
+  // fallos al leer: lo primero, con el momento para cortar
+  const rf = call || file ? [] : readFails(tk);
+  if (rf.length) badItems.unshift({ e: '📖', l: `${rf.length} ${rf.length === 1 ? 'fallo' : 'fallos'} al leer`, pct: null, n: rf.length, how: rf.slice(0, 3).map(r => `${fmtTime(r.t)} · ${r.txt}`).join('  ·  ') });
   // lo que mejoras (frente a la toma de antes) y lo que ya haces bien (medidas en su franja casi siempre)
   const goodItems = [];
+  if (!call && !file && !rf.length && tk.dur > 8 && S.opts.readCheck !== false) goodItems.push({ e: '📖', l: 'Lectura sin fallos', txt: tk.sr ? 'Sin saltos, repeticiones ni palabras cambiadas' : 'Sin dudas ni pausas a mitad de frase' });
   for (const r of ba || []) if (r.v[0] === 'ok') { const [e, l] = goalTxt(r.id); goodItems.push({ e, l, txt: r.b != null && r.b > .08 ? `${pctT(r.b)} → ${pctT(r.a)} del tiempo con el problema` : 'Bien todo el rato' }); }
   for (const g of gaps.filter(g => g.n > 5 && g.inBand >= .7).sort((a, b) => b.inBand - a.inBand)) {
     if (goodItems.length >= 4) break;
@@ -5686,6 +5854,10 @@ function buildReport(tk) {
       ${paraRows.map(r => `<tr><td>${esc(r.words)}…</td><td><span class="pill" style="color:${TONES[r.tone].color}">${TONES[r.tone].name}</span></td><td>${r.top ? `<span class="pill" style="color:${lookOf(r.top).color}">${lookOf(r.top).name}</span>` : '<span class="pill na">sin leer</span>'}</td><td class="num">${r.match == null ? '—' : r.match + '%'}</td></tr>`).join('')}
       </tbody></table></div>
     </section>`}
+    ${rf.length ? `<section class="panel"><h2>📖 Fallos al leer</h2>
+      <ul class="reads">${rf.map(r => `<li><button type="button" class="ghost" data-seek="${r.t.toFixed(1)}">${fmtTime(r.t)}</button><span>${esc(r.txt)}</span></li>`).join('')}</ul>
+      <p class="note">Toca el momento para verlo. Al editar, corta ahí; o repite la toma diciendo «otra vez».</p>
+    </section>` : ''}
     ${cueEv.length ? `<section class="panel"><h2>Acotaciones</h2><div class="tbl"><table class="rows"><thead><tr><th>Momento</th><th>Gesto</th><th>En la frase</th><th>Resultado</th></tr></thead><tbody>
       ${cueEv.map(e => { const w = S.sc.words.slice(e.cue.at, e.cue.at + 5).map(x => x.text).join(' '); return `<tr><td class="num" style="text-align:left">${fmtTime(e.t)}</td><td>${esc(e.title)}</td><td>«${esc(w)}…»</td><td>${e.outcome === 'hit' ? '<span class="pill ok">' + ico('ok') + 'Hecho</span>' : e.outcome === 'miss' ? '<span class="pill no">No se vio</span>' : '<span class="pill na">Sin comprobar</span>'}</td></tr>`; }).join('')}
     </tbody></table></div></section>` : ''}
@@ -5711,6 +5883,8 @@ function leaveStudioForReport() {
 function releaseMedia() { stopVoice(); if (S.stream) { for (const tr of S.stream.getTracks()) tr.stop(); S.stream = null; } if (S.audio) { try { S.audio.ctx.close(); } catch {} S.audio = null; } }
 function closeReport(step, flow) { releaseMedia(); if (step) openSetup(step, flow); else show('setup'); }
 $('#report').addEventListener('click', e => {
+  const sk = e.target.closest('[data-seek]');
+  if (sk) { const v = $('#repVideo'); if (v) { v.currentTime = +sk.dataset.seek; v.play?.().catch?.(() => {}); v.scrollIntoView({ block: 'center', behavior: 'smooth' }); } return; }
   const a = e.target.closest('[data-act]')?.dataset.act;
   if (a === 'home') closeReport('home');
   if (a === 'edit') closeReport('guion', 'video');

@@ -159,6 +159,30 @@ abre la llamada en otra pestaña del mismo navegador.
   vienes, la palabra que cambia en el titular, la cuenta atrás, el anillo de la nota que se
   llena mientras cuenta y la respuesta de los botones al pulsarlos. Se desactiva si el sistema pide menos movimiento.
 
+## Fallos al leer: aviso para cortar
+
+Mientras lees, la app compara lo que dices con el guion y, si te equivocas, te avisa en el momento con un aviso
+rojo arriba («✋ Fallo al leer») para que cortes y repitas diciendo «otra vez». La palabra donde fallaste queda
+subrayada en rojo en el texto.
+
+| Fallo | Cómo lo ve | Dónde |
+|---|---|---|
+| ⏭️ Te saltas un trozo (3 palabras o más) | Lo que dices, alineado palabra a palabra con el guion | Chrome o Edge de ordenador |
+| 🔁 Te trabas o vuelves a empezar la frase | Repites palabras que acabas de leer | Chrome o Edge de ordenador |
+| 🔀 Cambias palabras (dos o más en la misma frase) | Palabras distintas a las del guion | Chrome o Edge de ordenador |
+| 🧭 Te sales del guion | Lo que dices no está en el texto | Chrome o Edge de ordenador |
+| ⏸️ Te paras en seco a mitad de frase | Más de 1,8 s de silencio lejos de una coma, un punto o una pausa marcada | Todos, también iPhone |
+| 🤔 Un «eeeh» alargado | Voz sostenida en el mismo tono y sin sílabas | Todos, también iPhone |
+
+- Para no avisar por un error del reconocedor, una sola palabra distinta no basta: queda como «posible» y solo se
+  avisa si hay más en la misma frase.
+- Se ve aunque grabes con «solo la línea», porque es lo que te hace repetir la toma. Se desactiva en «Antes de
+  grabar» → «Texto y avisos» → «Avisarme si me equivoco al leer».
+- Al terminar el ensayo y en el informe salen los fallos con el momento exacto («0:12 · Te has saltado…»); en el
+  informe, al tocar el momento, el vídeo salta ahí para que sepas dónde cortar al editar.
+- En el iPhone no se comprueban las palabras: el reconocimiento de voz del navegador corta la cámara. Para hacerlo
+  haría falta un modelo de voz dentro de la app (unos 40 MB la primera vez).
+
 ## Tu plano: luz, sonido, encuadre y nivel
 
 Antes de grabar, la pestaña **Plano** de la información enseña con un dibujo qué hacer con cada cosa:
