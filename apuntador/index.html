@@ -224,12 +224,9 @@ body:not([data-app="llamada"]) .only-call{display:none!important}
 #studio.reading #cue .cue-txt b{font-size:1.2rem}
 #studio.reading #cue .cue-detail{display:none}
 #studio.reading.mon-full #cue{left:calc(50% - 170px)}
-#studio.reading #monitor :is(#meters,.why,.also,.tabs,#parts,.seen,.kit){display:none}
 #studio.reading #overlay{opacity:.45}
 #studio.reading .status{display:none}
-#studio.line-only #monitor{display:none!important}
 #studio.line-only.mon-full #cue{left:50%}
-@media (max-width:760px){#studio.reading #monitor{display:none!important}}
 
 #cue{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 12px);transform:translateX(-50%);display:flex;align-items:center;gap:16px;max-width:min(680px,calc(100% - 24px));padding:12px 20px 12px 16px;border-radius:18px;background:var(--glass);border:1px solid var(--cc,var(--warn));box-shadow:0 10px 40px rgba(0,0,0,.45);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);z-index:5}
 #cue .cue-vis{position:relative;display:grid;place-items:center;width:88px;height:88px;border-radius:18px;background:color-mix(in srgb,var(--cc,var(--warn)) 16%,rgba(0,0,0,.35));flex:none}
@@ -282,11 +279,9 @@ body:not([data-app="llamada"]) .only-call{display:none!important}
 .meter.none .needle{opacity:0}
 .also{margin:0;font-size:.8rem;color:var(--mute)}
 .also b{color:var(--paper);font-weight:400}
-#monitor.compact #meters,#monitor.compact .why,#monitor.compact .also,#monitor.compact .tabs,#monitor.compact #parts{display:none}
 .tabs{display:flex;gap:4px;padding:4px;border:1px solid var(--line);border-radius:999px}
 .tabs button{flex:1;border:0;background:transparent;border-radius:999px;padding:8px 12px;font-size:.84rem;color:var(--mute)}
 .tabs button[aria-selected="true"]{background:var(--stage-2);color:var(--paper);font-weight:700}
-#monitor[data-tab="cuerpo"] #meters,#monitor[data-tab="tono"] #parts{display:none}
 .parts{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:18px auto minmax(0,1fr);gap:8px;align-items:center;font-size:.86rem}
 .parts li{display:contents;--pc:var(--dim)}
 .parts li.k-ok{--pc:var(--ok)}.parts li.k-warn{--pc:var(--warn)}.parts li.k-bad{--pc:var(--bad)}.parts li.k-none{--pc:var(--paper)}
@@ -1020,6 +1015,103 @@ details.group>.fold-body{padding-bottom:var(--u)}
   .pane>*{animation:none!important}
   .switch::before,.ab-dots i{transition:none}
 }
+/* ==================================================================================================
+   Información plegable. Un botón pequeño en la esquina (la nota y cuatro puntos: luz, sonido, encuadre y
+   nivel) que se despliega en un panel con un muelle suave. Al leer, el botón se queda en un círculo y el
+   panel plegado: la imagen queda libre.
+   ================================================================================================== */
+:root{--spring:cubic-bezier(.2,1.3,.35,1)}
+.mon-pill{position:absolute;z-index:7;top:calc(env(safe-area-inset-top,0px) + 12px);right:max(12px,env(safe-area-inset-right,0px));display:flex;align-items:center;gap:6px;height:48px;padding:0 10px 0 6px;border:0;border-radius:999px;
+  background:rgba(16,16,22,.66);color:#fff;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 6px 20px rgba(0,0,0,.28);
+  transition:transform .45s var(--spring),opacity .25s var(--ease),padding .3s var(--ease)}
+.mon-pill:active{transform:scale(.92)}
+.mon-pill:focus-visible{outline:2px solid #C8F25A;outline-offset:3px}
+.mp-ring{--p:0;--rc:rgba(255,255,255,.4);display:grid;place-items:center;flex:none;width:36px;height:36px;border-radius:50%;background:conic-gradient(var(--rc) calc(var(--p) * 1%),rgba(255,255,255,.16) 0)}
+.mp-ring b{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#16161C;font:700 11px/1 var(--f-body);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.mp-kit{display:flex;gap:2px}
+.mp-kit i{position:relative;display:grid;place-items:center;width:26px;height:26px;font-style:normal;font-size:14px;line-height:1}
+.mp-kit i::after{content:"";position:absolute;right:0;bottom:1px;width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.35);box-shadow:0 0 0 2px #16161C;transition:background .3s}
+.mp-kit i[data-k="ok"]::after{background:#3DDC97}.mp-kit i[data-k="warn"]::after{background:#FFC24B}.mp-kit i[data-k="bad"]::after{background:#FF5F5A}
+.mp-chev{width:18px;height:18px;transform:rotate(90deg);opacity:.85;transition:transform .3s var(--ease)}
+.mon-pill[data-k="bad"]:not(:active){animation:pillcall 2.4s var(--ease) 2}
+@keyframes pillcall{0%,100%{box-shadow:0 6px 20px rgba(0,0,0,.28)}40%{box-shadow:0 0 0 6px rgba(255,95,90,.35),0 6px 20px rgba(0,0,0,.28)}}
+#studio.reading .mon-pill{padding:0 6px}
+#studio.reading .mon-pill :is(.mp-kit,.mp-chev){display:none}
+#studio.mon-open .mon-pill{opacity:0;transform:scale(.6);pointer-events:none}
+body.pip .mon-pill{display:none}
+
+/* el panel sale de la esquina del botón */
+#monitor{top:calc(env(safe-area-inset-top,0px) + 12px);bottom:auto;right:max(12px,env(safe-area-inset-right,0px));width:320px;z-index:8;
+  max-height:calc(100% - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 108px);transform-origin:top right;overscroll-behavior:contain;
+  transition:opacity .25s var(--ease),transform .55s var(--spring),visibility 0s linear 0s}
+#monitor:not(.open){opacity:0;transform:translate(6px,-6px) scale(.5);visibility:hidden;pointer-events:none;
+  transition:opacity .18s var(--ease),transform .28s var(--ease),visibility 0s linear .28s}
+#monitor.open>*{animation:monin .5s var(--ease) both}
+#monitor.open>:nth-child(2){animation-delay:.04s}#monitor.open>:nth-child(3){animation-delay:.07s}#monitor.open>:nth-child(4){animation-delay:.1s}
+#monitor.open>:nth-child(5){animation-delay:.13s}#monitor.open>:nth-child(6){animation-delay:.16s}#monitor.open>:nth-child(n+7){animation-delay:.19s}
+@keyframes monin{from{opacity:0;transform:translateY(-10px)}}
+.mon-head{display:flex;align-items:center;justify-content:space-between;gap:var(--u);margin:-4px -6px -4px 0}
+.mon-head b{font:700 var(--t-md)/1.2 var(--f-display);letter-spacing:-.01em}
+.mon-x{display:grid;place-items:center;flex:none;width:40px;height:40px;padding:0;border:0;border-radius:999px;background:var(--stage-2);color:var(--paper);transition:transform .15s var(--ease)}
+.mon-x:active{transform:scale(.9)}
+.mon-x .ico{width:18px;height:18px;stroke-width:2.2}
+body.pip .mon-head{display:none}
+body.pip #monitor{opacity:1;transform:none;visibility:visible;pointer-events:auto}
+#studio #monitor{background:var(--glass-solid)}
+#monitor[data-tab="plano"] :is(#parts,#meters,.kit,.why,.also,.verdict,.mood,#goals),#monitor[data-tab="cuerpo"] :is(#meters,#plano),#monitor[data-tab="tono"] :is(#parts,#plano){display:none!important}
+@media (max-width:760px){
+  #monitor{left:max(8px,env(safe-area-inset-left,0px));right:max(8px,env(safe-area-inset-right,0px));width:auto;top:calc(env(safe-area-inset-top,0px) + 8px);bottom:auto;padding:16px;
+    max-height:calc(100% - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 92px)}
+  /* el botón, compacto: la nota y cuatro puntos de color; los avisos de arriba, debajo de él */
+  .mon-pill{gap:4px;padding:0 8px 0 6px}
+  .mp-kit{gap:3px}
+  .mp-kit i{width:10px;height:10px;font-size:0}
+  .mp-kit i::after{right:0;bottom:0;width:10px;height:10px;box-shadow:none}
+  #studio:not(.reading) #cue{top:calc(env(safe-area-inset-top,0px) + 68px)}
+  .voice-hint{white-space:normal;text-align:center;border-radius:16px;width:max-content}
+}
+
+/* tu plano: cuatro tarjetas con dibujo */
+.plano{display:flex;flex-direction:column;gap:var(--u)}
+.plano-t{margin:0;font-size:var(--t-sm);color:var(--mute);text-align:center}
+.pl{--plc:var(--dim);display:flex;flex-direction:column;gap:var(--u);padding:calc(var(--u) * 1.5);border-radius:var(--r-md);background:var(--stage-2);box-shadow:inset 4px 0 0 var(--plc)}
+.pl.ok{--plc:var(--ok)}.pl.warn{--plc:var(--warn)}.pl.bad{--plc:var(--bad)}
+.pl header{display:flex;align-items:center;gap:var(--u);min-width:0}
+.pl header b{font-weight:700}
+.pl-st{margin-left:auto;font-size:var(--t-xs);font-weight:700;color:var(--plc);text-align:right}
+.pl.none .pl-st{color:var(--mute)}
+.pl-fig:empty{display:none}
+.fig{display:block;width:100%;height:auto;max-height:160px;color:var(--paper);overflow:visible}
+.fig text{font-family:var(--f-body)}
+.pl-fix{margin:0;font-size:var(--t-sm);line-height:var(--lh);color:var(--mute)}
+.lbar{position:relative;height:8px;margin:6px 4px 0;border-radius:4px;background:linear-gradient(90deg,var(--warn) 0 29%,var(--ok) 29% 80%,var(--bad) 80%)}
+.lbar i{position:absolute;top:-4px;width:4px;height:16px;margin-left:-2px;border-radius:2px;background:var(--paper);box-shadow:0 0 0 2px var(--stage)}
+.lbar-k{display:flex;justify-content:space-between;margin:4px 4px 0;font-size:10px;font-weight:600;color:var(--mute)}
+.kit button{white-space:nowrap}
+/* en el ensayo y en el informe, el dibujo de lo que hay que cambiar */
+.kfig{grid-column:2 / 4;max-width:300px;margin-top:4px;padding:var(--u);border-radius:var(--r-sm);background:var(--stage-2);color:var(--paper)}
+.reh-kit .kfig{max-width:280px;margin:6px 0 2px}
+
+/* guías sobre la imagen, antes de grabar: nivel (con sensor) y silueta del encuadre */
+.horizon{position:absolute;left:50%;top:62%;z-index:3;width:min(64vw,420px);height:0;transform:translateX(-50%);pointer-events:none;opacity:0;transition:opacity .4s var(--ease)}
+.horizon.on{opacity:1}
+.hz-line{position:absolute;left:14%;right:14%;top:-1px;height:2px;border-radius:1px;background:#fff;box-shadow:0 0 6px rgba(0,0,0,.55);transition:transform .15s linear,background .25s}
+.hz-ref{position:absolute;top:-1px;width:10%;height:2px;border-radius:1px;background:rgba(255,255,255,.75);box-shadow:0 0 6px rgba(0,0,0,.55)}
+.hz-ref:first-child{left:0}.hz-ref:nth-child(3){right:0}
+.horizon.ok :is(.hz-line,.hz-ref){background:#C8F25A}
+.hz-txt{position:absolute;left:50%;top:12px;transform:translateX(-50%);font:700 13px/1 var(--f-body);color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.8);white-space:nowrap}
+.horizon.ok .hz-txt{color:#C8F25A}
+.frame-guide{position:absolute;inset:0;z-index:1;width:100%;height:100%;pointer-events:none;opacity:0;transition:opacity .5s var(--ease);
+  fill:none;stroke:rgba(255,255,255,.9);stroke-width:2.5;stroke-dasharray:9 7;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
+.frame-guide.on{opacity:.9}
+.frame-guide.ok{stroke:#C8F25A}
+.frame-guide text{fill:#fff;stroke:none;font:700 14px var(--f-body)}
+#studio.file-mode :is(.horizon,.frame-guide){display:none}
+@media (prefers-reduced-motion: reduce){
+  #monitor,#monitor:not(.open){transition:opacity .15s linear,visibility 0s linear .15s;transform:none}
+  #monitor.open>*{animation:none}
+  .mon-pill{transition:none}
+}
 </style>
 </head>
 <body>
@@ -1283,8 +1375,17 @@ details.group>.fold-body{padding-bottom:var(--u)}
     <i class="cue-bar" hidden><i></i></i>
   </div>
   <div class="lane" id="lane" hidden><i class="lane-line"></i><span class="lane-txt" id="laneTxt"></span></div>
+  <svg class="frame-guide" id="frameGuide" aria-hidden="true"></svg>
+  <div class="horizon" id="horizon" aria-hidden="true"><i class="hz-ref"></i><i class="hz-line" id="hzLine"></i><i class="hz-ref"></i><span class="hz-txt" id="hzTxt"></span></div>
 
-  <aside id="monitor" aria-label="Monitor del director">
+  <button class="mon-pill" id="monPill" type="button" aria-controls="monitor" aria-expanded="false" aria-label="Desplegar la información" data-k="">
+    <span class="mp-ring" id="mpRing"><b id="mpPct">--</b></span>
+    <span class="mp-kit" aria-hidden="true"><i data-d="luz">💡</i><i data-d="son">🎙️</i><i data-d="enc">🎯</i><i data-d="niv">📐</i></span>
+    <svg class="ico mp-chev" aria-hidden="true"><use href="#i-chev"/></svg>
+  </button>
+  <aside id="monitor" aria-label="Información del director" inert>
+    <div class="mon-head"><b>Información</b><button class="mon-x" id="monClose" type="button" aria-label="Plegar la información"><svg class="ico"><use href="#i-cerrar"/></svg></button></div>
+    <div class="tabs" role="tablist" aria-label="Vista de la información"><button type="button" role="tab" data-tab="plano">Plano</button><button type="button" role="tab" data-tab="cuerpo">Cuerpo</button><button type="button" role="tab" data-tab="tono">Tono</button></div>
     <p class="step" id="stepChip" hidden></p>
     <div class="verdict">
       <div class="ring" id="ring"><span id="matchPct">--</span></div>
@@ -1295,10 +1396,13 @@ details.group>.fold-body{padding-bottom:var(--u)}
     </div>
     <p class="mood" id="mood">👀 Esperando a verte…</p>
     <div class="goals" id="goals" hidden aria-label="Objetivos de la toma"></div>
-    <div class="kit" id="kit" aria-label="Luz y sonido"><button type="button" data-k="luz">💡 <span>Luz</span></button><button type="button" data-k="son">🎙️ <span>Sonido</span></button></div>
+    <div class="kit" id="kit" aria-label="Tu plano"><button type="button" data-k="luz">💡 <span>Luz</span></button><button type="button" data-k="son">🎙️ <span>Sonido</span></button><button type="button" data-k="enc">🎯 <span>Encuadre</span></button><button type="button" data-k="niv">📐 <span>Nivel</span></button></div>
     <div class="seen" aria-label="Lo que detecta ahora"><span data-s="cara">🙂 Cara</span><span data-s="cuerpo">🧍 Cuerpo</span><span data-s="manos">✋ Manos</span><span data-s="voz">🎙️ Voz</span></div>
     <p class="why" id="why">Colócate frente a la cámara y empieza a hablar.</p>
-    <div class="tabs" role="tablist" aria-label="Vista del monitor"><button type="button" role="tab" data-tab="cuerpo">Cuerpo</button><button type="button" role="tab" data-tab="tono">Tono</button></div>
+    <section class="plano" id="plano" aria-label="Tu plano: luz, sonido, encuadre y nivel">
+      <p class="plano-t" id="planoTitle">Revisa tu plano antes de grabar</p>
+      <article class="pl none" data-pl="luz"></article><article class="pl none" data-pl="son"></article><article class="pl none" data-pl="enc"></article><article class="pl none" data-pl="niv"></article>
+    </section>
     <ul id="parts" class="parts" aria-label="Lo que hace cada parte del cuerpo"></ul>
     <ul id="meters"></ul>
     <p class="also" id="also"></p>
@@ -1322,7 +1426,7 @@ details.group>.fold-body{padding-bottom:var(--u)}
   </div>
   <div class="stop-card" id="stopCard" hidden role="alertdialog" aria-label="Parando la grabación">
     <b id="stopTxt" aria-live="assertive">⏹ Corto en 3</b>
-    <p>Sigo grabando hasta entonces. Di <q>seguimos</q> para continuar.</p>
+    <p>Sigo grabando hasta entonces. Di <q>seguimos</q> para continuar u <q>otra vez</q> para repetir desde el principio.</p>
     <div class="actions"><button class="ghost" id="stopCancel" type="button">Seguir grabando</button><button class="primary" id="stopNowBtn" type="button">Cortar ya</button></div>
   </div>
   <div class="plan-card" id="planCard" hidden role="dialog" aria-label="Objetivos de esta toma">
@@ -1345,7 +1449,7 @@ details.group>.fold-body{padding-bottom:var(--u)}
     <div class="actions"><button class="ghost" id="rehReport" type="button">Ver informe</button><button class="ghost" id="rehAgain" type="button">Ensayar otra vez</button><button class="primary reh-rec" id="rehRec" type="button"><i class="dot"></i>Grabar de verdad</button></div>
   </div>
   <div class="file-bar" id="fileBar" hidden><span aria-hidden="true">🎞️</span><span class="fb-name" id="fbName"></span><div class="progress"><i id="fbProg"></i></div><span class="fb-time" id="fbTime">0:00</span></div>
-  <div class="voice-hint" id="voiceHint" hidden>🎙️ Di <b>«comenzamos»</b> para grabar · <b>«ensayo»</b> para ensayar · <b>«corten»</b> para parar</div>
+  <div class="voice-hint" id="voiceHint" hidden>🎙️ Di <b>«comenzamos»</b> para grabar · <b>«corten»</b> para parar · <b>«otra vez»</b> para repetir</div>
 
   <div class="bar-ctl">
     <button class="btn" id="back" title="Volver (Esc)"><svg class="ico"><use href="#i-volver"/></svg><span class="lbl">Volver</span></button>
@@ -1360,7 +1464,7 @@ details.group>.fold-body{padding-bottom:var(--u)}
     <button class="btn" id="fontUp" title="Letra más grande (+)"><svg class="ico"><use href="#i-texto"/></svg><span class="sr">Letra más grande</span>+</button>
     <button class="btn" id="txtBtn" title="Ocultar o mostrar el texto para verte entero (T)"><svg class="ico"><use href="#i-texto"/></svg><span class="lbl">Texto</span></button>
     <button class="btn" id="skel" title="Esqueleto (S)"><svg class="ico"><use href="#i-esqueleto"/></svg><span class="sr">Esqueleto</span></button>
-    <button class="btn" id="mon" title="Monitor completo o compacto (M)"><svg class="ico"><use href="#i-monitor"/></svg><span class="sr">Monitor</span></button>
+    <button class="btn" id="mon" title="Información (I)"><svg class="ico"><use href="#i-monitor"/></svg><span class="sr">Información</span></button>
     <button class="btn" id="wordsBtn" hidden title="Volver a enseñar tus palabras de voz"><span aria-hidden="true">🎙️</span><span class="lbl">Mis palabras</span></button>
     <button class="btn" id="pipBtn" title="Ventana flotante para tenerlo encima de la videollamada"><svg class="ico"><use href="#i-flotante"/></svg><span class="lbl">Ventana flotante</span></button>
   </div>
@@ -2144,7 +2248,7 @@ function primeAudio() {
     S.actx.resume?.().catch(() => {});
   } catch {}
 }
-$('#go').addEventListener('click', () => { primeAudio(); enterStudio(); });
+$('#go').addEventListener('click', () => { askMotion(); primeAudio(); enterStudio(); });
 
 /* ---------------- plató: entrada y salida ---------------- */
 let video = $('#cam');   // la cámara o, al analizar un vídeo subido, ese vídeo
@@ -2273,7 +2377,9 @@ function prepStudioUI() {
   $('#fileBar').hidden = !S.file;
   $('#planCard').hidden = true;
   S.seenOK = false;
-  setTab(S.opts.tab?.[S.opts.app] || (isCall() ? 'cuerpo' : 'tono'));
+  setTab(S.opts.tab?.[S.opts.app] || (isCall() ? 'cuerpo' : 'plano'));
+  S.planoShown = false; S.panelWas = null;
+  setPanel(S.opts.panel ?? innerWidth > 760);   // en el móvil, plegado: la imagen primero
   document.documentElement.style.setProperty('--pfs', pfs() + 'px');
   $('#pwrap').classList.toggle('mirror', S.opts.mirror);
   applyMonitorLayout();
@@ -2769,6 +2875,7 @@ function onPose(res, t) {
 
   // postura
   B.tilt = Math.abs(Math.atan2(Math.abs(ls.y - rs.y), Math.abs(ls.x - rs.x)) * 180 / Math.PI);
+  B.shRoll = Math.atan2(ls.y - rs.y, ls.x - rs.x) * 180 / Math.PI;   // con signo, como F.roll: para saber si la cámara está torcida
   B.neck = (c.y - nose.y) / sw;
   if (S.calibrating) S.calibrating.neck.push(B.neck);
   B.slouch = B.neck < S.calib.neck * .7;
@@ -2808,7 +2915,7 @@ function onFace(res, t) {
     ok: true, lastSeen: t, fl,
     yaw: ((nose.x - (l.x + r.x) / 2) * W) / fw,
     pitch: (nose.y - em.y) / Math.max(1e-3, chin.y - em.y),
-    h: chin.y - top.y, cx: nose.x, box: { minx, maxx, miny, maxy },
+    h: chin.y - top.y, cx: nose.x, ey: em.y, box: { minx, maxx, miny, maxy },
     smile: ((bs.mouthSmileLeft || 0) + (bs.mouthSmileRight || 0)) / 2,
     brow: ((bs.browInnerUp || 0) + ((bs.browOuterUpLeft || 0) + (bs.browOuterUpRight || 0)) / 2) / 2,
     frown: ((bs.browDownLeft || 0) + (bs.browDownRight || 0)) / 2,
@@ -3156,18 +3263,313 @@ function soundVerdict(voiced, all, clips, file) {
 const listaY = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' y ' + a[a.length - 1];
 function setupReview(tk) {
   const out = [];
-  const L = lightVerdict(avgLight(tk.light));
-  if (L) out.push({ e: '💡', area: 'Luz', ...L });
+  // cada punto lleva su dibujo (se genera solo si hace falta enseñarlo)
+  const LA = avgLight(tk.light), L = lightVerdict(LA);
+  if (L) out.push({ e: '💡', area: 'Luz', ...L, fig: () => lightFig(L, LA) + lightBar(LA) });
   const s = tk.snd, Sv = s ? soundVerdict(s.voiced, s.all, s.clip, !!tk.file) : null;
-  if (Sv) out.push({ e: '🎙️', area: 'Sonido', ...Sv });
+  if (Sv) out.push({ e: '🎙️', area: 'Sonido', ...Sv, fig: () => soundFig({ v: Sv, lvl: median(s.voiced), fl: pctl(s.all, .1) }) });
   const n = tk.log.length || 1, share = id => tk.log.filter(x => x.on?.includes(id)).length / n;
+  // dónde estuviste, de media: para el dibujo y para ver si sobraba aire encima
+  const FR = tk.fr?.length >= 4 ? { face: { x0: median(tk.fr.map(f => f.x0)), x1: median(tk.fr.map(f => f.x1)), y0: median(tk.fr.map(f => f.y0)), y1: median(tk.fr.map(f => f.y1)) }, ey: median(tk.fr.map(f => f.ey)), aspect: tk.fr[0].aspect } : null;
+  const head = FR ? frameVerdict({ h: .2, cx: .5, top: FR.face.y0, ey: FR.ey }) : null;
   const fr = share('cerca') > .25 ? { k: 'warn', t: 'Muy cerca de la cámara', fix: 'Aléjate hasta que se te vea de cintura para arriba: así se ven hombros y manos.' }
     : share('lejos') > .25 ? { k: 'warn', t: 'Lejos de la cámara', fix: 'Acércate: tu cara se ve pequeña y se pierde la expresión.' }
     : share('manosFuera') > .3 ? { k: 'warn', t: 'Las manos se salen del plano', fix: 'Encuadra de cintura para arriba y gesticula a la altura del pecho.' }
     : share('centro') > .25 ? { k: 'warn', t: 'Descentrado', fix: 'Ponte en el centro de la imagen.' }
+    : head && head.k !== 'ok' ? head
     : tk.log.length > 8 ? { k: 'ok', t: 'Buen encuadre', fix: '' } : null;
-  if (fr) out.push({ e: '🎯', area: 'Encuadre', ...fr });
+  if (fr) out.push({ e: '🎯', area: 'Encuadre', ...fr, fig: FR ? () => frameFig({ ...FR, k: fr.k, t: fr.t }) : null });
+  // nivel: el sensor del móvil si lo hubo durante la toma; si no, ojos y hombros
+  const lv = tk.lv || [], sens = lv.filter(x => x.src === 'sensor' && !x.flat), vis = lv.filter(x => x.src === 'imagen' && x.roll != null);
+  let l = null;
+  if (sens.length >= 4 && sens.length >= lv.length / 2) { const ps = sens.map(x => x.pitch).filter(x => x != null); l = { src: 'sensor', roll: median(sens.map(x => x.roll)), pitch: ps.length >= sens.length / 2 ? median(ps) : null, land: sens[0].land }; }
+  else if (lv.filter(x => x.flat).length > lv.length / 2 && lv.length >= 4) l = { src: 'sensor', flat: true };
+  else if (vis.length >= 4) l = { src: 'imagen', roll: median(vis.map(x => x.roll)), crooked: vis.filter(x => x.crooked).length > vis.length / 2 };
+  const Lv = levelVerdict(l);
+  if (Lv) out.push({ e: '📐', area: 'Nivel', ...Lv, fig: () => levelFig(l) });
   return out;
+}
+
+/* ---------------- tu plano: luz, sonido, encuadre y nivel, con dibujos ----------------
+   Cada aspecto tiene un veredicto y un dibujo que enseña qué hacer: dónde poner la luz (vista desde arriba, con la
+   cámara abajo), cómo destaca tu voz del ruido, dónde colocarte en la imagen y si el móvil está recto. El nivel sale
+   del sensor del móvil (en iPhone pide permiso al entrar al plató); sin sensor, de la línea de los ojos y la de los
+   hombros: si las dos se inclinan igual, lo torcido es la cámara. */
+const LV = { g: null, beta: null, at: 0, vis: [], asked: false, bound: false, lastVis: 0 };
+function bindLevel() {
+  if (LV.bound) return; LV.bound = true;
+  addEventListener('devicemotion', e => {
+    const a = e.accelerationIncludingGravity; if (!a || a.x == null || a.y == null) return;
+    const g = LV.g, k = .15, z = a.z ?? 0;
+    LV.g = g ? { x: g.x + (a.x - g.x) * k, y: g.y + (a.y - g.y) * k, z: g.z + (z - g.z) * k } : { x: a.x, y: a.y, z };
+    LV.at = now();
+  });
+  addEventListener('deviceorientation', e => { if (e.beta != null) LV.beta = LV.beta == null ? e.beta : LV.beta + (e.beta - LV.beta) * .15; });
+}
+// en iPhone y iPad el sensor de movimiento pide permiso, y solo se puede pedir al tocar algo
+function askMotion() {
+  bindLevel();
+  if (LV.asked) return; LV.asked = true;
+  for (const E of [window.DeviceMotionEvent, window.DeviceOrientationEvent]) {
+    try { const p = E?.requestPermission?.(); p?.catch?.(() => {}); } catch {}
+  }
+}
+const SCREEN_MIRROR = () => !S.file;   // la vista previa de la cámara va en espejo; un vídeo subido, no
+function levelSample(t) {
+  // sin sensor: la línea de los ojos y la de los hombros, como se ven en pantalla
+  if (t - LV.lastVis < .25) return;
+  LV.lastVis = t;
+  if (F.ok && B.ok && fresh('face', F.lastSeen, t, .5) && fresh('pose', B.lastOk, t, .5) && B.shRoll != null) LV.vis.push([t, F.roll, B.shRoll]);
+  while (LV.vis.length && t - LV.vis[0][0] > 4) LV.vis.shift();
+}
+function levelNow(t) {
+  if (!S.file && LV.g && t - LV.at < 1.5) {   // el sensor es del móvil: no dice nada de un vídeo subido
+    const { x, y, z } = LV.g, xy = Math.hypot(x, y), n = Math.hypot(x, y, z) || 1;
+    if (xy < n * .5) return { src: 'sensor', flat: true };
+    // giro sobre la pantalla respecto a la vertical más cercana: igual en vertical y en horizontal, y sin depender
+    // del signo con el que cada sistema da la gravedad. Positivo: el móvil está girado en el sentido del reloj.
+    const a = Math.atan2(-x, y) * 180 / Math.PI, q = Math.round(a / 90), roll = a - 90 * q;
+    const land = Math.abs(q) % 2 === 1;
+    const pitch = !land && LV.beta != null && LV.beta > 25 && LV.beta < 155 ? 90 - LV.beta : null;   // >0: la cámara mira hacia arriba
+    return { src: 'sensor', roll, pitch, land };
+  }
+  if (!S.vision || LV.vis.length < 6) return null;
+  const e = median(LV.vis.map(s => s[1])), s = median(LV.vis.map(s => s[2]));
+  const same = Math.sign(e) === Math.sign(s) && Math.abs(e) > 4 && Math.abs(s) > 4;
+  const raw = same ? (e + s) / 2 : Math.abs(e) < 3 && Math.abs(s) < 3 ? (e + s) / 2 : null;
+  return { src: 'imagen', roll: raw == null ? null : SCREEN_MIRROR() ? -raw : raw, crooked: same };
+}
+function levelVerdict(l) {
+  if (!l) return null;
+  if (l.flat) return { k: 'warn', t: 'El móvil está tumbado', fix: 'Ponlo de pie, frente a ti, en vertical para redes.' };
+  if (l.src === 'sensor') {
+    const r = Math.abs(l.roll);
+    if (r > 6) return { k: 'bad', t: `Torcido ${Math.round(r)}°`, fix: 'Endereza el móvil hasta que la línea del centro se ponga verde.' };
+    if (l.pitch != null && Math.abs(l.pitch) > 14) return l.pitch > 0
+      ? { k: 'warn', t: 'La cámara mira hacia arriba', fix: 'Ponla vertical y súbela a la altura de tus ojos: desde abajo se ve la papada.' }
+      : { k: 'warn', t: 'La cámara mira hacia abajo', fix: 'Ponla vertical y a la altura de tus ojos: desde arriba te hace pequeño.' };
+    if (r > 2) return { k: 'warn', t: `Casi recto (${Math.round(r)}°)`, fix: 'Gíralo un poco hasta que la línea del centro se ponga verde.' };
+    return { k: 'ok', t: 'Recto', fix: '' };
+  }
+  if (l.crooked) return { k: 'warn', t: 'La imagen se ve torcida', fix: 'Tus ojos y tus hombros se inclinan hacia el mismo lado: endereza la cámara.' };
+  return l.roll == null ? null : { k: 'ok', t: 'Se ve recto', fix: '' };
+}
+// el encuadre, como lo ves en pantalla (x en espejo con la cámara)
+function frameNow(t) {
+  if (!S.vision) return null;
+  if (!(F.ok && F.box && fresh('face', F.lastSeen, t, 1.2))) return { k: 'bad', t: 'No te veo', fix: 'Ponte frente a la cámara, con la cara dentro de la imagen.', face: null };
+  const mir = SCREEN_MIRROR(), X = x => mir ? 1 - x : x, b = F.box;
+  const face = { x0: Math.min(X(b.minx), X(b.maxx)), x1: Math.max(X(b.minx), X(b.maxx)), y0: b.miny, y1: b.maxy };
+  let sh = null;
+  if (B.ok && B.P && fresh('pose', B.lastOk, t, 1)) { const W = video.videoWidth || 1, H = video.videoHeight || 1, l = B.P[11], r = B.P[12]; sh = [X(l.x / W), l.y / H, X(r.x / W), r.y / H]; }
+  const aspect = (video.videoWidth || 9) / (video.videoHeight || 16), ey = F.ey ?? (b.miny + (b.maxy - b.miny) * .42);
+  const v = frameVerdict({ h: F.h, cx: F.cx, top: b.miny, ey });
+  return { ...v, face, sh, aspect, ey: ey };
+}
+function frameVerdict(m) {
+  if (m.h > .5) return { k: 'warn', t: 'Muy cerca', fix: 'Aléjate hasta que se te vea de cintura para arriba: así se ven hombros y manos.' };
+  if (m.h < .085) return { k: 'warn', t: 'Lejos', fix: 'Acércate: tu cara se ve pequeña y se pierde la expresión.' };
+  if (Math.abs(m.cx - .5) > .17) return { k: 'warn', t: 'Descentrado', fix: `Muévete un poco a tu ${m.cx < .5 ? 'izquierda' : 'derecha'}, hasta el centro de la imagen.` };
+  if (m.top < .015) return { k: 'warn', t: 'Se te corta la cabeza', fix: 'Deja un poco de aire encima: aléjate o inclina la cámara un poco hacia arriba.' };
+  if (m.ey > .52) return { k: 'warn', t: 'Mucho aire sobre ti', fix: 'Inclina la cámara un poco hacia abajo: tus ojos, en el tercio de arriba de la imagen.' };
+  return { k: 'ok', t: 'Buen encuadre', fix: '' };
+}
+function soundNow() {
+  const voiced = SND.voiced.map(x => x[1]), all = SND.all.map(x => x[1]);
+  const v = SND.v, cur = V.db > -99 ? V.db : null;
+  if (!v || voiced.length < 30) return { v: null, cur };
+  return { v, lvl: median(voiced), fl: pctl(all, .1), cur };
+}
+
+/* dibujos (SVG en línea: se ven igual en el plató, en el ensayo y en el informe) */
+const FIG_C = { ok: 'var(--ok)', warn: 'var(--warn)', bad: 'var(--bad)', go: 'var(--spot-text)', ln: 'currentColor', dim: 'var(--dim)' };
+function figArrow(x1, y1, x2, y2, c = FIG_C.go, w = 2.4) {
+  const a = Math.atan2(y2 - y1, x2 - x1), h = 7;
+  const p = (r, s) => `${(x2 - h * Math.cos(a - s * .5)).toFixed(1)},${(y2 - h * Math.sin(a - s * .5)).toFixed(1)}`;
+  return `<path d="M${x1} ${y1}L${x2} ${y2}" stroke="${c}" stroke-width="${w}" fill="none" stroke-linecap="round"/><path d="M${p(0, 1)}L${x2} ${y2}L${p(0, -1)}" stroke="${c}" stroke-width="${w}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+}
+const figLabel = (x, y, txt, c = 'var(--mute)', anchor = 'middle') => `<text x="${x}" y="${y}" fill="${c}" font-size="10" font-weight="600" text-anchor="${anchor}">${esc(txt)}</text>`;
+function figLamp(x, y, c, ghost = false) {
+  const rays = [0, 45, 90, 135, 180, 225, 270, 315].map(d => { const r = d * Math.PI / 180; return `M${(x + 13 * Math.cos(r)).toFixed(1)} ${(y + 13 * Math.sin(r)).toFixed(1)}L${(x + 18 * Math.cos(r)).toFixed(1)} ${(y + 18 * Math.sin(r)).toFixed(1)}`; }).join('');
+  return `<circle cx="${x}" cy="${y}" r="9" fill="${ghost ? 'none' : c}" stroke="${c}" stroke-width="2.2"${ghost ? ' stroke-dasharray="3 3"' : ''}/><path d="${rays}" stroke="${c}" stroke-width="2" stroke-linecap="round"/>${ghost ? `<path d="M${x - 4} ${y}H${x + 4}M${x} ${y - 4}V${y + 4}" stroke="${c}" stroke-width="2" stroke-linecap="round"/>` : ''}`;
+}
+// luz, vista desde arriba: tú en el centro mirando a la cámara (abajo); la lámpara donde debe ir
+function lightFig(v, L) {
+  if (!v) return '';
+  const left = !(L && L.lr < 0);   // lado de la imagen con más luz (la imagen sin espejo = el lado izquierdo de la cámara)
+  const side = (l, r) => left ? l : r;
+  const beam = (x, y, c, dash) => `<path d="M${x} ${y}L107 52L131 66Z" fill="${c}" fill-opacity=".16" stroke="${c}" stroke-opacity=".5"${dash ? ' stroke-dasharray="3 3"' : ''}/>`;
+  let body = '', cap = '';
+  const LP = [side(54, 186), 102], far = [side(36, 204), 118];
+  if (v.t === 'Falta luz' || v.t === 'Algo oscuro') { body = beam(...LP, FIG_C.go, 1) + figLamp(...LP, FIG_C.go, true) + figLabel(LP[0], LP[1] + 30, 'luz aquí', FIG_C.go); cap = 'Pon una luz delante, a un lado de la cámara'; }
+  else if (v.t === 'Contraluz') { body = `<rect x="92" y="8" width="56" height="9" rx="3" fill="${FIG_C.bad}" fill-opacity=".25" stroke="${FIG_C.bad}" stroke-width="2"/><path d="M152 6l8 8m0-8l-8 8" stroke="${FIG_C.bad}" stroke-width="2.4" stroke-linecap="round"/>` + figLabel(166, 30, 'la luz, detrás', FIG_C.bad, 'start') + figArrow(84, 16, LP[0] + 8, LP[1] - 18) + beam(...LP, FIG_C.go, 1) + figLamp(...LP, FIG_C.go, true); cap = 'La luz tiene que darte de frente, no por detrás'; }
+  else if (v.t === 'Demasiada luz') { const near = [side(86, 154), 84]; body = figLamp(...near, FIG_C.warn) + figArrow(near[0] + side(-10, 10), near[1] + 10, far[0] + side(10, -10), far[1] - 8) + figLamp(...far, FIG_C.go, true) + `<path d="M${side(70, 170)} 70L${side(96, 144)} 98" stroke="${FIG_C.go}" stroke-width="5" stroke-linecap="round" opacity=".7"/>` + figLabel(side(66, 174), 64, 'difusor', FIG_C.go); cap = 'Aléjala o suavízala con algo translúcido'; }
+  else if (/lado/.test(v.t)) { const R = [side(184, 56), 86]; body = beam(...LP, FIG_C.ok) + figLamp(...LP, FIG_C.ok) + `<rect x="${R[0] - 15}" y="${R[1] - 4}" width="30" height="8" rx="2" fill="none" stroke="${FIG_C.go}" stroke-width="2.2" stroke-dasharray="4 3" transform="rotate(${side(-35, 35)} ${R[0]} ${R[1]})"/>` + figArrow(R[0] + side(-6, 6), R[1] - 8, side(136, 104), 60, FIG_C.go, 1.8) + figLabel(R[0], R[1] + 22, 'folio blanco', FIG_C.go); cap = 'Rebota la luz hacia el lado oscuro'; }
+  else { body = beam(...LP, FIG_C.ok) + figLamp(...LP, FIG_C.ok); cap = 'Luz de frente, a un lado de la cámara'; }
+  return `<svg class="fig" viewBox="0 0 240 150" role="img" aria-label="${esc(cap)}">
+    <rect x="2" y="2" width="236" height="146" rx="16" fill="var(--stage-2)" fill-opacity=".55"/>
+    ${body}
+    <ellipse cx="120" cy="60" rx="30" ry="11" fill="var(--stage)" stroke="${FIG_C.ln}" stroke-width="2"/>
+    <circle cx="120" cy="56" r="12" fill="var(--stage)" stroke="${FIG_C.ln}" stroke-width="2"/>
+    <path d="M116 66.5L120 73L124 66.5" fill="none" stroke="${FIG_C.ln}" stroke-width="2" stroke-linejoin="round"/>
+    ${figLabel(120, 42 - 2, 'tú', 'var(--paper)')}
+    <rect x="104" y="122" width="32" height="18" rx="5" fill="var(--stage)" stroke="${FIG_C.ln}" stroke-width="2"/><circle cx="120" cy="131" r="4.5" fill="none" stroke="${FIG_C.ln}" stroke-width="2"/>
+    ${figLabel(side(160, 80), 135, 'cámara', 'var(--mute)')}
+  </svg>`;
+}
+// sonido: una regla de -70 a 0 dB con las zonas, tu voz y el ruido de fondo
+function soundFig(st) {
+  const x = db => (16 + (clamp(db, -70, 0) + 70) / 70 * 208).toFixed(1);
+  const zones = `<rect x="16" y="44" width="208" height="12" rx="6" fill="var(--stage-2)"/>
+    <rect x="${x(-70)}" y="44" width="${x(-42) - x(-70)}" height="12" fill="${FIG_C.warn}" fill-opacity=".22"/>
+    <rect x="${x(-42)}" y="44" width="${x(-6) - x(-42)}" height="12" fill="${FIG_C.ok}" fill-opacity=".28"/>
+    <rect x="${x(-6)}" y="44" width="${x(0) - x(-6)}" height="12" fill="${FIG_C.bad}" fill-opacity=".35"/>
+    ${figLabel(x(-56), 72, 'bajo')}${figLabel(x(-24), 72, 'bien', FIG_C.ok)}${figLabel(x(-3), 72, 'satura', FIG_C.bad)}`;
+  if (!st || st.lvl == null) {
+    const cur = st?.cur;
+    return `<svg class="fig" viewBox="0 0 240 96" role="img" aria-label="Nivel de la voz">
+      ${zones}${cur != null ? `<rect x="16" y="44" width="${x(cur) - 16}" height="12" rx="6" fill="currentColor" fill-opacity=".35"/>` : ''}
+      ${figLabel(120, 26, 'Habla unos segundos con tu voz de grabar', 'var(--paper)')}</svg>`;
+  }
+  const v = st.v || { k: 'ok' }, c = FIG_C[v.k] || FIG_C.ok, snr = Math.round(st.lvl - st.fl);
+  const noise = `<rect x="16" y="44" width="${Math.max(6, x(st.fl) - 16)}" height="12" rx="6" fill="${v.t === 'Ruido de fondo' ? FIG_C.bad : 'var(--dim)'}" fill-opacity=".55"/>`;
+  const voice = `<path d="M${x(st.lvl) - 7} 30L${+x(st.lvl) + 7} 30L${x(st.lvl)} 40Z" fill="${c}"/>${figLabel(x(st.lvl), 24, 'tu voz', c)}`;
+  const gap = `<path d="M${x(st.fl)} 86V80H${x(st.lvl)}V86" fill="none" stroke="var(--mute)" stroke-width="1.5"/>${figLabel(clamp((+x(st.fl) + +x(st.lvl)) / 2, 84, 156), 94, `tu voz destaca ${snr} dB del ruido`)}`;
+  const tip = v.t === 'Se te oye bajo' ? figArrow(+x(st.lvl) + 10, 35, +x(st.lvl) + 44, 35) : v.t === 'El sonido satura' ? figArrow(+x(st.lvl) - 10, 35, +x(st.lvl) - 44, 35) : '';
+  return `<svg class="fig" viewBox="0 0 240 100" role="img" aria-label="${esc(v.t || 'Sonido')}">${zones.replace(/y="72"/g, 'y="68"')}${noise}${voice}${tip}${gap}</svg>`;
+}
+// encuadre: la imagen (en vertical u horizontal), la silueta ideal y dónde estás tú
+function frameFig(f) {
+  if (!f) return '';
+  const port = (f.aspect ?? .56) < 1, W = port ? 84 : 200, H = port ? 150 : 113, ox = (240 - W) / 2, oy = (154 - H) / 2;
+  const X = x => (ox + x * W).toFixed(1), Y = y => (oy + y * H).toFixed(1);
+  const ideal = port ? .16 : .27, eyeY = .36, fh = ideal, fw = fh * H / W * .74;
+  const hx = .5, hy = eyeY + fh * .08, ys = eyeY + fh * 1.25, sw = Math.min(.9, fw * 3.3);
+  const sil = `<ellipse cx="${X(hx)}" cy="${Y(hy)}" rx="${(fw / 2 * W).toFixed(1)}" ry="${(fh / 2 * H).toFixed(1)}" fill="none" stroke="${FIG_C.go}" stroke-width="2" stroke-dasharray="4 3"/>
+    <path d="M${X(hx - sw / 2)} ${Y(1)}V${(+Y(ys) + 12).toFixed(1)}Q${X(hx - sw / 2)} ${Y(ys)} ${(+X(hx - sw / 2) + 14).toFixed(1)} ${Y(ys)}H${(+X(hx + sw / 2) - 14).toFixed(1)}Q${X(hx + sw / 2)} ${Y(ys)} ${X(hx + sw / 2)} ${(+Y(ys) + 12).toFixed(1)}V${Y(1)}" fill="none" stroke="${FIG_C.go}" stroke-width="2" stroke-dasharray="4 3"/>`;
+  const thirds = [1, 2].map(i => `<path d="M${X(i / 3)} ${Y(0)}V${Y(1)}M${X(0)} ${Y(i / 3)}H${X(1)}" stroke="var(--dim)" stroke-width="1" stroke-opacity=".5"/>`).join('');
+  const c = FIG_C[f.k] || FIG_C.ok;
+  let me = '', arr = '';
+  if (f.face) {
+    const cx = (f.face.x0 + f.face.x1) / 2, cy = (f.face.y0 + f.face.y1) / 2;
+    me = `<ellipse cx="${X(cx)}" cy="${Y(cy)}" rx="${Math.max(3, (f.face.x1 - f.face.x0) / 2 * W).toFixed(1)}" ry="${Math.max(4, (f.face.y1 - f.face.y0) / 2 * H).toFixed(1)}" fill="${c}" fill-opacity=".25" stroke="${c}" stroke-width="2.2"/>`;
+    if (f.sh) me += `<path d="M${X(clamp(f.sh[0]))} ${Y(clamp(f.sh[1]))}L${X(clamp(f.sh[2]))} ${Y(clamp(f.sh[3]))}" stroke="${c}" stroke-width="3" stroke-linecap="round"/>`;
+    if (f.k !== 'ok' && Math.hypot((cx - hx) * W, (cy - hy) * H) > 10) arr = figArrow(+X(cx), +Y(cy), +X(hx), +Y(hy));
+  } else me = figLabel(120, 82, '?', FIG_C.bad);
+  return `<svg class="fig" viewBox="0 0 240 154" role="img" aria-label="${esc(f.t || 'Encuadre')}">
+    <rect x="${ox}" y="${oy}" width="${W}" height="${H}" rx="10" fill="var(--stage-2)" fill-opacity=".6" stroke="currentColor" stroke-width="2"/>
+    ${thirds}${sil}${me}${arr}</svg>`;
+}
+// nivel: con sensor, el móvil girado como está y la burbuja; sin sensor, la línea de tus hombros en la imagen
+function levelFig(l) {
+  if (!l) return '';
+  const v = levelVerdict(l) || { k: 'ok' }, c = FIG_C[v.k] || FIG_C.ok;
+  if (l.flat) return `<svg class="fig" viewBox="0 0 240 120" role="img" aria-label="${esc(v.t)}"><rect x="70" y="62" width="100" height="18" rx="6" fill="var(--stage-2)" stroke="currentColor" stroke-width="2" transform="skewX(-30) translate(40 0)"/>${figArrow(120, 56, 120, 22)}${figLabel(120, 104, 'ponlo de pie', FIG_C.go)}</svg>`;
+  if (l.src === 'sensor') {
+    const r = clamp(l.roll, -30, 30), bx = 120 - clamp(r * 5, -50, 50);   // la burbuja se va al lado alto
+    const pw = l.land ? 78 : 44, ph = l.land ? 44 : 78;
+    const turn = Math.abs(r) > 2 ? (r > 0 ? `<path d="M150 34Q120 16 90 34" fill="none" stroke="${FIG_C.go}" stroke-width="2.4" stroke-linecap="round"/>${figArrow(97, 29, 90, 34)}` : `<path d="M90 34Q120 16 150 34" fill="none" stroke="${FIG_C.go}" stroke-width="2.4" stroke-linecap="round"/>${figArrow(143, 29, 150, 34)}`) : '';
+    const side = l.pitch != null && Math.abs(l.pitch) > 6 ? `<g transform="translate(206 76)"><circle cx="-22" cy="-8" r="8" fill="none" stroke="var(--mute)" stroke-width="2"/><rect x="-3" y="-22" width="6" height="40" rx="2" fill="${FIG_C[Math.abs(l.pitch) > 14 ? 'warn' : 'ok']}" transform="rotate(${clamp(l.pitch, -40, 40)} 0 18)"/>${figLabel(-8, 34, 'de lado')}</g>` : '';
+    return `<svg class="fig" viewBox="0 0 240 124" role="img" aria-label="${esc(v.t)}">
+      <rect x="64" y="6" width="112" height="16" rx="8" fill="var(--stage-2)" stroke="${c}" stroke-width="2"/>
+      <path d="M112 6V22M128 6V22" stroke="var(--mute)" stroke-width="1.5"/>
+      <circle cx="${bx.toFixed(1)}" cy="14" r="6" fill="${c}"/>
+      ${turn}
+      <path d="M40 ${80}H200" stroke="var(--dim)" stroke-width="1.5" stroke-dasharray="4 4"/>
+      <g transform="rotate(${r.toFixed(1)} 120 80)"><rect x="${120 - pw / 2}" y="${80 - ph / 2}" width="${pw}" height="${ph}" rx="8" fill="var(--stage)" stroke="currentColor" stroke-width="2.4"/><circle cx="${l.land ? 120 - pw / 2 + 7 : 120}" cy="${l.land ? 80 : 80 - ph / 2 + 7}" r="2.5" fill="currentColor"/><path d="M${120 - pw / 2 + 6} 80H${120 + pw / 2 - 6}" stroke="${c}" stroke-width="2"/></g>
+      ${side}
+    </svg>`;
+  }
+  const r = clamp(l.roll ?? 0, -20, 20);
+  return `<svg class="fig" viewBox="0 0 240 124" role="img" aria-label="${esc(v.t || 'Nivel')}">
+    <rect x="40" y="10" width="160" height="104" rx="10" fill="var(--stage-2)" fill-opacity=".6" stroke="currentColor" stroke-width="2"/>
+    <path d="M52 62H188" stroke="var(--dim)" stroke-width="1.5" stroke-dasharray="4 4"/>
+    <g transform="rotate(${r.toFixed(1)} 120 62)"><circle cx="120" cy="44" r="12" fill="none" stroke="${c}" stroke-width="2"/><path d="M88 74H152" stroke="${c}" stroke-width="3" stroke-linecap="round"/><path d="M110 42H114M126 42H130" stroke="${c}" stroke-width="2.4" stroke-linecap="round"/></g>
+    ${figLabel(120, 106, l.crooked ? 'tus ojos y hombros, inclinados' : 'ojos y hombros rectos', l.crooked ? FIG_C.warn : 'var(--mute)')}
+  </svg>`;
+}
+S.dbg.fig = { lightFig, soundFig, frameFig, levelFig, lightBar, lightVerdict, levelVerdict, frameVerdict };
+// brillo de la cara: oscuro · bien · quemado
+function lightBar(L) {
+  const f = L ? (L.face ?? L.all) : null;
+  if (f == null) return '';
+  return `<div class="lbar" role="img" aria-label="Brillo de tu cara: ${Math.round(f / 2.55)}%"><i style="left:${clamp(f / 255 * 100, 2, 98).toFixed(1)}%"></i></div><div class="lbar-k"><span>oscuro</span><span>bien</span><span>quemado</span></div>`;
+}
+
+/* en el plató: las cuatro tarjetas del plano (pestaña «Plano» de la información), los puntos de estado del botón
+   plegado y dos guías encima de la imagen antes de grabar: la línea de nivel y la silueta del encuadre */
+const PLANO = { at: 0, sig: {}, cur: {} };
+function planoState(t) {
+  const lv = levelNow(t), fr = frameNow(t), sn = soundNow();
+  return {
+    luz: { v: LT.v, fig: () => lightFig(LT.v, avgLight(LT.recent)) + lightBar(avgLight(LT.recent)), sig: LT.v ? LT.v.t + Math.round((avgLight(LT.recent)?.face ?? 0) / 12) : '' },
+    son: { v: sn.v, fig: () => soundFig(sn), sig: sn.v ? sn.v.t + Math.round(sn.lvl / 2) + ':' + Math.round(sn.fl / 2) : 'cur' + Math.round((sn.cur ?? -99) / 6) },
+    enc: { v: fr, fig: () => frameFig(fr), sig: fr ? fr.t + (fr.face ? [fr.face.x0, fr.face.y0, fr.face.x1, fr.face.y1].map(x => Math.round(x * 30)).join() : '') + (fr.sh ? fr.sh.map(x => Math.round(x * 20)).join() : '') : '' },
+    niv: { v: levelVerdict(lv), lv, fig: () => levelFig(lv), sig: lv ? (lv.flat ? 'flat' : Math.round((lv.roll ?? 99) * 2) + ':' + Math.round((lv.pitch ?? 99) / 3) + lv.src) : '' },
+  };
+}
+const PL_META = { luz: ['💡', 'Luz', 'Midiendo la luz…'], son: ['🎙️', 'Sonido', 'Habla unos segundos y te digo cómo se te oye.'], enc: ['🎯', 'Encuadre', 'Buscándote en la imagen…'], niv: ['📐', 'Nivel', 'Sin sensor de movimiento: lo miro con tus ojos y tus hombros.'] };
+function planoTick(t, force = false) {
+  levelSample(t);
+  if (!force && t - PLANO.at < .25) return;
+  PLANO.at = t;
+  const st = PLANO.cur = planoState(t);
+  // los puntos del botón plegado
+  for (const i of pillEl.querySelectorAll('[data-d]')) { const k = st[i.dataset.d]?.v?.k || ''; if (i.dataset.k !== k) i.dataset.k = k; }
+  const worst = ['bad', 'warn'].find(k => Object.values(st).some(x => x.v?.k === k)) || (Object.values(st).some(x => x.v) ? 'ok' : '');
+  if (pillEl.dataset.k !== worst) pillEl.dataset.k = worst;
+  guidesTick(t, st);
+  // para el ensayo y el informe: cómo estaba el plano durante la toma
+  const tk = S.take;
+  if (tk && t - (tk.plAt || 0) > .5) {
+    tk.plAt = t;
+    if (st.niv.lv) (tk.lv ||= []).push(st.niv.lv);
+    const fr = st.enc.v; if (fr?.face) (tk.fr ||= []).push({ ...fr.face, ey: fr.ey, aspect: fr.aspect });
+  }
+  if (!monEl.classList.contains('open') || monEl.dataset.tab !== 'plano') return;
+  for (const card of mq('#plano').querySelectorAll('[data-pl]')) {
+    const id = card.dataset.pl, s = st[id], sig = (s.v?.k || '') + '|' + s.sig;
+    if (!force && PLANO.sig[id] === sig) continue;
+    PLANO.sig[id] = sig;
+    const [e, name, wait] = PL_META[id], v = s.v;
+    card.className = 'pl ' + (v?.k || 'none');
+    card.innerHTML = `<header><span class="pl-e" aria-hidden="true">${e}</span><b>${name}</b><span class="pl-st">${esc(v ? v.t : '…')}</span></header>
+      <div class="pl-fig">${s.fig() || ''}</div><p class="pl-fix">${esc(v ? v.fix || PL_OK[id] : wait)}</p>`;
+  }
+}
+const PL_OK = { luz: 'Te llega luz de frente y se te ve bien la cara.', son: 'Tu voz destaca del ruido y no satura.', enc: 'Cabeza y hombros dentro, con aire justo encima.', niv: 'La cámara está recta.' };
+// la línea de nivel (solo con sensor) y la silueta del encuadre: antes de grabar, y se apagan cuando ya está bien
+function guidesTick(t, st) {
+  const pre = S.live && !S.take && !S.countdown && !S.calibrating && !KWS.enroll && !S.file && $('#rehCard').hidden && $('#planCard').hidden;
+  const hz = $('#horizon'), lv = st.niv.lv;
+  const showHz = pre && lv?.src === 'sensor' && !lv.flat;
+  if (showHz) {
+    const ok = Math.abs(lv.roll) <= 1.5;
+    if (!ok) LV.okSince = 0; else LV.okSince ||= t;
+    const on = !ok || t - LV.okSince < 2.5;
+    hz.classList.toggle('ok', ok); hz.classList.toggle('on', on);
+    $('#hzLine').style.transform = `rotate(${(-clamp(lv.roll, -45, 45)).toFixed(1)}deg)`;
+    $('#hzTxt').textContent = ok ? '✓ Recto' : `${Math.round(Math.abs(lv.roll))}°`;
+  } else hz.classList.remove('on');
+  const fg = $('#frameGuide'), fr = st.enc.v;
+  const wantGuide = pre && !!fr && (fr.k !== 'ok' || (monEl.classList.contains('open') && monEl.dataset.tab === 'plano'));
+  if (wantGuide) drawFrameGuide(fr);
+  fg.classList.toggle('on', wantGuide);
+  fg.classList.toggle('ok', fr?.k === 'ok');
+}
+// la silueta ideal sobre la imagen, con las mismas cuentas que el vídeo (object-fit: cover)
+function drawFrameGuide(fr) {
+  const svg = $('#frameGuide'), vw = video.videoWidth, vh = video.videoHeight; if (!vw || !vh) return;
+  const r = $('#studio').getBoundingClientRect(), s = Math.max(r.width / vw, r.height / vh), ox = (r.width - vw * s) / 2, oy = (r.height - vh * s) / 2;
+  const port = vw < vh, fh = port ? .16 : .27, fw = fh * vh / vw * .74, eyeY = .36, hy = eyeY + fh * .08, ys = eyeY + fh * 1.25, sw = Math.min(.9, fw * 3.3);
+  const X = x => (ox + x * vw * s).toFixed(1), Y = y => (oy + y * vh * s).toFixed(1);
+  const key = [r.width, r.height, vw, vh].join();
+  if (svg.dataset.k === key) return;
+  svg.dataset.k = key;
+  svg.setAttribute('viewBox', `0 0 ${r.width} ${r.height}`);
+  svg.innerHTML = `<ellipse cx="${X(.5)}" cy="${Y(hy)}" rx="${(fw / 2 * vw * s).toFixed(1)}" ry="${(fh / 2 * vh * s).toFixed(1)}"/>
+    <path d="M${X(.5 - sw / 2)} ${Y(1)}V${(+Y(ys) + 24).toFixed(1)}Q${X(.5 - sw / 2)} ${Y(ys)} ${(+X(.5 - sw / 2) + 28).toFixed(1)} ${Y(ys)}H${(+X(.5 + sw / 2) - 28).toFixed(1)}Q${X(.5 + sw / 2)} ${Y(ys)} ${X(.5 + sw / 2)} ${(+Y(ys) + 24).toFixed(1)}V${Y(1)}"/>
+    <text x="${X(.5)}" y="${(+Y(hy) - fh / 2 * vh * s - 12).toFixed(1)}" text-anchor="middle">Colócate aquí</text>`;
 }
 
 /* ---------------- calibración ---------------- */
@@ -3197,16 +3599,16 @@ function finishCalibration(skipped) {
     c.done = true;
     store.set('calib', c);
   }
-  if (!isCall() && voiceEngine() === 'propias' && !KWS.tpl && S.audio && S.audio.mode === 'worklet') {
-    toast('Enseña tus palabras a Apuntador: así lo controlas todo con la voz.', 5000);
-    startEnroll();
+  if (!isCall() && voiceEngine() === 'propias' && (!KWS.tpl || kwMissing()) && S.audio && S.audio.mode === 'worklet') {
+    toast(KWS.tpl ? 'Orden nueva: «otra vez» repite la toma desde el principio. Enséñamela y ya está.' : 'Enseña tus palabras a Apuntador: así lo controlas todo con la voz.', 5000);
+    startEnroll(true);
     return;
   }
   const voice = !isCall() && startVoice();
   const next = isCall() ? ('Pulsa Empezar cuando arranque la llamada.' + ('documentPictureInPicture' in window ? ' Con «Ventana flotante» lo tendrás encima de ella.' : ' Pon esta ventana al lado de la llamada.'))
     : (flowOn() && S.flow === 'ensayo' ? 'Primero un ensayo, sin grabar: ' : '') + (voice || (kwsOn() && KWS.tpl) ? 'di «comenzamos» cuando quieras y empezará la cuenta atrás.'
       : flowOn() && S.flow === 'ensayo' ? 'da dos palmadas o pulsa Ensayar cuando quieras.' : 'Da dos palmadas o pulsa Grabar cuando quieras.');
-  if (!showPlanCard(next)) toast((skipped ? 'Listo. ' : 'Calibrado. ') + next, 6500);
+  if (!showPlanCard(next)) { toast((skipped ? 'Listo. ' : 'Calibrado. ') + next, 6500); maybeShowPlano(next); }
 }
 
 /* ---------------- voz: órdenes y seguimiento del texto ----------------
@@ -3218,6 +3620,13 @@ const CMD_REC = new Set(['comenzamos', 'empezamos', 'comenzar', 'empezar', 'comi
 const CMD_REH = new Set(['ensayo', 'ensayamos', 'ensayar', 'practicamos', 'practicar']);
 const CMD_STOP = new Set(['corten', 'corta', 'corte', 'terminamos', 'paramos', 'stop']);
 const CMD_GO = new Set(['seguimos', 'sigue', 'seguir', 'continua', 'continuamos', 'continuar']);
+const CMD_AGAIN = new Set(['repetimos', 'repetir', 'repite', 'repito']);
+const CMD_INFO = new Set(['informacion', 'panel']);
+// «otra vez», «de nuevo», «otra toma» o «repetimos»; mientras lees, no cuenta si esas palabras están en tu guion
+const saysAgain = ws => {
+  const j = ' ' + ws.join(' ') + ' ', inScript = p => !!S.take && !!S.scNorm?.includes(p);
+  return [...CMD_AGAIN].some(w => j.includes(' ' + w + ' ') && !inScript(' ' + w + ' ')) || [' otra vez ', ' de nuevo ', ' otra toma '].some(p => j.includes(p) && !inScript(p));
+};
 // qué motor de voz se usa: el del navegador (bueno en Chrome/Edge de ordenador) o «mis palabras» (aprende tu voz;
 // funciona en iPhone y sin conexión, porque usa el mismo audio de la app y no abre el micrófono otra vez)
 function voiceEngine() {
@@ -3229,8 +3638,21 @@ function voiceEngine() {
 function voiceCommand(cmd) {
   const t = now();
   if (isCall() || S.file || t - (S.lastCmdT || 0) < 1.2) return;
-  if (!$('#report').hidden) { if (cmd === 'grabar' || cmd === 'ensayo') { S.lastCmdT = t; toast('🎬 ¡Oído! Otra toma', 1800); againByVoice(cmd === 'grabar'); } return; }
+  if (!$('#report').hidden) {
+    if (cmd === 'grabar' || cmd === 'ensayo' || cmd === 'repetir') {
+      S.lastCmdT = t;
+      const rec = cmd === 'repetir' ? !!S.lastRec : cmd === 'grabar';
+      toast(rec ? '🎬 ¡Oído! Otra toma' : '🎬 ¡Oído! Otro ensayo', 1800); againByVoice(rec, cmd === 'repetir');
+    }
+    return;
+  }
   if (!S.live || KWS.enroll) return;
+  if (cmd === 'info') { S.lastCmdT = t; setPanel(!panelOpen(), true); return; }
+  if (cmd === 'repetir') {
+    if (S.take) { if (t - S.take.t0 > 1.5) { S.lastCmdT = t; restartTake(); } }
+    else if (!S.countdown) { S.lastCmdT = t; againTake(); }
+    return;
+  }
   if ((cmd === 'grabar' || cmd === 'ensayo') && !S.take && !S.countdown) {
     S.lastCmdT = t;
     if (cmd === 'ensayo') { $('#rehCard').hidden = true; startTake(false); toast('🎬 ¡Oído! Ensayamos', 1800); }
@@ -3270,11 +3692,14 @@ function onVoice(e) {
     const unread = i === FOL.cmdRes ? ws.slice(FOL.cmdSkip) : ws;
     if (!isCall() && (S.live || !$('#report').hidden) && !S.calibrating) {
       const consume = () => { FOL.cmdRes = i; FOL.cmdSkip = ws.length; };
+      if (unread.some(w => CMD_INFO.has(w) && !(S.take && S.scWords?.has(w)))) { consume(); voiceCommand('info'); continue; }
       if (!S.take && !S.countdown) {
+        if (saysAgain(unread)) { consume(); voiceCommand('repetir'); continue; }
         if (unread.some(w => CMD_REC.has(w))) { consume(); voiceCommand('grabar'); continue; }
         if (unread.some(w => CMD_REH.has(w))) { consume(); voiceCommand('ensayo'); continue; }
       } else if (S.take) {
         const tail = unread.slice(-3);
+        if (now() - S.take.t0 > 1.5 && saysAgain(tail)) { consume(); voiceCommand('repetir'); continue; }
         if (S.stopping && tail.some(w => CMD_GO.has(w))) { consume(); voiceCommand('seguir'); continue; }
         if (now() - S.take.t0 > 1.5 && tail.some(w => CMD_STOP.has(w) && !S.scWords?.has(w))) { consume(); voiceCommand('parar'); continue; }
       }
@@ -3291,7 +3716,7 @@ function onVoice(e) {
    1) Del audio salen 100 huellas por segundo (MFCC). 2) Se separan las palabras sueltas: voz con al menos 0,2 s de
    silencio antes y 0,28 s después, de 0,22 a 1,7 s. 3) Se comparan con tus grabaciones (dos por palabra) con DTW, que
    alinea las dos huellas aunque hables más rápido o más despacio. Una frase leída de corrido nunca cuenta como orden. */
-const KW_WORDS = [['grabar', 'comenzamos'], ['parar', 'corten'], ['seguir', 'seguimos']];
+const KW_WORDS = [['grabar', 'comenzamos'], ['parar', 'corten'], ['seguir', 'seguimos'], ['repetir', 'otra vez']];
 const KWS = { floor: -60, cur: null, pre: [], run: 0, silent: 0, quiet: 0, tpl: null, enroll: null, last: null };
 try {
   const raw = store.get('kwTpl', null);
@@ -3363,36 +3788,41 @@ function kwsUtterance(frames, iso, t) {
   if (cmd) voiceCommand(cmd);
 }
 // enseñar tus palabras: cada una dos veces
-const ENROLL_STEPS = [['grabar', 'comenzamos'], ['grabar', 'comenzamos'], ['parar', 'corten'], ['parar', 'corten'], ['seguir', 'seguimos'], ['seguir', 'seguimos']];
-function startEnroll() {
+const ENROLL_STEPS = KW_WORDS.flatMap(w => [w, w]);
+// faltan palabras si se aprendieron con una versión anterior (sin «otra vez»): se enseñan solo esas
+const kwMissing = () => !!KWS.tpl && KW_WORDS.some(([c]) => !(KWS.tpl[c]?.length >= 2));
+function startEnroll(onlyMissing) {
   if (!S.audio || S.audio.mode !== 'worklet') { toast('Este navegador no permite escuchar tus palabras: usa los botones o las palmadas.', 6000); return; }
-  KWS.enroll = { step: 0, got: { grabar: [], parar: [], seguir: [] } };
+  const part = onlyMissing === true && kwMissing();
+  const steps = part ? ENROLL_STEPS.filter(([c]) => !(KWS.tpl[c]?.length >= 2)) : ENROLL_STEPS;
+  KWS.enroll = { step: 0, steps, part, got: Object.fromEntries(KW_WORDS.map(([c]) => [c, []])) };
   $('#planCard').hidden = true;
   KWS.cur = null; KWS.silent = 30;
   $('#enroll').hidden = false; showEnroll();
 }
 function showEnroll(ok) {
   const e = KWS.enroll; if (!e) return;
-  const [, word] = ENROLL_STEPS[e.step], n = e.step % 2 + 1;
+  const [, word] = e.steps[e.step], n = e.step % 2 + 1;
   $('#enWord').textContent = `«${word}»`;
-  $('#enStep').textContent = `${n === 1 ? 'Dila' : 'Otra vez'}, sola y con tu voz de grabar (${e.step + 1} de ${ENROLL_STEPS.length})`;
-  $('#enDots').innerHTML = ENROLL_STEPS.map((_, i) => `<i class="${i < e.step ? 'done' : i === e.step ? 'now' : ''}"></i>`).join('');
+  $('#enStep').textContent = `${n === 1 ? (word.includes(' ') ? 'Dilo' : 'Dila') : 'Repítelo'}, sola y con tu voz de grabar (${e.step + 1} de ${e.steps.length})${e.part ? ' · orden nueva: repite la toma' : ''}`;
+  $('#enDots').innerHTML = e.steps.map((_, i) => `<i class="${i < e.step ? 'done' : i === e.step ? 'now' : ''}"></i>`).join('');
   if (ok) { const w = $('#enWord'); w.classList.remove('pop'); void w.offsetWidth; w.classList.add('pop'); }
 }
 function enrollAdd(frames) {
-  const e = KWS.enroll, [cmd] = ENROLL_STEPS[e.step];
+  const e = KWS.enroll, [cmd] = e.steps[e.step];
   e.got[cmd].push(kwsFeat(frames));
   e.step++;
   burst(['✅'], 4);
-  if (e.step < ENROLL_STEPS.length) return showEnroll(true);
+  if (e.step < e.steps.length) return showEnroll(true);
+  if (e.part) for (const [c] of KW_WORDS) if (!e.got[c].length) e.got[c] = KWS.tpl[c];   // las que ya sabía
   const { thr, clash } = kwsThresholds(e.got);
   KWS.tpl = { thr, ...e.got };
   store.set('kwTpl', { thr, ...Object.fromEntries(KW_WORDS.map(([c]) => [c, e.got[c].map(T => T.map(v => Array.from(v, x => +x.toFixed(3))))])) });
   KWS.enroll = null;
   $('#enroll').hidden = true;
-  showPlanCard();
+  if (!showPlanCard()) maybeShowPlano();
   toast(clash ? 'Guardado, pero dos palabras se parecen mucho en tu grabación: si falla, vuelve a enseñarlas en un sitio con menos ruido.'
-    : `✅ ¡Aprendido! Di «comenzamos» para ${flowOn() && S.flow === 'ensayo' ? 'empezar el ensayo' : 'grabar'} y «corten» para parar.`, 6000);
+    : `✅ ¡Aprendido! Di «comenzamos» para ${flowOn() && S.flow === 'ensayo' ? 'empezar el ensayo' : 'grabar'}, «corten» para parar y «otra vez» para repetir.`, 6000);
 }
 // umbral de cada palabra: bastante más que la diferencia entre tus dos grabaciones (la voz cambia de un día a otro)
 // y menos de la mitad de la que hay con las otras palabras
@@ -3430,11 +3860,26 @@ function stopTick(t) {
 }
 function cancelStop() { S.stopping = null; $('#stopCard').hidden = true; toast('▶️ Seguimos grabando', 1500); }
 function stopNow() { S.stopping = null; $('#stopCard').hidden = true; stopTake(true); }
-// desde el informe: otra toma sin tocar nada
-async function againByVoice(record) {
+// desde el informe: otra toma sin tocar nada («otra vez» repite lo mismo: ensayo o grabación)
+async function againByVoice(record, same = false) {
   show('studio');
   await reenterStudio();
-  setTimeout(() => startByFlow(record), 300);
+  setTimeout(() => { if (same) startTake(record); else startByFlow(record); }, 300);
+}
+// «otra vez» durante una toma: se descarta y empieza de nuevo, con su cuenta atrás
+function restartTake() {
+  const rec = !!S.take?.record;
+  S.restarting = true;
+  stopTake(false);
+  toast('🔁 ¡Oído! Otra vez, desde el principio', 1800);
+  setTimeout(() => { S.restarting = false; if (S.live && !S.take && !S.countdown) startTake(rec); }, 400);
+}
+// «otra vez» entre tomas: lo mismo que la última (tras un ensayo, otro ensayo)
+function againTake() {
+  $('#planCard').hidden = true;
+  if (!$('#rehCard').hidden) { $('#rehCard').hidden = true; S.flow = 'ensayo'; startTake(false); toast('🔁 ¡Oído! Otro ensayo', 1800); return; }
+  if (S.lastRec == null) { toast(startByFlow(true) ? '🎬 ¡Oído! Grabamos' : '🎬 ¡Oído! Primero, el ensayo', 1800); return; }
+  startTake(S.lastRec); toast(S.lastRec ? '🔁 ¡Oído! Otra toma' : '🔁 ¡Oído! Otro ensayo', 1800);
 }
 
 /* ---------------- la línea verde o roja ----------------
@@ -3509,7 +3954,7 @@ function showRehearsal(tk) {
       + (worst.length ? ` Lo que más te alejó: ${worst.map(g => g.below >= g.above ? g.m.low : g.m.high).join(' y ')}.` : '');
   $('#rehNotes').innerHTML = [hookNote(tk, mainTone), durNote(tk)].filter(Boolean).map(n => `<p>${esc(n)}</p>`).join('');
   const kit = setupReview(tk), bad = kit.filter(k => k.k !== 'ok');
-  $('#rehKit').innerHTML = bad.length ? bad.map(k => `<li class="${k.k}"><b>${k.e} ${esc(k.t)}</b> ${esc(k.fix)}</li>`).join('')
+  $('#rehKit').innerHTML = bad.length ? bad.map(k => `<li class="${k.k}"><b>${k.e} ${esc(k.t)}</b> ${esc(k.fix)}${k.fig ? `<div class="kfig">${k.fig()}</div>` : ''}</li>`).join('')
     : kit.length ? `<li class="ok"><b>✅ ${listaY(kit.map((k, i) => i ? k.area.toLowerCase() : k.area))}: bien</b></li>` : '';
   const ids = plan?.ids || [];
   $('#rehGoalsTitle').hidden = !ids.length;
@@ -3518,7 +3963,7 @@ function showRehearsal(tk) {
   $('#rehHint').textContent = ((S.opts.takeHelp || 'linea') === 'linea'
       ? (ids.length ? 'Al grabar solo verás abajo los gestos que vienen y una línea verde si lo haces mejor que en el ensayo, roja si te alejas. ' : 'Al grabar solo verás abajo los gestos que vienen y una línea verde si vas bien, roja si te alejas. ')
       : ids.length ? 'Al grabar te marco estos objetivos y solo te aviso de lo importante, para que no te distraiga. ' : '')
-    + (voice ? 'Di «comenzamos» para grabar de verdad.' : 'Pulsa «Grabar de verdad» o da dos palmadas.');
+    + (voice ? 'Di «comenzamos» para grabar de verdad u «otra vez» para ensayar de nuevo.' : 'Pulsa «Grabar de verdad» o da dos palmadas.');
   $('#planCard').hidden = true;
   $('#rehCard').hidden = false;
   burst(good ? ['🎬', '✨', '⭐'] : ['🎬'], good ? 12 : 4);
@@ -3556,6 +4001,7 @@ function setupPrompter() {
   wordEls = [...track.querySelectorAll('.w')];
   PR.idx = 0; PR.marked = 0; PR.nextCue = 0; FOL.pointer = 0;
   S.scWords = new Set(S.sc.words.map(w => w.norm));
+  S.scNorm = ' ' + S.sc.words.map(w => w.norm).join(' ') + ' ';
   requestAnimationFrame(() => { layoutPrompter(); PR.offset = PR.target = (PR.tops[0] || 0) - PR.readY; applyOffset(); });
 }
 function layoutPrompter() {
@@ -4183,6 +4629,44 @@ monEl.querySelector('.tabs').addEventListener('click', e => {
   setTab(b.dataset.tab);
   S.opts.tab = { ...(S.opts.tab || {}), [S.opts.app]: b.dataset.tab }; store.set('opts', S.opts);
 });
+/* ---------------- la información, plegable ----------------
+   Todo lo que no es el texto ni el aviso de abajo vive en un panel que se pliega en un botón pequeño de la esquina
+   (con la nota y el estado de luz, sonido, encuadre y nivel). Se despliega con un toque, con la tecla I o M, o
+   diciendo «información»; al empezar una toma se pliega solo para no tapar la imagen. */
+const pillEl = $('#monPill');
+const panelOpen = () => monEl.classList.contains('open');
+function setPanel(open, user = false) {
+  open = !!open;
+  if (open === panelOpen() && !user) return;
+  monEl.classList.toggle('open', open);
+  if (open) monEl.removeAttribute('inert'); else monEl.setAttribute('inert', '');
+  $('#studio').classList.toggle('mon-open', open);
+  pillEl.setAttribute('aria-expanded', String(open));
+  pillEl.setAttribute('aria-label', open ? 'Plegar la información' : 'Desplegar la información: luz, sonido, encuadre, nivel y cómo vas');
+  if (user && !S.take) { S.opts.panel = open; store.set('opts', S.opts); }
+  applyMonitorLayout();
+  if (open) { PLANO.sig = {}; planoTick(now(), true); }
+  if (!isCall() && !S.file && S.live) { const k = PR.idx; requestAnimationFrame(() => { layoutPrompter(); PR.offset = PR.target = (PR.tops[k] || 0) - PR.readY; applyOffset(); }); }
+}
+pillEl.addEventListener('click', () => setPanel(!panelOpen(), true));
+$('#monClose').addEventListener('click', () => { setPanel(false, true); pillEl.focus({ preventScroll: true }); });
+// antes de la primera toma, una vez: el plano desplegado para colocar luz, micro y cámara. En el móvil, donde el panel
+// tapa la imagen, solo si hay algo que corregir (si todo está bien, bastan los puntos verdes del botón)
+function maybeShowPlano(next = '') {
+  if (S.planoShown || isCall() || S.file || S.take || S.countdown) return;
+  S.planoShown = true;
+  planoTick(now(), true);
+  const fix = Object.values(PLANO.cur).some(x => x.v && x.v.k !== 'ok');
+  $('#planoTitle').innerHTML = `<b>${fix ? 'Antes de grabar, arregla lo que está en ámbar o rojo' : 'Tu plano está listo'}</b>${next ? `<br>${esc(next)}` : ''}`;
+  if (innerWidth <= 760 && !fix) return;
+  setTab('plano'); setPanel(true);
+  if (innerWidth <= 760) $('#toast').hidden = true;   // lo que diría el mensaje ya está arriba del panel
+}
+// abrir directamente una tarjeta del plano (desde los chips de luz y sonido o desde la voz)
+function openPlano(id) {
+  setTab('plano'); setPanel(true, true);
+  if (id) requestAnimationFrame(() => mq(`#plano [data-pl="${id}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
+}
 function renderMeters() {
   mq('#parts').innerHTML = PARTS.map(([id, name, icon]) => `<li class="k-na" data-p="${id}">${ico(icon)}<span class="pname">${name}</span><span class="pstate">—</span></li>`).join('');
   mq('#meters').innerHTML = METRICS.filter(m => m.id !== 'mirada' || isCall()).map(m => `<li class="meter none" data-m="${m.id}" title="${m.name}">${ico(m.icon)}<span class="mname">${m.name}</span><span class="mstate">—</span><span class="bar"><i class="band"></i><b class="needle"></b></span></li>`).join('');
@@ -4196,7 +4680,7 @@ function updateMonitor(c, perceived, parts) {
   };
   for (const sp of monEl.querySelectorAll('.seen span')) sp.classList.toggle('on', !!on[sp.dataset.s]);
   for (const b of monEl.querySelectorAll('.kit button')) {
-    const vv = b.dataset.k === 'luz' ? LT.v : SND.v, txt = vv ? vv.t : b.dataset.k === 'luz' ? 'Luz…' : 'Sonido: habla un poco';
+    const vv = PLANO.cur[b.dataset.k]?.v, txt = vv ? vv.t : PL_META[b.dataset.k][1] + '…';
     const sp = b.querySelector('span'); if (sp.textContent !== txt) sp.textContent = txt;
     b.className = vv ? vv.k : ''; b.title = vv?.fix || '';
   }
@@ -4249,6 +4733,11 @@ function updateMonitor(c, perceived, parts) {
   ring.style.setProperty('--p', c.match ?? 0);
   ring.style.setProperty('--rc', c.match == null ? 'var(--dim)' : c.match >= 75 ? 'var(--ok)' : c.match >= 55 ? 'var(--warn)' : 'var(--bad)');
   mq('#matchPct').textContent = c.match == null ? '--' : c.match + '%';
+  // la misma nota en el botón plegado
+  const mr = $('#mpRing');
+  mr.style.setProperty('--p', c.match ?? 0);
+  mr.style.setProperty('--rc', c.match == null ? 'rgba(255,255,255,.4)' : c.match >= 75 ? '#3DDC97' : c.match >= 55 ? '#FFC24B' : '#FF5F5A');
+  const pp = c.match == null ? '--' : String(c.match); if ($('#mpPct').textContent !== pp) $('#mpPct').textContent = pp;
   let why = '';
   if (perceived && STATES[perceived]) why = STATES[perceived].why;
   else if (perceived && perceived !== c.tone) {
@@ -4281,8 +4770,8 @@ function updateStatus(t) {
   if (hint.dataset.k !== want) {
     hint.dataset.k = want;
     hint.innerHTML = {
-      voz: '🎙️ Di <b>«comenzamos»</b> para grabar · <b>«ensayo»</b> para ensayar · <b>«corten»</b> para parar',
-      propias: '🎙️ Di <b>«comenzamos»</b> para grabar y <b>«corten»</b> para parar',
+      voz: '🎙️ Di <b>«comenzamos»</b> para grabar · <b>«corten»</b> para parar · <b>«otra vez»</b> para repetir',
+      propias: '🎙️ Di <b>«comenzamos»</b> para grabar · <b>«corten»</b> para parar · <b>«otra vez»</b> para repetir',
       palmas: '👏👏 Da <b>dos palmadas</b> o pulsa <b>Grabar</b> para empezar',
       'voz-ensayo': '🧪 Primero, el ensayo: di <b>«comenzamos»</b> para empezarlo · <b>«corten»</b> para parar',
       'propias-ensayo': '🧪 Primero, el ensayo: di <b>«comenzamos»</b> para empezarlo',
@@ -4298,11 +4787,8 @@ function updateStatus(t) {
   if ($('#rehearse').classList.contains('next') !== (nx === 'rehearse')) $('#rehearse').classList.toggle('next', nx === 'rehearse');
   if ($('#record').classList.contains('next') !== (nx === 'record')) $('#record').classList.toggle('next', nx === 'record');
   $('#status').textContent = parts.join('  ·  ');
-  // en el móvil, la pista de voz y los mensajes van justo encima del monitor, sin taparlo
-  const mr = monEl.ownerDocument === document && innerWidth <= 760 && getComputedStyle(monEl).display !== 'none' ? monEl.getBoundingClientRect() : null;
-  const above = mr && mr.height ? Math.round(innerHeight - mr.top + 8) + 'px' : '';
-  if (hint.style.bottom !== above) hint.style.bottom = above;
-  const tt = $('#toast'), tb = above ? Math.round(innerHeight - mr.top + 8 + (hint.hidden ? 0 : 52)) + 'px' : '';
+  // los mensajes, encima de la pista de voz si está a la vista
+  const tt = $('#toast'), tb = !hint.hidden && innerWidth <= 760 ? 'calc(164px + env(safe-area-inset-bottom, 0px))' : '';
   if (tt.style.bottom !== tb) tt.style.bottom = tb;
 }
 
@@ -4540,7 +5026,7 @@ function drawOverlay() {
     const ov = overlay.getBoundingClientRect(), offX = (ov.width - W * scale) / 2, offY = (ov.height - Hh * scale) / 2;
     const toX = px => (px - ov.left - offX) / scale, toY = px => (px - ov.top - offY) / scale;
     xMin = Math.max(0, toX(ov.left)); xMax = Math.min(W, toX(ov.right)); yMin = Math.max(0, toY(ov.top)); yMax = Math.min(Hh, toY(ov.bottom));
-    if (monEl.isConnected && monEl.ownerDocument === document) {
+    if (monEl.isConnected && monEl.ownerDocument === document && panelOpen()) {
       const m = monEl.getBoundingClientRect();
       if (m.width && m.left > ov.left + ov.width * .45) xMax = Math.min(xMax, toX(m.left) - 6);      // monitor a la derecha
       else if (m.height && m.top > ov.top + ov.height * .5) yMax = Math.min(yMax, toY(m.top) - 6);   // monitor abajo (móvil)
@@ -4648,6 +5134,7 @@ function startLoops() {
     const hold = !!(S.file && S.take && S.file.el.paused && !S.file.el.ended);
     if (S.file) safe('vídeo', () => fileTick(t));
     if (!hold) safe('luz', () => lightTick(t));
+    if (!hold) safe('plano', () => planoTick(t));
     if (!hold) safe('visión', () => visionPump(t));
     // si el navegador pausa la cámara (pestaña de fondo, ahorro de energía…), se reanuda y se vigila
     if (t - lastV > 1) { lastV = t; for (const v of [video, S.pipVideo]) if (v && v.paused && v.srcObject) v.play().catch(() => {}); safe('cámara', () => cameraWatch(t)); }
@@ -4681,14 +5168,14 @@ async function togglePip() {
   const pv = d.createElement('video'); pv.id = 'pipVideo'; pv.muted = true; pv.playsInline = true; pv.autoplay = true; pv.srcObject = S.stream;
   const pc = d.createElement('canvas'); pc.id = 'pipOverlay';
   view.append(pv, pc, cueEl);
-  Object.assign(S, { pip: w, pipVideo: pv, pipCanvas: pc, pipWasCompact: monEl.classList.contains('compact') });
+  Object.assign(S, { pip: w, pipVideo: pv, pipCanvas: pc });
   d.body.append(view, monEl);
-  monEl.classList.remove('compact');
+  monEl.removeAttribute('inert');   // en la ventana flotante, la información siempre a la vista
   pipNote.hidden = false; pipBtn.classList.add('on');
   pv.play().catch(() => {});
   w.addEventListener('pagehide', () => {
-    $('#prompter').after(cueEl, monEl);
-    monEl.classList.toggle('compact', !!S.pipWasCompact);
+    pillEl.after(cueEl, monEl);
+    if (!panelOpen()) monEl.setAttribute('inert', '');
     Object.assign(S, { pip: null, pipVideo: null, pipCanvas: null });
     pipNote.hidden = true; pipBtn.classList.remove('on');
     if (S.live && loopFrame) { rafWin = window; rafId = window.requestAnimationFrame(loopFrame); }
@@ -4706,6 +5193,8 @@ $('#pipBack').addEventListener('click', closePip);
 /* ---------------- tomas ---------------- */
 function setTakeUI(on, rec = false) {
   const st = $('#studio'), reading = on && !isCall() && !S.file;
+  if (reading) { if (S.panelWas == null) S.panelWas = panelOpen(); setPanel(false); }
+  else if (!on && S.panelWas != null && !S.restarting) { const was = S.panelWas; S.panelWas = null; if (innerWidth > 760) setPanel(was); }
   st.classList.toggle('reading', reading);
   st.classList.toggle('line-only', reading && rec && (S.opts.takeHelp || 'linea') === 'linea');
   $('#lane').hidden = !reading;
@@ -4767,6 +5256,7 @@ function stopTake(showReport = true) {
   tk.dur = takeT(t);
   if (tk.file && S.file) { try { S.file.el.pause(); } catch {} if (S.file.el.ended && isFinite(S.file.el.duration)) tk.dur = S.file.el.duration; }
   S.take = null;
+  if (!tk.call && !tk.file) S.lastRec = !!tk.record;
   PR.running = false;
   FOL.follow = false;
   setTakeUI(false);
@@ -4783,8 +5273,8 @@ $('#stop').addEventListener('click', () => requestStop());
 $('#stopCancel').addEventListener('click', cancelStop);
 $('#stopNowBtn').addEventListener('click', stopNow);
 $('#enSkip').addEventListener('click', cancelEnroll);
-$('#enRedo').addEventListener('click', startEnroll);
-$('#wordsBtn').addEventListener('click', startEnroll);
+$('#enRedo').addEventListener('click', () => startEnroll());
+$('#wordsBtn').addEventListener('click', () => startEnroll());
 $('#back').addEventListener('click', leaveStudio);
 $('#faster').addEventListener('click', () => changeSpeed(10));
 $('#slower').addEventListener('click', () => changeSpeed(-10));
@@ -4796,17 +5286,11 @@ $('#txtBtn').addEventListener('click', () => {
   toast(st.classList.contains('no-text') ? 'Texto oculto: te ves entero. Pulsa «Texto» para volver a verlo.' : 'Texto visible.', 2500);
 });
 $('#skel').addEventListener('click', () => { S.opts.skeleton = !S.opts.skeleton; store.set('opts', S.opts); $('#skel').classList.toggle('on', S.opts.skeleton); });
-// en pantallas estrechas el monitor va siempre recogido abajo; en anchas, al lado o recogido (botón M)
+// con el panel desplegado en pantallas anchas, el texto y los avisos dejan sitio a la derecha
 function applyMonitorLayout() {
-  const narrow = innerWidth <= 760, compact = narrow || (S.opts.compact ?? false);
-  $('#monitor').classList.toggle('compact', compact);
-  $('#studio').classList.toggle('mon-full', !compact);
+  $('#studio').classList.toggle('mon-full', innerWidth > 760 && panelOpen());
 }
-$('#mon').addEventListener('click', () => {
-  S.opts.compact = !monEl.classList.contains('compact'); store.set('opts', S.opts);
-  applyMonitorLayout();
-  const k = PR.idx; requestAnimationFrame(() => { layoutPrompter(); PR.offset = PR.target = (PR.tops[k] || 0) - PR.readY; applyOffset(); });
-});
+$('#mon').addEventListener('click', () => setPanel(!panelOpen(), true));
 function changeSpeed(d) {
   if (FOL.follow && FOL.ok) { toast('El texto sigue tu voz. Para velocidad fija, cámbialo en Ajustes.'); return; }
   S.opts.wpm = clamp(S.opts.wpm + d, 60, 260); store.set('opts', S.opts); toast(`Velocidad: ${S.opts.wpm} palabras/min`, 1500);
@@ -4819,14 +5303,14 @@ addEventListener('keydown', e => {
     else if (!S.take) startTake(false); else if (!(FOL.follow && FOL.ok)) PR.running = !PR.running;
   }
   else if (e.key === 'r' || e.key === 'R') { if (!S.take && !S.file) startTake(true); }
-  else if (e.key === 'Escape') { if (S.stopping) stopNow(); else if (S.take) requestStop(); else leaveStudio(); }
+  else if (e.key === 'Escape') { if (S.stopping) stopNow(); else if (S.take) requestStop(); else if (panelOpen()) setPanel(false, true); else leaveStudio(); }
   else if (e.key === 'ArrowUp') { e.preventDefault(); changeSpeed(10); }
   else if (e.key === 'ArrowDown') { e.preventDefault(); changeSpeed(-10); }
   else if (e.key === '+' || e.key === '=') setFont(S.opts.font + 4);
   else if (e.key === '-') setFont(S.opts.font - 4);
   else if (e.key === 's' || e.key === 'S') $('#skel').click();
   else if (e.key === 't' || e.key === 'T') $('#txtBtn').click();
-  else if (e.key === 'm' || e.key === 'M') $('#mon').click();
+  else if (e.key === 'm' || e.key === 'M' || e.key === 'i' || e.key === 'I') setPanel(!panelOpen(), true);
 });
 
 /* ---------------- objetivos para la próxima toma ----------------
@@ -4920,9 +5404,7 @@ function showPlanCard(next = '') {
 }
 $('#planOk').addEventListener('click', () => { $('#planCard').hidden = true; });
 $('#monitor').addEventListener('click', e => {
-  const b = e.target.closest('.kit button'); if (!b) return;
-  const vv = b.dataset.k === 'luz' ? LT.v : SND.v;
-  toast(vv ? (vv.k === 'ok' ? '✅ ' + vv.t : `${vv.t}: ${vv.fix}`) : b.dataset.k === 'luz' ? 'Midiendo la luz…' : 'Habla unos segundos y te digo cómo se te oye.', 6000);
+  const b = e.target.closest('.kit button'); if (b) openPlano(b.dataset.k);
 });
 
 /* ---------------- informe ---------------- */
@@ -5086,7 +5568,7 @@ function buildReport(tk) {
       <div><p class="eyebrow">${file ? 'Análisis de tu vídeo' : 'Informe de la ' + (call ? 'sesión' : 'toma')} · ${fmtTime(tk.dur)}</p><h1>${file ? esc(tk.file) : call ? (tk.record ? 'Videollamada grabada' : 'Videollamada') : tk.record ? 'Toma grabada' : 'Ensayo'}</h1>
       <p>${esc(new Date().toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }))} · ${tk.log.length} mediciones</p></div>
       <div class="actions">
-        ${!call && !file && (FOL.on || (kwsOn() && KWS.tpl)) ? `<span class="pill">🎙️ Di «comenzamos» para otra toma</span>` : ''}
+        ${!call && !file && (FOL.on || (kwsOn() && KWS.tpl)) ? `<span class="pill">🎙️ Di «otra vez» para repetir${tk.record ? '' : ' el ensayo'} o «comenzamos» para grabar</span>` : ''}
         ${tk.blob ? `<a class="ghost" href="${url}" download="apuntador-${stamp}.${ext}">${ico('descargar')}Descargar vídeo</a>` : ''}
         ${file ? `<button class="ghost" data-act="another">${ico('pelicula')}Analizar otro vídeo</button>`
         : call ? '' : `<button class="ghost" data-act="edit">${ico('texto')}Editar guion</button>`}
@@ -5110,8 +5592,8 @@ function buildReport(tk) {
               : '<p class="dash-empty">Nada importante. 👏</p>'}
           </div>
           ${kit.length ? `<div class="dash-card kitc">
-            <h3>🎥 Luz, sonido y encuadre</h3>
-            <ul>${kit.map(k => `<li><span class="de">${k.e}</span><b>${k.area}: ${esc(k.t.toLowerCase())}</b><span class="dk ${k.k}">${k.k === 'ok' ? '✓' : '!'}</span>${k.fix ? `<small>${esc(k.fix)}</small>` : ''}</li>`).join('')}</ul>
+            <h3>🎥 ${kit.some(k => k.area === 'Nivel') ? 'Luz, sonido, encuadre y nivel' : 'Luz, sonido y encuadre'}</h3>
+            <ul>${kit.map(k => `<li><span class="de">${k.e}</span><b>${k.area}: ${esc(k.t.charAt(0).toLowerCase() + k.t.slice(1))}</b><span class="dk ${k.k}">${k.k === 'ok' ? '✓' : '!'}</span>${k.fix ? `<small>${esc(k.fix)}</small>` : ''}${k.k !== 'ok' && k.fig ? `<div class="kfig">${k.fig()}</div>` : ''}</li>`).join('')}</ul>
           </div>` : ''}
           ${scriptTips.length ? `<div class="dash-card scr">
             <h3>✍️ En tu guion</h3>

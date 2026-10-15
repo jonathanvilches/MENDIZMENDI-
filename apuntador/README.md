@@ -69,12 +69,14 @@ Mientras lees no hay ideas, ni etiquetas del esqueleto (que queda tenue), ni lí
    los avisos.
 4. Cada ensayo dice cómo vas frente al anterior («Tus ensayos: 52% → 61% ▲ +9»).
 
-**Luz, sonido y encuadre.** Antes de grabar, el monitor marca 💡 la luz y 🎙️ el sonido (tócalos para ver qué hacer) y
-avisa si algo falla. El resultado del ensayo y el informe lo repiten con la solución:
+**Luz, sonido, encuadre y nivel.** Antes de grabar, la información marca 💡 la luz, 🎙️ el sonido, 🎯 el encuadre y
+📐 el nivel, cada uno con un dibujo de qué hacer (ver «Tu plano» más abajo), y avisa si algo falla. El resultado del
+ensayo y el informe lo repiten con la solución y el dibujo:
 - Luz (brillo de la cara frente al fondo): falta luz, algo oscuro, contraluz, demasiada luz (la cara se quema), un lado
   de la cara más oscuro, o bien iluminado.
 - Sonido: se te oye bajo, satura en los picos, ruido de fondo (la voz destaca poco), o se te oye bien.
-- Encuadre: muy cerca, lejos, manos fuera de plano, descentrado o buen encuadre.
+- Encuadre: muy cerca, lejos, manos fuera de plano, descentrado, cabeza cortada, mucho aire encima o buen encuadre.
+- Nivel: torcido, cámara mirando hacia arriba o hacia abajo, móvil tumbado, o recto.
 
 **Revisa tu guion.** Debajo del guion, lo que conviene cambiar para transmitir lo que quieres, con botones para verlo
 en el texto o arreglarlo:
@@ -120,11 +122,16 @@ abre la llamada en otra pestaña del mismo navegador.
 ## Control por voz
 
 - **«comenzamos»**: cuenta atrás 3, 2, 1 y graba. Funciona también desde el informe para hacer otra toma.
+- **«otra vez»** (o «repetimos», «de nuevo»): durante una toma, la corta, la descarta y vuelve a empezar desde el
+  principio con su cuenta atrás. Entre tomas repite lo último (tras un ensayo, otro ensayo; tras grabar, otra
+  grabación), y desde el informe vuelve al plató y empieza. Así se graba, se para y se repite sin ir al móvil.
+- **«información»** (con el reconocimiento del navegador): despliega o pliega el panel de información.
 - **«corten»**: no corta en seco. Aparece «⏹ Corto en 3» y sigue grabando ese margen (0, 2, 3 o 5 segundos, en
   «Antes de grabar»; 3 por defecto). Si lo has dicho sin querer o quieres repetir la frase, di **«seguimos»** y la grabación
   continúa. El botón Terminar y la tecla Esc usan el mismo margen, con «Cortar ya» para no esperar.
 - **Mis palabras** (iPhone, iPad y Android; en «Automático» se usa en el móvil): la primera vez la app te pide decir
-  «comenzamos», «corten» y «seguimos» dos veces cada una y aprende tu voz. Después las reconoce sin conexión y sin
+  «comenzamos», «corten», «seguimos» y «otra vez» dos veces cada una y aprende tu voz. Si ya las habías enseñado con
+  una versión anterior, solo te pide la nueva («otra vez»). Después las reconoce sin conexión y sin
   abrir el micrófono otra vez, que es lo que cortaba la cámara en el iPhone con el reconocimiento del navegador.
   Solo cuenta una palabra dicha sola, con una pequeña pausa antes y después: leyendo el guion de corrido no se
   dispara. El botón 🎙️ «Mis palabras» del plató sirve para volver a enseñarlas (por ejemplo, con otro micrófono).
@@ -152,12 +159,36 @@ abre la llamada en otra pestaña del mismo navegador.
   vienes, la palabra que cambia en el titular, la cuenta atrás, el anillo de la nota que se
   llena mientras cuenta y la respuesta de los botones al pulsarlos. Se desactiva si el sistema pide menos movimiento.
 
+## Tu plano: luz, sonido, encuadre y nivel
+
+Antes de grabar, la pestaña **Plano** de la información enseña con un dibujo qué hacer con cada cosa:
+
+| | Qué dibuja | Qué te dice |
+|---|---|---|
+| 💡 **Luz** | Vista desde arriba: tú, la cámara y dónde va la lámpara, con su haz. Debajo, una regla con el brillo de tu cara (oscuro · bien · quemado). | Falta luz → «luz aquí», delante y a un lado de la cámara. Contraluz → la luz de detrás tachada y una flecha hacia delante. Demasiada → aléjala y un difusor. Un lado oscuro → un folio blanco al otro lado que rebota la luz. |
+| 🎙️ **Sonido** | Una regla de volumen con las zonas (bajo, bien, satura), el ruido de fondo y tu voz, y cuánto destaca una del otro. | Bajo → acerca el micro. Satura → aléjalo. Ruido → busca silencio o un micro de solapa. |
+| 🎯 **Encuadre** | La imagen (vertical u horizontal) con los tercios, la silueta ideal y dónde estás tú, con una flecha si hay que moverse. | Cerca, lejos, descentrado (hacia qué lado), cabeza cortada o mucho aire encima. |
+| 📐 **Nivel** | El móvil girado como está, una burbuja de nivel y, si hace falta, el móvil de lado. | Torcido (cuántos grados), mirando hacia arriba o hacia abajo, o tumbado. |
+
+- El nivel sale del **sensor del móvil** (en iPhone y iPad pide permiso al entrar al plató). Sin sensor (ordenador),
+  se mira la línea de los ojos y la de los hombros: si las dos se inclinan igual, lo torcido es la cámara.
+- Encima de la imagen, antes de grabar: una **línea de nivel** en el centro que se pone verde («✓ Recto») al
+  enderezar el móvil, y una **silueta discontinua** («Colócate aquí») mientras el encuadre no está bien. Las dos se
+  apagan solas cuando ya está todo bien y no aparecen al grabar.
+- La primera vez, al terminar la calibración, el plano se despliega solo (en el móvil, solo si hay algo que
+  arreglar). Al terminar el ensayo y en el informe, lo que estaba mal sale con su dibujo.
+
 ## En pantalla
 
+- **Información plegable**: todo lo que no es el texto ni el aviso de abajo está en un panel que se pliega en un
+  botón pequeño en la esquina de arriba. Plegado enseña la nota y cuatro puntos de color (luz, sonido, encuadre y
+  nivel); al tocarlo se despliega con un muelle suave y su contenido entra en cascada. Al empezar una toma se pliega
+  solo y el botón se queda en un círculo con la nota, para no tapar la imagen; se puede abrir igualmente con un
+  toque, con la tecla I o M, o diciendo «información». Tiene tres pestañas: **Plano**, **Cuerpo** y **Tono**.
 - **Lo que detecta**, dibujado sobre tu imagen y en espejo: contorno de la cara, cejas, ojos, iris y labios;
   hombros, codos y muñecas; los dedos de cada mano; y la estela del movimiento de las manos. Cada parte toma el
   color de su estado (verde ayuda, ámbar frena, rojo corrige ya) y lleva una etiqueta con lo que está haciendo.
-- **Monitor**, con dos pestañas:
+- **Cuerpo y tono** (pestañas de la información):
   - *Cuerpo*: el estado de cada parte en directo (cabeza: de frente, girada, ladeada, asintiendo; mirada: a
     cámara, abajo, a un lado; cejas: arriba, activas, quietas, fruncidas; boca: sonrisa, apretada, hablando;
     hombros: relajados, subidos, inclinados; codos: abiertos, pegados; manos: gesticulando, contando, en puño,
@@ -188,7 +219,7 @@ abre la llamada en otra pestaña del mismo navegador.
   Debajo, plegado, el análisis completo: lo que transmitiste, antes y después, ajuste segundo a segundo, qué
   corregir primero, medidas frente al objetivo, cada parte del cuerpo, párrafos y gestos del guion.
 
-Atajos en el plató: Espacio empezar/pausar (con un vídeo subido, empezar el análisis o pausarlo), R grabar, Esc terminar, ↑/↓ velocidad, +/− letra, S dibujo, M monitor.
+Atajos en el plató: Espacio empezar/pausar (con un vídeo subido, empezar el análisis o pausarlo), R grabar, Esc terminar (o plegar la información), ↑/↓ velocidad, +/− letra, S dibujo, I o M información.
 
 ## Si no te ves o la imagen se para
 
