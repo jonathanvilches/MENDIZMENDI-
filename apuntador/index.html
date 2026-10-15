@@ -1,0 +1,2036 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#110F17">
+<title>Apuntador</title>
+<meta name="description" content="Teleprompter con director de escena: mientras lees, te dice cómo moverte, gesticular y hablar para transmitir el tono de tu mensaje.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&family=Young+Serif&display=swap">
+<style>
+:root{
+  /* Plató a pantalla completa: la cámara de fondo, la concha del apuntador arriba (junto al objetivo)
+     y el monitor del director a un lado. Fuera del plató, una mesa de trabajo en columnas. */
+  color-scheme: dark;
+  --ink:#110F17;
+  --stage:#1A1722;
+  --stage-2:#24202F;
+  --line:#352F45;
+  --paper:#F4EFE6;
+  --mute:#A9A2B8;
+  --dim:#6E6781;
+  --spot:#8DB8FF;
+  --spot-ink:#0E1626;
+  --ok:#55D6A6;
+  --warn:#F4B942;
+  --bad:#FF6E64;
+  --glass:rgba(17,15,23,.84);
+  --f-display:'Young Serif', Georgia, 'Times New Roman', serif;
+  --f-body:'Atkinson Hyperlegible', 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+  --f-mono:'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --pfs:46px;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--ink);color:var(--paper);font:16px/1.5 var(--f-body);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+[hidden]{display:none!important}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--spot);outline-offset:2px}
+.ico{width:1.25em;height:1.25em;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- Mesa de trabajo (guion) ---------- */
+#setup{max-width:1380px;margin:0 auto;padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:28px}
+.masthead{display:flex;align-items:flex-end;justify-content:space-between;gap:12px 24px;flex-wrap:wrap;padding-bottom:20px;border-bottom:1px solid var(--line)}
+.wordmark{font-family:var(--f-display);font-weight:400;font-size:clamp(2.2rem,6vw,3.6rem);line-height:.95;margin:0;letter-spacing:-.01em}
+.wordmark span{color:var(--spot)}
+.tagline{margin:.55rem 0 0;color:var(--mute);max-width:52ch;font-size:1.02rem}
+.badge{font:500 .72rem/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mute);border:1px solid var(--line);border-radius:999px;padding:7px 11px;white-space:nowrap}
+.grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:980px){.grid{display:flex;flex-direction:column}.grid>.col{display:contents}.o1{order:1}.o2{order:2}.o3{order:3}.o4{order:4}.o5{order:5}.o6{order:6}}
+.col{display:flex;flex-direction:column;gap:22px;min-width:0}
+.block{display:flex;flex-direction:column;gap:12px;min-width:0}
+.eyebrow{margin:0;font:700 .74rem/1.2 var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.block h2{margin:0;font:400 1.5rem/1.15 var(--f-display);text-wrap:balance}
+textarea#script{width:100%;min-height:360px;resize:vertical;background:var(--stage);border:1px solid var(--line);border-radius:12px;padding:18px;font:1.06rem/1.65 var(--f-body);color:var(--paper)}
+textarea#script:focus{border-color:var(--spot);outline:none}
+.syntax{display:flex;flex-wrap:wrap;gap:8px 16px;margin:0;padding:0;list-style:none;font-size:.88rem;color:var(--mute)}
+.syntax code{font:500 .82rem/1 var(--f-mono);background:var(--stage-2);color:var(--paper);padding:3px 6px;border-radius:5px;margin-right:4px}
+.count{font:400 .82rem/1.3 var(--f-mono);color:var(--dim);font-variant-numeric:tabular-nums}
+.detect{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:var(--stage);border:1px dashed var(--line);border-radius:12px;padding:12px 14px;font-size:.95rem}
+.detect b{color:var(--tc,var(--paper))}
+.detect small{color:var(--mute);display:block}
+.detect .grow{flex:1;min-width:200px}
+.tones{display:grid;grid-template-columns:repeat(auto-fill,minmax(176px,1fr));gap:8px}
+.tone{position:relative;display:flex;flex-direction:column;gap:4px;padding:12px 14px 13px;background:var(--stage);border:1px solid var(--line);border-radius:12px;cursor:pointer;transition:border-color .15s,background .15s}
+.tone input{position:absolute;opacity:0;pointer-events:none}
+.tone .tname{display:flex;align-items:center;gap:8px;font-weight:700}
+.tone .tname::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--tc)}
+.tone .tlook{font-size:.84rem;line-height:1.4;color:var(--mute)}
+.tone:hover{border-color:var(--dim)}
+.tone:has(input:checked){border-color:var(--tc);background:color-mix(in srgb,var(--tc) 9%,var(--stage))}
+.tone:has(input:focus-visible){outline:2px solid var(--spot);outline-offset:2px}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px 20px;background:var(--stage);border:1px solid var(--line);border-radius:12px;padding:16px}
+.opt{display:flex;flex-direction:column;gap:6px;min-width:0}
+.opt > span{font-size:.86rem;color:var(--mute)}
+.seg{display:flex;border:1px solid var(--line);border-radius:999px;padding:3px;gap:3px}
+.seg label{flex:1;text-align:center;padding:7px 10px;border-radius:999px;cursor:pointer;font-size:.92rem;white-space:nowrap}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label:has(input:checked){background:var(--spot);color:var(--spot-ink);font-weight:700}
+.seg label:has(input:focus-visible){outline:2px solid var(--spot);outline-offset:2px}
+.range{display:flex;align-items:center;gap:10px}
+.range input{flex:1;accent-color:var(--spot);min-width:0}
+.range output{font:500 .85rem/1 var(--f-mono);min-width:64px;text-align:right;font-variant-numeric:tabular-nums}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:.93rem;cursor:pointer}
+.check input{accent-color:var(--spot);margin-top:4px}
+select{background:var(--stage-2);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.primary{display:inline-flex;align-items:center;gap:10px;background:var(--spot);color:var(--spot-ink);border:0;border-radius:999px;padding:15px 24px;font-weight:700;font-size:1.05rem}
+.primary:disabled{opacity:.45;cursor:not-allowed}
+.ghost{display:inline-flex;align-items:center;gap:8px;color:inherit;text-decoration:none;background:transparent;border:1px solid var(--line);border-radius:999px;padding:10px 16px;font-size:.92rem}
+.ghost:hover{border-color:var(--dim)}
+.note{font-size:.86rem;color:var(--mute);margin:0;max-width:62ch}
+.preview{background:var(--stage);border:1px solid var(--line);border-radius:12px;padding:18px;max-height:520px;overflow:auto;--pfs:18px}
+.preview .para{font:400 1rem/1.75 var(--f-body);margin:0 0 14px}
+.preview .w.emph{color:var(--warn)}
+.foot{border-top:1px solid var(--line);padding-top:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px 28px}
+.foot p{margin:0;font-size:.86rem;color:var(--mute)}
+.foot b{color:var(--paper);font-weight:700}
+
+/* fichas de acotación y etiquetas de tono (compartidas por guion, vista previa y plató) */
+.cue-chip{display:inline-flex;align-items:center;gap:.35em;font:700 max(12px,calc(var(--pfs) * .4))/1 var(--f-body);vertical-align:.18em;padding:.42em .7em;margin-right:.4em;border-radius:999px;background:rgba(141,184,255,.14);color:var(--spot);border:1px solid rgba(141,184,255,.38);white-space:nowrap;letter-spacing:.01em}
+.cue-chip .ico{width:1.15em;height:1.15em}
+.cue-chip.libre{background:rgba(244,185,66,.12);color:var(--warn);border-color:rgba(244,185,66,.38)}
+.cue-chip.pausa{background:transparent;border-style:dashed;color:var(--mute);border-color:var(--dim)}
+.tone-tag{display:inline-flex;align-items:center;gap:.4em;font:700 max(11px,calc(var(--pfs) * .34))/1 var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--tc);border:1px solid var(--tc);border-radius:6px;padding:.38em .6em;vertical-align:.25em;margin-right:.5em}
+
+/* ---------- Plató ---------- */
+#studio{position:fixed;inset:0;background:#000;overflow:hidden;color:var(--paper)}
+#cam,#overlay{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+#overlay{pointer-events:none}
+.shade{position:absolute;left:0;right:0;top:0;height:64%;pointer-events:none;background:linear-gradient(to bottom,rgba(12,10,17,.9) 0%,rgba(12,10,17,.8) 58%,rgba(12,10,17,0) 100%)}
+#prompter{position:absolute;top:0;left:50%;transform:translateX(-50%);width:min(1000px,calc(100% - 32px));height:54%;overflow:hidden;touch-action:none;
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 9%,#000 78%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 9%,#000 78%,transparent 100%)}
+@media (min-width:761px){#studio.mon-full #prompter{left:24px;right:352px;width:auto;max-width:1000px;margin-inline:auto;transform:none}}
+#pwrap{position:absolute;inset:0}
+#pwrap.mirror{transform:scaleX(-1)}
+#track{position:absolute;left:0;right:0;top:0;will-change:transform;font:700 var(--pfs)/1.4 var(--f-body);letter-spacing:.005em}
+#track .para{margin:0 0 .7em}
+#track .w{transition:color .25s}
+#track .w.read{color:rgba(244,239,230,.34)}
+#track .w.now{color:#fff;text-decoration:underline 3px var(--spot);text-underline-offset:.22em}
+#track .w.emph{color:var(--warn)}
+#track .w.emph.read{color:rgba(244,185,66,.4)}
+#track .tail{height:70vh}
+#readline{position:absolute;left:-14px;right:-14px;top:var(--ready,140px);height:calc(var(--pfs) * 1.4);pointer-events:none;border-block:1px solid rgba(141,184,255,.4);background:rgba(141,184,255,.06)}
+#readline::before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);border:9px solid transparent;border-left:12px solid var(--spot)}
+
+#cue{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 12px);transform:translateX(-50%);display:flex;align-items:center;gap:14px;max-width:min(680px,calc(100% - 24px));padding:12px 20px 12px 14px;border-radius:18px;background:var(--glass);border:1px solid var(--cc,var(--warn));box-shadow:0 10px 40px rgba(0,0,0,.45);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);z-index:5}
+#cue .cue-ico{display:grid;place-items:center;width:44px;height:44px;border-radius:12px;background:color-mix(in srgb,var(--cc,var(--warn)) 22%,transparent);color:var(--cc,var(--warn));flex:none}
+#cue .cue-ico .ico{width:26px;height:26px}
+#cue b{display:block;font-size:1.32rem;line-height:1.15}
+#cue span{display:block;font-size:.92rem;color:var(--mute);line-height:1.35;margin-top:3px}
+#cue.k-script{--cc:var(--spot)}
+#cue.k-good{--cc:var(--ok)}
+#cue.k-crit{--cc:var(--bad)}
+#cue.pop{animation:pop .35s ease-out}
+@keyframes pop{from{transform:translate(-50%,-8px) scale(.96);opacity:.2}to{transform:translate(-50%,0) scale(1);opacity:1}}
+
+#monitor{position:absolute;right:max(12px,env(safe-area-inset-right,0px));bottom:calc(84px + env(safe-area-inset-bottom,0px));width:312px;max-height:calc(100% - 200px);overflow:auto;display:flex;flex-direction:column;gap:12px;padding:14px;border-radius:16px;background:var(--glass);border:1px solid var(--line);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);z-index:4}
+.verdict{display:flex;gap:14px;align-items:center}
+.ring{--p:0;--rc:var(--dim);width:68px;height:68px;border-radius:50%;flex:none;display:grid;place-items:center;background:conic-gradient(var(--rc) calc(var(--p) * 1%),rgba(255,255,255,.08) 0)}
+.ring span{width:54px;height:54px;border-radius:50%;background:var(--ink);display:grid;place-items:center;font:500 1.05rem/1 var(--f-mono);font-variant-numeric:tabular-nums}
+.vtext{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;align-items:baseline;min-width:0}
+.vtext small{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+.vtext b{font-size:1.02rem;line-height:1.2;color:var(--tc,var(--paper));overflow-wrap:anywhere}
+.why{margin:0;font-size:.84rem;color:var(--mute);line-height:1.4}
+#meters{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
+.meter{display:grid;grid-template-columns:20px 1fr auto;grid-template-rows:auto 7px;gap:3px 8px;align-items:center;font-size:.84rem}
+.meter .ico{width:18px;height:18px;color:var(--mute);grid-row:1 / 3}
+.meter .mstate{font:500 .74rem/1 var(--f-mono);color:var(--mute)}
+.meter .bar{grid-column:2 / 4;position:relative;height:7px;border-radius:4px;background:rgba(255,255,255,.08)}
+.meter .band{position:absolute;top:0;bottom:0;border-radius:4px;background:rgba(85,214,166,.22);border:1px solid rgba(85,214,166,.5)}
+.meter .needle{position:absolute;top:-3px;width:4px;height:13px;margin-left:-2px;border-radius:2px;background:var(--paper);transition:left .25s}
+.meter.ok .needle{background:var(--ok)}.meter.ok .mstate{color:var(--ok)}
+.meter.near .needle{background:var(--warn)}.meter.near .mstate{color:var(--warn)}
+.meter.off .needle{background:var(--bad)}.meter.off .mstate{color:var(--bad)}
+.meter.none .needle{opacity:0}
+.also{margin:0;font-size:.8rem;color:var(--mute)}
+.also b{color:var(--paper);font-weight:400}
+#monitor.compact #meters,#monitor.compact .why,#monitor.compact .also{display:none}
+
+.bar-ctl{position:absolute;left:0;right:0;bottom:0;z-index:6;display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;
+  padding:14px max(12px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));background:linear-gradient(to top,rgba(10,8,14,.9),rgba(10,8,14,0))}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;min-width:44px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:rgba(26,23,34,.88);font-size:.92rem;white-space:nowrap}
+.btn:hover{border-color:var(--dim)}
+.btn.on{border-color:var(--spot);color:var(--spot)}
+.btn.rec{background:var(--bad);color:#1D0B0A;border-color:transparent;font-weight:700}
+.btn.rec .dot{width:12px;height:12px;border-radius:50%;background:#1D0B0A}
+.btn.stop{background:var(--paper);color:var(--ink);border-color:transparent;font-weight:700}
+.btn.go{background:var(--spot);color:var(--spot-ink);border-color:transparent;font-weight:700}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.clock{font:500 .95rem/1 var(--f-mono);font-variant-numeric:tabular-nums;padding:0 8px;display:inline-flex;align-items:center;gap:8px}
+.clock .live{width:10px;height:10px;border-radius:50%;background:var(--bad);animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:.2}}
+.status{position:absolute;left:max(12px,env(safe-area-inset-left,0px));bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:4;font:400 .72rem/1.5 var(--f-mono);color:rgba(244,239,230,.55);pointer-events:none;max-width:46%}
+
+.stage-msg{position:absolute;inset:0;display:grid;place-items:center;z-index:8;background:rgba(10,8,14,.55);padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px))}
+.stage-card{width:min(520px,100%);background:var(--glass);border:1px solid var(--line);border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:14px;text-align:left;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.stage-card h3{margin:0;font:400 1.6rem/1.15 var(--f-display);text-wrap:balance}
+.stage-card p{margin:0;color:var(--mute)}
+.stage-card q{display:block;font-size:1.15rem;color:var(--paper);quotes:"«" "»"}
+.progress{height:6px;border-radius:3px;background:rgba(255,255,255,.1);overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:var(--spot);transition:width .2s linear}
+.count-big{font:400 clamp(6rem,22vw,12rem)/1 var(--f-display);color:#fff;text-shadow:0 6px 40px rgba(0,0,0,.6)}
+.toast{position:absolute;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:9;background:var(--glass);border:1px solid var(--line);border-radius:12px;padding:10px 16px;font-size:.9rem;max-width:calc(100% - 32px)}
+
+@media (max-width:760px){
+  #prompter{width:calc(100% - 24px);height:50%}
+  #monitor{left:max(8px,env(safe-area-inset-left,0px));right:max(8px,env(safe-area-inset-right,0px));width:auto;bottom:calc(76px + env(safe-area-inset-bottom,0px));padding:10px 12px;max-height:38%}
+  #meters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 10px}
+  .meter{grid-template-columns:16px 1fr;font-size:.72rem}
+  .meter .ico{width:15px;height:15px;grid-row:auto}
+  .meter .mname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .meter .mstate{display:none}
+  .meter .bar{grid-column:1 / 3}
+  .ring{width:54px;height:54px}.ring span{width:42px;height:42px;font-size:.9rem}
+  .btn .lbl{display:none}
+  #slower,#faster,#fontDown,#fontUp,#skel{display:none}
+  .btn{padding:0 12px}
+  #cue{padding:10px 14px 10px 10px;gap:10px}
+  #cue .cue-ico{width:36px;height:36px}
+  #cue b{font-size:1.1rem}
+  #cue span{font-size:.8rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .toast{bottom:calc(176px + env(safe-area-inset-bottom,0px))}
+  .status{display:none}
+}
+
+/* ---------- Informe ---------- */
+#report{max-width:1260px;margin:0 auto;padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:26px}
+.rep-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.rep-head h1{margin:0;font:400 clamp(1.9rem,4.5vw,2.8rem)/1.05 var(--f-display)}
+.rep-head p{margin:.4rem 0 0;color:var(--mute)}
+.rep-top{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:900px){.rep-top{grid-template-columns:minmax(0,1fr)}}
+.player{background:#000;border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+.player video{display:block;width:100%;max-height:62vh;background:#000}
+.noplayer{display:grid;place-items:center;min-height:220px;padding:20px;text-align:center;color:var(--mute);background:var(--stage);border:1px dashed var(--line);border-radius:14px}
+.summary{display:flex;flex-direction:column;gap:16px;min-width:0}
+.score{display:flex;gap:18px;align-items:center}
+.score .ring{width:104px;height:104px}
+.score .ring span{width:84px;height:84px;font-size:1.6rem}
+.score p{margin:0;font-size:1.06rem;line-height:1.45}
+.score p b{color:var(--tc,var(--paper))}
+.dist{display:flex;height:14px;border-radius:7px;overflow:hidden;background:rgba(255,255,255,.06)}
+.dist i{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;list-style:none;margin:0;padding:0;font-size:.84rem;color:var(--mute)}
+.legend li{display:flex;align-items:center;gap:6px}
+.legend li::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--tc)}
+.legend b{color:var(--paper);font:500 .8rem/1 var(--f-mono)}
+.panel{background:var(--stage);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.panel h2{margin:0;font:400 1.3rem/1.2 var(--f-display)}
+.panel .sub{margin:0;font-size:.86rem;color:var(--mute)}
+.tl-wrap{position:relative}
+#timeline{display:block;width:100%;height:190px;cursor:pointer}
+.rep-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:20px;align-items:start}
+.fixes{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.fixes li{display:grid;grid-template-columns:38px 1fr;gap:4px 12px;align-items:start}
+.fixes .fi{grid-row:1 / 3;width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:rgba(244,185,66,.14);color:var(--warn)}
+.fixes b{font-size:1rem}
+.fixes b small{font:500 .78rem/1 var(--f-mono);color:var(--mute);margin-left:6px}
+.fixes p{margin:0;font-size:.9rem;color:var(--mute)}
+.rows{width:100%;border-collapse:collapse;font-size:.9rem}
+.rows th{text-align:left;font-weight:700;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);padding:6px 8px;border-bottom:1px solid var(--line)}
+.rows td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.rows td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.tbl{overflow-x:auto}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;padding:3px 9px;border-radius:999px;border:1px solid var(--line);white-space:nowrap}
+.pill.ok{color:var(--ok);border-color:rgba(85,214,166,.45)}
+.pill.no{color:var(--bad);border-color:rgba(255,110,100,.45)}
+.pill.na{color:var(--mute)}
+.mrep{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.mrep li{display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:.9rem}
+.mrep .bar{grid-column:1 / 3;position:relative;height:8px;border-radius:4px;background:rgba(255,255,255,.08)}
+.mrep .band{position:absolute;top:0;bottom:0;border-radius:4px;background:rgba(85,214,166,.22);border:1px solid rgba(85,214,166,.5)}
+.mrep .needle{position:absolute;top:-3px;width:4px;height:14px;margin-left:-2px;border-radius:2px;background:var(--paper)}
+.mrep .v{font:500 .78rem/1.3 var(--f-mono);color:var(--mute)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-mano" viewBox="0 0 24 24"><path d="M8 13V5.6a1.5 1.5 0 0 1 3 0V11M11 10.5V4.5a1.5 1.5 0 0 1 3 0V11M14 10.5V6a1.5 1.5 0 0 1 3 0v7.5c0 4-2.6 7-6.2 7-2.5 0-4.1-1.3-5.3-3.4L3.9 13.6a1.5 1.5 0 0 1 2.6-1.5L8 14.5"/></symbol>
+    <symbol id="i-cara" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 14.2c1 1.6 2.4 2.4 4 2.4s3-.8 4-2.4M9 9.6h.01M15 9.6h.01"/></symbol>
+    <symbol id="i-cejas" viewBox="0 0 24 24"><path d="M4.5 8.5c1.6-1.7 3.8-2 5.6-.9M13.9 7.6c1.8-1.1 4-.8 5.6.9"/><circle cx="8" cy="12.5" r="1.4"/><circle cx="16" cy="12.5" r="1.4"/><path d="M9.5 18h5"/></symbol>
+    <symbol id="i-voz" viewBox="0 0 24 24"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2"/></symbol>
+    <symbol id="i-tono" viewBox="0 0 24 24"><path d="M2.5 14c2-6 4-6 6 0s4 6 6 0 4-7 7-2"/></symbol>
+    <symbol id="i-ritmo" viewBox="0 0 24 24"><path d="M8 21h8L13.2 4h-2.4z"/><path d="M12 16l5.5-8.5"/></symbol>
+    <symbol id="i-ojo" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-cuerpo" viewBox="0 0 24 24"><circle cx="12" cy="4.5" r="2"/><path d="M12 7.5v6.5M12 14l-3.5 6.5M12 14l3.5 6.5M4.5 10l7.5-1.6 7.5 1.6"/></symbol>
+    <symbol id="i-abrir" viewBox="0 0 24 24"><path d="M3 12h7M14 12h7M6 9l-3 3 3 3M18 9l3 3-3 3"/></symbol>
+    <symbol id="i-pequeno" viewBox="0 0 24 24"><path d="M2.5 12h6.5M15 12h6.5M6 9l3 3-3 3M18 9l-3 3 3 3"/></symbol>
+    <symbol id="i-pecho" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></symbol>
+    <symbol id="i-contar" viewBox="0 0 24 24"><path d="M7 20v-9M12 20V5M17 20V8"/></symbol>
+    <symbol id="i-grande" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
+    <symbol id="i-pregunta" viewBox="0 0 24 24"><path d="M9 9a3 3 0 1 1 4.2 2.8c-.8.4-1.2 1-1.2 1.8V15M12 19h.01"/></symbol>
+    <symbol id="i-no" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-cta" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></symbol>
+    <symbol id="i-pausa" viewBox="0 0 24 24"><path d="M9 6v12M15 6v12"/></symbol>
+    <symbol id="i-enfasis" viewBox="0 0 24 24"><path d="M12 4v10M12 19h.01"/></symbol>
+    <symbol id="i-ok" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-alerta" viewBox="0 0 24 24"><path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17h.01"/></symbol>
+    <symbol id="i-acotacion" viewBox="0 0 24 24"><path d="M5 19l1-4L16 5l3 3L9 18zM14 7l3 3"/></symbol>
+    <symbol id="i-encuadre" viewBox="0 0 24 24"><path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4"/><circle cx="12" cy="12" r="2.5"/></symbol>
+    <symbol id="i-postura" viewBox="0 0 24 24"><path d="M12 3v18M7 7h10M8 21h8"/></symbol>
+    <symbol id="i-volver" viewBox="0 0 24 24"><path d="M10 6l-6 6 6 6M4 12h16"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></symbol>
+    <symbol id="i-texto" viewBox="0 0 24 24"><path d="M4 18L9 6l5 12M5.8 14h6.4M15 18l3-7 3 7M15.8 16h4.4"/></symbol>
+    <symbol id="i-esqueleto" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.8"/><path d="M6 9.5h12M12 9.5v5M12 14.5L9 20M12 14.5L15 20M6 9.5L4.5 14M18 9.5l1.5 4.5"/></symbol>
+    <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M7 12l3-3 2 2 4-4"/></symbol>
+    <symbol id="i-mas" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-menos" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="i-descargar" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></symbol>
+    <symbol id="i-repetir" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3L20 9M20 4v5h-5M20 12a8 8 0 0 1-14 5.3L4 15M4 20v-5h5"/></symbol>
+  </defs>
+</svg>
+
+<!-- ============ MESA DE TRABAJO ============ -->
+<main id="setup">
+  <header class="masthead">
+    <div>
+      <h1 class="wordmark">Apunta<span>dor</span></h1>
+      <p class="tagline">Teleprompter con director de escena. Mientras lees, te dice si estás estático, si te sobran o faltan gestos, si sonríes poco o si tu voz suena plana para lo que quieres transmitir.</p>
+    </div>
+    <span class="badge">Prototipo · todo se analiza en tu dispositivo</span>
+  </header>
+
+  <div class="grid">
+    <div class="col">
+      <section class="block o1">
+        <p class="eyebrow">1 · Guion</p>
+        <h2>Lo que vas a leer</h2>
+        <label for="script" class="sr">Guion</label>
+        <textarea id="script" spellcheck="true"></textarea>
+        <ul class="syntax">
+          <li><code>[animado]</code>tono desde ese párrafo</li>
+          <li><code>//</code>pausa</li>
+          <li><code>*palabra*</code>énfasis</li>
+          <li><code>{abre los brazos}</code>acotación tuya</li>
+        </ul>
+        <span class="count" id="count"></span>
+      </section>
+      <section class="block o6">
+        <p class="eyebrow">Vista previa</p>
+        <h2>Así te lo marcará el apuntador</h2>
+        <p class="note">Las fichas azules son gestos que te propondrá en el momento justo de la lectura y luego comprobará si los haces. Las amarillas son tus propias acotaciones.</p>
+        <div class="preview" id="preview"></div>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="block o2">
+        <p class="eyebrow">2 · Intención</p>
+        <h2>¿Qué tiene que transmitir el mensaje?</h2>
+        <div class="detect" id="detect"></div>
+        <div class="tones" id="tones" role="radiogroup" aria-label="Tono del mensaje"></div>
+        <p class="note">Es el tono por defecto. Si un párrafo empieza con una etiqueta como <code style="font-family:var(--f-mono)">[serio]</code>, el apuntador cambia de objetivo al llegar a él.</p>
+      </section>
+
+      <section class="block o3">
+        <p class="eyebrow">3 · Ajustes</p>
+        <div class="opts">
+          <div class="opt">
+            <span>Cómo avanza el texto</span>
+            <div class="seg" role="radiogroup" aria-label="Avance del texto">
+              <label><input type="radio" name="mode" value="voz" id="mode-voz">Sigue mi voz</label>
+              <label><input type="radio" name="mode" value="fijo" id="mode-fijo">Velocidad fija</label>
+            </div>
+          </div>
+          <div class="opt">
+            <span>Velocidad (modo fijo)</span>
+            <div class="range"><input type="range" id="wpm" min="80" max="220" step="5" aria-label="Palabras por minuto"><output id="wpm-out"></output></div>
+          </div>
+          <div class="opt">
+            <span>Tamaño de letra</span>
+            <div class="range"><input type="range" id="font" min="28" max="84" step="2" aria-label="Tamaño de letra"><output id="font-out"></output></div>
+          </div>
+          <div class="opt">
+            <label for="lang"><span style="font-size:.86rem;color:var(--mute)">Idioma de la voz</span></label>
+            <select id="lang">
+              <option value="es-ES">Español (España)</option>
+              <option value="es-MX">Español (México)</option>
+              <option value="es-AR">Español (Argentina)</option>
+              <option value="es-CO">Español (Colombia)</option>
+              <option value="es-US">Español (EE. UU.)</option>
+              <option value="en-US">English (US)</option>
+            </select>
+          </div>
+          <label class="check"><input type="checkbox" id="pauseSilent">Parar el texto cuando me callo (modo fijo)</label>
+          <label class="check"><input type="checkbox" id="cuesOn">Avisarme de los gestos del guion</label>
+          <label class="check"><input type="checkbox" id="mirror">Texto en espejo (cristal de teleprompter)</label>
+          <label class="check"><input type="checkbox" id="skeleton">Dibujar lo que detecta (esqueleto)</label>
+        </div>
+      </section>
+
+      <div class="actions o4">
+        <button class="primary" id="go"><svg class="ico"><use href="#i-play"/></svg>Entrar al plató</button>
+        <button class="ghost" id="sample"><svg class="ico"><use href="#i-repetir"/></svg>Cargar guion de ejemplo</button>
+      </div>
+      <p class="note o5">Pedirá permiso para cámara y micrófono. Funciona mejor en Chrome o Edge, con el móvil en vertical o el portátil a la altura de los ojos y la cámara viéndote de cintura para arriba.</p>
+    </div>
+  </div>
+
+  <footer class="foot">
+    <p><b>Qué mira.</b> Postura, movimiento del cuerpo y de las manos, brazos cruzados, manos en la cara, sonrisa, cejas y mirada a cámara; en la voz, volumen, entonación, ritmo y pausas.</p>
+    <p><b>Privacidad.</b> El vídeo y el audio se analizan en este navegador y no se suben a ningún sitio. El modo «Sigue mi voz» usa el reconocimiento de voz del navegador, que en Chrome procesa Google.</p>
+    <p><b>Límites.</b> Es una guía, no un juez: las medidas son aproximadas y dependen de la luz, el encuadre y el micrófono. Calibra al entrar para que te compare contigo.</p>
+  </footer>
+</main>
+
+<!-- ============ PLATÓ ============ -->
+<section id="studio" hidden aria-label="Plató">
+  <video id="cam" playsinline muted autoplay></video>
+  <canvas id="overlay"></canvas>
+  <div class="shade"></div>
+  <div id="prompter"><div id="pwrap"><div id="track"></div><div id="readline"></div></div></div>
+
+  <div id="cue" hidden role="status" aria-live="polite">
+    <div class="cue-ico"><svg class="ico"><use href="#i-alerta"/></svg></div>
+    <div><b></b><span></span></div>
+  </div>
+
+  <aside id="monitor" aria-label="Monitor del director">
+    <div class="verdict">
+      <div class="ring" id="ring"><span id="matchPct">--</span></div>
+      <div class="vtext">
+        <small>Transmites</small><b id="perceived">—</b>
+        <small>Objetivo</small><b id="target">—</b>
+      </div>
+    </div>
+    <p class="why" id="why">Colócate frente a la cámara y empieza a hablar.</p>
+    <ul id="meters"></ul>
+    <p class="also" id="also"></p>
+  </aside>
+
+  <div class="status" id="status"></div>
+
+  <div class="bar-ctl">
+    <button class="btn" id="back" title="Volver al guion (Esc)"><svg class="ico"><use href="#i-volver"/></svg><span class="lbl">Guion</span></button>
+    <button class="btn" id="slower" title="Más lento (flecha abajo)"><svg class="ico"><use href="#i-menos"/></svg><span class="sr">Más lento</span></button>
+    <span class="clock" id="clock">00:00</span>
+    <button class="btn" id="faster" title="Más rápido (flecha arriba)"><svg class="ico"><use href="#i-mas"/></svg><span class="sr">Más rápido</span></button>
+    <button class="btn go" id="rehearse" title="Ensayar sin grabar (Espacio)"><svg class="ico"><use href="#i-play"/></svg><span class="lbl">Ensayar</span></button>
+    <button class="btn rec" id="record" title="Grabar toma (R)"><i class="dot"></i><span class="lbl">Grabar</span></button>
+    <button class="btn stop" id="stop" hidden title="Terminar toma (Esc)"><svg class="ico"><use href="#i-ok"/></svg><span class="lbl">Terminar</span></button>
+    <button class="btn" id="fontDown" title="Letra más pequeña (-)"><svg class="ico"><use href="#i-texto"/></svg><span class="sr">Letra más pequeña</span>−</button>
+    <button class="btn" id="fontUp" title="Letra más grande (+)"><svg class="ico"><use href="#i-texto"/></svg><span class="sr">Letra más grande</span>+</button>
+    <button class="btn" id="skel" title="Esqueleto (S)"><svg class="ico"><use href="#i-esqueleto"/></svg><span class="sr">Esqueleto</span></button>
+    <button class="btn" id="mon" title="Monitor completo o compacto (M)"><svg class="ico"><use href="#i-monitor"/></svg><span class="sr">Monitor</span></button>
+  </div>
+
+  <div class="stage-msg" id="stageMsg" hidden></div>
+  <div class="toast" id="toast" hidden></div>
+</section>
+
+<!-- ============ INFORME ============ -->
+<section id="report" hidden aria-label="Informe de la toma"></section>
+
+<script type="module">
+/* =====================================================================
+   APUNTADOR · teleprompter con director de escena
+   - Visión: MediaPipe Tasks (postura, cara con blendshapes, manos/gestos)
+   - Voz: Web Audio (volumen, tono con YIN, ritmo, pausas)
+   - Seguimiento del texto: Web Speech API (si existe) o velocidad fija
+   ===================================================================== */
+
+const MP_VER = '0.10.21';
+const MP = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VER}`;
+const FORCE_CPU = /[?&]cpu\b/.test(location.search);
+const MODEL = {
+  pose: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task',
+  face: 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
+  hands: 'https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task',
+};
+
+/* ---------------- utilidades ---------------- */
+const $ = (s, r = document) => r.querySelector(s);
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const mean = a => a.length ? a.reduce((s, x) => s + x, 0) / a.length : null;
+const std = a => { if (a.length < 2) return 0; const m = mean(a); return Math.sqrt(a.reduce((s, x) => s + (x - m) ** 2, 0) / a.length); };
+const median = a => { if (!a.length) return null; const b = [...a].sort((x, y) => x - y), k = b.length >> 1; return b.length % 2 ? b[k] : (b[k - 1] + b[k]) / 2; };
+const pctl = (a, p) => { if (!a.length) return null; const b = [...a].sort((x, y) => x - y); return b[Math.min(b.length - 1, Math.floor(p * b.length))]; };
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+const now = () => performance.now() / 1000;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const ico = (id, cls = 'ico') => `<svg class="${cls}"><use href="#i-${id}"/></svg>`;
+const fmtTime = s => { s = Math.max(0, Math.floor(s)); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('apuntador.' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem('apuntador.' + k, JSON.stringify(v)); } catch {} },
+};
+const NUMW = { '0': 'cero', '1': 'uno', '2': 'dos', '3': 'tres', '4': 'cuatro', '5': 'cinco', '6': 'seis', '7': 'siete', '8': 'ocho', '9': 'nueve', '10': 'diez' };
+function normWord(t) {
+  const n = t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
+  return NUMW[n] || n;
+}
+
+/* Serie temporal con ventana deslizante */
+class Series {
+  constructor(maxAge = 12) { this.t = []; this.v = []; this.maxAge = maxAge; }
+  push(t, v) {
+    this.t.push(t); this.v.push(v);
+    const cut = t - this.maxAge; let i = 0;
+    while (i < this.t.length && this.t[i] < cut) i++;
+    if (i) { this.t.splice(0, i); this.v.splice(0, i); }
+  }
+  since(t, sec) { const cut = t - sec, out = []; for (let i = this.t.length - 1; i >= 0 && this.t[i] >= cut; i--) out.push(this.v[i]); return out; }
+  mean(t, sec) { return mean(this.since(t, sec)); }
+  clear() { this.t = []; this.v = []; }
+}
+
+/* ---------------- tonos, medidas y acotaciones ---------------- */
+const TONES = {
+  animado:   { name: 'Animado',    adj: 'animado',    color: '#FF9F43', look: 'Manos activas y amplias, sonrisa abierta, voz alta que sube y baja, ritmo ágil.',
+    t: { energia: [.45, .9], manos: [.55, 1], apertura: [.45, 1], sonrisa: [.45, 1], expresion: [.4, 1], volumen: [.55, .92], entonacion: [.55, 1], ritmo: [.5, .85] } },
+  cercano:   { name: 'Cercano',    adj: 'cercano',    color: '#F78FB3', look: 'Gestos suaves hacia la cámara, sonrisa tranquila, voz de conversación.',
+    t: { energia: [.2, .55], manos: [.35, .8], apertura: [.35, .85], sonrisa: [.3, .8], expresion: [.3, .75], volumen: [.35, .65], entonacion: [.35, .75], ritmo: [.35, .65] } },
+  serio:     { name: 'Serio',      adj: 'serio',      color: '#9FB3CF', look: 'Pocos gestos y precisos, cara neutra, voz firme y estable, mirada fija.',
+    t: { energia: [.1, .4], manos: [.3, .7], apertura: [.3, .75], sonrisa: [0, .3], expresion: [.1, .5], volumen: [.45, .75], entonacion: [.25, .6], ritmo: [.3, .6] } },
+  inspirador:{ name: 'Inspirador', adj: 'inspirador', color: '#B794F6', look: 'Brazos abiertos, gestos que suben, pausas largas, voz que crece.',
+    t: { energia: [.35, .75], manos: [.5, .95], apertura: [.55, 1], sonrisa: [.25, .7], expresion: [.35, .85], volumen: [.5, .85], entonacion: [.5, .95], ritmo: [.25, .55] } },
+  calmado:   { name: 'Calmado',    adj: 'calmado',    color: '#63CDDA', look: 'Movimientos lentos, voz suave y pausada, sonrisa ligera.',
+    t: { energia: [0, .3], manos: [.15, .55], apertura: [.3, .8], sonrisa: [.2, .65], expresion: [.1, .5], volumen: [.2, .5], entonacion: [.2, .55], ritmo: [.15, .45] } },
+  divertido: { name: 'Divertido',  adj: 'divertido',  color: '#FFD32A', look: 'Mucha cara: cejas activas, sonrisa grande, gestos exagerados, ritmo vivo.',
+    t: { energia: [.55, 1], manos: [.55, 1], apertura: [.4, 1], sonrisa: [.6, 1], expresion: [.55, 1], volumen: [.5, .95], entonacion: [.6, 1], ritmo: [.5, .9] } },
+  urgente:   { name: 'Urgente',    adj: 'urgente',    color: '#FF7A7A', look: 'Gestos firmes y cortos, poca sonrisa, voz alta, ritmo rápido.',
+    t: { energia: [.45, .85], manos: [.5, .95], apertura: [.3, .8], sonrisa: [0, .35], expresion: [.3, .75], volumen: [.6, 1], entonacion: [.4, .8], ritmo: [.6, .9] } },
+};
+const TONE_ALIAS = { animado: 'animado', animada: 'animado', energico: 'animado', energica: 'animado', alegre: 'animado', entusiasta: 'animado',
+  cercano: 'cercano', cercana: 'cercano', calido: 'cercano', calida: 'cercano', amable: 'cercano',
+  serio: 'serio', seria: 'serio', profesional: 'serio', formal: 'serio',
+  inspirador: 'inspirador', inspiradora: 'inspirador', motivador: 'inspirador', motivadora: 'inspirador', emotivo: 'inspirador', emotiva: 'inspirador',
+  calmado: 'calmado', calmada: 'calmado', tranquilo: 'calmado', tranquila: 'calmado', sereno: 'calmado', serena: 'calmado',
+  divertido: 'divertido', divertida: 'divertido', gracioso: 'divertido', graciosa: 'divertido', humor: 'divertido',
+  urgente: 'urgente', persuasivo: 'urgente', persuasiva: 'urgente', venta: 'urgente' };
+const STATES = {
+  defensivo: { name: 'Distante, a la defensiva', color: '#E07A5F', why: 'Brazos cruzados o puños cerrados: se lee como barrera.' },
+  nervioso:  { name: 'Nervioso',                 color: '#E9A23B', why: 'Manos inquietas, tocarse la cara o balancearse delatan nervios.' },
+  leyendo:   { name: 'Leyendo, sin conexión',    color: '#9AA5B1', why: 'La mirada se va del objetivo: parece que lees, no que hablas.' },
+  apagado:   { name: 'Plano y estático',         color: '#8B84A0', why: 'Poco cuerpo, poca cara y voz plana: suena a lectura sin intención.' },
+};
+const METRICS = [
+  { id: 'energia',    name: 'Energía corporal', icon: 'cuerpo', w: 1.2, low: 'poco movimiento del cuerpo',    high: 'demasiado movimiento' },
+  { id: 'manos',      name: 'Uso de las manos', icon: 'mano',   w: 1.2, low: 'manos quietas o fuera de plano', high: 'gestos constantes' },
+  { id: 'apertura',   name: 'Apertura',         icon: 'abrir',  w: .7,  low: 'gestos cerrados, pegados al cuerpo', high: 'gestos demasiado abiertos' },
+  { id: 'sonrisa',    name: 'Sonrisa',          icon: 'cara',   w: 1.1, low: 'poca sonrisa',                  high: 'demasiada sonrisa' },
+  { id: 'expresion',  name: 'Expresión facial', icon: 'cejas',  w: .7,  low: 'cara poco expresiva',           high: 'cara muy exagerada' },
+  { id: 'volumen',    name: 'Volumen',          icon: 'voz',    w: 1,   low: 'voz baja',                      high: 'voz demasiado alta' },
+  { id: 'entonacion', name: 'Entonación',       icon: 'tono',   w: 1,   low: 'entonación monótona',           high: 'entonación muy cambiante' },
+  { id: 'ritmo',      name: 'Ritmo',            icon: 'ritmo',  w: .8,  low: 'ritmo lento',                   high: 'ritmo demasiado rápido' },
+  { id: 'mirada',     name: 'Mirada a cámara',  icon: 'ojo',    w: 0,   low: 'mirada fuera de cámara',        high: '' , fixed: [.65, 1] },
+];
+const targetsFor = tone => ({ ...TONES[tone].t, mirada: [.65, 1] });
+
+const CUES = {
+  saludo:   { label: 'Saluda con la mano',              icon: 'mano' },
+  contar:   { label: 'Cuenta con los dedos',            icon: 'contar' },
+  abrir:    { label: 'Abre los brazos',                 icon: 'abrir' },
+  pecho:    { label: 'Mano al pecho',                   icon: 'pecho' },
+  palma:    { label: 'Palma hacia la cámara',           icon: 'mano' },
+  grande:   { label: 'Separa las manos: algo grande',   icon: 'grande' },
+  pequeno:  { label: 'Junta los dedos: algo preciso',   icon: 'pequeno' },
+  pregunta: { label: 'Cejas arriba, palmas arriba',     icon: 'pregunta' },
+  sonrie:   { label: 'Sonríe',                          icon: 'cara' },
+  negar:    { label: 'Niega con la mano',               icon: 'no' },
+  cta:      { label: 'Señala abajo: el enlace',         icon: 'cta' },
+  pausa:    { label: 'Pausa',                           icon: 'pausa' },
+  enfasis:  { label: 'Remarca con la voz',              icon: 'enfasis' },
+  libre:    { label: '',                                icon: 'acotacion' },
+};
+const KW = {
+  saludo: ['hola', 'holaa', 'hey', 'buenas', 'bienvenidos', 'bienvenidas', 'bienvenido', 'bienvenida', 'saludos'],
+  contar: ['primero', 'primera', 'segundo', 'segunda', 'tercero', 'tercera', 'cuarto', 'quinto', 'dos', 'tres', 'cuatro', 'cinco', 'porunlado', 'porotro'],
+  abrir: ['todos', 'todas', 'juntos', 'juntas', 'comunidad', 'familia', 'equipo', 'gente', 'mundo', 'compartir', 'vosotros', 'vosotras', 'ustedes', 'nosotros', 'nosotras'],
+  pecho: ['yo', 'confieso', 'siento', 'corazon', 'sinceramente', 'personalmente', 'gracias', 'agradecido', 'agradecida', 'emociona', 'emocionado', 'emocionada', 'orgulloso', 'orgullosa'],
+  palma: ['tu', 'ti', 'contigo', 'imagina', 'imaginad', 'imaginate', 'piensa', 'pensad'],
+  grande: ['grande', 'enorme', 'gigante', 'increible', 'brutal', 'muchisimo', 'muchisima', 'espectacular', 'inmenso', 'crecer', 'crece'],
+  pequeno: ['pequeno', 'pequena', 'detalle', 'detalles', 'poquito', 'exacto', 'exactamente', 'preciso', 'minimo', 'clave'],
+  negar: ['nunca', 'jamas', 'olvidate', 'olvidaos', 'error', 'errores'],
+  cta: ['suscribete', 'suscribiros', 'sigueme', 'seguirme', 'comenta', 'comentarios', 'comparte', 'enlace', 'link', 'descripcion', 'bio', 'like', 'campanita', 'guarda', 'escribeme', 'cuentame'],
+  pausa: ['pero', 'sinembargo', 'aunque'],
+};
+const CUE_ORDER = ['saludo', 'pregunta', 'cta', 'contar', 'abrir', 'pecho', 'grande', 'pequeno', 'negar', 'palma'];
+const KWSET = Object.fromEntries(Object.entries(KW).map(([k, v]) => [k, new Set(v)]));
+
+const SAMPLE = `[animado]
+¡Hola a todos! Hoy os traigo algo que llevo semanas preparando y por fin os lo puedo contar.
+
+He probado tres cosas para que mis vídeos funcionen mejor: primero, la luz; segundo, el sonido; y tercero, lo que casi nadie cuida: cómo te mueves delante de la cámara.
+
+[cercano]
+Os confieso una cosa: al principio yo me quedaba quieto como una estatua. // Y la gente lo notaba.
+
+¿Sabéis qué cambió? Empecé a usar las manos para explicar, a sonreír de verdad y a jugar con el tono de voz.
+
+[animado]
+Si te ha servido, suscríbete y cuéntame en los comentarios cuál de los tres consejos vas a probar *primero*. ¡Nos vemos en el próximo vídeo!`;
+
+/* ---------------- análisis del guion ---------------- */
+function parseScript(text, globalTone) {
+  const sc = { words: [], paras: [], sents: [], cues: [] };
+  const blocks = text.replace(/\r/g, '').split(/\n\s*\n/);
+  let tone = globalTone, carryTag = false;
+  for (const block of blocks) {
+    const start = sc.words.length, pi = sc.paras.length;
+    let tagged = carryTag, emph = false, sentStart = start;
+    carryTag = false;
+    const pending = [];
+    const toks = block.match(/\[[^\]\n]*\]|\{[^}\n]*\}|\/\/|[^\s\[\]{}]+/g) || [];
+    for (const tk of toks) {
+      if (tk[0] === '[') {
+        const name = normWord(tk.slice(1, -1));
+        if (TONE_ALIAS[name]) { tone = TONE_ALIAS[name]; tagged = true; }
+        else if (name === 'pausa') pending.push({ type: 'pausa', explicit: true });
+        else if (tk.length > 2) pending.push({ type: 'libre', text: tk.slice(1, -1).trim(), explicit: true });
+        continue;
+      }
+      if (tk[0] === '{') { if (tk.length > 2) pending.push({ type: 'libre', text: tk.slice(1, -1).trim(), explicit: true }); continue; }
+      if (tk === '//') { pending.push({ type: 'pausa', explicit: true }); continue; }
+      let t = tk, closes = false;
+      if (/^[¡¿"«(]*\*/.test(t)) { emph = true; t = t.replace(/\*+/, ''); }
+      if (/\*+[.,;:!?…»")]*$/.test(t)) { closes = true; t = t.replace(/\*+(?=[.,;:!?…»")]*$)/, ''); }
+      if (!t) { if (closes) emph = false; continue; }
+      const i = sc.words.length;
+      sc.words.push({ text: t, norm: normWord(t), p: pi, emph });
+      for (const c of pending) sc.cues.push({ ...c, at: i });
+      pending.length = 0;
+      if (emph && (i === start || !sc.words[i - 1].emph)) sc.cues.push({ type: 'enfasis', at: i, explicit: true });
+      if (closes) emph = false;
+      if (/[.!?…]["»”)]*$/.test(t)) { sc.sents.push({ start: sentStart, end: i + 1, p: pi }); sentStart = i + 1; }
+    }
+    if (sentStart < sc.words.length) sc.sents.push({ start: sentStart, end: sc.words.length, p: pi });
+    if (sc.words.length > start) sc.paras.push({ start, end: sc.words.length, tone, tagged });
+    else if (tagged) carryTag = true;
+  }
+  // acotaciones automáticas por frase
+  for (const s of sc.sents) {
+    const ws = sc.words.slice(s.start, s.end);
+    const raw = ws.map(w => w.text).join(' ');
+    if (sc.cues.some(c => c.explicit && c.type === 'libre' && c.at >= s.start && c.at < s.end)) continue;
+    const cand = [];
+    if (/[?¿]/.test(raw)) cand.push({ type: 'pregunta', at: s.start });
+    for (let i = s.start; i < s.end; i++) {
+      const n = sc.words[i].norm, bi = n + (sc.words[i + 1]?.norm || '');
+      for (const type of CUE_ORDER) {
+        if (type === 'pregunta') continue;
+        if (KWSET[type].has(n) || KWSET[type].has(bi)) cand.push({ type, at: i });
+      }
+      if (n === 'no' && i === s.start) cand.push({ type: 'negar', at: i });
+      if (i > s.start && (KWSET.pausa.has(n) || KWSET.pausa.has(bi)) && !sc.cues.some(c => c.type === 'pausa' && Math.abs(c.at - i) < 2))
+        sc.cues.push({ type: 'pausa', at: i, auto: true });
+    }
+    cand.sort((a, b) => CUE_ORDER.indexOf(a.type) - CUE_ORDER.indexOf(b.type) || a.at - b.at);
+    const picked = [];
+    for (const c of cand) {
+      if (picked.length >= 2) break;
+      if (picked.some(p => p.type === c.type || Math.abs(p.at - c.at) < 4)) continue;
+      picked.push(c);
+    }
+    if (!picked.length && /[!¡]/.test(raw)) picked.push({ type: 'sonrie', at: s.start });
+    for (const c of picked) sc.cues.push({ ...c, auto: true });
+  }
+  sc.cues.sort((a, b) => a.at - b.at);
+  return sc;
+}
+
+function detectTone(text) {
+  const words = (text.match(/[^\s]+/g) || []).map(normWord);
+  const cnt = list => { const set = new Set(list); const hits = words.filter(w => set.has(w)); return { n: hits.length, hits }; };
+  const ex = (text.match(/!/g) || []).length, q = (text.match(/\?/g) || []).length;
+  const groups = {
+    animado: ['genial', 'increible', 'brutal', 'flipar', 'flipante', 'encanta', 'ilusion', 'sorpresa', 'sorteo', 'regalo', 'nuevo', 'nueva', 'vamos', 'super', 'top', 'hola', 'bienvenidos', 'fiesta', 'emocionante'],
+    cercano: ['os', 'vosotros', 'gracias', 'cuento', 'contaros', 'confieso', 'amigos', 'familia', 'comunidad', 'quiero', 'querido', 'queridos', 'casa', 'personal', 'vida'],
+    serio: ['datos', 'informe', 'resultado', 'resultados', 'importante', 'responsabilidad', 'analisis', 'empresa', 'clientes', 'usted', 'ademas', 'porcentaje', 'objetivo', 'estrategia', 'debemos', 'normativa', 'seguridad', 'riesgo'],
+    inspirador: ['sueno', 'suenos', 'lograr', 'conseguir', 'puedes', 'podemos', 'futuro', 'cambiar', 'creer', 'cree', 'camino', 'mundo', 'rendirse', 'imposible', 'valiente', 'fuerza', 'meta', 'superar', 'inspira'],
+    calmado: ['respira', 'respirar', 'tranquilo', 'tranquila', 'calma', 'despacio', 'paz', 'relaja', 'relajate', 'descansa', 'suave', 'meditacion', 'dormir', 'sereno', 'silencio'],
+    divertido: ['jaja', 'jajaja', 'jajajaja', 'broma', 'risa', 'gracioso', 'absurdo', 'xd', 'lol', 'locura', 'loco', 'ridiculo', 'divertido', 'payaso'],
+    urgente: ['ahora', 'ya', 'ultimo', 'ultima', 'ultimas', 'quedan', 'corre', 'rapido', 'oferta', 'descuento', 'limitado', 'termina', 'aprovecha', 'urgente', 'antes'],
+  };
+  const sc = {}, why = {};
+  for (const [k, list] of Object.entries(groups)) { const r = cnt(list); sc[k] = r.n; why[k] = [...new Set(r.hits)].slice(0, 3); }
+  sc.animado += ex * .9; sc.cercano += q * .4 + .6; sc.serio += ex === 0 ? 1.2 : 0;
+  sc.inspirador *= 1.2; sc.calmado *= 1.5; sc.divertido *= 1.6; sc.urgente *= 1.1;
+  const best = Object.entries(sc).sort((a, b) => b[1] - a[1])[0][0];
+  const reasons = [];
+  if (best === 'animado' && ex) reasons.push(`${ex} exclamaci${ex === 1 ? 'ón' : 'ones'}`);
+  if (best === 'serio' && !ex) reasons.push('sin exclamaciones');
+  if (why[best].length) reasons.push(why[best].map(w => `«${w}»`).join(', '));
+  return { tone: best, reasons };
+}
+
+function cueChip(c) {
+  const d = CUES[c.type];
+  const label = c.type === 'libre' ? c.text : d.label;
+  return `<span class="cue-chip ${c.type}">${ico(d.icon)}${esc(label)}</span>`;
+}
+function renderScriptHTML(sc) {
+  const byAt = new Map();
+  for (const c of sc.cues) { if (!byAt.has(c.at)) byAt.set(c.at, []); byAt.get(c.at).push(c); }
+  let html = '';
+  sc.paras.forEach((p, pi) => {
+    html += `<p class="para" data-p="${pi}">`;
+    if (p.tagged) html += `<span class="tone-tag" style="--tc:${TONES[p.tone].color}">${TONES[p.tone].name}</span>`;
+    for (let i = p.start; i < p.end; i++) {
+      for (const c of byAt.get(i) || []) html += cueChip(c);
+      const w = sc.words[i];
+      html += `<span class="w${w.emph ? ' emph' : ''}" data-i="${i}">${esc(w.text)}</span> `;
+    }
+    html += '</p>';
+  });
+  return html;
+}
+
+/* ---------------- estado ---------------- */
+const DEFAULT_CALIB = { smile: .05, brow: .12, pitch: .47, yaw: 0, neck: .62, refDb: -30, floor: -62, done: false };
+const S = {
+  text: store.get('text', SAMPLE),
+  tone: store.get('tone', 'animado'),
+  opts: Object.assign({ mode: 'voz', wpm: 140, font: 46, mirror: false, pauseSilent: true, cues: true, skeleton: false, lang: 'es-ES', compact: null }, store.get('opts', {})),
+  calib: Object.assign({}, DEFAULT_CALIB, store.get('calib', {})),
+  sc: null, live: false, take: null, vision: null, visionErr: null, audio: null, stream: null,
+};
+window.__apuntador = S;
+const ser = {
+  motion: new Series(), handsUp: new Series(), handsMove: new Series(), open: new Series(), cx: new Series(),
+  smile: new Series(), brow: new Series(), contact: new Series(), frown: new Series(), pitchRaw: new Series(25), yawRaw: new Series(25),
+  fist: new Series(), handSeen: new Series(), crossed: new Series(),
+  voicedDb: new Series(), pitch: new Series(), voiced: new Series(), peaks: new Series(), words: new Series(30),
+};
+const B = { ok: false, lastOk: -9, lastSeen: -9 };   // cuerpo
+const F = { ok: false, lastSeen: -9 };               // cara
+const H = { lastT: -9, n: 0 };                        // manos
+const V = { floor: -62, speaking: false, lastVoiced: -9, silentSince: null, lastPauseEnd: -9, talkStart: 0, env: null, e0: -99, e1: -99, valley: -99, lastPeak: -9, peakT: -9, db: -99 }; // voz
+S.dbg = { B, F, H, V, ser };
+
+/* ---------------- mesa de trabajo ---------------- */
+const elScript = $('#script');
+function renderTones() {
+  $('#tones').innerHTML = Object.entries(TONES).map(([id, t]) => `
+    <label class="tone" style="--tc:${t.color}">
+      <input type="radio" name="tone" value="${id}" ${id === S.tone ? 'checked' : ''}>
+      <span class="tname">${t.name}</span><span class="tlook">${t.look}</span>
+    </label>`).join('');
+}
+function refreshSetup() {
+  S.sc = parseScript(S.text, S.tone);
+  $('#preview').innerHTML = S.sc.words.length ? renderScriptHTML(S.sc) : '<p class="note">Escribe o pega tu guion a la izquierda.</p>';
+  const n = S.sc.words.length;
+  const autoCues = S.sc.cues.filter(c => c.type !== 'pausa' && c.type !== 'enfasis').length;
+  $('#count').textContent = `${n} palabras · ~${Math.max(1, Math.round(n / 150 * 60))} s a 150 palabras/min · ${autoCues} gestos marcados`;
+  const d = detectTone(S.text);
+  const t = TONES[d.tone];
+  $('#detect').innerHTML = `<div class="grow">Por el texto, parece un mensaje <b style="--tc:${t.color}">${t.name.toLowerCase()}</b>
+    <small>${d.reasons.length ? 'Pistas: ' + esc(d.reasons.join(' · ')) : 'Sin pistas claras en el texto.'}</small></div>
+    ${d.tone !== S.tone ? `<button class="ghost" id="useDetected" data-tone="${d.tone}">Usar ${t.name.toLowerCase()}</button>` : '<span class="pill ok">' + ico('ok') + 'Coincide con tu elección</span>'}`;
+  $('#go').disabled = n === 0;
+}
+let refreshTimer = 0;
+elScript.value = S.text;
+elScript.addEventListener('input', () => {
+  S.text = elScript.value; store.set('text', S.text);
+  clearTimeout(refreshTimer); refreshTimer = setTimeout(refreshSetup, 220);
+});
+$('#tones').addEventListener('change', e => { if (e.target.name === 'tone') { S.tone = e.target.value; store.set('tone', S.tone); refreshSetup(); } });
+$('#detect').addEventListener('click', e => {
+  const b = e.target.closest('#useDetected'); if (!b) return;
+  S.tone = b.dataset.tone; store.set('tone', S.tone); renderTones(); refreshSetup();
+});
+$('#sample').addEventListener('click', () => { S.text = SAMPLE; elScript.value = SAMPLE; store.set('text', S.text); refreshSetup(); });
+
+function bindOpts() {
+  const o = S.opts, save = () => store.set('opts', o);
+  $('#mode-voz').checked = o.mode === 'voz'; $('#mode-fijo').checked = o.mode === 'fijo';
+  for (const r of document.querySelectorAll('input[name=mode]')) r.addEventListener('change', e => { o.mode = e.target.value; save(); });
+  const wpm = $('#wpm'), font = $('#font');
+  wpm.value = o.wpm; $('#wpm-out').textContent = o.wpm + ' ppm';
+  wpm.addEventListener('input', () => { o.wpm = +wpm.value; $('#wpm-out').textContent = o.wpm + ' ppm'; save(); });
+  font.value = o.font; $('#font-out').textContent = o.font + ' px';
+  font.addEventListener('input', () => { o.font = +font.value; $('#font-out').textContent = o.font + ' px'; save(); });
+  for (const k of ['pauseSilent', 'cues', 'mirror', 'skeleton']) {
+    const el = $('#' + (k === 'cues' ? 'cuesOn' : k));
+    el.checked = !!o[k]; el.addEventListener('change', () => { o[k] = el.checked; save(); });
+  }
+  $('#lang').value = o.lang; $('#lang').addEventListener('change', e => { o.lang = e.target.value; save(); });
+}
+renderTones(); bindOpts(); refreshSetup();
+$('#go').addEventListener('click', enterStudio);
+
+/* ---------------- plató: entrada y salida ---------------- */
+const video = $('#cam'), overlay = $('#overlay'), octx = overlay.getContext('2d');
+function show(id) { for (const s of ['setup', 'studio', 'report']) $('#' + s).hidden = s !== id; window.scrollTo(0, 0); }
+
+function stageMsg(html) { const m = $('#stageMsg'); if (!html) { m.hidden = true; m.innerHTML = ''; return; } m.innerHTML = html; m.hidden = false; }
+let toastTimer = 0;
+function toast(msg, ms = 4200) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => t.hidden = true, ms); }
+
+async function enterStudio() {
+  S.sc = parseScript(S.text, S.tone);
+  if (!S.sc.words.length) return;
+  show('studio');
+  document.documentElement.style.setProperty('--pfs', pfs() + 'px');
+  $('#pwrap').classList.toggle('mirror', S.opts.mirror);
+  const compact = S.opts.compact ?? matchMedia('(max-width:760px)').matches;
+  $('#monitor').classList.toggle('compact', compact);
+  $('#studio').classList.toggle('mon-full', !compact);
+  $('#skel').classList.toggle('on', S.opts.skeleton);
+  renderMeters();
+  setupPrompter();
+  setTakeUI(false);
+  stageMsg(`<div class="stage-card"><h3>Preparando el plató</h3><p>Pidiendo permiso para la cámara y el micrófono…</p></div>`);
+  try {
+    if (!S.stream || !S.stream.active) {
+      S.stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } },
+        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+      });
+    }
+  } catch (e) {
+    const denied = e && (e.name === 'NotAllowedError' || e.name === 'SecurityError');
+    stageMsg(`<div class="stage-card"><h3>${denied ? 'Sin permiso para la cámara' : 'No encuentro cámara o micrófono'}</h3>
+      <p>${denied ? 'Permite la cámara y el micrófono en el candado de la barra de direcciones y vuelve a entrar.' : 'Conecta una cámara y un micrófono y vuelve a intentarlo.'}</p>
+      <p style="font-family:var(--f-mono);font-size:.8rem">${esc(e && e.name || '')} ${esc(e && e.message || '')}</p>
+      <div class="actions"><button class="ghost" data-act="back">${ico('volver')}Volver al guion</button><button class="primary" data-act="retry">Reintentar</button></div></div>`);
+    return;
+  }
+  video.srcObject = S.stream;
+  try { await video.play(); } catch {}
+  await setupAudio(S.stream);
+  try { S.wake = await navigator.wakeLock?.request('screen'); } catch {}
+  S.live = true;
+  startLoops();
+  if (!S.vision && !S.visionErr) {
+    stageMsg(`<div class="stage-card"><h3>Cargando el ojo del director</h3><p id="vprog">Descargando los modelos de postura, cara y manos (unos 18 MB, solo la primera vez)…</p><div class="progress"><i id="vbar" style="width:8%"></i></div></div>`);
+    try { S.vision = await loadVision((txt, p) => { const a = $('#vprog'), b = $('#vbar'); if (a) a.textContent = txt; if (b) b.style.width = p + '%'; }); }
+    catch (e) { console.error(e); S.visionErr = e; toast('No se pudo cargar el análisis de imagen (¿sin conexión?). Solo analizaré la voz.', 7000); }
+  }
+  if (!S.live) return;
+  startCalibration();
+}
+$('#stageMsg').addEventListener('click', e => {
+  const a = e.target.closest('[data-act]')?.dataset.act;
+  if (a === 'back') leaveStudio();
+  if (a === 'retry') enterStudio();
+  if (a === 'skipcal') finishCalibration(true);
+});
+
+function leaveStudio() {
+  if (S.take) stopTake(false);
+  S.live = false;
+  stopLoops();
+  stopFollow();
+  try { S.wake?.release(); } catch {}
+  if (S.stream) { for (const tr of S.stream.getTracks()) tr.stop(); S.stream = null; }
+  if (S.audio) { try { S.audio.ctx.close(); } catch {} S.audio = null; }
+  S.calibrating = null;
+  stageMsg(null);
+  show('setup');
+}
+
+/* ---------------- visión ---------------- */
+async function loadVision(progress) {
+  progress('Cargando el motor de visión…', 12);
+  const mod = await import(`${MP}/vision_bundle.mjs`);
+  const { FilesetResolver, PoseLandmarker, FaceLandmarker, GestureRecognizer } = mod;
+  const fileset = await FilesetResolver.forVisionTasks(`${MP}/wasm`);
+  let done = 0;
+  const make = async (Cls, url, opts, label) => {
+    let last;
+    for (const delegate of FORCE_CPU ? ['CPU'] : ['GPU', 'CPU']) {
+      try {
+        const m = await Cls.createFromOptions(fileset, { baseOptions: { modelAssetPath: url, delegate }, runningMode: 'VIDEO', ...opts });
+        done++; progress(`${label} listo (${done}/3)…`, 20 + done * 26);
+        m._delegate = delegate;
+        return m;
+      } catch (e) { last = e; console.warn(label, delegate, e); }
+    }
+    throw last;
+  };
+  progress('Descargando modelos…', 20);
+  const [pose, face, hands] = await Promise.all([
+    make(PoseLandmarker, MODEL.pose, { numPoses: 1, minPoseDetectionConfidence: .5, minPosePresenceConfidence: .5, minTrackingConfidence: .5 }, 'Postura'),
+    make(FaceLandmarker, MODEL.face, { numFaces: 1, outputFaceBlendshapes: true }, 'Cara'),
+    make(GestureRecognizer, MODEL.hands, { numHands: 2 }, 'Manos'),
+  ]);
+  return { pose, face, hands };
+}
+
+const ORDER = ['pose', 'face', 'pose', 'hands'];
+const lastTs = { pose: 0, face: 0, hands: 0 };
+const perf = { pose: 0, face: 0, hands: 0, frames: 0, fpsT: 0, fps: 0, at: {}, gap: { pose: 0, face: 0, hands: 0 } };
+// cuánto tiempo sigue valiendo un dato: más en dispositivos lentos
+const fresh = (which, lastT, t, base) => t - lastT < Math.max(base, 2.5 * perf.gap[which]);
+let orderK = 0;
+function visionStep() {
+  if (!S.vision || video.readyState < 2 || !video.videoWidth) return;
+  const which = ORDER[orderK++ % ORDER.length];
+  let ts = Math.round(performance.now());
+  if (ts <= lastTs[which]) ts = lastTs[which] + 1;
+  lastTs[which] = ts;
+  const t = ts / 1000, t0 = performance.now();
+  if (perf.at[which]) { const g = Math.min(5, t - perf.at[which]); perf.gap[which] = perf.gap[which] ? perf.gap[which] * .8 + g * .2 : g; }
+  perf.at[which] = t;
+  try {
+    if (which === 'pose') onPose(S.vision.pose.detectForVideo(video, ts), t);
+    else if (which === 'face') onFace(S.vision.face.detectForVideo(video, ts), t);
+    else onHands(S.vision.hands.recognizeForVideo(video, ts), t);
+  } catch (e) { console.warn(which, e); }
+  perf[which] = perf[which] * .8 + (performance.now() - t0) * .2;
+  perf.frames++;
+  if (t - perf.fpsT > 1) { perf.fps = perf.frames / (t - perf.fpsT); perf.frames = 0; perf.fpsT = t; }
+}
+
+const smoothPts = [];
+const inFrame = p => p.nx > 0.01 && p.nx < 0.99 && p.ny > 0.01 && p.ny < 0.99;
+const wristHist = [[], []], handHist = {}, kpHist = [];
+const KP = [[0, 1], [11, 1], [12, 1], [13, 1.5], [14, 1.5], [15, 2], [16, 2]]; // punto del cuerpo y peso
+function onPose(res, t) {
+  const lm = res.landmarks && res.landmarks[0];
+  if (!lm) { B.ok = false; return; }
+  B.lastSeen = t;
+  const W = video.videoWidth, Hh = video.videoHeight;
+  const P = [];
+  for (let i = 0; i < 25; i++) {
+    const l = lm[i];
+    const p = { x: l.x * W, y: l.y * Hh, v: l.visibility ?? 1, nx: l.x, ny: l.y };
+    const q = smoothPts[i];
+    if (q && t - q.t < .35) { p.x = q.x + (p.x - q.x) * .6; p.y = q.y + (p.y - q.y) * .6; }
+    smoothPts[i] = { x: p.x, y: p.y, t };
+    P[i] = p;
+  }
+  B.P = P;
+  const ls = P[11], rs = P[12];
+  B.shOk = ls.v > .5 && rs.v > .5 && inFrame(ls) && inFrame(rs);
+  if (!B.shOk) { B.ok = false; return; }
+  const sw = Math.max(dist(ls, rs), 1);
+  const c = { x: (ls.x + rs.x) / 2, y: (ls.y + rs.y) / 2 };
+  const hipsOk = P[23].v > .5 && P[24].v > .5 && inFrame(P[23]) && inFrame(P[24]);
+  const hipY = hipsOk ? (P[23].y + P[24].y) / 2 : c.y + 1.7 * sw;
+  const axis = { x: (ls.x - rs.x) / sw, y: (ls.y - rs.y) / sw };
+  const side = p => ((p.x - c.x) * axis.x + (p.y - c.y) * axis.y) / sw; // >0 lado del hombro izquierdo
+  const wr = [P[15], P[16]].map(w => ({ ...w, vis: w.v > .55 && inFrame(w) }));
+  Object.assign(B, { ok: true, lastOk: t, sw, c, hipY, frameBottomTight: c.y + 1.25 * sw > Hh });
+
+  // movimiento del cuerpo (anchos de hombro por segundo): medias de dos ventanas seguidas,
+  // así el temblor del detector no cuenta como energía
+  const span = Math.max(.4, 1.5 * perf.gap.pose);
+  kpHist.push({ t, p: KP.map(([i]) => P[i].v > .5 && inFrame(P[i]) ? { x: P[i].x / sw, y: P[i].y / sw } : null) });
+  while (kpHist.length && kpHist[0].t < t - 2) kpHist.shift();
+  let msum = 0, wsum = 0;
+  KP.forEach(([, w], j) => {
+    const avg = (a, b) => { let x = 0, y = 0, n = 0; for (const f of kpHist) { const q = f.p[j]; if (q && f.t > t - b && f.t <= t - a) { x += q.x; y += q.y; n++; } } return n ? { x: x / n, y: y / n } : null; };
+    const p1 = avg(-1, span), p0 = avg(span, 2 * span);
+    if (p1 && p0) { msum += w * dist(p1, p0) / span; wsum += w; }
+  });
+  if (wsum) ser.motion.push(t, msum / wsum);
+
+  // manos en zona de gesto y moviéndose
+  const top = c.y - 1.3 * sw;
+  const inZone = w => w.vis && w.y > top && w.y < hipY + .1 * sw;
+  const up = wr.some(inZone);
+  // velocidad de cada muñeca respecto a los hombros: mover las manos es gesticular; mover todo el cuerpo no
+  const speeds = wr.map((w, k) => {
+    const h = wristHist[k];
+    if (w.vis) h.push({ x: (w.x - c.x) / sw, y: (w.y - c.y) / sw, t });
+    while (h.length && h[0].t < t - 2) h.shift();
+    if (!w.vis) return 0;
+    const avg = (a, b) => { let x = 0, y = 0, n = 0; for (const p of h) if (p.t > t - b && p.t <= t - a) { x += p.x; y += p.y; n++; } return n ? { x: x / n, y: y / n } : null; };
+    const p1 = avg(-1, span), p0 = avg(span, 2 * span);
+    return p1 && p0 ? dist(p1, p0) / span : 0;
+  });
+  const maxSpeed = Math.max(...speeds);
+  const moving = up && maxSpeed > .35;
+  ser.handsUp.push(t, up ? 1 : 0);
+  ser.handsMove.push(t, moving ? 1 : 0);
+  B.handMoving = moving;
+  B.handHigh = wr.some(w => w.vis && w.y < c.y + .1 * sw);
+
+  // apertura
+  let spread = null;
+  if (wr[0].vis && wr[1].vis) spread = Math.abs(side(wr[0]) - side(wr[1]));
+  else if (wr[0].vis || wr[1].vis) spread = Math.abs(side(wr[0].vis ? wr[0] : wr[1])) * 2;
+  // brazos cruzados: antebrazos que se cruzan, o muñecas al otro lado del cuerpo con los codos abiertos
+  const le = P[13], re = P[14];
+  let crossed = false;
+  if (le.v > .5 && re.v > .5 && wr[0].v > .3 && wr[1].v > .3) {
+    const atBelly = w => w.y > c.y + .3 * sw && w.y < c.y + 1.9 * sw;
+    const o = (p, q, r) => Math.sign((q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x));
+    const segCross = o(le, wr[0], re) !== o(le, wr[0], wr[1]) && o(re, wr[1], le) !== o(re, wr[1], wr[0]);
+    const sideCross = side(wr[0]) < -.08 && side(wr[1]) > .08;
+    const folded = Math.abs(wr[0].y - le.y) < .5 * sw && Math.abs(wr[1].y - re.y) < .5 * sw && Math.abs(side(le) - side(re)) > 1
+      && dist(wr[0], wr[1]) < .7 * sw && dist(wr[0], re) + dist(wr[1], le) < (dist(wr[0], le) + dist(wr[1], re)) * .97;
+    crossed = atBelly(wr[0]) && atBelly(wr[1]) && maxSpeed < .6 && (segCross || sideCross || folded);
+  }
+  B.crossed = crossed;
+  ser.crossed.push(t, crossed ? 1 : 0);
+  B.crossedS = (ser.crossed.mean(t, 1.2) ?? 0) > .5;
+  B.spread = spread ?? 0;
+  if (crossed) ser.open.push(t, 0);
+  else if (spread != null) ser.open.push(t, clamp((spread - .5) / 1.3));
+
+  // mano al pecho, manos juntas, manos en la cara
+  const nearChest = w => w.vis && Math.abs(side(w)) < .38 && w.y > c.y + .05 * sw && w.y < c.y + .95 * sw;
+  B.handChest = nearChest(wr[0]) || nearChest(wr[1]);
+  B.handsTogether = wr[0].vis && wr[1].vis && dist(wr[0], wr[1]) < .45 * sw && wr.every(w => w.y < hipY);
+  const nose = P[0];
+  const touch = [15, 16, 19, 20].some(i => P[i].v > .4 && inFrame(P[i]) && dist(P[i], nose) < .42 * sw);
+  B.faceTouch = touch || H.nearFace && fresh('hands', H.lastT, t, .6);
+
+  // balanceo lateral
+  ser.cx.push(t, c.x / sw);
+  const xs = ser.cx.since(t, 5);
+  if (xs.length > 25) {
+    const m = mean(xs); let zc = 0;
+    for (let i = 1; i < xs.length; i++) if ((xs[i] - m) * (xs[i - 1] - m) < 0) zc++;
+    B.sway = std(xs) > .1 && zc >= 3 && zc < xs.length / 3;
+  } else B.sway = false;
+
+  // postura
+  B.tilt = Math.abs(Math.atan2(Math.abs(ls.y - rs.y), Math.abs(ls.x - rs.x)) * 180 / Math.PI);
+  B.neck = (c.y - nose.y) / sw;
+  if (S.calibrating) S.calibrating.neck.push(B.neck);
+  B.slouch = B.neck < S.calib.neck * .7;
+}
+
+function onFace(res, t) {
+  const fl = res.faceLandmarks && res.faceLandmarks[0];
+  if (!fl) { F.ok = false; return; }
+  const bs = {};
+  for (const c of res.faceBlendshapes?.[0]?.categories || []) bs[c.categoryName] = c.score;
+  const W = video.videoWidth, nose = fl[1], l = fl[234], r = fl[454], top = fl[10], chin = fl[152], e1 = fl[33], e2 = fl[263];
+  const fw = Math.max(Math.abs(r.x - l.x) * W, 1);
+  const em = { x: (e1.x + e2.x) / 2, y: (e1.y + e2.y) / 2 };
+  let minx = 1, maxx = 0, miny = 1, maxy = 0;
+  for (let i = 0; i < fl.length; i += 7) { const p = fl[i]; minx = Math.min(minx, p.x); maxx = Math.max(maxx, p.x); miny = Math.min(miny, p.y); maxy = Math.max(maxy, p.y); }
+  Object.assign(F, {
+    ok: true, lastSeen: t, fl,
+    yaw: ((nose.x - (l.x + r.x) / 2) * W) / fw,
+    pitch: (nose.y - em.y) / Math.max(1e-3, chin.y - em.y),
+    h: chin.y - top.y, cx: nose.x, box: { minx, maxx, miny, maxy },
+    smile: ((bs.mouthSmileLeft || 0) + (bs.mouthSmileRight || 0)) / 2,
+    brow: ((bs.browInnerUp || 0) + ((bs.browOuterUpLeft || 0) + (bs.browOuterUpRight || 0)) / 2) / 2,
+    frown: ((bs.browDownLeft || 0) + (bs.browDownRight || 0)) / 2,
+    lookDown: ((bs.eyeLookDownLeft || 0) + (bs.eyeLookDownRight || 0)) / 2,
+    lookSide: Math.max(((bs.eyeLookOutLeft || 0) + (bs.eyeLookInRight || 0)) / 2, ((bs.eyeLookInLeft || 0) + (bs.eyeLookOutRight || 0)) / 2),
+  });
+  // sin calibración de cara, la referencia es la posición habitual de la cabeza en los últimos segundos
+  ser.pitchRaw.push(t, F.pitch); ser.yawRaw.push(t, F.yaw);
+  const cal = S.calib;
+  const bp = cal.face ? cal.pitch : median(ser.pitchRaw.since(t, 20)), by = cal.face ? cal.yaw : median(ser.yawRaw.since(t, 20));
+  F.contact = Math.abs(F.yaw - by) < .18 && Math.abs(F.pitch - bp) < .14 && F.lookDown < .55 && F.lookSide < .6;
+  F.headDown = F.pitch - bp > .12 || F.lookDown > .55;
+  ser.smile.push(t, F.smile); ser.brow.push(t, F.brow); ser.frown.push(t, F.frown); ser.contact.push(t, F.contact ? 1 : 0);
+  if (S.calibrating) { const k = S.calibrating; k.pitch.push(F.pitch); k.yaw.push(F.yaw); k.smile.push(F.smile); k.brow.push(F.brow); }
+}
+
+function extended(h) {
+  let n = 0;
+  for (const [tip, pip] of [[8, 6], [12, 10], [16, 14], [20, 18]]) if (dist(h[tip], h[0]) > dist(h[pip], h[0]) * 1.12) n++;
+  return n;
+}
+function onHands(res, t) {
+  const hs = res.landmarks || [];
+  Object.assign(H, { lastT: t, n: hs.length, hs, fist: false, open: false, counting: false, nearFace: false, wave: false });
+  hs.forEach((h, i) => {
+    const g = res.gestures?.[i]?.[0];
+    const name = g && g.score > .55 ? g.categoryName : 'None';
+    const ext = extended(h);
+    if (name === 'Closed_Fist') H.fist = true;
+    if (name === 'Open_Palm' || ext >= 4) H.open = true;
+    if (name === 'Pointing_Up' || name === 'Victory' || (ext >= 1 && ext <= 3)) H.counting = true;
+    if (F.ok && F.box && fresh('face', F.lastSeen, t, .6)) {
+      const b = F.box, m = .03;
+      if ([8, 12, 4].some(k => h[k].x > b.minx - m && h[k].x < b.maxx + m && h[k].y > b.miny - m && h[k].y < b.maxy + m)) H.nearFace = true;
+    }
+    if ((name === 'Open_Palm' || ext >= 4) && B.ok && h[0].y * video.videoHeight < B.c.y) H.wave = true;
+  });
+  // nervios: mucho recorrido de la mano en poco espacio (medido en palmos, con medias cada 0,25 s)
+  const W = video.videoWidth, Hh = video.videoHeight;
+  hs.forEach((h, i) => {
+    const key = res.handedness?.[i]?.[0]?.categoryName || 'h' + i;
+    const palm = Math.max(1, Math.hypot((h[9].x - h[0].x) * W, (h[9].y - h[0].y) * Hh));
+    (handHist[key] ||= []).push({ x: h[9].x * W / palm, y: h[9].y * Hh / palm, t });
+  });
+  H.fidget = Object.values(handHist).some(arr => {
+    while (arr.length && arr[0].t < t - 2) arr.shift();
+    if (arr.length < 8) return false;
+    const bk = [];
+    for (const p of arr) { const b = Math.floor(p.t / .25); let q = bk[bk.length - 1]; if (!q || q.b !== b) bk.push(q = { b, x: 0, y: 0, n: 0 }); q.x += p.x; q.y += p.y; q.n++; }
+    const pts = bk.map(q => ({ x: q.x / q.n, y: q.y / q.n }));
+    if (pts.length < 6) return false;
+    let L = 0;
+    for (let k = 1; k < pts.length; k++) L += dist(pts[k], pts[k - 1]);
+    const xs = pts.map(p => p.x), ys = pts.map(p => p.y);
+    return L > 2.6 && Math.hypot(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)) < 1.1;
+  });
+  ser.fist.push(t, H.fist ? 1 : 0);
+  ser.handSeen.push(t, hs.length ? 1 : 0);
+}
+
+/* ---------------- voz ----------------
+   El análisis corre en un AudioWorklet (hilo de audio): aunque la visión ocupe el hilo principal
+   en un móvil lento, no se pierden muestras. Si no hay AudioWorklet, se lee un AnalyserNode. */
+function yin(x, sr, A) {
+  const minLag = Math.floor(sr / 420), maxLag = Math.floor(sr / 75);
+  const N = x.length - maxLag;
+  if (N < 200) return 0;
+  const d = A.d && A.d.length === maxLag + 2 ? A.d : (A.d = new Float32Array(maxLag + 2));
+  let run = 0; d[0] = 1;
+  for (let tau = 1; tau <= maxLag; tau++) {
+    let s = 0;
+    for (let i = 0; i < N; i++) { const df = x[i] - x[i + tau]; s += df * df; }
+    run += s; d[tau] = run ? s * tau / run : 1;
+  }
+  let best = -1;
+  for (let tau = minLag; tau <= maxLag; tau++) {
+    if (d[tau] < .15) { while (tau + 1 <= maxLag && d[tau + 1] < d[tau]) tau++; best = tau; break; }
+  }
+  if (best < 1) return 0;
+  const a = d[best - 1], b = d[best], c = best + 1 <= maxLag ? d[best + 1] : b;
+  const den = a + c - 2 * b;
+  return sr / (best + (den ? (a - c) / (2 * den) : 0));
+}
+const WORKLET_SRC = `${yin.toString()}
+class ApuntadorMeter extends AudioWorkletProcessor {
+  constructor() { super(); this.N = 2048; this.ring = new Float32Array(this.N); this.lin = new Float32Array(this.N); this.half = new Float32Array(this.N / 2); this.w = 0; this.cnt = 0; this.hop = Math.round(sampleRate * .03); this.A = {}; }
+  process(inputs) {
+    const ch = inputs[0] && inputs[0][0];
+    if (!ch) return true;
+    for (let i = 0; i < ch.length; i++) { this.ring[this.w] = ch[i]; this.w = (this.w + 1) % this.N; }
+    this.cnt += ch.length;
+    if (this.cnt >= this.hop) {
+      this.cnt = 0;
+      let ss = 0;
+      for (let i = 0; i < this.N; i++) { const v = this.ring[(this.w + i) % this.N]; this.lin[i] = v; ss += v * v; }
+      const db = 20 * Math.log10(Math.sqrt(ss / this.N) + 1e-9);
+      let f0 = 0;
+      if (db > -66) { for (let i = 0; i < this.N / 2; i++) this.half[i] = (this.lin[2 * i] + this.lin[2 * i + 1]) * .5; f0 = yin(this.half, sampleRate / 2, this.A); }
+      this.port.postMessage({ t: currentTime, db, f0 });
+    }
+    return true;
+  }
+}
+registerProcessor('apuntador-meter', ApuntadorMeter);`;
+
+async function setupAudio(stream) {
+  if (S.audio) return;
+  let ctx;
+  try {
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    ctx.resume?.();
+    const src = ctx.createMediaStreamSource(stream);
+    try {
+      const url = URL.createObjectURL(new Blob([WORKLET_SRC], { type: 'application/javascript' }));
+      await ctx.audioWorklet.addModule(url);
+      const node = new AudioWorkletNode(ctx, 'apuntador-meter', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [1] });
+      const mute = ctx.createGain(); mute.gain.value = 0;
+      src.connect(node); node.connect(mute); mute.connect(ctx.destination);
+      node.port.onmessage = e => { const m = e.data; processAudio(now() - Math.max(0, ctx.currentTime - m.t), m.db, m.f0); };
+      S.audio = { ctx, node, mode: 'worklet' };
+    } catch (e) {
+      console.warn('AudioWorklet no disponible, uso AnalyserNode', e);
+      const an = ctx.createAnalyser(); an.fftSize = 2048;
+      src.connect(an);
+      S.audio = { ctx, an, mode: 'analyser', buf: new Float32Array(an.fftSize), half: new Float32Array(an.fftSize / 2), sr: ctx.sampleRate / 2, d: null };
+    }
+  } catch (e) { console.warn('audio', e); }
+}
+function audioTick() {
+  const A = S.audio; if (!A || A.mode !== 'analyser') return;
+  A.an.getFloatTimeDomainData(A.buf);
+  let ss = 0;
+  for (let i = 0; i < A.buf.length; i++) ss += A.buf[i] * A.buf[i];
+  const db = 20 * Math.log10(Math.sqrt(ss / A.buf.length) + 1e-9);
+  let f0 = 0;
+  if (db > -66) { for (let i = 0; i < A.half.length; i++) A.half[i] = (A.buf[2 * i] + A.buf[2 * i + 1]) * .5; f0 = yin(A.half, A.sr, A); }
+  processAudio(now(), db, f0);
+}
+function processAudio(t, db, f0) {
+  if (!S.live) return;
+  V.db = db;
+  if (db < V.floor) V.floor = V.floor * .7 + db * .3; else V.floor += .012;
+  V.floor = clamp(V.floor, -95, -40);
+  const thr = Math.max(V.floor + 10, -62);
+  const voiced = db > thr;
+  if (voiced) {
+    if (V.silentSince != null && t - V.silentSince >= .3) { V.lastPauseEnd = t; V.talkStart = t; }
+    if (!V.speaking && (V.silentSince == null || t - V.silentSince >= .3)) V.talkStart = t;
+    V.silentSince = null; V.speaking = true; V.lastVoiced = t;
+    ser.voicedDb.push(t, db);
+    if (f0 > 70 && f0 < 450) ser.pitch.push(t, 12 * Math.log2(f0 / 55));
+    if (db > S.calib.refDb + 5) V.peakT = t;
+  } else {
+    if (V.silentSince == null) V.silentSince = t;
+    if (t - V.lastVoiced > .35) V.speaking = false;
+  }
+  ser.voiced.push(t, voiced ? 1 : 0);
+  // sílabas aproximadas: picos de la envolvente
+  V.env = V.env == null ? db : V.env * .55 + db * .45;
+  const e2 = V.env;
+  if (V.e1 > V.e0 && V.e1 >= e2 && V.e1 > thr + 4 && V.e1 - V.valley > 3 && t - V.lastPeak > .11) { ser.peaks.push(t, 1); V.lastPeak = t; V.valley = V.e1; }
+  V.valley = Math.min(V.valley, e2);
+  V.e0 = V.e1; V.e1 = e2;
+  if (S.calibrating) { S.calibrating.db.push(db); if (voiced) S.calibrating.vdb.push(db); }
+}
+
+/* ---------------- calibración ---------------- */
+function startCalibration() {
+  S.calibrating = { t0: now(), dur: 5, pitch: [], yaw: [], smile: [], brow: [], neck: [], db: [], vdb: [] };
+  stageMsg(`<div class="stage-card"><h3>Calibración (5 segundos)</h3>
+    <p>Colócate como vas a grabar, mira a la cámara con la cara relajada y di con tu voz normal:</p>
+    <q>Hola, estoy probando el micrófono y la cámara.</q>
+    <div class="progress"><i id="calbar"></i></div>
+    <div class="actions"><button class="ghost" data-act="skipcal">Saltar${S.calib.done ? ' (usar la anterior)' : ''}</button></div></div>`);
+}
+function calibrationTick(t) {
+  const k = S.calibrating; if (!k) return;
+  const p = clamp((t - k.t0) / k.dur);
+  const bar = $('#calbar'); if (bar) bar.style.width = (p * 100) + '%';
+  if (p >= 1) finishCalibration(false);
+}
+function finishCalibration(skipped) {
+  const k = S.calibrating; S.calibrating = null;
+  if (!skipped && k) {
+    const c = S.calib;
+    if (k.pitch.length > 5) { c.pitch = median(k.pitch); c.yaw = median(k.yaw); c.smile = clamp(pctl(k.smile, .3), 0, .35); c.brow = median(k.brow); c.face = true; }
+    if (k.neck.length > 5) c.neck = median(k.neck);
+    if (k.vdb.length > 12) c.refDb = clamp(median(k.vdb), -55, -8);
+    if (k.db.length > 20) c.floor = pctl(k.db, .1);
+    c.done = true;
+    store.set('calib', c);
+  }
+  stageMsg(null);
+  toast(skipped ? 'Listo. Pulsa Ensayar o Grabar cuando quieras.' : 'Calibrado. Pulsa Ensayar o Grabar cuando quieras.');
+}
+
+/* ---------------- seguimiento por voz ---------------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const FOL = { on: false, ok: false, rec: null, pointer: 0, phraseStart: 0, curRes: -1, failed: false };
+function startFollow() {
+  if (!SR || FOL.failed) return false;
+  FOL.on = true; FOL.ok = true; FOL.curRes = -1; FOL.phraseStart = FOL.pointer; FOL.netErr = 0;
+  const rec = new SR();
+  rec.lang = S.opts.lang; rec.continuous = true; rec.interimResults = true; rec.maxAlternatives = 1;
+  rec.onresult = e => {
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const r = e.results[i];
+      if (i !== FOL.curRes) { FOL.curRes = i; FOL.phraseStart = FOL.pointer; }
+      const ws = (r[0].transcript.match(/\S+/g) || []).map(normWord).filter(Boolean);
+      const p = alignPhrase(ws, FOL.phraseStart);
+      if (p > FOL.pointer) { ser.words.push(now(), p - FOL.pointer); FOL.pointer = p; }
+      if (r.isFinal) FOL.curRes = -1;
+    }
+  };
+  rec.onerror = e => {
+    if (e.error === 'network') FOL.netErr = (FOL.netErr || 0) + 1;
+    if (['not-allowed', 'service-not-allowed', 'audio-capture', 'language-not-supported'].includes(e.error) || FOL.netErr >= 2) {
+      FOL.failed = true; FOL.on = false; FOL.ok = false;
+      toast('El seguimiento por voz no funciona en este navegador: el texto avanzará a velocidad fija.', 6500);
+    }
+  };
+  rec.onend = () => { if (FOL.on) setTimeout(() => { if (FOL.on) { FOL.curRes = -1; try { rec.start(); } catch {} } }, 150); };
+  try { rec.start(); } catch (e) { FOL.failed = true; FOL.on = false; FOL.ok = false; return false; }
+  FOL.rec = rec;
+  return true;
+}
+function stopFollow() { FOL.on = false; try { FOL.rec?.stop(); } catch {} FOL.rec = null; }
+function same(a, b) {
+  if (a === b) return true;
+  if (a.length < 5 || b.length < 5) return false;
+  if (a.slice(0, 4) !== b.slice(0, 4)) return false;
+  return Math.abs(a.length - b.length) <= 2;
+}
+function alignPhrase(ws, start) {
+  const SW = S.sc.words; let p = start;
+  for (let k = 0; k < ws.length; k++) {
+    const w = ws[k]; let found = -1;
+    const ahead = w.length <= 3 ? 3 : 10;
+    for (let j = p; j < Math.min(SW.length, p + ahead); j++) if (same(SW[j].norm, w)) { found = j; break; }
+    if (found < 0 && w.length >= 5 && ws[k + 1]) {
+      for (let j = p + ahead; j < Math.min(SW.length - 1, p + 45); j++) if (same(SW[j].norm, w) && same(SW[j + 1].norm, ws[k + 1])) { found = j; break; }
+    }
+    if (found >= 0) p = found + 1;
+  }
+  return p;
+}
+
+/* ---------------- teleprompter ---------------- */
+const PR = { offset: 0, target: 0, idx: 0, tops: [], readY: 140, lineH: 60, wpl: 8, running: false, speedF: 1, marked: 0, nextCue: 0, lastT: 0 };
+const track = $('#track'), prompterEl = $('#prompter');
+let wordEls = [];
+function setupPrompter() {
+  track.innerHTML = renderScriptHTML(S.sc) + '<div class="tail"></div>';
+  wordEls = [...track.querySelectorAll('.w')];
+  PR.idx = 0; PR.marked = 0; PR.nextCue = 0; FOL.pointer = 0;
+  requestAnimationFrame(() => { layoutPrompter(); PR.offset = PR.target = (PR.tops[0] || 0) - PR.readY; applyOffset(); });
+}
+function layoutPrompter() {
+  const h = prompterEl.clientHeight;
+  PR.lineH = pfs() * 1.4;
+  PR.readY = Math.round(Math.max(h * .3, 96));
+  prompterEl.style.setProperty('--ready', PR.readY + 'px');
+  PR.tops = wordEls.map(el => el.offsetTop);
+  PR.lines = [];
+  let cur = null;
+  PR.tops.forEach((top, i) => { if (!cur || Math.abs(top - cur.top) > PR.lineH * .4) { cur = { top, start: i, end: i + 1 }; PR.lines.push(cur); } else cur.end = i + 1; });
+  PR.wpl = wordEls.length / Math.max(1, PR.lines.length);
+}
+function applyOffset() { track.style.transform = `translate3d(0,${(-PR.offset).toFixed(1)}px,0)`; }
+// palabra que está en la franja de lectura: avanza a lo largo de la línea según se desplaza el texto
+function wordAt(y) {
+  const L = PR.lines; if (!L || !L.length) return 0;
+  let lo = 0, hi = L.length - 1, r = 0;
+  while (lo <= hi) { const m = (lo + hi) >> 1; if (L[m].top <= y + 2) { r = m; lo = m + 1; } else hi = m - 1; }
+  const ln = L[r], len = ln.end - ln.start;
+  return ln.start + Math.min(len - 1, Math.floor(clamp((y - ln.top) / PR.lineH) * len));
+}
+// en pantallas estrechas la letra se limita para que quepan varias palabras por línea
+const pfs = () => Math.min(S.opts.font, Math.max(24, Math.round(innerWidth / 12)));
+function setFont(px) {
+  S.opts.font = clamp(px, 24, 96); store.set('opts', S.opts);
+  document.documentElement.style.setProperty('--pfs', pfs() + 'px');
+  const keep = PR.idx;
+  requestAnimationFrame(() => { layoutPrompter(); PR.offset = PR.target = (PR.tops[keep] || 0) - PR.readY; applyOffset(); });
+}
+function prompterFrame(t, dt) {
+  const n = wordEls.length; if (!n) return;
+  const following = S.take && S.opts.mode === 'voz' && FOL.ok;
+  if (following) {
+    const i = Math.min(FOL.pointer, n - 1);
+    PR.target = PR.tops[i] - PR.readY;
+  } else if (PR.running) {
+    const wantMove = !(S.opts.pauseSilent && S.take && t - S.take.t0 > 2.5 && !V.speaking && t - V.lastVoiced > 1.1);
+    PR.speedF += ((wantMove ? 1 : 0) - PR.speedF) * Math.min(1, dt * 3);
+    const pxs = (S.opts.wpm / 60) / Math.max(1, PR.wpl) * PR.lineH;
+    PR.target += pxs * PR.speedF * dt;
+    const maxT = PR.tops[n - 1] - PR.readY;
+    if (PR.target > maxT) PR.target = maxT;
+  }
+  PR.offset += (PR.target - PR.offset) * Math.min(1, dt * 7);
+  applyOffset();
+  const idx = following ? Math.min(FOL.pointer, n - 1) : wordAt(PR.offset + PR.readY);
+  if (idx !== PR.idx || PR.marked !== idx) markWords(idx);
+  // acotaciones que llegan a la línea de lectura
+  const cues = S.sc.cues;
+  while (PR.nextCue < cues.length && cues[PR.nextCue].at <= idx) {
+    const c = cues[PR.nextCue++];
+    if (S.take && S.opts.cues && idx - c.at < 6) triggerScriptCue(c, t);
+  }
+  PR.idx = idx;
+  if (S.take && idx >= n - 1 && !S.take.endAt) S.take.endAt = t;
+}
+function markWords(idx) {
+  const from = Math.min(PR.marked, idx), to = Math.max(PR.marked, idx);
+  for (let i = from; i < to; i++) wordEls[i]?.classList.toggle('read', i < idx);
+  wordEls[PR.idx]?.classList.remove('now');
+  wordEls[idx]?.classList.add('now');
+  PR.marked = idx;
+}
+function resetPrompterTo(i) {
+  PR.target = (PR.tops[i] || 0) - PR.readY;
+  FOL.pointer = i; FOL.phraseStart = i; FOL.curRes = -2;
+  PR.nextCue = S.sc.cues.findIndex(c => c.at >= i); if (PR.nextCue < 0) PR.nextCue = S.sc.cues.length;
+}
+// desplazamiento manual con rueda o arrastre
+prompterEl.addEventListener('wheel', e => { e.preventDefault(); manualScroll(e.deltaY); }, { passive: false });
+let dragY = null;
+prompterEl.addEventListener('pointerdown', e => { dragY = e.clientY; prompterEl.setPointerCapture(e.pointerId); });
+prompterEl.addEventListener('pointermove', e => { if (dragY == null) return; manualScroll((dragY - e.clientY) * (S.opts.mirror ? 1 : 1)); dragY = e.clientY; });
+prompterEl.addEventListener('pointerup', () => { dragY = null; });
+prompterEl.addEventListener('pointercancel', () => { dragY = null; });
+function manualScroll(dy) {
+  const n = PR.tops.length; if (!n) return;
+  PR.target = clamp(PR.target + dy, PR.tops[0] - PR.readY, PR.tops[n - 1] - PR.readY);
+  PR.offset = PR.target;
+  const i = wordAt(PR.target + PR.readY);
+  FOL.pointer = i; FOL.phraseStart = i; FOL.curRes = -2;
+  PR.nextCue = S.sc.cues.findIndex(c => c.at >= i); if (PR.nextCue < 0) PR.nextCue = S.sc.cues.length;
+}
+addEventListener('resize', () => { if (S.live) { const k = PR.idx; document.documentElement.style.setProperty('--pfs', pfs() + 'px'); layoutPrompter(); PR.offset = PR.target = (PR.tops[k] || 0) - PR.readY; } });
+
+/* ---------------- métricas ---------------- */
+function computeMetrics(t) {
+  const M = { energia: null, manos: null, apertura: null, sonrisa: null, expresion: null, mirada: null, volumen: null, entonacion: null, ritmo: null };
+  if (B.ok && fresh('pose', B.lastOk, t, .7)) {
+    const sp = ser.motion.mean(t, 2);
+    if (sp != null) M.energia = clamp(1 - Math.exp(-Math.max(0, sp - .03) / .3));
+    const up = ser.handsUp.mean(t, 4), mv = ser.handsMove.mean(t, 4);
+    if (up != null) M.manos = clamp(.4 * up + .75 * (mv || 0));
+    M.apertura = ser.open.mean(t, 2);
+  }
+  if (F.ok && fresh('face', F.lastSeen, t, .8)) {
+    const sm = ser.smile.mean(t, 1.5);
+    if (sm != null) M.sonrisa = clamp((sm - S.calib.smile) / .5);
+    const br = ser.brow.since(t, 3), sml = ser.smile.since(t, 3);
+    if (br.length > 4) {
+      const act = std(br) + .5 * std(sml) + .5 * Math.max(0, mean(br) - S.calib.brow);
+      M.expresion = clamp(1 - Math.exp(-act / .07));
+    }
+    M.mirada = ser.contact.mean(t, 3);
+  }
+  if (t - V.lastVoiced < 2.5) {
+    const dbs = ser.voicedDb.since(t, 2.5);
+    if (dbs.length > 5) M.volumen = clamp(.5 + (mean(dbs) - S.calib.refDb) / 18);
+    const st = ser.pitch.since(t, 6);
+    if (st.length >= 20) { const md = median(st); const f = st.filter(x => Math.abs(x - md) < 7); M.entonacion = clamp((std(f) - .9) / 3.3); }
+    if (S.take && S.opts.mode === 'voz' && FOL.ok && t - S.take.t0 > 6) {
+      const win = Math.min(15, t - S.take.t0);
+      const w = ser.words.since(t, win).reduce((a, b) => a + b, 0);
+      if (w > 3) M.ritmo = clamp((w / win * 60 - 90) / 110);
+    } else {
+      const voicedSec = ser.voiced.since(t, 6).reduce((a, b) => a + b, 0) * .03;
+      if (voicedSec > 1.5) M.ritmo = clamp((ser.peaks.since(t, 6).length / voicedSec - 2.5) / 4.5);
+    }
+  }
+  return M;
+}
+function fitTone(M, T) {
+  let s = 0, w = 0;
+  for (const m of METRICS) {
+    if (!m.w || M[m.id] == null || !T[m.id]) continue;
+    const [lo, hi] = T[m.id], v = M[m.id];
+    const d = v < lo ? lo - v : v > hi ? v - hi : 0;
+    s += m.w * Math.max(0, 1 - d / .35); w += m.w;
+  }
+  return w ? s / w : null;
+}
+function currentTone() {
+  const w = S.sc.words[PR.idx];
+  return w ? S.sc.paras[w.p].tone : S.tone;
+}
+
+/* ---------------- reglas del director ---------------- */
+const gapLow = (c, m, margin = .07) => c.M[m] != null && c.M[m] < c.T[m][0] - margin ? c.T[m][0] - c.M[m] : 0;
+const gapHigh = (c, m, margin = .1) => c.M[m] != null && c.M[m] > c.T[m][1] + margin ? c.M[m] - c.T[m][1] : 0;
+const RULES = [
+  { id: 'nadie', kind: 'crit', pri: 100, hold: 2, cool: 6, icon: 'encuadre',
+    test: c => t0(c) && !(F.ok && fresh('face', F.lastSeen, c.t, 1.5)) && !(B.ok && fresh('pose', B.lastOk, c.t, 1.5)),
+    title: () => 'No te veo', detail: () => 'Colócate frente a la cámara, con luz de frente.' },
+  { id: 'cerca', kind: 'crit', pri: 90, hold: 2, cool: 12, icon: 'encuadre',
+    test: c => F.ok && (F.h > .5 || (!B.shOk && fresh('pose', B.lastSeen, c.t, 1) && F.h > .3)),
+    title: () => 'Aléjate un poco de la cámara', detail: () => 'Que se vean hombros y manos: el cuerpo también habla.' },
+  { id: 'lejos', kind: 'crit', pri: 88, hold: 2.5, cool: 15, icon: 'encuadre',
+    test: c => F.ok && F.h < .085,
+    title: () => 'Acércate a la cámara', detail: () => 'Tu cara se ve muy pequeña y se pierde la expresión.' },
+  { id: 'centro', kind: 'crit', pri: 70, hold: 3, cool: 20, icon: 'encuadre',
+    test: c => F.ok && Math.abs(F.cx - .5) > .24,
+    title: () => 'Céntrate en el plano', detail: () => 'Estás muy cerca del borde de la imagen.' },
+  { id: 'cruzados', kind: 'crit', pri: 82, hold: 1.2, cool: 8, icon: 'abrir',
+    test: c => B.ok && B.crossedS,
+    title: () => 'Descruza los brazos', detail: c => `Cruzados transmiten distancia o defensa; para un mensaje ${c.adj} abre los brazos y enseña las palmas.` },
+  { id: 'cara', kind: 'crit', pri: 80, hold: .9, cool: 8, icon: 'mano',
+    test: c => (B.ok && B.faceTouch) || (H.nearFace && fresh('hands', H.lastT, c.t, .6)),
+    title: () => 'Aparta las manos de la cara', detail: () => 'Tocarse la cara se lee como nervios o inseguridad.' },
+  { id: 'mirada', kind: 'crit', pri: 72, hold: 2, cool: 9, icon: 'ojo',
+    test: c => c.M.mirada != null && c.M.mirada < .45 ? .65 - c.M.mirada : 0,
+    title: () => F.headDown ? 'Levanta la mirada' : 'Mira a la cámara',
+    detail: () => F.headDown ? 'Lee en la franja iluminada, que está junto al objetivo.' : 'Si miras a otro lado se pierde la conexión con quien te ve.' },
+  { id: 'manosFuera', kind: 'body', pri: 66, hold: 3, cool: 15, icon: 'mano',
+    test: c => B.ok && (ser.handsUp.mean(c.t, 4) ?? 1) < .05 && (ser.handSeen.mean(c.t, 4) ?? 1) < .05,
+    title: () => B.frameBottomTight ? 'Aléjate: que se vean tus manos' : 'Sube las manos al encuadre',
+    detail: () => 'Gesticula a la altura del pecho. Las manos a la vista generan confianza.' },
+  { id: 'estatico', kind: 'body', pri: 52, hold: 2.5, cool: 9, icon: 'cuerpo',
+    test: c => gapLow(c, 'energia'),
+    title: () => 'Estás muy estático', detail: c => `Mueve hombros y manos: un mensaje ${c.adj} necesita más energía corporal.` },
+  { id: 'manosQuietas', kind: 'body', pri: 48, hold: 2.5, cool: 9, icon: 'mano',
+    test: c => (ser.handsUp.mean(c.t, 4) ?? 0) > .2 ? gapLow(c, 'manos', .08) : 0,
+    title: () => 'Usa las manos para explicar', detail: () => 'Acompaña cada idea importante con un gesto y déjalo reposar.' },
+  { id: 'exceso', kind: 'body', pri: 40, hold: 2.5, cool: 12, icon: 'cuerpo',
+    test: c => gapHigh(c, 'energia'),
+    title: () => 'Gestos más lentos', detail: c => `Tanto movimiento resta ${c.tone === 'serio' ? 'autoridad' : 'calma'}: haz menos gestos y más definidos.` },
+  { id: 'cerrado', kind: 'body', pri: 38, hold: 3, cool: 12, icon: 'abrir',
+    test: c => !B.crossedS ? gapLow(c, 'apertura', .1) : 0,
+    title: () => 'Abre los gestos', detail: () => 'Separa las manos del cuerpo: pegadas al torso se ven tímidas.' },
+  { id: 'punos', kind: 'body', pri: 45, hold: 1.6, cool: 12, icon: 'mano',
+    test: c => ['cercano', 'calmado', 'divertido', 'inspirador', 'animado'].includes(c.tone) && (ser.fist.mean(c.t, 1.5) ?? 0) > .6,
+    title: () => 'Abre las manos', detail: () => 'Los puños cerrados transmiten tensión; con las palmas abiertas suena más sincero.' },
+  { id: 'nervios', kind: 'body', pri: 46, hold: 1.5, cool: 12, icon: 'mano',
+    test: c => H.fidget && fresh('hands', H.lastT, c.t, .8),
+    title: () => 'Menos movimientos pequeños', detail: () => 'Ese movimiento repetitivo de manos se lee como nervios. Haz un gesto y déjalo quieto.' },
+  { id: 'balanceo', kind: 'body', pri: 42, hold: 2, cool: 15, icon: 'cuerpo',
+    test: c => B.ok && B.sway,
+    title: () => 'No te balancees', detail: () => 'Planta bien los pies: el vaivén distrae y resta seguridad.' },
+  { id: 'postura', kind: 'body', pri: 36, hold: 3, cool: 20, icon: 'postura',
+    test: c => B.ok && (B.tilt > 8 || B.slouch),
+    title: () => B.slouch ? 'Endereza la espalda' : 'Nivela los hombros', detail: () => 'Espalda recta y barbilla arriba proyectan seguridad.' },
+  { id: 'serio', kind: 'face', pri: 51, hold: 2.2, cool: 9, icon: 'cara',
+    test: c => gapLow(c, 'sonrisa', .08),
+    title: () => 'Sonríe más', detail: c => `Tu mensaje es ${c.adj}, pero tu cara se ve seria.` },
+  { id: 'sonrisaSobra', kind: 'face', pri: 33, hold: 2.5, cool: 15, icon: 'cara',
+    test: c => gapHigh(c, 'sonrisa', .15),
+    title: () => 'Menos sonrisa aquí', detail: c => `Para un mensaje ${c.adj}, sonreír tanto le quita peso.` },
+  { id: 'inexpresivo', kind: 'face', pri: 34, hold: 3, cool: 14, icon: 'cejas',
+    test: c => gapLow(c, 'expresion', .1),
+    title: () => 'Expresa más con la cara', detail: () => 'Levanta las cejas en las ideas importantes.' },
+  { id: 'ceno', kind: 'face', pri: 33, hold: 2.5, cool: 15, icon: 'cejas',
+    test: c => !['serio', 'urgente'].includes(c.tone) && (ser.frown.mean(c.t, 2) ?? 0) > .45 && (c.M.sonrisa ?? 0) < .4,
+    title: () => 'Relaja el ceño', detail: () => 'El ceño fruncido se lee como enfado o preocupación.' },
+  { id: 'vozBaja', kind: 'voice', pri: 50, hold: 1.8, cool: 9, icon: 'voz',
+    test: c => V.speaking && gapLow(c, 'volumen', .08),
+    title: () => 'Habla más alto', detail: () => 'Proyecta la voz como si te escuchara alguien al fondo de la sala.' },
+  { id: 'vozAlta', kind: 'voice', pri: 32, hold: 2, cool: 14, icon: 'voz',
+    test: c => V.speaking && gapHigh(c, 'volumen', .1),
+    title: () => 'Baja un poco la voz', detail: c => `Para un mensaje ${c.adj}, ese volumen suena a grito.` },
+  { id: 'monotono', kind: 'voice', pri: 49, hold: 2.5, cool: 10, icon: 'tono',
+    test: c => gapLow(c, 'entonacion', .08),
+    title: () => 'Varía la entonación', detail: () => 'Suenas monótono: sube el tono en lo importante y bájalo al cerrar la frase.' },
+  { id: 'entonacionSobra', kind: 'voice', pri: 30, hold: 3, cool: 15, icon: 'tono',
+    test: c => gapHigh(c, 'entonacion', .12),
+    title: () => 'Tono más estable', detail: c => `Para un mensaje ${c.adj}, tantas subidas y bajadas restan credibilidad.` },
+  { id: 'rapido', kind: 'voice', pri: 44, hold: 2.5, cool: 10, icon: 'ritmo',
+    test: c => gapHigh(c, 'ritmo', .08),
+    title: () => 'Más despacio', detail: () => 'Deja respirar las frases para que el mensaje cale.' },
+  { id: 'lento', kind: 'voice', pri: 35, hold: 3, cool: 14, icon: 'ritmo',
+    test: c => gapLow(c, 'ritmo', .1),
+    title: () => 'Dale más ritmo', detail: c => `Un mensaje ${c.adj} pide algo más de velocidad.` },
+  { id: 'sinPausa', kind: 'voice', pri: 31, hold: 0, cool: 20, icon: 'pausa',
+    test: c => V.speaking && c.t - V.talkStart > 14,
+    title: () => 'Haz una pausa', detail: () => 'Una pausa breve después de una idea la hace más fuerte.' },
+  { id: 'silencio', kind: 'voice', pri: 20, hold: 0, cool: 15, icon: 'play',
+    test: c => c.take && c.t - S.take.t0 > 6 && c.t - V.lastVoiced > 5 && !S.take.endAt,
+    title: () => 'Sigue leyendo', detail: () => 'El texto espera en la franja iluminada.' },
+  { id: 'bien', kind: 'good', pri: 10, hold: 6, cool: 25, icon: 'ok',
+    test: c => c.match != null && c.match >= 78,
+    title: () => '¡Así!', detail: c => `Estás transmitiendo un mensaje ${c.adj}. Sigue así.` },
+];
+function t0(c) { return c.t - S.liveT0 > 3; }
+const RS = Object.fromEntries(RULES.map(r => [r.id, { on: 0, sev: 0, lastEnd: -99 }]));
+const coach = { active: null, since: 0, resolvedAt: 0, watch: null, last: null };
+
+function triggerScriptCue(c, t) {
+  const d = CUES[c.type];
+  if (c.type === 'pausa' && !c.explicit) return; // las pausas automáticas solo se ven en el texto
+  if (coach.watch) finishWatch(t);
+  coach.watch = { cue: c, t0: t, hit: false };
+  showCue({ id: 'cue:' + c.at, kind: 'script', pri: 64, icon: d.icon,
+    title: 'Ahora: ' + (c.type === 'libre' ? c.text : d.label).replace(/^./, s => s.toLowerCase()),
+    detail: cueWhy(c.type) }, t, true);
+}
+function cueWhy(type) {
+  return ({
+    saludo: 'Un saludo con la mano abre la conexión.', contar: 'Enumerar con los dedos ayuda a seguir la lista.',
+    abrir: 'Hablas de un grupo: los brazos abiertos lo incluyen.', pecho: 'Hablas de ti: la mano al pecho da sinceridad.',
+    palma: 'Te diriges a quien mira: ofrécele la palma.', grande: 'Dibuja el tamaño con las manos.',
+    pequeno: 'Un gesto de pinza transmite precisión.', pregunta: 'Las preguntas se ven con las cejas y las palmas.',
+    sonrie: 'Frase exclamativa: que se note en la cara.', negar: 'Refuerza la negación con un gesto firme.',
+    cta: 'Llamada a la acción: señala dónde está el enlace o el botón.', pausa: 'Respira antes de seguir.',
+    enfasis: 'Sube un poco la voz en esta palabra.', libre: 'Acotación de tu guion.',
+  })[type] || '';
+}
+function checkCue(type, c) {
+  switch (type) {
+    case 'saludo': return H.wave || (B.ok && B.handMoving && B.handHigh);
+    case 'contar': return H.counting && H.n > 0;
+    case 'abrir': return (c.M.apertura ?? 0) > .62 || B.spread > 1.6;
+    case 'grande': return B.spread > 1.5;
+    case 'pecho': return B.handChest;
+    case 'palma': return H.open;
+    case 'pequeno': return B.handsTogether || H.counting;
+    case 'pregunta': return F.ok && F.brow > S.calib.brow + .12;
+    case 'sonrie': return (c.M.sonrisa ?? 0) > .45;
+    case 'negar': case 'cta': return B.handMoving;
+    case 'pausa': return V.lastPauseEnd > coach.watch.t0 || (!V.speaking && c.t - V.lastVoiced > .3);
+    case 'enfasis': return V.peakT > coach.watch.t0;
+    default: return null;
+  }
+}
+function finishWatch(t) {
+  const w = coach.watch; if (!w) return;
+  coach.watch = null;
+  if (S.take) S.take.events.push({ t: w.t0 - S.take.t0, id: 'cue', kind: 'script', cue: w.cue, title: w.cue.type === 'libre' ? w.cue.text : CUES[w.cue.type].label, outcome: w.cue.type === 'libre' ? 'na' : w.hit ? 'hit' : 'miss' });
+}
+
+function coachTick() {
+  const t = now();
+  if (S.calibrating) calibrationTick(t);
+  const M = computeMetrics(t);
+  const tone = S.take ? currentTone() : (S.sc ? currentTone() : S.tone);
+  const T = targetsFor(tone);
+  const fit = {};
+  for (const k of Object.keys(TONES)) fit[k] = fitTone(M, targetsFor(k));
+  const mt = fit[tone];
+  let match = mt == null ? null : Math.round(100 * (.85 * mt + .15 * (M.mirada ?? 1)));
+  // lo que se percibe
+  let perceived = null;
+  const present = (B.ok && fresh('pose', B.lastOk, t, 1)) || (F.ok && fresh('face', F.lastSeen, t, 1));
+  if (present) {
+    if ((B.ok && B.crossedS) || ((ser.fist.mean(t, 2) ?? 0) > .6 && (ser.frown.mean(t, 2) ?? 0) > .35)) perceived = 'defensivo';
+    else if ((H.fidget && fresh('hands', H.lastT, t, .8)) || (B.ok && (B.sway || B.faceTouch)) || (H.nearFace && fresh('hands', H.lastT, t, .6))) perceived = 'nervioso';
+    else if (M.mirada != null && M.mirada < .35) perceived = 'leyendo';
+    else if ((M.energia ?? 1) < .15 && (M.manos ?? 1) < .2 && (M.entonacion ?? 0) < .3 && (M.sonrisa ?? 1) < .2) perceived = 'apagado';
+    else {
+      let best = null, bv = -1;
+      for (const [k, v] of Object.entries(fit)) if (v != null && v > bv) { bv = v; best = k; }
+      perceived = best;
+    }
+  }
+  // un estado negativo (a la defensiva, nervioso…) pesa sobre el ajuste aunque las medidas cuadren
+  if (match != null && STATES[perceived]) match = Math.round(match * .8);
+  const c = { t, M, T, tone, adj: TONES[tone].adj, match, take: !!S.take };
+  coach.last = { t, M, tone, match, perceived, fit };
+
+  // reglas
+  const startOK = S.live && !S.calibrating && S.liveT0 && t - S.liveT0 > 2;
+  for (const r of RULES) {
+    const st = RS[r.id];
+    let v = startOK ? r.test(c) : 0;
+    if (v === true) v = 1;
+    if (v) { if (!st.on) st.on = t; st.sev = v; } else st.on = 0;
+  }
+  // vigilancia de la acotación en curso
+  if (coach.watch) {
+    const w = coach.watch;
+    if (!w.hit && w.cue.type !== 'libre' && checkCue(w.cue.type, c)) {
+      w.hit = true;
+      if (coach.active && coach.active.kind === 'script') { setCueLook({ ...coach.active, kind: 'good', icon: 'ok', title: '¡Bien! ' + (w.cue.type === 'libre' ? w.cue.text : CUES[w.cue.type].label), detail: 'Ese gesto acompaña lo que dices.' }); }
+    }
+    if (t - w.t0 > 4) finishWatch(t);
+  }
+  manageCue(c);
+  // registro de la toma
+  if (S.take && t - (S.take.lastLog || 0) >= .25) {
+    S.take.lastLog = t;
+    const r = v => v == null ? null : Math.round(v * 100) / 100;
+    S.take.log.push({ t: t - S.take.t0, match, perceived, tone, idx: PR.idx, M: Object.fromEntries(Object.entries(M).map(([k, v]) => [k, r(v)])) });
+    if (S.take.endAt && t - S.take.endAt > 1.5 && t - V.lastVoiced > 2.2) stopTake(true);
+  }
+  if (++coach.uiTick % 2 === 0) updateMonitor(c, perceived);
+  updateStatus(t);
+}
+coach.uiTick = 0;
+
+function manageCue(c) {
+  const t = c.t;
+  const a = coach.active;
+  if (a) {
+    const el = t - coach.since;
+    if (a.kind === 'script') { if (el > 3.4) endCue(t, 'done'); }
+    else if (a.kind === 'good') { if (el > 2.6) endCue(t, 'done'); }
+    else {
+      const st = RS[a.id];
+      if (coach.resolvedAt) { if (t - coach.resolvedAt > 1.1) endCue(t, 'fixed'); }
+      else if (!st.on && el > 1.6) { coach.resolvedAt = t; setCueLook({ ...a, kind: 'good', icon: 'ok', title: 'Mejor así', detail: '' }); }
+      else if (el > 6.5) endCue(t, 'timeout');
+    }
+  }
+  let best = null, bs = -1;
+  for (const r of RULES) {
+    const st = RS[r.id];
+    if (!st.on || t - st.on < r.hold || t - st.lastEnd < r.cool) continue;
+    if (r.kind === 'good' && RULES.some(o => o.kind !== 'good' && RS[o.id].on)) continue;
+    const score = r.pri + Math.min(1, st.sev) * 6;
+    if (score > bs) { bs = score; best = r; }
+  }
+  if (!best) return;
+  const cur = coach.active;
+  if (cur && !(best.pri > cur.pri + 8 && cur.id !== best.id) ) return;
+  if (cur) endCue(t, 'replaced');
+  showCue({ id: best.id, kind: best.kind, pri: best.pri, icon: best.icon, title: best.title(c), detail: best.detail(c) }, t);
+}
+function showCue(cue, t, isScript = false) {
+  if (coach.active) endCue(t, 'replaced');
+  coach.active = cue; coach.since = t; coach.resolvedAt = 0;
+  setCueLook(cue, true);
+  if (S.take && !isScript) S.take.events.push({ t: t - S.take.t0, id: cue.id, kind: cue.kind, title: cue.title, detail: cue.detail });
+}
+function setCueLook(cue, pop = false) {
+  const el = $('#cue');
+  el.className = 'k-' + cue.kind;
+  el.querySelector('.cue-ico').innerHTML = ico(cue.icon);
+  el.querySelector('b').textContent = cue.title;
+  const sp = el.querySelector('span'); sp.textContent = cue.detail || ''; sp.hidden = !cue.detail;
+  el.hidden = false;
+  if (pop) { el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
+}
+function endCue(t, outcome) {
+  const a = coach.active; if (!a) return;
+  if (RS[a.id]) RS[a.id].lastEnd = t;
+  if (S.take) {
+    for (let i = S.take.events.length - 1; i >= 0; i--) { const e = S.take.events[i]; if (e.id === a.id && e.outcome == null && e.kind !== 'script') { e.outcome = outcome; e.dur = t - S.take.t0 - e.t; break; } }
+  }
+  coach.active = null; coach.resolvedAt = 0;
+  $('#cue').hidden = true;
+}
+
+/* ---------------- monitor ---------------- */
+function renderMeters() {
+  $('#meters').innerHTML = METRICS.map(m => `<li class="meter none" data-m="${m.id}" title="${m.name}">${ico(m.icon)}<span class="mname">${m.name}</span><span class="mstate">—</span><span class="bar"><i class="band"></i><b class="needle"></b></span></li>`).join('');
+}
+function updateMonitor(c, perceived) {
+  const T = c.T;
+  for (const m of METRICS) {
+    const li = $(`.meter[data-m="${m.id}"]`); if (!li) continue;
+    const [lo, hi] = T[m.id]; const v = c.M[m.id];
+    const band = li.querySelector('.band'); band.style.left = (lo * 100) + '%'; band.style.width = ((hi - lo) * 100) + '%';
+    const st = li.querySelector('.mstate');
+    if (v == null) { li.className = 'meter none'; st.textContent = '—'; continue; }
+    li.querySelector('.needle').style.left = (v * 100) + '%';
+    const d = v < lo ? lo - v : v > hi ? v - hi : 0;
+    li.className = 'meter ' + (d === 0 ? 'ok' : d < .12 ? 'near' : 'off');
+    st.textContent = d === 0 ? 'bien' : v < lo ? 'falta' : 'sobra';
+  }
+  const tone = TONES[c.tone];
+  const tg = $('#target'); tg.textContent = tone.name; tg.style.setProperty('--tc', tone.color);
+  const pe = $('#perceived');
+  const P = perceived ? (TONES[perceived] || STATES[perceived]) : null;
+  pe.textContent = P ? P.name : '—'; pe.style.setProperty('--tc', P ? P.color : 'var(--mute)');
+  const ring = $('#ring');
+  ring.style.setProperty('--p', c.match ?? 0);
+  ring.style.setProperty('--rc', c.match == null ? 'var(--dim)' : c.match >= 75 ? 'var(--ok)' : c.match >= 55 ? 'var(--warn)' : 'var(--bad)');
+  $('#matchPct').textContent = c.match == null ? '--' : c.match + '%';
+  let why = '';
+  if (perceived && STATES[perceived]) why = STATES[perceived].why;
+  else if (perceived && perceived !== c.tone) {
+    const gaps = METRICS.filter(m => m.w && c.M[m.id] != null).map(m => { const [lo, hi] = T[m.id], v = c.M[m.id]; return { m, d: v < lo ? lo - v : v > hi ? v - hi : 0, low: v < lo }; })
+      .filter(g => g.d > 0).sort((a, b) => b.d * b.m.w - a.d * a.m.w).slice(0, 2);
+    why = gaps.length ? 'Te separa del objetivo: ' + gaps.map(g => g.low ? g.m.low : g.m.high).join(' y ') + '.' : '';
+  } else if (perceived) why = 'Lo que se ve y se oye encaja con el mensaje.';
+  else why = 'Colócate frente a la cámara y empieza a hablar.';
+  $('#why').textContent = why;
+  const others = RULES.filter(r => RS[r.id].on && r.kind !== 'good' && (!coach.active || coach.active.id !== r.id) && c.t - RS[r.id].on > r.hold).slice(0, 2);
+  $('#also').innerHTML = others.length ? 'También: ' + others.map(r => `<b>${esc(r.title(c))}</b>`).join(' · ') : '';
+}
+function updateStatus(t) {
+  const parts = [];
+  if (S.vision) parts.push(`visión ${perf.fps.toFixed(0)} f/s · ${S.vision.pose._delegate}`);
+  else if (S.visionErr) parts.push('visión: no disponible');
+  else parts.push('visión: cargando…');
+  parts.push(`voz ${V.db > -99 ? Math.round(V.db) + ' dB' : '—'}${V.speaking ? ' · hablando' : ''}`);
+  parts.push(S.opts.mode === 'voz' ? (FOL.ok ? 'texto: sigue tu voz' : FOL.failed ? 'texto: velocidad fija' : 'texto: sigue tu voz (al empezar)') : `texto: ${S.opts.wpm} ppm`);
+  $('#status').textContent = parts.join('  ·  ');
+}
+
+/* ---------------- dibujo del esqueleto ---------------- */
+const BONES = [[11, 12], [11, 13], [13, 15], [12, 14], [14, 16], [11, 23], [12, 24], [23, 24], [15, 19], [16, 20]];
+function drawOverlay() {
+  const W = video.videoWidth, Hh = video.videoHeight;
+  if (!W) return;
+  if (overlay.width !== W || overlay.height !== Hh) { overlay.width = W; overlay.height = Hh; }
+  octx.clearRect(0, 0, W, Hh);
+  if (!S.opts.skeleton) return;
+  const t = now();
+  octx.lineWidth = Math.max(2, W / 320); octx.lineCap = 'round';
+  if (B.P && fresh('pose', B.lastSeen, t, .5)) {
+    octx.strokeStyle = B.crossedS ? '#FF6E64' : 'rgba(141,184,255,.9)';
+    for (const [a, b] of BONES) { const p = B.P[a], q = B.P[b]; if (p.v > .5 && q.v > .5) { octx.beginPath(); octx.moveTo(p.x, p.y); octx.lineTo(q.x, q.y); octx.stroke(); } }
+  }
+  if (F.ok && F.fl && fresh('face', F.lastSeen, t, .5)) {
+    octx.fillStyle = 'rgba(244,239,230,.55)';
+    for (let i = 0; i < F.fl.length; i += 6) { const p = F.fl[i]; octx.fillRect(p.x * W - 1, p.y * Hh - 1, 2, 2); }
+  }
+  if (H.hs && fresh('hands', H.lastT, t, .5)) {
+    octx.fillStyle = H.fist ? '#F4B942' : '#55D6A6';
+    for (const h of H.hs) for (const p of h) { octx.beginPath(); octx.arc(p.x * W, p.y * Hh, Math.max(2.5, W / 300), 0, 7); octx.fill(); }
+  }
+}
+
+/* ---------------- bucles ---------------- */
+let rafId = 0, audioId = 0, coachId = 0, vfcId = 0;
+function startLoops() {
+  S.liveT0 = now();
+  let last = now();
+  const frame = () => {
+    if (!S.live) return;
+    const t = now(), dt = Math.min(.1, t - last); last = t;
+    prompterFrame(t, dt);
+    drawOverlay();
+    if (S.take) $('#clock').innerHTML = `<i class="live"></i>${fmtTime(t - S.take.t0)}`;
+    rafId = requestAnimationFrame(frame);
+  };
+  rafId = requestAnimationFrame(frame);
+  audioId = setInterval(audioTick, 30);
+  coachId = setInterval(coachTick, 100);
+  const step = () => { if (!S.live) return; if (!document.hidden) visionStep(); schedule(); };
+  const schedule = () => { if (video.requestVideoFrameCallback) vfcId = video.requestVideoFrameCallback(step); else vfcId = requestAnimationFrame(step); };
+  schedule();
+}
+function stopLoops() {
+  cancelAnimationFrame(rafId); clearInterval(audioId); clearInterval(coachId);
+  try { video.cancelVideoFrameCallback?.(vfcId); } catch {}
+  cancelAnimationFrame(vfcId);
+}
+
+/* ---------------- tomas ---------------- */
+function setTakeUI(on, rec = false) {
+  $('#rehearse').hidden = on; $('#record').hidden = on; $('#stop').hidden = !on;
+  $('#record').disabled = typeof MediaRecorder === 'undefined';
+  if (!on) $('#clock').textContent = '00:00';
+}
+async function startTake(record) {
+  if (S.take || !S.live || S.countdown) return;
+  if (S.calibrating) finishCalibration(true);
+  S.countdown = true;
+  setTakeUI(true, record);
+  resetPrompterTo(0); PR.offset = PR.target; markWords(0); PR.idx = 0;
+  for (const n of [3, 2, 1]) {
+    stageMsg(`<div class="count-big" aria-live="assertive">${n}</div>`);
+    await new Promise(r => setTimeout(r, 800));
+    if (!S.live) { S.countdown = false; return; }
+  }
+  stageMsg(null);
+  S.countdown = false;
+  const t = now();
+  S.take = { t0: t, record, log: [], events: [], chunks: [], endAt: 0, tone: S.tone };
+  ser.words.clear();
+  for (const k in RS) { RS[k].on = 0; RS[k].lastEnd = -99; }
+  PR.running = true; PR.speedF = 1;
+  PR.nextCue = S.sc.cues.findIndex(c => c.at >= PR.idx); if (PR.nextCue < 0) PR.nextCue = S.sc.cues.length;
+  if (S.opts.mode === 'voz') { if (!startFollow() && !FOL.failed) FOL.failed = true; }
+  if (record) {
+    const types = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4'];
+    const mime = types.find(m => MediaRecorder.isTypeSupported?.(m)) || '';
+    try {
+      const mr = new MediaRecorder(S.stream, mime ? { mimeType: mime, videoBitsPerSecond: 5_000_000 } : undefined);
+      mr.ondataavailable = e => { if (e.data && e.data.size) S.take?.chunks.push(e.data); };
+      mr.start(1000);
+      S.take.mr = mr; S.take.mime = mr.mimeType || mime || 'video/webm';
+    } catch (e) { console.warn(e); toast('No se pudo grabar en este navegador; sigo como ensayo.'); S.take.record = false; }
+  }
+}
+function stopTake(showReport = true) {
+  const tk = S.take; if (!tk) return;
+  const t = now();
+  finishWatch(t); endCue(t, 'end');
+  tk.dur = t - tk.t0;
+  S.take = null;
+  PR.running = false;
+  stopFollow();
+  setTakeUI(false);
+  const finish = () => { if (showReport) { buildReport(tk); } };
+  if (tk.mr && tk.mr.state !== 'inactive') {
+    tk.mr.onstop = () => { tk.blob = new Blob(tk.chunks, { type: tk.mime }); finish(); };
+    try { tk.mr.stop(); } catch { finish(); }
+  } else finish();
+}
+$('#rehearse').addEventListener('click', () => startTake(false));
+$('#record').addEventListener('click', () => startTake(true));
+$('#stop').addEventListener('click', () => stopTake(true));
+$('#back').addEventListener('click', leaveStudio);
+$('#faster').addEventListener('click', () => changeSpeed(10));
+$('#slower').addEventListener('click', () => changeSpeed(-10));
+$('#fontUp').addEventListener('click', () => setFont(S.opts.font + 4));
+$('#fontDown').addEventListener('click', () => setFont(S.opts.font - 4));
+$('#skel').addEventListener('click', () => { S.opts.skeleton = !S.opts.skeleton; store.set('opts', S.opts); $('#skel').classList.toggle('on', S.opts.skeleton); });
+$('#mon').addEventListener('click', () => {
+  const m = $('#monitor'); m.classList.toggle('compact'); S.opts.compact = m.classList.contains('compact'); store.set('opts', S.opts);
+  $('#studio').classList.toggle('mon-full', !S.opts.compact);
+  const k = PR.idx; requestAnimationFrame(() => { layoutPrompter(); PR.offset = PR.target = (PR.tops[k] || 0) - PR.readY; applyOffset(); });
+});
+function changeSpeed(d) {
+  if (S.opts.mode === 'voz' && FOL.ok) { toast('El texto sigue tu voz. Para velocidad fija, cámbialo en Ajustes.'); return; }
+  S.opts.wpm = clamp(S.opts.wpm + d, 60, 260); store.set('opts', S.opts); toast(`Velocidad: ${S.opts.wpm} palabras/min`, 1500);
+}
+addEventListener('keydown', e => {
+  if ($('#studio').hidden || e.target.closest('input,textarea,select')) return;
+  if (e.key === ' ') { e.preventDefault(); if (!S.take) startTake(false); else if (!(S.opts.mode === 'voz' && FOL.ok)) PR.running = !PR.running; }
+  else if (e.key === 'r' || e.key === 'R') { if (!S.take) startTake(true); }
+  else if (e.key === 'Escape') { if (S.take) stopTake(true); else leaveStudio(); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); changeSpeed(10); }
+  else if (e.key === 'ArrowDown') { e.preventDefault(); changeSpeed(-10); }
+  else if (e.key === '+' || e.key === '=') setFont(S.opts.font + 4);
+  else if (e.key === '-') setFont(S.opts.font - 4);
+  else if (e.key === 's' || e.key === 'S') $('#skel').click();
+  else if (e.key === 'm' || e.key === 'M') $('#mon').click();
+});
+
+/* ---------------- informe ---------------- */
+const TIPS = {
+  estatico: 'Antes de grabar, suelta hombros y brazos. Marca con un movimiento cada idea nueva del guion: no hace falta mucho, basta con que el cuerpo acompañe.',
+  manosQuietas: 'Asigna un gesto a cada palabra clave: enumerar con los dedos, abrir los brazos al hablar de todos, mano al pecho al hablar de ti.',
+  manosFuera: 'Encuadra de cintura para arriba y gesticula entre la cintura y el pecho, dentro del plano.',
+  cruzados: 'Si no sabes qué hacer con las manos, apóyalas juntas a la altura del ombligo y ábrelas al empezar cada idea.',
+  cara: 'Tocarse la cara suele ser un gesto de nervios. Deja las manos en la zona del pecho.',
+  mirada: 'Sube el texto lo más cerca posible del objetivo y lee siempre en la franja iluminada.',
+  serio: 'Piensa en algo que te haga gracia justo antes de empezar cada párrafo: la sonrisa se nota también en la voz.',
+  monotono: 'Subraya en tu guion la palabra más importante de cada frase y súbele el tono al decirla.',
+  vozBaja: 'Habla como si la persona estuviera al otro lado de la habitación, no al lado del micro.',
+  rapido: 'Haz una pausa en cada punto y coma. Si usas velocidad fija, bájala 10 palabras por minuto.',
+  lento: 'Lee en voz alta el guion dos veces antes de grabar para que te suene natural y fluya.',
+  punos: 'Con las manos abiertas y las palmas visibles el mensaje parece más honesto.',
+  nervios: 'Haz un gesto, mantenlo un segundo y vuelve a la posición de reposo.',
+  balanceo: 'Separa los pies al ancho de las caderas y reparte el peso en los dos.',
+  inexpresivo: 'Exagera un poco las cejas en las preguntas y en las sorpresas: en cámara se ve la mitad.',
+  exceso: 'Elige menos gestos y hazlos más lentos: un gesto por idea.',
+  cerrado: 'Separa los codos del cuerpo y deja que las manos ocupen el ancho de los hombros.',
+  postura: 'Imagina un hilo que tira de tu cabeza hacia arriba y relaja los hombros.',
+  sinPausa: 'Las pausas no son silencio vacío: dan tiempo a quien te ve para entenderte.',
+  vozAlta: 'Baja un poco el volumen y apóyate más en la entonación para dar energía.',
+  sonrisaSobra: 'Guarda la sonrisa para el principio y el final; en el centro, cara tranquila.',
+  entonacionSobra: 'Mantén un tono base y reserva las subidas para las ideas clave.',
+  ceno: 'Relaja la frente: levanta las cejas ligeramente al empezar cada frase.',
+  cerca: 'Coloca la cámara a un brazo y medio de distancia.', lejos: 'Acércate hasta que se te vea de cintura para arriba.',
+  centro: 'Ponte en el centro del encuadre.', nadie: 'Mantente dentro del encuadre durante toda la toma.', silencio: '',
+};
+function buildReport(tk) {
+  const L = tk.log.filter(s => s.match != null);
+  const avg = L.length ? Math.round(mean(L.map(s => s.match))) : null;
+  const toneCount = {};
+  for (const s of tk.log) toneCount[s.tone] = (toneCount[s.tone] || 0) + 1;
+  const mainTone = Object.entries(toneCount).sort((a, b) => b[1] - a[1])[0]?.[0] || tk.tone;
+  const pc = {};
+  for (const s of tk.log) if (s.perceived) pc[s.perceived] = (pc[s.perceived] || 0) + 1;
+  const pTot = Object.values(pc).reduce((a, b) => a + b, 0) || 1;
+  const pSorted = Object.entries(pc).sort((a, b) => b[1] - a[1]);
+  const lookOf = k => TONES[k] || STATES[k];
+  const topP = pSorted[0]?.[0];
+  // brechas medias
+  const gaps = METRICS.filter(m => m.w || m.id === 'mirada').map(m => {
+    let below = 0, above = 0, n = 0, vals = [];
+    for (const s of tk.log) { const v = s.M[m.id]; if (v == null) continue; const [lo, hi] = targetsFor(s.tone)[m.id]; n++; vals.push(v); if (v < lo) below++; else if (v > hi) above++; }
+    return { m, n, avg: mean(vals), below: n ? below / n : 0, above: n ? above / n : 0, inBand: n ? 1 - (below + above) / n : null };
+  });
+  const worst = gaps.filter(g => g.n > 4).map(g => ({ ...g, score: Math.max(g.below, g.above) * (g.m.w || .8) })).sort((a, b) => b.score - a.score).filter(g => g.score > .25).slice(0, 2);
+  const T0 = TONES[mainTone];
+  let story = `Querías transmitir un mensaje <b style="--tc:${T0.color}">${T0.adj}</b>`;
+  if (topP) {
+    const P = lookOf(topP);
+    story += topP === mainTone ? ` y la mayor parte del tiempo <b style="--tc:${P.color}">lo conseguiste</b> (${Math.round(pc[topP] / pTot * 100)}%).`
+      : ` y la mayor parte del tiempo se te vio <b style="--tc:${P.color}">${P.name.toLowerCase()}</b> (${Math.round(pc[topP] / pTot * 100)}%).`;
+  } else story += ', pero no hubo datos suficientes para valorarlo.';
+  if (worst.length) story += ` Lo que más te alejó: ${worst.map(g => g.below >= g.above ? g.m.low : g.m.high).join(' y ')}.`;
+
+  // correcciones
+  const byId = {};
+  for (const e of tk.events) { if (e.kind === 'script' || e.kind === 'good') continue; (byId[e.id] ||= { n: 0, title: e.title, icon: RULES.find(r => r.id === e.id)?.icon || 'alerta', fixed: 0 }); byId[e.id].n++; if (e.outcome === 'fixed') byId[e.id].fixed++; }
+  const fixes = Object.entries(byId).sort((a, b) => b[1].n - a[1].n).slice(0, 5);
+  const cueEv = tk.events.filter(e => e.kind === 'script');
+  const hits = cueEv.filter(e => e.outcome === 'hit').length, checkable = cueEv.filter(e => e.outcome !== 'na').length;
+  // por párrafo
+  const paraRows = S.sc.paras.map((p, i) => {
+    const ss = tk.log.filter(s => s.idx >= p.start && s.idx < p.end && s.match != null);
+    const pcount = {}; for (const s of ss) if (s.perceived) pcount[s.perceived] = (pcount[s.perceived] || 0) + 1;
+    const top = Object.entries(pcount).sort((a, b) => b[1] - a[1])[0]?.[0];
+    const words = S.sc.words.slice(p.start, Math.min(p.end, p.start + 9)).map(w => w.text).join(' ');
+    return { i, tone: p.tone, words, n: ss.length, match: ss.length ? Math.round(mean(ss.map(s => s.match))) : null, top };
+  });
+  const url = tk.blob ? URL.createObjectURL(tk.blob) : null;
+  const ext = (tk.mime || '').includes('mp4') ? 'mp4' : 'webm';
+  const stamp = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '');
+  const rc = avg == null ? 'var(--dim)' : avg >= 75 ? 'var(--ok)' : avg >= 55 ? 'var(--warn)' : 'var(--bad)';
+  const el = $('#report');
+  el.innerHTML = `
+    <header class="rep-head">
+      <div><p class="eyebrow">Informe de la toma · ${fmtTime(tk.dur)}</p><h1>${tk.record ? 'Toma grabada' : 'Ensayo'}</h1>
+      <p>${esc(new Date().toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }))} · ${tk.log.length} mediciones</p></div>
+      <div class="actions">
+        ${url ? `<a class="ghost" href="${url}" download="apuntador-${stamp}.${ext}">${ico('descargar')}Descargar vídeo</a>` : ''}
+        <button class="ghost" data-act="edit">${ico('volver')}Editar guion</button>
+        <button class="primary" data-act="again">${ico('repetir')}Repetir toma</button>
+      </div>
+    </header>
+    <div class="rep-top">
+      ${url ? `<div class="player"><video id="repVideo" src="${url}" controls playsinline></video></div>` : `<div class="noplayer">Ensayo sin grabación. Pulsa «Grabar» en el plató para guardar el vídeo de la toma.</div>`}
+      <div class="summary">
+        <div class="score">
+          <div class="ring" style="--p:${avg ?? 0};--rc:${rc}"><span>${avg == null ? '--' : avg + '%'}</span></div>
+          <p>${story}</p>
+        </div>
+        <div>
+          <p class="eyebrow" style="margin-bottom:8px">Lo que transmitiste</p>
+          <div class="dist">${pSorted.map(([k, v]) => `<i style="width:${v / pTot * 100}%;background:${lookOf(k).color}" title="${lookOf(k).name}"></i>`).join('')}</div>
+          <ul class="legend" style="margin-top:8px">${pSorted.map(([k, v]) => `<li style="--tc:${lookOf(k).color}">${lookOf(k).name} <b>${Math.round(v / pTot * 100)}%</b></li>`).join('') || '<li style="--tc:var(--dim)">Sin datos</li>'}</ul>
+        </div>
+        <div>
+          <p class="eyebrow" style="margin-bottom:8px">Gestos del guion</p>
+          <p class="note">${checkable ? `Hiciste <b style="color:var(--paper)">${hits} de ${checkable}</b> gestos que marcaba el guion.` : 'Esta toma no tuvo gestos comprobables.'}</p>
+        </div>
+      </div>
+    </div>
+    <section class="panel">
+      <h2>Conexión con el tono, segundo a segundo</h2>
+      <p class="sub">La línea es el grado de ajuste al tono objetivo; la banda inferior, lo que transmitías. Las marcas de arriba son los avisos del apuntador${url ? '. Pulsa en la gráfica para ir a ese momento del vídeo' : ''}.</p>
+      <div class="tl-wrap"><canvas id="timeline"></canvas></div>
+    </section>
+    <div class="rep-grid">
+      <section class="panel">
+        <h2>Qué corregir primero</h2>
+        ${fixes.length ? `<ul class="fixes">${fixes.map(([id, f]) => `<li><span class="fi">${ico(f.icon)}</span><b>${esc(f.title)}<small>${f.n}×</small></b><p>${esc(TIPS[id] || '')}</p></li>`).join('')}</ul>` : '<p class="sub">No hubo avisos en esta toma.</p>'}
+      </section>
+      <section class="panel">
+        <h2>Medidas frente al objetivo</h2>
+        <p class="sub">La franja verde es lo que pide el tono; la marca, tu media en la toma.</p>
+        <ul class="mrep">${gaps.map(g => { const [lo, hi] = targetsFor(mainTone)[g.m.id]; return `<li><span>${g.m.name}</span><span class="v">${g.inBand == null ? 'sin datos' : Math.round(g.inBand * 100) + '% en rango'}</span><span class="bar"><i class="band" style="left:${lo * 100}%;width:${(hi - lo) * 100}%"></i>${g.avg != null ? `<b class="needle" style="left:${g.avg * 100}%"></b>` : ''}</span></li>`; }).join('')}</ul>
+      </section>
+    </div>
+    <section class="panel">
+      <h2>Párrafo a párrafo</h2>
+      <div class="tbl"><table class="rows"><thead><tr><th>Párrafo</th><th>Objetivo</th><th>Transmitiste</th><th style="text-align:right">Ajuste</th></tr></thead><tbody>
+      ${paraRows.map(r => `<tr><td>${esc(r.words)}…</td><td><span class="pill" style="color:${TONES[r.tone].color}">${TONES[r.tone].name}</span></td><td>${r.top ? `<span class="pill" style="color:${lookOf(r.top).color}">${lookOf(r.top).name}</span>` : '<span class="pill na">sin leer</span>'}</td><td class="num">${r.match == null ? '—' : r.match + '%'}</td></tr>`).join('')}
+      </tbody></table></div>
+    </section>
+    ${cueEv.length ? `<section class="panel"><h2>Acotaciones</h2><div class="tbl"><table class="rows"><thead><tr><th>Momento</th><th>Gesto</th><th>En la frase</th><th>Resultado</th></tr></thead><tbody>
+      ${cueEv.map(e => { const w = S.sc.words.slice(e.cue.at, e.cue.at + 5).map(x => x.text).join(' '); return `<tr><td class="num" style="text-align:left">${fmtTime(e.t)}</td><td>${esc(e.title)}</td><td>«${esc(w)}…»</td><td>${e.outcome === 'hit' ? '<span class="pill ok">' + ico('ok') + 'Hecho</span>' : e.outcome === 'miss' ? '<span class="pill no">No se vio</span>' : '<span class="pill na">Sin comprobar</span>'}</td></tr>`; }).join('')}
+    </tbody></table></div></section>` : ''}
+  `;
+  S.lastReport = tk;
+  leaveStudioForReport();
+  requestAnimationFrame(() => drawTimeline(tk));
+}
+function leaveStudioForReport() {
+  S.live = false; stopLoops(); stopFollow();
+  try { S.wake?.release(); } catch {}
+  stageMsg(null); $('#cue').hidden = true;
+  show('report');
+}
+$('#report').addEventListener('click', e => {
+  const a = e.target.closest('[data-act]')?.dataset.act;
+  if (a === 'edit') { if (S.stream) { for (const tr of S.stream.getTracks()) tr.stop(); S.stream = null; } if (S.audio) { try { S.audio.ctx.close(); } catch {} S.audio = null; } show('setup'); }
+  if (a === 'again') { show('studio'); reenterStudio(); }
+});
+async function reenterStudio() {
+  if (!S.stream || !S.stream.active) return enterStudio();
+  S.sc = parseScript(S.text, S.tone);
+  setupPrompter(); setTakeUI(false);
+  S.live = true; startLoops();
+  toast('Listo para otra toma.');
+}
+function drawTimeline(tk) {
+  const cv = $('#timeline'); if (!cv) return;
+  const css = getComputedStyle(document.documentElement);
+  const col = n => css.getPropertyValue(n).trim();
+  const dpr = devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+  cv.width = w * dpr; cv.height = h * dpr;
+  const g = cv.getContext('2d'); g.scale(dpr, dpr);
+  const pl = 40, pr = 10, pt = 16, pb = 30, dur = Math.max(1, tk.dur);
+  const X = s => pl + (w - pl - pr) * (s / dur), Y = v => pt + (h - pt - pb) * (1 - v / 100);
+  g.font = `11px ${col('--f-mono')}`; g.fillStyle = col('--mute'); g.strokeStyle = col('--line'); g.lineWidth = 1;
+  for (const v of [0, 50, 75, 100]) { g.beginPath(); g.moveTo(pl, Y(v)); g.lineTo(w - pr, Y(v)); g.stroke(); g.fillText(v + '%', 4, Y(v) + 4); }
+  // banda de lo transmitido
+  for (let i = 0; i < tk.log.length; i++) {
+    const s = tk.log[i], nx = tk.log[i + 1]?.t ?? s.t + .25;
+    if (!s.perceived) continue;
+    g.fillStyle = (TONES[s.perceived] || STATES[s.perceived]).color;
+    g.fillRect(X(s.t), h - pb + 6, Math.max(1, X(nx) - X(s.t)), 8);
+  }
+  // línea de ajuste
+  g.strokeStyle = col('--spot'); g.lineWidth = 2; g.beginPath();
+  let started = false;
+  for (const s of tk.log) { if (s.match == null) { started = false; continue; } const x = X(s.t), y = Y(s.match); if (!started) { g.moveTo(x, y); started = true; } else g.lineTo(x, y); }
+  g.stroke();
+  // avisos
+  for (const e of tk.events) {
+    g.fillStyle = e.kind === 'script' ? col('--spot') : e.kind === 'good' ? col('--ok') : e.kind === 'crit' ? col('--bad') : col('--warn');
+    g.beginPath(); g.arc(X(e.t), pt - 6, 3.5, 0, 7); g.fill();
+  }
+  g.fillStyle = col('--mute');
+  const step = dur > 120 ? 30 : dur > 40 ? 10 : 5;
+  for (let s = 0; s <= dur; s += step) g.fillText(fmtTime(s), X(s) - 14, h - 4);
+  cv.onclick = e => { const v = $('#repVideo'); if (!v) return; const r = cv.getBoundingClientRect(); v.currentTime = clamp((e.clientX - r.left - pl) / (w - pl - pr)) * dur; v.play?.(); };
+}
+</script>
+</body>
+</html>
