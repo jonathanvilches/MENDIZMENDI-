@@ -4,7 +4,7 @@ import { groundHeight } from '../world/heightfield.js';
 import { resolve, addMover, MOVERS } from '../world/colliders.js';
 import { requestPath, walkable, segClear } from '../world/nav.js';
 import { damp, dampAngle } from '../util/math.js';
-import { buildMinifig, lookToMinifig, MinifigAnimator, setOutlines } from './minifig.js';
+import { setOutlines } from './minifig.js';
 import { buildNpc, npcsReady } from './npcGlb.js';
 import { makeBlob } from '../util/blob.js';
 import { nameFor } from '../data/nombres.js';
@@ -37,12 +37,13 @@ export class Actor {
   constructor(def, scene) {
     this.def = def;
     this.id = def.id; this.name = def.name;
-    // todos (vecinos, carnaval y seres de leyenda) con el cuerpo de los personajes nuevos; la minifigura solo si aún no han cargado
+    // todos (vecinos, carnaval y seres de leyenda) con el cuerpo de los personajes nuevos (main.js los carga antes de
+    // entrar en el pueblo); si aún no están, un vecino vacío que no se ve (antes salía una figura sencilla antigua)
     const n = npcsReady() ? buildNpc(def.look) : null;
     if (n) { this.obj = n.obj; this.glb = n.char; this.anim = n.anim; this.J = {};
       // el nombre va con el cuerpo: un chico con nombre de chico y una chica con nombre de chica (los seres de leyenda, como son)
       if (!def.look?.myth) this.name = nameFor(def.name, n.obj.userData.sex); }
-    else { this.obj = buildMinifig(lookToMinifig(def.look || {})); this.J = this.obj.userData.J; this.anim = new MinifigAnimator(this.obj); }
+    else { console.warn('vecino sin cuerpo (los personajes no están cargados)', def.name); this.obj = new THREE.Group(); this.J = {}; this.anim = { update() { }, setExpr() { } }; }
     scene.add(this.obj);
     this.blob = makeBlob(0.42); if (this.blob) { this.blob.position.y = 0.03; this.obj.add(this.blob); }   // va con el vecino
     this.pos = new THREE.Vector3(def.x, 0, def.z);

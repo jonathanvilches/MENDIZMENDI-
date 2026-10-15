@@ -18,9 +18,9 @@ const urls = (g) => Object.fromEntries(Object.entries(g).map(([p, u]) => [p.spli
 // Solo las que salen en el juego: de cerca, la futbolista (fútbol) y la pelotari (frontón), a la resolución de los modelos
 // completos (@chicas en vite.config.js); ligera, la sanferminera (vecinas, corredoras del encierro y trajes).
 // tools/chicas prepara las tres de las dos maneras; las que no se usan no van en el juego
-const FULL = urls(import.meta.glob('@chicas/{osasuna,pelotari}.{parche,webp}', { eager: true, query: '?url', import: 'default' }));
+const FULL = urls(import.meta.glob('@chicas/{osasuna,pelotari,sanfermin}.{parche,webp}', { eager: true, query: '?url', import: 'default' }));
 const LOD = urls(import.meta.glob('../assets/chicas/lod/sanfermin.{parche,webp}', { eager: true, query: '?url', import: 'default' }));
-const PELO = urls(import.meta.glob('../assets/chicas/pelo/{osasuna-coleta,pelotari-coleta,sanfermin-coleta-lod}.glb', { eager: true, query: '?url', import: 'default' }));
+const PELO = urls(import.meta.glob('../assets/chicas/pelo/{osasuna-coleta,pelotari-coleta,sanfermin-coleta,sanfermin-coleta-lod}.glb', { eager: true, query: '?url', import: 'default' }));
 /** ¿Hay chica para este modelo de Meshy con este peinado (null: sin peinado), completa o ligera? */
 export const hasChica = (name, peinado = 'coleta', lod = false) => !!((lod ? LOD : FULL)[name + '.parche'] && (!peinado || PELO[`${name}-${peinado}${lod ? '-lod' : ''}.glb`]));
 

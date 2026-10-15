@@ -3,7 +3,6 @@ import COMARCAS from '../data/comarcas.json';
 import { txapelas as TXAPELAS } from '../game/torneo.js';
 import MOUNTAINS from '../data/mountains.json';
 import { CAST as AVATARS, STAT_LABELS, castById } from '../data/cast.js';
-import FOLKLORE from '../data/folklore.json';
 import SETTLEMENTS from '../data/settlements.json';
 import { LEVELS, levelById } from '../data/levels.js';
 import { iconSVG, speciesIcon } from '../ui/icons.js';
@@ -15,7 +14,9 @@ import { floraFoto } from '../ui/floraFoto.js';
 import { faunaImg } from '../ui/faunaImg.js';
 import { readTownArms, infoCard } from '../ui/escudo.js';
 import { releaseOffscreen } from '../util/offscreen.js';
-import { avatarPortrait, portraitImg, avatarPortraitImg } from '../ui/portraits.js';
+import { avatarPortrait, avatarPortraitImg } from '../ui/portraits.js';
+import { figurasHTML, openFigura } from '../ui/figuras.js';
+import { FIGURAS, FIGURAS_LEYENDA, FIGURAS_CARNAVAL } from '../data/figuras.js';
 import { stampImg } from '../assets.js';
 import { Stage, releaseStage } from './stage.js';
 import { getLang, setLang, langChosen } from '../i18n.js';
@@ -129,8 +130,9 @@ export class Hub {
     $('#hNav', this.root).innerHTML = this.nav.map(([id, n, ic, sec]) => `<button data-s="${id}" class="${sec ? 'nav2' : ''}">${I(ic, 26)}<span>${n}</span></button>`).join('') + `<button data-s="more" class="more-btn"><svg viewBox="0 0 24 24" width="26" height="26"><circle cx="5" cy="12" r="2.4" fill="#f7f0e6"/><circle cx="12" cy="12" r="2.4" fill="#f7f0e6"/><circle cx="19" cy="12" r="2.4" fill="#f7f0e6"/></svg><span>Más</span></button>`;
     $('#hNav', this.root).addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.s === 'more') return this.more(); this.go(b.dataset.s); });
     this.root.addEventListener('click', e => {
-      const t = e.target.closest('[data-go],[data-town],[data-comarca],[data-play],[data-sport],[data-fronton],[data-frpick]'); if (!t) return;
+      const t = e.target.closest('[data-go],[data-town],[data-comarca],[data-play],[data-sport],[data-fronton],[data-frpick],[data-figura]'); if (!t) return;
       if (t.dataset.frpick != null) return this.frontonPicker();
+      if (t.dataset.figura) { this.sound?.ui('open'); return openFigura({ sound: this.sound }, t.dataset.figura); }   // (la ficha de una figura de leyenda o carnaval)
       // (el frontón elegido cambia en su caja, sin volver a pintar la pantalla ni subirla arriba)
       if (t.dataset.fronton) { this.frontonTown = t.dataset.fronton; this.sound?.ui('click'); this.sheet?.remove(); this.sheet = null; const b = $('.sp-pick', this.root); if (b) b.outerHTML = this.frontonBox(); else this.go('sports', undefined, true); return; }
       if (t.dataset.sport) { this.sound?.ui('open'); return this.onSport?.(t.dataset.sport, t.dataset.sport === 'pelota' ? this.frontonId() : null); }
@@ -241,7 +243,7 @@ export class Hub {
     <h2 class="sec">${I('shield', 34)} Capítulos: las comarcas</h2>
     <section class="comarcas rail">${COMARCAS.map(c => this.comarcaCard(c)).join('')}</section>
     <h2 class="sec">${I('mask', 34)} Leyendas y carnaval</h2>
-    <section class="folk rail">${FOLKLORE.map(f => `<div class="folkcard">${portraitImg(FOLK_LOOK[f.id] || {}, 'bust', true)}<div><small>${esc(f.origin)}</small><b>${esc(f.name)}</b><p>${esc(f.fact)}</p></div></div>`).join('')}</section>`;
+    <section class="figuras rail">${figurasHTML(FIGURAS)}</section>`;
   }
   // ---------- Campeonatos ----------
   // pelota a mano y fútbol sin entrar en las misiones de un pueblo: la pelota se juega en el frontón del pueblo que se
@@ -510,7 +512,10 @@ export class Hub {
     const p = profile(), cur = castById(p.avatar);
     this.after = () => this.bindSelector(this.root, p.avatar, (a) => { p.avatar = a.id; saveProfile(); this.renderChip(); $('#csGo', this.root).innerHTML = `${I('play', 24)} Jugar con ${esc(a.name)}`; });
     // (el título y el botón de jugar van dentro del selector: en el móvil tumbado todo cabe en una pantalla)
-    return `<h1 class="title cs-title">Elige tu personaje</h1>${this.selector(cur, { cta: `<button class="gx-go" id="csGo" data-go="home">${I('play', 24)} Jugar con ${esc(cur.name)}</button>` })}`;
+    // (debajo, las figuras de leyenda y de carnaval del juego, con su ficha: ui/figuras.js)
+    return `<h1 class="title cs-title">Elige tu personaje</h1>${this.selector(cur, { cta: `<button class="gx-go" id="csGo" data-go="home">${I('play', 24)} Jugar con ${esc(cur.name)}</button>` })}
+      <h2 class="sec">${I('legend', 34)} Seres de leyenda</h2><p class="lead">Los seres de las leyendas de Navarra, tal como salen de noche en el juego. Toca uno para leer su ficha.</p><section class="figuras">${figurasHTML(FIGURAS_LEYENDA)}</section>
+      <h2 class="sec">${I('mask', 34)} Carnavales</h2><p class="lead">Los personajes de los carnavales de Navarra, con el traje de verdad de cada pueblo.</p><section class="figuras">${figurasHTML(FIGURAS_CARNAVAL)}</section>`;
   }
 
   // ---------- Insignias ----------

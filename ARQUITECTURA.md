@@ -64,6 +64,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 | `src/ui/` y `src/ui.js` | HUD, iconos SVG e iconos 3D horneados (`icon3d`, que guarda WebP en `src/assets/icons3d`), retratos, mapa y minijuegos pequeños |
 | `src/data/` | Datos: pueblos y misiones (`levels.js`), comarcas con su cultura y su traje (`comarcas.json`), montes, fauna, comida y equipo (`equipo.js`), tiendas y producto estrella (`tiendas.js`), personajes (`cast.js`) y euskera (`eu.js`) |
 | `src/i18n.js` | Castellano, euskera y modo «Aprende euskera» (botón ES para ver el castellano unos segundos) |
+| `src/data/figuras.js` | Las figuras de leyenda (lamia, basajaun, sorgina, tartalo, Roldán) y de carnaval (joaldun, momotxorro, cascabobo, zipotero, coronel Lagunero, irasko, paloki): quién es cada una, cómo viste, dónde sale en Navarra y en qué pueblo y misión del juego. Las enseña `ui/figuras.js` en el inicio y en Personajes, con su imagen (`src/assets/figuras`, renders de sus trajes hechos con `tools/retratos.mjs`, provisionales: 768 px en la web, 384 en el archivo único, que con conexión pide la grande; cuando el autor entrega la ilustración de una figura, `tools/figuras-ilus.mjs` la deja en `src/assets/figuras/ilus` y esa manda, apaisada) y su ficha con pestañas |
 | `src/audio.js` | Sonido procedural con Web Audio: ambiente, animales y música por ambientes (explorar, noche, misterio, tensión, juego, fiesta, deporte e inicio: en los partidos y los campeonatos, una música de juego con bajo y batería de estadio; en el menú, el tema de inicio, un tema propio de aventura con la orquesta sintetizada: trompas, cuerdas, coro, arpa, campanillas, bajo, timbales, caja y platillo; lo pone `main.js` al primer toque del menú y al volver a él) |
 | `src/crowdAudio.js` | El público de la pelota y del fútbol, sintetizado: murmullo de treinta voces con formantes, aplauso de 160 personas a la vez, «¡oooh!», lamento y estallido. Se calcula una vez, a trozos, mientras carga el partido (`crowdBuffers`); `Crowd` lo reproduce con su nivel según el momento |
 
@@ -284,6 +285,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 | `llamadas.mjs` | Mide las llamadas de dibujo por partes |
 | `mitos.mjs` | Prueba Basajaun, la lamia, la sorgina y Roldán con capturas |
 | `musica.mjs` | Prueba la música por ambientes |
+| `figuras-ilus.mjs` | Las ilustraciones de las figuras de leyenda y carnaval que entregue el autor (16:9, como las láminas): a 1280 y 640 en `src/assets/figuras/ilus`; en cuanto están, sustituyen al render del traje |
+| `retratos.mjs` | Retratos para el menú con `lab/retratos.html`: de un avatar (busto, cuerpo entero y el grande de la web) o de una figura de leyenda o carnaval con su traje (`src/assets/figuras`) |
+| `personajes-ver.mjs` | Capturas de la pantalla Personajes, la tira de figuras del inicio y una ficha, en escritorio y en el móvil tumbado |
+| `hub-escritorio.mjs` | Capturas del menú en escritorio, pantalla por pantalla |
 | `musica-inicio.mjs` | Graba la música de un ambiente (el tema de inicio) con un contexto fuera de línea: WAV, nivel por segundos y pico; `SOLO=` para medir cada instrumento |
 | `fauna-512.mjs` | Rehace la fauna del archivo único (`src/assets/fauna/512`) desde las de 1280: 512 px, WebP calidad 80 |
 | `euskera.mjs` | Prueba el modo «Aprende euskera» |
@@ -317,7 +322,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 | `laminas-pequenas.mjs` | Las copias pequeñas de las láminas de la web, de 640 × 360 |
 | `laminas-grandes.mjs` | Las láminas grandes de la web, de 2560 × 1440: las de 1280 ampliadas al doble con Real-ESRGAN (`laminas-ampliar.py`, en CPU) y guardadas en WebP; con un grupo (leyendas, cimas, personajes, tradiciones), lo mismo con sus ilustraciones de 1536 |
 | `cimas-tarjetas.mjs` | Las escenas de las cimas de 1024 para las tarjetas de la web |
-| `nitidez.mjs` | Nitidez de las imágenes en el iPhone 12 tumbado: cuánto se amplía cada una, por pantallas (URL de la web o del archivo único con MINI=1) |
+| `nitidez.mjs` | Nitidez de las imágenes en el iPhone 12 tumbado (o en un ordenador, con `VISTA=1920x1080` y `DPR=`): cuánto se amplía cada una, por pantallas (URL de la web o del archivo único con MINI=1) |
 | `nitidez-hd.mjs` | Nitidez del archivo único con red (las imágenes grandes de `hd.json` se sirven desde `docs/`) o sin ella (`SIN_RED=1`): al llegar a cada pantalla y 5 s después |
 
 Tamaños con que se revisa el diseño (`auditoria-diseno`, `-partidos`, `-ventanas` y `-pueblo`): móvil tumbado 667 × 375,

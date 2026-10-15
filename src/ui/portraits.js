@@ -1,15 +1,14 @@
-// Retratos de los personajes (busto de la minifigura renderizado en 3D) para diálogos y fichas
+// Retratos de los personajes (busto o cuerpo entero, renderizados en 3D con los personajes nuevos de npcGlb.js: el mismo
+// traje que llevan en el juego) para diálogos y fichas. Los avatares traen el suyo ya hecho (tools/retratos.mjs).
 import * as THREE from 'three';
-import { buildMinifig, lookToMinifig, COSTUMES } from '../actors/minifig.js';
 import { offscreen, offscreenCanvas } from '../util/offscreen.js';
 import { getImg, putImg, enqueue } from '../util/store.js';
 import { GLB_AVATARS } from '../actors/glbChar.js';
-import { buildNpc, npcsReady } from '../actors/npcGlb.js';
+import { buildNpc, npcsReady, preloadNpcs } from '../actors/npcGlb.js';
 
 let R = null, scene, cam;
-const cache = new Map();
 function setup() {
-  R = offscreen(256, 256);
+  R = offscreen(512, 512);   // (a 512: a 256, en el móvil de densidad 3 los retratos de los diálogos salían borrosos)
   if (scene) return;
   scene = new THREE.Scene();
   scene.add(new THREE.HemisphereLight('#ffffff', '#6a5a4a', 1.6));
@@ -37,54 +36,35 @@ function portraitKK(look, mode) {
   obj.traverse(o => { if (o.geometry) o.geometry.dispose(); }); n.char?.dispose?.();
   return url;
 }
+// (si los personajes nuevos aún no han cargado no hay retrato: portraitImg lo pide en cuanto estén; isMini se admite por
+// compatibilidad, ya no hay figuras sencillas)
 export function portrait(look, mode = 'bust', isMini = false) {
-  const kk = npcsReady();
-  const key = (kk ? 'm3|' : '') + JSON.stringify(look) + mode + isMini;   // (m3: con los personajes nuevos y las texturas nuevas; los retratos guardados antes, algunos vacíos en el iPhone, no valen)
+  if (!npcsReady()) return '';
+  const key = 'm3|' + JSON.stringify(look) + mode + isMini;   // (m3: con los personajes nuevos y las texturas nuevas; los retratos guardados antes, algunos vacíos en el iPhone, no valen)
   if (cache.has(key)) return cache.get(key);
   const st = getImg('p:' + key); if (st) { cache.set(key, st); return st; }
   try {
     setup();   // el renderizador oculto puede haberse liberado: se pide cada vez
-    if (kk) { const url = portraitKK(look, mode); cache.set(key, url); putImg('p:' + key, url); return url; }
-    const fig = buildMinifig(isMini ? look : lookToMinifig(look));
-    const J = fig.userData.J;
-    J.armL.rotation.z = -0.1; J.armR.rotation.z = 0.1;
-    J.head.rotation.y = 0.25; J.torso.rotation.y = 0.12;
-    scene.add(fig);
-    fig.updateMatrixWorld(true);
-    const box = new THREE.Box3().setFromObject(fig);
-    if (mode === 'bust') {
-      const hp = new THREE.Vector3(); J.head.getWorldPosition(hp);
-      const R = fig.userData.headR || 0.25, cy = hp.y + (fig.userData.headCy || R) - R * 0.15;
-      const dist = R * 7.2 + (fig.userData.look?.hat ? R * 1.2 : 0);
-      cam.position.set(R * 1.3, cy + R * 0.25, dist); cam.lookAt(0, cy + (fig.userData.look?.hat ? R * 0.35 : 0), 0);
-    } else {
-      const midY = (box.max.y + box.min.y) / 2;
-      cam.position.set(0.9, midY + 0.3, 4.6 * Math.max(1, (box.max.y - box.min.y) / 1.9)); cam.lookAt(0, midY, 0);
-    }
-    R.setClearColor(0x000000, 0);
-    R.render(scene, cam);
-    const url = offscreenCanvas().toDataURL('image/png');
-    scene.remove(fig);
-    fig.traverse(o => { if (o.geometry) o.geometry.dispose(); });
-    cache.set(key, url); putImg('p:' + key, url);
-    return url;
+    const url = portraitKK(look, mode); cache.set(key, url); putImg('p:' + key, url); return url;
   } catch (e) { console.warn('retrato', e); return ''; }
 }
+// (una silueta en vez de un hueco si un retrato no se ha podido dibujar)
+const FALLBACK = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="24" r="12" fill="#f1c7a5"/><path d="M12 60c0-13 9-20 20-20s20 7 20 20z" fill="#c8222a"/><path d="M20 22c0-9 6-14 12-14s12 5 12 14c-3-5-7-7-12-7s-9 2-12 7z" fill="#3b2418"/></svg>');
 // los avatares GLB traen su retrato ya renderizado (tools/charportraits.mjs)
 const glbPortrait = (id, mode) => GLB_AVATARS[id] && (mode === 'hero' ? GLB_AVATARS[id].hero || GLB_AVATARS[id].full : mode === 'full' ? GLB_AVATARS[id].full : GLB_AVATARS[id].bust);
-export const avatarPortrait = (id, mode = 'bust') => glbPortrait(id, mode) || portrait(COSTUMES[id] || COSTUMES.leire, mode, true);
+export const avatarPortrait = (id, mode = 'bust') => glbPortrait(id, mode) || FALLBACK;
 
 // <img> del retrato sin bloquear: si aún no está hecho, se dibuja en segundo plano y aparece luego
 const BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
-const FALLBACK = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="24" r="12" fill="#f1c7a5"/><path d="M12 60c0-13 9-20 20-20s20 7 20 20z" fill="#c8222a"/><path d="M20 22c0-9 6-14 12-14s12 5 12 14c-3-5-7-7-12-7s-9 2-12 7z" fill="#3b2418"/></svg>');
 let PK = 0; const pkeys = new Map();
 export function portraitImg(look, mode = 'bust', isMini = false) {
-  const key = (npcsReady() ? 'm3|' : '') + JSON.stringify(look) + mode + isMini;   // (la misma clave que portrait)
+  const key = 'm3|' + JSON.stringify(look) + mode + isMini;   // (la misma clave que portrait)
   const hit = cache.get(key) || getImg('p:' + key);
   if (hit) return `<img src="${hit}" alt="">`;
   let id = pkeys.get(key); if (!id) { id = 'pk' + (++PK); pkeys.set(key, id); }
-  // (si el retrato no se ha podido dibujar, una silueta en vez de un hueco)
-  enqueue('p:' + key, () => { const u = portrait(look, mode, isMini) || FALLBACK; for (const i of document.querySelectorAll(`img[data-pk="${id}"]`)) { i.src = u; i.removeAttribute('data-pk'); } }, true);
+  // (en cuanto estén los personajes nuevos; si el retrato no se ha podido dibujar, una silueta en vez de un hueco)
+  const draw = () => enqueue('p:' + key, () => { const u = portrait(look, mode, isMini) || FALLBACK; for (const i of document.querySelectorAll(`img[data-pk="${id}"]`)) { i.src = u; i.removeAttribute('data-pk'); } }, true);
+  if (npcsReady()) draw(); else preloadNpcs().then(draw, draw);
   return `<img src="${BLANK}" data-pk="${id}" alt="">`;
 }
-export const avatarPortraitImg = (id, mode = 'bust') => { const g = glbPortrait(id, mode); return g ? `<img src="${g}" alt="">` : portraitImg(COSTUMES[id] || COSTUMES.leire, mode, true); };
+export const avatarPortraitImg = (id, mode = 'bust') => `<img src="${glbPortrait(id, mode) || FALLBACK}" alt="">`;
