@@ -1,7 +1,6 @@
 // Escenario 3D en vivo del centro de mando: la plataforma del selector de personaje, con aro de luz, haz y chispas
 // del color del personaje. (La portada ya no es una escena en vivo: es la foto de la comarca con el personaje.)
 import * as THREE from 'three';
-import { buildMinifig, MinifigAnimator, COSTUMES, setOutlines } from '../actors/minifig.js';
 import { castById } from '../data/cast.js';
 import { GlbRig, isGlbAvatar, loadGlbAvatar } from '../actors/glbChar.js';
 
@@ -98,23 +97,15 @@ export class Stage {
     this.glowMat.color.copy(c); this.beamMat.uniforms.uC.value.copy(bright); this.sparkMat.color.copy(bright);
     this.rim.color.copy(bright);
   }
+  // el personaje (los modelos propios y las chicas) se carga en segundo plano; mientras tanto sigue el anterior o, la
+  // primera vez, la plataforma sola (antes salía una figura sencilla antigua de reserva)
   setAvatar(id) {
     const token = this.avatarToken = (this.avatarToken || 0) + 1;
-    if (isGlbAvatar(id)) {
-      // personaje GLB: se carga en segundo plano; mientras tanto sigue el anterior
-      loadGlbAvatar(id).then(g => { if (this.avatarToken === token && this.alive !== false) this.useFig(id, this.glbFig(g, id)); })
-        .catch(e => { console.warn('avatar GLB', e); if (this.avatarToken === token) this.useFig(id, this.minifig(id)); });
-      if (!this.fig) this.useFig(id, this.minifig(id));
-      return;
-    }
-    this.useFig(id, this.minifig(id));
+    if (!isGlbAvatar(id)) { this.clearFig(); return; }
+    loadGlbAvatar(id).then(g => { if (this.avatarToken === token && this.alive !== false) this.useFig(id, this.glbFig(g, id)); })
+      .catch(e => { console.warn('avatar GLB', e); if (this.avatarToken === token) this.clearFig(); });
   }
-  minifig(id) {
-    const fig = buildMinifig(COSTUMES[id] || COSTUMES.leire, { hero: true });
-    setOutlines(fig, true);
-    fig.traverse(o => { if (o.isMesh && !o.userData.outline) o.castShadow = true; });
-    return { fig, anim: new MinifigAnimator(fig), H: fig.userData.H };
-  }
+  clearFig() { if (this.fig && this.scene) this.scene.remove(this.fig); this.glbRig?.dispose?.(); this.glbRig = null; this.fig = this.anim = null; }
   glbFig(gltf, id) {
     const rig = new GlbRig(gltf, id);
     let prevWave = 0;
@@ -160,17 +151,15 @@ export class Stage {
     let jumpY = 0; if (this.jump > 0) { this.jump -= dt; jumpY = Math.sin((1 - this.jump / 0.5) * Math.PI) * 0.25; }
     this.pop = Math.min(1, this.pop + dt * 3.2);
     const p = this.pop, k = p < 1 ? 1 + Math.sin(p * Math.PI) * 0.12 - (1 - p) * 0.6 : 1;
-    this.fig.scale.setScalar(Math.max(0.01, k));
     if (!this.drag) this.yaw *= Math.pow(0.3, dt);
-    this.fig.rotation.y = Math.sin(this.t * 0.45) * 0.35 + this.yaw;
-    this.fig.position.y = jumpY;
+    if (this.fig) { this.fig.scale.setScalar(Math.max(0.01, k)); this.fig.rotation.y = Math.sin(this.t * 0.45) * 0.35 + this.yaw; this.fig.position.y = jumpY; }
     this.pad.rotation.y += dt * 0.4;
     this.beamMat.uniforms.uT.value = this.t;
     const pos = this.sparks.geometry.attributes.position;
     this.sparkData.forEach((s, i) => { s.y += dt * s.s; if (s.y > 2.8) s.y = 0; s.a += dt * 0.4; pos.setXYZ(i, Math.cos(s.a) * s.r, s.y, Math.sin(s.a) * s.r); });
     pos.needsUpdate = true;
     this.sparkMat.opacity = 0.9;
-    this.anim.update(dt, { speed: 0, grounded: true, wave: this.wave, talking: this.wave > 0 ? 1 : 0 });
+    this.anim?.update(dt, { speed: 0, grounded: true, wave: this.wave, talking: this.wave > 0 ? 1 : 0 });
     if (this.ready) this.r.render(this.scene, this.cam);
   }
   dispose() {

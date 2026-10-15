@@ -11,7 +11,8 @@ import { infoCard } from '../ui/minigames.js';
 import { buildPlaza, RO, RA } from './encierroPlaza.js';
 import { crowd3d } from '../actors/crowd3d.js';
 import { QUALITY } from '../util/quality.js';
-import { GlbChar, loadMeshy, MESHY_GAIT } from '../actors/glbChar.js';
+import { GlbChar, loadMeshy, MESHY_GAIT, avatarIsGirl } from '../actors/glbChar.js';
+import { profile } from './profile.js';
 import { loadChica, hasChica } from '../actors/chicas.js';
 import { hairTint } from '../actors/hairColor.js';
 import { cobbleSet, ashlarSet, brickSet, woodSet, plasterSet, windowTex, railingTex, shopTex, SHOPS, plaqueTex, sandTex, archTex, flagNavarraTex, paverSet, stencilTex, bandTex, boardTex } from './encierroTex.js';
@@ -308,15 +309,17 @@ export class Encierro {
     // si no carga, los vecinos vestidos de blanco y rojo
     // (el jugador con el modelo completo; los demás corredores con la versión ligera: son muchos)
     // (y las corredoras, con su cuerpo de chica: chicas.js, la sanferminera con su coleta; si no carga, chicos)
-    let sf = null, sfL = null, sfC = null; try { [sf, sfL] = await Promise.all([loadMeshy('sanfermin'), loadMeshy('sanfermin', true)]); } catch (e) { console.warn('corredor', e); }
+    // (y la jugadora, si juega con una de las chicas, con su cuerpo de chica entero)
+    let sf = null, sfL = null, sfC = null, sfMe = null; try { [sf, sfL] = await Promise.all([loadMeshy('sanfermin'), loadMeshy('sanfermin', true)]); } catch (e) { console.warn('corredor', e); }
     if (sf && hasChica('sanfermin', 'coleta', true)) try { sfC = await loadChica('sanfermin', 'coleta', true); } catch (e) { console.warn('corredora', e); }
-    const sanfermin = (k = 1, lite = false, ella = false, pelo = null) => {
-      const g = ella && sfC ? sfC : lite ? sfL : sf, char = new GlbChar(g, MESHY_GAIT); char.root.scale.setScalar((g.userData.fit || 1) * k);
+    if (sf && avatarIsGirl(profile().avatar) && hasChica('sanfermin')) try { sfMe = await loadChica('sanfermin', 'coleta'); } catch (e) { console.warn('corredora', e); }
+    const sanfermin = (k = 1, lite = false, ella = false, pelo = null, g0 = null) => {
+      const g = g0 || (ella && sfC ? sfC : lite ? sfL : sf), char = new GlbChar(g, MESHY_GAIT); char.root.scale.setScalar((g.userData.fit || 1) * k);
       if (pelo && g === sfC) hairTint(char.root, 'sanfermin', pelo);
       const obj = new THREE.Group(); obj.add(char.root); obj.userData.H = 1.6 * k;
       return { obj, char, anim: { update: (dt, st) => { char.setSpeed(st.speed || 0); char.update(dt); } } };
     };
-    let me = sf ? sanfermin() : null;
+    let me = sf ? sanfermin(1, false, false, null, sfMe) : null;
     me ||= buildNpc({ ...white, height: 1.6 });
     S.add(me.obj); this.me = { ...me, x: 0, z: -14, speed: 0, fall: 0, safe: 0 };
     this.runners = [];

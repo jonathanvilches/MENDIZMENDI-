@@ -1,7 +1,7 @@
 // Reparto original de MENDIMENDIZ: la cuadrilla de exploradores.
 // Cada personaje es un niño o niña de un rincón de Navarra con su tradición, su carácter y su habilidad.
 // stats: [Resistencia, Fuerza, Agilidad, Orientación, Naturaleza]
-// los personajes elegibles y Leire, el aspecto de reserva (figura sencilla) si un modelo no puede cargarse
+// los personajes elegibles: los cuatro chicos (modelos de Meshy) y las tres chicas (chicas.js)
 export const CAST_ALL = [
   // los personajes que se eligen (modelos propios de Meshy): el sanferminero, el pastor, el futbolista y el
   // pelotari. En el encierro cualquiera de ellos corre vestido de San Fermín, en El Sadar juega con la camiseta de
@@ -22,13 +22,25 @@ export const CAST_ALL = [
     desc: 'Juega a pelota a mano en el frontón de su pueblo desde pequeño. Tiene buenas manos, buen ojo y no se rinde nunca en un tanto.',
     ability: 'Buen golpe: en el frontón le cuesta menos llegar a la pelota', stats: [85, 90, 80, 65, 60], color: '#2a5aa8',
     look: { height: 1.62, skin: '#e2b08a', hair: '#1d1d24', hairStyle: 'short', shirt: '#2a6ac8', pants: '#f7f3ea', shoes: '#f0e8d4', face: 'smile' } },
-  { id: 'leire', name: 'Leire', from: 'Iruña / Pamplona', role: 'Sanferminera', tagline: 'Siempre llega la primera',
-    desc: 'Corre más que nadie por las calles de Pamplona. Lleva su pañuelo rojo desde el 6 de julio hasta que se le olvida quitárselo.',
-    ability: 'Sprint: corre más rápido durante un rato', stats: [70, 55, 95, 70, 55], color: '#d42f2f',
-    look: { child: true, height: 1.36, skin: '#f3cfae', hair: '#6b3a1e', hairStyle: 'ponytail', hairTie: '#d42f2f', lashes: true, eyes: '#4a2a14',
-      shirt: '#f7f3ea', pants: '#f7f3ea', sash: '#d42f2f', scarf: '#d42f2f', shoes: '#f0e8d4', espadrille: true, laces: '#d42f2f', face: 'grin', freckles: true, pose: 'hips', browStyle: 'arched', tilt: 0.08, body: 'slim' } },
+  // las chicas (src/actors/chicas.js: la cabeza y el pelo de chica, hechos en Blender, sobre el cuerpo del sanferminero,
+  // del futbolista y del pelotari): la sanferminera, la futbolista y la pelotari. Leire corre el encierro con su cuerpo de
+  // chica, Nerea juega en el frontón con el suyo
+  { id: 'leire', name: 'Leire', from: 'Iruña / Pamplona', role: 'Sanferminera', tagline: 'Siempre llega la primera', glb: true, chica: 'sanfermin', female: true,
+    desc: 'Corre más que nadie por las calles de Pamplona. Lleva el pañuelo rojo desde el 6 de julio y se sabe de memoria el recorrido del encierro, de la cuesta de Santo Domingo a la plaza.',
+    ability: 'Sprint: corre más rápido durante un rato', stats: [75, 55, 95, 75, 60], color: '#d42f2f',
+    look: { height: 1.5, skin: '#f3cfae', hair: '#6b3a1e', hairStyle: 'ponytail', shirt: '#f7f3ea', pants: '#f7f3ea', sash: '#d42f2f', scarf: '#d42f2f', shoes: '#f0e8d4', espadrille: true, laces: '#d42f2f', face: 'grin', female: true } },
+  { id: 'nahia', name: 'Nahia', from: 'Iruña / Pamplona', role: 'Futbolista de Iruña', tagline: 'No da un balón por perdido', glb: true, chica: 'osasuna', female: true,
+    desc: 'Juega de delantera en el equipo de Iruña y no da un balón por perdido. Remata de cabeza y de volea, con las dos piernas, y celebra cada gol mirando a la grada de El Sadar.',
+    ability: 'Atleta: corre más rato sin cansarse', stats: [95, 65, 90, 65, 60], color: '#c8102e',
+    look: { height: 1.58, skin: '#f1c4a0', hair: '#3a2418', hairStyle: 'ponytail', shirt: '#c8102e', pants: '#14213d', shoes: '#1d1d24', face: 'grin', female: true } },
+  { id: 'nerea', name: 'Nerea', from: 'Leitza', role: 'Pelotari', tagline: 'Saca, resta y gana el tanto', glb: true, chica: 'pelotari', female: true,
+    desc: 'Aprendió a jugar a pelota a mano en el frontón de Leitza, pegando a la pared izquierda hasta que se hacía de noche. Tiene buen saque, buena cortada y mucha paciencia en los tantos largos.',
+    ability: 'Buen golpe: en el frontón le cuesta menos llegar a la pelota', stats: [85, 85, 85, 65, 60], color: '#2a5aa8',
+    look: { height: 1.6, skin: '#e2b08a', hair: '#1d1d24', hairStyle: 'ponytail', shirt: '#2a6ac8', pants: '#f7f3ea', shoes: '#f0e8d4', face: 'smile', female: true } },
 ];
-// avatares elegibles: los personajes propios de Meshy
-export const CAST = CAST_ALL.filter(c => c.meshy);
+// avatares elegibles: los personajes propios de Meshy y las chicas, en pareja (el sanferminero y la sanferminera, el pastor,
+// el futbolista y la futbolista, el pelotari y la pelotari)
+const ORDEN = ['sanfermin', 'leire', 'pastor', 'osasuna', 'nahia', 'pelotari', 'nerea'];
+export const CAST = CAST_ALL.filter(c => c.meshy || c.chica).sort((a, b) => ORDEN.indexOf(a.id) - ORDEN.indexOf(b.id));
 export const castById = (id) => CAST.find(c => c.id === id) || CAST[0];
 export const STAT_LABELS = ['Resistencia', 'Fuerza', 'Agilidad', 'Orientación', 'Naturaleza'];

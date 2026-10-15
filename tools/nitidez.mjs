@@ -3,16 +3,17 @@
 // pixelada; de 1,2 a 1,5: algo blanda. Recorre el menú, las fichas que se abren desde él, el menú de pelota, el torneo, la
 // colección, la liga y las pantallas VS de pelota y de fútbol.
 // Con el servidor de pruebas normal mide la web; con MINI=1 npx vite, el archivo único (carga las mismas imágenes que el HTML).
-// Uso: URL=http://127.0.0.1:5178/ node tools/nitidez.mjs [carpeta] [pantallas separadas por comas]   (DPR=3 por defecto)
+// Uso: URL=http://127.0.0.1:5178/ node tools/nitidez.mjs [carpeta] [pantallas separadas por comas]   (DPR=3 por defecto;
+// VISTA=1920x1080 para medir en un ordenador, con DPR=1 o 2, sin táctil)
 import { chromium } from 'playwright-core';
 import { mkdirSync, writeFileSync } from 'fs';
 import { medirEnPagina } from './nitidez-medir.mjs';
 const URL = process.env.URL || 'http://127.0.0.1:5178/';
 const out = process.argv[2] || 'entrega/nitidez'; mkdirSync(out, { recursive: true });
 const only = process.argv[3] ? process.argv[3].split(',') : null;
-const DPR = +(process.env.DPR || 3);
+const DPR = +(process.env.DPR || 3), VISTA = (process.env.VISTA || '844x390').split('x').map(Number), MOVIL = !process.env.VISTA;
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
-const p = await (await b.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: DPR, isMobile: true, hasTouch: true })).newPage();
+const p = await (await b.newContext({ viewport: { width: VISTA[0], height: VISTA[1] }, deviceScaleFactor: DPR, isMobile: MOVIL, hasTouch: MOVIL })).newPage();
 const errs = []; p.on('pageerror', e => errs.push(e.message));
 await p.addInitScript(() => { window.__vs = true; window.__vsMs = 600000; localStorage.setItem('mendimendiz-lang', 'es');
   localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', age: 'nino', seen: { heroBenat: true, dog: true }, xp: 900, last: 'altsasu-alsasua', futbolClub: 'osasuna', txapelas: 1,

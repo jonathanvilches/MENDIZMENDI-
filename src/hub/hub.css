@@ -1386,3 +1386,16 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .armorial .ar img.ar-img { display: block; width: 128px; height: 128px; margin: -10px -8px -8px; object-fit: contain; cursor: pointer; }
 @media (max-width: 560px), (orientation: landscape) and (max-height: 440px) { .armorial .ar img.ar-img { width: 96px; height: 96px; margin: -8px -6px -6px; } }
 .sh-arms img.sh-armimg { display: block; width: 104px; height: 104px; margin: -8px -7px -6px; object-fit: contain; }
+
+/* Figuras de leyenda y de carnaval (ui/figuras.js): la figura entera en su tarjeta, de qué es y de dónde, y su nombre.
+   En el inicio, en tira que se desliza; en Personajes, en retícula. Al tocarla, su ficha. */
+.figuras { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.figuras.rail { display: flex; overflow-x: auto; scrollbar-width: none; padding: 2px 2px 8px; touch-action: pan-x; } .figuras.rail::-webkit-scrollbar { display: none; } .figuras.rail .fcard { flex: none; width: 150px; }
+.fcard { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 8px 12px; border-radius: var(--r); background: var(--glass); border: 1px solid var(--line); font: inherit; color: inherit; cursor: pointer; text-align: center; transition: transform .12s, border-color .12s; }
+.fcard:hover { border-color: var(--cyan); transform: translateY(-2px); } .fcard:active { transform: scale(.98); }
+.fcard .fpic { width: 100%; aspect-ratio: 2 / 3; display: grid; place-items: center; border-radius: 12px; background: radial-gradient(ellipse at 50% 88%, rgba(201, 178, 255, .3), transparent 62%); }
+.fcard .fpic img { width: 100%; height: 100%; object-fit: contain; }
+.fcard.ilus .fpic { aspect-ratio: 16 / 9; background: none; } .fcard.ilus .fpic img { object-fit: cover; border-radius: 12px; }   /* (con ilustración, apaisada y entera) */
+.fcard .ftx { display: flex; flex-direction: column; gap: 2px; min-width: 0; width: 100%; }
+.fcard small { font-size: var(--fs-xs); color: var(--mute); font-weight: 700; } .fcard b { font-size: var(--fs-md); line-height: 1.15; } .fcard i { font-size: var(--fs-xs); color: var(--mute); font-style: normal; font-weight: 600; }
+@media (min-width: 900px) { .figuras { gap: 16px; } .figuras.rail .fcard { width: 170px; } }

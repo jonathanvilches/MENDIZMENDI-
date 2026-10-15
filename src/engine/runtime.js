@@ -21,7 +21,6 @@ import { createTownLevel } from '../levels/town.js';
 import { cargarRelieve } from '../world/relieve.js';
 import { resetColliders } from '../world/colliders.js';
 import { resetNav, navTick } from '../world/nav.js';
-import { MinifigRig, COSTUMES } from '../actors/minifig.js';
 import { GlbRig, isGlbAvatar, loadGlbAvatar } from '../actors/glbChar.js';
 import { Player } from '../actors/player.js';
 import { Fauna } from '../actors/animals.js';
@@ -135,12 +134,10 @@ export class Runtime {
     onProgress(0.8, 'Despertando a los animales…'); await frame();
     this.fauna = new Fauna(scene, q, salazar ? null : { def, town: TOWN, places: PLACES });
     if (this.weather.kind !== 'clear' && this.fauna.bfMesh) this.fauna.bfMesh.visible = false;   // con lluvia o nieve no hay mariposas
-    let rig = null;
-    if (isGlbAvatar(avatarId)) {
-      // personaje GLB (sistema nuevo); si no carga, su minifigura de reserva
-      try { rig = new GlbRig(await loadGlbAvatar(avatarId), avatarId); } catch (e) { console.warn('avatar GLB', e); }
-    }
-    rig = rig || new MinifigRig(COSTUMES[avatarId] || COSTUMES.leire);
+    // el personaje elegido (los modelos propios y las chicas: glbChar.js); si no carga, el pueblo no abre y main.js lo
+    // dice (antes salía una figura sencilla antigua de reserva)
+    if (!isGlbAvatar(avatarId)) throw new Error('personaje desconocido: ' + avatarId);
+    const rig = new GlbRig(await loadGlbAvatar(avatarId), avatarId);
     this.player = new Player(rig, scene);
     this.follow = new FollowCamera(this.camera);
     this.particles = new Particles(scene);

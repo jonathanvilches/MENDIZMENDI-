@@ -8,6 +8,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { loadGLB } from '../util/glb.js';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { hdTable } from '../web/hd.js';
+import { loadChica } from './chicas.js';   // (solo se usa al cargar un avatar: chicas.js importa de aquí, y al arrancar no se llama)
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';   // modelos de Meshy comprimidos
 
 const cache = new Map();
@@ -483,13 +484,18 @@ export class GlbChar {
 // ---- personajes GLB elegibles como avatar del jugador ----
 
 export const GLB_AVATARS = {};
-// personajes propios (Meshy) elegibles: el sanferminero, el pastor, el futbolista de Osasuna y el pelotari
+// personajes propios (Meshy) elegibles: el sanferminero, el pastor, el futbolista de Osasuna y el pelotari; y las chicas
+// (chicas.js: Leire sobre el sanferminero, Nahia sobre el futbolista y Nerea sobre el pelotari), con sus retratos
+// (tools/retratos.mjs)
 for (const id of ['sanfermin', 'pastor', 'osasuna', 'pelotari']) if (MESHY[id]) GLB_AVATARS[id] = { meshy: id, bust: MESHY_PICS[id + '_bust'], full: MESHY_PICS[id + '_full'], hero: MESHY_PICS[id + '_hero'] };   // (hero: el grande de la portada)
+for (const [id, base] of [['leire', 'sanfermin'], ['nahia', 'osasuna'], ['nerea', 'pelotari']]) if (MESHY[base]) GLB_AVATARS[id] = { meshy: base, chica: 'coleta', bust: MESHY_PICS[id + '_bust'], full: MESHY_PICS[id + '_full'], hero: MESHY_PICS[id + '_hero'] };
+/** Si el avatar es una de las chicas. */
+export const avatarIsGirl = (id) => !!GLB_AVATARS[id]?.chica;
 export const hasMeshy = (id) => !!MESHY[id];
 export const isGlbAvatar = id => !!GLB_AVATARS[id];
 export const loadGlbAvatar = (id) => {
   const d = GLB_AVATARS[id];
-  if (d.meshy) { fullTexFor(d.meshy); return loadMeshy(d.meshy); }   // el del jugador, con su textura completa
+  if (d.meshy) { fullTexFor(d.meshy); return d.chica ? loadChica(d.meshy, d.chica) : loadMeshy(d.meshy); }   // el del jugador, con su textura completa (las chicas, chicas.js)
   return loadChar(d.url);
 };
 

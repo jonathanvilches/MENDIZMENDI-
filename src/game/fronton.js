@@ -1,7 +1,7 @@
 // Frontón de los pueblos y partido de pelota a mano con el motor común de src/pelota.
 // Aquí solo se adapta el motor al juego: dónde va el frontón, colisiones, personajes, cámara e interfaz.
 import * as THREE from 'three';
-import { armSwing, GlbRig, loadMeshy, hasMeshy, loadedMeshy, fullTexFor } from '../actors/glbChar.js';
+import { armSwing, GlbRig, loadMeshy, hasMeshy, loadedMeshy, fullTexFor, avatarIsGirl } from '../actors/glbChar.js';
 import { hairTint } from '../actors/hairColor.js';
 import { outfitTint } from '../actors/npcOutfit.js';
 import { loadChica, hasChica } from '../actors/chicas.js';
@@ -29,9 +29,8 @@ import { crowdBuffers, PUBLICO } from '../crowdAudio.js';
 // la pelirroja Leire…); las chicas, con su cuerpo de chica (chicas.js: la pelotari, con la camiseta teñida de colorado
 // en el lado rojo)
 const COLORADO = '#c8222a';
-async function rigPelotari(model, name) {
-  const hair = pelotariHair(name);
-  if (pelotariGirl(name) && hasChica('pelotari')) try {
+async function rigPelotari(model, name, girl = pelotariGirl(name), hair = pelotariHair(name)) {
+  if (girl && hasChica('pelotari')) try {
     fullTexFor('pelotari'); const r = new GlbRig(await loadChica('pelotari'), 'pelotari');
     outfitTint(r.char.root, 'pelotari', { shirt: model === 'pelotari_rojo' ? COLORADO : null, hair }); return r;
   } catch (e) { console.warn('pelotari', e); }
@@ -244,7 +243,9 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     if (PUBLICO) crowdBuffers(G.sound?.ctx);   // (las voces y los aplausos del público se calculan mientras se preparan los pelotaris)
     const wait = !loadedMeshy('pelotari') || !loadedMeshy('pelotari_rojo');
     if (wait) G.ui.toast?.(isEU() ? 'Pilotariak prestatzen…' : 'Preparando a los pelotaris…', 'pelota', 1800);
-    if (rig0.id !== 'pelotari' && hasMeshy('pelotari')) try { fullTexFor('pelotari'); pel = new GlbRig(await loadMeshy('pelotari'), 'pelotari'); } catch (e) { console.warn('pelotari', e); }
+    // (la jugadora, con su cuerpo de chica de pelotari y su pelo: chicas.js)
+    const ella = avatarIsGirl(profile().avatar);
+    if ((rig0.id !== 'pelotari' || ella) && hasMeshy('pelotari')) try { if (ella) pel = await rigPelotari('pelotari', '', true, null); else { fullTexFor('pelotari'); pel = new GlbRig(await loadMeshy('pelotari'), 'pelotari'); } } catch (e) { console.warn('pelotari', e); }
     // (el cuerpo de siempre se aparta del todo mientras dura el partido: así nada lo vuelve a mostrar)
     if (pel) { hidden.push(...P.obj.children); for (const c of hidden) P.obj.remove(c); P.obj.add(pel.char.root); rig = pel; }
     // y el rival juega de rojo (el pelotari colorado), como en los partidos de verdad: azules contra colorados
