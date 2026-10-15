@@ -8,9 +8,10 @@ momento qué estás transmitiendo frente a lo que querías transmitir, te corrig
 
 Es un prototipo web de un solo archivo (`index.html`), sin servidor ni instalación.
 
-## Dos usos
+## Tres usos
 
-**Grabar un vídeo.** Pegas el guion, eliges el tono (animado, cercano, serio, inspirador, calmado, divertido,
+**Grabar un vídeo.** Pegas o subes el guion (Word .docx, .txt, subtítulos .srt/.vtt, .odt, .rtf o .html, con el botón
+«Subir texto» o arrastrándolo al cuadro), eliges el tono (animado, cercano, serio, inspirador, calmado, divertido,
 urgente) y lo lees como en un teleprompter. Todo va por voz (ver más abajo): «comenzamos» y empieza la cuenta
 atrás y la grabación; «corten» y sigue grabando unos segundos antes de parar. También puedes empezar dando dos
 palmadas o con los botones. El texto sigue tu voz o avanza a velocidad fija. La app
@@ -18,6 +19,25 @@ coloca gestos en el guion («saluda con la mano» en «hola», «cuenta con los 
 brazos» en «todos»…), te avisa cuando llegas a ellos, te enseña cómo hacerlos y comprueba si los haces. Como estás
 leyendo, en este modo no te corrige la mirada. Marcas: `[animado]` cambia el tono desde
 ese párrafo, `//` es una pausa, `*palabra*` pide énfasis y `{abre los brazos}` es una acotación tuya.
+
+**Analizar un vídeo que ya grabaste.** «Analizar un vídeo grabado» (en «Grabar un vídeo») sube un vídeo del móvil o
+del ordenador. Se reproduce en el plató, entero y sin espejo, y pasa por el mismo análisis que la cámara: el
+esqueleto de cara, cuerpo y manos encima, los avisos y la sombra con el gesto en el momento en que pasan. Al terminar,
+el informe dice qué transmites frente al tono elegido («Querías transmitir un mensaje animado y la mayor parte del
+tiempo se te vio serio»), cuánto encaja, qué corregir y cada parte del cuerpo, con el vídeo para ir a cada momento.
+
+**Grabar la versión mejorada.** Del informe salen hasta tres objetivos: lo que más tiempo te alejó del mensaje
+(«😄 Sonríe más», «👐 Brazos sin cruzar», «🎵 Varía la entonación»…), cada uno con el porcentaje del tiempo que pasó y
+cómo hacerlo. «Grabar la versión mejorada» abre la cámara con el teleprompter (si el guion no está, te lo pide) y:
+- al entrar te enseña los objetivos;
+- en el monitor quedan marcados: en verde si los estás cumpliendo, en ámbar si ahora mismo fallan;
+- sus avisos salen antes y con prioridad («🎯 Sonríe más»), y celebra cuando los corriges («¡Objetivo cumplido!») o
+  cuando llevas un rato cumpliéndolos;
+- el informe de la toma nueva compara antes y después: ajuste al tono, lo que transmitías y, por objetivo, la parte
+  del tiempo con el problema («antes 64% → ahora 22%», ✅ Mejorado / ➖ Igual / ⚠️ Peor).
+
+Lo mismo vale de una toma a la siguiente: «Repetir con estos objetivos» sigue mejorando sobre la última toma. Los
+objetivos se ven también en la pantalla de inicio y se pueden quitar.
 
 **Videollamada o directo.** Sin guion. Distingue si hablas tú o escuchas (tu voz y, además, que se te mueva la
 boca, para no confundirte con la otra persona) y cambia de consejos:
@@ -71,7 +91,7 @@ abre la llamada en otra pestaña del mismo navegador.
   una llamada), qué corregir primero, cada parte del cuerpo con lo que más hizo, medidas frente al objetivo,
   párrafos y gestos del guion, y el vídeo si grabaste.
 
-Atajos en el plató: Espacio empezar/pausar, R grabar, Esc terminar, ↑/↓ velocidad, +/− letra, S dibujo, M monitor.
+Atajos en el plató: Espacio empezar/pausar (con un vídeo subido, empezar el análisis o pausarlo), R grabar, Esc terminar, ↑/↓ velocidad, +/− letra, S dibujo, M monitor.
 
 ## Si no te ves o la imagen se para
 
@@ -105,6 +125,8 @@ y micrófono, calibra 5 segundos (hombros relajados, cara tranquila, voz normal)
 | Manos | MediaPipe Gesture Recognizer: 21 puntos por mano, dedos extendidos, puño, palma abierta, mano en la cara y movimientos pequeños repetidos (nervios). |
 | Rendimiento | La visión corre en un Web Worker con imágenes reducidas (ImageBitmap): la cámara y la pantalla no se congelan aunque el equipo tarde en analizar. Si el worker no arranca, se analiza en el hilo principal dejando tiempo libre entre fotogramas. |
 | Voz | AudioWorklet: volumen, tono con YIN, ritmo (picos de sílaba o palabras por minuto si el texto sigue la voz) y pausas. |
+| Vídeo subido | El vídeo ocupa el lugar de la cámara: la visión lee sus fotogramas y el sonido entra al mismo AudioWorklet por `MediaElementAudioSource` (y se oye). Antes de empezar se analiza el primer fotograma para que el motor esté listo y no se pierda el principio. Se usan valores neutros en lugar de tu calibración, el volumen no se valora (depende de cómo se exportó) y la mirada a cámara sí cuenta. Si el vídeo se pausa, el análisis espera. |
+| Objetivos | Para cada objetivo, la parte del tiempo con el problema: si tiene medida, las muestras fuera de la franja del tono; si no, el tiempo con el aviso activo. Así se comparan dos tomas. |
 | Mis palabras | En el mismo AudioWorklet: 100 huellas por segundo del sonido (MFCC a 16 kHz). Se aíslan las palabras sueltas (0,2–1,7 s con silencio alrededor) y se comparan con tus dos grabaciones de cada palabra con DTW, que las alinea aunque hables más rápido o más despacio. El umbral de cada palabra sale de lo que se parecen tus dos grabaciones y de lo que se diferencian de las otras palabras. |
 
 Cada tono define una franja objetivo por medida (`TONES`). Las reglas (`RULES`) indican cuándo aplican: mientras
@@ -121,6 +143,12 @@ Solo el motor «Navegador» usa el reconocimiento de voz del navegador (en Chrom
 - Los modelos (unos 18 MB) se descargan la primera vez de los servidores de Google y la librería de jsDelivr.
 - La ventana flotante solo existe en Chrome y Edge de escritorio. En el resto, pon la ventana al lado de la llamada.
 - Para probar sin tarjeta gráfica, añade `?cpu` a la dirección.
+- El vídeo subido se analiza a velocidad normal: tarda lo que dura. En un dispositivo lento se analizan menos imágenes
+  por segundo; si se pudo medir poco, el informe lo avisa.
+- Formatos: los que reproduzca el navegador. Los .mov del iPhone se abren en Safari; en Chrome de ordenador, mejor
+  .mp4 (H.264) o .webm. Con música de fondo, la entonación y el ritmo se miden peor.
+- El texto subido no sale del vídeo: para leer con el teleprompter hay que pegar o subir el guion. Los PDF y los
+  .pages no se leen (copia el texto o expórtalo a Word).
 - «Mis palabras» se ha probado con voz sintética: reconoce tus palabras a otras velocidades, tonos y volúmenes y no
   confunde unas órdenes con otras, pero acepta palabras casi iguales dichas sueltas («comentamos» por «comenzamos»,
   «corte» por «corten»). Por eso «corten» deja siempre el margen con «seguimos». Con mucho ruido de fondo o al cambiar
