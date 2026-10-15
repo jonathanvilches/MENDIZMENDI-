@@ -7,7 +7,7 @@
 // pintado se conserva: el color nuevo toma el brillo del original.
 import * as THREE from 'three';
 import { fillMaterial } from '../engine/charLight.js';
-import { hairMaterial } from './hairColor.js';
+import { hairMaterial, peloMaterial, peloEmisivo } from './hairColor.js';
 
 const HSV = `
 vec3 noHsv(vec3 c){ vec4 K=vec4(0.,-1./3.,2./3.,-1.); vec4 p=mix(vec4(c.bg,K.wz),vec4(c.gb,K.xy),step(c.b,c.g)); vec4 q=mix(vec4(p.xyw,c.r),vec4(c.r,p.yzx),step(p.x,c.r)); float d=q.x-min(q.w,q.y); return vec3(abs(q.z+(q.w-q.y)/(6.*d+1e-10)),d/(q.x+1e-10),q.x); }
@@ -55,7 +55,9 @@ export function outfitTint(root, model, O) {
   const Z = ZONES[model]; if (!Z) return;
   const U = { uShirt: hsv(O.shirt), uPants: hsv(O.pants), uVest: hsv(O.vest), uAcc: hsv(O.acc) };
   root.traverse(o => {
-    if (!o.isSkinnedMesh || !o.material?.map) return;
+    // (el pelo de las chicas va en sus propias mallas: solo toma su color)
+    if (o.userData.peloColor) { if (O.hair) { o.material = peloMaterial(peloEmisivo(o.material.clone()), O.hair); o.material.userData.own = true; } return; }
+    if (o.userData.pelo || !o.isSkinnedMesh || !o.material?.map) return;
     const g = o.geometry; if (!g.boundingBox) g.computeBoundingBox();
     const bb = g.boundingBox, kit = new THREE.Vector2(bb.min.y, Math.max(1e-3, bb.max.y - bb.min.y));
     const m = o.material.clone(); if (o.material.userData.fillK != null) fillMaterial(m, o.material.userData.fillK);

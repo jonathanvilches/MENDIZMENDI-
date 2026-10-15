@@ -12,6 +12,8 @@ import { buildPlaza, RO, RA } from './encierroPlaza.js';
 import { crowd3d } from '../actors/crowd3d.js';
 import { QUALITY } from '../util/quality.js';
 import { GlbChar, loadMeshy, MESHY_GAIT } from '../actors/glbChar.js';
+import { loadChica, hasChica } from '../actors/chicas.js';
+import { hairTint } from '../actors/hairColor.js';
 import { cobbleSet, ashlarSet, brickSet, woodSet, plasterSet, windowTex, railingTex, shopTex, SHOPS, plaqueTex, sandTex, archTex, flagNavarraTex, paverSet, stencilTex, bandTex, boardTex } from './encierroTex.js';
 
 const L = 230;          // largo de la Estafeta en la escena (m); luego el callejón vallado y la plaza
@@ -305,9 +307,12 @@ export class Encierro {
     // el jugador y los demás corredores son el mismo personaje de San Fermín (blanco y rojo, todos del mismo tamaño);
     // si no carga, los vecinos vestidos de blanco y rojo
     // (el jugador con el modelo completo; los demás corredores con la versión ligera: son muchos)
-    let sf = null, sfL = null; try { [sf, sfL] = await Promise.all([loadMeshy('sanfermin'), loadMeshy('sanfermin', true)]); } catch (e) { console.warn('corredor', e); }
-    const sanfermin = (k = 1, lite = false) => {
-      const char = new GlbChar(lite ? sfL : sf, MESHY_GAIT); char.root.scale.setScalar(((lite ? sfL : sf).userData.fit || 1) * k);
+    // (y las corredoras, con su cuerpo de chica: chicas.js, la sanferminera con su coleta; si no carga, chicos)
+    let sf = null, sfL = null, sfC = null; try { [sf, sfL] = await Promise.all([loadMeshy('sanfermin'), loadMeshy('sanfermin', true)]); } catch (e) { console.warn('corredor', e); }
+    if (sf && hasChica('sanfermin')) try { sfC = await loadChica('sanfermin', 'coleta', true); } catch (e) { console.warn('corredora', e); }
+    const sanfermin = (k = 1, lite = false, ella = false, pelo = null) => {
+      const g = ella && sfC ? sfC : lite ? sfL : sf, char = new GlbChar(g, MESHY_GAIT); char.root.scale.setScalar((g.userData.fit || 1) * k);
+      if (pelo && g === sfC) hairTint(char.root, 'sanfermin', pelo);
       const obj = new THREE.Group(); obj.add(char.root); obj.userData.H = 1.6 * k;
       return { obj, char, anim: { update: (dt, st) => { char.setSpeed(st.speed || 0); char.update(dt); } } };
     };
@@ -317,7 +322,7 @@ export class Encierro {
     this.runners = [];
     const nR = QUALITY === 'low' ? 7 : 12;
     for (let i = 0; i < nR; i++) {
-      const f = rnd() < 0.3, n = sf ? sanfermin(0.97 + rnd() * 0.06, true) : buildNpc({ ...white, female: f, ponytail: f, hair: ['#2a1a12', '#5a3a22', '#c9a46a', '#1d1d24'][i % 4], skin: ['#f1c4a0', '#e2b08a', '#c68a5e'][i % 3], height: 1.57 + rnd() * 0.06 });
+      const f = rnd() < 0.3, pelo = ['#2a1a12', '#5a3a22', '#c9a46a', '#1d1d24'][i % 4], n = sf ? sanfermin(0.97 + rnd() * 0.06, true, f, pelo) : buildNpc({ ...white, female: f, hair: pelo, skin: ['#f1c4a0', '#e2b08a', '#c68a5e'][i % 3], height: 1.57 + rnd() * 0.06 });
       S.add(n.obj); this.runners.push({ ...n, x: (rnd() - 0.5) * 4.6, z: -6 - rnd() * 70, speed: 4.6 + rnd() * 1.6, want: 0 });
     }
     // la manada: cabestros y toros juntos; luego un toro suelto que se ha quedado atrás (el más peligroso)

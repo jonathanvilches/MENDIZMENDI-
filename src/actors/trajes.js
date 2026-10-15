@@ -1161,7 +1161,7 @@ function gerren(l) {
 
 // El personaje listo para coserle piezas: su malla, sus huesos y cómo colgar de ellos lo hecho en la pose de reposo
 function contexto(char) {
-  const root = char.root; let mesh = null; root.traverse(o => { if (!mesh && o.isSkinnedMesh && o.material?.map) mesh = o; });
+  const root = char.root; let mesh = null; root.traverse(o => { if (!mesh && o.isSkinnedMesh && o.material?.map && !o.userData.pelo) mesh = o; });
   if (!mesh) return null;
   char.setSpeed?.(0); char.update?.(0.05); root.updateMatrixWorld(true); mesh.skeleton.update();
   const B = cuerpo(mesh), H = B.H, y0 = B.y0, bones = {}; mesh.skeleton.bones.forEach((b, i) => { bones[b.name.replace(/^mixamorig:?/, '')] = [b, i]; });
@@ -1195,12 +1195,10 @@ export function vestirTraje(char, id) {
   return { update: V.update };
 }
 
-// ---------- rasgos y peinado de chica (los personajes de Meshy son todos chicos) ----------
-// El borde de arriba de cada ojo, medido en la textura de cada modelo (tools/pelo/parpados.mjs): x, y, z en fracción
-// de la altura, del lagrimal a la sien
-const PARPADOS = {"osasuna":[[[-0.086,0.811,0.081],[-0.081,0.811,0.085],[-0.076,0.807,0.091],[-0.071,0.813,0.093],[-0.067,0.81,0.096],[-0.061,0.807,0.098],[-0.057,0.807,0.099],[-0.052,0.804,0.103],[-0.047,0.804,0.105],[-0.042,0.804,0.106],[-0.038,0.801,0.107],[-0.033,0.797,0.109],[-0.028,0.791,0.11]],[[0.042,0.799,0.106],[0.045,0.804,0.105],[0.049,0.81,0.107],[0.052,0.808,0.101],[0.056,0.813,0.098],[0.059,0.816,0.099],[0.063,0.815,0.096],[0.067,0.814,0.095],[0.07,0.813,0.093],[0.074,0.811,0.091],[0.077,0.807,0.088],[0.081,0.801,0.086],[0.084,0.799,0.082]]],"osasuna_fuera":[[[-0.093,0.768,0.076],[-0.087,0.775,0.085],[-0.082,0.781,0.088],[-0.077,0.787,0.092],[-0.071,0.792,0.096],[-0.066,0.795,0.1],[-0.06,0.797,0.1],[-0.055,0.799,0.106],[-0.049,0.798,0.108],[-0.044,0.798,0.11],[-0.039,0.795,0.113],[-0.033,0.793,0.115],[-0.028,0.789,0.119]],[[0.026,0.79,0.121],[0.032,0.792,0.116],[0.038,0.795,0.113],[0.043,0.798,0.11],[0.049,0.8,0.108],[0.055,0.799,0.105],[0.061,0.797,0.102],[0.066,0.795,0.1],[0.071,0.789,0.095],[0.077,0.782,0.09],[0.083,0.782,0.088],[0.089,0.77,0.083],[0.094,0.763,0.073]]],"sanfermin":[[[-0.084,0.806,0.087],[-0.079,0.806,0.093],[-0.074,0.804,0.1],[-0.069,0.805,0.1],[-0.065,0.805,0.108],[-0.06,0.805,0.106],[-0.055,0.803,0.11],[-0.051,0.809,0.109],[-0.046,0.804,0.113],[-0.042,0.804,0.113],[-0.037,0.809,0.115],[-0.032,0.809,0.116],[-0.027,0.81,0.117]],[[0.028,0.791,0.116],[0.033,0.798,0.115],[0.037,0.81,0.115],[0.042,0.804,0.113],[0.046,0.814,0.113],[0.051,0.815,0.111],[0.056,0.815,0.108],[0.061,0.814,0.106],[0.065,0.813,0.103],[0.07,0.803,0.1],[0.074,0.807,0.097],[0.079,0.799,0.092],[0.084,0.791,0.087]]],"pelotari":[[[-0.087,0.787,0.095],[-0.082,0.792,0.102],[-0.077,0.787,0.102],[-0.073,0.803,0.104],[-0.068,0.804,0.108],[-0.064,0.807,0.11],[-0.058,0.81,0.111],[-0.054,0.796,0.112],[-0.049,0.801,0.111],[-0.045,0.807,0.115],[-0.04,0.804,0.116],[-0.035,0.799,0.117],[-0.031,0.787,0.115]],[[0.028,0.792,0.117],[0.033,0.797,0.116],[0.038,0.801,0.117],[0.042,0.805,0.115],[0.047,0.807,0.114],[0.052,0.808,0.112],[0.057,0.808,0.111],[0.061,0.808,0.11],[0.067,0.807,0.109],[0.071,0.803,0.106],[0.076,0.801,0.105],[0.081,0.796,0.102],[0.086,0.79,0.093]]],"pelotari_rojo":[[[-0.083,0.817,0.087],[-0.078,0.814,0.091],[-0.073,0.811,0.097],[-0.068,0.807,0.097],[-0.064,0.809,0.1],[-0.059,0.808,0.101],[-0.055,0.808,0.111],[-0.05,0.804,0.109],[-0.045,0.815,0.106],[-0.041,0.813,0.107],[-0.036,0.81,0.11],[-0.031,0.815,0.113],[-0.026,0.817,0.117]],[[0.026,0.771,0.116],[0.031,0.784,0.112],[0.036,0.801,0.111],[0.041,0.805,0.113],[0.045,0.815,0.106],[0.05,0.815,0.103],[0.055,0.816,0.103],[0.059,0.817,0.11],[0.064,0.815,0.099],[0.068,0.813,0.097],[0.073,0.801,0.094],[0.078,0.794,0.092],[0.083,0.782,0.089]]],"pastor":[[[-0.061,0.791,0.118],[-0.058,0.795,0.118],[-0.056,0.794,0.119],[-0.054,0.809,0.115],[-0.052,0.809,0.116],[-0.049,0.809,0.116],[-0.047,0.809,0.118],[-0.045,0.804,0.117],[-0.042,0.804,0.117],[-0.04,0.807,0.12],[-0.038,0.798,0.119],[-0.035,0.8,0.12],[-0.033,0.791,0.12]],[[0.026,0.771,0.118],[0.03,0.782,0.119],[0.035,0.791,0.12],[0.039,0.791,0.12],[0.044,0.814,0.12],[0.049,0.814,0.118],[0.053,0.798,0.117],[0.058,0.814,-1000000000],[0.062,0.811,0.115],[0.067,0.801,0.108],[0.071,0.806,0.108],[0.076,0.801,0.104],[0.081,0.791,0.1]]]};
+// ---------- la cabeza sin el pelo de chico (capuchas, tocas, pañuelos) ----------
 // El cráneo sin el pelo (en fracción de la altura): el pelo de chico, mucho y de punta, se aplasta contra él en el
-// sombreador y encima va el pelo recogido, pegado a la cabeza
+// sombreador y encima van la capucha, la toca o el pañuelo (el mismo que el de la cabeza de las chicas:
+// tools/blender/chicas/comun.py)
 const CRANEO = { c: new V3(0, 0.8, -0.022), r: new V3(0.152, 0.183, 0.163) };
 // lo que hay del eje del cuerpo al cráneo (más extra) a una altura y en una dirección (como radio)
 function rCraneo(y, a, extra = 0) {
@@ -1247,79 +1245,24 @@ const peloTex = (base) => lienzo('pelo' + base, 256, 256, (g, w, h, R) => {
   for (let i = 0; i < 40; i++) { const x = R() * w; g.strokeStyle = css(base, 1.5); g.globalAlpha = 0.25; g.lineWidth = 1; g.beginPath(); g.moveTo(x, 0); g.lineTo(x + (R() - 0.5) * 8, h); g.stroke(); }
   g.globalAlpha = 1;
 });
-// pestañas: tiras de trazos finos que nacen del párpado y se curvan hacia arriba y hacia fuera, más largas hacia la sien
-const pestanasTex = () => lienzo('pestanas', 256, 64, (g, w, h, R) => {
-  for (let i = 0; i < 70; i++) {
-    const t = i / 69, x = 4 + t * (w - 8), len = h * (0.55 + 0.45 * t) * (0.8 + R() * 0.25), lean = 10 + 22 * t;
-    g.strokeStyle = `rgba(22,14,10,${0.85 + R() * 0.15})`; g.lineWidth = 2.2 - t * 0.6; g.lineCap = 'round';
-    g.beginPath(); g.moveTo(x, h); g.quadraticCurveTo(x + lean * 0.2, h - len * 0.6, x + lean, h - len); g.stroke();
-  }
-  g.fillStyle = 'rgba(22,14,10,.95)'; g.fillRect(0, h - 5, w, 5);
-});
-function pestanas(V, model) {
-  const ojos = PARPADOS[model] || PARPADOS.osasuna, Pz = [], Uv = [], I = []; let base = 0;
-  const C = new V3(0, 0.79, -0.03), up = new V3(0, 1, 0);
-  for (const ojo of ojos) {
-    // (del lagrimal a la sien, con la altura suavizada: la medida va píxel a píxel)
-    const pts = [...ojo].sort((a, b) => Math.abs(a[0]) - Math.abs(b[0])).map(p => new V3(...p)), n = pts.length;
-    const sm = pts.map((p, i) => { const a = pts[Math.max(0, i - 1)], b = pts[Math.min(n - 1, i + 1)]; return new V3(p.x, (a.y + 2 * p.y + b.y) / 4, p.z); });
-    sm.forEach((p, i) => {
-      const t = i / (n - 1), nor = new V3().subVectors(p, C).normalize(), side = new V3(Math.sign(p.x), 0, 0);
-      const dir = nor.clone().multiplyScalar(0.6).addScaledVector(up, 0.85).addScaledVector(side, 0.3 + 0.4 * t).normalize();
-      const b = p.clone().addScaledVector(nor, 0.0012).addScaledVector(up, -0.0015), tip = b.clone().addScaledVector(dir, 0.006 + 0.012 * Math.pow(t, 1.2));
-      for (const q of [b, tip]) Pz.push(q.x * V.H, V.P(0, q.y, 0).y, q.z * V.H);
-      Uv.push(t, 0, t, 1);
-      if (i) I.push(base + i * 2 - 2, base + i * 2 - 1, base + i * 2, base + i * 2 - 1, base + i * 2 + 1, base + i * 2);
-    });
-    base += n * 2;
-  }
-  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(Pz, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(Uv, 2)); g.setIndex(I); g.computeVertexNormals();
-  const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ map: pestanasTex(), alphaTest: 0.35, side: THREE.DoubleSide, roughness: 0.6, color: '#ffffff' }));
-  m.userData.sombra = false; V.put(m, 'Head');
-}
-// tubo de grosor variable (radio r(t) a lo largo de la curva) con la textura a lo largo: la coleta
-function tuboPerfil(curve, r, seg = 20, rad = 10) {
-  const g = new THREE.TubeGeometry(curve, seg, 1, rad, false), p = g.attributes.position, uv = g.attributes.uv, pts = curve.getSpacedPoints(seg);
-  for (let i = 0; i <= seg; i++) for (let j = 0; j <= rad; j++) {
-    const k = i * (rad + 1) + j, c = pts[i], f = r(i / seg);
-    p.setXYZ(k, c.x + (p.getX(k) - c.x) * f, c.y + (p.getY(k) - c.y) * f, c.z + (p.getZ(k) - c.z) * f);
-    uv.setXY(k, j / rad, 1 - i / seg);   // (los mechones, a lo largo)
-  }
-  g.computeVertexNormals(); return g;
-}
-/** Rasgos de chica para un personaje de Meshy: el pelo recogido en una coleta (de su color: pelo, como se ve en el
- *  juego) y pestañas sobre los párpados. lazo: el color de la goma. Devuelve { update(dt, velocidad) } (la coleta se
- *  mueve al correr). */
-export function chica(char, model, { pelo = '#3a2418', lazo = '#16161a', albedo = (c) => c } = {}) {
+// ---------- falda y delantal de las vecinas, cosidos al cuerpo ----------
+// el vuelo de la falda (radio respecto al de la cintura, a cada altura): el de la falda de la lamia
+const VUELO = [[1.02, 0.45], [1.25, 0.33], [1.5, 0.17], [1.66, 0.08]];
+const vuelo = (y) => { for (let i = 1; i < VUELO.length; i++) { const [k0, y0] = VUELO[i - 1], [k1, y1] = VUELO[i]; if (y >= y1) return lerp(k0, k1, (y0 - y) / (y0 - y1)); } return VUELO[VUELO.length - 1][0]; };
+/** Falda de vecina (las chicas: chicas.js), con los huesos de la cadera y de las piernas como las de los trajes: en
+ *  campana con pliegues, de la cintura hasta media pierna (largo 0,8) o hasta el tobillo (1), con su cinturilla; y, si
+ *  lo lleva, el delantal por delante, algo más corto (sin falda, solo el delantal, hasta las rodillas). char: su
+ *  GlbChar, ya a su tamaño y en su pose de reposo. */
+export function falda(char, { color = null, largo = 0.8, delantal = null } = {}) {
   const V = contexto(char); if (!V) return null;
-  const { mesh: m, P, u } = V, E = CRANEO, col = albedo(pelo);
-  aplanarPelo(m, E);
-  // el pelo recogido: liso sobre el cráneo, de la frente y las sienes hacia atrás; los mechones van hacia la coleta
-  const T = new V3(0, 0.875, -0.17), A = new V3(0, 0.76, 0.2).sub(T).normalize(), Yp = new V3(0, 1, 0).addScaledVector(A, -A.y).normalize(), X = new V3().crossVectors(Yp, A);
-  const uvPelo = (x, y, z) => { const d = new V3(x, y, z).sub(T); return [Math.atan2(d.dot(X), d.dot(Yp)) / TAU + 0.5, d.length() / 0.3]; };
-  const Ec = { c: E.c, r: E.r.clone().addScalar(0.006) };
-  // (entero sobre el elipsoide: un mechón de chico a medio llevar asomaba como una astilla al correr; solo junto a la
-  // frente sigue un poco a la cara, para que no quede un borde de casco)
-  const sobre = (pp, nn) => {
-    const d = new V3().subVectors(pp, Ec.c).divide(Ec.r), s = d.length(); if (s < 1e-4) return;
-    const e = d.clone().divideScalar(s).multiply(Ec.r).add(Ec.c), en = d.clone().divide(Ec.r).normalize();
-    const fr = pp.z > 0.02 ? (1 - sstep(pp.y, 0.86, 0.9)) * (1 - sstep(Math.abs(pp.x), 0.1, 0.14)) * 0.5 : 0;
-    pp.lerp(e, 1 - fr); nn.lerp(en, 1 - fr);
-    return fr;
-  };
-  ceñida(m, (x, y, z, zn) => zn === 1 ? Math.min(y - 0.7, frentePelo(x, y, z)) : -1, (x, y, z) => 0.004 + 0.002 * noise(x * 60, y * 60, z * 60),
-    tela({ map: rep(peloTex(col), 9, 1), roughness: 0.45 }), uvPelo, sobre);
-  // la coleta: de la goma, un poco hacia atrás y luego cayendo; gruesa en medio y fina en la punta
-  const cur = curva([0, 0, 0], [0, -u(0.02), -u(0.045)], [0, -u(0.085), -u(0.07)], [0, -u(0.16), -u(0.06)], [0, -u(0.215), -u(0.04)]);
-  const perfil = (t) => u(t < 0.15 ? lerp(0.021, 0.03, t / 0.15) : t < 0.45 ? lerp(0.03, 0.033, (t - 0.15) / 0.3) : lerp(0.033, 0.004, Math.pow((t - 0.45) / 0.55, 1.3)));
-  const cola = new THREE.Mesh(tuboPerfil(cur, perfil), tela({ map: rep(peloTex(col), 3, 1), roughness: 0.45 }));
-  const tg = cur.getTangentAt(0), goma = new THREE.Mesh(new THREE.TorusGeometry(u(0.022), u(0.0065), 6, 18), tela({ color: lazo, roughness: 0.5 }));
-  goma.quaternion.setFromUnitVectors(new V3(0, 0, 1), tg); goma.position.copy(tg).multiplyScalar(u(0.004));
-  const piv = new THREE.Group(); piv.add(cola, goma);
-  const pT = E.c.clone().add(new V3().subVectors(T, E.c).divide(E.r).normalize().multiply(Ec.r));   // (la goma, sobre el pelo)
-  piv.position.copy(P(pT.x, pT.y, pT.z)); V.put(piv, 'Head');
-  // al correr se levanta hacia atrás y bota con cada zancada; parada, apenas se mece
-  V.tick((t, v) => { const k = Math.min(1, v / 5); cola.rotation.x = -0.35 * k + Math.sin(t * 9) * 0.12 * k + Math.sin(t * 1.3) * 0.03; cola.rotation.z = Math.sin(t * 4.5) * 0.16 * k + Math.sin(t * 0.9) * 0.025; });
-  pestanas(V, model);
-  return { update: V.update };
+  const m = V.mesh, w = contorno(m, 0.43), bajo = lerp(0.27, 0.08, clamp((largo - 0.6) / 0.4, 0, 1));
+  const tramo = (y0, y1, k = 1) => { const P = []; for (const [, y] of VUELO) if (y < y0 && y > y1) P.push(y); return [y0, ...P, y1].map(y => [w * vuelo(y) * k, y]); };
+  if (color) {
+    campana(m, tramo(0.45, bajo), tela({ map: rep(tejido(color), 6, 4), relieve: 'pliegues', relieveRep: [3, 1] }), { pliegues: 14, hondo: 0.045, vuelo: 0.85 });
+    ceñida(m, (x, y, z, zn) => zn === 0 ? Math.min(y - 0.432, 0.462 - y) : -1, (x, y, z, f) => 0.012 + 0.004 * (1 - sstep(f, 0, 0.006)), tela({ color: css(color, 0.72), roughness: 0.6 }), 1);
+  }
+  // (encima de la falda, por fuera de sus pliegues; sin ella, pegado al pantalón)
+  if (delantal) campana(m, color ? tramo(0.445, bajo + 0.05, 1.08) : [[w * 1.06, 0.445], [w * 1.2, 0.33], [w * 1.3, 0.25]], tela({ map: rep(tejido(delantal), 3, 3) }),
+    { pliegues: 6, hondo: 0.03, hueco: Math.PI * 1.25, centro: Math.PI, vuelo: 0.6 });
+  return true;
 }
