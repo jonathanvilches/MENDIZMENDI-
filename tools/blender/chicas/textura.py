@@ -1,6 +1,6 @@
 # Paso 3 de las chicas: la textura de la cabeza. Con el pelo del chico aplastado, su pintura (castaño, a mechones) queda
 # en el cráneo: por encima del nacimiento de la chica (comun.Nacimiento) se pinta del castaño de base del pelo, que se ve
-# entre los mechones nuevos y que el juego tiñe del color de cada una; por debajo (la frente que tapaba el flequillo, las
+# entre los mechones nuevos y que el juego tiñe del color de cada una (chicas.js le da su brillo de referencia); por debajo (la frente que tapaba el flequillo, las
 # patillas, la nuca) se pinta de piel, con el tono de la piel de alrededor. Las cejas y la cara no se tocan aquí.
 # Cada punto de la textura se sitúa en el cuerpo (en reposo, ya liso) para saber dónde cae.
 # Uso: python3 textura.py -- <calva.blend> <salida.png>
@@ -46,13 +46,23 @@ for t in cab:
     if r is None or len(r[0]) < 3: malos.append(t); continue
     (malos if otros[r[1], r[0]].mean() > 0.3 else buenos).append(t)
 from mathutils.kdtree import KDTree
-kdb = KDTree(len(buenos))
-for j, t in enumerate(buenos): kdb.insert(Vector(tuple(P[list(t.vertices)].mean(0))), j)
-kdb.balance()
+# (del mismo lado del nacimiento del pelo: por debajo, de los de piel del chico; si no, una cara diminuta de la frente
+# tomaba el castaño de un mechón de encima y salía una mota oscura)
+def bajo_nac(t):
+    c = P[list(t.vertices)].mean(0) - np.array([0.0, 0.8, -0.022]); r_ = np.linalg.norm(c)
+    return np.degrees(np.arcsin(np.clip(c[1] / max(r_, 1e-9), -1, 1))) < NAC.e(np.degrees(np.arctan2(c[0], c[2])) % 360) - 0.5
+de_piel = lambda t: bajo_nac(t) and np.mean([pelo_g[key[i]] for i in t.vertices]) <= 0.5
+grupos = {True: [t for t in buenos if de_piel(t)], False: [t for t in buenos if not bajo_nac(t)]}
+kds = {}
+for lado, lista in grupos.items():
+    kd_ = KDTree(max(1, len(lista)))
+    for j, t in enumerate(lista): kd_.insert(Vector(tuple(P[list(t.vertices)].mean(0))), j)
+    kd_.balance(); kds[lado] = kd_
 # (por caras enteras: los dos triángulos de un cuadrado comparten esquinas)
 bp = {t.polygon_index for t in malos}; cus = {}
 for t in malos:
-    _, j, _ = kdb.find(Vector(tuple(P[list(t.vertices)].mean(0)))); b_ = buenos[j]
+    lado = bool(bajo_nac(t)); lado = lado if grupos[lado] else not lado
+    _, j, _ = kds[lado].find(Vector(tuple(P[list(t.vertices)].mean(0)))); b_ = grupos[lado][j]
     cus.setdefault(t.polygon_index, Vector(tuple(sum((uvl[l].uv for l in b_.loops), Vector((0, 0))) / 3)))
 for pi in bp:
     for l in mesh.polygons[pi].loop_indices: uvl[l].uv = cus[pi]
@@ -92,7 +102,8 @@ cara = (F[:, 2] > 0.03) & (F[:, 1] < 0.8) & (np.abs(F[:, 0]) < 0.11)
 # ---- la piel de alrededor, en una rejilla por dirección (1°): la media de la piel que se ve, rellenando los huecos ----
 # (solo lo que tiene color de piel: en la nuca, el cuello de la camiseta también pesa en la cabeza y teñía de rojo)
 sat0 = (col.max(1) - col.min(1)) / np.maximum(col.max(1), 1e-3)
-piel = ~pelo_viejo & ~oscuro & (mx > 0.5) & (el < borde - 2) & ~cejas & (col[:, 0] > col[:, 2] + 0.05) & (sat0 > 0.1) & (sat0 < 0.45) & (col[:, 0] >= col[:, 1])
+# (sin la oreja, más rosada y clara: la patilla repintada salía como una mancha pálida delante de ella)
+piel = ~pelo_viejo & ~oscuro & (mx > 0.5) & (el < borde - 2) & ~cejas & (col[:, 0] > col[:, 2] + 0.05) & (sat0 > 0.1) & (sat0 < 0.45) & (col[:, 0] >= col[:, 1]) & ~TO
 GA, GE = 360, 181; acc = np.zeros((GE, GA, 3)); cnt = np.zeros((GE, GA))
 ia = az.astype(int) % GA; ie = np.clip((el + 90).astype(int), 0, GE - 1)
 np.add.at(acc, (ie[piel], ia[piel]), col[piel]); np.add.at(cnt, (ie[piel], ia[piel]), 1)
@@ -108,15 +119,26 @@ Gi = Image.fromarray((np.clip(G, 0, 1) * 255).astype(np.uint8)).filter(ImageFilt
 skin = G[ie, ia]
 # ---- el castaño de base del pelo, con algo de veta (se ve entre mechones y en el borde) ----
 veta = np.ones(len(az))   # (liso: bajo el pelo apenas se ve y así la capa del juego ocupa poco)
-base = np.stack([0.22 * veta, 0.125 * veta, 0.075 * veta], 1)
+# (el tono medio del pelo de la chica, algo más oscuro, como las raíces: en la nuca y detrás de las orejas, donde el pelo
+# va pegado y se ve la cabeza pintada, casa con él; antes era tres veces más oscuro y se veía una franja casi negra)
+CAST = np.array([0.306, 0.196, 0.129])
+base = CAST[None, :] * veta[:, None]
 # cuánto es pelo cada punto: del nacimiento hacia arriba, con un borde suave de 2,5°
 h = np.clip((el - (borde - 1.0)) / 2.5, 0, 1); h = h * h * (3 - 2 * h)
 nuevo = col.copy()
-pintar_pelo = (h > 0) & ~cejas & ~cara & ~TO
+pintar_pelo = (h > 0) & ~cejas & ~cara & ~(TO & ~pelo_viejo)   # (junto a la oreja, solo lo que era pelo: la oreja, no)
 nuevo[pintar_pelo] = col[pintar_pelo] * (1 - h[pintar_pelo, None]) + base[pintar_pelo] * h[pintar_pelo, None]
 protegido = (F[:, 2] > 0.03) & (np.abs(F[:, 0]) < 0.1) & (F[:, 1] < 0.83) & ~TP     # (ojos, nariz y boca)
-pintar_piel = (h < 1) & pelo_viejo & ~protegido & (el > borde - 40) & ~(TO & ~TP & ~no_piel)
-w = (1 - h[pintar_piel])[:, None]
+# (con el borde fundido: lo que era pelo, entero; la piel de alrededor, cada vez menos hasta 1,5° de él. Recortado por el
+# color, el borde salía en dientes de sierra)
+GP = 2; PVa = np.zeros((GE * GP, GA * GP)); PVn = np.zeros_like(PVa); ja = (az * GP).astype(int) % (GA * GP); je = np.clip(((el + 90) * GP).astype(int), 0, GE * GP - 1)
+np.add.at(PVa, (je, ja), pelo_viejo & ~TO); np.add.at(PVn, (je, ja), 1)
+PVg = np.where(PVn > 0, PVa / np.maximum(PVn, 1), 0)
+PVg = np.asarray(Image.fromarray((PVg * 255).astype(np.uint8)).filter(ImageFilter.MaxFilter(3)).filter(ImageFilter.GaussianBlur(GP * 0.8))).astype(np.float32) / 255
+suelto = np.clip(PVg[je, ja] * 1.6, 0, 1)
+fundir = np.where(pelo_viejo, 1.0, suelto)
+pintar_piel = (h < 1) & (fundir > 0.01) & ~protegido & (el > borde - 40) & ~(TO & ~TP & ~no_piel)
+w = ((1 - h) * fundir)[pintar_piel][:, None]
 nuevo[pintar_piel] = nuevo[pintar_piel] * (1 - w) + skin[pintar_piel] * w
 # ---- la cara de chica (en la vista de frente: x, y en fracción) ----
 import json
@@ -156,12 +178,23 @@ lum = nuevo @ np.array([0.3, 0.59, 0.11]); sat = (nuevo.max(1) - nuevo.min(1)) /
 pielc = (nuevo.max(1) > 0.55) & (nuevo[:, 0] > nuevo[:, 2] + 0.05) & (sat > 0.1) & (sat < 0.45)
 FR = delante & (ax < 0.118) & (fy > y_parp) & (h < 0.7)
 med = np.median(lum[FR & pielc & (fy > 0.86)]) if (FR & pielc & (fy > 0.86)).any() else np.median(lum[FR & pielc])
-limpia = pielc & (np.abs(lum - med) < 0.05)
+_ref = FR & pielc & (fy > 0.86); medc = np.median(nuevo[_ref if _ref.any() else (FR & pielc)], axis=0)
+# (también por el color: las sombras rosadas que Meshy pintó en la frente tienen el mismo brillo y se quedaban)
+limpia = pielc & (np.abs(lum - med) < 0.035) & (np.abs(nuevo - medc).sum(1) < 0.07)
 kb = ss(y_parp, y_parp + 0.004, fy) * (1 - ss(0.112, 0.118, ax)) * delante * (1 - h)
-quitar = FR      # (toda la frente, lisa: la sombra pintada del flequillo dejaba manchas)
-rell = rellenar(quitar, pielc & (np.abs(lum - med) < 0.08) & ~FR | (FR & limpia))
-kq = np.where(quitar, kb, 0)
+# (y, del rabillo del ojo a la sien, las rayas oscuras que pintó Meshy alargando el ojo hacia la patilla del chico)
+x_fin = max(abs(q[0]) for ojo in PAR for q in ojo if q[2] > -1)
+sien = delante & (ax > x_fin + 0.006) & (ax < 0.14) & (fy > 0.772) & (fy < y_parp + 0.012) & (lum < med - 0.12) & (h < 0.5)
+quitar = FR | sien      # (toda la frente, lisa: la sombra pintada del flequillo dejaba manchas)
+rell = rellenar(quitar, pielc & (np.abs(lum - med) < 0.08) & ~quitar | (FR & limpia))
+kq = np.where(FR, kb, np.where(sien, 1 - h, 0))
 nuevo = nuevo * (1 - kq[:, None]) + rell * kq[:, None]
+# (y por el lado, de la sien a la patilla, donde la vista de frente no llega: las rayas oscuras que quedan, de la piel
+# de alrededor, por dirección; ni las pestañas pintadas, ni la cola de la ceja, ni la oreja)
+lum2 = nuevo @ np.array([0.3, 0.59, 0.11])
+lado = (ax > max(x_fin + 0.009, 0.1)) & (fy > 0.772) & (h < 0.6) & (lum2 < med - 0.10) & ~protegido & ~TO & (el < borde)
+wl = (1 - h[lado])[:, None]
+nuevo[lado] = nuevo[lado] * (1 - wl) + skin[lado] * wl
 # 2. cejas finas y arqueadas, del color del pelo, con el borde suave y un poco de veta de pelo
 def ceja_y(x):
     t = np.clip((x - 0.024) / (0.094 - 0.024), 0, 1); return 0.834 + 0.012 * np.sin(np.pi * np.clip(t * 1.15, 0, 1)) ** 0.8 - 0.004 * t
@@ -173,10 +206,25 @@ veta = 0.86 + 0.14 * np.sin(fx * 700 + np.sin(fy * 900) * 2)
 kc = (1 - ss(-0.0006, 0.0010, dc)) * ss(0.021, 0.027, ax) * (1 - ss(0.090, 0.098, ax)) * delante * veta
 COL_CEJA = np.array([0.32, 0.19, 0.12])
 nuevo = nuevo * (1 - 0.9 * kc[:, None]) + COL_CEJA * 0.9 * kc[:, None]
-# 3. la raya del párpado, un poco más larga hacia fuera y con su rabito (las pestañas van en 3D: pestanas.py)
-x_out = lx[-1]; wx = (ax - x_out + 0.002) / 0.011; wy = ly[-1] + 0.001 + 0.004 * wx
-kr = np.zeros(len(fx))
-nuevo = nuevo * (1 - kr[:, None]) + np.array([0.08, 0.05, 0.045]) * kr[:, None]
+# 3. las pestañas, pintadas: la raya del párpado de arriba más gruesa hacia fuera, que se alarga un poco hacia la sien
+# subiendo, y tres pestañas sueltas en el rabillo, curvadas hacia arriba y hacia fuera (en 3D, unas tiras finas sobre
+# un párpado medido a saltos salían a trozos y cruzaban el blanco del ojo)
+PEST = float(os.environ.get('PEST_Y', '0.0006'))
+x_in, x_out = lx[0], lx[-1]; t_l = np.clip((ax - x_in) / (x_out - x_in), 0, 1)
+yc = np.interp(ax, lx, ly) + PEST + 0.32 * np.clip(ax - x_out, 0, None)
+gr = (0.0012 + 0.0020 * t_l ** 1.3) * (1 - ss(x_out + 0.002, x_out + 0.0065, ax))
+dl = np.abs(fy - yc) - gr * 0.5
+kr = (1 - ss(-0.0003, 0.0005, dl)) * ss(x_in + 0.001, x_in + 0.004, ax) * delante
+for t0, L_ in ((0.70, 0.0042), (0.83, 0.0054), (0.95, 0.0062)):
+    x0 = x_in + t0 * (x_out - x_in); y0 = np.interp(x0, lx, ly) + PEST + 0.0008
+    q = np.linspace(0, 1, 12); px_ = x0 + L_ * (0.45 * q + 0.25 * q * q); py_ = y0 + L_ * (0.9 * q - 0.25 * q * q)
+    for a_ in range(11):
+        # (cada tramo de la pestaña: la distancia a él, con el grosor que se afina hacia la punta)
+        ax_, ay_, bx_, by_ = px_[a_], py_[a_], px_[a_ + 1], py_[a_ + 1]; vx, vy = bx_ - ax_, by_ - ay_
+        u_ = np.clip(((ax - ax_) * vx + (fy - ay_) * vy) / (vx * vx + vy * vy), 0, 1); dd = np.hypot(ax - (ax_ + u_ * vx), fy - (ay_ + u_ * vy))
+        w_ = 0.0006 * (1 - 0.75 * (a_ + u_) / 11)
+        kr = np.maximum(kr, (1 - ss(w_ - 0.00025, w_ + 0.00035, dd)) * delante)
+nuevo = nuevo * (1 - kr[:, None]) + np.array([0.075, 0.045, 0.04]) * kr[:, None]
 # 4. los labios: color rosado suave en el de abajo y una línea fina arriba, con un brillo pequeño
 BOCA = json.loads(os.environ.get('BOCA', '{"ancho": 0.047, "medio": 0.7265, "esquina": 0.737}'))
 yb = BOCA['medio'] + (BOCA['esquina'] - BOCA['medio']) * (ax / BOCA['ancho']) ** 2
@@ -189,7 +237,7 @@ brillo = delante * np.exp(-(((fy - (yb - 0.0042)) / 0.0011) ** 2 + ((ax - 0.006)
 nuevo = np.clip(nuevo + brillo[:, None], 0, 1)
 kp = kr
 OUT[Y, X] = nuevo * 255
-print('texeles', len(X), 'pelo', int(pintar_pelo.sum()), 'piel', int(pintar_piel.sum()), 'ceja', int((kc > 0.5).sum()), 'pestañas', int(kp.sum()))
+print('texeles', len(X), 'pelo', int(pintar_pelo.sum()), 'piel', int(pintar_piel.sum()), 'ceja', int((kc > 0.5).sum()), 'pestañas', int((kp > 0.5).sum()))
 # ---- márgenes de las piezas de la textura: los texeles de fuera que rodean a uno cambiado toman su color ----
 ch = np.zeros((TH, TW), bool); ch[Y, X] = np.abs(OUT[Y, X] - TEX[Y, X]).sum(1) > 3
 cub = np.zeros((TH, TW), bool)
@@ -223,7 +271,7 @@ ch = (np.abs(OUT - TEX).max(2) > 0.5) & cub
 mask = ch | (fuente & ~cub & (np.abs(OUT - TEX).max(2) > 0.5))
 guardar_png(np.repeat((mask * 255)[..., None], 3, 2).astype(np.float32), out.replace('.png', '-mascara.png')); print('máscara', int(mask.sum()))
 # (y, de eso, lo que es el castaño liso de debajo del pelo: el juego lo rellena de un color, sin imagen)
-BASE = np.array([0.22, 0.125, 0.075]) * 255
+BASE = CAST * 255
 liso = mask & (np.abs(OUT - BASE).max(2) < 1.0)
 guardar_png(np.repeat((liso * 255)[..., None], 3, 2).astype(np.float32), out.replace('.png', '-liso.png')); print('liso', int(liso.sum()))
 # (vista de frente de la cara, plana, con una rejilla cada 0,01 de la altura: para medir dónde van cejas, ojos y boca)

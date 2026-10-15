@@ -1,9 +1,9 @@
 // Las chicas: el personaje de Meshy de chico con la cabeza rehecha en Blender (tools/blender/chicas: el cráneo liso sin
-// el pelo de chico, la frente despejada, las cejas finas, la nariz más pequeña, los labios) y su pelo modelado aparte
-// (la coleta, con su goma y las pestañas). No se guarda otro modelo entero: se monta en el juego encima del chico ya
-// cargado (tools/chicas/parche.mjs prepara lo que cambia):
+// el pelo de chico, la frente despejada, las cejas finas, las pestañas pintadas, la nariz más pequeña, los labios) y su
+// pelo modelado aparte (la coleta, con su goma). No se guarda otro modelo entero: se monta en el juego encima del chico
+// ya cargado (tools/chicas/parche.mjs prepara lo que cambia):
 //   - la malla: los vértices que cambian de sitio, de normal o de UV, y unos pocos nuevos (una esquina con otra UV)
-//   - la textura: la del chico con lo repintado encima (el castaño liso de debajo del pelo, de un color, y la cara)
+//   - la textura: la del chico con lo repintado encima (el castaño de debajo del pelo, la frente, las cejas, las pestañas)
 //   - el pelo: sus mallas, cosidas al esqueleto del chico, más los huesos de la coleta (Hair_*), que glbChar.js mueve
 //     como muelles al andar y correr
 // El resultado se usa como cualquier otro personaje de Meshy (new GlbChar(…)): las mismas animaciones y la misma escala.
@@ -15,14 +15,14 @@ import { fillMaterial } from '../engine/charLight.js';
 import { peloEmisivo } from './hairColor.js';
 
 const urls = (g) => Object.fromEntries(Object.entries(g).map(([p, u]) => [p.split('/').pop(), u]));
-// (la de la resolución del modelo completo, como los modelos: @chicas en vite.config.js; la ligera, siempre)
-const FULL = urls(import.meta.glob('@chicas/*.{parche,webp,png}', { eager: true, query: '?url', import: 'default' }));
-const LOD = urls(import.meta.glob('../assets/chicas/lod/*.{parche,webp,png}', { eager: true, query: '?url', import: 'default' }));
-const PELO = urls(import.meta.glob('../assets/chicas/pelo/*.glb', { eager: true, query: '?url', import: 'default' }));
-/** ¿Hay chica para este modelo de Meshy con este peinado? */
-export const hasChica = (name, peinado = 'coleta') => !!(FULL[name + '.parche'] && PELO[`${name}-${peinado || 'coleta'}.glb`]);
-/** Los modelos que tienen chica. */
-export const CHICA_NAMES = Object.keys(FULL).filter(k => k.endsWith('.parche')).map(k => k.replace('.parche', ''));
+// Solo las que salen en el juego: de cerca, la futbolista (fútbol) y la pelotari (frontón), a la resolución de los modelos
+// completos (@chicas en vite.config.js); ligera, la sanferminera (vecinas, corredoras del encierro y trajes).
+// tools/chicas prepara las tres de las dos maneras; las que no se usan no van en el juego
+const FULL = urls(import.meta.glob('@chicas/{osasuna,pelotari}.{parche,webp}', { eager: true, query: '?url', import: 'default' }));
+const LOD = urls(import.meta.glob('../assets/chicas/lod/sanfermin.{parche,webp}', { eager: true, query: '?url', import: 'default' }));
+const PELO = urls(import.meta.glob('../assets/chicas/pelo/{osasuna-coleta,pelotari-coleta,sanfermin-coleta-lod}.glb', { eager: true, query: '?url', import: 'default' }));
+/** ¿Hay chica para este modelo de Meshy con este peinado (null: sin peinado), completa o ligera? */
+export const hasChica = (name, peinado = 'coleta', lod = false) => !!((lod ? LOD : FULL)[name + '.parche'] && (!peinado || PELO[`${name}-${peinado}${lod ? '-lod' : ''}.glb`]));
 
 // ---- el parche: tiras comprimidas con el códec de vértices de meshopt (el mismo que ya descomprime los modelos) ----
 async function leerParche(url) {
@@ -80,13 +80,12 @@ function aplicar(geo, P) {
 function imagen(url) {
   return new Promise((ok, mal) => { const i = new Image(); i.onload = () => ok(i); i.onerror = mal; i.src = url; });
 }
-function textura(map, liso, detalle) {
+function textura(map, detalle) {
   const img = map.image, W = img.width, H = img.height, c = document.createElement('canvas'); c.width = W; c.height = H;
   const g = c.getContext('2d'); if (!g) return map;
-  g.drawImage(img, 0, 0, W, H);
-  // (el castaño liso va a media resolución: estirado, con suavizado)
+  // (la capa va a la resolución de la textura de esa versión; en el móvil la textura se reduce y la capa con ella)
   g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
-  g.drawImage(liso, 0, 0, W, H); g.drawImage(detalle, 0, 0, W, H);
+  g.drawImage(img, 0, 0, W, H); g.drawImage(detalle, 0, 0, W, H);
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = map.colorSpace; t.flipY = map.flipY; t.wrapS = map.wrapS; t.wrapT = map.wrapT; t.anisotropy = map.anisotropy || 8;
   t.minFilter = map.minFilter; t.magFilter = map.magFilter; t.generateMipmaps = map.generateMipmaps;
@@ -94,8 +93,7 @@ function textura(map, liso, detalle) {
 }
 
 // ---- el pelo: sus huesos nuevos colgados de los del chico y sus mallas atadas a ese esqueleto ----
-// (solo: las mallas que se cosen, por su nombre; sin él, todas)
-function coser(scene, pelo, solo = null) {
+function coser(scene, pelo) {
   const nodos = {}; scene.traverse(o => { if (o.name && !nodos[o.name]) nodos[o.name] = o; });
   pelo.updateMatrixWorld(true);
   pelo.traverse(o => {
@@ -103,7 +101,7 @@ function coser(scene, pelo, solo = null) {
     const b = new THREE.Bone(); b.name = o.name; b.position.copy(o.position); b.quaternion.copy(o.quaternion); b.scale.copy(o.scale);
     (nodos[o.parent.name] || scene).add(b); nodos[o.name] = b;
   });
-  const mallas = []; pelo.traverse(o => { if (o.isSkinnedMesh && (!solo || solo.test(o.name))) mallas.push(o); });
+  const mallas = []; pelo.traverse(o => { if (o.isSkinnedMesh) mallas.push(o); });
   for (const o of mallas) {
     const m = new THREE.SkinnedMesh(o.geometry, o.material.clone());
     m.name = o.name; m.position.copy(o.position); m.quaternion.copy(o.quaternion); m.scale.copy(o.scale);
@@ -123,23 +121,24 @@ function coser(scene, pelo, solo = null) {
 
 const cache = new Map();
 /** Chica de un modelo de Meshy (el que haga de ella: futbolista, pelotari, sanferminera…) con su peinado (sin peinado,
- *  null: la cabeza lisa con sus pestañas, para los trajes que traen su propio pelo o tocado). Como loadMeshy: { scene,
- *  animations, userData: { fit, meshy, chica } }. lod: la versión ligera, para multitudes. */
+ *  null: la cabeza lisa, para los trajes que traen su propio pelo o tocado; las pestañas van pintadas en la cara). Como
+ *  loadMeshy: { scene, animations, userData: { fit, meshy, chica } }. lod: la versión ligera, para multitudes. */
 export function loadChica(name, peinado = 'coleta', lod = false) {
   const key = `${name}:${peinado}:${lod ? 'lod' : ''}`;
   if (!cache.has(key)) cache.set(key, (async () => {
-    const S = lod && LOD[name + '.parche'] ? LOD : FULL;
-    // (sin peinado, las pestañas del de la coleta)
-    const pp = peinado || 'coleta', pelo = PELO[`${name}-${pp}${lod ? '-lod' : ''}.glb`] || PELO[`${name}-${pp}.glb`];
-    const [base, P, liso, det, gp] = await Promise.all([loadMeshy(name, lod && S === LOD), leerParche(S[name + '.parche']), imagen(S[name + '-liso.png']), imagen(S[name + '.webp']), pelo ? loadChar(pelo) : null]);
+    const S = lod ? LOD : FULL, pelo = peinado && PELO[`${name}-${peinado}${lod ? '-lod' : ''}.glb`];
+    if (!S[name + '.parche'] || (peinado && !pelo)) throw new Error(`no hay chica ${name} ${peinado || ''}${lod ? ' ligera' : ''}`);
+    const [base, P, det, gp] = await Promise.all([loadMeshy(name, lod), leerParche(S[name + '.parche']), imagen(S[name + '.webp']), pelo ? loadChar(pelo) : null]);
     const scene = SkeletonUtils.clone(base.scene);
     let body = null; scene.traverse(o => { if (!body && o.isSkinnedMesh && o.material?.map) body = o; });
     body.geometry = aplicar(body.geometry, P);
-    const m0 = body.material, m = m0.clone(); delete m.userData.sharp;
-    m.map = textura(m0.map, liso, det); if (m0.emissiveMap) m.emissiveMap = m.map;
+    // (hairRef: el brillo de su castaño de debajo del pelo, en sRGB —0,306 · 0,196 · 0,129, textura.py—: al teñirla de
+    // otro color, toma el color tal cual, como las mallas del pelo; con el del chico, mucho más oscuro, salía más clara)
+    const m0 = body.material, m = m0.clone(); delete m.userData.sharp; m.userData.hairRef = 0.222;
+    m.map = textura(m0.map, det); if (m0.emissiveMap) m.emissiveMap = m.map;
     if (m0.userData.fillK != null) fillMaterial(m, m0.userData.fillK);
     sharpMap(m); body.material = m;
-    if (gp) coser(scene, gp.scene, peinado ? null : /Pestanas/);
+    if (gp) coser(scene, gp.scene);
     return { scene, animations: base.animations, userData: { ...base.userData, chica: peinado, base: name } };
   })());
   return cache.get(key);

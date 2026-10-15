@@ -309,7 +309,7 @@ export class Encierro {
     // (el jugador con el modelo completo; los demás corredores con la versión ligera: son muchos)
     // (y las corredoras, con su cuerpo de chica: chicas.js, la sanferminera con su coleta; si no carga, chicos)
     let sf = null, sfL = null, sfC = null; try { [sf, sfL] = await Promise.all([loadMeshy('sanfermin'), loadMeshy('sanfermin', true)]); } catch (e) { console.warn('corredor', e); }
-    if (sf && hasChica('sanfermin')) try { sfC = await loadChica('sanfermin', 'coleta', true); } catch (e) { console.warn('corredora', e); }
+    if (sf && hasChica('sanfermin', 'coleta', true)) try { sfC = await loadChica('sanfermin', 'coleta', true); } catch (e) { console.warn('corredora', e); }
     const sanfermin = (k = 1, lite = false, ella = false, pelo = null) => {
       const g = ella && sfC ? sfC : lite ? sfL : sf, char = new GlbChar(g, MESHY_GAIT); char.root.scale.setScalar((g.userData.fit || 1) * k);
       if (pelo && g === sfC) hairTint(char.root, 'sanfermin', pelo);
