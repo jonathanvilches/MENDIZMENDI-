@@ -126,16 +126,16 @@ body:not([data-app="llamada"]) .only-call{display:none!important}
 #ghost{pointer-events:none}
 #cam{transform:scaleX(-1)}
 #overlay{pointer-events:none}
-.shade{position:absolute;left:0;right:0;top:0;height:64%;pointer-events:none;background:linear-gradient(to bottom,rgba(12,10,17,.9) 0%,rgba(12,10,17,.8) 58%,rgba(12,10,17,0) 100%)}
+.shade{position:absolute;left:0;right:0;top:0;height:60%;pointer-events:none;background:linear-gradient(to bottom,rgba(12,10,17,.62) 0%,rgba(12,10,17,.48) 55%,rgba(12,10,17,0) 100%)}
 #prompter{position:absolute;top:0;left:50%;transform:translateX(-50%);width:min(1000px,calc(100% - 32px));height:54%;overflow:hidden;touch-action:none;
   -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 9%,#000 78%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 9%,#000 78%,transparent 100%)}
 @media (min-width:761px){#studio.mon-full #prompter{left:24px;right:352px;width:auto;max-width:1000px;margin-inline:auto;transform:none}}
 #pwrap{position:absolute;inset:0}
 #pwrap.mirror{transform:scaleX(-1)}
-#track{position:absolute;left:0;right:0;top:0;will-change:transform;font:700 var(--pfs)/1.4 var(--f-body);letter-spacing:.005em}
+#track{position:absolute;left:0;right:0;top:0;will-change:transform;font:700 var(--pfs)/1.4 var(--f-body);letter-spacing:.005em;text-shadow:0 2px 3px rgba(0,0,0,.9),0 0 18px rgba(0,0,0,.75)}
 #track .para{margin:0 0 .7em}
 #track .w{transition:color .25s}
-#track .w.read{color:rgba(244,239,230,.34)}
+#track .w.read{color:rgba(244,239,230,.45)}
 #track .w.now{color:#fff;text-decoration:underline 3px var(--spot);text-underline-offset:.22em}
 #track .w.emph{color:var(--warn)}
 #track .w.emph.read{color:rgba(244,185,66,.4)}
@@ -232,6 +232,19 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
 .clock{font:500 .95rem/1 var(--f-mono);font-variant-numeric:tabular-nums;padding:0 8px;display:inline-flex;align-items:center;gap:8px}
 .clock .live{width:10px;height:10px;border-radius:50%;background:var(--bad);animation:blink 1s steps(2) infinite}
 @keyframes blink{50%{opacity:.2}}
+.busy{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 12px);transform:translateX(-50%);z-index:6;display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:999px;background:var(--glass);border:1px solid var(--line);font-size:.92rem;max-width:calc(100% - 24px)}
+.busy .spin{width:16px;height:16px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--spot);animation:spin .9s linear infinite;flex:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.calib{position:absolute;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:7;width:min(560px,calc(100% - 24px));display:flex;flex-direction:column;gap:10px;padding:16px 18px;border-radius:16px;background:var(--glass);border:1px solid var(--spot);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.calib b{font-size:1.1rem}
+.calib p{margin:0;color:var(--mute);font-size:.9rem}
+.calib q{color:var(--paper);quotes:"«" "»"}
+.calib .row{display:flex;align-items:center;gap:12px}
+.calib .progress{flex:1}
+.cam-alert{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:9;width:min(480px,calc(100% - 32px));display:flex;flex-direction:column;gap:12px;padding:20px;border-radius:16px;background:var(--glass);border:1px solid var(--warn);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.cam-alert b{font:400 1.3rem/1.2 var(--f-display)}
+.cam-alert p{margin:0;color:var(--mute);font-size:.92rem}
+#studio.mon-full .calib{left:calc(50% - 170px)}
 .voice-hint{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:5;padding:9px 16px;border-radius:999px;background:var(--glass);border:1px solid var(--line);font-size:.92rem;white-space:nowrap;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis;pointer-events:none}
 .voice-hint b{color:var(--spot)}
 #studio.mon-full .voice-hint{left:calc(50% - 170px)}
@@ -245,7 +258,7 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
 .progress{height:6px;border-radius:3px;background:rgba(255,255,255,.1);overflow:hidden}
 .progress i{display:block;height:100%;width:0;background:var(--spot);transition:width .2s linear}
 .count-big{font:400 clamp(6rem,22vw,12rem)/1 var(--f-display);color:#fff;text-shadow:0 6px 40px rgba(0,0,0,.6)}
-.toast{position:absolute;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:9;background:var(--glass);border:1px solid var(--line);border-radius:12px;padding:10px 16px;font-size:.9rem;max-width:calc(100% - 32px)}
+.toast{position:absolute;left:50%;bottom:calc(136px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:9;background:var(--glass);border:1px solid var(--line);border-radius:12px;padding:10px 16px;font-size:.9rem;max-width:calc(100% - 32px)}
 
 @media (max-width:760px){
   #prompter{width:calc(100% - 24px);height:50%}
@@ -458,6 +471,7 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
           <label class="check only-video"><input type="checkbox" id="pauseSilent">Parar el texto cuando me callo (modo fijo)</label>
           <label class="check only-video"><input type="checkbox" id="cuesOn">Avisarme de los gestos del guion</label>
           <label class="check only-video"><input type="checkbox" id="mirror">Texto en espejo (cristal de teleprompter)</label>
+          <label class="check only-video"><input type="checkbox" id="voiceCmd">Órdenes de voz («comenzamos», «corten») y texto que sigue tu voz. En iPhone y en algunos Android el reconocimiento de voz puede cortar la cámara, así que en el móvil viene desactivado: empieza con dos palmadas o con el botón.</label>
           <label class="check"><input type="checkbox" id="skeleton">Dibujar lo que detecta: contorno de la cara, cejas, ojos, boca, hombros, codos y manos</label>
           <p class="note only-call">Al empezar, abre la «Ventana flotante»: se queda encima de la aplicación de la videollamada. Si esa aplicación no deja usar la cámara a la vez, abre la llamada en otra pestaña de este navegador (Meet, Teams o Zoom en la web).</p>
         </div>
@@ -480,7 +494,7 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
 
 <!-- ============ PLATÓ ============ -->
 <section id="studio" hidden aria-label="Plató">
-  <video id="cam" playsinline muted autoplay></video>
+  <video id="cam" playsinline webkit-playsinline muted autoplay></video>
   <canvas id="overlay"></canvas>
   <div class="shade"></div>
   <canvas id="ghost"></canvas>
@@ -509,6 +523,13 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
   </aside>
 
   <div class="status" id="status"></div>
+  <div class="busy" id="busy" hidden><span class="spin"></span><span id="busyTxt">Cargando…</span></div>
+  <div class="calib" id="calib" hidden>
+    <b>Calibración · 5 segundos</b>
+    <p>Colócate como vas a estar, hombros relajados, cara tranquila, mira a la cámara y di con tu voz normal: <q>Hola, estoy probando el micrófono y la cámara.</q></p>
+    <div class="row"><div class="progress"><i id="calbar"></i></div><button class="ghost" id="calSkip" type="button">Saltar</button></div>
+  </div>
+  <div class="cam-alert" id="camAlert" hidden><b>La cámara se ha parado</b><p id="camAlertTxt">El sistema o otra aplicación la ha cortado.</p><div class="actions"><button class="primary" id="camRetry" type="button">Reactivar la cámara</button></div></div>
   <div class="voice-hint" id="voiceHint" hidden>🎙️ Di <b>«comenzamos»</b> para grabar · <b>«ensayo»</b> para ensayar · <b>«corten»</b> para parar</div>
 
   <div class="bar-ctl">
@@ -548,6 +569,11 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
 const MP_VER = '0.10.21';
 const MP = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VER}`;
 const FORCE_CPU = /[?&]cpu\b/.test(location.search);
+const UA = navigator.userAgent;
+const IS_IOS = /iPhone|iPad|iPod/.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const IS_MOBILE = IS_IOS || /Android/.test(UA);
+// promesa con tiempo máximo: nada del arranque puede quedarse esperando para siempre
+const withTimeout = (p, ms, name = 'Timeout') => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(Object.assign(new Error(name), { name })), ms))]);
 const MODEL = {
   pose: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task',
   face: 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
@@ -803,7 +829,7 @@ const DEFAULT_CALIB = { smile: .05, brow: .12, pitch: .47, yaw: 0, neck: .62, re
 const S = {
   text: store.get('text', SAMPLE),
   tone: store.get('tone', 'animado'),
-  opts: Object.assign({ app: 'video', tab: {}, mode: 'voz', wpm: 140, font: 46, mirror: false, pauseSilent: true, cues: true, skeleton: true, lang: 'es-ES', compact: null }, store.get('opts', {})),
+  opts: Object.assign({ app: 'video', tab: {}, voiceCmd: !IS_MOBILE, mode: 'voz', wpm: 140, font: 46, mirror: false, pauseSilent: true, cues: true, skeleton: true, lang: 'es-ES', compact: null }, store.get('opts', {})),
   calib: Object.assign({}, DEFAULT_CALIB, store.get('calib', {})),
   sc: null, live: false, take: null, vision: null, visionErr: null, audio: null, stream: null,
 };
@@ -870,7 +896,7 @@ function bindOpts() {
   wpm.addEventListener('input', () => { o.wpm = +wpm.value; $('#wpm-out').textContent = o.wpm + ' ppm'; save(); });
   font.value = o.font; $('#font-out').textContent = o.font + ' px';
   font.addEventListener('input', () => { o.font = +font.value; $('#font-out').textContent = o.font + ' px'; save(); });
-  for (const k of ['pauseSilent', 'cues', 'mirror', 'skeleton']) {
+  for (const k of ['pauseSilent', 'cues', 'mirror', 'skeleton', 'voiceCmd']) {
     const el = $('#' + (k === 'cues' ? 'cuesOn' : k));
     el.checked = !!o[k]; el.addEventListener('change', () => { o[k] = el.checked; save(); });
   }
@@ -886,6 +912,91 @@ function show(id) { for (const s of ['setup', 'studio', 'report']) $('#' + s).hi
 function stageMsg(html) { const m = $('#stageMsg'); if (!html) { m.hidden = true; m.innerHTML = ''; return; } m.innerHTML = html; m.hidden = false; }
 let toastTimer = 0;
 function toast(msg, ms = 4200) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => t.hidden = true, ms); }
+
+async function openCamera() {
+  if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia)
+    throw Object.assign(new Error('Sin acceso a la cámara en esta página'), { name: 'Insecure' });
+  const tries = [
+    { video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } },
+    { video: { facingMode: 'user' }, audio: true },
+    { video: true, audio: false },
+  ];
+  let last;
+  for (const c of tries) {
+    try { return await withTimeout(navigator.mediaDevices.getUserMedia(c), 20000); }
+    catch (e) { last = e; if (['NotAllowedError', 'SecurityError', 'Timeout', 'NotReadableError', 'TrackStartError', 'AbortError'].includes(e.name)) break; }
+  }
+  throw last;
+}
+function cameraError(e) {
+  const n = e && e.name;
+  const [title, text] =
+    n === 'NotAllowedError' || n === 'SecurityError' ? ['Sin permiso para la cámara', IS_IOS
+      ? 'Permite cámara y micrófono para esta página (en iPhone: Ajustes › Safari › Cámara y Micrófono, o el botón «aA» de la barra de direcciones) y pulsa Reintentar.'
+      : 'Permite la cámara y el micrófono en el candado de la barra de direcciones y pulsa Reintentar.']
+    : n === 'NotReadableError' || n === 'TrackStartError' || n === 'AbortError' ? ['La cámara está ocupada',
+      'Otra aplicación la está usando (Zoom, Teams, FaceTime, otra pestaña…). Ciérrala y pulsa Reintentar. Para usarlo durante una videollamada, abre la llamada en otra pestaña de este mismo navegador.']
+    : n === 'Insecure' ? ['Aquí no se puede usar la cámara',
+      'Abre la página en Chrome, Safari o Edge, desde una dirección https o como archivo en el ordenador. En la vista previa de la app de Claude o de Archivos el navegador no da acceso a la cámara.']
+    : n === 'Timeout' ? ['El navegador no responde',
+      'No contesta al pedir la cámara. Suele pasar al abrirla desde una vista previa (app de Claude, Archivos) o si hay una ventana de permiso escondida. Ábrela en Chrome, Safari o Edge y pulsa Reintentar.']
+    : ['No encuentro la cámara', 'Conecta una cámara y un micrófono y pulsa Reintentar.'];
+  stageMsg(`<div class="stage-card"><h3>${title}</h3><p>${text}</p>
+    <p style="font-family:var(--f-mono);font-size:.78rem">${esc(n || '')} ${esc((e && e.message) || '')}</p>
+    <div class="actions"><button class="ghost" data-act="back">${ico('volver')}Volver</button><button class="primary" data-act="retry">Reintentar</button></div></div>`);
+}
+function attachStream(stream) {
+  S.stream = stream;
+  video.srcObject = stream;
+  video.play().catch(() => {});
+  if (S.pipVideo) { S.pipVideo.srcObject = stream; S.pipVideo.play().catch(() => {}); }
+  S.camLostAt = 0; S.lastVT = -1; S.lastVTat = now(); S.vtMoved = false;
+  $('#camAlert').hidden = true;
+  for (const tr of stream.getVideoTracks()) {
+    tr.onended = () => { if (S.stream === stream) cameraLost('Se ha cortado la señal de la cámara.'); };
+    tr.onmute = () => { tr._mutedAt = now(); };
+    tr.onunmute = () => { tr._mutedAt = 0; };
+  }
+}
+function cameraLost(why) {
+  if (!S.live || !$('#camAlert').hidden) return;
+  $('#camAlertTxt').textContent = why + ' Suele pasar si otra aplicación coge la cámara o el móvil pausa la página.';
+  $('#camAlert').hidden = false;
+}
+async function restartCamera() {
+  $('#camAlert').hidden = true;
+  if (S.take) stopTake(false);
+  if (S.stream) for (const tr of S.stream.getTracks()) tr.stop();
+  if (S.audio) { try { S.audio.ctx.close(); } catch {} S.audio = null; }
+  try {
+    attachStream(await openCamera());
+    await setupAudio(S.stream);
+    toast('Cámara reactivada.');
+  } catch (e) { cameraError(e); }
+}
+$('#camRetry').addEventListener('click', restartCamera);
+// vigilancia: pista apagada o silenciada, o imagen que no avanza
+function cameraWatch(t) {
+  if (!S.stream || !$('#camAlert').hidden) return;
+  const tr = S.stream.getVideoTracks()[0];
+  if (!tr || tr.readyState === 'ended') return cameraLost('La cámara se ha apagado.');
+  if (tr._mutedAt && t - tr._mutedAt > 2.5) return cameraLost('El sistema ha pausado la cámara.');
+  // progreso de la imagen: tiempo del vídeo o fotogramas recibidos (solo alerta si antes avanzaba)
+  const q = video.getVideoPlaybackQuality?.(), prog = video.currentTime + (q ? q.totalVideoFrames : 0);
+  if (prog !== S.lastVT) { if (S.lastVT >= 0) S.vtMoved = true; S.lastVT = prog; S.lastVTat = t; }
+  else if (S.vtMoved && !document.hidden && t - S.lastVTat > 4) { video.play().catch(() => {}); if (t - S.lastVTat > 7) cameraLost('La imagen de la cámara se ha quedado quieta.'); }
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden || !S.live || !S.stream) return;
+  const tr = S.stream.getVideoTracks()[0];
+  if (!tr || tr.readyState === 'ended' || tr.muted) restartCamera();
+  else { video.play().catch(() => {}); S.lastVTat = now(); }
+  if (S.audio && S.audio.ctx.state === 'suspended') S.audio.ctx.resume().catch(() => {});
+});
+// en iPhone el audio puede arrancar en pausa hasta que tocas la pantalla
+$('#studio').addEventListener('pointerdown', () => { if (S.audio && S.audio.ctx.state === 'suspended') S.audio.ctx.resume().catch(() => {}); if (video.paused) video.play().catch(() => {}); });
+
+function busy(txt) { const b = $('#busy'); if (!txt) { b.hidden = true; return; } $('#busyTxt').textContent = txt; b.hidden = false; }
 
 async function enterStudio() {
   S.sc = parseScript(S.text, S.tone);
@@ -903,37 +1014,28 @@ async function enterStudio() {
   renderMeters();
   setupPrompter();
   setTakeUI(false);
-  stageMsg(`<div class="stage-card"><h3>Preparando el plató</h3><p>Pidiendo permiso para la cámara y el micrófono…</p></div>`);
+  stageMsg(null);
+  busy('Pidiendo permiso para la cámara y el micrófono…');
   try {
-    if (!S.stream || !S.stream.active) {
-      S.stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } },
-        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
-      });
-    }
-  } catch (e) {
-    const denied = e && (e.name === 'NotAllowedError' || e.name === 'SecurityError');
-    stageMsg(`<div class="stage-card"><h3>${denied ? 'Sin permiso para la cámara' : 'No encuentro cámara o micrófono'}</h3>
-      <p>${denied ? 'Permite la cámara y el micrófono en el candado de la barra de direcciones y vuelve a entrar.' : 'Conecta una cámara y un micrófono y vuelve a intentarlo.'}</p>
-      <p style="font-family:var(--f-mono);font-size:.8rem">${esc(e && e.name || '')} ${esc(e && e.message || '')}</p>
-      <div class="actions"><button class="ghost" data-act="back">${ico('volver')}Volver al guion</button><button class="primary" data-act="retry">Reintentar</button></div></div>`);
-    return;
-  }
-  video.srcObject = S.stream;
-  try { await video.play(); } catch {}
-  await setupAudio(S.stream);
-  try { S.wake = await navigator.wakeLock?.request('screen'); } catch {}
+    if (!S.stream || !S.stream.active) attachStream(await openCamera());
+    else attachStream(S.stream);
+  } catch (e) { busy(null); cameraError(e); return; }
+  busy(null);
+  // la cámara se ve desde ya; lo demás se prepara sin tapar la imagen
   S.live = true;
   startLoops();
+  navigator.wakeLock?.request('screen').then(w => { S.wake = w; }).catch(() => {});
+  try { await withTimeout(setupAudio(S.stream), 6000); } catch (e) { console.warn('audio', e); }
   if (!S.vision && !S.visionErr) {
-    stageMsg(`<div class="stage-card"><h3>Cargando el ojo del director</h3><p id="vprog">Descargando los modelos de postura, cara y manos (unos 18 MB, solo la primera vez)…</p><div class="progress"><i id="vbar" style="width:8%"></i></div></div>`);
-    const prog = (txt, p) => { const a = $('#vprog'), b = $('#vbar'); if (a) a.textContent = txt; if (b) b.style.width = p + '%'; };
+    const prog = (txt, p) => busy(`Preparando el análisis de imagen · ${Math.round(p)}% · ${txt}`);
+    prog('descargando modelos (unos 18 MB, solo la primera vez)…', 5);
     try { S.vision = await loadVisionWorker(prog); }
     catch (e) {
       console.warn('Análisis en segundo plano no disponible; uso el hilo principal', e);
-      try { S.vision = await loadVision(prog); }
-      catch (e2) { console.error(e2); S.visionErr = e2; toast('No se pudo cargar el análisis de imagen (¿sin conexión?). Solo analizaré la voz.', 7000); }
+      try { S.vision = await withTimeout(loadVision(prog), 90000); }
+      catch (e2) { console.error(e2); S.visionErr = e2; toast('No se pudo cargar el análisis de imagen (¿sin conexión?). Te sigo ayudando con la voz y el texto.', 7000); }
     }
+    busy(null);
   }
   if (!S.live) return;
   startCalibration();
@@ -947,6 +1049,7 @@ $('#stageMsg').addEventListener('click', e => {
 
 function leaveStudio() {
   closePip();
+  busy(null); $('#calib').hidden = true; $('#camAlert').hidden = true;
   if (S.take) stopTake(false);
   S.live = false;
   stopLoops();
@@ -1109,20 +1212,22 @@ function visionPump(t) {
     return;
   }
   if (VW.busy && performance.now() - VW.sentAt < 3000) return;
-  if (t - VW.lastSend < 1 / 30) return;
+  if (t - VW.lastSend < (IS_MOBILE ? 1 / 15 : 1 / 30)) return;
   const [which, ts] = nextTask();
   VW.busy = true; VW.sentAt = performance.now(); VW.lastSend = t;
   const vw = video.videoWidth, vh = video.videoHeight, rw = Math.min(640, vw), rh = Math.round(rw * vh / vw);
   let p;
-  try { p = createImageBitmap(vsrc, { resizeWidth: rw, resizeHeight: rh, resizeQuality: 'low' }); } catch { p = createImageBitmap(vsrc); }
-  p.then(bmp => S.vision.worker.postMessage({ type: 'frame', which, ts, bitmap: bmp }, [bmp])).catch(() => { VW.busy = false; });
+  try { p = VW.noResize ? createImageBitmap(vsrc) : createImageBitmap(vsrc, { resizeWidth: rw, resizeHeight: rh, resizeQuality: 'low' }); }
+  catch { VW.noResize = true; p = createImageBitmap(vsrc); }
+  p.then(bmp => S.vision.worker.postMessage({ type: 'frame', which, ts, bitmap: bmp }, [bmp]))
+    .catch(() => { VW.busy = false; VW.fails = (VW.fails || 0) + 1; if (VW.fails > 3) VW.noResize = true; });
 }
 function onWorkerMessage(e) {
   const m = e.data;
   if (m.type !== 'result') return;
   VW.busy = false;
   if (m.err) console.warn(m.which, m.err);
-  if (S.live && m.out) handleVisionResult(m.which, m.out, m.ts / 1000, m.ms);
+  try { if (S.live && m.out) handleVisionResult(m.which, m.out, m.ts / 1000, m.ms); } catch (err) { console.warn(err); }
 }
 function handleVisionResult(which, res, t, ms) {
   if (perf.at[which]) { const g = Math.min(5, t - perf.at[which]); perf.gap[which] = perf.gap[which] ? perf.gap[which] * .8 + g * .2 : g; }
@@ -1416,11 +1521,11 @@ async function setupAudio(stream) {
     const src = ctx.createMediaStreamSource(stream);
     try {
       const url = URL.createObjectURL(new Blob([WORKLET_SRC], { type: 'application/javascript' }));
-      await ctx.audioWorklet.addModule(url);
+      await withTimeout(ctx.audioWorklet.addModule(url), 4000);
       const node = new AudioWorkletNode(ctx, 'apuntador-meter', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [1] });
       const mute = ctx.createGain(); mute.gain.value = 0;
       src.connect(node); node.connect(mute); mute.connect(ctx.destination);
-      node.port.onmessage = e => { const m = e.data; processAudio(now() - Math.max(0, ctx.currentTime - m.t), m.db, m.f0); };
+      node.port.onmessage = e => { try { const m = e.data; processAudio(now() - Math.max(0, ctx.currentTime - m.t), m.db, m.f0); } catch (err) { console.warn(err); } };
       S.audio = { ctx, node, mode: 'worklet' };
     } catch (e) {
       console.warn('AudioWorklet no disponible, uso AnalyserNode', e);
@@ -1439,6 +1544,11 @@ function audioTick() {
   let f0 = 0;
   if (db > -66) { for (let i = 0; i < A.half.length; i++) A.half[i] = (A.buf[2 * i] + A.buf[2 * i + 1]) * .5; f0 = yin(A.half, A.sr, A); }
   processAudio(now(), db, f0);
+}
+function onDoubleClap() {
+  if (isCall() || !S.live || S.take || S.countdown || S.calibrating) return;
+  toast('👏👏 ¡Oído! Grabamos', 1800);
+  startTake(true);
 }
 function processAudio(t, db, f0) {
   if (!S.live) return;
@@ -1459,6 +1569,17 @@ function processAudio(t, db, f0) {
     if (t - V.lastVoiced > .35) V.speaking = false;
   }
   ser.voiced.push(t, voiced ? 1 : 0);
+  // palmada: subida brusca de volumen que cae enseguida; dos seguidas = «¡acción!»
+  // (golpe sin tono de voz, más fuerte que tu voz normal, que se apaga en menos de una décima de segundo)
+  const rise = db - (V.prevDb ?? db); V.prevDb = db;
+  if (rise > 15 && db > Math.max(V.floor + 28, S.calib.refDb + 3, -45) && !(f0 > 70)) { V.clapAt = t; V.clapPeak = db; }
+  else if (V.clapAt) {
+    if (f0 > 70 && db > V.clapPeak - 15) V.clapAt = 0;   // tiene tono: es voz
+    else if (db < V.clapPeak - 15 && t - V.clapAt < .1) {
+      if (V.lastClap && t - V.lastClap > .18 && t - V.lastClap < .9) { V.lastClap = 0; onDoubleClap(); } else V.lastClap = t;
+      V.clapAt = 0;
+    } else if (t - V.clapAt >= .1) V.clapAt = 0;
+  }
   // sílabas aproximadas: picos de la envolvente
   V.env = V.env == null ? db : V.env * .55 + db * .45;
   const e2 = V.env;
@@ -1471,12 +1592,11 @@ function processAudio(t, db, f0) {
 /* ---------------- calibración ---------------- */
 function startCalibration() {
   S.calibrating = { t0: now(), dur: 5, pitch: [], yaw: [], smile: [], brow: [], neck: [], earSh: [], db: [], vdb: [] };
-  stageMsg(`<div class="stage-card"><h3>Calibración (5 segundos)</h3>
-    <p>Colócate como vas a ${isCall() ? 'estar en la llamada' : 'grabar'}, con los hombros relajados, mira a la cámara con la cara tranquila y di con tu voz normal:</p>
-    <q>Hola, estoy probando el micrófono y la cámara.</q>
-    <div class="progress"><i id="calbar"></i></div>
-    <div class="actions"><button class="ghost" data-act="skipcal">Saltar${S.calib.done ? ' (usar la anterior)' : ''}</button></div></div>`);
+  $('#calbar').style.width = '0%';
+  $('#calSkip').textContent = S.calib.done ? 'Saltar (usar la anterior)' : 'Saltar';
+  $('#calib').hidden = false;
 }
+$('#calSkip').addEventListener('click', () => finishCalibration(true));
 function calibrationTick(t) {
   const k = S.calibrating; if (!k) return;
   const p = clamp((t - k.t0) / k.dur);
@@ -1485,6 +1605,7 @@ function calibrationTick(t) {
 }
 function finishCalibration(skipped) {
   const k = S.calibrating; S.calibrating = null;
+  $('#calib').hidden = true;
   if (!skipped && k) {
     const c = S.calib;
     if (k.pitch.length > 5) { c.pitch = median(k.pitch); c.yaw = median(k.yaw); c.smile = clamp(pctl(k.smile, .3), 0, .35); c.brow = median(k.brow); c.face = true; }
@@ -1495,10 +1616,9 @@ function finishCalibration(skipped) {
     c.done = true;
     store.set('calib', c);
   }
-  stageMsg(null);
   const voice = !isCall() && startVoice();
   const next = isCall() ? ('Pulsa Empezar cuando arranque la llamada.' + ('documentPictureInPicture' in window ? ' Con «Ventana flotante» lo tendrás encima de ella.' : ' Pon esta ventana al lado de la llamada.'))
-    : voice ? 'Di «comenzamos» cuando quieras y empezará la cuenta atrás.' : 'Pulsa Grabar (o Ensayar) cuando quieras.';
+    : voice ? 'Di «comenzamos» cuando quieras y empezará la cuenta atrás.' : 'Da dos palmadas o pulsa Grabar cuando quieras.';
   toast((skipped ? 'Listo. ' : 'Calibrado. ') + next, 6500);
 }
 
@@ -1511,7 +1631,7 @@ const CMD_REC = new Set(['comenzamos', 'empezamos', 'comenzar', 'empezar', 'comi
 const CMD_REH = new Set(['ensayo', 'ensayamos', 'ensayar', 'practicamos', 'practicar']);
 const CMD_STOP = new Set(['corten', 'corta', 'corte', 'terminamos', 'paramos', 'stop']);
 function startVoice() {
-  if (!SR || FOL.failed) return false;
+  if (!SR || FOL.failed || !S.opts.voiceCmd) return false;
   if (FOL.on) return true;
   FOL.on = true; FOL.ok = true; FOL.curRes = -1; FOL.netErr = 0;
   const rec = new SR();
@@ -1524,7 +1644,11 @@ function startVoice() {
       toast('El reconocimiento de voz no funciona en este navegador: usa los botones Grabar y Terminar (y el texto irá a velocidad fija).', 7000);
     }
   };
-  rec.onend = () => { if (FOL.on) setTimeout(() => { if (FOL.on) { FOL.curRes = -1; FOL.cmdRes = -1; try { rec.start(); } catch {} } }, 150); };
+  rec.onend = () => {
+    if (!FOL.on) return;
+    const tn = now(); FOL.quick = tn - (FOL.lastEnd || 0) < 1.5 ? (FOL.quick || 0) + 1 : 0; FOL.lastEnd = tn;
+    setTimeout(() => { if (FOL.on) { FOL.curRes = -1; FOL.cmdRes = -1; try { rec.start(); } catch {} } }, FOL.quick > 4 ? 3000 : 200);
+  };
   try { rec.start(); } catch (e) { FOL.failed = true; FOL.on = false; FOL.ok = false; return false; }
   FOL.rec = rec;
   return true;
@@ -2039,7 +2163,7 @@ function coachTick() {
     if (coach.active) endCue(t, 'replaced');
     showCue({ id: 'teveo', kind: 'good', pri: 95, icon: 'ok', emoji: '✅', title: '¡Te veo!',
       detail: (hands ? 'Cara, cuerpo y manos detectados.' : 'Cara y cuerpo detectados. Sube las manos al pecho para que las vea.')
-        + (!call && FOL.on && !S.take ? ' Di «comenzamos» cuando quieras.' : '') }, t);
+        + (call || S.take ? '' : FOL.on && !FOL.failed ? ' Di «comenzamos» (o da dos palmadas) cuando quieras.' : ' Da dos palmadas o pulsa Grabar cuando quieras.') }, t);
     burst(['✅', '✨'], 8);
   }
   manageCue(c);
@@ -2197,14 +2321,21 @@ function updateMonitor(c, perceived, parts) {
 }
 function updateStatus(t) {
   const parts = [];
-  if (S.vision) parts.push(`visión ${perf.fps.toFixed(0)} f/s · ${S.vision.delegate}${S.vision.worker ? ' · en segundo plano' : ''}`);
+  if (S.vision) parts.push(`visión ${perf.fps.toFixed(0)} f/s · ${S.vision.delegate}${S.vision.worker ? ' · en segundo plano' : ''}${S.errors ? ' · errores ' + S.errors : ''}`);
   else if (S.visionErr) parts.push('visión: no disponible');
   else parts.push('visión: cargando…');
   parts.push(`voz ${V.db > -99 ? Math.round(V.db) + ' dB' : '—'}${V.speaking ? ' · hablando' : ''}`);
   if (isCall()) parts.push(coach.last?.parts?.voz?.[0] === 'Hablando' ? 'hablas tú' : 'escuchas');
   else parts.push(S.opts.mode === 'voz' && !FOL.failed ? (FOL.follow ? 'texto: sigue tu voz' : 'texto: seguirá tu voz') : `texto: ${S.opts.wpm} ppm`);
-  if (!isCall()) parts.push(FOL.on ? 'órdenes de voz: activas' : 'órdenes de voz: no disponibles');
-  $('#voiceHint').hidden = !(S.live && !isCall() && FOL.on && !S.take && !S.countdown && !S.calibrating);
+  if (!isCall()) parts.push(FOL.on ? 'órdenes de voz: activas' : S.opts.voiceCmd ? 'órdenes de voz: no disponibles' : 'órdenes de voz: desactivadas');
+  const hint = $('#voiceHint');
+  hint.hidden = !(S.live && !isCall() && !S.take && !S.countdown && !S.calibrating);
+  const want = FOL.on ? 'voz' : 'palmas';
+  if (hint.dataset.k !== want) {
+    hint.dataset.k = want;
+    hint.innerHTML = FOL.on ? '🎙️ Di <b>«comenzamos»</b> para grabar · <b>«ensayo»</b> para ensayar · <b>«corten»</b> para parar'
+      : '👏👏 Da <b>dos palmadas</b> o pulsa <b>Grabar</b> para empezar';
+  }
   $('#status').textContent = parts.join('  ·  ');
 }
 
@@ -2527,24 +2658,25 @@ const raf = cb => { rafWin = S.pip && !S.pip.closed ? S.pip : window; return raf
 function startLoops() {
   S.liveT0 = now();
   let last = now(), lastV = 0, lastA = 0, lastC = 0;
+  const safe = (name, fn) => { try { fn(); } catch (e) { S.errors = (S.errors || 0) + 1; if (S.errors < 20) console.error(name, e); } };
   loopFrame = () => {
     if (!S.live) return;
+    rafId = raf(loopFrame);   // se programa primero: aunque algo falle, el bucle sigue
     const t = now(), dt = Math.min(.1, t - last); last = t;
-    visionPump(t);
-    // si el navegador pausa la cámara (pestaña de fondo, ahorro de energía…), se reanuda
-    if (t - lastV > 1) { lastV = t; for (const v of [video, S.pipVideo]) if (v && v.paused && v.srcObject) v.play().catch(() => {}); }
-    if (t - lastA >= .03) { lastA = t; audioTick(); }
-    if (t - lastC >= .1) { lastC = t; coachTick(); }
-    if (!isCall()) prompterFrame(t, dt);
-    drawOverlay();
-    drawCueVis(t);
-    if (S.pipCanvas) drawPip();
+    safe('visión', () => visionPump(t));
+    // si el navegador pausa la cámara (pestaña de fondo, ahorro de energía…), se reanuda y se vigila
+    if (t - lastV > 1) { lastV = t; for (const v of [video, S.pipVideo]) if (v && v.paused && v.srcObject) v.play().catch(() => {}); safe('cámara', () => cameraWatch(t)); }
+    if (t - lastA >= .03) { lastA = t; safe('audio', audioTick); }
+    if (t - lastC >= .1) { lastC = t; safe('director', coachTick); }
+    if (!isCall()) safe('texto', () => prompterFrame(t, dt));
+    safe('dibujo', drawOverlay);
+    safe('aviso', () => drawCueVis(t));
+    if (S.pipCanvas) safe('ventana', drawPip);
     if (S.take) $('#clock').innerHTML = `<i class="live"></i>${fmtTime(t - S.take.t0)}`;
-    rafId = raf(loopFrame);
   };
   rafId = raf(loopFrame);
 }
-function stopLoops() { try { rafWin.cancelAnimationFrame(rafId); } catch {} }
+function stopLoops() { try { rafWin.cancelAnimationFrame(rafId); } catch {} try { window.cancelAnimationFrame(rafId); } catch {} }
 
 /* ---------------- ventana flotante ---------------- */
 const pipBtn = $('#pipBtn'), pipNote = $('#pipNote');
