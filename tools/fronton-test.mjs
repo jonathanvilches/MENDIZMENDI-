@@ -24,15 +24,16 @@ await p.evaluate(() => { window.__game.follow.cinematic = null; });
 // 2) partido: el público llega (se adelanta su paseo) y se sienta en la grada
 await p.evaluate(() => { const G = window.__game; G.fronton.play(G, G.pelotari || G.missions.find(M => M.type === 'pelota')?.host); });
 await p.waitForSelector('.pel-panel', { timeout: 60000 });
-await p.evaluate(() => { const c = window.__game.pelotaCrowd; for (let i = 0; i < 400; i++) c.update(0.05); });
-console.log('público', await p.evaluate(() => window.__game.pelotaCrowd.people.map(q => q.phase).join(',')));
+// (el público de antes, pelotaCrowd, ya no existe: ahora es crowd3d en la grada; si no está, se sigue sin él)
+await p.evaluate(() => { const c = window.__game.pelotaCrowd; if (c) for (let i = 0; i < 400; i++) c.update(0.05); });
+console.log('público', await p.evaluate(() => window.__game.pelotaCrowd ? window.__game.pelotaCrowd.people.map(q => q.phase).join(',') : 'grada 3D'));
 await p.evaluate(() => document.querySelector('.pel-go[data-pel-go]').click()); await p.waitForTimeout(1200);
 await cine(20, 4.5, 34, 9, 1.2, 14); await p.waitForTimeout(2500); await shot('3-grada');
 // 3) un tanto: se simula el juego hasta el aviso del juez y se captura el aplauso
 await p.evaluate(() => { const G = window.__game, m = G.pelotaMatch; m.game.autoplay = true; for (let i = 0; i < 40 * 30 && m.active; i++) { m.update(1 / 30); if (document.querySelector('.pel-call.on')) break; } });
 await cine(20, 4.5, 34, 9, 1.2, 14);
 for (let k = 0; k < 3; k++) { await p.waitForTimeout(350); await shot('4-aplauso-' + k); }
-console.log('gestos', await p.evaluate(() => window.__game.pelotaCrowd.people.map(q => (q.a.clap > 0 ? 'palmas' : q.a.cheer > 0 ? 'salta' : '-')).join(',')));
+console.log('gestos', await p.evaluate(() => !window.__game.pelotaCrowd ? 'grada 3D' : window.__game.pelotaCrowd.people.map(q => (q.a.clap > 0 ? 'palmas' : q.a.cheer > 0 ? 'salta' : '-')).join(',')));
 // 4) vista normal de juego durante el partido
 await p.evaluate(() => { window.__game.follow.cinematic = null; });
 await p.waitForTimeout(1500); await shot('5-partido');

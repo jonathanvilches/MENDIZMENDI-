@@ -7,6 +7,7 @@ import { GLB_AVATARS } from '../actors/glbChar.js';
 import { buildNpc, npcsReady, preloadNpcs } from '../actors/npcGlb.js';
 
 let R = null, scene, cam;
+const cache = new Map();   // clave del retrato → su imagen (y en el almacén del navegador, getImg/putImg)
 function setup() {
   R = offscreen(512, 512);   // (a 512: a 256, en el móvil de densidad 3 los retratos de los diálogos salían borrosos)
   if (scene) return;
