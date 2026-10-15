@@ -5,6 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F2F3F6" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0D0E12" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Apuntador">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="application-name" content="Apuntador">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <title>Apuntador</title>
 <meta name="description" content="Teleprompter con director de escena: mientras lees, te dice cómo moverte, gesticular y hablar para transmitir el tono de tu mensaje.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -70,8 +80,6 @@ button{cursor:pointer}
 .wordmark span{color:var(--spot-text)}
 .tagline{margin:8px 0 0;color:var(--mute);max-width:52ch;font-size:1.02rem}
 .badge{font:500 .72rem/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mute);border:1px solid var(--line);border-radius:999px;padding:8px 12px;white-space:nowrap}
-.grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:28px;align-items:start}
-@media (max-width:980px){.grid{display:flex;flex-direction:column}.grid>.col{display:contents}.o1{order:1}.o2{order:2}.o3{order:3}.o4{order:4}.o5{order:5}.o6{order:6}}
 .col{display:flex;flex-direction:column;gap:24px;min-width:0}
 .block{display:flex;flex-direction:column;gap:12px;min-width:0}
 .eyebrow{margin:0;font:700 .74rem/var(--lh-tight) var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
@@ -149,8 +157,6 @@ select{background:var(--stage-2);border:1px solid var(--line);border-radius:8px;
 .modecard:has(input:checked){border-color:var(--spot-text);background:color-mix(in srgb,var(--spot) 8%,var(--stage))}
 .modecard:has(input:focus-visible){outline:2px solid var(--spot);outline-offset:2px}
 body[data-app="llamada"] .only-video{display:none!important}
-body[data-app="llamada"] .grid{display:flex;flex-direction:column}
-body[data-app="llamada"] .grid>.col{display:contents}
 body:not([data-app="llamada"]) .only-call{display:none!important}
 .foot{border-top:1px solid var(--line);padding-top:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px 28px}
 .foot p{margin:0;font-size:.86rem;color:var(--mute)}
@@ -588,6 +594,8 @@ h1,h2,h3,b,strong{font-weight:600}
 .rot>span{display:block;height:1.12em;line-height:1.12em;animation:rotword 11s var(--ease) infinite}
 @keyframes rotword{0%,18%{transform:translateY(0)}25%,43%{transform:translateY(-100%)}50%,68%{transform:translateY(-200%)}75%,93%{transform:translateY(-300%)}100%{transform:translateY(-400%)}}
 .hero .tagline{margin:0;max-width:44ch;font-size:var(--t-lg);line-height:var(--lh);color:var(--mute)}
+.pane .badge{display:inline-flex;align-items:center;gap:var(--u);font:500 var(--t-sm)/1 var(--f-body);letter-spacing:0;text-transform:none;color:var(--mute);background:var(--stage);border:1px solid var(--line);border-radius:999px;padding:calc(var(--u) * 1.25) calc(var(--u) * 2)}
+.pane .badge .ico{width:16px;height:16px}
 .hero .badge{display:inline-flex;align-items:center;gap:var(--u);font:500 var(--t-sm)/1 var(--f-body);letter-spacing:0;text-transform:none;color:var(--mute);background:var(--stage);border:1px solid var(--line);border-radius:999px;padding:calc(var(--u) * 1.25) calc(var(--u) * 2)}
 .hero .badge .ico{width:16px;height:16px}
 /* una sola entrada orquestada al abrir */
@@ -595,9 +603,6 @@ h1,h2,h3,b,strong{font-weight:600}
 .hero>:nth-child(2){animation-delay:.08s}.hero>:nth-child(3){animation-delay:.16s}.hero>:nth-child(4){animation-delay:.24s}
 @keyframes rise{from{opacity:0;transform:translateY(16px)}}
 
-.grid,.grid>.col{display:flex;flex-direction:column;align-items:stretch;gap:calc(var(--u) * 5)}
-.grid>.col{display:contents}
-.o1{order:1}.o2{order:2}.o3{order:3}.o6{order:4}.o4{order:5}.o5{order:6}
 .block{gap:calc(var(--u) * 2)}
 .block>.eyebrow,.block>h2{text-align:center}
 .block>h2{margin-top:calc(var(--u) * -1)}
@@ -668,12 +673,6 @@ select{width:100%;background:var(--stage-2);border:0;border-radius:var(--r-sm);p
 .ghost{justify-content:center;min-height:48px;padding:0 calc(var(--u) * 2.5);border-radius:999px;background:var(--stage);border:1px solid var(--line);font:500 var(--t-sm)/1 var(--f-body);transition:transform .15s var(--ease),border-color .15s}
 .ghost:hover{border-color:var(--paper)}
 :is(.primary,.ghost,.btn,.modecard,.tone,.hook-list button,.review .ra button):active{transform:scale(.96)}
-/* la acción principal, fija abajo y centrada */
-#setup>.grid>.col>.actions.o4{position:sticky;bottom:0;z-index:20;justify-content:center;gap:calc(var(--u) * 1.5);margin-inline:calc(var(--u) * -2);padding:calc(var(--u) * 2) calc(var(--u) * 2) calc(var(--u) * 2 + env(safe-area-inset-bottom,0px));
-  background:linear-gradient(to top,var(--ink) 70%,color-mix(in srgb,var(--ink) 0%,transparent))}
-#setup .actions.o4{flex-wrap:nowrap}
-#setup .actions.o4 .primary{flex:0 1 340px;min-width:0}
-#setup .actions.o4 .ghost{min-height:56px}
 .foot{grid-template-columns:1fr;gap:calc(var(--u) * 1.5);text-align:center;border-top:1px solid var(--line);padding-block:calc(var(--u) * 3) calc(var(--u) * 6)}
 .foot p{max-width:62ch;margin-inline:auto;font-size:var(--t-xs);line-height:var(--lh)}
 
@@ -798,9 +797,6 @@ details.more>summary{margin-inline:auto;border:0;background:var(--stage);box-sha
   #setup{padding-block:calc(var(--u) * 3) 0;gap:calc(var(--u) * 4)}
   .hero .tagline{font-size:var(--t-md)}
   .modecard{padding:calc(var(--u) * 2.5)}
-  #setup>.grid>.col>.actions.o4{flex-wrap:nowrap}
-  #setup .actions.o4 .primary{flex:1 1 auto;min-width:0;padding:0 calc(var(--u) * 2)}
-  #setup .actions.o4 .ghost{flex:0 0 auto;padding:0 calc(var(--u) * 2)}
   .dash-score{justify-content:flex-start}
   .dash-score .ring{width:96px;height:96px}.dash-score .ring span{width:76px;height:76px;font-size:var(--t-xl)}
   #monitor{border-radius:var(--r-md)}
@@ -816,10 +812,6 @@ details.more>summary{margin-inline:auto;border:0;background:var(--stage);box-sha
   #fontDown,#fontUp{display:none}
   :is(#back,#txtBtn,#pipBtn,#wordsBtn) .lbl{display:none}
 }
-@media (max-width:360px){
-  #setup .actions.o4 .ico{display:none}
-  #setup .actions.o4 :is(.primary,.ghost){padding:0 16px}
-}
 @media (max-width:400px){
   .btn{min-width:40px;padding:0 8px}
   .bar-ctl{gap:4px;padding-inline:8px}
@@ -834,6 +826,199 @@ details.more>summary{margin-inline:auto;border:0;background:var(--stage);box-sha
 @media (prefers-reduced-motion: reduce){
   .rot>span,.hero>*,.count-big,.dash-score .ring,.dash-verdict,.delta{animation:none!important}
   :is(.primary,.ghost,.btn,.modecard,.tone):active{transform:none}
+}
+/* ==================================================================================================
+   App por pasos. Una barra arriba (atrás, título del paso y su progreso), una pantalla con una sola
+   decisión y un botón fijo abajo. Columna de 640 px como máximo en cualquier pantalla, márgenes de 16 px
+   (o la zona segura del móvil, si es mayor) y el mismo ritmo vertical de 8 px en todas las pantallas.
+   ================================================================================================== */
+:root{--col:640px;--gx:max(calc(var(--u) * 2),env(safe-area-inset-left,0px),env(safe-area-inset-right,0px));--bar-h:64px;--dock-h:calc(var(--u) * 11)}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none}
+:is(button,summary,.modecard,.tone,.row,.appbar,.dock,.seg label){-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
+/* el iPhone no amplía la página al tocar un campo si la letra es de 16 px o más */
+#setup :is(select,textarea,input){font-size:var(--t-md)}
+
+/* arranque: el logo entra y la app aparece debajo (sin bloquear toques) */
+.splash{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--u) * 2);background:var(--ink);pointer-events:none;animation:splashout .45s var(--ease) .75s forwards}
+.splash .logo{width:80px;height:80px;border-radius:24px;animation:splashlogo .7s var(--ease) both}
+.splash .logo svg{width:48px;height:48px}
+.splash .wordmark{font:700 var(--t-xl)/1 var(--f-display);letter-spacing:-.03em;color:var(--paper);animation:rise .6s var(--ease) .12s both}
+@keyframes splashlogo{from{transform:scale(.4) rotate(-12deg);opacity:0}60%{transform:scale(1.06)}}
+@keyframes splashout{to{opacity:0;visibility:hidden}}
+
+#setup{display:block;max-width:none;margin:0;padding:0;min-height:100vh;min-height:100dvh}
+/* barra superior */
+.appbar{position:sticky;top:0;z-index:30;display:grid;grid-template-columns:48px minmax(0,1fr) 48px;align-items:center;gap:var(--u);
+  min-height:calc(var(--bar-h) + env(safe-area-inset-top,0px));padding:env(safe-area-inset-top,0px) var(--gx) 0;
+  background:color-mix(in srgb,var(--ink) 88%,transparent);-webkit-backdrop-filter:saturate(1.6) blur(16px);backdrop-filter:saturate(1.6) blur(16px)}
+.appbar::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--line);opacity:0;transition:opacity .2s}
+body.scrolled .appbar::after{opacity:1}
+.ab-btn{display:grid;place-items:center;width:48px;height:48px;padding:0;border:0;border-radius:999px;background:var(--stage);color:var(--paper);box-shadow:var(--shadow);transition:transform .15s var(--ease)}
+.ab-btn .ico{width:22px;height:22px;stroke-width:2.2}
+.ab-btn:active{transform:scale(.92)}
+.ab-void{visibility:hidden}
+.ab-mid{display:flex;justify-content:center;align-items:center;min-width:0;text-align:center}
+.ab-brand .wordmark{font:700 var(--t-lg)/1 var(--f-display);letter-spacing:-.02em;color:var(--paper);margin:0}
+.ab-brand .logo{width:36px;height:36px;border-radius:10px}
+.ab-brand .logo svg{width:22px;height:22px}
+.ab-step{display:flex;flex-direction:column;align-items:center;gap:calc(var(--u) * .75);min-width:0}
+.ab-step b{font:600 var(--t-md)/var(--lh-tight) var(--f-body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.ab-dots{display:flex;gap:4px}
+.ab-dots i{width:20px;height:4px;border-radius:2px;background:var(--line);transition:background .3s var(--ease),width .3s var(--ease)}
+.ab-dots i.done{background:var(--paper)}
+.ab-dots i.now{width:32px;background:var(--paper)}
+#setup[data-step="home"] :is(#stepBack,.ab-step){display:none}
+#setup[data-step="home"] .appbar::before{content:"";width:48px}
+#setup:not([data-step="home"]) .ab-brand{display:none}
+
+/* pantallas */
+.panes{max-width:calc(var(--col) + var(--gx) * 2);margin:0 auto;padding:calc(var(--u) * 3) var(--gx) calc(var(--dock-h) + env(safe-area-inset-bottom,0px) + var(--u) * 3)}
+#setup[data-step="home"] .panes{padding-bottom:calc(var(--u) * 6 + env(safe-area-inset-bottom,0px))}
+.pane{display:flex;flex-direction:column;gap:calc(var(--u) * 3);min-width:0}
+.pane>.block{gap:calc(var(--u) * 2)}
+.pane-head{display:flex;flex-direction:column;align-items:center;gap:var(--u);text-align:center}
+.pane-head h2{margin:0;font:700 var(--t-2xl)/var(--lh-tight) var(--f-display);letter-spacing:-.03em;text-wrap:balance}
+.pane-head .note{max-width:46ch;margin:0;font-size:var(--t-md);text-wrap:pretty}
+.pane .note.center{text-align:center;margin:0 auto;max-width:52ch}
+.pane h3.sub{margin:calc(var(--u) * -1) 0 0;text-align:center;font:600 var(--t-lg)/var(--lh-tight) var(--f-display);letter-spacing:-.015em}
+.pane code{font:500 var(--t-xs)/1 var(--f-body);background:var(--stage);border:1px solid var(--line);padding:4px 8px;border-radius:8px}
+/* al cambiar de paso, el contenido entra en cascada desde el lado del que vienes */
+.pane.in-fwd{--dx:32px}.pane.in-back{--dx:-32px}
+.pane:is(.in-fwd,.in-back)>*{animation:stepin .5s var(--ease) both}
+.pane>:nth-child(2){animation-delay:.04s}.pane>:nth-child(3){animation-delay:.08s}.pane>:nth-child(4){animation-delay:.12s}
+.pane>:nth-child(5){animation-delay:.16s}.pane>:nth-child(6){animation-delay:.2s}.pane>:nth-child(n+7){animation-delay:.24s}
+@keyframes stepin{from{opacity:0;transform:translateX(var(--dx))}}
+
+/* inicio */
+.pane[data-pane="home"]{gap:calc(var(--u) * 4);align-items:stretch}
+.pane[data-pane="home"] .hero{padding-top:calc(var(--u) * 2);gap:calc(var(--u) * 2)}
+.hero>*{animation-delay:.8s}
+.hero>:nth-child(2){animation-delay:.88s}
+.home-list{display:flex;flex-direction:column;gap:calc(var(--u) * 2)}
+.modes{display:flex;flex-direction:column;gap:calc(var(--u) * 1.5)}
+.modecard{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-rows:auto auto;align-items:center;gap:calc(var(--u) * .5) calc(var(--u) * 2);width:100%;text-align:left;color:var(--paper);font:inherit;padding:calc(var(--u) * 2.5) calc(var(--u) * 2.5)}
+.modecard .ico{grid-row:1 / 3;align-self:center;margin:0}
+.modecard b{grid-column:2;align-self:end;font-size:var(--t-lg);line-height:var(--lh-tight)}
+.modecard span{grid-column:2;align-self:start;color:var(--mute)}
+.modecard .ico.chev{grid-column:3;width:24px;height:24px;padding:0;border-radius:0;background:none;color:var(--dim);stroke-width:2.2;transition:transform .2s var(--ease),color .2s}
+.modecard:hover .ico.chev{transform:translateX(4px);color:var(--paper)}
+.modecard:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.modecard:hover{border-color:var(--line)}
+.modecard[data-flow="video"] .ico:not(.chev){background:var(--spot);color:var(--spot-ink)}
+.pane[data-pane="home"]>.badge{align-self:center}
+.plan-banner{flex-direction:column;align-items:center}
+.plan-banner .goals{justify-content:center}
+.plan-banner .pb-act{display:flex;gap:var(--u);justify-content:center;flex-wrap:wrap;width:100%}
+.plan-banner .primary{min-height:48px}
+/* instalar: tarjeta discreta, se oculta para siempre con la ✕ */
+.install{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:calc(var(--u) * 2);padding:calc(var(--u) * 2);border-radius:var(--r-lg);background:var(--stage);box-shadow:var(--shadow)}
+.install .logo{width:48px;height:48px;border-radius:14px}
+.install .logo svg{width:28px;height:28px}
+.inst-txt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.inst-txt b{font-size:var(--t-md);line-height:var(--lh-tight)}
+.inst-txt small{font-size:var(--t-sm);line-height:var(--lh);color:var(--mute)}
+.inst-txt small .ico{width:18px;height:18px;vertical-align:-3px;color:#0A84FF}
+.inst-x{display:grid;place-items:center;width:40px;height:40px;padding:0;border:0;border-radius:999px;background:var(--stage-2);color:var(--mute)}
+.inst-x .ico{width:18px;height:18px}
+html.standalone .install{display:none!important}
+
+/* plegables (marcas, ajustes, privacidad) */
+details.fold{border-radius:var(--r-lg);background:var(--stage);box-shadow:var(--shadow)}
+details.fold>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:var(--u);min-height:56px;padding:0 calc(var(--u) * 2.5);font-weight:600;cursor:pointer}
+details.fold>summary::-webkit-details-marker{display:none}
+details.fold>summary::after{content:"";width:10px;height:10px;border-right:2px solid var(--mute);border-bottom:2px solid var(--mute);transform:translateY(-2px) rotate(45deg);transition:transform .25s var(--ease)}
+details.fold[open]>summary::after{transform:translateY(2px) rotate(-135deg)}
+.fold-body{display:flex;flex-direction:column;gap:calc(var(--u) * 2);padding:0 calc(var(--u) * 2.5) calc(var(--u) * 2.5)}
+.about .fold-body p{margin:0;font-size:var(--t-sm);line-height:var(--lh);color:var(--mute)}
+.about .fold-body b{color:var(--paper)}
+.fold .syntax{justify-content:flex-start}
+
+/* guion */
+.pane[data-pane="guion"] textarea#script{min-height:min(44vh,360px);resize:vertical}
+.pane .tools{display:flex;justify-content:center;flex-wrap:wrap;gap:var(--u) calc(var(--u) * 1.5)}
+.count{margin-top:calc(var(--u) * -1.5)}
+
+/* intención */
+.pane[data-pane="tono"] .tones{grid-template-columns:repeat(auto-fill,minmax(min(100%,180px),1fr))}
+
+/* último paso: resumen y ajustes en grupos, como en los ajustes del móvil */
+.summary{display:flex;flex-direction:column;border-radius:var(--r-lg);background:var(--stage);box-shadow:var(--shadow);overflow:hidden}
+.summary:empty{display:none}
+.sum-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:calc(var(--u) * 2);width:100%;min-height:64px;padding:var(--u) calc(var(--u) * 2.5);border:0;background:none;color:var(--paper);text-align:left;font:inherit}
+.sum-row+.sum-row{border-top:1px solid var(--line)}
+.sum-row .k{display:block;font-size:var(--t-xs);line-height:var(--lh);color:var(--mute)}
+.sum-row .v{display:flex;align-items:center;gap:var(--u);font-weight:600;line-height:var(--lh-tight);min-width:0}
+.sum-row .v i{width:10px;height:10px;border-radius:50%;background:var(--tc);flex:none}
+.sum-row .go-edit{display:inline-flex;align-items:center;gap:4px;font-size:var(--t-sm);font-weight:500;color:var(--mute);white-space:nowrap}
+.sum-row .go-edit .ico{width:16px;height:16px}
+button.sum-row:hover .go-edit{color:var(--paper)}
+.sum-goals{display:flex;flex-direction:column;gap:var(--u);padding:calc(var(--u) * 2) calc(var(--u) * 2.5);border-top:1px solid var(--line);background:color-mix(in srgb,var(--spot) 22%,var(--stage))}
+.sum-goals b{font-size:var(--t-sm)}
+.sum-goals .goals span{background:var(--stage);border-color:transparent}
+.group{display:flex;flex-direction:column;border-radius:var(--r-lg);background:var(--stage);box-shadow:var(--shadow);overflow:hidden}
+.group-t{margin:0;padding:calc(var(--u) * 2) calc(var(--u) * 2.5) 0;font:600 var(--t-xs)/var(--lh) var(--f-body);color:var(--mute)}
+.group>.note{margin:0;padding:0 calc(var(--u) * 2.5) calc(var(--u) * 2.5);font-size:var(--t-xs)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:calc(var(--u) * 2);min-height:64px;padding:calc(var(--u) * 1.5) calc(var(--u) * 2.5);cursor:pointer}
+.row+.row{border-top:1px solid var(--line)}
+.row.stack{flex-direction:column;align-items:stretch;gap:var(--u);cursor:default}
+.row-t{display:flex;flex-direction:column;gap:2px;min-width:0}
+.row-t b{font-size:var(--t-md);font-weight:600;line-height:var(--lh-tight)}
+.row-t small{font-size:var(--t-sm);line-height:var(--lh);color:var(--mute)}
+.fold-body>.row{padding-inline:0}
+.fold-body>.row:first-child{padding-top:0}
+details.group>.fold-body{padding-bottom:var(--u)}
+.row .seg{width:100%}
+.row select{width:100%;min-height:48px}
+/* interruptor */
+.switch{appearance:none;-webkit-appearance:none;position:relative;flex:none;width:52px;height:32px;margin:0;border-radius:999px;background:var(--stage-2);box-shadow:inset 0 0 0 1px var(--line);cursor:pointer;transition:background .2s var(--ease)}
+.switch::before{content:"";position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.25);transition:transform .25s var(--ease)}
+.switch:checked{background:var(--ok);box-shadow:none}
+.switch:checked::before{transform:translateX(20px)}
+.switch:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+/* elegir vídeo */
+.drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--u);min-height:200px;padding:calc(var(--u) * 4) calc(var(--u) * 3);border:2px dashed var(--dim);border-radius:var(--r-lg);background:var(--stage);color:var(--paper);font:inherit;text-align:center;transition:border-color .2s,background .2s,transform .15s var(--ease)}
+.drop .ico{width:56px;height:56px;padding:14px;border-radius:16px;background:var(--spot);color:var(--spot-ink)}
+.drop b{font-size:var(--t-lg);line-height:var(--lh-tight)}
+.drop small{font-size:var(--t-sm);color:var(--mute)}
+.drop:hover,.drop.over{border-color:var(--paper);background:color-mix(in srgb,var(--spot) 10%,var(--stage))}
+.drop:active{transform:scale(.98)}
+
+/* qué se ve en cada camino */
+#setup[data-flow="video"] [data-f]:not([data-f~="video"]),
+#setup[data-flow="analizar"] [data-f]:not([data-f~="analizar"]),
+#setup[data-flow="llamada"] [data-f]:not([data-f~="llamada"]){display:none!important}
+
+/* botón fijo abajo */
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:calc(var(--u) * 2) var(--gx) calc(var(--u) * 2 + env(safe-area-inset-bottom,0px));background:linear-gradient(to top,var(--ink) 66%,color-mix(in srgb,var(--ink) 0%,transparent))}
+.dock-in{display:flex;max-width:var(--col);margin:0 auto}
+.dock .primary{flex:1 1 auto;width:100%;min-width:0;gap:var(--u)}
+.dock .primary .ico{width:20px;height:20px;stroke-width:2.2}
+#setup[data-step="home"] .dock{display:none}
+#setup:not([hidden]) ~ .toast{bottom:calc(var(--dock-h) + env(safe-area-inset-bottom,0px) + var(--u))}
+
+/* informe: la misma barra arriba */
+#report{padding-top:0}
+#report>.appbar{margin:0 calc(var(--gx) * -1)}
+
+/* las marcas de tono del margen son una raya fina, no una tarjeta de tono */
+.marks .mk.tone{padding:0;border:0;border-radius:3px;background:var(--tc);box-shadow:none}
+.preview .mk.tone{left:12px}
+.preview .mk.g{left:20px;width:24px}
+@media (max-width:400px){
+  .pane-head h2{font-size:var(--t-xl)}
+  .modecard{padding:calc(var(--u) * 2);column-gap:calc(var(--u) * 1.5)}
+  .modecard b{font-size:1.125rem}
+  .modecard .ico:not(.chev){width:44px;height:44px;padding:10px}
+}
+@media (max-width:360px){.modecard .ico.chev{display:none}}
+@media (min-width:761px){
+  .pane[data-pane="home"] .hero{padding-top:calc(var(--u) * 4)}
+}
+@media (prefers-reduced-motion: reduce){
+  .splash{display:none}
+  .pane>*{animation:none!important}
+  .switch::before,.ab-dots i{transition:none}
 }
 </style>
 </head>
@@ -881,94 +1066,176 @@ details.more>summary{margin-inline:auto;border:0;background:var(--stage);box-sha
     <symbol id="i-idea" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></symbol>
     <symbol id="i-subir" viewBox="0 0 24 24"><path d="M12 20V9M7 14l5-5 5 5M5 4h14"/></symbol>
     <symbol id="i-pelicula" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4M10.5 9.5l4 2.5-4 2.5z"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+    <symbol id="i-atras" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+    <symbol id="i-cerrar" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-compartir" viewBox="0 0 24 24"><path d="M12 3v12M8 7l4-4 4 4M6 11H5v10h14V11h-1"/></symbol>
     <symbol id="i-repetir" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3L20 9M20 4v5h-5M20 12a8 8 0 0 1-14 5.3L4 15M4 20v-5h5"/></symbol>
   </defs>
 </svg>
 
-<!-- ============ MESA DE TRABAJO ============ -->
-<main id="setup">
-  <header class="hero">
-    <div class="brand"><span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 15a8 8 0 0 1 16 0"/><path d="M7 19h10M9.5 11.5l2.5-2.5 2.5 2.5"/></svg></span><span class="wordmark">Apuntador</span></div>
-    <h1 class="hero-title">Graba con más <span class="rot" aria-hidden="true"><span>energía</span><span>seguridad</span><span>intención</span><span>naturalidad</span><span>energía</span></span><span class="sr">energía, seguridad, intención y naturalidad</span></h1>
-    <p class="tagline">Tu director de escena. Te ve y te escucha mientras grabas, y te dice en el momento cómo moverte y hablar para transmitir lo que quieres.</p>
-    <span class="badge"><svg class="ico" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Todo se analiza en tu dispositivo</span>
+<!-- ============ MESA DE TRABAJO: una app por pasos ============
+     Inicio (tres caminos) → Grabar: guion · intención · revisión · listo | Analizar: intención · vídeo | Llamada: intención · listo.
+     Cada pantalla tiene un título, lo justo para decidir y una sola acción fija abajo. -->
+<div class="splash" id="splash" aria-hidden="true"><span class="logo"><svg viewBox="0 0 24 24"><path d="M4 15a8 8 0 0 1 16 0"/><path d="M7 19h10M9.5 11.5l2.5-2.5 2.5 2.5"/></svg></span><span class="wordmark">Apuntador</span></div>
+<main id="setup" data-flow="video" data-step="home">
+  <header class="appbar">
+    <button class="ab-btn" id="stepBack" type="button" aria-label="Atrás"><svg class="ico"><use href="#i-atras"/></svg></button>
+    <div class="ab-mid">
+      <span class="brand ab-brand"><span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 15a8 8 0 0 1 16 0"/><path d="M7 19h10M9.5 11.5l2.5-2.5 2.5 2.5"/></svg></span><span class="wordmark">Apuntador</span></span>
+      <span class="ab-step" aria-live="polite"><b id="abTitle"></b><span class="ab-dots" id="abDots"></span></span>
+    </div>
+    <span class="ab-btn ab-void" aria-hidden="true"></span>
   </header>
 
-  <section class="block">
-    <p class="eyebrow">¿Qué vas a hacer?</p>
-    <div class="modes" role="radiogroup" aria-label="Uso">
-      <label class="modecard"><input type="radio" name="app" value="video" id="app-video"><svg class="ico"><use href="#i-camara"/></svg><b>Grabar un vídeo</b><span>Con tu guion en pantalla, como un teleprompter. Te marca gestos en el momento justo de cada frase. También puedes subir un vídeo que ya grabaste para que lo analice.</span></label>
-      <label class="modecard"><input type="radio" name="app" value="llamada" id="app-llamada"><svg class="ico"><use href="#i-llamada"/></svg><b>Videollamada o directo</b><span>Sin guion. Te dice qué haces con la cara, las manos y el cuerpo mientras hablas y mientras escuchas, en una ventana flotante encima de la llamada.</span></label>
-    </div>
-  </section>
-
-  <section class="plan-banner only-video" id="planBanner" hidden aria-label="Objetivos para la próxima toma"></section>
-
-  <div class="grid">
-    <div class="col">
-      <section class="block o1 only-video">
-        <p class="eyebrow step"><span class="stepn">1</span>Guion</p>
-        <h2>Lo que vas a leer</h2>
-        <label for="script" class="sr">Guion</label>
-        <textarea id="script" spellcheck="true"></textarea>
-        <div class="tools">
-          <button class="ghost" id="txtUpload" type="button"><svg class="ico"><use href="#i-subir"/></svg>Subir texto</button>
-          <button class="ghost" id="sample" type="button"><svg class="ico"><use href="#i-repetir"/></svg>Ejemplo</button>
-          <span class="note">Word, .txt, subtítulos (.srt, .vtt), .odt o .rtf. También puedes arrastrar el archivo al cuadro.</span>
-          <input type="file" id="txtFile" accept=".txt,.text,.md,.srt,.vtt,.docx,.odt,.rtf,.html,.htm,text/plain,text/markdown,text/html,application/rtf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.oasis.opendocument.text" hidden>
+  <div class="panes">
+    <!-- Inicio -->
+    <section class="pane" data-pane="home" aria-labelledby="homeTitle">
+      <div class="hero">
+        <h1 class="hero-title" id="homeTitle">Graba con más <span class="rot" aria-hidden="true"><span>energía</span><span>seguridad</span><span>intención</span><span>naturalidad</span><span>energía</span></span><span class="sr">energía, seguridad, intención y naturalidad</span></h1>
+        <p class="tagline">Tu director de escena: te ve y te escucha mientras grabas y te dice en el momento cómo moverte y hablar.</p>
+      </div>
+      <section class="plan-banner" id="planBanner" hidden aria-label="Objetivos para la próxima toma"></section>
+      <div class="home-list">
+        <p class="eyebrow">¿Qué quieres hacer?</p>
+        <div class="modes">
+          <button class="modecard" type="button" data-flow="video"><svg class="ico"><use href="#i-camara"/></svg><b>Grabar un vídeo</b><span>Tu guion en pantalla y los gestos en el momento justo.</span><svg class="ico chev" aria-hidden="true"><use href="#i-chev"/></svg></button>
+          <button class="modecard" type="button" data-flow="analizar"><svg class="ico"><use href="#i-pelicula"/></svg><b>Analizar un vídeo</b><span>Sube uno que ya grabaste y te digo qué mejorar.</span><svg class="ico chev" aria-hidden="true"><use href="#i-chev"/></svg></button>
+          <button class="modecard" type="button" data-flow="llamada"><svg class="ico"><use href="#i-llamada"/></svg><b>Videollamada</b><span>O un directo. Sin guion, en una ventana flotante encima.</span><svg class="ico chev" aria-hidden="true"><use href="#i-chev"/></svg></button>
         </div>
-        <ul class="syntax">
-          <li><code>[animado]</code>tono desde ese párrafo</li>
-          <li><code>//</code>pausa</li>
-          <li><code>*palabra*</code>énfasis</li>
-          <li><code>{abre los brazos}</code>acotación tuya</li>
-        </ul>
-        <span class="count" id="count"></span>
-      </section>
-      <section class="block o1 only-video" id="reviewBlock">
-        <p class="eyebrow">Revisa tu guion</p>
-        <h2 id="revTitle">Qué cambiar para transmitir lo que quieres</h2>
+      </div>
+      <div class="install" id="installCard" hidden>
+        <span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 15a8 8 0 0 1 16 0"/><path d="M7 19h10M9.5 11.5l2.5-2.5 2.5 2.5"/></svg></span>
+        <div class="inst-txt"><b>Tenla como una app</b><small id="installHow"></small></div>
+        <button class="ghost" id="installBtn" type="button" hidden>Instalar</button>
+        <button class="inst-x" id="installX" type="button" aria-label="Ocultar"><svg class="ico"><use href="#i-cerrar"/></svg></button>
+      </div>
+      <span class="badge"><svg class="ico" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Todo se analiza en tu dispositivo</span>
+      <details class="fold about">
+        <summary>Cómo funciona y privacidad</summary>
+        <div class="fold-body">
+          <p><b>Qué mira.</b> La cara (cejas, ojos, mirada, boca y sonrisa, giro e inclinación de la cabeza, si asientes), el cuerpo (hombros, codos, muñecas, postura y movimiento) y cada mano con sus dedos; en la voz, volumen, entonación, ritmo, pausas y si hablas tú o escuchas.</p>
+          <p><b>Privacidad.</b> El vídeo y el audio se analizan en este dispositivo y no se suben a ningún sitio. El control por voz «Mis palabras» también funciona aquí, sin conexión. Solo el motor «Navegador» (y el texto que sigue tu voz) usa el reconocimiento de voz del navegador, que en Chrome procesa Google.</p>
+          <p><b>Límites.</b> Es una guía, no un juez: las medidas son aproximadas y dependen de la luz, el encuadre y el micrófono. Calibra al entrar para que te compare contigo.</p>
+        </div>
+      </details>
+    </section>
+
+    <!-- Grabar · 1 · Guion -->
+    <section class="pane" data-pane="guion" hidden aria-labelledby="guionTitle">
+      <div class="pane-head">
+        <h2 id="guionTitle">¿Qué vas a decir?</h2>
+        <p class="note">Escribe, pega o sube tu guion. En el plató lo leerás limpio, sin marcas encima.</p>
+      </div>
+      <label for="script" class="sr">Guion</label>
+      <textarea id="script" spellcheck="true" placeholder="Escribe o pega aquí tu guion…"></textarea>
+      <span class="count" id="count"></span>
+      <div class="tools">
+        <button class="ghost" id="txtUpload" type="button"><svg class="ico"><use href="#i-subir"/></svg>Subir texto</button>
+        <button class="ghost" id="sample" type="button"><svg class="ico"><use href="#i-repetir"/></svg>Ejemplo</button>
+        <input type="file" id="txtFile" accept=".txt,.text,.md,.srt,.vtt,.docx,.odt,.rtf,.html,.htm,text/plain,text/markdown,text/html,application/rtf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.oasis.opendocument.text" hidden>
+      </div>
+      <p class="note center">Word, .txt, subtítulos (.srt, .vtt), .odt o .rtf. También puedes arrastrar el archivo al cuadro.</p>
+      <details class="fold">
+        <summary>Marcas opcionales</summary>
+        <div class="fold-body">
+          <ul class="syntax">
+            <li><code>[animado]</code>tono desde ese párrafo</li>
+            <li><code>//</code>pausa</li>
+            <li><code>*palabra*</code>énfasis</li>
+            <li><code>{abre los brazos}</code>acotación tuya</li>
+          </ul>
+        </div>
+      </details>
+    </section>
+
+    <!-- Intención (los tres caminos) -->
+    <section class="pane" data-pane="tono" hidden aria-labelledby="tonoTitle">
+      <div class="pane-head">
+        <h2 id="tonoTitle"><span data-f="video">¿Qué tiene que transmitir?</span><span data-f="analizar">¿Qué querías transmitir?</span><span data-f="llamada">¿Cómo quieres que te vean?</span></h2>
+        <p class="note"><span data-f="video">Elige el tono: el apuntador te guiará hacia él mientras grabas.</span><span data-f="analizar">Compararé tu vídeo con este tono y te diré si lo consigues.</span><span data-f="llamada">Cercano para el equipo o un cliente de confianza, serio para una entrevista o una negociación, inspirador para presentar una idea.</span></p>
+      </div>
+      <div class="detect" id="detect" data-f="video"></div>
+      <div class="tones" id="tones" role="radiogroup" aria-label="Tono del mensaje"></div>
+      <p class="note center" data-f="video">Si un párrafo empieza con una etiqueta como <code>[serio]</code>, el apuntador cambia de tono al llegar a él.</p>
+    </section>
+
+    <!-- Grabar · 3 · Revisión del guion y vista previa -->
+    <section class="pane" data-pane="revision" hidden aria-labelledby="revTitle">
+      <section class="block" id="reviewBlock">
+        <div class="pane-head">
+          <h2 id="revTitle">Qué cambiar para transmitir lo que quieres</h2>
+          <p class="note">Sugerencias para tu guion y tu tono. Tócalas para verlas en el texto o aplicarlas.</p>
+        </div>
         <ul class="review" id="review"></ul>
         <div class="hooks" id="hooks" hidden><p class="note">Ideas para empezar (tócala para ponerla al principio):</p><div class="hook-list" id="hookList"></div></div>
       </section>
-      <section class="block o6 only-video">
+      <section class="block">
         <p class="eyebrow">Vista previa</p>
-        <h2>Así te lo marcará el apuntador</h2>
-        <p class="note">El texto se lee limpio. En el margen, el emoji del gesto que toca en esa línea (al llegar se ilumina y se marca ✓ si lo haces) y una franja de color donde cambia el tono. Las pausas son una raya fina.</p>
+        <h3 class="sub">Así lo verás en el plató</h3>
         <div class="preview" id="preview"></div>
+        <p class="note center">En el margen, el emoji del gesto de cada línea (se ilumina al llegar y se marca ✓ si lo haces); una franja de color donde cambia el tono; las pausas, una raya fina.</p>
       </section>
-    </div>
+    </section>
 
-    <div class="col">
-      <section class="block o2">
-        <p class="eyebrow step"><span class="stepn"><span class="only-video">2</span><span class="only-call">1</span></span>Intención</p>
-        <h2><span class="only-video">¿Qué tiene que transmitir el mensaje?</span><span class="only-call">¿Cómo quieres que te vean en la llamada?</span></h2>
-        <div class="detect only-video" id="detect"></div>
-        <div class="tones" id="tones" role="radiogroup" aria-label="Tono del mensaje"></div>
-        <p class="note only-call">Elige el tono de la conversación: cercano para el equipo o un cliente de confianza, serio para una entrevista o una negociación, inspirador para presentar una idea.</p>
-        <p class="note only-video">Es el tono por defecto. Si un párrafo empieza con una etiqueta como <code style="font-family:var(--f-mono)">[serio]</code>, el apuntador cambia de objetivo al llegar a él.</p>
-      </section>
+    <!-- Último paso: listo para grabar · elegir el vídeo · listo para la llamada -->
+    <section class="pane" data-pane="listo" hidden aria-labelledby="listoTitle">
+      <div class="pane-head">
+        <h2 id="listoTitle"><span data-f="video llamada">Todo listo</span><span data-f="analizar">Elige tu vídeo</span></h2>
+        <p class="note"><span data-f="video">Revisa cómo quieres grabar y entra al plató.</span><span data-f="analizar">Se reproduce aquí mismo y te digo qué transmites. No sale de tu dispositivo.</span><span data-f="llamada">Al empezar, abre la «Ventana flotante»: se queda encima de la aplicación de la videollamada.</span></p>
+      </div>
+      <div class="summary" id="summary"></div>
 
-      <section class="block o3">
-        <p class="eyebrow step"><span class="stepn"><span class="only-video">3</span><span class="only-call">2</span></span>Ajustes</p>
-        <div class="opts">
-          <div class="opt only-video">
-            <span>Cómo avanza el texto</span>
+      <button class="drop" id="dropVid" type="button" data-f="analizar"><svg class="ico"><use href="#i-pelicula"/></svg><b>Toca para elegir un vídeo</b><small>.mp4, .mov o .webm · o arrástralo aquí</small></button>
+
+      <div class="group" data-f="video">
+        <p class="group-t">Cómo grabar</p>
+        <label class="row"><span class="row-t"><b>Ensayo antes de grabar</b><small>Una prueba sin grabar: te digo qué mejorar y luego grabas de verdad.</small></span><input type="checkbox" class="switch" id="rehearseFirst" role="switch"></label>
+        <div class="row stack"><label class="row-t" for="takeHelp"><b>Mientras grabas de verdad</b><small data-hint="takeHelp"></small></label>
+          <select id="takeHelp">
+            <option value="linea">Solo la línea (recomendado)</option>
+            <option value="avisos">La línea y los avisos</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="group" data-f="video">
+        <p class="group-t">Control por voz</p>
+        <div class="row stack"><label class="row-t" for="voiceEngine"><b>«Comenzamos» y «corten»</b><small data-hint="voiceEngine"></small></label>
+          <select id="voiceEngine">
+            <option value="auto">Automático (recomendado)</option>
+            <option value="propias">Mis palabras</option>
+            <option value="navegador">Del navegador</option>
+            <option value="no">Desactivado</option>
+          </select>
+        </div>
+        <div class="row stack"><label class="row-t" for="stopMargin"><b>Margen al parar</b></label>
+          <select id="stopMargin">
+            <option value="0">Cortar al momento</option>
+            <option value="2">2 segundos</option>
+            <option value="3">3 segundos</option>
+            <option value="5">5 segundos</option>
+          </select>
+        </div>
+        <p class="note">Di «comenzamos» y empieza la cuenta atrás. Di «corten» y graba unos segundos más antes de parar («seguimos» para continuar).</p>
+      </div>
+
+      <details class="group fold" data-f="video">
+        <summary>Texto y avisos</summary>
+        <div class="fold-body">
+          <div class="row stack"><span class="row-t"><b>Cómo avanza el texto</b></span>
             <div class="seg" role="radiogroup" aria-label="Avance del texto">
               <label><input type="radio" name="mode" value="voz" id="mode-voz">Sigue mi voz</label>
               <label><input type="radio" name="mode" value="fijo" id="mode-fijo">Velocidad fija</label>
             </div>
           </div>
-          <div class="opt only-video">
-            <span>Velocidad (modo fijo)</span>
+          <div class="row stack"><span class="row-t"><b>Velocidad</b><small>En el modo de velocidad fija.</small></span>
             <div class="range"><input type="range" id="wpm" min="80" max="220" step="5" aria-label="Palabras por minuto"><output id="wpm-out"></output></div>
           </div>
-          <div class="opt only-video">
-            <span>Tamaño de letra</span>
+          <div class="row stack"><span class="row-t"><b>Tamaño de letra</b></span>
             <div class="range"><input type="range" id="font" min="28" max="84" step="2" aria-label="Tamaño de letra"><output id="font-out"></output></div>
           </div>
-          <div class="opt only-video">
-            <label for="lang"><span style="font-size:.86rem;color:var(--mute)">Idioma de la voz</span></label>
+          <div class="row stack"><label class="row-t" for="lang"><b>Idioma de la voz</b></label>
             <select id="lang">
               <option value="es-ES">Español (España)</option>
               <option value="es-MX">Español (México)</option>
@@ -978,56 +1245,28 @@ details.more>summary{margin-inline:auto;border:0;background:var(--stage);box-sha
               <option value="en-US">English (US)</option>
             </select>
           </div>
-          <label class="check only-video"><input type="checkbox" id="rehearseFirst">Ensayo antes de grabar: primero una prueba sin grabar, te digo qué mejorar y luego grabamos de verdad</label>
-          <div class="opt only-video">
-            <label for="takeHelp"><span style="font-size:.86rem;color:var(--mute)">Mientras grabas de verdad</span></label>
-            <select id="takeHelp">
-              <option value="linea">Solo la línea verde o roja (recomendado)</option>
-              <option value="avisos">La línea y los avisos</option>
-            </select>
-          </div>
-          <label class="check only-video"><input type="checkbox" id="pauseSilent">Parar el texto cuando me callo (modo fijo)</label>
-          <label class="check only-video"><input type="checkbox" id="cuesOn">Avisarme de los gestos del guion</label>
-          <label class="check only-video"><input type="checkbox" id="mirror">Texto en espejo (cristal de teleprompter)</label>
-          <div class="opt only-video">
-            <label for="voiceEngine"><span style="font-size:.86rem;color:var(--mute)">Control por voz («comenzamos» y «corten»)</span></label>
-            <select id="voiceEngine">
-              <option value="auto">Automático (recomendado)</option>
-              <option value="propias">Mis palabras: aprende tu voz (iPhone, iPad, Android)</option>
-              <option value="navegador">Reconocimiento del navegador (Chrome o Edge de ordenador)</option>
-              <option value="no">Desactivado: botones o dos palmadas</option>
-            </select>
-          </div>
-          <div class="opt only-video">
-            <label for="stopMargin"><span style="font-size:.86rem;color:var(--mute)">Margen al parar</span></label>
-            <select id="stopMargin">
-              <option value="0">Cortar al momento</option>
-              <option value="2">2 segundos</option>
-              <option value="3">3 segundos</option>
-              <option value="5">5 segundos</option>
-            </select>
-          </div>
-          <p class="note only-video">Di «comenzamos» y empieza la cuenta atrás; di «corten» y sigue grabando los segundos del margen (con «seguimos» continúas). En el móvil la app aprende tus palabras la primera vez: las dices dos veces cada una y ya funcionan sin conexión, sin cortar la cámara. El texto que sigue tu voz necesita el reconocimiento del navegador.</p>
-          <label class="check"><input type="checkbox" id="skeleton">Dibujar lo que detecta: contorno de la cara, cejas, ojos, boca, hombros, codos y manos</label>
-          <p class="note only-call">Al empezar, abre la «Ventana flotante»: se queda encima de la aplicación de la videollamada. Si esa aplicación no deja usar la cámara a la vez, abre la llamada en otra pestaña de este navegador (Meet, Teams o Zoom en la web).</p>
+          <label class="row"><span class="row-t"><b>Parar el texto si me callo</b><small>En el modo de velocidad fija.</small></span><input type="checkbox" class="switch" id="pauseSilent" role="switch"></label>
+          <label class="row"><span class="row-t"><b>Avisarme de los gestos del guion</b></span><input type="checkbox" class="switch" id="cuesOn" role="switch"></label>
+          <label class="row"><span class="row-t"><b>Texto en espejo</b><small>Para un cristal de teleprompter.</small></span><input type="checkbox" class="switch" id="mirror" role="switch"></label>
         </div>
-      </section>
+      </details>
 
-      <div class="actions o4">
-        <button class="primary" id="go"><svg class="ico"><use href="#i-play"/></svg><span class="only-video">Entrar al plató</span><span class="only-call">Empezar</span></button>
-        <button class="ghost only-video" id="analyze"><svg class="ico"><use href="#i-pelicula"/></svg>Analizar vídeo</button>
-        <input type="file" id="vidFile" accept="video/*,.mp4,.mov,.m4v,.webm" hidden>
+      <div class="group">
+        <label class="row"><span class="row-t"><b>Dibujar lo que detecta</b><small>Cara, cejas, ojos, boca, hombros, codos y manos.</small></span><input type="checkbox" class="switch" id="skeleton" role="switch"></label>
       </div>
-      <p class="note o5 only-video"><b style="color:var(--paper)">¿Ya lo grabaste?</b> Sube el vídeo: mientras se reproduce te dice qué transmites, si encaja con el tono que elegiste y qué mejorar. Después lo repites aquí con esas indicaciones y te avisa en directo de si lo estás consiguiendo. El vídeo no sale de tu dispositivo.</p>
-      <p class="note o5">Pedirá permiso para cámara y micrófono. Funciona mejor en Chrome o Edge, con el móvil en vertical o el portátil a la altura de los ojos y la cámara viéndote de cintura para arriba.</p>
-    </div>
+      <p class="note center" data-f="llamada">Si la aplicación de la llamada no deja usar la cámara a la vez, abre la llamada en otra pestaña de este navegador (Meet, Teams o Zoom en la web).</p>
+      <p class="note center" data-f="video llamada">Te pedirá permiso para la cámara y el micrófono. Mejor con el móvil en vertical o el portátil a la altura de los ojos, y que se te vea de cintura para arriba.</p>
+    </section>
   </div>
 
-  <footer class="foot">
-    <p><b>Qué mira.</b> La cara (cejas, ojos, mirada, boca y sonrisa, giro e inclinación de la cabeza, si asientes), el cuerpo (hombros, codos, muñecas, postura y movimiento) y cada mano con sus dedos; en la voz, volumen, entonación, ritmo, pausas y si hablas tú o escuchas.</p>
-    <p><b>Privacidad.</b> El vídeo y el audio se analizan en este navegador y no se suben a ningún sitio. El control por voz «Mis palabras» también funciona aquí, sin conexión. Solo el motor «Navegador» (y el texto que sigue tu voz) usa el reconocimiento de voz del navegador, que en Chrome procesa Google.</p>
-    <p><b>Límites.</b> Es una guía, no un juez: las medidas son aproximadas y dependen de la luz, el encuadre y el micrófono. Calibra al entrar para que te compare contigo.</p>
-  </footer>
+  <div class="dock">
+    <div class="dock-in">
+      <button class="primary" id="next" type="button">Continuar<svg class="ico"><use href="#i-chev"/></svg></button>
+      <button class="primary" id="go" type="button"><svg class="ico"><use href="#i-play"/></svg><span data-f="video analizar">Entrar al plató</span><span data-f="llamada">Empezar</span></button>
+      <button class="primary" id="analyze" type="button"><svg class="ico"><use href="#i-pelicula"/></svg>Elegir vídeo</button>
+      <input type="file" id="vidFile" accept="video/*,.mp4,.mov,.m4v,.webm" hidden>
+    </div>
+  </div>
 </main>
 
 <!-- ============ PLATÓ ============ -->
@@ -1514,7 +1753,7 @@ $('#reviewBlock').addEventListener('click', e => {
   if (b.dataset.rv === 'sel') {
     const it = S.review?.items[+b.dataset.i]; if (!it) return;
     const v = elScript.value, key = it.sel.slice(0, 40), i = v.toLowerCase().indexOf(key.toLowerCase());
-    if (i >= 0) { elScript.focus(); elScript.setSelectionRange(i, i + Math.min(it.sel.length, v.length - i)); elScript.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+    if (i >= 0) { go('guion'); setTimeout(() => { elScript.focus(); elScript.setSelectionRange(i, i + Math.min(it.sel.length, v.length - i)); elScript.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 120); }
   } else if (b.dataset.rv === 'hedges') { setText(removeHedges(elScript.value)); toast('Muletillas quitadas. Revisa que las frases sigan sonando bien.', 4500); }
   else if (b.dataset.rv === 'tone') { S.tone = b.dataset.tone; store.set('tone', S.tone); renderTones(); refreshSetup(); }
   else if (b.dataset.hook) {
@@ -1588,6 +1827,7 @@ const isCall = () => S.opts.app === 'llamada';
 
 /* ---------------- mesa de trabajo ---------------- */
 const elScript = $('#script');
+const previewOn = () => !$('#setup').hidden && $('#setup').dataset.step === 'revision';
 function renderTones() {
   $('#tones').innerHTML = Object.entries(TONES).map(([id, t]) => `
     <label class="tone" style="--tc:${t.color}">
@@ -1598,10 +1838,10 @@ function renderTones() {
 function refreshSetup() {
   S.sc = parseScript(S.text, S.tone);
   $('#preview').innerHTML = S.sc.words.length ? renderScriptHTML(S.sc) : '<p class="note">Escribe o pega tu guion a la izquierda.</p>';
-  if (S.sc.words.length && !$('#setup').hidden) placeMarks($('#preview'), S.sc);
+  if (S.sc.words.length && previewOn()) placeMarks($('#preview'), S.sc);
   const n = S.sc.words.length;
   const autoCues = S.sc.cues.filter(c => c.type !== 'pausa' && c.type !== 'enfasis').length;
-  $('#count').textContent = `${n} palabras · ~${Math.max(1, Math.round(n / 150 * 60))} s a 150 palabras/min · ${autoCues} gestos marcados`;
+  $('#count').textContent = `${n} palabras · ~${Math.max(1, Math.round(n / 150 * 60))} s · ${autoCues} gestos marcados`;
   const d = detectTone(S.text);
   const t = TONES[d.tone];
   $('#detect').innerHTML = `<div class="grow">Por el texto, parece un mensaje <b style="--tc:${t.color}">${t.name.toLowerCase()}</b>
@@ -1738,8 +1978,6 @@ $('#sample').addEventListener('click', () => { S.text = SAMPLE; elScript.value =
 function applyApp() { document.body.dataset.app = isCall() ? 'llamada' : 'video'; }
 function bindOpts() {
   const o = S.opts, save = () => store.set('opts', o);
-  $('#app-video').checked = !isCall(); $('#app-llamada').checked = isCall();
-  for (const r of document.querySelectorAll('input[name=app]')) r.addEventListener('change', e => { o.app = e.target.value; save(); applyApp(); refreshSetup(); });
   applyApp();
   $('#mode-voz').checked = o.mode === 'voz'; $('#mode-fijo').checked = o.mode === 'fijo';
   for (const r of document.querySelectorAll('input[name=mode]')) r.addEventListener('change', e => { o.mode = e.target.value; save(); });
@@ -1761,6 +1999,145 @@ function bindOpts() {
   $('#lang').value = o.lang; $('#lang').addEventListener('change', e => { o.lang = e.target.value; save(); });
 }
 renderTones(); bindOpts(); refreshSetup();
+
+/* ---------------- la app por pasos ----------------
+   Inicio con tres caminos y, en cada uno, una pantalla por decisión:
+     grabar:   guion → intención → revisión → listo (entrar al plató)
+     analizar: intención → elegir el vídeo
+     llamada:  intención → listo (empezar)
+   Cada paso es una entrada del historial: el botón de atrás de la barra, el gesto de volver del iPhone y el botón
+   «atrás» de Android retroceden un paso en vez de salir. */
+const FLOWS = { video: ['guion', 'tono', 'revision', 'listo'], analizar: ['tono', 'listo'], llamada: ['tono', 'listo'] };
+const STEP_NAME = { guion: 'Tu guion', tono: 'Intención', revision: 'Revisión', listo: { video: 'Antes de grabar', analizar: 'Tu vídeo', llamada: 'Antes de empezar' } };
+const NAV = { flow: isCall() ? 'llamada' : 'video', step: 'home', skip: false, after: null };
+const stepIdx = s => s === 'home' ? -1 : FLOWS[NAV.flow].indexOf(s);
+function setFlow(f) {
+  if (!FLOWS[f]) return;
+  NAV.flow = f; $('#setup').dataset.flow = f;
+  const app = f === 'llamada' ? 'llamada' : 'video';
+  if (S.opts.app !== app) { S.opts.app = app; store.set('opts', S.opts); applyApp(); refreshSetup(); }
+}
+function renderStep(step, dir = 0) {
+  const steps = FLOWS[NAV.flow];
+  if (step !== 'home' && !steps.includes(step)) step = 'home';
+  const i = stepIdx(step), changed = step !== NAV.step;
+  NAV.step = step;
+  const root = $('#setup');
+  root.dataset.step = step;
+  for (const p of root.querySelectorAll('.pane')) {
+    const on = p.dataset.pane === step;
+    p.classList.remove('in-fwd', 'in-back');
+    if (!on) { p.hidden = true; continue; }
+    p.hidden = false;
+    if (dir) { void p.offsetWidth; p.classList.add(dir > 0 ? 'in-fwd' : 'in-back'); }
+  }
+  const name = STEP_NAME[step];
+  $('#abTitle').textContent = step === 'home' ? '' : typeof name === 'string' ? name : name[NAV.flow];
+  $('#abDots').innerHTML = step === 'home' ? '' : steps.map((_, k) => `<i class="${k < i ? 'done' : k === i ? 'now' : ''}"></i>`).join('');
+  $('#abDots').setAttribute('aria-label', step === 'home' ? '' : `Paso ${i + 1} de ${steps.length}`);
+  const last = i === steps.length - 1;
+  $('#next').hidden = step === 'home' || last;
+  $('#go').hidden = !last || NAV.flow === 'analizar';
+  $('#analyze').hidden = !last || NAV.flow !== 'analizar';
+  if (step === 'listo') { renderSummary(); renderHints(); }
+  if (step === 'home') renderInstall();
+  if (step === 'revision' && S.sc?.words.length) requestAnimationFrame(() => placeMarks($('#preview'), S.sc));
+  if (changed || dir) window.scrollTo(0, 0);
+}
+function go(step) {
+  if (step === NAV.step) return renderStep(step);
+  const dir = stepIdx(step) < stepIdx(NAV.step) ? -1 : 1;
+  history.pushState({ s: step, f: NAV.flow }, '');
+  renderStep(step, dir);
+}
+function nextStep() {
+  const steps = FLOWS[NAV.flow], i = steps.indexOf(NAV.step);
+  if (NAV.step === 'guion' && !S.sc?.words.length) { toast('Escribe, pega o sube tu guion para seguir.'); elScript.focus(); return; }
+  if (i >= 0 && i < steps.length - 1) go(steps[i + 1]);
+}
+function stepBack() {
+  if (history.state?.s && history.state.s !== 'home' && history.length > 1) history.back();
+  else { history.replaceState({ s: 'home', f: NAV.flow }, ''); renderStep('home', -1); }
+}
+// abre la mesa en un paso concreto desde el plató o el informe
+function openSetup(step = NAV.step, flow) {
+  if (flow) setFlow(flow);
+  const top = history.state?.s, fromScreen = top === 'studio' || top === 'report';
+  NAV.step = step;
+  show('setup');
+  if (!fromScreen && history.state?.s !== step) history.pushState({ s: step, f: NAV.flow }, '');
+}
+addEventListener('popstate', e => {
+  const st = e.state || { s: 'home', f: NAV.flow };
+  if (NAV.skip) {
+    NAV.skip = false;
+    if (NAV.after) { history.pushState(NAV.after, ''); NAV.after = null; }
+    else if (st.s !== NAV.step) history.pushState({ s: NAV.step, f: NAV.flow }, '');
+    return;
+  }
+  if (st.s === 'studio' || st.s === 'report') {   // «adelante» hacia una pantalla que ya se cerró
+    if ($('#studio').hidden && $('#report').hidden) history.replaceState({ s: NAV.step, f: NAV.flow }, '');
+    return;
+  }
+  if (!$('#studio').hidden) leaveStudio();
+  else if (!$('#report').hidden) closeReport();
+  if (st.f && st.f !== NAV.flow) setFlow(st.f);
+  renderStep(st.s, stepIdx(st.s) < stepIdx(NAV.step) ? -1 : 1);
+});
+$('#next').addEventListener('click', nextStep);
+$('#stepBack').addEventListener('click', stepBack);
+for (const b of document.querySelectorAll('.modecard[data-flow]')) b.addEventListener('click', () => { setFlow(b.dataset.flow); go(FLOWS[NAV.flow][0]); });
+addEventListener('scroll', () => document.body.classList.toggle('scrolled', scrollY > 4), { passive: true });
+
+// el resumen del último paso: lo elegido, con un toque para cambiarlo
+const HINTS = {
+  takeHelp: { linea: 'Abajo, una línea verde si vas bien y roja si te alejas. Nada más, para no distraerte.', avisos: 'La línea y, además, los avisos de gestos y voz en el momento.' },
+  voiceEngine: { auto: 'En el móvil aprende tus palabras; en Chrome o Edge de ordenador usa el del navegador.', propias: 'Aprende tu voz: dices cada palabra dos veces y funciona sin conexión.', navegador: 'El reconocimiento de voz de Chrome o Edge de ordenador.', no: 'Empiezas y paras con los botones o con dos palmadas.' },
+};
+function renderHints() { for (const el of document.querySelectorAll('[data-hint]')) el.textContent = HINTS[el.dataset.hint][S.opts[el.dataset.hint]] || ''; }
+for (const k of Object.keys(HINTS)) $('#' + k).addEventListener('change', renderHints);
+function renderSummary() {
+  const t = TONES[S.tone], f = NAV.flow, n = S.sc?.words.length || 0;
+  const row = (k, v, step) => `<button class="sum-row" type="button" data-goto="${step}"><span><span class="k">${k}</span><span class="v">${v}</span></span><span class="go-edit">Cambiar${ico('chev')}</span></button>`;
+  let h = row(f === 'llamada' ? 'Cómo quieres que te vean' : 'Tono', `<i style="--tc:${t.color}"></i>${esc(t.name)}`, 'tono');
+  if (f === 'video') h += row('Guion', `${n} palabras · ~${Math.max(1, Math.round(n / 150 * 60))} s`, 'guion');
+  if (f === 'video' && S.plan?.ids.length) h += `<div class="sum-goals"><b>🎯 Objetivos de esta toma</b><div class="goals">${goalChips(S.plan.ids)}</div></div>`;
+  $('#summary').innerHTML = h;
+}
+$('#summary').addEventListener('click', e => { const b = e.target.closest('[data-goto]'); if (b) go(b.dataset.goto); });
+
+/* ---------------- se abre como una app ----------------
+   Instalable (manifiesto e iconos) y con un service worker que guarda la app y los modelos para abrir rápido y sin
+   conexión. En el iPhone no hay botón de instalar: se explica el gesto (Compartir → Añadir a pantalla de inicio). */
+const standalone = () => matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || navigator.standalone === true;
+document.documentElement.classList.toggle('standalone', standalone());
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const inAppBrowser = /Instagram|FBAN|FBAV|TikTok|musical_ly|Bytedance|LinkedInApp|Twitter/i.test(navigator.userAgent);
+let installEvt = null;
+function renderInstall() {
+  const card = $('#installCard'), on = !standalone() && !store.get('installHide', false) && (isIOS || !!installEvt);
+  card.hidden = !on; if (!on) return;
+  $('#installBtn').hidden = !installEvt;
+  $('#installHow').innerHTML = installEvt ? 'Instálala y ábrela desde tu pantalla de inicio, a pantalla completa.'
+    : inAppBrowser ? 'Ábrela en Safari (menú ··· → Abrir en el navegador), toca <b>Compartir</b> y luego <b>«Añadir a pantalla de inicio»</b>.'
+    : `Toca ${ico('compartir')} <b>Compartir</b> y luego <b>«Añadir a pantalla de inicio»</b>.`;
+}
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; renderInstall(); });
+addEventListener('appinstalled', () => { installEvt = null; store.set('installHide', true); renderInstall(); });
+$('#installBtn').addEventListener('click', async () => {
+  if (!installEvt) return;
+  installEvt.prompt();
+  try { await installEvt.userChoice; } catch {}
+  installEvt = null; renderInstall();
+});
+$('#installX').addEventListener('click', () => { store.set('installHide', true); renderInstall(); });
+if ('serviceWorker' in navigator && window.isSecureContext && !/[?&]nosw\b/.test(location.search))
+  addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(e => console.warn('service worker', e)));
+setTimeout(() => $('#splash')?.remove(), 1400);
+
+setFlow(NAV.flow);
+history.replaceState({ s: 'home', f: NAV.flow }, '');
+renderStep('home');
 function primeAudio() {
   try {
     if (!S.actx || S.actx.state === 'closed') S.actx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1776,10 +2153,19 @@ function show(id) {
   for (const s of ['setup', 'studio', 'report']) $('#' + s).hidden = s !== id;
   window.scrollTo(0, 0);
   $('#toast').hidden = true; if (id !== 'studio') $('#toast').style.bottom = '';
-  if (id === 'setup') { renderPlanBanner(); if (S.sc?.words.length) requestAnimationFrame(() => placeMarks($('#preview'), S.sc)); }
+  // la barra del sistema, oscura con la cámara y del color de la página fuera
+  for (const m of document.querySelectorAll('meta[name="theme-color"]')) { m.dataset.c ??= m.content; m.content = id === 'studio' ? '#0B0B0F' : m.dataset.c; }
+  // el plató y el informe ocupan una entrada del historial: «atrás» en el móvil vuelve a la mesa, no sale de la app
+  const top = history.state?.s, screen = top === 'studio' || top === 'report';
+  if (id !== 'setup') {
+    const st = { s: id, f: NAV.flow };
+    if (NAV.skip) NAV.after = st;   // aún está volviendo atrás: se apunta cuando termine
+    else history[screen ? 'replaceState' : 'pushState'](st, '');
+  } else { NAV.after = null; if (screen && !NAV.skip) { NAV.skip = true; history.back(); } }
+  if (id === 'setup') { renderPlanBanner(); renderStep(NAV.step); }
 }
-addEventListener('resize', () => { if (!$('#setup').hidden && S.sc?.words.length) placeMarks($('#preview'), S.sc); });
-document.fonts?.ready.then(() => { if (!$('#setup').hidden && S.sc?.words.length) placeMarks($('#preview'), S.sc); });
+addEventListener('resize', () => { if (previewOn() && S.sc?.words.length) placeMarks($('#preview'), S.sc); });
+document.fonts?.ready.then(() => { if (previewOn() && S.sc?.words.length) placeMarks($('#preview'), S.sc); });
 
 function stageMsg(html) { const m = $('#stageMsg'); if (!html) { m.hidden = true; m.innerHTML = ''; return; } m.innerHTML = html; m.hidden = false; }
 let toastTimer = 0;
@@ -1969,6 +2355,11 @@ function leaveStudio() {
    análisis de cara, cuerpo, manos y voz, con los mismos avisos encima. Al terminar, el informe dice qué transmite,
    si encaja con el tono elegido y qué mejorar, y deja preparado el plan para grabar la versión mejorada. */
 $('#analyze').addEventListener('click', () => { primeAudio(); $('#vidFile').click(); });
+$('#dropVid').addEventListener('click', () => { primeAudio(); $('#vidFile').click(); });
+for (const [ev, on] of [['dragover', true], ['dragenter', true], ['dragleave', false], ['drop', false]]) $('#dropVid').addEventListener(ev, e => {
+  e.preventDefault(); $('#dropVid').classList.toggle('over', on);
+  if (ev === 'drop' && e.dataTransfer.files[0]) pickVideo(e.dataTransfer.files[0]);
+});
 $('#vidFile').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) pickVideo(f); });
 function pickVideo(file) {
   if (!/^video\//.test(file.type) && !/\.(mp4|mov|m4v|webm|mkv|3gp)$/i.test(file.name || '')) { toast('Ese archivo no parece un vídeo. Sube un .mp4, .mov o .webm.', 5000); return; }
@@ -3899,7 +4290,7 @@ function updateStatus(t) {
     }[want];
   }
   // en qué paso estás y qué botón toca
-  const chip = $('#stepChip'), fo = flowOn() && S.live;
+  const chip = mq('#stepChip'), fo = flowOn() && S.live;   // el monitor puede estar en la ventana flotante
   const stepTxt = !fo ? '' : S.take ? (S.take.record ? '🔴 Grabando de verdad' : '🧪 Ensayo · no se graba')
     : S.flow === 'ensayo' ? 'Paso 1 de 2 · Ensayo sin grabar' : 'Paso 2 de 2 · Grabación de verdad';
   if (chip.textContent !== stepTxt) { chip.textContent = stepTxt; chip.hidden = !stepTxt; chip.classList.toggle('rec', !!(S.take ? S.take.record : S.flow === 'grabar')); }
@@ -4510,10 +4901,14 @@ function renderPlanBanner() {
   const P = S.plan, el = $('#planBanner');
   if (!P?.ids.length) { el.hidden = true; el.innerHTML = ''; return; }
   el.innerHTML = `<b>🎯 Objetivos para tu próxima toma</b><span class="note">de ${esc(fromTxt(P))}: te los marcaré en directo.</span>
-    <div class="goals">${goalChips(P.ids)}</div><button class="ghost" type="button" id="planClear">Quitar</button>`;
+    <div class="goals">${goalChips(P.ids)}</div>
+    <div class="pb-act"><button class="primary" type="button" id="planGo">${ico('camara')}Grabar con estos objetivos</button><button class="ghost" type="button" id="planClear">Quitar</button></div>`;
   el.hidden = false;
 }
-$('#planBanner').addEventListener('click', e => { if (e.target.closest('#planClear')) { S.plan = null; renderPlanBanner(); } });
+$('#planBanner').addEventListener('click', e => {
+  if (e.target.closest('#planClear')) { S.plan = null; renderPlanBanner(); }
+  if (e.target.closest('#planGo')) { setFlow('video'); go('guion'); }
+});
 function showPlanCard(next = '') {
   const P = S.plan;
   if (!P?.ids.length || S.file || isCall() || S.take || S.countdown || KWS.enroll || S.calibrating || !S.live) return false;
@@ -4682,16 +5077,19 @@ function buildReport(tk) {
     : `<button class="primary" data-act="again">${ico('repetir')}Grabar otra vez</button>`;
   const el = $('#report');
   el.innerHTML = `
+    <header class="appbar">
+      <button class="ab-btn" type="button" data-act="${file || call ? 'home' : 'edit'}" aria-label="${file || call ? 'Volver al inicio' : 'Editar el guion'}">${ico('atras')}</button>
+      <div class="ab-mid"><span class="ab-step"><b>${file ? 'Análisis' : 'Informe'}</b></span></div>
+      ${tk.blob ? `<a class="ab-btn" href="${url}" download="apuntador-${stamp}.${ext}" aria-label="Descargar vídeo">${ico('descargar')}</a>` : '<span class="ab-btn ab-void" aria-hidden="true"></span>'}
+    </header>
     <header class="rep-head">
-      <span class="brand-sm"><span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 15a8 8 0 0 1 16 0"/><path d="M7 19h10M9.5 11.5l2.5-2.5 2.5 2.5"/></svg></span>Apuntador</span>
       <div><p class="eyebrow">${file ? 'Análisis de tu vídeo' : 'Informe de la ' + (call ? 'sesión' : 'toma')} · ${fmtTime(tk.dur)}</p><h1>${file ? esc(tk.file) : call ? (tk.record ? 'Videollamada grabada' : 'Videollamada') : tk.record ? 'Toma grabada' : 'Ensayo'}</h1>
       <p>${esc(new Date().toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }))} · ${tk.log.length} mediciones</p></div>
       <div class="actions">
         ${!call && !file && (FOL.on || (kwsOn() && KWS.tpl)) ? `<span class="pill">🎙️ Di «comenzamos» para otra toma</span>` : ''}
         ${tk.blob ? `<a class="ghost" href="${url}" download="apuntador-${stamp}.${ext}">${ico('descargar')}Descargar vídeo</a>` : ''}
-        ${file ? `<button class="ghost" data-act="edit">${ico('volver')}Volver al inicio</button>
-        <button class="ghost" data-act="another">${ico('pelicula')}Analizar otro vídeo</button>`
-        : `<button class="ghost" data-act="edit">${ico('volver')}${call ? 'Volver al inicio' : 'Editar guion'}</button>`}
+        ${file ? `<button class="ghost" data-act="another">${ico('pelicula')}Analizar otro vídeo</button>`
+        : call ? '' : `<button class="ghost" data-act="edit">${ico('texto')}Editar guion</button>`}
       </div>
     </header>
     <section class="dash" aria-label="Resumen">
@@ -4826,19 +5224,23 @@ function leaveStudioForReport() {
   stageMsg(null); cueEl.hidden = true;
   show('report');
 }
+// salir del informe: suelta la cámara y el micro y vuelve a la mesa (en el paso que toque)
+function releaseMedia() { stopVoice(); if (S.stream) { for (const tr of S.stream.getTracks()) tr.stop(); S.stream = null; } if (S.audio) { try { S.audio.ctx.close(); } catch {} S.audio = null; } }
+function closeReport(step, flow) { releaseMedia(); if (step) openSetup(step, flow); else show('setup'); }
 $('#report').addEventListener('click', e => {
   const a = e.target.closest('[data-act]')?.dataset.act;
-  if (a === 'edit') { stopVoice(); if (S.stream) { for (const tr of S.stream.getTracks()) tr.stop(); S.stream = null; } if (S.audio) { try { S.audio.ctx.close(); } catch {} S.audio = null; } show('setup'); }
+  if (a === 'home') closeReport('home');
+  if (a === 'edit') closeReport('guion', 'video');
+  if (a === 'script') closeReport('revision', 'video');
   if (a === 'again') { show('studio'); reenterStudio(); }
   if (a === 'another') { primeAudio(); $('#vidFile').click(); }
-  if (a === 'script') { stopVoice(); if (S.stream) { for (const tr of S.stream.getTracks()) tr.stop(); S.stream = null; } if (S.audio) { try { S.audio.ctx.close(); } catch {} S.audio = null; } show('setup'); setTimeout(() => $('#reviewBlock').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100); }
   if (a === 'improve') {
     primeAudio();
     if (!S.text.trim() || S.text === SAMPLE) {
-      show('setup');
-      toast('🎯 Tus objetivos están listos. Pega o sube el guion de tu vídeo y pulsa «Entrar al plató».', 8000);
+      closeReport('guion', 'video');
+      toast('🎯 Tus objetivos están listos. Pega o sube el guion de tu vídeo y sigue los pasos.', 8000);
       setTimeout(() => { elScript.focus(); elScript.select(); }, 300);
-    } else enterStudio();
+    } else { setFlow('video'); enterStudio(); }
   }
 });
 async function reenterStudio() {
