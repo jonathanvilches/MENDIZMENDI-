@@ -1,7 +1,7 @@
 // Las vecinas en el juego (npcGlb.js con las chicas de chicas.js): una fila de vecinas hechas con buildNpc, como en los
 // pueblos (con falda, con delantal, mayor, de la tienda, futbolista) y los trajes de chica (lamia, sorgina), de frente, de
 // espaldas, de lado andando y de cerca. Una imagen por vista en la carpeta indicada.
-// Uso: node tools/chicas/vecinas.mjs <carpeta>   (servidor de pruebas en 5173; VISTAS=…)
+// Uso: node tools/chicas/vecinas.mjs <carpeta>   (servidor de pruebas en 5173, u otro con PUERTO=…; VISTAS=…)
 import { chromium } from 'playwright-core';
 import { mkdirSync } from 'node:fs';
 const [,, out] = process.argv; mkdirSync(out, { recursive: true });
@@ -9,7 +9,7 @@ const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-119
 const p = await b.newPage({ viewport: { width: 1200, height: 600 } }); const errs = [];
 p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if ((m.type() === 'error' || m.type() === 'warning') && !/403|google|Failed to load|GPU stall|WebGL|AudioContext/.test(m.text())) errs.push(m.text()); });
 await p.addInitScript(() => { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'sanfermin', seen: { heroBenat: true, dog: true }, dogOn: false, settings: { quality: 'high' } })); });
-await p.goto('http://127.0.0.1:5173/?town=ituren&noflora&weather=clear&skipintro=1&t=12', { timeout: 300000 });
+await p.goto('http://127.0.0.1:' + (process.env.PUERTO || 5173) + '/?town=ituren&noflora&weather=clear&skipintro=1&t=12', { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 400000 });
 await p.addStyleTag({ content: '#ui > *, #hud, .hud { display: none !important; }' });
 const info = await p.evaluate(async () => {
