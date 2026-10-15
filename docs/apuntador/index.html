@@ -57,6 +57,9 @@ button{cursor:pointer}
 .block h2{margin:0;font:400 1.5rem/1.15 var(--f-display);text-wrap:balance}
 textarea#script{width:100%;min-height:360px;resize:vertical;background:var(--stage);border:1px solid var(--line);border-radius:12px;padding:18px;font:1.06rem/1.65 var(--f-body);color:var(--paper)}
 textarea#script:focus{border-color:var(--spot);outline:none}
+.tools{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap}
+.tools .note{flex:1;min-width:200px}
+#script.drop{outline:2px dashed var(--spot);outline-offset:3px}
 .syntax{display:flex;flex-wrap:wrap;gap:8px 16px;margin:0;padding:0;list-style:none;font-size:.88rem;color:var(--mute)}
 .syntax code{font:500 .82rem/1 var(--f-mono);background:var(--stage-2);color:var(--paper);padding:3px 6px;border-radius:5px;margin-right:4px}
 .count{font:400 .82rem/1.3 var(--f-mono);color:var(--dim);font-variant-numeric:tabular-nums}
@@ -247,6 +250,43 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
 .cam-alert b{font:400 1.3rem/1.2 var(--f-display)}
 .cam-alert p{margin:0;color:var(--mute);font-size:.92rem}
 #studio.mon-full .calib{left:calc(50% - 170px)}
+/* vídeo subido: se ve entero y sin espejo */
+#filevid{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
+#studio.file-mode #cam,#studio.file-mode #prompter,#studio.file-mode .shade,
+#studio.file-mode :is(#slower,#faster,#fontDown,#fontUp,#txtBtn,#rehearse,#record,#wordsBtn,#pipBtn,#voiceHint,#score){display:none!important}
+#studio.file-mode #overlay,#studio.file-mode #ghost{object-fit:contain}
+.file-bar{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:5;display:flex;align-items:center;gap:10px;width:min(560px,calc(100% - 24px));padding:9px 16px;border-radius:999px;background:var(--glass);border:1px solid var(--line);font-size:.86rem}
+.file-bar .progress{flex:1;min-width:60px}
+.fb-name{max-width:38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--mute)}
+.fb-time{font-family:var(--f-mono);font-size:.8rem;white-space:nowrap}
+#studio.mon-full .file-bar,#studio.mon-full .plan-card{left:calc(50% - 170px)}
+/* en el móvil, la barra del vídeo es una línea de progreso arriba (abajo está el monitor) */
+@media (max-width:760px){
+  .file-bar{top:0;bottom:auto;left:0;right:0;transform:none;width:auto;padding:0;border:0;border-radius:0;background:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+  .file-bar>:not(.progress){display:none}
+  .file-bar .progress{height:4px;border-radius:0}
+}
+/* objetivos */
+.goals{display:flex;flex-wrap:wrap;gap:6px}
+.goals span{display:inline-flex;align-items:center;gap:5px;font-size:.78rem;padding:4px 9px;border-radius:999px;border:1px solid rgba(141,184,255,.45);color:var(--paper);background:rgba(141,184,255,.08)}
+.goals span.ok{color:var(--ok);border-color:rgba(85,214,166,.5);background:rgba(85,214,166,.1)}
+.goals span.ok::after{content:"✓";font-weight:700}
+.goals span.bad{color:var(--warn);border-color:rgba(244,185,66,.55);background:rgba(244,185,66,.1)}
+.goals span.bad::after{content:"ahora";font-size:.7rem;opacity:.85}
+.plan-card{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:8;width:min(480px,calc(100% - 32px));max-height:calc(100% - 180px);overflow:auto;display:flex;flex-direction:column;gap:10px;padding:20px;border-radius:16px;background:var(--glass);border:1px solid var(--spot);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.plan-card>b{font:400 1.3rem/1.2 var(--f-display)}
+.plan-card p{margin:0;color:var(--mute);font-size:.88rem}
+.goal-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.goal-list li{display:grid;grid-template-columns:2.2rem minmax(0,1fr) auto;gap:2px 10px;align-items:start}
+.goal-list .ge{grid-row:1 / 3;font-size:1.6rem;line-height:1.2;text-align:center}
+.goal-list b{font-size:1rem}
+.goal-list small{grid-column:2;color:var(--mute);font-size:.84rem;line-height:1.4}
+.goal-list .gv{grid-row:1 / 3;grid-column:3;align-self:center}
+.plan-banner{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:14px 18px;border-radius:14px;border:1px solid var(--spot);background:color-mix(in srgb,var(--spot) 7%,var(--stage))}
+.plan-banner .goals{flex:1}
+.ba-top{display:flex;flex-wrap:wrap;gap:10px 28px;align-items:baseline;margin-bottom:14px}
+.ba-top b{font:400 1.7rem/1 var(--f-display)}
+.ba-top .arrow{color:var(--mute);margin:0 6px}
 .enroll{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:9;width:min(460px,calc(100% - 32px));display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px;border-radius:16px;text-align:center;background:var(--glass);border:1px solid var(--spot);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 .enroll>b{font-size:1.05rem}
 .enroll p{margin:0;color:var(--mute);font-size:.9rem}
@@ -276,10 +316,10 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
 .progress{height:6px;border-radius:3px;background:rgba(255,255,255,.1);overflow:hidden}
 .progress i{display:block;height:100%;width:0;background:var(--spot);transition:width .2s linear}
 .count-big{font:400 clamp(6rem,22vw,12rem)/1 var(--f-display);color:#fff;text-shadow:0 6px 40px rgba(0,0,0,.6)}
-.toast{position:absolute;left:50%;bottom:calc(136px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:9;background:var(--glass);border:1px solid var(--line);border-radius:12px;padding:10px 16px;font-size:.9rem;max-width:calc(100% - 32px)}
+.toast{position:fixed;z-index:60!important;left:50%;bottom:calc(136px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:9;background:var(--glass);border:1px solid var(--line);border-radius:12px;padding:10px 16px;font-size:.9rem;max-width:calc(100% - 32px)}
 
 @media (max-width:760px){
-  #cue,#monitor,.busy,.calib,.cam-alert,.enroll,.stop-card,.voice-hint,.stage-card,.toast{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:rgba(17,15,23,.93)}
+  #cue,#monitor,.busy,.calib,.cam-alert,.enroll,.stop-card,.plan-card,.file-bar,.voice-hint,.stage-card,.toast{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:rgba(17,15,23,.93)}
   #prompter{width:calc(100% - 24px);height:42%}
   #monitor{left:max(8px,env(safe-area-inset-left,0px));right:max(8px,env(safe-area-inset-right,0px));width:auto;bottom:calc(76px + env(safe-area-inset-bottom,0px));padding:10px 12px;max-height:38%}
   #meters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 10px}
@@ -345,6 +385,8 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
 .pill.ok{color:var(--ok);border-color:rgba(85,214,166,.45)}
 .pill.no{color:var(--bad);border-color:rgba(255,110,100,.45)}
 .pill.na{color:var(--mute)}
+.pill.warn{color:var(--warn);border-color:rgba(244,185,66,.45)}
+.pill.bad{color:var(--bad);border-color:rgba(255,110,100,.45)}
 .prows{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
 .prows li{display:grid;grid-template-columns:22px 92px minmax(0,1fr);gap:10px;align-items:center;font-size:.9rem}
 .prows .ico{width:20px;height:20px;color:var(--mute)}
@@ -403,6 +445,8 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
     <symbol id="i-codo" viewBox="0 0 24 24"><path d="M5 4.5l4.5 9 9.5 2.5"/><circle cx="9.5" cy="13.5" r="1.7"/></symbol>
     <symbol id="i-flotante" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="15" rx="2"/><rect x="12" y="11" width="7" height="6" rx="1"/></symbol>
     <symbol id="i-idea" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></symbol>
+    <symbol id="i-subir" viewBox="0 0 24 24"><path d="M12 20V9M7 14l5-5 5 5M5 4h14"/></symbol>
+    <symbol id="i-pelicula" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4M10.5 9.5l4 2.5-4 2.5z"/></symbol>
     <symbol id="i-repetir" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3L20 9M20 4v5h-5M20 12a8 8 0 0 1-14 5.3L4 15M4 20v-5h5"/></symbol>
   </defs>
 </svg>
@@ -420,10 +464,12 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
   <section class="block">
     <p class="eyebrow">¿Qué vas a hacer?</p>
     <div class="modes" role="radiogroup" aria-label="Uso">
-      <label class="modecard"><input type="radio" name="app" value="video" id="app-video"><svg class="ico"><use href="#i-camara"/></svg><b>Grabar un vídeo</b><span>Con tu guion en pantalla, como un teleprompter. Te marca gestos en el momento justo de cada frase.</span></label>
+      <label class="modecard"><input type="radio" name="app" value="video" id="app-video"><svg class="ico"><use href="#i-camara"/></svg><b>Grabar un vídeo</b><span>Con tu guion en pantalla, como un teleprompter. Te marca gestos en el momento justo de cada frase. También puedes subir un vídeo que ya grabaste para que lo analice.</span></label>
       <label class="modecard"><input type="radio" name="app" value="llamada" id="app-llamada"><svg class="ico"><use href="#i-llamada"/></svg><b>Videollamada o directo</b><span>Sin guion. Te dice qué haces con la cara, las manos y el cuerpo mientras hablas y mientras escuchas, en una ventana flotante encima de la llamada.</span></label>
     </div>
   </section>
+
+  <section class="plan-banner only-video" id="planBanner" hidden aria-label="Objetivos para la próxima toma"></section>
 
   <div class="grid">
     <div class="col">
@@ -432,6 +478,11 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
         <h2>Lo que vas a leer</h2>
         <label for="script" class="sr">Guion</label>
         <textarea id="script" spellcheck="true"></textarea>
+        <div class="tools">
+          <button class="ghost" id="txtUpload" type="button"><svg class="ico"><use href="#i-subir"/></svg>Subir texto</button>
+          <span class="note">Word, .txt, subtítulos (.srt, .vtt), .odt o .rtf. También puedes arrastrar el archivo al cuadro.</span>
+          <input type="file" id="txtFile" accept=".txt,.text,.md,.srt,.vtt,.docx,.odt,.rtf,.html,.htm,text/plain,text/markdown,text/html,application/rtf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.oasis.opendocument.text" hidden>
+        </div>
         <ul class="syntax">
           <li><code>[animado]</code>tono desde ese párrafo</li>
           <li><code>//</code>pausa</li>
@@ -516,8 +567,11 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
 
       <div class="actions o4">
         <button class="primary" id="go"><svg class="ico"><use href="#i-play"/></svg><span class="only-video">Entrar al plató</span><span class="only-call">Empezar</span></button>
+        <button class="ghost only-video" id="analyze"><svg class="ico"><use href="#i-pelicula"/></svg>Analizar un vídeo grabado</button>
         <button class="ghost only-video" id="sample"><svg class="ico"><use href="#i-repetir"/></svg>Cargar guion de ejemplo</button>
+        <input type="file" id="vidFile" accept="video/*,.mp4,.mov,.m4v,.webm" hidden>
       </div>
+      <p class="note o5 only-video"><b style="color:var(--paper)">¿Ya lo grabaste?</b> Sube el vídeo: mientras se reproduce te dice qué transmites, si encaja con el tono que elegiste y qué mejorar. Después lo repites aquí con esas indicaciones y te avisa en directo de si lo estás consiguiendo. El vídeo no sale de tu dispositivo.</p>
       <p class="note o5">Pedirá permiso para cámara y micrófono. Funciona mejor en Chrome o Edge, con el móvil en vertical o el portátil a la altura de los ojos y la cámara viéndote de cintura para arriba.</p>
     </div>
   </div>
@@ -551,6 +605,7 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
       </div>
     </div>
     <p class="mood" id="mood">👀 Esperando a verte…</p>
+    <div class="goals" id="goals" hidden aria-label="Objetivos de la toma"></div>
     <div class="seen" aria-label="Lo que detecta ahora"><span data-s="cara">🙂 Cara</span><span data-s="cuerpo">🧍 Cuerpo</span><span data-s="manos">✋ Manos</span><span data-s="voz">🎙️ Voz</span></div>
     <p class="why" id="why">Colócate frente a la cámara y empieza a hablar.</p>
     <div class="tabs" role="tablist" aria-label="Vista del monitor"><button type="button" role="tab" data-tab="cuerpo">Cuerpo</button><button type="button" role="tab" data-tab="tono">Tono</button></div>
@@ -580,6 +635,15 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
     <p>Sigo grabando hasta entonces. Di <q>seguimos</q> para continuar.</p>
     <div class="actions"><button class="ghost" id="stopCancel" type="button">Seguir grabando</button><button class="primary" id="stopNowBtn" type="button">Cortar ya</button></div>
   </div>
+  <div class="plan-card" id="planCard" hidden role="dialog" aria-label="Objetivos de esta toma">
+    <b>🎯 Tus objetivos para esta toma</b>
+    <p id="planFrom"></p>
+    <ul class="goal-list" id="planList"></ul>
+    <p>Te aviso en cuanto vea uno de ellos y te digo cuándo lo consigues.</p>
+    <p id="planNext" style="color:var(--paper)"></p>
+    <div class="actions"><button class="primary" id="planOk" type="button">¡Entendido!</button></div>
+  </div>
+  <div class="file-bar" id="fileBar" hidden><span aria-hidden="true">🎞️</span><span class="fb-name" id="fbName"></span><div class="progress"><i id="fbProg"></i></div><span class="fb-time" id="fbTime">0:00</span></div>
   <div class="voice-hint" id="voiceHint" hidden>🎙️ Di <b>«comenzamos»</b> para grabar · <b>«ensayo»</b> para ensayar · <b>«corten»</b> para parar</div>
 
   <div class="bar-ctl">
@@ -602,8 +666,8 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
 
   <div class="pip-note" id="pipNote" hidden><b>El apuntador está en la ventana flotante</b><p>Puedes volver a la videollamada: los avisos y lo que detecta siguen allí.</p><div class="actions"><button class="ghost" id="pipBack">Traerlo a esta ventana</button></div></div>
   <div class="stage-msg" id="stageMsg" hidden></div>
-  <div class="toast" id="toast" hidden></div>
 </section>
+<div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 
 <!-- ============ INFORME ============ -->
 <section id="report" hidden aria-label="Informe de la toma"></section>
@@ -933,6 +997,118 @@ $('#detect').addEventListener('click', e => {
   const b = e.target.closest('#useDetected'); if (!b) return;
   S.tone = b.dataset.tone; store.set('tone', S.tone); renderTones(); refreshSetup();
 });
+/* ---------------- subir el texto ----------------
+   .txt/.md, Word (.docx), LibreOffice (.odt), .rtf, .html y subtítulos (.srt/.vtt). Todo se lee aquí, sin subirlo a ningún sitio. */
+async function unzipEntry(buf, name) {
+  const d = new DataView(buf), u8 = new Uint8Array(buf);
+  let e = -1;
+  for (let i = buf.byteLength - 22; i >= Math.max(0, buf.byteLength - 66000); i--) if (d.getUint32(i, true) === 0x06054b50) { e = i; break; }
+  if (e < 0) throw new Error('No es un archivo comprimido válido');
+  let p = d.getUint32(e + 16, true);
+  const count = d.getUint16(e + 10, true), dec = new TextDecoder();
+  for (let k = 0; k < count && d.getUint32(p, true) === 0x02014b50; k++) {
+    const method = d.getUint16(p + 10, true), size = d.getUint32(p + 20, true), nl = d.getUint16(p + 28, true), xl = d.getUint16(p + 30, true), cl = d.getUint16(p + 32, true), off = d.getUint32(p + 42, true);
+    const fname = dec.decode(u8.subarray(p + 46, p + 46 + nl));
+    if (fname === name) {
+      const start = off + 30 + d.getUint16(off + 26, true) + d.getUint16(off + 28, true), raw = u8.subarray(start, start + size);
+      if (method === 0) return dec.decode(raw);
+      if (method !== 8 || typeof DecompressionStream === 'undefined') throw new Error('Este navegador no puede abrir el archivo');
+      return await new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();
+    }
+    p += 46 + nl + xl + cl;
+  }
+  throw new Error('No encuentro el texto dentro del archivo');
+}
+const xmlText = s => s.replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'")
+  .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(+n)).replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16))).replace(/&amp;/g, '&');
+function subsToText(s) {
+  // los cortes de más de 1,5 s entre subtítulos se convierten en párrafos
+  const sec = x => { const m = x.trim().replace(',', '.').split(':').map(Number); return m.length === 3 ? m[0] * 3600 + m[1] * 60 + m[2] : m[0] * 60 + m[1]; };
+  const paras = []; let cur = [], lastEnd = null;
+  for (const block of s.replace(/\r/g, '').split(/\n\s*\n/)) {
+    const lines = block.split('\n').filter(Boolean), ti = lines.findIndex(l => l.includes('-->'));
+    if (ti < 0) continue;
+    const [a, b] = lines[ti].split('-->'), txt = lines.slice(ti + 1).join(' ').replace(/<[^>]+>/g, '').replace(/\{\\[^}]*\}/g, '').trim();
+    if (!txt) continue;
+    const st = sec(a), en = sec(b.trim().split(/\s/)[0]);
+    if (lastEnd != null && st - lastEnd > 1.5 && cur.length) { paras.push(cur.join(' ')); cur = []; }
+    cur.push(txt); lastEnd = en;
+  }
+  if (cur.length) paras.push(cur.join(' '));
+  return paras.join('\n\n');
+}
+function rtfToText(s) {
+  // grupos que no son texto (fuentes, colores, estilos, imágenes…) se saltan enteros
+  const SKIP = new Set(['fonttbl', 'colortbl', 'stylesheet', 'info', 'pict', 'header', 'footer', 'headerl', 'headerr', 'footerl', 'footerr', 'listtable',
+    'listoverridetable', 'rsidtbl', 'generator', 'themedata', 'colorschememapping', 'latentstyles', 'datastore', 'xmlnstbl', 'mmathPr', 'object', 'fldinst']);
+  const cp = new TextDecoder('windows-1252'), stack = [];
+  let out = '', i = 0, skip = false;
+  while (i < s.length) {
+    const c = s[i];
+    if (c === '{') { stack.push(skip); i++; const m = /^\\(\*\\)?([a-z]+)/i.exec(s.slice(i, i + 40)); if (m && (m[1] || SKIP.has(m[2]))) skip = true; continue; }
+    if (c === '}') { skip = stack.pop() || false; i++; continue; }
+    if (c === '\\') {
+      const n = s[i + 1];
+      if (n === "'") { if (!skip) out += cp.decode(new Uint8Array([parseInt(s.substr(i + 2, 2), 16)])); i += 4; continue; }
+      if (n === '\\' || n === '{' || n === '}') { if (!skip) out += n; i += 2; continue; }
+      if (n === '~') { if (!skip) out += ' '; i += 2; continue; }
+      const m = /^\\([a-z]+)(-?\d+)? ?/i.exec(s.slice(i, i + 40));
+      if (!m) { i += 2; continue; }
+      i += m[0].length;
+      if (skip) continue;
+      const w = m[1];
+      if (w === 'par' || w === 'line' || w === 'sect' || w === 'page') out += '\n';
+      else if (w === 'tab') out += ' ';
+      else if (w === 'u') { let code = +m[2]; if (code < 0) code += 65536; out += String.fromCharCode(code); if (s[i] === '?') i++; else if (s[i] === '\\' && s[i + 1] === "'") i += 4; }
+      continue;
+    }
+    if (c !== '\r' && c !== '\n' && !skip) out += c;
+    i++;
+  }
+  return out.replace(/\n{3,}/g, '\n\n').trim();
+}
+async function readTextFile(file) {
+  const name = (file.name || '').toLowerCase(), ext = name.split('.').pop();
+  if (ext === 'pdf') throw new Error('Los PDF no se pueden leer aquí: abre el PDF, copia el texto y pégalo en el cuadro.');
+  if (ext === 'pages' || ext === 'doc') throw new Error('Guárdalo como Word (.docx) o como texto (.txt) y súbelo de nuevo.');
+  if (ext === 'docx') {
+    const xml = await unzipEntry(await file.arrayBuffer(), 'word/document.xml');
+    return xml.split(/<\/w:p>/).map(p => [...p.matchAll(/<w:t(?:\s[^>]*)?>([^<]*)<\/w:t>|<w:tab\/>|<w:br[^>]*\/>|<w:cr\/>/g)]
+      .map(m => m[1] != null ? xmlText(m[1]) : m[0].startsWith('<w:tab') ? ' ' : '\n').join('')).join('\n\n');
+  }
+  if (ext === 'odt') {
+    const xml = await unzipEntry(await file.arrayBuffer(), 'content.xml');
+    const body = xml.slice(xml.indexOf('<office:text'));
+    return xmlText(body.replace(/<text:s\/>/g, ' ').replace(/<text:tab\/>/g, ' ').replace(/<text:line-break\/>/g, '\n').replace(/<\/text:(p|h)>/g, '\n\n'));
+  }
+  const buf = await file.arrayBuffer();
+  let txt = new TextDecoder('utf-8').decode(buf);
+  if (txt.includes('\uFFFD')) txt = new TextDecoder('windows-1252').decode(buf);
+  txt = txt.replace(/^\uFEFF/, '');
+  if (ext === 'srt' || ext === 'vtt' || /^WEBVTT/.test(txt) || /^\d+\s*\n\d\d:\d\d/.test(txt)) return subsToText(txt);
+  if (ext === 'rtf' || txt.startsWith('{\\rtf')) return rtfToText(txt);
+  if (ext === 'html' || ext === 'htm' || /^\s*<(!doctype|html)/i.test(txt)) {
+    const doc = new DOMParser().parseFromString(txt.replace(/<\/(p|div|h\d|li|br)>|<br\s*\/?>/gi, m => m + '\n'), 'text/html');
+    return doc.body ? doc.body.textContent : txt;
+  }
+  return txt;
+}
+async function loadTextFile(file) {
+  if (!file) return;
+  if (/^video\//.test(file.type)) return pickVideo(file);
+  try {
+    const raw = await readTextFile(file);
+    const text = raw.replace(/\r/g, '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+    if (!text) throw new Error('El archivo no tiene texto.');
+    S.text = text; elScript.value = text; store.set('text', S.text); refreshSetup();
+    toast(`📄 Texto cargado: ${S.sc.words.length} palabras de «${file.name}».`, 4000);
+  } catch (e) { console.warn(e); toast('No he podido leer el archivo. ' + (e.message || ''), 7000); }
+}
+$('#txtUpload').addEventListener('click', () => $('#txtFile').click());
+$('#txtFile').addEventListener('change', e => { loadTextFile(e.target.files[0]); e.target.value = ''; });
+elScript.addEventListener('dragover', e => { e.preventDefault(); elScript.classList.add('drop'); });
+elScript.addEventListener('dragleave', () => elScript.classList.remove('drop'));
+elScript.addEventListener('drop', e => { e.preventDefault(); elScript.classList.remove('drop'); loadTextFile(e.dataTransfer.files[0]); });
 $('#sample').addEventListener('click', () => { S.text = SAMPLE; elScript.value = SAMPLE; store.set('text', S.text); refreshSetup(); });
 
 function applyApp() { document.body.dataset.app = isCall() ? 'llamada' : 'video'; }
@@ -970,8 +1146,14 @@ function primeAudio() {
 $('#go').addEventListener('click', () => { primeAudio(); enterStudio(); });
 
 /* ---------------- plató: entrada y salida ---------------- */
-const video = $('#cam'), overlay = $('#overlay'), octx = overlay.getContext('2d'), ghostCv = $('#ghost'), gctx = ghostCv.getContext('2d');
-function show(id) { for (const s of ['setup', 'studio', 'report']) $('#' + s).hidden = s !== id; window.scrollTo(0, 0); }
+let video = $('#cam');   // la cámara o, al analizar un vídeo subido, ese vídeo
+const overlay = $('#overlay'), octx = overlay.getContext('2d'), ghostCv = $('#ghost'), gctx = ghostCv.getContext('2d');
+function show(id) {
+  for (const s of ['setup', 'studio', 'report']) $('#' + s).hidden = s !== id;
+  window.scrollTo(0, 0);
+  $('#toast').hidden = true;
+  if (id === 'setup') renderPlanBanner();
+}
 
 function stageMsg(html) { const m = $('#stageMsg'); if (!html) { m.hidden = true; m.innerHTML = ''; return; } m.innerHTML = html; m.hidden = false; }
 let toastTimer = 0;
@@ -1068,15 +1250,16 @@ document.addEventListener('visibilitychange', () => {
   if (S.audio && S.audio.ctx.state !== 'running') S.audio.ctx.resume().catch(() => {});
 });
 // en iPhone el audio puede arrancar en pausa hasta que tocas la pantalla
-$('#studio').addEventListener('pointerdown', () => { if (S.audio && S.audio.ctx.state !== 'running') S.audio.ctx.resume().catch(() => {}); if (video.paused) video.play().catch(() => {}); });
+$('#studio').addEventListener('pointerdown', () => { if (S.audio && S.audio.ctx.state !== 'running') S.audio.ctx.resume().catch(() => {}); if (S.file) { if (S.take && video.paused && !video.ended) video.play().catch(() => {}); } else if (video.paused) video.play().catch(() => {}); });
 
 function busy(txt) { const b = $('#busy'); if (!txt) { b.hidden = true; return; } $('#busyTxt').textContent = txt; b.hidden = false; }
 
-async function enterStudio() {
-  S.sc = parseScript(S.text, S.tone);
-  if (!S.sc.words.length && !isCall()) return;
+function prepStudioUI() {
   show('studio');
   $('#studio').classList.toggle('app-llamada', isCall());
+  $('#studio').classList.toggle('file-mode', !!S.file);
+  $('#fileBar').hidden = !S.file;
+  $('#planCard').hidden = true;
   S.seenOK = false;
   setTab(S.opts.tab?.[S.opts.app] || (isCall() ? 'cuerpo' : 'tono'));
   document.documentElement.style.setProperty('--pfs', pfs() + 'px');
@@ -1090,6 +1273,12 @@ async function enterStudio() {
   setupPrompter();
   setTakeUI(false);
   stageMsg(null);
+}
+async function enterStudio() {
+  endFileMode();
+  S.sc = parseScript(S.text, S.tone);
+  if (!S.sc.words.length && !isCall()) return;
+  prepStudioUI();
   busy('Pidiendo permiso para la cámara y el micrófono…');
   try {
     if (!S.stream || !S.stream.active) attachStream(await openCamera());
@@ -1101,29 +1290,39 @@ async function enterStudio() {
   startLoops();
   navigator.wakeLock?.request('screen').then(w => { S.wake = w; }).catch(() => {});
   try { await withTimeout(setupAudio(S.stream), 6000); } catch (e) { console.warn('audio', e); }
-  if (!S.vision && !S.visionErr) {
-    const prog = (txt, p) => busy(`Preparando el análisis de imagen · ${Math.round(p)}% · ${txt}`);
-    prog('descargando modelos (unos 18 MB, solo la primera vez)…', 5);
-    try { S.vision = await loadVisionWorker(prog); }
-    catch (e) {
-      console.warn('Análisis en segundo plano no disponible; uso el hilo principal', e);
-      const late = loadVision(prog);
-      try { S.vision = await withTimeout(late, 90000); }
-      catch (e2) { late.then(v => { for (const k of ['pose', 'face', 'hands']) try { v[k].close(); } catch {} }).catch(() => {}); console.error(e2); S.visionErr = e2; toast('No se pudo cargar el análisis de imagen (¿sin conexión?). Te sigo ayudando con la voz y el texto.', 7000); }
-    }
-    busy(null);
-  }
+  await ensureVision();
   if (!S.live || S.take || S.countdown) return;
   startCalibration();
+}
+async function ensureVision() {
+  if (S.vision || S.visionErr) return;
+  // una sola carga aunque se entre y salga del plató mientras tanto
+  if (!S.visionP) S.visionP = loadAnyVision().finally(() => { S.visionP = null; });
+  await S.visionP;
+}
+async function loadAnyVision() {
+  const prog = (txt, p) => busy(`Preparando el análisis de imagen · ${Math.round(p)}% · ${txt}`);
+  prog('descargando modelos (unos 18 MB, solo la primera vez)…', 5);
+  try { S.vision = await loadVisionWorker(prog); }
+  catch (e) {
+    console.warn('Análisis en segundo plano no disponible; uso el hilo principal', e);
+    const late = loadVision(prog);
+    try { S.vision = await withTimeout(late, 90000); }
+    catch (e2) { late.then(v => { for (const k of ['pose', 'face', 'hands']) try { v[k].close(); } catch {} }).catch(() => {}); console.error(e2); S.visionErr = e2; toast('No se pudo cargar el análisis de imagen (¿sin conexión?). Te sigo ayudando con la voz y el texto.', 7000); }
+  }
+  busy(null);
 }
 $('#stageMsg').addEventListener('click', e => {
   const a = e.target.closest('[data-act]')?.dataset.act;
   if (a === 'back') leaveStudio();
   if (a === 'retry') { primeAudio(); enterStudio(); }
   if (a === 'skipcal') finishCalibration(true);
+  if (a === 'fileplay') startFileTake();
+  if (a === 'fileresume') { S.audio?.ctx.resume?.().catch?.(() => {}); S.file?.el.play().catch(() => {}); }
 });
 
 function leaveStudio() {
+  endFileMode();
   closePip();
   busy(null); $('#calib').hidden = true; $('#camAlert').hidden = true; cancelEnroll(); S.stopping = null; $('#stopCard').hidden = true;
   if (S.take) stopTake(false);
@@ -1132,10 +1331,115 @@ function leaveStudio() {
   stopVoice();
   try { S.wake?.release(); } catch {}
   if (S.stream) { for (const tr of S.stream.getTracks()) tr.stop(); S.stream = null; }
+  $('#cam').srcObject = null;
   if (S.audio) { try { S.audio.ctx.close(); } catch {} S.audio = null; }
   S.calibrating = null;
   stageMsg(null);
   show('setup');
+}
+
+/* ---------------- analizar un vídeo grabado ----------------
+   El vídeo subido ocupa el lugar de la cámara: se reproduce en el plató (entero y sin espejo) y pasa por el mismo
+   análisis de cara, cuerpo, manos y voz, con los mismos avisos encima. Al terminar, el informe dice qué transmite,
+   si encaja con el tono elegido y qué mejorar, y deja preparado el plan para grabar la versión mejorada. */
+$('#analyze').addEventListener('click', () => { primeAudio(); $('#vidFile').click(); });
+$('#vidFile').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) pickVideo(f); });
+function pickVideo(file) {
+  if (!/^video\//.test(file.type) && !/\.(mp4|mov|m4v|webm|mkv|3gp)$/i.test(file.name || '')) { toast('Ese archivo no parece un vídeo. Sube un .mp4, .mov o .webm.', 5000); return; }
+  primeAudio();
+  enterFile(file);
+}
+const takeT = t => S.take?.file && S.file ? S.file.el.currentTime : t - S.take.t0;
+async function enterFile(file) {
+  if (S.live) leaveStudio(); else endFileMode();
+  if (S.fileUrl) URL.revokeObjectURL(S.fileUrl);
+  const url = S.fileUrl = URL.createObjectURL(file);
+  S.sc = parseScript(S.text, S.tone);
+  stopVoice();
+  if (S.stream) { for (const tr of S.stream.getTracks()) tr.stop(); S.stream = null; }
+  $('#cam').srcObject = null;
+  const el = document.createElement('video');
+  el.id = 'filevid'; el.playsInline = true; el.setAttribute('playsinline', ''); el.setAttribute('webkit-playsinline', ''); el.preload = 'auto';
+  el.src = url;
+  $('#cam').after(el);
+  video = el;
+  S.file = { name: file.name || 'vídeo', url, el };
+  // la calibración guardada es de tu cámara y tu micro: aquí se usan valores neutros
+  S.calibKeep = S.calib; S.calib = { ...DEFAULT_CALIB, done: true };
+  prepStudioUI();
+  $('#fbName').textContent = S.file.name; $('#fbProg').style.width = '0%'; $('#fbTime').textContent = '';
+  busy('Abriendo el vídeo…');
+  const ok = await new Promise(res => {
+    let done = false; const end = v => { if (!done) { done = true; res(v); } };
+    el.addEventListener('loadedmetadata', () => end(true), { once: true });
+    el.addEventListener('error', () => end(false), { once: true });
+    setTimeout(() => end(el.readyState >= 1), 20000);
+  });
+  if (S.file?.el !== el) return;
+  // primer fotograma visible (en iPhone hace falta reproducir un instante, sin sonido)
+  if (ok) { try { el.muted = true; await withTimeout(el.play(), 4000); el.pause(); el.currentTime = 0; } catch {} el.muted = false; }
+  busy(null);
+  if (!ok || !el.videoWidth) {
+    stageMsg(`<div class="stage-card"><h3>No puedo abrir este vídeo</h3><p>El navegador no sabe reproducirlo. Prueba con un .mp4 (H.264): los .mov del iPhone se abren en Safari; en Chrome de ordenador, expórtalo como MP4 o súbelo desde el móvil.</p>
+      <div class="actions"><button class="ghost" data-act="back">${ico('volver')}Volver</button></div></div>`);
+    return;
+  }
+  S.live = true;
+  startLoops();
+  navigator.wakeLock?.request('screen').then(w => { S.wake = w; }).catch(() => {});
+  try { await withTimeout(setupAudio(null, el), 6000); } catch (e) { console.warn('audio', e); }
+  await ensureVision();
+  // el primer análisis tarda más (prepara el motor): se hace con el primer fotograma para no perder el principio del vídeo
+  if (S.vision) {
+    busy('Preparando el análisis…');
+    const w0 = now();
+    while (S.live && S.file?.el === el && !(perf.at.pose > w0 && perf.at.face > w0) && now() - w0 < 20) await new Promise(r => setTimeout(r, 200));
+    busy(null);
+  }
+  if (!S.live || S.file?.el !== el) return;
+  const d = el.duration, T = TONES[S.tone];
+  stageMsg(`<div class="stage-card"><h3>🎞️ Tu vídeo está listo</h3><p><b style="color:var(--paper)">${esc(S.file.name)}</b>${isFinite(d) ? ' · ' + fmtTime(d) : ''}</p>
+    <p>Mientras se reproduce, Apuntador mira tu cara, tus manos y tu cuerpo y escucha tu voz. Te dice en el momento qué transmites frente a un mensaje <b style="color:${T.color}">${T.adj}</b> y, al final, qué mejorar para repetirlo.</p>
+    <p style="font-size:.84rem">Para cambiar el tono, vuelve y elige otro en «¿Qué tiene que transmitir el mensaje?».</p>
+    <div class="actions"><button class="ghost" data-act="back">${ico('volver')}Volver</button><button class="primary" data-act="fileplay">${ico('play')}Empezar el análisis</button></div></div>`);
+}
+async function startFileTake() {
+  const el = S.file?.el; if (!el || S.take) return;
+  stageMsg(null);
+  S.audio?.ctx.resume?.().catch?.(() => {});
+  el.muted = false; el.currentTime = 0;
+  try { await el.play(); }
+  catch {
+    try { el.muted = true; await el.play(); toast('El navegador no deja oír el vídeo: lo analizo sin sonido, así que la voz no cuenta.', 7000); }
+    catch { toast('No se pudo reproducir el vídeo. Toca la pantalla y vuelve a intentarlo.', 6000); fileReadyAgain(); return; }
+  }
+  el.onended = () => { if (S.take?.file) stopTake(true); };
+  startTake(false);
+}
+function fileReadyAgain() {
+  stageMsg(`<div class="stage-card"><h3>🎞️ ${esc(S.file?.name || 'Tu vídeo')}</h3><div class="actions"><button class="ghost" data-act="back">${ico('volver')}Volver</button><button class="primary" data-act="fileplay">${ico('play')}Empezar el análisis</button></div></div>`);
+}
+function fileTick(t) {
+  const el = S.file?.el; if (!el) return;
+  const d = el.duration, c = el.currentTime;
+  if (isFinite(d) && d > 0) { const w = Math.min(100, c / d * 100).toFixed(1) + '%'; if ($('#fbProg').style.width !== w) $('#fbProg').style.width = w; }
+  const txt = isFinite(d) ? `${fmtTime(c)} / ${fmtTime(d)}` : fmtTime(c);
+  if ($('#fbTime').textContent !== txt) $('#fbTime').textContent = txt;
+  // si el sistema pausa el vídeo (pantalla bloqueada, llamada…), el análisis espera
+  const paused = !!S.take && el.paused && !el.ended;
+  if (paused && !S.file.pausedMsg) { S.file.pausedMsg = true; stageMsg(`<div class="stage-card"><h3>⏸ Vídeo en pausa</h3><p>El análisis espera.</p><div class="actions"><button class="primary" data-act="fileresume">${ico('play')}Seguir</button></div></div>`); }
+  else if (!paused && S.file.pausedMsg) { S.file.pausedMsg = false; stageMsg(null); }
+}
+function endFileMode() {
+  const f = S.file; if (!f) return;
+  try { f.el.pause(); } catch {}
+  f.el.onended = null; f.el.remove();
+  video = $('#cam');
+  if (S.calibKeep) { S.calib = S.calibKeep; S.calibKeep = null; }
+  if (S.audio && S.audio.el === f.el) { try { S.audio.ctx.close(); } catch {} S.audio = null; }
+  S.file = null;
+  $('#studio').classList.remove('file-mode');
+  $('#fileBar').hidden = true;
 }
 
 /* ---------------- visión ---------------- */
@@ -1287,7 +1591,8 @@ function visionPump(t) {
     if (IS_MOBILE && which === 'hands') [which, ts] = nextTask();
     // imagen reducida a 320 px: mucho menos trabajo para el hilo de la pantalla
     const sc = VW.small || (VW.small = document.createElement('canvas')), vw = video.videoWidth, vh = video.videoHeight;
-    if (sc.width !== 320) { sc.width = 320; sc.height = Math.round(320 * vh / vw); }
+    const sh = Math.round(320 * vh / vw);
+    if (sc.width !== 320 || sc.height !== sh) { sc.width = 320; sc.height = sh; }
     sc.getContext('2d').drawImage(vsrc, 0, 0, sc.width, sc.height);
     const t0 = performance.now();
     let res = null;
@@ -1673,15 +1978,17 @@ class ApuntadorMeter extends AudioWorkletProcessor {
 }
 registerProcessor('apuntador-meter', ApuntadorMeter);`;
 
-async function setupAudio(stream) {
-  if (S.audio && S.audio.stream === stream) return;
+async function setupAudio(stream, el = null) {
+  if (S.audio && (el ? S.audio.el === el : S.audio.stream === stream)) return;
   if (S.audio) { try { S.audio.ctx.close(); } catch {} S.audio = null; }
   let ctx;
   try {
     ctx = S.actx && S.actx.state !== 'closed' ? S.actx : new (window.AudioContext || window.webkitAudioContext)();
     S.actx = null;
     ctx.resume?.().catch?.(() => {});
-    const src = ctx.createMediaStreamSource(stream);
+    // de un vídeo subido: su sonido se analiza y además se oye
+    const src = el ? ctx.createMediaElementSource(el) : ctx.createMediaStreamSource(stream);
+    if (el) src.connect(ctx.destination);
     try {
       const url = URL.createObjectURL(new Blob([WORKLET_SRC], { type: 'application/javascript' }));
       await withTimeout(ctx.audioWorklet.addModule(url), 4000);
@@ -1694,12 +2001,12 @@ async function setupAudio(stream) {
           if (m.k === 'm') onMfcc(t, m.f); else processAudio(t, m.db, m.f0);
         } catch (err) { console.warn(err); }
       };
-      S.audio = { ctx, node, mode: 'worklet', stream };
+      S.audio = { ctx, node, mode: 'worklet', stream, el };
     } catch (e) {
       console.warn('AudioWorklet no disponible, uso AnalyserNode', e);
       const an = ctx.createAnalyser(); an.fftSize = 2048;
       src.connect(an);
-      S.audio = { ctx, an, mode: 'analyser', stream, buf: new Float32Array(an.fftSize), half: new Float32Array(an.fftSize / 2), sr: ctx.sampleRate / 2, d: null };
+      S.audio = { ctx, an, mode: 'analyser', stream, el, buf: new Float32Array(an.fftSize), half: new Float32Array(an.fftSize / 2), sr: ctx.sampleRate / 2, d: null };
     }
   } catch (e) { console.warn('audio', e); }
 }
@@ -1714,7 +2021,7 @@ function audioTick() {
   processAudio(now(), db, f0);
 }
 function onDoubleClap() {
-  if (isCall() || !S.live || S.take || S.countdown || S.calibrating || KWS.enroll) return;
+  if (isCall() || S.file || !S.live || S.take || S.countdown || S.calibrating || KWS.enroll) return;
   toast('👏👏 ¡Oído! Grabamos', 1800);
   startTake(true);
 }
@@ -1793,7 +2100,7 @@ function finishCalibration(skipped) {
   const voice = !isCall() && startVoice();
   const next = isCall() ? ('Pulsa Empezar cuando arranque la llamada.' + ('documentPictureInPicture' in window ? ' Con «Ventana flotante» lo tendrás encima de ella.' : ' Pon esta ventana al lado de la llamada.'))
     : voice || (kwsOn() && KWS.tpl) ? 'Di «comenzamos» cuando quieras y empezará la cuenta atrás.' : 'Da dos palmadas o pulsa Grabar cuando quieras.';
-  toast((skipped ? 'Listo. ' : 'Calibrado. ') + next, 6500);
+  if (!showPlanCard(next)) toast((skipped ? 'Listo. ' : 'Calibrado. ') + next, 6500);
 }
 
 /* ---------------- voz: órdenes y seguimiento del texto ----------------
@@ -1815,7 +2122,7 @@ function voiceEngine() {
 // una orden, venga de donde venga
 function voiceCommand(cmd) {
   const t = now();
-  if (isCall() || t - (S.lastCmdT || 0) < 1.2) return;
+  if (isCall() || S.file || t - (S.lastCmdT || 0) < 1.2) return;
   if (!$('#report').hidden) { if (cmd === 'grabar' || cmd === 'ensayo') { S.lastCmdT = t; toast('🎬 ¡Oído! Otra toma', 1800); againByVoice(cmd === 'grabar'); } return; }
   if (!S.live || KWS.enroll) return;
   if ((cmd === 'grabar' || cmd === 'ensayo') && !S.take && !S.countdown) {
@@ -1882,7 +2189,7 @@ try {
   const raw = store.get('kwTpl', null);
   if (raw && raw.thr) KWS.tpl = { thr: raw.thr, ...Object.fromEntries(KW_WORDS.map(([c]) => [c, (raw[c] || []).map(T => T.map(v => Float32Array.from(v)))])) };
 } catch { KWS.tpl = null; }
-function kwsOn() { return !isCall() && voiceEngine() === 'propias' && !!S.audio && S.audio.mode === 'worklet'; }
+function kwsOn() { return !isCall() && !S.file && voiceEngine() === 'propias' && !!S.audio && S.audio.mode === 'worklet'; }
 function onMfcc(t, flat) {
   if (!KWS.enroll && !kwsOn()) return;
   const n = flat.length / 13;
@@ -1952,6 +2259,7 @@ const ENROLL_STEPS = [['grabar', 'comenzamos'], ['grabar', 'comenzamos'], ['para
 function startEnroll() {
   if (!S.audio || S.audio.mode !== 'worklet') { toast('Este navegador no permite escuchar tus palabras: usa los botones o las palmadas.', 6000); return; }
   KWS.enroll = { step: 0, got: { grabar: [], parar: [], seguir: [] } };
+  $('#planCard').hidden = true;
   KWS.cur = null; KWS.silent = 30;
   $('#enroll').hidden = false; showEnroll();
 }
@@ -1974,6 +2282,7 @@ function enrollAdd(frames) {
   store.set('kwTpl', { thr, ...Object.fromEntries(KW_WORDS.map(([c]) => [c, e.got[c].map(T => T.map(v => Array.from(v, x => +x.toFixed(3))))])) });
   KWS.enroll = null;
   $('#enroll').hidden = true;
+  showPlanCard();
   toast(clash ? 'Guardado, pero dos palabras se parecen mucho en tu grabación: si falla, vuelve a enseñarlas en un sitio con menos ruido.'
     : '✅ ¡Aprendido! Di «comenzamos» para grabar y «corten» para parar.', 6000);
 }
@@ -1991,13 +2300,13 @@ function kwsThresholds(got) {
   }
   return { thr, clash };
 }
-function cancelEnroll() { KWS.enroll = null; $('#enroll').hidden = true; }
+function cancelEnroll() { const was = !!KWS.enroll; KWS.enroll = null; $('#enroll').hidden = true; if (was) showPlanCard(); }
 
 /* ---------------- parar con margen ----------------
    Al pedir parar (voz, botón o Esc) sigue grabando unos segundos con cuenta atrás; «seguimos» lo cancela. */
 function requestStop() {
   if (!S.take || S.stopping) return;
-  const dur = S.take.call ? 0 : +(S.opts.stopMargin ?? 3);
+  const dur = S.take.call || S.take.file ? 0 : +(S.opts.stopMargin ?? 3);
   if (!dur) return stopTake(true);
   S.stopping = { t0: now(), dur };
   $('#stopCard').hidden = false;
@@ -2162,7 +2471,8 @@ function computeMetrics(t) {
   }
   if (t - V.lastVoiced < 2.5) {
     const dbs = ser.voicedDb.since(t, 2.5);
-    if (dbs.length > 5) M.volumen = clamp(.5 + (mean(dbs) - S.calib.refDb) / 18);
+    // en un vídeo subido el volumen depende de cómo se exportó: no se valora
+    if (dbs.length > 5 && !S.file) M.volumen = clamp(.5 + (mean(dbs) - S.calib.refDb) / 18);
     const st = ser.pitch.since(t, 6);
     if (st.length >= 20) { const md = median(st); const f = st.filter(x => Math.abs(x - md) < 7); M.entonacion = clamp((std(f) - .9) / 3.3); }
     if (S.take && FOL.follow && FOL.ok && t - S.take.t0 > 6) {
@@ -2187,7 +2497,7 @@ function fitTone(M, T) {
   return w ? s / w : null;
 }
 function currentTone() {
-  if (isCall() || !S.sc) return S.tone;
+  if (isCall() || !S.sc || S.file) return S.tone;
   const w = S.sc.words[PR.idx];
   return w ? S.sc.paras[w.p].tone : S.tone;
 }
@@ -2198,7 +2508,7 @@ const gapHigh = (c, m, margin = .1) => c.M[m] != null && c.M[m] > c.T[m][1] + ma
 const RULES = [
   { id: 'nadie', kind: 'crit', pri: 100, hold: 2, cool: 6, icon: 'encuadre',
     test: c => t0(c) && S.vision && perf.at.face && !(F.ok && fresh('face', F.lastSeen, c.t, 1.5)) && !(B.ok && fresh('pose', B.lastOk, c.t, 1.5)),
-    title: () => 'No te veo', detail: () => 'Colócate frente a la cámara, con luz de frente.' },
+    title: () => S.file ? 'Aquí no se te ve' : 'No te veo', detail: () => S.file ? 'En este tramo no aparecen ni tu cara ni tu cuerpo.' : 'Colócate frente a la cámara, con luz de frente.' },
   { id: 'cerca', kind: 'crit', pri: 90, hold: 2, cool: 12, icon: 'encuadre',
     test: c => F.ok && (F.h > .5 || (!B.shOk && fresh('pose', B.lastSeen, c.t, 1) && F.h > .3)),
     title: () => 'Aléjate un poco de la cámara', detail: () => 'Que se vean hombros y manos: el cuerpo también habla.' },
@@ -2217,7 +2527,7 @@ const RULES = [
   { id: 'mirada', kind: 'crit', pri: 72, hold: 2, cool: 9, icon: 'ojo',
     test: c => c.M.mirada != null && c.M.mirada < .45 ? .65 - c.M.mirada : 0,
     title: () => F.headDown ? 'Levanta la mirada' : 'Mira a la cámara',
-    detail: c => c.isCall ? 'Al hablar, mira al objetivo de la cámara: es mirar a los ojos de quien te ve.' : F.headDown ? 'Lee en la franja iluminada, que está junto al objetivo.' : 'Si miras a otro lado se pierde la conexión con quien te ve.' },
+    detail: c => c.isCall ? 'Al hablar, mira al objetivo de la cámara: es mirar a los ojos de quien te ve.' : S.file ? (F.headDown ? 'Se te ve mirando hacia abajo: pon el texto junto al objetivo de la cámara.' : 'Mirar a otro lado rompe la conexión con quien te ve.') : F.headDown ? 'Lee en la franja iluminada, que está junto al objetivo.' : 'Si miras a otro lado se pierde la conexión con quien te ve.' },
   { id: 'manosFuera', kind: 'body', pri: 66, hold: 3, cool: 15, icon: 'mano',
     test: c => B.ok && (ser.handsUp.mean(c.t, 4) ?? 1) < .05 && (ser.handSeen.mean(c.t, 4) ?? 1) < .05,
     title: () => B.frameBottomTight ? 'Aléjate: que se vean tus manos' : 'Sube las manos al encuadre',
@@ -2344,7 +2654,7 @@ function pickIdea(c) {
   let best = null, bp = .45;
   for (const m of METRICS) {
     const v = c.M[m.id], band = c.T[m.id];
-    if (v == null || !band || !IDEAS[m.id] || !fresh(m.id) || (m.id === 'mirada' && !c.isCall)) continue;
+    if (v == null || !band || !IDEAS[m.id] || !fresh(m.id) || (m.id === 'mirada' && !c.isCall && !S.file)) continue;
     const pos = (v - band[0]) / Math.max(.05, band[1] - band[0]);
     if (pos < bp) { bp = pos; best = m.id; }
   }
@@ -2359,9 +2669,10 @@ function readParts(c) {
   const strict = ['serio', 'urgente'].includes(c.tone), wide = ['animado', 'inspirador', 'divertido', 'urgente'].includes(c.tone);
   if (!faceOk) { for (const k of ['cabeza', 'mirada', 'cejas', 'boca']) out[k] = ['No se ve', 'na']; }
   else {
-    out.cabeza = t - (F.nodT || -99) < 2 ? ['Asintiendo', 'ok'] : Math.abs(F.yawDev) > .25 ? ['Girada', 'warn'] : F.pitchDev > .12 ? ['Hacia abajo', c.listening || !c.isCall ? 'none' : 'warn']
+    out.cabeza = t - (F.nodT || -99) < 2 ? ['Asintiendo', 'ok'] : Math.abs(F.yawDev) > .25 ? ['Girada', 'warn'] : F.pitchDev > .12 ? ['Hacia abajo', c.listening || (!c.isCall && !S.file) ? 'none' : 'warn']
       : Math.abs(F.roll) > 12 ? ['Ladeada', strict ? 'warn' : 'none'] : ['De frente', 'ok'];
-    out.mirada = !c.isCall ? (F.contact ? ['A cámara', 'ok'] : ['Leyendo el texto', 'none'])
+    // grabando con guion lees el texto; en una llamada o en un vídeo subido, la mirada sí cuenta
+    out.mirada = !c.isCall && !S.file ? (F.contact ? ['A cámara', 'ok'] : ['Leyendo el texto', 'none'])
       : F.lookDown > .55 || F.pitchDev > .12 ? ['Abajo', c.listening ? 'none' : 'warn'] : F.lookSide > .6 || Math.abs(F.yawDev) > .18 ? ['A un lado', 'warn']
       : [c.listening ? 'A la pantalla' : 'A cámara', 'ok'];
     const br = ser.brow.since(t, 4);
@@ -2441,7 +2752,7 @@ function coachTick() {
   const t = now();
   if (S.calibrating) calibrationTick(t);
   const M = computeMetrics(t);
-  const call = isCall();
+  const call = isCall(), file = !!S.file;
   // ¿hablas tú? En una llamada, la voz solo cuenta si además se te mueve la boca (puede ser la otra persona)
   const mouth = t - F.lastSeen < 3 ? F.mouthActive : null;
   if (t - V.lastVoiced < .5 && (!call || mouth !== false)) S.meT = t;
@@ -2454,7 +2765,8 @@ function coachTick() {
   for (const k of Object.keys(TONES)) fit[k] = fitTone(M, targetsFor(k));
   const mt = fit[tone];
   // leyendo un guion la mirada se va al texto: solo cuenta en las llamadas
-  let match = mt == null ? null : Math.round(100 * (call ? .85 * mt + .15 * (M.mirada ?? 1) : mt));
+  // (en un vídeo subido también cuenta: el vídeo final se ve mirando a cámara o no)
+  let match = mt == null ? null : Math.round(100 * (call || file ? .85 * mt + .15 * (M.mirada ?? 1) : mt));
   // lo que se percibe
   let perceived = null;
   const present = (B.ok && fresh('pose', B.lastOk, t, 1)) || (F.ok && fresh('face', F.lastSeen, t, 1));
@@ -2467,7 +2779,7 @@ function coachTick() {
   } else if (present) {
     if ((B.ok && B.crossedS) || ((ser.fist.mean(t, 2) ?? 0) > .6 && (ser.frown.mean(t, 2) ?? 0) > .35)) perceived = 'defensivo';
     else if ((H.fidget && fresh('hands', H.lastT, t, .8)) || (B.ok && (B.sway || B.faceTouch)) || (H.nearFace && fresh('hands', H.lastT, t, .6))) perceived = 'nervioso';
-    else if (call && M.mirada != null && M.mirada < .35) perceived = 'sinMirada';
+    else if ((call || file) && M.mirada != null && M.mirada < .35) perceived = 'sinMirada';
     else if ((M.energia ?? 1) < .15 && (M.manos ?? 1) < .2 && (M.entonacion ?? 0) < .3 && (M.sonrisa ?? 1) < .2) perceived = 'apagado';
     else {
       let best = null, bv = -1;
@@ -2485,13 +2797,15 @@ function coachTick() {
 
   // reglas
   const startOK = S.live && !S.calibrating && S.liveT0 && t - S.liveT0 > 2;
-  const ctxOk = r => r.ctx === 'callspeak' ? call && speakingMe : r.ctx === 'listen' ? listening : r.ctx === 'video' ? !call : r.ctx === 'speak' ? (!call || speakingMe) : true;
+  const ctxOk = r => r.ctx === 'callspeak' ? (call || file) && speakingMe : r.ctx === 'listen' ? listening : r.ctx === 'video' ? !call && !file : r.ctx === 'speak' ? (!call || speakingMe) : true;
   for (const r of RULES) {
     const st = RS[r.id];
     let v = startOK && ctxOk(r) ? r.test(c) : 0;
     if (v === true) v = 1;
-    if (v) { if (!st.on) st.on = t; st.sev = v; } else st.on = 0;
+    if (v) { if (!st.on) st.on = t; st.sev = v; st.lastOn = t; } else st.on = 0;
   }
+  // objetivos de la toma: último momento en que fallaba cada uno
+  if (S.take?.plan) { S.take.gb ||= {}; for (const id of S.take.plan.ids) if (goalBad(id, c)) S.take.gb[id] = t; }
   // vigilancia de la acotación en curso
   if (coach.watch) {
     const w = coach.watch;
@@ -2514,7 +2828,7 @@ function coachTick() {
     if (coach.active) endCue(t, 'replaced');
     showCue({ id: 'teveo', kind: 'good', pri: 95, icon: 'ok', emoji: '✅', title: '¡Te veo!',
       detail: (hands ? 'Cara, cuerpo y manos detectados.' : 'Cara y cuerpo detectados. Sube las manos al pecho para que las vea.')
-        + (call || S.take || KWS.enroll ? '' : (FOL.on && !FOL.failed) || (kwsOn() && KWS.tpl) ? ' Di «comenzamos» cuando quieras.' : ' Da dos palmadas o pulsa Grabar cuando quieras.') }, t);
+        + (call || file || S.take || KWS.enroll ? '' : (FOL.on && !FOL.failed) || (kwsOn() && KWS.tpl) ? ' Di «comenzamos» cuando quieras.' : ' Da dos palmadas o pulsa Grabar cuando quieras.') }, t);
     burst(['✅', '✨'], 8);
   }
   manageCue(c);
@@ -2522,7 +2836,8 @@ function coachTick() {
   if (S.take && t - (S.take.lastLog || 0) >= .25) {
     S.take.lastLog = t;
     const r = v => v == null ? null : Math.round(v * 100) / 100;
-    S.take.log.push({ t: t - S.take.t0, match, perceived, tone, idx: PR.idx, sp: speakingMe ? 1 : 0, li: listening ? 1 : 0, parts, M: Object.fromEntries(Object.entries(M).map(([k, v]) => [k, r(v)])) });
+    S.take.log.push({ t: takeT(t), match, perceived, tone, idx: PR.idx, sp: speakingMe ? 1 : 0, li: listening ? 1 : 0, parts,
+      on: RULES.filter(r => RS[r.id].on && r.kind !== 'good').map(r => r.id), M: Object.fromEntries(Object.entries(M).map(([k, v]) => [k, r(v)])) });
     if (!call && S.take.endAt && t - S.take.endAt > 1.5 && t - V.lastVoiced > 2.2) stopTake(true);
   }
   if (++coach.uiTick % 2 === 0) updateMonitor(c, perceived, parts);
@@ -2532,7 +2847,7 @@ coach.uiTick = 0;
 
 function manageCue(c) {
   const t = c.t;
-  const a = coach.active;
+  const a = coach.active, goals = S.take?.plan?.ids || [];
   if (a) {
     const el = t - coach.since;
     if (a.kind === 'script') { if (el > 3.4) endCue(t, 'done'); }
@@ -2541,21 +2856,40 @@ function manageCue(c) {
     else {
       const st = RS[a.id];
       if (coach.resolvedAt) { if (t - coach.resolvedAt > 1.1) endCue(t, 'fixed'); }
-      else if (!st.on && el > 1.6) { coach.resolvedAt = t; a.g = null; setCueLook({ ...a, kind: 'good', icon: 'ok', emoji: '👌', g: null, title: '¡Mejor así!', detail: '' }); addPoints(5); burst(['👌', '✨'], 8); }
+      else if (!st.on && el > 1.6) {
+        const goal = goals.includes(a.id);
+        coach.resolvedAt = t; a.g = null;
+        setCueLook({ ...a, kind: 'good', icon: 'ok', emoji: goal ? '🎯' : '👌', g: null, title: goal ? '¡Objetivo cumplido!' : '¡Mejor así!', detail: '' });
+        addPoints(goal ? 8 : 5); burst(goal ? ['🎯', '✨', '⭐'] : ['👌', '✨'], goal ? 12 : 8);
+      }
       else if (el > 6.5) endCue(t, 'timeout');
     }
   }
   let best = null, bs = -1;
   for (const r of RULES) {
-    const st = RS[r.id];
-    if (!st.on || t - st.on < r.hold || t - st.lastEnd < r.cool * (c.isCall ? 2 : 1)) continue;
+    // los objetivos de la toma se avisan antes y con prioridad
+    const st = RS[r.id], goal = goals.includes(r.id), f = goal ? .6 : 1;
+    if (!st.on || t - st.on < r.hold * f || t - st.lastEnd < r.cool * (c.isCall ? 2 : 1) * f) continue;
     if (r.kind === 'good' && RULES.some(o => o.kind !== 'good' && RS[o.id].on)) continue;
-    const score = r.pri + Math.min(1, st.sev) * 6;
+    const score = r.pri + (goal ? 25 : 0) + Math.min(1, st.sev) * 6;
     if (score > bs) { bs = score; best = r; }
   }
   if (!best) {
     // nada que corregir: de vez en cuando, una idea para hacerlo aún mejor
     const busy = RULES.some(r => r.kind !== 'good' && RS[r.id].on);
+    // un objetivo que llevas un rato cumpliendo: se celebra una vez
+    const P = S.take?.plan;
+    if (P && !coach.active && t - S.take.t0 > 12 && t - coach.lastEnd > 3) {
+      S.take.praised ||= {};
+      const id = P.ids.find(g => !S.take.praised[g] && !RS[g].on && t - (S.take.gb?.[g] ?? S.take.t0) > 12 && goalVisible(g, c));
+      if (id) {
+        S.take.praised[id] = true;
+        const [e, l] = goalTxt(id);
+        showCue({ id: 'goal', kind: 'good', pri: 12, icon: 'ok', emoji: '🎯', title: `${e} ${l}: ¡conseguido!`, detail: `Lo estás haciendo mejor que en ${P.from === 'file' ? 'tu vídeo' : 'la toma anterior'}. Sigue así.` }, t);
+        addPoints(8); burst(['🎯', '✨', '⭐'], 12);
+        return;
+      }
+    }
     if (!coach.active && !busy && S.live && !S.calibrating && t - coach.lastEnd > 8 && t - coach.lastIdea > 22 && t - S.liveT0 > 8
         && (c.listening ? t - (S.listenSince || t) > 6 : c.speakingMe || (S.take && !c.isCall))) {
       const idea = pickIdea(c);
@@ -2569,7 +2903,7 @@ function manageCue(c) {
   const look = RULE_LOOK[best.id] || [], how = RULE_HOW[best.id];
   const good = best.id === 'bien';
   showCue({ id: best.id, kind: best.kind, pri: best.pri, icon: best.icon, emoji: look[0], g: look[1],
-    title: good ? GOOD_TITLES[Math.floor(t / 7) % GOOD_TITLES.length] : best.title(c),
+    title: good ? GOOD_TITLES[Math.floor(t / 7) % GOOD_TITLES.length] : (goals.includes(best.id) ? '🎯 ' : '') + best.title(c),
     detail: how ? (typeof how === 'function' ? how(c) : how) : best.detail(c) }, t);
   if (good) { addPoints(3); burst(['👍', '✨', '⭐'], 10); }
 }
@@ -2577,7 +2911,7 @@ function showCue(cue, t, isScript = false) {
   if (coach.active) endCue(t, 'replaced');
   coach.active = cue; coach.since = t; coach.resolvedAt = 0;
   setCueLook(cue, true);
-  if (S.take && !isScript) S.take.events.push({ t: t - S.take.t0, id: cue.id, kind: cue.kind, title: cue.title, detail: cue.detail });
+  if (S.take && !isScript) S.take.events.push({ t: takeT(t), id: cue.id, kind: cue.kind, title: cue.title, detail: cue.detail });
 }
 const cueEl = $('#cue'), monEl = $('#monitor'), mq = sel => monEl.querySelector(sel);
 function setCueLook(cue, pop = false) {
@@ -2595,7 +2929,7 @@ function endCue(t, outcome) {
   const a = coach.active; if (!a) return;
   if (RS[a.id]) RS[a.id].lastEnd = t;
   if (S.take) {
-    for (let i = S.take.events.length - 1; i >= 0; i--) { const e = S.take.events[i]; if (e.id === a.id && e.outcome == null && e.kind !== 'script') { e.outcome = outcome; e.dur = t - S.take.t0 - e.t; break; } }
+    for (let i = S.take.events.length - 1; i >= 0; i--) { const e = S.take.events[i]; if (e.id === a.id && e.outcome == null && e.kind !== 'script') { e.outcome = outcome; e.dur = takeT(t) - e.t; break; } }
   }
   coach.active = null; coach.resolvedAt = 0; coach.lastEnd = t;
   cueEl.hidden = true;
@@ -2623,6 +2957,18 @@ function updateMonitor(c, perceived, parts) {
     voz: t - V.lastVoiced < 1.5,
   };
   for (const sp of monEl.querySelectorAll('.seen span')) sp.classList.toggle('on', !!on[sp.dataset.s]);
+  // objetivos de la toma: en ámbar si ahora mismo falla, en verde si lo estás cumpliendo
+  const GP = S.take?.plan || (!S.take && !S.file && !isCall() ? S.plan : null), gEl = mq('#goals');
+  if (!GP?.ids.length) { if (!gEl.hidden) gEl.hidden = true; }
+  else {
+    const key = GP.ids.join();
+    if (gEl.dataset.k !== key) { gEl.dataset.k = key; gEl.innerHTML = goalChips(GP.ids); }
+    gEl.hidden = false;
+    for (const sp of gEl.children) {
+      const cls = goalBad(sp.dataset.g, c) ? 'bad' : S.take && goalVisible(sp.dataset.g, c) ? 'ok' : '';
+      if (sp.className !== cls) sp.className = cls;
+    }
+  }
   const neg = STATES[perceived]?.neg, m = c.match;
   const [mood, mc] = S.visionErr && !S.vision ? ['📷 Te ves, pero el análisis de imagen no está disponible', 'var(--mute)']
     : !S.vision ? ['⏳ Preparando el análisis de imagen…', 'var(--mute)']
@@ -2678,11 +3024,12 @@ function updateStatus(t) {
   else if (S.visionErr) parts.push('visión: no disponible');
   else parts.push('visión: cargando…');
   parts.push(`voz ${V.db > -99 ? Math.round(V.db) + ' dB' : '—'}${V.speaking ? ' · hablando' : ''}`);
-  if (isCall()) parts.push(coach.last?.parts?.voz?.[0] === 'Hablando' ? 'hablas tú' : 'escuchas');
+  if (S.file) parts.push('vídeo subido');
+  else if (isCall()) parts.push(coach.last?.parts?.voz?.[0] === 'Hablando' ? 'hablas tú' : 'escuchas');
   else parts.push(S.opts.mode === 'voz' && !FOL.failed && voiceEngine() === 'navegador' && SR ? (FOL.follow ? 'texto: sigue tu voz' : 'texto: seguirá tu voz') : `texto: ${S.opts.wpm} ppm`);
-  if (!isCall()) parts.push(FOL.on ? 'voz: navegador' : kwsOn() ? (KWS.tpl ? 'voz: mis palabras' : 'voz: falta enseñar tus palabras') : voiceEngine() === 'no' ? 'voz: desactivada' : 'voz: no disponible');
+  if (!isCall() && !S.file) parts.push(FOL.on ? 'voz: navegador' : kwsOn() ? (KWS.tpl ? 'voz: mis palabras' : 'voz: falta enseñar tus palabras') : voiceEngine() === 'no' ? 'voz: desactivada' : 'voz: no disponible');
   const hint = $('#voiceHint');
-  hint.hidden = !(S.live && !isCall() && !S.take && !S.countdown && !S.calibrating);
+  hint.hidden = !(S.live && !isCall() && !S.file && !S.take && !S.countdown && !S.calibrating) || !$('#planCard').hidden;
   hint.hidden = hint.hidden || !!KWS.enroll;
   const wb = !(kwsOn() && !S.take && !S.countdown && !KWS.enroll && !S.calibrating);
   if ($('#wordsBtn').hidden !== wb) $('#wordsBtn').hidden = wb;
@@ -2917,9 +3264,10 @@ function drawOverlay() {
   g.clearRect(0, 0, W, Hh);
   const showDet = !!(S.opts.skeleton && S.vision);
   const t = now(), C = S.vision ? S.vision.conn : null, parts = coach.parts || {};
-  const X = x => W - x;
+  // la cámara se ve en espejo y llena la pantalla; un vídeo subido, tal cual y entero
+  const X = S.file ? (x => x) : (x => W - x);
   // tamaños en píxeles de pantalla, sea cual sea la resolución de la cámara
-  const scale = Math.max((overlay.clientWidth || W) / W, (overlay.clientHeight || Hh) / Hh) || 1;   // pantalla por unidad de vídeo
+  const scale = (S.file ? Math.min : Math.max)((overlay.clientWidth || W) / W, (overlay.clientHeight || Hh) / Hh) || 1;   // pantalla por unidad de vídeo
   // zona libre para las etiquetas: ni bajo el monitor ni bajo la barra de botones (en coordenadas del lienzo)
   // (con object-fit: cover, en pantallas estrechas solo se ve una franja del lienzo)
   let xMin = 0, yMin = 0, xMax = W, yMax = Hh;
@@ -3032,17 +3380,20 @@ function startLoops() {
     if (!S.live) return;
     rafId = raf(loopFrame);   // se programa primero: aunque algo falle, el bucle sigue
     const t = now(), dt = Math.min(.1, t - last); last = t;
-    safe('visión', () => visionPump(t));
+    // con un vídeo subido en pausa, el análisis espera
+    const hold = !!(S.file && S.take && S.file.el.paused && !S.file.el.ended);
+    if (S.file) safe('vídeo', () => fileTick(t));
+    if (!hold) safe('visión', () => visionPump(t));
     // si el navegador pausa la cámara (pestaña de fondo, ahorro de energía…), se reanuda y se vigila
     if (t - lastV > 1) { lastV = t; for (const v of [video, S.pipVideo]) if (v && v.paused && v.srcObject) v.play().catch(() => {}); safe('cámara', () => cameraWatch(t)); }
     if (t - lastA >= .03) { lastA = t; safe('audio', audioTick); }
-    if (t - lastC >= .1) { lastC = t; safe('director', coachTick); }
-    if (!isCall()) safe('texto', () => prompterFrame(t, dt));
+    if (t - lastC >= .1 && !hold) { lastC = t; safe('director', coachTick); }
+    if (!isCall() && !S.file) safe('texto', () => prompterFrame(t, dt));
     safe('dibujo', drawOverlay);
     safe('aviso', () => drawCueVis(t));
     if (S.pipCanvas) safe('ventana', drawPip);
     if (S.stopping) safe('parar', () => stopTick(t));
-    if (S.take) { const c = fmtTime(t - S.take.t0); if (c !== S.clockTxt) { S.clockTxt = c; $('#clock').innerHTML = `<i class="live"></i>${c}`; } }
+    if (S.take) { const c = fmtTime(takeT(t)); if (c !== S.clockTxt) { S.clockTxt = c; $('#clock').innerHTML = `<i class="live"></i>${c}`; } }
   };
   rafId = raf(loopFrame);
 }
@@ -3096,13 +3447,16 @@ function setTakeUI(on, rec = false) {
 }
 async function startTake(record) {
   if (S.take || !S.live || S.countdown) return;
+  const file = !!S.file;
+  if (file) record = false;
+  $('#planCard').hidden = true;
   if (record && typeof MediaRecorder === 'undefined') { record = false; toast('Este navegador no puede grabar vídeo: hago un ensayo.'); }
   if (S.calibrating) finishCalibration(true);
   if (KWS.enroll) cancelEnroll();
   S.countdown = true;
   setTakeUI(true, record);
   const call = isCall();
-  if (!call) {
+  if (!call && !file) {
     resetPrompterTo(0); PR.offset = PR.target; markWords(0); PR.idx = 0;
     for (const n of [3, 2, 1]) {
       stageMsg(`<div class="count-big" aria-live="assertive">${n}</div>`);
@@ -3113,14 +3467,15 @@ async function startTake(record) {
   }
   S.countdown = false;
   const t = now();
-  S.take = { t0: t, record, call, log: [], events: [], chunks: [], endAt: 0, tone: S.tone, nods: 0 };
+  S.take = { t0: t, record, call, file: file ? S.file.name : null, url: file ? S.file.url : null,
+    plan: !call && !file && S.plan?.ids.length ? S.plan : null, log: [], events: [], chunks: [], endAt: 0, tone: S.tone, nods: 0 };
   ser.words.clear();
-  for (const k in RS) { RS[k].on = 0; RS[k].lastEnd = -99; }
+  for (const k in RS) { RS[k].on = 0; RS[k].lastEnd = -99; RS[k].lastOn = t; }
   PR.running = true; PR.speedF = 1;
   PR.nextCue = S.sc.cues.findIndex(c => c.at >= PR.idx); if (PR.nextCue < 0) PR.nextCue = S.sc.cues.length;
   FOL.pointer = 0; FOL.phraseStart = 0;
-  FOL.follow = !call && S.opts.mode === 'voz' && startVoice();
-  if (!call) { stageMsg('<div class="count-big">¡Acción!</div>'); setTimeout(() => { if (S.take && !S.countdown) stageMsg(null); }, 650); }
+  FOL.follow = !call && !file && S.opts.mode === 'voz' && startVoice();
+  if (!call && !file) { stageMsg('<div class="count-big">¡Acción!</div>'); setTimeout(() => { if (S.take && !S.countdown) stageMsg(null); }, 650); }
   if (record) {
     const types = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4'];
     const tk = S.take;
@@ -3138,7 +3493,8 @@ function stopTake(showReport = true) {
   S.stopping = null; $('#stopCard').hidden = true;
   const t = now();
   finishWatch(t); endCue(t, 'end');
-  tk.dur = t - tk.t0;
+  tk.dur = takeT(t);
+  if (tk.file && S.file) { try { S.file.el.pause(); } catch {} if (S.file.el.ended && isFinite(S.file.el.duration)) tk.dur = S.file.el.duration; }
   S.take = null;
   PR.running = false;
   FOL.follow = false;
@@ -3179,8 +3535,12 @@ function changeSpeed(d) {
 }
 addEventListener('keydown', e => {
   if ($('#studio').hidden || e.target.closest('input,textarea,select')) return;
-  if (e.key === ' ') { e.preventDefault(); if (!S.take) startTake(false); else if (!(FOL.follow && FOL.ok)) PR.running = !PR.running; }
-  else if (e.key === 'r' || e.key === 'R') { if (!S.take) startTake(true); }
+  if (e.key === ' ') {
+    e.preventDefault();
+    if (S.file) { if (!S.take) startFileTake(); else if (video.paused) video.play().catch(() => {}); else video.pause(); }
+    else if (!S.take) startTake(false); else if (!(FOL.follow && FOL.ok)) PR.running = !PR.running;
+  }
+  else if (e.key === 'r' || e.key === 'R') { if (!S.take && !S.file) startTake(true); }
   else if (e.key === 'Escape') { if (S.stopping) stopNow(); else if (S.take) requestStop(); else leaveStudio(); }
   else if (e.key === 'ArrowUp') { e.preventDefault(); changeSpeed(10); }
   else if (e.key === 'ArrowDown') { e.preventDefault(); changeSpeed(-10); }
@@ -3190,6 +3550,91 @@ addEventListener('keydown', e => {
   else if (e.key === 't' || e.key === 'T') $('#txtBtn').click();
   else if (e.key === 'm' || e.key === 'M') $('#mon').click();
 });
+
+/* ---------------- objetivos para la próxima toma ----------------
+   Del informe salen hasta tres objetivos: lo que más tiempo estuvo mal (avisos activos y medidas fuera de la franja
+   del tono). En la toma siguiente se avisan antes, se marcan en el monitor y se celebran al conseguirlos; el informe
+   compara el tiempo con cada problema antes y después. */
+const GOAL_TXT = {
+  estatico: ['💃', 'Más energía con el cuerpo'], exceso: ['🧘', 'Gestos más lentos'], manosQuietas: ['🙌', 'Usa las manos al explicar'],
+  manosFuera: ['✋', 'Manos dentro del plano'], cerrado: ['👐', 'Gestos abiertos'], cruzados: ['👐', 'Brazos sin cruzar'],
+  cara: ['🙅', 'Manos lejos de la cara'], punos: ['🖐️', 'Manos abiertas'], nervios: ['🤲', 'Gestos firmes, sin tics'],
+  balanceo: ['🧍', 'Quieto sobre los pies'], postura: ['🧍', 'Espalda recta'], hombros: ['😮‍💨', 'Hombros relajados'],
+  codos: ['💪', 'Codos separados'], serio: ['😄', 'Sonríe más'], sonrisaSobra: ['🙂', 'Sonrisa más contenida'],
+  inexpresivo: ['🤨', 'Más expresión en la cara'], ceno: ['😌', 'Frente relajada'], labios: ['😌', 'Boca relajada'],
+  mirada: ['👀', 'Mira a la cámara'], vozBaja: ['📣', 'Voz más alta'], vozAlta: ['🔉', 'Voz más suave'],
+  monotono: ['🎵', 'Varía la entonación'], entonacionSobra: ['➖', 'Tono más estable'], rapido: ['🐢', 'Más despacio'],
+  lento: ['🐇', 'Más ritmo'], cerca: ['🔍', 'Aléjate un poco de la cámara'], lejos: ['🔍', 'Acércate a la cámara'], centro: ['🎯', 'Céntrate en el plano'],
+};
+// medida → [objetivo si falta, objetivo si sobra]
+const GOAL_OF_METRIC = { energia: ['estatico', 'exceso'], manos: ['manosQuietas', null], apertura: ['cerrado', null], sonrisa: ['serio', 'sonrisaSobra'],
+  expresion: ['inexpresivo', null], volumen: ['vozBaja', 'vozAlta'], entonacion: ['monotono', 'entonacionSobra'], ritmo: ['lento', 'rapido'], mirada: ['mirada', null] };
+const METRIC_OF_GOAL = {};
+for (const [m, [lo, hi]] of Object.entries(GOAL_OF_METRIC)) { if (lo) METRIC_OF_GOAL[lo] = [m, -1]; if (hi) METRIC_OF_GOAL[hi] = [m, 1]; }
+const GOAL_SKIP = new Set(['bien', 'silencio', 'nadie', 'sinPausa', 'asiente', 'caraEscucha', 'distraido']);
+const GOAL_SAME = [['estatico', 'manosQuietas'], ['cerrado', 'cruzados'], ['cerca', 'manosFuera']];
+const goalTxt = id => GOAL_TXT[id] || [(RULE_LOOK[id] || [])[0] || '🎯', id];
+// parte del tiempo con el problema: por la medida (si tiene) o por el aviso activo
+function problemShare(log, id) {
+  const mg = METRIC_OF_GOAL[id];
+  if (mg) {
+    const [m, dir] = mg; let n = 0, bad = 0;
+    for (const s of log) { const v = s.M?.[m], band = targetsFor(s.tone)[m]; if (v == null || !band) continue; n++; if (dir < 0 ? v < band[0] : v > band[1]) bad++; }
+    return n >= 6 ? bad / n : null;
+  }
+  if (!log.length) return null;
+  let k = 0; for (const s of log) if (s.on?.includes(id)) k++;
+  return k / log.length;
+}
+function makePlan(tk, gaps, avg, topP, tone) {
+  if (tk.log.length < 12) return null;
+  const score = {}, n = tk.log.length;
+  const add = (id, v) => { if (id && !GOAL_SKIP.has(id) && RULES.some(r => r.id === id)) score[id] = (score[id] || 0) + v; };
+  for (const s of tk.log) for (const id of s.on || []) add(id, 1 / n);
+  for (const e of tk.events) if (!['script', 'good', 'idea'].includes(e.kind)) add(e.id, .06);
+  for (const g of gaps) { const pair = GOAL_OF_METRIC[g.m.id]; if (pair && g.n >= 6) add(g.below >= g.above ? pair[0] : pair[1], Math.max(g.below, g.above) * .5); }
+  const ids = [];
+  for (const [id, v] of Object.entries(score).sort((a, b) => b[1] - a[1])) {
+    if (v < .12 || ids.length >= 3) break;
+    if (GOAL_SAME.some(p => p.includes(id) && p.some(o => o !== id && ids.includes(o)))) continue;
+    ids.push(id);
+  }
+  return { ids, base: Object.fromEntries(ids.map(id => [id, problemShare(tk.log, id)])), match: avg, perceived: topP, tone,
+    from: tk.file ? 'file' : 'take', name: tk.file || null };
+}
+// ¿falla ahora? Con medida, en cuanto sale de la franja del tono (como en el informe); si no, el aviso activo
+function goalBad(id, c) {
+  const mg = METRIC_OF_GOAL[id];
+  if (mg) { const v = c.M[mg[0]], band = c.T[mg[0]]; return v != null && !!band && (mg[1] < 0 ? v < band[0] : v > band[1]); }
+  const st = RS[id]; return !!(st?.on && c.t - st.on > .8);
+}
+// ¿se puede juzgar ahora mismo? (la medida existe o se te ve)
+function goalVisible(id, c) {
+  const mg = METRIC_OF_GOAL[id];
+  return mg ? c.M[mg[0]] != null : (B.ok && fresh('pose', B.lastOk, c.t, 1)) || (F.ok && fresh('face', F.lastSeen, c.t, 1));
+}
+const goalChips = ids => ids.map(id => { const [e, l] = goalTxt(id); return `<span data-g="${id}">${e} ${esc(l)}</span>`; }).join('');
+function goalListHTML(ids, sub, badge) {
+  return ids.map(id => { const [e, l] = goalTxt(id); const b = badge ? badge(id) : ''; return `<li><span class="ge">${e}</span><b>${esc(l)}</b>${b ? `<span class="gv">${b}</span>` : ''}<small>${sub(id)}</small></li>`; }).join('');
+}
+function renderPlanBanner() {
+  const P = S.plan, el = $('#planBanner');
+  if (!P?.ids.length) { el.hidden = true; el.innerHTML = ''; return; }
+  el.innerHTML = `<b>🎯 Objetivos para tu próxima toma</b><span class="note">${P.from === 'file' ? `de tu vídeo «${esc(P.name)}»` : 'de tu última toma'}: te los marcaré en directo.</span>
+    <div class="goals">${goalChips(P.ids)}</div><button class="ghost" type="button" id="planClear">Quitar</button>`;
+  el.hidden = false;
+}
+$('#planBanner').addEventListener('click', e => { if (e.target.closest('#planClear')) { S.plan = null; renderPlanBanner(); } });
+function showPlanCard(next = '') {
+  const P = S.plan;
+  if (!P?.ids.length || S.file || isCall() || S.take || S.countdown || KWS.enroll || S.calibrating || !S.live) return false;
+  $('#planNext').textContent = next; $('#planNext').hidden = !next;
+  $('#planFrom').textContent = P.from === 'file' ? `Es lo que más te conviene mejorar de tu vídeo «${P.name}».` : 'Es lo que más te conviene mejorar de tu toma anterior.';
+  $('#planList').innerHTML = goalListHTML(P.ids, id => esc(TIPS[id] || ''));
+  $('#planCard').hidden = false;
+  return true;
+}
+$('#planOk').addEventListener('click', () => { $('#planCard').hidden = true; });
 
 /* ---------------- informe ---------------- */
 const TIPS = {
@@ -3226,7 +3671,7 @@ const TIPS = {
   centro: 'Ponte en el centro del encuadre.', nadie: 'Mantente dentro del encuadre durante toda la toma.', silencio: '',
 };
 function buildReport(tk) {
-  const call = !!tk.call;
+  const call = !!tk.call, file = !!tk.file;
   const L = tk.log.filter(s => s.match != null);
   const avg = L.length ? Math.round(mean(L.map(s => s.match))) : null;
   const toneCount = {};
@@ -3239,7 +3684,7 @@ function buildReport(tk) {
   const lookOf = k => TONES[k] || STATES[k];
   const topP = pSorted[0]?.[0];
   // brechas medias
-  const gaps = METRICS.filter(m => m.w || (m.id === 'mirada' && call)).map(m => {
+  const gaps = METRICS.filter(m => m.w || (m.id === 'mirada' && (call || file))).map(m => {
     let below = 0, above = 0, n = 0, vals = [];
     for (const s of tk.log) { const v = s.M[m.id]; if (v == null) continue; const [lo, hi] = targetsFor(s.tone)[m.id]; n++; vals.push(v); if (v < lo) below++; else if (v > hi) above++; }
     return { m, n, avg: mean(vals), below: n ? below / n : 0, above: n ? above / n : 0, inBand: n ? 1 - (below + above) / n : null };
@@ -3275,6 +3720,15 @@ function buildReport(tk) {
   for (const e of tk.events) { if (e.kind === 'script' || e.kind === 'good' || e.kind === 'idea') continue; (byId[e.id] ||= { n: 0, title: e.title, icon: RULES.find(r => r.id === e.id)?.icon || 'alerta', fixed: 0 }); byId[e.id].n++; if (e.outcome === 'fixed') byId[e.id].fixed++; }
   const fixes = Object.entries(byId).sort((a, b) => b[1].n - a[1].n).slice(0, 5);
   const cueEv = tk.events.filter(e => e.kind === 'script');
+  // objetivos para la próxima toma y, si esta toma ya tenía, cómo ha ido cada uno
+  const plan = call ? null : makePlan(tk, gaps, avg, topP, mainTone);
+  if (plan) S.plan = plan;
+  const verdict = (b, a) => a == null ? ['na', 'Sin datos'] : a <= .08 ? (b != null && b > .08 ? ['ok', '✅ Mejorado'] : ['ok', '✅ Bien'])
+    : b != null && (b - a >= .15 || a <= b * .6) ? ['ok', '✅ Mejorado'] : b != null && a >= b + .1 ? ['bad', '⚠️ Peor'] : ['warn', '➖ Igual'];
+  const ba = tk.plan ? tk.plan.ids.map(id => { const b = tk.plan.base[id], a = problemShare(tk.log, id); return { id, b, a, v: verdict(b, a) }; }) : null;
+  const pctT = v => v == null ? '—' : Math.round(v * 100) + '%';
+  // ¿cuánto se pudo ver? (en dispositivos lentos se analizan pocas imágenes por segundo)
+  const seenShare = tk.log.length ? tk.log.filter(s => s.M.sonrisa != null || s.M.energia != null).length / tk.log.length : 0;
   const hits = cueEv.filter(e => e.outcome === 'hit').length, checkable = cueEv.filter(e => e.outcome !== 'na').length;
   // por párrafo
   const paraRows = S.sc.paras.map((p, i) => {
@@ -3284,20 +3738,23 @@ function buildReport(tk) {
     const words = S.sc.words.slice(p.start, Math.min(p.end, p.start + 9)).map(w => w.text).join(' ');
     return { i, tone: p.tone, words, n: ss.length, match: ss.length ? Math.round(mean(ss.map(s => s.match))) : null, top };
   });
-  const url = tk.blob ? URL.createObjectURL(tk.blob) : null;
+  const url = tk.url || (tk.blob ? URL.createObjectURL(tk.blob) : null);
   const ext = (tk.mime || '').includes('mp4') ? 'mp4' : 'webm';
   const stamp = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '');
   const rc = avg == null ? 'var(--dim)' : avg >= 75 ? 'var(--ok)' : avg >= 55 ? 'var(--warn)' : 'var(--bad)';
   const el = $('#report');
   el.innerHTML = `
     <header class="rep-head">
-      <div><p class="eyebrow">Informe de la ${call ? 'sesión' : 'toma'} · ${fmtTime(tk.dur)}</p><h1>${call ? (tk.record ? 'Videollamada grabada' : 'Videollamada') : tk.record ? 'Toma grabada' : 'Ensayo'}</h1>
+      <div><p class="eyebrow">${file ? 'Análisis de tu vídeo' : 'Informe de la ' + (call ? 'sesión' : 'toma')} · ${fmtTime(tk.dur)}</p><h1>${file ? esc(tk.file) : call ? (tk.record ? 'Videollamada grabada' : 'Videollamada') : tk.record ? 'Toma grabada' : 'Ensayo'}</h1>
       <p>${esc(new Date().toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }))} · ${tk.log.length} mediciones</p></div>
       <div class="actions">
-        ${!call && (FOL.on || (kwsOn() && KWS.tpl)) ? `<span class="pill">🎙️ Di «comenzamos» para otra toma</span>` : ''}
-        ${url ? `<a class="ghost" href="${url}" download="apuntador-${stamp}.${ext}">${ico('descargar')}Descargar vídeo</a>` : ''}
-        <button class="ghost" data-act="edit">${ico('volver')}${call ? 'Volver al inicio' : 'Editar guion'}</button>
-        <button class="primary" data-act="again">${ico('repetir')}${call ? 'Otra sesión' : 'Repetir toma'}</button>
+        ${!call && !file && (FOL.on || (kwsOn() && KWS.tpl)) ? `<span class="pill">🎙️ Di «comenzamos» para otra toma</span>` : ''}
+        ${tk.blob ? `<a class="ghost" href="${url}" download="apuntador-${stamp}.${ext}">${ico('descargar')}Descargar vídeo</a>` : ''}
+        ${file ? `<button class="ghost" data-act="edit">${ico('volver')}Volver al inicio</button>
+        <button class="ghost" data-act="another">${ico('pelicula')}Analizar otro vídeo</button>
+        <button class="primary" data-act="improve">${ico('camara')}Grabar la versión mejorada</button>`
+        : `<button class="ghost" data-act="edit">${ico('volver')}${call ? 'Volver al inicio' : 'Editar guion'}</button>
+        <button class="primary" data-act="again">${ico('repetir')}${call ? 'Otra sesión' : plan?.ids.length ? 'Repetir con estos objetivos' : 'Repetir toma'}</button>`}
       </div>
     </header>
     <div class="rep-top">
@@ -3313,12 +3770,32 @@ function buildReport(tk) {
           <ul class="legend" style="margin-top:8px">${pSorted.map(([k, v]) => `<li style="--tc:${lookOf(k).color}">${lookOf(k).name} <b>${Math.round(v / pTot * 100)}%</b></li>`).join('') || '<li style="--tc:var(--dim)">Sin datos</li>'}</ul>
         </div>
         <div>
+          ${file ? `<p class="eyebrow" style="margin-bottom:8px">Para repetirlo</p>
+          <p class="note">${plan?.ids.length ? `Lo que más te conviene mejorar: ${plan.ids.map(id => { const [e, l] = goalTxt(id); return `<b style="color:var(--paper)">${e} ${esc(l)}</b>`; }).join(', ')}.` : 'No hay nada importante que corregir: puedes repetirlo para pulir detalles.'}</p>` : `
           <p class="eyebrow" style="margin-bottom:8px">${call ? 'Escucha activa' : 'Gestos del guion'}</p>
           ${tk.score ? `<p class="note" style="margin-bottom:6px">⭐ <b style="color:var(--paper)">${tk.score} puntos</b>${tk.bestStreak > 1 ? ` · mejor racha de gestos: <b style="color:var(--paper)">${tk.bestStreak}</b> 🔥` : ''}</p>` : ''}
-          <p class="note">${call ? `Asentiste <b style="color:var(--paper)">${tk.nods || 0} ${tk.nods === 1 ? 'vez' : 'veces'}</b> durante la sesión.` : checkable ? `Hiciste <b style="color:var(--paper)">${hits} de ${checkable}</b> gestos que marcaba el guion.` : 'Esta toma no tuvo gestos comprobables.'}</p>
+          <p class="note">${call ? `Asentiste <b style="color:var(--paper)">${tk.nods || 0} ${tk.nods === 1 ? 'vez' : 'veces'}</b> durante la sesión.` : checkable ? `Hiciste <b style="color:var(--paper)">${hits} de ${checkable}</b> gestos que marcaba el guion.` : 'Esta toma no tuvo gestos comprobables.'}</p>`}
         </div>
       </div>
     </div>
+    ${file && seenShare < .5 ? `<p class="note" style="margin:0 0 4px">⚠️ Solo se pudo medir la imagen en el ${Math.round(seenShare * 100)}% del vídeo: o no se te veía bien (luz, encuadre) o este dispositivo analiza pocas imágenes por segundo. Para un análisis más fino, prueba en un ordenador o cierra otras aplicaciones.</p>` : ''}
+    ${ba ? `<section class="panel">
+      <h2>Antes y después</h2>
+      <p class="sub">Comparado con ${tk.plan.from === 'file' ? `tu vídeo «${esc(tk.plan.name)}»` : 'la toma anterior'}. El porcentaje es la parte del tiempo con ese problema: cuanto más bajo, mejor.</p>
+      <div class="ba-top">
+        <span>Ajuste al tono <b>${tk.plan.match ?? '--'}%</b><span class="arrow">→</span><b style="color:${avg == null || tk.plan.match == null ? 'inherit' : avg > tk.plan.match ? 'var(--ok)' : avg < tk.plan.match - 4 ? 'var(--bad)' : 'inherit'}">${avg ?? '--'}%</b></span>
+        ${tk.plan.perceived && topP ? `<span>Se te veía <b style="color:${lookOf(tk.plan.perceived).color};font-size:1.2rem">${lookOf(tk.plan.perceived).name}</b><span class="arrow">→</span><b style="color:${lookOf(topP).color};font-size:1.2rem">${lookOf(topP).name}</b></span>` : ''}
+      </div>
+      <ul class="goal-list">${goalListHTML(tk.plan.ids, id => { const r = ba.find(x => x.id === id); return `Antes ${pctT(r.b)} del tiempo → ahora ${pctT(r.a)}`; }, id => { const v = ba.find(x => x.id === id).v; return `<span class="pill ${v[0]}">${v[1]}</span>`; })}</ul>
+    </section>` : ''}
+    ${plan ? `<section class="panel">
+      <h2>${file ? 'Qué mejorar al repetirlo' : 'Objetivos para la próxima toma'}</h2>
+      ${plan.ids.length ? `<p class="sub">Lo que más tiempo te alejó del mensaje ${T0.adj}. ${file ? 'Al grabar la versión mejorada' : 'En la siguiente toma'} te los marco en directo, te aviso antes si fallan y te digo cuándo los consigues.</p>
+      <ul class="goal-list">${goalListHTML(plan.ids, id => esc(TIPS[id] || ''), id => plan.base[id] != null ? `<span class="pill">${pctT(plan.base[id])} del tiempo</span>` : '')}</ul>`
+      : '<p class="sub">No hay nada importante que corregir. Si lo repites, fíjate en las ideas que te propone el apuntador para pulirlo.</p>'}
+      <div class="actions" style="margin-top:14px">${file ? `<button class="primary" data-act="improve">${ico('camara')}Grabar la versión mejorada</button>` : `<button class="primary" data-act="again">${ico('repetir')}${plan.ids.length ? 'Repetir con estos objetivos' : 'Repetir toma'}</button>`}</div>
+      ${file && (!S.text.trim() || S.text === SAMPLE) ? '<p class="note" style="margin-top:10px">Para leerlo con el teleprompter, antes te pediré el guion: pégalo o súbelo y entra al plató.</p>' : ''}
+    </section>` : ''}
     <section class="panel">
       <h2>${call ? 'Cómo se te veía, segundo a segundo' : 'Conexión con el tono, segundo a segundo'}</h2>
       <p class="sub">La línea es el grado de ajuste al tono objetivo; la banda inferior, lo que transmitías. Las marcas de arriba son los avisos del apuntador${url ? '. Pulsa en la gráfica para ir a ese momento del vídeo' : ''}.</p>
@@ -3332,7 +3809,7 @@ function buildReport(tk) {
       <section class="panel">
         <h2>Medidas frente al objetivo</h2>
         <p class="sub">La franja verde es lo que pide el tono; la marca, tu media en la toma.</p>
-        <ul class="mrep">${gaps.map(g => { const [lo, hi] = targetsFor(mainTone)[g.m.id]; return `<li><span>${g.m.name}</span><span class="v">${g.inBand == null ? 'sin datos' : Math.round(g.inBand * 100) + '% en rango'}</span><span class="bar"><i class="band" style="left:${lo * 100}%;width:${(hi - lo) * 100}%"></i>${g.avg != null ? `<b class="needle" style="left:${g.avg * 100}%"></b>` : ''}</span></li>`; }).join('')}</ul>
+        <ul class="mrep">${gaps.map(g => { const [lo, hi] = targetsFor(mainTone)[g.m.id]; return `<li><span>${g.m.name}</span><span class="v">${g.inBand == null ? (file && g.m.id === 'volumen' ? 'no se mide en vídeos subidos' : 'sin datos') : Math.round(g.inBand * 100) + '% en rango'}</span><span class="bar"><i class="band" style="left:${lo * 100}%;width:${(hi - lo) * 100}%"></i>${g.avg != null ? `<b class="needle" style="left:${g.avg * 100}%"></b>` : ''}</span></li>`; }).join('')}</ul>
       </section>
     </div>
     <section class="panel">
@@ -3340,7 +3817,7 @@ function buildReport(tk) {
       <p class="sub">Lo que más hizo cada parte durante la ${call ? 'sesión' : 'toma'}. En verde, lo que ayuda al mensaje; en ámbar y rojo, lo que lo frena.</p>
       <ul class="prows">${partRows.map(r => `<li>${ico(r.icon)}<span>${r.name}</span><span class="chips">${r.n ? r.top.map(([txt, o]) => `<span class="pill ${o.k === 'ok' ? 'ok' : o.k === 'warn' ? 'warn' : o.k === 'bad' ? 'bad' : ''}">${esc(txt)} <b>${Math.round(o.n / r.n * 100)}%</b></span>`).join('') : '<span class="pill na">No se vio</span>'}</span></li>`).join('')}</ul>
     </section>
-    ${call ? '' : `<section class="panel">
+    ${call || file ? '' : `<section class="panel">
       <h2>Párrafo a párrafo</h2>
       <div class="tbl"><table class="rows"><thead><tr><th>Párrafo</th><th>Objetivo</th><th>Transmitiste</th><th style="text-align:right">Ajuste</th></tr></thead><tbody>
       ${paraRows.map(r => `<tr><td>${esc(r.words)}…</td><td><span class="pill" style="color:${TONES[r.tone].color}">${TONES[r.tone].name}</span></td><td>${r.top ? `<span class="pill" style="color:${lookOf(r.top).color}">${lookOf(r.top).name}</span>` : '<span class="pill na">sin leer</span>'}</td><td class="num">${r.match == null ? '—' : r.match + '%'}</td></tr>`).join('')}
@@ -3357,6 +3834,7 @@ function buildReport(tk) {
 function leaveStudioForReport() {
   closePip();
   S.live = false; stopLoops();
+  endFileMode();
   if (!(FOL.on && voiceEngine() === 'navegador')) stopVoice();
   try { S.wake?.release(); } catch {}
   stageMsg(null); cueEl.hidden = true;
@@ -3366,14 +3844,25 @@ $('#report').addEventListener('click', e => {
   const a = e.target.closest('[data-act]')?.dataset.act;
   if (a === 'edit') { stopVoice(); if (S.stream) { for (const tr of S.stream.getTracks()) tr.stop(); S.stream = null; } if (S.audio) { try { S.audio.ctx.close(); } catch {} S.audio = null; } show('setup'); }
   if (a === 'again') { show('studio'); reenterStudio(); }
+  if (a === 'another') { primeAudio(); $('#vidFile').click(); }
+  if (a === 'improve') {
+    primeAudio();
+    if (!S.text.trim() || S.text === SAMPLE) {
+      show('setup');
+      toast('🎯 Tus objetivos están listos. Pega o sube el guion de tu vídeo y pulsa «Entrar al plató».', 8000);
+      setTimeout(() => { elScript.focus(); elScript.select(); }, 300);
+    } else enterStudio();
+  }
 });
 async function reenterStudio() {
   if (!S.stream || !S.stream.active) return enterStudio();
   S.sc = parseScript(S.text, S.tone);
   setupPrompter(); setTakeUI(false);
   S.live = true; startLoops();
+  const voice = !isCall() && (startVoice() || (kwsOn() && KWS.tpl));
+  if (showPlanCard(voice ? 'Di «comenzamos» cuando quieras.' : 'Pulsa Grabar o da dos palmadas cuando quieras.')) return;
   if (isCall() && 'documentPictureInPicture' in window) toast('Listo. Abre la ventana flotante si vas a volver a la llamada.');
-  else if (!isCall() && (startVoice() || (kwsOn() && KWS.tpl))) toast('Listo. Di «comenzamos» para la siguiente toma.');
+  else if (voice) toast('Listo. Di «comenzamos» para la siguiente toma.');
   else toast('Listo para otra toma.');
 }
 function drawTimeline(tk) {
