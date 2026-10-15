@@ -66,6 +66,13 @@ Atajos en el plató: Espacio empezar/pausar, R grabar, Esc terminar, ↑/↓ vel
 - Si la cámara se corta a mitad (otra aplicación la coge, el móvil pausa la página, la imagen deja de avanzar),
   aparece «La cámara se ha parado» con un botón para reactivarla; al volver a la pestaña se reactiva sola.
 - El bucle de la pantalla está protegido: si una parte falla, las demás siguen funcionando.
+- En el iPhone (Safari y Chrome) el análisis corre en segundo plano con el procesador; si un navegador no lo
+  permite, se hace en la página con imágenes pequeñas y pausas, sin congelar la pantalla.
+- Si la cámara se corta durante una grabación, se guarda lo grabado hasta ese momento.
+- Botón «Texto» (o tecla T): oculta el teleprompter para verte entero.
+
+Dirección publicada: https://jonathanvilches.github.io/MENDIZMENDI-/apuntador/ (carpeta `docs/apuntador/` de
+`main`, con una copia en `public/apuntador/` para que la compilación web del juego la conserve).
 
 ## Cómo probarlo
 
