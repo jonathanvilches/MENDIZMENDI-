@@ -11,9 +11,11 @@ Es un prototipo web de un solo archivo (`index.html`), sin servidor ni instalaci
 ## Dos usos
 
 **Grabar un vídeo.** Pegas el guion, eliges el tono (animado, cercano, serio, inspirador, calmado, divertido,
-urgente) y lo lees como en un teleprompter. El texto sigue tu voz o avanza a velocidad fija. La app coloca gestos
-en el guion («saluda con la mano» en «hola», «cuenta con los dedos» en una enumeración, «abre los brazos» en
-«todos»…), te avisa cuando llegas a ellos y comprueba si los haces. Marcas: `[animado]` cambia el tono desde
+urgente) y lo lees como en un teleprompter. Di «comenzamos» y empieza la cuenta atrás y la grabación; «ensayo»
+ensaya sin grabar y «corten» termina (también hay botones). El texto sigue tu voz o avanza a velocidad fija. La app
+coloca gestos en el guion («saluda con la mano» en «hola», «cuenta con los dedos» en una enumeración, «abre los
+brazos» en «todos»…), te avisa cuando llegas a ellos, te enseña cómo hacerlos y comprueba si los haces. Como estás
+leyendo, en este modo no te corrige la mirada. Marcas: `[animado]` cambia el tono desde
 ese párrafo, `//` es una pausa, `*palabra*` pide énfasis y `{abre los brazos}` es una acotación tuya.
 
 **Videollamada o directo.** Sin guion. Distingue si hablas tú o escuchas (tu voz y, además, que se te mueva la
@@ -36,8 +38,17 @@ abre la llamada en otra pestaña del mismo navegador.
     hombros: relajados, subidos, inclinados; codos: abiertos, pegados; manos: gesticulando, contando, en puño,
     en la cara, brazos cruzados, fuera de plano; postura; movimiento; voz).
   - *Tono*: cada medida frente a la franja que pide el tono elegido.
-- **Avisos** de uno en uno, con un tiempo mínimo y un descanso para no agobiar: correcciones (ámbar y rojo),
-  gestos del guion (azul), ideas cuando todo va bien (azul) y «Mejor así» cuando corriges algo (verde).
+- **La sombra**: cuando toca un gesto (o corregir uno), una figura animada te enseña el movimiento en el aviso y,
+  además, una sombra luminosa lo hace encima de tu propio cuerpo, anclada a tus hombros (abrir los brazos, mano al
+  pecho, contar con los dedos, saludar, descruzar los brazos, bajar los hombros, separar los codos…). Los gestos de
+  la cara (sonreír, subir las cejas, relajar el ceño, asentir) se dibujan sobre tu cara.
+- **Avisos** de uno en uno, con emoji, con un tiempo mínimo y un descanso para no agobiar: correcciones (ámbar y
+  rojo), gestos del guion (azul), ideas cuando todo va bien (azul) y felicitaciones (verde).
+- **¿Lo estoy haciendo bien?**: al entrar te confirma «¡Te veo!» y marca con ✓ cara, cuerpo, manos y voz. El monitor
+  dice siempre en una frase cómo vas («👍 ¡Lo estás haciendo bien!», «👌 Vas por buen camino»…) y, cuando lo haces
+  bien, te lo dice a menudo.
+- **Puntos**: +10 por cada gesto del guion que haces (más si encadenas una racha), +5 al corregir algo y +3 cuando lo
+  estás haciendo bien, con celebración de emojis. El informe muestra los puntos y la mejor racha.
 - **Informe** al terminar: ajuste segundo a segundo, lo que transmitiste (hablando y escuchando por separado en
   una llamada), qué corregir primero, cada parte del cuerpo con lo que más hizo, medidas frente al objetivo,
   párrafos y gestos del guion, y el vídeo si grabaste.
@@ -57,6 +68,7 @@ y micrófono, calibra 5 segundos (hombros relajados, cara tranquila, voz normal)
 | Cuerpo | MediaPipe Pose: hombros, codos, muñecas, caderas y orejas. Movimiento medido con medias por ventanas para no confundir el temblor del detector con gestos. Hombros subidos: la distancia oreja-hombro se acorta respecto a la calibración. Codos pegados: cerca de la línea de los hombros. Brazos cruzados: antebrazos que se cruzan o muñecas al otro lado del cuerpo. |
 | Cara | MediaPipe Face Landmarker (478 puntos y 52 expresiones): sonrisa, cejas arriba o fruncidas, labios apretados, mandíbula, mirada (ojos y giro de la cabeza), inclinación lateral y asentimiento (la cabeza sube y baja dos veces en 1,6 s). |
 | Manos | MediaPipe Gesture Recognizer: 21 puntos por mano, dedos extendidos, puño, palma abierta, mano en la cara y movimientos pequeños repetidos (nervios). |
+| Rendimiento | La visión corre en un Web Worker con imágenes reducidas (ImageBitmap): la cámara y la pantalla no se congelan aunque el equipo tarde en analizar. Si el worker no arranca, se analiza en el hilo principal dejando tiempo libre entre fotogramas. |
 | Voz | AudioWorklet: volumen, tono con YIN, ritmo (picos de sílaba o palabras por minuto si el texto sigue la voz) y pausas. |
 
 Cada tono define una franja objetivo por medida (`TONES`). Las reglas (`RULES`) indican cuándo aplican: mientras

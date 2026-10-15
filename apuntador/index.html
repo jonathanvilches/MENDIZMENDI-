@@ -122,7 +122,8 @@ body:not([data-app="llamada"]) .only-call{display:none!important}
 
 /* ---------- Plató ---------- */
 #studio{position:fixed;inset:0;background:#000;overflow:hidden;color:var(--paper)}
-#cam,#overlay{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#cam,#overlay,#ghost{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#ghost{pointer-events:none}
 #cam{transform:scaleX(-1)}
 #overlay{pointer-events:none}
 .shade{position:absolute;left:0;right:0;top:0;height:64%;pointer-events:none;background:linear-gradient(to bottom,rgba(12,10,17,.9) 0%,rgba(12,10,17,.8) 58%,rgba(12,10,17,0) 100%)}
@@ -143,10 +144,24 @@ body:not([data-app="llamada"]) .only-call{display:none!important}
 #readline::before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);border:9px solid transparent;border-left:12px solid var(--spot)}
 
 #cue{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 12px);transform:translateX(-50%);display:flex;align-items:center;gap:14px;max-width:min(680px,calc(100% - 24px));padding:12px 20px 12px 14px;border-radius:18px;background:var(--glass);border:1px solid var(--cc,var(--warn));box-shadow:0 10px 40px rgba(0,0,0,.45);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);z-index:5}
-#cue .cue-ico{display:grid;place-items:center;width:44px;height:44px;border-radius:12px;background:color-mix(in srgb,var(--cc,var(--warn)) 22%,transparent);color:var(--cc,var(--warn));flex:none}
-#cue .cue-ico .ico{width:26px;height:26px}
-#cue b{display:block;font-size:1.32rem;line-height:1.15}
-#cue span{display:block;font-size:.92rem;color:var(--mute);line-height:1.35;margin-top:3px}
+#cue .cue-vis{position:relative;display:grid;place-items:center;width:88px;height:88px;border-radius:18px;background:color-mix(in srgb,var(--cc,var(--warn)) 16%,rgba(0,0,0,.35));flex:none}
+#cue .cue-vis canvas{width:88px;height:88px;display:block}
+#cue .cue-emoji{position:absolute;right:-10px;bottom:-10px;font-size:32px;line-height:1;filter:drop-shadow(0 2px 6px rgba(0,0,0,.55))}
+#cue .cue-vis.solo canvas{display:none}
+#cue .cue-vis.solo .cue-emoji{position:static;font-size:50px}
+#cue .cue-txt{min-width:0}
+#cue .cue-txt b{display:block;font-size:1.36rem;line-height:1.15}
+#cue .cue-detail{display:block;font-size:.95rem;color:var(--paper);opacity:.82;line-height:1.35;margin-top:4px}
+.burst{position:fixed;z-index:30;pointer-events:none;font-size:30px;line-height:1;animation:burst 1.15s ease-out forwards}
+@keyframes burst{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}15%{opacity:1}100%{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1.15) rotate(var(--rot));opacity:0}}
+.plus{position:fixed;z-index:30;pointer-events:none;font:700 1.5rem/1 var(--f-body);color:var(--ok);text-shadow:0 2px 10px rgba(0,0,0,.7);animation:plus 1.2s ease-out forwards}
+@keyframes plus{from{transform:translate(-50%,0);opacity:1}to{transform:translate(-50%,-70px);opacity:0}}
+.score{display:inline-flex;align-items:center;padding:0 12px;min-height:44px;border-radius:999px;background:rgba(26,23,34,.88);border:1px solid var(--line);font:700 1rem/1 var(--f-body);font-variant-numeric:tabular-nums}
+.mood{margin:0;font:700 1.08rem/1.3 var(--f-body);color:var(--mc,var(--paper))}
+.seen{display:flex;flex-wrap:wrap;gap:6px}
+.seen span{display:inline-flex;align-items:center;gap:5px;font-size:.78rem;padding:4px 9px;border-radius:999px;border:1px solid var(--line);color:var(--dim)}
+.seen span.on{color:var(--ok);border-color:rgba(85,214,166,.5);background:rgba(85,214,166,.1)}
+.seen span.on::after{content:"✓";font-weight:700}
 #cue.k-script{--cc:var(--spot)}
 #cue.k-good{--cc:var(--ok)}
 #cue.k-crit{--cc:var(--bad)}
@@ -197,10 +212,11 @@ body.pip .pipview{position:relative;flex:1 1 auto;min-height:140px;background:#0
 body.pip #pipVideo,body.pip #pipOverlay{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 body.pip #pipVideo{transform:scaleX(-1)}
 body.pip #cue{position:absolute;top:8px;left:8px;right:8px;transform:none;max-width:none;padding:8px 12px 8px 8px;gap:10px;animation:none}
-body.pip #cue .cue-ico{width:34px;height:34px}
-body.pip #cue .cue-ico .ico{width:20px;height:20px}
-body.pip #cue b{font-size:1rem}
-body.pip #cue span{font-size:.78rem}
+body.pip #cue .cue-vis,body.pip #cue .cue-vis canvas{width:58px;height:58px}
+body.pip #cue .cue-emoji{font-size:22px;right:-6px;bottom:-6px}
+body.pip #cue .cue-vis.solo .cue-emoji{font-size:34px}
+body.pip #cue .cue-txt b{font-size:1rem}
+body.pip #cue .cue-detail{font-size:.8rem}
 body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;border-width:1px 0 0;padding:10px 12px;flex:none}
 
 .bar-ctl{position:absolute;left:0;right:0;bottom:0;z-index:6;display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;
@@ -216,6 +232,9 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
 .clock{font:500 .95rem/1 var(--f-mono);font-variant-numeric:tabular-nums;padding:0 8px;display:inline-flex;align-items:center;gap:8px}
 .clock .live{width:10px;height:10px;border-radius:50%;background:var(--bad);animation:blink 1s steps(2) infinite}
 @keyframes blink{50%{opacity:.2}}
+.voice-hint{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:5;padding:9px 16px;border-radius:999px;background:var(--glass);border:1px solid var(--line);font-size:.92rem;white-space:nowrap;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+.voice-hint b{color:var(--spot)}
+#studio.mon-full .voice-hint{left:calc(50% - 170px)}
 .status{position:absolute;left:max(12px,env(safe-area-inset-left,0px));bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:4;font:400 .72rem/1.5 var(--f-mono);color:rgba(244,239,230,.55);pointer-events:none;max-width:46%}
 
 .stage-msg{position:absolute;inset:0;display:grid;place-items:center;z-index:8;background:rgba(10,8,14,.55);padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px))}
@@ -242,9 +261,11 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
   #slower,#faster,#fontDown,#fontUp,#skel{display:none}
   .btn{padding:0 12px}
   #cue{padding:10px 14px 10px 10px;gap:10px}
-  #cue .cue-ico{width:36px;height:36px}
-  #cue b{font-size:1.1rem}
-  #cue span{font-size:.8rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  #cue .cue-vis,#cue .cue-vis canvas{width:64px;height:64px}
+  #cue .cue-emoji{font-size:24px;right:-7px;bottom:-7px}
+  #cue .cue-vis.solo .cue-emoji{font-size:36px}
+  #cue .cue-txt b{font-size:1.1rem}
+  #cue .cue-detail{font-size:.82rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .toast{bottom:calc(176px + env(safe-area-inset-bottom,0px))}
   .status{display:none}
 }
@@ -462,11 +483,12 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
   <video id="cam" playsinline muted autoplay></video>
   <canvas id="overlay"></canvas>
   <div class="shade"></div>
+  <canvas id="ghost"></canvas>
   <div id="prompter"><div id="pwrap"><div id="track"></div><div id="readline"></div></div></div>
 
   <div id="cue" hidden role="status" aria-live="polite">
-    <div class="cue-ico"><svg class="ico"><use href="#i-alerta"/></svg></div>
-    <div><b></b><span></span></div>
+    <div class="cue-vis"><canvas id="cueCanvas" width="176" height="176"></canvas><span class="cue-emoji"></span></div>
+    <div class="cue-txt"><b></b><span class="cue-detail"></span></div>
   </div>
 
   <aside id="monitor" aria-label="Monitor del director">
@@ -477,6 +499,8 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
         <small>Objetivo</small><b id="target">—</b>
       </div>
     </div>
+    <p class="mood" id="mood">👀 Esperando a verte…</p>
+    <div class="seen" aria-label="Lo que detecta ahora"><span data-s="cara">🙂 Cara</span><span data-s="cuerpo">🧍 Cuerpo</span><span data-s="manos">✋ Manos</span><span data-s="voz">🎙️ Voz</span></div>
     <p class="why" id="why">Colócate frente a la cámara y empieza a hablar.</p>
     <div class="tabs" role="tablist" aria-label="Vista del monitor"><button type="button" role="tab" data-tab="cuerpo">Cuerpo</button><button type="button" role="tab" data-tab="tono">Tono</button></div>
     <ul id="parts" class="parts" aria-label="Lo que hace cada parte del cuerpo"></ul>
@@ -485,11 +509,13 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
   </aside>
 
   <div class="status" id="status"></div>
+  <div class="voice-hint" id="voiceHint" hidden>🎙️ Di <b>«comenzamos»</b> para grabar · <b>«ensayo»</b> para ensayar · <b>«corten»</b> para parar</div>
 
   <div class="bar-ctl">
     <button class="btn" id="back" title="Volver (Esc)"><svg class="ico"><use href="#i-volver"/></svg><span class="lbl">Volver</span></button>
     <button class="btn" id="slower" title="Más lento (flecha abajo)"><svg class="ico"><use href="#i-menos"/></svg><span class="sr">Más lento</span></button>
     <span class="clock" id="clock">00:00</span>
+    <span class="score" id="score" hidden title="Puntos de la toma">⭐ 0</span>
     <button class="btn" id="faster" title="Más rápido (flecha arriba)"><svg class="ico"><use href="#i-mas"/></svg><span class="sr">Más rápido</span></button>
     <button class="btn go" id="rehearse" title="Ensayar sin grabar (Espacio)"><svg class="ico"><use href="#i-play"/></svg><span class="lbl"><span class="only-video">Ensayar</span><span class="only-call">Empezar</span></span></button>
     <button class="btn rec" id="record" title="Grabar toma (R)"><i class="dot"></i><span class="lbl">Grabar</span></button>
@@ -854,7 +880,7 @@ renderTones(); bindOpts(); refreshSetup();
 $('#go').addEventListener('click', enterStudio);
 
 /* ---------------- plató: entrada y salida ---------------- */
-const video = $('#cam'), overlay = $('#overlay'), octx = overlay.getContext('2d');
+const video = $('#cam'), overlay = $('#overlay'), octx = overlay.getContext('2d'), ghostCv = $('#ghost'), gctx = ghostCv.getContext('2d');
 function show(id) { for (const s of ['setup', 'studio', 'report']) $('#' + s).hidden = s !== id; window.scrollTo(0, 0); }
 
 function stageMsg(html) { const m = $('#stageMsg'); if (!html) { m.hidden = true; m.innerHTML = ''; return; } m.innerHTML = html; m.hidden = false; }
@@ -866,6 +892,7 @@ async function enterStudio() {
   if (!S.sc.words.length && !isCall()) return;
   show('studio');
   $('#studio').classList.toggle('app-llamada', isCall());
+  S.seenOK = false;
   setTab(S.opts.tab?.[S.opts.app] || (isCall() ? 'cuerpo' : 'tono'));
   document.documentElement.style.setProperty('--pfs', pfs() + 'px');
   $('#pwrap').classList.toggle('mirror', S.opts.mirror);
@@ -900,8 +927,13 @@ async function enterStudio() {
   startLoops();
   if (!S.vision && !S.visionErr) {
     stageMsg(`<div class="stage-card"><h3>Cargando el ojo del director</h3><p id="vprog">Descargando los modelos de postura, cara y manos (unos 18 MB, solo la primera vez)…</p><div class="progress"><i id="vbar" style="width:8%"></i></div></div>`);
-    try { S.vision = await loadVision((txt, p) => { const a = $('#vprog'), b = $('#vbar'); if (a) a.textContent = txt; if (b) b.style.width = p + '%'; }); }
-    catch (e) { console.error(e); S.visionErr = e; toast('No se pudo cargar el análisis de imagen (¿sin conexión?). Solo analizaré la voz.', 7000); }
+    const prog = (txt, p) => { const a = $('#vprog'), b = $('#vbar'); if (a) a.textContent = txt; if (b) b.style.width = p + '%'; };
+    try { S.vision = await loadVisionWorker(prog); }
+    catch (e) {
+      console.warn('Análisis en segundo plano no disponible; uso el hilo principal', e);
+      try { S.vision = await loadVision(prog); }
+      catch (e2) { console.error(e2); S.visionErr = e2; toast('No se pudo cargar el análisis de imagen (¿sin conexión?). Solo analizaré la voz.', 7000); }
+    }
   }
   if (!S.live) return;
   startCalibration();
@@ -918,7 +950,7 @@ function leaveStudio() {
   if (S.take) stopTake(false);
   S.live = false;
   stopLoops();
-  stopFollow();
+  stopVoice();
   try { S.wake?.release(); } catch {}
   if (S.stream) { for (const tr of S.stream.getTracks()) tr.stop(); S.stream = null; }
   if (S.audio) { try { S.audio.ctx.close(); } catch {} S.audio = null; }
@@ -948,9 +980,9 @@ async function loadVision(progress) {
   };
   progress('Descargando modelos…', 20);
   const [pose, face, hands] = await Promise.all([
-    make(PoseLandmarker, MODEL.pose, { numPoses: 1, minPoseDetectionConfidence: .5, minPosePresenceConfidence: .5, minTrackingConfidence: .5 }, 'Postura'),
-    make(FaceLandmarker, MODEL.face, { numFaces: 1, outputFaceBlendshapes: true }, 'Cara'),
-    make(GestureRecognizer, MODEL.hands, { numHands: 2 }, 'Manos'),
+    make(PoseLandmarker, MODEL.pose, VISION_OPTS.pose, 'Postura'),
+    make(FaceLandmarker, MODEL.face, VISION_OPTS.face, 'Cara'),
+    make(GestureRecognizer, MODEL.hands, VISION_OPTS.hands, 'Manos'),
   ]);
   const C = (Cls, k) => Cls[k] || [];
   const conn = {
@@ -960,7 +992,87 @@ async function loadVision(progress) {
     eyeL: C(FaceLandmarker, 'FACE_LANDMARKS_LEFT_EYE'), eyeR: C(FaceLandmarker, 'FACE_LANDMARKS_RIGHT_EYE'),
     irisL: C(FaceLandmarker, 'FACE_LANDMARKS_LEFT_IRIS'), irisR: C(FaceLandmarker, 'FACE_LANDMARKS_RIGHT_IRIS'),
   };
-  return { pose, face, hands, conn };
+  return { pose, face, hands, conn, delegate: pose._delegate };
+}
+const VISION_OPTS = {
+  pose: { numPoses: 1, minPoseDetectionConfidence: .5, minPosePresenceConfidence: .5, minTrackingConfidence: .5 },
+  face: { numFaces: 1, outputFaceBlendshapes: true },
+  hands: { numHands: 2 },
+};
+
+/* La visión corre en un Web Worker: el hilo principal queda libre y la imagen de la cámara
+   nunca se congela, aunque el ordenador o el móvil tarden en analizar cada fotograma.
+   Esta función se convierte en texto y se ejecuta dentro del worker (no usa nada de fuera). */
+function visionWorkerMain() {
+  self.exports = {}; self.module = { exports: self.exports };
+  let T = null;
+  const plain = a => (a || []).map(c => ({ start: c.start, end: c.end }));
+  self.onmessage = async e => {
+    const m = e.data;
+    if (m.type === 'init') {
+      try {
+        importScripts(m.mp + '/vision_bundle.cjs');
+        const V = self.module.exports.FilesetResolver ? self.module.exports : self.exports;
+        const fileset = await V.FilesetResolver.forVisionTasks(m.mp + '/wasm');
+        let done = 0;
+        const make = async (Cls, url, opts, label) => {
+          let last;
+          for (const delegate of m.cpu ? ['CPU'] : ['GPU', 'CPU']) {
+            try {
+              const t = await Cls.createFromOptions(fileset, { baseOptions: { modelAssetPath: url, delegate }, runningMode: 'VIDEO', ...opts });
+              t._delegate = delegate; done++;
+              postMessage({ type: 'progress', text: label + ' listo (' + done + '/3)…', p: 20 + done * 26 });
+              return t;
+            } catch (err) { last = err; }
+          }
+          throw last;
+        };
+        const [pose, face, hands] = await Promise.all([
+          make(V.PoseLandmarker, m.models.pose, m.opts.pose, 'Postura'),
+          make(V.FaceLandmarker, m.models.face, m.opts.face, 'Cara'),
+          make(V.GestureRecognizer, m.models.hands, m.opts.hands, 'Manos'),
+        ]);
+        T = { pose, face, hands };
+        const F = V.FaceLandmarker;
+        postMessage({ type: 'ready', delegate: pose._delegate, conn: {
+          pose: plain(V.PoseLandmarker.POSE_CONNECTIONS), hand: plain(V.GestureRecognizer.HAND_CONNECTIONS),
+          oval: plain(F.FACE_LANDMARKS_FACE_OVAL), lips: plain(F.FACE_LANDMARKS_LIPS),
+          browL: plain(F.FACE_LANDMARKS_LEFT_EYEBROW), browR: plain(F.FACE_LANDMARKS_RIGHT_EYEBROW),
+          eyeL: plain(F.FACE_LANDMARKS_LEFT_EYE), eyeR: plain(F.FACE_LANDMARKS_RIGHT_EYE),
+          irisL: plain(F.FACE_LANDMARKS_LEFT_IRIS), irisR: plain(F.FACE_LANDMARKS_RIGHT_IRIS) } });
+      } catch (err) { postMessage({ type: 'error', message: String((err && err.message) || err) }); }
+      return;
+    }
+    if (m.type === 'frame') {
+      const t0 = performance.now();
+      let out = null, err = null;
+      try {
+        if (m.which === 'pose') { const r = T.pose.detectForVideo(m.bitmap, m.ts); out = { landmarks: r.landmarks }; }
+        else if (m.which === 'face') { const r = T.face.detectForVideo(m.bitmap, m.ts); out = { faceLandmarks: r.faceLandmarks, faceBlendshapes: r.faceBlendshapes }; }
+        else { const r = T.hands.recognizeForVideo(m.bitmap, m.ts); out = { landmarks: r.landmarks, gestures: r.gestures, handedness: r.handedness }; }
+      } catch (e2) { err = String((e2 && e2.message) || e2); }
+      try { m.bitmap.close(); } catch (e3) {}
+      postMessage({ type: 'result', which: m.which, ts: m.ts, out, err, ms: performance.now() - t0 });
+    }
+  };
+}
+function loadVisionWorker(progress) {
+  return new Promise((resolve, reject) => {
+    let w;
+    try { w = new Worker(URL.createObjectURL(new Blob(['(' + visionWorkerMain.toString() + ')()'], { type: 'text/javascript' }))); }
+    catch (e) { reject(e); return; }
+    const fail = err => { clearTimeout(to); w.terminate(); reject(err); };
+    const to = setTimeout(() => fail(new Error('El análisis en segundo plano no respondió')), 120000);
+    w.onmessage = e => {
+      const m = e.data;
+      if (m.type === 'progress') progress(m.text, m.p);
+      else if (m.type === 'error') fail(new Error(m.message));
+      else if (m.type === 'ready') { clearTimeout(to); w.onmessage = onWorkerMessage; resolve({ worker: w, conn: m.conn, delegate: m.delegate }); }
+    };
+    w.onerror = ev => { ev.preventDefault?.(); fail(new Error(ev.message || 'worker')); };
+    progress('Descargando modelos…', 16);
+    w.postMessage({ type: 'init', mp: MP, models: MODEL, cpu: FORCE_CPU, opts: VISION_OPTS });
+  });
 }
 // con la ventana flotante abierta se analiza su vídeo, que sigue visible aunque esta pestaña quede detrás
 const srcVideo = () => (S.pipVideo && S.pipVideo.readyState >= 2 ? S.pipVideo : video);
@@ -971,24 +1083,59 @@ const perf = { pose: 0, face: 0, hands: 0, frames: 0, fpsT: 0, fps: 0, at: {}, g
 // cuánto tiempo sigue valiendo un dato: más en dispositivos lentos
 const fresh = (which, lastT, t, base) => t - lastT < Math.max(base, 2.5 * perf.gap[which]);
 let orderK = 0;
-function visionStep() {
-  const vsrc = srcVideo();
-  if (!S.vision || vsrc.readyState < 2 || !video.videoWidth) return;
+const VW = { busy: false, sentAt: 0, lastSend: 0, nextAt: 0 };
+function nextTask() {
   const which = ORDER[orderK++ % ORDER.length];
   let ts = Math.round(performance.now());
   if (ts <= lastTs[which]) ts = lastTs[which] + 1;
   lastTs[which] = ts;
-  const t = ts / 1000, t0 = performance.now();
+  return [which, ts];
+}
+// se llama en cada fotograma de pantalla: manda la imagen al worker (una cada vez) o, sin worker,
+// analiza aquí dejando tanto tiempo libre como el que tarda el análisis
+function visionPump(t) {
+  if (!S.vision) return;
+  const vsrc = srcVideo();
+  if (vsrc.readyState < 2 || !video.videoWidth) return;
+  if (!S.vision.worker) {
+    if (t < VW.nextAt) return;
+    const [which, ts] = nextTask(), t0 = performance.now();
+    let res = null;
+    try { res = which === 'pose' ? S.vision.pose.detectForVideo(vsrc, ts) : which === 'face' ? S.vision.face.detectForVideo(vsrc, ts) : S.vision.hands.recognizeForVideo(vsrc, ts); }
+    catch (e) { console.warn(which, e); }
+    const ms = performance.now() - t0;
+    VW.nextAt = t + Math.max(1 / 30, ms / 1000);
+    if (res) handleVisionResult(which, res, ts / 1000, ms);
+    return;
+  }
+  if (VW.busy && performance.now() - VW.sentAt < 3000) return;
+  if (t - VW.lastSend < 1 / 30) return;
+  const [which, ts] = nextTask();
+  VW.busy = true; VW.sentAt = performance.now(); VW.lastSend = t;
+  const vw = video.videoWidth, vh = video.videoHeight, rw = Math.min(640, vw), rh = Math.round(rw * vh / vw);
+  let p;
+  try { p = createImageBitmap(vsrc, { resizeWidth: rw, resizeHeight: rh, resizeQuality: 'low' }); } catch { p = createImageBitmap(vsrc); }
+  p.then(bmp => S.vision.worker.postMessage({ type: 'frame', which, ts, bitmap: bmp }, [bmp])).catch(() => { VW.busy = false; });
+}
+function onWorkerMessage(e) {
+  const m = e.data;
+  if (m.type !== 'result') return;
+  VW.busy = false;
+  if (m.err) console.warn(m.which, m.err);
+  if (S.live && m.out) handleVisionResult(m.which, m.out, m.ts / 1000, m.ms);
+}
+function handleVisionResult(which, res, t, ms) {
   if (perf.at[which]) { const g = Math.min(5, t - perf.at[which]); perf.gap[which] = perf.gap[which] ? perf.gap[which] * .8 + g * .2 : g; }
   perf.at[which] = t;
   try {
-    if (which === 'pose') onPose(S.vision.pose.detectForVideo(vsrc, ts), t);
-    else if (which === 'face') onFace(S.vision.face.detectForVideo(vsrc, ts), t);
-    else onHands(S.vision.hands.recognizeForVideo(vsrc, ts), t);
+    if (which === 'pose') onPose(res, t);
+    else if (which === 'face') onFace(res, t);
+    else onHands(res, t);
   } catch (e) { console.warn(which, e); }
-  perf[which] = perf[which] * .8 + (performance.now() - t0) * .2;
+  perf[which] = perf[which] * .8 + ms * .2;
   perf.frames++;
-  if (t - perf.fpsT > 1) { perf.fps = perf.frames / (t - perf.fpsT); perf.frames = 0; perf.fpsT = t; }
+  const tn = now();
+  if (tn - perf.fpsT > 1) { perf.fps = perf.frames / (tn - perf.fpsT); perf.frames = 0; perf.fpsT = tn; }
 }
 
 const smoothPts = [];
@@ -1349,41 +1496,60 @@ function finishCalibration(skipped) {
     store.set('calib', c);
   }
   stageMsg(null);
-  const next = isCall() ? ('Pulsa Empezar cuando arranque la llamada.' + ('documentPictureInPicture' in window ? ' Con «Ventana flotante» lo tendrás encima de ella.' : ' Pon esta ventana al lado de la llamada.')) : 'Pulsa Ensayar o Grabar cuando quieras.';
+  const voice = !isCall() && startVoice();
+  const next = isCall() ? ('Pulsa Empezar cuando arranque la llamada.' + ('documentPictureInPicture' in window ? ' Con «Ventana flotante» lo tendrás encima de ella.' : ' Pon esta ventana al lado de la llamada.'))
+    : voice ? 'Di «comenzamos» cuando quieras y empezará la cuenta atrás.' : 'Pulsa Grabar (o Ensayar) cuando quieras.';
   toast((skipped ? 'Listo. ' : 'Calibrado. ') + next, 6500);
 }
 
-/* ---------------- seguimiento por voz ---------------- */
+/* ---------------- voz: órdenes y seguimiento del texto ----------------
+   Grabando con guion, el reconocimiento de voz está activo en el plató: «comenzamos» arranca la
+   cuenta atrás y graba, «ensayo» ensaya y «corten» termina. Durante la toma, además, mueve el texto. */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-const FOL = { on: false, ok: false, rec: null, pointer: 0, phraseStart: 0, curRes: -1, failed: false };
-function startFollow() {
+const FOL = { on: false, ok: false, rec: null, pointer: 0, phraseStart: 0, curRes: -1, failed: false, follow: false, cmdRes: -1, cmdSkip: 0, netErr: 0 };
+const CMD_REC = new Set(['comenzamos', 'empezamos', 'comenzar', 'empezar', 'comienza', 'empieza', 'accion', 'grabamos', 'graba', 'grabar']);
+const CMD_REH = new Set(['ensayo', 'ensayamos', 'ensayar', 'practicamos', 'practicar']);
+const CMD_STOP = new Set(['corten', 'corta', 'corte', 'terminamos', 'paramos', 'stop']);
+function startVoice() {
   if (!SR || FOL.failed) return false;
-  FOL.on = true; FOL.ok = true; FOL.curRes = -1; FOL.phraseStart = FOL.pointer; FOL.netErr = 0;
+  if (FOL.on) return true;
+  FOL.on = true; FOL.ok = true; FOL.curRes = -1; FOL.netErr = 0;
   const rec = new SR();
   rec.lang = S.opts.lang; rec.continuous = true; rec.interimResults = true; rec.maxAlternatives = 1;
-  rec.onresult = e => {
-    for (let i = e.resultIndex; i < e.results.length; i++) {
-      const r = e.results[i];
-      if (i !== FOL.curRes) { FOL.curRes = i; FOL.phraseStart = FOL.pointer; }
-      const ws = (r[0].transcript.match(/\S+/g) || []).map(normWord).filter(Boolean);
-      const p = alignPhrase(ws, FOL.phraseStart);
-      if (p > FOL.pointer) { ser.words.push(now(), p - FOL.pointer); FOL.pointer = p; }
-      if (r.isFinal) FOL.curRes = -1;
-    }
-  };
+  rec.onresult = onVoice;
   rec.onerror = e => {
-    if (e.error === 'network') FOL.netErr = (FOL.netErr || 0) + 1;
+    if (e.error === 'network') FOL.netErr++;
     if (['not-allowed', 'service-not-allowed', 'audio-capture', 'language-not-supported'].includes(e.error) || FOL.netErr >= 2) {
-      FOL.failed = true; FOL.on = false; FOL.ok = false;
-      toast('El seguimiento por voz no funciona en este navegador: el texto avanzará a velocidad fija.', 6500);
+      FOL.failed = true; FOL.on = false; FOL.ok = false; FOL.follow = false;
+      toast('El reconocimiento de voz no funciona en este navegador: usa los botones Grabar y Terminar (y el texto irá a velocidad fija).', 7000);
     }
   };
-  rec.onend = () => { if (FOL.on) setTimeout(() => { if (FOL.on) { FOL.curRes = -1; try { rec.start(); } catch {} } }, 150); };
+  rec.onend = () => { if (FOL.on) setTimeout(() => { if (FOL.on) { FOL.curRes = -1; FOL.cmdRes = -1; try { rec.start(); } catch {} } }, 150); };
   try { rec.start(); } catch (e) { FOL.failed = true; FOL.on = false; FOL.ok = false; return false; }
   FOL.rec = rec;
   return true;
 }
-function stopFollow() { FOL.on = false; try { FOL.rec?.stop(); } catch {} FOL.rec = null; }
+function stopVoice() { FOL.on = false; FOL.follow = false; try { FOL.rec?.stop(); } catch {} FOL.rec = null; }
+function onVoice(e) {
+  for (let i = e.resultIndex; i < e.results.length; i++) {
+    const r = e.results[i];
+    const ws = (r[0].transcript.match(/\S+/g) || []).map(normWord).filter(Boolean);
+    if (i !== FOL.curRes) { FOL.curRes = i; FOL.phraseStart = FOL.pointer; }
+    const unread = i === FOL.cmdRes ? ws.slice(FOL.cmdSkip) : ws;
+    if (!isCall() && S.live && !S.calibrating) {
+      const consume = () => { FOL.cmdRes = i; FOL.cmdSkip = ws.length; };
+      if (!S.take && !S.countdown) {
+        if (unread.some(w => CMD_REC.has(w))) { consume(); toast('🎬 ¡Oído! Grabamos', 1800); startTake(true); continue; }
+        if (unread.some(w => CMD_REH.has(w))) { consume(); toast('🎬 ¡Oído! Ensayamos', 1800); startTake(false); continue; }
+      } else if (S.take && now() - S.take.t0 > 1.5 && unread.slice(-3).some(w => CMD_STOP.has(w) && !S.scWords?.has(w))) { consume(); stopTake(true); continue; }
+    }
+    if (S.take && FOL.follow) {
+      const p = alignPhrase(unread, FOL.phraseStart);
+      if (p > FOL.pointer) { ser.words.push(now(), p - FOL.pointer); FOL.pointer = p; }
+    }
+    if (r.isFinal) FOL.curRes = -1;
+  }
+}
 function same(a, b) {
   if (a === b) return true;
   if (a.length < 5 || b.length < 5) return false;
@@ -1412,6 +1578,7 @@ function setupPrompter() {
   track.innerHTML = renderScriptHTML(S.sc) + '<div class="tail"></div>';
   wordEls = [...track.querySelectorAll('.w')];
   PR.idx = 0; PR.marked = 0; PR.nextCue = 0; FOL.pointer = 0;
+  S.scWords = new Set(S.sc.words.map(w => w.norm));
   requestAnimationFrame(() => { layoutPrompter(); PR.offset = PR.target = (PR.tops[0] || 0) - PR.readY; applyOffset(); });
 }
 function layoutPrompter() {
@@ -1444,7 +1611,7 @@ function setFont(px) {
 }
 function prompterFrame(t, dt) {
   const n = wordEls.length; if (!n) return;
-  const following = S.take && S.opts.mode === 'voz' && FOL.ok;
+  const following = S.take && FOL.follow && FOL.ok;
   if (following) {
     const i = Math.min(FOL.pointer, n - 1);
     PR.target = PR.tops[i] - PR.readY;
@@ -1523,7 +1690,7 @@ function computeMetrics(t) {
     if (dbs.length > 5) M.volumen = clamp(.5 + (mean(dbs) - S.calib.refDb) / 18);
     const st = ser.pitch.since(t, 6);
     if (st.length >= 20) { const md = median(st); const f = st.filter(x => Math.abs(x - md) < 7); M.entonacion = clamp((std(f) - .9) / 3.3); }
-    if (S.take && S.opts.mode === 'voz' && FOL.ok && t - S.take.t0 > 6) {
+    if (S.take && FOL.follow && FOL.ok && t - S.take.t0 > 6) {
       const win = Math.min(15, t - S.take.t0);
       const w = ser.words.since(t, win).reduce((a, b) => a + b, 0);
       if (w > 3) M.ritmo = clamp((w / win * 60 - 90) / 110);
@@ -1658,14 +1825,14 @@ const RULES = [
   { id: 'caraEscucha', kind: 'face', pri: 25, hold: 4, cool: 45, icon: 'cara', ctx: 'listen',
     test: c => ['cercano', 'animado', 'divertido', 'inspirador', 'calmado'].includes(c.tone) && c.M.sonrisa != null && c.M.sonrisa < .05 && (ser.frown.mean(c.t, 3) ?? 0) > .25,
     title: () => 'Relaja la cara mientras escuchas', detail: () => 'Una sonrisa leve transmite interés y anima a seguir.' },
-  { id: 'bien', kind: 'good', pri: 10, hold: 6, cool: 25, icon: 'ok',
+  { id: 'bien', kind: 'good', pri: 10, hold: 4, cool: 14, icon: 'ok',
     test: c => c.match != null && c.match >= 78,
     title: () => '¡Así!', detail: c => c.listening ? 'Escuchas con atención y se nota.' : `Estás transmitiendo un mensaje ${c.adj}. Sigue así.` },
 ];
 // cuándo aplica cada regla: 'speak' mientras hablas (en el vídeo, siempre), 'listen' mientras escuchas en una llamada,
 // 'video' solo grabando con guion, 'any' siempre
-const RULE_CTX = { mirada: 'speak', manosFuera: 'speak', estatico: 'speak', manosQuietas: 'speak', exceso: 'speak', cerrado: 'speak', serio: 'speak',
-  sonrisaSobra: 'speak', inexpresivo: 'speak', vozBaja: 'speak', vozAlta: 'speak', monotono: 'speak', entonacionSobra: 'speak', rapido: 'speak',
+const RULE_CTX = { manosFuera: 'speak', estatico: 'speak', manosQuietas: 'speak', exceso: 'speak', cerrado: 'speak', serio: 'speak',
+  sonrisaSobra: 'speak', inexpresivo: 'speak', mirada: 'callspeak', vozBaja: 'speak', vozAlta: 'speak', monotono: 'speak', entonacionSobra: 'speak', rapido: 'speak',
   lento: 'speak', sinPausa: 'speak', silencio: 'video' };
 for (const r of RULES) r.ctx = r.ctx || RULE_CTX[r.id] || 'any';
 // ideas para mejorar cuando no hay nada que corregir
@@ -1696,19 +1863,19 @@ function pickIdea(c) {
     if (!opts.length) return null;
     const i = LISTEN_IDEAS.indexOf(opts[Math.floor(Math.random() * opts.length)]);
     coach.ideaUsed['l' + i] = t;
-    return LISTEN_IDEAS[i];
+    return [...LISTEN_IDEAS[i], ...(LISTEN_LOOK[i] || [])];
   }
   // la medida que está más cerca del borde bajo de su franja, aunque esté dentro
   let best = null, bp = .45;
   for (const m of METRICS) {
     const v = c.M[m.id], band = c.T[m.id];
-    if (v == null || !band || !IDEAS[m.id] || !fresh(m.id)) continue;
+    if (v == null || !band || !IDEAS[m.id] || !fresh(m.id) || (m.id === 'mirada' && !c.isCall)) continue;
     const pos = (v - band[0]) / Math.max(.05, band[1] - band[0]);
     if (pos < bp) { bp = pos; best = m.id; }
   }
   if (!best) return null;
   coach.ideaUsed[best] = t;
-  return IDEAS[best];
+  return [...IDEAS[best], ...(IDEA_LOOK[best] || [])];
 }
 // lo que está haciendo cada parte del cuerpo: [texto, estado] con estado ok | warn | bad | none | na
 function readParts(c) {
@@ -1717,9 +1884,10 @@ function readParts(c) {
   const strict = ['serio', 'urgente'].includes(c.tone), wide = ['animado', 'inspirador', 'divertido', 'urgente'].includes(c.tone);
   if (!faceOk) { for (const k of ['cabeza', 'mirada', 'cejas', 'boca']) out[k] = ['No se ve', 'na']; }
   else {
-    out.cabeza = t - (F.nodT || -99) < 2 ? ['Asintiendo', 'ok'] : Math.abs(F.yawDev) > .25 ? ['Girada', 'warn'] : F.pitchDev > .12 ? ['Hacia abajo', c.listening ? 'none' : 'warn']
+    out.cabeza = t - (F.nodT || -99) < 2 ? ['Asintiendo', 'ok'] : Math.abs(F.yawDev) > .25 ? ['Girada', 'warn'] : F.pitchDev > .12 ? ['Hacia abajo', c.listening || !c.isCall ? 'none' : 'warn']
       : Math.abs(F.roll) > 12 ? ['Ladeada', strict ? 'warn' : 'none'] : ['De frente', 'ok'];
-    out.mirada = F.lookDown > .55 || F.pitchDev > .12 ? ['Abajo', c.listening ? 'none' : 'warn'] : F.lookSide > .6 || Math.abs(F.yawDev) > .18 ? ['A un lado', 'warn']
+    out.mirada = !c.isCall ? (F.contact ? ['A cámara', 'ok'] : ['Leyendo el texto', 'none'])
+      : F.lookDown > .55 || F.pitchDev > .12 ? ['Abajo', c.listening ? 'none' : 'warn'] : F.lookSide > .6 || Math.abs(F.yawDev) > .18 ? ['A un lado', 'warn']
       : [c.listening ? 'A la pantalla' : 'A cámara', 'ok'];
     const br = ser.brow.since(t, 4);
     out.cejas = F.frown > .4 ? ['Fruncidas', strict ? 'none' : 'warn'] : F.brow > S.calib.brow + .12 ? ['Arriba', 'ok']
@@ -1754,18 +1922,19 @@ function triggerScriptCue(c, t) {
   if (c.type === 'pausa' && !c.explicit) return; // las pausas automáticas solo se ven en el texto
   if (coach.watch) finishWatch(t);
   coach.watch = { cue: c, t0: t, hit: false };
-  showCue({ id: 'cue:' + c.at, kind: 'script', pri: 64, icon: d.icon,
+  const look = CUE_LOOK[c.type] || [];
+  showCue({ id: 'cue:' + c.at, kind: 'script', pri: 64, icon: d.icon, emoji: look[0], g: look[1],
     title: 'Ahora: ' + (c.type === 'libre' ? c.text : d.label).replace(/^./, s => s.toLowerCase()),
     detail: cueWhy(c.type) }, t, true);
 }
 function cueWhy(type) {
   return ({
-    saludo: 'Un saludo con la mano abre la conexión.', contar: 'Enumerar con los dedos ayuda a seguir la lista.',
-    abrir: 'Hablas de un grupo: los brazos abiertos lo incluyen.', pecho: 'Hablas de ti: la mano al pecho da sinceridad.',
-    palma: 'Te diriges a quien mira: ofrécele la palma.', grande: 'Dibuja el tamaño con las manos.',
-    pequeno: 'Un gesto de pinza transmite precisión.', pregunta: 'Las preguntas se ven con las cejas y las palmas.',
-    sonrie: 'Frase exclamativa: que se note en la cara.', negar: 'Refuerza la negación con un gesto firme.',
-    cta: 'Llamada a la acción: señala dónde está el enlace o el botón.', pausa: 'Respira antes de seguir.',
+    saludo: 'Levanta la mano y muévela de lado a lado.', contar: 'Levanta la mano y saca un dedo por cada punto.',
+    abrir: 'Abre los dos brazos hacia los lados, a la altura del pecho.', pecho: 'Lleva una mano al centro del pecho.',
+    palma: 'Enseña la palma de la mano a la cámara.', grande: 'Separa mucho las manos, como si dibujaras algo enorme.',
+    pequeno: 'Junta el pulgar y el índice, como si cogieras algo diminuto.', pregunta: 'Sube las cejas y abre las manos con las palmas hacia arriba.',
+    sonrie: 'Sonríe: sube las comisuras de la boca.', negar: 'Mueve la mano de lado a lado delante del pecho.',
+    cta: 'Señala hacia abajo con el índice: ahí está el enlace.', pausa: 'Respira un segundo antes de seguir.',
     enfasis: 'Sube un poco la voz en esta palabra.', libre: 'Acotación de tu guion.',
   })[type] || '';
 }
@@ -1789,6 +1958,7 @@ function checkCue(type, c) {
 function finishWatch(t) {
   const w = coach.watch; if (!w) return;
   coach.watch = null;
+  if (S.take && !w.hit && w.cue.type !== 'libre') S.take.streak = 0;
   if (S.take) S.take.events.push({ t: w.t0 - S.take.t0, id: 'cue', kind: 'script', cue: w.cue, title: w.cue.type === 'libre' ? w.cue.text : CUES[w.cue.type].label, outcome: w.cue.type === 'libre' ? 'na' : w.hit ? 'hit' : 'miss' });
 }
 
@@ -1808,7 +1978,8 @@ function coachTick() {
   const fit = {};
   for (const k of Object.keys(TONES)) fit[k] = fitTone(M, targetsFor(k));
   const mt = fit[tone];
-  let match = mt == null ? null : Math.round(100 * (.85 * mt + .15 * (M.mirada ?? 1)));
+  // leyendo un guion la mirada se va al texto: solo cuenta en las llamadas
+  let match = mt == null ? null : Math.round(100 * (call ? .85 * mt + .15 * (M.mirada ?? 1) : mt));
   // lo que se percibe
   let perceived = null;
   const present = (B.ok && fresh('pose', B.lastOk, t, 1)) || (F.ok && fresh('face', F.lastSeen, t, 1));
@@ -1821,7 +1992,7 @@ function coachTick() {
   } else if (present) {
     if ((B.ok && B.crossedS) || ((ser.fist.mean(t, 2) ?? 0) > .6 && (ser.frown.mean(t, 2) ?? 0) > .35)) perceived = 'defensivo';
     else if ((H.fidget && fresh('hands', H.lastT, t, .8)) || (B.ok && (B.sway || B.faceTouch)) || (H.nearFace && fresh('hands', H.lastT, t, .6))) perceived = 'nervioso';
-    else if (M.mirada != null && M.mirada < .35) perceived = call ? 'sinMirada' : 'leyendo';
+    else if (call && M.mirada != null && M.mirada < .35) perceived = 'sinMirada';
     else if ((M.energia ?? 1) < .15 && (M.manos ?? 1) < .2 && (M.entonacion ?? 0) < .3 && (M.sonrisa ?? 1) < .2) perceived = 'apagado';
     else {
       let best = null, bv = -1;
@@ -1831,6 +2002,7 @@ function coachTick() {
   }
   // un estado negativo (a la defensiva, nervioso…) pesa sobre el ajuste aunque las medidas cuadren
   if (match != null && STATES[perceived]?.neg && !listening) match = Math.round(match * .8);
+  if (match != null && (perceived === 'defensivo' || perceived === 'nervioso')) match = Math.min(match, 60);
   const c = { t, M, T, tone, adj: TONES[tone].adj, match, take: !!S.take, isCall: call, listening, speakingMe };
   const parts = readParts(c);
   coach.parts = parts;
@@ -1838,7 +2010,7 @@ function coachTick() {
 
   // reglas
   const startOK = S.live && !S.calibrating && S.liveT0 && t - S.liveT0 > 2;
-  const ctxOk = r => r.ctx === 'listen' ? listening : r.ctx === 'video' ? !call : r.ctx === 'speak' ? (!call || speakingMe) : true;
+  const ctxOk = r => r.ctx === 'callspeak' ? call && speakingMe : r.ctx === 'listen' ? listening : r.ctx === 'video' ? !call : r.ctx === 'speak' ? (!call || speakingMe) : true;
   for (const r of RULES) {
     const st = RS[r.id];
     let v = startOK && ctxOk(r) ? r.test(c) : 0;
@@ -1850,9 +2022,25 @@ function coachTick() {
     const w = coach.watch;
     if (!w.hit && w.cue.type !== 'libre' && checkCue(w.cue.type, c)) {
       w.hit = true;
-      if (coach.active && coach.active.kind === 'script') { setCueLook({ ...coach.active, kind: 'good', icon: 'ok', title: '¡Bien! ' + (w.cue.type === 'libre' ? w.cue.text : CUES[w.cue.type].label), detail: 'Ese gesto acompaña lo que dices.' }); }
+      if (S.take) { S.take.streak = (S.take.streak || 0) + 1; S.take.bestStreak = Math.max(S.take.bestStreak || 0, S.take.streak); addPoints(10 + 5 * Math.min(4, S.take.streak - 1)); }
+      const streak = S.take?.streak || 1;
+      if (coach.active && coach.active.kind === 'script') {
+        coach.active.g = null;
+        setCueLook({ ...coach.active, kind: 'good', g: null, emoji: streak >= 3 ? '🔥' : '🎉',
+          title: streak >= 3 ? `¡Racha de ${streak}! 🔥` : '¡Bien hecho!', detail: (w.cue.type === 'libre' ? w.cue.text : CUES[w.cue.type].label) + ': ese gesto acompaña lo que dices.' });
+      }
+      burst(streak >= 3 ? ['🔥', '🎉', '⭐'] : ['🎉', '✨', '⭐'], 14);
     }
     if (t - w.t0 > 4) finishWatch(t);
+  }
+  if (!S.seenOK && startOK && parts.cabeza[1] !== 'na' && parts.hombros[1] !== 'na' && (!coach.active || coach.active.pri < 80)) {
+    S.seenOK = true;
+    const hands = parts.manos[0] !== 'Fuera de plano';
+    if (coach.active) endCue(t, 'replaced');
+    showCue({ id: 'teveo', kind: 'good', pri: 95, icon: 'ok', emoji: '✅', title: '¡Te veo!',
+      detail: (hands ? 'Cara, cuerpo y manos detectados.' : 'Cara y cuerpo detectados. Sube las manos al pecho para que las vea.')
+        + (!call && FOL.on && !S.take ? ' Di «comenzamos» cuando quieras.' : '') }, t);
+    burst(['✅', '✨'], 8);
   }
   manageCue(c);
   // registro de la toma
@@ -1874,11 +2062,11 @@ function manageCue(c) {
     const el = t - coach.since;
     if (a.kind === 'script') { if (el > 3.4) endCue(t, 'done'); }
     else if (a.kind === 'idea') { if (el > 5) endCue(t, 'done'); }
-    else if (a.kind === 'good') { if (el > 2.6) endCue(t, 'done'); }
+    else if (a.kind === 'good') { if (el > (a.id === 'teveo' ? 4 : 2.6)) endCue(t, 'done'); }
     else {
       const st = RS[a.id];
       if (coach.resolvedAt) { if (t - coach.resolvedAt > 1.1) endCue(t, 'fixed'); }
-      else if (!st.on && el > 1.6) { coach.resolvedAt = t; setCueLook({ ...a, kind: 'good', icon: 'ok', title: 'Mejor así', detail: '' }); }
+      else if (!st.on && el > 1.6) { coach.resolvedAt = t; a.g = null; setCueLook({ ...a, kind: 'good', icon: 'ok', emoji: '👌', g: null, title: '¡Mejor así!', detail: '' }); addPoints(5); burst(['👌', '✨'], 8); }
       else if (el > 6.5) endCue(t, 'timeout');
     }
   }
@@ -1896,14 +2084,19 @@ function manageCue(c) {
     if (!coach.active && !busy && S.live && !S.calibrating && t - coach.lastEnd > 8 && t - coach.lastIdea > 22 && t - S.liveT0 > 8
         && (c.listening ? t - (S.listenSince || t) > 6 : c.speakingMe || (S.take && !c.isCall))) {
       const idea = pickIdea(c);
-      if (idea) { coach.lastIdea = t; showCue({ id: 'idea', kind: 'idea', pri: 5, icon: idea[0], title: 'Idea: ' + idea[1].replace(/^./, x => x.toLowerCase()), detail: idea[2] }, t); }
+      if (idea) { coach.lastIdea = t; showCue({ id: 'idea', kind: 'idea', pri: 5, icon: idea[0], emoji: idea[3] || '💡', g: idea[4], title: 'Idea: ' + idea[1].replace(/^./, x => x.toLowerCase()), detail: idea[2] }, t); }
     }
     return;
   }
   const cur = coach.active;
   if (cur && !(best.pri > cur.pri + 8 && cur.id !== best.id) ) return;
   if (cur) endCue(t, 'replaced');
-  showCue({ id: best.id, kind: best.kind, pri: best.pri, icon: best.icon, title: best.title(c), detail: best.detail(c) }, t);
+  const look = RULE_LOOK[best.id] || [], how = RULE_HOW[best.id];
+  const good = best.id === 'bien';
+  showCue({ id: best.id, kind: best.kind, pri: best.pri, icon: best.icon, emoji: look[0], g: look[1],
+    title: good ? GOOD_TITLES[Math.floor(t / 7) % GOOD_TITLES.length] : best.title(c),
+    detail: how ? (typeof how === 'function' ? how(c) : how) : best.detail(c) }, t);
+  if (good) { addPoints(3); burst(['👍', '✨', '⭐'], 10); }
 }
 function showCue(cue, t, isScript = false) {
   if (coach.active) endCue(t, 'replaced');
@@ -1915,9 +2108,11 @@ const cueEl = $('#cue'), monEl = $('#monitor'), mq = sel => monEl.querySelector(
 function setCueLook(cue, pop = false) {
   const el = cueEl;
   el.className = 'k-' + cue.kind;
-  el.querySelector('.cue-ico').innerHTML = ico(cue.icon);
-  el.querySelector('b').textContent = cue.title;
-  const sp = el.querySelector('span'); sp.textContent = cue.detail || ''; sp.hidden = !cue.detail;
+  const vis = el.querySelector('.cue-vis');
+  vis.classList.toggle('solo', !(cue.g && GEST[cue.g]));
+  el.querySelector('.cue-emoji').textContent = cue.emoji || (cue.kind === 'good' ? '👍' : cue.kind === 'idea' ? '💡' : '👉');
+  el.querySelector('.cue-txt b').textContent = cue.title;
+  const sp = el.querySelector('.cue-detail'); sp.textContent = cue.detail || ''; sp.hidden = !cue.detail;
   el.hidden = false;
   if (pop) { el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
 }
@@ -1943,10 +2138,26 @@ monEl.querySelector('.tabs').addEventListener('click', e => {
 });
 function renderMeters() {
   mq('#parts').innerHTML = PARTS.map(([id, name, icon]) => `<li class="k-na" data-p="${id}">${ico(icon)}<span class="pname">${name}</span><span class="pstate">—</span></li>`).join('');
-  mq('#meters').innerHTML = METRICS.map(m => `<li class="meter none" data-m="${m.id}" title="${m.name}">${ico(m.icon)}<span class="mname">${m.name}</span><span class="mstate">—</span><span class="bar"><i class="band"></i><b class="needle"></b></span></li>`).join('');
+  mq('#meters').innerHTML = METRICS.filter(m => m.id !== 'mirada' || isCall()).map(m => `<li class="meter none" data-m="${m.id}" title="${m.name}">${ico(m.icon)}<span class="mname">${m.name}</span><span class="mstate">—</span><span class="bar"><i class="band"></i><b class="needle"></b></span></li>`).join('');
 }
 function updateMonitor(c, perceived, parts) {
-  const T = c.T;
+  const T = c.T, t = c.t;
+  const on = {
+    cara: parts.cabeza[1] !== 'na', cuerpo: parts.hombros[1] !== 'na',
+    manos: (ser.handSeen.mean(t, 1.5) ?? 0) > 0 || (ser.handsUp.mean(t, 1.5) ?? 0) > .2,
+    voz: t - V.lastVoiced < 1.5,
+  };
+  for (const sp of monEl.querySelectorAll('.seen span')) sp.classList.toggle('on', !!on[sp.dataset.s]);
+  const neg = STATES[perceived]?.neg, m = c.match;
+  const [mood, mc] = !on.cara && !on.cuerpo ? ['👀 Esperando a verte…', 'var(--mute)']
+    : perceived === 'defensivo' ? ['🙅 Se te ve a la defensiva', 'var(--bad)']
+    : perceived === 'nervioso' ? ['😬 Se notan los nervios', 'var(--warn)']
+    : perceived === 'distraido' ? ['👀 Parece que no escuchas', 'var(--warn)']
+    : m == null ? ['🙂 Te veo. Empieza a hablar', 'var(--paper)']
+    : m >= 75 && !neg ? [c.listening ? '👂 Escuchas muy bien' : '👍 ¡Lo estás haciendo bien!', 'var(--ok)']
+    : m >= 55 ? ['👌 Vas por buen camino', 'var(--warn)']
+    : ['✋ Ajusta lo que te marca el aviso', 'var(--bad)'];
+  const md = mq('#mood'); md.textContent = mood; md.style.setProperty('--mc', mc);
   for (const [id] of PARTS) {
     const li = mq(`[data-p="${id}"]`); if (!li) continue;
     const [txt, k] = parts[id] || ['—', 'na'];
@@ -1986,14 +2197,218 @@ function updateMonitor(c, perceived, parts) {
 }
 function updateStatus(t) {
   const parts = [];
-  if (S.vision) parts.push(`visión ${perf.fps.toFixed(0)} f/s · ${S.vision.pose._delegate}`);
+  if (S.vision) parts.push(`visión ${perf.fps.toFixed(0)} f/s · ${S.vision.delegate}${S.vision.worker ? ' · en segundo plano' : ''}`);
   else if (S.visionErr) parts.push('visión: no disponible');
   else parts.push('visión: cargando…');
   parts.push(`voz ${V.db > -99 ? Math.round(V.db) + ' dB' : '—'}${V.speaking ? ' · hablando' : ''}`);
   if (isCall()) parts.push(coach.last?.parts?.voz?.[0] === 'Hablando' ? 'hablas tú' : 'escuchas');
-  else parts.push(S.opts.mode === 'voz' ? (FOL.ok ? 'texto: sigue tu voz' : FOL.failed ? 'texto: velocidad fija' : 'texto: sigue tu voz (al empezar)') : `texto: ${S.opts.wpm} ppm`);
+  else parts.push(S.opts.mode === 'voz' && !FOL.failed ? (FOL.follow ? 'texto: sigue tu voz' : 'texto: seguirá tu voz') : `texto: ${S.opts.wpm} ppm`);
+  if (!isCall()) parts.push(FOL.on ? 'órdenes de voz: activas' : 'órdenes de voz: no disponibles');
+  $('#voiceHint').hidden = !(S.live && !isCall() && FOL.on && !S.take && !S.countdown && !S.calibrating);
   $('#status').textContent = parts.join('  ·  ');
 }
+
+/* ---------------- gestos animados: la «sombra» ----------------
+   Cada gesto es una pequeña animación de una figura (hombros, codos, muñecas y manos) en unidades de
+   ancho de hombros, con el origen entre los hombros y vista en espejo, como te ves. Se dibuja en el
+   aviso y, encima de tu imagen, anclada a tus hombros, para que veas cómo mover los brazos. */
+const REST = { lE: [-.62, .85], rE: [.62, .85], lW: [-.52, 1.55], rW: [.52, 1.55], lH: 'rest', rH: 'rest', dy: 0, dsh: 0, dhead: 0 };
+const both = (lE, lW, rE, rW, lH, rH = lH) => ({ lE, lW, rE, rW, lH, rH });
+const GEST = {
+  abrir: { dur: 2.2, kf: [{ t: 0, ...both([-.62, .8], [-.25, .8], [.62, .8], [.25, .8], 'open') }, { t: .5, ...both([-1.05, .5], [-1.6, .35], [1.05, .5], [1.6, .35], 'open') }, { t: 1, ...both([-.62, .8], [-.25, .8], [.62, .8], [.25, .8], 'open') }] },
+  pecho: { dur: 2.4, kf: [{ t: 0 }, { t: .45, rE: [.55, .75], rW: [.02, .5], rH: 'flat' }, { t: .8, rE: [.55, .75], rW: [.02, .5], rH: 'flat' }, { t: 1 }] },
+  contar: { dur: 2.7, kf: [{ t: 0, rE: [.8, .5], rW: [.75, -.15], rH: 'one' }, { t: .33, rE: [.8, .5], rW: [.75, -.15], rH: 'two' }, { t: .66, rE: [.8, .5], rW: [.75, -.15], rH: 'three' }, { t: 1, rE: [.8, .5], rW: [.75, -.15], rH: 'three' }] },
+  saludo: { dur: 1.1, kf: [{ t: 0, rE: [.95, .25], rW: [.8, -.7], rH: 'palm' }, { t: .5, rE: [.95, .25], rW: [1.25, -.6], rH: 'palm' }, { t: 1, rE: [.95, .25], rW: [.8, -.7], rH: 'palm' }] },
+  palma: { dur: 1.8, kf: [{ t: 0, rE: [.65, .75], rW: [.45, .55], rH: 'palm' }, { t: .5, rE: [.6, .6], rW: [.3, .3], rH: 'palm' }, { t: 1, rE: [.65, .75], rW: [.45, .55], rH: 'palm' }] },
+  grande: { dur: 2, kf: [{ t: 0, ...both([-.7, .75], [-.35, .55], [.7, .75], [.35, .55], 'open') }, { t: .5, ...both([-1, .65], [-1.5, .5], [1, .65], [1.5, .5], 'open') }, { t: 1, ...both([-.7, .75], [-.35, .55], [.7, .75], [.35, .55], 'open') }] },
+  pequeno: { dur: 1.8, kf: [{ t: 0, ...both([-.7, .8], [-.45, .6], [.7, .8], [.45, .6], 'open') }, { t: .5, ...both([-.6, .8], [-.13, .55], [.6, .8], [.13, .55], 'pinch') }, { t: 1, ...both([-.7, .8], [-.45, .6], [.7, .8], [.45, .6], 'open') }] },
+  pregunta: { dur: 2, face: 'brows', kf: [{ t: 0, ...both([-.75, .85], [-.85, 1], [.75, .85], [.85, 1], 'up') }, { t: .5, ...both([-.8, .8], [-1.05, .78], [.8, .8], [1.05, .78], 'up') }, { t: 1, ...both([-.75, .85], [-.85, 1], [.75, .85], [.85, 1], 'up') }] },
+  negar: { dur: 1.2, kf: [{ t: 0, rE: [.6, .8], rW: [.15, .55], rH: 'flat' }, { t: .5, rE: [.75, .75], rW: [.95, .5], rH: 'flat' }, { t: 1, rE: [.6, .8], rW: [.15, .55], rH: 'flat' }] },
+  cta: { dur: 1.4, kf: [{ t: 0, rE: [.7, .7], rW: [.6, 1.05], rH: 'down' }, { t: .5, rE: [.7, .75], rW: [.6, 1.25], rH: 'down' }, { t: 1, rE: [.7, .7], rW: [.6, 1.05], rH: 'down' }] },
+  descruzar: { dur: 2.6, kf: [{ t: 0, ...both([-.75, .85], [.4, .8], [.75, .85], [-.4, .85], 'rest') }, { t: .3, ...both([-.75, .85], [.4, .8], [.75, .85], [-.4, .85], 'rest') }, { t: .7, ...both([-1, .6], [-1.3, .4], [1, .6], [1.3, .4], 'palm') }, { t: 1, ...both([-1, .6], [-1.3, .4], [1, .6], [1.3, .4], 'palm') }] },
+  subir: { dur: 2.2, kf: [{ t: 0, ...both([-.62, 1.05], [-.45, 2.2], [.62, 1.05], [.45, 2.2], 'rest') }, { t: .6, ...both([-.75, .8], [-.45, .6], [.75, .8], [.45, .6], 'open') }, { t: 1, ...both([-.75, .8], [-.45, .6], [.75, .8], [.45, .6], 'open') }] },
+  gesticular: { dur: 1.6, kf: [{ t: 0, ...both([-.75, .8], [-.45, .6], [.75, .8], [.95, .45], 'open') }, { t: .5, ...both([-.75, .8], [-.95, .45], [.75, .8], [.45, .6], 'open') }, { t: 1, ...both([-.75, .8], [-.45, .6], [.75, .8], [.95, .45], 'open') }] },
+  hombros: { dur: 3, kf: [{ t: 0, dsh: -.24 }, { t: .3, dsh: -.24 }, { t: .7, dsh: 0 }, { t: 1, dsh: 0 }] },
+  codos: { dur: 2, kf: [{ t: 0, ...both([-.55, .85], [-.35, .55], [.55, .85], [.35, .55], 'open') }, { t: .5, ...both([-1.05, .75], [-.7, .45], [1.05, .75], [.7, .45], 'open') }, { t: 1, ...both([-.55, .85], [-.35, .55], [.55, .85], [.35, .55], 'open') }] },
+  abrirManos: { dur: 1.8, kf: [{ t: 0, ...both([-.7, .8], [-.4, .6], [.7, .8], [.4, .6], 'fist') }, { t: .45, ...both([-.7, .8], [-.4, .6], [.7, .8], [.4, .6], 'palm') }, { t: 1, ...both([-.7, .8], [-.4, .6], [.7, .8], [.4, .6], 'palm') }] },
+  calma: { dur: 3.2, kf: [{ t: 0, ...both([-.7, .9], [-.13, 1.05], [.7, .9], [.13, 1.05], 'rest') }, { t: .5, ...both([-.7, .88], [-.11, 1.0], [.7, .88], [.11, 1.0], 'rest') }, { t: 1, ...both([-.7, .9], [-.13, 1.05], [.7, .9], [.13, 1.05], 'rest') }] },
+  caraFuera: { dur: 2.2, kf: [{ t: 0, rE: [.45, .4], rW: [.15, -.75], rH: 'open' }, { t: .55, rE: [.7, .8], rW: [.4, .65], rH: 'open' }, { t: 1, rE: [.7, .8], rW: [.4, .65], rH: 'open' }] },
+  postura: { dur: 2.6, kf: [{ t: 0, dy: .22, dhead: .14 }, { t: .6, dy: 0, dhead: 0 }, { t: 1, dy: 0, dhead: 0 }] },
+  sonrisa: { dur: 2, face: 'smile' },
+  cejas: { dur: 1.6, face: 'brows' },
+  asentir: { dur: 1.2, face: 'nod' },
+  relajar: { dur: 2.4, face: 'relax' },
+  mirar: { dur: 2, face: 'look' },
+};
+const ease = u => u < .5 ? 2 * u * u : 1 - (-2 * u + 2) ** 2 / 2;
+function poseAt(G, ph) {
+  const kf = G.kf || [{ t: 0 }, { t: 1 }];
+  let k = 0;
+  while (k < kf.length - 2 && ph > kf[k + 1].t) k++;
+  const A = { ...REST, ...kf[k] }, Bp = { ...REST, ...kf[k + 1] };
+  const u = ease(clamp((ph - A.t) / Math.max(1e-3, Bp.t - A.t)));
+  const out = {};
+  for (const key of Object.keys(REST)) {
+    const a = A[key], b = Bp[key];
+    out[key] = Array.isArray(a) ? [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u] : typeof a === 'number' ? a + (b - a) * u : (u < .5 ? a : b);
+  }
+  return out;
+}
+// mano: reposo, puño, abierta, palma a cámara, uno-dos-tres dedos, plana sobre el pecho, palma arriba, señalar abajo, pinza
+function drawHand(g, W, E, type, s, lw) {
+  const [wx, wy] = W, dx = W[0] - E[0], dy = W[1] - E[1], L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L;
+  const line = (x1, y1, x2, y2) => { g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke(); };
+  const fingers = (angles, len, from = 0) => { const a0 = Math.atan2(uy, ux) + from; for (const a of angles) line(wx, wy, wx + Math.cos(a0 + a) * len, wy + Math.sin(a0 + a) * len); };
+  const up = (n) => { const sp = s * .07; for (let i = 0; i < n; i++) { const x = wx + (i - (n - 1) / 2) * sp; line(x, wy, x, wy - s * .28); } };
+  g.lineWidth = lw * .55;
+  if (type === 'rest') { g.beginPath(); g.arc(wx, wy, s * .08, 0, 7); g.fill(); }
+  else if (type === 'fist') { g.beginPath(); g.arc(wx, wy, s * .13, 0, 7); g.fill(); }
+  else if (type === 'open') { g.beginPath(); g.arc(wx, wy, s * .09, 0, 7); g.fill(); fingers([-.9, -.45, 0, .45, .9], s * .22); }
+  else if (type === 'palm') { g.beginPath(); g.arc(wx, wy, s * .1, 0, 7); g.fill(); for (const a of [-1.15, -.55, 0, .55, 1.15]) line(wx, wy, wx + Math.sin(a) * s * .24, wy - Math.cos(a) * s * .24); }
+  else if (type === 'one' || type === 'two' || type === 'three') { g.beginPath(); g.arc(wx, wy, s * .1, 0, 7); g.fill(); up(type === 'one' ? 1 : type === 'two' ? 2 : 3); }
+  else if (type === 'flat') { g.lineWidth = lw * .9; line(wx - s * .14, wy, wx + s * .14, wy); }
+  else if (type === 'up') { g.lineWidth = lw * .7; g.beginPath(); g.arc(wx, wy - s * .02, s * .13, 0, Math.PI); g.stroke(); }
+  else if (type === 'down') { g.beginPath(); g.arc(wx, wy, s * .09, 0, 7); g.fill(); line(wx, wy, wx, wy + s * .3); }
+  else if (type === 'pinch') { g.beginPath(); g.arc(wx, wy, s * .08, 0, 7); g.fill(); const tx = wx + ux * s * .2, ty = wy + uy * s * .2; line(wx, wy, tx - uy * s * .03, ty + ux * s * .03); line(wx, wy, tx + uy * s * .03, ty - ux * s * .03); }
+}
+// figura: en el aviso ('mini') con cabeza y tronco; sobre la imagen ('sombra') solo los brazos, con brillo
+function drawBodyGhost(g, P, cx, cy, s, lw, mode) {
+  const sh = P.dsh, pt = ([x, y], dyExtra = 0) => [cx + x * s, cy + (y + P.dy + dyExtra) * s];
+  const lS = pt([-.5, 0], sh), rS = pt([.5, 0], sh);
+  g.save();
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  const col = mode === 'sombra' ? 'rgba(255,255,255,.9)' : '#8DB8FF';
+  g.strokeStyle = col; g.fillStyle = col;
+  if (mode === 'sombra') { g.shadowColor = 'rgba(141,184,255,1)'; g.shadowBlur = lw * 2.2; }
+  else {
+    const [hx, hy] = pt([0, -.95 + P.dhead], sh * .5);
+    g.fillStyle = 'rgba(244,239,230,.16)';
+    g.beginPath(); g.moveTo(...lS); g.lineTo(...rS); g.lineTo(...pt([.4, 1.75])); g.lineTo(...pt([-.4, 1.75])); g.closePath(); g.fill();
+    g.beginPath(); g.arc(hx, hy, s * .36, 0, 7); g.fill();
+    g.lineWidth = lw * .5; g.strokeStyle = 'rgba(244,239,230,.5)'; g.stroke();
+    g.fillStyle = col; g.strokeStyle = col;
+  }
+  g.lineWidth = lw * (mode === 'sombra' ? .5 : .8);
+  g.beginPath(); g.moveTo(...lS); g.lineTo(...rS); g.stroke();
+  for (const side of ['l', 'r']) {
+    const S0 = side === 'l' ? lS : rS, E = pt(P[side + 'E'], sh * .6), Wp = pt(P[side + 'W'], sh * .3);
+    g.lineWidth = lw;
+    g.beginPath(); g.moveTo(...S0); g.lineTo(...E); g.lineTo(...Wp); g.stroke();
+    g.fillStyle = mode === 'sombra' ? col : '#F4EFE6'; g.strokeStyle = g.fillStyle;
+    drawHand(g, Wp, E, P[side + 'H'], mode === 'sombra' ? s * .55 : s, mode === 'sombra' ? lw * .8 : lw);
+    g.fillStyle = col; g.strokeStyle = col;
+  }
+  g.restore();
+}
+// cara de dibujo para los gestos de la cara (en el aviso)
+function drawMiniFace(g, kind, ph, size, lw) {
+  const c = size / 2, wave = Math.sin(ph * Math.PI * 2) * .5 + .5, k = ease(Math.min(1, ph * 1.6));
+  const oy = kind === 'nod' ? Math.sin(ph * Math.PI * 2) * size * .07 : 0, r = size * .34, cy = c + oy + (kind === 'look' ? size * .06 : 0);
+  g.save(); g.lineCap = 'round'; g.lineWidth = lw * .8;
+  g.fillStyle = 'rgba(244,239,230,.14)'; g.strokeStyle = '#F4EFE6';
+  g.beginPath(); g.arc(c, cy, r, 0, 7); g.fill(); g.stroke();
+  const ex = r * .38, ey = cy - r * .12, pupil = kind === 'look' ? (1 - k) * r * .1 : 0;
+  g.fillStyle = '#F4EFE6';
+  for (const sx of [-1, 1]) { g.beginPath(); g.arc(c + sx * ex + pupil, ey + (kind === 'look' ? -k * r * .05 : 0), r * .07, 0, 7); g.fill(); }
+  const lift = kind === 'brows' ? wave * r * .2 : kind === 'relax' ? k * r * .06 : 0, frown = kind === 'relax' ? (1 - k) * r * .12 : 0;
+  g.strokeStyle = kind === 'brows' || kind === 'relax' ? '#8DB8FF' : '#F4EFE6';
+  for (const sx of [-1, 1]) { g.beginPath(); g.moveTo(c + sx * ex * 1.45, ey - r * .26 - lift); g.lineTo(c + sx * ex * .55, ey - r * .26 - lift + frown); g.stroke(); }
+  const curve = kind === 'smile' ? k : kind === 'relax' ? .1 : .25;
+  g.strokeStyle = kind === 'smile' ? '#55D6A6' : '#F4EFE6';
+  g.beginPath(); g.moveTo(c - r * .42, cy + r * .38 - curve * r * .1); g.quadraticCurveTo(c, cy + r * (.38 + curve * .5), c + r * .42, cy + r * .38 - curve * r * .1); g.stroke();
+  if (kind === 'nod') { g.strokeStyle = '#8DB8FF'; const ax = c + r * 1.25; g.beginPath(); g.moveTo(ax, c - r * .45); g.lineTo(ax, c + r * .45); g.moveTo(ax - r * .15, c - r * .3); g.lineTo(ax, c - r * .45); g.lineTo(ax + r * .15, c - r * .3); g.moveTo(ax - r * .15, c + r * .3); g.lineTo(ax, c + r * .45); g.lineTo(ax + r * .15, c + r * .3); g.stroke(); }
+  if (kind === 'look') { g.strokeStyle = '#8DB8FF'; g.strokeRect(c - r * .28, size * .04, r * .56, r * .34); g.beginPath(); g.arc(c, size * .04 + r * .17, r * .09, 0, 7); g.stroke(); }
+  g.restore();
+}
+// la sombra de los gestos de la cara, encima de tu propia cara
+function drawFaceGhost(g, kind, ph, fl, W, Hh, X, lw, C) {
+  const P = i => [X(fl[i].x * W), fl[i].y * Hh], fh = Math.abs(fl[152].y - fl[10].y) * Hh;
+  const wave = Math.sin(ph * Math.PI * 2) * .5 + .5, k = ease(Math.min(1, ph * 1.6));
+  g.save(); g.lineCap = 'round'; g.lineJoin = 'round';
+  g.strokeStyle = 'rgba(255,255,255,.9)'; g.shadowColor = 'rgba(141,184,255,1)'; g.shadowBlur = lw * 3; g.lineWidth = lw * 1.6;
+  const shifted = (edges, dy) => { g.beginPath(); for (const { start, end } of edges) { const a = P(start), b = P(end); g.moveTo(a[0], a[1] - dy); g.lineTo(b[0], b[1] - dy); } g.stroke(); };
+  if (kind === 'smile') {
+    const L = P(61), Rr = P(291), m = P(14), lift = k * fh * .05;
+    g.beginPath(); g.moveTo(L[0], L[1] - lift); g.quadraticCurveTo(m[0], m[1] + fh * .05 + k * fh * .03, Rr[0], Rr[1] - lift); g.stroke();
+  } else if ((kind === 'brows' || kind === 'relax') && C && C.browL.length) {
+    shifted([...C.browL, ...C.browR], (kind === 'brows' ? wave * .08 : k * .035) * fh);
+  } else if (kind === 'nod' && C && C.oval.length) {
+    shifted(C.oval, -Math.sin(ph * Math.PI * 2) * fh * .06);
+  } else if (kind === 'look') {
+    const a = P(168), tx = W / 2, ty = Math.max(fh * .2, a[1] - fh * 1.2);
+    g.beginPath(); g.moveTo(a[0], a[1] - fh * .1); g.lineTo(tx, ty); g.stroke();
+    const ang = Math.atan2(ty - (a[1] - fh * .1), tx - a[0]);
+    g.beginPath(); g.moveTo(tx, ty); g.lineTo(tx - Math.cos(ang - .5) * fh * .12, ty - Math.sin(ang - .5) * fh * .12); g.moveTo(tx, ty); g.lineTo(tx - Math.cos(ang + .5) * fh * .12, ty - Math.sin(ang + .5) * fh * .12); g.stroke();
+  }
+  g.restore();
+}
+// dibujo del gesto en el aviso (cada fotograma mientras está visible)
+const cueCanvas = $('#cueCanvas'), cctx = cueCanvas.getContext('2d');
+function drawCueVis(t) {
+  const a = coach.active, G = a && a.g && GEST[a.g];
+  if (!G || cueEl.hidden) return;
+  const size = cueCanvas.width, ph = ((t - coach.since) % G.dur) / G.dur, lw = size / 30;
+  cctx.clearRect(0, 0, size, size);
+  if (G.face && !G.kf) drawMiniFace(cctx, G.face, ph, size, lw);
+  else {
+    drawBodyGhost(cctx, poseAt(G, ph), size / 2, size * .37, size * .27, lw * 1.15, 'mini');
+    if (G.face) { cctx.save(); cctx.translate(size * .5 - size * .13, size * .02); drawMiniFace(cctx, G.face, ph, size * .26, lw * .6); cctx.restore(); }
+  }
+}
+// celebraciones y puntos
+function burst(emojis, n = 12) {
+  const doc = cueEl.ownerDocument, win = doc.defaultView;
+  const r = !cueEl.hidden ? cueEl.getBoundingClientRect() : { left: win.innerWidth / 2 - 40, top: win.innerHeight * .3, width: 80, height: 0 };
+  const cx = r.left + Math.min(56, r.width / 2), cy = r.top + r.height / 2;
+  for (let i = 0; i < n; i++) {
+    const sp = doc.createElement('span'); sp.className = 'burst'; sp.textContent = emojis[i % emojis.length];
+    const ang = Math.random() * Math.PI * 2, d = 70 + Math.random() * 120;
+    sp.style.left = cx + 'px'; sp.style.top = cy + 'px';
+    sp.style.setProperty('--dx', (Math.cos(ang) * d).toFixed(0) + 'px'); sp.style.setProperty('--dy', (Math.sin(ang) * d - 40).toFixed(0) + 'px'); sp.style.setProperty('--rot', (Math.random() * 80 - 40).toFixed(0) + 'deg');
+    doc.body.appendChild(sp); setTimeout(() => sp.remove(), 1250);
+  }
+}
+function addPoints(n) {
+  if (!S.take) return;
+  S.take.score = (S.take.score || 0) + n;
+  const el = $('#score'); el.textContent = '⭐ ' + S.take.score;
+  const r = el.getBoundingClientRect(), p = document.createElement('span');
+  p.className = 'plus'; p.textContent = '+' + n; p.style.left = (r.left + r.width / 2) + 'px'; p.style.top = (r.top - 8) + 'px';
+  document.body.appendChild(p); setTimeout(() => p.remove(), 1300);
+}
+// emoji y gesto de cada aviso
+const CUE_LOOK = { saludo: ['👋', 'saludo'], contar: ['☝️', 'contar'], abrir: ['👐', 'abrir'], pecho: ['🫶', 'pecho'], palma: ['✋', 'palma'], grande: ['🙌', 'grande'], pequeno: ['🤏', 'pequeno'],
+  pregunta: ['🤷', 'pregunta'], sonrie: ['😁', 'sonrisa'], negar: ['🙅', 'negar'], cta: ['👇', 'cta'], pausa: ['⏸️', null], enfasis: ['📢', null], libre: ['🎬', null] };
+const RULE_LOOK = { nadie: ['📷'], cerca: ['🔍'], lejos: ['🔍'], centro: ['🎯'], cruzados: ['👐', 'descruzar'], cara: ['✋', 'caraFuera'], mirada: ['👀', 'mirar'], manosFuera: ['🙌', 'subir'],
+  estatico: ['💃', 'gesticular'], manosQuietas: ['🤲', 'gesticular'], exceso: ['🧘', 'calma'], cerrado: ['👐', 'abrir'], punos: ['✋', 'abrirManos'], nervios: ['🧘', 'calma'], balanceo: ['🧍', 'calma'],
+  postura: ['🧍', 'postura'], serio: ['😁', 'sonrisa'], sonrisaSobra: ['😐'], inexpresivo: ['🤨', 'cejas'], ceno: ['😌', 'relajar'], vozBaja: ['🔊'], vozAlta: ['🔉'], monotono: ['🎶'],
+  entonacionSobra: ['🎵'], rapido: ['🐢'], lento: ['🐇'], sinPausa: ['⏸️'], silencio: ['▶️'], hombros: ['😮‍💨', 'hombros'], codos: ['💪', 'codos'], labios: ['😌', 'relajar'],
+  distraido: ['👀', 'mirar'], asiente: ['🙂', 'asentir'], caraEscucha: ['🙂', 'sonrisa'], bien: ['👍'] };
+// cómo hacerlo, en una frase clara
+const RULE_HOW = {
+  cruzados: 'Suelta los brazos y ábrelos con las palmas hacia la cámara, como la sombra.',
+  cara: 'Baja la mano de la cara hasta el pecho.',
+  manosFuera: 'Sube las manos a la altura del pecho, dentro del plano.',
+  estatico: c => `Mueve una mano en cada idea, a un lado y al otro, como la sombra. Un mensaje ${c.adj} lo necesita.`,
+  manosQuietas: 'Acompaña cada idea con un gesto: abre una mano hacia un lado.',
+  exceso: 'Haz un gesto y quédate quieto un segundo antes del siguiente.',
+  cerrado: 'Separa las manos del cuerpo hasta el ancho de los hombros.',
+  punos: 'Abre los dedos y enseña las palmas.',
+  nervios: 'Junta las manos delante de la cintura y respira.',
+  balanceo: 'Planta los pies al ancho de las caderas y quédate quieto.',
+  postura: 'Estira la espalda y sube la barbilla, como si un hilo tirara de tu cabeza.',
+  serio: c => `Tu mensaje es ${c.adj}: sube las comisuras de la boca, como la sombra.`,
+  inexpresivo: 'Sube las cejas cuando digas lo importante.',
+  ceno: 'Relaja la frente y separa las cejas.',
+  hombros: 'Súbelos a las orejas, aguanta un segundo y suéltalos.',
+  codos: 'Abre los codos un palmo hacia fuera.',
+  labios: 'Separa un poco los labios y respira por la boca.',
+  asiente: 'Mueve la cabeza arriba y abajo, suave, cuando la otra persona termine una idea.',
+  distraido: 'Vuelve a mirar a la pantalla de la llamada.',
+};
+const IDEA_LOOK = { energia: ['💃', 'gesticular'], manos: ['☝️', 'contar'], apertura: ['✋', 'palma'], sonrisa: ['😁', 'sonrisa'], expresion: ['🤨', 'cejas'], volumen: ['📢'], entonacion: ['🎶'], ritmo: ['⏸️'], mirada: ['👀', 'mirar'] };
+const LISTEN_LOOK = [['🙂', 'asentir'], ['🙂'], ['🙂', 'sonrisa'], ['🤨', 'cejas']];
+const GOOD_TITLES = ['¡Así! 👍', '¡Muy bien! 👏', '¡Eso es! 🙌', '¡Lo estás clavando! 🔥', '¡Genial! ✨'];
 
 /* ---------------- dibujo de lo que detecta ----------------
    Se dibuja en espejo (como te ves) y con el color del estado de cada parte. */
@@ -2004,8 +2419,8 @@ function drawOverlay() {
   if (overlay.width !== W || overlay.height !== Hh) { overlay.width = W; overlay.height = Hh; }
   const g = octx;
   g.clearRect(0, 0, W, Hh);
-  if (!S.opts.skeleton || !S.vision) return;
-  const t = now(), C = S.vision.conn, parts = coach.parts || {};
+  const showDet = !!(S.opts.skeleton && S.vision);
+  const t = now(), C = S.vision ? S.vision.conn : null, parts = coach.parts || {};
   const X = x => W - x;
   // tamaños en píxeles de pantalla, sea cual sea la resolución de la cámara
   const scale = Math.max((overlay.clientWidth || W) / W, (overlay.clientHeight || Hh) / Hh) || 1;
@@ -2045,6 +2460,7 @@ function drawOverlay() {
   };
   const say = id => parts[id] ? `${PARTS.find(p => p[0] === id)[1]}: ${parts[id][0].toLowerCase()}` : '';
 
+  if (showDet) {
   // estela del movimiento de las manos (último segundo)
   for (const tr of trails) for (let i = 1; i < tr.length; i++) {
     const a = tr[i - 1], b = tr[i], al = clamp(1 - (t - b.t));
@@ -2091,6 +2507,16 @@ function drawOverlay() {
       if (parts[id] && fl[i]) label(lx, fl[i].y * Hh + (id === 'cabeza' ? fs * 1.2 : 0), say(id), parts[id][1], !room);
     });
   }
+  }
+  // la sombra del gesto que toca, encima de ti (en su capa, por encima de la franja del teleprompter)
+  if (ghostCv.width !== W || ghostCv.height !== Hh) { ghostCv.width = W; ghostCv.height = Hh; }
+  gctx.clearRect(0, 0, W, Hh);
+  const cue = coach.active, G = cue && cue.g && GEST[cue.g];
+  if (G) {
+    const ph = ((t - coach.since) % G.dur) / G.dur;
+    if (G.kf && B.ok && B.c && fresh('pose', B.lastOk, t, .8)) drawBodyGhost(gctx, poseAt(G, ph), X(B.c.x), B.c.y, B.sw, lw * 4, 'sombra');
+    if (G.face && F.ok && F.fl && fresh('face', F.lastSeen, t, .8)) drawFaceGhost(gctx, G.face, ph, F.fl, W, Hh, X, lw, C);
+  }
 }
 
 /* ---------------- bucles ----------------
@@ -2104,11 +2530,14 @@ function startLoops() {
   loopFrame = () => {
     if (!S.live) return;
     const t = now(), dt = Math.min(.1, t - last); last = t;
-    if (t - lastV >= 1 / 32) { lastV = t; visionStep(); }
+    visionPump(t);
+    // si el navegador pausa la cámara (pestaña de fondo, ahorro de energía…), se reanuda
+    if (t - lastV > 1) { lastV = t; for (const v of [video, S.pipVideo]) if (v && v.paused && v.srcObject) v.play().catch(() => {}); }
     if (t - lastA >= .03) { lastA = t; audioTick(); }
     if (t - lastC >= .1) { lastC = t; coachTick(); }
     if (!isCall()) prompterFrame(t, dt);
     drawOverlay();
+    drawCueVis(t);
     if (S.pipCanvas) drawPip();
     if (S.take) $('#clock').innerHTML = `<i class="live"></i>${fmtTime(t - S.take.t0)}`;
     rafId = raf(loopFrame);
@@ -2151,7 +2580,7 @@ function closePip() { if (S.pip) S.pip.close(); }
 function drawPip() {
   const c = S.pipCanvas;
   if (c.width !== overlay.width || c.height !== overlay.height) { c.width = overlay.width; c.height = overlay.height; }
-  const g = c.getContext('2d'); g.clearRect(0, 0, c.width, c.height); g.drawImage(overlay, 0, 0);
+  const g = c.getContext('2d'); g.clearRect(0, 0, c.width, c.height); g.drawImage(overlay, 0, 0); g.drawImage(ghostCv, 0, 0);
 }
 pipBtn.addEventListener('click', togglePip);
 $('#pipBack').addEventListener('click', closePip);
@@ -2159,6 +2588,7 @@ $('#pipBack').addEventListener('click', closePip);
 /* ---------------- tomas ---------------- */
 function setTakeUI(on, rec = false) {
   $('#rehearse').hidden = on; $('#record').hidden = on; $('#stop').hidden = !on;
+  $('#score').hidden = !on; if (on) $('#score').textContent = '⭐ 0';
   $('#record').disabled = typeof MediaRecorder === 'undefined';
   if (!on) $('#clock').textContent = '00:00';
 }
@@ -2184,7 +2614,9 @@ async function startTake(record) {
   for (const k in RS) { RS[k].on = 0; RS[k].lastEnd = -99; }
   PR.running = true; PR.speedF = 1;
   PR.nextCue = S.sc.cues.findIndex(c => c.at >= PR.idx); if (PR.nextCue < 0) PR.nextCue = S.sc.cues.length;
-  if (!call && S.opts.mode === 'voz') { if (!startFollow() && !FOL.failed) FOL.failed = true; }
+  FOL.pointer = 0; FOL.phraseStart = 0;
+  FOL.follow = !call && S.opts.mode === 'voz' && startVoice();
+  if (!call) { stageMsg('<div class="count-big">¡Acción!</div>'); setTimeout(() => { if (S.take && !S.countdown) stageMsg(null); }, 650); }
   if (record) {
     const types = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4'];
     const mime = types.find(m => MediaRecorder.isTypeSupported?.(m)) || '';
@@ -2203,7 +2635,7 @@ function stopTake(showReport = true) {
   tk.dur = t - tk.t0;
   S.take = null;
   PR.running = false;
-  stopFollow();
+  FOL.follow = false;
   setTakeUI(false);
   const finish = () => { if (showReport) { buildReport(tk); } };
   if (tk.mr && tk.mr.state !== 'inactive') {
@@ -2226,12 +2658,12 @@ $('#mon').addEventListener('click', () => {
   const k = PR.idx; requestAnimationFrame(() => { layoutPrompter(); PR.offset = PR.target = (PR.tops[k] || 0) - PR.readY; applyOffset(); });
 });
 function changeSpeed(d) {
-  if (S.opts.mode === 'voz' && FOL.ok) { toast('El texto sigue tu voz. Para velocidad fija, cámbialo en Ajustes.'); return; }
+  if (FOL.follow && FOL.ok) { toast('El texto sigue tu voz. Para velocidad fija, cámbialo en Ajustes.'); return; }
   S.opts.wpm = clamp(S.opts.wpm + d, 60, 260); store.set('opts', S.opts); toast(`Velocidad: ${S.opts.wpm} palabras/min`, 1500);
 }
 addEventListener('keydown', e => {
   if ($('#studio').hidden || e.target.closest('input,textarea,select')) return;
-  if (e.key === ' ') { e.preventDefault(); if (!S.take) startTake(false); else if (!(S.opts.mode === 'voz' && FOL.ok)) PR.running = !PR.running; }
+  if (e.key === ' ') { e.preventDefault(); if (!S.take) startTake(false); else if (!(FOL.follow && FOL.ok)) PR.running = !PR.running; }
   else if (e.key === 'r' || e.key === 'R') { if (!S.take) startTake(true); }
   else if (e.key === 'Escape') { if (S.take) stopTake(true); else leaveStudio(); }
   else if (e.key === 'ArrowUp') { e.preventDefault(); changeSpeed(10); }
@@ -2290,7 +2722,7 @@ function buildReport(tk) {
   const lookOf = k => TONES[k] || STATES[k];
   const topP = pSorted[0]?.[0];
   // brechas medias
-  const gaps = METRICS.filter(m => m.w || m.id === 'mirada').map(m => {
+  const gaps = METRICS.filter(m => m.w || (m.id === 'mirada' && call)).map(m => {
     let below = 0, above = 0, n = 0, vals = [];
     for (const s of tk.log) { const v = s.M[m.id]; if (v == null) continue; const [lo, hi] = targetsFor(s.tone)[m.id]; n++; vals.push(v); if (v < lo) below++; else if (v > hi) above++; }
     return { m, n, avg: mean(vals), below: n ? below / n : 0, above: n ? above / n : 0, inBand: n ? 1 - (below + above) / n : null };
@@ -2364,6 +2796,7 @@ function buildReport(tk) {
         </div>
         <div>
           <p class="eyebrow" style="margin-bottom:8px">${call ? 'Escucha activa' : 'Gestos del guion'}</p>
+          ${tk.score ? `<p class="note" style="margin-bottom:6px">⭐ <b style="color:var(--paper)">${tk.score} puntos</b>${tk.bestStreak > 1 ? ` · mejor racha de gestos: <b style="color:var(--paper)">${tk.bestStreak}</b> 🔥` : ''}</p>` : ''}
           <p class="note">${call ? `Asentiste <b style="color:var(--paper)">${tk.nods || 0} ${tk.nods === 1 ? 'vez' : 'veces'}</b> durante la sesión.` : checkable ? `Hiciste <b style="color:var(--paper)">${hits} de ${checkable}</b> gestos que marcaba el guion.` : 'Esta toma no tuvo gestos comprobables.'}</p>
         </div>
       </div>
@@ -2405,7 +2838,7 @@ function buildReport(tk) {
 }
 function leaveStudioForReport() {
   closePip();
-  S.live = false; stopLoops(); stopFollow();
+  S.live = false; stopLoops(); stopVoice();
   try { S.wake?.release(); } catch {}
   stageMsg(null); cueEl.hidden = true;
   show('report');
@@ -2421,6 +2854,7 @@ async function reenterStudio() {
   setupPrompter(); setTakeUI(false);
   S.live = true; startLoops();
   if (isCall() && 'documentPictureInPicture' in window) toast('Listo. Abre la ventana flotante si vas a volver a la llamada.');
+  else if (!isCall() && startVoice()) toast('Listo. Di «comenzamos» para la siguiente toma.');
   toast('Listo para otra toma.');
 }
 function drawTimeline(tk) {
