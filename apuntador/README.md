@@ -6,7 +6,34 @@ momento qué estás transmitiendo frente a lo que querías transmitir, te corrig
 «Descruza los brazos», «Baja los hombros», «Sonríe más: tu mensaje es animado y tu cara se ve seria»,
 «Asiente de vez en cuando», «Idea: enumera con los dedos lo próximo que digas»…
 
-Es un prototipo web de un solo archivo (`index.html`), sin servidor ni instalación.
+Es una app web: un `index.html` con su manifiesto, sus iconos y un service worker. Se instala en la pantalla de
+inicio y se abre como una app, a pantalla completa y sin las barras del navegador.
+
+## Una pantalla por paso
+
+Al abrirla, el inicio pregunta qué quieres hacer y cada camino va de pantalla en pantalla. Cada una tiene un título,
+lo justo para decidir y un solo botón fijo abajo. Arriba, la flecha para volver, el nombre del paso y su progreso.
+
+| Camino | Pasos |
+|---|---|
+| **Grabar un vídeo** | 1 · Tu guion (escribir, pegar o subir) → 2 · Intención (el tono, con la sugerencia que sale del texto) → 3 · Revisión (qué cambiar en el guion y vista previa) → 4 · Antes de grabar (resumen, ensayo sí o no, control por voz y más ajustes plegados) → **Entrar al plató** |
+| **Analizar un vídeo** | 1 · Intención (qué querías transmitir) → 2 · Tu vídeo (tocar o arrastrar el archivo) → análisis en el plató |
+| **Videollamada** | 1 · Intención (cómo quieres que te vean) → 2 · Antes de empezar → **Empezar** |
+
+- El resumen del último paso enseña lo elegido (tono, palabras y duración, objetivos de la próxima toma) y cada fila
+  lleva al paso donde se cambia.
+- El gesto de volver del iPhone y el botón «atrás» de Android retroceden un paso. Desde el plató o el informe vuelven
+  a la mesa; no sacan de la app.
+- Si un análisis o una toma dejan objetivos, el inicio los muestra con «Grabar con estos objetivos».
+
+## Instalarla como app
+
+- **iPhone y iPad (Safari):** Compartir → «Añadir a pantalla de inicio». El inicio lo explica con una tarjeta (y,
+  si se abre desde Instagram o TikTok, primero pide abrirla en Safari).
+- **Android y Chrome o Edge de ordenador:** botón «Instalar» en esa misma tarjeta (o el menú del navegador).
+- Instalada, se abre con su icono y una entrada breve con el logo, sin barras. El service worker guarda la app y,
+  la primera vez que se usan, los modelos de visión y la letra: después abre rápido y funciona sin conexión.
+  Cada versión nueva llega sola porque la app se pide primero a la red.
 
 ## Tres usos
 
@@ -28,9 +55,9 @@ ese párrafo, `//` es una pausa, `*palabra*` pide énfasis y `{abre los brazos}`
 - en el ensayo, también las correcciones, cortas y de una en una.
 
 Mientras lees no hay ideas, ni etiquetas del esqueleto (que queda tenue), ni línea de estado, y el monitor se recoge
-(en el móvil se oculta). En la vista previa de la mesa de trabajo los gestos se ven como emojis en el margen.
+(en el móvil se oculta). En la vista previa (paso «Revisión») los gestos se ven como emojis en el margen.
 
-**Ensayo antes de grabar** (activado por defecto; se quita en Ajustes). Pensado para vídeos de redes:
+**Ensayo antes de grabar** (activado por defecto; se quita en el paso «Antes de grabar»). Pensado para vídeos de redes:
 1. *Paso 1 · Ensayo*: «comenzamos» (o dos palmadas, o Ensayar) hace una prueba sin grabar, con todas las
    correcciones. «Corten» la para al momento.
 2. Sin salir del plató aparece el resultado: ajuste al tono, lo que transmitiste, cómo es el arranque (los 3 primeros
@@ -38,7 +65,7 @@ Mientras lees no hay ideas, ni etiquetas del esqueleto (que queda tenue), ni lí
    tres cosas en las que fijarte.
 3. *Paso 2 · Grabación de verdad*: «comenzamos» graba. Por defecto solo ves abajo los gestos que vienen y **la línea
    verde** si te acercas a tus objetivos (mejor que en el ensayo), **ámbar** si vas igual y **roja** si te alejas. Sin
-   correcciones, sin monitor y sin dibujos encima. En Ajustes, «Mientras grabas de verdad», se pueden volver a poner
+   correcciones, sin monitor y sin dibujos encima. En «Antes de grabar», «Mientras grabas de verdad», se pueden volver a poner
    los avisos.
 4. Cada ensayo dice cómo vas frente al anterior («Tus ensayos: 52% → 61% ▲ +9»).
 
@@ -94,7 +121,7 @@ abre la llamada en otra pestaña del mismo navegador.
 
 - **«comenzamos»**: cuenta atrás 3, 2, 1 y graba. Funciona también desde el informe para hacer otra toma.
 - **«corten»**: no corta en seco. Aparece «⏹ Corto en 3» y sigue grabando ese margen (0, 2, 3 o 5 segundos, en
-  Ajustes; 3 por defecto). Si lo has dicho sin querer o quieres repetir la frase, di **«seguimos»** y la grabación
+  «Antes de grabar»; 3 por defecto). Si lo has dicho sin querer o quieres repetir la frase, di **«seguimos»** y la grabación
   continúa. El botón Terminar y la tecla Esc usan el mismo margen, con «Cortar ya» para no esperar.
 - **Mis palabras** (iPhone, iPad y Android; en «Automático» se usa en el móvil): la primera vez la app te pide decir
   «comenzamos», «corten» y «seguimos» dos veces cada una y aprende tu voz. Después las reconoce sin conexión y sin
@@ -103,7 +130,7 @@ abre la llamada en otra pestaña del mismo navegador.
   dispara. El botón 🎙️ «Mis palabras» del plató sirve para volver a enseñarlas (por ejemplo, con otro micrófono).
 - **Reconocimiento del navegador** (Chrome y Edge de ordenador): entiende además «ensayo», «empezamos», «paramos»…
   y es el que hace que el texto siga tu voz.
-- En Ajustes se elige el motor (Automático, Mis palabras, Navegador o Desactivado) y el margen al parar.
+- En «Antes de grabar» se elige el motor (Automático, Mis palabras, Navegador o Desactivado) y el margen al parar.
 - Al terminar se guarda también ese margen, así que el final del vídeo incluye tu «corten»: recórtalo al editar o
   pon el margen a 0.
 
@@ -115,10 +142,14 @@ abre la llamada en otra pestaña del mismo navegador.
   monitor) y una barra de controles oscura y translúcida.
 - Una sola tipografía, Lexend (pensada para leer con fluidez), en la interfaz y en el teleprompter. Escala de letra
   1,25; interlineado único (1,5 en texto y 1,2 en títulos; el teleprompter, 1,4); espacios en la rejilla de 8 px.
-- Una sola columna centrada en la mesa de trabajo y en el informe, con la acción principal fija abajo.
+- Estructura de app: barra arriba (volver, nombre del paso y su progreso), una columna centrada de 640 px como
+  máximo con márgenes de 16 px (o la zona segura del móvil) y la acción principal fija abajo. El informe usa la
+  misma barra.
+- Los ajustes van en grupos con interruptores, como en los ajustes del móvil, y lo menos usado queda plegado.
 - El texto de los botones nunca se parte: en pantallas pequeñas pasan a otra fila o se quedan solo con el icono.
   Comprobado sin desbordes ni botones partidos en 320, 360, 375, 390, 414, 430, 768 y 1280 px.
-- Movimiento solo donde dice algo: la palabra que cambia en el titular, la cuenta atrás, el anillo de la nota que se
+- Movimiento solo donde dice algo: la entrada con el logo, el contenido de cada paso que llega desde el lado del que
+  vienes, la palabra que cambia en el titular, la cuenta atrás, el anillo de la nota que se
   llena mientras cuenta y la respuesta de los botones al pulsarlos. Se desactiva si el sistema pide menos movimiento.
 
 ## En pantalla
