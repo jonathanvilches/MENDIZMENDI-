@@ -11,10 +11,9 @@ Es un prototipo web de un solo archivo (`index.html`), sin servidor ni instalaci
 ## Dos usos
 
 **Grabar un vídeo.** Pegas el guion, eliges el tono (animado, cercano, serio, inspirador, calmado, divertido,
-urgente) y lo lees como en un teleprompter. Di «comenzamos» y empieza la cuenta atrás y la grabación; «ensayo»
-ensaya sin grabar y «corten» termina. También puedes empezar dando dos palmadas o con el botón. En el móvil las
-órdenes de voz vienen desactivadas, porque en iPhone y en algunos Android el reconocimiento de voz puede cortar la
-cámara; se pueden activar en Ajustes. El texto sigue tu voz o avanza a velocidad fija. La app
+urgente) y lo lees como en un teleprompter. Todo va por voz (ver más abajo): «comenzamos» y empieza la cuenta
+atrás y la grabación; «corten» y sigue grabando unos segundos antes de parar. También puedes empezar dando dos
+palmadas o con los botones. El texto sigue tu voz o avanza a velocidad fija. La app
 coloca gestos en el guion («saluda con la mano» en «hola», «cuenta con los dedos» en una enumeración, «abre los
 brazos» en «todos»…), te avisa cuando llegas a ellos, te enseña cómo hacerlos y comprueba si los haces. Como estás
 leyendo, en este modo no te corrige la mirada. Marcas: `[animado]` cambia el tono desde
@@ -28,6 +27,23 @@ boca, para no confundirte con la otra persona) y cambia de consejos:
 Con «Ventana flotante» (Chrome y Edge de escritorio) el apuntador se queda encima de Zoom, Meet o Teams y sigue
 analizando aunque la pestaña quede detrás. Si la aplicación de la llamada no deja usar la cámara a la vez,
 abre la llamada en otra pestaña del mismo navegador.
+
+## Control por voz
+
+- **«comenzamos»**: cuenta atrás 3, 2, 1 y graba. Funciona también desde el informe para hacer otra toma.
+- **«corten»**: no corta en seco. Aparece «⏹ Corto en 3» y sigue grabando ese margen (0, 2, 3 o 5 segundos, en
+  Ajustes; 3 por defecto). Si lo has dicho sin querer o quieres repetir la frase, di **«seguimos»** y la grabación
+  continúa. El botón Terminar y la tecla Esc usan el mismo margen, con «Cortar ya» para no esperar.
+- **Mis palabras** (iPhone, iPad y Android; en «Automático» se usa en el móvil): la primera vez la app te pide decir
+  «comenzamos», «corten» y «seguimos» dos veces cada una y aprende tu voz. Después las reconoce sin conexión y sin
+  abrir el micrófono otra vez, que es lo que cortaba la cámara en el iPhone con el reconocimiento del navegador.
+  Solo cuenta una palabra dicha sola, con una pequeña pausa antes y después: leyendo el guion de corrido no se
+  dispara. El botón 🎙️ «Mis palabras» del plató sirve para volver a enseñarlas (por ejemplo, con otro micrófono).
+- **Reconocimiento del navegador** (Chrome y Edge de ordenador): entiende además «ensayo», «empezamos», «paramos»…
+  y es el que hace que el texto siga tu voz.
+- En Ajustes se elige el motor (Automático, Mis palabras, Navegador o Desactivado) y el margen al parar.
+- Al terminar se guarda también ese margen, así que el final del vídeo incluye tu «corten»: recórtalo al editar o
+  pon el margen a 0.
 
 ## En pantalla
 
@@ -89,12 +105,13 @@ y micrófono, calibra 5 segundos (hombros relajados, cara tranquila, voz normal)
 | Manos | MediaPipe Gesture Recognizer: 21 puntos por mano, dedos extendidos, puño, palma abierta, mano en la cara y movimientos pequeños repetidos (nervios). |
 | Rendimiento | La visión corre en un Web Worker con imágenes reducidas (ImageBitmap): la cámara y la pantalla no se congelan aunque el equipo tarde en analizar. Si el worker no arranca, se analiza en el hilo principal dejando tiempo libre entre fotogramas. |
 | Voz | AudioWorklet: volumen, tono con YIN, ritmo (picos de sílaba o palabras por minuto si el texto sigue la voz) y pausas. |
+| Mis palabras | En el mismo AudioWorklet: 100 huellas por segundo del sonido (MFCC a 16 kHz). Se aíslan las palabras sueltas (0,2–1,7 s con silencio alrededor) y se comparan con tus dos grabaciones de cada palabra con DTW, que las alinea aunque hables más rápido o más despacio. El umbral de cada palabra sale de lo que se parecen tus dos grabaciones y de lo que se diferencian de las otras palabras. |
 
 Cada tono define una franja objetivo por medida (`TONES`). Las reglas (`RULES`) indican cuándo aplican: mientras
 hablas, mientras escuchas en una llamada, solo con guion o siempre. Lo que hace cada parte sale de `readParts`.
 
-Todo se analiza en el navegador. Solo el modo «Sigue mi voz» usa el reconocimiento de voz del navegador
-(en Chrome lo procesa Google).
+Todo se analiza en el navegador, también «Mis palabras» (las huellas de tu voz se guardan solo en este navegador).
+Solo el motor «Navegador» usa el reconocimiento de voz del navegador (en Chrome lo procesa Google).
 
 ## Límites conocidos
 
@@ -104,6 +121,10 @@ Todo se analiza en el navegador. Solo el modo «Sigue mi voz» usa el reconocimi
 - Los modelos (unos 18 MB) se descargan la primera vez de los servidores de Google y la librería de jsDelivr.
 - La ventana flotante solo existe en Chrome y Edge de escritorio. En el resto, pon la ventana al lado de la llamada.
 - Para probar sin tarjeta gráfica, añade `?cpu` a la dirección.
+- «Mis palabras» se ha probado con voz sintética: reconoce tus palabras a otras velocidades, tonos y volúmenes y no
+  confunde unas órdenes con otras, pero acepta palabras casi iguales dichas sueltas («comentamos» por «comenzamos»,
+  «corte» por «corten»). Por eso «corten» deja siempre el margen con «seguimos». Con mucho ruido de fondo o al cambiar
+  de micrófono conviene volver a enseñarlas.
 
 ## Siguientes pasos naturales
 
