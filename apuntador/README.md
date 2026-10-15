@@ -20,13 +20,15 @@ brazos» en «todos»…), te avisa cuando llegas a ellos, te enseña cómo hace
 leyendo, en este modo no te corrige la mirada. Marcas: `[animado]` cambia el tono desde
 ese párrafo, `//` es una pausa, `*palabra*` pide énfasis y `{abre los brazos}` es una acotación tuya.
 
-**El texto se lee limpio.** En el teleprompter solo están las palabras que dices. Lo que hay que hacer va fuera:
-- en el margen izquierdo, el emoji del gesto a la altura de su línea (👋, ☝️, 👐…): se ilumina al llegar y queda con ✓
-  si lo haces;
-- una franja de color en el margen donde cambia el tono (en lugar de la etiqueta dentro del texto);
-- las pausas `//` son una raya fina; las palabras con énfasis, en otro color;
-- mientras lees, los avisos salen abajo, cortos (sin explicación), de uno en uno y con respiro; no hay ideas ni
-  etiquetas del esqueleto, y el monitor se recoge.
+**El texto se lee limpio y todo lo demás va abajo.** En el teleprompter solo están las palabras que dices (las pausas
+`//` son una raya fina; el énfasis, otro color). Abajo, cerca de los botones:
+- *En breve*: el gesto que viene, unos 2,5 segundos antes de su palabra, con una barra que se vacía;
+- *¡Ahora!*: el gesto en su momento (con la figura animada que lo hace) y ✓ si lo haces;
+- la línea verde, ámbar o roja que dice si vas bien;
+- en el ensayo, también las correcciones, cortas y de una en una.
+
+Mientras lees no hay ideas, ni etiquetas del esqueleto (que queda tenue), ni línea de estado, y el monitor se recoge
+(en el móvil se oculta). En la vista previa de la mesa de trabajo los gestos se ven como emojis en el margen.
 
 **Ensayo antes de grabar** (activado por defecto; se quita en Ajustes). Pensado para vídeos de redes:
 1. *Paso 1 · Ensayo*: «comenzamos» (o dos palmadas, o Ensayar) hace una prueba sin grabar, con todas las
@@ -34,9 +36,31 @@ ese párrafo, `//` es una pausa, `*palabra*` pide énfasis y `{abre los brazos}`
 2. Sin salir del plató aparece el resultado: ajuste al tono, lo que transmitiste, cómo es el arranque (los 3 primeros
    segundos, lo que decide en redes si se quedan a verte), si dura más de un minuto (Reels, TikTok, Shorts) y hasta
    tres cosas en las que fijarte.
-3. *Paso 2 · Grabación de verdad*: «comenzamos» graba. Por defecto no hay avisos ni monitor encima: **la franja de
-   lectura se pone verde** si te acercas a tus objetivos (lo haces mejor que en el ensayo), **ámbar** si vas igual y
-   **roja** si te alejas. En Ajustes, «Mientras grabas de verdad», se pueden volver a poner los avisos.
+3. *Paso 2 · Grabación de verdad*: «comenzamos» graba. Por defecto solo ves abajo los gestos que vienen y **la línea
+   verde** si te acercas a tus objetivos (mejor que en el ensayo), **ámbar** si vas igual y **roja** si te alejas. Sin
+   correcciones, sin monitor y sin dibujos encima. En Ajustes, «Mientras grabas de verdad», se pueden volver a poner
+   los avisos.
+4. Cada ensayo dice cómo vas frente al anterior («Tus ensayos: 52% → 61% ▲ +9»).
+
+**Luz, sonido y encuadre.** Antes de grabar, el monitor marca 💡 la luz y 🎙️ el sonido (tócalos para ver qué hacer) y
+avisa si algo falla. El resultado del ensayo y el informe lo repiten con la solución:
+- Luz (brillo de la cara frente al fondo): falta luz, algo oscuro, contraluz, demasiada luz (la cara se quema), un lado
+  de la cara más oscuro, o bien iluminado.
+- Sonido: se te oye bajo, satura en los picos, ruido de fondo (la voz destaca poco), o se te oye bien.
+- Encuadre: muy cerca, lejos, manos fuera de plano, descentrado o buen encuadre.
+
+**Revisa tu guion.** Debajo del guion, lo que conviene cambiar para transmitir lo que quieres, con botones para verlo
+en el texto o arreglarlo:
+- el gancho (si empiezas por el saludo, una primera frase larga o poco llamativa), con ideas de gancho sobre tu tema
+  que se añaden con un toque;
+- la llamada a la acción al final; si hablas más de ti que de tu público; frases de más de 25 palabras;
+- muletillas y dudas («creo que», «la verdad es que», «básicamente»…), que se pueden quitar con un toque;
+- si falta una pregunta o un dato concreto, palabras repetidas y la duración para redes;
+- si el texto encaja con el tono elegido (con cómo escribirlo para ese tono);
+- con el tono **Persuasivo** (nuevo) o Urgente, la estructura que convence: problema, beneficio, prueba y llamada a
+  la acción (y urgencia).
+
+El informe de cada toma recuerda lo que conviene cambiar del guion, con un botón para ir a cambiarlo.
 
 **Analizar un vídeo que ya grabaste.** «Analizar un vídeo grabado» (en «Grabar un vídeo») sube un vídeo del móvil o
 del ordenador. Se reproduce en el plató, entero y sin espejo, y pasa por el mismo análisis que la cámara: el
@@ -154,6 +178,9 @@ y micrófono, calibra 5 segundos (hombros relajados, cara tranquila, voz normal)
 | Rendimiento | La visión corre en un Web Worker con imágenes reducidas (ImageBitmap): la cámara y la pantalla no se congelan aunque el equipo tarde en analizar. Si el worker no arranca, se analiza en el hilo principal dejando tiempo libre entre fotogramas. |
 | Voz | AudioWorklet: volumen, tono con YIN, ritmo (picos de sílaba o palabras por minuto si el texto sigue la voz) y pausas. |
 | Vídeo subido | El vídeo ocupa el lugar de la cámara: la visión lee sus fotogramas y el sonido entra al mismo AudioWorklet por `MediaElementAudioSource` (y se oye). Antes de empezar se analiza el primer fotograma para que el motor esté listo y no se pierda el principio. Se usan valores neutros en lugar de tu calibración, el volumen no se valora (depende de cómo se exportó) y la mirada a cámara sí cuenta. Si el vídeo se pausa, el análisis espera. |
+| Luz | Cada 0,8 s, una copia de 96 px de la imagen: brillo medio del centro de la cara (sin pelo ni fondo), del fondo, parte quemada y diferencia entre las dos mitades de la cara. |
+| Sonido | Del mismo AudioWorklet: nivel de la voz (mediana de los tramos con voz), ruido de fondo (percentil 10 del nivel) y picos al máximo (saturación). En un vídeo subido no se juzga el nivel, solo el ruido y la saturación. |
+| Guion | Reglas sobre el texto en el propio navegador: frases, pronombres, palabras de llamada a la acción, muletillas, números y el detector de tono. |
 | Objetivos | Para cada objetivo, la parte del tiempo con el problema: si tiene medida, las muestras fuera de la franja del tono; si no, el tiempo con el aviso activo. Así se comparan dos tomas. |
 | Mis palabras | En el mismo AudioWorklet: 100 huellas por segundo del sonido (MFCC a 16 kHz). Se aíslan las palabras sueltas (0,2–1,7 s con silencio alrededor) y se comparan con tus dos grabaciones de cada palabra con DTW, que las alinea aunque hables más rápido o más despacio. El umbral de cada palabra sale de lo que se parecen tus dos grabaciones y de lo que se diferencian de las otras palabras. |
 
@@ -177,6 +204,9 @@ Solo el motor «Navegador» usa el reconocimiento de voz del navegador (en Chrom
   .mp4 (H.264) o .webm. Con música de fondo, la entonación y el ritmo se miden peor.
 - El texto subido no sale del vídeo: para leer con el teleprompter hay que pegar o subir el guion. Los PDF y los
   .pages no se leen (copia el texto o expórtalo a Word).
+- Luz y sonido se han probado con vídeos de prueba (oscuro, sobreexpuesto, con ruido y saturado). Los umbrales son de
+  partida: con pieles muy oscuras o cámaras con exposición automática agresiva la luz puede marcarse como «algo oscuro».
+- El revisor del guion usa reglas, no un modelo de lenguaje: da pistas útiles pero no reescribe el texto entero.
 - «Mis palabras» se ha probado con voz sintética: reconoce tus palabras a otras velocidades, tonos y volúmenes y no
   confunde unas órdenes con otras, pero acepta palabras casi iguales dichas sueltas («comentamos» por «comenzamos»,
   «corte» por «corten»). Por eso «corten» deja siempre el margen con «seguimos». Con mucho ruido de fondo o al cambiar
