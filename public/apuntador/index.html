@@ -63,6 +63,22 @@ textarea#script:focus{border-color:var(--spot);outline:none}
 .syntax{display:flex;flex-wrap:wrap;gap:8px 16px;margin:0;padding:0;list-style:none;font-size:.88rem;color:var(--mute)}
 .syntax code{font:500 .82rem/1 var(--f-mono);background:var(--stage-2);color:var(--paper);padding:3px 6px;border-radius:5px;margin-right:4px}
 .count{font:400 .82rem/1.3 var(--f-mono);color:var(--dim);font-variant-numeric:tabular-nums}
+.review{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.review li{display:grid;grid-template-columns:1.6rem minmax(0,1fr);gap:2px 10px;padding:12px 14px;border-radius:12px;background:var(--stage);border:1px solid var(--line)}
+.review li.fix{border-color:rgba(244,185,66,.5)}
+.review li.ok{opacity:.8}
+.review .ri{grid-row:1 / 4;font-size:1.15rem;line-height:1.4}
+.review b{font-size:.98rem}
+.review small{color:var(--mute);font-size:.86rem;line-height:1.45}
+.review .ra{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.review .ra button{font:inherit;font-size:.82rem;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--paper);cursor:pointer}
+.review .chk{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.review .chk span{font-size:.78rem;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--mute)}
+.review .chk span.y{color:var(--ok);border-color:rgba(85,214,166,.5)}
+.review .chk span.n{color:var(--warn);border-color:rgba(244,185,66,.55)}
+.hooks{display:flex;flex-direction:column;gap:8px}
+.hook-list{display:flex;flex-wrap:wrap;gap:8px}
+.hook-list button{font:inherit;font-size:.88rem;text-align:left;padding:8px 12px;border-radius:12px;border:1px dashed var(--spot);background:color-mix(in srgb,var(--spot) 6%,transparent);color:var(--paper);cursor:pointer}
 .detect{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:var(--stage);border:1px dashed var(--line);border-radius:12px;padding:12px 14px;font-size:.95rem}
 .detect b{color:var(--tc,var(--paper))}
 .detect small{color:var(--mute);display:block}
@@ -142,8 +158,7 @@ body:not([data-app="llamada"]) .only-call{display:none!important}
 #track .w.emph.read{color:rgba(244,185,66,.4)}
 #track .tail{height:70vh}
 /* margen de gestos y tono: fuera del texto */
-#track,.preview{--gut:calc(var(--pfs) * 1.3)}
-#track{padding-left:var(--gut)}
+.preview{--gut:calc(var(--pfs) * 1.3)}
 .marks{position:absolute;left:0;top:0;width:var(--gut);height:0;pointer-events:none}
 .mk{position:absolute;left:0;width:var(--gut);height:calc(var(--pfs) * 1.4);display:grid;place-items:center;font-size:calc(var(--pfs) * .8);line-height:1;opacity:.45;text-shadow:none;transition:opacity .3s,transform .3s,filter .3s;filter:grayscale(.6)}
 .mk.second{transform:translateY(.55em) scale(.75)}
@@ -158,20 +173,36 @@ body:not([data-app="llamada"]) .only-call{display:none!important}
 .pz{display:inline-block;width:2px;height:.85em;margin:0 .25em;vertical-align:-.08em;background:rgba(244,239,230,.4);border-radius:1px}
 #readline{position:absolute;left:-14px;right:-14px;top:var(--ready,140px);height:calc(var(--pfs) * 1.4);pointer-events:none;border-block:1px solid rgba(141,184,255,.4);background:rgba(141,184,255,.06)}
 #readline::before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);border:9px solid transparent;border-left:12px solid var(--rlc,var(--spot))}
-#readline{transition:border-color .5s,background .5s}
-#readline.rl-ok{--rlc:var(--ok);border-block:3px solid var(--ok);background:rgba(85,214,166,.12)}
-#readline.rl-warn{--rlc:var(--warn);border-block:3px solid var(--warn);background:rgba(244,185,66,.1)}
-#readline.rl-bad{--rlc:var(--bad);border-block:3px solid var(--bad);background:rgba(255,110,100,.12)}
+/* abajo, todo lo que hay que hacer: el gesto que viene, el de ahora y la línea verde o roja */
+.lane{position:absolute;left:16px;right:16px;bottom:calc(70px + env(safe-area-inset-bottom,0px));z-index:5;height:22px;pointer-events:none;display:flex;align-items:flex-end;justify-content:flex-end}
+.lane-line{position:absolute;left:0;right:0;bottom:0;height:6px;border-radius:3px;background:rgba(255,255,255,.18);transition:background .5s}
+.lane-txt{position:relative;bottom:10px;font-size:.8rem;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,.8)}
+.lane.l-ok .lane-line{background:var(--ok);box-shadow:0 0 14px rgba(85,214,166,.7)}
+.lane.l-warn .lane-line{background:var(--warn);box-shadow:0 0 14px rgba(244,185,66,.6)}
+.lane.l-bad .lane-line{background:var(--bad);box-shadow:0 0 14px rgba(255,110,100,.7)}
+.lane.l-ok .lane-txt{color:var(--ok)}.lane.l-warn .lane-txt{color:var(--warn)}.lane.l-bad .lane-txt{color:var(--bad)}
+#studio.mon-full .lane{right:352px}
+#studio.line-only .lane{right:16px}
+.cue-pre{display:block;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--cc,var(--spot));margin-bottom:2px}
+.cue-bar{position:absolute;left:14px;right:14px;bottom:5px;height:3px;border-radius:2px;background:rgba(255,255,255,.12);overflow:hidden}
+.cue-bar>i{display:block;height:100%;width:100%;background:var(--spot);transform-origin:left}
+@keyframes cuewait{to{transform:scaleX(0)}}
+#cue.k-next{--cc:var(--spot);opacity:.92}
+#cue.k-next .cue-txt b{color:var(--paper)}
 /* leyendo: el aviso va abajo, corto y lejos del texto; el monitor se recoge */
-#studio.reading #cue{top:auto;bottom:calc(96px + env(safe-area-inset-bottom,0px));padding:8px 16px 8px 8px;gap:12px}
+#studio.reading #cue{top:auto;bottom:calc(100px + env(safe-area-inset-bottom,0px));padding:8px 16px 12px 8px;gap:12px}
 #studio.reading #cue .cue-vis,#studio.reading #cue .cue-vis canvas{width:64px;height:64px}
 #studio.reading #cue .cue-emoji{font-size:26px;right:-8px;bottom:-8px}
 #studio.reading #cue .cue-vis.solo .cue-emoji{font-size:38px}
 #studio.reading #cue .cue-txt b{font-size:1.2rem}
 #studio.reading #cue .cue-detail{display:none}
 #studio.reading.mon-full #cue{left:calc(50% - 170px)}
-#studio.reading #monitor :is(#meters,.why,.also,.tabs,#parts,.seen){display:none}
-#studio.line-only #monitor,#studio.line-only #cue{display:none!important}
+#studio.reading #monitor :is(#meters,.why,.also,.tabs,#parts,.seen,.kit){display:none}
+#studio.reading #overlay{opacity:.45}
+#studio.reading .status{display:none}
+#studio.line-only #monitor{display:none!important}
+#studio.line-only.mon-full #cue{left:50%}
+@media (max-width:760px){#studio.reading #monitor{display:none!important}}
 
 #cue{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 12px);transform:translateX(-50%);display:flex;align-items:center;gap:14px;max-width:min(680px,calc(100% - 24px));padding:12px 20px 12px 14px;border-radius:18px;background:var(--glass);border:1px solid var(--cc,var(--warn));box-shadow:0 10px 40px rgba(0,0,0,.45);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);z-index:5}
 #cue .cue-vis{position:relative;display:grid;place-items:center;width:88px;height:88px;border-radius:18px;background:color-mix(in srgb,var(--cc,var(--warn)) 16%,rgba(0,0,0,.35));flex:none}
@@ -189,6 +220,11 @@ body:not([data-app="llamada"]) .only-call{display:none!important}
 .score{display:inline-flex;align-items:center;padding:0 12px;min-height:44px;border-radius:999px;background:rgba(26,23,34,.88);border:1px solid var(--line);font:700 1rem/1 var(--f-body);font-variant-numeric:tabular-nums}
 .mood{margin:0;font:700 1.08rem/1.3 var(--f-body);color:var(--mc,var(--paper))}
 .seen{display:flex;flex-wrap:wrap;gap:6px}
+.kit{display:flex;flex-wrap:wrap;gap:6px}
+.kit button{display:inline-flex;align-items:center;gap:5px;font:inherit;font-size:.78rem;padding:4px 9px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--mute);cursor:pointer}
+.kit button.ok{color:var(--ok);border-color:rgba(85,214,166,.5)}
+.kit button.warn{color:var(--warn);border-color:rgba(244,185,66,.55);background:rgba(244,185,66,.08)}
+.kit button.bad{color:var(--bad);border-color:rgba(255,110,100,.55);background:rgba(255,110,100,.08)}
 .seen span{display:inline-flex;align-items:center;gap:5px;font-size:.78rem;padding:4px 9px;border-radius:999px;border:1px solid var(--line);color:var(--dim)}
 .seen span.on{color:var(--ok);border-color:rgba(85,214,166,.5);background:rgba(85,214,166,.1)}
 .seen span.on::after{content:"✓";font-weight:700}
@@ -324,7 +360,11 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
 .reh-card p{margin:0;font-size:.9rem;color:var(--mute)}
 .reh-card #rehStory b{color:var(--tc,var(--paper))}
 .reh-notes{display:flex;flex-direction:column;gap:6px}
+.reh-trend{font:500 .88rem/1.3 var(--f-mono);color:var(--paper)!important}
+.reh-trend b{margin-left:6px;color:var(--mute)}.reh-trend b.up{color:var(--ok)}.reh-trend b.down{color:var(--bad)}
 .reh-notes p{color:var(--paper)!important}
+.reh-kit{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:.88rem;color:var(--mute)}
+.reh-kit li b{color:var(--warn)}.reh-kit li.bad b{color:var(--bad)}.reh-kit li.ok b{color:var(--ok)}
 .reh-card .eyebrow{margin-top:4px}
 .reh-hint{color:var(--paper)!important}
 .reh-card .actions{justify-content:flex-end}
@@ -434,6 +474,8 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
 .dash-card .dp em.up{color:var(--ok)}.dash-card .dp em.down{color:var(--bad)}
 .dash-sub{margin:-6px 0 12px;color:var(--mute);font-size:.8rem}
 .dash-empty{margin:0;color:var(--mute)}
+.dash-card .dk{font:700 1rem/1 var(--f-body);width:24px;height:24px;border-radius:50%;display:grid;place-items:center;color:#111}
+.dash-card .dk.ok{background:var(--ok)}.dash-card .dk.warn{background:var(--warn)}.dash-card .dk.bad{background:var(--bad)}
 .dash-side{display:flex;flex-direction:column;gap:14px;min-width:0}
 .dash-line{display:flex;flex-direction:column;gap:8px}
 .dl-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;font-size:.9rem}
@@ -592,6 +634,12 @@ details.more>:not(summary){margin-bottom:26px}
         </ul>
         <span class="count" id="count"></span>
       </section>
+      <section class="block o1 only-video" id="reviewBlock">
+        <p class="eyebrow">Revisa tu guion</p>
+        <h2 id="revTitle">Qué cambiar para transmitir lo que quieres</h2>
+        <ul class="review" id="review"></ul>
+        <div class="hooks" id="hooks" hidden><p class="note">Ideas para empezar (tócala para ponerla al principio):</p><div class="hook-list" id="hookList"></div></div>
+      </section>
       <section class="block o6 only-video">
         <p class="eyebrow">Vista previa</p>
         <h2>Así te lo marcará el apuntador</h2>
@@ -702,8 +750,10 @@ details.more>:not(summary){margin-bottom:26px}
 
   <div id="cue" hidden role="status" aria-live="polite">
     <div class="cue-vis"><canvas id="cueCanvas" width="176" height="176"></canvas><span class="cue-emoji"></span></div>
-    <div class="cue-txt"><b></b><span class="cue-detail"></span></div>
+    <div class="cue-txt"><small class="cue-pre" hidden></small><b></b><span class="cue-detail"></span></div>
+    <i class="cue-bar" hidden><i></i></i>
   </div>
+  <div class="lane" id="lane" hidden><i class="lane-line"></i><span class="lane-txt" id="laneTxt"></span></div>
 
   <aside id="monitor" aria-label="Monitor del director">
     <p class="step" id="stepChip" hidden></p>
@@ -716,6 +766,7 @@ details.more>:not(summary){margin-bottom:26px}
     </div>
     <p class="mood" id="mood">👀 Esperando a verte…</p>
     <div class="goals" id="goals" hidden aria-label="Objetivos de la toma"></div>
+    <div class="kit" id="kit" aria-label="Luz y sonido"><button type="button" data-k="luz">💡 <span>Luz</span></button><button type="button" data-k="son">🎙️ <span>Sonido</span></button></div>
     <div class="seen" aria-label="Lo que detecta ahora"><span data-s="cara">🙂 Cara</span><span data-s="cuerpo">🧍 Cuerpo</span><span data-s="manos">✋ Manos</span><span data-s="voz">🎙️ Voz</span></div>
     <p class="why" id="why">Colócate frente a la cámara y empieza a hablar.</p>
     <div class="tabs" role="tablist" aria-label="Vista del monitor"><button type="button" role="tab" data-tab="cuerpo">Cuerpo</button><button type="button" role="tab" data-tab="tono">Tono</button></div>
@@ -755,8 +806,10 @@ details.more>:not(summary){margin-bottom:26px}
   </div>
   <div class="reh-card" id="rehCard" hidden role="dialog" aria-label="Resultado del ensayo">
     <div class="reh-head"><div class="ring" id="rehRing"><span id="rehPct">--</span></div><div><small id="rehDur">Ensayo terminado</small><b id="rehTitle"></b></div></div>
+    <p class="reh-trend" id="rehTrend" hidden></p>
     <p id="rehStory"></p>
     <div id="rehNotes" class="reh-notes"></div>
+    <ul class="reh-kit" id="rehKit"></ul>
     <p class="eyebrow" id="rehGoalsTitle">Al grabar, fíjate en esto</p>
     <ul class="goal-list" id="rehGoals"></ul>
     <p class="reh-hint" id="rehHint"></p>
@@ -865,6 +918,8 @@ const TONES = {
     t: { energia: [0, .3], manos: [.15, .55], apertura: [.3, .8], sonrisa: [.2, .65], expresion: [.1, .5], volumen: [.2, .5], entonacion: [.2, .55], ritmo: [.15, .45] } },
   divertido: { name: 'Divertido',  adj: 'divertido',  color: '#FFD32A', look: 'Mucha cara: cejas activas, sonrisa grande, gestos exagerados, ritmo vivo.',
     t: { energia: [.55, 1], manos: [.55, 1], apertura: [.4, 1], sonrisa: [.6, 1], expresion: [.55, 1], volumen: [.5, .95], entonacion: [.6, 1], ritmo: [.5, .9] } },
+  persuasivo:{ name: 'Persuasivo', adj: 'persuasivo', color: '#A3E635', look: 'Palmas abiertas hacia la cámara, mirada firme, voz segura que remarca el beneficio, pausa antes de pedir algo.',
+    t: { energia: [.3, .7], manos: [.45, .9], apertura: [.5, 1], sonrisa: [.25, .7], expresion: [.35, .8], volumen: [.5, .85], entonacion: [.45, .85], ritmo: [.35, .65] } },
   urgente:   { name: 'Urgente',    adj: 'urgente',    color: '#FF7A7A', look: 'Gestos firmes y cortos, poca sonrisa, voz alta, ritmo rápido.',
     t: { energia: [.45, .85], manos: [.5, .95], apertura: [.3, .8], sonrisa: [0, .35], expresion: [.3, .75], volumen: [.6, 1], entonacion: [.4, .8], ritmo: [.6, .9] } },
 };
@@ -874,7 +929,7 @@ const TONE_ALIAS = { animado: 'animado', animada: 'animado', energico: 'animado'
   inspirador: 'inspirador', inspiradora: 'inspirador', motivador: 'inspirador', motivadora: 'inspirador', emotivo: 'inspirador', emotiva: 'inspirador',
   calmado: 'calmado', calmada: 'calmado', tranquilo: 'calmado', tranquila: 'calmado', sereno: 'calmado', serena: 'calmado',
   divertido: 'divertido', divertida: 'divertido', gracioso: 'divertido', graciosa: 'divertido', humor: 'divertido',
-  urgente: 'urgente', persuasivo: 'urgente', persuasiva: 'urgente', venta: 'urgente' };
+  urgente: 'urgente', persuasivo: 'persuasivo', persuasiva: 'persuasivo', convincente: 'persuasivo', venta: 'persuasivo', vender: 'persuasivo' };
 const STATES = {
   defensivo: { name: 'Distante, a la defensiva', color: '#E07A5F', neg: true, why: 'Brazos cruzados o puños cerrados: se lee como barrera.' },
   nervioso:  { name: 'Nervioso',                 color: '#E9A23B', neg: true, why: 'Manos inquietas, tocarse la cara o balancearse delatan nervios.' },
@@ -1026,11 +1081,12 @@ function detectTone(text) {
     calmado: ['respira', 'respirar', 'tranquilo', 'tranquila', 'calma', 'despacio', 'paz', 'relaja', 'relajate', 'descansa', 'suave', 'meditacion', 'dormir', 'sereno', 'silencio'],
     divertido: ['jaja', 'jajaja', 'jajajaja', 'broma', 'risa', 'gracioso', 'absurdo', 'xd', 'lol', 'locura', 'loco', 'ridiculo', 'divertido', 'payaso'],
     urgente: ['ahora', 'ya', 'ultimo', 'ultima', 'ultimas', 'quedan', 'corre', 'rapido', 'oferta', 'descuento', 'limitado', 'termina', 'aprovecha', 'urgente', 'antes'],
+    persuasivo: ['consigue', 'conseguir', 'beneficio', 'ahorra', 'ahorrar', 'garantia', 'garantizado', 'resultados', 'clientes', 'demostrado', 'probado', 'gratis', 'descubre', 'solucion', 'problema', 'metodo', 'invierte', 'merece', 'vale'],
   };
   const sc = {}, why = {};
   for (const [k, list] of Object.entries(groups)) { const r = cnt(list); sc[k] = r.n; why[k] = [...new Set(r.hits)].slice(0, 3); }
   sc.animado += ex * .9; sc.cercano += q * .4 + .6; sc.serio += ex === 0 ? 1.2 : 0;
-  sc.inspirador *= 1.2; sc.calmado *= 1.5; sc.divertido *= 1.6; sc.urgente *= 1.1;
+  sc.inspirador *= 1.2; sc.calmado *= 1.5; sc.divertido *= 1.6; sc.urgente *= 1.1; sc.persuasivo *= 1.1;
   const best = Object.entries(sc).sort((a, b) => b[1] - a[1])[0][0];
   const reasons = [];
   if (best === 'animado' && ex) reasons.push(`${ex} exclamaci${ex === 1 ? 'ón' : 'ones'}`);
@@ -1038,6 +1094,144 @@ function detectTone(text) {
   if (why[best].length) reasons.push(why[best].map(w => `«${w}»`).join(', '));
   return { tone: best, reasons };
 }
+
+/* ---------------- revisor del guion ----------------
+   Reglas sencillas sobre el texto (sin enviarlo a ningún sitio): gancho, llamada a la acción, si hablas a tu público,
+   frases largas, muletillas, preguntas, datos, repeticiones, duración, encaje con el tono y, si quieres persuadir, la
+   estructura problema → beneficio → prueba → acción. */
+const W_ = list => new Set(list.split(' ').map(normWord));
+const RV = {
+  stop: W_('de la que el en y a los se del las un por con no una su para es al lo como más pero sus le ya o este sí porque esta entre cuando muy sin sobre también me hasta hay donde quien desde todo nos durante todos uno les ni contra otros ese eso ante ellos e esto mí antes algunos qué unos yo otro otras otra él tanto esa estos mucho quienes nada muchos cual poco ella estar estas algunas algo nosotros mi mis tú te ti tu tus ellas nosotras vosotros vosotras os esos esas estoy está estamos están es son soy eres era fue ser hacer hace hoy aquí así bien vez cada puede pueden tiene tienen tengo voy vamos va van hola gracias cosas cosa porque entonces siempre ahora vídeo vídeos video videos'),
+  cta: W_('sígueme síguenos suscríbete suscribirte suscribíos comenta coméntame comparte compártelo compártelos guarda guárdalo guárdate dale like enlace link bio apúntate descarga escríbeme cuéntame pruébalo reserva compra pide únete visita clic pincha regístrate entra llámame contacta activa campanita'),
+  you: W_('tú te ti tu tus contigo vosotros vosotras os vuestro vuestra vuestros vuestras usted ustedes puedes tienes quieres sabes imagina imagínate mira fíjate piensa haz necesitas vas eres estás sabías conseguirás podrás descubre prueba entra'),
+  me: W_('yo me mi mis conmigo mío mía he tengo soy estoy voy quiero creo hice aprendí empecé'),
+  num: W_('dos tres cuatro cinco seis siete ocho nueve diez cien mil primero segundo tercero'),
+  problema: W_('problema problemas cansado cansada harto harta difícil error errores pierdes pierde falla fallo frustra frustrante miedo dolor cuesta complicado agobio estrés'),
+  beneficio: W_('consigue conseguir consigues lograr logra logras ahorra ahorrar ahorras mejora mejorar mejoras gana ganar ganas fácil rápido resultado resultados podrás conseguirás aprenderás beneficio solución'),
+  prueba: W_('estudio estudios clientes personas alumnos años casos testimonio testimonios demostrado probado comprobado datos'),
+  urgencia: W_('hoy ahora solo últimas últimos quedan plazas limitado limitada termina acaba antes'),
+};
+// 1: se puede quitar en cualquier sitio; 2: solo al principio de la frase (en medio dejaría la frase coja)
+const HEDGES = [['creo que', 2], ['la verdad es que', 1], ['básicamente', 1], ['o sea', 1], ['en plan', 1], ['digamos', 1],
+  ['a lo mejor', 0], ['quizás', 0], ['quizá', 0], ['un poco', 0], ['más o menos', 0], ['intentaré', 0], ['espero que', 0], ['no sé', 0]];
+const hedgeRe = (h, g = '') => new RegExp(`(^|[^\\p{L}])${h.replace(/ /g, '\\s+')}(?![\\p{L}])`, 'iu' + g);
+const TONE_WRITE = {
+  animado: 'frases cortas, exclamaciones y verbos de acción.',
+  cercano: 'háblale de tú, cuenta algo tuyo y usa palabras de conversación.',
+  serio: 'datos concretos, frases firmes y sin exclamaciones ni coletillas.',
+  inspirador: 'pinta el después («imagina», «podrás», «juntos») y cierra con una frase que se recuerde.',
+  calmado: 'frases suaves y sin exclamaciones, con pausas // entre ideas.',
+  divertido: 'una exageración, un giro inesperado o reírte de ti.',
+  urgente: 'plazos y motivos para actuar ya: «hoy», «solo hasta», «quedan».',
+  persuasivo: 'el problema, lo que van a ganar, una prueba y qué tienen que hacer.',
+};
+function reviewScript(text, tone) {
+  const items = [];
+  const clean = text.replace(/\[[^\]]*\]|\{[^}]*\}/g, ' ').replace(/\/\//g, ' ').replace(/\*/g, '');
+  const sents = (clean.match(/[^.!?…\n]+[.!?…]*/g) || []).map(x => x.trim()).filter(x => /\p{L}/u.test(x));
+  const words = clean.match(/[\p{L}\d]+/gu) || [], nw = words.map(normWord);
+  if (nw.length < 8) return { items, hooks: [] };
+  const wc = x => (x.match(/[\p{L}\d]+/gu) || []).length, has = (set, arr = nw) => arr.some(w => set.has(w));
+  // gancho
+  const first = sents[0] || '';
+  const weak = /^¡?\s*(hola|buenas|buenos días|hey|qué tal)\b/iu.test(first) || /^(hoy|en este v[ií]deo|en el v[ií]deo de hoy)\b.*\b(voy|vamos) a (hablar|contar|explicar|enseñar)/iu.test(first);
+  const lead = weak ? (sents[1] || '') : first;
+  const hookGood = /\?|\d/.test(lead) || /(^|[^\p{L}])(nadie|error|errores|secreto|truco|trucos|deja de|sabías|nunca|por qué|cómo)(?![\p{L}])/iu.test(lead);
+  if (weak) items.push({ k: 'fix', t: 'Empieza por el gancho, no por el saludo', why: 'En redes deciden en 2 o 3 segundos si se quedan. Abre con una pregunta, un dato o lo que van a ganar; el saludo puede ir después.', sel: first, hooks: 1 });
+  else if (wc(first) > 14) items.push({ k: 'tip', t: `Primera frase larga (${wc(first)} palabras)`, why: 'Un gancho funciona mejor con menos de 12 palabras.', sel: first, hooks: 1 });
+  else if (hookGood) items.push({ k: 'ok', t: 'Buen gancho', why: 'Empiezas con algo que despierta curiosidad.' });
+  else items.push({ k: 'tip', t: 'Haz el arranque más llamativo', why: 'Prueba con una pregunta, un dato o el beneficio en la primera frase.', sel: first, hooks: 1 });
+  // llamada a la acción
+  const endW = (sents.slice(-2).join(' ').match(/\p{L}+/gu) || []).map(normWord);
+  if (has(RV.cta, endW)) items.push({ k: 'ok', t: 'Cierras con una llamada a la acción', why: 'Les dices qué hacer al terminar.' });
+  else if (has(RV.cta)) items.push({ k: 'tip', t: 'Pon la llamada a la acción al final', why: 'Pide lo que quieres justo al terminar, cuando ya les has convencido.' });
+  else items.push({ k: 'fix', t: 'Falta la llamada a la acción', why: 'Termina diciendo qué quieres que hagan: seguirte, comentar, guardar el vídeo, entrar en el enlace…' });
+  // a quién le hablas
+  const you = nw.filter(w => RV.you.has(w) || RV.cta.has(w)).length, me = nw.filter(w => RV.me.has(w)).length;
+  if (me >= 4 && me > you * 1.5) items.push({ k: 'fix', t: 'Habla más de tu público que de ti', why: `Dices «yo», «me» o «mi» ${me} veces y «tú» u «os» ${you}. Cambia «yo he aprendido» por «tú vas a poder».` });
+  else if (you >= 2) items.push({ k: 'ok', t: 'Le hablas a tu público', why: 'Usas «tú» o «vosotros»: crea conexión.' });
+  else items.push({ k: 'tip', t: 'Háblale de tú a quien te ve', why: 'Usar «tú» o «vosotros» crea conexión: «¿Te ha pasado…?», «vas a ver…».' });
+  // frases largas
+  const longs = sents.filter(x => wc(x) > 25);
+  if (longs.length) items.push({ k: 'fix', t: longs.length === 1 ? 'Una frase demasiado larga' : `${longs.length} frases demasiado largas`, why: 'Con más de 25 palabras cuesta decirlas con energía y seguirlas. Divídelas en dos.', sel: longs[0] });
+  // muletillas y dudas
+  const found = HEDGES.filter(([h]) => hedgeRe(h).test(clean));
+  if (found.length) items.push({ k: found.length > 2 ? 'fix' : 'tip', t: 'Quita las dudas: ' + found.slice(0, 4).map(h => `«${h[0]}»`).join(', '), why: 'Restan seguridad y fuerza al mensaje (y a la persuasión).',
+    sel: found[0][0], act: found.some(h => h[1]) ? 'hedges' : null });
+  // pregunta y datos
+  if (!/\?/.test(clean)) items.push({ k: 'tip', t: 'Haz una pregunta a tu público', why: 'Invita a pensar y a comentar: «¿A ti también te pasa?».' });
+  if (!/\d/.test(clean) && !has(RV.num)) items.push({ k: 'tip', t: 'Añade un dato concreto', why: 'Un número o un ejemplo real convence más que un adjetivo: «en 3 pasos», «el 80 % de…».' });
+  // repeticiones
+  const cnt = {}, orig = {};
+  const proper = new Set(), firstAt = {};
+  words.forEach((w, i) => { const n = nw[i]; if (n.length < 5 || RV.stop.has(n)) return; cnt[n] = (cnt[n] || 0) + 1; orig[n] ||= w.toLowerCase(); firstAt[n] ??= i; if (/^\p{Lu}/u.test(w)) proper.add(n); });
+  const rep = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0];
+  if (rep && rep[1] >= 4 && rep[1] / nw.length > .025) items.push({ k: 'tip', t: `Repites «${orig[rep[0]]}» ${rep[1]} veces`, why: 'Cambia alguna por un sinónimo o quítala para que suene más natural.', sel: orig[rep[0]] });
+  // duración
+  const secs = Math.round(nw.length / 150 * 60);
+  if (secs > 62) items.push({ k: 'tip', t: `Dura unos ${secs} s`, why: 'Para Reels, TikTok y Shorts conviene menos de un minuto (unas 150 palabras).' });
+  // encaje con el tono
+  const d = detectTone(text);
+  if (d.tone !== tone) items.push({ k: 'tip', t: `El texto suena ${TONES[d.tone].name.toLowerCase()}, y quieres transmitir algo ${TONES[tone].adj}`, why: `Para que suene ${TONES[tone].adj}: ${TONE_WRITE[tone]}`, tone: d.tone });
+  else items.push({ k: 'ok', t: `El texto encaja con un mensaje ${TONES[tone].adj}`, why: TONES[tone].look });
+  // persuasión
+  if (tone === 'persuasivo' || tone === 'urgente') {
+    const parts = [['Problema', has(RV.problema), 'di qué les pasa o qué les frena'], ['Beneficio', has(RV.beneficio), 'di qué van a ganar'],
+      ['Prueba', /\d/.test(clean) || has(RV.prueba), 'un dato, un resultado o un caso real'], ['Llamada a la acción', has(RV.cta), 'qué tienen que hacer']];
+    if (tone === 'urgente') parts.push(['Urgencia', has(RV.urgencia), 'por qué ahora']);
+    const miss = parts.filter(x => !x[1]);
+    items.push({ k: miss.length ? 'fix' : 'ok', t: miss.length ? 'Completa la estructura para convencer' : 'Estructura que convence', chk: parts,
+      why: miss.length ? 'Te falta: ' + miss.map(x => `${x[0].toLowerCase()} (${x[2]})`).join('; ') + '.' : 'Problema, beneficio, prueba y llamada a la acción: todo está.' });
+  }
+  // ideas de gancho con el tema del guion (la palabra con contenido que más se repite)
+  // (sin nombres propios ni verbos; a igualdad, la que sale antes)
+  const topicN = Object.entries(cnt).filter(([w]) => !proper.has(w) && !/(ar|er|ir|ando|iendo|mente|isimo|isima)$/.test(w) && !RV.cta.has(w) && !RV.you.has(w) && !RV.me.has(w))
+    .sort((a, b) => b[1] - a[1] || firstAt[a[0]] - firstAt[b[0]])[0]?.[0];
+  const tema = topicN ? orig[topicN] : null;
+  const pos = tema && /s$/.test(tema) ? 'tus' : 'tu';
+  const hooks = tema ? [`¿Te pasa esto con ${pos} ${tema}?`, `3 trucos para ${pos} ${tema} que casi nadie conoce.`, `El error que casi todos cometemos con ${pos} ${tema}.`, `Lo que nadie te cuenta sobre ${pos} ${tema}.`]
+    : ['¿Sabías que casi nadie hace esto bien?', 'Deja de hacer esto si quieres resultados.', 'En 30 segundos te cuento el truco que me cambió todo.'];
+  const order = { fix: 0, tip: 1, ok: 2 };
+  items.sort((a, b) => order[a.k] - order[b.k]);
+  return { items, hooks };
+}
+function removeHedges(text) {
+  let out = text;
+  for (const [h, mode] of HEDGES) {
+    if (!mode) continue;
+    const pre = mode === 2 ? '(^|[.!?…]\\s+|\\n\\s*|\\u0001)' : '(^|[^\\p{L}])';
+    out = out.replace(new RegExp(`${pre}${h.replace(/ /g, '\\s+')},?\\s+`, 'giu'), (m, a) => a + '\u0001');
+  }
+  // mayúscula si la muletilla abría la frase
+  return out.replace(/\u0001+/g, '\u0001').replace(/(^|[.!?…]\s*|\n\s*)\u0001([¡¿]?)(\p{Ll})/gu, (m, a, b, c) => a + b + c.toUpperCase()).replace(/\u0001/g, '').replace(/ {2,}/g, ' ');
+}
+function renderReview() {
+  const R = reviewScript(S.text, S.tone), list = $('#review');
+  S.review = R;
+  const nFix = R.items.filter(i => i.k !== 'ok').length;
+  $('#revTitle').textContent = !R.items.length ? 'Escribe tu guion y te digo qué cambiar' : nFix ? `${nFix} ${nFix === 1 ? 'cosa' : 'cosas'} que cambiar para transmitir lo que quieres` : '¡Tu guion está listo!';
+  list.innerHTML = R.items.map((it, i) => `<li class="${it.k}"><span class="ri">${it.k === 'fix' ? '⚠️' : it.k === 'tip' ? '💡' : '✅'}</span><b>${esc(it.t)}</b><small>${esc(it.why || '')}</small>
+    ${it.chk ? `<div class="chk">${it.chk.map(c => `<span class="${c[1] ? 'y' : 'n'}">${c[1] ? '✓' : '✗'} ${c[0]}</span>`).join('')}</div>` : ''}
+    ${it.sel || it.act || it.tone ? `<div class="ra">${it.sel ? `<button type="button" data-rv="sel" data-i="${i}">Ver en el texto</button>` : ''}${it.act === 'hedges' ? '<button type="button" data-rv="hedges">Quitarlas</button>' : ''}${it.tone ? `<button type="button" data-rv="tone" data-tone="${it.tone}">Usar tono ${TONES[it.tone].name.toLowerCase()}</button>` : ''}</div>` : ''}</li>`).join('');
+  const showHooks = R.items.some(it => it.hooks);
+  $('#hooks').hidden = !showHooks;
+  $('#hookList').innerHTML = showHooks ? R.hooks.map(h => `<button type="button" data-hook="${esc(h)}">${esc(h)}</button>`).join('') : '';
+}
+$('#reviewBlock').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const setText = t => { S.text = t; elScript.value = t; store.set('text', t); refreshSetup(); };
+  if (b.dataset.rv === 'sel') {
+    const it = S.review?.items[+b.dataset.i]; if (!it) return;
+    const v = elScript.value, key = it.sel.slice(0, 40), i = v.toLowerCase().indexOf(key.toLowerCase());
+    if (i >= 0) { elScript.focus(); elScript.setSelectionRange(i, i + Math.min(it.sel.length, v.length - i)); elScript.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+  } else if (b.dataset.rv === 'hedges') { setText(removeHedges(elScript.value)); toast('Muletillas quitadas. Revisa que las frases sigan sonando bien.', 4500); }
+  else if (b.dataset.rv === 'tone') { S.tone = b.dataset.tone; store.set('tone', S.tone); renderTones(); refreshSetup(); }
+  else if (b.dataset.hook) {
+    const v = elScript.value, m = v.match(/^\s*(\[[^\]]*\]\s*)?/), head = m ? m[0] : '';
+    setText(head + b.dataset.hook + '\n\n' + v.slice(head.length));
+    toast('Gancho añadido al principio: ajústalo a tu estilo.', 4000);
+  }
+});
 
 // el texto se lee limpio: solo las palabras (las pausas «//», una raya fina). Lo que hay que hacer va al margen:
 // el emoji del gesto a la altura de su línea y una franja de color donde cambia el tono
@@ -1123,6 +1317,7 @@ function refreshSetup() {
     <small>${d.reasons.length ? 'Pistas: ' + esc(d.reasons.join(' · ')) : 'Sin pistas claras en el texto.'}</small></div>
     ${d.tone !== S.tone ? `<button class="ghost" id="useDetected" data-tone="${d.tone}">Usar ${t.name.toLowerCase()}</button>` : '<span class="pill ok">' + ico('ok') + 'Coincide con tu elección</span>'}`;
   $('#go').disabled = n === 0 && !isCall();
+  renderReview();
 }
 let refreshTimer = 0;
 elScript.value = S.text;
@@ -1418,8 +1613,9 @@ async function enterStudio() {
   endFileMode();
   S.sc = parseScript(S.text, S.tone);
   if (!S.sc.words.length && !isCall()) return;
-  S.flow = flowOn() ? 'ensayo' : 'grabar';
+  S.flow = flowOn() ? 'ensayo' : 'grabar'; S.rehs = [];
   prepStudioUI();
+  LT.recent = []; LT.v = null; SND.all = []; SND.voiced = []; SND.v = null;
   busy('Pidiendo permiso para la cámara y el micrófono…');
   try {
     if (!S.stream || !S.stream.active) attachStream(await openCamera());
@@ -1508,6 +1704,7 @@ async function enterFile(file) {
   // la calibración guardada es de tu cámara y tu micro: aquí se usan valores neutros
   S.calibKeep = S.calib; S.calib = { ...DEFAULT_CALIB, done: true };
   prepStudioUI();
+  LT.recent = []; LT.v = null; SND.all = []; SND.voiced = []; SND.v = null;
   $('#fbName').textContent = S.file.name; $('#fbProg').style.width = '0%'; $('#fbTime').textContent = '';
   busy('Abriendo el vídeo…');
   const ok = await new Promise(res => {
@@ -2108,11 +2305,12 @@ class ApuntadorMeter extends AudioWorkletProcessor {
     if (this.cnt >= this.hop) {
       this.cnt = 0;
       let ss = 0;
-      for (let i = 0; i < this.N; i++) { const v = this.ring[(this.w + i) % this.N]; this.lin[i] = v; ss += v * v; }
+      let pk = 0;
+      for (let i = 0; i < this.N; i++) { const v = this.ring[(this.w + i) % this.N]; this.lin[i] = v; ss += v * v; const a = v < 0 ? -v : v; if (a > pk) pk = a; }
       const db = 20 * Math.log10(Math.sqrt(ss / this.N) + 1e-9);
       let f0 = 0;
       if (db > -66) { for (let i = 0; i < this.N / 2; i++) this.half[i] = (this.lin[2 * i] + this.lin[2 * i + 1]) * .5; f0 = yin(this.half, sampleRate / 2, this.A); }
-      this.port.postMessage({ t: currentTime, db, f0 });
+      this.port.postMessage({ t: currentTime, db, f0, pk });
     }
     return true;
   }
@@ -2139,7 +2337,7 @@ async function setupAudio(stream, el = null) {
       node.port.onmessage = e => {
         try {
           const m = e.data, t = now() - Math.max(0, ctx.currentTime - m.t);
-          if (m.k === 'm') onMfcc(t, m.f); else processAudio(t, m.db, m.f0);
+          if (m.k === 'm') onMfcc(t, m.f); else processAudio(t, m.db, m.f0, m.pk);
         } catch (err) { console.warn(err); }
       };
       S.audio = { ctx, node, mode: 'worklet', stream, el };
@@ -2159,16 +2357,18 @@ function audioTick() {
   const db = 20 * Math.log10(Math.sqrt(ss / A.buf.length) + 1e-9);
   let f0 = 0;
   if (db > -66) { for (let i = 0; i < A.half.length; i++) A.half[i] = (A.buf[2 * i] + A.buf[2 * i + 1]) * .5; f0 = yin(A.half, A.sr, A); }
-  processAudio(now(), db, f0);
+  let pk = 0; for (let i = 0; i < A.buf.length; i++) { const a = Math.abs(A.buf[i]); if (a > pk) pk = a; }
+  processAudio(now(), db, f0, pk);
 }
 function onDoubleClap() {
   if (isCall() || S.file || !S.live || S.take || S.countdown || S.calibrating || KWS.enroll) return;
   toast(startByFlow(true) ? '👏👏 ¡Oído! Grabamos' : '👏👏 ¡Oído! Primero, el ensayo', 1800);
 }
-function processAudio(t, db, f0) {
+function processAudio(t, db, f0, pk = 0) {
   if (!S.live) return;
   V.lastMsgT = t;
   V.db = db;
+  soundSample(t, db, pk);
   if (db < V.floor) V.floor = V.floor * .7 + db * .3; else V.floor += .012;
   V.floor = clamp(V.floor, -95, -40);
   const thr = Math.max(V.floor + 10, -62);
@@ -2203,6 +2403,90 @@ function processAudio(t, db, f0) {
   V.valley = Math.min(V.valley, e2);
   V.e0 = V.e1; V.e1 = e2;
   if (S.calibrating) { S.calibrating.db.push(db); if (voiced) S.calibrating.vdb.push(db); }
+}
+
+/* ---------------- luz y sonido ----------------
+   Luz: cada 0,8 s, una copia diminuta de la imagen (96 px). Se mira el brillo de la cara (el centro del óvalo, sin pelo
+   ni fondo), el del fondo, cuánto se quema, y si un lado de la cara está más oscuro que el otro.
+   Sonido: el nivel de la voz (mediana de los tramos con voz), el ruido de fondo (los tramos más bajos) y si satura
+   (picos al máximo). Se usan antes de grabar (avisos y monitor), en el resultado del ensayo y en el informe. */
+const LT = { cv: null, cx: null, last: 0, recent: [] };
+function lightTick(t) {
+  if (t - LT.last < .8) return;
+  LT.last = t;
+  const v = video; if (!v.videoWidth || v.readyState < 2) return;
+  const w = 96, h = Math.max(1, Math.round(96 * v.videoHeight / v.videoWidth));
+  if (!LT.cv) { LT.cv = document.createElement('canvas'); LT.cx = LT.cv.getContext('2d', { willReadFrequently: true }); }
+  if (LT.cv.width !== w || LT.cv.height !== h) { LT.cv.width = w; LT.cv.height = h; }
+  let d;
+  try { LT.cx.drawImage(v, 0, 0, w, h); d = LT.cx.getImageData(0, 0, w, h).data; } catch { return; }
+  const fb = F.ok && F.box && fresh('face', F.lastSeen, t, 1.5) ? F.box : null;
+  let fx0 = -1, fx1 = -1, fy0 = -1, fy1 = -1, mid = 0;
+  if (fb) { const bw = fb.maxx - fb.minx, bh = fb.maxy - fb.miny; fx0 = (fb.minx + bw * .2) * w; fx1 = (fb.maxx - bw * .2) * w; fy0 = (fb.miny + bh * .2) * h; fy1 = (fb.maxy - bh * .12) * h; mid = (fx0 + fx1) / 2; }
+  let all = 0, fs = 0, fn = 0, bs = 0, bn = 0, clip = 0, dark = 0, ls = 0, ln = 0, rs = 0, rn = 0;
+  for (let y = 0, i = 0; y < h; y++) for (let x = 0; x < w; x++, i += 4) {
+    const L = .299 * d[i] + .587 * d[i + 1] + .114 * d[i + 2];
+    all += L;
+    if (fb && x >= fx0 && x <= fx1 && y >= fy0 && y <= fy1) {
+      fs += L; fn++; if (L > 245) clip++; if (L < 30) dark++;
+      if (x < mid) { ls += L; ln++; } else { rs += L; rn++; }
+    } else { bs += L; bn++; }
+  }
+  const smp = { all: all / (w * h), face: fn > 8 ? fs / fn : null, bg: bn ? bs / bn : null, clip: fn ? clip / fn : 0, dark: fn ? dark / fn : 0,
+    lr: ln && rn ? (ls / ln - rs / rn) / Math.max(1, Math.max(ls / ln, rs / rn)) : 0 };
+  LT.recent.push(smp); if (LT.recent.length > 5) LT.recent.shift();
+  LT.v = lightVerdict(avgLight(LT.recent));
+  if (S.take) (S.take.light ||= []).push(smp);
+}
+function avgLight(arr) {
+  if (!arr?.length) return null;
+  const withFace = arr.filter(a => a.face != null), src = withFace.length >= arr.length / 2 ? withFace : arr;
+  const m = k => mean(src.map(a => a[k]).filter(x => x != null));
+  return { all: m('all'), face: withFace.length >= arr.length / 2 ? m('face') : null, bg: m('bg'), clip: m('clip'), dark: m('dark'), lr: m('lr') };
+}
+function lightVerdict(L) {
+  if (!L) return null;
+  const f = L.face ?? L.all;
+  if (f < 50 || (f < 70 && L.dark > .25)) return { k: 'bad', t: 'Falta luz', fix: 'Ponte de frente a una ventana o a una lámpara a la altura de la cara.' };
+  if (L.face != null && L.bg != null && L.bg - L.face > 45) return { k: 'warn', t: 'Contraluz', fix: 'La luz está detrás de ti: gírate hacia ella o pon una luz delante.' };
+  if (f > 205 || L.clip > .15) return { k: 'warn', t: 'Demasiada luz', fix: 'La cara se quema: aleja la luz o suavízala (una cortina, un difusor o rebotándola en la pared).' };
+  if (f < 75) return { k: 'warn', t: 'Algo oscuro', fix: 'Un poco más de luz de frente hará que se vea mejor tu expresión.' };
+  if (L.face != null && Math.abs(L.lr) > .3) return { k: 'warn', t: 'Un lado de la cara más oscuro', fix: 'Ilumina el lado oscuro o rebota la luz con algo blanco (un folio, una cartulina) por ese lado.' };
+  return { k: 'ok', t: 'Bien iluminado', fix: '' };
+}
+const SND = { all: [], voiced: [], clip: 0, n: 0, v: null, lastV: 0 };
+function soundSample(t, db, pk) {
+  SND.all.push([t, db]);
+  while (SND.all.length && t - SND.all[0][0] > 12) SND.all.shift();
+  const voiced = db > Math.max(V.floor + 10, -62);
+  if (voiced) { SND.voiced.push([t, db, pk > .97 ? 1 : 0]); while (SND.voiced.length && t - SND.voiced[0][0] > 12) SND.voiced.shift(); }
+  if (S.take) { const s = S.take.snd ||= { all: [], voiced: [], clip: 0 }; s.all.push(db); if (voiced) { s.voiced.push(db); if (pk > .97) s.clip++; } }
+  if (t - SND.lastV > 1) { SND.lastV = t; SND.v = soundVerdict(SND.voiced.map(x => x[1]), SND.all.map(x => x[1]), SND.voiced.reduce((a, x) => a + x[2], 0), !!S.file); }
+}
+function soundVerdict(voiced, all, clips, file) {
+  if (voiced.length < 30 || all.length < 60) return null;    // aún no has hablado bastante
+  const lvl = median(voiced), fl = pctl(all, .1), snr = lvl - fl, clip = clips / voiced.length;
+  if (clip > .02) return { k: 'bad', t: 'El sonido satura', fix: 'Aleja un poco el micrófono o baja su ganancia: en los picos la voz se rompe.' };
+  if (!file && lvl < -42) return { k: 'warn', t: 'Se te oye bajo', fix: 'Acerca el micrófono (a un palmo de la boca) o habla un poco más alto.' };
+  // ruido: la voz destaca poco del fondo (en un vídeo exportado el nivel absoluto no dice nada)
+  if (snr < 20 || (!file && fl > -45 && snr < 28)) return { k: 'warn', t: 'Ruido de fondo', fix: 'Busca un sitio más silencioso: cierra ventanas y apaga ventiladores o el aire. Un micrófono de solapa ayuda mucho.' };
+  return { k: 'ok', t: 'Se te oye bien', fix: '' };
+}
+// el montaje de una toma: luz, sonido y encuadre, con qué cambiar
+function setupReview(tk) {
+  const out = [];
+  const L = lightVerdict(avgLight(tk.light));
+  if (L) out.push({ e: '💡', area: 'Luz', ...L });
+  const s = tk.snd, Sv = s ? soundVerdict(s.voiced, s.all, s.clip, !!tk.file) : null;
+  if (Sv) out.push({ e: '🎙️', area: 'Sonido', ...Sv });
+  const n = tk.log.length || 1, share = id => tk.log.filter(x => x.on?.includes(id)).length / n;
+  const fr = share('cerca') > .25 ? { k: 'warn', t: 'Muy cerca de la cámara', fix: 'Aléjate hasta que se te vea de cintura para arriba: así se ven hombros y manos.' }
+    : share('lejos') > .25 ? { k: 'warn', t: 'Lejos de la cámara', fix: 'Acércate: tu cara se ve pequeña y se pierde la expresión.' }
+    : share('manosFuera') > .3 ? { k: 'warn', t: 'Las manos se salen del plano', fix: 'Encuadra de cintura para arriba y gesticula a la altura del pecho.' }
+    : share('centro') > .25 ? { k: 'warn', t: 'Descentrado', fix: 'Ponte en el centro de la imagen.' }
+    : tk.log.length > 8 ? { k: 'ok', t: 'Buen encuadre', fix: '' } : null;
+  if (fr) out.push({ e: '🎯', area: 'Encuadre', ...fr });
+  return out;
 }
 
 /* ---------------- calibración ---------------- */
@@ -2500,8 +2784,10 @@ function lineTick(c) {
   if (L.cand !== L.k && c.t - L.since > 1) { L.k = L.cand; setLine(L.k); }
 }
 function setLine(k) {
-  const rl = $('#readline');
-  rl.classList.toggle('rl-ok', k === 'ok'); rl.classList.toggle('rl-warn', k === 'warn'); rl.classList.toggle('rl-bad', k === 'bad');
+  const ln = $('#lane');
+  ln.className = 'lane' + (k ? ' l-' + k : '');
+  const vs = S.take?.plan ? ` que ${fromTxt(S.take.plan)}` : '';
+  $('#laneTxt').textContent = !k ? '' : k === 'ok' ? (vs ? '▲ mejor' + vs : '▲ vas bien') : k === 'bad' ? (vs ? '▼ peor' + vs : '▼ te alejas') : (vs ? '= igual' + vs : '= regular');
 }
 function resetLine() { S.line = { k: '', cand: '', since: 0 }; setLine(''); }
 
@@ -2523,12 +2809,17 @@ function showRehearsal(tk) {
   if (plan) S.plan = plan;
   S.lastRehearsal = tk;
   S.flow = 'grabar';
+  // a base de ensayar: cómo vas de un ensayo a otro
+  (S.rehs ||= []).push(avg);
+  const rs = S.rehs.filter(x => x != null), dl = rs.length > 1 ? rs[rs.length - 1] - rs[rs.length - 2] : null;
+  $('#rehTrend').hidden = rs.length < 2;
+  $('#rehTrend').innerHTML = rs.length < 2 ? '' : `Tus ensayos: ${rs.slice(-5).map(x => x + '%').join(' → ')} <b class="${dl >= 3 ? 'up' : dl <= -3 ? 'down' : ''}">${dl >= 3 ? '▲ +' + dl : dl <= -3 ? '▼ ' + dl : '= igual'}</b>`;
   const T0 = TONES[mainTone], P = topP && lookOf(topP);
   const ring = $('#rehRing');
   ring.style.setProperty('--p', avg ?? 0);
   ring.style.setProperty('--rc', avg == null ? 'var(--dim)' : avg >= 75 ? 'var(--ok)' : avg >= 55 ? 'var(--warn)' : 'var(--bad)');
   $('#rehPct').textContent = avg == null ? '--' : avg + '%';
-  $('#rehDur').textContent = `Ensayo terminado · ${fmtTime(tk.dur)}`;
+  $('#rehDur').textContent = `Ensayo ${S.rehs.length} terminado · ${fmtTime(tk.dur)}`;
   const good = avg != null && avg >= 75 && topP === mainTone;
   $('#rehTitle').textContent = tk.log.length < 12 ? 'Ensayo muy corto' : good ? '¡Listo para grabar!' : avg != null && avg >= 55 ? 'Casi listo' : 'Hay cosas que pulir';
   $('#rehStory').innerHTML = tk.log.length < 12 ? 'Ha sido demasiado corto para valorarlo. Ensaya un poco más o graba ya.'
@@ -2536,12 +2827,15 @@ function showRehearsal(tk) {
       : ` y se te vio sobre todo <b style="--tc:${P.color}">${P.name.toLowerCase()}</b> (${Math.round(pc[topP] / pTot * 100)}%).`) : '.')
       + (worst.length ? ` Lo que más te alejó: ${worst.map(g => g.below >= g.above ? g.m.low : g.m.high).join(' y ')}.` : '');
   $('#rehNotes').innerHTML = [hookNote(tk, mainTone), durNote(tk)].filter(Boolean).map(n => `<p>${esc(n)}</p>`).join('');
+  const kit = setupReview(tk), bad = kit.filter(k => k.k !== 'ok');
+  $('#rehKit').innerHTML = bad.length ? bad.map(k => `<li class="${k.k}"><b>${k.e} ${esc(k.t)}</b> ${esc(k.fix)}</li>`).join('')
+    : kit.length ? `<li class="ok"><b>✅ ${kit.map(k => k.area).join(', ')}: bien</b></li>` : '';
   const ids = plan?.ids || [];
   $('#rehGoalsTitle').hidden = !ids.length;
   $('#rehGoals').innerHTML = goalListHTML(ids, id => esc(TIPS[id] || ''), id => plan.base[id] != null ? `<span class="pill">${Math.round(plan.base[id] * 100)}% del tiempo</span>` : '');
   const voice = FOL.on || (kwsOn() && KWS.tpl);
   $('#rehHint').textContent = ((S.opts.takeHelp || 'linea') === 'linea'
-      ? (ids.length ? 'Al grabar no verás avisos: la línea de lectura se pondrá verde si lo haces mejor que en el ensayo y roja si te alejas. ' : 'Al grabar no verás avisos: la línea de lectura se pondrá verde si vas bien y roja si te alejas. ')
+      ? (ids.length ? 'Al grabar solo verás abajo los gestos que vienen y una línea verde si lo haces mejor que en el ensayo, roja si te alejas. ' : 'Al grabar solo verás abajo los gestos que vienen y una línea verde si vas bien, roja si te alejas. ')
       : ids.length ? 'Al grabar te marco estos objetivos y solo te aviso de lo importante, para que no te distraiga. ' : '')
     + (voice ? 'Di «comenzamos» para grabar de verdad.' : 'Pulsa «Grabar de verdad» o da dos palmadas.');
   $('#planCard').hidden = true;
@@ -2593,22 +2887,7 @@ function layoutPrompter() {
   let cur = null;
   PR.tops.forEach((top, i) => { if (!cur || Math.abs(top - cur.top) > PR.lineH * .4) { cur = { top, start: i, end: i + 1 }; PR.lines.push(cur); } else cur.end = i + 1; });
   PR.wpl = wordEls.length / Math.max(1, PR.lines.length);
-  const box = placeMarks(track, S.sc, S.opts.cues);
-  PR.mk = {};
-  for (const el of box.querySelectorAll('.mk.g')) PR.mk[el.dataset.k] = el;
-  markCues(PR.idx);
 }
-// estado de los emojis del margen: los pasados se apagan, el siguiente se enciende al acercarse
-function markCues(idx) {
-  const cues = S.sc?.cues || [], soon = Math.max(3, Math.round(PR.wpl || 6));
-  for (const [k, el] of Object.entries(PR.mk || {})) {
-    const c = cues[k]; if (!c) continue;
-    if (el.classList.contains('now') || el.classList.contains('hit') || el.classList.contains('miss')) continue;
-    el.classList.toggle('past', c.at < idx - 1);
-    el.classList.toggle('soon', c.at >= idx - 1 && c.at - idx <= soon);
-  }
-}
-function resetMarks() { for (const el of Object.values(PR.mk || {})) el.classList.remove('now', 'hit', 'miss', 'past', 'soon'); }
 function applyOffset() { track.style.transform = `translate3d(0,${(-PR.offset).toFixed(1)}px,0)`; }
 // palabra que está en la franja de lectura: avanza a lo largo de la línea según se desplaza el texto
 function wordAt(y) {
@@ -2649,13 +2928,15 @@ function prompterFrame(t, dt) {
   PR.offset += (PR.target - PR.offset) * Math.min(1, dt * 7);
   applyOffset();
   const idx = following ? Math.min(FOL.pointer, n - 1) : wordAt(PR.offset + PR.readY);
-  if (idx !== PR.idx || PR.marked !== idx) { markWords(idx); markCues(idx); }
+  if (idx !== PR.idx || PR.marked !== idx) markWords(idx);
   // acotaciones que llegan a la línea de lectura
   const cues = S.sc.cues;
   while (PR.nextCue < cues.length && cues[PR.nextCue].at <= idx) {
-    const k = PR.nextCue, c = cues[PR.nextCue++];
-    if (S.take && S.opts.cues && idx - c.at < 6) triggerScriptCue(c, t, k);
+    const c = cues[PR.nextCue++];
+    if (S.take && S.opts.cues && idx - c.at < 6) triggerScriptCue(c, t);
   }
+  // el gesto que viene se anuncia abajo un par de segundos antes
+  if (S.take && S.opts.cues) previewNext(idx, t, following);
   PR.idx = idx;
   if (S.take && idx >= n - 1 && !S.take.endAt) S.take.endAt = t;
 }
@@ -2670,7 +2951,6 @@ function resetPrompterTo(i) {
   PR.target = (PR.tops[i] || 0) - PR.readY;
   FOL.pointer = i; FOL.phraseStart = i; FOL.curRes = -2;
   PR.nextCue = S.sc.cues.findIndex(c => c.at >= i); if (PR.nextCue < 0) PR.nextCue = S.sc.cues.length;
-  resetMarks();
 }
 // desplazamiento manual con rueda o arrastre
 prompterEl.addEventListener('wheel', e => { e.preventDefault(); manualScroll(e.deltaY); }, { passive: false });
@@ -2785,7 +3065,7 @@ const RULES = [
     test: c => !B.crossedS ? gapLow(c, 'apertura', .1) : 0,
     title: () => 'Abre los gestos', detail: () => 'Separa las manos del cuerpo: pegadas al torso se ven tímidas.' },
   { id: 'punos', kind: 'body', pri: 45, hold: 1.6, cool: 12, icon: 'mano',
-    test: c => ['cercano', 'calmado', 'divertido', 'inspirador', 'animado'].includes(c.tone) && (ser.fist.mean(c.t, 1.5) ?? 0) > .6,
+    test: c => ['cercano', 'calmado', 'divertido', 'inspirador', 'animado', 'persuasivo'].includes(c.tone) && (ser.fist.mean(c.t, 1.5) ?? 0) > .6,
     title: () => 'Abre las manos', detail: () => 'Los puños cerrados transmiten tensión; con las palmas abiertas suena más sincero.' },
   { id: 'nervios', kind: 'body', pri: 46, hold: 1.5, cool: 12, icon: 'mano',
     test: c => H.fidget && fresh('hands', H.lastT, c.t, .8),
@@ -2836,7 +3116,7 @@ const RULES = [
     test: c => B.ok && B.shUpS,
     title: () => 'Baja los hombros', detail: () => 'Subidos transmiten tensión. Respira hondo y suéltalos.' },
   { id: 'codos', kind: 'body', pri: 37, hold: 4, cool: 20, icon: 'codo', ctx: 'speak',
-    test: c => ['animado', 'inspirador', 'divertido', 'urgente', 'cercano'].includes(c.tone) && B.ok && B.elbowsIn && (ser.handsUp.mean(c.t, 3) ?? 0) > .5,
+    test: c => ['animado', 'inspirador', 'divertido', 'urgente', 'cercano', 'persuasivo'].includes(c.tone) && B.ok && B.elbowsIn && (ser.handsUp.mean(c.t, 3) ?? 0) > .5,
     title: () => 'Separa los codos del cuerpo', detail: () => 'Con los codos pegados, los gestos se quedan pequeños y tímidos.' },
   { id: 'labios', kind: 'face', pri: 35, hold: 2.5, cool: 18, icon: 'cara', ctx: 'any',
     test: c => F.ok && (ser.press.mean(c.t, 2) ?? 0) > .45,
@@ -2850,6 +3130,13 @@ const RULES = [
   { id: 'caraEscucha', kind: 'face', pri: 25, hold: 4, cool: 45, icon: 'cara', ctx: 'listen',
     test: c => ['cercano', 'animado', 'divertido', 'inspirador', 'calmado'].includes(c.tone) && c.M.sonrisa != null && c.M.sonrisa < .05 && (ser.frown.mean(c.t, 3) ?? 0) > .25,
     title: () => 'Relaja la cara mientras escuchas', detail: () => 'Una sonrisa leve transmite interés y anima a seguir.' },
+  // antes de grabar: luz y sonido (durante la toma no se avisa: va al resultado y al informe)
+  { id: 'luz', kind: 'crit', pri: 58, hold: 3, cool: 45, icon: 'idea', ctx: 'any',
+    test: c => !S.take && !S.file && !S.calibrating && LT.v && LT.v.k !== 'ok' ? 1 : 0,
+    title: () => LT.v?.t || 'Luz', detail: () => LT.v?.fix || '' },
+  { id: 'sonido', kind: 'crit', pri: 57, hold: 3, cool: 45, icon: 'voz', ctx: 'any',
+    test: c => !S.take && !S.file && !S.calibrating && SND.v && SND.v.k !== 'ok' ? 1 : 0,
+    title: () => SND.v?.t || 'Sonido', detail: () => SND.v?.fix || '' },
   { id: 'bien', kind: 'good', pri: 10, hold: 4, cool: 14, icon: 'ok',
     test: c => c.match != null && c.match >= 78,
     title: () => '¡Así!', detail: c => c.listening ? 'Escuchas con atención y se nota.' : `Estás transmitiendo un mensaje ${c.adj}. Sigue así.` },
@@ -2943,18 +3230,31 @@ function readParts(c) {
   return out;
 }
 
-function triggerScriptCue(c, t, k) {
+function triggerScriptCue(c, t) {
   const d = CUES[c.type];
   if (c.type === 'pausa' && !c.explicit) return; // las pausas automáticas solo se ven en el texto
   if (coach.watch) finishWatch(t);
-  coach.watch = { cue: c, t0: t, hit: false, el: PR.mk?.[k] || null };
-  coach.watch.el?.classList.remove('soon', 'past');
-  coach.watch.el?.classList.add('now');
-  // grabando de verdad con «solo la línea», el gesto se ve únicamente en el margen
-  if (lineOnly()) return;
+  coach.watch = { cue: c, t0: t, hit: false };
   const look = CUE_LOOK[c.type] || [];
-  showCue({ id: 'cue:' + c.at, kind: 'script', pri: 64, icon: d.icon, emoji: look[0], g: look[1],
+  showCue({ id: 'cue:' + c.at, kind: 'script', pri: 85, icon: d.icon, emoji: look[0], g: look[1], pre: '¡Ahora!',
     title: c.type === 'libre' ? c.text : d.label, detail: cueWhy(c.type) }, t, true);
+}
+// el siguiente gesto del guion, cuando falten unos 2,5 segundos para llegar a su palabra
+function previewNext(idx, t, following) {
+  const cues = S.sc.cues, tk = S.take;
+  let j = PR.nextCue;
+  while (j < cues.length && (MARK_SKIP.has(cues[j].type) && !(cues[j].type === 'pausa' && cues[j].explicit))) j++;
+  const c = cues[j]; if (!c || c.at <= idx) return;
+  tk.previewed ||= new Set();
+  if (tk.previewed.has(j)) return;
+  const wps = following ? 2.4 : S.opts.wpm / 60, secs = (c.at - idx) / Math.max(1, wps);
+  if (secs > 2.6) return;
+  tk.previewed.add(j);
+  const a = coach.active;
+  if (a && (a.kind === 'script' || a.pri >= 90)) return;      // no pisa un gesto en curso ni que no se te vea
+  const d = CUES[c.type], look = CUE_LOOK[c.type] || [];
+  showCue({ id: 'next', kind: 'next', pri: 89, icon: d.icon, emoji: look[0], g: look[1], pre: 'En breve', wait: Math.max(.8, secs),
+    title: c.type === 'libre' ? c.text : d.label }, t, true);
 }
 function cueWhy(type) {
   return ({
@@ -2987,7 +3287,6 @@ function checkCue(type, c) {
 function finishWatch(t) {
   const w = coach.watch; if (!w) return;
   coach.watch = null;
-  if (w.el) { w.el.classList.remove('now'); w.el.classList.add(w.cue.type === 'libre' || w.hit ? 'hit' : 'miss'); }
   if (S.take && !w.hit && w.cue.type !== 'libre') S.take.streak = 0;
   if (S.take) S.take.events.push({ t: w.t0 - S.take.t0, id: 'cue', kind: 'script', cue: w.cue, title: w.cue.type === 'libre' ? w.cue.text : CUES[w.cue.type].label, outcome: w.cue.type === 'libre' ? 'na' : w.hit ? 'hit' : 'miss' });
 }
@@ -3094,11 +3393,12 @@ function manageCue(c) {
   const t = c.t;
   const a = coach.active, goals = S.take?.plan?.ids || [], calm = !!(S.take?.record && S.take.plan);
   // grabando de verdad con «solo la línea»: ningún aviso encima (la línea ya lo dice)
-  if (lineOnly()) { if (a && a.kind !== 'script') endCue(t, 'hidden'); return; }
+  if (lineOnly()) { if (a && a.kind !== 'script' && a.kind !== 'next') endCue(t, 'hidden'); return; }
   const reading = !!(S.take && !c.isCall && !S.take.file);
   if (a) {
     const el = t - coach.since;
     if (a.kind === 'script') { if (el > 3.4) endCue(t, 'done'); }
+    else if (a.kind === 'next') { if (el > (a.wait || 2) + 1.5) endCue(t, 'done'); }
     else if (a.kind === 'idea') { if (el > 5) endCue(t, 'done'); }
     else if (a.kind === 'good') { if (el > (a.id === 'teveo' ? 4 : 2.6)) endCue(t, 'done'); }
     else {
@@ -3172,7 +3472,11 @@ function setCueLook(cue, pop = false) {
   vis.classList.toggle('solo', !(cue.g && GEST[cue.g]));
   el.querySelector('.cue-emoji').textContent = cue.emoji || (cue.kind === 'good' ? '👍' : cue.kind === 'idea' ? '💡' : '👉');
   el.querySelector('.cue-txt b').textContent = cue.title;
+  const pre = el.querySelector('.cue-pre'); pre.textContent = cue.pre || ''; pre.hidden = !cue.pre;
   const sp = el.querySelector('.cue-detail'); sp.textContent = cue.detail || ''; sp.hidden = !cue.detail;
+  // «en breve»: una barra que se vacía hasta el momento del gesto
+  const bar = el.querySelector('.cue-bar'); bar.hidden = !cue.wait;
+  if (cue.wait) { const i = bar.firstElementChild; i.style.animation = 'none'; void i.offsetWidth; i.style.animation = `cuewait ${cue.wait}s linear forwards`; }
   el.hidden = false;
   if (pop) { el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
 }
@@ -3208,6 +3512,11 @@ function updateMonitor(c, perceived, parts) {
     voz: t - V.lastVoiced < 1.5,
   };
   for (const sp of monEl.querySelectorAll('.seen span')) sp.classList.toggle('on', !!on[sp.dataset.s]);
+  for (const b of monEl.querySelectorAll('.kit button')) {
+    const vv = b.dataset.k === 'luz' ? LT.v : SND.v, txt = vv ? vv.t : b.dataset.k === 'luz' ? 'Luz…' : 'Sonido: habla un poco';
+    const sp = b.querySelector('span'); if (sp.textContent !== txt) sp.textContent = txt;
+    b.className = vv ? vv.k : ''; b.title = vv?.fix || '';
+  }
   // objetivos de la toma: en ámbar si ahora mismo falla, en verde si lo estás cumpliendo
   const GP = S.take?.plan || (!S.take && !S.file && !isCall() ? S.plan : null), gEl = mq('#goals');
   if (!GP?.ids.length) { if (!gEl.hidden) gEl.hidden = true; }
@@ -3483,7 +3792,7 @@ function addPoints(n) {
   document.body.appendChild(p); setTimeout(() => p.remove(), 1300);
 }
 // emoji y gesto de cada aviso
-const RULE_LOOK = { nadie: ['📷'], cerca: ['🔍'], lejos: ['🔍'], centro: ['🎯'], cruzados: ['👐', 'descruzar'], cara: ['✋', 'caraFuera'], mirada: ['👀', 'mirar'], manosFuera: ['🙌', 'subir'],
+const RULE_LOOK = { luz: ['💡'], sonido: ['🎙️'], nadie: ['📷'], cerca: ['🔍'], lejos: ['🔍'], centro: ['🎯'], cruzados: ['👐', 'descruzar'], cara: ['✋', 'caraFuera'], mirada: ['👀', 'mirar'], manosFuera: ['🙌', 'subir'],
   estatico: ['💃', 'gesticular'], manosQuietas: ['🤲', 'gesticular'], exceso: ['🧘', 'calma'], cerrado: ['👐', 'abrir'], punos: ['✋', 'abrirManos'], nervios: ['🧘', 'calma'], balanceo: ['🧍', 'calma'],
   postura: ['🧍', 'postura'], serio: ['😁', 'sonrisa'], sonrisaSobra: ['😐'], inexpresivo: ['🤨', 'cejas'], ceno: ['😌', 'relajar'], vozBaja: ['🔊'], vozAlta: ['🔉'], monotono: ['🎶'],
   entonacionSobra: ['🎵'], rapido: ['🐢'], lento: ['🐇'], sinPausa: ['⏸️'], silencio: ['▶️'], hombros: ['😮‍💨', 'hombros'], codos: ['💪', 'codos'], labios: ['😌', 'relajar'],
@@ -3625,7 +3934,7 @@ function drawOverlay() {
   if (ghostCv.width !== cw || ghostCv.height !== ch) { ghostCv.width = cw; ghostCv.height = ch; }
   gctx.setTransform(k, 0, 0, k, 0, 0);
   gctx.clearRect(0, 0, W, Hh);
-  const cue = coach.active, G = cue && cue.g && GEST[cue.g];
+  const cue = coach.active, G = cue && cue.g && cue.kind !== 'next' && !lineOnly() && GEST[cue.g];
   if (G) {
     const ph = ((t - coach.since) % G.dur) / G.dur;
     if (G.kf && B.ok && B.c && fresh('pose', B.lastOk, t, .8)) drawBodyGhost(gctx, poseAt(G, ph), X(B.c.x), B.c.y, B.sw, lw * 4, 'sombra');
@@ -3649,6 +3958,7 @@ function startLoops() {
     // con un vídeo subido en pausa, el análisis espera
     const hold = !!(S.file && S.take && S.file.el.paused && !S.file.el.ended);
     if (S.file) safe('vídeo', () => fileTick(t));
+    if (!hold) safe('luz', () => lightTick(t));
     if (!hold) safe('visión', () => visionPump(t));
     // si el navegador pausa la cámara (pestaña de fondo, ahorro de energía…), se reanuda y se vigila
     if (t - lastV > 1) { lastV = t; for (const v of [video, S.pipVideo]) if (v && v.paused && v.srcObject) v.play().catch(() => {}); safe('cámara', () => cameraWatch(t)); }
@@ -3709,6 +4019,7 @@ function setTakeUI(on, rec = false) {
   const st = $('#studio'), reading = on && !isCall() && !S.file;
   st.classList.toggle('reading', reading);
   st.classList.toggle('line-only', reading && rec && (S.opts.takeHelp || 'linea') === 'linea');
+  $('#lane').hidden = !reading;
   if (!on) resetLine();
   $('#rehearse').hidden = on; $('#record').hidden = on; $('#stop').hidden = !on;
   $('#score').hidden = !on; if (on) $('#score').textContent = '⭐ 0';
@@ -3730,7 +4041,7 @@ async function startTake(record) {
   if (!call && !file) {
     resetPrompterTo(0); PR.offset = PR.target; markWords(0); PR.idx = 0;
     for (const n of [3, 2, 1]) {
-      stageMsg(`<div><div class="count-big" aria-live="assertive">${n}</div>${flowOn() ? `<p class="count-sub">${record ? '🔴 Grabación de verdad · mira la línea: verde, vas bien' : '🧪 Ensayo · no se graba'}</p>` : ''}</div>`);
+      stageMsg(`<div><div class="count-big" aria-live="assertive">${n}</div>${flowOn() ? `<p class="count-sub">${record ? '🔴 Grabación de verdad · abajo, la línea: verde, vas bien' : '🧪 Ensayo · no se graba'}</p>` : ''}</div>`);
       await new Promise(r => setTimeout(r, 800));
       if (!S.live) { S.countdown = false; return; }
     }
@@ -3843,7 +4154,7 @@ const GOAL_OF_METRIC = { energia: ['estatico', 'exceso'], manos: ['manosQuietas'
   expresion: ['inexpresivo', null], volumen: ['vozBaja', 'vozAlta'], entonacion: ['monotono', 'entonacionSobra'], ritmo: ['lento', 'rapido'], mirada: ['mirada', null] };
 const METRIC_OF_GOAL = {};
 for (const [m, [lo, hi]] of Object.entries(GOAL_OF_METRIC)) { if (lo) METRIC_OF_GOAL[lo] = [m, -1]; if (hi) METRIC_OF_GOAL[hi] = [m, 1]; }
-const GOAL_SKIP = new Set(['bien', 'silencio', 'nadie', 'sinPausa', 'asiente', 'caraEscucha', 'distraido']);
+const GOAL_SKIP = new Set(['bien', 'silencio', 'nadie', 'sinPausa', 'asiente', 'caraEscucha', 'distraido', 'luz', 'sonido']);
 const GOAL_SAME = [['estatico', 'manosQuietas'], ['cerrado', 'cruzados'], ['cerca', 'manosFuera']];
 // de dónde vienen los objetivos, para los textos
 const fromTxt = P => P.from === 'file' ? `tu vídeo «${P.name}»` : P.from === 'ensayo' ? 'tu ensayo' : 'tu toma anterior';
@@ -3909,6 +4220,11 @@ function showPlanCard(next = '') {
   return true;
 }
 $('#planOk').addEventListener('click', () => { $('#planCard').hidden = true; });
+$('#monitor').addEventListener('click', e => {
+  const b = e.target.closest('.kit button'); if (!b) return;
+  const vv = b.dataset.k === 'luz' ? LT.v : SND.v;
+  toast(vv ? (vv.k === 'ok' ? '✅ ' + vv.t : `${vv.t}: ${vv.fix}`) : b.dataset.k === 'luz' ? 'Midiendo la luz…' : 'Habla unos segundos y te digo cómo se te oye.', 6000);
+});
 
 /* ---------------- informe ---------------- */
 const TIPS = {
@@ -4055,6 +4371,8 @@ function buildReport(tk) {
   const binK = b => { const m = Math.max(b.ok, b.warn, b.bad); return !m ? 'na' : b.ok === m ? 'ok' : b.bad === m ? 'bad' : 'warn'; };
   const strip = bins.map((b, i) => `<i class="s-${binK(b)}" data-t="${(i / NB * tk.dur).toFixed(1)}"></i>`).join('');
   const shareK = k => { const n = bins.filter(b => binK(b) !== 'na').length || 1; return Math.round(bins.filter(b => binK(b) === k).length / n * 100); };
+  const kit = setupReview(tk);
+  const scriptTips = call || file ? [] : reviewScript(S.text, mainTone).items.filter(i => i.k !== 'ok').slice(0, 3);
   const ctaHTML = call ? `<button class="primary" data-act="again">${ico('repetir')}Otra sesión</button>`
     : file ? `<button class="primary" data-act="improve">${ico('camara')}Grabar la versión mejorada</button>`
     : `<button class="primary" data-act="again">${ico('repetir')}${plan?.ids.length ? 'Grabar otra vez con estos objetivos' : 'Grabar otra vez'}</button>`;
@@ -4088,6 +4406,15 @@ function buildReport(tk) {
             <ul>${badItems.map(b => `<li><span class="de">${b.e}</span><b>${esc(b.l)}</b><span class="dp">${b.pct != null ? Math.round(b.pct * 100) + '%' : b.n + '×'}${b.prev != null && b.pct != null ? `<em class="${b.pct < b.prev - .05 ? 'up' : b.pct > b.prev + .05 ? 'down' : ''}">antes ${Math.round(b.prev * 100)}%</em>` : ''}</span><small>${esc(b.how || '')}</small></li>`).join('')}</ul>`
               : '<p class="dash-empty">Nada importante. 👏</p>'}
           </div>
+          ${kit.length ? `<div class="dash-card kitc">
+            <h3>🎥 Luz, sonido y encuadre</h3>
+            <ul>${kit.map(k => `<li><span class="de">${k.e}</span><b>${k.area}: ${esc(k.t.toLowerCase())}</b><span class="dk ${k.k}">${k.k === 'ok' ? '✓' : '!'}</span>${k.fix ? `<small>${esc(k.fix)}</small>` : ''}</li>`).join('')}</ul>
+          </div>` : ''}
+          ${scriptTips.length ? `<div class="dash-card scr">
+            <h3>✍️ En tu guion</h3>
+            <ul>${scriptTips.map(i => `<li><span class="de">${i.k === 'fix' ? '⚠️' : '💡'}</span><b>${esc(i.t)}</b><small>${esc(i.why || '')}</small></li>`).join('')}</ul>
+            <div class="actions" style="margin-top:12px"><button class="ghost" data-act="script" type="button">${ico('texto')}Cambiar el guion</button></div>
+          </div>` : ''}
           <div class="dash-card good">
             <h3>🟢 ${ba?.some(r => r.v[0] === 'ok') ? 'Lo que has mejorado' : 'Lo que haces bien'}</h3>
             ${goodItems.length ? `<ul>${goodItems.map(g => `<li><span class="de">${g.e}</span><b>${esc(g.l)}</b><small>${esc(g.txt)}</small></li>`).join('')}</ul>`
@@ -4198,6 +4525,7 @@ $('#report').addEventListener('click', e => {
   if (a === 'edit') { stopVoice(); if (S.stream) { for (const tr of S.stream.getTracks()) tr.stop(); S.stream = null; } if (S.audio) { try { S.audio.ctx.close(); } catch {} S.audio = null; } show('setup'); }
   if (a === 'again') { show('studio'); reenterStudio(); }
   if (a === 'another') { primeAudio(); $('#vidFile').click(); }
+  if (a === 'script') { stopVoice(); if (S.stream) { for (const tr of S.stream.getTracks()) tr.stop(); S.stream = null; } if (S.audio) { try { S.audio.ctx.close(); } catch {} S.audio = null; } show('setup'); setTimeout(() => $('#reviewBlock').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100); }
   if (a === 'improve') {
     primeAudio();
     if (!S.text.trim() || S.text === SAMPLE) {
