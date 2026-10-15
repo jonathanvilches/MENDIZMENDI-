@@ -76,10 +76,30 @@ export function hairMaterial(m, geo, model, color) {
   m.needsUpdate = true;
   return m;
 }
-/** Tiñe el pelo de todas las mallas de un personaje, con materiales propios (los clones de un modelo los comparten). */
+// ---- el pelo de las chicas (src/actors/chicas.js): mallas aparte con una textura gris cálida de mechones; el color lo
+// pone el material, multiplicando ----
+// (media de esa textura en lineal: tools/blender/chicas/texpelo.py)
+const PELO_MEDIA = [0.528, 0.449, 0.377];
+/** El brillo propio de los personajes de Meshy en el pelo de una chica, con su color ya teñido (la textura es gris). */
+export function peloEmisivo(m) {
+  fillMaterial(m, 0.3);
+  m.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance = emissive * diffuseColor.rgb;'); };
+  m.customProgramCacheKey = () => 'chica-pelo';
+  return m;
+}
+/** Pone el color de pelo (como se ve en el juego) en el material de las mallas del pelo de una chica. */
+export function peloMaterial(m, color) {
+  const a = albedo(color).map(v => Math.pow(v, 2.2));
+  m.color.setRGB(a[0] / PELO_MEDIA[0], a[1] / PELO_MEDIA[1], a[2] / PELO_MEDIA[2]);
+  return m;
+}
+/** Tiñe el pelo de un personaje: el pintado en su textura y, si es una chica, sus mallas de pelo. Con materiales propios
+ *  (los clones de un modelo los comparten). */
 export function hairTint(root, model, color) {
-  if (color) root.traverse(o => { if (o.isSkinnedMesh && o.material?.map) {
+  if (color) root.traverse(o => {
+    if (o.userData.peloColor) { o.material = peloMaterial(peloEmisivo(o.material.clone()), color); o.material.userData.own = true; return; }
+    if (o.userData.pelo || !o.isSkinnedMesh || !o.material?.map) return;
     const m = o.material.clone(); m.userData.own = true; if (o.material.userData.fillK != null) fillMaterial(m, o.material.userData.fillK);
     o.material = hairMaterial(m, o.geometry, model, color);   // (own: GlbChar.dispose lo suelta con el personaje)
-  } });
+  });
 }

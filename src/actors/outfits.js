@@ -224,7 +224,7 @@ export function dressMeshy(root, O) {
   const zone = (nm) => /Head|Neck|headfront/.test(nm) ? 'h' : /Leg|Foot|Toe/.test(nm) ? 'l' : /Arm|Hand|Shoulder/.test(nm) ? 'a' : 'b';
   const box = { h: new THREE.Box3(), b: new THREE.Box3(), l: new THREE.Box3() }, v = new THREE.Vector3();
   root.traverse(m => {
-    if (!m.isSkinnedMesh) return;
+    if (!m.isSkinnedMesh || m.userData.pelo) return;   // (el pelo de las chicas, con sus huesos propios, no cuenta)
     const g = m.geometry, p = g.attributes.position, si = g.attributes.skinIndex, sw = g.attributes.skinWeight, names = m.skeleton.bones.map(b => zone(b.name.replace(/^mixamorig:?/, '')));
     for (let i = 0; i < p.count; i += 2) {
       let best = 0, bw = -1; for (let k = 0; k < 4; k++) { const w = sw.getComponent(i, k); if (w > bw) { bw = w; best = si.getComponent(i, k); } }

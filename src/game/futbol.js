@@ -8,8 +8,8 @@ import { GlbChar, loadMeshy, hasMeshy, MESHY_GAIT } from '../actors/glbChar.js';
 import { crowd3d } from '../actors/crowd3d.js';
 import { QUALITY } from '../util/quality.js';
 import { REFEREE } from '../futbol/rules.js';
-import { hairFor, seedOf, hairMaterial, hairTint, hairShade } from '../actors/hairColor.js';
-import { chica } from '../actors/trajes.js';
+import { hairFor, seedOf, hairMaterial, hairTint, peloMaterial, peloEmisivo } from '../actors/hairColor.js';
+import { loadChica, hasChica } from '../actors/chicas.js';
 
 // la camiseta roja del modelo pasa a otro color (porteros y árbitros): solo los píxeles de rojo muy saturado, la piel no.
 // El brillo sigue el del color pedido (el negro del árbitro sale oscuro, no granate)
@@ -17,7 +17,7 @@ function recolor(root, color, minSat = 0.5) {
   const c = new THREE.Color(color), hsl = {}; c.getHSL(hsl);
   const mats = [];
   root.traverse(o => {
-    if (!o.isMesh) return;
+    if (!o.isMesh || o.userData.pelo) return;   // (el pelo de las jugadoras no se tiñe con la camiseta)
     o.material = [].concat(o.material).map(m0 => {
       const m = m0.clone(); m.userData.fbOwn = true; mats.push(m);   // (propio de este jugador: la sombra de la cubierta se le añade sin copiarlo)
       m.onBeforeCompile = (sh) => {
@@ -47,12 +47,13 @@ const HSV_GLSL = `vec3 fbHsv(vec3 c){ vec4 K=vec4(0.,-1./3.,2./3.,-1.); vec4 p=m
   vec3 fbRgb(vec3 c){ vec3 p=abs(fract(c.xxx+vec3(1.,2./3.,1./3.))*6.-3.); return c.z*mix(vec3(1.),clamp(p-1.,0.,1.),c.y); }`;
 function kitRecolor(root, T) {
   const hsl = (c) => { const o = {}; new THREE.Color(c).getHSL(o); return new THREE.Vector3(o.h, o.s, o.l); };
-  const box = new THREE.Box3(); root.traverse(o => { if (o.isMesh) { o.geometry.computeBoundingBox(); box.union(o.geometry.boundingBox); } });
+  // (la caja del cuerpo: la de su geometría, que en las chicas es la del chico; sin el pelo, que la alargaría)
+  const box = new THREE.Box3(); root.traverse(o => { if (o.isMesh && !o.userData.pelo) { if (!o.geometry.boundingBox) o.geometry.computeBoundingBox(); box.union(o.geometry.boundingBox); } });
   const H = Math.max(1e-3, box.max.y - box.min.y), y0 = box.min.y, cx = (box.min.x + box.max.x) / 2;
   const pat = T.pattern === 'rayas' ? 1 : T.pattern === 'banda' ? 2 : 0;
   const mats = [];
   root.traverse(o => {
-    if (!o.isMesh) return;
+    if (!o.isMesh || o.userData.pelo) return;
     o.material = [].concat(o.material).map(m0 => {
       const m = m0.clone(); m.userData.fbOwn = true; mats.push(m);
       m.onBeforeCompile = (sh) => {
@@ -108,24 +109,30 @@ function flag() {
 // futbolistas del juego: el modelo de Meshy de cada equipo; los porteros, con el de Osasuna y la
 // camiseta de su color; el árbitro y los asistentes, con el de Osasuna de negro (y el banderín los asistentes)
 export async function makeCharacter(d) {
-  const model = d.keeper || d.referee ? 'osasuna' : d.team.model;
+  let model = d.keeper || d.referee ? 'osasuna' : d.team.model;
   if (!model || !hasMeshy(model)) return null;
-  const g = await loadMeshy(model);   // el modelo completo (antes, el ligero: con su textura a la mitad se veían borrosos)
+  // equipos mixtos: chicas y chicos (más o menos la mitad, siempre las mismas para el mismo dorsal del mismo equipo). También
+  // alguna árbitra
+  // (el número bien mezclado: con los textos tan parecidos, el resto de una sola multiplicación salía casi siempre alto)
+  const mix = (h) => { h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); return (h ^ (h >>> 16)) >>> 0; };
+  const seed = mix(seedOf(d.referee ? 'arbitra' + d.role : d.teamId + ':' + d.num + ':chica')), girl0 = d.female ?? (seed % 100 < (d.referee ? 35 : 50));
+  // ellas, con su propio modelo (src/actors/chicas.js: la cabeza de chica y el pelo recogido en coleta, que se mueve al
+  // correr). La de la segunda equipación es la de la primera con la camiseta y las medias del color del equipo
+  const base = model === 'osasuna_fuera' ? 'osasuna' : model, girl = girl0 && hasChica(base);
+  const blanca = girl && base !== model;
+  if (girl) model = base;
+  const g = girl ? await loadChica(model, 'coleta') : await loadMeshy(model);   // el modelo completo (antes, el ligero: con su textura a la mitad se veían borrosos)
   const char = new GlbChar(g, MESHY_GAIT); char.root.scale.setScalar(g.userData.fit || 1);
   // cada jugador un poco distinto de alto; los porteros, algo más altos
   char.root.scale.multiplyScalar(d.keeper ? 1.05 : [1, 0.97, 1.03, 0.99, 1.02][((d.num || 0) + d.side) % 5]);
-  const mats = d.keeper ? recolor(char.root, d.team.keeper) : d.referee ? recolor(char.root, REFEREE.shirt, 0) : d.team.club ? kitRecolor(char.root, d.team) : d.team.recolor ? recolor(char.root, d.team.shirt) : [];
-  // equipos mixtos: chicas y chicos (más o menos la mitad, siempre las mismas para el mismo dorsal del mismo equipo); ellas
-  // con el pelo recogido en coleta y pestañas. También alguna árbitra
-  // (el número bien mezclado: con los textos tan parecidos, el resto de una sola multiplicación salía casi siempre alto)
-  const mix = (h) => { h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); return (h ^ (h >>> 16)) >>> 0; };
-  const seed = mix(seedOf(d.referee ? 'arbitra' + d.role : d.teamId + ':' + d.num + ':chica')), girl = d.female ?? (seed % 100 < (d.referee ? 35 : 50));
+  const mats = d.keeper ? recolor(char.root, d.team.keeper) : d.referee ? recolor(char.root, REFEREE.shirt, 0) : d.team.club ? kitRecolor(char.root, d.team) : d.team.recolor || blanca ? recolor(char.root, d.team.shirt) : [];
   // cada uno con su pelo (moreno, castaño, rubio, pelirrojo…), siempre el mismo para el mismo dorsal del mismo equipo
   // (ellas siempre con un color propio: así llevan sus materiales y lo que se les cambia no pasa a sus compañeros)
   const hair = hairFor(seedOf(d.referee ? 'arbitro' + d.role : d.teamId + ':' + d.num)) || (girl ? ['#553321', '#8a5a34', '#171312', '#aa844d'][seed % 4] : null);
-  if (mats.length) char.root.traverse(o => { if (o.isSkinnedMesh) [].concat(o.material).forEach(m => hairMaterial(m, o.geometry, model, hair)); }); else hairTint(char.root, model, hair);
-  let ella = null;
-  if (girl) try { ella = chica(char, model, { pelo: hair, albedo: hairShade, lazo: d.referee ? '#16161a' : d.keeper ? d.team.keeper : (d.team.shirt2 || d.team.shorts || '#16161a') }); } catch (e) { console.warn('jugadora', e); }
+  if (mats.length) char.root.traverse(o => { if (o.isSkinnedMesh && !o.userData.pelo) [].concat(o.material).forEach(m => hairMaterial(m, o.geometry, model, hair)); else if (o.userData.peloColor && hair) { o.material = peloMaterial(peloEmisivo(o.material.clone()), hair); o.material.userData.own = true; } });
+  else hairTint(char.root, model, hair);
+  // (la goma de la coleta, del color del equipo)
+  if (girl) { const lazo = d.referee ? '#16161a' : d.keeper ? d.team.keeper : (d.team.shirt2 || d.team.shorts || '#16161a'); char.root.traverse(o => { if (/Lazo/.test(o.name) && o.material) { o.material = o.material.clone(); o.material.color.set(lazo); o.material.userData.own = true; } }); }
   let vel = 0;
   const B = {}; char.root.traverse(o => { if (o.isBone) B[o.name.replace(/[.:]/g, '').replace(/^mixamorig/, '')] = o; });
   const arms = ['Left', 'Right'].map(s => [B[s + 'Arm'], B[s + 'ForeArm'], B[s + 'Hand']]).filter(a => a.every(Boolean));
@@ -134,7 +141,7 @@ export async function makeCharacter(d) {
   // el árbitro lleva las tarjetas: la que enseña aparece en su mano derecha, en alto
   let card = null; if (d.referee && !d.line && B.RightHand) { card = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.105, 0.006), new THREE.MeshBasicMaterial({ color: '#ffd400' })); card.position.set(0, 0.09, 0.02); card.visible = false; B.RightHand.add(card); char.root.updateMatrixWorld(true); card.scale.setScalar(1 / B.RightHand.getWorldScale(new THREE.Vector3()).x); card.position.multiplyScalar(card.scale.x); }
   const up = new THREE.Vector3(0, 1, 0), fw = new THREE.Vector3(), out = new THREE.Vector3(), w = new THREE.Quaternion();
-  return { obj: char.root, female: girl, anim: { setSpeed: (v) => { vel = v; char.setSpeed(v); }, once: (n, s, fit) => char.playOnce(n, s, fit), update: (dt) => { char.update(dt); ella?.update(dt, vel); } },
+  return { obj: char.root, female: girl, anim: { setSpeed: (v) => { vel = v; char.setSpeed(v); }, once: (n, s, fit) => char.playOnce(n, s, fit), update: (dt) => { char.update(dt); } },
     // brazos arriba sobre la cabeza (saque de banda) o el derecho en alto con el banderín (fuera de juego)
     post: (st) => {
       if (card) { card.visible = !!st?.card; if (st?.card) card.material.color.set(st.card === 'red' ? '#e3262b' : '#ffd400'); }

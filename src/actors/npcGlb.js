@@ -5,8 +5,9 @@ import * as THREE from 'three';
 import { GlbChar, loadMeshy, hasMeshy, MESHY_GAIT, MESHY_NAMES } from './glbChar.js';
 import { regionalOutfit, MYTHS, dressMeshy } from './outfits.js';
 import { outfitTint, adultBody } from './npcOutfit.js';
-import { hairTint, hairShade } from './hairColor.js';
-import { TRAJES, vestirTraje } from './trajes.js';
+import { hairTint } from './hairColor.js';
+import { TRAJES, vestirTraje, falda } from './trajes.js';
+import { loadChica, hasChica } from './chicas.js';
 
 // colores con los que se pintaron los modelos en Blender (build_protagonista.py / build_nerea.py)
 const BASE = {
@@ -24,13 +25,18 @@ const BASE = {
 const GLTF = {};
 let ready = false;
 /** Carga los cuerpos de los vecinos: los personajes propios (Meshy, versión ligera), también para los trajes de
- *  carnaval y los seres de leyenda. Se llama antes de montar el pueblo; si no cargan, los vecinos salen con la figura
- *  sencilla de reserva. */
+ *  carnaval y los seres de leyenda, y los de las vecinas (chicas.js: con la coleta; y sin peinado, para los trajes que
+ *  traen su pelo o su toca). Se llama antes de montar el pueblo; si no cargan, los vecinos salen con la figura sencilla
+ *  de reserva (y las vecinas, si no carga la suya, con el cuerpo de chico). */
 export async function preloadNpcs() {
-  await Promise.all(MESHY_NAMES.map(n => loadMeshy(n, true).then(g => { MESHY_LOD_NPC[n] = g; }))).then(() => { meshyReady = true; }).catch(e => console.warn('vecinos Meshy', e));
+  const chicas = Promise.all(VECINAS.filter(([n, p]) => hasChica(n, p)).map(([n, p]) => loadChica(n, p, true).then(g => { CHICA_LOD_NPC[n + ':' + p] = g; }).catch(e => console.warn('vecina', n, e))));
+  await Promise.all([Promise.all(MESHY_NAMES.map(n => loadMeshy(n, true).then(g => { MESHY_LOD_NPC[n] = g; }))).then(() => { meshyReady = true; }).catch(e => console.warn('vecinos Meshy', e)), chicas]);
   return meshyReady;
 }
-const MESHY_LOD_NPC = {}; let meshyReady = false;
+const MESHY_LOD_NPC = {}, CHICA_LOD_NPC = {}; let meshyReady = false;
+// los cuerpos de las vecinas: la sanferminera y la futbolista, con la coleta; la sanferminera sin peinado, para los trajes
+const VECINAS = [['sanfermin', 'coleta'], ['osasuna', 'coleta'], ['sanfermin', null]];
+const isFemale = (L) => !!(L.female || L.skirt || L.ponytail || L.bun || L.braids || L.longHair || L.lashes);
 // trajes que solo existen en los cuerpos antiguos (carnaval, leyendas): esos vecinos siguen con ellos
 const COSTUME = (L) => !!(L.traje || L.myth || L.fur || L.shaggy || L.horns || L.bells || L.bell || L.crown || L.ribbons || L.base || L.outfit || ['cone', 'mask', 'bicorne', 'mitre', 'basket'].includes(L.hat));
 const hashOf = (L) => JSON.stringify(L).split('').reduce((a, c) => (a * 31 + c.charCodeAt(0)) | 0, 7) >>> 0;
@@ -40,9 +46,9 @@ const hashOf = (L) => JSON.stringify(L).split('').reduce((a, c) => (a * 31 + c.c
 export function meshyFor(L = {}) {
   if (L.meshy && MESHY_NAMES.includes(L.meshy)) return L.meshy;
   const white = /^#(f|e[89a-f])/i.test(L.shirt || '');
-  const female = !!(L.female || L.skirt || L.ponytail || L.bun || L.braids || L.longHair || L.lashes);
-  // ellas, con un cuerpo sin boina (la falda y la melena se le ponen encima); ellos con boina o mayores, el pastor
-  if (female) return ['sanfermin', 'sanfermin', 'osasuna', 'sanfermin'][hashOf(L) % 4];   // (el pelotari lleva las manos vendadas: solo para jugar)
+  // ellas, con su cuerpo de chica (chicas.js: la sanferminera o la futbolista, con su coleta); ellos con boina o mayores,
+  // el pastor
+  if (isFemale(L)) return ['sanfermin', 'sanfermin', 'osasuna', 'sanfermin'][hashOf(L) % 4];   // (el pelotari lleva las manos vendadas: solo para jugar)
   if (L.txapela || L.old) return 'pastor';
   if ((L.sash || L.scarf || L.handkerchief) && white) return 'sanfermin';
   const pool = ['sanfermin', 'pastor', 'sanfermin', 'osasuna', 'pastor', 'osasuna', 'sanfermin', 'osasuna_fuera', 'pastor', 'sanfermin'].filter(n => MESHY_NAMES.includes(n));
@@ -54,10 +60,11 @@ export function preloadNpcMeshy(names) {
 }
 const MESHY_NPC = {};
 // vecino con un personaje de Meshy: su modelo con sus clips, con la misma forma de animarse que los demás
-function buildNpcMeshy(L, costume = false, ropa = null) {
-  const name = meshyFor(L), g = MESHY_LOD_NPC[name] || MESHY_NPC[name];
+// (ella: si es chica, con su cuerpo de chica; peinado: el suyo, o null para los trajes que traen su pelo o su toca)
+function buildNpcMeshy(L, costume = false, ropa = null, ella = isFemale(L), peinado = 'coleta') {
+  const name = meshyFor(L), chica = ella ? CHICA_LOD_NPC[name + ':' + peinado] : null, g = chica || MESHY_LOD_NPC[name] || MESHY_NPC[name];
   const char = new GlbChar(g, { ...MESHY_GAIT, vary: true });   // zancada real (sin patinar); cada uno a su ritmo
-  const female = !!(L.female || L.skirt || L.ponytail || L.bun || L.braids || L.longHair || L.lashes);
+  const female = ella;
   const hair = L.hair || (L.old ? '#d6d0c6' : null);
   // con traje (carnaval, leyendas), su ropa de siempre y el pelo; los demás, vestidos con los colores de su «look»
   // (el pelo de su color con hairColor.js: rubio, castaño claro, pelirrojo, canoso…; sin color, el suyo de siempre)
@@ -67,18 +74,18 @@ function buildNpcMeshy(L, costume = false, ropa = null) {
   // su altura: niños más bajos, el resto con un poco de variedad; los mayores, algo más bajos
   const H = L.height || (L.child ? 1.22 : (L.old ? 1.5 : 1.55) + (hashOf(L) % 7) * 0.02), k = H / 1.6;
   char.root.scale.setScalar((g.userData.fit || 1) * k);
-  // prendas encima: falda y melena (ellas), barba, delantal y makila
+  // prendas encima: barba, delantal y makila; ellas, la falda y el delantal cosidos al cuerpo, que se mueven con las
+  // piernas (trajes.js); con el cuerpo de chico de reserva, la falda de siempre
   if (!costume && !L.meshy) {
     const O = {};
-    if (L.skirt) { O.skirt = L.skirt; O.skirtLen = L.old ? 1 : 0.8; }
-    if (female && hair !== false) { O.hairLong = hairShade(hair || '#3a2418'); O.hairLen = L.bun ? 0.28 : (L.ponytail || L.longHair || L.braids) ? 0.75 : 0.42; }
+    if (chica && (L.skirt || L.apron)) try { falda(char, { color: L.skirt, largo: L.old ? 1 : 0.8, delantal: L.apron }); } catch (e) { console.warn('falda', e); }
+    else { if (L.skirt) { O.skirt = L.skirt; O.skirtLen = L.old ? 1 : 0.8; } if (L.apron) O.apron = L.apron; }
     if (L.beard) { O.beard = L.beard; O.beardLen = 0.35; }
-    if (L.apron) O.apron = L.apron;
     if (L.staff) O.staff = '#6b4a2a';
     if (Object.keys(O).length) { char.root.updateMatrixWorld(true); try { dressMeshy(char.root, O); } catch (e) { console.warn('prendas', e); } }
   }
   const body = costume ? null : adultBody(char, L);
-  // (el nombre se conserva: sex dice cómo se llama, aunque de momento todos los cuerpos nuevos sean de chico)
+  // (sex: chica o chico, también para su nombre)
   const obj = new THREE.Group(); obj.add(char.root); obj.userData.glbNpc = true; obj.userData.sex = female ? 'girl' : 'boy'; obj.userData.H = H; obj.userData.look = L; obj.userData.meshy = name;
   const anim = {
     t: 0, setExpr() {},
@@ -98,20 +105,23 @@ function buildNpcMeshyCostume(L) {
   // (los seres de leyenda, con su traje de trajes.js si lo tiene: lamia, Basajaun, sorgina, Roldán)
   const id = TRAJES[L.traje] ? L.traje : TRAJES[L.myth] ? L.myth : null;
   if (id) return buildNpcTraje({ ...L, traje: id, height: L.height || MYTHS[L.myth]?.height }, TRAJES[id]);
-  const M = L.myth && MYTHS[L.myth], female = M ? M.female : !!(L.female || L.skirt || L.ponytail || L.bun || L.braids || L.longHair || L.lashes);
-  const white = /^#(f|e[89a-f])/i.test(L.shirt || '');
-  const n = buildNpcMeshy({ ...L, meshy: M || !white ? 'pastor' : 'sanfermin', height: M ? M.height : L.height }, true);
+  const M = L.myth && MYTHS[L.myth], female = M ? M.female : isFemale(L);
+  const white = /^#(f|e[89a-f])/i.test(L.shirt || ''), ella = female && !!CHICA_LOD_NPC['sanfermin:coleta'];
+  // (ellas, con el cuerpo de la sanferminera: no hay pastora)
+  const n = buildNpcMeshy({ ...L, meshy: ella ? 'sanfermin' : M || !white ? 'pastor' : 'sanfermin', height: M ? M.height : L.height }, true, null, female);
   const O = M ? M.outfit : lookOutfit(L, female);
   if (O && typeof O === 'object') {
     const D = { ...O }; delete D.beret; delete D.scarf; delete D.sash;   // eso ya lo llevan los personajes nuevos
+    if (ella && (D.skirt || D.apron)) { try { falda(n.char, { color: D.skirt, largo: D.skirtLen || 0.8, delantal: D.apron }); } catch (e) { console.warn('falda', e); } delete D.skirt; delete D.apron; }
     n.char.root.updateMatrixWorld(true); dressMeshy(n.char.root, D);
   }
   n.obj.userData.look = L; n.obj.userData.sex = female ? 'girl' : 'boy';
   return n;
 }
 // Traje hecho como el de verdad (trajes.js): el modelo que pide, su ropa de sus colores y las prendas cosidas a él
+// (ellas, con su cuerpo de chica sin peinado: el pelo o la toca los pone el traje)
 function buildNpcTraje(L, T) {
-  const n = buildNpcMeshy({ ...L, meshy: T.model }, true, T.ropa);
+  const n = buildNpcMeshy({ ...L, meshy: T.model }, true, T.ropa, !!T.female, null);
   const tr = vestirTraje(n.char, L.traje);
   if (tr) { const up = n.anim.update; n.anim.update = (dt, s) => { up.call(n.anim, dt, s); tr.update(dt, s.speed); }; }
   n.obj.userData.look = L; n.obj.userData.sex = T.female ? 'girl' : 'boy';
