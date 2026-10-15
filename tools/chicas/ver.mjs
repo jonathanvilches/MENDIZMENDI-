@@ -18,6 +18,7 @@ if (process.env.SIN) await p.evaluate((k) => { window.__sin = k; }, +process.env
 if (process.env.CHICO_LOD) await p.evaluate(() => { window.__chicoLod = true; });
 if (process.env.MAPA_CHICO) await p.evaluate(() => { window.__mapaChico = true; });
 if (process.env.MAPA_CHICA) await p.evaluate(() => { window.__mapaChica = true; });
+if (process.env.DIST) await p.evaluate((k) => { window.__dist = k; }, +process.env.DIST);
 if (process.env.NEAREST) await p.evaluate(() => { window.__nearest = true; });
 const info = await p.evaluate(async ([modelo, peinado, pelo]) => {
   const G = window.__game, T = window.__THREE;
@@ -25,7 +26,9 @@ const info = await p.evaluate(async ([modelo, peinado, pelo]) => {
   G.player.obj.visible = false; for (const o of G.actors || []) if (o.obj) o.obj.visible = false;
   const P = G.player.pos, h = G.player.heading;
   // (CHICO_LOD=1: el chico, también en su versión ligera)
-  const gs = [await loadMeshy(modelo, !!window.__chicoLod), await loadChica(modelo, peinado), await loadChica(modelo, peinado, true)];
+  // (de los que no van en el juego —la sanferminera completa, la pelotari ligera—, la otra en su lugar)
+  const full = await loadChica(modelo, peinado).catch(() => null), lig = await loadChica(modelo, peinado, true).catch(() => null);
+  const gs = [await loadMeshy(modelo, !!window.__chicoLod), full || lig, lig || full];
   const chars = gs.map((g, i) => {
     const c = new GlbChar(g, { ...MESHY_GAIT }); c.root.scale.setScalar(g.userData.fit);
     if (pelo && i) hairTint(c.root, modelo, pelo);
@@ -47,7 +50,7 @@ const info = await p.evaluate(async ([modelo, peinado, pelo]) => {
   window.__ch = chars; let last = performance.now();
   const loop = () => { const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000); last = now; for (const { c } of chars) { c.setSpeed(window.__vel || 0); c.update(dt); } requestAnimationFrame(loop); }; loop();
   window.__aim = (modo) => {
-    const cerca = ['cara', 'nuca', 'perfil', 'tres'].includes(modo), d = cerca ? 1.0 : 4.6, s = modo === 'espalda' || modo === 'nuca' ? -1 : 1;
+    const cerca = ['cara', 'nuca', 'perfil', 'tres'].includes(modo), d = cerca ? (window.__dist || 1.0) : 4.6, s = modo === 'espalda' || modo === 'nuca' ? -1 : 1;
     const hh = h + (modo === 'lado' || modo === 'perfil' ? Math.PI / 2 : modo === 'tres' ? 0.7 : 0), cy = cerca ? 1.36 : 0.85;
     const tgt = cerca ? chars[1].obj.position.clone() : new T.Vector3(P.x + Math.sin(h) * 4, P.y, P.z + Math.cos(h) * 4); tgt.y = P.y + cy;
     const pos = new T.Vector3(tgt.x - Math.sin(hh) * d * s, tgt.y + (cerca ? 0.03 : 0.25), tgt.z - Math.cos(hh) * d * s);

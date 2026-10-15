@@ -23,8 +23,6 @@ function albedo(color) {
   const c = new THREE.Color(color), K = 2 + 1.8 * (1 - (0.3 * c.r + 0.59 * c.g + 0.11 * c.b));   // (Color guarda lineal)
   return [c.r, c.g, c.b].map(v => Math.pow(v / K, 1 / 2.2));
 }
-/** El color de material para lo que lleve el mismo pelo encima (la melena, el moño): así se ve igual que el teñido. */
-export const hairShade = (color) => '#' + albedo(color).map(v => Math.round(v * 255).toString(16).padStart(2, '0')).join('');
 // reparto de los jóvenes y adultos (más morenos y castaños, algún rubio y pocos pelirrojos); null: el suyo de siempre
 const POOL = [null, null, null, 'negro', 'negro', 'negro', 'castano', 'castano', 'castano', 'castanoClaro', 'castanoClaro', 'rubioOscuro', 'rubio', 'cobrizo', 'pelirrojo'];
 /** Un color de pelo fijo para un número (el dorsal, el nombre): siempre el mismo para el mismo personaje. */
@@ -59,7 +57,8 @@ export function hairMaterial(m, geo, model, color) {
   if (!geo.boundingBox) geo.computeBoundingBox();
   const b = geo.boundingBox, H = Math.max(1e-3, b.max.y - b.min.y);
   const a = albedo(color), lit = Math.max(...a);
-  const U = { uHairC: { value: new THREE.Vector3(...a) }, uHairK: { value: new THREE.Vector2(REF[model] || 0.09, 0.6 * lit) },
+  // (el brillo típico del pelo pintado: el del modelo o, en las chicas, el de su castaño de debajo del pelo, chicas.js)
+  const U = { uHairC: { value: new THREE.Vector3(...a) }, uHairK: { value: new THREE.Vector2(m.userData.hairRef || REF[model] || 0.09, 0.6 * lit) },
     uHairBox: { value: new THREE.Vector4(b.min.y, H, (b.min.x + b.max.x) / 2, (b.min.z + b.max.z) / 2) } };
   const prev = m.onBeforeCompile, key = m.customProgramCacheKey;
   m.onBeforeCompile = (sh, r) => {

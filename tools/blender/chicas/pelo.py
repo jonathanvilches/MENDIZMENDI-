@@ -227,7 +227,9 @@ def coleta_tubo(Mp, eje, radio, pesos_u, nr=9, surcos=9, puntas=9):
 # ---------- coleta ----------
 if peinado == 'coleta':
     dT = dirv(180, 30); Tp, Tn = cuero(dT); T = Tp + Tn * 0.004 * H     # (donde se recoge: atrás y arriba)
-    en, tot = contorno(0.6); dt = (T - C).normalized()
+    # (la raíz, algo por debajo del nacimiento pintado: el castaño liso de la textura queda tapado, también en la nuca y
+    # detrás de las orejas, donde se veía una franja oscura bajo el pelo)
+    en, tot = contorno(-0.6); dt = (T - C).normalized()
     NL = 34                                         # (mechones alrededor)
     filas, cols = 30, NL * 5
     fase = [random.uniform(-0.2, 0.2) for _ in range(NL)]; amp = [random.uniform(0.7, 1.1) for _ in range(NL)]
@@ -235,9 +237,9 @@ if peinado == 'coleta':
         u = j / cols; v = (i / (filas - 1)) ** 1.15; dR = en(u)
         # (los mechones serpentean un poco al ir hacia atrás)
         lk = u * NL; k = int(lk) % NL; lk2 = lk + 0.12 * math.sin(v * 5 + k)
-        d = dentro_pelo(slerp(dR, dt, v), 0.6 + 3 * suave(v / 0.15)); p, nn = cuero(d)
+        d = dentro_pelo(slerp(dR, dt, v), -0.6 + 4.2 * suave(v / 0.15)); p, nn = cuero(d)
         arriba = max(0.0, d.z) ** 1.5; so = bajo_oreja(d)
-        grosor = (0.0012 + (0.006 + 0.004 * arriba) * suave(v / 0.07) * (1 - 0.25 * v) * (1 - 0.85 * so)) * H
+        grosor = (0.0017 + (0.006 + 0.004 * arriba) * suave(v / 0.07) * (1 - 0.25 * v) * (1 - 0.85 * so)) * H
         surco = 1 - 0.5 * amp[k] * (1 - cresta(lk2 + fase[k])) * suave(v / 0.05) * (1 - 0.6 * suave((v - 0.7) / 0.3))
         q = p + nn * grosor * surco
         return q.lerp(T, suave((v - 0.9) / 0.1) * 0.8)
@@ -271,7 +273,8 @@ if peinado == 'coleta':
     print('coleta', len(o1.data.vertices), 'vertices', len(o1.data.polygons), 'caras')
 
 # ---------- pestañas (piezas finas sobre el párpado de arriba, con su textura de pelos y transparencia) ----------
-if os.environ.get('PESTANAS', '1') != '0':
+# (ya no: van pintadas en la textura, textura.py; PESTANAS=1 las vuelve a poner)
+if os.environ.get('PESTANAS', '0') != '0':
     import json as _j
     PAR = _j.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'parpados.json')))[os.environ.get('MODELO', 'osasuna')]
     from PIL import Image as _I, ImageDraw as _D

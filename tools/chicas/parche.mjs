@@ -4,7 +4,7 @@
 //   <modelo>.parche: los vértices que cambian (posición, normal y UV), los que se añaden (donde una esquina necesita
 //     otra UV) y las esquinas de los triángulos que pasan a usarlos; con los índices del GLB de esa resolución (el de
 //     1024 px tiene los vértices en otro orden: se casan por posición y UV)
-//   <modelo>.webp: la textura repintada (cabeza, frente, cejas, labios), solo lo que cambia, con transparencia
+//   <modelo>.webp: la textura repintada (cabeza, frente, cejas, pestañas, labios), solo lo que cambia, con transparencia
 //   <modelo>-<peinado>.glb: el pelo, con su esqueleto (los nombres de los huesos casan con los del chico)
 // Uso: node tools/chicas/parche.mjs <modelo> <peinado> <carpeta de exportar.py> <textura repintada 2048.png>
 import { NodeIO } from '@gltf-transform/core';
@@ -174,13 +174,15 @@ async function parcheLigero(glb, out) {
   // el flequillo aplastado coincide con la piel en la completa, pero simplificado de otra manera asomaba a trozos entre
   // ella; más arriba y por detrás, lo tapa el pelo de la chica. La cara —de las cejas para abajo, por delante— no se toca)
   const img = REF.doc.getRoot().listTextures()[0].getImage(), { data: tx, info } = await sharp(Buffer.from(img)).removeAlpha().raw().toBuffer({ resolveWithObject: true });
-  const esPelo = (v) => {
-    const x = Math.min(info.width - 1, Math.max(0, Math.floor(REF.uv[v * 2] * info.width))), y = Math.min(info.height - 1, Math.max(0, Math.floor(REF.uv[v * 2 + 1] * info.height))), k = (y * info.width + x) * 3;
-    const r = tx[k] / 255, g = tx[k + 1] / 255, b = tx[k + 2] / 255; return Math.max(r, g, b) < 0.36 && (r - b) / Math.max(r, 0.004) > 0.25 && b <= g + 0.03;
-  };
+  const texel = (u, w) => { const x = Math.min(info.width - 1, Math.max(0, Math.floor(u * info.width))), y = Math.min(info.height - 1, Math.max(0, Math.floor(w * info.height))), k = (y * info.width + x) * 3; return [tx[k] / 255, tx[k + 1] / 255, tx[k + 2] / 255]; };
+  const pelo_ = ([r, g, b]) => Math.max(r, g, b) < 0.36 && (r - b) / Math.max(r, 0.004) > 0.25 && b <= g + 0.03;
+  // (piel en la textura del chico: la nariz y la cara; las puntas del pelo tenían la textura en el pelo o en otra pieza,
+  // como la camiseta roja, y esas sí se llevan a la de la chica)
+  const piel_ = ([r, g, b]) => { const mx = Math.max(r, g, b), sat = (mx - Math.min(r, g, b)) / Math.max(mx, 1e-3); return mx > 0.5 && r > b + 0.05 && sat > 0.08 && sat < 0.5 && r >= g; };
+  const esPelo = (v) => pelo_(texel(REF.uv[v * 2], REF.uv[v * 2 + 1])), esPiel = (v) => piel_(texel(REF.uv[v * 2], REF.uv[v * 2 + 1]));
   // (solo si tiene otra capa —de piel en el chico— encima o pegada, a menos de CERCA: las cejas del chico, que son de
   // piel con relieve y sin nada encima, no se hunden)
-  const HUNDE = 0.006, CERCA = 0.004;   // (en las unidades del GLB, de -1 a 1 de alto: unos 5 y 3 mm)
+  const HUNDE = 0.008, CERCA = 0.007;   // (en las unidades del GLB, de -1 a 1 de alto: unos 6 y 5 mm)
   const gp = (v) => vdata[v] || [REF.pos[v * 3], REF.pos[v * 3 + 1], REF.pos[v * 3 + 2]], nt = REF.idx.length / 3;
   const pielT = new Uint8Array(nt), G = new Map(), CEL = 0.01, ck = (x, y, z) => `${Math.floor(x / CEL)},${Math.floor(y / CEL)},${Math.floor(z / CEL)}`;
   for (let t = 0; t < nt; t++) {
@@ -207,16 +209,18 @@ async function parcheLigero(glb, out) {
   let hundidos = 0;
   const n1 = lista.length, idx = new Uint32Array(n1), uvi = [], pos = new Int16Array(n1 * 4), nor = new Float32Array(n1 * 4), uvs = [];
   lista.forEach(([i, v], j) => {
-    let d = vdata[v];
-    for (const e of variantes.get(v) || []) if (Math.abs(e[6] - T.uv[i * 2]) + Math.abs(e[7] - T.uv[i * 2 + 1]) < Math.abs(d[6] - T.uv[i * 2]) + Math.abs(d[7] - T.uv[i * 2 + 1])) d = e;
+    // (salvo si la suya cae en otra pieza —ni piel ni pelo: la camiseta—: entonces la que se llevó a la cabeza)
+    let d = vdata[v]; const ajena = (u, w) => { const c = texel(u, w); return !pelo_(c) && !piel_(c); }, lejos = ajena(T.uv[i * 2], T.uv[i * 2 + 1]);
+    const dist = (e) => Math.abs(e[6] - T.uv[i * 2]) + Math.abs(e[7] - T.uv[i * 2 + 1]);
+    for (const e of variantes.get(v) || []) if (lejos ? ajena(d[6], d[7]) && !ajena(e[6], e[7]) : dist(e) < dist(d)) d = e;
     const d2 = hunde(v, d); if (d2 !== d) hundidos++;
     const q = aLod(d2); idx[j] = i;
     const DL = process.env.DEPURA_LOD || '';   // (pruebas: pos, solo las posiciones; posnor, sin las UV)
     for (let c = 0; c < 3; c++) { pos[j * 4 + c] = Math.max(-32767, Math.min(32767, Math.round(q[c] / Q))); nor[j * 4 + c] = DL === 'pos' ? T.nor[i * 3 + c] : d[3 + c]; }
-    // (un cambio grande de UV —una cara diminuta llevada a otra pieza de la textura en textura.py— solo en lo que era pelo:
-    // en la cara, el vértice lo comparten triángulos ligeros más grandes, y la nariz salía con una cuña de otro color)
+    // (un cambio grande de UV —una cara diminuta llevada a otra pieza de la textura en textura.py— no en la piel: en la
+    // cara, el vértice lo comparten triángulos ligeros más grandes, y la nariz salía con una cuña de otro color)
     const duv = Math.abs(d[6] - REF.uv[v * 2]) + Math.abs(d[7] - REF.uv[v * 2 + 1]);
-    if (!DL && duv > 2 * QU && (duv < 0.01 || esPelo(v))) { uvi.push(i); uvs.push(Math.round(Math.max(0, Math.min(1, d[6])) * 65535), Math.round(Math.max(0, Math.min(1, d[7])) * 65535)); }
+    if (!DL && duv > 2 * QU && (duv < 0.01 || !esPiel(v))) { uvi.push(i); uvs.push(Math.round(Math.max(0, Math.min(1, d[6])) * 65535), Math.round(Math.max(0, Math.min(1, d[7])) * 65535)); }
   });
   escribe(out, T.n, [[idx, 4], [new Uint32Array(0), 4], [Uint32Array.from(uvi), 4], [pos, 8], [MeshoptEncoder.encodeFilterOct(nor, n1, 4, 8), 4, 'OCTAHEDRAL'], [Uint16Array.from(uvs), 4], [new Uint32Array(0), 8]], { cambian: n1, nuevos: 0, conUV: uvi.length, esquinas: 0 });
   console.log('  ligero: hundidos bajo la piel', hundidos);
@@ -232,49 +236,39 @@ function escribe(out, verts, arrays, cuentas) {
   writeFileSync(out, o); console.log(out, o.length, 'bytes', tiras.map(([b]) => b.length).join(' + '));
 }
 
-// ---- la textura: solo lo que cambia, en dos capas ----
-//   <modelo>-liso.png: el castaño liso de debajo del pelo nuevo (casi todo lo que cambia), como máscara de un solo color
-//     y a media resolución (el juego la estira; algo encogida, para que al estirarla no pase a las piezas de al lado)
-//   <modelo>.webp: lo demás (la cara, la frente, el nacimiento del pelo, la nuca), a la resolución de la textura de esa
-//     versión del modelo
-// Cada versión se compara con su propia textura (la de 1024 y la ligera, de 768, se hicieron reduciendo la grande, y no
-// coinciden del todo con ella en los bordes de las piezas): lo que difiere de la repintada reducida también va en la
-// capa de detalle. Si no, en la ligera el borde de cada pieza repintada se quedaba con el color del chico y la cara salía
-// cuarteada
-const LISO = [56, 32, 19];   // (el castaño de textura.py: 0,22 · 0,125 · 0,075)
+// ---- la textura: solo lo que cambia, en una capa con transparencia (<modelo>.webp) ----
+// A la resolución de la textura de cada versión del modelo, comparada con la suya (la de 1024 y la ligera, de 768, se
+// hicieron reduciendo la grande, y no coinciden del todo con ella en los bordes de las piezas): lo que difiere de la
+// repintada reducida, junto a lo cambiado, también va. Si no, en la ligera el borde de cada pieza repintada se quedaba
+// con el color del chico y la cara salía cuarteada
+// (antes, el castaño de debajo del pelo iba aparte, en una máscara de un color a media resolución; encogida para no
+// pasar a las piezas de al lado, dejaba ver el pelo del chico en sus bordes, como grietas. Y en una sola capa ocupa menos)
 const crece = (m, w, h, k, dentro) => { let mm = m; for (let it = 0; it < k; it++) { const n = mm.slice(); for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) { const i = y * w + x; if (!mm[i] && (mm[i - 1] || mm[i + 1] || mm[i - w] || mm[i + w]) && (!dentro || dentro[i])) n[i] = 1; } mm = n; } return mm; };
-const encoge = (m, w, h, k) => { let mm = m; for (let it = 0; it < k; it++) { const n = mm.slice(); for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) { const i = y * w + x; if (mm[i] && !(mm[i - 1] && mm[i + 1] && mm[i - w] && mm[i + w])) n[i] = 0; } mm = n; } return mm; };
-// (una máscara a otra resolución: con la mitad de ella, o entera, en cada texel; la de lo cambiado va salpicada por los
-// márgenes de toda la textura, y con algo de ella ya era más de la mitad)
-const escala = async (m, w, n, entera) => { if (n === w) return m; const r = await sharp(Buffer.from(m.map(v => v * 255)), { raw: { width: w, height: w, channels: 1 } }).resize(n, n, { kernel: 'linear' }).extractChannel(0).raw().toBuffer(); if (r.length !== n * n) throw new Error('máscara: ' + r.length); return Uint8Array.from(r, v => (entera ? v > 250 : v > 127) ? 1 : 0); };
+// (una máscara a otra resolución: con la mitad de ella en cada texel; la de lo cambiado va salpicada por los márgenes de
+// toda la textura, y con algo de ella ya era más de la mitad)
+const escala = async (m, w, n) => { if (n === w) return m; const r = await sharp(Buffer.from(m.map(v => v * 255)), { raw: { width: w, height: w, channels: 1 } }).resize(n, n, { kernel: 'linear' }).extractChannel(0).raw().toBuffer(); if (r.length !== n * n) throw new Error('máscara: ' + r.length); return Uint8Array.from(r, v => v > 127 ? 1 : 0); };
 async function textura(outs) {
   const b = await sharp(TEX1).removeAlpha().raw().toBuffer({ resolveWithObject: true }), W = b.info.width;
   if (W !== 2048) throw new Error('la textura repintada no es de 2048');
   const lee = async (f) => { const r = await sharp(f).removeAlpha().raw().toBuffer(); const m = new Uint8Array(W * W); for (let i = 0; i < W * W; i++) m[i] = r[i * 3] > 127 ? 1 : 0; return m; };
-  const todo = await lee(TEX1.replace('.png', '-mascara.png')), liso = await lee(TEX1.replace('.png', '-liso.png')), lisoE = encoge(liso, W, W, 3);
+  const todo = await lee(TEX1.replace('.png', '-mascara.png')), liso = await lee(TEX1.replace('.png', '-liso.png'));
   const det = todo.map((v, i) => v && !liso[i] ? 1 : 0);   // (lo cambiado que no es el castaño liso: la cara, la frente, la nuca)
-  const msk = Buffer.alloc(W * W * 4); for (let i = 0; i < W * W; i++) { msk[i * 4] = LISO[0]; msk[i * 4 + 1] = LISO[1]; msk[i * 4 + 2] = LISO[2]; msk[i * 4 + 3] = lisoE[i] ? 255 : 0; }
   for (const [glb, out] of outs) {
     const doc = glb === `src/assets/meshy/${MODELO}.glb` ? REF.doc : await io.read(glb), img = doc.getRoot().listTextures()[0].getImage();
     const base = await sharp(Buffer.from(img)).removeAlpha().raw().toBuffer({ resolveWithObject: true }), N = base.info.width;
     const t = N === W ? b.data : await sharp(TEX1).removeAlpha().resize(N, N, { kernel: 'lanczos3' }).raw().toBuffer();
-    // (lo cambiado, algo más ancho; más lo que difiere de la de esta versión; menos lo liso, que pone la otra capa)
-    const todoN = await escala(todo, W, N, false), lisoN = await escala(lisoE, W, N, true), detN = await escala(det, W, N, false), dif = new Uint8Array(N * N);
+    // (lo cambiado, algo más ancho; más lo que difiere de la de esta versión junto a lo cambiado que no es liso: las
+    // texturas de cada versión se comprimieron aparte y en el resto difieren un poco en todas partes)
+    const todoN = await escala(todo, W, N), detN = await escala(det, W, N), dif = new Uint8Array(N * N);
     for (let i = 0; i < N * N; i++) dif[i] = Math.abs(t[i * 3] - base.data[i * 3]) + Math.abs(t[i * 3 + 1] - base.data[i * 3 + 1]) + Math.abs(t[i * 3 + 2] - base.data[i * 3 + 2]) > 45 ? 1 : 0;
-    // (lo que difiere, solo junto a lo cambiado que no es liso: las texturas de cada versión se comprimieron aparte y en el resto
-    // difieren un poco en todas partes)
     const A = crece(todoN, N, N, N === W ? 2 : 1), cerca = crece(detN, N, N, 3), rgba = Buffer.alloc(N * N * 4); let n1 = 0;
     for (let i = 0; i < N * N; i++) {
       if (!(A[i] || (dif[i] && cerca[i]))) continue;
-      if (lisoN[i] && Math.abs(t[i * 3] - LISO[0]) + Math.abs(t[i * 3 + 1] - LISO[1]) + Math.abs(t[i * 3 + 2] - LISO[2]) < 12) continue;
       // (debajo de lo transparente, negro: si no, el webp guarda también el color que no se ve)
       rgba[i * 4] = t[i * 3]; rgba[i * 4 + 1] = t[i * 3 + 1]; rgba[i * 4 + 2] = t[i * 3 + 2]; rgba[i * 4 + 3] = 255; n1++;
     }
     await sharp(rgba, { raw: { width: N, height: N, channels: 4 } }).webp({ quality: 86, alphaQuality: 100, smartSubsample: true }).toFile(out);
-    const om = out.replace('.webp', '-liso.png');
-    await sharp(msk, { raw: { width: W, height: W, channels: 4 } }).resize(N / 2, N / 2, { kernel: 'linear' }).png({ palette: true, colours: 4, compressionLevel: 9 }).toFile(om);
-    if (process.env.DEPURA_TEX) console.log("  todo", todoN.reduce((a, v) => a + v, 0) / N / N, "liso", lisoN.reduce((a, v) => a + v, 0) / N / N, "det", detN.reduce((a, v) => a + v, 0) / N / N, "A", A.reduce((a, v) => a + v, 0) / N / N, "dif", dif.reduce((a, v) => a + v, 0) / N / N, "cerca", cerca.reduce((a, v) => a + v, 0) / N / N);
-    console.log(out, N, "px, de detalle", `${(100 * n1 / N / N).toFixed(1)} %:`, statSync(out).size, 'bytes;', om, statSync(om).size, 'bytes');
+    console.log(out, N, 'px, cambia el', `${(100 * n1 / N / N).toFixed(1)} %:`, statSync(out).size, 'bytes');
   }
 }
 

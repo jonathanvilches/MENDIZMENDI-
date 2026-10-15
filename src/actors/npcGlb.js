@@ -29,13 +29,14 @@ let ready = false;
  *  traen su pelo o su toca). Se llama antes de montar el pueblo; si no cargan, los vecinos salen con la figura sencilla
  *  de reserva (y las vecinas, si no carga la suya, con el cuerpo de chico). */
 export async function preloadNpcs() {
-  const chicas = Promise.all(VECINAS.filter(([n, p]) => hasChica(n, p)).map(([n, p]) => loadChica(n, p, true).then(g => { CHICA_LOD_NPC[n + ':' + p] = g; }).catch(e => console.warn('vecina', n, e))));
+  const chicas = Promise.all(VECINAS.filter(([n, p]) => hasChica(n, p, true)).map(([n, p]) => loadChica(n, p, true).then(g => { CHICA_LOD_NPC[n + ':' + p] = g; }).catch(e => console.warn('vecina', n, e))));
   await Promise.all([Promise.all(MESHY_NAMES.map(n => loadMeshy(n, true).then(g => { MESHY_LOD_NPC[n] = g; }))).then(() => { meshyReady = true; }).catch(e => console.warn('vecinos Meshy', e)), chicas]);
   return meshyReady;
 }
 const MESHY_LOD_NPC = {}, CHICA_LOD_NPC = {}; let meshyReady = false;
-// los cuerpos de las vecinas: la sanferminera y la futbolista, con la coleta; la sanferminera sin peinado, para los trajes
-const VECINAS = [['sanfermin', 'coleta'], ['osasuna', 'coleta'], ['sanfermin', null]];
+// los cuerpos de las vecinas: la sanferminera, con la coleta y sin peinado (para los trajes); cada una con su ropa y su
+// pelo de su color (la futbolista ligera no: simplificada, se le cruzaban triángulos de la camiseta por la frente)
+const VECINAS = [['sanfermin', 'coleta'], ['sanfermin', null]];
 const isFemale = (L) => !!(L.female || L.skirt || L.ponytail || L.bun || L.braids || L.longHair || L.lashes);
 // trajes que solo existen en los cuerpos antiguos (carnaval, leyendas): esos vecinos siguen con ellos
 const COSTUME = (L) => !!(L.traje || L.myth || L.fur || L.shaggy || L.horns || L.bells || L.bell || L.crown || L.ribbons || L.base || L.outfit || ['cone', 'mask', 'bicorne', 'mitre', 'basket'].includes(L.hat));
@@ -46,9 +47,9 @@ const hashOf = (L) => JSON.stringify(L).split('').reduce((a, c) => (a * 31 + c.c
 export function meshyFor(L = {}) {
   if (L.meshy && MESHY_NAMES.includes(L.meshy)) return L.meshy;
   const white = /^#(f|e[89a-f])/i.test(L.shirt || '');
-  // ellas, con su cuerpo de chica (chicas.js: la sanferminera o la futbolista, con su coleta); ellos con boina o mayores,
-  // el pastor
-  if (isFemale(L)) return ['sanfermin', 'sanfermin', 'osasuna', 'sanfermin'][hashOf(L) % 4];   // (el pelotari lleva las manos vendadas: solo para jugar)
+  // ellas, con su cuerpo de chica (chicas.js: la sanferminera, con su coleta, vestida con su ropa); ellos con boina o
+  // mayores, el pastor
+  if (isFemale(L)) return 'sanfermin';
   if (L.txapela || L.old) return 'pastor';
   if ((L.sash || L.scarf || L.handkerchief) && white) return 'sanfermin';
   const pool = ['sanfermin', 'pastor', 'sanfermin', 'osasuna', 'pastor', 'osasuna', 'sanfermin', 'osasuna_fuera', 'pastor', 'sanfermin'].filter(n => MESHY_NAMES.includes(n));

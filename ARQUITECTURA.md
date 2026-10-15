@@ -38,7 +38,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 | `src/engine/runtime.js` | Bucle principal: renderizador, cámara, terreno, cielo, tiempo (lluvia y nieve), agua, fauna, partículas, sonido, ambiente musical, precompilación de sombreadores y LOD |
 | `src/world/` | Mundo: relieve (`heightfield`, `terrain`), trazado del pueblo (`layout`, `townBuilder`, `houses`, `monuments`, `landmarks`, `civic`, `pamplona*`), naturaleza (`nature`, `agro`, `water`), materiales y texturas (`builder`, `textures`), cielo y luna (`sky`), tiempo (`weather`), productos 3D del mercado (`products3d`) y colisiones (`colliders`) |
 | `src/world/relieve.js`, `src/data/relieve.js` y `src/world/panorama.js` | El relieve de verdad: desde cada uno de los 12 miradores, lo más alto que se ve en cada rumbo hasta cada distancia (diez «términos», de 300 m a 115 km), la silueta fina de cada monte de la misión con su cumbre a la altitud real, los montes que de verdad se ven desde allí, y el horizonte real de los 31 pueblos (grado a grado, más allá de 2,5 km). Los calcula `tools/relieve/perfiles.py` con el relieve de SRTM y GMTED2010 (USGS, dominio público) y van comprimidos (unos 18 KB); `cargarRelieve` los abre una vez antes de levantar el pueblo. Con ellos, la vista de los prismáticos en el mirador es el paisaje real (`Panorama.buildReal`: cada punto en su rumbo, a su distancia y con su ángulo reales, colores por altitud y clima, bosque, parcelas, roca, nieve, relieve menudo y bruma por distancia) y los montes del borde del pueblo siguen el horizonte real (`skylineFor`). Sin los datos (navegador sin `DecompressionStream`), los montes hechos a mano de antes |
-| `src/actors/` | Seres vivos: jugador (`player`), personajes GLB, KayKit y Meshy (`glbChar`: clips del juego recortados de los de cada modelo, `loadMeshy`), vecinos (`npcGlb`: cuerpo KayKit con traje de su comarca), pelo de otro color (`hairColor`: ver abajo), trajes de vecinos y público y seres de leyenda (`outfits`: `OUTFITS`, `MYTHS`), trajes de carnaval y de leyenda hechos como los de verdad (`trajes`: ver abajo), público en gradas (`crowd3d`: figuras 3D cocinadas cerca de la cámara y láminas de `crowdSprites` de lejos; sentado en tendidos y gradas), animales (`animals` + `animalGlb` con los modelos de Quaternius; `beasts` es la versión procedural de reserva), minifiguras antiguas (`minifig`) y equipo (`gear3d`) |
+| `src/actors/` | Seres vivos: jugador (`player`), personajes GLB, KayKit y Meshy (`glbChar`: clips del juego recortados de los de cada modelo, `loadMeshy`), vecinos (`npcGlb`: cuerpo KayKit con traje de su comarca), chicas sobre los modelos de Meshy (`chicas`: ver abajo), pelo de otro color (`hairColor`: ver abajo), trajes de vecinos y público y seres de leyenda (`outfits`: `OUTFITS`, `MYTHS`), trajes de carnaval y de leyenda hechos como los de verdad (`trajes`: ver abajo), público en gradas (`crowd3d`: figuras 3D cocinadas cerca de la cámara y láminas de `crowdSprites` de lejos; sentado en tendidos y gradas), animales (`animals` + `animalGlb` con los modelos de Quaternius; `beasts` es la versión procedural de reserva), minifiguras antiguas (`minifig`) y equipo (`gear3d`) |
 | `src/game/` | Reglas y misiones: `townGame` (misiones, interacción y pasos de cada pueblo), `game` (Salazar), minijuegos grandes (`encierro` + `encierroPlaza` + `encierroTex`, `futbol`, `fronton`), vida del pueblo (`tienda`, `mercado`, `mochila`, `perro`, `chase`, `crowd`), señales y objetos (`senales`, `items`), perfil (`profile`) y contenido (`content`) |
 | `src/pelota/` | Motor de pelota a mano independiente: reglas, física, IA (cinco niveles en `rules.js`), HUD, cancha, fichas técnicas de los pelotaris (`ficha.js`: datos inventados que salen del nombre, cualidades y golpes), el frontón que juega (`courtFeel` en `rules.js` y `setFeel` en `physics.js`: a cubierto, piedra, mojado o Labrit), la pelota elegida (`BALLS` en `rules.js`: normal, viva, muerta, de mucho bote y de poco bote, que multiplican esa física) y la pantalla VS (`vs.js`). El golpe es siempre manual (`game.js`): sale al soltar el botón y cuenta el momento respecto al justo (`idealAt`, con lo que perdona cada nivel en `TOL`); antes del bote es volea y alta, gancho. La energía (`EN` y `shotEnergy`) baja al correr y con cortadas, dos paredes y ganchos, y sube peloteando normal. La cámara dinámica opcional está en `match.js` (`camDyn`). Las simulaciones de los golpes (`landingOf` y la dos paredes en `physics.js`) solo guardan los eventos y paran al botar |
 | `src/game/pelotaris.js` | Colección de pelotaris: uno por pueblo, su carta al jugar contra él y los demás con la figura del pelotari de su frontón y un candado, por comarcas |
@@ -161,8 +161,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   pastor, lo que queda bajo el ala de la boina. Los colores (`HAIR_COLORS`: negro, castaño, castaño claro, cobrizo,
   pelirrojo, rubio oscuro, rubio, canoso y blanco) se dan como se quieren ver y se pasan al de la textura, que con la
   luz del juego se aclara mucho. Lo llevan los vecinos (el `hair` de su «look»), los futbolistas (uno por dorsal y
-  equipo, `hairFor`) y los pelotaris rivales y compañeros. La melena que se añade a las vecinas, del mismo tono
-  (`hairShade`). Las medidas salen de `tools/pelo/zonas.mjs` y se revisan con `tools/pelo/ver.mjs`.
+  equipo, `hairFor`) y los pelotaris rivales y compañeros. En las chicas, el pelo va en sus propias mallas
+  (`userData.peloColor`): su textura es gris y el color lo pone el material (`peloMaterial`, con el brillo propio de
+  `peloEmisivo`); lo pintado debajo se tiñe igual, con el brillo de referencia de la chica (`hairRef`). Las medidas
+  salen de `tools/pelo/zonas.mjs` y se revisan con `tools/pelo/ver.mjs`.
 - **Trajes de carnaval y de leyenda** (`src/actors/trajes.js`): la indumentaria de los personajes con traje, hecha
   según las fuentes de cada uno (anotadas junto a cada traje: el Museo del Traje y el Museo Etnológico de Navarra para
   los joaldunak, las crónicas de Altsasu para los momotxorros, el programa de Aoiz para los cascabobos, el de Vidángoz
@@ -193,11 +195,27 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   - **Volumen**: relieves de tela con mapas de normales (`relieve`: trama, pliegues, arrugas, saco), la tela tejida en
     sarga (`tejido`) y las abarcas con su lana y sus correas (`abarcas`). Melenas y barbas bajan rozando el cráneo cuando
     el pelo de debajo está aplastado (`rCraneo`).
-- **Chicas y chicos en el fútbol** (`src/game/futbol.js`, `chica` en `src/actors/trajes.js`): la mitad de los
-  jugadores y un tercio de los árbitros son chicas, por dorsal y equipo (un número fijo, mezclado con `mix` para que
-  salgan repartidas). Llevan el pelo recogido sobre el cráneo con el nacimiento redondeado, una coleta que bota al
-  correr y pestañas sobre los párpados medidos de cada modelo (`PARPADOS`, de `tools/pelo/parpados.mjs`). Se revisan
-  con `tools/futbol/jugadoras.mjs` (SOLA=1 para verla sola).
+- **Chicas** (`src/actors/chicas.js`): los personajes de Meshy son todos chicos; las chicas son el mismo modelo con la
+  cabeza rehecha en Blender (`tools/blender/chicas`): el cráneo liso sin el pelo de chico (`cabeza.py`), el nacimiento
+  del pelo (`nacimiento.py`), la textura repintada (`textura.py`: castaño bajo el pelo, del tono del pelo, para la nuca y
+  detrás de las orejas; piel en la frente, las sienes y las patillas, fundida con la de alrededor; cejas finas,
+  pestañas pintadas con tres sueltas en el rabillo y labios) y su peinado (`pelo.py`: la coleta con su goma y tres
+  huesos, `Hair_1..3`, que `glbChar.js` mueve como muelles; la nariz, más pequeña). No va otro modelo entero:
+  `tools/chicas/parche.mjs` guarda lo que cambia sobre el chico (los vértices que se mueven, cambian de normal o de UV y
+  unos pocos nuevos, comprimidos con el códec de vértices de meshopt; la textura repintada, solo lo que cambia, en una
+  capa webp con transparencia a la resolución de cada versión) y el pelo en su GLB. En el juego, `loadChica` lo monta
+  sobre el chico ya cargado y se usa como cualquier personaje de Meshy (sus animaciones, su escala). La versión ligera
+  se casa con la del chico vértice a vértice: los vértices partidos toman la UV más parecida a la suya y las capas del
+  pelo de chico que quedan bajo la piel se hunden un poco. En el juego van la futbolista y la pelotari completas
+  (fútbol y frontón) y la sanferminera ligera (vecinas, corredoras del encierro y trajes de lamia y sorgina, estas sin
+  peinado: el pelo o la toca los pone el traje). Las vecinas llevan falda y delantal cosidos al cuerpo
+  (`falda` de `trajes.js`). Todo se rehace con `tools/chicas/construir.sh <modelo> coleta <carpeta>` y se revisa con
+  `tools/chicas/ver.mjs` (el chico, la chica y la ligera, de cerca; DIST, SOLA, OCULTA, PELO) y `tools/chicas/vecinas.mjs`.
+- **Chicas y chicos en el fútbol** (`src/game/futbol.js`): la mitad de los jugadores y un tercio de los árbitros son
+  chicas, por dorsal y equipo (un número fijo, mezclado con `mix` para que salgan repartidas), con la futbolista de
+  `chicas.js` (la del equipo visitante, teñida de su equipación) y la goma del color del equipo. Se revisan con
+  `tools/futbol/jugadoras.mjs` (SOLA=1 para verla sola). Las corredoras del encierro (`encierro.js`), las pelotaris
+  rivales y compañeras (`rigPelotari` en `fronton.js`, de colorado en el lado rojo) y las vecinas también son chicas.
 - **Caravinagre fuera**: no sale en Pamplona ni en ningún sitio; las partidas guardadas pasan solas a la lista de
   misiones de Pamplona sin él (`mig.pamplona1` en `profile.js`).
 - **Jugadores de fútbol del autor** (`src/futbol/jugadorFig.js`, `src/assets/jugadores`): un chico y una chica por
@@ -310,7 +328,9 @@ el móvil se pintaba a 980 px de ancho y no a su tamaño.
 | `glb-abrir.mjs` | Descomprime un GLB de Meshy (meshopt y cuantización) para abrirlo en Blender. Su salida no es para three.js |
 | `trajes/ver.mjs`, `trajes/hoja.py`, `trajes/caja.mjs`, `trajes/hueso.mjs` y `trajes/rayo.mjs` | Trajes: cada personaje con traje de cerca (frente, espalda, cara y andando) y su hoja; y para depurar, dónde acaba cada prenda con la piel, sus huesos y pesos, y qué tapa un punto de la cara |
 | `pelo/zonas.mjs` y `pelo/ver.mjs` | Pelo de otro color: dónde están los ojos y cuánto brilla el pelo pintado de cada personaje de Meshy (píxel a píxel de su textura, en la pose de reposo) y la hoja de prueba con cada personaje y cada color de cerca |
-| `pelo/parpados.mjs` | La línea del párpado de arriba de cada personaje de Meshy, medida en su textura, para poner las pestañas de las chicas |
+| `pelo/parpados.mjs` | La línea del párpado de arriba de cada personaje de Meshy, medida en su textura (`blender/chicas/parpados.json`), para pintar las pestañas de las chicas |
+| `blender/chicas/` y `chicas/construir.sh` | Las chicas, de principio a fin: cabeza, nacimiento del pelo, textura, peinado y exportación (Blender), y el parche para el juego (`chicas/parche.mjs`). Los pasos van en la cabecera de cada uno |
+| `chicas/ver.mjs` y `chicas/vecinas.mjs` | Chicas en el juego de cerca (el chico, la chica y la ligera; frente, espalda, cara, perfil, nuca) y una fila de vecinas con falda, delantal, mayor y los trajes de lamia y sorgina |
 | `futbol/jugadoras.mjs` y `futbol/cajas.mjs` | Chicas y chicos del fútbol de cerca (frente, espalda, cara, nuca, perfil y corriendo) y el tamaño de cada pieza del pelo |
 | `blender/pelotari-chica/` | Prototipo de la versión chica del pelotari sobre su mismo cuerpo: cara repintada, nariz menor, coletas atadas al hueso de la cabeza. Los pasos van en la cabecera de `chica.py` |
 
@@ -326,7 +346,7 @@ El código del juego también va comprimido con gzip (plugin `js-gzip`): de unos
 imágenes, sonidos y modelos que van dentro ya están comprimidos, así que se sacan aparte (cada «data:…» suelto del
 código, buscado en su árbol con `rolldown/parseAst`, pasa a ser `__hzD[n]` y sus textos van en el bloque `#hz-datos`).
 Al abrir el archivo, el cargador `#hz-cargador` (unos 4,6 KB, con el mismo fflate) lo descomprime y lo ejecuta como el
-módulo que era; si falla, lo recoge el aviso de arranque. Así quedan unos 2 MB libres dentro de los 30 MB de Sitecase.
+módulo que era; si falla, lo recoge el aviso de arranque. Así queda casi 1 MB libre dentro de los 30 MB de Sitecase (con las chicas).
 Con `MINI=1 npx vite` el servidor de pruebas carga lo mismo que el archivo único. La web (`WEB=1`) no cambia.
 Con `LIGERO=1 npx vite build` sale una variante unos 6 MB más pequeña (`MENDIMENDIZ-jugar-ligero.html`): los
 personajes de Meshy van en su versión ligera (`src/assets/meshy/lod`) y todo lo demás es igual.
