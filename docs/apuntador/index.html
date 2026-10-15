@@ -96,7 +96,10 @@ select{background:var(--stage-2);border:1px solid var(--line);border-radius:8px;
 .ghost{display:inline-flex;align-items:center;gap:8px;color:inherit;text-decoration:none;background:transparent;border:1px solid var(--line);border-radius:999px;padding:10px 16px;font-size:.92rem}
 .ghost:hover{border-color:var(--dim)}
 .note{font-size:.86rem;color:var(--mute);margin:0;max-width:62ch}
-.preview{background:var(--stage);border:1px solid var(--line);border-radius:12px;padding:18px;max-height:520px;overflow:auto;--pfs:18px}
+.preview{position:relative;background:var(--stage);border:1px solid var(--line);border-radius:12px;padding:18px 18px 18px calc(18px + var(--gut));max-height:520px;overflow:auto;--pfs:18px}
+.preview .mk{opacity:1;filter:none;font-size:1.05rem;height:1.75rem;left:10px}
+.preview .mk.tone{left:12px}
+.preview .marks{left:0}
 .preview .para{font:400 1rem/1.75 var(--f-body);margin:0 0 14px}
 .preview .w.emph{color:var(--warn)}
 .modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:10px}
@@ -117,11 +120,6 @@ body:not([data-app="llamada"]) .only-call{display:none!important}
 .foot b{color:var(--paper);font-weight:700}
 
 /* fichas de acotación y etiquetas de tono (compartidas por guion, vista previa y plató) */
-.cue-chip{display:inline-flex;align-items:center;gap:.35em;font:700 max(12px,calc(var(--pfs) * .4))/1 var(--f-body);vertical-align:.18em;padding:.42em .7em;margin-right:.4em;border-radius:999px;background:rgba(141,184,255,.14);color:var(--spot);border:1px solid rgba(141,184,255,.38);white-space:nowrap;letter-spacing:.01em}
-.cue-chip .ico{width:1.15em;height:1.15em}
-.cue-chip.libre{background:rgba(244,185,66,.12);color:var(--warn);border-color:rgba(244,185,66,.38)}
-.cue-chip.pausa{background:transparent;border-style:dashed;color:var(--mute);border-color:var(--dim)}
-.tone-tag{display:inline-flex;align-items:center;gap:.4em;font:700 max(11px,calc(var(--pfs) * .34))/1 var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--tc);border:1px solid var(--tc);border-radius:6px;padding:.38em .6em;vertical-align:.25em;margin-right:.5em}
 
 /* ---------- Plató ---------- */
 #studio{position:fixed;inset:0;background:#000;overflow:hidden;color:var(--paper)}
@@ -143,8 +141,37 @@ body:not([data-app="llamada"]) .only-call{display:none!important}
 #track .w.emph{color:var(--warn)}
 #track .w.emph.read{color:rgba(244,185,66,.4)}
 #track .tail{height:70vh}
+/* margen de gestos y tono: fuera del texto */
+#track,.preview{--gut:calc(var(--pfs) * 1.3)}
+#track{padding-left:var(--gut)}
+.marks{position:absolute;left:0;top:0;width:var(--gut);height:0;pointer-events:none}
+.mk{position:absolute;left:0;width:var(--gut);height:calc(var(--pfs) * 1.4);display:grid;place-items:center;font-size:calc(var(--pfs) * .8);line-height:1;opacity:.45;text-shadow:none;transition:opacity .3s,transform .3s,filter .3s;filter:grayscale(.6)}
+.mk.second{transform:translateY(.55em) scale(.75)}
+.mk.soon{opacity:1;filter:none}
+.mk.now{opacity:1;filter:drop-shadow(0 0 10px rgba(141,184,255,.9));animation:mknow .8s ease-in-out infinite}
+@keyframes mknow{50%{transform:scale(1.3)}}
+.mk.hit{opacity:.85;filter:none}
+.mk.hit::after{content:"✓";position:absolute;right:-.1em;bottom:-.05em;font:700 calc(var(--pfs) * .42)/1 var(--f-body);color:var(--ok);text-shadow:0 1px 3px rgba(0,0,0,.9)}
+.mk.miss,.mk.past{opacity:.22}
+.mk.tone{width:5px;left:0;border-radius:3px;background:var(--tc);opacity:.85;filter:none}
+.mk.g{left:7px;width:calc(var(--gut) - 7px)}
+.pz{display:inline-block;width:2px;height:.85em;margin:0 .25em;vertical-align:-.08em;background:rgba(244,239,230,.4);border-radius:1px}
 #readline{position:absolute;left:-14px;right:-14px;top:var(--ready,140px);height:calc(var(--pfs) * 1.4);pointer-events:none;border-block:1px solid rgba(141,184,255,.4);background:rgba(141,184,255,.06)}
-#readline::before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);border:9px solid transparent;border-left:12px solid var(--spot)}
+#readline::before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);border:9px solid transparent;border-left:12px solid var(--rlc,var(--spot))}
+#readline{transition:border-color .5s,background .5s}
+#readline.rl-ok{--rlc:var(--ok);border-block:3px solid var(--ok);background:rgba(85,214,166,.12)}
+#readline.rl-warn{--rlc:var(--warn);border-block:3px solid var(--warn);background:rgba(244,185,66,.1)}
+#readline.rl-bad{--rlc:var(--bad);border-block:3px solid var(--bad);background:rgba(255,110,100,.12)}
+/* leyendo: el aviso va abajo, corto y lejos del texto; el monitor se recoge */
+#studio.reading #cue{top:auto;bottom:calc(96px + env(safe-area-inset-bottom,0px));padding:8px 16px 8px 8px;gap:12px}
+#studio.reading #cue .cue-vis,#studio.reading #cue .cue-vis canvas{width:64px;height:64px}
+#studio.reading #cue .cue-emoji{font-size:26px;right:-8px;bottom:-8px}
+#studio.reading #cue .cue-vis.solo .cue-emoji{font-size:38px}
+#studio.reading #cue .cue-txt b{font-size:1.2rem}
+#studio.reading #cue .cue-detail{display:none}
+#studio.reading.mon-full #cue{left:calc(50% - 170px)}
+#studio.reading #monitor :is(#meters,.why,.also,.tabs,#parts,.seen){display:none}
+#studio.line-only #monitor,#studio.line-only #cue{display:none!important}
 
 #cue{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 12px);transform:translateX(-50%);display:flex;align-items:center;gap:14px;max-width:min(680px,calc(100% - 24px));padding:12px 20px 12px 14px;border-radius:18px;background:var(--glass);border:1px solid var(--cc,var(--warn));box-shadow:0 10px 40px rgba(0,0,0,.45);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);z-index:5}
 #cue .cue-vis{position:relative;display:grid;place-items:center;width:88px;height:88px;border-radius:18px;background:color-mix(in srgb,var(--cc,var(--warn)) 16%,rgba(0,0,0,.35));flex:none}
@@ -284,6 +311,34 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
 .goal-list .gv{grid-row:1 / 3;grid-column:3;align-self:center}
 .plan-banner{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:14px 18px;border-radius:14px;border:1px solid var(--spot);background:color-mix(in srgb,var(--spot) 7%,var(--stage))}
 .plan-banner .goals{flex:1}
+/* ensayo antes de grabar */
+.step{margin:0;font-size:.8rem;font-weight:700;letter-spacing:.02em;color:var(--spot)}
+.step.rec{color:var(--bad)}
+.btn.next{box-shadow:0 0 0 3px rgba(141,184,255,.55);animation:nextpulse 2s ease-in-out infinite}
+@keyframes nextpulse{50%{box-shadow:0 0 0 6px rgba(141,184,255,.15)}}
+.count-sub{margin-top:10px;font-size:1.1rem;font-weight:700;color:#fff;text-align:center;text-shadow:0 2px 12px rgba(0,0,0,.7)}
+.reh-card{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:8;width:min(540px,calc(100% - 24px));max-height:calc(100% - 120px);overflow:auto;display:flex;flex-direction:column;gap:10px;padding:20px;border-radius:16px;background:var(--glass);border:1px solid var(--spot);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.reh-head{display:flex;align-items:center;gap:14px}
+.reh-head small{display:block;color:var(--mute);font-size:.8rem;letter-spacing:.04em;text-transform:uppercase}
+.reh-head b{font:400 1.4rem/1.2 var(--f-display)}
+.reh-card p{margin:0;font-size:.9rem;color:var(--mute)}
+.reh-card #rehStory b{color:var(--tc,var(--paper))}
+.reh-notes{display:flex;flex-direction:column;gap:6px}
+.reh-notes p{color:var(--paper)!important}
+.reh-card .eyebrow{margin-top:4px}
+.reh-hint{color:var(--paper)!important}
+.reh-card .actions{justify-content:flex-end}
+.reh-rec{background:var(--bad);color:#fff}
+.reh-rec .dot{width:10px;height:10px;border-radius:50%;background:#fff;display:inline-block}
+#studio.mon-full .reh-card{left:calc(50% - 170px)}
+.reh-card .actions{position:sticky;bottom:-20px;margin:0 -20px -20px;padding:12px 20px 16px;background:linear-gradient(to bottom,rgba(17,15,23,0),rgba(17,15,23,.96) 30%)}
+@media (max-width:760px){
+  .reh-card{top:calc(env(safe-area-inset-top,0px) + 10px);transform:translateX(-50%);max-height:calc(100% - 100px - env(safe-area-inset-bottom,0px));padding:16px}
+  .reh-card .goal-list small,.reh-card #rehStory{display:none}
+  .reh-card .actions{margin:0 -16px -16px;padding:10px 16px 14px;gap:8px}
+  .reh-card .actions .ghost{padding:9px 12px;font-size:.85rem}
+}
+.rnotes{display:flex;flex-direction:column;gap:6px;margin-top:10px}
 .ba-top{display:flex;flex-wrap:wrap;gap:10px 28px;align-items:baseline;margin-bottom:14px}
 .ba-top b{font:400 1.7rem/1 var(--f-display)}
 .ba-top .arrow{color:var(--mute);margin:0 6px}
@@ -319,7 +374,7 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
 .toast{position:fixed;z-index:60!important;left:50%;bottom:calc(136px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:9;background:var(--glass);border:1px solid var(--line);border-radius:12px;padding:10px 16px;font-size:.9rem;max-width:calc(100% - 32px)}
 
 @media (max-width:760px){
-  #cue,#monitor,.busy,.calib,.cam-alert,.enroll,.stop-card,.plan-card,.file-bar,.voice-hint,.stage-card,.toast{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:rgba(17,15,23,.93)}
+  #cue,#monitor,.busy,.calib,.cam-alert,.enroll,.stop-card,.plan-card,.reh-card,.file-bar,.voice-hint,.stage-card,.toast{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:rgba(17,15,23,.93)}
   #prompter{width:calc(100% - 24px);height:42%}
   #monitor{left:max(8px,env(safe-area-inset-left,0px));right:max(8px,env(safe-area-inset-right,0px));width:auto;bottom:calc(76px + env(safe-area-inset-bottom,0px));padding:10px 12px;max-height:38%}
   #meters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 10px}
@@ -331,7 +386,9 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
   .ring{width:54px;height:54px}.ring span{width:42px;height:42px;font-size:.9rem}
   .btn .lbl{display:none}
   #slower,#faster,#fontDown,#fontUp,#skel{display:none}
-  .btn{padding:0 12px}
+  .btn{padding:0 10px;min-width:42px;min-height:42px}
+  .bar-ctl{gap:6px}
+  .clock{padding:0 2px}
   #cue{padding:10px 14px 10px 10px;gap:10px}
   #cue .cue-vis,#cue .cue-vis canvas{width:64px;height:64px}
   #cue .cue-emoji{font-size:24px;right:-7px;bottom:-7px}
@@ -349,6 +406,50 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
 .rep-head p{margin:.4rem 0 0;color:var(--mute)}
 .rep-top{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:24px;align-items:start}
 @media (max-width:900px){.rep-top{grid-template-columns:minmax(0,1fr)}}
+.rep-top.solo{grid-template-columns:minmax(0,1fr)}
+/* panel del informe */
+.dash{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:900px){.dash{grid-template-columns:minmax(0,1fr)}}
+.dash-main{display:flex;flex-direction:column;gap:18px;min-width:0}
+.dash-score{display:flex;align-items:center;gap:18px}
+.dash-score .ring{width:112px;height:112px}
+.dash-score .ring span{width:90px;height:90px;font-size:1.7rem}
+.dash-verdict{display:block;font:400 clamp(2rem,5vw,2.6rem)/1 var(--f-display)}
+.dash-score p{margin:.45rem 0 0;color:var(--mute)}
+.delta{display:inline-block;margin-top:8px;padding:4px 10px;border-radius:999px;font-weight:700;font-size:.9rem;border:1px solid var(--line);color:var(--mute)}
+.delta.up{color:var(--ok);border-color:rgba(85,214,166,.5);background:rgba(85,214,166,.1)}
+.delta.down{color:var(--bad);border-color:rgba(255,110,100,.5);background:rgba(255,110,100,.1)}
+.dash-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:14px}
+.dash-card{border-radius:14px;padding:16px;background:var(--stage);border:1px solid var(--line)}
+.dash-card.bad{border-color:rgba(255,110,100,.45);background:color-mix(in srgb,var(--bad) 6%,var(--stage))}
+.dash-card.good{border-color:rgba(85,214,166,.45);background:color-mix(in srgb,var(--ok) 6%,var(--stage))}
+.dash-card h3{margin:0 0 12px;font-size:1.05rem}
+.dash-card ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.dash-card li{display:grid;grid-template-columns:2rem minmax(0,1fr) auto;gap:2px 10px;align-items:center}
+.dash-card .de{grid-row:1 / 3;font-size:1.5rem;text-align:center}
+.dash-card li b{font-size:1rem}
+.dash-card small{grid-column:2 / 4;color:var(--mute);font-size:.84rem;line-height:1.35}
+.dash-card .dp{font:700 1.2rem/1 var(--f-mono);color:var(--bad);text-align:right}
+.dash-card .dp em{display:block;margin-top:3px;font:400 .72rem/1 var(--f-mono);font-style:normal;color:var(--mute)}
+.dash-card .dp em.up{color:var(--ok)}.dash-card .dp em.down{color:var(--bad)}
+.dash-sub{margin:-6px 0 12px;color:var(--mute);font-size:.8rem}
+.dash-empty{margin:0;color:var(--mute)}
+.dash-side{display:flex;flex-direction:column;gap:14px;min-width:0}
+.dash-line{display:flex;flex-direction:column;gap:8px}
+.dl-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;font-size:.9rem}
+.dl-head span{color:var(--mute);font-size:.82rem;display:flex;align-items:center;gap:6px}
+.dl-head i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-left:6px}
+.strip{display:flex;height:22px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,.06);cursor:pointer}
+.strip i{flex:1;min-width:0}
+.s-ok{background:var(--ok)}.s-warn{background:var(--warn)}.s-bad{background:var(--bad)}.s-na{background:transparent}
+.dl-time{display:flex;justify-content:space-between;font:400 .78rem/1 var(--f-mono);color:var(--mute)}
+details.more{display:flex;flex-direction:column;gap:26px}
+details.more>summary{cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border:1px solid var(--line);border-radius:999px;color:var(--paper);font-weight:700;width:max-content;max-width:100%}
+details.more>summary::-webkit-details-marker{display:none}
+details.more>summary::before{content:"▸";transition:transform .2s}
+details.more[open]>summary::before{transform:rotate(90deg)}
+details.more[open]>summary{margin-bottom:26px}
+details.more>:not(summary){margin-bottom:26px}
 .player{background:#000;border-radius:14px;overflow:hidden;border:1px solid var(--line)}
 .player video{display:block;width:100%;max-height:62vh;background:#000}
 .noplayer{display:grid;place-items:center;min-height:220px;padding:20px;text-align:center;color:var(--mute);background:var(--stage);border:1px dashed var(--line);border-radius:14px}
@@ -494,7 +595,7 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
       <section class="block o6 only-video">
         <p class="eyebrow">Vista previa</p>
         <h2>Así te lo marcará el apuntador</h2>
-        <p class="note">Las fichas azules son gestos que te propondrá en el momento justo de la lectura y luego comprobará si los haces. Las amarillas son tus propias acotaciones.</p>
+        <p class="note">El texto se lee limpio. En el margen, el emoji del gesto que toca en esa línea (al llegar se ilumina y se marca ✓ si lo haces) y una franja de color donde cambia el tono. Las pausas son una raya fina.</p>
         <div class="preview" id="preview"></div>
       </section>
     </div>
@@ -536,6 +637,14 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
               <option value="es-CO">Español (Colombia)</option>
               <option value="es-US">Español (EE. UU.)</option>
               <option value="en-US">English (US)</option>
+            </select>
+          </div>
+          <label class="check only-video"><input type="checkbox" id="rehearseFirst">Ensayo antes de grabar: primero una prueba sin grabar, te digo qué mejorar y luego grabamos de verdad</label>
+          <div class="opt only-video">
+            <label for="takeHelp"><span style="font-size:.86rem;color:var(--mute)">Mientras grabas de verdad</span></label>
+            <select id="takeHelp">
+              <option value="linea">Solo la línea verde o roja (recomendado)</option>
+              <option value="avisos">La línea y los avisos</option>
             </select>
           </div>
           <label class="check only-video"><input type="checkbox" id="pauseSilent">Parar el texto cuando me callo (modo fijo)</label>
@@ -597,6 +706,7 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
   </div>
 
   <aside id="monitor" aria-label="Monitor del director">
+    <p class="step" id="stepChip" hidden></p>
     <div class="verdict">
       <div class="ring" id="ring"><span id="matchPct">--</span></div>
       <div class="vtext">
@@ -642,6 +752,15 @@ body.pip #monitor{position:static;width:auto;max-height:56%;border-radius:0;bord
     <p>Te aviso en cuanto vea uno de ellos y te digo cuándo lo consigues.</p>
     <p id="planNext" style="color:var(--paper)"></p>
     <div class="actions"><button class="primary" id="planOk" type="button">¡Entendido!</button></div>
+  </div>
+  <div class="reh-card" id="rehCard" hidden role="dialog" aria-label="Resultado del ensayo">
+    <div class="reh-head"><div class="ring" id="rehRing"><span id="rehPct">--</span></div><div><small id="rehDur">Ensayo terminado</small><b id="rehTitle"></b></div></div>
+    <p id="rehStory"></p>
+    <div id="rehNotes" class="reh-notes"></div>
+    <p class="eyebrow" id="rehGoalsTitle">Al grabar, fíjate en esto</p>
+    <ul class="goal-list" id="rehGoals"></ul>
+    <p class="reh-hint" id="rehHint"></p>
+    <div class="actions"><button class="ghost" id="rehReport" type="button">Ver informe</button><button class="ghost" id="rehAgain" type="button">Ensayar otra vez</button><button class="primary reh-rec" id="rehRec" type="button"><i class="dot"></i>Grabar de verdad</button></div>
   </div>
   <div class="file-bar" id="fileBar" hidden><span aria-hidden="true">🎞️</span><span class="fb-name" id="fbName"></span><div class="progress"><i id="fbProg"></i></div><span class="fb-time" id="fbTime">0:00</span></div>
   <div class="voice-hint" id="voiceHint" hidden>🎙️ Di <b>«comenzamos»</b> para grabar · <b>«ensayo»</b> para ensayar · <b>«corten»</b> para parar</div>
@@ -797,6 +916,8 @@ const CUES = {
   enfasis:  { label: 'Remarca con la voz',              icon: 'enfasis' },
   libre:    { label: '',                                icon: 'acotacion' },
 };
+const CUE_LOOK = { saludo: ['👋', 'saludo'], contar: ['☝️', 'contar'], abrir: ['👐', 'abrir'], pecho: ['🫶', 'pecho'], palma: ['✋', 'palma'], grande: ['🙌', 'grande'], pequeno: ['🤏', 'pequeno'],
+  pregunta: ['🤷', 'pregunta'], sonrie: ['😁', 'sonrisa'], negar: ['🙅', 'negar'], cta: ['👇', 'cta'], pausa: ['⏸️', null], enfasis: ['📢', null], libre: ['🎬', null] };
 const KW = {
   saludo: ['hola', 'holaa', 'hey', 'buenas', 'bienvenidos', 'bienvenidas', 'bienvenido', 'bienvenida', 'saludos'],
   contar: ['primero', 'primera', 'segundo', 'segunda', 'tercero', 'tercera', 'cuarto', 'quinto', 'dos', 'tres', 'cuatro', 'cinco', 'porunlado', 'porotro'],
@@ -918,20 +1039,15 @@ function detectTone(text) {
   return { tone: best, reasons };
 }
 
-function cueChip(c) {
-  const d = CUES[c.type];
-  const label = c.type === 'libre' ? c.text : d.label;
-  return `<span class="cue-chip ${c.type}">${ico(d.icon)}${esc(label)}</span>`;
-}
+// el texto se lee limpio: solo las palabras (las pausas «//», una raya fina). Lo que hay que hacer va al margen:
+// el emoji del gesto a la altura de su línea y una franja de color donde cambia el tono
 function renderScriptHTML(sc) {
-  const byAt = new Map();
-  for (const c of sc.cues) { if (!byAt.has(c.at)) byAt.set(c.at, []); byAt.get(c.at).push(c); }
+  const pauses = new Set(sc.cues.filter(c => c.type === 'pausa' && c.explicit).map(c => c.at));
   let html = '';
   sc.paras.forEach((p, pi) => {
     html += `<p class="para" data-p="${pi}">`;
-    if (p.tagged) html += `<span class="tone-tag" style="--tc:${TONES[p.tone].color}">${TONES[p.tone].name}</span>`;
     for (let i = p.start; i < p.end; i++) {
-      for (const c of byAt.get(i) || []) html += cueChip(c);
+      if (pauses.has(i) && i > p.start) html += '<span class="pz" aria-label="pausa"></span> ';
       const w = sc.words[i];
       html += `<span class="w${w.emph ? ' emph' : ''}" data-i="${i}">${esc(w.text)}</span> `;
     }
@@ -939,13 +1055,34 @@ function renderScriptHTML(sc) {
   });
   return html;
 }
+const MARK_SKIP = new Set(['pausa', 'enfasis']);
+function placeMarks(root, sc, gestures = true) {
+  let box = root.querySelector(':scope > .marks');
+  if (!box) { box = document.createElement('div'); box.className = 'marks'; box.setAttribute('aria-hidden', 'true'); root.prepend(box); }
+  const words = root.querySelectorAll('.w'), out = [], perLine = {};
+  sc.paras.forEach(p => {
+    const a = words[p.start], b = words[p.end - 1];
+    if (!p.tagged || !a || !b) return;
+    const top = a.offsetTop, h = b.offsetTop + b.offsetHeight - top;
+    out.push(`<span class="mk tone" style="top:${top}px;height:${h}px;--tc:${TONES[p.tone].color}" title="${TONES[p.tone].name}"></span>`);
+  });
+  if (gestures) sc.cues.forEach((c, k) => {
+    if (MARK_SKIP.has(c.type)) return;
+    const w = words[Math.min(c.at, words.length - 1)]; if (!w) return;
+    const top = w.offsetTop, n = perLine[top] = (perLine[top] || 0) + 1;
+    if (n > 2) return;
+    out.push(`<span class="mk g${n === 2 ? ' second' : ''}" data-k="${k}" style="top:${top}px" title="${esc(c.type === 'libre' ? c.text : CUES[c.type].label)}">${(CUE_LOOK[c.type] || ['🎬'])[0]}</span>`);
+  });
+  box.innerHTML = out.join('');
+  return box;
+}
 
 /* ---------------- estado ---------------- */
 const DEFAULT_CALIB = { smile: .05, brow: .12, pitch: .47, yaw: 0, neck: .62, refDb: -30, floor: -62, done: false };
 const S = {
   text: store.get('text', SAMPLE),
   tone: store.get('tone', 'animado'),
-  opts: Object.assign({ app: 'video', tab: {}, voiceEngine: 'auto', stopMargin: 3, mode: 'voz', wpm: 140, font: 46, mirror: false, pauseSilent: true, cues: true, skeleton: true, lang: 'es-ES', compact: null }, store.get('opts', {})),
+  opts: Object.assign({ app: 'video', tab: {}, voiceEngine: 'auto', stopMargin: 3, rehearseFirst: true, takeHelp: 'linea', mode: 'voz', wpm: 140, font: 46, mirror: false, pauseSilent: true, cues: true, skeleton: true, lang: 'es-ES', compact: null }, store.get('opts', {})),
   calib: Object.assign({}, DEFAULT_CALIB, store.get('calib', {})),
   sc: null, live: false, take: null, vision: null, visionErr: null, audio: null, stream: null,
 };
@@ -976,6 +1113,7 @@ function renderTones() {
 function refreshSetup() {
   S.sc = parseScript(S.text, S.tone);
   $('#preview').innerHTML = S.sc.words.length ? renderScriptHTML(S.sc) : '<p class="note">Escribe o pega tu guion a la izquierda.</p>';
+  if (S.sc.words.length && !$('#setup').hidden) placeMarks($('#preview'), S.sc);
   const n = S.sc.words.length;
   const autoCues = S.sc.cues.filter(c => c.type !== 'pausa' && c.type !== 'enfasis').length;
   $('#count').textContent = `${n} palabras · ~${Math.max(1, Math.round(n / 150 * 60))} s a 150 palabras/min · ${autoCues} gestos marcados`;
@@ -1125,12 +1263,12 @@ function bindOpts() {
   font.value = o.font; $('#font-out').textContent = o.font + ' px';
   font.addEventListener('input', () => { o.font = +font.value; $('#font-out').textContent = o.font + ' px'; save(); });
   delete o.voiceCmd;
-  for (const k of ['voiceEngine', 'stopMargin']) {
+  for (const k of ['voiceEngine', 'stopMargin', 'takeHelp']) {
     const el = $('#' + k); el.value = String(o[k]);
-    if (el.selectedIndex < 0) { o[k] = k === 'stopMargin' ? 3 : 'auto'; el.value = String(o[k]); }
+    if (el.selectedIndex < 0) { o[k] = { stopMargin: 3, voiceEngine: 'auto', takeHelp: 'linea' }[k]; el.value = String(o[k]); }
     el.addEventListener('change', () => { o[k] = k === 'stopMargin' ? +el.value : el.value; save(); });
   }
-  for (const k of ['pauseSilent', 'cues', 'mirror', 'skeleton']) {
+  for (const k of ['pauseSilent', 'cues', 'mirror', 'skeleton', 'rehearseFirst']) {
     const el = $('#' + (k === 'cues' ? 'cuesOn' : k));
     el.checked = !!o[k]; el.addEventListener('change', () => { o[k] = el.checked; save(); });
   }
@@ -1152,8 +1290,10 @@ function show(id) {
   for (const s of ['setup', 'studio', 'report']) $('#' + s).hidden = s !== id;
   window.scrollTo(0, 0);
   $('#toast').hidden = true;
-  if (id === 'setup') renderPlanBanner();
+  if (id === 'setup') { renderPlanBanner(); if (S.sc?.words.length) requestAnimationFrame(() => placeMarks($('#preview'), S.sc)); }
 }
+addEventListener('resize', () => { if (!$('#setup').hidden && S.sc?.words.length) placeMarks($('#preview'), S.sc); });
+document.fonts?.ready.then(() => { if (!$('#setup').hidden && S.sc?.words.length) placeMarks($('#preview'), S.sc); });
 
 function stageMsg(html) { const m = $('#stageMsg'); if (!html) { m.hidden = true; m.innerHTML = ''; return; } m.innerHTML = html; m.hidden = false; }
 let toastTimer = 0;
@@ -1278,6 +1418,7 @@ async function enterStudio() {
   endFileMode();
   S.sc = parseScript(S.text, S.tone);
   if (!S.sc.words.length && !isCall()) return;
+  S.flow = flowOn() ? 'ensayo' : 'grabar';
   prepStudioUI();
   busy('Pidiendo permiso para la cámara y el micrófono…');
   try {
@@ -1324,7 +1465,7 @@ $('#stageMsg').addEventListener('click', e => {
 function leaveStudio() {
   endFileMode();
   closePip();
-  busy(null); $('#calib').hidden = true; $('#camAlert').hidden = true; cancelEnroll(); S.stopping = null; $('#stopCard').hidden = true;
+  busy(null); $('#calib').hidden = true; $('#camAlert').hidden = true; cancelEnroll(); S.stopping = null; $('#stopCard').hidden = true; $('#rehCard').hidden = true; $('#planCard').hidden = true;
   if (S.take) stopTake(false);
   S.live = false;
   stopLoops();
@@ -2022,8 +2163,7 @@ function audioTick() {
 }
 function onDoubleClap() {
   if (isCall() || S.file || !S.live || S.take || S.countdown || S.calibrating || KWS.enroll) return;
-  toast('👏👏 ¡Oído! Grabamos', 1800);
-  startTake(true);
+  toast(startByFlow(true) ? '👏👏 ¡Oído! Grabamos' : '👏👏 ¡Oído! Primero, el ensayo', 1800);
 }
 function processAudio(t, db, f0) {
   if (!S.live) return;
@@ -2099,7 +2239,8 @@ function finishCalibration(skipped) {
   }
   const voice = !isCall() && startVoice();
   const next = isCall() ? ('Pulsa Empezar cuando arranque la llamada.' + ('documentPictureInPicture' in window ? ' Con «Ventana flotante» lo tendrás encima de ella.' : ' Pon esta ventana al lado de la llamada.'))
-    : voice || (kwsOn() && KWS.tpl) ? 'Di «comenzamos» cuando quieras y empezará la cuenta atrás.' : 'Da dos palmadas o pulsa Grabar cuando quieras.';
+    : (flowOn() && S.flow === 'ensayo' ? 'Primero un ensayo, sin grabar: ' : '') + (voice || (kwsOn() && KWS.tpl) ? 'di «comenzamos» cuando quieras y empezará la cuenta atrás.'
+      : flowOn() && S.flow === 'ensayo' ? 'da dos palmadas o pulsa Ensayar cuando quieras.' : 'Da dos palmadas o pulsa Grabar cuando quieras.');
   if (!showPlanCard(next)) toast((skipped ? 'Listo. ' : 'Calibrado. ') + next, 6500);
 }
 
@@ -2126,7 +2267,9 @@ function voiceCommand(cmd) {
   if (!$('#report').hidden) { if (cmd === 'grabar' || cmd === 'ensayo') { S.lastCmdT = t; toast('🎬 ¡Oído! Otra toma', 1800); againByVoice(cmd === 'grabar'); } return; }
   if (!S.live || KWS.enroll) return;
   if ((cmd === 'grabar' || cmd === 'ensayo') && !S.take && !S.countdown) {
-    S.lastCmdT = t; toast(cmd === 'grabar' ? '🎬 ¡Oído! Grabamos' : '🎬 ¡Oído! Ensayamos', 1800); startTake(cmd === 'grabar');
+    S.lastCmdT = t;
+    if (cmd === 'ensayo') { $('#rehCard').hidden = true; startTake(false); toast('🎬 ¡Oído! Ensayamos', 1800); }
+    else toast(startByFlow(true) ? '🎬 ¡Oído! Grabamos' : '🎬 ¡Oído! Primero, el ensayo', 1800);
   } else if (cmd === 'parar' && S.take && t - S.take.t0 > 1.5) { S.lastCmdT = t; if (S.stopping) stopNow(); else requestStop(); }
   else if (cmd === 'seguir' && S.stopping) { S.lastCmdT = t; cancelStop(); }
 }
@@ -2284,7 +2427,7 @@ function enrollAdd(frames) {
   $('#enroll').hidden = true;
   showPlanCard();
   toast(clash ? 'Guardado, pero dos palabras se parecen mucho en tu grabación: si falla, vuelve a enseñarlas en un sitio con menos ruido.'
-    : '✅ ¡Aprendido! Di «comenzamos» para grabar y «corten» para parar.', 6000);
+    : `✅ ¡Aprendido! Di «comenzamos» para ${flowOn() && S.flow === 'ensayo' ? 'empezar el ensayo' : 'grabar'} y «corten» para parar.`, 6000);
 }
 // umbral de cada palabra: bastante más que la diferencia entre tus dos grabaciones (la voz cambia de un día a otro)
 // y menos de la mitad de la que hay con las otras palabras
@@ -2306,7 +2449,8 @@ function cancelEnroll() { const was = !!KWS.enroll; KWS.enroll = null; $('#enrol
    Al pedir parar (voz, botón o Esc) sigue grabando unos segundos con cuenta atrás; «seguimos» lo cancela. */
 function requestStop() {
   if (!S.take || S.stopping) return;
-  const dur = S.take.call || S.take.file ? 0 : +(S.opts.stopMargin ?? 3);
+  // el margen es para no cortar la grabación en seco: un ensayo para al momento
+  const dur = S.take.call || S.take.file || !S.take.record ? 0 : +(S.opts.stopMargin ?? 3);
   if (!dur) return stopTake(true);
   S.stopping = { t0: now(), dur };
   $('#stopCard').hidden = false;
@@ -2325,8 +2469,88 @@ function stopNow() { S.stopping = null; $('#stopCard').hidden = true; stopTake(t
 async function againByVoice(record) {
   show('studio');
   await reenterStudio();
-  setTimeout(() => startTake(record), 300);
+  setTimeout(() => startByFlow(record), 300);
 }
+
+/* ---------------- la línea verde o roja ----------------
+   Durante una toma con guion, la franja de lectura cambia de color: verde si te acercas a lo que quieres conseguir,
+   ámbar si vas igual, roja si te alejas. Con objetivos, se compara con el ensayo o la toma anterior (la parte del
+   tiempo con cada problema en los últimos 6 segundos frente a la de entonces); sin objetivos, el ajuste al tono. */
+const lineOnly = () => !!(S.take && S.take.record && !S.take.call && !S.take.file && (S.opts.takeHelp || 'linea') === 'linea');
+function lineTick(c) {
+  const tk = S.take, P = tk.plan;
+  let v = null;
+  if (P?.ids.length) {
+    tk.lw ||= {};
+    let sum = 0, n = 0;
+    for (const id of P.ids) {
+      if (!goalVisible(id, c)) continue;
+      const arr = tk.lw[id] ||= [];
+      arr.push([c.t, goalBad(id, c) ? 1 : 0]);
+      while (arr.length && c.t - arr[0][0] > 6) arr.shift();
+      const a = arr.reduce((x, e) => x + e[1], 0) / arr.length, b = P.base[id] ?? .5;
+      sum += a <= .1 ? 1 : clamp((b - a) / Math.max(b, .2), -1, 1); n++;
+    }
+    if (n) v = sum / n;
+  } else if (c.match != null) v = (c.match - 65) / 20;
+  const want = v == null ? '' : v > .25 ? 'ok' : v < -.1 ? 'bad' : 'warn';
+  // sin parpadeos: el color cambia cuando el nuevo estado dura más de un segundo
+  const L = S.line ||= { k: '', cand: '', since: 0 };
+  if (want !== L.cand) { L.cand = want; L.since = c.t; }
+  if (L.cand !== L.k && c.t - L.since > 1) { L.k = L.cand; setLine(L.k); }
+}
+function setLine(k) {
+  const rl = $('#readline');
+  rl.classList.toggle('rl-ok', k === 'ok'); rl.classList.toggle('rl-warn', k === 'warn'); rl.classList.toggle('rl-bad', k === 'bad');
+}
+function resetLine() { S.line = { k: '', cand: '', since: 0 }; setLine(''); }
+
+/* ---------------- ensayo antes de grabar ----------------
+   Paso 1: ensayo sin grabar (te corrige todo). Al terminar, sin salir del plató, una tarjeta con cómo ha ido, el
+   arranque (los 3 primeros segundos), la duración para redes y hasta tres objetivos. Paso 2: la grabación de verdad,
+   con esos objetivos en el monitor y solo los avisos importantes; su informe la compara con el ensayo. */
+const flowOn = () => !!S.opts.rehearseFirst && !isCall() && !S.file;
+// «comenzamos», dos palmadas u otra toma desde el informe: ensayo o grabación según el paso
+function startByFlow(record) {
+  if (!$('#rehCard').hidden) record = true;          // tras el ensayo, toca grabar de verdad
+  else if (flowOn() && S.flow === 'ensayo') record = false;
+  startTake(record);
+  return record;
+}
+function showRehearsal(tk) {
+  const { avg, mainTone, pc, pTot, topP, gaps, worst } = takeStats(tk);
+  const plan = makePlan(tk, gaps, avg, topP, mainTone);
+  if (plan) S.plan = plan;
+  S.lastRehearsal = tk;
+  S.flow = 'grabar';
+  const T0 = TONES[mainTone], P = topP && lookOf(topP);
+  const ring = $('#rehRing');
+  ring.style.setProperty('--p', avg ?? 0);
+  ring.style.setProperty('--rc', avg == null ? 'var(--dim)' : avg >= 75 ? 'var(--ok)' : avg >= 55 ? 'var(--warn)' : 'var(--bad)');
+  $('#rehPct').textContent = avg == null ? '--' : avg + '%';
+  $('#rehDur').textContent = `Ensayo terminado · ${fmtTime(tk.dur)}`;
+  const good = avg != null && avg >= 75 && topP === mainTone;
+  $('#rehTitle').textContent = tk.log.length < 12 ? 'Ensayo muy corto' : good ? '¡Listo para grabar!' : avg != null && avg >= 55 ? 'Casi listo' : 'Hay cosas que pulir';
+  $('#rehStory').innerHTML = tk.log.length < 12 ? 'Ha sido demasiado corto para valorarlo. Ensaya un poco más o graba ya.'
+    : `Querías transmitir un mensaje <b style="--tc:${T0.color}">${T0.adj}</b>` + (P ? (topP === mainTone ? ` y lo conseguiste el <b style="--tc:${P.color}">${Math.round(pc[topP] / pTot * 100)}%</b> del tiempo.`
+      : ` y se te vio sobre todo <b style="--tc:${P.color}">${P.name.toLowerCase()}</b> (${Math.round(pc[topP] / pTot * 100)}%).`) : '.')
+      + (worst.length ? ` Lo que más te alejó: ${worst.map(g => g.below >= g.above ? g.m.low : g.m.high).join(' y ')}.` : '');
+  $('#rehNotes').innerHTML = [hookNote(tk, mainTone), durNote(tk)].filter(Boolean).map(n => `<p>${esc(n)}</p>`).join('');
+  const ids = plan?.ids || [];
+  $('#rehGoalsTitle').hidden = !ids.length;
+  $('#rehGoals').innerHTML = goalListHTML(ids, id => esc(TIPS[id] || ''), id => plan.base[id] != null ? `<span class="pill">${Math.round(plan.base[id] * 100)}% del tiempo</span>` : '');
+  const voice = FOL.on || (kwsOn() && KWS.tpl);
+  $('#rehHint').textContent = ((S.opts.takeHelp || 'linea') === 'linea'
+      ? (ids.length ? 'Al grabar no verás avisos: la línea de lectura se pondrá verde si lo haces mejor que en el ensayo y roja si te alejas. ' : 'Al grabar no verás avisos: la línea de lectura se pondrá verde si vas bien y roja si te alejas. ')
+      : ids.length ? 'Al grabar te marco estos objetivos y solo te aviso de lo importante, para que no te distraiga. ' : '')
+    + (voice ? 'Di «comenzamos» para grabar de verdad.' : 'Pulsa «Grabar de verdad» o da dos palmadas.');
+  $('#planCard').hidden = true;
+  $('#rehCard').hidden = false;
+  burst(good ? ['🎬', '✨', '⭐'] : ['🎬'], good ? 12 : 4);
+}
+$('#rehRec').addEventListener('click', () => { $('#rehCard').hidden = true; startTake(true); });
+$('#rehAgain').addEventListener('click', () => { $('#rehCard').hidden = true; S.flow = 'ensayo'; startTake(false); });
+$('#rehReport').addEventListener('click', () => { const tk = S.lastRehearsal; $('#rehCard').hidden = true; if (tk) buildReport(tk); });
 
 function same(a, b) {
   if (a === b) return true;
@@ -2369,7 +2593,22 @@ function layoutPrompter() {
   let cur = null;
   PR.tops.forEach((top, i) => { if (!cur || Math.abs(top - cur.top) > PR.lineH * .4) { cur = { top, start: i, end: i + 1 }; PR.lines.push(cur); } else cur.end = i + 1; });
   PR.wpl = wordEls.length / Math.max(1, PR.lines.length);
+  const box = placeMarks(track, S.sc, S.opts.cues);
+  PR.mk = {};
+  for (const el of box.querySelectorAll('.mk.g')) PR.mk[el.dataset.k] = el;
+  markCues(PR.idx);
 }
+// estado de los emojis del margen: los pasados se apagan, el siguiente se enciende al acercarse
+function markCues(idx) {
+  const cues = S.sc?.cues || [], soon = Math.max(3, Math.round(PR.wpl || 6));
+  for (const [k, el] of Object.entries(PR.mk || {})) {
+    const c = cues[k]; if (!c) continue;
+    if (el.classList.contains('now') || el.classList.contains('hit') || el.classList.contains('miss')) continue;
+    el.classList.toggle('past', c.at < idx - 1);
+    el.classList.toggle('soon', c.at >= idx - 1 && c.at - idx <= soon);
+  }
+}
+function resetMarks() { for (const el of Object.values(PR.mk || {})) el.classList.remove('now', 'hit', 'miss', 'past', 'soon'); }
 function applyOffset() { track.style.transform = `translate3d(0,${(-PR.offset).toFixed(1)}px,0)`; }
 // palabra que está en la franja de lectura: avanza a lo largo de la línea según se desplaza el texto
 function wordAt(y) {
@@ -2410,12 +2649,12 @@ function prompterFrame(t, dt) {
   PR.offset += (PR.target - PR.offset) * Math.min(1, dt * 7);
   applyOffset();
   const idx = following ? Math.min(FOL.pointer, n - 1) : wordAt(PR.offset + PR.readY);
-  if (idx !== PR.idx || PR.marked !== idx) markWords(idx);
+  if (idx !== PR.idx || PR.marked !== idx) { markWords(idx); markCues(idx); }
   // acotaciones que llegan a la línea de lectura
   const cues = S.sc.cues;
   while (PR.nextCue < cues.length && cues[PR.nextCue].at <= idx) {
-    const c = cues[PR.nextCue++];
-    if (S.take && S.opts.cues && idx - c.at < 6) triggerScriptCue(c, t);
+    const k = PR.nextCue, c = cues[PR.nextCue++];
+    if (S.take && S.opts.cues && idx - c.at < 6) triggerScriptCue(c, t, k);
   }
   PR.idx = idx;
   if (S.take && idx >= n - 1 && !S.take.endAt) S.take.endAt = t;
@@ -2431,6 +2670,7 @@ function resetPrompterTo(i) {
   PR.target = (PR.tops[i] || 0) - PR.readY;
   FOL.pointer = i; FOL.phraseStart = i; FOL.curRes = -2;
   PR.nextCue = S.sc.cues.findIndex(c => c.at >= i); if (PR.nextCue < 0) PR.nextCue = S.sc.cues.length;
+  resetMarks();
 }
 // desplazamiento manual con rueda o arrastre
 prompterEl.addEventListener('wheel', e => { e.preventDefault(); manualScroll(e.deltaY); }, { passive: false });
@@ -2703,15 +2943,18 @@ function readParts(c) {
   return out;
 }
 
-function triggerScriptCue(c, t) {
+function triggerScriptCue(c, t, k) {
   const d = CUES[c.type];
   if (c.type === 'pausa' && !c.explicit) return; // las pausas automáticas solo se ven en el texto
   if (coach.watch) finishWatch(t);
-  coach.watch = { cue: c, t0: t, hit: false };
+  coach.watch = { cue: c, t0: t, hit: false, el: PR.mk?.[k] || null };
+  coach.watch.el?.classList.remove('soon', 'past');
+  coach.watch.el?.classList.add('now');
+  // grabando de verdad con «solo la línea», el gesto se ve únicamente en el margen
+  if (lineOnly()) return;
   const look = CUE_LOOK[c.type] || [];
   showCue({ id: 'cue:' + c.at, kind: 'script', pri: 64, icon: d.icon, emoji: look[0], g: look[1],
-    title: 'Ahora: ' + (c.type === 'libre' ? c.text : d.label).replace(/^./, s => s.toLowerCase()),
-    detail: cueWhy(c.type) }, t, true);
+    title: c.type === 'libre' ? c.text : d.label, detail: cueWhy(c.type) }, t, true);
 }
 function cueWhy(type) {
   return ({
@@ -2744,6 +2987,7 @@ function checkCue(type, c) {
 function finishWatch(t) {
   const w = coach.watch; if (!w) return;
   coach.watch = null;
+  if (w.el) { w.el.classList.remove('now'); w.el.classList.add(w.cue.type === 'libre' || w.hit ? 'hit' : 'miss'); }
   if (S.take && !w.hit && w.cue.type !== 'libre') S.take.streak = 0;
   if (S.take) S.take.events.push({ t: w.t0 - S.take.t0, id: 'cue', kind: 'script', cue: w.cue, title: w.cue.type === 'libre' ? w.cue.text : CUES[w.cue.type].label, outcome: w.cue.type === 'libre' ? 'na' : w.hit ? 'hit' : 'miss' });
 }
@@ -2806,6 +3050,7 @@ function coachTick() {
   }
   // objetivos de la toma: último momento en que fallaba cada uno
   if (S.take?.plan) { S.take.gb ||= {}; for (const id of S.take.plan.ids) if (goalBad(id, c)) S.take.gb[id] = t; }
+  if (S.take && !call && !file && startOK) lineTick(c);
   // vigilancia de la acotación en curso
   if (coach.watch) {
     const w = coach.watch;
@@ -2836,7 +3081,7 @@ function coachTick() {
   if (S.take && t - (S.take.lastLog || 0) >= .25) {
     S.take.lastLog = t;
     const r = v => v == null ? null : Math.round(v * 100) / 100;
-    S.take.log.push({ t: takeT(t), match, perceived, tone, idx: PR.idx, sp: speakingMe ? 1 : 0, li: listening ? 1 : 0, parts,
+    S.take.log.push({ t: takeT(t), match, perceived, tone, idx: PR.idx, sp: speakingMe ? 1 : 0, li: listening ? 1 : 0, parts, line: S.line?.k || '',
       on: RULES.filter(r => RS[r.id].on && r.kind !== 'good').map(r => r.id), M: Object.fromEntries(Object.entries(M).map(([k, v]) => [k, r(v)])) });
     if (!call && S.take.endAt && t - S.take.endAt > 1.5 && t - V.lastVoiced > 2.2) stopTake(true);
   }
@@ -2847,7 +3092,10 @@ coach.uiTick = 0;
 
 function manageCue(c) {
   const t = c.t;
-  const a = coach.active, goals = S.take?.plan?.ids || [];
+  const a = coach.active, goals = S.take?.plan?.ids || [], calm = !!(S.take?.record && S.take.plan);
+  // grabando de verdad con «solo la línea»: ningún aviso encima (la línea ya lo dice)
+  if (lineOnly()) { if (a && a.kind !== 'script') endCue(t, 'hidden'); return; }
+  const reading = !!(S.take && !c.isCall && !S.take.file);
   if (a) {
     const el = t - coach.since;
     if (a.kind === 'script') { if (el > 3.4) endCue(t, 'done'); }
@@ -2868,8 +3116,11 @@ function manageCue(c) {
   let best = null, bs = -1;
   for (const r of RULES) {
     // los objetivos de la toma se avisan antes y con prioridad
-    const st = RS[r.id], goal = goals.includes(r.id), f = goal ? .6 : 1;
+    // grabando de verdad con objetivos: lo demás (salvo lo crítico) se avisa menos, para no distraer
+    const st = RS[r.id], goal = goals.includes(r.id), f = goal ? .6 : calm && r.kind !== 'crit' ? 1.8 : 1;
     if (!st.on || t - st.on < r.hold * f || t - st.lastEnd < r.cool * (c.isCall ? 2 : 1) * f) continue;
+    // leyendo, un aviso cada vez y con respiro entre uno y otro
+    if (reading && r.kind !== 'crit' && t - coach.lastEnd < 4) continue;
     if (r.kind === 'good' && RULES.some(o => o.kind !== 'good' && RS[o.id].on)) continue;
     const score = r.pri + (goal ? 25 : 0) + Math.min(1, st.sev) * 6;
     if (score > bs) { bs = score; best = r; }
@@ -2885,12 +3136,12 @@ function manageCue(c) {
       if (id) {
         S.take.praised[id] = true;
         const [e, l] = goalTxt(id);
-        showCue({ id: 'goal', kind: 'good', pri: 12, icon: 'ok', emoji: '🎯', title: `${e} ${l}: ¡conseguido!`, detail: `Lo estás haciendo mejor que en ${P.from === 'file' ? 'tu vídeo' : 'la toma anterior'}. Sigue así.` }, t);
+        showCue({ id: 'goal', kind: 'good', pri: 12, icon: 'ok', emoji: '🎯', title: `${e} ${l}: ¡conseguido!`, detail: `Lo estás haciendo mejor que en ${P.from === 'file' ? 'tu vídeo' : fromTxt(P)}. Sigue así.` }, t);
         addPoints(8); burst(['🎯', '✨', '⭐'], 12);
         return;
       }
     }
-    if (!coach.active && !busy && S.live && !S.calibrating && t - coach.lastEnd > 8 && t - coach.lastIdea > 22 && t - S.liveT0 > 8
+    if (!calm && !reading && !coach.active && !busy && S.live && !S.calibrating && t - coach.lastEnd > 8 && t - coach.lastIdea > 22 && t - S.liveT0 > 8
         && (c.listening ? t - (S.listenSince || t) > 6 : c.speakingMe || (S.take && !c.isCall))) {
       const idea = pickIdea(c);
       if (idea) { coach.lastIdea = t; showCue({ id: 'idea', kind: 'idea', pri: 5, icon: idea[0], emoji: idea[3] || '💡', g: idea[4], title: 'Idea: ' + idea[1].replace(/^./, x => x.toLowerCase()), detail: idea[2] }, t); }
@@ -3029,17 +3280,31 @@ function updateStatus(t) {
   else parts.push(S.opts.mode === 'voz' && !FOL.failed && voiceEngine() === 'navegador' && SR ? (FOL.follow ? 'texto: sigue tu voz' : 'texto: seguirá tu voz') : `texto: ${S.opts.wpm} ppm`);
   if (!isCall() && !S.file) parts.push(FOL.on ? 'voz: navegador' : kwsOn() ? (KWS.tpl ? 'voz: mis palabras' : 'voz: falta enseñar tus palabras') : voiceEngine() === 'no' ? 'voz: desactivada' : 'voz: no disponible');
   const hint = $('#voiceHint');
-  hint.hidden = !(S.live && !isCall() && !S.file && !S.take && !S.countdown && !S.calibrating) || !$('#planCard').hidden;
+  hint.hidden = !(S.live && !isCall() && !S.file && !S.take && !S.countdown && !S.calibrating) || !$('#planCard').hidden || !$('#rehCard').hidden;
   hint.hidden = hint.hidden || !!KWS.enroll;
   const wb = !(kwsOn() && !S.take && !S.countdown && !KWS.enroll && !S.calibrating);
   if ($('#wordsBtn').hidden !== wb) $('#wordsBtn').hidden = wb;
-  const want = FOL.on ? 'voz' : kwsOn() && KWS.tpl ? 'propias' : 'palmas';
+  const rehStep = flowOn() && S.flow === 'ensayo';
+  const want = (FOL.on ? 'voz' : kwsOn() && KWS.tpl ? 'propias' : 'palmas') + (rehStep ? '-ensayo' : '');
   if (hint.dataset.k !== want) {
     hint.dataset.k = want;
-    hint.innerHTML = want === 'voz' ? '🎙️ Di <b>«comenzamos»</b> para grabar · <b>«ensayo»</b> para ensayar · <b>«corten»</b> para parar'
-      : want === 'propias' ? '🎙️ Di <b>«comenzamos»</b> para grabar y <b>«corten»</b> para parar'
-      : '👏👏 Da <b>dos palmadas</b> o pulsa <b>Grabar</b> para empezar';
+    hint.innerHTML = {
+      voz: '🎙️ Di <b>«comenzamos»</b> para grabar · <b>«ensayo»</b> para ensayar · <b>«corten»</b> para parar',
+      propias: '🎙️ Di <b>«comenzamos»</b> para grabar y <b>«corten»</b> para parar',
+      palmas: '👏👏 Da <b>dos palmadas</b> o pulsa <b>Grabar</b> para empezar',
+      'voz-ensayo': '🧪 Primero, el ensayo: di <b>«comenzamos»</b> para empezarlo · <b>«corten»</b> para parar',
+      'propias-ensayo': '🧪 Primero, el ensayo: di <b>«comenzamos»</b> para empezarlo',
+      'palmas-ensayo': '🧪 Primero, el ensayo: da <b>dos palmadas</b> o pulsa <b>Ensayar</b>',
+    }[want];
   }
+  // en qué paso estás y qué botón toca
+  const chip = $('#stepChip'), fo = flowOn() && S.live;
+  const stepTxt = !fo ? '' : S.take ? (S.take.record ? '🔴 Grabando de verdad' : '🧪 Ensayo · no se graba')
+    : S.flow === 'ensayo' ? 'Paso 1 de 2 · Ensayo sin grabar' : 'Paso 2 de 2 · Grabación de verdad';
+  if (chip.textContent !== stepTxt) { chip.textContent = stepTxt; chip.hidden = !stepTxt; chip.classList.toggle('rec', !!(S.take ? S.take.record : S.flow === 'grabar')); }
+  const nx = fo && !S.take && !S.countdown ? (S.flow === 'ensayo' ? 'rehearse' : 'record') : '';
+  if ($('#rehearse').classList.contains('next') !== (nx === 'rehearse')) $('#rehearse').classList.toggle('next', nx === 'rehearse');
+  if ($('#record').classList.contains('next') !== (nx === 'record')) $('#record').classList.toggle('next', nx === 'record');
   $('#status').textContent = parts.join('  ·  ');
 }
 
@@ -3218,8 +3483,6 @@ function addPoints(n) {
   document.body.appendChild(p); setTimeout(() => p.remove(), 1300);
 }
 // emoji y gesto de cada aviso
-const CUE_LOOK = { saludo: ['👋', 'saludo'], contar: ['☝️', 'contar'], abrir: ['👐', 'abrir'], pecho: ['🫶', 'pecho'], palma: ['✋', 'palma'], grande: ['🙌', 'grande'], pequeno: ['🤏', 'pequeno'],
-  pregunta: ['🤷', 'pregunta'], sonrie: ['😁', 'sonrisa'], negar: ['🙅', 'negar'], cta: ['👇', 'cta'], pausa: ['⏸️', null], enfasis: ['📢', null], libre: ['🎬', null] };
 const RULE_LOOK = { nadie: ['📷'], cerca: ['🔍'], lejos: ['🔍'], centro: ['🎯'], cruzados: ['👐', 'descruzar'], cara: ['✋', 'caraFuera'], mirada: ['👀', 'mirar'], manosFuera: ['🙌', 'subir'],
   estatico: ['💃', 'gesticular'], manosQuietas: ['🤲', 'gesticular'], exceso: ['🧘', 'calma'], cerrado: ['👐', 'abrir'], punos: ['✋', 'abrirManos'], nervios: ['🧘', 'calma'], balanceo: ['🧍', 'calma'],
   postura: ['🧍', 'postura'], serio: ['😁', 'sonrisa'], sonrisaSobra: ['😐'], inexpresivo: ['🤨', 'cejas'], ceno: ['😌', 'relajar'], vozBaja: ['🔊'], vozAlta: ['🔉'], monotono: ['🎶'],
@@ -3262,7 +3525,9 @@ function drawOverlay() {
   const g = octx;
   g.setTransform(k, 0, 0, k, 0, 0);
   g.clearRect(0, 0, W, Hh);
-  const showDet = !!(S.opts.skeleton && S.vision);
+  // grabando de verdad con «solo la línea», la imagen queda limpia; leyendo, sin etiquetas de texto
+  const showDet = !!(S.opts.skeleton && S.vision) && !lineOnly();
+  const quietLabels = $('#studio').classList.contains('reading');
   const t = now(), C = S.vision ? S.vision.conn : null, parts = coach.parts || {};
   // la cámara se ve en espejo y llena la pantalla; un vídeo subido, tal cual y entero
   const X = S.file ? (x => x) : (x => W - x);
@@ -3298,6 +3563,7 @@ function drawOverlay() {
   };
   const dot = (p, r, color) => { g.fillStyle = color; g.beginPath(); g.arc(X(p.x), p.y, r, 0, 7); g.fill(); };
   const label = (x, y, txt, k, right = false) => {
+    if (quietLabels) return;
     const w = g.measureText(txt).width, ph = fs * 1.55, pw = w + fs * 1.1;
     const x0 = clamp(right ? x - pw : x, xMin + 4, Math.max(xMin + 4, xMax - pw - 4)), y0 = clamp(y - ph / 2, yMin + 4, Math.max(yMin + 4, yMax - ph - 4));
     g.fillStyle = 'rgba(17,15,23,.78)'; g.beginPath();
@@ -3440,6 +3706,10 @@ $('#pipBack').addEventListener('click', closePip);
 
 /* ---------------- tomas ---------------- */
 function setTakeUI(on, rec = false) {
+  const st = $('#studio'), reading = on && !isCall() && !S.file;
+  st.classList.toggle('reading', reading);
+  st.classList.toggle('line-only', reading && rec && (S.opts.takeHelp || 'linea') === 'linea');
+  if (!on) resetLine();
   $('#rehearse').hidden = on; $('#record').hidden = on; $('#stop').hidden = !on;
   $('#score').hidden = !on; if (on) $('#score').textContent = '⭐ 0';
   $('#record').disabled = typeof MediaRecorder === 'undefined';
@@ -3449,7 +3719,8 @@ async function startTake(record) {
   if (S.take || !S.live || S.countdown) return;
   const file = !!S.file;
   if (file) record = false;
-  $('#planCard').hidden = true;
+  $('#planCard').hidden = true; $('#rehCard').hidden = true;
+  if (record) S.flow = 'grabar';
   if (record && typeof MediaRecorder === 'undefined') { record = false; toast('Este navegador no puede grabar vídeo: hago un ensayo.'); }
   if (S.calibrating) finishCalibration(true);
   if (KWS.enroll) cancelEnroll();
@@ -3459,7 +3730,7 @@ async function startTake(record) {
   if (!call && !file) {
     resetPrompterTo(0); PR.offset = PR.target; markWords(0); PR.idx = 0;
     for (const n of [3, 2, 1]) {
-      stageMsg(`<div class="count-big" aria-live="assertive">${n}</div>`);
+      stageMsg(`<div><div class="count-big" aria-live="assertive">${n}</div>${flowOn() ? `<p class="count-sub">${record ? '🔴 Grabación de verdad · mira la línea: verde, vas bien' : '🧪 Ensayo · no se graba'}</p>` : ''}</div>`);
       await new Promise(r => setTimeout(r, 800));
       if (!S.live) { S.countdown = false; return; }
     }
@@ -3475,7 +3746,7 @@ async function startTake(record) {
   PR.nextCue = S.sc.cues.findIndex(c => c.at >= PR.idx); if (PR.nextCue < 0) PR.nextCue = S.sc.cues.length;
   FOL.pointer = 0; FOL.phraseStart = 0;
   FOL.follow = !call && !file && S.opts.mode === 'voz' && startVoice();
-  if (!call && !file) { stageMsg('<div class="count-big">¡Acción!</div>'); setTimeout(() => { if (S.take && !S.countdown) stageMsg(null); }, 650); }
+  if (!call && !file) { stageMsg(`<div class="count-big">${record || !flowOn() ? '¡Acción!' : '¡Ensayo!'}</div>`); setTimeout(() => { if (S.take && !S.countdown) stageMsg(null); }, 650); }
   if (record) {
     const types = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4'];
     const tk = S.take;
@@ -3499,7 +3770,8 @@ function stopTake(showReport = true) {
   PR.running = false;
   FOL.follow = false;
   setTakeUI(false);
-  const finish = () => { if (showReport) { buildReport(tk); } };
+  // un ensayo no sale del plató: tarjeta con el resultado y a grabar
+  const finish = () => { if (!showReport) return; if (!tk.record && !tk.call && !tk.file && flowOn() && S.live) showRehearsal(tk); else buildReport(tk); };
   if (tk.mr && tk.mr.state !== 'inactive') {
     tk.mr.onstop = () => { tk.blob = new Blob(tk.chunks, { type: tk.mime }); finish(); };
     try { tk.mr.stop(); } catch { finish(); }
@@ -3573,6 +3845,8 @@ const METRIC_OF_GOAL = {};
 for (const [m, [lo, hi]] of Object.entries(GOAL_OF_METRIC)) { if (lo) METRIC_OF_GOAL[lo] = [m, -1]; if (hi) METRIC_OF_GOAL[hi] = [m, 1]; }
 const GOAL_SKIP = new Set(['bien', 'silencio', 'nadie', 'sinPausa', 'asiente', 'caraEscucha', 'distraido']);
 const GOAL_SAME = [['estatico', 'manosQuietas'], ['cerrado', 'cruzados'], ['cerca', 'manosFuera']];
+// de dónde vienen los objetivos, para los textos
+const fromTxt = P => P.from === 'file' ? `tu vídeo «${P.name}»` : P.from === 'ensayo' ? 'tu ensayo' : 'tu toma anterior';
 const goalTxt = id => GOAL_TXT[id] || [(RULE_LOOK[id] || [])[0] || '🎯', id];
 // parte del tiempo con el problema: por la medida (si tiene) o por el aviso activo
 function problemShare(log, id) {
@@ -3600,7 +3874,7 @@ function makePlan(tk, gaps, avg, topP, tone) {
     ids.push(id);
   }
   return { ids, base: Object.fromEntries(ids.map(id => [id, problemShare(tk.log, id)])), match: avg, perceived: topP, tone,
-    from: tk.file ? 'file' : 'take', name: tk.file || null };
+    from: tk.file ? 'file' : tk.record ? 'take' : 'ensayo', name: tk.file || null };
 }
 // ¿falla ahora? Con medida, en cuanto sale de la franja del tono (como en el informe); si no, el aviso activo
 function goalBad(id, c) {
@@ -3620,7 +3894,7 @@ function goalListHTML(ids, sub, badge) {
 function renderPlanBanner() {
   const P = S.plan, el = $('#planBanner');
   if (!P?.ids.length) { el.hidden = true; el.innerHTML = ''; return; }
-  el.innerHTML = `<b>🎯 Objetivos para tu próxima toma</b><span class="note">${P.from === 'file' ? `de tu vídeo «${esc(P.name)}»` : 'de tu última toma'}: te los marcaré en directo.</span>
+  el.innerHTML = `<b>🎯 Objetivos para tu próxima toma</b><span class="note">de ${esc(fromTxt(P))}: te los marcaré en directo.</span>
     <div class="goals">${goalChips(P.ids)}</div><button class="ghost" type="button" id="planClear">Quitar</button>`;
   el.hidden = false;
 }
@@ -3629,7 +3903,7 @@ function showPlanCard(next = '') {
   const P = S.plan;
   if (!P?.ids.length || S.file || isCall() || S.take || S.countdown || KWS.enroll || S.calibrating || !S.live) return false;
   $('#planNext').textContent = next; $('#planNext').hidden = !next;
-  $('#planFrom').textContent = P.from === 'file' ? `Es lo que más te conviene mejorar de tu vídeo «${P.name}».` : 'Es lo que más te conviene mejorar de tu toma anterior.';
+  $('#planFrom').textContent = `Es lo que más te conviene mejorar de ${fromTxt(P)}.`;
   $('#planList').innerHTML = goalListHTML(P.ids, id => esc(TIPS[id] || ''));
   $('#planCard').hidden = false;
   return true;
@@ -3670,7 +3944,9 @@ const TIPS = {
   cerca: 'Coloca la cámara a un brazo y medio de distancia.', lejos: 'Acércate hasta que se te vea de cintura para arriba.',
   centro: 'Ponte en el centro del encuadre.', nadie: 'Mantente dentro del encuadre durante toda la toma.', silencio: '',
 };
-function buildReport(tk) {
+const lookOf = k => TONES[k] || STATES[k];
+// lo común del informe y del resultado del ensayo: ajuste medio, tono, lo que se transmitió y medidas fuera de la franja
+function takeStats(tk) {
   const call = !!tk.call, file = !!tk.file;
   const L = tk.log.filter(s => s.match != null);
   const avg = L.length ? Math.round(mean(L.map(s => s.match))) : null;
@@ -3681,15 +3957,29 @@ function buildReport(tk) {
   for (const s of tk.log) if (s.perceived) pc[s.perceived] = (pc[s.perceived] || 0) + 1;
   const pTot = Object.values(pc).reduce((a, b) => a + b, 0) || 1;
   const pSorted = Object.entries(pc).sort((a, b) => b[1] - a[1]);
-  const lookOf = k => TONES[k] || STATES[k];
   const topP = pSorted[0]?.[0];
-  // brechas medias
   const gaps = METRICS.filter(m => m.w || (m.id === 'mirada' && (call || file))).map(m => {
     let below = 0, above = 0, n = 0, vals = [];
     for (const s of tk.log) { const v = s.M[m.id]; if (v == null) continue; const [lo, hi] = targetsFor(s.tone)[m.id]; n++; vals.push(v); if (v < lo) below++; else if (v > hi) above++; }
     return { m, n, avg: mean(vals), below: n ? below / n : 0, above: n ? above / n : 0, inBand: n ? 1 - (below + above) / n : null };
   });
   const worst = gaps.filter(g => g.n > 4).map(g => ({ ...g, score: Math.max(g.below, g.above) * (g.m.w || .8) })).sort((a, b) => b.score - a.score).filter(g => g.score > .25).slice(0, 2);
+  return { avg, mainTone, pc, pTot, pSorted, topP, gaps, worst };
+}
+// en redes, los 3 primeros segundos deciden si se quedan a verte
+function hookNote(tk, tone) {
+  const ss = tk.log.filter(s => s.t <= 4 && s.match != null);
+  if (ss.length < 3) return '';
+  const m = Math.round(mean(ss.map(s => s.match))), k = {};
+  for (const s of ss) if (s.perceived) k[s.perceived] = (k[s.perceived] || 0) + 1;
+  const top = Object.entries(k).sort((a, b) => b[1] - a[1])[0]?.[0], P = top && lookOf(top);
+  return m >= 70 && !STATES[top]?.neg ? `🎣 Buen arranque: en los 3 primeros segundos ya transmites ${P ? P.name.toLowerCase() : 'lo que buscas'} (${m}%).`
+    : `🎣 El arranque (3 primeros segundos, ${m}%) se ve ${P ? P.name.toLowerCase() : 'flojo'}: en redes es lo que decide si se quedan a verte. Empieza ya con la energía de un mensaje ${TONES[tone].adj}.`;
+}
+const durNote = tk => !tk.call && tk.dur > 62 ? `⏱️ Ha durado ${fmtTime(tk.dur)}. Para Reels, TikTok y Shorts conviene menos de un minuto: recorta el guion o ve un poco más rápido.` : '';
+function buildReport(tk) {
+  const call = !!tk.call, file = !!tk.file;
+  const { avg, mainTone, pc, pTot, pSorted, topP, gaps, worst } = takeStats(tk);
   const T0 = TONES[mainTone];
   let story = `Querías transmitir un mensaje <b style="--tc:${T0.color}">${T0.adj}</b>`;
   if (topP) {
@@ -3742,6 +4032,32 @@ function buildReport(tk) {
   const ext = (tk.mime || '').includes('mp4') ? 'mp4' : 'webm';
   const stamp = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '');
   const rc = avg == null ? 'var(--dim)' : avg >= 75 ? 'var(--ok)' : avg >= 55 ? 'var(--warn)' : 'var(--bad)';
+  // ---- panel: lo esencial, claro y arriba ----
+  const delta = tk.plan && avg != null && tk.plan.match != null ? avg - tk.plan.match : null;
+  const verdictWord = avg == null ? 'Sin datos' : avg >= 75 ? '¡Bien!' : avg >= 55 ? 'Casi' : 'A mejorar';
+  const firstSentence = x => { x = x || ''; const i = x.indexOf('. '); return i < 0 ? x : x.slice(0, i + 1); };
+  // en qué fallas: los objetivos para la próxima (lo que más tiempo estuvo mal); en una llamada, los avisos que más salieron
+  const badItems = plan ? plan.ids.map(id => { const [e, l] = goalTxt(id); const prev = ba?.find(r => r.id === id)?.b; return { e, l, pct: plan.base[id], prev, how: firstSentence(TIPS[id]) }; })
+    : fixes.slice(0, 3).map(([id, f]) => ({ e: (RULE_LOOK[id] || ['⚠️'])[0], l: f.title, pct: null, n: f.n, how: firstSentence(TIPS[id]) }));
+  // lo que mejoras (frente a la toma de antes) y lo que ya haces bien (medidas en su franja casi siempre)
+  const goodItems = [];
+  for (const r of ba || []) if (r.v[0] === 'ok') { const [e, l] = goalTxt(r.id); goodItems.push({ e, l, txt: r.b != null && r.b > .08 ? `${pctT(r.b)} → ${pctT(r.a)} del tiempo con el problema` : 'Bien todo el rato' }); }
+  for (const g of gaps.filter(g => g.n > 5 && g.inBand >= .7).sort((a, b) => b.inBand - a.inBand)) {
+    if (goodItems.length >= 4) break;
+    goodItems.push({ e: '✅', l: g.m.name, txt: `${Math.round(g.inBand * 100)}% del tiempo en su sitio` });
+  }
+  // la toma como una línea de colores: dónde ibas bien y dónde no
+  const NB = Math.min(120, Math.max(10, Math.round(tk.dur * 2))), bins = Array.from({ length: NB }, () => ({ ok: 0, warn: 0, bad: 0 }));
+  for (const sm of tk.log) {
+    const k = sm.line || (sm.match == null ? '' : sm.match >= 75 ? 'ok' : sm.match >= 55 ? 'warn' : 'bad');
+    if (k) bins[Math.min(NB - 1, Math.floor(sm.t / Math.max(1, tk.dur) * NB))][k]++;
+  }
+  const binK = b => { const m = Math.max(b.ok, b.warn, b.bad); return !m ? 'na' : b.ok === m ? 'ok' : b.bad === m ? 'bad' : 'warn'; };
+  const strip = bins.map((b, i) => `<i class="s-${binK(b)}" data-t="${(i / NB * tk.dur).toFixed(1)}"></i>`).join('');
+  const shareK = k => { const n = bins.filter(b => binK(b) !== 'na').length || 1; return Math.round(bins.filter(b => binK(b) === k).length / n * 100); };
+  const ctaHTML = call ? `<button class="primary" data-act="again">${ico('repetir')}Otra sesión</button>`
+    : file ? `<button class="primary" data-act="improve">${ico('camara')}Grabar la versión mejorada</button>`
+    : `<button class="primary" data-act="again">${ico('repetir')}${plan?.ids.length ? 'Grabar otra vez con estos objetivos' : 'Grabar otra vez'}</button>`;
   const el = $('#report');
   el.innerHTML = `
     <header class="rep-head">
@@ -3751,14 +4067,48 @@ function buildReport(tk) {
         ${!call && !file && (FOL.on || (kwsOn() && KWS.tpl)) ? `<span class="pill">🎙️ Di «comenzamos» para otra toma</span>` : ''}
         ${tk.blob ? `<a class="ghost" href="${url}" download="apuntador-${stamp}.${ext}">${ico('descargar')}Descargar vídeo</a>` : ''}
         ${file ? `<button class="ghost" data-act="edit">${ico('volver')}Volver al inicio</button>
-        <button class="ghost" data-act="another">${ico('pelicula')}Analizar otro vídeo</button>
-        <button class="primary" data-act="improve">${ico('camara')}Grabar la versión mejorada</button>`
-        : `<button class="ghost" data-act="edit">${ico('volver')}${call ? 'Volver al inicio' : 'Editar guion'}</button>
-        <button class="primary" data-act="again">${ico('repetir')}${call ? 'Otra sesión' : plan?.ids.length ? 'Repetir con estos objetivos' : 'Repetir toma'}</button>`}
+        <button class="ghost" data-act="another">${ico('pelicula')}Analizar otro vídeo</button>`
+        : `<button class="ghost" data-act="edit">${ico('volver')}${call ? 'Volver al inicio' : 'Editar guion'}</button>`}
       </div>
     </header>
-    <div class="rep-top">
-      ${url ? `<div class="player"><video id="repVideo" src="${url}" controls playsinline></video></div>` : `<div class="noplayer">${call ? 'Sesión sin grabación. Pulsa «Grabar» para guardar tu vídeo y repasarlo con las marcas.' : 'Ensayo sin grabación. Pulsa «Grabar» en el plató para guardar el vídeo de la toma.'}</div>`}
+    <section class="dash" aria-label="Resumen">
+      <div class="dash-main">
+        <div class="dash-score">
+          <div class="ring" style="--p:${avg ?? 0};--rc:${rc}"><span>${avg == null ? '--' : avg + '%'}</span></div>
+          <div>
+            <b class="dash-verdict" style="color:${rc}">${verdictWord}</b>
+            ${delta != null ? `<span class="delta ${delta >= 3 ? 'up' : delta <= -3 ? 'down' : ''}">${delta >= 3 ? '▲' : delta <= -3 ? '▼' : '='} ${delta > 0 ? '+' : ''}${delta} frente a ${esc(fromTxt(tk.plan))}</span>` : ''}
+            <p>${call ? 'Ajuste de lo que transmitías' : `Querías un mensaje <b style="color:${T0.color}">${T0.adj}</b>`}${topP ? ` · se te vio <b style="color:${lookOf(topP).color}">${lookOf(topP).name.toLowerCase()}</b>` : ''}</p>
+          </div>
+        </div>
+        <div class="dash-cols">
+          <div class="dash-card bad">
+            <h3>🔴 En qué fallas</h3>
+            ${badItems.length ? `<p class="dash-sub">${badItems.some(b => b.pct != null) ? 'El % es la parte de la toma con ese problema.' : 'Los avisos que más te salieron.'}</p>
+            <ul>${badItems.map(b => `<li><span class="de">${b.e}</span><b>${esc(b.l)}</b><span class="dp">${b.pct != null ? Math.round(b.pct * 100) + '%' : b.n + '×'}${b.prev != null && b.pct != null ? `<em class="${b.pct < b.prev - .05 ? 'up' : b.pct > b.prev + .05 ? 'down' : ''}">antes ${Math.round(b.prev * 100)}%</em>` : ''}</span><small>${esc(b.how || '')}</small></li>`).join('')}</ul>`
+              : '<p class="dash-empty">Nada importante. 👏</p>'}
+          </div>
+          <div class="dash-card good">
+            <h3>🟢 ${ba?.some(r => r.v[0] === 'ok') ? 'Lo que has mejorado' : 'Lo que haces bien'}</h3>
+            ${goodItems.length ? `<ul>${goodItems.map(g => `<li><span class="de">${g.e}</span><b>${esc(g.l)}</b><small>${esc(g.txt)}</small></li>`).join('')}</ul>`
+              : '<p class="dash-empty">Aún nada destacado: céntrate en lo rojo.</p>'}
+          </div>
+        </div>
+        ${call ? '' : (() => { const ns = [hookNote(tk, mainTone), durNote(tk)].filter(Boolean); return ns.length ? `<div class="rnotes">${ns.map(n => `<p class="note">${esc(n)}</p>`).join('')}</div>` : ''; })()}
+        <div class="actions">${ctaHTML}</div>
+      </div>
+      <div class="dash-side">
+        ${url ? `<div class="player"><video id="repVideo" src="${url}" controls playsinline></video></div>` : `<div class="noplayer">${call ? 'Sesión sin grabación.' : 'Ensayo sin grabación: al grabar de verdad verás aquí el vídeo.'}</div>`}
+        <div class="dash-line">
+          <div class="dl-head"><b>Tu ${call ? 'sesión' : 'toma'}, de principio a fin</b><span><i class="s-ok"></i>${shareK('ok')}% bien <i class="s-warn"></i>${shareK('warn')}% regular <i class="s-bad"></i>${shareK('bad')}% mal</span></div>
+          <div class="strip" id="repStrip" title="${url ? 'Pulsa para ir a ese momento' : ''}">${strip}</div>
+          <div class="dl-time"><span>0:00</span><span>${fmtTime(tk.dur)}</span></div>
+        </div>
+      </div>
+    </section>
+    <details class="more" id="repMore">
+      <summary>Ver el análisis completo</summary>
+    <div class="rep-top solo">
       <div class="summary">
         <div class="score">
           <div class="ring" style="--p:${avg ?? 0};--rc:${rc}"><span>${avg == null ? '--' : avg + '%'}</span></div>
@@ -3781,7 +4131,7 @@ function buildReport(tk) {
     ${file && seenShare < .5 ? `<p class="note" style="margin:0 0 4px">⚠️ Solo se pudo medir la imagen en el ${Math.round(seenShare * 100)}% del vídeo: o no se te veía bien (luz, encuadre) o este dispositivo analiza pocas imágenes por segundo. Para un análisis más fino, prueba en un ordenador o cierra otras aplicaciones.</p>` : ''}
     ${ba ? `<section class="panel">
       <h2>Antes y después</h2>
-      <p class="sub">Comparado con ${tk.plan.from === 'file' ? `tu vídeo «${esc(tk.plan.name)}»` : 'la toma anterior'}. El porcentaje es la parte del tiempo con ese problema: cuanto más bajo, mejor.</p>
+      <p class="sub">Comparado con ${esc(fromTxt(tk.plan))}. El porcentaje es la parte del tiempo con ese problema: cuanto más bajo, mejor.</p>
       <div class="ba-top">
         <span>Ajuste al tono <b>${tk.plan.match ?? '--'}%</b><span class="arrow">→</span><b style="color:${avg == null || tk.plan.match == null ? 'inherit' : avg > tk.plan.match ? 'var(--ok)' : avg < tk.plan.match - 4 ? 'var(--bad)' : 'inherit'}">${avg ?? '--'}%</b></span>
         ${tk.plan.perceived && topP ? `<span>Se te veía <b style="color:${lookOf(tk.plan.perceived).color};font-size:1.2rem">${lookOf(tk.plan.perceived).name}</b><span class="arrow">→</span><b style="color:${lookOf(topP).color};font-size:1.2rem">${lookOf(topP).name}</b></span>` : ''}
@@ -3826,7 +4176,10 @@ function buildReport(tk) {
     ${cueEv.length ? `<section class="panel"><h2>Acotaciones</h2><div class="tbl"><table class="rows"><thead><tr><th>Momento</th><th>Gesto</th><th>En la frase</th><th>Resultado</th></tr></thead><tbody>
       ${cueEv.map(e => { const w = S.sc.words.slice(e.cue.at, e.cue.at + 5).map(x => x.text).join(' '); return `<tr><td class="num" style="text-align:left">${fmtTime(e.t)}</td><td>${esc(e.title)}</td><td>«${esc(w)}…»</td><td>${e.outcome === 'hit' ? '<span class="pill ok">' + ico('ok') + 'Hecho</span>' : e.outcome === 'miss' ? '<span class="pill no">No se vio</span>' : '<span class="pill na">Sin comprobar</span>'}</td></tr>`; }).join('')}
     </tbody></table></div></section>` : ''}
+    </details>
   `;
+  $('#repStrip').addEventListener('click', e => { const v = $('#repVideo'), i = e.target.closest('i'); if (v && i) { v.currentTime = +i.dataset.t; v.play?.(); } });
+  $('#repMore').addEventListener('toggle', () => { if ($('#repMore').open) drawTimeline(tk); });
   S.lastReport = tk;
   leaveStudioForReport();
   requestAnimationFrame(() => drawTimeline(tk));
