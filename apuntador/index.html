@@ -4290,7 +4290,7 @@ function updateStatus(t) {
     }[want];
   }
   // en qué paso estás y qué botón toca
-  const chip = $('#stepChip'), fo = flowOn() && S.live;
+  const chip = mq('#stepChip'), fo = flowOn() && S.live;   // el monitor puede estar en la ventana flotante
   const stepTxt = !fo ? '' : S.take ? (S.take.record ? '🔴 Grabando de verdad' : '🧪 Ensayo · no se graba')
     : S.flow === 'ensayo' ? 'Paso 1 de 2 · Ensayo sin grabar' : 'Paso 2 de 2 · Grabación de verdad';
   if (chip.textContent !== stepTxt) { chip.textContent = stepTxt; chip.hidden = !stepTxt; chip.classList.toggle('rec', !!(S.take ? S.take.record : S.flow === 'grabar')); }
