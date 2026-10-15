@@ -20,6 +20,24 @@ brazos» en «todos»…), te avisa cuando llegas a ellos, te enseña cómo hace
 leyendo, en este modo no te corrige la mirada. Marcas: `[animado]` cambia el tono desde
 ese párrafo, `//` es una pausa, `*palabra*` pide énfasis y `{abre los brazos}` es una acotación tuya.
 
+**El texto se lee limpio.** En el teleprompter solo están las palabras que dices. Lo que hay que hacer va fuera:
+- en el margen izquierdo, el emoji del gesto a la altura de su línea (👋, ☝️, 👐…): se ilumina al llegar y queda con ✓
+  si lo haces;
+- una franja de color en el margen donde cambia el tono (en lugar de la etiqueta dentro del texto);
+- las pausas `//` son una raya fina; las palabras con énfasis, en otro color;
+- mientras lees, los avisos salen abajo, cortos (sin explicación), de uno en uno y con respiro; no hay ideas ni
+  etiquetas del esqueleto, y el monitor se recoge.
+
+**Ensayo antes de grabar** (activado por defecto; se quita en Ajustes). Pensado para vídeos de redes:
+1. *Paso 1 · Ensayo*: «comenzamos» (o dos palmadas, o Ensayar) hace una prueba sin grabar, con todas las
+   correcciones. «Corten» la para al momento.
+2. Sin salir del plató aparece el resultado: ajuste al tono, lo que transmitiste, cómo es el arranque (los 3 primeros
+   segundos, lo que decide en redes si se quedan a verte), si dura más de un minuto (Reels, TikTok, Shorts) y hasta
+   tres cosas en las que fijarte.
+3. *Paso 2 · Grabación de verdad*: «comenzamos» graba. Por defecto no hay avisos ni monitor encima: **la franja de
+   lectura se pone verde** si te acercas a tus objetivos (lo haces mejor que en el ensayo), **ámbar** si vas igual y
+   **roja** si te alejas. En Ajustes, «Mientras grabas de verdad», se pueden volver a poner los avisos.
+
 **Analizar un vídeo que ya grabaste.** «Analizar un vídeo grabado» (en «Grabar un vídeo») sube un vídeo del móvil o
 del ordenador. Se reproduce en el plató, entero y sin espejo, y pasa por el mismo análisis que la cámara: el
 esqueleto de cara, cuerpo y manos encima, los avisos y la sombra con el gesto en el momento en que pasan. Al terminar,
@@ -80,6 +98,9 @@ abre la llamada en otra pestaña del mismo navegador.
   además, una sombra luminosa lo hace encima de tu propio cuerpo, anclada a tus hombros (abrir los brazos, mano al
   pecho, contar con los dedos, saludar, descruzar los brazos, bajar los hombros, separar los codos…). Los gestos de
   la cara (sonreír, subir las cejas, relajar el ceño, asentir) se dibujan sobre tu cara.
+- **La línea**: la franja de lectura cambia de color durante la toma (verde, ámbar, roja). Con objetivos se compara
+  con el ensayo o la toma anterior (la parte de los últimos 6 segundos con cada problema frente a la de entonces); sin
+  objetivos, con el ajuste al tono. Cambia solo si el nuevo color dura más de un segundo, para que no parpadee.
 - **Avisos** de uno en uno, con emoji, con un tiempo mínimo y un descanso para no agobiar: correcciones (ámbar y
   rojo), gestos del guion (azul), ideas cuando todo va bien (azul) y felicitaciones (verde).
 - **¿Lo estoy haciendo bien?**: al entrar te confirma «¡Te veo!» y marca con ✓ cara, cuerpo, manos y voz. El monitor
@@ -87,9 +108,16 @@ abre la llamada en otra pestaña del mismo navegador.
   bien, te lo dice a menudo.
 - **Puntos**: +10 por cada gesto del guion que haces (más si encadenas una racha), +5 al corregir algo y +3 cuando lo
   estás haciendo bien, con celebración de emojis. El informe muestra los puntos y la mejor racha.
-- **Informe** al terminar: ajuste segundo a segundo, lo que transmitiste (hablando y escuchando por separado en
-  una llamada), qué corregir primero, cada parte del cuerpo con lo que más hizo, medidas frente al objetivo,
-  párrafos y gestos del guion, y el vídeo si grabaste.
+- **Informe** al terminar, con un panel arriba muy claro:
+  - la nota (ajuste al tono) con un «¡Bien!», «Casi» o «A mejorar» y, si repites, «▲ +10 frente a tu ensayo»;
+  - 🔴 *En qué fallas*: hasta tres cosas, con la parte de la toma que estuvo mal, cuánto era antes y cómo corregirlo;
+  - 🟢 *Lo que has mejorado* o *Lo que haces bien*;
+  - el arranque y la duración para redes;
+  - el vídeo y la toma como una línea verde, ámbar y roja de principio a fin (pulsa en ella para ir a ese momento);
+  - el botón para grabar otra vez con esos objetivos.
+
+  Debajo, plegado, el análisis completo: lo que transmitiste, antes y después, ajuste segundo a segundo, qué
+  corregir primero, medidas frente al objetivo, cada parte del cuerpo, párrafos y gestos del guion.
 
 Atajos en el plató: Espacio empezar/pausar (con un vídeo subido, empezar el análisis o pausarlo), R grabar, Esc terminar, ↑/↓ velocidad, +/− letra, S dibujo, M monitor.
 
