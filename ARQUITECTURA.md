@@ -64,7 +64,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 | `src/ui/` y `src/ui.js` | HUD, iconos SVG e iconos 3D horneados (`icon3d`, que guarda WebP en `src/assets/icons3d`), retratos, mapa y minijuegos pequeños |
 | `src/data/` | Datos: pueblos y misiones (`levels.js`), comarcas con su cultura y su traje (`comarcas.json`), montes, fauna, comida y equipo (`equipo.js`), tiendas y producto estrella (`tiendas.js`), personajes (`cast.js`) y euskera (`eu.js`) |
 | `src/i18n.js` | Castellano, euskera y modo «Aprende euskera» (botón ES para ver el castellano unos segundos) |
-| `src/audio.js` | Sonido procedural con Web Audio: ambiente, animales y música por ambientes (explorar, noche, misterio, tensión, juego, fiesta y deporte: en los partidos, los campeonatos y el menú, una música de juego con bajo y batería de estadio) |
+| `src/audio.js` | Sonido procedural con Web Audio: ambiente, animales y música por ambientes (explorar, noche, misterio, tensión, juego, fiesta, deporte e inicio: en los partidos y los campeonatos, una música de juego con bajo y batería de estadio; en el menú, el tema de inicio, un tema propio de aventura con la orquesta sintetizada: trompas, cuerdas, coro, arpa, campanillas, bajo, timbales, caja y platillo; lo pone `main.js` al primer toque del menú y al volver a él) |
 | `src/crowdAudio.js` | El público de la pelota y del fútbol, sintetizado: murmullo de treinta voces con formantes, aplauso de 160 personas a la vez, «¡oooh!», lamento y estallido. Se calcula una vez, a trozos, mientras carga el partido (`crowdBuffers`); `Crowd` lo reproduce con su nivel según el momento |
 
 ## Convenciones
@@ -129,8 +129,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   las comarcas, sus paisajes. Se ven en la carga, en la ficha y la tarjeta del pueblo, en la cabecera de cada comarca,
   en los cuentos que no tengan su ilustración propia, en el taller de cada oficio, en Torneos y en el álbum (Más · Láminas), en tiras que se deslizan de
   lado y con un visor a pantalla completa. Van en WebP, que lee cualquier iPhone: en AVIF, algunos visores no las
-  enseñaban. En la web van todas, a 1280 × 720 y con copia de 640 × 360 para tarjetas (tools/laminas-pequenas.mjs);
-  en el archivo único, a 640 × 360, solo las que se ven fuera del álbum (alias `@laminas` de `vite.config.js`). Con
+  enseñaban. En la web van todas, a 1280 × 720 y con copia de 640 × 360 para tarjetas (tools/laminas-pequenas.mjs) y
+  grande de 2560 × 1440 (`src/assets/laminas/grande`, alias `@laminas-big`): el autor las entregó a 1280 y, a pantalla
+  entera en un móvil de densidad 3 o en un ordenador (el inicio, la cabecera de la comarca, el visor), se veían
+  pixeladas; las grandes salen de las de 1280 ampliadas al doble con Real-ESRGAN (tools/laminas-grandes.mjs) y solo
+  las pide la pantalla que las necesita, con el mismo mecanismo de `src/web/hd.js` que usa el archivo único (en la web,
+  `hdTable` con la tabla de las grandes). En el archivo único, a 640 × 360, solo las que se ven fuera del álbum (alias `@laminas` de `vite.config.js`). Con
   conexión (en el móvil, la tableta o el ordenador), el archivo único cambia cada imagen que en pantalla se ve más grande
   de lo que mide por la de la web publicada del tamaño justo (`src/web/hd.js`, con la lista `hd.json` que escribe la
   compilación web con los anchos de cada una): láminas, leyendas, cimas, personajes, tradiciones, fauna, flora, iconos,
@@ -280,6 +284,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 | `llamadas.mjs` | Mide las llamadas de dibujo por partes |
 | `mitos.mjs` | Prueba Basajaun, la lamia, la sorgina y Roldán con capturas |
 | `musica.mjs` | Prueba la música por ambientes |
+| `musica-inicio.mjs` | Graba la música de un ambiente (el tema de inicio) con un contexto fuera de línea: WAV, nivel por segundos y pico; `SOLO=` para medir cada instrumento |
 | `fauna-512.mjs` | Rehace la fauna del archivo único (`src/assets/fauna/512`) desde las de 1280: 512 px, WebP calidad 80 |
 | `euskera.mjs` | Prueba el modo «Aprende euskera» |
 | `eu-faltan.mjs` | Juega en euskera con `?eufaltan` (menú, fichas y las misiones de los pueblos pedidos o de `todos`) y apunta lo que se queda sin traducir en `/tmp/eu-faltan.json`. Las tarjetas y minijuegos que `__autoWin` se salta pasan sus textos por `window.__autoSeen` |
@@ -310,6 +315,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 | `pelota-camara-parejas.mjs` | Pelota por parejas: en cada golpe, si el que golpea sale en la imagen |
 | `jugadores-duos.mjs` | Recorta las parejas de cada equipación del ZIP del autor: a su alto completo para la VS y 480 para los menús |
 | `laminas-pequenas.mjs` | Las copias pequeñas de las láminas de la web, de 640 × 360 |
+| `laminas-grandes.mjs` | Las láminas grandes de la web, de 2560 × 1440: las de 1280 ampliadas al doble con Real-ESRGAN (`laminas-ampliar.py`, en CPU) y guardadas en WebP |
 | `cimas-tarjetas.mjs` | Las escenas de las cimas de 1024 para las tarjetas de la web |
 | `nitidez.mjs` | Nitidez de las imágenes en el iPhone 12 tumbado: cuánto se amplía cada una, por pantallas (URL de la web o del archivo único con MINI=1) |
 | `nitidez-hd.mjs` | Nitidez del archivo único con red (las imágenes grandes de `hd.json` se sirven desde `docs/`) o sin ella (`SIN_RED=1`): al llegar a cada pantalla y 5 s después |
