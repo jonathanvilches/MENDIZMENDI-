@@ -903,7 +903,13 @@ function bindOpts() {
   $('#lang').value = o.lang; $('#lang').addEventListener('change', e => { o.lang = e.target.value; save(); });
 }
 renderTones(); bindOpts(); refreshSetup();
-$('#go').addEventListener('click', enterStudio);
+function primeAudio() {
+  try {
+    if (!S.actx || S.actx.state === 'closed') S.actx = new (window.AudioContext || window.webkitAudioContext)();
+    S.actx.resume?.().catch(() => {});
+  } catch {}
+}
+$('#go').addEventListener('click', () => { primeAudio(); enterStudio(); });
 
 /* ---------------- plató: entrada y salida ---------------- */
 const video = $('#cam'), overlay = $('#overlay'), octx = overlay.getContext('2d'), ghostCv = $('#ghost'), gctx = ghostCv.getContext('2d');
@@ -1043,7 +1049,7 @@ async function enterStudio() {
 $('#stageMsg').addEventListener('click', e => {
   const a = e.target.closest('[data-act]')?.dataset.act;
   if (a === 'back') leaveStudio();
-  if (a === 'retry') enterStudio();
+  if (a === 'retry') { primeAudio(); enterStudio(); }
   if (a === 'skipcal') finishCalibration(true);
 });
 
@@ -1174,7 +1180,7 @@ function loadVisionWorker(progress) {
     };
     w.onerror = ev => { ev.preventDefault?.(); fail(new Error(ev.message || 'worker')); };
     progress('Descargando modelos…', 16);
-    w.postMessage({ type: 'init', mp: MP, models: MODEL, cpu: FORCE_CPU, opts: VISION_OPTS });
+    w.postMessage({ type: 'init', mp: MP, models: MODEL, cpu: FORCE_CPU || IS_IOS, opts: VISION_OPTS });
   });
 }
 // con la ventana flotante abierta se analiza su vídeo, que sigue visible aunque esta pestaña quede detrás
@@ -1212,6 +1218,16 @@ function visionPump(t) {
     return;
   }
   if (VW.busy && performance.now() - VW.sentAt < 3000) return;
+  if (VW.busy) {
+    VW.stalls = (VW.stalls || 0) + 1;
+    if (VW.stalls >= 3 && !VW.switching) {
+      VW.switching = true; console.warn('El análisis en segundo plano no contesta: paso al hilo principal');
+      try { S.vision.worker.terminate(); } catch {}
+      const old = S.vision; S.vision = null; VW.busy = false;
+      loadVision(() => {}).then(v => { S.vision = v; }).catch(e => { S.vision = null; S.visionErr = e; old && toast('El análisis de imagen se ha parado. Te sigo ayudando con la voz.', 6000); });
+      return;
+    }
+  }
   if (t - VW.lastSend < (IS_MOBILE ? 1 / 15 : 1 / 30)) return;
   const [which, ts] = nextTask();
   VW.busy = true; VW.sentAt = performance.now(); VW.lastSend = t;
@@ -1225,7 +1241,7 @@ function visionPump(t) {
 function onWorkerMessage(e) {
   const m = e.data;
   if (m.type !== 'result') return;
-  VW.busy = false;
+  VW.busy = false; VW.stalls = 0;
   if (m.err) console.warn(m.which, m.err);
   try { if (S.live && m.out) handleVisionResult(m.which, m.out, m.ts / 1000, m.ms); } catch (err) { console.warn(err); }
 }
@@ -1516,8 +1532,9 @@ async function setupAudio(stream) {
   if (S.audio) return;
   let ctx;
   try {
-    ctx = new (window.AudioContext || window.webkitAudioContext)();
-    ctx.resume?.();
+    ctx = S.actx && S.actx.state !== 'closed' ? S.actx : new (window.AudioContext || window.webkitAudioContext)();
+    S.actx = null;
+    ctx.resume?.().catch?.(() => {});
     const src = ctx.createMediaStreamSource(stream);
     try {
       const url = URL.createObjectURL(new Blob([WORKLET_SRC], { type: 'application/javascript' }));
