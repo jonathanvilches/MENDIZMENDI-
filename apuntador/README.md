@@ -12,7 +12,9 @@ Es un prototipo web de un solo archivo (`index.html`), sin servidor ni instalaci
 
 **Grabar un vídeo.** Pegas el guion, eliges el tono (animado, cercano, serio, inspirador, calmado, divertido,
 urgente) y lo lees como en un teleprompter. Di «comenzamos» y empieza la cuenta atrás y la grabación; «ensayo»
-ensaya sin grabar y «corten» termina (también hay botones). El texto sigue tu voz o avanza a velocidad fija. La app
+ensaya sin grabar y «corten» termina. También puedes empezar dando dos palmadas o con el botón. En el móvil las
+órdenes de voz vienen desactivadas, porque en iPhone y en algunos Android el reconocimiento de voz puede cortar la
+cámara; se pueden activar en Ajustes. El texto sigue tu voz o avanza a velocidad fija. La app
 coloca gestos en el guion («saluda con la mano» en «hola», «cuenta con los dedos» en una enumeración, «abre los
 brazos» en «todos»…), te avisa cuando llegas a ellos, te enseña cómo hacerlos y comprueba si los haces. Como estás
 leyendo, en este modo no te corrige la mirada. Marcas: `[animado]` cambia el tono desde
@@ -54,6 +56,16 @@ abre la llamada en otra pestaña del mismo navegador.
   párrafos y gestos del guion, y el vídeo si grabaste.
 
 Atajos en el plató: Espacio empezar/pausar, R grabar, Esc terminar, ↑/↓ velocidad, +/− letra, S dibujo, M monitor.
+
+## Si no te ves o la imagen se para
+
+- La cámara se ve nada más entrar; los modelos se cargan y la calibración se hace sin tapar la imagen.
+- Si la cámara no responde en 20 segundos, está ocupada por otra aplicación (Zoom, Teams, FaceTime…), falta el
+  permiso o la página se ha abierto donde el navegador no da cámara (la vista previa de la app de Claude o de
+  Archivos), la app lo dice con el motivo y un botón para reintentar.
+- Si la cámara se corta a mitad (otra aplicación la coge, el móvil pausa la página, la imagen deja de avanzar),
+  aparece «La cámara se ha parado» con un botón para reactivarla; al volver a la pestaña se reactiva sola.
+- El bucle de la pantalla está protegido: si una parte falla, las demás siguen funcionando.
 
 ## Cómo probarlo
 
