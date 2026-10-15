@@ -1,60 +1,82 @@
 # Apuntador
 
-Teleprompter con director de escena. Mientras lees el guion delante de la cámara, la app analiza en directo
-el cuerpo, la cara y la voz, y te dice qué estás transmitiendo frente a lo que el mensaje debería transmitir:
-«Estás muy estático», «Usa las manos para explicar», «Descruza los brazos», «Sonríe más: tu mensaje es animado
-y tu cara se ve seria», «Varía la entonación», «Más despacio»…
+Director de escena para vídeos y videollamadas. Mira tu cara (contorno, cejas, ojos, iris, labios), tu cuerpo
+(hombros, codos, muñecas, postura) y cada mano con sus 21 puntos, y escucha tu voz. Con eso te dice en el
+momento qué estás transmitiendo frente a lo que querías transmitir, te corrige y te da ideas para mejorarlo:
+«Descruza los brazos», «Baja los hombros», «Sonríe más: tu mensaje es animado y tu cara se ve seria»,
+«Asiente de vez en cuando», «Idea: enumera con los dedos lo próximo que digas»…
 
 Es un prototipo web de un solo archivo (`index.html`), sin servidor ni instalación.
 
+## Dos usos
+
+**Grabar un vídeo.** Pegas el guion, eliges el tono (animado, cercano, serio, inspirador, calmado, divertido,
+urgente) y lo lees como en un teleprompter. El texto sigue tu voz o avanza a velocidad fija. La app coloca gestos
+en el guion («saluda con la mano» en «hola», «cuenta con los dedos» en una enumeración, «abre los brazos» en
+«todos»…), te avisa cuando llegas a ellos y comprueba si los haces. Marcas: `[animado]` cambia el tono desde
+ese párrafo, `//` es una pausa, `*palabra*` pide énfasis y `{abre los brazos}` es una acotación tuya.
+
+**Videollamada o directo.** Sin guion. Distingue si hablas tú o escuchas (tu voz y, además, que se te mueva la
+boca, para no confundirte con la otra persona) y cambia de consejos:
+- Hablando: energía, manos, apertura, sonrisa, expresión, volumen, entonación, ritmo y mirada a cámara.
+- Escuchando: atención a la pantalla, asentir, cara relajada, brazos sin cruzar.
+
+Con «Ventana flotante» (Chrome y Edge de escritorio) el apuntador se queda encima de Zoom, Meet o Teams y sigue
+analizando aunque la pestaña quede detrás. Si la aplicación de la llamada no deja usar la cámara a la vez,
+abre la llamada en otra pestaña del mismo navegador.
+
+## En pantalla
+
+- **Lo que detecta**, dibujado sobre tu imagen y en espejo: contorno de la cara, cejas, ojos, iris y labios;
+  hombros, codos y muñecas; los dedos de cada mano; y la estela del movimiento de las manos. Cada parte toma el
+  color de su estado (verde ayuda, ámbar frena, rojo corrige ya) y lleva una etiqueta con lo que está haciendo.
+- **Monitor**, con dos pestañas:
+  - *Cuerpo*: el estado de cada parte en directo (cabeza: de frente, girada, ladeada, asintiendo; mirada: a
+    cámara, abajo, a un lado; cejas: arriba, activas, quietas, fruncidas; boca: sonrisa, apretada, hablando;
+    hombros: relajados, subidos, inclinados; codos: abiertos, pegados; manos: gesticulando, contando, en puño,
+    en la cara, brazos cruzados, fuera de plano; postura; movimiento; voz).
+  - *Tono*: cada medida frente a la franja que pide el tono elegido.
+- **Avisos** de uno en uno, con un tiempo mínimo y un descanso para no agobiar: correcciones (ámbar y rojo),
+  gestos del guion (azul), ideas cuando todo va bien (azul) y «Mejor así» cuando corriges algo (verde).
+- **Informe** al terminar: ajuste segundo a segundo, lo que transmitiste (hablando y escuchando por separado en
+  una llamada), qué corregir primero, cada parte del cuerpo con lo que más hizo, medidas frente al objetivo,
+  párrafos y gestos del guion, y el vídeo si grabaste.
+
+Atajos en el plató: Espacio empezar/pausar, R grabar, Esc terminar, ↑/↓ velocidad, +/− letra, S dibujo, M monitor.
+
 ## Cómo probarlo
 
-1. Abre `index.html` en Chrome o Edge (ordenador o móvil). Para el móvil hace falta servirlo por `https`
-   (por ejemplo, GitHub Pages); en el ordenador basta con abrir el archivo o con `python3 -m http.server`.
-2. Pega tu guion y elige qué tiene que transmitir (animado, cercano, serio, inspirador, calmado, divertido, urgente).
-   La app sugiere un tono a partir del texto.
-3. «Entrar al plató»: permite cámara y micrófono, calibra 5 segundos y pulsa **Ensayar** o **Grabar**.
-4. Al terminar verás el informe: ajuste al tono segundo a segundo, lo que transmitiste, qué corregir primero,
-   medidas frente al objetivo, párrafo a párrafo, gestos del guion hechos o no, y el vídeo para descargar.
+Abre `index.html` en Chrome o Edge. En el ordenador basta con abrir el archivo o servir la carpeta con
+`python3 -m http.server`; en el móvil hace falta una dirección `https` (por ejemplo, GitHub Pages). Permite cámara
+y micrófono, calibra 5 segundos (hombros relajados, cara tranquila, voz normal) y empieza.
 
-Marcas en el guion: `[animado]` cambia el tono desde ese párrafo, `//` es una pausa, `*palabra*` pide énfasis
-y `{abre los brazos}` es una acotación tuya. Además, la app añade sola gestos según el texto: saludo en «hola»,
-contar con los dedos en enumeraciones, abrir los brazos en «todos/juntos», mano al pecho en «yo/confieso»,
-cejas arriba en las preguntas, señalar abajo en «suscríbete/enlace»…
+## Cómo funciona
 
-Atajos en el plató: Espacio ensayar/pausar, R grabar, Esc terminar, ↑/↓ velocidad, +/− letra, S esqueleto, M monitor.
+| Qué | Cómo |
+|---|---|
+| Cuerpo | MediaPipe Pose: hombros, codos, muñecas, caderas y orejas. Movimiento medido con medias por ventanas para no confundir el temblor del detector con gestos. Hombros subidos: la distancia oreja-hombro se acorta respecto a la calibración. Codos pegados: cerca de la línea de los hombros. Brazos cruzados: antebrazos que se cruzan o muñecas al otro lado del cuerpo. |
+| Cara | MediaPipe Face Landmarker (478 puntos y 52 expresiones): sonrisa, cejas arriba o fruncidas, labios apretados, mandíbula, mirada (ojos y giro de la cabeza), inclinación lateral y asentimiento (la cabeza sube y baja dos veces en 1,6 s). |
+| Manos | MediaPipe Gesture Recognizer: 21 puntos por mano, dedos extendidos, puño, palma abierta, mano en la cara y movimientos pequeños repetidos (nervios). |
+| Voz | AudioWorklet: volumen, tono con YIN, ritmo (picos de sílaba o palabras por minuto si el texto sigue la voz) y pausas. |
 
-## Qué mide
-
-| Señal | Cómo | Para qué |
-|---|---|---|
-| Energía corporal | Velocidad media de cabeza, hombros, codos y muñecas (MediaPipe Pose) | Estático / demasiado movido |
-| Uso de las manos | Manos en la zona de gesto y moviéndose respecto a los hombros | Manos quietas o fuera de plano |
-| Apertura | Separación de las muñecas en anchos de hombro; brazos cruzados | Gestos cerrados o a la defensiva |
-| Sonrisa y expresión | Blendshapes de la cara (MediaPipe Face Landmarker) | Cara seria, inexpresiva, ceño |
-| Mirada a cámara | Giro de la cabeza y dirección de los ojos | «Leyendo, sin conexión» |
-| Manos | Gestos y dedos (MediaPipe Gesture Recognizer) | Puños, manos en la cara, nervios, contar |
-| Volumen, entonación, ritmo, pausas | AudioWorklet: RMS, tono con YIN, picos de sílaba; o palabras/minuto si sigue la voz | Voz baja, monótona, rápida, sin pausas |
-
-Cada tono define una franja objetivo para cada medida (`TONES` en el código). Con eso se calcula el
-porcentaje de ajuste, lo que «transmites» (el tono más parecido, o un estado como *a la defensiva*, *nervioso*,
-*leyendo* o *plano*) y los avisos, que salen de uno en uno, con un tiempo mínimo y un descanso para no agobiar.
+Cada tono define una franja objetivo por medida (`TONES`). Las reglas (`RULES`) indican cuándo aplican: mientras
+hablas, mientras escuchas en una llamada, solo con guion o siempre. Lo que hace cada parte sale de `readParts`.
 
 Todo se analiza en el navegador. Solo el modo «Sigue mi voz» usa el reconocimiento de voz del navegador
-(en Chrome lo procesa Google); si no está disponible, el texto avanza a velocidad fija y se para cuando callas.
+(en Chrome lo procesa Google).
 
 ## Límites conocidos
 
-- Los umbrales son valores de partida: hay que ajustarlos con grabaciones reales de personas (sección `TONES`,
-  `RULES` y `computeMetrics`). Se ha probado con cámara y micrófono simulados, no con creadores reales.
-- La visión necesita buena luz y verte de cintura para arriba. En móviles antiguos el análisis va más lento;
-  la app alarga sus ventanas de tiempo para compensarlo.
-- Los modelos (unos 18 MB) se descargan de los servidores de Google y la librería de jsDelivr la primera vez.
-- Para ver la app en modo CPU (útil para pruebas sin GPU) añade `?cpu` a la dirección.
+- Los umbrales son valores de partida: hay que ajustarlos con grabaciones de personas reales. Se ha probado con
+  cámara y micrófono simulados (una foto en movimiento y voz sintética), no con creadores reales.
+- La visión necesita buena luz y verte al menos de pecho para arriba; los codos y las manos, de cintura para arriba.
+- Los modelos (unos 18 MB) se descargan la primera vez de los servidores de Google y la librería de jsDelivr.
+- La ventana flotante solo existe en Chrome y Edge de escritorio. En el resto, pon la ventana al lado de la llamada.
+- Para probar sin tarjeta gráfica, añade `?cpu` a la dirección.
 
 ## Siguientes pasos naturales
 
-- Análisis del guion con un modelo de lenguaje: el tono y los gestos frase a frase, en lugar de palabras clave.
+- Análisis del guion con un modelo de lenguaje: tono y gestos frase a frase en lugar de palabras clave.
 - Estudio con personas reales para calibrar las franjas de cada tono (y por plataforma: TikTok, YouTube, LinkedIn).
-- App nativa (iOS/Android) con la cámara frontal y el texto junto al objetivo, y vibración para los avisos.
-- Historial de tomas y evolución por persona.
+- Integración directa en la llamada (cámara virtual o extensión para Meet) y app nativa con vibración para los avisos.
+- Historial de sesiones y evolución por persona.
