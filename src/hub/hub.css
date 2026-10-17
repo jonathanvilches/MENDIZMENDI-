@@ -245,7 +245,7 @@
 .filters button.on::after { content: ''; position: absolute; left: 8px; right: 8px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--c, var(--cyan)); box-shadow: 0 0 10px var(--c, var(--cyan)); }
 .towns { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 12px; }
 .tcard { position: relative; text-align: left; --tp-l: 20px; --tp-r: 16px; padding: 16px var(--tp-r) 16px var(--tp-l); border-radius: var(--r); background: linear-gradient(160deg, color-mix(in srgb, var(--c) 22%, rgba(38, 24, 76, .75)), rgba(34, 12, 70, .84) 70%); border: 1px solid var(--line); transition: transform .15s, border-color .15s; display: flex; flex-direction: column; gap: 8px; }
-.tcard.has-cov { padding-top: 0; overflow: hidden; } .tcard .tcov { display: block; width: calc(100% + var(--tp-l) + var(--tp-r)); margin: 0 calc(-1 * var(--tp-r)) 2px calc(-1 * var(--tp-l));   /* (de borde a borde de la tarjeta, sea cual sea su relleno) */ aspect-ratio: 16 / 7; object-fit: cover; object-position: 30% 55%; -webkit-mask: linear-gradient(180deg, #000 70%, transparent); mask: linear-gradient(180deg, #000 70%, transparent); }
+.tcard.has-cov { padding-top: 0; overflow: hidden; } .tcard .tcov { display: block; width: calc(100% + var(--tp-l) + var(--tp-r)); margin: 0 calc(-1 * var(--tp-r)) 2px calc(-1 * var(--tp-l));   /* (de borde a borde de la tarjeta, sea cual sea su relleno) */ aspect-ratio: 16 / 7; object-fit: cover; object-position: 50% 80%; -webkit-mask: linear-gradient(180deg, #000 70%, transparent); mask: linear-gradient(180deg, #000 70%, transparent); }
 .tcard.has-cov .tstamp { top: auto; }
 .tcard::before { content: ''; position: absolute; left: 0; top: 16px; bottom: 16px; width: 3px; border-radius: 0 3px 3px 0; background: var(--c); }
 .tcard:hover { transform: translateY(-3px); border-color: var(--line2); }
@@ -555,7 +555,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 /* ================= Portada con historia ================= */
 .hero3d { position: relative; height: clamp(460px, 66dvh, 640px); border-radius: var(--rL); overflow: hidden; border: 1px solid var(--line2); box-shadow: 0 20px 50px rgba(0, 0, 0, .45); background: #1c0b3a; isolation: isolate; }
 /* portada fija: la foto de la comarca y el personaje de pie a la derecha (en vertical, en el centro, encima del título) */
-.hero3d .hero-img { position: absolute; inset: 0; background: #1c0b3a center 60% / cover no-repeat; }
+.hero3d .hero-img { position: absolute; inset: 0; background: #1c0b3a center 82% / cover no-repeat; }   /* (las láminas llevan al personaje abajo, con los pies casi en el borde: cuando hay que recortar, se recorta el cielo) */
 .h-shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(20, 6, 48, .5) 0%, rgba(20, 6, 48, 0) 20%, rgba(20, 6, 48, 0) 52%, rgba(20, 6, 48, .8) 80%, rgba(20, 6, 48, .96) 100%); }
 .chapter { position: absolute; left: 24px; top: 24px; z-index: 2; display: flex; gap: 8px; align-items: center; padding: 4px 16px 4px 4px; border-radius: 40px; background: rgba(20, 6, 48, .74); border: 1px solid var(--line2); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); color: #fff; max-width: calc(100% - 48px); text-align: left; font: inherit; cursor: pointer; }
 .chapter img { width: 46px; height: 46px; flex: none; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .4)); }
@@ -1339,10 +1339,10 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 /* tarjetas de pueblo: la lámina entera; solo su borde de abajo se funde con la tarjeta */
 .tcard.has-cov .tcov { aspect-ratio: 16 / 9; object-position: 50% 50%; -webkit-mask: linear-gradient(180deg, #000 82%, transparent); mask: linear-gradient(180deg, #000 82%, transparent); }
 /* tarjetas de comarca */
-.ccard .cimg { background-size: cover; background-position: center 40%; opacity: 1; }
+.ccard .cimg { background-size: cover; background-position: center 80%; opacity: 1; }
 .ccard .cimg::after { background: linear-gradient(180deg, transparent 55%, var(--plum) 100%); }
 /* inicio: la lámina del pueblo, nítida, con el texto a la izquierda */
-.hero3d .hero-img { background-color: #1c0b3a; background-position: center 42%; background-size: cover; background-repeat: no-repeat; }
+.hero3d .hero-img { background-color: #1c0b3a; background-position: center 82%; background-size: cover; background-repeat: no-repeat; }
 .h-shade { background: var(--cov-head), var(--cov-foot), var(--cov-side); }
 @media (max-aspect-ratio: 1/1) { .h-shade { background: var(--cov-head), linear-gradient(0deg, rgba(14, 7, 32, .92) 0%, rgba(14, 7, 32, .62) 34%, rgba(14, 7, 32, 0) 60%); } }
 /* cabecera de la comarca: más alta para que la lámina no quede en una tira, y el texto abajo a la izquierda */
@@ -1350,7 +1350,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 @media (max-width: 599px), (orientation: portrait) { .chero { min-height: 240px; } }
 /* ficha del pueblo: la lámina entera arriba y, debajo, el nombre y la presentación */
 .sh-hero { padding: 0; background: none; display: flex; flex-direction: column; justify-content: flex-start; min-height: 0; flex: none; }   /* (en vertical no se encoge: las misiones bajan) */
-.sh-hero .sh-cov { display: block; flex: none; width: 100%; aspect-ratio: 16 / 9; max-height: 42dvh; object-fit: cover; object-position: 50% 45%; background: #1c0b3a;
+.sh-hero .sh-cov { display: block; flex: none; width: 100%; aspect-ratio: 16 / 9; max-height: 42dvh; object-fit: cover; object-position: 50% 80%; background: #1c0b3a;
   -webkit-mask: linear-gradient(180deg, #000 84%, transparent); mask: linear-gradient(180deg, #000 84%, transparent); }
 .sh-hero .sh-txt { padding: 4px 24px 12px; min-height: 0; }
 .sh-hero .sh-txt .kicker { margin-top: 0; }

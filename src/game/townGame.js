@@ -24,7 +24,7 @@ import { LEVELS } from '../data/levels.js';
 import { COSTUMES } from '../actors/minifig.js';
 import { stampImg } from '../assets.js';
 import { faunaImg } from '../ui/faunaImg.js';
-import { drawTownArms } from '../ui/escudoImg.js';
+import { drawTownArms, casaImg, oficioImg } from '../ui/escudoImg.js';
 import { FAUNA, faunaName } from '../data/fauna.js';
 import { LEGENDS, NIGHT_CARNIVAL } from '../data/legends.js';
 import MOUNTAINS from '../data/mountains.json';
@@ -687,7 +687,7 @@ export class TownGame {
       const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
       const m = new THREE.Mesh(new THREE.PlaneGeometry(1.55, 2.03), new THREE.MeshStandardMaterial({ map: tex, transparent: true, alphaTest: 0.4, roughness: 0.9 }));
       m.position.set(sh.x + Math.sin(sh.ry) * 0.01, sh.y + 0.04, sh.z + Math.cos(sh.ry) * 0.01); m.rotation.y = sh.ry; this.scene.add(m);
-      this.blasones.push({ ...sh, A, mesh: m, id: 'escudo:' + this.def.id + ':' + i });
+      this.blasones.push({ ...sh, A, idx: i, mesh: m, id: 'escudo:' + this.def.id + ':' + i });
     });
   }
   // escudo oficial del pueblo (o de su valle) pintado en el pilar de la plaza
@@ -730,7 +730,7 @@ export class TownGame {
   }
   async readShield(b) {
     const P = this.P, isNew = addCard(b.id, 'escudos'); this.player.frozen = true;
-    try { await this.lookAtArms(b.mesh, b.ry, 2.03); await readArms(this.ui, b.A, { town: this.def.name.split(' /')[0], isNew, regla: (P.cards || []).filter(c => c.startsWith('escudo:')).length }); }
+    try { await this.lookAtArms(b.mesh, b.ry, 2.03); await readArms(this.ui, b.A, { town: this.def.name.split(' /')[0], isNew, regla: (P.cards || []).filter(c => c.startsWith('escudo:')).length, image: casaImg(this.def.id, b.idx) || '' }); }
     finally { this.endLookAtArms(); this.player.frozen = false; }
     addXP(isNew ? 20 : 4); saveProfile();
     for (const bd of checkBadges()) await infoCard(this.ui, { icon: bd.icon, kicker: 'Nueva insignia', title: bd.name, text: bd.text, button: '¡Bien!' });
@@ -1947,7 +1947,7 @@ export class TownGame {
       }
       while (M.tstep < n) {
         const st = of.steps[M.tstep], title = `Paso ${M.tstep + 1} de ${n}: ${st.title}`;
-        if (st.game !== 'choice') await infoCard(this.ui, { icon: of.icon, kicker: eu ? `${oname} · ${M.tstep + 1}/${n} urratsa` : `${of.name} · paso ${M.tstep + 1} de ${n}`, title: st.title, text: st.text, button: st.game === 'order' ? 'Ordenar' : st.verb || 'Hacerlo' });
+        if (st.game !== 'choice') await infoCard(this.ui, { icon: of.icon, image: oficioImg(M.m.kind) || '', kicker: eu ? `${oname} · ${M.tstep + 1}/${n} urratsa` : `${of.name} · paso ${M.tstep + 1} de ${n}`, title: st.title, text: st.text, button: st.game === 'order' ? 'Ordenar' : st.verb || 'Hacerlo' });
         let r;
         if (st.game === 'choice') r = await choiceGame(this.ui, { title, icon: of.icon, q: eu ? `${tr(st.text)} ${tr(st.q)}` : `${st.text} ${st.q}`, options: st.options, answer: st.answer, why: st.why });
         else if (st.game === 'order') r = await sequenceGame(this.ui, { title, icon: of.icon, hint: 'Toca los pasos en el orden en que se hacían', steps: st.items });

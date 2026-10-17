@@ -6,6 +6,7 @@
 import * as THREE from 'three';
 import { Actor } from '../actors/people.js';
 import { infoCard, play3d } from '../ui/minigames.js';
+import { oficioImg } from '../ui/escudoImg.js';
 import { saveProfile } from './profile.js';
 import { TOWN } from '../world/townBuilder.js';
 import { PLACES } from '../world/layout.js';
@@ -171,7 +172,7 @@ export class Jornales {
     this.done[id] = Date.now(); g.P.coins = (g.P.coins ?? 12) + J.pay; if (this.guide === a) this.guide = null;
     saveProfile(); g.sound.ui?.('coin');
     if (line) await g.say(a, [line]);
-    await infoCard(g.ui, { icon: J.icon, kicker: 'Jornal', title: `+${J.pay} txanponak`, text: `${a.name} te paga por ${J.title.toLowerCase()}. Con ellos puedes comprar comida en la tienda del pueblo.`,
+    await infoCard(g.ui, { icon: J.icon, image: oficioImg(J.who === 'alpargatera' ? 'alpargatero' : J.who) || '', kicker: 'Jornal', title: `+${J.pay} txanponak`, text: `${a.name} te paga por ${J.title.toLowerCase()}. Con ellos puedes comprar comida en la tienda del pueblo.`,
       extra: J.then ? `<div class="antes-ahora"><div><b>Antes</b>${J.then}</div><div><b>Ahora</b>${J.now}</div></div>` : '', button: '¡Eskerrik asko!' });
     if (J.goods) g.giveGoods(J.goods, 1);
     g.mochila?.paint?.();

@@ -3,7 +3,7 @@
 // src/futbol/clubs.js (no son escudos de clubes de verdad). La heráldica, de 512 px; en la web, la de 1024 para la ficha;
 // los emblemas, de 512 en la web y de 256 en el archivo único (alias @escudos, @escudos-big y @emblemas de vite.config.js).
 import { drawOfficial, officialHeight } from '../world/armas.js';
-import { hdTable } from '../web/hd.js';
+import { hdTable, hdUrl } from '../web/hd.js';
 
 const byId = (g) => Object.fromEntries(Object.entries(g).map(([k, v]) => [k.split('/').pop().replace('.webp', ''), v]));
 // (Luzaide y Zugarramurdi tienen el mismo blasón y su imagen es la misma, byte a byte: se carga una vez)
@@ -12,6 +12,15 @@ const HER = same(byId(import.meta.glob(['@escudos/*.webp', '!@escudos/luzaide-va
 const BIG = same(byId(import.meta.glob(['@escudos-big/*.webp', '!@escudos-big/luzaide-valcarlos.webp'], { eager: true, query: '?url', import: 'default' })));
 const CLUB = byId(import.meta.glob('@emblemas/*.webp', { eager: true, query: '?url', import: 'default' }));
 hdTable('escudos', HER); hdTable('escudos', BIG); hdTable('emblemas', CLUB);   // (archivo único con conexión: src/web/hd.js)
+// Los escudos de las casas (src/assets/escudos/casas: «pueblo-n» es houseArms(pueblo, n - 1) de src/data/blasones.js) y los
+// de los oficios (src/assets/escudos/oficios, con los ids de src/data/oficios.js y de los jornales), de 512 y solo en la web
+// (tools/escudos-importar.mjs): el archivo único, con conexión, los pide a la web (hdUrl) y, sin ella, enseña el dibujo de
+// siempre. Las casas que aún no tienen imagen siguen con el dibujo.
+const CASA = byId(import.meta.glob('@escudos-casas/*.webp', { eager: true, query: '?url', import: 'default' }));
+const OFICIO = byId(import.meta.glob('@escudos-oficios/*.webp', { eager: true, query: '?url', import: 'default' }));
+hdTable('escudos-casas', CASA); hdTable('escudos-oficios', OFICIO);
+export const casaImg = (town, idx) => CASA[`${town}-${idx + 1}`] || hdUrl('escudos-casas', `${town}-${idx + 1}`);
+export const oficioImg = (kind) => OFICIO[kind] || hdUrl('escudos-oficios', kind);
 
 export const armsImg = (id) => HER[id] || null;
 export const armsImgBig = (id) => BIG[id] || HER[id] || null;

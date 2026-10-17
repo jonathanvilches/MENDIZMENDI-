@@ -119,6 +119,7 @@
 /* (el escudo con el acabado del autor: la imagen entera, centrada en el papel) */
 .ix-frame.paper.img { display: block; aspect-ratio: 4 / 3; padding: 0; }
 .ix-frame.paper.img > img { position: absolute; inset: 4%; width: 92%; height: 92%; object-fit: contain; object-position: 50% 50%; filter: drop-shadow(0 4px 6px rgba(60, 40, 20, .35)); }
+.ix-frame.paper.img > canvas { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: auto; height: auto; max-width: 92%; max-height: 92%; }   /* (el escudo en piedra, dentro del marco de la imagen) */
 
 /* vertical: la imagen arriba, sin pasarse de alto */
 @media (orientation: portrait) {
