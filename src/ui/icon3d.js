@@ -55,62 +55,7 @@ const CUSTOM = {
   chistorra: () => { const curve = new THREE.CatmullRomCurve3([new THREE.Vector3(-0.6, -0.1, 0), new THREE.Vector3(-0.2, 0.25, 0.1), new THREE.Vector3(0.25, 0.05, -0.1), new THREE.Vector3(0.6, 0.3, 0)]); return G(M(new THREE.TubeGeometry(curve, 40, 0.1, 16), '#b8402a', 0, 0, 0, 0, 0, 0, GLOSS)); },
   basket: () => G(M(new THREE.CylinderGeometry(0.5, 0.36, 0.42, 28, 1, true), '#b08650', 0, 0, 0, 0, 0, 0, { side: THREE.DoubleSide, roughness: 0.9 }), M(new THREE.CircleGeometry(0.36, 24), '#8a6a3a', 0, -0.2, 0, -Math.PI / 2), ...[-0.12, 0, 0.12].map(y => M(new THREE.TorusGeometry(0.43 + y * 0.35, 0.018, 6, 32), '#8a6030', 0, y, 0, Math.PI / 2)), M(new THREE.TorusGeometry(0.4, 0.035, 8, 24, Math.PI), '#8a6a3a', 0, 0.2, 0), M(new THREE.SphereGeometry(0.16, 16, 12), '#d9412a', -0.15, 0.15, 0.05, 0, 0, 0, GLOSS), M(new THREE.SphereGeometry(0.15, 16, 12), '#6aa84f', 0.15, 0.14, -0.05, 0, 0, 0, GLOSS)),
   axe: () => { const b = new THREE.Shape(); b.moveTo(0, -0.12); b.lineTo(0.38, -0.25); b.quadraticCurveTo(0.48, 0, 0.38, 0.25); b.lineTo(0, 0.12); b.closePath(); const g = G(M(new THREE.CylinderGeometry(0.05, 0.058, 1.3, 16), '#9a6a3a', 0, 0, 0, 0, 0, 0, { roughness: 0.5 }), M(new THREE.ExtrudeGeometry(b, { depth: 0.06, bevelEnabled: true, bevelSize: 0.015, bevelThickness: 0.015 }), '#c0c6cc', 0.02, 0.5, -0.03, 0, 0, 0, METAL)); g.rotation.z = -0.6; return g; },
-  // instrumentos de Navarra (data/instrumentos.js): la gaita, la txalaparta, el ttun-ttun con su txirula, el pandero, la
-  // bandurria, la trikitixa y la kirikoketa; el txistu lo trae hecho el autor
-  gaita: () => {
-    const wood = '#3a2416', g = G(M(lathe([[0.055, -0.75], [0.062, -0.1], [0.075, 0.35], [0.12, 0.58], [0.23, 0.74], [0.235, 0.76], [0.1, 0.72], [0.06, 0.5]]), wood, 0, 0, 0, 0, 0, 0, { roughness: 0.45 }));
-    for (const y of [-0.55, -0.15, 0.3]) g.add(M(new THREE.TorusGeometry(0.066 + (y > 0 ? 0.012 : 0), 0.012, 8, 28), '#c9a24a', 0, y, 0, Math.PI / 2, 0, 0, METAL));
-    for (let i = 0; i < 6; i++) g.add(M(new THREE.CylinderGeometry(0.016, 0.016, 0.03, 10), '#120a06', 0, -0.42 + i * 0.13, 0.064 + i * 0.002, Math.PI / 2));
-    g.add(M(new THREE.CylinderGeometry(0.02, 0.012, 0.16, 10), '#e0c070', 0, -0.83, 0), M(new THREE.BoxGeometry(0.03, 0.09, 0.012), '#f0d8a0', 0, -0.95, 0));   // (la lengüeta)
-    g.rotation.set(0, 0, -0.55); g.userData.el = 0.25; return g;
-  },
-  txalaparta: () => {
-    const g = new THREE.Group(), wood = '#b08650', dark = '#6b4a2e';
-    for (const x of [-0.6, 0.6]) { g.add(M(new THREE.CylinderGeometry(0.16, 0.19, 0.36, 18, 1, true), dark, x, -0.28, 0, 0, 0, 0, { side: THREE.DoubleSide, roughness: 0.9 })); g.add(M(new THREE.CylinderGeometry(0.17, 0.17, 0.08, 18), '#d9c8a0', x, -0.07, 0)); }   // (cestos con el saco)
-    g.add(M(new THREE.BoxGeometry(1.8, 0.07, 0.2), wood, 0, 0, 0, 0, 0, 0, { roughness: 0.6 }), M(new THREE.BoxGeometry(1.5, 0.06, 0.16), '#c89a5c', 0.05, 0.13, 0.02, 0, 0, 0, { roughness: 0.6 }));
-    for (const [x, z, rz] of [[-0.35, 0.16, 0.12], [-0.15, 0.2, -0.08], [0.25, 0.17, 0.1], [0.45, 0.21, -0.1]]) g.add(M(new THREE.CylinderGeometry(0.03, 0.035, 0.62, 10), '#8a5a32', x, 0.46, z, 0, 0, rz));   // (los palos, de punta)
-    g.rotation.set(0.3, -0.55, 0); g.userData.el = 0.4; return g;
-  },
-  ttunttun: () => {
-    const g = new THREE.Group(), wood = '#8a5a32';
-    g.add(M(new THREE.BoxGeometry(1.4, 0.16, 0.2), wood, 0, 0, 0, 0, 0, 0, { roughness: 0.55 }), M(new THREE.BoxGeometry(1.3, 0.004, 0.16), '#d9b878', 0, 0.082, 0));
-    for (let i = 0; i < 6; i++) g.add(M(new THREE.CylinderGeometry(0.006, 0.006, 1.32, 6), '#e8dcc0', 0, 0.1, -0.065 + i * 0.026, 0, 0, Math.PI / 2));
-    g.add(M(new THREE.CylinderGeometry(0.018, 0.022, 0.5, 10), '#5a3a1e', 0.35, 0.3, 0.12, 0, 0, -0.7));   // (la baqueta)
-    const tx = G(M(new THREE.CylinderGeometry(0.028, 0.03, 0.62, 12), '#2a1a10', 0, 0, 0, 0, 0, 0, { roughness: 0.45 })); for (const y of [-0.2, -0.08, 0.04]) tx.add(M(new THREE.CylinderGeometry(0.008, 0.008, 0.02, 8), '#0a0604', 0, y, 0.028, Math.PI / 2)); tx.add(M(new THREE.TorusGeometry(0.031, 0.006, 6, 18), '#c9a24a', 0, 0.26, 0, Math.PI / 2, 0, 0, METAL));
-    tx.position.set(-0.45, 0.22, 0.2); tx.rotation.set(0, 0, 1.2); g.add(tx);   // (la txirula)
-    g.rotation.set(0.35, -0.5, 0); g.userData.el = 0.4; return g;
-  },
-  pandero: () => {   // (el aro de canto, con el parche y las sonajas a la vista)
-    const g = new THREE.Group();
-    g.add(M(new THREE.CylinderGeometry(0.47, 0.47, 0.11, 48, 1, true), '#9a6a3a', 0, 0, 0, 0, 0, 0, { roughness: 0.55, side: THREE.DoubleSide }), M(new THREE.CircleGeometry(0.46, 48), '#e9dcc0', 0, 0.056, 0, -Math.PI / 2, 0, 0, { roughness: 0.85 }));
-    for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2 + 0.2, x = Math.cos(a) * 0.47, z = Math.sin(a) * 0.47; g.add(M(new THREE.BoxGeometry(0.07, 0.07, 0.02), '#5a3a1e', x, 0, z, 0, -a, 0)); for (const dy of [-0.018, 0.018]) g.add(M(new THREE.CylinderGeometry(0.05, 0.05, 0.006, 16), '#e0c878', x, dy, z, 0, 0, 0, METAL)); }
-    g.rotation.set(0.55, 0.6, 0.12); g.userData.el = 0.45; return g;
-  },
-  bandurria: () => {
-    const sh = new THREE.Shape(); sh.moveTo(0, -0.52); sh.bezierCurveTo(0.5, -0.52, 0.5, 0.15, 0.16, 0.3); sh.bezierCurveTo(0.08, 0.34, -0.08, 0.34, -0.16, 0.3); sh.bezierCurveTo(-0.5, 0.15, -0.5, -0.52, 0, -0.52);
-    const body = M(new THREE.ExtrudeGeometry(sh, { depth: 0.12, bevelEnabled: true, bevelSize: 0.02, bevelThickness: 0.02, bevelSegments: 3 }), '#c08a46', 0, 0, -0.06, 0, 0, 0, { roughness: 0.4 });
-    const g = G(body, M(new THREE.CircleGeometry(0.1, 24), '#1a0e06', 0, -0.12, 0.085), M(new THREE.BoxGeometry(0.26, 0.03, 0.02), '#2a1a10', 0, -0.36, 0.085));
-    g.add(M(new THREE.BoxGeometry(0.1, 0.9, 0.06), '#3a2416', 0, 0.72, 0.03), M(new THREE.BoxGeometry(0.14, 0.2, 0.05), '#2a1a10', 0, 1.24, 0.02, 0.25));
-    for (let i = 0; i < 6; i++) g.add(M(new THREE.CylinderGeometry(0.004, 0.004, 1.55, 6), '#e8e0cc', -0.05 + i * 0.02, 0.4, 0.075));
-    for (let i = 0; i < 9; i++) g.add(M(new THREE.BoxGeometry(0.1, 0.006, 0.008), '#d8d0c0', 0, 0.3 + i * 0.09, 0.062));   // (los trastes)
-    g.rotation.set(0.15, 0.1, 0.55); g.userData.el = 0.3; return g;
-  },
-  trikitixa: () => {
-    const g = new THREE.Group(), red = '#b3202a', cream = '#efe3c6';
-    g.add(M(new THREE.BoxGeometry(0.4, 0.56, 0.34), red, -0.52, 0, 0, 0, 0, 0, GLOSS), M(new THREE.BoxGeometry(0.44, 0.56, 0.34), red, 0.56, 0, 0, 0, 0, 0, GLOSS));
-    for (let i = 0; i < 9; i++) g.add(M(new THREE.BoxGeometry(0.06, i % 2 ? 0.46 : 0.52, i % 2 ? 0.27 : 0.31), i % 2 ? cream : '#1d1d24', -0.3 + i * 0.075, 0, 0, 0, 0, 0, CLOTH));   // (el fuelle)
-    for (let r = 0; r < 3; r++) for (let c = 0; c < 4; c++) g.add(M(new THREE.SphereGeometry(0.026, 10, 8), r === 1 ? '#1d1d24' : cream, 0.79, 0.17 - c * 0.11, -0.1 + r * 0.1));   // (botones de la melodía)
-    for (let r = 0; r < 2; r++) for (let c = 0; c < 3; c++) g.add(M(new THREE.SphereGeometry(0.024, 10, 8), '#1d1d24', -0.73, 0.12 - c * 0.12, -0.05 + r * 0.1));   // (bajos)
-    g.add(M(new THREE.BoxGeometry(0.42, 0.04, 0.36), '#1d1d24', -0.52, 0.3, 0), M(new THREE.BoxGeometry(0.46, 0.04, 0.36), '#1d1d24', 0.56, 0.3, 0), M(new THREE.BoxGeometry(0.04, 0.5, 0.06), '#3a2416', 0.86, 0, 0.12));
-    g.rotation.set(0.2, -0.55, 0); g.userData.el = 0.35; return g;
-  },
-  kirikoketa: () => {
-    const g = new THREE.Group();
-    g.add(M(new THREE.BoxGeometry(1.9, 0.11, 0.3), '#c9a060', 0, 0.12, 0, 0, 0, 0, { roughness: 0.6 }));
-    for (const x of [-0.65, 0.65]) for (const rz of [0.55, -0.55]) g.add(M(new THREE.BoxGeometry(0.07, 0.5, 0.07), '#6b4a2e', x, -0.2, 0, 0, 0, rz));   // (caballetes en X)
-    for (const [x, z, rz] of [[-0.5, 0.2, 0.25], [0.05, 0.24, -0.15], [0.6, 0.2, 0.2]]) { const m = G(M(new THREE.CylinderGeometry(0.025, 0.028, 0.55, 10), '#8a5a32', 0, 0, 0), M(new THREE.CylinderGeometry(0.07, 0.07, 0.14, 14), '#5a3a1e', 0, 0.32, 0, 0, 0, Math.PI / 2)); m.position.set(x, 0.42, z); m.rotation.z = rz; g.add(m); }   // (los mazos)
-    g.rotation.set(0.3, -0.5, 0); g.userData.el = 0.4; return g;
-  },
+  // (los instrumentos de Navarra, data/instrumentos.js, son iconos del autor en src/assets/icons3d; no se dibujan aquí)
   hammer: () => { const g = G(M(new THREE.CylinderGeometry(0.05, 0.055, 1.0, 16), '#9a6a3a', 0, 0, 0), M(new THREE.BoxGeometry(0.22, 0.22, 0.5), '#6d7076', 0, 0.5, 0, 0, 0, 0, METAL)); g.rotation.z = -0.6; return g; },
   anvil: () => { const g = new THREE.Group(); g.add(M(new THREE.BoxGeometry(0.9, 0.22, 0.34), '#55595f', 0, 0.3, 0, 0, 0, 0, METAL)); g.add(M(new THREE.ConeGeometry(0.17, 0.4, 20), '#55595f', 0.62, 0.3, 0, 0, 0, -Math.PI / 2, METAL)); g.add(M(new THREE.BoxGeometry(0.3, 0.3, 0.26), '#44484e', 0, 0.05, 0, 0, 0, 0, METAL)); g.add(M(new THREE.BoxGeometry(0.6, 0.14, 0.4), '#44484e', 0, -0.15, 0, 0, 0, 0, METAL)); g.add(M(new THREE.BoxGeometry(0.4, 0.06, 0.1), '#ff7a2a', 0.05, 0.44, 0, 0, 0, 0, { emissive: new THREE.Color('#ff5a1a'), emissiveIntensity: 1.2 })); g.rotation.y = -0.3; return g; },
   // cencerro: cuerpo trapezoidal de bronce, badajo y correa de cuero
@@ -224,7 +169,10 @@ const SAME = { aguila: 'eagle', ardilla: 'squirrel', jabali: 'boar', buitre: 'vu
 const BAKED = {};
 for (const [p, u] of Object.entries(import.meta.glob(['@icons3d/*.webp', '!@icons3d/{aguila,ardilla,jabali,buitre,ciguena,ciervo,trucha,zorro,pottoka,pito,owl}.webp', '!@icons3d/{shoot,pass,through,sprint,swap,tackle,slide,contain,dive,control,move,pause,camera}.webp'], { eager: true, query: '?url', import: 'default' }))) BAKED[p.split('/').pop().replace('.webp', '')] = u;
 for (const [a, b] of Object.entries(SAME)) if (BAKED[b]) BAKED[a] = BAKED[b];
-hdTable('iconos', BAKED);   // (en el archivo único, con conexión: los de la web, src/web/hd.js)
+// (los que el autor entregó grandes, en icons3d/512 y solo en la web: para la ficha de los instrumentos, que los enseña a 200 px, y las pantallas densas;
+// src/web/hd.js los pide cuando el icono se ve más grande que el de 192)
+const BIG = {}; for (const [p, u] of Object.entries(import.meta.glob('@icons3d-big/*.webp', { eager: true, query: '?url', import: 'default' }))) BIG[p.split('/').pop().replace('.webp', '')] = u;
+hdTable('iconos', BAKED, BIG, 512);   // (en el archivo único, con conexión: los de la web, src/web/hd.js)
 
 function build(name) {
   if (UI3D[name]) return UI3D[name]();
