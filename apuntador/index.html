@@ -166,8 +166,7 @@ body:not([data-app="llamada"]) .only-call{display:none!important}
 
 /* ---------- Plató ---------- */
 #studio{position:fixed;inset:0;background:#000;overflow:hidden;color:var(--paper)}
-#cam,#dobleCv,#overlay,#ghost{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-#dobleCv{pointer-events:none;opacity:.92}
+#cam,#overlay,#ghost{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 #ghost{pointer-events:none}
 #cam{transform:scaleX(-1)}
 #overlay{pointer-events:none}
@@ -224,7 +223,7 @@ body:not([data-app="llamada"]) .only-call{display:none!important}
 #studio.reading #cue .cue-vis.solo .cue-emoji{font-size:38px}
 #studio.reading #cue .cue-txt b{font-size:1.2rem}
 #studio.reading #cue .cue-detail{display:none}
-#studio.rehearsing #cue.k-next .cue-detail{display:block}   /* en el ensayo, mientras el doble lo enseña: por qué funciona */
+#studio.rehearsing #cue.k-next .cue-detail{display:block}   /* en el ensayo, el gesto que viene: por qué funciona */
 #studio.reading.mon-full #cue{left:calc(50% - 170px)}
 #studio.reading #overlay{opacity:.45}
 #studio.reading .status{display:none}
@@ -1190,6 +1189,49 @@ body.pip #monitor{opacity:1;transform:none;visibility:visible;pointer-events:aut
 /* «Tu cuerpo, parte a parte» en el móvil: cada parte pegada a lo suyo y separada de la siguiente */
 @media (max-width:480px){.prows{gap:var(--sp-sect)}.prows li{row-gap:calc(var(--u) * .75)}}
 .pl{gap:calc(var(--u) * 1.25)}
+/* momentos clave del informe */
+.moments{display:flex;flex-direction:column;gap:var(--sp-card)}
+.km-head{display:flex;justify-content:space-between;align-items:baseline;gap:var(--u) calc(var(--u) * 1.5);flex-wrap:wrap;font-size:var(--t-sm)}
+.km-head span{color:var(--mute);font-size:var(--t-xs)}
+.km-ticks{position:relative;height:8px;margin:calc(var(--u) * -.5) 0 0}
+.km-ticks i{position:absolute;top:0;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:var(--warn)}
+.km-ticks i.k-bad{background:var(--bad)}.km-ticks i.k-ok{background:var(--ok)}
+.km-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.km>:is(button,div){display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:baseline;gap:2px calc(var(--u) * 1.25);width:100%;padding:calc(var(--u) * 1.25) calc(var(--u) * 1.5);border:0;border-radius:var(--r-sm);background:var(--stage);box-shadow:inset 3px 0 0 var(--warn);text-align:left;font:inherit;color:inherit}
+.km.k-bad>*{box-shadow:inset 3px 0 0 var(--bad)}.km.k-ok>*{box-shadow:inset 3px 0 0 var(--ok)}
+.km button{cursor:pointer;transition:transform .15s var(--ease)}
+.km button:active{transform:scale(.98)}
+.km-t{font:600 var(--t-xs)/1.4 var(--f-body);color:var(--mute);font-variant-numeric:tabular-nums}
+.km-x b{display:block;font-size:var(--t-sm);font-weight:600;line-height:var(--lh-tight)}
+.km-x small{display:block;margin-top:calc(var(--u) * .5);font-size:var(--t-xs);line-height:var(--lh);color:var(--mute)}
+.moments .note{margin:0}
+/* entrenar */
+#studio.drill #record{display:none}
+#studio.drill #rehearse .lbl{font-size:0}
+#studio.drill #rehearse .lbl::after{content:"Empezar";font-size:var(--t-sm)}
+.hero-cta{display:flex;flex-direction:column;align-items:center;gap:var(--sp-pair)}
+.hero-cta .primary{min-height:56px;padding:0 calc(var(--u) * 3.5);font-size:var(--t-md)}
+.hero-cta small{max-width:40ch;font-size:var(--t-sm);line-height:var(--lh);color:var(--mute);text-align:center}
+.tr-stats{display:flex;justify-content:center;gap:calc(var(--u) * 3);font-size:var(--t-sm);color:var(--mute)}
+.tr-stats b{color:var(--paper);font-size:var(--t-lg)}
+.drills{display:flex;flex-direction:column;gap:calc(var(--u) * 1.5)}
+.drill{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:calc(var(--u) * 2);width:100%;padding:calc(var(--u) * 2) calc(var(--u) * 2.5);border:2px solid transparent;border-radius:var(--r-lg);background:var(--stage);box-shadow:var(--shadow);text-align:left;font:inherit;color:inherit;cursor:pointer;transition:transform .15s var(--ease),border-color .15s}
+.drill:active{transform:scale(.98)}
+.drill.today{border-color:var(--spot)}
+.dr-e{display:grid;place-items:center;width:48px;height:48px;border-radius:50%;background:var(--stage-2);font-size:1.5rem}
+.dr-t{display:flex;flex-direction:column;gap:calc(var(--u) * .5);min-width:0}
+.dr-t em{align-self:flex-start;padding:2px 8px;border-radius:999px;background:var(--spot);color:var(--spot-ink,#14151A);font:700 var(--t-xs)/1.4 var(--f-body);font-style:normal}
+.dr-t b{font-size:var(--t-md);font-weight:600;line-height:var(--lh-tight)}
+.dr-t small{font-size:var(--t-sm);line-height:var(--lh);color:var(--mute)}
+.dr-s{display:flex;flex-direction:column;align-items:flex-end;gap:2px;min-width:56px}
+.dr-s b{font:700 var(--t-xl)/1 var(--f-display);font-variant-numeric:tabular-nums}
+.dr-s small{font-size:var(--t-xs);color:var(--mute)}
+.spark{width:64px;height:20px;fill:none;stroke:var(--ok);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.drill-card #drRec{color:var(--paper)}
+.drill-card #drRec:empty{display:none}
+.drill-card .reh-head{align-items:flex-start}
+.dr-share{flex:none;margin-left:auto;width:44px;min-height:44px;padding:0;border-radius:50%}
+.dr-share[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -1240,6 +1282,7 @@ body.pip #monitor{opacity:1;transform:none;visibility:visible;pointer-events:aut
     <symbol id="i-atras" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
     <symbol id="i-cerrar" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
     <symbol id="i-compartir" viewBox="0 0 24 24"><path d="M12 3v12M8 7l4-4 4 4M6 11H5v10h14V11h-1"/></symbol>
+    <symbol id="i-entrenar" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/><path d="M12 12l6.5-6.5M15.5 4.5h3v3"/></symbol>
     <symbol id="i-repetir" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3L20 9M20 4v5h-5M20 12a8 8 0 0 1-14 5.3L4 15M4 20v-5h5"/></symbol>
   </defs>
 </svg>
@@ -1264,6 +1307,10 @@ body.pip #monitor{opacity:1;transform:none;visibility:visible;pointer-events:aut
       <div class="hero">
         <h1 class="hero-title" id="homeTitle">Graba con más <span class="rot" aria-hidden="true"><span>energía</span><span>seguridad</span><span>intención</span><span>naturalidad</span><span>energía</span></span><span class="sr">energía, seguridad, intención y naturalidad</span></h1>
         <p class="tagline">Tu director de escena: te ve y te escucha mientras grabas y te dice en el momento cómo moverte y hablar.</p>
+        <div class="hero-cta">
+          <button class="primary" type="button" data-drill="prueba"><svg class="ico"><use href="#i-play"/></svg>Haz la prueba de 30 segundos</button>
+          <small>Lee un texto corto y te digo cómo te ven en cámara y qué mejorar primero. Sin registrarte.</small>
+        </div>
       </div>
       <section class="plan-banner" id="planBanner" hidden aria-label="Objetivos para la próxima toma"></section>
       <div class="home-list">
@@ -1271,6 +1318,7 @@ body.pip #monitor{opacity:1;transform:none;visibility:visible;pointer-events:aut
         <div class="modes">
           <button class="modecard" type="button" data-flow="video"><svg class="ico"><use href="#i-camara"/></svg><b>Grabar un vídeo</b><span>Tu guion en pantalla y los gestos en el momento justo.</span><svg class="ico chev" aria-hidden="true"><use href="#i-chev"/></svg></button>
           <button class="modecard" type="button" data-flow="analizar"><svg class="ico"><use href="#i-pelicula"/></svg><b>Analizar un vídeo</b><span>Sube uno que ya grabaste y te digo qué mejorar.</span><svg class="ico chev" aria-hidden="true"><use href="#i-chev"/></svg></button>
+          <button class="modecard" type="button" data-flow="entrenar"><svg class="ico"><use href="#i-entrenar"/></svg><b>Entrenar un minuto</b><span>Ejercicios cortos con una sola meta: mirada, voz, manos, sonrisa y pausas.</span><svg class="ico chev" aria-hidden="true"><use href="#i-chev"/></svg></button>
           <button class="modecard" type="button" data-flow="llamada"><svg class="ico"><use href="#i-llamada"/></svg><b>Videollamada</b><span>O un directo. Sin guion, en una ventana flotante encima.</span><svg class="ico chev" aria-hidden="true"><use href="#i-chev"/></svg></button>
         </div>
       </div>
@@ -1349,6 +1397,15 @@ body.pip #monitor{opacity:1;transform:none;visibility:visible;pointer-events:aut
     </section>
 
     <!-- Último paso: listo para grabar · elegir el vídeo · listo para la llamada -->
+    <section class="pane" data-pane="entrenar" hidden aria-labelledby="trTitle">
+      <div class="pane-head">
+        <h2 id="trTitle">Entrena un minuto al día</h2>
+        <p class="note">Cada ejercicio tiene una sola meta y dura menos de un minuto. Te digo cómo vas y guardo tu récord en este dispositivo.</p>
+      </div>
+      <div class="tr-stats" id="trStats"></div>
+      <div class="drills" id="drills"></div>
+    </section>
+
     <section class="pane" data-pane="listo" hidden aria-labelledby="listoTitle">
       <div class="pane-head">
         <h2 id="listoTitle"><span data-f="video llamada">Todo listo</span><span data-f="analizar">Elige tu vídeo</span></h2>
@@ -1365,13 +1422,6 @@ body.pip #monitor{opacity:1;transform:none;visibility:visible;pointer-events:aut
           <select id="takeHelp">
             <option value="linea">Solo la línea (recomendado)</option>
             <option value="avisos">La línea y los avisos</option>
-          </select>
-        </div>
-        <div class="row stack"><label class="row-t" for="doble"><b>Tu doble: te enseña los gestos</b><small data-hint="doble"></small></label>
-          <select id="doble">
-            <option value="ensayo">En los ensayos (recomendado)</option>
-            <option value="siempre">Siempre, también al grabar</option>
-            <option value="no">No</option>
           </select>
         </div>
       </div>
@@ -1431,7 +1481,7 @@ body.pip #monitor{opacity:1;transform:none;visibility:visible;pointer-events:aut
       </details>
 
       <div class="group">
-        <label class="row"><span class="row-t"><b>Dibujar lo que detecta</b><small>Cara, cejas, ojos, boca, hombros, codos y manos.</small></span><input type="checkbox" class="switch" id="skeleton" role="switch"></label>
+        <label class="row"><span class="row-t"><b>Modo análisis</b><small>Dibuja lo que detecta: cara, cejas, ojos, boca, hombros, codos y manos. Apagado, la imagen queda limpia (en el plató, botón de la figura o tecla S).</small></span><input type="checkbox" class="switch" id="skeleton" role="switch"></label>
       </div>
       <p class="note center" data-f="llamada">Si la aplicación de la llamada no deja usar la cámara a la vez, abre la llamada en otra pestaña de este navegador (Meet, Teams o Zoom en la web).</p>
       <p class="note center" data-f="video llamada">Te pedirá permiso para la cámara y el micrófono. Mejor con el móvil en vertical o el portátil a la altura de los ojos, y que se te vea de cintura para arriba.</p>
@@ -1451,7 +1501,6 @@ body.pip #monitor{opacity:1;transform:none;visibility:visible;pointer-events:aut
 <!-- ============ PLATÓ ============ -->
 <section id="studio" hidden aria-label="Plató">
   <video id="cam" playsinline webkit-playsinline muted autoplay></video>
-  <canvas id="dobleCv"></canvas>
   <canvas id="overlay"></canvas>
   <div class="shade"></div>
   <canvas id="ghost"></canvas>
@@ -1526,6 +1575,12 @@ body.pip #monitor{opacity:1;transform:none;visibility:visible;pointer-events:aut
     <ol class="hf-cmds" id="hfCmds"></ol>
     <div class="actions"><button class="ghost" id="hfTeach" type="button" hidden>Enseñar mi voz</button><button class="primary" id="hfOk" type="button">¡Entendido!</button></div>
   </div>
+  <div class="plan-card drill-card" id="drillCard" hidden role="dialog" aria-labelledby="drTitle">
+    <div class="reh-head"><div class="ring" id="drRing"><span id="drPct">--</span></div><div><small id="drName"></small><b id="drTitle"></b></div><button class="ghost dr-share" id="drShare" type="button" aria-label="Compartir tu resultado"><svg class="ico"><use href="#i-compartir"/></svg></button></div>
+    <p id="drRec"></p>
+    <p id="drTip"></p>
+    <div class="actions"><button class="ghost" id="drExit" type="button">Salir</button><button class="ghost" id="drNext" type="button">Otro ejercicio</button><button class="primary" id="drAgain" type="button">Otra vez</button></div>
+  </div>
   <div class="plan-card" id="planCard" hidden role="dialog" aria-label="Objetivos de esta toma">
     <b>🎯 Tus objetivos para esta toma</b>
     <p id="planFrom"></p>
@@ -1561,7 +1616,7 @@ body.pip #monitor{opacity:1;transform:none;visibility:visible;pointer-events:aut
     <button class="btn" id="fontDown" title="Letra más pequeña (-)"><svg class="ico"><use href="#i-texto"/></svg><span class="sr">Letra más pequeña</span>−</button>
     <button class="btn" id="fontUp" title="Letra más grande (+)"><svg class="ico"><use href="#i-texto"/></svg><span class="sr">Letra más grande</span>+</button>
     <button class="btn" id="txtBtn" title="Ocultar o mostrar el texto para verte entero (T)"><svg class="ico"><use href="#i-texto"/></svg><span class="lbl">Texto</span></button>
-    <button class="btn" id="skel" title="Esqueleto (S)"><svg class="ico"><use href="#i-esqueleto"/></svg><span class="sr">Esqueleto</span></button>
+    <button class="btn" id="skel" title="Modo análisis: dibujar lo que detecta (S)"><svg class="ico"><use href="#i-esqueleto"/></svg><span class="sr">Modo análisis</span></button>
     <button class="btn" id="mon" title="Información (I)"><svg class="ico"><use href="#i-monitor"/></svg><span class="sr">Información</span></button>
     <button class="btn" id="wordsBtn" hidden title="Volver a enseñar tus palabras de voz"><span aria-hidden="true">🎙️</span><span class="lbl">Mis palabras</span></button>
     <button class="btn" id="pipBtn" title="Ventana flotante para tenerlo encima de la videollamada"><svg class="ico"><use href="#i-flotante"/></svg><span class="lbl">Ventana flotante</span></button>
@@ -2008,11 +2063,13 @@ const DEFAULT_CALIB = { smile: .05, brow: .12, pitch: .47, yaw: 0, neck: .62, re
 const S = {
   text: store.get('text', SAMPLE),
   tone: store.get('tone', 'animado'),
-  opts: Object.assign({ app: 'video', tab: {}, voiceEngine: 'auto', stopMargin: 3, rehearseFirst: true, takeHelp: 'linea', doble: 'ensayo', mode: 'voz', wpm: 140, font: 46, mirror: false, pauseSilent: true, cues: true, readCheck: true, skeleton: true, lang: 'es-ES', compact: null }, store.get('opts', {})),
+  opts: Object.assign({ app: 'video', tab: {}, voiceEngine: 'auto', stopMargin: 3, rehearseFirst: true, takeHelp: 'linea', mode: 'voz', wpm: 140, font: 46, mirror: false, pauseSilent: true, cues: true, readCheck: true, skeleton: false, lang: 'es-ES', compact: null }, store.get('opts', {})),
   calib: Object.assign({}, DEFAULT_CALIB, store.get('calib', {})),
   sc: null, live: false, take: null, vision: null, visionErr: null, audio: null, stream: null,
 };
 window.__apuntador = S;
+// pantalla limpia por defecto: las líneas de lo que detecta pasan a ser el «modo análisis», que enciendes si quieres
+if ((S.opts.v || 0) < 2) { S.opts.skeleton = false; S.opts.v = 2; store.set('opts', S.opts); }
 const ser = {
   motion: new Series(), handsUp: new Series(), handsMove: new Series(), open: new Series(), cx: new Series(),
   smile: new Series(), brow: new Series(), contact: new Series(), frown: new Series(), pitchRaw: new Series(25), yawRaw: new Series(25),
@@ -2189,9 +2246,9 @@ function bindOpts() {
   font.value = o.font; $('#font-out').textContent = o.font + ' px';
   font.addEventListener('input', () => { o.font = +font.value; $('#font-out').textContent = o.font + ' px'; save(); });
   delete o.voiceCmd;
-  for (const k of ['voiceEngine', 'stopMargin', 'takeHelp', 'doble']) {
+  for (const k of ['voiceEngine', 'stopMargin', 'takeHelp']) {
     const el = $('#' + k); el.value = String(o[k]);
-    if (el.selectedIndex < 0) { o[k] = { stopMargin: 3, voiceEngine: 'auto', takeHelp: 'linea', doble: 'ensayo' }[k]; el.value = String(o[k]); }
+    if (el.selectedIndex < 0) { o[k] = { stopMargin: 3, voiceEngine: 'auto', takeHelp: 'linea' }[k]; el.value = String(o[k]); }
     el.addEventListener('change', () => { o[k] = k === 'stopMargin' ? +el.value : el.value; save(); });
   }
   for (const k of ['pauseSilent', 'cues', 'mirror', 'skeleton', 'rehearseFirst', 'readCheck']) {
@@ -2209,8 +2266,8 @@ renderTones(); bindOpts(); refreshSetup();
      llamada:  intención → listo (empezar)
    Cada paso es una entrada del historial: el botón de atrás de la barra, el gesto de volver del iPhone y el botón
    «atrás» de Android retroceden un paso en vez de salir. */
-const FLOWS = { video: ['guion', 'tono', 'revision', 'listo'], analizar: ['tono', 'listo'], llamada: ['tono', 'listo'] };
-const STEP_NAME = { guion: 'Tu guion', tono: 'Intención', revision: 'Revisión', listo: { video: 'Antes de grabar', analizar: 'Tu vídeo', llamada: 'Antes de empezar' } };
+const FLOWS = { video: ['guion', 'tono', 'revision', 'listo'], analizar: ['tono', 'listo'], llamada: ['tono', 'listo'], entrenar: ['entrenar'] };
+const STEP_NAME = { entrenar: 'Entrenar', guion: 'Tu guion', tono: 'Intención', revision: 'Revisión', listo: { video: 'Antes de grabar', analizar: 'Tu vídeo', llamada: 'Antes de empezar' } };
 const NAV = { flow: isCall() ? 'llamada' : 'video', step: 'home', skip: false, after: null };
 const stepIdx = s => s === 'home' ? -1 : FLOWS[NAV.flow].indexOf(s);
 function setFlow(f) {
@@ -2235,14 +2292,15 @@ function renderStep(step, dir = 0) {
   }
   const name = STEP_NAME[step];
   $('#abTitle').textContent = step === 'home' ? '' : typeof name === 'string' ? name : name[NAV.flow];
-  $('#abDots').innerHTML = step === 'home' ? '' : steps.map((_, k) => `<i class="${k < i ? 'done' : k === i ? 'now' : ''}"></i>`).join('');
+  $('#abDots').innerHTML = step === 'home' || steps.length < 2 ? '' : steps.map((_, k) => `<i class="${k < i ? 'done' : k === i ? 'now' : ''}"></i>`).join('');
   $('#abDots').setAttribute('aria-label', step === 'home' ? '' : `Paso ${i + 1} de ${steps.length}`);
   const last = i === steps.length - 1;
   $('#next').hidden = step === 'home' || last;
-  $('#go').hidden = !last || NAV.flow === 'analizar';
+  $('#go').hidden = !last || NAV.flow === 'analizar' || NAV.flow === 'entrenar';
   $('#analyze').hidden = !last || NAV.flow !== 'analizar';
   if (step === 'listo') { renderSummary(); renderHints(); }
   if (step === 'home') renderInstall();
+  if (step === 'entrenar') renderDrills();
   if (step === 'revision' && S.sc?.words.length) requestAnimationFrame(() => placeMarks($('#preview'), S.sc));
   if (changed || dir) window.scrollTo(0, 0);
 }
@@ -2293,7 +2351,6 @@ addEventListener('scroll', () => document.body.classList.toggle('scrolled', scro
 
 // el resumen del último paso: lo elegido, con un toque para cambiarlo
 const HINTS = {
-  doble: { ensayo: 'Un muñeco de líneas, detrás de ti y a tu tamaño, hace cada gesto un poco antes de que toque y vuelve a la posición base. Se pone verde cuando lo haces igual.', siempre: 'También al grabar de verdad. Solo lo ves tú: no sale en el vídeo.', no: 'Sin muñeco: solo los avisos.' },
   takeHelp: { linea: 'Abajo, una línea verde si vas bien y roja si te alejas. Nada más, para no distraerte.', avisos: 'La línea y, además, los avisos de gestos y voz en el momento.' },
   voiceEngine: { auto: 'En el móvil aprende tus palabras; en Chrome o Edge de ordenador usa el del navegador.', propias: 'Aprende tu voz: dices cada palabra dos veces y funciona sin conexión.', navegador: 'El reconocimiento de voz de Chrome o Edge de ordenador.', no: 'Empiezas y paras con los botones o con dos palmadas.' },
 };
@@ -2351,7 +2408,7 @@ $('#go').addEventListener('click', () => { askMotion(); primeAudio(); enterStudi
 
 /* ---------------- plató: entrada y salida ---------------- */
 let video = $('#cam');   // la cámara o, al analizar un vídeo subido, ese vídeo
-const overlay = $('#overlay'), octx = overlay.getContext('2d'), ghostCv = $('#ghost'), gctx = ghostCv.getContext('2d'), dobleCv = $('#dobleCv'), dctx = dobleCv.getContext('2d');
+const overlay = $('#overlay'), octx = overlay.getContext('2d'), ghostCv = $('#ghost'), gctx = ghostCv.getContext('2d');
 function show(id) {
   for (const s of ['setup', 'studio', 'report']) $('#' + s).hidden = s !== id;
   window.scrollTo(0, 0);
@@ -2474,7 +2531,8 @@ function prepStudioUI() {
   $('#studio').classList.toggle('app-llamada', isCall());
   $('#studio').classList.toggle('file-mode', !!S.file);
   $('#fileBar').hidden = !S.file;
-  $('#planCard').hidden = true; $('#hfCard').hidden = true; S.intro = null;
+  $('#planCard').hidden = true; $('#hfCard').hidden = true; $('#drillCard').hidden = true; S.intro = null;
+  $('#studio').classList.toggle('drill', !!S.drill);
   S.seenOK = false;
   setTab(S.opts.tab?.[S.opts.app] || (isCall() ? 'cuerpo' : 'plano'));
   S.planoShown = false; S.panelWas = null;
@@ -2491,7 +2549,7 @@ function prepStudioUI() {
 }
 async function enterStudio() {
   endFileMode();
-  S.sc = parseScript(S.text, S.tone);
+  S.sc = S.drill ? parseScript(S.drill.text, S.drill.tone) : parseScript(S.text, S.tone);
   if (!S.sc.words.length && !isCall()) return;
   S.flow = flowOn() ? 'ensayo' : 'grabar'; S.rehs = [];
   prepStudioUI();
@@ -2509,7 +2567,8 @@ async function enterStudio() {
   try { await withTimeout(setupAudio(S.stream), 6000); } catch (e) { console.warn('audio', e); }
   await ensureVision();
   if (!S.live || S.take || S.countdown) return;
-  startCalibration();
+  // en un ejercicio, si ya te calibraste otra vez, sin esperas
+  if (S.drill && S.calib.done) finishCalibration(true); else startCalibration();
 }
 async function ensureVision() {
   if (S.vision || S.visionErr) return;
@@ -2541,6 +2600,7 @@ $('#stageMsg').addEventListener('click', e => {
 });
 
 function leaveStudio() {
+  if (S.drill) { S.drill = null; $('#studio').classList.remove('drill'); setTimeout(() => { if (NAV.step === 'entrenar') renderDrills(); }); }
   endFileMode();
   closePip();
   busy(null); $('#calib').hidden = true; $('#camAlert').hidden = true; cancelEnroll(false); S.stopping = null; $('#stopCard').hidden = true; $('#rehCard').hidden = true; $('#planCard').hidden = true; $('#hfCard').hidden = true; S.intro = null;
@@ -4065,9 +4125,10 @@ function resetLine() { S.line = { k: '', cand: '', since: 0 }; setLine(''); }
    Paso 1: ensayo sin grabar (te corrige todo). Al terminar, sin salir del plató, una tarjeta con cómo ha ido, el
    arranque (los 3 primeros segundos), la duración para redes y hasta tres objetivos. Paso 2: la grabación de verdad,
    con esos objetivos en el monitor y solo los avisos importantes; su informe la compara con el ensayo. */
-const flowOn = () => !!S.opts.rehearseFirst && !isCall() && !S.file;
+const flowOn = () => !!S.opts.rehearseFirst && !isCall() && !S.file && !S.drill;
 // «comenzamos», dos palmadas u otra toma desde el informe: ensayo o grabación según el paso
 function startByFlow(record) {
+  if (S.drill) { startTake(false); return false; }   // un ejercicio no se graba
   if (!$('#rehCard').hidden) record = true;          // tras el ensayo, toca grabar de verdad
   else if (flowOn() && S.flow === 'ensayo') record = false;
   startTake(record);
@@ -4965,6 +5026,7 @@ function coachTick() {
     S.take.log.push({ t: takeT(t), match, perceived, tone, idx: PR.idx, sp: speakingMe ? 1 : 0, li: listening ? 1 : 0, parts, line: S.line?.k || '',
       on: RULES.filter(r => RS[r.id].on && r.kind !== 'good').map(r => r.id), M: Object.fromEntries(Object.entries(M).map(([k, v]) => [k, r(v)])) });
     if (!call && S.take.endAt && t - S.take.endAt > 1.5 && t - V.lastVoiced > 2.2) stopTake(true);
+    else if (S.drill && t - S.take.t0 > 90) stopTake(true);   // un ejercicio nunca pasa de minuto y medio
   }
   if (++coach.uiTick % 2 === 0) updateMonitor(c, perceived, parts);
   updateStatus(t);
@@ -4975,7 +5037,7 @@ function manageCue(c) {
   const t = c.t;
   const a = coach.active, goals = S.take?.plan?.ids || [], calm = !!(S.take?.record && S.take.plan);
   // con el resultado del ensayo o los objetivos en pantalla, nada más encima
-  if (!$('#rehCard').hidden || !$('#planCard').hidden || !$('#hfCard').hidden) { if (a && a.kind !== 'script') endCue(t, 'hidden'); return; }
+  if (!$('#rehCard').hidden || !$('#planCard').hidden || !$('#hfCard').hidden || !$('#drillCard').hidden) { if (a && a.kind !== 'script') endCue(t, 'hidden'); return; }
   // grabando de verdad con «solo la línea»: ningún aviso encima (la línea ya lo dice)
   if (lineOnly()) { if (a && a.kind !== 'script' && a.kind !== 'next') endCue(t, 'hidden'); return; }
   const reading = !!(S.take && !c.isCall && !S.take.file);
@@ -5003,6 +5065,7 @@ function manageCue(c) {
     // grabando de verdad con objetivos: lo demás (salvo lo crítico) se avisa menos, para no distraer
     const st = RS[r.id], goal = goals.includes(r.id), f = goal ? .6 : calm && r.kind !== 'crit' ? 1.8 : 1;
     if (!st.on || t - st.on < r.hold * f || t - st.lastEnd < r.cool * (c.isCall ? 2 : 1) * f) continue;
+    if (S.drill?.rules && r.kind !== 'crit' && !S.drill.rules.includes(r.id)) continue;   // en un ejercicio, solo su meta
     // leyendo, un aviso cada vez y con respiro entre uno y otro
     if (reading && r.kind !== 'crit' && t - coach.lastEnd < 4) continue;
     if (r.kind === 'good' && RULES.some(o => o.kind !== 'good' && RS[o.id].on)) continue;
@@ -5125,13 +5188,13 @@ function maybeShowHandsFree() {
   if (S.intro?.hf) return false;
   if (S.intro) S.intro.hf = true;
   const voice = (FOL.on && !FOL.failed) || (kwsOn() && !!KWS.tpl), reh = flowOn() && S.flow === 'ensayo';
-  const go = reh ? 'cuenta atrás y empieza el ensayo' : 'cuenta atrás y graba', m = +(S.opts.stopMargin ?? 3);
+  const go = S.drill ? 'cuenta atrás y empieza el ejercicio' : reh ? 'cuenta atrás y empieza el ensayo' : 'cuenta atrás y graba', m = +(S.opts.stopMargin ?? 3);
   $('#hfCard').classList.toggle('claps', !voice);
-  $('#hfTitle').textContent = voice ? 'Manos libres' : 'Sin tocar el móvil';
-  $('#hfSub').textContent = (S.intro?.note ? S.intro.note + ' ' : '') + (voice ? 'Te escucho. Graba, para y repite con la voz, sin tocar nada.'
+  $('#hfTitle').textContent = S.drill ? `${S.drill.e} ${S.drill.name}` : voice ? 'Manos libres' : 'Sin tocar el móvil';
+  $('#hfSub').textContent = (S.intro?.note ? S.intro.note + ' ' : '') + (S.drill ? `${S.drill.goal} ` : '') + (voice ? 'Te escucho. Graba, para y repite con la voz, sin tocar nada.'
     : `${voiceEngine() === 'no' ? 'El control por voz está desactivado' : kwsOn() ? 'Aún no me has enseñado tu voz' : 'Este navegador no deja usar la voz'}. Empieza con dos palmadas.`);
   $('#hfCmds').innerHTML = (voice
-    ? [['Comenzamos', go], ['Corten', m ? `para, con ${m} segundos de margen` : 'para al momento'], ['Otra vez', 'repite desde el principio'], ['Seguimos', 'si dijiste «corten» sin querer']]
+    ? [['Comenzamos', go], ['Corten', S.drill ? 'para' : m ? `para, con ${m} segundos de margen` : 'para al momento'], ['Otra vez', 'repite desde el principio'], ...S.drill ? [] : [['Seguimos', 'si dijiste «corten» sin querer']]]
     : [['👏👏 Dos palmadas', go], ['Terminar', 'pulsa el botón para parar']]).map(([q, d]) => `<li><q>${q}</q><span>${d}</span></li>`).join('');
   $('#hfTeach').hidden = voice || !kwsOn();
   $('#hfCard').hidden = false;
@@ -5252,11 +5315,11 @@ function updateStatus(t) {
   if (!isCall() && !S.file) parts.push(FOL.on ? 'voz: navegador' : kwsOn() ? (KWS.tpl ? 'voz: mis palabras' : 'voz: falta enseñar tus palabras') : voiceEngine() === 'no' ? 'voz: desactivada' : 'voz: no disponible');
   const hint = $('#voiceHint');
   hint.hidden = !(S.live && !isCall() && !S.file && !S.take && !S.countdown && !S.calibrating) || !$('#planCard').hidden || !$('#rehCard').hidden;
-  hint.hidden = hint.hidden || !!KWS.enroll || !$('#hfCard').hidden;
+  hint.hidden = hint.hidden || !!KWS.enroll || !$('#hfCard').hidden || !$('#drillCard').hidden;
   const wb = !(kwsOn() && !S.take && !S.countdown && !KWS.enroll && !S.calibrating);
   if ($('#wordsBtn').hidden !== wb) $('#wordsBtn').hidden = wb;
   const rehStep = flowOn() && S.flow === 'ensayo';
-  const want = (FOL.on ? 'voz' : kwsOn() && KWS.tpl ? 'propias' : 'palmas') + (rehStep ? '-ensayo' : '');
+  const want = (FOL.on ? 'voz' : kwsOn() && KWS.tpl ? 'propias' : 'palmas') + (S.drill ? '-ejercicio' : rehStep ? '-ensayo' : '');
   if (hint.dataset.k !== want) {
     hint.dataset.k = want;
     hint.innerHTML = {
@@ -5266,6 +5329,9 @@ function updateStatus(t) {
       'voz-ensayo': '<span class="vh-mic" aria-hidden="true"></span>Te escucho. Primero, el ensayo: di <b>«comenzamos»</b> · <b>«corten»</b> para parar',
       'propias-ensayo': '<span class="vh-mic" aria-hidden="true"></span>Te escucho. Primero, el ensayo: di <b>«comenzamos»</b> · <b>«corten»</b> para parar',
       'palmas-ensayo': '🧪 Primero, el ensayo: da <b>dos palmadas</b> o pulsa <b>Ensayar</b>',
+      'voz-ejercicio': '<span class="vh-mic" aria-hidden="true"></span>Te escucho: di <b>«comenzamos»</b> para empezar el ejercicio · <b>«corten»</b> para parar',
+      'propias-ejercicio': '<span class="vh-mic" aria-hidden="true"></span>Te escucho: di <b>«comenzamos»</b> para empezar el ejercicio · <b>«corten»</b> para parar',
+      'palmas-ejercicio': '👏👏 Da <b>dos palmadas</b> o pulsa <b>Empezar</b>',
     }[want];
   }
   if (!hint.hidden) hint.style.setProperty('--lv', clamp((V.db + 58) / 34, 0, 1).toFixed(2));
@@ -5423,15 +5489,7 @@ function drawFaceGhost(g, kind, ph, fl, W, Hh, X, lw, C) {
   }
   g.restore();
 }
-/* ---------------- tu doble: el personaje que te enseña los gestos ----------------
-   Un muñeco de líneas, como el esqueleto que dibuja lo que detecta, detrás de ti y a tu tamaño (anclado a tus hombros;
-   si no se te ve, donde deberías estar). Sin gesto a la vista está en la posición base. Unos 2,5 s antes de cada gesto
-   del guion ya lo va haciendo (te lo anticipa), lo hace contigo al llegar a su palabra y vuelve a la base. Si toca
-   corregir algo (brazos cruzados, manos fuera de plano…), enseña el gesto que lo arregla. Se pone verde cuando tus
-   manos están donde las suyas. Por defecto sale en los ensayos; al grabar de verdad, solo si lo pides (no sale en el vídeo). */
-// posición base: manos juntas a la altura del ombligo y codos sueltos. Tranquila, y lista para el siguiente gesto
-const BASE = { ...REST, lE: [-.68, .9], rE: [.68, .9], lW: [-.12, 1.15], rW: [.12, 1.15] };
-// por qué funciona cada gesto (lenguaje corporal): lo cuenta el aviso «En breve» mientras el doble lo enseña
+// por qué funciona cada gesto (lenguaje corporal): lo cuenta el aviso «En breve» de los ensayos
 const GEST_WHY = {
   saludo: 'Saludar con la mano abre la conversación: cercanía desde el primer segundo.',
   contar: 'Contar con los dedos ordena el mensaje y ayuda a recordarlo.',
@@ -5444,87 +5502,6 @@ const GEST_WHY = {
   negar: 'Un corte de lado con la mano descarta con firmeza, sin agresividad.',
   cta: 'Señalar lleva la mirada de quien te ve justo adonde quieres.',
 };
-const D = { pose: null, g: '', since: 0, t: 0, match: 0, mode: '' };
-// la postura clave de cada gesto, la que más se aleja de la base (en «descruzar», los brazos ya abiertos, no cruzados):
-// es con la que se comparan tus manos
-const wdist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
-const keyPose = G => G.key ||= (G.kf || []).map(k => ({ ...REST, ...k })).reduce((m, k) => wdist(k.lW, BASE.lW) + wdist(k.rW, BASE.rW) > wdist(m.lW, BASE.lW) + wdist(m.rW, BASE.rW) ? k : m, BASE);
-S.dbg.doble = D;
-function dobleOn() {
-  const o = S.opts.doble || 'ensayo';
-  return !!(S.take && !S.take.call && !S.take.file && o !== 'no' && (o === 'siempre' || !S.take.record));
-}
-// qué hace ahora: el gesto en curso (del guion o el que arregla algo), el que viene, o la base
-function dobleTarget() {
-  const a = coach.active;
-  if (a?.g && GEST[a.g]?.kf && a.kind !== 'next') return { mode: a.kind === 'script' ? 'ahora' : 'arregla', g: a.g };
-  if (S.opts.cues && S.sc) {
-    const cues = S.sc.cues, wps = FOL.follow && FOL.ok ? 2.4 : S.opts.wpm / 60;
-    for (let j = PR.nextCue; j < cues.length; j++) {
-      const g = CUE_LOOK[cues[j].type]?.[1];
-      if (!g || !GEST[g]?.kf) continue;   // pausas, énfasis y gestos de la cara: esos no los hace el cuerpo
-      if ((cues[j].at - PR.idx) / Math.max(1, wps) <= 2.5) return { mode: 'viene', g };
-      break;
-    }
-  }
-  return { mode: 'base', g: '' };
-}
-function dobleFrame(g, t, W, Hh, X, lw, fs, box) {
-  const tg = dobleTarget();
-  if (tg.g !== D.g) { D.g = tg.g; D.since = t; }
-  D.mode = tg.mode;
-  const G = tg.g && GEST[tg.g];
-  const want = G ? poseAt(G, ((t - D.since) % G.dur) / G.dur) : { ...BASE, dsh: Math.sin(t * 1.7) * .02 };   // la base respira
-  const a = 1 - Math.exp(-Math.min(.1, t - (D.t || t)) * 8); D.t = t;
-  if (!D.pose) D.pose = { ...want };
-  for (const key in want) { const v = want[key], c = D.pose[key]; D.pose[key] = Array.isArray(v) ? [c[0] + (v[0] - c[0]) * a, c[1] + (v[1] - c[1]) * a] : typeof v === 'number' ? c + (v - c) * a : v; }
-  const P = D.pose, seen = B.ok && B.c && B.P && fresh('pose', B.lastOk, t, .8);
-  const cx = seen ? X(B.c.x) : W / 2, cy = seen ? B.c.y : Hh * .42, s = seen ? B.sw : Math.min(W, Hh) * (W < Hh ? .3 : .22);
-  // ¿tus manos están donde las suyas en la postura clave? (solo las que se mueven en el gesto)
-  let ok = false;
-  if (G && seen) {
-    const K = keyPose(G), sides = ['l', 'r'].filter(sd => wdist(K[sd + 'W'], BASE[sd + 'W']) > .3);
-    ok = sides.length > 0 && sides.every(sd => {
-      const q = B.P[sd === 'l' ? 15 : 16];
-      return q && q.v > .5 && wdist([(X(q.x) - cx) / s, (q.y - cy) / s - K.dy - K.dsh * .3], K[sd + 'W']) < .5;
-    });
-  }
-  D.match += ((ok ? 1 : 0) - D.match) * a;
-  const good = D.match > .6;
-  drawDoble(g, P, cx, cy, s, lw, good);
-  // una etiqueta corta a la altura de su pecho (arriba la taparía el texto): lo del aviso de abajo, en dos palabras
-  const tag = good ? '¡Así! ✓' : { viene: 'Viene…', ahora: '¡Ahora!', arregla: 'Prueba esto' }[tg.mode] || '';
-  if (tag) {
-    const hy = clamp(cy + (.55 + P.dy) * s, box.yMin + fs * 2, box.yMax - fs * 2);
-    g.save(); g.font = `700 ${fs}px 'Atkinson Hyperlegible', system-ui, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
-    const w = g.measureText(tag).width + fs * 1.2;
-    g.fillStyle = good ? '#55D6A6' : '#C8F25A'; g.beginPath(); g.roundRect?.(cx - w / 2, hy - fs * .8, w, fs * 1.6, fs * .8); g.fill();
-    g.fillStyle = '#14151A'; g.fillText(tag, cx, hy); g.restore();
-  }
-}
-// el muñeco: cabeza con cara amable, tronco, brazos y manos, con un contorno oscuro para leerse sobre cualquier fondo
-function drawDoble(g, P, cx, cy, s, lw, good) {
-  const sh = P.dsh, pt = ([x, y], e = 0) => [cx + x * s, cy + (y + P.dy + e) * s];
-  const lS = pt([-.5, 0], sh), rS = pt([.5, 0], sh), lHp = pt([-.36, 1.9]), rHp = pt([.36, 1.9]);
-  const [hx, hy] = pt([0, -.98 + P.dhead], sh * .5), hr = s * .34, neck = pt([0, -.62 + P.dhead], sh * .5), mid = pt([0, 0], sh);
-  const E = { l: pt(P.lE, sh * .6), r: pt(P.rE, sh * .6) }, Wr = { l: pt(P.lW, sh * .3), r: pt(P.rW, sh * .3) };
-  const col = good ? '#55D6A6' : '#C8F25A', dark = 'rgba(8,10,6,.45)', w = lw * 1.5;
-  const body = () => {
-    g.beginPath(); g.moveTo(...lS); g.lineTo(...rS); g.moveTo(...neck); g.lineTo(...mid);
-    g.moveTo(...lS); g.lineTo(...lHp); g.lineTo(...rHp); g.lineTo(...rS);
-    for (const sd of ['l', 'r']) { g.moveTo(...(sd === 'l' ? lS : rS)); g.lineTo(...E[sd]); g.lineTo(...Wr[sd]); }
-    g.moveTo(hx + hr, hy); g.arc(hx, hy, hr, 0, 7);
-  };
-  g.save(); g.lineCap = 'round'; g.lineJoin = 'round';
-  for (const [c, k] of [[dark, 2.4], [col, 1]]) {
-    g.strokeStyle = c; g.fillStyle = c; g.lineWidth = w * k; body(); g.stroke();
-    for (const sd of ['l', 'r']) drawHand(g, Wr[sd], E[sd], P[sd + 'H'], s * .6, w * k * 1.6);
-    for (const q of [lS, rS, E.l, E.r, lHp, rHp]) { g.beginPath(); g.arc(q[0], q[1], w * (k > 1 ? 2.2 : 1.4), 0, 7); g.fill(); }
-  }
-  g.fillStyle = col; for (const sx of [-1, 1]) { g.beginPath(); g.arc(hx + sx * hr * .36, hy - hr * .12, w * .8, 0, 7); g.fill(); }
-  g.strokeStyle = col; g.lineWidth = w * .8; g.beginPath(); g.arc(hx, hy + hr * .02, hr * .45, .2 * Math.PI, .8 * Math.PI); g.stroke();
-  g.restore();
-}
 // dibujo del gesto en el aviso (cada fotograma mientras está visible)
 const cueCanvas = $('#cueCanvas'), cctx = cueCanvas.getContext('2d');
 function drawCueVis(t) {
@@ -5705,14 +5682,9 @@ function drawOverlay() {
   const cue = coach.active, G = cue && cue.g && cue.kind !== 'next' && !lineOnly() && GEST[cue.g];
   if (G) {
     const ph = ((t - coach.since) % G.dur) / G.dur;
-    if (G.kf && B.ok && B.c && fresh('pose', B.lastOk, t, .8) && !dobleOn()) drawBodyGhost(gctx, poseAt(G, ph), X(B.c.x), B.c.y, B.sw, lw * 4, 'sombra');
+    if (G.kf && B.ok && B.c && fresh('pose', B.lastOk, t, .8) && S.opts.skeleton) drawBodyGhost(gctx, poseAt(G, ph), X(B.c.x), B.c.y, B.sw, lw * 4, 'sombra');
     if (G.face && F.ok && F.fl && fresh('face', F.lastSeen, t, .8)) drawFaceGhost(gctx, G.face, ph, F.fl, W, Hh, X, lw, C);
   }
-  // tu doble, detrás de tus líneas
-  if (dobleCv.width !== cw || dobleCv.height !== ch) { dobleCv.width = cw; dobleCv.height = ch; }
-  dctx.setTransform(k, 0, 0, k, 0, 0);
-  dctx.clearRect(0, 0, W, Hh);
-  if (dobleOn()) dobleFrame(dctx, t, W, Hh, X, lw, fs, { xMin, xMax, yMin, yMax }); else D.pose = null;
 }
 
 /* ---------------- bucles ----------------
@@ -5808,7 +5780,8 @@ async function startTake(record) {
   if (S.take || !S.live || S.countdown) return;
   const file = !!S.file;
   if (file) record = false;
-  $('#planCard').hidden = true; $('#rehCard').hidden = true; $('#hfCard').hidden = true; S.intro = null;
+  $('#planCard').hidden = true; $('#rehCard').hidden = true; $('#hfCard').hidden = true; $('#drillCard').hidden = true; S.intro = null;
+  if (S.drill) record = false;
   if (record) S.flow = 'grabar';
   if (record && typeof MediaRecorder === 'undefined') { record = false; toast('Este navegador no puede grabar vídeo: hago un ensayo.'); }
   if (S.calibrating) finishCalibration(true);
@@ -5871,7 +5844,7 @@ function stopTake(showReport = true) {
   FOL.follow = false;
   setTakeUI(false);
   // un ensayo no sale del plató: tarjeta con el resultado y a grabar
-  const finish = () => { if (!showReport) return; if (!tk.record && !tk.call && !tk.file && flowOn() && S.live) showRehearsal(tk); else buildReport(tk); checkReadingAfter(tk); };
+  const finish = () => { if (!showReport) return; if (S.drill && !tk.call && !tk.file && S.live) return showDrillResult(tk); if (!tk.record && !tk.call && !tk.file && flowOn() && S.live) showRehearsal(tk); else buildReport(tk); checkReadingAfter(tk); };
   if (tk.mr && tk.mr.state !== 'inactive') {
     tk.mr.onstop = () => { tk.blob = new Blob(tk.chunks, { type: tk.mime }); finish(); };
     try { tk.mr.stop(); } catch { finish(); }
@@ -5923,6 +5896,168 @@ addEventListener('keydown', e => {
   else if (e.key === 't' || e.key === 'T') $('#txtBtn').click();
   else if (e.key === 'm' || e.key === 'M' || e.key === 'i' || e.key === 'I') setPanel(!panelOpen(), true);
 });
+
+/* ---------------- entrenar: ejercicios de un minuto ----------------
+   Cada ejercicio es una toma corta (un ensayo: no se graba) con su propio texto y UNA sola meta, que es lo único que se
+   mide y lo único que se avisa (más lo crítico, como que no se te vea). Al terminar, una tarjeta con la nota, tu récord,
+   la vez anterior y un consejo. Se guarda en este dispositivo: récord, evolución y días seguidos. La «prueba de 30
+   segundos» es el primero: mide cómo te ven en general y te dice qué ejercicio te conviene. */
+const DRILLS = {
+  prueba: { e: '⚡', name: 'Prueba de 30 segundos', goal: 'Lee el texto con naturalidad: te digo cómo te ven en cámara y qué mejorar primero.', score: 'general', tone: 'cercano',
+    text: '[cercano]\n¡Hola! Te cuento algo en medio minuto. ¿Sabes qué es lo primero que nota quien te ve en un vídeo? No son tus palabras: es cómo las dices.\n\nTu mirada, tu voz y tus manos cuentan tanto como el mensaje. Así que hoy te propongo algo sencillo: mira aquí, sonríe y cuéntamelo como si estuviéramos frente a frente. ¿Te animas?' },
+  mirada: { e: '👀', name: 'Mira al objetivo', goal: 'Lee con la vista en la cámara. Si se te va, vuelve y sigue.', why: 'Mirar al objetivo es mirar a los ojos de quien te ve: transmite seguridad y conexión.', score: 'mirada', rules: ['mirada'], tone: 'cercano',
+    text: '[cercano]\nMira al punto de la cámara mientras lees. Si se te va la vista, no pasa nada: vuelve al objetivo y sigue.\n\nQuien te ve siente que le hablas a él, y eso da confianza. Respira, mira de frente y termina cada frase mirando a la cámara. Así leen los presentadores sin que se note.',
+    low: 'Sube el texto lo más cerca posible de la cámara y termina cada frase mirando al objetivo.', high: 'Tu mirada ya sostiene la conexión. Prueba a mantenerla también en las frases largas.' },
+  melodia: { e: '🎵', name: 'Voz con melodía', goal: 'Sube el tono en las palabras en negrita y bájalo al final de cada frase.', why: 'Una voz que sube y baja mantiene la atención; la voz plana suena a lectura.', score: 'melodia', rules: ['monotono', 'entonacion', 'vozBaja'], tone: 'animado',
+    text: '[animado]\nEsto es *increíble*: en solo *una semana* cambió todo. ¿Y sabes por qué? Porque probé algo *nuevo*.\n\nNo era *difícil*, ni *caro*: era *constante*. Hoy te cuento *cómo* hacerlo tú también, paso a paso, y *sin* complicarte.',
+    low: 'Exagera un poco: en cámara se nota la mitad. Sube en la palabra marcada como si fuera una sorpresa.', high: 'Tu voz tiene vida. Mantén esa melodía también cuando leas tu propio guion.' },
+  manos: { e: '🙌', name: 'Manos que hablan', goal: 'Haz el gesto que te marca cada frase, dentro del plano.', why: 'Los gestos que acompañan la idea la hacen más fácil de entender y de recordar.', score: 'gestos', rules: ['estatico', 'manosQuietas', 'manosFuera', 'cruzados', 'cerrado', 'manos'], tone: 'animado',
+    text: '[animado]\nHola a todos. Hoy te traigo tres ideas.\n\nLa primera es pequeña, un detalle. La segunda es enorme, de verdad. Y la tercera, la más importante, eres tú.\n\nYo lo aprendí tarde, pero contigo será distinto. ¿Lo probamos juntos?',
+    low: 'Prepara el gesto un poco antes de su palabra: cuando llegue, ya tienes la mano arriba.', high: 'Tus manos acompañan bien. Prueba a usarlas así en tu guion.' },
+  sonrisa: { e: '😄', name: 'Sonrisa que se oye', goal: 'Sonríe un poco antes de empezar cada frase.', why: 'La sonrisa se oye en la voz: suena más cercana y con más energía.', score: 'sonrisa', rules: ['serio', 'inexpresivo', 'sonrisa'], tone: 'cercano',
+    text: '[cercano]\nQué alegría verte por aquí. Hoy tengo una buena noticia: lo que te preocupaba tiene arreglo, y es más fácil de lo que crees.\n\nSonríe un poco antes de cada frase y verás cómo cambia tu voz. Gracias por quedarte hasta el final; nos vemos muy pronto.',
+    low: 'Piensa en algo que te haga gracia justo antes de cada frase: la sonrisa sale sola.', high: 'Se te ve y se te oye cercano. Guarda esa sonrisa para el arranque de tus vídeos.' },
+  pausas: { e: '⏸️', name: 'Pausas que dan peso', goal: 'Para un segundo en cada raya del texto.', why: 'Una pausa antes de lo importante le da peso y te hace sonar seguro.', score: 'pausas', rules: ['rapido', 'sinPausa', 'ritmo'], tone: 'serio',
+    text: '[serio]\nHay una cosa // que casi nadie hace. // Parar. //\n\nUna pausa antes de lo importante le da peso. // Te hace sonar seguro. // Y a quien te escucha // le da tiempo a pensar. //\n\nPruébalo ahora: // respira, // y di la última frase despacio.',
+    low: 'Cuenta «uno» por dentro en cada raya: lo que a ti te parece eterno, en cámara es medio segundo.', high: 'Tus pausas dan peso. Márcalas también en tu guion con //.' },
+};
+const DRILL_FOR_GOAL = { estatico: 'manos', manosQuietas: 'manos', manosFuera: 'manos', cerrado: 'manos', cruzados: 'manos', exceso: 'pausas', serio: 'sonrisa', inexpresivo: 'sonrisa',
+  monotono: 'melodia', vozBaja: 'melodia', rapido: 'pausas', lento: 'melodia', mirada: 'mirada' };
+// por cada medida, el ejercicio si te quedas corto y si te pasas
+const DRILL_FOR_METRIC = { energia: ['manos', 'pausas'], manos: ['manos', 'pausas'], apertura: ['manos', 'manos'], sonrisa: ['sonrisa', 'sonrisa'], expresion: ['sonrisa', 'pausas'],
+  volumen: ['melodia', 'pausas'], entonacion: ['melodia', 'pausas'], ritmo: ['melodia', 'pausas'], mirada: ['mirada', 'mirada'] };
+const drillLog = () => store.get('drills', {});
+function saveDrill(id, sc) { const L = drillLog(); (L[id] ||= []).push({ t: Date.now(), s: sc }); L[id] = L[id].slice(-30); store.set('drills', L); }
+// días seguidos entrenando (hoy, o hasta ayer si hoy aún no)
+function drillStreak() {
+  const days = new Set(Object.values(drillLog()).flat().map(x => new Date(x.t).toDateString()));
+  const d = new Date(); if (!days.has(d.toDateString())) d.setDate(d.getDate() - 1);
+  let n = 0; while (days.has(d.toDateString())) { n++; d.setDate(d.getDate() - 1); }
+  return n;
+}
+// el ejercicio que más te conviene hoy: el de tu objetivo pendiente; si no, la prueba (si no la has hecho) o el menos practicado
+function drillForToday() {
+  const L = drillLog(), g = S.plan?.ids?.find(id => DRILL_FOR_GOAL[id]);
+  if (g) return DRILL_FOR_GOAL[g];
+  if (!L.prueba?.length) return 'prueba';
+  const last = L.prueba.at(-1); if (last.next && !(L[last.next]?.length)) return last.next;
+  return Object.keys(DRILLS).filter(k => k !== 'prueba').sort((a, b) => (L[a]?.length || 0) - (L[b]?.length || 0))[0];
+}
+// la nota del ejercicio, de 0 a 100: la parte del tiempo (o de los gestos) en que cumpliste la meta
+function drillScore(d, tk) {
+  const L = tk.log, share = (k, ok) => { const v = L.map(sm => sm.M[k]).filter(x => x != null); return v.length >= 8 ? v.filter(ok).length / v.length : null; };
+  const cues = types => tk.events.filter(e => e.kind === 'script' && e.outcome !== 'na' && types.includes(e.cue?.type));
+  const hitShare = types => { const c = cues(types); return c.length ? c.filter(e => e.outcome === 'hit').length / c.length : null; };
+  const avgOf = xs => { xs = xs.filter(x => x != null); return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null; };
+  let v = null;
+  if (d.score === 'general') v = takeStats(tk).avg != null ? takeStats(tk).avg / 100 : null;
+  else if (d.score === 'mirada') v = share('mirada', x => x >= .65);
+  else if (d.score === 'melodia') v = avgOf([share('entonacion', x => x >= .5), hitShare(['enfasis'])]);
+  else if (d.score === 'gestos') v = hitShare(['saludo', 'contar', 'abrir', 'pecho', 'palma', 'grande', 'pequeno', 'pregunta', 'negar', 'cta']) ?? share('manos', x => x >= .35);
+  else if (d.score === 'sonrisa') v = share('sonrisa', x => x >= .3);
+  else if (d.score === 'pausas') v = hitShare(['pausa']);
+  return v == null ? null : Math.round(v * 100);
+}
+function startDrill(id) {
+  const d = DRILLS[id]; if (!d) return;
+  S.drill = { id, ...d };
+  setFlow('entrenar');
+  enterStudio();
+}
+// otro ejercicio sin salir del plató (la cámara sigue)
+function switchDrill(id) {
+  S.drill = { id, ...DRILLS[id] };
+  $('#drillCard').hidden = true;
+  $('#studio').classList.add('drill');
+  S.sc = parseScript(S.drill.text, S.drill.tone);
+  setupPrompter(); setTakeUI(false);
+  studioIntro('');
+}
+function showDrillResult(tk) {
+  const d = S.drill, sc = drillScore(d, tk), L = drillLog(), prev = L[d.id] || [];
+  const best = prev.length ? Math.max(...prev.map(x => x.s)) : null, last = prev.at(-1)?.s ?? null;
+  let next = null, title, tip;
+  if (d.score === 'general') {
+    const st = takeStats(tk), P = st.topP && lookOf(st.topP), w = st.worst[0];
+    next = w ? DRILL_FOR_METRIC[w.m.id]?.[w.below >= w.above ? 0 : 1] : null;
+    title = sc == null ? 'No he podido medirlo' : P ? `Te ven ${P.name.toLowerCase()}` : sc >= 75 ? '¡Muy bien!' : 'Vas bien';
+    tip = sc == null ? '¿Se te veía bien la cara y se te oía? Prueba con más luz de frente.'
+      : w ? `Lo que más se nota: ${w.below >= w.above ? w.m.low : w.m.high}.${next ? ` Te propongo «${DRILLS[next].name}».` : ''}`
+      : 'Todo en su sitio. Prueba un ejercicio para pulir un detalle o graba tu vídeo.';
+  } else {
+    title = sc == null ? 'No he podido medirlo' : sc >= 75 ? '¡Muy bien!' : sc >= 50 ? 'Vas bien' : 'A por la siguiente';
+    tip = sc == null ? '¿Se te veía y oía bien? Ponte de frente a la luz y acércate un poco.' : `${sc >= 75 ? d.high : d.low} ${d.why}`;
+  }
+  if (sc != null) { saveDrill(d.id, sc); if (next) { const L2 = drillLog(); L2[d.id].at(-1).next = next; store.set('drills', L2); } }
+  const streak = drillStreak();
+  const ring = $('#drRing');
+  ring.style.setProperty('--p', sc ?? 0);
+  ring.style.setProperty('--rc', sc == null ? 'var(--dim)' : sc >= 75 ? 'var(--ok)' : sc >= 50 ? 'var(--warn)' : 'var(--bad)');
+  $('#drPct').textContent = sc == null ? '--' : sc;
+  $('#drName').textContent = `${d.e} ${d.name} · ${fmtTime(tk.dur)}`;
+  $('#drTitle').textContent = title;
+  $('#drRec').innerHTML = sc == null ? '' : [
+    best == null ? 'Primera vez: este es tu punto de partida.' : sc > best ? `🏆 ¡Nuevo récord! Antes, ${best}.` : `Tu récord: ${best}${last != null ? ` · la vez anterior: ${last}` : ''}.`,
+    streak > 1 ? `🔥 ${streak} días seguidos.` : ''].filter(Boolean).join(' ');
+  $('#drTip').textContent = tip;
+  S.drill.next = next || Object.keys(DRILLS).filter(k => k !== 'prueba' && k !== d.id)[Math.floor(Math.random() * 4)];
+  $('#drNext').textContent = `${DRILLS[S.drill.next].e} ${next ? 'Probar ese ejercicio' : 'Otro ejercicio'}`;
+  $('#drShare').hidden = sc == null;
+  S.drill.last = { sc, title };
+  $('#drillCard').hidden = false;
+  if (sc != null && best != null && sc > best) burst(['🏆', '✨', '⭐'], 12);
+}
+// compartir el resultado: una imagen vertical (4:5, la de Instagram) con la nota y la invitación a probarlo
+async function shareDrill() {
+  const d = S.drill, r = d?.last; if (!r || r.sc == null) return;
+  const c = document.createElement('canvas'); c.width = 1080; c.height = 1350;
+  const g = c.getContext('2d'), F = (w, px) => `${w} ${px}px 'Atkinson Hyperlegible', system-ui, sans-serif`;
+  const col = r.sc >= 75 ? '#2FBF71' : r.sc >= 50 ? '#E5A000' : '#E5484D';
+  g.fillStyle = '#14151A'; g.fillRect(0, 0, 1080, 1350);
+  g.fillStyle = '#C8F25A'; g.font = F(700, 44); g.textAlign = 'center'; g.fillText('APUNTADOR', 540, 140);
+  g.lineCap = 'round'; g.lineWidth = 44;
+  g.strokeStyle = 'rgba(255,255,255,.1)'; g.beginPath(); g.arc(540, 520, 220, 0, Math.PI * 2); g.stroke();
+  g.strokeStyle = col; g.beginPath(); g.arc(540, 520, 220, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * r.sc / 100); g.stroke();
+  g.fillStyle = '#fff'; g.font = F(800, 190); g.textBaseline = 'middle'; g.fillText(String(r.sc), 540, 530); g.textBaseline = 'alphabetic';
+  g.font = F(600, 46); g.fillStyle = 'rgba(255,255,255,.75)'; g.fillText(`${d.e} ${d.name}`, 540, 870);
+  g.font = F(800, 64); g.fillStyle = '#fff';
+  const words = r.title.split(' '), lines = []; let ln = '';
+  for (const w of words) { const t = ln ? ln + ' ' + w : w; if (g.measureText(t).width > 900 && ln) { lines.push(ln); ln = w; } else ln = t; }
+  lines.push(ln); lines.slice(0, 2).forEach((l, i) => g.fillText(l, 540, 960 + i * 78));
+  g.font = F(600, 44); g.fillStyle = '#C8F25A'; g.fillText('¿Y tú? Haz la prueba de 30 segundos', 540, 1180);
+  g.font = F(400, 34); g.fillStyle = 'rgba(255,255,255,.6)'; g.fillText(location.host + location.pathname.replace(/index\.html$/, ''), 540, 1240);
+  const blob = await new Promise(res => c.toBlob(res, 'image/png'));
+  const file = new File([blob], 'apuntador.png', { type: 'image/png' }), url = location.origin + location.pathname.replace(/index\.html$/, '');
+  const text = `Mi resultado en «${d.name}»: ${r.sc}/100. ¿Y tú?`;
+  try {
+    if (navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file], text, url }); return; }
+    if (navigator.share) { await navigator.share({ text, url }); return; }
+  } catch (e) { if (e?.name === 'AbortError') return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'apuntador.png'; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast('Imagen guardada: compártela donde quieras.', 3000);
+}
+$('#drShare').addEventListener('click', shareDrill);
+$('#drAgain').addEventListener('click', () => { $('#drillCard').hidden = true; startTake(false); });
+$('#drNext').addEventListener('click', () => switchDrill(S.drill?.next || 'mirada'));
+$('#drExit').addEventListener('click', () => { $('#drillCard').hidden = true; leaveStudio(); openSetup('entrenar', 'entrenar'); });
+// la lista de ejercicios, con tu récord, tu evolución y el que te conviene hoy
+const spark = xs => { if (xs.length < 2) return ''; const w = 64, h = 20, pts = xs.slice(-10), n = pts.length; return `<svg class="spark" viewBox="0 0 ${w} ${h}" aria-hidden="true"><polyline points="${pts.map((v, i) => `${(i / (n - 1) * w).toFixed(1)},${(h - 2 - v / 100 * (h - 4)).toFixed(1)}`).join(' ')}"/></svg>`; };
+function renderDrills() {
+  const L = drillLog(), today = drillForToday(), streak = drillStreak(), total = Object.values(L).reduce((a, x) => a + x.length, 0);
+  $('#trStats').innerHTML = total ? `<span>🔥 <b>${streak}</b> ${streak === 1 ? 'día seguido' : 'días seguidos'}</span><span><b>${total}</b> ${total === 1 ? 'ejercicio hecho' : 'ejercicios hechos'}</span>` : '';
+  $('#trStats').hidden = !total;
+  const ids = [today, ...Object.keys(DRILLS).filter(k => k !== today)];
+  $('#drills').innerHTML = ids.map(id => {
+    const d = DRILLS[id], h = (L[id] || []).map(x => x.s), best = h.length ? Math.max(...h) : null;
+    return `<button class="drill${id === today ? ' today' : ''}" type="button" data-drill="${id}">
+      <span class="dr-e" aria-hidden="true">${d.e}</span>
+      <span class="dr-t">${id === today ? '<em>Para ti hoy</em>' : ''}<b>${d.name}</b><small>${esc(d.goal)}</small></span>
+      <span class="dr-s">${best != null ? `<b>${best}</b><small>récord</small>${spark(h)}` : '<small>Nuevo</small>'}</span>
+    </button>`;
+  }).join('');
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-drill]'); if (b && !$('#setup').hidden) startDrill(b.dataset.drill); });
 
 /* ---------------- objetivos para la próxima toma ----------------
    Del informe salen hasta tres objetivos: lo que más tiempo estuvo mal (avisos activos y medidas fuera de la franja
@@ -6006,7 +6141,7 @@ $('#planBanner').addEventListener('click', e => {
 });
 function showPlanCard(next = '') {
   const P = S.plan;
-  if (!P?.ids.length || S.file || isCall() || S.take || S.countdown || KWS.enroll || S.calibrating || !S.live) return false;
+  if (!P?.ids.length || S.drill || S.file || isCall() || S.take || S.countdown || KWS.enroll || S.calibrating || !S.live) return false;
   $('#planNext').textContent = next; $('#planNext').hidden = !next;
   $('#planFrom').textContent = `Es lo que más te conviene mejorar de ${fromTxt(P)}.`;
   $('#planList').innerHTML = goalListHTML(P.ids, id => esc(TIPS[id] || ''));
@@ -6085,6 +6220,36 @@ function hookNote(tk, tone) {
     : `🎣 El arranque (3 primeros segundos, ${m}%) se ve ${P ? P.name.toLowerCase() : 'flojo'}: en redes es lo que decide si se quedan a verte. Empieza ya con la energía de un mensaje ${TONES[tone].adj}.`;
 }
 const durNote = tk => !tk.call && tk.dur > 62 ? `⏱️ Ha durado ${fmtTime(tk.dur)}. Para Reels, TikTok y Shorts conviene menos de un minuto: recorta el guion o ve un poco más rápido.` : '';
+// momentos clave de la toma, como en la revisión de un entrenador: fallos al leer, gestos del guion (hechos o no)
+// y avisos, cada uno con su minuto y lo que estabas leyendo. Con vídeo, tocarlo lleva a ese momento.
+function keyMoments(tk) {
+  const words = !tk.call && !tk.file ? S.sc?.words || [] : [];
+  const idxAt = t => { let best = null; for (const sm of tk.log) { if (best && Math.abs(sm.t - t) > Math.abs(best.t - t)) break; best = sm; } return best?.idx; };
+  const said = i => { if (i == null || !words.length) return ''; const a = Math.max(0, i - 2), b = Math.min(words.length, i + 4); return '«' + (a ? '…' : '') + words.slice(a, b).map(w => w.text).join(' ') + (b < words.length ? '…' : '') + '»'; };
+  const out = [];
+  for (const r of readFails(tk)) out.push({ t: r.t, k: 'bad', i: READ_LOOK[r.kind] || '✋', b: r.txt, s: said(r.idx ?? idxAt(r.t)), w: 3 });
+  for (const e of tk.events) {
+    if (e.kind === 'script' && e.outcome === 'hit') out.push({ t: e.t, k: 'ok', i: '✅', b: e.title, s: said(e.cue?.at), w: 2 });
+    else if (e.kind === 'script' && e.outcome === 'miss') out.push({ t: e.t, k: 'warn', i: (CUE_LOOK[e.cue?.type] || ['👉'])[0], b: `${e.title}: no se vio`, s: said(e.cue?.at), w: 2 });
+    else if (['crit', 'body', 'face', 'voice'].includes(e.kind) && !out.some(o => o.id === e.id && Math.abs(o.t - e.t) < 6))
+      out.push({ id: e.id, t: e.t, k: e.kind === 'crit' ? 'bad' : 'warn', i: (RULE_LOOK[e.id] || ['⚠️'])[0], b: e.title, s: said(idxAt(e.t)), w: e.kind === 'crit' ? 2 : 1 });
+  }
+  // los más importantes, y en orden de tiempo
+  return out.sort((a, b) => b.w - a.w || a.t - b.t).slice(0, 10).sort((a, b) => a.t - b.t);
+}
+function momentsHTML(tk, video) {
+  const ms = keyMoments(tk); if (!ms.length) return '';
+  const reads = readFails(tk).length, avisos = ms.filter(m => m.id).length;
+  const sc = tk.events.filter(e => e.kind === 'script' && e.outcome !== 'na'), hits = sc.filter(e => e.outcome === 'hit').length;
+  const sum = [reads ? `${reads} ${reads === 1 ? 'fallo' : 'fallos'} al leer` : '', sc.length ? `${hits} de ${sc.length} gestos` : '', avisos ? `${avisos} ${avisos === 1 ? 'aviso' : 'avisos'}` : ''].filter(Boolean).join(' · ');
+  const tag = video ? 'button' : 'div';
+  return `<div class="moments">
+    <div class="km-head"><b>Momentos clave</b><span>${sum}</span></div>
+    <div class="km-ticks" aria-hidden="true">${ms.map(m => `<i class="k-${m.k}" style="left:${(m.t / Math.max(1, tk.dur) * 100).toFixed(1)}%"></i>`).join('')}</div>
+    <ol class="km-list">${ms.map(m => `<li class="km k-${m.k}"><${tag}${video ? ` type="button" data-seek="${Math.max(0, m.t - 1.5).toFixed(1)}" title="Ir a ese momento"` : ''}><span class="km-t">${fmtTime(m.t)}</span><span class="km-i" aria-hidden="true">${m.i}</span><span class="km-x"><b>${esc(m.b)}</b>${m.s ? `<small>${esc(m.s)}</small>` : ''}</span></${tag}></li>`).join('')}</ol>
+    ${video ? '<p class="note">Toca un momento para verlo.</p>' : ''}
+  </div>`;
+}
 function buildReport(tk) {
   const call = !!tk.call, file = !!tk.file;
   const { avg, mainTone, pc, pTot, pSorted, topP, gaps, worst } = takeStats(tk);
@@ -6231,6 +6396,7 @@ function buildReport(tk) {
           <div class="strip" id="repStrip" title="${url ? 'Pulsa para ir a ese momento' : ''}">${strip}</div>
           <div class="dl-time"><span>0:00</span><span>${fmtTime(tk.dur)}</span></div>
         </div>
+        ${momentsHTML(tk, !!url)}
       </div>
     </section>
     <details class="more" id="repMore">
