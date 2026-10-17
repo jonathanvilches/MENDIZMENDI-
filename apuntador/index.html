@@ -1128,31 +1128,24 @@ body.pip #monitor{opacity:1;transform:none;visibility:visible;pointer-events:aut
 .reads li{display:flex;align-items:center;gap:calc(var(--u) * 1.5);font-size:var(--t-sm);line-height:var(--lh)}
 .reads .ghost{min-height:36px;padding:0 calc(var(--u) * 1.5);font-variant-numeric:tabular-nums;flex:none}
 @media (prefers-reduced-motion: reduce){.read-alert.pop{animation:none}}
-/* manos libres: que se vea que todo se hace con la voz */
-.handsfree{display:flex;flex-direction:column;gap:calc(var(--u) * 2);padding:calc(var(--u) * 2.5);border-radius:var(--r-lg);background:#14151A;color:#fff;box-shadow:var(--shadow);border:1px solid rgba(200,242,90,.3)}
+/* manos libres: al entrar al plató, una tarjeta con las órdenes de voz (o las palmadas si no hay voz) */
 .hf-head{display:flex;align-items:center;gap:calc(var(--u) * 2)}
-.hf-head b{display:block;font:700 var(--t-lg)/1.2 var(--f-display);letter-spacing:-.02em;color:#C8F25A}
-.hf-head small{display:block;margin-top:2px;font-size:var(--t-sm);line-height:var(--lh);color:rgba(255,255,255,.78)}
-.hf-mic{position:relative;display:grid;place-items:center;flex:none;width:52px;height:52px;border-radius:50%;background:#C8F25A;color:#14151A}
-.hf-mic .ico{position:relative;width:26px;height:26px;stroke-width:2.2}
+.hf-head b{display:block;font:700 var(--t-lg)/var(--lh-tight) var(--f-display);letter-spacing:-.02em;color:var(--paper)}
+.hf-head small{display:block;margin-top:var(--u);font-size:var(--t-sm);line-height:var(--lh);color:var(--mute)}
+.hf-mic{position:relative;display:grid;place-items:center;flex:none;width:48px;height:48px;border-radius:50%;background:#C8F25A;color:#14151A}
+.hf-mic .ico{position:relative;width:24px;height:24px;stroke-width:2.2}
 .hf-mic i{position:absolute;inset:0;border-radius:50%;border:2px solid #C8F25A;animation:hfwave 2.4s var(--ease) infinite}
 .hf-mic i+i{animation-delay:1.2s}
+.hf-card.claps .hf-mic i,.hf-card.claps .hf-mic .ico{display:none}
+.hf-card.claps .hf-mic::after{content:"👏";font-size:24px;line-height:1}
 @keyframes hfwave{from{transform:scale(1);opacity:.7}to{transform:scale(1.7);opacity:0}}
 .hf-cmds{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
-.hf-cmds li{display:flex;align-items:baseline;gap:var(--u);padding:calc(var(--u) * 1.25) calc(var(--u) * 1.5);border-radius:var(--r-sm);background:rgba(255,255,255,.06);animation:hfcmd 7.2s var(--ease) infinite}
+.hf-cmds li{display:flex;align-items:baseline;gap:calc(var(--u) * 1.5);padding:calc(var(--u) * 1.25) calc(var(--u) * 1.5);border-radius:var(--r-sm);background:var(--stage-2);animation:hfcmd 7.2s var(--ease) infinite}
 .hf-cmds li:nth-child(2){animation-delay:1.8s}.hf-cmds li:nth-child(3){animation-delay:3.6s}.hf-cmds li:nth-child(4){animation-delay:5.4s}
-@keyframes hfcmd{0%,22%,100%{background:rgba(255,255,255,.06)}6%,16%{background:rgba(200,242,90,.2)}}
-.hf-cmds q{flex:none;font-weight:700;font-size:var(--t-md);color:#C8F25A;quotes:"«" "»"}
-.hf-cmds span{font-size:var(--t-sm);color:rgba(255,255,255,.78)}
-/* en «Antes de grabar» y en el plató, sobre hoja clara */
-.hf-group .hf-cmds,.hf-card .hf-cmds{padding:0 calc(var(--u) * 2.5)}
-.hf-group .hf-cmds{padding-bottom:var(--u)}
-:is(.hf-group,.hf-card) .hf-cmds li{background:var(--stage-2);animation-name:hfcmd2}
-@keyframes hfcmd2{0%,22%,100%{background:var(--stage-2)}6%,16%{background:color-mix(in srgb,var(--spot) 45%,var(--stage-2))}}
-:is(.hf-group,.hf-card) .hf-cmds q{color:var(--paper)}
-:is(.hf-group,.hf-card) .hf-cmds span{color:var(--mute)}
-.hf-group .group-t{color:var(--paper);font-size:var(--t-sm);font-weight:700}
-.hf-card .hf-cmds{padding:0}
+@keyframes hfcmd{0%,22%,100%{background:var(--stage-2)}6%,16%{background:color-mix(in srgb,var(--spot) 45%,var(--stage-2))}}
+.hf-cmds q{flex:none;font-weight:700;font-size:var(--t-md);color:var(--paper);quotes:"«" "»"}
+.hf-card.claps .hf-cmds q{quotes:none}
+.hf-cmds span{font-size:var(--t-sm);color:var(--mute)}
 /* la pista de voz: un micro que late con tu voz */
 .vh-mic{position:relative;display:inline-block;width:12px;height:12px;margin-right:8px;border-radius:50%;background:#C8F25A;vertical-align:-1px;box-shadow:0 0 0 calc(var(--lv,0) * 7px) rgba(200,242,90,.35);transition:box-shadow .12s linear}
 .lane-voice{margin-right:auto;font-size:var(--t-xs);font-weight:600;color:rgba(255,255,255,.72);text-shadow:0 1px 3px rgba(0,0,0,.7);white-space:nowrap}
@@ -1166,6 +1159,34 @@ body.pip #monitor{opacity:1;transform:none;visibility:visible;pointer-events:aut
 .rc-state{display:flex;align-items:center;gap:var(--u);margin:0;font-size:var(--t-sm);line-height:var(--lh);color:var(--mute)}
 .rc-state .spin{flex:none;width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--paper);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+/* ritmo vertical: un título siempre queda más cerca de lo suyo que de lo anterior, y con aire.
+   Pareja (antetítulo y título, título y subtítulo): 8px · título de tarjeta → contenido: 12px · sección → contenido: 16px */
+:root{--sp-pair:var(--u);--sp-card:calc(var(--u) * 1.5);--sp-sect:calc(var(--u) * 2)}
+/* ajustes: «Cómo grabar» se lee como los plegables («Control por voz», «Texto y avisos»), con el mismo aire debajo */
+.group-t{padding:calc(var(--u) * 2.25) calc(var(--u) * 2.5) calc(var(--u) * .75);font:600 var(--t-md)/var(--lh-tight) var(--f-body);color:var(--paper)}
+.row-t{gap:calc(var(--u) * .5)}
+.row.stack{gap:var(--sp-card)}
+.detect small{margin-top:calc(var(--u) * .5)}
+/* informe: antetítulo, título y fecha; tarjetas y bloques */
+.rep-head>div>.eyebrow{margin-bottom:var(--sp-pair)}
+.rep-head>div>h1+p{margin-top:var(--sp-pair)}
+.dash-card h3{margin-bottom:var(--sp-card)}
+.dash-card h3+.dash-sub{margin:calc(var(--sp-pair) - var(--sp-card)) 0 var(--sp-sect)}
+.eyebrow.lbl{margin-bottom:var(--sp-card)}
+.panel{gap:var(--sp-card)}
+.panel>h2+.sub{margin-top:calc(var(--sp-pair) - var(--sp-card))}
+.readcard{gap:calc(var(--u) * 1.25)}
+/* plató: tarjeta del ensayo (cada bloque se separa más de lo anterior que de lo suyo) y panel */
+.reh-head small+b{display:block;margin-top:calc(var(--u) * .5)}
+.reh-card .eyebrow{margin-top:var(--u)}
+.plano-t{margin-bottom:calc(var(--u) * .25)}
+/* el resumen del análisis completo no es la píldora de puntos del plató ni la tarjeta de «Antes de grabar» */
+.rep-top .summary{background:none;box-shadow:none;border-radius:0;overflow:visible;gap:var(--sp-sect)}
+.rep-top .score{min-height:0;padding:0;border:0;border-radius:0;background:none;font:inherit}
+.rep-top .summary .eyebrow{justify-content:flex-start}
+/* «Tu cuerpo, parte a parte» en el móvil: cada parte pegada a lo suyo y separada de la siguiente */
+@media (max-width:480px){.prows{gap:var(--sp-sect)}.prows li{row-gap:calc(var(--u) * .75)}}
+.pl{gap:calc(var(--u) * 1.25)}
 </style>
 </head>
 <body>
@@ -1241,17 +1262,6 @@ body.pip #monitor{opacity:1;transform:none;visibility:visible;pointer-events:aut
         <h1 class="hero-title" id="homeTitle">Graba con más <span class="rot" aria-hidden="true"><span>energía</span><span>seguridad</span><span>intención</span><span>naturalidad</span><span>energía</span></span><span class="sr">energía, seguridad, intención y naturalidad</span></h1>
         <p class="tagline">Tu director de escena: te ve y te escucha mientras grabas y te dice en el momento cómo moverte y hablar.</p>
       </div>
-      <section class="handsfree" aria-labelledby="hfTitle">
-        <div class="hf-head">
-          <span class="hf-mic" aria-hidden="true"><i></i><i></i><svg class="ico"><use href="#i-voz"/></svg></span>
-          <div><b id="hfTitle">Manos libres</b><small>Graba, para y repite con la voz, sin tocar el móvil.</small></div>
-        </div>
-        <ol class="hf-cmds">
-          <li><q>Comenzamos</q><span>cuenta atrás y graba</span></li>
-          <li><q>Corten</q><span>para, con unos segundos de margen</span></li>
-          <li><q>Otra vez</q><span>repite desde el principio</span></li>
-        </ol>
-      </section>
       <section class="plan-banner" id="planBanner" hidden aria-label="Objetivos para la próxima toma"></section>
       <div class="home-list">
         <p class="eyebrow">¿Qué quieres hacer?</p>
@@ -1345,32 +1355,6 @@ body.pip #monitor{opacity:1;transform:none;visibility:visible;pointer-events:aut
 
       <button class="drop" id="dropVid" type="button" data-f="analizar"><svg class="ico"><use href="#i-pelicula"/></svg><b>Toca para elegir un vídeo</b><small>.mp4, .mov o .webm · o arrástralo aquí</small></button>
 
-      <div class="group hf-group" data-f="video">
-        <p class="group-t">🎙️ Manos libres: todo con la voz</p>
-        <ol class="hf-cmds">
-          <li><q>Comenzamos</q><span>cuenta atrás y graba</span></li>
-          <li><q>Corten</q><span>para, con unos segundos de margen</span></li>
-          <li><q>Otra vez</q><span>repite desde el principio</span></li>
-          <li><q>Seguimos</q><span>si dijiste «corten» sin querer</span></li>
-        </ol>
-        <div class="row stack"><label class="row-t" for="voiceEngine"><b>Reconocimiento de voz</b><small data-hint="voiceEngine"></small></label>
-          <select id="voiceEngine">
-            <option value="auto">Automático (recomendado)</option>
-            <option value="propias">Mis palabras</option>
-            <option value="navegador">Del navegador</option>
-            <option value="no">Desactivado</option>
-          </select>
-        </div>
-        <div class="row stack"><label class="row-t" for="stopMargin"><b>Margen al parar</b><small>Lo que sigue grabando después de «corten».</small></label>
-          <select id="stopMargin">
-            <option value="0">Cortar al momento</option>
-            <option value="2">2 segundos</option>
-            <option value="3">3 segundos</option>
-            <option value="5">5 segundos</option>
-          </select>
-        </div>
-      </div>
-
       <div class="group" data-f="video">
         <p class="group-t">Cómo grabar</p>
         <label class="row"><span class="row-t"><b>Ensayo antes de grabar</b><small>Una prueba sin grabar: te digo qué mejorar y luego grabas de verdad.</small></span><input type="checkbox" class="switch" id="rehearseFirst" role="switch"></label>
@@ -1381,6 +1365,28 @@ body.pip #monitor{opacity:1;transform:none;visibility:visible;pointer-events:aut
           </select>
         </div>
       </div>
+
+      <details class="group fold" data-f="video">
+        <summary>Control por voz</summary>
+        <div class="fold-body">
+          <div class="row stack"><label class="row-t" for="voiceEngine"><b>Reconocimiento de voz</b><small data-hint="voiceEngine"></small></label>
+            <select id="voiceEngine">
+              <option value="auto">Automático (recomendado)</option>
+              <option value="propias">Mis palabras</option>
+              <option value="navegador">Del navegador</option>
+              <option value="no">Desactivado</option>
+            </select>
+          </div>
+          <div class="row stack"><label class="row-t" for="stopMargin"><b>Margen al parar</b><small>Lo que sigue grabando después de «corten».</small></label>
+            <select id="stopMargin">
+              <option value="0">Cortar al momento</option>
+              <option value="2">2 segundos</option>
+              <option value="3">3 segundos</option>
+              <option value="5">5 segundos</option>
+            </select>
+          </div>
+        </div>
+      </details>
 
       <details class="group fold" data-f="video">
         <summary>Texto y avisos</summary>
@@ -1501,16 +1507,13 @@ body.pip #monitor{opacity:1;transform:none;visibility:visible;pointer-events:aut
     <p>Sigo grabando hasta entonces. Di <q>seguimos</q> para continuar u <q>otra vez</q> para repetir desde el principio.</p>
     <div class="actions"><button class="ghost" id="stopCancel" type="button">Seguir grabando</button><button class="primary" id="stopNowBtn" type="button">Cortar ya</button></div>
   </div>
-  <div class="plan-card hf-card" id="hfCard" hidden role="dialog" aria-label="Manos libres">
-    <b>🎙️ Manos libres</b>
-    <p>Te escucho. Todo se hace con la voz, sin tocar nada:</p>
-    <ol class="hf-cmds">
-      <li><q>Comenzamos</q><span>cuenta atrás y graba</span></li>
-      <li><q>Corten</q><span>para, con unos segundos de margen</span></li>
-      <li><q>Otra vez</q><span>repite desde el principio</span></li>
-      <li><q>Seguimos</q><span>si dijiste «corten» sin querer</span></li>
-    </ol>
-    <div class="actions"><button class="primary" id="hfOk" type="button">¡Entendido!</button></div>
+  <div class="plan-card hf-card" id="hfCard" hidden role="dialog" aria-labelledby="hfTitle">
+    <div class="hf-head">
+      <span class="hf-mic" aria-hidden="true"><i></i><i></i><svg class="ico"><use href="#i-voz"/></svg></span>
+      <div><b id="hfTitle">Manos libres</b><small id="hfSub"></small></div>
+    </div>
+    <ol class="hf-cmds" id="hfCmds"></ol>
+    <div class="actions"><button class="ghost" id="hfTeach" type="button" hidden>Enseñar mi voz</button><button class="primary" id="hfOk" type="button">¡Entendido!</button></div>
   </div>
   <div class="plan-card" id="planCard" hidden role="dialog" aria-label="Objetivos de esta toma">
     <b>🎯 Tus objetivos para esta toma</b>
@@ -2459,7 +2462,7 @@ function prepStudioUI() {
   $('#studio').classList.toggle('app-llamada', isCall());
   $('#studio').classList.toggle('file-mode', !!S.file);
   $('#fileBar').hidden = !S.file;
-  $('#planCard').hidden = true;
+  $('#planCard').hidden = true; $('#hfCard').hidden = true; S.intro = null;
   S.seenOK = false;
   setTab(S.opts.tab?.[S.opts.app] || (isCall() ? 'cuerpo' : 'plano'));
   S.planoShown = false; S.panelWas = null;
@@ -2526,7 +2529,7 @@ $('#stageMsg').addEventListener('click', e => {
 function leaveStudio() {
   endFileMode();
   closePip();
-  busy(null); $('#calib').hidden = true; $('#camAlert').hidden = true; cancelEnroll(); S.stopping = null; $('#stopCard').hidden = true; $('#rehCard').hidden = true; $('#planCard').hidden = true;
+  busy(null); $('#calib').hidden = true; $('#camAlert').hidden = true; cancelEnroll(false); S.stopping = null; $('#stopCard').hidden = true; $('#rehCard').hidden = true; $('#planCard').hidden = true; $('#hfCard').hidden = true; S.intro = null;
   if (S.take) stopTake(false);
   S.live = false;
   stopLoops();
@@ -3638,7 +3641,7 @@ function planoTick(t, force = false) {
 const PL_OK = { luz: 'Te llega luz de frente y se te ve bien la cara.', son: 'Tu voz destaca del ruido y no satura.', enc: 'Cabeza y hombros dentro, con aire justo encima.', niv: 'La cámara está recta.' };
 // la línea de nivel (solo con sensor) y la silueta del encuadre: antes de grabar, y se apagan cuando ya está bien
 function guidesTick(t, st) {
-  const pre = S.live && !S.take && !S.countdown && !S.calibrating && !KWS.enroll && !S.file && $('#rehCard').hidden && $('#planCard').hidden;
+  const pre = S.live && !S.take && !S.countdown && !S.calibrating && !KWS.enroll && !S.file && $('#rehCard').hidden && $('#planCard').hidden && $('#hfCard').hidden;
   const hz = $('#horizon'), lv = st.niv.lv;
   const showHz = pre && lv?.src === 'sensor' && !lv.flat;
   if (showHz) {
@@ -3703,11 +3706,10 @@ function finishCalibration(skipped) {
     return;
   }
   const voice = !isCall() && startVoice();
-  maybeShowHandsFree();
   const next = isCall() ? ('Pulsa Empezar cuando arranque la llamada.' + ('documentPictureInPicture' in window ? ' Con «Ventana flotante» lo tendrás encima de ella.' : ' Pon esta ventana al lado de la llamada.'))
     : (flowOn() && S.flow === 'ensayo' ? 'Primero un ensayo, sin grabar: ' : '') + (voice || (kwsOn() && KWS.tpl) ? 'di «comenzamos» cuando quieras y empezará la cuenta atrás.'
       : flowOn() && S.flow === 'ensayo' ? 'da dos palmadas o pulsa Ensayar cuando quieras.' : 'Da dos palmadas o pulsa Grabar cuando quieras.');
-  if (!showPlanCard(next)) { toast((skipped ? 'Listo. ' : 'Calibrado. ') + next, 6500); maybeShowPlano(next); }
+  if (!studioIntro(next)) toast((skipped ? 'Listo. ' : 'Calibrado. ') + next, 6500);
 }
 
 /* ---------------- voz: órdenes y seguimiento del texto ----------------
@@ -3898,7 +3900,7 @@ function startEnroll(onlyMissing) {
   const part = onlyMissing === true && kwMissing();
   const steps = part ? ENROLL_STEPS.filter(([c]) => !(KWS.tpl[c]?.length >= 2)) : ENROLL_STEPS;
   KWS.enroll = { step: 0, steps, part, got: Object.fromEntries(KW_WORDS.map(([c]) => [c, []])) };
-  $('#planCard').hidden = true;
+  $('#planCard').hidden = true; $('#hfCard').hidden = true;
   KWS.cur = null; KWS.silent = 30;
   $('#enroll').hidden = false; showEnroll();
 }
@@ -3922,9 +3924,9 @@ function enrollAdd(frames) {
   store.set('kwTpl', { thr, ...Object.fromEntries(KW_WORDS.map(([c]) => [c, e.got[c].map(T => T.map(v => Array.from(v, x => +x.toFixed(3))))])) });
   KWS.enroll = null;
   $('#enroll').hidden = true;
-  if (!showPlanCard()) maybeShowPlano();
-  toast(clash ? 'Guardado, pero dos palabras se parecen mucho en tu grabación: si falla, vuelve a enseñarlas en un sitio con menos ruido.'
-    : `✅ ¡Aprendido! Di «comenzamos» para ${flowOn() && S.flow === 'ensayo' ? 'empezar el ensayo' : 'grabar'}, «corten» para parar y «otra vez» para repetir.`, 6000);
+  const warn = clash ? 'Guardado, pero dos palabras se parecen mucho en tu grabación: si falla, vuelve a enseñarlas en un sitio con menos ruido.' : '';
+  if (!studioIntro('', warn || '✅ ¡Aprendido! Ya te obedezco solo a ti.'))
+    toast(warn || `✅ ¡Aprendido! Di «comenzamos» para ${flowOn() && S.flow === 'ensayo' ? 'empezar el ensayo' : 'grabar'}, «corten» para parar y «otra vez» para repetir.`, 6000);
 }
 // umbral de cada palabra: bastante más que la diferencia entre tus dos grabaciones (la voz cambia de un día a otro)
 // y menos de la mitad de la que hay con las otras palabras
@@ -3940,7 +3942,7 @@ function kwsThresholds(got) {
   }
   return { thr, clash };
 }
-function cancelEnroll() { const was = !!KWS.enroll; KWS.enroll = null; $('#enroll').hidden = true; if (was) showPlanCard(); }
+function cancelEnroll(intro) { const was = !!KWS.enroll; KWS.enroll = null; $('#enroll').hidden = true; if (was && intro !== false) studioIntro(''); }
 
 /* ---------------- parar con margen ----------------
    Al pedir parar (voz, botón o Esc) sigue grabando unos segundos con cuenta atrás; «seguimos» lo cancela. */
@@ -4933,7 +4935,7 @@ function manageCue(c) {
   const t = c.t;
   const a = coach.active, goals = S.take?.plan?.ids || [], calm = !!(S.take?.record && S.take.plan);
   // con el resultado del ensayo o los objetivos en pantalla, nada más encima
-  if (!$('#rehCard').hidden || !$('#planCard').hidden) { if (a && a.kind !== 'script') endCue(t, 'hidden'); return; }
+  if (!$('#rehCard').hidden || !$('#planCard').hidden || !$('#hfCard').hidden) { if (a && a.kind !== 'script') endCue(t, 'hidden'); return; }
   // grabando de verdad con «solo la línea»: ningún aviso encima (la línea ya lo dice)
   if (lineOnly()) { if (a && a.kind !== 'script' && a.kind !== 'next') endCue(t, 'hidden'); return; }
   const reading = !!(S.take && !c.isCall && !S.take.file);
@@ -5050,6 +5052,7 @@ const pillEl = $('#monPill');
 const panelOpen = () => monEl.classList.contains('open');
 function setPanel(open, user = false) {
   open = !!open;
+  if (open && user && !$('#hfCard').hidden) { $('#hfCard').hidden = true; S.intro = null; }   // pediste la información: manda ella
   if (open === panelOpen() && !user) return;
   monEl.classList.toggle('open', open);
   if (open) monEl.removeAttribute('inert'); else monEl.setAttribute('inert', '');
@@ -5063,14 +5066,40 @@ function setPanel(open, user = false) {
 }
 pillEl.addEventListener('click', () => setPanel(!panelOpen(), true));
 $('#monClose').addEventListener('click', () => { setPanel(false, true); pillEl.focus({ preventScroll: true }); });
-// manos libres: la primera vez que la voz está lista, una tarjeta con las órdenes (en el móvil lo cuenta la de enseñar tu voz)
+// al entrar al plató, antes de la primera toma, por orden: tus objetivos (si los hay), las órdenes de manos libres y
+// el plano. Cada tarjeta da paso a la siguiente; al empezar a grabar se quitan todas
+function studioIntro(next, note = '') {
+  S.intro = { next, note };
+  if (showPlanCard(next) || maybeShowHandsFree()) return true;
+  introNext();
+  return false;
+}
+function introNext() {
+  if (!S.intro || (!$('#planCard').hidden || maybeShowHandsFree())) return;
+  const { next } = S.intro; S.intro = null;
+  maybeShowPlano(next);
+}
+// manos libres: lo que puedes decir (o, sin voz, las palmadas). Se ve en cada entrada al plató, que es cuando sirve
 function maybeShowHandsFree() {
-  if (S.opts.hfSeen || isCall() || S.file || S.take || !(FOL.on || (kwsOn() && KWS.tpl))) return false;
-  S.opts.hfSeen = true; store.set('opts', S.opts);
+  if (isCall() || S.file || S.take || S.countdown || S.calibrating || KWS.enroll || !S.live || !$('#hfCard').hidden) return false;
+  if (S.intro?.hf) return false;
+  if (S.intro) S.intro.hf = true;
+  const voice = (FOL.on && !FOL.failed) || (kwsOn() && !!KWS.tpl), reh = flowOn() && S.flow === 'ensayo';
+  const go = reh ? 'cuenta atrás y empieza el ensayo' : 'cuenta atrás y graba', m = +(S.opts.stopMargin ?? 3);
+  $('#hfCard').classList.toggle('claps', !voice);
+  $('#hfTitle').textContent = voice ? 'Manos libres' : 'Sin tocar el móvil';
+  $('#hfSub').textContent = (S.intro?.note ? S.intro.note + ' ' : '') + (voice ? 'Te escucho. Graba, para y repite con la voz, sin tocar nada.'
+    : `${voiceEngine() === 'no' ? 'El control por voz está desactivado' : kwsOn() ? 'Aún no me has enseñado tu voz' : 'Este navegador no deja usar la voz'}. Empieza con dos palmadas.`);
+  $('#hfCmds').innerHTML = (voice
+    ? [['Comenzamos', go], ['Corten', m ? `para, con ${m} segundos de margen` : 'para al momento'], ['Otra vez', 'repite desde el principio'], ['Seguimos', 'si dijiste «corten» sin querer']]
+    : [['👏👏 Dos palmadas', go], ['Terminar', 'pulsa el botón para parar']]).map(([q, d]) => `<li><q>${q}</q><span>${d}</span></li>`).join('');
+  $('#hfTeach').hidden = voice || !kwsOn();
   $('#hfCard').hidden = false;
+  $('#toast').hidden = true;   // lo que diga el mensaje ya está en la tarjeta, y en el móvil taparía el botón
   return true;
 }
-$('#hfOk').addEventListener('click', () => { $('#hfCard').hidden = true; });
+$('#hfOk').addEventListener('click', () => { $('#hfCard').hidden = true; introNext(); });
+$('#hfTeach').addEventListener('click', () => { $('#hfCard').hidden = true; S.intro = null; startEnroll(false); });
 // antes de la primera toma, una vez: el plano desplegado para colocar luz, micro y cámara. En el móvil, donde el panel
 // tapa la imagen, solo si hay algo que corregir (si todo está bien, bastan los puntos verdes del botón)
 function maybeShowPlano(next = '') {
@@ -5183,7 +5212,7 @@ function updateStatus(t) {
   if (!isCall() && !S.file) parts.push(FOL.on ? 'voz: navegador' : kwsOn() ? (KWS.tpl ? 'voz: mis palabras' : 'voz: falta enseñar tus palabras') : voiceEngine() === 'no' ? 'voz: desactivada' : 'voz: no disponible');
   const hint = $('#voiceHint');
   hint.hidden = !(S.live && !isCall() && !S.file && !S.take && !S.countdown && !S.calibrating) || !$('#planCard').hidden || !$('#rehCard').hidden;
-  hint.hidden = hint.hidden || !!KWS.enroll;
+  hint.hidden = hint.hidden || !!KWS.enroll || !$('#hfCard').hidden;
   const wb = !(kwsOn() && !S.take && !S.countdown && !KWS.enroll && !S.calibrating);
   if ($('#wordsBtn').hidden !== wb) $('#wordsBtn').hidden = wb;
   const rehStep = flowOn() && S.flow === 'ensayo';
@@ -5631,7 +5660,7 @@ async function startTake(record) {
   if (S.take || !S.live || S.countdown) return;
   const file = !!S.file;
   if (file) record = false;
-  $('#planCard').hidden = true; $('#rehCard').hidden = true; $('#hfCard').hidden = true;
+  $('#planCard').hidden = true; $('#rehCard').hidden = true; $('#hfCard').hidden = true; S.intro = null;
   if (record) S.flow = 'grabar';
   if (record && typeof MediaRecorder === 'undefined') { record = false; toast('Este navegador no puede grabar vídeo: hago un ensayo.'); }
   if (S.calibrating) finishCalibration(true);
@@ -5829,7 +5858,7 @@ function showPlanCard(next = '') {
   $('#planCard').hidden = false;
   return true;
 }
-$('#planOk').addEventListener('click', () => { $('#planCard').hidden = true; });
+$('#planOk').addEventListener('click', () => { $('#planCard').hidden = true; introNext(); });
 $('#monitor').addEventListener('click', e => {
   const b = e.target.closest('.kit button'); if (b) openPlano(b.dataset.k);
 });
@@ -6058,14 +6087,14 @@ function buildReport(tk) {
           <p>${story}</p>
         </div>
         <div>
-          <p class="eyebrow" style="margin-bottom:8px">Lo que transmitiste</p>
+          <p class="eyebrow lbl">Lo que transmitiste</p>
           <div class="dist">${pSorted.map(([k, v]) => `<i style="width:${v / pTot * 100}%;background:${lookOf(k).color}" title="${lookOf(k).name}"></i>`).join('')}</div>
           <ul class="legend" style="margin-top:8px">${pSorted.map(([k, v]) => `<li style="--tc:${lookOf(k).color}">${lookOf(k).name} <b>${Math.round(v / pTot * 100)}%</b></li>`).join('') || '<li style="--tc:var(--dim)">Sin datos</li>'}</ul>
         </div>
         <div>
-          ${file ? `<p class="eyebrow" style="margin-bottom:8px">Para repetirlo</p>
+          ${file ? `<p class="eyebrow lbl">Para repetirlo</p>
           <p class="note">${plan?.ids.length ? `Lo que más te conviene mejorar: ${plan.ids.map(id => { const [e, l] = goalTxt(id); return `<b style="color:var(--paper)">${e} ${esc(l)}</b>`; }).join(', ')}.` : 'No hay nada importante que corregir: puedes repetirlo para pulir detalles.'}</p>` : `
-          <p class="eyebrow" style="margin-bottom:8px">${call ? 'Escucha activa' : 'Gestos del guion'}</p>
+          <p class="eyebrow lbl">${call ? 'Escucha activa' : 'Gestos del guion'}</p>
           ${tk.score ? `<p class="note" style="margin-bottom:6px">⭐ <b style="color:var(--paper)">${tk.score} puntos</b>${tk.bestStreak > 1 ? ` · mejor racha de gestos: <b style="color:var(--paper)">${tk.bestStreak}</b> 🔥` : ''}</p>` : ''}
           <p class="note">${call ? `Asentiste <b style="color:var(--paper)">${tk.nods || 0} ${tk.nods === 1 ? 'vez' : 'veces'}</b> durante la sesión.` : checkable ? `Hiciste <b style="color:var(--paper)">${hits} de ${checkable}</b> gestos que marcaba el guion.` : 'Esta toma no tuvo gestos comprobables.'}</p>`}
         </div>
