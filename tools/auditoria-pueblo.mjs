@@ -24,7 +24,7 @@ const audit = async (name, sel) => {
   await p.screenshot({ path: `${out}/${name}.png` });
   const r = await p.evaluate(auditar, sel);
   console.log(`== ${name}: ${Object.entries(r).map(([k, v]) => `${k} ${v.length}`).join(' · ')}`);
-  for (const [k, v] of Object.entries(r)) { TOT[k] = (TOT[k] || 0) + (v.length || 0); for (const x of (v.slice ? v.slice(0, 10) : [v])) console.log(`   ${k}: ${x}`); }
+  for (const [k, v] of Object.entries(r)) { const L = Array.isArray(v) ? v.slice(0, 10) : [v]; TOT[k] = (TOT[k] || 0) + (Array.isArray(v) ? v.length : 1); for (const x of L) console.log(`   ${k}: ${x}`); }
 };
 const ui = (code) => p.evaluate((code) => { const G = window.__game, U = G.ui; try { window.__pr = eval(code); } catch (e) { console.log('no se pudo: ' + code + ' ' + e.message); } }, code);
 const close = () => p.evaluate(() => { const U = window.__game.ui; U.closeModal(); document.querySelector('#dialog')?.remove(); U.dialogOpen = false; document.body.classList.remove('talking'); });
