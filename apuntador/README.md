@@ -194,7 +194,8 @@ mientras lo haces (más lo crítico, como que no se te vea). No se graba vídeo.
 
 | Ejercicio | Meta | Cómo se puntúa (0–100) |
 |---|---|---|
-| ⚡ Prueba de 30 segundos | Leer con naturalidad | La nota general de la toma; te dice cómo te ven y qué ejercicio te conviene |
+| ⚡ Prueba de 30 segundos | Leer con naturalidad | La nota general de la toma; te dice cómo puedes parecer y qué ejercicio te conviene |
+| 🎣 Tu gancho en 3 segundos | La primera frase de tu guion, con energía y mirando al objetivo | Los 4 primeros segundos: cómo transmites (60%) y mirada al objetivo (40%) |
 | 👀 Mira al objetivo | Vista en la cámara | Parte del tiempo mirando al objetivo |
 | 🎵 Voz con melodía | Subir en las palabras marcadas | Entonación con vida y énfasis conseguidos |
 | 🙌 Manos que hablan | El gesto de cada frase | Gestos del texto conseguidos |
@@ -203,11 +204,32 @@ mientras lo haces (más lo crítico, como que no se te vea). No se graba vídeo.
 
 Al terminar, una tarjeta con la nota, tu récord, la vez anterior y un consejo con el porqué. «Otra vez» (o la voz)
 lo repite y «Otro ejercicio» pasa al siguiente sin cerrar la cámara. La lista guarda en este dispositivo tu récord, tu
-evolución (una pequeña gráfica) y los días seguidos, y arriba pone el que te conviene hoy: el de tu objetivo
+evolución (una pequeña gráfica) y los días seguidos (un día suelto de descanso no rompe la racha), y arriba pone el que te conviene hoy: el de tu objetivo
 pendiente del último informe, o el que te recomendó la prueba.
 
 La **prueba de 30 segundos** está en el inicio: es lo primero que se puede hacer, sin registrarse y sin preparar
 nada, para ver en medio minuto qué te aporta la app.
+
+## Inglés y español
+
+La app está en los dos idiomas. Sale en el del navegador (español si es español; si no, inglés) y se cambia con el botón
+ES/EN de arriba, que lo recuerda. Con el idioma cambian también:
+- **Las órdenes de voz**: «comenzamos / corten / otra vez / seguimos» o “action / cut / again / keep going”. Las del
+  navegador se entienden siempre en los dos idiomas; «Mis palabras» aprende las que digas tú.
+- **El idioma de la voz** (variantes de EE. UU., Reino Unido, India, Australia, Canadá, España, México, Argentina,
+  Colombia…), el manifiesto para instalarla y el guion de ejemplo.
+- **El análisis del guion**, que va por el idioma del propio texto (se detecta solo): palabras que marcan gestos, tono,
+  revisor (gancho, llamada a la acción, «tú» frente a «yo», muletillas), etiquetas como `[upbeat]` o `[animado]` y los
+  números leídos en palabras.
+
+Cómo está hecho: los textos del código van en pareja, `LL('español', 'English')`, y los de la página, en un diccionario
+que se aplica al cargar. Una prueba recorre la app en inglés (inicio, pasos, plató, panel, ejercicio, ensayo e informe)
+y avisa si queda algo en español.
+
+## Subtítulos
+
+Al grabar con guion, el informe ofrece **Subtítulos (.srt)**: cada palabra del guion con el momento en que llegó a la
+línea de lectura, en trozos de hasta 7 palabras sin partir frases, listos para subir a TikTok, Reels, Shorts o YouTube.
 
 ## Pantalla limpia y momentos clave
 
