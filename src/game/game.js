@@ -13,6 +13,8 @@ import { isFree, segmentBlocked } from '../world/colliders.js';
 import { makeEguzkilore, makeComb, makeLitter } from '../fx.js';
 import { wait } from '../ui.js';
 import { Fronton, playPelota, frontonWall } from './fronton.js';
+import { instrumentosDe, instrumentoById } from '../data/instrumentos.js';
+import { jugarInstrumento } from '../ui/instrumentos.js';
 import { clamp, lerp, angleDiff, mulberry32 } from '../util/math.js';
 
 const SAVE_KEY = 'mendimendiz-salazar-v2';
@@ -94,6 +96,11 @@ export class Game {
     }
     this.npcs.basajaun.walkSpeed = 0.8;
     for (const d of walkerDefs()) { const a = new Actor({ ...d, walkSpeed: 1.1 }, this.scene); a.face = d.face; a.color = d.color; a.walker = true; this.walkers.push(a); }
+    // el músico de la plaza, con el instrumento del valle (data/instrumentos.js): enseña a tocarlo (tocarCon)
+    try { const inst = instrumentosDe('otsagabia-ochagavia')[0];
+      if (inst) { const c = PLACES.plaza, cand = [[6, -4], [-6, -4], [7, 3], [-7, 3], [0, -7]].map(([dx, dz]) => ({ x: c.x + dx, z: c.z + dz })), s = cand.find(q => isFree(q.x, q.z, 0.8)) || cand[0], [nm] = inst.musico;
+        const m = new Actor({ id: 'musico', name: nm, x: s.x, z: s.z, heading: Math.atan2(c.x - s.x, c.z - s.z), look: { shirt: '#f4f1ea', pants: '#1d1d24', txapela: '#1d1d24', scarf: '#d42f2f', sash: '#d42f2f', espadrille: true, laces: '#d42f2f', hair: '#2a1a12', region: 'pirineo', seed: 77 } }, this.scene);
+        m.musico = inst.id; this.musico = m; } } catch (e) { console.warn('músico', e); }
     // bailarines (aparecen en la fiesta)
     this.dancers = [];
     const m = LANDMARKS.muskilda.dance;
@@ -255,6 +262,7 @@ export class Game {
     const cull = (a, d, max) => cullActor(a, d, max, dt, P, fr);
     for (const a of Object.values(this.npcs)) if (a.visible) cull(a, Math.hypot(a.pos.x - P.pos.x, a.pos.z - P.pos.z), 90);
     for (const a of this.walkers) cull(a, Math.hypot(a.pos.x - P.pos.x, a.pos.z - P.pos.z), 80);
+    if (this.musico) cull(this.musico, Math.hypot(this.musico.pos.x - P.pos.x, this.musico.pos.z - P.pos.z), 80);
     for (const a of this.dancers) if (a.visible) a.update(dt, P);
     // objetos
     for (const it of this.items) {
@@ -332,6 +340,7 @@ export class Game {
     const list = [];
     for (const a of Object.values(this.npcs)) if (a.visible && !a.noTalk) list.push({ kind: 'npc', a, x: a.pos.x, z: a.pos.z, r: a.id === 'basajaun' ? 4 : 2.8, label: `Hablar con ${a.name}` });
     for (const a of this.walkers) list.push({ kind: 'walker', a, x: a.pos.x, z: a.pos.z, r: 2.4, label: `Hablar con ${a.name}` });
+    if (this.musico) list.push({ kind: 'musico', a: this.musico, x: this.musico.pos.x, z: this.musico.pos.z, r: 3, label: `Tocar ${instrumentoById(this.musico.musico)?.short || 'música'} con ${this.musico.name}` });
     const f = VILLAGE.fountain; list.push({ kind: 'fountain', x: f.x, z: f.z, r: 3.8, label: 'Beber agua' });
     for (const p of VILLAGE.palaces) if (!this.state.palaces.includes(p.id)) list.push({ kind: 'palace', p, x: p.door.x, z: p.door.z, r: 3.5, label: 'Mirar el escudo' });
     for (const it of this.items) list.push({ kind: 'item', it, x: it.x, z: it.z, r: it.r, label: it.label });
@@ -371,8 +380,21 @@ export class Game {
     if (['mini', 'cine', 'dance'].includes(this.mode)) this.mode = 'play';
     this.ui.hudVisible?.(true);
   }
+  // el músico de la plaza enseña el instrumento del valle (ui/instrumentos.js): habla, se toca y, si sale, carta de tradiciones
+  async tocarCon(a) {
+    const inst = instrumentoById(a.musico); if (!inst) return;
+    a.say(3); a.wave = 1.2; this.player.frozen = true; this.mode = 'mini';
+    try {
+      await this.say(a, [inst.lines.ask]);
+      const r = await jugarInstrumento(this.ui, inst, { who: a.name });
+      if (r.quit) return;
+      await this.say(a, [r.win ? inst.lines.win : inst.lines.lose]);
+      if (r.win) this.player.rig?.doCheer?.();
+    } finally { this.player.frozen = false; this.mode = 'play'; a.talking = 0; }
+  }
   async interact(it) {
     this.sound.ui('click');
+    if (it.kind === 'musico') return this.tocarCon(it.a);
     if (it.kind === 'npc') return this.talk(it.a);
     if (it.kind === 'walker') {
       const i = this.walkers.indexOf(it.a);

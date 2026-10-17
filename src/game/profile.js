@@ -29,6 +29,7 @@ export const BADGES = [
   { id: 'all-towns', name: 'Navarra entera', text: 'Sella todos los pueblos del juego.', icon: 'trophy', test: p => stampCount(p) >= LEVELS.length },
   { id: 'comarca', name: 'Comarca completa', text: 'Completa todos los pueblos de una comarca.', icon: 'shield', test: p => COMARCAS.some(c => comarcaDone(p, c.id)) },
   { id: 'dancer', name: 'Dantzari', text: 'Supera una danza tradicional.', icon: 'dance', test: p => missionTypeDone(p, 'dance') >= 1 },
+  { id: 'musico', name: 'Música de plaza', text: 'Aprende a tocar tres instrumentos de Navarra.', icon: 'music', test: p => (p.cards || []).filter(c => c.startsWith('instrumento:')).length >= 3 },
   { id: 'carnival', name: 'Rey del carnaval', text: 'Encuentra personajes de tres carnavales.', icon: 'mask', test: p => missionTypeDone(p, 'carnival') >= 3 },
   { id: 'farmer', name: 'Manos de huerta', text: 'Termina tres cosechas.', icon: 'basket', test: p => missionTypeDone(p, 'harvest') >= 3 },
   { id: 'shepherd', name: 'Pastor', text: 'Lleva rebaños al redil dos veces.', icon: 'sheep', test: p => missionTypeDone(p, 'herd') >= 2 },
