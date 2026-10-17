@@ -161,13 +161,23 @@ abre la llamada en otra pestaña del mismo navegador.
 
 ## Manos libres: todo con la voz
 
-La app lo deja claro en cada paso, para que se sepa que no hace falta tocar el móvil:
-- **Inicio**: la tarjeta «Manos libres» con las órdenes («comenzamos», «corten», «otra vez»), que se iluminan por turnos.
-- **Antes de grabar**: el primer grupo es «🎙️ Manos libres: todo con la voz», con cada orden y qué hace, el
-  reconocimiento que se usa y el margen al parar.
-- **Plató**: antes de grabar, «Te escucho: di «comenzamos»…» con un punto que late con tu voz (se ve que escucha).
-  Durante la toma, junto a la línea de abajo, «🎙️ «corten» · «otra vez»». La primera vez, una tarjeta con las órdenes;
-  en el móvil, la de enseñar tu voz explica para qué sirve.
+Se explica en el plató, que es donde se usa; antes de entrar no estorba:
+- **Al entrar al plató**, en cada entrada y antes de la primera toma: la tarjeta «Manos libres» con las cuatro
+  órdenes y qué hace cada una («comenzamos», «corten» con el margen que tengas puesto, «otra vez», «seguimos»),
+  que se iluminan por turnos. Va después de tus objetivos (si los hay) y antes del plano; basta con decir
+  «comenzamos» para quitarla y empezar.
+- **Sin voz** (desactivada, o sin enseñarle aún tus palabras): la misma tarjeta, «Sin tocar el móvil», con las dos
+  palmadas para empezar y «Terminar» para parar. Si falta enseñarle tu voz, el botón «Enseñar mi voz» lo hace ahí mismo.
+- **Mientras esperas**: «Te escucho: di «comenzamos»…» abajo, con un punto que late con tu voz (se ve que escucha).
+  Durante la toma, junto a la línea de abajo, «🎙️ «corten» · «otra vez»».
+- **Antes de grabar** solo quedan los ajustes, plegados en «Control por voz»: qué reconocimiento se usa y el margen al parar.
+
+## Espacios
+
+Un mismo ritmo en toda la app, para que cada título quede más cerca de lo suyo que de lo anterior: 8 px entre un
+título y su subtítulo (o un antetítulo y su título), 12 px del título de una tarjeta a su contenido y 16 px del
+título de una sección a lo suyo. Comprobado midiendo el hueco que se ve (del texto del título a lo primero que se
+ve debajo) en todas las pantallas, a 390 y 1280 px.
 
 ## Fallos al leer: aviso para cortar
 
