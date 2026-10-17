@@ -159,6 +159,16 @@ abre la llamada en otra pestaña del mismo navegador.
   vienes, la palabra que cambia en el titular, la cuenta atrás, el anillo de la nota que se
   llena mientras cuenta y la respuesta de los botones al pulsarlos. Se desactiva si el sistema pide menos movimiento.
 
+## Manos libres: todo con la voz
+
+La app lo deja claro en cada paso, para que se sepa que no hace falta tocar el móvil:
+- **Inicio**: la tarjeta «Manos libres» con las órdenes («comenzamos», «corten», «otra vez»), que se iluminan por turnos.
+- **Antes de grabar**: el primer grupo es «🎙️ Manos libres: todo con la voz», con cada orden y qué hace, el
+  reconocimiento que se usa y el margen al parar.
+- **Plató**: antes de grabar, «Te escucho: di «comenzamos»…» con un punto que late con tu voz (se ve que escucha).
+  Durante la toma, junto a la línea de abajo, «🎙️ «corten» · «otra vez»». La primera vez, una tarjeta con las órdenes;
+  en el móvil, la de enseñar tu voz explica para qué sirve.
+
 ## Fallos al leer: aviso para cortar
 
 Mientras lees, la app compara lo que dices con el guion y, si te equivocas, te avisa en el momento con un aviso
@@ -169,19 +179,23 @@ subrayada en rojo en el texto.
 |---|---|---|
 | ⏭️ Te saltas un trozo (3 palabras o más) | Lo que dices, alineado palabra a palabra con el guion | Chrome o Edge de ordenador |
 | 🔁 Te trabas o vuelves a empezar la frase | Repites palabras que acabas de leer | Chrome o Edge de ordenador |
-| 🔀 Cambias palabras (dos o más en la misma frase) | Palabras distintas a las del guion | Chrome o Edge de ordenador |
+| 🔀 Cambias una palabra (o varias) | Una palabra que se parece poco a la del guion, con lo de alrededor bien leído | Chrome o Edge de ordenador |
 | 🧭 Te sales del guion | Lo que dices no está en el texto | Chrome o Edge de ordenador |
-| ⏸️ Te paras en seco a mitad de frase | Más de 1,8 s de silencio lejos de una coma, un punto o una pausa marcada | Todos, también iPhone |
+| ⏸️ Te paras en seco a mitad de frase | Más de 1,8 s de silencio lejos de una coma, un punto o una pausa marcada, y luego sigues leyendo (así no salta al acabar el texto) | Todos, también iPhone |
 | 🤔 Un «eeeh» alargado | Voz sostenida en el mismo tono y sin sílabas | Todos, también iPhone |
 
-- Para no avisar por un error del reconocedor, una sola palabra distinta no basta: queda como «posible» y solo se
-  avisa si hay más en la misma frase.
+- Para no avisar por un error del reconocedor, una palabra distinta pero parecida (una letra, un plural) queda como
+  «posible» y no avisa.
 - Se ve aunque grabes con «solo la línea», porque es lo que te hace repetir la toma. Se desactiva en «Antes de
   grabar» → «Texto y avisos» → «Avisarme si me equivoco al leer».
 - Al terminar el ensayo y en el informe salen los fallos con el momento exacto («0:12 · Te has saltado…»); en el
   informe, al tocar el momento, el vídeo salta ahí para que sepas dónde cortar al editar.
-- En el iPhone no se comprueban las palabras: el reconocimiento de voz del navegador corta la cámara. Para hacerlo
-  haría falta un modelo de voz dentro de la app (unos 40 MB la primera vez).
+- **Revisión al terminar la toma (preparada).** Durante cada toma se guarda tu voz a 16 kHz y, al terminar, un
+  reconocedor que funciona dentro del navegador (Vosk, con un modelo pequeño en español) escucha la toma entera
+  sabiendo qué palabras tiene el guion y la compara palabra a palabra, con el momento de cada fallo. Funciona igual en
+  el iPhone, donde el reconocimiento del navegador corta la cámara. Solo falta publicar el modelo de voz junto a la app
+  (`models/vosk-model-small-es.tar.gz`, unos 40 MB, que cada dispositivo descarga una vez y guarda); mientras no
+  esté, no se enseña nada y queda lo que se ve en directo.
 
 ## Tu plano: luz, sonido, encuadre y nivel
 
