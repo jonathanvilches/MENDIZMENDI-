@@ -187,25 +187,36 @@ Solo se pone a grabar cuando lo pides. Lo que antes podía colarse, y cómo se e
   micro oye golpes secos), si estabas hablando, ni si los dos golpes suenan muy distintos.
 - **Y si aun así arranca:** durante la cuenta atrás, toca la pantalla, di «corten», pulsa Terminar o Esc, y se cancela.
 
-## Tu doble: el personaje que te enseña los gestos
+## Entrenar un minuto al día
 
-Un muñeco de líneas, como el esqueleto que dibuja lo que detecta, detrás de ti y a tu tamaño (anclado a tus hombros;
-si no se te ve, donde deberías estar). Es un ensayo de gestos para luego aplicarlos al grabar:
-- **En reposo**, la posición base: manos juntas a la altura del ombligo y codos sueltos. Transmite calma y deja las
-  manos listas para el siguiente gesto.
-- **Te anticipa el gesto**: unos 2,5 s antes de cada gesto del guion ya lo va haciendo («Viene…»), lo hace contigo
-  al llegar a su palabra («¡Ahora!») y vuelve a la base.
-- **Te enseña a corregir**: si cruzas los brazos, sacas las manos del plano o te quedas quieto, hace el gesto que
-  lo arregla («Prueba esto»).
-- **Te dice si lo haces bien**: se pone verde («¡Así! ✓») cuando tus manos están donde las suyas en la postura
-  clave del gesto.
-- **Por qué funciona cada gesto** (lenguaje corporal), en el aviso «En breve» de los ensayos: las palmas a la vista
-  transmiten honestidad; los brazos abiertos, apertura e incluyen a quien te ve; la mano en el pecho, sinceridad;
-  contar con los dedos ordena el mensaje; dibujar el tamaño hace la idea más fácil de recordar; palmas arriba y
-  cejas levantadas invitan a pensar; un corte de lado con la mano descarta con firmeza; señalar lleva la mirada.
+Ejercicios cortos (menos de un minuto) con una sola meta, que es lo único que se mide y lo único que se avisa
+mientras lo haces (más lo crítico, como que no se te vea). No se graba vídeo.
 
-Sale en los ensayos. Al grabar de verdad, solo si lo pides («Antes de grabar» → «Tu doble»); aun así, solo lo ves
-tú: no sale en el vídeo.
+| Ejercicio | Meta | Cómo se puntúa (0–100) |
+|---|---|---|
+| ⚡ Prueba de 30 segundos | Leer con naturalidad | La nota general de la toma; te dice cómo te ven y qué ejercicio te conviene |
+| 👀 Mira al objetivo | Vista en la cámara | Parte del tiempo mirando al objetivo |
+| 🎵 Voz con melodía | Subir en las palabras marcadas | Entonación con vida y énfasis conseguidos |
+| 🙌 Manos que hablan | El gesto de cada frase | Gestos del texto conseguidos |
+| 😄 Sonrisa que se oye | Sonreír al empezar cada frase | Parte del tiempo sonriendo |
+| ⏸️ Pausas que dan peso | Parar en cada `//` | Pausas marcadas que hiciste |
+
+Al terminar, una tarjeta con la nota, tu récord, la vez anterior y un consejo con el porqué. «Otra vez» (o la voz)
+lo repite y «Otro ejercicio» pasa al siguiente sin cerrar la cámara. La lista guarda en este dispositivo tu récord, tu
+evolución (una pequeña gráfica) y los días seguidos, y arriba pone el que te conviene hoy: el de tu objetivo
+pendiente del último informe, o el que te recomendó la prueba.
+
+La **prueba de 30 segundos** está en el inicio: es lo primero que se puede hacer, sin registrarse y sin preparar
+nada, para ver en medio minuto qué te aporta la app.
+
+## Pantalla limpia y momentos clave
+
+- Al grabar, la imagen queda limpia: las líneas de lo que detecta pasan a ser el **modo análisis** (botón de la
+  figura en el plató, o tecla S). Los gestos que vienen se iluminan en el margen del texto.
+- En el informe, **momentos clave**: cada fallo al leer, gesto del guion (hecho o no) y aviso, con su minuto y lo que
+  estabas leyendo («…primero, la luz; segundo…»). Con vídeo, tocarlo lleva a ese momento.
+- En los ensayos, el aviso «En breve» dice por qué funciona el gesto que viene (lenguaje corporal): las palmas a la
+  vista transmiten honestidad; los brazos abiertos, apertura; la mano en el pecho, sinceridad…
 
 ## Espacios
 
