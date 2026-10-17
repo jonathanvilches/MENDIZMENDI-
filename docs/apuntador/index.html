@@ -166,7 +166,8 @@ body:not([data-app="llamada"]) .only-call{display:none!important}
 
 /* ---------- Plató ---------- */
 #studio{position:fixed;inset:0;background:#000;overflow:hidden;color:var(--paper)}
-#cam,#overlay,#ghost{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#cam,#dobleCv,#overlay,#ghost{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#dobleCv{pointer-events:none;opacity:.92}
 #ghost{pointer-events:none}
 #cam{transform:scaleX(-1)}
 #overlay{pointer-events:none}
@@ -223,6 +224,7 @@ body:not([data-app="llamada"]) .only-call{display:none!important}
 #studio.reading #cue .cue-vis.solo .cue-emoji{font-size:38px}
 #studio.reading #cue .cue-txt b{font-size:1.2rem}
 #studio.reading #cue .cue-detail{display:none}
+#studio.rehearsing #cue.k-next .cue-detail{display:block}   /* en el ensayo, mientras el doble lo enseña: por qué funciona */
 #studio.reading.mon-full #cue{left:calc(50% - 170px)}
 #studio.reading #overlay{opacity:.45}
 #studio.reading .status{display:none}
@@ -708,6 +710,7 @@ select{width:100%;background:var(--stage-2);border:0;border-radius:var(--r-sm);p
 .count-big{font-family:var(--f-display);font-weight:800;letter-spacing:-.04em;animation:countin .8s var(--ease) both}
 @keyframes countin{from{transform:scale(1.7);opacity:0;filter:blur(8px)}35%{opacity:1;filter:none}to{transform:scale(1)}}
 .count-sub{font-weight:600}
+.count-x{margin:calc(var(--u) * 2) 0 0;font-size:var(--t-sm);font-weight:600;color:rgba(255,255,255,.82);text-align:center;text-shadow:0 1px 8px rgba(0,0,0,.7)}
 /* barra de controles: píldoras iguales, centradas */
 .bar-ctl{gap:var(--u);background:linear-gradient(to top,rgba(8,8,12,.85),rgba(8,8,12,0))}
 .btn{min-height:48px;min-width:48px;padding:0 calc(var(--u) * 2);border:0;background:rgba(28,29,36,.78);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);font:500 var(--t-sm)/1 var(--f-body);transition:transform .15s var(--ease),background .15s}
@@ -1364,6 +1367,13 @@ body.pip #monitor{opacity:1;transform:none;visibility:visible;pointer-events:aut
             <option value="avisos">La línea y los avisos</option>
           </select>
         </div>
+        <div class="row stack"><label class="row-t" for="doble"><b>Tu doble: te enseña los gestos</b><small data-hint="doble"></small></label>
+          <select id="doble">
+            <option value="ensayo">En los ensayos (recomendado)</option>
+            <option value="siempre">Siempre, también al grabar</option>
+            <option value="no">No</option>
+          </select>
+        </div>
       </div>
 
       <details class="group fold" data-f="video">
@@ -1441,6 +1451,7 @@ body.pip #monitor{opacity:1;transform:none;visibility:visible;pointer-events:aut
 <!-- ============ PLATÓ ============ -->
 <section id="studio" hidden aria-label="Plató">
   <video id="cam" playsinline webkit-playsinline muted autoplay></video>
+  <canvas id="dobleCv"></canvas>
   <canvas id="overlay"></canvas>
   <div class="shade"></div>
   <canvas id="ghost"></canvas>
@@ -1997,7 +2008,7 @@ const DEFAULT_CALIB = { smile: .05, brow: .12, pitch: .47, yaw: 0, neck: .62, re
 const S = {
   text: store.get('text', SAMPLE),
   tone: store.get('tone', 'animado'),
-  opts: Object.assign({ app: 'video', tab: {}, voiceEngine: 'auto', stopMargin: 3, rehearseFirst: true, takeHelp: 'linea', mode: 'voz', wpm: 140, font: 46, mirror: false, pauseSilent: true, cues: true, readCheck: true, skeleton: true, lang: 'es-ES', compact: null }, store.get('opts', {})),
+  opts: Object.assign({ app: 'video', tab: {}, voiceEngine: 'auto', stopMargin: 3, rehearseFirst: true, takeHelp: 'linea', doble: 'ensayo', mode: 'voz', wpm: 140, font: 46, mirror: false, pauseSilent: true, cues: true, readCheck: true, skeleton: true, lang: 'es-ES', compact: null }, store.get('opts', {})),
   calib: Object.assign({}, DEFAULT_CALIB, store.get('calib', {})),
   sc: null, live: false, take: null, vision: null, visionErr: null, audio: null, stream: null,
 };
@@ -2178,9 +2189,9 @@ function bindOpts() {
   font.value = o.font; $('#font-out').textContent = o.font + ' px';
   font.addEventListener('input', () => { o.font = +font.value; $('#font-out').textContent = o.font + ' px'; save(); });
   delete o.voiceCmd;
-  for (const k of ['voiceEngine', 'stopMargin', 'takeHelp']) {
+  for (const k of ['voiceEngine', 'stopMargin', 'takeHelp', 'doble']) {
     const el = $('#' + k); el.value = String(o[k]);
-    if (el.selectedIndex < 0) { o[k] = { stopMargin: 3, voiceEngine: 'auto', takeHelp: 'linea' }[k]; el.value = String(o[k]); }
+    if (el.selectedIndex < 0) { o[k] = { stopMargin: 3, voiceEngine: 'auto', takeHelp: 'linea', doble: 'ensayo' }[k]; el.value = String(o[k]); }
     el.addEventListener('change', () => { o[k] = k === 'stopMargin' ? +el.value : el.value; save(); });
   }
   for (const k of ['pauseSilent', 'cues', 'mirror', 'skeleton', 'rehearseFirst', 'readCheck']) {
@@ -2282,6 +2293,7 @@ addEventListener('scroll', () => document.body.classList.toggle('scrolled', scro
 
 // el resumen del último paso: lo elegido, con un toque para cambiarlo
 const HINTS = {
+  doble: { ensayo: 'Un muñeco de líneas, detrás de ti y a tu tamaño, hace cada gesto un poco antes de que toque y vuelve a la posición base. Se pone verde cuando lo haces igual.', siempre: 'También al grabar de verdad. Solo lo ves tú: no sale en el vídeo.', no: 'Sin muñeco: solo los avisos.' },
   takeHelp: { linea: 'Abajo, una línea verde si vas bien y roja si te alejas. Nada más, para no distraerte.', avisos: 'La línea y, además, los avisos de gestos y voz en el momento.' },
   voiceEngine: { auto: 'En el móvil aprende tus palabras; en Chrome o Edge de ordenador usa el del navegador.', propias: 'Aprende tu voz: dices cada palabra dos veces y funciona sin conexión.', navegador: 'El reconocimiento de voz de Chrome o Edge de ordenador.', no: 'Empiezas y paras con los botones o con dos palmadas.' },
 };
@@ -2339,7 +2351,7 @@ $('#go').addEventListener('click', () => { askMotion(); primeAudio(); enterStudi
 
 /* ---------------- plató: entrada y salida ---------------- */
 let video = $('#cam');   // la cámara o, al analizar un vídeo subido, ese vídeo
-const overlay = $('#overlay'), octx = overlay.getContext('2d'), ghostCv = $('#ghost'), gctx = ghostCv.getContext('2d');
+const overlay = $('#overlay'), octx = overlay.getContext('2d'), ghostCv = $('#ghost'), gctx = ghostCv.getContext('2d'), dobleCv = $('#dobleCv'), dctx = dobleCv.getContext('2d');
 function show(id) {
   for (const s of ['setup', 'studio', 'report']) $('#' + s).hidden = s !== id;
   window.scrollTo(0, 0);
@@ -2517,7 +2529,9 @@ async function loadAnyVision() {
   }
   busy(null);
 }
+for (const ev of ['pointerdown', 'keydown']) addEventListener(ev, () => { S.touchT = now(); }, { capture: true, passive: true });
 $('#stageMsg').addEventListener('click', e => {
+  if (S.countdown) { cancelCountdown(); return; }
   const a = e.target.closest('[data-act]')?.dataset.act;
   if (a === 'back') leaveStudio();
   if (a === 'retry') { primeAudio(); enterStudio(); }
@@ -3273,12 +3287,22 @@ function processAudio(t, db, f0, pk = 0) {
   ser.voiced.push(t, voiced ? 1 : 0);
   // palmada: subida brusca de volumen que cae enseguida; dos seguidas = «¡acción!»
   // (golpe sin tono de voz, más fuerte que tu voz normal, que se apaga en menos de una décima de segundo)
+  // No cuenta si estabas hablando (hace menos de 0,6 s hubo sonido seguido de más de 0,2 s, que una palmada no dura),
+  // si acabas de tocar la pantalla o mover el móvil (al cogerlo, apoyarlo o pulsar, el micro oye golpes secos) ni si
+  // los dos golpes suenan muy distintos.
   const rise = db - (V.prevDb ?? db); V.prevDb = db;
-  if (rise > 15 && db > Math.max(V.floor + 28, S.calib.refDb + 3, -45) && !(f0 > 70)) { V.clapAt = t; V.clapPeak = db; }
+  V.runT0 = voiced ? V.runT0 ?? t : null;
+  if (voiced && t - V.runT0 > .2) V.speechT = t;
+  if (rise > 15 && db > Math.max(V.floor + 28, S.calib.refDb + 3, -45) && !(f0 > 70)) {
+    V.clapAt = t; V.clapPeak = db;
+    V.clapOk = t - (V.speechT ?? -9) > .6 && now() - (S.touchT ?? -9) > 1.5 && now() - (LV.jolt ?? -9) > 1;
+  }
   else if (V.clapAt) {
     if (f0 > 70 && db > V.clapPeak - 15) V.clapAt = 0;   // tiene tono: es voz
     else if (db < V.clapPeak - 15 && t - V.clapAt < .1) {
-      if (V.lastClap && t - V.lastClap > .18 && t - V.lastClap < .9) { V.lastClap = 0; onDoubleClap(); } else V.lastClap = t;
+      if (!V.clapOk) { V.lastClap = 0; S.dbg.claps = (S.dbg.claps || 0) + 1; }
+      else if (V.lastClap && t - V.lastClap > .18 && t - V.lastClap < .9 && Math.abs(V.clapPeak - V.lastClapPeak) < 10) { V.lastClap = 0; onDoubleClap(); }
+      else { V.lastClap = t; V.lastClapPeak = V.clapPeak; }
       V.clapAt = 0;
     } else if (t - V.clapAt >= .1) V.clapAt = 0;
   }
@@ -3402,6 +3426,7 @@ function bindLevel() {
   addEventListener('devicemotion', e => {
     const a = e.accelerationIncludingGravity; if (!a || a.x == null || a.y == null) return;
     const g = LV.g, k = .15, z = a.z ?? 0;
+    if (g && Math.hypot(a.x - g.x, a.y - g.y, z - g.z) > 1.2) LV.jolt = now();   // lo coges, lo apoyas o lo tocas
     LV.g = g ? { x: g.x + (a.x - g.x) * k, y: g.y + (a.y - g.y) * k, z: g.z + (z - g.z) * k } : { x: a.x, y: a.y, z };
     LV.at = now();
   });
@@ -3717,8 +3742,9 @@ function finishCalibration(skipped) {
    cuenta atrás y graba, «ensayo» ensaya y «corten» termina. Durante la toma, además, mueve el texto. */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 const FOL = { on: false, ok: false, rec: null, pointer: 0, phraseStart: 0, curRes: -1, failed: false, follow: false, cmdRes: -1, cmdSkip: 0, netErr: 0 };
-const CMD_REC = new Set(['comenzamos', 'empezamos', 'comenzar', 'empezar', 'comienza', 'empieza', 'accion', 'grabamos', 'graba', 'grabar']);
-const CMD_REH = new Set(['ensayo', 'ensayamos', 'ensayar', 'practicamos', 'practicar']);
+// para arrancar, solo formas que no se dicen hablando de otra cosa («voy a grabar», «empieza el vídeo» no cuentan)
+const CMD_REC = new Set(['comenzamos', 'empezamos', 'accion', 'grabamos']);
+const CMD_REH = new Set(['ensayo', 'ensayamos', 'practicamos']);
 const CMD_STOP = new Set(['corten', 'corta', 'corte', 'terminamos', 'paramos', 'stop']);
 const CMD_GO = new Set(['seguimos', 'sigue', 'seguir', 'continua', 'continuamos', 'continuar']);
 const CMD_AGAIN = new Set(['repetimos', 'repetir', 'repite', 'repito']);
@@ -3738,6 +3764,7 @@ function voiceEngine() {
 // una orden, venga de donde venga
 function voiceCommand(cmd) {
   const t = now();
+  if (cmd === 'parar' && S.countdown) { S.lastCmdT = t; cancelCountdown(); return; }   // arrancó sin querer: sin esperas
   if (isCall() || S.file || t - (S.lastCmdT || 0) < 1.2) return;
   if (!$('#report').hidden) {
     if (cmd === 'grabar' || cmd === 'ensayo' || cmd === 'repetir') {
@@ -3795,9 +3822,14 @@ function onVoice(e) {
       const consume = () => { FOL.cmdRes = i; FOL.cmdSkip = ws.length; };
       if (unread.some(w => CMD_INFO.has(w) && !(S.take && S.scWords?.has(w)))) { consume(); voiceCommand('info'); continue; }
       if (!S.take && !S.countdown) {
-        if (saysAgain(unread)) { consume(); voiceCommand('repetir'); continue; }
-        if (unread.some(w => CMD_REC.has(w))) { consume(); voiceCommand('grabar'); continue; }
-        if (unread.some(w => CMD_REH.has(w))) { consume(); voiceCommand('ensayo'); continue; }
+        // lo que arranca una toma, dicho suelto (una frase corta): en mitad de una conversación no cuenta
+        if (unread.length <= 3) {
+          if (saysAgain(unread)) { consume(); voiceCommand('repetir'); continue; }
+          if (unread.some(w => CMD_REC.has(w))) { consume(); voiceCommand('grabar'); continue; }
+          if (unread.some(w => CMD_REH.has(w))) { consume(); voiceCommand('ensayo'); continue; }
+        }
+      } else if (S.countdown) {
+        if (unread.some(w => CMD_STOP.has(w))) { consume(); voiceCommand('parar'); continue; }
       } else if (S.take) {
         const tail = unread.slice(-3);
         if (now() - S.take.t0 > 1.5 && saysAgain(tail)) { consume(); voiceCommand('repetir'); continue; }
@@ -3822,6 +3854,7 @@ function onVoice(e) {
    alinea las dos huellas aunque hables más rápido o más despacio. Una frase leída de corrido nunca cuenta como orden. */
 const KW_WORDS = [['grabar', 'comenzamos'], ['parar', 'corten'], ['seguir', 'seguimos'], ['repetir', 'otra vez']];
 const KWS = { floor: -60, cur: null, pre: [], run: 0, silent: 0, quiet: 0, tpl: null, enroll: null, last: null };
+S.dbg.kws = KWS;
 try {
   const raw = store.get('kwTpl', null);
   if (raw && raw.thr) KWS.tpl = { thr: raw.thr, ...Object.fromEntries(KW_WORDS.map(([c]) => [c, (raw[c] || []).map(T => T.map(v => Float32Array.from(v)))])) };
@@ -3874,22 +3907,29 @@ function dtw(A, B) {
   }
   return prev[m] / (n + m);
 }
-function kwsClassify(frames) {
+// ¿es una orden? La más parecida de tus palabras, si se parece bastante, mucho más que a las otras y dura más o menos
+// lo que duraba al enseñársela. Lo que pone a grabar o reinicia la toma pide un poco más: una palabra suelta, una tos
+// o un golpe no deben arrancar nada.
+function kwsDecide(frames, strict) {
   const X = kwsFeat(frames), sc = [];
   for (const [cmd] of KW_WORDS) { const ts = KWS.tpl[cmd]; if (ts && ts.length) sc.push([cmd, Math.min(...ts.map(T => dtw(X, T)))]); }
   sc.sort((a, b) => a[1] - b[1]);
-  if (!sc.length) return null;
-  const [cmd, d] = sc[0], second = sc[1] ? sc[1][1] : Infinity;
-  KWS.last = { cmd, d: +d.toFixed(2), second: +second.toFixed(2), thr: +KWS.tpl.thr[cmd].toFixed(2) };
-  return d < KWS.tpl.thr[cmd] && d < second * .85 ? cmd : null;
+  if (!sc.length) return { cmd: null };
+  const [cmd, d] = sc[0], second = sc[1] ? sc[1][1] : Infinity, thr = KWS.tpl.thr[cmd];
+  const ls = KWS.tpl[cmd].map(T => T.length), r = frames.length / (ls.reduce((a, b) => a + b, 0) / ls.length);
+  // cuánto más se parece a esa orden que a la siguiente: lo que mejor separa una orden de una palabra cualquiera
+  // (en las órdenes, como mucho la mitad y poco; en las demás palabras, casi siempre más de dos tercios)
+  const st = !!strict?.(cmd), m = st ? .58 : .62;
+  return { cmd: d < thr && d < second * m && r > .6 && r < 1.6 ? cmd : null, best: cmd, d: +d.toFixed(2), second: +second.toFixed(2), thr: +thr.toFixed(2), r: +r.toFixed(2), strict: st };
 }
 function kwsUtterance(frames, iso, t) {
   const L = frames.length;
   if (L < 22 || L > 170) return;
   if (KWS.enroll) return enrollAdd(frames);
   if (!KWS.tpl || iso < 20) return;
-  const cmd = kwsClassify(frames);
-  if (cmd) voiceCommand(cmd);
+  const r = kwsDecide(frames, c => c === 'repetir' || (c === 'grabar' && !S.take));
+  KWS.last = r; (KWS.log ||= []).push({ t: +t.toFixed(1), L, ...r }); if (KWS.log.length > 40) KWS.log.shift();
+  if (r.cmd) voiceCommand(r.cmd, 'voz');
 }
 // enseñar tus palabras: cada una dos veces
 const ENROLL_STEPS = KW_WORDS.flatMap(w => [w, w]);
@@ -4796,7 +4836,7 @@ function previewNext(idx, t, following) {
   if (a && (a.kind === 'script' || a.pri >= 90)) return;      // no pisa un gesto en curso ni que no se te vea
   const d = CUES[c.type], look = CUE_LOOK[c.type] || [];
   showCue({ id: 'next', kind: 'next', pri: 89, icon: d.icon, emoji: look[0], g: look[1], pre: 'En breve', wait: Math.max(.8, secs),
-    title: c.type === 'libre' ? c.text : d.label }, t, true);
+    title: c.type === 'libre' ? c.text : d.label, detail: GEST_WHY[c.type] || '' }, t, true);
 }
 function cueWhy(type) {
   return ({
@@ -5383,6 +5423,108 @@ function drawFaceGhost(g, kind, ph, fl, W, Hh, X, lw, C) {
   }
   g.restore();
 }
+/* ---------------- tu doble: el personaje que te enseña los gestos ----------------
+   Un muñeco de líneas, como el esqueleto que dibuja lo que detecta, detrás de ti y a tu tamaño (anclado a tus hombros;
+   si no se te ve, donde deberías estar). Sin gesto a la vista está en la posición base. Unos 2,5 s antes de cada gesto
+   del guion ya lo va haciendo (te lo anticipa), lo hace contigo al llegar a su palabra y vuelve a la base. Si toca
+   corregir algo (brazos cruzados, manos fuera de plano…), enseña el gesto que lo arregla. Se pone verde cuando tus
+   manos están donde las suyas. Por defecto sale en los ensayos; al grabar de verdad, solo si lo pides (no sale en el vídeo). */
+// posición base: manos juntas a la altura del ombligo y codos sueltos. Tranquila, y lista para el siguiente gesto
+const BASE = { ...REST, lE: [-.68, .9], rE: [.68, .9], lW: [-.12, 1.15], rW: [.12, 1.15] };
+// por qué funciona cada gesto (lenguaje corporal): lo cuenta el aviso «En breve» mientras el doble lo enseña
+const GEST_WHY = {
+  saludo: 'Saludar con la mano abre la conversación: cercanía desde el primer segundo.',
+  contar: 'Contar con los dedos ordena el mensaje y ayuda a recordarlo.',
+  abrir: 'Los brazos abiertos transmiten apertura e incluyen a quien te ve.',
+  pecho: 'La mano en el pecho transmite sinceridad: hablas desde ti.',
+  palma: 'Las palmas a la vista transmiten honestidad: no escondes nada.',
+  grande: 'Dibujar el tamaño con las manos hace la idea más fácil de recordar.',
+  pequeno: 'Un gesto de precisión transmite control y cuidado por el detalle.',
+  pregunta: 'Palmas arriba y cejas levantadas: invitas a pensar, no impones.',
+  negar: 'Un corte de lado con la mano descarta con firmeza, sin agresividad.',
+  cta: 'Señalar lleva la mirada de quien te ve justo adonde quieres.',
+};
+const D = { pose: null, g: '', since: 0, t: 0, match: 0, mode: '' };
+// la postura clave de cada gesto, la que más se aleja de la base (en «descruzar», los brazos ya abiertos, no cruzados):
+// es con la que se comparan tus manos
+const wdist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+const keyPose = G => G.key ||= (G.kf || []).map(k => ({ ...REST, ...k })).reduce((m, k) => wdist(k.lW, BASE.lW) + wdist(k.rW, BASE.rW) > wdist(m.lW, BASE.lW) + wdist(m.rW, BASE.rW) ? k : m, BASE);
+S.dbg.doble = D;
+function dobleOn() {
+  const o = S.opts.doble || 'ensayo';
+  return !!(S.take && !S.take.call && !S.take.file && o !== 'no' && (o === 'siempre' || !S.take.record));
+}
+// qué hace ahora: el gesto en curso (del guion o el que arregla algo), el que viene, o la base
+function dobleTarget() {
+  const a = coach.active;
+  if (a?.g && GEST[a.g]?.kf && a.kind !== 'next') return { mode: a.kind === 'script' ? 'ahora' : 'arregla', g: a.g };
+  if (S.opts.cues && S.sc) {
+    const cues = S.sc.cues, wps = FOL.follow && FOL.ok ? 2.4 : S.opts.wpm / 60;
+    for (let j = PR.nextCue; j < cues.length; j++) {
+      const g = CUE_LOOK[cues[j].type]?.[1];
+      if (!g || !GEST[g]?.kf) continue;   // pausas, énfasis y gestos de la cara: esos no los hace el cuerpo
+      if ((cues[j].at - PR.idx) / Math.max(1, wps) <= 2.5) return { mode: 'viene', g };
+      break;
+    }
+  }
+  return { mode: 'base', g: '' };
+}
+function dobleFrame(g, t, W, Hh, X, lw, fs, box) {
+  const tg = dobleTarget();
+  if (tg.g !== D.g) { D.g = tg.g; D.since = t; }
+  D.mode = tg.mode;
+  const G = tg.g && GEST[tg.g];
+  const want = G ? poseAt(G, ((t - D.since) % G.dur) / G.dur) : { ...BASE, dsh: Math.sin(t * 1.7) * .02 };   // la base respira
+  const a = 1 - Math.exp(-Math.min(.1, t - (D.t || t)) * 8); D.t = t;
+  if (!D.pose) D.pose = { ...want };
+  for (const key in want) { const v = want[key], c = D.pose[key]; D.pose[key] = Array.isArray(v) ? [c[0] + (v[0] - c[0]) * a, c[1] + (v[1] - c[1]) * a] : typeof v === 'number' ? c + (v - c) * a : v; }
+  const P = D.pose, seen = B.ok && B.c && B.P && fresh('pose', B.lastOk, t, .8);
+  const cx = seen ? X(B.c.x) : W / 2, cy = seen ? B.c.y : Hh * .42, s = seen ? B.sw : Math.min(W, Hh) * (W < Hh ? .3 : .22);
+  // ¿tus manos están donde las suyas en la postura clave? (solo las que se mueven en el gesto)
+  let ok = false;
+  if (G && seen) {
+    const K = keyPose(G), sides = ['l', 'r'].filter(sd => wdist(K[sd + 'W'], BASE[sd + 'W']) > .3);
+    ok = sides.length > 0 && sides.every(sd => {
+      const q = B.P[sd === 'l' ? 15 : 16];
+      return q && q.v > .5 && wdist([(X(q.x) - cx) / s, (q.y - cy) / s - K.dy - K.dsh * .3], K[sd + 'W']) < .5;
+    });
+  }
+  D.match += ((ok ? 1 : 0) - D.match) * a;
+  const good = D.match > .6;
+  drawDoble(g, P, cx, cy, s, lw, good);
+  // una etiqueta corta a la altura de su pecho (arriba la taparía el texto): lo del aviso de abajo, en dos palabras
+  const tag = good ? '¡Así! ✓' : { viene: 'Viene…', ahora: '¡Ahora!', arregla: 'Prueba esto' }[tg.mode] || '';
+  if (tag) {
+    const hy = clamp(cy + (.55 + P.dy) * s, box.yMin + fs * 2, box.yMax - fs * 2);
+    g.save(); g.font = `700 ${fs}px 'Atkinson Hyperlegible', system-ui, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+    const w = g.measureText(tag).width + fs * 1.2;
+    g.fillStyle = good ? '#55D6A6' : '#C8F25A'; g.beginPath(); g.roundRect?.(cx - w / 2, hy - fs * .8, w, fs * 1.6, fs * .8); g.fill();
+    g.fillStyle = '#14151A'; g.fillText(tag, cx, hy); g.restore();
+  }
+}
+// el muñeco: cabeza con cara amable, tronco, brazos y manos, con un contorno oscuro para leerse sobre cualquier fondo
+function drawDoble(g, P, cx, cy, s, lw, good) {
+  const sh = P.dsh, pt = ([x, y], e = 0) => [cx + x * s, cy + (y + P.dy + e) * s];
+  const lS = pt([-.5, 0], sh), rS = pt([.5, 0], sh), lHp = pt([-.36, 1.9]), rHp = pt([.36, 1.9]);
+  const [hx, hy] = pt([0, -.98 + P.dhead], sh * .5), hr = s * .34, neck = pt([0, -.62 + P.dhead], sh * .5), mid = pt([0, 0], sh);
+  const E = { l: pt(P.lE, sh * .6), r: pt(P.rE, sh * .6) }, Wr = { l: pt(P.lW, sh * .3), r: pt(P.rW, sh * .3) };
+  const col = good ? '#55D6A6' : '#C8F25A', dark = 'rgba(8,10,6,.45)', w = lw * 1.5;
+  const body = () => {
+    g.beginPath(); g.moveTo(...lS); g.lineTo(...rS); g.moveTo(...neck); g.lineTo(...mid);
+    g.moveTo(...lS); g.lineTo(...lHp); g.lineTo(...rHp); g.lineTo(...rS);
+    for (const sd of ['l', 'r']) { g.moveTo(...(sd === 'l' ? lS : rS)); g.lineTo(...E[sd]); g.lineTo(...Wr[sd]); }
+    g.moveTo(hx + hr, hy); g.arc(hx, hy, hr, 0, 7);
+  };
+  g.save(); g.lineCap = 'round'; g.lineJoin = 'round';
+  for (const [c, k] of [[dark, 2.4], [col, 1]]) {
+    g.strokeStyle = c; g.fillStyle = c; g.lineWidth = w * k; body(); g.stroke();
+    for (const sd of ['l', 'r']) drawHand(g, Wr[sd], E[sd], P[sd + 'H'], s * .6, w * k * 1.6);
+    for (const q of [lS, rS, E.l, E.r, lHp, rHp]) { g.beginPath(); g.arc(q[0], q[1], w * (k > 1 ? 2.2 : 1.4), 0, 7); g.fill(); }
+  }
+  g.fillStyle = col; for (const sx of [-1, 1]) { g.beginPath(); g.arc(hx + sx * hr * .36, hy - hr * .12, w * .8, 0, 7); g.fill(); }
+  g.strokeStyle = col; g.lineWidth = w * .8; g.beginPath(); g.arc(hx, hy + hr * .02, hr * .45, .2 * Math.PI, .8 * Math.PI); g.stroke();
+  g.restore();
+}
 // dibujo del gesto en el aviso (cada fotograma mientras está visible)
 const cueCanvas = $('#cueCanvas'), cctx = cueCanvas.getContext('2d');
 function drawCueVis(t) {
@@ -5563,9 +5705,14 @@ function drawOverlay() {
   const cue = coach.active, G = cue && cue.g && cue.kind !== 'next' && !lineOnly() && GEST[cue.g];
   if (G) {
     const ph = ((t - coach.since) % G.dur) / G.dur;
-    if (G.kf && B.ok && B.c && fresh('pose', B.lastOk, t, .8)) drawBodyGhost(gctx, poseAt(G, ph), X(B.c.x), B.c.y, B.sw, lw * 4, 'sombra');
+    if (G.kf && B.ok && B.c && fresh('pose', B.lastOk, t, .8) && !dobleOn()) drawBodyGhost(gctx, poseAt(G, ph), X(B.c.x), B.c.y, B.sw, lw * 4, 'sombra');
     if (G.face && F.ok && F.fl && fresh('face', F.lastSeen, t, .8)) drawFaceGhost(gctx, G.face, ph, F.fl, W, Hh, X, lw, C);
   }
+  // tu doble, detrás de tus líneas
+  if (dobleCv.width !== cw || dobleCv.height !== ch) { dobleCv.width = cw; dobleCv.height = ch; }
+  dctx.setTransform(k, 0, 0, k, 0, 0);
+  dctx.clearRect(0, 0, W, Hh);
+  if (dobleOn()) dobleFrame(dctx, t, W, Hh, X, lw, fs, { xMin, xMax, yMin, yMax }); else D.pose = null;
 }
 
 /* ---------------- bucles ----------------
@@ -5648,6 +5795,7 @@ function setTakeUI(on, rec = false) {
   else if (!on && S.panelWas != null && !S.restarting) { const was = S.panelWas; S.panelWas = null; if (innerWidth > 760) setPanel(was); }
   st.classList.toggle('reading', reading);
   st.classList.toggle('line-only', reading && rec && (S.opts.takeHelp || 'linea') === 'linea');
+  st.classList.toggle('rehearsing', reading && !rec);
   $('#lane').hidden = !reading;
   $('#laneVoice').hidden = !(reading && (FOL.on || (kwsOn() && KWS.tpl)));
   if (!on) resetLine();
@@ -5670,10 +5818,16 @@ async function startTake(record) {
   const call = isCall();
   if (!call && !file) {
     resetPrompterTo(0); PR.offset = PR.target; markWords(0); PR.idx = 0;
+    const voice = FOL.on || (kwsOn() && KWS.tpl);
     for (const n of [3, 2, 1]) {
-      stageMsg(`<div><div class="count-big" aria-live="assertive">${n}</div>${flowOn() ? `<p class="count-sub">${record ? '🔴 Grabación de verdad · abajo, la línea: verde, vas bien' : '🧪 Ensayo · no se graba'}</p>` : ''}</div>`);
+      stageMsg(`<div><div class="count-big" aria-live="assertive">${n}</div>${flowOn() ? `<p class="count-sub">${record ? '🔴 Grabación de verdad · abajo, la línea: verde, vas bien' : '🧪 Ensayo · no se graba'}</p>` : ''}<p class="count-x">¿Sin querer? Toca la pantalla${voice ? ' o di «corten»' : ''} para cancelar</p></div>`);
       await new Promise(r => setTimeout(r, 800));
-      if (!S.live) { S.countdown = false; return; }
+      if (!S.live) { S.countdown = false; S.cdCancel = false; return; }
+      if (S.cdCancel) {
+        S.cdCancel = false; S.countdown = false; stageMsg(null); setTakeUI(false);
+        toast(voice ? 'Cancelado. Di «comenzamos» cuando quieras.' : 'Cancelado.', 3000);
+        return;
+      }
     }
     stageMsg(null);
   }
@@ -5725,7 +5879,8 @@ function stopTake(showReport = true) {
 }
 $('#rehearse').addEventListener('click', () => startTake(false));
 $('#record').addEventListener('click', () => startTake(true));
-$('#stop').addEventListener('click', () => requestStop());
+$('#stop').addEventListener('click', () => { if (S.countdown) cancelCountdown(); else requestStop(); });
+function cancelCountdown() { if (S.countdown && !S.take) S.cdCancel = true; }
 $('#stopCancel').addEventListener('click', cancelStop);
 $('#stopNowBtn').addEventListener('click', stopNow);
 $('#enSkip').addEventListener('click', cancelEnroll);
@@ -5759,7 +5914,7 @@ addEventListener('keydown', e => {
     else if (!S.take) startTake(false); else if (!(FOL.follow && FOL.ok)) PR.running = !PR.running;
   }
   else if (e.key === 'r' || e.key === 'R') { if (!S.take && !S.file) startTake(true); }
-  else if (e.key === 'Escape') { if (S.stopping) stopNow(); else if (S.take) requestStop(); else if (panelOpen()) setPanel(false, true); else leaveStudio(); }
+  else if (e.key === 'Escape') { if (S.stopping) stopNow(); else if (S.countdown) cancelCountdown(); else if (S.take) requestStop(); else if (panelOpen()) setPanel(false, true); else leaveStudio(); }
   else if (e.key === 'ArrowUp') { e.preventDefault(); changeSpeed(10); }
   else if (e.key === 'ArrowDown') { e.preventDefault(); changeSpeed(-10); }
   else if (e.key === '+' || e.key === '=') setFont(S.opts.font + 4);
