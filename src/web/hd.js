@@ -17,9 +17,14 @@ let MAP = null;
 /** Cada módulo de imágenes da su tabla (id → url pequeña) con el grupo de su carpeta en la lista de la web; big y w, si
  * la web lleva además una copia más grande de cada una (id → url, de w píxeles de ancho) que solo se pide cuando hace falta. */
 export function hdTable(group, table, big = null, w = 0) {
-  if (__WEB__ || import.meta.env.DEV) { if (big) for (const [id, u] of Object.entries(table)) { const b = big[id]; if (b && b !== u) REV.set(u, [{ w, u: b }]); } return; }
+  if (__WEB__ || import.meta.env.DEV) { if (big) for (const [id, u] of Object.entries(table)) { const b = big[id]; if (b && b !== u) addBig(u, w, b); } return; }
   TABLES.push([group, table]); if (MAP) fill(group, table);
 }
+// (una pequeña puede tener varias grandes, de menor a mayor: la copia de 640 de una lámina sube a la de 1280 o a la de 2560)
+const addBig = (u, w, b) => { const L = REV.get(u) || []; if (!L.some(x => x.u === b)) { L.push({ w, u: b }); L.sort((a, b) => a.w - b.w); REV.set(u, L); } };
+/** En el archivo único con conexión: la dirección en la web de una imagen que no va dentro (grupo e id de la lista),
+ *  en cuanto ha llegado la lista; si no, null (los escudos de las casas y de los oficios). */
+export const hdUrl = (group, id) => { const e = MAP?.[group + '/' + id]; return Array.isArray(e) && e.length && typeof e[0]?.[1] === 'string' ? SITE + e[0][1] : null; };
 function fill(group, table) {
   for (const [id, u] of Object.entries(table)) {
     const e = MAP[group + '/' + id]; if (!Array.isArray(e) || !u) continue;

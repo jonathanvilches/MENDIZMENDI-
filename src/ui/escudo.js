@@ -27,7 +27,7 @@ function armsCard(ui, { kicker, title, sub, canvas, image = '', media = '', ston
   return new Promise(res => {
     ui.closeModal?.(); ui.sound?.ui?.('card');
     const o = el(`<div class="mg-overlay escudo ix-ov"><div class="mg-card ix">
-      <div class="ix-media"><figure class="ix-frame paper${image || media ? ' img' : ''}">${media || (image ? `<img src="${image}" alt="${esc(title)}">` : `<canvas width="${canvas.w}" height="${canvas.h}" aria-label="${esc(title)}"></canvas>`)}</figure>
+      <div class="ix-media"><figure class="ix-frame paper${image || media ? ' img' : ''}">${media || (image ? `<img src="${image}" alt="${esc(title)}">${canvas && stone ? `<canvas width="${canvas.w}" height="${canvas.h}" aria-label="${esc(title)}" style="display:none"></canvas>` : ''}` : `<canvas width="${canvas.w}" height="${canvas.h}" aria-label="${esc(title)}"></canvas>`)}</figure>
         ${badge ? `<span class="ix-tag badge">${esc(badge)}</span>` : ''}
         ${stone ? '<div class="ix-shots es-toggle" role="group"><button type="button" data-s="0" aria-pressed="true">En color</button><button type="button" data-s="1" aria-pressed="false">En piedra</button></div>' : ''}</div>
       <div class="ix-main">
@@ -37,8 +37,9 @@ function armsCard(ui, { kicker, title, sub, canvas, image = '', media = '', ston
         ${note ? `<p class="ix-text es-note">${esc(note)}</p>` : ''}
         <div class="ix-foot"><button class="btn primary next">Seguir explorando</button></div></div></div></div>`);
     document.body.appendChild(o); ui.modal = o;
-    const cv = o.querySelector('.ix-frame canvas'); if (cv && canvas) canvas.draw(cv, false);
-    o.querySelectorAll('.es-toggle button').forEach(b => b.onclick = () => { o.querySelectorAll('.es-toggle button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); canvas.draw(cv, b.dataset.s === '1'); ui.sound?.ui?.('click'); });
+    const cv = o.querySelector('.ix-frame canvas'), im = o.querySelector('.ix-frame > img'); if (cv && canvas) canvas.draw(cv, false);
+    // (con la imagen del autor, «en color» es la imagen y «en piedra» el dibujo tallado, como se ve en la fachada)
+    o.querySelectorAll('.es-toggle button').forEach(b => b.onclick = () => { o.querySelectorAll('.es-toggle button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); const st = b.dataset.s === '1'; if (im && cv) { im.style.display = st ? 'none' : ''; cv.style.display = st ? '' : 'none'; } if (cv && canvas) canvas.draw(cv, st); ui.sound?.ui?.('click'); });
     const pane = o.querySelector('.es-pane');
     // (las pestañas van en una fila; si no caben, la fila se desliza de lado)
     o.querySelectorAll('.es-tabs button').forEach(b => b.onclick = () => { o.querySelectorAll('.es-tabs button').forEach(x => x.setAttribute('aria-selected', x === b)); pane.innerHTML = all[+b.dataset.t][1]; pane.scrollTop = 0; b.scrollIntoView?.({ block: 'nearest', inline: 'nearest' }); ui.sound?.ui?.('click'); });
@@ -53,7 +54,7 @@ function armsCard(ui, { kicker, title, sub, canvas, image = '', media = '', ston
 // cómo se marca cada esmalte en la piedra, en euskera
 const PIEDRA_EU = { oro: 'Urrea: puntutxoak', plata: 'Zilarra: leuna, markarik gabe', gules: 'Gorria: marra bertikalak', azur: 'Urdina: marra horizontalak', sinople: 'Berdea: marra diagonalak', sable: 'Beltza: laukitxoak' };
 /** Ficha del escudo de una casa A (de houseArms). opts: { town, isNew, regla } → Promise<{ errors: 0 }> */
-export function readArms(ui, A, { town = '', isNew = false, regla = 0 } = {}) {
+export function readArms(ui, A, { town = '', isNew = false, regla = 0, image = '' } = {}) {
   if (window.__autoWin) return Promise.resolve({ errors: 0 });
   const eu = isEU(), house = A.house.startsWith('Casa') ? A.house : eu ? `${A.house} etxea` : `Casa ${A.house}`;
   const figs = [...new Set(A.q.map(x => x.c))].filter(k => FIGURAS[k]);
@@ -61,7 +62,7 @@ export function readArms(ui, A, { town = '', isNew = false, regla = 0 } = {}) {
   const R = A.baztan ? REGLAS[2] : REGLAS[regla % 2];
   return armsCard(ui, {
     kicker: eu ? `Armarriak · ${town}` : `Escudos de ${town}`, title: house, sub: eu ? blazonEU(A) : blazon(A), stone: true,
-    canvas: { w: 360, h: 420, draw: (cv, st) => paint(cv, A, st) },
+    canvas: { w: 360, h: 420, draw: (cv, st) => paint(cv, A, st) }, image,
     badge: isNew ? 'Nueva carta en tu armorial' : '',
     secs: [
       ['La casa', eu ? `${esc(A.century)}. mendeko etxea. Atearen gaineko harrizko armarriak esaten zuen nor bizi zen bertan eta zein familiatakoa zen.${CASAS[A.house] ? ` <b>${esc(A.house)}</b> izenak ${esc(tr(CASAS[A.house]))} esan nahi du: iparraldean, etxeak ematen dio izena familiari.` : ''}`

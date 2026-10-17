@@ -18,7 +18,10 @@ const LEY_BIG = byId(import.meta.glob('@leyendas-big/*.webp', { eager: true, que
 // (y, en la web, las de 2560 de tools/laminas-grandes.mjs para cuando se ven a pantalla entera en una pantalla densa; igual en las cimas, los personajes y las tradiciones)
 const LEY_HD = byId(import.meta.glob('@leyendas-hd/*.webp', { eager: true, query: '?url', import: 'default' }));
 const BY_ID = Object.fromEntries(LAMINAS.map(l => [l.id, l]));
-hdTable('laminas', URLS, BIG, 2560); hdTable('leyendas', LEY_BIG, LEY_HD, 2560);   // (en el archivo único, con conexión: los de la web, src/web/hd.js)
+// (la copia pequeña de cada lámina, <id>-s, sube a la de 1280 o a la de 2560 cuando se ve grande: en el móvil en vertical las
+// tarjetas de los pueblos ocupan todo el ancho y la de 640 se veía pixelada)
+const SMALL = Object.fromEntries(Object.entries(URLS).filter(([k]) => k.endsWith('-s')).map(([k, v]) => [k.slice(0, -2), v]));
+hdTable('laminas', URLS, BIG, 2560); hdTable('laminas', SMALL, URLS, 1280); hdTable('laminas', SMALL, BIG, 2560); hdTable('leyendas', LEY_BIG, LEY_HD, 2560);   // (en el archivo único, con conexión: los de la web, src/web/hd.js)
 
 /** La lámina por su id (o null si no está en esta versión); small: la copia pequeña. */
 export const laminaUrl = (id, small = false) => (id && ((small && URLS[id + '-s']) || URLS[id])) || null;
