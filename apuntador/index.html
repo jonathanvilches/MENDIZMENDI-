@@ -1799,7 +1799,7 @@ const CUES = {
   sonrie:   { label: LL('Sonríe', "Smile"),                          icon: 'cara' },
   negar:    { label: LL('Niega con la mano', "Wave “no” with your hand"),               icon: 'no' },
   cta:      { label: LL('Señala abajo: el enlace', "Point down: the link"),         icon: 'cta' },
-  pausa:    { label: LL('Pausa', "Pause"),                           icon: LL('pausa', "pause") },
+  pausa:    { label: LL('Pausa', "Pause"),                           icon: 'pausa' },
   enfasis:  { label: LL('Remarca con la voz', "Stress it with your voice"),              icon: 'enfasis' },
   libre:    { label: '',                                icon: 'acotacion' },
 };
@@ -1883,12 +1883,12 @@ function parseScript(text, globalTone) {
       if (tk[0] === '[') {
         const name = normWord(tk.slice(1, -1));
         if (TONE_ALIAS[name]) { tone = TONE_ALIAS[name]; tagged = true; }
-        else if (name === LL('pausa', "pause") || name === 'pause') pending.push({ type: LL('pausa', "pause"), explicit: true });
+        else if (name === 'pausa' || name === 'pause') pending.push({ type: 'pausa', explicit: true });
         else if (tk.length > 2) pending.push({ type: 'libre', text: tk.slice(1, -1).trim(), explicit: true });
         continue;
       }
       if (tk[0] === '{') { if (tk.length > 2) pending.push({ type: 'libre', text: tk.slice(1, -1).trim(), explicit: true }); continue; }
-      if (tk === '//') { pending.push({ type: LL('pausa', "pause"), explicit: true }); continue; }
+      if (tk === '//') { pending.push({ type: 'pausa', explicit: true }); continue; }
       let t = tk, closes = false;
       if (/^[¡¿"«(]*\*/.test(t)) { emph = true; t = t.replace(/\*+/, ''); }
       if (/\*+[.,;:!?…»")]*$/.test(t)) { closes = true; t = t.replace(/\*+(?=[.,;:!?…»")]*$)/, ''); }
@@ -1919,8 +1919,8 @@ function parseScript(text, globalTone) {
         if (KWSET[type].has(n) || KWSET[type].has(bi)) cand.push({ type, at: i });
       }
       if ((n === 'no' || (sc.lang === 'en' && n === 'dont')) && i === s.start) cand.push({ type: 'negar', at: i });
-      if (i > s.start && (KWSET.pausa.has(n) || KWSET.pausa.has(bi)) && !sc.cues.some(c => c.type === LL('pausa', "pause") && Math.abs(c.at - i) < 2))
-        sc.cues.push({ type: LL('pausa', "pause"), at: i, auto: true });
+      if (i > s.start && (KWSET.pausa.has(n) || KWSET.pausa.has(bi)) && !sc.cues.some(c => c.type === 'pausa' && Math.abs(c.at - i) < 2))
+        sc.cues.push({ type: 'pausa', at: i, auto: true });
     }
     cand.sort((a, b) => CUE_ORDER.indexOf(a.type) - CUE_ORDER.indexOf(b.type) || a.at - b.at);
     const picked = [];
@@ -1953,7 +1953,7 @@ function detectTone(text) {
   const groups = scriptLang(text) === 'en' ? TONE_WORDS_EN : {
     animado: ['genial', 'increible', 'brutal', 'flipar', 'flipante', 'encanta', 'ilusion', 'sorpresa', 'sorteo', 'regalo', 'nuevo', 'nueva', 'vamos', 'super', 'top', 'hola', 'bienvenidos', 'fiesta', 'emocionante'],
     cercano: ['os', 'vosotros', 'gracias', 'cuento', 'contaros', 'confieso', 'amigos', 'familia', 'comunidad', 'quiero', 'querido', 'queridos', 'casa', 'personal', 'vida'],
-    serio: ['datos', 'informe', 'resultado', 'resultados', 'importante', 'responsabilidad', 'analisis', 'empresa', 'clientes', 'usted', 'ademas', 'porcentaje', 'objetivo', 'estrategia', 'debemos', 'normativa', LL('seguridad', "confidence"), 'riesgo'],
+    serio: ['datos', 'informe', 'resultado', 'resultados', 'importante', 'responsabilidad', 'analisis', 'empresa', 'clientes', 'usted', 'ademas', 'porcentaje', 'objetivo', 'estrategia', 'debemos', 'normativa', 'seguridad', 'riesgo'],
     inspirador: ['sueno', 'suenos', 'lograr', 'conseguir', 'puedes', 'podemos', 'futuro', 'cambiar', 'creer', 'cree', 'camino', 'mundo', 'rendirse', 'imposible', 'valiente', 'fuerza', 'meta', 'superar', 'inspira'],
     calmado: ['respira', 'respirar', 'tranquilo', 'tranquila', 'calma', 'despacio', 'paz', 'relaja', 'relajate', 'descansa', 'suave', 'meditacion', 'dormir', 'sereno', 'silencio'],
     divertido: ['jaja', 'jajaja', 'jajajaja', 'broma', 'risa', 'gracioso', 'absurdo', 'xd', 'lol', 'locura', 'loco', 'ridiculo', 'divertido', 'payaso'],
@@ -2132,7 +2132,7 @@ $('#reviewBlock').addEventListener('click', e => {
 // el texto se lee limpio: solo las palabras (las pausas «//», una raya fina). Lo que hay que hacer va al margen:
 // el emoji del gesto a la altura de su línea y una franja de color donde cambia el tono
 function renderScriptHTML(sc) {
-  const pauses = new Set(sc.cues.filter(c => c.type === LL('pausa', "pause") && c.explicit).map(c => c.at));
+  const pauses = new Set(sc.cues.filter(c => c.type === 'pausa' && c.explicit).map(c => c.at));
   let html = '';
   sc.paras.forEach((p, pi) => {
     html += `<p class="para" data-p="${pi}">`;
@@ -2145,7 +2145,7 @@ function renderScriptHTML(sc) {
   });
   return html;
 }
-const MARK_SKIP = new Set([LL('pausa', "pause"), 'enfasis']);
+const MARK_SKIP = new Set(['pausa', 'enfasis']);
 function placeMarks(root, sc, gestures = true) {
   let box = root.querySelector(':scope > .marks');
   if (!box) { box = document.createElement('div'); box.className = 'marks'; box.setAttribute('aria-hidden', 'true'); root.prepend(box); }
@@ -2208,7 +2208,7 @@ function refreshSetup() {
   $('#preview').innerHTML = S.sc.words.length ? renderScriptHTML(S.sc) : LL('<p class="note">Escribe o pega tu guion a la izquierda.</p>', "<p class=\"note\">Write or paste your script on the left.</p>");
   if (S.sc.words.length && previewOn()) placeMarks($('#preview'), S.sc);
   const n = S.sc.words.length;
-  const autoCues = S.sc.cues.filter(c => c.type !== LL('pausa', "pause") && c.type !== 'enfasis').length;
+  const autoCues = S.sc.cues.filter(c => c.type !== 'pausa' && c.type !== 'enfasis').length;
   $('#count').textContent = `${n}${LL(" palabras · ~", " words · ~")}${Math.max(1, Math.round(n / 150 * 60))} s · ${autoCues}${LL(" gestos marcados", " gestures marked")}`;
   const d = detectTone(S.text);
   const t = TONES[d.tone];
@@ -2893,6 +2893,7 @@ function visionWorkerMain() {
   self.onmessage = async e => {
     const m = e.data;
     if (m.type === 'init') {
+      const LL = (es, en) => m.lang === 'en' ? en : es;
       try {
         importScripts(m.mp + '/vision_bundle.cjs');
         const V = self.module.exports.FilesetResolver ? self.module.exports : self.exports;
@@ -2959,7 +2960,7 @@ function loadVisionWorker(progress) {
     };
     w.onerror = ev => { ev.preventDefault?.(); fail(new Error(ev.message || 'worker')); };
     progress(LL('Descargando modelos…', "Downloading models…"), 16);
-    w.postMessage({ type: 'init', mp: MP, models: MODEL, cpu: FORCE_CPU || IS_IOS, opts: VISION_OPTS });
+    w.postMessage({ type: 'init', mp: MP, models: MODEL, cpu: FORCE_CPU || IS_IOS, opts: VISION_OPTS, lang: LANG });
   });
 }
 // con la ventana flotante abierta se analiza su vídeo, que sigue visible aunque esta pestaña quede detrás
@@ -3705,7 +3706,7 @@ function lightFig(v, L) {
   if (v.t === LL('Falta luz', "Not enough light") || v.t === LL('Algo oscuro', "A bit dark")) { body = beam(...LP, FIG_C.go, 1) + figLamp(...LP, FIG_C.go, true) + figLabel(LP[0], LP[1] + 30, LL('luz aquí', "light here"), FIG_C.go); cap = LL('Pon una luz delante, a un lado de la cámara', "Put a light in front of you, beside the camera"); }
   else if (v.t === LL('Contraluz', "Backlit")) { body = `<rect x="92" y="8" width="56" height="9" rx="3" fill="${FIG_C.bad}" fill-opacity=".25" stroke="${FIG_C.bad}" stroke-width="2"/><path d="M152 6l8 8m0-8l-8 8" stroke="${FIG_C.bad}" stroke-width="2.4" stroke-linecap="round"/>` + figLabel(166, 30, LL('la luz, detrás', "light behind you"), FIG_C.bad, 'start') + figArrow(84, 16, LP[0] + 8, LP[1] - 18) + beam(...LP, FIG_C.go, 1) + figLamp(...LP, FIG_C.go, true); cap = LL('La luz tiene que darte de frente, no por detrás', "Light should hit you from the front, not from behind"); }
   else if (v.t === LL('Demasiada luz', "Too much light")) { const near = [side(86, 154), 84]; body = figLamp(...near, FIG_C.warn) + figArrow(near[0] + side(-10, 10), near[1] + 10, far[0] + side(10, -10), far[1] - 8) + figLamp(...far, FIG_C.go, true) + `<path d="M${side(70, 170)} 70L${side(96, 144)} 98" stroke="${FIG_C.go}" stroke-width="5" stroke-linecap="round" opacity=".7"/>` + figLabel(side(66, 174), 64, LL('difusor', 'diffuser'), FIG_C.go); cap = LL('Aléjala o suavízala con algo translúcido', "Move it back or soften it with something translucent"); }
-  else if (/lado/.test(v.t)) { const R = [side(184, 56), 86]; body = beam(...LP, FIG_C.ok) + figLamp(...LP, FIG_C.ok) + `<rect x="${R[0] - 15}" y="${R[1] - 4}" width="30" height="8" rx="2" fill="none" stroke="${FIG_C.go}" stroke-width="2.2" stroke-dasharray="4 3" transform="rotate(${side(-35, 35)} ${R[0]} ${R[1]})"/>` + figArrow(R[0] + side(-6, 6), R[1] - 8, side(136, 104), 60, FIG_C.go, 1.8) + figLabel(R[0], R[1] + 22, LL('folio blanco', "white paper"), FIG_C.go); cap = LL('Rebota la luz hacia el lado oscuro', "Bounce light onto the dark side"); }
+  else if (/lado|side/i.test(v.t)) { const R = [side(184, 56), 86]; body = beam(...LP, FIG_C.ok) + figLamp(...LP, FIG_C.ok) + `<rect x="${R[0] - 15}" y="${R[1] - 4}" width="30" height="8" rx="2" fill="none" stroke="${FIG_C.go}" stroke-width="2.2" stroke-dasharray="4 3" transform="rotate(${side(-35, 35)} ${R[0]} ${R[1]})"/>` + figArrow(R[0] + side(-6, 6), R[1] - 8, side(136, 104), 60, FIG_C.go, 1.8) + figLabel(R[0], R[1] + 22, LL('folio blanco', "white paper"), FIG_C.go); cap = LL('Rebota la luz hacia el lado oscuro', "Bounce light onto the dark side"); }
   else { body = beam(...LP, FIG_C.ok) + figLamp(...LP, FIG_C.ok); cap = LL('Luz de frente, a un lado de la cámara', "Light from the front, beside the camera"); }
   return `<svg class="fig" viewBox="0 0 240 150" role="img" aria-label="${esc(cap)}">
     <rect x="2" y="2" width="236" height="146" rx="16" fill="var(--stage-2)" fill-opacity=".55"/>
@@ -3921,7 +3922,7 @@ const FOL = { on: false, ok: false, rec: null, pointer: 0, phraseStart: 0, curRe
 const CMD_REC = new Set(['comenzamos', 'empezamos', 'accion', 'grabamos', 'action', 'rolling']);
 const CMD_REH = new Set(['ensayo', 'ensayamos', 'practicamos', 'rehearse', 'rehearsal', 'practice']);
 const CMD_STOP = new Set(['corten', 'corta', 'corte', 'terminamos', 'paramos', 'stop', 'cut']);
-const CMD_GO = new Set([LL('seguimos', "keep going"), 'sigue', 'seguir', 'continua', 'continuamos', 'continuar', 'continue', 'going']);
+const CMD_GO = new Set(['seguimos', 'sigue', 'seguir', 'continua', 'continuamos', 'continuar', 'continue', 'going']);
 const CMD_AGAIN = new Set(['repetimos', 'repetir', 'repite', 'repito', 'again', 'retake', 'redo']);
 const CMD_INFO = new Set(['informacion', 'panel', 'info']);
 // «otra vez», «de nuevo», «otra toma» o «repetimos»; mientras lees, no cuenta si esas palabras están en tu guion
@@ -4417,7 +4418,7 @@ function nearBreak(idx) {
   const W = S.sc.words;
   // quien lee va por la franja, a veces un poco por delante: se mira toda la zona
   for (let k = Math.max(0, idx - 4); k <= Math.min(W.length - 1, idx + 3); k++) if (/[.,;:!?…»”")\]]$/.test(W[k].text)) return true;
-  return S.sc.cues.some(c => c.type === LL('pausa', "pause") && Math.abs(c.at - idx) <= 3) || S.sc.paras.some(p => Math.abs(p.start - idx) <= 1);
+  return S.sc.cues.some(c => c.type === 'pausa' && Math.abs(c.at - idx) <= 3) || S.sc.paras.some(p => Math.abs(p.start - idx) <= 1);
 }
 function fluencyTick(t, voiced, f0) {
   const tk = S.take; if (!readingOn() || t - tk.t0 < 2.5 || S.stopping) return;
@@ -4434,7 +4435,7 @@ function fluencyTick(t, voiced, f0) {
     if (RD.pend && t - RD.pend.t > 6) RD.pend = null;
     else if (RD.pend && t - RD.pend.t >= 1.5 && t - V.talkStart >= 1.2) {
       const idx = RD.pend.idx; RD.pend = null;
-      flagRead(LL('pausa', "pause"), `${LL("Te has parado a mitad de frase, en «", "You stopped mid-sentence at “")}${scriptWords(Math.max(0, idx - 2), idx + 1)}»`, idx);
+      flagRead('pausa', `${LL("Te has parado a mitad de frase, en «", "You stopped mid-sentence at “")}${scriptWords(Math.max(0, idx - 2), idx + 1)}»`, idx);
     }
   }
   // «eeeh»: voz sostenida en el mismo tono y sin sílabas
@@ -4594,7 +4595,7 @@ async function checkReadingAfter(tk) {
     const rw = await transcribe(tk);
     const words = readFromWords(tk, rw);
     // en directo ya se avisó de pausas y dudas (por la voz): se juntan con lo que dice el reconocedor
-    const live = (tk.reads || []).filter(r => r.kind === LL('pausa', "pause") || r.kind === 'duda');
+    const live = (tk.reads || []).filter(r => r.kind === 'pausa' || r.kind === 'duda');
     tk.reads = [...words, ...live].sort((a, b) => a.t - b.t);
     tk.readCheck = { state: 'ok', n: rw.length };
     const rf = readFails(tk);
@@ -4865,7 +4866,7 @@ const RULES = [
   { id: 'lento', kind: 'voice', pri: 35, hold: 3, cool: 14, icon: 'ritmo',
     test: c => gapLow(c, 'ritmo', .1),
     title: () => LL('Dale más ritmo', "Pick up the pace"), detail: c => `${LL("Un mensaje ", "Your ")}${c.adj}${LL(" pide algo más de velocidad.", " message needs a bit more speed.")}` },
-  { id: 'sinPausa', kind: 'voice', pri: 31, hold: 0, cool: 20, icon: LL('pausa', "pause"),
+  { id: 'sinPausa', kind: 'voice', pri: 31, hold: 0, cool: 20, icon: 'pausa',
     test: c => V.speaking && c.t - V.talkStart > 14,
     title: () => LL('Haz una pausa', "Pause"), detail: () => LL('Una pausa breve después de una idea la hace más fuerte.', "A short pause after an idea makes it land harder.") },
   { id: 'silencio', kind: 'voice', pri: 20, hold: 0, cool: 15, icon: 'play',
@@ -4915,7 +4916,7 @@ const IDEAS = {
   expresion: ['cejas', LL('Levanta las cejas en la próxima pregunta', "Raise your eyebrows on your next question"), LL('En cámara la expresión se ve a la mitad: exagérala un poco.', "On camera, expressions come across at half strength: exaggerate a little.")],
   volumen: ['voz', LL('Proyecta un poco más la voz al cerrar la idea', "Project your voice a bit more as you wrap up the idea"), LL('El final de una frase es lo que más se recuerda.', "The end of a sentence is what people remember most.")],
   entonacion: ['tono', LL('Sube el tono en la palabra clave y bájalo al cerrar', "Raise your pitch on the key word and lower it at the end"), LL('La melodía de la voz guía la atención.', "The melody of your voice guides attention.")],
-  ritmo: [LL('pausa', "pause"), LL('Haz una pausa de un segundo antes de lo importante', "Pause for one second before the important part"), LL('El silencio anuncia que viene algo que importa.', "Silence signals that something important is coming.")],
+  ritmo: ['pausa', LL('Haz una pausa de un segundo antes de lo importante', "Pause for one second before the important part"), LL('El silencio anuncia que viene algo que importa.', "Silence signals that something important is coming.")],
   mirada: ['ojo', LL('Di la próxima frase mirando al objetivo', "Say your next sentence looking into the lens"), LL('Mirar a la cámara es mirar a los ojos de quien te ve.', "Looking at the camera is looking your viewer in the eye.")],
 };
 const LISTEN_IDEAS = [
@@ -4991,7 +4992,7 @@ function readParts(c) {
 
 function triggerScriptCue(c, t) {
   const d = CUES[c.type];
-  if (c.type === LL('pausa', "pause") && !c.explicit) return; // las pausas automáticas solo se ven en el texto
+  if (c.type === 'pausa' && !c.explicit) return; // las pausas automáticas solo se ven en el texto
   if (coach.watch) finishWatch(t);
   coach.watch = { cue: c, t0: t, hit: false };
   const look = CUE_LOOK[c.type] || [];
@@ -5002,7 +5003,7 @@ function triggerScriptCue(c, t) {
 function previewNext(idx, t, following) {
   const cues = S.sc.cues, tk = S.take;
   let j = PR.nextCue;
-  while (j < cues.length && (MARK_SKIP.has(cues[j].type) && !(cues[j].type === LL('pausa', "pause") && cues[j].explicit))) j++;
+  while (j < cues.length && (MARK_SKIP.has(cues[j].type) && !(cues[j].type === 'pausa' && cues[j].explicit))) j++;
   const c = cues[j]; if (!c || c.at <= idx) return;
   tk.previewed ||= new Set();
   if (tk.previewed.has(j)) return;
@@ -5038,7 +5039,7 @@ function checkCue(type, c) {
     case 'pregunta': return F.ok && F.brow > S.calib.brow + .12;
     case 'sonrie': return (c.M.sonrisa ?? 0) > .45;
     case 'negar': case 'cta': return B.handMoving;
-    case LL('pausa', "pause"): return V.lastPauseEnd > coach.watch.t0 || (!V.speaking && c.t - V.lastVoiced > .3);
+    case 'pausa': return V.lastPauseEnd > coach.watch.t0 || (!V.speaking && c.t - V.lastVoiced > .3);
     case 'enfasis': return V.peakT > coach.watch.t0;
     default: return null;
   }
@@ -5818,12 +5819,12 @@ function startLoops() {
     const t = now(), dt = Math.min(.1, t - last); last = t;
     // con un vídeo subido en pausa, el análisis espera
     const hold = !!(S.file && S.take && S.file.el.paused && !S.file.el.ended);
-    if (S.file) safe(LL('vídeo', "video"), () => fileTick(t));
+    if (S.file) safe('vídeo', () => fileTick(t));
     if (!hold) safe('luz', () => lightTick(t));
     if (!hold) safe('plano', () => planoTick(t));
     if (!hold) safe('visión', () => visionPump(t));
     // si el navegador pausa la cámara (pestaña de fondo, ahorro de energía…), se reanuda y se vigila
-    if (t - lastV > 1) { lastV = t; for (const v of [video, S.pipVideo]) if (v && v.paused && v.srcObject) v.play().catch(() => {}); safe(LL('cámara', "camera"), () => cameraWatch(t)); }
+    if (t - lastV > 1) { lastV = t; for (const v of [video, S.pipVideo]) if (v && v.paused && v.srcObject) v.play().catch(() => {}); safe('cámara', () => cameraWatch(t)); }
     if (t - lastA >= .03) { lastA = t; safe('audio', audioTick); }
     if (t - lastC >= .1 && !hold) { lastC = t; safe('director', coachTick); }
     if (!isCall() && !S.file) safe('texto', () => prompterFrame(t, dt));
@@ -6080,7 +6081,7 @@ function drillScore(d, tk) {
   else if (d.score === 'melodia') v = avgOf([share('entonacion', x => x >= .5), hitShare(['enfasis'])]);
   else if (d.score === 'gestos') v = hitShare(['saludo', 'contar', 'abrir', 'pecho', 'palma', 'grande', 'pequeno', 'pregunta', 'negar', 'cta']) ?? share('manos', x => x >= .35);
   else if (d.score === 'sonrisa') v = share('sonrisa', x => x >= .3);
-  else if (d.score === 'pausas') v = hitShare([LL('pausa', "pause")]);
+  else if (d.score === 'pausas') v = hitShare(['pausa']);
   else if (d.score === 'gancho') {   // los 4 primeros segundos: cómo transmites y si miras al objetivo
     const ss = tk.log.filter(sm => sm.t <= 4), m = ss.map(sm => sm.match).filter(x => x != null), look = ss.map(sm => sm.M.mirada).filter(x => x != null);
     v = m.length >= 4 ? avgOf(m) / 100 * .6 + (look.length ? look.filter(x => x >= .65).length / look.length : .5) * .4 : null;
