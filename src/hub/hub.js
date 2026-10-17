@@ -16,6 +16,8 @@ import { readTownArms, infoCard } from '../ui/escudo.js';
 import { releaseOffscreen } from '../util/offscreen.js';
 import { avatarPortrait, avatarPortraitImg } from '../ui/portraits.js';
 import { figurasHTML, openFigura } from '../ui/figuras.js';
+import { instrumentosHTML, openInstrumento } from '../ui/instrumentos.js';
+import { INSTRUMENTOS } from '../data/instrumentos.js';
 import { FIGURAS, FIGURAS_LEYENDA, FIGURAS_CARNAVAL } from '../data/figuras.js';
 import { stampImg } from '../assets.js';
 import { Stage, releaseStage } from './stage.js';
@@ -125,14 +127,15 @@ export class Hub {
     // (instalar el juego como app: solo en la web y si no se está jugando ya desde la app instalada)
     setupInstall(this.root, this.root.querySelector('[data-app]'));
     // secciones: las principales siempre a la vista; las demás, en «Más» cuando falta sitio (móvil)
-    this.nav = [['home', 'Inicio', 'home'], ['map', 'Mapa', 'map'], ['towns', 'Pueblos', 'church'], ['sports', 'Torneos', 'trophy'], ['avatars', 'Personajes', 'person'], ['peaks', 'Cimas', 'peak', 1], ['nature', 'Naturaleza', 'leaf', 1], ['escudos', 'Escudos', 'shield', 1], ['cuentos', 'Leyendas', 'legend', 1], ['album', 'Láminas', 'scroll', 1], ['badges', 'Insignias', 'badge', 1], ['passport', 'Pasaporte', 'stamp', 1], ['profile', 'Perfil', 'gear', 1]];
-    this.MORE = { peaks: 'Montañas de Navarra con su perfil', nature: 'Fauna, árboles, plantas y flores', escudos: 'Escudos de Navarra y cómo se leen', cuentos: 'Cuentos, leyendas e historias de Navarra', album: 'Las ilustraciones de cada pueblo y comarca', badges: 'Tus logros', passport: 'Los sellos de tus pueblos', profile: 'Nombre, nivel y ajustes' };
+    this.nav = [['home', 'Inicio', 'home'], ['map', 'Mapa', 'map'], ['towns', 'Pueblos', 'church'], ['sports', 'Torneos', 'trophy'], ['avatars', 'Personajes', 'person'], ['peaks', 'Cimas', 'peak', 1], ['nature', 'Naturaleza', 'leaf', 1], ['escudos', 'Escudos', 'shield', 1], ['cuentos', 'Leyendas', 'legend', 1], ['instrumentos', 'Instrumentos', 'music', 1], ['album', 'Láminas', 'scroll', 1], ['badges', 'Insignias', 'badge', 1], ['passport', 'Pasaporte', 'stamp', 1], ['profile', 'Perfil', 'gear', 1]];
+    this.MORE = { peaks: 'Montañas de Navarra con su perfil', nature: 'Fauna, árboles, plantas y flores', escudos: 'Escudos de Navarra y cómo se leen', cuentos: 'Cuentos, leyendas e historias de Navarra', instrumentos: 'Txistu, gaita, txalaparta… escúchalos y aprende a tocarlos', album: 'Las ilustraciones de cada pueblo y comarca', badges: 'Tus logros', passport: 'Los sellos de tus pueblos', profile: 'Nombre, nivel y ajustes' };
     $('#hNav', this.root).innerHTML = this.nav.map(([id, n, ic, sec]) => `<button data-s="${id}" class="${sec ? 'nav2' : ''}">${I(ic, 26)}<span>${n}</span></button>`).join('') + `<button data-s="more" class="more-btn"><svg viewBox="0 0 24 24" width="26" height="26"><circle cx="5" cy="12" r="2.4" fill="#f7f0e6"/><circle cx="12" cy="12" r="2.4" fill="#f7f0e6"/><circle cx="19" cy="12" r="2.4" fill="#f7f0e6"/></svg><span>Más</span></button>`;
     $('#hNav', this.root).addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.s === 'more') return this.more(); this.go(b.dataset.s); });
     this.root.addEventListener('click', e => {
-      const t = e.target.closest('[data-go],[data-town],[data-comarca],[data-play],[data-sport],[data-fronton],[data-frpick],[data-figura]'); if (!t) return;
+      const t = e.target.closest('[data-go],[data-town],[data-comarca],[data-play],[data-sport],[data-fronton],[data-frpick],[data-figura],[data-instrumento]'); if (!t) return;
       if (t.dataset.frpick != null) return this.frontonPicker();
       if (t.dataset.figura) { this.sound?.ui('open'); return openFigura({ sound: this.sound }, t.dataset.figura); }   // (la ficha de una figura de leyenda o carnaval)
+      if (t.dataset.instrumento) { this.sound?.ui('open'); return openInstrumento({ sound: this.sound, townName }, t.dataset.instrumento).then(() => { if (this.screen === 'instrumentos') this.go('instrumentos', undefined, true); }); }   // (la ficha de un instrumento; al volver, la lista con lo tocado)
       // (el frontón elegido cambia en su caja, sin volver a pintar la pantalla ni subirla arriba)
       if (t.dataset.fronton) { this.frontonTown = t.dataset.fronton; this.sound?.ui('click'); this.sheet?.remove(); this.sheet = null; const b = $('.sp-pick', this.root); if (b) b.outerHTML = this.frontonBox(); else this.go('sports', undefined, true); return; }
       if (t.dataset.sport) { this.sound?.ui('open'); return this.onSport?.(t.dataset.sport, t.dataset.sport === 'pelota' ? this.frontonId() : null); }
@@ -221,6 +224,7 @@ export class Hub {
         <p>Cada misión, cada paseo y cada partido te enseñan algo de Navarra: su producto local, su arquitectura y sus escudos, su historia, su campo, su fauna, su flora y sus tradiciones. Cada cosa que aprendes es una carta.</p></div>
       <button class="btn ghost sb-arms" data-go="escudos">${I('shield', 26)} Escudos de Navarra: cómo se leen y qué significan</button>
       <button class="btn ghost sb-arms" data-go="cuentos">${I('legend', 26)} Cuentos y leyendas de Navarra: escúchalos en cada pueblo</button>
+      <button class="btn ghost sb-arms" data-go="instrumentos">${I('music', 26)} Instrumentos de Navarra: escúchalos y aprende a tocarlos</button>
       <div class="sb-grid">${(() => { const n = saberCounts(p); return SABERES.map(sb => `<div class="sb ${n[sb.id] ? 'on' : ''}${sb.id === 'escudos' ? ' link' : ''}" title="${esc(sb.text)}"${sb.id === 'escudos' ? ' data-go="escudos" role="button" tabindex="0"' : ''}>${I(sb.icon, 34)}<b>${n[sb.id]}</b><span>${esc(sb.name)}</span><small>${esc(sb.text)}</small></div>`).join(''); })()}</div>
     </section>
     <section class="story">
@@ -577,6 +581,17 @@ export class Hub {
           ${on ? `<span class="ar-ok">${I('check', 16)} Escuchado</span><details><summary>Volver a leerlo</summary>${C.parts.map(t => `<p>${esc(t)}</p>`).join('')}<p><b>Lo que puedes ver hoy.</b> ${esc(C.today)}</p></details>`
             : `<p>Ve a ${esc(tn(C.towns[0]))} y habla con ${esc(C.teller.name)} en la plaza.</p><button class="btn ct-go" data-play="${C.towns[0]}">${I('play', 20)} Ir a ${esc(tn(C.towns[0]))}</button>`}</div></article>`; }).join('')}</div>
       <p class="ar-src">Fuentes: Cátedra de Patrimonio de la Universidad de Navarra, Auñamendi Eusko Entziklopedia, Senditur, Noticias de Navarra, culturanavarra.es y los santuarios y ayuntamientos de cada lugar. Las leyendas tienen muchas versiones: aquí está la más contada, adaptada para niños y niñas.</p>
+    </section>`;
+  }
+  // ---------- Instrumentos ----------
+  s_instrumentos() {
+    const p = profile(), seen = new Set(p.cards || []), played = INSTRUMENTOS.filter(x => seen.has('instrumento:' + x.id)).length;
+    return `<section class="armorial instrumentos">
+      <div class="ar-head"><small class="kicker">${I('music', 20)} Saberes · Instrumentos</small><h1>Instrumentos de Navarra</h1>
+        <p>Los instrumentos de la música de siempre: qué son, cómo suenan y dónde se oyen. Toca uno para leer su ficha, escucharlo y aprender a tocarlo. En la plaza de muchos pueblos hay un músico que te enseña, y cada instrumento que tocas es una carta de tradiciones.</p>
+        <b class="ar-count">${played} de ${INSTRUMENTOS.length} tocados</b></div>
+      ${instrumentosHTML(INSTRUMENTOS)}
+      <p class="ar-src">Fuentes: Auñamendi Eusko Entziklopedia, Museo Etnológico de Navarra «Julio Caro Baroja», Soinuenea (Herri Musikaren Txokoa), Euskal Herriko Txistularien Elkartea, Ortzadar Euskal Folklore Taldea y los ayuntamientos y grupos de cada zona. Las frases que se tocan son del juego, al estilo de cada música.</p>
     </section>`;
   }
   s_badges() {

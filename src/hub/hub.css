@@ -1401,3 +1401,36 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .fcard .ftx { display: flex; flex-direction: column; gap: 2px; min-width: 0; width: 100%; }
 .fcard small { font-size: var(--fs-xs); color: var(--mute); font-weight: 700; } .fcard b { font-size: var(--fs-md); line-height: 1.15; } .fcard i { font-size: var(--fs-xs); color: var(--mute); font-style: normal; font-weight: 600; }
 @media (min-width: 900px) { .figuras { gap: 16px; } .figuras.rail .fcard { width: 170px; } }
+
+/* instrumentos de Navarra (ui/instrumentos.js): la lista del menú y el minijuego de tocar */
+.ins-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.ins { display: flex; gap: 12px; align-items: center; text-align: left; padding: 12px; border-radius: var(--r); background: var(--glass2); border: 1px solid var(--line); color: #fff; cursor: pointer; transition: transform .15s, border-color .15s; font: inherit; }
+.ins:hover { transform: translateY(-3px); border-color: var(--line2); }
+.ins.on { border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan) inset; }
+.ins > img, .ins > svg { width: 84px; height: 84px; flex: none; filter: drop-shadow(0 6px 10px rgba(7, 2, 15, .45)); }
+.ins-tx { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ins-tx small { color: var(--mute); font-size: var(--fs-xs); font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.ins-tx b { font-size: var(--fs-md); font-weight: 900; line-height: 1.15; }
+.ins-tx i { color: var(--lila); font-size: var(--fs-sm); }
+.ins-tx em { color: var(--cyan); font-style: normal; font-size: var(--fs-xs); font-weight: 800; }
+.ix-foot .tc-oir, .ix-foot .tc-tocar { min-width: 0; } .ix-foot .tc-oir.on { border-color: #ff7ac8; color: #ff7ac8; }
+.mg-card.tocar-card { gap: 10px; position: relative; } .tocar-card .mg-top { padding-right: 44px; }   /* (sitio para la cruz de salir) */
+.tocar-card .tc-score { margin-left: auto; font: 800 var(--fs-lg)/1 var(--f-cond, 'Nunito'); color: #fff; white-space: nowrap; }
+.tc-stage { position: relative; width: 100%; height: min(300px, 46dvh); border-radius: var(--rL); background: linear-gradient(180deg, rgba(14, 7, 32, .45), rgba(14, 7, 32, .85)); border: 1px solid var(--line); overflow: hidden; }
+.tc-lanes { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); }
+.tc-lane { position: relative; border-left: 1px solid rgba(255, 255, 255, .1); } .tc-lane:first-child { border-left: 0; }
+.tc-key { position: absolute; top: 6px; left: 50%; transform: translateX(-50%); font-size: var(--fs-xs); font-weight: 800; color: rgba(255, 255, 255, .45); }
+.tc-notes { position: absolute; inset: 0; }
+.tc-line { position: absolute; left: 0; right: 0; top: 82%; height: 4px; background: rgba(255, 255, 255, .6); border-radius: 2px; box-shadow: 0 0 14px rgba(255, 122, 200, .7); }
+.tc-note { position: absolute; width: 50px; height: 50px; margin: -25px 0 0 -25px; border-radius: 50%; background: linear-gradient(180deg, #ff7ac8, #c21cff); box-shadow: 0 4px 10px rgba(0, 0, 0, .45); display: grid; place-items: center; font-weight: 900; color: #fff; font-size: var(--fs-sm); will-change: top; }
+.tc-note.hit { background: linear-gradient(180deg, #ffe08a, #f2a51a); transform: scale(1.3); opacity: 0; transition: transform .2s, opacity .2s; }
+.tc-note.miss { background: #666; opacity: .35; }
+.tc-fb { position: absolute; left: 0; right: 0; top: 36%; text-align: center; font: 400 var(--fs-2xl)/1 var(--f-display); text-shadow: 0 3px 8px #000; pointer-events: none; color: #fff; }
+.tc-fb.ok { color: #ffe08a; } .tc-fb.bad { color: #ff9ab0; }
+.tc-pads { display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); gap: 8px; width: 100%; }
+.tc-pads button { height: 64px; border-radius: 14px; background: rgba(34, 26, 44, .75); border: 2px solid rgba(255, 255, 255, .35); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font: 900 var(--fs-md)/1 inherit; font-family: inherit; touch-action: manipulation; user-select: none; }
+.tc-pads button small { color: var(--mute); font-size: var(--fs-xs); font-weight: 700; } .tc-pads button.flash { background: rgba(255, 122, 200, .75); border-color: #fff; }
+.tc-hint { margin: 0; color: var(--mute); font-size: var(--fs-xs); }
+.tocar-card .tc-x { position: absolute; top: 10px; right: 10px; width: 36px; height: 36px; border-radius: 50%; background: rgba(0, 0, 0, .35); border: 1px solid rgba(255, 255, 255, .3); color: #fff; font-size: 16px; display: grid; place-items: center; }
+.tocar .tc-pads { --n: inherit; }
+@media (max-height: 470px) { .tc-stage { height: 40dvh; } .tc-pads button { height: 50px; } .tc-hint { display: none; } .mg-card.tocar-card { padding: 14px 16px; gap: 8px; } }
