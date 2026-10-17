@@ -172,6 +172,41 @@ Se explica en el plató, que es donde se usa; antes de entrar no estorba:
   Durante la toma, junto a la línea de abajo, «🎙️ «corten» · «otra vez»».
 - **Antes de grabar** solo quedan los ajustes, plegados en «Control por voz»: qué reconocimiento se usa y el margen al parar.
 
+## Que no arranque solo
+
+Solo se pone a grabar cuando lo pides. Lo que antes podía colarse, y cómo se evita:
+- **«Mis palabras» (iPhone):** una palabra cuenta como orden solo si se parece mucho más a esa orden que a las otras
+  (en las órdenes de verdad, la distancia a la ganadora es como mucho la mitad que a la segunda; en las palabras
+  corrientes, casi siempre más de dos tercios) y dura más o menos lo que duraba al enseñársela. Lo que arranca o
+  reinicia una toma pide un poco más. Probado con 180 palabras corrientes y parecidas («vale», «otra cosa», «graba»,
+  «comentamos»…): de 37 que se colaban con una voz variable, quedan 13, casi todas homófonas, sin perder ninguna
+  orden de verdad.
+- **Navegador (ordenador):** para arrancar solo valen «comenzamos», «empezamos», «acción» y «grabamos» (o «ensayo»,
+  «ensayamos»), dichas sueltas. «Voy a grabar» o «empieza el vídeo» en mitad de una frase ya no cuentan.
+- **Palmadas:** no cuentan si acabas de tocar la pantalla o de mover el móvil (al cogerlo, apoyarlo o pulsar, el
+  micro oye golpes secos), si estabas hablando, ni si los dos golpes suenan muy distintos.
+- **Y si aun así arranca:** durante la cuenta atrás, toca la pantalla, di «corten», pulsa Terminar o Esc, y se cancela.
+
+## Tu doble: el personaje que te enseña los gestos
+
+Un muñeco de líneas, como el esqueleto que dibuja lo que detecta, detrás de ti y a tu tamaño (anclado a tus hombros;
+si no se te ve, donde deberías estar). Es un ensayo de gestos para luego aplicarlos al grabar:
+- **En reposo**, la posición base: manos juntas a la altura del ombligo y codos sueltos. Transmite calma y deja las
+  manos listas para el siguiente gesto.
+- **Te anticipa el gesto**: unos 2,5 s antes de cada gesto del guion ya lo va haciendo («Viene…»), lo hace contigo
+  al llegar a su palabra («¡Ahora!») y vuelve a la base.
+- **Te enseña a corregir**: si cruzas los brazos, sacas las manos del plano o te quedas quieto, hace el gesto que
+  lo arregla («Prueba esto»).
+- **Te dice si lo haces bien**: se pone verde («¡Así! ✓») cuando tus manos están donde las suyas en la postura
+  clave del gesto.
+- **Por qué funciona cada gesto** (lenguaje corporal), en el aviso «En breve» de los ensayos: las palmas a la vista
+  transmiten honestidad; los brazos abiertos, apertura e incluyen a quien te ve; la mano en el pecho, sinceridad;
+  contar con los dedos ordena el mensaje; dibujar el tamaño hace la idea más fácil de recordar; palmas arriba y
+  cejas levantadas invitan a pensar; un corte de lado con la mano descarta con firmeza; señalar lleva la mirada.
+
+Sale en los ensayos. Al grabar de verdad, solo si lo pides («Antes de grabar» → «Tu doble»); aun así, solo lo ves
+tú: no sale en el vídeo.
+
 ## Espacios
 
 Un mismo ritmo en toda la app, para que cada título quede más cerca de lo suyo que de lo anterior: 8 px entre un
