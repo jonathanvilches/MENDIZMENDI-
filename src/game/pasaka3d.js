@@ -164,7 +164,7 @@ function predict(b) {
   }
   return { x: c.x, z: c.z, t: 3 };
 }
-const mkPl = (team, x, z, me, i) => ({ team, x, z, tx: x, tz: z, hx: x, hz: z, me, speed: me ? 5.8 : 4.8 + i * 0.25, reach: me ? 1.9 : 1.35, moving: false, vNow: 0, want: null, wantT: 0, take: false, miss: false, decided: -1, swingT: -1, wind: 0, heading: team ? Math.PI : 0 });
+const mkPl = (team, x, z, me, i) => ({ team, x, z, tx: x, tz: z, hx: x, hz: z, me, speed: me ? 5.8 : 5.3 + i * 0.2, reach: me ? 1.9 : 1.55, moving: false, vNow: 0, want: null, wantT: 0, take: false, miss: false, decided: -1, swingT: -1, wind: 0, heading: team ? Math.PI : 0 });
 
 // (la interfaz es la misma del partido de pelota, src/pelota/hud.js: la X, el marcador, los botones redondos, la palanca y
 // el rótulo de la fuerza. Aquí solo lo propio de la pasaka)
@@ -181,10 +181,11 @@ const CSS = `
  */
 export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0 = null } = {}) {
   if (window.__autoWin) return Promise.resolve({ win: true, g: [games, 0] });
+  if (window.__pasakaGames) games = window.__pasakaGames;   // (pruebas: partidos largos para medir)
   return new Promise(res => {
     const P = G.player, rig0 = P.rig, S = G.sound, eu = isEU(), cam = G.camera;
     const home = home0 || { x: P.pos.x, z: P.pos.z, h: P.heading }, pHome = partner ? { x: partner.pos.x, z: partner.pos.z, h: partner.heading } : null;
-    const st = { t: 0, phase: 'intro', phaseT: 0, g: [0, 0], q: [0, 0], server: 0, faults: 0, games, over: false, auto: false, hitId: 0, charge: null,
+    const st = { t: 0, phase: 'intro', phaseT: 0, g: [0, 0], q: [0, 0], server: 0, faults: 0, games, over: false, auto: false, hitId: 0, charge: null, log: [], hits: 0,
       ball: { x: 0, y: 1, z: 7, vx: 0, vy: 0, vz: 0, last: 0, crossed: false, bounces: 0, dead: false, inPlay: false, serve: false, serveOk: false, serveB: 0, held: -1 },
       pl: [mkPl(0, 1.4, NETZ - 7.5, true, 0), mkPl(0, -2.4, NETZ - 5.5, false, 1), mkPl(1, -1.6, NETZ + 5.5, false, 2), mkPl(1, 2.3, NETZ + 7.5, false, 3)] };
     const b = st.ball, P0 = st.pl[0], T = { rojos: tr('Rojos'), azules: tr('Azules') };
@@ -234,6 +235,7 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
     const cheer = (k) => { cheerT = k; crowdS?.cheer?.(true); crowdB?.cheer?.(true); };
     const point = (t, why) => {
       if (st.phase === 'dead' || st.over) return;
+      if (st.log.length < 400) { const los = st.pl.filter(p => p.team !== t), d = Math.min(...los.map(p => Math.hypot(p.x - b.x, p.z - b.z))); st.log.push({ t, why, hits: st.hits, srv: st.server, last: b.last, dist: +d.toFixed(1), miss: los.some(p => p.take && p.miss), take: los.some(p => p.take) }); }
       st.q[t]++; st.faults = 0; S?.crowd?.(t === 0 ? 0.6 : 0.3); cheer(1.2);
       if (st.q[t] >= 4) {
         st.g[t]++; st.q = [0, 0]; st.server = 1 - st.server;
@@ -244,11 +246,11 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
     };
     const serveFault = () => { if (st.phase === 'dead' || st.over) return; st.faults++; if (st.faults >= 2) { st.faults = 0; return point(1 - st.server, tr('Falta de saque')); } say(tr('Falta de saque'), tr('Segundo saque'), 'bad'); nextPoint(); };
     // kind: saque, golpe (con potencia 0..1 y largo aimY -1..1), dejada o globo; aim: a lo ancho, -1..1 (en coordenadas de la cancha)
-    const launch = (pl, kind, aim = 0, power = 0.5, aimY = 0) => {
+    const launch = (pl, kind, aim = 0, power = 0.5, aimY = 0, bad = false) => {
       const t = pl.team, dir = t === 0 ? 1 : -1;
-      let q = 1; if (b.y < 0.25) q -= 0.35; else if (b.y > 1.9) q -= 0.25;
-      q -= Math.max(0, Math.hypot(b.x - pl.x, b.z - pl.z) - 0.6) * 0.3; if (Math.hypot(b.vx, b.vy, b.vz) > 16) q -= 0.15; if (!pl.me) q -= 0.05;
-      if (kind === 'golpe') q -= 0.12 * Math.max(0, power - 0.5) * 2; if (kind === 'saque') q = 0.95; q = clamp(q, 0.2, 1);
+      let q = bad ? 0.3 : 1; if (b.y < 0.25) q -= 0.35; else if (b.y > 1.9) q -= 0.25;
+      q -= Math.max(0, Math.hypot(b.x - pl.x, b.z - pl.z) - 0.6) * 0.3; if (Math.hypot(b.vx, b.vy, b.vz) > 16) q -= 0.15;
+      if (kind === 'golpe') q -= 0.12 * Math.max(0, power - 0.5) * 2; if (kind === 'saque') q = 0.95; q = clamp(q, 0.2, bad ? 0.3 : 1);
       let xt, zt, Tf, yt = 0;
       if (kind === 'saque') { xt = aim * (W / 2 - 1.4); zt = t === 0 ? L - 0.1 : 0.1; yt = t === 0 ? 1.4 + Math.random() * 0.5 : 0.6 + Math.random() * 0.5; Tf = 1.0; }
       else if (kind === 'dejada') { xt = aim * (W / 2 - 1.0); zt = NETZ + dir * (1.5 + Math.random() * 0.9); Tf = 0.72; }
@@ -259,7 +261,7 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
       const tn = (NETZ - b.z) / b.vz, yn = b.y + b.vy * tn - 0.5 * GRAV * tn * tn, need = NETH + 0.14;
       if (tn > 0 && yn < need) b.vy += (need - yn) / tn;
       b.vy -= (1 - q) * (kind === 'dejada' ? 1.4 : kind === 'globo' ? 0.8 : 1.1) * Math.random();
-      b.last = t; b.crossed = false; b.bounces = 0; b.dead = false; b.serve = kind === 'saque'; b.serveOk = false; b.serveB = 0; b.inPlay = true; b.held = -1; st.hitId++;
+      b.last = t; b.crossed = false; b.bounces = 0; b.dead = false; b.serve = kind === 'saque'; st.hits = kind === 'saque' ? 0 : st.hits + 1; b.serveOk = false; b.serveB = 0; b.inPlay = true; b.held = -1; st.hitId++;
       pl.swingT = 0; pl.want = null; S?.pelota?.(kind === 'dejada' ? 0.5 : kind === 'globo' ? 0.6 : 0.6 + 0.5 * power);
       if (st.phase === 'serve') { st.phase = 'flight'; setTip(firstRally ? tr('Mantén Golpe para cargar; al soltar, la palanca apunta. Suelta cuando brille') : ''); }
       if (pl.me && kind !== 'saque') { firstRally = false; setTip(''); }
@@ -273,11 +275,11 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
       if (taker) { taker.take = true; taker.decided = -1; taker.tx = clamp(pr.x, -W / 2 + 0.4, W / 2 - 0.4); taker.tz = pr.z + (taker.team === 1 ? 0.9 : -0.9); }
       for (const p of rec) if (!p.take && !(p.me && !st.auto)) { p.tx = clamp(-pr.x * 0.4, -W / 2 + 0.6, W / 2 - 0.6); p.tz = p.hz; }
     };
-    const aiShot = (pl) => {
+    const aiShot = (pl, bad = false) => {
       const opp = st.pl.filter(p => p.team !== pl.team), far = opp.every(p => Math.abs(p.z - NETZ) > 6.5), near = opp.every(p => Math.abs(p.z - NETZ) < 4);
       const kind = far && Math.random() < 0.4 ? 'dejada' : near && Math.random() < 0.35 ? 'globo' : 'golpe';
       let best = 0, bd = -1; for (const a of [-0.85, -0.3, 0.3, 0.85]) { const d = Math.min(...opp.map(p => Math.abs(p.x - a * (W / 2 - 0.9)))) + Math.random() * 0.8; if (d > bd) { bd = d; best = a; } }
-      launch(pl, kind, best, 0.35 + Math.random() * 0.5, Math.random() * 2 - 1);
+      launch(pl, kind, best, 0.35 + Math.random() * 0.5, Math.random() * 2 - 1, bad);
     };
     const onFloor = () => {
       if (b.dead || !b.inPlay) return; S?.pelota?.(0.2);
@@ -335,8 +337,11 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
       if (!pl.take) { const tk = st.pl.find(p => p.team === pl.team && p.take); if (!(inReach(pl, b) && (!tk || Math.hypot(tk.x - b.x, tk.z - b.z) > 2.2))) return; }
       if (side(b.z) === pl.team && b.y < 2.5) { pl.tx = clamp(b.x, -W / 2 + 0.4, W / 2 - 0.4); if (Math.abs(b.z - pl.z) > 1.0) pl.tz = clamp(b.z + (pl.team === 1 ? 0.6 : -0.6), pl.team ? NETZ + 0.7 : 0.8, pl.team ? L - 0.8 : NETZ - 0.7); }
       if (!inReach(pl, b) || b.y < 0.2 || b.y > 2.0) return;
-      if (pl.decided !== st.hitId) { pl.decided = st.hitId; const run = Math.hypot(pl.tx - pl.hx, pl.tz - pl.hz), fast = Math.hypot(b.vx, b.vz) > 15; const p = clamp(0.9 - 0.035 * run - (fast ? 0.18 : 0) + (pl.me ? 0.08 : 0) - (pl.team === 1 ? 0.06 : 0), 0.35, 0.95); pl.miss = Math.random() > p; }
-      if (!pl.miss) aiShot(pl);
+      if (pl.decided !== st.hitId) { pl.decided = st.hitId; const run = Math.hypot(pl.tx - pl.hx, pl.tz - pl.hz), fast = Math.hypot(b.vx, b.vz) > 15;
+        const p = clamp(0.95 - 0.03 * Math.max(0, run - 1.5) - (fast ? 0.08 : 0) - (fast && run > 2.5 ? 0.1 : 0) + (pl.me ? 0.03 : 0) - (pl.team === 1 ? 0.02 : 0), 0.4, 0.97);
+        pl.miss = Math.random() > p; pl.bad = pl.miss && Math.random() < 0.65; }
+      // el que falla, la mitad de las veces le pega mal (a la red o fuera) y la otra mitad no llega
+      if (!pl.miss) aiShot(pl); else if (pl.bad) { pl.bad = false; aiShot(pl, true); }
     };
     const aimOf = () => { const kx = ((keys.right ? 1 : 0) - (keys.left ? 1 : 0) + stick.x) * SX; if (Math.abs(kx) > 0.25) return clamp(kx, -1, 1) * 0.85; return clamp((b.x - P0.x) / 1.2, -1, 1) * 0.5; };
     // un toque: golpe medio, dejada o globo; mantener Golpe carga la potencia (0,9 s a tope) y la palanca apunta a lo ancho y a lo largo
@@ -425,7 +430,7 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
       res(r.quit ? { quit: true, g: st.g.slice() } : { win: !!r.win, g: st.g.slice() });
     }
     // (para las pruebas: el estado, golpear, ir a un punto, jugar solo y adelantar el partido sin dibujar)
-    window.__pasaka = { estado: () => ({ phase: st.phase, g: st.g.slice(), q: st.q.slice(), server: st.server, ball: { x: +b.x.toFixed(2), y: +b.y.toFixed(2), z: +b.z.toFixed(2), inPlay: b.inPlay, last: b.last }, you: { x: +P0.x.toFixed(2), z: +P0.z.toFixed(2) }, over: st.over }),
+    window.__pasaka = { estado: () => ({ phase: st.phase, g: st.g.slice(), q: st.q.slice(), server: st.server, log: st.log, ball: { x: +b.x.toFixed(2), y: +b.y.toFixed(2), z: +b.z.toFixed(2), inPlay: b.inPlay, last: b.last }, you: { x: +P0.x.toFixed(2), z: +P0.z.toFixed(2) }, over: st.over }),
       golpear: press, cargar: chargeStart, soltar: chargeEnd, ir: (x, z) => { P0.tx = x; P0.tz = z; }, auto: (on) => { st.auto = !!on; }, simular: (sec) => { for (let i = 0; i < sec * 60 && !ended; i++) update(1 / 60); if (!ended) place(1 / 60); }, fin: () => ended };
     // (los jugadores, cada uno en su sitio desde el primer fotograma; el jugador llega andando desde la entrada)
     homeAll(); score(); say(tr('¡Prepárate!'), partner ? (eu ? `${partner.name}ekin` : `Con ${partner.name}`) : tr('Sobreclaustro de la catedral')); place(0);
