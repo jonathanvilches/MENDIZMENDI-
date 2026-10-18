@@ -768,8 +768,12 @@ export class TownGame {
   // las casas que aún no la tienen, el tallado en piedra dibujado. La ficha enseña los dos: «En color» y «En piedra»)
   buildShields() {
     this.blasones = [];
-    TOWN.shields.slice(0, 8).forEach((sh, i) => {
-      const A = houseArms(this.def, i), c = document.createElement('canvas'); c.width = 256; c.height = 336;
+    // (en las fachadas salen primero las casas que ya tienen el escudo del autor: un pueblo con dos fachadas y las imágenes
+    // de las casas 7 y 8 las enseñaba talladas y dejaba las imágenes sin usar. El índice de la casa, no el de la fachada,
+    // es el que guarda la carta «escudo:<pueblo>:<n>» y el que pide su imagen)
+    const order = [...Array(8).keys()].sort((a, b) => (casaImg(this.def.id, b) ? 1 : 0) - (casaImg(this.def.id, a) ? 1 : 0) || a - b);
+    TOWN.shields.slice(0, 8).forEach((sh, j) => {
+      const i = order[j], A = houseArms(this.def, i), c = document.createElement('canvas'); c.width = 256; c.height = 336;
       const g = c.getContext('2d'); g.scale(2, 2); drawArms(g, 64, 4, 92, A, { stone: true }); g.setTransform(1, 0, 0, 1, 0, 0);
       const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
       const m = new THREE.Mesh(new THREE.PlaneGeometry(1.55, 2.03), new THREE.MeshStandardMaterial({ map: tex, transparent: true, alphaTest: 0.4, roughness: 0.9 }));
