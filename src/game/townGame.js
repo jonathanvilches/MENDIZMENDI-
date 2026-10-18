@@ -567,7 +567,7 @@ export class TownGame {
         const pick = await pasakaMenu(this.ui);
         if (this.disposed || pick !== 'again') return;
       }
-    } finally { if (!this.disposed) this.onExit?.('pasaka'); }
+    } finally { if (!this.disposed) { if (this.sky) { this.sky.flood = 0; this.sky.indoor = false; } this.onExit?.('pasaka'); } }
   }
   async tocarCon(a) {
     const inst = instrumentoById(a.musico); if (!inst) return;
