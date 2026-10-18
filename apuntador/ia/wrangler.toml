@@ -1,0 +1,11 @@
+name = "apuntador-ia"
+main = "worker.js"
+compatibility_date = "2026-09-01"
+
+[vars]
+# Las webs que pueden usar este servidor (separadas por comas)
+ALLOWED_ORIGINS = "https://jonathanvilches.github.io"
+# El modelo de Claude (opcional). Más barato: "claude-sonnet-5-5" o "claude-haiku-5-5"
+# MODEL = "claude-opus-5-5"
+
+# La clave de la API no va aquí: wrangler secret put ANTHROPIC_API_KEY
