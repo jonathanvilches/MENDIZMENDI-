@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<title>Apuntador para formadores</title>
+<meta name="description" content="Retos de vídeo por enlace para formadores de comunicación, academias y equipos: tus alumnos practican delante de la cámara entre clase y clase.">
+<style>
+/* Layout: una columna estrecha como una hoja de Ajustes de iOS; la tarjeta del reto (lo que ve el alumno) es la única pieza de color */
+:root{
+  --bg:#F2F2F7; --card:#FFFFFF; --fill:#E9E9EF; --ink:#111114; --mute:#6C6C73; --line:#D8D8DE;
+  --blue:#0A6CFF; --blue-ink:#FFFFFF; --reto-a:#FF8A00; --reto-b:#FF2D55; --warn-bg:#FFF4D6; --warn-ink:#6B4A00;
+  --f-ui:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --f-display:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --r:18px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#000000;--card:#1C1C1E;--fill:#2C2C2E;--ink:#F5F5F7;--mute:#A1A1A8;--line:#38383C;--blue:#3D8BFF;--blue-ink:#FFFFFF;--warn-bg:#3A2E10;--warn-ink:#F5D98A;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#000000;--card:#1C1C1E;--fill:#2C2C2E;--ink:#F5F5F7;--mute:#A1A1A8;--line:#38383C;--blue:#3D8BFF;--blue-ink:#FFFFFF;--warn-bg:#3A2E10;--warn-ink:#F5D98A;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:400 17px/1.5 var(--f-ui);-webkit-font-smoothing:antialiased}
+.wrap{max-width:720px;margin:0 auto;padding-block:20px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:40px}
+a{color:var(--blue)}
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--blue);outline-offset:3px;border-radius:10px}
+.draft{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:var(--warn-bg);color:var(--warn-ink);font-size:14px;line-height:1.4}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;font:600 17px/1 var(--f-display);color:var(--ink);text-decoration:none;letter-spacing:-.01em}
+.logo{display:grid;place-items:center;width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#3478F6,#5E5CE6)}
+.logo svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.top a.open{font-size:15px;font-weight:600;text-decoration:none}
+.hero{display:flex;flex-direction:column;gap:18px}
+.eyebrow{margin:0;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+h1{margin:0;font:700 clamp(32px,7vw,46px)/1.08 var(--f-display);letter-spacing:-.025em;text-wrap:balance}
+.lead{margin:0;font-size:19px;line-height:1.5;color:var(--mute);max-width:36em}
+.cta{display:flex;flex-wrap:wrap;gap:10px}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:50px;padding:0 22px;border-radius:999px;font:600 17px/1 var(--f-ui);text-decoration:none;border:0;cursor:pointer}
+.btn.primary{background:var(--blue);color:var(--blue-ink)}
+.btn.ghost{background:var(--fill);color:var(--blue)}
+.facts{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.facts li{padding:6px 12px;border-radius:999px;background:var(--fill);font-size:14px;color:var(--mute)}
+.example{display:flex;flex-direction:column;gap:10px}
+.example>small{font-size:13px;color:var(--mute);padding-left:4px}
+.reto{display:flex;flex-direction:column;gap:8px;padding:20px;border-radius:var(--r);background:linear-gradient(135deg,var(--reto-a),var(--reto-b));color:#fff;max-width:420px}
+.reto p{margin:0}
+.reto .by{font-size:14px;color:rgba(255,255,255,.88)}
+.reto h3{margin:0;font:700 22px/1.2 var(--f-display);letter-spacing:-.02em}
+.reto .meta{font-size:13px;color:rgba(255,255,255,.88)}
+.reto .go{align-self:flex-start;margin-top:6px;padding:12px 18px;border-radius:999px;background:#fff;color:#E0244A;font-weight:600;font-size:16px}
+section{display:flex;flex-direction:column;gap:16px}
+h2{margin:0;font:700 26px/1.2 var(--f-display);letter-spacing:-.02em;text-wrap:balance}
+.list{margin:0;padding:0;list-style:none;background:var(--card);border-radius:var(--r);overflow:hidden}
+.list li{position:relative;display:grid;grid-template-columns:32px minmax(0,1fr);gap:4px 14px;padding:16px}
+.list li+li::before{content:"";position:absolute;top:0;left:62px;right:0;height:.5px;background:var(--line)}
+.list .n{grid-row:1 / 3;display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--blue);color:var(--blue-ink);font-weight:700;font-variant-numeric:tabular-nums}
+.list b{font-weight:600}
+.list span{color:var(--mute);font-size:16px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.cards article{display:flex;flex-direction:column;gap:8px;padding:18px;border-radius:var(--r);background:var(--card);min-width:0}
+.cards h3{margin:0;font:600 18px/1.3 var(--f-display);letter-spacing:-.01em}
+.cards p{margin:0;color:var(--mute);font-size:16px}
+.plain{margin:0;padding:18px 18px 18px 36px;border-radius:var(--r);background:var(--card);display:flex;flex-direction:column;gap:10px;color:var(--mute);font-size:16px}
+.plain b{color:var(--ink);font-weight:600}
+.pilot{padding:22px;border-radius:var(--r);background:var(--card);display:flex;flex-direction:column;gap:14px}
+.price{display:flex;flex-wrap:wrap;gap:12px}
+.price div{flex:1 1 180px;padding:14px;border-radius:14px;background:var(--fill);display:flex;flex-direction:column;gap:2px}
+.price b{font:700 24px/1.2 var(--f-display);font-variant-numeric:tabular-nums}
+.price span{font-size:14px;color:var(--mute)}
+.contact{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:16px}
+.contact code{font:500 16px/1.3 ui-monospace,SFMono-Regular,Menlo,monospace;padding:8px 12px;border-radius:10px;background:var(--fill);user-select:all}
+details{background:var(--card);border-radius:14px;padding:0 16px}
+details+details{margin-top:-6px}
+summary{min-height:54px;display:flex;align-items:center;font-weight:600;cursor:pointer;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";margin-left:auto;font-size:22px;color:var(--mute);font-weight:400}
+details[open] summary::after{content:"–"}
+details p{margin:0 0 16px;color:var(--mute);font-size:16px}
+footer{font-size:14px;color:var(--mute);display:flex;flex-wrap:wrap;gap:6px 16px}
+@media (prefers-reduced-motion:no-preference){.btn{transition:transform .15s}.btn:active{transform:scale(.97)}}
+</style>
+<style>html{color-scheme:light dark}body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="draft" role="note"><span aria-hidden="true">✎</span><span><b>Borrador para revisar.</b> Los precios del piloto y el correo de contacto están pendientes de confirmar antes de publicar esta página.</span></p>
+
+  <header class="top">
+    <a class="brand" href="https://jonathanvilches.github.io/MENDIZMENDI-/apuntador/"><span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 15a8 8 0 0 1 16 0"/><path d="M7 19h10M9.5 11.5l2.5-2.5 2.5 2.5"/></svg></span>Apuntador</a>
+    <a class="open" href="https://jonathanvilches.github.io/MENDIZMENDI-/apuntador/">Abrir la app</a>
+  </header>
+
+  <div class="hero">
+    <p class="eyebrow">Para formadores de comunicación, academias y equipos</p>
+    <h1>Tus alumnos practican delante de la cámara entre clase y clase</h1>
+    <p class="lead">Les mandas un reto por enlace. Lo graban en su móvil con el guion en pantalla y un coach que, sobre su propio vídeo, les enseña qué mejorar. Después te envían su mejor toma y tú das el feedback que ninguna app puede dar.</p>
+    <div class="cta">
+      <a class="btn primary" href="https://jonathanvilches.github.io/MENDIZMENDI-/apuntador/#crear-reto">Crear mi primer reto</a>
+      <a class="btn ghost" href="#como">Ver cómo funciona</a>
+    </div>
+    <ul class="facts" aria-label="En resumen">
+      <li>Sin cuentas ni instalación</li>
+      <li>El vídeo no sale del móvil</li>
+      <li>En español y en inglés</li>
+    </ul>
+  </div>
+
+  <div class="example">
+    <small>Ejemplo: así le llega el reto a tu alumno</small>
+    <div class="reto" aria-label="Ejemplo de reto">
+      <p class="by">🎯 Reto de Ana López · Habla en Cámara</p>
+      <h3>Preséntate en 60 segundos</h3>
+      <p>Mira a cámara al terminar cada frase y sonríe al despedirte.</p>
+      <p class="meta">~60 s · fíjate en: seguridad · tono cercano</p>
+      <span class="go">▷ Empezar el reto</span>
+    </div>
+  </div>
+
+  <section id="como" aria-labelledby="como-t">
+    <h2 id="como-t">Cómo funciona</h2>
+    <ol class="list">
+      <li><span class="n">1</span><b>Creas el reto en un minuto</b><span>El guion, o solo el tema si quieres que cada uno escriba el suyo. La duración, en qué fijarse y el tono.</span></li>
+      <li><span class="n">2</span><b>Lo mandas por donde ya hablas con ellos</b><span>Es un enlace: WhatsApp, correo o tu plataforma de cursos. El reto va dentro del enlace.</span></li>
+      <li><span class="n">3</span><b>Cada alumno practica en su móvil</b><span>Prepara micro, cámara y luz; graba con el guion en pantalla; revisa sus notas sobre el vídeo y repite hasta que le guste.</span></li>
+      <li><span class="n">4</span><b>Te envía su mejor toma</b><span>Con un comentario suyo. Tú llegas a la clase con vídeos reales sobre los que trabajar.</span></li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="dif-t">
+    <h2 id="dif-t">Lo que no hace ninguna otra app</h2>
+    <div class="cards">
+      <article><h3>El guion se adapta a cómo habla cada uno</h3><p>Detecta las frases en las que tu alumno se traba y se las propone más fáciles de decir. Mide su ritmo y le dice cuánto le dura el guion.</p></article>
+      <article><h3>Preparación de estudio en el móvil</h3><p>Antes de grabar, comprueba el micro, la cámara, la luz y el encuadre, con cifras y ajustes. Llegan con vídeos que se ven y se oyen bien.</p></article>
+      <article><h3>Entrenan de verdad</h3><p>Nada de corregir la mirada con IA ni de avatares. Tu alumno mejora él mismo, y eso se nota cuando habla en directo.</p></article>
+    </div>
+  </section>
+
+  <section aria-labelledby="claro-t">
+    <h2 id="claro-t">Claro desde el principio</h2>
+    <ul class="plain">
+      <li><b>La puntuación es solo para el alumno.</b> Es orientativa, tú no la recibes y no sirve para calificar ni evaluar a nadie. Tu criterio sigue siendo el que cuenta.</li>
+      <li><b>No reconoce emociones.</b> Describe lo que se ve y se oye: mirada, gestos, postura, ritmo, pausas y fallos al leer.</li>
+      <li><b>Privacidad sencilla.</b> El análisis se hace en el móvil del alumno. Si te envía su vídeo, lo hace él, por la vía que tú le digas.</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="piloto-t">
+    <h2 id="piloto-t">Programa piloto, curso 2026-27</h2>
+    <div class="pilot">
+      <p style="margin:0">Buscamos 10 formadores que quieran probarlo con sus alumnos este curso. Es gratis durante el piloto a cambio de 20 minutos de conversación al mes para contarnos qué funciona y qué no.</p>
+      <div class="price">
+        <div><b>Gratis</b><span>durante el piloto</span></div>
+        <div><b>29 €/mes + IVA</b><span>después, hasta 25 alumnos activos</span></div>
+        <div><b>0 €</b><span>para tus alumnos al responder tus retos, siempre</span></div>
+      </div>
+      <div class="contact"><span>Escríbenos a</span><code id="mail">correo pendiente</code><button class="btn ghost" type="button" id="copy" style="min-height:40px;padding:0 16px;font-size:15px">Copiar</button></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="faq-t">
+    <h2 id="faq-t">Preguntas</h2>
+    <div>
+      <details><summary>¿Mis alumnos tienen que instalar algo?</summary><p>No. Abren el enlace en el navegador del móvil o del ordenador. Si quieren, pueden añadir Apuntador a la pantalla de inicio como una app.</p></details>
+      <details><summary>¿Funciona en iPhone?</summary><p>Sí, en Safari. En iPhone algunos ajustes de cámara, como el zoom o la exposición, son más limitados que en Android.</p></details>
+      <details><summary>¿Dónde se guardan los vídeos?</summary><p>En el móvil de cada alumno. Apuntador no los sube a ningún servidor. Si quieres recibirlos, indica en el reto cómo te los envían.</p></details>
+      <details><summary>¿Puedo usarlo con una empresa?</summary><p>Sí, para práctica voluntaria de su equipo. No está permitido usarlo para evaluar a empleados ni para tomar decisiones laborales, y enviar el vídeo es siempre opcional.</p></details>
+      <details><summary>¿Y si no tengo guion para el reto?</summary><p>Pon solo el tema. Cada alumno escribe su guion con el asistente de la app, que lo ajusta a la duración del reto.</p></details>
+    </div>
+  </section>
+
+  <footer>
+    <span>Apuntador</span>
+    <a href="https://jonathanvilches.github.io/MENDIZMENDI-/apuntador/">Abrir la app</a>
+    <span>El aviso legal y la privacidad están en la app, al final del inicio.</span>
+  </footer>
+</div>
+<script>
+document.getElementById('copy').addEventListener('click', async e => {
+  const t = document.getElementById('mail').textContent.trim();
+  try { await navigator.clipboard.writeText(t); e.target.textContent = 'Copiado'; }
+  catch { const r = document.createRange(); r.selectNodeContents(document.getElementById('mail')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+});
+</script>
+</body>
+</html>

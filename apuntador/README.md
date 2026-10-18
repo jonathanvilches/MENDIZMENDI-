@@ -104,6 +104,62 @@ lanzarla comercialmente.
   alojar los modelos en un servidor propio de la UE si se quiere evitar terceros, y una revisión por un abogado
   especializado (RGPD y Reglamento de IA).
 
+## Escríbelo conmigo: el guion para decirlo, no para leerlo
+
+En «Tu guion», arriba, eliges **«Lo tengo escrito»** (el cuadro de siempre) o **«✨ Escríbelo conmigo»**. El asistente
+pregunta lo justo:
+
+- **Qué vídeo es**: presentarte, explicar algo, ofrecer un servicio, anunciar algo, contar un caso, responder una
+  pregunta o invitar a algo.
+- **Tu mensaje, en una frase**, **a quién le hablas**, **qué quieres contar** (una idea por línea) y **qué quieres que
+  hagan al final**.
+- **La duración** (30 s, 60 s, 90 s o 2 min) y **el tono**. Te dice cuántas palabras caben a tu ritmo: el que miden tus
+  tomas, no uno inventado.
+
+Sin servidor de IA, lo escribe aquí mismo con una estructura probada (gancho → mensaje → tus ideas → acción) y tus
+propias palabras; «Otra versión» cambia el gancho. Si se queda corto o largo para la duración elegida, te dice qué
+añadir o quitar. Con el servidor de IA (abajo) lo escribe Claude: frases cortas para decirlas en voz alta, la duración a
+tu ritmo y **sin inventarse datos** (ni cifras, ni clientes, ni testimonios). La primera vez pide permiso y explica qué
+se envía: solo el texto del asistente, nunca el vídeo ni la voz. El guion queda marcado como «borrador escrito con IA».
+Tus respuestas se guardan para la próxima vez.
+
+## Tu guion, a tu medida
+
+Después de cada toma, debajo de la puntuación, una tarjeta con **las frases en las que te trabaste** (un «eeeh»
+alargado, una pausa a mitad de frase, palabras saltadas o cambiadas) y una versión más fácil de decir: una frase larga
+se parte por «pero», «porque», «y»…; si no hay por dónde, se marca una pausa para respirar en la coma de en medio; y se
+quitan las muletillas. Con el servidor de IA, «Mejorarlas con IA» las reescribe (solo esas frases, no el guion entero).
+
+También mide **tu ritmo en la toma** (palabras por minuto, desde que empiezas a hablar) y te dice cuánto te dura el guion
+y si encaja con la duración que querías. Un toque en «Cambiarlas y grabar otra» las cambia en tu guion y vuelve al
+plató. La toma siguiente se sigue comparando con esta aunque el guion haya cambiado.
+
+## Retos por enlace (para formadores y equipos)
+
+En el inicio, «¿Formas a otras personas?» abre **«Crea un reto»**: tu nombre o el de tu academia, el título, las
+instrucciones, el guion (o solo el tema, para que cada alumno escriba el suyo con «Escríbelo conmigo»), la duración, en
+qué fijarse, el tono y cómo quieres recibir los vídeos. «Crear el enlace» lo comprime dentro del propio enlace (detrás
+de `#`, que no llega a ningún servidor): unos cientos de caracteres para compartir por WhatsApp, correo o tu plataforma.
+`#crear-reto` abre directamente esta pantalla.
+
+Quien abre el enlace ve el reto arriba del todo en el inicio («Empezar el reto» pone su guion, su tono y su duración).
+Al terminar la toma, «Enviar a…» comparte **el vídeo y una nota que escribe él**: ni la puntuación ni las notas del
+coach se envían, y las condiciones prohíben usar los retos para calificar o evaluar a nadie (la Ley de IA trataría eso
+como alto riesgo). Enviarlo es siempre opcional. En el ordenador, si el navegador no comparte archivos, descarga el
+vídeo y copia la nota.
+
+## Servidor de IA (opcional)
+
+`ia/worker.js` es un pequeño servidor para Cloudflare Workers que llama a Claude (Anthropic) para escribir y ajustar
+guiones. No guarda nada, solo atiende a la web de la app y responde marcando el texto como generado por IA. Los pasos
+para ponerlo en marcha, qué datos trata y el coste están en `ia/README.md`. Mientras `AI_URL` (en `index.html`, junto
+a `LEGAL`) esté vacío, no sale nada del dispositivo y la privacidad no menciona la IA.
+
+## Página para formadores (borrador)
+
+`formadores.html` presenta los retos a formadores de comunicación, academias y equipos, con un programa piloto. Es un
+borrador: los precios y el correo de contacto están pendientes, y no se publica hasta confirmarlos.
+
 ## Así se graba (por defecto)
 
 Leyendo un guion no se puede estar a dos cosas: o lees, o atiendes a lo que te dice la app. Y las órdenes de voz,
@@ -613,7 +669,10 @@ Solo el motor «Navegador» usa el reconocimiento de voz del navegador (en Chrom
   .pages no se leen (copia el texto o expórtalo a Word).
 - Luz y sonido se han probado con vídeos de prueba (oscuro, sobreexpuesto, con ruido y saturado). Los umbrales son de
   partida: con pieles muy oscuras o cámaras con exposición automática agresiva la luz puede marcarse como «algo oscuro».
-- El revisor del guion usa reglas, no un modelo de lenguaje: da pistas útiles pero no reescribe el texto entero.
+- El revisor del guion usa reglas, no un modelo de lenguaje: da pistas útiles pero no reescribe el texto entero. Sin
+  servidor de IA, «Escríbelo conmigo» ordena tus palabras con una estructura: no añade contenido ni inventa ejemplos.
+- El ritmo se mide con la posición del texto: si el texto avanza a velocidad fija, tu ritmo es esa velocidad.
+- Los retos no tienen servidor: el formador recibe los vídeos por la vía que diga (WhatsApp, correo…), no en un panel.
 - «Mis palabras» se ha probado con voz sintética: reconoce tus palabras a otras velocidades, tonos y volúmenes y no
   confunde unas órdenes con otras, pero acepta palabras casi iguales dichas sueltas («comentamos» por «comenzamos»,
   «corte» por «corten»). Por eso «corten» deja siempre el margen con «seguimos». Con mucho ruido de fondo o al cambiar
@@ -622,6 +681,8 @@ Solo el motor «Navegador» usa el reconocimiento de voz del navegador (en Chrom
 ## Siguientes pasos naturales
 
 - Análisis del guion con un modelo de lenguaje: tono y gestos frase a frase en lugar de palabras clave.
+- Pasar de guion palabra por palabra a puntos clave, cuando el alumno ya lo domina.
+- Cuentas, pagos (con una pasarela que gestione el IVA europeo) y un sitio donde el formador reciba las entregas.
 - Estudio con personas reales para calibrar las franjas de cada tono (y por plataforma: TikTok, YouTube, LinkedIn).
 - Integración directa en la llamada (cámara virtual o extensión para Meet) y app nativa con vibración para los avisos.
 - Historial de sesiones y evolución por persona.
