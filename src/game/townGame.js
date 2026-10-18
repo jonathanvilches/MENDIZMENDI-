@@ -516,7 +516,8 @@ export class TownGame {
   // el canónigo del claustro enseña la pasaka (game/pasaka3d.js): habla, se juega de pareja con él en el sobreclaustro y,
   // si se gana, carta de tradiciones (ui/pasaka.js)
   async pasakaCon(a) {
-    if (this.sportBusy || this.mode !== 'play') return;
+    // (el toque que cierra el último diálogo no vuelve a empezar la pasaka: un respiro al salir)
+    if (this.sportBusy || this.mode !== 'play' || this.elapsed < (this.pasakaCool || 0)) return;
     a.say(3); a.wave = 1.2; this.player.frozen = true; this.mode = 'mini'; this.sportBusy = true;
     try {
       await this.say(a, PASAKA.lines.ask);
@@ -527,7 +528,7 @@ export class TownGame {
       const isNew = await pasakaReward(this.ui, r, { who: a.name });
       await this.say(a, r.win ? PASAKA.lines.win : PASAKA.lines.lose);
       if (r.win) { this.player.rig?.doCheer?.(); if (isNew) for (const bd of checkBadges()) await infoCard(this.ui, { icon: bd.icon, kicker: 'Nueva insignia', title: bd.name, text: bd.text, button: '¡Bien!' }); }
-    } finally { if (!this.disposed) { this.player.frozen = false; this.mode = 'play'; this.sportBusy = false; a.talking = 0; this.ui.hudVisible?.(true); } }
+    } finally { if (!this.disposed) { this.player.frozen = false; this.mode = 'play'; this.sportBusy = false; a.talking = 0; this.pasakaCool = this.elapsed + 1.5; this.ui.hudVisible?.(true); } }
   }
   // el sobreclaustro: muy por encima y fuera del pueblo, como el frontón cubierto, pero al otro lado
   pasakaVenue() { return pasakaVenue(this.scene, { x: PLACES.plaza.x, z: PLACES.plaza.z + 2600 }); }
