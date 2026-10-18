@@ -1435,27 +1435,17 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .tocar .tc-pads { --n: inherit; }
 @media (max-height: 470px) { .tc-stage { height: 40dvh; } .tc-pads button { height: 50px; } .tc-hint { display: none; } .mg-card.tocar-card { padding: 14px 16px; gap: 8px; } }
 
-/* ---- pasaka: el juego directo de pelota del claustro (ui/pasaka.js) ---- */
-.mg-overlay.pasaka { padding: 8px; }
-.mg-card.pasaka-card { width: min(760px, 100%); gap: 10px; position: relative; padding: 16px 16px 14px; } .pasaka-card .mg-top { padding-right: 44px; flex-wrap: wrap; }
-.pk-sb { margin-left: auto; display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 12px; background: rgba(0, 0, 0, .35); border: 1px solid rgba(255, 255, 255, .18); white-space: nowrap; }
+/* ---- pasaka: el marcador, el aviso y los botones del partido (game/pasaka3d.js pone encima su mando) ---- */
+.pk-sb { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 12px; background: rgba(0, 0, 0, .35); border: 1px solid rgba(255, 255, 255, .18); white-space: nowrap; }
 .pk-sb .pk-t { font: 800 var(--fs-xs)/1 inherit; letter-spacing: .04em; text-transform: uppercase; } .pk-sb .pk-t.r { color: #ff8a80; } .pk-sb .pk-t.a { color: #8fb4ff; }
 .pk-sb .pk-g { font: 800 var(--fs-xl)/1 var(--f-cond, 'Nunito'); color: #fff; min-width: 1.2em; text-align: center; } .pk-sb .pk-q { font: 700 var(--fs-md)/1 var(--f-cond, 'Nunito'); color: #ffe08a; font-style: normal; min-width: 4.5em; text-align: center; }
-.pk-stage { position: relative; width: 100%; aspect-ratio: 16 / 9; max-height: 46dvh; border-radius: var(--rL); overflow: hidden; border: 1px solid var(--line); background: #2a1a11; touch-action: none; }
-.pk-cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: crosshair; }
 .pk-fb { position: absolute; left: 0; right: 0; top: 30%; text-align: center; pointer-events: none; opacity: 0; transition: opacity .25s; }
 .pk-fb.on { opacity: 1; } .pk-fb b { display: block; font: 400 var(--fs-2xl)/1 var(--f-display); color: #fff; text-shadow: 0 3px 10px #000; } .pk-fb small { display: block; margin-top: 4px; font: 800 var(--fs-md)/1.2 inherit; color: #ffe08a; text-shadow: 0 2px 6px #000; }
 .pk-fb.ok b { color: #ffe08a; } .pk-fb.bad b { color: #ff9ab0; }
-.pk-tip { position: absolute; left: 0; right: 0; bottom: 6px; text-align: center; font: 800 var(--fs-sm)/1.2 inherit; color: #fff; text-shadow: 0 2px 6px #000; pointer-events: none; }
-.pk-ctrl { display: flex; align-items: center; gap: 8px; width: 100%; }
-.pk-names { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; text-align: left; } .pk-names small { color: var(--mute); font-size: var(--fs-xs); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .pk-names b { color: #fff; }
 .pk-btn { flex: none; width: 128px; height: 60px; border-radius: 14px; background: linear-gradient(180deg, #ff7ac8, #c21cff); border: 2px solid rgba(255, 255, 255, .5); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-family: inherit; touch-action: manipulation; user-select: none; padding: 0 8px; }
 .pk-btn b { font: 900 var(--fs-md)/1 inherit; white-space: nowrap; } .pk-btn small { color: rgba(255, 255, 255, .75); font-size: var(--fs-xs); font-weight: 700; }
 .pk-btn.ghost { background: rgba(34, 26, 44, .75); border-color: rgba(255, 255, 255, .35); } .pk-btn.flash { filter: brightness(1.35); transform: scale(.97); }
-.pk-hint { margin: 0; color: var(--mute); font-size: var(--fs-xs); }
-.pasaka-card .pk-x { position: absolute; top: 10px; right: 10px; width: 36px; height: 36px; border-radius: 50%; background: rgba(0, 0, 0, .35); border: 1px solid rgba(255, 255, 255, .3); color: #fff; font-size: 16px; display: grid; place-items: center; z-index: 2; }
-@media (max-width: 600px) { .pk-sb { margin-left: 0; width: 100%; justify-content: center; } .pk-names { display: none; } .pk-btn { flex: 1; width: auto; } }
-@media (max-height: 470px) { .mg-overlay.pasaka { padding: 4px; } .mg-card.pasaka-card { padding: 8px 12px; gap: 6px; } .pk-stage { max-height: 52dvh; } .pk-btn { height: 46px; } .pk-hint { display: none; } .pasaka-card .mg-top small { display: none; } }
+.pasaka-menu .mg-card { gap: 10px; } .pasaka-menu .mg-card .btn { min-width: 240px; }
 /* la pantalla del menú: la portada dibujada y las fichas */
 .armorial.pasaka .pk-hero { position: relative; border-radius: var(--rL); overflow: hidden; border: 1px solid rgba(255, 122, 200, .3); background: #2a1a11; aspect-ratio: 16 / 7; min-height: 220px; }
 .armorial.pasaka .pk-prev { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }

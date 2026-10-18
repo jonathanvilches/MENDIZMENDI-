@@ -58,7 +58,8 @@ import { drawArms } from '../world/heraldry.js';
 import { readArms, readTownArms } from '../ui/escudo.js';
 import { instrumentosDe, instrumentoById } from '../data/instrumentos.js';
 import { jugarInstrumento } from '../ui/instrumentos.js';
-import { jugarPasaka } from '../ui/pasaka.js';
+import { pasakaReward, pasakaMenu } from '../ui/pasaka.js';
+import { pasakaVenue, playPasaka } from './pasaka3d.js';
 import { PASAKA } from '../data/pasaka.js';
 import { PARTS, CASTLE_QUIZ, CASTLE_TOWNS, CASTILLOS } from '../data/castillos.js';
 import { GearProps } from '../actors/gear3d.js';
@@ -512,16 +513,60 @@ export class TownGame {
     this.ui.toast(`A la mochila: ${GOODS[k].name.toLowerCase()} ×${n} (para el trueque en la tienda)`, GOODS[k].icon, 2600);
   }
   // el músico de la plaza enseña el instrumento de su zona (ui/instrumentos.js): habla, se toca y, si sale, carta de tradiciones
-  // el canónigo del claustro enseña la pasaka (ui/pasaka.js): habla, se juega de pareja con él y, si se gana, carta de tradiciones
+  // el canónigo del claustro enseña la pasaka (game/pasaka3d.js): habla, se juega de pareja con él en el sobreclaustro y,
+  // si se gana, carta de tradiciones (ui/pasaka.js)
   async pasakaCon(a) {
-    a.say(3); a.wave = 1.2; this.player.frozen = true; this.mode = 'mini';
+    if (this.sportBusy || this.mode !== 'play') return;
+    a.say(3); a.wave = 1.2; this.player.frozen = true; this.mode = 'mini'; this.sportBusy = true;
     try {
       await this.say(a, PASAKA.lines.ask);
-      const r = await jugarPasaka(this.ui, { who: a.name });
-      if (r.quit) return;
+      if (this.disposed) return;
+      const r = await this.playPasaka(a);
+      if (this.disposed || r.quit) return;
+      this.player.frozen = true; this.mode = 'mini';
+      const isNew = await pasakaReward(this.ui, r, { who: a.name });
       await this.say(a, r.win ? PASAKA.lines.win : PASAKA.lines.lose);
-      if (r.win) { this.player.rig?.doCheer?.(); for (const bd of checkBadges()) await infoCard(this.ui, { icon: bd.icon, kicker: 'Nueva insignia', title: bd.name, text: bd.text, button: '¡Bien!' }); }
-    } finally { this.player.frozen = false; this.mode = 'play'; a.talking = 0; }
+      if (r.win) { this.player.rig?.doCheer?.(); if (isNew) for (const bd of checkBadges()) await infoCard(this.ui, { icon: bd.icon, kicker: 'Nueva insignia', title: bd.name, text: bd.text, button: '¡Bien!' }); }
+    } finally { if (!this.disposed) { this.player.frozen = false; this.mode = 'play'; this.sportBusy = false; a.talking = 0; this.ui.hudVisible?.(true); } }
+  }
+  // el sobreclaustro: muy por encima y fuera del pueblo, como el frontón cubierto, pero al otro lado
+  pasakaVenue() { return pasakaVenue(this.scene, { x: PLACES.plaza.x, z: PLACES.plaza.z + 2600 }); }
+  // llegada: un plano desde el fondo de la galería, con el público ya puesto
+  async pasakaIntro(V) {
+    if (window.__autoWin) return;
+    this.sky.flood = 1; this.sky.indoor = true; this.sky.floodCur = 1; this.ui.hudVisible?.(false); this.perro?.away?.();
+    this.player.place(V.entry.x, V.entry.z, 0); this.player.frozen = true;
+    try {
+      const rt = this.rt, shot = async (pos, look, ms) => { this.follow.cinematic = { pos, look, t: 0, lookCur: look.clone() }; this.camera.position.copy(pos); this.camera.lookAt(look);
+        const f0 = rt?.frameNo ?? 0, t0 = performance.now(); await new Promise(r => { const k = () => (performance.now() - t0 >= ms && (rt?.frameNo ?? 1e9) - f0 >= 30) || performance.now() - t0 > ms + 12000 ? r() : setTimeout(k, 50); k(); }); };
+      this.ui.toast?.(tr('Sobreclaustro de la catedral · Iruña'), 'pelota', 2600);
+      await shot(V.toWorld(3.2, 26.5, 4.2), V.toWorld(-0.5, 2, 1.3), 1900);
+    } finally { this.follow.cinematic = null; }
+  }
+  /** Un partido de pasaka en el sobreclaustro con `a` de pareja: { win, g } o { quit }. stay: sin volver al pueblo al acabar. */
+  async playPasaka(a, { stay = false } = {}) {
+    const V = this.pasakaVenue(); if (!V) return { quit: true };
+    const P = this.player, home = { x: P.pos.x, z: P.pos.z, h: P.heading };   // (adonde se vuelve: antes de la llegada al claustro)
+    await this.pasakaIntro(V);
+    if (this.disposed) return { quit: true };
+    return await playPasaka(this, V, a, { stay, home });
+  }
+  // Pasaka desde el menú (sin misiones): Pamplona en modo campeonato, directo al sobreclaustro; entre partido y partido,
+  // el menú de la pasaka; al salir, de vuelta a su pantalla del menú
+  async pasakaOnly() {
+    this.sportMode = true; this.sportBusy = true; this.ui.hudVisible(false); this.perro?.away?.();
+    try {
+      const a = this.canonigo;
+      for (;;) {
+        this.ui.hudVisible(false); this.player.frozen = true; this.perro?.away?.();
+        const r = await this.playPasaka(a, { stay: true });
+        if (this.disposed) return;
+        if (!r.quit) await pasakaReward(this.ui, r, { who: a?.name || PASAKA.canonigo.name });
+        if (this.disposed) return;
+        const pick = await pasakaMenu(this.ui);
+        if (this.disposed || pick !== 'again') return;
+      }
+    } finally { if (!this.disposed) this.onExit?.('pasaka'); }
   }
   async tocarCon(a) {
     const inst = instrumentoById(a.musico); if (!inst) return;
