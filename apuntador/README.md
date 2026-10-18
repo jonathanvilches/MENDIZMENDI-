@@ -1,9 +1,11 @@
 # Apuntador
 
 Teleprompter con coach para vídeos y videollamadas. Mira tu cara (contorno, cejas, ojos, iris, labios), tu cuerpo
-(hombros, codos, muñecas, postura) y cada mano con sus 21 puntos, y escucha tu voz. Mientras grabas solo ves tu
-texto: nada te distrae de lo que dices. Al terminar, te enseña sobre tu propio vídeo, parándolo en cada momento
-clave, qué pasó y cómo hacerlo: «Saluda con la mano: no se vio», «Manos fuera de plano», «Más despacio»… También
+(hombros, codos, muñecas, postura) y cada mano con sus 21 puntos, y escucha tu voz. Antes de grabar, una
+preparación con cifras de micro, cámara, luz y encuadre te dice cuándo está todo perfecto. Mientras grabas solo ves tu
+texto: nada te distrae de lo que dices. Al terminar, tu puntuación y lo que transmites (seguridad, cercanía, energía y
+claridad), si has mejorado frente a la toma anterior y, sobre tu propio vídeo, parándolo en cada momento clave, qué
+pasó y cómo hacerlo: «Saluda con la mano: no se vio», «Manos fuera de plano», «Más despacio»… También
 revisa un vídeo grabado con la cámara del móvil. En una videollamada te avisa en el momento: «Descruza los brazos»,
 «Asiente de vez en cuando»…
 
@@ -27,17 +29,61 @@ lo justo para decidir y un solo botón fijo abajo. Arriba, la flecha para volver
   a la mesa; no sacan de la app.
 - Si un análisis o una toma dejan objetivos, el inicio los muestra con «Grabar con estos objetivos».
 
+## Preparación: micro, cámara, luz y encuadre
+
+Al entrar al plató, antes de grabar, una pantalla propia (oscura, con cifras, como una app de cámara profesional),
+por partes, cada una con su punto de estado y el total arriba («3/4 listos» → «✓ Todo listo»). En el móvil ocupa la
+parte de abajo y deja tu cara a la vista; en el ordenador va a la derecha y la imagen se ajusta al resto.
+
+| Parte | Qué te dice | Qué puedes tocar |
+|---|---|---|
+| 🎙️ **Micro** | Qué micrófono entra y de qué tipo: el del móvil u ordenador, Bluetooth (avisa de que muchos graban con calidad de llamada), con cable o externo (USB, solapa…), con su frecuencia y si va sin filtros. Medidor de nivel en directo con su pico, y en dB: tu voz, el ruido de fondo, cuánto destaca tu voz del ruido y si satura | Elegir otro micrófono; **🎧 Escúchate**: graba 5 s y te lo reproduce |
+| 📷 **Cámara** | Resolución, imágenes por segundo y formato (vertical 9:16, horizontal 16:9…) | Elegir cámara (en el móvil, solo las que te miran), calidad (HD 720p, Full HD 1080p, 4K si la cámara llega), 30 o 60 fps y los ajustes que deje el dispositivo: zoom, exposición, temperatura de color y balance de blancos, enfoque, linterna, brillo, contraste, saturación, nitidez o desenfocar el fondo. Si el navegador no deja ajustar nada, lo dice y propone grabar con la app de cámara y subirlo |
+| 💡 **Luz** | Exposición de tu cara, **de dónde viene la luz** (de frente, de lado, desde arriba, por detrás) con un dibujo visto desde arriba y dónde iría la ideal, contraste entre los dos lados de la cara (2:1 suave, 4:1 fuerte) y el fondo frente a ti. Al mover o **añadir una luz**, las cifras cambian al momento y dice si ha mejorado («▲ Ha mejorado: exposición 31% → 56%») | **Luz de pantalla**: un aro de luz en el borde, con intensidad y tono (frío, neutro, cálido); dónde poner las luces que tienes |
+| 🎯 **Encuadre** | Distancia, si estás centrado, aire encima y nivel del móvil en grados, con la silueta encima de la imagen | (la hoja baja para ver la imagen entera) |
+| ✅ **Listo** | «Todo perfecto para grabar» con las cuatro partes en verde, o «Puedes grabar» con lo que mejorarías | 3 segundos mirando al objetivo para calibrar la mirada; **Grabar** (o Ensayar) |
+
+- Mientras te preparas se calibra en silencio: tu voz con la prueba de sonido y tu mirada con esos 3 segundos.
+- La cámara, la calidad y el micro elegidos se recuerdan; la grabación sube de calidad con la resolución (5, 10 o
+  24 Mbit/s).
+- «Grabar ya» se salta el resto en cualquier momento; el botón «Preparar» del plató la vuelve a abrir; «Otra toma»
+  va directa a la cuenta atrás. Se puede quitar en «Antes de grabar → Preparación al entrar al plató».
+
+## La puntuación y si has mejorado
+
+Lo primero al terminar es una tarjeta con tu **puntuación de 0 a 100** y lo que transmites, en los cuatro rasgos
+que quien te ve resume en pocos segundos (las impresiones de «rebanada fina»):
+
+| Rasgo | Qué lo forma |
+|---|---|
+| 🦁 **Seguridad** | Mirada al objetivo, cuerpo quieto (sin balanceo, tics ni tocarte la cara), hombros relajados, voz firme y frases que bajan al final |
+| 🤝 **Cercanía** | Sonrisa de verdad (la que arruga los ojos) e igual a los dos lados, cara expresiva, palmas a la vista y gestos abiertos |
+| ⚡ **Energía** | Movimiento, manos que acompañan las ideas y entonación que sube y baja (sin pasarse) |
+| 🎯 **Claridad** | Ritmo, pausas, lectura sin tropiezos, cara a la par de lo que dices y 2 s quieto al final |
+
+- Cada rasgo es el tiempo que sus señales estuvieron en la franja que pide tu tono, menos el tiempo con señales que
+  lo restan. La nota junta los cuatro (60 %) con el ajuste a tu tono (40 %).
+- Una frase lo resume («Transmites seguridad y energía; para conectar más, trabaja la cercanía»), y en el rasgo más
+  flojo, por qué importa y lo que más lo frena.
+- **Para la próxima toma, solo esto**: una cosa, con cómo hacerla. «Otra toma» y «Verlo en mi vídeo».
+- **En la siguiente toma** (o versión del mismo vídeo) dice si has mejorado o empeorado («▲ Has mejorado · 58 → 71»),
+  cuánto en cada rasgo y si conseguiste el objetivo que traías («✅ conseguido, 40% → 12% del tiempo»). Se guarda la
+  última puntuación de cada guion en el dispositivo.
+- Debajo, la revisión sobre tu vídeo y el resto del análisis, como antes.
+
 ## Así se graba (por defecto)
 
 Leyendo un guion no se puede estar a dos cosas: o lees, o atiendes a lo que te dice la app. Y las órdenes de voz,
 con el móvil lejos y la voz rebotando en la habitación, fallaban. Por eso grabar va así:
 
+0. **Preparación** (ver arriba): micro, cámara, luz y encuadre, y «Grabar».
 1. **Pulsas Grabar y tienes 5 segundos para colocarte** (cuenta atrás de 3, 5 o 10 segundos, en «Antes de grabar →
    Cómo grabar»). Dos palmadas también empiezan, sin tocar el móvil.
 2. **Mientras grabas, solo el texto**, con su código de colores. Ni avisos, ni medidores, ni marcas que se
    encienden; y antes de empezar, tampoco avisos encima del texto. La cuenta atrás dice una sola cosa en la que
    fijarte (lo más importante de la toma anterior).
-3. **Se para sola al terminar el texto**: cuando dices la última palabra y te callas un momento. Si sigue sonando
+3. **Se para sola al terminar el texto**: cuando dices la última palabra y te callas un momento (también con velocidad
+   fija en pantallas anchas, donde antes la marca se quedaba al principio de la última línea). Si sigue sonando
    voz o ruido, a los 6 segundos sale «⏹ Corto en 3», con «Seguir grabando» por si quieres añadir algo.
 4. **Para cortar antes, toca la pantalla** (un toque corto en cualquier sitio; arrastrar sigue moviendo el texto).
    Sale el mismo «Corto en 3», por si ha sido sin querer.
