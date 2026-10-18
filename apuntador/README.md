@@ -62,7 +62,12 @@ que quien te ve resume en pocos segundos (las impresiones de «rebanada fina»):
 | 🎯 **Claridad** | Ritmo, pausas, lectura sin tropiezos, cara a la par de lo que dices y 2 s quieto al final |
 
 - Cada rasgo es el tiempo que sus señales estuvieron en la franja que pide tu tono, menos el tiempo con señales que
-  lo restan. La nota junta los cuatro (60 %) con el ajuste a tu tono (40 %).
+  lo restan. La nota junta los cuatro (60 %) con el ajuste a tu tono (40 %). Debajo de cada rasgo se ven las señales
+  medidas («Mirada a cámara 72% · Volumen 80% del tiempo en su punto»; en claridad, los fallos al leer): nada de
+  notas sin explicar.
+- Es una estimación orientativa de cómo se percibe tu forma de comunicar; no reconoce emociones ni mide la
+  personalidad (ver «Privacidad y legal»). Entre dos tomas iguales la nota varía unos puntos, así que solo se habla de
+  mejora o empeoramiento a partir de 5 puntos; por debajo, «igual (dentro del margen)».
 - Una frase lo resume («Transmites seguridad y energía; para conectar más, trabaja la cercanía»), y en el rasgo más
   flojo, por qué importa y lo que más lo frena.
 - **Para la próxima toma, solo esto**: una cosa, con cómo hacerla. «Otra toma» y «Verlo en mi vídeo».
@@ -70,6 +75,34 @@ que quien te ve resume en pocos segundos (las impresiones de «rebanada fina»):
   cuánto en cada rasgo y si conseguiste el objetivo que traías («✅ conseguido, 40% → 12% del tiempo»). Se guarda la
   última puntuación de cada guion en el dispositivo.
 - Debajo, la revisión sobre tu vídeo y el resto del análisis, como antes.
+
+## Privacidad y legal
+
+Pensada para cumplir la normativa europea y española desde el diseño. No sustituye una revisión legal antes de
+lanzarla comercialmente.
+- **Sin servidor propio**: la imagen, el sonido, los guiones y los vídeos se tratan en el dispositivo; no hay
+  cuentas, analítica ni publicidad. El inicio explica qué se mira, dónde, qué se guarda y qué terceros intervienen
+  (GitHub Pages, que aloja la app; cdn.jsdelivr.net y storage.googleapis.com, de donde se descargan los modelos y el
+  lector de PDF y que reciben la IP como en cualquier descarga).
+- **Reconocimiento de voz del navegador, solo con permiso**: envía el audio a Google o Microsoft. En el ordenador se
+  pregunta una vez al entrar al plató («¿Usar el reconocimiento de voz del navegador?») y se puede cambiar en «Antes
+  de grabar»; sin permiso, la voz va por «Mis palabras» (sin conexión) o se graba con el botón. En el móvil no se usa.
+- **Reglamento europeo de IA**: la app no reconoce emociones. Describe señales que se ven y se oyen (mirada,
+  sonrisa, gestos, postura, voz) y cómo suelen percibirse; los textos hablan de conductas («muchos movimientos
+  pequeños», «postura cerrada»), no de estados internos («nervioso», «a la defensiva»). Las condiciones prohíben
+  usarla para evaluar, seleccionar o vigilar a otras personas, en especial en el trabajo o en la enseñanza (donde el
+  reconocimiento de emociones está prohibido desde febrero de 2025). Cada puntuación lleva el aviso de que es
+  orientativa.
+- **Videollamadas**: antes de grabar una, pide confirmar que se ha avisado y pedido permiso a los demás.
+- **LSSI y RGPD**: aviso legal con los datos del titular (en `LEGAL`, al principio del código de privacidad; mientras
+  falten, se ven marcados para rellenar), política de privacidad, condiciones de uso (edad mínima de 14 años,
+  responsabilidad sobre lo que se graba, derechos de autor) y «Borrar mis datos de este dispositivo». El
+  almacenamiento local es el imprescindible para el servicio, sin cookies de seguimiento.
+- **Marcas**: diseño al estilo de iOS sin elementos protegidos de Apple; la app no está afiliada a Apple, Google,
+  Microsoft ni a ninguna red social.
+- **Pendiente antes de cobrar**: datos reales del titular, condiciones de venta (desistimiento, precios con IVA),
+  alojar los modelos en un servidor propio de la UE si se quiere evitar terceros, y una revisión por un abogado
+  especializado (RGPD y Reglamento de IA).
 
 ## Así se graba (por defecto)
 
@@ -293,7 +326,7 @@ Opcional: sin voz se graba igual (ver «Así se graba»). En el móvil hay que a
 
 ## Diseño
 
-Pensada como una app de Apple:
+Siguiendo las guías de interfaz de Apple (sin usar sus marcas, logotipos ni elementos protegidos):
 - **La letra del sistema** (San Francisco en iPhone, iPad y Mac; la del sistema en Android y Windows), sin descargar
   ninguna: títulos grandes en negrita, como en iOS, y cifras redondeadas (SF Rounded) en la puntuación y las medidas.
 - **Colores del sistema de iOS**: acciones en azul, verde para lo que está bien, naranja para lo mejorable y rojo para
@@ -305,8 +338,8 @@ Pensada como una app de Apple:
 - **El plató, como la app Cámara**: negro, controles de cristal, acento amarillo en la línea de lectura y el botón
   de grabar redondo, blanco con el círculo rojo (que pasa a cuadrado rojo para parar).
 - **La preparación**, oscura como los ajustes de la cámara, con pestañas segmentadas y lecturas en tarjetas.
-- **La puntuación con anillos como los de Actividad**: un anillo por rasgo (rojo seguridad, verde cercanía, cian
-  energía, amarillo claridad), la nota grande al lado y cada rasgo con su barra del mismo color.
+- **La puntuación con anillos concéntricos**, uno por rasgo y con colores propios (índigo seguridad, rosa cercanía,
+  ámbar energía, turquesa claridad), la nota grande al lado y cada rasgo con su barra del mismo color.
 - Barras de arriba translúcidas, botones principales en cápsula azul y secundarios grises con el texto en azul.
 - Movimiento solo donde dice algo (entrada, cuenta atrás, anillos que se llenan) y se quita si el sistema pide menos
   movimiento. Comprobado sin desbordes ni botones partidos de 320 a 1280 px, en claro y en oscuro.
