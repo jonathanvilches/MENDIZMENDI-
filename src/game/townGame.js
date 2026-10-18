@@ -24,7 +24,7 @@ import { LEVELS } from '../data/levels.js';
 import { COSTUMES } from '../actors/minifig.js';
 import { stampImg } from '../assets.js';
 import { faunaImg } from '../ui/faunaImg.js';
-import { drawTownArms, casaImg, casaReady, drawReady, oficioImg } from '../ui/escudoImg.js';
+import { drawTownArms, casaImg, casaReady, casaReadyHD, drawReady, oficioImg } from '../ui/escudoImg.js';
 import { FAUNA, faunaName } from '../data/fauna.js';
 import { LEGENDS, NIGHT_CARNIVAL } from '../data/legends.js';
 import MOUNTAINS from '../data/mountains.json';
@@ -776,7 +776,9 @@ export class TownGame {
       m.position.set(sh.x + Math.sin(sh.ry) * 0.01, sh.y + 0.04, sh.z + Math.cos(sh.ry) * 0.01); m.rotation.y = sh.ry; this.scene.add(m);
       const b = { ...sh, A, idx: i, mesh: m, id: 'escudo:' + this.def.id + ':' + i };
       this.blasones.push(b);
-      casaReady(this.def.id, i).then(L => { if (!L || !m.parent) return; g.clearRect(0, 0, c.width, c.height); drawReady(g, L, 8, 8, c.width - 16, c.height - 16); tex.needsUpdate = true; b.color = true; });
+      // (primero la imagen que va dentro y, en el archivo único con conexión, la grande de la web en cuanto llega)
+      b.paint = (L) => { if (!L || !m.parent) return; g.clearRect(0, 0, c.width, c.height); drawReady(g, L, 8, 8, c.width - 16, c.height - 16); tex.needsUpdate = true; b.color = true; };
+      casaReady(this.def.id, i).then(L => { b.paint(L); casaReadyHD(this.def.id, i).then(b.paint); });
     });
   }
   // escudo oficial del pueblo (o de su valle) pintado en el pilar de la plaza
@@ -819,6 +821,7 @@ export class TownGame {
   }
   async readShield(b) {
     const P = this.P, isNew = addCard(b.id, 'escudos'); this.player.frozen = true;
+    if (b.paint) casaReadyHD(this.def.id, b.idx).then(b.paint);   // (si la lista de la web llegó después de montar el pueblo)
     try { await this.lookAtArms(b.mesh, b.ry, 2.03); await readArms(this.ui, b.A, { town: this.def.name.split(' /')[0], isNew, regla: (P.cards || []).filter(c => c.startsWith('escudo:')).length, image: casaImg(this.def.id, b.idx) || '' }); }
     finally { this.endLookAtArms(); this.player.frozen = false; }
     addXP(isNew ? 20 : 4); saveProfile();

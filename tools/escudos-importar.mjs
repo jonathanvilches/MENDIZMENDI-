@@ -5,7 +5,7 @@
 // (estado localizado_revision_final); con --todos, también lo señalado para corregir. Los escudos municipales ya están
 // (src/assets/escudos/heraldica): con --municipales se sobrescriben con los del paquete.
 // Las imágenes se buscan en <carpeta>/grande/<archivo> (las originales, de 1254) y, si no, en <carpeta>/revision-512/NNN.webp;
-// de las grandes salen también las de 1024 para la ficha.
+// de las grandes salen también las de 1024 para la ficha; de las de 512, las de 192 (archivo ligero) y 96 (archivo único).
 // Uso: node tools/escudos-importar.mjs <carpeta del paquete> [--todos] [--municipales]
 import { readFileSync, mkdirSync, copyFileSync, existsSync, statSync, writeFileSync } from 'fs';
 import { join } from 'path';
@@ -28,9 +28,10 @@ for (const e of inv) {
     await sharp(src).resize(512, 512, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } }).webp({ quality: 88, alphaQuality: 90 }).toFile(out(512));
     await sharp(src).resize(1024, 1024, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } }).webp({ quality: 86, alphaQuality: 90 }).toFile(out(1024)); n.grandes++;
   } else copyFileSync(src, out(512));
+  if (sharp) for (const w of [192, 96]) await sharp(out(512)).resize(w, w, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } }).webp({ quality: 80, alphaQuality: 90 }).toFile(out(w));
   n.copiados++;
 }
-for (const k of ['casas', 'oficios']) { const d = join('src/assets/escudos', k, 'none'); mkdirSync(d, { recursive: true }); if (!existsSync(join(d, '.gitkeep'))) writeFileSync(join(d, '.gitkeep'), ''); }   // (el archivo único no los lleva)
+for (const k of ['casas', 'oficios']) { const d = join('src/assets/escudos', k, 'none'); mkdirSync(d, { recursive: true }); if (!existsSync(join(d, '.gitkeep'))) writeFileSync(join(d, '.gitkeep'), ''); }   // (los de 1024 no van en los archivos únicos)
 console.log(`copiados ${n.copiados} (con grande: ${n.grandes})`);
 if (n.saltados.length) console.log(`sin meter por estar señalados para corregir (${n.saltados.length}): ${n.saltados.join(', ')}`);
 if (n.vacios.length) console.log(`archivos vacíos en el paquete (${n.vacios.length}): ${n.vacios.join(', ')}`);

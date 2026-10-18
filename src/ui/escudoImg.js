@@ -15,9 +15,10 @@ const BIG = same(byId(import.meta.glob(['@escudos-big/*.webp', '!@escudos-big/lu
 const CLUB = byId(import.meta.glob('@emblemas/*.webp', { eager: true, query: '?url', import: 'default' }));
 hdTable('escudos', HER); hdTable('escudos', BIG); hdTable('emblemas', CLUB);   // (archivo único con conexión: src/web/hd.js)
 // Los escudos de las casas (src/assets/escudos/casas: «pueblo-n» es houseArms(pueblo, n - 1) de src/data/blasones.js) y los
-// de los oficios (src/assets/escudos/oficios, con los ids de src/data/oficios.js y de los jornales), de 512 y solo en la web
-// (tools/escudos-importar.mjs): el archivo único, con conexión, los pide a la web (hdUrl) y, sin ella, enseña el dibujo de
-// siempre. Las casas que aún no tienen imagen siguen con el dibujo.
+// de los oficios (src/assets/escudos/oficios, con los ids de src/data/oficios.js y de los jornales), de 512 en la web, de 192
+// en el archivo ligero y de 96 en el archivo único, que no tiene sitio para más (tools/escudos-importar.mjs): con conexión,
+// la fachada y la ficha suben a los de 512 de la web (casaReadyHD y src/web/hd.js) y, sin ella, se quedan los pequeños. Las
+// casas que aún no tienen imagen (167 en octubre de 2026, según el inventario del autor) siguen con el tallado dibujado.
 const CASA = byId(import.meta.glob('@escudos-casas/*.webp', { eager: true, query: '?url', import: 'default' }));
 const OFICIO = byId(import.meta.glob('@escudos-oficios/*.webp', { eager: true, query: '?url', import: 'default' }));
 // (y sus copias de 1024 para la ficha en pantallas densas, casas/1024 y oficios/1024: ampliadas al doble de las de 512 con
@@ -56,6 +57,9 @@ function ready(key, u) {
 export const armsReady = (id) => ready(id, armsImg(id));
 /** El escudo de una casa con el acabado del autor, cargado y con su caja opaca (null si no lo tiene o no se pudo traer). */
 export const casaReady = (town, idx) => ready('casa:' + town + ':' + idx, casaImg(town, idx));
+/** La copia grande de la web del escudo de una casa, para el archivo único con conexión: null si no hay conexión, si la
+ *  web no la tiene o si es la misma que ya va dentro (en la web, siempre null: la de dentro ya es la grande). */
+export const casaReadyHD = (town, idx) => { const u = hdUrl('escudos-casas', `${town}-${idx + 1}`); return u && u !== casaImg(town, idx) ? ready('casahd:' + town + ':' + idx, u) : Promise.resolve(null); };
 /** Pinta una imagen ya cargada (de armsReady o casaReady) encajada en una caja del lienzo, centrada y sin deformar. */
 export function drawReady(g, L, x, y, w, h) {
   const [bx, by, bw, bh] = L.bb, k = Math.min(w / bw, h / bh), dw = bw * k, dh = bh * k;
