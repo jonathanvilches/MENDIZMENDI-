@@ -5251,7 +5251,7 @@ async function wipeData() {
 }
 document.addEventListener('click', e => { if (e.target.closest('[data-act="wipe"]')) wipeData(); });
 // permiso para el reconocimiento de voz del navegador (envía el audio a Google o Microsoft): se pide una vez, al entrar al plató
-const srAsk = () => !IS_MOBILE && !!SR && S.opts.srOk == null && ['auto', 'navegador', undefined].includes(S.opts.voiceEngine) && !S.drill && !S.file;
+const srAsk = () => !IS_MOBILE && !!SR && S.opts.srOk == null && ['auto', 'navegador', undefined].includes(S.opts.voiceEngine) && !S.drill && !S.file && !isCall();
 function askSR() {
   if (!srAsk() || S.srAsked) return;
   S.srAsked = true;
@@ -8506,7 +8506,7 @@ $('#report').addEventListener('click', e => {
   if (a === 'again-reh') { S.flow = 'ensayo'; againNow(false); }
   if (a === 'warm-again') { show('studio'); reenterStudio().then(() => { $('#planCard').hidden = true; $('#hfCard').hidden = true; $('#warmCard').hidden = false; warmStep(0); }); }
   if (a === 'srt' && S.repTk) downloadSrt(S.repTk);
-  if (a === 'toreview') { const b = $('#rvBox'); b?.scrollIntoView({ block: 'start', behavior: 'smooth' }); $('#repVideo')?.play?.().catch?.(() => {}); }
+  if (a === 'toreview') { const b = $('#rvBox'); b?.scrollIntoView({ block: 'start', behavior: 'smooth' }); b?.querySelector('[data-rvact="start"]')?.click(); }
   if (a === 'another') { primeAudio(); $('#vidFile').click(); }
   if (a === 'improve') {
     primeAudio();
