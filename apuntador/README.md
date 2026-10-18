@@ -161,6 +161,28 @@ En «Antes de grabar» se elige qué se ve en cada momento: **En el ensayo** (av
 el texto) y **Al grabar de verdad** (medidores · solo el texto · avisos y medidores). Con el vídeo de la revisión
 sonando, las órdenes de voz no cuentan (lo que oye el micro es tu propia voz grabada).
 
+## Lo que se nota en cámara (lenguaje corporal y voz)
+
+Además de los avisos de siempre (brazos cruzados, manos en la cara, hombros subidos, poca sonrisa…), la app mira
+seis cosas que la gente nota aunque no sepa explicarlas:
+
+| Señal | Cómo la ve | Por qué importa |
+|---|---|---|
+| 😊 **Sonrisa de verdad** | La sonrisa auténtica (de Duchenne) sube las mejillas y entrecierra los ojos. Si sonríes mucho con la boca y los ojos no se mueven (frente a cómo los tienes sin sonreír), «Sonríe también con los ojos». | Una sonrisa solo de boca se lee como forzada. |
+| 😏 **Sonrisa de medio lado** | Un lado de la boca sube bastante más que el otro, con la cabeza de frente. | Se lee como ironía o desdén. |
+| 👁️ **Parpadeo** | Parpadeos por minuto en el último medio minuto (los que cierran del todo en menos de medio segundo). Leyendo con calma salen menos de 20; con más de 35 se avisa. | Es de las señales de nervios que más nota quien te ve. |
+| 📈 **Frases que acaban subiendo** | Al callarte tras una frase que acaba en punto, el tono de los últimos 0,25 s frente al de antes: si sube más de 2 semitonos, suena a pregunta. Se avisa si pasa en 2 de las últimas 6 afirmaciones. | Subir al final de una afirmación resta seguridad. |
+| 🎭 **Lo que dices y tu cara** | Cada frase del guion con palabras de alegría («me encanta», «increíble», «gracias»…) o de algo duro («difícil», «problema», «perdí»…) se compara con tu cara mientras la lees: «Dices «encanta» con la cara seria» o «Hablas de algo serio sonriendo». Tiene en cuenta el tono del párrafo. | Cuando la cara contradice las palabras, se pierde credibilidad. |
+| 🎬 **El final** | En los 2 segundos después de la última palabra: si apartas la mirada (o, en un mensaje animado o cercano, se te va la sonrisa). | Aguantar la mirada deja el corte limpio y el vídeo se puede poner en bucle. |
+
+Todo esto sale en la revisión, en el momento en que pasó y con lo que estabas diciendo.
+
+**Calentamiento de 40 segundos** (botón «🔥 Calentar 40 s» en la tarjeta de entrada al plató): un paso cada vez, con
+una barra que avanza sola: suspiro doble (dos inspiraciones por la nariz y una espiración larga: lo más rápido para
+bajar los nervios), hombros a las orejas y soltarlos, sonrisa pensando en alguien que te cae genial (la de verdad),
+la voz de grave a agudo como una sirena y llamar «ganas» a los nervios (es la misma activación, y así ayuda). Si en
+una toma se notaron los nervios, la revisión lo recomienda para la siguiente.
+
 ## Control por voz
 
 - **«comenzamos»**: cuenta atrás 3, 2, 1 y graba. Funciona también desde el informe para hacer otra toma.
