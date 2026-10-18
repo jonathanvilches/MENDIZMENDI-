@@ -7,7 +7,8 @@
 //    las misiones de montaña, fauna y láminas que falten; las láminas de prioridad 1 para regenerar con más calidad
 //  · iconos que no son del autor (renders del juego o dibujos 2D de siempre) e instrumentos sin original grande
 //  · si se le da la carpeta del paquete de revisión del autor, también sus escudos señalados para corregir
-// Uso: node tools/encargo-total.mjs <salida.md> [carpeta del paquete de escudos]   (URL=http://127.0.0.1:5173/)
+// Uso: node tools/encargo-total.mjs <salida.md> [carpeta del paquete de escudos]   (URL=http://127.0.0.1:5173/;
+//      CASAS=escudos-cuenta.json, de tools/escudos-cuenta.mjs: cuántos escudos tiene de verdad cada pueblo; sin él, 8 por pueblo)
 import { chromium } from 'playwright-core';
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'fs';
 import { join } from 'path';
@@ -67,7 +68,18 @@ const tn = Object.fromEntries(inv.towns.map(t => [t.id, t.name])), cn = inv.coma
 const sitio = (town, comarca) => town ? `${tn[town] || town}${inv.towns.find(t => t.id === town)?.comarca ? ' (' + (cn[inv.towns.find(t => t.id === town).comarca] || '') + ')' : ''}` : comarca ? `comarca de ${cn[comarca] || comarca}` : 'Navarra';
 const esc = (s) => String(s || '').replace(/\s+/g, ' ').trim();
 const hoy = new Date().toISOString().slice(0, 10);
-const casasSin = inv.casas.filter(c => !c.has), persSin = inv.personajes.filter(x => !x.has), leySin = inv.leyendas.filter(x => !x.has);
+// (solo las casas que salen en el pueblo: el constructor pone entre 0 y 8 escudos en las fachadas, Javier ninguno e Irulegi
+// tres, y townGame.buildShields pone primero las casas que ya tienen imagen; así que faltan las primeras sin imagen que
+// aún caben en las fachadas)
+const CUENTA = process.env.CASAS && existsSync(process.env.CASAS) ? JSON.parse(readFileSync(process.env.CASAS, 'utf8')) : null;
+if (!CUENTA) console.log('aviso: sin CASAS=escudos-cuenta.json se suponen 8 escudos por pueblo');
+const casasSin = [];
+for (const t of inv.towns) {
+  const cs = inv.casas.filter(c => c.town === t.id).sort((a, b) => (b.has ? 1 : 0) - (a.has ? 1 : 0) || a.n - b.n);
+  const k = CUENTA && Array.isArray(CUENTA[t.id]) ? CUENTA[t.id].length : 8;
+  casasSin.push(...cs.slice(0, k).filter(c => !c.has));
+}
+const persSin = inv.personajes.filter(x => !x.has), leySin = inv.leyendas.filter(x => !x.has);
 const figSin = inv.figuras.filter(x => !x.has), cimSin = inv.cimas.filter(x => !x.has), tradSin = inv.tradiciones.filter(x => !x.has && (x.ilus || x.type !== 'carnival'));
 const fauSin = inv.fauna.filter(x => !x.has), ofiSin = inv.oficios.filter(x => !x.has), munSin = inv.municipales.filter(x => !x.has), lamSin = inv.laminas.filter(x => !x.has);
 const lamPrio = inv.laminas.filter(l => l.has && (l.cover || l.kind === 'deporte' || (l.kind === 'paisaje' && l.comarca)));

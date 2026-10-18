@@ -85,10 +85,11 @@ export function pasakaVenue(scene, out) {
   inst(new THREE.BoxGeometry(W + 1.2, 0.26, 0.22), wood, beamZ.map(z => [0, CEIL - 0.13, z]));
   inst(new THREE.BoxGeometry(0.3, 0.2, 0.3), stoneD, beamZ.flatMap(z => [[-W / 2 + 0.15, CEIL - 0.36, z], [W / 2 - 0.15, CEIL - 0.36, z]]));
   for (const x of [-W / 4, W / 4]) add(box(0.3, 0.3, L - Z0, 1.5), wood, x, CEIL - 0.3, ZC);
-  const lampZ = [2, 8, NETZ, 20, 26];
-  inst(new THREE.CylinderGeometry(0.02, 0.02, 0.6, 6), iron, lampZ.map(z => [0, CEIL - 0.6, z]), false);
-  inst(new THREE.BoxGeometry(0.34, 0.42, 0.34), iron, lampZ.map(z => [0, CEIL - 1.1, z]), false);
-  inst(new THREE.BoxGeometry(0.26, 0.3, 0.26), glow, lampZ.map(z => [0, CEIL - 1.1, z]), false);
+  // (colgados de las dos jácenas, alternando lado: en el eje tapaban el escudo de la pared del fondo desde la cámara)
+  const lampP = [2, 8, NETZ, 20, 26].map((z, i) => [i % 2 ? W / 4 : -W / 4, z]);
+  inst(new THREE.CylinderGeometry(0.02, 0.02, 0.6, 6), iron, lampP.map(([x, z]) => [x, CEIL - 0.6, z]), false);
+  inst(new THREE.BoxGeometry(0.34, 0.42, 0.34), iron, lampP.map(([x, z]) => [x, CEIL - 1.1, z]), false);
+  inst(new THREE.BoxGeometry(0.26, 0.3, 0.26), glow, lampP.map(([x, z]) => [x, CEIL - 1.1, z]), false);
   // el frontis con su chapa, el escudo y el marcador; la valla de madera a nuestra espalda y el muro del fondo del pasillo
   add(box(W + 1.2, CEIL + 0.6, 0.6, 2.2), stone, 0, (CEIL + 0.6) / 2, L + 0.3);
   add(box(W, CHAPA, 0.06, 1), chapa, 0, CHAPA / 2, L - 0.03); add(box(W, 0.04, 0.07, 1), white, 0, CHAPA + 0.02, L - 0.03);

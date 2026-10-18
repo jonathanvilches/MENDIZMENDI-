@@ -155,7 +155,7 @@ export const FLORA = {
     where: 'Sotobosque de hayedos y pinares de montaña y landas del Pirineo.', season: 'Bayas maduras en agosto.',
     fact: 'Sus bayas son el alimento de muchos animales del bosque de montaña: hay que dejar algunas para ellos.',
     m: { t: 'shrub', form: 'mound', w: 0.8, h: 0.4, c1: '#3a6a2c', c2: '#6a9a3a', berry: '#2a3a7a', berryN: 50, berryS: 0.018 } },
-  ontina: { name: 'Ontina', eu: '', sci: 'Artemisia herba-alba', kind: 'arbusto',
+  ontina: { name: 'Ontina', eu: 'Ontina', sci: 'Artemisia herba-alba', kind: 'arbusto',
     look: 'Mata baja y gris plateada, de hojas muy divididas y lanosas, con un olor fuerte y amargo.',
     where: 'Estepas de la Ribera y de las Bardenas Reales.', season: 'Florece en otoño.',
     fact: 'Las ovejas la comen en invierno, cuando no hay otra cosa. Se usaba como remedio para el estómago.',

@@ -1,7 +1,9 @@
 // Las ilustraciones de los 31 animales de la fauna (del autor del proyecto: cuerpo entero, fondo transparente, lienzo
 // cuadrado; nombres = identificadores de src/data/fauna.js). La grande, para la ficha: de 1280 px en la web (cada una se
 // descarga al verla) y de 512 en el archivo único, para no pasar de su tamaño; la pequeña, para las tarjetas del
-// cuaderno: de 512 en la web (la tarjeta pide unos 310 píxeles en el iPhone) y de 256 en el archivo único. Los alias @fauna-big y @fauna-small de vite.config.js eligen las carpetas de src/assets/fauna.
+// cuaderno: de 512 en todas partes (la tarjeta pide unos 310 píxeles en el iPhone; en el archivo único es la misma imagen que la
+// grande, que ya va dentro: la copia de 256 solo añadía 590 KB a un archivo al borde de su límite). Los alias @fauna-big y
+// @fauna-small de vite.config.js eligen las carpetas de src/assets/fauna.
 //   faunaImg('zorro') → { big, small } (o null si no la tiene: entonces se usa su icono, como antes)
 import { hdTable } from '../web/hd.js';
 const byId = (g) => Object.fromEntries(Object.entries(g).map(([k, v]) => [k.split('/').pop().replace('.webp', ''), v]));
