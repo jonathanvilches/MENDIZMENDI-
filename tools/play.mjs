@@ -10,6 +10,8 @@ page.on('console', m => { const t = m.text(); if (!/toNonIndexed|vite|Canvas2D|C
 page.on('pageerror', e => logs.push('PAGEERROR: ' + e.message + '\n' + e.stack));
 await page.goto(url, { timeout: 240000 });
 await page.waitForFunction(() => window.__ready, null, { timeout: 240000 }).catch(() => logs.push('timeout ready'));
+// (con ?town=, el pueblo se carga después de que el menú esté listo: se espera a que esté jugable antes de los pasos)
+if (/[?&]town=/.test(url)) await page.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 240000 }).catch(() => logs.push('timeout pueblo'));
 for (const s of steps) {
   try {
     if (s.file) { const code = (await import('fs')).readFileSync(s.file, 'utf8'); const r = await page.evaluate(code); if (r !== undefined) logs.push('file> ' + JSON.stringify(r, null, 1)); }

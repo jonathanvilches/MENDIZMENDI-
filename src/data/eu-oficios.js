@@ -1040,7 +1040,7 @@ export const EU_OFICIOS = {
   'Solo para mayores': 'Helduentzat bakarrik',
   'Correr el encierro es muy peligroso: solo pueden hacerlo las personas mayores de 18 años. Los niños y las niñas lo ven desde los balcones o por la tele… ¡o en este juego!': 'Entzierroan korrika egitea oso arriskutsua da: 18 urtetik gorakoek bakarrik egin dezakete. Haurrek balkoietatik edo telebistan ikusten dute… edo joko honetan!',
   '¡Toro detrás! Apártate': 'Zezena atzean! Aldendu',
-  'Dedo a los lados: esquivar · arriba: correr · SALTAR los caídos · PERIÓDICO para guiar al toro': 'Hatza alboetara: saihestu · gora: korrika · SALTO erorien gainetik · EGUNKARIA zezena gidatzeko',
+  'Palanca: a los lados esquivar, arriba correr · SALTAR los caídos · PERIÓDICO para guiar al toro': 'Palanka: alboetara saihestu, gora korrika · SALTO erorien gainetik · EGUNKARIA zezena gidatzeko',
   'A / D esquivar · W o Mayús correr · Espacio saltar · P periódico · C cámara': 'A / D saihestu · W edo Maius korrika · Zuriunea salto · P egunkaria · C kamera',
   'No se ha podido preparar el encierro. Prueba otra vez en un momento.': 'Ezin izan da entzierroa prestatu. Saiatu berriro une batean.',
   'Cantad a San Fermín… ¡y atentos al cohete! Cuando lleguen los toros, pégate a un lado.': 'Kantatu San Fermini… eta adi suziriari! Zezenak iristen direnean, itsatsi alde batera.',

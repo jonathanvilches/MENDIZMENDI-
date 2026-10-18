@@ -358,11 +358,39 @@ export class Encierro {
   // HUD propio: caídas que quedan, barra hasta la plaza y avisos
   hud() {
     const h = this.h = document.createElement('div'); h.className = 'enc-hud';
-    h.innerHTML = `<div class="enc-top"><div class="enc-hearts"></div><div class="enc-bar"><i></i><b>Plaza</b></div></div><div class="enc-msg"></div><div class="enc-warn">¡Toro detrás! Apártate</div><div class="enc-help">${this.G.input.touch ? 'Dedo a los lados: esquivar · arriba: correr · SALTAR los caídos · PERIÓDICO para guiar al toro' : 'A / D esquivar · W o Mayús correr · Espacio saltar · P periódico · C cámara'}</div>
+    const touch = this.G.input.touch;
+    h.innerHTML = `<div class="enc-top"><div class="enc-hearts"></div><div class="enc-bar"><i></i><b>Plaza</b></div></div><div class="enc-msg"></div><div class="enc-warn">¡Toro detrás! Apártate</div><div class="enc-help">${touch ? 'Palanca: a los lados esquivar, arriba correr · SALTAR los caídos · PERIÓDICO para guiar al toro' : 'A / D esquivar · W o Mayús correr · Espacio saltar · P periódico · C cámara'}</div>
+      ${touch ? '<div class="enc-stick"><div class="enc-knob"><i></i></div></div><div class="enc-stickhint"><svg viewBox="0 0 48 48" width="46" height="46"><path d="M24 6l6 7h-4v8h8v-4l7 7-7 7v-4h-8v8h4l-6 7-6-7h4v-8h-8v4l-7-7 7-7v4h8v-8h-4z" fill="#fff" opacity=".9"/></svg></div>' : ''}
       <div class="enc-btns"><button class="enc-b enc-jump" data-k="jump">SALTAR</button><button class="enc-b enc-paper" data-k="paper">PERIÓDICO</button></div>
       <button class="enc-cam" data-k="cam">CÁMARA</button><button class="enc-quit" data-k="quit" aria-label="Salir del encierro">✕</button><div class="enc-live"><i></i>EN DIRECTO</div>`;
     document.body.appendChild(h);
-    for (const b of h.querySelectorAll('[data-k]')) b.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); const k = b.dataset.k; if (k === 'quit') { this.finish(false, true); return; } if (k === 'jump') this.jumpQ = true; if (k === 'paper') this.paperQ = true; if (k === 'cam') this.nextCam(); });
+    // (la X: durante la carrera, abandona; al final, se salta la espera y las fichas y se vuelve ya al pueblo)
+    for (const b of h.querySelectorAll('[data-k]')) b.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); const k = b.dataset.k; if (k === 'quit') { if (this.done) { this.skipCards = true; this.skipWait?.(); } else this.finish(false, true); return; } if (k === 'jump') this.jumpQ = true; if (k === 'paper') this.paperQ = true; if (k === 'cam') this.nextCam(); });
+    // la palanca táctil, en la mitad izquierda: a los lados esquiva, arriba corre más y abajo frena (el teclado sigue
+    // valiendo a la vez). Se suelta también desde la ventana, por si el «soltar» no llega a la zona (gestos del sistema).
+    this.stick = { id: null, x: 0, y: 0 };
+    const zone = h.querySelector('.enc-stick'), knob = h.querySelector('.enc-knob');
+    if (zone) {
+      const R = 56;
+      zone.addEventListener('pointerdown', (e) => {
+        if (this.stick.id !== null) return; e.preventDefault();
+        this.stick = { id: e.pointerId, ox: e.clientX, oy: e.clientY, x: 0, y: 0 }; try { zone.setPointerCapture?.(e.pointerId); } catch { /* (un puntero sintético de las pruebas) */ }
+        const zr = zone.getBoundingClientRect(); knob.style.display = 'block'; knob.style.left = (e.clientX - zr.left) + 'px'; knob.style.top = (e.clientY - zr.top) + 'px'; knob.firstElementChild.style.transform = '';
+        h.querySelector('.enc-stickhint')?.remove();
+      });
+      zone.addEventListener('pointermove', (e) => {
+        if (e.pointerId !== this.stick.id) return;
+        let dx = e.clientX - this.stick.ox, dy = e.clientY - this.stick.oy; const d = Math.hypot(dx, dy); if (d > R) { dx *= R / d; dy *= R / d; }
+        this.stick.x = dx / R; this.stick.y = -dy / R; knob.firstElementChild.style.transform = `translate(${dx}px,${dy}px)`;
+      });
+      const reset = () => { this.stick = { id: null, x: 0, y: 0 }; knob.style.display = 'none'; };
+      const end = (e) => { if (e.pointerId === this.stick.id) reset(); };
+      for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) zone.addEventListener(ev, end);
+      this.onPtrEnd = end; addEventListener('pointerup', end, true); addEventListener('pointercancel', end, true);
+      this.onTouchEnd = (e) => { if (this.stick.id === null) return; const zr = zone.getBoundingClientRect(); for (const t of e.touches) if (t.clientX >= zr.left && t.clientX <= zr.right && t.clientY >= zr.top && t.clientY <= zr.bottom) return; reset(); };
+      addEventListener('touchend', this.onTouchEnd, true); addEventListener('touchcancel', this.onTouchEnd, true);
+      this.onHide = () => { if (document.hidden) reset(); }; document.addEventListener('visibilitychange', this.onHide);
+    }
   }
   msg(t, ms = 1800) { const m = this.h?.querySelector('.enc-msg'); if (!m) return; m.textContent = t; m.classList.add('on'); clearTimeout(this.mt); this.mt = setTimeout(() => m.classList.remove('on'), ms); }
 
@@ -402,7 +430,7 @@ export class Encierro {
     this.stands?.tick(this.t, this.won ? 1 : lead < -GATE ? 0.9 : 0.3, this.plaza?.cz ?? 0, this.camera);
     if (!this.started || this.done) { if (this.done) this.settle(dt); this.place(dt); this.cam(dt); return; }
     // jugador: corre solo hacia la plaza; adelante = más rápido, atrás = más despacio, a los lados = esquivar
-    const fy = inp.move.y, fx = inp.move.x;
+    const st = this.stick || { x: 0, y: 0 }, fy = Math.max(-1, Math.min(1, inp.move.y + st.y)), fx = Math.max(-1, Math.min(1, inp.move.x + st.x));
     if (inp.consume(' ')) this.jumpQ = true;
     if (inp.consume('p')) this.paperQ = true;
     if (inp.consume('c')) this.nextCam();
@@ -576,9 +604,10 @@ export class Encierro {
     this.h?.querySelector('.enc-warn')?.classList.remove('on');
     if (win) { G.sound.fanfare?.(); this.msg(this.closeCall > 1.2 ? '¡En la plaza! Y corriste muy cerca de los toros.' : '¡En la plaza! ¡Lo has conseguido!', 2600); }
     this.h?.querySelector('.enc-help')?.remove();
-    await new Promise(r => setTimeout(r, win ? 5000 : quit ? 200 : 1800));   // tiempo para ver la plaza llena mientras la cámara gira
+    // tiempo para ver la plaza llena mientras la cámara gira (la X lo acorta y se salta las fichas)
+    await new Promise(r => { this.skipWait = r; setTimeout(r, win ? 5000 : quit ? 200 : 1800); }); this.skipWait = null;
     if (this.h) this.h.style.display = 'none';   // sin avisos encima de las tarjetas
-    if (!quit) for (const f of (win ? FACTS : FACTS.slice(-1))) await infoCard(G.ui, { icon: 'bull', kicker: 'San Fermín', title: f.title, text: f.text, button: 'Seguir' });
+    if (!quit && !this.skipCards) { const L = win ? FACTS : FACTS.slice(-1); for (let i = 0; i < L.length; i++) await infoCard(G.ui, { icon: 'bull', kicker: 'San Fermín', title: L[i].title, text: L[i].text, button: L.length > 1 ? `Seguir (${i + 1}/${L.length})` : 'Seguir' }); }
     await G.ui.fadeOut?.();
     this.dispose();
     G.altScene = null; G.altCamera = null; G.altUpdate = null; G.encierro = null; G.mode = 'play'; G.player.frozen = false; G.ui.hudVisible(true);
@@ -587,6 +616,9 @@ export class Encierro {
   }
   dispose() {
     removeEventListener('resize', this.onResize);
+    if (this.onPtrEnd) { removeEventListener('pointerup', this.onPtrEnd, true); removeEventListener('pointercancel', this.onPtrEnd, true); }
+    if (this.onTouchEnd) { removeEventListener('touchend', this.onTouchEnd, true); removeEventListener('touchcancel', this.onTouchEnd, true); }
+    if (this.onHide) document.removeEventListener('visibilitychange', this.onHide);
     this.h?.remove(); if (!this.scene) return;
     this.scene.traverse(o => { if (o.isSkinnedMesh) o.skeleton?.dispose(); });
     this.scene.traverse(o => { if (o.geometry) o.geometry.dispose(); const ms = o.material ? [].concat(o.material) : []; for (const m of ms) { m.map?.dispose(); m.dispose(); } });
