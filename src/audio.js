@@ -76,6 +76,7 @@ export class Sound {
     // viento
     this.wind = this.loopNoise(300, 0.4); this.wind.g.gain.value = 0.02;
     this.startMusic();
+    if (!this.quietTimer) this.quietTimer = setInterval(() => { try { this.quietAmbient(); } catch (e) { } }, 500);
   }
   impulse(sec) {
     const ctx = this.ctx, len = ctx.sampleRate * sec, b = ctx.createBuffer(2, len, ctx.sampleRate);
@@ -203,7 +204,8 @@ export class Sound {
     const wf = PLACES.waterfall, dp = wf ? Math.hypot(player.pos.x - wf.x, player.pos.z - wf.z) : 1e9;
     const rv = clamp(1 - r.edge / 30, 0, 1) ** 1.6 * 0.5 + clamp(1 - dp / 60, 0, 1) ** 1.5 * 0.7;
     if (Number.isFinite(rv)) this.river.g.gain.setTargetAtTime(sport ? 0 : rv, this.ctx.currentTime, sport ? 0.12 : 0.3);
-    this.wind.g.gain.setTargetAtTime(0.03 + clamp((player.pos.y - 20) / 60, 0, 0.1), this.ctx.currentTime, 0.5);
+    // (en los deportes, sin viento; y la altura solo cuenta en el monte: en los recintos de los partidos, a 2400 m, el viento sonaba a tope y parecía lluvia)
+    this.wind.g.gain.setTargetAtTime(sport || player.pos.y > 900 ? 0 : 0.03 + clamp((player.pos.y - 20) / 60, 0, 0.1), this.ctx.currentTime, sport ? 0.12 : 0.5);
     this.birdT -= dt;
     if (this.birdT < 0) {
       this.birdT = night > 0.5 ? 2 + Math.random() * 6 : (inIrati ? 0.6 : 1.2) + Math.random() * 2.5;

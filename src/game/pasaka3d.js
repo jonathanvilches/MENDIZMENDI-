@@ -15,6 +15,8 @@ import { addPlatform } from '../world/heightfield.js';
 import { Actor } from '../actors/people.js';
 import { armSwing } from '../actors/glbChar.js';
 import { crowd3d } from '../actors/crowd3d.js';
+import { drawArms } from '../world/heraldry.js';
+import { armsOfTown } from '../data/armas-navarra.js';
 import { tr, isEU } from '../i18n.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -30,83 +32,118 @@ function netTexture() {
   g.clearRect(0, 0, 64, 64); g.strokeStyle = 'rgba(245,240,230,.95)'; g.lineWidth = 5; g.strokeRect(2.5, 2.5, 59, 59);
   const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(W / 0.12, NETH / 0.12); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
-/** El sobreclaustro en `out` (coordenadas del mundo), a 2400 m: { group, toWorld, entry, ball, dispose }. */
+/** El sobreclaustro en `out` (coordenadas del mundo), a 2400 m: { group, toWorld, entry, ball, shadow, ring, setScore, dispose }. */
 export function pasakaVenue(scene, out) {
   if (VENUE && VENUE.group.parent === scene) return VENUE;
   if (VENUE) VENUE.dispose();
   const g = new THREE.Group(); g.position.set(out.x, Y, out.z); scene.add(g);
-  const geos = [], mats = [], add = (geo, m, x, y, z, ry = 0, shadow = true) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.rotation.y = ry; o.castShadow = shadow; o.receiveShadow = true; g.add(o); geos.push(geo); return o; };
-  const stone = mat(TEX.ashlar, '#d9c9a6'), stoneD = mat(TEX.ashlar, '#bfae8c'), floor = mat(TEX.cobble, '#c9a28c'), wood = mat(TEX.wood, '#a8784e'), plank = mat(TEX.woodDark, '#8a6244'), valla = mat(TEX.wood, '#8a6238');
+  const geos = [], mats = [], M4 = new THREE.Matrix4();
+  const add = (geo, m, x, y, z, ry = 0, shadow = true) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.rotation.y = ry; o.castShadow = shadow; o.receiveShadow = true; g.add(o); geos.push(geo); return o; };
+  const inst = (geo, m, places, shadow = true) => { const im = new THREE.InstancedMesh(geo, m, places.length); places.forEach((t, i) => { M4.makeTranslation(t[0], t[1], t[2]); if (t[3]) M4.multiply(new THREE.Matrix4().makeRotationY(t[3])); im.setMatrixAt(i, M4); }); im.instanceMatrix.needsUpdate = true; im.castShadow = shadow; im.receiveShadow = true; g.add(im); geos.push(geo); return im; };
+  const stone = mat(TEX.ashlar, '#dccca9'), stoneD = mat(TEX.ashlar, '#b9a784'), stoneW = mat(TEX.stoneWall, '#c9bb9c'), floor = mat(TEX.cobble, '#c48f7a'), border = mat(TEX.ashlar, '#cdbd9c');
+  const wood = mat(TEX.wood, '#a8784e'), plank = mat(TEX.woodDark, '#8a6244'), valla = mat(TEX.wood, '#8a6238'), dirt = mat(TEX.dirt, '#c9b48e'), grass = mat(TEX.grass, '#86a85a');
   const white = new THREE.MeshStandardMaterial({ color: '#f4efe2', roughness: 0.8 }), chapa = new THREE.MeshStandardMaterial({ color: '#7a3b32', roughness: 0.5, metalness: 0.35 });
-  const grass = mat(TEX.grass, '#8fae5e'), dark = new THREE.MeshStandardMaterial({ color: '#4a3b2e', roughness: 1 });
-  mats.push(stone, stoneD, floor, wood, plank, valla, white, chapa, grass, dark);
-  const Z0 = -9;   // (el pasillo sigue detrás de la cámara)
-  // suelo y líneas
-  add(box(W + 1.2, 0.3, L - Z0 + 1.2, 2.2), floor, 0, -0.15, (L + Z0) / 2, 0, false);
-  for (const x of [-W / 2 + 0.15, W / 2 - 0.15, 0]) add(box(0.08, 0.012, L, 1), white, x, 0.006, L / 2, 0, false);
-  for (const z of [NETZ - SAQUE, NETZ, NETZ + SAQUE]) add(box(W, 0.012, 0.08, 1), white, 0, 0.006, z, 0, false);
-  // pared izquierda con su banco y ventanas altas; la de la derecha, parapeto, columnas y arcos sobre el jardín
-  add(box(0.6, CEIL + 0.6, L - Z0 + 1.2, 2.2), stone, -W / 2 - 0.3, (CEIL + 0.6) / 2, (L + Z0) / 2);
-  add(box(0.45, 0.5, L - Z0, 1.5), stoneD, -W / 2 + 0.225, 0.25, (L + Z0) / 2);
-  const win = new THREE.BoxGeometry(0.12, 1.3, 0.7), wins = new THREE.InstancedMesh(win, dark, 6), M4 = new THREE.Matrix4(); geos.push(win);
-  for (let i = 0; i < 6; i++) { M4.makeTranslation(-W / 2 + 0.02, 3.3, 3 + i * 4.6); wins.setMatrixAt(i, M4); } g.add(wins);
-  add(box(0.5, 1.0, L - Z0 + 1.2, 1.5), stone, W / 2 + 0.25, 0.5, (L + Z0) / 2);
-  const colG = new THREE.BoxGeometry(0.5, 3.0, 0.5), cols = []; geos.push(colG);
-  for (let z = Z0 + 0.5; z < L; z += 3.6) cols.push(z);
-  const colM = new THREE.InstancedMesh(colG, stone, cols.length), capG = new THREE.BoxGeometry(0.72, 0.28, 0.72), capM = new THREE.InstancedMesh(capG, stoneD, cols.length); geos.push(capG);
-  cols.forEach((z, i) => { M4.makeTranslation(W / 2 + 0.25, 2.5, z); colM.setMatrixAt(i, M4); M4.makeTranslation(W / 2 + 0.25, 4.14, z); capM.setMatrixAt(i, M4); });
-  colM.castShadow = capM.castShadow = true; g.add(colM, capM);
-  // (los arcos: una banda de pared con huecos semicirculares, hecha con una forma extruida por tramo)
-  const span = 3.6, rA = span / 2 - 0.25, hA = CEIL + 0.6 - 4.28, arcShape = new THREE.Shape();
+  const dark = new THREE.MeshStandardMaterial({ color: '#2e2620', roughness: 1 }), iron = new THREE.MeshStandardMaterial({ color: '#2a2622', roughness: 0.6, metalness: 0.6 });
+  const glow = new THREE.MeshStandardMaterial({ color: '#ffd9a0', emissive: '#ffb347', emissiveIntensity: 0.9, roughness: 0.4 }), hedge = new THREE.MeshStandardMaterial({ color: '#3f6a34', roughness: 1 });
+  const cypress = new THREE.MeshStandardMaterial({ color: '#2f4a2a', roughness: 1 }), water = new THREE.MeshStandardMaterial({ color: '#5f8fb0', roughness: 0.15, metalness: 0.2, emissive: '#1f3a50', emissiveIntensity: 0.35 });
+  mats.push(stone, stoneD, stoneW, floor, border, wood, plank, valla, dirt, grass, white, chapa, dark, iron, glow, hedge, cypress, water);
+  const Z0 = -9, ZL = L - Z0 + 1.2, ZC = (L + Z0) / 2;   // (el pasillo sigue detrás de la cámara)
+  // suelo de losas con una cenefa de piedra junto a las paredes y las líneas
+  add(box(W + 1.2, 0.3, ZL, 1.4), floor, 0, -0.15, ZC, 0, false);
+  for (const x of [-W / 2 + 0.3, W / 2 - 0.3]) add(box(0.6, 0.02, ZL, 1.2), border, x, 0.004, ZC, 0, false);
+  for (const x of [-W / 2 + 0.15, W / 2 - 0.15, 0]) add(box(0.08, 0.012, L, 1), white, x, 0.012, L / 2, 0, false);
+  for (const z of [NETZ - SAQUE, NETZ, NETZ + SAQUE]) add(box(W, 0.012, 0.08, 1), white, 0, 0.012, z, 0, false);
+  // pared izquierda: sillares, zócalo, cornisa, ventanas apuntadas con alféizar y el banco corrido
+  add(box(0.6, CEIL + 0.6, ZL, 2.2), stone, -W / 2 - 0.3, (CEIL + 0.6) / 2, ZC);
+  add(box(0.12, 0.9, ZL, 1.2), stoneD, -W / 2 + 0.06, 0.45, ZC);
+  add(box(0.22, 0.26, ZL, 1.2), stoneD, -W / 2 + 0.11, CEIL - 0.13, ZC);
+  add(box(0.45, 0.5, L - Z0, 1.5), stoneD, -W / 2 + 0.225, 0.25, ZC);
+  const winZ = []; for (let z = 3; z < L - 1; z += 4.6) winZ.push(z);
+  inst(new THREE.BoxGeometry(0.1, 1.5, 0.7), dark, winZ.map(z => [-W / 2 + 0.03, 3.3, z]), false);
+  inst(new THREE.BoxGeometry(0.16, 1.62, 0.84), stoneD, winZ.map(z => [-W / 2 + 0.02, 3.3, z]));
+  inst(new THREE.BoxGeometry(0.3, 0.1, 0.95), stone, winZ.map(z => [-W / 2 + 0.12, 2.5, z]));
+  inst(new THREE.ConeGeometry(0.5, 0.5, 4), stoneD, winZ.map(z => [-W / 2 + 0.02, 4.3, z, Math.PI / 4]));
+  // derecha: parapeto con moldura, columnas torneadas con basa y capitel, arcos de medio punto y el muro sobre ellos
+  add(box(0.5, 1.0, ZL, 1.5), stone, W / 2 + 0.25, 0.5, ZC);
+  add(box(0.64, 0.12, ZL, 1.2), stoneD, W / 2 + 0.25, 1.06, ZC);
+  const cols = []; for (let z = Z0 + 0.5; z < L; z += 3.6) cols.push(z);
+  inst(new THREE.CylinderGeometry(0.22, 0.25, 2.5, 14), stone, cols.map(z => [W / 2 + 0.25, 2.37, z]));
+  inst(new THREE.BoxGeometry(0.6, 0.22, 0.6), stoneD, cols.map(z => [W / 2 + 0.25, 1.23, z]));
+  inst(new THREE.CylinderGeometry(0.34, 0.24, 0.3, 14), stoneD, cols.map(z => [W / 2 + 0.25, 3.77, z]));
+  inst(new THREE.BoxGeometry(0.7, 0.2, 0.7), stoneD, cols.map(z => [W / 2 + 0.25, 4.02, z]));
+  const span = 3.6, rA = span / 2 - 0.25, hA = CEIL + 0.6 - 4.12, arcShape = new THREE.Shape();
   arcShape.moveTo(-span / 2, 0); arcShape.lineTo(-rA, 0); arcShape.absarc(0, 0, rA, Math.PI, 0, true); arcShape.lineTo(span / 2, 0); arcShape.lineTo(span / 2, hA); arcShape.lineTo(-span / 2, hA); arcShape.closePath();
-  const arcG = new THREE.ExtrudeGeometry(arcShape, { depth: 0.5, bevelEnabled: false, curveSegments: 10 }); arcG.rotateY(Math.PI / 2); geos.push(arcG);
-  const arcM = new THREE.InstancedMesh(arcG, stone, cols.length);
-  cols.forEach((z, i) => { M4.makeTranslation(W / 2, 4.28, z + span / 2); arcM.setMatrixAt(i, M4); }); arcM.castShadow = true; g.add(arcM);
-  // techo de vigas y tablas
-  add(box(W + 1.4, 0.16, L - Z0 + 1.2, 1.5), plank, 0, CEIL + 0.08, (L + Z0) / 2, 0, false);
-  const beamG = new THREE.BoxGeometry(W + 1.2, 0.26, 0.22), nB = Math.floor((L - Z0) / 0.65), beams = new THREE.InstancedMesh(beamG, wood, nB); geos.push(beamG);
-  for (let i = 0; i < nB; i++) { M4.makeTranslation(0, CEIL - 0.13, Z0 + 0.3 + i * 0.65); beams.setMatrixAt(i, M4); } beams.castShadow = true; g.add(beams);
-  for (const x of [-W / 4, W / 4]) add(box(0.3, 0.3, L - Z0, 1.5), wood, x, CEIL - 0.3, (L + Z0) / 2);
-  // el frontis con la chapa, y la valla de madera a nuestra espalda (detrás, el pasillo sigue y acaba en pared)
+  const arcG = new THREE.ExtrudeGeometry(arcShape, { depth: 0.5, bevelEnabled: false, curveSegments: 12 }); arcG.rotateY(Math.PI / 2);
+  inst(arcG, stone, cols.map(z => [W / 2, 4.12, z + span / 2]));
+  add(box(0.22, 0.26, ZL, 1.2), stoneD, W / 2 + 0.11, CEIL - 0.13, ZC);
+  // techo: tablas, vigas sobre ménsulas y dos jácenas; faroles de hierro colgando
+  add(box(W + 1.4, 0.16, ZL, 1.5), plank, 0, CEIL + 0.08, ZC, 0, false);
+  const beamZ = []; for (let z = Z0 + 0.3; z < L; z += 0.65) beamZ.push(z);
+  inst(new THREE.BoxGeometry(W + 1.2, 0.26, 0.22), wood, beamZ.map(z => [0, CEIL - 0.13, z]));
+  inst(new THREE.BoxGeometry(0.3, 0.2, 0.3), stoneD, beamZ.flatMap(z => [[-W / 2 + 0.15, CEIL - 0.36, z], [W / 2 - 0.15, CEIL - 0.36, z]]));
+  for (const x of [-W / 4, W / 4]) add(box(0.3, 0.3, L - Z0, 1.5), wood, x, CEIL - 0.3, ZC);
+  const lampZ = [2, 8, NETZ, 20, 26];
+  inst(new THREE.CylinderGeometry(0.02, 0.02, 0.6, 6), iron, lampZ.map(z => [0, CEIL - 0.6, z]), false);
+  inst(new THREE.BoxGeometry(0.34, 0.42, 0.34), iron, lampZ.map(z => [0, CEIL - 1.1, z]), false);
+  inst(new THREE.BoxGeometry(0.26, 0.3, 0.26), glow, lampZ.map(z => [0, CEIL - 1.1, z]), false);
+  // el frontis con su chapa, el escudo y el marcador; la valla de madera a nuestra espalda y el muro del fondo del pasillo
   add(box(W + 1.2, CEIL + 0.6, 0.6, 2.2), stone, 0, (CEIL + 0.6) / 2, L + 0.3);
   add(box(W, CHAPA, 0.06, 1), chapa, 0, CHAPA / 2, L - 0.03); add(box(W, 0.04, 0.07, 1), white, 0, CHAPA + 0.02, L - 0.03);
   add(box(W + 1.2, CEIL + 0.6, 0.6, 2.2), stone, 0, (CEIL + 0.6) / 2, Z0 - 0.3);
   add(box(W, 0.1, 0.12, 1), valla, 0, VALLA - 0.05, 0); add(box(W, 0.08, 0.1, 1), valla, 0, 0.5, 0);
-  const slatG = new THREE.BoxGeometry(0.07, VALLA - 0.1, 0.05), nS = Math.floor(W / 0.22), slats = new THREE.InstancedMesh(slatG, valla, nS); geos.push(slatG);
-  for (let i = 0; i < nS; i++) { M4.makeTranslation(-W / 2 + 0.11 + i * 0.22, (VALLA - 0.1) / 2, 0); slats.setMatrixAt(i, M4); } g.add(slats);
+  const slat = []; for (let i = 0, n = Math.floor(W / 0.22); i < n; i++) slat.push([-W / 2 + 0.11 + i * 0.22, (VALLA - 0.1) / 2, 0]);
+  inst(new THREE.BoxGeometry(0.07, VALLA - 0.1, 0.05), valla, slat);
   for (const x of [-W / 2 + 0.05, W / 2 - 0.05]) add(box(0.12, VALLA, 0.12, 1), valla, x, VALLA / 2, 0);
-  // la red
+  // (el marcador: una tabla de madera con los juegos y los quinces, que se repinta en cada tanto)
+  const sc = document.createElement('canvas'); sc.width = 512; sc.height = 192; const scT = new THREE.CanvasTexture(sc); scT.colorSpace = THREE.SRGBColorSpace;
+  const scM = new THREE.MeshStandardMaterial({ map: scT, roughness: 0.8 }); mats.push(scM);
+  add(box(3.6, 1.4, 0.12, 1), plank, 0, 3.6, L - 0.06); add(new THREE.PlaneGeometry(3.3, 1.2), scM, 0, 3.6, L - 0.13, Math.PI, false);
+  const setScore = (g0, q0, g1, q1, rojos = 'ROJOS', azules = 'AZULES') => {
+    const c = sc.getContext('2d'); c.fillStyle = '#3b2a1c'; c.fillRect(0, 0, 512, 192); c.strokeStyle = '#d9c08a'; c.lineWidth = 6; c.strokeRect(10, 10, 492, 172);
+    c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#ff9a8a'; c.font = 'bold 34px Nunito, sans-serif'; c.fillText(rojos, 128, 50); c.fillStyle = '#9fc0ff'; c.fillText(azules, 384, 50);
+    c.fillStyle = '#f6ecd6'; c.font = 'bold 92px Nunito, sans-serif'; c.fillText(String(g0), 128, 122); c.fillText(String(g1), 384, 122);
+    c.fillStyle = '#ffe08a'; c.font = 'bold 40px Nunito, sans-serif'; c.fillText(`${q0} · ${q1}`, 256, 122); scT.needsUpdate = true;
+  };
+  setScore(0, 0, 0, 0);
+  // (el escudo de Pamplona, en piedra, sobre el marcador)
+  try { const A = armsOfTown('pamplona'); if (A) { const ac = document.createElement('canvas'); ac.width = 256; ac.height = 320; drawArms(ac.getContext('2d'), 128, 10, 170, A, { stone: true }); const aT = new THREE.CanvasTexture(ac); aT.colorSpace = THREE.SRGBColorSpace; const aM = new THREE.MeshStandardMaterial({ map: aT, transparent: true, roughness: 0.9 }); mats.push(aM); add(new THREE.PlaneGeometry(1.1, 1.38), aM, 0, 4.95, L - 0.1, Math.PI, false); } } catch (e) { console.warn('escudo pasaka', e); }
+  // la red: paño, cinta, postes y la correa del centro
   const netT = netTexture(), netM = new THREE.MeshStandardMaterial({ map: netT, transparent: true, alphaTest: 0.3, side: THREE.DoubleSide, roughness: 1 }); mats.push(netM);
-  const netG = new THREE.PlaneGeometry(W, NETH); add(netG, netM, 0, NETH / 2, NETZ, 0, false).castShadow = false;
-  add(box(W + 0.2, 0.07, 0.04, 1), white, 0, NETH, NETZ);
-  const postG = new THREE.CylinderGeometry(0.05, 0.06, NETH + 0.25, 10); geos.push(postG);
+  add(new THREE.PlaneGeometry(W, NETH), netM, 0, NETH / 2, NETZ, 0, false).castShadow = false;
+  add(box(W + 0.2, 0.07, 0.04, 1), white, 0, NETH, NETZ); add(box(0.05, NETH, 0.03, 1), white, 0, NETH / 2, NETZ);
+  const postG = new THREE.CylinderGeometry(0.05, 0.06, NETH + 0.25, 10);
   for (const x of [-W / 2 - 0.08, W / 2 + 0.08]) add(postG, wood, x, (NETH + 0.25) / 2, NETZ);
-  // fuera: el jardín del claustro y, enfrente, la otra panda con sus arcos y su tejado
-  add(box(26, 0.2, L - Z0 + 1.2, 6), grass, W / 2 + 13.5, -0.12, (L + Z0) / 2, 0, false);
-  add(new THREE.CylinderGeometry(1.1, 1.3, 0.5, 12), stoneD, W / 2 + 13.5, 0.25, NETZ); add(box(0.35, 3, 0.35, 1), stoneD, W / 2 + 13.5, 1.9, NETZ);
-  add(box(0.6, CEIL + 0.6, L - Z0 + 1.2, 2.2), stone, W / 2 + 26.5, (CEIL + 0.6) / 2, (L + Z0) / 2);
-  const far = new THREE.InstancedMesh(arcG, stone, cols.length); cols.forEach((z, i) => { M4.makeTranslation(W / 2 + 26.1, 4.28, z + span / 2); far.setMatrixAt(i, M4); }); g.add(far);
-  const farCol = new THREE.InstancedMesh(colG, stone, cols.length); cols.forEach((z, i) => { M4.makeTranslation(W / 2 + 26.3, 2.5, z); farCol.setMatrixAt(i, M4); }); g.add(farCol);
-  add(box(0.5, 1.0, L - Z0 + 1.2, 1.5), stone, W / 2 + 26.3, 0.5, (L + Z0) / 2);
-  const roofM = mat(TEX.roofTile, '#b5684a'); mats.push(roofM); add(box(6, 0.25, L - Z0 + 2, 2), roofM, W / 2 + 24, CEIL + 2.0, (L + Z0) / 2).rotation.z = 0.32;
-  add(box(6, 0.25, L - Z0 + 2, 2), roofM, W / 2 + 3, CEIL + 2.0, (L + Z0) / 2).rotation.z = -0.32;
-  // la pelota y su sombra
+  // fuera: el jardín del claustro con sus paseos en cruz, la fuente, cipreses y setos; enfrente, la otra panda con su tejado
+  const GX = W / 2 + 13.5, GW = 26;
+  add(box(GW, 0.2, ZL, 6), grass, GX, -0.12, ZC, 0, false);
+  add(box(GW, 0.03, 1.8, 3), dirt, GX, 0.0, NETZ, 0, false); add(box(1.8, 0.03, ZL - 2, 3), dirt, GX, 0.0, ZC, 0, false);
+  add(new THREE.CylinderGeometry(1.7, 1.8, 0.6, 8), stoneD, GX, 0.3, NETZ); add(new THREE.CylinderGeometry(1.45, 1.45, 0.08, 8), water, GX, 0.58, NETZ, 0, false);
+  add(new THREE.CylinderGeometry(0.16, 0.2, 1.4, 10), stoneD, GX, 1.2, NETZ); add(new THREE.CylinderGeometry(0.55, 0.1, 0.25, 10), stoneD, GX, 1.95, NETZ);
+  const cyp = [[GX - 6, Z0 + 6], [GX + 6, Z0 + 6], [GX - 6, L - 4], [GX + 6, L - 4], [GX - 9, NETZ - 7], [GX + 9, NETZ + 7]];
+  inst(new THREE.ConeGeometry(0.75, 5.2, 9), cypress, cyp.map(([x, z]) => [x, 3.0, z]));
+  inst(new THREE.CylinderGeometry(0.1, 0.14, 0.9, 6), wood, cyp.map(([x, z]) => [x, 0.45, z]));
+  const hedges = []; for (let z = Z0 + 3; z < L - 2; z += 3.2) if (Math.abs(z - NETZ) > 2.2) hedges.push([GX - 1.6, 0.3, z], [GX + 1.6, 0.3, z]);
+  inst(new THREE.BoxGeometry(0.6, 0.6, 2.2), hedge, hedges);
+  add(box(0.6, CEIL + 0.6, ZL, 2.2), stone, W / 2 + 26.5, (CEIL + 0.6) / 2, ZC);
+  inst(arcG, stone, cols.map(z => [W / 2 + 26.1, 4.12, z + span / 2]));
+  inst(new THREE.CylinderGeometry(0.22, 0.25, 2.5, 14), stone, cols.map(z => [W / 2 + 26.3, 2.37, z]));
+  add(box(0.5, 1.0, ZL, 1.5), stone, W / 2 + 26.3, 0.5, ZC);
+  const roofM = mat(TEX.roofTile, '#b5684a'); mats.push(roofM);
+  add(box(6, 0.25, ZL + 2, 2), roofM, W / 2 + 24, CEIL + 2.0, ZC).rotation.z = 0.32;
+  add(box(6, 0.25, ZL + 2, 2), roofM, W / 2 + 3, CEIL + 2.0, ZC).rotation.z = -0.32;
+  // la pelota, su sombra y el círculo del bote (dónde va a caer en nuestro campo, para correr a tiempo)
   const ball = new THREE.Mesh(new THREE.SphereGeometry(0.075, 16, 12), new THREE.MeshStandardMaterial({ color: '#f6ecd6', roughness: 0.55, emissive: '#5a4a30', emissiveIntensity: 0.35 })); ball.castShadow = true; g.add(ball); geos.push(ball.geometry); mats.push(ball.material);
-  const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.12, 12), new THREE.MeshBasicMaterial({ color: '#000', transparent: true, opacity: 0.32, depthWrite: false })); shadow.rotation.x = -Math.PI / 2; shadow.position.y = 0.012; g.add(shadow); geos.push(shadow.geometry); mats.push(shadow.material);
-  // (el círculo del bote: dónde va a caer la pelota en nuestro campo, para correr a tiempo)
-  const ring = new THREE.Mesh(new THREE.RingGeometry(0.3, 0.42, 28), new THREE.MeshBasicMaterial({ color: '#ffd166', transparent: true, opacity: 0.85, depthWrite: false, side: THREE.DoubleSide })); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.016; ring.visible = false; g.add(ring); geos.push(ring.geometry); mats.push(ring.material);
-  g.traverse(o => { if (o.isInstancedMesh) o.instanceMatrix.needsUpdate = true; });
+  const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.12, 12), new THREE.MeshBasicMaterial({ color: '#000', transparent: true, opacity: 0.32, depthWrite: false })); shadow.rotation.x = -Math.PI / 2; shadow.position.y = 0.014; g.add(shadow); geos.push(shadow.geometry); mats.push(shadow.material);
+  const ring = new THREE.Mesh(new THREE.RingGeometry(0.3, 0.42, 28), new THREE.MeshBasicMaterial({ color: '#ffd166', transparent: true, opacity: 0.85, depthWrite: false, side: THREE.DoubleSide })); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.018; ring.visible = false; g.add(ring); geos.push(ring.geometry); mats.push(ring.material);
   g.updateMatrixWorld(true);
   const toWorld = (lx, lz, ly = 0) => { const v = new THREE.Vector3(lx, ly, lz); g.localToWorld(v); return v; };
   addPlatform(out.x, out.z, 0, -W / 2, W / 2 + 0.2, Z0, L, Y);   // el pasillo es suelo (los personajes se quedan a su altura)
-  // el público: de pie en los huecos de la arquería y sentado en el banco (en coordenadas del mundo)
-  const stand = [], sit = [];
-  cols.forEach((z, i) => { if (z + 1 > 2 && z + span - 1 < L) for (const k of [0.95, 2.4]) if (Math.random() < 0.85) { const v = toWorld(W / 2 + 0.95, z + k + (Math.random() - 0.5) * 0.4); stand.push([v.x, v.y, v.z, -Math.PI / 2]); } });
-  // (sentados en el banco: la figura algo adelantada y más baja que el asiento, como en la grada del frontón cubierto)
-  for (let z = 3; z < L - 2; z += 2.4) if (Math.random() < 0.7) { const v = toWorld(-W / 2 + 0.6, z + Math.random() * 0.6, 0.1); sit.push([v.x, v.y, v.z, Math.PI / 2]); }
+  // el público: de pie en los huecos de la arquería, detrás del parapeto (tres por hueco, más en el campo de los rivales)
+  const stand = [];
+  cols.forEach(z => { if (z + 1 < 2 || z + span - 1 > L) return; for (const k of [0.7, 1.75, 2.8]) if (Math.random() < (z > NETZ - 3 ? 0.9 : 0.6)) { const v = toWorld(W / 2 + 0.95 + Math.random() * 0.4, z + k + (Math.random() - 0.5) * 0.3); stand.push([v.x, v.y, v.z, -Math.PI / 2]); } });
   const e = toWorld(1.4, NETZ - 7.5);
-  VENUE = { group: g, toWorld, entry: { x: e.x, z: e.z }, ball, shadow, ring, stand, sit,
-    dispose() { g.parent?.remove(g); for (const x of geos) x.dispose(); for (const m of mats) { m.map?.dispose?.(); m.dispose(); } netT.dispose(); if (VENUE === this) VENUE = null; } };
+  VENUE = { group: g, toWorld, entry: { x: e.x, z: e.z }, ball, shadow, ring, stand, sit: [], setScore,
+    dispose() { g.parent?.remove(g); for (const x of geos) x.dispose(); for (const m of mats) { m.map?.dispose?.(); m.dispose(); } netT.dispose(); scT.dispose(); if (VENUE === this) VENUE = null; } };
   return VENUE;
 }
 
@@ -125,7 +162,7 @@ function predict(b) {
   }
   return { x: c.x, z: c.z, t: 3 };
 }
-const mkPl = (team, x, z, me, i) => ({ team, x, z, tx: x, tz: z, hx: x, hz: z, me, speed: me ? 5.8 : 4.8 + i * 0.25, reach: me ? 1.9 : 1.35, moving: false, vNow: 0, want: 0, wantT: 0, take: false, miss: false, decided: -1, swingT: -1, wind: 0, heading: team ? Math.PI : 0 });
+const mkPl = (team, x, z, me, i) => ({ team, x, z, tx: x, tz: z, hx: x, hz: z, me, speed: me ? 5.8 : 4.8 + i * 0.25, reach: me ? 1.9 : 1.35, moving: false, vNow: 0, want: null, wantT: 0, take: false, miss: false, decided: -1, swingT: -1, wind: 0, heading: team ? Math.PI : 0 });
 
 const CSS = `
 .pk-hud{position:fixed;inset:0;z-index:22;pointer-events:none;font-family:'Nunito',sans-serif;color:#fff;--thumb:16px}
@@ -140,6 +177,7 @@ const CSS = `
 .pk-knob i{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:rgba(255,255,255,.85)}
 .pk-stickhint{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--thumb));bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb));width:120px;height:120px;border-radius:50%;border:3px dashed rgba(255,255,255,.5);display:grid;place-items:center;pointer-events:none}
 .pk-hud.touch .pk-btn small{display:none}
+.pk-hud .pk-btn{position:relative;overflow:hidden}.pk-hud .pk-pow{position:absolute;left:8px;right:8px;bottom:4px;height:5px;border-radius:3px;background:rgba(0,0,0,.4);display:none}.pk-hud .pk-btn.charging .pk-pow{display:block}.pk-hud .pk-pow b{display:block;height:100%;width:0;background:#ffd166;border-radius:3px}.pk-hud .pk-btn.charging{filter:brightness(1.2)}
 .pk-hud .pk-btn.hot{box-shadow:0 0 0 4px rgba(255,209,102,.95),0 0 26px rgba(255,209,102,.85);border-color:#ffd166}
 @media (max-height:470px){.pk-hud .pk-btn{width:104px;height:52px}.pk-hud .pk-tip{top:calc(env(safe-area-inset-top,0px) + 58px)}}`;
 
@@ -153,7 +191,7 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
   return new Promise(res => {
     const P = G.player, rig0 = P.rig, S = G.sound, eu = isEU(), cam = G.camera;
     const home = home0 || { x: P.pos.x, z: P.pos.z, h: P.heading }, pHome = partner ? { x: partner.pos.x, z: partner.pos.z, h: partner.heading } : null;
-    const st = { t: 0, phase: 'intro', phaseT: 0, g: [0, 0], q: [0, 0], server: 0, faults: 0, games, over: false, auto: false, hitId: 0,
+    const st = { t: 0, phase: 'intro', phaseT: 0, g: [0, 0], q: [0, 0], server: 0, faults: 0, games, over: false, auto: false, hitId: 0, charge: null,
       ball: { x: 0, y: 1, z: 7, vx: 0, vy: 0, vz: 0, last: 0, crossed: false, bounces: 0, dead: false, inPlay: false, serve: false, serveOk: false, serveB: 0, held: -1 },
       pl: [mkPl(0, 1.4, NETZ - 7.5, true, 0), mkPl(0, -2.4, NETZ - 5.5, false, 1), mkPl(1, -1.6, NETZ + 5.5, false, 2), mkPl(1, 2.3, NETZ + 7.5, false, 3)] };
     const b = st.ball, P0 = st.pl[0], T = { rojos: tr('Rojos'), azules: tr('Azules') };
@@ -167,11 +205,11 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
       <div class="pk-sb"><span class="pk-t r">${esc(T.rojos)}</span><b class="pk-g">0</b><i class="pk-q">0 · 0</i><b class="pk-g">0</b><span class="pk-t a">${esc(T.azules)}</span></div>
       <div class="pk-tip"></div><div class="pk-fb"></div>
       <div class="pk-stick"><div class="pk-knob"><i></i></div></div>${touch ? '<div class="pk-stickhint"><svg viewBox="0 0 48 48" width="46" height="46"><path d="M24 6l6 7h-4v8h8v-4l7 7-7 7v-4h-8v8h4l-6 7-6-7h4v-8h-8v4l-7-7 7-7v4h8v-8h-4z" fill="#fff" opacity=".9"/></svg></div>' : ''}
-      <div class="pk-btns"><button type="button" class="pk-btn" data-k="golpe"><b>${esc(tr('Golpe'))}</b><small>${esc(tr('espacio'))}</small></button><button type="button" class="pk-btn ghost" data-k="dejada"><b>${esc(tr('Dejada'))}</b><small>${esc(tr('mayús'))}</small></button></div>`;
+      <div class="pk-btns"><button type="button" class="pk-btn ghost" data-k="globo"><b>${esc(tr('Globo'))}</b><small>L</small></button><button type="button" class="pk-btn ghost" data-k="dejada"><b>${esc(tr('Dejada'))}</b><small>K</small></button><button type="button" class="pk-btn" data-k="golpe"><b>${esc(tr('Golpe'))}</b><small>${esc(tr('espacio'))}</small><i class="pk-pow"><b></b></i></button></div>`;
     document.body.appendChild(hud);
-    const $ = s => hud.querySelector(s), fb = $('.pk-fb'), tip = $('.pk-tip'), sbG = hud.querySelectorAll('.pk-g'), sbQ = $('.pk-q'), btnG = $('.pk-btn[data-k="golpe"]'); let lastHot = false, firstRally = true;
+    const $ = s => hud.querySelector(s), fb = $('.pk-fb'), tip = $('.pk-tip'), sbG = hud.querySelectorAll('.pk-g'), sbQ = $('.pk-q'), btnG = $('.pk-btn[data-k="golpe"]'), powB = $('.pk-pow b'); let lastHot = false, firstRally = true;
     const say = (why, sub = '', cls = '') => { fb.innerHTML = `<b>${esc(why)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}`; fb.className = 'pk-fb on ' + cls; fbT = 1.6; };
-    const score = () => { sbG[0].textContent = st.g[0]; sbG[1].textContent = st.g[1]; sbQ.textContent = `${QN[st.q[0]] ?? '40'} · ${QN[st.q[1]] ?? '40'}`; };
+    const score = () => { sbG[0].textContent = st.g[0]; sbG[1].textContent = st.g[1]; sbQ.textContent = `${QN[st.q[0]] ?? '40'} · ${QN[st.q[1]] ?? '40'}`; try { V.setScore?.(st.g[0], QN[st.q[0]] ?? '40', st.g[1], QN[st.q[1]] ?? '40', T.rojos.toUpperCase(), T.azules.toUpperCase()); } catch (e) { } };
     const setTip = (s) => { tip.textContent = s; tip.style.display = s ? '' : 'none'; };
     // --- las figuras: tú (tu rig), la pareja (el canónigo) y los rivales (dos vecinos de negro)
     const rig = rig0; P.rig = { update() { }, doAct() { }, doCheer() { }, doWave() { }, setExpr() { } };
@@ -189,7 +227,7 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
     } catch (e) { console.warn('pasaka rivales', e); }
     try { if (V.stand.length) { crowdS = crowd3d(V.stand, 'pelota', 1.36, { sit: false, all3d: true }); G.scene.add(crowdS); } if (V.sit.length) { crowdB = crowd3d(V.sit, 'pelota', 1.36, { sit: true, all3d: true }); G.scene.add(crowdB); } } catch (e) { console.warn('pasaka público', e); crowdS = crowdB = null; }
     // --- el saque y los quinces (entre quince y quince cada uno vuelve andando a su sitio y el que saca, tras su línea)
-    const homeAll = () => { for (const p of st.pl) { p.take = false; p.want = 0; p.tx = p.hx; p.tz = p.hz; } if (st.server === 0) P0.tz = Math.min(P0.z, NETZ - SAQUE - 1); else { st.pl[2].tx = -1.4; st.pl[2].tz = NETZ + SAQUE + 1.2; } };
+    const homeAll = () => { for (const p of st.pl) { p.take = false; p.want = null; p.tx = p.hx; p.tz = p.hz; } if (st.server === 0) P0.tz = Math.min(P0.z, NETZ - SAQUE - 1); else { st.pl[2].tx = -1.4; st.pl[2].tz = NETZ + SAQUE + 1.2; } };
     const setupServe = () => { st.phase = 'serve'; st.phaseT = 0; b.inPlay = false; b.dead = false; b.vx = b.vy = b.vz = 0; b.held = st.server; setTip(st.server === 0 ? tr('Pulsa Golpe para sacar') : tr('Sacan los azules')); };
     const nextPoint = () => { if (st.over) return; st.phase = 'dead'; st.phaseT = 0; homeAll(); };
     const cheer = (k) => { cheerT = k; crowdS?.cheer?.(true); crowdB?.cheer?.(true); };
@@ -204,23 +242,25 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
       score(); nextPoint();
     };
     const serveFault = () => { if (st.phase === 'dead' || st.over) return; st.faults++; if (st.faults >= 2) { st.faults = 0; return point(1 - st.server, tr('Falta de saque')); } say(tr('Falta de saque'), tr('Segundo saque'), 'bad'); nextPoint(); };
-    const launch = (pl, kind, aim = 0) => {
+    // kind: saque, golpe (con potencia 0..1 y largo aimY -1..1), dejada o globo; aim: a lo ancho, -1..1 (en coordenadas de la cancha)
+    const launch = (pl, kind, aim = 0, power = 0.5, aimY = 0) => {
       const t = pl.team, dir = t === 0 ? 1 : -1;
       let q = 1; if (b.y < 0.25) q -= 0.35; else if (b.y > 1.9) q -= 0.25;
       q -= Math.max(0, Math.hypot(b.x - pl.x, b.z - pl.z) - 0.6) * 0.3; if (Math.hypot(b.vx, b.vy, b.vz) > 16) q -= 0.15; if (!pl.me) q -= 0.05;
-      if (kind === 'saque') q = 0.95; q = clamp(q, 0.2, 1);
+      if (kind === 'golpe') q -= 0.12 * Math.max(0, power - 0.5) * 2; if (kind === 'saque') q = 0.95; q = clamp(q, 0.2, 1);
       let xt, zt, Tf, yt = 0;
       if (kind === 'saque') { xt = aim * (W / 2 - 1.4); zt = t === 0 ? L - 0.1 : 0.1; yt = t === 0 ? 1.4 + Math.random() * 0.5 : 0.6 + Math.random() * 0.5; Tf = 1.0; }
       else if (kind === 'dejada') { xt = aim * (W / 2 - 1.0); zt = NETZ + dir * (1.5 + Math.random() * 0.9); Tf = 0.72; }
-      else { xt = aim * (W / 2 - 0.9); zt = t === 0 ? L - 0.6 - Math.random() * 1.6 : 1.8 + Math.random() * 2.4; Tf = 1.0 + Math.random() * 0.12; }
+      else if (kind === 'globo') { xt = aim * (W / 2 - 1.2); zt = t === 0 ? L - 2.5 - Math.random() * 2 : 2.5 + Math.random() * 2; Tf = 1.7; }
+      else { xt = aim * (W / 2 - 0.9); const deep = t === 0 ? L - 1.6 + aimY * 1.4 - Math.random() * 1.2 : 2.8 - aimY * 1.4 + Math.random() * 1.2; zt = t === 0 ? clamp(deep, NETZ + 3, L - 0.4) : clamp(deep, 0.6, NETZ - 3); Tf = 1.12 - 0.34 * power + Math.random() * 0.06; }
       xt = clamp(xt + (1 - q) * (Math.random() - 0.5) * 3, -W / 2 + 0.3, W / 2 - 0.3);
       b.vx = (xt - b.x) / Tf; b.vz = (zt - b.z) / Tf; b.vy = (yt - b.y) / Tf + 0.5 * GRAV * Tf;
       const tn = (NETZ - b.z) / b.vz, yn = b.y + b.vy * tn - 0.5 * GRAV * tn * tn, need = NETH + 0.14;
       if (tn > 0 && yn < need) b.vy += (need - yn) / tn;
-      b.vy -= (1 - q) * (kind === 'dejada' ? 1.4 : 1.1) * Math.random();
+      b.vy -= (1 - q) * (kind === 'dejada' ? 1.4 : kind === 'globo' ? 0.8 : 1.1) * Math.random();
       b.last = t; b.crossed = false; b.bounces = 0; b.dead = false; b.serve = kind === 'saque'; b.serveOk = false; b.serveB = 0; b.inPlay = true; b.held = -1; st.hitId++;
-      pl.swingT = 0; pl.want = 0; S?.pelota?.(kind === 'dejada' ? 0.5 : 0.9);
-      if (st.phase === 'serve') { st.phase = 'flight'; setTip(firstRally ? tr('Corre al círculo y pulsa Golpe cuando brille') : ''); }
+      pl.swingT = 0; pl.want = null; S?.pelota?.(kind === 'dejada' ? 0.5 : kind === 'globo' ? 0.6 : 0.6 + 0.5 * power);
+      if (st.phase === 'serve') { st.phase = 'flight'; setTip(firstRally ? tr('Mantén Golpe para cargar y apuntar con la palanca; suelta cuando brille') : ''); }
       if (pl.me && kind !== 'saque') { firstRally = false; setTip(''); }
       assign();
     };
@@ -233,9 +273,10 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
       for (const p of rec) if (!p.take && !(p.me && !st.auto)) { p.tx = clamp(-pr.x * 0.4, -W / 2 + 0.6, W / 2 - 0.6); p.tz = p.hz; }
     };
     const aiShot = (pl) => {
-      const opp = st.pl.filter(p => p.team !== pl.team), far = opp.every(p => Math.abs(p.z - NETZ) > 6.5), kind = far && Math.random() < 0.4 ? 'dejada' : 'golpe';
+      const opp = st.pl.filter(p => p.team !== pl.team), far = opp.every(p => Math.abs(p.z - NETZ) > 6.5), near = opp.every(p => Math.abs(p.z - NETZ) < 4);
+      const kind = far && Math.random() < 0.4 ? 'dejada' : near && Math.random() < 0.35 ? 'globo' : 'golpe';
       let best = 0, bd = -1; for (const a of [-0.85, -0.3, 0.3, 0.85]) { const d = Math.min(...opp.map(p => Math.abs(p.x - a * (W / 2 - 0.9)))) + Math.random() * 0.8; if (d > bd) { bd = d; best = a; } }
-      launch(pl, kind, best);
+      launch(pl, kind, best, 0.35 + Math.random() * 0.5, Math.random() * 2 - 1);
     };
     const onFloor = () => {
       if (b.dead || !b.inPlay) return; S?.pelota?.(0.2);
@@ -265,8 +306,10 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
     const movePl = (pl, dt) => {
       const x0 = pl.x, z0 = pl.z;
       if (pl.me && !st.auto) {
-        // tú: la palanca o las teclas; si no, el destino que fijó un toque (ir)
-        const kx = ((keys.right ? 1 : 0) - (keys.left ? 1 : 0) + stick.x) * SX, kz = (keys.up ? 1 : 0) - (keys.down ? 1 : 0) + stick.y, n = Math.hypot(kx, kz);
+        // tú: la palanca o las teclas; si no, el destino que fijó un toque (ir). Cargando un golpe, la palanca apunta
+        // y corres solo hacia donde va a caer la pelota (como en el frontón)
+        const kx = st.charge ? 0 : ((keys.right ? 1 : 0) - (keys.left ? 1 : 0) + stick.x) * SX, kz = st.charge ? 0 : (keys.up ? 1 : 0) - (keys.down ? 1 : 0) + stick.y, n = Math.hypot(kx, kz);
+        if (st.charge && st.phase === 'flight' && b.inPlay && !b.dead && b.last !== 0) { const pr = predict(b); if (pr.z < NETZ) { pl.tx = clamp(pr.x, -W / 2 + 0.4, W / 2 - 0.4); pl.tz = clamp(pr.z - 0.8, 0.8, NETZ - 0.7); } }
         if (n > 0.08) { const m = Math.min(1, n); pl.x += kx / n * m * pl.speed * dt; pl.z += kz / n * m * pl.speed * dt; pl.tx = pl.x; pl.tz = pl.z; }
         else { const dx = pl.tx - pl.x, dz = pl.tz - pl.z, d = Math.hypot(dx, dz); if (d > 0.05) { const k = Math.min(1, pl.speed * dt / d); pl.x += dx * k; pl.z += dz * k; } }
       } else { const dx = pl.tx - pl.x, dz = pl.tz - pl.z, d = Math.hypot(dx, dz); if (d > 0.05) { const k = Math.min(1, pl.speed * dt / d); pl.x += dx * k; pl.z += dz * k; } }
@@ -295,7 +338,10 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
       if (!pl.miss) aiShot(pl);
     };
     const aimOf = () => { const kx = ((keys.right ? 1 : 0) - (keys.left ? 1 : 0) + stick.x) * SX; if (Math.abs(kx) > 0.25) return clamp(kx, -1, 1) * 0.85; return clamp((b.x - P0.x) / 1.2, -1, 1) * 0.5; };
-    const press = (kind) => { if (ended || st.over) return; if (st.phase === 'serve' && st.server === 0 && b.held === 0) { launch(P0, 'saque', aimOf()); return; } P0.want = kind; P0.wantT = 0.55; };
+    // un toque: golpe medio, dejada o globo; mantener Golpe carga la potencia (0,9 s a tope) y la palanca apunta a lo ancho y a lo largo
+    const press = (kind, power = 0.5, aimX = null, aimY = 0) => { if (ended || st.over) return; if (st.phase === 'serve' && st.server === 0 && b.held === 0) { launch(P0, 'saque', aimX != null ? aimX * 0.85 : aimOf(), power); return; } P0.want = { kind, power, aimX, aimY }; P0.wantT = 0.55; };
+    const chargeStart = () => { if (ended || st.over || st.charge) return; st.charge = { t: 0, aimX: null, aimY: 0 }; btnG?.classList.add('charging'); if (powB) powB.style.width = '0%'; firstRally = false; setTip(''); };
+    const chargeEnd = () => { if (!st.charge) return; const c = st.charge; st.charge = null; btnG?.classList.remove('charging'); press('golpe', clamp(c.t / 0.9, 0.2, 1), c.aimX, c.aimY); };
     const update = (dt) => {
       st.t += dt; st.phaseT += dt;
       if (st.phase === 'intro') { if (st.phaseT > 1.6) setupServe(); }
@@ -303,7 +349,8 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
       for (const p of st.pl) { think(p, dt); movePl(p, dt); }
       for (const a of st.pl) for (const c of st.pl) if (a !== c && a.team === c.team) { const dx = c.x - a.x, dz = c.z - a.z, d = Math.hypot(dx, dz); if (d < 0.8 && d > 1e-3) { c.x += dx / d * (0.8 - d) * 0.5; c.z += dz / d * (0.8 - d) * 0.5; } }
       if (st.phase === 'serve' && b.held >= 0) { const srv = b.held === 0 ? P0 : st.pl[2]; b.x = srv.x + 0.3; b.y = 1.05; b.z = srv.z + (b.held === 0 ? 0.3 : -0.3); }
-      if (P0.want && !st.auto) { P0.wantT -= dt; if (st.phase === 'flight' && b.inPlay && !b.dead && b.last !== 0 && inReach(P0, b)) launch(P0, P0.want, aimOf()); else if (P0.wantT <= 0) { P0.want = 0; P0.swingT = 0; } }
+      if (st.charge) { st.charge.t += dt; const ax = ((keys.right ? 1 : 0) - (keys.left ? 1 : 0) + stick.x) * SX, ay = (keys.up ? 1 : 0) - (keys.down ? 1 : 0) + stick.y; if (Math.abs(ax) > 0.2) st.charge.aimX = clamp(ax, -1, 1); if (Math.abs(ay) > 0.2) st.charge.aimY = clamp(ay, -1, 1); if (powB) powB.style.width = Math.round(Math.min(1, st.charge.t / 0.9) * 100) + '%'; }
+      if (P0.want && !st.auto) { P0.wantT -= dt; if (st.phase === 'flight' && b.inPlay && !b.dead && b.last !== 0 && inReach(P0, b)) { const w = P0.want; launch(P0, w.kind, w.aimX != null ? w.aimX * 0.85 : aimOf(), w.power, w.aimY); } else if (P0.wantT <= 0) { P0.want = null; P0.swingT = 0; } }
       for (let i = 0, n = Math.ceil(dt / (1 / 120)); i < n; i++) stepBall(dt / n);
       if (st.phase === 'flight' && !b.inPlay) nextPoint();
       if (fbT > 0 && (fbT -= dt) <= 0) fb.className = 'pk-fb';
@@ -326,7 +373,7 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
       if (coming) { const pr = predict(b); if (pr.z < NETZ) { V.ring.visible = true; V.ring.position.set(pr.x, 0.016, pr.z); const k = 1 + 0.08 * Math.sin(st.t * 9); V.ring.scale.set(k, k, 1); } else V.ring.visible = false; } else V.ring.visible = false;
       const hot = coming && inReach(P0, b); if (hot !== lastHot) { lastHot = hot; btnG?.classList.toggle('hot', hot); }
       // la cámara: detrás de la valla, a la altura de una galería, mirando al frontis (se mueve un poco contigo)
-      const cx = clamp(P0.x * 0.35 + (b.inPlay ? b.x * 0.15 : 0), -2.2, 2.2), cp = V.toWorld(cx, -3.4, 4.7), cl = V.toWorld(clamp(b.inPlay ? b.x * 0.4 : 0, -1.5, 1.5), NETZ + 1.0, 0.8);
+      const cx = clamp(P0.x * 0.35 + (b.inPlay ? b.x * 0.15 : 0), -2.2, 2.2), cp = V.toWorld(cx, -3.4 + clamp((P0.z - 6.75) * 0.3, -1.0, 1.6), 4.7), cl = V.toWorld(clamp(b.inPlay ? b.x * 0.4 : 0, -1.5, 1.5), NETZ + 1.0, 0.8);
       if (!cine) { cine = G.follow.cinematic = { pos: cp.clone(), look: cl.clone(), t: 0, lookCur: cl.clone() }; cam.position.copy(cp); cam.lookAt(cl); }
       else { if (G.follow.cinematic !== cine) G.follow.cinematic = cine; cine.pos.copy(cp); cine.look.copy(cl); }
       try { crowdS?.tick?.(st.t, cheerT > 0 ? 1 : 0.15, 0, cam); crowdB?.tick?.(st.t, cheerT > 0 ? 1 : 0.15, 0, cam); } catch (e) { }
@@ -335,7 +382,9 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
     const KEYMAP = { arrowleft: 'left', a: 'left', arrowright: 'right', d: 'right', arrowup: 'up', w: 'up', arrowdown: 'down', s: 'down' };
     const onKey = (e) => { const k = e.key.toLowerCase(), down = e.type === 'keydown'; if (KEYMAP[k]) { keys[KEYMAP[k]] = down; e.preventDefault(); e.stopImmediatePropagation(); return; }
       if (!down) return; if (k === 'escape') { e.preventDefault(); e.stopImmediatePropagation(); return done({ quit: true }); }
-      if (k === ' ' || k === 'j' || k === 'enter' || k === '1') { e.preventDefault(); e.stopImmediatePropagation(); if (!e.repeat) press('golpe'); } else if (k === 'shift' || k === 'k' || k === '2') { e.preventDefault(); e.stopImmediatePropagation(); if (!e.repeat) press('dejada'); } };
+      if (k === 'shift' || k === 'k' || k === '2') { e.preventDefault(); e.stopImmediatePropagation(); if (!e.repeat) press('dejada'); } else if (k === 'l' || k === '3') { e.preventDefault(); e.stopImmediatePropagation(); if (!e.repeat) press('globo'); } };
+    const onSpace = (e) => { const k = e.key.toLowerCase(); if (!(k === ' ' || k === 'j' || k === 'enter' || k === '1')) return; e.preventDefault(); e.stopImmediatePropagation(); if (e.type === 'keydown') { if (!e.repeat) chargeStart(); } else chargeEnd(); };
+    addEventListener('keydown', onSpace, true); addEventListener('keyup', onSpace, true);
     addEventListener('keydown', onKey, true); addEventListener('keyup', onKey, true);
     const zone = $('.pk-stick'), knob = $('.pk-knob'), RK = 56;
     const resetStick = () => { stick = { id: null, x: 0, y: 0 }; knob.style.display = 'none'; };
@@ -346,8 +395,10 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
     // (si el dedo sale de la pantalla sin «pointerup», la palanca se suelta igual)
     const onTouchEnd = () => { if (stick.id !== null && !(navigator.maxTouchPoints > 0 && document.querySelector(':active') === zone)) resetStick(); };
     addEventListener('touchend', onTouchEnd, true); addEventListener('touchcancel', onTouchEnd, true);
-    const onBlur = () => { keys = {}; resetStick(); }; addEventListener('blur', onBlur);
-    hud.querySelectorAll('.pk-btn').forEach(bt => bt.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); bt.classList.add('flash'); setTimeout(() => bt.classList.remove('flash'), 140); press(bt.dataset.k); }));
+    const onBlur = () => { keys = {}; resetStick(); if (st.charge) { st.charge = null; btnG?.classList.remove('charging'); } }; addEventListener('blur', onBlur);
+    hud.querySelectorAll('.pk-btn').forEach(bt => { const k = bt.dataset.k;
+      bt.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); bt.classList.add('flash'); setTimeout(() => bt.classList.remove('flash'), 140); if (k === 'golpe') chargeStart(); else press(k); });
+      if (k === 'golpe') { const up = (e) => { e.preventDefault?.(); chargeEnd(); }; bt.addEventListener('pointerup', up); bt.addEventListener('pointercancel', up); bt.addEventListener('pointerleave', up); } });
     $('.pk-x').onclick = () => done({ quit: true });
     // --- el bucle (lo llama el pueblo en modo pelota) y el final
     G.pelotaMatch = { pasaka: true }; G.pelotaRig = rig; G.pelotaAbort = () => done({ quit: true, error: true });
@@ -355,7 +406,7 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
     function done(r) {
       if (ended) return; ended = true;
       G.pelotaTick = null; G.pelotaMatch = null; G.pelotaRig = null; G.pelotaAbort = null; delete window.__pasaka;
-      removeEventListener('keydown', onKey, true); removeEventListener('keyup', onKey, true); removeEventListener('blur', onBlur); removeEventListener('pointermove', onPtrMove, true); removeEventListener('pointerup', endStick, true); removeEventListener('pointercancel', endStick, true); removeEventListener('touchend', onTouchEnd, true); removeEventListener('touchcancel', onTouchEnd, true);
+      removeEventListener('keydown', onKey, true); removeEventListener('keyup', onKey, true); removeEventListener('keydown', onSpace, true); removeEventListener('keyup', onSpace, true); removeEventListener('blur', onBlur); removeEventListener('pointermove', onPtrMove, true); removeEventListener('pointerup', endStick, true); removeEventListener('pointercancel', endStick, true); removeEventListener('touchend', onTouchEnd, true); removeEventListener('touchcancel', onTouchEnd, true);
       const safe = (f) => { try { f(); } catch (e) { console.warn('pasaka', e); } };
       safe(() => hud.remove());
       safe(() => { if (rig?.char) rig.char.post = null; rig?.setStance?.(null); });
@@ -363,7 +414,7 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
       safe(() => { if (partner) { if (partner.glb) partner.glb.post = null; partner.frozen = false; partner.speed = 0; if (pHome) partner.setPos(pHome.x, pHome.z, pHome.h); } });
       safe(() => { for (const c of [crowdS, crowdB]) if (c) { c.parent?.remove(c); c.dispose?.(); } });
       safe(() => { V.ball.visible = V.shadow.visible = V.ring.visible = false; });
-      safe(() => { if (G.beacon) G.beacon.off = false; if (G.sky) { G.sky.flood = 0; G.sky.indoor = false; } G.rt?.boost?.(false); S?.setMusic?.(wasMusic); });
+      safe(() => { if (G.beacon) G.beacon.off = false; if (G.sky && !stay) { G.sky.flood = 0; G.sky.indoor = false; } G.rt?.boost?.(false); S?.setMusic?.(wasMusic); });
       P.rig = rig0; P.frozen = !!stay; G.mode = 'play';
       if (!stay) { safe(() => G.ui.hudVisible?.(true)); safe(() => G.perro?.release?.()); safe(() => { P.place(home.x, home.z, home.h); G.follow.cinematic = null; G.follow.snap(P); }); }
       else safe(() => { P.place(V.entry.x, V.entry.z, 0); G.follow.cinematic = null; G.follow.snap(P); });
@@ -371,7 +422,7 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
     }
     // (para las pruebas: el estado, golpear, ir a un punto, jugar solo y adelantar el partido sin dibujar)
     window.__pasaka = { estado: () => ({ phase: st.phase, g: st.g.slice(), q: st.q.slice(), server: st.server, ball: { x: +b.x.toFixed(2), y: +b.y.toFixed(2), z: +b.z.toFixed(2), inPlay: b.inPlay, last: b.last }, you: { x: +P0.x.toFixed(2), z: +P0.z.toFixed(2) }, over: st.over }),
-      golpear: press, ir: (x, z) => { P0.tx = x; P0.tz = z; }, auto: (on) => { st.auto = !!on; }, simular: (sec) => { for (let i = 0; i < sec * 60 && !ended; i++) update(1 / 60); if (!ended) place(1 / 60); }, fin: () => ended };
+      golpear: press, cargar: chargeStart, soltar: chargeEnd, ir: (x, z) => { P0.tx = x; P0.tz = z; }, auto: (on) => { st.auto = !!on; }, simular: (sec) => { for (let i = 0; i < sec * 60 && !ended; i++) update(1 / 60); if (!ended) place(1 / 60); }, fin: () => ended };
     // (los jugadores, cada uno en su sitio desde el primer fotograma; el jugador llega andando desde la entrada)
     homeAll(); score(); say(tr('¡Prepárate!'), partner ? (eu ? `${partner.name}ekin` : `Con ${partner.name}`) : tr('Sobreclaustro de la catedral')); place(0);
   });
