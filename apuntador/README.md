@@ -1,10 +1,11 @@
 # Apuntador
 
 Director de escena para vídeos y videollamadas. Mira tu cara (contorno, cejas, ojos, iris, labios), tu cuerpo
-(hombros, codos, muñecas, postura) y cada mano con sus 21 puntos, y escucha tu voz. Mientras lees tu guion no te
-interrumpe: apunta lo que ve y, al terminar, te lo enseña sobre tu propio vídeo, parándolo en cada momento clave
-con lo que pasó y cómo hacerlo: «Saluda con la mano: no se vio», «Manos fuera de plano», «Más despacio»…
-En una videollamada sí te avisa en el momento: «Descruza los brazos», «Asiente de vez en cuando»…
+(hombros, codos, muñecas, postura) y cada mano con sus 21 puntos, y escucha tu voz. En el ensayo te va diciendo
+qué hacer; grabando de verdad no te interrumpe: arriba, unos medidores de reojo (tu nota, sonrisa, gestos y voz) y,
+al terminar, te enseña sobre tu propio vídeo, parándolo en cada momento clave, qué pasó y cómo hacerlo: «Saluda con
+la mano: no se vio», «Manos fuera de plano», «Más despacio»… En una videollamada te avisa en el momento: «Descruza
+los brazos», «Asiente de vez en cuando»…
 
 Es una app web: un `index.html` con su manifiesto, sus iconos y un service worker. Se instala en la pantalla de
 inicio y se abre como una app, a pantalla completa y sin las barras del navegador.
@@ -48,8 +49,8 @@ hacerlos. Como estás leyendo, en este modo no te corrige la mirada. Marcas: `[a
 ese párrafo, `//` es una pausa, `*palabra*` pide énfasis y `{abre los brazos}` es una acotación tuya.
 
 **El texto se lee limpio.** En el teleprompter solo están las palabras que dices (las pausas `//` son una raya fina;
-el énfasis, otro color) y, en el margen, el emoji de cada gesto. Por defecto no hay nada más (ver «Graba y revisa»).
-Con «Mientras lees: El texto, la línea y los avisos», abajo, cerca de los botones:
+el énfasis, otro color) y, en el margen, el emoji de cada gesto. Grabando de verdad, por defecto, solo se añaden los
+medidores de arriba (ver «Ensaya, graba y revisa»). En el ensayo (o con «avisos» elegido), abajo, cerca de los botones:
 - *En breve*: el gesto que viene, unos 2,5 segundos antes de su palabra, con una barra que se vacía;
 - *¡Ahora!*: el gesto en su momento (con la figura animada que lo hace) y ✓ si lo haces;
 - la línea verde, ámbar o roja que dice si vas bien;
@@ -58,14 +59,14 @@ Con «Mientras lees: El texto, la línea y los avisos», abajo, cerca de los bot
 Mientras lees no hay ideas, ni etiquetas del esqueleto (que queda tenue), ni línea de estado, y el monitor se recoge
 (en el móvil se oculta). En la vista previa (paso «Revisión») los gestos se ven como emojis en el margen.
 
-**Ensayo antes de grabar** (desactivado por defecto: cada toma ya se revisa; se activa en el paso «Antes de grabar»).
-1. *Paso 1 · Ensayo*: «comenzamos» (o dos palmadas, o Ensayar) hace una toma de prueba, que se graba solo para
-   revisarla. «Corten» la para al momento.
+**Ensayo antes de grabar** (activado por defecto; se quita en el paso «Antes de grabar»).
+1. *Paso 1 · Ensayo*: «comenzamos» (o dos palmadas, o Ensayar) hace una toma de prueba con el coach hablándote, que
+   se graba solo para revisarla. «Corten» la para al momento.
 2. La revisión sobre su vídeo, como la de cualquier toma, con el arranque (los 3 primeros segundos, lo que decide en
    redes si se quedan a verte) y la duración (Reels, TikTok, Shorts) en el informe.
-3. *Paso 2 · Grabación de verdad*: «Grabar la buena» (o «comenzamos») graba; «Otro ensayo» repite la prueba. Con
-   «Mientras lees: El texto y una línea de color» se ve **la línea verde** si te acercas a tus objetivos (mejor que en
-   el ensayo), **ámbar** si vas igual y **roja** si te alejas.
+3. *Paso 2 · Grabación de verdad*: «Grabar la buena» (o «comenzamos») graba, con los medidores arriba; «Otro
+   ensayo» repite la prueba. Con «Al grabar de verdad: avisos y medidores», además, los avisos y **la línea verde** si
+   te acercas a tus objetivos (mejor que en el ensayo), **ámbar** si vas igual y **roja** si te alejas.
 4. Si el navegador no puede grabar vídeo, el resultado del ensayo sale en una tarjeta sin salir del plató, y cada
    ensayo dice cómo vas frente al anterior («Tus ensayos: 52% → 61% ▲ +9»).
 
@@ -119,27 +120,37 @@ Con «Ventana flotante» (Chrome y Edge de escritorio) el apuntador se queda enc
 analizando aunque la pestaña quede detrás. Si la aplicación de la llamada no deja usar la cámara a la vez,
 abre la llamada en otra pestaña del mismo navegador.
 
-## Graba y revisa
+## Ensaya, graba y revisa
 
-Leyendo un guion no da tiempo a leer avisos («sube las manos», «sonríe»…): despistan y se lee peor. Por eso:
+Leyendo un guion no da tiempo a leer avisos («sube las manos», «sonríe»…): despistan y se lee peor. Por eso cada
+momento tiene su ayuda:
 
-1. **Mientras lees, solo el texto.** Nada encima: ni avisos, ni alertas, ni puntos, ni la línea de color, ni el
-   porcentaje. El entrenador sigue mirando y escuchando y lo apunta todo. La cuenta atrás lo recuerda («Grabando ·
-   solo tu guion: lo revisamos al terminar») y, si la toma anterior dejó algo pendiente, dice una sola cosa en la
-   que fijarte («🎯 Esta vez, fíjate en: 🐢 Más despacio»).
-2. **Al terminar, la revisión sobre tu vídeo.** Es lo primero que se ve: el vídeo, la línea de la toma con sus
-   notas (rojo, a mejorar; ámbar, a vigilar; verde, bien hecho) y «Revisar con el coach». El vídeo se para en cada
-   nota y una tarjeta dice qué pasó, lo que estabas diciendo («Estabas diciendo «¡Hola a todos! Hoy…»») y cómo
-   hacerlo, con una marca encima del vídeo. «Seguir» va a la siguiente; «Verlo otra vez» vuelve unos segundos atrás
-   y se para después; la flecha, a la anterior; tocar una nota de la línea la abre. Se puede quitar «Parar el vídeo
-   en cada nota» para verlo de corrido.
-3. **Una sola cosa para la próxima toma.** Al final: «Fíjate solo en esto» (lo que más se repitió, con cómo
-   hacerlo) y «Otra toma». Lo demás puede esperar: una cosa cada vez se aprende antes.
+| Momento | Qué ves mientras lees | Para qué |
+|---|---|---|
+| 🧪 **Ensayo** | El coach te habla: el gesto que viene («En breve»), qué corregir, y los medidores arriba | Aprender qué hacer |
+| 🔴 **Grabación de verdad** | Solo los **medidores**, para mirarlos de reojo, sin ningún texto | Saber cómo vas sin perder el hilo |
+| ✅ **Al terminar** | La **revisión sobre tu vídeo**, parándose en cada momento clave | Ver qué mejorar y cómo |
 
-Los ensayos también se graban (solo en el dispositivo) para revisarlos igual; con «Ensayo antes de grabar»
-activado, al final de la revisión están «Grabar la buena» y «Otro ensayo». En «Antes de grabar → Mientras lees» se
-puede volver a ver algo durante la toma: «El texto y una línea de color» o «El texto, la línea y los avisos».
-Con el vídeo sonando, las órdenes de voz no cuentan (lo que oye el micro es tu propia voz grabada).
+**Los medidores** (arriba, en una cápsula oscura): tu nota (el anillo, de 0 a 100) y tres barras con icono —
+🙂 sonrisa, 🙌 gestos con manos y brazos, 🎙️ voz (entonación)—. En cada barra, la franja verde es lo que pide el tono
+que elegiste (un mensaje animado pide más sonrisa y más gestos que uno serio) y el punto es cómo vas: verde, dentro
+de la franja; ámbar, cerca; rojo, lejos. A la derecha, ✋ 2/8: los gestos del guion que has hecho de los que ya han
+pasado (salta un poco cada vez que aciertas). Se leen sin leer, solo con el color y la posición. Tocarlos abre «Cómo
+te ves», con las mismas barras con nombre y «falta / bien / sobra».
+
+**La revisión**, al terminar (ensayo o grabación; el ensayo se graba solo para esto, en el dispositivo):
+1. Es lo primero que se ve: el vídeo, la línea de la toma con sus notas (rojo, a mejorar; ámbar, a vigilar; verde,
+   bien hecho) y «Revisar con el coach». El vídeo se para en cada nota y una tarjeta dice qué pasó, lo que estabas
+   diciendo («Estabas diciendo «¡Hola a todos! Hoy…»») y cómo hacerlo, con una marca encima del vídeo. «Seguir» va a
+   la siguiente; «Verlo otra vez» vuelve unos segundos atrás y se para después; la flecha, a la anterior; tocar una
+   nota de la línea la abre. Se puede quitar «Parar el vídeo en cada nota» para verlo de corrido.
+2. Al final, una sola cosa para la próxima toma («Fíjate solo en esto», con cómo hacerlo) y «Otra toma» (tras un
+   ensayo, «Grabar la buena» u «Otro ensayo»). La cuenta atrás de la siguiente toma te la recuerda («🎯 Esta vez,
+   fíjate en: 🐢 Más despacio»). Lo demás puede esperar: una cosa cada vez se aprende antes.
+
+En «Antes de grabar» se elige qué se ve en cada momento: **En el ensayo** (avisos y medidores · solo medidores · solo
+el texto) y **Al grabar de verdad** (medidores · solo el texto · avisos y medidores). Con el vídeo de la revisión
+sonando, las órdenes de voz no cuentan (lo que oye el micro es tu propia voz grabada).
 
 ## Control por voz
 
@@ -289,7 +300,7 @@ ve debajo) en todas las pantallas, a 390 y 1280 px.
 ## Fallos al leer: aviso para cortar
 
 Mientras lees, la app compara lo que dices con el guion y apunta cada fallo; en la revisión, el vídeo se para en él
-con lo que estabas diciendo. Con «Mientras lees: El texto y una línea de color» o «… y los avisos», además te avisa en
+con lo que estabas diciendo. Con avisos (en el ensayo, por defecto), además te avisa en
 el momento con un aviso rojo arriba («✋ Fallo al leer») para que cortes y repitas diciendo «otra vez», y la palabra
 donde fallaste queda subrayada en rojo en el texto.
 
@@ -317,22 +328,33 @@ donde fallaste queda subrayada en rojo en el texto.
 
 ## Tu plano: luz, sonido, encuadre y nivel
 
-Antes de grabar, la pestaña **Plano** de la información enseña con un dibujo qué hacer con cada cosa:
+La información del plató tiene dos pestañas: **Tu plano** y **Cómo te ves**. En Tu plano, cada parte va en su
+pestaña (💡 Luz · 🎙️ Sonido · 🎯 Encuadre · 📐 Nivel) con un **punto de color**: verde, bien; ámbar o rojo, a cambiar.
+Al abrirse por primera vez se pone en la parte que peor está. Cada parte, de arriba abajo:
 
-| | Qué dibuja | Qué te dice |
-|---|---|---|
-| 💡 **Luz** | Vista desde arriba: tú, la cámara y dónde va la lámpara, con su haz. Debajo, una regla con el brillo de tu cara (oscuro · bien · quemado). | Falta luz → «luz aquí», delante y a un lado de la cámara. Contraluz → la luz de detrás tachada y una flecha hacia delante. Demasiada → aléjala y un difusor. Un lado oscuro → un folio blanco al otro lado que rebota la luz. |
-| 🎙️ **Sonido** | Una regla de volumen con las zonas (bajo, bien, satura), el ruido de fondo y tu voz, y cuánto destaca una del otro. | Bajo → acerca el micro. Satura → aléjalo. Ruido → busca silencio o un micro de solapa. |
-| 🎯 **Encuadre** | La imagen (vertical u horizontal) con los tercios, la silueta ideal y dónde estás tú, con una flecha si hay que moverse. | Cerca, lejos, descentrado (hacia qué lado), cabeza cortada o mucho aire encima. |
-| 📐 **Nivel** | El móvil girado como está, una burbuja de nivel y, si hace falta, el móvil de lado. | Torcido (cuántos grados), mirando hacia arriba o hacia abajo, o tumbado. |
+1. **Cómo está ahora**, en una frase («⚠️ Algo oscuro · Un poco más de luz de frente…»).
+2. **Qué tienes** (se queda guardado):
+   - Luz: 🪟 ventana, ⭕ aro de luz, 🔲 foco o panel, 💡 lámpara o 🏠 solo la del techo (puedes marcar varias).
+   - Sonido: 📱 el móvil, 🎧 auriculares con micro, 🎙️ micro de solapa o 🎤 micro de mesa.
+   - Nivel: 📐 trípode, 📚 apoyado en algo o ✋ en la mano.
+3. **Un dibujo con dónde ponerlo**, cada aparato numerado: la luz vista desde arriba (tú, el móvil y cada luz con su
+   haz), el micro visto de lado (con la distancia: «un brazo y medio», «un palmo»), el encuadre con la silueta ideal y
+   dónde estás tú, y el móvil con su burbuja de nivel. Lo que mide la cámara se dibuja encima: la luz de detrás
+   tachada si hay contraluz, «más cerca» o «más lejos», un folio blanco en el lado oscuro…
+4. **Los pasos**, con los mismos números del dibujo. Por ejemplo, con ventana, aro y lámpara: ① ventana delante de
+   ti, con el móvil entre los dos, nunca a tu espalda; ② aro detrás del móvil, a la altura de los ojos; ③ lámpara al
+   otro lado y más lejos, para suavizar la sombra. Con solo la del techo: de día, frente a una ventana; de noche,
+   una pantalla en blanco delante de ti a la altura de la cara.
+5. **La medida en directo**: el brillo de tu cara (oscuro · bien · quemado) o tu voz frente al ruido.
 
 - El nivel sale del **sensor del móvil** (en iPhone y iPad pide permiso al entrar al plató). Sin sensor (ordenador),
   se mira la línea de los ojos y la de los hombros: si las dos se inclinan igual, lo torcido es la cámara.
 - Encima de la imagen, antes de grabar: una **línea de nivel** en el centro que se pone verde («✓ Recto») al
   enderezar el móvil, y una **silueta discontinua** («Colócate aquí») mientras el encuadre no está bien. Las dos se
   apagan solas cuando ya está todo bien y no aparecen al grabar.
-- La primera vez, al terminar la calibración, el plano se despliega solo (en el móvil, solo si hay algo que
-  arreglar). Al terminar el ensayo y en el informe, lo que estaba mal sale con su dibujo.
+- En **Cómo te ves**: tu nota, lo que transmites frente a lo que querías, los tres medidores con nombre y, plegado,
+  cada parte del cuerpo y todas las medidas.
+- Al terminar, en el informe, lo que estaba mal sale con su dibujo (la luz, con tus aparatos).
 
 ## En pantalla
 
