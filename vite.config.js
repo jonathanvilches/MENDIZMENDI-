@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
 import { viteSingleFile } from 'vite-plugin-singlefile';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
@@ -39,9 +39,20 @@ const MINI = FOTOS === 'mini';
 const MESHY_FULL = MINI ? (process.env.LIGERO ? './src/assets/meshy/lod' : './src/assets/meshy-1024') : './src/assets/meshy';
 // (las chicas: lo que cambia de cada modelo, a la misma resolución que el modelo de esa versión: src/actors/chicas.js)
 const CHICAS = MINI ? (process.env.LIGERO ? './src/assets/chicas/lod' : './src/assets/chicas/1024') : './src/assets/chicas/web';
-const glbGzip = { name: 'glb-gzip', enforce: 'pre', load(id) {
+// (el gzip lo hace zopfli, @gfx/zopfli: el mismo formato, pero alrededor de un 1 % más pequeño, y en el archivo único cada
+// KB cuenta. Tarda, así que cada resultado se guarda por el hash de lo comprimido en node_modules/.cache/zopfli y las
+// compilaciones siguientes lo reutilizan; si zopfli faltara, el gzip normal al máximo)
+const ZCACHE = './node_modules/.cache/zopfli';
+async function gzipMejor(buf) {
+  const f = `${ZCACHE}/${createHash('sha1').update(buf).digest('hex')}.gz`;
+  if (existsSync(f)) return readFileSync(f);
+  let out;
+  try { const { gzipAsync } = await import('@gfx/zopfli'); out = Buffer.from(await gzipAsync(buf, { numiterations: 15 })); } catch (e) { out = gzipSync(buf, { level: 9 }); }
+  mkdirSync(ZCACHE, { recursive: true }); writeFileSync(f, out); return out;
+}
+const glbGzip = { name: 'glb-gzip', enforce: 'pre', async load(id) {
   if (!/\.glb\?url$/.test(id)) return;
-  return `export default ${JSON.stringify('data:application/gzip;base64,' + gzipSync(readFileSync(id.replace(/\?url$/, '')), { level: 9 }).toString('base64'))}`;
+  return `export default ${JSON.stringify('data:application/gzip;base64,' + (await gzipMejor(readFileSync(id.replace(/\?url$/, '')))).toString('base64'))}`;
 } };
 // En el archivo único, además, el código del juego va comprimido con gzip (un tercio de lo que ocupa: deja sitio dentro
 // de los 30 MB de Sitecase). Solo el código: las imágenes, sonidos y modelos que lleva dentro ya van comprimidos y en
@@ -75,7 +86,7 @@ const jsGzip = { name: 'js-gzip', enforce: 'post', async writeBundle(out) {
     const s = document.createElement('script'); s.type = 'module'; s.textContent = new TextDecoder().decode(gunzipSync(u));
     el('hz-codigo').remove(); el('hz-datos').remove(); document.body.appendChild(s);`) }] });
   const cargador = (await b.generate({ format: 'iife', minify: true })).output[0].code.trim();
-  const gz = gzipSync(Buffer.from(code), { level: 9 }).toString('base64');
+  const gz = (await gzipMejor(Buffer.from(code))).toString('base64');
   html = html.replace(re, () => '');
   const fin = html.lastIndexOf('</body>');
   html = html.slice(0, fin) + `<script type="text/plain" id="hz-datos">${datos.join('\n')}</script>\n<script type="text/plain" id="hz-codigo">${gz}</script>\n<script id="hz-cargador">${cargador}</script>\n` + html.slice(fin);

@@ -605,7 +605,9 @@ function catedral(B, S, cx, cz, TOWN) {
   col(0, -38, 28, 10, { solidView: true }); col(0, -44, 18, 6, { solidView: true });
   S.add(F(M(-9.6, 2.2, 26.1)), 1.4, 0.58, plaque(['CATEDRAL DE SANTA MARÍA', 'ANDRE MARIA KATEDRALA']));
   TOWN.houses.push({ x: cx - 0, z: cz, ry, w: 28, d: 70, top: y + 30 });
-  return { door: toW(cx, cz, ry, 0, 37.5), x: cx, z: cz, y, W: 28, L: 70 };
+  // (delante de la puerta del claustro, mirando hacia fuera: ahí espera el canónigo de la pasaka, game/townGame.js)
+  const kd = toW(cx, cz, ry, 28, 22.4), ko = toW(cx, cz, ry, 28, 26);
+  return { door: toW(cx, cz, ry, 0, 37.5), x: cx, z: cz, y, W: 28, L: 70, claustro: { x: kd.x, z: kd.z, heading: Math.atan2(ko.x - kd.x, ko.z - kd.z) } };
 }
 
 // ---------- Todo Pamplona ----------
