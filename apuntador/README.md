@@ -293,21 +293,23 @@ Opcional: sin voz se graba igual (ver «Así se graba»). En el móvil hay que a
 
 ## Diseño
 
-- Fuera del plató, claro y amable: fondo gris muy suave, tarjetas blancas de 24 px de radio, botones negros en
-  píldora y un acento lima. Con el modo oscuro del sistema, todo pasa a oscuro con el lima como botón principal.
-- En el plató, la cámara a pantalla completa con «hojas» claras encima (avisos, tarjetas del ensayo y de objetivos,
-  monitor) y una barra de controles oscura y translúcida.
-- Una sola tipografía, Lexend (pensada para leer con fluidez), en la interfaz y en el teleprompter. Escala de letra
-  1,25; interlineado único (1,5 en texto y 1,2 en títulos; el teleprompter, 1,4); espacios en la rejilla de 8 px.
-- Estructura de app: barra arriba (volver, nombre del paso y su progreso), una columna centrada de 640 px como
-  máximo con márgenes de 16 px (o la zona segura del móvil) y la acción principal fija abajo. El informe usa la
-  misma barra.
-- Los ajustes van en grupos con interruptores, como en los ajustes del móvil, y lo menos usado queda plegado.
-- El texto de los botones nunca se parte: en pantallas pequeñas pasan a otra fila o se quedan solo con el icono.
-  Comprobado sin desbordes ni botones partidos en 320, 360, 375, 390, 414, 430, 768 y 1280 px.
-- Movimiento solo donde dice algo: la entrada con el logo, el contenido de cada paso que llega desde el lado del que
-  vienes, la palabra que cambia en el titular, la cuenta atrás, el anillo de la nota que se
-  llena mientras cuenta y la respuesta de los botones al pulsarlos. Se desactiva si el sistema pide menos movimiento.
+Pensada como una app de Apple:
+- **La letra del sistema** (San Francisco en iPhone, iPad y Mac; la del sistema en Android y Windows), sin descargar
+  ninguna: títulos grandes en negrita, como en iOS, y cifras redondeadas (SF Rounded) en la puntuación y las medidas.
+- **Colores del sistema de iOS**: acciones en azul, verde para lo que está bien, naranja para lo mejorable y rojo para
+  lo que falla; fondo gris de Ajustes y tarjetas blancas (en oscuro, negro y gris carbón).
+- **Inicio como Ajustes**: los cuatro caminos en una lista agrupada, cada uno con su icono de color (rojo grabar,
+  morado analizar, naranja entrenar, verde videollamada) y la flecha a la derecha.
+- **Ajustes de iOS**: secciones agrupadas con su título en versalitas, separadores finos con sangría, interruptores
+  verdes, menús con las dos flechas y controles segmentados.
+- **El plató, como la app Cámara**: negro, controles de cristal, acento amarillo en la línea de lectura y el botón
+  de grabar redondo, blanco con el círculo rojo (que pasa a cuadrado rojo para parar).
+- **La preparación**, oscura como los ajustes de la cámara, con pestañas segmentadas y lecturas en tarjetas.
+- **La puntuación con anillos como los de Actividad**: un anillo por rasgo (rojo seguridad, verde cercanía, cian
+  energía, amarillo claridad), la nota grande al lado y cada rasgo con su barra del mismo color.
+- Barras de arriba translúcidas, botones principales en cápsula azul y secundarios grises con el texto en azul.
+- Movimiento solo donde dice algo (entrada, cuenta atrás, anillos que se llenan) y se quita si el sistema pide menos
+  movimiento. Comprobado sin desbordes ni botones partidos de 320 a 1280 px, en claro y en oscuro.
 
 ## Manos libres: todo con la voz
 
