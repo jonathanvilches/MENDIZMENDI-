@@ -12,7 +12,9 @@ import { faunaId } from '../data/fauna.js';
 import { floraIllustration } from '../ui/floraArt.js';
 import { floraFoto } from '../ui/floraFoto.js';
 import { faunaImg } from '../ui/faunaImg.js';
-import { readTownArms, infoCard } from '../ui/escudo.js';
+import { readTownArms, readArms, infoCard } from '../ui/escudo.js';
+import { houseArms } from '../data/blasones.js';
+import { drawArms } from '../world/heraldry.js';
 import { releaseOffscreen } from '../util/offscreen.js';
 import { avatarPortrait, avatarPortraitImg } from '../ui/portraits.js';
 import { figurasHTML, openFigura } from '../ui/figuras.js';
@@ -32,7 +34,7 @@ import { EDADES, edadDe, missionSlots } from '../data/edad.js';
 import { ARMAS, PENDIENTES, GUIA, armsOfTown } from '../data/armas-navarra.js';
 import { CUENTOS, KIND_LABEL } from '../data/cuentos.js';
 import { drawOfficial, officialHeight } from '../world/armas.js';
-import { armsImg, armsImgBig, clubImg } from '../ui/escudoImg.js';
+import { armsImg, armsImgBig, clubImg, casaImg } from '../ui/escudoImg.js';
 import { setupInstall, offer, openInstall } from '../web/install.js';
 import { profile, saveProfile, levelOf, rankOf, townProgress, comarcaProgress, comarcaTowns, navarraProgress, stampCount, BADGES, checkBadges, resetProfile, salazarState } from '../game/profile.js';
 
@@ -540,6 +542,9 @@ export class Hub {
     this.after = () => {
       this.root.querySelectorAll('.ar canvas[data-draw]').forEach(c => { const A = ARMAS.find(a => a.id === c.dataset.draw); try { drawOfficial(c.getContext('2d'), c.width / 2, 4, 120, A); } catch (e) { console.warn(A.id, e); } });
       this.root.querySelectorAll('button.ar[data-arm]').forEach(b => { const A = ARMAS.find(a => a.id === b.dataset.arm); b.onclick = () => readTownArms(ui, A, { town: A.towns.length ? tn(A.towns[0]) : A.name }); });
+      // (los de las casas: la misma ficha que en la fachada, con la imagen del autor si la tiene y el tallado en piedra)
+      this.root.querySelectorAll('.ar canvas[data-casa]').forEach(c => { const [t, i] = c.dataset.casa.split(':'); const L = levelById(t); if (!L) return; try { drawArms(c.getContext('2d'), c.width / 2, 4, 92, houseArms(L, +i), { stone: true }); } catch (e) { console.warn(t, e); } });
+      this.root.querySelectorAll('button.ar[data-casa]').forEach(b => { const [t, i] = b.dataset.casa.split(':'); const L = levelById(t); if (!L) return; b.onclick = () => readArms(ui, houseArms(L, +i), { town: tn(t), image: casaImg(t, +i) || '' }); });
       $('[data-guia]', this.root)?.addEventListener('click', () => infoCard(ui, { kicker: 'Saberes · Escudos', title: 'Cómo se lee un escudo', image: armsImgBig('navarra') || armsImg('navarra') || '',
         sub: 'Un escudo se lee como una frase: primero el campo, luego las figuras, sus colores y su sitio.',
         secs: GUIA.map(([t, d], i) => [String(i + 1), `<b>${esc(t)}.</b> ${esc(d)}`]) }));   // (las pestañas, con el número de cada paso)
@@ -547,6 +552,14 @@ export class Hub {
         sub: 'De estos pueblos del juego aún no hemos podido comprobar el escudo en una fuente fiable. Por eso no lo dibujamos: preferimos no inventarlo.',
         secs: PENDIENTES.map(x => [x.name.split(' · ')[0], `<b>${esc(x.name)}.</b> ${esc(x.note || '')}`]) }));
     };
+    // los escudos de casa leídos en las fachadas (cartas «escudo:<pueblo>:<n>»): la imagen del autor y, si no la tiene, el tallado
+    const casas = (p.cards || []).filter(c => c.startsWith('escudo:')).map(c => { const [, t, i] = c.split(':'); const L = levelById(t); return L ? { t, i: +i, L, A: houseArms(L, +i), img: casaImg(t, +i) } : null; }).filter(Boolean);
+    // (el aviso de «ninguno» va dentro de la cabecera: la sección es una rejilla con 16 px de hueco entre hijos y, suelto,
+    // el texto quedaba a 31 px del título)
+    const casasHTML = `<div class="ar-h2"><h2>Escudos de las casas</h2><small>${casas.length ? `${casas.length} ${casas.length === 1 ? 'leído' : 'leídos'} en las fachadas` : ''}</small>${casas.length ? '' : '<p class="ar-none">Aún no has leído ninguno: están sobre las puertas de las casas de cada pueblo.</p>'}</div>
+      ${casas.length ? `<div class="ar-grid ar-casas">${casas.map(c => `<button type="button" class="ar on" data-casa="${c.t}:${c.i}">
+        ${c.img ? `<img class="ar-img" src="${c.img}" alt="Escudo de la casa ${esc(c.A.house)}" loading="lazy" decoding="async">` : `<canvas data-casa="${c.t}:${c.i}" width="160" height="172" aria-label="Escudo de la casa ${esc(c.A.house)}"></canvas>`}
+        <span class="ar-tx"><small>Casa · ${esc(tn(c.t))}</small><b class="ar-nm">${esc(c.A.house)}</b><span class="ar-pu">Siglo ${esc(c.A.century)}</span></span>${I('play', 20)}</button>`).join('')}</div>` : ''}`;
     return `<section class="armorial">
       <div class="ar-head"><small class="kicker">${I('shield', 20)} Saberes · Escudos</small><h1>Escudos de Navarra</h1>
         <p>Los escudos son una forma de escribir con dibujos: cada color, cada figura y cada sitio quieren decir algo. Aquí están los escudos oficiales del reino, de las ciudades, de los valles y de los pueblos del juego. En cada pueblo, el escudo está en la fachada del ayuntamiento o en un pilar de la plaza: léelo allí para guardarlo en tu armorial. Toca un escudo para ver su ficha.</p>
@@ -555,6 +568,7 @@ export class Hub {
       <div class="ar-grid">${ARMAS.map(A => `<button type="button" class="ar${seen.has('armas:' + A.id) ? ' on' : ''}" data-arm="${A.id}">
         ${armsImg(A.id) ? `<img class="ar-img" src="${armsImg(A.id)}" alt="Escudo de ${esc(A.name)}" loading="lazy" decoding="async">` : `<canvas data-draw="${A.id}" width="160" height="${Math.ceil(officialHeight(120, A)) + 8}" aria-label="Escudo de ${esc(A.name)}"></canvas>`}
         <span class="ar-tx"><small>${KIND[A.kind] || ''}</small><b class="ar-nm">${esc(A.name)}</b>${(t => t.length ? `<span class="ar-pu">${esc(t.join(', '))}</span>` : '')(pueblos(A))}${seen.has('armas:' + A.id) ? `<span class="ar-ok">${I('check', 16)} Leído en el juego</span>` : ''}</span>${I('play', 20)}</button>`).join('')}</div>
+      ${casasHTML}
       ${PENDIENTES.length ? `<button type="button" class="ar-btn" data-pend>${I('binoculars', 32)}<span><b>Por comprobar</b><small>${PENDIENTES.length === 1 ? 'Un escudo que aún no dibujamos' : `${PENDIENTES.length} escudos que aún no dibujamos`}</small></span>${I('play', 20)}</button>` : ''}
       <p class="ar-src">Fuentes: Heraldry of the World (blasones municipales), NAVARCHIVO, Ayuntamiento de Pamplona, Ayuntamiento de Sangüesa, Gran Enciclopedia de Navarra, Auñamendi Eusko Entziklopedia y Cátedra de Patrimonio de la Universidad de Navarra. Los dibujos son del juego, hechos a partir del blasón.</p>
     </section>`;
@@ -606,7 +620,7 @@ export class Hub {
       <div class="ar-head"><small class="kicker">${I('pelota', 20)} Saberes · Tradiciones</small><h1>Pasaka</h1>
         <p>${esc(PASAKA.lead)}</p>
         <b class="ar-count">${played ? `${won} ${won === 1 ? 'partido ganado' : 'partidos ganados'} de ${played}` : 'Todavía no has jugado'}${has ? ' · carta de tradiciones' : ''}</b></div>
-      <div class="pk-hero"><canvas class="pk-prev" aria-hidden="true"></canvas>
+      <div class="pk-hero">${laminaUrl('dep-pasaka') ? `<img class="pk-cov" src="${laminaUrl('dep-pasaka')}" alt="" decoding="async">` : '<canvas class="pk-prev" aria-hidden="true"></canvas>'}
         <div class="pk-hero-tx"><small class="kicker">${esc(PASAKA.kicker)}</small><b>Dos parejas, una red por medio y un guante de cuero</b><button class="btn primary big" data-pasaka="jugar">${I('play', 26)} <span>Jugar a pasaka</span></button></div></div>
       <div class="ar-grid pk-secs">${PASAKA.secs.map(([t, x]) => `<article class="ar-guia pk-sec"><h3>${esc(t)}</h3><p>${esc(x)}</p></article>`).join('')}</div>
       <p class="ar-src">${esc(PASAKA.sources)}</p>

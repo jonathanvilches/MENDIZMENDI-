@@ -58,17 +58,20 @@ const MESHY_CUTS = {
   Idle: ['Celebrate', 6.9, 9.3, true], Talk: ['Celebrate', 6.4, 9.3, true], Wave: ['Celebrate', 3.55, 6.1], Celebrate: ['Celebrate', 0.3, 1.75],
   Jump_Start: ['Jump_Full', 0, 0.58, false, true], Jump_Loop: ['Jump_Full', 0.62, 0.95, true, true], Land: ['Jump_Full', 1.05, 1.96, false, true],
   Ready: ['Jump_Full', 0.22, 0.42, true, true], Scared: ['Jump_Full', 1.1, 1.62, false, true], Pick: ['Jump_Full', 1.05, 1.62, false, true], Hit: ['Celebrate', 0.35, 1.05],
+  // de pie y quieto, casi sin moverse (una décima de segundo del reposo, despacio): la postura neutra de la pasaka. La de
+  // «Ready» es una flexión del salto en bucle y la cadera subía y bajaba 8 cm sin parar; el reposo normal se balancea 22 cm
+  Still: ['Celebrate', 6.9, 7.0, true, false, 0.12],
 };
 // cortes propios de cada personaje (el pelotari trae un golpe con la derecha y un puño en alto en vez de la celebración)
 const MESHY_BY = {
   // el pastor: quieto y hablando, del principio y el final tranquilos de su charla; el salto, de saltar un obstáculo
   pastor: { Idle: ['TalkP', 7.2, 10.3, true], Talk: ['TalkP', 1.3, 6.8], Wave: ['TalkP', 3.0, 4.6], Celebrate: ['Hop', 0, 0.62, false, true],
     Jump_Start: ['Hop', 0, 0.3, false, true], Jump_Loop: ['Hop', 0.3, 0.55, true, true], Land: ['Hop', 0.6, 0.96, false, true],
-    Ready: ['Hop', 0.02, 0.18, true, true], Scared: ['Hop', 0.62, 0.96, false, true], Pick: ['Hop', 0.62, 0.96, false, true], Hit: ['TalkP', 3.2, 3.9] },
+    Ready: ['Hop', 0.02, 0.18, true, true], Scared: ['Hop', 0.62, 0.96, false, true], Pick: ['Hop', 0.62, 0.96, false, true], Hit: ['TalkP', 3.2, 3.9], Still: ['TalkP', 7.2, 7.3, true, false, 0.12] },
   // (reposo y postura de pelotari: una décima de segundo de ida y vuelta, despacio, como quien respira y se balancea.
   // Antes la postura era el primer tercio de segundo del golpe en bucle: el brazo subía y bajaba 73° sin parar, como si
   // empezase el gesto una y otra vez; ahora se mueve unos 3°. El gesto de verdad lo ponen el golpe y el brazo atrás)
-  pelotari: { Idle: ['Fist', 0, 0.1, true, false, 0.12], Talk: ['Fist', 0, 0.12, true, false, 0.25], Ready: ['Slash', 0.02, 0.12, true, false, 0.15], Hit: ['Slash', 0.52, 1.25],
+  pelotari: { Idle: ['Fist', 0, 0.1, true, false, 0.12], Still: ['Fist', 0, 0.1, true, false, 0.12], Talk: ['Fist', 0, 0.12, true, false, 0.25], Ready: ['Slash', 0.02, 0.12, true, false, 0.15], Hit: ['Slash', 0.52, 1.25],
     Celebrate: ['Fist', 0, 1.58], Wave: ['Fist', 0.15, 1.4], Scared: ['Slash', 1.1, 1.5], Pick: ['Slash', 0.1, 0.4] },
 };
 MESHY_BY.pelotari_rojo = MESHY_BY.pelotari;   // el colorado se mueve igual que el azul

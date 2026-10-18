@@ -14,6 +14,8 @@ import { box } from '../world/builder.js';
 import { addPlatform } from '../world/heightfield.js';
 import { Actor } from '../actors/people.js';
 import { armSwing } from '../actors/glbChar.js';
+import { pelotaStyle, X_ICON } from '../pelota/hud.js';
+import { fitCircles } from '../ui/fitlabel.js';
 import { crowd3d } from '../actors/crowd3d.js';
 import { drawArms } from '../world/heraldry.js';
 import { armsOfTown } from '../data/armas-navarra.js';
@@ -164,22 +166,13 @@ function predict(b) {
 }
 const mkPl = (team, x, z, me, i) => ({ team, x, z, tx: x, tz: z, hx: x, hz: z, me, speed: me ? 5.8 : 4.8 + i * 0.25, reach: me ? 1.9 : 1.35, moving: false, vNow: 0, want: null, wantT: 0, take: false, miss: false, decided: -1, swingT: -1, wind: 0, heading: team ? Math.PI : 0 });
 
+// (la interfaz es la misma del partido de pelota, src/pelota/hud.js: la X, el marcador, los botones redondos, la palanca y
+// el rótulo de la fuerza. Aquí solo lo propio de la pasaka)
 const CSS = `
-.pk-hud{position:fixed;inset:0;z-index:22;pointer-events:none;font-family:'Nunito',sans-serif;color:#fff;--thumb:16px}
-.pk-hud .pk-sb{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 10px);transform:translateX(-50%);margin:0;background:rgba(14,6,30,.72);border-color:rgba(255,255,255,.22)}
-.pk-hud .pk-fb{top:28%;left:0;right:0}
-.pk-hud .pk-tip{position:absolute;left:50%;bottom:auto;top:calc(env(safe-area-inset-top,0px) + 66px);transform:translateX(-50%);padding:4px 12px;border-radius:999px;background:rgba(14,6,30,.6);font:800 var(--fs-sm)/1.2 inherit;white-space:nowrap}
-.pk-hud .pk-x{position:absolute;left:calc(env(safe-area-inset-left,0px) + 12px);top:calc(env(safe-area-inset-top,0px) + 10px);width:40px;height:40px;border-radius:50%;background:rgba(14,6,30,.7);border:1px solid rgba(255,255,255,.35);color:#fff;font-size:17px;display:grid;place-items:center;pointer-events:auto}
-.pk-hud .pk-btns{position:absolute;right:calc(env(safe-area-inset-right,0px) + 14px);bottom:calc(env(safe-area-inset-bottom,0px) + 14px);display:flex;gap:10px;pointer-events:auto}
-.pk-hud .pk-btn{width:118px;height:62px}
-.pk-stick{position:absolute;left:0;bottom:0;width:46vw;height:62dvh;pointer-events:auto;touch-action:none}
-.pk-knob{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;border:3px solid rgba(255,255,255,.55);background:rgba(28,11,58,.3);display:none}
-.pk-knob i{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:rgba(255,255,255,.85)}
-.pk-stickhint{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--thumb));bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb));width:120px;height:120px;border-radius:50%;border:3px dashed rgba(255,255,255,.5);display:grid;place-items:center;pointer-events:none}
-.pk-hud.touch .pk-btn small{display:none}
-.pk-hud .pk-btn{position:relative;overflow:hidden}.pk-hud .pk-pow{position:absolute;left:8px;right:8px;bottom:4px;height:5px;border-radius:3px;background:rgba(0,0,0,.4);display:none}.pk-hud .pk-btn.charging .pk-pow{display:block}.pk-hud .pk-pow b{display:block;height:100%;width:0;background:#ffd166;border-radius:3px}.pk-hud .pk-btn.charging{filter:brightness(1.2)}
-.pk-hud .pk-btn.hot{box-shadow:0 0 0 4px rgba(255,209,102,.95),0 0 26px rgba(255,209,102,.85);border-color:#ffd166}
-@media (max-height:470px){.pk-hud .pk-btn{width:104px;height:52px}.pk-hud .pk-tip{top:calc(env(safe-area-inset-top,0px) + 58px)}}`;
+.pk-hud{z-index:22}
+.pk-hud .pel-call.bad h3{color:#ffb4c8}
+.pk-hud .pel-side span{max-width:none}
+.pk-hud .pel-mid{min-width:72px;font-size:var(--fs-sm);letter-spacing:.06em;color:#fff}`;
 
 /**
  * Partido de pasaka en el sobreclaustro. G: el juego del pueblo (player, camera, follow, ui, sound, sky, walkers, rt);
@@ -200,26 +193,34 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
     // --- la interfaz
     if (!document.getElementById('pk-style')) { const s = document.createElement('style'); s.id = 'pk-style'; s.textContent = CSS; document.head.appendChild(s); }
     const touch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
-    hud = document.createElement('div'); hud.className = 'pk-hud' + (touch ? ' touch' : '');
-    hud.innerHTML = `<button type="button" class="pk-x" aria-label="${esc(tr('Salir'))}">✕</button>
-      <div class="pk-sb"><span class="pk-t r">${esc(T.rojos)}</span><b class="pk-g">0</b><i class="pk-q">0 · 0</i><b class="pk-g">0</b><span class="pk-t a">${esc(T.azules)}</span></div>
-      <div class="pk-tip"></div><div class="pk-fb"></div>
-      <div class="pk-stick"><div class="pk-knob"><i></i></div></div>${touch ? '<div class="pk-stickhint"><svg viewBox="0 0 48 48" width="46" height="46"><path d="M24 6l6 7h-4v8h8v-4l7 7-7 7v-4h-8v8h4l-6 7-6-7h4v-8h-8v4l-7-7 7-7v4h8v-8h-4z" fill="#fff" opacity=".9"/></svg></div>' : ''}
-      <div class="pk-btns"><button type="button" class="pk-btn ghost" data-k="globo"><b>${esc(tr('Globo'))}</b><small>L</small></button><button type="button" class="pk-btn ghost" data-k="dejada"><b>${esc(tr('Dejada'))}</b><small>K</small></button><button type="button" class="pk-btn" data-k="golpe"><b>${esc(tr('Golpe'))}</b><small>${esc(tr('espacio'))}</small><i class="pk-pow"><b></b></i></button></div>`;
+    pelotaStyle();
+    hud = document.createElement('div'); hud.className = 'pel-root pk-hud' + (touch ? ' touch' : '');
+    hud.innerHTML = `<button type="button" class="pel-exit" aria-label="${esc(tr('Salir'))}">${X_ICON}</button>
+      <div class="pel-top"><div class="pel-score">
+        <div class="pel-side pel-red"><i class="pel-serve"></i><span>${esc(T.rojos)}</span><b class="pk-g">0</b></div>
+        <div class="pel-mid pk-q">0 · 0</div>
+        <div class="pel-side pel-blue"><b class="pk-g">0</b><span>${esc(T.azules)}</span><i class="pel-serve"></i></div>
+      </div></div>
+      <div class="pel-call"><h3></h3><p></p></div>
+      <div class="pel-tip"></div>
+      <div class="pel-stick"><div class="pel-knob"><i></i></div></div>${touch ? '<div class="pel-stickhint"><svg viewBox="0 0 48 48" width="46" height="46"><path d="M24 6l6 7h-4v8h8v-4l7 7-7 7v-4h-8v8h4l-6 7-6-7h4v-8h-8v4l-7-7 7-7v4h8v-8h-4z" fill="#fff" opacity=".9"/></svg></div>' : ''}
+      <div class="pel-btns"><div class="pel-bcol"><button type="button" class="pel-btn pel-drop pel-cut" data-k="globo" aria-label="${esc(tr('Globo'))}"><span>${esc(tr('Globo'))}</span></button><button type="button" class="pel-btn pel-drop pel-dejada" data-k="dejada" aria-label="${esc(tr('Dejada'))}"><span>${esc(tr('Dejada'))}</span></button></div><button type="button" class="pel-btn pel-hit" data-k="golpe" aria-label="${esc(tr('Golpe'))}"><span class="pel-hl">${esc(tr('Golpe'))}</span></button></div>
+      <div class="pel-force"><b></b><i><u></u></i></div>`;
     document.body.appendChild(hud);
-    const $ = s => hud.querySelector(s), fb = $('.pk-fb'), tip = $('.pk-tip'), sbG = hud.querySelectorAll('.pk-g'), sbQ = $('.pk-q'), btnG = $('.pk-btn[data-k="golpe"]'), powB = $('.pk-pow b'); let lastHot = false, firstRally = true;
-    const say = (why, sub = '', cls = '') => { fb.innerHTML = `<b>${esc(why)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}`; fb.className = 'pk-fb on ' + cls; fbT = 1.6; };
-    const score = () => { sbG[0].textContent = st.g[0]; sbG[1].textContent = st.g[1]; sbQ.textContent = `${QN[st.q[0]] ?? '40'} · ${QN[st.q[1]] ?? '40'}`; try { V.setScore?.(st.g[0], QN[st.q[0]] ?? '40', st.g[1], QN[st.q[1]] ?? '40', T.rojos.toUpperCase(), T.azules.toUpperCase()); } catch (e) { } };
-    const setTip = (s) => { tip.textContent = s; tip.style.display = s ? '' : 'none'; };
+    fitCircles(hud.querySelector('.pel-btns')); const onFit = () => fitCircles(hud.querySelector('.pel-btns')); addEventListener('resize', onFit);
+    const $ = s => hud.querySelector(s), fb = $('.pel-call'), tip = $('.pel-tip'), sbG = hud.querySelectorAll('.pk-g'), sbS = hud.querySelectorAll('.pel-serve'), sbQ = $('.pk-q'), btnG = $('.pel-hit'), force = $('.pel-force'); let lastHot = false, firstRally = true;
+    const say = (why, sub = '', cls = '') => { fb.querySelector('h3').textContent = why; fb.querySelector('p').textContent = sub; fb.className = 'pel-call on' + (cls ? ' ' + cls : ''); hud.classList.add('calling'); if (st.over) hud.classList.add('final'); fbT = 1.6; };
+    const score = () => { sbG[0].textContent = st.g[0]; sbG[1].textContent = st.g[1]; sbS.forEach((e, i) => e.classList.toggle('on', st.server === i && !st.over)); sbQ.textContent = `${QN[st.q[0]] ?? '40'} · ${QN[st.q[1]] ?? '40'}`; try { V.setScore?.(st.g[0], QN[st.q[0]] ?? '40', st.g[1], QN[st.q[1]] ?? '40', T.rojos.toUpperCase(), T.azules.toUpperCase()); } catch (e) { } };
+    const setTip = (s) => { tip.textContent = s; tip.classList.toggle('on', !!s); };
     // --- las figuras: tú (tu rig), la pareja (el canónigo) y los rivales (dos vecinos de negro)
     const rig = rig0; P.rig = { update() { }, doAct() { }, doCheer() { }, doWave() { }, setExpr() { } };
     P.frozen = true; G.mode = 'pelota'; G.ui.hudVisible?.(false); G.ui.setPrompt?.(null); G.perro?.away?.(); G.rt?.boost?.(true);
     if (G.beacon) G.beacon.off = true; if (G.sky) { G.sky.flood = 1; G.sky.indoor = true; G.sky.floodCur = 1; }
     S?.setMusic?.(false);
     const figs = []; // { pl, obj, actor?, anim(dt) }
-    const stY = { v: null }; if (rig?.char) armSwing(rig.char, () => stY.v, { windOnly: true }); rig?.setStance?.('Ready');
+    const stY = { v: null }; if (rig?.char) armSwing(rig.char, () => stY.v, { windOnly: true }); rig?.setStance?.('Still');   // (de pie y quieto: la postura «Ready» flexionaba las rodillas sin parar)
     figs.push({ pl: P0, obj: P.obj, st: stY, flag: {}, me: true });
-    const mkActor = (a, pl) => { if (!a) return; a.frozen = true; a.talking = 0; a.speed = 0; const s2 = { v: null }; if (a.glb) try { armSwing(a.glb, () => s2.v); } catch (e) { } figs.push({ pl, obj: a.obj, actor: a, st: s2, flag: {} }); };
+    const mkActor = (a, pl) => { if (!a) return; a.frozen = true; a.talking = 0; a.speed = 0; if (a.glb?.actions?.Still) a.glb.idleName = 'Still'; const s2 = { v: null }; if (a.glb) try { armSwing(a.glb, () => s2.v); } catch (e) { } figs.push({ pl, obj: a.obj, actor: a, st: s2, flag: {} }); };
     mkActor(partner, st.pl[1]);
     try {
       const look = (seed) => ({ shirt: '#15131a', pants: '#15131a', hair: seed % 2 ? '#3a2a20' : '#6b6b6b', old: !!(seed % 2), region: G.def?.comarca, seed });
@@ -228,7 +229,7 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
     try { if (V.stand.length) { crowdS = crowd3d(V.stand, 'pelota', 1.36, { sit: false, all3d: true }); G.scene.add(crowdS); } if (V.sit.length) { crowdB = crowd3d(V.sit, 'pelota', 1.36, { sit: true, all3d: true }); G.scene.add(crowdB); } } catch (e) { console.warn('pasaka público', e); crowdS = crowdB = null; }
     // --- el saque y los quinces (entre quince y quince cada uno vuelve andando a su sitio y el que saca, tras su línea)
     const homeAll = () => { for (const p of st.pl) { p.take = false; p.want = null; p.tx = p.hx; p.tz = p.hz; } if (st.server === 0) P0.tz = Math.min(P0.z, NETZ - SAQUE - 1); else { st.pl[2].tx = -1.4; st.pl[2].tz = NETZ + SAQUE + 1.2; } };
-    const setupServe = () => { st.phase = 'serve'; st.phaseT = 0; b.inPlay = false; b.dead = false; b.vx = b.vy = b.vz = 0; b.held = st.server; setTip(st.server === 0 ? tr('Pulsa Golpe para sacar') : tr('Sacan los azules')); };
+    const setupServe = () => { st.phase = 'serve'; st.phaseT = 0; b.inPlay = false; b.dead = false; b.vx = b.vy = b.vz = 0; b.held = st.server; score(); setTip(st.server === 0 ? tr('Pulsa Golpe para sacar') + (touch ? '' : ' · ' + tr('espacio')) : tr('Sacan los azules')); };
     const nextPoint = () => { if (st.over) return; st.phase = 'dead'; st.phaseT = 0; homeAll(); };
     const cheer = (k) => { cheerT = k; crowdS?.cheer?.(true); crowdB?.cheer?.(true); };
     const point = (t, why) => {
@@ -260,7 +261,7 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
       b.vy -= (1 - q) * (kind === 'dejada' ? 1.4 : kind === 'globo' ? 0.8 : 1.1) * Math.random();
       b.last = t; b.crossed = false; b.bounces = 0; b.dead = false; b.serve = kind === 'saque'; b.serveOk = false; b.serveB = 0; b.inPlay = true; b.held = -1; st.hitId++;
       pl.swingT = 0; pl.want = null; S?.pelota?.(kind === 'dejada' ? 0.5 : kind === 'globo' ? 0.6 : 0.6 + 0.5 * power);
-      if (st.phase === 'serve') { st.phase = 'flight'; setTip(firstRally ? tr('Mantén Golpe para cargar y apuntar con la palanca; suelta cuando brille') : ''); }
+      if (st.phase === 'serve') { st.phase = 'flight'; setTip(firstRally ? tr('Mantén Golpe para cargar; al soltar, la palanca apunta. Suelta cuando brille') : ''); }
       if (pl.me && kind !== 'saque') { firstRally = false; setTip(''); }
       assign();
     };
@@ -306,10 +307,10 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
     const movePl = (pl, dt) => {
       const x0 = pl.x, z0 = pl.z;
       if (pl.me && !st.auto) {
-        // tú: la palanca o las teclas; si no, el destino que fijó un toque (ir). Cargando un golpe, la palanca apunta
-        // y corres solo hacia donde va a caer la pelota (como en el frontón)
-        const kx = st.charge ? 0 : ((keys.right ? 1 : 0) - (keys.left ? 1 : 0) + stick.x) * SX, kz = st.charge ? 0 : (keys.up ? 1 : 0) - (keys.down ? 1 : 0) + stick.y, n = Math.hypot(kx, kz);
-        if (st.charge && st.phase === 'flight' && b.inPlay && !b.dead && b.last !== 0) { const pr = predict(b); if (pr.z < NETZ) { pl.tx = clamp(pr.x, -W / 2 + 0.4, W / 2 - 0.4); pl.tz = clamp(pr.z - 0.8, 0.8, NETZ - 0.7); } }
+        // tú: la palanca o las teclas mandan siempre, también mientras cargas el golpe (al soltar, esa misma palanca
+        // apunta); si no tocas nada, el destino que fijó un toque (ir). Antes, al cargar, el avatar corría solo hacia donde
+        // iba a botar la pelota y se perdía el control
+        const kx = ((keys.right ? 1 : 0) - (keys.left ? 1 : 0) + stick.x) * SX, kz = (keys.up ? 1 : 0) - (keys.down ? 1 : 0) + stick.y, n = Math.hypot(kx, kz);
         if (n > 0.08) { const m = Math.min(1, n); pl.x += kx / n * m * pl.speed * dt; pl.z += kz / n * m * pl.speed * dt; pl.tx = pl.x; pl.tz = pl.z; }
         else { const dx = pl.tx - pl.x, dz = pl.tz - pl.z, d = Math.hypot(dx, dz); if (d > 0.05) { const k = Math.min(1, pl.speed * dt / d); pl.x += dx * k; pl.z += dz * k; } }
       } else { const dx = pl.tx - pl.x, dz = pl.tz - pl.z, d = Math.hypot(dx, dz); if (d > 0.05) { const k = Math.min(1, pl.speed * dt / d); pl.x += dx * k; pl.z += dz * k; } }
@@ -340,8 +341,10 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
     const aimOf = () => { const kx = ((keys.right ? 1 : 0) - (keys.left ? 1 : 0) + stick.x) * SX; if (Math.abs(kx) > 0.25) return clamp(kx, -1, 1) * 0.85; return clamp((b.x - P0.x) / 1.2, -1, 1) * 0.5; };
     // un toque: golpe medio, dejada o globo; mantener Golpe carga la potencia (0,9 s a tope) y la palanca apunta a lo ancho y a lo largo
     const press = (kind, power = 0.5, aimX = null, aimY = 0) => { if (ended || st.over) return; if (st.phase === 'serve' && st.server === 0 && b.held === 0) { launch(P0, 'saque', aimX != null ? aimX * 0.85 : aimOf(), power); return; } P0.want = { kind, power, aimX, aimY }; P0.wantT = 0.55; };
-    const chargeStart = () => { if (ended || st.over || st.charge) return; st.charge = { t: 0, aimX: null, aimY: 0 }; btnG?.classList.add('charging'); if (powB) powB.style.width = '0%'; firstRally = false; setTip(''); };
-    const chargeEnd = () => { if (!st.charge) return; const c = st.charge; st.charge = null; btnG?.classList.remove('charging'); press('golpe', clamp(c.t / 0.9, 0.2, 1), c.aimX, c.aimY); };
+    const chargeStart = () => { if (ended || st.over || st.charge) return; st.charge = { t: 0 }; btnG?.classList.add('charging'); btnG?.style.setProperty('--cp', '0%'); force?.classList.add('on'); firstRally = false; setTip(''); };
+    const chargeEnd = () => { if (!st.charge) return; const c = st.charge; st.charge = null; btnG?.classList.remove('charging', 'full'); force?.classList.remove('on');
+      const ax = ((keys.right ? 1 : 0) - (keys.left ? 1 : 0) + stick.x) * SX, ay = (keys.up ? 1 : 0) - (keys.down ? 1 : 0) + stick.y;
+      press('golpe', clamp(c.t / 0.9, 0.2, 1), Math.abs(ax) > 0.25 ? clamp(ax, -1, 1) : null, Math.abs(ay) > 0.25 ? clamp(ay, -1, 1) : 0); };
     const update = (dt) => {
       st.t += dt; st.phaseT += dt;
       if (st.phase === 'intro') { if (st.phaseT > 1.6) setupServe(); }
@@ -349,11 +352,12 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
       for (const p of st.pl) { think(p, dt); movePl(p, dt); }
       for (const a of st.pl) for (const c of st.pl) if (a !== c && a.team === c.team) { const dx = c.x - a.x, dz = c.z - a.z, d = Math.hypot(dx, dz); if (d < 0.8 && d > 1e-3) { c.x += dx / d * (0.8 - d) * 0.5; c.z += dz / d * (0.8 - d) * 0.5; } }
       if (st.phase === 'serve' && b.held >= 0) { const srv = b.held === 0 ? P0 : st.pl[2]; b.x = srv.x + 0.3; b.y = 1.05; b.z = srv.z + (b.held === 0 ? 0.3 : -0.3); }
-      if (st.charge) { st.charge.t += dt; const ax = ((keys.right ? 1 : 0) - (keys.left ? 1 : 0) + stick.x) * SX, ay = (keys.up ? 1 : 0) - (keys.down ? 1 : 0) + stick.y; if (Math.abs(ax) > 0.2) st.charge.aimX = clamp(ax, -1, 1); if (Math.abs(ay) > 0.2) st.charge.aimY = clamp(ay, -1, 1); if (powB) powB.style.width = Math.round(Math.min(1, st.charge.t / 0.9) * 100) + '%'; }
+      if (st.charge) { st.charge.t += dt; const pw = Math.min(1, st.charge.t / 0.9), p2 = 0.2 + pw * 0.8; btnG?.style.setProperty('--cp', Math.round(pw * 100) + '%'); btnG?.classList.toggle('full', pw >= 1);
+        if (force) { const word = p2 < 0.4 ? tr('suave') : p2 < 0.75 ? tr('media') : p2 < 0.97 ? tr('fuerte') : tr('a tope'); force.firstChild.textContent = `${tr('Golpe')}: ${word} · ${Math.round(p2 * 100)} %`; force.querySelector('u').style.width = Math.round(p2 * 100) + '%'; force.style.setProperty('--fc', `hsl(${Math.round(120 - p2 * 120)} 85% 55%)`); } }
       if (P0.want && !st.auto) { P0.wantT -= dt; if (st.phase === 'flight' && b.inPlay && !b.dead && b.last !== 0 && inReach(P0, b)) { const w = P0.want; launch(P0, w.kind, w.aimX != null ? w.aimX * 0.85 : aimOf(), w.power, w.aimY); } else if (P0.wantT <= 0) { P0.want = null; P0.swingT = 0; } }
       for (let i = 0, n = Math.ceil(dt / (1 / 120)); i < n; i++) stepBall(dt / n);
       if (st.phase === 'flight' && !b.inPlay) nextPoint();
-      if (fbT > 0 && (fbT -= dt) <= 0) fb.className = 'pk-fb';
+      if (fbT > 0 && (fbT -= dt) <= 0) { fb.classList.remove('on'); hud.classList.remove('calling'); }
       if (cheerT > 0 && (cheerT -= dt) <= 0) { crowdS?.cheer?.(false); crowdB?.cheer?.(false); }
     };
     // --- de la lógica a la escena: figuras, pelota y cámara
@@ -371,7 +375,7 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
       // el círculo del bote cuando la pelota viene hacia nosotros, y el botón que brilla cuando está al alcance
       const coming = st.phase === 'flight' && b.inPlay && !b.dead && b.last === 1;
       if (coming) { const pr = predict(b); if (pr.z < NETZ) { V.ring.visible = true; V.ring.position.set(pr.x, 0.016, pr.z); const k = 1 + 0.08 * Math.sin(st.t * 9); V.ring.scale.set(k, k, 1); } else V.ring.visible = false; } else V.ring.visible = false;
-      const hot = coming && inReach(P0, b); if (hot !== lastHot) { lastHot = hot; btnG?.classList.toggle('hot', hot); }
+      const hot = coming && inReach(P0, b); if (hot !== lastHot) { lastHot = hot; btnG?.classList.toggle('ready', hot); }
       // la cámara: detrás de la valla, a la altura de una galería, mirando al frontis (se mueve un poco contigo)
       const cx = clamp(P0.x * 0.35 + (b.inPlay ? b.x * 0.15 : 0), -2.2, 2.2), cp = V.toWorld(cx, -3.4 + clamp((P0.z - 6.75) * 0.3, -1.0, 1.6), 4.7), cl = V.toWorld(clamp(b.inPlay ? b.x * 0.4 : 0, -1.5, 1.5), NETZ + 1.0, 0.8);
       if (!cine) { cine = G.follow.cinematic = { pos: cp.clone(), look: cl.clone(), t: 0, lookCur: cl.clone() }; cam.position.copy(cp); cam.lookAt(cl); }
@@ -386,20 +390,20 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
     const onSpace = (e) => { const k = e.key.toLowerCase(); if (!(k === ' ' || k === 'j' || k === 'enter' || k === '1')) return; e.preventDefault(); e.stopImmediatePropagation(); if (e.type === 'keydown') { if (!e.repeat) chargeStart(); } else chargeEnd(); };
     addEventListener('keydown', onSpace, true); addEventListener('keyup', onSpace, true);
     addEventListener('keydown', onKey, true); addEventListener('keyup', onKey, true);
-    const zone = $('.pk-stick'), knob = $('.pk-knob'), RK = 56;
+    const zone = $('.pel-stick'), knob = $('.pel-knob'), RK = 56;
     const resetStick = () => { stick = { id: null, x: 0, y: 0 }; knob.style.display = 'none'; };
-    zone.addEventListener('pointerdown', (e) => { if (stick.id !== null) return; e.preventDefault(); const zr = zone.getBoundingClientRect(); stick = { id: e.pointerId, ox: e.clientX, oy: e.clientY, x: 0, y: 0 }; knob.style.display = 'block'; knob.style.left = (e.clientX - zr.left) + 'px'; knob.style.top = (e.clientY - zr.top) + 'px'; knob.firstElementChild.style.transform = ''; $('.pk-stickhint')?.remove(); });
+    zone.addEventListener('pointerdown', (e) => { if (stick.id !== null) return; e.preventDefault(); const zr = zone.getBoundingClientRect(); stick = { id: e.pointerId, ox: e.clientX, oy: e.clientY, x: 0, y: 0 }; knob.style.display = 'block'; knob.style.left = (e.clientX - zr.left) + 'px'; knob.style.top = (e.clientY - zr.top) + 'px'; knob.firstElementChild.style.transform = ''; $('.pel-stickhint')?.remove(); });
     const onPtrMove = (e) => { if (e.pointerId !== stick.id) return; let dx = e.clientX - stick.ox, dy = e.clientY - stick.oy; const d = Math.hypot(dx, dy); if (d > RK) { dx *= RK / d; dy *= RK / d; } stick.x = dx / RK; stick.y = -dy / RK; knob.firstElementChild.style.transform = `translate(${dx}px,${dy}px)`; };
     const endStick = (e) => { if (e.pointerId === stick.id) resetStick(); };
     addEventListener('pointermove', onPtrMove, true); addEventListener('pointerup', endStick, true); addEventListener('pointercancel', endStick, true);
     // (si el dedo sale de la pantalla sin «pointerup», la palanca se suelta igual)
     const onTouchEnd = () => { if (stick.id !== null && !(navigator.maxTouchPoints > 0 && document.querySelector(':active') === zone)) resetStick(); };
     addEventListener('touchend', onTouchEnd, true); addEventListener('touchcancel', onTouchEnd, true);
-    const onBlur = () => { keys = {}; resetStick(); if (st.charge) { st.charge = null; btnG?.classList.remove('charging'); } }; addEventListener('blur', onBlur);
-    hud.querySelectorAll('.pk-btn').forEach(bt => { const k = bt.dataset.k;
-      bt.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); bt.classList.add('flash'); setTimeout(() => bt.classList.remove('flash'), 140); if (k === 'golpe') chargeStart(); else press(k); });
+    const onBlur = () => { keys = {}; resetStick(); if (st.charge) { st.charge = null; btnG?.classList.remove('charging', 'full'); force?.classList.remove('on'); } }; addEventListener('blur', onBlur);
+    hud.querySelectorAll('.pel-btn').forEach(bt => { const k = bt.dataset.k;
+      bt.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); bt.classList.add('down'); setTimeout(() => bt.classList.remove('down'), 140); if (k === 'golpe') chargeStart(); else press(k); });
       if (k === 'golpe') { const up = (e) => { e.preventDefault?.(); chargeEnd(); }; bt.addEventListener('pointerup', up); bt.addEventListener('pointercancel', up); bt.addEventListener('pointerleave', up); } });
-    $('.pk-x').onclick = () => done({ quit: true });
+    $('.pel-exit').onclick = () => done({ quit: true });
     // --- el bucle (lo llama el pueblo en modo pelota) y el final
     G.pelotaMatch = { pasaka: true }; G.pelotaRig = rig; G.pelotaAbort = () => done({ quit: true, error: true });
     G.pelotaTick = (dt) => { update(dt); place(dt); };
@@ -408,10 +412,10 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
       G.pelotaTick = null; G.pelotaMatch = null; G.pelotaRig = null; G.pelotaAbort = null; delete window.__pasaka;
       removeEventListener('keydown', onKey, true); removeEventListener('keyup', onKey, true); removeEventListener('keydown', onSpace, true); removeEventListener('keyup', onSpace, true); removeEventListener('blur', onBlur); removeEventListener('pointermove', onPtrMove, true); removeEventListener('pointerup', endStick, true); removeEventListener('pointercancel', endStick, true); removeEventListener('touchend', onTouchEnd, true); removeEventListener('touchcancel', onTouchEnd, true);
       const safe = (f) => { try { f(); } catch (e) { console.warn('pasaka', e); } };
-      safe(() => hud.remove());
+      safe(() => hud.remove()); removeEventListener('resize', onFit);
       safe(() => { if (rig?.char) rig.char.post = null; rig?.setStance?.(null); });
       safe(() => { for (const a of rivals) { if (a.glb) a.glb.post = null; const i = G.walkers?.indexOf(a); if (i >= 0) G.walkers.splice(i, 1); a.obj.parent?.remove(a.obj); } });
-      safe(() => { if (partner) { if (partner.glb) partner.glb.post = null; partner.frozen = false; partner.speed = 0; if (pHome) partner.setPos(pHome.x, pHome.z, pHome.h); } });
+      safe(() => { if (partner) { if (partner.glb) { partner.glb.post = null; partner.glb.idleName = null; } partner.frozen = false; partner.speed = 0; if (pHome) partner.setPos(pHome.x, pHome.z, pHome.h); } });
       safe(() => { for (const c of [crowdS, crowdB]) if (c) { c.parent?.remove(c); c.dispose?.(); } });
       safe(() => { V.ball.visible = V.shadow.visible = V.ring.visible = false; });
       safe(() => { if (G.beacon) G.beacon.off = false; if (G.sky && !stay) { G.sky.flood = 0; G.sky.indoor = false; } G.rt?.boost?.(false); S?.setMusic?.(wasMusic); });
