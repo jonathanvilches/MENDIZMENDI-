@@ -724,7 +724,7 @@ select{width:100%;background:var(--stage-2);border:0;border-radius:var(--r-sm);p
 #track .w.now{text-decoration-color:#C8F25A}
 #readline{border-block:2px solid rgba(200,242,90,.55);background:rgba(200,242,90,.07)}
 #readline::before{border-left-color:#C8F25A}
-.count-big{font-family:var(--f-display);font-weight:800;letter-spacing:-.04em;animation:countin .8s var(--ease) both}
+.count-big{font-family:var(--f-display);font-weight:800;letter-spacing:-.04em;text-align:center;animation:countin .8s var(--ease) both}
 @keyframes countin{from{transform:scale(1.7);opacity:0;filter:blur(8px)}35%{opacity:1;filter:none}to{transform:scale(1)}}
 .count-sub{font-weight:600}
 .count-x{margin:calc(var(--u) * 2) 0 0;font-size:var(--t-sm);font-weight:600;color:rgba(255,255,255,.82);text-align:center;text-shadow:0 1px 8px rgba(0,0,0,.7)}
@@ -1318,11 +1318,14 @@ body.pip #monitor{opacity:1;transform:none;visibility:visible;pointer-events:aut
 .wm-head span{font:600 var(--t-xs)/1 var(--f-mono);color:var(--mute)}
 .wm-now{display:flex;gap:14px;align-items:center;margin:12px 0 4px}
 .wm-e{flex:none;font-size:44px;line-height:1}
-.wm-now p{margin:0;font-size:var(--t-lg);font-weight:600;line-height:1.35}
+.wm-now p{margin:0;font-size:var(--t-lg);font-weight:600;line-height:1.35;color:var(--paper)}
+#prompter{transition:opacity .3s var(--ease)}
+#studio:has(:is(#hfCard,#planCard,#warmCard,#drillCard,#rehCard,#enroll):not([hidden])) #prompter{opacity:.12}
 .wm-why{margin:0 0 10px;color:var(--mute);font-size:var(--t-sm);line-height:var(--lh)}
 .wm-bar{height:6px;margin-bottom:12px;border-radius:3px;background:var(--stage-2);overflow:hidden}
 .wm-bar i{display:block;width:0;height:100%;background:var(--ok);transition:width .1s linear}
 @media (prefers-reduced-motion:reduce){.wm-bar i{transition:none}}
+.cam-app{align-self:center;max-width:100%;min-height:48px;margin:calc(var(--u) * .5) auto 0;white-space:normal!important;text-align:center;line-height:1.3}
 .moments{display:flex;flex-direction:column;gap:var(--sp-card)}
 .km-head{display:flex;justify-content:space-between;align-items:baseline;gap:var(--u) calc(var(--u) * 1.5);flex-wrap:wrap;font-size:var(--t-sm)}
 .km-head span{color:var(--mute);font-size:var(--t-xs)}
@@ -1489,9 +1492,9 @@ html[lang="en"] .hf-card.claps .hf-cmds q{quotes:none}
       <div class="tools">
         <button class="ghost" id="txtUpload" type="button"><svg class="ico"><use href="#i-subir"/></svg>Subir texto</button>
         <button class="ghost" id="sample" type="button"><svg class="ico"><use href="#i-repetir"/></svg>Ejemplo</button>
-        <input type="file" id="txtFile" accept=".txt,.text,.md,.srt,.vtt,.docx,.odt,.rtf,.html,.htm,text/plain,text/markdown,text/html,application/rtf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.oasis.opendocument.text" hidden>
+        <input type="file" id="txtFile" accept=".txt,.text,.md,.srt,.vtt,.docx,.odt,.rtf,.html,.htm,.pdf,.xlsx,.pptx,.csv,.tsv,text/plain,text/markdown,text/html,text/csv,application/rtf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.oasis.opendocument.text" hidden>
       </div>
-      <p class="note center">Word, .txt, subtítulos (.srt, .vtt), .odt o .rtf. También puedes arrastrar el archivo al cuadro.</p>
+      <p class="note center">Word, PDF, Excel, PowerPoint (las notas del orador), .txt, subtítulos (.srt, .vtt), .odt o .rtf. También puedes arrastrar el archivo al cuadro.</p>
       <details class="fold">
         <summary>Marcas opcionales</summary>
         <div class="fold-body">
@@ -1551,24 +1554,32 @@ html[lang="en"] .hf-card.claps .hf-cmds q{quotes:none}
         <p class="note"><span data-f="video">Revisa cómo quieres grabar y entra al plató.</span><span data-f="analizar">Se reproduce aquí mismo y te digo qué transmites. No sale de tu dispositivo.</span><span data-f="llamada">Al empezar, abre la «Ventana flotante»: se queda encima de la aplicación de la videollamada.</span></p>
       </div>
       <div class="summary" id="summary"></div>
+      <button class="ghost cam-app" id="camApp" type="button" data-f="video">📱 ¿Prefieres grabar con la cámara del móvil? Grábalo y súbelo aquí</button>
 
       <button class="drop" id="dropVid" type="button" data-f="analizar"><svg class="ico"><use href="#i-pelicula"/></svg><b>Toca para elegir un vídeo</b><small>.mp4, .mov o .webm · o arrástralo aquí</small></button>
 
       <div class="group" data-f="video">
         <p class="group-t">Cómo grabar</p>
-        <label class="row"><span class="row-t"><b>Ensayo antes de grabar</b><small>Una toma de prueba con el coach hablándote; la revisamos y luego grabas la buena.</small></span><input type="checkbox" class="switch" id="rehearseFirst" role="switch"></label>
-        <div class="row stack"><label class="row-t" for="rehHelp"><b>En el ensayo</b><small data-hint="rehHelp"></small></label>
-          <select id="rehHelp">
-            <option value="avisos">Avisos y medidores (recomendado)</option>
-            <option value="medidores">Solo medidores</option>
-            <option value="limpio">Solo el texto</option>
+        <div class="row stack"><label class="row-t" for="countdown"><b>Cuenta atrás al pulsar Grabar</b><small>Tiempo para colocarte antes de que empiece. Se para sola al terminar el texto, o tocando la pantalla.</small></label>
+          <select id="countdown">
+            <option value="3">3 segundos</option>
+            <option value="5">5 segundos</option>
+            <option value="10">10 segundos</option>
           </select>
         </div>
-        <div class="row stack"><label class="row-t" for="takeHelp"><b>Al grabar de verdad</b><small data-hint="takeHelp"></small></label>
+        <div class="row stack"><label class="row-t" for="takeHelp"><b>Mientras grabas</b><small data-hint="takeHelp"></small></label>
           <select id="takeHelp">
-            <option value="medidores">Medidores (recomendado)</option>
-            <option value="limpio">Solo el texto</option>
-            <option value="avisos">Avisos y medidores</option>
+            <option value="limpio">Solo el texto (recomendado)</option>
+            <option value="medidores">El texto y medidores</option>
+            <option value="avisos">El texto, medidores y avisos</option>
+          </select>
+        </div>
+        <label class="row"><span class="row-t"><b>Ensayo antes de grabar</b><small>Una toma de prueba que no cuenta: la revisamos y luego grabas la buena.</small></span><input type="checkbox" class="switch" id="rehearseFirst" role="switch"></label>
+        <div class="row stack"><label class="row-t" for="rehHelp"><b>En el ensayo</b><small data-hint="rehHelp"></small></label>
+          <select id="rehHelp">
+            <option value="limpio">Solo el texto (recomendado)</option>
+            <option value="medidores">El texto y medidores</option>
+            <option value="avisos">El texto, medidores y avisos</option>
           </select>
         </div>
       </div>
@@ -1828,7 +1839,7 @@ const LANG = (() => { try { const o = JSON.parse(localStorage.getItem('apuntador
 const EN = LANG === 'en';
 const LL = (es, en) => EN ? en : es;
 document.documentElement.lang = LANG;
-const EN_HTML = {"Graba con más":"Record with more","energía":"energy","seguridad":"confidence","intención":"purpose","naturalidad":"authenticity","energía, seguridad, intención y naturalidad":"energy, confidence, purpose and authenticity","Tu director de escena: te ve y te escucha mientras grabas y te dice en el momento cómo moverte y hablar.":"Your on-set director: it watches and listens as you record and tells you how to move and speak, in the moment.","Haz la prueba de 30 segundos":"Take the 30-second test","Lee un texto corto y te digo cómo te ven en cámara y qué mejorar primero. Sin registrarte.":"Read a short text and I’ll tell you how you come across on camera and what to fix first. No sign-up.","¿Qué quieres hacer?":"What do you want to do?","Grabar un vídeo":"Record a video","Tu guion en pantalla y, al terminar, tu vídeo con notas.":"Your script on screen and, afterwards, your video with notes.","Analizar un vídeo":"Analyze a video","Sube uno que ya grabaste y te digo qué mejorar.":"Upload one you’ve already recorded and I’ll tell you what to improve.","Entrenar un minuto":"1-minute training","Ejercicios cortos con una sola meta: mirada, voz, manos, sonrisa y pausas.":"Short exercises with one goal each: eye contact, voice, hands, smile and pauses.","Videollamada":"Video call","O un directo. Sin guion, en una ventana flotante encima.":"Or a livestream. No script, in a floating window on top.","Tenla como una app":"Get it as an app","Instalar":"Install","Todo se analiza en tu dispositivo":"Everything is analyzed on your device","Cómo funciona y privacidad":"How it works and privacy","Qué mira.":"What it watches.","La cara (cejas, ojos, mirada, boca y sonrisa, giro e inclinación de la cabeza, si asientes), el cuerpo (hombros, codos, muñecas, postura y movimiento) y cada mano con sus dedos; en la voz, volumen, entonación, ritmo, pausas y si hablas tú o escuchas.":"Your face (brows, eyes, eye contact, mouth and smile, head turn and tilt, nodding), your body (shoulders, elbows, wrists, posture and movement) and each hand and its fingers; in your voice, volume, intonation, pace, pauses and whether you’re talking or listening.","Privacidad.":"Privacy.","El vídeo y el audio se analizan en este dispositivo y no se suben a ningún sitio. El control por voz «Mis palabras» también funciona aquí, sin conexión. Solo el motor «Navegador» (y el texto que sigue tu voz) usa el reconocimiento de voz del navegador, que en Chrome procesa Google.":"Video and audio are analyzed on this device and never uploaded anywhere. “My words” voice control also works here, offline. Only the “Browser” engine (and the text that follows your voice) uses the browser’s speech recognition, which Google processes in Chrome.","Límites.":"Limits.","Es una guía, no un juez: las medidas son aproximadas y dependen de la luz, el encuadre y el micrófono. Calibra al entrar para que te compare contigo.":"It’s a guide, not a judge: measurements are approximate and depend on lighting, framing and mic. Calibrate when you start so it compares you with yourself.","¿Qué vas a decir?":"What are you going to say?","Escribe, pega o sube tu guion. En el plató lo leerás limpio, sin marcas encima.":"Type, paste or upload your script. In the studio you’ll read it clean, with no marks on top.","Guion":"Script","Subir texto":"Upload text","Ejemplo":"Example","Word, .txt, subtítulos (.srt, .vtt), .odt o .rtf. También puedes arrastrar el archivo al cuadro.":"Word, .txt, subtitles (.srt, .vtt), .odt or .rtf. You can also drag the file into the box.","Marcas opcionales":"Optional markup","[animado]":"[upbeat]","tono desde ese párrafo":"tone from that paragraph on","pausa":"pause","*palabra*":"*word*","énfasis":"emphasis","{abre los brazos}":"{open your arms}","acotación tuya":"your own direction","¿Qué tiene que transmitir?":"What does it need to convey?","¿Qué querías transmitir?":"What did you want to convey?","¿Cómo quieres que te vean?":"How do you want to come across?","Elige el tono: el apuntador te guiará hacia él mientras grabas.":"Pick the tone: Apuntador will guide you toward it as you record.","Compararé tu vídeo con este tono y te diré si lo consigues.":"I’ll compare your video with this tone and tell you if you nail it.","Cercano para el equipo o un cliente de confianza, serio para una entrevista o una negociación, inspirador para presentar una idea.":"Warm for your team or a trusted client, serious for an interview or a negotiation, inspiring to pitch an idea.","Si un párrafo empieza con una etiqueta como":"If a paragraph starts with a tag like","[serio]":"[serious]",", el apuntador cambia de tono al llegar a él.":", Apuntador switches tone when it gets there.","Qué cambiar para transmitir lo que quieres":"What to change to get your message across","Sugerencias para tu guion y tu tono. Tócalas para verlas en el texto o aplicarlas.":"Suggestions for your script and tone. Tap them to see them in the text or apply them.","Ideas para empezar (tócala para ponerla al principio):":"Opening ideas (tap one to put it at the start):","Vista previa":"Preview","Así lo verás en el plató":"This is how you’ll see it in the studio","Toca una palabra para marcarla: un toque, énfasis; dos, pausa después; tres, sin marca. Los gestos se marcan solos, con su emoji en el margen; una franja de color, donde cambia el tono.":"Tap a word to mark it: once for emphasis, twice for a pause after it, three times to clear. Gestures are marked for you, with their emoji in the margin; a color stripe shows where the tone changes.","Colores del texto":"Text colors","Colores en el texto":"Colors in the text","Rojo, énfasis; azul, pausa; amarillo, gesto.":"Red, emphasis; blue, pause; yellow, gesture.","Entrena un minuto al día":"Train one minute a day","Cada ejercicio tiene una sola meta y dura menos de un minuto. Te digo cómo vas y guardo tu récord en este dispositivo.":"Each exercise has one goal and takes under a minute. I’ll tell you how you’re doing and save your best on this device.","Todo listo":"All set","Elige tu vídeo":"Choose your video","Revisa cómo quieres grabar y entra al plató.":"Check how you want to record and enter the studio.","Se reproduce aquí mismo y te digo qué transmites. No sale de tu dispositivo.":"It plays right here and I’ll tell you what you’re conveying. It never leaves your device.","Al empezar, abre la «Ventana flotante»: se queda encima de la aplicación de la videollamada.":"When you start, open the “Floating window”: it stays on top of the video call app.","Toca para elegir un vídeo":"Tap to choose a video",".mp4, .mov o .webm · o arrástralo aquí":".mp4, .mov or .webm · or drag it here","Cómo grabar":"How to record","Ensayo antes de grabar":"Rehearse before recording","Una toma de prueba con el coach hablándote; la revisamos y luego grabas la buena.":"A practice take with the coach talking you through it; we review it, then you record the real one.","En el ensayo":"In rehearsal","Al grabar de verdad":"When recording for real","Avisos y medidores (recomendado)":"Cues and meters (recommended)","Solo medidores":"Meters only","Solo el texto":"Script only","Medidores (recomendado)":"Meters (recommended)","Avisos y medidores":"Cues and meters","Control por voz":"Voice control","Reconocimiento de voz":"Speech recognition","Automático (recomendado)":"Automatic (recommended)","Mis palabras":"My words","Del navegador":"Browser","Desactivado":"Off","Margen al parar":"Stop buffer","Lo que sigue grabando después de «corten».":"How long it keeps recording after “cut”.","Cortar al momento":"Cut right away","2 segundos":"2 seconds","3 segundos":"3 seconds","5 segundos":"5 seconds","Texto y avisos":"Text and cues","Cómo avanza el texto":"How the text moves","Sigue mi voz":"Follow my voice","Velocidad fija":"Fixed speed","Velocidad":"Speed","En el modo de velocidad fija.":"In fixed-speed mode.","Tamaño de letra":"Font size","Idioma de la voz":"Voice language","Parar el texto si me callo":"Pause the text when I go quiet","Avisarme de los gestos del guion":"Cue me on the script’s gestures","Avisarme si me equivoco al leer":"Alert me when I misread","Dudas y pausas a mitad de frase en todos; palabras saltadas, repetidas o cambiadas con Chrome o Edge de ordenador.":"Hesitations and mid-sentence pauses in any browser; skipped, repeated or swapped words in desktop Chrome or Edge.","Texto en espejo":"Mirror text","Para un cristal de teleprompter.":"For teleprompter glass.","Modo análisis":"Analysis mode","Dibuja lo que detecta: cara, cejas, ojos, boca, hombros, codos y manos. Apagado, la imagen queda limpia (en el plató, botón de la figura o tecla S).":"Draws what it detects: face, brows, eyes, mouth, shoulders, elbows and hands. When off, the image stays clean (in the studio, the figure button or the S key).","Si la aplicación de la llamada no deja usar la cámara a la vez, abre la llamada en otra pestaña de este navegador (Meet, Teams o Zoom en la web).":"If the call app won’t let you use the camera at the same time, open the call in another tab of this browser (Meet, Teams or Zoom on the web).","Te pedirá permiso para la cámara y el micrófono. Mejor con el móvil en vertical o el portátil a la altura de los ojos, y que se te vea de cintura para arriba.":"It’ll ask for camera and mic access. Best with your phone upright or your laptop at eye level, framed from the waist up.","Continuar":"Continue","Entrar al plató":"Enter the studio","Empezar":"Start","Elegir vídeo":"Choose video","✋ Fallo al leer":"✋ Misread","🎙️ «corten» · «otra vez»":"🎙️ “cut” · “again”","Información":"Info","Plano":"Setup","Cuerpo":"Body","Tono":"Tone","Transmites":"Coming across","Objetivo":"Target","👀 Esperando a verte…":"👀 Waiting to see you…","Luz":"Lighting","Sonido":"Sound","Encuadre":"Framing","Nivel":"Level","🙂 Cara":"🙂 Face","🧍 Cuerpo":"🧍 Body","✋ Manos":"✋ Hands","🎙️ Voz":"🎙️ Voice","Colócate frente a la cámara y empieza a hablar.":"Get in front of the camera and start talking.","Revisa tu plano antes de grabar":"Check your setup before recording","Cargando…":"Loading…","Calibración · 5 segundos":"Calibration · 5 seconds","Colócate como vas a estar, hombros relajados, cara tranquila, mira a la cámara y di con tu voz normal:":"Get in position, shoulders relaxed, face calm, look at the camera and say in your normal voice:","Hola, estoy probando el micrófono y la cámara.":"Hi, I’m testing the mic and the camera.","Saltar":"Skip","La cámara se ha parado":"The camera stopped","El sistema o otra aplicación la ha cortado.":"The system or another app cut it off.","Reactivar la cámara":"Turn the camera back on","🎙️ Manos libres: enséñale tu voz":"🎙️ Hands-free: teach it your voice","Después grabas, paras y repites sin tocar el móvil. Ponte donde vas a grabar y di cada palabra cuando la veas, sola y con una pausa. Solo esta vez: funciona sin conexión y te obedece solo a ti.":"Then you record, stop and retake without touching your phone. Stand where you’ll record and say each word when you see it, on its own, with a pause. Just this once: it works offline and only obeys you.","«comenzamos»":"“action”","Empezar de nuevo":"Start over","Ahora no":"Not now","🔥 Calentar 40 s":"🔥 Warm up 40 s","🔥 Calentamiento · 40 s":"🔥 Warm-up · 40 s","Saltar":"Skip","Siguiente":"Next","⏹ Corto en 3":"⏹ Cutting in 3","Sigo grabando hasta entonces. Di":"I’ll keep recording until then. Say","seguimos":"keep going","para continuar u":"to continue or","otra vez":"again","para repetir desde el principio.":"to start over from the top.","Seguir grabando":"Keep recording","Cortar ya":"Cut now","Manos libres":"Hands-free","Enseñar mi voz":"Teach my voice","¡Entendido!":"Got it!","Salir":"Exit","Otro ejercicio":"Another exercise","Otra vez":"Again","🎯 Tus objetivos para esta toma":"🎯 Your goals for this take","Te aviso en cuanto vea uno de ellos y te digo cuándo lo consigues.":"I’ll cue you as soon as I spot one and tell you when you nail it.","Ensayo terminado":"Rehearsal done","Al grabar, fíjate en esto":"When you record, focus on this","Ver informe":"View report","Ensayar otra vez":"Rehearse again","Grabar de verdad":"Record for real","🎙️ Di":"🎙️ Say","para grabar ·":"to record ·","«corten»":"“cut”","para parar ·":"to stop ·","«otra vez»":"“again”","para repetir":"to redo","Volver":"Back","Más lento":"Slower","Más rápido":"Faster","Ensayar":"Rehearse","Grabar":"Record","Terminar":"Finish","Letra más pequeña":"Smaller text","Letra más grande":"Larger text","Texto":"Text","Ventana flotante":"Floating window","El apuntador está en la ventana flotante":"Apuntador is in the floating window","Puedes volver a la videollamada: los avisos y lo que detecta siguen allí.":"You can go back to the video call: the cues and live detection stay there.","Traerlo a esta ventana":"Bring it back to this window","Atrás":"Back","Objetivos para la próxima toma":"Goals for the next take","Ocultar":"Hide","Escribe o pega aquí tu guion…":"Type or paste your script here…","Tono del mensaje":"Message tone","Avance del texto":"Text scrolling","Palabras por minuto":"Words per minute","Plató":"Studio","Desplegar la información":"Expand info","Información del director":"Director info","Plegar la información":"Collapse the info","Vista de la información":"Info view","Objetivos de la toma":"Take goals","Tu plano":"Your setup","Lo que detecta ahora":"What it detects now","Tu plano: luz, sonido, encuadre y nivel":"Your setup: lighting, sound, framing and level","Tu plano":"Your setup","Cómo te ves":"How you come across","Sonrisa":"Smile","Gestos con manos y brazos":"Hand and arm gestures","Voz con entonación":"Voice with intonation","La franja verde es lo que pide tu tono; el punto, cómo vas. Al grabar los verás arriba, sin textos.":"The green band is what your tone calls for; the dot is where you are. When you record, they sit at the top, with no text.","Cada parte del cuerpo y todas las medidas":"Each body part and every measurement","Tus medidores":"Your meters","Partes del plano":"Setup parts","Luz":"Lighting","Tu nota, sonrisa, gestos y voz: desplegar la información":"Your score, smile, gestures and voice: expand the info","Lo que hace cada parte del cuerpo":"What each body part is doing","Enseña tus palabras":"Teach your words","Parando la grabación":"Stopping the recording","Compartir tu resultado":"Share your result","Objetivos de esta toma":"Goals for this take","Resultado del ensayo":"Rehearsal result","Volver (Esc)":"Back (Esc)","Más lento (flecha abajo)":"Slower (down arrow)","Puntos de la toma":"Take score","Más rápido (flecha arriba)":"Faster (up arrow)","Ensayar (Espacio)":"Rehearse (Space)","Grabar toma (R)":"Record take (R)","Terminar toma (Esc)":"End take (Esc)","Letra más pequeña (-)":"Smaller text (-)","Letra más grande (+)":"Larger text (+)","Ocultar o mostrar el texto para verte entero (T)":"Hide or show the text to see your full frame (T)","Modo análisis: dibujar lo que detecta (S)":"Analysis mode: draw what it detects (S)","Información (I)":"Info (I)","Volver a enseñar tus palabras de voz":"Re-teach your voice words","Ventana flotante para tenerlo encima de la videollamada":"Floating window to keep it on top of the video call","Informe de la toma":"Take report",": bien</b></li>":": good</b></li>",". Sigue así.":". Keep it up.",". Empieza con dos palmadas.":". Start with two claps.",". Para Reels, TikTok y Shorts conviene menos de un minuto: recorta el guion o ve un poco más rápido.":". For Reels, TikTok and Shorts, aim for under a minute: trim the script or read a little faster.","% bien <i class=\"s-warn\"></i>":"% good <i class=\"s-warn\"></i>","% regular <i class=\"s-bad\"></i>":"% so-so <i class=\"s-bad\"></i>",". El porcentaje es la parte del tiempo con ese problema: cuanto más bajo, mejor.</p>\n      <div class=\"ba-top\">\n        <span>Ajuste al tono <b>":". The percentage is the share of time with that problem: lower is better.</p>\n      <div class=\"ba-top\">\n        <span>Tone match <b>","El coach para hablar a cámara: lees tu guion sin distracciones y después te enseña, sobre tu propio vídeo, qué mejorar en cada momento.":"Your on-camera coach: read your script with no distractions, then see on your own video what to improve, moment by moment.","Lee un texto corto y recibe tu primer consejo. Sin cuenta. Tu vídeo no sale del móvil.":"Read a short script and get your first tip. No account. Your video never leaves your phone."};
+const EN_HTML = {"Graba con más":"Record with more","energía":"energy","seguridad":"confidence","intención":"purpose","naturalidad":"authenticity","energía, seguridad, intención y naturalidad":"energy, confidence, purpose and authenticity","Tu director de escena: te ve y te escucha mientras grabas y te dice en el momento cómo moverte y hablar.":"Your on-set director: it watches and listens as you record and tells you how to move and speak, in the moment.","Haz la prueba de 30 segundos":"Take the 30-second test","Lee un texto corto y te digo cómo te ven en cámara y qué mejorar primero. Sin registrarte.":"Read a short text and I’ll tell you how you come across on camera and what to fix first. No sign-up.","¿Qué quieres hacer?":"What do you want to do?","Grabar un vídeo":"Record a video","Tu guion en pantalla y, al terminar, tu vídeo con notas.":"Your script on screen and, afterwards, your video with notes.","Analizar un vídeo":"Analyze a video","Sube uno que ya grabaste y te digo qué mejorar.":"Upload one you’ve already recorded and I’ll tell you what to improve.","Entrenar un minuto":"1-minute training","Ejercicios cortos con una sola meta: mirada, voz, manos, sonrisa y pausas.":"Short exercises with one goal each: eye contact, voice, hands, smile and pauses.","Videollamada":"Video call","O un directo. Sin guion, en una ventana flotante encima.":"Or a livestream. No script, in a floating window on top.","Tenla como una app":"Get it as an app","Instalar":"Install","Todo se analiza en tu dispositivo":"Everything is analyzed on your device","Cómo funciona y privacidad":"How it works and privacy","Qué mira.":"What it watches.","La cara (cejas, ojos, mirada, boca y sonrisa, giro e inclinación de la cabeza, si asientes), el cuerpo (hombros, codos, muñecas, postura y movimiento) y cada mano con sus dedos; en la voz, volumen, entonación, ritmo, pausas y si hablas tú o escuchas.":"Your face (brows, eyes, eye contact, mouth and smile, head turn and tilt, nodding), your body (shoulders, elbows, wrists, posture and movement) and each hand and its fingers; in your voice, volume, intonation, pace, pauses and whether you’re talking or listening.","Privacidad.":"Privacy.","El vídeo y el audio se analizan en este dispositivo y no se suben a ningún sitio. El control por voz «Mis palabras» también funciona aquí, sin conexión. Solo el motor «Navegador» (y el texto que sigue tu voz) usa el reconocimiento de voz del navegador, que en Chrome procesa Google.":"Video and audio are analyzed on this device and never uploaded anywhere. “My words” voice control also works here, offline. Only the “Browser” engine (and the text that follows your voice) uses the browser’s speech recognition, which Google processes in Chrome.","Límites.":"Limits.","Es una guía, no un juez: las medidas son aproximadas y dependen de la luz, el encuadre y el micrófono. Calibra al entrar para que te compare contigo.":"It’s a guide, not a judge: measurements are approximate and depend on lighting, framing and mic. Calibrate when you start so it compares you with yourself.","¿Qué vas a decir?":"What are you going to say?","Escribe, pega o sube tu guion. En el plató lo leerás limpio, sin marcas encima.":"Type, paste or upload your script. In the studio you’ll read it clean, with no marks on top.","Guion":"Script","Subir texto":"Upload text","Ejemplo":"Example","Word, PDF, Excel, PowerPoint (las notas del orador), .txt, subtítulos (.srt, .vtt), .odt o .rtf. También puedes arrastrar el archivo al cuadro.":"Word, PDF, Excel, PowerPoint (the speaker notes), .txt, subtitles (.srt, .vtt), .odt or .rtf. You can also drag the file into the box.","Marcas opcionales":"Optional markup","[animado]":"[upbeat]","tono desde ese párrafo":"tone from that paragraph on","pausa":"pause","*palabra*":"*word*","énfasis":"emphasis","{abre los brazos}":"{open your arms}","acotación tuya":"your own direction","¿Qué tiene que transmitir?":"What does it need to convey?","¿Qué querías transmitir?":"What did you want to convey?","¿Cómo quieres que te vean?":"How do you want to come across?","Elige el tono: el apuntador te guiará hacia él mientras grabas.":"Pick the tone: Apuntador will guide you toward it as you record.","Compararé tu vídeo con este tono y te diré si lo consigues.":"I’ll compare your video with this tone and tell you if you nail it.","Cercano para el equipo o un cliente de confianza, serio para una entrevista o una negociación, inspirador para presentar una idea.":"Warm for your team or a trusted client, serious for an interview or a negotiation, inspiring to pitch an idea.","Si un párrafo empieza con una etiqueta como":"If a paragraph starts with a tag like","[serio]":"[serious]",", el apuntador cambia de tono al llegar a él.":", Apuntador switches tone when it gets there.","Qué cambiar para transmitir lo que quieres":"What to change to get your message across","Sugerencias para tu guion y tu tono. Tócalas para verlas en el texto o aplicarlas.":"Suggestions for your script and tone. Tap them to see them in the text or apply them.","Ideas para empezar (tócala para ponerla al principio):":"Opening ideas (tap one to put it at the start):","Vista previa":"Preview","Así lo verás en el plató":"This is how you’ll see it in the studio","Toca una palabra para marcarla: un toque, énfasis; dos, pausa después; tres, sin marca. Los gestos se marcan solos, con su emoji en el margen; una franja de color, donde cambia el tono.":"Tap a word to mark it: once for emphasis, twice for a pause after it, three times to clear. Gestures are marked for you, with their emoji in the margin; a color stripe shows where the tone changes.","Colores del texto":"Text colors","Colores en el texto":"Colors in the text","Rojo, énfasis; azul, pausa; amarillo, gesto.":"Red, emphasis; blue, pause; yellow, gesture.","Entrena un minuto al día":"Train one minute a day","Cada ejercicio tiene una sola meta y dura menos de un minuto. Te digo cómo vas y guardo tu récord en este dispositivo.":"Each exercise has one goal and takes under a minute. I’ll tell you how you’re doing and save your best on this device.","Todo listo":"All set","Elige tu vídeo":"Choose your video","Revisa cómo quieres grabar y entra al plató.":"Check how you want to record and enter the studio.","Se reproduce aquí mismo y te digo qué transmites. No sale de tu dispositivo.":"It plays right here and I’ll tell you what you’re conveying. It never leaves your device.","Al empezar, abre la «Ventana flotante»: se queda encima de la aplicación de la videollamada.":"When you start, open the “Floating window”: it stays on top of the video call app.","Toca para elegir un vídeo":"Tap to choose a video","📱 ¿Prefieres grabar con la cámara del móvil? Grábalo y súbelo aquí":"📱 Rather record with your phone’s camera? Record it and upload it here",".mp4, .mov o .webm · o arrástralo aquí":".mp4, .mov or .webm · or drag it here","Cómo grabar":"How to record","Ensayo antes de grabar":"Rehearse before recording","Una toma de prueba que no cuenta: la revisamos y luego grabas la buena.":"A practice take that doesn’t count: we review it, then you record the real one.","Cuenta atrás al pulsar Grabar":"Countdown when you tap Record","Tiempo para colocarte antes de que empiece. Se para sola al terminar el texto, o tocando la pantalla.":"Time to get in position before it starts. It stops by itself when the script ends, or when you tap the screen.","10 segundos":"10 seconds","Mientras grabas":"While you record","Solo el texto (recomendado)":"Just the script (recommended)","El texto y medidores":"Script and meters","El texto, medidores y avisos":"Script, meters and live cues","En el ensayo":"In rehearsal","Al grabar de verdad":"When recording for real","Avisos y medidores (recomendado)":"Cues and meters (recommended)","Solo medidores":"Meters only","Solo el texto":"Script only","Medidores (recomendado)":"Meters (recommended)","Avisos y medidores":"Cues and meters","Control por voz":"Voice control","Reconocimiento de voz":"Speech recognition","Automático (recomendado)":"Automatic (recommended)","Mis palabras":"My words","Del navegador":"Browser","Desactivado":"Off","Margen al parar":"Stop buffer","Lo que sigue grabando después de «corten».":"How long it keeps recording after “cut”.","Cortar al momento":"Cut right away","2 segundos":"2 seconds","3 segundos":"3 seconds","5 segundos":"5 seconds","Texto y avisos":"Text and cues","Cómo avanza el texto":"How the text moves","Sigue mi voz":"Follow my voice","Velocidad fija":"Fixed speed","Velocidad":"Speed","En el modo de velocidad fija.":"In fixed-speed mode.","Tamaño de letra":"Font size","Idioma de la voz":"Voice language","Parar el texto si me callo":"Pause the text when I go quiet","Avisarme de los gestos del guion":"Cue me on the script’s gestures","Avisarme si me equivoco al leer":"Alert me when I misread","Dudas y pausas a mitad de frase en todos; palabras saltadas, repetidas o cambiadas con Chrome o Edge de ordenador.":"Hesitations and mid-sentence pauses in any browser; skipped, repeated or swapped words in desktop Chrome or Edge.","Texto en espejo":"Mirror text","Para un cristal de teleprompter.":"For teleprompter glass.","Modo análisis":"Analysis mode","Dibuja lo que detecta: cara, cejas, ojos, boca, hombros, codos y manos. Apagado, la imagen queda limpia (en el plató, botón de la figura o tecla S).":"Draws what it detects: face, brows, eyes, mouth, shoulders, elbows and hands. When off, the image stays clean (in the studio, the figure button or the S key).","Si la aplicación de la llamada no deja usar la cámara a la vez, abre la llamada en otra pestaña de este navegador (Meet, Teams o Zoom en la web).":"If the call app won’t let you use the camera at the same time, open the call in another tab of this browser (Meet, Teams or Zoom on the web).","Te pedirá permiso para la cámara y el micrófono. Mejor con el móvil en vertical o el portátil a la altura de los ojos, y que se te vea de cintura para arriba.":"It’ll ask for camera and mic access. Best with your phone upright or your laptop at eye level, framed from the waist up.","Continuar":"Continue","Entrar al plató":"Enter the studio","Empezar":"Start","Elegir vídeo":"Choose video","✋ Fallo al leer":"✋ Misread","🎙️ «corten» · «otra vez»":"🎙️ “cut” · “again”","Información":"Info","Plano":"Setup","Cuerpo":"Body","Tono":"Tone","Transmites":"Coming across","Objetivo":"Target","👀 Esperando a verte…":"👀 Waiting to see you…","Luz":"Lighting","Sonido":"Sound","Encuadre":"Framing","Nivel":"Level","🙂 Cara":"🙂 Face","🧍 Cuerpo":"🧍 Body","✋ Manos":"✋ Hands","🎙️ Voz":"🎙️ Voice","Colócate frente a la cámara y empieza a hablar.":"Get in front of the camera and start talking.","Revisa tu plano antes de grabar":"Check your setup before recording","Cargando…":"Loading…","Calibración · 5 segundos":"Calibration · 5 seconds","Colócate como vas a estar, hombros relajados, cara tranquila, mira a la cámara y di con tu voz normal:":"Get in position, shoulders relaxed, face calm, look at the camera and say in your normal voice:","Hola, estoy probando el micrófono y la cámara.":"Hi, I’m testing the mic and the camera.","Saltar":"Skip","La cámara se ha parado":"The camera stopped","El sistema o otra aplicación la ha cortado.":"The system or another app cut it off.","Reactivar la cámara":"Turn the camera back on","🎙️ Manos libres: enséñale tu voz":"🎙️ Hands-free: teach it your voice","Después grabas, paras y repites sin tocar el móvil. Ponte donde vas a grabar y di cada palabra cuando la veas, sola y con una pausa. Solo esta vez: funciona sin conexión y te obedece solo a ti.":"Then you record, stop and retake without touching your phone. Stand where you’ll record and say each word when you see it, on its own, with a pause. Just this once: it works offline and only obeys you.","«comenzamos»":"“action”","Empezar de nuevo":"Start over","Ahora no":"Not now","🔥 Calentar 40 s":"🔥 Warm up 40 s","🔥 Calentamiento · 40 s":"🔥 Warm-up · 40 s","Saltar":"Skip","Siguiente":"Next","⏹ Corto en 3":"⏹ Cutting in 3","Sigo grabando hasta entonces. Di":"I’ll keep recording until then. Say","seguimos":"keep going","para continuar u":"to continue or","otra vez":"again","para repetir desde el principio.":"to start over from the top.","Seguir grabando":"Keep recording","Cortar ya":"Cut now","Manos libres":"Hands-free","Enseñar mi voz":"Teach my voice","¡Entendido!":"Got it!","Salir":"Exit","Otro ejercicio":"Another exercise","Otra vez":"Again","🎯 Tus objetivos para esta toma":"🎯 Your goals for this take","Te aviso en cuanto vea uno de ellos y te digo cuándo lo consigues.":"I’ll cue you as soon as I spot one and tell you when you nail it.","Ensayo terminado":"Rehearsal done","Al grabar, fíjate en esto":"When you record, focus on this","Ver informe":"View report","Ensayar otra vez":"Rehearse again","Grabar de verdad":"Record for real","🎙️ Di":"🎙️ Say","para grabar ·":"to record ·","«corten»":"“cut”","para parar ·":"to stop ·","«otra vez»":"“again”","para repetir":"to redo","Volver":"Back","Más lento":"Slower","Más rápido":"Faster","Ensayar":"Rehearse","Grabar":"Record","Terminar":"Finish","Letra más pequeña":"Smaller text","Letra más grande":"Larger text","Texto":"Text","Ventana flotante":"Floating window","El apuntador está en la ventana flotante":"Apuntador is in the floating window","Puedes volver a la videollamada: los avisos y lo que detecta siguen allí.":"You can go back to the video call: the cues and live detection stay there.","Traerlo a esta ventana":"Bring it back to this window","Atrás":"Back","Objetivos para la próxima toma":"Goals for the next take","Ocultar":"Hide","Escribe o pega aquí tu guion…":"Type or paste your script here…","Tono del mensaje":"Message tone","Avance del texto":"Text scrolling","Palabras por minuto":"Words per minute","Plató":"Studio","Desplegar la información":"Expand info","Información del director":"Director info","Plegar la información":"Collapse the info","Vista de la información":"Info view","Objetivos de la toma":"Take goals","Tu plano":"Your setup","Lo que detecta ahora":"What it detects now","Tu plano: luz, sonido, encuadre y nivel":"Your setup: lighting, sound, framing and level","Tu plano":"Your setup","Cómo te ves":"How you come across","Sonrisa":"Smile","Gestos con manos y brazos":"Hand and arm gestures","Voz con entonación":"Voice with intonation","La franja verde es lo que pide tu tono; el punto, cómo vas. Al grabar los verás arriba, sin textos.":"The green band is what your tone calls for; the dot is where you are. When you record, they sit at the top, with no text.","Cada parte del cuerpo y todas las medidas":"Each body part and every measurement","Tus medidores":"Your meters","Partes del plano":"Setup parts","Luz":"Lighting","Tu nota, sonrisa, gestos y voz: desplegar la información":"Your score, smile, gestures and voice: expand the info","Lo que hace cada parte del cuerpo":"What each body part is doing","Enseña tus palabras":"Teach your words","Parando la grabación":"Stopping the recording","Compartir tu resultado":"Share your result","Objetivos de esta toma":"Goals for this take","Resultado del ensayo":"Rehearsal result","Volver (Esc)":"Back (Esc)","Más lento (flecha abajo)":"Slower (down arrow)","Puntos de la toma":"Take score","Más rápido (flecha arriba)":"Faster (up arrow)","Ensayar (Espacio)":"Rehearse (Space)","Grabar toma (R)":"Record take (R)","Terminar toma (Esc)":"End take (Esc)","Letra más pequeña (-)":"Smaller text (-)","Letra más grande (+)":"Larger text (+)","Ocultar o mostrar el texto para verte entero (T)":"Hide or show the text to see your full frame (T)","Modo análisis: dibujar lo que detecta (S)":"Analysis mode: draw what it detects (S)","Información (I)":"Info (I)","Volver a enseñar tus palabras de voz":"Re-teach your voice words","Ventana flotante para tenerlo encima de la videollamada":"Floating window to keep it on top of the video call","Informe de la toma":"Take report",": bien</b></li>":": good</b></li>",". Sigue así.":". Keep it up.",". Empieza con dos palmadas.":". Start with two claps.",". Para Reels, TikTok y Shorts conviene menos de un minuto: recorta el guion o ve un poco más rápido.":". For Reels, TikTok and Shorts, aim for under a minute: trim the script or read a little faster.","% bien <i class=\"s-warn\"></i>":"% good <i class=\"s-warn\"></i>","% regular <i class=\"s-bad\"></i>":"% so-so <i class=\"s-bad\"></i>",". El porcentaje es la parte del tiempo con ese problema: cuanto más bajo, mejor.</p>\n      <div class=\"ba-top\">\n        <span>Ajuste al tono <b>":". The percentage is the share of time with that problem: lower is better.</p>\n      <div class=\"ba-top\">\n        <span>Tone match <b>","El coach para hablar a cámara: lees tu guion sin distracciones y después te enseña, sobre tu propio vídeo, qué mejorar en cada momento.":"Your on-camera coach: read your script with no distractions, then see on your own video what to improve, moment by moment.","Lee un texto corto y recibe tu primer consejo. Sin cuenta. Tu vídeo no sale del móvil.":"Read a short script and get your first tip. No account. Your video never leaves your phone."};
 // la página fija (lo que no pinta el código): cada texto y cada title, aria-label, placeholder y alt, por su traducción
 function translateStatic(root = document.body) {
   if (!EN) return;
@@ -2341,7 +2352,8 @@ function wordTokens(text) {
   return out;
 }
 function markWord(i) {
-  const txt = S.text.replace(/\r/g, ''), toks = wordTokens(txt), ws = toks.filter(t => t.k === 'w'), w = ws[i], word = S.sc.words[i];
+  const txt = S.text.replace(/\r/g, ''), toks = wordTokens(txt), ws = toks.filter(t => t.k === 'w'), sc = parseScript(txt, S.tone), w = ws[i], word = sc.words[i];
+  const lastInPara = sc.paras.some(p => p.end - 1 === i);
   if (!w || !word) return;
   const ti = toks.indexOf(w), next = toks[ti + 1], edits = [];
   const samePara = (a, b) => !/\n\s*\n/.test(txt.slice(Math.min(a.e, b.e), Math.max(a.s, b.s)));
@@ -2353,8 +2365,8 @@ function markWord(i) {
     let b = ti; while (b < toks.length - 1 && !CLOSE.test(toks[b].tk) && samePara(toks[b + 1], w)) b++;
     const o = OPEN.exec(toks[a].tk); if (o) { const lead = /^[¡¿"«(]*/.exec(toks[a].tk)[0].length; edits.push([toks[a].s + lead, o[0].length - lead, '']); }
     const c = CLOSE.exec(toks[b].tk); if (c) edits.push([toks[b].s + c.index, c[0].length, '']);
-    if (next?.k !== 'pz') edits.push([w.e, 0, ' //']);
-    msg = LL(`🔵 Pausa después de «${word.text}»`, `🔵 Pause after “${word.text}”`);
+    if (lastInPara) msg = LL(`«${word.text}», sin marca`, `“${word.text}”, unmarked`);   // al final del párrafo ya hay pausa
+    else { if (next?.k !== 'pz') edits.push([w.e, 0, ' //']); msg = LL(`🔵 Pausa después de «${word.text}»`, `🔵 Pause after “${word.text}”`); }
   } else if (next?.k === 'pz') {
     const st = txt[next.s - 1] === ' ' ? next.s - 1 : next.s;
     edits.push([st, next.e - st, '']);
@@ -2399,16 +2411,17 @@ const DEFAULT_CALIB = { smile: .05, brow: .12, pitch: .47, yaw: 0, neck: .62, re
 const S = {
   text: store.get('text', SAMPLE),
   tone: store.get('tone', 'animado'),
-  opts: Object.assign({ app: 'video', tab: {}, voiceEngine: 'auto', stopMargin: 3, rehearseFirst: true, takeHelp: 'medidores', rehHelp: 'avisos', mode: 'voz', wpm: 140, font: 46, mirror: false, pauseSilent: true, cues: true, readCheck: true, wordColors: true, skeleton: false, lang: EN ? 'en-US' : 'es-ES', compact: null }, store.get('opts', {})),
+  opts: Object.assign({ app: 'video', tab: {}, voiceEngine: 'auto', stopMargin: 3, rehearseFirst: false, takeHelp: 'limpio', rehHelp: 'limpio', countdown: 5, mode: 'voz', wpm: 140, font: 46, mirror: false, pauseSilent: true, cues: true, readCheck: true, wordColors: true, skeleton: false, lang: EN ? 'en-US' : 'es-ES', compact: null }, store.get('opts', {})),
   calib: Object.assign({}, DEFAULT_CALIB, store.get('calib', {})),
   sc: null, live: false, take: null, vision: null, visionErr: null, audio: null, stream: null,
 };
 window.__apuntador = S;
 // pantalla limpia por defecto: las líneas de lo que detecta pasan a ser el «modo análisis», que enciendes si quieres
 if ((S.opts.v || 0) < 2) { S.opts.skeleton = false; S.opts.v = 2; store.set('opts', S.opts); }
-// grabando de verdad no da tiempo a leer avisos: por defecto, medidores para mirar de reojo (sin textos); en el ensayo, el
-// coach te va hablando. Al terminar, siempre la revisión sobre tu vídeo
-if (S.opts.v < 3) { S.opts.takeHelp = 'medidores'; S.opts.rehHelp = 'avisos'; S.opts.v = 3; store.set('opts', S.opts); }
+// leyendo, la atención está en el texto: cualquier indicación en pantalla te saca del hilo. Por defecto, mientras lees
+// solo el texto (también en el ensayo) y todo lo que ve el entrenador, al terminar y sobre tu vídeo. Sin ensayo previo:
+// graba, revisa y otra toma
+if (S.opts.v < 4) { S.opts.takeHelp = 'limpio'; S.opts.rehHelp = 'limpio'; S.opts.rehearseFirst = false; S.opts.v = 4; store.set('opts', S.opts); }
 const ser = {
   motion: new Series(), handsUp: new Series(), handsMove: new Series(), open: new Series(), cx: new Series(),
   smile: new Series(), brow: new Series(), contact: new Series(), frown: new Series(), pitchRaw: new Series(25), yawRaw: new Series(25),
@@ -2484,6 +2497,93 @@ async function unzipEntry(buf, name) {
   }
   throw new Error(LL('No encuentro el texto dentro del archivo', "I can’t find the text inside the file"));
 }
+// los nombres de los archivos que hay dentro de un .xlsx o un .pptx (son ZIP)
+function zipNames(buf) {
+  const d = new DataView(buf), u8 = new Uint8Array(buf), dec = new TextDecoder(), out = [];
+  let e = -1;
+  for (let i = buf.byteLength - 22; i >= Math.max(0, buf.byteLength - 66000); i--) if (d.getUint32(i, true) === 0x06054b50) { e = i; break; }
+  if (e < 0) return out;
+  let p = d.getUint32(e + 16, true);
+  const count = d.getUint16(e + 10, true);
+  for (let k = 0; k < count && d.getUint32(p, true) === 0x02014b50; k++) {
+    const nl = d.getUint16(p + 28, true), xl = d.getUint16(p + 30, true), cl = d.getUint16(p + 32, true);
+    out.push(dec.decode(u8.subarray(p + 46, p + 46 + nl))); p += 46 + nl + xl + cl;
+  }
+  return out;
+}
+const numSort = re => (a, b) => +a.match(re)[1] - +b.match(re)[1];
+// PDF: con pdf.js (se descarga la primera vez). Las líneas de un mismo párrafo se juntan (y las palabras partidas con guion); los huecos grandes son párrafos
+const PDFJS = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/';
+async function pdfToText(buf) {
+  const pdfjs = await import(PDFJS + 'pdf.min.mjs');
+  pdfjs.GlobalWorkerOptions.workerSrc = PDFJS + 'pdf.worker.min.mjs';
+  const doc = await pdfjs.getDocument({ data: new Uint8Array(buf) }).promise, pages = [];
+  for (let i = 1; i <= doc.numPages; i++) {
+    const { items } = await (await doc.getPage(i)).getTextContent();
+    let out = '', lastY = null;
+    for (const it of items) {
+      const y = it.transform?.[5];
+      if (lastY != null && y != null && lastY - y > (it.height || 12) * 1.8) out += '\n\n';   // salto grande: párrafo
+      out += it.str + (it.hasEOL ? '\u0000' : '');
+      if (y != null) lastY = y;
+    }
+    pages.push(out.replace(/(\p{L})-\u0000(?=\p{Ll})/gu, '$1').replace(/\u0000/g, ' ').replace(/[ \t]+/g, ' ').replace(/ ?\n ?/g, '\n').replace(/\n{3,}/g, '\n\n').trim());
+  }
+  return pages.join('\n\n');
+}
+// una tabla (Excel o CSV) a guion: las columnas de frases (no las de números o etiquetas cortas); si no hay, la fila entera. Sin la cabecera
+function tableText(rows) {
+  const words = t => t.trim().split(/\s+/).filter(w => /\p{L}/u.test(w)).length, ord = (x, y) => x.length - y.length || x.localeCompare(y, 'en', { numeric: true });
+  const cols = {};
+  for (const r of rows.length > 2 ? rows.slice(1) : rows) for (const [c, v] of Object.entries(r)) (cols[c] ||= []).push(words(v));
+  const best = Math.max(0, ...Object.values(cols).map(mean)), txt = best >= 2 ? Object.keys(cols).filter(c => mean(cols[c]) >= Math.max(2, best / 2)).sort(ord) : [];
+  let lines = rows.map(r => (txt.length ? txt : Object.keys(r).sort(ord)).map(c => r[c]).filter(Boolean).join(' ')).filter(Boolean);
+  if (txt.length && lines.length > 1 && words(lines[0]) <= 2 && !/[.!?…]$/.test(lines[0])) lines = lines.slice(1);
+  return lines;
+}
+// Excel: si hay una columna de frases (la del guion), solo esa; si no, todas las celdas de cada fila. Cada fila, un párrafo
+async function xlsxToText(buf) {
+  const names = zipNames(buf), shared = [], tx = x => xmlText([...x.matchAll(/<t\b[^>]*>([^<]*)<\/t>/g)].map(m => m[1]).join(''));
+  if (names.includes('xl/sharedStrings.xml')) for (const m of (await unzipEntry(buf, 'xl/sharedStrings.xml')).matchAll(/<si>([\s\S]*?)<\/si>/g)) shared.push(tx(m[1].replace(/<rPh\b[\s\S]*?<\/rPh>/g, '')));
+  const sheets = names.filter(n => /^xl\/worksheets\/sheet\d+\.xml$/.test(n)).sort(numSort(/sheet(\d+)/)), out = [];
+  for (const sh of sheets) {
+    const rows = [];
+    for (const row of (await unzipEntry(buf, sh)).matchAll(/<row\b[^>]*?(?:\/>|>([\s\S]*?)<\/row>)/g)) {
+      const cells = {};
+      for (const [, at, inner = ''] of (row[1] || '').matchAll(/<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g)) {
+        const col = /\br="([A-Z]+)/.exec(at)?.[1] || String(Object.keys(cells).length);
+        const v = /t="s"/.test(at) ? shared[+(/<v>([^<]*)<\/v>/.exec(inner)?.[1] ?? -1)] ?? '' : /t="inlineStr"/.test(at) ? tx(inner) : xmlText(/<v>([^<]*)<\/v>/.exec(inner)?.[1] ?? '');
+        if (v.trim()) cells[col] = v.trim();
+      }
+      if (Object.keys(cells).length) rows.push(cells);
+    }
+    out.push(...tableText(rows));
+  }
+  return out.join('\n\n');
+}
+// PowerPoint: en el orden de la presentación. Si hay notas del orador, el guion son las notas; si no, el texto de cada diapositiva
+async function pptxToText(buf) {
+  const names = zipNames(buf), read = n => names.includes(n) ? unzipEntry(buf, n) : Promise.resolve('');
+  // sin el número de diapositiva, la fecha, el pie ni la miniatura
+  const grab = async n => [...(await read(n)).replace(/<p:sp\b[\s\S]*?<\/p:sp>/g, sp => /<p:ph\b[^>]*type="(?:sldNum|dt|ftr|hdr|sldImg)"/.test(sp) ? '' : sp).matchAll(/<a:p\b[^>]*>([\s\S]*?)<\/a:p>/g)]
+    .map(p => xmlText([...p[1].matchAll(/<a:t>([^<]*)<\/a:t>/g)].map(x => x[1]).join(''))).filter(x => x.trim() && !/^\d+$/.test(x.trim())).join('\n');
+  const rel = async (file, type) => {   // destino de las relaciones de un archivo, por tipo
+    const dir = file.replace(/[^/]+$/, ''), xml = await read(dir + '_rels/' + file.slice(dir.length) + '.rels'), out = {};
+    for (const m of xml.matchAll(/<Relationship\b[^>]*>/g)) {
+      const id = /Id="([^"]+)"/.exec(m[0])?.[1], t = /Type="([^"]+)"/.exec(m[0])?.[1] || '', to = /Target="([^"]+)"/.exec(m[0])?.[1] || '';
+      if (id && t.endsWith('/' + type)) out[id] = to.startsWith('/') ? to.slice(1) : (dir + to).replace(/[^/]+\/\.\.\//g, '');
+    }
+    return out;
+  };
+  let slides = [];
+  try {
+    const ids = [...(await read('ppt/presentation.xml')).matchAll(/<p:sldId\b[^>]*r:id="([^"]+)"/g)].map(m => m[1]), map = await rel('ppt/presentation.xml', 'slide');
+    slides = ids.map(i => map[i]).filter(n => n && names.includes(n));
+  } catch {}
+  if (!slides.length) slides = names.filter(n => /^ppt\/slides\/slide\d+\.xml$/.test(n)).sort(numSort(/slide(\d+)/));
+  const notes = await Promise.all(slides.map(async sl => { const n = Object.values(await rel(sl, 'notesSlide'))[0]; return n ? grab(n) : ''; }));
+  return (notes.some(Boolean) ? notes.filter(Boolean) : (await Promise.all(slides.map(grab))).filter(Boolean)).join('\n\n');
+}
 const xmlText = s => s.replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'")
   .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(+n)).replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16))).replace(/&amp;/g, '&');
 function subsToText(s) {
@@ -2534,7 +2634,10 @@ function rtfToText(s) {
 }
 async function readTextFile(file) {
   const name = (file.name || '').toLowerCase(), ext = name.split('.').pop();
-  if (ext === 'pdf') throw new Error(LL('Los PDF no se pueden leer aquí: abre el PDF, copia el texto y pégalo en el cuadro.', "PDFs can’t be read here: open the PDF, copy the text and paste it into the box."));
+  if (ext === 'pdf') { try { return await pdfToText(await file.arrayBuffer()); } catch (e) { console.warn(e); throw new Error(LL('No he podido abrir este PDF (¿sin conexión o escaneado?): copia el texto y pégalo en el cuadro.', "I couldn’t open this PDF (offline, or a scanned image?): copy the text and paste it into the box.")); } }
+  if (ext === 'xlsx') return xlsxToText(await file.arrayBuffer());
+  if (ext === 'pptx') return pptxToText(await file.arrayBuffer());
+  if (ext === 'xls' || ext === 'ppt') throw new Error(LL('Guárdalo en el formato nuevo (.xlsx o .pptx) y súbelo de nuevo.', "Save it in the newer format (.xlsx or .pptx) and upload it again."));
   if (ext === 'pages' || ext === 'doc') throw new Error(LL('Guárdalo como Word (.docx) o como texto (.txt) y súbelo de nuevo.', "Save it as Word (.docx) or text (.txt) and upload it again."));
   if (ext === 'docx') {
     const xml = await unzipEntry(await file.arrayBuffer(), 'word/document.xml');
@@ -2552,6 +2655,11 @@ async function readTextFile(file) {
   txt = txt.replace(/^\uFEFF/, '');
   if (ext === 'srt' || ext === 'vtt' || /^WEBVTT/.test(txt) || /^\d+\s*\n\d\d:\d\d/.test(txt)) return subsToText(txt);
   if (ext === 'rtf' || txt.startsWith('{\\rtf')) return rtfToText(txt);
+  if (ext === 'csv' || ext === 'tsv') {
+    const lines = txt.replace(/\r/g, '').split('\n').filter(l => l.trim()), sep = ext === 'tsv' ? '\t' : (lines[0] || '').split(';').length > (lines[0] || '').split(',').length ? ';' : ',';
+    const split = l => sep === '\t' ? l.split('\t') : l.split(new RegExp(sep + '(?=(?:[^"]*"[^"]*")*[^"]*$)'));
+    return tableText(lines.map(l => Object.fromEntries(split(l).map((c, i) => [String(i), c.trim().replace(/^"|"$/g, '').replace(/""/g, '"').trim()]).filter(([, v]) => v)))).join('\n\n');
+  }
   if (ext === 'html' || ext === 'htm' || /^\s*<(!doctype|html)/i.test(txt)) {
     const doc = new DOMParser().parseFromString(txt.replace(/<\/(p|div|h\d|li|br)>|<br\s*\/?>/gi, m => m + '\n'), 'text/html');
     return doc.body ? doc.body.textContent : txt;
@@ -2562,6 +2670,7 @@ async function loadTextFile(file) {
   if (!file) return;
   if (/^video\//.test(file.type)) return pickVideo(file);
   try {
+    if (/\.pdf$/i.test(file.name || '')) toast(LL('📄 Leyendo el PDF…', '📄 Reading the PDF…'), 8000);
     const raw = await readTextFile(file);
     const text = raw.replace(/\r/g, '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
     if (!text) throw new Error(LL('El archivo no tiene texto.', "The file has no text."));
@@ -2588,10 +2697,10 @@ function bindOpts() {
   font.value = o.font; $('#font-out').textContent = o.font + ' px';
   font.addEventListener('input', () => { o.font = +font.value; $('#font-out').textContent = o.font + ' px'; save(); });
   delete o.voiceCmd;
-  for (const k of ['voiceEngine', 'stopMargin', 'takeHelp', 'rehHelp']) {
+  for (const k of ['voiceEngine', 'stopMargin', 'takeHelp', 'rehHelp', 'countdown']) {
     const el = $('#' + k); el.value = String(o[k]);
-    if (el.selectedIndex < 0) { o[k] = { stopMargin: 3, voiceEngine: 'auto', takeHelp: 'medidores', rehHelp: 'avisos' }[k]; el.value = String(o[k]); }
-    el.addEventListener('change', () => { o[k] = k === 'stopMargin' ? +el.value : el.value; save(); });
+    if (el.selectedIndex < 0) { o[k] = { stopMargin: 3, voiceEngine: 'auto', takeHelp: 'limpio', rehHelp: 'limpio', countdown: 5 }[k]; el.value = String(o[k]); }
+    el.addEventListener('change', () => { o[k] = k === 'stopMargin' || k === 'countdown' ? +el.value : el.value; save(); });
   }
   for (const k of ['pauseSilent', 'cues', 'mirror', 'skeleton', 'rehearseFirst', 'readCheck', 'wordColors']) {
     const el = $('#' + (k === 'cues' ? 'cuesOn' : k));
@@ -2705,7 +2814,7 @@ addEventListener('scroll', () => document.body.classList.toggle('scrolled', scro
 const HINTS = {
   takeHelp: { medidores: LL('Arriba, tu nota y tres barras (sonrisa, gestos y voz) para mirar de reojo: en verde, vas bien. Sin textos.', "At the top, your score and three bars (smile, gestures, voice) to glance at: green means you’re on track. No text."), limpio: LL('Nada más que tu guion. Lo que veo lo apunto y te lo enseño al terminar, sobre tu vídeo.', "Nothing but your script. I note what I see and show it to you afterwards, on your video."), avisos: LL('Los medidores y, además, los avisos de gestos y voz en el momento.', "The meters, plus live gesture and voice cues.") },
   rehHelp: { avisos: LL('Te voy diciendo qué hacer: el gesto que viene y qué corregir, con los medidores arriba.', "I coach you as you go: the next gesture and what to fix, with the meters at the top."), medidores: LL('Solo los medidores de arriba: tu nota, sonrisa, gestos y voz.', "Just the meters at the top: your score, smile, gestures and voice."), limpio: LL('Nada más que tu guion; lo vemos al terminar, sobre tu vídeo.', "Nothing but your script; we go over it afterwards, on your video.") },
-  voiceEngine: { auto: LL('En el móvil aprende tus palabras; en Chrome o Edge de ordenador usa el del navegador.', "On your phone it learns your words; on desktop Chrome or Edge it uses the browser’s."), propias: LL('Aprende tu voz: dices cada palabra dos veces y funciona sin conexión.', "Learns your voice: you say each word twice, and it works offline."), navegador: LL('El reconocimiento de voz de Chrome o Edge de ordenador.', "Desktop Chrome or Edge speech recognition."), no: LL('Empiezas y paras con los botones o con dos palmadas.', "Start and stop with the buttons or two claps.") },
+  voiceEngine: { auto: LL('En Chrome o Edge de ordenador, el del navegador. En el móvil, sin voz: pulsas Grabar y tienes unos segundos para colocarte (si la quieres, elige «Mis palabras»).', "On desktop Chrome or Edge, the browser’s. On your phone, no voice: tap Record and you get a few seconds to get in position (to use voice, pick “My words”)."), propias: LL('Aprende tu voz: dices cada palabra dos veces y funciona sin conexión.', "Learns your voice: you say each word twice, and it works offline."), navegador: LL('El reconocimiento de voz de Chrome o Edge de ordenador.', "Desktop Chrome or Edge speech recognition."), no: LL('Empiezas y paras con los botones o con dos palmadas.', "Start and stop with the buttons or two claps.") },
 };
 function renderHints() { for (const el of document.querySelectorAll('[data-hint]')) el.textContent = HINTS[el.dataset.hint][S.opts[el.dataset.hint]] || ''; }
 for (const k of Object.keys(HINTS)) $('#' + k).addEventListener('change', renderHints);
@@ -2764,6 +2873,7 @@ $('#go').addEventListener('click', () => { askMotion(); primeAudio(); enterStudi
 let video = $('#cam');   // la cámara o, al analizar un vídeo subido, ese vídeo
 const overlay = $('#overlay'), octx = overlay.getContext('2d'), ghostCv = $('#ghost'), gctx = ghostCv.getContext('2d');
 function show(id) {
+  if (id !== 'report') $('#repVideo')?.pause();
   for (const s of ['setup', 'studio', 'report']) $('#' + s).hidden = s !== id;
   window.scrollTo(0, 0);
   $('#toast').hidden = true; if (id !== 'studio') $('#toast').style.bottom = '';
@@ -2886,6 +2996,7 @@ function prepStudioUI() {
   $('#studio').classList.toggle('file-mode', !!S.file);
   $('#fileBar').hidden = !S.file;
   $('#planCard').hidden = true; $('#hfCard').hidden = true; $('#drillCard').hidden = true; S.intro = null;
+  clearInterval(WM.timer); $('#warmCard').hidden = true;
   $('#studio').classList.toggle('drill', !!S.drill);
   S.seenOK = false;
   setTab(S.opts.tab?.[S.opts.app] || (isCall() ? 'cuerpo' : 'plano'));
@@ -2958,6 +3069,7 @@ function leaveStudio() {
   endFileMode();
   closePip();
   busy(null); $('#calib').hidden = true; $('#camAlert').hidden = true; cancelEnroll(false); S.stopping = null; $('#stopCard').hidden = true; $('#rehCard').hidden = true; $('#planCard').hidden = true; $('#hfCard').hidden = true; S.intro = null;
+  clearInterval(WM.timer); $('#warmCard').hidden = true;
   if (S.take) stopTake(false);
   S.live = false;
   stopLoops();
@@ -2977,6 +3089,7 @@ function leaveStudio() {
    si encaja con el tono elegido y qué mejorar, y deja preparado el plan para grabar la versión mejorada. */
 $('#analyze').addEventListener('click', () => { primeAudio(); $('#vidFile').click(); });
 $('#dropVid').addEventListener('click', () => { primeAudio(); $('#vidFile').click(); });
+$('#camApp').addEventListener('click', () => { primeAudio(); toast(LL('Elige el vídeo que grabaste: te lo reviso igual, con notas en cada momento.', 'Pick the video you recorded: I’ll review it the same way, with notes at each moment.'), 4000); $('#vidFile').click(); });
 for (const [ev, on] of [['dragover', true], ['dragenter', true], ['dragleave', false], ['drop', false]]) $('#dropVid').addEventListener(ev, e => {
   e.preventDefault(); $('#dropVid').classList.toggle('over', on);
   if (ev === 'drop' && e.dataTransfer.files[0]) pickVideo(e.dataTransfer.files[0]);
@@ -3684,6 +3797,7 @@ function audioTick() {
 }
 function onDoubleClap() {
   if (isCall() || S.file || !S.live || S.take || S.countdown || S.calibrating || KWS.enroll) return;
+  S.cdQuick = true;
   toast(startByFlow(true) ? LL('👏👏 ¡Oído! Grabamos', "👏👏 Got it! Recording") : LL('👏👏 ¡Oído! Primero, el ensayo', "👏👏 Got it! Rehearsal first"), 1800);
 }
 // al callarte después de una frase: el tono de su final (los últimos 0,25 s) frente al de antes, en semitonos. En una
@@ -4306,7 +4420,7 @@ const saysAgain = ws => {
 // funciona en iPhone y sin conexión, porque usa el mismo audio de la app y no abre el micrófono otra vez)
 function voiceEngine() {
   const e = S.opts.voiceEngine || 'auto';
-  if (e === 'auto') return IS_MOBILE || !SR ? 'propias' : 'navegador';
+  if (e === 'auto') return !IS_MOBILE && SR ? 'navegador' : 'no';   // en el móvil, la voz es opcional («Mis palabras»)
   return e;
 }
 // una orden, venga de donde venga
@@ -4326,12 +4440,12 @@ function voiceCommand(cmd) {
   if (!S.live || KWS.enroll) return;
   if (cmd === 'info') { S.lastCmdT = t; setPanel(!panelOpen(), true); return; }
   if (cmd === 'repetir') {
-    if (S.take) { if (t - S.take.t0 > 1.5) { S.lastCmdT = t; restartTake(); } }
-    else if (!S.countdown) { S.lastCmdT = t; againTake(); }
+    if (S.take) { if (t - S.take.t0 > 1.5) { S.lastCmdT = t; S.cdQuick = true; restartTake(); } }
+    else if (!S.countdown) { S.lastCmdT = t; S.cdQuick = true; againTake(); }
     return;
   }
   if ((cmd === 'grabar' || cmd === 'ensayo') && !S.take && !S.countdown) {
-    S.lastCmdT = t;
+    S.lastCmdT = t; S.cdQuick = true;
     if (cmd === 'ensayo') { $('#rehCard').hidden = true; startTake(false); toast(LL('🎬 ¡Oído! Ensayamos', "🎬 Got it! Rehearsing"), 1800); }
     else toast(startByFlow(true) ? LL('🎬 ¡Oído! Grabamos', "🎬 Got it! Recording") : LL('🎬 ¡Oído! Primero, el ensayo', "🎬 Got it! Rehearsal first"), 1800);
   } else if (cmd === 'parar' && S.take && t - S.take.t0 > 1.5) { S.lastCmdT = t; if (S.stopping) stopNow(); else requestStop(); }
@@ -4646,7 +4760,7 @@ function stopNow() { S.stopping = null; $('#stopCard').hidden = true; stopTake(t
 async function againByVoice(record, same = false) {
   show('studio');
   await reenterStudio();
-  setTimeout(() => { if (same) startTake(record); else startByFlow(record); }, 300);
+  setTimeout(() => { S.cdQuick = true; if (same) startTake(record); else startByFlow(record); }, 300);
 }
 // «otra vez» durante una toma: se descarta y empieza de nuevo, con su cuenta atrás
 function restartTake() {
@@ -4672,9 +4786,11 @@ function againTake() {
 // medidores; grabando de verdad, solo los medidores, para mirarlos de reojo sin leer nada; o solo el texto. En
 // cualquier caso el entrenador lo apunta todo y, al terminar, lo enseña sobre el vídeo de la toma
 const takeKind = () => S.take ? (S.take.record ? 'rec' : 'reh') : S.countdown ? (S.cdRec ? 'rec' : 'reh') : null;
-const helpMode = (k = takeKind()) => k === 'reh' ? (S.opts.rehHelp || 'avisos') : (S.opts.takeHelp || 'medidores');
+const helpMode = (k = takeKind()) => S.drill ? 'avisos' : k === 'reh' ? (S.opts.rehHelp || 'limpio') : (S.opts.takeHelp || 'limpio');
 const reading = () => !isCall() && !S.file && !!(S.take || S.countdown);
 const quietTake = () => reading() && helpMode() !== 'avisos';   // sin avisos ni alertas encima del texto
+// con «solo el texto», tampoco hay avisos antes de grabar: el texto se ve entero y todo lo demás llega en la revisión
+const quietCue = () => quietTake() || (!S.take && !S.countdown && !isCall() && !S.file && helpMode() === 'limpio');
 const hudShown = () => reading() && helpMode() !== 'limpio';
 function lineTick(c) {
   const tk = S.take, P = tk.plan;
@@ -5666,6 +5782,8 @@ function coachTick() {
       on: RULES.filter(r => RS[r.id].on && r.kind !== 'good').map(r => r.id), M: Object.fromEntries(Object.entries(M).map(([k, v]) => [k, r(v)])) });
     if (S.take.endAt && !call && t - S.take.endAt < 2 && F.ok && fresh('face', F.lastSeen, t, .5)) { const ew = S.take.endW ||= { n: 0, look: 0, smile: 0 }; ew.n++; if (F.contact) ew.look++; ew.smile += F.smile; }
     if (!call && S.take.endAt && t - S.take.endAt > 1.5 && t - V.lastVoiced > 2.2) stopTake(true);
+    // con ruido de fondo o si sigues hablando, a los 6 s de la última palabra: «Corto en 3», con la opción de seguir
+    else if (!call && S.take.endAt && !S.take.endAsk && !S.stopping && t - S.take.endAt > 6) { S.take.endAsk = true; requestStop(); }
     else if (S.drill && t - S.take.t0 > 90) stopTake(true);   // un ejercicio nunca pasa de minuto y medio
   }
   if (++coach.uiTick % 2 === 0) updateMonitor(c, perceived, parts);
@@ -5763,7 +5881,7 @@ function setCueLook(cue, pop = false) {
   // «en breve»: una barra que se vacía hasta el momento del gesto
   const bar = el.querySelector('.cue-bar'); bar.hidden = !cue.wait;
   if (cue.wait) { const i = bar.firstElementChild; i.style.animation = 'none'; void i.offsetWidth; i.style.animation = `cuewait ${cue.wait}s linear forwards`; }
-  el.hidden = quietTake();
+  el.hidden = quietCue();
   if (pop) { el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
 }
 function endCue(t, outcome) {
@@ -5884,12 +6002,12 @@ function maybeShowHandsFree() {
   const voice = (FOL.on && !FOL.failed) || (kwsOn() && !!KWS.tpl), reh = flowOn() && S.flow === 'ensayo';
   const go = S.drill ? LL('cuenta atrás y empieza el ejercicio', "counts down and starts the exercise") : reh ? LL('cuenta atrás y empieza el ensayo', "counts down and starts the rehearsal") : LL('cuenta atrás y graba', "counts down and records"), m = +(S.opts.stopMargin ?? 3);
   $('#hfCard').classList.toggle('claps', !voice);
-  $('#hfTitle').textContent = S.drill ? `${S.drill.e} ${S.drill.name}` : voice ? LL('Manos libres', "Hands-free") : LL('Sin tocar el móvil', "Touch-free");
+  $('#hfTitle').textContent = S.drill ? `${S.drill.e} ${S.drill.name}` : voice ? LL('Manos libres', "Hands-free") : LL('Así se graba', 'How to record');
   $('#hfSub').textContent = (S.intro?.note ? S.intro.note + ' ' : '') + (S.drill ? `${S.drill.goal} ` : '') + (voice ? LL('Te escucho. Graba, para y repite con la voz, sin tocar nada. Si una orden no entra a la primera, repítela.', "I'm listening. Record, stop and redo with your voice, no touching needed. If a command doesn't catch the first time, say it again.")
-    : `${voiceEngine() === 'no' ? LL('El control por voz está desactivado', "Voice control is off") : kwsOn() ? LL('Aún no me has enseñado tu voz', "You haven't taught me your voice yet") : LL('Este navegador no deja usar la voz', "This browser doesn't allow voice control")}${LL(". Empieza con dos palmadas.", ". Start with two claps.")}`);
+    : `${LL('Pulsa Grabar y tienes ', 'Tap Record and you get ')}${S.drill ? 3 : +(S.opts.countdown ?? 5)}${LL(' segundos para colocarte. Al terminar el texto se para sola.', ' seconds to get in position. It stops by itself when the script ends.')}`);
   $('#hfCmds').innerHTML = (voice
     ? [[LL('Comenzamos', "Action"), go], [LL('Corten', "Cut"), S.drill ? LL('para', 'stops') : m ? `${LL("para, con ", "stops after ")}${m}${LL(" segundos de margen", " more seconds")}` : LL('para al momento', "stops right away")], [LL('Otra vez', "Again"), LL('repite desde el principio', "starts over from the top")], ...S.drill ? [] : [[LL('Seguimos', "Keep going"), LL('si dijiste «corten» sin querer', "if you said “cut” by mistake")]]]
-    : [[LL('👏👏 Dos palmadas', "👏👏 Two claps"), go], [LL('Terminar', "Finish"), LL('pulsa el botón para parar', "tap the button to stop")]]).map(([q, d]) => `<li><q>${q}</q><span>${d}</span></li>`).join('');
+    : [[LL('Grabar', 'Record'), LL('cuenta atrás y empieza', 'counts down and starts')], [LL('Toca la pantalla', 'Tap the screen'), LL('para cortar antes de tiempo', 'to stop early')], [LL('👏👏 Dos palmadas', "👏👏 Two claps"), LL('también empiezan, sin tocar nada', 'also start it, hands-free')]]).map(([q, d]) => `<li><q>${q}</q><span>${d}</span></li>`).join('');
   $('#hfTeach').hidden = voice || !kwsOn();
   $('#hfCard').hidden = false;
   $('#toast').hidden = true;   // lo que diga el mensaje ya está en la tarjeta, y en el móvil taparía el botón
@@ -6063,7 +6181,7 @@ function updateStatus(t) {
   if (!hint.hidden) hint.style.setProperty('--lv', clamp((V.db + 58) / 34, 0, 1).toFixed(2));
   // en qué paso estás y qué botón toca
   const chip = mq('#stepChip'), fo = flowOn() && S.live;   // el monitor puede estar en la ventana flotante
-  const stepTxt = !fo ? '' : S.take ? (S.take.record ? LL('🔴 Grabando de verdad', "🔴 Recording for real") : LL('🧪 Ensayo · no se graba', "🧪 Rehearsal · not recording"))
+  const stepTxt = !fo ? '' : S.take ? (S.take.record ? LL('🔴 Grabando de verdad', "🔴 Recording for real") : LL('🧪 Ensayo · no cuenta', "🧪 Rehearsal · doesn’t count"))
     : S.flow === 'ensayo' ? LL('Paso 1 de 2 · Ensayo', "Step 1 of 2 · Rehearsal") : LL('Paso 2 de 2 · Grabación de verdad', "Step 2 of 2 · Real take");
   if (chip.textContent !== stepTxt) { chip.textContent = stepTxt; chip.hidden = !stepTxt; chip.classList.toggle('rec', !!(S.take ? S.take.record : S.flow === 'grabar')); }
   const nx = fo && !S.take && !S.countdown ? (S.flow === 'ensayo' ? 'rehearse' : 'record') : '';
@@ -6408,7 +6526,7 @@ function drawOverlay() {
   if (ghostCv.width !== cw || ghostCv.height !== ch) { ghostCv.width = cw; ghostCv.height = ch; }
   gctx.setTransform(k, 0, 0, k, 0, 0);
   gctx.clearRect(0, 0, W, Hh);
-  const cue = coach.active, G = cue && cue.g && cue.kind !== 'next' && !quietTake() && GEST[cue.g];
+  const cue = coach.active, G = cue && cue.g && cue.kind !== 'next' && !quietCue() && GEST[cue.g];
   if (G) {
     const ph = ((t - coach.since) % G.dur) / G.dur;
     if (G.kf && B.ok && B.c && fresh('pose', B.lastOk, t, .8) && S.opts.skeleton) drawBodyGhost(gctx, poseAt(G, ph), X(B.c.x), B.c.y, B.sw, lw * 4, 'sombra');
@@ -6531,9 +6649,11 @@ async function startTake(record) {
     // una sola cosa en la que fijarte, la más importante de la toma anterior
     const fo = !S.drill && S.plan?.ids.length ? goalTxt(S.plan.ids[0]) : null;
     const foc = fo ? `<p class="count-sub count-focus">${LL('🎯 Esta vez, fíjate en: ', '🎯 This time, focus on: ')}${fo[0]} ${esc(fo[1])}</p>` : '';
-    for (const n of [3, 2, 1]) {
+    const quick = S.cdQuick, N = quick ? 3 : clamp(+(S.opts.countdown ?? 5), 3, 10), step = N <= 3 ? 800 : 1000;
+    S.cdQuick = false;
+    for (let n = N; n >= 1; n--) {
       stageMsg(`<div><div class="count-big" aria-live="assertive">${n}</div>${sub ? `<p class="count-sub">${sub}</p>` : ''}${foc}${LL("<p class=\"count-x\">¿Sin querer? Toca la pantalla", "<p class=\"count-x\">Didn’t mean to? Tap the screen")}${voice ? LL(' o di «corten»', " or say “cut”") : ''}${LL(" para cancelar</p></div>", " to cancel</p></div>")}`);
-      await new Promise(r => setTimeout(r, 800));
+      await new Promise(r => setTimeout(r, step));
       if (!S.live) { S.countdown = false; S.cdCancel = false; return; }
       if (S.cdCancel) {
         S.cdCancel = false; S.countdown = false; stageMsg(null); setTakeUI(false);
@@ -6600,6 +6720,14 @@ function stopTake(showReport = true) {
   } else finish();
 }
 $('#rehearse').addEventListener('click', () => startTake(false));
+const TAP = { x: 0, y: 0, t: 0 };
+$('#studio').addEventListener('pointerdown', e => { TAP.x = e.clientX; TAP.y = e.clientY; TAP.t = performance.now(); });
+$('#studio').addEventListener('pointerup', e => {
+  if (!S.take || S.take.call || S.take.file || S.stopping || now() - S.take.t0 < 1.5) return;
+  if (e.target.closest('button, a, input, select, label, #monitor, .plan-card, .stop-card, .read-alert, #cue')) return;
+  if (Math.hypot(e.clientX - TAP.x, e.clientY - TAP.y) > 12 || performance.now() - TAP.t > 500) return;   // arrastrar mueve el texto
+  requestStop();
+});
 $('#record').addEventListener('click', () => startTake(true));
 $('#stop').addEventListener('click', () => { if (S.countdown) cancelCountdown(); else requestStop(); });
 function cancelCountdown() { if (S.countdown && !S.take) S.cdCancel = true; }
@@ -7087,7 +7215,7 @@ function rvTick() {
   RV.raf = requestAnimationFrame(rvTick);
 }
 function reviewBind(tk, ms, endHTML) {
-  Object.assign(RV, { ms, endHTML, i: -1, next: 0, stopAt: null, dur: Math.max(1, tk.dur), seeking: false });
+  Object.assign(RV, { ms, endHTML, i: -1, next: 0, stopAt: null, dur: Math.max(1, tk.dur), seeking: false, fixing: false });
   const v = $('#repVideo'), sec = $('#rvBox'); if (!v || !sec) return;
   rvIntro();
   v.addEventListener('play', () => { if (!RV.raf) RV.raf = requestAnimationFrame(rvTick); });
@@ -7095,11 +7223,11 @@ function reviewBind(tk, ms, endHTML) {
   // si mueves tú la barra del vídeo, sigue desde ahí
   v.addEventListener('seeked', () => { if (RV.seeking) RV.seeking = false; else { RV.stopAt = null; RV.next = RV.ms.findIndex(m => m.t + .4 > v.currentTime + .05); if (RV.next < 0) RV.next = RV.ms.length; } rvHead(); rvBadge(); });
   // al acabar el vídeo, el final de la revisión (si estabas volviendo a ver una nota, sigue en esa nota)
-  v.addEventListener('ended', () => { if (RV.stopAt != null && RV.ms[RV.i]) { RV.stopAt = null; rvShow(RV.i); } else rvEnd(); });
+  v.addEventListener('ended', () => { if (RV.fixing) return; if (RV.stopAt != null && RV.ms[RV.i]) { RV.stopAt = null; rvShow(RV.i); } else rvEnd(); });
   // Chrome guarda el vídeo de la toma sin su duración (y entonces no se puede mover la barra): se le hace calcularla
   // saltando al final y volviendo al principio
   v.addEventListener('loadedmetadata', () => {
-    if (v.duration === Infinity) { RV.seeking = true; v.currentTime = 1e101; v.addEventListener('timeupdate', () => { RV.seeking = true; v.currentTime = 0; }, { once: true }); }
+    if (v.duration === Infinity) { RV.fixing = true; RV.seeking = true; v.currentTime = 1e101; v.addEventListener('timeupdate', () => { RV.seeking = true; v.currentTime = 0; v.addEventListener('seeked', () => { RV.fixing = false; }, { once: true }); }, { once: true }); }
   });
   v.addEventListener('durationchange', () => { if (isFinite(v.duration) && v.duration > 0) RV.dur = v.duration; });
   sec.addEventListener('click', e => {
@@ -7240,8 +7368,8 @@ function buildReport(tk) {
     : rehearsal ? `<button class="primary" type="button" data-act="again">${ico('camara')}${LL('Grabar la buena', 'Record the real one')}</button><button class="ghost" type="button" data-act="again-reh">${ico('repetir')}${LL('Otro ensayo', 'Another rehearsal')}</button>`
     : `<button class="primary" type="button" data-act="again">${ico('repetir')}${LL('Otra toma', 'Another take')}</button>`;
   const endHTML = `<p class="eyebrow">${file ? LL('Para tu próxima versión', 'For your next version') : LL('Para la próxima toma', 'For your next take')}</p><h2>${plan?.ids.length ? LL('Fíjate solo en esto', 'Focus on just this') : LL('¡Buen trabajo!', 'Nice work!')}</h2>${focusHTML}
-    ${nervy ? `<p class="note">${LL('🔥 Se notaron algo los nervios: antes de la siguiente, haz el calentamiento de 40 segundos (en el plató, «Calentar»).', '🔥 Some nerves showed: before the next one, do the 40-second warm-up (in the studio, “Warm up”).')}</p>` : ''}
-    <div class="rv-btns">${endCta}</div>${voiceOn ? `<p class="note">${rehearsal ? LL('🎙️ O di «comenzamos» para grabar la buena', '🎙️ Or say “action” to record the real one') : LL('🎙️ O di «otra vez»', '🎙️ Or say “again”')}</p>` : ''}
+    ${nervy ? `<p class="note">${LL('🔥 Se notaron algo los nervios: antes de la siguiente, calienta 40 segundos.', '🔥 Some nerves showed: warm up for 40 seconds before the next one.')}</p>` : ''}
+    <div class="rv-btns">${endCta}${nervy ? `<button class="ghost" type="button" data-act="warm-again">${LL('🔥 Calentar y otra toma', '🔥 Warm up, then go again')}</button>` : ''}</div>${voiceOn ? `<p class="note">${rehearsal ? LL('🎙️ O di «comenzamos» para grabar la buena', '🎙️ Or say “action” to record the real one') : LL('🎙️ O di «otra vez»', '🎙️ Or say “again”')}</p>` : ''}
     <button class="rv-link" type="button" data-rvact="restart">${LL('Ver la revisión otra vez', 'Watch the review again')}</button>`;
   const ctaHTML = call ? `<button class="primary" data-act="again">${ico('repetir')}${LL("Otra sesión</button>", "Another session</button>")}`
     : file ? `<button class="primary" data-act="improve">${ico('camara')}${LL("Grabarlo mejor</button>", "Record it better</button>")}`
@@ -7362,8 +7490,9 @@ $('#report').addEventListener('click', e => {
   if (a === 'home') closeReport('home');
   if (a === 'edit') closeReport('guion', 'video');
   if (a === 'script') closeReport('revision', 'video');
-  if (a === 'again') { show('studio'); reenterStudio(); }
-  if (a === 'again-reh') { S.flow = 'ensayo'; show('studio'); reenterStudio(); }
+  if (a === 'again') { if (S.repTk?.call) { show('studio'); reenterStudio(); } else againNow(true); }
+  if (a === 'again-reh') { S.flow = 'ensayo'; againNow(false); }
+  if (a === 'warm-again') { show('studio'); reenterStudio().then(() => { $('#planCard').hidden = true; $('#hfCard').hidden = true; $('#warmCard').hidden = false; warmStep(0); }); }
   if (a === 'srt' && S.repTk) downloadSrt(S.repTk);
   if (a === 'another') { primeAudio(); $('#vidFile').click(); }
   if (a === 'improve') {
@@ -7375,16 +7504,24 @@ $('#report').addEventListener('click', e => {
     } else { setFlow('video'); enterStudio(); }
   }
 });
-async function reenterStudio() {
+async function reenterStudio(go = false) {
   if (!S.stream || !S.stream.active) return enterStudio();
   S.sc = parseScript(S.text, S.tone);
   setupPrompter(); setTakeUI(false);
   S.live = true; startLoops();
   const voice = !isCall() && (startVoice() || (kwsOn() && KWS.tpl));
+  if (go) return true;
   if (showPlanCard(voice ? LL('Di «comenzamos» cuando quieras.', "Say “action” whenever you’re ready.") : LL('Pulsa Grabar o da dos palmadas cuando quieras.', "Tap Record or clap twice whenever you’re ready."))) return;
   if (isCall() && 'documentPictureInPicture' in window) toast(LL('Listo. Abre la ventana flotante si vas a volver a la llamada.', "Ready. Open the floating window if you’re heading back to the call."));
   else if (voice) toast(LL('Listo. Di «comenzamos» para la siguiente toma.', "Ready. Say “action” for the next take."));
   else toast(LL('Listo para otra toma.', "Ready for another take."));
+}
+// «Otra toma» desde la revisión: de vuelta al plató y cuenta atrás directa, para que te dé tiempo a colocarte
+// (lo que mejorar ya sale en la cuenta atrás: «Esta vez, fíjate en…»)
+async function againNow(record) {
+  show('studio');
+  if (await reenterStudio(true) !== true) return;   // la cámara se había cerrado: se vuelve a entrar con sus pasos
+  setTimeout(() => { if (S.live && !S.take && !S.countdown && !S.calibrating && !KWS.enroll) startTake(record); }, 300);
 }
 // el número de la nota cuenta hasta su valor (a la vez que se llena el anillo)
 function countUp(el, to, ms = 1100) {
