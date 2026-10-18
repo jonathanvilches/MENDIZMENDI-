@@ -180,9 +180,12 @@ con el móvil lejos y la voz rebotando en la habitación, fallaban. Por eso grab
 
 - **El texto va a la vez que tu voz**, también en el móvil y sin conexión (ver «El texto sigue tu voz»). Si prefieres
   que avance solo, elige «Velocidad fija» en «Texto y avisos».
-- **Las órdenes de voz son opcionales y están a un toque.** En la tarjeta del plató, «🎙️ Usar la voz» te enseña tus
-  palabras una vez («comenzamos», «corten», «seguimos» y «otra vez»); desde entonces, en «Automático», se escuchan
-  solas. En el ordenador (Chrome o Edge), con permiso, «Automático» usa el reconocimiento del navegador.
+- **Las órdenes de voz son opcionales, y la app lo dice.** En «Antes de grabar», una tarjeta: «Puedes grabar sin tocar
+  el móvil», con «Activar», que entra al plató y te enseña tus palabras una vez («comenzamos», «corten», «seguimos» y
+  «otra vez»). En el plató, la tarjeta de entrada lo explica con «🎙️ Activar órdenes de voz», el aviso de abajo lleva el
+  mismo botón y la barra tiene el botón «Voz». Desde entonces, en «Automático», se escuchan solas. En el ordenador
+  (Chrome o Edge), con permiso, «Automático» usa el reconocimiento del navegador. En el inicio, «Grabar un vídeo» ya
+  dice que el guion sigue tu voz y que se graba con un toque o con la voz.
 - **El ensayo es opcional**: se activa en «Antes de grabar → Ensayo antes de grabar».
 - **Más ayuda mientras grabas, si la quieres:** «Mientras grabas» y «En el ensayo» ofrecen solo el texto
   (recomendado), el texto y medidores, o el texto, medidores y avisos.
@@ -360,20 +363,26 @@ una toma se notaron los nervios, la revisión lo recomienda para la siguiente.
 
 ## El texto sigue tu voz
 
-Con «Sigue mi voz» (lo normal), el texto avanza mientras hablas y a tu ritmo, y se para si te callas:
+Con «Sigue mi voz» (lo normal), el texto se desliza mientras hablas, a tu ritmo, y frena suave cuando te callas:
 
 - **Con el reconocimiento de voz del navegador** (Chrome o Edge de ordenador, con permiso), palabra a palabra.
-- **En el móvil, o sin ese permiso, en el propio dispositivo**: cuenta las sílabas que dices (los golpes de la voz) y
-  avanza las mismas sílabas del guion. Si vas más rápido, va más rápido. En cada pausa cerca de un punto, una coma o
-  una pausa marcada (`//`), se coloca justo ahí y aprende cuántos golpes hace tu voz por sílaba con tu micro, así que no
-  se desvía y cada toma empieza mejor ajustada. No envía nada fuera ni necesita conexión. Si con un micro no consigue
-  oír las sílabas, avisa y pasa a velocidad fija.
-- El texto se desliza de forma continua dentro de cada línea, sin saltos.
+- **En el móvil, o sin ese permiso, en el propio dispositivo**: avanza mientras hablas a tu ritmo, en sílabas por
+  segundo. Ese ritmo se aprende de ti: en cada pausa cerca de un punto, una coma o una pausa marcada (`//`), el texto
+  se coloca justo ahí y, con lo que tardaste en decir ese trozo, ajusta tu ritmo para el siguiente (y lo recuerda para
+  la próxima toma). Si el micro oye bien las sílabas (los golpes de la voz), también las usa para ir más fino.
+  No envía nada fuera ni necesita conexión.
+- **Fluido:** una velocidad continua que sube y baja suave, no un salto por cada sílaba. Dentro de cada línea el
+  texto avanza por sílabas, así que a ritmo constante sube a velocidad constante (antes cada palabra ocupaba lo mismo,
+  fuera de una sílaba o de cuatro, y daba tirones).
+- **Con ruido de fondo** (un ventilador, la calle, el aire acondicionado) aprende el nivel del ruido en segundos (el
+  mínimo de los últimos 4 s) y **no arranca hasta oír una voz clara**: el ruido no mueve el texto. Antes tardaba casi
+  un minuto en aprender el ruido y, mientras, lo confundía con tu voz.
 
-Probado con una voz sintética que lee un guion de seis frases con pausas entre ellas: el texto se separa de la voz
-0,9 palabras de media (2,5 como mucho) y, en cada pausa entre frases, queda a una palabra o menos; leyendo rápido,
-1,6 de media. Antes, en el móvil, el texto iba a 140 palabras por minuto fijas y se paraba cada vez que creía que te
-habías callado.
+Probado con voz sintética que lee un guion de seis frases, en cuatro situaciones (normal, rápida, con ruido de fondo y
+control de volumen como el de un móvil, y con frases a velocidades distintas y una respiración a mitad de frase),
+repitiendo cada una: el texto se separa de la voz entre 1,1 y 1,9 palabras de media (4,2 como mucho), en cada pausa
+entre frases queda a una o dos palabras, no se mueve antes de que hables y no se para mientras hablas. La velocidad
+varía un 20–25 % de una décima de segundo a otra (antes, un 60 %).
 
 ## Control por voz
 
