@@ -1771,6 +1771,73 @@ textarea#script:focus{box-shadow:0 0 0 4px color-mix(in srgb,var(--spot) 30%,tra
 .sc-legal{margin:0;font-size:var(--t-xs);line-height:1.4;color:rgba(235,235,245,.5)}
 .consent .actions{display:flex;gap:8px;flex-wrap:wrap}
 .consent .actions>*{flex:1 1 140px}
+/* ---------- escríbelo conmigo, tu guion a tu medida y los retos ---------- */
+.gmode{margin:0}
+.gmode .seg label{font-size:var(--t-sm);padding:10px 8px}
+[data-pane="guion"].wz-on>:is(label[for="script"],#script,.count,.tools,.note.center,details.fold){display:none}
+.wz{display:flex;flex-direction:column;gap:16px}
+.wz-g{padding-bottom:4px}
+.wz-kinds{display:flex;flex-wrap:wrap;gap:8px;padding:6px 16px 14px}
+.wz-k{position:relative}
+.wz-k input{position:absolute;opacity:0;pointer-events:none}
+.wz-k span{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;border-radius:999px;background:var(--stage-2);color:var(--paper);font-size:var(--t-sm);cursor:pointer;transition:background .15s}
+.wz-k input:checked+span{background:var(--spot);color:var(--spot-ink,#fff);font-weight:600}
+.wz-k input:focus-visible+span{outline:2px solid var(--spot);outline-offset:2px}
+.wz-f{position:relative;display:flex;flex-direction:column;gap:8px;padding:12px 16px}
+.wz-f+.wz-f::before,.wz-g>.row+.wz-f::before{content:"";position:absolute;top:0;left:16px;right:0;height:.5px;background:var(--line)}
+.wz-f>b{font-size:var(--t-sm);font-weight:600;color:var(--paper)}
+.wz-f>b small{font-weight:400;color:var(--mute);margin-left:4px}
+.wz-f :is(input[type="text"],textarea){width:100%;box-sizing:border-box;font:400 var(--t-md)/1.4 var(--f-body);color:var(--paper);background:var(--stage-2);border:0;border-radius:10px;padding:11px 12px}
+.wz-f textarea{resize:vertical;min-height:92px}
+.wz-f :is(input[type="text"],textarea):focus{outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--spot) 35%,transparent)}
+.wz-f :is(input,textarea)::placeholder{color:var(--dim)}
+.wz-f>.ghost{align-self:flex-start}
+.wz-go{width:100%;min-height:50px;justify-content:center}
+.wz-out{display:flex;flex-direction:column;gap:10px;padding:16px;background:var(--stage);border-radius:var(--r-lg)}
+.wz-out .eyebrow{margin:0;justify-content:flex-start}
+#setup.wz-mode[data-step="guion"] .dock{display:none}
+.reto-card{margin-bottom:8px}
+.wz-text{display:flex;flex-direction:column;gap:10px;font:400 var(--t-md)/1.55 var(--f-body);color:var(--paper)}
+.wz-text p{margin:0}
+.wz-meta{margin:0;font-size:var(--t-xs);color:var(--mute);font-variant-numeric:tabular-nums}
+.wz-out .note{margin:0}
+.wz-act{display:flex;flex-wrap:wrap;gap:8px}
+.wz-act>*{flex:1 1 150px;justify-content:center}
+#wzConsent .consent,.fit-consent .consent{display:flex;flex-direction:column;gap:10px;padding:16px;background:var(--stage);border-radius:var(--r-lg)}
+#wzConsent h3,.fit-consent h3{margin:0;font-size:var(--t-md)}
+.rt-chip{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;padding:10px 14px;border-radius:12px;background:color-mix(in srgb,var(--spot) 12%,var(--stage));color:var(--paper);font-size:var(--t-sm)}
+.rt-chip span{flex-basis:100%;color:var(--mute);font-size:var(--t-xs)}
+.reto-card{display:flex;flex-direction:column;gap:8px;padding:18px;border-radius:var(--r-lg);background:linear-gradient(135deg,#FF9500,#FF2D55);color:#fff}
+.reto-card .eyebrow{margin:0;justify-content:flex-start;color:rgba(255,255,255,.85)}
+.reto-card h3{margin:0;font-size:var(--t-lg,1.25rem);letter-spacing:-.02em}
+.reto-card p{margin:0;line-height:1.4}
+.reto-card .rt-meta{font-size:var(--t-xs);color:rgba(255,255,255,.85)}
+.reto-card .primary{background:#fff;color:#FF2D55}
+.reto-card .ghost{background:rgba(255,255,255,.22);color:#fff}
+.trainer-link{display:flex;align-items:center;gap:14px;width:100%;padding:14px 16px;border:0;border-radius:var(--r-lg);background:var(--stage);color:var(--paper);text-align:left;font:inherit;cursor:pointer}
+.trainer-link:active{background:var(--stage-2)}
+.trainer-link .tb-ico{display:grid;place-items:center;width:40px;height:40px;border-radius:10px;background:#007AFF;font-size:20px;flex:none}
+.trainer-link>span:nth-child(2){display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.trainer-link b{font-size:var(--t-md);font-weight:600;letter-spacing:-.02em}
+.trainer-link small{font-size:var(--t-sm);color:var(--mute);line-height:1.35}
+.trainer-link .ico.chev{width:18px;height:18px;color:var(--dim);stroke-width:2.6;flex:none}
+#setup[data-flow="reto"] .dock{display:none}
+[data-pane="reto"]{display:flex;flex-direction:column;gap:16px}
+[data-pane="reto"][hidden]{display:none}
+.rt-link{width:100%;box-sizing:border-box;font:400 var(--t-sm)/1.3 var(--f-mono,monospace);color:var(--paper);background:var(--stage-2);border:0;border-radius:10px;padding:11px 12px}
+/* en el informe */
+.fit{display:flex;flex-direction:column;gap:12px;padding:18px;border-radius:var(--r-lg,16px);background:var(--stage);border:1px solid var(--line)}
+.fit h3{margin:0;font-size:var(--t-md);letter-spacing:-.02em}
+.fit .note{margin:0}
+.fit-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.fit-list li>label,.fit-list li>span{display:flex;gap:10px;align-items:flex-start;padding:12px;border-radius:12px;background:var(--stage-2)}
+.fit-list input{margin-top:3px;width:20px;height:20px;accent-color:var(--spot);flex:none}
+.fit-list label>span,.fit-list li>span{display:flex;flex-direction:column;gap:6px;min-width:0}
+.fit-list s{color:var(--mute);text-decoration-thickness:1px;font-size:var(--t-sm);line-height:1.4}
+.fit-list b{font-weight:500;line-height:1.45}
+.fit-list small{color:var(--mute);font-size:var(--t-xs)}
+.fit-pace{margin:0;font-size:var(--t-sm);color:var(--mute);font-variant-numeric:tabular-nums}
+.rt-send textarea{width:100%;box-sizing:border-box;font:400 var(--t-sm)/1.45 var(--f-body);color:var(--paper);background:var(--stage-2);border:0;border-radius:10px;padding:11px 12px;resize:vertical}
 </style>
 </head>
 <body>
@@ -1843,6 +1910,7 @@ textarea#script:focus{box-shadow:0 0 0 4px color-mix(in srgb,var(--spot) 30%,tra
   <div class="panes">
     <!-- Inicio -->
     <section class="pane" data-pane="home" aria-labelledby="homeTitle">
+      <section class="reto-card" id="retoCard" hidden aria-label="Reto"></section>
       <div class="hero">
         <h1 class="hero-title" id="homeTitle">Graba con más <span class="rot" aria-hidden="true"><span>energía</span><span>seguridad</span><span>intención</span><span>naturalidad</span><span>energía</span></span><span class="sr">energía, seguridad, intención y naturalidad</span></h1>
         <p class="tagline">El coach para hablar a cámara: lees tu guion sin distracciones y después te enseña, sobre tu propio vídeo, qué mejorar en cada momento.</p>
@@ -1861,6 +1929,7 @@ textarea#script:focus{box-shadow:0 0 0 4px color-mix(in srgb,var(--spot) 30%,tra
           <button class="modecard" type="button" data-flow="llamada"><svg class="ico"><use href="#i-llamada"/></svg><b>Videollamada</b><span>O un directo. Sin guion, en una ventana flotante encima.</span><svg class="ico chev" aria-hidden="true"><use href="#i-chev"/></svg></button>
         </div>
       </div>
+      <button class="trainer-link" id="trainerBtn" type="button"></button>
       <div class="install" id="installCard" hidden>
         <span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 15a8 8 0 0 1 16 0"/><path d="M7 19h10M9.5 11.5l2.5-2.5 2.5 2.5"/></svg></span>
         <div class="inst-txt"><b>Tenla como una app</b><small id="installHow"></small></div>
@@ -1884,6 +1953,9 @@ textarea#script:focus{box-shadow:0 0 0 4px color-mix(in srgb,var(--spot) 30%,tra
         <h2 id="guionTitle">¿Qué vas a decir?</h2>
         <p class="note">Escribe, pega o sube tu guion. En el plató lo leerás limpio, sin marcas encima.</p>
       </div>
+      <div class="rt-chip" id="rtChip" hidden></div>
+      <div class="gmode" id="gMode"></div>
+      <section class="wz" id="wz" hidden aria-label="Escríbelo conmigo"></section>
       <label for="script" class="sr">Guion</label>
       <textarea id="script" spellcheck="true" placeholder="Escribe o pega aquí tu guion…"></textarea>
       <span class="count" id="count"></span>
@@ -1945,6 +2017,8 @@ textarea#script:focus{box-shadow:0 0 0 4px color-mix(in srgb,var(--spot) 30%,tra
       <div class="tr-stats" id="trStats"></div>
       <div class="drills" id="drills"></div>
     </section>
+
+    <section class="pane" data-pane="reto" hidden aria-labelledby="retoTitle"></section>
 
     <section class="pane" data-pane="listo" hidden aria-labelledby="listoTitle">
       <div class="pane-head">
@@ -2858,7 +2932,7 @@ function refreshSetup() {
   $('#wLegPrev').innerHTML = legendHTML(S.sc);
   const n = S.sc.words.length;
   const autoCues = S.sc.cues.filter(c => c.type !== 'pausa' && c.type !== 'enfasis').length;
-  $('#count').textContent = `${n}${LL(" palabras · ~", " words · ~")}${Math.max(1, Math.round(n / 150 * 60))} s · ${autoCues}${LL(" gestos marcados", " gestures marked")}`;
+  $('#count').textContent = `${n}${LL(" palabras · ~", " words · ~")}${Math.max(1, Math.round(n / myWpm() * 60))} s${store.get('wpmHist', []).length ? LL(' a tu ritmo', ' at your pace') : ''} · ${autoCues}${LL(" gestos marcados", " gestures marked")}${store.get('textAi', null) === textHash(S.text) ? LL(' · borrador escrito con IA', ' · AI-written draft') : ''}`;
   const d = detectTone(S.text);
   const t = TONES[d.tone];
   $('#detect').innerHTML = `${LL("<div class=\"grow\">Por el texto, parece un mensaje <b style=\"--tc:", "<div class=\"grow\">From your script, this sounds <b style=\"--tc:")}${t.color}">${t.name.toLowerCase()}</b>
@@ -3124,8 +3198,8 @@ $('#wordColors').addEventListener('change', refreshSetup);
      llamada:  intención → listo (empezar)
    Cada paso es una entrada del historial: el botón de atrás de la barra, el gesto de volver del iPhone y el botón
    «atrás» de Android retroceden un paso en vez de salir. */
-const FLOWS = { video: ['guion', 'tono', 'revision', 'listo'], analizar: ['tono', 'listo'], llamada: ['tono', 'listo'], entrenar: ['entrenar'] };
-const STEP_NAME = { entrenar: LL('Entrenar', "Training"), guion: LL('Tu guion', "Your script"), tono: LL('Intención', "Tone"), revision: LL('Revisión', "Review"), listo: { video: LL('Antes de grabar', "Before you record"), analizar: LL('Tu vídeo', "Your video"), llamada: LL('Antes de empezar', "Before you start") } };
+const FLOWS = { video: ['guion', 'tono', 'revision', 'listo'], analizar: ['tono', 'listo'], llamada: ['tono', 'listo'], entrenar: ['entrenar'], reto: ['reto'] };
+const STEP_NAME = { reto: LL('Crear un reto', 'Create a challenge'), entrenar: LL('Entrenar', "Training"), guion: LL('Tu guion', "Your script"), tono: LL('Intención', "Tone"), revision: LL('Revisión', "Review"), listo: { video: LL('Antes de grabar', "Before you record"), analizar: LL('Tu vídeo', "Your video"), llamada: LL('Antes de empezar', "Before you start") } };
 const NAV = { flow: isCall() ? 'llamada' : 'video', step: 'home', skip: false, after: null };
 const stepIdx = s => s === 'home' ? -1 : FLOWS[NAV.flow].indexOf(s);
 function setFlow(f) {
@@ -3154,11 +3228,12 @@ function renderStep(step, dir = 0) {
   $('#abDots').setAttribute('aria-label', step === 'home' ? '' : `${LL("Paso ", "Step ")}${i + 1}${LL(" de ", " of ")}${steps.length}`);
   const last = i === steps.length - 1;
   $('#next').hidden = step === 'home' || last;
-  $('#go').hidden = !last || NAV.flow === 'analizar' || NAV.flow === 'entrenar';
+  $('#go').hidden = !last || NAV.flow === 'analizar' || NAV.flow === 'entrenar' || NAV.flow === 'reto';
   $('#analyze').hidden = !last || NAV.flow !== 'analizar';
   if (step === 'listo') { renderSummary(); renderHints(); }
   if (step === 'home') renderInstall();
   if (step === 'entrenar') renderDrills();
+  if (step === 'reto' && !document.querySelector('[data-pane="reto"]').innerHTML.trim()) renderRetoNew();
   if (step === 'revision' && S.sc?.words.length) requestAnimationFrame(() => placeMarks($('#preview'), S.sc));
   if (changed || dir) window.scrollTo(0, 0);
 }
@@ -3227,7 +3302,7 @@ function renderSummary() {
   const t = TONES[S.tone], f = NAV.flow, n = S.sc?.words.length || 0;
   const row = (k, v, step) => `<button class="sum-row" type="button" data-goto="${step}"><span><span class="k">${k}</span><span class="v">${v}${LL("</span></span><span class=\"go-edit\">Cambiar", "</span></span><span class=\"go-edit\">Edit")}${ico('chev')}</span></button>`;
   let h = row(f === 'llamada' ? LL('Cómo quieres que te vean', "How you want to come across") : LL('Tono', "Tone"), `<i style="--tc:${t.color}"></i>${esc(t.name)}`, 'tono');
-  if (f === 'video') h += row(LL('Guion', "Script"), `${n}${LL(" palabras · ~", " words · ~")}${Math.max(1, Math.round(n / 150 * 60))} s`, 'guion');
+  if (f === 'video') h += row(LL('Guion', "Script"), `${n}${LL(" palabras · ~", " words · ~")}${Math.max(1, Math.round(n / myWpm() * 60))} s`, 'guion');
   if (f === 'video' && S.plan?.ids.length) h += `${LL("<div class=\"sum-goals\"><b>🎯 Objetivos de esta toma</b><div class=\"goals\">", "<div class=\"sum-goals\"><b>🎯 Goals for this take</b><div class=\"goals\">")}${goalChips(S.plan.ids)}</div></div>`;
   $('#summary').innerHTML = h;
 }
@@ -5205,11 +5280,14 @@ S.dbg.prep = { PREP, prepState, micInfo, lightDir, lightRatio, camInfo, FILL, op
    sirve para evaluar a otras personas, en especial en el trabajo o en la enseñanza) y las condiciones de uso.
    Los datos del titular (aviso legal de la LSSI) se rellenan en LEGAL; mientras falten, se ve que faltan. */
 const LEGAL = { owner: '', nif: '', addr: '', email: '' };
+// el servidor de IA para el guion (apuntador/ia/worker.js): vacío hasta que esté desplegado, y entonces nada sale del dispositivo
+const AI_URL = '';
+const aiUrl = () => String(S.opts.aiUrl || AI_URL || '').replace(/\/+$/, '');
 const lgv = (v, ph) => v ? esc(v) : `<mark class="todo">${ph}</mark>`;
 function aboutHTML() {
   return `<div class="legal-doc">
     <p><b>${LL('Qué mira.', 'What it watches.')}</b> ${LL('Señales que se ven y se oyen: la mirada, la sonrisa, las cejas, el giro de la cabeza, los hombros, los codos, las manos, la postura y el movimiento; en la voz, el volumen, la entonación, el ritmo y las pausas.', 'Signals you can see and hear: eye contact, smile, eyebrows, head turn, shoulders, elbows, hands, posture and movement; in your voice, volume, intonation, pace and pauses.')}</p>
-    <p><b>${LL('Dónde.', 'Where.')}</b> ${LL('Todo se analiza en este dispositivo. Tus vídeos, tu voz, tu cara y tus textos no se suben a ningún servidor: no hay cuentas, ni analítica, ni publicidad.', 'Everything is analyzed on this device. Your videos, voice, face and scripts aren’t uploaded to any server: no accounts, no analytics, no ads.')}</p>
+    <p><b>${LL('Dónde.', 'Where.')}</b> ${LL('Todo se analiza en este dispositivo. Tus vídeos, tu voz, tu cara y tus textos no se suben a ningún servidor: no hay cuentas, ni analítica, ni publicidad.', 'Everything is analyzed on this device. Your videos, voice, face and scripts aren’t uploaded to any server: no accounts, no analytics, no ads.')}${aiUrl() ? LL(' La única excepción es el guion con IA, si lo usas y das permiso: solo el texto.', ' The only exception is the AI script, if you use it and give permission: text only.') : ''}</p>
     <p><b>${LL('Qué es la puntuación.', 'What the score is.')}</b> ${LL('Una estimación orientativa de cómo se percibe tu forma de comunicar, a partir de esas señales. No reconoce tus emociones, ni mide tu personalidad o tus capacidades, y no es una evaluación psicológica. Puede equivocarse según la luz, el encuadre, el micrófono o la forma de expresarse de cada persona.', 'An indicative estimate of how your communication comes across, based on those signals. It doesn’t recognize your emotions or measure your personality or abilities, and it isn’t a psychological assessment. It can be wrong depending on lighting, framing, microphone or each person’s way of expressing themselves.')}</p>
     <p><b>${LL('Úsala para practicar tú.', 'Use it to practice yourself.')}</b> ${LL('No está permitido usarla para evaluar, seleccionar o vigilar a otras personas, en especial en el trabajo o en centros educativos.', 'It may not be used to assess, select or monitor other people, especially at work or in schools.')}</p>
   </div>`;
@@ -5225,6 +5303,8 @@ function legalHTML() {
       <li>${LL('<b>Lo que se guarda aquí:</b> tus ajustes, el guion, la calibración, tus palabras de voz (si las enseñas), tus puntuaciones por guion y la copia de la app para usarla sin conexión. Es el almacenamiento imprescindible para el servicio que pides; no hay cookies de seguimiento. Puedes borrarlo todo con el botón de abajo o desde los ajustes del navegador.', '<b>What’s stored here:</b> your settings, the script, the calibration, your voice words (if you teach them), your scores per script and the app’s offline copy. It’s the storage strictly needed for the service you ask for; there are no tracking cookies. You can delete it all with the button below or from your browser settings.')}</li>
       <li>${LL('<b>Puntos de la cara y del cuerpo:</b> se calculan para darte indicaciones, no para identificarte, y no se guardan ni salen del dispositivo.', '<b>Face and body points:</b> they’re computed to give you tips, not to identify you, and they’re never stored or sent off the device.')}</li>
       <li>${LL('<b>Terceros técnicos:</b> la app se aloja en GitHub Pages y descarga los modelos de análisis de imagen (MediaPipe) de cdn.jsdelivr.net y storage.googleapis.com, y el lector de PDF (pdf.js) de cdn.jsdelivr.net. Esos servidores reciben tu dirección IP, como en cualquier descarga; no se les envía imagen ni sonido.', '<b>Technical third parties:</b> the app is hosted on GitHub Pages and downloads the image-analysis models (MediaPipe) from cdn.jsdelivr.net and storage.googleapis.com, and the PDF reader (pdf.js) from cdn.jsdelivr.net. Those servers receive your IP address, as with any download; no image or sound is sent to them.')}</li>
+      ${aiUrl() ? `<li>${LL('<b>Guion con IA (opcional):</b> si usas «Escríbelo conmigo» o «Mejorarlas con IA» y das permiso, se envía solo el texto que escribes en el asistente o las frases que eliges mejorar (nunca imagen ni sonido) a nuestro servidor, que no lo guarda, y a Anthropic PBC (EE. UU.), que lo trata como encargado para generar el texto, no lo usa para entrenar sus modelos y lo borra en 30 días como máximo (más tiempo solo si detecta un uso que infringe sus políticas). La transferencia a EE. UU. se ampara en las cláusulas contractuales tipo de la Comisión Europea. Base: la prestación del servicio que pides. El texto lo genera una IA: puede equivocarse, revísalo antes de usarlo. No incluyas datos sensibles de otras personas.', '<b>AI script (optional):</b> if you use “Write it with me” or “Improve them with AI” and give permission, only the text you type in the assistant or the sentences you choose to improve (never image or sound) are sent to our server, which doesn’t keep them, and to Anthropic PBC (US), which processes them on our behalf to generate the text, doesn’t use them to train its models and deletes them within 30 days at most (longer only if it detects use that breaks its policies). The transfer to the US relies on the European Commission’s standard contractual clauses. Basis: providing the service you ask for. The text is AI-generated: it can be wrong, so check it before using it. Don’t include sensitive data about other people.')}</li>` : ''}
+      <li>${LL('<b>Retos por enlace:</b> el reto (título, instrucciones, guion) va dentro del enlace y no pasa por ningún servidor. Si envías tu vídeo y tu nota a quien te mandó el reto, lo haces tú con la aplicación que elijas: a partir de ahí, esa persona o su organización es responsable de esos datos.', '<b>Challenge links:</b> the challenge (title, instructions, script) lives inside the link and never goes through a server. If you send your video and note to whoever sent you the challenge, you do it yourself with the app you choose: from then on, that person or their organization is responsible for that data.')}</li>
       <li>${LL('<b>Reconocimiento de voz del navegador (opcional):</b> si lo activas, Chrome o Edge envían tu audio a sus servidores (Google, Microsoft) para transcribirlo. Solo se usa con tu permiso; «Mis palabras» funciona sin conexión.', '<b>Browser speech recognition (optional):</b> if you turn it on, Chrome or Edge send your audio to their servers (Google, Microsoft) to transcribe it. It’s only used with your permission; “My words” works offline.')}</li>
       <li>${LL('<b>Tus derechos:</b> como no se envían datos al titular, no hay nada guardado en servidores que consultar o borrar. Para cualquier duda, escribe a ', '<b>Your rights:</b> since no data is sent to the owner, there’s nothing on servers to access or delete. For any question, write to ')}${mail}${LL('. Puedes reclamar ante la Agencia Española de Protección de Datos (aepd.es).', '. You can file a complaint with the Spanish Data Protection Agency (aepd.es).')}</li>
     </ul>
@@ -5233,6 +5313,7 @@ function legalHTML() {
       <li>${LL('No está dirigida a menores de 14 años.', 'Not intended for children under 14.')}</li>
       <li>${LL('Tú eres responsable de lo que grabas y publicas: pide permiso a las personas que aparezcan o se oigan. Si grabas una videollamada, avisa a los demás participantes y pide su consentimiento antes de empezar.', 'You’re responsible for what you record and publish: ask permission from anyone who appears or can be heard. If you record a video call, tell the other participants and get their consent before you start.')}</li>
       <li>${LL('Las indicaciones y puntuaciones son orientativas y se ofrecen tal cual, sin garantía de resultados. No las uses para evaluar, seleccionar o vigilar a otras personas.', 'Tips and scores are indicative and provided as is, with no guarantee of results. Don’t use them to assess, select or monitor other people.')}</li>
+      <li>${LL('Los retos son para practicar de forma voluntaria. Quien los crea (un formador, una academia o una empresa) no recibe las puntuaciones ni las notas del coach, y no puede usar Apuntador para calificar, certificar, seleccionar o evaluar a nadie ni para tomar decisiones laborales o académicas. Enviar el vídeo es siempre opcional y no debe tener consecuencias para quien no lo haga.', 'Challenges are for voluntary practice. Whoever creates them (a trainer, a school or a company) doesn’t receive the scores or the coach’s notes, and may not use Apuntador to grade, certify, select or assess anyone or to make employment or academic decisions. Sending the video is always optional and must carry no consequences for anyone who doesn’t.')}</li>
       <li>${LL('Respeta los derechos de autor de los textos y vídeos que subas.', 'Respect the copyright of the texts and videos you upload.')}</li>
       <li>${LL('Apuntador no está afiliada a Apple, Google, Microsoft ni a ninguna red social; sus nombres se citan solo para describir compatibilidad.', 'Apuntador isn’t affiliated with Apple, Google, Microsoft or any social network; their names are mentioned only to describe compatibility.')}</li>
       <li>${LL('Se rige por la legislación española.', 'Governed by Spanish law.')}</li>
@@ -6117,6 +6198,7 @@ function readCheckHTML(tk) {
 }
 function renderReadCheck(tk) {
   for (const el of document.querySelectorAll(`[data-readcard="${tk.t0}"]`)) el.innerHTML = readCheckHTML(tk);
+  renderFit(tk);
 }
 
 /* ---------------- teleprompter ---------------- */
@@ -7613,6 +7695,7 @@ function stopTake(showReport = true) {
   const t = now();
   finishWatch(t); endCue(t, 'end');
   tk.dur = takeT(t);
+  noteWpm(tk);
   if (!tk.call && !tk.file) {
     emoCheck(tk, t);
     const ew = tk.endW, warm = ['animado', 'cercano', 'inspirador', 'divertido'].includes(S.sc.paras.at(-1)?.tone || tk.tone);
@@ -8391,6 +8474,8 @@ function buildReport(tk) {
       ${tk.blob ? `<a class="ab-btn" href="${url}" download="apuntador-${stamp}.${ext}${LL("\" aria-label=\"Descargar vídeo\">", "\" aria-label=\"Download video\">")}${ico('descargar')}</a>` : '<span class="ab-btn ab-void" aria-hidden="true"></span>'}
     </header>
     ${cardHTML}
+    ${fitCardHTML(tk)}
+    ${retoSendHTML(tk)}
     ${rv ? reviewHTML(tk, url, ms, strip) : ''}
     <header class="rep-head">
       <div><p class="eyebrow">${file ? LL('Análisis de tu vídeo', "Your video analysis") : LL('Informe de la ', "Report for this ") + (call ? LL('sesión', "session") : LL('toma', 'take'))} · ${fmtTime(tk.dur)}</p><h1>${file ? esc(tk.file) : call ? (tk.record ? LL('Videollamada grabada', "Recorded video call") : LL('Videollamada', "Video call")) : tk.record ? LL('Toma grabada', "Recorded take") : LL('Ensayo', "Rehearsal")}</h1>
@@ -8576,6 +8661,535 @@ function drawTimeline(tk) {
   for (let s = 0; s <= dur; s += step) g.fillText(fmtTime(s), X(s) - 14, h - 4);
   cv.onclick = e => { const v = $('#repVideo'); if (!v) return; const r = cv.getBoundingClientRect(); v.currentTime = clamp((e.clientX - r.left - pl) / (w - pl - pr)) * dur; v.play?.(); };
 }
+/* ---------------- escríbelo conmigo y tu guion, a tu medida ----------------
+   Muchos profesionales no tienen el guion escrito, y los que lo tienen lo escribieron para leerlo, no para decirlo.
+   «Escríbelo conmigo»: qué vídeo es, tu mensaje en una frase, a quién le hablas, lo que quieres contar, qué quieres que
+   hagan al final, cuánto dura y el tono. Con el servidor de IA (AI_URL, si está puesto y das permiso) lo escribe la IA
+   para decirlo en voz alta, con la duración a tu ritmo y sin inventarse datos; sin él, aquí mismo, un borrador con una
+   estructura probada (gancho → mensaje → puntos → acción) hecho con tus palabras.
+   «Tu guion, a tu medida», tras cada toma: las frases en las que te trabaste, más fáciles de decir, y cuánto te dura el
+   guion a tu ritmo (lo mide la toma). */
+async function aiCall(path, body, ms = 45000) {
+  const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), ms);
+  try {
+    const r = await fetch(`${aiUrl()}/${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), signal: ctl.signal });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return await r.json();
+  } finally { clearTimeout(tm); }
+}
+// lo que escribes en el asistente sale del dispositivo para que lo escriba la IA (el vídeo y la voz, nunca): se pregunta una vez
+function aiAsk(box) {
+  if (!aiUrl()) return Promise.resolve(false);
+  if (S.opts.aiOk != null) return Promise.resolve(S.opts.aiOk === true);
+  return new Promise(res => {
+    box.hidden = false;
+    box.innerHTML = `<div class="consent"><h3>${LL('¿Escribirlo con IA?', 'Write it with AI?')}</h3>
+      <p class="note">${LL('Solo el texto que escribes aquí (nunca tu vídeo ni tu voz) se envía a nuestro servidor, que no lo guarda, y a Anthropic (EE. UU.), el proveedor de la IA, para escribir o mejorar el guion. Anthropic no lo usa para entrenar su IA y lo borra en 30 días como máximo. No pongas datos sensibles de otras personas.', 'Only the text you type here (never your video or voice) is sent to our server, which doesn’t keep it, and to Anthropic (US), the AI provider, to write or improve the script. Anthropic doesn’t use it to train its AI and deletes it within 30 days at most. Don’t include sensitive data about other people.')}</p>
+      <div class="actions"><button class="ghost" type="button" data-ai="no">${LL('Sin IA, aquí mismo', 'No AI, right here')}</button><button class="primary" type="button" data-ai="yes">${LL('Usar la IA', 'Use AI')}</button></div></div>`;
+    box.onclick = e => {
+      const b = e.target.closest('[data-ai]'); if (!b) return;
+      S.opts.aiOk = b.dataset.ai === 'yes'; store.set('opts', S.opts);
+      box.hidden = true; box.innerHTML = ''; box.onclick = null; res(S.opts.aiOk);
+    };
+  });
+}
+function textHash(t) { t = String(t || '').trim(); let h = 5381; for (let i = 0; i < t.length; i++) h = (h * 33 ^ t.charCodeAt(i)) >>> 0; return h.toString(36); }
+const wcount = t => (String(t || '').replace(/\[[^\]\n]*\]|\{[^}\n]*\}/g, ' ').match(/[\p{L}\p{N}']+/gu) || []).length;
+// tu ritmo: lo que midieron tus últimas tomas (la mediana) o, sin tomas, la velocidad del texto
+function myWpm() {
+  const h = store.get('wpmHist', []);
+  if (!h.length) return S.opts.wpm || 140;
+  const s = [...h].sort((a, b) => a - b);
+  return s[s.length >> 1];
+}
+const secsFor = (t, wpm = myWpm()) => Math.max(1, Math.round(wcount(t) / wpm * 60 + (String(t).match(/\/\//g) || []).length * .6));
+// palabras por minuto de una toma: desde que empiezas a hablar hasta el final del texto (o hasta donde llegaste)
+function takeWpm(tk) {
+  if (!tk || tk.call || tk.file || !tk.log?.length || !S.sc?.words.length) return null;
+  const first = tk.log.find(l => l.sp); if (!first) return null;
+  let words, t1;
+  if (tk.endAt) { words = S.sc.words.length; t1 = tk.endAt - tk.t0; }
+  else { const last = tk.log.at(-1); words = last.idx; t1 = last.t; }
+  const mins = (t1 - first.t) / 60;
+  if (mins < 8 / 60 || words < 20) return null;
+  return Math.round(clamp(words / mins, 80, 230));
+}
+function noteWpm(tk) {
+  if (tk.call || tk.file || S.drill) return;
+  const w = takeWpm(tk); if (!w) return;
+  tk.wpm = w;
+  const h = store.get('wpmHist', []); h.push(w); store.set('wpmHist', h.slice(-6));
+}
+
+// el asistente
+const WZ_KINDS = {
+  presentarte: { e: '👋', name: LL('Presentarte', 'Introduce yourself'), ph: LL('Soy Marta, abogada laboralista, y ayudo a autónomos', 'I’m Marta, an employment lawyer, and I help freelancers'),
+    act: LL('Escríbeme y lo hablamos', 'Message me and let’s talk'), dflt: ['Si te encaja, escríbeme.', 'If that sounds like you, send me a message.'], pre: ['Si te encaja, ', 'If that sounds like you, '] },
+  explicar: { e: '💡', name: LL('Explicar algo', 'Explain something'), ph: LL('Cómo leer la factura de la luz', 'How to read your electricity bill'),
+    act: LL('Guarda este vídeo para tenerlo a mano', 'Save this video for later'), dflt: ['Guárdalo para tenerlo a mano.', 'Save it so you have it handy.'] },
+  vender: { e: '🤝', name: LL('Ofrecer un servicio', 'Offer a service'), ph: LL('Llevo la contabilidad de autónomos por una cuota fija al mes', 'I do bookkeeping for freelancers for a flat monthly fee'),
+    act: LL('Escríbeme y te cuento cómo funciona', 'Message me and I’ll tell you how it works'), dflt: ['Si te interesa, escríbeme y lo vemos.', 'If you’re interested, message me and we’ll take a look.'], pre: ['Si te interesa, ', 'If you’re interested, '] },
+  anunciar: { e: '📣', name: LL('Anunciar algo', 'Announce something'), ph: LL('Abrimos una nueva consulta en Bilbao', 'We’re opening a new office in Austin'),
+    act: LL('Pásate a conocernos', 'Come and meet us'), dflt: ['Pronto te cuento más.', 'More soon.'] },
+  caso: { e: '📖', name: LL('Contar un caso', 'Tell a story'), ph: LL('Una clienta que perdió el miedo a hablar en las reuniones', 'A client who stopped dreading speaking up in meetings'),
+    act: LL('Si te ha pasado algo parecido, cuéntamelo', 'If this sounds familiar, tell me about it'), dflt: ['Si te ha pasado algo parecido, cuéntamelo.', 'If this sounds familiar, tell me about it.'] },
+  responder: { e: '❓', name: LL('Responder una pregunta', 'Answer a question'), ph: LL('¿Cuánto cuesta reformar una cocina?', 'How much does a kitchen remodel cost?'),
+    act: LL('Déjame tu pregunta y te respondo', 'Leave me your question and I’ll answer it'), dflt: ['Si tienes otra pregunta, déjamela y te respondo.', 'Got another question? Leave it and I’ll answer.'] },
+  invitar: { e: '🎟️', name: LL('Invitar a algo', 'Invite people'), ph: LL('Un taller gratuito de oratoria el jueves 6 a las 19:00', 'A free public speaking workshop on Thursday the 6th at 7 pm'),
+    act: LL('Apúntate en el enlace', 'Sign up at the link'), dflt: ['Te espero.', 'Hope to see you there.'], pre: ['Si te apetece, ', 'If you’d like to come, '] },
+};
+const WZ = Object.assign({ kind: 'presentarte', idea: '', aud: '', pts: '', act: '', secs: 60, tone: null, v: 0, out: '', by: '' }, store.get('wz', {}));
+if (!WZ_KINDS[WZ.kind]) WZ.kind = 'presentarte';
+const wzClean = s => String(s || '').replace(/\s+/g, ' ').trim();
+const wzLine = s => wzClean(s).replace(/^(?:[-•*·–—]+|\d+[.)])\s*/, '');
+const wzSent = s => { s = wzLine(s); if (!s) return ''; s = s[0].toUpperCase() + s.slice(1); return /[.!?…]["»”)]*$/.test(s) ? s : s + '.'; };
+// en minúscula para ir en medio de una frase (salvo siglas)
+const wzLow = s => { s = wzLine(s).replace(/[.!?…]+$/, ''); return !s || /^(\p{Lu}{2,}|I\b)/u.test(s) ? s : s[0].toLowerCase() + s.slice(1); };
+const WZ_DET = /^(un|una|unos|unas|el|la|los|las|mi|mis|nuestro|nuestra|cómo|como|lo|a|an|the|my|our|how|what)\b/iu;
+function wzLocal(a, v = 0) {
+  const src = [a.idea, a.aud, a.pts, a.act].join(' ');
+  const en = wcount(src) >= 6 ? scriptLang(src) === 'en' : EN;
+  const T = (es, en_) => en ? en_ : es, K = WZ_KINDS[a.kind] || WZ_KINDS.explicar;
+  const tone = TONES[a.tone] ? a.tone : S.tone, loud = ['animado', 'divertido'].includes(tone), slow = ['calmado', 'inspirador', 'serio'].includes(tone);
+  const aud = wzLow(a.aud), secs = a.secs || 60, secsTxt = secs < 120 ? T(`${secs} segundos`, `${secs} seconds`) : T('dos minutos', 'two minutes');
+  const pts = String(a.pts || '').split(/\n+/).map(wzLine).filter(Boolean).slice(0, 6);
+  const shout = s => !loud || /\?["»”)]*$/.test(s) ? s : en ? s.replace(/\.$/, '!') : '¡' + s.replace(/\.$/, '') + '!';
+  const lowIdea = wzLow(a.idea), idea = WZ_DET.test(lowIdea) ? null : wzSent(a.idea);
+  let q = wzLine(a.idea).replace(/[.]+$/, '');
+  if (!/\?$/.test(q)) q += '?';
+  if (!en && !/^¿/.test(q)) q = '¿' + q;
+  q = q.replace(/^(¿?)(\p{Ll})/u, (m, a1, c) => a1 + c.toUpperCase());
+  const H = {
+    presentarte: [aud ? T(`Si eres ${aud}, este vídeo es para ti.`, `If you’re ${aud}, this video is for you.`) : T(`Déjame presentarme en ${secsTxt}.`, `Let me introduce myself in ${secsTxt}.`),
+      T('Te cuento quién soy y cómo te puedo ayudar.', 'Here’s who I am and how I can help you.'),
+      aud ? T(`¿Eres ${aud}? Entonces tenemos que conocernos.`, `Are you ${aud}? Then we should meet.`) : T('Antes de nada, déjame presentarme.', 'First things first: let me introduce myself.')],
+    explicar: [T(`Te lo explico en ${secsTxt}.`, `Let me explain this in ${secsTxt}.`),
+      aud ? T(`Si eres ${aud}, esto te interesa.`, `If you’re ${aud}, you need to hear this.`) : T('Esto te interesa.', 'You need to hear this.'),
+      T('Mucha gente se lía con esto. // Vamos a verlo claro.', 'A lot of people get confused by this. // Let’s make it clear.')],
+    vender: [aud ? T(`Si eres ${aud}, escucha esto.`, `If you’re ${aud}, listen to this.`) : T('Escucha esto un momento.', 'Listen to this for a moment.'),
+      T('Te cuento cómo te puedo ayudar.', 'Here’s how I can help you.'),
+      aud ? T(`¿Eres ${aud}? Esto es para ti.`, `Are you ${aud}? This is for you.`) : T('¿Tienes un minuto? Esto es para ti.', 'Got a minute? This is for you.')],
+    anunciar: [aud ? T(`Si eres ${aud}, tengo una noticia para ti.`, `If you’re ${aud}, I’ve got news for you.`) : T('Tengo una noticia.', 'I’ve got news.'),
+      T('Por fin te lo puedo contar.', 'I can finally tell you.'), T('Atención, que esto es importante.', 'Listen up, this matters.')],
+    caso: [T('Te cuento un caso real.', 'Let me tell you about a real case.'), T('Déjame contarte algo que pasó.', 'Let me tell you something that happened.'),
+      aud ? T(`Si eres ${aud}, esta historia te va a sonar.`, `If you’re ${aud}, this story will sound familiar.`) : T('Esta historia te va a sonar.', 'This story might sound familiar.')],
+    responder: [T(`Me preguntan mucho esto: ${q}`, `I get asked this a lot: ${q}`), `${q} // ${T('Te respondo.', 'Let me answer.')}`,
+      aud ? T(`Si eres ${aud}, seguro que te lo has preguntado: ${q}`, `If you’re ${aud}, you’ve probably wondered: ${q}`) : T(`Seguro que te lo has preguntado: ${q}`, `You’ve probably wondered: ${q}`)],
+    invitar: [aud ? T(`Si eres ${aud}, quiero invitarte a algo.`, `If you’re ${aud}, I want to invite you to something.`) : T('Quiero invitarte a algo.', 'I want to invite you to something.'),
+      T('Tengo un plan para ti.', 'I’ve got a plan for you.'), T('Apunta esto en tu agenda.', 'Put this in your calendar.')],
+  };
+  const hooks = H[a.kind] || H.explicar;
+  const out = [shout(hooks[v % hooks.length]) + (slow && !/\/\//.test(hooks[v % hooks.length]) ? ' //' : '')];
+  // el mensaje
+  if (a.kind === 'explicar') out.push(T(`Vamos con esto: ${lowIdea}.`, `Here’s the topic: ${lowIdea}.`));
+  else if (a.kind === 'caso') out.push(idea || T(`Es la historia de ${lowIdea}.`, `It’s the story of ${lowIdea}.`));
+  else if (a.kind === 'invitar' || a.kind === 'anunciar') out.push(idea || T(`Es ${lowIdea}.`, `It’s ${lowIdea}.`));
+  else if (a.kind !== 'responder') out.push(wzSent(a.idea));
+  // lo que quieres contar
+  if (pts.length) {
+    const n = pts.length;
+    const seq = a.kind === 'caso' ? T(['Al principio, ', 'Entonces, ', 'Después, ', 'Más tarde, ', 'Luego, '], ['At first, ', 'Then, ', 'After that, ', 'Later, ', 'Next, '])
+      : T(['Primero, ', 'Segundo, ', 'Tercero, ', 'Además, ', 'También, '], ['First, ', 'Second, ', 'Third, ', 'Also, ', 'Plus, ']);
+    const last = a.kind === 'caso' ? T('Y al final, ', 'And in the end, ') : n === 2 ? T('Y segundo, ', 'And second, ') : n === 3 ? T('Y tercero, ', 'And third, ') : T('Y por último, ', 'And finally, ');
+    let lines;
+    if (a.kind === 'presentarte' || n === 1) lines = pts.map(wzSent);
+    else if (a.kind === 'responder') lines = pts.map((p, i) => i === 0 ? T('La respuesta corta: ', 'The short answer: ') + wzLow(p) + '.' : wzSent(p));
+    else lines = pts.map((p, i) => (i === n - 1 ? last : seq[Math.min(i, seq.length - 1)]) + wzLow(p) + '.');
+    if (a.kind === 'responder' && n === 1) lines = [T('La respuesta corta: ', 'The short answer: ') + wzLow(pts[0]) + '.'];
+    out.push(lines.join(slow ? ' // ' : ' '));
+  }
+  // lo que tienen que hacer al final
+  const act = wzClean(a.act);
+  out.push(shout(act ? (K.pre ? K.pre[en ? 1 : 0] + wzLow(act) + '.' : wzSent(act)) : K.dflt[en ? 1 : 0]));
+  return out.filter(Boolean).join('\n\n');
+}
+function wzPayload(v) {
+  const t = TONES[WZ.tone] ? WZ.tone : S.tone, wpm = myWpm();
+  return { lang: EN ? 'en' : 'es', kind: WZ.kind, kindName: WZ_KINDS[WZ.kind].name, idea: wzClean(WZ.idea), audience: wzClean(WZ.aud),
+    points: String(WZ.pts || '').split(/\n+/).map(wzLine).filter(Boolean).slice(0, 8), action: wzClean(WZ.act), seconds: WZ.secs, wpm,
+    words: Math.round(WZ.secs * wpm / 60), tone: t, toneName: TONES[t].name, toneHow: TONE_WRITE[t] || '', variant: v };
+}
+function wzHTML() {
+  const K = WZ_KINDS[WZ.kind], tone = TONES[WZ.tone] ? WZ.tone : S.tone;
+  const opt = s => `<small>${LL('opcional', 'optional')}</small>`;
+  return `<div class="rt-chip" id="wzReto" hidden></div>
+    <div class="group wz-g">
+      <p class="group-t">${LL('Qué vídeo es', 'What kind of video')}</p>
+      <div class="wz-kinds" role="radiogroup" aria-label="${LL('Qué vídeo es', 'What kind of video')}">${Object.entries(WZ_KINDS).map(([id, x]) => `<label class="wz-k"><input type="radio" name="wzKind" value="${id}"${WZ.kind === id ? ' checked' : ''}><span>${x.e} ${x.name}</span></label>`).join('')}</div>
+    </div>
+    <div class="group wz-g">
+      <label class="wz-f"><b>${LL('Tu mensaje, en una frase', 'Your message, in one sentence')}</b><input type="text" id="wzIdea" maxlength="220" autocomplete="off" value="${esc(WZ.idea)}" placeholder="${esc(K.ph)}"></label>
+      <label class="wz-f"><b>${LL('A quién le hablas', 'Who you’re talking to')} ${opt()}</b><input type="text" id="wzAud" maxlength="120" autocomplete="off" value="${esc(WZ.aud)}" placeholder="${LL('p. ej. dueño de un pequeño negocio', 'e.g. a small business owner')}"></label>
+      <label class="wz-f"><b>${LL('Qué quieres contar', 'What you want to say')} <small>${LL('una idea por línea', 'one idea per line')}</small></b><textarea id="wzPts" rows="4" maxlength="1500" placeholder="${LL('Llevo 12 años en esto\nTrabajo online con toda España\nLa primera consulta es gratis', 'I’ve been doing this for 12 years\nI work online, nationwide\nThe first call is free')}">${esc(WZ.pts)}</textarea></label>
+      <label class="wz-f"><b>${LL('Qué quieres que hagan al final', 'What they should do at the end')} ${opt()}</b><input type="text" id="wzAct" maxlength="140" autocomplete="off" value="${esc(WZ.act)}" placeholder="${esc(K.act)}"></label>
+    </div>
+    <div class="group wz-g">
+      <div class="row stack"><span class="row-t"><b>${LL('Duración', 'Length')}</b><small id="wzPace"></small></span>
+        <div class="seg" role="radiogroup" aria-label="${LL('Duración', 'Length')}">${[30, 60, 90, 120].map(s => `<label><input type="radio" name="wzSecs" value="${s}"${+WZ.secs === s ? ' checked' : ''}>${s < 120 ? s + ' s' : '2 min'}</label>`).join('')}</div></div>
+      <div class="row stack"><label class="row-t" for="wzTone"><b>${LL('Tono', 'Tone')}</b></label><select id="wzTone">${Object.entries(TONES).map(([id, t]) => `<option value="${id}"${id === tone ? ' selected' : ''}>${t.name}</option>`).join('')}</select></div>
+    </div>
+    <div id="wzConsent" hidden></div>
+    <button class="primary wz-go" id="wzGo" type="button">✨ ${LL('Escribir el guion', 'Write the script')}</button>
+    <p class="note center">${aiUrl() ? LL('Lo escribe la IA con lo que pongas aquí, para decirlo en voz alta y sin inventarse datos. Tu vídeo no sale del móvil.', 'The AI writes it from what you put here, to be said out loud, without making up facts. Your video never leaves your phone.') : LL('Se escribe aquí mismo con tus palabras: no sale de tu dispositivo.', 'It’s written right here with your own words: nothing leaves your device.')}</p>
+    <section class="wz-out" id="wzOut" hidden aria-live="polite"></section>`;
+}
+function wzRead() {
+  const v = id => $('#' + id)?.value ?? '';
+  Object.assign(WZ, { idea: v('wzIdea'), aud: v('wzAud'), pts: v('wzPts'), act: v('wzAct'), tone: v('wzTone') || WZ.tone,
+    kind: document.querySelector('input[name="wzKind"]:checked')?.value || WZ.kind, secs: +(document.querySelector('input[name="wzSecs"]:checked')?.value || WZ.secs) });
+  store.set('wz', WZ);
+}
+function wzPace() {
+  const el = $('#wzPace'); if (!el) return;
+  const h = store.get('wpmHist', []).length, w = myWpm();
+  el.textContent = h ? LL(`Para ${WZ.secs} s a tu ritmo (${w} palabras/min, de tus tomas): unas ${Math.round(WZ.secs * w / 60)} palabras.`, `For ${WZ.secs} s at your pace (${w} wpm, from your takes): about ${Math.round(WZ.secs * w / 60)} words.`)
+    : LL(`Unas ${Math.round(WZ.secs * w / 60)} palabras a ${w} por minuto. Cuando grabes, lo ajusto a tu ritmo.`, `About ${Math.round(WZ.secs * w / 60)} words at ${w} per minute. Once you record, I’ll adjust it to your pace.`);
+}
+function wzShow() {
+  const out = $('#wzOut'); if (!out) return;
+  const t = WZ.out; if (!t) { out.hidden = true; return; }
+  const w = myWpm(), secs = secsFor(t, w), target = +WZ.secs || 60;
+  const fit = secs < target * .75 ? LL(`Te dura unos ${secs} s y querías ${target}: añade un ejemplo concreto o un dato tuyo para llegar.`, `It runs about ${secs} s and you wanted ${target}: add a concrete example or a fact of yours to get there.`)
+    : secs > target * 1.15 ? LL(`Te dura unos ${secs} s y querías ${target}: quita una idea o acorta frases.`, `It runs about ${secs} s and you wanted ${target}: drop an idea or shorten some sentences.`) : '';
+  out.hidden = false;
+  out.innerHTML = `<p class="eyebrow">${WZ.by === 'ia' ? LL('Escrito con IA', 'Written with AI') : LL('Tu borrador', 'Your draft')}</p>
+    <div class="wz-text">${t.split(/\n\s*\n/).map(p => `<p>${esc(p)}</p>`).join('')}</div>
+    <p class="wz-meta">${wcount(t)} ${LL('palabras', 'words')} · ~${secs} s ${LL('a tu ritmo', 'at your pace')}</p>
+    ${fit ? `<p class="note">${fit}</p>` : ''}
+    <p class="note">${WZ.by === 'ia' ? LL('Revisa que todo lo que dice sea cierto antes de grabarlo.', 'Check that everything it says is true before you record it.') : LL('Hecho con tu estructura y tus palabras: cámbialo a tu manera al usarlo.', 'Built from your structure and your words: make it yours once you use it.')}</p>
+    <div class="wz-act"><button class="primary" type="button" data-wz="use">${LL('Usar este guion', 'Use this script')}</button><button class="ghost" type="button" data-wz="again">${ico('repetir')}${LL('Otra versión', 'Another version')}</button></div>`;
+}
+async function wzGenerate(v) {
+  wzRead();
+  if (!wzClean(WZ.idea)) { toast(LL('Escribe tu mensaje en una frase para empezar.', 'Write your message in one sentence to get started.')); $('#wzIdea')?.focus(); return; }
+  const out = $('#wzOut'), btn = $('#wzGo');
+  btn.disabled = true;
+  let text = null, by = 'local';
+  if (await aiAsk($('#wzConsent'))) {
+    out.hidden = false; out.innerHTML = `<p class="rc-state"><span class="spin"></span>${LL('Escribiendo tu guion…', 'Writing your script…')}</p>`;
+    try { const r = await aiCall('write', wzPayload(v)); if (r && typeof r.text === 'string' && wcount(r.text) >= 8) { text = r.text.trim(); by = 'ia'; } else throw new Error('vacío'); }
+    catch (e) { console.warn('ia', e); toast(LL('La IA no responde ahora: te dejo un borrador con tu estructura.', 'The AI isn’t responding right now: here’s a draft with your structure.'), 5000); }
+  }
+  if (!text) text = wzLocal(WZ, v);
+  btn.disabled = false;
+  Object.assign(WZ, { out: text, by, v }); store.set('wz', WZ);
+  wzShow();
+  out.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+function wzUse() {
+  const t = WZ.out; if (!t) return;
+  const cur = S.text.trim();
+  if (cur && cur !== SAMPLE.trim() && cur !== t.trim() && !confirm(LL('¿Sustituir el guion que tenías? Lo guardo por si quieres recuperarlo.', 'Replace the script you had? I’ll keep it in case you want it back.'))) return;
+  if (cur && cur !== t.trim()) store.set('textPrev', S.text);
+  S.text = t; elScript.value = t; store.set('text', t);
+  store.set('textAi', WZ.by === 'ia' ? textHash(t) : null);
+  if (TONES[WZ.tone] && WZ.tone !== S.tone) { S.tone = WZ.tone; store.set('tone', S.tone); renderTones(); }
+  S.goalSecs = +WZ.secs || null;
+  refreshSetup(); wzMode(false);
+  toast(LL('Guion listo: cámbialo a tu manera y pulsa Siguiente.', 'Script ready: make it yours and tap Next.'), 4500);
+}
+function wzMode(on) {
+  const pane = document.querySelector('[data-pane="guion"]'); if (!pane) return;
+  pane.classList.toggle('wz-on', on);
+  $('#setup').classList.toggle('wz-mode', on);
+  $('#wz').hidden = !on;
+  for (const r of document.querySelectorAll('input[name="gMode"]')) r.checked = (r.value === 'wz') === on;
+  if (on) { $('#wz').innerHTML = wzHTML(); wzPace(); wzShow(); retoChips(); }
+}
+$('#gMode').innerHTML = `<div class="seg" role="radiogroup" aria-label="${LL('Cómo quieres hacer el guion', 'How you want to make the script')}">
+  <label><input type="radio" name="gMode" value="yo" checked>${LL('Lo tengo escrito', 'I have it written')}</label>
+  <label><input type="radio" name="gMode" value="wz">✨ ${LL('Escríbelo conmigo', 'Write it with me')}</label></div>`;
+$('#gMode').addEventListener('change', e => { if (e.target.name === 'gMode') wzMode(e.target.value === 'wz'); });
+$('#wz').addEventListener('click', e => {
+  if (e.target.closest('#wzGo')) return wzGenerate(WZ.v || 0);
+  const b = e.target.closest('[data-wz]'); if (!b) return;
+  if (b.dataset.wz === 'use') wzUse();
+  if (b.dataset.wz === 'again') wzGenerate((WZ.v || 0) + 1);
+});
+$('#wz').addEventListener('change', e => {
+  if (e.target.name === 'wzKind') { wzRead(); const K = WZ_KINDS[WZ.kind]; $('#wzIdea').placeholder = K.ph; $('#wzAct').placeholder = K.act; }
+  else if (e.target.name === 'wzSecs') { wzRead(); wzPace(); wzShow(); }
+  else wzRead();
+});
+$('#wz').addEventListener('input', e => { if (e.target.matches('input[type="text"],textarea')) wzRead(); });
+
+// tras la toma: las frases en las que te trabaste, más fáciles de decir
+const SPLIT_ES = ['pero', 'porque', 'así que', 'aunque', 'sino que', 'y además', 'y'], SPLIT_EN = ['but', 'because', 'so', 'although', 'and'];
+function easierSent(raw, en) {
+  let s = removeHedges(raw).replace(/\s+/g, ' ').trim();
+  const n = wcount(s);
+  if (n >= 14) {
+    const re = new RegExp(`,?\\s+(${(en ? SPLIT_EN : SPLIT_ES).join('|')})\\s+`, 'giu');
+    let best = null;
+    for (const m of s.matchAll(re)) {
+      const left = wcount(s.slice(0, m.index)), right = n - left - wcount(m[1]);
+      if (left >= 5 && right >= 4) { const d = Math.abs(left - n / 2); if (!best || d < best.d) best = { d, m }; }
+    }
+    if (best) {
+      const { m } = best, head = s.slice(0, m.index).replace(/[,;:]\s*$/, '');
+      s = `${head}. ${m[1][0].toUpperCase()}${m[1].slice(1)} ${s.slice(m.index + m[0].length)}`;
+    } else {
+      // sin una conjunción a mano: una pausa en la coma más cercana a la mitad, para respirar ahí
+      let bc = null;
+      for (const m of s.matchAll(/,\s+/g)) { const left = wcount(s.slice(0, m.index)); if (left >= 4 && n - left >= 4 && !/\/\/\s*$/.test(s.slice(0, m.index + 2))) { const d = Math.abs(left - n / 2); if (!bc || d < bc.d) bc = { d, i: m.index }; } }
+      if (bc && !/\/\//.test(s)) s = `${s.slice(0, bc.i + 1)} //${s.slice(bc.i + 1)}`;
+    }
+  }
+  return s !== raw.replace(/\s+/g, ' ').trim() ? s : null;
+}
+// dónde está una frase del guion en el texto (entre sus palabras puede haber pausas, etiquetas, acotaciones o asteriscos)
+function sentMatch(text, words) {
+  if (!words?.length) return null;
+  const rx = words.map(w => `\\*?${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\*?`).join('(?:\\s|\\/\\/|\\[[^\\]\\n]*\\]|\\{[^}\\n]*\\})+');
+  return new RegExp(rx, 'u').exec(text);
+}
+function fitData(tk) {
+  if (!tk || tk.call || tk.file || !S.sc?.sents.length) return null;
+  const sc = S.sc, en = sc.lang === 'en', by = new Map();
+  for (const r of readFails(tk)) {
+    if (r.idx == null) continue;
+    const si = sc.sents.findIndex(s => r.idx >= s.start && r.idx < s.end);
+    if (si >= 0) { if (!by.has(si)) by.set(si, []); by.get(si).push(r); }
+  }
+  const items = [...by].sort((a, b) => a[0] - b[0]).slice(0, 5).map(([si, rs]) => {
+    const s = sc.sents[si], words = sc.words.slice(s.start, s.end).map(w => w.text), raw = words.join(' ');
+    return { si, words, raw, fix: easierSent(raw, en), why: rs[0].txt };
+  });
+  const wpm = tk.wpm || takeWpm(tk);
+  return { items, wpm, secs: wpm ? Math.round(sc.words.length / wpm * 60) : null };
+}
+function fitInner(tk) {
+  const d = fitData(tk); if (!d) return '';
+  tk.fit = d;
+  const goal = S.reto?.s || S.goalSecs, off = d.secs && goal && Math.abs(d.secs - goal) > goal * .15;
+  if (!d.items.length && !off) return '';
+  const fixes = d.items.filter(i => i.fix).length;
+  return `<h3>✍️ ${LL('Tu guion, a tu medida', 'Your script, made to fit you')}</h3>
+    ${d.items.length ? `<p class="note">${d.items.length === 1 ? LL('Te trabaste en una frase.', 'You stumbled on one sentence.') : LL(`Te trabaste en ${d.items.length} frases.`, `You stumbled on ${d.items.length} sentences.`)} ${fixes ? LL('Así te será más fácil decirlas (quita la marca de la que no quieras cambiar):', 'Here’s an easier way to say them (untick any you’d rather keep):') : ''}</p>
+    <ul class="fit-list">${d.items.map((it, i) => `<li>${it.fix ? `<label><input type="checkbox" data-fi="${i}" checked><span><s>${esc(it.raw)}</s><b>${esc(it.fix)}</b></span></label>` : `<span><b>${esc(it.raw)}</b><small>${LL('Léela dos veces en voz alta antes de grabar: es la que más te cuesta.', 'Read it out loud twice before you record: it’s the one you find hardest.')}</small></span>`}</li>`).join('')}</ul>` : ''}
+    ${d.secs ? `<p class="fit-pace">⏱️ ${LL(`Tu ritmo en esta toma: ${d.wpm} palabras por minuto. Este guion te dura unos ${d.secs} s`, `Your pace this take: ${d.wpm} words per minute. This script runs about ${d.secs} s for you`)}${goal ? LL(` (el objetivo es ${goal} s${off ? (d.secs > goal ? ': recorta un poco' : ': puedes añadir algo') : ''}).`, ` (the target is ${goal} s${off ? (d.secs > goal ? ': trim it a little' : ': you can add something') : ''}).`) : '.'}</p>` : ''}
+    <div class="wz-act">${fixes ? `<button class="primary" type="button" data-fit="apply-rec">${ico('camara')}${LL('Cambiarlas y grabar otra', 'Change them and record again')}</button><button class="ghost" type="button" data-fit="apply">${LL('Solo cambiarlas', 'Just change them')}</button>` : ''}${aiUrl() && d.items.length ? `<button class="ghost" type="button" data-fit="ai">✨ ${LL('Mejorarlas con IA', 'Improve them with AI')}</button>` : ''}</div>
+    <div class="fit-consent" hidden></div>`;
+}
+function fitCardHTML(tk) {
+  if (!tk || tk.call || tk.file) return '';
+  const h = fitInner(tk);
+  return `<section class="fit" data-fitcard="${tk.t0}"${h ? '' : ' hidden'} aria-label="${LL('Tu guion, a tu medida', 'Your script, made to fit you')}">${h}</section>`;
+}
+function renderFit(tk) {
+  for (const el of document.querySelectorAll(`[data-fitcard="${tk.t0}"]`)) { const h = fitInner(tk); el.innerHTML = h; el.hidden = !h; }
+}
+// el guion cambia, pero sigue siendo el mismo vídeo: la próxima toma se compara con esta
+function carryCard(from, to) {
+  const C = store.get('cards', {}), a = 't:' + hashStr(from.trim()), b = 't:' + hashStr(to.trim());
+  if (C[a] && a !== b) { C[b] = { ...C[a] }; store.set('cards', C); }
+}
+$('#report').addEventListener('click', async e => {
+  const b = e.target.closest('[data-fit]'); if (!b) return;
+  const tk = S.repTk, d = tk?.fit, card = b.closest('[data-fitcard]'); if (!d || !card) return;
+  if (b.dataset.fit === 'ai') {
+    if (!(await aiAsk(card.querySelector('.fit-consent')))) return;
+    b.disabled = true; b.innerHTML = `<span class="spin"></span>${LL('Mejorando…', 'Improving…')}`;
+    try {
+      // solo las frases en las que te trabaste (no el guion entero)
+      const r = await aiCall('fit', { lang: S.sc.lang === 'en' ? 'en' : 'es', tone: S.tone, toneName: TONES[S.tone].name, toneHow: TONE_WRITE[S.tone] || '', wpm: d.wpm || myWpm(),
+        sentences: d.items.map((it, i) => ({ i, text: it.raw, issue: it.why })) });
+      for (const x of r?.sentences || []) { const it = d.items[x.i]; if (it && typeof x.text === 'string' && wcount(x.text) >= 2) it.fix = x.text.trim(); }
+      tk.fitAi = true;
+      for (const el of document.querySelectorAll(`[data-fitcard="${tk.t0}"]`)) {
+        el.querySelector('.fit-list').innerHTML = d.items.map((it, i) => `<li>${it.fix ? `<label><input type="checkbox" data-fi="${i}" checked><span><s>${esc(it.raw)}</s><b>${esc(it.fix)}</b></span></label>` : `<span><b>${esc(it.raw)}</b></span>`}</li>`).join('');
+        if (!el.querySelector('[data-fit="apply"]')) el.querySelector('.wz-act').insertAdjacentHTML('afterbegin', `<button class="primary" type="button" data-fit="apply-rec">${ico('camara')}${LL('Cambiarlas y grabar otra', 'Change them and record again')}</button><button class="ghost" type="button" data-fit="apply">${LL('Solo cambiarlas', 'Just change them')}</button>`);
+      }
+      b.remove();
+    } catch (err) { console.warn('ia', err); b.disabled = false; b.textContent = LL('La IA no responde: inténtalo luego', 'The AI isn’t responding: try later'); }
+    return;
+  }
+  const picks = [...card.querySelectorAll('input[data-fi]:checked')].map(i => d.items[+i.dataset.fi]).filter(it => it?.fix);
+  let t = S.text, n = 0;
+  for (const it of picks) { const m = sentMatch(t, it.words); if (m) { t = t.slice(0, m.index) + it.fix + t.slice(m.index + m[0].length); n++; } }
+  if (!n) { toast(LL('No he encontrado esas frases en tu guion: cámbialas a mano.', 'I couldn’t find those sentences in your script: change them by hand.')); return; }
+  carryCard(S.text, t);
+  S.text = t; elScript.value = t; store.set('text', t); refreshSetup();
+  if (b.dataset.fit === 'apply-rec') { toast(LL('Guion cambiado. ¡A por otra toma!', 'Script updated. Let’s go again!'), 2500); againNow(true); }
+  else { toast(n === 1 ? LL('Frase cambiada en tu guion.', 'Sentence changed in your script.') : LL(`${n} frases cambiadas en tu guion.`, `${n} sentences changed in your script.`)); for (const el of card.querySelectorAll('.wz-act [data-fit^="apply"]')) el.remove(); }
+});
+
+/* ---------------- retos: un formador, una academia o una empresa manda un reto por enlace ----------------
+   Quien crea el reto pone su nombre, el título, las instrucciones, el guion (o el tema, para que cada alumno lo
+   escriba con «Escríbelo conmigo»), la duración, en qué fijarse, el tono y cómo quiere recibir los vídeos. Todo va
+   dentro del enlace (comprimido, detrás de #): no hay servidor que lo guarde ni lo vea. Quien lo abre lo practica en su
+   móvil y decide si envía su vídeo y una nota suya. La puntuación es solo para quien practica: no se envía y no sirve
+   para calificar a nadie. */
+const RETO_KEYS = { by: 80, ti: 90, in: 500, sc: 4000, br: 200, to: 120 };
+function retoClean(r) {
+  if (!r || typeof r !== 'object') return null;
+  const o = { v: 1 };
+  for (const [k, n] of Object.entries(RETO_KEYS)) o[k] = String(r[k] ?? '').slice(0, n).trim();
+  o.s = [30, 60, 90, 120].includes(+r.s) ? +r.s : 60;
+  o.fo = TRAITS.some(T => T.id === r.fo) ? r.fo : '';
+  o.tone = TONES[r.tone] ? r.tone : '';
+  return o.sc || o.br || o.ti ? o : null;
+}
+const b64u = bytes => { let s = ''; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000)); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
+const unb64u = str => { const s = atob(str.replace(/-/g, '+').replace(/_/g, '/')); const out = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) out[i] = s.charCodeAt(i); return out; };
+const streamBytes = async (bytes, tr) => new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(tr)).arrayBuffer());
+async function retoEncode(r) {
+  const raw = new TextEncoder().encode(JSON.stringify(r));
+  if (typeof CompressionStream === 'function') { try { return 'z' + b64u(await streamBytes(raw, new CompressionStream('deflate-raw'))); } catch {} }
+  return 'j' + b64u(raw);
+}
+async function retoDecode(code) {
+  const kind = code[0], bytes = unb64u(code.slice(1));
+  const raw = kind === 'z' ? await streamBytes(bytes, new DecompressionStream('deflate-raw')) : bytes;
+  return retoClean(JSON.parse(new TextDecoder().decode(raw)));
+}
+const retoLink = code => `${location.origin}${location.pathname}#reto=${code}`;
+S.reto = retoClean(store.get('reto', null));
+const traitName = id => TRAITS.find(T => T.id === id)?.name || '';
+function retoMeta(r) {
+  return [`~${r.s < 120 ? r.s + ' s' : '2 min'}`, r.fo ? LL('fíjate en: ', 'focus on: ') + traitName(r.fo).toLowerCase() : '', r.tone ? LL('tono ', 'tone: ') + TONES[r.tone].name.toLowerCase() : ''].filter(Boolean).join(' · ');
+}
+function renderRetoCard() {
+  const el = $('#retoCard'), r = S.reto; if (!el) return;
+  el.hidden = !r; if (!r) { el.innerHTML = ''; return; }
+  el.innerHTML = `<p class="eyebrow">🎯 ${r.by ? LL('Reto de ', 'Challenge from ') + esc(r.by) : LL('Tu reto', 'Your challenge')}</p>
+    <h3>${esc(r.ti || LL('Reto de vídeo', 'Video challenge'))}</h3>
+    ${r.in ? `<p>${esc(r.in)}</p>` : ''}${!r.sc && r.br ? `<p>${LL('Tema: ', 'Topic: ')}<b>${esc(r.br)}</b>. ${LL('Escribe tu guion con ayuda.', 'Write your script with some help.')}</p>` : ''}
+    <p class="rt-meta">${esc(retoMeta(r))}</p>
+    <div class="wz-act"><button class="primary" type="button" data-rc="go">${ico('play')}${LL('Empezar el reto', 'Start the challenge')}</button><button class="ghost" type="button" data-rc="x">${LL('Quitar', 'Remove')}</button></div>`;
+}
+function retoChips() {
+  const r = S.reto;
+  for (const id of ['rtChip', 'wzReto']) {
+    const el = $('#' + id); if (!el) continue;
+    el.hidden = !r;
+    el.innerHTML = r ? `🎯 <b>${esc(r.ti || LL('Reto', 'Challenge'))}</b>${r.by ? ` · ${esc(r.by)}` : ''}<span>${esc(retoMeta(r))}${!r.sc && r.br ? ' · ' + LL('tema: ', 'topic: ') + esc(r.br) : ''}</span>` : '';
+  }
+}
+function retoStart() {
+  const r = S.reto; if (!r) return;
+  setFlow('video');
+  if (r.tone && r.tone !== S.tone) { S.tone = r.tone; store.set('tone', S.tone); renderTones(); }
+  S.goalSecs = r.s;
+  go('guion');
+  if (r.sc) {
+    const cur = S.text.trim();
+    if (cur !== r.sc.trim()) { if (cur && cur !== SAMPLE.trim()) store.set('textPrev', S.text); S.text = r.sc; elScript.value = r.sc; store.set('text', r.sc); refreshSetup(); }
+    wzMode(false);
+  } else { Object.assign(WZ, { secs: r.s, tone: r.tone || WZ.tone, out: '' }); store.set('wz', WZ); wzMode(true); }
+  retoChips();
+}
+$('#retoCard').addEventListener('click', e => {
+  const b = e.target.closest('[data-rc]'); if (!b) return;
+  if (b.dataset.rc === 'go') retoStart();
+  else { S.reto = null; store.set('reto', null); renderRetoCard(); retoChips(); }
+});
+async function retoFromHash() {
+  // la página para formadores enlaza aquí para crear el primer reto
+  if (location.hash === '#crear-reto') { history.replaceState(history.state, '', location.pathname + location.search); setFlow('reto'); renderRetoNew(); go('reto'); return; }
+  const m = location.hash.match(/[#&]reto=([A-Za-z0-9_-]+)/); if (!m) return;
+  try {
+    const r = await retoDecode(m[1]);
+    if (!r) throw new Error('vacío');
+    S.reto = r; store.set('reto', r);
+  } catch (e) { console.warn('reto', e); toast(LL('Este enlace de reto no se puede leer: pide que te lo vuelvan a mandar.', 'This challenge link can’t be read: ask for it to be sent again.'), 6000); }
+  history.replaceState(history.state, '', location.pathname + location.search);
+  renderRetoCard(); retoChips();
+}
+addEventListener('hashchange', retoFromHash);
+
+// crear un reto (para formadores y equipos)
+const RT = Object.assign({ by: '', ti: '', in: '', mode: 'sc', sc: '', br: '', s: 60, fo: '', tone: '', to: '' }, store.get('rtDraft', {}));
+function retoNewHTML() {
+  return `<div class="pane-head"><h2 id="retoTitle">${LL('Crea un reto para tu gente', 'Create a challenge for your people')}</h2>
+      <p class="note">${LL('Para formadores, academias y equipos. Les mandas un enlace: lo abren en el móvil, graban con tu guion, el coach les ayuda a mejorar y te envían su vídeo. Sin cuentas: el reto va dentro del enlace.', 'For trainers, schools and teams. Send them a link: they open it on their phone, record with your script, the coach helps them improve, and they send you their video. No accounts: the challenge lives inside the link.')}</p></div>
+    <div class="group wz-g">
+      <label class="wz-f"><b>${LL('Tu nombre o el de tu academia', 'Your name or your school’s')}</b><input type="text" id="rtBy" maxlength="80" autocomplete="off" value="${esc(RT.by)}" placeholder="${LL('Ana López · Habla en Cámara', 'Ana Lopez · On Camera Academy')}"></label>
+      <label class="wz-f"><b>${LL('Título del reto', 'Challenge title')}</b><input type="text" id="rtTi" maxlength="90" autocomplete="off" value="${esc(RT.ti)}" placeholder="${LL('Preséntate en 60 segundos', 'Introduce yourself in 60 seconds')}"></label>
+      <label class="wz-f"><b>${LL('Instrucciones', 'Instructions')} <small>${LL('opcional', 'optional')}</small></b><textarea id="rtIn" rows="3" maxlength="500" placeholder="${LL('Mira a cámara al terminar cada frase y sonríe al despedirte.', 'Look at the lens at the end of each sentence and smile as you sign off.')}">${esc(RT.in)}</textarea></label>
+    </div>
+    <div class="group wz-g">
+      <div class="row stack"><span class="row-t"><b>${LL('¿Qué tienen que decir?', 'What should they say?')}</b></span>
+        <div class="seg" role="radiogroup" aria-label="${LL('¿Qué tienen que decir?', 'What should they say?')}"><label><input type="radio" name="rtMode" value="sc"${RT.mode !== 'br' ? ' checked' : ''}>${LL('Les doy el guion', 'I’ll give them the script')}</label><label><input type="radio" name="rtMode" value="br"${RT.mode === 'br' ? ' checked' : ''}>${LL('Que lo escriban ellos', 'They write their own')}</label></div></div>
+      <label class="wz-f" data-rtm="sc"${RT.mode === 'br' ? ' hidden' : ''}><b>${LL('Guion', 'Script')}</b><textarea id="rtSc" rows="6" maxlength="4000">${esc(RT.sc)}</textarea><button class="ghost" type="button" id="rtMine">${ico('texto')}${LL('Usar mi guion actual', 'Use my current script')}</button></label>
+      <label class="wz-f" data-rtm="br"${RT.mode === 'br' ? '' : ' hidden'}><b>${LL('Sobre qué', 'Topic')}</b><input type="text" id="rtBr" maxlength="200" autocomplete="off" value="${esc(RT.br)}" placeholder="${LL('Presenta tu negocio a un cliente nuevo', 'Pitch your business to a new client')}"></label>
+    </div>
+    <div class="group wz-g">
+      <div class="row stack"><span class="row-t"><b>${LL('Duración', 'Length')}</b></span><div class="seg" role="radiogroup" aria-label="${LL('Duración', 'Length')}">${[30, 60, 90, 120].map(s => `<label><input type="radio" name="rtS" value="${s}"${+RT.s === s ? ' checked' : ''}>${s < 120 ? s + ' s' : '2 min'}</label>`).join('')}</div></div>
+      <div class="row stack"><label class="row-t" for="rtFo"><b>${LL('En qué deben fijarse', 'What to focus on')}</b></label><select id="rtFo"><option value="">${LL('Lo que les diga el coach', 'Whatever the coach suggests')}</option>${TRAITS.map(T => `<option value="${T.id}"${RT.fo === T.id ? ' selected' : ''}>${T.e} ${T.name}</option>`).join('')}</select></div>
+      <div class="row stack"><label class="row-t" for="rtTone"><b>${LL('Tono', 'Tone')}</b></label><select id="rtTone"><option value="">${LL('El que elijan', 'Their choice')}</option>${Object.entries(TONES).map(([id, t]) => `<option value="${id}"${RT.tone === id ? ' selected' : ''}>${t.name}</option>`).join('')}</select></div>
+      <label class="wz-f"><b>${LL('Cómo te envían el vídeo', 'How they send you the video')} <small>${LL('opcional', 'optional')}</small></b><input type="text" id="rtTo" maxlength="120" autocomplete="off" value="${esc(RT.to)}" placeholder="${LL('Por WhatsApp al grupo del curso', 'On WhatsApp, in the course group')}"></label>
+    </div>
+    <p class="note">${LL('La puntuación es solo para que cada persona practique: no te llega a ti y no sirve para calificar ni evaluar a nadie. Tú recibes el vídeo y la nota que cada uno decida enviarte.', 'The score is only for each person’s own practice: you don’t receive it, and it mustn’t be used to grade or assess anyone. You get the video and the note each person chooses to send you.')}</p>
+    <button class="primary wz-go" id="rtMake" type="button">${ico('compartir')}${LL('Crear el enlace', 'Create the link')}</button>
+    <section class="wz-out" id="rtOut" hidden aria-live="polite"></section>`;
+}
+function rtRead() {
+  const v = id => $('#' + id)?.value ?? '';
+  Object.assign(RT, { by: v('rtBy'), ti: v('rtTi'), in: v('rtIn'), sc: v('rtSc'), br: v('rtBr'), fo: v('rtFo'), tone: v('rtTone'), to: v('rtTo'),
+    mode: document.querySelector('input[name="rtMode"]:checked')?.value || RT.mode, s: +(document.querySelector('input[name="rtS"]:checked')?.value || RT.s) });
+  store.set('rtDraft', RT);
+}
+async function rtMake() {
+  rtRead();
+  const r = retoClean({ ...RT, sc: RT.mode === 'br' ? '' : RT.sc, br: RT.mode === 'br' ? RT.br : '' });
+  if (!r || (RT.mode === 'br' ? !r.br : !r.sc)) { toast(RT.mode === 'br' ? LL('Escribe el tema del reto.', 'Write the challenge topic.') : LL('Escribe o pega el guion del reto.', 'Write or paste the challenge script.')); $(RT.mode === 'br' ? '#rtBr' : '#rtSc')?.focus(); return; }
+  const url = retoLink(await retoEncode(r));
+  RT.url = url; store.set('rtDraft', RT);
+  const out = $('#rtOut'); out.hidden = false;
+  out.innerHTML = `<p class="eyebrow">${LL('Tu reto está listo', 'Your challenge is ready')}</p>
+    <input type="text" class="rt-link" id="rtLink" readonly value="${esc(url)}" aria-label="${LL('Enlace del reto', 'Challenge link')}">
+    <div class="wz-act"><button class="primary" type="button" data-rt="share">${ico('compartir')}${LL('Compartir', 'Share')}</button><button class="ghost" type="button" data-rt="copy">${LL('Copiar el enlace', 'Copy link')}</button><button class="ghost" type="button" data-rt="try">${ico('play')}${LL('Probarlo yo', 'Try it myself')}</button></div>
+    <p class="note">${LL(`Quien tenga el enlace puede ver el reto; no se guarda en ningún servidor. ${url.length > 1800 ? 'Es largo porque lleva el guion dentro: mejor compártelo con el botón que pegarlo a mano.' : ''}`, `Anyone with the link can see the challenge; it isn’t stored on any server. ${url.length > 1800 ? 'It’s long because the script is inside it: share it with the button rather than pasting it by hand.' : ''}`)}</p>`;
+  out.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+function renderRetoNew() { const p = document.querySelector('[data-pane="reto"]'); if (p) p.innerHTML = retoNewHTML(); }
+const retoPane = document.querySelector('[data-pane="reto"]');
+retoPane.addEventListener('input', e => { if (e.target.matches('input,textarea,select')) rtRead(); });
+retoPane.addEventListener('change', e => {
+  rtRead();
+  if (e.target.name === 'rtMode') for (const el of retoPane.querySelectorAll('[data-rtm]')) el.hidden = el.dataset.rtm !== RT.mode;
+});
+retoPane.addEventListener('click', async e => {
+  if (e.target.closest('#rtMake')) return rtMake();
+  if (e.target.closest('#rtMine')) { $('#rtSc').value = S.text === SAMPLE ? '' : S.text; rtRead(); return; }
+  const b = e.target.closest('[data-rt]'); if (!b || !RT.url) return;
+  if (b.dataset.rt === 'copy') { try { await navigator.clipboard.writeText(RT.url); toast(LL('Enlace copiado.', 'Link copied.')); } catch { $('#rtLink').select(); toast(LL('Selecciona el enlace y cópialo.', 'Select the link and copy it.')); } }
+  if (b.dataset.rt === 'share') {
+    const data = { title: RT.ti || 'Apuntador', text: `${RT.ti ? RT.ti + ' · ' : ''}${LL('Un reto de vídeo para practicar con Apuntador', 'A video challenge to practice with Apuntador')}`, url: RT.url };
+    if (navigator.share) { try { await navigator.share(data); } catch {} } else { try { await navigator.clipboard.writeText(RT.url); toast(LL('Enlace copiado: pégalo donde quieras.', 'Link copied: paste it wherever you like.')); } catch {} }
+  }
+  if (b.dataset.rt === 'try') { const code = RT.url.split('#reto=')[1]; S.reto = await retoDecode(code); store.set('reto', S.reto); renderRetoCard(); retoStart(); }
+});
+$('#trainerBtn').innerHTML = `<span class="tb-ico" aria-hidden="true">🎓</span><span><b>${LL('¿Formas a otras personas?', 'Do you train people?')}</b><small>${LL('Crea un reto y mándalo por enlace a tus alumnos o a tu equipo.', 'Create a challenge and send it by link to your students or team.')}</small></span>${ico('chev', 'ico chev')}`;
+$('#trainerBtn').addEventListener('click', () => { setFlow('reto'); renderRetoNew(); go('reto'); });
+
+// en el informe: enviar la toma a quien mandó el reto (lo decide quien practica; la puntuación no va)
+// la nota la escribe quien practica: no lleva nada de lo que calcula la app (ni la puntuación ni sus observaciones)
+function retoSendHTML(tk) {
+  const r = S.reto; if (!r || tk.call || tk.file) return '';
+  const msg = [LL('Reto: ', 'Challenge: ') + (r.ti || LL('vídeo', 'video')), LL('Lo que voy a mejorar: ', 'What I’ll work on: '), LL('Mi comentario: ', 'My comment: ')].join('\n');
+  return `<section class="fit rt-send" aria-label="${LL('Enviar al reto', 'Send to the challenge')}">
+    <h3>📤 ${r.by ? LL('Enviar a ', 'Send to ') + esc(r.by) : LL('Enviar tu toma', 'Send your take')}</h3>
+    <p class="note">${r.to ? esc(r.to) + '. ' : ''}${LL('Tú decides si lo envías y qué escribes. Tu puntuación y las notas del coach no se incluyen: son solo para ti.', 'You decide whether to send it and what to write. Your score and the coach’s notes aren’t included: they’re just for you.')}</p>
+    <label class="sr" for="rtMsg">${LL('Tu nota', 'Your note')}</label><textarea id="rtMsg" rows="4" maxlength="800">${esc(msg)}</textarea>
+    <div class="wz-act">${tk.blob ? `<button class="primary" type="button" data-rs="share">${ico('compartir')}${LL('Compartir el vídeo y la nota', 'Share the video and note')}</button>` : ''}<button class="ghost" type="button" data-rs="copy">${LL('Copiar la nota', 'Copy the note')}</button></div>
+  </section>`;
+}
+$('#report').addEventListener('click', async e => {
+  const b = e.target.closest('[data-rs]'); if (!b) return;
+  const tk = S.repTk, txt = $('#rtMsg')?.value || '';
+  if (b.dataset.rs === 'copy') { try { await navigator.clipboard.writeText(txt); toast(LL('Nota copiada.', 'Note copied.')); } catch { $('#rtMsg').select(); } return; }
+  if (!tk?.blob) return;
+  const ext = /mp4/.test(tk.mime || '') ? 'mp4' : 'webm', file = new File([tk.blob], `${(S.reto?.ti || 'reto').replace(/[^\p{L}\p{N}]+/gu, '-').slice(0, 40)}.${ext}`, { type: tk.mime || 'video/webm' });
+  if (navigator.canShare?.({ files: [file] })) { try { await navigator.share({ files: [file], text: txt, title: S.reto?.ti || 'Apuntador' }); } catch {} return; }
+  // sin compartir archivos (ordenador): se descarga el vídeo y se copia la nota para pegarla junto a él
+  const a = document.createElement('a'); a.href = URL.createObjectURL(tk.blob); a.download = file.name; document.body.append(a); a.click(); a.remove();
+  try { await navigator.clipboard.writeText(txt); } catch {}
+  toast(LL('Vídeo descargado y nota copiada: adjúntalo y pégala donde te pidan.', 'Video downloaded and note copied: attach it and paste the note where you were asked.'), 6000);
+});
+renderRetoCard(); retoChips(); retoFromHash();
+S.dbg.medida = { WZ, wzLocal, easierSent, sentMatch, fitData, takeWpm, myWpm, retoEncode, retoDecode, retoClean, RT };
 </script>
 </body>
 </html>
