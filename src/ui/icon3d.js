@@ -14,7 +14,8 @@ import { hdTable } from '../web/hd.js';
 
 let R = null, scene, cam;
 const cache = new Map();
-const S = 256, SS = 512;                         // tamaño final y de render (supermuestreo)
+// tamaño final y de render (supermuestreo); al hornear (tools/iconbake.mjs → lab/iconbake.html?iconS=512) se pide más grande
+const S = +(typeof location !== 'undefined' && new URLSearchParams(location.search).get('iconS')) || 256, SS = S * 2;
 let envGen = -1;
 function setup() {
   R = offscreen(SS, SS, THREE.NeutralToneMapping);
@@ -159,8 +160,9 @@ export const has3D = (name) => !!(BAKED[name] || UI3D[name] || CUSTOM[name] || I
 // todos los nombres con modelo 3D (para hornearlos con tools/iconbake.mjs)
 export const ICON3D_NAMES = () => [...new Set([UI3D, CUSTOM, ITEM, ANIMAL, SMALL, BIRDS, FLY].flatMap(o => Object.keys(o)))];
 // iconos ya horneados: no hay que dibujarlos en el móvil. Casi todos son los 182 iconos 3D del autor del proyecto
-// (src/assets/icons3d, a 192 px; el archivo único lleva la copia de 128 px de icons3d/128, por peso: alias @icons3d en
-// vite.config.js); los pocos que el autor no ha dibujado son renders del propio juego (tools/iconbake.mjs).
+// (src/assets/icons3d/256 en la web; el archivo único lleva la copia de 128 px de icons3d/128, por peso: alias @icons3d en
+// vite.config.js; los de 512, en icons3d/512, los pide src/web/hd.js cuando el icono se ve más grande); los pocos que el
+// autor no ha dibujado son renders del propio juego (tools/iconbake.mjs, a 512, 256 y 128).
 // (un animal con dos nombres usa una sola imagen: el nombre en castellano apunta al icono del autor y su render de antes
 // se queda en la carpeta, sin cargarse; owl y lechuza son la misma imagen, byte a byte)
 // (los 13 del fútbol, como los botones de pase, tiro o la pausa, tampoco se cargan: el partido usa los símbolos de
@@ -169,8 +171,8 @@ const SAME = { aguila: 'eagle', ardilla: 'squirrel', jabali: 'boar', buitre: 'vu
 const BAKED = {};
 for (const [p, u] of Object.entries(import.meta.glob(['@icons3d/*.webp', '!@icons3d/{aguila,ardilla,jabali,buitre,ciguena,ciervo,trucha,zorro,pottoka,pito,owl}.webp', '!@icons3d/{shoot,pass,through,sprint,swap,tackle,slide,contain,dive,control,move,pause,camera}.webp'], { eager: true, query: '?url', import: 'default' }))) BAKED[p.split('/').pop().replace('.webp', '')] = u;
 for (const [a, b] of Object.entries(SAME)) if (BAKED[b]) BAKED[a] = BAKED[b];
-// (los que el autor entregó grandes, en icons3d/512 y solo en la web: para la ficha de los instrumentos, que los enseña a 200 px, y las pantallas densas;
-// src/web/hd.js los pide cuando el icono se ve más grande que el de 192)
+// (los de 512, en icons3d/512 y solo en la web: para la ficha de los instrumentos, que los enseña a 260 px, y las pantallas
+// densas; src/web/hd.js los pide cuando el icono se ve más grande que el de 256)
 const BIG = {}; for (const [p, u] of Object.entries(import.meta.glob('@icons3d-big/*.webp', { eager: true, query: '?url', import: 'default' }))) BIG[p.split('/').pop().replace('.webp', '')] = u;
 // (y los que el autor entregó a 1254, como los instrumentos, reducidos a 1024 en icons3d/1024: para la ficha en pantallas densas)
 const HUGE = {}; for (const [p, u] of Object.entries(import.meta.glob('@icons3d-huge/*.webp', { eager: true, query: '?url', import: 'default' }))) HUGE[p.split('/').pop().replace('.webp', '')] = u;
@@ -211,7 +213,7 @@ function sticker(src) {
   const g = c.getContext('2d'); g.imageSmoothingQuality = 'high';
   const small = document.createElement('canvas'); small.width = small.height = S; small.getContext('2d').drawImage(src, 0, 0, S, S);
   const t = document.createElement('canvas'); t.width = t.height = S; const x = t.getContext('2d'); x.drawImage(small, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = '#1f1a26'; x.fillRect(0, 0, S, S);
-  for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2; g.drawImage(t, Math.cos(a) * 5, Math.sin(a) * 5); }
+  for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2; g.drawImage(t, Math.cos(a) * S / 51.2, Math.sin(a) * S / 51.2); }   // (contorno de 5 px a 256)
   g.drawImage(small, 0, 0);
   return c.toDataURL('image/png');
 }

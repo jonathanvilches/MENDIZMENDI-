@@ -992,11 +992,17 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 }
 /* encierro: botones de saltar, periódico y cámara */
 .enc-btns { position: fixed; right: max(14px, env(safe-area-inset-right)); bottom: calc(18px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 8px; z-index: 30; pointer-events: auto; }
-.enc-b { width: 84px; height: 84px; border-radius: 50%; border: 3px solid rgba(255,255,255,.9); color: #fff; font: 900 var(--fs-sm) Nunito, sans-serif; cursor: pointer; box-shadow: 0 6px 16px rgba(0,0,0,.35); }
-.enc-jump { background: radial-gradient(circle at 35% 30%, #4fbf5a, #1e7a2a); }
+.enc-b { width: 84px; height: 84px; padding: 0 12px; border-radius: 50%; border: 3px solid rgba(255,255,255,.9); color: #fff; font: 800 var(--fs-sm)/1.15 var(--f-cond, 'MZ Cond'), Nunito, sans-serif; letter-spacing: .04em; text-transform: uppercase; cursor: pointer; box-shadow: 0 6px 16px rgba(0,0,0,.35); display: grid; place-items: center; touch-action: none; }
+.enc-jump { background: radial-gradient(circle at 50% 30%, #ff9bd8, #ff2bd6 60%, #c21cff); text-shadow: 0 2px 0 rgba(74,10,94,.6); box-shadow: 0 0 0 4px rgba(255,122,200,.35), 0 6px 0 #8a1c8f, 0 10px 22px rgba(0,0,0,.35); }
 .enc-paper { background: radial-gradient(circle at 35% 30%, #f4efe2, #b8ad92); color: #2a1a10; font-size: var(--fs-xs); }
-.enc-quit { position: fixed; left: max(12px, env(safe-area-inset-left)); bottom: calc(14px + env(safe-area-inset-bottom)); z-index: 30; pointer-events: auto; width: 40px; height: 40px; border-radius: 50%; border: 2px solid rgba(255,255,255,.6); background: rgba(16,10,30,.55); color: #fff; font: 900 var(--fs-md)/1 Nunito, sans-serif; display: grid; place-items: center; padding: 0; cursor: pointer; }
-.enc-cam { position: fixed; right: max(14px, env(safe-area-inset-right)); top: calc(56px + env(safe-area-inset-top)); z-index: 30; pointer-events: auto; padding: 8px 12px; border: 0; border-radius: 12px; background: rgba(0,0,0,.55); color: #fff; font: 800 var(--fs-sm) Nunito, sans-serif; cursor: pointer; }
+/* la palanca táctil (como la de la pelota): zona en la mitad izquierda, mando donde se apoya el dedo y una pista hasta el primer toque */
+.enc-stick { position: absolute; left: 0; bottom: 0; width: 46vw; height: 62dvh; pointer-events: auto; touch-action: none; z-index: 30; }
+.enc-knob { position: absolute; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; border: 3px solid rgba(255,255,255,.55); background: rgba(28,11,58,.3); display: none; }
+.enc-knob i { position: absolute; left: 50%; top: 50%; width: 56px; height: 56px; margin: -28px 0 0 -28px; border-radius: 50%; background: rgba(255,255,255,.85); }
+.enc-stickhint { position: absolute; left: calc(env(safe-area-inset-left, 0px) + 16px); bottom: calc(env(safe-area-inset-bottom, 0px) + 70px); width: 120px; height: 120px; border-radius: 50%; border: 3px dashed rgba(255,255,255,.55); display: grid; place-items: center; opacity: .8; pointer-events: none; z-index: 31; }
+@media (hover: hover) and (pointer: fine) { .enc-stick, .enc-stickhint { display: none; } }
+.enc-quit { position: fixed; left: max(12px, env(safe-area-inset-left)); bottom: calc(14px + env(safe-area-inset-bottom)); z-index: 32; pointer-events: auto; width: 40px; height: 40px; border-radius: 50%; border: 2px solid rgba(255,255,255,.6); background: rgba(16,10,30,.55); color: #fff; font: 900 var(--fs-md)/1 Nunito, sans-serif; display: grid; place-items: center; padding: 0; cursor: pointer; }
+.enc-cam { position: fixed; right: max(14px, env(safe-area-inset-right)); top: calc(56px + env(safe-area-inset-top)); z-index: 30; pointer-events: auto; padding: 8px 12px; border: 0; border-radius: 8px; background: rgba(0,0,0,.55); color: #fff; font: 800 var(--fs-sm)/1.15 var(--f-cond, 'MZ Cond'), Nunito, sans-serif; letter-spacing: .04em; text-transform: uppercase; cursor: pointer; }
 @media (max-width: 600px) { .enc-b { width: 70px; height: 70px; } }
 /* aviso «EN DIRECTO» de la cámara de la tele en el encierro */
 .enc-live { position: absolute; top: calc(max(12px, env(safe-area-inset-top)) + 64px); left: 16px; display: none; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 8px; background: rgba(20, 20, 24, .78); font: 900 var(--fs-sm) Nunito, sans-serif; letter-spacing: .1em; }

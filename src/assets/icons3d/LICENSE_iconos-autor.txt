@@ -3,14 +3,18 @@ Iconos 3D del autor del proyecto MENDIMENDIZ, entregados el 2026-10-12 en un ZIP
 que el autor entregó el 2026-10-10 en tres láminas de 4 × 4 («MENDIMENDIZ-48-iconos») y a los renders del juego de los
 mismos nombres.
 Cambios: de los de 512 px, recortados a su dibujo y centrados con el mismo margen que el resto de la familia (el lado
-mayor ocupa el 89 % del cuadro); en esta carpeta, a 192 × 192 (la web) y en 128/, a 128 × 128 (el archivo único).
-Los demás iconos de la carpeta son renders del propio juego (tools/iconbake.mjs) o de las láminas del 2026-10-10:
-boot fullscreen globe info key mute retry search sound (del autor, láminas) y _bell goat corzo grulla lechuza owl milano
-quebrantahuesos, más los renders de antes de aguila ardilla jabali buitre ciguena ciervo trucha zorro pottoka pito, que ya
-no se cargan: esos nombres usan el icono del autor del mismo animal.
+mayor ocupa el 89 % del cuadro): en 512/ a 512 × 512 (los que para llenar ese 89 % tenían que crecer, hasta ×1,5, salen de
+una ampliación ×2 con Real-ESRGAN del 512 del autor y se reducen desde ahí), en 256/ a 256 × 256 (la web) y en 128/ a
+128 × 128 (el archivo único). La serie anterior de 192 × 192 se guarda en 192/ y ya no se carga.
+Los demás iconos de las carpetas son renders del propio juego (tools/iconbake.mjs, a 512) o de las láminas del 2026-10-10:
+boot fullscreen globe info key mute retry search sound (del autor, láminas; sus celdas, de unos 250 px, ampliadas ×2 con
+Real-ESRGAN y encuadradas igual) y _bell goat corzo grulla lechuza milano quebrantahuesos (renders; owl usa la imagen de
+lechuza). En 192/ quedan además los renders de antes de aguila ardilla jabali buitre ciguena ciervo trucha zorro pottoka
+pito, que ya no se cargan: esos nombres usan el icono del autor del mismo animal.
 tools/iconbake.mjs no vuelve a hornear los nombres de esta lista.
 Lista: almond angel anvil apple arch arrow artichoke asparagus axe back backpack badge balon basajaun basket beans bee bell berries bike binoculars bird bishop boar book bread bridge bull bustard butterfly camera camino canteen cardo castle cathedral cave chamois check cheese chistorra church clock close cloud compass contain control corn cow cross dance deer dive dog dolmen eagle egg eguzkilore energy espadrille exclaim fire fish flag flower footprint fountain fox frog gear giant gorge grapes hammer hand hazelnut heart herb herbs heron home honey horreo horse house jump kiosk lamb lamia lantern latxa leaf legend litter locate lock lookout map marmot mask medal menu milk mill monolith moon mountain move mushroom music navigate net olive palace pass pause pañuelo peak pelota pen pepper person pig pin pine play plaza potato quiz rabbit raft ribbon ring river robin ruin run running scroll seed sheep shield shoot sickle slide snow sorgina sparkle sprint squirrel stamp star stelae stick stone stork sun swap tackle talk target through tomato towerhouse townhall tree trophy trout tunnel txapela txistu vulture walls water wheat wine woodpecker wool xp zoom_in zoom_out
 
 Instrumentos (entregados el 2026-10-17 en «MENDIMENDIZ-7-instrumentos», PNG de 1254 px): bandurria gaita kirikoketa pandero
-trikitixa ttunttun txalaparta. Recortados y centrados igual (89 %); en 512/ a 512 px para la ficha de los instrumentos en la web,
-aquí a 192 y en 128/ a 128. El txistu es de la entrega del 2026-10-12. Sustituyen a los dibujos en código de ui/icon3d.js.
+trikitixa ttunttun txalaparta. Recortados y centrados igual (89 %) desde el PNG de 1254: en 1024/ a 1024 px (la ficha de los
+instrumentos en pantallas densas), en 512/, 256/ y 128/ como el resto. El txistu es de la entrega del 2026-10-12. Sustituyen a
+los dibujos en código de ui/icon3d.js.

@@ -257,12 +257,18 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   blando son las portadas grandes, porque el autor entregó las láminas a 1280 × 720.
 - **Sellos de comarca:** los 12 del autor (`src/assets/sellos`, `stampImg` en `src/assets.js`), en el pasaporte, el
   mapa, las comarcas, las tarjetas de pueblo y el pueblo completado; `src/ui/art.js` los dibuja si faltara alguno.
-- **Iconografía de una sola familia:** un archivo `src/assets/icons3d/<nombre>.webp` sustituye al icono de ese nombre
-  sin tocar el código (`has3D` mira también los archivos horneados).
+- **Iconografía de una sola familia:** un archivo `src/assets/icons3d/256/<nombre>.webp` (y sus copias de `512/` y `128/`)
+  sustituye al icono de ese nombre sin tocar el código (`has3D` mira también los archivos horneados).
   - Son los 182 iconos 3D del autor (los 165 nombres de `ICONS` en `src/ui/icons.js` y 17 controles: los del fútbol,
     pausa, cámara y los del mapa), recortados y centrados con el mismo margen: el lado mayor ocupa el 89 % del cuadro.
-    La web los lleva a 192 px; el archivo único, la copia de 128 px de `icons3d/128` (alias `@icons3d`), por peso. La
-    lista está en `icons3d/LICENSE_iconos-autor.txt` y `tools/iconbake.mjs` no la vuelve a hornear.
+    La web los lleva a 256 px (`icons3d/256`, alias `@icons3d`) y además a 512 (`icons3d/512`, `@icons3d-big`) y los
+    instrumentos a 1024 (`icons3d/1024`, `@icons3d-huge`), que `src/web/hd.js` pide cuando el icono se ve más grande de lo
+    que mide (fichas, pantallas densas); el archivo único, la copia de 128 px de `icons3d/128`, por peso, y con conexión
+    sube a las de la web. Los de 512 salen de los 512 del autor (los que tenían que crecer para llenar el 89 %, de una
+    ampliación ×2 con Real-ESRGAN), los instrumentos de sus PNG de 1254, los nueve de las láminas de octubre (boot,
+    fullscreen, globe, info, key, mute, retry, search, sound) de sus celdas ampliadas ×2 y los siete renders del juego de
+    `tools/iconbake.mjs` a 512. La serie anterior de 192 se guarda en `icons3d/192` sin usarse. La lista del autor está
+    en `icons3d/LICENSE_iconos-autor.txt` y `tools/iconbake.mjs` no la vuelve a hornear.
   - Los usan también los botones del HUD y los táctiles (`ICON` en `ui.js`: correr, saltar y, en el de acción, la
     mano, hablar, beber, la lupa para mirar y pelota), la X de la pelota y los botones del mapa (acercar, alejar,
     centrar y viajar). Sobre el degradado de los botones principales llevan un contorno oscuro fino.
@@ -280,6 +286,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 |---|---|
 | `revision.mjs` | Carga los 31 pueblos y comprueba misiones, anfitriones, suelo, perro y errores; deja el informe en `entrega/revision.json` |
 | `encierro.mjs` | Prueba el encierro con capturas |
+| `iconos-nitidez.mjs` | Nitidez de los iconos 3D en las pantallas del menú (móvil de densidad 3 y escritorio): píxeles de pantalla frente a los de la imagen tras el cambio a la grande, rotos y cuántos de cada tamaño |
+| `encierro-tactil.mjs` | El encierro en el móvil: la palanca táctil, los botones, la salida al acabar (fichas o la X) y la vuelta al menú |
 | `futbol.mjs` | Prueba el fútbol con capturas |
 | `tienda.mjs` | Prueba la tienda con capturas |
 | `mercado.mjs` | Prueba el mercado con capturas |
@@ -300,7 +308,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 | `eu-faltan.mjs` | Juega en euskera con `?eufaltan` (menú, fichas y las misiones de los pueblos pedidos o de `todos`) y apunta lo que se queda sin traducir en `/tmp/eu-faltan.json`. Las tarjetas y minijuegos que `__autoWin` se salta pasan sus textos por `window.__autoSeen` |
 | `animalpack.mjs` | Empaqueta los animales |
 | `foodpack.mjs` | Empaqueta las frutas y verduras |
-| `iconbake.mjs` | Hornea los iconos 3D |
+| `iconbake.mjs` | Hornea los iconos 3D que no son del autor, a 512, 256 y 128 (`lab/iconbake.html?iconS=512`) |
 | `luz-ver.mjs` | Luz estable al girar la cámara en el pueblo y al entrar y salir de un partido de pelota (de día, con lluvia) |
 | `ux-medir.mjs` | Auditoría de interfaz en el móvil tumbado: botones de menos de 44 px, rejilla de 4 px, interlineado, interletrado, contraste, orden de los botones y lo que obliga a desplazar, en las ventanas del juego y en el menú |
 | `espaciado.py` | Lleva rellenos, márgenes y huecos de todas las hojas de estilo a la rejilla de 4 px |
