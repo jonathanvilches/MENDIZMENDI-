@@ -48,6 +48,15 @@ brazos» en «todos»…), los marca en el margen del texto y comprueba si los h
 hacerlos. Como estás leyendo, en este modo no te corrige la mirada. Marcas: `[animado]` cambia el tono desde
 ese párrafo, `//` es una pausa, `*palabra*` pide énfasis y `{abre los brazos}` es una acotación tuya.
 
+**Código de colores en el texto.** Las palabras con una función llevan su color, para verlo de un vistazo sin salir
+del texto: 🔴 **rojo**, énfasis (sube la voz en esa palabra); 🔵 **azul**, pausa justo después (con una raya azul en el
+hueco); 🟡 **amarillo**, un gesto (su emoji, en el margen). Las pausas son las que marcas tú y las de antes de «pero»,
+«sin embargo» o «aunque». En la vista previa del guion (paso «Revisión») basta con **tocar una palabra**: un toque,
+énfasis; dos, pausa después; tres, sin marca. Se escribe en tu guion con las mismas marcas que a mano (`*palabra*` y
+`//`), así que se puede ver y cambiar. Debajo de la vista previa, y en el plató antes de empezar (arriba a la
+izquierda), sale la clave con los colores que hay en ese guion; al leer se quita. Se puede apagar en «Texto y
+avisos → Colores en el texto».
+
 **El texto se lee limpio.** En el teleprompter solo están las palabras que dices (las pausas `//` son una raya fina;
 el énfasis, otro color) y, en el margen, el emoji de cada gesto. Grabando de verdad, por defecto, solo se añaden los
 medidores de arriba (ver «Ensaya, graba y revisa»). En el ensayo (o con «avisos» elegido), abajo, cerca de los botones:
