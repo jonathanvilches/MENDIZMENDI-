@@ -1,6 +1,9 @@
 // Personajes de Navarra: gente que dejó huella en la música, el deporte, la ciencia, los viajes, el gobierno
-// y el trabajo. Las mujeres de Navarra (women: true) son más de la mitad: reinas que gobernaron, una maestra, una
-// abogada y las mujeres del campo y de la fábrica (golondrinas, etxekoandreak, conserveras); en el menú salen primero (ui/personajes.js). Cada uno tiene un recuerdo en su pueblo (busto o estela de bronce, diseño propio sin parecido
+// y el trabajo, y quienes impulsaron la cultura, los oficios, la ganadería y la agricultura, mujeres y hombres con el mismo
+// peso: 12 mujeres (women: true; reinas que gobernaron, maestra, abogada, etnógrafa, pintora, artista y las mujeres del campo
+// y de la fábrica) y 12 hombres y colectivos (músicos, deporte, viajes, ciencia, arquitectura, antropología, pastores
+// trashumantes y las huertas). En el menú salen primero las mujeres (ui/personajes.js); tools/encargo-personajes.py
+// prepara el encargo de las ilustraciones que faltan. Cada uno tiene un recuerdo en su pueblo (busto o estela de bronce, diseño propio sin parecido
 // con la persona real), tres páginas de historia contadas para niños, una pregunta y «su huella hoy». Las fichas llevan
 // además la ilustración del autor (src/assets/personajes: interpretación artística; ver legal/estado-legal.md, F).
 // attr: objeto que acompaña al recuerdo (violín, corona, bici, libro, cadena, barco, alpargata, balanza, partitura)
@@ -203,11 +206,109 @@ export const PERSONAJES = {
     q: { q: '¿Qué hacían las conserveras?', options: ['Meter en latas y frascos lo que daba la huerta', 'Coser alpargatas', 'Cuidar ovejas'], answer: 0, why: 'Preparaban las conservas: pelaban los pimientos y llenaban y cerraban latas y frascos.' },
     today: 'Las fábricas de conservas siguen en la Ribera, con máquinas que ayudan. Y el pimiento del piquillo de Lodosa se sigue pelando a mano, como hacían ellas.',
   },
+  // ---- cultura, oficios, ganadería y agricultura: mujeres y hombres a partes iguales ----
+  arrieta: {
+    name: 'Emilio Arrieta', years: '1821 – 1894', kicker: 'Personajes de Navarra · Música', icon: 'music', attr: 'score', women: false,
+    host: GUIA('Jon, músico', { shirt: '#ffffff', vest: '#2b2630', pants: '#2b2630', hair: '#3a2418' }),
+    hello: 'En este pueblo nació un músico que llenó los teatros de toda España. ¿Quieres saber quién?',
+    pages: [
+      'Emilio Arrieta nació en Puente la Reina en 1821. De niño se quedó huérfano y se fue a Madrid, y después a Italia, a estudiar música en el conservatorio de Milán.',
+      'Compuso óperas y zarzuelas, el teatro cantado de España. La más famosa es «Marina», la historia de una chica de un pueblo de pescadores: se estrenó en 1855 y todavía se canta.',
+      'Fue profesor y director del Conservatorio de Madrid durante muchos años: enseñó a componer a cientos de músicos jóvenes.',
+    ],
+    q: { q: '¿Cuál es la obra más famosa de Arrieta?', options: ['La zarzuela «Marina»', 'Un libro de viajes', 'Una catedral'], answer: 0, why: '«Marina» es una zarzuela, y luego ópera, que sigue en los teatros desde 1855.' },
+    today: 'Puente la Reina lo recuerda como su hijo más famoso y «Marina» se sigue cantando en los teatros de medio mundo.',
+  },
+  carmenbaroja: {
+    name: 'Carmen Baroja', years: '1883 – 1950', kicker: 'Mujeres de Navarra · Cultura', icon: 'ribbon', attr: 'book', women: true,
+    host: GUIA('Maider, etnógrafa', { shirt: '#e8e0cc', vest: '#5b2a6e', skirt: '#2b2630', pants: '#2b2630', hair: '#2a1a12', bun: true, female: true, glasses: '#3a2a1a' }),
+    hello: 'Cerca de aquí, en Bera, pasaba los veranos una mujer que estudiaba lo que la gente hacía con sus manos. ¿Te cuento?',
+    pages: [
+      'Carmen Baroja nació en Pamplona en 1883, en una familia de escritores y pintores: sus hermanos eran Pío y Ricardo Baroja. Pasaba largas temporadas en Itzea, la casa de la familia en Bera.',
+      'Estudió lo que la gente hacía con sus manos: los encajes, las joyas populares y los amuletos. Escribió libros sobre ello cuando muy pocas mujeres publicaban.',
+      'En 1926 fundó con otras mujeres el Lyceum Club de Madrid, un lugar donde se reunían para aprender y defender sus derechos. Escribió sus memorias, «Recuerdos de una mujer de la generación del 98».',
+    ],
+    q: { q: '¿Qué estudiaba Carmen Baroja?', options: ['Lo hecho a mano: encajes, joyas y amuletos', 'Los planetas', 'Los dinosaurios'], answer: 0, why: 'Era etnógrafa: estudiaba las cosas que hacía la gente y lo que significaban.' },
+    today: 'Sus libros cuentan cómo eran los encajes y las joyas de antes, y sus memorias, cómo vivían las mujeres de su tiempo.',
+  },
+  carobaroja: {
+    name: 'Julio Caro Baroja', years: '1914 – 1995', kicker: 'Personajes de Navarra · Cultura', icon: 'mask', attr: 'book', women: false,
+    host: GUIA('Ander, antropólogo', { shirt: '#e8e0cc', vest: '#3a4a6a', pants: '#2b3a6b', hair: '#4a3020', glasses: '#3a2a1a', strap: '#6b4a2e', bag: '#8a6a3a' }),
+    hello: 'Yo estudio las fiestas y los oficios, como hizo aquí un hombre que vino a ver los joaldunak con su cuaderno. ¿Te cuento?',
+    pages: [
+      'Julio Caro Baroja nació en Madrid en 1914, pero su casa fue Itzea, el caserón de su familia en Bera. Allí vivió y escribió hasta el final de su vida.',
+      'Recorrió los pueblos preguntando a la gente cómo trabajaba, qué herramientas usaba y cómo celebraba sus fiestas. Escribió sobre los joaldunak de Ituren y Zubieta, las ferrerías y la vida del campo.',
+      'Sus libros «Los vascos» y «Las brujas y su mundo» explican de dónde vienen nuestras costumbres y qué pasó de verdad en Zugarramurdi. En 1983 recibió el Premio Príncipe de Asturias.',
+    ],
+    q: { q: '¿Qué estudiaba Julio Caro Baroja?', options: ['Cómo vivía la gente: oficios, fiestas y carnavales', 'Los volcanes', 'Las estrellas'], answer: 0, why: 'Era antropólogo: estudiaba la vida y las costumbres de la gente.' },
+    today: 'Gracias a él sabemos cómo eran los oficios y las fiestas de antes. En Itzea, en Bera, se guarda su enorme biblioteca.',
+  },
+  baquedano: {
+    name: 'Isabel Baquedano', years: '1929 – 2018', kicker: 'Mujeres de Navarra · Arte', icon: 'flower', attr: 'palette', women: true,
+    host: GUIA('Nora, pintora', { shirt: '#f4efe2', apron: '#b5485d', skirt: '#2b2630', pants: '#2b2630', hair: '#6b3b1f', ponytail: true, female: true }),
+    hello: 'Yo pinto, y aprendí mirando los cuadros de una mujer de Mendavia, aquí al lado. ¿Quieres conocerla?',
+    pages: [
+      'Isabel Baquedano nació en Mendavia en 1929. Estudió pintura en Madrid, en la Escuela de Bellas Artes de San Fernando, cuando casi todos los alumnos eran hombres.',
+      'Pintaba cuadros serenos y silenciosos: figuras quietas, paisajes de la Ribera, la luz de una ventana. Decían que en sus cuadros el tiempo se para.',
+      'Durante muchos años dio clase de dibujo en la Escuela de Artes y Oficios de Pamplona: muchos pintores y pintoras navarros aprendieron con ella. En 2007 recibió el Premio Príncipe de Viana de la Cultura.',
+    ],
+    q: { q: '¿Qué era Isabel Baquedano?', options: ['Pintora', 'Pelotari', 'Reina'], answer: 0, why: 'Fue pintora y maestra de pintores durante toda su vida.' },
+    today: 'Sus cuadros están en el Museo de Navarra y en muchas casas navarras, y sus alumnos siguen pintando.',
+  },
+  oiza: {
+    name: 'Francisco Javier Sáenz de Oiza', years: '1918 – 2000', kicker: 'Personajes de Navarra · Arquitectura', icon: 'towerhouse', attr: 'tower', women: false,
+    host: GUIA('Unai, arquitecto', { shirt: '#ffffff', vest: '#1d1d24', pants: '#2b2630', hair: '#2a1a12', glasses: '#1a1a1a' }),
+    hello: 'A un paso de aquí, en Cáseda, nació uno de los grandes arquitectos del siglo XX. ¿Quieres conocerlo?',
+    pages: [
+      'Francisco Javier Sáenz de Oiza nació en Cáseda en 1918. Su padre era maestro y la familia se mudó a Sevilla; él estudió arquitectura en Madrid y ganó una beca para viajar a Estados Unidos.',
+      'Diseñó edificios que no se parecían a nada: la basílica de Arantzazu, entre montañas, y Torres Blancas, una torre de hormigón de Madrid que parece un árbol lleno de balcones redondos.',
+      'Fue profesor de muchos arquitectos y recibió el Premio Príncipe de Asturias de las Artes en 1993. Enseñó que un edificio tiene que servir, ante todo, a quien vive dentro.',
+    ],
+    q: { q: '¿Qué hacía Sáenz de Oiza?', options: ['Edificios: era arquitecto', 'Quesos', 'Barcos'], answer: 0, why: 'Era arquitecto: diseñaba edificios como Torres Blancas o la basílica de Arantzazu.' },
+    today: 'Sus edificios siguen en pie y se estudian en las escuelas de arquitectura. Cáseda y Navarra lo recuerdan como uno de los grandes arquitectos del siglo XX.',
+  },
+  asins: {
+    name: 'Elena Asins', years: '1940 – 2015', kicker: 'Mujeres de Navarra · Arte', icon: 'target', attr: 'palette', women: true,
+    host: GUIA('Olatz, artista', { shirt: '#1d1d24', vest: '#f4efe2', skirt: '#1d1d24', pants: '#1d1d24', hair: '#dcd7cf', bun: true, female: true, glasses: '#1a1a1a' }),
+    hello: 'En Azpirotz, un pueblito de aquí al lado, vivió una artista que hacía arte con geometría y ordenadores. ¿Te cuento?',
+    pages: [
+      'Elena Asins nació en Madrid en 1940. Su arte no tiene caras ni paisajes: son líneas, cuadrados y ritmos, como una música que se ve.',
+      'Fue de las primeras personas en España que usaron ordenadores para crear arte, en los años sesenta y setenta, cuando los ordenadores ocupaban una habitación entera.',
+      'En los años noventa se fue a vivir a Azpirotz, en el valle de Larraun, y allí trabajó en silencio más de veinte años. En 2011 recibió el Premio Nacional de Artes Plásticas.',
+    ],
+    q: { q: '¿Con qué hacía arte Elena Asins?', options: ['Con geometría y ordenadores', 'Con barro', 'Con flores'], answer: 0, why: 'Hacía arte geométrico y fue pionera del arte con ordenador en España.' },
+    today: 'Sus obras están en el Museo Reina Sofía. Eligió un pueblo pequeño de Navarra para vivir y crear hasta el final.',
+  },
+  pastores: {
+    name: 'Los pastores trashumantes del Roncal', eu: 'Erronkariko artzain transhumanteak', years: 'desde la Edad Media', kicker: 'Personajes de Navarra · Ganadería', icon: 'sheep', attr: 'bell', women: false, stele: true,
+    host: GUIA('Aitona Fermín, pastor', { txapela: '#1d1d24', shirt: '#efe9dc', vest: '#2d2b33', pants: '#3a3530', staff: true, hair: '#d6d0c6', moustache: '#ece8e0', old: true }),
+    hello: 'Yo bajé muchas veces con las ovejas hasta las Bardenas. Siéntate, que te cuento el camino.',
+    pages: [
+      'Desde la Edad Media, cada otoño los pastores del Roncal bajaban con miles de ovejas desde los puertos del Pirineo hasta las Bardenas Reales, en el sur de Navarra, donde no hay nieve en invierno.',
+      'El camino es la Cañada Real de los Roncaleses: más de cien kilómetros a pie, con los perros y los burros, durmiendo al raso. En junio volvían a subir al valle con los corderos nuevos.',
+      'Con la leche de sus ovejas hacían queso en las bordas. El queso del Roncal fue el primero de España con Denominación de Origen, en 1981.',
+    ],
+    q: { q: '¿A dónde bajaban los rebaños del Roncal en otoño?', options: ['A las Bardenas Reales', 'A Francia', 'Al mar'], answer: 0, why: 'A las Bardenas, por la Cañada Real de los Roncaleses, para pasar el invierno sin nieve.' },
+    today: 'La trashumancia sigue viva: cada otoño hay rebaños que cruzan Navarra a pie, y el queso del Roncal se sigue haciendo con la leche de sus ovejas.',
+  },
+  huertas: {
+    name: 'Las huertas de la Ribera', eu: 'Erriberako baratzeak', years: 'desde hace siglos', kicker: 'Personajes de Navarra · Agricultura', icon: 'artichoke', attr: 'basket', women: false, stele: true,
+    host: GUIA('Txema, hortelano', { shirt: '#d9a03a', pants: '#4a5b3a', hat: 'straw', hair: '#6b4a2e' }),
+    hello: 'Mi familia lleva cuatro generaciones en la huerta. ¿Quieres saber cómo se hace una buena alcachofa?',
+    pages: [
+      'Junto al Ebro y sus ríos, la Ribera de Navarra es una huerta enorme. Desde hace siglos, las acequias llevan el agua a los campos y en ellos crecen alcachofas, espárragos, pimientos, cardos y borrajas.',
+      'Los hortelanos y las hortelanas trabajan todo el año: siembran en invierno, riegan en verano y recogen el espárrago de madrugada, antes de que el sol lo ponga morado.',
+      'En el siglo XX se unieron en cooperativas para vender juntos lo que cultivaban. Hoy la alcachofa de Tudela y el espárrago de Navarra tienen Indicación Geográfica Protegida.',
+    ],
+    q: { q: '¿Qué verdura de la Ribera tiene Indicación Geográfica Protegida?', options: ['La alcachofa de Tudela', 'El plátano', 'La piña'], answer: 0, why: 'La alcachofa de Tudela y el espárrago de Navarra llevan ese sello de calidad.' },
+    today: 'La Ribera sigue siendo la huerta de Navarra: muchas familias viven del campo y venden juntas en cooperativas.',
+  },
 };
 
 // Dónde está cada personaje
 export const FIGURE_TOWNS = {
   pamplona: ['sarasate', 'indurain', 'toda'], 'erronkari-roncal': ['gayarre'], olite: ['blanca', 'catalina'], javier: ['javier'],
   'orreaga-roncesvalles': ['sancho'], tafalla: ['azpilcueta'], tudela: ['benjamin', 'berenguela'], marcilla: ['julia', 'conserveras'], 'isaba-izaba': ['golondrinas'],
-  aoiz: ['josefa'], lesaka: ['etxekoandreak'],
+  aoiz: ['josefa'], lesaka: ['etxekoandreak'], 'puente-la-reina': ['arrieta'], etxalar: ['carmenbaroja'], ituren: ['carobaroja'], viana: ['baquedano'],
+  sanguesa: ['oiza'], lekunberri: ['asins'], 'burgui-burgi': ['pastores'], cortes: ['huertas'],
 };

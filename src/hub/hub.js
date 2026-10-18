@@ -530,7 +530,7 @@ export class Hub {
     // carnaval del juego: ui/figuras.js)
     return `<h1 class="title cs-title">Elige tu personaje</h1>${this.selector(cur, { cta: `<button class="gx-go" id="csGo" data-go="home">${I('play', 24)} Jugar con ${esc(cur.name)}</button>` })}
       <h2 class="sec">${I('person', 34)} Mujeres de Navarra</h2><p class="lead">Mujeres que hicieron historia en Navarra: reinas, maestras, trabajadoras del campo y de la fábrica. Toca una para leer su ficha.</p><section class="figuras">${personajesHTML(MUJERES)}</section>
-      <h2 class="sec">${I('book', 34)} Personajes de Navarra</h2><p class="lead">Músicos, deportistas, viajeros y sabios de Navarra. Cada uno tiene su recuerdo en un pueblo del juego.</p><section class="figuras">${personajesHTML(HOMBRES)}</section>
+      <h2 class="sec">${I('book', 34)} Personajes de Navarra</h2><p class="lead">Músicos, deportistas, viajeros, sabios, pastores, hortelanos y arquitectos de Navarra. Cada uno tiene su recuerdo en un pueblo del juego.</p><section class="figuras">${personajesHTML(HOMBRES)}</section>
       <h2 class="sec">${I('legend', 34)} Seres de leyenda</h2><p class="lead">Los seres de las leyendas de Navarra, tal como salen de noche en el juego. Toca uno para leer su ficha.</p><section class="figuras">${figurasHTML(FIGURAS_LEYENDA)}</section>
       <h2 class="sec">${I('mask', 34)} Carnavales</h2><p class="lead">Los personajes de los carnavales de Navarra, con el traje de verdad de cada pueblo.</p><section class="figuras">${figurasHTML(FIGURAS_CARNAVAL)}</section>`;
   }
