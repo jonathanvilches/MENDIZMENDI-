@@ -2,7 +2,7 @@
    - La app (esta carpeta): primero la red, para que cada versión nueva llegue al momento; sin conexión, la copia guardada.
    - Librerías, modelos de visión y letra (CDN con versión fija en la dirección): primero la copia guardada; se descargan una vez.
    Solo actúa dentro de /apuntador/: el resto del sitio no se toca. */
-const APP = 'apuntador-app-v12';
+const APP = 'apuntador-app-v13';
 const LIBS = 'apuntador-libs-v1';
 const SHELL = ['./', './manifest.webmanifest', './manifest-en.webmanifest', './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 const LIB_HOSTS = /^(cdn\.jsdelivr\.net|storage\.googleapis\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)$/;
