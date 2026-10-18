@@ -172,7 +172,9 @@ for (const [a, b] of Object.entries(SAME)) if (BAKED[b]) BAKED[a] = BAKED[b];
 // (los que el autor entregó grandes, en icons3d/512 y solo en la web: para la ficha de los instrumentos, que los enseña a 200 px, y las pantallas densas;
 // src/web/hd.js los pide cuando el icono se ve más grande que el de 192)
 const BIG = {}; for (const [p, u] of Object.entries(import.meta.glob('@icons3d-big/*.webp', { eager: true, query: '?url', import: 'default' }))) BIG[p.split('/').pop().replace('.webp', '')] = u;
-hdTable('iconos', BAKED, BIG, 512);   // (en el archivo único, con conexión: los de la web, src/web/hd.js)
+// (y los que el autor entregó a 1254, como los instrumentos, reducidos a 1024 en icons3d/1024: para la ficha en pantallas densas)
+const HUGE = {}; for (const [p, u] of Object.entries(import.meta.glob('@icons3d-huge/*.webp', { eager: true, query: '?url', import: 'default' }))) HUGE[p.split('/').pop().replace('.webp', '')] = u;
+hdTable('iconos', BAKED, BIG, 512); hdTable('iconos', BAKED, HUGE, 1024); hdTable('iconos', BIG, HUGE, 1024);   // (en el archivo único, con conexión: los de la web, src/web/hd.js)
 
 function build(name) {
   if (UI3D[name]) return UI3D[name]();
