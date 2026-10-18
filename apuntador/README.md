@@ -178,9 +178,11 @@ con el móvil lejos y la voz rebotando en la habitación, fallaban. Por eso grab
    Sale el mismo «Corto en 3», por si ha sido sin querer.
 5. **Revisión sobre tu vídeo** y **«Otra toma»**, que vuelve directamente a la cuenta atrás.
 
-- **La voz es opcional.** En el móvil, «Automático» deja las órdenes de voz apagadas; quien las quiera elige
-  «Mis palabras» en «Control por voz». En el ordenador (Chrome o Edge), «Automático» sigue usando el reconocimiento
-  del navegador.
+- **El texto va a la vez que tu voz**, también en el móvil y sin conexión (ver «El texto sigue tu voz»). Si prefieres
+  que avance solo, elige «Velocidad fija» en «Texto y avisos».
+- **Las órdenes de voz son opcionales y están a un toque.** En la tarjeta del plató, «🎙️ Usar la voz» te enseña tus
+  palabras una vez («comenzamos», «corten», «seguimos» y «otra vez»); desde entonces, en «Automático», se escuchan
+  solas. En el ordenador (Chrome o Edge), con permiso, «Automático» usa el reconocimiento del navegador.
 - **El ensayo es opcional**: se activa en «Antes de grabar → Ensayo antes de grabar».
 - **Más ayuda mientras grabas, si la quieres:** «Mientras grabas» y «En el ensayo» ofrecen solo el texto
   (recomendado), el texto y medidores, o el texto, medidores y avisos.
@@ -202,7 +204,7 @@ con el móvil lejos y la voz rebotando en la habitación, fallaban. Por eso grab
 **Grabar un vídeo.** Pegas o subes el guion (ver «Subir el guion»), eliges el tono (animado, cercano, serio,
 inspirador, calmado, divertido, urgente) y lo lees como en un teleprompter. Grabar, cuenta atrás y a leer; se para
 sola al acabar el texto o tocando la pantalla (ver «Así se graba»). Si activas la voz, «comenzamos» y «corten» hacen
-lo mismo sin tocar nada. El texto sigue tu voz o avanza a velocidad fija. La app
+lo mismo sin tocar nada. El texto sigue tu voz (en cualquier dispositivo) o avanza a velocidad fija. La app
 coloca gestos en el guion («saluda con la mano» en «hola», «cuenta con los dedos» en una enumeración, «abre los
 brazos» en «todos»…), los marca en el margen del texto y comprueba si los haces; en la revisión te enseña cómo
 hacerlos. Como estás leyendo, en este modo no te corrige la mirada. Marcas: `[animado]` cambia el tono desde
@@ -356,9 +358,27 @@ bajar los nervios), hombros a las orejas y soltarlos, sonrisa pensando en alguie
 la voz de grave a agudo como una sirena y llamar «ganas» a los nervios (es la misma activación, y así ayuda). Si en
 una toma se notaron los nervios, la revisión lo recomienda para la siguiente.
 
+## El texto sigue tu voz
+
+Con «Sigue mi voz» (lo normal), el texto avanza mientras hablas y a tu ritmo, y se para si te callas:
+
+- **Con el reconocimiento de voz del navegador** (Chrome o Edge de ordenador, con permiso), palabra a palabra.
+- **En el móvil, o sin ese permiso, en el propio dispositivo**: cuenta las sílabas que dices (los golpes de la voz) y
+  avanza las mismas sílabas del guion. Si vas más rápido, va más rápido. En cada pausa cerca de un punto, una coma o
+  una pausa marcada (`//`), se coloca justo ahí y aprende cuántos golpes hace tu voz por sílaba con tu micro, así que no
+  se desvía y cada toma empieza mejor ajustada. No envía nada fuera ni necesita conexión. Si con un micro no consigue
+  oír las sílabas, avisa y pasa a velocidad fija.
+- El texto se desliza de forma continua dentro de cada línea, sin saltos.
+
+Probado con una voz sintética que lee un guion de seis frases con pausas entre ellas: el texto se separa de la voz
+0,9 palabras de media (2,5 como mucho) y, en cada pausa entre frases, queda a una palabra o menos; leyendo rápido,
+1,6 de media. Antes, en el móvil, el texto iba a 140 palabras por minuto fijas y se paraba cada vez que creía que te
+habías callado.
+
 ## Control por voz
 
-Opcional: sin voz se graba igual (ver «Así se graba»). En el móvil hay que activarlo eligiendo «Mis palabras».
+Opcional: sin voz se graba igual (ver «Así se graba»). En el móvil se activa con «🎙️ Usar la voz» en la tarjeta del
+plató: enseñas tus palabras una vez y desde entonces se escuchan solas.
 
 - **«comenzamos»**: cuenta atrás 3, 2, 1 y graba. Funciona también desde el informe para hacer otra toma.
 - **«otra vez»** (o «repetimos», «de nuevo»): durante una toma, la corta, la descarta y vuelve a empezar desde el
@@ -368,7 +388,7 @@ Opcional: sin voz se graba igual (ver «Así se graba»). En el móvil hay que a
 - **«corten»**: no corta en seco. Aparece «⏹ Corto en 3» y sigue grabando ese margen (0, 2, 3 o 5 segundos, en
   «Antes de grabar»; 3 por defecto). Si lo has dicho sin querer o quieres repetir la frase, di **«seguimos»** y la grabación
   continúa. El botón Terminar y la tecla Esc usan el mismo margen, con «Cortar ya» para no esperar.
-- **Mis palabras** (iPhone, iPad y Android; se elige a mano, porque en «Automático» el móvil va sin voz): la primera vez la app te pide decir
+- **Mis palabras** (iPhone, iPad y Android; en «Automático» se usan en cuanto las has enseñado): la primera vez la app te pide decir
   «comenzamos», «corten», «seguimos» y «otra vez» dos veces cada una y aprende tu voz (mejor desde donde vas a
   grabar). Después las reconoce sin conexión y sin
   abrir el micrófono otra vez, que es lo que cortaba la cámara en el iPhone con el reconocimiento del navegador.
@@ -409,7 +429,7 @@ Se explica en el plató, que es donde se usa; antes de entrar no estorba:
   «comenzamos» para quitarla y empezar.
 - **Sin voz** (lo normal en el móvil): la tarjeta «Así se graba», con Grabar (y los segundos de cuenta atrás que
   tienes para colocarte), «Toca la pantalla» para cortar antes y las dos palmadas para empezar sin tocar el móvil.
-  Si elegiste «Mis palabras» y falta enseñarle tu voz, el botón «Enseñar mi voz» lo hace ahí mismo.
+  El botón «🎙️ Usar la voz» enseña tus palabras ahí mismo; desde entonces la tarjeta es «Manos libres».
 - **Mientras esperas**: «Te escucho: di «comenzamos»…» abajo, con un punto que late con tu voz (se ve que escucha).
   Durante la toma, junto a la línea de abajo, «🎙️ «corten» · «otra vez»».
 - **Antes de grabar** solo quedan los ajustes, plegados en «Control por voz»: qué reconocimiento se usa y el margen al parar.
@@ -671,7 +691,9 @@ Solo el motor «Navegador» usa el reconocimiento de voz del navegador (en Chrom
   partida: con pieles muy oscuras o cámaras con exposición automática agresiva la luz puede marcarse como «algo oscuro».
 - El revisor del guion usa reglas, no un modelo de lenguaje: da pistas útiles pero no reescribe el texto entero. Sin
   servidor de IA, «Escríbelo conmigo» ordena tus palabras con una estructura: no añade contenido ni inventa ejemplos.
-- El ritmo se mide con la posición del texto: si el texto avanza a velocidad fija, tu ritmo es esa velocidad.
+- El ritmo se mide con la posición del texto: con «Sigue mi voz» es el tuyo; con velocidad fija, es esa velocidad.
+- Seguir la voz por sílabas se ha probado con voz sintética, no con personas reales: con mucho ruido de fondo, música o
+  varias personas hablando, se adelanta. Si improvisas frases que no están en el guion, el texto avanza igual.
 - Los retos no tienen servidor: el formador recibe los vídeos por la vía que diga (WhatsApp, correo…), no en un panel.
 - «Mis palabras» se ha probado con voz sintética: reconoce tus palabras a otras velocidades, tonos y volúmenes y no
   confunde unas órdenes con otras, pero acepta palabras casi iguales dichas sueltas («comentamos» por «comenzamos»,
