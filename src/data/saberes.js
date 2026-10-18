@@ -37,4 +37,6 @@ export const DATOS = [
   'En las casas del norte, el dintel de la puerta (atalburu) llevaba a veces grabados el año, los nombres de la pareja y símbolos de buena suerte.',
   'El eguzkilore, una flor de cardo seca, se colgaba en la puerta de las casas para protegerlas de los malos espíritus y las tormentas.',
   'En un escudo, la derecha es la izquierda de quien lo mira: se describe como si lo llevaras puesto.',
+  'En las casas de la Montaña de Navarra mandaba la etxekoandre, la señora de la casa: llevaba las cuentas, la huerta y la llave, y la casa podía heredarla una hija.',
+  'El 15 de octubre es el Día Internacional de las Mujeres Rurales. En Navarra, ganaderas, agricultoras y queseras sostienen muchos pueblos pequeños.',
 ];

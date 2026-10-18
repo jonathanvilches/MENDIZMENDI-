@@ -1,5 +1,6 @@
 // Personajes de Navarra: gente que dejó huella en la música, el deporte, la ciencia, los viajes, el gobierno
-// y el trabajo. Cada uno tiene un recuerdo en su pueblo (busto o estela de bronce, diseño propio sin parecido
+// y el trabajo. Las mujeres de Navarra (women: true) son más de la mitad: reinas que gobernaron, una maestra, una
+// abogada y las mujeres del campo y de la fábrica (golondrinas, etxekoandreak, conserveras); en el menú salen primero (ui/personajes.js). Cada uno tiene un recuerdo en su pueblo (busto o estela de bronce, diseño propio sin parecido
 // con la persona real), tres páginas de historia contadas para niños, una pregunta y «su huella hoy». Las fichas llevan
 // además la ilustración del autor (src/assets/personajes: interpretación artística; ver legal/estado-legal.md, F).
 // attr: objeto que acompaña al recuerdo (violín, corona, bici, libro, cadena, barco, alpargata, balanza, partitura)
@@ -129,10 +130,84 @@ export const PERSONAJES = {
     q: { q: '¿Por qué las llamaban golondrinas?', options: ['Se iban en otoño y volvían en primavera', 'Cantaban muy bien', 'Viajaban en globo'], answer: 0, why: 'Como esos pájaros, se marchaban en otoño y regresaban en primavera.' },
     today: 'Su historia se recuerda en los valles y en Mauleón. Nos enseña el trabajo de tantas mujeres que sacaron adelante a sus familias.',
   },
+  // ---- más mujeres de Navarra: reinas que gobernaron, una maestra y las mujeres del campo y de la fábrica ----
+  toda: {
+    name: 'Toda Aznárez', eu: 'Toda Aznar', years: 'hacia 876 – 958', kicker: 'Mujeres de Navarra · Gobierno', icon: 'castle', attr: 'crown', women: true,
+    host: GUIA('Nerea, historiadora', { shirt: '#f4efe2', vest: '#5b2a6e', skirt: '#2b2630', pants: '#2b2630', hair: '#6b3b1f', ponytail: true, female: true, glasses: '#3a2a1a' }),
+    hello: 'Hace más de mil años, cuando Pamplona era un reino pequeño, lo gobernó una reina muy lista. ¿Quieres saber cómo?',
+    pages: [
+      'Toda fue reina de Pamplona hace más de mil años, en el siglo X. Cuando murió su marido, el rey Sancho Garcés I, su hijo García era un niño, y ella gobernó el reino en su lugar.',
+      'El califa de Córdoba, Abderramán III, era sobrino suyo, y supo hablar con él cuando hacía falta. Casó a sus hijas con reyes de León y con el conde de Castilla: la llamaban «la abuela de reyes».',
+      'Ya mayor, viajó hasta Córdoba para que el médico del califa curase a su nieto, el rey Sancho de León. Consiguió la cura y, además, un ejército que lo devolvió al trono.',
+    ],
+    q: { q: '¿Qué hizo la reina Toda cuando su hijo era pequeño?', options: ['Gobernar el reino en su lugar', 'Irse a vivir a Roma', 'Construir un faro'], answer: 0, why: 'Fue regente: gobernó Pamplona hasta que su hijo García pudo reinar.' },
+    today: 'Hoy se la recuerda como una de las primeras mujeres que gobernaron en Navarra y como una gran negociadora: resolvía con palabras lo que otros resolvían con espadas.',
+  },
+  berenguela: {
+    name: 'Berenguela de Navarra', eu: 'Berengela Nafarroakoa', years: 'hacia 1165 – 1230', kicker: 'Mujeres de Navarra · Historia', icon: 'scroll', attr: 'crown', women: true,
+    host: GUIA('Ane, guía de Tudela', GUIA_M),
+    hello: 'De Tudela, dicen, salió una princesa que llegó a ser reina de Inglaterra. ¿Te cuento su viaje?',
+    pages: [
+      'Berenguela era hija de Sancho VI el Sabio, rey de Navarra. Se cree que nació en Tudela, hacia 1165, y creció en la corte de su padre.',
+      'En 1191 cruzó medio mundo para casarse con Ricardo Corazón de León, rey de Inglaterra. La boda fue en la isla de Chipre, en plena cruzada, y allí la coronaron reina.',
+      'En vida de Ricardo nunca pisó Inglaterra: es la única reina inglesa de la que se cuenta eso. Vivió sus últimos años en Le Mans, en Francia, donde fundó una abadía y cuidó de la ciudad.',
+    ],
+    q: { q: '¿Con quién se casó Berenguela?', options: ['Con Ricardo Corazón de León', 'Con Carlomagno', 'Con el califa de Córdoba'], answer: 0, why: 'Con Ricardo I de Inglaterra, Corazón de León, en Chipre, en 1191.' },
+    today: 'Tudela la recuerda como su reina viajera. En Le Mans, en la abadía de L’Épau, su tumba de piedra la muestra leyendo un libro.',
+  },
+  catalina: {
+    name: 'Catalina de Foix', eu: 'Katalina Foixkoa', years: '1468 – 1517', kicker: 'Mujeres de Navarra · Gobierno', icon: 'palace', attr: 'crown', women: true,
+    host: GUIA('Maialen, guía del palacio', { shirt: '#f2c230', vest: '#7a2f3a', skirt: '#2b3a6b', pants: '#2b3a6b', hair: '#1f1712', bun: true, female: true, strap: '#6b4a2e', bag: '#8a6a3a' }),
+    hello: 'A este palacio venía la última reina de Navarra, antes de que el reino perdiera su corona. ¿Quieres conocerla?',
+    pages: [
+      'Catalina heredó el trono de Navarra con solo quince años, en 1483. Reinó junto a su marido, Juan de Albret, y los coronaron en la catedral de Pamplona en 1494.',
+      'Eran tiempos difíciles: Castilla y Francia, los dos reinos vecinos, querían mandar en Navarra. En 1512 las tropas de Fernando el Católico entraron en el reino y los reyes tuvieron que marcharse a Bearne, al otro lado de los Pirineos.',
+      'Catalina intentó recuperar su reino, pero no pudo. Murió en 1517. Cuenta la tradición que dijo a su marido: «Si hubiéramos nacido vos Catalina y yo don Juan, no habríamos perdido el reino».',
+    ],
+    q: { q: '¿Qué pasó en Navarra en 1512?', options: ['Las tropas de Castilla entraron en el reino', 'Se construyó la catedral', 'Nació Sarasate'], answer: 0, why: 'En 1512 el reino de Navarra fue conquistado por Fernando el Católico y unido a Castilla.' },
+    today: 'Catalina fue la última reina de Navarra como reino independiente. Su historia se cuenta en Olite y en Pamplona, y recuerda que Navarra tuvo reyes y reinas propios durante más de quinientos años.',
+  },
+  josefa: {
+    name: 'Josefa Úriz Pi', eu: 'Josefa Uriz Pi', years: '1883 – 1958', kicker: 'Mujeres de Navarra · Educación', icon: 'pen', attr: 'book', women: true,
+    host: GUIA('Irati, maestra', { shirt: '#ffffff', vest: '#3a8fd6', skirt: '#2b2630', pants: '#2b2630', hair: '#3a2418', ponytail: true, female: true, glasses: '#3a2a1a' }),
+    hello: 'Yo soy maestra, como lo fue una mujer nacida aquí cerca, en Badostáin, que cambió la forma de enseñar. ¿Te cuento?',
+    pages: [
+      'Josefa nació en 1883 en Badostáin, un pueblito del valle de Egüés, junto a Pamplona. Estudió para maestra cuando pocas mujeres podían hacerlo.',
+      'Enseñó a futuras maestras en Girona y en Lleida, y trajo ideas nuevas: aprender haciendo, salir al campo, respetar el ritmo de cada niño y cada niña. Por defender esas ideas la castigaron, pero no se rindió.',
+      'Durante la guerra de 1936 organizó refugios y colonias para miles de niños y niñas que habían perdido su casa. Después tuvo que irse de España y siguió trabajando por la infancia hasta el final de su vida.',
+    ],
+    q: { q: '¿Qué era Josefa Úriz?', options: ['Maestra', 'Reina', 'Pelotari'], answer: 0, why: 'Fue maestra y enseñó a otras maestras a educar de una forma nueva.' },
+    today: 'Hoy muchas de sus ideas están en todas las escuelas: aprender jugando, salir al campo, escuchar a cada niña y a cada niño. Su nombre se recuerda en Navarra y en Cataluña.',
+  },
+  etxekoandreak: {
+    name: 'Las etxekoandreak', eu: 'Etxekoandreak', years: 'desde hace siglos', kicker: 'Mujeres de Navarra · Mundo rural', icon: 'house', attr: 'key', women: true, stele: true,
+    host: GUIA('Amona Maritxu', { shirt: '#2f4a6b', skirt: '#2a2440', pants: '#2a2440', hair: '#cfc8bd', old: true, bun: true, female: true, apron: '#f4f1ea' }),
+    hello: 'En esta casa manda la etxekoandre: la señora de la casa. Como mi madre, y la madre de mi madre. ¿Te cuento cómo era?',
+    pages: [
+      'En los caseríos de la Montaña de Navarra la casa lo era todo: tenía nombre propio y pasaba de padres a hijos durante siglos. Y quien llevaba la casa era la etxekoandre, la señora de la casa.',
+      'Ella cuidaba de la huerta, las gallinas y la cocina, pero también llevaba las cuentas, decidía qué se vendía en la feria y guardaba la llave de la casa. En la iglesia ocupaba el sitio de la familia y encendía sus velas.',
+      'En Navarra la casa podía heredarla una hija: cuando la elegían, ella era la dueña y su marido venía a vivir a su casa. Muchas etxekoandreak han sacado adelante caseríos enteros.',
+    ],
+    q: { q: '¿Quién era la etxekoandre?', options: ['La señora que llevaba la casa', 'Una bruja del bosque', 'La maestra del pueblo'], answer: 0, why: 'Etxeko andrea quiere decir «la señora de la casa»: ella la gobernaba.' },
+    today: 'Hoy las mujeres del campo navarro siguen siendo el pilar de muchos pueblos: ganaderas, agricultoras, queseras y empresarias. Cada 15 de octubre se celebra el Día de las Mujeres Rurales.',
+  },
+  conserveras: {
+    name: 'Las conserveras', eu: 'Kontserba-langileak', years: 'desde hacia 1900', kicker: 'Mujeres de Navarra · Trabajo', icon: 'pepper', attr: 'pepper', women: true, stele: true,
+    host: GUIA('Amona Pili', { shirt: '#b5485d', skirt: '#3a3530', pants: '#3a3530', hair: '#dcd7cf', old: true, bun: true, female: true, apron: '#ffffff' }),
+    hello: 'Mi madre y mi abuela trabajaron en la fábrica de conservas. Casi todas eran mujeres. ¿Quieres saber cómo era aquello?',
+    pages: [
+      'Hace más de cien años, en la Ribera de Navarra, empezaron a abrirse fábricas de conservas: pimientos, tomates, espárragos y alcachofas de las huertas se metían en latas y frascos para venderlos lejos.',
+      'Las que hacían el trabajo eran casi siempre mujeres: pelaban los pimientos asados a mano, uno a uno, llenaban las latas y las cerraban. Trabajaban muchas horas, sobre todo en otoño, cuando llegaba la cosecha.',
+      'Con su trabajo muchas familias salieron adelante, y gracias a ellas el pimiento del piquillo y el espárrago de Navarra se conocieron en toda España.',
+    ],
+    q: { q: '¿Qué hacían las conserveras?', options: ['Meter en latas y frascos lo que daba la huerta', 'Coser alpargatas', 'Cuidar ovejas'], answer: 0, why: 'Preparaban las conservas: pelaban los pimientos y llenaban y cerraban latas y frascos.' },
+    today: 'Las fábricas de conservas siguen en la Ribera, con máquinas que ayudan. Y el pimiento del piquillo de Lodosa se sigue pelando a mano, como hacían ellas.',
+  },
 };
 
 // Dónde está cada personaje
 export const FIGURE_TOWNS = {
-  pamplona: ['sarasate', 'indurain'], 'erronkari-roncal': ['gayarre'], olite: ['blanca'], javier: ['javier'],
-  'orreaga-roncesvalles': ['sancho'], tafalla: ['azpilcueta'], tudela: ['benjamin'], marcilla: ['julia'], 'isaba-izaba': ['golondrinas'],
+  pamplona: ['sarasate', 'indurain', 'toda'], 'erronkari-roncal': ['gayarre'], olite: ['blanca', 'catalina'], javier: ['javier'],
+  'orreaga-roncesvalles': ['sancho'], tafalla: ['azpilcueta'], tudela: ['benjamin', 'berenguela'], marcilla: ['julia', 'conserveras'], 'isaba-izaba': ['golondrinas'],
+  aoiz: ['josefa'], lesaka: ['etxekoandreak'],
 };

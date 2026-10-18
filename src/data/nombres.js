@@ -29,7 +29,8 @@ const ROL = [['pastor', 'pastora'], ['quesero', 'quesera'], ['molinero', 'moline
   ['txakolinero', 'txakolinera'], ['resinero', 'resinera'], ['bertsolari', 'bertsolari'], ['ermitaño', 'ermitaña'], ['campanero', 'campanera'],
   ['hilandero', 'hilandera'], ['encargado', 'encargada'], ['vendedor', 'vendedora'], ['frutero', 'frutera'], ['carnicero', 'carnicera'], ['jardinero', 'jardinera'],
   ['arqueólogo', 'arqueóloga'], ['guardabosques', 'guardabosques'], ['recolector', 'recolectora'], ['mielero', 'mielera'], ['salinero', 'salinera'],
-  ['espartero', 'espartera'], ['labrador', 'labradora'], ['mozo', 'moza'], ['alcalde', 'alcaldesa'], ['juglar', 'juglaresa']];
+  ['espartero', 'espartera'], ['labrador', 'labradora'], ['mozo', 'moza'], ['alcalde', 'alcaldesa'], ['juglar', 'juglaresa'],
+  ['olivarero', 'olivarera'], ['almazarero', 'almazarera'], ['vendimiador', 'vendimiadora'], ['conservero', 'conservera'], ['confitero', 'confitera'], ['historiador', 'historiadora']];
 const lc = (s) => s.toLowerCase();
 const NM = new Set(NOMBRES_M.map(lc)), NF = new Set(NOMBRES_F.map(lc));
 const RM = new Map(ROL.filter(([m, f]) => m !== f).map(([m, f]) => [m, f])), RF = new Map(ROL.filter(([m, f]) => m !== f).map(([m, f]) => [f, m]));

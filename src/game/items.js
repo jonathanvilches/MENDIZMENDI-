@@ -138,6 +138,8 @@ export function makeMemorial(attr, stele) {
     case 'ship': { a(new THREE.BoxGeometry(0.1, 0.05, 0.26), BR, 0, 0.03, 0); a(new THREE.CylinderGeometry(0.008, 0.008, 0.2, 4), BR, 0, 0.15, 0); a(new THREE.PlaneGeometry(0.14, 0.12), '#efe6cf', 0, 0.16, 0.01, { side: THREE.DoubleSide }); break; }
     case 'espadrille': { const s = a(new THREE.SphereGeometry(0.06, 10, 6), '#efe6cf', 0, 0.03, 0, {}); s.scale.set(0.8, 0.5, 1.8); a(new THREE.BoxGeometry(0.1, 0.012, 0.22), '#c9a27a', 0, 0.005, 0, {}); break; }
     case 'scales': { a(new THREE.CylinderGeometry(0.008, 0.008, 0.18, 5), BR, 0, 0.09, 0); a(new THREE.BoxGeometry(0.22, 0.01, 0.01), BR, 0, 0.18, 0); for (const s of [-1, 1]) a(new THREE.CylinderGeometry(0.04, 0.03, 0.015, 10), BR, s * 0.1, 0.12, 0); break; }
+    case 'key': { const r = a(new THREE.TorusGeometry(0.045, 0.013, 6, 16), BR, -0.07, 0.06, 0); r.rotation.y = 0.2; a(new THREE.BoxGeometry(0.15, 0.02, 0.02), BR, 0.035, 0.06, 0); a(new THREE.BoxGeometry(0.02, 0.035, 0.02), BR, 0.075, 0.035, 0); a(new THREE.BoxGeometry(0.02, 0.03, 0.02), BR, 0.1, 0.038, 0); break; }
+    case 'pepper': { for (const [x, z, r] of [[-0.04, 0, 1.9], [0.05, 0.03, 2.3]]) { const p = a(new THREE.ConeGeometry(0.045, 0.15, 10), '#c8222a', x, 0.05, z, { metalness: 0.15, roughness: 0.45 }); p.rotation.z = r; a(new THREE.CylinderGeometry(0.007, 0.007, 0.045, 5), '#3a6a2a', x - Math.sin(r) * 0.08, 0.05 + Math.cos(r) * 0.08, z, {}); } break; }
     case 'score': case 'book': default: { const b = a(new THREE.BoxGeometry(0.2, 0.04, 0.15), '#efe6cf', 0, 0.02, 0, {}); b.rotation.y = 0.3; a(new THREE.BoxGeometry(0.21, 0.02, 0.16), attr === 'score' ? '#2a2a2a' : '#7a2f3a', 0, -0.005, 0, {}).rotation.y = 0.3; }
   }
   // aro dorado: se apaga cuando ya se conoce la historia
