@@ -20,7 +20,7 @@ import { tr, isEU } from '../i18n.js';
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const { W, L, NETH, SAQUE, CHAPA } = PISTA, NETZ = L / 2, CEIL = 5.8, GRAV = 9.81, R = 0.034, VALLA = 1.6, Y = 2400;
-const QN = ['0', '15', '30', '40'];
+const QN = ['0', '15', '30', '40'], SX = -1;   // (la cámara mira hacia +z: la derecha de la pantalla es -x en la cancha)
 
 // ---------- el recinto ----------
 let VENUE = null;
@@ -91,8 +91,10 @@ export function pasakaVenue(scene, out) {
   const roofM = mat(TEX.roofTile, '#b5684a'); mats.push(roofM); add(box(6, 0.25, L - Z0 + 2, 2), roofM, W / 2 + 24, CEIL + 2.0, (L + Z0) / 2).rotation.z = 0.32;
   add(box(6, 0.25, L - Z0 + 2, 2), roofM, W / 2 + 3, CEIL + 2.0, (L + Z0) / 2).rotation.z = -0.32;
   // la pelota y su sombra
-  const ball = new THREE.Mesh(new THREE.SphereGeometry(0.055, 14, 10), new THREE.MeshStandardMaterial({ color: '#f1e6d2', roughness: 0.6 })); ball.castShadow = true; g.add(ball); geos.push(ball.geometry); mats.push(ball.material);
+  const ball = new THREE.Mesh(new THREE.SphereGeometry(0.075, 16, 12), new THREE.MeshStandardMaterial({ color: '#f6ecd6', roughness: 0.55, emissive: '#5a4a30', emissiveIntensity: 0.35 })); ball.castShadow = true; g.add(ball); geos.push(ball.geometry); mats.push(ball.material);
   const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.12, 12), new THREE.MeshBasicMaterial({ color: '#000', transparent: true, opacity: 0.32, depthWrite: false })); shadow.rotation.x = -Math.PI / 2; shadow.position.y = 0.012; g.add(shadow); geos.push(shadow.geometry); mats.push(shadow.material);
+  // (el círculo del bote: dónde va a caer la pelota en nuestro campo, para correr a tiempo)
+  const ring = new THREE.Mesh(new THREE.RingGeometry(0.3, 0.42, 28), new THREE.MeshBasicMaterial({ color: '#ffd166', transparent: true, opacity: 0.85, depthWrite: false, side: THREE.DoubleSide })); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.016; ring.visible = false; g.add(ring); geos.push(ring.geometry); mats.push(ring.material);
   g.traverse(o => { if (o.isInstancedMesh) o.instanceMatrix.needsUpdate = true; });
   g.updateMatrixWorld(true);
   const toWorld = (lx, lz, ly = 0) => { const v = new THREE.Vector3(lx, ly, lz); g.localToWorld(v); return v; };
@@ -103,7 +105,7 @@ export function pasakaVenue(scene, out) {
   // (sentados en el banco: la figura algo adelantada y más baja que el asiento, como en la grada del frontón cubierto)
   for (let z = 3; z < L - 2; z += 2.4) if (Math.random() < 0.7) { const v = toWorld(-W / 2 + 0.6, z + Math.random() * 0.6, 0.1); sit.push([v.x, v.y, v.z, Math.PI / 2]); }
   const e = toWorld(1.4, NETZ - 7.5);
-  VENUE = { group: g, toWorld, entry: { x: e.x, z: e.z }, ball, shadow, stand, sit,
+  VENUE = { group: g, toWorld, entry: { x: e.x, z: e.z }, ball, shadow, ring, stand, sit,
     dispose() { g.parent?.remove(g); for (const x of geos) x.dispose(); for (const m of mats) { m.map?.dispose?.(); m.dispose(); } netT.dispose(); if (VENUE === this) VENUE = null; } };
   return VENUE;
 }
@@ -123,7 +125,7 @@ function predict(b) {
   }
   return { x: c.x, z: c.z, t: 3 };
 }
-const mkPl = (team, x, z, me, i) => ({ team, x, z, tx: x, tz: z, hx: x, hz: z, me, speed: me ? 5.6 : 4.8 + i * 0.25, reach: me ? 1.7 : 1.35, moving: false, vNow: 0, want: 0, wantT: 0, take: false, miss: false, decided: -1, swingT: -1, wind: 0, heading: team ? Math.PI : 0 });
+const mkPl = (team, x, z, me, i) => ({ team, x, z, tx: x, tz: z, hx: x, hz: z, me, speed: me ? 5.8 : 4.8 + i * 0.25, reach: me ? 1.9 : 1.35, moving: false, vNow: 0, want: 0, wantT: 0, take: false, miss: false, decided: -1, swingT: -1, wind: 0, heading: team ? Math.PI : 0 });
 
 const CSS = `
 .pk-hud{position:fixed;inset:0;z-index:22;pointer-events:none;font-family:'Nunito',sans-serif;color:#fff;--thumb:16px}
@@ -137,6 +139,8 @@ const CSS = `
 .pk-knob{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;border:3px solid rgba(255,255,255,.55);background:rgba(28,11,58,.3);display:none}
 .pk-knob i{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:rgba(255,255,255,.85)}
 .pk-stickhint{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--thumb));bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb));width:120px;height:120px;border-radius:50%;border:3px dashed rgba(255,255,255,.5);display:grid;place-items:center;pointer-events:none}
+.pk-hud.touch .pk-btn small{display:none}
+.pk-hud .pk-btn.hot{box-shadow:0 0 0 4px rgba(255,209,102,.95),0 0 26px rgba(255,209,102,.85);border-color:#ffd166}
 @media (max-height:470px){.pk-hud .pk-btn{width:104px;height:52px}.pk-hud .pk-tip{top:calc(env(safe-area-inset-top,0px) + 58px)}}`;
 
 /**
@@ -158,14 +162,14 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
     // --- la interfaz
     if (!document.getElementById('pk-style')) { const s = document.createElement('style'); s.id = 'pk-style'; s.textContent = CSS; document.head.appendChild(s); }
     const touch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
-    hud = document.createElement('div'); hud.className = 'pk-hud';
+    hud = document.createElement('div'); hud.className = 'pk-hud' + (touch ? ' touch' : '');
     hud.innerHTML = `<button type="button" class="pk-x" aria-label="${esc(tr('Salir'))}">✕</button>
       <div class="pk-sb"><span class="pk-t r">${esc(T.rojos)}</span><b class="pk-g">0</b><i class="pk-q">0 · 0</i><b class="pk-g">0</b><span class="pk-t a">${esc(T.azules)}</span></div>
       <div class="pk-tip"></div><div class="pk-fb"></div>
       <div class="pk-stick"><div class="pk-knob"><i></i></div></div>${touch ? '<div class="pk-stickhint"><svg viewBox="0 0 48 48" width="46" height="46"><path d="M24 6l6 7h-4v8h8v-4l7 7-7 7v-4h-8v8h4l-6 7-6-7h4v-8h-8v4l-7-7 7-7v4h8v-8h-4z" fill="#fff" opacity=".9"/></svg></div>' : ''}
       <div class="pk-btns"><button type="button" class="pk-btn" data-k="golpe"><b>${esc(tr('Golpe'))}</b><small>${esc(tr('espacio'))}</small></button><button type="button" class="pk-btn ghost" data-k="dejada"><b>${esc(tr('Dejada'))}</b><small>${esc(tr('mayús'))}</small></button></div>`;
     document.body.appendChild(hud);
-    const $ = s => hud.querySelector(s), fb = $('.pk-fb'), tip = $('.pk-tip'), sbG = hud.querySelectorAll('.pk-g'), sbQ = $('.pk-q');
+    const $ = s => hud.querySelector(s), fb = $('.pk-fb'), tip = $('.pk-tip'), sbG = hud.querySelectorAll('.pk-g'), sbQ = $('.pk-q'), btnG = $('.pk-btn[data-k="golpe"]'); let lastHot = false, firstRally = true;
     const say = (why, sub = '', cls = '') => { fb.innerHTML = `<b>${esc(why)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}`; fb.className = 'pk-fb on ' + cls; fbT = 1.6; };
     const score = () => { sbG[0].textContent = st.g[0]; sbG[1].textContent = st.g[1]; sbQ.textContent = `${QN[st.q[0]] ?? '40'} · ${QN[st.q[1]] ?? '40'}`; };
     const setTip = (s) => { tip.textContent = s; tip.style.display = s ? '' : 'none'; };
@@ -216,7 +220,8 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
       b.vy -= (1 - q) * (kind === 'dejada' ? 1.4 : 1.1) * Math.random();
       b.last = t; b.crossed = false; b.bounces = 0; b.dead = false; b.serve = kind === 'saque'; b.serveOk = false; b.serveB = 0; b.inPlay = true; b.held = -1; st.hitId++;
       pl.swingT = 0; pl.want = 0; S?.pelota?.(kind === 'dejada' ? 0.5 : 0.9);
-      if (st.phase === 'serve') { st.phase = 'flight'; setTip(''); }
+      if (st.phase === 'serve') { st.phase = 'flight'; setTip(firstRally ? tr('Corre al círculo y pulsa Golpe cuando brille') : ''); }
+      if (pl.me && kind !== 'saque') { firstRally = false; setTip(''); }
       assign();
     };
     const assign = () => {
@@ -261,7 +266,7 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
       const x0 = pl.x, z0 = pl.z;
       if (pl.me && !st.auto) {
         // tú: la palanca o las teclas; si no, el destino que fijó un toque (ir)
-        const kx = (keys.right ? 1 : 0) - (keys.left ? 1 : 0) + stick.x, kz = (keys.up ? 1 : 0) - (keys.down ? 1 : 0) + stick.y, n = Math.hypot(kx, kz);
+        const kx = ((keys.right ? 1 : 0) - (keys.left ? 1 : 0) + stick.x) * SX, kz = (keys.up ? 1 : 0) - (keys.down ? 1 : 0) + stick.y, n = Math.hypot(kx, kz);
         if (n > 0.08) { const m = Math.min(1, n); pl.x += kx / n * m * pl.speed * dt; pl.z += kz / n * m * pl.speed * dt; pl.tx = pl.x; pl.tz = pl.z; }
         else { const dx = pl.tx - pl.x, dz = pl.tz - pl.z, d = Math.hypot(dx, dz); if (d > 0.05) { const k = Math.min(1, pl.speed * dt / d); pl.x += dx * k; pl.z += dz * k; } }
       } else { const dx = pl.tx - pl.x, dz = pl.tz - pl.z, d = Math.hypot(dx, dz); if (d > 0.05) { const k = Math.min(1, pl.speed * dt / d); pl.x += dx * k; pl.z += dz * k; } }
@@ -289,8 +294,8 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
       if (pl.decided !== st.hitId) { pl.decided = st.hitId; const run = Math.hypot(pl.tx - pl.hx, pl.tz - pl.hz), fast = Math.hypot(b.vx, b.vz) > 15; const p = clamp(0.9 - 0.035 * run - (fast ? 0.18 : 0) + (pl.me ? 0.08 : 0) - (pl.team === 1 ? 0.06 : 0), 0.35, 0.95); pl.miss = Math.random() > p; }
       if (!pl.miss) aiShot(pl);
     };
-    const aimOf = () => { const kx = (keys.right ? 1 : 0) - (keys.left ? 1 : 0) + stick.x; if (Math.abs(kx) > 0.25) return clamp(kx, -1, 1) * 0.85; return clamp((b.x - P0.x) / 1.2, -1, 1) * 0.5; };
-    const press = (kind) => { if (ended || st.over) return; if (st.phase === 'serve' && st.server === 0 && b.held === 0) { launch(P0, 'saque', aimOf()); return; } P0.want = kind; P0.wantT = 0.4; };
+    const aimOf = () => { const kx = ((keys.right ? 1 : 0) - (keys.left ? 1 : 0) + stick.x) * SX; if (Math.abs(kx) > 0.25) return clamp(kx, -1, 1) * 0.85; return clamp((b.x - P0.x) / 1.2, -1, 1) * 0.5; };
+    const press = (kind) => { if (ended || st.over) return; if (st.phase === 'serve' && st.server === 0 && b.held === 0) { launch(P0, 'saque', aimOf()); return; } P0.want = kind; P0.wantT = 0.55; };
     const update = (dt) => {
       st.t += dt; st.phaseT += dt;
       if (st.phase === 'intro') { if (st.phaseT > 1.6) setupServe(); }
@@ -316,6 +321,10 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
       }
       const show = b.inPlay || b.held >= 0; V.ball.visible = V.shadow.visible = show;
       if (show) { V.ball.position.set(b.x, b.y, b.z); V.shadow.position.set(b.x, 0.012, b.z); const k = 1 / (1 + b.y * 0.5); V.shadow.scale.setScalar(k); V.shadow.material.opacity = 0.32 * k; }
+      // el círculo del bote cuando la pelota viene hacia nosotros, y el botón que brilla cuando está al alcance
+      const coming = st.phase === 'flight' && b.inPlay && !b.dead && b.last === 1;
+      if (coming) { const pr = predict(b); if (pr.z < NETZ) { V.ring.visible = true; V.ring.position.set(pr.x, 0.016, pr.z); const k = 1 + 0.08 * Math.sin(st.t * 9); V.ring.scale.set(k, k, 1); } else V.ring.visible = false; } else V.ring.visible = false;
+      const hot = coming && inReach(P0, b); if (hot !== lastHot) { lastHot = hot; btnG?.classList.toggle('hot', hot); }
       // la cámara: detrás de la valla, a la altura de una galería, mirando al frontis (se mueve un poco contigo)
       const cx = clamp(P0.x * 0.35 + (b.inPlay ? b.x * 0.15 : 0), -2.2, 2.2), cp = V.toWorld(cx, -3.4, 4.7), cl = V.toWorld(clamp(b.inPlay ? b.x * 0.4 : 0, -1.5, 1.5), NETZ + 1.0, 0.8);
       if (!cine) { cine = G.follow.cinematic = { pos: cp.clone(), look: cl.clone(), t: 0, lookCur: cl.clone() }; cam.position.copy(cp); cam.lookAt(cl); }
@@ -330,27 +339,30 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
     addEventListener('keydown', onKey, true); addEventListener('keyup', onKey, true);
     const zone = $('.pk-stick'), knob = $('.pk-knob'), RK = 56;
     const resetStick = () => { stick = { id: null, x: 0, y: 0 }; knob.style.display = 'none'; };
-    zone.addEventListener('pointerdown', (e) => { if (stick.id !== null) return; stick = { id: e.pointerId, ox: e.clientX, oy: e.clientY, x: 0, y: 0 }; zone.setPointerCapture?.(e.pointerId); knob.style.display = 'block'; knob.style.left = (e.clientX - zone.getBoundingClientRect().left) + 'px'; knob.style.top = (e.clientY - zone.getBoundingClientRect().top) + 'px'; knob.firstElementChild.style.transform = ''; $('.pk-stickhint')?.remove(); });
-    zone.addEventListener('pointermove', (e) => { if (e.pointerId !== stick.id) return; let dx = e.clientX - stick.ox, dy = e.clientY - stick.oy; const d = Math.hypot(dx, dy); if (d > RK) { dx *= RK / d; dy *= RK / d; } stick.x = dx / RK; stick.y = -dy / RK; knob.firstElementChild.style.transform = `translate(${dx}px,${dy}px)`; });
+    zone.addEventListener('pointerdown', (e) => { if (stick.id !== null) return; e.preventDefault(); const zr = zone.getBoundingClientRect(); stick = { id: e.pointerId, ox: e.clientX, oy: e.clientY, x: 0, y: 0 }; knob.style.display = 'block'; knob.style.left = (e.clientX - zr.left) + 'px'; knob.style.top = (e.clientY - zr.top) + 'px'; knob.firstElementChild.style.transform = ''; $('.pk-stickhint')?.remove(); });
+    const onPtrMove = (e) => { if (e.pointerId !== stick.id) return; let dx = e.clientX - stick.ox, dy = e.clientY - stick.oy; const d = Math.hypot(dx, dy); if (d > RK) { dx *= RK / d; dy *= RK / d; } stick.x = dx / RK; stick.y = -dy / RK; knob.firstElementChild.style.transform = `translate(${dx}px,${dy}px)`; };
     const endStick = (e) => { if (e.pointerId === stick.id) resetStick(); };
-    zone.addEventListener('pointerup', endStick); zone.addEventListener('pointercancel', endStick); zone.addEventListener('lostpointercapture', endStick);
+    addEventListener('pointermove', onPtrMove, true); addEventListener('pointerup', endStick, true); addEventListener('pointercancel', endStick, true);
+    // (si el dedo sale de la pantalla sin «pointerup», la palanca se suelta igual)
+    const onTouchEnd = () => { if (stick.id !== null && !(navigator.maxTouchPoints > 0 && document.querySelector(':active') === zone)) resetStick(); };
+    addEventListener('touchend', onTouchEnd, true); addEventListener('touchcancel', onTouchEnd, true);
     const onBlur = () => { keys = {}; resetStick(); }; addEventListener('blur', onBlur);
     hud.querySelectorAll('.pk-btn').forEach(bt => bt.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); bt.classList.add('flash'); setTimeout(() => bt.classList.remove('flash'), 140); press(bt.dataset.k); }));
     $('.pk-x').onclick = () => done({ quit: true });
     // --- el bucle (lo llama el pueblo en modo pelota) y el final
-    G.pelotaMatch = { pasaka: true }; G.pelotaAbort = () => done({ quit: true, error: true });
+    G.pelotaMatch = { pasaka: true }; G.pelotaRig = rig; G.pelotaAbort = () => done({ quit: true, error: true });
     G.pelotaTick = (dt) => { update(dt); place(dt); };
     function done(r) {
       if (ended) return; ended = true;
-      G.pelotaTick = null; G.pelotaMatch = null; G.pelotaAbort = null; delete window.__pasaka;
-      removeEventListener('keydown', onKey, true); removeEventListener('keyup', onKey, true); removeEventListener('blur', onBlur);
+      G.pelotaTick = null; G.pelotaMatch = null; G.pelotaRig = null; G.pelotaAbort = null; delete window.__pasaka;
+      removeEventListener('keydown', onKey, true); removeEventListener('keyup', onKey, true); removeEventListener('blur', onBlur); removeEventListener('pointermove', onPtrMove, true); removeEventListener('pointerup', endStick, true); removeEventListener('pointercancel', endStick, true); removeEventListener('touchend', onTouchEnd, true); removeEventListener('touchcancel', onTouchEnd, true);
       const safe = (f) => { try { f(); } catch (e) { console.warn('pasaka', e); } };
       safe(() => hud.remove());
       safe(() => { if (rig?.char) rig.char.post = null; rig?.setStance?.(null); });
       safe(() => { for (const a of rivals) { if (a.glb) a.glb.post = null; const i = G.walkers?.indexOf(a); if (i >= 0) G.walkers.splice(i, 1); a.obj.parent?.remove(a.obj); } });
       safe(() => { if (partner) { if (partner.glb) partner.glb.post = null; partner.frozen = false; partner.speed = 0; if (pHome) partner.setPos(pHome.x, pHome.z, pHome.h); } });
       safe(() => { for (const c of [crowdS, crowdB]) if (c) { c.parent?.remove(c); c.dispose?.(); } });
-      safe(() => { V.ball.visible = V.shadow.visible = false; });
+      safe(() => { V.ball.visible = V.shadow.visible = V.ring.visible = false; });
       safe(() => { if (G.beacon) G.beacon.off = false; if (G.sky) { G.sky.flood = 0; G.sky.indoor = false; } G.rt?.boost?.(false); S?.setMusic?.(wasMusic); });
       P.rig = rig0; P.frozen = !!stay; G.mode = 'play';
       if (!stay) { safe(() => G.ui.hudVisible?.(true)); safe(() => G.perro?.release?.()); safe(() => { P.place(home.x, home.z, home.h); G.follow.cinematic = null; G.follow.snap(P); }); }
