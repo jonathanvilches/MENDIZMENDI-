@@ -59,16 +59,16 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 /* (el rótulo, en la letra estrecha del juego y en mayúsculas, siempre dentro del círculo y nunca por debajo de 12 px, la
    letra más pequeña de la escala: el icono es pequeño para que el rótulo quede cerca del centro, donde el círculo es más
    ancho; si no cabe en una línea, en dos. fitCircle() (src/ui/fitlabel.js) lo comprueba con el texto de verdad) */
-.fb-b span{pointer-events:none;max-width:78%;text-align:center;overflow-wrap:normal;hyphens:none}
+.fb-b span{pointer-events:none;max-width:84%;text-align:center;overflow-wrap:normal;hyphens:none;padding-left:.04em}
 .fb-b.down{background:linear-gradient(155deg,var(--mm-bottom),var(--mm-top));transform:translateY(2px) scale(.96);box-shadow:inset 0 2px 5px rgba(9,4,17,.5),0 1px 0 #12061b}
 .fb-b:focus-visible,.fb-pause:focus-visible,.fb-cam:focus-visible{outline:3px solid #fff;outline-offset:3px}
 /* (del tamaño justo para que el rótulo más largo de cada uno quepa a 12 px, como ESTIRADA o CAMBIAR, con --u .9 del móvil
    tumbado; los círculos, separados al menos 12 px) */
 .fb-shoot{--mm-top:#b12bb7;--mm-bottom:#4a1559;border-color:#ffd8fa;width:calc(84px * var(--u));height:calc(84px * var(--u));right:calc(10px * var(--u));bottom:calc(8px * var(--u))}
 .fb-shoot svg{width:max(24px,calc(28px * var(--u)));height:max(24px,calc(28px * var(--u)))}
-.fb-pass{--mm-top:#2a61b5;--mm-bottom:#10294f;border-color:#d8ecff;width:calc(72px * var(--u));height:calc(72px * var(--u));right:calc(106px * var(--u));bottom:calc(6px * var(--u))}
+.fb-pass{--mm-top:#2a61b5;--mm-bottom:#10294f;border-color:#d8ecff;width:calc(82px * var(--u));height:calc(82px * var(--u));right:calc(101px * var(--u));bottom:calc(1px * var(--u))}
 .fb-sprint{width:calc(68px * var(--u));height:calc(68px * var(--u));right:calc(18px * var(--u));bottom:calc(108px * var(--u))}
-.fb-swap{--mm-top:#81552e;--mm-bottom:#352033;border-color:#ffe0a0;width:calc(68px * var(--u));height:calc(68px * var(--u));right:calc(108px * var(--u));bottom:calc(92px * var(--u))}
+.fb-swap{--mm-top:#81552e;--mm-bottom:#352033;border-color:#ffe0a0;width:calc(74px * var(--u));height:calc(74px * var(--u));right:calc(105px * var(--u));bottom:calc(92px * var(--u))}
 .fb-btns.atk .fb-swap{opacity:.5}
 .fb-btns.def .fb-pass{--mm-top:#81502f;--mm-bottom:#3c1d37}.fb-btns.def .fb-shoot{--mm-top:#982e65;--mm-bottom:#471437}
 .fb-btns.gk .fb-pass,.fb-btns.gk .fb-shoot,.fb-btns.gkhands .fb-pass,.fb-btns.gkhands .fb-shoot{--mm-top:#1d8aa3;--mm-bottom:#0b2f3d;border-color:#d4f6ff}   /* (con tu portero, turquesa: sin verdes en los mandos) */
@@ -144,7 +144,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
   .fb-stats td{border:0!important;width:auto!important;white-space:nowrap}
   /* controles: el título y las pestañas en la misma fila, y debajo las tarjetas de una línea: todo a la vista */
   .fb-subsp .fb-body{grid-template-columns:auto minmax(0,1fr) auto;align-items:center}.fb-subsp .fb-body>h2{grid-column:1;margin:0}.fb-subsp .fb-ctabs{grid-column:2;margin:0}.fb-subsp .fb-subs-n{grid-column:3;margin:0!important}.fb-subsp .fb-subs{grid-column:1/-1;margin-top:8px}
-  .fb-subsp .fb-pl{height:36px;padding:2px 8px 2px 4px}.fb-subsp .fb-sf,.fb-subsp .fb-sb{gap:4px}
+  .fb-subsp .fb-pl{height:36px;padding:2px 12px 2px 8px}.fb-subsp .fb-sf,.fb-subsp .fb-sb{gap:4px}
   .fb-subsp .fb-subs{grid-template-columns:minmax(0,2.4fr) minmax(0,1.2fr)}.fb-subsp .fb-sf{grid-template-columns:repeat(3,minmax(0,1fr))}   /* (los once en tres columnas: caben sin desplazar) */
   .fb-subsp .fb-subs small.h{letter-spacing:.04em;white-space:nowrap}   /* (el rótulo del banquillo en una línea: en dos, la lista bajaba y había que desplazar) */
   @media (max-width:700px){.fb-subsp .fb-subs{grid-template-columns:minmax(0,3fr) minmax(0,1fr)}.fb-subsp .fb-subs small.h{white-space:normal}}   /* (en los más estrechos, como antes: el que sale necesita su ancho) */
@@ -198,7 +198,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-hf{grid-area:hf}.fb-hb{grid-area:hb}.fb-sf{grid-area:sf}.fb-sb{grid-area:sb}
 .fb-sf{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;align-content:start}.fb-sb{display:grid;gap:8px;align-content:start}
 .fb-subs small.h{align-self:end;font:800 var(--fs-xs)/1.2 var(--f-cond,Nunito),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#ff7ac8}
-.fb-pl{display:grid;grid-template-columns:24px auto minmax(20px,1fr) auto;align-items:center;column-gap:8px;height:40px;padding:4px 8px 4px 4px;border-radius:4px;border:1px solid rgba(190,160,255,.22);background:rgba(255,255,255,.05);color:#fff;font:800 var(--fs-xs)/1.15 var(--f-cond,Nunito),sans-serif;letter-spacing:.04em;text-transform:uppercase;text-align:left;cursor:pointer;min-width:0}
+.fb-pl{display:grid;grid-template-columns:24px auto minmax(20px,1fr) auto;align-items:center;column-gap:8px;height:40px;padding:4px 12px 4px 8px;border-radius:4px;border:1px solid rgba(190,160,255,.22);background:rgba(255,255,255,.05);color:#fff;font:800 var(--fs-xs)/1.15 var(--f-cond,Nunito),sans-serif;letter-spacing:.04em;text-transform:uppercase;text-align:left;cursor:pointer;min-width:0}
 .fb-pl>b{width:24px;height:24px;border-radius:3px;display:grid;place-items:center;background:rgba(255,255,255,.12);font:400 var(--fs-sm)/1 'MZ Display',Nunito,sans-serif;letter-spacing:0}
 .fb-pl .fb-me-e{min-width:20px}
 .fb-pl em{font-style:normal;font-variant-numeric:tabular-nums;color:#e6def7;display:flex;gap:4px;align-items:center;justify-content:flex-end}

@@ -9,6 +9,7 @@ import { infoCard } from './minigames.js';
 import { iconSVG } from './icons.js';
 import { tr, isEU } from '../i18n.js';
 import { profile, addCard, addXP, saveProfile, checkBadges } from '../game/profile.js';
+import { fitCircles } from './fitlabel.js';
 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const el = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
@@ -33,7 +34,7 @@ export async function openInstrumento(ui, id) {
   });
   const o = ui.modal; if (!o) return p;
   // (el icono 3D, como en el resto del menú)
-  const im = o.querySelector('.ins-big'); if (im) { const t = document.createElement('template'); t.innerHTML = iconSVG(x.icon, 200).trim(); im.replaceWith(t.content.firstElementChild); }
+  const im = o.querySelector('.ins-big'); if (im) { const t = document.createElement('template'); t.innerHTML = iconSVG(x.icon, 260).trim(); im.replaceWith(t.content.firstElementChild); }
   const foot = o.querySelector('.ix-foot'), next = foot?.querySelector('.next');
   if (foot) {
     const oir = el(`<button type="button" class="btn ghost tc-oir">${esc(tr('Escuchar'))}</button>`), tocar = el(`<button type="button" class="btn tc-tocar">${esc(tr('Tocar'))}</button>`);
@@ -62,21 +63,27 @@ export async function jugarInstrumento(ui, x, { who = '' } = {}) {
 }
 
 // ---------- el minijuego ----------
-const KEYS = ['a', 's', 'd', 'f'];
+const KEYS = ['a', 's', 'd', 'f', 'g'];
 export function tocarGame(ui, x, { who = '' } = {}) {
   return new Promise(res => {
     const S = ui.sound, g = x.game, n = g.lanes.length, notas = notasDe(x), total = notas.length;
-    const eighth = 60 / g.bpm / 2, bar = eighth * 2 * g.meter, fall = 1.7, LINE = 0.82;
+    const eighth = 60 / g.bpm / 2, bar = eighth * 2 * g.meter, fall = 2.3, touch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
+    const air = (isEU() && g.airEu) || g.air || '';
     const clock = () => S?.ctx ? S.ctx.currentTime : performance.now() / 1000;
     ui.closeModal?.();
-    const o = el(`<div class="mg-overlay tocar"><div class="mg-card tocar-card">
-      <div class="mg-top">${iconSVG(x.icon, 48)}<div><h3>${isEU() ? `Jo ${esc(x.eushort)}` : `Toca ${esc(x.short)}`}</h3><small>${esc(tr('Pulsa cada nota cuando llegue a la línea'))}${who ? ` · ${isEU() ? esc(who) + 'rekin' : 'con ' + esc(who)}` : ''}</small></div><b class="tc-score"><span>0</span>/${total}</b></div>
-      <div class="tc-stage" style="--n:${n}"><div class="tc-lanes">${g.lanes.map((_, i) => `<div class="tc-lane"><span class="tc-key">${i + 1}</span></div>`).join('')}</div><div class="tc-notes"></div><div class="tc-line"></div><div class="tc-fb">${esc(tr('¡Prepárate!'))}</div></div>
-      <div class="tc-pads">${g.lanes.map((l, i) => `<button type="button" data-i="${i}"><b>${esc(l)}</b><small>${KEYS[i].toUpperCase()}</small></button>`).join('')}</div>
-      <p class="tc-hint">${esc(tr('Teclas: 1-4, flechas o A S D F · en el móvil, los botones'))}</p>
+    // (cada carril acaba en su botón: la nota baja hasta él y se pulsa cuando le llega; en el móvil no hay letras de teclas)
+    const o = el(`<div class="mg-overlay tocar${touch ? ' touch' : ''}"><div class="mg-card tocar-card">
+      <div class="mg-top">${iconSVG(x.icon, 48)}<div><h3>${isEU() ? `Jo ${esc(x.eushort)}` : `Toca ${esc(x.short)}`}</h3><small>${esc(air)}${air ? ' · ' : ''}${esc(tr('aire tradicional'))}${who ? ` · ${isEU() ? esc(who) + 'rekin' : 'con ' + esc(who)}` : ''}</small></div><b class="tc-score"><span>0</span>/${total}</b></div>
+      <div class="tc-stage" style="--n:${n}"><div class="tc-lanes">${g.lanes.map((l) => `<div class="tc-lane"><span class="tc-tag">${esc(l)}</span></div>`).join('')}</div>
+        <div class="tc-pads">${g.lanes.map((l, i) => `<button type="button" data-i="${i}" aria-label="${esc(l)}"><span>${esc(l)}</span>${touch ? '' : `<small class="tc-k">${KEYS[i].toUpperCase()}</small>`}</button>`).join('')}</div><div class="tc-notes"></div>
+        <div class="tc-fb">${esc(tr('¡Prepárate!'))}</div></div>
+      <p class="tc-hint">${esc(touch ? tr('Pulsa el botón de cada carril cuando la nota le llegue') : tr('Pulsa el botón de cada carril cuando la nota le llegue · teclas A S D F G o 1-5'))}</p>
       <button type="button" class="x tc-x" aria-label="${esc(tr('Salir'))}">✕</button></div></div>`);
     document.body.appendChild(o); ui.modal = o;
-    const stage = o.querySelector('.tc-notes'), fb = o.querySelector('.tc-fb'), score = o.querySelector('.tc-score span'), pads = [...o.querySelectorAll('.tc-pads button')];
+    fitCircles(o.querySelector('.tc-pads')); const onFit = () => fitCircles(o.querySelector('.tc-pads')); addEventListener('resize', onFit);
+    const stage = o.querySelector('.tc-notes'), fb = o.querySelector('.tc-fb'), score = o.querySelector('.tc-score span'), pads = [...o.querySelectorAll('.tc-pads button')], stageEl = o.querySelector('.tc-stage');
+    // la nota llega al centro del botón de su carril (se mide en píxeles: el escenario cambia de alto con la pantalla)
+    const lineY = () => { const r = stageEl.getBoundingClientRect(), b = pads[0]?.getBoundingClientRect(); return r.height && b ? (b.top + b.height / 2 - r.top) / r.height : 0.84; };
     const wasMusic = S?.musicOn; S?.setMusic?.(false);
     const t0 = clock() + bar * 2 + 0.3;   // (dos compases de entrada con el acompañamiento)
     const notes = notas.map(nn => ({ lane: nn.lane, t: t0 + nn.i * eighth, el: null, done: false }));
@@ -87,11 +94,11 @@ export function tocarGame(ui, x, { who = '' } = {}) {
       if (over || i >= n) return; flash(i); const now = clock();
       let best = null, bd = 1; for (const nn of notes) if (!nn.done && nn.lane === i) { const d = Math.abs(now - nn.t); if (d < bd) { bd = d; best = nn; } }
       tocarNota(S, x, i, null, eighth * 1.8);   // (suena siempre: se está tocando el instrumento)
-      if (best && bd < 0.26) { best.done = true; best.el?.classList.add('hit'); hits++; score.textContent = hits; fb.textContent = bd < 0.1 ? tr('¡Perfecto!') : tr('¡Bien!'); fb.className = 'tc-fb ok'; }
+      if (best && bd < 0.3) { best.done = true; best.el?.classList.add('hit'); hits++; score.textContent = hits; fb.textContent = bd < 0.12 ? tr('¡Perfecto!') : tr('¡Bien!'); fb.className = 'tc-fb ok'; }
       else { fb.textContent = tr('¡Uy!'); fb.className = 'tc-fb bad'; }
     };
     const end = (quit = false) => {
-      if (over) return; over = true; cancelAnimationFrame(raf); removeEventListener('keydown', key, true);
+      if (over) return; over = true; cancelAnimationFrame(raf); removeEventListener('keydown', key, true); removeEventListener('resize', onFit);
       S?.setMusic?.(wasMusic); delete window.__tocar;
       o.classList.add('out'); setTimeout(() => o.remove(), 250); if (ui.modal === o) ui.modal = null;
       res(quit ? { quit: true, hits, total } : { win: hits >= Math.ceil(total * 0.6), hits, total });
@@ -103,20 +110,24 @@ export function tocarGame(ui, x, { who = '' } = {}) {
       // la cuenta de entrada
       if (now < t0) { const c = g.meter - Math.floor((t0 - now) / (eighth * 2)) % g.meter; if (c !== lastCount) { lastCount = c; fb.textContent = now < t0 - bar ? tr('¡Prepárate!') : String(c); fb.className = 'tc-fb'; } }
       else if (fb.className === 'tc-fb' && fb.textContent) fb.textContent = '';
+      const LINE = lineY(), H = stageEl.clientHeight || 300, near = new Array(n).fill(false);
       for (const nn of notes) {
         const k = 1 - (nn.t - now) / fall;
         if (k < 0) continue;
         if (!nn.el) { nn.el = el(`<div class="tc-note" style="left:${(nn.lane + 0.5) / n * 100}%">${esc(g.lanes[nn.lane])}</div>`); stage.appendChild(nn.el); }
-        nn.el.style.top = (k * LINE * 100) + '%';
+        const top = k * LINE * H; nn.el.style.top = top + 'px'; nn.el.style.visibility = top < 28 ? 'hidden' : '';
+        if (!nn.done && Math.abs(nn.t - now) < 0.3) near[nn.lane] = true;
         if (!nn.done && now - nn.t > 0.3) { nn.done = true; nn.el.classList.add('miss'); }
         if (now - nn.t > 0.7 && nn.el.parentNode) nn.el.remove();
       }
+      // el botón se enciende cuando su nota está llegando: es el momento de pulsar
+      for (let i = 0; i < n; i++) pads[i].classList.toggle('near', near[i]);
       if (now > notes[notes.length - 1].t + 1) { fb.textContent = hits >= Math.ceil(total * 0.6) ? tr('¡Bravo!') : tr('Casi…'); fb.className = 'tc-fb ok'; setTimeout(() => end(false), 900); return; }
       raf = requestAnimationFrame(tick);
     };
     pads.forEach(b => b.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); press(+b.dataset.i); }));
     const key = (e) => { e.stopImmediatePropagation(); const k = e.key.toLowerCase(); if (k === 'escape') { e.preventDefault(); return end(true); }
-      const m = /^[1-4]$/.test(k) ? +k - 1 : { arrowleft: 0, arrowup: 1, arrowdown: 2, arrowright: 3 }[k] ?? KEYS.indexOf(k); if (m >= 0) { e.preventDefault(); press(m); } };
+      const m = /^[1-5]$/.test(k) ? +k - 1 : { arrowleft: 0, arrowup: 1, arrowdown: 2, arrowright: 3 }[k] ?? KEYS.indexOf(k); if (m >= 0) { e.preventDefault(); press(m); } };
     addEventListener('keydown', key, true);
     o.querySelector('.tc-x').onclick = () => end(true);
     // (para las pruebas automáticas: las notas que vienen y pulsar un carril)

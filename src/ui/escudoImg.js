@@ -1,6 +1,8 @@
-// Escudos con el acabado del autor del proyecto (src/assets/escudos): los 65 del armorial, con los mismos ids que
+// Escudos con el acabado del autor del proyecto (src/assets/escudos): los 65 del armorial (la serie de octubre de 2026, en
+// volumen con marco; la anterior, plana con cadena, queda guardada en heraldica-anterior/ sin usarse), con los mismos ids que
 // src/data/armas-navarra.js, y los emblemas propios de los 21 equipos de la liga, con los mismos ids que
-// src/futbol/clubs.js (no son escudos de clubes de verdad). La heráldica, de 512 px; en la web, la de 1024 para la ficha;
+// src/futbol/clubs.js (no son escudos de clubes de verdad). La heráldica, de 512 px en la web (y la de 1024 para la ficha) y de 256
+// en el archivo único, que con conexión sube a las de la web;
 // los emblemas, de 512 en la web y de 256 en el archivo único (alias @escudos, @escudos-big y @emblemas de vite.config.js).
 import { drawOfficial, officialHeight } from '../world/armas.js';
 import { hdTable, hdUrl } from '../web/hd.js';
@@ -18,7 +20,11 @@ hdTable('escudos', HER); hdTable('escudos', BIG); hdTable('emblemas', CLUB);   /
 // siempre. Las casas que aún no tienen imagen siguen con el dibujo.
 const CASA = byId(import.meta.glob('@escudos-casas/*.webp', { eager: true, query: '?url', import: 'default' }));
 const OFICIO = byId(import.meta.glob('@escudos-oficios/*.webp', { eager: true, query: '?url', import: 'default' }));
-hdTable('escudos-casas', CASA); hdTable('escudos-oficios', OFICIO);
+// (y sus copias de 1024 para la ficha en pantallas densas, casas/1024 y oficios/1024: ampliadas al doble de las de 512 con
+// Real-ESRGAN hasta que lleguen los originales de 1254 del autor; la ficha las pide sola, src/web/hd.js)
+const CASA_BIG = byId(import.meta.glob('@escudos-casas-big/*.webp', { eager: true, query: '?url', import: 'default' }));
+const OFICIO_BIG = byId(import.meta.glob('@escudos-oficios-big/*.webp', { eager: true, query: '?url', import: 'default' }));
+hdTable('escudos-casas', CASA, CASA_BIG, 1024); hdTable('escudos-oficios', OFICIO, OFICIO_BIG, 1024);
 export const casaImg = (town, idx) => CASA[`${town}-${idx + 1}`] || hdUrl('escudos-casas', `${town}-${idx + 1}`);
 export const oficioImg = (kind) => OFICIO[kind] || hdUrl('escudos-oficios', kind);
 
