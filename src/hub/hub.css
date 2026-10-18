@@ -1448,7 +1448,9 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .pasaka-menu .mg-card { gap: 10px; } .pasaka-menu .mg-card .btn { min-width: 240px; }
 /* la pantalla del menú: la portada dibujada y las fichas */
 .armorial.pasaka .pk-hero { position: relative; border-radius: var(--rL); overflow: hidden; border: 1px solid rgba(255, 122, 200, .3); background: #2a1a11; aspect-ratio: 16 / 7; min-height: 220px; }
-.armorial.pasaka .pk-prev { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.armorial.pasaka .pk-prev, .armorial.pasaka .pk-cov { position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: cover; object-position: 50% 40%; }
+/* los escudos de las casas que has leído, con el acabado del autor: la misma tarjeta que los oficiales */
+.armorial .ar-h2 { margin: 16px 0 0; display: flex; align-items: baseline; gap: 0 8px; flex-wrap: wrap; } .armorial .ar-h2 h2 { margin: var(--t-mt) 0 calc(var(--t-mb) - 3px); font-size: var(--fs-xl); line-height: 1.1; } .armorial .ar-h2 small { color: var(--lila); font-weight: 700; } .armorial .ar-h2 .ar-none { width: 100%; margin: 0; color: #cbc2e0; font-weight: 600; }
 .armorial.pasaka .pk-hero-tx { position: absolute; left: 0; right: 0; bottom: 0; padding: 16px; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0 16px; background: linear-gradient(180deg, transparent, rgba(10, 4, 20, .85)); }
 .armorial.pasaka .pk-hero-tx small { width: 100%; margin-bottom: -3px; } .armorial.pasaka .pk-hero-tx b { flex: 1; min-width: 200px; margin: 2px 0 6px; font-size: var(--fs-lg); line-height: 1.1; color: #fff; text-shadow: 0 2px 8px #000; }
 .armorial.pasaka .pk-sec { border-radius: 4px; } .armorial.pasaka .pk-sec h3 { margin: 8px 0 2px; font-size: var(--fs-md); line-height: 1.3; color: var(--lila); } .armorial.pasaka .pk-sec p { margin: 0 0 8px; color: #eae4f6; font-weight: 600; }

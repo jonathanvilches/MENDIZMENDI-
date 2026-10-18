@@ -24,7 +24,7 @@ import { LEVELS } from '../data/levels.js';
 import { COSTUMES } from '../actors/minifig.js';
 import { stampImg } from '../assets.js';
 import { faunaImg } from '../ui/faunaImg.js';
-import { drawTownArms, casaImg, oficioImg } from '../ui/escudoImg.js';
+import { drawTownArms, casaImg, casaReady, drawReady, oficioImg } from '../ui/escudoImg.js';
 import { FAUNA, faunaName } from '../data/fauna.js';
 import { LEGENDS, NIGHT_CARNIVAL } from '../data/legends.js';
 import MOUNTAINS from '../data/mountains.json';
@@ -764,15 +764,19 @@ export class TownGame {
 
   // ---------- Interacción ----------
   // ---------------------------------------------------------------- escudos de las fachadas
+  // (en la fachada va el escudo con el acabado del autor en cuanto llega su imagen, src/assets/escudos/casas; mientras, y en
+  // las casas que aún no la tienen, el tallado en piedra dibujado. La ficha enseña los dos: «En color» y «En piedra»)
   buildShields() {
     this.blasones = [];
     TOWN.shields.slice(0, 8).forEach((sh, i) => {
-      const A = houseArms(this.def, i), c = document.createElement('canvas'); c.width = 128; c.height = 168;
-      drawArms(c.getContext('2d'), 64, 4, 92, A, { stone: true });
+      const A = houseArms(this.def, i), c = document.createElement('canvas'); c.width = 256; c.height = 336;
+      const g = c.getContext('2d'); g.scale(2, 2); drawArms(g, 64, 4, 92, A, { stone: true }); g.setTransform(1, 0, 0, 1, 0, 0);
       const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
       const m = new THREE.Mesh(new THREE.PlaneGeometry(1.55, 2.03), new THREE.MeshStandardMaterial({ map: tex, transparent: true, alphaTest: 0.4, roughness: 0.9 }));
       m.position.set(sh.x + Math.sin(sh.ry) * 0.01, sh.y + 0.04, sh.z + Math.cos(sh.ry) * 0.01); m.rotation.y = sh.ry; this.scene.add(m);
-      this.blasones.push({ ...sh, A, idx: i, mesh: m, id: 'escudo:' + this.def.id + ':' + i });
+      const b = { ...sh, A, idx: i, mesh: m, id: 'escudo:' + this.def.id + ':' + i };
+      this.blasones.push(b);
+      casaReady(this.def.id, i).then(L => { if (!L || !m.parent) return; g.clearRect(0, 0, c.width, c.height); drawReady(g, L, 8, 8, c.width - 16, c.height - 16); tex.needsUpdate = true; b.color = true; });
     });
   }
   // escudo oficial del pueblo (o de su valle) pintado en el pilar de la plaza

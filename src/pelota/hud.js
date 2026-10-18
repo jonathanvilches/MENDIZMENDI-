@@ -183,13 +183,15 @@ const CSS = `
 .pel-hit .pel-hl{position:relative;z-index:1}
 `;
 
+/** Mete en la página los estilos del partido (una vez). La pasaka (src/game/pasaka3d.js) usa la misma interfaz. */
+export function pelotaStyle() { if (!document.getElementById('pel-style')) { const st = document.createElement('style'); st.id = 'pel-style'; st.textContent = CSS; document.head.appendChild(st); } }
 // la X de salir, con el icono 3D de cerrar de la familia (src/assets/icons3d); si faltara, el trazo blanco
-const X_ICON = icon3DReady('close') ? `<img class="pel-xi" src="${icon3DReady('close')}" alt="" aria-hidden="true">` : '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>';
+export const X_ICON = icon3DReady('close') ? `<img class="pel-xi" src="${icon3DReady('close')}" alt="" aria-hidden="true">` : '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>';
 
 export class PelotaHud {
   constructor(container, txt, names, touch) {
     this.txt = txt; this.touch = touch;
-    if (!document.getElementById('pel-style')) { const st = document.createElement('style'); st.id = 'pel-style'; st.textContent = CSS; document.head.appendChild(st); }
+    pelotaStyle();
     const r = this.root = document.createElement('div'); r.className = 'pel-root';
     r.innerHTML = `
       <button class="pel-exit" aria-label="${txt.exit}">${X_ICON}</button>

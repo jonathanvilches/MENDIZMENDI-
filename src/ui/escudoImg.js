@@ -29,21 +29,31 @@ export const clubImg = (id) => CLUB[id] || null;
 // para pintarlo en un lienzo (la placa de la plaza, la pared del frontón): la imagen ya cargada y su caja opaca, para
 // encajar el escudo justo donde iría el dibujo. Se carga antes de montar el pueblo (armsReady) y luego se pinta al momento
 const READY = new Map();
-export function armsReady(id) {
-  const u = armsImg(id); if (!u) return Promise.resolve(null);
-  if (!READY.has(id)) READY.set(id, new Promise(res => {
-    const im = new Image(); im.decoding = 'async';
+// (key: con qué se guarda; u: la imagen. Si viene de la web desde el archivo único, se pide con permiso de origen cruzado:
+// si no, el lienzo que la pinta quedaría «manchado» y no podría subir a una textura)
+function ready(key, u) {
+  if (!u) return Promise.resolve(null);
+  if (!READY.has(key)) READY.set(key, new Promise(res => {
+    const im = new Image(); im.decoding = 'async'; if (/^https?:/.test(u) && !u.startsWith(location.origin)) im.crossOrigin = 'anonymous';
     im.onload = () => { try {
       const c = document.createElement('canvas'), n = 128; c.width = c.height = n; const g = c.getContext('2d'); g.drawImage(im, 0, 0, n, n);
       const d = g.getImageData(0, 0, n, n).data; let x0 = n, y0 = n, x1 = -1, y1 = -1;
       for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (d[(y * n + x) * 4 + 3] > 24) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
       const k = im.naturalWidth / n, info = { im, bb: x1 < 0 ? [0, 0, im.naturalWidth, im.naturalHeight] : [x0 * k, y0 * k, (x1 - x0 + 1) * k, (y1 - y0 + 1) * k] };
-      READY.set(id, info); res(info);
-    } catch (e) { READY.delete(id); res(null); } };
-    im.onerror = () => { READY.delete(id); res(null); };
+      READY.set(key, info); res(info);
+    } catch (e) { READY.delete(key); res(null); } };
+    im.onerror = () => { READY.delete(key); res(null); };
     im.src = u;
   }));
-  const r = READY.get(id); return r instanceof Promise ? r : Promise.resolve(r);
+  const r = READY.get(key); return r instanceof Promise ? r : Promise.resolve(r);
+}
+export const armsReady = (id) => ready(id, armsImg(id));
+/** El escudo de una casa con el acabado del autor, cargado y con su caja opaca (null si no lo tiene o no se pudo traer). */
+export const casaReady = (town, idx) => ready('casa:' + town + ':' + idx, casaImg(town, idx));
+/** Pinta una imagen ya cargada (de armsReady o casaReady) encajada en una caja del lienzo, centrada y sin deformar. */
+export function drawReady(g, L, x, y, w, h) {
+  const [bx, by, bw, bh] = L.bb, k = Math.min(w / bw, h / bh), dw = bw * k, dh = bh * k;
+  g.drawImage(L.im, bx, by, bw, bh, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
 }
 const loaded = (id) => { const r = READY.get(id); return r && !(r instanceof Promise) ? r : null; };
 /** El escudo oficial A con el acabado del autor si ya está cargado (si no, el dibujo de siempre): mismo sitio y tamaño. */
