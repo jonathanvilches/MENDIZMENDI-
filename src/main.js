@@ -108,7 +108,7 @@ async function boot() {
   let game = null, def = null, loading = false;
   const hub = new Hub({ sound, onPlay: (d) => play(d) });
   // campeonatos desde el menú, sin misiones: la pelota en el frontón del pueblo elegido; el fútbol, en su propia escena
-  hub.onSport = (kind, townId) => kind === 'futbol' ? futbolSport() : play(levelById(townId) || LEVELS[0], { sport: 'pelota' });
+  hub.onSport = (kind, townId) => kind === 'futbol' ? futbolSport() : play(levelById(townId) || LEVELS[0], { sport: kind === 'pasaka' ? 'pasaka' : 'pelota' });
   hub.onSettings = (S) => { sound.setMusic(S.music); sound.setVolume(S.volume); };
   // el tema de inicio (audio.js, INICIO) suena en el menú: desde el primer toque o tecla (antes, el navegador no deja
   // sonar nada) y al volver de un pueblo o de un campeonato (exit y futbolSport). En los pueblos y en los partidos, la
@@ -144,7 +144,7 @@ async function boot() {
     const cm = COMARCAS.find(c => c.id === d.comarca);
     const TI = { visit: 'church', process: 'basket', harvest: 'wheat', herd: 'sheep', dance: 'dance', carnival: 'mask', trade: 'anvil', legend: 'legend', race: 'running', observe: 'binoculars', tradition: 'music', quiz: 'quiz', summit: 'peak', pelota: 'pelota', figure: 'person', feria: 'cow', dolmen: 'dolmen', castle: 'castle', mirador: 'binoculars' };
     // (al campeonato de pelota se va a jugar: sin la historia del pueblo ni sus misiones en la pantalla de carga)
-    ui.showLoading(opt.sport ? `${isEU() ? 'Esku pilota' : 'Pelota a mano'} · ${d.name.split(' /')[0]}` : d.name, opt.sport ? (isEU() ? 'Frontoia prestatzen…' : 'Preparando el frontón…') : (t => input.touch && t.startsWith('Pulsa C') ? TIP_TOQUE : t)(TIPS[Math.floor(Math.random() * TIPS.length)]), (opt.sport && laminaUrl('dep-fronton')) || townImg(d), { comarca: cm?.name, caption: (k => laminaUrl(k) ? laminaById(k).title : '')(opt.sport ? 'dep-fronton' : d.id), avatar: avatarPortrait(P.avatar), intro: opt.sport ? '' : d.intro, missions: opt.sport ? [] : missionSlots(d, edadDe(P)).map(({ m }) => m.icon || TI[m.type] || 'star'), left: opt.sport ? 0 : (pr => Math.max(0, pr.total - pr.done))(townProgress(P, d)) });
+    ui.showLoading(opt.sport === 'pasaka' ? 'Pasaka · Iruña' : opt.sport ? `${isEU() ? 'Esku pilota' : 'Pelota a mano'} · ${d.name.split(' /')[0]}` : d.name, opt.sport === 'pasaka' ? (isEU() ? 'Klaustroa prestatzen…' : 'Preparando el claustro…') : opt.sport ? (isEU() ? 'Frontoia prestatzen…' : 'Preparando el frontón…') : (t => input.touch && t.startsWith('Pulsa C') ? TIP_TOQUE : t)(TIPS[Math.floor(Math.random() * TIPS.length)]), (opt.sport && laminaUrl('dep-fronton')) || townImg(d), { comarca: cm?.name, caption: (k => laminaUrl(k) ? laminaById(k).title : '')(opt.sport ? 'dep-fronton' : d.id), avatar: avatarPortrait(P.avatar), intro: opt.sport ? '' : d.intro, missions: opt.sport ? [] : missionSlots(d, edadDe(P)).map(({ m }) => m.icon || TI[m.type] || 'star'), left: opt.sport ? 0 : (pr => Math.max(0, pr.total - pr.done))(townProgress(P, d)) });
     try {
       // (el escudo del pueblo, y el de Pamplona del Labrit, con su acabado: listos antes de montar la plaza y el frontón)
     await Promise.all([armsReady(armsOfTown(d.id)?.id), armsReady('pamplona')]);
@@ -189,7 +189,7 @@ async function boot() {
         ui.hideLoading(); queueMode('light');
         saveProfile();
         if (opt.resumeAt) { rt.player.place(opt.resumeAt.x, opt.resumeAt.z, opt.resumeAt.h ?? 0); rt.follow.snap(rt.player); }
-        if (opt.sport) { loading = false; game.sportOnly(); return; }
+        if (opt.sport) { loading = false; if (opt.sport === 'pasaka') game.pasakaOnly(); else game.sportOnly(); return; }
         if (opt.resumed) { const g = game; setTimeout(() => { if (g && g === game) g.ui.toast('Imagen recuperada: sigues donde estabas', 'exclaim', 3600); }, 700); }
         else { const g = game; setTimeout(() => { if (g && g === game) g.ui.toast(`¡Ya estás en ${d.name}! Habla con ${g.missions[0]?.host?.name || 'tu guía'}`, 'exclaim', 4200); }, 700); }
       }
@@ -277,7 +277,7 @@ async function boot() {
     if (ui.game === game) ui.game = null;
     game = null;
     // (desde un campeonato, de vuelta a Torneos, de donde se vino; y en el menú, su tema)
-    sound.setMood('inicio'); queueMode('all'); if (to === 'home' || to === 'sports') hub.show(to); else hub.show('comarca', def?.comarca);
+    sound.setMood('inicio'); queueMode('all'); if (to === 'home' || to === 'sports' || to === 'pasaka') hub.show(to); else hub.show('comarca', def?.comarca);
   }
   window.__exit = exit;
   // memoria gráfica perdida (en el iPhone, al volver de otra aplicación o con poca memoria): si el navegador la

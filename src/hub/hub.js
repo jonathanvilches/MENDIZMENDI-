@@ -17,7 +17,7 @@ import { releaseOffscreen } from '../util/offscreen.js';
 import { avatarPortrait, avatarPortraitImg } from '../ui/portraits.js';
 import { figurasHTML, openFigura } from '../ui/figuras.js';
 import { instrumentosHTML, openInstrumento } from '../ui/instrumentos.js';
-import { jugarPasaka, pasakaPreview } from '../ui/pasaka.js';
+import { pasakaPreview } from '../ui/pasaka.js';
 import { PASAKA } from '../data/pasaka.js';
 import { INSTRUMENTOS } from '../data/instrumentos.js';
 import { FIGURAS, FIGURAS_LEYENDA, FIGURAS_CARNAVAL } from '../data/figuras.js';
@@ -137,7 +137,7 @@ export class Hub {
       const t = e.target.closest('[data-go],[data-town],[data-comarca],[data-play],[data-sport],[data-fronton],[data-frpick],[data-figura],[data-instrumento],[data-pasaka]'); if (!t) return;
       if (t.dataset.frpick != null) return this.frontonPicker();
       if (t.dataset.figura) { this.sound?.ui('open'); return openFigura({ sound: this.sound }, t.dataset.figura); }   // (la ficha de una figura de leyenda o carnaval)
-      if (t.dataset.pasaka) { this.sound?.ui('open'); return jugarPasaka({ sound: this.sound, townName }).then(() => { if (this.screen === 'pasaka') this.go('pasaka', undefined, true); }); }   // (un partido de pasaka desde el menú; al volver, la cuenta de partidos)
+      if (t.dataset.pasaka) { this.sound?.ui('open'); return this.onSport?.('pasaka', 'pamplona'); }   // (un partido de pasaka en 3D: Pamplona en modo campeonato, al sobreclaustro; al salir, de vuelta aquí)
       if (t.dataset.instrumento) { this.sound?.ui('open'); return openInstrumento({ sound: this.sound, townName }, t.dataset.instrumento).then(() => { if (this.screen === 'instrumentos') this.go('instrumentos', undefined, true); }); }   // (la ficha de un instrumento; al volver, la lista con lo tocado)
       // (el frontón elegido cambia en su caja, sin volver a pintar la pantalla ni subirla arriba)
       if (t.dataset.fronton) { this.frontonTown = t.dataset.fronton; this.sound?.ui('click'); this.sheet?.remove(); this.sheet = null; const b = $('.sp-pick', this.root); if (b) b.outerHTML = this.frontonBox(); else this.go('sports', undefined, true); return; }
