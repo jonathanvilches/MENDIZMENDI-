@@ -1404,6 +1404,8 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .fcard .fpic { width: 100%; aspect-ratio: 2 / 3; display: grid; place-items: center; border-radius: var(--rL); background: radial-gradient(ellipse at 50% 88%, rgba(201, 178, 255, .3), transparent 62%); }
 .fcard .fpic img { width: 100%; height: 100%; object-fit: contain; }
 .fcard.ilus .fpic { aspect-ratio: 16 / 9; background: none; } .fcard.ilus .fpic img { object-fit: cover; border-radius: var(--rL); }   /* (con ilustración, apaisada y entera) */
+.fcard.pers .fpic { aspect-ratio: 16 / 9; } .fcard.pers:not(.ilus) .fpic img.pico { width: 46%; height: auto; max-height: 84%; filter: drop-shadow(0 6px 10px rgba(7, 2, 15, .45)); }   /* (los personajes de Navarra sin ilustración: su icono) */
+.ix-frame img.ix-sign.pico { width: 52%; height: auto; max-height: 70%; object-fit: contain; }
 .fcard .ftx { display: flex; flex-direction: column; gap: 2px; min-width: 0; width: 100%; }
 .fcard small { font-size: var(--fs-xs); color: var(--mute); font-weight: 700; } .fcard b { font-size: var(--fs-md); line-height: 1.15; } .fcard i { font-size: var(--fs-xs); color: var(--mute); font-style: normal; font-weight: 600; }
 @media (min-width: 900px) { .figuras { gap: 16px; } .figuras.rail .fcard { width: 170px; } }

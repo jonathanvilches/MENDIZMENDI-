@@ -77,7 +77,10 @@ function parts(core) {
 }
 const ATTRS = ['aria-label', 'placeholder', 'title'];
 const SKIP = /^(SCRIPT|STYLE|NOSCRIPT)$/;
-const setText = (n) => { const v = n.nodeValue, t = tr(v); if (t !== v) { ORIG.set(n, v); n.nodeValue = t; } };
+// (LAST: lo que puso el traductor en cada nodo. El observador vuelve a pasar por el nodo al cambiarlo, y si el euskera
+// coincide con una palabra castellana del diccionario («Lana», el trabajo, es también la lana) se traducía otra vez)
+const LAST = new WeakMap();
+const setText = (n) => { const v = n.nodeValue; if (LAST.get(n) === v) return; const t = tr(v); if (t !== v) { ORIG.set(n, v); LAST.set(n, t); n.nodeValue = t; } };
 function walk(root) {
   if (peek) return;
   if (root.nodeType === 3) { if (!root.parentNode?.closest?.('[data-notr]')) setText(root); return; }   // (data-notr: ya va traducido, como el diálogo que se escribe letra a letra)
