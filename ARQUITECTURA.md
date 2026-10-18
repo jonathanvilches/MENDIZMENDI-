@@ -289,6 +289,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 | `encierro.mjs` | Prueba el encierro con capturas |
 | `iconos-nitidez.mjs` | Nitidez de los iconos 3D en las pantallas del menú (móvil de densidad 3 y escritorio): píxeles de pantalla frente a los de la imagen tras el cambio a la grande, rotos y cuántos de cada tamaño |
 | `encargo-personajes.py` | Paquete para encargar las ilustraciones de los personajes de Navarra (lista completa, prompts en castellano e inglés, referencias de estilo, LEEME) |
+| `encargo-total.mjs` | El encargo de imágenes completo en un solo archivo de texto: lo que el juego enseña sin imagen del autor (escudos de casas con su blasón, personajes, leyendas, figuras, tradiciones, cimas, fauna, láminas, iconos que son renders, instrumentos y, con la carpeta del paquete de escudos, los señalados para corregir), con el estilo de cada apartado y un prompt por imagen con su nombre de archivo. Lo saca de los datos cargados en el servidor de pruebas |
 | `mujeres-ver.mjs` | Las mujeres de Navarra en el menú: pantalla Personajes, tira del inicio y fichas, en castellano y en euskera |
 | `encierro-tactil.mjs` | El encierro en el móvil: la palanca táctil, los botones, la salida al acabar (fichas o la X) y la vuelta al menú |
 | `futbol.mjs` | Prueba el fútbol con capturas |
