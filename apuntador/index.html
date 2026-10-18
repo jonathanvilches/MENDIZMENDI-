@@ -1373,6 +1373,161 @@ body.pip #monitor{opacity:1;transform:none;visibility:visible;pointer-events:aut
 .ab-lang{font:700 var(--t-xs)/1 var(--f-body);letter-spacing:.06em}
 html[lang="en"] .hf-cmds q{quotes:"“" "”"}
 html[lang="en"] .hf-card.claps .hf-cmds q{quotes:none}
+
+/* ---------- Preparación: micro, cámara, luz y encuadre antes de grabar ----------
+   Una hoja oscura de aspecto técnico (como una app de cámara profesional): pestañas con su punto de estado, lecturas
+   con cifras, medidores en directo y una sola acción abajo. En el móvil ocupa la parte de abajo y deja tu cara arriba */
+.prep{position:absolute;z-index:8;top:0;right:0;bottom:0;width:min(440px,100%);display:flex;flex-direction:column;color:#fff;
+  background:rgba(9,10,13,.9);-webkit-backdrop-filter:blur(20px) saturate(1.3);backdrop-filter:blur(20px) saturate(1.3);border-left:1px solid rgba(255,255,255,.09);
+  --pp-ok:#3DDC97;--pp-warn:#FFC24B;--pp-bad:#FF6461;--pp-acc:#C8F25A;--pp-mute:rgba(255,255,255,.64);--pp-dim:rgba(255,255,255,.36);--pp-line:rgba(255,255,255,.09);--pp-card:rgba(255,255,255,.05);
+  --f-num:ui-monospace,'SF Mono',SFMono-Regular,'Roboto Mono',Menlo,Consolas,monospace;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);animation:ppIn .35s var(--ease) both}
+@keyframes ppIn{from{opacity:0;transform:translateX(24px)}}
+@media (max-width:760px){
+  .prep{top:auto;height:min(64%,560px);width:100%;border-left:0;border-top:1px solid rgba(255,255,255,.12);border-radius:22px 22px 0 0;animation-name:ppUp}
+  @keyframes ppUp{from{opacity:0;transform:translateY(32px)}}
+  .prep[data-tab=enc]{height:min(42%,370px)}
+  .pp-dir{max-height:132px}
+}
+.pp-head{display:flex;align-items:center;gap:12px;padding:14px 16px 6px}
+.pp-head h2{margin:0;font:600 1.12rem/1.2 var(--f-display);letter-spacing:-.01em}
+.pp-back{flex:none;width:40px;height:40px;display:grid;place-items:center;border-radius:50%;border:1px solid var(--pp-line);background:var(--pp-card);color:#fff}
+.pp-eye{margin:0 0 3px;font:600 .66rem/1 var(--f-num);letter-spacing:.16em;text-transform:uppercase;color:var(--pp-acc)}
+.pp-sum{margin-left:auto;font:500 .76rem/1 var(--f-num);color:var(--pp-mute);white-space:nowrap;padding:7px 10px;border-radius:999px;border:1px solid var(--pp-line)}
+.pp-sum.all{color:#111216;background:var(--pp-acc);border-color:var(--pp-acc)}
+.pp-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;padding:6px 10px 10px;border-bottom:1px solid var(--pp-line)}
+.pp-tabs button{display:flex;flex-direction:column;align-items:center;gap:6px;min-height:52px;padding:8px 2px;border:0;border-radius:12px;background:none;color:var(--pp-mute);font:600 .74rem/1 var(--f-body);white-space:nowrap}
+.pp-tabs button[aria-selected=true]{background:rgba(255,255,255,.09);color:#fff}
+.pp-dot{width:9px;height:9px;border-radius:50%;background:var(--pp-dim);transition:background .3s,box-shadow .3s}
+.pp-dot.ok{background:var(--pp-ok);box-shadow:0 0 10px var(--pp-ok)}.pp-dot.warn{background:var(--pp-warn)}.pp-dot.bad{background:var(--pp-bad)}
+.pp-dot.pend{background:transparent;box-shadow:inset 0 0 0 1.5px var(--pp-mute);animation:ppPulse 1.4s ease-in-out infinite}
+@keyframes ppPulse{50%{opacity:.35}}
+.pp-body{flex:1;min-height:0;overflow:auto;padding:14px 16px 16px;display:flex;flex-direction:column;gap:14px;overscroll-behavior:contain}
+.pp-foot{display:flex;gap:8px;padding:10px 16px 14px;border-top:1px solid var(--pp-line)}
+.prep .primary{flex:1;min-height:52px;background:var(--pp-acc);color:#111216;box-shadow:0 6px 24px rgba(200,242,90,.25)}
+.prep .primary .dot{width:12px;height:12px;border-radius:50%;background:#E5443F}
+.prep .ghost{min-height:52px;background:var(--pp-card);color:#fff;border-color:rgba(255,255,255,.16)}
+.prep .primary.ready{animation:ppGlow 1.6s ease-in-out infinite}
+@keyframes ppGlow{50%{box-shadow:0 0 0 6px rgba(200,242,90,.22),0 6px 24px rgba(200,242,90,.35)}}
+.pp-dev{display:flex;align-items:center;gap:12px}
+.pp-devi{flex:none;width:44px;height:44px;display:grid;place-items:center;border-radius:14px;background:var(--pp-card);border:1px solid var(--pp-line);font-size:1.3rem}
+.pp-dev b{display:block;font-size:1rem;line-height:1.25}
+.pp-dev small{display:block;margin-top:3px;font:500 .74rem/1.3 var(--f-num);color:var(--pp-mute);letter-spacing:.02em}
+.pp-sel{display:flex;flex-direction:column;gap:6px;font-size:.78rem;color:var(--pp-mute)}
+.pp-sel select{width:100%;min-height:44px;padding:0 12px;border-radius:12px;border:1px solid rgba(255,255,255,.16);background:#15161B;color:#fff;font-size:.92rem}
+.pp-lbl{margin:0;font:600 .66rem/1 var(--f-num);letter-spacing:.14em;text-transform:uppercase;color:var(--pp-dim)}
+.pp-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.pp-kpi{padding:10px 12px;border-radius:12px;background:var(--pp-card);border:1px solid var(--pp-line);min-width:0}
+.pp-kpi small{display:block;font-size:.72rem;color:var(--pp-mute);line-height:1.25}
+.pp-kpi b{display:block;margin-top:4px;font:600 1.02rem/1.15 var(--f-num);font-variant-numeric:tabular-nums;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pp-kpi b.ok{color:var(--pp-ok)}.pp-kpi b.warn{color:var(--pp-warn)}.pp-kpi b.bad{color:var(--pp-bad)}
+.pp-kpi b em{font-style:normal;font-family:var(--f-body);font-weight:500;font-size:.74rem;color:var(--pp-mute);margin-left:4px}
+.vu{position:relative;height:16px;border-radius:8px;overflow:hidden;background:linear-gradient(90deg,rgba(255,194,75,.22) 0 30%,rgba(61,220,151,.22) 30% 90%,rgba(255,100,97,.3) 90%)}
+.vu-lvl{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#FFC24B 0,#3DDC97 30%,#3DDC97 88%,#FF6461 92%);background-size:var(--vw,100%) 100%;transition:width .08s linear}
+.vu-pk{position:absolute;top:0;bottom:0;width:2px;left:0;background:#fff;transition:left .08s linear}
+.vu-scale{display:flex;justify-content:space-between;margin-top:6px;font:500 .66rem/1 var(--f-num);color:var(--pp-dim)}
+.pp-v{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:14px;background:var(--pp-card);border:1px solid var(--pp-line)}
+.pp-v b{display:block;font-size:.95rem}.pp-v span{display:block;margin-top:2px;font-size:.84rem;color:var(--pp-mute)}
+.pp-v.ok{border-color:rgba(61,220,151,.45);background:rgba(61,220,151,.08)}.pp-v.warn{border-color:rgba(255,194,75,.45);background:rgba(255,194,75,.07)}.pp-v.bad{border-color:rgba(255,100,97,.5);background:rgba(255,100,97,.08)}
+.pp-v i{flex:none;font-style:normal;font-size:1.1rem;line-height:1.3}
+.pp-say{margin:0;font-size:.86rem;color:var(--pp-mute)}.pp-say q{display:block;margin-top:4px;color:#fff;font-size:1.02rem;quotes:"«" "»"}
+.pp-tip{margin:0;font-size:.82rem;line-height:1.45;color:var(--pp-mute);padding-left:12px;border-left:2px solid var(--pp-acc)}
+.pp-seg{display:flex;gap:6px;flex-wrap:wrap}
+.pp-seg button{flex:1;min-width:0;min-height:42px;padding:0 10px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:var(--pp-card);color:var(--pp-mute);font:600 .82rem/1 var(--f-body);white-space:nowrap}
+.pp-seg button[aria-pressed=true]{border-color:var(--pp-acc);color:#fff;background:rgba(200,242,90,.1)}
+.pp-ctl{display:flex;flex-direction:column;gap:12px}
+.pp-rng{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;font-size:.84rem}
+.pp-rng span{color:var(--pp-mute);min-width:84px}
+.pp-rng input{width:100%;accent-color:var(--pp-acc)}
+.pp-rng output{font:600 .8rem/1 var(--f-num);min-width:64px;text-align:right;font-variant-numeric:tabular-nums}
+.pp-sw{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:.9rem}
+.pp-sw input{appearance:none;-webkit-appearance:none;flex:none;width:46px;height:28px;border-radius:999px;background:rgba(255,255,255,.18);position:relative;transition:background .2s;margin:0}
+.pp-sw input::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .2s var(--ease)}
+.pp-sw input:checked{background:var(--pp-acc)}.pp-sw input:checked::after{transform:translateX(18px);background:#111216}
+.pp-note{margin:0;font-size:.82rem;color:var(--pp-mute)}
+.pp-card{display:flex;flex-direction:column;gap:12px;padding:14px;border-radius:16px;background:var(--pp-card);border:1px solid var(--pp-line)}
+.pp-card h3{margin:0;font:600 .95rem/1.2 var(--f-body)}
+.pp-dir{width:100%;max-width:300px;align-self:center;display:block}
+.pp-delta{margin:0;padding:10px 12px;border-radius:12px;font-size:.84rem;background:rgba(200,242,90,.1);border:1px solid rgba(200,242,90,.35)}
+.pp-delta b{font-family:var(--f-num)}
+.prep .lbar-k{color:var(--pp-mute)}.prep .lbar i{background:#fff;box-shadow:0 0 0 2px #0B0B0F}
+.pp-more summary{cursor:pointer;font-size:.88rem;font-weight:600;color:var(--pp-acc);list-style:none;padding:4px 0}
+.pp-more summary::-webkit-details-marker{display:none}
+.pp-more[open] summary{margin-bottom:10px}
+.pp-more .pl-chips button{color:#fff}
+.pp-more .fig{width:100%;height:auto;color:rgba(255,255,255,.75)}
+.pp-more ol{margin:10px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:.84rem;color:var(--pp-mute)}
+.pp-more ol li{display:flex;gap:8px}.pp-more ol .n{flex:none;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:var(--pp-acc);color:#111216;font-size:.7rem}
+.pp-ready{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:6px 0 2px}
+.pp-big{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;font-size:2rem;background:rgba(255,194,75,.14);color:var(--pp-warn);border:2px solid rgba(255,194,75,.5)}
+.pp-ready.ok .pp-big{background:rgba(61,220,151,.14);color:var(--pp-ok);border-color:var(--pp-ok);box-shadow:0 0 32px rgba(61,220,151,.35);animation:ppPop .5s var(--ease) both}
+@keyframes ppPop{from{transform:scale(.6);opacity:0}}
+.pp-ready h3{margin:4px 0 0;font:600 1.3rem/1.2 var(--f-display)}
+.pp-ready p{margin:0;font-size:.88rem;color:var(--pp-mute)}
+.pp-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.pp-list li{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--pp-card);border:1px solid var(--pp-line);font-size:.9rem}
+.pp-list li b{font-weight:600}.pp-list li small{display:block;color:var(--pp-mute);font-size:.76rem}
+.pp-list .k{font:700 .8rem/1 var(--f-num);padding:5px 8px;border-radius:999px}
+.pp-list .k.ok{color:#111216;background:var(--pp-ok)}.pp-list .k.warn{color:#111216;background:var(--pp-warn)}.pp-list .k.bad{color:#fff;background:var(--pp-bad)}.pp-list .k.pend{color:var(--pp-mute);border:1px solid var(--pp-line)}
+.pp-list li[data-go]{cursor:pointer}
+.pp-gaze{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;border:1px solid var(--pp-line);background:var(--pp-card)}
+.pp-gaze .lens{width:34px;height:34px;border-radius:50%;border:2px solid var(--pp-acc);display:grid;place-items:center}
+.pp-gaze .lens::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--pp-acc);animation:ppPulse 1.2s ease-in-out infinite}
+.pp-gaze.done .lens::after{animation:none}
+.pp-gaze b{display:block;font-size:.92rem}.pp-gaze small{display:block;color:var(--pp-mute);font-size:.78rem}
+.pp-gaze .gbar{grid-column:1 / -1;height:4px;border-radius:2px;background:rgba(255,255,255,.12);overflow:hidden}.pp-gaze .gbar i{display:block;height:100%;width:0;background:var(--pp-acc);transition:width .2s linear}
+.prep audio{width:100%;height:40px}
+.pp-card .ghost:disabled{opacity:.8}
+.pp-how{margin:0;font-size:.82rem;color:var(--pp-mute);text-align:center}
+#studio.prepping :is(.bar-ctl,#monPill,#hud,#cue,#wLegend,.voice-hint,#status,#lane,#readAlert){display:none!important}
+#studio.prepping #prompter{opacity:0}
+@media (min-width:761px){#studio.prepping :is(#cam,#overlay,#ghost,#frameGuide){right:440px;width:auto}#studio.prepping .horizon{left:calc((100% - 440px) / 2)}}
+.busy{z-index:9}
+/* luz de pantalla: un aro de luz en el borde, regulable en intensidad y en tono */
+#studio:is(.app-llamada,.file-mode,.drill) #prepBtn{display:none}
+#studio.ringlit #prompter{width:min(1000px,calc(100% - 2 * var(--rl-w,8vmin) - 16px));top:var(--rl-w,8vmin)}
+.ring-light{position:absolute;inset:0;z-index:7;pointer-events:none;border:var(--rl-w,8vmin) solid var(--rl-c,#FFF4E6);opacity:var(--rl-o,.9);box-shadow:inset 0 0 calc(var(--rl-w,8vmin) * .9) var(--rl-c,#FFF4E6)}
+
+/* ---------- la puntuación: arriba del todo, oscura y con cifras, como un panel profesional ---------- */
+.sc{--sc-ok:#3DDC97;--sc-warn:#FFC24B;--sc-bad:#FF6461;--sc-acc:#C8F25A;--sc-mute:rgba(255,255,255,.66);--sc-line:rgba(255,255,255,.1);--sc-card:rgba(255,255,255,.05);
+  --f-num:ui-monospace,'SF Mono',SFMono-Regular,'Roboto Mono',Menlo,Consolas,monospace;
+  width:min(980px,calc(100% - 32px));margin:16px auto 8px;padding:20px;border-radius:24px;background:radial-gradient(120% 140% at 0% 0%,#1C2014 0%,#0E0F13 46%,#0B0B0F 100%);color:#fff;border:1px solid rgba(200,242,90,.18);box-shadow:0 18px 50px rgba(0,0,0,.25);display:flex;flex-direction:column;gap:16px}
+.sc-top{display:flex;align-items:center;gap:18px}
+.sc-ring{--p:0;--rc:var(--sc-acc);flex:none;width:112px;height:112px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--rc) calc(var(--p) * 1%),rgba(255,255,255,.1) 0);position:relative}
+.sc-ring::before{content:"";position:absolute;inset:9px;border-radius:50%;background:#0D0E12}
+.sc-ring div{position:relative;text-align:center;line-height:1}
+.sc-ring b{display:block;font:700 2.4rem/1 var(--f-num);letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.sc-ring small{display:block;margin-top:4px;font:500 .7rem/1 var(--f-num);color:var(--sc-mute)}
+.sc-eye{margin:0;font:600 .66rem/1 var(--f-num);letter-spacing:.16em;text-transform:uppercase;color:var(--sc-acc)}
+.sc-head h2{margin:6px 0 0;font:600 1.6rem/1.15 var(--f-display);letter-spacing:-.01em}
+.sc-delta{display:flex;align-items:center;justify-content:center;gap:6px;margin:0;padding:6px 10px;border-radius:999px;font:600 .82rem/1.2 var(--f-body);background:var(--sc-card);border:1px solid var(--sc-line)}
+.sc-delta b{font-family:var(--f-num)}
+.sc-delta.up{color:#0D0E12;background:var(--sc-ok);border-color:var(--sc-ok)}.sc-delta.down{color:#fff;background:rgba(255,100,97,.18);border-color:rgba(255,100,97,.6)}
+.sc-imp{margin:0;font-size:1.02rem;line-height:1.5;color:rgba(255,255,255,.9)}
+.sc-imp b{color:var(--sc-acc);font-weight:600}
+.sc-tr{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-items:start}
+@media (max-width:640px){.sc-tr{grid-template-columns:1fr}.sc-ring{width:96px;height:96px}.sc-ring b{font-size:2rem}.sc-head h2{font-size:1.35rem}.sc{padding:16px}}
+.sc-t{display:grid;grid-template-columns:28px 1fr auto auto;align-items:center;gap:6px 10px;padding:12px 14px;border-radius:16px;background:var(--sc-card);border:1px solid var(--sc-line)}
+.sc-t .e{font-size:1.2rem}.sc-t b{font-weight:600;font-size:.95rem}
+.sc-t .v{font:700 1.15rem/1 var(--f-num);font-variant-numeric:tabular-nums}
+.sc-t .d{font:600 .74rem/1 var(--f-num);padding:4px 6px;border-radius:6px;color:var(--sc-mute);background:rgba(255,255,255,.06);min-width:38px;text-align:center}
+.sc-t .d.up{color:var(--sc-ok);background:rgba(61,220,151,.12)}.sc-t .d.down{color:var(--sc-bad);background:rgba(255,100,97,.12)}
+.sc-t .bar{grid-column:1 / -1;height:6px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}
+.sc-t .bar i{display:block;height:100%;border-radius:3px;background:var(--tc,var(--sc-acc));transform-origin:left;animation:scBar 1s var(--ease) both}
+@keyframes scBar{from{transform:scaleX(0)}}
+.sc-t[data-k=ok]{--tc:var(--sc-ok)}.sc-t[data-k=warn]{--tc:var(--sc-warn)}.sc-t[data-k=bad]{--tc:var(--sc-bad)}
+.sc-t[data-k=ok] .v{color:var(--sc-ok)}.sc-t[data-k=warn] .v{color:var(--sc-warn)}.sc-t[data-k=bad] .v{color:var(--sc-bad)}
+.sc-t small{grid-column:1 / -1;font-size:.82rem;line-height:1.45;color:var(--sc-mute)}
+.sc-t small em{font-style:normal;color:#fff}
+.sc-goal{margin:0;padding:12px 14px;border-radius:14px;font-size:.9rem;background:var(--sc-card);border:1px solid var(--sc-line)}
+.sc-goal.ok{border-color:rgba(61,220,151,.5);background:rgba(61,220,151,.08)}.sc-goal.bad{border-color:rgba(255,100,97,.5);background:rgba(255,100,97,.08)}.sc-goal.warn{border-color:rgba(255,194,75,.45);background:rgba(255,194,75,.07)}
+.sc-fix{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:16px;background:rgba(200,242,90,.08);border:1px solid rgba(200,242,90,.35)}
+.sc-fix>div{display:flex;gap:12px;align-items:flex-start}
+.sc-fix .e{font-size:1.6rem;line-height:1}.sc-fix b{display:block;font-size:1.05rem}.sc-fix small{display:block;margin-top:4px;font-size:.88rem;line-height:1.45;color:rgba(255,255,255,.8)}
+.sc-act{display:flex;gap:8px;flex-wrap:wrap}
+.sc .primary{flex:1;min-width:180px;background:var(--sc-acc);color:#0D0E12;box-shadow:0 8px 24px rgba(200,242,90,.25)}
+.sc .ghost{background:var(--sc-card);color:#fff;border-color:rgba(255,255,255,.18)}
+#report .sc ~ .dash .dash-score{display:none}
 </style>
 </head>
 <body>
@@ -1512,7 +1667,7 @@ html[lang="en"] .hf-card.claps .hf-cmds q{quotes:none}
     <section class="pane" data-pane="tono" hidden aria-labelledby="tonoTitle">
       <div class="pane-head">
         <h2 id="tonoTitle"><span data-f="video">¿Qué tiene que transmitir?</span><span data-f="analizar">¿Qué querías transmitir?</span><span data-f="llamada">¿Cómo quieres que te vean?</span></h2>
-        <p class="note"><span data-f="video">Elige el tono: el apuntador te guiará hacia él mientras grabas.</span><span data-f="analizar">Compararé tu vídeo con este tono y te diré si lo consigues.</span><span data-f="llamada">Cercano para el equipo o un cliente de confianza, serio para una entrevista o una negociación, inspirador para presentar una idea.</span></p>
+        <p class="note"><span data-f="video">Elige el tono: al terminar, te digo si tu vídeo lo transmite y qué cambiar.</span><span data-f="analizar">Compararé tu vídeo con este tono y te diré si lo consigues.</span><span data-f="llamada">Cercano para el equipo o un cliente de confianza, serio para una entrevista o una negociación, inspirador para presentar una idea.</span></p>
       </div>
       <div class="detect" id="detect" data-f="video"></div>
       <div class="tones" id="tones" role="radiogroup" aria-label="Tono del mensaje"></div>
@@ -1574,6 +1729,7 @@ html[lang="en"] .hf-card.claps .hf-cmds q{quotes:none}
             <option value="avisos">El texto, medidores y avisos</option>
           </select>
         </div>
+        <label class="row"><span class="row-t"><b>Preparación al entrar al plató</b><small>Micro, cámara, luz y encuadre, con cifras y ajustes, antes de grabar.</small></span><input type="checkbox" class="switch" id="prepFirst" role="switch"></label>
         <label class="row"><span class="row-t"><b>Ensayo antes de grabar</b><small>Una toma de prueba que no cuenta: la revisamos y luego grabas la buena.</small></span><input type="checkbox" class="switch" id="rehearseFirst" role="switch"></label>
         <div class="row stack"><label class="row-t" for="rehHelp"><b>En el ensayo</b><small data-hint="rehHelp"></small></label>
           <select id="rehHelp">
@@ -1810,12 +1966,15 @@ html[lang="en"] .hf-card.claps .hf-cmds q{quotes:none}
     <button class="btn" id="fontUp" title="Letra más grande (+)"><svg class="ico"><use href="#i-texto"/></svg><span class="sr">Letra más grande</span>+</button>
     <button class="btn" id="txtBtn" title="Ocultar o mostrar el texto para verte entero (T)"><svg class="ico"><use href="#i-texto"/></svg><span class="lbl">Texto</span></button>
     <button class="btn" id="skel" title="Modo análisis: dibujar lo que detecta (S)"><svg class="ico"><use href="#i-esqueleto"/></svg><span class="sr">Modo análisis</span></button>
+    <button class="btn" id="prepBtn" title="Preparación: micro, cámara, luz y encuadre"><svg class="ico"><use href="#i-encuadre"/></svg><span class="lbl">Preparar</span></button>
     <button class="btn" id="mon" title="Información (I)"><svg class="ico"><use href="#i-monitor"/></svg><span class="sr">Información</span></button>
     <button class="btn" id="wordsBtn" hidden title="Volver a enseñar tus palabras de voz"><span aria-hidden="true">🎙️</span><span class="lbl">Mis palabras</span></button>
     <button class="btn" id="pipBtn" title="Ventana flotante para tenerlo encima de la videollamada"><svg class="ico"><use href="#i-flotante"/></svg><span class="lbl">Ventana flotante</span></button>
   </div>
 
   <div class="pip-note" id="pipNote" hidden><b>El apuntador está en la ventana flotante</b><p>Puedes volver a la videollamada: los avisos y lo que detecta siguen allí.</p><div class="actions"><button class="ghost" id="pipBack">Traerlo a esta ventana</button></div></div>
+  <div class="ring-light" id="ringLight" hidden></div>
+  <section class="prep" id="prep" hidden aria-label="Preparación"></section>
   <div class="stage-msg" id="stageMsg" hidden></div>
 </section>
 <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
@@ -1839,7 +1998,7 @@ const LANG = (() => { try { const o = JSON.parse(localStorage.getItem('apuntador
 const EN = LANG === 'en';
 const LL = (es, en) => EN ? en : es;
 document.documentElement.lang = LANG;
-const EN_HTML = {"Graba con más":"Record with more","energía":"energy","seguridad":"confidence","intención":"purpose","naturalidad":"authenticity","energía, seguridad, intención y naturalidad":"energy, confidence, purpose and authenticity","Tu director de escena: te ve y te escucha mientras grabas y te dice en el momento cómo moverte y hablar.":"Your on-set director: it watches and listens as you record and tells you how to move and speak, in the moment.","Haz la prueba de 30 segundos":"Take the 30-second test","Lee un texto corto y te digo cómo te ven en cámara y qué mejorar primero. Sin registrarte.":"Read a short text and I’ll tell you how you come across on camera and what to fix first. No sign-up.","¿Qué quieres hacer?":"What do you want to do?","Grabar un vídeo":"Record a video","Tu guion en pantalla y, al terminar, tu vídeo con notas.":"Your script on screen and, afterwards, your video with notes.","Analizar un vídeo":"Analyze a video","Sube uno que ya grabaste y te digo qué mejorar.":"Upload one you’ve already recorded and I’ll tell you what to improve.","Entrenar un minuto":"1-minute training","Ejercicios cortos con una sola meta: mirada, voz, manos, sonrisa y pausas.":"Short exercises with one goal each: eye contact, voice, hands, smile and pauses.","Videollamada":"Video call","O un directo. Sin guion, en una ventana flotante encima.":"Or a livestream. No script, in a floating window on top.","Tenla como una app":"Get it as an app","Instalar":"Install","Todo se analiza en tu dispositivo":"Everything is analyzed on your device","Cómo funciona y privacidad":"How it works and privacy","Qué mira.":"What it watches.","La cara (cejas, ojos, mirada, boca y sonrisa, giro e inclinación de la cabeza, si asientes), el cuerpo (hombros, codos, muñecas, postura y movimiento) y cada mano con sus dedos; en la voz, volumen, entonación, ritmo, pausas y si hablas tú o escuchas.":"Your face (brows, eyes, eye contact, mouth and smile, head turn and tilt, nodding), your body (shoulders, elbows, wrists, posture and movement) and each hand and its fingers; in your voice, volume, intonation, pace, pauses and whether you’re talking or listening.","Privacidad.":"Privacy.","El vídeo y el audio se analizan en este dispositivo y no se suben a ningún sitio. El control por voz «Mis palabras» también funciona aquí, sin conexión. Solo el motor «Navegador» (y el texto que sigue tu voz) usa el reconocimiento de voz del navegador, que en Chrome procesa Google.":"Video and audio are analyzed on this device and never uploaded anywhere. “My words” voice control also works here, offline. Only the “Browser” engine (and the text that follows your voice) uses the browser’s speech recognition, which Google processes in Chrome.","Límites.":"Limits.","Es una guía, no un juez: las medidas son aproximadas y dependen de la luz, el encuadre y el micrófono. Calibra al entrar para que te compare contigo.":"It’s a guide, not a judge: measurements are approximate and depend on lighting, framing and mic. Calibrate when you start so it compares you with yourself.","¿Qué vas a decir?":"What are you going to say?","Escribe, pega o sube tu guion. En el plató lo leerás limpio, sin marcas encima.":"Type, paste or upload your script. In the studio you’ll read it clean, with no marks on top.","Guion":"Script","Subir texto":"Upload text","Ejemplo":"Example","Word, PDF, Excel, PowerPoint (las notas del orador), .txt, subtítulos (.srt, .vtt), .odt o .rtf. También puedes arrastrar el archivo al cuadro.":"Word, PDF, Excel, PowerPoint (the speaker notes), .txt, subtitles (.srt, .vtt), .odt or .rtf. You can also drag the file into the box.","Marcas opcionales":"Optional markup","[animado]":"[upbeat]","tono desde ese párrafo":"tone from that paragraph on","pausa":"pause","*palabra*":"*word*","énfasis":"emphasis","{abre los brazos}":"{open your arms}","acotación tuya":"your own direction","¿Qué tiene que transmitir?":"What does it need to convey?","¿Qué querías transmitir?":"What did you want to convey?","¿Cómo quieres que te vean?":"How do you want to come across?","Elige el tono: el apuntador te guiará hacia él mientras grabas.":"Pick the tone: Apuntador will guide you toward it as you record.","Compararé tu vídeo con este tono y te diré si lo consigues.":"I’ll compare your video with this tone and tell you if you nail it.","Cercano para el equipo o un cliente de confianza, serio para una entrevista o una negociación, inspirador para presentar una idea.":"Warm for your team or a trusted client, serious for an interview or a negotiation, inspiring to pitch an idea.","Si un párrafo empieza con una etiqueta como":"If a paragraph starts with a tag like","[serio]":"[serious]",", el apuntador cambia de tono al llegar a él.":", Apuntador switches tone when it gets there.","Qué cambiar para transmitir lo que quieres":"What to change to get your message across","Sugerencias para tu guion y tu tono. Tócalas para verlas en el texto o aplicarlas.":"Suggestions for your script and tone. Tap them to see them in the text or apply them.","Ideas para empezar (tócala para ponerla al principio):":"Opening ideas (tap one to put it at the start):","Vista previa":"Preview","Así lo verás en el plató":"This is how you’ll see it in the studio","Toca una palabra para marcarla: un toque, énfasis; dos, pausa después; tres, sin marca. Los gestos se marcan solos, con su emoji en el margen; una franja de color, donde cambia el tono.":"Tap a word to mark it: once for emphasis, twice for a pause after it, three times to clear. Gestures are marked for you, with their emoji in the margin; a color stripe shows where the tone changes.","Colores del texto":"Text colors","Colores en el texto":"Colors in the text","Rojo, énfasis; azul, pausa; amarillo, gesto.":"Red, emphasis; blue, pause; yellow, gesture.","Entrena un minuto al día":"Train one minute a day","Cada ejercicio tiene una sola meta y dura menos de un minuto. Te digo cómo vas y guardo tu récord en este dispositivo.":"Each exercise has one goal and takes under a minute. I’ll tell you how you’re doing and save your best on this device.","Todo listo":"All set","Elige tu vídeo":"Choose your video","Revisa cómo quieres grabar y entra al plató.":"Check how you want to record and enter the studio.","Se reproduce aquí mismo y te digo qué transmites. No sale de tu dispositivo.":"It plays right here and I’ll tell you what you’re conveying. It never leaves your device.","Al empezar, abre la «Ventana flotante»: se queda encima de la aplicación de la videollamada.":"When you start, open the “Floating window”: it stays on top of the video call app.","Toca para elegir un vídeo":"Tap to choose a video","📱 ¿Prefieres grabar con la cámara del móvil? Grábalo y súbelo aquí":"📱 Rather record with your phone’s camera? Record it and upload it here",".mp4, .mov o .webm · o arrástralo aquí":".mp4, .mov or .webm · or drag it here","Cómo grabar":"How to record","Ensayo antes de grabar":"Rehearse before recording","Una toma de prueba que no cuenta: la revisamos y luego grabas la buena.":"A practice take that doesn’t count: we review it, then you record the real one.","Cuenta atrás al pulsar Grabar":"Countdown when you tap Record","Tiempo para colocarte antes de que empiece. Se para sola al terminar el texto, o tocando la pantalla.":"Time to get in position before it starts. It stops by itself when the script ends, or when you tap the screen.","10 segundos":"10 seconds","Mientras grabas":"While you record","Solo el texto (recomendado)":"Just the script (recommended)","El texto y medidores":"Script and meters","El texto, medidores y avisos":"Script, meters and live cues","En el ensayo":"In rehearsal","Al grabar de verdad":"When recording for real","Avisos y medidores (recomendado)":"Cues and meters (recommended)","Solo medidores":"Meters only","Solo el texto":"Script only","Medidores (recomendado)":"Meters (recommended)","Avisos y medidores":"Cues and meters","Control por voz":"Voice control","Reconocimiento de voz":"Speech recognition","Automático (recomendado)":"Automatic (recommended)","Mis palabras":"My words","Del navegador":"Browser","Desactivado":"Off","Margen al parar":"Stop buffer","Lo que sigue grabando después de «corten».":"How long it keeps recording after “cut”.","Cortar al momento":"Cut right away","2 segundos":"2 seconds","3 segundos":"3 seconds","5 segundos":"5 seconds","Texto y avisos":"Text and cues","Cómo avanza el texto":"How the text moves","Sigue mi voz":"Follow my voice","Velocidad fija":"Fixed speed","Velocidad":"Speed","En el modo de velocidad fija.":"In fixed-speed mode.","Tamaño de letra":"Font size","Idioma de la voz":"Voice language","Parar el texto si me callo":"Pause the text when I go quiet","Avisarme de los gestos del guion":"Cue me on the script’s gestures","Avisarme si me equivoco al leer":"Alert me when I misread","Dudas y pausas a mitad de frase en todos; palabras saltadas, repetidas o cambiadas con Chrome o Edge de ordenador.":"Hesitations and mid-sentence pauses in any browser; skipped, repeated or swapped words in desktop Chrome or Edge.","Texto en espejo":"Mirror text","Para un cristal de teleprompter.":"For teleprompter glass.","Modo análisis":"Analysis mode","Dibuja lo que detecta: cara, cejas, ojos, boca, hombros, codos y manos. Apagado, la imagen queda limpia (en el plató, botón de la figura o tecla S).":"Draws what it detects: face, brows, eyes, mouth, shoulders, elbows and hands. When off, the image stays clean (in the studio, the figure button or the S key).","Si la aplicación de la llamada no deja usar la cámara a la vez, abre la llamada en otra pestaña de este navegador (Meet, Teams o Zoom en la web).":"If the call app won’t let you use the camera at the same time, open the call in another tab of this browser (Meet, Teams or Zoom on the web).","Te pedirá permiso para la cámara y el micrófono. Mejor con el móvil en vertical o el portátil a la altura de los ojos, y que se te vea de cintura para arriba.":"It’ll ask for camera and mic access. Best with your phone upright or your laptop at eye level, framed from the waist up.","Continuar":"Continue","Entrar al plató":"Enter the studio","Empezar":"Start","Elegir vídeo":"Choose video","✋ Fallo al leer":"✋ Misread","🎙️ «corten» · «otra vez»":"🎙️ “cut” · “again”","Información":"Info","Plano":"Setup","Cuerpo":"Body","Tono":"Tone","Transmites":"Coming across","Objetivo":"Target","👀 Esperando a verte…":"👀 Waiting to see you…","Luz":"Lighting","Sonido":"Sound","Encuadre":"Framing","Nivel":"Level","🙂 Cara":"🙂 Face","🧍 Cuerpo":"🧍 Body","✋ Manos":"✋ Hands","🎙️ Voz":"🎙️ Voice","Colócate frente a la cámara y empieza a hablar.":"Get in front of the camera and start talking.","Revisa tu plano antes de grabar":"Check your setup before recording","Cargando…":"Loading…","Calibración · 5 segundos":"Calibration · 5 seconds","Colócate como vas a estar, hombros relajados, cara tranquila, mira a la cámara y di con tu voz normal:":"Get in position, shoulders relaxed, face calm, look at the camera and say in your normal voice:","Hola, estoy probando el micrófono y la cámara.":"Hi, I’m testing the mic and the camera.","Saltar":"Skip","La cámara se ha parado":"The camera stopped","El sistema o otra aplicación la ha cortado.":"The system or another app cut it off.","Reactivar la cámara":"Turn the camera back on","🎙️ Manos libres: enséñale tu voz":"🎙️ Hands-free: teach it your voice","Después grabas, paras y repites sin tocar el móvil. Ponte donde vas a grabar y di cada palabra cuando la veas, sola y con una pausa. Solo esta vez: funciona sin conexión y te obedece solo a ti.":"Then you record, stop and retake without touching your phone. Stand where you’ll record and say each word when you see it, on its own, with a pause. Just this once: it works offline and only obeys you.","«comenzamos»":"“action”","Empezar de nuevo":"Start over","Ahora no":"Not now","🔥 Calentar 40 s":"🔥 Warm up 40 s","🔥 Calentamiento · 40 s":"🔥 Warm-up · 40 s","Saltar":"Skip","Siguiente":"Next","⏹ Corto en 3":"⏹ Cutting in 3","Sigo grabando hasta entonces. Di":"I’ll keep recording until then. Say","seguimos":"keep going","para continuar u":"to continue or","otra vez":"again","para repetir desde el principio.":"to start over from the top.","Seguir grabando":"Keep recording","Cortar ya":"Cut now","Manos libres":"Hands-free","Enseñar mi voz":"Teach my voice","¡Entendido!":"Got it!","Salir":"Exit","Otro ejercicio":"Another exercise","Otra vez":"Again","🎯 Tus objetivos para esta toma":"🎯 Your goals for this take","Te aviso en cuanto vea uno de ellos y te digo cuándo lo consigues.":"I’ll cue you as soon as I spot one and tell you when you nail it.","Ensayo terminado":"Rehearsal done","Al grabar, fíjate en esto":"When you record, focus on this","Ver informe":"View report","Ensayar otra vez":"Rehearse again","Grabar de verdad":"Record for real","🎙️ Di":"🎙️ Say","para grabar ·":"to record ·","«corten»":"“cut”","para parar ·":"to stop ·","«otra vez»":"“again”","para repetir":"to redo","Volver":"Back","Más lento":"Slower","Más rápido":"Faster","Ensayar":"Rehearse","Grabar":"Record","Terminar":"Finish","Letra más pequeña":"Smaller text","Letra más grande":"Larger text","Texto":"Text","Ventana flotante":"Floating window","El apuntador está en la ventana flotante":"Apuntador is in the floating window","Puedes volver a la videollamada: los avisos y lo que detecta siguen allí.":"You can go back to the video call: the cues and live detection stay there.","Traerlo a esta ventana":"Bring it back to this window","Atrás":"Back","Objetivos para la próxima toma":"Goals for the next take","Ocultar":"Hide","Escribe o pega aquí tu guion…":"Type or paste your script here…","Tono del mensaje":"Message tone","Avance del texto":"Text scrolling","Palabras por minuto":"Words per minute","Plató":"Studio","Desplegar la información":"Expand info","Información del director":"Director info","Plegar la información":"Collapse the info","Vista de la información":"Info view","Objetivos de la toma":"Take goals","Tu plano":"Your setup","Lo que detecta ahora":"What it detects now","Tu plano: luz, sonido, encuadre y nivel":"Your setup: lighting, sound, framing and level","Tu plano":"Your setup","Cómo te ves":"How you come across","Sonrisa":"Smile","Gestos con manos y brazos":"Hand and arm gestures","Voz con entonación":"Voice with intonation","La franja verde es lo que pide tu tono; el punto, cómo vas. Al grabar los verás arriba, sin textos.":"The green band is what your tone calls for; the dot is where you are. When you record, they sit at the top, with no text.","Cada parte del cuerpo y todas las medidas":"Each body part and every measurement","Tus medidores":"Your meters","Partes del plano":"Setup parts","Luz":"Lighting","Tu nota, sonrisa, gestos y voz: desplegar la información":"Your score, smile, gestures and voice: expand the info","Lo que hace cada parte del cuerpo":"What each body part is doing","Enseña tus palabras":"Teach your words","Parando la grabación":"Stopping the recording","Compartir tu resultado":"Share your result","Objetivos de esta toma":"Goals for this take","Resultado del ensayo":"Rehearsal result","Volver (Esc)":"Back (Esc)","Más lento (flecha abajo)":"Slower (down arrow)","Puntos de la toma":"Take score","Más rápido (flecha arriba)":"Faster (up arrow)","Ensayar (Espacio)":"Rehearse (Space)","Grabar toma (R)":"Record take (R)","Terminar toma (Esc)":"End take (Esc)","Letra más pequeña (-)":"Smaller text (-)","Letra más grande (+)":"Larger text (+)","Ocultar o mostrar el texto para verte entero (T)":"Hide or show the text to see your full frame (T)","Modo análisis: dibujar lo que detecta (S)":"Analysis mode: draw what it detects (S)","Información (I)":"Info (I)","Volver a enseñar tus palabras de voz":"Re-teach your voice words","Ventana flotante para tenerlo encima de la videollamada":"Floating window to keep it on top of the video call","Informe de la toma":"Take report",": bien</b></li>":": good</b></li>",". Sigue así.":". Keep it up.",". Empieza con dos palmadas.":". Start with two claps.",". Para Reels, TikTok y Shorts conviene menos de un minuto: recorta el guion o ve un poco más rápido.":". For Reels, TikTok and Shorts, aim for under a minute: trim the script or read a little faster.","% bien <i class=\"s-warn\"></i>":"% good <i class=\"s-warn\"></i>","% regular <i class=\"s-bad\"></i>":"% so-so <i class=\"s-bad\"></i>",". El porcentaje es la parte del tiempo con ese problema: cuanto más bajo, mejor.</p>\n      <div class=\"ba-top\">\n        <span>Ajuste al tono <b>":". The percentage is the share of time with that problem: lower is better.</p>\n      <div class=\"ba-top\">\n        <span>Tone match <b>","El coach para hablar a cámara: lees tu guion sin distracciones y después te enseña, sobre tu propio vídeo, qué mejorar en cada momento.":"Your on-camera coach: read your script with no distractions, then see on your own video what to improve, moment by moment.","Lee un texto corto y recibe tu primer consejo. Sin cuenta. Tu vídeo no sale del móvil.":"Read a short script and get your first tip. No account. Your video never leaves your phone."};
+const EN_HTML = {"Graba con más":"Record with more","energía":"energy","seguridad":"confidence","intención":"purpose","naturalidad":"authenticity","energía, seguridad, intención y naturalidad":"energy, confidence, purpose and authenticity","Tu director de escena: te ve y te escucha mientras grabas y te dice en el momento cómo moverte y hablar.":"Your on-set director: it watches and listens as you record and tells you how to move and speak, in the moment.","Haz la prueba de 30 segundos":"Take the 30-second test","Lee un texto corto y te digo cómo te ven en cámara y qué mejorar primero. Sin registrarte.":"Read a short text and I’ll tell you how you come across on camera and what to fix first. No sign-up.","¿Qué quieres hacer?":"What do you want to do?","Grabar un vídeo":"Record a video","Tu guion en pantalla y, al terminar, tu vídeo con notas.":"Your script on screen and, afterwards, your video with notes.","Analizar un vídeo":"Analyze a video","Sube uno que ya grabaste y te digo qué mejorar.":"Upload one you’ve already recorded and I’ll tell you what to improve.","Entrenar un minuto":"1-minute training","Ejercicios cortos con una sola meta: mirada, voz, manos, sonrisa y pausas.":"Short exercises with one goal each: eye contact, voice, hands, smile and pauses.","Videollamada":"Video call","O un directo. Sin guion, en una ventana flotante encima.":"Or a livestream. No script, in a floating window on top.","Tenla como una app":"Get it as an app","Instalar":"Install","Todo se analiza en tu dispositivo":"Everything is analyzed on your device","Cómo funciona y privacidad":"How it works and privacy","Qué mira.":"What it watches.","La cara (cejas, ojos, mirada, boca y sonrisa, giro e inclinación de la cabeza, si asientes), el cuerpo (hombros, codos, muñecas, postura y movimiento) y cada mano con sus dedos; en la voz, volumen, entonación, ritmo, pausas y si hablas tú o escuchas.":"Your face (brows, eyes, eye contact, mouth and smile, head turn and tilt, nodding), your body (shoulders, elbows, wrists, posture and movement) and each hand and its fingers; in your voice, volume, intonation, pace, pauses and whether you’re talking or listening.","Privacidad.":"Privacy.","El vídeo y el audio se analizan en este dispositivo y no se suben a ningún sitio. El control por voz «Mis palabras» también funciona aquí, sin conexión. Solo el motor «Navegador» (y el texto que sigue tu voz) usa el reconocimiento de voz del navegador, que en Chrome procesa Google.":"Video and audio are analyzed on this device and never uploaded anywhere. “My words” voice control also works here, offline. Only the “Browser” engine (and the text that follows your voice) uses the browser’s speech recognition, which Google processes in Chrome.","Límites.":"Limits.","Es una guía, no un juez: las medidas son aproximadas y dependen de la luz, el encuadre y el micrófono. Calibra al entrar para que te compare contigo.":"It’s a guide, not a judge: measurements are approximate and depend on lighting, framing and mic. Calibrate when you start so it compares you with yourself.","¿Qué vas a decir?":"What are you going to say?","Escribe, pega o sube tu guion. En el plató lo leerás limpio, sin marcas encima.":"Type, paste or upload your script. In the studio you’ll read it clean, with no marks on top.","Guion":"Script","Subir texto":"Upload text","Ejemplo":"Example","Word, PDF, Excel, PowerPoint (las notas del orador), .txt, subtítulos (.srt, .vtt), .odt o .rtf. También puedes arrastrar el archivo al cuadro.":"Word, PDF, Excel, PowerPoint (the speaker notes), .txt, subtitles (.srt, .vtt), .odt or .rtf. You can also drag the file into the box.","Marcas opcionales":"Optional markup","[animado]":"[upbeat]","tono desde ese párrafo":"tone from that paragraph on","pausa":"pause","*palabra*":"*word*","énfasis":"emphasis","{abre los brazos}":"{open your arms}","acotación tuya":"your own direction","¿Qué tiene que transmitir?":"What does it need to convey?","¿Qué querías transmitir?":"What did you want to convey?","¿Cómo quieres que te vean?":"How do you want to come across?","Elige el tono: al terminar, te digo si tu vídeo lo transmite y qué cambiar.":"Pick the tone: afterwards, I’ll tell you whether your video conveys it and what to change.","Compararé tu vídeo con este tono y te diré si lo consigues.":"I’ll compare your video with this tone and tell you if you nail it.","Cercano para el equipo o un cliente de confianza, serio para una entrevista o una negociación, inspirador para presentar una idea.":"Warm for your team or a trusted client, serious for an interview or a negotiation, inspiring to pitch an idea.","Si un párrafo empieza con una etiqueta como":"If a paragraph starts with a tag like","[serio]":"[serious]",", el apuntador cambia de tono al llegar a él.":", Apuntador switches tone when it gets there.","Qué cambiar para transmitir lo que quieres":"What to change to get your message across","Sugerencias para tu guion y tu tono. Tócalas para verlas en el texto o aplicarlas.":"Suggestions for your script and tone. Tap them to see them in the text or apply them.","Ideas para empezar (tócala para ponerla al principio):":"Opening ideas (tap one to put it at the start):","Vista previa":"Preview","Así lo verás en el plató":"This is how you’ll see it in the studio","Toca una palabra para marcarla: un toque, énfasis; dos, pausa después; tres, sin marca. Los gestos se marcan solos, con su emoji en el margen; una franja de color, donde cambia el tono.":"Tap a word to mark it: once for emphasis, twice for a pause after it, three times to clear. Gestures are marked for you, with their emoji in the margin; a color stripe shows where the tone changes.","Colores del texto":"Text colors","Colores en el texto":"Colors in the text","Rojo, énfasis; azul, pausa; amarillo, gesto.":"Red, emphasis; blue, pause; yellow, gesture.","Entrena un minuto al día":"Train one minute a day","Cada ejercicio tiene una sola meta y dura menos de un minuto. Te digo cómo vas y guardo tu récord en este dispositivo.":"Each exercise has one goal and takes under a minute. I’ll tell you how you’re doing and save your best on this device.","Todo listo":"All set","Elige tu vídeo":"Choose your video","Revisa cómo quieres grabar y entra al plató.":"Check how you want to record and enter the studio.","Se reproduce aquí mismo y te digo qué transmites. No sale de tu dispositivo.":"It plays right here and I’ll tell you what you’re conveying. It never leaves your device.","Al empezar, abre la «Ventana flotante»: se queda encima de la aplicación de la videollamada.":"When you start, open the “Floating window”: it stays on top of the video call app.","Toca para elegir un vídeo":"Tap to choose a video","📱 ¿Prefieres grabar con la cámara del móvil? Grábalo y súbelo aquí":"📱 Rather record with your phone’s camera? Record it and upload it here",".mp4, .mov o .webm · o arrástralo aquí":".mp4, .mov or .webm · or drag it here","Cómo grabar":"How to record","Ensayo antes de grabar":"Rehearse before recording","Una toma de prueba que no cuenta: la revisamos y luego grabas la buena.":"A practice take that doesn’t count: we review it, then you record the real one.","Cuenta atrás al pulsar Grabar":"Countdown when you tap Record","Tiempo para colocarte antes de que empiece. Se para sola al terminar el texto, o tocando la pantalla.":"Time to get in position before it starts. It stops by itself when the script ends, or when you tap the screen.","10 segundos":"10 seconds","Mientras grabas":"While you record","Solo el texto (recomendado)":"Just the script (recommended)","El texto y medidores":"Script and meters","El texto, medidores y avisos":"Script, meters and live cues","En el ensayo":"In rehearsal","Al grabar de verdad":"When recording for real","Avisos y medidores (recomendado)":"Cues and meters (recommended)","Solo medidores":"Meters only","Solo el texto":"Script only","Medidores (recomendado)":"Meters (recommended)","Avisos y medidores":"Cues and meters","Control por voz":"Voice control","Reconocimiento de voz":"Speech recognition","Automático (recomendado)":"Automatic (recommended)","Mis palabras":"My words","Del navegador":"Browser","Desactivado":"Off","Margen al parar":"Stop buffer","Lo que sigue grabando después de «corten».":"How long it keeps recording after “cut”.","Cortar al momento":"Cut right away","2 segundos":"2 seconds","3 segundos":"3 seconds","5 segundos":"5 seconds","Texto y avisos":"Text and cues","Cómo avanza el texto":"How the text moves","Sigue mi voz":"Follow my voice","Velocidad fija":"Fixed speed","Velocidad":"Speed","En el modo de velocidad fija.":"In fixed-speed mode.","Tamaño de letra":"Font size","Idioma de la voz":"Voice language","Parar el texto si me callo":"Pause the text when I go quiet","Avisarme de los gestos del guion":"Cue me on the script’s gestures","Avisarme si me equivoco al leer":"Alert me when I misread","Dudas y pausas a mitad de frase en todos; palabras saltadas, repetidas o cambiadas con Chrome o Edge de ordenador.":"Hesitations and mid-sentence pauses in any browser; skipped, repeated or swapped words in desktop Chrome or Edge.","Texto en espejo":"Mirror text","Para un cristal de teleprompter.":"For teleprompter glass.","Modo análisis":"Analysis mode","Dibuja lo que detecta: cara, cejas, ojos, boca, hombros, codos y manos. Apagado, la imagen queda limpia (en el plató, botón de la figura o tecla S).":"Draws what it detects: face, brows, eyes, mouth, shoulders, elbows and hands. When off, the image stays clean (in the studio, the figure button or the S key).","Si la aplicación de la llamada no deja usar la cámara a la vez, abre la llamada en otra pestaña de este navegador (Meet, Teams o Zoom en la web).":"If the call app won’t let you use the camera at the same time, open the call in another tab of this browser (Meet, Teams or Zoom on the web).","Te pedirá permiso para la cámara y el micrófono. Mejor con el móvil en vertical o el portátil a la altura de los ojos, y que se te vea de cintura para arriba.":"It’ll ask for camera and mic access. Best with your phone upright or your laptop at eye level, framed from the waist up.","Continuar":"Continue","Entrar al plató":"Enter the studio","Empezar":"Start","Elegir vídeo":"Choose video","✋ Fallo al leer":"✋ Misread","🎙️ «corten» · «otra vez»":"🎙️ “cut” · “again”","Información":"Info","Plano":"Setup","Cuerpo":"Body","Tono":"Tone","Transmites":"Coming across","Objetivo":"Target","👀 Esperando a verte…":"👀 Waiting to see you…","Luz":"Lighting","Sonido":"Sound","Encuadre":"Framing","Nivel":"Level","🙂 Cara":"🙂 Face","🧍 Cuerpo":"🧍 Body","✋ Manos":"✋ Hands","🎙️ Voz":"🎙️ Voice","Colócate frente a la cámara y empieza a hablar.":"Get in front of the camera and start talking.","Revisa tu plano antes de grabar":"Check your setup before recording","Cargando…":"Loading…","Calibración · 5 segundos":"Calibration · 5 seconds","Colócate como vas a estar, hombros relajados, cara tranquila, mira a la cámara y di con tu voz normal:":"Get in position, shoulders relaxed, face calm, look at the camera and say in your normal voice:","Hola, estoy probando el micrófono y la cámara.":"Hi, I’m testing the mic and the camera.","Saltar":"Skip","La cámara se ha parado":"The camera stopped","El sistema o otra aplicación la ha cortado.":"The system or another app cut it off.","Reactivar la cámara":"Turn the camera back on","🎙️ Manos libres: enséñale tu voz":"🎙️ Hands-free: teach it your voice","Después grabas, paras y repites sin tocar el móvil. Ponte donde vas a grabar y di cada palabra cuando la veas, sola y con una pausa. Solo esta vez: funciona sin conexión y te obedece solo a ti.":"Then you record, stop and retake without touching your phone. Stand where you’ll record and say each word when you see it, on its own, with a pause. Just this once: it works offline and only obeys you.","«comenzamos»":"“action”","Empezar de nuevo":"Start over","Ahora no":"Not now","🔥 Calentar 40 s":"🔥 Warm up 40 s","🔥 Calentamiento · 40 s":"🔥 Warm-up · 40 s","Saltar":"Skip","Siguiente":"Next","⏹ Corto en 3":"⏹ Cutting in 3","Sigo grabando hasta entonces. Di":"I’ll keep recording until then. Say","seguimos":"keep going","para continuar u":"to continue or","otra vez":"again","para repetir desde el principio.":"to start over from the top.","Seguir grabando":"Keep recording","Cortar ya":"Cut now","Manos libres":"Hands-free","Enseñar mi voz":"Teach my voice","¡Entendido!":"Got it!","Salir":"Exit","Otro ejercicio":"Another exercise","Otra vez":"Again","🎯 Tus objetivos para esta toma":"🎯 Your goals for this take","Te aviso en cuanto vea uno de ellos y te digo cuándo lo consigues.":"I’ll cue you as soon as I spot one and tell you when you nail it.","Ensayo terminado":"Rehearsal done","Al grabar, fíjate en esto":"When you record, focus on this","Ver informe":"View report","Ensayar otra vez":"Rehearse again","Grabar de verdad":"Record for real","🎙️ Di":"🎙️ Say","para grabar ·":"to record ·","«corten»":"“cut”","para parar ·":"to stop ·","«otra vez»":"“again”","para repetir":"to redo","Volver":"Back","Más lento":"Slower","Más rápido":"Faster","Ensayar":"Rehearse","Grabar":"Record","Terminar":"Finish","Letra más pequeña":"Smaller text","Letra más grande":"Larger text","Texto":"Text","Ventana flotante":"Floating window","El apuntador está en la ventana flotante":"Apuntador is in the floating window","Puedes volver a la videollamada: los avisos y lo que detecta siguen allí.":"You can go back to the video call: the cues and live detection stay there.","Traerlo a esta ventana":"Bring it back to this window","Atrás":"Back","Objetivos para la próxima toma":"Goals for the next take","Ocultar":"Hide","Escribe o pega aquí tu guion…":"Type or paste your script here…","Tono del mensaje":"Message tone","Avance del texto":"Text scrolling","Palabras por minuto":"Words per minute","Plató":"Studio","Desplegar la información":"Expand info","Información del director":"Director info","Plegar la información":"Collapse the info","Vista de la información":"Info view","Objetivos de la toma":"Take goals","Tu plano":"Your setup","Lo que detecta ahora":"What it detects now","Tu plano: luz, sonido, encuadre y nivel":"Your setup: lighting, sound, framing and level","Tu plano":"Your setup","Cómo te ves":"How you come across","Sonrisa":"Smile","Gestos con manos y brazos":"Hand and arm gestures","Voz con entonación":"Voice with intonation","La franja verde es lo que pide tu tono; el punto, cómo vas. Al grabar los verás arriba, sin textos.":"The green band is what your tone calls for; the dot is where you are. When you record, they sit at the top, with no text.","Cada parte del cuerpo y todas las medidas":"Each body part and every measurement","Tus medidores":"Your meters","Partes del plano":"Setup parts","Luz":"Lighting","Tu nota, sonrisa, gestos y voz: desplegar la información":"Your score, smile, gestures and voice: expand the info","Lo que hace cada parte del cuerpo":"What each body part is doing","Enseña tus palabras":"Teach your words","Parando la grabación":"Stopping the recording","Compartir tu resultado":"Share your result","Objetivos de esta toma":"Goals for this take","Resultado del ensayo":"Rehearsal result","Volver (Esc)":"Back (Esc)","Más lento (flecha abajo)":"Slower (down arrow)","Puntos de la toma":"Take score","Más rápido (flecha arriba)":"Faster (up arrow)","Ensayar (Espacio)":"Rehearse (Space)","Grabar toma (R)":"Record take (R)","Terminar toma (Esc)":"End take (Esc)","Letra más pequeña (-)":"Smaller text (-)","Letra más grande (+)":"Larger text (+)","Ocultar o mostrar el texto para verte entero (T)":"Hide or show the text to see your full frame (T)","Modo análisis: dibujar lo que detecta (S)":"Analysis mode: draw what it detects (S)","Información (I)":"Info (I)","Volver a enseñar tus palabras de voz":"Re-teach your voice words","Ventana flotante para tenerlo encima de la videollamada":"Floating window to keep it on top of the video call","Informe de la toma":"Take report",": bien</b></li>":": good</b></li>",". Sigue así.":". Keep it up.",". Empieza con dos palmadas.":". Start with two claps.",". Para Reels, TikTok y Shorts conviene menos de un minuto: recorta el guion o ve un poco más rápido.":". For Reels, TikTok and Shorts, aim for under a minute: trim the script or read a little faster.","% bien <i class=\"s-warn\"></i>":"% good <i class=\"s-warn\"></i>","% regular <i class=\"s-bad\"></i>":"% so-so <i class=\"s-bad\"></i>",". El porcentaje es la parte del tiempo con ese problema: cuanto más bajo, mejor.</p>\n      <div class=\"ba-top\">\n        <span>Ajuste al tono <b>":". The percentage is the share of time with that problem: lower is better.</p>\n      <div class=\"ba-top\">\n        <span>Tone match <b>","Preparación":"Setup check","Preparación al entrar al plató":"Setup check when entering the studio","Micro, cámara, luz y encuadre, con cifras y ajustes, antes de grabar.":"Mic, camera, light and framing, with numbers and controls, before you record.","Preparación: micro, cámara, luz y encuadre":"Setup check: mic, camera, light and framing","Preparar":"Setup","El coach para hablar a cámara: lees tu guion sin distracciones y después te enseña, sobre tu propio vídeo, qué mejorar en cada momento.":"Your on-camera coach: read your script with no distractions, then see on your own video what to improve, moment by moment.","Lee un texto corto y recibe tu primer consejo. Sin cuenta. Tu vídeo no sale del móvil.":"Read a short script and get your first tip. No account. Your video never leaves your phone."};
 // la página fija (lo que no pinta el código): cada texto y cada title, aria-label, placeholder y alt, por su traducción
 function translateStatic(root = document.body) {
   if (!EN) return;
@@ -2411,7 +2570,7 @@ const DEFAULT_CALIB = { smile: .05, brow: .12, pitch: .47, yaw: 0, neck: .62, re
 const S = {
   text: store.get('text', SAMPLE),
   tone: store.get('tone', 'animado'),
-  opts: Object.assign({ app: 'video', tab: {}, voiceEngine: 'auto', stopMargin: 3, rehearseFirst: false, takeHelp: 'limpio', rehHelp: 'limpio', countdown: 5, mode: 'voz', wpm: 140, font: 46, mirror: false, pauseSilent: true, cues: true, readCheck: true, wordColors: true, skeleton: false, lang: EN ? 'en-US' : 'es-ES', compact: null }, store.get('opts', {})),
+  opts: Object.assign({ app: 'video', tab: {}, voiceEngine: 'auto', stopMargin: 3, prepFirst: true, rehearseFirst: false, takeHelp: 'limpio', rehHelp: 'limpio', countdown: 5, mode: 'voz', wpm: 140, font: 46, mirror: false, pauseSilent: true, cues: true, readCheck: true, wordColors: true, skeleton: false, lang: EN ? 'en-US' : 'es-ES', compact: null }, store.get('opts', {})),
   calib: Object.assign({}, DEFAULT_CALIB, store.get('calib', {})),
   sc: null, live: false, take: null, vision: null, visionErr: null, audio: null, stream: null,
 };
@@ -2529,7 +2688,8 @@ async function pdfToText(buf) {
     }
     pages.push(out.replace(/(\p{L})-\u0000(?=\p{Ll})/gu, '$1').replace(/\u0000/g, ' ').replace(/[ \t]+/g, ' ').replace(/ ?\n ?/g, '\n').replace(/\n{3,}/g, '\n\n').trim());
   }
-  return pages.join('\n\n');
+  if (!pages.some(Boolean)) throw new Error('PDF sin texto (escaneado)');
+  return pages.filter(Boolean).join('\n\n');
 }
 // una tabla (Excel o CSV) a guion: las columnas de frases (no las de números o etiquetas cortas); si no hay, la fila entera. Sin la cabecera
 function tableText(rows) {
@@ -2702,7 +2862,7 @@ function bindOpts() {
     if (el.selectedIndex < 0) { o[k] = { stopMargin: 3, voiceEngine: 'auto', takeHelp: 'limpio', rehHelp: 'limpio', countdown: 5 }[k]; el.value = String(o[k]); }
     el.addEventListener('change', () => { o[k] = k === 'stopMargin' || k === 'countdown' ? +el.value : el.value; save(); });
   }
-  for (const k of ['pauseSilent', 'cues', 'mirror', 'skeleton', 'rehearseFirst', 'readCheck', 'wordColors']) {
+  for (const k of ['pauseSilent', 'cues', 'mirror', 'skeleton', 'rehearseFirst', 'prepFirst', 'readCheck', 'wordColors']) {
     const el = $('#' + (k === 'cues' ? 'cuesOn' : k));
     el.checked = !!o[k]; el.addEventListener('change', () => { o[k] = el.checked; save(); });
   }
@@ -2895,18 +3055,23 @@ function stageMsg(html) { const m = $('#stageMsg'); if (!html) { m.hidden = true
 let toastTimer = 0;
 function toast(msg, ms = 4200) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => t.hidden = true, ms); }
 
+const CAM_Q = { hd: [1280, 720], fhd: [1920, 1080], uhd: [3840, 2160] };
 async function openCamera() {
   if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia)
     throw Object.assign(new Error(LL('Sin acceso a la cámara en esta página', "No camera access on this page")), { name: 'Insecure' });
+  // la cámara, la calidad y el micro que elegiste en la preparación (si ya no están, lo de siempre)
+  const cam = S.opts.cam || {}, Q = CAM_Q[cam.q] || CAM_Q.hd, clean = { echoCancellation: false, noiseSuppression: false, autoGainControl: false };
   const tries = [
-    { video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } },
+    ...(cam.videoId || cam.audioId || cam.q || cam.fps ? [{ video: { width: { ideal: Q[0] }, height: { ideal: Q[1] }, ...(cam.fps ? { frameRate: { ideal: cam.fps } } : {}), ...(cam.videoId ? { deviceId: { exact: cam.videoId } } : { facingMode: 'user' }) },
+      audio: { ...clean, ...(cam.audioId ? { deviceId: { exact: cam.audioId } } : {}) } }] : []),
+    { video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: clean },
     { video: { facingMode: 'user' }, audio: true },
     { video: true, audio: false },
   ];
   let last;
   for (const c of tries) {
     try { return await withTimeout(navigator.mediaDevices.getUserMedia(c), 20000); }
-    catch (e) { last = e; if (['NotAllowedError', 'SecurityError', 'Timeout', 'NotReadableError', 'TrackStartError', 'AbortError'].includes(e.name)) break; }
+    catch (e) { last = e; if (['NotAllowedError', 'SecurityError', 'Timeout', 'NotReadableError', 'TrackStartError', 'AbortError'].includes(e.name) && !(c === tries[0] && tries.length > 3)) break; }
   }
   throw last;
 }
@@ -2997,6 +3162,7 @@ function prepStudioUI() {
   $('#fileBar').hidden = !S.file;
   $('#planCard').hidden = true; $('#hfCard').hidden = true; $('#drillCard').hidden = true; S.intro = null;
   clearInterval(WM.timer); $('#warmCard').hidden = true;
+  closePrep();
   $('#studio').classList.toggle('drill', !!S.drill);
   S.seenOK = false;
   setTab(S.opts.tab?.[S.opts.app] || (isCall() ? 'cuerpo' : 'plano'));
@@ -3030,6 +3196,8 @@ async function enterStudio() {
   startLoops();
   navigator.wakeLock?.request('screen').then(w => { S.wake = w; }).catch(() => {});
   try { await withTimeout(setupAudio(S.stream), 6000); } catch (e) { console.warn('audio', e); }
+  // grabando con guion: primero la preparación (micro, cámara, luz y encuadre); la visión se carga mientras tanto
+  if (prepWanted()) { openPrep(); ensureVision(); return; }
   await ensureVision();
   if (!S.live || S.take || S.countdown) return;
   // en un ejercicio, si ya te calibraste otra vez, sin esperas
@@ -3068,6 +3236,7 @@ function leaveStudio() {
   if (S.drill) { S.drill = null; $('#studio').classList.remove('drill'); setTimeout(() => { if (NAV.step === 'entrenar') renderDrills(); }); }
   endFileMode();
   closePip();
+  closePrep(); $('#ringLight').hidden = true;
   busy(null); $('#calib').hidden = true; $('#camAlert').hidden = true; cancelEnroll(false); S.stopping = null; $('#stopCard').hidden = true; $('#rehCard').hidden = true; $('#planCard').hidden = true; $('#hfCard').hidden = true; S.intro = null;
   clearInterval(WM.timer); $('#warmCard').hidden = true;
   if (S.take) stopTake(false);
@@ -3818,6 +3987,7 @@ function processAudio(t, db, f0, pk = 0) {
   V.lastMsgT = t;
   V.db = db;
   soundSample(t, db, pk);
+  if (PREP.open) prepAudio(t, db, pk);
   if (db < V.floor) V.floor = V.floor * .7 + db * .3; else V.floor += .012;
   V.floor = clamp(V.floor, -95, -40);
   const thr = Math.max(V.floor + 10, -62);
@@ -3874,7 +4044,7 @@ function processAudio(t, db, f0, pk = 0) {
    (picos al máximo). Se usan antes de grabar (avisos y monitor), en el resultado del ensayo y en el informe. */
 const LT = { cv: null, cx: null, last: 0, recent: [] };
 function lightTick(t) {
-  if (t - LT.last < .8) return;
+  if (t - LT.last < (PREP.open ? .4 : .8)) return;
   LT.last = t;
   const v = video; if (!v.videoWidth || v.readyState < 2) return;
   const w = 96, h = Math.max(1, Math.round(96 * v.videoHeight / v.videoWidth));
@@ -3885,17 +4055,20 @@ function lightTick(t) {
   const fb = F.ok && F.box && fresh('face', F.lastSeen, t, 1.5) ? F.box : null;
   let fx0 = -1, fx1 = -1, fy0 = -1, fy1 = -1, mid = 0;
   if (fb) { const bw = fb.maxx - fb.minx, bh = fb.maxy - fb.miny; fx0 = (fb.minx + bw * .2) * w; fx1 = (fb.maxx - bw * .2) * w; fy0 = (fb.miny + bh * .2) * h; fy1 = (fb.maxy - bh * .12) * h; mid = (fx0 + fx1) / 2; }
-  let all = 0, fs = 0, fn = 0, bs = 0, bn = 0, clip = 0, dark = 0, ls = 0, ln = 0, rs = 0, rn = 0;
+  let all = 0, fs = 0, fn = 0, bs = 0, bn = 0, clip = 0, dark = 0, ls = 0, ln = 0, rs = 0, rn = 0, ts = 0, tn = 0, us = 0, un = 0, R = 0, Bl = 0;
+  const ymid = (fy0 + fy1) / 2;
   for (let y = 0, i = 0; y < h; y++) for (let x = 0; x < w; x++, i += 4) {
     const L = .299 * d[i] + .587 * d[i + 1] + .114 * d[i + 2];
-    all += L;
+    all += L; R += d[i]; Bl += d[i + 2];
     if (fb && x >= fx0 && x <= fx1 && y >= fy0 && y <= fy1) {
       fs += L; fn++; if (L > 245) clip++; if (L < 30) dark++;
       if (x < mid) { ls += L; ln++; } else { rs += L; rn++; }
+      if (y < ymid) { ts += L; tn++; } else { us += L; un++; }
     } else { bs += L; bn++; }
   }
   const smp = { all: all / (w * h), face: fn > 8 ? fs / fn : null, bg: bn ? bs / bn : null, clip: fn ? clip / fn : 0, dark: fn ? dark / fn : 0,
-    lr: ln && rn ? (ls / ln - rs / rn) / Math.max(1, Math.max(ls / ln, rs / rn)) : 0 };
+    lr: ln && rn ? (ls / ln - rs / rn) / Math.max(1, Math.max(ls / ln, rs / rn)) : 0,
+    tb: tn && un ? (ts / tn - us / un) / Math.max(1, Math.max(ts / tn, us / un)) : 0, warm: (R - Bl) / Math.max(1, R + Bl) };
   LT.recent.push(smp); if (LT.recent.length > 5) LT.recent.shift();
   LT.v = lightVerdict(avgLight(LT.recent));
   if (S.take) (S.take.light ||= []).push(smp);
@@ -3904,7 +4077,7 @@ function avgLight(arr) {
   if (!arr?.length) return null;
   const withFace = arr.filter(a => a.face != null), src = withFace.length >= arr.length / 2 ? withFace : arr;
   const m = k => mean(src.map(a => a[k]).filter(x => x != null));
-  return { all: m('all'), face: withFace.length >= arr.length / 2 ? m('face') : null, bg: m('bg'), clip: m('clip'), dark: m('dark'), lr: m('lr') };
+  return { all: m('all'), face: withFace.length >= arr.length / 2 ? m('face') : null, bg: m('bg'), clip: m('clip'), dark: m('dark'), lr: m('lr'), tb: m('tb'), warm: m('warm') };
 }
 function lightVerdict(L) {
   if (!L) return null;
@@ -4327,7 +4500,7 @@ function planoTick(t, force = false) {
 const PL_OK = { luz: LL('Te llega luz de frente y se te ve bien la cara.', "Light hits you from the front and your face is clearly visible."), son: LL('Tu voz destaca del ruido y no satura.', "Your voice stands out from the noise and doesn’t clip."), enc: LL('Cabeza y hombros dentro, con aire justo encima.', "Head and shoulders in, with just enough headroom."), niv: LL('La cámara está recta.', "The camera is straight.") };
 // la línea de nivel (solo con sensor) y la silueta del encuadre: antes de grabar, y se apagan cuando ya está bien
 function guidesTick(t, st) {
-  const pre = S.live && !S.take && !S.countdown && !S.calibrating && !KWS.enroll && !S.file && $('#rehCard').hidden && $('#planCard').hidden && $('#hfCard').hidden;
+  const pre = S.live && !S.take && !S.countdown && !(S.calibrating && !S.calibrating.silent) && !KWS.enroll && !S.file && $('#rehCard').hidden && $('#planCard').hidden && $('#hfCard').hidden;
   const hz = $('#horizon'), lv = st.niv.lv;
   const showHz = pre && lv?.src === 'sensor' && !lv.flat;
   if (showHz) {
@@ -4339,7 +4512,7 @@ function guidesTick(t, st) {
     $('#hzTxt').textContent = ok ? LL('✓ Recto', "✓ Straight") : `${Math.round(Math.abs(lv.roll))}°`;
   } else hz.classList.remove('on');
   const fg = $('#frameGuide'), fr = st.enc.v;
-  const wantGuide = pre && !!fr && (fr.k !== 'ok' || (monEl.classList.contains('open') && monEl.dataset.tab === 'plano'));
+  const wantGuide = pre && !!fr && (PREP.open ? PREP.tab === 'enc' : fr.k !== 'ok' || (monEl.classList.contains('open') && monEl.dataset.tab === 'plano'));
   if (wantGuide) drawFrameGuide(fr);
   fg.classList.toggle('on', wantGuide);
   fg.classList.toggle('ok', fr?.k === 'ok');
@@ -4347,7 +4520,7 @@ function guidesTick(t, st) {
 // la silueta ideal sobre la imagen, con las mismas cuentas que el vídeo (object-fit: cover)
 function drawFrameGuide(fr) {
   const svg = $('#frameGuide'), vw = video.videoWidth, vh = video.videoHeight; if (!vw || !vh) return;
-  const r = $('#studio').getBoundingClientRect(), s = Math.max(r.width / vw, r.height / vh), ox = (r.width - vw * s) / 2, oy = (r.height - vh * s) / 2;
+  const r = svg.getBoundingClientRect(), s = Math.max(r.width / vw, r.height / vh), ox = (r.width - vw * s) / 2, oy = (r.height - vh * s) / 2;
   const port = vw < vh, fh = port ? .16 : .27, fw = fh * vh / vw * .74, eyeY = .36, hy = eyeY + fh * .08, ys = eyeY + fh * 1.25, sw = Math.min(.9, fw * 3.3);
   const X = x => (ox + x * vw * s).toFixed(1), Y = y => (oy + y * vh * s).toFixed(1);
   const key = [r.width, r.height, vw, vh].join();
@@ -4359,6 +4532,395 @@ function drawFrameGuide(fr) {
     <text x="${X(.5)}" y="${(+Y(hy) - fh / 2 * vh * s - 12).toFixed(1)}${LL("\" text-anchor=\"middle\">Colócate aquí</text>", "\" text-anchor=\"middle\">Line up here</text>")}`;
 }
 
+
+/* ---------------- preparación: micro, cámara, luz y encuadre ----------------
+   Al entrar al plató, antes de grabar, una pantalla propia y por partes. Cada parte dice cómo está ahora con cifras y
+   medidores en directo, qué cambiar y te deja ajustarlo (elegir micro y cámara, calidad, zoom, exposición, la luz de
+   la pantalla…). Mientras tanto se calibra en silencio: tu voz con la prueba de sonido y tu mirada con 3 segundos
+   mirando a la cámara. «Grabar» la cierra y empieza la cuenta atrás. */
+const PREP = { open: false, tab: 'mic', at: 0, devs: { a: [], v: [] }, base: null, pk: -99, pkT: 0, lvl: -99, okT: {}, gaze: 0 };
+const PP_TABS = ['mic', 'cam', 'luz', 'enc', 'ok'];
+const PP_NAME = { mic: LL('Micro', 'Mic'), cam: LL('Cámara', 'Camera'), luz: LL('Luz', 'Light'), enc: LL('Encuadre', 'Framing'), ok: LL('Listo', 'Ready') };
+const PP_ICO = { mic: '🎙️', cam: '📷', luz: '💡', enc: '🎯' };
+const prepAllowed = () => !isCall() && !S.file && !S.drill, prepWanted = () => S.opts.prepFirst !== false && prepAllowed();
+const ppEl = $('#prep');
+const FILL = Object.assign({ on: false, i: .6, w: .6 }, S.opts.fill || {});
+// el micro que entra: integrado, Bluetooth, con cable o externo (por su nombre)
+function micInfo(tr) {
+  const raw = (tr?.label || '').replace(/^(default|predeterminado|por defecto|communications|comunicaciones)\s*-\s*/i, '').trim(), l = raw.toLowerCase();
+  const kind = !raw ? 'built'
+    : /airpods|buds|bluetooth|hands-?free|\bbt\b|jabra|bose|beats|soundcore|jbl|wh-1000|wf-1000|powerbeats|galaxy buds/.test(l) ? 'bt'
+    : /r[oø]de|dji|shure|hollyland|boya|saramonic|sennheiser|yeti|samson|audio-technica|at2020|seiren|elgato|hyperx|lavalier|wireless go|external|externo|usb/.test(l) ? 'ext'
+    : /headset|auricular|earpods|wired|headphone|cascos/.test(l) ? 'wired' : 'built';
+  const name = raw && !/^(default|predeterminado)$/i.test(raw) ? raw : IS_MOBILE ? LL('Micrófono del móvil', 'Phone microphone') : LL('Micrófono del ordenador', 'Computer microphone');
+  return { name, kind };
+}
+const MIC_KIND = {
+  built: ['📱', LL('Integrado', 'Built-in'), LL('Es el micro del propio dispositivo: suena bien a un brazo y medio; más lejos se oye la habitación. Para sonar de estudio, un micro de solapa.', 'It’s the device’s own mic: it sounds good at an arm and a half; any farther and you hear the room. For studio sound, use a lav mic.')],
+  bt: ['🎧', 'Bluetooth', LL('Muchos auriculares Bluetooth graban la voz con calidad de llamada (más apagada). Si te suena peor que el micro del móvil, cámbialo arriba.', 'Many Bluetooth earbuds record your voice at phone-call quality (duller). If it sounds worse than the phone’s mic, switch it above.')],
+  wired: ['🎧', LL('Con cable', 'Wired'), LL('El micro va cerca de la boca: se te oye cerca y limpio. Que no roce la ropa ni el pelo.', 'The mic sits close to your mouth: you sound close and clean. Keep it from rubbing on clothes or hair.')],
+  ext: ['🎙️', LL('Externo', 'External'), LL('Un micro externo es lo que más se nota para sonar profesional. Si satura, aléjalo un poco o baja su ganancia.', 'An external mic makes the biggest difference to sounding pro. If it clips, move it back a little or lower its gain.')],
+};
+const camLabel = (d, i) => { const l = d.label || ''; return /front|frontal|delant|user/i.test(l) ? LL('Cámara delantera', 'Front camera') : /back|rear|trasera|environment/i.test(l) ? LL('Cámara trasera', 'Back camera') : l || `${LL('Cámara', 'Camera')} ${i + 1}`; };
+// en el móvil, solo las cámaras que te miran (con la de atrás no verías el texto)
+const visibleCams = () => PREP.devs.v.filter(d => !(IS_MOBILE && /back|rear|trasera|environment/i.test(d.label || '')));
+async function prepDevices() {
+  try { const ds = await navigator.mediaDevices.enumerateDevices(); PREP.devs.a = ds.filter(d => d.kind === 'audioinput' && d.deviceId !== 'communications'); PREP.devs.v = ds.filter(d => d.kind === 'videoinput'); } catch {}
+}
+navigator.mediaDevices?.addEventListener?.('devicechange', () => prepDevices().then(() => { if (PREP.open && ['mic', 'cam'].includes(PREP.tab)) prepTab(PREP.tab); }));
+function camInfo() {
+  const tr = S.stream?.getVideoTracks()[0]; if (!tr) return null;
+  const s = tr.getSettings?.() || {}, w = video.videoWidth || s.width || 0, h = video.videoHeight || s.height || 0, fps = s.frameRate ? Math.round(s.frameRate) : null;
+  const short = Math.min(w, h), q = short >= 2000 ? '4K' : short >= 1000 ? 'Full HD' : short >= 700 ? 'HD' : 'SD';
+  const k = !short ? null : short < 700 || (fps && fps < 24) ? 'warn' : 'ok';
+  return { tr, s, w, h, fps, q, port: h > w, k };
+}
+// de dónde viene la luz, con lo que mide la cámara en tu cara (izquierda/derecha, arriba/abajo) y en el fondo
+function lightDir(L) {
+  if (!L || L.face == null) return null;
+  if (L.bg != null && L.bg - L.face > 45) return { id: 'back', t: LL('Por detrás de ti', 'From behind you') };
+  const s = L.lr > .15 ? 'r' : L.lr < -.15 ? 'l' : '', up = (L.tb ?? 0) > .22, strong = Math.abs(L.lr) > .35;
+  const side = s === 'r' ? LL('tu derecha', 'your right') : s === 'l' ? LL('tu izquierda', 'your left') : '';
+  return { id: s || 'front', side: s, up, strong, t: (side ? (strong ? LL('De lado, por ', 'From the side, ') : LL('De frente, hacia ', 'Front, toward ')) + side : LL('De frente', 'From the front')) + (up ? LL(' y desde arriba', ', from above') : '') };
+}
+const lightRatio = L => L?.face == null ? null : Math.pow(1 / Math.max(.05, 1 - Math.abs(L.lr)), 2.2);
+// vista desde arriba: tú mirando a la cámara, la luz donde está ahora y, en discontinua, donde iría ideal
+function lightDirFig(L) {
+  const d = lightDir(L), c = LT.v?.k === 'ok' ? '#3DDC97' : LT.v?.k === 'bad' ? '#FF6461' : '#FFC24B';
+  const pos = !d ? null : d.id === 'back' ? [120, 16] : d.side === 'r' ? (d.strong ? [34, 66] : [62, 118]) : d.side === 'l' ? (d.strong ? [206, 66] : [178, 118]) : [158, 120];
+  const lamp = (x, y, col, dash) => `<circle cx="${x}" cy="${y}" r="9" fill="${dash ? 'none' : col}" stroke="${col}" stroke-width="2"${dash ? ' stroke-dasharray="3 3"' : ''}/>` + [0, 60, 120, 180, 240, 300].map(a => { const r = a * Math.PI / 180; return `<path d="M${(x + 13 * Math.cos(r)).toFixed(1)} ${(y + 13 * Math.sin(r)).toFixed(1)}L${(x + 17 * Math.cos(r)).toFixed(1)} ${(y + 17 * Math.sin(r)).toFixed(1)}" stroke="${col}" stroke-width="2" stroke-linecap="round"${dash ? ' opacity=".7"' : ''}/>`; }).join('');
+  const beam = pos ? `<path d="M${pos[0]} ${pos[1]}L${pos[0] < 120 ? 110 : pos[0] > 120 ? 130 : 108} ${pos[1] < 60 ? 58 : 76}L${pos[0] < 120 ? 118 : pos[0] > 120 ? 122 : 132} ${pos[1] < 60 ? 46 : 80}Z" fill="${c}" fill-opacity=".22"/>` : '';
+  return `<svg class="pp-dir" viewBox="0 0 240 160" role="img" aria-label="${esc(d ? d.t : LL('Midiendo la luz', 'Measuring the light'))}">
+    <circle cx="120" cy="66" r="52" fill="none" stroke="rgba(255,255,255,.1)" stroke-dasharray="2 5"/>
+    ${lamp(66, 112, '#C8F25A', true)}<text x="66" y="142" fill="#C8F25A" font-size="9.5" font-weight="600" text-anchor="middle">${LL('ideal', 'ideal')}</text>
+    ${beam}
+    <ellipse cx="120" cy="70" rx="30" ry="11" fill="#15161B" stroke="rgba(255,255,255,.75)" stroke-width="2"/>
+    <circle cx="120" cy="64" r="13" fill="#15161B" stroke="rgba(255,255,255,.75)" stroke-width="2"/>
+    <path d="M116 75.5L120 82L124 75.5" fill="none" stroke="rgba(255,255,255,.75)" stroke-width="2" stroke-linejoin="round"/>
+    ${d?.up ? `<path d="M120 30V44M114 38L120 44L126 38" stroke="${c}" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>` : ''}
+    <rect x="106" y="138" width="28" height="16" rx="4" fill="#15161B" stroke="rgba(255,255,255,.55)" stroke-width="2"/><circle cx="120" cy="146" r="4" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2"/>
+    ${pos ? lamp(pos[0], pos[1], c) : `<text x="120" y="24" fill="rgba(255,255,255,.5)" font-size="10" text-anchor="middle">${LL('midiendo…', 'measuring…')}</text>`}
+  </svg>`;
+}
+// el estado de cada parte: ok / warn / bad / pend (aún sin datos)
+function prepState(t) {
+  const sn = SND.v, ci = camInfo(), L = avgLight(LT.recent), fr = frameNow(t), lv = levelNow(t), lvv = levelVerdict(lv);
+  const enc = !fr ? null : fr.k === 'bad' ? fr : lvv && lvv.k !== 'ok' && (fr.k === 'ok' || lvv.k === 'bad') ? lvv : fr;
+  const st = { mic: { k: sn?.k || 'pend', v: sn }, cam: { k: ci?.k || 'pend', ci }, luz: { k: LT.v?.k || 'pend', v: LT.v, L }, enc: { k: enc?.k || 'pend', v: enc, fr, lv, lvv } };
+  st.n = ['mic', 'cam', 'luz', 'enc'].filter(k => st[k].k === 'ok').length;
+  st.all = st.n === 4;
+  return st;
+}
+const mn = v => String(v).replace('-', '−');
+const aspectTxt = (w, h) => { const r = Math.max(w, h) / Math.max(1, Math.min(w, h)); const k = Math.abs(r - 16 / 9) < .08 ? (h > w ? '9:16' : '16:9') : Math.abs(r - 4 / 3) < .06 ? (h > w ? '3:4' : '4:3') : Math.abs(r - 1) < .05 ? '1:1' : r.toFixed(2) + ':1'; return (h > w ? LL('vertical ', 'vertical ') : LL('horizontal ', 'horizontal ')) + k; };
+const ppKpi = (id, label) => `<div class="pp-kpi"><small>${label}</small><b id="${id}">—</b></div>`;
+const ppSet = (id, html, k) => { const e = document.getElementById(id); if (!e) return; if (e.innerHTML !== html) e.innerHTML = html; if (k !== undefined && e.dataset.k !== k) { e.dataset.k = k; e.className = k; } };
+const ppVerd = (v, wait) => v ? `<i aria-hidden="true">${v.k === 'ok' ? '✅' : v.k === 'bad' ? '⛔' : '⚠️'}</i><div><b>${esc(v.t)}</b>${v.fix ? `<span>${esc(v.fix)}</span>` : ''}</div>` : `<i aria-hidden="true">⏳</i><div><b>${esc(wait)}</b></div>`;
+function prepShell() {
+  ppEl.innerHTML = `<header class="pp-head">
+      <button class="pp-back" type="button" data-pp-act="back" aria-label="${LL('Volver', 'Back')}"><svg class="ico"><use href="#i-volver"/></svg></button>
+      <div><p class="pp-eye">${LL('Preparación', 'Setup check')}</p><h2>${LL('Antes de grabar', 'Before you record')}</h2></div>
+      <span class="pp-sum" id="ppSum">0/4</span>
+    </header>
+    <nav class="pp-tabs" role="tablist" aria-label="${LL('Partes de la preparación', 'Setup steps')}">${PP_TABS.map(k => `<button type="button" role="tab" data-pp="${k}" aria-selected="false"><i class="pp-dot pend"></i>${PP_NAME[k]}</button>`).join('')}</nav>
+    <div class="pp-body" id="ppBody" role="tabpanel"></div>
+    <footer class="pp-foot"><button class="ghost" type="button" id="ppAlt"></button><button class="primary" type="button" id="ppNext"></button></footer>`;
+}
+function ppMicHTML() {
+  const tr = S.stream?.getAudioTracks()[0], mi = micInfo(tr), K = MIC_KIND[mi.kind], s = tr?.getSettings?.() || {};
+  const spec = [K[1], s.sampleRate ? `${Math.round(s.sampleRate / 1000)} kHz` : '', s.channelCount ? (s.channelCount > 1 ? LL('estéreo', 'stereo') : 'mono') : '', s.echoCancellation === false && s.noiseSuppression === false ? LL('sin filtros', 'unprocessed') : ''].filter(Boolean).join(' · ');
+  const ds = PREP.devs.a.filter(d => d.deviceId !== 'default' || PREP.devs.a.length === 1);
+  const sel = ds.length > 1 ? `<label class="pp-sel"><span>${LL('Micrófono que entra', 'Input microphone')}</span><select id="ppMicSel">${ds.map((d, i) => `<option value="${esc(d.deviceId)}"${d.deviceId === s.deviceId || (s.deviceId === 'default' && i === 0) ? ' selected' : ''}>${esc(micInfo(d).name || `${LL('Micrófono', 'Microphone')} ${i + 1}`)}</option>`).join('')}</select></label>` : '';
+  return `<div class="pp-dev"><span class="pp-devi" aria-hidden="true">${K[0]}</span><div><b>${esc(tr ? mi.name : LL('Sin micrófono', 'No microphone'))}</b><small>${esc(tr ? spec : LL('El navegador no da sonido', 'The browser gives no audio'))}</small></div></div>${sel}
+    <div><p class="pp-lbl">${LL('Nivel de entrada', 'Input level')}</p><div class="vu" aria-hidden="true" style="margin-top:8px"><i class="vu-lvl" id="vuLvl"></i><i class="vu-pk" id="vuPk"></i></div><div class="vu-scale"><span>−60</span><span>−42</span><span>−24</span><span>−6</span><span>0 dB</span></div></div>
+    <div class="pp-grid">${ppKpi('kVoz', LL('Tu voz', 'Your voice'))}${ppKpi('kRuido', LL('Ruido de fondo', 'Background noise'))}${ppKpi('kSnr', LL('Tu voz sobre el ruido', 'Voice above noise'))}${ppKpi('kClip', LL('Saturación', 'Clipping'))}</div>
+    <div class="pp-v" id="ppV"></div>
+    <div class="pp-card"><h3>🎧 ${LL('Escúchate', 'Hear yourself')}</h3><p class="pp-note">${LL('Graba 5 segundos y escucha cómo te va a oír la gente (mejor con auriculares).', 'Record 5 seconds and hear how people will hear you (best with headphones).')}</p>
+      <button class="ghost" type="button" data-pp-act="listen" id="ppListen">● ${LL('Grabar 5 s y escuchar', 'Record 5 s and listen')}</button><audio id="ppAudio" controls hidden></audio></div>
+    <p class="pp-say">${LL('Di en voz alta, como vas a grabar:', 'Say out loud, the way you’ll record:')}<q>${LL('Hola, estoy probando el sonido de mi vídeo.', 'Hi, I’m testing the sound for my video.')}</q></p>
+    <p class="pp-tip">${esc(K[2])}</p>`;
+}
+function micLive() {
+  const x = db => (clamp(db, -60, 0) + 60) / 60 * 100;
+  const lv = document.getElementById('vuLvl'), pk = document.getElementById('vuPk');
+  if (lv) { lv.style.width = x(PREP.lvl).toFixed(1) + '%'; lv.style.setProperty('--vw', (100 / Math.max(.01, x(PREP.lvl) / 100)).toFixed(0) + '%'); }
+  if (pk) pk.style.left = `calc(${x(PREP.pk).toFixed(1)}% - 1px)`;
+  const voiced = SND.voiced.map(v => v[1]), all = SND.all.map(v => v[1]), clips = SND.voiced.reduce((a, v) => a + v[2], 0);
+  const lvl = voiced.length >= 12 ? median(voiced) : null, fl = all.length >= 20 ? pctl(all, .1) : null;
+  ppSet('kVoz', lvl == null ? '—' : `${mn(Math.round(lvl))} dB<em>${lvl < -42 ? LL('baja', 'low') : lvl > -8 ? LL('alta', 'hot') : LL('bien', 'good')}</em>`, lvl == null ? '' : lvl < -42 ? 'warn' : lvl > -8 ? 'warn' : 'ok');
+  ppSet('kRuido', fl == null ? '—' : `${mn(Math.round(fl))} dB<em>${fl > -45 ? LL('alto', 'high') : fl > -55 ? LL('medio', 'medium') : LL('bajo', 'low')}</em>`, fl == null ? '' : fl > -45 ? 'warn' : 'ok');
+  ppSet('kSnr', lvl == null || fl == null ? '—' : `${Math.round(lvl - fl)} dB<em>${lvl - fl >= 28 ? LL('limpio', 'clean') : lvl - fl >= 20 ? LL('justo', 'fair') : LL('poco', 'low')}</em>`, lvl == null || fl == null ? '' : lvl - fl >= 28 ? 'ok' : lvl - fl >= 20 ? 'warn' : 'bad');
+  ppSet('kClip', voiced.length < 12 ? '—' : clips ? `${clips} ${LL('picos', 'peaks')}` : LL('ninguna', 'none'), voiced.length < 12 ? '' : clips >= 3 ? 'bad' : 'ok');
+  const v = SND.v, e = document.getElementById('ppV');
+  if (e) { const h = ppVerd(v, LL('Habla unos segundos y te digo cómo suenas', 'Talk for a few seconds and I’ll tell you how you sound')); if (e.innerHTML !== h) e.innerHTML = h; e.className = 'pp-v ' + (v?.k || ''); }
+}
+// controles de la cámara: solo los que deja este móvil u ordenador (zoom, exposición, temperatura de color…)
+const CAM_CTL = [
+  ['zoom', LL('Zoom', 'Zoom'), v => `${(+v).toFixed(1)}×`],
+  ['exposureCompensation', LL('Exposición', 'Exposure'), v => `${v > 0 ? '+' : ''}${(+v).toFixed(1)} EV`],
+  ['colorTemperature', LL('Temperatura', 'Color temp.'), v => `${Math.round(v)} K`],
+  ['brightness', LL('Brillo', 'Brightness'), v => Math.round(v)],
+  ['contrast', LL('Contraste', 'Contrast'), v => Math.round(v)],
+  ['saturation', LL('Saturación', 'Saturation'), v => Math.round(v)],
+  ['sharpness', LL('Nitidez', 'Sharpness'), v => Math.round(v)],
+];
+function ppCamHTML() {
+  const ci = camInfo(), caps = ci?.tr.getCapabilities?.() || {}, set = ci?.s || {}, cam = S.opts.cam || {};
+  const vs = visibleCams(), cur = set.deviceId;
+  const sel = vs.length > 1 ? `<label class="pp-sel"><span>${LL('Cámara', 'Camera')}</span><select id="ppCamSel">${vs.map((d, i) => `<option value="${esc(d.deviceId)}"${d.deviceId === cur ? ' selected' : ''}>${esc(camLabel(d, i))}</option>`).join('')}</select></label>` : '';
+  const big = Math.max(caps.width?.max || 0, caps.height?.max || 0), qs = [['hd', 'HD 720p']].concat(big >= 1920 ? [['fhd', 'Full HD 1080p']] : [], big >= 3840 ? [['uhd', '4K']] : []);
+  const curQ = cam.q || (ci && Math.min(ci.w, ci.h) >= 2000 ? 'uhd' : ci && Math.min(ci.w, ci.h) >= 1000 ? 'fhd' : 'hd');
+  const fpsMax = caps.frameRate?.max || 0, curF = cam.fps || (ci?.fps >= 50 ? 60 : 30);
+  const rng = CAM_CTL.filter(([k]) => typeof caps[k]?.max === 'number' && caps[k].max > caps[k].min).map(([k, lbl, f]) => { const c = caps[k], v = set[k] ?? (c.min + c.max) / 2; return `<label class="pp-rng"><span>${lbl}</span><input type="range" data-cam="${k}" min="${c.min}" max="${c.max}" step="${c.step || (c.max - c.min) / 100}" value="${v}"><output id="o-${k}">${f(v)}</output></label>`; }).join('');
+  const sw = [caps.torch ? `<label class="pp-sw"><span>🔦 ${LL('Linterna', 'Torch')}</span><input type="checkbox" data-camsw="torch"${set.torch ? ' checked' : ''}></label>` : '',
+    Array.isArray(caps.backgroundBlur) && caps.backgroundBlur.includes(true) ? `<label class="pp-sw"><span>🌫️ ${LL('Desenfocar el fondo', 'Blur the background')}</span><input type="checkbox" data-camsw="backgroundBlur"${set.backgroundBlur ? ' checked' : ''}></label>` : '',
+    Array.isArray(caps.focusMode) && caps.focusMode.includes('continuous') && caps.focusMode.includes('manual') ? `<label class="pp-sw"><span>🎯 ${LL('Enfoque automático', 'Autofocus')}</span><input type="checkbox" data-camsw="focusMode"${set.focusMode !== 'manual' ? ' checked' : ''}></label>` : '',
+    Array.isArray(caps.whiteBalanceMode) && caps.whiteBalanceMode.includes('continuous') && caps.colorTemperature ? `<label class="pp-sw"><span>🌡️ ${LL('Balance de blancos automático', 'Auto white balance')}</span><input type="checkbox" data-camsw="whiteBalanceMode"${set.whiteBalanceMode !== 'manual' ? ' checked' : ''}></label>` : ''].join('');
+  const none = !rng && !sw;
+  return `<div class="pp-dev"><span class="pp-devi" aria-hidden="true">📷</span><div><b>${esc(vs.find(d => d.deviceId === cur) ? camLabel(vs.find(d => d.deviceId === cur), 0) : ci?.tr.label || LL('Cámara', 'Camera'))}</b><small id="camSpec">—</small></div></div>${sel}
+    <div><p class="pp-lbl">${LL('Calidad de grabación', 'Recording quality')}</p><div class="pp-seg" style="margin-top:8px">${qs.map(([k, n]) => `<button type="button" data-q="${k}" aria-pressed="${k === curQ}">${n}</button>`).join('')}</div></div>
+    ${fpsMax >= 59 ? `<div><p class="pp-lbl">${LL('Imágenes por segundo', 'Frame rate')}</p><div class="pp-seg" style="margin-top:8px">${[30, 60].map(f => `<button type="button" data-fps="${f}" aria-pressed="${f === curF}">${f} fps</button>`).join('')}</div></div>` : ''}
+    ${none ? `<p class="pp-note">${LL('Este navegador no deja ajustar más la cámara (zoom, exposición, balance de blancos…). Si quieres el control total, graba con la app de cámara del móvil y súbelo: te lo reviso igual.', 'This browser doesn’t allow more camera adjustments (zoom, exposure, white balance…). For full control, record with your phone’s camera app and upload it: I’ll review it the same way.')}</p><button class="ghost" type="button" data-pp-act="upload">📱 ${LL('Subir un vídeo grabado', 'Upload a recorded video')}</button>`
+      : `<div class="pp-card"><h3>${LL('Ajustes de la cámara', 'Camera settings')}</h3><div class="pp-ctl">${sw}${rng}</div><button class="ghost" type="button" data-pp-act="camauto">${LL('Todo en automático', 'Everything on auto')}</button></div>`}
+    <div class="pp-v" id="ppV"></div>
+    <p class="pp-tip">${LL('Limpia el objetivo con una camiseta antes de grabar: es lo que más se nota y lo que más se olvida.', 'Wipe the lens with a T-shirt before you record: it makes the most visible difference and it’s the most forgotten.')}</p>`;
+}
+function camLive() {
+  const ci = camInfo(); if (!ci) return;
+  ppSet('camSpec', `${ci.w}×${ci.h}${ci.fps ? ` · ${ci.fps} fps` : ''} · ${aspectTxt(ci.w, ci.h)}`);
+  const v = ci.k === 'ok' ? { k: 'ok', t: `${ci.q} · ${LL('lista para grabar', 'ready to record')}`, fix: ci.port ? LL('En vertical: el formato de Reels, TikTok y Shorts.', 'Vertical: the format for Reels, TikTok and Shorts.') : LL('En horizontal: para YouTube o una web. Para redes, pon el móvil en vertical.', 'Horizontal: for YouTube or a website. For social, turn your phone upright.') }
+    : { k: 'warn', t: LL('Calidad baja', 'Low quality'), fix: LL('Elige HD o más arriba, o prueba con otra cámara.', 'Pick HD or higher above, or try another camera.') };
+  const e = document.getElementById('ppV'); if (e) { const h = ppVerd(v); if (e.innerHTML !== h) e.innerHTML = h; e.className = 'pp-v ' + v.k; }
+}
+async function camSet(k, v) {
+  const tr = S.stream?.getVideoTracks()[0]; if (!tr?.applyConstraints) return;
+  const c = { [k]: v };
+  if (k === 'exposureCompensation') c.exposureMode = 'continuous';
+  if (k === 'colorTemperature') c.whiteBalanceMode = 'manual';
+  try { await tr.applyConstraints({ advanced: [c] }); } catch (e) { console.warn(e); toast(LL('Esta cámara no acepta ese ajuste.', "This camera doesn’t accept that setting."), 3000); }
+}
+function ppLuzHTML() {
+  const has = KIT.luz;
+  return `<div id="ppDir"></div>
+    <div class="pp-grid">${ppKpi('kExp', LL('Exposición de la cara', 'Face exposure'))}${ppKpi('kDir', LL('La luz viene', 'Light comes'))}${ppKpi('kRat', LL('Contraste entre lados', 'Side-to-side contrast'))}${ppKpi('kBg', LL('Fondo', 'Background'))}</div>
+    <div id="ppExp"></div>
+    <p class="pp-delta" id="ppDelta" hidden></p>
+    <div class="pp-v" id="ppV"></div>
+    <div class="pp-card"><label class="pp-sw"><span><b>💡 ${LL('Luz de pantalla', 'Screen light')}</b><br><small style="color:var(--pp-mute)">${LL('Un aro de luz en el borde de la pantalla: rellena la cara si estás cerca.', 'A ring of light around the screen edge: it fills your face when you’re close.')}</small></span><input type="checkbox" id="ppFill"${FILL.on ? ' checked' : ''}></label>
+      <div class="pp-ctl" id="ppFillCtl"${FILL.on ? '' : ' hidden'}><label class="pp-rng"><span>${LL('Intensidad', 'Intensity')}</span><input type="range" id="ppFillI" min="0" max="1" step=".05" value="${FILL.i}"><output>${Math.round(FILL.i * 100)}%</output></label>
+      <label class="pp-rng"><span>${LL('Tono', 'Tone')}</span><input type="range" id="ppFillW" min="0" max="1" step=".05" value="${FILL.w}"><output>${FILL.w > .66 ? LL('cálido', 'warm') : FILL.w < .33 ? LL('frío', 'cool') : LL('neutro', 'neutral')}</output></label></div></div>
+    <details class="pp-more"><summary>${LL('¿Añades una luz? Dónde ponerla', 'Adding a light? Where to put it')}</summary>${plKitHTML('luz')}<div id="ppPlan"></div><ol id="ppSteps"></ol></details>
+    <p class="pp-tip">${LL('Al mover o añadir una luz, las cifras cambian al momento y te digo si ha mejorado.', 'As you move or add a light, the numbers update instantly and I’ll tell you if it got better.')}</p>`;
+}
+function luzLive() {
+  const L = avgLight(LT.recent), d = lightDir(L), r = lightRatio(L);
+  const dirEl = document.getElementById('ppDir'), sig = d ? d.id + d.up + Math.round((L.face ?? 0) / 20) + (LT.v?.k || '') : '-';
+  if (dirEl && dirEl.dataset.s !== sig) { dirEl.dataset.s = sig; dirEl.innerHTML = lightDirFig(L); }
+  const f = L ? L.face ?? L.all : null;
+  ppSet('kExp', f == null ? '—' : `${Math.round(f / 2.55)}%<em>${f < 75 ? LL('oscura', 'dark') : f > 205 ? LL('quemada', 'blown') : LL('bien', 'good')}</em>`, f == null ? '' : f < 50 ? 'bad' : f < 75 || f > 205 ? 'warn' : 'ok');
+  ppSet('kDir', d ? esc(d.t) : '—', d ? (d.id === 'back' ? 'bad' : d.strong || d.up ? 'warn' : 'ok') : '');
+  ppSet('kRat', r == null ? '—' : `${r.toFixed(1).replace('.', LL(',', '.'))}:1<em>${r <= 2.2 ? LL('suave', 'soft') : r <= 4 ? LL('marcado', 'defined') : LL('fuerte', 'harsh')}</em>`, r == null ? '' : r <= 2.2 ? 'ok' : r <= 4 ? 'warn' : 'bad');
+  const rel = L?.face != null && L.bg != null ? (L.bg - L.face) / Math.max(1, L.face) : null;
+  ppSet('kBg', rel == null ? '—' : `${rel > 0 ? '+' : ''}${mn(Math.round(rel * 100))}%<em>${rel > .15 ? LL('más claro que tú', 'brighter than you') : rel < -.6 ? LL('muy oscuro', 'very dark') : LL('bien', 'good')}</em>`, rel == null ? '' : rel > .3 ? 'bad' : rel > .15 ? 'warn' : 'ok');
+  ppSet('ppExp', L ? `<p class="pp-lbl">${LL('Brillo de tu cara', 'Your face brightness')}</p>${lightBar(L)}` : '');
+  // al añadir o mover una luz: cómo estaba al empezar y cómo está ahora
+  if (!PREP.base && LT.recent.length >= 3 && f != null) PREP.base = { f, r, k: LT.v?.k };
+  const b = PREP.base, dl = document.getElementById('ppDelta');
+  if (dl && b && f != null) {
+    const parts = [];
+    if (Math.abs(f - b.f) >= 15) parts.push(`${LL('exposición', 'exposure')} <b>${Math.round(b.f / 2.55)}% → ${Math.round(f / 2.55)}%</b>`);
+    if (r != null && b.r != null && Math.abs(r - b.r) >= .6) parts.push(`${LL('contraste', 'contrast')} <b>${b.r.toFixed(1)}:1 → ${r.toFixed(1)}:1</b>`);
+    const rank = k => ({ bad: 0, warn: 1, ok: 2 })[k] ?? 1, better = rank(LT.v?.k) > rank(b.k), worse = rank(LT.v?.k) < rank(b.k);
+    const h = parts.length ? `${better ? '▲ ' + LL('Ha mejorado', 'Better') : worse ? '▼ ' + LL('Ha empeorado', 'Worse') : LL('Ha cambiado', 'Changed')}: ${parts.join(' · ')}` : '';
+    if (dl.innerHTML !== h) dl.innerHTML = h;
+    dl.hidden = !h;
+  }
+  const e = document.getElementById('ppV'); if (e) { const h = ppVerd(LT.v, LL('Midiendo la luz de tu cara…', 'Measuring the light on your face…')); if (e.innerHTML !== h) e.innerHTML = h; e.className = 'pp-v ' + (LT.v?.k || ''); }
+  const more = ppEl.querySelector('.pp-more');
+  if (more?.open) { const P = lightPlan(KIT.luz, LT.v, L); ppSet('ppPlan', P.svg); ppSet('ppSteps', plStepsHTML(P.steps, P.tip)); }
+}
+function fillApply() {
+  const el = $('#ringLight'), st = $('#studio'), on = FILL.on && S.live && !S.file && !isCall();
+  el.hidden = !on; st.classList.toggle('ringlit', on); if (!on) return;
+  const warm = [255, 204, 150], cool = [210, 230, 255], c = warm.map((v, i) => Math.round(cool[i] + (v - cool[i]) * FILL.w));
+  st.style.setProperty('--rl-c', `rgb(${c.join(',')})`);
+  st.style.setProperty('--rl-w', (3 + FILL.i * 9).toFixed(1) + 'vmin');
+  st.style.setProperty('--rl-o', (.5 + FILL.i * .5).toFixed(2));
+}
+function ppEncHTML() {
+  return `<div class="pp-grid">${ppKpi('kDist', LL('Distancia', 'Distance'))}${ppKpi('kPos', LL('Posición', 'Position'))}${ppKpi('kHead', LL('Aire encima', 'Headroom'))}${ppKpi('kLvl', LL('Nivel', 'Level'))}</div>
+    <div class="pp-v" id="ppV"></div>
+    <p class="pp-tip">${LL('La silueta de la imagen te dice dónde ponerte: los ojos en el tercio de arriba y de cintura para arriba si vas a mover las manos.', 'The outline on screen shows where to stand: eyes in the top third, and waist up if you’ll use your hands.')}</p>
+    ${IS_IOS && !LV.g ? `<button class="ghost" type="button" data-pp-act="motion">📐 ${LL('Activar el nivel del móvil', 'Turn on the phone level')}</button>` : ''}`;
+}
+function encLive(st) {
+  const fr = st.enc.fr, lv = st.enc.lv, h = F.h;
+  const seen = fr && fr.face;
+  ppSet('kDist', !seen ? '—' : h > .5 ? LL('Muy cerca', 'Too close') : h < .085 ? LL('Lejos', 'Too far') : LL('Bien', 'Good'), !seen ? '' : h > .5 || h < .085 ? 'warn' : 'ok');
+  ppSet('kPos', !seen ? '—' : Math.abs(F.cx - .5) > .17 ? LL('Descentrado', 'Off-center') : LL('Centrado', 'Centered'), !seen ? '' : Math.abs(F.cx - .5) > .17 ? 'warn' : 'ok');
+  ppSet('kHead', !seen ? '—' : fr.face.y0 < .015 ? LL('Cabeza cortada', 'Head cut off') : (fr.ey ?? 0) > .52 ? LL('Demasiado', 'Too much') : LL('Justo', 'Just right'), !seen ? '' : fr.face.y0 < .015 || (fr.ey ?? 0) > .52 ? 'warn' : 'ok');
+  const r = lv?.roll;
+  ppSet('kLvl', lv?.flat ? LL('Tumbado', 'Lying flat') : r == null ? (lv?.src === 'imagen' ? LL('Recto', 'Straight') : '—') : `${Math.abs(r).toFixed(1).replace('.', LL(',', '.'))}°<em>${Math.abs(r) <= 2 ? LL('recto', 'level') : LL('torcido', 'tilted')}</em>`, lv?.flat ? 'warn' : r == null ? (lv ? 'ok' : '') : Math.abs(r) <= 2 ? 'ok' : Math.abs(r) <= 6 ? 'warn' : 'bad');
+  const e = document.getElementById('ppV'); if (e) { const v = st.enc.v, hh = ppVerd(v, S.vision ? LL('Buscándote en la imagen…', 'Looking for you in the frame…') : LL('Preparando el análisis de imagen…', 'Getting image analysis ready…')); if (e.innerHTML !== hh) e.innerHTML = hh; e.className = 'pp-v ' + (v?.k || ''); }
+}
+function ppOkHTML() {
+  const enr = voiceEngine() === 'propias' && (!KWS.tpl || kwMissing() || kwOld()) && S.audio?.mode === 'worklet';
+  return `<div class="pp-ready" id="ppReady"><div class="pp-big" id="ppBig">!</div><h3 id="ppRT"></h3><p id="ppRS"></p></div>
+    <ul class="pp-list" id="ppList"></ul>
+    <div class="pp-gaze" id="ppGaze"><span class="lens" aria-hidden="true"></span><div><b id="ppGT">${LL('Mira a la cámara 3 segundos', 'Look at the camera for 3 seconds')}</b><small>${LL('Al objetivo, no a la pantalla: así sé cuándo miras a quien te ve.', 'At the lens, not the screen: that’s how I know when you’re looking at your viewer.')}</small></div><i class="gbar"><i id="ppGB"></i></i></div>
+    ${enr ? `<button class="ghost" type="button" data-pp-act="enroll">🎙️ ${LL('Enseñar mis palabras para grabar con la voz (20 s)', 'Teach my words to record by voice (20 s)')}</button>` : ''}
+    <p class="pp-how">${LL('Pulsa Grabar: tienes ', 'Tap Record: you get ')}${+(S.opts.countdown ?? 5)}${LL(' s para colocarte. Se para sola al acabar el texto; para cortar antes, toca la pantalla.', ' s to get in position. It stops by itself when the script ends; tap the screen to stop early.')}</p>`;
+}
+function okLive(st, t) {
+  const bad = ['mic', 'cam', 'luz', 'enc'].filter(k => st[k].k !== 'ok');
+  const rd = document.getElementById('ppReady'); if (!rd) return;
+  rd.className = 'pp-ready' + (st.all ? ' ok' : '');
+  ppSet('ppBig', st.all ? '✓' : bad.some(k => st[k].k === 'pend') ? '…' : '!');
+  ppSet('ppRT', st.all ? LL('Todo perfecto para grabar', 'Everything’s perfect to record') : bad.every(k => st[k].k === 'pend') ? LL('Casi listo', 'Almost ready') : LL('Puedes grabar', 'You can record'));
+  ppSet('ppRS', st.all ? LL('Micro, cámara, luz y encuadre, en verde.', 'Mic, camera, light and framing, all green.') : `${LL('Mejoraría: ', 'I’d improve: ')}${bad.map(k => PP_NAME[k].toLowerCase()).join(', ')}.`);
+  const row = k => { const x = st[k], v = k === 'cam' ? (x.ci ? { t: `${x.ci.q} · ${x.ci.w}×${x.ci.h}` } : null) : x.v; const kk = x.k; return `<li data-go="${k}"><span aria-hidden="true">${PP_ICO[k]}</span><div><b>${PP_NAME[k]}</b><small>${esc(v?.t || LL('sin datos aún', 'no data yet'))}</small></div><span class="k ${kk}">${kk === 'ok' ? '✓' : kk === 'pend' ? '…' : '!'}</span></li>`; };
+  ppSet('ppList', ['mic', 'cam', 'luz', 'enc'].map(row).join(''));
+  // la mirada de referencia: 3 segundos mirando al objetivo, con la cara a la vista
+  const k = S.calibrating, g = document.getElementById('ppGaze');
+  if (k?.silent && g) {
+    if (!k.gazeT0) { k.gazeT0 = t; for (const a of ['pitch', 'yaw', 'smile', 'brow', 'neck', 'earSh']) k[a] = []; }
+    const p = k.gazeDone ? 1 : clamp((t - k.gazeT0) / 3);
+    if (!k.gazeDone && p >= 1 && k.pitch.length >= 5) { k.gazeDone = true; }
+    else if (!k.gazeDone && p >= 1) k.gazeT0 = t - 2.5;   // aún no te veía bien: un poco más
+    const gb = document.getElementById('ppGB'); if (gb) gb.style.width = (p * 100).toFixed(0) + '%';
+    g.classList.toggle('done', !!k.gazeDone);
+    ppSet('ppGT', k.gazeDone ? LL('✓ Mirada a cámara calibrada', '✓ Eye contact calibrated') : LL('Mira a la cámara 3 segundos', 'Look at the camera for 3 seconds'));
+  } else if (g && S.calib.done) { g.classList.add('done'); ppSet('ppGT', LL('✓ Mirada a cámara calibrada', '✓ Eye contact calibrated')); const gb = document.getElementById('ppGB'); if (gb) gb.style.width = '100%'; }
+}
+const PP_HTML = { mic: ppMicHTML, cam: ppCamHTML, luz: ppLuzHTML, enc: ppEncHTML, ok: ppOkHTML };
+function prepTab(id) {
+  if (!PP_TABS.includes(id)) id = 'mic';
+  if (PREP.tab !== id && id === 'luz') PREP.base = null;
+  if (PREP.tab === 'ok' && id !== 'ok' && S.calibrating?.silent && !S.calibrating.gazeDone) S.calibrating.gazeT0 = 0;
+  PREP.tab = id; ppEl.dataset.tab = id;
+  for (const b of ppEl.querySelectorAll('[data-pp]')) b.setAttribute('aria-selected', String(b.dataset.pp === id));
+  const body = $('#ppBody'); body.innerHTML = PP_HTML[id](); body.scrollTop = 0;
+  const last = id === 'ok', rehFirst = flowOn() && S.flow === 'ensayo';
+  $('#ppNext').innerHTML = last ? (rehFirst ? `${ico('play')}${LL('Ensayar', 'Rehearse')}` : `<i class="dot" aria-hidden="true"></i>${LL('Grabar', 'Record')}`) : LL('Siguiente', 'Next');
+  $('#ppAlt').textContent = last ? (rehFirst ? LL('Grabar sin ensayo', 'Record, no rehearsal') : LL('Ensayar', 'Rehearse')) : LL('Grabar ya', 'Record now');
+  PREP.at = 0; prepTick(now());
+}
+function prepTick(t) {
+  if (!PREP.open || t - PREP.at < .2) return;
+  PREP.at = t;
+  const st = PREP.st = prepState(t);
+  for (const b of ppEl.querySelectorAll('[data-pp]')) {
+    const d = b.querySelector('.pp-dot'), k = b.dataset.pp === 'ok' ? (st.all ? 'ok' : '') : st[b.dataset.pp].k;
+    if (d.dataset.k !== k) { d.dataset.k = k; d.className = 'pp-dot ' + k; }
+  }
+  const sum = $('#ppSum'), txt = st.all ? LL('✓ Todo listo', '✓ All set') : `${st.n}/4 ${LL('listos', 'ready')}`;
+  if (sum.textContent !== txt) { sum.textContent = txt; sum.classList.toggle('all', st.all); }
+  // la parte abierta ya está bien un par de segundos: el botón lo dice
+  const cur = st[PREP.tab]; if (cur?.k === 'ok') PREP.okT[PREP.tab] ||= t; else PREP.okT[PREP.tab] = 0;
+  $('#ppNext').classList.toggle('ready', PREP.tab === 'ok' ? st.all : !!PREP.okT[PREP.tab] && t - PREP.okT[PREP.tab] > 1.5);
+  if (PREP.tab === 'mic') micLive();
+  else if (PREP.tab === 'cam') camLive();
+  else if (PREP.tab === 'luz') luzLive();
+  else if (PREP.tab === 'enc') encLive(st);
+  else okLive(st, t);
+}
+function prepAudio(t, db, pk) {
+  PREP.lvl = PREP.lvl < -98 ? db : PREP.lvl * .5 + db * .5;
+  const p = 20 * Math.log10(Math.max(1e-6, pk));
+  if (p > PREP.pk || t - PREP.pkT > 1.2) { PREP.pk = p; PREP.pkT = t; }
+}
+function openPrep(tab) {
+  if (!prepAllowed() || !S.live || S.take || S.countdown) return false;
+  $('#planCard').hidden = true; $('#hfCard').hidden = true; $('#calib').hidden = true; S.intro = null;
+  if (!ppEl.firstElementChild) prepShell();
+  PREP.open = true; PREP.base = null; PREP.okT = {};
+  ppEl.hidden = false; $('#studio').classList.add('prepping');
+  if (panelOpen()) setPanel(false);
+  if (!S.calibrating) S.calibrating = { t0: now(), dur: 5, silent: true, pitch: [], yaw: [], smile: [], brow: [], neck: [], earSh: [], db: [], vdb: [] };
+  fillApply();
+  prepDevices().then(() => { if (PREP.open && ['mic', 'cam'].includes(PREP.tab)) prepTab(PREP.tab); });
+  prepTab(tab || 'mic');
+  return true;
+}
+// «Escúchate»: 5 segundos solo de sonido, grabados aquí y reproducidos al momento (no se guardan)
+function micListen() {
+  const tr = S.stream?.getAudioTracks()[0], btn = $('#ppListen'), au = $('#ppAudio');
+  if (!tr || !btn || typeof MediaRecorder === 'undefined' || PREP.rec) return;
+  const types = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm', ''], mime = types.find(m => !m || MediaRecorder.isTypeSupported?.(m));
+  let mr; try { mr = new MediaRecorder(new MediaStream([tr]), mime ? { mimeType: mime } : undefined); } catch (e) { console.warn(e); toast(LL('Este navegador no puede grabar sonido.', 'This browser can’t record audio.'), 3000); return; }
+  const parts = [], t0 = performance.now();
+  PREP.rec = mr; btn.disabled = true; au.hidden = true;
+  mr.ondataavailable = e => { if (e.data?.size) parts.push(e.data); };
+  mr.onstop = () => { PREP.rec = null; clearInterval(tick); btn.disabled = false; btn.textContent = '● ' + LL('Grabar otra vez', 'Record again');
+    if (!parts.length) return; const url = URL.createObjectURL(new Blob(parts, { type: mr.mimeType || 'audio/webm' }));
+    if (au.src) URL.revokeObjectURL(au.src); au.src = url; au.hidden = false; au.play().catch(() => {}); };
+  const tick = setInterval(() => { const left = Math.max(0, 5 - (performance.now() - t0) / 1000); btn.textContent = `🔴 ${LL('Grabando… ', 'Recording… ')}${Math.ceil(left)}`; }, 200);
+  mr.start(); setTimeout(() => { try { mr.stop(); } catch {} }, 5000);
+}
+function closePrep() {
+  if (!PREP.open) return;
+  PREP.open = false; ppEl.hidden = true; $('#studio').classList.remove('prepping');
+  try { PREP.rec?.stop(); } catch {}
+  const au = $('#ppAudio'); if (au) { au.pause(); }
+}
+function prepGo(record) {
+  closePrep();
+  if (S.calibrating?.silent) finishCalibration(false, true);
+  startTake(record);
+}
+async function prepSwitch(o) {
+  S.opts.cam = { ...(S.opts.cam || {}), ...o }; store.set('opts', S.opts);
+  busy(LL('Cambiando…', 'Switching…'));
+  try {
+    if (S.stream) for (const tr of S.stream.getTracks()) tr.stop();
+    attachStream(await openCamera());
+    await withTimeout(setupAudio(S.stream), 6000).catch(() => {});
+    await prepDevices();
+  } catch (e) { console.warn(e); busy(null); cameraError(e); return; }
+  busy(null);
+  SND.all = []; SND.voiced = []; SND.v = null; LT.recent = []; LT.v = null; PREP.base = null; PREP.lvl = -99; PREP.pk = -99;
+  if (PREP.open) prepTab(PREP.tab);
+}
+ppEl.addEventListener('click', e => {
+  const tb = e.target.closest('[data-pp]'); if (tb) { prepTab(tb.dataset.pp); return; }
+  const go = e.target.closest('[data-go]'); if (go) { prepTab(go.dataset.go); return; }
+  if (e.target.closest('#ppNext')) { if (PREP.tab === 'ok') prepGo(!(flowOn() && S.flow === 'ensayo')); else prepTab(PP_TABS[PP_TABS.indexOf(PREP.tab) + 1]); return; }
+  if (e.target.closest('#ppAlt')) { prepGo(PREP.tab === 'ok' ? flowOn() && S.flow === 'ensayo' : true); return; }
+  const q = e.target.closest('[data-q]'); if (q) { if (q.getAttribute('aria-pressed') !== 'true') prepSwitch({ q: q.dataset.q }); return; }
+  const fp = e.target.closest('[data-fps]'); if (fp) { if (fp.getAttribute('aria-pressed') !== 'true') prepSwitch({ fps: +fp.dataset.fps }); return; }
+  const kit = e.target.closest('[data-kit]');
+  if (kit) { const v = kit.dataset.kit; KIT.luz = v === 'techo' ? (KIT.luz.includes('techo') ? [] : ['techo']) : KIT.luz.includes(v) ? KIT.luz.filter(x => x !== v) : [...KIT.luz.filter(x => x !== 'techo'), v]; store.set('kit', KIT); for (const b of ppEl.querySelectorAll('[data-kit]')) b.setAttribute('aria-pressed', String(KIT.luz.includes(b.dataset.kit))); PREP.at = 0; return; }
+  const a = e.target.closest('[data-pp-act]')?.dataset.ppAct;
+  if (a === 'back') leaveStudio();
+  if (a === 'listen') micListen();
+  if (a === 'upload') { primeAudio(); $('#vidFile').click(); }
+  if (a === 'motion') { LV.asked = false; askMotion(); e.target.closest('button').hidden = true; }
+  if (a === 'enroll') { closePrep(); if (S.calibrating?.silent) finishCalibration(false, true); startEnroll(); }
+  if (a === 'camauto') { const tr = S.stream?.getVideoTracks()[0], caps = tr?.getCapabilities?.() || {}, c = {};
+    if (caps.exposureMode?.includes?.('continuous')) c.exposureMode = 'continuous'; if (caps.whiteBalanceMode?.includes?.('continuous')) c.whiteBalanceMode = 'continuous'; if (caps.focusMode?.includes?.('continuous')) c.focusMode = 'continuous';
+    if (caps.zoom) c.zoom = caps.zoom.min; if (caps.exposureCompensation) c.exposureCompensation = 0;
+    tr?.applyConstraints?.({ advanced: [c] }).catch(() => {}).finally(() => setTimeout(() => prepTab('cam'), 200)); }
+});
+ppEl.addEventListener('input', e => {
+  const r = e.target.closest('[data-cam]');
+  if (r) { const k = r.dataset.cam, f = CAM_CTL.find(c => c[0] === k)[2]; const o = document.getElementById('o-' + k); if (o) o.textContent = f(+r.value); clearTimeout(r._t); r._t = setTimeout(() => camSet(k, +r.value), 60); return; }
+  if (e.target.id === 'ppFillI' || e.target.id === 'ppFillW') {
+    FILL[e.target.id === 'ppFillI' ? 'i' : 'w'] = +e.target.value;
+    e.target.nextElementSibling.textContent = e.target.id === 'ppFillI' ? Math.round(FILL.i * 100) + '%' : FILL.w > .66 ? LL('cálido', 'warm') : FILL.w < .33 ? LL('frío', 'cool') : LL('neutro', 'neutral');
+    S.opts.fill = { ...FILL }; store.set('opts', S.opts); fillApply();
+  }
+});
+ppEl.addEventListener('change', e => {
+  if (e.target.id === 'ppMicSel') prepSwitch({ audioId: e.target.value });
+  if (e.target.id === 'ppCamSel') prepSwitch({ videoId: e.target.value });
+  if (e.target.id === 'ppFill') { FILL.on = e.target.checked; S.opts.fill = { ...FILL }; store.set('opts', S.opts); $('#ppFillCtl').hidden = !FILL.on; fillApply(); }
+  const sw = e.target.closest('[data-camsw]');
+  if (sw) { const k = sw.dataset.camsw, on = sw.checked; camSet(k, k === 'focusMode' || k === 'whiteBalanceMode' ? (on ? 'continuous' : 'manual') : on); }
+});
+ppEl.addEventListener('toggle', () => { PREP.at = 0; }, true);
+$('#prepBtn').addEventListener('click', () => { if (!openPrep()) toast(LL('La preparación es para grabar con guion.', 'The setup check is for recording with a script.'), 3000); });
+S.dbg.prep = { PREP, prepState, micInfo, lightDir, lightRatio, camInfo, FILL, openPrep, closePrep, prepTab };
+
 /* ---------------- calibración ---------------- */
 function startCalibration() {
   S.calibrating = { t0: now(), dur: 5, pitch: [], yaw: [], smile: [], brow: [], neck: [], earSh: [], db: [], vdb: [] };
@@ -4368,14 +4930,16 @@ function startCalibration() {
 }
 $('#calSkip').addEventListener('click', () => finishCalibration(true));
 function calibrationTick(t) {
-  const k = S.calibrating; if (!k) return;
+  const k = S.calibrating; if (!k || k.silent) return;
   const p = clamp((t - k.t0) / k.dur);
   const bar = $('#calbar'); if (bar) bar.style.width = (p * 100) + '%';
   if (p >= 1) finishCalibration(false);
 }
-function finishCalibration(skipped) {
+function finishCalibration(skipped, quiet = false) {
   const k = S.calibrating; S.calibrating = null;
   $('#calib').hidden = true;
+  // en la preparación, la cara de referencia solo vale si miraste a la cámara esos 3 segundos; la voz, la de la prueba de sonido
+  if (k?.silent && !k.gazeDone) for (const a of ['pitch', 'yaw', 'smile', 'brow', 'neck', 'earSh']) k[a] = [];
   if (!skipped && k) {
     const c = S.calib;
     if (k.pitch.length > 5) { c.pitch = median(k.pitch); c.yaw = median(k.yaw); c.smile = clamp(pctl(k.smile, .3), 0, .35); c.brow = median(k.brow); c.face = true; }
@@ -4386,6 +4950,7 @@ function finishCalibration(skipped) {
     c.done = true;
     store.set('calib', c);
   }
+  if (quiet) return;
   if (!isCall() && voiceEngine() === 'propias' && (!KWS.tpl || kwMissing() || kwOld()) && S.audio && S.audio.mode === 'worklet') {
     toast(kwOld() ? LL('He mejorado cómo te oigo desde lejos: dime otra vez tus palabras desde donde vas a grabar (20 segundos).', "I’ve improved how I hear you from a distance: say your words once more from where you’ll record (20 seconds).")
       : KWS.tpl ? LL('Orden nueva: «otra vez» repite la toma desde el principio. Enséñamela y ya está.', "New command: “again” restarts the take from the top. Just teach it to me.") : LL('Enseña tus palabras a Apuntador: así lo controlas todo con la voz.', "Teach Apuntador your words so you can control everything by voice."), 6500);
@@ -5271,7 +5836,8 @@ function prompterFrame(t, dt) {
     PR.speedF += ((wantMove ? 1 : 0) - PR.speedF) * Math.min(1, dt * 3);
     const pxs = (S.opts.wpm / 60) / Math.max(1, PR.wpl) * PR.lineH;
     PR.target += pxs * PR.speedF * dt;
-    const maxT = PR.tops[n - 1] - PR.readY;
+    // hasta el final de la última línea (si no, la marca se quedaría en su primera palabra y la toma no acabaría sola)
+    const maxT = PR.tops[n - 1] - PR.readY + PR.lineH * .98;
     if (PR.target > maxT) PR.target = maxT;
   }
   PR.offset += (PR.target - PR.offset) * Math.min(1, dt * 7);
@@ -6552,6 +7118,7 @@ function startLoops() {
     if (S.file) safe('vídeo', () => fileTick(t));
     if (!hold) safe('luz', () => lightTick(t));
     if (!hold) safe('plano', () => planoTick(t));
+    if (PREP.open) safe('preparación', () => prepTick(t));
     if (!hold) safe('visión', () => visionPump(t));
     // si el navegador pausa la cámara (pestaña de fondo, ahorro de energía…), se reanuda y se vigila
     if (t - lastV > 1) { lastV = t; for (const v of [video, S.pipVideo]) if (v && v.paused && v.srcObject) v.play().catch(() => {}); safe('cámara', () => cameraWatch(t)); }
@@ -6621,7 +7188,7 @@ function setTakeUI(on, rec = false) {
   $('#lane').hidden = !reading;
   $('#laneVoice').hidden = !(reading && (FOL.on || (kwsOn() && KWS.tpl)));
   if (!on) resetLine();
-  $('#rehearse').hidden = on; $('#record').hidden = on; $('#stop').hidden = !on;
+  $('#rehearse').hidden = on; $('#record').hidden = on; $('#stop').hidden = !on; $('#prepBtn').hidden = on;
   $('#score').hidden = !on; if (on) $('#score').textContent = '⭐ 0';
   $('#record').disabled = typeof MediaRecorder === 'undefined';
   if (!on) $('#clock').textContent = '00:00';
@@ -6636,7 +7203,8 @@ async function startTake(record) {
   if (S.drill) record = false;
   if (record) S.flow = 'grabar';
   if (record && typeof MediaRecorder === 'undefined') { record = false; toast(LL('Este navegador no puede grabar vídeo: hago un ensayo.', "This browser can’t record video: doing a rehearsal instead.")); }
-  if (S.calibrating) finishCalibration(true);
+  if (PREP.open) closePrep();
+  if (S.calibrating?.silent) finishCalibration(false, true); else if (S.calibrating) finishCalibration(true);
   if (KWS.enroll) cancelEnroll();
   S.countdown = true;
   setTakeUI(true, record);
@@ -6684,7 +7252,8 @@ async function startTake(record) {
     const tk = S.take;
     try {
       const mime = types.find(m => MediaRecorder.isTypeSupported?.(m)) || '';
-      const mr = new MediaRecorder(S.stream, mime ? { mimeType: mime, videoBitsPerSecond: 5_000_000 } : undefined);
+      const px = (video.videoWidth || 1280) * (video.videoHeight || 720), vbr = px >= 3e6 ? 24_000_000 : px >= 1.9e6 ? 10_000_000 : 5_000_000;
+      const mr = new MediaRecorder(S.stream, mime ? { mimeType: mime, videoBitsPerSecond: vbr } : undefined);
       mr.ondataavailable = e => { if (e.data && e.data.size) tk.chunks.push(e.data); };
       mr.start(1000);
       S.take.mr = mr; S.take.mime = mr.mimeType || mime || 'video/webm';
@@ -7270,6 +7839,81 @@ function downloadSrt(tk) {
   setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   toast(LL('Subtítulos guardados (.srt): súbelos junto al vídeo.', 'Captions saved (.srt): upload them with your video.'), 3500);
 }
+
+/* ---------------- la puntuación: lo que transmites ----------------
+   Quien te ve se forma una impresión en pocos segundos y la resume en pocas cosas: si sabes de lo que hablas
+   (seguridad), si le caes bien (cercanía), si le apetece seguir viéndote (energía) y si te entiende (claridad).
+   Cada rasgo sale de la toma: cuánto tiempo estuvieron sus señales en la franja que pide tu tono y cuánto tiempo hubo
+   señales que lo restan. La nota junta los cuatro rasgos (60 %) con el ajuste a tu tono (40 %). Se guarda la última de
+   cada guion para decirte, en la siguiente, si has mejorado o empeorado. */
+const TRAITS = [
+  { id: 'seg', e: '🦁', name: LL('Seguridad', 'Confidence'), m: ['mirada', 'volumen'], bad: ['mirada', 'postura', 'hombros', 'balanceo', 'cara', 'nervios', 'cruzados', 'labios', 'parpadeo', 'subeFinal', 'vozBaja'],
+    why: LL('Mirada al objetivo, cuerpo quieto y una voz firme que baja al final de la frase: así se ve a alguien que sabe de lo que habla.', 'Eyes on the lens, a steady body and a firm voice that drops at the end of a sentence: that’s how someone who knows their stuff comes across.') },
+  { id: 'cer', e: '🤝', name: LL('Cercanía', 'Warmth'), m: ['sonrisa', 'expresion', 'apertura'], bad: ['serio', 'sonrisaOjos', 'sonrisaTorcida', 'punos', 'cerrado', 'ceno', 'inexpresivo', 'codos'],
+    why: LL('La sonrisa de verdad (la que arruga los ojos), una cara que acompaña lo que dices y las palmas a la vista generan confianza y simpatía.', 'A genuine smile (the one that crinkles your eyes), a face that follows your words and visible palms build trust and likability.') },
+  { id: 'ene', e: '⚡', name: LL('Energía', 'Energy'), m: ['energia', 'manos', 'entonacion'], bad: ['estatico', 'manosQuietas', 'monotono', 'exceso', 'entonacionSobra'],
+    why: LL('Gestos que acompañan las ideas y una voz que sube y baja mantienen la atención: sin ellos, un vídeo corto se hace largo.', 'Gestures that follow your ideas and a voice that rises and falls hold attention: without them, even a short video drags.') },
+  { id: 'cla', e: '🎯', name: LL('Claridad', 'Clarity'), m: ['ritmo'], bad: ['rapido', 'lento', 'sinPausa', 'incongruente', 'final'],
+    why: LL('Buen ritmo, pausas donde toca y una lectura sin tropiezos: el mensaje se entiende a la primera y se recuerda.', 'A good pace, pauses in the right places and smooth reading: your message lands the first time and sticks.') },
+];
+const LOW_TXT = { sinPausa: ['⏸️', LL('Haz pausas', 'Pause more')], incongruente: ['🎭', LL('Cara y palabras a la par', 'Face that matches your words')], final: ['⏱️', LL('Aguanta 2 s al final', 'Hold 2 s at the end')], lectura: ['📖', LL('Lectura sin tropiezos', 'Smooth reading')] };
+const lowTxt = id => LOW_TXT[id] || goalTxt(id);
+function traitScores(tk) {
+  const log = tk.log; if (log.length < 8) return null;
+  const band = m => { let n = 0, ok = 0, lo = 0; for (const s of log) { const v = s.M?.[m], b = targetsFor(s.tone)[m]; if (v == null || !b) continue; n++; if (v < b[0]) lo++; else if (v <= b[1]) ok++; } return n >= 6 ? { m, share: ok / n, low: lo >= (n - ok - lo) } : null; };
+  const issue = id => { let k = 0; for (const s of log) if (s.on?.includes(id)) k++; return k / log.length + tk.events.filter(e => e.id === id).length * .03; };
+  const out = {};
+  for (const T of TRAITS) {
+    const bs = T.m.map(band).filter(Boolean), base = bs.length ? mean(bs.map(b => b.share)) : null;
+    let pen = 0, worst = null, wv = 0;
+    for (const id of T.bad) { const v = issue(id); pen += v; if (v > wv) { wv = v; worst = id; } }
+    if (T.id === 'cla' && !tk.call && !tk.file) { const rf = readFails(tk).length; pen += Math.min(.3, rf * .06); if (rf >= 2 && rf * .06 > wv) worst = 'lectura'; }
+    if (base == null && pen === 0) { out[T.id] = null; continue; }
+    // lo que más lo frena: la señal que más tiempo estuvo mal, o la medida más lejos de su franja
+    let low = worst && wv > .06 ? worst : null;
+    if (!low && bs.length) { const b = bs.sort((x, y) => x.share - y.share)[0]; if (b.share < .7) low = GOAL_OF_METRIC[b.m]?.[b.low ? 0 : 1] || null; }
+    out[T.id] = { v: Math.round(100 * clamp(.12 + .88 * (base ?? .8) * (1 - Math.min(.5, pen * .8)))), low };
+  }
+  return out;
+}
+const hashStr = t => { let h = 5381; for (let i = 0; i < t.length; i++) h = (h * 33 ^ t.charCodeAt(i)) >>> 0; return h.toString(36); };
+const cardKey = tk => tk.call ? null : tk.file ? 'f:' + tk.file : 't:' + hashStr((S.text || '').trim());
+function scoreCard(tk, avg) {
+  const tr = traitScores(tk); if (!tr) return null;
+  const vals = TRAITS.map(T => tr[T.id]?.v).filter(v => v != null);
+  if (!vals.length && avg == null) return null;
+  const tm = vals.length ? mean(vals) : null;
+  return { score: Math.round(tm == null ? avg : avg == null ? tm : .6 * tm + .4 * avg), tr, avg };
+}
+const scK = v => v == null ? 'na' : v >= 75 ? 'ok' : v >= 55 ? 'warn' : 'bad';
+function scoreCardHTML(tk, card, prev, plan, ba, cta) {
+  const { score, tr } = card, d = prev ? score - prev.score : null;
+  const word = score >= 85 ? LL('Toma excelente', 'Excellent take') : score >= 72 ? LL('Muy buena toma', 'Very good take') : score >= 58 ? LL('Buena toma', 'Good take') : score >= 45 ? LL('Mejorable', 'Room to improve') : LL('A trabajar', 'Needs work');
+  const rc = score >= 72 ? '#3DDC97' : score >= 55 ? '#FFC24B' : '#FF6461';
+  const delta = d == null ? '' : `<p class="sc-delta ${d >= 3 ? 'up' : d <= -3 ? 'down' : ''}">${d >= 3 ? '▲ ' + LL('Has mejorado', 'You improved') : d <= -3 ? '▼ ' + LL('Has empeorado', 'It got worse') : '= ' + LL('Igual que la anterior', 'Same as last time')} · <b>${prev.score} → ${score}</b></p>`;
+  const named = TRAITS.filter(T => tr[T.id]), hi = named.filter(T => tr[T.id].v >= 75), lo = named.filter(T => tr[T.id].v < 60);
+  const nm = T => `<b>${T.name.toLowerCase()}</b>`;
+  const imp = !named.length ? '' : (hi.length ? `${LL('Transmites ', 'You come across with ')}${listaY(hi.map(nm))}` : LL('Aún no destaca ningún rasgo', 'No trait stands out yet'))
+    + (lo.length ? `${LL('; para conectar más, trabaja ', '; to connect more, work on ')}${listaY(lo.map(T => LL('la ', '') + nm(T)))}.` : hi.length ? LL('. Sigue así.', '. Keep it up.') : LL(': vas bien en todo, ahora toca pulir.', ': you’re fine across the board, now it’s about polishing.'));
+  const weakest = named.slice().sort((a, b) => tr[a.id].v - tr[b.id].v)[0];
+  const rows = TRAITS.map(T => {
+    const x = tr[T.id], pv = prev?.tr?.[T.id], dd = x && pv != null ? x.v - pv : null;
+    const why = x && T === weakest && x.v < 75 ? `<small>${esc(T.why)}${x.low ? ` ${LL('Lo que más lo frena: ', 'What holds it back most: ')}<em>${lowTxt(x.low)[0]} ${esc(lowTxt(x.low)[1])}</em>.` : ''}</small>` : '';
+    return `<li class="sc-t" data-k="${scK(x?.v)}"><span class="e" aria-hidden="true">${T.e}</span><b>${T.name}</b><span class="v">${x ? x.v : '—'}</span><span class="d ${dd == null ? '' : dd >= 3 ? 'up' : dd <= -3 ? 'down' : ''}">${dd == null ? '' : dd > 0 ? '+' + dd : dd < 0 ? '−' + -dd : '='}</span><span class="bar"><i style="width:${x ? x.v : 0}%"></i></span>${why}</li>`;
+  }).join('');
+  // el objetivo que traías de la toma anterior: ¿conseguido?
+  const g = ba?.[0], goal = g ? (() => { const [e, l] = goalTxt(g.id), k = g.v[0]; return `<p class="sc-goal ${k}">${LL('Tu objetivo en esta toma: ', 'Your goal this take: ')}<b>${e} ${esc(l)}</b> · ${k === 'ok' ? LL('✅ conseguido', '✅ achieved') : k === 'bad' ? LL('⚠️ ha ido a peor', '⚠️ got worse') : LL('➖ casi igual', '➖ about the same')}${g.b != null && g.a != null ? ` (${Math.round(g.b * 100)}% → ${Math.round(g.a * 100)}% ${LL('del tiempo con el problema', 'of the time with the issue')})` : ''}</p>`; })() : '';
+  const fx = plan?.ids?.[0], fix = fx ? `<div class="sc-fix"><p class="sc-eye">${tk.file ? LL('Para tu próxima versión, solo esto', 'For your next version, just this') : LL('Para la próxima toma, solo esto', 'For your next take, just this')}</p><div><span class="e" aria-hidden="true">${goalTxt(fx)[0]}</span><div><b>${esc(goalTxt(fx)[1])}</b><small>${esc(TIPS[fx] || '')}</small></div></div></div>` : '';
+  return `<section class="sc" aria-label="${LL('Tu puntuación', 'Your score')}">
+    <div class="sc-top"><div class="sc-ring" style="--p:${score};--rc:${rc}"><div><b id="scNum">${score}</b><small>/100</small></div></div>
+      <div class="sc-head"><p class="sc-eye">${LL('Tu puntuación', 'Your score')}</p><h2>${word}</h2></div></div>
+    ${delta}
+    ${imp ? `<p class="sc-imp">${imp}</p>` : ''}
+    <ul class="sc-tr" aria-label="${LL('Lo que transmites', 'How you come across')}">${rows}</ul>
+    ${goal}${fix}
+    <div class="sc-act">${cta}${tk.blob || tk.url ? `<button class="ghost" type="button" data-act="toreview">▶ ${LL('Verlo en mi vídeo', 'See it in my video')}</button>` : ''}</div>
+  </section>`;
+}
 function buildReport(tk) {
   S.repTk = tk;
   const call = !!tk.call, file = !!tk.file;
@@ -7374,6 +8018,15 @@ function buildReport(tk) {
   const ctaHTML = call ? `<button class="primary" data-act="again">${ico('repetir')}${LL("Otra sesión</button>", "Another session</button>")}`
     : file ? `<button class="primary" data-act="improve">${ico('camara')}${LL("Grabarlo mejor</button>", "Record it better</button>")}`
     : `<button class="primary" data-act="again">${ico('repetir')}${LL("Grabar otra vez</button>", "Record again</button>")}${tk.blob ? `<button class="ghost" data-act="srt">${ico('texto')}${LL('Subtítulos (.srt)', 'Captions (.srt)')}</button>` : ''}`;
+  // la puntuación y si has mejorado frente a la última toma de este guion (o de este vídeo)
+  const card = scoreCard(tk, avg), ck = cardKey(tk), CARDS = store.get('cards', {}), prev = ck && CARDS[ck] ? CARDS[ck] : null;
+  const scCta = call ? `<button class="primary" type="button" data-act="again">${ico('repetir')}${LL('Otra sesión', 'Another session')}</button>`
+    : file ? `<button class="primary" type="button" data-act="improve">${ico('camara')}${LL('Grabarlo mejor', 'Record it better')}</button>`
+    : rehearsal ? `<button class="primary" type="button" data-act="again">${ico('camara')}${LL('Grabar la buena', 'Record the real one')}</button>`
+    : `<button class="primary" type="button" data-act="again">${ico('repetir')}${LL('Otra toma', 'Another take')}</button>`;
+  const cardHTML = card ? scoreCardHTML(tk, card, prev, plan, ba, scCta) : '';
+  if (card && ck) { CARDS[ck] = { score: card.score, tr: Object.fromEntries(TRAITS.map(T => [T.id, card.tr[T.id]?.v ?? null])), at: Date.now() }; const ks = Object.keys(CARDS); if (ks.length > 40) delete CARDS[ks.sort((a, b) => CARDS[a].at - CARDS[b].at)[0]]; store.set('cards', CARDS); }
+  tk.card = card;
   const el = $('#report');
   el.innerHTML = `
     <header class="appbar">
@@ -7381,6 +8034,7 @@ function buildReport(tk) {
       <div class="ab-mid"><span class="ab-step"><b>${file ? LL('Análisis', "Analysis") : rv ? LL('Revisión', 'Review') : LL('Informe', "Report")}</b></span></div>
       ${tk.blob ? `<a class="ab-btn" href="${url}" download="apuntador-${stamp}.${ext}${LL("\" aria-label=\"Descargar vídeo\">", "\" aria-label=\"Download video\">")}${ico('descargar')}</a>` : '<span class="ab-btn ab-void" aria-hidden="true"></span>'}
     </header>
+    ${cardHTML}
     ${rv ? reviewHTML(tk, url, ms, strip) : ''}
     <header class="rep-head">
       <div><p class="eyebrow">${file ? LL('Análisis de tu vídeo', "Your video analysis") : LL('Informe de la ', "Report for this ") + (call ? LL('sesión', "session") : LL('toma', 'take'))} · ${fmtTime(tk.dur)}</p><h1>${file ? esc(tk.file) : call ? (tk.record ? LL('Videollamada grabada', "Recorded video call") : LL('Videollamada', "Video call")) : tk.record ? LL('Toma grabada', "Recorded take") : LL('Ensayo', "Rehearsal")}</h1>
@@ -7462,6 +8116,7 @@ function buildReport(tk) {
     </details>
   `;
   countUp($('.dash-score .ring span'), avg);
+  if (card) { const n = $('#scNum'); if (n && !matchMedia('(prefers-reduced-motion: reduce)').matches) { const t0 = performance.now(), to = card.score; const st = t => { const k = Math.min(1, (t - t0) / 900); n.textContent = Math.round(to * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(st); }; requestAnimationFrame(st); } }
   $('#repStrip')?.addEventListener('click', e => { const v = $('#repVideo'), i = e.target.closest('i'); if (v && i) { v.currentTime = +i.dataset.t; v.play?.(); } });
   if (rv) reviewBind(tk, ms, endHTML);
   $('#repMore').addEventListener('toggle', () => { if ($('#repMore').open) drawTimeline(tk); });
@@ -7494,6 +8149,7 @@ $('#report').addEventListener('click', e => {
   if (a === 'again-reh') { S.flow = 'ensayo'; againNow(false); }
   if (a === 'warm-again') { show('studio'); reenterStudio().then(() => { $('#planCard').hidden = true; $('#hfCard').hidden = true; $('#warmCard').hidden = false; warmStep(0); }); }
   if (a === 'srt' && S.repTk) downloadSrt(S.repTk);
+  if (a === 'toreview') { const b = $('#rvBox'); b?.scrollIntoView({ block: 'start', behavior: 'smooth' }); $('#repVideo')?.play?.().catch?.(() => {}); }
   if (a === 'another') { primeAudio(); $('#vidFile').click(); }
   if (a === 'improve') {
     primeAudio();
