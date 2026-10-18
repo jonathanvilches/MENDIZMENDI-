@@ -58,6 +58,8 @@ import { drawArms } from '../world/heraldry.js';
 import { readArms, readTownArms } from '../ui/escudo.js';
 import { instrumentosDe, instrumentoById } from '../data/instrumentos.js';
 import { jugarInstrumento } from '../ui/instrumentos.js';
+import { jugarPasaka } from '../ui/pasaka.js';
+import { PASAKA } from '../data/pasaka.js';
 import { PARTS, CASTLE_QUIZ, CASTLE_TOWNS, CASTILLOS } from '../data/castillos.js';
 import { GearProps } from '../actors/gear3d.js';
 import { foodFrom } from '../data/equipo.js';
@@ -349,6 +351,12 @@ export class TownGame {
       if (inst) { const c = this.plazaStage(), s = this.spot({ x: c.x + 5.5, z: c.z - 4.5 }, 2.5), [nm] = inst.musico, fem = !!inst.female;
         const m = new Actor({ id: 'musico', name: nm, x: s.x, z: s.z, heading: Math.atan2(c.x - s.x, c.z - s.z), look: { shirt: '#f4f1ea', pants: '#1d1d24', skirt: fem ? '#1d1d24' : undefined, txapela: fem ? undefined : '#1d1d24', scarf: '#d42f2f', sash: '#d42f2f', espadrille: true, laces: '#d42f2f', female: fem, bun: fem, hair: fem ? '#3b2418' : '#2a1a12', staff: inst.id === 'txalaparta' || inst.id === 'kirikoketa', region: d.comarca, seed: 77 } }, this.scene);
         m.musico = inst.id; this.walkers.push(m); } } catch (e) { console.warn('músico', e); }
+    // el canónigo del claustro de la catedral (Pamplona): invita a jugar a la pasaka (ui/pasaka.js, pasakaCon)
+    if (d.id === 'pamplona' && TOWN.church?.claustro) try {
+      const k = TOWN.church.claustro, s = this.spot({ x: k.x, z: k.z }, 2.5);
+      const m = new Actor({ id: 'canonigo', name: PASAKA.canonigo.name, x: s.x, z: s.z, heading: k.heading || 0, look: { shirt: '#15131a', pants: '#15131a', hair: '#8c8c8c', old: true, glasses: '#3a2a1a', region: d.comarca, seed: 41 } }, this.scene);
+      m.pasaka = true; this.canonigo = m; this.walkers.push(m);
+    } catch (e) { console.warn('canónigo', e); }
     // algunos días hay mercado en la plaza
     try { if (marketDay(d, this.rnd)) { this.mercado = new Mercado(this); this.marketToast = true; } } catch (e) { console.warn('mercado', e); }
     // mochila del explorador: equipo visible, agua, comida y energía; frutos del campo para recoger
@@ -504,6 +512,17 @@ export class TownGame {
     this.ui.toast(`A la mochila: ${GOODS[k].name.toLowerCase()} ×${n} (para el trueque en la tienda)`, GOODS[k].icon, 2600);
   }
   // el músico de la plaza enseña el instrumento de su zona (ui/instrumentos.js): habla, se toca y, si sale, carta de tradiciones
+  // el canónigo del claustro enseña la pasaka (ui/pasaka.js): habla, se juega de pareja con él y, si se gana, carta de tradiciones
+  async pasakaCon(a) {
+    a.say(3); a.wave = 1.2; this.player.frozen = true; this.mode = 'mini';
+    try {
+      await this.say(a, PASAKA.lines.ask);
+      const r = await jugarPasaka(this.ui, { who: a.name });
+      if (r.quit) return;
+      await this.say(a, r.win ? PASAKA.lines.win : PASAKA.lines.lose);
+      if (r.win) { this.player.rig?.doCheer?.(); for (const bd of checkBadges()) await infoCard(this.ui, { icon: bd.icon, kicker: 'Nueva insignia', title: bd.name, text: bd.text, button: '¡Bien!' }); }
+    } finally { this.player.frozen = false; this.mode = 'play'; a.talking = 0; }
+  }
   async tocarCon(a) {
     const inst = instrumentoById(a.musico); if (!inst) return;
     a.say(3); a.wave = 1.2; this.player.frozen = true; this.mode = 'mini';
@@ -687,6 +706,7 @@ export class TownGame {
     if (TOWN.farm) L.push({ x: TOWN.farm.x, z: TOWN.farm.z, icon: 'sheep', label: 'Granja' });
     L.push({ x: PLACES.fields.x, z: PLACES.fields.z, icon: 'wheat', label: 'Campos' });
     if (this.fronton) L.push({ x: this.fronton.spot.x, z: this.fronton.spot.z, icon: 'pelota', label: 'Frontón', text: 'Acércate al frontón para jugar a pelota', fronton: true, go: false });
+    if (this.canonigo) L.push({ x: this.canonigo.pos.x, z: this.canonigo.pos.z, icon: 'pelota', label: 'Pasaka', text: 'El canónigo del claustro te enseña la pasaka' });
     return L;
   }
   setBook(M) { if (!M.done) { this.tracked = M.i; this.sound.ui('click'); } }
@@ -763,7 +783,7 @@ export class TownGame {
     if (this.townArms && ok(this.townArms.read.x, this.townArms.read.z)) list.push({ kind: 'armas', x: this.townArms.read.x, z: this.townArms.read.z, r: 3, label: this.P.cards.includes(this.townArms.id) ? `Volver a leer el escudo de ${this.def.name.split(' /')[0]}` : `Leer el escudo de ${this.def.name.split(' /')[0]}` });
     for (const b of this.blasones || []) if (ok(b.read.x, b.read.z)) list.push({ kind: 'escudo', b, x: b.read.x, z: b.read.z, r: 3, label: this.P.cards.includes(b.id) ? 'Volver a leer el escudo' : 'Leer el escudo de la casa' });
     for (const a of this.actors) if (a.visible !== false && ok(a.pos.x, a.pos.z)) list.push({ kind: 'npc', a, x: a.pos.x, z: a.pos.z, r: 3, label: a.market ? `Puesto del mercado: ${a.market.toLowerCase()}` : a === this.pelotari ? `Jugar a pelota con ${a.name}` : a === this.coach ? 'Jugar un partido en El Sadar' : a === this.futsalCoach ? `Fútbol con ${clubOfTown(this.def.id)?.name || 'el club del pueblo'}` : a.sabio ? `${a.name}: la historia de ${a.sabio.name}` : a.cuento ? `${a.name}: escuchar «${a.cuento.title}»` : `Hablar con ${a.name}` });
-    for (const a of this.walkers) if (ok(a.pos.x, a.pos.z)) list.push({ kind: 'walker', a, x: a.pos.x, z: a.pos.z, r: a.info || a.jobs ? 3 : 2.4, label: a.musico ? `Tocar ${instrumentoById(a.musico)?.short || 'música'} con ${a.name}` : a.stall ? 'Productos del pueblo' : a.jobs ? `Ayudar a ${a.name.toLowerCase()} (txanponak)` : a.info ? `Hablar con ${a.name.toLowerCase() === 'pastor' ? 'el pastor' : 'la ganadera'}` : `Saludar a ${a.name}${TAREAS[a.tarea] ? ' · ' + TAREAS[a.tarea].name : ''}` });
+    for (const a of this.walkers) if (ok(a.pos.x, a.pos.z)) list.push({ kind: 'walker', a, x: a.pos.x, z: a.pos.z, r: a.info || a.jobs ? 3 : 2.4, label: a.pasaka ? `Jugar a pasaka con ${a.name}` : a.musico ? `Tocar ${instrumentoById(a.musico)?.short || 'música'} con ${a.name}` : a.stall ? 'Productos del pueblo' : a.jobs ? `Ayudar a ${a.name.toLowerCase()} (txanponak)` : a.info ? `Hablar con ${a.name.toLowerCase() === 'pastor' ? 'el pastor' : 'la ganadera'}` : `Saludar a ${a.name}${TAREAS[a.tarea] ? ' · ' + TAREAS[a.tarea].name : ''}` });
     for (const o of this.agro?.list || []) if (ok(o.x, o.z)) list.push({ kind: 'agro', o, x: o.x, z: o.z, r: o.kind === 'combine' ? 6 : 4.5, label: `Mirar: ${o.info.title.toLowerCase()}` });
     for (const it of this.items) if (ok(it.x, it.z)) list.push({ kind: 'item', it, x: it.x, z: it.z, r: 2.2, label: it.label });
     for (const M of this.missions) if (M.bench && M.step === 1 && !M.done && ok(M.bench.x, M.bench.z)) list.push({ kind: 'bench', M, x: M.bench.x, z: M.bench.z, r: 3, label: M.oficio ? 'Entrar al taller' : M.trade.verb });
@@ -823,6 +843,7 @@ export class TownGame {
       const M = this.missions.find(M => M.type === 'pelota' && !M.done);
       return M ? this.talk(M.host) : this.freePelota();
     }
+    if (it.kind === 'walker' && it.a.pasaka) return this.pasakaCon(it.a);
     if (it.kind === 'walker' && it.a.musico) return this.tocarCon(it.a);
     if (it.kind === 'walker' && it.a.jobs && this.jornales) return this.jornales.talk(it.a);
     if (it.kind === 'walker' && it.a.info) return this.explainWork(it.a);

@@ -16,6 +16,7 @@
     "three": "^0.180.0"
   },
   "devDependencies": {
+    "@gfx/zopfli": "^1.0.15",
     "@gltf-transform/core": "^4.5.1",
     "@gltf-transform/extensions": "^4.5.1",
     "@gltf-transform/functions": "^4.5.1",
