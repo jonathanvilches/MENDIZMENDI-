@@ -1,10 +1,10 @@
 # Apuntador
 
 Director de escena para vídeos y videollamadas. Mira tu cara (contorno, cejas, ojos, iris, labios), tu cuerpo
-(hombros, codos, muñecas, postura) y cada mano con sus 21 puntos, y escucha tu voz. Con eso te dice en el
-momento qué estás transmitiendo frente a lo que querías transmitir, te corrige y te da ideas para mejorarlo:
-«Descruza los brazos», «Baja los hombros», «Sonríe más: tu mensaje es animado y tu cara se ve seria»,
-«Asiente de vez en cuando», «Idea: enumera con los dedos lo próximo que digas»…
+(hombros, codos, muñecas, postura) y cada mano con sus 21 puntos, y escucha tu voz. Mientras lees tu guion no te
+interrumpe: apunta lo que ve y, al terminar, te lo enseña sobre tu propio vídeo, parándolo en cada momento clave
+con lo que pasó y cómo hacerlo: «Saluda con la mano: no se vio», «Manos fuera de plano», «Más despacio»…
+En una videollamada sí te avisa en el momento: «Descruza los brazos», «Asiente de vez en cuando»…
 
 Es una app web: un `index.html` con su manifiesto, sus iconos y un service worker. Se instala en la pantalla de
 inicio y se abre como una app, a pantalla completa y sin las barras del navegador.
@@ -43,31 +43,31 @@ urgente) y lo lees como en un teleprompter. Todo va por voz (ver más abajo): «
 atrás y la grabación; «corten» y sigue grabando unos segundos antes de parar. También puedes empezar dando dos
 palmadas o con los botones. El texto sigue tu voz o avanza a velocidad fija. La app
 coloca gestos en el guion («saluda con la mano» en «hola», «cuenta con los dedos» en una enumeración, «abre los
-brazos» en «todos»…), te avisa cuando llegas a ellos, te enseña cómo hacerlos y comprueba si los haces. Como estás
-leyendo, en este modo no te corrige la mirada. Marcas: `[animado]` cambia el tono desde
+brazos» en «todos»…), los marca en el margen del texto y comprueba si los haces; en la revisión te enseña cómo
+hacerlos. Como estás leyendo, en este modo no te corrige la mirada. Marcas: `[animado]` cambia el tono desde
 ese párrafo, `//` es una pausa, `*palabra*` pide énfasis y `{abre los brazos}` es una acotación tuya.
 
-**El texto se lee limpio y todo lo demás va abajo.** En el teleprompter solo están las palabras que dices (las pausas
-`//` son una raya fina; el énfasis, otro color). Abajo, cerca de los botones:
+**El texto se lee limpio.** En el teleprompter solo están las palabras que dices (las pausas `//` son una raya fina;
+el énfasis, otro color) y, en el margen, el emoji de cada gesto. Por defecto no hay nada más (ver «Graba y revisa»).
+Con «Mientras lees: El texto, la línea y los avisos», abajo, cerca de los botones:
 - *En breve*: el gesto que viene, unos 2,5 segundos antes de su palabra, con una barra que se vacía;
 - *¡Ahora!*: el gesto en su momento (con la figura animada que lo hace) y ✓ si lo haces;
 - la línea verde, ámbar o roja que dice si vas bien;
-- en el ensayo, también las correcciones, cortas y de una en una.
+- las correcciones, cortas y de una en una.
 
 Mientras lees no hay ideas, ni etiquetas del esqueleto (que queda tenue), ni línea de estado, y el monitor se recoge
 (en el móvil se oculta). En la vista previa (paso «Revisión») los gestos se ven como emojis en el margen.
 
-**Ensayo antes de grabar** (activado por defecto; se quita en el paso «Antes de grabar»). Pensado para vídeos de redes:
-1. *Paso 1 · Ensayo*: «comenzamos» (o dos palmadas, o Ensayar) hace una prueba sin grabar, con todas las
-   correcciones. «Corten» la para al momento.
-2. Sin salir del plató aparece el resultado: ajuste al tono, lo que transmitiste, cómo es el arranque (los 3 primeros
-   segundos, lo que decide en redes si se quedan a verte), si dura más de un minuto (Reels, TikTok, Shorts) y hasta
-   tres cosas en las que fijarte.
-3. *Paso 2 · Grabación de verdad*: «comenzamos» graba. Por defecto solo ves abajo los gestos que vienen y **la línea
-   verde** si te acercas a tus objetivos (mejor que en el ensayo), **ámbar** si vas igual y **roja** si te alejas. Sin
-   correcciones, sin monitor y sin dibujos encima. En «Antes de grabar», «Mientras grabas de verdad», se pueden volver a poner
-   los avisos.
-4. Cada ensayo dice cómo vas frente al anterior («Tus ensayos: 52% → 61% ▲ +9»).
+**Ensayo antes de grabar** (desactivado por defecto: cada toma ya se revisa; se activa en el paso «Antes de grabar»).
+1. *Paso 1 · Ensayo*: «comenzamos» (o dos palmadas, o Ensayar) hace una toma de prueba, que se graba solo para
+   revisarla. «Corten» la para al momento.
+2. La revisión sobre su vídeo, como la de cualquier toma, con el arranque (los 3 primeros segundos, lo que decide en
+   redes si se quedan a verte) y la duración (Reels, TikTok, Shorts) en el informe.
+3. *Paso 2 · Grabación de verdad*: «Grabar la buena» (o «comenzamos») graba; «Otro ensayo» repite la prueba. Con
+   «Mientras lees: El texto y una línea de color» se ve **la línea verde** si te acercas a tus objetivos (mejor que en
+   el ensayo), **ámbar** si vas igual y **roja** si te alejas.
+4. Si el navegador no puede grabar vídeo, el resultado del ensayo sale en una tarjeta sin salir del plató, y cada
+   ensayo dice cómo vas frente al anterior («Tus ensayos: 52% → 61% ▲ +9»).
 
 **Luz, sonido, encuadre y nivel.** Antes de grabar, la información marca 💡 la luz, 🎙️ el sonido, 🎯 el encuadre y
 📐 el nivel, cada uno con un dibujo de qué hacer (ver «Tu plano» más abajo), y avisa si algo falla. El resultado del
@@ -119,6 +119,28 @@ Con «Ventana flotante» (Chrome y Edge de escritorio) el apuntador se queda enc
 analizando aunque la pestaña quede detrás. Si la aplicación de la llamada no deja usar la cámara a la vez,
 abre la llamada en otra pestaña del mismo navegador.
 
+## Graba y revisa
+
+Leyendo un guion no da tiempo a leer avisos («sube las manos», «sonríe»…): despistan y se lee peor. Por eso:
+
+1. **Mientras lees, solo el texto.** Nada encima: ni avisos, ni alertas, ni puntos, ni la línea de color, ni el
+   porcentaje. El entrenador sigue mirando y escuchando y lo apunta todo. La cuenta atrás lo recuerda («Grabando ·
+   solo tu guion: lo revisamos al terminar») y, si la toma anterior dejó algo pendiente, dice una sola cosa en la
+   que fijarte («🎯 Esta vez, fíjate en: 🐢 Más despacio»).
+2. **Al terminar, la revisión sobre tu vídeo.** Es lo primero que se ve: el vídeo, la línea de la toma con sus
+   notas (rojo, a mejorar; ámbar, a vigilar; verde, bien hecho) y «Revisar con el coach». El vídeo se para en cada
+   nota y una tarjeta dice qué pasó, lo que estabas diciendo («Estabas diciendo «¡Hola a todos! Hoy…»») y cómo
+   hacerlo, con una marca encima del vídeo. «Seguir» va a la siguiente; «Verlo otra vez» vuelve unos segundos atrás
+   y se para después; la flecha, a la anterior; tocar una nota de la línea la abre. Se puede quitar «Parar el vídeo
+   en cada nota» para verlo de corrido.
+3. **Una sola cosa para la próxima toma.** Al final: «Fíjate solo en esto» (lo que más se repitió, con cómo
+   hacerlo) y «Otra toma». Lo demás puede esperar: una cosa cada vez se aprende antes.
+
+Los ensayos también se graban (solo en el dispositivo) para revisarlos igual; con «Ensayo antes de grabar»
+activado, al final de la revisión están «Grabar la buena» y «Otro ensayo». En «Antes de grabar → Mientras lees» se
+puede volver a ver algo durante la toma: «El texto y una línea de color» o «El texto, la línea y los avisos».
+Con el vídeo sonando, las órdenes de voz no cuentan (lo que oye el micro es tu propia voz grabada).
+
 ## Control por voz
 
 - **«comenzamos»**: cuenta atrás 3, 2, 1 y graba. Funciona también desde el informe para hacer otra toma.
@@ -130,8 +152,8 @@ abre la llamada en otra pestaña del mismo navegador.
   «Antes de grabar»; 3 por defecto). Si lo has dicho sin querer o quieres repetir la frase, di **«seguimos»** y la grabación
   continúa. El botón Terminar y la tecla Esc usan el mismo margen, con «Cortar ya» para no esperar.
 - **Mis palabras** (iPhone, iPad y Android; en «Automático» se usa en el móvil): la primera vez la app te pide decir
-  «comenzamos», «corten», «seguimos» y «otra vez» dos veces cada una y aprende tu voz. Si ya las habías enseñado con
-  una versión anterior, solo te pide la nueva («otra vez»). Después las reconoce sin conexión y sin
+  «comenzamos», «corten», «seguimos» y «otra vez» dos veces cada una y aprende tu voz (mejor desde donde vas a
+  grabar). Después las reconoce sin conexión y sin
   abrir el micrófono otra vez, que es lo que cortaba la cámara en el iPhone con el reconocimiento del navegador.
   Solo cuenta una palabra dicha sola, con una pequeña pausa antes y después: leyendo el guion de corrido no se
   dispara. El botón 🎙️ «Mis palabras» del plató sirve para volver a enseñarlas (por ejemplo, con otro micrófono).
@@ -171,6 +193,23 @@ Se explica en el plató, que es donde se usa; antes de entrar no estorba:
 - **Mientras esperas**: «Te escucho: di «comenzamos»…» abajo, con un punto que late con tu voz (se ve que escucha).
   Durante la toma, junto a la línea de abajo, «🎙️ «corten» · «otra vez»».
 - **Antes de grabar** solo quedan los ajustes, plegados en «Control por voz»: qué reconocimiento se usa y el margen al parar.
+
+## Órdenes de voz desde lejos
+
+Grabando, el móvil está a uno o dos metros: llega menos voz y más eco de la habitación, y la huella de la palabra
+cambia tanto que dejaba de reconocerse. Medido con 692 grabaciones (10 voces, en español e inglés, enseñadas cerca y
+dichas a otra velocidad y tono): a 2 metros con eco, la versión anterior reconocía entre 2 y 3 de cada 10 órdenes;
+ahora, 97–99 de cada 100.
+- **Cómo te oiría de lejos:** al enseñar tus palabras se guarda también su sonido, y con él se calcula cómo sonaría
+  cada una en dos salas con eco (reverberación de Schroeder), más lejos y con ruido de fondo. Esas versiones se
+  comparan como si las hubieras grabado tú.
+- **Si no entra a la primera, repítela:** lo que se parece bastante pero no del todo («¿«corten»? Repítela») vale si
+  lo repites en 5 segundos, siempre que las dos veces se parezcan entre sí (dos palabras distintas seguidas no
+  cuentan). Con ruido de fondo, todas las órdenes que fallaban a la primera entran así. Y la app se queda con esas
+  dos formas para la próxima vez (hasta 4 por palabra).
+- **Quien ya las había enseñado** con la versión anterior las vuelve a decir una vez (20 segundos), porque hace
+  falta su sonido para calcular las versiones de lejos.
+- Las palabras parecidas que se cuelan no aumentan (las mismas homófonas de antes: «comentamos», «corte», «cup»…).
 
 ## Que no arranque solo
 
@@ -234,11 +273,11 @@ línea de lectura, en trozos de hasta 7 palabras sin partir frases, listos para 
 ## Pantalla limpia y momentos clave
 
 - Al grabar, la imagen queda limpia: las líneas de lo que detecta pasan a ser el **modo análisis** (botón de la
-  figura en el plató, o tecla S). Los gestos que vienen se iluminan en el margen del texto.
+  figura en el plató, o tecla S). Los gestos del guion están en el margen del texto, quietos.
 - En el informe, **momentos clave**: cada fallo al leer, gesto del guion (hecho o no) y aviso, con su minuto y lo que
   estabas leyendo («…primero, la luz; segundo…»). Con vídeo, tocarlo lleva a ese momento.
-- En los ensayos, el aviso «En breve» dice por qué funciona el gesto que viene (lenguaje corporal): las palmas a la
-  vista transmiten honestidad; los brazos abiertos, apertura; la mano en el pecho, sinceridad…
+- En la revisión, cada gesto del guion que no se vio dice cómo hacerlo y por qué funciona (lenguaje corporal): las
+  palmas a la vista transmiten honestidad; los brazos abiertos, apertura; la mano en el pecho, sinceridad…
 
 ## Espacios
 
@@ -249,9 +288,10 @@ ve debajo) en todas las pantallas, a 390 y 1280 px.
 
 ## Fallos al leer: aviso para cortar
 
-Mientras lees, la app compara lo que dices con el guion y, si te equivocas, te avisa en el momento con un aviso
-rojo arriba («✋ Fallo al leer») para que cortes y repitas diciendo «otra vez». La palabra donde fallaste queda
-subrayada en rojo en el texto.
+Mientras lees, la app compara lo que dices con el guion y apunta cada fallo; en la revisión, el vídeo se para en él
+con lo que estabas diciendo. Con «Mientras lees: El texto y una línea de color» o «… y los avisos», además te avisa en
+el momento con un aviso rojo arriba («✋ Fallo al leer») para que cortes y repitas diciendo «otra vez», y la palabra
+donde fallaste queda subrayada en rojo en el texto.
 
 | Fallo | Cómo lo ve | Dónde |
 |---|---|---|
@@ -324,12 +364,12 @@ Antes de grabar, la pestaña **Plano** de la información enseña con un dibujo 
   bien, te lo dice a menudo.
 - **Puntos**: +10 por cada gesto del guion que haces (más si encadenas una racha), +5 al corregir algo y +3 cuando lo
   estás haciendo bien, con celebración de emojis. El informe muestra los puntos y la mejor racha.
-- **Informe** al terminar, con un panel arriba muy claro:
+- **Informe** al terminar, debajo de la revisión, con un panel muy claro:
   - la nota (ajuste al tono) con un «¡Bien!», «Casi» o «A mejorar» y, si repites, «▲ +10 frente a tu ensayo»;
   - 🔴 *En qué fallas*: hasta tres cosas, con la parte de la toma que estuvo mal, cuánto era antes y cómo corregirlo;
   - 🟢 *Lo que has mejorado* o *Lo que haces bien*;
   - el arranque y la duración para redes;
-  - el vídeo y la toma como una línea verde, ámbar y roja de principio a fin (pulsa en ella para ir a ese momento);
+  - la lista de momentos clave (tocarlos lleva a esa nota de la revisión);
   - el botón para grabar otra vez con esos objetivos.
 
   Debajo, plegado, el análisis completo: lo que transmitiste, antes y después, ajuste segundo a segundo, qué
