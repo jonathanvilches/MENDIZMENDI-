@@ -18,6 +18,7 @@ import { pelotaStyle, X_ICON } from '../pelota/hud.js';
 import { fitCircles } from '../ui/fitlabel.js';
 import { crowd3d } from '../actors/crowd3d.js';
 import { drawArms } from '../world/heraldry.js';
+import { armsReady, drawReady } from '../ui/escudoImg.js';
 import { armsOfTown } from '../data/armas-navarra.js';
 import { tr, isEU } from '../i18n.js';
 
@@ -107,8 +108,9 @@ export function pasakaVenue(scene, out) {
     c.fillStyle = '#ffe08a'; c.font = 'bold 40px Nunito, sans-serif'; c.fillText(`${q0} · ${q1}`, 256, 122); scT.needsUpdate = true;
   };
   setScore(0, 0, 0, 0);
-  // (el escudo de Pamplona, en piedra, sobre el marcador)
-  try { const A = armsOfTown('pamplona'); if (A) { const ac = document.createElement('canvas'); ac.width = 256; ac.height = 320; drawArms(ac.getContext('2d'), 128, 10, 170, A, { stone: true }); const aT = new THREE.CanvasTexture(ac); aT.colorSpace = THREE.SRGBColorSpace; const aM = new THREE.MeshStandardMaterial({ map: aT, transparent: true, roughness: 0.9 }); mats.push(aM); add(new THREE.PlaneGeometry(1.1, 1.38), aM, 0, 4.95, L - 0.1, Math.PI, false); } } catch (e) { console.warn('escudo pasaka', e); }
+  // (el escudo de Pamplona sobre el marcador: el del autor en cuanto llega su imagen, src/ui/escudoImg.js; mientras, el tallado en piedra)
+  try { const A = armsOfTown('pamplona'); if (A) { const ac = document.createElement('canvas'); ac.width = 256; ac.height = 320; const ag = ac.getContext('2d'); drawArms(ag, 128, 10, 170, A, { stone: true }); const aT = new THREE.CanvasTexture(ac); aT.colorSpace = THREE.SRGBColorSpace; const aM = new THREE.MeshStandardMaterial({ map: aT, transparent: true, roughness: 0.9 }); mats.push(aM); add(new THREE.PlaneGeometry(1.1, 1.38), aM, 0, 4.95, L - 0.1, Math.PI, false);
+    armsReady('pamplona').then(Lm => { if (!Lm) return; ag.clearRect(0, 0, 256, 320); drawReady(ag, Lm, 12, 8, 232, 304); aT.needsUpdate = true; }); } } catch (e) { console.warn('escudo pasaka', e); }
   // la red: paño, cinta, postes y la correa del centro
   const netT = netTexture(), netM = new THREE.MeshStandardMaterial({ map: netT, transparent: true, alphaTest: 0.3, side: THREE.DoubleSide, roughness: 1 }); mats.push(netM);
   add(new THREE.PlaneGeometry(W, NETH), netM, 0, NETH / 2, NETZ, 0, false).castShadow = false;
