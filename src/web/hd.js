@@ -34,12 +34,20 @@ function fill(group, table) {
 
 export function startHD() {
   if (__WEB__ || import.meta.env.DEV) { if (REV.size) watch(); return; }   // (las grandes de la propia web)
-  if (navigator.onLine === false) return;
-  const ac = new AbortController(), t = setTimeout(() => ac.abort(), 8000);
-  fetch(SITE + 'hd.json', { signal: ac.signal, cache: 'no-cache', credentials: 'omit', referrerPolicy: 'no-referrer' })
-    .then(r => r.ok ? r.json() : null)
-    .then(j => { clearTimeout(t); if (!j || typeof j !== 'object') return; MAP = j; for (const [g, tb] of TABLES) fill(g, tb); if (REV.size) watch(); })
-    .catch(() => clearTimeout(t));
+  // (si la lista no llega —sin conexión, una red lenta, un corte—, se vuelve a pedir a los 4 y a los 15 s y al recuperar
+  // la conexión: antes se pedía una sola vez, y si fallaba el archivo único se quedaba con las láminas pequeñas)
+  let n = 0, busy = false;
+  const ask = () => {
+    if (MAP || busy || navigator.onLine === false) return;
+    busy = true; n++;
+    const ac = new AbortController(), t = setTimeout(() => ac.abort(), 15000);
+    fetch(SITE + 'hd.json', { signal: ac.signal, cache: 'no-cache', credentials: 'omit', referrerPolicy: 'no-referrer' })
+      .then(r => r.ok ? r.json() : null)
+      .then(j => { clearTimeout(t); busy = false; if (!j || typeof j !== 'object') throw 0; MAP = j; for (const [g, tb] of TABLES) fill(g, tb); if (REV.size) watch(); })
+      .catch(() => { clearTimeout(t); busy = false; if (n < 3) setTimeout(ask, n === 1 ? 4000 : 15000); });
+  };
+  addEventListener('online', ask);
+  ask();
 }
 
 // ancho de cada imagen pequeña y carga de cada grande (una vez por url)
@@ -80,9 +88,9 @@ function upgrade(el, small, apply) {
     const c0 = getComputedStyle(el), fit = (el.tagName === 'IMG' ? c0.objectFit : c0.backgroundSize).split(',')[0].trim();
     if (/blur\(/.test(c0.filter)) return;   // (los fondos desenfocados no ganan nada)
     const need = (fit === 'cover' ? Math.max(r.width, r.height * w / h) : fit === 'contain' || fit === 'scale-down' ? Math.min(r.width, r.height * w / h) : r.width) * devicePixelRatio;
-    if (need <= w * 1.2) return;
+    if (need <= w * 1.02) return;   // (antes se dejaba estirar un 20 %, y en un escritorio se notaba: la portada de 1280 a 1438)
     if (r.bottom < -innerHeight * 0.5 || r.top > innerHeight * 1.5 || r.right < 0 || r.left > innerWidth) return;
-    const list = REV.get(small), c = list.find(x => x.w * 1.2 >= need) || list[list.length - 1];
+    const list = REV.get(small), c = list.find(x => x.w >= need * 0.98) || list[list.length - 1];
     if (!c || c.w <= w) return;
     DONE.set(el, small);
     fetchBig(c.u).then(ok => { if (ok) apply(c.u); else DONE.delete(el); });
