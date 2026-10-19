@@ -111,6 +111,9 @@ export function makeMaterials() {
     // chorro de las fuentes: agua clara y algo transparente
     jet: std({ color: '#d8edf3', roughness: 0.1, transparent: true, opacity: 0.6, emissive: new THREE.Color('#29434d') }),
     paint: std({ vertexColors: true, roughness: 0.7 }),
+    // las ventanas, puertas y contraventanas de las fachadas sencillas (townReal.js): pegadas a la pared y con prioridad de
+    // profundidad, como el cristal, para que no parpadeen de lejos
+    fachada: std({ vertexColors: true, roughness: 0.8, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }),
     // asientos de estadio: algo de brillo propio para que no se vean negros bajo la cubierta
     // superficies a la sombra de grandes cubiertas (sin luz directa se verían negras)
     lit: std({ vertexColors: true, roughness: 0.8, emissive: new THREE.Color('#34383c') }),
@@ -236,7 +239,9 @@ export function updateDetail(cam, quality = 'high') {
   const [d2, d1] = DETAIL_DIST[quality] || DETAIL_DIST.high;
   for (const e of DETAIL) {
     const d = Math.hypot(cam.x - e.c.x, cam.z - e.c.z) - e.r;
-    e.m.visible = d < (e.tier === 2 ? d2 : d1);
+    // (tier 3: lo contrario de las medianas, solo de lejos: la fachada sencilla que sustituye a las ventanas de verdad cuando
+    // estas ya no se dibujan; con unos metros de solape para que no quede un hueco al pasar de una a otra)
+    e.m.visible = e.tier === 3 ? d >= d1 - 6 : d < (e.tier === 2 ? d2 : d1);
   }
 }
 // Calidad: en «low» no se crean las piezas menudas (marcos, macetas, lamas…) para ahorrar memoria en móviles
@@ -274,8 +279,9 @@ export class Builder {
   // cell: tamaño de las manzanas en que se reparte la geometría; así la cámara (y la sombra) sólo
   // dibujan las que tienen delante en vez de todo el pueblo de una vez
   constructor(mats, cell = 70) { this.mats = mats; this.parts = {}; this.cell = cell; }
-  /** Añade una pieza (con su matriz). La pieza no se modifica: se puede volver a añadir con otra matriz. */
-  add(mat, geo, matrix) {
+  /** Añade una pieza (con su matriz). La pieza no se modifica: se puede volver a añadir con otra matriz. tier: forzar el
+   *  grupo (3: solo de lejos, en las manzanas de las medianas); si no, según el tamaño de la pieza. */
+  add(mat, geo, matrix, force) {
     const pa = geo.attributes.position; if (!pa || !pa.count) return;
     const nv = pa.count, idx = geo.index, cnt = idx ? idx.count : nv;
     if (!cnt) return;
@@ -296,7 +302,7 @@ export class Builder {
     // piezas grandes, medianas y menudas: las pequeñas (marcos, macetas, balaustres…) se agrupan aparte para
     // dejar de dibujarlas de lejos y sin sombra; las grandes, en manzanas mayores (menos llamadas de dibujo)
     const size = Math.max(x1 - x0, y1 - y0, z1 - z0);
-    const tier = size < 0.9 ? 2 : size < 3 ? 1 : 0, cell = tier ? this.cell : this.cell * 2;
+    const tier = force ?? (size < 0.9 ? 2 : size < 3 ? 1 : 0), cell = tier ? this.cell : this.cell * 2;
     if (tier === 2 && !TINY) return;
     const key = mat + '|' + Math.floor((x0 + x1) / 2 / cell) + ',' + Math.floor((z0 + z1) / 2 / cell) + '|' + tier;
     const run = (this.parts[key] ||= new Run());
@@ -343,7 +349,7 @@ export class Builder {
       for (const [k, at] of Object.entries(g.attributes)) if (!(tier === 0 && k === 'position')) at.onUpload(free);
       if (tier !== 0) g.index.onUpload(free);
       const m = new THREE.Mesh(g, this.mats[mat]);
-      m.castShadow = shadows && tier === 0 && !['glass', 'lamp', 'jet'].includes(mat);
+      m.castShadow = shadows && tier === 0 && !['glass', 'lamp', 'jet', 'fachada', 'railing'].includes(mat);
       if (tier) DETAIL.push({ m, tier, c: g.boundingSphere.center.clone(), r: g.boundingSphere.radius });
       m.receiveShadow = true;
       m.matrixAutoUpdate = false; m.name = key;

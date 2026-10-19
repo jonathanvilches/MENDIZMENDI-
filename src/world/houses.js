@@ -225,13 +225,14 @@ export function buildHouse(B, T, o, rnd) {
   }
   if (o.balcony) balconyAt(B, front, 0, fh + 0.02, o.balconyW, { flowers, iron: o.ironBalcony });
   if (o.timber) timberFrame(B, front, w, h, floors, fh, o.timberColor);
-  // ventanas traseras y laterales (sencillas)
+  // ventanas traseras y laterales (sencillas; casi siempre, para que no queden paredes lisas a la vista. Con el mismo
+  // número de tiradas de rnd que antes, que de él sale también el resto del pueblo)
   const back = MM(T, M(0, 0, -d / 2, Math.PI));
-  for (let f = 0; f < floors; f++) for (let c = 0; c < cols; c++) if (rnd() < 0.7) windowAt(B, back, -w / 2 + (w / cols) * (c + 0.5), f * fh + fh * 0.58, 0.75, 1.1, { shutter });
+  for (let f = 0; f < floors; f++) for (let c = 0; c < cols; c++) if (rnd() < 0.88) windowAt(B, back, -w / 2 + (w / cols) * (c + 0.5), f * fh + fh * 0.58, 0.75, 1.1, { shutter });
   for (const s of [-1, 1]) {
     const side = MM(T, M(s * w / 2, 0, 0, s * Math.PI / 2));
     const sc = Math.max(1, Math.floor(d / 3.2));
-    for (let f = 1; f < floors; f++) for (let c = 0; c < sc; c++) if (rnd() < 0.55) windowAt(B, side, -d / 2 + (d / sc) * (c + 0.5), f * fh + fh * 0.55, 0.7, 1.0, { shutter });
+    for (let f = 1; f < floors; f++) for (let c = 0; c < sc; c++) if (rnd() < 0.85) windowAt(B, side, -d / 2 + (d / sc) * (c + 0.5), f * fh + fh * 0.55, 0.7, 1.0, { shutter });
   }
   // escudo
   // escudo: una piedra armera en relieve (losa de sillería con su moldura, que sobresale del muro) y el escudo tallado
