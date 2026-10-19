@@ -2,7 +2,8 @@
 // En la web, cada lámina tiene además su copia pequeña (<id>-s, 640 × 360) para tarjetas y miniaturas (así el móvil no
 // guarda en memoria imágenes grandes que se ven pequeñas) y la grande de 2560 × 1440 (src/assets/laminas/grande, de
 // tools/laminas-grandes.mjs) para las portadas a pantalla entera en pantallas densas: la pide src/web/hd.js solo cuando
-// la pantalla la necesita. En el archivo único solo está la de 640 × 360.
+// la pantalla la necesita. En el archivo único solo está la de 640 × 360, y en el ligero, la de 1024 × 576
+// (tools/laminas-movil.mjs: sin conexión, la portada a todo el ancho del móvil tumbado se veía borrosa).
 // En WebP y no en AVIF: los visores de HTML del iPhone no siempre enseñan AVIF, y sin ellas las portadas salían vacías.
 import { LAMINAS, COMARCA_LAMINA, CUENTO_LAMINA, PERSONAJE_LAMINA } from '../data/laminas.js';
 import { hdTable } from '../web/hd.js';
