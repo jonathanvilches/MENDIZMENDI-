@@ -27,7 +27,8 @@ export function realBridges(B, real) {
     const ya = terrainHeight(a[0], a[1]), yb = terrainHeight(b[0], b[1]);
     let water = -Infinity; for (let i = 0; i <= 8; i++) { const t = i / 8, k = Math.min(pts.length - 2, Math.floor(t * (pts.length - 1))); const x = pts[k][0] + (pts[k + 1][0] - pts[k][0]) * (t * (pts.length - 1) - k), z = pts[k][1] + (pts[k + 1][1] - pts[k][1]) * (t * (pts.length - 1) - k); const r = riverInfo(x, z); if (r.edge < 0.5) water = Math.max(water, r.level); }
     const hump = Math.max(0.3, (water > -1e8 ? water + 2.2 : -Infinity) - (ya + yb) / 2);
-    const deck = (s) => { const t = s / L; return ya + (yb - ya) * t + hump * Math.sin(Math.PI * t) ** 0.8; };
+    // (t, acotado: al final del último tramo la suma da L y una millonésima, el seno sale negativo y su potencia, NaN)
+    const deck = (s) => { const t = clamp(s / L, 0, 1); return ya + (yb - ya) * t + hump * Math.max(0, Math.sin(Math.PI * t)) ** 0.8; };
     const Wd = 2 * P.w + 1.0, stone = 'stone', cap = 'ashlar';
     for (let i = 0; i < pts.length - 1; i++) {
       const [x0, z0] = pts[i], [x1, z1] = pts[i + 1], sl = cum[i + 1] - cum[i]; if (sl < 0.2) continue;
@@ -133,9 +134,14 @@ export function realHouses(B, def, rnd, H) {
       simple++; continue;
     }
     const st = houseStyle(fam, rnd);
-    // altura de alero: la de los datos (que incluye el tejado) o la de la comarca; las casas pequeñas, más bajas
-    let h = b.h ? clamp(b.h * 0.78, 3.4, 18) : st.h[0] + rnd() * (st.h[1] - st.h[0]);
-    if (!b.h && b.a < 60) h = Math.min(h, 4.6 + b.a / 30);
+    // altura de alero: la de los datos (que incluye el tejado) o la de la comarca; las casas pequeñas, más bajas. Las
+    // alturas de los datos son a menudo estimaciones muy bajas (en Lesaka, 5 m de mediana para casas de tres plantas: el
+    // alero se quedaba en 4 m, con plantas de 2 m y la puerta más alta que la planta, y el pueblo parecía de juguete al
+    // lado del personaje): una vivienda tiene como mínimo dos plantas de 3 m, y tres en el casco si es grande
+    let h = b.h ? b.h * 0.78 : st.h[0] + rnd() * (st.h[1] - st.h[0]);
+    if (b.a >= 60) h = Math.max(h, (vm > 0.55 && b.a >= 90 ? 3 : 2) * 3 + Math.abs(Math.sin(x * 12.9898 + z * 78.233)) * 0.6); // (sin gastar rnd: el resto del pueblo sale como antes)
+    else if (!b.h) h = Math.min(h, 4.6 + b.a / 30);
+    h = clamp(h, 3.4, 18);
     if (b.k === 'borda') Object.assign(st, { wall: 'stone', balcony: false, timber: false });
     const hb = slopeBase(B, x, z, w, d, ry, g);
     // lejos del casco y fuera del pueblo, la versión sencilla (de lejos no se ven los detalles y pesa mucho menos)

@@ -11,3 +11,5 @@ dist-pelota/
 __pycache__/
 MENDIMENDIZ-jugar.zip
 tools/tmp/
+dist-artefacto/
+src/assets/laminas/artefacto/

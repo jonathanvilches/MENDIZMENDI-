@@ -11,6 +11,7 @@ import * as THREE from 'three';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { loadMeshy, loadChar, sharpMap } from './glbChar.js';
+import { bytesDe } from '../util/glb.js';
 import { fillMaterial } from '../engine/charLight.js';
 import { peloEmisivo } from './hairColor.js';
 
@@ -26,14 +27,16 @@ export const hasChica = (name, peinado = 'coleta', lod = false) => !!((lod ? LOD
 
 // ---- el parche: tiras comprimidas con el códec de vértices de meshopt (el mismo que ya descomprime los modelos) ----
 async function leerParche(url) {
-  const b = new Uint8Array(await (await fetch(url)).arrayBuffer()), dv = new DataView(b.buffer, b.byteOffset);
+  const b = new Uint8Array(await bytesDe(url)), dv = new DataView(b.buffer, b.byteOffset);
   if (dv.getUint32(0, true) !== 0x32434843) throw new Error('parche de chica no válido');
   const jl = dv.getUint32(4, true), cab = JSON.parse(new TextDecoder().decode(b.subarray(8, 8 + jl)));
-  await MeshoptDecoder.ready;
+  // (crudo: las tiras ya descomprimidas, en el artefacto de Claude, que no lleva el descompresor: vite.config.js)
+  if (!cab.crudo) await MeshoptDecoder.ready;
   let at = 8 + jl;
   const t = cab.tiras.map(([len, n, s, f]) => {
     const out = new Uint8Array(n * s);
-    if (n) MeshoptDecoder.decodeVertexBuffer(out, n, s, b.subarray(at, at + len), f || undefined);
+    if (n && cab.crudo) out.set(b.subarray(at, at + n * s));
+    else if (n) MeshoptDecoder.decodeVertexBuffer(out, n, s, b.subarray(at, at + len), f || undefined);
     at += len + ((4 - len % 4) % 4); return out;
   });
   const u32 = (a) => new Uint32Array(a.buffer, a.byteOffset, a.byteLength / 4);
