@@ -16,6 +16,7 @@ const FAMILY = {
   ribera: { forest: 0.08, grass: 'arid', crops: [7, 7, 7, 5, 6, 3, 2] },
 };
 const BASE = 20;   // (altura del suelo de la plaza, como el «base» de los pueblos generados)
+const NUCLEO = 300; // (radio del pueblo que se levanta, en metros desde la plaza)
 
 // rejilla de cubos para preguntar rápido por los segmentos de una lista de polilíneas
 function buckets(lines, size = 25, margin = 12) {
@@ -89,7 +90,11 @@ export function createRealTownLevel(def, D) {
   const rx = () => 9999;
 
   // ---------- Calles y caminos ----------
-  const PATHS = (D.calles || []).map((c, k) => ({ id: (c.n || c.c || 'calle') + '#' + k, name: c.n, type: c.t, w: c.w, pts: c.pts, cls: c.c }));
+  // (las calles del casco que quedan enteras fuera del núcleo, sin casas a los lados desde que el pueblo se levanta solo
+  // hasta NUCLEO, fuera: parecían una urbanización a medio hacer en mitad del campo. Las carreteras y los caminos se quedan)
+  const PLc = D.lugares?.plaza || { x: 0, z: 0 }, urbana = (c) => c.t === 'street' || c.c === 'footway' || c.c === 'pedestrian';
+  const fuera = (c) => c.pts.every(([x, z]) => Math.hypot(x - PLc.x, z - PLc.z) > NUCLEO + 35);
+  const PATHS = (D.calles || []).filter(c => !(urbana(c) && fuera(c))).map((c, k) => ({ id: (c.n || c.c || 'calle') + '#' + k, name: c.n, type: c.t, w: c.w, pts: c.pts, cls: c.c }));
   const pathAt = buckets(PATHS, 25, 10);
   function pathQuery(x, z) {
     const list = pathAt(x, z);
@@ -103,7 +108,9 @@ export function createRealTownLevel(def, D) {
   }
 
   // ---------- Casas: dónde hay pueblo (para no poner árboles ni campos dentro) ----------
-  const CASAS = (D.casas || []).filter(b => Math.max(Math.abs(b.x), Math.abs(b.z)) < half1 - 8);
+  // (solo el núcleo, hasta NUCLEO de la plaza: las casas de más allá no se levantan, src/world/townReal.js, y si contaran
+  // para la máscara quedarían solares vacíos con calles y sin árboles ni campos)
+  const CASAS = (D.casas || []).filter(b => Math.max(Math.abs(b.x), Math.abs(b.z)) < half1 - 8 && Math.hypot(b.x - PLc.x, b.z - PLc.z) <= NUCLEO);
   const VC = 8, VN = Math.ceil(2 * half1 / VC) + 1, VD = new Float32Array(VN * VN).fill(99);
   for (const b of CASAS) {
     const r = Math.hypot(b.w, b.d) / 2, i0 = Math.floor((b.x - r - 40 + half1) / VC), i1 = Math.ceil((b.x + r + 40 + half1) / VC);
@@ -301,7 +308,7 @@ export function createRealTownLevel(def, D) {
       const named = D.puentes.find(p => p.n && keys.some(w => nrm(p.n).includes(w)));
       const mid = (p) => p.pts[Math.floor(p.pts.length / 2)], wet = (p) => { const [x, z] = mid(p); return riverInfo(x, z).edge < 2 ? riverInfo(x, z).half : 0; };
       const P0 = named || D.puentes.slice().sort((p, q) => (wet(q) - wet(p)) * 40 + Math.hypot(mid(p)[0] - PL.x, mid(p)[1] - PL.z) - Math.hypot(mid(q)[0] - PL.x, mid(q)[1] - PL.z))[0];
-      const m = P0.pts[Math.floor(P0.pts.length / 2)]; pos = { x: m[0], z: m[1] };
+      const m = P0.pts[Math.floor(P0.pts.length / 2)]; pos = { x: m[0], z: m[1] }; P0.mision = true;   // (este se levanta aunque no cruce agua: src/world/townReal.js)
     }
     else if (['townhall', 'kiosk', 'fountain', 'plaza'].includes(k)) pos = { x: PL.x, z: PL.z + (k === 'townhall' ? -PL.r - 7 : 0), center: k !== 'townhall' };
     else if (k === 'walls' && def.family !== 'city') pos = { x: PLACES.church.x, z: PLACES.church.z, ring: true };
@@ -419,7 +426,7 @@ export function createRealTownLevel(def, D) {
     return n > 0.2 ? 'pine' : n > -0.3 ? 'oak' : 'olive';
   }
   const RIVERS = RV.map(L => ({ pts: L.pts, levels: L.lv, half: L.half, name: L.name }));
-  const real = { data: D, casas: CASAS, taken: TAKEN, puentes: D.puentes || [], rios: RV, plazas: PLAZAS, piscinas: D.piscinas || [], atribucion: D.atribucion };
+  const real = { data: D, casas: CASAS, nucleo: NUCLEO, taken: TAKEN, puentes: D.puentes || [], rios: RV, plazas: PLAZAS, piscinas: D.piscinas || [], atribucion: D.atribucion };
   return {
     rx, zz: () => 9999, CONF: { x: 9999, z: 9999 }, FA: () => BASE, FZ: () => BASE, riverHalfA: () => 0, RIVER_HALF_Z: 0,
     riverInfo, riverPointNear, valleyFloor, finalHeight, pathQuery, plazaMask, fieldInfo, villageMask, meadowMask, iratiMask, skyTan,

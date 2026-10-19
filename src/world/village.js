@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { TOWN } from './townBuilder.js';
 import { Builder, box, gable, archRing, archPanel, M, MM, uvFit, cyl } from './builder.js';
 import { buildHouse } from './houses.js';
+import { fachadaLejana } from './townReal.js';
 import { belfryBell, towerClock, eaveCorbels } from './monuments.js';
 import { PATHS, PLACES, BRIDGES, rx, riverInfo, riverHalfA, pathQuery, villageMask, CONF } from './layout.js';
 import { terrainHeight, deckY } from './heightfield.js';
@@ -79,7 +80,9 @@ export function buildVillage(scene, mats) {
     const ry = Math.atan2(-nx, -nz);
     const g = minGround(x, z, w, d, ry);
     const by = slopeBase(B, x, z, w, d, ry, g), T = M(x, by, z, ry);
-    buildHouse(B, T, { w, d, h, wall: 'ashlar', roof: 'slate', roofType: 'hip', hipRise: 5.2, arch: true, doorX: 0, balcony: true, balconyW: 5, ironBalcony: true, shield: true, shieldX: 3.8, cornice: true }, rnd);
+    const po = { w, d, h, wall: 'ashlar', roof: 'slate', roofType: 'hip', hipRise: 5.2, arch: true, doorX: 0, balcony: true, balconyW: 5, ironBalcony: true, shield: true, shieldX: 3.8, cornice: true };
+    buildHouse(B, T, po, rnd);
+    fachadaLejana(B, T, po, 'pyrenean', x, z);   // (de lejos, sus ventanas ya no se dibujan: src/world/townReal.js)
     addBox(x, z, w + 0.4, d + 0.4, ry, { solidView: true });
     const door = { x: x + Math.sin(ry) * (d / 2 + 1.6), z: z + Math.cos(ry) * (d / 2 + 1.6) };
     VILLAGE.palaces.push({ ...p, x, z, ry, door, y: by });
@@ -116,10 +119,12 @@ export function buildVillage(scene, mats) {
           const wall = kind < 0.42 ? 'plaster' : kind < 0.75 ? 'stone' : 'plasterCream';
           const roof = rnd() < 0.55 ? 'tile' : 'slate';
           const roofType = rnd() < 0.55 ? 'gableX' : 'gableZ';
-          buildHouse(B, M(x, slopeBase(B, x, z, w, d, ry, g), z, ry), {
+          const T = M(x, slopeBase(B, x, z, w, d, ry, g), z, ry), ho = {
             w, d, h, wall, roof, roofType, arch: wall === 'stone' ? rnd() < 0.6 : rnd() < 0.25,
             balcony: rnd() < 0.5, balconyW: Math.min(w - 2, 3 + rnd() * 2.5), shield: rnd() < 0.12, cornice: rnd() < 0.4,
-          }, rnd);
+          };
+          buildHouse(B, T, ho, rnd);
+          fachadaLejana(B, T, ho, 'pyrenean', x, z);
           addBox(x, z, w + 0.3, d + 0.3, ry, { solidView: true });
           VILLAGE.houses.push({ x, z, ry, w, d, door: { x: x + Math.sin(ry) * (d / 2 + 1.2), z: z + Math.cos(ry) * (d / 2 + 1.2) } });
           count++;

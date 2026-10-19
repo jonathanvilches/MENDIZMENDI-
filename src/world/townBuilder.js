@@ -8,7 +8,7 @@ import { PATHS, PLACES, BRIDGES, riverInfo, pathQuery, villageMask, plazaMask, r
 import { terrainHeight } from './heightfield.js';
 import { addBox, addCircle, isFree, rectFree } from './colliders.js';
 import { mulberry32, clamp } from '../util/math.js';
-import { realChurchRy, realBridges, realRiverWalls, realHouses } from './townReal.js';
+import { realChurchRy, realBridges, realRiverWalls, realHouses, fachadaLejana } from './townReal.js';
 
 export const TOWN = { houses: [], shields: [], armsSpot: null, lamps: [], benches: [], church: null, fountain: null, landmarks: [], farm: null, pen: null };
 if (typeof window !== 'undefined') window.__TOWN = TOWN;   // (para las herramientas de capturas)
@@ -125,6 +125,7 @@ export function buildTown(scene, mats, def) {
       const g = minGround(lm.x, lm.z, w, d, r2);
       const pb = slopeBase(B, lm.x, lm.z, w, d, r2, g), po = { w, d, h, wall: fam === 'ribera' ? 'brick' : 'ashlar', noQuoins: true, roof: fam === 'pyrenean' ? 'slate' : 'tile', roofType: 'hip', hipRise: 4.6, arch: true, doorX: 0, balcony: true, balconyW: 5, ironBalcony: true, shield: lm.kind === 'palace', cornice: true };
       buildHouse(B, M(lm.x, pb, lm.z, r2), po, rnd);
+      fachadaLejana(B, M(lm.x, pb, lm.z, r2), po, fam, lm.x, lm.z);
       if (po.shieldLocal) shieldAt(lm.x, pb, lm.z, r2, po.shieldLocal, true);
       addBox(lm.x, lm.z, w + 0.4, d + 0.4, r2, { solidView: true });
       spot = { x: lm.x + Math.sin(r2) * (d / 2 + 2), z: lm.z + Math.cos(r2) * (d / 2 + 2) };
@@ -182,6 +183,7 @@ export function buildTown(scene, mats, def) {
           const hb = slopeBase(B, x, z, w, d, ry, g), ho = { arch: st.wall === 'stone' || st.wall === 'ashlar' ? rnd() < 0.5 : rnd() < 0.2, balconyW: Math.min(w - 2, 3 + rnd() * 2.5), shield: rnd() < 0.1, cornice: rnd() < 0.4, ...st, w, d, h };
           if (hall) Object.assign(ho, { shield: true, townhall: true, h: Math.max(h, 8.5), cornice: true, arch: true, doorX: 0, balcony: true, balconyW: Math.min(w - 2, 5), ironBalcony: true });
           buildHouse(B, M(x, hb, z, ry), ho, rnd);
+          fachadaLejana(B, M(x, hb, z, ry), ho, fam, x, z);   // (de lejos, sus ventanas ya no se dibujan: src/world/townReal.js)
           if (ho.shieldLocal && hall) { const [lx, ly, lz] = ho.shieldLocal, c = Math.cos(ry), sn = Math.sin(ry); TOWN.armsSpot = { x: x + lx * c + lz * sn, y: hb + ly, z: z - lx * sn + lz * c, ry, hall: true, base: hb, plateY: hb + ho.plateY, read: { x: x + lx * c + (lz + 2.6) * sn, z: z - lx * sn + (lz + 2.6) * c } }; }
           else if (ho.shieldLocal) shieldAt(x, hb, z, ry, ho.shieldLocal, false);
           addBox(x, z, w + 0.3, d + 0.3, ry, { solidView: true });
