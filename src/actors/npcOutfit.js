@@ -8,6 +8,7 @@
 import * as THREE from 'three';
 import { fillMaterial } from '../engine/charLight.js';
 import { hairMaterial, peloMaterial, peloEmisivo } from './hairColor.js';
+import { keepSharp } from './glbChar.js';
 
 const HSV = `
 vec3 noHsv(vec3 c){ vec4 K=vec4(0.,-1./3.,2./3.,-1.); vec4 p=mix(vec4(c.bg,K.wz),vec4(c.gb,K.xy),step(c.b,c.g)); vec4 q=mix(vec4(p.xyw,c.r),vec4(c.r,p.yzx),step(p.x,c.r)); float d=q.x-min(q.w,q.y); return vec3(abs(q.z+(q.w-q.y)/(6.*d+1e-10)),d/(q.x+1e-10),q.x); }
@@ -76,7 +77,7 @@ vec3 noOutfit(vec3 lin){
         .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance = emissive * diffuseColor.rgb;');
     };
     m.customProgramCacheKey = () => 'npc-outfit-' + model;
-    o.material = hairMaterial(m, g, model, O.hair);   // el pelo, con su tinte (hairColor.js)
+    o.material = hairMaterial(keepSharp(m), g, model, O.hair);   // el pelo, con su tinte (hairColor.js)
   });
 }
 

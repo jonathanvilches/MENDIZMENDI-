@@ -4,7 +4,7 @@
 // negro, todos con su modelo completo: la geometría y la textura se comparten entre los veinticinco), el público de las gradas, el sonido y la calidad.
 import * as THREE from 'three';
 import { FutbolSystem } from '../futbol/index.js';
-import { GlbChar, loadMeshy, hasMeshy, MESHY_GAIT } from '../actors/glbChar.js';
+import { GlbChar, loadMeshy, hasMeshy, MESHY_GAIT, keepSharp } from '../actors/glbChar.js';
 import { crowd3d } from '../actors/crowd3d.js';
 import { QUALITY } from '../util/quality.js';
 import { REFEREE } from '../futbol/rules.js';
@@ -32,7 +32,7 @@ function recolor(root, color, minSat = 0.5) {
           .replace('#include <emissivemap_fragment>', '#ifdef USE_EMISSIVEMAP\n vec4 emissiveColor = texture2D( emissiveMap, vEmissiveMapUv ); totalEmissiveRadiance *= fbRecolor(emissiveColor.rgb);\n#endif');
       };
       m.customProgramCacheKey = () => 'fb-recolor';
-      return m;
+      return keepSharp(m);
     });
     if (o.material.length === 1) o.material = o.material[0];
   });
@@ -83,7 +83,7 @@ function kitRecolor(root, T) {
           .replace('#include <emissivemap_fragment>', '#ifdef USE_EMISSIVEMAP\n vec4 emissiveColor = texture2D( emissiveMap, vEmissiveMapUv ); totalEmissiveRadiance *= fbKit(emissiveColor.rgb);\n#endif');
       };
       m.customProgramCacheKey = () => 'fb-kit';
-      return m;
+      return keepSharp(m);
     });
     if (o.material.length === 1) o.material = o.material[0];
   });

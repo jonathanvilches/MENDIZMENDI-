@@ -134,7 +134,7 @@ export function loadChica(name, peinado = 'coleta', lod = false) {
     body.geometry = aplicar(body.geometry, P);
     // (hairRef: el brillo de su castaño de debajo del pelo, en sRGB —0,306 · 0,196 · 0,129, textura.py—: al teñirla de
     // otro color, toma el color tal cual, como las mallas del pelo; con el del chico, mucho más oscuro, salía más clara)
-    const m0 = body.material, m = m0.clone(); delete m.userData.sharp; m.userData.hairRef = 0.222;
+    const m0 = body.material, m = m0.clone(); m.userData.hairRef = 0.222;
     m.map = textura(m0.map, det); if (m0.emissiveMap) m.emissiveMap = m.map;
     if (m0.userData.fillK != null) fillMaterial(m, m0.userData.fillK);
     sharpMap(m); body.material = m;
