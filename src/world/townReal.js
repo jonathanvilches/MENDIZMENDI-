@@ -242,15 +242,14 @@ export function realHouses(B, def, rnd, H) {
   const hall = real.data.lugares?.ayuntamiento;
   const fr = real.data.lugares?.fronton;
   let full = 0, simple = 0;
-  // (las casas con todo su detalle, solo las más cercanas a la plaza: un pueblo real tiene cuatro o cinco veces más
-  // casas que uno generado y en el móvil no caben todas así; el resto, como bloque con su tejado)
+  // (las casas con todo su detalle, solo las más cercanas a los lugares de las misiones: un pueblo real tiene muchas más
+  // casas que uno generado y en el móvil no caben todas así; el resto, como bloque con su tejado y su fachada sencilla)
   const FULL = builderQuality() === 'low' ? 80 : builderQuality() === 'mid' ? 120 : 160;
-  // el núcleo: las casas hasta real.nucleo de la plaza (300 m, el mismo radio que la máscara de pueblo de
-  // src/levels/townReal.js), las sueltas fuera del casco solo cerca y, como mucho, las NMAX más cercanas. Con el pueblo
-  // entero, hasta 470 m, eran cientos de bloques lisos alrededor; así queda la misma forma del casco, más recogida, y cada
-  // casa con sus ventanas y su puerta (las detalladas, primero las de la plaza)
-  const NMAX = builderQuality() === 'low' ? 360 : builderQuality() === 'mid' ? 480 : 600, R = real.nucleo || 470;
-  const lista = real.casas.map(b => ({ b, dist: Math.hypot(b.x - P.x, b.z - P.z) })).filter(e => e.dist <= R).sort((a, c) => a.dist - c.dist);
+  // real.casas ya son solo las del núcleo (src/levels/townReal.js, «El núcleo»): se levantan todas, cada una en su sitio.
+  // dist: a la plaza o al lugar de misión más cercano, para que las detalladas sean las de alrededor de donde se juega.
+  // NMAX, solo por si un pueblo trajera muchas más casas de las que caben en el móvil (hoy el que más, unas 410)
+  const NMAX = builderQuality() === 'low' ? 450 : builderQuality() === 'mid' ? 560 : 680, A = real.anclas?.length ? real.anclas : [P];
+  const lista = real.casas.map(b => ({ b, dist: Math.min(...A.map(a => Math.hypot(b.x - a.x, b.z - a.z))) })).sort((a, c) => a.dist - c.dist);
   let n = 0;
   for (const { b, dist } of lista) {
     if (real.taken.has(b) || b.k === 'church') continue;
@@ -260,7 +259,6 @@ export function realHouses(B, def, rnd, H) {
     const g = minGround(x, z, w, d, ry);
     if (g.mx - g.mn > 6) continue;                   // (en un barranco: los datos no cuadran con el relieve)
     const vm = villageMask(x, z);
-    if (vm < 0.3 && dist > 170) continue;            // (caseríos y bordas sueltos lejos del casco)
     if (++n > NMAX) break;
     const isHall = hall && Math.abs(hall.x - x) < 0.5 && Math.abs(hall.z - z) < 0.5;
     if (b.k === 'industrial' || b.k === 'shed' || (b.k === 'school' && b.a > 600)) {
