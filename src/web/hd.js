@@ -12,7 +12,7 @@
 const SITE = 'https://jonathanvilches.github.io/MENDIZMENDI-/docs/';
 const TABLES = [];          // [grupo de la lista, { id: url pequeña }]
 const REV = new Map();      // url pequeña → [{ w, u }] (de menor a mayor)
-let MAP = null;
+let MAP = null, FRESH = false;
 
 /** Cada módulo de imágenes da su tabla (id → url pequeña) con el grupo de su carpeta en la lista de la web; big y w, si
  * la web lleva además una copia más grande de cada una (id → url, de w píxeles de ancho) que solo se pide cuando hace falta. */
@@ -34,16 +34,22 @@ function fill(group, table) {
 
 export function startHD() {
   if (__WEB__ || import.meta.env.DEV) { if (REV.size) watch(); return; }   // (las grandes de la propia web)
+  // (la lista va ya dentro del archivo, la de la web compilada a la vez, __HDMAP__: hay visores que dejan cargar imágenes
+  // de fuera pero no pedir archivos, y sin la lista la portada se quedaba en la pequeña aunque hubiera red. Se pide igual,
+  // por si la web publicada es más nueva que el archivo)
+  let watching = false;
+  const use = (j) => { MAP = j; for (const [g, tb] of TABLES) fill(g, tb); if (REV.size && !watching) { watching = true; watch(); } };
+  if (__HDMAP__ && typeof __HDMAP__ === 'object') use(__HDMAP__);
   // (si la lista no llega —sin conexión, una red lenta, un corte—, se vuelve a pedir a los 4 y a los 15 s y al recuperar
   // la conexión: antes se pedía una sola vez, y si fallaba el archivo único se quedaba con las láminas pequeñas)
   let n = 0, busy = false;
   const ask = () => {
-    if (MAP || busy || navigator.onLine === false) return;
+    if (FRESH || busy || navigator.onLine === false) return;
     busy = true; n++;
     const ac = new AbortController(), t = setTimeout(() => ac.abort(), 15000);
     fetch(SITE + 'hd.json', { signal: ac.signal, cache: 'no-cache', credentials: 'omit', referrerPolicy: 'no-referrer' })
       .then(r => r.ok ? r.json() : null)
-      .then(j => { clearTimeout(t); busy = false; if (!j || typeof j !== 'object') throw 0; MAP = j; for (const [g, tb] of TABLES) fill(g, tb); if (REV.size) watch(); })
+      .then(j => { clearTimeout(t); busy = false; if (!j || typeof j !== 'object') throw 0; FRESH = true; use(j); })
       .catch(() => { clearTimeout(t); busy = false; if (n < 3) setTimeout(ask, n === 1 ? 4000 : 15000); });
   };
   addEventListener('online', ask);
