@@ -9,6 +9,7 @@
 // (algo más contrastado, para que el rubio y el canoso no queden planos); con pelo claro, las cejas un poco más oscuras.
 import * as THREE from 'three';
 import { fillMaterial } from '../engine/charLight.js';
+import { keepSharp } from './glbChar.js';
 
 // brillo típico del pelo pintado de cada modelo (luma en sRGB, la mediana de los píxeles de pelo); el pastor lleva
 // boina negra: en él, lo casi negro y lo que queda por encima del ala (91 % de la altura) es boina y no pelo
@@ -49,7 +50,8 @@ vec3 noHair(vec3 lin){
   o *= 1. - uHairK.y * fr * (1. - smoothstep(0.09, 0.1, ax)) * (1. - smoothstep(0.86, 0.875, p.y));
   return mix(lin, pow(clamp(o, 0., 1.), vec3(2.2)), k);
 }`;
-const EMI = 'vec4 emissiveColor = texture2D( emissiveMap, vEmissiveMapUv );';
+// (la lectura del brillo propio, también con el sesgo de nitidez: «…vEmissiveMapUv, -0.7 );», glbChar.js, sharpMap)
+const EMI = /vec4 emissiveColor = texture2D\( emissiveMap, vEmissiveMapUv(, -?[\d.]+)? \);/;
 
 /** Tiñe el pelo de un material (que ya sea propio de este personaje: no se clona). geo: la geometría de la malla. */
 export function hairMaterial(m, geo, model, color) {
@@ -69,7 +71,7 @@ export function hairMaterial(m, geo, model, color) {
     sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\n' + GLSL)
       // (después de la textura y de lo que ya tiña la ropa: el pelo pelirrojo no puede tomarse por el pañuelo rojo)
       .replace('#include <color_fragment>', '#include <color_fragment>\n diffuseColor.rgb = noHair(diffuseColor.rgb);')
-      .replace('#include <emissivemap_fragment>', THREE.ShaderChunk.emissivemap_fragment).replace(EMI, EMI + '\n emissiveColor.rgb = noHair(emissiveColor.rgb);');
+      .replace('#include <emissivemap_fragment>', THREE.ShaderChunk.emissivemap_fragment).replace(EMI, '$&\n emissiveColor.rgb = noHair(emissiveColor.rgb);');
   };
   m.customProgramCacheKey = () => (key ? key.call(m) : '') + '+pelo';
   m.needsUpdate = true;
@@ -99,6 +101,6 @@ export function hairTint(root, model, color) {
     if (o.userData.peloColor) { o.material = peloMaterial(peloEmisivo(o.material.clone()), color); o.material.userData.own = true; return; }
     if (o.userData.pelo || !o.isSkinnedMesh || !o.material?.map) return;
     const m = o.material.clone(); m.userData.own = true; if (o.material.userData.fillK != null) fillMaterial(m, o.material.userData.fillK);
-    o.material = hairMaterial(m, o.geometry, model, color);   // (own: GlbChar.dispose lo suelta con el personaje)
+    o.material = hairMaterial(keepSharp(m), o.geometry, model, color);   // (own: GlbChar.dispose lo suelta con el personaje)
   });
 }

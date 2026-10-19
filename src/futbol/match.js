@@ -92,7 +92,10 @@ export class FutbolMatch {
     // perdería el tinte) llevan el cálculo de la sombra de la cubierta
     if (this.field.roof) {
       const copies = new Map(); this.roofMats = [];
-      const patch = (m) => { if (!copies.has(m)) { const c2 = m.userData.fbOwn || m.userData.own ? m : m.clone(); roofShade(c2, this.field.roof); copies.set(m, c2); this.roofMats.push(c2); } return copies.get(m); };
+      // (la copia con los cambios del sombreador del original, que clone() no copia: sin ellos perdía, por ejemplo, la
+      // textura nítida de los personajes, glbChar.js sharpMap)
+      const copy = (m) => { const c2 = m.clone(); c2.onBeforeCompile = m.onBeforeCompile; c2.customProgramCacheKey = m.customProgramCacheKey; return c2; };
+      const patch = (m) => { if (!copies.has(m)) { const c2 = m.userData.fbOwn || m.userData.own ? m : copy(m); roofShade(c2, this.field.roof); copies.set(m, c2); this.roofMats.push(c2); } return copies.get(m); };
       for (const ch of [...this.chars, ...this.refChars]) ch.c.obj.traverse(m => { if (m.isMesh && m.material) m.material = Array.isArray(m.material) ? m.material.map(patch) : patch(m.material); });
     }
     // balón (de su tamaño real) con su sombra

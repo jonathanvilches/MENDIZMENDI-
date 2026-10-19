@@ -113,14 +113,23 @@ export const fullTexFor = (name) => FULL_TEX.add(name);
 // textura más nítida de lejos: la de Meshy va troceada en muchas piezas pequeñas y, al alejarse, los niveles de detalle
 // menores mezclan los colores de piezas vecinas (manchas y fallos de color en la ropa y la cara). Se lee un nivel más fino
 // del que tocaría (sesgo de -0,7)
+// (en onBeforeCompile los trozos aún son «#include <map_fragment>» y «#include <emissivemap_fragment>»: se despliegan
+// para poner el sesgo en la lectura. Así que los parches que buscan esas líneas (la ropa de npcOutfit.js, las camisetas
+// de game/futbol.js) van antes; el pelo (hairColor.js) acepta la lectura con el sesgo y puede ir después)
+const SHARP = new WeakSet();   // (los que ya lo llevan; userData.sharp, en cambio, pasa a las copias: keepSharp)
 export function sharpMap(m) {
-  if (!m.map || m.userData.sharp) return; m.userData.sharp = true;
+  if (!m.map || SHARP.has(m)) return m; SHARP.add(m); m.userData.sharp = true;
   const prev = m.onBeforeCompile;
   m.onBeforeCompile = (sh, r) => { prev?.call(m, sh, r);
-    sh.fragmentShader = sh.fragmentShader.replace('texture2D( map, vMapUv )', 'texture2D( map, vMapUv, -0.7 )').replace('texture2D( emissiveMap, vEmissiveMapUv )', 'texture2D( emissiveMap, vEmissiveMapUv, -0.7 )'); };
+    sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', THREE.ShaderChunk.map_fragment).replace('#include <emissivemap_fragment>', THREE.ShaderChunk.emissivemap_fragment)
+      .replace('texture2D( map, vMapUv )', 'texture2D( map, vMapUv, -0.7 )').replace('texture2D( emissiveMap, vEmissiveMapUv )', 'texture2D( emissiveMap, vEmissiveMapUv, -0.7 )'); };
   const key = m.customProgramCacheKey?.bind(m); m.customProgramCacheKey = () => (key ? key() : '') + '|sharp';
   m.needsUpdate = true;
+  return m;
 }
+/** Copia (clone) de un material nítido: clone() no copia onBeforeCompile y la copia perdía el sesgo. Se llama después
+ *  de los parches propios de la copia (ropa, camiseta, sombra de la cubierta). */
+export const keepSharp = (m) => m.userData.sharp ? sharpMap(m) : m;
 // la textura pasa siempre por un lienzo (a su tamaño o reducida): subida tal cual desde la imagen del modelo, en algunos
 // iPhone los personajes salían negros, sin color; por el lienzo es el camino que siempre ha funcionado en el móvil
 // En el iPhone y en Safari la textura llega como imagen normal (util/glb.js), que sube bien tal cual: si no hay que
