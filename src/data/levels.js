@@ -289,7 +289,7 @@ export const LEVELS = [
     landmarks: [{ kind: 'bridge', name: 'Puente sobre el Irati', text: 'El Irati, que nace en la selva, pasa por Aoiz hacia el sur.' }],
     missions: [
       { type: 'visit' },
-      { type: 'carnival', character: 'cascabobo', title: 'Cascabobos', host: H('Irati', { shirt: '#e03c3c', skirt: '#f2c230', pants: '#f3cfb3', hair: '#2a1a12', braids: true, height: 1.3 }),
+      { type: 'carnival', character: 'cascabobo', title: 'Cascabobos', host: H('Maddi', { shirt: '#e03c3c', skirt: '#f2c230', pants: '#f3cfb3', hair: '#2a1a12', braids: true, height: 1.3 }),
         text: 'Cascabobos y mascaritas llenan de color el carnaval de Aoiz. Encuentra al cascabobo.' },
       { type: 'process', id: 'honey', title: 'De la flor a la miel', host: H('Apicultora Maite', { shirt: '#f2c230', pants: '#f0ebe0', hair: '#6b3b1f', bun: true }), product: 'Miel',
         text: 'Las abejas visitan las flores y fabrican miel en la colmena.',
@@ -497,10 +497,18 @@ const GUIDES = [
   H('Josu, montañero', { shirt: '#d9532a', vest: '#2b3a4a', pants: '#3a3530', hair: '#4a3020', beard: '#4a3020', bag: '#3a7a4a', staff: true }),
   H('Amaia, guía de montaña', { shirt: '#3a8fd6', vest: '#2b3a4a', pants: '#3a3530', hair: '#3b2418', ponytail: true, female: true, bag: '#d9532a', staff: true }),
 ];
-for (const l of LEVELS) { const id = SUMMITS[l.id]; if (id && l.missions) l.missions.push({ type: 'summit', peak: id, host: GUIDES[l.id.length % 2] }); }
+// (el guía que no se llame como otro anfitrión del pueblo: en Estella ya está Amaia la de los palokis, en Irurtzun Josu el de
+// la huerta, y «Habla con Amaia» no decía con cuál)
+const first = (n) => n.split(',')[0].trim().split(' ')[0];
+for (const l of LEVELS) {
+  const id = SUMMITS[l.id]; if (!id || !l.missions) continue;
+  const names = new Set(l.missions.map(M => M.host?.name && first(M.host.name)).filter(Boolean));
+  const g = GUIDES[l.id.length % 2], other = GUIDES[(l.id.length + 1) % 2];
+  l.missions.push({ type: 'summit', peak: id, host: names.has(first(g.name)) && !names.has(first(other.name)) ? other : g });
+}
 
 // Partidos en el frontón: pelota a mano, el deporte de las plazas navarras
-const PELOTA_TOWNS = { tafalla: 'Unai, pelotari', leitza: 'Aitor, pelotari', lesaka: 'Mikel, pelotari', sanguesa: 'Iñaki, pelotari', 'puente-la-reina': 'Ane, pelotari', marcilla: 'Oihane, pelotari' };
+const PELOTA_TOWNS = { tafalla: 'Unai, pelotari', leitza: 'Aitor, pelotari', lesaka: 'Julen, pelotari', sanguesa: 'Iñaki, pelotari', 'puente-la-reina': 'Ane, pelotari', marcilla: 'Oihane, pelotari' };
 const PELOTA_STORY = [
   'Casi todos los pueblos de Navarra tienen un frontón, muchas veces pegado a la iglesia o en la plaza. Aquí se juega a pelota desde hace siglos.',
   'En la pelota a mano no hay raqueta: se golpea con la mano desnuda, protegida con tacos. La pelota es de cuero, dura como una piedra.',
