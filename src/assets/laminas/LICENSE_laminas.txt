@@ -2,3 +2,6 @@ Láminas del explorador por Navarra (web/, grande/ y mini/).
 Ilustraciones entregadas por el autor del proyecto MENDIMENDIZ el 2026-10-10, en dos archivos ZIP («fotos.juego», partes 1 y 2).
 Titularidad: el autor del proyecto. Pendiente de anotar con qué herramienta se hicieron y sus condiciones de uso (legal/registro-licencias.csv).
 Cambios: redimensionadas (1280 × 720 y 640 × 360) y convertidas a WebP. Las de grande/ (2560 × 1440) son las de 1280 ampliadas al doble con Real-ESRGAN (modelo realesr-animevideov3-x2, BSD de 3 cláusulas; tools/laminas-grandes.mjs) el 2026-10-15. El reparto de cada una está en src/data/laminas.js.
+2026-10-19: el autor volvió a entregar las 110 láminas a 1672 × 941 (un ZIP de portadas), con más detalle que las de
+antes y una c-cereal nueva. Se guardan en original/; las de web/ (1280 y 640), mini/ (640, sin pesar más que las de antes)
+y grande/ (2560, de las de 1672 ampliadas con Real-ESRGAN y reducidas) salen ahora de ellas. dep-pasaka sigue siendo la de antes.
