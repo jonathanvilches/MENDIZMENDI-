@@ -16,7 +16,10 @@ const FAMILY = {
   ribera: { forest: 0.08, grass: 'arid', crops: [7, 7, 7, 5, 6, 3, 2] },
 };
 const BASE = 20;   // (altura del suelo de la plaza, como el «base» de los pueblos generados)
-const NUCLEO = 300; // (radio del pueblo que se levanta, en metros desde la plaza)
+// el núcleo, donde se juega: el círculo de NUCLEO_PLAZA metros alrededor de la plaza y la envolvente de los lugares de
+// las misiones del casco con NUCLEO_MARGEN metros de margen (ver «El núcleo», abajo). Si así quedan menos de NUCLEO_MIN
+// casas (o del 40 % de las del mapa, en las aldeas), el círculo crece de 20 en 20 m hasta 300
+const NUCLEO_PLAZA = 140, NUCLEO_MARGEN = 40, NUCLEO_MIN = 80;
 
 // rejilla de cubos para preguntar rápido por los segmentos de una lista de polilíneas
 function buckets(lines, size = 25, margin = 12) {
@@ -38,6 +41,16 @@ function polyDist(x, z, P) {
     d = Math.min(d, segDist(x, z, xi, zi, xj, zj).d);
   }
   return inside ? -d : d;
+}
+// envolvente convexa de unos puntos {x, z}, como polígono [[x, z], …] (con uno o dos puntos, esos mismos: polyDist da
+// entonces la distancia al punto o al segmento)
+function envolvente(A) {
+  const P = A.slice().sort((a, b) => a.x - b.x || a.z - b.z);
+  if (P.length < 3) return P.map(p => [p.x, p.z]);
+  const cr = (o, a, b) => (a.x - o.x) * (b.z - o.z) - (a.z - o.z) * (b.x - o.x), lo = [], up = [];
+  for (const p of P) { while (lo.length >= 2 && cr(lo[lo.length - 2], lo[lo.length - 1], p) <= 0) lo.pop(); lo.push(p); }
+  for (let i = P.length - 1; i >= 0; i--) { const p = P[i]; while (up.length >= 2 && cr(up[up.length - 2], up[up.length - 1], p) <= 0) up.pop(); up.push(p); }
+  return lo.slice(0, -1).concat(up.slice(0, -1)).map(p => [p.x, p.z]);
 }
 const bbox = (P) => { let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const [x, z] of P) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); } return { x0, x1, z0, z1 }; };
 
@@ -90,12 +103,9 @@ export function createRealTownLevel(def, D) {
   const rx = () => 9999;
 
   // ---------- Calles y caminos ----------
-  // (las calles del casco que quedan enteras fuera del núcleo, sin casas a los lados desde que el pueblo se levanta solo
-  // hasta NUCLEO, fuera: parecían una urbanización a medio hacer en mitad del campo. Las carreteras y los caminos se quedan)
-  const PLc = D.lugares?.plaza || { x: 0, z: 0 }, urbana = (c) => c.t === 'street' || c.c === 'footway' || c.c === 'pedestrian';
-  const fuera = (c) => c.pts.every(([x, z]) => Math.hypot(x - PLc.x, z - PLc.z) > NUCLEO + 35);
-  const PATHS = (D.calles || []).filter(c => !(urbana(c) && fuera(c))).map((c, k) => ({ id: (c.n || c.c || 'calle') + '#' + k, name: c.n, type: c.t, w: c.w, pts: c.pts, cls: c.c }));
-  const pathAt = buckets(PATHS, 25, 10);
+  // (todas para colocar los lugares; las del casco que quedan fuera del núcleo se quitan después, en «El núcleo»)
+  const PATHS = (D.calles || []).map((c, k) => ({ id: (c.n || c.c || 'calle') + '#' + k, name: c.n, type: c.t, w: c.w, pts: c.pts, cls: c.c }));
+  let pathAt = buckets(PATHS, 25, 10);
   function pathQuery(x, z) {
     const list = pathAt(x, z);
     let best = { d: 1e9, w: 0, type: null, id: null };
@@ -108,21 +118,23 @@ export function createRealTownLevel(def, D) {
   }
 
   // ---------- Casas: dónde hay pueblo (para no poner árboles ni campos dentro) ----------
-  // (solo el núcleo, hasta NUCLEO de la plaza: las casas de más allá no se levantan, src/world/townReal.js, y si contaran
-  // para la máscara quedarían solares vacíos con calles y sin árboles ni campos)
-  const CASAS = (D.casas || []).filter(b => Math.max(Math.abs(b.x), Math.abs(b.z)) < half1 - 8 && Math.hypot(b.x - PLc.x, b.z - PLc.z) <= NUCLEO);
-  const VC = 8, VN = Math.ceil(2 * half1 / VC) + 1, VD = new Float32Array(VN * VN).fill(99);
-  for (const b of CASAS) {
-    const r = Math.hypot(b.w, b.d) / 2, i0 = Math.floor((b.x - r - 40 + half1) / VC), i1 = Math.ceil((b.x + r + 40 + half1) / VC);
-    const j0 = Math.floor((b.z - r - 40 + half1) / VC), j1 = Math.ceil((b.z + r + 40 + half1) / VC);
-    // (las casas sueltas en el monte, bordas y caseríos, no hacen pueblo: solo cuentan las que tienen vecinas)
-    for (let j = Math.max(0, j0); j <= Math.min(VN - 1, j1); j++) for (let i = Math.max(0, i0); i <= Math.min(VN - 1, i1); i++) {
-      const d = Math.max(0, Math.hypot(-half1 + i * VC - b.x, -half1 + j * VC - b.z) - r);
-      if (d < VD[j * VN + i]) VD[j * VN + i] = d;
+  // (todas para colocar los lugares; después solo las del núcleo, «El núcleo», y la máscara se rehace con ellas)
+  const CASAS = (D.casas || []).filter(b => Math.max(Math.abs(b.x), Math.abs(b.z)) < half1 - 8);
+  const VC = 8, VN = Math.ceil(2 * half1 / VC) + 1, VD = new Float32Array(VN * VN), DENS = new Uint8Array(VN * VN);
+  function marcarCasas() {
+    VD.fill(99); DENS.fill(0);
+    for (const b of CASAS) {
+      const r = Math.hypot(b.w, b.d) / 2, i0 = Math.floor((b.x - r - 40 + half1) / VC), i1 = Math.ceil((b.x + r + 40 + half1) / VC);
+      const j0 = Math.floor((b.z - r - 40 + half1) / VC), j1 = Math.ceil((b.z + r + 40 + half1) / VC);
+      // (las casas sueltas en el monte, bordas y caseríos, no hacen pueblo: solo cuentan las que tienen vecinas)
+      for (let j = Math.max(0, j0); j <= Math.min(VN - 1, j1); j++) for (let i = Math.max(0, i0); i <= Math.min(VN - 1, i1); i++) {
+        const d = Math.max(0, Math.hypot(-half1 + i * VC - b.x, -half1 + j * VC - b.z) - r);
+        if (d < VD[j * VN + i]) VD[j * VN + i] = d;
+      }
     }
+    for (const b of CASAS) { const i = Math.round((b.x + half1) / VC), j = Math.round((b.z + half1) / VC); for (let q = -3; q <= 3; q++) for (let p = -3; p <= 3; p++) { const k = (j + q) * VN + (i + p); if (k >= 0 && k < DENS.length) DENS[k] = Math.min(255, DENS[k] + 1); } }
   }
-  const DENS = new Uint8Array(VN * VN);
-  for (const b of CASAS) { const i = Math.round((b.x + half1) / VC), j = Math.round((b.z + half1) / VC); for (let q = -3; q <= 3; q++) for (let p = -3; p <= 3; p++) { const k = (j + q) * VN + (i + p); if (k >= 0 && k < DENS.length) DENS[k] = Math.min(255, DENS[k] + 1); } }
+  marcarCasas();
   const vgrid = (G, x, z) => { const fx = clamp((x + half1) / VC, 0, VN - 1.001), fz = clamp((z + half1) / VC, 0, VN - 1.001), i = Math.floor(fx), j = Math.floor(fz), a = fx - i, c = fz - j; return G[j * VN + i] * (1 - a) * (1 - c) + G[j * VN + i + 1] * a * (1 - c) + G[(j + 1) * VN + i] * (1 - a) * c + G[(j + 1) * VN + i + 1] * a * c; };
   function villageMask(x, z) {
     if (!inner(x, z)) return 0;
@@ -332,6 +344,39 @@ export function createRealTownLevel(def, D) {
     if (!b && !['bridge', 'plaza', 'kiosk', 'fountain', 'townhall'].includes(k) && !pos.ring) pads.push({ x: o.x, z: o.z, r: k === 'castle' ? 30 : 9, blend: 12 });
     if (b && k === 'castle') pads.push({ x: o.x, z: o.z, r: 30, blend: 16 });
   }
+  // ---------- El núcleo: donde se juega ----------
+  // El pueblo se levanta solo donde están las misiones: el círculo alrededor de la plaza y la envolvente de los lugares de
+  // las misiones del casco (iglesia, ayuntamiento, frontón, mercado, llegada, orilla del río y los monumentos que tienen
+  // casas alrededor), con un margen. Dentro, todas las casas de los datos en su sitio, sin quitar ninguna: la misma
+  // estructura del pueblo; fuera, campo. Con un círculo fijo de 300 m, en Estella quedaban fuera el palacio y el puente de
+  // la misión y en Tudela se levantaban casi mil casas que no pisaba ninguna misión. Los miradores, dólmenes, cuevas y
+  // demás lugares del monte no cuentan: están en el campo
+  const MONTE = new Set(['lookout', 'pass', 'dig', 'monolith', 'dolmen', 'gorge', 'cave', 'tunnel']);
+  const conCasas = (p) => CASAS.some(b => Math.hypot(b.x - p.x, b.z - p.z) < 35);
+  const ANCLAS = [PLACES.plaza, PLACES.church, PLACES.townhall, PLACES.frontonReal && PLACES.frontonNear, PLACES.market, PLACES.spawn,
+    riverInfo(PLACES.riverSpot.x, PLACES.riverSpot.z).edge < 12 && PLACES.riverSpot,
+    ...PLACES.landmarks.filter(l => !MONTE.has(l.kind) && Math.hypot(l.x - PL.x, l.z - PL.z) < 460 && conCasas(l))].filter(Boolean).map(p => ({ x: p.x, z: p.z }));
+  const HULL = envolvente(ANCLAS);
+  // (en los pueblos con pocas casas en los datos alrededor de la plaza, como Tafalla o Viana, el círculo crece hasta que
+  // el núcleo parece un pueblo)
+  const objetivo = Math.min(NUCLEO_MIN, Math.round(CASAS.length * 0.4));
+  const dHull = CASAS.map(b => polyDist(b.x, b.z, HULL) - NUCLEO_MARGEN), dPlaza = CASAS.map(b => Math.hypot(b.x - PL.x, b.z - PL.z));
+  let rPlaza = NUCLEO_PLAZA;
+  while (rPlaza < 300 && CASAS.filter((b, i) => dHull[i] <= 0 || dPlaza[i] <= rPlaza).length < objetivo) rPlaza += 20;
+  // (negativo o cero dentro del núcleo; fuera, los metros que faltan para llegar a él)
+  const nucleoD = (x, z) => Math.min(Math.hypot(x - PL.x, z - PL.z) - rPlaza, polyDist(x, z, HULL) - NUCLEO_MARGEN);
+  { const dentro = CASAS.filter(b => nucleoD(b.x, b.z) <= 0); CASAS.length = 0; CASAS.push(...dentro); }
+  marcarCasas();
+  // (las calles del casco que quedan enteras fuera, sin casas a los lados, parecían una urbanización a medio hacer en
+  // mitad del campo: fuera. Las carreteras y los caminos se quedan)
+  {
+    const urbana = (c) => c.type === 'street' || c.cls === 'footway' || c.cls === 'pedestrian';
+    const quedan = PATHS.filter(c => !(urbana(c) && c.pts.every(([x, z]) => nucleoD(x, z) > 35)));
+    PATHS.length = 0; PATHS.push(...quedan); pathAt = buckets(PATHS, 25, 10);
+  }
+  // (las salidas del pueblo, otra vez, en las calles y caminos que quedan)
+  PLACES.edgeN = onStreet(0, -1, R + 20, R + 120) || PLACES.edgeN; PLACES.edgeS = onStreet(0, 1, R + 20, R + 120) || PLACES.edgeS;
+  PLACES.edgeE = onStreet(1, 0, R + 20, R + 120) || PLACES.edgeE; PLACES.edgeW = onStreet(-1, 0, R + 20, R + 120) || PLACES.edgeW;
   PLACES.courts = [];
   PLACES.clearings = PLACES.landmarks.map(l => ({ x: l.x, z: l.z, r0: (l.pad || 14) + 12, r1: l.pad || 12 }));
   pads.push({ x: PLACES.farm.x, z: PLACES.farm.z, r: 16, blend: 18 });
@@ -426,7 +471,7 @@ export function createRealTownLevel(def, D) {
     return n > 0.2 ? 'pine' : n > -0.3 ? 'oak' : 'olive';
   }
   const RIVERS = RV.map(L => ({ pts: L.pts, levels: L.lv, half: L.half, name: L.name }));
-  const real = { data: D, casas: CASAS, nucleo: NUCLEO, taken: TAKEN, puentes: D.puentes || [], rios: RV, plazas: PLAZAS, piscinas: D.piscinas || [], atribucion: D.atribucion };
+  const real = { data: D, casas: CASAS, anclas: ANCLAS, taken: TAKEN, puentes: D.puentes || [], rios: RV, plazas: PLAZAS, piscinas: D.piscinas || [], atribucion: D.atribucion };
   return {
     rx, zz: () => 9999, CONF: { x: 9999, z: 9999 }, FA: () => BASE, FZ: () => BASE, riverHalfA: () => 0, RIVER_HALF_Z: 0,
     riverInfo, riverPointNear, valleyFloor, finalHeight, pathQuery, plazaMask, fieldInfo, villageMask, meadowMask, iratiMask, skyTan,
