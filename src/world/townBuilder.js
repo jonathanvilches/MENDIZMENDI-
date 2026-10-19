@@ -8,6 +8,7 @@ import { PATHS, PLACES, BRIDGES, riverInfo, pathQuery, villageMask, plazaMask, r
 import { terrainHeight } from './heightfield.js';
 import { addBox, addCircle, isFree, rectFree } from './colliders.js';
 import { mulberry32, clamp } from '../util/math.js';
+import { realChurchRy, realBridges, realRiverWalls, realHouses } from './townReal.js';
 
 export const TOWN = { houses: [], shields: [], armsSpot: null, lamps: [], benches: [], church: null, fountain: null, landmarks: [], farm: null, pen: null };
 if (typeof window !== 'undefined') window.__TOWN = TOWN;   // (para las herramientas de capturas)
@@ -73,9 +74,11 @@ export function buildTown(scene, mats, def) {
   const fam = def.family;
   // Pamplona: trazado y monumentos propios (plaza del Castillo, Estafeta, catedral, murallas, Ciudadela, El Sadar…)
   const pamp = def.layout === 'pamplona' ? buildPamplona(B, group, def, rnd, TOWN) : null;
-  // iglesia mirando a la plaza
+  // pueblo con su trazado de verdad (src/levels/townReal.js): casas, puentes y muros del cauce de los datos
+  const real = MOD.real || null;
+  // iglesia mirando a la plaza (la de los datos, en su sitio y a lo largo de su eje)
   const ch = PLACES.church;
-  const ry = Math.atan2(PLACES.plaza.x - ch.x, PLACES.plaza.z - ch.z);
+  const ry = real && ch.real ? realChurchRy(ch.real, PLACES.plaza) : Math.atan2(PLACES.plaza.x - ch.x, PLACES.plaza.z - ch.z);
   const c = pamp ? pamp.church : church(B, ch.x, ch.z, ry, def.church?.style || 'gothic', fam, def.church || {});
   TOWN.church = { ...c, name: def.church?.name, text: def.church?.text };
   // puentes
@@ -84,8 +87,9 @@ export function buildTown(scene, mats, def) {
     b.ya = terrainHeight(b.xa, b.z); b.yb = terrainHeight(b.xb, b.z);
     bridge(B, b, riverInfo);
   }
+  if (real) { realBridges(B, real); realRiverWalls(B, real, fam); }
   // muros de encauzamiento del río en el casco urbano
-  if (def.river && Math.abs(def.river.x) < 40) {
+  if (!real && def.river && Math.abs(def.river.x) < 40) {
     const R = MOD.R || 80;
     for (const side of [-1, 1]) for (let z = -R * 0.85; z < R * 0.85; z += 2.5) {
       const zm = z + 1.25;
@@ -113,8 +117,11 @@ export function buildTown(scene, mats, def) {
       else { const r = MOD.R + 22; wallsRingGates(B, PLACES.plaza.x, 0, r); spot = { x: PLACES.plaza.x, z: -r + 6 }; }
     } else if (lm.kind === 'bridge' || lm.kind === 'plaza') spot = { x: lm.x, z: lm.z };
     else if (lm.kind === 'palace' || lm.kind === 'house') {
-      const w = lm.kind === 'palace' ? 13 : 9, d = lm.kind === 'palace' ? 11 : 9, h = lm.kind === 'palace' ? 11 : 9;
-      const r2 = Math.atan2(PLACES.plaza.x - lm.x, PLACES.plaza.z - lm.z);
+      // (en un pueblo real, con la planta, la orientación y la altura de su edificio de los datos)
+      const rb = lm.realBuilding, cl = (v, a, b) => Math.max(a, Math.min(b, v));
+      const w = rb ? cl(rb.w, 7, 36) : lm.kind === 'palace' ? 13 : 9, d = rb ? cl(rb.d, 7, 36) : lm.kind === 'palace' ? 11 : 9;
+      const h = rb?.h ? cl(rb.h * 0.78, 7, 16) : lm.kind === 'palace' ? 11 : 9;
+      const r2 = rb ? rb.ry : Math.atan2(PLACES.plaza.x - lm.x, PLACES.plaza.z - lm.z);
       const g = minGround(lm.x, lm.z, w, d, r2);
       const pb = slopeBase(B, lm.x, lm.z, w, d, r2, g), po = { w, d, h, wall: fam === 'ribera' ? 'brick' : 'ashlar', noQuoins: true, roof: fam === 'pyrenean' ? 'slate' : 'tile', roofType: 'hip', hipRise: 4.6, arch: true, doorX: 0, balcony: true, balconyW: 5, ironBalcony: true, shield: lm.kind === 'palace', cornice: true };
       buildHouse(B, M(lm.x, pb, lm.z, r2), po, rnd);
@@ -128,10 +135,18 @@ export function buildTown(scene, mats, def) {
   const P = PLACES.plaza;
   const hasKiosk = pamp || (PLACES.landmarks || []).some(l => l.kind === 'kiosk');
   if (!hasKiosk) {
-    const y = terrainHeight(P.x, P.z);
-    fountain(B, P.x, y, P.z);
-    addCircle(P.x, P.z, 2.7);
-    TOWN.fountain = { x: P.x, z: P.z, y };
+    // (en un pueblo real, la fuente de los datos si está en la plaza; si no, en el centro de la plaza si cabe)
+    let f = { x: P.x, z: P.z };
+    if (real) {
+      const fu = (real.data.lugares?.fuentes || []).find(q => Math.hypot(q.x - P.x, q.z - P.z) < P.r + 6 && isFree(q.x, q.z, 2.8));
+      if (fu) f = fu; else if (!isFree(P.x, P.z, 2.8)) { f = null; for (let r = 3; r < P.r && !f; r += 2) for (let a = 0; a < 6.28 && !f; a += 0.5) { const x = P.x + Math.cos(a) * r, z = P.z + Math.sin(a) * r; if (isFree(x, z, 2.8)) f = { x, z }; } }
+    }
+    if (f) {
+      const y = terrainHeight(f.x, f.z);
+      fountain(B, f.x, y, f.z);
+      addCircle(f.x, f.z, 2.7);
+      TOWN.fountain = { x: f.x, z: f.z, y };
+    }
   }
   for (let i = 0; i < (pamp ? 0 : 6); i++) {
     const a = i / 6 * Math.PI * 2 + 0.3, x = P.x + Math.cos(a) * (P.r - 5), z = P.z + Math.sin(a) * (P.r - 5);
@@ -147,7 +162,8 @@ export function buildTown(scene, mats, def) {
   const mid = (p) => p.pts[Math.floor(p.pts.length / 2)];
   const streets = PATHS.filter(p => p.type === 'street' && !p.noHouses).sort((a, b) => { const A = mid(a), Bm = mid(b); return Math.hypot(A[0] - PLACES.plaza.x, A[1] - PLACES.plaza.z) - Math.hypot(Bm[0] - PLACES.plaza.x, Bm[1] - PLACES.plaza.z); });
   const cap = Math.round(def.size * (fam === 'city' || fam === 'ribera' ? 1.7 : fam === 'central' ? 1.5 : 1.25));
-  for (const path of streets) for (const side of [-1, 1]) {
+  if (real) { const n = realHouses(B, def, rnd, { buildHouse, houseStyle, minGround, slopeBase, shieldAt, TOWN, P, fam }); count = n.full + n.simple; TOWN.realCount = n; }
+  else for (const path of streets) for (const side of [-1, 1]) {
     const L = polyLen(path.pts);
     let s = 2 + rnd() * 4;
     while (s < L - 3 && count < cap) {
@@ -187,12 +203,13 @@ export function buildTown(scene, mats, def) {
     addBox(x, z, 1.7, 0.6, ry);
     TOWN.armsSpot = { x: x + Math.sin(ry) * 0.212, y: y + 1.62, z: z + Math.cos(ry) * 0.212, ry, read: { x: x + Math.sin(ry) * 2.3, z: z + Math.cos(ry) * 2.3 } };
   }
-  // farolas
+  // farolas (en un pueblo real, solo en las calles del casco)
   for (const path of streets) {
     const L = polyLen(path.pts);
     for (let s = 6, k = 0; s < L; s += 26, k++) {
       const a = polyAt(path.pts, s); const side = k % 2 ? 1 : -1;
       const x = a.x - a.tz * side * (path.w + 0.4), z = a.z + a.tx * side * (path.w + 0.4);
+      if (real && villageMask(x, z) < 0.6) continue;
       if (!isFree(x, z, 0.6)) continue;
       lamp(B, x, z);
     }

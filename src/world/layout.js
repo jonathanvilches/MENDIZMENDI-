@@ -8,7 +8,7 @@ export let LEVEL = null;          // definición del nivel activo
 export let KIND = 'salazar';      // 'salazar' (aventura del valle) o 'town' (localidad generada)
 export let rx, zz, CONF, FA, FZ, riverHalfA, RIVER_HALF_Z;
 export let riverInfo, valleyFloor, finalHeight, pathQuery, plazaMask, fieldInfo;
-export let villageMask, meadowMask, iratiMask, skyTan;
+export let villageMask, meadowMask, iratiMask, skyTan, riverPointNear;
 export let PLACES, MEADOW, PATHS, BRIDGES, POND_LEVEL, RIVERS, PONDS, SPECIAL_TREES, TREE_MIX, FAUNA, BOUNDARY, FOREST, TONE, MOD;
 
 const noMask = () => 0;
@@ -19,6 +19,8 @@ export function setLevel(mod, def = null, kind = 'salazar') {
   plazaMask = mod.plazaMask || noMask; fieldInfo = mod.fieldInfo || (() => ({ mask: 0, type: 0, edge: 99 }));
   villageMask = mod.villageMask || noMask; meadowMask = mod.meadowMask || noMask; iratiMask = mod.iratiMask || noMask;
   skyTan = mod.skyTan || null;   // horizonte real del pueblo (sin él, el anillo de montes de siempre)
+  // (el punto del río más cercano: en los pueblos reales el río no va de norte a sur y rx no sirve)
+  riverPointNear = mod.riverPointNear || ((x, z) => ({ x: mod.rx(z), z }));
   PLACES = mod.PLACES || {}; MEADOW = mod.MEADOW || null; PATHS = mod.PATHS || []; BRIDGES = mod.BRIDGES || [];
   POND_LEVEL = mod.POND_LEVEL || (() => -Infinity);
   RIVERS = mod.RIVERS || null; PONDS = mod.PONDS || []; SPECIAL_TREES = mod.SPECIAL_TREES || null;

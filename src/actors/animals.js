@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { groundHeight, terrainHeight, waterLevelAt } from '../world/heightfield.js';
 import { resolve, isFree, addMover } from '../world/colliders.js';
-import { PLACES, rx, riverInfo } from '../world/layout.js';
+import { PLACES, rx, riverInfo, riverPointNear } from '../world/layout.js';
 import { TREES } from '../world/nature.js';
 import { clamp, damp, dampAngle, mulberry32 } from '../util/math.js';
 import { setOutlines } from './minifig.js';
@@ -445,8 +445,8 @@ export class Fauna {
       if (f.jump < 0 && f.t < 0) {
         const r = riverInfo(player.pos.x, player.pos.z);
         if (r.d < 25) {
-          const z = player.pos.z + (this.rnd() - 0.5) * 24;
-          const x = rx(z) + (this.rnd() - 0.5) * 4;
+          const z0 = player.pos.z + (this.rnd() - 0.5) * 24, q = riverPointNear(player.pos.x + (this.rnd() - 0.5) * 24, z0);
+          const z = q.z, x = q.x + (this.rnd() - 0.5) * 4;
           if (Math.hypot(x - player.pos.x, z - player.pos.z) > 3 && waterLevelAt(x, z) > -1e8) { f.jump = 0; f.x = x; f.z = z; f.y0 = waterLevelAt(x, z); f.dir = this.rnd() * 6.28; sound?.splash(new THREE.Vector3(x, f.y0, z), 0.3); }
         }
         f.t = 2 + this.rnd() * 5;

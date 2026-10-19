@@ -290,7 +290,7 @@ export class TownGame {
   ensureFronton() {
     // (en Iruña, el Labrit: el edificio entero junto a la plaza de toros; si no cupiera, el frontón de siempre)
     if (!this.fronton && this.def.id === 'pamplona') try { this.fronton = labritInTown(this.scene, PLACES.frontonNear || PLACES.plaza); } catch (e) { console.warn('labrit', e); }
-    if (!this.fronton) { const sp = findFrontonSpot(PLACES.frontonNear || PLACES.plaza); if (sp) this.fronton = new Fronton(this.scene, sp, this.def.name.split(' /')[0], frontonWall(this.def)); }
+    if (!this.fronton) { const sp = findFrontonSpot(PLACES.frontonNear || PLACES.plaza, undefined, !!PLACES.frontonReal); if (sp) this.fronton = new Fronton(this.scene, sp, this.def.name.split(' /')[0], frontonWall(this.def)); }
     return this.fronton;
   }
   // pista polideportiva del pueblo (donde espera el entrenador; el partido se juega en el campo del pueblo), si hay sitio llano cerca de la plaza (en Pamplona se juega en El

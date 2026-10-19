@@ -34,7 +34,7 @@ export const EU_EXACT = {
   // --- herriak ---
   'Pueblos y ciudades': 'Herriak eta hiriak', 'Cada pueblo tiene sus propias misiones: su iglesia y sus monumentos, sus productos, sus oficios, sus danzas y su carnaval.':
     'Herri bakoitzak bere misioak ditu: eliza eta monumentuak, produktuak, ofizioak, dantzak eta inauteriak.', 'Todas': 'Denak', 'En el juego': 'Jokoan',
-  'Qué visitar': 'Zer bisitatu', 'Comarca': 'Eskualdea', 'Cultura': 'Kultura', 'Danza': 'Dantza', 'Carnaval': 'Inauteria', 'Fiesta': 'Jaia', 'Traje': 'Jantzia',
+  'Qué visitar': 'Zer bisitatu', 'Trazado real del pueblo': 'Herriaren benetako trazadura', 'Comarca': 'Eskualdea', 'Cultura': 'Kultura', 'Danza': 'Dantza', 'Carnaval': 'Inauteria', 'Fiesta': 'Jaia', 'Traje': 'Jantzia',
   'Fauna': 'Fauna', 'Árboles': 'Zuhaitzak', 'Plantas': 'Landareak', 'Flores': 'Loreak', 'Cimas para subir': 'Igotzeko gailurrak',
   // --- misio motak ---
   'Visita': 'Bisita', 'Producto': 'Produktua', 'Cosecha': 'Uzta', 'Ganadería': 'Abeltzaintza', 'Oficio': 'Ofizioa', 'Leyenda': 'Kondaira', 'Carrera': 'Lasterketa',
