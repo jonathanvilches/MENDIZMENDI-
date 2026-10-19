@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
 import { viteSingleFile } from 'vite-plugin-singlefile';
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, symlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
@@ -12,7 +12,12 @@ import { splashLinks } from './src/web/splash.js';
 //  · web (WEB=1 npx vite build): la que se publica en docs/ para jugar desde el navegador, sobre todo en el móvil. La
 //    página es pequeña y cada modelo, textura o sonido es un archivo aparte que solo se descarga cuando hace falta y
 //    queda guardado (caché del navegador y de la app instalada): menos memoria, arranque rápido y juego sin conexión.
-const WEB = !!process.env.WEB;
+// ARTEFACTO=1 npx vite build: la web, pero para publicarla como artefacto de Claude (dist-artefacto/, tools/artefacto.mjs).
+// Un artefacto admite como mucho 511 archivos y la web tiene casi 1.800 (cada imagen en dos o tres tamaños): aquí cada
+// imagen grande va una sola vez (las láminas, a 2560; leyendas y cimas, a 2560) y las pequeñas y repetidas (iconos,
+// escudos, sellos, la copia de 640 de cada lámina…) van dentro del código, en bloques aparte de menos de 16 MB
+const AF = !!process.env.ARTEFACTO;
+const WEB = !!process.env.WEB || AF;
 // las fotos de la flora, las láminas y los animales de la fauna: grandes en la web y en el servidor de pruebas; más ligeras
 // en el archivo único (los animales: 1280 px en la web y 512 en el archivo único; las miniaturas, de 256 en los dos)
 // (los escudos: los de 512 en todas partes y, en la web, los de 1024 para la ficha; las casas y los oficios, de 512 en la web, de 192 en el ligero y de 96 en el archivo único,
@@ -137,12 +142,76 @@ ${splashLinks()}
   },
 };
 
+// (las láminas del artefacto: <id>.webp es la de 2560 y <id>-s.webp la copia de 640, enlaces a las de siempre, así las
+// dos búsquedas de src/ui/laminas.js dan con el mismo archivo y va una sola vez)
+if (AF) {
+  const D = './src/assets/laminas/artefacto';
+  mkdirSync(D, { recursive: true });
+  for (const f of readdirSync('./src/assets/laminas/grande')) if (f.endsWith('.webp') && !existsSync(`${D}/${f}`)) symlinkSync(`../grande/${f}`, `${D}/${f}`);
+  for (const f of readdirSync('./src/assets/laminas/web')) if (f.endsWith('-s.webp') && !existsSync(`${D}/${f}`)) symlinkSync(`../web/${f}`, `${D}/${f}`);
+}
+const afDir = (d) => fileURLToPath(new URL(`./src/assets/${d}`, import.meta.url));
+const afAlias = (a) => !AF ? a : { ...a,
+  '@laminas': afDir('laminas/artefacto'), '@laminas-big': afDir('laminas/artefacto'),
+  '@leyendas-big': afDir('leyendas/2560'), '@cimas-big': afDir('cimas/2560'),
+  '@escudos-big': afDir('escudos/heraldica/512'), '@escudos-casas-big': afDir('escudos/casas/none'), '@escudos-oficios-big': afDir('escudos/oficios/none'),
+  'three/examples/jsm/libs/meshopt_decoder.module.js': fileURLToPath(new URL('./src/web/meshopt-sin.js', import.meta.url)),
+  '@icons3d-big': afDir('icons3d/none'), '@personajes': afDir('personajes/2560'), '@tradiciones': afDir('tradiciones/2560') };
+// (lo que va dentro del código en el artefacto: las imágenes pequeñas que se repiten mucho, y las fuentes)
+const AF_DENTRO = /[\\/]src[\\/]assets[\\/](icons3d[\\/]256|escudos[\\/](heraldica|equipos|casas|oficios)[\\/]512|laminas[\\/]web[\\/][^\\/]+-s\.webp|fauna[\\/]512|leyendas[\\/]768|cimas[\\/]1024|sellos[\\/]web|meshy[\\/]portraits|figuras[\\/]web|jugadores[\\/]web[\\/](busto[\\/]|duo-s[\\/]|[^\\/]+\.webp$)|pelotaris[\\/]web[\\/](azul|rojo))[\\/]?/;
+const afInline = (file) => (/\.woff2$/.test(file) || AF_DENTRO.test(file) ? true : undefined);
+// (cada grupo de imágenes de dentro, en su propio archivo de código: ninguno pasa de los 16 MB que admite un artefacto)
+const AF_GRUPOS = [['img-laminas', /laminas[\\/]web[\\/]/], ['img-iconos', /icons3d[\\/]/],
+  // (los escudos de casa, aparte y en dos: con los 192 no caben en un solo bloque)
+  ['img-casas-1', /escudos[\\/]casas[\\/][^\\/]+[\\/][a-l]/], ['img-casas-2', /escudos[\\/]casas[\\/]/], ['img-escudos', /escudos[\\/]/], ['img-jugadores', /jugadores[\\/]/],
+  ['img-pelotaris', /pelotaris[\\/]/], ['img-varias', /(fauna|leyendas|cimas|sellos|portraits|figuras)[\\/]/]].map(([name, test]) => ({ name, test }));
+// (en el artefacto no hay app instalable ni service worker: el visor de Claude no los deja. Tampoco se cuenta con
+// WebAssembly, que el descompresor meshopt necesita: los modelos y los parches de las chicas van ya descomprimidos, y
+// el descompresor es src/web/meshopt-sin.js. La cuantización de los modelos se queda: three.js la lee sin ayuda)
+const parcheCrudo = (buf, dec) => {
+  const b = new Uint8Array(buf), dv = new DataView(b.buffer, b.byteOffset), jl = dv.getUint32(4, true);
+  const cab = JSON.parse(new TextDecoder().decode(b.subarray(8, 8 + jl))); let at = 8 + jl;
+  const partes = cab.tiras.map(([len, n, s, f]) => { const out = new Uint8Array(n * s); if (n) dec.decodeVertexBuffer(out, n, s, b.subarray(at, at + len), f || undefined); at += len + ((4 - len % 4) % 4); return out; });
+  const j = new TextEncoder().encode(JSON.stringify({ ...cab, crudo: true, tiras: cab.tiras.map(([, n, s]) => [n * s, n, s, 0]) }));
+  const pad = (n) => (4 - n % 4) % 4, total = 8 + j.length + partes.reduce((a, x) => a + x.length + pad(x.length), 0);
+  const o = new Uint8Array(total), ov = new DataView(o.buffer); ov.setUint32(0, 0x32434843, true); ov.setUint32(4, j.length, true); o.set(j, 8);
+  let k = 8 + j.length; for (const x of partes) { o.set(x, k); k += x.length + pad(x.length); }
+  return o;
+};
+const artefacto = { name: 'artefacto', async generateBundle(_, bundle) {
+  const { NodeIO } = await import('@gltf-transform/core'), { ALL_EXTENSIONS } = await import('@gltf-transform/extensions'), { MeshoptDecoder } = await import('meshoptimizer');
+  await MeshoptDecoder.ready;
+  const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder });
+  let n = 0, antes = 0, despues = 0; const renombres = [];
+  for (const [k, a] of Object.entries(bundle)) {
+    if (a.type !== 'asset' || !/\.(glb|parche)$/.test(a.fileName)) continue;
+    antes += a.source.length;
+    if (a.fileName.endsWith('.parche')) a.source = parcheCrudo(a.source, MeshoptDecoder);
+    else {
+      const doc = await io.readBinary(new Uint8Array(a.source)); let tenia = false;
+      for (const e of doc.getRoot().listExtensionsUsed()) if (e.extensionName === 'EXT_meshopt_compression') { e.dispose(); tenia = true; }
+      if (tenia) a.source = await io.writeBinary(doc);
+    }
+    // (el visor no sirve .glb ni .parche: van como texto, el gzip en base64, y src/util/glb.js lo deshace al cargarlos)
+    const viejo = a.fileName, nuevo = viejo + '.txt', texto = gzipSync(Buffer.from(a.source), { level: 9 }).toString('base64');
+    delete bundle[k]; this.emitFile({ type: 'asset', fileName: nuevo, source: texto });
+    renombres.push([viejo.split('/').pop(), nuevo.split('/').pop()]);
+    despues += texto.length; n++;
+  }
+  for (const c of Object.values(bundle)) if (c.type === 'chunk') for (const [v, w] of renombres) c.code = c.code.split(v).join(w);
+  console.log(`artefacto: ${n} modelos y parches sin meshopt y como texto, ${(antes / 1e6).toFixed(1)} → ${(despues / 1e6).toFixed(1)} MB`);
+  this.emitFile({ type: 'asset', fileName: 'artefacto.json', source: JSON.stringify(Object.fromEntries(Object.entries(bundle).map(([f, a]) => [f, a.originalFileNames || []]))) });
+} };
+
 export default defineConfig({
   base: './',
-  resolve: { alias: { '@jugadores': fileURLToPath(new URL(`./src/assets/jugadores/${FOTOS}`, import.meta.url)), '@pelotaris': fileURLToPath(new URL(`./src/assets/pelotaris/${FOTOS}`, import.meta.url)), '@sellos': fileURLToPath(new URL(`./src/assets/sellos/${FOTOS}`, import.meta.url)), '@retratos': fileURLToPath(new URL(`./src/assets/meshy/portraits/${FOTOS}`, import.meta.url)), '@flora-fotos': fileURLToPath(new URL(`./src/assets/flora/${FOTOS}`, import.meta.url)), '@laminas': fileURLToPath(new URL(`./src/assets/laminas/${FOTOS}`, import.meta.url)), '@figuras': fileURLToPath(new URL(`./src/assets/figuras/${FOTOS}`, import.meta.url)), '@figuras-ilus': fileURLToPath(new URL(`./src/assets/figuras/ilus/${FOTOS}`, import.meta.url)), '@laminas-big': fileURLToPath(new URL(`./src/assets/laminas/${FOTOS === 'web' ? 'grande' : FOTOS}`, import.meta.url)), '@fauna-big': fileURLToPath(new URL(`./src/assets/fauna/${FOTOS === 'web' ? 1280 : 512}`, import.meta.url)), '@fauna-small': fileURLToPath(new URL(`./src/assets/fauna/512`, import.meta.url)), '@escudos': fileURLToPath(new URL(`./src/assets/escudos/heraldica/${FOTOS === 'web' ? 512 : 256}`, import.meta.url)), '@escudos-big': fileURLToPath(new URL(`./src/assets/escudos/heraldica/${FOTOS === 'web' ? 1024 : 256}`, import.meta.url)), '@emblemas': fileURLToPath(new URL(`./src/assets/escudos/equipos/${FOTOS === 'web' ? 512 : 256}`, import.meta.url)), '@escudos-casas': fileURLToPath(new URL(`./src/assets/escudos/casas/${FOTOS === 'web' ? 512 : process.env.LIGERO ? 192 : 96}`, import.meta.url)), '@escudos-casas-big': fileURLToPath(new URL(`./src/assets/escudos/casas/${FOTOS === 'web' ? 1024 : 'none'}`, import.meta.url)), '@escudos-oficios-big': fileURLToPath(new URL(`./src/assets/escudos/oficios/${FOTOS === 'web' ? 1024 : 'none'}`, import.meta.url)), '@escudos-oficios': fileURLToPath(new URL(`./src/assets/escudos/oficios/${FOTOS === 'web' ? 512 : process.env.LIGERO ? 192 : 96}`, import.meta.url)), '@leyendas': fileURLToPath(new URL(`./src/assets/leyendas/${FOTOS === 'web' ? 768 : 640}`, import.meta.url)), '@leyendas-hd': fileURLToPath(new URL(`./src/assets/leyendas/${FOTOS === 'web' ? 2560 : 640}`, import.meta.url)), '@leyendas-big': fileURLToPath(new URL(`./src/assets/leyendas/${FOTOS === 'web' ? 1536 : 640}`, import.meta.url)), '@cimas': fileURLToPath(new URL(`./src/assets/cimas/${FOTOS === 'web' ? 1024 : 320}`, import.meta.url)), '@cimas-hd': fileURLToPath(new URL(`./src/assets/cimas/${FOTOS === 'web' ? 2560 : 320}`, import.meta.url)), '@cimas-big': fileURLToPath(new URL(`./src/assets/cimas/${FOTOS === 'web' ? 1536 : 320}`, import.meta.url)), '@personajes': fileURLToPath(new URL(`./src/assets/personajes/${FOTOS === 'web' ? 1536 : 320}`, import.meta.url)), '@personajes-hd': fileURLToPath(new URL(`./src/assets/personajes/${FOTOS === 'web' ? 2560 : 320}`, import.meta.url)), '@tradiciones': fileURLToPath(new URL(`./src/assets/tradiciones/${FOTOS === 'web' ? 1536 : 320}`, import.meta.url)), '@tradiciones-hd': fileURLToPath(new URL(`./src/assets/tradiciones/${FOTOS === 'web' ? 2560 : 320}`, import.meta.url)), '@icons3d': fileURLToPath(new URL(`./src/assets/icons3d/${FOTOS === 'web' ? 256 : 128}`, import.meta.url)), '@icons3d-big': fileURLToPath(new URL(`./src/assets/icons3d/${FOTOS === 'web' ? '512' : 'none'}`, import.meta.url)), '@icons3d-huge': fileURLToPath(new URL(`./src/assets/icons3d/${FOTOS === 'web' ? '1024' : 'none'}`, import.meta.url)), '@meshy-full': fileURLToPath(new URL(MESHY_FULL, import.meta.url)), '@chicas': fileURLToPath(new URL(CHICAS, import.meta.url)) } },
-  plugins: WEB ? [sinRedir, app] : MINI ? [sinRedir, glbGzip, viteSingleFile(), jsGzip] : [sinRedir, viteSingleFile()],
+  resolve: { alias: afAlias({ '@jugadores': fileURLToPath(new URL(`./src/assets/jugadores/${FOTOS}`, import.meta.url)), '@pelotaris': fileURLToPath(new URL(`./src/assets/pelotaris/${FOTOS}`, import.meta.url)), '@sellos': fileURLToPath(new URL(`./src/assets/sellos/${FOTOS}`, import.meta.url)), '@retratos': fileURLToPath(new URL(`./src/assets/meshy/portraits/${FOTOS}`, import.meta.url)), '@flora-fotos': fileURLToPath(new URL(`./src/assets/flora/${FOTOS}`, import.meta.url)), '@laminas': fileURLToPath(new URL(`./src/assets/laminas/${FOTOS}`, import.meta.url)), '@figuras': fileURLToPath(new URL(`./src/assets/figuras/${FOTOS}`, import.meta.url)), '@figuras-ilus': fileURLToPath(new URL(`./src/assets/figuras/ilus/${FOTOS}`, import.meta.url)), '@laminas-big': fileURLToPath(new URL(`./src/assets/laminas/${FOTOS === 'web' ? 'grande' : FOTOS}`, import.meta.url)), '@fauna-big': fileURLToPath(new URL(`./src/assets/fauna/${FOTOS === 'web' ? 1280 : 512}`, import.meta.url)), '@fauna-small': fileURLToPath(new URL(`./src/assets/fauna/512`, import.meta.url)), '@escudos': fileURLToPath(new URL(`./src/assets/escudos/heraldica/${FOTOS === 'web' ? 512 : 256}`, import.meta.url)), '@escudos-big': fileURLToPath(new URL(`./src/assets/escudos/heraldica/${FOTOS === 'web' ? 1024 : 256}`, import.meta.url)), '@emblemas': fileURLToPath(new URL(`./src/assets/escudos/equipos/${FOTOS === 'web' ? 512 : 256}`, import.meta.url)), '@escudos-casas': fileURLToPath(new URL(`./src/assets/escudos/casas/${FOTOS === 'web' ? 512 : process.env.LIGERO ? 192 : 96}`, import.meta.url)), '@escudos-casas-big': fileURLToPath(new URL(`./src/assets/escudos/casas/${FOTOS === 'web' ? 1024 : 'none'}`, import.meta.url)), '@escudos-oficios-big': fileURLToPath(new URL(`./src/assets/escudos/oficios/${FOTOS === 'web' ? 1024 : 'none'}`, import.meta.url)), '@escudos-oficios': fileURLToPath(new URL(`./src/assets/escudos/oficios/${FOTOS === 'web' ? 512 : process.env.LIGERO ? 192 : 96}`, import.meta.url)), '@leyendas': fileURLToPath(new URL(`./src/assets/leyendas/${FOTOS === 'web' ? 768 : 640}`, import.meta.url)), '@leyendas-hd': fileURLToPath(new URL(`./src/assets/leyendas/${FOTOS === 'web' ? 2560 : 640}`, import.meta.url)), '@leyendas-big': fileURLToPath(new URL(`./src/assets/leyendas/${FOTOS === 'web' ? 1536 : 640}`, import.meta.url)), '@cimas': fileURLToPath(new URL(`./src/assets/cimas/${FOTOS === 'web' ? 1024 : 320}`, import.meta.url)), '@cimas-hd': fileURLToPath(new URL(`./src/assets/cimas/${FOTOS === 'web' ? 2560 : 320}`, import.meta.url)), '@cimas-big': fileURLToPath(new URL(`./src/assets/cimas/${FOTOS === 'web' ? 1536 : 320}`, import.meta.url)), '@personajes': fileURLToPath(new URL(`./src/assets/personajes/${FOTOS === 'web' ? 1536 : 320}`, import.meta.url)), '@personajes-hd': fileURLToPath(new URL(`./src/assets/personajes/${FOTOS === 'web' ? 2560 : 320}`, import.meta.url)), '@tradiciones': fileURLToPath(new URL(`./src/assets/tradiciones/${FOTOS === 'web' ? 1536 : 320}`, import.meta.url)), '@tradiciones-hd': fileURLToPath(new URL(`./src/assets/tradiciones/${FOTOS === 'web' ? 2560 : 320}`, import.meta.url)), '@icons3d': fileURLToPath(new URL(`./src/assets/icons3d/${FOTOS === 'web' ? 256 : 128}`, import.meta.url)), '@icons3d-big': fileURLToPath(new URL(`./src/assets/icons3d/${FOTOS === 'web' ? '512' : 'none'}`, import.meta.url)), '@icons3d-huge': fileURLToPath(new URL(`./src/assets/icons3d/${FOTOS === 'web' ? '1024' : 'none'}`, import.meta.url)), '@meshy-full': fileURLToPath(new URL(MESHY_FULL, import.meta.url)), '@chicas': fileURLToPath(new URL(CHICAS, import.meta.url)) }) },
+  plugins: AF ? [sinRedir, artefacto] : WEB ? [sinRedir, app] : MINI ? [sinRedir, glbGzip, viteSingleFile(), jsGzip] : [sinRedir, viteSingleFile()],
   define: { __WEB__: JSON.stringify(WEB) },
-  build: WEB
+  build: AF
+    ? { target: 'es2020', outDir: 'dist-artefacto', emptyOutDir: true, assetsInlineLimit: afInline, chunkSizeWarningLimit: 20000, copyPublicDir: false,
+      rolldownOptions: { output: { codeSplitting: { groups: [{ name: 'three', test: /node_modules[\\/]three[\\/]/ }, ...AF_GRUPOS] } } } }
+    : WEB
     ? { target: 'es2020', outDir: 'docs', emptyOutDir: true, assetsInlineLimit: 2048, chunkSizeWarningLimit: 5000, copyPublicDir: true,
       // three.js en su propio archivo: no cambia entre versiones del juego, así que el móvil lo guarda y no lo vuelve a
       // descargar en cada actualización (solo baja el código del juego, que es lo que cambia)

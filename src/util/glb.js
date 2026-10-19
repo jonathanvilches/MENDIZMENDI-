@@ -30,10 +30,21 @@ async function decodeAll(gltf) {
   return gltf;
 }
 
+// (en el artefacto de Claude, que no sirve archivos .glb, cada modelo va como texto: <nombre>.txt con el gzip del modelo
+// en base64, vite.config.js)
+const comoTexto = (url) => /\.txt$/.test(String(url));
+/** Los bytes de un archivo binario del juego, venga como venga (tal cual, gzip en data: o gzip en base64 en un .txt). */
+export async function bytesDe(url) {
+  let gz;
+  if (comoTexto(url)) { const t = atob((await (await fetch(url)).text()).trim()); gz = new Uint8Array(t.length); for (let i = 0; i < t.length; i++) gz[i] = t.charCodeAt(i); }
+  else if (String(url).startsWith('data:application/gzip')) gz = new Uint8Array(await (await fetch(url)).arrayBuffer());
+  else return (await fetch(url)).arrayBuffer();
+  const raw = gunzipSync(gz);
+  return raw.buffer.slice(raw.byteOffset, raw.byteOffset + raw.byteLength);
+}
+
 export async function loadGLB(loader, url) {
   imgTextures(loader);
-  if (!String(url).startsWith('data:application/gzip')) return decodeAll(await loader.loadAsync(url));
-  const gz = new Uint8Array(await (await fetch(url)).arrayBuffer());
-  const raw = gunzipSync(gz);
-  return decodeAll(await loader.parseAsync(raw.buffer.slice(raw.byteOffset, raw.byteOffset + raw.byteLength), ''));
+  if (!String(url).startsWith('data:application/gzip') && !comoTexto(url)) return decodeAll(await loader.loadAsync(url));
+  return decodeAll(await loader.parseAsync(await bytesDe(url), ''));
 }
