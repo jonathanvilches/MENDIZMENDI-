@@ -1,0 +1,16 @@
+Datos de los pueblos con su trazado de verdad (los *.json de esta carpeta)
+
+Casas, calles, caminos, ríos, puentes, plazas, usos del suelo y nombres de lugares:
+  © OpenStreetMap contributors, disponibles bajo la Open Database License (ODbL) 1.0
+  https://www.openstreetmap.org/copyright · https://opendatacommons.org/licenses/odbl/1-0/
+  Obtenidos de Overture Maps Foundation (https://overturemaps.org), versión indicada en el campo «fuente» de cada
+  archivo. Los lugares con nombre (comercios, servicios) de Overture se publican bajo CDLA-Permissive-2.0.
+  Estos archivos son una base de datos derivada de OpenStreetMap: se comparten bajo la misma licencia ODbL 1.0.
+
+Relieve (campos «dem» y «dem2»):
+  Produced using Copernicus data and information funded by the European Union - EU-DEM layers.
+  Leído de las teselas «terrarium» del conjunto abierto Terrain Tiles de AWS (s3://elevation-tiles-prod).
+
+Cómo se hacen: tools/pueblo-real.py (extracción) y tools/pueblo-real-juego.py (conversión al formato del juego).
+Van en formato compacto (versión 2); src/data/reales/compacto.js los devuelve a su forma legible, y
+tools/pueblo-real-juego.py con --legible escribe esa misma forma directamente desde los datos de origen.

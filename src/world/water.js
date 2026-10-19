@@ -123,6 +123,23 @@ export class Water {
       add(new THREE.Mesh(ribbon(sZ, () => RIVER_HALF_Z, i => FZ(sZ[i][0]) - 0.9), mZ));
     } else {
       for (const rv of RIVERS || []) {
+        // ríos de los pueblos reales: una polilínea con el nivel del agua en cada vértice (src/levels/townReal.js)
+        if (rv.pts) {
+          const sP = [], lv = [], P = rv.pts;
+          for (let i = 0; i < P.length - 1; i++) {
+            const [x0, z0] = P[i], [x1, z1] = P[i + 1], l = Math.hypot(x1 - x0, z1 - z0); if (l < 0.01) continue;
+            const tx = (x1 - x0) / l, tz = (z1 - z0) / l, n = Math.max(1, Math.round(l / 3));
+            for (let k = 0; k < n; k++) { const t = k / n; sP.push([x0 + (x1 - x0) * t, z0 + (z1 - z0) * t, tz, -tx]); lv.push(rv.levels[i] + (rv.levels[i + 1] - rv.levels[i]) * t); }
+            if (i === P.length - 2) { sP.push([x1, z1, tz, -tx]); lv.push(rv.levels[i + 1]); }
+          }
+          if (sP.length < 2) continue;
+          // (en los codos, la normal media de los dos tramos: la cinta no se pliega)
+          for (let i = 1; i < sP.length - 1; i++) { const nx = sP[i - 1][2] + sP[i + 1][2], nz = sP[i - 1][3] + sP[i + 1][3], l = Math.hypot(nx, nz) || 1; sP[i][2] = nx / l; sP[i][3] = nz / l; }
+          const m = makeMat(rv.half > 8 ? 0.35 : 0.55); this.mats.push(m);
+          if (rv.half > 8) { m.uniforms.uDeep.value.set('#3b5f55'); m.uniforms.uShallow.value.set('#6f8f72'); }
+          add(new THREE.Mesh(ribbon(sP, () => rv.half + 0.4, i => lv[i]), m));
+          continue;
+        }
         const sA = [];
         for (let z = -HALF - 40; z <= HALF + 40; z += 3) {
           const x = rv.rx(z), dx = rv.rx(z + 0.5) - rv.rx(z - 0.5);

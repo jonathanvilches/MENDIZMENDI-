@@ -121,7 +121,10 @@ let EXTENT = null;
 function extent() { if (!EXTENT) { const c = new PelotaCourt(THREE, { texScale: 0.25 }); EXTENT = c.extent; c.dispose(); } return EXTENT; }
 
 // Busca un sitio llano y libre cerca de la plaza
-export function findFrontonSpot(plaza, E = extent()) {
+export function findFrontonSpot(plaza, E = extent(), exact = false) {
+  // (en un pueblo con su trazado de verdad, el frontón va donde está el real: su casa de los datos no se levanta y el
+  // sitio queda libre; se busca primero ahí mismo)
+  if (exact) { const s = frontonSearch(plaza, 0, 24, 1, 0.15, false, E); if (s) return s; }
   // primero cerca de la plaza y sin calles ni caminos debajo (las paredes los cortarían) y con sitio de sobra alrededor
   // (los tejados sobresalen del choque de las casas: antes quedaban esquinas de casa pegadas a la cancha); si así no
   // cabe, más lejos; luego dejando pasar algún camino; y al final con menos holgura: todos los pueblos tienen frontón
@@ -131,7 +134,7 @@ export function findFrontonSpot(plaza, E = extent()) {
 function frontonSearch(plaza, r0, r1, gap, da, noRoad, E) {
   let best = null, bs = 1e9;
   for (let r = r0; r <= r1; r += 8) for (let a = 0; a < Math.PI * 2; a += da) {
-    const x = plaza.x + Math.cos(a) * r, z = plaza.z + Math.sin(a) * r, face = Math.atan2(plaza.x - x, plaza.z - z);
+    const x = plaza.x + Math.cos(a) * r, z = plaza.z + Math.sin(a) * r, face = r < 1 && plaza.ry != null ? plaza.ry : Math.atan2(plaza.x - x, plaza.z - z);
     if (Math.sign(x - rx(z)) !== Math.sign(plaza.x - rx(plaza.z))) continue;   // en la misma orilla que la plaza (sin río, rx es 9999: todo vale)
     // la cancha se abre hacia la plaza; si así no cabe, también de lado (como muchos frontones, a lo largo de la calle)
     for (const [ry, turned] of [[face, 0], [face + Math.PI / 2, 1], [face - Math.PI / 2, 1]]) {

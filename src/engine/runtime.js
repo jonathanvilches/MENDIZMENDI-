@@ -18,6 +18,8 @@ import { Nature } from '../world/nature.js';
 import { setLevel, PLACES, iratiMask } from '../world/layout.js';
 import * as SALAZAR from '../levels/salazar.js';
 import { createTownLevel } from '../levels/town.js';
+import { createRealTownLevel } from '../levels/townReal.js';
+import { realEnabled, loadReal } from '../data/reales/index.js';
 import { cargarRelieve } from '../world/relieve.js';
 import { resetColliders } from '../world/colliders.js';
 import { resetNav, navTick } from '../world/nav.js';
@@ -111,7 +113,14 @@ export class Runtime {
     const salazar = def.special === 'salazar';
     // el relieve real (horizonte del pueblo y vista del mirador): se abre una vez, antes de levantar el terreno
     await Promise.race([cargarRelieve(), new Promise(r => setTimeout(r, 1500))]);
-    const mod = salazar ? SALAZAR : createTownLevel(def);
+    // (los pueblos con su trazado de verdad, si están en src/data/reales; si sus datos no llegan, el generado de siempre)
+    const realData = !salazar && realEnabled(def.id) ? await loadReal(def.id) : null;
+    let mod = SALAZAR;
+    if (!salazar) {
+      try { mod = realData ? createRealTownLevel(def, realData) : createTownLevel(def); }
+      catch (e) { console.warn('pueblo real: se usa el generado', e); mod = createTownLevel(def); }
+    }
+    this.realTown = !!mod.real;
     setLevel(mod, def, salazar ? 'salazar' : 'town');
     bake();
     if (salazar) initBridges();
