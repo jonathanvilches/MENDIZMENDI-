@@ -10,8 +10,8 @@ const file = resolve(process.argv[2] || 'MENDIMENDIZ-jugar.html');
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const ctx = await b.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
 let pedidas = 0, servidas = 0;
-await ctx.route('https://jonathanvilches.github.io/MENDIZMENDI-/docs/**', (r) => {
-  pedidas++; const f = resolve('docs', new URL(r.request().url()).pathname.replace(/^\/MENDIZMENDI-\/docs\//, ''));
+await ctx.route('https://jonathanvilches.github.io/MENDIZMENDI-/**', (r) => {
+  pedidas++; const f = resolve('docs', new URL(r.request().url()).pathname.replace(/^\/MENDIZMENDI-\//, ''));
   if (process.env.SIN_RED || !existsSync(f)) return r.abort();
   servidas++; const ct = f.endsWith('.json') ? 'application/json' : f.endsWith('.webp') ? 'image/webp' : 'application/octet-stream';
   return r.fulfill({ status: 200, body: readFileSync(f), headers: { 'content-type': ct, 'access-control-allow-origin': '*' } });

@@ -1,6 +1,7 @@
 // Mete en el juego los escudos generados que manda el autor en carpetas sueltas, sin inventario: <carpeta>/casas/<id>.webp
-// (escudos de casa, «pueblo-n» = houseArms(pueblo, n - 1) de src/data/blasones.js) y <carpeta>/correcciones/<id>.webp
-// (rehechos: una casa, un escudo municipal de src/assets/escudos/heraldica o un oficio, según dónde esté ya ese id).
+// (escudos de casa, «pueblo-n» = houseArms(pueblo, n - 1) de src/data/blasones.js), <carpeta>/oficios/<id>.webp (oficios
+// que aún no tenían escudo, con los ids de src/data/oficios.js) y <carpeta>/correcciones/<id>.webp (rehechos: una casa,
+// un escudo municipal de src/assets/escudos/heraldica o un oficio, según dónde esté ya ese id). En WebP o en PNG.
 // Cada original (1254 px) da las copias de siempre: 512 y 1024 (web) y 192 (ligero) en las casas y los oficios; 512, 1024 y
 // 256 en los municipales. La de 96 (archivo único) va más comprimida: con todas las casas no cabría en el límite.
 // Con --sin id,id,… se dejan fuera los que no casan con su blasón (se ven en la ficha junto al texto: un lobo donde el
@@ -29,14 +30,15 @@ async function copias(src, k, id) {
   }
 }
 const n = { nuevas: [], corregidas: [], fuera: [], sinSitio: [] };
+const imagenes = (d) => existsSync(d) ? readdirSync(d).filter(f => /\.(webp|png)$/.test(f)).sort().map(f => [f, f.replace(/\.(webp|png)$/, '')]) : [];
 for (const dir of dirs) {
-  const casas = join(dir, 'casas'), corr = join(dir, 'correcciones');
-  if (existsSync(casas)) for (const f of readdirSync(casas).filter(f => f.endsWith('.webp')).sort()) {
-    const id = f.slice(0, -5); if (sin.has(id)) { n.fuera.push(id); continue; }
-    await copias(join(casas, f), 'casas', id); n.nuevas.push(id);
+  const corr = join(dir, 'correcciones');
+  for (const k of ['casas', 'oficios']) for (const [f, id] of imagenes(join(dir, k))) {
+    if (sin.has(id)) { n.fuera.push(id); continue; }
+    await copias(join(dir, k, f), k, id); n.nuevas.push(k === 'casas' ? id : `${id} (${k})`);
   }
-  if (existsSync(corr)) for (const f of readdirSync(corr).filter(f => f.endsWith('.webp')).sort()) {
-    const id = f.slice(0, -5); if (sin.has(id)) { n.fuera.push(id); continue; }
+  for (const [f, id] of imagenes(corr)) {
+    if (sin.has(id)) { n.fuera.push(id); continue; }
     const k = ['casas', 'heraldica', 'oficios'].find(k => tiene(k, id));
     if (!k) { n.sinSitio.push(id); continue; }
     await copias(join(corr, f), k, id); n.corregidas.push(`${id} (${k})`);

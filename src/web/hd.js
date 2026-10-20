@@ -9,7 +9,8 @@
 // las que pesan más de la cuenta (las láminas de 2560, para las portadas a pantalla entera) se piden con este mismo
 // mecanismo, solo cuando la pantalla las necesita (hdTable con la tabla de las grandes).
 // (Solo se descargan la lista y las imágenes que se ven: no se manda nada del jugador.)
-const SITE = 'https://jonathanvilches.github.io/MENDIZMENDI-/docs/';
+// (GitHub Pages publica la carpeta docs en la raíz del sitio: con /docs/ detrás, todo daba 404 y nunca subía nada)
+const SITE = 'https://jonathanvilches.github.io/MENDIZMENDI-/';
 const TABLES = [];          // [grupo de la lista, { id: url pequeña }]
 const REV = new Map();      // url pequeña → [{ w, u }] (de menor a mayor)
 let MAP = null, FRESH = false;
