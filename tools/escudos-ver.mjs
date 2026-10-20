@@ -9,7 +9,7 @@ const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-119
 const p = await b.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }); const errs = [];
 p.on('pageerror', e => errs.push(e.message.slice(0, 200)));
 await p.addInitScript(() => { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'sanfermin', seen: { heroBenat: true, dog: true }, coins: 14, settings: { quality: 'low' } })); });
-const SITE = 'https://jonathanvilches.github.io/MENDIZMENDI-/docs/';
+const SITE = 'https://jonathanvilches.github.io/MENDIZMENDI-/';
 if (process.env.ARCHIVO) await p.route(SITE + '**', (r) => { if (process.env.SINRED) return r.abort(); const f = resolve('docs', r.request().url().slice(SITE.length).split('?')[0]); return existsSync(f) ? r.fulfill({ path: f }) : r.abort(); });   // (SINRED=1: como sin conexión)
 await p.goto(process.env.ARCHIVO ? `file://${resolve(process.env.ARCHIVO)}?town=${town}&q=low&noflora&weather=clear&skipintro=1&t=12` : `http://127.0.0.1:5173/?town=${town}&q=low&noflora&weather=clear&skipintro=1&t=12`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 600000 }); await p.waitForTimeout(2000);
