@@ -29,6 +29,6 @@ export function openPersonaje(ui, id) {
     kicker: F.kicker, title: eu ? (F.eu || F.name) : `${F.name}${F.eu ? ' · ' + F.eu : ''}`, sub: F.years,
     image: img || '', media: img ? '' : `<img class="ix-sign pico" src="${icon3DReady(F.icon) || ''}" alt="">`,
     secs: [['Su historia', F.pages.map(p => `<p>${esc(p)}</p>`).join('')], ['Su huella hoy', `<p>${esc(F.today)}</p>`], ['En el juego', `<p>${juego}</p>`]],
-    badge: F.women ? 'Mujeres de Navarra' : 'Personajes de Navarra',
+    badge: F.women ? 'Mujeres de Navarra' : 'Personajes de Navarra', wide: !!img,
   });
 }
