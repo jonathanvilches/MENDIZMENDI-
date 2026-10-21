@@ -25,7 +25,7 @@ export const figurasHTML = (list = FIGURAS) => list.map(figuraCard).join('');
 export function openFigura(ui, id) {
   const f = figuraById(id); if (!f) return Promise.resolve();
   return infoCard(ui, {
-    kicker: `${KIND[f.kind]} · ${f.where}`, title: f.name + (f.eu && f.eu !== f.name ? ` · ${f.eu}` : ''), sub: f.who.split('. ')[0] + '.', image: figuraImg(id),
+    kicker: `${KIND[f.kind]} · ${f.where}`, title: f.name + (f.eu && f.eu !== f.name ? ` · ${f.eu}` : ''), sub: f.who.split('. ')[0] + '.', image: figuraImg(id), wide: figuraIlus(id),
     secs: [['Quién es', esc(f.who)], ['Cómo viste', esc(f.wear)], ['En el juego', `${esc(f.game)}${f.mission ? ` Misión: <b>${esc(f.mission)}</b>.` : ''}`]],
   });
 }

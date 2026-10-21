@@ -19,15 +19,21 @@ function paint(canvas, A, stone) {
   drawArms(g, W / 2, H * 0.04, w, A, { stone });
 }
 
-// la ficha: { kicker, title, sub, canvas: { w, h, draw(cv, stone) }, stone (si se puede ver en piedra), secs: [[título, html]], badge }
+// la ficha: { kicker, title, sub, canvas: { w, h, draw(cv, stone) }, stone (si se puede ver en piedra), secs: [[título, html]], badge,
+// wide (la imagen es una ilustración apaisada: entera y más grande, sin el papel de los escudos) }
 // (cómo se lee, en pestañas: una sección cada vez y entera, sin desplazar ni «Ver más»; antes iban las cuatro en rejilla,
 // plegadas, y en el móvil tumbado no cabían)
-function armsCard(ui, { kicker, title, sub, canvas, image = '', media = '', stone = false, secs, more = [], badge = '', note = '' }) {
+function armsCard(ui, { kicker, title, sub, canvas, image = '', media = '', stone = false, secs, more = [], badge = '', note = '', wide = false }) {
   const all = [...secs, ...more].filter(x => x && x[1]);
   return new Promise(res => {
     ui.closeModal?.(); ui.sound?.ui?.('card');
-    const o = el(`<div class="mg-overlay escudo ix-ov"><div class="mg-card ix">
-      <div class="ix-media"><figure class="ix-frame paper${image || media ? ' img' : ''}">${media || (image ? `<img src="${image}" alt="${esc(title)}">${canvas && stone ? `<canvas width="${canvas.w}" height="${canvas.h}" aria-label="${esc(title)}" style="display:none"></canvas>` : ''}` : `<canvas width="${canvas.w}" height="${canvas.h}" aria-label="${esc(title)}"></canvas>`)}</figure>
+    // (la ilustración apaisada, entera, con la misma imagen difuminada detrás para que no queden bandas vacías; el resto,
+    // el escudo o el dibujo sobre su papel)
+    wide = wide && !!image;
+    const frame = wide ? `<figure class="ix-frame photo wide"><span class="ix-bd" style="background-image:url(${image})"></span><img src="${image}" alt="${esc(title)}">`
+      : `<figure class="ix-frame paper${image || media ? ' img' : ''}">${media || (image ? `<img src="${image}" alt="${esc(title)}">${canvas && stone ? `<canvas width="${canvas.w}" height="${canvas.h}" aria-label="${esc(title)}" style="display:none"></canvas>` : ''}` : `<canvas width="${canvas.w}" height="${canvas.h}" aria-label="${esc(title)}"></canvas>`)}`;
+    const o = el(`<div class="mg-overlay escudo ix-ov"><div class="mg-card ix${wide ? ' has-wide' : ''}">
+      <div class="ix-media">${frame}</figure>
         ${badge ? `<span class="ix-tag badge">${esc(badge)}</span>` : ''}
         ${stone ? '<div class="ix-shots es-toggle" role="group"><button type="button" data-s="0" aria-pressed="true">En color</button><button type="button" data-s="1" aria-pressed="false">En piedra</button></div>' : ''}</div>
       <div class="ix-main">

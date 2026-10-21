@@ -171,3 +171,9 @@
 @media (max-width: 560px) { #mapbox .mapcard { width: calc(100% - 16px); } #mapbox .mapcard .mc-b { flex-direction: column; } #mapbox .mapcard .mc-b .btn { flex: none; width: 100%; } }
 /* con lámina, en horizontal: dos columnas iguales, la lámina entera a la izquierda */
 @media (orientation: landscape) { .mg-overlay.ix-ov > .mg-card.ix.has-lam { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+/* con una ilustración apaisada (los personajes de Navarra, las figuras): en horizontal, la mitad de la ficha y a todo su
+   alto, con la imagen entera y la misma difuminada detrás; en vertical, arriba y en su 16:9 justo */
+@media (orientation: landscape) { .mg-overlay.ix-ov > .mg-card.ix.has-wide { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+/* (en pantallas anchas, la ficha más ancha y la imagen con más sitio: casi a todo el alto, con poco difuminado arriba y abajo) */
+@media (orientation: landscape) and (min-width: 1100px) { .mg-overlay.ix-ov > .mg-card.ix.has-wide { width: min(1180px, 100%); grid-template-columns: minmax(0, 58fr) minmax(0, 42fr); } }
+@media (orientation: portrait) { .ix-frame.wide { aspect-ratio: 16 / 9; } }
