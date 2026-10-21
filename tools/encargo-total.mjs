@@ -113,7 +113,9 @@ L.push(`## 1. Escudos de las casas (${casasSin.length})`, '', '**Estilo (pégalo
 const porPueblo = new Map(); for (const c of casasSin) { if (!porPueblo.has(c.town)) porPueblo.set(c.town, []); porPueblo.get(c.town).push(c); }
 for (const [town, cs] of [...porPueblo.entries()].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]))) {
   L.push(`### ${tn[town] || town} (${cs.length})`, '');
-  for (const c of cs) L.push(`- **${town}-${c.n}.png** · Casa ${esc(c.house)}, siglo ${esc(c.century)}. Escudo de la casa ${esc(c.house)} de ${tn[town] || town}: ${esc(c.blazon)}`);
+  // (los nombres del sur ya dicen «Casa del Alcalde»; los del norte, «Etxeberria», no)
+  const casa = (h) => /^Casa /.test(h) ? esc(h) : 'Casa ' + esc(h);
+  for (const c of cs) L.push(`- **${town}-${c.n}.png** · ${casa(c.house)}, siglo ${esc(c.century)}. Escudo de la ${casa(c.house).replace(/^Casa/, 'casa')} de ${tn[town] || town}: ${esc(c.blazon)}`);
   L.push('');
 }
 if (ofiSin.length || munSin.length) {
