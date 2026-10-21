@@ -14,7 +14,7 @@ const ILUS = byId(import.meta.glob('@figuras-ilus/*.webp', { eager: true, query:
 hdTable('figuras', IMG); hdTable('figuras-ilus', ILUS);
 const KIND = { leyenda: 'Leyenda', carnaval: 'Carnaval' };
 /** La ilustración de una figura si la hay; si no, el render de su traje (o '' si no está en esta versión). */
-const figuraImg = (id) => ILUS[id] || IMG[id] || '';
+export const figuraImg = (id) => ILUS[id] || IMG[id] || '';
 /** Si la figura tiene ilustración (apaisada) en vez del render. */
 const figuraIlus = (id) => !!ILUS[id];
 /** La tarjeta de una figura: su imagen, de qué es y de dónde, y su nombre (abre la ficha al tocarla: data-figura). */
