@@ -8,13 +8,13 @@
 // sonar y rotular. Se puede jugar sola (autoplay) para las pruebas, y sin gráficos (node).
 import { FIELD as F, PHYS as K, PLAYER as PL, LEVELS, FORM, ROLES, NUMBERS, LINE, KICKERS, RULES as RU, useFormat, onFormat, SISTEMAS, FORMAT } from './rules.js';
 import { Ball, rollAhead } from './physics.js';
+import { clamp } from '../util/math.js';
 
 let R, STEP, HW_G, N, SC;
 // SC: escala de las distancias de la IA (1 en fútbol 11; en la pista de sala, todo más cerca)
 onFormat(() => { R = K.R; STEP = 1 / K.hz; HW_G = F.goalW / 2; N = ROLES.length; SC = RU.scale; });
 // debug: window.FUTBOL_DEBUG = true escribe los eventos del partido en la consola
 const DEBUG = () => typeof window !== 'undefined' && window.FUTBOL_DEBUG;
-const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const hyp = Math.hypot;
 const angDiff = (a, b) => Math.atan2(Math.sin(b - a), Math.cos(b - a));
 const fwd = (p) => ({ x: Math.sin(p.h), z: Math.cos(p.h) });
@@ -343,7 +343,7 @@ export class FutbolGame {
   // fuera de juego (balón muerto, gol, descanso): los jugadores andan a su sitio o celebran
   drift(p, ph) {
     p.wantSprint = false;
-    if (p.off) return this.offStep(p, STEP);
+    if (p.off) return this.offStep(p);
     if (ph === 'goal' || ph === 'replay') { if (p.act === 'celebrate') { p.wx = p.wz = 0; return; } }
     const t = this.spot(p, 'def');
     this.seek(p, t.x, t.z, 2.2);
@@ -1220,7 +1220,7 @@ export class FutbolGame {
     this.emit({ t: 'backOn', p: p.id, team: p.team });
   }
   // el expulsado se va andando a la banda, junto al banquillo, y se queda allí
-  offStep(p, h) {
+  offStep(p) {
     if (p.offZ == null) p.offZ = Math.sign(p.z || -1);   // (a la banda más cercana)
     const tx = clamp(p.x, -F.HL + 4, F.HL - 4), tz = p.offZ * (F.HW + 3.2);
     this.seek(p, tx, tz, PL.run * 0.7, false); p.face = null;
@@ -1604,7 +1604,7 @@ export class FutbolGame {
   openAt(t, x, z) { let m = 1e9; for (const r of this.team(this.other(t))) if (r.role !== 'POR') m = Math.min(m, hyp(r.x - x, r.z - z)); return m; }
 
   aiStep(p, h) {
-    if (p.off) return this.offStep(p, h);
+    if (p.off) return this.offStep(p);
     if (p.role === 'POR') return this.keeper(p, h);
     if (p.down > 0 || p.slide || p.dive) { p.wx = p.wz = 0; return; }
     const L = this.L(p);
@@ -1907,7 +1907,7 @@ export class FutbolGame {
     const taker = r.taker, b = this.ball.p, gx = this.goalX(r.team), s = this.dir[r.team];
     // los demás se colocan; el que saca espera junto al balón (y apunta con el joystick si es el jugador)
     for (const p of this.players) {
-      if (p.off) { this.offStep(p, h); continue; }
+      if (p.off) { this.offStep(p); continue; }
       if (p === taker) { p.wx = p.wz = 0; continue; }
       if (p.role === 'POR') { if (r.type === 'penalty' && p.team !== r.team) { p.wx = p.wz = 0; p.face = { x: b.x, z: b.z }; } else this.keeper(p, h); continue; }
       if (r.type === 'kickoff') { p.wx = p.wz = 0; p.face = { x: 0, z: 0 }; continue; }

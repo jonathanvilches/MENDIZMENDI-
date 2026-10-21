@@ -12,18 +12,11 @@
 import * as THREE from 'three';
 import { fillMaterial } from '../engine/charLight.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { mulberry32 } from '../util/math.js';
+import { vnoise3 } from '../util/noise.js';
 
 const { Vector2: V2, Vector3: V3 } = THREE;
 const TAU = Math.PI * 2, clamp = THREE.MathUtils.clamp, sstep = THREE.MathUtils.smoothstep, lerp = THREE.MathUtils.lerp;
-// azar con semilla: cada textura y cada prenda salen siempre iguales
-const rng = (a) => () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
-// ruido suave en 3D (para que la lana y el pelo no sean una superficie lisa)
-const hash = (x, y, z) => { const s = Math.sin(x * 127.1 + y * 311.7 + z * 74.7) * 43758.5453; return s - Math.floor(s); };
-function noise(x, y, z) {
-  const ix = Math.floor(x), iy = Math.floor(y), iz = Math.floor(z), fx = x - ix, fy = y - iy, fz = z - iz, u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy), w = fz * fz * (3 - 2 * fz);
-  const L = (a, b, t) => a + (b - a) * t, h = (i, j, k) => hash(ix + i, iy + j, iz + k);
-  return L(L(L(h(0, 0, 0), h(1, 0, 0), u), L(h(0, 1, 0), h(1, 1, 0), u), v), L(L(h(0, 0, 1), h(1, 0, 1), u), L(h(0, 1, 1), h(1, 1, 1), u), v), w);
-}
 const css = (c, k = 1) => { const o = new THREE.Color(c); return '#' + o.multiplyScalar(k).getHexString(); };
 
 // ---------- texturas pintadas ----------
@@ -31,7 +24,7 @@ const TEX = {};
 function lienzo(key, w, h, draw, srgb = true) {
   if (TEX[key]) return TEX[key];
   const c = document.createElement('canvas'); c.width = w; c.height = h;
-  const g = c.getContext('2d'); let s = 7; for (const ch of key) s = s * 31 + ch.charCodeAt(0) | 0; draw(g, w, h, rng(s));
+  const g = c.getContext('2d'); let s = 7; for (const ch of key) s = s * 31 + ch.charCodeAt(0) | 0; draw(g, w, h, mulberry32(s));
   const t = new THREE.CanvasTexture(c); if (srgb) t.colorSpace = THREE.SRGBColorSpace;
   t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4;
   return (TEX[key] = t);
@@ -101,16 +94,6 @@ const sabana = () => lienzo('sabana', 256, 512, (g, w, h, R) => {
 // rayas verticales de colores (los calzones de los cascabobos)
 const rayas = (cols) => lienzo('rayas' + cols.join(), 256, 64, (g, w, h) => {
   const sw = w / cols.length; cols.forEach((c, i) => { g.fillStyle = c; g.fillRect(i * sw, 0, sw + 1, h); g.fillStyle = 'rgba(0,0,0,.12)'; g.fillRect(i * sw, 0, 2, h); });
-});
-// cuadros (camisas de los iraskos)
-const cuadros = (a, b) => lienzo('cuadros' + a + b, 128, 128, (g, w, h) => {
-  g.fillStyle = a; g.fillRect(0, 0, w, h); g.fillStyle = css(b, 1); g.globalAlpha = 0.55;
-  for (let i = 0; i < 4; i++) { g.fillRect(i * 32, 0, 14, h); g.fillRect(0, i * 32, w, 14); } g.globalAlpha = 1;
-});
-// pañuelo de colores con lunares (el de la cabeza de los zipoteros)
-const lunares = (a, b) => lienzo('lunares' + a + b, 128, 128, (g, w, h) => {
-  g.fillStyle = a; g.fillRect(0, 0, w, h); g.fillStyle = b;
-  for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) { g.beginPath(); g.arc(x * 32 + (y % 2) * 16 + 8, y * 32 + 8, 5, 0, TAU); g.fill(); }
 });
 // pluma de faisán (en lo alto del ttuntturro): cañón y barbas con barras oscuras; con transparencia
 const pluma = () => lienzo('pluma', 64, 256, (g, w, h) => {
@@ -281,7 +264,7 @@ const RELIEVES = {
   // trama del tejido: hilos que pasan por encima y por debajo
   trama: () => relieve('trama', 64, 64, (x, y) => { const a = Math.sin(x / 64 * TAU * 16), b = Math.sin(y / 64 * TAU * 16); return ((Math.floor(x / 2) + Math.floor(y / 2)) % 2 ? a : b) * 0.35; }, 3),
   // pliegues que caen (a lo largo de v) y algo de trama
-  pliegues: () => relieve('pliegues', 256, 128, (x, y, R) => { let h = 0; for (const [k, a, ph] of [[3, 1, 0.3], [5, 0.6, 1.7], [8, 0.35, 4.1], [13, 0.18, 2.2]]) h += a * Math.sin(x / 256 * TAU * k + ph + Math.sin(y / 128 * TAU) * 0.6); return h * 3 + Math.sin(x * 0.8) * Math.sin(y * 0.8) * 0.05; }, 1.6),
+  pliegues: () => relieve('pliegues', 256, 128, (x, y) => { let h = 0; for (const [k, a, ph] of [[3, 1, 0.3], [5, 0.6, 1.7], [8, 0.35, 4.1], [13, 0.18, 2.2]]) h += a * Math.sin(x / 256 * TAU * k + ph + Math.sin(y / 128 * TAU) * 0.6); return h * 3 + Math.sin(x * 0.8) * Math.sin(y * 0.8) * 0.05; }, 1.6),
   // arrugas de través (donde la tela se recoge: rodillas, codos, cintura), que se cortan y se cruzan
   arrugas: () => relieve('arrugas', 256, 256, (x, y) => { let h = 0; for (const [k, a, ph, sk] of [[6, 1, 0.5, 0.35], [9, 0.6, 2.1, -0.5], [14, 0.35, 1.2, 0.8]]) h += a * Math.max(0, Math.sin(y / 256 * TAU * k + ph + Math.sin(x / 256 * TAU * 2) * sk * 3)) ** 2; return h * 4; }, 1.5),
   // trama gruesa de saco
@@ -527,7 +510,7 @@ function ttuntturro(r, alto, cintas, base = '#f4efe2') {
   g.add(cono);
   const borde = new THREE.Mesh(new THREE.CylinderGeometry(r * 1.02, r * 1.06, alto * 0.12, 32, 1, true), tela({ map: puntilla(), alphaTest: 0.5, transparent: false }));
   borde.material.map.repeat.set(4, 1); borde.position.y = -alto * 0.03; g.add(borde);
-  const N = cintas.length * 3, R = rng(N * 31), tiras = [], cm = tela({ map: paleta(cintas), roughness: 0.45 });
+  const N = cintas.length * 3, R = mulberry32(N * 31), tiras = [], cm = tela({ map: paleta(cintas), roughness: 0.45 });
   for (let i = 0; i < N; i++) {
     // (por delante las cintas llegan al ala y no tapan la cara; a los lados, a los hombros; por detrás, a la espalda)
     const a = i / N * TAU + R() * 0.1, sa = Math.sin(a), ca = Math.cos(a), pts = [];
@@ -619,8 +602,6 @@ function cabezudo(r, o) {
 // queda hacia el 0,43, los hombros hacia el 0,64, los ojos en el 0,787 y lo alto de la cabeza en el 1). Cada traje lleva
 // model (el personaje de Meshy de base), ropa (los colores de su ropa pintada, con outfitTint) y vestir(V)
 const blanca = () => tela({ color: '#f6f3ea', roughness: 0.92 });
-// ¿en la elipse de la careta? (en la proyección de la cara; k > 1, algo más grande)
-const enCara = (x, y, z, k = 1) => { const [a, b] = CARA(x, y); return z > 0.03 && ((a - 0.5) / (0.47 * k)) ** 2 + ((b - 0.47) / (0.44 * k)) ** 2 < 1; };
 // lo que queda fuera de la abertura de la cara (el óvalo k, hasta la altura alto), con signo y en fracción de la altura:
 // para ceñida, que recorta por él un borde liso (con sí o no, el borde seguía los triángulos del flequillo)
 const sinCara = (x, y, z, k = 1, alto = 0.842) => { const [a, b] = CARA(x, y), q = Math.hypot((a - 0.5) / (0.47 * k), (b - 0.47) / (0.44 * k)); return Math.max((q - 1) * 0.11 * k, y - alto, 0.03 - z); };
@@ -640,7 +621,7 @@ function caretaYCapucha(V, color, cara) {
   const m = V.mesh;
   // (con su esclavina por los hombros, hasta el pecho: así se ve que es una capucha)
   const tc = tela({ map: rep(tejido(color), 3, 3) });
-  ceñida(m, (x, y, z, zn) => zn === 1 ? Math.min(y - 0.6, sinCara(x, y, z, 0.86)) : -1, (x, y, z) => 0.017 + 0.003 * noise(x * 30, y * 30, z * 30), tc, 3, ajustada(m, 0.014, 0.8));
+  ceñida(m, (x, y, z, zn) => zn === 1 ? Math.min(y - 0.6, sinCara(x, y, z, 0.86)) : -1, (x, y, z) => 0.017 + 0.003 * vnoise3(x * 30, y * 30, z * 30), tc, 3, ajustada(m, 0.014, 0.8));
   ceñida(m, (x, y, z, zn) => zn === 1 ? -sinCara(x, y, z, 1.1, 0.858) : -1, () => 0.015, tela({ map: careta(cara.id, cara), alphaTest: 0.5, roughness: 0.6 }), CARA, frenteLisa(0.01));
   // la esclavina de la capucha, por los hombros hasta el pecho
   campana(m, [[0.08, 0.648], [0.15, 0.61], [0.205, 0.555], [0.21, 0.54]], tc, { pliegues: 10, hondo: 0.04, hueso: 'Spine2', ovalo: 0.78 });
@@ -790,7 +771,7 @@ export const TRAJES = {
       const lt = lana('#efe8d8'), lan = tela({ map: rep(lt, 5, 3), bumpMap: rep(lt, 5, 3), bumpScale: 2, roughness: 1 });
       campana(m, [[w * 1.16, 0.478], [w * 1.42, 0.41], [w * 1.6, 0.335], [w * 1.57, 0.315]], lan, { pliegues: 9, hondo: 0.1, vuelo: 0.5 });
       campana(m, [[w * 1.58, 0.325], [w * 1.63, 0.275], [w * 1.62, 0.262]], tela({ map: rep(mechones('#efe8d8'), 7, 1), alphaTest: 0.45, roughness: 1 }), { pliegues: 9, hondo: 0.1, vuelo: 0.55 });
-      ceñida(m, (x, y, z, zn) => (zn === 0 || zn === 2) && y > 0.53 && y < 0.66 && Math.abs(x) < 0.17, (x, y, z) => 0.012 + 0.02 * noise(x * 60, y * 60, z * 60), lan, 3);
+      ceñida(m, (x, y, z, zn) => (zn === 0 || zn === 2) && y > 0.53 && y < 0.66 && Math.abs(x) < 0.17, (x, y, z) => 0.012 + 0.02 * vnoise3(x * 60, y * 60, z * 60), lan, 3);
       const sg = new THREE.TorusGeometry(u(w * 1.43), u(0.006), 6, 40); sg.rotateX(Math.PI / 2); sg.scale(1, 1, 0.84);
       const soga = new THREE.Mesh(sg, tela({ color: '#cbb48a' })); soga.position.copy(P(0, 0.44, 0.005)); V.put(soga, 'Hips');
       for (const s of [-1, 1]) {
@@ -816,7 +797,7 @@ export const TRAJES = {
       campana(m, [[w * 1.04, 0.45], [w * 1.22, 0.34], [w * 1.36, 0.21]], sb, { pliegues: 7, hondo: 0.035, hueco: Math.PI * 1.1, centro: Math.PI, vuelo: 0.6 });
       // la piel de oveja a la espalda, con su borde de mechones
       const lt = lana('#5c4632', 1.25), narru = tela({ map: rep(lt, 4, 3), bumpMap: rep(lt, 4, 3), bumpScale: 2.5, roughness: 1 });
-      ceñida(m, (x, y, z, zn) => (zn === 0 || zn === 2) && z < 0.025 && y > 0.37 && y < 0.665 && Math.abs(x) < 0.19, (x, y, z) => 0.02 + 0.03 * noise(x * 50, y * 50, z * 50), narru, 3);
+      ceñida(m, (x, y, z, zn) => (zn === 0 || zn === 2) && z < 0.025 && y > 0.37 && y < 0.665 && Math.abs(x) < 0.19, (x, y, z) => 0.02 + 0.03 * vnoise3(x * 50, y * 50, z * 50), narru, 3);
       campana(m, [[w * 1.3, 0.392], [w * 1.37, 0.335], [w * 1.36, 0.32]], tela({ map: rep(mechones('#5c4632'), 5, 1), alphaTest: 0.45, roughness: 1 }), { pliegues: 7, hondo: 0.08, hueco: Math.PI * 1.15, vuelo: 0.5 });
       const cg = new THREE.TorusGeometry(u(w * 1.3), u(0.009), 4, 40); cg.rotateX(Math.PI / 2); cg.scale(1, 1, 0.85);
       const cint = new THREE.Mesh(cg, tela({ color: '#3a2414', roughness: 0.6 })); cint.position.copy(P(0, 0.435, 0.005)); V.put(cint, 'Hips');
@@ -859,10 +840,10 @@ export const TRAJES = {
       // la camisa vieja, con remiendos
       ceñida(m, (x, y, z, zn) => (zn === 0 || zn === 2) ? Math.min(y - 0.41, 0.665 - y) : -1, (x, y, z, f) => 0.009 + 0.005 * (1 - sstep(f, 0, 0.01)), tela({ map: rep(remiendos('#a89878'), 2, 1), roughness: 0.95, relieve: 'arrugas', relieveRep: [2, 2] }), 1);
       // el trapo que tapa la cara, con dos agujeros para ver
-      ceñida(m, (x, y, z, zn) => zn === 1 ? Math.min(z + 0.035, y - 0.64, 0.9 - y) : -1, (x, y, z) => 0.008 + 0.005 * noise(x * 30, y * 30, z * 30), tela({ map: trapoCara(), alphaTest: 0.5, roughness: 0.95 }), CARA, ajustada(m, 0.009, 0.8));
+      ceñida(m, (x, y, z, zn) => zn === 1 ? Math.min(z + 0.035, y - 0.64, 0.9 - y) : -1, (x, y, z) => 0.008 + 0.005 * vnoise3(x * 30, y * 30, z * 30), tela({ map: trapoCara(), alphaTest: 0.5, roughness: 0.95 }), CARA, ajustada(m, 0.009, 0.8));
       // el pañuelo de colores atado a la cabeza, con el nudo en la nuca
       const pa = panuelo('#24418c', '#f2c230', '#c8202a');
-      ceñida(m, (x, y, z, zn) => zn === 1 ? Math.max(y - 0.872, Math.min(-0.035 - z, y - 0.74)) : -1, (x, y, z) => 0.017 + 0.006 * noise(x * 30, y * 30, z * 30), tela({ map: rep(pa, 3, 2) }), 2, ajustada(m, 0.016));
+      ceñida(m, (x, y, z, zn) => zn === 1 ? Math.max(y - 0.872, Math.min(-0.035 - z, y - 0.74)) : -1, (x, y, z) => 0.017 + 0.006 * vnoise3(x * 30, y * 30, z * 30), tela({ map: rep(pa, 3, 2) }), 2, ajustada(m, 0.016));
       const nudo = new THREE.Group(), pn = tela({ map: pa });
       nudo.add(new THREE.Mesh(new THREE.SphereGeometry(u(0.024), 10, 8), pn));
       for (const s of [-1, 1]) { const c = new THREE.Mesh(new THREE.ConeGeometry(u(0.032), u(0.1), 4, 1, true), pn); c.rotation.set(Math.PI - 0.35, 0, s * 0.45); c.position.set(s * u(0.02), -u(0.045), -u(0.01)); c.scale.z = 0.3; nudo.add(c); }
@@ -895,12 +876,12 @@ export const TRAJES = {
     model: 'sanfermin', ropa: { shirt: '#8a7350', pants: '#5a4630', acc: '#8a7350' },
     vestir(V) {
       const { mesh: m, P, u } = V, w = contorno(m, 0.43), sa = tela({ map: rep(arpillera(), 6, 6), roughness: 1, relieve: 'saco', relieveRep: [10, 10] });
-      ceñida(m, (x, y, z, zn) => (zn === 0 || zn === 2) && y > 0.42 && y < 0.64, (x, y, z) => 0.012 + 0.004 * noise(x * 40, y * 40, z * 40), sa, 4);
+      ceñida(m, (x, y, z, zn) => (zn === 0 || zn === 2) && y > 0.42 && y < 0.64, (x, y, z) => 0.012 + 0.004 * vnoise3(x * 40, y * 40, z * 40), sa, 4);
       campana(m, [[w * 1.06, 0.45], [w * 1.3, 0.33], [w * 1.44, 0.235]], sa, { pliegues: 8, hondo: 0.06, vuelo: 0.7 });
       // el saco de la cabeza: por delante con los agujeros, por detrás liso; atado al cuello con una cuerda
       const L = ajustada(m, 0.016, 0.8);
-      ceñida(m, (x, y, z, zn) => zn === 1 ? Math.min(y - 0.6, z) : -1, (x, y, z) => 0.016 + 0.006 * noise(x * 30, y * 30, z * 30), tela({ map: sacoCara(), alphaTest: 0.5, roughness: 1 }), CARA, L);
-      ceñida(m, (x, y, z, zn) => zn === 1 ? Math.min(y - 0.6, 0.02 - z) : -1, (x, y, z) => 0.014 + 0.006 * noise(x * 30, y * 30, z * 30), sa, 4, L);
+      ceñida(m, (x, y, z, zn) => zn === 1 ? Math.min(y - 0.6, z) : -1, (x, y, z) => 0.016 + 0.006 * vnoise3(x * 30, y * 30, z * 30), tela({ map: sacoCara(), alphaTest: 0.5, roughness: 1 }), CARA, L);
+      ceñida(m, (x, y, z, zn) => zn === 1 ? Math.min(y - 0.6, 0.02 - z) : -1, (x, y, z) => 0.014 + 0.006 * vnoise3(x * 30, y * 30, z * 30), sa, 4, L);
       const cu = tela({ color: '#a88a58', roughness: 0.9 });
       for (const [y, rr] of [[0.636, 0.085], [0.44, w * 1.12]]) { const tg = new THREE.TorusGeometry(u(rr), u(0.007), 5, 32); tg.rotateX(Math.PI / 2); tg.scale(1, 1, 0.85); const t = new THREE.Mesh(tg, cu); t.position.copy(P(0, y, 0.005)); V.put(t, y > 0.6 ? 'Neck' : 'Hips'); }
       const g = cestaCuernos(u(0.2), 1.0); g.position.copy(P(0, 0.87, 0)); V.put(g, 'Head');
@@ -966,7 +947,7 @@ export const TRAJES = {
     vestir(V) {
       const { mesh: m, u } = V, w = contorno(m, 0.43), base = '#5a3e26';
       const pel = crin(base, false), pm = tela({ map: rep(pel, 6, 3), bumpMap: rep(pel, 6, 3), bumpScale: 3, roughness: 1 });
-      ceñida(m, (x, y, z, zn) => (zn === 0 || zn === 2 || zn === 3) && y > 0.07 && y < 0.65, (x, y, z) => 0.016 + 0.03 * noise(x * 40, y * 40, z * 40), pm, 3);
+      ceñida(m, (x, y, z, zn) => (zn === 0 || zn === 2 || zn === 3) && y > 0.07 && y < 0.65, (x, y, z) => 0.016 + 0.03 * vnoise3(x * 40, y * 40, z * 40), pm, 3);
       // el pelo cae en capas: de los hombros, de la cintura, de las caderas y de las rodillas
       const me = tela({ map: rep(mechones(base), 7, 1), alphaTest: 0.45, roughness: 1 });
       campana(m, [[0.09, 0.645], [0.19, 0.59], [0.215, 0.53], [0.215, 0.51]], me, { pliegues: 9, hondo: 0.08, hueso: 'Spine2' });
@@ -996,7 +977,7 @@ export const TRAJES = {
       campana(m, [[0.085, 0.645], [0.17, 0.6], [0.215, 0.53], [0.2, 0.47]], chal, { pliegues: 10, hondo: 0.05, hueso: 'Spine2' });
       campana(m, [[0.2, 0.48], [0.205, 0.44], [0.2, 0.43]], tela({ map: rep(mechones('#3d3350'), 8, 1), alphaTest: 0.45 }), { pliegues: 10, hondo: 0.05, hueso: 'Spine2' });
       // la toca: liso por la cabeza, dejando la cara al aire; el pelo blanco asoma por la nuca
-      ceñida(m, (x, y, z, zn) => zn === 1 ? Math.min(y - 0.7, sinCara(x, y, z, 0.86, 0.848)) : -1, (x, y, z) => 0.016 + 0.003 * noise(x * 30, y * 30, z * 30), tela({ map: rep(tn, 3, 3) }), 3, ajustada(m, 0.013, 0.8));
+      ceñida(m, (x, y, z, zn) => zn === 1 ? Math.min(y - 0.7, sinCara(x, y, z, 0.86, 0.848)) : -1, (x, y, z) => 0.016 + 0.003 * vnoise3(x * 30, y * 30, z * 30), tela({ map: rep(tn, 3, 3) }), 3, ajustada(m, 0.013, 0.8));
       melena(m, tela({ map: crin('#dcd7cf'), alphaTest: 0.45, roughness: 0.8 }), { desde: 0.76, fin: 0.6, n: 9, a0: Math.PI * 0.7, a1: Math.PI * 1.3, lados: false });
       V.hold(escoba(u(1)), 'RightHand');
     },
@@ -1008,7 +989,7 @@ export const TRAJES = {
     vestir(V) {
       const { mesh: m, P, u } = V, w = contorno(m, 0.43), r = u(0.24);
       const lt = lana('#d2c4a4'), lan = tela({ map: rep(lt, 5, 3), bumpMap: rep(lt, 5, 3), bumpScale: 2, roughness: 1 });
-      ceñida(m, (x, y, z, zn) => (zn === 0 || zn === 2) && y > 0.42 && y < 0.64 && Math.abs(x) < 0.19, (x, y, z) => 0.015 + 0.025 * noise(x * 50, y * 50, z * 50), lan, 3);
+      ceñida(m, (x, y, z, zn) => (zn === 0 || zn === 2) && y > 0.42 && y < 0.64 && Math.abs(x) < 0.19, (x, y, z) => 0.015 + 0.025 * vnoise3(x * 50, y * 50, z * 50), lan, 3);
       campana(m, [[w * 1.15, 0.46], [w * 1.4, 0.33], [w * 1.55, 0.25]], lan, { pliegues: 8, hondo: 0.1, vuelo: 0.7 });
       campana(m, [[w * 1.53, 0.262], [w * 1.58, 0.21], [w * 1.56, 0.2]], tela({ map: rep(mechones('#d2c4a4'), 6, 1), alphaTest: 0.45, roughness: 1 }), { pliegues: 8, hondo: 0.1, vuelo: 0.75 });
       const sg = new THREE.TorusGeometry(u(w * 1.3), u(0.008), 6, 40); sg.rotateX(Math.PI / 2); sg.scale(1, 1, 0.84);
@@ -1040,7 +1021,7 @@ export const TRAJES = {
 const frentePelo = (x, y, z) => sinCara(x, y, z, 1, 0.866);
 // pelo de la cabeza: liso sobre el cráneo, de la frente para arriba y por detrás, sin tapar la cara
 function gorroPelo(V, color, pegado = true) {
-  ceñida(V.mesh, (x, y, z, zn) => zn === 1 ? Math.min(y - 0.7, frentePelo(x, y, z)) : -1, (x, y, z) => 0.012 + 0.004 * noise(x * 40, y * 40, z * 40), tela({ map: rep(peloTex(color), 4, 1), roughness: 0.5 }), 2, pegado ? ajustada(V.mesh, 0.01) : lisa(V.mesh));
+  ceñida(V.mesh, (x, y, z, zn) => zn === 1 ? Math.min(y - 0.7, frentePelo(x, y, z)) : -1, (x, y, z) => 0.012 + 0.004 * vnoise3(x * 40, y * 40, z * 40), tela({ map: rep(peloTex(color), 4, 1), roughness: 0.5 }), 2, pegado ? ajustada(V.mesh, 0.01) : lisa(V.mesh));
 }
 // corpiño con el lazo cruzado por delante (u = 0,5)
 const corpino = (base, lazo) => lienzo('corpino' + base + lazo, 256, 64, (g, w, h) => {
@@ -1073,7 +1054,7 @@ function pato(l) {
 }
 // bastón de rama con nudos (Basajaun) o garrote (k: lo que engorda arriba)
 function rama(l, k = 1) {
-  const R = rng(Math.round(l * 1000)), pts = []; for (let i = 0; i <= 6; i++) pts.push([(R() - 0.5) * l * 0.05, -l * 0.25 + i / 6 * l, (R() - 0.5) * l * 0.05]);
+  const R = mulberry32(Math.round(l * 1000)), pts = []; for (let i = 0; i <= 6; i++) pts.push([(R() - 0.5) * l * 0.05, -l * 0.25 + i / 6 * l, (R() - 0.5) * l * 0.05]);
   const g = new THREE.Group(); g.add(new THREE.Mesh(tubo(curva(...pts), l * 0.022, l * 0.022 * k, 20, 7), tela({ color: '#5a3e24', roughness: 0.95 })));
   return g;
 }
@@ -1107,14 +1088,14 @@ function espada(l) {
 }
 // la tela de los palokis: de un color, con los pliegues sombreados y una cenefa de dos colores y florecillas abajo (la v
 // de la campana empieza arriba: la cenefa va arriba en el lienzo)
-const telaPaloki = (base, a, b) => lienzo('paloki' + base + a + b, 128, 256, (g, w, h, R) => {
+const telaPaloki = (base, a, b) => lienzo('paloki' + base + a + b, 128, 256, (g, w, h) => {
   g.fillStyle = base; g.fillRect(0, 0, w, h);
   const gr = g.createLinearGradient(0, 0, w, 0); gr.addColorStop(0, 'rgba(0,0,0,.18)'); gr.addColorStop(0.5, 'rgba(255,255,255,.1)'); gr.addColorStop(1, 'rgba(0,0,0,.18)'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
   g.fillStyle = a; g.fillRect(0, h * 0.04, w, h * 0.07); g.fillStyle = b; g.fillRect(0, h * 0.11, w, h * 0.02); g.fillRect(0, h * 0.02, w, h * 0.015);
   for (let i = 0; i < 4; i++) { const cx = (i + 0.5) * w / 4, cy = h * 0.17; g.fillStyle = a; for (let k = 0; k < 5; k++) { const t = k / 5 * TAU; g.beginPath(); g.arc(cx + Math.cos(t) * 4, cy + Math.sin(t) * 4, 3, 0, TAU); g.fill(); } g.fillStyle = b; g.beginPath(); g.arc(cx, cy, 2.2, 0, TAU); g.fill(); }
 });
 // pañuelo de colores: fondo con florecillas y su cenefa
-const panuelo = (base, flor, borde) => lienzo('panuelo' + base + flor + borde, 128, 128, (g, w, h, R) => {
+const panuelo = (base, flor, borde) => lienzo('panuelo' + base + flor + borde, 128, 128, (g, w, h) => {
   g.fillStyle = base; g.fillRect(0, 0, w, h);
   g.strokeStyle = borde; g.lineWidth = 6; g.strokeRect(5, 5, w - 10, h - 10); g.strokeStyle = flor; g.lineWidth = 1.5; g.strokeRect(10, 10, w - 20, h - 20);
   for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) {

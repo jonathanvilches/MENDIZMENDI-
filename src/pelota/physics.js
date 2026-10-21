@@ -84,7 +84,7 @@ export function aimVelocity(p, tx, ty, T) {
 }
 
 // Velocidad para que la pelota salga de p y pase por el punto t (en el aire) tras T segundos
-export function aimVelocityTo(p, t, T) {
+function aimVelocityTo(p, t, T) {
   const G = PHYS.G, k = 1 + PHYS.DRAG * T * 0.5;
   return vec((t.x - p.x) / T * k, ((t.y - p.y) + 0.5 * G * T * T) / T * k, (t.z - p.z) / T * k);
 }

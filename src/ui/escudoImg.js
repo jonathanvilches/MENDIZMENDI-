@@ -6,8 +6,8 @@
 // los emblemas, de 512 en la web y de 256 en el archivo único (alias @escudos, @escudos-big y @emblemas de vite.config.js).
 import { drawOfficial, officialHeight } from '../world/armas.js';
 import { hdTable, hdUrl } from '../web/hd.js';
+import { byId } from '../util/glob.js';
 
-const byId = (g) => Object.fromEntries(Object.entries(g).map(([k, v]) => [k.split('/').pop().replace('.webp', ''), v]));
 // (Luzaide y Zugarramurdi tienen el mismo blasón y su imagen es la misma, byte a byte: se carga una vez)
 const SAME = { 'luzaide-valcarlos': 'zugarramurdi' }, same = (o) => { for (const [a, b] of Object.entries(SAME)) if (o[b]) o[a] = o[b]; return o; };
 const HER = same(byId(import.meta.glob(['@escudos/*.webp', '!@escudos/luzaide-valcarlos.webp'], { eager: true, query: '?url', import: 'default' })));

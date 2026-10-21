@@ -6,38 +6,30 @@ import { church, castle, castleJavier, dig, wallsRing, bridge, landmark } from '
 import { bench, lamp, fountain } from './village.js';
 import { PATHS, PLACES, BRIDGES, riverInfo, pathQuery, villageMask, plazaMask, rx, MOD } from './layout.js';
 import { terrainHeight } from './heightfield.js';
+import { polyLen, polyAt, minGround, slopeBase } from './plot.js';
 import { addBox, addCircle, isFree, rectFree } from './colliders.js';
 import { mulberry32, clamp } from '../util/math.js';
 import { realChurchRy, realBridges, realRiverWalls, realHouses, fachadaLejana } from './townReal.js';
 
-export const TOWN = { houses: [], shields: [], armsSpot: null, lamps: [], benches: [], church: null, fountain: null, landmarks: [], farm: null, pen: null };
+export const TOWN = { houses: [], shields: [], armsSpot: null, benches: [], church: null, fountain: null, landmarks: [], farm: null, pen: null };
 if (typeof window !== 'undefined') window.__TOWN = TOWN;   // (para las herramientas de capturas)
 
-function polyLen(pts) { let l = 0; for (let i = 1; i < pts.length; i++) l += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); return l; }
-function polyAt(pts, s) {
-  for (let i = 1; i < pts.length; i++) {
-    const a = pts[i - 1], b = pts[i], l = Math.hypot(b[0] - a[0], b[1] - a[1]);
-    if (s <= l || i === pts.length - 1) { const t = clamp(s / (l || 1), 0, 1); return { x: a[0] + (b[0] - a[0]) * t, z: a[1] + (b[1] - a[1]) * t, tx: (b[0] - a[0]) / (l || 1), tz: (b[1] - a[1]) / (l || 1) }; }
-    s -= l;
-  }
-}
-function minGround(x, z, w, d, ry) {
-  const c = Math.cos(ry), s = Math.sin(ry); let mn = Infinity, mx = -Infinity;
-  for (const [a, b] of [[-w / 2, -d / 2], [w / 2, -d / 2], [w / 2, d / 2], [-w / 2, d / 2], [0, 0], [0, d / 2]]) { const h = terrainHeight(x + a * c + b * s, z - a * s + b * c); mn = Math.min(mn, h); mx = Math.max(mx, h); }
-  return { mn, mx };
-}
-// en las cuestas la casa se apoya casi en lo alto de su planta (el lado de arriba no queda enterrado) y por debajo
-// lleva un zócalo de piedra hasta el suelo por el lado de abajo. Devuelve la altura de la planta baja.
 // escudo de una fachada: dónde queda en el mundo (para ponerle sus armas y poder leerlo desde la calle)
 function shieldAt(x, y, z, ry, [lx, ly, lz], palace) {
   const c = Math.cos(ry), s = Math.sin(ry);
   TOWN.shields.push({ x: x + lx * c + lz * s, y: y + ly, z: z - lx * s + lz * c, ry, palace, read: { x: x + lx * c + (lz + 2.4) * s, z: z - lx * s + (lz + 2.4) * c } });
 }
-function slopeBase(B, x, z, w, d, ry, g) {
-  const y = Math.max(g.mn - 0.1, g.mx - 0.35), drop = y - g.mn;
-  if (drop > 0.15) B.add('stone', new THREE.BoxGeometry(w + 0.12, drop + 0.6, d + 0.12), M(x, g.mn - 0.6 + (drop + 0.6) / 2, z, ry));
-  return y;
+// la casa consistorial: el escudo del pueblo en la fachada, cornisa, arco y balcón de forja en el centro
+const HALL = (w, h) => ({ shield: true, townhall: true, h: Math.max(h, 8.5), cornice: true, arch: true, doorX: 0, balcony: true, balconyW: Math.min(w - 2, 5), ironBalcony: true });
+// el escudo de una casa ya levantada: en la del ayuntamiento es el sitio de las armas del pueblo; en las demás, uno más
+function houseShield(x, hb, z, ry, ho, hall) {
+  if (!ho.shieldLocal) return;
+  if (!hall) { shieldAt(x, hb, z, ry, ho.shieldLocal, false); return; }
+  const [lx, ly, lz] = ho.shieldLocal, c = Math.cos(ry), sn = Math.sin(ry);
+  TOWN.armsSpot = { x: x + lx * c + lz * sn, y: hb + ly, z: z - lx * sn + lz * c, ry, hall: true, base: hb, plateY: hb + ho.plateY, read: { x: x + lx * c + (lz + 2.6) * sn, z: z - lx * sn + (lz + 2.6) * c } };
 }
+// una casa más en la lista del pueblo, con el sitio de delante de su puerta
+const addHouse = (x, z, ry, w, d, extra) => TOWN.houses.push({ x, z, ry, w, d, door: { x: x + Math.sin(ry) * (d / 2 + 1.2), z: z + Math.cos(ry) * (d / 2 + 1.2) }, ...extra });
 function cornersOk(x, z, w, d, ry) {
   const c = Math.cos(ry), s = Math.sin(ry);
   for (const [a, b] of [[-w / 2, -d / 2], [w / 2, -d / 2], [w / 2, d / 2], [-w / 2, d / 2], [0, 0], [-w / 2, 0], [w / 2, 0], [0, -d / 2]]) {
@@ -118,9 +110,9 @@ export function buildTown(scene, mats, def) {
     } else if (lm.kind === 'bridge' || lm.kind === 'plaza') spot = { x: lm.x, z: lm.z };
     else if (lm.kind === 'palace' || lm.kind === 'house') {
       // (en un pueblo real, con la planta, la orientación y la altura de su edificio de los datos)
-      const rb = lm.realBuilding, cl = (v, a, b) => Math.max(a, Math.min(b, v));
-      const w = rb ? cl(rb.w, 7, 36) : lm.kind === 'palace' ? 13 : 9, d = rb ? cl(rb.d, 7, 36) : lm.kind === 'palace' ? 11 : 9;
-      const h = rb?.h ? cl(rb.h * 0.78, 7, 16) : lm.kind === 'palace' ? 11 : 9;
+      const rb = lm.realBuilding;
+      const w = rb ? clamp(rb.w, 7, 36) : lm.kind === 'palace' ? 13 : 9, d = rb ? clamp(rb.d, 7, 36) : lm.kind === 'palace' ? 11 : 9;
+      const h = rb?.h ? clamp(rb.h * 0.78, 7, 16) : lm.kind === 'palace' ? 11 : 9;
       const r2 = rb ? rb.ry : Math.atan2(PLACES.plaza.x - lm.x, PLACES.plaza.z - lm.z);
       const g = minGround(lm.x, lm.z, w, d, r2);
       const pb = slopeBase(B, lm.x, lm.z, w, d, r2, g), po = { w, d, h, wall: fam === 'ribera' ? 'brick' : 'ashlar', noQuoins: true, roof: fam === 'pyrenean' ? 'slate' : 'tile', roofType: 'hip', hipRise: 4.6, arch: true, doorX: 0, balcony: true, balconyW: 5, ironBalcony: true, shield: lm.kind === 'palace', cornice: true };
@@ -163,7 +155,7 @@ export function buildTown(scene, mats, def) {
   const mid = (p) => p.pts[Math.floor(p.pts.length / 2)];
   const streets = PATHS.filter(p => p.type === 'street' && !p.noHouses).sort((a, b) => { const A = mid(a), Bm = mid(b); return Math.hypot(A[0] - PLACES.plaza.x, A[1] - PLACES.plaza.z) - Math.hypot(Bm[0] - PLACES.plaza.x, Bm[1] - PLACES.plaza.z); });
   const cap = Math.round(def.size * (fam === 'city' || fam === 'ribera' ? 1.7 : fam === 'central' ? 1.5 : 1.25));
-  if (real) { const n = realHouses(B, def, rnd, { buildHouse, houseStyle, minGround, slopeBase, shieldAt, TOWN, P, fam }); count = n.full + n.simple; TOWN.realCount = n; }
+  if (real) { const n = realHouses(B, def, rnd, { buildHouse, houseStyle, minGround, slopeBase, houseShield, addHouse, HALL, P, fam }); count = n.full + n.simple; TOWN.realCount = n; }
   else for (const path of streets) for (const side of [-1, 1]) {
     const L = polyLen(path.pts);
     let s = 2 + rnd() * 4;
@@ -181,13 +173,12 @@ export function buildTown(scene, mats, def) {
           // la primera casa que da a la plaza es la casa consistorial: lleva el escudo del pueblo en la fachada
           const hall = !pamp && !TOWN.armsSpot && Math.hypot(x - P.x, z - P.z) < P.r + 16;
           const hb = slopeBase(B, x, z, w, d, ry, g), ho = { arch: st.wall === 'stone' || st.wall === 'ashlar' ? rnd() < 0.5 : rnd() < 0.2, balconyW: Math.min(w - 2, 3 + rnd() * 2.5), shield: rnd() < 0.1, cornice: rnd() < 0.4, ...st, w, d, h };
-          if (hall) Object.assign(ho, { shield: true, townhall: true, h: Math.max(h, 8.5), cornice: true, arch: true, doorX: 0, balcony: true, balconyW: Math.min(w - 2, 5), ironBalcony: true });
+          if (hall) Object.assign(ho, HALL(w, h));
           buildHouse(B, M(x, hb, z, ry), ho, rnd);
           fachadaLejana(B, M(x, hb, z, ry), ho, fam, x, z);   // (de lejos, sus ventanas ya no se dibujan: src/world/townReal.js)
-          if (ho.shieldLocal && hall) { const [lx, ly, lz] = ho.shieldLocal, c = Math.cos(ry), sn = Math.sin(ry); TOWN.armsSpot = { x: x + lx * c + lz * sn, y: hb + ly, z: z - lx * sn + lz * c, ry, hall: true, base: hb, plateY: hb + ho.plateY, read: { x: x + lx * c + (lz + 2.6) * sn, z: z - lx * sn + (lz + 2.6) * c } }; }
-          else if (ho.shieldLocal) shieldAt(x, hb, z, ry, ho.shieldLocal, false);
+          houseShield(x, hb, z, ry, ho, hall);
           addBox(x, z, w + 0.3, d + 0.3, ry, { solidView: true });
-          TOWN.houses.push({ x, z, ry, w, d, door: { x: x + Math.sin(ry) * (d / 2 + 1.2), z: z + Math.cos(ry) * (d / 2 + 1.2) } });
+          addHouse(x, z, ry, w, d);
           count++; s += w + 1.2 + rnd() * 2.5; continue;
         }
       }
@@ -218,7 +209,6 @@ export function buildTown(scene, mats, def) {
   }
   B.build(group);
   scene.add(group);
-  // las farolas se registran en VILLAGE.lamps (village.js); copiarlas
   return group;
 }
 

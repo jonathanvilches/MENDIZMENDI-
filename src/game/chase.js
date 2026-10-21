@@ -21,7 +21,7 @@ function glowTex() {
 const sprite = (color, s, o, add = true) => { const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color, transparent: true, opacity: o, depthWrite: false, blending: add ? THREE.AdditiveBlending : THREE.NormalBlending, fog: false })); m.scale.setScalar(s); return m; };
 const isWater = (x, z) => waterLevelAt(x, z) > groundHeight(x, z) - 0.15;
 
-export const PLAYER_RUN = 6.8;
+const PLAYER_RUN = 6.8;
 
 export class Chase {
   // opts: { color, lair:{x,z}, water (le gusta el agua), light (PointLight compartida), sound(kind), onWarn, onTired }

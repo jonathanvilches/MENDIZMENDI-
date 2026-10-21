@@ -435,7 +435,7 @@ export class PelotaMatch {
     const h = g.hints();
     // pelota
     if (g.phase === 'intro' || g.phase === 'end') C.hideBall();
-    else C.showBall(g.ball.p, h && h.hittable ? 0.6 + 0.4 * Math.sin(this.t * 14) : 0, this.t);
+    else C.showBall(g.ball.p, h && h.hittable ? 0.6 + 0.4 * Math.sin(this.t * 14) : 0);
     // aros de ayuda
     const assist = g.lvl.assist > 0 || g.mode === 'rally';
     C.landRing.visible = !!(h && h.yourTurn && h.land);

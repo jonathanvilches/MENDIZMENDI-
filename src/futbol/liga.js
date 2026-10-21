@@ -6,13 +6,14 @@ import { clubImg } from '../ui/escudoImg.js';
 import { jugadorBusto, jugadorDuo, bustoSrc } from './jugadorFig.js';
 import { CLUBS, clubById } from './clubs.js';
 import { TEAMS } from './rules.js';
+import { esc } from '../util/html.js';
+import { minstd } from '../util/math.js';
 
 const KEY = 'mendimendiz-liga-v1';
 const N_TEAMS = 8;
 
 function load() { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } }
 function save(all) { try { localStorage.setItem(KEY, JSON.stringify(all)); } catch (e) { /* sin guardado */ } }
-function rng(seed) { let s = seed | 0 || 1; return () => ((s = (s * 16807) % 2147483647) / 2147483647); }
 
 // los siete rivales: los clubes del mismo grupo más cercanos en la lista (que va de norte a sur y de oeste a este)
 function rivalsOf(id) {
@@ -62,7 +63,7 @@ function simulate(h, a, rnd) {
 }
 /** Apunta tu resultado (goles de tu club y del rival), simula el resto de la jornada y avanza. Devuelve la jornada. */
 export function playRound(S, mine, theirs) {
-  const R = S.rounds[S.j], rnd = rng(S.year * 1000 + S.j * 37 + S.club.length);
+  const R = S.rounds[S.j], rnd = minstd(S.year * 1000 + S.j * 37 + S.club.length);
   for (const m of R) {
     if (mine == null) m.g = simulate(m.h, m.a, rnd);   // (también el tuyo, si lo simulas)
     else if (m.h === S.club) m.g = [mine, theirs];
@@ -88,7 +89,6 @@ export function table(S) {
 export function levelFor(mine, rival) { const d = CLUBS[rival].ovr - CLUBS[mine].ovr; return d > 4 ? 'dificil' : d < -4 ? 'facil' : 'normal'; }
 
 // ---------------------------------------------------------------- pantallas (como en los juegos de fútbol)
-const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // la equipación en pequeño: camiseta con su dibujo, pantalón y medias
 export function kitSvg(id, size = 44) { return kitSvgOf(CLUBS[id], size, 'k' + id); }
 /** El emblema del equipo (src/ui/escudoImg.js) en el mismo hueco que su camiseta; si no lo tiene, la camiseta. */

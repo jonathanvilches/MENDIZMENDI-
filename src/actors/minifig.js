@@ -1,5 +1,5 @@
 // Personajes de estilo aventura de dibujos animados (cabeza grande, ojos expresivos, cuerpo redondeado,
-// manos y zapatos grandes), con sombreado de dibujo (cel shading) y contorno.
+// manos y zapatos grandes), con sombreado suave de dibujo.
 // Diseños originales de MENDIMENDIZ. Mantiene la interfaz del sistema anterior:
 // buildMinifig(look) → Group con userData.J (articulaciones), userData.H, userData.look;
 // MinifigAnimator (paso con rodillas y codos), MinifigRig (jugador), COSTUMES y lookToMinifig.
@@ -100,7 +100,7 @@ function prep(g, color, tex = 0, m) {
 class Part {
   constructor() { this.list = []; }
   add(geo, color, tex, m) { this.list.push(prep(geo, color, tex, m)); return this; }
-  build(parent, outline = true, mat = TOON) {
+  build(parent, mat = TOON) {
     if (!this.list.length) return null;
     const g = mergeGeometries(this.list, false); this.list = [];
     const m = new THREE.Mesh(g, mat); m.castShadow = true; m.receiveShadow = true;
@@ -229,7 +229,7 @@ function hairGeo(R, st, hat) {
   return g;
 }
 // ---------- Personaje ----------
-export function buildMinifig(look, opts = {}) {
+export function buildMinifig(look) {
   const L = { skin: '#f3c9a4', shirt: '#e8e0cc', pants: '#3b3a48', hair: '#4a2c1c', eyes: '#3a2a1a', ...look };
   L.shoes ||= '#6b3f24';
   const child = L.child || (L.height && L.height < 1.45);
@@ -417,8 +417,8 @@ export function buildMinifig(look, opts = {}) {
   for (const s of [-1, 1]) {
     const up = (mood === 'smirk' && s > 0 ? R * 0.06 : 0) - (mood === 'angry' ? R * 0.05 : 0);
     const g = new THREE.Group(); head.add(g); J.brows.push(g);
-    if (bS === 'arched') { g.position.set(s * R * 0.3, cy + R * 0.33 + up, fz(R * 0.3, R * 0.44) + R * 0.02); new Part().add(new THREE.TorusGeometry(R * 0.16, R * 0.042, 8, 16, Math.PI * 0.62), brow, TX.hair, mtx(0, 0, 0, 0, s * 0.35, Math.PI * 0.19 - s * browTilt * 0.5)).build(g, false); }
-    else { g.position.set(s * R * 0.31, cy + R * 0.43 + up, fz(R * 0.3, R * 0.44) + R * 0.025); new Part().add(TCAP(R * (bS === 'fine' ? 0.045 : 0.07), R * (bS === 'fine' ? 0.022 : 0.034), R * 0.22, 10), brow, TX.hair, mtx(0, 0, 0, 0, s * 0.35, s * (Math.PI / 2 + browTilt) + s * 0.08)).build(g, false); }
+    if (bS === 'arched') { g.position.set(s * R * 0.3, cy + R * 0.33 + up, fz(R * 0.3, R * 0.44) + R * 0.02); new Part().add(new THREE.TorusGeometry(R * 0.16, R * 0.042, 8, 16, Math.PI * 0.62), brow, TX.hair, mtx(0, 0, 0, 0, s * 0.35, Math.PI * 0.19 - s * browTilt * 0.5)).build(g); }
+    else { g.position.set(s * R * 0.31, cy + R * 0.43 + up, fz(R * 0.3, R * 0.44) + R * 0.025); new Part().add(TCAP(R * (bS === 'fine' ? 0.045 : 0.07), R * (bS === 'fine' ? 0.022 : 0.034), R * 0.22, 10), brow, TX.hair, mtx(0, 0, 0, 0, s * 0.35, s * (Math.PI / 2 + browTilt) + s * 0.08)).build(g); }
     g.userData.y0 = g.position.y; g.userData.s = s;
   }
   Hd.build(head);
@@ -436,19 +436,19 @@ export function buildMinifig(look, opts = {}) {
     IR.add(SPH(1, 14, 10), '#0e0806', 0, mtx(s * eyeX * 0.97, -eyeH * 0.02, zz + R * 0.052, 0, yaw, 0, eyeW * 0.4, eyeH * 0.46, R * 0.02));
     IR.add(SPH(1, 10, 8), '#ffffff', 0, mtx(s * eyeX * 0.93 - eyeW * 0.18, eyeH * 0.2, zz + R * 0.062, 0, yaw, 0, eyeW * 0.25, eyeW * 0.3, R * 0.016));
     IR.add(SPH(1, 8, 6), '#ffffff', 0, mtx(s * eyeX * 0.99 + eyeW * 0.2, -eyeH * 0.3, zz + R * 0.06, 0, yaw, 0, eyeW * 0.11, eyeW * 0.11, R * 0.016));
-    IR.build(ig, false, EYE);
+    IR.build(ig, EYE);
     const lidT = mood === 'angry' ? s * -0.35 : mood === 'worried' ? s * 0.3 : 0;
     E.add(new THREE.TorusGeometry(1, 0.13, 6, 18, Math.PI * 0.85), '#2a1a12', 0, mtx(s * eyeX, eyeH * 0.02, zz + R * 0.02, 0, yaw, Math.PI * 0.075 + lidT, eyeW * 1.02, eyeH * 0.98, R * 0.1));
     if (L.lashes) E.add(new THREE.BoxGeometry(eyeW * 0.5, eyeH * 0.12, R * 0.02), '#1a120d', 0, mtx(s * (eyeX + eyeW * 0.7), eyeH * 0.8, zz * 0.93, 0, yaw, s * -0.6));
     // pliegue del párpado: un arco de piel algo más oscura que da profundidad a la mirada
     E.add(new THREE.TorusGeometry(1, 0.05, 6, 20, Math.PI * 0.7), new THREE.Color(skin).multiplyScalar(0.82), 0, mtx(s * eyeX, eyeH * 0.14, zz + R * 0.015, 0, yaw, Math.PI * 0.15, eyeW * 1.2, eyeH * 1.12, R * 0.08));
   }
-  E.build(eyes, false, EYE);
-  if (L.lids === 'half') { const HL = new Part(); for (const s of [-1, 1]) { const ey = R * 0.14, dz = (fz(eyeX + R * 0.02, ey) - fz(eyeX - R * 0.02, ey)) / (R * 0.04), yaw = s * Math.atan(-dz) * 0.8, zz = fz(eyeX, ey) - R * 0.035; HL.add(SPH(1, 18, 10, 0, Math.PI * 2, 0, Math.PI * 0.42), skin, TX.skin, mtx(s * eyeX, eyeH * 0.02, zz + R * 0.03, 0, yaw, 0, eyeW * 1.14, eyeH * 1.06, R * 0.11)); HL.add(new THREE.TorusGeometry(1, 0.09, 6, 18, Math.PI * 0.8), '#2a1a12', 0, mtx(s * eyeX, eyeH * 0.36, zz + R * 0.09, 0, yaw, Math.PI * 0.1, eyeW * 1.02, eyeH * 0.3, R * 0.05)); } HL.build(eyes, false); }
+  E.build(eyes, EYE);
+  if (L.lids === 'half') { const HL = new Part(); for (const s of [-1, 1]) { const ey = R * 0.14, dz = (fz(eyeX + R * 0.02, ey) - fz(eyeX - R * 0.02, ey)) / (R * 0.04), yaw = s * Math.atan(-dz) * 0.8, zz = fz(eyeX, ey) - R * 0.035; HL.add(SPH(1, 18, 10, 0, Math.PI * 2, 0, Math.PI * 0.42), skin, TX.skin, mtx(s * eyeX, eyeH * 0.02, zz + R * 0.03, 0, yaw, 0, eyeW * 1.14, eyeH * 1.06, R * 0.11)); HL.add(new THREE.TorusGeometry(1, 0.09, 6, 18, Math.PI * 0.8), '#2a1a12', 0, mtx(s * eyeX, eyeH * 0.36, zz + R * 0.09, 0, yaw, Math.PI * 0.1, eyeW * 1.02, eyeH * 0.3, R * 0.05)); } HL.build(eyes); }
   const lids = new THREE.Group(); lids.position.copy(eyes.position); head.add(lids); J.lids = lids; lids.visible = false;
   const Ld = new Part();
   for (const s of [-1, 1]) { const ey = R * 0.14, dz = (fz(eyeX + R * 0.02, ey) - fz(eyeX - R * 0.02, ey)) / (R * 0.04), yaw = s * Math.atan(-dz) * 0.8, zz = fz(eyeX, ey) - R * 0.035; Ld.add(SPH(1, 14, 10), skin, TX.skin, mtx(s * eyeX, 0, zz + R * 0.02, 0, yaw, 0, eyeW * 1.12, eyeH * 1.08, R * 0.09)); Ld.add(CAP(R * 0.028, eyeW * 1.3, 6), '#3a2418', TX.skin, mtx(s * eyeX, -eyeH * 0.1, zz + R * 0.1, 0, yaw, Math.PI / 2)); }
-  Ld.build(lids, false);
+  Ld.build(lids);
   // boca
   const mouth = new THREE.Group(); mouth.position.set(0, cy - R * 0.44, fz(0, -R * 0.44) + R * 0.005); head.add(mouth); J.mouth = mouth;
   const Mo = new Part();
@@ -465,11 +465,11 @@ export function buildMinifig(look, opts = {}) {
   }
   else if (mood === 'smirk') { Mo.add(new THREE.TorusGeometry(mw, R * 0.04, 8, 18, Math.PI * 0.6), '#6a2420', TX.skin, mtx(R * 0.03, mw * 0.5, 0, 0, 0, Math.PI * 1.15 + 0.35, 1, 0.65, 0.5)); Mo.add(SPH(R * 0.035, 8, 6), '#b06a58', TX.skin, mtx(mw * 0.95, mw * 0.25, 0)); }
   else Mo.add(new THREE.TorusGeometry(mw, R * (L.lashes ? 0.045 : 0.035), 6, 16, Math.PI * 0.8), L.lashes ? '#c0404a' : '#6a2420', TX.skin, mtx(0, smile > 0 ? mw * 0.55 : -mw * 0.6, 0, 0, 0, smile > 0 ? Math.PI * 1.1 : Math.PI * 0.1, 1, 0.7, 0.5));
-  Mo.build(mouth, false);
+  Mo.build(mouth);
   const talk = new THREE.Group(); talk.position.copy(mouth.position); head.add(talk); talk.visible = false; J.talk = talk;
   // bocas de las expresiones: sonrisa abierta, «O» de sorpresa y boca triste
   const lipC = new THREE.Color(skin).lerp(new THREE.Color('#d0605a'), 0.4);
-  const mk = (fill) => { const g = new THREE.Group(); g.position.copy(mouth.position); g.visible = false; head.add(g); const P = new Part(); fill(P); P.build(g, false); return g; };
+  const mk = (fill) => { const g = new THREE.Group(); g.position.copy(mouth.position); g.visible = false; head.add(g); const P = new Part(); fill(P); P.build(g); return g; };
   const sw = R * 0.24;
   J.mSmile = mk(P => {
     P.add(SPH(sw * 1.08, 24, 14, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), '#5a1a1c', TX.skin, mtx(0, 0.006, 0, 0, 0, 0, 1, 0.82, 0.16));
@@ -483,7 +483,7 @@ export function buildMinifig(look, opts = {}) {
     P.add(new THREE.TorusGeometry(1, 0.28, 8, 22), lipC, TX.skin, mtx(0, -R * 0.03, R * 0.005, 0, 0, 0, R * 0.095, R * 0.12, R * 0.08));
   });
   J.mSad = mk(P => P.add(new THREE.TorusGeometry(R * 0.17, R * 0.035, 6, 16, Math.PI * 0.8), '#6a2420', TX.skin, mtx(0, -R * 0.1, 0, 0, 0, Math.PI * 0.1, 1, 0.7, 0.5)));
-  new Part().add(SPH(R * 0.13, 14, 10), '#5a1a18', TX.skin, mtx(0, 0, 0, 0, 0, 0, 1.2, 1, 0.35)).add(SPH(R * 0.07, 10, 6), '#e0606a', TX.skin, mtx(0, -R * 0.05, R * 0.02, 0, 0, 0, 1.3, 0.6, 0.3)).build(talk, false);
+  new Part().add(SPH(R * 0.13, 14, 10), '#5a1a18', TX.skin, mtx(0, 0, 0, 0, 0, 0, 1.2, 1, 0.35)).add(SPH(R * 0.07, 10, 6), '#e0606a', TX.skin, mtx(0, -R * 0.05, R * 0.02, 0, 0, 0, 1.3, 0.6, 0.3)).build(talk);
 
   // --- pelo y sombreros ---
   const hatOn = !!(L.hat || L.txapela || L.helmet || L.hood || L.kerchief);
@@ -756,7 +756,7 @@ export function lookToMinifig(l) {
 export class MinifigRig {
   constructor(look) {
     this.obj = new THREE.Group();
-    this.inner = buildMinifig(look, { hero: true });
+    this.inner = buildMinifig(look);
     this.obj.add(this.inner);
     this.J = this.inner.userData.J;
     this.anim = new MinifigAnimator(this.inner);

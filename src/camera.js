@@ -4,6 +4,8 @@ import { groundHeight } from './world/heightfield.js';
 import { nearby } from './world/colliders.js';
 import { clamp, damp, dampAngle } from './util/math.js';
 
+const _want = new THREE.Vector3(), _dir = new THREE.Vector3(), _p = new THREE.Vector3();   // (sin crear vectores en cada fotograma)
+
 export class FollowCamera {
   constructor(camera) {
     this.cam = camera;
@@ -14,12 +16,13 @@ export class FollowCamera {
     this.focus = new THREE.Vector3();
     this.idle = 0;
     this.shake = 0;
-    this.cinematic = null; // {pos, look, t}
+    this.cinematic = null;   // { pos, look, t }
     this.curDist = d0;
+    this.lift = 0;
   }
   snap(player) {
     this.yaw = player.heading + Math.PI;
-    this.focus.copy(player.pos).add(new THREE.Vector3(0, 1.5, 0));
+    this.focus.copy(player.pos); this.focus.y += 1.5;
     this.update(0.1, player, { look: { dx: 0, dy: 0 }, zoom: 0, move: { x: 0, y: 0 } }, true);
   }
   update(dt, player, input, instant = false) {
@@ -31,7 +34,7 @@ export class FollowCamera {
     // seguimiento automático suave detrás del jugador cuando se mueve y no se toca la cámara
     const moving = Math.hypot(input.move.x, input.move.y) > 0.1;
     if (moving && this.idle > 1.2 && input.move.y > -0.3) this.yaw = dampAngle(this.yaw, player.heading + Math.PI, 1.2 * Math.abs(input.move.y) + 0.3 * Math.abs(input.move.x), dt);
-    const want = new THREE.Vector3(player.pos.x, player.pos.y + 1.45, player.pos.z);
+    const want = _want.set(player.pos.x, player.pos.y + 1.45, player.pos.z);
     if (instant) this.focus.copy(want);
     // en horizontal la cámara va pegada al jugador: con un retraso suavizado, ese retraso cambiaba de un fotograma a otro
     // (los fotogramas nunca duran lo mismo) y el personaje temblaba en pantalla aunque el paisaje fuese fluido.
@@ -49,7 +52,7 @@ export class FollowCamera {
     }
     // distancia con colisión
     let d = this.targetDist;
-    const dir = new THREE.Vector3(Math.sin(this.yaw) * Math.cos(this.pitch), Math.sin(this.pitch), Math.cos(this.yaw) * Math.cos(this.pitch));
+    const dir = _dir.set(Math.sin(this.yaw) * Math.cos(this.pitch), Math.sin(this.pitch), Math.cos(this.yaw) * Math.cos(this.pitch));
     const step = 0.4;
     for (let t = 0.6; t < d; t += step) {
       const x = this.focus.x + dir.x * t, z = this.focus.z + dir.z * t, y = this.focus.y + dir.y * t;
@@ -63,16 +66,14 @@ export class FollowCamera {
       if (hit) { d = Math.max(1.6, t - 0.4); break; }
     }
     this.curDist = instant ? d : (d < this.curDist ? damp(this.curDist, d, 14, dt) : damp(this.curDist, d, 3, dt));
-    const p = this.focus.clone().addScaledVector(dir, this.curDist);
+    const p = _p.copy(this.focus).addScaledVector(dir, this.curDist);
     // sobre el terreno: si la cámara quedaría bajo el suelo se eleva, deprisa pero sin saltos (al bajar de un muro o una
     // cuesta el suelo de detrás cambia de golpe y la imagen daba un tirón)
     const gy = groundHeight(p.x, p.z) + 0.45, needLift = Math.max(0, gy - p.y);
-    this.lift = instant ? needLift : damp(this.lift || 0, needLift, needLift > (this.lift || 0) ? 30 : 6, dt);
+    this.lift = instant ? needLift : damp(this.lift, needLift, needLift > this.lift ? 30 : 6, dt);
     p.y += Math.max(this.lift, needLift - 0.35);
     if (this.shake > 0) { this.shake -= dt; p.x += (Math.random() - 0.5) * this.shake * 0.3; p.y += (Math.random() - 0.5) * this.shake * 0.3; }
     this.cam.position.copy(p);
     this.cam.lookAt(this.focus.x, this.focus.y + 0.1, this.focus.z);
   }
-  // yaw de la cámara para mover al jugador (dirección de "adelante")
-  moveYaw() { return this.yaw + Math.PI; }
 }

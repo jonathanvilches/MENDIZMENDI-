@@ -51,6 +51,8 @@ const TIPS = [
   'Cuando tengas todos los pueblos de una comarca, se iluminará en el mapa de Navarra.',
 ];
 const TIP_TOQUE = 'Toca el cuaderno, arriba a la derecha, para ver todas las misiones y sus pasos.';
+// el icono de cada misión en la pantalla de carga (si la misión no trae el suyo)
+const MISSION_ICON = { visit: 'church', process: 'basket', harvest: 'wheat', herd: 'sheep', dance: 'dance', carnival: 'mask', trade: 'anvil', legend: 'legend', race: 'running', observe: 'binoculars', tradition: 'music', quiz: 'quiz', summit: 'peak', pelota: 'pelota', figure: 'person', feria: 'cow', dolmen: 'dolmen', castle: 'castle', mirador: 'binoculars' };
 
 // ordenador: alta con una tarjeta gráfica de verdad; media con la gráfica del procesador (Intel, las Radeon de los
 // procesadores AMD, GeForce MX), con pocos núcleos o si en este ordenador el juego ya tuvo que aligerarse solo
@@ -153,16 +155,22 @@ async function boot() {
     sound.init();
     def = d;
     hub.hide(); queueMode('off');
-    const cm = COMARCAS.find(c => c.id === d.comarca);
-    const TI = { visit: 'church', process: 'basket', harvest: 'wheat', herd: 'sheep', dance: 'dance', carnival: 'mask', trade: 'anvil', legend: 'legend', race: 'running', observe: 'binoculars', tradition: 'music', quiz: 'quiz', summit: 'peak', pelota: 'pelota', figure: 'person', feria: 'cow', dolmen: 'dolmen', castle: 'castle', mirador: 'binoculars' };
+    const cm = COMARCAS.find(c => c.id === d.comarca), eu = isEU(), pasaka = opt.sport === 'pasaka';
     // (al campeonato de pelota se va a jugar: sin la historia del pueblo ni sus misiones en la pantalla de carga)
-    ui.showLoading(opt.sport === 'pasaka' ? 'Pasaka · Iruña' : opt.sport ? `${isEU() ? 'Esku pilota' : 'Pelota a mano'} · ${d.name.split(' /')[0]}` : d.name, opt.sport === 'pasaka' ? (isEU() ? 'Klaustroa prestatzen…' : 'Preparando el claustro…') : opt.sport ? (isEU() ? 'Frontoia prestatzen…' : 'Preparando el frontón…') : (t => input.touch && t.startsWith('Pulsa C') ? TIP_TOQUE : t)(TIPS[Math.floor(Math.random() * TIPS.length)]), (opt.sport && laminaUrl('dep-fronton')) || townImg(d), { comarca: cm?.name, caption: (k => laminaUrl(k) ? laminaById(k).title : '')(opt.sport ? 'dep-fronton' : d.id), avatar: avatarPortrait(P.avatar), intro: opt.sport ? '' : d.intro, missions: opt.sport ? [] : missionSlots(d, edadDe(P)).map(({ m }) => m.icon || TI[m.type] || 'star'), left: opt.sport ? 0 : (pr => Math.max(0, pr.total - pr.done))(townProgress(P, d)) });
+    const title = pasaka ? 'Pasaka · Iruña' : opt.sport ? `${eu ? 'Esku pilota' : 'Pelota a mano'} · ${d.name.split(' /')[0]}` : d.name;
+    const tip = TIPS[Math.floor(Math.random() * TIPS.length)];
+    const sub = pasaka ? (eu ? 'Klaustroa prestatzen…' : 'Preparando el claustro…') : opt.sport ? (eu ? 'Frontoia prestatzen…' : 'Preparando el frontón…') : input.touch && tip.startsWith('Pulsa C') ? TIP_TOQUE : tip;
+    const lam = opt.sport ? 'dep-fronton' : d.id, left = (pr => Math.max(0, pr.total - pr.done))(townProgress(P, d));
+    ui.showLoading(title, sub, (opt.sport && laminaUrl('dep-fronton')) || townImg(d), {
+      comarca: cm?.name, caption: laminaUrl(lam) ? laminaById(lam).title : '', avatar: avatarPortrait(P.avatar),
+      intro: opt.sport ? '' : d.intro, missions: opt.sport ? [] : missionSlots(d, edadDe(P)).map(({ m }) => m.icon || MISSION_ICON[m.type] || 'star'), left: opt.sport ? 0 : left,
+    });
     try {
       // (el escudo del pueblo, y el de Pamplona del Labrit, con su acabado: listos antes de montar la plaza y el frontón)
-    await Promise.all([armsReady(armsOfTown(d.id)?.id), armsReady('pamplona')]);
-    // (en los campeonatos, los mensajes de la carga hablan del frontón, no de plantar árboles ni de saludar a los vecinos)
-    const eu = isEU(), sportMsg = (p) => opt.sport === 'pasaka' ? (eu ? 'Klaustroa prestatzen…' : 'Preparando el claustro…') : p < 0.3 ? (eu ? 'Frontoia irekitzen…' : 'Abriendo el frontón…') : p < 0.6 ? (eu ? 'Kantxa prestatzen…' : 'Preparando la cancha…') : p < 0.9 ? (eu ? 'Harmailak betetzen…' : 'Llenando la grada…') : (eu ? 'Pilotariak berotzen…' : 'Calentando a los pelotaris…');
-    const npcP = preloadNpcs(); await preloadFood(); await Promise.all([rt.load(d, P.avatar, (p, m) => ui.progress(p, opt.sport ? sportMsg(p) : m)), npcP]);
+      await Promise.all([armsReady(armsOfTown(d.id)?.id), armsReady('pamplona')]);
+      // (en los campeonatos, los mensajes de la carga hablan del frontón, no de plantar árboles ni de saludar a los vecinos)
+      const sportMsg = (p) => pasaka ? (eu ? 'Klaustroa prestatzen…' : 'Preparando el claustro…') : p < 0.3 ? (eu ? 'Frontoia irekitzen…' : 'Abriendo el frontón…') : p < 0.6 ? (eu ? 'Kantxa prestatzen…' : 'Preparando la cancha…') : p < 0.9 ? (eu ? 'Harmailak betetzen…' : 'Llenando la grada…') : (eu ? 'Pilotariak berotzen…' : 'Calentando a los pelotaris…');
+      const npcP = preloadNpcs(); await preloadFood(); await Promise.all([rt.load(d, P.avatar, (p, m) => ui.progress(p, opt.sport ? sportMsg(p) : m)), npcP]);
       const ctx = { scene: rt.scene, camera: rt.camera, player: rt.player, follow: rt.follow, ui, sound, input, sky: rt.sky, fauna: rt.fauna, particles: rt.particles, beacon: rt.beacon, rt, onExit: exit };
       hookPlayer(rt.player);
       if (d.special === 'salazar') {

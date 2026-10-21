@@ -13,7 +13,7 @@ const UA = navigator.userAgent;
 const IOS = /iP(hone|ad|od)/.test(UA) || (/Macintosh/.test(UA) && navigator.maxTouchPoints > 1);
 const ANDROID = /Android/.test(UA);
 /** ¿Se está jugando desde la app instalada? */
-export const installed = () => matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || navigator.standalone === true;
+const installed = () => matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || navigator.standalone === true;
 /** ¿Se puede ofrecer instalarla desde aquí? (en la web y sin estar ya instalada) */
 export const offer = () => typeof __WEB__ !== 'undefined' && __WEB__ && !installed();
 const link = () => new URL('./', location.href).href;

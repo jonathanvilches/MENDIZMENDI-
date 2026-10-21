@@ -5,6 +5,7 @@
 import { clubImg } from '../ui/escudoImg.js';
 import { fitCircle, fitCircles } from '../ui/fitlabel.js';
 import { tap } from '../util/tap.js';
+import { esc } from '../util/html.js';
 // (en el marcador, el emblema de un equipo de la liga; si no lo tiene, el color de su camiseta)
 const em = (t) => t?.club && clubImg(t.club) ? `<img class="fb-em" src="${clubImg(t.club)}" alt="">` : `<i style="background:${t.shirt}"></i>`;
 const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;gap:16px;align-items:center;text-align:left;margin:4px 0 8px}.fb-board{width:100%;height:auto;display:block;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
@@ -230,7 +231,6 @@ export const ICON = {
   ctrl: IC('<circle cx="12" cy="11" r="5.5"/><path d="M4.5 19.5h15"/>'),
   move: IC('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/><path d="M12 1.8v2.4M12 19.8v2.4M1.8 12h2.4M19.8 12h2.4"/>'),
 };
-const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // la línea de cada uno, en tres letras: portero, defensa, medio y delantero
 const LINES = ['POR', 'DEF', 'MED', 'DEL'];
 
@@ -281,7 +281,7 @@ export class FutbolHud {
     for (const b of r.querySelectorAll('[data-a]')) {
       const a = b.dataset.a;
       b.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); try { b.setPointerCapture(e.pointerId); } catch { /* sin captura */ } b.classList.add('down'); if (a === 'sprint') this.held.sprint = true; else o.onPress?.(a); });
-      const up = (e) => { if (!b.classList.contains('down')) return; b.classList.remove('down'); if (a === 'sprint') this.held.sprint = false; else o.onRelease?.(a); };
+      const up = () => { if (!b.classList.contains('down')) return; b.classList.remove('down'); if (a === 'sprint') this.held.sprint = false; else o.onRelease?.(a); };
       b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up); b.addEventListener('lostpointercapture', up);
     }
     // joystick dinámico en la mitad izquierda: aparece donde se toca
@@ -485,7 +485,7 @@ export class FutbolHud {
   tactic(T) {
     return new Promise(res => {
       const ids = Object.keys(T.sistemas); let cur = T.actual;
-      const board = (id) => { const S = T.sistemas[id], dots = Object.entries(S.roles).map(([k, f]) => { const x = 50 + f.atk[1] * 42, y = 92 - (f.atk[0] + 1) / 1.9 * 84; return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.2" fill="${f.line === 1 ? '#5ab0ff' : f.line === 2 ? '#ff9bd8' : '#ff6a5a'}" stroke="#0b1b10" stroke-width="1.2"/>`; }).join('');
+      const board = (id) => { const S = T.sistemas[id], dots = Object.values(S.roles).map((f) => { const x = 50 + f.atk[1] * 42, y = 92 - (f.atk[0] + 1) / 1.9 * 84; return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.2" fill="${f.line === 1 ? '#5ab0ff' : f.line === 2 ? '#ff9bd8' : '#ff6a5a'}" stroke="#0b1b10" stroke-width="1.2"/>`; }).join('');
         return `<svg viewBox="0 0 100 100" class="fb-board"><rect x="2" y="2" width="96" height="96" rx="4" fill="#2e7d3a" stroke="#e8f5e0" stroke-width="1.4"/><line x1="2" y1="50" x2="98" y2="50" stroke="#e8f5e0" stroke-width="1"/><circle cx="50" cy="50" r="10" fill="none" stroke="#e8f5e0" stroke-width="1"/><rect x="28" y="86" width="44" height="12" fill="none" stroke="#e8f5e0" stroke-width="1"/><rect x="28" y="2" width="44" height="12" fill="none" stroke="#e8f5e0" stroke-width="1"/><circle cx="50" cy="94" r="4.2" fill="#fff" stroke="#0b1b10" stroke-width="1.2"/>${dots}</svg>`; };
       const p = this.panel(`<p class="fb-kick">Táctica</p><h2>Elige el sistema</h2><div class="fb-tac"><div class="fb-tac-b"></div><div class="fb-tac-r"><div class="fb-row">${ids.map(id => `<button class="fb-chip ${id === cur ? 'on' : ''}" data-s="${id}">${id}</button>`).join('')}</div><p class="fb-tac-t"></p><p class="fb-tac-l"><i style="background:#5ab0ff"></i>Defensa <i style="background:#ff9bd8"></i>Medio <i style="background:#ff6a5a"></i>Delantera</p></div></div><button class="fb-go">Aplicar</button><button class="fb-alt">Volver</button>`);
       const draw = () => { p.querySelector('.fb-tac-b').innerHTML = board(cur); p.querySelector('.fb-tac-t').textContent = T.sistemas[cur].text; p.querySelectorAll('[data-s]').forEach(b => b.classList.toggle('on', b.dataset.s === cur)); };

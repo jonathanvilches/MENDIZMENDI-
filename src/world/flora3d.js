@@ -11,8 +11,8 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { FLORA } from '../data/flora.js';
 import { offscreen, offscreenCanvas } from '../util/offscreen.js';
 import { leafSprig } from '../ui/leafArt.js';
+import { mulberry32 } from '../util/math.js';
 
-function mulberry(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 const C = (hex) => new THREE.Color(hex);
 const _c = new THREE.Color(), _v = new THREE.Vector3(), _n = new THREE.Vector3();
 
@@ -564,7 +564,7 @@ function build(id, seed) {
   const k = id + ':' + seed;
   if (GEO.has(k)) return GEO.get(k);
   const F = FLORA[id]; if (!F) return null;
-  const rnd = mulberry(seed * 7919 + id.length * 104729), m = F.m;
+  const rnd = mulberry32(seed * 7919 + id.length * 104729), m = F.m;
   let parts, K = null;
   if (m.t === 'tree' && HABIT[id] && leafSprig(id, 64)) {
     const r = treeReal(m, HABIT[id], rnd); parts = r.wood; K = r.K;

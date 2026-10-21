@@ -39,10 +39,10 @@ import { drawOfficial, officialHeight } from '../world/armas.js';
 import { armsImg, armsImgBig, clubImg, casaImg } from '../ui/escudoImg.js';
 import { setupInstall, offer, openInstall } from '../web/install.js';
 import { profile, saveProfile, levelOf, rankOf, townProgress, comarcaProgress, comarcaTowns, navarraProgress, stampCount, BADGES, checkBadges, resetProfile, salazarState } from '../game/profile.js';
+import { esc, el } from '../util/html.js';
+import { lettersOnly } from '../util/text.js';
 
 const $ = (s, r = document) => r.querySelector(s);
-const el = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
-const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const I = (n, s = 24, c = '') => iconSVG(n, s, c);
 const cnt = (n, one, many) => `${n} ${n === 1 ? one : many}`;   // (1 sello, 2 sellos: nunca «1 sellos»)
 const comarca = (id) => COMARCAS.find(c => c.id === id);
@@ -50,18 +50,17 @@ const TYPE_NAME = { visit: 'Visita', process: 'Producto', harvest: 'Cosecha', he
 const TYPE_ICON = { visit: 'church', process: 'basket', harvest: 'wheat', herd: 'sheep', dance: 'dance', carnival: 'mask', trade: 'anvil', legend: 'legend', race: 'running', observe: 'binoculars', tradition: 'music', quiz: 'quiz', summit: 'peak', pelota: 'pelota', figure: 'person', feria: 'cow', dolmen: 'dolmen', castle: 'castle', mirador: 'binoculars' };
 // Proyección de coordenadas geográficas al mapa de comarcas
 const proj = (lat, lon) => [19 + (lon + 2.52) / 1.80 * 709, 17 + (43.325 - lat) / 1.43 * 765];
-const norm = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z]/g, '');
 // El nombre corto de un pueblo: el del juego o, si no está en el juego, el de su núcleo en settlements.json; nunca su
 // identificador (en euskera salía en minúsculas, como «uztarroz-uztarroze»)
 function townName(id) {
   const lv = levelById(id); if (lv) return lv.name.split(' /')[0];
-  const n = norm(id), ps = id.split('-').map(norm);
-  const s = SETTLEMENTS.find(s => norm(s[2]) === n) || SETTLEMENTS.find(s => { const q = norm(s[2].split(' /')[0]); return ps.length > 1 && q.startsWith(ps[0]) && q.endsWith(ps.at(-1)); }) || SETTLEMENTS.find(s => s[2].split(/[/()]/).some(q => ps.includes(norm(q))));
+  const n = lettersOnly(id), ps = id.split('-').map(lettersOnly);
+  const s = SETTLEMENTS.find(s => lettersOnly(s[2]) === n) || SETTLEMENTS.find(s => { const q = lettersOnly(s[2].split(' /')[0]); return ps.length > 1 && q.startsWith(ps[0]) && q.endsWith(ps.at(-1)); }) || SETTLEMENTS.find(s => s[2].split(/[/()]/).some(q => ps.includes(lettersOnly(q))));
   return s ? s[2].split(/\s*[/(]/)[0].trim() : id.replace(/-/g, ' ').replace(/^./, c => c.toUpperCase());
 }
 function townXY(lv) {
-  const names = (lv.mapName || lv.name).split('/').map(s => norm(s));
-  const hit = SETTLEMENTS.find(s => names.includes(norm(s[2])) || norm(s[2]).startsWith(names[0])) || SETTLEMENTS.find(s => names.some(n => norm(s[2]).includes(n)));
+  const names = (lv.mapName || lv.name).split('/').map(s => lettersOnly(s));
+  const hit = SETTLEMENTS.find(s => names.includes(lettersOnly(s[2])) || lettersOnly(s[2]).startsWith(names[0])) || SETTLEMENTS.find(s => names.some(n => lettersOnly(s[2]).includes(n)));
   if (hit) return proj(hit[0], hit[1]);
   const c = comarca(lv.comarca); return c ? [c.label.x, c.label.y + 20] : [380, 400];
 }
@@ -511,7 +510,7 @@ export class Hub {
     // centra el retrato elegido en la tira sin mover la página
     const center = (id, smooth) => { const b = host.querySelector(`[data-av="${id}"]`), st = b?.parentElement; if (!st) return; st.scrollTo({ left: b.offsetLeft - st.clientWidth / 2 + b.offsetWidth / 2, behavior: smooth ? 'smooth' : 'auto' }); };
     this.stage = new Stage($('#avStage', host), cur);
-    const set = (id, dir = 0) => {
+    const set = (id) => {
       if (id === cur) return; cur = id; const a = castById(id);
       this.stage.setAvatar(id); this.sound?.ui('coin');
       const sec = $('.csel2', host); sec.style.setProperty('--c', a.color);
@@ -521,7 +520,7 @@ export class Hub {
       center(id, true);
       onPick(a);
     };
-    const step = (d) => { const i = AVATARS.findIndex(a => a.id === cur); set(AVATARS[(i + d + AVATARS.length) % AVATARS.length].id, d); };
+    const step = (d) => { const i = AVATARS.findIndex(a => a.id === cur); set(AVATARS[(i + d + AVATARS.length) % AVATARS.length].id); };
     host.querySelectorAll('[data-av]').forEach(b => b.onclick = (e) => { e.stopPropagation(); set(b.dataset.av); });
     host.querySelectorAll('[data-step]').forEach(b => b.onclick = (e) => { e.stopPropagation(); step(+b.dataset.step); });
     const key = (e) => { if (!host.isConnected) return removeEventListener('keydown', key); if (e.target.tagName === 'INPUT') return; if (e.key === 'ArrowRight') step(1); if (e.key === 'ArrowLeft') step(-1); };
@@ -562,7 +561,7 @@ export class Hub {
     const p = profile(), seen = new Set(p.cards || []), tn = townName;
     const KIND = { reino: 'Reino', ciudad: 'Ciudad', valle: 'Valle', municipio: 'Municipio' };
     // (los pueblos de cada escudo, debajo de su nombre y en letra de leer; no los que ya dice el nombre, como Pamplona)
-    const pueblos = (A) => A.towns.map(tn).filter(t => !norm(A.name).includes(norm(t)));
+    const pueblos = (A) => A.towns.map(tn).filter(t => !lettersOnly(A.name).includes(lettersOnly(t)));
     const read = ARMAS.filter(A => seen.has('armas:' + A.id)).length;
     // (cada escudo es una tarjeta que abre su ficha, la misma que en el pueblo: el blasón, cómo se lee, los esmaltes, las
     // figuras y su historia, en pestañas; la guía de cómo se lee un escudo y los que faltan por comprobar, también en ficha)
@@ -739,20 +738,3 @@ export class Hub {
   }
 }
 
-// Aspecto de los personajes de leyenda y carnaval para sus retratos
-export const FOLK_LOOK = {
-  joaldun: { shirt: '#f4f1ea', fur: '#ece4d2', hat: 'cone', hatColor: '#f4f1ea', pants: '#1d2a4a', scarf: '#3a8fd6', face: 'brave' },
-  mozorro: { shirt: '#6b8a3a', pattern: 'check', pattern2: '#e03c3c', pants: '#3a2a1a', hat: 'mask', hatColor: '#6b4a2e' },
-  momotxorro: { skin: '#e2b08a', hair: '#1a1a1a', beard: '#1a1a1a', shirt: '#f2eee6', print: 'sheet', fur: '#7a5a34', horns: true, hat: 'basket', face: 'angry', facePaint: 'soot' },
-  'miel-otxin': { shirt: '#e03c3c', ribbons: true, pants: '#f2c230', hat: 'cone', hatColor: '#3a8fd6', face: 'angry' },
-  zarratrako: { shirt: '#8a6a4a', pattern: 'stripes', pattern2: '#3ca05a', fur: '#b08650', hat: 'mask', hatColor: '#3a2a1a' },
-  cascabobo: { shirt: '#f2c230', pattern: 'dots', pattern2: '#e03c3c', hat: 'cone', hatColor: '#e03c3c', face: 'happy' },
-  irasko: { shirt: '#3ca05a', pattern: 'check', pattern2: '#f2c230', hat: 'mask', hatColor: '#3ca05a' },
-  paloki: { shirt: '#b34fc4', ribbons: true, hat: 'cone', hatColor: '#f2c230' },
-  'comparsa-mendigorria': { shirt: '#3a8fd6', pattern: 'stripes', pattern2: '#f4f1ea', hat: 'mask', hatColor: '#3a8fd6' },
-  lagunero: { shirt: '#2b3a6b', print: 'coat', hat: 'bicorne', face: 'angry', moustache: '#2a1a12', moustacheCurl: true, hair: '#dcd7cf' },
-  zipotero: { shirt: '#3a8fd6', pattern: 'stripes', pattern2: '#f2c230', hat: 'mask', hatColor: '#f2c230', face: 'angry' },
-  lamia: { skin: '#f1d7b8', hair: '#e8c34a', hairStyle: 'long', lashes: true, shirt: '#6ab0a0', print: 'blouse', bodice: '#3a8a7a' },
-  basajaun: { skin: '#c49a78', hair: '#5a3a22', hairStyle: 'long', beard: '#5a3a22', fur: '#6b4a2e', shirt: '#6b4a2e' },
-  tartalo: { skin: '#c9a27a', hair: '#3b2418', shirt: '#6b4a2e', fur: '#8a6a4a', face: 'angry' },
-};

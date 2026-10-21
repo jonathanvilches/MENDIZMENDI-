@@ -17,7 +17,7 @@ function noise(S, at, dur, f, q, vol, dest, type = 'bandpass') {
   const g = ctx.createGain(); g.gain.setValueAtTime(vol, at); g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
   s.connect(fl); fl.connect(g); g.connect(dest); s.start(at, Math.random() * 1.5); s.stop(at + dur + 0.05);
 }
-const verb = (S, g, amt = 0.25) => { if (S.verb) { const v = S.ctx.createGain(); v.gain.value = amt; g.connect(v); v.connect(S.verb); } };
+const verb = (S, g, amt = 0.25) => { if (S.verb && amt > 0) { const v = S.ctx.createGain(); v.gain.value = amt; g.connect(v); v.connect(S.verb); } };
 // una salida con su eco: los instrumentos no van al bus de música (que se apaga en el minijuego) sino al de efectos
 function bus(S, amt = 0.25) { const g = S.ctx.createGain(); g.gain.value = 1; g.connect(S.sfx); verb(S, g, amt); return g; }
 

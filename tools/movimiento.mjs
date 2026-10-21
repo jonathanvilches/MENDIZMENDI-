@@ -3,7 +3,7 @@
 // un muro, veces atravesando una mata, y lo que recorren frente a lo que se alejan. También cuenta las matas cerca
 // del pueblo que no tienen choque. Uso: node tools/movimiento.mjs [pueblo,pueblo…]   (servidor en 5173)
 import { chromium } from 'playwright-core';
-import { appendFileSync, writeFileSync } from 'fs';
+import { writeFileSync } from 'fs';
 const towns = (process.argv[2] || 'lumbier,elizondo,olite').split(',');
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const out = [];

@@ -49,7 +49,7 @@ export class Animal {
     this.collider = addMover(x, z, Math.max(0.3, this.radius * 0.9), { animal: this });
     this.sync();
   }
-  update(dt, player, extra) {
+  update(dt, player) {
     this.t += dt;
     // sentado esperando (el perro mientras juegas a pelota o al fútbol)
     if (this.sit) { this.speed = 0; this.pos.y = groundHeight(this.pos.x, this.pos.z); this.animate(dt); this.sync(); return; }
@@ -219,7 +219,7 @@ export class Fauna {
     // Fauna salvaje observable
     this.wild = [];
     const corzoSpots = [[-60, -190], [120, -150], [-150, -230], [60, -250]];
-    corzoSpots.forEach(([x, z], i) => this.wild.push(this.add('corzo', x, z, { id: 'corzo', range: 20, walk: 0.9, run: 7, flee: 13, radius: 0.35 })));
+    corzoSpots.forEach(([x, z]) => this.wild.push(this.add('corzo', x, z, { id: 'corzo', range: 20, walk: 0.9, run: 7, flee: 13, radius: 0.35 })));
     [[-40, -380], [140, -330], [-120, -330]].forEach(([x, z]) => this.wild.push(this.add('ciervo', x, z, { id: 'ciervo', range: 25, walk: 1.0, run: 7.5, flee: 16, radius: 0.5 })));
     [[180, -220], [-200, -120]].forEach(([x, z]) => this.wild.push(this.add('jabali', x, z, { id: 'jabali', range: 25, walk: 0.8, run: 5, flee: 9, radius: 0.45 })));
     // Ardillas en los árboles

@@ -1,4 +1,4 @@
-// genera una tira de fotogramas de la animación de paso (vista lateral)
+// genera una tira de fotogramas de la animación de paso (vista lateral): node lab/strip.mjs <prefijo> [figura] [velocidad] [vista]
 import { chromium } from 'playwright-core';
 const [,, out, i = 0, speed = 3.3, view = 'side'] = process.argv;
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
@@ -10,4 +10,4 @@ for (let f = 0; f < 8; f++) {
   shots.push(await page.screenshot());
 }
 await browser.close();
-const fs = await import('fs'); shots.forEach((b, f) => fs.writeFileSync(`/tmp/strip_${f}.png`, b));
+const fs = await import('fs'); shots.forEach((b, f) => fs.writeFileSync(`${out || '/tmp/strip'}_${f}.png`, b));

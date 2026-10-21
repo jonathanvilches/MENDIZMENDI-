@@ -214,7 +214,7 @@ function makeFir(rnd, detail) {
 }
 function makeBush(rnd) {
   // mata central redondeada y dos laterales más sencillas (hay cientos: pocos triángulos)
-  return clean([blobCanopy(rnd, [[0, 0.7, 0, 0.9]], 0, '#3a6428', '#7fae45', 1, 0.6), blobCanopy(rnd, [[0.7, 0.5, 0.2, 0.7], [-0.6, 0.55, -0.2, 0.7]], -1, '#3a6428', '#7fae45', 1, 0.6)]);
+  return mergeKeep([blobCanopy(rnd, [[0, 0.7, 0, 0.9]], 0, '#3a6428', '#7fae45', 1, 0.6), blobCanopy(rnd, [[0.7, 0.5, 0.2, 0.7], [-0.6, 0.55, -0.2, 0.7]], -1, '#3a6428', '#7fae45', 1, 0.6)]);
 }
 
 // Piedra: esfera deformada por ruido, cortada por planos (caras de fractura planas) y con la base aplastada
@@ -295,38 +295,37 @@ vec4 triR(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.x +
 }
 const ROCK_TINT = { alpine: '#8f8d88', lush: '#8a8a80', dry: '#a39a88', arid: '#b8a684' };
 
-function clean(list) { return mergeKeep(list); }
 function makeOlive(rnd, detail) {
   // tronco retorcido y copa gris verdosa
   const t = trunk(1.6, 0.3, '#6b5a48', 7); jitter(t, 0.12, rnd);
   const blobs = [[0, 2.6, 0, 1.5], [1.1, 2.3, 0.3, 1.1], [-1.0, 2.4, -0.4, 1.1], [0.2, 3.1, 0.8, 1.0]];
-  return clean([t, blobCanopy(rnd, detail ? blobs : blobs.slice(0, 2), detail ? 1 : -1, '#5f6f45', '#9fae7c', 1.8, 2.6)]);
+  return mergeKeep([t, blobCanopy(rnd, detail ? blobs : blobs.slice(0, 2), detail ? 1 : -1, '#5f6f45', '#9fae7c', 1.8, 2.6)]);
 }
 function makePoplar(rnd, detail) {
   const t = trunk(4, 0.25, '#b9b3a3');
   const blobs = [[0, 5, 0, 1.6], [0, 7, 0, 1.5], [0, 8.8, 0, 1.2], [0.3, 6, 0.3, 1.3]];
   const c = blobCanopy(rnd, detail ? blobs : blobs.slice(0, 3), detail ? 1 : -1, '#557a2c', '#a8c460', 2.6, 6.8);
   c.scale(0.9, 1, 0.9);
-  return clean([t, c]);
+  return mergeKeep([t, c]);
 }
 function makePine(rnd, detail) {
   const t = trunk(5.5, 0.3, '#8a5a3a');
   const blobs = [[0, 6.6, 0, 2.2], [1.4, 6.1, 0.4, 1.5], [-1.3, 6.3, -0.3, 1.5], [0.2, 7.4, -0.6, 1.4]];
   const c = blobCanopy(rnd, detail ? blobs : blobs.slice(0, 2), detail ? 1 : -1, '#2f5a2e', '#6f9a4a', 2, 6.6);
   c.scale(1.1, 0.7, 1.1); c.translate(0, 2, 0);
-  return clean([t, c]);
+  return mergeKeep([t, c]);
 }
 function makeChestnut(rnd, detail) {
   const t = trunk(3, 0.5, '#5a4636');
   const blobs = [[0, 5, 0, 3.1], [2.2, 4.5, 0.4, 2.3], [-2.1, 4.6, -0.3, 2.4], [0.3, 6.3, 0, 2.2]];
-  return clean([t, blobCanopy(rnd, detail ? blobs : blobs.slice(0, 3), detail ? 1 : -1, '#355e22', '#88a83f', 3.4, 5.0)]);
+  return mergeKeep([t, blobCanopy(rnd, detail ? blobs : blobs.slice(0, 3), detail ? 1 : -1, '#355e22', '#88a83f', 3.4, 5.0)]);
 }
 function makeApple(rnd, detail) {
   const t = trunk(1.4, 0.18, '#6b5040');
   const blobs = [[0, 2.3, 0, 1.3], [0.8, 2.1, 0.3, 0.9], [-0.8, 2.2, -0.3, 0.9]];
   const parts = [t, blobCanopy(rnd, detail ? blobs : blobs.slice(0, 1), detail ? 1 : -1, '#3f7a2e', '#8dbb4c', 1.4, 2.3)];
   if (detail) for (let i = 0; i < 9; i++) { const a = i * 2.4, r = 1.1 + (i % 3) * 0.15; const f = new THREE.SphereGeometry(0.09, 5, 4); f.translate(Math.cos(a) * r, 1.8 + (i % 4) * 0.3, Math.sin(a) * r); parts.push(colorize(f.toNonIndexed(), (x, y, z, c) => c.set('#d8342c'))); }
-  return clean(parts);
+  return mergeKeep(parts);
 }
 
 // Material de árboles y matas: se mecen con el viento; la copa se vuelve punteada si la cámara la atraviesa.
@@ -486,7 +485,7 @@ function treeSpots(rnd) {
   const fits = (x, z) => { if (!isFree(x, z, 1.6) || onPlatform(x, z, 1.5)) return false; const p = pathQuery(x, z); return p.d > p.w + 0.8; };
   for (const [x, z, type, s, nudge] of SPECIAL_TREES || []) {
     const rot = rnd() * 6; let X = x, Z = z, ok = fits(x, z);
-    for (let k = 1; !ok && nudge && k <= 30; k++) { const a = k * 2.4, d = 1 + k * 0.28; X = x + Math.cos(a) * d; Z = z + Math.sin(a) * d; ok = fits(X, Z); }
+    if (nudge) for (let k = 1; !ok && k <= 30; k++) { const a = k * 2.4, d = 1 + k * 0.28; X = x + Math.cos(a) * d; Z = z + Math.sin(a) * d; ok = fits(X, Z); }
     if (ok) spots.push({ x: X, z: Z, y: terrainHeight(X, Z), type, s, rot, special: true });
   }
   // árboles sueltos en los linderos de los campos
@@ -540,7 +539,7 @@ export class Nature {
       s.col = addCircle(s.x, s.z, 0.45 * s.s + 0.1, { tree: true }); s.inst = [];
     }
     this.chunks = [];
-    const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler();
+    const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), sc = new THREE.Vector3();
     for (const [key, c] of chunks) {
       const [ci, cj] = key.split(',').map(Number);
       const cx = -HALF + (ci + 0.5) * CHUNK, cz = -HALF + (cj + 0.5) * CHUNK;
@@ -552,7 +551,7 @@ export class Nature {
           const im = new THREE.InstancedMesh(geos[type][lod], this.matTree, list.length);
           list.forEach((s, i) => {
             e.set((rnd() - 0.5) * 0.06, s.rot, (rnd() - 0.5) * 0.06); q.setFromEuler(e);
-            m4.compose(new THREE.Vector3(s.x, s.y - 0.25, s.z), q, new THREE.Vector3(s.s, s.s * (0.9 + rnd() * 0.25), s.s));
+            m4.compose(v.set(s.x, s.y - 0.25, s.z), q, sc.set(s.s, s.s * (0.9 + rnd() * 0.25), s.s));
             im.setMatrixAt(i, m4); s.inst.push([im, i]);
           });
           im.computeBoundingSphere();
@@ -599,11 +598,11 @@ export class Nature {
   }
   buildCrops(rnd, quality) {
     // viñedos (tipo 5) y huertas (tipo 7) en hileras
-    const vine = clean([
+    const vine = mergeKeep([
       colorize(new THREE.CylinderGeometry(0.05, 0.07, 0.8, 5).translate(0, 0.4, 0), (x, y, z, c) => c.set('#5a4030')),
       blobCanopy(rnd, [[0, 0.95, 0, 0.45], [0.35, 0.85, 0, 0.35], [-0.35, 0.85, 0, 0.35]], -1, '#3f6e2a', '#8fb84a', 0.5, 0.9),
     ]);
-    const veg = clean([blobCanopy(rnd, [[0, 0.2, 0, 0.28], [0.15, 0.15, 0.1, 0.2]], -1, '#2f6a2a', '#7fbf4a', 0.3, 0.2)]);
+    const veg = mergeKeep([blobCanopy(rnd, [[0, 0.2, 0, 0.28], [0.15, 0.15, 0.1, 0.2]], -1, '#2f6a2a', '#7fbf4a', 0.3, 0.2)]);
     const vines = [], vegs = [];
     const cap = quality === 'low' ? 1800 : 3500;
     for (let z = -380; z < 380 && vines.length + vegs.length < cap * 2; z += 1.6) for (let x = -380; x < 380; x += 1.6) {
@@ -616,13 +615,13 @@ export class Nature {
       (fi.type === 5 ? vines : vegs).push({ x, z, s: 0.8 + rnd() * 0.4 });
     }
     const mat = snowable(windMaterial(), 0.55, 0.25, 0.8);
-    const m4 = new THREE.Matrix4();
+    const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), sc = new THREE.Vector3();
     for (const o of vines.slice(0, cap)) addCircle(o.x, o.z, 0.28, { vine: true });   // (las cepas, como troncos: se anda entre las hileras)
     for (const [geo, list] of [[vine, vines.slice(0, cap)], [veg, vegs.slice(0, cap)]]) {
       if (!list.length) continue;
       for (const o of list) o.r = rnd() * 6;
       // hileras de cultivo: solo en los trozos cercanos (de lejos se ven en la textura del campo)
-      this.addChunked(list, geo, null, mat, (o) => m4.compose(new THREE.Vector3(o.x, terrainHeight(o.x, o.z) - 0.05, o.z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, o.r, 0)), new THREE.Vector3(o.s, o.s, o.s)), { name: 'cultivos' });
+      this.addChunked(list, geo, null, mat, (o) => m4.compose(v.set(o.x, terrainHeight(o.x, o.z) - 0.05, o.z), q.setFromEuler(e.set(0, o.r, 0)), sc.setScalar(o.s)), { name: 'cultivos' });
     }
   }
   buildRocks(rnd) {
@@ -647,13 +646,13 @@ export class Nature {
       else if (slope > 0.45 && rnd() < 0.25) put(x, z, 0.5 + rnd() * 1.4, 0.4, 0.3);
     }
     const m = rockMaterial(this.quality);
-    const q = new THREE.Quaternion(), e = new THREE.Euler();
+    const q = new THREE.Quaternion(), e = new THREE.Euler(), at = new THREE.Vector3(), sc = new THREE.Vector3();
     for (let v = 0; v < parts.length; v++) {
       const list = spots.filter(s => s.v === v);
       if (!list.length) continue;
       for (const s of list) {
         e.set((rnd() - 0.5) * 0.35, rnd() * 6.28, (rnd() - 0.5) * 0.35); q.setFromEuler(e);
-        s.m = new THREE.Matrix4().compose(new THREE.Vector3(s.x, terrainHeight(s.x, s.z) - s.s * s.sink, s.z), q.clone(), new THREE.Vector3(s.s * (0.8 + rnd() * 0.5), s.s * (0.7 + rnd() * 0.4), s.s * (0.8 + rnd() * 0.5)));
+        s.m = new THREE.Matrix4().compose(at.set(s.x, terrainHeight(s.x, s.z) - s.s * s.sink, s.z), q, sc.set(s.s * (0.8 + rnd() * 0.5), s.s * (0.7 + rnd() * 0.4), s.s * (0.8 + rnd() * 0.5)));
         if (s.s > 1.1) addCircle(s.x, s.z, s.s * 0.75);
       }
       // rocas por trozos: detalladas y con sombra de cerca (cinco formas)…

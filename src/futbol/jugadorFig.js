@@ -4,7 +4,7 @@
 // alternando de un club al siguiente, como en el catálogo del autor); el visitante con la segunda equipación, con la
 // blanca o la azul marino. Solo están en la web: en el archivo único no hay imagen y se queda la camiseta dibujada.
 // Las figuras miran a su izquierda: en la pantalla VS se gira solo la del rival, como la de los pelotaris.
-const byId = (g) => Object.fromEntries(Object.entries(g).map(([k, v]) => [k.split('/').pop().replace('.webp', ''), v]));
+import { byId } from '../util/glob.js';
 const IMG = byId(import.meta.glob('@jugadores/*.webp', { eager: true, query: '?url', import: 'default' }));
 // (y su busto, cabeza y pecho a 360 × 480, para la caja del próximo partido de la liga y el menú del club: tools/jugadores-busto.mjs)
 const BUSTO = byId(import.meta.glob('@jugadores/busto/*.webp', { eager: true, query: '?url', import: 'default' }));

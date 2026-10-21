@@ -1,10 +1,9 @@
-import { snowable } from './weather.js';
 import * as THREE from 'three';
+import { snowable } from './weather.js';
 import { HALF, CELL, N, finalHeight, riverInfo, meadowMask, valleyFloor, fieldInfo, TONE, skyTan } from './layout.js';
-import { ridged } from '../util/noise.js';
+import { ridged, fbm } from '../util/noise.js';
 import { H, SURF } from './heightfield.js';
 import { TEX } from './textures.js';
-import { fbm } from '../util/noise.js';
 import { lerp, smoothstep } from '../util/math.js';
 
 const CH = 100;                  // tamaño de trozo en metros
@@ -124,7 +123,7 @@ function buildChunk(ci, cj, step) {
   return g;
 }
 
-export function makeTerrainMaterial({ outer = false, quality = 'high' } = {}) {
+function makeTerrainMaterial({ outer = false, quality = 'high' } = {}) {
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0 });
   queueMicrotask(() => snowable(m, 0.85));   // nieve en el suelo (después del sombreador del terreno)
   const rockCol = (PAL.rock || C('#8b877c')).clone();
@@ -397,7 +396,7 @@ export class Terrain {
     const nc = (N - 1) / PER;
     for (let cj = 0; cj < nc; cj++) for (let ci = 0; ci < nc; ci++) {
       const hi = new THREE.Mesh(buildChunk(ci, cj, 1), this.mat);
-      const lo = new THREE.Mesh(buildChunk(ci, cj, quality === 'low' ? 5 : 5), this.mat);
+      const lo = new THREE.Mesh(buildChunk(ci, cj, 5), this.mat);
       hi.receiveShadow = lo.receiveShadow = true;
       hi.matrixAutoUpdate = lo.matrixAutoUpdate = false;
       const cx = -HALF + (ci + 0.5) * CH, cz = -HALF + (cj + 0.5) * CH;
@@ -450,6 +449,9 @@ export class Terrain {
     const nrm = g.attributes.normal;
     const meadowC = new THREE.Color('#5a8238'), meadowD = new THREE.Color('#7d8f45'), forestC = new THREE.Color('#2c4a22'), forestD = new THREE.Color('#3b5a2a');
     const rockC = new THREE.Color('#7b7367'), rockD = new THREE.Color('#5f5a52'), screeC = new THREE.Color('#9a9282'), snowC = new THREE.Color('#eef2f6');
+    const highC = new THREE.Color('#8a9150'), fernC = new THREE.Color('#7f8248'), fernD = new THREE.Color('#6d7a3e');
+    // en los montes atlánticos (Bidasoa, Baztan) las cimas son lomas de pasto y helecho, no roca pelada
+    const lush = TONE === 'lush';
     for (let v = 0; v < pos.length / 3; v++) {
       const x = pos[v * 3], h = pos[v * 3 + 1], z = pos[v * 3 + 2], sl = 1 - nrm.getY(v);
       const n1 = fbm(x / 90, z / 90, 2) * 0.5 + 0.5, n2 = fbm(x / 23 + 7, z / 23, 2) * 0.5 + 0.5;
@@ -457,10 +459,8 @@ export class Terrain {
       c.copy(meadowC).lerp(meadowD, n2 * 0.6);
       const forestBelt = smoothstep(20, 60, h) * (1 - smoothstep(150, 185, h + n1 * 25)) * smoothstep(0.42, 0.62, n1 + (1 - sl) * 0.15);
       c.lerp(n2 > 0.5 ? forestC : forestD, forestBelt * 0.92);
-      c.lerp(new THREE.Color('#8a9150'), smoothstep(150, 190, h + n1 * 30) * (1 - forestBelt) * 0.6);
-      // en los montes atlánticos (Bidasoa, Baztan) las cimas son lomas de pasto y helecho, no roca pelada
-      const lush = TONE === 'lush';
-      if (lush) c.lerp(n2 > 0.5 ? new THREE.Color('#7f8248') : new THREE.Color('#6d7a3e'), smoothstep(165, 215, h + n1 * 30) * (1 - forestBelt) * 0.8);
+      c.lerp(highC, smoothstep(150, 190, h + n1 * 30) * (1 - forestBelt) * 0.6);
+      if (lush) c.lerp(n2 > 0.5 ? fernC : fernD, smoothstep(165, 215, h + n1 * 30) * (1 - forestBelt) * 0.8);
       const rockAmt = Math.max(smoothstep(0.28, 0.46, sl + (n2 - 0.5) * 0.12), lush ? 0 : smoothstep(175, 225, h + n1 * 35));
       c.lerp(n2 > 0.55 ? rockC : rockD, rockAmt);
       c.lerp(screeC, smoothstep(0.2, 0.3, sl) * (1 - smoothstep(0.3, 0.4, sl)) * smoothstep(140, 190, h) * 0.5);

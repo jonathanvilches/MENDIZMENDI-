@@ -3,7 +3,8 @@
 // Uso: node tools/torneo-pueblo.mjs <pueblo> <carpeta> [hora] [fallo]
 import { chromium } from 'playwright-core';
 import { mkdirSync } from 'fs';
-const [,, town = 'pamplona', out = 'entrega/torneo', hora = '12', fallo = ''] = process.argv;   // fallo=1: el perro falla en cada imagen; fallo=memoria: se pierde la memoria gráfica al pulsar «¡A jugar!» (como en el iPhone) mkdirSync(out, { recursive: true });
+const [,, town = 'pamplona', out = 'entrega/torneo', hora = '12', fallo = ''] = process.argv;   // fallo=1: el perro falla en cada imagen; fallo=memoria: se pierde la memoria gráfica al pulsar «¡A jugar!» (como en el iPhone)
+mkdirSync(out, { recursive: true });
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true }); const errs = []; p.on('pageerror', e => errs.push(e.message));
 p.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errs.push(m.type() + ': ' + m.text().slice(0, 200)); });

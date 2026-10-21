@@ -3,7 +3,8 @@
 // los tejados, el suelo y las copas de los árboles blanqueando poco a poco.
 import * as THREE from 'three';
 
-export const SNOW = { value: 0 };   // 0…1: cuánta nieve cubre lo que mira hacia arriba (lo comparten los materiales)
+const SNOW = { value: 0 };   // 0…1: cuánta nieve cubre lo que mira hacia arriba (lo comparten los materiales)
+const _m = new THREE.Matrix4(), _p = new THREE.Vector3(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0);   // (las huellas)
 
 /** Añade nieve a un material: las caras que miran al cielo se vuelven blancas según SNOW.
  *  k: cuánta nieve como mucho; lo/hi: desde qué inclinación empieza a cuajar (las copas de los árboles, solo arriba). */
@@ -171,8 +172,7 @@ export class Weather {
     U.uZen.value.lerp(STORM_ZEN, 0.85 * k); U.uHor.value.lerp(STORM_HOR, 0.75 * k);
     // luz de tormenta (además de lo que ya baja con la lluvia): más oscuro y con la niebla gris plomo
     sky.sun.intensity *= 1 - 0.35 * k; sky.hemi.intensity *= 1 - 0.22 * k; sky.fog.color.lerp(this.grey, 0.35 * k);
-    // un rayo cada 5 a 17 s mientras llueve fuerte
-    // (un rayo cada 14 a 34 s; antes, cada pocos segundos, y la luz del pueblo saltaba sin parar)
+    // con lluvia fuerte, un rayo cada 14 a 34 s (antes, cada pocos segundos, y la luz del pueblo saltaba sin parar)
     if (!hold && k > 0.55 && (this.boltT = (this.boltT ?? 8 + Math.random() * 6) - dt) <= 0) { this.boltT = 14 + Math.random() * 20; this.strike(camera, sound); }
     // destello: dos o tres fogonazos seguidos que se apagan enseguida
     let I = 0;
@@ -221,10 +221,10 @@ export class Weather {
       this.scene.add(this.prints);
     }
     this.foot = -this.foot;
-    const i = this.pi % this.N, m = new THREE.Matrix4(), sx = Math.cos(heading), sz = -Math.sin(heading);
+    const i = this.pi % this.N, m = (this.printM[i] ||= new THREE.Matrix4()), sx = Math.cos(heading), sz = -Math.sin(heading);
     const x = pos.x + sx * this.foot * 0.12, z = pos.z + sz * this.foot * 0.12;
-    m.compose(new THREE.Vector3(x, pos.y + 0.03, z), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), heading + Math.PI), new THREE.Vector3(1, 1, 1));   // la puntera hacia donde se camina
-    this.prints.setMatrixAt(i, m); this.printM[i] = m; this.printAge[i] = 0;
+    m.compose(_p.set(x, pos.y + 0.03, z), _q.setFromAxisAngle(UP, heading + Math.PI), _s.set(1, 1, 1));   // la puntera hacia donde se camina
+    this.prints.setMatrixAt(i, m); this.printAge[i] = 0;
     this.pi++; this.prints.count = Math.min(this.N, this.pi); this.prints.instanceMatrix.needsUpdate = true;
   }
   // las huellas viejas se van tapando (se encogen) a partir de los 40 s
@@ -232,11 +232,10 @@ export class Weather {
     if (!this.prints) return;
     this.printTick = (this.printTick || 0) + dt; if (this.printTick < 0.5) return;
     const step = this.printTick; this.printTick = 0; let dirty = false;
-    const p = new THREE.Vector3(), q = new THREE.Quaternion(), sc = new THREE.Vector3();
     for (let i = 0; i < this.prints.count; i++) {
       const a = (this.printAge[i] += step); if (a < 40) continue;
-      const k = Math.max(0, 1 - (a - 40) / 20); this.printM[i].decompose(p, q, sc); sc.setScalar(k);
-      this.prints.setMatrixAt(i, new THREE.Matrix4().compose(p, q, sc)); dirty = true;
+      const k = Math.max(0, 1 - (a - 40) / 20); this.printM[i].decompose(_p, _q, _s); _s.setScalar(k);
+      this.prints.setMatrixAt(i, _m.compose(_p, _q, _s)); dirty = true;
     }
     if (dirty) this.prints.instanceMatrix.needsUpdate = true;
   }

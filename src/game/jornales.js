@@ -14,7 +14,7 @@ import { groundHeight } from '../world/heightfield.js';
 
 const AGAIN = 150;   // segundos hasta poder repetir el mismo trabajo
 
-export const JOBS = {
+const JOBS = {
   esquilar: { who: 'pastor', title: 'Esquilar las ovejas', icon: 'wool', game: 'shear', pay: 8, goods: 'lana',
     ask: '¿Me ayudas a esquilar? Antes se hacía a mano, con tijeras grandes, a principios del verano. La lana sale entera, como un abrigo.',
     then: 'Con tijeras de mano, oveja por oveja, en el suelo de la borda.', now: 'Con máquinas eléctricas: un buen esquilador pela una oveja en dos minutos.' },
@@ -67,7 +67,7 @@ export class Jornales {
     const kinds = BY_COMARCA[d.comarca] || ['forja'];
     for (const k of kinds) {
       const who = JOBS[k].who, at = k === 'vendimia' || k === 'huerta' ? this.nearFarm(k === 'huerta' ? -14 : 18) : this.nearHouse();
-      if (at) this.attach(this.spawn(who, at, k), [k]);
+      if (at) this.attach(this.spawn(who, at), [k]);
     }
     if (d.comarca === 'ribera' || d.comarca === 'ribera-alta') JOBS.huerta.kind = d.comarca === 'ribera' ? 'alcachofa' : 'pimiento';
   }
@@ -81,7 +81,7 @@ export class Jornales {
     const h = hs[2 + (this.list.length * 3) % Math.max(1, hs.length - 2)] || hs[0];
     return h ? this.g.spot(h.door, 2) : this.g.spot({ x: P.x + 14, z: P.z + 10 }, 3);
   }
-  spawn(who, at, k) {
+  spawn(who, at) {
     const a = new Actor({ id: 'job-' + who, name: NAME[who] || who, x: at.x, z: at.z, look: LOOK[who] || {}, wander: 1.5, walkSpeed: 0.6 }, this.g.scene);
     this.g.walkers.push(a);
     // el herrero, con su yunque al lado
@@ -130,7 +130,7 @@ export class Jornales {
     if (this.escort?.a === a) return g.say(a, ['¡Vamos, que ya queda poco! No te separes.']);
     const free = a.jobs.filter(j => this.ready(j));
     if (!free.length) return g.say(a, ['Por hoy ya está, ¡eskerrik asko! Vuelve dentro de un rato si necesitas txanponak.']);
-    if (a.info && !a.explained) { a.explained = true; await g.explainWork(a, true); }
+    if (a.info && !a.explained) { a.explained = true; await g.explainWork(a); }
     const id = free.length > 1 ? await this.choose(a, free) : free[0];
     if (!id) return;
     return this.work(a, id);
@@ -163,9 +163,8 @@ export class Jornales {
     } finally { g.player.frozen = false; if (g.mode === 'mini') g.mode = 'play'; a.talking = 0; }
     if (!r) return;
     if (r.win) { g.player.rig.doCheer?.(); await this.pay(id, a, null); }
-    else if (r.quit) return;   // lo ha dejado: sin reproches
-    else if (r.error) await g.say(a, ['Hoy no hay manera de ponerse con esto. Vuelve en un rato y lo hacemos.']);   // la escena no se pudo montar
-    else await g.say(a, ['¡Casi! Es más difícil de lo que parece. Cuando quieras, lo volvemos a intentar.']);
+    // (si lo ha dejado, sin reproches; con error, la escena no se pudo montar)
+    else if (!r.quit) await g.say(a, [r.error ? 'Hoy no hay manera de ponerse con esto. Vuelve en un rato y lo hacemos.' : '¡Casi! Es más difícil de lo que parece. Cuando quieras, lo volvemos a intentar.']);
   }
   async pay(id, a, line) {
     const g = this.g, J = JOBS[id];

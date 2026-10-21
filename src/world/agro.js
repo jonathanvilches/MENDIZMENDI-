@@ -7,13 +7,12 @@ import { fieldInfo, PLACES, HALF } from './layout.js';
 import { terrainHeight, groundHeight, onPlatform } from './heightfield.js';
 import { addBox, isFree } from './colliders.js';
 import { TOWN } from './townBuilder.js';
+import { paintedPart as part } from './builder.js';
 
 const MAT = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.62, metalness: 0.15 });
 const GLASS = new THREE.MeshStandardMaterial({ color: '#3a4a58', roughness: 0.1, metalness: 0.4, transparent: true, opacity: 0.55 });
 const WHEEL = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9 });
 
-const tint = (g, hex) => { const c = new THREE.Color(hex), n = g.attributes.position.count, a = new Float32Array(n * 3); for (let i = 0; i < n; i++) { a[i * 3] = c.r; a[i * 3 + 1] = c.g; a[i * 3 + 2] = c.b; } g.setAttribute('color', new THREE.BufferAttribute(a, 3)); return g; };
-const part = (geo, hex, x, y, z, rx = 0, ry = 0, rz = 0) => { const g = geo.index ? geo.toNonIndexed() : geo; g.deleteAttribute('uv'); g.rotateX(rx); g.rotateY(ry); g.rotateZ(rz); g.translate(x, y, z); return tint(g, hex); };
 const box = (w, h, d) => new THREE.BoxGeometry(w, h, d);
 const cyl = (r1, r2, h, n = 12) => new THREE.CylinderGeometry(r1, r2, h, n);
 
@@ -25,7 +24,7 @@ function wheel(r, w, rim) {
 }
 
 // Tractor: capó, cabina con cristales, ruedas grandes detrás y pequeñas delante. Mira hacia +z.
-export function tractor(color = '#3f8a3a', implement = null) {
+function tractor(color = '#3f8a3a', implement = null) {
   const g = new THREE.Group(), P = [];
   P.push(part(box(0.9, 0.45, 2.6), '#2c2c30', 0, 0.75, 0.2));                       // bastidor
   P.push(part(box(0.86, 0.75, 1.5), color, 0, 1.25, 0.85));                          // capó
@@ -64,7 +63,7 @@ export function tractor(color = '#3f8a3a', implement = null) {
 }
 
 // Cosechadora: cabina alta delante, cabezal de corte con molinete, tolva y tubo de descarga. Mira hacia +z.
-export function combine(color = '#c8a227') {
+function combine(color = '#c8a227') {
   const g = new THREE.Group(), P = [];
   P.push(part(box(2.6, 2.2, 5.2), color, 0, 2.1, -0.6));                             // cuerpo
   P.push(part(box(2.4, 0.9, 2.6), color, 0, 3.6, -1.3));                             // tolva de grano
@@ -91,7 +90,7 @@ export function combine(color = '#c8a227') {
 }
 
 // Pacas: redondas (de hierba, envueltas o de paja) en hilera
-export function bales(kind, n, rnd) {
+function bales(kind, n, rnd) {
   const P = [];
   for (let i = 0; i < n; i++) {
     const x = (i % 3) * 2.6 + (rnd() - 0.5) * 0.6, z = Math.floor(i / 3) * 3 + (rnd() - 0.5) * 0.6;
@@ -102,7 +101,7 @@ export function bales(kind, n, rnd) {
 }
 
 // Qué se cuenta de cada máquina: cómo se hacía antes y cómo ahora
-export const AGRO_INFO = {
+const AGRO_INFO = {
   plough: { icon: 'wheat', title: 'El tractor arando', text: 'Arar es dar la vuelta a la tierra para que se airee y la semilla pueda crecer.',
     then: 'Se araba con una pareja de bueyes o de mulas tirando de un arado de madera con reja de hierro. Arar un campo costaba días.', now: 'El tractor tira de un arado de varias rejas. Una sola persona ara en unas horas lo que antes llevaba una semana.' },
   combine: { icon: 'wheat', title: 'La cosechadora', text: 'En verano el trigo y la cebada se cosechan cuando la espiga está seca y dorada.',

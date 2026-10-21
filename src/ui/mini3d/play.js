@@ -4,8 +4,8 @@
 import { iconSVG } from '../icons.js';
 import { Stage } from './stage.js';
 import { releaseTextures } from './kit.js';
+import { esc } from '../../util/html.js';
 
-const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 function hud(ui, { title, hint, icon, buttons = '', extra = '' }) {
   ui.closeModal?.();

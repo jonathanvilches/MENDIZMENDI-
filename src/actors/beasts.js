@@ -7,19 +7,11 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { FILL_DECL, useFill } from '../engine/charLight.js';
+import { clamp, smoothstep as sm } from '../util/math.js';
+import { vnoise3 } from '../util/noise.js';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const C = (h) => new THREE.Color(h);
-const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-const sm = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
-function hash(x, y, z) { const s = Math.sin(x * 127.1 + y * 311.7 + z * 74.7) * 43758.5453; return s - Math.floor(s); }
-function vnoise(x, y, z) {
-  const ix = Math.floor(x), iy = Math.floor(y), iz = Math.floor(z), fx = x - ix, fy = y - iy, fz = z - iz;
-  const u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy), w = fz * fz * (3 - 2 * fz);
-  const L = (a, b, t) => a + (b - a) * t;
-  return L(L(L(hash(ix, iy, iz), hash(ix + 1, iy, iz), u), L(hash(ix, iy + 1, iz), hash(ix + 1, iy + 1, iz), u), v),
-    L(L(hash(ix, iy, iz + 1), hash(ix + 1, iy, iz + 1), u), L(hash(ix, iy + 1, iz + 1), hash(ix + 1, iy + 1, iz + 1), u), v), w);
-}
 
 // ---------- Material del pelaje ----------
 // aTex: 0 piel lisa (hocico, labios), 2 pelo corto, 3 lana, 4 cuerno/pezuña, 6 ojo, 7 pluma
@@ -73,7 +65,7 @@ float bsurf(vec3 p, float t) {
   m.customProgramCacheKey = () => 'beast' + side;
   return m;
 }
-export const BEAST_MAT = beastMat(), BEAST_MAT2 = beastMat(THREE.DoubleSide);
+const BEAST_MAT = beastMat(), BEAST_MAT2 = beastMat(THREE.DoubleSide);
 
 // ---------- Geometría ----------
 // Prepara cualquier geometría: sólo posición, normal, color y tipo de superficie; siempre indexada.
@@ -96,7 +88,7 @@ const ball = (r, color, tex, x, y, z, sx = 1, sy = 1, sz = 1, rx = 0, ry = 0, rz
 
 // Loft: columna (puntos de control) + secciones [ancho, alto por arriba, alto por abajo, (desplazamiento vertical)]
 // color(u, th, p) → Color; bump(u, th, p) → empuje radial (lana, cerdas, mechones)
-export function loft({ pts, r, seg = 24, ring = 22, e = 2, color = '#888', tex = 2, bump, side0 = V(1, 0, 0), capA = true, capB = true, capK = 0.55 }) {
+function loft({ pts, r, seg = 24, ring = 22, e = 2, color = '#888', tex = 2, bump, side0 = V(1, 0, 0), capA = true, capB = true, capK = 0.55 }) {
   seg = Math.max(4, Math.round(seg * RES)); ring = Math.max(6, Math.round(ring * RES));
   const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
   const n = pts.length, R = (u) => {
@@ -201,17 +193,17 @@ const horn = (pts, r0, r1, base, tip) => loft({ pts, r: pts.map((_, i) => { cons
 // ---------- Especies ----------
 // Cada especie define: cuerpo (tronco), cabeza+cuello (pivota en la base del cuello),
 // patas delanteras/traseras (pivotan en la cadera y el hombro) y cola.
-export const BEASTS = {
+const BEASTS = {
   // Oveja latxa (cara negra): lana basta de mechas largas que cuelgan, cara y patas negras, orejas horizontales
   sheep: (rnd) => {
     const W = '#ece2cc', Wd = '#cdbf9f', F = '#2a221e';
-    const wool = (u, th, p) => { const n = vnoise(p.x * 9, p.y * 9, p.z * 9), hang = th < 0 ? Math.pow(-Math.sin(th), 3) : 0; return 0.03 * n + hang * (0.05 + 0.07 * vnoise(p.x * 14, p.z * 14, 3)); };
-    const wc = (u, th, p) => C(W).lerp(C(Wd), clamp(0.35 * vnoise(p.x * 8, p.y * 8, p.z * 8) + (th < 0 ? 0.35 : 0) + (p.y < 0.4 ? 0.2 : 0), 0, 1));
+    const wool = (u, th, p) => { const n = vnoise3(p.x * 9, p.y * 9, p.z * 9), hang = th < 0 ? Math.pow(-Math.sin(th), 3) : 0; return 0.03 * n + hang * (0.05 + 0.07 * vnoise3(p.x * 14, p.z * 14, 3)); };
+    const wc = (u, th, p) => C(W).lerp(C(Wd), clamp(0.35 * vnoise3(p.x * 8, p.y * 8, p.z * 8) + (th < 0 ? 0.35 : 0) + (p.y < 0.4 ? 0.2 : 0), 0, 1));
     const body = loft({ pts: [V(0, 0.6, -0.5), V(0, 0.62, -0.38), V(0, 0.62, -0.1), V(0, 0.63, 0.18), V(0, 0.64, 0.38), V(0, 0.64, 0.5)],
       r: [[0.12, 0.12, 0.12], [0.26, 0.24, 0.26], [0.3, 0.27, 0.3], [0.3, 0.27, 0.3], [0.26, 0.25, 0.28], [0.14, 0.15, 0.16]], color: wc, tex: 3, bump: wool, ring: 28, seg: 12 });
     const headG = mergeAll([
-      loft({ pts: [V(0, -0.05, -0.1), V(0, 0.06, 0.06), V(0, 0.14, 0.16)], r: [[0.16, 0.16, 0.18], [0.13, 0.13, 0.15], [0.1, 0.1, 0.11]], color: wc, tex: 3, bump: (u, th, p) => 0.02 * vnoise(p.x * 10, p.y * 10, p.z * 10), ring: 22 }),
-      loft({ pts: [V(0, 0.19, 0.08), V(0, 0.18, 0.17), V(0, 0.12, 0.27), V(0, 0.08, 0.32)], r: [[0.08, 0.085, 0.075], [0.075, 0.075, 0.07], [0.058, 0.055, 0.06], [0.048, 0.042, 0.045]], color: (u, th, p) => u > 0.9 ? '#1a1412' : F, tex: 2, ring: 20 }),
+      loft({ pts: [V(0, -0.05, -0.1), V(0, 0.06, 0.06), V(0, 0.14, 0.16)], r: [[0.16, 0.16, 0.18], [0.13, 0.13, 0.15], [0.1, 0.1, 0.11]], color: wc, tex: 3, bump: (u, th, p) => 0.02 * vnoise3(p.x * 10, p.y * 10, p.z * 10), ring: 22 }),
+      loft({ pts: [V(0, 0.19, 0.08), V(0, 0.18, 0.17), V(0, 0.12, 0.27), V(0, 0.08, 0.32)], r: [[0.08, 0.085, 0.075], [0.075, 0.075, 0.07], [0.058, 0.055, 0.06], [0.048, 0.042, 0.045]], color: (u) => u > 0.9 ? '#1a1412' : F, tex: 2, ring: 20 }),
       ball(0.055, wc, 3, 0, 0.255, 0.1, 1.25, 0.6, 1.0),
       ...eye(0.064, 0.205, 0.17, 0.019, 0.9, F, '#b8862e', '#0d0806'),
       ...[-1, 1].map(s => ear(0.11, 0.04, 0.012, F, '#5a4038').applyMatrix4(Mx(s * 0.075, 0.215, 0.09, 0.2, 0, -s * 1.5))),
@@ -227,11 +219,11 @@ export const BEASTS = {
   // y para el cabestro (buey manso con cencerro que guía a los toros en el encierro)
   cow: (rnd, o = {}) => {
     const B = o.c || '#c48a4c', L = o.light || '#e9cf9e', Dk = o.dark || '#9c6a38', MZ = o.muzzle || '#f0dcb8', HM = o.hump || 1;
-    const coat = (u, th, p) => { const belly = th < -0.6 ? 0.35 : 0; return C(B).lerp(C(L), belly + 0.08 * vnoise(p.x * 3, p.y * 3, p.z * 3)).lerp(C(Dk), p.y > 1.2 && Math.abs(p.x) < 0.12 ? 0.25 : 0); };
+    const coat = (u, th, p) => { const belly = th < -0.6 ? 0.35 : 0; return C(B).lerp(C(L), belly + 0.08 * vnoise3(p.x * 3, p.y * 3, p.z * 3)).lerp(C(Dk), p.y > 1.2 && Math.abs(p.x) < 0.12 ? 0.25 : 0); };
     const body = loft({ pts: [V(0, 1.08, -0.9), V(0, 1.1, -0.72), V(0, 1.05, -0.35), V(0, 1.02, 0.05), V(0, 1.08, 0.45), V(0, 1.1, 0.72), V(0, 1.08, 0.86)],
       r: [[0.18, 0.18, 0.2], [0.4, 0.3, 0.42], [0.44, 0.33, 0.52], [0.47, 0.34, 0.56], [0.43 * HM, 0.38 * HM * HM, 0.54], [0.34 * HM, 0.33 * HM * HM, 0.5], [0.16, 0.2, 0.25]], color: coat, ring: 30, seg: 12,
       bump: (u, th, p) => (Math.abs(Math.abs(p.x) - 0.3) < 0.1 && Math.abs(p.z + 0.62) < 0.12 && th > 0.2 ? 0.05 * (1 - Math.abs(p.z + 0.62) / 0.12) : 0) });
-    const face = (u, th, p) => { const side = Math.abs(Math.cos(th)); const ring = sm(0.28, 0.36, u) * (1 - sm(0.4, 0.5, u)) * side; return u > 0.86 ? C(o.nose || '#e7c0a4') : C(B).lerp(C(MZ), Math.max(ring * 0.85, sm(0.74, 0.86, u) * 0.9)); };
+    const face = (u, th) => { const side = Math.abs(Math.cos(th)); const ring = sm(0.28, 0.36, u) * (1 - sm(0.4, 0.5, u)) * side; return u > 0.86 ? C(o.nose || '#e7c0a4') : C(B).lerp(C(MZ), Math.max(ring * 0.85, sm(0.74, 0.86, u) * 0.9)); };
     const headG = mergeAll([
       loft({ pts: [V(0, -0.1, -0.12), V(0, 0.02, 0.12), V(0, 0.1, 0.32)], r: [[0.3, 0.3, 0.44], [0.24, 0.26, 0.38], [0.17, 0.2, 0.24]], color: coat, ring: 24 }),
       loft({ pts: [V(0, 0.2, 0.3), V(0, 0.16, 0.44), V(0, 0.02, 0.6), V(0, -0.14, 0.74), V(0, -0.2, 0.8)], r: [[0.2, 0.16, 0.14], [0.17, 0.14, 0.13], [0.12, 0.1, 0.1], [0.12, 0.09, 0.1], [0.11, 0.07, 0.08]], color: face, ring: 24, e: 2.3 }),
@@ -252,7 +244,7 @@ export const BEASTS = {
   // Pottoka: poni vasco robusto, castaño oscuro, crin espesa, cabeza de perfil recto, patas cortas
   pottoka: () => {
     const B = '#3b2418', Bl = '#5a3b28', M = '#140e0b';
-    const coat = (u, th, p) => C(B).lerp(C(Bl), th < -0.5 ? 0.35 : 0.12 * vnoise(p.x * 4, p.y * 4, p.z * 4));
+    const coat = (u, th, p) => C(B).lerp(C(Bl), th < -0.5 ? 0.35 : 0.12 * vnoise3(p.x * 4, p.y * 4, p.z * 4));
     const body = loft({ pts: [V(0, 0.9, -0.62), V(0, 0.92, -0.45), V(0, 0.88, -0.1), V(0, 0.88, 0.2), V(0, 0.94, 0.45), V(0, 0.95, 0.6)],
       r: [[0.16, 0.16, 0.18], [0.3, 0.28, 0.32], [0.32, 0.27, 0.35], [0.32, 0.27, 0.35], [0.29, 0.31, 0.34], [0.16, 0.2, 0.22]], color: coat, ring: 28, seg: 12 });
     const neckPts = [V(0, -0.05, -0.08), V(0, 0.16, 0.08), V(0, 0.34, 0.2), V(0, 0.44, 0.28)];
@@ -264,23 +256,23 @@ export const BEASTS = {
       ...[-1, 1].map(s => ear(0.11, 0.035, 0.014, B, '#6a4a38').applyMatrix4(Mx(s * 0.05, 0.54, 0.22, -0.2, 0, -s * 0.25))),
       // crin: cresta gruesa a lo largo del cuello y tupé sobre la frente
       loft({ pts: [V(0, 0.08, -0.14), V(0, 0.28, 0.0), V(0, 0.48, 0.14), V(0, 0.58, 0.22)], r: [[0.03, 0.1, 0.02], [0.035, 0.1, 0.02], [0.03, 0.08, 0.02], [0.02, 0.04, 0.01]], color: M, tex: 2, ring: 12,
-        bump: (u, th, p) => 0.035 * vnoise(p.x * 30, p.y * 30, p.z * 30) }),
+        bump: (u, th, p) => 0.035 * vnoise3(p.x * 30, p.y * 30, p.z * 30) }),
       tube([V(0, 0.56, 0.22), V(0, 0.52, 0.3), V(0, 0.44, 0.34)], 0.035, 0.015, M),
       ...[-1, 1].map(s => tube([V(s * 0.03, 0.4, 0.1), V(s * 0.1, 0.25, 0.02), V(s * 0.12, 0.1, -0.06)], 0.03, 0.01, M)),
     ]);
     const fl = (x) => leg([[V(x, 0, 0), [0.11, 0.11, 0.12]], [V(x, -0.2, 0.01), [0.075, 0.075, 0.075]], [V(x, -0.44, 0), [0.052, 0.052, 0.05]], [V(x, -0.64, 0.01), [0.042, 0.042, 0.042]], [V(x, -0.76, 0.03), [0.05, 0.05, 0.05]], [V(x, -0.86, 0.05), [0.052, 0.052, 0.052]]], (p, t) => C(B).lerp(C('#24160f'), sm(0.5, 0.8, t)), '#1a1411', { hoofH: 0.07 });
     const hl = (x) => leg([[V(x, 0, 0), [0.14, 0.14, 0.17]], [V(x, -0.24, 0.07), [0.1, 0.1, 0.11]], [V(x, -0.46, -0.1), [0.05, 0.05, 0.07]], [V(x, -0.66, -0.06), [0.044, 0.044, 0.044]], [V(x, -0.8, -0.02), [0.05, 0.05, 0.05]], [V(x, -0.88, 0), [0.052, 0.052, 0.052]]], (p, t) => C(B).lerp(C('#24160f'), sm(0.5, 0.8, t)), '#1a1411', { hoofH: 0.07 });
     return { body, head: headG, neck: V(0, 1.02, 0.5), legs: { fl: [0.16, 0.86, 0.42], hl: [0.17, 0.88, -0.44], front: fl, hind: hl },
-      tail: mergeAll([loft({ pts: [V(0, 0, 0), V(0, -0.05, -0.12), V(0, -0.3, -0.18), V(0, -0.6, -0.14)], r: [[0.05, 0.05, 0.05], [0.07, 0.07, 0.07], [0.08, 0.07, 0.07], [0.04, 0.03, 0.03]], color: M, ring: 12, bump: (u, th, p) => 0.02 * vnoise(p.x * 40, p.y * 12, p.z * 40) })]), tailAt: V(0, 0.98, -0.6) };
+      tail: mergeAll([loft({ pts: [V(0, 0, 0), V(0, -0.05, -0.12), V(0, -0.3, -0.18), V(0, -0.6, -0.14)], r: [[0.05, 0.05, 0.05], [0.07, 0.07, 0.07], [0.08, 0.07, 0.07], [0.04, 0.03, 0.03]], color: M, ring: 12, bump: (u, th, p) => 0.02 * vnoise3(p.x * 40, p.y * 12, p.z * 40) })]), tailAt: V(0, 0.98, -0.6) };
   },
   // Corzo: pequeño y esbelto, pelaje rojizo de verano, hocico negro con bigotera y barbilla blancas,
   // orejas grandes, escudo anal blanco y cuernos cortos de tres puntas en el macho
   corzo: (rnd, opts = {}) => {
     const R = '#a4552a', Rl = '#c27a48', W = '#f4efe6';
-    const coat = (u, th, p) => { let c = C(R).lerp(C(Rl), th < -0.5 ? 0.45 : 0.1 * vnoise(p.x * 6, p.y * 6, p.z * 6)); if (p.z < -0.3 && th > -1.2 && Math.abs(p.x) < 0.14) c.lerp(C(W), sm(-0.3, -0.38, p.z)); return c; };
+    const coat = (u, th, p) => { let c = C(R).lerp(C(Rl), th < -0.5 ? 0.45 : 0.1 * vnoise3(p.x * 6, p.y * 6, p.z * 6)); if (p.z < -0.3 && th > -1.2 && Math.abs(p.x) < 0.14) c.lerp(C(W), sm(-0.3, -0.38, p.z)); return c; };
     const body = loft({ pts: [V(0, 0.64, -0.42), V(0, 0.66, -0.3), V(0, 0.63, -0.05), V(0, 0.64, 0.18), V(0, 0.68, 0.34), V(0, 0.7, 0.42)],
       r: [[0.1, 0.1, 0.1], [0.15, 0.15, 0.17], [0.16, 0.15, 0.19], [0.16, 0.15, 0.2], [0.14, 0.17, 0.19], [0.08, 0.11, 0.11]], color: coat, ring: 24, seg: 12 });
-    const face = (u, th, p) => u > 0.86 ? C('#141010') : u > 0.72 && th < -0.3 ? C(W) : C(R).lerp(C('#6a4a38'), sm(0.3, 0.7, u) * 0.4);
+    const face = (u, th) => u > 0.86 ? C('#141010') : u > 0.72 && th < -0.3 ? C(W) : C(R).lerp(C('#6a4a38'), sm(0.3, 0.7, u) * 0.4);
     const headG = mergeAll([
       loft({ pts: [V(0, -0.04, -0.06), V(0, 0.14, 0.04), V(0, 0.3, 0.1), V(0, 0.38, 0.13)], r: [[0.1, 0.12, 0.13], [0.075, 0.08, 0.09], [0.06, 0.065, 0.07], [0.055, 0.06, 0.06]], color: coat, ring: 20 }),
       loft({ pts: [V(0, 0.42, 0.09), V(0, 0.42, 0.17), V(0, 0.36, 0.28), V(0, 0.32, 0.33)], r: [[0.07, 0.07, 0.07], [0.065, 0.06, 0.06], [0.04, 0.035, 0.04], [0.03, 0.025, 0.03]], color: face, ring: 20 }),
@@ -298,10 +290,10 @@ export const BEASTS = {
   // Ciervo: gran macho pardo-grisáceo, cuello oscuro con melena, escudo claro y cuerna ramificada
   ciervo: () => {
     const B = '#7b5638', Bd = '#4f3524', Lr = '#d8c4a0';
-    const coat = (u, th, p) => { let c = C(B).lerp(C('#a88a68'), th < -0.5 ? 0.35 : 0.1 * vnoise(p.x * 4, p.y * 4, p.z * 4)); if (p.z < -0.55 && Math.abs(p.x) < 0.2) c.lerp(C(Lr), sm(-0.55, -0.68, p.z)); return c; };
+    const coat = (u, th, p) => { let c = C(B).lerp(C('#a88a68'), th < -0.5 ? 0.35 : 0.1 * vnoise3(p.x * 4, p.y * 4, p.z * 4)); if (p.z < -0.55 && Math.abs(p.x) < 0.2) c.lerp(C(Lr), sm(-0.55, -0.68, p.z)); return c; };
     const body = loft({ pts: [V(0, 1.12, -0.72), V(0, 1.15, -0.55), V(0, 1.1, -0.15), V(0, 1.12, 0.25), V(0, 1.2, 0.52), V(0, 1.24, 0.66)],
       r: [[0.16, 0.16, 0.16], [0.26, 0.25, 0.3], [0.28, 0.25, 0.33], [0.28, 0.26, 0.34], [0.26, 0.3, 0.34], [0.14, 0.2, 0.2]], color: coat, ring: 28, seg: 12 });
-    const neckC = (u, th, p) => C(Bd).lerp(C(B), sm(0.7, 1, u) * 0.5);
+    const neckC = (u) => C(Bd).lerp(C(B), sm(0.7, 1, u) * 0.5);
     const antler = [];
     for (const s of [-1, 1]) {
       const main = [V(s * 0.06, 0.62, 0.16), V(s * 0.16, 0.8, 0.12), V(s * 0.24, 1.0, 0.02), V(s * 0.26, 1.2, -0.08), V(s * 0.22, 1.36, -0.12)];
@@ -311,7 +303,7 @@ export const BEASTS = {
     }
     const headG = mergeAll([
       loft({ pts: [V(0, -0.06, -0.1), V(0, 0.2, 0.04), V(0, 0.42, 0.14), V(0, 0.54, 0.18)], r: [[0.18, 0.2, 0.26], [0.13, 0.14, 0.2], [0.1, 0.1, 0.13], [0.085, 0.09, 0.1]], color: neckC, ring: 22,
-        bump: (u, th, p) => th < -0.4 && u < 0.8 ? 0.04 * vnoise(p.x * 25, p.y * 25, p.z * 25) : 0 }),
+        bump: (u, th, p) => th < -0.4 && u < 0.8 ? 0.04 * vnoise3(p.x * 25, p.y * 25, p.z * 25) : 0 }),
       loft({ pts: [V(0, 0.6, 0.12), V(0, 0.6, 0.24), V(0, 0.5, 0.4), V(0, 0.44, 0.48)], r: [[0.1, 0.1, 0.1], [0.09, 0.085, 0.085], [0.06, 0.05, 0.055], [0.045, 0.038, 0.042]], color: (u) => u > 0.86 ? C('#1a1412') : C(B).lerp(C('#5a3e2a'), sm(0.4, 0.8, u) * 0.5), ring: 20 }),
       ...eye(0.075, 0.6, 0.26, 0.026, 1.0, B),
       ...[-1, 1].map(s => ear(0.17, 0.06, 0.012, B, '#d8c8b0').applyMatrix4(Mx(s * 0.07, 0.64, 0.14, -0.2, 0, -s * 0.9))),
@@ -326,12 +318,12 @@ export const BEASTS = {
   // Jabalí: delantera maciza y trasera estrecha, cabeza en cuña, cerdas oscuras con crin dorsal, jeta y colmillos
   jabali: () => {
     const B = '#3a302a', Bl = '#5a4a3e';
-    const coat = (u, th, p) => C(B).lerp(C(Bl), 0.25 * vnoise(p.x * 9, p.y * 9, p.z * 9) + (th < -0.6 ? 0.1 : 0));
-    const bristle = (u, th, p) => { const top = Math.max(0, Math.sin(th)); return 0.006 * vnoise(p.x * 60, p.y * 60, p.z * 60) + (top > 0.93 ? 0.05 * (top - 0.93) / 0.07 * (0.6 + 0.4 * vnoise(p.x * 80, p.y * 80, p.z * 80)) * sm(0.15, 0.5, u) : 0); };
+    const coat = (u, th, p) => C(B).lerp(C(Bl), 0.25 * vnoise3(p.x * 9, p.y * 9, p.z * 9) + (th < -0.6 ? 0.1 : 0));
+    const bristle = (u, th, p) => { const top = Math.max(0, Math.sin(th)); return 0.006 * vnoise3(p.x * 60, p.y * 60, p.z * 60) + (top > 0.93 ? 0.05 * (top - 0.93) / 0.07 * (0.6 + 0.4 * vnoise3(p.x * 80, p.y * 80, p.z * 80)) * sm(0.15, 0.5, u) : 0); };
     const body = loft({ pts: [V(0, 0.55, -0.62), V(0, 0.56, -0.48), V(0, 0.58, -0.15), V(0, 0.62, 0.2), V(0, 0.64, 0.42), V(0, 0.62, 0.52)],
       r: [[0.1, 0.1, 0.12], [0.2, 0.2, 0.24], [0.25, 0.26, 0.3], [0.28, 0.33, 0.32], [0.27, 0.34, 0.3], [0.2, 0.26, 0.24]], color: coat, ring: 28, seg: 12, bump: bristle });
     const headG = mergeAll([
-      loft({ pts: [V(0, 0.02, -0.06), V(0, 0.0, 0.1), V(0, -0.08, 0.26), V(0, -0.15, 0.38), V(0, -0.17, 0.43)], r: [[0.22, 0.27, 0.23], [0.17, 0.2, 0.17], [0.11, 0.1, 0.11], [0.075, 0.07, 0.075], [0.07, 0.065, 0.07]], color: (u) => u > 0.93 ? C('#6a544a') : C(B), ring: 24, bump: (u, th, p) => 0.006 * vnoise(p.x * 60, p.y * 60, p.z * 60) }),
+      loft({ pts: [V(0, 0.02, -0.06), V(0, 0.0, 0.1), V(0, -0.08, 0.26), V(0, -0.15, 0.38), V(0, -0.17, 0.43)], r: [[0.22, 0.27, 0.23], [0.17, 0.2, 0.17], [0.11, 0.1, 0.11], [0.075, 0.07, 0.075], [0.07, 0.065, 0.07]], color: (u) => u > 0.93 ? C('#6a544a') : C(B), ring: 24, bump: (u, th, p) => 0.006 * vnoise3(p.x * 60, p.y * 60, p.z * 60) }),
       prep(new THREE.CylinderGeometry(0.068, 0.068, 0.02, 20), '#8a6e60', 0, Mx(0, -0.175, 0.455, Math.PI / 2 - 0.35)),
       ...[-1, 1].map(s => ball(0.013, '#1a1210', 0, s * 0.024, -0.17, 0.465)),
       ...[-1, 1].map(s => horn([V(s * 0.055, -0.17, 0.34), V(s * 0.08, -0.12, 0.37), V(s * 0.085, -0.08, 0.35)], 0.013, 0.004, '#f0e6d0', '#fffaf0')),
@@ -346,16 +338,16 @@ export const BEASTS = {
   // Euskal artzain txakurra (perro pastor vasco, tipo Gorbeia): capa rojiza fuego, orejas semierguidas, cola baja
   // Euskal txerri (pío negro): cerdo vasco grande y tranquilo, rosado con la cabeza y la grupa negras
   // y unas orejas enormes que le caen sobre los ojos
-  pig: (rnd) => {
+  pig: () => {
     const K = '#1c1717', Kl = '#2e2725', P = '#e9b9a6', Pl = '#f3cdbd';
-    const coat = (u, th, p) => { const n = 0.06 * vnoise(p.x * 7, p.y * 7, p.z * 7); const blk = 1 - sm(0.3 + n, 0.38 + n, u);
-      return C(P).lerp(C(Pl), 0.3 * vnoise(p.x * 5, p.y * 5, p.z * 5)).lerp(C(K).lerp(C(Kl), 0.3 * vnoise(p.x * 9, p.y * 9, p.z * 9)), blk); };
+    const coat = (u, th, p) => { const n = 0.06 * vnoise3(p.x * 7, p.y * 7, p.z * 7); const blk = 1 - sm(0.3 + n, 0.38 + n, u);
+      return C(P).lerp(C(Pl), 0.3 * vnoise3(p.x * 5, p.y * 5, p.z * 5)).lerp(C(K).lerp(C(Kl), 0.3 * vnoise3(p.x * 9, p.y * 9, p.z * 9)), blk); };
     const body = loft({ pts: [V(0, 0.5, -0.7), V(0, 0.52, -0.56), V(0, 0.52, -0.2), V(0, 0.52, 0.15), V(0, 0.53, 0.42), V(0, 0.52, 0.55)],
       r: [[0.12, 0.12, 0.13], [0.27, 0.27, 0.3], [0.32, 0.29, 0.37], [0.32, 0.29, 0.37], [0.29, 0.28, 0.31], [0.19, 0.21, 0.22]], color: coat, ring: 28, seg: 12,
-      bump: (u, th, p) => 0.004 * vnoise(p.x * 50, p.y * 50, p.z * 50) });
+      bump: (u, th, p) => 0.004 * vnoise3(p.x * 50, p.y * 50, p.z * 50) });
     const headG = mergeAll([
       loft({ pts: [V(0, 0.02, -0.08), V(0, 0.0, 0.08), V(0, -0.07, 0.24), V(0, -0.12, 0.36), V(0, -0.13, 0.42)], r: [[0.21, 0.24, 0.22], [0.17, 0.18, 0.17], [0.11, 0.1, 0.11], [0.08, 0.075, 0.08], [0.078, 0.072, 0.078]],
-        color: (u, th, p) => u > 0.9 ? C('#5a4440') : C(K).lerp(C(Kl), 0.3 * vnoise(p.x * 9, p.y * 9, p.z * 9)), ring: 24 }),
+        color: (u, th, p) => u > 0.9 ? C('#5a4440') : C(K).lerp(C(Kl), 0.3 * vnoise3(p.x * 9, p.y * 9, p.z * 9)), ring: 24 }),
       prep(new THREE.CylinderGeometry(0.076, 0.076, 0.022, 22), '#c98f86', 0, Mx(0, -0.133, 0.432, Math.PI / 2 - 0.12)),
       ...[-1, 1].map(s => ball(0.014, '#3a2522', 0, s * 0.026, -0.13, 0.445)),
       ...eye(0.085, 0.05, 0.15, 0.014, 1.1, K),
@@ -373,13 +365,13 @@ export const BEASTS = {
   dog: (rnd, o = {}) => {
     const BR = DOG_BREEDS[o.breed] || DOG_BREEDS.gorbeia, R = BR.c, Rl = BR.light, PT = BR.patch;
     // manchas grandes (pachón, mastín) sobre la capa clara; pelo largo (iletsua) con más relieve
-    const patchAt = (p) => PT && vnoise(p.x * 5 + 3, p.y * 5, p.z * 5 + 1) > 0.58;
+    const patchAt = (p) => PT && vnoise3(p.x * 5 + 3, p.y * 5, p.z * 5 + 1) > 0.58;
     // manta oscura sobre el lomo (pastor alemán)
-    const saddleAt = (u, th, p) => BR.saddle && th > 0.25 - 0.25 * vnoise(p.x * 6, p.y * 6, p.z * 6) && u > 0.12 && u < 0.86;
-    const coat = (u, th, p) => saddleAt(u, th, p) ? C(BR.saddle).lerp(C(R), 0.15 * vnoise(p.x * 9, p.y * 9, p.z * 9)) : patchAt(p) ? C(PT) : C(R).lerp(C(Rl), th < -0.5 ? 0.5 : 0.1 * vnoise(p.x * 8, p.y * 8, p.z * 8));
+    const saddleAt = (u, th, p) => BR.saddle && th > 0.25 - 0.25 * vnoise3(p.x * 6, p.y * 6, p.z * 6) && u > 0.12 && u < 0.86;
+    const coat = (u, th, p) => saddleAt(u, th, p) ? C(BR.saddle).lerp(C(R), 0.15 * vnoise3(p.x * 9, p.y * 9, p.z * 9)) : patchAt(p) ? C(PT) : C(R).lerp(C(Rl), th < -0.5 ? 0.5 : 0.1 * vnoise3(p.x * 8, p.y * 8, p.z * 8));
     const body = loft({ pts: [V(0, 0.46, -0.34), V(0, 0.47, -0.24), V(0, 0.46, 0.0), V(0, 0.47, 0.2), V(0, 0.5, 0.32)],
       r: [[0.08, 0.09, 0.09], [0.12, 0.12, 0.11], [0.12, 0.12, 0.12], [0.13, 0.13, 0.17], [0.09, 0.12, 0.14]], color: coat, ring: 22, seg: 12,
-      bump: (u, th, p) => th < -0.4 ? -0.05 * sm(0.2, 0.55, u) * (1 - sm(0.6, 0.85, u)) * (BR.belly ?? 1) : (BR.hair || 0.006) * vnoise(p.x * 30, p.y * 30, p.z * 30) });
+      bump: (u, th, p) => th < -0.4 ? -0.05 * sm(0.2, 0.55, u) * (1 - sm(0.6, 0.85, u)) * (BR.belly ?? 1) : (BR.hair || 0.006) * vnoise3(p.x * 30, p.y * 30, p.z * 30) });
     const headG = mergeAll([
       loft({ pts: [V(0, -0.04, -0.06), V(0, 0.04, 0.0), V(0, 0.1, 0.04)], r: [[0.1, 0.12, 0.14], [0.08, 0.09, 0.1], [0.07, 0.075, 0.08]].map(q => q.map(v => v * (BR.neck || 1))), color: coat, ring: 20 }),
       loft({ pts: [V(0, 0.13, -0.04), V(0, 0.16, 0.03), V(0, 0.15, 0.09), V(0, 0.12, 0.16), V(0, 0.11, 0.2)], r: [[0.06, 0.06, 0.06], [0.078, 0.075, 0.07], [0.06, 0.05, 0.06], [0.04, 0.033, 0.04], [0.033, 0.028, 0.034]], color: (u, th) => u > 0.92 ? C('#161212') : BR.mask && u > 0.5 && th > -0.4 ? C('#241a14') : u > 0.55 && th < -0.2 ? C(Rl) : C(R).lerp(C('#6a3818'), sm(0.55, 0.85, u) * 0.5), ring: 22 }),
@@ -399,7 +391,7 @@ export const BEASTS = {
   // Zorro: rojo anaranjado, garganta y punta de la cola blancas, «calcetines» y dorso de orejas negros, cola tupida
   zorro: () => {
     const O = '#c2561f', Ol = '#d98040', W = '#f3ede4', K = '#1c1614';
-    const coat = (u, th, p) => th < -0.4 && p.z > 0.05 ? C(W) : C(O).lerp(C(Ol), 0.2 * vnoise(p.x * 9, p.y * 9, p.z * 9));
+    const coat = (u, th, p) => th < -0.4 && p.z > 0.05 ? C(W) : C(O).lerp(C(Ol), 0.2 * vnoise3(p.x * 9, p.y * 9, p.z * 9));
     const body = loft({ pts: [V(0, 0.34, -0.25), V(0, 0.35, -0.17), V(0, 0.34, 0.0), V(0, 0.36, 0.14), V(0, 0.38, 0.22)],
       r: [[0.07, 0.07, 0.07], [0.1, 0.1, 0.11], [0.105, 0.1, 0.12], [0.1, 0.11, 0.13], [0.06, 0.08, 0.09]], color: coat, ring: 20, seg: 10 });
     const headG = mergeAll([
@@ -412,15 +404,15 @@ export const BEASTS = {
     const fl = (x) => leg([[V(x, 0, 0), [0.035, 0.035, 0.04]], [V(x, -0.12, 0.01), [0.024, 0.024, 0.024]], [V(x, -0.24, 0), [0.018, 0.018, 0.018]], [V(x, -0.3, 0.01), [0.018, 0.018, 0.018]]], lc, K, { paw: true, hoofH: 0 });
     const hl = (x) => leg([[V(x, 0, 0), [0.045, 0.045, 0.05]], [V(x, -0.1, 0.04), [0.03, 0.03, 0.035]], [V(x, -0.2, -0.05), [0.017, 0.017, 0.02]], [V(x, -0.3, -0.02), [0.018, 0.018, 0.018]]], lc, K, { paw: true, hoofH: 0 });
     return { body, head: headG, neck: V(0, 0.4, 0.2), legs: { fl: [0.055, 0.3, 0.15], hl: [0.055, 0.3, -0.16], front: fl, hind: hl },
-      tail: loft({ pts: [V(0, 0, 0), V(0, -0.06, -0.1), V(0, -0.12, -0.26), V(0, -0.12, -0.42)], r: [[0.03, 0.03, 0.03], [0.07, 0.07, 0.07], [0.08, 0.075, 0.075], [0.02, 0.02, 0.02]], color: (u) => u > 0.82 ? C(W) : C(O), ring: 16, bump: (u, th, p) => 0.012 * vnoise(p.x * 40, p.y * 40, p.z * 40) }), tailAt: V(0, 0.36, -0.25) };
+      tail: loft({ pts: [V(0, 0, 0), V(0, -0.06, -0.1), V(0, -0.12, -0.26), V(0, -0.12, -0.42)], r: [[0.03, 0.03, 0.03], [0.07, 0.07, 0.07], [0.08, 0.075, 0.075], [0.02, 0.02, 0.02]], color: (u) => u > 0.82 ? C(W) : C(O), ring: 16, bump: (u, th, p) => 0.012 * vnoise3(p.x * 40, p.y * 40, p.z * 40) }), tailAt: V(0, 0.36, -0.25) };
   },
   // Cabra pirenaica doméstica: pelo largo pardo-negro, barba, cuernos hacia atrás
   goat: () => {
     const B = '#4a3a2e', Bl = '#8a6a4a';
-    const coat = (u, th, p) => C(B).lerp(C(Bl), 0.3 * vnoise(p.x * 6, p.y * 6, p.z * 6));
+    const coat = (u, th, p) => C(B).lerp(C(Bl), 0.3 * vnoise3(p.x * 6, p.y * 6, p.z * 6));
     const body = loft({ pts: [V(0, 0.58, -0.42), V(0, 0.6, -0.3), V(0, 0.58, 0.0), V(0, 0.6, 0.26), V(0, 0.62, 0.38)],
       r: [[0.1, 0.1, 0.1], [0.17, 0.16, 0.2], [0.19, 0.16, 0.24], [0.17, 0.18, 0.22], [0.1, 0.12, 0.13]], color: coat, ring: 22, seg: 12,
-      bump: (u, th, p) => th < -0.2 ? 0.05 * Math.pow(-Math.sin(th), 2) * vnoise(p.x * 20, p.z * 20, 1) : 0.01 * vnoise(p.x * 30, p.y * 30, p.z * 30) });
+      bump: (u, th, p) => th < -0.2 ? 0.05 * Math.pow(-Math.sin(th), 2) * vnoise3(p.x * 20, p.z * 20, 1) : 0.01 * vnoise3(p.x * 30, p.y * 30, p.z * 30) });
     const headG = mergeAll([
       loft({ pts: [V(0, -0.04, -0.06), V(0, 0.12, 0.04), V(0, 0.24, 0.1)], r: [[0.1, 0.11, 0.13], [0.07, 0.08, 0.09], [0.06, 0.065, 0.07]], color: coat, ring: 18 }),
       loft({ pts: [V(0, 0.3, 0.06), V(0, 0.29, 0.14), V(0, 0.22, 0.26), V(0, 0.19, 0.3)], r: [[0.065, 0.07, 0.065], [0.06, 0.06, 0.06], [0.035, 0.035, 0.035], [0.028, 0.026, 0.028]], color: (u) => u > 0.88 ? C('#1a1412') : C(B), ring: 18 }),
@@ -559,7 +551,7 @@ export const BIRDS = {
   buitre: () => ({
     body: mergeAll([
       loft({ pts: [V(0, 0, -0.5), V(0, 0.02, -0.25), V(0, 0.02, 0.05), V(0, 0.03, 0.25), V(0, 0.05, 0.36)], r: [[0.08, 0.02, 0.02], [0.15, 0.1, 0.12], [0.17, 0.12, 0.15], [0.14, 0.11, 0.12], [0.1, 0.1, 0.1]], color: (u, th) => C('#a88252').lerp(C('#7a5a38'), th > 0 ? 0.3 : 0), tex: 7, ring: 18 }),
-      loft({ pts: [V(0, 0.06, 0.3), V(0, 0.08, 0.42), V(0, 0.06, 0.54), V(0, 0.04, 0.62)], r: [[0.12, 0.1, 0.1], [0.06, 0.055, 0.055], [0.055, 0.055, 0.05], [0.045, 0.04, 0.04]], color: (u) => u < 0.25 ? C('#f4efe6') : C('#e8dcc4'), tex: 7, ring: 16, bump: (u, th, p) => u < 0.28 ? 0.035 * vnoise(p.x * 40, p.y * 40, p.z * 40) : 0 }),
+      loft({ pts: [V(0, 0.06, 0.3), V(0, 0.08, 0.42), V(0, 0.06, 0.54), V(0, 0.04, 0.62)], r: [[0.12, 0.1, 0.1], [0.06, 0.055, 0.055], [0.055, 0.055, 0.05], [0.045, 0.04, 0.04]], color: (u) => u < 0.25 ? C('#f4efe6') : C('#e8dcc4'), tex: 7, ring: 16, bump: (u, th, p) => u < 0.28 ? 0.035 * vnoise3(p.x * 40, p.y * 40, p.z * 40) : 0 }),
       loft({ pts: [V(0, 0.04, 0.62), V(0, 0.03, 0.7), V(0, 0.0, 0.74)], r: [[0.028, 0.03, 0.02], [0.02, 0.022, 0.012], [0.006, 0.005, 0.004]], color: '#d8c890', tex: 4, ring: 12 }),
       loft({ pts: [V(0, 0.0, -0.45), V(0, -0.01, -0.62), V(0, -0.02, -0.72)], r: [[0.1, 0.02, 0.02], [0.13, 0.015, 0.015], [0.14, 0.01, 0.01]], color: '#3a2c20', tex: 7, ring: 12, e: 3 }),
     ]),
@@ -623,7 +615,7 @@ export const BIRDS = {
       ball(0.04, '#1c1c1e', 7, 0, 0.045, 0.57, 1, 0.9, 1.2), ball(0.016, '#d42020', 0, 0, 0.08, 0.57),
       loft({ pts: [V(0, 0.04, 0.6), V(0, 0.03, 0.68), V(0, 0.02, 0.72)], r: [[0.012, 0.013, 0.01], [0.008, 0.009, 0.006], [0.003, 0.003, 0.003]], color: '#6a6a60', tex: 4, ring: 10 }),
       ...[-1, 1].map(s => tube([V(s * 0.03, -0.03, -0.18), V(s * 0.03, -0.04, -0.45), V(s * 0.03, -0.045, -0.62)], 0.011, 0.007, '#2a2a2a', 4)),
-      loft({ pts: [V(0, 0.02, -0.2), V(0, 0.0, -0.32), V(0, -0.02, -0.4)], r: [[0.07, 0.03, 0.03], [0.08, 0.035, 0.03], [0.04, 0.02, 0.02]], color: '#3a3a3e', tex: 7, ring: 12, bump: (u, th, p) => 0.02 * vnoise(p.x * 30, p.y * 30, p.z * 30) }),
+      loft({ pts: [V(0, 0.02, -0.2), V(0, 0.0, -0.32), V(0, -0.02, -0.4)], r: [[0.07, 0.03, 0.03], [0.08, 0.035, 0.03], [0.04, 0.02, 0.02]], color: '#3a3a3e', tex: 7, ring: 12, bump: (u, th, p) => 0.02 * vnoise3(p.x * 30, p.y * 30, p.z * 30) }),
     ]),
     wing: wing({ span: 0.95, chord: 0.36, tipChord: 0.6, fingers: 5, fingerLen: 0.24, cov: '#a0a6ae', flight: '#1e1e22', dihedral: 0.02 }),
     root: 0.07, flap: 0.35, speed: 2.4, scale: 1,
@@ -657,7 +649,7 @@ export const squirrel = lowRes(function squirrel() {
     ...[-1, 1].map(s => ball(0.025, R, 2, s * 0.03, 0.04, -0.03, 1, 0.8, 1.3)),
     ...[-1, 1].map(s => tube([V(s * 0.02, 0.1, 0.05), V(s * 0.022, 0.05, 0.07), V(s * 0.02, 0.02, 0.08)], 0.01, 0.006, R)),
   ]);
-  const tail = loft({ pts: [V(0, 0.0, 0), V(0, 0.06, -0.06), V(0, 0.16, -0.06), V(0, 0.24, -0.02), V(0, 0.26, 0.04)], r: [[0.02, 0.02, 0.02], [0.05, 0.05, 0.05], [0.055, 0.055, 0.055], [0.05, 0.05, 0.05], [0.02, 0.02, 0.02]], color: '#b8552a', ring: 14, bump: (u, th, p) => 0.012 * vnoise(p.x * 50, p.y * 50, p.z * 50) });
+  const tail = loft({ pts: [V(0, 0.0, 0), V(0, 0.06, -0.06), V(0, 0.16, -0.06), V(0, 0.24, -0.02), V(0, 0.26, 0.04)], r: [[0.02, 0.02, 0.02], [0.05, 0.05, 0.05], [0.055, 0.055, 0.055], [0.05, 0.05, 0.05], [0.02, 0.02, 0.02]], color: '#b8552a', ring: 14, bump: (u, th, p) => 0.012 * vnoise3(p.x * 50, p.y * 50, p.z * 50) });
   const root = new THREE.Group(); const b = new THREE.Mesh(g, BEAST_MAT); b.castShadow = true; root.add(b);
   const tp = new THREE.Group(); tp.position.set(0, 0.05, -0.07); tp.add(new THREE.Mesh(tail, BEAST_MAT)); root.add(tp);
   root.userData.tail = tp;
@@ -681,7 +673,7 @@ export const woodpecker = lowRes(function woodpecker() {
 export const trout = lowRes(function trout() {
   const g = mergeAll([
     loft({ pts: [V(0, 0, -0.16), V(0, 0.005, -0.08), V(0, 0.005, 0.04), V(0, 0, 0.12), V(0, -0.005, 0.16)], r: [[0.008, 0.012, 0.012], [0.028, 0.045, 0.04], [0.032, 0.05, 0.045], [0.025, 0.035, 0.032], [0.008, 0.01, 0.01]],
-      color: (u, th, p) => { let c = th > 0 ? C('#6a6a3a') : th > -0.6 ? C('#b8a060') : C('#f2e8c8'); const n = vnoise(p.x * 200, p.y * 200, p.z * 200); if (th > -0.6 && n > 0.78) c = C(n > 0.9 && th < 0.3 ? '#c83020' : '#1c1810'); return c; }, tex: 0, ring: 18, e: 2.4 }),
+      color: (u, th, p) => { let c = th > 0 ? C('#6a6a3a') : th > -0.6 ? C('#b8a060') : C('#f2e8c8'); const n = vnoise3(p.x * 200, p.y * 200, p.z * 200); if (th > -0.6 && n > 0.78) c = C(n > 0.9 && th < 0.3 ? '#c83020' : '#1c1810'); return c; }, tex: 0, ring: 18, e: 2.4 }),
     (() => { const sh = new THREE.Shape(); sh.moveTo(0, 0); sh.lineTo(0.05, 0.06); sh.lineTo(0.04, 0); sh.lineTo(0.05, -0.06); sh.closePath(); const gg = new THREE.ShapeGeometry(sh); gg.rotateY(Math.PI / 2); return prep(gg, '#6a6040', 0, Mx(0, 0, -0.2)); })(),
     ...eye(0.018, 0.012, 0.11, 0.007, 1.2, '#6a6a3a', '#c8a030', '#101010'),
   ]);

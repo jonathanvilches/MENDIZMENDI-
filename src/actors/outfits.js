@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
-export const OUTFITS = [
+const OUTFITS = [
   { id: 'original', name: 'Original' },
   { id: 'sanfermin', name: 'San Fermín', shirt: '#f6f3ec', pants: '#f6f3ec', shoes: '#efe4cc', accent: '#d42f2f', scarf: '#d42f2f', sash: '#d42f2f' },
   { id: 'dantzari', name: 'Dantzari', shirt: '#f6f3ec', pants: '#f6f3ec', shoes: '#f2ece0', accent: '#c8102e', beret: '#c8102e', sash: '#c8102e' },

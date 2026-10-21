@@ -4,9 +4,8 @@
 // un pequeño ajuste que sale del nombre (siempre el mismo para el mismo pelotari) para que no salgan todas iguales.
 import { pelotariFig } from './pelotariFig.js';
 import { lgEsc as esc } from '../futbol/liga.js';
-import { pelotariRating, rate99 } from '../pelota/rules.js';
+import { pelotariRating } from '../pelota/rules.js';
 
-export { rate99 as rate, pelotariRating };
 const STAT_NAMES = { es: ['Vel', 'Pot', 'Man'], eu: ['Abi', 'Ind', 'Esk'] };
 /**
  * HTML de una carta. o = { name, town, stats, side: 'azul'|'rojo', role ('Mano', 'Del', 'Zag'...), fig (el nombre de la

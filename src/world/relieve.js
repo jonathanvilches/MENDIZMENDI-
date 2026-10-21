@@ -50,5 +50,3 @@ export function horizonteReal(id) {
   for (let b = 0; b < 360; b++) { const x = b / st, i = Math.floor(x), f = x - i; out[b] = Math.max(0.003, Math.tan((a[i % n] * (1 - f) + a[(i + 1) % n] * f) * Math.PI / 180)); }   // (no por debajo del pueblo)
   return out;
 }
-/** El mirador de un pueblo (coordenadas de los ojos y montes que se ven desde él, en orden), sin abrir los datos. */
-export const miradorDe = (id) => RELIEVE.towns[id] || null;

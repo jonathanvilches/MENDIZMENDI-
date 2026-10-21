@@ -4,14 +4,13 @@
 // Coordenadas del modelo: +z hacia delante, +x a la izquierda del personaje, y hacia arriba (metros).
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { paintedPart as P } from '../world/builder.js';
 
-const tint = (g, hex) => { const c = new THREE.Color(hex), n = g.attributes.position.count, a = new Float32Array(n * 3); for (let i = 0; i < n; i++) { a[i * 3] = c.r; a[i * 3 + 1] = c.g; a[i * 3 + 2] = c.b; } g.setAttribute('color', new THREE.BufferAttribute(a, 3)); return g; };
-const P = (geo, hex, x, y, z, rx = 0, ry = 0, rz = 0) => { const g = geo.index ? geo.toNonIndexed() : geo; g.deleteAttribute('uv'); g.rotateX(rx); g.rotateY(ry); g.rotateZ(rz); g.translate(x, y, z); return tint(g, hex); };
 const rbox = (w, h, d, r = 0.02) => { const g = new THREE.BoxGeometry(w, h, d, 2, 2, 2); const p = g.attributes.position, v = new THREE.Vector3(); for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i); const k = 1 - r * 4; p.setXYZ(i, v.x * (Math.abs(v.x) > w / 2 - 1e-4 && Math.abs(v.y) > h / 2 - 1e-4 ? k + (1 - k) * 0.6 : 1), v.y, v.z * (Math.abs(v.z) > d / 2 - 1e-4 && Math.abs(v.y) > h / 2 - 1e-4 ? k : 1)); } g.computeVertexNormals(); return g; };
 const cyl = (r1, r2, h, n = 12) => new THREE.CylinderGeometry(r1, r2, h, n);
 const MAT = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.75 });
 // proporciones de los modelos de Blender (build_protagonista.py: proportions)
-export const PROP = { legs: 1.35, hip: 0.55 };
+const PROP = { legs: 1.35, hip: 0.55 };
 
 function piece(id) {
   const parts = [];

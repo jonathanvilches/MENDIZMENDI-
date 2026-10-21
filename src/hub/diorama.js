@@ -28,7 +28,7 @@ const TREES = {
 };
 const PEAKS = { alpine: 170, green: 95, atlantic: 70, drygreen: 60, basin: 55, transition: 45, mediterranean: 35, ribera: 22 };
 
-export const PLAZA = new THREE.Vector3(0, 0, -52);
+const PLAZA = new THREE.Vector3(0, 0, -52);
 const lin = (hex) => new THREE.Color(hex);
 
 // relieve: llano en el pueblo y alrededor del personaje, colinas y montes lejos
@@ -58,7 +58,7 @@ function speckle() {
   return SPK;
 }
 // malla polar: densa cerca del centro y amplia hasta el horizonte
-function ground(hf, T, rnd) {
+function ground(hf, T) {
   const rings = 110, segs = 160, pos = [], col = [], uv = [], idx = [];
   const cx = 0, cz = -20;
   const hills = T.hills.map(lin), snow = T.peak ? lin(T.peak) : null, rock = lin('#8d8579');
@@ -259,7 +259,7 @@ function birds(rnd) {
 }
 
 // Escena completa de una comarca. Devuelve { scene, update(dt), sun, hf }
-export function buildDiorama(comarcaId, { live = true } = {}) {
+function buildDiorama(comarcaId, { live = true } = {}) {
   buildTextures('high');
   const c = COMARCAS.find(x => x.id === comarcaId) || COMARCAS[0];
   const tone = c.tone || 'atlantic', T = TONES[tone] || TONES.atlantic, fam = FAM[c.id] || 'atlantic';
@@ -274,7 +274,7 @@ export function buildDiorama(comarcaId, { live = true } = {}) {
   sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.03;
   Object.assign(sun.shadow.camera, { left: -26, right: 26, top: 26, bottom: -26, near: 1, far: 120 });
   const fill = new THREE.DirectionalLight('#b8d4ff', 0.7); fill.position.set(-10, 8, 20); scene.add(fill);
-  scene.add(ground(hf, T, rnd));
+  scene.add(ground(hf, T));
   const p = path(hf); scene.add(p);
   scene.add(village(fam, rnd));
   scene.add(trees(hf, tone, rnd, p.userData.curve));

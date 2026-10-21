@@ -2,10 +2,10 @@
 export class Input {
   constructor(canvas) {
     this.keys = new Set();
-    this.move = { x: 0, y: 0 };      // -1..1 (y = adelante)
+    this.move = { x: 0, y: 0 };      // de -1 a 1 (y: adelante)
     this.look = { dx: 0, dy: 0 };    // delta de cámara acumulado
     this.zoom = 0;
-    this.pressed = new Set();        // acciones pulsadas este frame
+    this.pressed = new Set();        // acciones pulsadas en este fotograma
     this.run = false;
     this.touch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
     this.enabled = true;
@@ -27,7 +27,6 @@ export class Input {
     addEventListener('pointermove', e => this.moveP(e));
     addEventListener('pointerup', e => this.up(e));
     addEventListener('pointercancel', e => this.up(e));
-    this.pinch = null;
   }
   down(e) {
     if (!this.enabled) return;

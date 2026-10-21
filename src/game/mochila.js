@@ -5,8 +5,8 @@ import { profile, saveProfile } from './profile.js';
 import { GEAR, GEAR_ORDER, FOOD } from '../data/equipo.js';
 import { iconSVG } from '../ui/icons.js';
 import { infoCard } from '../ui/minigames.js';
+import { esc } from '../util/html.js';
 
-const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 export class Mochila {
   constructor(game) {

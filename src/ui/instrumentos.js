@@ -10,9 +10,8 @@ import { iconSVG } from './icons.js';
 import { tr, isEU } from '../i18n.js';
 import { profile, addCard, addXP, saveProfile, checkBadges } from '../game/profile.js';
 import { fitCircles } from './fitlabel.js';
+import { esc, el } from '../util/html.js';
 
-const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const el = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
 const tocado = (id, p = profile()) => (p.cards || []).includes('instrumento:' + id);
 
 /** La lista del menú: una tarjeta por instrumento (abre su ficha por data-instrumento). */
@@ -64,7 +63,7 @@ export async function jugarInstrumento(ui, x, { who = '' } = {}) {
 
 // ---------- el minijuego ----------
 const KEYS = ['a', 's', 'd', 'f', 'g'];
-export function tocarGame(ui, x, { who = '' } = {}) {
+function tocarGame(ui, x, { who = '' } = {}) {
   return new Promise(res => {
     const S = ui.sound, g = x.game, n = g.lanes.length, notas = notasDe(x), total = notas.length;
     const eighth = 60 / g.bpm / 2, bar = eighth * 2 * g.meter, fall = 2.3, touch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;

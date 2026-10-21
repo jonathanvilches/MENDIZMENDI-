@@ -1,4 +1,5 @@
-// Compact 2D simplex noise + fbm (deterministic)
+// Ruido simplex 2D compacto, su suma en octavas (fbm), el ruido de crestas y un ruido de valor 3D; siempre igual para
+// las mismas coordenadas
 import { mulberry32 } from './math.js';
 
 const perm = new Uint8Array(512);
@@ -27,7 +28,7 @@ export function noise2(x, y) {
   if (t1 > 0) { const g = G[perm[ii + i1 + perm[jj + j1]] & 7]; t1 *= t1; n += t1 * t1 * (g[0] * x1 + g[1] * y1); }
   let t2 = 0.5 - x2 * x2 - y2 * y2;
   if (t2 > 0) { const g = G[perm[ii + 1 + perm[jj + 1]] & 7]; t2 *= t2; n += t2 * t2 * (g[0] * x2 + g[1] * y2); }
-  return 70 * n; // ~[-1,1]
+  return 70 * n;   // (más o menos entre -1 y 1)
 }
 
 export function fbm(x, y, oct = 5, lac = 2.03, gain = 0.5) {
@@ -40,4 +41,13 @@ export function ridged(x, y, oct = 5) {
   let a = 1, f = 1, s = 0, n = 0;
   for (let o = 0; o < oct; o++) { s += a * (1 - Math.abs(noise2(x * f, y * f))); n += a; a *= 0.5; f *= 2.1; }
   return s / n;
+}
+
+// Ruido de valor 3D suave, entre 0 y 1 (para que la lana, el pelo y la ropa no sean una superficie lisa)
+const hash3 = (x, y, z) => { const s = Math.sin(x * 127.1 + y * 311.7 + z * 74.7) * 43758.5453; return s - Math.floor(s); };
+export function vnoise3(x, y, z) {
+  const ix = Math.floor(x), iy = Math.floor(y), iz = Math.floor(z), fx = x - ix, fy = y - iy, fz = z - iz;
+  const u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy), w = fz * fz * (3 - 2 * fz), L = (a, b, t) => a + (b - a) * t;
+  return L(L(L(hash3(ix, iy, iz), hash3(ix + 1, iy, iz), u), L(hash3(ix, iy + 1, iz), hash3(ix + 1, iy + 1, iz), u), v),
+    L(L(hash3(ix, iy, iz + 1), hash3(ix + 1, iy, iz + 1), u), L(hash3(ix, iy + 1, iz + 1), hash3(ix + 1, iy + 1, iz + 1), u), v), w);
 }

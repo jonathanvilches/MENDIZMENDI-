@@ -1,4 +1,4 @@
-// Colisiones 2D (cajas orientadas y círculos) con rejilla espacial
+// Colisiones 2D (cajas giradas y círculos) con rejilla espacial
 const CELL = 8;
 const grid = new Map();
 export const COLLIDERS = [];
@@ -29,16 +29,20 @@ function insert(c, x, z, r) {
 export const MOVERS = [];
 export function addMover(x, z, r, meta = {}) { const c = { type: 'circle', x, z, r, mover: true, ...meta }; MOVERS.push(c); return c; }
 export function removeMover(c) { const i = MOVERS.indexOf(c); if (i >= 0) MOVERS.splice(i, 1); }
+// Los obstáculos fijos cerca de (x, z), cada uno una vez (un obstáculo grande está en varias celdas). Se pregunta muchas
+// veces por fotograma: la lista que devuelve se reutiliza en la consulta siguiente, así que hay que recorrerla antes
+let stamp = 0;
+const _hits = [];
 export function nearby(x, z, r) {
-  const out = new Set();
+  _hits.length = 0; const st = ++stamp;
   const i0 = Math.floor((x - r) / CELL), i1 = Math.floor((x + r) / CELL), j0 = Math.floor((z - r) / CELL), j1 = Math.floor((z + r) / CELL);
-  for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) { const l = grid.get(key(i, j)); if (l) for (const c of l) out.add(c); }
-  return out;
+  for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) { const l = grid.get(key(i, j)); if (l) for (const c of l) if (c._q !== st) { c._q = st; _hits.push(c); } }
+  return _hits;
 }
 
 const _near = [];
-function moversNear(x, z, r) { _near.length = 0; for (const c of MOVERS) if (Math.abs(c.x - x) < c.r + r + 0.5 && Math.abs(c.z - z) < c.r + r + 0.5) _near.push(c); return _near.slice(); }
-// Empuja un círculo (x,z,r) fuera de los obstáculos. Devuelve {x,z,hit}
+function moversNear(x, z, r) { _near.length = 0; for (const c of MOVERS) if (Math.abs(c.x - x) < c.r + r + 0.5 && Math.abs(c.z - z) < c.r + r + 0.5) _near.push(c); return _near; }
+// Empuja un círculo (x, z, r) fuera de los obstáculos. Devuelve { x, z, hit, mover }
 export function resolve(x, z, r, ignore) {
   let hit = false, mover = null;
   for (let it = 0; it < 3; it++) {
@@ -63,7 +67,7 @@ export function resolve(x, z, r, ignore) {
         if (d < r) {
           let nx, nz;
           if (d > 1e-5) { nx = ex / d; nz = ez / d; }
-          else { // dentro: salir por el lado más cercano
+          else {   // dentro: sale por el lado más cercano
             const ox = c.hw - Math.abs(lx), oz = c.hd - Math.abs(lz);
             if (ox < oz) { nx = Math.sign(lx) || 1; nz = 0; d = -ox; } else { nx = 0; nz = Math.sign(lz) || 1; d = -oz; }
           }

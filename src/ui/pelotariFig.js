@@ -8,8 +8,9 @@
 import { nameGender } from '../data/nombres.js';
 import { hdTable } from '../web/hd.js';
 import { HAIR_COLORS } from '../actors/hairColor.js';
+import { fold } from '../util/text.js';
+import { byId } from '../util/glob.js';
 
-const byId = (g) => Object.fromEntries(Object.entries(g).map(([k, v]) => [k.split('/').pop().replace('.webp', ''), v]));
 const ROJO = byId(import.meta.glob('@pelotaris/rojo/*.webp', { eager: true, query: '?url', import: 'default' }));
 const AZUL = byId(import.meta.glob('@pelotaris/azul/*.webp', { eager: true, query: '?url', import: 'default' }));
 const CAMISETA = byId(import.meta.glob('@pelotaris/camiseta/*.webp', { eager: true, query: '?url', import: 'default' }));
@@ -22,7 +23,6 @@ const VS = { azul: byId(import.meta.glob('@pelotaris/vs/azul/*.webp', { eager: t
 // la plantilla del autor: 11 chicos y 11 chicas (Mendi es el protagonista: no sale de rival)
 const CHICOS = ['Mendi', 'Unai', 'Mikel', 'Aitor', 'Iñaki', 'Ander', 'Xabier', 'Jokin', 'Ekaitz', 'Julen', 'Asier'];
 const CHICAS = ['Oihana', 'Garazi', 'Maialen', 'Amaia', 'Irati', 'Nahia', 'Nerea', 'Leire', 'Ane', 'Miren', 'Uxue'];
-const fold = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 export const PLANTILLA = [...CHICOS.map(name => ({ id: fold(name), name, girl: false })), ...CHICAS.map(name => ({ id: fold(name), name, girl: true }))];
 const BY = new Map(PLANTILLA.map(p => [p.id, p]));
 const ALIAS = { oihane: 'oihana' };

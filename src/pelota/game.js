@@ -2,8 +2,8 @@
 // La vista (match.js) le pasa la entrada del jugador y recibe eventos para dibujar, sonar y rotular.
 import { COURT, LEVELS, SHOTS, kantari } from './rules.js';
 import { Ball, predict, solveShot, solveTwoWalls, aimVelocity, vec } from './physics.js';
+import { clamp } from '../util/math.js';
 
-const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const gauss = (rnd) => (rnd() + rnd() + rnd() - 1.5) / 1.5;
 // el saque, como en el frontón: el que saca sale del cuadro 7, corre hasta poco antes del 4, bota la pelota y saca; el
 // que resta espera junto a la pared izquierda, sobre el 7
@@ -19,7 +19,7 @@ const SPLIT = 17.5, MATE_AI = { speed: 5.5, react: 0.25, error: 0.065, smart: 0.
 const EN = { cortada: 0.1, cortPow: 0.06, dos: 0.07, cortDos: 0.13, gancho: 0.06, volea: 0.02, dejada: 0.02, rebote: 0.04,
   normal: 0.035, run: 0.03, rally: 0.004, rest: 0.09, low: 0.5 };
 /** Lo que cuesta (o, si es negativo, lo que devuelve) un golpe en energía: shot y sub del golpe, su fuerza (0 a 1) y si fue de volea. */
-export function shotEnergy(shot, sub, pow, volea) {
+function shotEnergy(shot, sub, pow, volea) {
   let c = shot === 'cortada' ? (sub === 'cortDos' ? EN.cortDos : EN.cortada) + EN.cortPow * pow
     : shot === 'dosparedes' ? EN.dos : shot === 'gancho' ? EN.gancho : shot === 'dejada' ? EN.dejada : shot === 'rebote' ? EN.rebote
     : shot === 'saque' ? 0 : -EN.normal * (1 - pow * 0.7);   // (el golpe normal, más cuanto más suave: el peloteo descansa)
@@ -599,7 +599,7 @@ export class PelotaGame {
         else this.toServe();
       }
       this.stepBall(dt, false);
-      this.movePlayers(dt, inp, false);
+      this.movePlayers(dt, inp);
       return this.events;
     }
     // saque: el que saca sale corriendo desde el 7 (tú, al pulsar GOLPE) con la pelota en la mano y, poco antes del 4,
@@ -608,7 +608,7 @@ export class PelotaGame {
       const s = this.players[this.serverP()];
       const humanServes = this.serverP() === 'you' && !this.autoplay;
       if (!this.runUp && (humanServes ? (inp.hit || this.phaseT > 9) : this.phaseT > 0.8)) { this.runUp = true; this.emit({ type: 'serveRun', who: this.serverP() }); }
-      this.movePlayers(dt, { ...inp, hit: false, drop: false }, true);
+      this.movePlayers(dt, { ...inp, hit: false, drop: false });
       this.ball.set(vec(s.x + 0.35, 1.05, s.z - 0.35), vec()); this.ball.spin = 0;
       if (this.runUp && s.z < SERVE_Z + 0.3) this.dropForServe();
       return this.events;
@@ -621,7 +621,7 @@ export class PelotaGame {
         return this.events;
       }
     } else this.stepBall(dt, false);
-    this.movePlayers(dt, inp, false);
+    this.movePlayers(dt, inp);
     return this.events;
   }
   stepBall(dt, prep) {
@@ -638,7 +638,7 @@ export class PelotaGame {
     const b = this.ball.p;
     if (this.phase === 'rally' && (b.z > COURT.L + 12 || b.x > COURT.W / 2 + 12)) this.point(this.rally.front ? this.rally.striker : this.rally.turn, 'fuera');
   }
-  movePlayers(dt, inp, frozenServer) {
+  movePlayers(dt, inp) {
     const you = this.players.you;
     // jugador humano (o piloto automático)
     if (this.autoplay) this.driveAI('you', dt);

@@ -1,14 +1,13 @@
 // Monumentos genéricos: iglesias por estilo, castillos, murallas, puentes, cuevas, hórreos, molinos...
-import { stepFrom } from './houses.js';
 import * as THREE from 'three';
 import { box, gable, archRing, archPanel, colored, M, MM, uvFit, cyl } from './builder.js';
-import { roofHip } from './houses.js';
+import { roofHip, stepFrom } from './houses.js';
+import { toW } from './plot.js';
 import { terrainHeight, deckY, addPlatform } from './heightfield.js';
 import { addBox, addCircle } from './colliders.js';
 import { PLACES } from './layout.js';
 
-const toWorld = (x, z, ry, lx, lz) => ({ x: x + lx * Math.cos(ry) + lz * Math.sin(ry), z: z - lx * Math.sin(ry) + lz * Math.cos(ry) });
-function boxCol(x, z, ry, lx, lz, w, d, meta) { const p = toWorld(x, z, ry, lx, lz); return addBox(p.x, p.z, w, d, ry, meta); }
+function boxCol(x, z, ry, lx, lz, w, d, meta) { const p = toW(x, z, ry, lx, lz); return addBox(p.x, p.z, w, d, ry, meta); }
 function merlons(B, T, w, d, y, mat = 'ashlar') {
   for (const s of [-1, 1]) {
     for (let i = 0; i < Math.floor(w / 1.2); i++) B.add(mat, box(0.6, 0.7, 0.6), MM(T, M(-w / 2 + 0.6 + i * 1.2, y + 0.35, s * d / 2)));
@@ -143,7 +142,7 @@ export function church(B, x, z, ry, style, fam, opts = {}) {
     const tx = style === 'baroque' ? W / 2 + tw / 2 - 0.5 : W / 2 + tw / 2 + 0.3, tz = style === 'baroque' || opts.twin ? L / 2 - tw / 2 : -L / 2 + tw;
     for (const s of opts.twin ? [1, -1] : [1]) {
       spireTower(B, MM(T, M(s * tx, 0, tz)), tw, th, roof, mat, style, s > 0);
-      const tp = toWorld(x, z, ry, s * tx, tz);
+      const tp = toW(x, z, ry, s * tx, tz);
       addBox(tp.x, tp.z, tw + 0.4, tw + 0.4, ry, { solidView: true });
     }
   }
@@ -152,7 +151,7 @@ export function church(B, x, z, ry, style, fam, opts = {}) {
     stepFrom(F, 0, 0.3 - i * 0.3, zc, (8 - i * 0.6) / 2, 0.6); }   // (cada peldaño es suelo: se sube la escalinata)
   addBox(x, z, W + 3, L + 2, ry, { solidView: true });
   if (style === 'cathedral') boxCol(x, z, ry, W / 2 + 7, -L / 2 + 10, 12, 16);
-  const door = toWorld(x, z, ry, 0, L / 2 + (style === 'cathedral' ? 8 : 5));
+  const door = toW(x, z, ry, 0, L / 2 + (style === 'cathedral' ? 8 : 5));
   return { door, x, z, y, W, L };
 }
 
@@ -214,13 +213,13 @@ export function castle(B, x, z, ry, big) {
     for (let k = 0; k < 3; k++) B.add('glass', archPanel(0.7, 1.4, 0.1), MM(TT, M(0, th * (0.4 + k * 0.18), tw / 2 + 0.02)));
     if (sh === 'sq' && tw > 6.5) merlons(B, TT, tw + 0.4, tw + 0.4, th);
     else { const c = new THREE.ConeGeometry(tw * 0.72, tw * 1.3, sh === 'sq' ? 4 : sh === 'oct' ? 8 : 14); if (sh === 'sq') c.rotateY(Math.PI / 4); B.add('slate', c, MM(TT, M(0, th + tw * 0.65, 0))); }
-    const p = toWorld(x, z, ry, lx, lz); addBox(p.x, p.z, tw + 0.4, tw + 0.4, ry, { solidView: true });
+    const p = toW(x, z, ry, lx, lz); addBox(p.x, p.z, tw + 0.4, tw + 0.4, ry, { solidView: true });
   }
   // jardín interior con un árbol y pozo
   B.add('stone', new THREE.CylinderGeometry(1, 1, 0.9, 12, 1, true), MM(T, M(4, 0.45, 4)));
-  addCircle(...Object.values(toWorld(x, z, ry, 4, 4)), 1.1);
+  addCircle(...Object.values(toW(x, z, ry, 4, 4)), 1.1);
   boxCol(x, z, ry, 0, D / 2 + 7, W + 6, 12, { ghost: true });
-  return { x, z, y, gate: toWorld(x, z, ry, 0, D / 2 + 5) };
+  return { x, z, y, gate: toW(x, z, ry, 0, D / 2 + 5) };
 }
 
 // ---------- Castillo de Javier ----------
@@ -261,7 +260,7 @@ export function castleJavier(B, x, z, ry) {
     B.add(S, new THREE.CylinderGeometry(r, r + 0.4, th, 18), MM(TT, M(0, th / 2, 0)));
     for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2; B.add(S, box(0.8, 0.9, 0.7), MM(TT, M(Math.cos(a) * (r - 0.1), th + 0.45, Math.sin(a) * (r - 0.1), -a))); }
     for (let i = 0; i < 3; i++) { const a = s2 * 0.6 + i * 1.6; B.add('dark', box(0.2, 1.3, 0.3), MM(TT, M(Math.cos(a) * (r + 0.05), th * 0.55, Math.sin(a) * (r + 0.05), -a))); }
-    const p = toWorld(x, z, ry, s2 * W / 2, D / 2); addCircle(p.x, p.z, r + 0.3, { solidView: true });
+    const p = toW(x, z, ry, s2 * W / 2, D / 2); addCircle(p.x, p.z, r + 0.3, { solidView: true });
   }
   // torre del Cristo (lateral) y torre de San Miguel (al fondo, la más alta, con matacanes)
   const tower = (lx, lz, tw, th) => {
@@ -271,7 +270,7 @@ export function castleJavier(B, x, z, ry) {
     B.add(S, box(tw + 1.4, 0.5, tw + 1.4), MM(TT, M(0, th - 0.4, 0)));
     merlons(B, TT, tw + 1.2, tw + 1.2, th - 0.15, S);
     for (let k = 0; k < 3; k++) B.add('dark', box(0.3, 1.4, 0.1), MM(TT, M(0, th * (0.35 + k * 0.2), tw / 2 + 0.03)));
-    const p = toWorld(x, z, ry, lx, lz); addBox(p.x, p.z, tw + 0.6, tw + 0.6, ry, { solidView: true });
+    const p = toW(x, z, ry, lx, lz); addBox(p.x, p.z, tw + 0.6, tw + 0.6, ry, { solidView: true });
   };
   tower(-3, -D / 2 + 1, 7.5, 27);
   tower(W / 2 - 1.5, -D / 2 + 3, 5.5, 18);
@@ -281,7 +280,7 @@ export function castleJavier(B, x, z, ry) {
   roofHip(B, MM(T, M(1, 0, -2)), W - 4, 7, Hh - 1, 2.2, 'tile');
   // explanada de la entrada (foso y puente): reservada para que no se construyan casas encima; se puede pisar
   boxCol(x, z, ry, 0, D / 2 + 9, W + 12, 18, { ghost: true });
-  return { x, z, y, gate: toWorld(x, z, ry, 0, D / 2 + 9) };
+  return { x, z, y, gate: toW(x, z, ry, 0, D / 2 + 9) };
 }
 
 // ---------- Excavación arqueológica (Irulegi): cimientos de casas, cuadrícula de cuerdas y estacas ----------

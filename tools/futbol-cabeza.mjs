@@ -2,7 +2,7 @@
 // cabeza (el tuyo y la IA). Sin gráficos.
 // Uso: node tools/futbol-cabeza.mjs [intentos]
 import { FutbolGame } from '../src/futbol/game.js';
-import { FIELD as F, PLAYER as PL } from '../src/futbol/rules.js';
+import { FIELD as F } from '../src/futbol/rules.js';
 
 const [,, N = '40'] = process.argv;
 let fails = 0;

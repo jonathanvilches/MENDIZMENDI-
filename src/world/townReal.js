@@ -235,9 +235,9 @@ function block(B, x, y, z, ry, w, d, h, wall, roof, pitch = 0.45) {
   for (const s of [-1, 1]) B.add(wall, g, MM(T, wideX ? M(s * along / 2, h, 0, s * Math.PI / 2) : M(0, h, s * along / 2, s > 0 ? 0 : Math.PI)));
 }
 
-/** Las casas de los datos. H: lo que hace falta de townBuilder (buildHouse, houseStyle, minGround, slopeBase, shieldAt…). */
+/** Las casas de los datos. H: lo que hace falta de townBuilder (buildHouse, houseStyle, minGround, slopeBase, houseShield…). */
 export function realHouses(B, def, rnd, H) {
-  const { buildHouse, houseStyle, minGround, slopeBase, shieldAt, TOWN, P, fam } = H;
+  const { buildHouse, houseStyle, minGround, slopeBase, houseShield, addHouse, HALL, P, fam } = H;
   const real = MOD.real;
   const hall = real.data.lugares?.ayuntamiento;
   const fr = real.data.lugares?.fronton;
@@ -286,19 +286,18 @@ export function realHouses(B, def, rnd, H) {
       block(B, x, hb, z, ry, w, d, h, st.wall, st.roof || 'tile', st.pitch || 0.45);
       fachada(B, M(x, hb, z, ry), w, d, h, { fam, wall: st.wall, kind: b.k, rnd: hashRnd(x, z) });
       addBox(x, z, w + 0.3, d + 0.3, ry, { solidView: true });
-      TOWN.houses.push({ x, z, ry, w, d, door: { x: x + Math.sin(ry) * (d / 2 + 1.2), z: z + Math.cos(ry) * (d / 2 + 1.2) }, real: b.n || null });
+      addHouse(x, z, ry, w, d, { real: b.n || null });
       simple++; continue;
     }
     const ho = { arch: st.wall === 'stone' || st.wall === 'ashlar' ? rnd() < 0.5 : rnd() < 0.2, balconyW: Math.min(w - 2, 3 + rnd() * 2.5), shield: rnd() < 0.1 && w > 6, cornice: rnd() < 0.4, ...st, w, d, h };
     if (w < 6.5) Object.assign(ho, { balcony: false, gallery: false, balconyW: Math.max(1, w - 2), arch: false });
-    if (isHall) Object.assign(ho, { shield: true, townhall: true, h: Math.max(h, 8.5), cornice: true, arch: true, doorX: 0, balcony: true, balconyW: Math.min(w - 2, 5), ironBalcony: true });
+    if (isHall) Object.assign(ho, HALL(w, h));
     buildHouse(B, M(x, hb, z, ry), ho, rnd);
     // (y de lejos, cuando sus ventanas de verdad ya no se dibujan, la fachada sencilla)
     fachadaLejana(B, M(x, hb, z, ry), ho, fam, x, z);
-    if (ho.shieldLocal && isHall) { const [lx, ly, lz] = ho.shieldLocal, c = Math.cos(ry), sn = Math.sin(ry); TOWN.armsSpot = { x: x + lx * c + lz * sn, y: hb + ly, z: z - lx * sn + lz * c, ry, hall: true, base: hb, plateY: hb + ho.plateY, read: { x: x + lx * c + (lz + 2.6) * sn, z: z - lx * sn + (lz + 2.6) * c } }; }
-    else if (ho.shieldLocal) shieldAt(x, hb, z, ry, ho.shieldLocal, false);
+    houseShield(x, hb, z, ry, ho, isHall);
     addBox(x, z, w + 0.3, d + 0.3, ry, { solidView: true });
-    TOWN.houses.push({ x, z, ry, w, d, door: { x: x + Math.sin(ry) * (d / 2 + 1.2), z: z + Math.cos(ry) * (d / 2 + 1.2) }, real: b.n || null });
+    addHouse(x, z, ry, w, d, { real: b.n || null });
     full++;
   }
   return { full, simple };

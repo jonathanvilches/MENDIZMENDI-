@@ -376,7 +376,7 @@ function ovenScene(S) {
   const bp = V(0, 0, 0), out = V(0, 0.8, 0.95), hd = V(0, 0, 0), h1 = V(0, 0, 0), h2 = V(0, 0, 0), fw = V(0, 0, 0);
   return {
     ready, frame: { box: [[-0.9, 0, -2.85], [0.85, 1.5, -0.3]], dir: [-0.85, 0.34, 1] },
-    set(p, hit, ok, dt) {
+    set(p, hit, ok) {
       const n = Math.min(4, Math.floor(p * 4 + 1e-6)); loaves.forEach((l, i) => { l.visible = i < n; });
       // empuje: la hoja entra hasta el sitio del pan siguiente, lo deja y vuelve a la boca
       const k = hit < 0.25 ? ease(hit / 0.25) : hit < 0.7 ? 1 - ease((hit - 0.25) / 0.45) : 0, slot = SLOTS[Math.min(3, ok ? Math.max(0, n - 1) : n)];

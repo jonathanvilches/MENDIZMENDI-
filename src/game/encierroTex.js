@@ -2,8 +2,8 @@
 // madera del vallado y las puertas, y revoco de las fachadas. Cada una lleva su mapa de relieve (normal) y de
 // rugosidad, calculados a partir de un mapa de alturas dibujado a la vez que el color.
 import * as THREE from 'three';
+import { lcg } from '../util/math.js';
 
-function rng(seed) { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
 
 // lienzo de color + lienzo de alturas (gris) + lienzo de rugosidad (gris), del mismo tamaño
 function layers(n) {
@@ -47,7 +47,7 @@ function stonePath(g, x, y, w, h, r, rad) {
 /** Adoquín de granito gris de la Estafeta: hileras de piedras rectangulares atravesadas, juntas de arena oscura,
  *  piedras abombadas y pulidas por el paso de la gente (más brillantes en el centro). Un tile = 1,6 m. */
 export function cobbleSet(repeat) {
-  const L = layers(1024), { n, cg, hg, rg } = L, r = rng(31);
+  const L = layers(1024), { n, cg, hg, rg } = L, r = lcg(31);
   cg.fillStyle = '#4b4741'; cg.fillRect(0, 0, n, n);
   hg.fillStyle = '#000'; hg.fillRect(0, 0, n, n);
   rg.fillStyle = '#f4f4f4'; rg.fillRect(0, 0, n, n);
@@ -84,7 +84,7 @@ export function cobbleSet(repeat) {
 /** Adoquín de hormigón gris del callejón de la plaza: piezas que encajan entre sí, con los cantos en zigzag, a
  *  matajunta, en grises distintos y con manchas. Un tile = 1,8 m (piezas de unos 22 × 11 cm). */
 export function paverSet(repeat) {
-  const L = layers(1024), { n, cg, hg, rg } = L, r = rng(53);
+  const L = layers(1024), { n, cg, hg, rg } = L, r = lcg(53);
   cg.fillStyle = '#4e4d4a'; cg.fillRect(0, 0, n, n); hg.fillStyle = '#000'; hg.fillRect(0, 0, n, n); rg.fillStyle = '#f0f0f0'; rg.fillRect(0, 0, n, n);
   const PW = 128, PH = 64, A = 7, rows = n / PH;                 // pieza de 128 × 64 px; los cantos largos ondulan
   const wave = (x) => A * Math.sin(x / PW * Math.PI * 4);        // el canto largo compartido por dos hileras (encajan)
@@ -149,7 +149,7 @@ export function boardTex(kind = 0) {
 
 /** Sillería de piedra arenisca (zócalos y esquinas): sillares grandes, juntas de mortero claro. Tile = 2,2 m. */
 export function ashlarSet() {
-  const L = layers(512), { n, cg, hg, rg } = L, r = rng(7);
+  const L = layers(512), { n, cg, hg, rg } = L, r = lcg(7);
   cg.fillStyle = '#b8ad98'; cg.fillRect(0, 0, n, n); hg.fillStyle = '#404040'; hg.fillRect(0, 0, n, n); rg.fillStyle = '#ececec'; rg.fillRect(0, 0, n, n);
   const rows = 4, rh = n / rows;
   for (let row = 0; row < rows; row++) {
@@ -173,7 +173,7 @@ export function ashlarSet() {
 
 /** Ladrillo macizo rojizo de la plaza de toros, con llagas de mortero. Tile = 2,2 m. */
 export function brickSet() {
-  const L = layers(512), { n, cg, hg, rg } = L, r = rng(13);
+  const L = layers(512), { n, cg, hg, rg } = L, r = lcg(13);
   cg.fillStyle = '#d8ccb6'; cg.fillRect(0, 0, n, n); hg.fillStyle = '#303030'; hg.fillRect(0, 0, n, n); rg.fillStyle = '#f0f0f0'; rg.fillRect(0, 0, n, n);
   const rows = 32, rh = n / rows, bw = n / 8;
   for (let row = 0; row < rows; row++) for (let k = -1; k < 9; k++) {
@@ -189,7 +189,7 @@ export function brickSet() {
 
 /** Tablas de madera (vallado del encierro, puertas, contraventanas): vetas y nudos. Tile = 2,2 m. */
 export function woodSet() {
-  const L = layers(512), { n, cg, hg, rg } = L, r = rng(19);
+  const L = layers(512), { n, cg, hg, rg } = L, r = lcg(19);
   cg.fillStyle = '#9a7a52'; cg.fillRect(0, 0, n, n); hg.fillStyle = '#808080'; hg.fillRect(0, 0, n, n); rg.fillStyle = '#c8c8c8'; rg.fillRect(0, 0, n, n);
   const planks = 6, ph = n / planks;
   for (let p = 0; p < planks; p++) {
@@ -208,7 +208,7 @@ export function woodSet() {
 /** Revoco de fachada (se tiñe con el color de cada casa): grumos, manchas de humedad bajo los balcones,
  *  desconchones con la piedra asomando. Tile = 2,2 m. */
 export function plasterSet() {
-  const L = layers(512), { n, cg, hg, rg } = L, r = rng(5);
+  const L = layers(512), { n, cg, hg, rg } = L, r = lcg(5);
   cg.fillStyle = '#f2f0ea'; cg.fillRect(0, 0, n, n); hg.fillStyle = '#808080'; hg.fillRect(0, 0, n, n); rg.fillStyle = '#e8e8e8'; rg.fillRect(0, 0, n, n);
   grain(cg, n, r, 14000, 0.22, 255, 150); grain(hg, n, r, 16000, 0.5, 200, 60);
   for (let i = 0; i < 16; i++) { const x = r() * n, y = r() * n, rr = 20 + r() * 60, gr = cg.createRadialGradient(x, y, 0, x, y, rr); gr.addColorStop(0, 'rgba(150,135,115,0.16)'); gr.addColorStop(1, 'rgba(150,135,115,0)'); cg.fillStyle = gr; cg.fillRect(x - rr, y - rr, rr * 2, rr * 2); }
@@ -230,7 +230,7 @@ const canvas = (w, h) => { const c = document.createElement('canvas'); c.width =
 
 /** Ventana de balcón: marco blanco, seis cristales que reflejan el cielo y, a veces, visillos. */
 export function windowTex(variant = 0) {
-  const [c, g] = canvas(128, 256), r = rng(40 + variant);
+  const [c, g] = canvas(128, 256), r = lcg(40 + variant);
   g.fillStyle = '#f1ece0'; g.fillRect(0, 0, 128, 256);
   for (let row = 0; row < 3; row++) for (let col = 0; col < 2; col++) {
     const x = 12 + col * 54, y = 12 + row * 80, w = 50, h = 74;
@@ -258,7 +258,7 @@ export function railingTex() {
  *  los comercios cerrados como en cualquier mañana de encierro: persiana metálica bajada o tablas de protección. */
 export const SHOPS = ['portal', 'bar', 'pasteleria', 'recuerdos', 'alpargatas', 'portal2', 'persiana', 'tablas'];
 export function shopTex(kind) {
-  const [c, g] = canvas(256, 320), r = rng(kind.length * 7 + 3);
+  const [c, g] = canvas(256, 320), r = lcg(kind.length * 7 + 3);
   if (kind === 'persiana') {
     // persiana metálica enrollable: lamas onduladas con brillo, guías laterales, cajón arriba y cerrojo abajo
     g.fillStyle = '#8c9196'; g.fillRect(0, 0, 256, 320);
@@ -322,7 +322,7 @@ export function plaqueTex() {
 
 /** Arena (albero) del ruedo: ocre, con marcas del rastrillo y las rayas de picar blancas. */
 export function sandTex() {
-  const [c, g] = canvas(1024, 1024), r = rng(77);
+  const [c, g] = canvas(1024, 1024), r = lcg(77);
   g.fillStyle = '#c9965a'; g.fillRect(0, 0, 1024, 1024);
   for (let i = 0; i < 30000; i++) { const v = r(); g.fillStyle = v < 0.5 ? `rgba(240,200,140,${0.25 * r()})` : `rgba(120,80,40,${0.25 * r()})`; g.fillRect(r() * 1024, r() * 1024, 1 + r() * 2, 1 + r() * 2); }
   g.strokeStyle = 'rgba(150,105,60,0.22)'; g.lineWidth = 2;

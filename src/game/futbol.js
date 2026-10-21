@@ -133,7 +133,6 @@ export async function makeCharacter(d) {
   else hairTint(char.root, model, hair);
   // (la goma de la coleta, del color del equipo)
   if (girl) { const lazo = d.referee ? '#16161a' : d.keeper ? d.team.keeper : (d.team.shirt2 || d.team.shorts || '#16161a'); char.root.traverse(o => { if (/Lazo/.test(o.name) && o.material) { o.material = o.material.clone(); o.material.color.set(lazo); o.material.userData.own = true; } }); }
-  let vel = 0;
   const B = {}; char.root.traverse(o => { if (o.isBone) B[o.name.replace(/[.:]/g, '').replace(/^mixamorig/, '')] = o; });
   const arms = ['Left', 'Right'].map(s => [B[s + 'Arm'], B[s + 'ForeArm'], B[s + 'Hand']]).filter(a => a.every(Boolean));
   // el banderín, en la mano derecha (con la escala del mundo: el esqueleto de Mixamo va a 1/100)
@@ -141,7 +140,7 @@ export async function makeCharacter(d) {
   // el árbitro lleva las tarjetas: la que enseña aparece en su mano derecha, en alto
   let card = null; if (d.referee && !d.line && B.RightHand) { card = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.105, 0.006), new THREE.MeshBasicMaterial({ color: '#ffd400' })); card.position.set(0, 0.09, 0.02); card.visible = false; B.RightHand.add(card); char.root.updateMatrixWorld(true); card.scale.setScalar(1 / B.RightHand.getWorldScale(new THREE.Vector3()).x); card.position.multiplyScalar(card.scale.x); }
   const up = new THREE.Vector3(0, 1, 0), fw = new THREE.Vector3(), out = new THREE.Vector3(), w = new THREE.Quaternion();
-  return { obj: char.root, female: girl, anim: { setSpeed: (v) => { vel = v; char.setSpeed(v); }, once: (n, s, fit) => char.playOnce(n, s, fit), update: (dt) => { char.update(dt); } },
+  return { obj: char.root, female: girl, anim: { setSpeed: (v) => char.setSpeed(v), once: (n, s, fit) => char.playOnce(n, s, fit), update: (dt) => { char.update(dt); } },
     // brazos arriba sobre la cabeza (saque de banda) o el derecho en alto con el banderín (fuera de juego)
     post: (st) => {
       if (card) { card.visible = !!st?.card; if (st?.card) card.material.color.set(st.card === 'red' ? '#e3262b' : '#ffd400'); }

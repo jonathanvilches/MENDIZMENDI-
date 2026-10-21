@@ -30,9 +30,6 @@ function envFor(renderer) {
   if (!ENV.has(renderer)) { const pm = new THREE.PMREMGenerator(renderer), room = new RoomEnvironment(); ENV.set(renderer, pm.fromScene(room, 0.04).texture); room.dispose?.(); pm.dispose(); }
   return ENV.get(renderer);
 }
-/** Calidad del dispositivo (en el juego, la del pueblo; en pruebas, alta). */
-export const stageQuality = (ui) => ui?.stage3d?.quality || 'high';
-
 export class Stage {
   /**
    * @param ui  la interfaz del juego (ui.stage3d la pone el juego: show/hide con su renderer)

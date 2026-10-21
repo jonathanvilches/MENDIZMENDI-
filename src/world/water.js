@@ -102,8 +102,10 @@ export class Water {
     this.mats = [];
     this.meshes = [];
     const add = (m) => { m.renderOrder = 2; scene.add(m); this.meshes.push(m); };
+    // (los ríos anchos, más lentos y de un verde más turbio)
+    const riverMat = (half) => { const m = makeMat(half > 8 ? 0.35 : 0.55); this.mats.push(m); if (half > 8) { m.uniforms.uDeep.value.set('#3b5f55'); m.uniforms.uShallow.value.set('#6f8f72'); } return m; };
     if (KIND === 'salazar') {
-      // Anduña (fluye de norte a sur => +z)
+      // Anduña (fluye de norte a sur, hacia +z)
       const sA = [];
       for (let z = -HALF - 40; z <= HALF + 40; z += 3) {
         const x = rx(z), dx = rx(z + 0.5) - rx(z - 0.5);
@@ -135,9 +137,7 @@ export class Water {
           if (sP.length < 2) continue;
           // (en los codos, la normal media de los dos tramos: la cinta no se pliega)
           for (let i = 1; i < sP.length - 1; i++) { const nx = sP[i - 1][2] + sP[i + 1][2], nz = sP[i - 1][3] + sP[i + 1][3], l = Math.hypot(nx, nz) || 1; sP[i][2] = nx / l; sP[i][3] = nz / l; }
-          const m = makeMat(rv.half > 8 ? 0.35 : 0.55); this.mats.push(m);
-          if (rv.half > 8) { m.uniforms.uDeep.value.set('#3b5f55'); m.uniforms.uShallow.value.set('#6f8f72'); }
-          add(new THREE.Mesh(ribbon(sP, () => rv.half + 0.4, i => lv[i]), m));
+          add(new THREE.Mesh(ribbon(sP, () => rv.half + 0.4, i => lv[i]), riverMat(rv.half)));
           continue;
         }
         const sA = [];
@@ -146,9 +146,7 @@ export class Water {
           const l = Math.hypot(dx, 1);
           sA.push([x, z, 1 / l, -dx / l]);
         }
-        const m = makeMat(rv.half > 8 ? 0.35 : 0.55); this.mats.push(m);
-        if (rv.half > 8) { m.uniforms.uDeep.value.set('#3b5f55'); m.uniforms.uShallow.value.set('#6f8f72'); }
-        add(new THREE.Mesh(ribbon(sA, () => rv.half, i => rv.level(sA[i][1])), m));
+        add(new THREE.Mesh(ribbon(sA, () => rv.half, i => rv.level(sA[i][1])), riverMat(rv.half)));
       }
     }
     for (const pd of PONDS) {

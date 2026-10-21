@@ -54,7 +54,7 @@ function pressPassTest(format, d, n = 40) {
     const dx = mate.x - me.x, dz = mate.z - me.z, l = Math.hypot(dx, dz);
     g.setMove(dx / l, dz / l, 0.6, false); g.step(H); g.press('pass'); g.step(H); g.release('pass');
     let res = null;
-    for (let t = 0; t < 3.5 && !res; t += H) { g.setMove(0, 0, 0, false); g.step(H); freeze(g, [foe, foe2, mate]); for (const e of g.drain()) if (e.t === 'control' && e.p !== me.id) res = g.players[e.p].team === 0 ? 'ok' : 'cortado'; if (e => 0) {} }
+    for (let t = 0; t < 3.5 && !res; t += H) { g.setMove(0, 0, 0, false); g.step(H); freeze(g, [foe, foe2, mate]); for (const e of g.drain()) if (e.t === 'control' && e.p !== me.id) res = g.players[e.p].team === 0 ? 'ok' : 'cortado'; }
     if (res === 'ok') ok++; else if (res === 'cortado') cut++;
   }
   return { ok: ok / n, cut: cut / n };

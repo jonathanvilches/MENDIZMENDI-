@@ -227,7 +227,7 @@ export function drawArms(g, cx, top, w, A, { stone = false } = {}) {
     }
     if (stone) hatch(g, x.f, X, Y, W, H, Math.max(3, w * 0.035));
     const s = Math.min(W, H) * (A.part === 'entero' ? 0.62 : 0.78), ccx = X + W / 2, ccy = Y + H * (zy > 0 ? 0.42 : 0.52);
-    if (x.c === 'bend') { g.save(); g.translate(ccx, ccy); g.rotate(Math.atan2(H, W)); g.fillStyle = col(x.t); g.strokeStyle = stone ? STONE_LO : DARK; g.lineWidth = Math.max(1.2, w * 0.012); g.fillRect(-W, -Math.min(W, H) * 0.12, 2 * W, Math.min(W, H) * 0.24); g.strokeRect(-W, -Math.min(W, H) * 0.12, 2 * W, Math.min(W, H) * 0.24); if (stone) { g.restore(); } else g.restore(); return; }
+    if (x.c === 'bend') { g.save(); g.translate(ccx, ccy); g.rotate(Math.atan2(H, W)); g.fillStyle = col(x.t); g.strokeStyle = stone ? STONE_LO : DARK; g.lineWidth = Math.max(1.2, w * 0.012); g.fillRect(-W, -Math.min(W, H) * 0.12, 2 * W, Math.min(W, H) * 0.24); g.strokeRect(-W, -Math.min(W, H) * 0.12, 2 * W, Math.min(W, H) * 0.24); g.restore(); return; }
     const k = x.n || 1;
     if (k === 1 || x.c === 'panelas') moreCharge(g, x.c, ccx, ccy, s, col(x.t), stone);
     else { const pos = k === 2 ? [[0, -0.22], [0, 0.22]] : [[-0.22, -0.2], [0.22, -0.2], [0, 0.22]]; for (const [dx, dy] of pos) moreCharge(g, x.c, ccx + dx * s, ccy + dy * s, s * 0.5, col(x.t), stone); }
@@ -244,4 +244,4 @@ export function drawArms(g, cx, top, w, A, { stone = false } = {}) {
   g.restore();
 }
 // (para los escudos oficiales de src/world/armas.js)
-export { charge, moreCharge, shieldPath, crown, helmet, rim, hatch, TINCT, STONE, STONE_HI, STONE_LO, GOLD, SILVER, DARK };
+export { charge, moreCharge, shieldPath, crown, helmet, rim, hatch, TINCT, STONE, STONE_HI, STONE_LO, DARK };

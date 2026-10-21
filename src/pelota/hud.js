@@ -2,6 +2,8 @@
 // Todo lleva el prefijo «pel-» y se coloca sin solaparse en móvil (vertical y horizontal) y escritorio.
 import { fitCircle, fitCircles } from '../ui/fitlabel.js';
 import { icon3DReady } from '../ui/icon3d.js';
+import { esc } from '../util/html.js';
+export { esc };
 const CSS = `
 .pel-root{position:fixed;inset:0;z-index:900;pointer-events:none;font-family:var(--pel-font,Nunito,sans-serif);color:#fff;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 .pel-root *{box-sizing:border-box}
@@ -317,4 +319,3 @@ export class PelotaHud {
 // el nombre sin su pueblo entre paréntesis («Jokin (Altsasu)» → «Jokin»): en el marcador y en la energía, que son
 // estrechos (el pueblo ya sale en la pantalla VS y en el frontón)
 const short = (n) => String(n).replace(/\s*\([^)]*\)/g, '');
-export function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }

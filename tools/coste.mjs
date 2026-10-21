@@ -58,7 +58,6 @@ const r = await p.evaluate(() => {
   }
   rt.active = true;
   return { pr: 1, out, base, parts: parts.slice(0, 22), kinds: [...kinds].map(([k, e]) => `${k}: ${e.n} grupos, ${e.meshes} mallas (${e.skin} con piel, hasta ${e.bones} huesos), ${(e.tris / 1000).toFixed(0)} k tri`) };
-  return { pr: 1, out, base, parts: parts.slice(0, 22) };
 });
 console.log(town, q, JSON.stringify(r.out));
 for (const [ms, k, c, t] of r.parts) console.log(`  −${ms} ms sin ${k}  (quedan ${c} llamadas, ${(t / 1e6).toFixed(2)} M tri)`);

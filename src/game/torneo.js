@@ -15,6 +15,7 @@ import { pelotariCard } from '../ui/sportCard.js';
 // (las ilustraciones de antes de esas portadas siguen en src/assets/pelota, sin cargarse)
 import { pelotariFig, RIVALES } from '../ui/pelotariFig.js';
 import { profile } from './profile.js';
+import { minstd } from '../util/math.js';
 // (el idioma, el que marca la página: en euskera, «eu»)
 const isEU = () => typeof document !== 'undefined' && document.documentElement?.lang === 'eu';
 /** Las cualidades de un pelotari del torneo y sus golpes preferidos (los de los torneos guardados antes sin golpes se
@@ -31,7 +32,6 @@ const save = (T) => { try { const all = loadAll(); all[keyOf(T.comarca, T.kind)]
 /** Las cualidades de cada uno de una pareja (i = 0 el delantero, 1 el zaguero). */
 export const mateStats = (p, i) => (p.mst ||= [])[i]?.style ? p.mst[i] : (p.mst[i] = pelotariStats(`${p.mates[i]} ${p.town}`, p.lv || 2));
 const clamp01 = (v) => Math.max(0.1, Math.min(0.9, v));
-function rng(seed) { let s = seed | 0 || 1; return () => ((s = (s * 16807) % 2147483647) / 2147483647); }
 
 /** Txapelas ganadas en cada comarca: { comarca: n } */
 export function txapelas() { const all = loadAll(), o = {}; for (const k in all) if (all[k]?.txapelas) { const c = k.split(':')[0]; o[c] = (o[c] || 0) + all[k].txapelas; } return o; }
@@ -47,7 +47,7 @@ export function torneo(you, ctx, fresh = false, kind = 'mano') {
   if (T && T.done && fresh) T = null;
   if (!T) {
     const prev = loadAll()[key];
-    const ed = (prev?.edition || 0) + 1, txapelas = prev?.txapelas || 0, r = rng(ed * 7919 + ctx.comarca.length * 31 + 13);
+    const ed = (prev?.edition || 0) + 1, txapelas = prev?.txapelas || 0, r = minstd(ed * 7919 + ctx.comarca.length * 31 + 13);
     const names = NAMES.filter(n => n !== you.name).sort(() => r() - 0.5);   // (nadie con tu mismo nombre)
     // rivales: de los pueblos del juego de la comarca (y de alrededor) primero; después, de otros pueblos navarros
     const towns = [...ctx.towns.map(t => ({ name: t.name, id: t.id })).filter(t => t.name !== you.town), ...TOWNS.filter(t => t !== you.town && !ctx.towns.some(x => x.name === t)).map(name => ({ name, id: null }))];
@@ -82,7 +82,7 @@ export function yourMatch(T) {
 }
 /** Apunta tu resultado (o null si ya estás eliminado), simula el resto de la ronda y prepara la siguiente. */
 export function playTorneoRound(T, you = null, rival = null) {
-  const R = ROUNDS[T.round], r = rng(T.edition * 101 + T.round * 7);
+  const R = ROUNDS[T.round], r = minstd(T.edition * 101 + T.round * 7);
   for (const m of T.matches) {
     const A = T.players[m.a], B = T.players[m.b];
     if ((A.you || B.you) && you != null) m.s = A.you ? [you, rival] : [rival, you];

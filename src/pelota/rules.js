@@ -1,6 +1,7 @@
 // Pelota a mano · medidas del frontón, reglas y textos (castellano y euskera).
 // Coordenadas del frontón: el frontis está en z = 0 y la cancha crece hacia +z; la pared izquierda
 // está en x = −W/2 (a la izquierda de quien mira al frontis) y la derecha queda abierta (contracancha).
+import { esc } from '../util/html.js';
 
 export const COURT = {
   W: 10,            // ancho de la cancha (m)
@@ -141,7 +142,7 @@ export function rivalQuote(st = {}, lang = 'es') {
 const word = (v, w) => v <= 2 ? w[0] : v >= 4 ? w[2] : w[1];
 // (compact: por parejas, dos fichas juntas: solo los golpes de dos o tres estrellas y el aviso)
 export function profileHtml(name, st, lang = 'es', role = '', compact = !!role) {
-  const T = TEXT[lang] || TEXT.es, P = T.profile || TEXT.es.profile, sty = st.style || {}, esc = (x) => String(x).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const T = TEXT[lang] || TEXT.es, P = T.profile || TEXT.es.profile, sty = st.style || {};
   const dots = (v) => '●'.repeat(v) + '<u>' + '●'.repeat(5 - v) + '</u>', stars = (n) => '★'.repeat(n);
   const fav = SHOTS.filter(k => sty[k] > (compact ? 1 : 0)).sort((a, b) => sty[b] - sty[a]), top = fav[0];
   const kind = [top && sty[top] >= 3 ? P.arch[top] : '', st.velocidad >= 4 ? P.fast : st.velocidad <= 2 ? P.slow : '', st.fuerza >= 4 ? P.strong : ''].filter(Boolean).join(', ');

@@ -1,12 +1,12 @@
 // Arte propio generado por el juego: sellos de pasaporte y paisajes ilustrados de cada comarca.
 import { ICONS, withDefs } from './icons.js';
 import COMARCAS from '../data/comarcas.json';
+import { esc } from '../util/html.js';
 
 const url = (svg) => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg.replace(/\s+/g, ' ')).replace(/\(/g, '%28').replace(/\)/g, '%29').replace(/'/g, '%27');
 const cache = new Map();
 const memo = (k, f) => { if (!cache.has(k)) cache.set(k, f()); return cache.get(k); };
 const shade = (hex, k) => { let h = hex.replace('#', ''); if (h.length === 3) h = h.split('').map(x => x + x).join(''); const n = parseInt(h, 16); const f = (v) => Math.max(0, Math.min(255, Math.round(k > 0 ? v + (255 - v) * k : v * (1 + k)))); return '#' + [16, 8, 0].map(s => f((n >> s) & 255).toString(16).padStart(2, '0')).join(''); };
-const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // Símbolo de cada comarca en su sello
 const EMBLEM = { bidasoa: 'fish', 'larraun-leitzaldea': 'axe', sakana: 'mask', pamplona: 'bull', pirineo: 'peak', prepirineo: 'gorge', sanguesa: 'castle', 'tierra-estella': 'bridge', 'valdizarbe-novenera': 'camino', 'zona-media': 'grapes', 'ribera-alta': 'pepper', ribera: 'artichoke' };
