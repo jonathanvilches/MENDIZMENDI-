@@ -234,7 +234,9 @@ export function archPanel(w, h, depth) {
 // Piezas de detalle registradas por los constructores: se ocultan cuando la cámara se aleja
 export const DETAIL = [];
 export function resetDetail() { DETAIL.length = 0; }
-const DETAIL_DIST = { low: [45, 110], mid: [60, 140], high: [80, 180] };
+// (las menudas —lamas, marcos, macetas— miden menos de un píxel más allá de unos 50 m; las medianas, a 150 m, uno o dos:
+// antes se dibujaban hasta 80 y 180 m y eran casi la mitad de los triángulos de un pueblo grande en alta)
+const DETAIL_DIST = { low: [45, 110], mid: [48, 130], high: [55, 150] };
 export function updateDetail(cam, quality = 'high') {
   const [d2, d1] = DETAIL_DIST[quality] || DETAIL_DIST.high;
   for (const e of DETAIL) {

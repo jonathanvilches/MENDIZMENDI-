@@ -151,9 +151,27 @@ export class PelotaCourt {
     floorTex.minFilter = T.LinearMipmapLinearFilter;
     const floor = new T.Mesh(new T.PlaneGeometry(fw, fl), M({ map: floorTex, roughness: 0.92 }));
     floor.rotation.x = -Math.PI / 2; floor.position.set(-W / 2 + fw / 2, 0, fl / 2); floor.receiveShadow = true; g.add(floor);
-    // zócalo bajo la cancha para que no flote en terrenos con pendiente
-    const base = new T.Mesh(new T.BoxGeometry(fw + 1.2, 3, fl + 1), M({ color: '#8d8578', roughness: 0.95 }));
-    base.position.set(-W / 2 + fw / 2, -1.52, fl / 2 - 0.3); base.receiveShadow = true; g.add(base);
+    // zócalo bajo la cancha para que no flote en terrenos con pendiente. En los de la calle, un muro de piedra que llega
+    // hasta debajo de la grada y baja 6 m (antes era una losa lisa solo bajo la cancha y la grada quedaba en el aire,
+    // colgando sobre la ladera); los cubiertos y el Labrit, muy por encima del pueblo, no lo necesitan
+    const street = !opts.labrit && !HALL, bx0 = -W / 2 - 0.6, bx1 = W / 2 + CONTRA + (street ? 3.4 : 0.6), BH = street ? 6 : 3;
+    const baseG = new T.BoxGeometry(bx1 - bx0, BH, fl + 1);
+    if (street) {   // (las piedras con su tamaño en todas las caras: las coordenadas de textura, en metros)
+      const uv = baseG.attributes.uv, n = baseG.attributes.normal, bw = bx1 - bx0, bd = fl + 1;
+      for (let i = 0; i < uv.count; i++) { const su = Math.abs(n.getX(i)) > 0.5 ? bd : bw, sv = Math.abs(n.getY(i)) > 0.5 ? bd : BH; uv.setXY(i, uv.getX(i) * su / 2.4, uv.getY(i) * sv / 1.2); }
+    }
+    const stoneTex = street ? canvasTex(T, 256, 128, (c, w, h) => {
+      // sillarejo a soga: cuatro hiladas de piedras de 60 × 30 cm con su llaga
+      c.fillStyle = '#6c665c'; c.fillRect(0, 0, w, h);
+      const bw = w / 4, bh = h / 4;
+      for (let r = 0; r < 4; r++) for (let k = -1; k < 5; k++) {
+        const x = k * bw + (r % 2) * bw / 2, t = 0.86 + (((r * 7 + k * 13) % 9) / 9) * 0.22;
+        c.fillStyle = `rgb(${Math.round(150 * t)},${Math.round(142 * t)},${Math.round(128 * t)})`; c.fillRect(x + 2, r * bh + 2, bw - 4, bh - 4);
+      }
+      grain(c, w, h, 2600, 0.08); grain(c, w, h, 900, 0.05, false);
+    }, [1, 1]) : null;
+    const base = new T.Mesh(baseG, M(stoneTex ? { map: stoneTex, roughness: 0.95 } : { color: '#8d8578', roughness: 0.95 }));
+    base.position.set((bx0 + bx1) / 2, -BH / 2 - 0.02, fl / 2 - 0.3); base.receiveShadow = true; g.add(base);
 
     // --- frontis con la chapa y la raya de arriba
     const title = (opts.title || '').toUpperCase();

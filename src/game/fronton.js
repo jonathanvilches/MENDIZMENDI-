@@ -340,6 +340,8 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // (si el partido falla una y otra vez, se acaba y se vuelve al pueblo: nunca el marcador puesto en mitad de la calle)
     let bad = 0;
     G.pelotaAbort = () => done({ win: false, quit: true, error: true }); G.pelotaLoading = false;
+    // (los pelotaris, sus parejas y el público, compilados antes del primer saque: si no, la imagen se paraba al empezar)
+    for (const o of [pel?.char.root, red?.char.root, seated]) if (o) G.rt?.warm?.(o);
     G.pelotaTick = (dt) => {
       try { match.update(dt); bad = 0; } catch (e) { console.warn('partido', e); if (++bad > 20) { done({ win: false, quit: true, error: true }); return; } }
       try { if (seated) { seated.tick(match.t || 0, cheerT > 0 ? 1 : 0.15, seatedZ, G.camera); if (cheerT > 0 && (cheerT -= dt) <= 0) seated.cheer(false); } } catch (e) { console.warn('público', e); seated = null; }

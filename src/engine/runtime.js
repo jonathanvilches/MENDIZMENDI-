@@ -99,7 +99,11 @@ export class Runtime {
     this.texturesReady = false;
     this.active = false;
     this.clock = new THREE.Clock();
-    this.elapsed = 0; this.frames = 0; this.fpsT = 0; this.lowFps = 0; this.highFps = 0;
+    this.elapsed = 0; this.frames = 0; this.frameNo = 0; this.fpsT = 0; this.lowFps = 0; this.highFps = 0;
+    // escenas y piezas ya compiladas (warm), compilaciones en curso, nivel de aligerado (lighten) y ventana opaca encima
+    this.warmed = new WeakSet(); this.holds = 0; this.lite = 0; this.slowN = 0; this.covered = false; this.detailQ = quality;
+    // (al abrir o cerrar un panel se mira enseguida: si no, al cerrarlo se veía un momento la imagen vieja de debajo)
+    try { new MutationObserver(() => this.checkCover()).observe(document.body, { childList: true }); } catch (e) { }
     this.loop = this.loop.bind(this);
     requestAnimationFrame(this.loop);
   }
@@ -127,6 +131,10 @@ export class Runtime {
     onProgress(0.25, 'Tallando la piedra…'); await frame();
     if (!this.texturesReady) { buildTextures(q); this.texturesReady = true; }
     const scene = this.scene = new THREE.Scene();
+    // lo que se añade al pueblo ya en juego (los objetos de una misión, el público del frontón, la criatura de una
+    // leyenda): si trae materiales sin compilar, se compilan antes de dibujarlo (warm), como lo demás en la carga
+    { const add0 = scene.add.bind(scene);
+      scene.add = (...objs) => { add0(...objs); if (this.active && this.scene === scene) for (const o of objs) if (o && this.needsWarm(o)) this.warm(o, this.camera, 1500); return scene; }; }
     onProgress(0.35, 'Extendiendo el paisaje…'); await frame();
     this.terrain = new Terrain(scene, q);
     this.sky = new SkySystem(scene, this.renderer, q);
@@ -162,13 +170,52 @@ export class Runtime {
     // compila los shaders mientras sigue la pantalla de carga (en paralelo si el navegador puede),
     // para que el primer fotograma del pueblo no se quede congelado
     try { await Promise.race([this.renderer.compileAsync(scene, this.camera), new Promise(r => setTimeout(r, 5000))]); } catch (e) { }
+    this.warmed.add(scene);
+    // (el aligerado de un pueblo anterior sigue: si el ordenador no podía con aquel, tampoco con este)
+    if (this.lite) this.applyLite();
     return this;
   }
   // segunda pasada de compilación, ya con vecinos, objetos de misión y efectos creados: así no hay tirones
   // la primera vez que aparecen en pantalla (los sombreadores se compilan durante la pantalla de carga)
   async precompile(ms = 4000) {
     if (!this.scene) return;
-    try { await Promise.race([this.renderer.compileAsync(this.scene, this.camera), new Promise(r => setTimeout(r, ms))]); } catch (e) { }
+    this.warmed.delete(this.scene);
+    await this.warm(this.scene, this.camera, ms);
+  }
+  /** Antes de enseñar algo nuevo (la escena de un minijuego, el partido de fútbol, el encierro, el frontón cubierto),
+   *  compila sus sombreadores en paralelo y sube sus texturas, sin dibujar mientras tanto (como mucho ms). Dibujar a
+   *  medio compilar obliga al navegador a terminar de golpe: la imagen se quedaba congelada uno o dos segundos al
+   *  entrar en un minijuego o en un partido, y en los ordenadores con gráfica integrada, más. Una vez por pieza. */
+  warm(obj, cam = this.camera, ms = 3000) {
+    if (!obj || this.warmed.has(obj)) return Promise.resolve();
+    this.warmed.add(obj); this.holds++;
+    const R = this.renderer, t0 = performance.now();
+    let job;
+    try { job = R.compileAsync(obj, cam, obj.isScene || !this.scene ? null : this.scene); } catch (e) { job = Promise.resolve(); }
+    // (las texturas, también ahora: subirlas la primera vez que se ven daba otro tirón; en el móvil no, por la memoria)
+    if (this.quality !== 'low') this.upload(obj);
+    return Promise.race([job, new Promise(r => setTimeout(r, ms))]).catch(() => { }).finally(() => {
+      this.holds = Math.max(0, this.holds - 1); this.clock.getDelta();
+      if (/debug/.test(location.search)) console.log('[compilar]', obj.name || obj.type, Math.round(performance.now() - t0), 'ms');
+    });
+  }
+  checkCover() { this.covered = !!document.querySelector('.lg-root.gx-bg, .champ, .sport-bg.on'); }
+  // ¿trae algún material que aún no tiene su programa en la tarjeta gráfica? (los ya usados se dibujan sin esperar)
+  needsWarm(obj) {
+    if (this.warmed.has(obj)) return false;
+    const P = this.renderer.properties; let need = false;
+    obj.traverse(o => { if (need || !o.material) return; for (const m of [].concat(o.material)) if (m && !P.get(m).currentProgram) { need = true; break; } });
+    return need;
+  }
+  upload(obj) {
+    const R = this.renderer, seen = new Set(), up = (t) => { if (!t?.isTexture || seen.has(t) || !t.image || t.isRenderTargetTexture) return; seen.add(t); try { R.initTexture(t); } catch (e) { } };
+    obj.traverse(o => {
+      if (!o.material) return;
+      for (const m of [].concat(o.material)) {
+        for (const k of ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap', 'alphaMap', 'bumpMap']) up(m[k]);
+        if (m.uniforms) for (const u of Object.values(m.uniforms)) up(u?.value);
+      }
+    });
   }
   start(game) { this.game = game; this.active = true; this.canvas.style.visibility = 'visible'; this.clock.getDelta(); }
   unload() {
@@ -212,36 +259,76 @@ export class Runtime {
     if (!this.active || !this.scene) return;
     // (la app instalada puesta en vertical: sale la pantalla de girar, index.html, y el juego espera)
     if (window.__girado) return;
-    this.elapsed += dt;
+    // (compilando lo que viene: ni se mueve ni se dibuja nada hasta que esté, como mucho unos segundos; warm)
+    if (this.holds) return;
     if (this.contextLost) return;
     const g = this.game, input = this.input;
     // escenas propias (el encierro): el juego dibuja su escena y su cámara, el mundo del pueblo queda en pausa
     const alt = g?.altScene;
+    // (la primera vez que sale una escena propia, antes se compila: warm)
+    if (alt && !this.warmed.has(alt)) { this.warm(alt, g.altCamera || this.camera); return; }
+    this.elapsed += dt;
     this.applySize();
+    // ventana opaca a pantalla completa (los paneles de los campeonatos, la celebración del campeón): lo de debajo no
+    // se ve y no se dibuja. Antes el pueblo entero se seguía dibujando detrás y, en los ordenadores modestos, los menús
+    // iban a tirones
+    if (this.frameNo % 10 === 0) this.checkCover();
     if (this.frames % 15 === 0) this.sound.setMood?.(this.moodOf(g));
     try { if (alt) { input.enabled = !g.ui.busy; input.update(); g.altUpdate?.(dt); } else this.step(dt, g, input); } catch (e) { this.reportError(e); }
     // sombras un fotograma sí y otro no (también en las escenas propias, como el encierro)
     if (this.frames % this.shadowEvery === 0) this.renderer.shadowMap.needsUpdate = true;
     // la luz propia de personajes y animales sigue a la del pueblo (de noche, tenue y azulada; junto a una farola, cálida);
     // las escenas propias (fútbol, pelota, encierro) tienen su luz y lo ven neutro
-    if (!alt) applyCharFill(this.charFill);
-    try { this.renderer.render(alt || this.scene, (alt && g.altCamera) || this.camera); } catch (e) { this.reportError(e); }
-    if (!alt) applyCharFill(null);
+    if (!this.covered) {
+      if (!alt) applyCharFill(this.charFill);
+      try { this.renderer.render(alt || this.scene, (alt && g.altCamera) || this.camera); } catch (e) { this.reportError(e); }
+      if (!alt) applyCharFill(null);
+    }
     input.endFrame();
     this.frames++; this.frameNo = (this.frameNo || 0) + 1; this.fpsT += dt;
+    // (con una ventana encima no se mide: no se dibuja nada y saldría que sobra fluidez)
+    if (this.covered) { this.frames = 0; this.fpsT = 0; }
     if (this.fpsT > 2) {
       const fps = this.frames / this.fpsT; this.frames = 0; this.fpsT = 0;
       // resolución dinámica: si va a tirones baja un poco la resolución; si sobra fluidez, la recupera poco a poco
       const want = this.quality === 'low' ? 32 : 45;
       // (en ordenador nunca por debajo de la resolución de la pantalla: se veía pixelado; en los partidos tampoco baja de
       // 1,5: los pelotaris y futbolistas se veían borrosos cuando el móvil iba justo)
-      const floor = this.boosted ? Math.min(this.quality === 'low' ? 1.45 : 1.5, this.maxRatio) : this.quality === 'low' ? 0.75 : Math.min(1, this.maxRatio);   // (por debajo de 0,75 los personajes se veían emborronados)
+      const floor = this.boosted ? Math.min(this.quality === 'low' ? 1.45 : 1.5, this.maxRatio) : this.quality === 'low' ? 0.75 : Math.min(this.liteFloor || 1, this.maxRatio);   // (por debajo de 0,75 los personajes se veían emborronados)
       // (el cambio se aplica en el siguiente fotograma, antes de dibujar: sin destello. Tras bajar, no se vuelve a subir
       // en 25 s, y para subir tiene que sobrar bastante: así no sube y baja cada pocos segundos)
       if (fps < want && this.pixelRatio > floor) { if (++this.lowFps >= 2) { this.pixelRatio = Math.max(floor, this.pixelRatio - (fps < want * 0.6 ? 0.3 : 0.15)); this.ratioDirty = true; this.lowFps = 0; this.highFps = 0; this.ratioHold = this.elapsed + 25; } }
       else if (fps > want + 8 && this.pixelRatio < this.maxRatio && this.elapsed > this.ratioHold) { this.lowFps = 0; if (++this.highFps >= 3) { this.pixelRatio = Math.min(this.maxRatio, this.pixelRatio + 0.1); this.ratioDirty = true; this.highFps = 0; } }
       else { this.lowFps = 0; this.highFps = 0; }
+      // y si ni con la resolución más baja llega (unos 6 s seguidos por debajo), se aligera el pueblo: lighten
+      // (no en los partidos, que tienen su propia escena y su resolución, ni en el móvil, que ya va en lo más ligero)
+      if (fps < want * 0.85 && this.pixelRatio <= floor + 0.01 && !this.boosted && !g?.altScene && g?.mode === 'play' && this.quality !== 'low' && this.lite < 2) { if (++this.slowN >= 3) { this.slowN = 0; this.lighten(fps); } }
+      else this.slowN = 0;
       window.__fps = fps;
+    }
+  }
+  /** Aligerado automático, por pasos, cuando el ordenador no llega a la fluidez mínima ni bajando la resolución:
+   *  1) las piezas menudas de las casas, los árboles con detalle y los animales, solo de cerca, y la sombra a la mitad
+   *     de resolución (casi no se nota);
+   *  2) la resolución puede bajar de la de la pantalla y la sombra se rehace un fotograma sí y otro no.
+   *  Sin cambiar el tipo de sombra ni las luces: eso obliga a recompilar todos los sombreadores y daría un parón.
+   *  main.js lo apunta (onLighten) para que la próxima vez arranque ya en calidad media. */
+  lighten(fps = 0) {
+    this.lite++;
+    this.applyLite();
+    this.lowFps = this.highFps = 0; this.ratioHold = this.elapsed + 4;
+    console.info('[fluidez] aligerado', this.lite, Math.round(fps), 'fps');
+    this.onLighten?.(this.lite);
+  }
+  applyLite() {
+    if (this.lite >= 2) { this.shadowEvery = 2; this.liteFloor = 0.75; }
+    if (this.lite >= 1) {
+      this.detailQ = 'low';
+      if (this.nature) { this.nature.lodDist = Math.min(this.nature.lodDist, 60); this.nature.shadowDist = Math.min(this.nature.shadowDist, 15); this.nature.rockFar = Math.min(this.nature.rockFar, 170); }
+      if (this.terrain) this.terrain.lodDist = Math.min(this.terrain.lodDist, 110);
+      if (this.fauna) this.fauna.visDist = Math.min(this.fauna.visDist, 60);
+      const sun = this.sky?.sun;
+      if (sun && sun.shadow.mapSize.x > 1024) { sun.shadow.mapSize.set(1024, 1024); sun.shadow.map?.dispose(); sun.shadow.map = null; }
     }
   }
   /** Más resolución mientras dura una escena sencilla y de cerca (el partido de pelota): en el móvil los pelotaris se
@@ -306,14 +393,16 @@ export class Runtime {
     // (en los partidos y bajo techo no cae nada: antes, en la llegada al frontón cubierto llovía dentro del pabellón; y
     // en los deportes, con sus menús, no se oye la lluvia: antes sonaba a toda fuerza durante los partidos)
     { const hold = g.mode === 'futbol' || g.mode === 'pelota' || !!this.sky.indoor;
-      const mute = this.sportQuiet = hold || this.moodOf(g) === 'sport' || !!g.pelotaMatch || !!g.pelotaLoading || !!g.altScene || !!document.querySelector('.lg-root, .pel-root, .fb-root, .champ');
+      // (las ventanas de los deportes, mirado cada 10 imágenes: antes se buscaban en la página en cada fotograma)
+      if (this.frameNo % 10 === 0) this.sportUi = !!document.querySelector('.lg-root, .pel-root, .fb-root, .champ');
+      const mute = this.sportQuiet = hold || this.moodOf(g) === 'sport' || !!g.pelotaMatch || !!g.pelotaLoading || !!g.altScene || this.sportUi;
       this.weather?.update(dt, this.camera, this.sky, this.sound, hold, mute); }
     this.sky.applyFlood();   // (los focos del frontón, después de la lluvia)
     g.fronton?.court?.setLights?.(this.sky.flood ? 1 : Math.min(1, this.sky.night * 1.6));   // (en el partido, siempre encendidos; si no, al anochecer)
     this.water.update(this.elapsed, this.sky);
     groundUniforms.uTime.value = this.elapsed; groundUniforms.uSkyHor.value.copy(this.sky.uniforms.uHor.value);   // (agua de las fuentes)
     this.nature.update(this.camera.position, P.pos, this.elapsed, P.pos);
-    updateDetail(this.camera.position, this.quality);
+    updateDetail(this.camera.position, this.detailQ);
     { const W = this.weather; this.fauna.wet = !W || W.kind === 'clear' ? 0 : W.kind === 'snow' ? 1 : W.k; }   // (con lluvia o nieve, sin mariposas ni luciérnagas)
     this.fauna.update(dt, P, this.elapsed, this.sky.night, this.sound, this.sky.floodK(), this.camera.position);   // (en el partido, sin luciérnagas)
     this.particles.update(dt);
