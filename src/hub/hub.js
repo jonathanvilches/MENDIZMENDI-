@@ -132,10 +132,12 @@ export class Hub {
     document.body.appendChild(this.root);
     // (instalar el juego como app: solo en la web y si no se está jugando ya desde la app instalada)
     setupInstall(this.root, this.root.querySelector('[data-app]'));
-    // secciones: las principales siempre a la vista; las demás, en «Más» cuando falta sitio (móvil)
-    this.nav = [['home', 'Inicio', 'home'], ['map', 'Mapa', 'map'], ['towns', 'Pueblos', 'church'], ['sports', 'Torneos', 'trophy'], ['avatars', 'Personajes', 'person'], ['peaks', 'Cimas', 'peak', 1], ['nature', 'Naturaleza', 'leaf', 1], ['escudos', 'Escudos', 'shield', 1], ['cuentos', 'Leyendas', 'legend', 1], ['instrumentos', 'Instrumentos', 'music', 1], ['pasaka', 'Pasaka', 'pelota', 1], ['album', 'Láminas', 'scroll', 1], ['badges', 'Insignias', 'badge', 1], ['passport', 'Pasaporte', 'stamp', 1], ['profile', 'Perfil', 'gear', 1]];
-    this.MORE = { peaks: 'Montañas de Navarra con su perfil', nature: 'Fauna, árboles, plantas y flores', escudos: 'Escudos de Navarra y cómo se leen', cuentos: 'Cuentos, leyendas e historias de Navarra', instrumentos: 'Txistu, gaita, txalaparta… escúchalos y aprende a tocarlos', pasaka: 'El juego de pelota con red de los claustros: apréndelo y juégalo', album: 'Las ilustraciones de cada pueblo y comarca', badges: 'Tus logros', passport: 'Los sellos de tus pueblos', profile: 'Nombre, nivel y ajustes' };
-    $('#hNav', this.root).innerHTML = this.nav.map(([id, n, ic, sec]) => `<button data-s="${id}" class="${sec ? 'nav2' : ''}">${I(ic, 26)}<span>${n}</span></button>`).join('') + `<button data-s="more" class="more-btn"><svg viewBox="0 0 24 24" width="26" height="26"><circle cx="5" cy="12" r="2.4" fill="#f7f0e6"/><circle cx="12" cy="12" r="2.4" fill="#f7f0e6"/><circle cx="19" cy="12" r="2.4" fill="#f7f0e6"/></svg><span>Más</span></button>`;
+    // secciones: las principales siempre a la vista; las demás (1), en «Más» cuando falta sitio; la de elegir avatar (2), a
+    // la vista salvo en el móvil de pie, donde la barra de abajo no tiene sitio para tantas (también está en el Perfil)
+    // (los personajes de Navarra tienen su sección: antes iban debajo de «Elige tu personaje»)
+    this.nav = [['home', 'Inicio', 'home'], ['map', 'Mapa', 'map'], ['towns', 'Pueblos', 'church'], ['sports', 'Torneos', 'trophy'], ['personajes', 'Personajes', 'book'], ['avatars', 'Avatar', 'person', 2], ['peaks', 'Cimas', 'peak', 1], ['nature', 'Naturaleza', 'leaf', 1], ['escudos', 'Escudos', 'shield', 1], ['cuentos', 'Leyendas', 'legend', 1], ['instrumentos', 'Instrumentos', 'music', 1], ['pasaka', 'Pasaka', 'pelota', 1], ['album', 'Láminas', 'scroll', 1], ['badges', 'Insignias', 'badge', 1], ['passport', 'Pasaporte', 'stamp', 1], ['profile', 'Perfil', 'gear', 1]];
+    this.MORE = { avatars: 'Elige con quién juegas', peaks: 'Montañas de Navarra con su perfil', nature: 'Fauna, árboles, plantas y flores', escudos: 'Escudos de Navarra y cómo se leen', cuentos: 'Cuentos, leyendas e historias de Navarra', instrumentos: 'Txistu, gaita, txalaparta… escúchalos y aprende a tocarlos', pasaka: 'El juego de pelota con red de los claustros: apréndelo y juégalo', album: 'Las ilustraciones de cada pueblo y comarca', badges: 'Tus logros', passport: 'Los sellos de tus pueblos', profile: 'Nombre, nivel y ajustes' };
+    $('#hNav', this.root).innerHTML = this.nav.map(([id, n, ic, sec]) => `<button data-s="${id}" class="${sec === 2 ? 'nav3' : sec ? 'nav2' : ''}">${I(ic, 26)}<span>${n}</span></button>`).join('') + `<button data-s="more" class="more-btn"><svg viewBox="0 0 24 24" width="26" height="26"><circle cx="5" cy="12" r="2.4" fill="#f7f0e6"/><circle cx="12" cy="12" r="2.4" fill="#f7f0e6"/><circle cx="19" cy="12" r="2.4" fill="#f7f0e6"/></svg><span>Más</span></button>`;
     $('#hNav', this.root).addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.s === 'more') return this.more(); this.go(b.dataset.s); });
     this.root.addEventListener('click', e => {
       const t = e.target.closest('[data-go],[data-town],[data-comarca],[data-play],[data-sport],[data-fronton],[data-frpick],[data-figura],[data-personaje],[data-instrumento],[data-pasaka]'); if (!t) return;
@@ -160,7 +162,7 @@ export class Hub {
     this.screen = screen; this.arg = arg;
     if (!silent) this.sound?.ui('click');
     this.sheet?.remove(); this.sheet = null;
-    const secScreen = this.nav.find(n => n[0] === screen)?.[3];
+    const secScreen = this.nav.some(n => n[0] === screen && n[3]) && this.navHidden(screen);
     this.root.querySelectorAll('#hNav button').forEach(b => b.classList.toggle('on', !!(b.dataset.s === screen || (screen === 'comarca' && b.dataset.s === 'map') || (b.dataset.s === 'more' && secScreen))));
     const bgc = screen === 'comarca' ? arg : (levelById(profile().last) || LEVELS[0]).comarca;
     if (this.bgc !== bgc) { this.bgc = bgc; $('.bgimg', this.root).style.backgroundImage = `url(${comarcaCover(bgc, true)})`; }
@@ -172,10 +174,12 @@ export class Hub {
     this.after?.(); this.after = null; bindLaminas(m, this.sound);
     this.renderChip();
   }
+  // ¿el botón de esa sección no cabe en la barra con este tamaño de pantalla? (entonces va en «Más»)
+  navHidden(id) { const b = this.root.querySelector(`#hNav [data-s="${id}"]`); return !b || getComputedStyle(b).display === 'none'; }
   more() {
     this.sound?.ui('open');
     const s = el(`<div class="sheet more"><div class="more-in"><div class="grab"></div><small class="kicker">Más secciones</small>
-      ${offer() ? `<button data-install class="more-app"><img src="./icon-180.png" alt=""><div><b>Instalar app</b><small>A pantalla completa y sin conexión</small></div>${I('play', 20)}</button>` : ''}${this.nav.filter(n => n[3]).map(([id, n, ic]) => `<button data-go="${id}" class="${this.screen === id ? 'on' : ''}">${I(ic, 34)}<div><b>${n}</b><small>${this.MORE[id]}</small></div>${I('play', 20)}</button>`).join('')}</div></div>`);
+      ${offer() ? `<button data-install class="more-app"><img src="./icon-180.png" alt=""><div><b>Instalar app</b><small>A pantalla completa y sin conexión</small></div>${I('play', 20)}</button>` : ''}${this.nav.filter(n => n[3] && this.navHidden(n[0])).map(([id, n, ic]) => `<button data-go="${id}" class="${this.screen === id ? 'on' : ''}">${I(ic, 34)}<div><b>${n}</b><small>${this.MORE[id]}</small></div>${I('play', 20)}</button>`).join('')}</div></div>`);
     this.sheet?.remove(); this.sheet = s; this.root.appendChild(s);
     s.addEventListener('click', e => { if (e.target === s) { s.remove(); this.sheet = null; } });
     s.querySelector('[data-install]')?.addEventListener('click', () => { s.remove(); this.sheet = null; openInstall(this.root); });
@@ -255,9 +259,9 @@ export class Hub {
     </section>
     <h2 class="sec">${I('shield', 34)} Capítulos: las comarcas</h2>
     <section class="comarcas rail">${COMARCAS.map(c => this.comarcaCard(c)).join('')}</section>
-    <h2 class="sec">${I('person', 34)} Mujeres de Navarra</h2>
+    <h2 class="sec">${I('person', 34)} Mujeres de Navarra<button class="lnk sec-more" data-go="personajes">Ver todos</button></h2>
     <section class="figuras rail">${personajesHTML(MUJERES)}</section>
-    <h2 class="sec">${I('mask', 34)} Leyendas y carnaval</h2>
+    <h2 class="sec">${I('mask', 34)} Leyendas y carnaval<button class="lnk sec-more" data-go="personajes">Ver todos</button></h2>
     <section class="figuras rail">${figurasHTML(FIGURAS)}</section>`;
   }
   // ---------- Campeonatos ----------
@@ -527,14 +531,29 @@ export class Hub {
   s_avatars() {
     const p = profile(), cur = castById(p.avatar);
     this.after = () => this.bindSelector(this.root, p.avatar, (a) => { p.avatar = a.id; saveProfile(); this.renderChip(); $('#csGo', this.root).innerHTML = `${I('play', 24)} Jugar con ${esc(a.name)}`; });
-    // (el título y el botón de jugar van dentro del selector: en el móvil tumbado todo cabe en una pantalla)
-    // (debajo, las mujeres y los personajes de Navarra, con su ficha: ui/personajes.js; y las figuras de leyenda y de
-    // carnaval del juego: ui/figuras.js)
-    return `<h1 class="title cs-title">Elige tu personaje</h1>${this.selector(cur, { cta: `<button class="gx-go" id="csGo" data-go="home">${I('play', 24)} Jugar con ${esc(cur.name)}</button>` })}
-      <h2 class="sec">${I('person', 34)} Mujeres de Navarra</h2><p class="lead">Mujeres que hicieron historia en Navarra: reinas, maestras, trabajadoras del campo y de la fábrica. Toca una para leer su ficha.</p><section class="figuras">${personajesHTML(MUJERES)}</section>
-      <h2 class="sec">${I('book', 34)} Personajes de Navarra</h2><p class="lead">Músicos, deportistas, viajeros, sabios, pastores, hortelanos y arquitectos de Navarra. Cada uno tiene su recuerdo en un pueblo del juego.</p><section class="figuras">${personajesHTML(HOMBRES)}</section>
-      <h2 class="sec">${I('legend', 34)} Seres de leyenda</h2><p class="lead">Los seres de las leyendas de Navarra, tal como salen de noche en el juego. Toca uno para leer su ficha.</p><section class="figuras">${figurasHTML(FIGURAS_LEYENDA)}</section>
-      <h2 class="sec">${I('mask', 34)} Carnavales</h2><p class="lead">Los personajes de los carnavales de Navarra, con el traje de verdad de cada pueblo.</p><section class="figuras">${figurasHTML(FIGURAS_CARNAVAL)}</section>`;
+    // (el título y el botón de jugar van dentro del selector: en el móvil tumbado todo cabe en una pantalla; los personajes
+    // de Navarra, de leyenda y de carnaval tienen su propia sección: s_personajes)
+    return `<h1 class="title cs-title">Elige tu personaje</h1>${this.selector(cur, { cta: `<button class="gx-go" id="csGo" data-go="home">${I('play', 24)} Jugar con ${esc(cur.name)}</button>` })}`;
+  }
+  // ---------- Personajes ----------
+  // su propia sección: las mujeres y los personajes de Navarra con su ficha (ui/personajes.js) y los seres de leyenda y
+  // las figuras de carnaval del juego (ui/figuras.js), con pestañas para ver un grupo o todos
+  s_personajes(tab = 'all') {
+    const G = [
+      ['mujeres', 'Mujeres', 'Mujeres de Navarra', 'person', 'Mujeres que hicieron historia en Navarra: reinas, maestras, trabajadoras del campo y de la fábrica. Toca una para leer su ficha.', personajesHTML(MUJERES), MUJERES.length],
+      ['navarra', 'Personajes', 'Personajes de Navarra', 'book', 'Músicos, deportistas, viajeros, sabios, pastores, hortelanos y arquitectos de Navarra. Cada uno tiene su recuerdo en un pueblo del juego.', personajesHTML(HOMBRES), HOMBRES.length],
+      ['leyenda', 'Leyenda', 'Seres de leyenda', 'legend', 'Los seres de las leyendas de Navarra, tal como salen de noche en el juego. Toca uno para leer su ficha.', figurasHTML(FIGURAS_LEYENDA), FIGURAS_LEYENDA.length],
+      ['carnaval', 'Carnaval', 'Carnavales', 'mask', 'Los personajes de los carnavales de Navarra, con el traje de verdad de cada pueblo.', figurasHTML(FIGURAS_CARNAVAL), FIGURAS_CARNAVAL.length]];
+    if (!G.some(g => g[0] === tab)) tab = 'all';
+    const total = G.reduce((a, g) => a + g[6], 0);
+    this.after = () => this.root.querySelectorAll('.pj .filters button').forEach(b => b.onclick = (e) => { e.stopPropagation(); this.go('personajes', b.dataset.f); });
+    return `<section class="armorial pj">
+      <div class="ar-head"><small class="kicker">${I('book', 20)} Saberes · Personajes</small><h1>Personajes de Navarra</h1>
+        <p>Las mujeres y los hombres que hicieron historia, los seres de las leyendas y las figuras de los carnavales. En el juego te los encuentras en sus pueblos; aquí tienes la ficha de cada uno.</p>
+        <b class="ar-count">${total} personajes</b></div>
+      <div class="filters">${[['all', 'Todos', total], ...G.map(g => [g[0], g[1], g[6]])].map(([k, n, c]) => `<button data-f="${k}" class="${tab === k ? 'on' : ''}">${n} <small>${c}</small></button>`).join('')}</div>
+      ${G.filter(g => tab === 'all' || g[0] === tab).map(g => `<div class="pj-g"><h2 class="sec">${I(g[3], 34)} ${g[2]}</h2><p class="lead">${g[4]}</p><section class="figuras">${g[5]}</section></div>`).join('')}
+    </section>`;
   }
 
   // ---------- Insignias ----------
