@@ -10,10 +10,10 @@ import { portraitImg } from './ui/portraits.js';
 import { mountMapView } from './ui/mapview.js';
 import { tr } from './i18n.js';
 import { buildMapVectorsIdle } from './ui/mapvector.js';
+import { esc, el } from './util/html.js';
+import { windowKeys } from './util/keys.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
-const el = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
-const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const I = (n, s = 22) => iconSVG(n, s);
 
 const ICON = {
@@ -285,8 +285,8 @@ export class UI {
       this.modal = r;
       const btn = $('button', r); setTimeout(() => btn.focus(), 50);
       const close = () => { r.remove(); this.modal = null; removeEventListener('keydown', k, true); this.sound.ui('click'); res(); };
-      const k = (e) => { e.stopImmediatePropagation(); if (['e', 'enter', ' ', 'escape'].includes(e.key.toLowerCase())) { e.preventDefault(); close(); } };
-      setTimeout(() => addEventListener('keydown', k, true), 400);
+      const k = windowKeys((e) => { e.stopImmediatePropagation(); if (['e', 'enter', ' ', 'escape'].includes(e.key.toLowerCase())) { e.preventDefault(); close(); } }, 400);
+      addEventListener('keydown', k, true);
       btn.onclick = close;
     });
   }

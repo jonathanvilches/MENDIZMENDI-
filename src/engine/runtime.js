@@ -2,7 +2,7 @@
 import { applyCharFill, skyFill, lampFill } from './charLight.js';
 import { Weather, pickWeather } from '../world/weather.js';
 import * as THREE from 'three';
-import { setMeshyTexMax } from '../actors/glbChar.js';
+import { setMeshyTexMax, GlbRig, isGlbAvatar, loadGlbAvatar } from '../actors/glbChar.js';
 import { setQuality } from '../util/quality.js';
 import { bake, initBridges, clearPlatforms } from '../world/heightfield.js';
 import { buildTextures, TEX } from '../world/textures.js';
@@ -23,7 +23,6 @@ import { realEnabled, loadReal } from '../data/reales/index.js';
 import { cargarRelieve } from '../world/relieve.js';
 import { resetColliders } from '../world/colliders.js';
 import { resetNav, navTick } from '../world/nav.js';
-import { GlbRig, isGlbAvatar, loadGlbAvatar } from '../actors/glbChar.js';
 import { Player } from '../actors/player.js';
 import { Fauna } from '../actors/animals.js';
 import { FollowCamera } from '../camera.js';
@@ -62,11 +61,9 @@ export class Runtime {
   constructor({ canvas, input, sound, quality }) {
     this.canvas = canvas; this.input = input; this.sound = sound; this.quality = quality;
     setBuilderQuality(quality); setMeshyTexMax(quality === 'low' ? 1024 : 2048); setQuality(quality);
-    // en móvil (calidad media/baja) sin antialias de hardware y con menos resolución: el búfer de imagen pesa mucho menos
-    // en pantallas de mucha densidad (retina, 4K) la propia resolución ya suaviza los bordes: sin antialias de hardware,
-    // que con tantos píxeles era lo que más frenaba los ordenadores
-    // suavizado de bordes: en el móvil también (sus gráficas lo hacen casi gratis y sin él los personajes se veían con
-    // dientes y motas); en ordenador con pantalla de mucha densidad no hace falta (ya es nítida)
+    // suavizado de bordes por hardware: en el móvil sí (sus gráficas lo hacen casi gratis y sin él los personajes se veían
+    // con dientes y motas); en un ordenador con pantalla de mucha densidad (retina, 4K) no, porque la propia resolución ya
+    // suaviza los bordes y, con tantos píxeles, era lo que más lo frenaba
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: quality !== 'high' || devicePixelRatio < 1.5, powerPreference: 'high-performance' });
     // resolución con un presupuesto de píxeles: en alta, como mucho unos 4 millones (2560×1600); en móvil 1,25
     this.pixelRatio = this.maxRatio = this.ratioFor(quality);
@@ -285,7 +282,7 @@ export class Runtime {
       if (!alt) applyCharFill(null);
     }
     input.endFrame();
-    this.frames++; this.frameNo = (this.frameNo || 0) + 1; this.fpsT += dt;
+    this.frames++; this.frameNo++; this.fpsT += dt;
     // (con una ventana encima no se mide: no se dibuja nada y saldría que sobra fluidez)
     if (this.covered) { this.frames = 0; this.fpsT = 0; }
     if (this.fpsT > 2) {

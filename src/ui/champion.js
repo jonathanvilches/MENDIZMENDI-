@@ -2,7 +2,7 @@
 // la txapela (o la copa) que baja y se posa, confeti rojo, blanco y oro, fuegos artificiales, el grito de la grada y
 // una fanfarria. Primero la celebración y, a los pocos segundos, el nombre, el marcador y el botón.
 //   showChampion({ kind: 'pelota' | 'futbol', title, name, place, score, stat, sound }) → promesa (al cerrar)
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+import { esc } from '../util/html.js';
 
 const TXAPELA = `<svg viewBox="0 0 200 120" class="ch-obj"><defs><radialGradient id="chT" cx=".4" cy=".3" r=".8"><stop offset="0" stop-color="#3a3b48"/><stop offset="1" stop-color="#121218"/></radialGradient></defs>
   <ellipse cx="100" cy="92" rx="92" ry="20" fill="#0d0d12"/><path d="M14 86c4-44 42-70 86-70s82 26 86 70c-26 14-146 14-172 0z" fill="url(#chT)"/>

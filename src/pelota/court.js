@@ -99,7 +99,7 @@ function boxesGeo(T, list) {
   geo.computeBoundingSphere(); return geo;
 }
 
-export const THEMES = {
+const THEMES = {
   // stone: color de la sillería del frontis (sin ella, hormigón pintado); chapa: el color de la chapa de abajo (colchón)
   // y chapaMetal si es de metal; brick: ladrillo por fuera; roof: cubierta ('wood' o 'metal')
   plaza: { frontis: '#6f9c8a', wall: '#7aa595', floor: '#8b948f', contra: '#b7ad98', line: '#ffffff', mark: '#e0392f', stands: '#c9b89a',
@@ -107,9 +107,9 @@ export const THEMES = {
 };
 
 // el Labrit: contracancha ancha y la huella del edificio entero (con los torreones y la escalinata), para buscarle sitio en Iruña
-export const LABRIT_CONTRA = 4.4;
+const LABRIT_CONTRA = 4.4;
 // el frontón cubierto de los campeonatos: alto hasta el techo y contracancha algo más ancha (con la grada al lado)
-export const HALL_H = 13, HALL_CONTRA = 3.4, HALL_ROWS = 7;
+const HALL_H = 13, HALL_CONTRA = 3.4, HALL_ROWS = 7;
 export function labritExtent() {
   const W = COURT.W, EXT = COURT.L + 3, xr = W / 2 + LABRIT_CONTRA, zf = EXT + 0.3, xa = -W / 2 - 0.6, xb = xr + 14.6, za = -1.0, zb = zf + 14.6;
   return { x0: xa - 4.9, x1: xb + 4.9, z0: za - 4.9, z1: zb + 6.5 };
@@ -835,7 +835,7 @@ export class PelotaCourt {
     for (const m of this.rebMats || []) { m.opacity = f; m.depthWrite = f > 0.98; }
   }
   hideBall() { this.ball.visible = false; this.shadow.visible = false; for (const m of this.trail) m.visible = false; this.trailPts = []; }
-  showBall(p, glow = 0, t = 0) {
+  showBall(p, glow = 0) {
     const b = this.ball; b.visible = this.shadow.visible = true;
     b.position.set(p.x, p.y, p.z); b.rotation.x += 0.25; b.rotation.y += 0.1;
     this.ballMat.emissive.setRGB(glow * 0.9, glow * 0.75, glow * 0.2);

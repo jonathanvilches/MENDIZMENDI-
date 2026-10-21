@@ -19,7 +19,6 @@ for (const id of ids) {
     const r = await p.evaluate(() => {
       const L = window.__layout, T = window.__TOWN, G = window.__game, def = G.def;
       const ri = (x, z) => L.riverInfo(x, z);
-      const bridgeIds = new Set(L.BRIDGES.map(b => b.id));
       let street = 0, streetIds = new Set();
       for (const pth of L.PATHS) {
         if (['overRiver', 'beyond'].includes(pth.id) || /^br/.test(pth.id)) continue;

@@ -21,9 +21,9 @@ import { drawArms } from '../world/heraldry.js';
 import { armsReady, drawReady } from '../ui/escudoImg.js';
 import { armsOfTown } from '../data/armas-navarra.js';
 import { tr, isEU } from '../i18n.js';
+import { esc } from '../util/html.js';
+import { clamp } from '../util/math.js';
 
-const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const { W, L, NETH, SAQUE, CHAPA } = PISTA, NETZ = L / 2, CEIL = 5.8, GRAV = 9.81, R = 0.034, VALLA = 1.6, Y = 2400;
 const QN = ['0', '15', '30', '40'], SX = -1;   // (la cámara mira hacia +z: la derecha de la pantalla es -x en la cancha)
 
@@ -329,7 +329,7 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
       const coming = b.inPlay && !b.dead && b.last !== pl.team && Math.hypot(b.x - pl.x, b.z - pl.z) < 3.2;
       pl.wind += ((coming ? 1 : 0) - pl.wind) * Math.min(1, dt * 6);
     };
-    const think = (pl, dt) => {
+    const think = (pl) => {
       if (st.phase === 'serve') {
         if (!pl.me && pl === st.pl[2] && st.server === 1 && st.phaseT > 1.3) { b.x = pl.x + 0.3; b.y = 1.05; b.z = pl.z - 0.3; launch(pl, 'saque', (Math.random() - 0.5) * 1.2); }
         if (pl.me && st.auto && st.server === 0 && st.phaseT > 0.8) { b.x = pl.x + 0.3; b.y = 1.05; b.z = pl.z + 0.3; launch(pl, 'saque', (Math.random() - 0.5) * 1.2); }
@@ -357,7 +357,7 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
       st.t += dt; st.phaseT += dt;
       if (st.phase === 'intro') { if (st.phaseT > 1.6) setupServe(); }
       else if (st.phase === 'dead') { if (st.phaseT > 1.6) setupServe(); }
-      for (const p of st.pl) { think(p, dt); movePl(p, dt); }
+      for (const p of st.pl) { think(p); movePl(p, dt); }
       for (const a of st.pl) for (const c of st.pl) if (a !== c && a.team === c.team) { const dx = c.x - a.x, dz = c.z - a.z, d = Math.hypot(dx, dz); if (d < 0.8 && d > 1e-3) { c.x += dx / d * (0.8 - d) * 0.5; c.z += dz / d * (0.8 - d) * 0.5; } }
       if (st.phase === 'serve' && b.held >= 0) { const srv = b.held === 0 ? P0 : st.pl[2]; b.x = srv.x + 0.3; b.y = 1.05; b.z = srv.z + (b.held === 0 ? 0.3 : -0.3); }
       if (st.charge) { st.charge.t += dt; const pw = Math.min(1, st.charge.t / 0.9), p2 = 0.2 + pw * 0.8; btnG?.style.setProperty('--cp', Math.round(pw * 100) + '%'); btnG?.classList.toggle('full', pw >= 1);

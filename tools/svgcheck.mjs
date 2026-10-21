@@ -3,7 +3,7 @@
 import { chromium } from 'playwright-core';
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
 const p = await browser.newPage();
-await p.goto('http://127.0.0.1:5173/lab/chars.html');
+await p.goto('http://127.0.0.1:5173/lab/icons.html');
 const bad = await p.evaluate(async () => {
   const art = await import('/src/ui/art.js'), ic = await import('/src/ui/icons.js');
   const C = (await import('/src/data/comarcas.json')).default;

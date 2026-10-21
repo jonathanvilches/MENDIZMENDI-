@@ -4,6 +4,8 @@
 // Fuentes de lo que se enseña: Cátedra de Patrimonio de la Universidad de Navarra (casas y palacios barrocos de Baztán),
 // las armas de Navarra en los armoriales (blason.es) y los manuales de heráldica (regla del esmalte, sistema de rayas).
 
+import { hashStr, mulberry32 } from '../util/math.js';
+
 // Esmaltes: dos metales y cuatro colores. En piedra no hay color: desde el siglo XVII se marcan a veces con rayas o
 // puntos (el sistema de Petra Sancta), y eso permite «leer» los colores de un escudo tallado
 export const ESMALTES = {
@@ -14,7 +16,7 @@ export const ESMALTES = {
   sinople: { name: 'sinople', es: 'verde', metal: false, color: '#2f7d4a', piedra: 'rayas en diagonal' },
   sable: { name: 'sable', es: 'negro', metal: false, color: '#26221f', piedra: 'cuadrícula' },
 };
-export const METALES = ['oro', 'plata'], COLORES = ['gules', 'azur', 'sinople', 'sable'];
+const METALES = ['oro', 'plata'], COLORES = ['gules', 'azur', 'sinople', 'sable'];
 
 // Particiones del campo
 export const PARTICIONES = {
@@ -57,13 +59,12 @@ export const CASAS = { Etxeberria: '«casa nueva»', Elizaldea: '«junto a la ig
 const CASAS_SUR = ['Casa del Mayorazgo', 'Casa del Escribano', 'Casa de la Torre', 'Casa del Arco', 'Casa del Alcalde', 'Casa de los Balcones', 'Casa del Reloj', 'Casa de la Plaza', 'Casa del Cantón', 'Casa del Indiano'];
 const BAZTAN = ['elizondo', 'amaiur-maya-del-baztan'];
 
-function hash(s) { let h = 2166136261; for (const c of s) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
-function rng(seed) { let a = seed || 1; return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const rng = (seed) => mulberry32(seed || 1);
 
 /** Escudo de una casa del pueblo: { house, part, q: [{ f, c, t, n }], timbre, century } (q: un cuartel por zona; f campo,
  *  c figura, t su esmalte, n cuántas). Siempre respeta la regla del esmalte. */
 export function houseArms(def, idx) {
-  const r = rng(hash((def.id || 'pueblo') + ':' + idx)), pick = (a) => a[Math.floor(r() * a.length)];
+  const r = rng(hashStr((def.id || 'pueblo') + ':' + idx)), pick = (a) => a[Math.floor(r() * a.length)];
   const north = def.family === 'atlantic' || def.family === 'pyrenean' || ['bidasoa', 'larraun-leitzaldea', 'sakana', 'pirineo'].includes(def.comarca);
   const baztan = BAZTAN.includes(def.id);
   const charges = north ? ['oak', 'wolf', 'panelas', 'tower', 'star', 'bend', 'crescent'] : ['castle', 'lion', 'star', 'tower', 'crescent', 'bend', 'oak'];
@@ -80,7 +81,7 @@ export function houseArms(def, idx) {
   // sin dos cuarteles iguales
   for (let i = 1; i < q.length; i++) if (q[i].c === q[i - 1].c && q[i].c !== 'chequy') { q[i].c = charges[(charges.indexOf(q[i].c) + 2) % charges.length]; q[i].n = q[i].c === 'panelas' ? 3 : 1; }
   // nombres sin repetirse dentro del mismo pueblo
-  const names = north ? Object.keys(CASAS) : CASAS_SUR, start = hash(def.id || 'pueblo') % names.length;
+  const names = north ? Object.keys(CASAS) : CASAS_SUR, start = hashStr(def.id || 'pueblo') % names.length;
   return { house: names[(start + idx * 3) % names.length], part, q, timbre: 'yelmo', century: r() < 0.7 ? 'XVIII' : 'XVII', baztan };
 }
 

@@ -8,7 +8,8 @@ import { terrainHeight } from './heightfield.js';
 import { addBox, addCircle } from './colliders.js';
 import { PLACES } from './layout.js';
 import { lamp } from './village.js';
-import { archedWall, winDoor, plaque, letters, toW, fitText, roundRect, FONT_ROUND } from './civic.js';
+import { archedWall, winDoor, plaque, letters, fitText, roundRect, FONT_ROUND } from './civic.js';
+import { toW } from './plot.js';
 import { noGrass } from './pamplona.js';
 
 const gy = terrainHeight;
@@ -23,7 +24,7 @@ function beam(B, mat, T, a, b, r) {
 }
 
 // ---------- Plaza de toros ----------
-export function bullring(B, S, cx, cz, TOWN) {
+export function bullring(B, S, cx, cz) {
   const end = { x: 204, z: -71 };                          // final de la Estafeta: por aquí entra el encierro
   const ryG = Math.atan2(end.x - cx, end.z - cz);
   const y = gy(cx, cz) - 0.1, T = M(cx, y, cz, ryG), F = (m) => MM(T, m);
@@ -151,7 +152,7 @@ export function bullring(B, S, cx, cz, TOWN) {
 
 // ---------- Murallas: norte con el Portal de Francia, baluarte del Redín y lienzo este ----------
 const WALL = [[-116, -254], [186, -254], [230, -282], [212, -232], [212, -150]];
-function rampart(B, ax, az, bx, bz, gap, TOWN) {
+function rampart(B, ax, az, bx, bz, gap) {
   const L = Math.hypot(bx - ax, bz - az), tx = (bx - ax) / L, tz = (bz - az) / L, nx = tz, nz = -tx, ry = Math.atan2(nx, nz);
   const np = Math.max(1, Math.round(L / 6)), l = L / np;
   for (let k = 0; k < np; k++) {
@@ -176,9 +177,9 @@ function garita(B, x, z, nx, nz) {
   for (const a of [-0.9, 0, 0.9]) B.add('dark', box(0.13, 0.7, 0.05), MM(T, M(Math.sin(a) * 0.96, 1.7, Math.cos(a) * 0.96, a)));
   addCircle(px, pz, 1.1);
 }
-export function walls(B, S, TOWN) {
+export function walls(B, S) {
   const GX = 40;
-  for (let i = 0; i < WALL.length - 1; i++) rampart(B, ...WALL[i], ...WALL[i + 1], i === 0 ? GX : null, TOWN);
+  for (let i = 0; i < WALL.length - 1; i++) rampart(B, ...WALL[i], ...WALL[i + 1], i === 0 ? GX : null);
   garita(B, -116, -254, 0, -1); garita(B, -40, -254, 0, -1); garita(B, 110, -254, 0, -1); garita(B, 212, -150, 1, 0);
   garita(B, 230, -282, 0.622, -0.783);
   // Portal de Francia: puerta en arco en un cuerpo macizo, con el escudo del emperador y el puente levadizo
@@ -627,7 +628,7 @@ export function stadium(B, S, group, cx, cz, TOWN) {
     const w = Math.abs(x1 - x0) || 0.8, d = Math.abs(z1 - z0) || 0.8; addBox(cx + (x0 + x1) / 2, cz + (z0 + z1) / 2, w, d, 0, { solidView: true });
   }
   // escaleras grises entre sectores, banquillos, videomarcadores y focos bajo la cubierta
-  const stairs = (x0, z0, alongX, s, len) => { for (let k = 0; k < ROWS; k++) { const h = 1 + (k + 1) * rise; if (alongX) B.add('paint', colored(box(1.2, 0.06, run), '#9a9fa6'), F(M(x0, h - 0.47, s * (z0 + (k + 0.5) * run)))); else B.add('paint', colored(box(run, 0.06, 1.2), '#9a9fa6'), F(M(s * (x0 + (k + 0.5) * run), h - 0.47, z0))); } };
+  const stairs = (x0, z0, alongX, s) => { for (let k = 0; k < ROWS; k++) { const h = 1 + (k + 1) * rise; if (alongX) B.add('paint', colored(box(1.2, 0.06, run), '#9a9fa6'), F(M(x0, h - 0.47, s * (z0 + (k + 0.5) * run)))); else B.add('paint', colored(box(run, 0.06, 1.2), '#9a9fa6'), F(M(s * (x0 + (k + 0.5) * run), h - 0.47, z0))); } };
   for (const s of [-1, 1]) {
     for (let z = -48; z <= 48; z += 12) if (!(s < 0 && Math.abs(z) < GAP + 1)) stairs(SX, z, false, s);
     for (let x = -18; x <= 18; x += 12) stairs(x, SZ, true, s);

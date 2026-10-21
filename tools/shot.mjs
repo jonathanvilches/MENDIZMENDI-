@@ -6,7 +6,7 @@ const logs = [];
 page.on('console', m => { const t = m.text(); if (!/AudioContext|vite\]|CERT_AUTHORITY/.test(t)) logs.push(m.type() + ': ' + t); });
 page.on('pageerror', e => logs.push('PAGEERROR: ' + e.message));
 await page.goto(url);
-await page.waitForFunction(() => window.__ready, null, { timeout: 120000 }).catch(e => logs.push('timeout ready'));
+await page.waitForFunction(() => window.__ready, null, { timeout: 120000 }).catch(() => logs.push('timeout ready'));
 await page.waitForTimeout(+wait);
 await page.screenshot({ path: out });
 console.log(logs.slice(0, 40).join('\n'));

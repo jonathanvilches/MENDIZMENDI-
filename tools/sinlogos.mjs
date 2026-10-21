@@ -81,7 +81,7 @@ const url = await p.evaluate(async ([base, RADII, SHARE, SIMD, QUITAR, DIST, LIS
   // piel, pelo y ojos: los colores que tienen buena parte de sus puntos de los hombros para arriba
   const head = new Float64Array(K), all = new Float64Array(K);
   for (let t = 0; t < W * H; t++) { if (cell[t] < 0) continue; all[lab[t]]++; if (vy[t] > 160 * 0.71) head[lab[t]]++; }
-  const skin = pal.map((P2, k) => skinOrHair(P2[0], P2[1], P2[2]));
+  const skin = pal.map((P2) => skinOrHair(P2[0], P2[1], P2[2]));
   console.log('paleta', pal.map((P2, k) => P2.map(Math.round).join('/') + (skin[k] ? '*' : '') + ' ' + (all[k] / 1000 | 0) + 'k').join('  '));
   const qb = new Float32Array(S);
   const query = (x, y, z, R) => {

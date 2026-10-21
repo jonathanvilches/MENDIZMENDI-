@@ -1,4 +1,4 @@
-// Sonido procedural con Web Audio: ambiente (río, viento, pájaros), pasos, animales, campanas, música
+// Sonido procedural con Web Audio: ambiente (río, viento, pájaros), pasos, animales, campanas y música
 import { riverInfo, PLACES } from './world/layout.js';
 import { clamp } from './util/math.js';
 
@@ -75,8 +75,7 @@ export class Sound {
     this.river = this.loopNoise(700, 0.9); this.river.g.gain.value = 0;
     // viento
     this.wind = this.loopNoise(300, 0.4); this.wind.g.gain.value = 0.02;
-    this.startMusic();
-    if (!this.quietTimer) this.quietTimer = setInterval(() => { try { this.quietAmbient(); } catch (e) { } }, 500);
+    this.startMusic();   // (su reloj, cada cuarto de segundo, también apaga el ambiente que el pueblo ya no manda: quietAmbient)
   }
   impulse(sec) {
     const ctx = this.ctx, len = ctx.sampleRate * sec, b = ctx.createBuffer(2, len, ctx.sampleRate);
@@ -168,7 +167,6 @@ export class Sound {
   bark(pos) { if (!this.ctx) return; const o = this.out(pos, 45, 0.7); if (!o) return; for (let i = 0; i < 2; i++) { this.tone(420, 0.1, 'square', 0.12, o, i * 0.18, 0.005, 250); this.noiseBurst(0.08, 900, 1, 0.3, o, i * 0.18); } }
   cowbell(pos, v = 0.4) { if (!this.ctx) return; const o = this.out(pos, 45, v, 0.3); if (!o) return; const f = 520 + Math.random() * 90; this.tone(f, 0.5, 'square', 0.05, o); this.tone(f * 1.48, 0.4, 'triangle', 0.05, o); this.tone(f * 2.7, 0.2, 'sine', 0.03, o); }
   woodpecker(pos) { if (!this.ctx) return; const o = this.out(pos, 70, 0.8, 0.5); if (!o) return; for (let i = 0; i < 16; i++) this.noiseBurst(0.025, 1400, 3, 0.5 * (1 - i / 20), o, i * 0.055); }
-  vulture() { }
   bird(pos) {
     if (!this.ctx) return; const o = this.out(pos, 50, 0.35, 0.3); if (!o) return;
     const base = 2200 + Math.random() * 1800, n = 2 + Math.floor(Math.random() * 5), kind = Math.random();
@@ -199,7 +197,7 @@ export class Sound {
     if (!this.ctx) return;
     // (una posición sin número, por un salto raro o un fallo, no puede romper el bucle del juego: se ignora)
     if (!Number.isFinite(player.pos.x) || !Number.isFinite(player.pos.y) || !Number.isFinite(player.pos.z)) return;
-    this.listener = { x: player.pos.x, y: player.pos.y, z: player.pos.z, yaw: camYaw + Math.PI }; this.ambAt = performance.now(); this.ambQuiet = false;
+    const L = this.listener; L.x = player.pos.x; L.y = player.pos.y; L.z = player.pos.z; L.yaw = camYaw + Math.PI; this.ambAt = performance.now(); this.ambQuiet = false;
     const r = riverInfo(player.pos.x, player.pos.z);
     const wf = PLACES.waterfall, dp = wf ? Math.hypot(player.pos.x - wf.x, player.pos.z - wf.z) : 1e9;
     const rv = clamp(1 - r.edge / 30, 0, 1) ** 1.6 * 0.5 + clamp(1 - dp / 60, 0, 1) ** 1.5 * 0.7;

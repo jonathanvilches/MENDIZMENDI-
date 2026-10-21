@@ -1,6 +1,6 @@
-import { snowable } from './weather.js';
 // Acumula geometrías por material y las fusiona (pocas llamadas de dibujo)
 import * as THREE from 'three';
+import { snowable } from './weather.js';
 import { TEX } from './textures.js';
 import { HALF, CELL } from './layout.js';
 
@@ -114,9 +114,9 @@ export function makeMaterials() {
     // las ventanas, puertas y contraventanas de las fachadas sencillas (townReal.js): pegadas a la pared y con prioridad de
     // profundidad, como el cristal, para que no parpadeen de lejos
     fachada: std({ vertexColors: true, roughness: 0.8, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }),
-    // asientos de estadio: algo de brillo propio para que no se vean negros bajo la cubierta
     // superficies a la sombra de grandes cubiertas (sin luz directa se verían negras)
     lit: std({ vertexColors: true, roughness: 0.8, emissive: new THREE.Color('#34383c') }),
+    // asientos de estadio: algo de brillo propio para que no se vean negros bajo la cubierta
     seat: std({ vertexColors: true, roughness: 0.55, emissive: new THREE.Color('#3a0a0e') }),
     iron: std({ color: '#2a2a2e', roughness: 0.5, metalness: 0.6 }),
     dark: std({ color: '#141216', roughness: 1 }),
@@ -193,6 +193,12 @@ export function colored(g, color) {
   g.setAttribute('color', new THREE.BufferAttribute(arr, 3));
   return g;
 }
+// Pieza de color liso ya colocada y girada, sin coordenadas de textura (aperos, cestos, figuras menudas que se juntan
+// en una sola malla)
+export function paintedPart(geo, hex, x, y, z, rx = 0, ry = 0, rz = 0) {
+  const g = geo.index ? geo.toNonIndexed() : geo; g.deleteAttribute('uv'); g.rotateX(rx); g.rotateY(ry); g.rotateZ(rz); g.translate(x, y, z);
+  return colored(g, hex);
+}
 
 // Prisma triangular (hastial) de ancho w, altura h, grosor d; base en y=0
 export function gable(w, h, d, uvScale = 2.5) {
@@ -240,7 +246,7 @@ const DETAIL_DIST = { low: [45, 110], mid: [48, 130], high: [55, 150] };
 export function updateDetail(cam, quality = 'high') {
   const [d2, d1] = DETAIL_DIST[quality] || DETAIL_DIST.high;
   for (const e of DETAIL) {
-    const d = Math.hypot(cam.x - e.c.x, cam.z - e.c.z) - e.r;
+    const dx = cam.x - e.c.x, dz = cam.z - e.c.z, d = Math.sqrt(dx * dx + dz * dz) - e.r;
     // (tier 3: lo contrario de las medianas, solo de lejos: la fachada sencilla que sustituye a las ventanas de verdad cuando
     // estas ya no se dibujan; con unos metros de solape para que no quede un hueco al pasar de una a otra)
     e.m.visible = e.tier === 3 ? d >= d1 - 6 : d < (e.tier === 2 ? d2 : d1);
@@ -363,7 +369,7 @@ export class Builder {
 }
 
 // Matriz auxiliar: posición, rotación Y (y opcional X/Z), escala
-const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _p = new THREE.Vector3(), _s = new THREE.Vector3();
+const _q = new THREE.Quaternion(), _e = new THREE.Euler(), _p = new THREE.Vector3(), _s = new THREE.Vector3();
 export function M(x, y, z, ry = 0, rx = 0, rz = 0, sx = 1, sy = 1, sz = 1) {
   _e.set(rx, ry, rz, 'YXZ'); _q.setFromEuler(_e);
   return new THREE.Matrix4().compose(_p.set(x, y, z), _q, _s.set(sx, sy, sz));

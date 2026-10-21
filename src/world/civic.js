@@ -7,10 +7,9 @@ import { QUALITY } from '../util/quality.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { box, gable, colored, M, MM } from './builder.js';
 
-export const toW = (x, z, ry, lx, lz) => ({ x: x + lx * Math.cos(ry) + lz * Math.sin(ry), z: z - lx * Math.sin(ry) + lz * Math.cos(ry) });
 export const FONT_SERIF = 'Georgia, "Times New Roman", serif';
 export const FONT_ROUND = '"Lilita One", Nunito, "Arial Black", sans-serif';
-export const FONT_SANS = '"Trebuchet MS", Nunito, Arial, sans-serif';
+const FONT_SANS = '"Trebuchet MS", Nunito, Arial, sans-serif';
 
 // ---------- Letreros ----------
 export class Signs {
@@ -82,7 +81,7 @@ export function letters(text, color, { font = FONT_SERIF, weight = 'bold', shado
 
 // ---------- Piezas de fachada (plano local: fachada en z = 0 mirando a +z) ----------
 // balcón de forja: losa de piedra, barandilla calada y pasamanos
-export function balcony(B, T, x, y, bw, dep = 0.6, flowers = null) {
+function balcony(B, T, x, y, bw, dep = 0.6, flowers = null) {
   B.add('ashlar', box(bw, 0.13, dep, 1), MM(T, M(x, y, dep / 2)));
   const front = new THREE.PlaneGeometry(bw, 0.95); { const uv = front.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setX(i, uv.getX(i) * bw / 0.9); }
   B.add('railing', front, MM(T, M(x, y + 0.54, dep - 0.03)));
@@ -116,7 +115,7 @@ export function winDoor(B, T, x, y, ww, wh, shutter, frame = 'ashlar', key = fal
   if (shutter) for (const s of [-1, 1]) B.add('paint', colored(box(ww / 2, wh, 0.05), shutter), MM(T, M(x + s * (ww * 0.75 + 0.2), y + wh / 2, 0.06)));
 }
 // escaparate con puerta: carpintería pintada, cristal y zócalo de piedra
-export function shopFront(B, T, sw, sh, color, door = true) {
+function shopFront(B, T, sw, sh, color, door = true) {
   const c = (g) => colored(g, color);
   B.add('ashlar', box(sw, 0.55, 0.14, 1), MM(T, M(0, 0.27, 0.05)));
   B.add('glass', box(sw - 0.3, sh - 0.8, 0.02), MM(T, M(door ? -0.45 : 0, 0.55 + (sh - 0.8) / 2, 0.03)));
@@ -183,7 +182,8 @@ export function navarraFlag(B, T, len = 2.4) {
   B.add('paint', colored(new THREE.CircleGeometry(len * 0.1, 10), '#e0b43a'), MM(T, M(0.05 + len * 0.4, len + 0.4 - len * 0.275, -0.13, Math.PI)));
 }
 
-const pick2 = (a, rnd) => a[(rnd() * a.length) | 0];
+/** Un elemento de la lista al azar (con el rnd del pueblo). */
+export const pick = (a, rnd) => a[(rnd() * a.length) | 0];
 // ---------- Edificio de vecinos entre medianeras ----------
 // Fachada en z = 0 mirando a +z; ocupa x ∈ [−w/2, w/2] y z ∈ [−d, 0].
 // o: { w, d, h, wall, arcade, floors, shutter, longBalcony, shops, shopColor, eaves, attic, frame }
@@ -225,7 +225,7 @@ export function cityBlock(B, T, o, rnd = Math.random) {
         const sw = Math.min(3.1, w / bays - 0.5);
         shopFront(B, MM(T, M(x, 0, 0)), sw, 3.1, o.shopColor || '#5b3a26', true);
         if (rnd() < 0.45) { // toldo de rayas
-          const tc = pick2(['#b3202a', '#2f5fb3', '#3e6b48', '#d9a03a'], rnd);
+          const tc = pick(['#b3202a', '#2f5fb3', '#3e6b48', '#d9a03a'], rnd);
           for (let k = 0; k < 6; k++) B.add('paint', colored(box(sw / 6, 0.04, 1.2), k % 2 ? '#f4efe4' : tc), F(M(x - sw / 2 + (k + 0.5) * sw / 6, 3.45, 0.55, 0, 0.35)));
           B.add('paint', colored(box(sw, 0.22, 0.03), tc), F(M(x, 3.12, 1.12)));
         }
@@ -242,7 +242,7 @@ export function cityBlock(B, T, o, rnd = Math.random) {
     B.add('iron', box(0.05, 0.05, 0.5), F(M(lx, 3.7, 0.25))); B.add('lamp', box(0.24, 0.34, 0.24), F(M(lx, 3.5, 0.5)));
     B.add('iron', new THREE.ConeGeometry(0.2, 0.16, 4).rotateY(Math.PI / 4), F(M(lx, 3.74, 0.5)));
   }
-  const fl = rnd() < 0.55 ? pick2(['#e0304f', '#ff6f91', '#c93a7a', '#f25c2c', '#ffffff'], rnd) : null;
+  const fl = rnd() < 0.55 ? pick(['#e0304f', '#ff6f91', '#c93a7a', '#f25c2c', '#ffffff'], rnd) : null;
   for (let f = 0; f < floors; f++) {
     const y0 = gh + f * fh, top = f === floors - 1 && o.attic;
     if (f > 0) B.add(frame, box(w + 0.02, 0.15, 0.12, 1), F(M(0, y0 - 0.02, 0.05)));

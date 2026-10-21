@@ -101,4 +101,3 @@ export async function worker(S, look = {}, { height = 1.7, clip = 'Idle', at = 0
   rest();
   return W;
 }
-export { ik2, aim, spin };

@@ -3,11 +3,11 @@
 // sus colores (bosque abajo, pastos, roca en las pendientes, nieve arriba en los altos), con una textura de detalle y
 // la bruma de la distancia. Delante, colinas y valles. Pocos montes, pero bien hechos.
 import * as THREE from 'three';
+import { mulberry32, smoothstep, hashStr } from '../util/math.js';
 
-function mulberry(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 // ruido de valor 2D suave y fBm (sumas de octavas); «ridged» para crestas afiladas
 function makeNoise(seed) {
-  const r = mulberry(seed), P = new Uint8Array(512), G = new Float32Array(256);
+  const r = mulberry32(seed), P = new Uint8Array(512), G = new Float32Array(256);
   for (let i = 0; i < 256; i++) { P[i] = i; G[i] = r(); }
   for (let i = 255; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [P[i], P[j]] = [P[j], P[i]]; }
   for (let i = 0; i < 256; i++) P[i + 256] = P[i];
@@ -18,12 +18,10 @@ function makeNoise(seed) {
   const ridged = (x, y, o = 5) => { let s = 0, a = 0.5, f = 1; for (let i = 0; i < o; i++) { const k = 1 - Math.abs(n(x * f, y * f) * 2 - 1); s += a * k * k; f *= 2.1; a *= 0.5; } return s; };
   return { n, fbm, ridged };
 }
-const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
-const hash = (s) => { let h = 2166136261; for (const c of s) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
 
 // textura de detalle (gris, se multiplica por el color): grano de roca, estratos y matas
 function detailTexture() {
-  const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'), r = mulberry(5);
+  const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'), r = mulberry32(5);
   g.fillStyle = '#d8d8d8'; g.fillRect(0, 0, 256, 256);
   for (let i = 0; i < 7000; i++) { const v = 175 + r() * 80 | 0; g.fillStyle = `rgba(${v},${v},${v},0.45)`; g.fillRect(r() * 256, r() * 256, 1 + r() * 2.5, 1 + r() * 1.5); }
   g.strokeStyle = 'rgba(110,110,110,0.12)'; g.lineWidth = 1;
@@ -194,7 +192,7 @@ const PAL = {
 /** Forma de un monte: la que dice su descripción (muralla caliza, loma herbosa, cima afilada, sierra…) y, si no dice
  * nada, según su altura (siempre la misma para el mismo monte). Muy lejos se ve la cordillera entera. */
 function typeOf(m) {
-  const h = hash(m.id || m.name), t = (m.intro || '').toLowerCase();
+  const h = hashStr(m.id || m.name), t = (m.intro || '').toLowerCase();
   if (m.km > 40 && m.altitude >= 1400) return 'sierra';
   if (/afilad|puntiag|pala final|silueta|rocosa y solitaria/.test(t)) return 'pico';
   if (/muralla|caliza|escarpe|meseta|macizo|proa/.test(t)) return 'macizo';
@@ -270,7 +268,7 @@ export class Panorama {
       // cordillera lejana: una línea larga de cumbres dentadas y la principal destacando en medio
       const L = 0.7, ex = Math.max(0, Math.abs(wu) - L) / (1.05 - L), d = Math.hypot(ex, Math.abs(wv) * 1.6) / lobe;
       if (d >= 1) return -(d - 1) * 0.8;
-      const prof = Math.max(Math.exp(-Math.abs(wu) * 4.5) * (0.92 + 0.08 * Math.cos(wu * 40)), (0.3 + 0.4 * nz.ridged(wu * 3.4 + sd, 1.7, 4)) * smooth(1.05, 0.5, Math.abs(wu)));
+      const prof = Math.max(Math.exp(-Math.abs(wu) * 4.5) * (0.92 + 0.08 * Math.cos(wu * 40)), (0.3 + 0.4 * nz.ridged(wu * 3.4 + sd, 1.7, 4)) * smoothstep(1.05, 0.5, Math.abs(wu)));
       return Math.pow(1 - d, 1.35) * prof * (0.62 + 0.55 * nz.ridged(wu * 5 + sd, wv * 5 + 2, 4));
     }
     if (type === 'cresta') {
@@ -291,17 +289,17 @@ export class Panorama {
       // sierra caliza: falda tendida, una banda de cortados y arriba una meseta ondulada con la cima a un lado
       // los cortados no son un anillo regular: cambian de altura y de sitio alrededor, y en algunos lados no hay
       const ca = nz.fbm(Math.cos(th) * 2.4 + sd + 5, Math.sin(th) * 2.4, 3), c0 = 0.62 + (ca - 0.5) * 0.3;
-      const apron = 0.46 * Math.pow(1 - r, 1.3), cliff = (0.25 + 0.5 * smooth(0.3, 0.6, ca)) * smooth(c0 + 0.13, c0 - 0.06, r), top = Math.exp(-((wu - 0.22) ** 2 + wv * wv) * 10) * 0.18;
-      return (apron + cliff * (0.85 + 0.25 * nz.fbm(wu * 3 + sd, wv * 3, 4)) + 0.22 * D * smooth(0.2, 0.8, r) + top * smooth(1, 0.4, r)) * spur(r);
+      const apron = 0.46 * Math.pow(1 - r, 1.3), cliff = (0.25 + 0.5 * smoothstep(0.3, 0.6, ca)) * smoothstep(c0 + 0.13, c0 - 0.06, r), top = Math.exp(-((wu - 0.22) ** 2 + wv * wv) * 10) * 0.18;
+      return (apron + cliff * (0.85 + 0.25 * nz.fbm(wu * 3 + sd, wv * 3, 4)) + 0.22 * D * smoothstep(0.2, 0.8, r) + top * smoothstep(1, 0.4, r)) * spur(r);
     }
     // loma: monte redondeado de laderas largas con barrancos y lomos, y alguna cima secundaria
     // (cima redonda, laderas altas convexas y pie cóncavo; la cumbre un poco a un lado y una antecima)
     const rl = Math.hypot(wu - 0.12, wv * 1.12) / lobe, sub = Math.exp(-((wu + 0.42) ** 2 + (wv - 0.15) ** 2) * 10) * 0.3;
     if (rl >= 1) return -(rl - 1) * 0.9;
-    return (Math.pow(1 - Math.pow(rl, 1.5), 2) * (0.8 + 0.2 * nz.fbm(wu * 4 + sd, wv * 4, 4) + 0.28 * D * smooth(0.1, 0.6, rl)) + sub * (1 - rl)) * (1 + (spur(rl) - 1) * 1.3);
+    return (Math.pow(1 - Math.pow(rl, 1.5), 2) * (0.8 + 0.2 * nz.fbm(wu * 4 + sd, wv * 4, 4) + 0.28 * D * smoothstep(0.1, 0.6, rl)) + sub * (1 - rl)) * (1 + (spur(rl) - 1) * 1.3);
   }
   buildPeak(m, i, N) {
-    const type = typeOf(m), sd = (hash(m.id || m.name) % 997) / 31, nz = makeNoise(31 + hash(m.id || m.name) % 1000), fine = makeNoise(77);
+    const type = typeOf(m), sd = (hashStr(m.id || m.name) % 997) / 31, nz = makeNoise(31 + hashStr(m.id || m.name) % 1000), fine = makeNoise(77);
     const pl = this.place(m), base = this.seat(pl), H = pl.H, spread = { pico: 3.0, macizo: 4.6, cresta: 4.4, loma: 5.2, sierra: 9 }[type], W = H * spread, D = W * 0.7;
     const geo = new THREE.PlaneGeometry(W * 1.6, D * 1.6, N, Math.round(N * 0.8)); geo.rotateX(-Math.PI / 2);
     const pos = geo.attributes.position, cnt = pos.count, col = new Float32Array(cnt * 3), hs = new Float32Array(cnt);
@@ -316,18 +314,18 @@ export class Panorama {
     }
     for (let k = 0; k < cnt; k++) { if (hs[k] > 0) hs[k] /= hmax; pos.setY(k, hs[k] * H - 12); }
     geo.computeVertexNormals();
-    const nor = geo.attributes.normal, c = new THREE.Color(), haze = new THREE.Color().copy(this.scene.fog.color), hk = Math.min(0.22, 0.04 + m.km / 300), far = smooth(14, 70, m.km) * 0.45;
+    const nor = geo.attributes.normal, c = new THREE.Color(), haze = new THREE.Color().copy(this.scene.fog.color), hk = Math.min(0.22, 0.04 + m.km / 300), far = smoothstep(14, 70, m.km) * 0.45;
     for (let k = 0; k < cnt; k++) {
       const f = hs[k], slope = 1 - nor.getY(k), u = pos.getX(k) / (W / 2), v = pos.getZ(k) / (D / 2), j = nz.fbm(u * 6 + 2, v * 6, 3), q = fine.n(u * 30, v * 30);
       const rock = type === 'macizo' ? PAL.rockLime : j > 0.5 ? PAL.rockGrey : PAL.rockDark;
       // bosque abajo con claros, pastos arriba (más secos cuanto más alto), roca en lo empinado, nieve en lo alto
       const edge = tree + (j - 0.5) * 0.16;
-      const glade = smooth(0.58, 0.66, nz.fbm(u * 4 + 9, v * 4 + 3, 3)) * smooth(0.15, 0.3, f);   // claros y prados entre el bosque
-      if (f < edge) c.copy(PAL.forest).lerp(PAL.forest2, q * 0.7 + j * 0.3).lerp(PAL.meadow, Math.max(smooth(edge - 0.06, edge, f) * 0.6, glade * 0.75));
+      const glade = smoothstep(0.58, 0.66, nz.fbm(u * 4 + 9, v * 4 + 3, 3)) * smoothstep(0.15, 0.3, f);   // claros y prados entre el bosque
+      if (f < edge) c.copy(PAL.forest).lerp(PAL.forest2, q * 0.7 + j * 0.3).lerp(PAL.meadow, Math.max(smoothstep(edge - 0.06, edge, f) * 0.6, glade * 0.75));
       else c.copy(PAL.meadow).lerp(PAL.meadowDry, Math.min(1, (f - edge) * 1.6));
-      const steep = smooth(0.42, 0.66, slope + (type === 'pico' ? Math.max(0, f - 0.55) * 0.5 : 0) + (j - 0.5) * 0.12);
+      const steep = smoothstep(0.42, 0.66, slope + (type === 'pico' ? Math.max(0, f - 0.55) * 0.5 : 0) + (j - 0.5) * 0.12);
       c.lerp(rock, steep * (type === 'loma' ? 0.4 : 1));
-      if (f > snowLine + (0.5 - j) * 0.14 && slope < 0.7) c.lerp(PAL.snow, smooth(snowLine, snowLine + 0.08, f) * (slope < 0.4 ? 1 : 0.65));
+      if (f > snowLine + (0.5 - j) * 0.14 && slope < 0.7) c.lerp(PAL.snow, smoothstep(snowLine, snowLine + 0.08, f) * (slope < 0.4 ? 1 : 0.65));
       c.multiplyScalar(0.92 + q * 0.16);
       c.lerp(PAL.far, far * 0.42 * (1 - Math.min(1, Math.max(0, f - snowLine + 0.1)) * 0.6));   // la lejanía azulea (menos la nieve)
       c.lerp(haze, hk * (1 - Math.min(1, Math.max(0, f)) * 0.4));   // bruma de la distancia, más en la base
@@ -346,9 +344,9 @@ export class Panorama {
   // horizonte
   terrain(x, z, R) {
     const nz = this.gnz, rough = this.rough;
-    let h = (nz.fbm(x / 700, z / 700, 5) - 0.45) * 120 * smooth(120, 1600, R) - 20;
-    h += nz.ridged(x / 2200 + 4, z / 2200, 5) * this.Hm * 0.55 * rough * smooth(1800, 6000, R);
-    h += nz.ridged(x / 3400 + 11, z / 3400 + 5, 5) * R * 0.05 * (0.45 + 0.55 * rough) * smooth(3500, 8500, R);
+    let h = (nz.fbm(x / 700, z / 700, 5) - 0.45) * 120 * smoothstep(120, 1600, R) - 20;
+    h += nz.ridged(x / 2200 + 4, z / 2200, 5) * this.Hm * 0.55 * rough * smoothstep(1800, 6000, R);
+    h += nz.ridged(x / 3400 + 11, z / 3400 + 5, 5) * R * 0.05 * (0.45 + 0.55 * rough) * smoothstep(3500, 8500, R);
     return h;
   }
   // terreno: en anillos alrededor del mirador (fino cerca, grueso lejos); campos y setos cerca, colinas y bosques a
@@ -371,7 +369,7 @@ export class Panorama {
         // mirador a su base) y detrás las sierras no asoman por encima de su cumbre
         for (const p of peaks) {
           let da = Math.abs(a - p.b) % (Math.PI * 2); if (da > Math.PI) da = Math.PI * 2 - da;
-          const wgt = smooth(p.aw * 2.4, p.aw * 1.0, da); if (wgt <= 0) continue;
+          const wgt = smoothstep(p.aw * 2.4, p.aw * 1.0, da); if (wgt <= 0) continue;
           const t = R / p.ds, ey = this.eye.y;
           // por encima del límite no se corta en seco: se aplasta (conserva el relieve, más bajo)
           const cap = t < 0.9 ? ey + t * (p.base + p.H * 0.14 - ey) - 4 : t > 1.4 ? ey + t * (p.base + p.H * 0.62 - ey) : Infinity;
@@ -381,13 +379,13 @@ export class Panorama {
         // colores: campos (verdes y de cereal) con setos cerca, bosques y prados más lejos, más bosque junto a los montes
         const fld = nz.n(x / 90 + 3, z / 90), hedge = Math.abs(Math.sin(x / 47 + nz.n(x / 200, z / 200) * 3)) < 0.06 || Math.abs(Math.sin(z / 53)) < 0.05;
         const j2 = nz.fbm(x / 420 + 9, z / 420, 4) + near * 0.25;
-        c.copy(PAL.field2).lerp(PAL.meadow, smooth(0.35, 0.5, fld)).lerp(PAL.field, smooth(0.6, 0.72, fld));
+        c.copy(PAL.field2).lerp(PAL.meadow, smoothstep(0.35, 0.5, fld)).lerp(PAL.field, smoothstep(0.6, 0.72, fld));
         if (R < 2500 && hedge) c.lerp(PAL.forest2, 0.6);
-        c.lerp(PAL.forest2, smooth(0.52, 0.62, j2)).lerp(PAL.forest, smooth(0.62, 0.75, j2) * nz.n(x / 60, z / 60));
+        c.lerp(PAL.forest2, smoothstep(0.52, 0.62, j2)).lerp(PAL.forest, smoothstep(0.62, 0.75, j2) * nz.n(x / 60, z / 60));
         c.multiplyScalar(0.94 + nz.n(x / 25, z / 25) * 0.14);
         col[v] = c.r; col[v + 1] = c.g; col[v + 2] = c.b;
         // dónde hay parcelas (campos y prados con lindes): en lo llano, fuera del bosque y lejos de los montes
-        fl[i * SEG + j] = (1 - smooth(0.5, 0.6, j2)) * (1 - Math.min(1, near * 1.6));
+        fl[i * SEG + j] = (1 - smoothstep(0.5, 0.6, j2)) * (1 - Math.min(1, near * 1.6));
       }
     }
     for (let i = 0; i < RINGS - 1; i++) for (let j = 0; j < SEG; j++) { const a = i * SEG + j, b = i * SEG + (j + 1) % SEG, c2 = (i + 1) * SEG + j, d = (i + 1) * SEG + (j + 1) % SEG; idx.push(a, b, c2, b, d, c2); }
@@ -422,7 +420,7 @@ export class Panorama {
       for (let i0 = Math.floor(lo * A / 360), i1 = Math.ceil((lo + span) * A / 360), ii = i0; ii <= i1; ii++) {
         const i = ((ii % A) + A) % A, x = (ii * 360 / A - lo) / F.st; if (x < 0 || x > 2 * F.n) continue;
         const j = Math.min(2 * F.n - 1, Math.floor(x)), t = x - j, v = F.prof[j] * (1 - t) + F.prof[j + 1] * t;
-        const u = Math.min(x, 2 * F.n - x) / (2 * F.n), w = smooth(0, 0.18, u);   // (se funde con la general en los bordes)
+        const u = Math.min(x, 2 * F.n - x) / (2 * F.n), w = smoothstep(0, 0.18, u);   // (se funde con la general en los bordes)
         Mk[F.k][i] += (v - Mk[F.k][i]) * w; keep[i] = Math.max(keep[i], w);
       }
     }
@@ -469,24 +467,24 @@ export class Panorama {
       const s = Math.abs(dh / dr); slope[v] = s;   // (de frente: entre rumbos vecinos, lo tapado engaña)
       const h = alt[v], a = i * 2 * Math.PI / A, x = Math.sin(a) * r, z = -Math.cos(a) * r;
       // clima: más verde al norte (vertiente atlántica) que en el sur (Ribera y Zona Media)
-      const lat = lat0 + (-z / 1000) / 111.2, wet = smooth(42.55, 43.0, lat + (nz.n(x / 9000, z / 9000) - 0.5) * 0.15);
+      const lat = lat0 + (-z / 1000) / 111.2, wet = smoothstep(42.55, 43.0, lat + (nz.n(x / 9000, z / 9000) - 0.5) * 0.15);
       const p1 = nz.fbm(x / 1400 + 5, z / 1400, 4), p2 = nz.n(x / 300, z / 300);
       // abajo: campos (cereal, verdes, barbecho) en lo llano, y bosque o pasto en las laderas
-      const flat = 1 - smooth(0.12, 0.3, s);
-      c.copy(P.field).lerp(P.field2, smooth(0.42, 0.6, p2)).lerp(P.dry, (1 - wet) * smooth(0.5, 0.7, p1) * 0.7).lerp(P.meadow, wet * 0.7);
+      const flat = 1 - smoothstep(0.12, 0.3, s);
+      c.copy(P.field).lerp(P.field2, smoothstep(0.42, 0.6, p2)).lerp(P.dry, (1 - wet) * smoothstep(0.5, 0.7, p1) * 0.7).lerp(P.meadow, wet * 0.7);
       // bosque: aquí solo cuánto le va al sitio (más en las laderas, en lo húmedo y a media altura; nada por encima de
       // unos 1.500 m); las manchas de bosque y de prado, con su borde, las pinta el material
-      const forestK = Math.min(1, Math.max(0, 0.3 + (1 - flat) * 0.3 + wet * 0.2 + smooth(500, 1000, h) * 0.15 - smooth(1350, 1650, h) * 1.3 + (p1 - 0.5) * 0.5));
+      const forestK = Math.min(1, Math.max(0, 0.3 + (1 - flat) * 0.3 + wet * 0.2 + smoothstep(500, 1000, h) * 0.15 - smoothstep(1350, 1650, h) * 1.3 + (p1 - 0.5) * 0.5));
       // arriba, pasto de montaña; roca en lo empinado y en lo más alto; nieve en las cumbres altas
-      c.lerp(P.alpine, smooth(1350, 1650, h));
-      const rockK = Math.max(smooth(0.55, 0.9, s + (p2 - 0.5) * 0.3) * smooth(400, 900, h), smooth(1650, 2000, h + (p1 - 0.5) * 300 + (p2 - 0.5) * 200) * 0.85);
+      c.lerp(P.alpine, smoothstep(1350, 1650, h));
+      const rockK = Math.max(smoothstep(0.55, 0.9, s + (p2 - 0.5) * 0.3) * smoothstep(400, 900, h), smoothstep(1650, 2000, h + (p1 - 0.5) * 300 + (p2 - 0.5) * 200) * 0.85);
       c.lerp(h > 1000 && wet < 0.7 ? P.lime : P.rock, rockK);
       const snowLine = this.o.snow ? 1100 : 2150;
-      c.lerp(P.snow, smooth(snowLine, snowLine + 180, h + (p1 - 0.5) * 260) * (1 - smooth(0.75, 1.1, s)) * 0.95);
+      c.lerp(P.snow, smoothstep(snowLine, snowLine + 180, h + (p1 - 0.5) * 260) * (1 - smoothstep(0.75, 1.1, s)) * 0.95);
       c.multiplyScalar(0.9 + p2 * 0.2);
       col[v * 3] = c.r; col[v * 3 + 1] = c.g; col[v * 3 + 2] = c.b; wt[v] = wet;
       // (las parcelas, en el llano de verdad: no en una ladera que sube más de un grado en su término)
-      fld[v] = flat * (1 - forestK * 0.6) * (1 - smooth(900, 1300, h)) * (1 - smooth(0.6, 1.5, rise[v])); fo[v] = forestK;
+      fld[v] = flat * (1 - forestK * 0.6) * (1 - smoothstep(900, 1300, h)) * (1 - smoothstep(0.6, 1.5, rise[v])); fo[v] = forestK;
     }
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('color', new THREE.BufferAttribute(col, 3));

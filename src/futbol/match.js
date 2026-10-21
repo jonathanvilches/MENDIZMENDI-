@@ -12,18 +12,18 @@ import { Reto } from './retos.js';
 import { showVs } from '../pelota/vs.js';
 import { kitSvgOf } from './liga.js';
 import { jugadorDuo, jugadorFig } from './jugadorFig.js';
+import { clamp } from '../util/math.js';
 // la figura de cada equipo en la pantalla VS: su pareja (el chico y la chica con la equipación del partido); si esta
 // versión no la tiene, el jugador solo y, en el archivo único, la camiseta dibujada
 const vsFig = (t, key) => { const pf = jugadorDuo(t, '', true) || jugadorFig(t); return pf ? { pf } : { figHtml: kitSvgOf(t, 320, key) }; };
 // (el estadio de la presentación: la grada en óvalo con su cubierta)
 const STADIUM = '<svg viewBox="0 0 64 48" aria-hidden="true"><ellipse cx="32" cy="30" rx="28" ry="13" fill="#3a2a5e" stroke="#fff" stroke-width="1.5"/><ellipse cx="32" cy="30" rx="17" ry="7" fill="#6a5aa8" stroke="#fff" stroke-width="1.2"/><path d="M6 24c4-10 48-10 52 0" fill="none" stroke="#ff7ac8" stroke-width="2.5" stroke-linecap="round"/><path d="M32 23v14" stroke="#fff" stroke-width="1"/></svg>';
 
-const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 let R = K.R;
 onFormat(() => { R = K.R; });
 
 // figura por defecto (si el juego no da personajes): cuerpo con la equipación, cabeza y piernas que se mueven
-export function defaultCharacter({ team, keeper }) {
+function defaultCharacter({ team, keeper }) {
   const T = team, shirt = keeper ? T.keeper : T.shirt;
   const obj = new THREE.Group(), mat = (c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.7 });
   const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.2, 0.42, 4, 10), mat(shirt)); body.position.y = 1.12; body.castShadow = true;
@@ -37,6 +37,7 @@ export function defaultCharacter({ team, keeper }) {
 }
 
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+const _camF = new THREE.Vector3();   // (hacia dónde mira la cámara, para el joystick: sin crear un vector en cada fotograma)
 // por qué saca el árbitro la tarjeta (lo que dice el reglamento, en corto)
 const WHY = { portero: 'Falta del portero', 'falta al portero': 'Falta al portero', 'ocasión en el área': 'Cortó una ocasión en el área', 'ocasión manifiesta': 'Cortó una ocasión clara de gol', 'juego brusco': 'Juego brusco',
   'entrada por detrás': 'Entrada por detrás', 'entrada temeraria': 'Entrada temeraria', contraataque: 'Cortó un contraataque', reiterada: 'Faltas repetidas', 'falta táctica': 'Falta táctica' };
@@ -305,7 +306,7 @@ export class FutbolMatch {
     if (K2.has('a') || K2.has('arrowleft')) sx -= 1; if (K2.has('d') || K2.has('arrowright')) sx += 1;
     // zona muerta del 12 % (el pulgar apoyado no mueve al jugador) y de ahí a tope, sin escalón
     const raw = Math.min(1, Math.hypot(sx, sy)), m = raw < 0.12 ? 0 : (raw - 0.12) / 0.88; if (raw > 1e-3) { const l = Math.hypot(sx, sy); sx /= l; sy /= l; }
-    const f = new THREE.Vector3(); this.camera.getWorldDirection(f); f.y = 0; if (f.lengthSq() < 1e-6) f.set(0, 0, -1); f.normalize();
+    const f = this.camera.getWorldDirection(_camF); f.y = 0; if (f.lengthSq() < 1e-6) f.set(0, 0, -1); f.normalize();
     // «arriba» en el joystick es siempre la misma dirección del campo (hacia la banda de enfrente o hacia la portería
     // rival): la cámara de la tele gira al seguir el balón y, si no, el jugador se desviaba sin querer
     if (Math.abs(f.x) > 0.82 || Math.abs(f.z) > 0.82) { if (Math.abs(f.x) > Math.abs(f.z)) f.set(Math.sign(f.x), 0, 0); else f.set(0, 0, Math.sign(f.z)); }

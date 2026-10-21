@@ -9,7 +9,7 @@ import { offscreen, offscreenCanvas } from '../util/offscreen.js';
 
 const CW = 96, CH = 144;   // tamaño de cada dibujo en la lámina
 // conjuntos de público: qué personaje es cada figura
-export const SETS = {
+const SETS = {
   futbol: ['osasuna', 'osasuna', 'sanfermin', 'osasuna', 'pastor', 'osasuna', 'pelotari', 'osasuna_fuera'],
   // (en el frontón, vecinos: de fiesta, del pueblo y de calle; sin pelotaris en la grada, que se confundían con los que juegan)
   pelota: ['sanfermin', 'pastor', 'osasuna', 'sanfermin', 'osasuna_fuera', 'pastor', 'sanfermin', 'osasuna'],
@@ -45,7 +45,7 @@ export const FIGS = 8;
 export const figure = (set, i) => { const outs = SETS[set] || SETS.futbol; return { meshy: outs[i % outs.length] }; };
 
 /** Lámina de público: { tex, cols, rows } con N personajes quietos (fila de arriba) y celebrando (abajo). */
-export function crowdAtlas(set = 'futbol', sit = false) {
+function crowdAtlas(set = 'futbol', sit = false) {
   const key = set + (sit ? ':sit' : '');
   if (cache.has(key)) return cache.get(key);
   const p = (async () => {

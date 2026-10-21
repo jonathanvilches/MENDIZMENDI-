@@ -6,10 +6,11 @@ import * as THREE from 'three';
 import { box, gable, archRing, archPanel, colored, M, MM } from './builder.js';
 import { roofHip } from './houses.js';
 import { terrainHeight, SURF, addPlatform } from './heightfield.js';
+import { polyLen, polyAt, toW } from './plot.js';
 import { addBox, addCircle, isFree } from './colliders.js';
 import { PATHS, PLACES, HALF, CELL, N } from './layout.js';
 import { bench, VILLAGE } from './village.js';
-import { Signs, cityBlock, winDoor, pointedPanel, archedWall, balustrade, statue, navarraFlag, plaque, shopSign, letters, toW, fitText, roundRect, FONT_SERIF } from './civic.js';
+import { Signs, cityBlock, winDoor, pointedPanel, archedWall, balustrade, statue, navarraFlag, plaque, shopSign, letters, fitText, roundRect, FONT_SERIF, pick } from './civic.js';
 import { bullring, walls, citadel, stadium } from './pamplonaOut.js';
 import { towerClock } from './monuments.js';
 
@@ -26,15 +27,6 @@ export function noGrass(test, x0, z0, x1, z1) {
   const j0 = Math.max(0, Math.floor((z0 + HALF) / CELL)), j1 = Math.min(N - 1, Math.ceil((z1 + HALF) / CELL));
   for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) if (test(-HALF + i * CELL, -HALF + j * CELL)) SURF.grass[j * N + i] = 0;
 }
-function polyLen(pts) { let l = 0; for (let i = 1; i < pts.length; i++) l += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); return l; }
-function polyAt(pts, s) {
-  for (let i = 1; i < pts.length; i++) {
-    const a = pts[i - 1], b = pts[i], l = Math.hypot(b[0] - a[0], b[1] - a[1]);
-    if (s <= l || i === pts.length - 1) { const t = Math.max(0, Math.min(1, s / (l || 1))); return { x: a[0] + (b[0] - a[0]) * t, z: a[1] + (b[1] - a[1]) * t, tx: (b[0] - a[0]) / (l || 1), tz: (b[1] - a[1]) / (l || 1) }; }
-    s -= l;
-  }
-}
-const pick = (a, rnd) => a[(rnd() * a.length) | 0];
 
 // Fila continua de edificios de A a E con las fachadas hacia 'face'; gaps: tramos [s0, s1] sin edificios (bocacalles)
 function row(B, A, E, face, o, rnd, TOWN, gaps = [], special = () => null) {
@@ -203,8 +195,7 @@ function flagStrip(x0, x1, color) {
   for (let i = 0; i < p.count; i++) p.setZ(i, Math.sin(p.getY(i) * 2.6 + p.getX(i) * 1.5) * 0.06 * p.getX(i));
   g.computeVertexNormals();
   const g2 = g.clone(); g2.rotateY(Math.PI); g2.translate(2 * (x0 + (x1 - x0) / 2), 0, 0);   // la otra cara
-  const both = new THREE.BufferGeometry().copy(g.toNonIndexed());
-  return colored(mergeTwo(both, g2.toNonIndexed()), color);
+  return colored(mergeTwo(g.toNonIndexed(), g2.toNonIndexed()), color);
 }
 function mergeTwo(a, b) {
   const g = new THREE.BufferGeometry();
@@ -267,7 +258,7 @@ function ayuntamiento(B, S, cx, cz, TOWN) {
     B.add('railing', rail, F(M(0, yb + 0.15 + h / 2, 1.47)));
     for (const s of [-1, 1]) B.add('railing', new THREE.PlaneGeometry(1.45, h), F(M(s * (w / 2 - 0.27), yb + 0.15 + h / 2, 0.75, Math.PI / 2)));
     B.add('iron', box(w - 0.4, 0.07, 0.1), F(M(0, yb + 0.17 + h, 1.47)));
-    for (const x of bays) railShield(B, F(M(0, 0, 0)), x, yb + 0.15 + h * 0.5, 1.52);
+    for (const x of bays) railShield(B, T, x, yb + 0.15 + h * 0.5, 1.52);
   };
   levels.slice(1).forEach(([y0, lh], L) => {
     balcony(y0 + 0.05, 1.0);
@@ -621,8 +612,8 @@ export function buildPamplona(B, group, def, rnd, TOWN) {
   spots.estafeta = estafeta(B, S, rnd, TOWN);
   const ch = PLACES.church, church = catedral(B, S, ch.x, ch.z, TOWN);
   const lm = (k) => def.landmarks.find(l => l.kind === k) || {};
-  spots.bullring = bullring(B, S, lm('bullring').x ?? 232, lm('bullring').z ?? -56, TOWN);
-  spots.walls = walls(B, S, TOWN);
+  spots.bullring = bullring(B, S, lm('bullring').x ?? 232, lm('bullring').z ?? -56);
+  spots.walls = walls(B, S);
   spots.citadel = citadel(B, S, TOWN);
   spots.stadium = stadium(B, S, group, lm('stadium').x ?? 232, lm('stadium').z ?? 318, TOWN);
   // pavimentos y arenas: sin hierba encima

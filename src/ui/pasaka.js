@@ -6,9 +6,8 @@ import { PISTA } from '../data/pasaka.js';
 import { infoCard } from './minigames.js';
 import { tr, isEU } from '../i18n.js';
 import { profile, addCard, addXP, saveProfile, checkBadges } from '../game/profile.js';
+import { esc, el } from '../util/html.js';
 
-const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const el = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
 const { W, L, NETH, CEIL, SAQUE, CHAPA } = PISTA, NETZ = L / 2;
 const ROJO = '#d2352f', AZUL = '#2f63c4';
 const SKIN = ['#f1cdb0', '#e9bd9c', '#d9a884', '#f4d6bd'], HAIR = ['#2a1a12', '#4a3322', '#8c8c8c', '#1a1a1e', '#6b4a2e'];

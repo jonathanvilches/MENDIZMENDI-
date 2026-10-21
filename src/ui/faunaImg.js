@@ -6,7 +6,7 @@
 // @fauna-small de vite.config.js eligen las carpetas de src/assets/fauna.
 //   faunaImg('zorro') → { big, small } (o null si no la tiene: entonces se usa su icono, como antes)
 import { hdTable } from '../web/hd.js';
-const byId = (g) => Object.fromEntries(Object.entries(g).map(([k, v]) => [k.split('/').pop().replace('.webp', ''), v]));
+import { byId } from '../util/glob.js';
 const BIG = byId(import.meta.glob('@fauna-big/*.webp', { eager: true, query: '?url', import: 'default' }));
 hdTable('fauna', BIG);   // (en el archivo único, con conexión: los de la web, src/web/hd.js)
 const SMALL = byId(import.meta.glob('@fauna-small/*.webp', { eager: true, query: '?url', import: 'default' }));

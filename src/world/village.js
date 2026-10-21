@@ -7,28 +7,14 @@ import { fachadaLejana } from './townReal.js';
 import { belfryBell, towerClock, eaveCorbels } from './monuments.js';
 import { PATHS, PLACES, BRIDGES, rx, riverInfo, riverHalfA, pathQuery, villageMask, CONF } from './layout.js';
 import { terrainHeight, deckY } from './heightfield.js';
+import { polyLen, polyAt, minGround, slopeBase } from './plot.js';
 import { addBox, addCircle, isFree } from './colliders.js';
-import { mulberry32, clamp } from '../util/math.js';
+import { mulberry32 } from '../util/math.js';
 
 export const VILLAGE = { palaces: [], lamps: [], benches: [], houses: [], church: null, fountain: null, doors: [] };
 if (typeof window !== 'undefined') window.__VILLAGE = VILLAGE;   // (para las herramientas de capturas)
 export function resetVillage() { VILLAGE.palaces = []; VILLAGE.lamps = []; VILLAGE.benches = []; VILLAGE.houses = []; VILLAGE.church = null; VILLAGE.fountain = null; VILLAGE.doors = []; }
 
-// en las cuestas la casa se apoya casi en lo alto de su planta y lleva zócalo de piedra hasta el suelo por abajo
-function slopeBase(B, x, z, w, d, ry, g) {
-  const y = Math.max(g.mn - 0.1, g.mx - 0.35), drop = y - g.mn;
-  if (drop > 0.15) B.add('stone', new THREE.BoxGeometry(w + 0.12, drop + 0.6, d + 0.12), M(x, g.mn - 0.6 + (drop + 0.6) / 2, z, ry));
-  return y;
-}
-function minGround(x, z, w, d, ry) {
-  const c = Math.cos(ry), s = Math.sin(ry);
-  let mn = Infinity, mx = -Infinity;
-  for (const [a, b] of [[-w / 2, -d / 2], [w / 2, -d / 2], [w / 2, d / 2], [-w / 2, d / 2], [0, 0], [0, d / 2]]) {
-    const X = x + a * c + b * s, Z = z - a * s + b * c;
-    const h = terrainHeight(X, Z); mn = Math.min(mn, h); mx = Math.max(mx, h);
-  }
-  return { mn, mx };
-}
 
 function cornersOk(x, z, w, d, ry, riverside) {
   const c = Math.cos(ry), s = Math.sin(ry);
@@ -44,26 +30,18 @@ function cornersOk(x, z, w, d, ry, riverside) {
   return true;
 }
 
-function polyLen(pts) { let l = 0; for (let i = 1; i < pts.length; i++) l += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); return l; }
-function polyAt(pts, s) {
-  for (let i = 1; i < pts.length; i++) {
-    const a = pts[i - 1], b = pts[i], l = Math.hypot(b[0] - a[0], b[1] - a[1]);
-    if (s <= l || i === pts.length - 1) { const t = clamp(s / l, 0, 1); return { x: a[0] + (b[0] - a[0]) * t, z: a[1] + (b[1] - a[1]) * t, tx: (b[0] - a[0]) / l, tz: (b[1] - a[1]) / l }; }
-    s -= l;
-  }
-}
 
 export function buildVillage(scene, mats) {
   const group = new THREE.Group(); group.name = 'village';
   const B = new Builder(mats);
   const rnd = mulberry32(2024);
 
-  buildChurch(B, rnd);
+  buildChurch(B);
   buildBridges(B);
   buildRiverWalls(B);
-  buildPlaza(B, rnd);
+  buildPlaza(B);
   buildCrucero(B);
-  buildFronton(B);
+  placeFronton();
 
   // Palacios con escudo
   const palaceDefs = [
@@ -99,7 +77,6 @@ export function buildVillage(scene, mats) {
     { id: 'westOuter', side: -1 }, { id: 'westOuter', side: 1 }, { id: 'eastOuter', side: 1 }, { id: 'eastOuter', side: -1 },
     { id: 'lnW4', side: 1 }, { id: 'lnW4', side: -1 }, { id: 'lnW5', side: 1 }, { id: 'lnE3', side: 1 }, { id: 'lnE3', side: -1 },
   ];
-  let count = 0;
   for (const spec of streetSpecs) {
     const path = PATHS.find(q => q.id === spec.id);
     const L = Math.min(polyLen(path.pts), spec.max ?? 1e9);
@@ -127,7 +104,6 @@ export function buildVillage(scene, mats) {
           fachadaLejana(B, T, ho, 'pyrenean', x, z);
           addBox(x, z, w + 0.3, d + 0.3, ry, { solidView: true });
           VILLAGE.houses.push({ x, z, ry, w, d, door: { x: x + Math.sin(ry) * (d / 2 + 1.2), z: z + Math.cos(ry) * (d / 2 + 1.2) } });
-          count++;
           s += w + 1.5 + rnd() * 3;
           continue;
         }
@@ -135,15 +111,14 @@ export function buildVillage(scene, mats) {
       s += 3;
     }
   }
-  console.log('casas', count);
-  buildLamps(B, rnd);
+  buildLamps(B);
   B.build(group);
   scene.add(group);
   return group;
 }
 
 // ---------- Iglesia de San Juan Evangelista ----------
-function buildChurch(B, rnd) {
+function buildChurch(B) {
   const c = PLACES.church;
   const y = terrainHeight(c.x, c.z) - 0.2;
   const T = M(c.x, y, c.z, Math.PI / 2); // la fachada (+z local) mira al este
@@ -363,7 +338,7 @@ export function fountain(B, x, y, z) {
     B.add('jet', new THREE.TubeGeometry(c, 10, 0.024, 5, false));
   }
 }
-function buildPlaza(B, rnd) {
+function buildPlaza(B) {
   const p = PLACES.plaza;
   const y = terrainHeight(p.x, p.z);
   fountain(B, p.x, y, p.z);
@@ -403,13 +378,14 @@ function buildCrucero(B) {
 
 // ---------- Frontón ----------
 // El frontón (cancha, paredes y colisiones) lo pone el juego con el motor de pelota (src/pelota); aquí solo su altura.
-function buildFronton(B) {
+// (el frontón del valle: aquí solo se apunta la altura del suelo en su sitio)
+function placeFronton() {
   const f = PLACES.fronton;
   f.y = terrainHeight(f.x, f.z);
 }
 
 // ---------- Farolas ----------
-function buildLamps(B, rnd) {
+function buildLamps(B) {
   for (const id of ['west', 'east', 'toChurch', 'toPlaza', 'westBack', 'eastBack']) {
     const path = PATHS.find(p => p.id === id);
     const L = polyLen(path.pts);

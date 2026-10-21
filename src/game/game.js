@@ -17,6 +17,8 @@ import { instrumentosDe, instrumentoById } from '../data/instrumentos.js';
 import { jugarInstrumento } from '../ui/instrumentos.js';
 import { clamp, lerp, angleDiff, mulberry32 } from '../util/math.js';
 
+// prismáticos: vectores de trabajo (sin crear objetos en cada fotograma ni por cada animal que se mira)
+const _eye = new THREE.Vector3(), _dir = new THREE.Vector3(), _to = new THREE.Vector3(), _near = new THREE.Vector3(), _look = new THREE.Vector3();
 const SAVE_KEY = 'mendimendiz-salazar-v2';
 // misiones del valle que se pueden empezar en cualquier orden (Muskilda es el final: pide las 8 cintas)
 const OPEN_QUESTS = ['bienvenida', 'escudos', 'ovejas', 'pelota', 'irati', 'basajaun', 'lamia', 'zarratrako'];
@@ -274,7 +276,7 @@ export class Game {
       if (it.kind === 'eguz' && Math.random() < dt * 2) this.particles.emit(o.position, { n: 1, color: '#ffe38a', speed: 0.4, size: 0.18, life: 1.2, gravity: -0.5, spread: 0.6 });
     }
     // Minijuegos y modos
-    if (this.herd) this.updateHerding(dt);
+    if (this.herd) this.updateHerding();
     if (this.zarra) this.updateZarratrako(dt);
     if (this.mode === 'pelota' && this.pelotaTick) this.pelotaTick(dt);
     if (this.mode === 'dance') this.updateDance(dt);
@@ -620,7 +622,6 @@ export class Game {
         this.advance('muskilda', 2);
         return this.startDance();
       }
-      case 'zarratrako': return;
     }
   }
   async quiz(a, cheese) {
@@ -645,7 +646,7 @@ export class Game {
     this.herd = [];
     const spots = [[-60, 40], [-30, 60], [-80, -10], [-50, 75], [-95, 30], [-20, 35]];
     this.penned = 0;
-    spots.forEach(([dx, dz], i) => {
+    spots.forEach(([dx, dz]) => {
       const x = pen.x + dx * 0.9 + 20, z = pen.z + dz * 0.8;
       const s = new Animal('sheep', x, z, { flee: 7, run: 3.2, walk: 0.4, range: 5, radius: 0.45, scale: 1.05 }, this.rnd, this.scene);
       s.herd = true; s.alwaysUpdate = true;
@@ -655,7 +656,7 @@ export class Game {
     this.dog.follow = this.player;
     if (!restore) this.ui.toast('Empuja las ovejas hacia el redil', 'sheep');
   }
-  updateHerding(dt) {
+  updateHerding() {
     const pen = LANDMARKS.pen;
     const inPen = (s) => Math.abs(s.pos.x - pen.x) < pen.w / 2 - 0.6 && Math.abs(s.pos.z - pen.z) < pen.d / 2 - 0.6;
     let n = 0;
@@ -781,20 +782,20 @@ export class Game {
     this.binoYaw -= this.input.look.dx * sens; this.binoPitch = clamp(this.binoPitch - this.input.look.dy * sens, -0.6, 1.2);
     const mv = this.input.move; this.binoYaw -= mv.x * dt * 0.8; this.binoPitch = clamp(this.binoPitch + mv.y * dt * 0.6, -0.6, 1.2);
     cam.fov = lerp(cam.fov, 16, 1 - Math.exp(-8 * dt)); cam.updateProjectionMatrix();
-    const eye = new THREE.Vector3(P.x, P.y + 1.55, P.z);
-    const dir = new THREE.Vector3(Math.sin(this.binoYaw) * Math.cos(this.binoPitch), Math.sin(this.binoPitch), Math.cos(this.binoYaw) * Math.cos(this.binoPitch));
-    cam.position.copy(eye); cam.lookAt(eye.clone().add(dir));
+    const eye = _eye.set(P.x, P.y + 1.55, P.z);
+    const dir = _dir.set(Math.sin(this.binoYaw) * Math.cos(this.binoPitch), Math.sin(this.binoPitch), Math.cos(this.binoYaw) * Math.cos(this.binoPitch));
+    cam.position.copy(eye); cam.lookAt(_look.copy(eye).add(dir));
     this.follow.yaw = this.binoYaw + Math.PI;
     // buscar animal en el centro (y, cerca de la marca, el que no tienes anotado: la ayuda al apuntar lo acaba de centrar)
     let best = null, ba = 1, near = null, na = Infinity, nearDir = null;
     for (const o of this.fauna.observables()) {
-      const to = new THREE.Vector3(o.pos.x - eye.x, o.pos.y + (o.h || 0.5) - eye.y, o.pos.z - eye.z);
+      const to = _to.set(o.pos.x - eye.x, o.pos.y + (o.h || 0.5) - eye.y, o.pos.z - eye.z);
       const d = to.length(); if (d > (o.far ? 260 : 90) || d < 1) continue;
       const ang = to.normalize().angleTo(dir);
       const tol = Math.max(0.04, 1.8 / d);
       if (ang > tol * 2.6 || (!o.far && segmentBlocked(eye.x, eye.z, o.pos.x, o.pos.z))) continue;
       if (ang < tol && ang < ba) { ba = ang; best = o; }
-      if (!this.state.observed.includes(o.id) && ang / tol < na) { na = ang / tol; near = o; nearDir = to.clone(); }
+      if (!this.state.observed.includes(o.id) && ang / tol < na) { na = ang / tol; near = o; nearDir = _near.copy(to); }
     }
     if (near && !(this.input.look.dx || this.input.look.dy || mv.x || mv.y)) {
       const yawT = Math.atan2(nearDir.x, nearDir.z), pitT = Math.asin(clamp(nearDir.y, -1, 1)), k = Math.min(1, dt * (near === best ? 5 : 3));
@@ -823,7 +824,7 @@ export class Game {
     const m = LANDMARKS.muskilda.dance;
     this.player.place(m.x - 6, m.z + 1, -Math.PI / 2);
     this.player.frozen = true;
-    this.dancers.forEach((d, i) => { d.visible = true; d.collider.ghost = true; d.heading = -Math.PI / 2; d.dance = 0; d.sync(); });
+    this.dancers.forEach((d) => { d.visible = true; d.collider.ghost = true; d.heading = -Math.PI / 2; d.dance = 0; d.sync(); });
     this.npcs.bobo.setPos(m.x - 3.5, m.z + 4, -Math.PI / 2);
     this.follow.cinematic = { pos: new THREE.Vector3(m.x - 14, terrainHeight(m.x, m.z) + 4.5, m.z + 7), look: new THREE.Vector3(m.x - 2, terrainHeight(m.x, m.z) + 1.4, m.z + 1), t: 0 };
     this.sound.setMusic(false);

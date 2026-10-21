@@ -1,7 +1,7 @@
 // Pruebas de los controles del jugador (como en el FIFA), sin gráficos: pase al hueco, pase elevado, presionar,
 // compañero que presiona, proteger el balón, tiro colocado, cambio automático al que llega antes al balón y conducción.
 import { FutbolGame } from '../src/futbol/game.js';
-import { FIELD as F, PHYS as K } from '../src/futbol/rules.js';
+import { FIELD as F } from '../src/futbol/rules.js';
 let fails = 0; const ok = (c, m) => { console.log(`  ${c ? 'OK ' : 'FALLO'} ${m}`); if (!c) fails++; };
 function setup(seed = 3) {
   const g = new FutbolGame({ seed, replays: false }); g.start(); g.restart = null; g.phase = 'play'; g.owner = null;

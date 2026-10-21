@@ -20,7 +20,7 @@ export function createTownLevel(def) {
   const ph = rnd() * 6.28;
 
   // ---------- Río (fluye de norte a sur, como en Salazar) ----------
-  const rx = rv ? (z => rv.x + (rv.amp || 6) * Math.sin(z * 0.011 + ph) + (rv.amp || 6) * 0.45 * Math.sin(z * 0.029 + ph * 2) - ((rv.amp || 6) * Math.sin(ph) + (rv.amp || 6) * 0.45 * Math.sin(ph * 2))) : (z => 9999);
+  const rx = rv ? (z => rv.x + (rv.amp || 6) * Math.sin(z * 0.011 + ph) + (rv.amp || 6) * 0.45 * Math.sin(z * 0.029 + ph * 2) - ((rv.amp || 6) * Math.sin(ph) + (rv.amp || 6) * 0.45 * Math.sin(ph * 2))) : (() => 9999);
   const rxd = rv ? (z => (rv.amp || 6) * 0.011 * Math.cos(z * 0.011 + ph) + (rv.amp || 6) * 0.45 * 0.029 * Math.cos(z * 0.029 + ph * 2)) : (() => 0);
   const slope = relief === 'plain' ? 0.004 : 0.012;
   const base = 20;

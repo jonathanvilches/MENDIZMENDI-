@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 
 /** Uniforme compartido por los sombreadores (personajes, animales, flora): color por el que se multiplica su relleno. */
-export const CHAR_FILL = { value: new THREE.Color(1, 1, 1) };
+const CHAR_FILL = { value: new THREE.Color(1, 1, 1) };
 const MATS = new Set(), WHITE = new THREE.Color(1, 1, 1), tmp = new THREE.Color();
 
 /** Material que se rellena con su color emisivo (personajes de Meshy, ojos pintados): k = cuánto a pleno día. */

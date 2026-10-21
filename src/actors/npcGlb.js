@@ -191,7 +191,7 @@ function recolor(img, size, pairs) {
 }
 
 // colores del vecino a partir de su «look» (el mismo formato que usaban las figuras antiguas)
-function palette(look, sex) {
+function palette(look) {
   const L = look || {};
   const skin = hex(L.skin || '#f1c4a0');
   const hair = hex(L.hair || (L.old ? '#d6d0c6' : '#3a2418'));
@@ -319,7 +319,7 @@ export function buildNpc(look = {}) {
   const sex = L.female || L.skirt || L.ponytail || L.bun || L.braids || L.longHair || L.lashes ? 'girl' : 'boy';
   const gltf = GLTF[sex] || GLTF.boy;
   const char = new GlbChar(gltf, { vary: true, outline: 0.006, walkAt: 0.2, runAt: 4.6, gait: (v, n) => n === 'Run' ? Math.pow(Math.max(0.3, v) / 3.2, 0.85) : Math.pow(Math.max(0.2, v) / 1.5, 0.8) });
-  const P = palette(L, sex);
+  const P = palette(L);
   // texturas recoloreadas (compartidas entre vecinos con los mismos colores)
   let srcBody = null, srcFace = null;
   char.root.traverse(o => { if (!o.isMesh || !o.material?.map) return; const nm = o.material.name || ''; if (/Body/.test(nm)) srcBody = o.material; else if (/Face/.test(nm)) srcFace = o.material; });

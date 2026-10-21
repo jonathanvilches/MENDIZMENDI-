@@ -4,7 +4,7 @@
 // No está en data/laminas.js a propósito: no es una ilustración del autor y no debe salir en el álbum; solo es la portada.
 // Volver a ejecutar cuando cambie el recinto (src/game/pasaka3d.js). Uso: node tools/pasaka-portada.mjs [carpeta de pruebas]
 import { chromium } from 'playwright-core';
-import { mkdirSync, writeFileSync } from 'fs';
+import { mkdirSync } from 'fs';
 import { execFileSync } from 'child_process';
 const [,, out = 'entrega/pasaka-portada'] = process.argv; mkdirSync(out, { recursive: true });
 const W = 1280, H = 720;

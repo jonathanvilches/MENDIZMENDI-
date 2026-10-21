@@ -1,5 +1,7 @@
 // Minijuegos de interfaz: barra de precisión, pulsar rápido, ordenar pasos, repetir melodía y fichas de lugar.
 import { iconSVG } from './icons.js';
+import { esc, el } from '../util/html.js';
+import { windowKeys } from '../util/keys.js';
 // Los minijuegos 3D de los oficios van en su propio trozo de código: se descargan la primera vez que hacen falta
 let M3 = null;
 export const mini3d = () => (M3 ||= import('./mini3d/index.js').catch(e => { M3 = null; throw e; }));
@@ -9,8 +11,6 @@ export async function play3d(name, ui, opts) {
   return M[name](ui, opts);
 }
 
-const el = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
-const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const shuffle = (a, rnd = Math.random) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
 // Capa modal común: bloquea el juego, gestiona teclado y limpieza
@@ -44,9 +44,9 @@ function infoCard_(ui, { icon = 'church', kicker = '', title, text, extra = '', 
         <div class="ix-foot">${dots}<button class="btn primary">${esc(button)}</button></div>
       </div>`, `ix fit${lamina ? ' has-lam' : ''}`);
     const b = o.querySelector('button.btn'); setTimeout(() => b.focus({ preventScroll: true }), 60);
-    const k = (e) => { e.stopImmediatePropagation(); if (['e', 'enter', ' ', 'escape'].includes(e.key.toLowerCase())) { e.preventDefault(); close(); } };
+    const k = windowKeys((e) => { e.stopImmediatePropagation(); if (['e', 'enter', ' ', 'escape'].includes(e.key.toLowerCase())) { e.preventDefault(); close(); } });
     const close = () => { ui.sound.ui('click'); done(ui, o, k); res(); };
-    setTimeout(() => addEventListener('keydown', k, true), 300);
+    addEventListener('keydown', k, true);
     b.onclick = close;
   });
 }
@@ -238,9 +238,9 @@ function missionComplete_(ui, { title, text, xp, card, saber, icon = 'star', pro
         <div class="ix-foot"><button class="btn primary">${esc(next)}</button></div>
       </div>`, 'ix fit');
     const b = o.querySelector('button'); setTimeout(() => b.focus({ preventScroll: true }), 80);
-    const k = (e) => { e.stopImmediatePropagation(); if (['e', 'enter', ' ', 'escape'].includes(e.key.toLowerCase())) { e.preventDefault(); close(); } };
+    const k = windowKeys((e) => { e.stopImmediatePropagation(); if (['e', 'enter', ' ', 'escape'].includes(e.key.toLowerCase())) { e.preventDefault(); close(); } }, 500);
     const close = () => { ui.sound.ui('click'); done(ui, o, k); res(); };
-    setTimeout(() => addEventListener('keydown', k, true), 500);
+    addEventListener('keydown', k, true);
     b.onclick = close;
   });
 }
@@ -264,9 +264,9 @@ export function townFinale(ui, { town, stamp, missions = [], xp = 0, next = null
         <button class="btn ${next ? '' : 'primary'}" data-r="map">${iconSVG('map', 24)} Volver al mapa de Navarra</button>
         <button class="btn" data-r="stay">${iconSVG('footprint', 24)} Seguir paseando por ${esc(town)}</button>
       </div>`);
-    const k = (e) => { e.stopImmediatePropagation(); if (e.key === 'Escape') { e.preventDefault(); close('stay'); } };
+    const k = windowKeys((e) => { e.stopImmediatePropagation(); if (e.key === 'Escape') { e.preventDefault(); close('stay'); } }, 500);
     const close = (r) => { ui.sound.ui('click'); done(ui, o, k); res(r); };
-    setTimeout(() => addEventListener('keydown', k, true), 500);
+    addEventListener('keydown', k, true);
     o.querySelectorAll('[data-r]').forEach(b => b.onclick = () => close(b.dataset.r));
     setTimeout(() => o.querySelector('[data-r]')?.focus({ preventScroll: true }), 80);
   });

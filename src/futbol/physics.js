@@ -5,12 +5,12 @@
 // En fútbol sala (PHYS con dragK) el aire y el efecto siguen el encargo: Cd de 0,45 a 0,25 según la velocidad y Magnus
 // con CL = r·|ω|/|v|.
 import { FIELD as F, PHYS as K, onFormat } from './rules.js';
+import { clamp } from '../util/math.js';
 
 let R = K.R;
 onFormat(() => { R = K.R; });
 // aceleración del aire (por unidad de v²): Cd 0,45 a 5 m/s y menos, 0,25 desde 12 m/s y en medio, lineal
 const cdAt = (s) => K.cd[0] + (K.cd[1] - K.cd[0]) * clamp((s - K.cdV[0]) / (K.cdV[1] - K.cdV[0]), 0, 1);
-const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
 export class Ball {
   constructor() {

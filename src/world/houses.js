@@ -230,7 +230,7 @@ export function buildHouse(B, T, o, rnd) {
     }
   }
   if (o.balcony) balconyAt(B, front, 0, fh + 0.02, o.balconyW, { flowers, iron: o.ironBalcony });
-  if (o.timber) timberFrame(B, front, w, h, floors, fh, o.timberColor);
+  if (o.timber) timberFrame(B, front, w, h, floors, fh);
   // ventanas traseras y laterales (sencillas; casi siempre, para que no queden paredes lisas a la vista. Con el mismo
   // número de tiradas de rnd que antes, que de él sale también el resto del pueblo)
   const back = MM(T, M(0, 0, -d / 2, Math.PI));
@@ -240,7 +240,6 @@ export function buildHouse(B, T, o, rnd) {
     const sc = Math.max(1, Math.floor(d / 3.2));
     for (let f = 1; f < floors; f++) for (let c = 0; c < sc; c++) if (rnd() < 0.85) windowAt(B, side, -d / 2 + (d / sc) * (c + 0.5), f * fh + fh * 0.55, 0.7, 1.0, { shutter });
   }
-  // escudo
   // escudo: una piedra armera en relieve (losa de sillería con su moldura, que sobresale del muro) y el escudo tallado
   // encima; en la casa consistorial, más grande y con cornisa. shieldLocal: el centro de su cara, para pintarlo y leerlo
   if (o.shield) {
@@ -254,7 +253,7 @@ export function buildHouse(B, T, o, rnd) {
   const pitch = o.pitch ?? (0.9 + rnd() * 0.12);
   const roofMat = o.roof;
   let rise;
-  const gableMat = wallMat === 'stone' || wallMat === 'ashlar' ? wallMat : wallMat;
+  const gableMat = wallMat;
   if (o.roofType === 'hip') rise = roofHip(B, T, w, d, h, o.hipRise ?? w * 0.45, roofMat);
   else if (o.roofType === 'gableZ') rise = roofGableZ(B, T, w, d, h, pitch, roofMat, { gableMat, overhang: o.overhang });
   else rise = roofGableX(B, T, w, d, h, pitch, roofMat, { gableMat, overhang: o.overhang });
@@ -294,7 +293,7 @@ function gutters(B, T, w, d, h, pitch, ov, alongZ) {
 }
 
 // Entramado de madera de los caseríos atlánticos (Baztan, Bidasoa)
-function timberFrame(B, T, w, h, floors, fh, color) {
+function timberFrame(B, T, w, h, floors, fh) {
   const mat = 'woodDark';
   for (let f = 1; f <= floors; f++) B.add(mat, box(w + 0.05, 0.22, 0.1), MM(T, M(0, f * fh - 0.05, 0.07)));
   for (const s of [-1, 1]) B.add(mat, box(0.22, h - fh, 0.1), MM(T, M(s * (w / 2 - 0.12), fh + (h - fh) / 2, 0.07)));

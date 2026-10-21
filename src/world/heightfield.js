@@ -16,7 +16,6 @@ export const SURF = {
 const idx = (i, j) => j * N + i;
 
 export function bake() {
-  const t0 = performance.now();
   for (let j = 0; j < N; j++) {
     const z = -HALF + j * CELL;
     for (let i = 0; i < N; i++) {
@@ -40,17 +39,14 @@ export function bake() {
       street = Math.max(street, plazaMask(x, z));
       // cancha del frontón
       for (const c of PLACES.courts || []) if (Math.abs(x - c.x) < c.hw && Math.abs(z - c.z) < c.hd) street = 1;
-      // Zona de la fuente del pueblo algo más empedrada
       SURF.street[k] = street * 255;
       SURF.dirt[k] = dirt * 255;
       // bosque
       const vm = f.vm, mm = f.mm;
       const n1 = fbm(x / 90 + 11, z / 90 - 4, 3);
-      let forest = 0;
-      const irati = iratiMask(x, z);
-      forest = Math.max(forest, irati * smoothstep(-0.55, -0.2, n1));
-      const t0 = 0.45 - 0.8 * FOREST;
-      forest = Math.max(forest, smoothstep(t0, t0 + 0.3, n1) * smoothstep(60, 140, Math.min(r.d, 400)));
+      let forest = iratiMask(x, z) * smoothstep(-0.55, -0.2, n1);
+      const ft = 0.45 - 0.8 * FOREST;   // (umbral del bosque: más bajo cuanto más boscoso es el pueblo)
+      forest = Math.max(forest, smoothstep(ft, ft + 0.3, n1) * smoothstep(60, 140, Math.min(r.d, 400)));
       const r4 = Math.pow(x ** 4 + z ** 4, 0.25);
       forest *= 1 - smoothstep(470, 520, r4) * 0.8;
       forest *= 1 - vm;
@@ -83,7 +79,6 @@ export function bake() {
     SURF.rock[k] = clamp(rock, 0, 1) * 255;
     if (rock > 0.5) { SURF.grass[k] *= 0.3; SURF.forest[k] *= 0.5; }
   }
-  console.log('bake', (performance.now() - t0).toFixed(0), 'ms');
 }
 
 function sampleGrid(arr, x, z) {

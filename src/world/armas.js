@@ -259,7 +259,6 @@ function glyph(g, c, cx, cy, s, col, stone, o = {}) {
         for (const d of [-0.08, -0.01, 0.06]) P([[x + d, 0.12 - h], [x + d + 0.04, 0.12 - h], [x + d + 0.04, 0.06 - h], [x + d, 0.06 - h]], col);
         P([[x - 0.025, 0.04 - h * 0.5], [x + 0.025, 0.04 - h * 0.5], [x + 0.025, 0.1 - h * 0.5], [x - 0.025, 0.1 - h * 0.5]], stone ? STONE_LO : TINCT.gules);
       }
-      return;
     }
   }
 }

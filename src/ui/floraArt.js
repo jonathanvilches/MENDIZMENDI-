@@ -4,10 +4,10 @@
 // el suelo y matas de hierba. Sustituye en las fichas al retrato del modelo 3D, que en tan poco tamaño se veía tosco.
 //   floraIllustration(id, w, h) → dataURL (se guarda: cada lámina se dibuja una vez)
 import { FLORA } from '../data/flora.js';
+import { hashStr, mulberry32 } from '../util/math.js';
 
 const CACHE = new Map();
-function hash(s) { let h = 2166136261; for (const c of s) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
-function rng(seed) { let a = seed || 1; return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const rng = (seed) => mulberry32(seed || 1);
 // mezcla de dos colores (#rrggbb) y aclarar u oscurecer
 const hex = (c) => [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16));
 const mix = (a, b, t) => { const A = hex(a), B = hex(b); return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, '0')).join(''); };
@@ -222,7 +222,7 @@ function plant(g, w, h, m, r) { if (m.t === 'tree') tree(g, w, h, m, r); else if
 export function floraIllustration(id, w = 520, h = 440) {
   const k = id + ':' + w + 'x' + h; if (CACHE.has(k)) return CACHE.get(k);
   const F = FLORA[id]; if (!F?.m) return '';
-  const m = F.m, seed = hash(id);
+  const m = F.m, seed = hashStr(id);
   let bx = 0, by = 0, bw = w, bh = h, G = null;
   try {
     const t = document.createElement('canvas'); t.width = w * 2; t.height = h * 2; const tg = t.getContext('2d', { willReadFrequently: true });

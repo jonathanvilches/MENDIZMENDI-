@@ -2,14 +2,8 @@
 // coordenadas del monte y de las localidades). Prioriza los pueblos del juego y completa con los más cercanos.
 import SETTLEMENTS from './settlements.json';
 import { LEVELS } from './levels.js';
+import { rel } from '../util/geo.js';
 
-const DIRS = ['norte', 'noreste', 'este', 'sureste', 'sur', 'suroeste', 'oeste', 'noroeste'];
-const R = 6371, rad = (d) => d * Math.PI / 180;
-function rel(lat0, lon0, lat, lon) {
-  const dy = rad(lat - lat0) * R, dx = rad(lon - lon0) * R * Math.cos(rad(lat0));
-  const km = Math.hypot(dx, dy), b = (Math.atan2(dx, dy) * 180 / Math.PI + 360) % 360;
-  return { km, dir: DIRS[Math.round(b / 45) % 8], bearing: b };
-}
 const first = (n) => n.split(' /')[0].split('-')[0].trim().toLowerCase();
 const IN_GAME = new Map();
 for (const l of LEVELS) { const k = first(l.name); const s = SETTLEMENTS.find(s => first(s[2]) === k); if (s) IN_GAME.set(s, l); }

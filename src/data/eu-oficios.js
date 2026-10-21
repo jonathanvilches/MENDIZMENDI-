@@ -690,7 +690,7 @@ export const EU_OFICIOS = {
   'Crucero': 'Gurutzea',
   'Catalejo': 'Ikusmira',
   'Basura recogida': 'Zaborra bilduta',
-  'Coser alpargatas': 'Espartinak josi',
+  
   'Ganadera': 'Abeltzaina',
   'Jornal': 'Jornala',
   'Huerta': 'Baratzea',

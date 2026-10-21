@@ -58,27 +58,34 @@ export class Particles {
     }
   }
   update(dt) {
+    // (sin partículas vivas, nada que mover ni que subir a la tarjeta gráfica: la mayor parte del tiempo)
+    if (!this.list.length && !this.cList.length) { if (this.idle) return; this.idle = true; } else this.idle = false;
     this.mat.uniforms.scale.value = this.confMat.uniforms.scale.value = innerHeight / 2;
+    const P = this.pos, C = this.col, S = this.size;
     let k = 0;
-    this.list = this.list.filter(p => (p.life -= dt) > 0);
     for (const p of this.list) {
+      if ((p.life -= dt) <= 0) continue;
       p.vy -= p.g * dt; const dr = Math.exp(-p.drag * dt); p.vx *= dr; p.vz *= dr; p.vy *= dr;
       p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt;
-      const a = clamp(p.life / p.max, 0, 1);
-      this.pos.set([p.x, p.y, p.z], k * 3); this.col.set([p.c.r * a, p.c.g * a, p.c.b * a], k * 3); this.size[k] = p.size * (0.5 + a * 0.5);
-      k++;
+      const a = clamp(p.life / p.max, 0, 1), i = k * 3;
+      P[i] = p.x; P[i + 1] = p.y; P[i + 2] = p.z; C[i] = p.c.r * a; C[i + 1] = p.c.g * a; C[i + 2] = p.c.b * a; S[k] = p.size * (0.5 + a * 0.5);
+      this.list[k++] = p;
     }
-    for (let i = k; i < this.max; i++) this.size[i] = 0;
+    this.list.length = k;
+    S.fill(0, k);
     const g = this.points.geometry; g.attributes.position.needsUpdate = g.attributes.color.needsUpdate = g.attributes.size.needsUpdate = true;
     g.setDrawRange(0, Math.max(k, 1));
+    const CP = this.cPos, CC = this.cCol, CS = this.cSize, drag = Math.exp(-1.5 * dt);
     let j = 0;
-    this.cList = this.cList.filter(p => (p.life -= dt) > 0);
     for (const p of this.cList) {
-      p.vy -= 6 * dt; p.vx *= Math.exp(-1.5 * dt); p.vz *= Math.exp(-1.5 * dt); if (p.vy < -1.5) p.vy = -1.5;
+      if ((p.life -= dt) <= 0) continue;
+      p.vy -= 6 * dt; p.vx *= drag; p.vz *= drag; if (p.vy < -1.5) p.vy = -1.5;
       p.x += (p.vx + Math.sin(p.life * 5 + p.ph) * 0.6) * dt; p.y += p.vy * dt; p.z += p.vz * dt;
-      this.cPos.set([p.x, p.y, p.z], j * 3); this.cCol.set([p.c.r, p.c.g, p.c.b], j * 3); this.cSize[j] = p.size * (0.6 + Math.abs(Math.sin(p.life * 8 + p.ph)) * 0.4);
-      j++;
+      const i = j * 3;
+      CP[i] = p.x; CP[i + 1] = p.y; CP[i + 2] = p.z; CC[i] = p.c.r; CC[i + 1] = p.c.g; CC[i + 2] = p.c.b; CS[j] = p.size * (0.6 + Math.abs(Math.sin(p.life * 8 + p.ph)) * 0.4);
+      this.cList[j++] = p;
     }
+    this.cList.length = j;
     const g2 = this.conf.geometry; g2.attributes.position.needsUpdate = g2.attributes.color.needsUpdate = g2.attributes.size.needsUpdate = true;
     g2.setDrawRange(0, Math.max(j, 1));
     this.conf.visible = j > 0;
@@ -181,9 +188,8 @@ export class NightLights {
     this.mat = new THREE.PointsMaterial({ map: GLOW, color: '#ffc46b', size: 3.4, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0, sizeAttenuation: true });
     this.points = new THREE.Points(g, this.mat);
     scene.add(this.points);
-    // sin luces reales: cada luz puntual encarece el dibujo de todo lo que se ve (también de día, con la luz apagada).
-    // Las farolas se ven encendidas por su brillo y su cristal
-    this.lights = [];
+    // (sin luces reales: cada luz puntual encarece el dibujo de todo lo que se ve, también de día con la luz apagada. Las
+    // farolas se ven encendidas por su brillo, su cristal y el charco de luz)
     this.lamps = lamps;
   }
   update(night, player) {
@@ -194,10 +200,9 @@ export class NightLights {
     this.mats.glass.emissiveIntensity = on * 0.55;
     // otros materiales que se encienden de noche (la fachada de El Sadar): [de día, de noche]
     for (const m of this.mats.nightExtra || []) m.emissiveIntensity = m.userData.night[0] + (m.userData.night[1] - m.userData.night[0]) * on;
-    const near = this.lamps.map(l => ({ l, d: (l.x - player.pos.x) ** 2 + (l.z - player.pos.z) ** 2 })).sort((a, b) => a.d - b.d).slice(0, 3);
     // cuánto ilumina la farola más cercana al jugador (para la luz propia de los personajes: bajo la farola, cálida)
-    this.lampK = near[0] ? on * Math.max(0, 1 - Math.sqrt(near[0].d) / 8) ** 2 : 0;
-    this.lights.forEach((p, i) => { if (near[i]) { p.position.set(near[i].l.x, near[i].l.y - 0.3, near[i].l.z); p.intensity = on * 12; } });
+    let d2 = Infinity; for (const l of this.lamps) d2 = Math.min(d2, (l.x - player.pos.x) ** 2 + (l.z - player.pos.z) ** 2);
+    this.lampK = d2 < Infinity ? on * Math.max(0, 1 - Math.sqrt(d2) / 8) ** 2 : 0;
   }
 }
 
@@ -268,19 +273,6 @@ export function makeEguzkilore() {
 }
 const EGUZ_MAT = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.5, emissive: new THREE.Color('#5a4a20'), emissiveIntensity: 0.4 });
 const EGUZ_GLOW = new THREE.SpriteMaterial({ map: GLOW, color: '#ffe38a', transparent: true, opacity: 0.6, depthWrite: false, blending: THREE.AdditiveBlending });
-export function makeRibbon(color) {
-  const grp = new THREE.Group();
-  const m = new THREE.MeshStandardMaterial({ color, roughness: 0.4, side: THREE.DoubleSide, emissive: new THREE.Color(color), emissiveIntensity: 0.25 });
-  const g = new THREE.PlaneGeometry(0.12, 0.9, 1, 12);
-  const p = g.attributes.position;
-  for (let i = 0; i < p.count; i++) p.setZ(i, Math.sin(p.getY(i) * 6) * 0.1);
-  const a = new THREE.Mesh(g, m); a.rotation.z = 0.25; const b = new THREE.Mesh(g, m); b.rotation.z = -0.25; b.position.x = 0.12;
-  const knot = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 6), m); knot.position.set(0.06, 0.42, 0);
-  grp.add(a, b, knot);
-  const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW, color, transparent: true, opacity: 0.7, depthWrite: false, blending: THREE.AdditiveBlending }));
-  glow.scale.setScalar(2); grp.add(glow);
-  return grp;
-}
 export function makeComb() {
   const grp = new THREE.Group();
   const gold = new THREE.MeshStandardMaterial({ color: '#ffcc33', metalness: 0.9, roughness: 0.2, emissive: new THREE.Color('#8a5a00'), emissiveIntensity: 0.6 });

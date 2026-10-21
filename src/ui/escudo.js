@@ -8,9 +8,9 @@ import { isEU, tr } from '../i18n.js';
 import { FIG } from '../data/armas-navarra.js';
 import { drawOfficial, officialHeight } from '../world/armas.js';
 import { armsImgBig } from './escudoImg.js';
+import { esc, el } from '../util/html.js';
+import { windowKeys } from '../util/keys.js';
 
-const el = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
-const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 function paint(canvas, A, stone) {
   const g = canvas.getContext('2d'), W = canvas.width, H = canvas.height;
@@ -45,8 +45,8 @@ function armsCard(ui, { kicker, title, sub, canvas, image = '', media = '', ston
     o.querySelectorAll('.es-tabs button').forEach(b => b.onclick = () => { o.querySelectorAll('.es-tabs button').forEach(x => x.setAttribute('aria-selected', x === b)); pane.innerHTML = all[+b.dataset.t][1]; pane.scrollTop = 0; b.scrollIntoView?.({ block: 'nearest', inline: 'nearest' }); ui.sound?.ui?.('click'); });
     const next = o.querySelector('.next'); setTimeout(() => next.focus({ preventScroll: true }), 60);
     const close = () => { removeEventListener('keydown', k, true); o.classList.add('out'); setTimeout(() => o.remove(), 250); if (ui.modal === o) ui.modal = null; ui.sound?.ui?.('click'); res({ errors: 0 }); };
-    const k = (e) => { e.stopImmediatePropagation(); if (['enter', ' ', 'e', 'escape'].includes(e.key.toLowerCase())) { e.preventDefault(); close(); } };
-    setTimeout(() => addEventListener('keydown', k, true), 300);
+    const k = windowKeys((e) => { e.stopImmediatePropagation(); if (['enter', ' ', 'e', 'escape'].includes(e.key.toLowerCase())) { e.preventDefault(); close(); } });
+    addEventListener('keydown', k, true);
     next.onclick = close; o.onclick = (e) => { if (e.target === o) close(); };
   });
 }

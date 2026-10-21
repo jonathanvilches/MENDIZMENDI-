@@ -16,7 +16,7 @@ await p.waitForTimeout(2500);
 const shot = (n) => p.screenshot({ path: `${out}/${W}x${H}-${n}.png`, timeout: 180000 });
 const close = () => p.evaluate(() => { const ui = window.__game.ui; ui.closeModal?.(); document.querySelectorAll('.mg-overlay button').forEach(b => b.click()); });
 await shot('1-hud');
-await p.evaluate(() => { const G = window.__game, M = G.missions.find(M => M.host && !M.done); G.say ? null : null; window.__dlg = G.dialog(M, M.host); });
+await p.evaluate(() => { const G = window.__game, M = G.missions.find(M => M.host && !M.done); window.__dlg = G.dialog(M, M.host); });
 await p.waitForTimeout(1800); await shot('2-dialogo');
 await p.evaluate(() => { document.querySelectorAll('.dlg button, .dialog button').forEach(b => b.click()); window.__game.ui._dlgCleanup?.(); });
 await p.waitForTimeout(800); await close();

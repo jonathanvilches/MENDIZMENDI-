@@ -4,10 +4,10 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { woodSet, brickSet, plasterSet, ashlarSet } from '../../game/encierroTex.js';
+import { lcg } from '../../util/math.js';
 
 // ------------------------------------------------------------------ texturas (se hacen una vez y se reutilizan)
 const SETS = {};
-function rng(seed) { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
 function canvasSet(n, draw, strength = 3) {
   const mk = () => { const c = document.createElement('canvas'); c.width = c.height = n; return c; };
   const cc = mk(), hc = mk(), cg = cc.getContext('2d'), hg = hc.getContext('2d', { willReadFrequently: true });
@@ -24,7 +24,7 @@ function canvasSet(n, draw, strength = 3) {
 }
 /** Paja del suelo de la cuadra: briznas doradas cruzadas sobre tierra oscura. */
 function strawDraw(cg, hg, n) {
-  const r = rng(3);
+  const r = lcg(3);
   cg.fillStyle = '#6a5232'; cg.fillRect(0, 0, n, n); hg.fillStyle = '#202020'; hg.fillRect(0, 0, n, n);
   for (let i = 0; i < 2600; i++) {
     const x = r() * n, y = r() * n, a = r() * Math.PI, l = 18 + r() * 46, v = r();
@@ -38,7 +38,7 @@ function strawDraw(cg, hg, n) {
 }
 /** Tierra de labor con piedrecitas y terrones. */
 function soilDraw(cg, hg, n) {
-  const r = rng(9);
+  const r = lcg(9);
   cg.fillStyle = '#6e5038'; cg.fillRect(0, 0, n, n); hg.fillStyle = '#606060'; hg.fillRect(0, 0, n, n);
   for (let i = 0; i < 9000; i++) { const v = r(); cg.fillStyle = v < 0.5 ? `rgba(40,26,16,${0.3 * r()})` : `rgba(170,130,90,${0.3 * r()})`; cg.fillRect(r() * n, r() * n, 1 + r() * 3, 1 + r() * 3); }
   for (let i = 0; i < 260; i++) {
@@ -49,7 +49,7 @@ function soilDraw(cg, hg, n) {
 }
 /** Corteza: vetas verticales profundas y grietas. */
 function barkDraw(cg, hg, n) {
-  const r = rng(21);
+  const r = lcg(21);
   cg.fillStyle = '#5a4532'; cg.fillRect(0, 0, n, n); hg.fillStyle = '#808080'; hg.fillRect(0, 0, n, n);
   for (let i = 0; i < 180; i++) {
     const x = r() * n, w = 2 + r() * 7, v = r();
@@ -60,7 +60,7 @@ function barkDraw(cg, hg, n) {
 }
 /** Trenza de yute o esparto: cordones en diagonal (para la suela y las cuerdas). */
 function braidDraw(cg, hg, n) {
-  const r = rng(31);
+  const r = lcg(31);
   cg.fillStyle = '#b8945a'; cg.fillRect(0, 0, n, n); hg.fillStyle = '#404040'; hg.fillRect(0, 0, n, n);
   const k = n / 8;
   for (let row = 0; row < 8; row++) for (let i = -1; i < 9; i++) {
@@ -74,14 +74,14 @@ function braidDraw(cg, hg, n) {
 }
 /** Cuero del fuelle: marrón oscuro con arrugas. */
 function leatherDraw(cg, hg, n) {
-  const r = rng(41);
+  const r = lcg(41);
   cg.fillStyle = '#5a3420'; cg.fillRect(0, 0, n, n); hg.fillStyle = '#808080'; hg.fillRect(0, 0, n, n);
   for (let i = 0; i < 4000; i++) { cg.fillStyle = `rgba(${r() < 0.5 ? '20,10,4' : '140,90,60'},${0.12 * r()})`; cg.fillRect(r() * n, r() * n, 2 + r() * 4, 1 + r() * 2); }
   for (let i = 0; i < 40; i++) { const y = r() * n; cg.strokeStyle = 'rgba(25,12,6,0.35)'; hg.strokeStyle = 'rgba(20,20,20,0.6)'; for (const g of [cg, hg]) { g.lineWidth = 1 + r() * 2; g.beginPath(); g.moveTo(0, y); for (let x = 0; x <= n; x += 16) g.lineTo(x, y + Math.sin(x * 0.05 + i) * 4); g.stroke(); } }
 }
 /** Piedra arenisca de cantera (sin juntas): grano fino, manchas y poros. */
 function rockDraw(cg, hg, n) {
-  const r = rng(51);
+  const r = lcg(51);
   cg.fillStyle = '#b8ab92'; cg.fillRect(0, 0, n, n); hg.fillStyle = '#808080'; hg.fillRect(0, 0, n, n);
   for (let i = 0; i < 700; i++) { const x = r() * n, y = r() * n, s = 8 + r() * 40, v = r(); for (const [dx, dy] of [[0, 0], [-n, 0], [n, 0], [0, -n], [0, n]]) { cg.fillStyle = v < 0.5 ? `rgba(120,104,80,${0.06 * r()})` : `rgba(236,226,204,${0.08 * r()})`; cg.beginPath(); cg.ellipse(x + dx, y + dy, s, s * (0.5 + r() * 0.5), r() * 3, 0, 7); cg.fill(); } }
   for (let i = 0; i < 14000; i++) { const x = r() * n, y = r() * n, v = r(); cg.fillStyle = v < 0.5 ? `rgba(70,60,46,${0.25 * r()})` : `rgba(250,244,228,${0.3 * r()})`; cg.fillRect(x, y, 1 + r() * 1.5, 1 + r() * 1.5); const h = v < 0.5 ? 90 : 170; hg.fillStyle = `rgba(${h},${h},${h},0.5)`; hg.fillRect(x, y, 1.5, 1.5); }
@@ -89,7 +89,7 @@ function rockDraw(cg, hg, n) {
 }
 /** Hierba corta de prado: briznas de varios verdes. */
 function grassDraw(cg, hg, n) {
-  const r = rng(61);
+  const r = lcg(61);
   cg.fillStyle = '#4f6e30'; cg.fillRect(0, 0, n, n); hg.fillStyle = '#505050'; hg.fillRect(0, 0, n, n);
   for (let i = 0; i < 9000; i++) {
     const x = r() * n, y = r() * n, a = -Math.PI / 2 + (r() - 0.5) * 1.6, l = 4 + r() * 10, v = r();
@@ -100,7 +100,7 @@ function grassDraw(cg, hg, n) {
 }
 /** Follaje: hojas pequeñas superpuestas en varios verdes, con luces y sombras. */
 function leavesDraw(cg, hg, n) {
-  const r = rng(71);
+  const r = lcg(71);
   cg.fillStyle = '#2f4a1e'; cg.fillRect(0, 0, n, n); hg.fillStyle = '#303030'; hg.fillRect(0, 0, n, n);
   for (let i = 0; i < 2600; i++) {
     const x = r() * n, y = r() * n, a = r() * Math.PI, l = 5 + r() * 7, v = r();
@@ -119,7 +119,7 @@ const MAKERS = {
   rock: () => canvasSet(512, rockDraw, 3), grass: () => canvasSet(512, grassDraw, 3), leaves: () => canvasSet(256, leavesDraw, 4),
 };
 /** Juego de texturas (color y relieve) compartido entre minijuegos. */
-export function texSet(name) { return (SETS[name] ||= MAKERS[name]()); }
+function texSet(name) { return (SETS[name] ||= MAKERS[name]()); }
 /** Al acabar un minijuego: se suelta la memoria gráfica de las texturas (los lienzos se quedan y se vuelven a subir
  *  solos si otro minijuego las usa), para que el pueblo no cargue con ellas en el móvil. */
 export function releaseTextures() { for (const T of Object.values(SETS)) for (const t of Object.values(T)) if (t?.isTexture) t.dispose(); }
@@ -134,7 +134,7 @@ export const rbox = (w, h, d, r = 0.02, seg = 3) => new RoundedBoxGeometry(w, h,
 export const tube = (pts, r, seg = 48, rs = 10, closed = false) => new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts.map(p => new THREE.Vector3(...p)), closed), seg, r, rs, closed);
 /** Desplaza los vértices de una esfera con ruido suave (piedras, terrones, masa, copas de árboles). */
 export function lumpy(geo, amp, freq = 3, seed = 1) {
-  const p = geo.attributes.position, v = new THREE.Vector3(), r = rng(seed), ph = [r() * 9, r() * 9, r() * 9];
+  const p = geo.attributes.position, v = new THREE.Vector3(), r = lcg(seed), ph = [r() * 9, r() * 9, r() * 9];
   for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i); const n = Math.sin(v.x * freq + ph[0]) * Math.sin(v.y * freq * 1.3 + ph[1]) * Math.sin(v.z * freq * 0.9 + ph[2]); v.multiplyScalar(1 + n * amp); p.setXYZ(i, v.x, v.y, v.z); }
   geo.computeVertexNormals(); return geo;
 }
@@ -192,7 +192,7 @@ export function outdoors(S, { ground = 'soil', groundColor = '#ffffff', size = 6
 /** Árbol de hoja (haya, roble): tronco torneado con raíces y ramas, copa de bultos redondos con textura de hojas. */
 export function tree(S, x, z, { h = 5, r = 0.2, crown = 1.6, color = '#ffffff', seed = 1 } = {}) {
   const g = new THREE.Group(); g.position.set(x, 0, z); S.add(g);
-  const rr = rng(seed * 977 + 13), bark = texMat(S, 'bark', '#c8bcb0'), leaf = texMat(S, 'leaves', color, { roughness: 0.85 });
+  const rr = lcg(seed * 977 + 13), bark = texMat(S, 'bark', '#c8bcb0'), leaf = texMat(S, 'leaves', color, { roughness: 0.85 });
   S.mesh(uvScale(lathe([[0.001, 0], [r * 1.9, 0], [r * 1.25, 0.12], [r * 1.05, 0.4], [r, h * 0.4], [r * 0.8, h * 0.7], [r * 0.55, h * 0.86], [0.001, h * 0.9]], 14), 2, 3), bark, 0, 0, 0, g);
   // ramas que salen del tronco hacia la copa
   for (let i = 0; i < 4; i++) { const a = i / 4 * Math.PI * 2 + rr(), y0 = h * (0.5 + rr() * 0.2), L = crown * (0.6 + rr() * 0.3);

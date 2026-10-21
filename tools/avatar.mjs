@@ -20,7 +20,7 @@ const cam = async (n, ang, h = 1.0, dist = 3.2, walk = false) => {
 };
 await cam('frente', 0); await cam('lado', Math.PI / 2); await cam('espalda', Math.PI);
 // andar: forzar la animación de andar en el sitio
-await p.evaluate(() => { const r = window.__game.player.rig; window.__game.player.frozen = true; const f = r.update.bind(r); r.update = (dt, sp, g, tr) => f(dt, 3.3, true, 0); });
+await p.evaluate(() => { const r = window.__game.player.rig; window.__game.player.frozen = true; const f = r.update.bind(r); r.update = (dt) => f(dt, 3.3, true, 0); });
 await cam('andar', Math.PI / 2, 1.0, 3.4);
 await p.evaluate(() => { const r = window.__game.player.rig; r.update = ((f) => (dt) => f(dt, 6.6, true, 0))(Object.getPrototypeOf(r).update.bind(r)); });
 await cam('correr', 0.6, 1.0, 3.6);

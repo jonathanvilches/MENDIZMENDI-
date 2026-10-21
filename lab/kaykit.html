@@ -1,9 +1,9 @@
 <!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:transparent;overflow:hidden}</style></head>
 <body><script type="module">
-// Retrato de un avatar KayKit con el motor del juego: ?id=ranger&view=bust|full
+// Retrato de un avatar con el motor del juego: ?id=sanfermin&view=bust|full (los KayKit ya no están en el juego)
 import * as THREE from 'three';
 import { GlbRig, loadGlbAvatar } from '../src/actors/glbChar.js';
-const P = new URLSearchParams(location.search), id = P.get('id') || 'ranger', view = P.get('view') || 'full';
+const P = new URLSearchParams(location.search), id = P.get('id') || 'sanfermin', view = P.get('view') || 'full';
 const r = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true }); r.setPixelRatio(2); r.setSize(innerWidth, innerHeight); r.setClearColor(0, 0);
 r.outputColorSpace = THREE.SRGBColorSpace; r.toneMapping = THREE.ACESFilmicToneMapping; document.body.appendChild(r.domElement);
 const scene = new THREE.Scene(); scene.add(new THREE.HemisphereLight('#fff6ea', '#7a7068', 2.2));

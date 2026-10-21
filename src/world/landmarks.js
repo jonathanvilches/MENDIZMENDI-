@@ -12,10 +12,10 @@ export const LANDMARKS = {};
 export function buildLandmarks(scene, mats) {
   const B = new Builder(mats);
   const rnd = mulberry32(77);
-  buildBorda(B, rnd);
-  buildMuskilda(B, rnd);
+  buildBorda(B);
+  buildMuskilda(B);
   buildMirador(B);
-  buildWaterfall(B, rnd, scene);
+  buildWaterfall(B, rnd);
   buildFieldWalls(B, rnd);
   buildSigns(B, scene);
   buildHayAndProps(B, rnd);
@@ -25,7 +25,7 @@ export function buildLandmarks(scene, mats) {
   return g;
 }
 
-function buildBorda(B, rnd) {
+function buildBorda(B) {
   const b = PLACES.borda;
   const y = terrainHeight(b.x, b.z) - 0.2;
   const ry = Math.PI / 2; // la puerta mira al este (hacia el camino)
@@ -66,7 +66,7 @@ function buildBorda(B, rnd) {
   LANDMARKS.borda = { x: b.x, z: b.z, door: { x: b.x + d / 2 + 1.5, z: b.z } };
 }
 
-function buildMuskilda(B, rnd) {
+function buildMuskilda(B) {
   const m = PLACES.muskilda;
   const y = terrainHeight(m.x, m.z) - 0.2;
   const ry = -Math.PI / 2; // portada hacia el oeste (llegada del sendero)
@@ -106,7 +106,7 @@ function buildMuskilda(B, rnd) {
   addBox(m.x + 4, m.z, L + 1, W + 1, ry, { solidView: true });
   addBox(m.x + 4 + (W / 2 + 2.6) * c, m.z - (W / 2 + 2.6) * s, 0.4, L, ry);
   for (let i = 0; i < 4; i++) { const a = Math.PI * 0.6 + i * 0.35; const x = m.x + Math.cos(a) * 14, z = m.z + Math.sin(a) * 14; bench(B, x, terrainHeight(x, z), z, Math.atan2(m.x - x, m.z - z)); }
-  LANDMARKS.muskilda = { x: m.x, z: m.z, door: { x: m.x + 4 - (L / 2 + 2) * 1, z: m.z }, dance: { x: m.x - 12, z: m.z + 2 } };
+  LANDMARKS.muskilda = { x: m.x, z: m.z, door: { x: m.x + 4 - (L / 2 + 2), z: m.z }, dance: { x: m.x - 12, z: m.z + 2 } };
 }
 
 function buildMirador(B) {
@@ -125,7 +125,7 @@ function buildMirador(B) {
   LANDMARKS.mirador = { x: p.x, z: p.z, y };
 }
 
-function buildWaterfall(B, rnd, scene) {
+function buildWaterfall(B, rnd) {
   const w = PLACES.waterfall, p = PLACES.pond;
   const face = Math.atan2(p.x - w.x, p.z - w.z);
   const fx = Math.sin(face), fz = Math.cos(face), sx = Math.cos(face), sz = -Math.sin(face);
@@ -243,7 +243,7 @@ function buildRangerPost(B) {
   const x = rx(-172) - 27, z = -172;
   const y = terrainHeight(x, z) - 0.2;
   const T = M(x, y, z, Math.PI / 2);
-  B.add('wood', box(4, 3 + 1, 3.4, 1.5), MM(T, M(0, 1.5, 0)));
+  B.add('wood', box(4, 4, 3.4, 1.5), MM(T, M(0, 1.5, 0)));
   B.add('woodDark', box(4.8, 0.18, 2.4), MM(T, M(0, 3.7, 0.8, 0, 0.5)));
   B.add('woodDark', box(4.8, 0.18, 2.4), MM(T, M(0, 3.7, -0.8, 0, -0.5)));
   B.add('woodDark', box(1, 2, 0.1), MM(T, M(0.8, 1, 1.72)));

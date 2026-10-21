@@ -6,7 +6,7 @@ const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromi
 const report = [];
 // comprobaciones dentro de la página
 const CHECK = () => {
-  const W = innerWidth, H = innerHeight, out = [];
+  const W = innerWidth, out = [];
   const scrollX = (el) => { for (let p = el.parentElement; p; p = p.parentElement) { const s = getComputedStyle(p); if (/(auto|scroll)/.test(s.overflowX) && p.scrollWidth > p.clientWidth + 2) return true; } return false; };
   const vis = (el) => { const s = getComputedStyle(el); if (s.display === 'none' || s.visibility === 'hidden' || +s.opacity === 0) return false; const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
   const name = (el) => el.id ? '#' + el.id : el.className && typeof el.className === 'string' ? el.tagName.toLowerCase() + '.' + el.className.trim().split(/\s+/).slice(0, 2).join('.') : el.tagName.toLowerCase();

@@ -5,7 +5,7 @@ import { chromium } from 'playwright-core';
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage(); await p.goto('http://127.0.0.1:5173/', { timeout: 300000 }); await p.waitForFunction(() => window.__ready, null, { timeout: 300000 });
 console.log(await p.evaluate(async () => {
-  const THREE = window.__THREE, { loadMeshy, loadKayKit, GlbChar } = await import('/src/actors/glbChar.js'), out = [];
+  const THREE = window.__THREE, { loadMeshy, GlbChar } = await import('/src/actors/glbChar.js'), out = [];
   const meas = (g, label) => { const c = new GlbChar(g, {}); c.root.scale.setScalar(g.userData.fit || 1);
     const B = {}; c.root.traverse(o => { if (o.isBone) B[o.name] = o; });
     const foot = B.mixamorigLeftFoot || B.footl || B['foot.l'] || Object.values(B).find(b => /foot/i.test(b.name) && /l/i.test(b.name));
@@ -21,7 +21,6 @@ console.log(await p.evaluate(async () => {
     }
     c.dispose?.(); };
   for (const n of ['sanfermin', 'pastor', 'osasuna', 'pelotari']) meas(await loadMeshy(n), n);
-  const kk = await loadKayKit('Ranger'); meas(kk, 'KayKit');
   return out.join('\n');
 }));
 await b.close();

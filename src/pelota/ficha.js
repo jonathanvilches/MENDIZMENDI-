@@ -6,6 +6,7 @@
 // pelotari, como sus cualidades) y van con ellas: el que pega fuerte es más alto y pesa más; el rápido, más ligero.
 // La tuya no lleva datos inventados: tus cualidades, tu pueblo y lo que has ganado en el juego.
 import { SHOTS, TEXT, statsTips, pelotariRating } from './rules.js';
+import { esc } from '../util/html.js';
 
 const L = {
   es: { title: 'Ficha del pelotari', close: 'Cerrar', you: 'Tú', yours: 'Tu ficha', town: 'Pueblo', role: 'Puesto', age: 'Edad', height: 'Altura', weight: 'Peso',
@@ -24,7 +25,7 @@ function rng(seed) {
   return () => { h = Math.imul(h ^ (h >>> 15), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
 }
 /** Datos de un pelotari inventado: { age, height (cm), weight (kg), left, debut, played, won, txapelas }. */
-export function pelotariBio(name, st = {}, town = '') {
+function pelotariBio(name, st = {}, town = '') {
   const r = rng(`ficha ${name} ${town}`), f = st.fuerza || 3, v = st.velocidad || 3, a = st.agilidad || 3;
   const age = 19 + Math.floor(r() * 14);                                                  // de 19 a 32 años
   const height = Math.round(171 + f * 3 + r() * 7 - (v >= 4 ? 3 : 0));                    // de 1,71 a 1,93 m
@@ -36,7 +37,6 @@ export function pelotariBio(name, st = {}, town = '') {
   return { age, height, weight, left: r() < 0.12, debut, played, won, txapelas };
 }
 
-const esc = (x) => String(x ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const initials = (n) => String(n).replace(/\(.*\)/, '').trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '?';
 // el pueblo, si viene en el nombre como en el torneo («Mikel (Lesaka)»)
 export const splitName = (n) => { const m = String(n).match(/^(.*?)\s*\(([^)]+)\)\s*$/); return m ? { name: m[1], town: m[2] } : { name: String(n), town: '' }; };
@@ -132,7 +132,7 @@ const CSS = `
  * Abre la ficha. list: los pelotaris del partido (ver card); i: el que se ve primero. Devuelve una promesa que se cumple
  * al cerrarla (con Escape, la X o tocando fuera).
  */
-export function fichaCss() { if (!document.getElementById('pfx-style')) { const s = document.createElement('style'); s.id = 'pfx-style'; s.textContent = CSS; document.head.appendChild(s); } }
+function fichaCss() { if (!document.getElementById('pfx-style')) { const s = document.createElement('style'); s.id = 'pfx-style'; s.textContent = CSS; document.head.appendChild(s); } }
 /** Tarjeta de un pelotari (p como en la ficha, con id): iniciales, nombre, lo que más se le nota y «Ficha». */
 export function playerChip(p, lang = 'es', attr = 'data-pel-ficha') {
   fichaCss();

@@ -82,12 +82,13 @@ const KEYS = [
 const KC = KEYS.map(k => ({ t: k[0], zen: new THREE.Color(k[1]), hor: new THREE.Color(k[2]), sun: new THREE.Color(k[3]), si: k[4], hs: new THREE.Color(k[5]), hg: new THREE.Color(k[6]), hi: k[7] }));
 
 const UP = new THREE.Vector3(0, 1, 0), LIGHT_STEP = Math.PI / 600, MIST_GEO = new THREE.PlaneGeometry(1, 1);
+const _sunQ = new THREE.Vector3(), _light = new THREE.Vector3(), _moon = new THREE.Vector3();   // (sin crear vectores en cada fotograma)
 const FLOOD_SKY = new THREE.Color('#d8e4fb'), FLOOD_GND = new THREE.Color('#857f72'), FLOOD_SUN = new THREE.Color('#fff3df'), FLOOD_DIR = new THREE.Vector3(0.25, 1, 0.35).normalize();
 export class SkySystem {
   constructor(scene, renderer, quality) {
     this.scene = scene;
     this.time = 9.5;
-    this.speed = 24 / (16 * 60); // un día = 16 minutos reales
+    this.speed = 24 / (16 * 60);   // un día dura 16 minutos de juego
     const geo = new THREE.SphereGeometry(2400, 48, 24);
     this.uniforms = {
       uZen: { value: new THREE.Color() }, uHor: { value: new THREE.Color() },
@@ -228,7 +229,6 @@ void main(){
     const ang = dayF * Math.PI;
     const elev = Math.sin(ang);
     this.sunDir.set(Math.cos(ang), Math.max(elev, -0.3) * 0.95 + 0.05, -0.35).normalize();
-    const isNight = t < 6 || t > 19.6;
     this.night = 1 - smoothstep(-0.12, 0.1, elev);
     // los focos del frontón (flood: 1 durante el partido) solo dan luz cuando falta: al anochecer y de noche. De día el
     // partido se juega con la luz del pueblo, la misma de antes de entrar (antes se encendían también a mediodía y, al
@@ -245,14 +245,14 @@ void main(){
     // (la luz y sus sombras giran a pasitos de 0,3 grados y no un poco en cada imagen: si no, los bordes de las sombras
     // tiemblan sin parar mientras el sol se mueve)
     const angQ = Math.round(ang / LIGHT_STEP) * LIGHT_STEP, elevQ = Math.sin(angQ);
-    const sunQ = new THREE.Vector3(Math.cos(angQ), Math.max(elevQ, -0.3) * 0.95 + 0.05, -0.35).normalize();
-    let lightDir = this.night > 0.5 ? new THREE.Vector3(-sunQ.x, Math.max(0.35, -sunQ.y), -sunQ.z).normalize() : sunQ;
+    const sunQ = _sunQ.set(Math.cos(angQ), Math.max(elevQ, -0.3) * 0.95 + 0.05, -0.35).normalize();
+    const lightDir = this.night > 0.5 ? _light.set(-sunQ.x, Math.max(0.35, -sunQ.y), -sunQ.z).normalize() : _light.copy(sunQ);
     this.sun.color.copy(s.sun); this.sun.intensity = s.si;
     // focos (un partido de pelota de noche): la luz de la luna y la del cielo suben a la de unos focos blancos desde
     // arriba; sin luces nuevas (en el móvil, añadir luces rehace todos los sombreadores y da un tirón). Antes, de noche,
     // no se veía nada en el frontón
     const fk = this.floodK();
-    if (fk > 0) lightDir = lightDir.clone().lerp(FLOOD_DIR, fk).normalize();   // (la intensidad, en applyFlood: después de la lluvia)
+    if (fk > 0) lightDir.lerp(FLOOD_DIR, fk).normalize();   // (la intensidad, en applyFlood: después de la lluvia)
     // sombras: nítidas al sol; con la luna, más suaves y claras (la noche no tiene sombras negras)
     this.sun.shadow.intensity = 1 - 0.45 * this.night;
     // el mapa de sombras: centrado algo por delante de la cámara (lo de detrás no se ve, y así el borde donde se acaban
@@ -268,7 +268,7 @@ void main(){
     this.sun.target.position.copy(P);
     this.dome.position.set(focus.x, focus.y > 600 ? focus.y : 0, focus.z);   // (en el Labrit, muy alto, el cielo va con él)
     // la luna: sale baja y anaranjada por el horizonte y, alta, blanca; el halo, más fuerte cuanto más llena
-    const md = new THREE.Vector3(-this.sunDir.x, Math.max(0.16, -this.sunDir.y), -this.sunDir.z).normalize();
+    const md = _moon.set(-this.sunDir.x, Math.max(0.16, -this.sunDir.y), -this.sunDir.z).normalize();
     this.moon.position.set(focus.x + md.x * 2000, focus.y + md.y * 2000, focus.z + md.z * 2000);
     const low = 1 - smoothstep(0.16, 0.45, md.y), lit = 0.5 - 0.5 * Math.cos(this.moonPhase * Math.PI * 2);
     this.moon.material.color.setRGB(1, 1 - 0.12 * low, 1 - 0.3 * low);
@@ -284,7 +284,6 @@ void main(){
       s.position.set(x, groundHeight(x, z) + 0.9, z); s.rotation.set(0, Math.atan2(cam.x - x, cam.z - z), 0);
       const d = Math.hypot(cam.x - x, cam.z - z); s.material.opacity = mo * Math.min(1, Math.max(0, (d - 6) / 10));   // (pegada a la cámara, no: se apaga)
     }
-    return { night: this.night, isNight };
   }
   clock() {
     const h = Math.floor(this.time), m = Math.floor((this.time - h) * 60);

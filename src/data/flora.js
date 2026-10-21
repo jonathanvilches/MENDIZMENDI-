@@ -2,6 +2,8 @@
 // en euskera (vacío si no hay uno corriente y seguro), el científico, cómo reconocerla, dónde vive, cuándo verla y una
 // curiosidad. «m» describe su modelo 3D (src/world/flora3d.js), hecho para que se reconozca: forma, colores, flor, fruto.
 // Los nombres que usan las comarcas (comarcas.json) se traducen a estas fichas con floraId().
+import { fold } from '../util/text.js';
+
 export const FLORA = {
   // ---------------------------------------------------------------- árboles
   haya: { name: 'Haya', eu: 'Pagoa', sci: 'Fagus sylvatica', kind: 'árbol',
@@ -274,9 +276,8 @@ const ALIAS = {
   'amapola': 'amapola', 'orquidea silvestre': 'orquidea', 'margarita': 'margarita', 'flores de pradera': 'margarita', 'lino': 'lino', 'lino azul': 'lino', 'edelweiss': 'edelweiss',
   'lirio pirenaico': 'lirio', 'lavanda': 'lavanda', 'jara': 'jara', 'cardo': 'cardo', 'malva': 'malva', 'siempreviva': 'siempreviva', 'eguzkilore': 'eguzkilore', 'endrino': 'endrino',
 };
-export const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
 /** Ficha de una planta por el nombre con que la nombra una comarca (o su id). */
-export const floraId = (name) => FLORA[name] ? name : ALIAS[norm(name)] || null;
+export const floraId = (name) => FLORA[name] ? name : ALIAS[fold(name)] || null;
 // plantas típicas de cada comarca que sus listas no nombran: el eguzkilore de los pastos de montaña y el endrino del pacharán
 const EXTRA = { pirineo: ['eguzkilore'], sakana: ['eguzkilore'], 'larraun-leitzaldea': ['eguzkilore'], pamplona: ['endrino', 'espino'], 'tierra-estella': ['endrino'], 'valdizarbe-novenera': ['endrino'], prepirineo: ['espino'] };
 /** Todas las plantas de una comarca (ids sin repetir): árboles, plantas y flores de su ficha y las de su guía. */

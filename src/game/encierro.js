@@ -16,6 +16,7 @@ import { profile } from './profile.js';
 import { loadChica, hasChica } from '../actors/chicas.js';
 import { hairTint } from '../actors/hairColor.js';
 import { cobbleSet, ashlarSet, brickSet, woodSet, plasterSet, windowTex, railingTex, shopTex, SHOPS, plaqueTex, sandTex, archTex, flagNavarraTex, paverSet, stencilTex, bandTex, boardTex } from './encierroTex.js';
+import { mulberry32 } from '../util/math.js';
 
 const L = 230;          // largo de la Estafeta en la escena (m); luego el callejón vallado y la plaza
 const GATE = L + 34;    // puerta de la plaza de toros (cara del muro)
@@ -64,7 +65,7 @@ export class Encierro {
     const arena = new THREE.Mesh(new THREE.CircleGeometry(RA + 1.8, 72), new THREE.MeshStandardMaterial({ map: sand, roughness: 1 }));
     arena.rotation.x = -Math.PI / 2; arena.position.set(0, 0.02, cz0); arena.receiveShadow = true; S.add(arena);
     // fachadas: casas altas pegadas, con balcones de hierro en cada piso, contraventanas y gente asomada
-    const rnd = mulberry(7), B = { plaster: [], stone: [], wood: [], brick: [], plain: [], leaf: [] };
+    const rnd = mulberry32(7), B = { plaster: [], stone: [], wood: [], brick: [], plain: [], leaf: [] };
     const WIN = [[], [], []], RAIL = [], SHOP = Object.fromEntries(SHOPS.map(k => [k, []]));   // piezas dibujadas (instancias)
     const walls = ['#e9dcc0', '#d9b98a', '#e6cfa6', '#c98f6a', '#efe6d2', '#d6a77a', '#e2d2b0'];
     const people = [], sitters = [], BAL = [];   // BAL: balcones del primer piso (para las cámaras de televisión)
@@ -285,7 +286,7 @@ export class Encierro {
     for (const [s, z] of [[-1, -4], [1, -40], [-1, -120]]) inst(plaqueTex(), 0.8, 0.4, [{ x: s * (HALF - 0.03), y: 3.4, z, side: s }]);
     // la entrada: banda roja con el nombre sobre el hueco, carteles a los lados y «RESERVADO PRENSA» en una tabla
     { const bt = bandTex(); this.texs.push(bt); const b = PZ.band; const m = new THREE.Mesh(new THREE.PlaneGeometry(b.w, b.h), new THREE.MeshStandardMaterial({ map: bt, roughness: 0.7 })); m.position.set(b.x, b.y, b.z); S.add(m); }
-    PZ.boards.forEach((o, i) => { const t = boardTex(o.kind); this.texs.push(t); const m = new THREE.Mesh(new THREE.PlaneGeometry(1.15, 1.7), new THREE.MeshStandardMaterial({ map: t, roughness: 0.5 })); m.position.set(o.x, o.y, o.z); S.add(m); });
+    PZ.boards.forEach((o) => { const t = boardTex(o.kind); this.texs.push(t); const m = new THREE.Mesh(new THREE.PlaneGeometry(1.15, 1.7), new THREE.MeshStandardMaterial({ map: t, roughness: 0.5 })); m.position.set(o.x, o.y, o.z); S.add(m); });
     { const t = stencilTex(); this.texs.push(t); const m = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 0.2), new THREE.MeshStandardMaterial({ map: t, transparent: true, roughness: 0.8, depthWrite: false })); m.position.set(HALF - 0.073, 1.26, -GATE + 7); m.rotation.y = -Math.PI / 2; S.add(m); }
     // público: personajes de verdad (de blanco y rojo casi todos) dibujados en una lámina; en los balcones, en el
     // callejón y en los tendidos de la plaza, una llamada de dibujo para cada grupo
@@ -302,7 +303,7 @@ export class Encierro {
   // corredores (el jugador y los demás, todos de blanco y rojo), toros y cabestros
   async spawn() {
     await preloadAnimals(['bull', 'cabestro']);   // toros y cabestros (se descargan al empezar el encierro)
-    const S = this.scene, rnd = mulberry(11);
+    const S = this.scene, rnd = mulberry32(11);
     const white = { shirt: '#f7f3ea', pants: '#f7f3ea', sash: '#d42f2f', scarf: '#d42f2f', shoes: '#efe6d0', espadrille: true };
     // el protagonista se pone su ropa de San Fermín (el modelo vestido de blanco y rojo); los aventureros, de blanco y rojo
     // el jugador y los demás corredores son el mismo personaje de San Fermín (blanco y rojo, todos del mismo tamaño);
@@ -397,27 +398,28 @@ export class Encierro {
   // entra en la escena y devuelve una promesa que se resuelve al llegar a la plaza (o al rendirse)
   run() {
     if (window.__autoWin) return Promise.resolve({ win: true });   // pruebas automáticas (como el resto de minijuegos)
+    return new Promise((res) => { this.res = res; this.enter(res); });
+  }
+  async enter(res) {
     const G = this.G;
-    return new Promise(async (res) => {
-      this.res = res;
-      G.ui.hudVisible(false); G.player.frozen = true;
+    G.ui.hudVisible(false); G.player.frozen = true;
+    // si la escena no se puede montar (un modelo que no llega, el móvil sin memoria), se vuelve al pueblo en vez de
+    // quedarse con la pantalla en negro y el jugador quieto (también si falla al colocar a todos en la salida)
+    try {
       await G.ui.fadeOut?.();
-      // si la escena no se puede montar (un modelo que no llega, el móvil sin memoria), se vuelve al pueblo en vez de
-      // quedarse con la pantalla en negro y el jugador quieto
-      try { this.build(); await this.spawn(); this.hud(); }
-      catch (e) {
-        console.warn('encierro', e); try { this.dispose(); } catch { /* lo que haya */ }
-        G.altScene = null; G.altCamera = null; G.altUpdate = null; G.encierro = null; G.mode = 'play'; G.player.frozen = false; G.ui.hudVisible(true);
-        await G.ui.fadeIn?.(); G.ui.toast?.('No se ha podido preparar el encierro. Prueba otra vez en un momento.'); res({ win: false, error: true }); return;
-      }
+      this.build(); await this.spawn(); this.hud();
       this.lives = 3; this.t = 0; this.started = false; this.done = false; this.closeCall = 0;
       G.encierro = this; G.altScene = this.scene; G.altCamera = this.camera; G.altUpdate = (dt) => this.update(dt); G.mode = 'encierro';
       this.place(); this.camCur = null;
-      await G.ui.fadeIn?.();
-      this.msg('Cantad a San Fermín… ¡y atentos al cohete! Cuando lleguen los toros, pégate a un lado.', 2700);
-      G.sound.ui?.('open');
-      setTimeout(() => { if (this.done) return; this.started = true; G.sound.fanfare?.(); this.msg('¡Pum! Primer cohete: se abren los corrales. ¡Corre!', 2400); }, 2800);
-    });
+    } catch (e) {
+      console.warn('encierro', e); try { this.dispose(); } catch { /* lo que haya */ }
+      G.altScene = null; G.altCamera = null; G.altUpdate = null; G.encierro = null; G.mode = 'play'; G.player.frozen = false; G.ui.hudVisible(true);
+      await G.ui.fadeIn?.(); G.ui.toast?.('No se ha podido preparar el encierro. Prueba otra vez en un momento.'); res({ win: false, error: true }); return;
+    }
+    await G.ui.fadeIn?.();
+    this.msg('Cantad a San Fermín… ¡y atentos al cohete! Cuando lleguen los toros, pégate a un lado.', 2700);
+    G.sound.ui?.('open');
+    setTimeout(() => { if (this.done) return; this.started = true; G.sound.fanfare?.(); this.msg('¡Pum! Primer cohete: se abren los corrales. ¡Corre!', 2400); }, 2800);
   }
 
   update(dt) {
@@ -628,4 +630,3 @@ export class Encierro {
   }
 }
 
-function mulberry(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }

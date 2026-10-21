@@ -3,23 +3,17 @@
 import SETTLEMENTS from './settlements.json';
 import MOUNTAINS from './mountains.json';
 import { RELIEVE } from './relieve.js';
+import { lettersOnly } from '../util/text.js';
+import { rel } from '../util/geo.js';
 
 // cimas famosas de fuera de Navarra que se ven desde muchos pueblos
 const EXTRA = [
   { id: 'moncayo', name: 'Moncayo', altitude: 2314, lat: 41.787, lon: -1.839, zone: 'Aragón · Sistema Ibérico', intro: 'El monte más alto del Sistema Ibérico. Desde la Ribera se ve en el horizonte, a menudo nevado.' },
   { id: 'anie', name: 'Auñamendi / Pic d\'Anie', altitude: 2504, lat: 42.946, lon: -0.717, zone: 'Pirineo · Béarn', intro: 'La gran pirámide de roca que cierra el Pirineo por el este del valle de Roncal. Para los vascos es un monte de leyendas.' },
 ];
-const DIRS = ['norte', 'noreste', 'este', 'sureste', 'sur', 'suroeste', 'oeste', 'noroeste'];
-const R = 6371, rad = (d) => d * Math.PI / 180;
-function rel(lat0, lon0, lat, lon) {
-  const dy = rad(lat - lat0) * R, dx = rad(lon - lon0) * R * Math.cos(rad(lat0));
-  const km = Math.hypot(dx, dy), b = (Math.atan2(dx, dy) * 180 / Math.PI + 360) % 360;
-  return { km, dir: DIRS[Math.round(b / 45) % 8], bearing: b };
-}
-const norm = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z]/g, '');
 export function townLatLon(lv) {
-  const names = (lv.mapName || lv.name).split('/').map(norm);
-  const hit = SETTLEMENTS.find(s => names.includes(norm(s[2]))) || SETTLEMENTS.find(s => norm(s[2]).startsWith(names[0]));
+  const names = (lv.mapName || lv.name).split('/').map(lettersOnly);
+  const hit = SETTLEMENTS.find(s => names.includes(lettersOnly(s[2]))) || SETTLEMENTS.find(s => lettersOnly(s[2]).startsWith(names[0]));
   return hit ? { lat: hit[0], lon: hit[1] } : null;
 }
 // montes que se ven desde un punto: entre 4 y 70 km, los más altos y cercanos, repartidos en direcciones distintas. Desde

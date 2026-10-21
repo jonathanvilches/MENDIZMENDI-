@@ -1,6 +1,6 @@
 // El dolmen y los primeros pastores de Navarra (Neolítico y Edad del Bronce, hace unos 5.000 años).
 export const DOLMEN_TOWNS = ['artajona', 'altsasu-alsasua', 'lekunberri'];
-export const DOLMEN = {
+const DOLMEN = {
   intro: [
     'Hola, soy arqueóloga: estudio cómo vivía la gente hace miles de años a partir de lo que dejó enterrado.',
     'Hace unos 5.000 años, aquí vivían los primeros pastores y agricultores. Cuidaban ovejas, cabras y vacas, cultivaban trigo y cebada y hacían vasijas de barro.',
@@ -19,7 +19,7 @@ export const DOLMEN = {
 
 // Irulegi: poblado de los vascones de la Edad del Hierro (destruido hacia el 70 a. C., en las guerras sertorianas)
 // y la mano de bronce con la inscripción más antigua en lengua vascónica (hallada en 2021, Sociedad Aranzadi).
-export const IRULEGI = {
+const IRULEGI = {
   intro: [
     '¡Kaixo! Soy del equipo de arqueología que excava en el monte Irulegi.',
     'Aquí arriba hubo un poblado de los vascones hace más de 2.000 años: casas de piedra y barro pegadas unas a otras, con techos de madera, dentro de una muralla.',

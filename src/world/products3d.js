@@ -4,6 +4,7 @@
 // almendras, nueces, tomates, alubias, talo. Cada producto es un grupo pequeño (~0,1–0,4 m) listo para colocar.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { loadGLB } from '../util/glb.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';   // el modelo va comprimido
 import foodUrl from '../assets/food/food.glb?url';
@@ -116,8 +117,6 @@ Object.assign(PRODUCTS, {
   pimiento_rojo: fromPack('Pepper_Red'), pimiento_verde: fromPack('Pepper_Green'), calabaza: fromPack('Pumpkin'), nabo: fromPack('Turnip'), berenjena: fromPack('Eggplant'),
   naranja: fromPack('Orange'), brocoli: fromPack('Broccoli'), tarro: fromPack('Jar_Large', PRODUCTS.miel),
 });
-// equivalencias con la comida del juego
-export const FOOD3D = { queso: 'queso', txistorra: 'txistorra', pimientos: 'piquillo', esparragos: 'esparragos', alcachofa: 'alcachofa', pochas: 'pochas', cuajada: 'cuajada', miel: 'miel', pan: 'pan', manzana: 'manzana', uvas: 'uvas', almendras: 'almendras', tomate: 'tomate', talo: 'talo' };
 
 /** Caja de madera con un producto repetido (n piezas colocadas con algo de desorden). */
 export function crateOf(kind, n = 6, rnd = Math.random) {
@@ -131,7 +130,6 @@ export function crateOf(kind, n = 6, rnd = Math.random) {
 
 /** Junta todas las mallas de un grupo estático en una por material (para que un puesto entero cueste pocas
  *  llamadas de dibujo). Devuelve un grupo nuevo en las mismas coordenadas del mundo. */
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 export function mergeByMaterial(root) {
   root.updateMatrixWorld(true);
   const by = new Map();

@@ -7,9 +7,9 @@
 // En WebP y no en AVIF: los visores de HTML del iPhone no siempre enseñan AVIF, y sin ellas las portadas salían vacías.
 import { LAMINAS, COMARCA_LAMINA, CUENTO_LAMINA, PERSONAJE_LAMINA } from '../data/laminas.js';
 import { hdTable } from '../web/hd.js';
+import { esc } from '../util/html.js';
+import { byId } from '../util/glob.js';
 
-const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const byId = (g) => Object.fromEntries(Object.entries(g).map(([k, v]) => [k.split('/').pop().replace('.webp', ''), v]));
 const URLS = byId(import.meta.glob('@laminas/*.webp', { eager: true, query: '?url', import: 'default' }));
 const BIG = byId(import.meta.glob('@laminas-big/*.webp', { eager: true, query: '?url', import: 'default' }));
 // Las ilustraciones de las leyendas (src/assets/leyendas), una por cuento y con su mismo id, en 16:9. En la web, la de

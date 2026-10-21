@@ -3,7 +3,7 @@
 // Postes en 3D junto a los mojones, dibujos para las tarjetas y consejos de orientación.
 import * as THREE from 'three';
 
-export const RUTA = { PR: '#f2c230', GR: '#d42f2f', SL: '#3ca05a' };
+const RUTA = { PR: '#f2c230', GR: '#d42f2f', SL: '#3ca05a' };
 
 // dibujo de la marca (SVG) para las tarjetas
 export function signSVG(kind, col = RUTA.PR) {

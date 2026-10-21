@@ -12,9 +12,9 @@ import { floraIllustration } from './floraArt.js';
 import { leafImage } from './leafArt.js';
 import { floraFoto, floraCredito } from './floraFoto.js';
 import COMARCAS from '../data/comarcas.json';
+import { esc, el } from '../util/html.js';
+import { windowKeys } from '../util/keys.js';
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const el = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
 
 /** Datos de una ficha: { type, id, F, comarcas } (o null). */
 export function fichaOf(key) {
@@ -94,9 +94,9 @@ export function showFicha(key, { ui = null, badge = '', button = 'Seguir', kicke
       </div>`);
     wireShots(o, ui); wireTabs(o, secs, ui);
     const b = o.querySelector('.ix-go'); setTimeout(() => b.focus({ preventScroll: true }), 60);
-    const k = (e) => { e.stopImmediatePropagation(); if (['e', 'enter', ' ', 'escape'].includes(e.key.toLowerCase())) { e.preventDefault(); done(); } };
+    const k = windowKeys((e) => { e.stopImmediatePropagation(); if (['e', 'enter', ' ', 'escape'].includes(e.key.toLowerCase())) { e.preventDefault(); done(); } });
     const done = () => { ui?.sound?.ui?.('click'); close(ui, o, k); res(); };
-    setTimeout(() => addEventListener('keydown', k, true), 300);
+    addEventListener('keydown', k, true);
     b.onclick = done;
     o.onclick = (e) => { if (e.target === o) done(); };
   });

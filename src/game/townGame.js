@@ -35,7 +35,7 @@ import { greet } from './saludo.js';
 import { Mochila } from './mochila.js';
 import { Perro } from './perro.js';
 import { makeTrailSign, makeSignpost, makeBalizas, signSVG, ORIENTA, ORIENTA_TIPS, MONTE_TIPS } from './senales.js';
-import { FOOD } from '../data/equipo.js';
+import { FOOD, foodFrom } from '../data/equipo.js';
 import { Tienda } from './tienda.js';
 import { Mercado, marketDay } from './mercado.js';
 import { GOODS } from '../data/tiendas.js';
@@ -63,16 +63,12 @@ import { pasakaVenue, playPasaka } from './pasaka3d.js';
 import { PASAKA } from '../data/pasaka.js';
 import { PARTS, CASTLE_QUIZ, CASTLE_TOWNS, CASTILLOS } from '../data/castillos.js';
 import { GearProps } from '../actors/gear3d.js';
-import { foodFrom } from '../data/equipo.js';
 import { PROCESOS, TRADICIONES } from '../data/procesos.js';
 import { bird } from '../actors/beasts.js';
 import { Fronton, findFrontonSpot, frontonWall, labrit, labritInTown, hallVenue } from './fronton.js';
 import { Pista, findPistaSpot } from './pista.js';
-import { clubOfTown, teamOfClub } from '../futbol/clubs.js';
-import { clubPanel } from '../futbol/liga.js';
-import { season as ligaSeason } from '../futbol/liga.js';
-import { CLUBS } from '../futbol/clubs.js';
-const CLUBS_NAME = (id) => CLUBS[id]?.name || '';
+import { clubOfTown, teamOfClub, CLUBS } from '../futbol/clubs.js';
+import { clubPanel, season as ligaSeason } from '../futbol/liga.js';
 import { torneo, yourMatch, playTorneoRound, torneoPanel, pelotaMenu, youBonus } from './torneo.js';
 import { showChampion } from '../ui/champion.js';
 import { makeClue, makeAura } from './legendFx.js';
@@ -83,6 +79,9 @@ import { cuentoOfTown, KIND_LABEL } from '../data/cuentos.js';
 import { repartirTareas, TAREAS } from './rutinas.js';
 import { townPelotari, pelotariGirl } from '../ui/pelotariFig.js';
 
+const CLUBS_NAME = (id) => CLUBS[id]?.name || '';
+// prismáticos: vectores de trabajo (sin crear objetos en cada fotograma ni por cada animal que se mira)
+const _eye = new THREE.Vector3(), _dir = new THREE.Vector3(), _to = new THREE.Vector3(), _near = new THREE.Vector3(), _look = new THREE.Vector3();
 const CROP = {
   uva: ['racimos de uva', 'uva'], olivo: ['aceitunas', 'olivo'], piquillo: ['pimientos del piquillo', 'piquillo'], esparrago: ['manojos de espárragos', 'esparrago'],
   alcachofa: ['alcachofas', 'alcachofa'], cardo: ['cardos', 'cardo'], tomate: ['tomates', 'tomate'], trigo: ['gavillas de trigo', 'trigo'], patata: ['patatas', 'patata'],
@@ -580,7 +579,7 @@ export class TownGame {
       if (r.win) { this.player.rig?.doCheer?.(); for (const bd of checkBadges()) await infoCard(this.ui, { icon: bd.icon, kicker: 'Nueva insignia', title: bd.name, text: bd.text, button: '¡Bien!' }); }
     } finally { this.player.frozen = false; this.mode = 'play'; a.talking = 0; }
   }
-  async explainWork(a, fromJob = false) {
+  async explainWork(a) {
     const I = a.info; a.say(3); a.wave = 1.2;
     this.player.frozen = true;
     try {
@@ -663,7 +662,7 @@ export class TownGame {
     if (this.mode !== 'futbol') this.perro?.update(dt);
     if (!this.dogHi && this.mode === 'play' && !this.ui.busy && !this.sportBusy && this.elapsed > 5) { this.dogHi = true; this.perro?.hello(); }
     this.gearProps?.night(this.isNight() ? 1 : 0);
-    if (this.herd) this.updateHerd(dt);
+    if (this.herd) this.updateHerd();
     this.jornales?.update(dt);
     if (this.race) this.updateRace(dt);
     if (this.mode === 'dance') this.updateDance(dt);
@@ -1376,7 +1375,7 @@ export class TownGame {
           // banderas en las partes del castillo, medidas desde su centro hacia la puerta
           const lm = TOWN.landmarks.find(l => l.kind === 'castle'), c = { x: lm?.x ?? M.host.pos.x, z: lm?.z ?? M.host.pos.z }, g = lm?.spot || { x: c.x, z: c.z + 20 };
           const fx = g.x - c.x, fz = g.z - c.z, fl = Math.hypot(fx, fz) || 1, F = { x: fx / fl, z: fz / fl }, Sd = { x: F.z, z: -F.x }, R = 18 * C.size;
-          C.parts.forEach((id, i) => { const p = { ...PARTS[id], ...(C.own[id] || {}) }, want = { x: c.x + (F.x * p.f + Sd.x * p.s) * R, z: c.z + (F.z * p.f + Sd.z * p.s) * R }, s2 = this.spot(want, 5);
+          C.parts.forEach((id) => { const p = { ...PARTS[id], ...(C.own[id] || {}) }, want = { x: c.x + (F.x * p.f + Sd.x * p.s) * R, z: c.z + (F.z * p.f + Sd.z * p.s) * R }, s2 = this.spot(want, 5);
             const o = makeItem('flag'); o.position.set(s2.x, terrainHeight(s2.x, s2.z), s2.z); this.scene.add(o); this.items.push({ M, x: s2.x, z: s2.z, obj: o, label: 'Mirar: ' + p.name, kind: 'flag', part: id }); });
           this.ui.toast('Busca las banderas alrededor del castillo', 'castle', 3000);
         } else if (M.step === 1) await S([`Te quedan ${M.need - M.count} partes por ver. ¡Busca las banderas!`]);
@@ -1419,7 +1418,6 @@ export class TownGame {
         if (M.step === 0) { await S([`¡Hola, ${name}! Soy quien más sabe de ${d.name}. ¿Aceptas mi reto? Tres preguntas sobre el pueblo y la comarca.`]); M.step = 1; }
         await this.quizRound(M, a, QUIZ_N - M.count);
         if (M.count >= M.need) await this.complete(M, { card: `Sabio de ${d.name}` });
-        return;
     }
   }
 
@@ -1611,7 +1609,7 @@ export class TownGame {
     });
     this.herdM = M;
   }
-  updateHerd(dt) {
+  updateHerd() {
     const pen = TOWN.pen, M = this.herdM;
     const inPen = (s) => Math.abs(s.pos.x - pen.x) < pen.w / 2 - 0.6 && Math.abs(s.pos.z - pen.z) < pen.d / 2 - 0.6;
     let n = 0;
@@ -2238,10 +2236,10 @@ export class TownGame {
     this.binoYaw -= this.input.look.dx * sens; this.binoPitch = clamp(this.binoPitch - this.input.look.dy * sens, -0.6, 1.3);
     const mv = this.input.move; this.binoYaw -= mv.x * dt * 0.8; this.binoPitch = clamp(this.binoPitch + mv.y * dt * 0.6, -0.6, 1.3);
     const fov = lerp(cam.fov, pano ? (pano.real ? 20 : 24) : 10, 1 - Math.exp(-(pano ? 2.5 : 8) * dt));
-    const eye = pano ? pano.eye.clone() : new THREE.Vector3(P.x, P.y + 1.55, P.z);
-    const dir = new THREE.Vector3(Math.sin(this.binoYaw) * Math.cos(this.binoPitch), Math.sin(this.binoPitch), Math.cos(this.binoYaw) * Math.cos(this.binoPitch));
+    const eye = pano ? _eye.copy(pano.eye) : _eye.set(P.x, P.y + 1.55, P.z);
+    const dir = _dir.set(Math.sin(this.binoYaw) * Math.cos(this.binoPitch), Math.sin(this.binoPitch), Math.cos(this.binoYaw) * Math.cos(this.binoPitch));
     if (pano) pano.look(this.binoYaw, this.binoPitch, fov);
-    else { cam.fov = fov; cam.updateProjectionMatrix(); cam.position.copy(eye); cam.lookAt(eye.clone().add(dir)); }
+    else { cam.fov = fov; cam.updateProjectionMatrix(); cam.position.copy(eye); cam.lookAt(_look.copy(eye).add(dir)); }
     this.follow.yaw = this.binoYaw + Math.PI;
     const keyOf = (o) => o.obj?.uuid || o.id + ':' + Math.round(o.pos.x) + ',' + Math.round(o.pos.z);
     const fresh = (o) => o.monte ? !o.seen : !this.obsSeen?.has(keyOf(o));
@@ -2252,13 +2250,13 @@ export class TownGame {
     for (const o of obs) {
       // (en los montes se apunta a su marca, el «?» o el nombre que se ve encima de la cumbre)
       const at = o.monte && o.pin ? o.pin.position : null;
-      const to = at ? at.clone().sub(eye) : new THREE.Vector3(o.pos.x - eye.x, o.pos.y + (o.h || 0.5) - eye.y, o.pos.z - eye.z);
+      const to = at ? _to.copy(at).sub(eye) : _to.set(o.pos.x - eye.x, o.pos.y + (o.h || 0.5) - eye.y, o.pos.z - eye.z);
       const d = to.length(); if ((!o.pano && d > (o.far ? 320 : 110)) || d < 1) continue;
       const ang = to.normalize().angleTo(dir), tol = o.pano ? 0.08 : Math.max(0.045, (o.far ? 3.5 : 1.6) / d);
       if (ang > tol * 2.6) continue;
       if (!o.far && segmentBlocked(eye.x, eye.z, o.pos.x, o.pos.z)) continue;
       if (ang < tol && ang < ba) { ba = ang; best = o; }
-      if (fresh(o) && ang / tol < na) { na = ang / tol; near = o; nearDir = to.clone(); }
+      if (fresh(o) && ang / tol < na) { na = ang / tol; near = o; nearDir = _near.copy(to); }
     }
     const dragging = this.input.look.dx || this.input.look.dy || mv.x || mv.y;
     if (near && nearDir && !dragging) {
@@ -2270,7 +2268,7 @@ export class TownGame {
     if (best && best.far && !best.monte) {
       // solo las piezas grandes conservan sus posiciones (el resto se liberó al subirlo a la tarjeta): se comprueba con una copia que solo tiene posiciones
       const town = this.townMeshes ||= (this.scene.getObjectByName('town')?.children || []).filter(m => m.isMesh && m.geometry.attributes.position?.array).map(m => { const g = new THREE.BufferGeometry(); g.setAttribute('position', m.geometry.attributes.position); g.setIndex(m.geometry.index); g.boundingSphere = m.geometry.boundingSphere; g.boundingBox = m.geometry.boundingBox; const r = new THREE.Mesh(g, m.material); r.matrixWorld.copy(m.matrixWorld); r.matrixAutoUpdate = false; return r; });
-      const to = new THREE.Vector3(best.pos.x - eye.x, best.pos.y - eye.y, best.pos.z - eye.z), d = to.length();
+      const to = _to.set(best.pos.x - eye.x, best.pos.y - eye.y, best.pos.z - eye.z), d = to.length();
       this.ray ||= new THREE.Raycaster(); this.ray.set(eye, to.normalize()); this.ray.far = d;
       if (this.ray.intersectObjects(town, false).length) best = null;
     }
@@ -2292,7 +2290,7 @@ export class TownGame {
       else {
         const list = this.monteObs(eye), next = list.find(o => !o.seen);
         goal = `<b>Montes ${MM.count}/${MM.need} ${pips(MM.count, MM.need)}</b><span class="bnext">${next ? `Busca el monte del ${next.monte.dir} · ${Math.round(next.monte.km)} km` : '¡Ya los tienes!'}</span>`;
-        if (!best && next) { const q = (next.pin?.position || next.pos).clone().project(cam); const behind = q.z > 1; monteHint = Math.atan2(behind ? -q.y : q.y, behind ? -q.x : q.x); }
+        if (!best && next) { const q = _to.copy(next.pin?.position || next.pos).project(cam); const behind = q.z > 1; monteHint = Math.atan2(behind ? -q.y : q.y, behind ? -q.x : q.x); }
       }
     } else if (M) {
       // las aves (o los animales) de la misión: el más cercano que te falta, con su distancia
@@ -2302,7 +2300,7 @@ export class TownGame {
     this.ui.binoInfo?.(goal, 'Miras al ' + DIRS[Math.round(brg / 45) % 8].toLowerCase());
     // sin nada en el visor: flecha hacia el animal buscado más cercano
     let hint = monteHint;
-    if (!best && M) { const t = this.obsNearest(M); if (t) { const v = new THREE.Vector3(t.pos.x, t.pos.y + (t.h || 0.4), t.pos.z).project(cam); const behind = v.z > 1; hint = Math.atan2(behind ? -v.y : v.y, behind ? -v.x : v.x); } }
+    if (!best && M) { const t = this.obsNearest(M); if (t) { const v = _to.set(t.pos.x, t.pos.y + (t.h || 0.4), t.pos.z).project(cam); const behind = v.z > 1; hint = Math.atan2(behind ? -v.y : v.y, behind ? -v.x : v.x); } }
     const label = best ? (best.monte ? (best.seen ? `${best.monte.name} · ${best.monte.altitude} m` : F.name) : `${F?.name || best.id}${isNew ? (counts || !M ? ` · ${NOTE}` : ' · no es de los que buscas') : ' · ya anotado'}`) : '';
     this.ui.binoTarget(label, !!best, hint, !!best && isNew && (!!best.monte || counts || !M));
     if (this.input.consume('e') || this.input.consume(' ')) {
@@ -2330,17 +2328,17 @@ export class TownGame {
       if (!this.panoPins) this.panoPins = this.pano.peaks.map(pk => { const seen = this.P.montes?.includes(pk.m.id) && (!M || M.seenIds?.has(pk.m.id)); const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: pinTex(seen ? pk.m.name : '?'), depthTest: false, transparent: true, fog: false })); sp.renderOrder = 20; sp.userData.named = seen; S.add(sp); return sp; });
       return this.pano.peaks.map((pk, i) => {
         const pin = this.panoPins[i], s = pk.ds * 0.026, named = pin.userData.named;
-        pin.scale.set(named ? s * 3.4 : s, named ? s * 0.85 : s, 1); pin.position.copy(pk.summit).add(new THREE.Vector3(0, s * 0.75 + pk.H * 0.05, 0));
+        pin.scale.set(named ? s * 3.4 : s, named ? s * 0.85 : s, 1); pin.position.copy(pk.summit); pin.position.y += s * 0.75 + pk.H * 0.05;
         return { pos: pk.summit, h: 0, far: true, pano: true, id: 'monte:' + pk.m.id, monte: pk.m, seen: named, pin, i };
       });
     }
     const M = this.missions.find(x => x.type === 'mirador'), v = this.miradorSpot();
     // (solo mientras se buscan: acabada la misión, sus marcas ya no están en el pueblo ni la ayuda al apuntar lleva a ellas)
     if (!M || M.step !== 1 || !v || Math.hypot(eye.x - v.x, eye.z - v.z) > 30) { if (this.montePins) this.montePins.forEach(p => p.visible = false); return []; }
-    if (!this.montePins) this.montePins = M.montes.map(mt => { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: pinTex('?'), depthTest: false, transparent: true })); sp.scale.set(14, 14, 1); sp.renderOrder = 20; this.scene.add(sp); return sp; });
+    if (!this.montePins) this.montePins = M.montes.map(() => { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: pinTex('?'), depthTest: false, transparent: true })); sp.scale.set(14, 14, 1); sp.renderOrder = 20; this.scene.add(sp); return sp; });
     return M.montes.map((mt, i) => {
       const b = mt.bearing * Math.PI / 180, pos = new THREE.Vector3(eye.x + Math.sin(b) * 300, eye.y + 14 + Math.min(20, mt.altitude / 120), eye.z - Math.cos(b) * 300);
-      const pin = this.montePins[i]; pin.position.copy(pos).add(new THREE.Vector3(0, 10, 0)); pin.visible = this.mode === 'bino';
+      const pin = this.montePins[i]; pin.position.copy(pos); pin.position.y += 10; pin.visible = this.mode === 'bino';
       return { pos, h: 0, far: true, id: 'monte:' + mt.id, monte: mt, seen: this.P.montes?.includes(mt.id) && M.seenIds?.has(mt.id), pin, i };
     });
   }

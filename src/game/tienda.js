@@ -13,8 +13,8 @@ import { GOODS, STOCK, STAR, SHOPKEEPERS } from '../data/tiendas.js';
 import { kaixo } from './saludo.js';
 import { iconSVG } from '../ui/icons.js';
 import { mergeByMaterial } from '../world/products3d.js';
+import { esc } from '../util/html.js';
 
-const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 function awningTex(c1, c2) {
   const c = document.createElement('canvas'); c.width = 256; c.height = 64; const g = c.getContext('2d');

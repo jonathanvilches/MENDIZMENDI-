@@ -7,15 +7,9 @@
 //  - y su postura: cola baja (en gancho en el mastín), que menea cuando te acompaña.
 import * as THREE from 'three';
 import { toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { smoothstep as sm } from '../util/math.js';
+import { vnoise3 } from '../util/noise.js';
 
-const sm = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
-function hash(x, y, z) { const s = Math.sin(x * 127.1 + y * 311.7 + z * 74.7) * 43758.5453; return s - Math.floor(s); }
-function vnoise(x, y, z) {
-  const ix = Math.floor(x), iy = Math.floor(y), iz = Math.floor(z), fx = x - ix, fy = y - iy, fz = z - iz;
-  const u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy), w = fz * fz * (3 - 2 * fz), L = (a, b, t) => a + (b - a) * t;
-  return L(L(L(hash(ix, iy, iz), hash(ix + 1, iy, iz), u), L(hash(ix, iy + 1, iz), hash(ix + 1, iy + 1, iz), u), v),
-    L(L(hash(ix, iy, iz + 1), hash(ix + 1, iy, iz + 1), u), L(hash(ix, iy + 1, iz + 1), hash(ix + 1, iy + 1, iz + 1), u), v), w);
-}
 const K = (h) => new THREE.Color(h);
 
 // trozos del modelo según su material: 0 capa, 1 capa clara, 2 trufa y boca, 3 ojos
@@ -48,7 +42,7 @@ function each(geo, skel, fn) {
     v.i = i; v.X = X; v.Y = Y; v.Z = Z; v.x = X / W; v.y = (Y - b.min.y) / H; v.z = (Z - b.min.z) / L;
     v.nx = nr ? nr.getX(i) : 0; v.ny = nr ? nr.getY(i) : 0; v.nz = nr ? nr.getZ(i) : 0;
     v.zone = zones[best]; v.part = pt ? pt.getX(i) : 0;
-    v.n1 = vnoise(X / H * 9, Y / H * 9, Z / H * 9); v.n2 = vnoise(X / H * 3.2 + 7, Y / H * 3.2, Z / H * 3.2 + 3);
+    v.n1 = vnoise3(X / H * 9, Y / H * 9, Z / H * 9); v.n2 = vnoise3(X / H * 3.2 + 7, Y / H * 3.2, Z / H * 3.2 + 3);
     fn(v);
   }
 }
@@ -293,7 +287,7 @@ function dropEars(geo, S, skel, bindMatrix) {
         const thick = th * 0.5 * Math.sqrt(Math.max(0, 1 - v * v)) * Math.pow(1 - t, 0.4);
         const x = s * (xs * 0.94 + bulge + side * thick), y = y0 - t * len, z = z0 + v * w + 0.025 * u * t;
         pos.push(x, y, z);
-        col.copy(M).lerp(Md, 0.35 * t + 0.25 * vnoise(x / u * 30, y / u * 30, z / u * 30)); cols.push(col.r, col.g, col.b);
+        col.copy(M).lerp(Md, 0.35 * t + 0.25 * vnoise3(x / u * 30, y / u * 30, z / u * 30)); cols.push(col.r, col.g, col.b);
         hair.push(0, -1, 0.15);
       }
       for (let a = 0; a < NU; a++) for (let b = 0; b < NV; b++) {

@@ -6,11 +6,11 @@ import { HALF } from '../world/layout.js';
 import { tr } from '../i18n.js';
 import { iconImage, iconSVG } from './icons.js';
 import { buildMapVectors, drawMapVectors } from './mapvector.js';
+import { esc } from '../util/html.js';
+import { roundRect } from '../world/civic.js';
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // (los botones del mapa llevan los iconos 3D de la familia: acercar, alejar, centrar en mí y viajar)
 const hitsRect = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
-function pill(g, x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
 
 export function mountMapView(ui, box, opts = {}) {
   const game = ui.game, cv = box.querySelector('canvas'), g = cv.getContext('2d');
@@ -105,7 +105,7 @@ export function mountMapView(ui, box, opts = {}) {
         g.lineWidth = 5; g.strokeStyle = 'rgba(28,11,58,.85)'; g.lineJoin = 'round'; g.strokeText(it.label, R.x + R.w / 2, R.y + R.h / 2 + 1);
         g.fillStyle = '#fff'; g.fillText(it.label, R.x + R.w / 2, R.y + R.h / 2 + 1);
       } else {
-        g.fillStyle = it === sel ? '#FFD700' : 'rgba(255,250,240,.94)'; pill(g, R.x, R.y, R.w, R.h, R.h / 2); g.fill();
+        g.fillStyle = it === sel ? '#FFD700' : 'rgba(255,250,240,.94)'; roundRect(g, R.x, R.y, R.w, R.h, R.h / 2); g.fill();
         g.strokeStyle = 'rgba(43,29,18,.45)'; g.lineWidth = 1; g.stroke();
         g.font = '800 12.5px Nunito, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#2b1d12';
         g.fillText(it.label, R.x + R.w / 2, R.y + R.h / 2 + 0.5);
@@ -126,7 +126,7 @@ export function mountMapView(ui, box, opts = {}) {
     ui.drawPlayer(g, px, py, P.heading, 1.25);
     // regla de escala
     const m = [10, 20, 50, 100, 200, 500].find(m => m * v.s >= 60) || 500, L = m * v.s;
-    g.fillStyle = 'rgba(20,10,40,.6)'; pill(g, 8, H - 26, L + 52, 18, 9); g.fill();
+    g.fillStyle = 'rgba(20,10,40,.6)'; roundRect(g, 8, H - 26, L + 52, 18, 9); g.fill();
     g.fillStyle = '#fff'; g.fillRect(16, H - 18, L, 3); g.fillRect(16, H - 22, 2, 9); g.fillRect(16 + L - 2, H - 22, 2, 9);
     g.font = '800 11px Nunito, sans-serif'; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(`${m} m`, 22 + L, H - 16.5);
   }

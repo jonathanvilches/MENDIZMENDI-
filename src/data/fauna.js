@@ -1,6 +1,8 @@
 // Guía de campo de la fauna de Navarra que aparece en el juego (salvaje y doméstica): id → nombre, nombre en euskera
 // (vacío si no hay uno corriente y seguro), científico, tipo, rasgos para reconocerla (también con prismáticos), dónde
 // vive, cuándo verla y una curiosidad. Los nombres que usan las comarcas (comarcas.json) se traducen con faunaId().
+import { fold } from '../util/text.js';
+
 export const FAUNA = {
   // ---------------------------------------------------------------- aves
   buitre: { name: 'Buitre leonado', eu: 'Sai arrea', sci: 'Gyps fulvus', kind: 'ave', icon: 'buitre',
@@ -133,7 +135,6 @@ export const FAUNA = {
 };
 export const faunaName = (id) => FAUNA[id]?.name || id;
 
-const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
 // nombres de las comarcas → ficha
 const ALIAS = {
   'buitre leonado': 'buitre', 'buitre': 'buitre', 'quebrantahuesos': 'quebrantahuesos', 'alimoche': 'alimoche', 'milano real': 'milano', 'aguila real': 'aguila',
@@ -143,7 +144,7 @@ const ALIAS = {
   'oveja': 'oveja', 'oveja latxa': 'oveja', 'pottoka': 'pottoka', 'toro': 'toro',
 };
 /** Ficha de un animal por el nombre con que lo nombra una comarca (o su id). */
-export const faunaId = (name) => FAUNA[name] ? name : ALIAS[norm(name)] || null;
+export const faunaId = (name) => FAUNA[name] ? name : ALIAS[fold(name)] || null;
 /** Todos los animales de una comarca (ids sin repetir), de su lista y de su guía. */
 export function faunaOf(c) {
   if (!c) return [];
