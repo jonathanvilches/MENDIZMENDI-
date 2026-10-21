@@ -52,13 +52,18 @@ const TIPS = [
 ];
 const TIP_TOQUE = 'Toca el cuaderno, arriba a la derecha, para ver todas las misiones y sus pasos.';
 
-// ordenador: siempre alta (mejor menos cosas y con calidad); solo sin aceleración gráfica, baja
-function desktopTier() {
+// ordenador: alta con una tarjeta gráfica de verdad; media con la gráfica del procesador (Intel, las Radeon de los
+// procesadores AMD, GeForce MX), con pocos núcleos o si en este ordenador el juego ya tuvo que aligerarse solo
+// (runtime.lighten: slow); sin aceleración gráfica, baja. En alta, esos portátiles se quedaban en 15-20 imágenes por
+// segundo y se paraban
+function desktopTier(slow) {
   try {
     const gl = document.createElement('canvas').getContext('webgl2') || document.createElement('canvas').getContext('webgl');
     const ext = gl?.getExtension('WEBGL_debug_renderer_info'), r = String(ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl?.getParameter(gl.RENDERER) || '');
     gl?.getExtension('WEBGL_lose_context')?.loseContext();
-    return /swiftshader|llvmpipe|software|microsoft basic/i.test(r) ? 'low' : 'high';
+    if (/swiftshader|llvmpipe|software|microsoft basic/i.test(r)) return 'low';
+    const igpu = /intel|radeon\(tm\) graphics|radeon graphics|vega \d+ graphics|radeon(\(tm\))? \d{3}m\b|geforce mx/i.test(r) && !/arc(\(tm\))? a\d/i.test(r);
+    return slow || igpu || (navigator.hardwareConcurrency || 8) <= 4 ? 'mid' : 'high';
   } catch (e) { return 'high'; }
 }
 
@@ -96,8 +101,15 @@ async function boot() {
   // en ordenador, una calidad bajada sola (por un fallo de carga o de memoria) no se queda para siempre: se vuelve a
   // la automática una vez (las elegidas a mano en Ajustes se respetan)
   if (!input.touch && (P.settings.qualityAuto || !P.q3)) { P.settings.quality = null; P.settings.qualityAuto = false; P.q3 = true; saveProfile(); }
-  const quality = q.get('q') || P.settings.quality || (input.touch ? (bigMem ? 'mid' : 'low') : desktopTier());
+  const quality = q.get('q') || P.settings.quality || (input.touch ? (bigMem ? 'mid' : 'low') : desktopTier(P.settings.slowPc));
   const rt = new Runtime({ canvas, input, sound, quality });
+  // si el ordenador no llega a la fluidez mínima, el juego se aligera solo (runtime.lighten): se avisa una vez y se
+  // apunta para arrancar la próxima vez en calidad media (si la calidad se eligió a mano en Ajustes, se respeta)
+  rt.onLighten = (n) => {
+    const S = P.settings;
+    if (!input.touch && !S.quality && !q.get('q') && !S.slowPc) { S.slowPc = true; saveProfile(); }
+    if (n === 1) game?.ui?.toast?.(isEU() ? 'Irudia arindu dugu jokoa arin ibil dadin' : 'Imagen aligerada para que el juego vaya fluido', 'exclaim', 3600);
+  };
   // retratos, fichas, iconos y figuras del público se dibujan con este mismo renderizador (sin un segundo contexto WebGL)
   setOffscreenHost(rt.renderer);
   // si el dispositivo se queda sin memoria para dibujar (pantalla apagada), la próxima vez arranca con menos calidad
@@ -148,7 +160,9 @@ async function boot() {
     try {
       // (el escudo del pueblo, y el de Pamplona del Labrit, con su acabado: listos antes de montar la plaza y el frontón)
     await Promise.all([armsReady(armsOfTown(d.id)?.id), armsReady('pamplona')]);
-    const npcP = preloadNpcs(); await preloadFood(); await Promise.all([rt.load(d, P.avatar, (p, m) => ui.progress(p, m)), npcP]);
+    // (en los campeonatos, los mensajes de la carga hablan del frontón, no de plantar árboles ni de saludar a los vecinos)
+    const eu = isEU(), sportMsg = (p) => opt.sport === 'pasaka' ? (eu ? 'Klaustroa prestatzen…' : 'Preparando el claustro…') : p < 0.3 ? (eu ? 'Frontoia irekitzen…' : 'Abriendo el frontón…') : p < 0.6 ? (eu ? 'Kantxa prestatzen…' : 'Preparando la cancha…') : p < 0.9 ? (eu ? 'Harmailak betetzen…' : 'Llenando la grada…') : (eu ? 'Pilotariak berotzen…' : 'Calentando a los pelotaris…');
+    const npcP = preloadNpcs(); await preloadFood(); await Promise.all([rt.load(d, P.avatar, (p, m) => ui.progress(p, opt.sport ? sportMsg(p) : m)), npcP]);
       const ctx = { scene: rt.scene, camera: rt.camera, player: rt.player, follow: rt.follow, ui, sound, input, sky: rt.sky, fauna: rt.fauna, particles: rt.particles, beacon: rt.beacon, rt, onExit: exit };
       hookPlayer(rt.player);
       if (d.special === 'salazar') {
@@ -182,7 +196,7 @@ async function boot() {
         await animalsSettled();   // los animales del pueblo (cada uno baja su modelo al aparecer)
         rt.sky.time = q.get('t') ? +q.get('t') : 10;
         game.applySettings();
-        await warmPortraits(game, ui);
+        if (!opt.sport) await warmPortraits(game, ui);   // (en los campeonatos no se habla con nadie: sin retratos)
         await rt.precompile();
         ui.progress(1, '¡Listo!');
         rt.start(game);

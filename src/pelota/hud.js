@@ -181,6 +181,12 @@ const CSS = `
 .pel-tring{position:absolute;inset:-4px;border-radius:50%;border:3px solid #fff;pointer-events:none;opacity:0;transform:scale(1.9);will-change:transform,opacity}
 .pel-tring.on{opacity:.9}.pel-tring.now{border-color:#fff;box-shadow:0 0 0 4px #ff2bd6,0 0 22px #ff2bd6;opacity:1}
 .pel-hit .pel-hl{position:relative;z-index:1}
+
+/* ordenador (pantalla grande): las ventanas del partido más anchas y con la letra a su tamaño */
+@media (min-width:1200px) and (min-height:700px){
+  .pel-card{width:min(700px,100%);padding:32px 32px 24px}.pel-card h2{font-size:var(--fs-3xl)}.pel-card .pel-sub{font-size:var(--fs-md)}
+  .pel-card li,.pel-card .pel-ctrl,.pel-rv,.pel-rv p,.pel-pairs{font-size:var(--fs-md)}.pel-go{min-height:56px}.pel-levels button{min-height:48px}
+}
 `;
 
 /** Mete en la página los estilos del partido (una vez). La pasaka (src/game/pasaka3d.js) usa la misma interfaz. */

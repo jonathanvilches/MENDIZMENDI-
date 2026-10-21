@@ -208,6 +208,24 @@ const CSS = `
    relleno abajo, que dejaba asomar el principio de la línea siguiente) */
 @media (orientation:landscape) and (max-height:400px){.lg-root .lg-how.vm-clamp{--vm-lines:2!important}.lg-root .lg-how.vm-clamp:not(.vm-open){padding-bottom:0}}
 @media (orientation:landscape) and (max-height:380px){.lg-card{gap:4px 12px;padding:8px 16px}.lg-next{padding:4px 8px}.lg-next .lg-jf{width:54px;min-height:72px}.lg-vs{font-size:var(--fs-xl)}.lg-btn{min-height:44px}}
+/* ordenador (pantalla grande): tarjetas más anchas y holgadas, letra y figuras a su tamaño y los clubes en rejilla, todos a
+   la vista (en tira de lado, sin barra, con el ratón no se veía que había más clubes que los siete primeros) */
+@media (min-width:1200px) and (min-height:700px){
+.lg-root{padding:24px}
+.lg-card{width:min(1040px,100%);padding:24px 32px;gap:16px}
+.lg-head h2{font-size:var(--fs-3xl)}.lg-head small{font-size:var(--fs-md)}.lg-note{font-size:var(--fs-sm)}
+.lg-next{padding:16px}.lg-next .lg-jf{width:116px;min-height:160px}.lg-next b{font-size:var(--fs-2xl)}.lg-next em{font-size:var(--fs-md)}.lg-vs{font-size:var(--fs-4xl)}
+.lg-table{font-size:var(--fs-md)}.lg-table td{padding:8px 8px}.lg-table th{font-size:var(--fs-sm)}
+.lg-how,.lg-res{font-size:var(--fs-md)}
+.lg-btn{min-height:56px;font-size:var(--fs-lg)}.lg-btn.go{font-size:var(--fs-2xl)}
+.lg-card.eq-pick,.lg-card.eq-menu{width:min(1360px,100%)}
+.eq-tile{min-height:300px}.eq-tile .art{min-height:clamp(220px,34vh,380px)}.eq-tile b{font-size:var(--fs-3xl)}.eq-tile small{font-size:var(--fs-md)}
+.eq-teams{grid-auto-flow:row;grid-template-columns:repeat(auto-fill,minmax(176px,1fr));grid-auto-columns:auto;gap:12px;overflow-x:hidden;overflow-y:auto;scroll-snap-type:none}
+.eq-teams.mr,.eq-teams.ml{-webkit-mask-image:none;mask-image:none}
+.eq-teams.mb{-webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(180deg,#000 calc(100% - 40px),transparent)}
+.eq-team{min-height:clamp(250px,30vh,300px)}.eq-team b{font-size:var(--fs-xl)}
+.lg-champ .duo{height:150px}
+}
 `;
 function panel(html) {
   if (!document.getElementById('lg-css')) { const st = document.createElement('style'); st.id = 'lg-css'; st.textContent = CSS; document.head.appendChild(st); }

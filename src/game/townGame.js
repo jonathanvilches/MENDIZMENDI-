@@ -1038,31 +1038,49 @@ export class TownGame {
     this.sportMode = true; this.sportBusy = true; this.ui.hudVisible(false);
     this.perro?.away?.();   // (en el campeonato no hace falta el perro: ni saluda ni avisa entre partido y partido)
     const a = this.pelotari || this.missions.find(M => M.type === 'pelota')?.host;
+    this.sportBackdrop(true);
     try {
       if (!this.fronton || !a) return;
       const e = this.fronton.entry, c = this.fronton.toWorld(0, 12);
       this.player.place(e.x, e.z, Math.atan2(c.x - e.x, c.z - e.z)); this.follow.snap(this.player);
       const P = profile(), town = this.def.name.split(' /')[0], cm = this.comarca?.name || 'la comarca';
       const ctx = { comarca: this.def.comarca, comarcaName: cm, towns: this.comarcaVenues() };
+      // (el frontón cubierto se monta ya, tapado por el fondo: así la llegada no espera a montarlo ni a compilarlo)
+      if (!this.fronton.court.labrit) await this.rt?.warm?.(this.hallVenue().court.group);
       for (;;) {
         // (entre partido y partido, el jugador quieto en la puerta del frontón y sin el perro, que vuelve al acabar
-        // cada partido: el pueblo solo es el fondo de los menús)
-        this.ui.hudVisible(false); this.player.frozen = true; this.perro?.away?.();
+        // cada partido; delante, el fondo de los campeonatos: el pueblo no se ve ni se dibuja)
+        this.ui.hudVisible(false); this.player.frozen = true; this.perro?.away?.(); this.sportBackdrop(true);
         const you = { name: P.name || 'Tú', town };
         const pick = await pelotaMenu(torneo(you, ctx), town, torneo(you, ctx, false, 'parejas'));
         if (this.disposed || pick === 'exit') return;
         if (pick === 'torneo' || pick === 'torneoParejas') { await this.pelotaTorneo(a, ctx, pick === 'torneoParejas' ? 'parejas' : 'mano'); if (this.disposed) return; continue; }
         // (el partido de Campeonatos, como el torneo, en el frontón cubierto; el de la calle queda para las misiones)
-        const hv = this.fronton.court.labrit ? this.fronton : this.hallVenue(); if (hv !== this.fronton) await this.hallIntro(hv);
+        const hv = this.fronton.court.labrit ? this.fronton : this.hallVenue(); this.sportBackdrop(false); if (hv !== this.fronton) await this.hallIntro(hv);
         if (this.disposed) return;
         // (al acabar, de vuelta al menú de pelota sin pasar por el pueblo: el resultado ya se ha visto en la cancha)
         const r = await hv.play(this, a, { returnTo: this.fronton, comp: 'Partido de exhibición', stay: true });
+        this.sportBackdrop(true);
         if (this.disposed) return;
         if (r.quit) continue;
         const best = (townState(profile(), this.def.id).best ||= {});
         if (r.win) { best.pelota = (best.pelota || 0) + 1; saveProfile(); }
       }
     } finally { if (!this.disposed) this.onExit?.('sports'); }   // (de vuelta a Torneos, de donde se vino; si el pueblo se rehízo, el nuevo sigue)
+  }
+  /** Fondo de los menús de los campeonatos de pelota: la lámina del frontón, desenfocada bajo el morado de los
+   *  deportes, a pantalla completa. Antes, entre menú y menú se veía el pueblo y su frontón de la calle, que en los
+   *  campeonatos no pinta nada; además, con él delante el pueblo no se dibuja (runtime: covered). Solo en Campeonatos. */
+  sportBackdrop(on) {
+    if (!this.sportMode && on) return;
+    let el = document.querySelector('.sport-bg');
+    if (!el && on) {
+      el = document.createElement('div'); el.className = 'sport-bg gx-bg';
+      const u = laminaUrl('dep-fronton'); if (u) { const i = document.createElement('i'); i.style.backgroundImage = `url("${u}")`; el.appendChild(i); }
+      document.body.appendChild(el);
+    }
+    el?.classList.toggle('on', !!on);
+    this.rt?.checkCover?.();   // (al quitarlo, el frontón cubierto se dibuja ya: sin un momento de la imagen vieja)
   }
   // el torneo entero se juega en este frontón (los rivales vienen aquí): el del pueblo elegido en Campeonatos o el
   // del pueblo en el que estás
@@ -1071,7 +1089,7 @@ export class TownGame {
     let T = torneo({ name: P.name || 'Tú', town }, ctx, false, kind), played = false;
     try {
       for (;;) {
-        this.ui.hudVisible(false); this.player.frozen = true;   // (con el cuadro del torneo delante, nada del pueblo debajo)
+        this.ui.hudVisible(false); this.player.frozen = true; this.sportBackdrop(true);   // (con el cuadro del torneo delante, nada del pueblo debajo)
         const act = await torneoPanel(T, town);
         if (this.disposed || act === 'exit') return;   // (el pueblo se rehízo mientras tanto: este torneo ya no sigue)
         if (act === 'new') { T = torneo({ name: P.name || 'Tú', town }, ctx, true, kind); continue; }
@@ -1080,6 +1098,7 @@ export class TownGame {
         // la final, en el frontón Labrit de Iruña (los cuartos y las semifinales, aquí)
         // (los cuartos y las semifinales, en el frontón cubierto del pueblo; en Iruña, en el Labrit)
         const fin = m.round === 'Final', venue = this.fronton?.court.labrit ? this.fronton : fin ? this.labritVenue() : this.hallVenue();
+        this.sportBackdrop(false);
         if (fin) await this.labritIntro(venue); else if (venue.court.hall) await this.hallIntro(venue);
         if (this.disposed) return;
         // (por parejas: juegas con tu compañero contra el delantero y el zaguero rivales)
@@ -1087,6 +1106,7 @@ export class TownGame {
         const r = await venue.play(this, a, { target: m.target, level: m.level, rivalName: `${pairs ? m.rival.mates[0] : m.rival.name} (${m.rival.town})`, fixedLevel: true, returnTo: this.fronton, rivalStats: m.stats, stay: true,
           pairs: pairs ? { partner: m.partner, rivalMate: m.mate } : null, rivalTown: m.rival.townId ? { id: m.rival.townId, name: m.rival.town } : null,
           comp: `${pairs ? 'Torneo por parejas' : 'Torneo de mano'} · ${m.round}`, youBonus: youBonus(T), rivalBonus: ((m.rival.lv || 2) - 2) * 3 });
+        this.sportBackdrop(true);
         if (this.disposed) return;
         played = true;
         if (r.quit && r.later) continue;   // («Ahora no» antes de empezar: de vuelta al cuadro del torneo, de donde se vino)
@@ -1114,6 +1134,7 @@ export class TownGame {
   async hallIntro(L) {
     if (window.__autoWin) return;
     const g = L.court.group, V = (x, y, z) => g.localToWorld(new THREE.Vector3(x, y, z));
+    await this.rt?.warm?.(g);   // (sus sombreadores, antes de verlo: si no, la llegada se quedaba congelada un momento)
     this.sky.flood = 1; this.sky.indoor = true; this.sky.floodCur = 1; this.ui.hudVisible?.(false); this.perro?.away?.();
     this.player.place(L.entry.x, L.entry.z, 0); this.player.frozen = true;   // (el cielo y las sombras van con el jugador)
     try {
@@ -1128,6 +1149,7 @@ export class TownGame {
     if (window.__autoWin) return;
     const g = L.court.group, V = (x, y, z) => g.localToWorld(new THREE.Vector3(x, y, z)), E = L.court.extent;
     const xc = (E.x0 + E.x1) / 2, zb = E.z1;
+    await this.rt?.warm?.(g);
     this.sky.flood = 1; this.ui.hudVisible?.(false); this.perro?.away?.();   // (los focos ya encendidos: el partido sigue con la misma luz, sin apagar y encender)
     this.player.place(L.entry.x, L.entry.z, 0); this.player.frozen = true;   // (el cielo y las sombras van con el jugador: que esté ya allí)
     try {
@@ -2437,7 +2459,7 @@ export class TownGame {
     // nuevo no debe recibir sus ventanas ni sus controles)
     this.disposed = true;
     try { this.pelotaAbort?.(); } catch (e) { }
-    document.querySelectorAll('.lg-root, .pel-root').forEach(o => o.remove());
+    document.querySelectorAll('.lg-root, .pel-root, .sport-bg').forEach(o => o.remove());
     if (this.townArms) { for (const m of [this.townArms.mesh, this.townArms.plate]) if (m) { m.geometry.dispose(); m.material.map?.dispose(); m.material.dispose(); } this.townArms = null; }
     for (const b of this.blasones || []) { b.mesh.geometry.dispose(); b.mesh.material.map?.dispose(); b.mesh.material.dispose(); }
     // (que la interfaz, que dura toda la partida, no siga apuntando al pueblo que se deja: lo dejaba entero en memoria)

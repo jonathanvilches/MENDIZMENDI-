@@ -207,6 +207,12 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-pl.out{border-style:dashed;border-color:#ff7ac8}
 .fb-pl[disabled]{opacity:.5;cursor:default}
 @media (max-width:640px) and (orientation:portrait){.fb-subs{grid-template-columns:1fr;grid-template-areas:'hf' 'sf' 'hb' 'sb'}}
+/* ordenador (pantalla grande): el marcador, los avisos y la ayuda de teclas, más grandes y legibles */
+@media (min-width:1200px) and (min-height:700px){
+.fb-team{padding:8px 16px;gap:12px;font-size:var(--fs-md)}.fb-team b{font-size:var(--fs-2xl)}.fb-team img.fb-em{width:28px;height:32px}
+.fb-clock{padding:4px 16px;font-size:var(--fs-lg)}.fb-clock small{font-size:var(--fs-sm)}
+.fb-say{font-size:var(--fs-md);max-width:560px}.fb-keys{font-size:var(--fs-sm);padding:8px 12px}
+}
 `;
 // iconos de los botones: los símbolos de los controles del autor (trazo blanco grueso, 24 × 24)
 const IC = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;

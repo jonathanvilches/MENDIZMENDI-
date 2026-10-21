@@ -6,6 +6,12 @@ import { addStep } from './heightfield.js';
 const SHUTTERS = ['#3e6b48', '#7b3f2a', '#2f4f6e', '#6d5231', '#8a2f2f', '#4a6b3a'];
 const FLOWERS = ['#e0304f', '#ff6f91', '#f25c2c', '#ffffff', '#c93a7a'];
 
+// lama de contraventana: solo las caras que se ven (delante, arriba y abajo). Pegada a la contraventana, sus lados y su
+// espalda no se veían nunca y eran casi la mitad de los triángulos de las ventanas de un pueblo
+function slat(w, h, d, color) {
+  const g = box(w, h, d); g.setIndex(Array.from(g.index.array.subarray(12, 30)));
+  return colored(g, color);
+}
 // Dibuja una ventana en la fachada (plano local z=0 hacia +z)
 function windowAt(B, T, x, y, w, h, o) {
   const F = (mx) => MM(T, mx);
@@ -24,7 +30,7 @@ function windowAt(B, T, x, y, w, h, o) {
       const g = colored(box(w / 2 + 0.02, h + 0.05, 0.05), sc);
       // contraventana abierta contra la pared, con lamas
       B.add('paint', g, F(M(x + s * (w / 2 + 0.16 + w / 4), y, 0.1)));
-      for (let k = 0; k < 4; k++) B.add('paint', colored(box(w / 2 - 0.08, 0.035, 0.03), new THREE.Color(sc).multiplyScalar(0.7)), F(M(x + s * (w / 2 + 0.16 + w / 4), y - h * 0.35 + k * h * 0.23, 0.14)));
+      for (let k = 0; k < 4; k++) B.add('paint', slat(w / 2 - 0.08, 0.035, 0.03, new THREE.Color(sc).multiplyScalar(0.7)), F(M(x + s * (w / 2 + 0.16 + w / 4), y - h * 0.35 + k * h * 0.23, 0.14)));
     }
   }
   if (o.flowers) {

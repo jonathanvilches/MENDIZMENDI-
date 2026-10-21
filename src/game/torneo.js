@@ -195,7 +195,20 @@ const CSS = `
 .tq-tile .k{letter-spacing:.06em}.tq-tile b{font-size:var(--fs-xl)}
 }
 /* (en pantallas altas, como el iPad tumbado, la ilustración con su altura: no se queda diminuta encima del texto) */
-@media (min-height:561px) and (orientation:landscape){.tq-tile .figs{min-height:clamp(150px,32vh,300px)}}`;
+@media (min-height:561px) and (orientation:landscape){.tq-tile .figs{min-height:clamp(150px,32vh,300px)}}
+/* ordenador (pantalla grande): el menú y el cuadro a su tamaño, las figuras grandes y enteras (la losa de la colección,
+   con tres pelotaris, ya no se corta) y las cartas del próximo partido más grandes */
+@media (min-width:1200px) and (min-height:700px){
+.lg-card.tq-card{width:min(1280px,100%);gap:16px 32px}
+.lg-card.tq-menu-card{width:min(1320px,100%)}
+.tq-tiles{gap:16px;grid-template-columns:1.1fr 1.1fr 1fr 1fr}
+.tq-tile{padding-left:24px;padding-right:24px}.tq-tile .figs{min-height:clamp(280px,42vh,460px)}.tq-tile .figs.trio img.pf{height:80%}
+.tq-tile b{font-size:var(--fs-2xl)}.tq-tile small{font-size:var(--fs-md)}.tq-tile .k{font-size:var(--fs-sm)}
+.tq-duel .gx-card{--w:168px!important}.tq-banner .gx-card{--w:168px!important}.tq-mid b{font-size:var(--fs-5xl)}.tq-mid small.r{font-size:var(--fs-md)}
+.tq-where{font-size:var(--fs-md)}.tq-ficha{font-size:var(--fs-sm)}
+.tq-rd h4{font-size:var(--fs-sm)}.tq-m>div{min-height:30px;padding:4px 12px;font-size:var(--fs-md)}.tq-m b{font-size:var(--fs-lg)}
+.tq-cup svg{width:84px;height:52px}.tq-cup b{font-size:var(--fs-lg)}
+}`;
 const TXAPELA = '<svg viewBox="0 0 64 40"><ellipse cx="32" cy="30" rx="29" ry="7" fill="#1b1b22"/><path d="M6 28c2-14 14-22 26-22s24 8 26 22c-8 4-44 4-52 0z" fill="#22232c"/><path d="M30 6c0-3 4-3 4 0" stroke="#22232c" stroke-width="3" fill="none"/><path d="M8 29c10 3 38 3 48 0" stroke="#c8222a" stroke-width="3" fill="none"/></svg>';
 function card(T, p, s, w, l) {
   const P = T.players[p];
