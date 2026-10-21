@@ -697,6 +697,9 @@ export class FutbolGame {
   }
   // el área rival (con un poco de margen: el que entra corriendo también vale)
   inBox(t, q) { return this.inArea(this.other(t), q.x, q.z, F.areaD ? 3 : 2); }
+  // (fútbol 11: el delantero de la IA que espera en la línea del fuera de juego, a pocos metros del área, entra al remate;
+  // a los de tu equipo se les centra solo dentro del área, como cuando centras tú)
+  crossRun(t, q) { return !F.areaD && q.line === 3 && !(q.team === this.me.team && !this.autoplay) && !this.isOffside(q) && this.inArea(this.other(t), q.x, q.z, 7); }
   /** El compañero del área rival al que irá el centro: el mejor situado hacia donde apuntas. */
   crossReceiver(p, dx, dz) {
     let best = null, bs = -1e9;
@@ -733,6 +736,8 @@ export class FutbolGame {
     // (a tu compañero, casi a donde está: frena y lo espera; a la IA, a donde llegará corriendo)
     const lead = q.team === this.me.team && !this.autoplay ? 0.25 : 0.75;
     for (let k = 0; k < 3; k++) { const d = hyp(tx - B.x, tz - B.z); T = clamp(0.7 + d * (F.areaD ? 0.05 : 0.034), 0.9, 1.75); tx = q.x + q.vx * T * lead; tz = q.z + q.vz * T * lead; }
+    // (al que entra desde fuera del área, al hueco del punto de penalti: llega corriendo)
+    if (!F.areaD && lead > 0.5 && !this.inBox(p.team, q)) { tx = s * Math.max(s * tx, F.HL - 12); tz = clamp(tz, -F.areaW / 2 + 4, F.areaW / 2 - 4); T = clamp(0.7 + hyp(tx - B.x, tz - B.z) * 0.034, 0.9, 1.75); }
     const ux = tx - B.x, uz = tz - B.z, ul = hyp(ux, uz) || 1, ext = (power - 0.5) * 7 * SC;
     tx += ux / ul * ext + (err ? (this.rnd() - 0.5) * 2 * err : 0); tz += uz / ul * ext + (err ? (this.rnd() - 0.5) * 2 * err : 0);
     return { x: s * Math.min(s * tx, F.HL - 1.2), z: clamp(tz, -F.HW + 1, F.HW - 1), T };
@@ -1652,7 +1657,7 @@ export class FutbolGame {
       if (q === p || q.down > 0) continue;
       const d = hyp(q.x - p.x, q.z - p.z); if (d < 3 * Math.max(SC, 0.7) || d > 45) continue;
       if (this.isOffside(q)) continue;
-      const lane = this.laneOpen(t, B.x, B.z, q.x, q.z), open = this.openness(q) / SC, cross = this.crossZone(p) && this.inBox(t, q), loft = cross || (lane < 1.1 && d > 12 * SC);
+      const lane = this.laneOpen(t, B.x, B.z, q.x, q.z), open = this.openness(q) / SC, cross = this.crossZone(p) && (this.inBox(t, q) || this.crossRun(t, q)), loft = cross || (lane < 1.1 && d > 12 * SC);
       const prog = s * (q.x - p.x) / (18 * SC);
       let v = 0.35 + prog * 0.55 + Math.min(open, 6) * 0.07 - (!loft && lane < 1.3 ? (1.3 - lane) * 1.1 : 0) - (d > 25 * SC ? (d - 25 * SC) * 0.035 / SC : 0) - (loft && !cross ? 0.22 : 0);
       if (loft && !cross && open < 3) v -= 0.4;

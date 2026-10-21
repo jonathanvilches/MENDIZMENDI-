@@ -69,7 +69,12 @@ export function tocarGame(ui, x, { who = '' } = {}) {
     const S = ui.sound, g = x.game, n = g.lanes.length, notas = notasDe(x), total = notas.length;
     const eighth = 60 / g.bpm / 2, bar = eighth * 2 * g.meter, fall = 2.3, touch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
     const air = (isEU() && g.airEu) || g.air || '';
-    const clock = () => S?.ctx ? S.ctx.currentTime : performance.now() / 1000;
+    // el reloj del sonido (así las notas van a tempo con el acompañamiento); si el navegador lo tiene parado (sin permiso
+    // para sonar, o el sonido suspendido al volver de otra aplicación), el de la página: si no, las notas no bajaban
+    // nunca y el minijuego se quedaba para siempre en «¡Prepárate!»
+    if (S?.ctx?.state === 'suspended') S.ctx.resume?.().catch?.(() => { });
+    const p0 = performance.now() / 1000, a0 = S?.ctx ? S.ctx.currentTime : 0; let audioOk = !!S?.ctx;
+    const clock = () => { const p = performance.now() / 1000 - p0; if (audioOk) { if (p > 1 && S.ctx.currentTime - a0 < p * 0.5) audioOk = false; else return S.ctx.currentTime; } return a0 + p; };
     ui.closeModal?.();
     // (cada carril acaba en su botón: la nota baja hasta él y se pulsa cuando le llega; en el móvil no hay letras de teclas)
     const o = el(`<div class="mg-overlay tocar${touch ? ' touch' : ''}"><div class="mg-card tocar-card">
