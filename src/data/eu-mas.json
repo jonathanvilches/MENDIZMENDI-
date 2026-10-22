@@ -1457,5 +1457,8 @@
  "Empezar a jugar": "Jolasten hasi",
  "No llego a ningún servidor para presentar el móvil. Lo vuelvo a intentar…": "Ez dut mugikorra aurkezteko zerbitzaririk lortzen. Berriro saiatzen…",
  "El móvil ha llamado: conectando…": "Mugikorrak deitu du: konektatzen…",
- "¡Mando conectado! Va por internet.": "Agintea konektatuta! Internet bidez doa."
+ "¡Mando conectado! Va por internet.": "Agintea konektatuta! Internet bidez doa.",
+ "Un móvil ha escrito el código a mano y quiere ser el mando. ¿Es el tuyo?": "Mugikor batek kodea eskuz idatzi du eta agintea izan nahi du. Zurea al da?",
+ "No, no lo conozco": "Ez, ez dut ezagutzen",
+ "Sí, dejarle": "Bai, utzi"
 }
