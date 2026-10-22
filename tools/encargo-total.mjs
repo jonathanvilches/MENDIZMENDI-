@@ -89,16 +89,29 @@ const lamPrio = inv.laminas.filter(l => l.has && (l.cover || l.kind === 'deporte
 const porUrl = new Map(); for (const i of inv.iconos) if (i.baked) { if (!porUrl.has(i.url)) porUrl.set(i.url, []); porUrl.get(i.url).push(i.n); }
 const icoRender = [...porUrl.values()].filter(ns => !ns.some(n => AUTOR.has(n) || FUTBOL.has(n))).map(ns => ns.sort((a, b) => (a.startsWith('_') ? 1 : 0) - (b.startsWith('_') ? 1 : 0) || a.localeCompare(b))).sort((a, b) => a[0].localeCompare(b[0]));
 const ico3D = inv.iconos.filter(i => !i.baked && i.d3 && !AUTOR.has(i.n) && !FUTBOL.has(i.n)).map(i => i.n).sort();
-const ico2D = inv.iconos.filter(i => !i.baked && !i.d3 && !AUTOR.has(i.n) && !FUTBOL.has(i.n)).map(i => i.n).sort();
+const ico2D = inv.iconos.filter(i => !i.baked && !i.d3 && !AUTOR.has(i.n) && !FUTBOL.has(i.n) && i.n !== 'mando').map(i => i.n).sort();   // (el del mando va en el encargo: MANDO)
 const instSin = inv.instrumentos.filter(i => !HUGE.has(i.icon));
-// los trofeos que hoy son un dibujo plano del juego (SVG en src/ui/champion.js y src/game/torneo.js): van a src/assets/trofeos
+// los trofeos de la pantalla de campeón y del torneo: son los iconos del autor txapela y trophy (src/ui/champion.js y
+// src/game/torneo.js); solo se piden si faltaran
 const TROFEOS = [
-  { id: 'txapela', name: 'Txapela de campeón de pelota', text: 'boina vasca negra, grande y plana, de fieltro, con una cinta roja bordada alrededor del borde (sin letras ni escudos), como la que se pone al ganador de un campeonato de pelota a mano en el frontón. Sale en la pantalla de campeón, en el torneo y en la colección de txapelas.' },
-  { id: 'copa', name: 'Copa de campeón de fútbol', text: 'copa dorada de dos asas sobre una peana de madera oscura, brillante, sin letras ni escudos de clubes. Sale en la pantalla de campeón de la Liga Navarra.' },
+  { id: 'txapela', icon: 'txapela', name: 'Txapela de campeón de pelota', text: 'boina vasca negra, grande y plana, de fieltro, con una cinta roja bordada alrededor del borde (sin letras ni escudos), como la que se pone al ganador de un campeonato de pelota a mano en el frontón. Sale en la pantalla de campeón, en el torneo y en la colección de txapelas.' },
+  { id: 'copa', icon: 'trophy', name: 'Copa de campeón de fútbol', text: 'copa dorada de dos asas sobre una peana de madera oscura, brillante, sin letras ni escudos de clubes. Sale en la pantalla de campeón de la Liga Navarra.' },
 ];
-const trofSin = TROFEOS.filter(t => !existsSync(`src/assets/trofeos/${t.id}.webp`) && !existsSync(`src/assets/trofeos/${t.id}.png`));
+const trofSin = TROFEOS.filter(t => !existsSync(`src/assets/icons3d/512/${t.icon}.webp`));
+// los iconos que faltan para los botones del mando en el móvil (src/mando/contextos.js; los demás botones ya usan iconos
+// del autor, copiados en public/mando/iconos)
+// (lo que es cada icono de los que hoy son una captura del juego, para el encargo)
+const QUE = { bell: 'una campana de bronce', corzo: 'un corzo', goat: 'una cabra', grulla: 'una grulla común', lechuza: 'una lechuza', milano: 'un milano real', quebrantahuesos: 'un quebrantahuesos' };
+const MANDO = [
+  { id: 'mando', name: 'el móvil como mando', text: 'un teléfono móvil tumbado, con una palanca a la izquierda y cuatro botones de colores a la derecha dibujados en su pantalla. Sale en «Usar el móvil como mando».' },
+  { id: 'dejada', name: 'la dejada, en la pelota a mano', text: 'una mano abierta que empuja suave la pelota de cuero, con una estela corta que baja junto a la pared del frontón.' },
+  { id: 'cortada', name: 'la cortada, en la pelota a mano', text: 'la pelota de cuero con una estela en espiral, rasante y con efecto.' },
+  { id: 'globo', name: 'el globo, en la pasaka', text: 'la pelota de cuero subiendo en un arco alto por encima de una red baja.' },
+  { id: 'periodico', name: 'el periódico enrollado del encierro', text: 'un periódico enrollado de papel, con rayas grises en lugar de letras.' },
+  { id: 'coser', name: 'coser', text: 'una aguja con hilo rojo atravesando un trozo de tela con puntadas.' },
+].filter(i => !existsSync(`src/assets/icons3d/256/${i.id}.webp`));
 const danSin = inv.danzas.filter(d => !d.has);
-const total = casasSin.length + ofiSin.length + munSin.length + persSin.length + leySin.length + figSin.length + tradSin.length + cimSin.length + fauSin.length + lamSin.length + icoRender.length + ico3D.length + instSin.length + trofSin.length + danSin.length;
+const total = casasSin.length + ofiSin.length + munSin.length + persSin.length + leySin.length + figSin.length + tradSin.length + cimSin.length + fauSin.length + lamSin.length + icoRender.length + ico3D.length + instSin.length + trofSin.length + danSin.length + MANDO.length;
 
 const EXPLORADOR = 'el explorador del juego: un niño de unos diez años, pelo castaño rizado, camisa caqui con bolsillos, pantalón corto, mochila y botas de monte (el mismo de todas las láminas); si la escena pide a la exploradora, una niña de la misma edad con coleta castaña y la misma ropa';
 const ESTILO_LAMINA = 'Ilustración 3D tipo película de animación (sin fotorrealismo), luz suave y cálida, colores vivos, mucho detalle. Apaisada 16:9, al mayor tamaño que dé la herramienta (ideal 2560 × 1440; mínimo 1536 × 864). Lo importante en el 60 % central (los lados se recortan en el móvil). Sin texto, sin letras, sin marcas de agua, sin bordes.';
@@ -115,7 +128,7 @@ L.push('## Cómo entregarlas', '',
 L.push('## Orden que te recomiendo', '',
   `1. Escudos de las casas (${casasSin.length}): es lo que más se ve en los pueblos y hoy sale con el dibujo tallado del juego.`,
   `2. Personajes de Navarra (${persSin.length}) y figuras de leyenda y carnaval (${figSin.length}): fichas que ahora llevan una lámina prestada o un render del juego.`,
-  `3. La txapela y la copa (${trofSin.length}), tradiciones (${tradSin.length}), la danza de cada comarca (${danSin.length}), iconos que no son tuyos (${icoRender.length + ico3D.length}), el instrumento que falta (${instSin.length}) y el resto.`, '');
+  `3. Tradiciones (${tradSin.length}), la danza de cada comarca (${danSin.length}), iconos que no son tuyos (${icoRender.length + ico3D.length + MANDO.length}), el instrumento que falta (${instSin.length}) y el resto.`, '');
 
 // 1) escudos de las casas
 L.push(`## 1. Escudos de las casas (${casasSin.length})`, '', '**Estilo (pégalo una vez):** ' + ESTILO_ESCUDO + ' Timbre: yelmo de acero de perfil con lambrequines de los colores del campo, salvo que el blasón diga otra cosa. En las casas del Baztan, el ajedrezado es plata y sable.', '');
@@ -165,9 +178,10 @@ L.push(`### 8b. Láminas para regenerar con más calidad, prioridad 1 (${lamPrio
 for (const l of lamPrio) L.push(`- **${l.id}.png** · «${esc(l.title)}» (${l.kind}; ${sitio(l.town, l.comarca)})`);
 L.push('');
 // 9) iconos
-L.push(`## 9. Iconos que no son tuyos (${icoRender.length + ico3D.length})`, '', '**Estilo (pégalo una vez):** ' + ESTILO_ICONO + ' Misma familia que tus 182 iconos: mismo grosor de formas, misma luz, misma paleta.', '');
-if (icoRender.length) { L.push(`Renders del propio juego que conviene sustituir (${icoRender.length}):`, ''); for (const ns of icoRender) L.push(`- **${ns[0].replace(/^_/, '')}.png** · icono de «${ns.map(n => n.replace(/^_/, '')).join('» / «')}».`); L.push(''); }
+L.push(`## 9. Iconos que no son tuyos (${icoRender.length + ico3D.length + MANDO.length})`, '', '**Estilo (pégalo una vez):** ' + ESTILO_ICONO + ' Misma familia que tus 182 iconos: mismo grosor de formas, misma luz, misma paleta.', '');
+if (icoRender.length) { L.push(`Renders del propio juego que conviene sustituir (${icoRender.length}):`, ''); for (const ns of icoRender) { const k = ns[0].replace(/^_/, ''); L.push(`- **${k}.png** · icono de ${QUE[k] || '«' + ns.map(n => n.replace(/^_/, '')).join('» / «') + '»'}.`); } L.push(''); }
 if (ico3D.length) { L.push(`Modelos 3D sencillos que el juego dibuja al vuelo (${ico3D.length}):`, ''); for (const n of ico3D) L.push(`- **${n}.png** · icono de «${n}».`); L.push(''); }
+if (MANDO.length) { L.push(`Para los botones del mando en el móvil (${MANDO.length}): el resto de botones ya llevan tus iconos.`, ''); for (const i of MANDO) L.push(`- **${i.id}.png** · ${i.name.charAt(0).toUpperCase() + i.name.slice(1)}: ${i.text}`); L.push(''); }
 if (ico2D.length) L.push(`Los ${ico2D.length} símbolos planos de la interfaz (flechas, aspas, marcas: ${ico2D.slice(0, 12).join(', ')}…) se quedan como trazo de interfaz: no hace falta ilustrarlos.`, '');
 // 10) instrumentos
 L.push(`## 10. Instrumentos sin original grande (${instSin.length})`, '');
@@ -175,7 +189,7 @@ if (!instSin.length) L.push('Los ocho instrumentos tienen su imagen a 1254. No f
 else { L.push('**Estilo:** el mismo que los otros siete instrumentos que me mandaste (icono 3D de la familia, fondo transparente, 1254 × 1254).', ''); for (const i of instSin) L.push(`- **${i.icon}.png** · ${esc(i.name)} (${esc(i.eu)}). ${esc(i.what)}`); L.push(''); }
 // 10b) trofeos
 L.push(`## 10b. Trofeos (${trofSin.length})`, '');
-if (!trofSin.length) L.push('La txapela y la copa ya tienen su imagen.', '');
+if (!trofSin.length) L.push('La txapela y la copa ya tienen su imagen: tus iconos txapela y trophy, que ahora salen en la pantalla de campeón y en el torneo.', '');
 else { L.push('Hoy son un dibujo plano del propio juego. **Estilo (pégalo una vez):** ' + ESTILO_ICONO, ''); for (const t of trofSin) L.push(`- **${t.id}.png** · ${t.name}: ${t.text}`); L.push(''); }
 // 10c) danzas de las comarcas
 L.push(`## 10c. La danza de cada comarca (${danSin.length})`, '');
@@ -192,4 +206,4 @@ L.push(`## 12. Opcional: flora en tu estilo (${inv.flora.length})`, '', 'Las pla
 L.push(inv.flora.map(f => `${f.id} (${esc(f.name)}${f.sci ? ', ' + esc(f.sci) : ''})`).join(' · '), '');
 if (inv.pendientes.length) L.push(`## Nota: escudos municipales por comprobar (${inv.pendientes.length})`, '', 'Estos no se dibujan porque no hemos podido confirmar el blasón en una fuente fiable. No los generes hasta tener la fuente:', '', ...inv.pendientes.map(x => `- ${esc(x.name)}${x.note ? ': ' + esc(x.note) : ''}`), '');
 writeFileSync(out, L.join('\n'));
-console.log(JSON.stringify({ salida: out, total, casas: casasSin.length, oficios: ofiSin.length, municipales: munSin.length, personajes: persSin.length, leyendas: leySin.length, figuras: figSin.length, tradiciones: tradSin.length, cimas: cimSin.length, fauna: fauSin.length, laminas: lamSin.length, laminasPrio1: lamPrio.length, iconosRender: icoRender.length, iconos3D: ico3D.length, iconos2D: ico2D.length, trofeos: trofSin.length, danzas: danSin.length, instrumentos: instSin.length, corregir: corregir.length }));
+console.log(JSON.stringify({ salida: out, total, casas: casasSin.length, oficios: ofiSin.length, municipales: munSin.length, personajes: persSin.length, leyendas: leySin.length, figuras: figSin.length, tradiciones: tradSin.length, cimas: cimSin.length, fauna: fauSin.length, laminas: lamSin.length, laminasPrio1: lamPrio.length, iconosRender: icoRender.length, iconos3D: ico3D.length, iconos2D: ico2D.length, iconosMando: MANDO.length, trofeos: trofSin.length, danzas: danSin.length, instrumentos: instSin.length, corregir: corregir.length }));

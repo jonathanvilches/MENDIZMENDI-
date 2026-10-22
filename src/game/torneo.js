@@ -15,6 +15,7 @@ import { pelotariCard } from '../ui/sportCard.js';
 // (las ilustraciones de antes de esas portadas siguen en src/assets/pelota, sin cargarse)
 import { pelotariFig, RIVALES } from '../ui/pelotariFig.js';
 import { profile } from './profile.js';
+import { iconSVG } from '../ui/icons.js';
 import { minstd } from '../util/math.js';
 // (el idioma, el que marca la página: en euskera, «eu»)
 const isEU = () => typeof document !== 'undefined' && document.documentElement?.lang === 'eu';
@@ -152,10 +153,10 @@ const CSS = `
 .tq-m.ph>div{color:rgba(201,178,255,.4)}
 .tq-fin{justify-content:center}.tq-finm{position:relative}.tq-fin .tq-cup{position:absolute;left:0;right:0;top:100%}
 .tq-cup{display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:8px;text-align:center;font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--lila)}
-.tq-cup svg{width:64px;height:40px;filter:drop-shadow(0 0 10px rgba(255,43,214,.5));animation:tq-float 3s ease-in-out infinite}@keyframes tq-float{50%{transform:translateY(-4px)}}
+.tq-cup .ico{width:64px;height:64px;filter:drop-shadow(0 0 10px rgba(255,43,214,.5));animation:tq-float 3s ease-in-out infinite}@keyframes tq-float{50%{transform:translateY(-4px)}}
 .tq-cup b{color:#fff;font:400 var(--fs-md)/1.1 var(--f-display)}
 .tq-how{grid-column:1/-1;margin:0}
-.tq-txa{display:flex;align-items:center;gap:12px}.tq-txa>svg{width:52px;height:34px;flex:none}
+.tq-txa{display:flex;align-items:center;gap:12px}.tq-txa>.ico{width:52px;height:52px;flex:none}
 /* menú de pelota: losas grandes como el menú de un juego de deportes, cada una con su figura */
 .tq-tiles{display:grid;grid-template-columns:1.25fr 1fr 1fr 1fr;gap:12px;min-height:0}.tq-tiles.n3{grid-template-columns:1.25fr 1fr 1fr}
 .tq-tile{position:relative;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:2px;min-height:190px;padding:12px calc(16px + 8px);border:1px solid rgba(201,178,255,.25);border-radius:4px;color:#fff;text-align:left;cursor:pointer;font:inherit;
@@ -177,9 +178,9 @@ const CSS = `
 .tq-tile.main{--t1:#ff2bd6;--t2:#3a0b6b}.tq-tile.pair{--t1:#7b2ff7;--t2:#160636}.tq-tile.free{--t1:#5b4bff;--t2:#120a40}.tq-tile.col{--t1:#c21cff;--t2:#2a0638}
 .tq-menu-foot{display:flex;justify-content:space-between;align-items:center;gap:12px}
 @media (orientation:landscape) and (max-height:520px){
-.lg-card.tq-card{gap:4px 16px;padding:8px 16px 12px}.tq-txa>svg{width:40px;height:26px}.tq-top .lg-head h2{font-size:var(--fs-xl)}
+.lg-card.tq-card{gap:4px 16px;padding:8px 16px 12px}.tq-txa>.ico{width:40px;height:40px}.tq-top .lg-head h2{font-size:var(--fs-xl)}
 .tq-duel{padding:0}.tq-mid b{font-size:var(--fs-3xl)}.tq-left{gap:4px}.tq-left .lg-btn{min-height:44px}
-.tq-m>div{min-height:20px;padding:1px 8px;font-size:var(--fs-xs)}.tq-m b{font-size:var(--fs-sm)}.tq-cup{margin-top:4px}.tq-cup svg{width:48px;height:30px}
+.tq-m>div{min-height:20px;padding:1px 8px;font-size:var(--fs-xs)}.tq-m b{font-size:var(--fs-sm)}.tq-cup{margin-top:4px}.tq-cup .ico{width:48px;height:48px}
 .tq-tile{min-height:0;height:100%;padding:8px 20px}.tq-tile b{font-size:var(--fs-xl)}.tq-tiles{flex:1}.lg-card.tq-menu-card{grid-template-rows:auto minmax(0,1fr) auto;height:100%}
 }
 @media (max-width:900px) and (orientation:portrait){
@@ -211,9 +212,9 @@ const CSS = `
 .tq-duel .gx-card{--w:168px!important}.tq-banner .gx-card{--w:168px!important}.tq-mid b{font-size:var(--fs-5xl)}.tq-mid small.r{font-size:var(--fs-md)}
 .tq-where{font-size:var(--fs-md)}.tq-ficha{font-size:var(--fs-sm)}
 .tq-rd h4{font-size:var(--fs-sm)}.tq-m>div{min-height:30px;padding:4px 12px;font-size:var(--fs-md)}.tq-m b{font-size:var(--fs-lg)}
-.tq-cup svg{width:84px;height:52px}.tq-cup b{font-size:var(--fs-lg)}
+.tq-cup .ico{width:84px;height:84px}.tq-cup b{font-size:var(--fs-lg)}
 }`;
-const TXAPELA = '<svg viewBox="0 0 64 40"><ellipse cx="32" cy="30" rx="29" ry="7" fill="#1b1b22"/><path d="M6 28c2-14 14-22 26-22s24 8 26 22c-8 4-44 4-52 0z" fill="#22232c"/><path d="M30 6c0-3 4-3 4 0" stroke="#22232c" stroke-width="3" fill="none"/><path d="M8 29c10 3 38 3 48 0" stroke="#c8222a" stroke-width="3" fill="none"/></svg>';
+const TXAPELA = () => iconSVG('txapela', 64);   // (la txapela de los iconos del autor)
 function card(T, p, s, w, l) {
   const P = T.players[p];
   return `<div class="${w ? 'w' : l ? 'l' : ''} ${P.you ? 'you' : ''}"><span>${esc(P.name)}<small> · ${esc(P.town)}</small></span><b>${s == null ? '' : s}</b></div>`;
@@ -225,7 +226,7 @@ function bracketHtml(T) {
     const rows = Array.from({ length: n }, (_, k) => { const m = ms[k]; if (!m) return '<div class="tq-m ph"><div><span>—</span></div><div><span>—</span></div></div>';
       const aw = m.s && m.s[0] > m.s[1], bw = m.s && m.s[1] > m.s[0], me = T.players[m.a].you || T.players[m.b].you;
       return `<div class="tq-m${me ? ' me' : ''}" data-r="${i}" data-k="${k}">${card(T, m.a, m.s?.[0], aw, bw)}${card(T, m.b, m.s?.[1], bw, aw)}</div>`; }).join('');
-    const champ = i === 2 ? `<div class="tq-cup">${TXAPELA}${T.done ? `<b>${esc(T.players[T.champion].name)}</b>` : 'Txapela'}</div>` : '';
+    const champ = i === 2 ? `<div class="tq-cup">${TXAPELA()}${T.done ? `<b>${esc(T.players[T.champion].name)}</b>` : 'Txapela'}</div>` : '';
     // (la final, justo a media altura: entre las dos semifinales; la txapela, colgada debajo, sin moverla)
     const body = i === 2 ? `<div class="tq-ms tq-fin"><div class="tq-finm">${rows}${champ}</div></div>` : `<div class="tq-ms">${rows}</div>`;
     return `<div class="tq-rd${i === T.round && !T.done ? ' now' : ''}"><h4>${R.name}<small>A ${R.target} tantos</small></h4>${body}</div>`;
@@ -267,7 +268,7 @@ export function torneoPanel(T, here = null) {
   css();
   return new Promise(res => {
     const m = yourMatch(T), pairs = T.kind === 'parejas', lang = isEU() ? 'eu' : 'es', yp = T.players.find(p => p.you);
-    const head = `<div class="tq-top"><div class="lg-head tq-txa">${TXAPELA}<div><small>${pairs ? 'Torneo por parejas' : 'Torneo de mano'} · edición ${T.edition}</small><h2>Txapela de ${esc(T.comarcaName)}</h2></div></div><button class="tq-info" data-info aria-expanded="false" aria-label="Cómo funciona">?</button></div>`;
+    const head = `<div class="tq-top"><div class="lg-head tq-txa">${TXAPELA()}<div><small>${pairs ? 'Torneo por parejas' : 'Torneo de mano'} · edición ${T.edition}</small><h2>Txapela de ${esc(T.comarcaName)}</h2></div></div><button class="tq-info" data-info aria-expanded="false" aria-label="Cómo funciona">?</button></div>`;
     const how = pairs ? '<p class="lg-how tq-how" hidden><b>Cómo funciona:</b> ocho parejas de delantero y zaguero por eliminatorias (cuartos y semifinales a 5 tantos, final a 7). Juegas con tu compañero de siempre. La final, en el frontón Labrit de Iruña.</p>'
       : '<p class="lg-how tq-how" hidden><b>Cómo funciona:</b> ocho pelotaris por eliminatorias (cuartos y semifinales a 5 tantos, final a 7). Los rivales vienen a tu frontón; la final, en el frontón Labrit de Iruña. Los demás partidos se simulan.</p>';
     const youCard = (w) => pelotariCard({ name: pairs ? yp.mates[0] : yp.name, town: yp.town, side: 'azul', role: pairs ? 'Del' : 'Mano', w, bonus: youBonus(T), stats: { fuerza: 3, agilidad: 3, velocidad: 3 }, pop: true, lang });
@@ -304,7 +305,7 @@ export function pelotaMenu(T, here = null, T2 = null) {
     const met = Object.values(profile().pelotaris || {}).sort((a, b) => (b.last || 0) - (a.last || 0)).map(c => c.name);
     const trio = [...new Set([...met, 'Oihana', 'Unai', 'Irati'])].slice(0, 3);
     const youName = T.players.find(q => q.you)?.name;
-    const r = lgPanel(`<div class="lg-head tq-txa">${TXAPELA}<div><small>${here ? `Frontón de ${esc(here)}` : 'Frontón del pueblo'}</small><h2>Pelota a mano</h2></div>${tx ? `<div class="lg-ovr">${tx}<small>TXAPELAS</small></div>` : ''}</div>
+    const r = lgPanel(`<div class="lg-head tq-txa">${TXAPELA()}<div><small>${here ? `Frontón de ${esc(here)}` : 'Frontón del pueblo'}</small><h2>Pelota a mano</h2></div>${tx ? `<div class="lg-ovr">${tx}<small>TXAPELAS</small></div>` : ''}</div>
       <div class="tq-tiles${T2 ? '' : ' n3'}"><button class="tq-tile main" data-a="torneo" style="--d:.2s"><span class="figs">${figOf(T)}</span><span class="k">${T.txapelas ? `${T.txapelas} ${T.txapelas === 1 ? 'txapela' : 'txapelas'}` : 'Por la txapela'}</span><b>Torneo individual</b><small>${sub(T)}</small></button>
         ${T2 ? `<button class="tq-tile pair" data-a="torneoParejas" style="--d:.8s"><span class="figs duo">${figOf(T2, true)}</span><span class="k">Delantero y zaguero</span><b>Torneo por parejas</b><small>${sub(T2)}</small></button>` : ''}
         <button class="tq-tile free" data-a="libre" style="--d:1.4s"><span class="figs">${pelotariFig(youName, 'azul', 'fig')}</span><span class="k">A 5 tantos</span><b>Partido libre</b><small>Mano a mano o parejas</small></button>

@@ -43,6 +43,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 #est b { color: #fff; }
 .sm { min-width: 52px; min-height: 44px; padding: 4px 12px; border-radius: 8px; border: 1px solid rgba(201, 178, 255, .35); background: rgba(255, 255, 255, .08); font-weight: 900; font-size: 13px; letter-spacing: .04em; text-transform: uppercase; }
 .sm.down, .sm.on { background: var(--cta); border-color: transparent; }
+.sm { display: inline-flex; align-items: center; gap: 6px; } .sm img, .bt img, #bR img { pointer-events: none; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .4)); }
+#bR { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
 #zonas { position: relative; display: grid; grid-template-columns: 1fr 1fr; min-height: 0; }
 #izq, #der { position: relative; min-height: 0; touch-action: none; overflow: hidden; }
 #izq { border-right: 1px dashed rgba(201, 178, 255, .12); }
@@ -221,19 +223,21 @@ function enlaza(b, down, up, toggle) {
   b.addEventListener('pointerup', fin); b.addEventListener('pointercancel', fin); b.addEventListener('lostpointercapture', fin);
 }
 const bt = (i, d) => ({ t: 'bt', i, d });
+// (el icono del botón, de los del juego: iconos/<nombre>.webp)
+const ico = (i, s) => { const n = C.ic?.[i]; return n && /^[a-z]+$/.test(n) ? `<img src="iconos/${n}.webp" width="${s}" height="${s}" alt="" draggable="false">` : ''; };
 function pinta() {
   const b = C.b || {}, esp = C.esp || [];
   // arriba: los botones de hombro, Select y Start
   const sup = $('#sup'); sup.innerHTML = '';
-  for (const i of [4, 5, 8, 9]) if (b[i]) { const x = document.createElement('button'); x.className = 'sm'; x.textContent = T(b[i]); sup.appendChild(x); enlaza(x, bt(i, 1), bt(i, 0)); }
+  for (const i of [4, 5, 8, 9]) if (b[i]) { const x = document.createElement('button'); x.className = 'sm'; x.innerHTML = ico(i, 26) + '<span></span>'; x.lastChild.textContent = T(b[i]); sup.appendChild(x); enlaza(x, bt(i, 1), bt(i, 0)); }
   // izquierda: la palanca, o el panel táctil
   $('#izq').classList.toggle('tac', !!C.tac && !C.pal);
   $('#hIzq').textContent = C.pal ? T(C.pal === 'andar' ? 'Desliza para andar' : 'Desliza para moverte') : C.tac ? T('Desliza para mover la flecha · toca para pulsar · dos dedos para bajar') : '';
   const r = $('#bR'); r.classList.toggle('hide', !b[7]);
-  if (b[7]) { const nr = r.cloneNode(false); r.replaceWith(nr); nr.textContent = T(b[7]); enlaza(nr, bt(7, 1), bt(7, 0), (C.fijo || []).includes(7)); }
+  if (b[7]) { const nr = r.cloneNode(false); r.replaceWith(nr); nr.innerHTML = ico(7, 28) + '<span></span>'; nr.lastChild.textContent = T(b[7]); enlaza(nr, bt(7, 1), bt(7, 0), (C.fijo || []).includes(7)); }
   // derecha: los cuatro botones, la copia de los del minijuego o «¡A jugar!»
   const bts = $('#bts'); bts.innerHTML = '';
-  if (!esp.length) for (const i of [3, 2, 1, 0]) if (b[i]) { const x = document.createElement('button'); x.className = 'bt'; x.dataset.b = i; x.innerHTML = `<span></span><small>${'ABXY'[i]}</small>`; x.firstChild.textContent = T(b[i]); if (T(b[i]).length > 8) x.style.fontSize = '11px'; bts.appendChild(x);   // (los nombres largos, como Prismáticos, sin partirse)
+  if (!esp.length) for (const i of [3, 2, 1, 0]) if (b[i]) { const x = document.createElement('button'); x.className = 'bt'; x.dataset.b = i; x.innerHTML = `${ico(i, 40)}<span></span><small>${'ABXY'[i]}</small>`; x.querySelector('span').textContent = T(b[i]); if (T(b[i]).length > 8) x.style.fontSize = '11px'; bts.appendChild(x);   // (los nombres largos, como Prismáticos, sin partirse)
  enlaza(x, bt(i, 1), bt(i, 0)); }
   const E = $('#esp'); E.innerHTML = ''; E.classList.toggle('hide', !esp.length); E.classList.toggle('dos', esp.length > 4);
   esp.forEach((t, n) => { const x = document.createElement('button'); x.textContent = t; E.appendChild(x); enlaza(x, { t: 'esp', n, d: 1 }, { t: 'esp', n, d: 0 }); });

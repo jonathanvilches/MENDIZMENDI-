@@ -3,15 +3,7 @@
 // una fanfarria. Primero la celebración y, a los pocos segundos, el nombre, el marcador y el botón.
 //   showChampion({ kind: 'pelota' | 'futbol', title, name, place, score, stat, sound }) → promesa (al cerrar)
 import { esc } from '../util/html.js';
-
-const TXAPELA = `<svg viewBox="0 0 200 120" class="ch-obj"><defs><radialGradient id="chT" cx=".4" cy=".3" r=".8"><stop offset="0" stop-color="#3a3b48"/><stop offset="1" stop-color="#121218"/></radialGradient></defs>
-  <ellipse cx="100" cy="92" rx="92" ry="20" fill="#0d0d12"/><path d="M14 86c4-44 42-70 86-70s82 26 86 70c-26 14-146 14-172 0z" fill="url(#chT)"/>
-  <path d="M96 16c0-10 8-10 8 0" stroke="#1d1d24" stroke-width="7" fill="none" stroke-linecap="round"/>
-  <path d="M18 88c28 10 136 10 164 0" stroke="#c8222a" stroke-width="7" fill="none"/><path d="M40 40c18-14 46-18 66-16" stroke="rgba(255,255,255,.18)" stroke-width="6" fill="none" stroke-linecap="round"/></svg>`;
-const COPA = `<svg viewBox="0 0 200 220" class="ch-obj"><defs><linearGradient id="chG" x1="0" x2="1"><stop offset="0" stop-color="#ffe9a0"/><stop offset=".45" stop-color="#f2b92e"/><stop offset="1" stop-color="#a86a12"/></linearGradient></defs>
-  <path d="M52 20h96v40c0 40-22 64-48 64S52 100 52 60z" fill="url(#chG)"/><path d="M52 34H24c0 34 14 48 34 50M148 34h28c0 34-14 48-34 50" stroke="url(#chG)" stroke-width="10" fill="none"/>
-  <rect x="90" y="122" width="20" height="40" fill="url(#chG)"/><path d="M62 162h76l10 26H52z" fill="url(#chG)"/><rect x="44" y="188" width="112" height="18" rx="4" fill="#5a2a14"/>
-  <path d="M70 30v34c0 18 10 32 22 38" stroke="rgba(255,255,255,.55)" stroke-width="6" fill="none" stroke-linecap="round"/></svg>`;
+import { iconSVG } from './icons.js';
 
 const CSS = `.champ{position:fixed;inset:0;z-index:6000;display:grid;place-items:center;overflow:hidden;background:radial-gradient(circle at 50% 42%,#4a1a6e 0%,#1a0a30 55%,#07030f 100%);font-family:'Nunito',sans-serif;color:#fff;animation:chIn .4s ease-out}
 .champ.out{opacity:0;transition:opacity .5s}
@@ -79,7 +71,7 @@ export function showChampion({ kind = 'pelota', title, kicker, name = '', sub = 
   const colors = kind === 'futbol' ? ['#d6001c', '#ffffff', '#0a2a6b', '#ff9bd8'] : ['#c8222a', '#ffffff', '#ff9bd8', '#2f7d4a'];
   return new Promise(res => {
     const o = document.createElement('div'); o.className = 'champ';
-    o.innerHTML = `<div class="ch-rays"></div><canvas></canvas><div class="ch-box">${kind === 'futbol' ? COPA : TXAPELA}
+    o.innerHTML = `<div class="ch-rays"></div><canvas></canvas><div class="ch-box">${iconSVG(kind === 'futbol' ? 'trophy' : 'txapela', 260, 'ch-obj')}
       <div class="ch-kick">${esc(kicker || (kind === 'futbol' ? 'Liga Navarra' : 'Torneo de mano'))}</div>
       <h1 class="ch-title">${esc(title || (kind === 'futbol' ? '¡Campeones!' : '¡Txapeldun!'))}</h1>
       ${name ? `<div class="ch-name">${esc(name)}</div>` : ''}${sub ? `<div class="ch-sub">${esc(sub)}</div>` : ''}${score ? `<div class="ch-score">${esc(score)}</div>` : ''}
