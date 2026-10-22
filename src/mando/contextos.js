@@ -10,14 +10,16 @@
 // [nombre, tecla, icono]; la tecla null es que el juego lee el mando él mismo (el fútbol). Los iconos son los del autor,
 // copiados para la página del mando en public/mando/iconos (la dejada, con la mano; la cortada y el globo, con la pelota
 // con efecto; el periódico, con el rollo de papel; coser, con el ovillo)
+// (en el móvil, fijo son los que se quedan puestos al tocarlos, como Correr, que van encima de la palanca; der, los de
+// hombro que van con los de acción, a la derecha, y no arriba con los de sistema)
 const FIJOS = {
   juego: { tit: 'En el pueblo', pal: 'andar', mira: true, b: { 0: ['Acción', 'e', 'talk'], 1: ['Saltar', ' ', 'jump'], 2: ['Prismáticos', 'f', 'binoculars'], 3: ['Mochila', 'b', 'backpack'], 4: ['Cuaderno', 'c', 'book'], 5: ['Mapa', 'm', 'map'], 7: ['Correr', 'Shift', 'run'], 8: ['Perro', 'h', 'dog'], 9: ['Menú', 'Escape', 'menu'] }, fijo: [7] },
-  encierro: { tit: 'El encierro', pal: 'andar', mira: true, b: { 0: ['Saltar', ' ', 'jump'], 2: ['Periódico', 'p', 'scroll'], 3: ['Cámara', 'c', 'camera'], 7: ['Correr', 'Shift', 'run'] } },
+  encierro: { tit: 'El encierro', pal: 'andar', mira: true, b: { 0: ['Saltar', ' ', 'jump'], 2: ['Periódico', 'p', 'scroll'], 3: ['Cámara', 'c', 'camera'], 7: ['Correr', 'Shift', 'run'] }, fijo: [7] },
   bino: { tit: 'Prismáticos', mira: true, b: { 0: ['Anotar', 'e', 'pen'], 1: ['Salir', 'f', 'close'] } },
   dialogo: { tit: 'Hablando', b: { 0: ['Seguir', 'e', 'play'] } },
   pelota: { tit: 'Pelota a mano', pal: 'flechas', b: { 0: ['Golpe', ' ', 'pelota'], 1: ['Dejada', 'Shift', 'hand'], 2: ['Cortada', 'l', 'slide'], 9: ['Salir', 'Escape', 'close'] } },
   pasaka: { tit: 'Pasaka', pal: 'flechas', b: { 0: ['Golpe', ' ', 'pelota'], 1: ['Dejada', 'Shift', 'hand'], 2: ['Globo', 'l', 'slide'], 9: ['Salir', 'Escape', 'close'] } },
-  futbol: { tit: 'Fútbol', pal: 'pad', nativo: true, b: { 0: ['Pase', null, 'pass'], 1: ['Tiro', null, 'shoot'], 4: ['Cambiar', null, 'swap'], 7: ['Sprint', null, 'sprint'], 9: ['Pausa', null, 'pause'] } },
+  futbol: { tit: 'Fútbol', pal: 'pad', nativo: true, b: { 0: ['Pase', null, 'pass'], 1: ['Tiro', null, 'shoot'], 4: ['Cambiar', null, 'swap'], 7: ['Sprint', null, 'sprint'], 9: ['Pausa', null, 'pause'] }, der: [7, 4] },
   // (minijuegos 3D que se juegan con teclas: el esquileo con las flechas, la costura con un botón)
   shearGame: { tit: 'El esquileo', pal: 'flechas', b: { 9: ['Salir', 'Escape', 'close'] } },
   stitchGame: { tit: 'La costura', b: { 0: ['Coser', ' ', 'wool'], 9: ['Salir', 'Escape', 'close'] } },
@@ -42,7 +44,7 @@ function botones(root) {
   const cierra = L.filter(x => CERRAR.test(x.t)), resto = L.filter(x => !CERRAR.test(x.t));
   return [...resto.slice(0, 8 - Math.min(1, cierra.length)), ...cierra.slice(0, 1)];
 }
-function fijo(m, extra = {}) { const F = FIJOS[m]; return { m, tit: F.tit, pal: F.pal || '', mira: !!F.mira, tac: false, nativo: !!F.nativo, b: F.b, fijo: F.fijo || [], esp: [], ...extra }; }
+function fijo(m, extra = {}) { const F = FIJOS[m]; return { m, tit: F.tit, pal: F.pal || '', mira: !!F.mira, tac: false, nativo: !!F.nativo, b: F.b, fijo: F.fijo || [], der: F.der || [], esp: [], ...extra }; }
 function espejo(m, root, tit) {
   const esp = botones(root), prim = esp.find(x => x.el.matches('.primary, .go, [data-go], .pel-go:not(.alt)')) || esp.find(x => !CERRAR.test(x.t)) || esp[0];
   const h = root.querySelector('h1, h2, h3');
@@ -74,5 +76,5 @@ let C = null, t = 0;
 export function ctxActual() { const n = performance.now(); if (!C || n - t > 200) { C = calcula(); t = n; } return C; }
 /** Lo que se le cuenta al móvil: los nombres de los botones, sin las teclas ni los elementos de la página. */
 export function ctxMovil(c = ctxActual()) {
-  return { t: 'ctx', m: c.m, tit: c.tit, pal: c.pal, mira: c.mira, tac: c.tac, fijo: c.fijo, jugar: !!c.jugar, b: Object.fromEntries(Object.entries(c.b).map(([i, [n]]) => [i, n])), ic: Object.fromEntries(Object.entries(c.b).filter(([, x]) => x[2]).map(([i, x]) => [i, x[2]])), esp: c.esp.map(x => x.t) };
+  return { t: 'ctx', m: c.m, tit: c.tit, pal: c.pal, mira: c.mira, tac: c.tac, fijo: c.fijo, der: c.der || [], jugar: !!c.jugar, b: Object.fromEntries(Object.entries(c.b).map(([i, [n]]) => [i, n])), ic: Object.fromEntries(Object.entries(c.b).filter(([, x]) => x[2]).map(([i, x]) => [i, x[2]])), esp: c.esp.map(x => x.t) };
 }
