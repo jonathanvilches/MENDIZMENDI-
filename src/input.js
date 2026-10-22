@@ -1,4 +1,5 @@
-// Teclado, ratón y controles táctiles (joystick + botones)
+// Teclado, ratón, controles táctiles (joystick + botones) y mandos (mando/pad.js: los de verdad y el móvil)
+import { PAD } from './mando/pad.js';
 export class Input {
   constructor(canvas) {
     this.keys = new Set();
@@ -65,7 +66,10 @@ export class Input {
       if (k.has('a') || k.has('arrowleft') || k.has('q')) x -= 1;
       if (k.has('d') || k.has('arrowright')) x += 1;
       if (this.stick.id !== null) { x += this.stick.x; y += this.stick.y; }
+      x += PAD.x; y += PAD.y;
+      this.look.dx += PAD.lx; this.look.dy += PAD.ly;
     }
+    PAD.lx = PAD.ly = 0;
     const l = Math.hypot(x, y);
     if (l > 1) { x /= l; y /= l; }
     this.move.x = x; this.move.y = y;

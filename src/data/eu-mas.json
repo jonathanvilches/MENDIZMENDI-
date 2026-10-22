@@ -1422,5 +1422,22 @@
  "De paseo": "Paseoan",
  "El tiempo que hace": "Eguraldia",
  "Palabras de los vecinos": "Herritarren hitzak",
- "Saluda a los vecinos: cada uno te enseña una palabra en euskera de lo que está haciendo y te pregunta si la recuerdas.": "Agurtu herritarrak: bakoitzak egiten ari denari buruzko euskarazko hitz bat irakatsiko dizu, eta gogoratzen duzun galdetuko dizu."
+ "Saluda a los vecinos: cada uno te enseña una palabra en euskera de lo que está haciendo y te pregunta si la recuerdas.": "Agurtu herritarrak: bakoitzak egiten ari denari buruzko euskarazko hitz bat irakatsiko dizu, eta gogoratzen duzun galdetuko dizu.",
+ "Mando en el móvil": "Mugikorra aginte gisa",
+ "Usa el móvil como mando, sin instalar nada. Funciona con Android y con iPhone.": "Erabili mugikorra aginte gisa, ezer instalatu gabe. Android eta iPhonearekin dabil.",
+ "Conecta el móvil a la misma wifi que el ordenador.": "Konektatu mugikorra ordenagailuaren wifi berera.",
+ "Abre la cámara del móvil y apunta al código.": "Ireki mugikorraren kamera eta zuzendu kodera.",
+ "O entra en esta dirección y escribe el código:": "Edo sartu helbide honetan eta idatzi kodea:",
+ "Pon el móvil en horizontal y ¡a jugar!": "Jarri mugikorra etzanda, eta jolastera!",
+ "Preparando el código…": "Kodea prestatzen…",
+ "Esperando al móvil…": "Mugikorraren zain…",
+ "¡Mando conectado!": "Agintea konektatuta!",
+ "El móvil se ha desconectado. Puede volver a conectarse con el mismo código.": "Mugikorra deskonektatu da. Kode berarekin berriro konekta daiteke.",
+ "No se puede preparar el mando: comprueba la conexión a internet del ordenador.": "Ezin da agintea prestatu: begiratu ordenagailuaren interneteko konexioa.",
+ "Desconectar el mando": "Deskonektatu agintea",
+ "Mando del móvil": "Mugikorreko agintea",
+ "Usar el móvil como mando": "Erabili mugikorra aginte gisa",
+ "El móvil hace de mando por la wifi, sin instalar nada: el ordenador te enseña un código para escanearlo con la cámara.": "Mugikorra aginte bihurtzen da wifiaren bidez, ezer instalatu gabe: ordenagailuak kode bat erakutsiko dizu kamerarekin eskaneatzeko.",
+ "Código QR del mando": "Agintearen QR kodea",
+ "También vale un mando de consola.": "Kontsolako agintea ere balio du."
 }

@@ -8,7 +8,9 @@ export const mini3d = () => (M3 ||= import('./mini3d/index.js').catch(e => { M3 
 // juega uno de ellos (milkGame, forgeGame…); si no se puede descargar, el paso no bloquea: vuelve con «error»
 export async function play3d(name, ui, opts) {
   let M; try { M = await mini3d(); } catch (e) { console.error('minijuego 3D no disponible', e); return { error: true }; }
-  return M[name](ui, opts);
+  // (el mando del móvil y los de verdad ponen los botones de este juego: mando/contextos.js)
+  document.body.dataset.mini3d = name;
+  try { return await M[name](ui, opts); } finally { delete document.body.dataset.mini3d; }
 }
 
 const shuffle = (a, rnd = Math.random) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
