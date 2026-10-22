@@ -116,7 +116,7 @@ const CSS = `
   .pel-card>.pel-lbl{display:none}
   .pel-card>.pel-levels{flex:3 1 0;min-width:0;margin:0;align-self:center;flex-wrap:nowrap}.pel-card>.pel-levels button{min-width:0;min-height:44px}
   .pel-card>.pel-levels+.pel-row{flex:2 1 0;min-width:0;align-self:center}.pel-card>.pel-levels+.pel-row .pel-go{min-height:44px}
-  .pel-card>.pel-court{margin-bottom:8px}.pel-card>.pel-lv5 button{padding:4px 4px;font-size:var(--fs-xs);overflow-wrap:anywhere}
+  .pel-card>.pel-court{margin-bottom:8px}.pel-card>.pel-lv5 button{flex:1 1 auto;min-width:max-content;padding:4px 6px;font-size:var(--fs-xs);text-transform:none;letter-spacing:0}   /* (cada nivel entero: «Iniciación» no se parte; cada botón del ancho de su nombre) */
   .pel-card>.pel-mod{flex:1 1 100%;margin:0 0 8px}.pel-card>.pel-mod button{min-height:44px;padding:4px 8px}.pel-card>.pel-pairs{margin-bottom:8px;font-size:var(--fs-xs)}
   .pel-card.opts>.pel-sub{display:none}.pel-opts{display:contents}.pel-card.opts>h2{align-self:center;margin-bottom:8px}
   .pel-otabs{flex:1 1 0;min-width:0;margin-bottom:8px}.pel-opane{flex:1 1 100%}.pel-opane .pel-mod{margin-bottom:8px}.pel-opane .pel-mod button{min-height:44px;padding:4px 8px}.pel-opane .pel-pairs{margin:0 0 8px;font-size:var(--fs-xs)}
