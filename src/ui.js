@@ -1,7 +1,7 @@
 // Interfaz en partida: HUD, diálogos con retrato, cuaderno, mapa, menú, premios, prismáticos y ritmo.
 // Todos los iconos son de la familia del juego: los horneados (src/assets/icons3d) y, si falta alguno, los dibujos de src/ui/icons.js.
 import { RIBBONS, QUESTS, CARDS, SPECIES_OBS, EGUZKILORES } from './game/content.js';
-import { HITZAK, HITZAK_TEMA, HITZAK_N } from './data/hitzak.js';
+import { HITZAK, HITZAK_TEMA, HITZAK_N, HIZKETAK, HIZKETAK_N, hizketaLines } from './data/hitzak.js';
 import { HALF, N, PLACES } from './world/layout.js';
 import { H, SURF } from './world/heightfield.js';
 import { clamp } from './util/math.js';
@@ -382,11 +382,16 @@ export class UI {
         body.querySelectorAll('.card').forEach(x => x.onclick = () => { if (!x.classList.contains('locked')) { x.classList.toggle('flip'); this.sound.ui('click'); } });
       } else if (t === 'hitzak') {
         // las palabras en euskera que enseñan los vecinos: las que sabes, con una estrella si la acertaste; de las que
-        // faltan se ve el castellano, para saber qué buscar (las dos columnas, sin pasar por el traductor)
-        const K = g.P.hitzak || {}, n = Object.values(HITZAK).flat().filter(([eu]) => K[eu]).length;
+        // faltan se ve el castellano, para saber qué buscar (las dos columnas, sin pasar por el traductor); y debajo, las
+        // conversaciones: lo que te dicen y lo que se contesta
+        const K = g.P.hitzak || {}, n = Object.values(HITZAK).flat().filter(([eu]) => K[eu]).length, H = g.P.hizketak || {}, nh = HIZKETAK.filter(h => H[h.id]).length;
         body.innerHTML = `<div class="tprog"><div class="bar"><i style="width:${n / HITZAK_N * 100}%"></i></div><span>${n} de ${HITZAK_N} palabras</span></div>
           <p class="keys">Saluda a los vecinos: cada uno te enseña una palabra en euskera de lo que está haciendo y te pregunta si la recuerdas.</p>
-          ${Object.entries(HITZAK).map(([k, L]) => `<div class="sectionT">${esc(HITZAK_TEMA[k])}</div><table class="hz-voc"><tbody>${L.map(([eu, es]) => `<tr class="${K[eu] ? '' : 'lk'}"><th data-notr lang="eu">${K[eu] ? esc(eu) : '¿?'}</th><td data-notr lang="es">${esc(es)}</td><td class="hz-ok">${K[eu] > 1 ? I('star', 18) : ''}</td></tr>`).join('')}</tbody></table>`).join('')}`;
+          ${Object.entries(HITZAK).map(([k, L]) => `<div class="sectionT">${esc(HITZAK_TEMA[k])}</div><table class="hz-voc"><tbody>${L.map(([eu, es]) => `<tr class="${K[eu] ? '' : 'lk'}"><th data-notr lang="eu">${K[eu] ? esc(eu) : '¿?'}</th><td data-notr lang="es">${esc(es)}</td><td class="hz-ok">${K[eu] > 1 ? I('star', 18) : ''}</td></tr>`).join('')}</tbody></table>`).join('')}
+          <div class="sectionT">Conversaciones</div><div class="tprog"><div class="bar"><i style="width:${nh / HIZKETAK_N * 100}%"></i></div><span>${nh} de ${HIZKETAK_N} conversaciones</span></div>
+          <p class="keys">Cuando ya sabes unas cuantas palabras, los vecinos te hablan en euskera y eliges qué contestar.</p>
+          ${HIZKETAK.map(h => { const [[aEu, aEs], [oEu, oEs]] = hizketaLines(h).map(([eu, es]) => [eu.replace('{izena}', g.P.name || 'Mendi'), es.replace('{izena}', g.P.name || 'Mendi')]), v = H[h.id];
+            return `<table class="hz-voc hz-conv ${v ? '' : 'lk'}"><tbody><tr><th data-notr lang="eu">${v ? esc(aEu) : '¿?'}</th><td data-notr lang="es">${esc(aEs)}</td><td class="hz-ok" rowspan="2">${v > 1 ? I('star', 18) : ''}</td></tr><tr><th data-notr lang="eu">${v ? '› ' + esc(oEu) : '¿?'}</th><td data-notr lang="es">${v ? esc(oEs) : ''}</td></tr></tbody></table>`; }).join('')}`;
       } else {
         const C = c?.culture || {};
         const block = (ic, k, o) => o ? `<div class="cult">${I(ic, 44)}<div><small>${k}${o.date ? ' · ' + esc(o.date) : ''}</small><b>${esc(o.title)}</b><p>${esc(o.text)}</p></div></div>` : '';
@@ -542,7 +547,7 @@ export class UI {
     const g = this.game, st = g.state, town = g.kind === 'town';
     const S = town ? g.P.settings : st.settings;
     const s = this.screen(`<header><h2>${I('gear', 30)} Pausa</h2>${this.closeBtn()}</header><div class="pbody">
-      <div class="btns col top"><button class="btn primary close">${I('play', 22)} Seguir jugando</button><button class="btn" id="mHome">${I('plaza', 22)} Ir a la plaza de ${esc(town ? g.def.name.split(' /')[0] : 'Otsagabia')}</button><button class="btn" id="mExit">${I('map', 22)} Salir al mapa de Navarra</button>${this.input.touch ? '' : `<button class="btn" id="mPad">${I('mando', 22)} Usar el móvil como mando</button>`}${town ? '' : `<button class="btn danger" id="mReset">${I('close', 20)} Borrar partida del valle</button>`}</div>
+      <div class="btns col top"><button class="btn primary close">${I('play', 22)} Seguir jugando</button><button class="btn" id="mHome">${I('plaza', 22)} Ir a la plaza de ${esc(town ? g.def.name.split(' /')[0] : 'Otsagabia')}</button><button class="btn" id="mExit">${I('map', 22)} Salir al mapa de Navarra</button>${this.input.touch ? '' : `<button class="btn" id="mPad">${I('control', 22)} Usar el móvil como mando</button>`}${town ? '' : `<button class="btn danger" id="mReset">${I('close', 20)} Borrar partida del valle</button>`}</div>
       <label>Música <input type="checkbox" id="mMusic" ${S.music ? 'checked' : ''}></label>
       <label>Volumen <input type="range" id="mVol" min="0" max="1" step="0.05" value="${S.volume}"></label>
       <label>Calidad gráfica <select id="mQ"><option value="low">Baja (más fluido)</option><option value="mid">Media</option><option value="high">Alta</option></select></label>

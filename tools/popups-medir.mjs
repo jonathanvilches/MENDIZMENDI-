@@ -1,11 +1,12 @@
 // Pop-ups medidos (no solo fotos): en tamaños de iPhone y iPad abre cada ventana del juego (pueblo, minijuegos, pelota,
 // fútbol, liga y torneo) y anota lo que en el móvil se vería mal: algo que se sale de la pantalla sin poder desplazarse,
 // contenido cortado (sin barra), texto que no cabe en su caja, botones de menos de 36 px, botones encima de otros y letra
-// de menos de 11 px. Guarda una foto de cada uno. Uso: node tools/popups-medir.mjs [carpeta] [tamaños]
+// de menos de 11 px, y palabras partidas o cortadas con «…» (tools/palabras-medir.mjs). Guarda una foto de cada uno. Uso: node tools/popups-medir.mjs [carpeta] [tamaños]
 import { chromium } from 'playwright-core';
 import { iphone } from './iphone.mjs';
 import { casos, cargarModulos } from './ventanas-casos.mjs';
 import { mkdirSync, writeFileSync } from 'fs';
+import { PALABRAS } from './palabras-medir.mjs';
 const [,, out = 'entrega/popups-medidos', sizes = '667x375,844x390,932x430,1180x820,390x844'] = process.argv; mkdirSync(out, { recursive: true });
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const MEDIR = (hud) => {
@@ -68,7 +69,7 @@ for (const sz of sizes.split(',')) {
   const [W, H] = sz.split('x').map(Number), touch = Math.min(W, H) < 900;
   const ctx = await b.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: touch ? 2 : 1, isMobile: touch && W < 1000, hasTouch: touch });
   const p = await ctx.newPage(); await iphone(p); const errs = []; p.on('pageerror', e => errs.push(e.message));
-  await p.addInitScript(() => { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'pelotari', seen: { heroBenat: true, dog: true }, settings: { quality: 'low' } })); });
+  await p.addInitScript((IDIOMA) => { localStorage.setItem('mendimendiz-lang', IDIOMA); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'pelotari', seen: { heroBenat: true, dog: true }, settings: { quality: 'low' } })); }, process.env.IDIOMA || 'es');   // (IDIOMA=eu: en euskera)
   try {   // (un tamaño que no carga se anota y no para los demás)
     await p.goto(`${process.env.URL || 'http://127.0.0.1:5173/'}?town=lumbier&q=low&weather=clear&skipintro=1&noflora`, { timeout: 300000 });
     await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 500000 });
@@ -84,6 +85,7 @@ for (const sz of sizes.split(',')) {
       await p.waitForTimeout(k === 'ficha' || k === 'mapa' ? 2500 : 700);
       await p.evaluate(() => document.getAnimations().forEach(a => { try { a.finish(); } catch (e) { } }));
       const r = await p.evaluate(MEDIR, k === 'hud');
+      if (r.roots) r.issues.push(...await p.evaluate(PALABRAS, k === 'hud' ? '#ui' : '.champ,.screen,#reward,#dialog,.mg-overlay,.fb-panel,.pel-panel,.lg-root,.tn-root,.fb-msg.on,.pel-call.on,.modal,[role=dialog]'));   // (y ninguna palabra partida ni cortada)
       report[sz][k] = r.roots ? r.issues : [['sin ventana', '', '']];
       await p.screenshot({ path: `${out}/${sz}-${k}.png` });
     } catch (e) { report[sz][k] = [['error', String(e.message).slice(0, 140), '']]; }

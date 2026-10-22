@@ -43,6 +43,6 @@ const norma = (cuantas, que) => [
 const bloque = (lista) => lista.map((s, i) => [`${i + 1}. ${s.h.replace(/^\d+[a-z]?\.\s*/, '').replace('Iconos que no son tuyos', 'Iconos para sustituir').replace('Instrumentos sin original grande', 'Instrumento').toUpperCase()}`, '', cuerpo(s), '']).flat();
 const cuenta = (lista) => lista.reduce((a, s) => a + n(s.h), 0);
 writeFileSync(outTodo, [...norma(cuenta(util), 'IMÁGENES'), ...bloque(util)].join('\n').trim() + '\n');
-const iconos = util.filter(s => /Iconos|Instrumento/.test(s.h));
+const iconos = util.filter(s => /Iconos|Instrumento|Trofeos/.test(s.h));
 writeFileSync(outIconos, [...norma(cuenta(iconos), 'ICONOS'), ...bloque(iconos)].join('\n').trim() + '\n');
 console.log(JSON.stringify({ todo: cuenta(util), iconos: cuenta(iconos), apartados: util.map(s => s.h) }));

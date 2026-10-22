@@ -18,6 +18,7 @@ import { Runtime } from './engine/runtime.js';
 import { Input } from './input.js';
 import { Sound } from './audio.js';
 import { UI } from './ui.js';
+import { vigilaEncaje } from './ui/encaje.js';
 import { Hub } from './hub/hub.js';
 import { isDidactico } from './util/modo.js';
 import { Game } from './game/game.js';
@@ -97,6 +98,7 @@ async function boot() {
   const input = new Input(canvas);
   const sound = new Sound();
   const ui = new UI(input, sound);
+  vigilaEncaje();   // (ninguna palabra partida ni cortada con «…»: src/ui/encaje.js)
   const P = profile();
   // calidad automática: ordenador alta; móvil baja (en iPhone no se puede saber la memoria y Safari cierra la página
   // si se pasa), salvo móviles que dicen tener mucha memoria (6 GB o más), que van en media
