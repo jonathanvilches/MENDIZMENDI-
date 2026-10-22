@@ -5,7 +5,7 @@
 // Al móvil se le cuenta en qué se está (contextos.js) para que enseñe los botones de cada momento: los del pueblo, los de
 // la pelota o el fútbol y, en cada minijuego, una copia de sus botones de la pantalla, con un panel táctil para lo demás.
 // La sesión sigue abierta al pasar del menú al pueblo y vuelta: el móvil se puede volver a conectar con el mismo código.
-import { senal, ICE, SENAL_PRUEBA, SIN_P2P, CAMINOS } from './senal.js';
+import { senal, ICE, SENAL_PRUEBA, SIN_P2P, CAMINOS, nuevoSecreto } from './senal.js';
 import { PAD, VPAD, mandoMovil, botonMovil } from './pad.js';
 import { ctxActual, ctxMovil } from './contextos.js';
 import { mueve, clic, rueda, pulsar } from './cursor.js';
@@ -14,7 +14,9 @@ import { el } from '../util/html.js';
 
 const WEB = 'https://jonathanvilches.github.io/MENDIZMENDI-/';
 const LETRAS = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';   // (sin 0/O ni 1/I/L, que se confunden al escribirlos)
-const S = { code: '', sig: null, pc: null, dc: null, relevo: false, vivo: 0, estado: 'nada', ctx: '', t: 0, movil: '', ui: null, pill: null, vias: {}, otra: 0 };
+// (secreto: el del QR; fuerte: si el móvil que manda llegó con él o con el código escrito a mano; pide: la oferta de un
+// móvil que escribió el código y espera permiso; dejados y vetados: los que se aceptaron o se rechazaron)
+const S = { code: '', secreto: '', sig: null, pc: null, dc: null, relevo: false, vivo: 0, estado: 'nada', ctx: '', t: 0, movil: '', fuerte: false, pide: null, dejados: new Set(), vetados: new Set(), ui: null, pill: null, vias: {}, otra: 0 };
 
 const CSS = `
 .mnd-ov{position:fixed;inset:0;z-index:9500;display:grid;place-items:center;padding:16px;background:rgba(7,2,15,.72);font-family:Nunito,system-ui,sans-serif;color:#f6f3fc}
@@ -34,6 +36,9 @@ const CSS = `
 .mnd-vias{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:-8px 0 0;color:#cbc2e0;font-size:var(--fs-xs,12px);font-weight:800}
 .mnd-vias span{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border-radius:4px;background:rgba(255,255,255,.06)}
 .mnd-vias span::before{content:'';width:8px;height:8px;border-radius:50%;background:#f2c230}.mnd-vias .ok::before{background:#3ee07a}.mnd-vias .mal::before{background:#ff5d5d}
+.mnd-pide{grid-column:1/-1;display:grid;gap:12px;margin:0;padding:16px;border-radius:8px;background:rgba(242,194,48,.12);border:1px solid rgba(242,194,48,.45)}.mnd-pide[hidden]{display:none}
+.mnd-pide p{margin:0;font-weight:800;line-height:1.4}.mnd-pide div{display:flex;flex-wrap:wrap;gap:12px;justify-content:flex-end}
+.mnd-pide button{min-height:44px;padding:8px 20px;border-radius:4px;border:1px solid rgba(201,178,255,.35);background:rgba(255,255,255,.08);color:#fff;font:800 var(--fs-md,16px) Nunito,sans-serif;cursor:pointer}.mnd-pide button.go{border:0;background:linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7)}
 .mnd-bts{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:12px;justify-content:flex-end}
 .mnd-bts button{min-height:44px;padding:8px 20px;border-radius:4px;border:1px solid rgba(201,178,255,.35);background:rgba(255,255,255,.08);color:#fff;font:800 var(--fs-md,16px) Nunito,sans-serif;cursor:pointer}
 .mnd-bts button.go{border:0;background:linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7)}
@@ -50,7 +55,7 @@ const css = () => { if (cssOn) return; cssOn = true; const s = document.createEl
 function urlMando() {
   const q = new URLSearchParams(location.search);
   const base = q.get('mandoweb') || (/^https?:$/.test(location.protocol) && !/claude|usercontent/.test(location.hostname) ? new URL('./', location.href).href : WEB);
-  return `${base}mando/index.html${SENAL_PRUEBA ? '?' + SENAL_PRUEBA : ''}#${S.code}`;   // (con index.html: el servidor de pruebas, sin él, da la portada del juego)
+  return `${base}mando/index.html${SENAL_PRUEBA ? '?' + SENAL_PRUEBA : ''}#${S.code}.${S.secreto}`;   // (con index.html: el servidor de pruebas, sin él, da la portada del juego; detrás del «#», que no va a ningún servidor, el secreto)
 }
 
 // ---------- la conexión ----------
@@ -58,8 +63,8 @@ async function empezar() {
   if (S.sig || S.estado === 'prep') return;
   S.estado = 'prep'; clearTimeout(S.otra);
   for (let n = 0; n < 4 && !S.sig; n++) {
-    S.code = Array.from({ length: 5 }, () => LETRAS[Math.floor(Math.random() * LETRAS.length)]).join(''); pinta();   // (el QR, ya)
-    try { S.sig = await senal('hzh-' + S.code, recibe, () => { S.sig = null; if (S.estado !== 'ok') { S.estado = 'mal'; pinta(); otraVez(); } }, (v) => { S.vias = v; pinta(); }); }
+    S.code = [...crypto.getRandomValues(new Uint32Array(5))].map(x => LETRAS[x % LETRAS.length]).join(''); S.secreto = nuevoSecreto(); pinta();   // (el QR, ya)
+    try { S.sig = await senal('hzh-' + S.code, recibe, () => { S.sig = null; if (S.estado !== 'ok') { S.estado = 'mal'; pinta(); otraVez(); } }, (v) => { S.vias = v; pinta(); }, S.secreto); }
     catch (e) { if (e.message !== 'ID-TAKEN') break; }   // (nombre cogido: otro código)
   }
   S.estado = S.sig ? 'espera' : 'mal'; pinta(); if (!S.sig) otraVez();
@@ -71,24 +76,26 @@ function cerrarPc() { try { S.dc?.close(); } catch (e) { } try { S.pc?.close(); 
 async function recibe(m) {
   // (el mando por el saludo, cuando no han podido hablar directamente: el móvil lo pide mandando por aquí)
   if (m.type === 'DATA') {
-    if (m.src !== S.movil || !m.payload) return;
+    if (m.src !== S.movil || m.fuerte !== S.fuerte || !m.payload) return;   // (solo el móvil aceptado, con su misma clave)
     S.vivo = performance.now();
     if (!S.relevo && S.dc?.readyState !== 'open') { S.relevo = true; listo(); }
     usa(m.payload); return;
   }
   if (m.type === 'OFFER' && m.payload?.sdp) {
+    // (quien escribió el código a mano, con permiso: se pregunta en el panel; con el QR se entra directamente)
+    if (!m.fuerte && !S.dejados.has(m.src)) { if (!S.vetados.has(m.src)) { S.pide = m; if (!S.ui) abrirMando(); else pinta(); } return; }
     cerrarPc();   // (un móvil nuevo, o el mismo que vuelve: se queda el último)
-    S.movil = m.src; if (S.estado !== 'ok') { S.estado = 'llama'; pinta(); }
+    S.movil = m.src; S.fuerte = m.fuerte; if (S.estado !== 'ok') { S.estado = 'llama'; pinta(); }
     const pc = S.pc = new RTCPeerConnection({ iceServers: ICE, ...(SIN_P2P ? { iceTransportPolicy: 'relay' } : {}) }); let dicho = false;
-    pc.onicecandidate = (e) => { if (e.candidate && dicho) S.sig?.send(m.src, 'CANDIDATE', { candidate: e.candidate.toJSON() }); };   // (las que lleguen tarde)
+    pc.onicecandidate = (e) => { if (e.candidate && dicho) S.sig?.send(m.src, 'CANDIDATE', { candidate: e.candidate.toJSON() }, m.fuerte); };   // (las que lleguen tarde)
     pc.onconnectionstatechange = () => { if (pc === S.pc && !S.relevo && ['failed', 'closed', 'disconnected'].includes(pc.connectionState)) caido(); };
     pc.ondatachannel = (e) => abre(e.channel);
     await pc.setRemoteDescription(m.payload.sdp);
     const a = await pc.createAnswer(); await pc.setLocalDescription(a);
     await rutas(pc);   // (la respuesta, con las rutas de red dentro: por un camino de reserva no se pierde ninguna)
     if (pc !== S.pc) return;
-    S.sig?.send(m.src, 'ANSWER', { sdp: pc.localDescription.toJSON() }); dicho = true;
-  } else if (m.type === 'CANDIDATE' && m.src === S.movil && S.pc && m.payload?.candidate) {
+    S.sig?.send(m.src, 'ANSWER', { sdp: pc.localDescription.toJSON() }, m.fuerte); dicho = true;
+  } else if (m.type === 'CANDIDATE' && m.src === S.movil && m.fuerte === S.fuerte && S.pc && m.payload?.candidate) {
     try { await S.pc.addIceCandidate(m.payload.candidate); } catch (e) { }
   }
 }
@@ -102,8 +109,8 @@ function abre(dc) {
   dc.onmessage = (e) => { let m; try { m = JSON.parse(e.data); } catch (er) { return; } usa(m); };
 }
 // conectado: el panel lo dice, el móvil recibe el idioma y sus botones, y el panel se cierra solo
-function listo() { S.estado = 'ok'; S.ctx = ''; mandoMovil(true); envia({ t: 'hola', lang: isEU() ? 'eu' : 'es' }); pinta(); setTimeout(() => { if (S.estado === 'ok') cierraPanel(); }, 1600); }
-const envia = (m) => { if (S.dc?.readyState === 'open') S.dc.send(JSON.stringify(m)); else if (S.relevo && S.movil) S.sig?.send(S.movil, 'DATA', m); };
+function listo() { S.estado = 'ok'; S.ctx = ''; mandoMovil(true); envia({ t: 'hola', lang: isEU() ? 'eu' : 'es' }); pinta(); setTimeout(() => { if (S.estado === 'ok' && !S.pide) cierraPanel(); }, 1600); }
+const envia = (m) => { if (S.dc?.readyState === 'open') S.dc.send(JSON.stringify(m)); else if (S.relevo && S.movil) S.sig?.send(S.movil, 'DATA', m, S.fuerte); };
 // (por el saludo no hay aviso de corte: si el móvil no dice nada en 8 s —manda señal cada 2—, se ha ido)
 setInterval(() => { if (S.relevo && S.estado === 'ok' && performance.now() - S.vivo > 8000) caido(); }, 2000);
 /** Lo que manda el móvil: la palanca, el giro de cámara, los botones del mando, los botones copiados de la pantalla y el
@@ -154,6 +161,7 @@ function pinta() {
   // (los servidores con que se presentan el ordenador y el móvil: cuáles contestan, para saber qué pasa si no conecta)
   o.querySelector('.mnd-vias').innerHTML = CAMINOS.map(c => `<span class="${S.vias[c.n] || ''}">${c.n}</span>`).join('');
   o.querySelector('[data-off]').hidden = !S.sig;
+  o.querySelector('.mnd-pide').hidden = !S.pide;
 }
 function cierraPanel() { S.ui?.remove(); S.ui = null; removeEventListener('keydown', teclas, true); }
 const teclas = (e) => { if (e.key === 'Escape' && e.isTrusted) { e.stopImmediatePropagation(); cierraPanel(); } };
@@ -178,10 +186,14 @@ export function abrirMando() {
       <li>O entra en esta dirección y escribe el código:<span class="mnd-url" data-notr></span><span class="mnd-code" data-notr></span></li><li>Pon el móvil en horizontal y ¡a jugar!</li></ol>
     <p class="mnd-est"><i></i><span></span></p>
     <p class="mnd-vias" data-notr aria-label="Servidores"></p>
+    <div class="mnd-pide" hidden><p>Un móvil ha escrito el código a mano y quiere ser el mando. ¿Es el tuyo?</p><div><button data-no>No, no lo conozco</button><button class="go" data-si>Sí, dejarle</button></div></div>
     <div class="mnd-bts"><button data-off>Desconectar el mando</button><button class="go" data-close>Cerrar</button></div></div></div>`);
   document.body.appendChild(o);
   o.addEventListener('click', (e) => { if (e.target === o || e.target.closest('[data-close]')) cierraPanel(); });
   o.querySelector('[data-off]').onclick = () => terminar();
+  // (el permiso para quien escribió el código a mano: sí, entra como si hubiera llegado ahora; no, ya no se le escucha)
+  o.querySelector('[data-si]').onclick = () => { const m = S.pide; S.pide = null; if (m) { S.dejados.add(m.src); recibe(m); } pinta(); };
+  o.querySelector('[data-no]').onclick = () => { if (S.pide) S.vetados.add(S.pide.src); S.pide = null; pinta(); };
   addEventListener('keydown', teclas, true);
   if (!S.pill) {
     S.pill = el('<button class="mnd-pill" hidden><i></i><span>Mando del móvil</span></button>');   // (amarillo: esperando al móvil)
@@ -192,8 +204,8 @@ export function abrirMando() {
 /** Termina la sesión: el móvil deja de mandar y el código deja de valer. */
 export function terminar() {
   envia({ t: 'adios' }); setTimeout(cerrarPc, 400);   // (que el adiós llegue antes de cortar)
-  S.sig?.close(); S.sig = null; S.code = ''; S.estado = 'nada'; S.vias = {}; clearTimeout(S.otra);
+  S.sig?.close(); S.sig = null; S.code = ''; S.secreto = ''; S.estado = 'nada'; S.vias = {}; S.pide = null; S.dejados.clear(); S.vetados.clear(); clearTimeout(S.otra);
   if (S.pill) S.pill.hidden = true; cierraPanel();
 }
 // (para las pruebas: el código y el estado)
-window.__mando = { get code() { return S.code; }, get estado() { return S.estado; }, abrir: abrirMando };
+window.__mando = { get code() { return S.code; }, get estado() { return S.estado; }, get url() { return urlMando(); }, get pide() { return !!S.pide; }, abrir: abrirMando };
