@@ -119,7 +119,9 @@ export const LAMINAS = [
 ];
 
 // la lámina del pueblo que recuerda cada cuento: solo se usa si falta su ilustración propia (src/assets/leyendas)
-export const CUENTO_LAMINA = { aralar: 'lekunberri-cadenas', ujue: 'ujue-paloma', estella: 'estella-estrellas', txori: 'puente-txori', cristo: 'javier-camino', leon: 'olite-leon', amaiur: 'amaiur-noche', olentzero: 'etxalar-olentzero', vacas: 'isaba-vacas', muskilda: 'otsagabia-roble', almadias: 'burgui-almadia', velasco: 'marcilla' };
+export const CUENTO_LAMINA = { aralar: 'lekunberri-cadenas', ujue: 'ujue-paloma', estella: 'estella-estrellas', txori: 'puente-txori', cristo: 'javier-camino', leon: 'olite-leon', amaiur: 'amaiur-noche', olentzero: 'etxalar-olentzero', vacas: 'isaba-vacas', muskilda: 'otsagabia-roble', almadias: 'burgui-almadia', velasco: 'marcilla',
+  brujas: 'zugarramurdi', lamias: 'elizondo-xorroxin', joaldunak: 'ituren', errolan: 'leitza-harrijasotzaile', jentilak: 'c-sakana', cernin: 'pamplona', mano: 'irulegi-mano',
+  ciervo: 'orreaga-roncesvalles', fabrica: 'aribe-carbonera', espadas: 'aoiz', borgia: 'viana', jerusalen: 'artajona', pasadizo: 'tafalla', sanchicorrota: 'c-bardenas' };
 // la de los personajes de Navarra que no tienen ilustración propia (src/assets/personajes): Sancho, la colegiata donde
 // está enterrado; las golondrinas, la alpargatera
 export const PERSONAJE_LAMINA = { sancho: 'orreaga-roncesvalles', golondrinas: 'of-alpargatas' };
