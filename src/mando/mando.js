@@ -91,16 +91,27 @@ async function recibe(m) {
     pc.onconnectionstatechange = () => { if (pc === S.pc && !S.relevo && ['failed', 'closed', 'disconnected'].includes(pc.connectionState)) caido(); };
     pc.ondatachannel = (e) => abre(e.channel);
     await pc.setRemoteDescription(m.payload.sdp);
+    for (const c of antes.get(m.src) || []) if (c.fuerte === m.fuerte) { try { await pc.addIceCandidate(c.payload.candidate); } catch (e) { } }
+    antes.delete(m.src);
     const a = await pc.createAnswer(); await pc.setLocalDescription(a);
-    await rutas(pc);   // (la respuesta, con las rutas de red dentro: por un camino de reserva no se pierde ninguna)
+    await rutas(pc, 800);   // (la respuesta, con las rutas de red que haya dentro; las que salgan después van sueltas)
     if (pc !== S.pc) return;
     S.sig?.send(m.src, 'ANSWER', { sdp: pc.localDescription.toJSON() }, m.fuerte); dicho = true;
-  } else if (m.type === 'CANDIDATE' && m.src === S.movil && m.fuerte === S.fuerte && S.pc && m.payload?.candidate) {
-    try { await S.pc.addIceCandidate(m.payload.candidate); } catch (e) { }
+  } else if (m.type === 'CANDIDATE' && m.payload?.candidate) {
+    if (m.src === S.movil && m.fuerte === S.fuerte && S.pc) { try { await S.pc.addIceCandidate(m.payload.candidate); } catch (e) { } }
+    else if (!S.vetados.has(m.src)) { let a = antes.get(m.src); if (!a) { a = []; antes.set(m.src, a); if (antes.size > 8) antes.delete(antes.keys().next().value); } if (a.length < 40) a.push(m); }
   }
 }
-// (espera a tener las rutas de red, como mucho 2,5 s)
-const rutas = (pc) => new Promise((ok) => { if (pc.iceGatheringState === 'complete') return ok(); const t = setTimeout(ok, 2500); pc.addEventListener('icegatheringstatechange', () => { if (pc.iceGatheringState === 'complete') { clearTimeout(t); ok(); } }); });
+// (las rutas de red de un móvil que llegan antes que su oferta, por un camino más rápido, o mientras se le pide permiso)
+const antes = new Map();
+// (espera a tener las rutas de red: todas, o alguna de fuera de casa, o como mucho ms)
+const rutas = (pc, ms) => new Promise((ok) => {
+  const ya = () => pc.iceGatheringState === 'complete' || / typ (srflx|relay) /.test(pc.localDescription?.sdp || '');
+  if (ya()) return ok();
+  const fin = () => { clearTimeout(t); pc.removeEventListener('icecandidate', mira); pc.removeEventListener('icegatheringstatechange', mira); ok(); };
+  const mira = () => { if (ya()) fin(); }, t = setTimeout(fin, ms);
+  pc.addEventListener('icecandidate', mira); pc.addEventListener('icegatheringstatechange', mira);
+});
 function caido() { if (S.estado !== 'ok') return; cerrarPc(); S.estado = S.sig ? 'caido' : 'mal'; pinta(); if (!S.sig) otraVez(); }
 function abre(dc) {
   S.dc = dc;
@@ -128,7 +139,10 @@ function usa(m) {
   else if (m.t === 'cur') mueve(n(m.dx, 400) * 1.8, n(m.dy, 400) * 1.8);
   else if (m.t === 'clic') clic();
   else if (m.t === 'rueda') rueda(n(m.dy, 600) * 2);
-  else if (m.t === 'jugar') { const b = [...document.querySelectorAll('#hub [data-play]')].find(x => x.offsetWidth); b?.click(); }
+  else if (m.t === 'jugar') {   // (el botón de jugar del menú; si se está en otra pestaña, se va antes a Inicio, que lo tiene)
+    const jugar = () => [...document.querySelectorAll('#hub [data-play]')].find(x => x.offsetWidth), b = jugar();
+    if (b) b.click(); else { document.querySelector('#hub [data-s="home"]')?.click(); setTimeout(() => jugar()?.click(), 400); }
+  }
   else if (m.t === 'ping') envia({ t: 'pong', n: m.n });
 }
 
@@ -204,7 +218,7 @@ export function abrirMando() {
 /** Termina la sesión: el móvil deja de mandar y el código deja de valer. */
 export function terminar() {
   envia({ t: 'adios' }); setTimeout(cerrarPc, 400);   // (que el adiós llegue antes de cortar)
-  S.sig?.close(); S.sig = null; S.code = ''; S.secreto = ''; S.estado = 'nada'; S.vias = {}; S.pide = null; S.dejados.clear(); S.vetados.clear(); clearTimeout(S.otra);
+  S.sig?.close(); S.sig = null; S.code = ''; S.secreto = ''; S.estado = 'nada'; S.vias = {}; S.pide = null; S.dejados.clear(); S.vetados.clear(); antes.clear(); clearTimeout(S.otra);
   if (S.pill) S.pill.hidden = true; cierraPanel();
 }
 // (para las pruebas: el código y el estado)
