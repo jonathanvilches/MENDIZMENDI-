@@ -45,6 +45,9 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const r = e.request, u = new URL(r.url);
   if (r.method !== 'GET' || u.origin !== location.origin) return;
+  // (el mando del móvil, mando/, va siempre a la red: solo funciona con internet, y así nunca se guarda una copia vieja
+  // ni, sin red, se abre el juego en su lugar)
+  if (u.pathname.includes('/mando/')) return;
   if (u.pathname.includes('/assets/')) {
     // con huella: caché primero; lo que no esté se descarga y se guarda
     e.respondWith(caches.open(ASSETS).then(async c => (await c.match(r)) || fetch(r).then(res => { if (res.ok) c.put(r, res.clone()); return res; })));
