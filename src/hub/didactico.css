@@ -2,7 +2,7 @@
    El material para leer: bloques oscuros como los del armorial, con su rótulo, su título y el texto en párrafos cortos.
    Una columna en el móvil de pie; dos o tres en la tableta y el ordenador. */
 html.didactico #hub [data-play], html.didactico #hub [data-sport], html.didactico #hub [data-pasaka], html.didactico #hub [data-frpick] { display: none !important; }
-#hub .dd-chip .dd-chs { display: none; } @media (max-width: 700px) { #hub .dd-chip .dd-chl { display: none; } #hub .dd-chip .dd-chs { display: inline; } }
+#hub .dd-chip .dd-chs { display: none; } @media (max-width: 900px) { #hub .dd-chip .dd-chl { display: none; } #hub .dd-chip .dd-chs { display: inline; } }
 .dd-chip { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 4px 16px 4px 8px; border-radius: 40px; background: rgba(255, 255, 255, .08); border: 1px solid var(--line2); color: #fff; font-size: var(--fs-sm); white-space: nowrap; cursor: pointer; }
 /* portada */
 .dd-portada { display: grid; gap: 8px; padding: 16px 0 8px; }

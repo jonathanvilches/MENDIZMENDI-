@@ -2,11 +2,12 @@
 // y las ventanas de primera vez en 21 tamaños, del móvil plegado (280 px) a la pantalla de 2560, y mide lo que se vería
 // mal: desplazamiento de lado, algo que se sale de la pantalla sin poder llegar a ello, texto que no cabe en su caja,
 // contenido cortado sin barra, botones pequeños para el dedo (menos de 40 px en pantallas táctiles), letra de menos de
-// 12 px y botones encima de otros. Guarda la foto de cada pantalla con problemas (y de unas cuantas siempre).
+// 12 px, botones encima de otros y palabras partidas o cortadas con «…» (tools/palabras-medir.mjs). Guarda la foto de cada pantalla con problemas (y de unas cuantas siempre).
 // Uso: node tools/responsive.mjs [carpeta] [dispositivos] [pantallas]   (URL=http://127.0.0.1:5173/; dispositivos y
 //      pantallas, separados por comas: los nombres de DEV y de las listas de abajo; sin ellos, todos)
 import { chromium } from 'playwright-core';
 import { mkdirSync, writeFileSync } from 'fs';
+import { PALABRAS } from './palabras-medir.mjs';
 const [,, out = 'entrega/responsive', onlyDev = '', onlyScr = ''] = process.argv; mkdirSync(out, { recursive: true });
 const URL = process.env.URL || 'http://127.0.0.1:5173/';
 export const DEV = {
@@ -103,7 +104,7 @@ for (const [dev, [W, H, touch]] of Object.entries(DEV)) {
   const ctx = await b.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 1, isMobile: !!touch && Math.min(W, H) < 800, hasTouch: !!touch });
   const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
   try {
-  await p.addInitScript(() => { try { if (!sessionStorage.getItem('rs')) { sessionStorage.setItem('rs', 1); localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', age: 'nino', avatar: 'pelotari', xp: 900, seen: { heroBenat: true, dog: true }, cards: ['cuento:aralar', 'armas:navarra'], settings: { quality: 'low' } })); } } catch (e) { } });
+  await p.addInitScript((IDIOMA) => { try { if (!sessionStorage.getItem('rs')) { sessionStorage.setItem('rs', 1); localStorage.setItem('mendimendiz-lang', IDIOMA); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', age: 'nino', avatar: 'pelotari', xp: 900, seen: { heroBenat: true, dog: true }, cards: ['cuento:aralar', 'armas:navarra'], settings: { quality: 'low' } })); } } catch (e) { } }, process.env.IDIOMA || 'es');   // (IDIOMA=eu: todo en euskera, que tiene palabras más largas)
   await p.goto(URL, { timeout: 300000 }); await p.waitForFunction(() => window.__hub && window.__ready, null, { timeout: 300000 }); await p.waitForTimeout(1500);
     report[dev] = {};
   for (const [k, code] of [...JUEGO, ['__didactico', `H.setDidactico(true)`], ...DIDAC]) {
@@ -114,6 +115,7 @@ for (const [dev, [W, H, touch]] of Object.entries(DEV)) {
       await p.waitForTimeout(/ficha|visor|bienvenida/.test(k) ? 1600 : 900);
       await p.evaluate(() => document.getAnimations().forEach(a => { try { a.finish(); } catch (e) { } }));
       const iss = await p.evaluate(MEDIR, touch);
+      iss.push(...await p.evaluate(PALABRAS, '#hub, .mg-overlay, .onb, .lam-view, [role=dialog]'));   // (y ninguna palabra partida ni cortada)
       report[dev][k] = iss;
       if (iss.length || SIEMPRE.has(k)) await p.screenshot({ path: `${out}/${dev}-${W}x${H}-${k}.jpg`, quality: 60 });
     } catch (e) { report[dev][k] = [['error', String(e.message).slice(0, 160), '']]; }

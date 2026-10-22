@@ -742,7 +742,7 @@ export class Hub {
         <label class="set">Volumen <input type="range" id="pVol" min="0" max="1" step="0.05" value="${S.volume}"></label>
         <label class="set">Calidad gráfica <select id="pQ"><option value="auto">Automática</option><option value="low">Baja (más fluido)</option><option value="mid">Media</option><option value="high">Alta</option></select></label>
         <p class="hint">Controles: WASD o flechas para caminar, ratón para mirar, E para hablar, Espacio para saltar, Mayús para correr. En móvil: arrastra a la izquierda para caminar y a la derecha para mirar. También vale un mando de consola.</p>
-        ${matchMedia('(pointer:coarse)').matches ? '' : `<button class="btn" id="pPad">${I('mando', 22)} Usar el móvil como mando</button><p class="set-note">El móvil hace de mando por la wifi, sin instalar nada: el ordenador te enseña un código para escanearlo con la cámara.</p>`}
+        ${matchMedia('(pointer:coarse)').matches ? '' : `<button class="btn" id="pPad">${I('control', 22)} Usar el móvil como mando</button><p class="set-note">El móvil hace de mando por la wifi, sin instalar nada: el ordenador te enseña un código para escanearlo con la cámara.</p>`}
         <button class="btn danger" id="pReset">Borrar todo el progreso</button></div></section>`;
   }
 

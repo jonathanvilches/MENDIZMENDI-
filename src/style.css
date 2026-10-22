@@ -683,3 +683,6 @@ body.mg3d-on .learn-btn { bottom: auto; top: calc(env(safe-area-inset-top, 0px) 
 .hz-voc td { color: #cbc2e0; }
 .hz-voc .hz-ok { width: 28px; padding: 4px; }
 .hz-voc tr.lk th { color: rgba(255, 255, 255, .4); }
+/* (cada conversación, en su caja: lo que te dicen y, debajo, lo que se contesta) */
+.hz-conv { margin-bottom: 12px; border-radius: 8px; background: rgba(255, 255, 255, .04); }
+.hz-conv tr:last-child th, .hz-conv tr:last-child td { border-bottom: 0; } .hz-conv.lk th { color: rgba(255, 255, 255, .4); }

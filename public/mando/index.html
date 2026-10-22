@@ -37,7 +37,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
 /* ---------- el mando ---------- */
 #pad { position: fixed; inset: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0); }
 #top { display: flex; align-items: center; gap: 8px; padding: 8px 12px; min-width: 0; }
-#est { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; font-weight: 800; font-size: 14px; color: var(--lila); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#sup { display: flex; gap: 8px; flex: none; }
+#top.apretado { flex-wrap: wrap; row-gap: 4px; } #top.apretado #est { flex-basis: 100%; } #top.apretado .sm { min-width: 44px; padding: 4px 8px; }   /* (en el móvil plegado: el estado arriba y los botones debajo) */
+#est { display: flex; align-items: center; gap: 8px; flex: 1; font-weight: 800; font-size: 14px; line-height: 1.2; color: var(--lila); }
 #est i { flex: none; width: 10px; height: 10px; border-radius: 50%; background: #f2c230; }
 #est.ok i { background: var(--ok); }
 #est b { color: #fff; }
@@ -45,6 +47,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .sm.down, .sm.on { background: var(--cta); border-color: transparent; }
 .sm { display: inline-flex; align-items: center; gap: 6px; } .sm img, .bt img, #bR img { pointer-events: none; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .4)); }
 #bR { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.sm.ico span, .bt.ico span, #bR.ico span { display: none; }
 #zonas { position: relative; display: grid; grid-template-columns: 1fr 1fr; min-height: 0; }
 #izq, #der { position: relative; min-height: 0; touch-action: none; overflow: hidden; }
 #izq { border-right: 1px dashed rgba(201, 178, 255, .12); }
@@ -53,8 +56,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
 #base { position: absolute; width: 150px; height: 150px; margin: -75px 0 0 -75px; border-radius: 50%; border: 3px solid rgba(255, 255, 255, .25); background: rgba(255, 255, 255, .05); pointer-events: none; }
 #nub { position: absolute; left: 50%; top: 50%; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%; background: var(--cta); box-shadow: 0 0 18px rgba(255, 43, 214, .5); }
 /* los cuatro botones, en rombo abajo a la derecha, como en un mando */
-#bts { position: absolute; right: 16px; bottom: 16px; width: min(260px, 46vw); aspect-ratio: 1; pointer-events: none; }
-.bt { position: absolute; width: 38%; aspect-ratio: 1; display: grid; place-items: center; align-content: center; gap: 2px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .35); background: rgba(40, 16, 80, .88); font-weight: 900; font-size: 13px; line-height: 1.05; text-align: center; text-transform: uppercase; pointer-events: auto; touch-action: none; padding: 4px; overflow: hidden; overflow-wrap: anywhere; }
+#der { container-type: size; }   /* (los botones, del tamaño que deja su mitad: sin tapar la pista de arriba) */
+#bts { position: absolute; right: 16px; bottom: 16px; width: min(260px, calc(100cqw - 32px), calc(100cqh - 52px)); aspect-ratio: 1; pointer-events: none; }
+.bt { position: absolute; width: 38%; aspect-ratio: 1; display: grid; place-items: center; align-content: center; gap: 2px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .35); background: rgba(40, 16, 80, .88); font-weight: 900; font-size: 13px; line-height: 1.05; text-align: center; text-transform: uppercase; pointer-events: auto; touch-action: none; padding: 2px; }
+.bt span { max-width: 100%; white-space: nowrap; } .bt img { width: 42%; height: auto; }   /* (el icono, a la medida del círculo: en los pequeños deja sitio al nombre) */   /* (el nombre, entero: si no cabe, encaja() baja la letra o deja solo el icono) */
 .bt small { font-size: 11px; color: var(--lila); }
 .bt.down { transform: scale(.94); background: var(--cta); }
 .bt[data-b="0"] { left: 31%; bottom: 0; width: 42%; background: var(--cta); border-color: rgba(255, 255, 255, .6); font-size: 15px; }
@@ -64,16 +69,18 @@ button { font: inherit; color: inherit; cursor: pointer; }
 #bR { position: absolute; left: 16px; bottom: 16px; min-width: 96px; height: 56px; padding: 0 16px; border-radius: 28px; border: 2px solid rgba(255, 255, 255, .35); background: rgba(40, 16, 80, .88); font-weight: 900; font-size: 13px; text-transform: uppercase; touch-action: none; }
 #bR.down, #bR.on { background: var(--cta); }
 /* la copia de los botones del minijuego */
-#esp { position: absolute; inset: 8px; display: grid; grid-template-columns: 1fr; gap: 8px; align-content: center; overflow: auto; touch-action: pan-y; }
-#esp.dos { grid-template-columns: 1fr 1fr; }
-#esp button { min-height: 56px; padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(201, 178, 255, .45); background: rgba(40, 16, 80, .9); font-weight: 900; font-size: 15px; line-height: 1.15; text-align: center; overflow-wrap: anywhere; touch-action: none; }
+#esp { position: absolute; inset: 8px; display: grid; grid-template-columns: 1fr; gap: 8px; align-content: safe center; overflow: auto; touch-action: pan-y; }   /* (safe: si no caben, se llega al primero desplazando) */
+#esp.dos { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+@media (max-width: 360px) { #esp.dos { grid-template-columns: minmax(0, 1fr); } }   /* (en el móvil plegado, uno debajo de otro) */
+#esp button { min-height: 56px; padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(201, 178, 255, .45); background: rgba(40, 16, 80, .9); font-weight: 900; font-size: 15px; line-height: 1.15; text-align: center; touch-action: none; }
 #esp button:first-child { background: var(--cta); border-color: transparent; }
 #esp button.down { transform: scale(.97); filter: brightness(1.2); }
 #jugar { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; gap: 16px; padding: 16px; text-align: center; }
 #jugar p { margin: 0; max-width: 360px; color: var(--lila); font-size: 15px; line-height: 1.4; }
 #giro { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); padding: 6px 14px; border-radius: 999px; background: rgba(0, 0, 0, .5); color: var(--lila); font-size: 13px; font-weight: 800; pointer-events: none; white-space: nowrap; }
 @media (orientation: landscape) { #giro { display: none; } }
-@media (orientation: portrait) { #zonas { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; } #izq { border-right: 0; border-bottom: 1px dashed rgba(201, 178, 255, .12); } #bts { width: min(220px, 56vw); } #base { width: 120px; height: 120px; margin: -60px 0 0 -60px; } #nub { width: 52px; height: 52px; margin: -26px 0 0 -26px; } }
+@media (orientation: portrait) { #pad { grid-template-rows: auto minmax(0, 1fr) auto; } #giro { position: static; transform: none; justify-self: center; margin: 4px 0 8px; } }   /* (el aviso, en su línea: sin tapar el botón A) */
+@media (orientation: portrait) { #zonas { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; } #izq { border-right: 0; border-bottom: 1px dashed rgba(201, 178, 255, .12); } #base { width: 120px; height: 120px; margin: -60px 0 0 -60px; } #nub { width: 52px; height: 52px; margin: -26px 0 0 -26px; } }
 </style>
 </head>
 <body>
@@ -237,14 +244,37 @@ function pinta() {
   if (b[7]) { const nr = r.cloneNode(false); r.replaceWith(nr); nr.innerHTML = ico(7, 28) + '<span></span>'; nr.lastChild.textContent = T(b[7]); enlaza(nr, bt(7, 1), bt(7, 0), (C.fijo || []).includes(7)); }
   // derecha: los cuatro botones, la copia de los del minijuego o «¡A jugar!»
   const bts = $('#bts'); bts.innerHTML = '';
-  if (!esp.length) for (const i of [3, 2, 1, 0]) if (b[i]) { const x = document.createElement('button'); x.className = 'bt'; x.dataset.b = i; x.innerHTML = `${ico(i, 40)}<span></span><small>${'ABXY'[i]}</small>`; x.querySelector('span').textContent = T(b[i]); if (T(b[i]).length > 8) x.style.fontSize = '11px'; bts.appendChild(x);   // (los nombres largos, como Prismáticos, sin partirse)
+  if (!esp.length) for (const i of [3, 2, 1, 0]) if (b[i]) { const x = document.createElement('button'); x.className = 'bt'; x.dataset.b = i; x.innerHTML = `${ico(i, 40)}<span></span><small>${'ABXY'[i]}</small>`; x.querySelector('span').textContent = T(b[i]); bts.appendChild(x);   // (los nombres largos, como Prismáticos, sin partirse)
  enlaza(x, bt(i, 1), bt(i, 0)); }
   const E = $('#esp'); E.innerHTML = ''; E.classList.toggle('hide', !esp.length); E.classList.toggle('dos', esp.length > 4);
   esp.forEach((t, n) => { const x = document.createElement('button'); x.textContent = t; E.appendChild(x); enlaza(x, { t: 'esp', n, d: 1 }, { t: 'esp', n, d: 0 }); });
   $('#jugar').classList.toggle('hide', !C.jugar || !!esp.length);
   $('#hDer').textContent = C.mira && !esp.length ? T('Desliza para mirar') : '';
-  estado();
+  estado(); encaja();
 }
+// cada nombre, entero dentro de su botón: si no cabe, la letra baja hasta 10 px; si aun así no cabe y el botón tiene
+// icono, se queda solo el icono (con su nombre para el lector de pantalla). Arriba, si la barra no cabe, los botones con
+// icono pierden el nombre, y si aun así no cabe, el estado va en su propia línea.
+// (en los botones redondos, las cuatro esquinas del nombre dentro del círculo)
+function enCirculo(x, s) {
+  const c = x.getBoundingClientRect(), R = c.width / 2 - 3, cx = c.left + c.width / 2, cy = c.top + c.height / 2, rg = document.createRange(); rg.selectNodeContents(s); const t = rg.getBoundingClientRect();
+  return [[t.left, t.top], [t.right, t.top], [t.left, t.bottom], [t.right, t.bottom]].every(([px, py]) => Math.hypot(px - cx, py - cy) <= R);
+}
+function encaja() {
+  // (primero la barra de arriba: si pasa a dos líneas, los botones de abajo se quedan más pequeños)
+  const top = $('#top'), sm = [...top.querySelectorAll('.sm')].filter(x => x.querySelector('img') && x.querySelector('span'));
+  top.classList.remove('apretado'); for (const x of sm) { x.classList.remove('ico'); x.removeAttribute('aria-label'); }
+  if (top.scrollWidth > top.clientWidth + 1) for (const x of sm) { x.setAttribute('aria-label', x.querySelector('span').textContent); x.classList.add('ico'); }
+  if (top.scrollWidth > top.clientWidth + 1) top.classList.add('apretado');
+  for (const x of document.querySelectorAll('.bt, #bR, #esp button')) {
+    const s = x.querySelector('span') || x; if (!s.textContent) continue;
+    x.classList.remove('ico'); x.style.fontSize = ''; x.removeAttribute('aria-label');
+    const cabe = () => x.classList.contains('bt') ? enCirculo(x, s) : s.scrollWidth <= s.clientWidth + 1 && x.scrollHeight <= x.clientHeight + 1;
+    for (let f = parseFloat(getComputedStyle(x).fontSize); !cabe() && f > 10; f--) x.style.fontSize = (f - 1) + 'px';
+    if (!cabe() && x.querySelector('img')) { x.setAttribute('aria-label', s.textContent); x.classList.add('ico'); x.style.fontSize = ''; }
+  }
+}
+addEventListener('resize', () => requestAnimationFrame(encaja));
 $('#bJugar').addEventListener('click', () => { vibra(); envia({ t: 'jugar' }); });
 $('#bFull').onclick = () => { const d = document.documentElement; (document.fullscreenElement ? document.exitFullscreen?.() : d.requestFullscreen?.({ navigationUI: 'hide' }))?.catch?.(() => {}); try { screen.orientation?.lock?.('landscape').catch(() => {}); } catch (e) { } };
 
@@ -303,7 +333,7 @@ $('#code').addEventListener('keydown', (e) => { if (e.key === 'Enter') conectar(
 pinta();
 const h = location.hash.slice(1).toUpperCase();
 if (LETRAS.test(h)) { $('#code').value = h; conectar(); }
-window.__mandoMovil = { get conectado() { return conectado; }, get ctx() { return C; } };   // (para las pruebas)
+window.__mandoMovil = { get conectado() { return conectado; }, get ctx() { return C; }, prueba(m) { del(m); vista(true); } };   // (para las pruebas: prueba pinta un momento sin conexión)
 </script>
 </body>
 </html>

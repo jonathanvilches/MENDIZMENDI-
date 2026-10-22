@@ -1439,5 +1439,8 @@
  "Usar el móvil como mando": "Erabili mugikorra aginte gisa",
  "El móvil hace de mando por la wifi, sin instalar nada: el ordenador te enseña un código para escanearlo con la cámara.": "Mugikorra aginte bihurtzen da wifiaren bidez, ezer instalatu gabe: ordenagailuak kode bat erakutsiko dizu kamerarekin eskaneatzeko.",
  "Código QR del mando": "Agintearen QR kodea",
- "También vale un mando de consola.": "Kontsolako agintea ere balio du."
+ "También vale un mando de consola.": "Kontsolako agintea ere balio du.",
+ "Conversaciones": "Elkarrizketak",
+ "Conversaciones con los vecinos": "Herritarrekin elkarrizketak",
+ "Cuando ya sabes unas cuantas palabras, los vecinos te hablan en euskera y eliges qué contestar.": "Hitz batzuk dakizkizunean, herritarrek euskaraz hitz egiten dizute eta zer erantzun aukeratzen duzu."
 }

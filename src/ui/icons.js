@@ -188,9 +188,7 @@ export const ICONS = {
   hand: s('M20 58V28l-6-8c-2-4 4-8 8-4l4 6V8c0-4 6-4 6 0v14V6c0-4 6-4 6 0v16V8c0-4 6-4 6 0v18l2-6c2-4 8-2 6 2l-4 16c-2 10-6 20-18 20z', '#eac1a0'),
   target: c(32, 32, 26, '#f7f1e2') + c(32, 32, 17, '#d42f2f') + c(32, 32, 8, '#f7f1e2') + c(32, 32, 3, '#d42f2f', false),
   sparkle: s('M32 6l5 21 21 5-21 5-5 21-5-21-21-5 21-5z', '#fff3b0'),
-  play: c(32, 32, 26, '#fff') + s('M26 20l18 12-18 12z', '#c21cff'),
-  // (el móvil como mando: un mando con su cruceta y dos botones)
-  mando: s('M16 20h32c8 0 12 7 13 15l1 9c1 7-7 10-12 5l-6-6H20l-6 6c-5 5-13 2-12-5l1-9c1-8 5-15 13-15z', '#7b2ff7') + ln('M19 29v12M13 35h12', '#fff', 3.6) + c(44, 31, 3.2, '#ff2bd6') + c(51, 38, 3.2, '#3ee07a'),   // (blanco con el triángulo morado: se ve sobre el botón fucsia y sobre fondo oscuro)
+  play: c(32, 32, 26, '#fff') + s('M26 20l18 12-18 12z', '#c21cff'),   // (blanco con el triángulo morado: se ve sobre el botón fucsia y sobre fondo oscuro)
   back: s('M40 10L18 32l22 22', 'none') + ln('M40 10L18 32l22 22', O, 8) + ln('M40 10L18 32l22 22', '#fff', 4),
   close: ln('M14 14l36 36M50 14L14 50', O, 8) + ln('M14 14l36 36M50 14L14 50', '#fff', 4),
   menu: ln('M10 16h44M10 32h44M10 48h44', O, 8) + ln('M10 16h44M10 32h44M10 48h44', '#fff', 4),

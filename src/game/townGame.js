@@ -32,7 +32,7 @@ import { viewFrom } from '../data/panorama.js';
 import { buildAgro } from '../world/agro.js';
 import { PASTOR_INFO, VAQUERA_INFO, CROP } from '../data/campo.js';
 import { greet, weatherNow } from './saludo.js';
-import { nextWord, reviewWord, choicesFor, HITZ_TXT } from '../data/hitzak.js';
+import { nextWord, reviewWord, choicesFor, nextHizketa, HITZ_TXT } from '../data/hitzak.js';
 import { Mochila } from './mochila.js';
 import { Perro } from './perro.js';
 import { makeTrailSign, makeSignpost, makeBalizas, signSVG, ORIENTA, ORIENTA_TIPS, MONTE_TIPS } from './senales.js';
@@ -1162,14 +1162,16 @@ export class TownGame {
     const look = a.obj?.userData.look;
     return this.ui.dialog(lines.map(t => ({ who: a.name, look, ...(typeof t === 'string' ? { text: greet(this, t) } : t) })));   // (greet: el saludo a la hora y con el tiempo de ahora)
   }
-  // Palabras en euskera (data/hitzak.js): cada vecino enseña una de lo que está haciendo (quien pasea, del tiempo que hace)
-  // y pregunta cómo se dice; si ya sabes las suyas, repasa una que sabes. Una vez por vecino y visita; se guardan en el
-  // perfil (1, oída; 2, acertada) y se ven en el cuaderno del pueblo, pestaña Euskera
+  // Euskera con los vecinos (data/hitzak.js): cada vecino enseña una palabra de lo que está haciendo (quien pasea, del
+  // tiempo que hace) y pregunta cómo se dice; si ya sabes las suyas, repasa una que sabes. Cuando ya sabes unas cuantas,
+  // uno de cada dos charla contigo en euskera: te dice algo y eliges qué contestar. Una vez por vecino y visita; se guardan
+  // en el perfil (1, oída; 2, acertada) y se ven en el cuaderno del pueblo, pestaña Euskera
   hitzLines(a) {
     if (a.hitzDone) return [];
-    const K = this.P.hitzak ||= {}, theme = TAREAS[a.tarea] ? a.tarea : 'base', w0 = weatherNow(this);
-    const sky = w0 === 'snow' ? 'elurra' : w0 === 'rain' ? 'euria' : (this.sky?.night ?? 0) > 0.5 ? (this.rnd() < 0.5 ? 'gaua' : 'ilargia') : 'eguzkia';
+    const K = this.P.hitzak ||= {}, theme = TAREAS[a.tarea] ? a.tarea : 'base', w0 = weatherNow(this), night = (this.sky?.night ?? 0) > 0.5;
+    const sky = w0 === 'snow' ? 'elurra' : w0 === 'rain' ? 'euria' : night ? (this.rnd() < 0.5 ? 'gaua' : 'ilargia') : 'eguzkia';
     let w = nextWord(theme, K, theme === 'paseo' || theme === 'base' ? sky : null); const isNew = !!w;
+    if (Object.keys(K).length >= 4 && (!w || this.rnd() < 0.5)) { a.hitzDone = true; return this.hizketaLines(a, { gaua: night, perro: !!this.perro, eguraldia: w0 === 'snow' ? 'elurra' : w0 === 'rain' ? 'euria' : 'argia' }); }
     if (!w) w = reviewWord(K, this.rnd); if (!w) return [];
     a.hitzDone = true;
     const [eu, es] = w, who = a.name, look = a.obj?.userData.look, choices = choicesFor(w, this.rnd), T = HITZ_TXT;
@@ -1180,6 +1182,20 @@ export class TownGame {
       return [{ who, look, text: ok ? T.ok(eu, es) : T.no(eu, es) }];
     } });
     return out;
+  }
+  // una conversación corta en euskera: lo que dice el vecino (con el castellano al lado), tres respuestas para elegir y
+  // cómo acaba él; si fallas, te dice la buena y qué significaba la tuya
+  hizketaLines(a, ctx) {
+    const H = this.P.hizketak ||= {}, h = nextHizketa(H, ctx, this.rnd); if (!h) return [];
+    const izena = this.P.name || 'Mendi', put = ([eu, es]) => [eu.replace('{izena}', izena), es.replace('{izena}', izena)];
+    const [aEu, aEs] = put(h.a), ok = put(h.ok), opts = [ok, ...h.no.map(put)], who = a.name, look = a.obj?.userData.look, T = HITZ_TXT;
+    for (let i = opts.length - 1; i > 0; i--) { const j = Math.floor(this.rnd() * (i + 1)); [opts[i], opts[j]] = [opts[j], opts[i]]; }
+    const fin = { who, look, text: T.say(...put(h.fin)) };
+    return [{ text: T.say(aEu, aEs), choices: opts.map(o => o[0]), notr: true, onShow: () => { if (H[h.id]) return; H[h.id] = 1; saveProfile(); this.ui.toast(T.toast2(aEu), 'talk', 3200); }, onChoice: (j) => {
+      const good = opts[j] === ok; H[h.id] = Math.max(H[h.id] || 0, good ? 2 : 1); addXP(good ? 8 : 2); saveProfile();
+      this.sound.ui(good ? 'coin' : 'error');
+      return [{ who, look, text: good ? T.ok(...ok) : T.no2(...ok, ...opts[j]) }, fin];
+    } }];
   }
   async talk(a) {
     if (a.sabio) return this.sabioTalk(a);
