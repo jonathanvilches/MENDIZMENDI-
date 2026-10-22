@@ -1433,7 +1433,6 @@
  "Esperando al móvil…": "Mugikorraren zain…",
  "¡Mando conectado!": "Agintea konektatuta!",
  "El móvil se ha desconectado. Puede volver a conectarse con el mismo código.": "Mugikorra deskonektatu da. Kode berarekin berriro konekta daiteke.",
- "No se puede preparar el mando: comprueba la conexión a internet del ordenador.": "Ezin da agintea prestatu: begiratu ordenagailuaren interneteko konexioa.",
  "Desconectar el mando": "Deskonektatu agintea",
  "Mando del móvil": "Mugikorreko agintea",
  "Usar el móvil como mando": "Erabili mugikorra aginte gisa",
@@ -1455,5 +1454,8 @@
  "Abrir la web": "Ireki webgunea",
  "Mando conectado": "Agintea konektatuta",
  "Conecta el móvil a internet: mejor, a la misma wifi que el ordenador.": "Konektatu mugikorra internetera: hobe, ordenagailuaren wifi berera.",
- "Empezar a jugar": "Jolasten hasi"
+ "Empezar a jugar": "Jolasten hasi",
+ "No llego a ningún servidor para presentar el móvil. Lo vuelvo a intentar…": "Ez dut mugikorra aurkezteko zerbitzaririk lortzen. Berriro saiatzen…",
+ "El móvil ha llamado: conectando…": "Mugikorrak deitu du: konektatzen…",
+ "¡Mando conectado! Va por internet.": "Agintea konektatuta! Internet bidez doa."
 }
