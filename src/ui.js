@@ -542,7 +542,7 @@ export class UI {
     const g = this.game, st = g.state, town = g.kind === 'town';
     const S = town ? g.P.settings : st.settings;
     const s = this.screen(`<header><h2>${I('gear', 30)} Pausa</h2>${this.closeBtn()}</header><div class="pbody">
-      <div class="btns col top"><button class="btn primary close">${I('play', 22)} Seguir jugando</button><button class="btn" id="mHome">${I('plaza', 22)} Ir a la plaza de ${esc(town ? g.def.name.split(' /')[0] : 'Otsagabia')}</button><button class="btn" id="mExit">${I('map', 22)} Salir al mapa de Navarra</button>${town ? '' : `<button class="btn danger" id="mReset">${I('close', 20)} Borrar partida del valle</button>`}</div>
+      <div class="btns col top"><button class="btn primary close">${I('play', 22)} Seguir jugando</button><button class="btn" id="mHome">${I('plaza', 22)} Ir a la plaza de ${esc(town ? g.def.name.split(' /')[0] : 'Otsagabia')}</button><button class="btn" id="mExit">${I('map', 22)} Salir al mapa de Navarra</button>${this.input.touch ? '' : `<button class="btn" id="mPad">${I('mando', 22)} Usar el móvil como mando</button>`}${town ? '' : `<button class="btn danger" id="mReset">${I('close', 20)} Borrar partida del valle</button>`}</div>
       <label>Música <input type="checkbox" id="mMusic" ${S.music ? 'checked' : ''}></label>
       <label>Volumen <input type="range" id="mVol" min="0" max="1" step="0.05" value="${S.volume}"></label>
       <label>Calidad gráfica <select id="mQ"><option value="low">Baja (más fluido)</option><option value="mid">Media</option><option value="high">Alta</option></select></label>
@@ -558,6 +558,7 @@ export class UI {
     $('#mT', s).onchange = e => { S.timeSpeed = +e.target.value; g.applySettings(); save(); };
     $('#mHome', s).onclick = () => { this.closeModal(); g.teleport(PLACES.plaza.x - 6, PLACES.plaza.z + 6); };
     $('#mExit', s).onclick = () => { this.closeModal(); g.save(); g.onExit?.(); };
+    const mp = $('#mPad', s); if (mp) mp.onclick = () => { this.closeModal(); import('./mando/mando.js').then(m => m.abrirMando()); };   // (en el ordenador: el móvil como mando)
     const rb = $('#mReset', s);
     if (rb) rb.onclick = () => { if (rb.dataset.sure) { this.closeModal(); g.resetState(st.name); } else { rb.dataset.sure = 1; rb.textContent = '¿Seguro? Pulsa otra vez para borrar'; this.sound.ui('error'); } };
   }
