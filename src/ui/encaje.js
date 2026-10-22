@@ -21,13 +21,13 @@ const conPuntos = (e) => e.scrollWidth > e.clientWidth + 1;
 const texto = (e) => [...e.childNodes].some(n => n.nodeType === 3 && n.nodeValue.trim());
 
 function ajusta(e) {
-  if (e.dataset.encaje) { e.style.fontSize = ''; e.style.whiteSpace = ''; delete e.dataset.encaje; }   // (otra vez desde su letra de siempre)
+  if (e.dataset.encaje !== undefined) { e.style.fontSize = e.dataset.encaje === '-' ? '' : e.dataset.encaje; e.style.whiteSpace = ''; delete e.dataset.encaje; }   // (otra vez desde su letra de siempre, también la que le haya puesto otro)
   if (!e.offsetWidth) return;
   const s = getComputedStyle(e), ow = s.overflowWrap, puntos = s.textOverflow === 'ellipsis';
   const malo = puntos ? () => conPuntos(e) : (ow === 'anywhere' || ow === 'break-word' || s.wordBreak === 'break-all') && texto(e) ? () => partida(e) : null;
   if (!malo || !malo()) return;
   const f0 = parseFloat(s.fontSize), fin = Math.max(MIN, f0 * BAJA);
-  e.dataset.encaje = 1;
+  e.dataset.encaje = e.style.fontSize || '-';
   for (let f = f0 - 1; f >= fin && malo(); f--) e.style.fontSize = f + 'px';
   if (puntos && malo()) e.style.whiteSpace = 'normal';   // (aun así no cabe: mejor en dos líneas que cortado)
 }
