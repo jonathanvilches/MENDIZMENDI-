@@ -5,7 +5,7 @@
 // Al móvil se le cuenta en qué se está (contextos.js) para que enseñe los botones de cada momento: los del pueblo, los de
 // la pelota o el fútbol y, en cada minijuego, una copia de sus botones de la pantalla, con un panel táctil para lo demás.
 // La sesión sigue abierta al pasar del menú al pueblo y vuelta: el móvil se puede volver a conectar con el mismo código.
-import { senal, ICE } from './senal.js';
+import { senal, ICE, SENAL_PRUEBA } from './senal.js';
 import { PAD, VPAD, mandoMovil, botonMovil } from './pad.js';
 import { ctxActual, ctxMovil } from './contextos.js';
 import { mueve, clic, rueda, pulsar } from './cursor.js';
@@ -34,6 +34,7 @@ const CSS = `
 .mnd-bts{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:12px;justify-content:flex-end}
 .mnd-bts button{min-height:44px;padding:8px 20px;border-radius:4px;border:1px solid rgba(201,178,255,.35);background:rgba(255,255,255,.08);color:#fff;font:800 var(--fs-md,16px) Nunito,sans-serif;cursor:pointer}
 .mnd-bts button.go{border:0;background:linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7)}
+.mnd-bts a.go{display:inline-flex;align-items:center;min-height:44px;padding:8px 20px;border-radius:4px;background:linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7);color:#fff;font:800 var(--fs-md,16px) Nunito,sans-serif;text-decoration:none}
 @media (max-width:620px),(orientation:landscape) and (max-height:520px){.mnd-card{grid-template-columns:1fr;justify-items:center;padding:16px}.mnd-qr{width:min(200px,50dvh)}}
 .mnd-pill{position:fixed;left:calc(env(safe-area-inset-left,0px) + 12px);bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:9400;display:flex;align-items:center;gap:8px;min-height:40px;padding:4px 14px;border-radius:999px;border:1px solid rgba(201,178,255,.35);background:rgba(20,8,40,.82);color:#fff;font:800 var(--fs-sm,14px) Nunito,sans-serif;cursor:pointer;opacity:.75}
 .mnd-pill:hover{opacity:1}.mnd-pill i{width:10px;height:10px;border-radius:50%;background:#f2c230}.mnd-pill.ok i{background:#3ee07a}
@@ -44,9 +45,9 @@ const css = () => { if (cssOn) return; cssOn = true; const s = document.createEl
 /** La dirección de la página del mando: la de esta misma web si se juega en ella; si no (el archivo único, el artefacto),
  *  la web publicada. */
 function urlMando() {
-  const q = new URLSearchParams(location.search), sv = q.get('senal');
+  const q = new URLSearchParams(location.search);
   const base = q.get('mandoweb') || (/^https?:$/.test(location.protocol) && !/claude|usercontent/.test(location.hostname) ? new URL('./', location.href).href : WEB);
-  return `${base}mando/index.html${sv ? '?senal=' + encodeURIComponent(sv) : ''}#${S.code}`;   // (con index.html: el servidor de pruebas, sin él, da la portada del juego)
+  return `${base}mando/index.html${SENAL_PRUEBA ? '?' + SENAL_PRUEBA : ''}#${S.code}`;   // (con index.html: el servidor de pruebas, sin él, da la portada del juego)
 }
 
 // ---------- la conexión ----------
@@ -66,17 +67,21 @@ async function recibe(m) {
   if (m.type === 'OFFER' && m.payload?.sdp) {
     cerrarPc();   // (un móvil nuevo, o el mismo que vuelve: se queda el último)
     S.movil = m.src;
-    const pc = S.pc = new RTCPeerConnection({ iceServers: ICE });
-    pc.onicecandidate = (e) => { if (e.candidate) S.sig?.send(m.src, 'CANDIDATE', { candidate: e.candidate.toJSON() }); };
+    const pc = S.pc = new RTCPeerConnection({ iceServers: ICE }); let dicho = false;
+    pc.onicecandidate = (e) => { if (e.candidate && dicho) S.sig?.send(m.src, 'CANDIDATE', { candidate: e.candidate.toJSON() }); };   // (las que lleguen tarde)
     pc.onconnectionstatechange = () => { if (pc === S.pc && ['failed', 'closed', 'disconnected'].includes(pc.connectionState)) caido(); };
     pc.ondatachannel = (e) => abre(e.channel);
     await pc.setRemoteDescription(m.payload.sdp);
     const a = await pc.createAnswer(); await pc.setLocalDescription(a);
-    S.sig?.send(m.src, 'ANSWER', { sdp: pc.localDescription.toJSON() });
+    await rutas(pc);   // (la respuesta, con las rutas de red dentro: por un camino de reserva no se pierde ninguna)
+    if (pc !== S.pc) return;
+    S.sig?.send(m.src, 'ANSWER', { sdp: pc.localDescription.toJSON() }); dicho = true;
   } else if (m.type === 'CANDIDATE' && m.src === S.movil && S.pc && m.payload?.candidate) {
     try { await S.pc.addIceCandidate(m.payload.candidate); } catch (e) { }
   }
 }
+// (espera a tener las rutas de red, como mucho 2,5 s)
+const rutas = (pc) => new Promise((ok) => { if (pc.iceGatheringState === 'complete') return ok(); const t = setTimeout(ok, 2500); pc.addEventListener('icegatheringstatechange', () => { if (pc.iceGatheringState === 'complete') { clearTimeout(t); ok(); } }); });
 function caido() { if (S.estado !== 'ok') return; cerrarPc(); S.estado = S.sig ? 'caido' : 'mal'; pinta(); }
 function abre(dc) {
   S.dc = dc;
@@ -132,6 +137,17 @@ const teclas = (e) => { if (e.key === 'Escape' && e.isTrusted) { e.stopImmediate
 /** Abre el panel del mando en el móvil (y prepara el código si aún no lo hay). */
 export function abrirMando() {
   css(); cierraPanel();
+  // (dentro de claude.ai la página no puede hablar con el servidor que presenta el móvil al ordenador: se explica y se
+  // manda a la web del juego, donde sí funciona)
+  if (typeof __AF__ !== 'undefined' && __AF__) {
+    const o = S.ui = el(`<div class="mnd-ov" role="dialog" aria-modal="true" aria-label="Mando en el móvil"><div class="mnd-card">
+      <h2>Mando en el móvil</h2><p class="mnd-lead">Aquí, dentro de claude.ai, el mando no puede conectarse: esta vista no deja hablar con el servidor que presenta el móvil al ordenador. En la web del juego sí funciona.</p>
+      <div class="mnd-bts"><button data-close>Cerrar</button><a class="go" href="${WEB}?screen=profile" target="_blank" rel="noopener">Abrir la web del juego</a></div></div></div>`);
+    document.body.appendChild(o);
+    o.addEventListener('click', (e) => { if (e.target === o || e.target.closest('[data-close]')) cierraPanel(); });
+    addEventListener('keydown', teclas, true);
+    return;
+  }
   const o = S.ui = el(`<div class="mnd-ov" role="dialog" aria-modal="true" aria-label="Mando en el móvil"><div class="mnd-card">
     <h2>Mando en el móvil</h2><p class="mnd-lead">Usa el móvil como mando, sin instalar nada. Funciona con Android y con iPhone.</p>
     <div class="mnd-qr wait" aria-label="Código QR del mando"></div>

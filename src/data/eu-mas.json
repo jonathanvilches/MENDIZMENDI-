@@ -1442,5 +1442,15 @@
  "También vale un mando de consola.": "Kontsolako agintea ere balio du.",
  "Conversaciones": "Elkarrizketak",
  "Conversaciones con los vecinos": "Herritarrekin elkarrizketak",
- "Cuando ya sabes unas cuantas palabras, los vecinos te hablan en euskera y eliges qué contestar.": "Hitz batzuk dakizkizunean, herritarrek euskaraz hitz egiten dizute eta zer erantzun aukeratzen duzu."
+ "Cuando ya sabes unas cuantas palabras, los vecinos te hablan en euskera y eliges qué contestar.": "Hitz batzuk dakizkizunean, herritarrek euskaraz hitz egiten dizute eta zer erantzun aukeratzen duzu.",
+ "Aquí, dentro de claude.ai, el mando no puede conectarse: esta vista no deja hablar con el servidor que presenta el móvil al ordenador. En la web del juego sí funciona.": "Hemen, claude.ai barruan, agintea ezin da konektatu: ikuspegi honek ez dio uzten mugikorra ordenagailuari aurkezten dion zerbitzariarekin hitz egiten. Jokoaren webgunean bai, badabil.",
+ "Abrir la web del juego": "Ireki jokoaren webgunea",
+ "Instálala desde la web del juego": "Instalatu jokoaren webgunetik",
+ "Aquí, dentro de claude.ai, no se puede instalar: en la web, con un clic": "Hemen, claude.ai barruan, ezin da instalatu: webgunean, klik batekin",
+ "Abre la web del juego": "Ireki jokoaren webgunea",
+ "En Chrome o Edge, con el botón de abajo": "Chrome edo Edge-n, beheko botoiarekin",
+ "Toca instalar": "Sakatu instalatu",
+ "El botón a la derecha de la barra de direcciones, o «Instalar app» en el menú del juego": "Helbide-barraren eskuineko botoia, edo «Instalatu aplikazioa» jokoaren menuan",
+ "En su propia ventana, sin barras del navegador y también sin conexión": "Bere leihoan, nabigatzailearen barrarik gabe eta konexiorik gabe ere",
+ "Abrir la web": "Ireki webgunea"
 }

@@ -171,8 +171,8 @@ const CSS = `
 .eq-tile .art>img,.eq-tile .art>svg,.eq-team .art>img,.eq-team .art>svg{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain;object-position:50% 100%;filter:drop-shadow(0 6px 14px rgba(0,0,0,.5))}
 .eq-tile .art.trio>*{left:50%;width:auto;height:94%;top:auto;bottom:0;transform:translateX(-50%);transform-origin:50% 100%;-webkit-mask-image:linear-gradient(180deg,#000 82%,transparent);mask-image:linear-gradient(180deg,#000 82%,transparent)}
 .eq-tile .art.trio>:nth-child(1){transform:translateX(-96%) scale(.84)}.eq-tile .art.trio>:nth-child(2){z-index:1}.eq-tile .art.trio>:nth-child(3){transform:translateX(-4%) scale(.84)}
-.eq-tile .k,.eq-team .k{font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--rosa);text-shadow:0 1px 3px rgba(0,0,0,.8)}
-.eq-tile b{font:400 var(--fs-2xl)/1 var(--f-display);text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.55)}
+.eq-tile .k,.eq-team .k{font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--rosa);text-shadow:0 1px 3px rgba(0,0,0,.8);overflow-wrap:anywhere}
+.eq-tile b{font:400 var(--fs-2xl)/1 var(--f-display);text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.55);overflow-wrap:anywhere}
 .eq-tile small,.eq-team small{font:600 var(--fs-sm)/1.2 var(--f-cond);color:#ece4ff;text-shadow:0 1px 3px rgba(0,0,0,.9)}
 .eq-tile.main{--t1:#ff2bd6;--t2:#3a0b6b}.eq-tile.pair{--t1:#7b2ff7;--t2:#160636}.eq-tile.free{--t1:#5b4bff;--t2:#120a40}.eq-tile.col{--t1:#c21cff;--t2:#2a0638}
 .eq-foot{display:flex;justify-content:flex-start}.eq-foot .lg-btn{min-width:144px}

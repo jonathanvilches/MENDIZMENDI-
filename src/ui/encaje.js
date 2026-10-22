@@ -1,8 +1,8 @@
 // Ninguna palabra partida ni cortada. Los textos que pueden partir una palabra larga para no salirse de su caja
-// (overflow-wrap: anywhere o break-word) y los que se cortan con «…» (text-overflow: ellipsis) bajan la letra, poco a
-// poco, hasta que cada palabra cabe entera y el texto se lee completo (como mucho hasta el 65 % y nunca por debajo de
-// 12 px, la letra más pequeña que se lee bien en el móvil). Si con eso no basta, el texto con «…» pasa a ocupar dos
-// líneas. Mira lo que se añade a la página, lo que se enseña después de crearse escondido, y lo vuelve a mirar todo al
+// (overflow-wrap: anywhere o break-word) y los que se cortan con «…» (text-overflow: ellipsis) juntan las letras y bajan
+// la letra, poco a poco, hasta que cada palabra cabe entera y el texto se lee completo (como mucho hasta el 65 % y
+// nunca por debajo de 12 px, la letra más pequeña que se lee bien en el móvil). Si con eso no basta, el texto con «…»
+// pasa a ocupar dos líneas. Mira lo que se añade a la página, lo que se enseña después de crearse escondido, y lo vuelve a mirar todo al
 // cambiar el tamaño de la ventana.
 const MIN = 12, BAJA = 0.65;
 
@@ -30,7 +30,7 @@ const limpia = () => { for (const e of esperando) if (!e.isConnected) deja(e); }
 
 function ajusta(e) {
   if (e instanceof SVGElement) return;
-  if (e.dataset.encaje !== undefined) { e.style.fontSize = e.dataset.encaje === '-' ? '' : e.dataset.encaje; e.style.whiteSpace = ''; delete e.dataset.encaje; }   // (otra vez desde su letra de siempre, también la que le haya puesto otro)
+  if (e.dataset.encaje !== undefined) { e.style.fontSize = e.dataset.encaje === '-' ? '' : e.dataset.encaje; e.style.whiteSpace = ''; e.style.letterSpacing = ''; delete e.dataset.encaje; }   // (otra vez desde su letra de siempre, también la que le haya puesto otro)
   const s = getComputedStyle(e), ow = s.overflowWrap, puntos = s.textOverflow === 'ellipsis';
   const malo = puntos ? () => conPuntos(e) : (ow === 'anywhere' || ow === 'break-word' || s.wordBreak === 'break-all') && texto(e) ? () => partida(e) : null;
   if (!malo) return;
@@ -38,6 +38,7 @@ function ajusta(e) {
   if (!malo()) return;
   const f0 = parseFloat(s.fontSize), fin = Math.max(MIN, f0 * BAJA);
   e.dataset.encaje = e.style.fontSize || '-';
+  if (parseFloat(s.letterSpacing) > 0) { e.style.letterSpacing = '0'; if (!malo()) return; }   // (primero, las letras sin aire entre ellas)
   for (let f = f0 - 1; f >= fin && malo(); f--) e.style.fontSize = f + 'px';
   if (puntos && malo()) e.style.whiteSpace = 'normal';   // (aun así no cabe: mejor en dos líneas que cortado)
 }
