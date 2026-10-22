@@ -128,6 +128,7 @@ const CSS = `
 /* botones de acción al pie (como en todo el juego): salir a la izquierda y la acción principal a la derecha, donde está el
    pulgar de las acciones; en dos filas, la principal abajo y a todo lo ancho */
 .lg-foot>[data-a="exit"]{order:-1}.lg-foot>.lg-btn.go{order:2}.lg-btns>.lg-btn:only-child{grid-column:1/-1}
+.lg-card>.lg-foot{position:sticky;bottom:-16px;z-index:3;margin-bottom:-16px;padding:12px 0 16px;background:linear-gradient(180deg,rgba(12,4,30,0),rgba(12,4,30,.96) 12px)}
 .lg-btn{position:relative;overflow:hidden;border:1px solid rgba(201,178,255,.3);border-radius:4px;padding:12px 20px;min-height:50px;font:800 var(--fs-md)/1.15 var(--f-cond);letter-spacing:.04em;text-transform:uppercase;color:#fff;background:rgba(255,255,255,.07);cursor:pointer;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%)}
 .lg-btn.go{border:0;background:var(--cta);color:#fff;font:400 var(--fs-xl)/1 var(--f-display);box-shadow:var(--glow)}.lg-btn.go::after{content:'';position:absolute;top:0;bottom:0;left:0;width:40%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);transform:translateX(-150%) skewX(-20deg);animation:gx-sweep 3.2s ease-in-out .6s infinite;pointer-events:none}
 .lg-btn:active{transform:translateY(1px) scale(.98)}
@@ -142,7 +143,7 @@ const CSS = `
 @media (max-width:560px){.lg-card{padding:16px 12px;gap:8px}.lg-head h2{font-size:var(--fs-xl)}.lg-table .x{display:none}.lg-table{font-size:var(--fs-sm)}.lg-table td{padding:8px 4px}.lg-table th{padding:4px}.lg-btns{grid-template-columns:1fr 1fr}.lg-btns .lg-btn.go{grid-column:1/-1}}
 .lg-champ{text-align:center;padding:8px;border-radius:16px;background:linear-gradient(180deg,rgba(255,155,216,.25),rgba(255,155,216,.05))}.lg-champ b{font:400 var(--fs-xl) 'MZ Display',Nunito,sans-serif;color:#ff9bd8}
 @media (orientation:landscape) and (max-height:520px){
-.lg-root{padding:8px}.lg-card{gap:8px 12px;padding:8px 16px}.lg-adapt{display:none}
+.lg-root{padding:8px}.lg-card{gap:8px 12px;padding:8px 16px}.lg-card>.lg-foot{bottom:-8px;margin-bottom:-8px;padding-bottom:8px}.lg-adapt{display:none}
 .lg-card.lg-two{grid-template-columns:1fr 1.15fr;grid-auto-rows:min-content;align-items:start}
 .lg-card.lg-two>.lg-head{grid-column:1/-1}
 .lg-card.lg-two>.lg-next,.lg-card.lg-two>.lg-how,.lg-card.lg-two>.lg-res,.lg-card.lg-two>.lg-champ,.lg-card.lg-two>.lg-btns,.lg-card.lg-two>.lg-note{grid-column:1}
@@ -191,6 +192,7 @@ const CSS = `
 @media (orientation:portrait) and (max-width:700px){
 .lg-card.eq-menu{grid-template-rows:none}.eq-tiles{grid-auto-flow:row;grid-template-columns:1fr 1fr;grid-auto-columns:auto}.eq-tile.main,.eq-tiles>.eq-tile:last-child:nth-child(even){grid-column:1/-1}.eq-tile{min-height:200px}.eq-tile .art{min-height:112px}.eq-tile.main .art{min-height:150px}.eq-tile b{font-size:var(--fs-xl)}
 .eq-teams{grid-auto-flow:row;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-columns:auto;overflow-x:hidden;overflow-y:auto;scroll-snap-type:none}.eq-team{min-height:212px}
+@media (max-width:360px) and (orientation:portrait){.eq-tile{padding:8px 12px}.eq-tile b{font-size:var(--fs-lg);overflow-wrap:anywhere}.lg-next,.lg-next.con-j{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}.lg-next b,.lg-next.con-j b{font-size:var(--fs-md);white-space:normal;overflow-wrap:anywhere}.lg-next.con-j em{white-space:normal}.eq-team b{font-size:var(--fs-md);white-space:normal;overflow-wrap:anywhere}}
 .eq-teams.mr,.eq-teams.ml{-webkit-mask-image:none;mask-image:none}.eq-teams.mb{-webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(180deg,#000 calc(100% - 40px),transparent)}
 }
 @media (orientation:landscape) and (max-height:520px){

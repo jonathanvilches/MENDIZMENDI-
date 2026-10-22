@@ -8,15 +8,15 @@ import { casos, cargarModulos } from './ventanas-casos.mjs';
 import { mkdirSync, writeFileSync } from 'fs';
 const [,, out = 'entrega/popups-medidos', sizes = '667x375,844x390,932x430,1180x820,390x844'] = process.argv; mkdirSync(out, { recursive: true });
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
-const MEDIR = () => {
+const MEDIR = (hud) => {
   const W = innerWidth, H = innerHeight, issues = [], seen = new Set();
   const vis = (e) => { const s = getComputedStyle(e); if (s.display === 'none' || s.visibility === 'hidden' || +s.opacity < 0.05) return false; const r = e.getBoundingClientRect(); return r.width > 1 && r.height > 1; };
   const shown = (e) => { const s = getComputedStyle(e); return s.display !== 'none' && s.visibility !== 'hidden' && +s.opacity >= 0.05; };
-  const allVis = (e) => { if (!vis(e)) return false; for (let q = e.parentElement; q && q !== document.body; q = q.parentElement) if (!shown(q)) return false; return true; };
+  const allVis = (e) => { if (!vis(e)) return false; if (e.closest('details:not([open])') && !e.closest('summary')) return false; for (let q = e.parentElement; q && q !== document.body; q = q.parentElement) if (!shown(q)) return false; return true; };
   const scroller = (e) => { for (let q = e.parentElement; q && q !== document.body; q = q.parentElement) { const s = getComputedStyle(q); if (/(auto|scroll)/.test(s.overflowY + s.overflowX) && (q.scrollHeight > q.clientHeight + 1 || q.scrollWidth > q.clientWidth + 1)) return q; } return null; };
   const name = (e) => (e.className && typeof e.className === 'string' ? '.' + e.className.trim().split(/\s+/).slice(0, 2).join('.') : e.tagName.toLowerCase()) + (e.id ? '#' + e.id : '') + (e.textContent ? ' «' + e.textContent.trim().slice(0, 28) + '»' : '');
   const add = (k, e, x = '') => { const key = k + name(e); if (seen.has(key)) return; seen.add(key); issues.push([k, name(e), x]); };
-  const roots = [...document.querySelectorAll('.champ,.screen,#reward,#dialog,.mg-overlay,.fb-panel,.pel-panel,.lg-root,.tn-root,.fb-msg.on,.pel-call.on,.modal,[role=dialog]')].filter(allVis);
+  const roots = [...document.querySelectorAll(hud ? '#ui' : '.champ,.screen,#reward,#dialog,.mg-overlay,.fb-panel,.pel-panel,.lg-root,.tn-root,.fb-msg.on,.pel-call.on,.modal,[role=dialog]')].filter(allVis);   // (hud: lo que se ve al jugar, sin ventanas)
   // zonas seguras (notch y barra de inicio del iPhone): texto o botones dentro
   const pr = document.createElement('div'); pr.style.cssText = 'position:fixed;padding:0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)'; document.body.appendChild(pr);
   const pcs = getComputedStyle(pr), SL = parseFloat(pcs.paddingLeft), SR = parseFloat(pcs.paddingRight), SB = parseFloat(pcs.paddingBottom); pr.remove();
@@ -29,10 +29,25 @@ const MEDIR = () => {
     if (/(hidden|clip)/.test(s.overflowY) && e.scrollHeight > e.clientHeight + 4 && e.clientHeight > 20 && !/(ellipsis)/.test(s.textOverflow)) add('cortado', e, `${e.scrollHeight - e.clientHeight}px`);
     // texto que no cabe a lo ancho
     if (e.childElementCount === 0 && e.textContent.trim() && /(hidden|clip)/.test(s.overflowX) && e.scrollWidth > e.clientWidth + 2 && s.textOverflow !== 'ellipsis') add('texto no cabe', e, `${e.scrollWidth}>${e.clientWidth}`);
+    // texto más ancho que su caja (se monta sobre lo de al lado) o recortado por un contenedor que recorta (no por uno que se
+    // desplaza): cada trozo de texto del elemento, también el que va junto a un icono
+    if (s.textOverflow !== 'ellipsis' && !e.closest('svg,.cs-bgname')) for (const n of e.childNodes) {
+      if (n.nodeType !== 3 || !n.nodeValue.trim()) continue;
+      const rg = document.createRange(); rg.selectNodeContents(n); const t = rg.getBoundingClientRect(); if (t.width < 4) continue;
+      if (s.overflowX === 'visible' && (t.width > r.width + 3 || t.left < r.left - 3 || t.right > r.right + 3)) { add('texto fuera de su caja', e, `${Math.round(t.width)}>${Math.round(r.width)}`); break; }
+      let L = -1e9, R2 = 1e9; for (let q = e; q && q !== document.body; q = q.parentElement) { const cs = getComputedStyle(q); if (/(auto|scroll)/.test(cs.overflowX) && q !== e) break; if (/(hidden|clip)/.test(cs.overflowX)) { const qr = q.getBoundingClientRect(); L = Math.max(L, qr.left); R2 = Math.min(R2, qr.right); } }   // (dentro de algo que se desplaza, lo de fuera se alcanza)
+      if (t.left < L - 3 || t.right > R2 + 3) { add('texto recortado', e, `${Math.round(t.left)}..${Math.round(t.right)} de ${Math.round(L)}..${Math.round(R2)}`); break; }
+    }
+    // una lista que se desplaza hacia abajo y, sin querer, también de lado (lo que se sale no se ve si no se arrastra de lado)
+    // (las tiras hechas para ir de lado —una fila flex sin saltos o una rejilla en columnas— no cuentan)
+    const rail = (/flex/.test(s.display) && !/column/.test(s.flexDirection) && s.flexWrap === 'nowrap') || (/grid/.test(s.display) && /column/.test(s.gridAutoFlow));
+    if (!rail && /(auto|scroll)/.test(s.overflowX) && /(auto|scroll)/.test(s.overflowY) && e.scrollWidth > e.clientWidth + 2 && e.clientWidth > 40) add('desplaza de lado', e, `${e.scrollWidth}>${e.clientWidth}`);
     // dentro del notch o de la barra de inicio (solo texto y botones, no fondos)
     if ((SL || SR || SB) && (e.tagName === 'BUTTON' || (e.childElementCount === 0 && e.textContent.trim())) && (r.left < SL - 2 || r.right > W - SR + 2 || (r.bottom > H - SB + 2 && r.top < H))) { const sc2 = scroller(e); const cut = sc2 && r.bottom > sc2.getBoundingClientRect().bottom; if (!cut) add('zona del notch', e, `${Math.round(r.left)}-${Math.round(r.right)} x ${Math.round(r.bottom)}`); }
     // botones pequeños
-    if ((e.tagName === 'BUTTON' || e.getAttribute('role') === 'button' || (e.tagName === 'A' && e.href)) && (r.height < 36 || r.width < 36)) add('botón pequeño', e, `${Math.round(r.width)}x${Math.round(r.height)}`);
+    // (la zona que se toca puede ser mayor que el botón: un ::before absoluto con márgenes negativos la agranda)
+    const hit = (() => { const bs = getComputedStyle(e, '::before'); if (bs.content === 'none' || bs.position !== 'absolute') return [r.width, r.height]; const n = (v) => Math.max(0, -parseFloat(v) || 0); return [r.width + n(bs.left) + n(bs.right), r.height + n(bs.top) + n(bs.bottom)]; })();
+    if ((e.tagName === 'BUTTON' || e.getAttribute('role') === 'button' || (e.tagName === 'A' && e.href)) && (hit[1] < 36 || hit[0] < 36)) add('botón pequeño', e, `${Math.round(r.width)}x${Math.round(r.height)}`);
     // letra diminuta
     if (e.childElementCount === 0 && e.textContent.trim() && parseFloat(s.fontSize) < 11) add('letra < 11px', e, s.fontSize);
   }
@@ -51,13 +66,15 @@ const MEDIR = () => {
 const report = {};
 for (const sz of sizes.split(',')) {
   const [W, H] = sz.split('x').map(Number), touch = Math.min(W, H) < 900;
-  const ctx = await b.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 2, isMobile: touch && W < 1000, hasTouch: touch });
+  const ctx = await b.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: touch ? 2 : 1, isMobile: touch && W < 1000, hasTouch: touch });
   const p = await ctx.newPage(); await iphone(p); const errs = []; p.on('pageerror', e => errs.push(e.message));
   await p.addInitScript(() => { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'pelotari', seen: { heroBenat: true, dog: true }, settings: { quality: 'low' } })); });
-  await p.goto(`http://127.0.0.1:5173/?town=lumbier&q=low&weather=clear&skipintro=1&noflora`, { timeout: 300000 });
-  await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 500000 });
+  try {   // (un tamaño que no carga se anota y no para los demás)
+    await p.goto(`${process.env.URL || 'http://127.0.0.1:5173/'}?town=lumbier&q=low&weather=clear&skipintro=1&noflora`, { timeout: 300000 });
+    await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 500000 });
+  } catch (e) { report[sz] = { 'no carga': [['error', String(e.message).slice(0, 140), '']] }; await ctx.close(); continue; }
   await cargarModulos(p);
-  const CASES = casos(touch);
+  const CASES = { hud: 'null', ...casos(touch) };
 
   report[sz] = {};
   for (const [k, code] of Object.entries(CASES)) {
@@ -66,13 +83,14 @@ for (const sz of sizes.split(',')) {
       await p.evaluate((code) => { const G = window.__game, M = window.__mods; G.ui.closeModal?.(); G.ui.dialogOpen = false; document.querySelectorAll('.mg-overlay,.lg-root,.tn-root,#dialog,.fb-root,.pm-test,#reward,.champ').forEach(o => o.remove()); window.__r = eval(code); window.__r?.catch?.(() => {}); }, code);
       await p.waitForTimeout(k === 'ficha' || k === 'mapa' ? 2500 : 700);
       await p.evaluate(() => document.getAnimations().forEach(a => { try { a.finish(); } catch (e) { } }));
-      const r = await p.evaluate(MEDIR);
+      const r = await p.evaluate(MEDIR, k === 'hud');
       report[sz][k] = r.roots ? r.issues : [['sin ventana', '', '']];
       await p.screenshot({ path: `${out}/${sz}-${k}.png` });
     } catch (e) { report[sz][k] = [['error', String(e.message).slice(0, 140), '']]; }
   }
   if (errs.length) report[sz].__errores = errs.slice(0, 5);
   await ctx.close();
+  writeFileSync(`${out}/informe.json`, JSON.stringify(report, null, 1));
 }
 writeFileSync(`${out}/informe.json`, JSON.stringify(report, null, 1));
 let n = 0; for (const [sz, R] of Object.entries(report)) for (const [k, L] of Object.entries(R)) if (L.length) { n += L.length; console.log(sz, k, JSON.stringify(L).slice(0, 600)); }

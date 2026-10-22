@@ -116,7 +116,7 @@
 .btn:hover { background: rgba(255, 255, 255, .14); }
 .btn:active { transform: translateY(1px) scale(.98); }
 .btn.big { font-size: var(--fs-lg); padding: 16px 24px; }
-.btn.small { padding: 8px 16px; font-size: var(--fs-sm); }
+.btn.small { min-height: 40px; padding: 8px 16px; font-size: var(--fs-sm); }
 .btn.ghost { background: rgba(10, 8, 16, .35); }
 .btn.primary { color: #fff; border: 0; background: linear-gradient(100deg, #ff2bd6 0%, #c21cff 55%, #7b2ff7 100%); box-shadow: 0 4px 0 var(--gold-d), 0 10px 26px rgba(255, 43, 214, .28), inset 0 1px 0 rgba(255, 255, 255, .6); text-shadow: 0 1px 0 rgba(255, 255, 255, .45); }
 .btn.primary:hover { filter: brightness(1.06); }
@@ -153,6 +153,9 @@
 .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); margin-top: 16px; border-radius: var(--r); background: var(--glass); border: 1px solid var(--line); overflow: hidden; }
 .tile { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 8px; align-items: center; padding: 16px 16px; border-left: 1px solid var(--line); min-width: 0; }
 .tile span { white-space: normal; line-height: 1.3; }   /* (entero, en dos líneas si hace falta: antes «COMARC…») */
+/* (el icono y la cifra arriba y el nombre debajo, a todo el ancho de la cifra: al lado del icono, «COMARCAS» o «INSIGNIAS»
+   no cabían en el iPad ni en los móviles estrechos y se salían de su caja) */
+.tiles .tile > svg, .tiles .tile > img.ico { grid-row: auto; } .tiles .tile > span { grid-column: 1 / -1; margin-top: 4px; }
 .tile:first-child { border-left: 0; }
 .tile svg { grid-row: 1 / 3; } .tile b { font-size: var(--fs-xl); font-weight: 900; line-height: 1; } .tile b small { font-size: var(--fs-sm); color: var(--dim); } .tile span { font-size: var(--fs-xs); color: var(--mute); text-transform: uppercase; letter-spacing: .1em; }
 
@@ -165,7 +168,7 @@
 .sg div { flex: 1; min-width: 0; } .sg b { display: block; } .sg small { color: var(--mute); }
 
 /* comarcas */
-.comarcas { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+.comarcas { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 16px; }
 .ccard { position: relative; text-align: left; border-radius: var(--r); overflow: hidden; background: var(--plum); border: 1px solid var(--line); box-shadow: 0 10px 26px rgba(0, 0, 0, .35); transition: transform .15s, box-shadow .15s, border-color .15s; min-height: 240px; display: flex; flex-direction: column; }
 .ccard:hover { transform: translateY(-4px); border-color: var(--c); box-shadow: 0 16px 34px rgba(0, 0, 0, .45), 0 0 0 1px var(--c); }
 .ccard .cimg { height: 116px; background-size: cover; background-position: center; }
@@ -178,7 +181,7 @@
 .ccard .cgo::after { content: '›'; font-size: var(--fs-md); line-height: 1; }
 .ccard.soon { opacity: .6; } .ccard.soon .cgo { color: var(--dim); } .ccard.soon .cgo::after { content: ''; }
 
-.folk { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.folk { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 16px; }
 .folkcard { display: flex; gap: 12px; align-items: flex-start; padding: 12px; border-radius: var(--r); background: var(--glass); border: 1px solid var(--line); }
 .folkcard img { width: 72px; height: 72px; border-radius: 14px; background: radial-gradient(#6d5a9a, #2d2448); flex: none; }
 .folkcard > div { min-width: 0; } .folkcard small { display: block; color: var(--gold); font-size: var(--fs-xs); font-weight: 900; letter-spacing: .1em; text-transform: uppercase; line-height: 1.3; }   /* (entero: antes, con puntos suspensivos) */ .folkcard b { display: block; font-size: var(--fs-md); } .folkcard p { margin: 4px 0 0; font-size: var(--fs-sm); line-height: 1.45; color: var(--mute); font-weight: 600; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
@@ -234,7 +237,7 @@
 .cult svg { flex: none; } .cult small { color: var(--gold); font-weight: 900; text-transform: uppercase; font-size: var(--fs-xs); letter-spacing: .1em; }
 .cult b { display: block; font-size: var(--fs-md); } .cult p { margin: 4px 0; color: #eae4f6; font-weight: 600; font-size: var(--fs-sm); } .cult em { color: var(--mute); font-size: var(--fs-sm); }
 .nchips { display: flex; flex-wrap: wrap; gap: 8px; }
-.nchip { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; border-radius: 20px; background: rgba(255, 255, 255, .06); border: 1px solid var(--line); font-size: var(--fs-sm); }
+.nchip { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 4px 12px 4px 4px; border-radius: 20px; background: rgba(255, 255, 255, .06); border: 1px solid var(--line); font-size: var(--fs-sm); }
 
 /* ---------- Pueblos ---------- */
 .filters { display: flex; gap: 4px; margin-bottom: 16px; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--line); touch-action: pan-x; }
@@ -243,7 +246,7 @@
 .filters button:hover { color: #fff; }
 .filters button.on { color: #fff; }
 .filters button.on::after { content: ''; position: absolute; left: 8px; right: 8px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--c, var(--cyan)); box-shadow: 0 0 10px var(--c, var(--cyan)); }
-.towns { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 12px; }
+.towns { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr)); gap: 12px; }
 .tcard { position: relative; text-align: left; --tp-l: 20px; --tp-r: 16px; padding: 16px var(--tp-r) 16px var(--tp-l); border-radius: var(--r); background: linear-gradient(160deg, color-mix(in srgb, var(--c) 22%, rgba(38, 24, 76, .75)), rgba(34, 12, 70, .84) 70%); border: 1px solid var(--line); transition: transform .15s, border-color .15s; display: flex; flex-direction: column; gap: 8px; }
 .tcard.has-cov { padding-top: 0; overflow: hidden; } .tcard .tcov { display: block; width: calc(100% + var(--tp-l) + var(--tp-r)); margin: 0 calc(-1 * var(--tp-r)) 2px calc(-1 * var(--tp-l));   /* (de borde a borde de la tarjeta, sea cual sea su relleno) */ aspect-ratio: 16 / 7; object-fit: cover; object-position: 50% 80%; -webkit-mask: linear-gradient(180deg, #000 70%, transparent); mask: linear-gradient(180deg, #000 70%, transparent); }
 .tcard.has-cov .tstamp { top: auto; }
@@ -277,7 +280,7 @@
 
 /* hoja «Más» */
 .sheet.more { place-items: end center; padding: 0; }
-.more-in { width: min(520px, 100%); background: var(--plum); border: 1px solid var(--line2); border-bottom: 0; border-radius: var(--rL) var(--rL) 0 0; padding: 8px 16px calc(env(safe-area-inset-bottom, 0px) + 16px); display: flex; flex-direction: column; gap: 8px; animation: up .28s cubic-bezier(.2, 1, .3, 1); }
+.more-in { max-height: calc(100dvh - 8px); overflow-y: auto; overscroll-behavior: contain; width: min(520px, 100%); background: var(--plum); border: 1px solid var(--line2); border-bottom: 0; border-radius: var(--rL) var(--rL) 0 0; padding: 8px 16px calc(env(safe-area-inset-bottom, 0px) + 16px); display: flex; flex-direction: column; gap: 8px; animation: up .28s cubic-bezier(.2, 1, .3, 1); }
 .more-in .grab { width: 44px; height: 5px; border-radius: 5px; background: var(--line2); margin: 2px auto 8px; }
 .more-in .kicker { margin: 0 4px 4px; }
 .more-in button { display: flex; align-items: center; gap: 16px; padding: 8px 12px; border-radius: 14px; background: rgba(255, 255, 255, .04); border: 1px solid var(--line); text-align: left; }
@@ -286,7 +289,7 @@
 @keyframes up { from { transform: translateY(100%); } }
 
 /* ---------- Cimas ---------- */
-.peaks { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.peaks { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 12px; }
 .pcard { padding: 16px 16px; border-radius: var(--r); background: var(--glass); border: 1px solid var(--line); border-top: 3px solid var(--c); display: flex; flex-direction: column; gap: 8px; }
 .pcard.done { background: rgba(194, 28, 255, .12); border-color: rgba(201, 178, 255, .5); }
 .pcard .phead { display: flex; align-items: center; gap: 8px; } .pcard .phead div { flex: 1; } .pcard b { font-size: var(--fs-md); display: block; } .pcard small { color: var(--mute); font-size: var(--fs-xs); }
@@ -300,7 +303,7 @@
 .pcard .btn { align-self: flex-start; }
 
 /* ---------- Naturaleza ---------- */
-.species { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
+.species { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr)); gap: 8px; }
 .scard { position: relative; padding: 16px 12px 12px; border-radius: var(--r); background: var(--glass); border: 1px solid var(--line); text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .scard b { font-size: var(--fs-md); } .scard p { font-size: var(--fs-sm); color: var(--mute); margin: 0; font-weight: 600; }
 .scard .where { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; } .scard .where i { width: 10px; height: 10px; border-radius: 3px; }
@@ -339,7 +342,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .cstrip button.on { border-color: var(--cyan); color: #fff; background: rgba(255, 122, 200, .14); box-shadow: 0 0 0 1px var(--cyan), 0 0 16px rgba(201, 178, 255, .35), 0 8px 20px rgba(0, 0, 0, .35); }
 
 /* ---------- Insignias ---------- */
-.badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
+.badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr)); gap: 8px; }
 .bcard { padding: 16px 12px; border-radius: var(--r); text-align: center; background: var(--glass); border: 1px solid var(--line); }
 .bcard .bic { display: grid; place-items: center; width: 84px; height: 84px; margin: 0 auto 8px; border-radius: 50%; background: rgba(255, 255, 255, .05); border: 1px dashed var(--line2); }
 .bcard:not(.on) .bic svg { opacity: .55; }
@@ -349,13 +352,13 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .bcard b { display: block; font-size: var(--fs-md); } .bcard:not(.on) b { color: var(--mute); } .bcard p { margin: 4px 0 0; font-size: var(--fs-sm); color: var(--mute); font-weight: 600; }
 
 /* ---------- Pasaporte ---------- */
-.passport { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 16px; }
+.passport { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr)); gap: 16px; }
 .ppage { padding: 16px; border-radius: 16px; background: linear-gradient(160deg, color-mix(in srgb, var(--c) 18%, #32136f), #1c0b3a 75%); color: var(--ink); border: 1px solid var(--line2); box-shadow: 0 10px 24px rgba(0, 0, 0, .35); }
 .ppage header { display: flex; align-items: center; gap: 12px; } .ppage header img { width: 66px; height: 66px; object-fit: contain; }
 .ppage header div { display: flex; flex-direction: column; }
 .ppage b { font-size: var(--fs-md); font-weight: 900; } .ppage small { color: var(--mute); }
 /* (de 108 px como poco: los nombres largos, como ZUGARRAMURDI, caben con aire dentro del sello) */
-.pstamps { display: grid; grid-template-columns: repeat(auto-fill, minmax(108px, 1fr)); gap: 8px; margin-top: 12px; }
+.pstamps { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 108px), 1fr)); gap: 8px; margin-top: 12px; }
 .pst { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 12px; border-radius: 12px; border: 2px dashed rgba(190, 160, 255, .3); background: rgba(255, 255, 255, .03); color: var(--ink); }
 .pst .ink { opacity: .35; } .pst.on { border-style: solid; border-color: var(--c); background: color-mix(in srgb, var(--c) 12%, transparent); } .pst.on .ink { opacity: 1; transform: rotate(-10deg); }
 .pst small { font-size: var(--fs-xs); font-weight: 800; text-align: center; color: var(--ink); }
@@ -682,8 +685,10 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .onb { background: radial-gradient(ellipse at 50% 0%, #3b1580, #12052c 70%); }
 .onb-in { display: flex; flex-direction: column; gap: 12px; grid-template-columns: none; grid-template-areas: none; }
 .onb .csel2 { width: 100%; }
-.onb-foot { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: end; }
-.onb-foot .btn { white-space: nowrap; }
+.onb-foot { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name name" "age age" "go dd"; gap: 12px; align-items: end; }
+.onb-foot .btn { white-space: nowrap; } .onb-foot #oDd { white-space: normal; text-wrap: balance; }
+/* (cada cosa en su sitio en todos los tamaños: el nombre, la edad y, debajo, empezar a jugar o solo el material) */
+.onb-foot > label { grid-area: name; } .onb-foot > .onb-age { grid-area: age; } .onb-foot > #oGo { grid-area: go; } .onb-foot > #oDd { grid-area: dd; }
 
 @media (max-width: 760px) {
   .csel2 { grid-template-columns: minmax(0, 1fr); grid-template-areas: "stage" "roster" "extra" "side"; }
@@ -693,7 +698,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   .cs-roster { border-top: 0; border-bottom: 1px solid var(--line); }
   .csel2 .cstrip button { width: 64px; } .csel2 .cstrip button img { width: 54px; height: 54px; }
   .cname { font-size: var(--fs-4xl); }
-  .onb-foot { grid-template-columns: minmax(0, 1fr); } .onb-foot .btn { width: 100%; }
+  .onb-foot { grid-template-columns: minmax(0, 1fr); grid-template-areas: "name" "age" "go" "dd"; } .onb-foot .btn { width: 100%; }
   .onb .cs-stage { height: min(40dvh, 330px); }
 }
 @media (max-height: 520px) {
@@ -702,7 +707,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   .cs-side { padding: 12px 16px 8px 4px; } .cname { font-size: var(--fs-3xl); } .cdesc { display: none; } .stats { gap: 4px; } .sbar { height: 8px; }
   .csel2 .cstrip { padding-top: 8px; } .csel2 .cstrip button { width: 56px; } .csel2 .cstrip button img { width: 46px; height: 46px; } .csel2 .cstrip button span { display: none; }
   .onb .cs-stage { height: calc(100dvh - 150px); }
-  .onb-foot { grid-template-columns: minmax(0, 1fr) auto; }
+  .onb-foot { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name go" "age age" "dd dd"; }
   .cs-hint { display: none; }   /* (en pantallas bajas se montaba sobre la peana) */
   .cs-count { top: 16px; left: 16px; }
 }
@@ -774,7 +779,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .pbadge { display: inline-flex; gap: 8px; align-items: center; font-weight: 900; font-size: var(--fs-sm); color: #c9b2ff; }
 /* ================= Intro cinemática ================= */
 .langsel { display: inline-flex; margin-top: 8px; padding: 4px; border-radius: 24px; background: rgba(255, 255, 255, .1); border: 1px solid var(--line2); gap: 4px; }
-.langsel button { padding: 8px 16px; border-radius: 20px; font: 900 var(--fs-sm) 'Nunito', sans-serif; color: var(--mute); background: none; border: 0; cursor: pointer; }
+.langsel button { min-height: 40px; padding: 8px 16px; border-radius: 20px; font: 900 var(--fs-sm) 'Nunito', sans-serif; color: var(--mute); background: none; border: 0; cursor: pointer; }
 .langsel button.on { background: #ff7ac8; color: #2a0638; }
 /* barra lateral: los nombres completos caben sin cortarse (Naturaleza, Personajes, Pasaporte) */
 .hub-nav button span { letter-spacing: 0; }
@@ -842,6 +847,9 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .seg button svg { flex: none; width: 22px; height: 22px; }   /* (el perro junto a su nombre, como antes) */
 .seg button:not(.on):hover { background: rgba(255, 255, 255, .08); color: #fff; }
 .seg span { white-space: nowrap; }
+/* (en el móvil más estrecho, con perro o sin él uno debajo del otro, y los botones de la mochila a todo el ancho y en dos
+   líneas si hace falta: a 280 px se salían de la tarjeta) */
+@media (max-width: 360px) { .bp-line .seg { grid-auto-flow: row; grid-auto-columns: auto; width: 100%; } .bp-line .bp-grp { width: 100%; } .bp-line .bp-grp .btn { flex: 1 1 100%; } .bp-line .btn span { white-space: normal; } }
 .bp-line .btn { box-sizing: border-box; width: auto; min-width: 0; min-height: 44px; margin: 0; padding: 8px 20px; font-size: var(--fs-sm); line-height: 1.15; border-radius: 4px; white-space: nowrap; }
 .bp-line .btn[disabled] { opacity: .45; cursor: default; }
 .drops { flex: none; display: flex; gap: 8px; } .drops span { opacity: .25; } .drops span.on { opacity: 1; }
@@ -868,7 +876,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .gender button.on { background: #ff7ac8; color: #2a1640; border-color: #ff7ac8; }
 /* ---------- Elegir perro ---------- */
 .dogpick .mg-card { max-width: 640px; }
-.breeds { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px; width: 100%; }
+.breeds { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 8px; width: 100%; }
 .breeds button { display: grid; grid-template-columns: 46px 1fr; column-gap: 8px; align-items: center; text-align: left; padding: 8px; border-radius: 14px; background: rgba(255, 255, 255, .07); border: 2px solid transparent; color: inherit; font: inherit; cursor: pointer; }
 .breeds button.on { border-color: #ff7ac8; background: rgba(255, 122, 200, .14); }
 .breeds i { grid-row: span 2; width: 46px; height: 46px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, var(--p) 0 30%, var(--c) 31%); box-shadow: inset 0 0 0 3px rgba(0, 0, 0, .25); }
@@ -952,7 +960,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 @media (max-height: 560px) {
   .shop-shelves { display: none; } .shop-card { padding: 12px 16px; gap: 8px; }
   /* en el móvil tumbado: productos en fichas bajas (dibujo a la izquierda) para que quepan sin bajar */
-  .shop-card .shop-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+  .shop-card .shop-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr)); gap: 8px; }
   .shop-card .shop-item { display: grid; grid-template-columns: auto 1fr; column-gap: 8px; row-gap: 0; align-items: center; justify-items: start; text-align: left; padding: 8px 8px; }
   .shop-card .shop-item > :first-child { grid-row: 1 / span 3; width: 34px; height: 34px; }
   .shop-card .shop-star { padding: 8px 16px; gap: 12px; } .shop-card .shop-star > :first-child { width: 76px; height: 76px; } .shop-star h3 { font-size: var(--fs-lg); } .shop-star p { font-size: var(--fs-sm); line-height: 1.45; margin-bottom: 8px; }
@@ -976,7 +984,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .shop-star { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; background: rgba(255, 255, 255, .05); border: 1px solid rgba(201, 178, 255, .2); border-radius: 4px; padding: 16px; color: #eae4f6; }
 .shop-star h3 { margin: 0 0 var(--t-mb); font: 400 var(--fs-xl)/1 var(--f-display); color: #fff; } .shop-star small + h3 { margin-top: var(--t-mt); } .shop-star small { display: block; color: var(--rosa); font: 800 var(--fs-sm)/1.15 var(--f-cond); text-transform: uppercase; letter-spacing: .1em; }
 .shop-star p { margin: 0 0 8px; line-height: 1.45; }
-.shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 140px), 1fr)); gap: 8px; }
 .shop-item { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 8px; border-radius: 4px; border: 1px solid rgba(201, 178, 255, .2); background: rgba(255, 255, 255, .05); color: #fff; cursor: pointer; font: inherit; text-align: center; }
 .shop-item b { font-size: var(--fs-sm); } .shop-item span { font-size: var(--fs-xs); color: var(--mute); } .shop-item em { font-style: normal; color: var(--rosa); font-weight: 800; display: flex; align-items: center; gap: 4px; }
 .shop-item:disabled { opacity: .45; cursor: default; }
@@ -1045,7 +1053,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   .onb .stats, .onb .abil, .onb .cdesc { display: none; }
   .onb .cname { font-size: var(--fs-2xl); } .onb .csel-info .tl { font-size: var(--fs-sm); }
   .onb .cs-extra { padding: 8px 16px 8px 4px; border-top: 0; background: none; }
-  .onb-foot { grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: end; }
+  .onb-foot { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name go" "age age" "dd dd"; gap: 8px; align-items: end; }
   .onb-foot label { font-size: var(--fs-xs); gap: 4px; } .onb-foot input { padding: 8px 12px; font-size: var(--fs-md); }
   .onb-foot .btn.big { min-height: 44px; padding: 8px 16px; font-size: var(--fs-md); }
   .onb .cs-roster { padding: 2px 8px 8px; } .onb .csel2 .cstrip { padding-top: 8px; }
@@ -1054,7 +1062,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   .onb .cs-stage { min-height: calc(100dvh - 150px); min-height: calc(100dvh - 150px); }
 }
 @media (orientation: landscape) and (max-height: 520px) and (max-width: 740px) {
-  .onb-foot { grid-template-columns: minmax(0, 1fr); } .onb-foot .btn.big { width: 100%; }
+  .onb-foot { grid-template-columns: minmax(0, 1fr); grid-template-areas: "name" "age" "go" "dd"; } .onb-foot .btn.big { width: 100%; }
 }
 
 /* móvil tumbado: fichas de flora y fauna con el texto en dos columnas (cabe sin desplazar) y el botón siempre a la
@@ -1152,16 +1160,16 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 /* aprender Navarra: los saberes en la portada, a la vista nada más entrar */
 .saberes { margin-top: 16px; padding: 16px 20px; border-radius: var(--r); background: radial-gradient(80% 70% at 100% 0%, rgba(255, 43, 214, .16), transparent 60%), linear-gradient(160deg, rgba(76, 26, 158, .55), rgba(30, 10, 64, .88)); border: 1px solid var(--line2); }   /* (en la gama del juego: antes, verde) */
 .saberes .sb-head h2 { margin: var(--t-mt) 0 var(--t-mb); font: 400 var(--fs-xl)/1 var(--f-display); } .saberes .sb-head p { margin: 0 0 12px; color: var(--ink); font-weight: 600; max-width: 70ch; }
-.saberes .sb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.saberes .sb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr)); gap: 8px; }
 .saberes .sb { display: grid; grid-template-columns: 34px 1fr; grid-template-rows: auto auto; column-gap: 8px; align-items: center; padding: 8px 12px; border-radius: var(--r); background: rgba(0, 0, 0, .22); border: 1px solid rgba(255, 255, 255, .1); opacity: .78; }
 .saberes .sb.on { opacity: 1; background: rgba(255, 122, 200, .12); border-color: rgba(255, 122, 200, .35); }
-.saberes .sb svg { grid-row: span 2; } .saberes .sb b { font-size: var(--fs-xl); line-height: 1; color: #ff7ac8; } .saberes .sb span { font-weight: 900; font-size: var(--fs-sm); }
+.saberes .sb > :first-child { grid-row: span 2; } .saberes .sb b { font-size: var(--fs-xl); line-height: 1; color: #ff7ac8; } .saberes .sb span { font-weight: 900; font-size: var(--fs-sm); }
 .saberes .sb small { grid-column: 1 / -1; color: #cfe5d4; font-size: var(--fs-xs); margin-top: 4px; line-height: 1.3; }
-@media (max-width: 560px), (orientation: landscape) and (max-height: 440px) { .saberes .sb small { display: none; } .saberes .sb-grid { grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); } }
+@media (max-width: 560px), (orientation: landscape) and (max-height: 440px) { .saberes .sb small { display: none; } .saberes .sb-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 124px), 1fr)); } }
 /* Escudos de Navarra (armorial) */
 .saberes .sb.link { cursor: pointer; outline-offset: 2px; } .saberes .sb.link:hover { border-color: #ff7ac8; }
 .saberes .sb-arms { margin: 0 0 12px; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; white-space: normal; text-align: left; }
-.armorial { display: grid; gap: 16px; padding-bottom: 24px; }
+.armorial { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; padding-bottom: 24px; }   /* (una columna que no ensancha nada de dentro) */
 .armorial .ar-head h1 { margin: var(--t-mt) 0 var(--t-mb); } .armorial .ar-head p { margin: 0 0 8px; max-width: 75ch; font-weight: 600; color: #eae4f6; }
 .armorial .ar-count { color: #ff7ac8; }
 .armorial details > summary { cursor: pointer; font-weight: 900; min-height: 44px; display: flex; align-items: center; gap: 8px; }
@@ -1172,10 +1180,10 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .armorial .ar-pend summary h3 { margin: 0; }
 .armorial .ar-guia { background: rgba(0, 0, 0, .25); border: 1px solid rgba(255, 122, 200, .25); border-radius: 16px; padding: 8px 16px; }
 .armorial .ar-guia ol { margin: 8px 0 4px; padding-left: 24px; display: grid; gap: 8px; color: #eae4f6; }
-.armorial .ar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 8px; }
+.armorial .ar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 8px; }
 /* (las tarjetas de los escudos, todas del mismo alto: así el escudo, centrado en la suya, queda en el mismo sitio en todas;
    y de 360 px como poco, para que los nombres y los pueblos no vayan palabra a palabra) */
-.armorial:not(.cuentos) .ar-grid { grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); grid-auto-rows: 1fr; }
+.armorial:not(.cuentos) .ar-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); grid-auto-rows: 1fr; }
 .armorial .ar { display: grid; grid-template-columns: 112px 1fr; gap: 12px; align-items: start; padding: 12px; border-radius: 16px; background: rgba(0, 0, 0, .25); border: 1px solid rgba(255, 255, 255, .1); }
 .armorial .ar.on { border-color: rgba(255, 122, 200, .45); background: rgba(255, 122, 200, .08); }
 .armorial .ar canvas { width: 112px; height: auto; }
@@ -1196,7 +1204,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 /* (el escudo centrado en su tarjeta, también en las que llevan más pueblos o «Leído en el juego») */
 .armorial button.ar img.ar-img { margin: -8px 0; } .armorial button.ar > :first-child { align-self: center; }
 .armorial .ar-pu { display: block; margin: 0 0 4px; color: var(--mute); font-size: var(--fs-sm); line-height: 1.35; }
-.armorial .ar-nm { display: block; margin: var(--t-mt) 0 var(--t-mb); font: 400 var(--fs-lg)/1 var(--f-display); }
+.armorial .ar-nm { display: block; margin: var(--t-mt) 0 var(--t-mb); font: 400 var(--fs-lg)/1 var(--f-display); overflow-wrap: anywhere; }
 .armorial .ar-btn { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 64px; padding: 12px 16px; border-radius: 4px; background: rgba(0, 0, 0, .25); border: 1px solid rgba(255, 122, 200, .25); font: inherit; color: inherit; text-align: left; cursor: pointer; transition: border-color .15s; }
 .armorial .ar-btn:hover, .armorial .ar-btn:focus-visible { border-color: #ff7ac8; }
 .armorial .ar-btn > :first-child, .armorial .ar-btn > :last-child { flex: none; }
@@ -1214,7 +1222,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 /* (el cuento con su lámina al lado solo en el móvil tumbado; de pie, la lámina entera arriba y el texto debajo) */
 @media (orientation: landscape) and (max-height: 440px) { .armorial.cuentos .ct { grid-template-columns: 240px minmax(0, 1fr); } }
 .sh-arms { display: grid; grid-template-columns: 90px 1fr; gap: 12px; align-items: start; margin: 0 0 12px; } .sh-arms canvas { width: 90px; height: auto; } .sh-arms p { margin: 0; }
-.sh-arms .lnk { background: none; border: 0; color: #ff7ac8; font-weight: 800; text-decoration: underline; padding: 8px 0; cursor: pointer; font: inherit; grid-column: 2; justify-self: start; margin-top: -8px; }   /* (debajo del texto del escudo, fuera de él: el texto se pliega con «ver más» y el enlace no se esconde) */
+.sh-arms .lnk { min-height: 40px; background: none; border: 0; color: #ff7ac8; font-weight: 800; text-decoration: underline; padding: 8px 0; cursor: pointer; font: inherit; grid-column: 2; justify-self: start; margin-top: -8px; }   /* (debajo del texto del escudo, fuera de él: el texto se pliega con «ver más» y el enlace no se esconde) */
 /* edad en la bienvenida y en el perfil */
 .onb-age { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: 100%; }
 .onb-age > span { grid-column: 1 / -1; font-weight: 800; }
@@ -1230,7 +1238,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 @media (orientation: landscape) and (max-height: 500px) {
   .hub-nav button { font-size: var(--fs-xs); }
   /* bienvenida: nombre y botón en una fila, la edad debajo en tres botones */
-  .onb-foot { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name go" "age age"; gap: 8px 8px; align-items: end; }
+  .onb-foot { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name go" "age age" "dd dd"; gap: 8px 8px; align-items: end; }
   .onb-foot > label { grid-area: name; flex-direction: row; align-items: center; gap: 8px; font-size: var(--fs-xs); }
   .onb-foot > label input { flex: 1; min-width: 0; min-height: 44px; }
   .onb-foot > .onb-age { grid-area: age; gap: 8px; }
@@ -1240,10 +1248,10 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   .onb .csel2 { grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); }
   .onb-foot > #oGo .go-long { display: none; }
   .onb-foot > label { min-width: 0; }
-  .onb-foot > .onb-age button { padding: 4px 8px; text-align: center; place-items: center; } .onb-foot > .onb-age button b { white-space: nowrap; font-size: var(--fs-sm); }
+  .onb-foot > .onb-age button { padding: 4px 8px; text-align: center; place-items: center; } .onb-foot > .onb-age button b { font-size: var(--fs-sm); line-height: 1.1; text-wrap: balance; }
   .onb .csel-info p, .onb .radar { display: none; }
   /* pueblos: tres columnas con portadas más bajas */
-  .towns { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+  .towns { grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: 8px; }
   .tcard.has-cov .tcov { aspect-ratio: 16 / 6; }
   .tcard { --tp-l: 16px; --tp-r: 16px; padding: 12px var(--tp-r) 12px var(--tp-l); gap: 8px; } .tcard b { font-size: var(--fs-md); } .tcard p { font-size: var(--fs-sm); }
   /* ficha del pueblo: imagen a la izquierda; misiones y botón a la derecha, siempre a la vista */
@@ -1314,7 +1322,8 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   .map-wrap .cbar2 { display: none; }
   /* (el nombre de la comarca en dos líneas si no cabe en una: con la muesca del iPhone las columnas son más estrechas) */
   .map-wrap .clist b { font-size: var(--fs-xs); line-height: 1.1; white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: normal; word-break: normal; }   /* (se parte por los espacios o el guion, nunca a mitad de palabra) */
-@media (orientation: landscape) and (max-width: 720px) and (max-height: 560px) { .map-wrap .clist button { column-gap: 4px; padding: 2px 12px 2px 6px; } .map-wrap .clist i { width: 20px; height: 20px; font-size: var(--fs-xs); } .map-wrap .clist b { letter-spacing: .02em; } .map-wrap .clist small { font-size: var(--fs-xs); } }   /* (en los móviles más estrechos, más sitio para el nombre de la comarca) */ .map-wrap .clist small { font-size: var(--fs-sm); }
+/* (en los tumbados más estrechos, una sola columna de comarcas: en dos, el nombre y su «0/6» se pisaban) */
+@media (orientation: landscape) and (max-width: 720px) and (max-height: 560px) { .map-wrap .clist { grid-template-columns: minmax(0, 1fr); } .map-wrap .clist button { column-gap: 4px; padding: 2px 12px 2px 6px; } .map-wrap .clist i { width: 20px; height: 20px; font-size: var(--fs-xs); } .map-wrap .clist b { letter-spacing: .02em; } .map-wrap .clist small { font-size: var(--fs-xs); } }   /* (en los móviles más estrechos, más sitio para el nombre de la comarca) */ .map-wrap .clist small { font-size: var(--fs-sm); }
 }
 
 /* ---------- Láminas ----------
@@ -1399,7 +1408,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 
 /* Figuras de leyenda y de carnaval (ui/figuras.js): la figura entera en su tarjeta, de qué es y de dónde, y su nombre.
    En el inicio, en tira que se desliza; en Personajes, en retícula. Al tocarla, su ficha. */
-.figuras { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.figuras { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr)); gap: 8px; }
 .figuras.rail { display: flex; overflow-x: auto; scrollbar-width: none; padding: 2px 2px 8px; touch-action: pan-x; } .figuras.rail::-webkit-scrollbar { display: none; } .figuras.rail .fcard { flex: none; width: 150px; }
 .fcard { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px; border-radius: var(--r); background: var(--glass); border: 1px solid var(--line); font: inherit; color: inherit; cursor: pointer; text-align: center; transition: transform .12s, border-color .12s; }
 .fcard:hover { border-color: var(--cyan); transform: translateY(-2px); } .fcard:active { transform: scale(.98); }
@@ -1413,7 +1422,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 @media (min-width: 900px) { .figuras { gap: 16px; } .figuras.rail .fcard { width: 170px; } }
 
 /* instrumentos de Navarra (ui/instrumentos.js): la lista del menú y el minijuego de tocar */
-.ins-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.ins-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 12px; }
 .ins { display: flex; gap: 12px; align-items: center; text-align: left; padding: 12px; border-radius: var(--r); background: var(--glass2); border: 1px solid var(--line); color: #fff; cursor: pointer; transition: transform .15s, border-color .15s; font: inherit; }
 .ins:hover { transform: translateY(-3px); border-color: var(--line2); }
 .ins.on { border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan) inset; }
@@ -1461,12 +1470,12 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .pk-btn.ghost { background: rgba(34, 26, 44, .75); border-color: rgba(255, 255, 255, .35); } .pk-btn.flash { filter: brightness(1.35); transform: scale(.97); }
 .pasaka-menu .mg-card { gap: 10px; } .pasaka-menu .mg-card .btn { min-width: 240px; }
 /* la pantalla del menú: la portada dibujada y las fichas */
-.armorial.pasaka .pk-hero { position: relative; border-radius: var(--rL); overflow: hidden; border: 1px solid rgba(255, 122, 200, .3); background: #2a1a11; aspect-ratio: 16 / 7; min-height: 220px; }
+.armorial.pasaka .pk-hero { position: relative; width: 100%; border-radius: var(--rL); overflow: hidden; border: 1px solid rgba(255, 122, 200, .3); background: #2a1a11; aspect-ratio: 16 / 7; min-height: 220px; }
 .armorial.pasaka .pk-prev, .armorial.pasaka .pk-cov { position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: cover; object-position: 50% 40%; }
 /* los escudos de las casas que has leído, con el acabado del autor: la misma tarjeta que los oficiales */
 .armorial .ar-h2 { margin: 16px 0 0; display: flex; align-items: baseline; gap: 0 8px; flex-wrap: wrap; } .armorial .ar-h2 h2 { margin: var(--t-mt) 0 calc(var(--t-mb) - 3px); font-size: var(--fs-xl); line-height: 1.1; } .armorial .ar-h2 small { color: var(--lila); font-weight: 700; } .armorial .ar-h2 .ar-none { width: 100%; margin: 0; color: #cbc2e0; font-weight: 600; }
 .armorial.pasaka .pk-hero-tx { position: absolute; left: 0; right: 0; bottom: 0; padding: 16px; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0 16px; background: linear-gradient(180deg, transparent, rgba(10, 4, 20, .85)); }
-.armorial.pasaka .pk-hero-tx small { width: 100%; margin-bottom: -3px; } .armorial.pasaka .pk-hero-tx b { flex: 1; min-width: 200px; margin: 2px 0 6px; font-size: var(--fs-lg); line-height: 1.1; color: #fff; text-shadow: 0 2px 8px #000; }
+.armorial.pasaka .pk-hero-tx small { width: 100%; margin-bottom: -3px; } .armorial.pasaka .pk-hero-tx b { flex: 1; min-width: min(200px, 100%); margin: 2px 0 6px; font-size: var(--fs-lg); line-height: 1.1; color: #fff; text-shadow: 0 2px 8px #000; }
 .armorial.pasaka .pk-sec { border-radius: 4px; } .armorial.pasaka .pk-sec h3 { margin: 8px 0 2px; font-size: var(--fs-md); line-height: 1.3; color: var(--lila); } .armorial.pasaka .pk-sec p { margin: 0 0 8px; color: #eae4f6; font-weight: 600; }
 @media (max-width: 600px) { .armorial.pasaka .pk-hero { aspect-ratio: 16 / 10; } }
 
@@ -1477,5 +1486,21 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .pj-g .sec { margin-top: 16px; }
 .pj-g .lead { margin: 0 0 16px; }
 /* el enlace a la sección desde las tiras de la portada, a la derecha del título y en letra normal */
-.sec .sec-more { margin-left: auto; padding: 8px 0; background: none; border: 0; color: #ff7ac8; font-size: var(--fs-sm); font-weight: 800; letter-spacing: 0; text-transform: none; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; white-space: nowrap; }
-
+.sec .sec-more { margin-left: auto; min-height: 40px; display: inline-flex; align-items: center; padding: 8px 0; background: none; border: 0; color: #ff7ac8; font-size: var(--fs-sm); font-weight: 800; letter-spacing: 0; text-transform: none; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; white-space: nowrap; }
+/* móviles muy estrechos (plegables, iPhone SE de primera generación): en la barra de abajo no caben seis nombres; la 5.ª
+   sección principal y, aún más estrecho, la 4.ª pasan a «Más» */
+@media (max-width: 379px) and (orientation: portrait) { .hub-nav .navp5 { display: none; } }
+@media (max-width: 339px) and (orientation: portrait) { .hub-nav .navp4 { display: none; } .h-cta .go { font-size: var(--fs-md); padding-left: 12px; padding-right: 12px; gap: 4px; } .h-cta .sq { padding: 8px 12px; } }
+/* móvil tumbado: los botones de la barra lateral, de 40 px de alto como mínimo para el dedo */
+@media (max-height: 520px) and (min-width: 561px) { .hub-nav button { min-height: 40px; } }
+/* móvil tumbado pequeño (iPhone SE de primera generación): el botón de la portada y el nombre del modo, más cortos */
+@media (orientation: landscape) and (max-height: 360px) { .h-cta .go { font-size: var(--fs-md); padding-left: 12px; padding-right: 12px; gap: 4px; } .h-cta .sq { padding: 4px 12px; } }
+/* el móvil más estrecho (280 a 360 px, como el Galaxy Fold cerrado): el idioma con menos relleno, los botones de la
+   bienvenida en dos líneas si hace falta, el campeonato con menos márgenes, los nombres de las insignias partidos (antes se salían de su caja) y el contador debajo de «Ver más» */
+@media (max-width: 360px) {
+  .langsel { max-width: 100%; } .langsel button { padding: 8px 10px; }
+  .onb-foot .btn { white-space: normal; }
+  .sports-cta { gap: 8px; padding: 12px; }
+  .badges b { overflow-wrap: anywhere; }
+  .armorial .vm-btn + .ar-count { display: block; }
+}

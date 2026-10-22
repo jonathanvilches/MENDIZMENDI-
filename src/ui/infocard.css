@@ -177,3 +177,39 @@
 /* (en pantallas anchas, la ficha más ancha y la imagen con más sitio: casi a todo el alto, con poco difuminado arriba y abajo) */
 @media (orientation: landscape) and (min-width: 1100px) { .mg-overlay.ix-ov > .mg-card.ix.has-wide { width: min(1180px, 100%); grid-template-columns: minmax(0, 58fr) minmax(0, 42fr); } }
 @media (orientation: portrait) { .ix-frame.wide { aspect-ratio: 16 / 9; } }
+/* las pestañas, en dos filas cuando no caben en una (móviles estrechos de pie, fichas estrechas en el móvil tumbado):
+   ninguna queda escondida de lado */
+.ix-tabs { flex-wrap: wrap; overflow-x: visible; } .ix-tabs button { min-height: 40px; }
+@media (orientation: portrait) and (max-width: 420px) { .ix-tabs button { flex: 1 1 calc(50% - 4px); } }
+/* de pie, la ficha en una columna que nunca pasa del alto de la pantalla: la imagen arriba, y el texto se desplaza en
+   su caja para que el botón de seguir quede siempre a la vista (en un móvil bajo, como el iPhone SE, se salía por abajo) */
+@media (orientation: portrait) {
+  .mg-overlay.ix-ov > .mg-card.ix { display: flex; flex-direction: column; }
+  .mg-overlay.ix-ov > .mg-card.ix > .ix-media { flex: none; }
+  .mg-overlay.ix-ov > .mg-card.ix > .ix-main { flex: 1 1 auto; }
+}
+/* los botones de abajo (escuchar, tocar y seguir) pasan a otra fila si no caben enteros, en vez de cortar su nombre */
+.ix-foot { flex-wrap: wrap; } .mg-card.ix .ix-foot .btn { min-width: min(100%, max-content); }
+/* móviles de pie y bajos (iPhone SE y parecidos): la imagen más baja, el título más pequeño, las pestañas en filas de
+   tres y el texto con un alto mínimo para leerse; si aun así no cabe todo, se desplaza la columna entera de la ficha */
+@media (orientation: portrait) and (max-height: 700px) {
+  .mg-overlay.ix-ov > .mg-card.ix { --ix-pad: 12px; --ix-gap: 8px; }
+  .ix-frame { max-height: 22dvh; } .ix-frame.paper { height: 22dvh; }
+  .mg-card.ix .ix-title { font-size: var(--fs-xl); }
+  .ix-tabs button { flex: 1 1 calc(33.3% - 4px); padding: 4px; white-space: normal; line-height: 1.05; }
+  .mg-overlay.ix-ov > .mg-card.ix > .ix-main { overflow-y: auto; overscroll-behavior: contain; }
+  /* (el botón de seguir, pegado abajo aunque la columna se desplace) */
+  .mg-overlay.ix-ov > .mg-card.ix > .ix-main > .ix-end { display: contents; }
+  .mg-overlay.ix-ov > .mg-card.ix > .ix-main > .ix-foot, .mg-overlay.ix-ov > .mg-card.ix > .ix-main > .ix-end > .ix-foot { position: sticky; bottom: 0; z-index: 2; padding-top: 8px; background: linear-gradient(180deg, transparent, var(--v1) 8px); }
+  .ix-main .ix-pane { min-height: min(120px, 22dvh); }
+}
+/* móvil tumbado muy bajo (iPhone SE de primera generación, 320 px de alto): la columna del texto se desplaza entera y el
+   botón de seguir queda pegado abajo, siempre a la vista */
+@media (orientation: landscape) and (max-height: 400px) {
+  .mg-overlay.ix-ov > .mg-card.ix > .ix-main { overflow-y: auto; overscroll-behavior: contain; }
+  .mg-overlay.ix-ov > .mg-card.ix > .ix-main > .ix-end { display: contents; }
+  .mg-overlay.ix-ov > .mg-card.ix > .ix-main > .ix-foot, .mg-overlay.ix-ov > .mg-card.ix > .ix-main > .ix-end > .ix-foot { position: sticky; bottom: 0; z-index: 2; padding-top: 8px; background: linear-gradient(180deg, transparent, var(--v1) 8px); }
+  .ix-main .ix-pane { flex: none; }
+  /* (la ficha que se ajusta a su contenido no tiene alto fijo: su columna, con tope, para que se desplace dentro) */
+  .mg-overlay.ix-ov > .mg-card.ix.fit > .ix-main { max-height: calc(100dvh - 40px); }
+}
