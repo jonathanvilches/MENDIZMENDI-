@@ -466,7 +466,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   .chip .stamps { padding-left: 8px; }
   .hub-nav { grid-row: 3; flex-direction: row; justify-content: space-around; gap: 0; overflow: visible; padding: 4px 4px calc(env(safe-area-inset-bottom, 0px) + 4px); border-right: 0; border-top: 1px solid var(--line); background: rgba(10, 8, 16, .92); }
   .hub-nav .nav2, .hub-nav .nav3 { display: none; } .hub-nav .more-btn { display: flex; }
-  .hub-nav button { flex: 1; font-size: var(--fs-xs); padding: 8px 0 4px; min-width: 0; }
+  .hub-nav button { flex: 1 1 0; font-size: var(--fs-xs); padding: 8px 0 4px; min-width: min-content; }   /* (cada nombre entero: «Pertsonaiak» y «Txapelketak» toman lo que les sobra a «Mapa» o «Más») */
   .hub-nav button.on { background: none; }
   .hub-nav button.on::before { left: 28%; right: 28%; top: -4px; bottom: auto; width: auto; height: 3px; }
   .hub-main { grid-row: 2; padding: 16px 16px 32px; }
@@ -1502,5 +1502,5 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   .onb-foot .btn { white-space: normal; }
   .sports-cta { gap: 8px; padding: 12px; }
   .badges b { overflow-wrap: anywhere; }
-  .armorial .vm-btn + .ar-count { display: block; }
 }
+.armorial .vm-btn + .ar-count { display: block; }   /* (la cifra, debajo del «Ver más»: en euskera es larga y se partía alrededor del botón) */
