@@ -1,6 +1,7 @@
 // Interfaz en partida: HUD, diálogos con retrato, cuaderno, mapa, menú, premios, prismáticos y ritmo.
 // Todos los iconos son de la familia del juego: los horneados (src/assets/icons3d) y, si falta alguno, los dibujos de src/ui/icons.js.
 import { RIBBONS, QUESTS, CARDS, SPECIES_OBS, EGUZKILORES } from './game/content.js';
+import { HITZAK, HITZAK_TEMA, HITZAK_N } from './data/hitzak.js';
 import { HALF, N, PLACES } from './world/layout.js';
 import { H, SURF } from './world/heightfield.js';
 import { clamp } from './util/math.js';
@@ -210,7 +211,8 @@ export class UI {
   async fadeIn() { this.fade.classList.remove('on'); await wait(300); }
 
   // ---------- Diálogo ----------
-  // lines: [{who, look, icon, text, choices:[...], onChoice}] -> devuelve el índice de la última elección
+  // lines: [{who, look, icon, text, choices:[...], onChoice, notr}] -> devuelve el índice de la última elección (notr: las
+  // opciones se quedan como están, sin traducir: las palabras en euskera que preguntan los vecinos)
   dialog(lines) {
     return new Promise(resolve => {
       this.closeModal();
@@ -236,7 +238,7 @@ export class UI {
         // acabar se deja el original para que el traductor lo apunte y el botón «Itzuli» pueda enseñarlo)
         full = L.text || ''; shown = tr(full); let k = 0;
         const p = $('p', d); p.textContent = ''; p.dataset.notr = '';
-        const ch = $('.choices', d); ch.innerHTML = '';
+        const ch = $('.choices', d); ch.innerHTML = ''; ch.toggleAttribute('data-notr', !!L.notr);
         $('.next', d).style.display = L.choices ? 'none' : '';
         clearInterval(typing);
         typing = setInterval(() => {
@@ -351,7 +353,7 @@ export class UI {
   }
   openTownBook(tab) {
     const g = this.game, d = g.def, c = g.comarca;
-    const tabs = [['misiones', 'Misiones'], ['lugares', 'Lugares'], ['comarca', c?.name || 'Comarca']];
+    const tabs = [['misiones', 'Misiones'], ['lugares', 'Lugares'], ['comarca', c?.name || 'Comarca'], ['hitzak', 'Euskera']];
     const s = this.screen(`<header><h2>${I('book', 30)} ${esc(d.name)}</h2>${this.closeBtn()}</header>
       <div class="tabs">${tabs.map(([id, n]) => `<button data-t="${id}" class="${id === tab ? 'on' : ''}">${esc(n)}</button>`).join('')}</div><div class="pbody"></div>`);
     const body = $('.pbody', s);
@@ -378,6 +380,13 @@ export class UI {
         const places = V ? V.places : [];
         body.innerHTML = `<p>${esc(d.intro || '')}</p><div class="cards">${places.map(p => { const has = g.P.cards.includes(d.id + ':' + p.name); return `<button class="card ${has ? '' : 'locked'}"><div class="in"><div class="f"><small>${p.kind === 'church' ? 'Iglesia' : 'Patrimonio'}</small><div class="e">${has ? I(p.kind === 'church' ? 'church' : p.kind, 56) : I('lock', 44)}</div><b>${has ? esc(p.name) : '¿?'}</b></div><div class="b">${has ? esc(p.text) : 'Visítalo para descubrirlo.'}</div></div></button>`; }).join('')}</div>`;
         body.querySelectorAll('.card').forEach(x => x.onclick = () => { if (!x.classList.contains('locked')) { x.classList.toggle('flip'); this.sound.ui('click'); } });
+      } else if (t === 'hitzak') {
+        // las palabras en euskera que enseñan los vecinos: las que sabes, con una estrella si la acertaste; de las que
+        // faltan se ve el castellano, para saber qué buscar (las dos columnas, sin pasar por el traductor)
+        const K = g.P.hitzak || {}, n = Object.values(HITZAK).flat().filter(([eu]) => K[eu]).length;
+        body.innerHTML = `<div class="tprog"><div class="bar"><i style="width:${n / HITZAK_N * 100}%"></i></div><span>${n} de ${HITZAK_N} palabras</span></div>
+          <p class="keys">Saluda a los vecinos: cada uno te enseña una palabra en euskera de lo que está haciendo y te pregunta si la recuerdas.</p>
+          ${Object.entries(HITZAK).map(([k, L]) => `<div class="sectionT">${esc(HITZAK_TEMA[k])}</div><table class="hz-voc"><tbody>${L.map(([eu, es]) => `<tr class="${K[eu] ? '' : 'lk'}"><th data-notr lang="eu">${K[eu] ? esc(eu) : '¿?'}</th><td data-notr lang="es">${esc(es)}</td><td class="hz-ok">${K[eu] > 1 ? I('star', 18) : ''}</td></tr>`).join('')}</tbody></table>`).join('')}`;
       } else {
         const C = c?.culture || {};
         const block = (ic, k, o) => o ? `<div class="cult">${I(ic, 44)}<div><small>${k}${o.date ? ' · ' + esc(o.date) : ''}</small><b>${esc(o.title)}</b><p>${esc(o.text)}</p></div></div>` : '';

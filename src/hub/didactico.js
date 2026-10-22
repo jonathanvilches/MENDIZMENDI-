@@ -23,6 +23,7 @@ import { DATOS } from '../data/saberes.js';
 import { FAUNA } from '../data/fauna.js';
 import { FIGURE_TOWNS, PERSONAJES } from '../data/personajes.js';
 import { FIGURAS } from '../data/figuras.js';
+import { HITZAK } from '../data/hitzak.js';
 import { INSTRUMENTOS, instrumentosDe } from '../data/instrumentos.js';
 import { PASAKA } from '../data/pasaka.js';
 import { ARMAS, armsOfTown } from '../data/armas-navarra.js';
@@ -286,6 +287,7 @@ export const DIDACTICO = {
     const both = (name) => { const [a, b] = name.split(' / '); return b ? [b, a] : null; };
     const fauna = allFichas('fauna').filter(d => d.F.eu).map(d => [d.F.eu, d.F.name]), flora = allFichas('flora').filter(d => d.F.eu).map(d => [d.F.eu, d.F.name]);
     const S = [['talk', 'Saludos', [['Kaixo', 'Hola'], ...Object.entries(KAIXO_ES), ['Ongi etorri', 'Bienvenida, bienvenido'], ['Eskerrik asko', 'Gracias'], ['Agur', 'Adiós']]],
+      ['house', 'Palabras de los vecinos', Object.values(HITZAK).flat().filter(([eu]) => !['Kaixo', 'Eskerrik asko', 'Agur'].includes(eu))],   // (las que enseñan en el juego)
       ['anvil', 'Oficios', Object.values(OFICIOS).map(o => [o.eu, o.name])],
       ['hammer', 'Herramientas de los oficios', Object.values(OFICIOS).flatMap(o => o.tools.map(([es, eu, d]) => [eu, es, d]))],
       ['music', 'Instrumentos', INSTRUMENTOS.map(x => [x.eu, x.name])],

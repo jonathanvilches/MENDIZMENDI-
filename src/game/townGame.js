@@ -31,7 +31,8 @@ import MOUNTAINS from '../data/mountains.json';
 import { viewFrom } from '../data/panorama.js';
 import { buildAgro } from '../world/agro.js';
 import { PASTOR_INFO, VAQUERA_INFO, CROP } from '../data/campo.js';
-import { greet } from './saludo.js';
+import { greet, weatherNow } from './saludo.js';
+import { nextWord, reviewWord, choicesFor, HITZ_TXT } from '../data/hitzak.js';
 import { Mochila } from './mochila.js';
 import { Perro } from './perro.js';
 import { makeTrailSign, makeSignpost, makeBalizas, signSVG, ORIENTA, ORIENTA_TIPS, MONTE_TIPS } from './senales.js';
@@ -906,7 +907,7 @@ export class TownGame {
     if (it.kind === 'flora') return this.flora.interact(it.s);
     if (it.kind === 'bell') return this.ringBell();
     if (it.kind === 'seat') return this.restBench(it.b);
-    if (it.kind === 'walker') { it.a.chatWith = null; it.a.talkTo = null; it.a.say(2.5); it.a.wave = 1.2; const L = TAREAS[it.a.tarea]?.lines || WALKER_LINES[this.walkers.indexOf(it.a) % WALKER_LINES.length]; return this.say(it.a, L); }   // (lo que cuenta: lo que está haciendo)
+    if (it.kind === 'walker') { it.a.chatWith = null; it.a.talkTo = null; it.a.say(2.5); it.a.wave = 1.2; const L = TAREAS[it.a.tarea]?.lines || WALKER_LINES[this.walkers.indexOf(it.a) % WALKER_LINES.length]; return this.say(it.a, [...L, ...this.hitzLines(it.a)]); }   // (lo que cuenta: lo que está haciendo, y una palabra en euskera)
     if (it.kind === 'item') return this.pick(it.it);
     if (it.kind === 'bench') return this.doTrade(it.M);
     if (it.kind === 'clue') return this.examineClue(it.k);
@@ -1161,6 +1162,25 @@ export class TownGame {
     const look = a.obj?.userData.look;
     return this.ui.dialog(lines.map(t => ({ who: a.name, look, ...(typeof t === 'string' ? { text: greet(this, t) } : t) })));   // (greet: el saludo a la hora y con el tiempo de ahora)
   }
+  // Palabras en euskera (data/hitzak.js): cada vecino enseña una de lo que está haciendo (quien pasea, del tiempo que hace)
+  // y pregunta cómo se dice; si ya sabes las suyas, repasa una que sabes. Una vez por vecino y visita; se guardan en el
+  // perfil (1, oída; 2, acertada) y se ven en el cuaderno del pueblo, pestaña Euskera
+  hitzLines(a) {
+    if (a.hitzDone) return [];
+    const K = this.P.hitzak ||= {}, theme = TAREAS[a.tarea] ? a.tarea : 'base', w0 = weatherNow(this);
+    const sky = w0 === 'snow' ? 'elurra' : w0 === 'rain' ? 'euria' : (this.sky?.night ?? 0) > 0.5 ? (this.rnd() < 0.5 ? 'gaua' : 'ilargia') : 'eguzkia';
+    let w = nextWord(theme, K, theme === 'paseo' || theme === 'base' ? sky : null); const isNew = !!w;
+    if (!w) w = reviewWord(K, this.rnd); if (!w) return [];
+    a.hitzDone = true;
+    const [eu, es] = w, who = a.name, look = a.obj?.userData.look, choices = choicesFor(w, this.rnd), T = HITZ_TXT;
+    const out = isNew ? [{ text: T.teach(eu, es), onShow: () => { if (K[eu]) return; K[eu] = 1; saveProfile(); this.ui.toast(T.toast(eu, es), 'talk', 3200); } }] : [];
+    out.push({ text: isNew ? T.ask(es) : T.review(es), choices, notr: true, onChoice: (j) => {
+      const ok = choices[j] === eu; K[eu] = Math.max(K[eu] || 0, ok ? 2 : 1); addXP(ok ? 6 : 2); saveProfile();
+      this.sound.ui(ok ? 'coin' : 'error');
+      return [{ who, look, text: ok ? T.ok(eu, es) : T.no(eu, es) }];
+    } });
+    return out;
+  }
   async talk(a) {
     if (a.sabio) return this.sabioTalk(a);
     if (a.cuento) return this.kontalariTalk(a);
@@ -1170,7 +1190,7 @@ export class TownGame {
       if (a === this.coach) return this.playFutbol();
       if (a === this.futsalCoach) return this.playFutsal();
       if (a.shop) return this.tienda.open();
-      a.say?.(2); return this.say(a, [`¡Kaixo! Soy ${a.name}. ¡Que disfrutes de ${this.def.name.split(' /')[0]}!`]);
+      a.say?.(2); return this.say(a, [`¡Kaixo! Soy ${a.name}. ¡Que disfrutes de ${this.def.name.split(' /')[0]}!`, ...this.hitzLines(a)]);
     }
     const M = a.mission;
     a.say(4); this.player.frozen = true; this.speaker = a;
