@@ -124,6 +124,9 @@ ${splashLinks()}
     this.emitFile({ type: 'asset', fileName: '.nojekyll', source: '' });   // GitHub Pages sirve los archivos tal cual
     const files = Object.keys(bundle).filter(f => f.startsWith('assets/')).map(f => f.slice(7));
     this.emitFile({ type: 'asset', fileName: 'sw.js', source: readFileSync('src/web/sw.js', 'utf8').replace('__VERSION__', v).replace('__FILES__', JSON.stringify(files)) });
+    // (y la lista con el tamaño de cada uno, para «Descargar el juego entero»: src/web/todo.js)
+    const tam = (b) => (b.type === 'chunk' ? Buffer.byteLength(b.code) : typeof b.source === 'string' ? Buffer.byteLength(b.source) : b.source.length);
+    this.emitFile({ type: 'asset', fileName: 'todo.json', source: JSON.stringify({ files, bytes: files.map(f => tam(bundle['assets/' + f])) }) });
     // la lista de las imágenes grandes de esta versión, para el archivo único (src/web/hd.js): «grupo/id» → sus tamaños
     // [ancho, archivo en assets/], del más pequeño al más grande, para que elija el justo según lo que ocupe en pantalla
     const HD = [[/laminas\/web\/([^/]+)\.webp$/, 'laminas', 1280], [/laminas\/grande\/([^/]+)\.webp$/, 'laminas', 2560], [/figuras\/web\/([^/]+)\.webp$/, 'figuras', 768], [/figuras\/ilus\/web\/([^/]+)\.webp$/, 'figuras-ilus', 1280], [/leyendas\/2560\/([^/]+)\.webp$/, 'leyendas', 2560], [/cimas\/2560\/([^/]+)\.webp$/, 'cimas', 2560], [/personajes\/2560\/([^/]+)\.webp$/, 'personajes', 2560], [/tradiciones\/2560\/([^/]+)\.webp$/, 'tradiciones', 2560], [/leyendas\/768\/([^/]+)\.webp$/, 'leyendas', 768], [/leyendas\/1536\/([^/]+)\.webp$/, 'leyendas', 1536],
@@ -212,7 +215,8 @@ export default defineConfig({
   plugins: AF ? [sinRedir, artefacto] : WEB ? [sinRedir, app] : MINI ? [sinRedir, glbGzip, viteSingleFile(), jsGzip] : [sinRedir, viteSingleFile()],
   // (__HDMAP__: en los archivos únicos, la lista de imágenes grandes de la web compilada justo antes (docs/hd.json), para no
   // tener que pedirla: src/web/hd.js)
-  define: { __WEB__: JSON.stringify(WEB), __HDMAP__: !WEB && process.argv.includes('build') && existsSync('docs/hd.json') ? readFileSync('docs/hd.json', 'utf8') : 'null' },
+  // (__AF__: el artefacto de claude.ai, que no se puede instalar ni hablar con el servidor del mando: allí se manda a la web)
+  define: { __WEB__: JSON.stringify(WEB), __AF__: JSON.stringify(AF), __HDMAP__: !WEB && process.argv.includes('build') && existsSync('docs/hd.json') ? readFileSync('docs/hd.json', 'utf8') : 'null' },
   build: AF
     ? { target: 'es2020', outDir: 'dist-artefacto', emptyOutDir: true, assetsInlineLimit: afInline, chunkSizeWarningLimit: 20000, copyPublicDir: false,
       rolldownOptions: { output: { codeSplitting: { groups: [{ name: 'three', test: /node_modules[\\/]three[\\/]/ }, ...AF_GRUPOS] } } } }

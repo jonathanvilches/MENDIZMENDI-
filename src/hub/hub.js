@@ -38,7 +38,8 @@ import { ARMAS, PENDIENTES, GUIA, armsOfTown } from '../data/armas-navarra.js';
 import { CUENTOS, KIND_LABEL } from '../data/cuentos.js';
 import { drawOfficial, officialHeight } from '../world/armas.js';
 import { armsImg, armsImgBig, clubImg, casaImg } from '../ui/escudoImg.js';
-import { setupInstall, offer, openInstall } from '../web/install.js';
+import { setupInstall, offer, openInstall, appImg } from '../web/install.js';
+import { puedeDescargar, queFalta, descargarTodo } from '../web/todo.js';
 import { profile, saveProfile, levelOf, rankOf, townProgress, comarcaProgress, comarcaTowns, navarraProgress, stampCount, BADGES, checkBadges, resetProfile, salazarState } from '../game/profile.js';
 import { esc, el } from '../util/html.js';
 import { lettersOnly } from '../util/text.js';
@@ -202,7 +203,7 @@ export class Hub {
   more() {
     this.sound?.ui('open');
     const s = el(`<div class="sheet more"><div class="more-in"><div class="grab"></div><small class="kicker">Más secciones</small>
-      ${offer() ? `<button data-install class="more-app"><img src="./icon-180.png" alt=""><div><b>Instalar app</b><small>A pantalla completa y sin conexión</small></div>${I('play', 20)}</button>` : ''}${this.nav.filter(n => this.navHidden(n[0])).map(([id, n, ic]) => `<button data-go="${id}" class="${this.screen === id ? 'on' : ''}">${I(ic, 34)}<div><b>${n}</b><small>${this.MORE[id]}</small></div>${I('play', 20)}</button>`).join('')}</div></div>`);
+      ${offer() ? `<button data-install class="more-app">${appImg()}<div><b>Instalar app</b><small>A pantalla completa y sin conexión</small></div>${I('play', 20)}</button>` : ''}${this.nav.filter(n => this.navHidden(n[0])).map(([id, n, ic]) => `<button data-go="${id}" class="${this.screen === id ? 'on' : ''}">${I(ic, 34)}<div><b>${n}</b><small>${this.MORE[id]}</small></div>${I('play', 20)}</button>`).join('')}</div></div>`);
     this.sheet?.remove(); this.sheet = s; this.root.appendChild(s);
     s.addEventListener('click', e => { if (e.target === s) { s.remove(); this.sheet = null; } });
     s.querySelector('[data-install]')?.addEventListener('click', () => { s.remove(); this.sheet = null; openInstall(this.root); });
@@ -716,6 +717,19 @@ export class Hub {
       $('#pName', r).addEventListener('keydown', e => e.stopPropagation());
       $('#pQ', r).value = S.quality || 'auto';
       $('#pPad', r)?.addEventListener('click', () => import('../mando/mando.js').then(m => m.abrirMando()));   // (en el ordenador: el móvil como mando)
+      // (descargar el juego entero: cuánto falta y, al pulsar, el progreso)
+      const bt = $('#pTodo', r), nt = $('#pTodoN', r), mb = (n) => Math.round(n / 1e6);
+      if (bt) {
+        const pon = (t, n) => { bt.querySelector('span').textContent = t; if (n) nt.textContent = n; };
+        queFalta().then(q => { if (!bt.isConnected) return; if (!q.falta) { pon('Juego entero descargado'); bt.disabled = true; nt.textContent = 'Ya está todo en este ordenador: puedes jugar sin esperas y sin conexión.'; } else pon(`Descargar el juego entero · ${mb(q.bytesFalta)} MB`); }).catch(() => { bt.hidden = true; nt.hidden = true; });
+        bt.onclick = async () => {
+          bt.disabled = true; pon('Descargando…');
+          try {
+            const fallos = await descargarTodo(({ hechos, total, bytes, bytesTotal }) => { if (bt.isConnected) pon(`Descargando · ${Math.round(100 * bytes / bytesTotal)} %`, `${hechos} de ${total} archivos · ${mb(bytes)} de ${mb(bytesTotal)} MB. Puedes seguir jugando mientras tanto.`); });
+            if (bt.isConnected) { if (fallos) { bt.disabled = false; pon('Seguir descargando', `Faltan ${fallos} archivos: comprueba la conexión y vuelve a pulsar.`); } else pon('Juego entero descargado', 'Ya está todo en este ordenador: puedes jugar sin esperas y sin conexión.'); }
+          } catch (e) { if (bt.isConnected) { bt.disabled = false; pon('Descargar el juego entero', 'No se ha podido descargar: comprueba la conexión y vuelve a pulsar.'); } }
+        };
+      }
       $('#pAge', r).value = edadDe(p); $('#pAge', r).onchange = e => { p.age = e.target.value; saveProfile(); this.sound?.ui('click'); this.go('profile', undefined, true); };
       $('#pQ', r).onchange = e => { S.quality = e.target.value === 'auto' ? null : e.target.value; S.qualityAuto = false; delete S.slowPc; saveProfile(); this.onSettings?.(S); };
       const rb = $('#pReset', r); rb.onclick = (e) => { e.stopPropagation(); if (rb.dataset.sure) { resetProfile(); try { localStorage.removeItem('mendimendiz-salazar-v2'); } catch (err) { } this.go('home'); } else { rb.dataset.sure = 1; rb.textContent = '¿Seguro? Pulsa otra vez para borrar todo'; this.sound?.ui('error'); } };
@@ -743,6 +757,7 @@ export class Hub {
         <label class="set">Calidad gráfica <select id="pQ"><option value="auto">Automática</option><option value="low">Baja (más fluido)</option><option value="mid">Media</option><option value="high">Alta</option></select></label>
         <p class="hint">Controles: WASD o flechas para caminar, ratón para mirar, E para hablar, Espacio para saltar, Mayús para correr. En móvil: arrastra a la izquierda para caminar y a la derecha para mirar. También vale un mando de consola.</p>
         ${matchMedia('(pointer:coarse)').matches ? '' : `<button class="btn" id="pPad">${I('control', 22)} Usar el móvil como mando</button><p class="set-note">El móvil hace de mando por la wifi, sin instalar nada: el ordenador te enseña un código para escanearlo con la cámara.</p>`}
+        ${puedeDescargar() ? `<button class="btn" id="pTodo">${I('home', 22)} <span>Descargar el juego entero</span></button><p class="set-note" id="pTodoN">Todo se guarda en este ordenador: los pueblos y los minijuegos abren sin esperar a internet, y se puede jugar sin conexión.</p>` : ''}
         <button class="btn danger" id="pReset">Borrar todo el progreso</button></div></section>`;
   }
 
