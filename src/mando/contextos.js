@@ -7,18 +7,19 @@
 //    para lo que no es un botón. Así cada minijuego trae sus botones, también los que se añadan, sin tocar el minijuego.
 // Botones estándar de un mando: 0 A, 1 B, 2 X, 3 Y, 4 LB, 5 RB, 6 LT, 7 RT, 8 Select, 9 Start.
 
-// [nombre, tecla]; la tecla null es que el juego lee el mando él mismo (el fútbol)
+// [nombre, tecla, icono]; la tecla null es que el juego lee el mando él mismo (el fútbol). Los iconos son los del autor,
+// copiados para la página del mando en public/mando/iconos (los que aún no tiene, como la dejada, van solo con el nombre)
 const FIJOS = {
-  juego: { tit: 'En el pueblo', pal: 'andar', mira: true, b: { 0: ['Acción', 'e'], 1: ['Saltar', ' '], 2: ['Prismáticos', 'f'], 3: ['Mochila', 'b'], 4: ['Cuaderno', 'c'], 5: ['Mapa', 'm'], 7: ['Correr', 'Shift'], 8: ['Perro', 'h'], 9: ['Menú', 'Escape'] }, fijo: [7] },
-  encierro: { tit: 'El encierro', pal: 'andar', mira: true, b: { 0: ['Saltar', ' '], 2: ['Periódico', 'p'], 3: ['Cámara', 'c'], 7: ['Correr', 'Shift'] } },
-  bino: { tit: 'Prismáticos', mira: true, b: { 0: ['Anotar', 'e'], 1: ['Salir', 'f'] } },
-  dialogo: { tit: 'Hablando', b: { 0: ['Seguir', 'e'] } },
-  pelota: { tit: 'Pelota a mano', pal: 'flechas', b: { 0: ['Golpe', ' '], 1: ['Dejada', 'Shift'], 2: ['Cortada', 'l'], 9: ['Salir', 'Escape'] } },
-  pasaka: { tit: 'Pasaka', pal: 'flechas', b: { 0: ['Golpe', ' '], 1: ['Dejada', 'Shift'], 2: ['Globo', 'l'], 9: ['Salir', 'Escape'] } },
-  futbol: { tit: 'Fútbol', pal: 'pad', nativo: true, b: { 0: ['Pase', null], 1: ['Tiro', null], 4: ['Cambiar', null], 7: ['Sprint', null], 9: ['Pausa', null] } },
+  juego: { tit: 'En el pueblo', pal: 'andar', mira: true, b: { 0: ['Acción', 'e', 'talk'], 1: ['Saltar', ' ', 'jump'], 2: ['Prismáticos', 'f', 'binoculars'], 3: ['Mochila', 'b', 'backpack'], 4: ['Cuaderno', 'c', 'book'], 5: ['Mapa', 'm', 'map'], 7: ['Correr', 'Shift', 'run'], 8: ['Perro', 'h', 'dog'], 9: ['Menú', 'Escape', 'menu'] }, fijo: [7] },
+  encierro: { tit: 'El encierro', pal: 'andar', mira: true, b: { 0: ['Saltar', ' ', 'jump'], 2: ['Periódico', 'p'], 3: ['Cámara', 'c', 'camera'], 7: ['Correr', 'Shift', 'run'] } },
+  bino: { tit: 'Prismáticos', mira: true, b: { 0: ['Anotar', 'e', 'pen'], 1: ['Salir', 'f', 'close'] } },
+  dialogo: { tit: 'Hablando', b: { 0: ['Seguir', 'e', 'play'] } },
+  pelota: { tit: 'Pelota a mano', pal: 'flechas', b: { 0: ['Golpe', ' ', 'pelota'], 1: ['Dejada', 'Shift'], 2: ['Cortada', 'l'], 9: ['Salir', 'Escape', 'close'] } },
+  pasaka: { tit: 'Pasaka', pal: 'flechas', b: { 0: ['Golpe', ' ', 'pelota'], 1: ['Dejada', 'Shift'], 2: ['Globo', 'l'], 9: ['Salir', 'Escape', 'close'] } },
+  futbol: { tit: 'Fútbol', pal: 'pad', nativo: true, b: { 0: ['Pase', null, 'pass'], 1: ['Tiro', null, 'shoot'], 4: ['Cambiar', null, 'swap'], 7: ['Sprint', null, 'sprint'], 9: ['Pausa', null, 'pause'] } },
   // (minijuegos 3D que se juegan con teclas: el esquileo con las flechas, la costura con un botón)
-  shearGame: { tit: 'El esquileo', pal: 'flechas', b: { 9: ['Salir', 'Escape'] } },
-  stitchGame: { tit: 'La costura', b: { 0: ['Coser', ' '], 9: ['Salir', 'Escape'] } },
+  shearGame: { tit: 'El esquileo', pal: 'flechas', b: { 9: ['Salir', 'Escape', 'close'] } },
+  stitchGame: { tit: 'La costura', b: { 0: ['Coser', ' '], 9: ['Salir', 'Escape', 'close'] } },
 };
 // las ventanas que, abiertas, mandan sobre el juego (la última en la página es la de encima)
 const VENTANAS = '.mnd-ov, .mg-overlay, .mg3d, .screen, #reward, .champ, .lg-root, .tn-root, .pfx, .pel-panel, .fb-panel, .shop, .bagpanel, .sheet, .hub-sheet, [role=dialog]';
@@ -42,7 +43,7 @@ function fijo(m, extra = {}) { const F = FIJOS[m]; return { m, tit: F.tit, pal: 
 function espejo(m, root, tit) {
   const esp = botones(root), prim = esp.find(x => x.el.matches('.primary, .go, [data-go], .pel-go:not(.alt)')) || esp.find(x => !CERRAR.test(x.t)) || esp[0];
   const h = root.querySelector('h1, h2, h3');
-  return { m, tit: tit || (h ? nombre(h).slice(0, 40) : ''), pal: '', mira: false, tac: true, nativo: false, b: { 9: ['Atrás', 'Escape'] }, fijo: [], esp, prim };
+  return { m, tit: tit || (h ? nombre(h).slice(0, 40) : ''), pal: '', mira: false, tac: true, nativo: false, b: { 9: ['Atrás', 'Escape', 'back'] }, fijo: [], esp, prim };
 }
 
 function calcula() {
@@ -70,5 +71,5 @@ let C = null, t = 0;
 export function ctxActual() { const n = performance.now(); if (!C || n - t > 200) { C = calcula(); t = n; } return C; }
 /** Lo que se le cuenta al móvil: los nombres de los botones, sin las teclas ni los elementos de la página. */
 export function ctxMovil(c = ctxActual()) {
-  return { t: 'ctx', m: c.m, tit: c.tit, pal: c.pal, mira: c.mira, tac: c.tac, fijo: c.fijo, jugar: !!c.jugar, b: Object.fromEntries(Object.entries(c.b).map(([i, [n]]) => [i, n])), esp: c.esp.map(x => x.t) };
+  return { t: 'ctx', m: c.m, tit: c.tit, pal: c.pal, mira: c.mira, tac: c.tac, fijo: c.fijo, jugar: !!c.jugar, b: Object.fromEntries(Object.entries(c.b).map(([i, [n]]) => [i, n])), ic: Object.fromEntries(Object.entries(c.b).filter(([, x]) => x[2]).map(([i, x]) => [i, x[2]])), esp: c.esp.map(x => x.t) };
 }

@@ -1,0 +1,39 @@
+HERRIZHERRI · ENCARGO DE ICONOS (2026-10-22)
+
+Necesito 14 imágenes para Herrizherri, un juego educativo sobre los pueblos de Navarra para niñas y niños. Cada apartado empieza con su estilo, que vale para todas sus imágenes, y debajo va una imagen por línea: primero el nombre exacto del archivo y luego lo que tiene que salir. Genéralas de una en una, en este orden, y entrégame cada una con su nombre de archivo.
+
+NORMAS PARA TODAS
+
+- PNG, o WebP de calidad 90 o más. Nada de JPEG.
+- Escudos, iconos y trofeos: cuadrados y con fondo transparente. Personajes, cuentos, figuras, tradiciones y danzas: apaisadas 16:9.
+- Nada de texto, letras ni marcas de agua dentro de la imagen.
+- Nada que imite marcas, escudos de clubes reales ni personajes de otros videojuegos.
+
+1. ICONOS PARA SUSTITUIR (13)
+
+Estilo: Icono 3D de la familia única del juego: un solo objeto, centrado, vista tres cuartos un poco desde arriba, formas redondeadas, colores vivos, un brillo suave, sin fondo (PNG transparente), 1024 × 1024, el objeto ocupando el 89 % del cuadro. Sin texto. De la misma familia que los iconos del juego: mismo grosor de formas, misma luz, misma paleta.
+
+Hoy son capturas del propio juego. Para sustituirlas (7):
+
+- bell.png · icono de una campana de bronce.
+- corzo.png · icono de un corzo.
+- goat.png · icono de una cabra.
+- grulla.png · icono de una grulla común.
+- lechuza.png · icono de una lechuza.
+- milano.png · icono de un milano real.
+- quebrantahuesos.png · icono de un quebrantahuesos.
+
+Para los botones del mando en el móvil (6).
+
+- mando.png · El móvil como mando: un teléfono móvil tumbado, con una palanca a la izquierda y cuatro botones de colores a la derecha dibujados en su pantalla. Sale en «Usar el móvil como mando».
+- dejada.png · La dejada, en la pelota a mano: una mano abierta que empuja suave la pelota de cuero, con una estela corta que baja junto a la pared del frontón.
+- cortada.png · La cortada, en la pelota a mano: la pelota de cuero con una estela en espiral, rasante y con efecto.
+- globo.png · El globo, en la pasaka: la pelota de cuero subiendo en un arco alto por encima de una red baja.
+- periodico.png · El periódico enrollado del encierro: un periódico enrollado de papel, con rayas grises en lugar de letras.
+- coser.png · Coser: una aguja con hilo rojo atravesando un trozo de tela con puntadas.
+
+2. INSTRUMENTO (1)
+
+Estilo: icono 3D de la misma familia que los iconos, el instrumento entero, fondo transparente, 1254 × 1254.
+
+- txistu.png · Txistu y tamboril (Txistua eta danbolina). Flauta de pico con solo tres agujeros, de madera oscura con anillas de metal. Con tres agujeros se tocan melodías enteras: cambiando la fuerza del soplo se saltan las notas altas.

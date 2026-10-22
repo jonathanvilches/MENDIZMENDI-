@@ -1,6 +1,6 @@
 # Herrizherri · encargo de imágenes (2026-10-22)
 
-Todo lo que el juego enseña hoy sin una imagen tuya, en un solo archivo: 104 imágenes. Cada apartado lleva su estilo y, debajo, un prompt por imagen con el nombre exacto del archivo. Pega el bloque de estilo del apartado y luego los prompts de uno en uno o de pocos en pocos.
+Todo lo que el juego enseña hoy sin una imagen tuya, en un solo archivo: 108 imágenes. Cada apartado lleva su estilo y, debajo, un prompt por imagen con el nombre exacto del archivo. Pega el bloque de estilo del apartado y luego los prompts de uno en uno o de pocos en pocos.
 
 ## Cómo entregarlas
 
@@ -13,7 +13,7 @@ Todo lo que el juego enseña hoy sin una imagen tuya, en un solo archivo: 104 im
 
 1. Escudos de las casas (33): es lo que más se ve en los pueblos y hoy sale con el dibujo tallado del juego.
 2. Personajes de Navarra (16) y figuras de leyenda y carnaval (12): fichas que ahora llevan una lámina prestada o un render del juego.
-3. La txapela y la copa (2), tradiciones (5), la danza de cada comarca (12), iconos que no son tuyos (7), el instrumento que falta (1) y el resto.
+3. Tradiciones (5), la danza de cada comarca (12), iconos que no son tuyos (13), el instrumento que falta (1) y el resto.
 
 ## 1. Escudos de las casas (33)
 
@@ -218,19 +218,28 @@ Estas existen a 1280 × 720 y se ven blandas en pantallas grandes. No es otra id
 - **dep-torneo.png** · «Torneo de pelota» (deporte; Navarra)
 - **dep-futbol.png** · «Partido de fútbol» (deporte; Navarra)
 
-## 9. Iconos que no son tuyos (7)
+## 9. Iconos que no son tuyos (13)
 
 **Estilo (pégalo una vez):** Icono 3D de la familia única del juego: un solo objeto, centrado, vista tres cuartos un poco desde arriba, formas redondeadas, colores vivos, un brillo suave, sin fondo (PNG transparente), 1024 × 1024, el objeto ocupando el 89 % del cuadro. Sin texto. Misma familia que tus 182 iconos: mismo grosor de formas, misma luz, misma paleta.
 
 Renders del propio juego que conviene sustituir (7):
 
-- **bell.png** · icono de «bell».
-- **corzo.png** · icono de «corzo».
-- **goat.png** · icono de «goat».
-- **grulla.png** · icono de «grulla».
-- **lechuza.png** · icono de «lechuza» / «owl».
-- **milano.png** · icono de «milano».
-- **quebrantahuesos.png** · icono de «quebrantahuesos».
+- **bell.png** · icono de una campana de bronce.
+- **corzo.png** · icono de un corzo.
+- **goat.png** · icono de una cabra.
+- **grulla.png** · icono de una grulla común.
+- **lechuza.png** · icono de una lechuza.
+- **milano.png** · icono de un milano real.
+- **quebrantahuesos.png** · icono de un quebrantahuesos.
+
+Para los botones del mando en el móvil (6): el resto de botones ya llevan tus iconos.
+
+- **mando.png** · El móvil como mando: un teléfono móvil tumbado, con una palanca a la izquierda y cuatro botones de colores a la derecha dibujados en su pantalla. Sale en «Usar el móvil como mando».
+- **dejada.png** · La dejada, en la pelota a mano: una mano abierta que empuja suave la pelota de cuero, con una estela corta que baja junto a la pared del frontón.
+- **cortada.png** · La cortada, en la pelota a mano: la pelota de cuero con una estela en espiral, rasante y con efecto.
+- **globo.png** · El globo, en la pasaka: la pelota de cuero subiendo en un arco alto por encima de una red baja.
+- **periodico.png** · El periódico enrollado del encierro: un periódico enrollado de papel, con rayas grises en lugar de letras.
+- **coser.png** · Coser: una aguja con hilo rojo atravesando un trozo de tela con puntadas.
 
 ## 10. Instrumentos sin original grande (1)
 
@@ -238,12 +247,9 @@ Renders del propio juego que conviene sustituir (7):
 
 - **txistu.png** · Txistu y tamboril (Txistua eta danbolina). Flauta de pico con solo tres agujeros, de madera oscura con anillas de metal. Con tres agujeros se tocan melodías enteras: cambiando la fuerza del soplo se saltan las notas altas.
 
-## 10b. Trofeos (2)
+## 10b. Trofeos (0)
 
-Hoy son un dibujo plano del propio juego. **Estilo (pégalo una vez):** Icono 3D de la familia única del juego: un solo objeto, centrado, vista tres cuartos un poco desde arriba, formas redondeadas, colores vivos, un brillo suave, sin fondo (PNG transparente), 1024 × 1024, el objeto ocupando el 89 % del cuadro. Sin texto.
-
-- **txapela.png** · Txapela de campeón de pelota: boina vasca negra, grande y plana, de fieltro, con una cinta roja bordada alrededor del borde (sin letras ni escudos), como la que se pone al ganador de un campeonato de pelota a mano en el frontón. Sale en la pantalla de campeón, en el torneo y en la colección de txapelas.
-- **copa.png** · Copa de campeón de fútbol: copa dorada de dos asas sobre una peana de madera oscura, brillante, sin letras ni escudos de clubes. Sale en la pantalla de campeón de la Liga Navarra.
+La txapela y la copa ya tienen su imagen: tus iconos txapela y trophy, que ahora salen en la pantalla de campeón y en el torneo.
 
 ## 10c. La danza de cada comarca (12)
 
