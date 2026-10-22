@@ -1,6 +1,5 @@
 // Capturas para el aviso de instalación de la app (Android y Chrome del ordenador las enseñan antes de instalar): el
-// inicio, el mapa y los torneos, en horizontal (1688 × 780), que es como se juega la app. Van en public/capturas
-// (las de vertical, home-v y sports-v, son de antes de fijar la app en horizontal: ya no van en el manifest).
+// inicio, el mapa y los torneos, en horizontal (1688 × 780), que es como se juega la app. Van en public/capturas.
 // Uso: URL=http://127.0.0.1:5173 node tools/app-capturas.mjs   (el servidor de pruebas, con la web)
 import { chromium } from 'playwright-core';
 import { writeFileSync, mkdirSync } from 'node:fs';
@@ -14,7 +13,8 @@ for (const [W, H, tag, screens] of [[844, 390, 'h', ['home', 'map', 'sports']]])
   await p.addInitScript(() => { Object.defineProperty(navigator, 'standalone', { value: true }); localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'pelotari', seen: { heroBenat: true, dog: true } })); });
   for (const s of screens) {
     await p.goto(`${URL}/?screen=${s}`); await p.waitForFunction(() => window.__hub && !document.getElementById('portada-app'), null, { timeout: 300000 }); await p.waitForTimeout(2500);
-    await p.evaluate(() => Promise.all([...document.images].map(i => i.decode().catch(() => {}))));
+    // (las imágenes que se ven, ya pintadas; las de más abajo van con carga diferida y no llegan nunca: no se esperan)
+    await p.evaluate(() => Promise.race([Promise.all([...document.images].filter(i => i.getBoundingClientRect().top < innerHeight).map(i => i.decode().catch(() => {}))), new Promise(r => setTimeout(r, 8000))]));
     writeFileSync(`public/capturas/${s}-${tag}.jpg`, await p.screenshot({ type: 'jpeg', quality: 82 }));
   }
   await ctx.close();

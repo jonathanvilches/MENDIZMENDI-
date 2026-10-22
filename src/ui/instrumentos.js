@@ -19,7 +19,7 @@ const tocado = (id, p = profile()) => (p.cards || []).includes('instrumento:' + 
 export function instrumentosHTML(list = INSTRUMENTOS) {
   const p = profile();
   return `<div class="ins-grid">${list.map(x => `<button type="button" class="ins${tocado(x.id, p) ? ' on' : ''}" data-instrumento="${x.id}">${iconSVG(x.icon, 84)}
-    <span class="ins-tx"><small>${esc(tr(x.family))} · ${esc(tr(x.zone))}</small><b>${esc(x.name)}</b><i>${esc(x.eu)}</i>${tocado(x.id, p) ? `<em>${esc(tr('Tocado'))}</em>` : ''}</span></button>`).join('')}</div>`;
+    <span class="ins-tx"><small>${esc(tr(x.family))}\u00a0· ${esc(tr(x.zone))}</small><b>${esc(x.name)}</b><i>${esc(x.eu)}</i>${tocado(x.id, p) ? `<em>${esc(tr('Tocado'))}</em>` : ''}</span></button>`).join('')}</div>`;
 }
 
 /** La ficha: pestañas y, debajo, Escuchar y Tocar (ui: { sound }). */

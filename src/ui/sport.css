@@ -37,7 +37,6 @@
 /* ---------- títulos y rótulos */
 .gx-kick { display: inline-flex; align-items: center; gap: 8px; font: 800 var(--fs-sm)/1.15 var(--f-cond); letter-spacing: .1em; text-transform: uppercase; color: var(--rosa); }
 .gx-kick::before { content: ''; width: 18px; height: 4px; border-radius: 2px; background: var(--cta); transform: skewX(-20deg); }
-.gx-title { margin: 0; font: 400 var(--fs-3xl)/1 var(--f-display); text-transform: uppercase; letter-spacing: 0; color: #fff; text-shadow: 0 3px 0 rgba(7, 2, 15, .5); }
 
 /* ---------- botón principal: paralelogramo fucsia con brillo que pasa */
 .gx-go { position: relative; overflow: hidden; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 8px 28px; border: 0; border-radius: 6px;
@@ -45,8 +44,6 @@
   clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%); box-shadow: var(--glow); transition: transform .12s, filter .12s; }
 .gx-go::after { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 40%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .45), transparent); transform: translateX(-150%) skewX(-20deg); animation: gx-sweep 3.2s ease-in-out .6s infinite; pointer-events: none; }
 .gx-go:active { transform: translateY(1px) scale(.98); filter: brightness(1.1); }
-.gx-alt { min-height: 48px; padding: 8px 20px; border-radius: 6px; border: 1px solid rgba(201, 178, 255, .4); background: rgba(255, 255, 255, .06); color: #fff; font: 800 var(--fs-md)/1 var(--f-cond); text-transform: uppercase; letter-spacing: .04em; cursor: pointer;
-  clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%); }
 
 /* ---------- carta de jugador (como las de los juegos de fútbol): media y puesto, figura, nombre y tres cualidades.
    Su tamaño sale de --w; la holografía cruza la carta de vez en cuando */
@@ -83,29 +80,22 @@ img.pf-az { background-repeat: no-repeat; background-size: 100% 100%; background
 @keyframes gx-pop { from { opacity: 0; transform: translateY(24px) rotateY(70deg) scale(.86); } to { opacity: 1; transform: none; } }
 
 /* ---------- entradas escalonadas: cada hijo llega con un pequeño retraso (--i lo pone el código o el orden) */
-.gx-stagger > * { animation: gx-in .42s cubic-bezier(.2, .9, .3, 1.15) both; }
-.gx-stagger > :nth-child(2) { animation-delay: .05s; } .gx-stagger > :nth-child(3) { animation-delay: .1s; } .gx-stagger > :nth-child(4) { animation-delay: .15s; }
-.gx-stagger > :nth-child(5) { animation-delay: .2s; } .gx-stagger > :nth-child(6) { animation-delay: .25s; } .gx-stagger > :nth-child(n+7) { animation-delay: .3s; }
 @keyframes gx-in { from { opacity: 0; transform: translateX(-18px) skewX(-6deg); } to { opacity: 1; transform: none; } }
 
 /* ---------- barra de una cualidad que se llena */
-.gx-bar { display: grid; grid-template-columns: minmax(64px, auto) 1fr 32px; align-items: center; gap: 8px; font: 800 var(--fs-sm)/1.15 var(--f-cond); text-transform: uppercase; letter-spacing: .04em; }
-.gx-bar i { height: 8px; border-radius: 2px; background: rgba(255, 255, 255, .12); overflow: hidden; transform: skewX(-20deg); }
-.gx-bar i u { display: block; height: 100%; width: var(--v, 50%); background: var(--cta); box-shadow: var(--glow); animation: gx-fill .9s cubic-bezier(.2, .9, .3, 1) .2s both; }
-.gx-bar b { text-align: right; font: 400 var(--fs-lg)/1 var(--f-display); }
 @keyframes gx-fill { from { width: 0; } }
 
-@media (prefers-reduced-motion: reduce) { .gx-bg::after, .gx-go::after, .gx-card .gx-face::after { animation: none; display: none; } .gx-stagger > *, .gx-card.pop, .gx-bar i u { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .gx-bg::after, .gx-go::after, .gx-card .gx-face::after { animation: none; display: none; } .gx-card.pop { animation: none; } }
 
 /* ---------- los bloques del menú (comarcas, pueblos, cartas de saberes, insignias, pasaporte, especies, escudos):
    entran escalonados, y al pasar o tocar se elevan con un brillo fucsia */
-#hub :is(.ccard, .tile, .sb, .folkcard, .scard, .bcard, .ppage, .sg, .ar, .tcard, .cult) { animation: gx-in .45s cubic-bezier(.2, .9, .3, 1.15) both; transition: transform .18s, box-shadow .18s, border-color .18s, filter .18s; }
-#hub :is(.ccard, .tile, .sb, .folkcard, .scard, .bcard, .ppage, .sg, .ar, .tcard, .cult):nth-child(2) { animation-delay: .04s; }
-#hub :is(.ccard, .tile, .sb, .folkcard, .scard, .bcard, .ppage, .sg, .ar, .tcard, .cult):nth-child(3) { animation-delay: .08s; }
-#hub :is(.ccard, .tile, .sb, .folkcard, .scard, .bcard, .ppage, .sg, .ar, .tcard, .cult):nth-child(4) { animation-delay: .12s; }
-#hub :is(.ccard, .tile, .sb, .folkcard, .scard, .bcard, .ppage, .sg, .ar, .tcard, .cult):nth-child(5) { animation-delay: .16s; }
-#hub :is(.ccard, .tile, .sb, .folkcard, .scard, .bcard, .ppage, .sg, .ar, .tcard, .cult):nth-child(n+6) { animation-delay: .2s; }
-@media (hover: hover) { #hub :is(.ccard, .tile, .sb, .folkcard, .scard, .bcard, .sg, .tcard):hover { transform: translateY(-3px); border-color: var(--fx); box-shadow: 0 12px 28px rgba(0, 0, 0, .4), 0 0 18px rgba(255, 43, 214, .35); } }
+#hub :is(.ccard, .tile, .sb, .scard, .bcard, .ppage, .sg, .ar, .tcard, .cult) { animation: gx-in .45s cubic-bezier(.2, .9, .3, 1.15) both; transition: transform .18s, box-shadow .18s, border-color .18s, filter .18s; }
+#hub :is(.ccard, .tile, .sb, .scard, .bcard, .ppage, .sg, .ar, .tcard, .cult):nth-child(2) { animation-delay: .04s; }
+#hub :is(.ccard, .tile, .sb, .scard, .bcard, .ppage, .sg, .ar, .tcard, .cult):nth-child(3) { animation-delay: .08s; }
+#hub :is(.ccard, .tile, .sb, .scard, .bcard, .ppage, .sg, .ar, .tcard, .cult):nth-child(4) { animation-delay: .12s; }
+#hub :is(.ccard, .tile, .sb, .scard, .bcard, .ppage, .sg, .ar, .tcard, .cult):nth-child(5) { animation-delay: .16s; }
+#hub :is(.ccard, .tile, .sb, .scard, .bcard, .ppage, .sg, .ar, .tcard, .cult):nth-child(n+6) { animation-delay: .2s; }
+@media (hover: hover) { #hub :is(.ccard, .tile, .sb, .scard, .bcard, .sg, .tcard):hover { transform: translateY(-3px); border-color: var(--fx); box-shadow: 0 12px 28px rgba(0, 0, 0, .4), 0 0 18px rgba(255, 43, 214, .35); } }
 #hub :is(.ccard, .tile, .sb, .scard, .bcard, .sg, .tcard, .pst):active { transform: scale(.97); filter: brightness(1.12); }
 #hub .title { font-family: var(--f-display); text-transform: uppercase; }
 /* (Escudos y Cuentos tienen su título con rótulo encima: la misma letra y el mismo tamaño que los demás títulos) */
@@ -127,13 +117,13 @@ img.pf-az { background-repeat: no-repeat; background-size: 100% 100%; background
 /* esquinas: casi rectas (4 px), cortadas en ángulo o círculos, en todo el juego; nada de cajas ni pastillas muy
    redondeadas. Las barras y los puntos pequeños sí van redondeados. tools/auditoria-medida.mjs («forma») lo comprueba */
 :root :is(.nchip, button.scard, .armorial .ar, .mrow .mi, .mlist li, .sheet-in, .sg, .set select, .pst, .prof input, .onb input, .ppage,
-  .lg-how, .hsteps li, .folkcard img, .cult, .chapter, .ccard .cring, .back, .rw, .shop-bubble, .seg, .seg button, .bp-box, .bp-box .btn,
-  .bp-actions .btn, .fooditem, .gitem, .qitem, .pbody, .card .f, .card .b, #compass, #clock, .vm-btn, .pel-en, .pel-call, .fb-say, .fb-tip,
+  .lg-how, .hsteps li, .cult, .chapter, .back, .rw, .shop-bubble, .seg, .seg button,
+  .fooditem, .gitem, .qitem, .pbody, .card .f, .card .b, #compass, #clock, .vm-btn, .pel-en, .pel-call, .fb-say, .fb-tip,
   .fb-fouls, .fb-ck, .fb-ctabs button, .pads4 button, .ebar, #mapbox, .pel-tip, .pel-card .pel-ctrl, .pel-card .pel-fact, .pel-force,
   .pel-levels button, .pel-rv, .pel-chip, .pel-tour, .pel-tour button, .pel-court, .pel-court-t i, .pfx-tabs button, .pfx-shots li, .pfx-pl,
   .pfx-pl-go) { border-radius: 4px; }
 .btn.primary { font-weight: 400; background: var(--cta); color: #fff; border: 0; font-family: var(--f-display); text-transform: uppercase; letter-spacing: .04em; box-shadow: var(--glow); clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%); border-radius: 4px; }
-@media (prefers-reduced-motion: reduce) { #hub :is(.ccard, .tile, .sb, .folkcard, .scard, .bcard, .ppage, .sg, .ar, .tcard, .cult) { animation: none; } }
+@media (prefers-reduced-motion: reduce) { #hub :is(.ccard, .tile, .sb, .scard, .bcard, .ppage, .sg, .ar, .tcard, .cult) { animation: none; } }
 
 /* ---------- ventanas del juego (pausa, libro de misiones, mapa…): el mismo cristal morado con esquinas cortadas */
 .screen .paper { border-radius: 4px; clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px); position: relative;

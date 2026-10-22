@@ -3,4 +3,6 @@ Sellos de comarca del autor del proyecto HERRIZHERRI, entregados el 2026-10-12 e
 512 px). Sustituyen a los sellos que dibujaba el juego (src/ui/art.js, que se queda para el caso de que falte alguno).
 Cambios: web/ lleva los WebP de 512 del autor tal cual; mini/ (el archivo único), a 176 px desde el PNG. Lo hace
 tools/paquete-pelota.mjs. El index.html, los SVG y el catalogo.json del ZIP no se usan.
+El 2026-10-22, el nombre del aro de arriba se cambió por el del juego, HERRIZHERRI, en los 12 (tools/sellos-nombre.mjs):
+mismo arco, misma altura de letra y mismo color; el resto del sello no se toca.
 Lista: bidasoa larraun-leitzaldea sakana pamplona pirineo prepirineo sanguesa tierra-estella valdizarbe-novenera zona-media ribera-alta ribera
