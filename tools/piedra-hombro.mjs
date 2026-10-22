@@ -5,7 +5,7 @@ import { mkdirSync } from 'fs';
 const out = process.argv[2] || 'entrega/piedra'; mkdirSync(out, { recursive: true });
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true }); const errs = []; p.on('pageerror', e => errs.push(e.message));
-await p.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); });
+await p.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); });
 await p.goto('http://127.0.0.1:5173/?town=olite&q=low&weather=clear&skipintro=1&noflora', { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 600000 });
 await p.evaluate(() => { (async () => { const G = window.__game, M = await import('/src/ui/mini3d/index.js'); window.__res = await M.mash3d(G.ui, { art: 'lift', title: 'Levantar la piedra', hint: 'Pulsa muy rápido', seconds: 60, goal: 28, verb: '¡Arriba!' }); })(); });

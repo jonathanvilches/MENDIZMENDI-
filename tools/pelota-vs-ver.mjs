@@ -11,7 +11,7 @@ const [,, town = 'lesaka', out = 'entrega/pelota-vs', weather = 'clear'] = proce
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true });
 const errs = []; p.on('pageerror', e => errs.push(e.message));
-await p.addInitScript(() => { window.__vs = true; window.__vsMs = 600000; localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Mendi', seen: { heroBenat: true, dog: true } })); });
+await p.addInitScript(() => { window.__vs = true; window.__vsMs = 600000; localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Iñigo', seen: { heroBenat: true, dog: true } })); });
 await p.goto(`${URL}/?town=${town}&q=low&weather=${weather}&skipintro=1&t=12`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 900000 }); await p.waitForTimeout(2500);
 // (con lluvia: que esté lloviendo justo ahora; la lluvia va a ratos y, si no, el frontón sale seco)
@@ -58,7 +58,7 @@ const fitOf = () => p.evaluate(() => { const c = document.querySelector('.pel-ca
   const hit = (a, b) => !(a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top);
   return { card: c.scrollHeight - c.clientHeight, pane: pane ? pane.scrollHeight - pane.clientHeight : null, goIn: go.bottom <= innerHeight + 1, overGo: [...pane.querySelectorAll('button,p,li')].some(e => hit(e.getBoundingClientRect(), go)) }; });
 const BA = await p.evaluate(() => ({ on: document.querySelector('.pel-panel [data-pel-ball][aria-pressed="true"]')?.dataset.pelBall, what: document.querySelector('.pel-panel .pel-ballwhat')?.innerText, sum: document.querySelector('.pel-panel .pel-sum')?.innerText,
-  game: window.__game.pelotaMatch?.ballKind, front: window.__game.pelotaMatch?.feel?.front, saved: localStorage.getItem('mendimendiz-pelota-bola'), cam: document.querySelector('.pel-panel [data-pel-cam]')?.getAttribute('aria-checked'),
+  game: window.__game.pelotaMatch?.ballKind, front: window.__game.pelotaMatch?.feel?.front, saved: localStorage.getItem('herrizherri-pelota-bola'), cam: document.querySelector('.pel-panel [data-pel-cam]')?.getAttribute('aria-checked'),
   vsHidden: getComputedStyle(document.querySelector('.pel-panel .pel-rv')).display === 'none',
   names: [...document.querySelectorAll('.pel-panel [data-pel-ball] span')].map(e => [e.innerText, e.scrollWidth <= e.clientWidth + 1 && e.getBoundingClientRect().height < 40]) }));
 const F0 = await fitOf();
@@ -115,7 +115,7 @@ await shot('partido');
 await p.evaluate(() => document.querySelector('.pel-exit').click()); await p.waitForTimeout(500);
 await p.evaluate(() => document.querySelector('.pel-panel [data-pel-yes]').click());
 await p.waitForFunction(() => window.__game.mode === 'play', null, { timeout: 60000 }).catch(() => {}); await p.waitForTimeout(1500);
-const col = await p.evaluate((t) => JSON.parse(localStorage.getItem('mendimendiz-perfil-v1') || '{}').pelotaris || {}, town);
+const col = await p.evaluate((t) => JSON.parse(localStorage.getItem('herrizherri-perfil-v1') || '{}').pelotaris || {}, town);
 console.log('   colección:', JSON.stringify(col));
 ok(!!col[town], 'el rival queda en la colección, en su pueblo');
 // 3. la colección

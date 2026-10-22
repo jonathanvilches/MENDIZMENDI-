@@ -1,4 +1,4 @@
-# MENDIMENDIZ · utilidades de Blender (4.2) para construir personajes desde cero con bpy y bmesh.
+# HERRIZHERRI · utilidades de Blender (4.2) para construir personajes desde cero con bpy y bmesh.
 # Convenciones de la escena: Z arriba, el personaje mira a −Y, pies en z = 0 y centrado en x = 0.
 # +X es la izquierda del personaje (los objetos y huesos «Left»/«_L» están en x > 0).
 import bpy, bmesh, math, os, sys, json, subprocess

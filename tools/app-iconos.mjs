@@ -53,7 +53,7 @@ async function icon(v) {
 
 mkdirSync('tools/app/antes', { recursive: true }); mkdirSync('public/splash', { recursive: true });
 for (const f of ['icon-192.png', 'icon-512.png', 'icon-maskable-512.png']) if (existsSync(`public/${f}`) && !existsSync(`tools/app/antes/${f}`)) copyFileSync(`public/${f}`, `tools/app/antes/${f}`);
-// (y los del 2026-10-13: el busto de Mendi sobre morado, que ya están en antes-busto/, y Mendi en Isaba)
+// (y los del 2026-10-13: el busto del protagonista sobre morado, que ya están en antes-busto/, y el protagonista en Isaba)
 mkdirSync('tools/app/antes-isaba', { recursive: true });
 for (const f of ['icon-180.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png']) if (existsSync(`public/${f}`) && !existsSync(`tools/app/antes-isaba/${f}`)) copyFileSync(`public/${f}`, `tools/app/antes-isaba/${f}`);
 const big = await icon(ICONO);

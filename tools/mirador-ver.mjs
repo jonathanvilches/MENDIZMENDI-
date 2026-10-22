@@ -9,7 +9,7 @@ const W = +(process.env.W || 844), H = +(process.env.H || 390), movil = W < 1000
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: W, height: H }, isMobile: movil, hasTouch: movil, deviceScaleFactor: 2 });
 const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type() === 'error' || /relieve/.test(m.text())) errs.push(m.text().slice(0, 300)); });
-await p.addInitScript((q) => { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true }, gear: ['prismaticos'], bag: { agua: 2, food: {}, items: ['prismaticos'] }, settings: { quality: q } })); }, process.env.Q || 'low');
+await p.addInitScript((q) => { localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true }, gear: ['prismaticos'], bag: { agua: 2, food: {}, items: ['prismaticos'] }, settings: { quality: q } })); }, process.env.Q || 'low');
 await p.goto(`${URL}/?town=${town}&q=${process.env.Q || 'low'}&weather=clear&skipintro=1&t=${process.env.T || 12}`, { timeout: 600000 });
 await p.waitForFunction(() => window.__game && window.__rt?.active && window.__rt.elapsed > 2, null, { timeout: 900000 });
 const frames = (n) => p.evaluate((n) => new Promise(r => { const f0 = window.__rt.frameNo; const k = () => window.__rt.frameNo - f0 >= n ? r() : setTimeout(k, 50); k(); }), n);

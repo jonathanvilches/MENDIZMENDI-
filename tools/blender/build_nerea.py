@@ -1,4 +1,4 @@
-# MENDIMENDIZ · Nerea, la montañera de Isaba (protagonista chica). Mismo cuerpo y esqueleto que Beñat, con coleta
+# HERRIZHERRI · Nerea, la montañera de Isaba (protagonista chica). Mismo cuerpo y esqueleto que Beñat, con coleta
 # (mechón largo con su hueso, que se balancea), pecas, ojos verdes y ropa de montañera propia.
 # Uso: python3.11 tools/blender/build_nerea.py [--solo-geo] [--sin-renders]
 import os, sys, copy

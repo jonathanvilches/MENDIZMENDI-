@@ -92,7 +92,7 @@ for (const sz of sizes.split(',')) {
   const [W, H] = sz.split('x').map(Number), touch = Math.min(W, H) < 900;
   const ctx = await b.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 2, isMobile: touch && W < 1000, hasTouch: touch });
   const p = await ctx.newPage(); await iphone(p); const errs = []; p.on('pageerror', e => errs.push(e.message));
-  await p.addInitScript(() => { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'pelotari', seen: { heroBenat: true, dog: true }, settings: { quality: 'low' } })); });
+  await p.addInitScript(() => { localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'pelotari', seen: { heroBenat: true, dog: true }, settings: { quality: 'low' } })); });
   await p.goto(`${process.env.URL || 'http://127.0.0.1:5173'}/?town=lumbier&q=low&weather=clear&skipintro=1&noflora`, { timeout: 300000 });
   await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 500000 });
   await cargarModulos(p);

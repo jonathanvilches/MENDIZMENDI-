@@ -8,7 +8,7 @@ const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromi
 const p = await browser.newPage({ viewport: { width: 1000, height: 700 } });
 p.on('pageerror', e => console.log('PAGEERROR', e.message));
 p.on('console', m => { if (m.type() === 'error') console.log('CONSOLE', m.text().slice(0, 200)); });
-await p.addInitScript((av) => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true }, avatar: av, dogOn: false })); }, av);
+await p.addInitScript((av) => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true }, avatar: av, dogOn: false })); }, av);
 await p.goto(`http://127.0.0.1:5173/?town=lumbier&q=mid`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 600000 });
 console.log(await p.evaluate(() => { const r = window.__game.player.rig; return JSON.stringify({ tipo: r.constructor.name, clips: r.char?.clips }); }));

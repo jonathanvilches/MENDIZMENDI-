@@ -1,5 +1,5 @@
 // La ficha de un escudo de casa con la imagen del autor y su vista en piedra, y una ficha de oficio con su escudo, en el móvil
-// tumbado. Uso: node tools/escudos-ver.mjs <carpeta> [pueblo]   (servidor de pruebas en 5173; con ARCHIVO=MENDIMENDIZ-jugar.html,
+// tumbado. Uso: node tools/escudos-ver.mjs <carpeta> [pueblo]   (servidor de pruebas en 5173; con ARCHIVO=HERRIZHERRI-jugar.html,
 // el archivo único, con las imágenes grandes de la web servidas desde docs/, como hace nitidez-hd.mjs; con SINRED=1 además, sin ellas)
 import { chromium } from 'playwright-core';
 import { resolve } from 'path';
@@ -8,7 +8,7 @@ const out = process.argv[2], town = process.argv[3] || 'lesaka';
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }); const errs = [];
 p.on('pageerror', e => errs.push(e.message.slice(0, 200)));
-await p.addInitScript(() => { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'sanfermin', seen: { heroBenat: true, dog: true }, coins: 14, settings: { quality: 'low' } })); });
+await p.addInitScript(() => { localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'sanfermin', seen: { heroBenat: true, dog: true }, coins: 14, settings: { quality: 'low' } })); });
 const SITE = 'https://jonathanvilches.github.io/MENDIZMENDI-/';
 if (process.env.ARCHIVO) await p.route(SITE + '**', (r) => { if (process.env.SINRED) return r.abort(); const f = resolve('docs', r.request().url().slice(SITE.length).split('?')[0]); return existsSync(f) ? r.fulfill({ path: f }) : r.abort(); });   // (SINRED=1: como sin conexión)
 await p.goto(process.env.ARCHIVO ? `file://${resolve(process.env.ARCHIVO)}?town=${town}&q=low&noflora&weather=clear&skipintro=1&t=12` : `http://127.0.0.1:5173/?town=${town}&q=low&noflora&weather=clear&skipintro=1&t=12`, { timeout: 300000 });

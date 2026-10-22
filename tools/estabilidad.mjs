@@ -14,7 +14,7 @@ const p = await b.newPage({ viewport: { width: 844, height: 390 }, hasTouch: tru
 const errs = [];
 p.on('pageerror', e => errs.push('PAGEERROR ' + e.message));
 p.on('console', m => { if (m.type() === 'error' && !/favicon|404/.test(m.text())) errs.push(m.text().slice(0, 160)); });
-await p.addInitScript(() => { try { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true } })); } catch (e) { } });
+await p.addInitScript(() => { try { localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true } })); } catch (e) { } });
 const ok = (c, m) => console.log(`  ${c ? 'OK ' : 'MAL'} ${m}`);
 const playing = () => p.waitForFunction(() => window.__game && window.__game.mode === 'play' && window.__rt?.active, null, { timeout: 400000 });
 

@@ -7,7 +7,7 @@ import { mkdirSync } from 'fs';
 const [,, town = 'lumbier', out = 'entrega/pelota-camara', role = 'delantero'] = process.argv; mkdirSync(out, { recursive: true });
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true }); const errs = []; p.on('pageerror', e => errs.push(e.message));
-await p.addInitScript(() => { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Mendi', seen: { heroBenat: true, dog: true }, settings: { quality: 'low' } })); });
+await p.addInitScript(() => { localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Iñigo', seen: { heroBenat: true, dog: true }, settings: { quality: 'low' } })); });
 await p.goto(`${process.env.URL || 'http://127.0.0.1:5173'}/?town=${town}&q=low&weather=clear&skipintro=1&t=12`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__rt?.active && window.__rt.elapsed > 2, null, { timeout: 600000 });
 const click = async (sel, ms = 240000) => { await p.waitForSelector(sel, { timeout: ms, state: 'attached' }); await p.evaluate((s) => document.querySelector(s).click(), sel); };

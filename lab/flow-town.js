@@ -39,7 +39,7 @@
       log.push(`${M.i} ${M.type}: ${M.done ? 'OK' : 'FALLO paso ' + M.step} (${Math.round(performance.now() - t0)} ms)`);
     } catch (e) { log.push(`${M.i} ${M.type}: ERROR ${e.message} ${e.stack.split('\n')[1]}`); }
   }
-  const P = JSON.parse(localStorage.getItem('mendimendiz-perfil-v1'));
+  const P = JSON.parse(localStorage.getItem('herrizherri-perfil-v1'));
   log.push('sello: ' + P.towns[G.def.id]?.stamp + ' xp: ' + P.xp + ' insignias: ' + P.badges.join(','));
   return log;
 })()

@@ -131,11 +131,18 @@ export class Hub {
   constructor({ sound, onPlay }) {
     this.sound = sound; this.onPlay = onPlay;
     this.root = el(`<div id="hub"><div class="hub-bg"><div class="bgimg"></div>${Array.from({ length: 12 }, (_, i) => `<i class="mote" style="left:${(i * 37) % 100}%;animation-delay:${-i * 1.7}s;animation-duration:${16 + (i % 5) * 3}s"></i>`).join('')}</div>
-      <header class="hub-top"><div class="brand logo">HERRIZHERRI</div><button type="button" class="app-btn" data-app hidden><svg viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><rect x="13" y="4" width="22" height="40" rx="5"/><path d="M24 14v14M18 22l6 6 6-6M21 38h6"/></svg><span>Instalar app</span></button><div class="chip" id="hChip"></div></header>
+      <header class="hub-top"><div class="brand logo">HERRIZHERRI</div><button type="button" class="app-btn" data-app hidden><svg viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><rect x="13" y="4" width="22" height="40" rx="5"/><path d="M24 14v14M18 22l6 6 6-6M21 38h6"/></svg><span>Instalar app</span></button><button type="button" class="app-btn alt" data-mando hidden>${I('control', 24)}<span>Mando del móvil</span></button><div class="chip" id="hChip"></div></header>
       <nav class="hub-nav" id="hNav"></nav><main class="hub-main" id="hMain"></main></div>`);
     document.body.appendChild(this.root);
     // (instalar el juego como app: solo en la web y si no se está jugando ya desde la app instalada)
     setupInstall(this.root, this.root.querySelector('[data-app]'));
+    // en el ordenador, el mando del móvil a mano desde el principio (en el artefacto de claude.ai no puede conectarse); su
+    // código y el del QR se cargan en un rato libre, para que el panel salga al momento
+    const mb = this.root.querySelector('[data-mando]');
+    if (matchMedia('(pointer: fine)').matches && !(typeof __AF__ !== 'undefined' && __AF__) && !isDidactico()) {
+      mb.hidden = false; mb.onclick = () => import('../mando/mando.js').then(m => m.abrirMando());
+      (window.requestIdleCallback || setTimeout)(() => { import('../mando/mando.js'); import('qrcode-generator'); }, { timeout: 4000 });
+    }
     // el modo didáctico (util/modo.js): se elige en la primera pantalla o en Ajustes, o con ?didactico=1 (?didactico=0, quitarlo)
     { const S = profile().settings, u = new URLSearchParams(location.search).get('didactico');
       if (u != null) { S.didactic = u !== '0'; saveProfile(); }
@@ -229,7 +236,7 @@ export class Hub {
     // (si ya has hecho alguna, las que te quedan: antes decía «si completas las 6» aunque ya llevaras 4)
     const left = lp.total - lp.done;
     lines.push(lp.stamp ? `¡El sello de ${town} ya es tuyo! Elige otro pueblo en el mapa.` : lp.done ? `Te ${left === 1 ? 'queda 1 misión' : `quedan ${left} misiones`} para ganar el sello de ${town}.` : `Si completas las ${lp.total} misiones, el sello de ${town} será tuyo.`);
-    lines.push('Las páginas del Pasaporte Mendi están en blanco. ¡Cada pueblo guarda un sello!');
+    lines.push('Las páginas del Pasaporte Herri están en blanco. ¡Cada pueblo guarda un sello!');
     return lines;
   }
   s_home() {
@@ -267,7 +274,7 @@ export class Hub {
       <div class="sb-grid">${(() => { const n = saberCounts(p); return SABERES.map(sb => `<div class="sb ${n[sb.id] ? 'on' : ''}${sb.id === 'escudos' ? ' link' : ''}" title="${esc(sb.text)}"${sb.id === 'escudos' ? ' data-go="escudos" role="button" tabindex="0"' : ''}>${I(sb.icon, 34)}<b>${n[sb.id]}</b><span>${esc(sb.name)}</span><small>${esc(sb.text)}</small></div>`).join(''); })()}</div>
     </section>
     <section class="story">
-      <div class="st-txt"><small class="kicker">${I('book', 20)} La historia</small><h2>El Pasaporte Mendi</h2>
+      <div class="st-txt"><small class="kicker">${I('book', 20)} La historia</small><h2>El Pasaporte Herri</h2>
         <p>Las páginas del viejo pasaporte se han quedado en blanco. Cada pueblo de Navarra guarda su sello, pero solo lo entrega a quien ayuda a su gente y aprende de ella: su producto, sus casas y escudos, sus oficios, sus danzas y sus leyendas.</p></div>
       <ol class="hsteps"><li>${I('map', 56)}<b>Viaja</b><span>Elige un pueblo en el mapa</span></li><li>${I('exclaim', 56)}<b>Ayuda</b><span>Habla con su gente y cumple sus misiones</span></li><li>${I('stamp', 56)}<b>Consigue el sello</b><span>Y llena tu pasaporte</span></li></ol>
     </section>
@@ -296,7 +303,7 @@ export class Hub {
   frontonId() { const p = profile(); return levelById(this.frontonTown)?.id || levelById(p.last)?.id || LEVELS[0].id; }
   s_sports() {
     const p = profile(), fl = levelById(this.frontonId()), club = CLUBS[p.futbolClub], tx = p.txapelas || 0;
-    let fb = null; try { fb = JSON.parse(localStorage.getItem('mendimendiz-futbol-v1') || 'null'); } catch (e) { }
+    let fb = null; try { fb = JSON.parse(localStorage.getItem('herrizherri-futbol-v1') || 'null'); } catch (e) { }
     // (las figuras, las mismas de las cartas: en reposo, limpias, como el resto de pantallas de deporte)
     const sadar = levelById('pamplona');
     // (una carta por fila con su portada: la lámina del protagonista en acción, a todo color, a la derecha; a la izquierda,
@@ -697,7 +704,7 @@ export class Hub {
   // ---------- Pasaporte ----------
   s_passport() {
     const p = profile();
-    return `<h1 class="title">${I('stamp', 40)} Pasaporte Mendi</h1><p class="lead">Cada pueblo completado estampa su sello. ¡Llena todas las páginas de Navarra!</p>
+    return `<h1 class="title">${I('stamp', 40)} Pasaporte Herri</h1><p class="lead">Cada pueblo completado estampa su sello. ¡Llena todas las páginas de Navarra!</p>
       <section class="passport">${COMARCAS.map(c => { const ts = comarcaTowns(c.id), pr = comarcaProgress(p, c.id);
         return `<div class="ppage" style="--c:${c.color}"><header><img class="${pr.stamps ? '' : 'gray'}" src="${stampImg(c.id)}" alt=""><div><b>${esc(c.name)}</b><small>${pr.stamps}/${ts.length} sellos</small></div></header>
         <div class="pstamps">${ts.length ? ts.map(l => { const t = townProgress(p, l), fut = p.towns?.[l.id]?.futsal?.sello; return `<button class="pst ${t.stamp ? 'on' : ''}" data-town="${l.id}"><span class="ink">${I(t.stamp ? 'stamp' : 'lock', 30)}</span>${fut ? `<i class="fsello" title="Sello de fútbol">${I('balon', 18)}</i>` : ''}<small>${esc(l.name.split(' /')[0])}</small></button>`; }).join('') : '<small class="empty">Próximamente</small>'}</div></div>`; }).join('')}</section>`;
@@ -732,7 +739,7 @@ export class Hub {
       }
       $('#pAge', r).value = edadDe(p); $('#pAge', r).onchange = e => { p.age = e.target.value; saveProfile(); this.sound?.ui('click'); this.go('profile', undefined, true); };
       $('#pQ', r).onchange = e => { S.quality = e.target.value === 'auto' ? null : e.target.value; S.qualityAuto = false; delete S.slowPc; saveProfile(); this.onSettings?.(S); };
-      const rb = $('#pReset', r); rb.onclick = (e) => { e.stopPropagation(); if (rb.dataset.sure) { resetProfile(); try { localStorage.removeItem('mendimendiz-salazar-v2'); } catch (err) { } this.go('home'); } else { rb.dataset.sure = 1; rb.textContent = '¿Seguro? Pulsa otra vez para borrar todo'; this.sound?.ui('error'); } };
+      const rb = $('#pReset', r); rb.onclick = (e) => { e.stopPropagation(); if (rb.dataset.sure) { resetProfile(); try { localStorage.removeItem('herrizherri-salazar-v2'); } catch (err) { } this.go('home'); } else { rb.dataset.sure = 1; rb.textContent = '¿Seguro? Pulsa otra vez para borrar todo'; this.sound?.ui('error'); } };
     };
     const mode = `<label class="set">Modo <select id="pMode"><option value="juego">Juego</option><option value="didactico">Material didáctico</option></select></label>
         <p class="set-note">${isDidactico() ? 'Solo el material para aprender, sin el juego: todo abierto para leer y estudiar.' : 'Con «Material didáctico» se oculta el juego y queda todo lo que se aprende, abierto para leer y estudiar. Tu partida no se borra.'}</p>`;
@@ -794,7 +801,7 @@ export class Hub {
     o.querySelectorAll('[data-lang]').forEach(b => b.onclick = (e) => { e.stopPropagation(); if (b.dataset.lang !== getLang()) setLang(b.dataset.lang); });
     const inp = $('#oName', o); inp.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') go(); });
     o.querySelectorAll('[data-age]').forEach(b => b.onclick = (e) => { e.stopPropagation(); age = b.dataset.age; o.querySelectorAll('[data-age]').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-checked', x === b); }); this.sound?.ui?.('click'); });
-    const go = () => { p.name = inp.value.trim() || 'Mendi'; p.avatar = pick; p.age = age; saveProfile(); this.sound?.init?.(); this.sound?.ui('open'); o.remove(); this.go('home', null, true); };
+    const go = () => { p.name = inp.value.trim() || 'Iñigo'; p.avatar = pick; p.age = age; saveProfile(); this.sound?.init?.(); this.sound?.ui('open'); o.remove(); this.go('home', null, true); };
     $('#oGo', o).onclick = go;
     $('#oDd', o).onclick = (e) => { e.stopPropagation(); p.age = age; saveProfile(); o.remove(); this.setDidactico(true); };   // (sin nombre ni personaje: no se juega)
   }

@@ -12,8 +12,8 @@ const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-119
 const p = await b.newPage({ viewport: { width: W, height: H }, isMobile: W < 1000, hasTouch: true }); const errs = [];
 await muesca(p, W, H);
 p.on('pageerror', e => errs.push(e.message));
-await p.addInitScript(() => { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true }, coins: 14, settings: { quality: 'low' } })); });
-if (process.env.IDIOMA) await p.addInitScript((l) => localStorage.setItem('mendimendiz-lang', l), process.env.IDIOMA);   // (IDIOMA=eu: en euskera)
+await p.addInitScript(() => { localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true }, coins: 14, settings: { quality: 'low' } })); });
+if (process.env.IDIOMA) await p.addInitScript((l) => localStorage.setItem('herrizherri-lang', l), process.env.IDIOMA);   // (IDIOMA=eu: en euskera)
 // (EUFALTAN=1, con IDIOMA=eu: apunta los textos que se quedan sin traducir en estas ventanas y los escribe al final)
 await p.goto(`${URL}/?${process.env.EUFALTAN ? 'eufaltan&' : ''}town=${town}&q=low&weather=clear&skipintro=1&t=12`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 900000 }); await p.waitForTimeout(3000);

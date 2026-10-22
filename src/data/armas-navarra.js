@@ -514,7 +514,7 @@ export const ARMAS = [
     mean: 'El castillo de Marcilla sigue en pie. La vid habla de la Ribera, tierra de viñas. La tradición dice que el rey le dio las cadenas por su papel en Las Navas de Tolosa.',
     figs: ['castle', 'grapes', 'bordura'],
   },
-  // las nueve que faltaban, con su referencia en NAVARCHIVO o en la web del ayuntamiento (zip «MENDIMENDIZ-escudos-responsive»,
+  // las nueve que faltaban, con su referencia en NAVARCHIVO o en la web del ayuntamiento (zip «escudos-responsive»,
   // FUENTES.md): dibujadas por el autor del proyecto; el juego enseña su imagen (src/ui/escudoImg.js)
   {
     id: 'cortes', name: 'Cortes', kind: 'municipio', towns: ['cortes'], conf: 'alta', timbre: null,

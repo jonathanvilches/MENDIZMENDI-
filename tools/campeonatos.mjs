@@ -5,7 +5,7 @@ import { chromium } from 'playwright-core';
 const URL = process.env.URL || 'http://127.0.0.1:5173';
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const errs = [];
-const init = () => { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'pelotari', seen: { heroBenat: true, dog: true }, settings: { quality: 'low' } })); localStorage.setItem('mendimendiz-futbol-v1', JSON.stringify({ v: 1, tutorial: true })); };
+const init = () => { localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'pelotari', seen: { heroBenat: true, dog: true }, settings: { quality: 'low' } })); localStorage.setItem('herrizherri-futbol-v1', JSON.stringify({ v: 1, tutorial: true })); };
 const shot = (p, n) => p.screenshot({ path: `/tmp/claude-0/camp-${n}.png` });
 for (const [w, h, tag] of [[1280, 720, 'pc'], [844, 390, 'movil']]) {
   const p = await b.newPage({ viewport: { width: w, height: h } }); await p.addInitScript(init);

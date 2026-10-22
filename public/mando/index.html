@@ -132,10 +132,13 @@ const Q = (() => { try { return new URLSearchParams(location.search); } catch (e
 const SENAL = Q.get('senal') || 'wss://0.peerjs.com/peerjs';
 const MQTT = Q.get('mqtt') ? Q.get('mqtt').split(',') : ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt', 'wss://test.mosquitto.org:8081/mqtt'];
 const SIN_PEER = Q.has('sinpeer');
-// (los de Google para saber la ruta de cada uno y, si la wifi no deja hablar directamente, los de PeerJS de relevo)
-const ICE = [{ urls: 'stun:stun.l.google.com:19302' }, { urls: ['turn:eu-0.turn.peerjs.com:3478', 'turn:us-0.turn.peerjs.com:3478'], username: 'peerjs', credential: 'peerjsp' }];
+/** Prueba: ?sinp2p hace que el ordenador y el móvil no puedan hablar directamente (para probar el relevo por el saludo). */
+const SIN_P2P = Q.has('sinp2p');
+// (los de Google y Cloudflare para saber la ruta de cada uno y, si la wifi no deja hablar directamente, los de PeerJS de
+// relevo; si aun así no hay manera, el mando va por el propio saludo: mira «DATA» más abajo)
+const ICE = SIN_P2P ? [] : [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302', 'stun:stun.cloudflare.com:3478'] }, { urls: ['turn:eu-0.turn.peerjs.com:3478', 'turn:us-0.turn.peerjs.com:3478'], username: 'peerjs', credential: 'peerjsp' }];
 /** Los parámetros de prueba que también tiene que llevar la página del mando (para el QR). */
-const SENAL_PRUEBA = ['senal', 'mqtt', 'sinpeer'].filter(k => Q.has(k)).map(k => `${k}=${encodeURIComponent(Q.get(k))}`).join('&');
+const SENAL_PRUEBA = ['senal', 'mqtt', 'sinpeer', 'sinp2p'].filter(k => Q.has(k)).map(k => `${k}=${encodeURIComponent(Q.get(k))}`).join('&');
 const TIEMPO = 8000;   // (un camino que no contesta en 8 s no vale)
 
 /** Se apunta con el nombre id (hzh-CÓDIGO en el ordenador, hzh-CÓDIGO-m… en el móvil). Devuelve { send(dst, type,
@@ -145,11 +148,12 @@ function senal(id, onMsg, onClose) {
   const code = (/^hzh-([0-9A-Z]{5})/.exec(id) || [])[1] || '';
   return new Promise((ok, ko) => {
     const vias = [], visto = new Set(); let listo = false, cerrado = false, pend = 0, cogido = false;
-    const llega = (m) => { const k = m.payload?.k; if (k) { if (visto.has(k)) return; visto.add(k); } onMsg(m); };
+    // (las marcas vistas, las últimas 500: con el mando yendo por aquí llegan decenas por segundo)
+    const llega = (m) => { const k = m.payload?.k; if (k) { if (visto.has(k)) return; visto.add(k); if (visto.size > 500) visto.delete(visto.values().next().value); } onMsg(m); };
     const cae = (v) => { const i = vias.indexOf(v); if (i >= 0) vias.splice(i, 1); if (listo && !cerrado && !vias.length) onClose?.(); };
     const api = {
       // (la marca, la que traiga el mensaje: así el móvil puede repetir su oferta y contar como una sola)
-      send: (dst, type, payload) => { const p = { k: Math.random().toString(36).slice(2), ...payload }; for (const v of vias) v.send(dst, type, p); },
+      send: (dst, type, payload) => { const p = { k: Math.random().toString(36).slice(2), ...payload }; for (const v of type === 'DATA' ? vias.slice(0, 2) : vias) v.send(dst, type, p); },
       close: () => { cerrado = true; for (const v of [...vias]) v.close(); vias.length = 0; },
     };
     const prueba = (p) => {
@@ -170,11 +174,13 @@ function peer(id, llega, cae) {
     let ws, hb = 0, open = false;
     try { ws = new WebSocket(`${SENAL}?key=peerjs&id=${encodeURIComponent(id)}&token=${Math.random().toString(36).slice(2, 12)}`); } catch (e) { ko(e); return; }
     const t = setTimeout(() => { if (!open) { ko(new Error('red')); try { ws.close(); } catch (e) { } } }, TIEMPO);
-    const v = { send: (dst, type, payload) => { if (ws.readyState === 1) ws.send(JSON.stringify({ type, dst, payload })); }, close: () => { clearInterval(hb); try { ws.close(); } catch (e) { } } };
+    // (el servidor de PeerJS solo reenvía sus tipos: los mensajes del mando van dentro de un CANDIDATE, en «datos»)
+    const v = { send: (dst, type, payload) => { if (ws.readyState === 1) ws.send(JSON.stringify(type === 'DATA' ? { type: 'CANDIDATE', dst, payload: { datos: payload } } : { type, dst, payload })); }, close: () => { clearInterval(hb); try { ws.close(); } catch (e) { } } };
     ws.onmessage = (e) => {
       let m; try { m = JSON.parse(e.data); } catch (er) { return; }
       if (m.type === 'OPEN') { open = true; clearTimeout(t); hb = setInterval(() => ws.readyState === 1 && ws.send('{"type":"HEARTBEAT"}'), 5000); ok(v); }   // (sin latido, el servidor cierra al minuto)
       else if (!open && (m.type === 'ID-TAKEN' || m.type === 'ERROR' || m.type === 'INVALID-KEY')) { clearTimeout(t); ko(new Error(m.type)); }
+      else if (m.type === 'CANDIDATE' && m.payload?.datos) llega({ type: 'DATA', src: m.src, payload: m.payload.datos });
       else if (m.type === 'OFFER' || m.type === 'ANSWER' || m.type === 'CANDIDATE') llega(m);   // (los avisos del servidor, como EXPIRE, no: el otro puede estar por otro camino)
     };
     ws.onerror = () => { if (!open) { clearTimeout(t); ko(new Error('red')); } };
@@ -251,23 +257,24 @@ function mqtt(url, id, code, llega, cae) {
 const $ = (s) => document.querySelector(s);
 const LETRAS = /^[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{5}$/;
 const NOHAY = 'No encuentro el juego con ese código. Mira el código en el ordenador y que su ventana del mando siga abierta.';
-let code = '', sig = null, pc = null, dc = null, conectado = false, intentos = 0, espera = 0, cerrado = false, repite = 0, respondido = false;
+let code = '', sig = null, pc = null, dc = null, conectado = false, intentos = 0, espera = 0, cerrado = false, repite = 0, respondido = false, relevo = false, pasoT = 0, oido = 0;
 const msg = (t, mal) => { $('#msg').textContent = t ? T(t) : ''; $('#msg').classList.toggle('mal', !!mal); };
 async function conectar() {
   code = $('#code').value.trim().toUpperCase();
   if (!LETRAS.test(code)) { msg('El código tiene cinco letras o números.', true); return; }
   history.replaceState(null, '', location.pathname + location.search + '#' + code);
-  cerrado = false; respondido = false; msg('Conectando…'); $('#go').disabled = true;
+  cerrado = false; respondido = false; relevo = false; msg('Conectando…'); $('#go').disabled = true;
   limpia();
   try { sig = await senal(`hzh-${code}-m${Math.random().toString(36).slice(2, 8)}`, recibe, () => { sig = null; }); }
   catch (e) { msg('Sin conexión con el servidor de saludo. Comprueba internet en el móvil.', true); $('#go').disabled = false; return; }
-  pc = new RTCPeerConnection({ iceServers: ICE });
+  pc = new RTCPeerConnection({ iceServers: ICE, ...(SIN_P2P ? { iceTransportPolicy: 'relay' } : {}) });
   dc = pc.createDataChannel('mando', { ordered: true });
   dc.onopen = abierto;
-  dc.onclose = () => caido();
+  dc.onclose = () => { if (!relevo) caido(); };
   dc.onmessage = (e) => { let m; try { m = JSON.parse(e.data); } catch (er) { return; } del(m); };
   pc.onicecandidate = (e) => { if (e.candidate) sig?.send('hzh-' + code, 'CANDIDATE', { candidate: e.candidate.toJSON() }); };
-  pc.onconnectionstatechange = () => { if (['failed', 'disconnected'].includes(pc?.connectionState)) caido(); };
+  // (si no consiguen hablar directamente, el mando va por el saludo: enseguida si la conexión falla, o a los 3 s de la respuesta)
+  pc.onconnectionstatechange = () => { if (!['failed', 'disconnected'].includes(pc?.connectionState) || relevo) return; if (conectado) caido(); else if (respondido) porElSaludo(); };
   const of = await pc.createOffer(); await pc.setLocalDescription(of);
   await rutas(pc);
   // (con todas las rutas dentro, y repetida cada 2 s con la misma marca hasta que conteste: si el ordenador aún se está
@@ -279,15 +286,23 @@ async function conectar() {
   espera = setTimeout(() => { if (!conectado) { limpia(); msg(NOHAY, true); $('#go').disabled = false; vista(false); } }, 15000);
 }
 async function recibe(m) {
-  if (m.type === 'ANSWER' && pc && m.payload?.sdp && !respondido) { respondido = true; clearInterval(repite); try { await pc.setRemoteDescription(m.payload.sdp); } catch (e) { } }
+  if (m.type === 'DATA' && m.payload) { oido = performance.now(); if (relevo) del(m.payload); return; }
+  if (m.type === 'ANSWER' && pc && m.payload?.sdp && !respondido) {
+    respondido = true; clearInterval(repite); try { await pc.setRemoteDescription(m.payload.sdp); } catch (e) { }
+    clearTimeout(pasoT); pasoT = setTimeout(() => { if (!conectado) porElSaludo(); }, 3000);
+  }
   else if (m.type === 'CANDIDATE' && pc && m.payload?.candidate) { try { await pc.addIceCandidate(m.payload.candidate); } catch (e) { } }
 }
 // (espera a tener las rutas de red, como mucho 2,5 s: así van todas dentro de la oferta y no se pierde ninguna)
 const rutas = (pc) => new Promise((ok) => { if (pc.iceGatheringState === 'complete') return ok(); const t = setTimeout(ok, 2500); pc.addEventListener('icegatheringstatechange', () => { if (pc.iceGatheringState === 'complete') { clearTimeout(t); ok(); } }); });
-function limpia() { clearInterval(repite); try { dc?.close(); } catch (e) { } try { pc?.close(); } catch (e) { } try { sig?.close(); } catch (e) { } dc = pc = sig = null; }
+// el plan B: los mensajes del mando por el saludo (el primero, para que el ordenador lo sepa y conteste con sus botones)
+function porElSaludo() { if (conectado || !sig) return; relevo = true; oido = performance.now(); abierto(); envia({ t: 'ping' }); }
+function limpia() { clearInterval(repite); clearTimeout(pasoT); relevo = false; try { dc?.close(); } catch (e) { } try { pc?.close(); } catch (e) { } try { sig?.close(); } catch (e) { } dc = pc = sig = null; }
 function abierto() {
-  conectado = true; intentos = 0; clearTimeout(espera);
-  sig?.close(); sig = null;   // (ya hablan directamente: el servidor del saludo sobra)
+  const ya = conectado;
+  conectado = true; intentos = 0; clearTimeout(espera); clearTimeout(pasoT);
+  if (dc?.readyState === 'open') { relevo = false; sig?.close(); sig = null; }   // (ya hablan directamente: el saludo sobra)
+  if (ya) return;
   msg(''); $('#go').disabled = false; vista(true); estado(); despierta();
 }
 function caido() {
@@ -298,7 +313,9 @@ function caido() {
   if (intentos++ < 6) setTimeout(() => { if (!conectado && !cerrado) { $('#code').value = code; conectar(); } }, 2000);
   else { vista(false); msg(NOHAY, true); }
 }
-const envia = (m) => { if (dc?.readyState === 'open') dc.send(JSON.stringify(m)); };
+const envia = (m) => { if (dc?.readyState === 'open') dc.send(JSON.stringify(m)); else if (relevo) sig?.send('hzh-' + code, 'DATA', m); };
+// (por el saludo no hay aviso de corte: si el ordenador no contesta en 8 s —se le pregunta cada 2—, se ha ido)
+setInterval(() => { if (relevo && conectado && performance.now() - oido > 8000) caido(); }, 2000);
 // lo que dice el ordenador
 let C = { m: 'juego', tit: '', pal: 'andar', mira: true, tac: false, b: {}, fijo: [], esp: [] }, lat = 0, pingT = 0, ctxK = '';
 function del(m) {
@@ -439,7 +456,7 @@ $('#code').addEventListener('keydown', (e) => { if (e.key === 'Enter') conectar(
 pinta();
 const h = location.hash.slice(1).toUpperCase();
 if (LETRAS.test(h)) { $('#code').value = h; conectar(); }
-window.__mandoMovil = { get conectado() { return conectado; }, get ctx() { return C; }, prueba(m) { del(m); vista(true); } };   // (para las pruebas: prueba pinta un momento sin conexión)
+window.__mandoMovil = { get conectado() { return conectado; }, get relevo() { return relevo; }, get ctx() { return C; }, prueba(m) { del(m); vista(true); } };   // (para las pruebas: prueba pinta un momento sin conexión)
 </script>
 </body>
 </html>

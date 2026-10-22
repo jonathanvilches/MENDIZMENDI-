@@ -11,7 +11,7 @@ const malos = [];
 for (const id of ids) {
   const p = await b.newPage({ viewport: { width: 800, height: 450 } }); const errs = [];
   p.on('pageerror', e => errs.push(e.message.slice(0, 120)));
-  await p.addInitScript((av) => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, avatar: av, seen: { heroBenat: true, dog: true } })); }, avatar);
+  await p.addInitScript((av) => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, avatar: av, seen: { heroBenat: true, dog: true } })); }, avatar);
   try {
     await p.goto(`http://127.0.0.1:5173/?town=${id}&q=low`, { timeout: 300000 });
     await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 400000 }); await p.waitForTimeout(2500);

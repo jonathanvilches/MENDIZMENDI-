@@ -1,5 +1,5 @@
 // Las parejas de cada equipación del autor (un chico y una chica juntos) desde su ZIP descomprimido
-// («MENDIMENDIZ-jugadores-futbol», carpeta duos/webp/1536), recortadas a lo que ocupan (en el lienzo del autor la pareja
+// («jugadores-futbol», carpeta duos/webp/1536), recortadas a lo que ocupan (en el lienzo del autor la pareja
 // es poco más de la mitad del ancho) y con un margen igual alrededor. Solo para la web:
 //  · src/assets/jugadores/web/duo: a su alto completo (unos 1.040 px; como mucho 1.280), para la pantalla VS, donde en
 //    un móvil grande tumbado ocupa casi todo el alto: a 960 se veía algo ampliada en los de pantalla de triple densidad

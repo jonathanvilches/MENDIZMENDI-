@@ -6,7 +6,7 @@ const waiting = new Map();
 function want3D(k) {
   enqueue('i:' + k, () => { const u = icon3D(k); if (!u) return; for (const i of document.querySelectorAll(`img[data-i3d="${k}"]`)) { i.src = u; i.removeAttribute('data-i3d'); i.classList.remove('pend'); } const im = waiting.get(k); if (im) { im.src = u; waiting.delete(k); } });
 }
-// Iconos propios de MENDIMENDIZ (SVG dibujado a mano, sin emojis).
+// Iconos propios de HERRIZHERRI (SVG dibujado a mano, sin emojis).
 // Estilo «lineal a color»: contorno casi negro de grosor uniforme, colores planos y una franja de
 // sombra en el borde inferior derecho de cada forma, con brillos blancos; 64×64.
 const O = '#1f1a26';                       // contorno

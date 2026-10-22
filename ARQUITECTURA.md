@@ -1,7 +1,7 @@
 # HERRIZHERRI · Arquitectura del código
 
-El juego se llama Herrizherri desde el 2026-10-13 (antes, Mendimendiz). Solo cambia el nombre que se ve: las claves
-de guardado (`mendimendiz-…`), la caché, los nombres de archivo y el repositorio siguen como estaban, así nadie pierde
+El juego se llama Herrizherri desde el 2026-10-13 (antes, Herrizherri). Solo cambia el nombre que se ve: las claves
+de guardado (`herrizherri-…`), la caché, los nombres de archivo y el repositorio siguen como estaban, así nadie pierde
 su progreso.
 
 Este documento recoge las bases del proyecto: qué hace cada parte y cómo se relacionan. Hay que mantenerlo al día
@@ -11,8 +11,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 
 - **Three.js r180** (WebGL2) y **Vite** con `vite-plugin-singlefile`: el juego entero sale en un solo
   `dist/index.html` (modelos, texturas y sonidos incrustados). Se copia a `docs/` (GitHub Pages) y a
-  `MENDIMENDIZ-jugar.html` para entregarlo.
-- **Sin servidor:** el progreso se guarda en `localStorage` (`mendimendiz-perfil-v1`, en `src/game/profile.js`).
+  `HERRIZHERRI-jugar.html` para entregarlo.
+- **Sin servidor:** el progreso se guarda en `localStorage` (`herrizherri-perfil-v1`, en `src/game/profile.js`).
 - **Modelos y animaciones:**
   - Personajes KayKit (CC0).
   - Personajes de Meshy (modelos del autor del juego), en `src/assets/meshy`: los cuatro elegibles (sanferminero,
@@ -162,7 +162,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   en abanico. Las ilustraciones de antes siguen en `src/assets/pelota`, sin cargarse.
 - **Pelotaris del autor** (`src/ui/pelotariFig.js`, `src/assets/pelotaris`): 22 chicos y chicas de cuerpo entero, de
   azul y de rojo, para las cartas, la pantalla VS, la colección, el cuadro del torneo y las portadas de pelota. Cada
-  nombre de la plantilla tiene su figura (los rivales y compañeros salen de ella; Mendi es el protagonista) y otro
+  nombre de la plantilla tiene su figura (los rivales y compañeros salen de ella; Iñigo es el protagonista) y otro
   nombre toma una del mismo género, siempre la misma. Cada pueblo tiene su pelotari fijo en el frontón
   (`townPelotari`), que es el de su carta en la colección. La web lleva los de 512 de los dos colores; el archivo único,
   el rojo de 256 y la camiseta azul suelta. La figura es siempre una sola imagen (`img.pf`): en el archivo único, la
@@ -393,7 +393,7 @@ código, buscado en su árbol con `rolldown/parseAst`, pasa a ser `__hzD[n]` y s
 Al abrir el archivo, el cargador `#hz-cargador` (unos 4,6 KB, con el mismo fflate) lo descomprime y lo ejecuta como el
 módulo que era; si falla, lo recoge el aviso de arranque. Así queda casi 1 MB libre dentro de los 30 MB de Sitecase (con las chicas).
 Con `MINI=1 npx vite` el servidor de pruebas carga lo mismo que el archivo único. La web (`WEB=1`) no cambia.
-Con `LIGERO=1 npx vite build` sale una variante unos 6 MB más pequeña (`MENDIMENDIZ-jugar-ligero.html`): los
+Con `LIGERO=1 npx vite build` sale una variante unos 6 MB más pequeña (`HERRIZHERRI-jugar-ligero.html`): los
 personajes de Meshy van en su versión ligera (`src/assets/meshy/lod`) y todo lo demás es igual.
 
 La web se guarda con un service worker (`src/web/sw.js`): la página se pide primero a la red y sin la copia del
@@ -427,6 +427,6 @@ reduce, vacía la original. Copiarlas dejaba dos copias en memoria y el iPhone c
 ```
 npx vite build
 cp dist/index.html docs/index.html
-cp dist/index.html MENDIMENDIZ-jugar.html
+cp dist/index.html HERRIZHERRI-jugar.html
 git push origin master:main
 ```

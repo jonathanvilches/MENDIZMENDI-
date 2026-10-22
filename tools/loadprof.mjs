@@ -2,7 +2,7 @@ import { chromium } from 'playwright-core';
 const [,, base, qs = ''] = process.argv;
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
-await page.addInitScript(() => { window.__lt = []; new PerformanceObserver(l => { for (const e of l.getEntries()) window.__lt.push(Math.round(e.duration)); }).observe({ type: 'longtask', buffered: true }); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ name: 'Ane', avatar: 'leire' })); });
+await page.addInitScript(() => { window.__lt = []; new PerformanceObserver(l => { for (const e of l.getEntries()) window.__lt.push(Math.round(e.duration)); }).observe({ type: 'longtask', buffered: true }); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ name: 'Ane', avatar: 'leire' })); });
 const t0 = Date.now();
 await page.goto(base + qs, { timeout: 300000 });
 await page.waitForFunction(() => window.__ready, null, { timeout: 300000 });

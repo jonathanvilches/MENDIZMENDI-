@@ -9,7 +9,7 @@ const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-119
 for (const lang of ['es', 'eu']) {
   const p = await b.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }); const errs = [];
   p.on('pageerror', e => errs.push(e.message.slice(0, 160)));
-  await p.addInitScript((lang) => { localStorage.setItem('mendimendiz-lang', lang); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'leire', seen: { heroBenat: true, dog: true, intro: true }, settings: { quality: 'low' } })); }, lang);
+  await p.addInitScript((lang) => { localStorage.setItem('herrizherri-lang', lang); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'leire', seen: { heroBenat: true, dog: true, intro: true }, settings: { quality: 'low' } })); }, lang);
   await p.goto(URL + '/', { timeout: 300000 }); await p.waitForFunction(() => window.__hub, null, { timeout: 300000 }); await p.waitForTimeout(1500);
   const inicio = await p.evaluate(() => { const h = [...document.querySelectorAll('h2.sec')].map(h => h.textContent.trim()); const s = [...document.querySelectorAll('.figuras.rail')].map(r => r.querySelectorAll('.fcard.pers').length); return { secciones: h, mujeresEnInicio: s }; });
   console.log(lang, 'inicio', JSON.stringify(inicio));

@@ -1,4 +1,4 @@
-# MENDIMENDIZ · protagonista (joven pastor navarro) construido desde cero con bpy y bmesh.
+# HERRIZHERRI · protagonista (joven pastor navarro) construido desde cero con bpy y bmesh.
 # Uso:  blender -b -P tools/blender/build_protagonista.py -- [--solo-geo] [--sin-renders]
 #       (o, con el módulo bpy de Python:  python3.11 tools/blender/build_protagonista.py …)
 # Salida: entrega/personajes/protagonista/ (.blend, texturas, renders, informe) y src/assets/chars/char_protagonista.glb

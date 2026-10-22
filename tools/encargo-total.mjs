@@ -13,7 +13,7 @@ import { chromium } from 'playwright-core';
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'fs';
 import { join } from 'path';
 
-const [,, out = 'MENDIMENDIZ-encargo-total.md', paquete = ''] = process.argv;
+const [,, out = 'encargo-total.md', paquete = ''] = process.argv;
 const URL = process.env.URL || 'http://127.0.0.1:5173/';
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: 1280, height: 720 } }); const errs = [];

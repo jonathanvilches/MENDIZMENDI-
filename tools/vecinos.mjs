@@ -8,7 +8,7 @@ for (const town of towns.split(',')) {
   const p = await b.newPage({ viewport: { width: 1100, height: 620 } });
   p.on('pageerror', e => console.log('PAGEERROR', e.message));
   p.on('console', m => { if (m.type() === 'warning' && /vecino|traje|KayKit/i.test(m.text())) console.log('WARN', m.text()); });
-  await p.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); });
+  await p.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); });
   await p.goto(`http://127.0.0.1:5173/?town=${town}&q=high`, { timeout: 300000 });
   await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 500000 });
   // los paseantes, juntos delante de la cámara

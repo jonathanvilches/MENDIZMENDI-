@@ -8,7 +8,7 @@ const [,, out = 'escudos-cuenta.json', lista = ''] = process.argv;
 const URL = process.env.URL || 'http://127.0.0.1:5173/';
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: 960, height: 540 } });
-await p.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); });
+await p.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); });
 await p.goto(URL, { timeout: 300000 }); await p.waitForFunction(() => window.__ready, null, { timeout: 300000 }).catch(() => {});
 const ids = lista ? lista.split(',') : await p.evaluate(async () => (await import('/src/data/levels.js').catch(() => null))?.LEVELS?.map(l => l.id) || null);
 const towns = ids || ['lesaka', 'etxalar', 'zugarramurdi', 'amaiur-maya-del-baztan', 'ituren', 'elizondo', 'leitza', 'lekunberri', 'orreaga-roncesvalles', 'aribe', 'otsagabia-ochagavia', 'isaba-izaba', 'erronkari-roncal', 'burgui-burgi', 'altsasu-alsasua', 'irurtzun', 'pamplona', 'aoiz', 'lumbier', 'irulegi', 'sanguesa', 'estella', 'viana', 'puente-la-reina', 'artajona', 'tafalla', 'javier', 'ujue', 'olite', 'marcilla', 'tudela', 'cortes'];

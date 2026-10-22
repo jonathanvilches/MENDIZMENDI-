@@ -1,4 +1,4 @@
-// Prepara los jugadores de fútbol del autor desde su ZIP descomprimido («MENDIMENDIZ-jugadores-futbol»): un chico y una
+// Prepara los jugadores de fútbol del autor desde su ZIP descomprimido («jugadores-futbol»): un chico y una
 // chica por equipación (los 21 clubes, Iruña, visitante, pueblo, vecinos y las dos segundas equipaciones), de cuerpo
 // entero. Solo van en la web, los de 1024 × 1536 del autor tal cual (src/assets/jugadores/web): en el archivo único no
 // caben nítidos y el fútbol sigue con las camisetas dibujadas, que son de trazo y salen nítidas.

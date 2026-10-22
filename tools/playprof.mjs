@@ -5,7 +5,7 @@ const [,, base = 'http://127.0.0.1:5173/', town = 'lesaka', secs = '10'] = proce
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
 p.on('pageerror', e => console.log('PAGEERROR', e.message));
-await p.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); localStorage.setItem('mendimendiz-lang', 'es'); });
+await p.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); localStorage.setItem('herrizherri-lang', 'es'); });
 await p.goto(`${base}?town=${town}&weather=clear&skipintro=1`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 600000 });
 await p.waitForTimeout(5000);

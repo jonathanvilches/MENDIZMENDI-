@@ -7,7 +7,7 @@ const URL = process.env.URL || 'http://127.0.0.1:5173';
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const errs = [];
 const page = async (avatar) => { const p = await b.newPage({ viewport: { width: 1100, height: 620 } }); p.on('pageerror', e => errs.push(e.message));
-  await p.addInitScript((a) => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: a, seen: { heroBenat: true, dog: true } })); }, avatar); return p; };
+  await p.addInitScript((a) => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: a, seen: { heroBenat: true, dog: true } })); }, avatar); return p; };
 let p = await page('ranger');
 await p.goto(`${URL}/?screen=avatars`, { timeout: 300000 });
 await p.waitForFunction(() => window.__ready, null, { timeout: 300000 }); await p.waitForTimeout(6000);

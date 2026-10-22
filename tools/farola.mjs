@@ -4,7 +4,7 @@ const [,, out, town = 'lesaka'] = process.argv;
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: { width: 900, height: 600 } });
 const logs = []; page.on('pageerror', e => logs.push('PAGEERROR: ' + e.message));
-await page.addInitScript(() => { try { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'leire', xp: 0, towns: {}, cards: [], species: [], peaks: [], badges: [], seen: { dog: true }, dogBreed: 'aleman', dogOn: true, settings: { music: false, volume: 0.8, quality: 'low', timeSpeed: 1 } })); } catch (e) { } });
+await page.addInitScript(() => { try { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'leire', xp: 0, towns: {}, cards: [], species: [], peaks: [], badges: [], seen: { dog: true }, dogBreed: 'aleman', dogOn: true, settings: { music: false, volume: 0.8, quality: 'low', timeSpeed: 1 } })); } catch (e) { } });
 await page.goto('http://127.0.0.1:5173/?town=' + town + '&noflora');
 await page.waitForFunction(() => window.__game && window.__game.mode === 'play' && window.__game.perro?.dog?.glbA, null, { timeout: 180000 }).catch(() => logs.push('no game'));
 await page.waitForTimeout(1500);

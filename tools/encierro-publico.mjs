@@ -7,7 +7,7 @@ const URL = process.env.URL || 'http://127.0.0.1:5173';
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: 1100, height: 620 } });
 p.on('pageerror', e => console.log('PAGEERROR', e.message));
-await p.addInitScript((av) => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, ...(av ? { avatar: av } : {}), seen: { heroBenat: true, dog: true }, dogOn: false })); }, process.env.AVATAR || '');
+await p.addInitScript((av) => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, ...(av ? { avatar: av } : {}), seen: { heroBenat: true, dog: true }, dogOn: false })); }, process.env.AVATAR || '');
 await p.goto(`${URL}/?town=pamplona&q=high&weather=clear`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 600000 });
 await p.evaluate(async () => { const G = window.__game, M = G.missions.find(M => M.m.kind === 'encierro'); const { Encierro } = await import('/src/game/encierro.js'); G.__run = new Encierro(G).run(); });

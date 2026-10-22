@@ -8,7 +8,7 @@ const ctx = await b.newContext({ viewport: { width: 844, height: 390 }, deviceSc
 const p = await ctx.newPage(), errs = []; let bytes = 0, reqs = 0;
 p.on('pageerror', e => errs.push(e.message.slice(0, 140)));
 p.on('response', async r => { reqs++; try { const l = +(r.headers()['content-length'] || 0); bytes += l || (await r.body()).length; } catch (e) { } });
-await p.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); });
+await p.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); });
 const cdp = await ctx.newCDPSession(p); await cdp.send('Performance.enable');
 const heap = async () => { await p.evaluate(() => window.gc?.()); const m = (await cdp.send('Performance.getMetrics')).metrics; const g = (n) => (m.find(x => x.name === n)?.value / 1048576).toFixed(0); return `${g('JSHeapUsedSize')}/${g('JSHeapTotalSize')} MB`; };
 const t0 = Date.now();

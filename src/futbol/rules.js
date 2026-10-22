@@ -1,4 +1,4 @@
-// Datos del fútbol de MENDIMENDIZ (futbol-data). Dos formatos con el mismo motor:
+// Datos del fútbol de HERRIZHERRI (futbol-data). Dos formatos con el mismo motor:
 //   · fútbol 11 (Reglas de Juego de la IFAB, las de El Sadar: 105 × 68 m, sistema 4-4-2, fuera de juego, saque de banda
 //     con las manos);
 //   · fútbol sala 5 contra 5 en la pista del pueblo (reglamento de fútbol sala: 40 × 20 m, área de 6 m en forma de D,
@@ -84,7 +84,7 @@ export const SISTEMAS = {
     LI: P([0.2, -0.86], [-0.5, -0.74], 2, 'carrilero izquierdo'), MI: P([0.14, -0.36], [-0.42, -0.3], 2, 'interior izquierdo'), MCI: P([-0.04, 0], [-0.52, 0], 2, 'mediocentro'), MD: P([0.14, 0.36], [-0.42, 0.3], 2, 'interior derecho'), LD: P([0.2, 0.86], [-0.5, 0.74], 2, 'carrilero derecho'),
     DCI: P([0.62, -0.18], [-0.1, -0.14], 3, 'delantero'), DCD: P([0.66, 0.16], [-0.06, 0.12], 3, 'delantero centro') } },
 };
-const SIS_KEY = 'mendimendiz-futbol-sistema';
+const SIS_KEY = 'herrizherri-futbol-sistema';
 /** El sistema que ha elegido el jugador (se guarda). */
 export function sistemaElegido() { try { const s = localStorage.getItem(SIS_KEY); return SISTEMAS[s] ? s : '4-4-2'; } catch (e) { return '4-4-2'; } }
 export function elegirSistema(id) { if (SISTEMAS[id]) try { localStorage.setItem(SIS_KEY, id); } catch (e) { } }
@@ -204,4 +204,4 @@ export const TEXT = {
   yellow: 'Tarjeta amarilla', red: 'Tarjeta roja', second2: 'Segunda amarilla: roja', advantage: 'Falta… ¡ventaja! Sigue el juego',
 };
 
-export const CAREER_KEY = 'mendimendiz-futbol-v1';
+export const CAREER_KEY = 'herrizherri-futbol-v1';

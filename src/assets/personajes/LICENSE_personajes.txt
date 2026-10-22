@@ -1,5 +1,5 @@
-Personajes de Navarra de MENDIMENDIZ (1536/ y 320/).
-Ilustraciones entregadas por el autor del proyecto el 2026-10-11 en un ZIP («MENDIMENDIZ-personajes-historicos-responsive»), una por personaje y con su id de src/data/personajes.js.
+Personajes de Navarra de HERRIZHERRI (1536/ y 320/).
+Ilustraciones entregadas por el autor del proyecto el 2026-10-11 en un ZIP («personajes-historicos-responsive»), una por personaje y con su id de src/data/personajes.js.
 Son interpretaciones artísticas generadas con IA, no retratos documentales. Titularidad: el autor del proyecto. Pendiente de anotar la herramienta y sus condiciones de uso (legal/registro-licencias.csv).
 Miguel Induráin es una persona viva: hace falta su permiso antes de publicar o vender el juego (legal/estado-legal.md, apartado F). Para quitar su ilustración basta con borrar indurain.webp de las dos carpetas.
 Cambios: las de 1536 px, sin cambios; las de 320 × 180 se han reducido a partir de las de 1536 y guardado en WebP para el archivo único.

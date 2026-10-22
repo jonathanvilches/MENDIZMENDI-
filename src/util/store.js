@@ -2,7 +2,7 @@
 // Se lee entera al arrancar (una sola operación asíncrona) y se escribe en segundo plano.
 // Cambia VERSION cuando cambien los modelos, para regenerar las imágenes.
 const VERSION = 'v12';
-const DB = 'mendimendiz-img', ST = 'img';
+const DB = 'herrizherri-img', ST = 'img';
 const mem = new Map();
 let db = null;
 function open() {

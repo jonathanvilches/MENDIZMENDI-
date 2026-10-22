@@ -7,7 +7,7 @@ const p = await b.newPage({ viewport: { width: 1100, height: 680 } });
 p.on('pageerror', e => console.log('PAGEERROR', e.message));
 p.on('console', m => { if (m.type() === 'warning' && /traje/.test(m.text())) console.log('WARN', m.text()); });
 const ids = (process.argv[3] || 'ranger,knight,mage').split(',');
-await p.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Mendi', avatar: 'ranger', seen: { heroBenat: true, dog: true } })); });
+await p.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Iñigo', avatar: 'ranger', seen: { heroBenat: true, dog: true } })); });
 await p.goto('http://127.0.0.1:5173/', { timeout: 300000 });
 await p.waitForTimeout(4000);
 await p.evaluate(() => { const b = document.querySelector('[data-s="avatars"]'); if (b) b.click(); });

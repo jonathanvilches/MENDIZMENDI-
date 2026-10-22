@@ -8,7 +8,7 @@ const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromi
 const p = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 p.on('pageerror', e => console.log('PAGEERROR', e.message));
 p.on('console', m => { if (m.type() === 'error') console.log('CONSOLE', m.text()); });
-await p.addInitScript(() => { try { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true }, avatar: 'haritz' })); } catch (e) { } });
+await p.addInitScript(() => { try { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true }, avatar: 'haritz' })); } catch (e) { } });
 await p.goto(`http://127.0.0.1:5173/?town=${town}&q=mid`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 500000 });
 let k = 0; const shot = async (n) => { await p.waitForTimeout(900); await p.screenshot({ path: `${out}/${String(k++).padStart(2, '0')}-${n}.png`, timeout: 180000 }); console.log('foto', n); };

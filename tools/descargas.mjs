@@ -5,7 +5,7 @@ const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-119
 const ctx = await b.newContext({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true });
 const p = await ctx.newPage(); const L = [];
 p.on('response', async r => { try { L.push([(await r.body()).length, r.url().split('/').pop()]); } catch (e) { } });
-await p.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); });
+await p.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); });
 await p.goto('http://localhost:8099/?town=' + (process.argv[2] || 'lesaka') + '&skipintro=1&q=low', { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 600000 });
 L.sort((a, b) => b[0] - a[0]); console.log(L.slice(0, 45).map(([n, u]) => (n / 1024).toFixed(0).padStart(6) + ' KB ' + u).join('\n'));

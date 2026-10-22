@@ -36,6 +36,9 @@
 /* instalar el juego como app (web): pegado a la ficha, con el degradado de los botones principales */
 .app-btn { margin-left: auto; flex: none; display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 4px 16px 4px 12px; border: 0; border-radius: 40px; background: linear-gradient(100deg, #ff2bd6 0%, #c21cff 55%, #7b2ff7 100%); color: #fff; font: 400 var(--fs-md)/1 var(--f-display); text-transform: uppercase; letter-spacing: .02em; cursor: pointer; box-shadow: 0 6px 18px rgba(194, 28, 255, .35); }
 .app-btn[hidden] { display: none; } .app-btn svg { width: 24px; height: 24px; flex: none; }
+/* (el del mando del móvil, al lado y en segundo plano: el de instalar es el que destaca) */
+.app-btn.alt { background: rgba(255, 255, 255, .08); box-shadow: inset 0 0 0 1px var(--line2); } .app-btn + .app-btn { margin-left: 0; } .app-btn .ico { width: 24px; height: 24px; flex: none; }
+.app-btn[hidden] + .app-btn.alt { margin-left: auto; } .app-btn.alt.ok { box-shadow: inset 0 0 0 2px #3ee07a; }   /* (conectado: con el verde del aviso) */
 @media (max-width: 560px) { .app-btn { display: none; } }   /* (en vertical no cabe junto a la ficha: va en «Más») */
 .more-in .more-app > img:first-child { width: 34px; height: 34px; border-radius: 22%; flex: none; box-shadow: 0 0 0 1px rgba(255, 255, 255, .12); }
 /* la ventana de instalar: los pasos numerados, con el dibujo del botón que hay que tocar */

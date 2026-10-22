@@ -1,4 +1,4 @@
-# MENDIMENDIZ · construcción de un humanoide cabezón por modelado de subdivisión (cage + Subdivision Surface).
+# HERRIZHERRI · construcción de un humanoide cabezón por modelado de subdivisión (cage + Subdivision Surface).
 # Todas las piezas se construyen con bmesh, primero completas y simétricas, y luego se deja la mitad x ≥ 0
 # para el modificador Mirror. Convenciones: +X = izquierda del personaje, −Y = delante, Z = arriba.
 import bpy, bmesh, math

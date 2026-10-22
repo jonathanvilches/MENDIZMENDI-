@@ -13,8 +13,8 @@ const W = +(process.env.W || 844), H = +(process.env.H || 390), movil = DPR >= 2
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await (await b.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: DPR, isMobile: movil, hasTouch: movil })).newPage();
 const errs = []; p.on('pageerror', e => errs.push(e.message));
-await p.addInitScript(() => { localStorage.setItem('mendimendiz-lang', 'es');
-  localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'pelotari', seen: { heroBenat: true, dog: true }, settings: { quality: 'low' } })); });
+await p.addInitScript(() => { localStorage.setItem('herrizherri-lang', 'es');
+  localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'pelotari', seen: { heroBenat: true, dog: true }, settings: { quality: 'low' } })); });
 await p.goto(`${URL}?town=${town}&q=low&skipintro=1&weather=clear`, { timeout: 600000 });
 await p.waitForFunction(() => window.__game && window.__rt?.active && window.__rt.elapsed > 2, null, { timeout: 1500000 });
 await p.waitForTimeout(2500);

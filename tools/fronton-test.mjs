@@ -9,7 +9,7 @@ const errs = [];
 const p = await b.newPage({ viewport: { width: 1280, height: 720 } });
 p.on('pageerror', e => errs.push(e.message));
 // AVATAR=nerea para jugar con una de las chicas (por defecto, el personaje por defecto)
-await p.addInitScript((av) => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, ...(av ? { avatar: av } : {}), seen: { heroBenat: true, dog: true }, dogOn: false })); }, process.env.AVATAR || '');
+await p.addInitScript((av) => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, ...(av ? { avatar: av } : {}), seen: { heroBenat: true, dog: true }, dogOn: false })); }, process.env.AVATAR || '');
 await p.goto(`http://127.0.0.1:5173/?town=${town}`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 400000 });
 const shot = (n) => p.screenshot({ path: `${out}/${town}-${n}.png`, timeout: 180000 });

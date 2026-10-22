@@ -1,4 +1,4 @@
-# MENDIMENDIZ · piezas de la cara: ojos, iris, brillos, párpados, cejas y bocas (variantes intercambiables).
+# HERRIZHERRI · piezas de la cara: ojos, iris, brillos, párpados, cejas y bocas (variantes intercambiables).
 import bpy, bmesh, math
 from mathutils import Vector, Matrix, Quaternion
 import mbz_core as C

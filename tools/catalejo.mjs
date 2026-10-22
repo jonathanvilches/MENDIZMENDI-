@@ -5,7 +5,7 @@ import { mkdirSync } from 'fs';
 const [,, town = 'isaba-izaba', out = '/tmp/claude-0/catalejo'] = process.argv; mkdirSync(out, { recursive: true });
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: 960, height: 540 } }); const errs = []; p.on('pageerror', e => errs.push(e.message));
-await p.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true }, gear: ['prismaticos'], bag: { agua: 2, food: {}, items: ['prismaticos'] } })); });
+await p.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true }, gear: ['prismaticos'], bag: { agua: 2, food: {}, items: ['prismaticos'] } })); });
 await p.goto(`http://127.0.0.1:5173/?town=${town}&q=high&weather=clear&skipintro=1`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 900000 });
 const montes = await p.evaluate(() => {

@@ -1,6 +1,6 @@
 // Personajes de estilo aventura de dibujos animados (cabeza grande, ojos expresivos, cuerpo redondeado,
 // manos y zapatos grandes), con sombreado suave de dibujo.
-// Diseños originales de MENDIMENDIZ. Mantiene la interfaz del sistema anterior:
+// Diseños originales de HERRIZHERRI. Mantiene la interfaz del sistema anterior:
 // buildMinifig(look) → Group con userData.J (articulaciones), userData.H, userData.look;
 // MinifigAnimator (paso con rodillas y codos), MinifigRig (jugador), COSTUMES y lookToMinifig.
 import * as THREE from 'three';

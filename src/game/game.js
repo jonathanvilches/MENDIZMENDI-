@@ -19,13 +19,13 @@ import { clamp, lerp, angleDiff, mulberry32 } from '../util/math.js';
 
 // prismáticos: vectores de trabajo (sin crear objetos en cada fotograma ni por cada animal que se mira)
 const _eye = new THREE.Vector3(), _dir = new THREE.Vector3(), _to = new THREE.Vector3(), _near = new THREE.Vector3(), _look = new THREE.Vector3();
-const SAVE_KEY = 'mendimendiz-salazar-v2';
+const SAVE_KEY = 'herrizherri-salazar-v2';
 // misiones del valle que se pueden empezar en cualquier orden (Muskilda es el final: pide las 8 cintas)
 const OPEN_QUESTS = ['bienvenida', 'escudos', 'ovejas', 'pelota', 'irati', 'basajaun', 'lamia', 'zarratrako'];
 
 function freshState() {
   return {
-    v: 2, name: 'Mendi', started: false, introDone: false,
+    v: 2, name: 'Iñigo', started: false, introDone: false,
     quests: { ...Object.fromEntries(OPEN_QUESTS.map(k => [k, { state: 'available', step: 0 }])), muskilda: { state: 'locked', step: 0 } },
     tracked: 'bienvenida', ribbons: [], cards: [], eguz: [], observed: [], palaces: [], litter: [], quiz: [], stars: 0,
     hasBino: false, comb: false, done: false, pos: null, time: 9.3,
@@ -67,7 +67,7 @@ export class Game {
     if (this.dn || this.mode === 'dance') { removeEventListener('keydown', this.danceKeys, true); this.rh?.remove(); this.dn = null; this.ui.setMG(null); this.sound.setMusic(this.state.settings.music); }
     this.follow.cinematic = null; this.player.frozen = false;
     this.mode = 'play';
-    this.state = freshState(); this.state.name = name || 'Mendi';
+    this.state = freshState(); this.state.name = name || 'Iñigo';
     for (const d of npcDefs()) {
       const a = this.npcs[d.id]; if (!a) continue;
       a.route = null; a.state = 'idle'; a.dance = 0; a.setPos(d.x, d.z, d.heading);

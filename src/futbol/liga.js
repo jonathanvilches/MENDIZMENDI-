@@ -1,7 +1,7 @@
 // Liga Navarra (como el modo carrera de los juegos de fútbol): juegas con el club de tu pueblo contra los clubes de tu zona (grupo
 // Norte o Sur), todos contra todos a una vuelta (siete jornadas). Tu partido lo juegas tú; los demás de la jornada se
 // simulan según la media de cada club. Clasificación con puntos, goles y diferencia; al final, el campeón.
-// La temporada se guarda en localStorage ('mendimendiz-liga-v1'), una por club.
+// La temporada se guarda en localStorage ('herrizherri-liga-v1'), una por club.
 import { clubImg } from '../ui/escudoImg.js';
 import { jugadorBusto, jugadorDuo, bustoSrc } from './jugadorFig.js';
 import { CLUBS, clubById } from './clubs.js';
@@ -9,7 +9,7 @@ import { TEAMS } from './rules.js';
 import { esc } from '../util/html.js';
 import { minstd } from '../util/math.js';
 
-const KEY = 'mendimendiz-liga-v1';
+const KEY = 'herrizherri-liga-v1';
 const N_TEAMS = 8;
 
 function load() { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } }

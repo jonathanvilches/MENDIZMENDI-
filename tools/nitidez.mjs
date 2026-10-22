@@ -15,8 +15,8 @@ const DPR = +(process.env.DPR || 3), VISTA = (process.env.VISTA || '844x390').sp
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await (await b.newContext({ viewport: { width: VISTA[0], height: VISTA[1] }, deviceScaleFactor: DPR, isMobile: MOVIL, hasTouch: MOVIL })).newPage();
 const errs = []; p.on('pageerror', e => errs.push(e.message));
-await p.addInitScript(() => { window.__vs = true; window.__vsMs = 600000; localStorage.setItem('mendimendiz-lang', 'es');
-  localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', age: 'nino', seen: { heroBenat: true, dog: true }, xp: 900, last: 'altsasu-alsasua', futbolClub: 'osasuna', txapelas: 1,
+await p.addInitScript(() => { window.__vs = true; window.__vsMs = 600000; localStorage.setItem('herrizherri-lang', 'es');
+  localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', age: 'nino', seen: { heroBenat: true, dog: true }, xp: 900, last: 'altsasu-alsasua', futbolClub: 'osasuna', txapelas: 1,
     towns: { lesaka: { done: { 0: true }, visits: 1, stamp: true } }, cards: ['armas:baztan'], pelotaris: { lesaka: { name: 'Mikel', town: 'Lesaka', won: 2, lost: 1, stats: { fuerza: 4, agilidad: 3, velocidad: 2 } } }, settings: { quality: 'low' } })); });
 await p.goto(URL, { timeout: 300000 }); await p.waitForFunction(() => window.__hub, null, { timeout: 300000 }); await p.waitForTimeout(1500);
 

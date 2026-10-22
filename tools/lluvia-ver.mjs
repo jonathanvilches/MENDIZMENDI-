@@ -10,7 +10,7 @@ const problems = [];
 const page = async (url) => {
   const p = await b.newPage({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true });
   p.on('pageerror', e => problems.push('pageerror: ' + e.message));
-  await p.addInitScript(() => { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Mendi', seen: { heroBenat: true, dog: true } })); });
+  await p.addInitScript(() => { localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Iñigo', seen: { heroBenat: true, dog: true } })); });
   await p.goto(url, { timeout: 300000 }); return p;
 };
 const waitFor = (p, fn, ms = 300000) => p.waitForFunction(fn, null, { timeout: ms, polling: 250 });

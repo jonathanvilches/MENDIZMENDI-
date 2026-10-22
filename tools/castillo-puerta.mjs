@@ -9,7 +9,7 @@ const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromi
 for (const town of towns) {
   const p = await browser.newPage({ viewport: { width: 1100, height: 620 } });
   p.on('pageerror', e => console.log('PAGEERROR', town, e.message));
-  await p.addInitScript(() => { try { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); } catch (e) { } });
+  await p.addInitScript(() => { try { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); } catch (e) { } });
   await p.goto(`http://127.0.0.1:5173/?town=${town}&q=mid`, { timeout: 300000 });
   await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 500000 });
   await p.waitForTimeout(6000); await p.evaluate(() => document.querySelectorAll('.town-intro, .intro, .loading, #loading').forEach(e => e.remove()));

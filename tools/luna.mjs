@@ -14,7 +14,7 @@ const r = await p.evaluate(async () => {
 });
 for (const h of [21.5, 1]) {
   const q = await b.newPage({ viewport: { width: 844, height: 390 } }); q.on('pageerror', e => errs.push(e.message));
-  await q.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); });
+  await q.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); });
   await q.goto('http://127.0.0.1:5173/?town=lesaka&q=low&weather=clear&skipintro=1&noflora', { timeout: 300000 });
   await q.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 600000 });
   await q.evaluate((h) => { const G = window.__game; (G.sky || window.__sky).time = h; }, h); await q.waitForTimeout(1500);

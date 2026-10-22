@@ -5,7 +5,7 @@
 // Al móvil se le cuenta en qué se está (contextos.js) para que enseñe los botones de cada momento: los del pueblo, los de
 // la pelota o el fútbol y, en cada minijuego, una copia de sus botones de la pantalla, con un panel táctil para lo demás.
 // La sesión sigue abierta al pasar del menú al pueblo y vuelta: el móvil se puede volver a conectar con el mismo código.
-import { senal, ICE, SENAL_PRUEBA } from './senal.js';
+import { senal, ICE, SENAL_PRUEBA, SIN_P2P } from './senal.js';
 import { PAD, VPAD, mandoMovil, botonMovil } from './pad.js';
 import { ctxActual, ctxMovil } from './contextos.js';
 import { mueve, clic, rueda, pulsar } from './cursor.js';
@@ -14,7 +14,7 @@ import { el } from '../util/html.js';
 
 const WEB = 'https://jonathanvilches.github.io/MENDIZMENDI-/';
 const LETRAS = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';   // (sin 0/O ni 1/I/L, que se confunden al escribirlos)
-const S = { code: '', sig: null, pc: null, dc: null, estado: 'nada', ctx: '', t: 0, movil: '', ui: null, pill: null };
+const S = { code: '', sig: null, pc: null, dc: null, relevo: false, vivo: 0, estado: 'nada', ctx: '', t: 0, movil: '', ui: null, pill: null };
 
 const CSS = `
 .mnd-ov{position:fixed;inset:0;z-index:9500;display:grid;place-items:center;padding:16px;background:rgba(7,2,15,.72);font-family:Nunito,system-ui,sans-serif;color:#f6f3fc}
@@ -36,7 +36,7 @@ const CSS = `
 .mnd-bts button.go{border:0;background:linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7)}
 .mnd-bts a.go{display:inline-flex;align-items:center;min-height:44px;padding:8px 20px;border-radius:4px;background:linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7);color:#fff;font:800 var(--fs-md,16px) Nunito,sans-serif;text-decoration:none}
 @media (max-width:620px),(orientation:landscape) and (max-height:520px){.mnd-card{grid-template-columns:1fr;justify-items:center;padding:16px}.mnd-qr{width:min(200px,50dvh)}}
-.mnd-pill{position:fixed;left:calc(env(safe-area-inset-left,0px) + 12px);bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:9400;display:flex;align-items:center;gap:8px;min-height:40px;padding:4px 14px;border-radius:999px;border:1px solid rgba(201,178,255,.35);background:rgba(20,8,40,.82);color:#fff;font:800 var(--fs-sm,14px) Nunito,sans-serif;cursor:pointer;opacity:.75}
+.mnd-pill{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:9400;display:flex;align-items:center;gap:8px;min-height:40px;padding:4px 14px;border-radius:999px;border:1px solid rgba(201,178,255,.35);background:rgba(20,8,40,.82);color:#fff;font:800 var(--fs-sm,14px) Nunito,sans-serif;cursor:pointer;opacity:.75}
 .mnd-pill:hover{opacity:1}.mnd-pill i{width:10px;height:10px;border-radius:50%;background:#f2c230}.mnd-pill.ok i{background:#3ee07a}
 `;
 let cssOn = false;
@@ -53,23 +53,30 @@ function urlMando() {
 // ---------- la conexión ----------
 async function empezar() {
   if (S.sig) return;
-  S.estado = 'prep'; pinta();
+  S.estado = 'prep';
   for (let n = 0; n < 4 && !S.sig; n++) {
-    S.code = Array.from({ length: 5 }, () => LETRAS[Math.floor(Math.random() * LETRAS.length)]).join('');
+    S.code = Array.from({ length: 5 }, () => LETRAS[Math.floor(Math.random() * LETRAS.length)]).join(''); pinta();   // (el QR, ya)
     try { S.sig = await senal('hzh-' + S.code, recibe, () => { S.sig = null; if (S.estado !== 'ok') { S.estado = 'mal'; pinta(); } }); }
     catch (e) { if (e.message !== 'ID-TAKEN') break; }   // (nombre cogido: otro código)
   }
   S.estado = S.sig ? 'espera' : 'mal'; pinta();
 }
-function cerrarPc() { try { S.dc?.close(); } catch (e) { } try { S.pc?.close(); } catch (e) { } S.dc = S.pc = null; mandoMovil(false); }
+function cerrarPc() { try { S.dc?.close(); } catch (e) { } try { S.pc?.close(); } catch (e) { } S.dc = S.pc = null; S.relevo = false; mandoMovil(false); }
 /** Lo que llega por el servidor de saludo: la oferta del móvil y sus rutas de red. */
 async function recibe(m) {
+  // (el mando por el saludo, cuando no han podido hablar directamente: el móvil lo pide mandando por aquí)
+  if (m.type === 'DATA') {
+    if (m.src !== S.movil || !m.payload) return;
+    S.vivo = performance.now();
+    if (!S.relevo && S.dc?.readyState !== 'open') { S.relevo = true; listo(); }
+    usa(m.payload); return;
+  }
   if (m.type === 'OFFER' && m.payload?.sdp) {
     cerrarPc();   // (un móvil nuevo, o el mismo que vuelve: se queda el último)
     S.movil = m.src;
-    const pc = S.pc = new RTCPeerConnection({ iceServers: ICE }); let dicho = false;
+    const pc = S.pc = new RTCPeerConnection({ iceServers: ICE, ...(SIN_P2P ? { iceTransportPolicy: 'relay' } : {}) }); let dicho = false;
     pc.onicecandidate = (e) => { if (e.candidate && dicho) S.sig?.send(m.src, 'CANDIDATE', { candidate: e.candidate.toJSON() }); };   // (las que lleguen tarde)
-    pc.onconnectionstatechange = () => { if (pc === S.pc && ['failed', 'closed', 'disconnected'].includes(pc.connectionState)) caido(); };
+    pc.onconnectionstatechange = () => { if (pc === S.pc && !S.relevo && ['failed', 'closed', 'disconnected'].includes(pc.connectionState)) caido(); };
     pc.ondatachannel = (e) => abre(e.channel);
     await pc.setRemoteDescription(m.payload.sdp);
     const a = await pc.createAnswer(); await pc.setLocalDescription(a);
@@ -85,11 +92,15 @@ const rutas = (pc) => new Promise((ok) => { if (pc.iceGatheringState === 'comple
 function caido() { if (S.estado !== 'ok') return; cerrarPc(); S.estado = S.sig ? 'caido' : 'mal'; pinta(); }
 function abre(dc) {
   S.dc = dc;
-  dc.onopen = () => { S.estado = 'ok'; S.ctx = ''; mandoMovil(true); envia({ t: 'hola', lang: isEU() ? 'eu' : 'es' }); pinta(); setTimeout(() => { if (S.estado === 'ok') cierraPanel(); }, 1600); };
-  dc.onclose = () => { if (dc === S.dc) caido(); };
+  dc.onopen = () => { const ya = S.relevo; S.relevo = false; if (!ya) listo(); };   // (si ya iba por el saludo, sigue por aquí, más rápido)
+  dc.onclose = () => { if (dc === S.dc && !S.relevo) caido(); };
   dc.onmessage = (e) => { let m; try { m = JSON.parse(e.data); } catch (er) { return; } usa(m); };
 }
-const envia = (m) => { if (S.dc?.readyState === 'open') S.dc.send(JSON.stringify(m)); };
+// conectado: el panel lo dice, el móvil recibe el idioma y sus botones, y el panel se cierra solo
+function listo() { S.estado = 'ok'; S.ctx = ''; mandoMovil(true); envia({ t: 'hola', lang: isEU() ? 'eu' : 'es' }); pinta(); setTimeout(() => { if (S.estado === 'ok') cierraPanel(); }, 1600); }
+const envia = (m) => { if (S.dc?.readyState === 'open') S.dc.send(JSON.stringify(m)); else if (S.relevo && S.movil) S.sig?.send(S.movil, 'DATA', m); };
+// (por el saludo no hay aviso de corte: si el móvil no dice nada en 8 s —manda señal cada 2—, se ha ido)
+setInterval(() => { if (S.relevo && S.estado === 'ok' && performance.now() - S.vivo > 8000) caido(); }, 2000);
 /** Lo que manda el móvil: la palanca, el giro de cámara, los botones del mando, los botones copiados de la pantalla y el
  *  panel táctil (mover la flecha, tocar y desplazar con dos dedos). */
 const apretados = new Map();
@@ -118,10 +129,15 @@ setInterval(() => {
 
 // ---------- el panel ----------
 function pinta() {
-  if (S.pill) { S.pill.classList.toggle('ok', S.estado === 'ok'); S.pill.hidden = !S.sig; }
+  // (el aviso de abajo, solo si el mando espera o se ha caído, y fuera del menú, que tiene su botón arriba; el botón del
+  // menú dice si está conectado)
+  const enMenu = !!document.querySelector('#hub:not(.hidden)'), mb = document.querySelector('[data-mando]');
+  if (S.pill) S.pill.hidden = !S.sig || S.estado === 'ok' || enMenu;
+  if (mb) { mb.classList.toggle('ok', S.estado === 'ok'); mb.querySelector('span').textContent = S.estado === 'ok' ? 'Mando conectado' : 'Mando del móvil'; }
   const o = S.ui; if (!o) return;
   const qr = o.querySelector('.mnd-qr');
-  if (S.code && S.sig && qr.dataset.code !== S.code) {
+  // (el QR sale en cuanto hay código, sin esperar al servidor: si el móvil llega antes, repite su saludo hasta que contestan)
+  if (S.code && S.estado !== 'mal' && qr.dataset.code !== S.code) {
     qr.dataset.code = S.code; qr.classList.remove('wait');
     import('qrcode-generator').then(({ default: qrcode }) => { const q = qrcode(0, 'M'); q.addData(urlMando()); q.make(); qr.innerHTML = q.createSvgTag({ cellSize: 6, margin: 0, scalable: true }); });
     o.querySelector('.mnd-code').textContent = S.code;
@@ -151,7 +167,7 @@ export function abrirMando() {
   const o = S.ui = el(`<div class="mnd-ov" role="dialog" aria-modal="true" aria-label="Mando en el móvil"><div class="mnd-card">
     <h2>Mando en el móvil</h2><p class="mnd-lead">Usa el móvil como mando, sin instalar nada. Funciona con Android y con iPhone.</p>
     <div class="mnd-qr wait" aria-label="Código QR del mando"></div>
-    <ol class="mnd-pasos"><li>Conecta el móvil a la misma wifi que el ordenador.</li><li>Abre la cámara del móvil y apunta al código.</li>
+    <ol class="mnd-pasos"><li>Conecta el móvil a internet: mejor, a la misma wifi que el ordenador.</li><li>Abre la cámara del móvil y apunta al código.</li>
       <li>O entra en esta dirección y escribe el código:<span class="mnd-url" data-notr></span><span class="mnd-code" data-notr></span></li><li>Pon el móvil en horizontal y ¡a jugar!</li></ol>
     <p class="mnd-est"><i></i><span></span></p>
     <div class="mnd-bts"><button data-off>Desconectar el mando</button><button class="go" data-close>Cerrar</button></div></div></div>`);
@@ -160,7 +176,7 @@ export function abrirMando() {
   o.querySelector('[data-off]').onclick = () => terminar();
   addEventListener('keydown', teclas, true);
   if (!S.pill) {
-    S.pill = el('<button class="mnd-pill" hidden><i></i><span>Mando del móvil</span></button>');
+    S.pill = el('<button class="mnd-pill" hidden><i></i><span>Mando del móvil</span></button>');   // (amarillo: esperando al móvil)
     S.pill.onclick = () => abrirMando(); document.body.appendChild(S.pill);
   }
   pinta(); empezar();

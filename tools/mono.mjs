@@ -10,7 +10,7 @@ const p = await ctx.newPage();
 const errs = [];
 p.on('pageerror', e => errs.push('PAGEERROR ' + e.message + ' ' + (e.stack || '').split('\n').slice(1, 3).join(' | ')));
 p.on('console', m => { if (m.type() === 'error') errs.push('consola ' + m.text().slice(0, 240)); if (m.type() === 'warning' && /vigilante/.test(m.text())) errs.push('VIGILANTE'); });
-await p.addInitScript(() => { try { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); } catch (e) { } });
+await p.addInitScript(() => { try { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); } catch (e) { } });
 await p.goto(`${base}?town=${town}&q=low`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 500000 });
 const tap = async (sel) => { const b = await p.$(sel); if (!b) return false; const r = await b.boundingBox(); if (!r || r.width < 2) return false; await p.touchscreen.tap(r.x + r.width / 2, r.y + r.height / 2); return true; };

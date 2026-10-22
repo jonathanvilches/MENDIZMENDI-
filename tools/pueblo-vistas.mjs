@@ -9,7 +9,7 @@ const p = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 const errs = [];
 p.on('pageerror', e => errs.push('PAGEERROR ' + e.message));
 p.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 200)); });
-await p.addInitScript(() => { try { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); } catch (e) { } });
+await p.addInitScript(() => { try { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); } catch (e) { } });
 const t0 = Date.now();
 await p.goto(`${process.env.URL || "http://127.0.0.1:5173"}/?town=${town}&q=${process.env.Q || "high"}&weather=clear&skipintro=1&debug`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 500000 });

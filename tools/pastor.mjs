@@ -8,7 +8,7 @@ const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-119
 const p = await b.newPage({ viewport: { width: 900, height: 560 } }); const errs = [];
 p.on('pageerror', e => errs.push(e.message.slice(0, 120)));
 p.on('console', m => { if (m.type() === 'warning' && /vecino|Meshy/.test(m.text())) errs.push(m.text().slice(0, 120)); });
-await p.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); });
+await p.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); });
 await p.goto(`${URL}/?town=${town}&q=mid&weather=clear&skipintro=1`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 400000 });
 const r0 = await p.evaluate(() => {

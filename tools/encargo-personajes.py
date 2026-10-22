@@ -7,7 +7,7 @@
 import re, json, sys, os, io, csv, zipfile
 from PIL import Image, ImageDraw
 R = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-out_zip = sys.argv[1] if len(sys.argv) > 1 else 'MENDIMENDIZ-encargo-personajes.zip'
+out_zip = sys.argv[1] if len(sys.argv) > 1 else 'encargo-personajes.zip'
 src = open(f'{R}/src/data/personajes.js', encoding='utf-8').read()
 body = src[src.index('export const PERSONAJES = {'):src.index('// Dónde está cada personaje')]
 P = []
@@ -59,7 +59,7 @@ for i, p in enumerate(P, 1):
     rows.append({'n': i, 'id': p['id'], 'archivo': f"{p['id']}.png", 'estado': 'ya tiene ilustración' if p['id'] in has else 'FALTA', 'nombre': p['name'], 'euskera': p['eu'] or '', 'años': p['years'], 'categoría': cat, 'grupo': 'Mujeres de Navarra' if p['women'] else 'Personajes de Navarra',
                  'pueblo': lev.get(towns.get(p['id'], ''), towns.get(p['id'], '')), 'quién': ' '.join(p['pages']), 'escena_es': es, 'escena_en': en, 'prompt_es': f"{es}. {ESTILO_ES}", 'prompt_en': f"{en}. {ESTILO_EN}"})
 faltan = [r for r in rows if r['estado'] == 'FALTA']; hechas = [r for r in rows if r['estado'] != 'FALTA']
-LEEME = f"""MENDIMENDIZ · Encargo de las ilustraciones de los personajes de Navarra
+LEEME = f"""HERRIZHERRI · Encargo de las ilustraciones de los personajes de Navarra
 =====================================================================
 
 Hay {len(rows)} personajes en el juego ({sum(1 for r in rows if r['grupo'] == 'Mujeres de Navarra')} mujeres y {sum(1 for r in rows if r['grupo'] != 'Mujeres de Navarra')} hombres o colectivos).

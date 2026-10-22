@@ -8,7 +8,7 @@ const [,, town = 'lesaka', out = 'entrega/futbol-sadar', parte = 'todo'] = proce
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true });
 const errs = []; p.on('pageerror', e => errs.push(e.message));
-await p.addInitScript(() => { localStorage.setItem('mendimendiz-lang', 'es'); if (!localStorage.getItem('mendimendiz-perfil-v1')) localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Mendi', seen: { heroBenat: true, dog: true } })); });
+await p.addInitScript(() => { localStorage.setItem('herrizherri-lang', 'es'); if (!localStorage.getItem('herrizherri-perfil-v1')) localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Iñigo', seen: { heroBenat: true, dog: true } })); });
 let fails = 0, n = 0;
 const ok = (c, m) => { console.log(`  ${c ? 'OK ' : 'FALLO'} ${m}`); if (!c) fails++; };
 const shot = (tag) => p.screenshot({ path: `${out}/${String(++n).padStart(2, '0')}-${tag}.png` }).catch(() => {});

@@ -390,7 +390,7 @@ export class UI {
           ${Object.entries(HITZAK).map(([k, L]) => `<div class="sectionT">${esc(HITZAK_TEMA[k])}</div><table class="hz-voc"><tbody>${L.map(([eu, es]) => `<tr class="${K[eu] ? '' : 'lk'}"><th data-notr lang="eu">${K[eu] ? esc(eu) : '¿?'}</th><td data-notr lang="es">${esc(es)}</td><td class="hz-ok">${K[eu] > 1 ? I('star', 18) : ''}</td></tr>`).join('')}</tbody></table>`).join('')}
           <div class="sectionT">Conversaciones</div><div class="tprog"><div class="bar"><i style="width:${nh / HIZKETAK_N * 100}%"></i></div><span>${nh} de ${HIZKETAK_N} conversaciones</span></div>
           <p class="keys">Cuando ya sabes unas cuantas palabras, los vecinos te hablan en euskera y eliges qué contestar.</p>
-          ${HIZKETAK.map(h => { const [[aEu, aEs], [oEu, oEs]] = hizketaLines(h).map(([eu, es]) => [eu.replace('{izena}', () => g.P.name || 'Mendi'), es.replace('{izena}', () => g.P.name || 'Mendi')]), v = H[h.id];
+          ${HIZKETAK.map(h => { const [[aEu, aEs], [oEu, oEs]] = hizketaLines(h).map(([eu, es]) => [eu.replace('{izena}', () => g.P.name || 'Iñigo'), es.replace('{izena}', () => g.P.name || 'Iñigo')]), v = H[h.id];
             return `<table class="hz-voc hz-conv ${v ? '' : 'lk'}"><tbody><tr><th data-notr lang="eu">${v ? esc(aEu) : '¿?'}</th><td data-notr lang="es">${esc(aEs)}</td><td class="hz-ok" rowspan="2">${v > 1 ? I('star', 18) : ''}</td></tr><tr><th data-notr lang="eu">${v ? '› ' + esc(oEu) : '¿?'}</th><td data-notr lang="es">${v ? esc(oEs) : ''}</td></tr></tbody></table>`; }).join('')}`;
       } else {
         const C = c?.culture || {};

@@ -7,7 +7,7 @@ import { mkdirSync } from 'fs';
 const [,, out = 'entrega/horizontal', W = '844', H = '390'] = process.argv; mkdirSync(out, { recursive: true });
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: +W, height: +H }, isMobile: true, hasTouch: true }); await iphone(p); const errs = []; p.on('pageerror', e => errs.push(e.message));
-await p.addInitScript(() => { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', age: 'nino', seen: { heroBenat: true, dog: true }, xp: 900, last: 'lesaka', towns: { lesaka: { done: { 0: true }, visits: 1 } }, cards: ['armas:baztan'], settings: { quality: 'low' } })); });
+await p.addInitScript(() => { localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', age: 'nino', seen: { heroBenat: true, dog: true }, xp: 900, last: 'lesaka', towns: { lesaka: { done: { 0: true }, visits: 1 } }, cards: ['armas:baztan'], settings: { quality: 'low' } })); });
 await p.goto((process.env.URL || 'http://127.0.0.1:5173') + '/', { timeout: 300000 }); await p.waitForFunction(() => window.__hub, null, { timeout: 300000 }); await p.waitForTimeout(1500);
 const screens = ['home', 'map', 'towns', 'sports', 'avatars', 'peaks', 'nature', 'escudos', 'cuentos', 'badges', 'passport', 'profile'];
 const measure = () => p.evaluate(() => {

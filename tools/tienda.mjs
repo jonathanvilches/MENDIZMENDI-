@@ -7,7 +7,7 @@ const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-119
 for (const town of towns.split(',')) {
   const p = await b.newPage({ viewport: { width: 1100, height: 640 } });
   const errs = []; p.on('pageerror', e => errs.push(e.message));
-  await p.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true }, coins: 12, bag: { agua: 0, food: {}, goods: { leche: 2, lana: 1 } } })); });
+  await p.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true }, coins: 12, bag: { agua: 0, food: {}, goods: { leche: 2, lana: 1 } } })); });
   await p.goto(`http://127.0.0.1:5173/?town=${town}&q=mid&weather=clear`, { timeout: 300000 });
   await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 500000 });
   const info = await p.evaluate(() => { const G = window.__game, T = G.tienda, Th = window.__THREE, gh = window.__hf.groundHeight; if (!T) return null;

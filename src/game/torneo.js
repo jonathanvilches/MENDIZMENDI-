@@ -5,7 +5,7 @@
 // gana la final se lleva la txapela de la comarca.
 // También hay torneo por parejas (ocho parejas de delantero y zaguero, tú con tu compañero de siempre), igual de rondas.
 // Los pelotaris son personajes del juego (nombres inventados con su pueblo), no pelotaris reales.
-// Se guarda en localStorage ('mendimendiz-torneo-v1'): uno individual y uno por parejas por comarca.
+// Se guarda en localStorage ('herrizherri-torneo-v1'): uno individual y uno por parejas por comarca.
 import { lgPanel, lgEsc as esc } from '../futbol/liga.js';
 import { pelotarisPanel, pelotarisCount } from './pelotaris.js';
 import { pelotariStats } from '../pelota/rules.js';
@@ -23,7 +23,7 @@ const isEU = () => typeof document !== 'undefined' && document.documentElement?.
  *  rehacen: salen del nombre y del nivel, siempre los mismos). */
 export const statsOf = (p) => p.st?.style ? p.st : (p.st = pelotariStats(`${p.name} ${p.town}`, p.lv || 2));
 
-const KEY = 'mendimendiz-torneo-v1';
+const KEY = 'herrizherri-torneo-v1';
 const ROUNDS = [{ name: 'Cuartos de final', target: 5 }, { name: 'Semifinales', target: 5 }, { name: 'Final', target: 7 }];
 const NAMES = RIVALES;   // (21 chicos y chicas, cada uno con su figura)
 const TOWNS = ['Leitza', 'Lesaka', 'Elizondo', 'Altsasu', 'Lekunberri', 'Aoiz', 'Sangüesa', 'Estella-Lizarra', 'Tafalla', 'Olite', 'Tudela', 'Puente la Reina', 'Viana', 'Lumbier', 'Doneztebe', 'Irurtzun'];

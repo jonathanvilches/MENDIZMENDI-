@@ -10,7 +10,7 @@ const p = await b.newPage({ viewport: { width: 900, height: 560 } });
 const errs = [];
 p.on('pageerror', e => errs.push('PAGEERROR ' + e.message.slice(0, 300)));
 p.on('console', m => { if (m.type() === 'error') errs.push('ERR ' + m.text().slice(0, 600)); });
-await p.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true }, dogOn: false })); });
+await p.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true }, dogOn: false })); });
 await p.goto(`${URL}/?town=${town}&q=${q}&t=${process.env.T || 11}&weather=clear`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 500000 });
 await p.waitForTimeout(1500);

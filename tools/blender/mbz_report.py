@@ -1,4 +1,4 @@
-# MENDIMENDIZ · informe legible (INFORME.md) a partir de informe.json.
+# HERRIZHERRI · informe legible (INFORME.md) a partir de informe.json.
 # Uso suelto:  python3 tools/blender/mbz_report.py entrega/personajes/<personaje>
 import json, os, sys
 

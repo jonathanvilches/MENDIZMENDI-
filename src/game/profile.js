@@ -3,7 +3,7 @@ import { LEVELS } from '../data/levels.js';
 import { CAST } from '../data/cast.js';
 import COMARCAS from '../data/comarcas.json';
 
-const KEY = 'mendimendiz-perfil-v1';
+const KEY = 'herrizherri-perfil-v1';
 const fresh = () => ({
   v: 1, name: '', avatar: 'sanfermin', xp: 0, created: Date.now(),
   towns: {},          // id → { done: {índice: true}, stamp: false, visits: n, best: {} }
@@ -98,7 +98,7 @@ export function missionTypeDone(p, type) {
   if (type === 'quiz') n += Object.values(p.towns).reduce((a, t) => a + (t.quizOk || 0), 0) - Object.values(p.towns).filter(t => t.quizOk).length;
   return n;
 }
-export function salazarState() { try { return JSON.parse(localStorage.getItem('mendimendiz-salazar-v2')); } catch (e) { return null; } }
+export function salazarState() { try { return JSON.parse(localStorage.getItem('herrizherri-salazar-v2')); } catch (e) { return null; } }
 
 // Añade XP y devuelve las insignias nuevas
 export function addXP(n) { const p = profile(); const before = levelOf(p.xp).lv; p.xp += n; return levelOf(p.xp).lv > before; }

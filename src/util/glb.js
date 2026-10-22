@@ -16,7 +16,7 @@ function imgTextures(loader) {
   loader.register((parser) => {
     const t = new TextureLoader(parser.options.manager); t.setCrossOrigin(parser.options.crossOrigin); t.setRequestHeader(parser.options.requestHeader);
     parser.textureLoader = t;
-    return { name: 'mendimendiz_img_textures' };
+    return { name: 'herrizherri_img_textures' };
   });
 }
 

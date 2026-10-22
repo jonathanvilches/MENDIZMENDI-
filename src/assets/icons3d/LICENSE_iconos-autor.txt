@@ -1,6 +1,6 @@
-Iconos 3D del autor del proyecto MENDIMENDIZ, entregados el 2026-10-12 en un ZIP («MENDIMENDIZ-todos-iconos-3D»):
+Iconos 3D del autor del proyecto HERRIZHERRI, entregados el 2026-10-12 en un ZIP («todos-iconos-3D»):
 182 iconos (165 nombres base y 17 controles) en WebP transparente de 64, 128, 256 y 512 px. Sustituyen a los 48 iconos
-que el autor entregó el 2026-10-10 en tres láminas de 4 × 4 («MENDIMENDIZ-48-iconos») y a los renders del juego de los
+que el autor entregó el 2026-10-10 en tres láminas de 4 × 4 («48-iconos») y a los renders del juego de los
 mismos nombres.
 Cambios: de los de 512 px, recortados a su dibujo y centrados con el mismo margen que el resto de la familia (el lado
 mayor ocupa el 89 % del cuadro): en 512/ a 512 × 512 (los que para llenar ese 89 % tenían que crecer, hasta ×1,5, salen de
@@ -14,7 +14,7 @@ pito, que ya no se cargan: esos nombres usan el icono del autor del mismo animal
 tools/iconbake.mjs no vuelve a hornear los nombres de esta lista.
 Lista: almond angel anvil apple arch arrow artichoke asparagus axe back backpack badge balon basajaun basket beans bee bell berries bike binoculars bird bishop boar book bread bridge bull bustard butterfly camera camino canteen cardo castle cathedral cave chamois check cheese chistorra church clock close cloud compass contain control corn cow cross dance deer dive dog dolmen eagle egg eguzkilore energy espadrille exclaim fire fish flag flower footprint fountain fox frog gear giant gorge grapes hammer hand hazelnut heart herb herbs heron home honey horreo horse house jump kiosk lamb lamia lantern latxa leaf legend litter locate lock lookout map marmot mask medal menu milk mill monolith moon mountain move mushroom music navigate net olive palace pass pause pañuelo peak pelota pen pepper person pig pin pine play plaza potato quiz rabbit raft ribbon ring river robin ruin run running scroll seed sheep shield shoot sickle slide snow sorgina sparkle sprint squirrel stamp star stelae stick stone stork sun swap tackle talk target through tomato towerhouse townhall tree trophy trout tunnel txapela txistu vulture walls water wheat wine woodpecker wool xp zoom_in zoom_out
 
-Instrumentos (entregados el 2026-10-17 en «MENDIMENDIZ-7-instrumentos», PNG de 1254 px): bandurria gaita kirikoketa pandero
+Instrumentos (entregados el 2026-10-17 en «7-instrumentos», PNG de 1254 px): bandurria gaita kirikoketa pandero
 trikitixa ttunttun txalaparta. Recortados y centrados igual (89 %) desde el PNG de 1254: en 1024/ a 1024 px (la ficha de los
 instrumentos en pantallas densas), en 512/, 256/ y 128/ como el resto. El txistu es de la entrega del 2026-10-12. Sustituyen a
 los dibujos en código de ui/icon3d.js.

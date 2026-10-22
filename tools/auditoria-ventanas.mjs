@@ -13,7 +13,7 @@ for (const sz of sizes.split(',')) {
   const [W, H] = sz.split('x').map(Number);
   const p = await b.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 2, hasTouch: W < 900 });
   await muesca(p, W, H);
-  if (process.env.IDIOMA) await p.addInitScript((l) => localStorage.setItem('mendimendiz-lang', l), process.env.IDIOMA);   // (IDIOMA=eu: en euskera)
+  if (process.env.IDIOMA) await p.addInitScript((l) => localStorage.setItem('herrizherri-lang', l), process.env.IDIOMA);   // (IDIOMA=eu: en euskera)
   p.on('pageerror', e => errs.push(`${sz} PAGEERROR ${e.message}`));
   p.on('console', m => { if (m.type() === 'error') errs.push(`${sz} ${m.text().slice(0, 160)}`); });
   p.on('response', r => { if (r.status() >= 400) errs.push(`${sz} HTTP ${r.status()} ${r.url().slice(-90)}`); });

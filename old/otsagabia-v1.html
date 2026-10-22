@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
-<title>MENDIMENDIZ: Otsagabia / Ochagavía</title>
+<title>HERRIZHERRI: Otsagabia / Ochagavía</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -114,7 +114,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 
 <div class="screen" id="title" hidden>
   <div class="card">
-    <h1 class="logo">MENDIMENDIZ</h1>
+    <h1 class="logo">HERRIZHERRI</h1>
     <div class="place">Otsagabia / Ochagavía</div>
     <p>Recorre la villa del valle de Salazar: cruza el puente medieval sobre el Anduña, sube a la iglesia, descubre sus palacios y consigue el sello del pasaporte.</p>
     <div class="btns"><button class="btn primary" id="btnPlay">Empezar</button><button class="btn ghost" id="btnReset" hidden>Empezar de nuevo</button></div>
@@ -163,7 +163,7 @@ let seed = 7;
 const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
 
 // ---------- Guardado ----------
-const SAVE_KEY = 'mendimendiz-otsagabia-v1';
+const SAVE_KEY = 'herrizherri-otsagabia-v1';
 const fresh = () => ({ step: 0, cards: [], palaces: [], water: 100, done: false, started: false });
 let S = fresh();
 try { const raw = localStorage.getItem(SAVE_KEY); if (raw) S = Object.assign(fresh(), JSON.parse(raw)); } catch (e) {}

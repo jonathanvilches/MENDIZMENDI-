@@ -6,7 +6,7 @@ const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromi
 for (const id of ids) {
   const p = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   p.on('pageerror', e => console.log('PAGEERROR', e.message));
-  await p.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); });
+  await p.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); });
   const t0 = Date.now();
   await p.goto(`http://127.0.0.1:5173/?town=${id}&q=${q}`, { timeout: 300000 });
   await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 600000 });

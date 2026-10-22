@@ -6,7 +6,7 @@ const [,, out = '/tmp/mirador', list = 'etxalar,ujue'] = process.argv; mkdirSync
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 for (const town of list.split(',')) {
   const p = await b.newPage({ viewport: { width: 844, height: 390 } }); const errs = []; p.on('pageerror', e => errs.push(e.message));
-  await p.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); });
+  await p.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); });
   await p.goto(`http://127.0.0.1:5173/?town=${town}&q=low&weather=clear&skipintro=1`, { timeout: 300000 });
   await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 900000 });
   const info = await p.evaluate(() => { const G = window.__game, v = G.miradorSpot(), lm = G.miradorDeck() || {}; G.player.place(v.x, v.z, Math.atan2(lm.x - v.x, lm.z - v.z)); G.follow.snap(G.player); return { spot: v, deck: { x: lm.x, z: lm.z } }; });
