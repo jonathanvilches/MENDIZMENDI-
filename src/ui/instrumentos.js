@@ -11,6 +11,7 @@ import { tr, isEU } from '../i18n.js';
 import { profile, addCard, addXP, saveProfile, checkBadges } from '../game/profile.js';
 import { fitCircles } from './fitlabel.js';
 import { esc, el } from '../util/html.js';
+import { isDidactico } from '../util/modo.js';
 
 const tocado = (id, p = profile()) => (p.cards || []).includes('instrumento:' + id);
 
@@ -28,16 +29,17 @@ export async function openInstrumento(ui, id) {
   const p = fichaTabs(ui, {
     kicker: tr('Saberes · Instrumentos'), title: x.name, sub: x.eu, media: `<img class="ins-big" src="" alt="" data-icon="${x.icon}">`,
     secs: [[tr('Qué es'), esc(x.what)], [tr('Cómo se toca'), esc(x.how)], [tr('Dónde suena'), esc(x.where)],
-      [tr('En el juego'), `${esc(tr('Busca al músico en la plaza de'))} ${esc(pueblos.join(', '))}: ${esc(tr('te enseña a tocarlo y, si te sale, ganas una carta de tradiciones. También puedes tocar aquí mismo.'))}`]],
-    badge: tocado(x.id) ? tr('Tocado') : '',
+      ...(isDidactico() ? [] : [[tr('En el juego'), `${esc(tr('Busca al músico en la plaza de'))} ${esc(pueblos.join(', '))}: ${esc(tr('te enseña a tocarlo y, si te sale, ganas una carta de tradiciones. También puedes tocar aquí mismo.'))}`]])],
+    badge: tocado(x.id) && !isDidactico() ? tr('Tocado') : '',
   });
   const o = ui.modal; if (!o) return p;
   // (el icono 3D, como en el resto del menú)
   const im = o.querySelector('.ins-big'); if (im) { const t = document.createElement('template'); t.innerHTML = iconSVG(x.icon, 260).trim(); im.replaceWith(t.content.firstElementChild); }
   const foot = o.querySelector('.ix-foot'), next = foot?.querySelector('.next');
   if (foot) {
+    // (en el modo didáctico, solo escucharlo: tocarlo es un juego)
     const oir = el(`<button type="button" class="btn ghost tc-oir">${esc(tr('Escuchar'))}</button>`), tocar = el(`<button type="button" class="btn tc-tocar">${esc(tr('Tocar'))}</button>`);
-    foot.prepend(oir, tocar);
+    if (isDidactico()) foot.prepend(oir); else foot.prepend(oir, tocar);
     let busy = 0;
     oir.onclick = () => { if (busy > Date.now()) return; ui.sound?.init?.(); const d = muestra(ui.sound, x, notas); busy = Date.now() + d * 1000; oir.classList.add('on'); setTimeout(() => oir.classList.remove('on'), d * 1000); };
     tocar.onclick = async () => { next?.click(); await new Promise(r => setTimeout(r, 280)); await jugarInstrumento(ui, x); };

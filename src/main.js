@@ -19,6 +19,7 @@ import { Input } from './input.js';
 import { Sound } from './audio.js';
 import { UI } from './ui.js';
 import { Hub } from './hub/hub.js';
+import { isDidactico } from './util/modo.js';
 import { Game } from './game/game.js';
 import { TownGame } from './game/townGame.js';
 import { profile, saveProfile, townState, checkBadges, salazarState, townProgress } from './game/profile.js';
@@ -134,7 +135,8 @@ async function boot() {
   // el fútbol, el encierro, los minijuegos 3D de los oficios y Pamplona van en archivos aparte (se cargan al entrar): se descargan
   // sin prisa cuando el navegador está desocupado, así quedan guardados para jugar sin conexión y no esperan al tocarlos
   const idle = window.requestIdleCallback || ((f) => setTimeout(f, 1));
-  setTimeout(() => idle(() => { import('./game/futbol.js').catch(() => {}); import('./game/encierro.js').catch(() => {}); import('./ui/mini3d/index.js').catch(() => {}); import('./world/pamplona.js').catch(() => {}); }, { timeout: 20000 }), 15000);
+  // (en el modo didáctico no se juega: no hace falta)
+  if (!isDidactico()) setTimeout(() => idle(() => { import('./game/futbol.js').catch(() => {}); import('./game/encierro.js').catch(() => {}); import('./ui/mini3d/index.js').catch(() => {}); import('./world/pamplona.js').catch(() => {}); }, { timeout: 20000 }), 15000);
 
   // pasos, saltos y salpicaduras
   const hookPlayer = (player) => {
@@ -335,7 +337,8 @@ async function boot() {
   // parámetros de prueba: ?town=olite (&autostart)
   let back = null; try { back = sessionStorage.getItem('mendimendiz-volver'); sessionStorage.removeItem('mendimendiz-volver'); } catch (e) { }
   const t = q.get('town') || back;
-  if (t && levelById(t)) { if (!P.name) { P.name = 'Mendi'; saveProfile(); } play(levelById(t)); }
+  if (t && levelById(t) && isDidactico()) hub.show('pueblo', t);   // (en el modo didáctico, su página)
+  else if (t && levelById(t)) { if (!P.name) { P.name = 'Mendi'; saveProfile(); } play(levelById(t)); }
   else {
     hub.show(q.get('screen') || 'home', q.get('arg') || undefined);
   }

@@ -30,7 +30,7 @@ import { LEGENDS, NIGHT_CARNIVAL } from '../data/legends.js';
 import MOUNTAINS from '../data/mountains.json';
 import { viewFrom } from '../data/panorama.js';
 import { buildAgro } from '../world/agro.js';
-import { PASTOR_INFO, VAQUERA_INFO } from '../data/campo.js';
+import { PASTOR_INFO, VAQUERA_INFO, CROP } from '../data/campo.js';
 import { greet } from './saludo.js';
 import { Mochila } from './mochila.js';
 import { Perro } from './perro.js';
@@ -82,11 +82,6 @@ import { townPelotari, pelotariGirl } from '../ui/pelotariFig.js';
 const CLUBS_NAME = (id) => CLUBS[id]?.name || '';
 // prismáticos: vectores de trabajo (sin crear objetos en cada fotograma ni por cada animal que se mira)
 const _eye = new THREE.Vector3(), _dir = new THREE.Vector3(), _to = new THREE.Vector3(), _near = new THREE.Vector3(), _look = new THREE.Vector3();
-const CROP = {
-  uva: ['racimos de uva', 'uva'], olivo: ['aceitunas', 'olivo'], piquillo: ['pimientos del piquillo', 'piquillo'], esparrago: ['manojos de espárragos', 'esparrago'],
-  alcachofa: ['alcachofas', 'alcachofa'], cardo: ['cardos', 'cardo'], tomate: ['tomates', 'tomate'], trigo: ['gavillas de trigo', 'trigo'], patata: ['patatas', 'patata'],
-  manzana: ['manzanas', 'manzana'], almendra: ['almendras', 'almendra'], pocha: ['vainas de pocha', 'pocha'], maiz: ['mazorcas', 'corn'],
-};
 const ANIMAL = { sheep: ['ovejas', 'sheep'], cows: ['vacas', 'cow'], pottoka: ['pottokas', 'pottoka'], horses: ['caballos', 'pottoka'], goats: ['cabras', 'sheep'], pigs: ['cerdos', 'pig'] };
 const TRADE = {
   herrero: { art: 'anvil', title: 'El herrero', game: 'timing', verb: 'Golpear', icon: 'anvil', hint: 'Golpea el hierro cuando la marca esté en la zona roja.', act: 'hammer', look: { shirt: '#5a4a3a', apron: '#3a2a1a', pants: '#2b2630', hammer: true } },

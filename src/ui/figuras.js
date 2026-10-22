@@ -5,6 +5,7 @@ import { FIGURAS, figuraById } from '../data/figuras.js';
 import { infoCard } from './escudo.js';
 import { hdTable } from '../web/hd.js';
 import { esc } from '../util/html.js';
+import { isDidactico } from '../util/modo.js';
 import { byId } from '../util/glob.js';
 
 // los renders de los trajes (2:3), provisionales; y, si el autor entrega la ilustración de una figura (16:9, como las
@@ -26,6 +27,6 @@ export function openFigura(ui, id) {
   const f = figuraById(id); if (!f) return Promise.resolve();
   return infoCard(ui, {
     kicker: `${KIND[f.kind]} · ${f.where}`, title: f.name + (f.eu && f.eu !== f.name ? ` · ${f.eu}` : ''), sub: f.who.split('. ')[0] + '.', image: figuraImg(id), wide: figuraIlus(id),
-    secs: [['Quién es', esc(f.who)], ['Cómo viste', esc(f.wear)], ['En el juego', `${esc(f.game)}${f.mission ? ` Misión: <b>${esc(f.mission)}</b>.` : ''}`]],
+    secs: [['Quién es', esc(f.who)], ['Cómo viste', esc(f.wear)], ...(isDidactico() ? [] : [['En el juego', `${esc(f.game)}${f.mission ? ` Misión: <b>${esc(f.mission)}</b>.` : ''}`]])],   // (en el modo didáctico, sin el juego)
   });
 }

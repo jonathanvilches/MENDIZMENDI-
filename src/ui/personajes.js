@@ -9,6 +9,7 @@ import { icon3DReady } from './icon3d.js';
 import { iconSVG } from './icons.js';
 import { isEU, tr } from '../i18n.js';
 import { esc } from '../util/html.js';
+import { isDidactico } from '../util/modo.js';
 
 const TOWN_OF = {}; for (const [t, L] of Object.entries(FIGURE_TOWNS)) for (const id of L) TOWN_OF[id] = t;
 const townName = (id) => (LEVELS.find(l => l.id === id)?.name || id || '').split(' /')[0];
@@ -28,7 +29,8 @@ export function openPersonaje(ui, id) {
   return infoCard(ui, {
     kicker: F.kicker, title: eu ? (F.eu || F.name) : `${F.name}${F.eu ? ' · ' + F.eu : ''}`, sub: F.years,
     image: img || '', media: img ? '' : `<img class="ix-sign pico" src="${icon3DReady(F.icon) || ''}" alt="">`,
-    secs: [['Su historia', F.pages.map(p => `<p>${esc(p)}</p>`).join('')], ['Su huella hoy', `<p>${esc(F.today)}</p>`], ['En el juego', `<p>${juego}</p>`]],
+    // (en el modo didáctico, sin la pestaña del juego: su pueblo ya va en la tarjeta)
+    secs: [['Su historia', F.pages.map(p => `<p>${esc(p)}</p>`).join('')], ['Su huella hoy', `<p>${esc(F.today)}</p>`], ...(isDidactico() ? [] : [['En el juego', `<p>${juego}</p>`]])],
     badge: F.women ? 'Mujeres de Navarra' : 'Personajes de Navarra', wide: !!img,
   });
 }
