@@ -46,6 +46,8 @@ const inv = await p.evaluate(async () => {
     pendientes: arm.PENDIENTES.map(x => ({ name: x.name, note: x.note || '' })),
     comarcas: Object.fromEntries(COMARCAS.map(c => [c.id, c.name])),
     towns: LEVELS.map(l => ({ id: l.id, name: l.name, comarca: l.comarca })),
+    // (la danza de cada comarca, para su panel de cultura: danza-<comarca>)
+    danzas: COMARCAS.filter(c => c.culture?.dance).map(c => ({ id: c.id, name: c.name, title: c.culture.dance.title, text: String(c.culture.dance.text || '').slice(0, 220), has: !!lam.tradicionUrl('danza-' + c.id) })),
   };
 });
 await b.close();
@@ -89,7 +91,14 @@ const icoRender = [...porUrl.values()].filter(ns => !ns.some(n => AUTOR.has(n) |
 const ico3D = inv.iconos.filter(i => !i.baked && i.d3 && !AUTOR.has(i.n) && !FUTBOL.has(i.n)).map(i => i.n).sort();
 const ico2D = inv.iconos.filter(i => !i.baked && !i.d3 && !AUTOR.has(i.n) && !FUTBOL.has(i.n)).map(i => i.n).sort();
 const instSin = inv.instrumentos.filter(i => !HUGE.has(i.icon));
-const total = casasSin.length + ofiSin.length + munSin.length + persSin.length + leySin.length + figSin.length + tradSin.length + cimSin.length + fauSin.length + lamSin.length + icoRender.length + ico3D.length + instSin.length;
+// los trofeos que hoy son un dibujo plano del juego (SVG en src/ui/champion.js y src/game/torneo.js): van a src/assets/trofeos
+const TROFEOS = [
+  { id: 'txapela', name: 'Txapela de campeón de pelota', text: 'boina vasca negra, grande y plana, de fieltro, con una cinta roja bordada alrededor del borde (sin letras ni escudos), como la que se pone al ganador de un campeonato de pelota a mano en el frontón. Sale en la pantalla de campeón, en el torneo y en la colección de txapelas.' },
+  { id: 'copa', name: 'Copa de campeón de fútbol', text: 'copa dorada de dos asas sobre una peana de madera oscura, brillante, sin letras ni escudos de clubes. Sale en la pantalla de campeón de la Liga Navarra.' },
+];
+const trofSin = TROFEOS.filter(t => !existsSync(`src/assets/trofeos/${t.id}.webp`) && !existsSync(`src/assets/trofeos/${t.id}.png`));
+const danSin = inv.danzas.filter(d => !d.has);
+const total = casasSin.length + ofiSin.length + munSin.length + persSin.length + leySin.length + figSin.length + tradSin.length + cimSin.length + fauSin.length + lamSin.length + icoRender.length + ico3D.length + instSin.length + trofSin.length + danSin.length;
 
 const EXPLORADOR = 'el explorador del juego: un niño de unos diez años, pelo castaño rizado, camisa caqui con bolsillos, pantalón corto, mochila y botas de monte (el mismo de todas las láminas); si la escena pide a la exploradora, una niña de la misma edad con coleta castaña y la misma ropa';
 const ESTILO_LAMINA = 'Ilustración 3D tipo película de animación (sin fotorrealismo), luz suave y cálida, colores vivos, mucho detalle. Apaisada 16:9, al mayor tamaño que dé la herramienta (ideal 2560 × 1440; mínimo 1536 × 864). Lo importante en el 60 % central (los lados se recortan en el móvil). Sin texto, sin letras, sin marcas de agua, sin bordes.';
@@ -106,7 +115,7 @@ L.push('## Cómo entregarlas', '',
 L.push('## Orden que te recomiendo', '',
   `1. Escudos de las casas (${casasSin.length}): es lo que más se ve en los pueblos y hoy sale con el dibujo tallado del juego.`,
   `2. Personajes de Navarra (${persSin.length}) y figuras de leyenda y carnaval (${figSin.length}): fichas que ahora llevan una lámina prestada o un render del juego.`,
-  `3. Tradiciones (${tradSin.length}), iconos que no son tuyos (${icoRender.length + ico3D.length}), el instrumento que falta (${instSin.length}) y el resto.`, '');
+  `3. La txapela y la copa (${trofSin.length}), tradiciones (${tradSin.length}), la danza de cada comarca (${danSin.length}), iconos que no son tuyos (${icoRender.length + ico3D.length}), el instrumento que falta (${instSin.length}) y el resto.`, '');
 
 // 1) escudos de las casas
 L.push(`## 1. Escudos de las casas (${casasSin.length})`, '', '**Estilo (pégalo una vez):** ' + ESTILO_ESCUDO + ' Timbre: yelmo de acero de perfil con lambrequines de los colores del campo, salvo que el blasón diga otra cosa. En las casas del Baztan, el ajedrezado es plata y sable.', '');
@@ -164,6 +173,14 @@ if (ico2D.length) L.push(`Los ${ico2D.length} símbolos planos de la interfaz (f
 L.push(`## 10. Instrumentos sin original grande (${instSin.length})`, '');
 if (!instSin.length) L.push('Los ocho instrumentos tienen su imagen a 1254. No falta ninguno.', '');
 else { L.push('**Estilo:** el mismo que los otros siete instrumentos que me mandaste (icono 3D de la familia, fondo transparente, 1254 × 1254).', ''); for (const i of instSin) L.push(`- **${i.icon}.png** · ${esc(i.name)} (${esc(i.eu)}). ${esc(i.what)}`); L.push(''); }
+// 10b) trofeos
+L.push(`## 10b. Trofeos (${trofSin.length})`, '');
+if (!trofSin.length) L.push('La txapela y la copa ya tienen su imagen.', '');
+else { L.push('Hoy son un dibujo plano del propio juego. **Estilo (pégalo una vez):** ' + ESTILO_ICONO, ''); for (const t of trofSin) L.push(`- **${t.id}.png** · ${t.name}: ${t.text}`); L.push(''); }
+// 10c) danzas de las comarcas
+L.push(`## 10c. La danza de cada comarca (${danSin.length})`, '');
+if (!danSin.length) L.push('Todas las comarcas tienen la ilustración de su danza.', '');
+else { L.push('Para el panel de cultura de cada comarca, que hoy enseña solo el texto. **Estilo (pégalo una vez):** ' + ESTILO_LAMINA + ' Los dantzaris con su traje exacto, en la plaza o el prado del sitio, bailando; ' + EXPLORADOR + ', mirando desde un lado, nunca en el centro.', ''); for (const d of danSin) L.push(`- **danza-${d.id}.png** · «${esc(d.title)}» (${/^comarca/i.test(d.name) ? esc(d.name) : 'comarca de ' + esc(d.name)}). ${esc(d.text)}`); L.push(''); }
 // 11) correcciones
 if (corregir.length) {
   L.push(`## 11. Escudos que tú mismo señalaste para corregir (${corregir.length})`, '', 'Están en el juego tal como los mandaste. Si los rehaces, mismo estilo del apartado 1 y el mismo nombre de archivo.', '');
@@ -175,4 +192,4 @@ L.push(`## 12. Opcional: flora en tu estilo (${inv.flora.length})`, '', 'Las pla
 L.push(inv.flora.map(f => `${f.id} (${esc(f.name)}${f.sci ? ', ' + esc(f.sci) : ''})`).join(' · '), '');
 if (inv.pendientes.length) L.push(`## Nota: escudos municipales por comprobar (${inv.pendientes.length})`, '', 'Estos no se dibujan porque no hemos podido confirmar el blasón en una fuente fiable. No los generes hasta tener la fuente:', '', ...inv.pendientes.map(x => `- ${esc(x.name)}${x.note ? ': ' + esc(x.note) : ''}`), '');
 writeFileSync(out, L.join('\n'));
-console.log(JSON.stringify({ salida: out, total, casas: casasSin.length, oficios: ofiSin.length, municipales: munSin.length, personajes: persSin.length, leyendas: leySin.length, figuras: figSin.length, tradiciones: tradSin.length, cimas: cimSin.length, fauna: fauSin.length, laminas: lamSin.length, laminasPrio1: lamPrio.length, iconosRender: icoRender.length, iconos3D: ico3D.length, iconos2D: ico2D.length, instrumentos: instSin.length, corregir: corregir.length }));
+console.log(JSON.stringify({ salida: out, total, casas: casasSin.length, oficios: ofiSin.length, municipales: munSin.length, personajes: persSin.length, leyendas: leySin.length, figuras: figSin.length, tradiciones: tradSin.length, cimas: cimSin.length, fauna: fauSin.length, laminas: lamSin.length, laminasPrio1: lamPrio.length, iconosRender: icoRender.length, iconos3D: ico3D.length, iconos2D: ico2D.length, trofeos: trofSin.length, danzas: danSin.length, instrumentos: instSin.length, corregir: corregir.length }));
