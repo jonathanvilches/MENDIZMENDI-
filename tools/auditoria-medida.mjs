@@ -2,7 +2,7 @@
 // tools/auditoria-partidos.mjs): se ejecuta dentro de la página con page.evaluate(auditar, selector) y devuelve
 // { cortado, encima, verde, esquina, sobresale, espacio, letra, color } con lo que encuentra.
 //   · sobresale: texto que se sale de la forma de su botón o de su caja (círculo, píldora, esquinas redondeadas o en ángulo)
-//   · espacio: distancia de rótulo a título (10 px) y de título a texto (12 px) distinta de la común, ±2 px (de la línea
+//   · espacio: distancia de rótulo a título (12 px) y de título a texto (16 px) distinta de la común, ±2 px (de la línea
 //     base de uno a lo alto de las mayúsculas del siguiente)
 //   · letra: tamaño fuera de la escala (12 14 16 20 24 y de 32 en adelante) o fuente que no es del juego
 //   · color: texto de un color fuera de la gama (blancos, lilas, morados y rosas)
@@ -15,6 +15,9 @@
 //     a un lado que al otro; rellenos y huecos fuera de la rejilla de 4 px; bordes que casi coinciden (de 2 a 12 px)
 //   · justo: texto de un botón que se sale de él o que va a menos de 2 px de su borde
 //   · aire: en un botón con fondo o borde, menos de 12 px entre lo de dentro y su borde por los lados
+//   · junto: texto, botones, tarjetas e imágenes seguidos con menos aire del mínimo, o texto pegado al borde de su caja
+//     (sección 18: los mínimos, mayores en el ordenador)
+//   · centrado: texto o icono descentrado dentro de su forma (botón, círculo, cuadrado, píldora, etiqueta), ±1,5 px
 //   · imagen: imagen deformada, descentrada en su caja, recortada por un lado, con bandas vacías, desigual con sus
 //     hermanas o con un encuadre que pierde mucho (va aparte: tools/auditoria-medida.mjs, sección 16)
 // Con window.__auditTodo = true, «espacio» lista todas las distancias medidas (no solo las que se salen).
@@ -37,7 +40,7 @@ export const auditar = async (sel) => {
   const hasText = (e) => [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
   const all = [...root.querySelectorAll('*')].filter(e => !['SCRIPT', 'STYLE', 'CANVAS'].includes(e.tagName));
   const texts = all.filter(e => hasText(e) && vis(e));
-  const R = { cortado: [], encima: [], verde: [], esquina: [], sobresale: [], espacio: [], letra: [], color: [], desborda: [], estrecho: [], desplaza: [], forma: [], boton: [], composicion: [], justo: [], imagen: [], aire: [] };
+  const R = { cortado: [], encima: [], verde: [], esquina: [], sobresale: [], espacio: [], letra: [], color: [], desborda: [], estrecho: [], desplaza: [], forma: [], boton: [], composicion: [], justo: [], imagen: [], aire: [], junto: [], centrado: [] };
   // (tapado: lo que queda debajo de una capa opaca, como el HUD detrás de un panel, no se ve y no cuenta para «encima»
   // ni para «sobresale»; se mira qué hay encima en el centro de su primera línea, con todo tocable un momento)
   const pe = document.createElement('style'); pe.textContent = '*{pointer-events:auto!important}'; document.head.appendChild(pe);
@@ -57,7 +60,11 @@ export const auditar = async (sel) => {
     if ((s.webkitLineClamp && s.webkitLineClamp !== 'none') && e.scrollHeight > e.clientHeight + 2) { R.cortado.push(`${name(e)} «${txt(e)}» recortado a ${s.webkitLineClamp} líneas`); continue; }
     // (lo que cuenta es el texto: no los brillos animados ni las sombras que también hacen crecer scrollWidth)
     if (/(hidden|clip)/.test(s.overflowX + s.overflowY)) { const rg0 = document.createRange(); rg0.selectNodeContents(e); const tr0 = rg0.getBoundingClientRect(), er = e.getBoundingClientRect();
-      if (tr0.width && (tr0.left < er.left - 1 || tr0.right > er.right + 1 || tr0.top < er.top - 2 || tr0.bottom > er.bottom + 2)) { R.cortado.push(`${name(e)} «${txt(e)}» no cabe en su caja`); continue; } }
+      if (tr0.width && (tr0.left < er.left - 1 || tr0.right > er.right + 1 || tr0.top < er.top - 2 || tr0.bottom > er.bottom + 2)) { R.cortado.push(`${name(e)} «${txt(e)}» no cabe en su caja`); continue; }
+      // (lo que baja de la línea, como la «j» o la «g», recortado por abajo: se mide su tinta, no la caja de la línea)
+      if (/(hidden|clip)/.test(s.overflowY) && /[gjpqyQç,;]/.test(e.textContent)) { const c = document.createElement('canvas').getContext('2d'); c.font = `${s.fontWeight} 100px ${s.fontFamily}`; const t = c.measureText('gjpqy'), A = t.fontBoundingBoxAscent / 100, D = t.fontBoundingBoxDescent / 100, K = t.actualBoundingBoxDescent / 100;
+        let low = -Infinity; for (const n of e.childNodes) if (n.nodeType === 3 && /[gjpqyQç,;]/.test(n.textContent)) { const rg1 = document.createRange(); rg1.selectNodeContents(n); for (const q of rg1.getClientRects()) if (q.width > 1) { const k = q.height / (A + D); low = Math.max(low, q.top + A * k + K * k); } }
+        if (low > er.bottom + 0.5) { R.cortado.push(`${name(e)} «${txt(e)}» con lo de debajo de la línea recortado (${(low - er.bottom).toFixed(1)} px)`); continue; } } }
     // (recortado por una caja de más arriba: se mira el texto en sí, no la caja)
     const rg = document.createRange(); rg.selectNodeContents(e); const tr = rg.getBoundingClientRect(); if (!tr.width) continue;
     for (let q = e.parentElement; q && q !== document.body; q = q.parentElement) {
@@ -185,8 +192,8 @@ export const auditar = async (sel) => {
     const base = painted(e) ? e.getBoundingClientRect().bottom : last.top + m.asc * k;
     const top = painted(e) ? e.getBoundingClientRect().top : first.top + m.asc * k - m.cap * k;
     return { e, role: role(e), top, base, left: Math.min(...rs.map(q => q.left)), right: Math.max(...rs.map(q => q.right)), box: (() => { for (let q = e.parentElement; q && q !== document.body; q = q.parentElement) if (painted(q)) return q; return null; })() }; }).filter(Boolean);
-  // (lo común: 10 px de rótulo a título y 12 px de título a texto, ±2; --t-mt y --t-mb de src/style.css)
-  const want = { 'rótulo→título': [8, 12], 'título→texto': [10, 14] };
+  // (lo común: 12 px de rótulo a título y 16 px de título a texto, ±2; --t-mt y --t-mb de src/style.css)
+  const want = { 'rótulo→título': [10, 14], 'título→texto': [14, 18] };
   for (const A of blocks) { if (A.role === 'texto' || A.role === 'otro') continue;
     // (el bloque que va justo debajo, en la misma columna y en la misma caja)
     let best = null; for (const B of blocks) { if (B === A || B.box !== A.box || A.e.contains(B.e) || B.e.contains(A.e)) continue; const ov = Math.min(A.right, B.right) - Math.max(A.left, B.left);
@@ -471,5 +478,116 @@ export const auditar = async (sel) => {
     const c = clipX(b, r, (t + bt) / 2 - r.top); if (c) { L = Math.max(L, r.left + c[0]); Rt = Math.min(Rt, r.left + c[1]); }
     const gap = Math.min(l - L, Rt - rr);
     if (gap < AIRE) R.aire.push(`${name(b)} «${txt(b).slice(0, 30)}» ${gap.toFixed(0)} px de aire por un lado (izq ${(l - L).toFixed(0)}, dcha ${(Rt - rr).toFixed(0)}${c ? ', borde inclinado' : ''})`); }
+  // 18. junto: lo que va uno debajo de otro (o al lado) en la misma caja, con menos aire del mínimo. Se mide lo que se ve:
+  // del texto, de lo alto de sus mayúsculas a su línea base; de botones, tarjetas e imágenes, su caja. Los mínimos, en el
+  // ordenador (1200 × 700 o más) algo mayores: texto y botón 12 px (16), texto y tarjeta 12 (16), un texto que acaba y un
+  // título que empieza otro bloque 16 (24), botones o tarjetas entre sí 8 (16 las tarjetas), imagen y texto 8, y entre dos
+  // textos seguidos 6. También el texto pegado al borde de su caja (8 px; los botones van en «aire»). Rótulo → título y
+  // título → texto van en «espacio», a la medida exacta
+  const big = innerWidth >= 1200 && innerHeight >= 700;
+  // (visible a la vista: un icono de adorno lleva aria-hidden para los lectores de pantalla, pero se ve)
+  const shown = (e) => { const r = e.getBoundingClientRect(), s = st(e); if (!(r.width > 0 && r.height > 0 && s.visibility !== 'hidden' && s.display !== 'none') || e.closest('[hidden]')) return false;
+    for (let q = e; q && q !== document.body; q = q.parentElement) if (+st(q).opacity < 0.05) return false; return true; };
+  // (de un icono cuenta lo pintado, no su caja: los márgenes transparentes de la imagen o del dibujo no se ven)
+  const alphaBox = new Map();
+  const inkOf = (ic) => { const q = ic.getBoundingClientRect();
+    try {
+      if (ic.tagName === 'svg') { const bb = ic.getBBox(), m = ic.getScreenCTM(); if (!bb.width || !m) return q; const pts = [[bb.x, bb.y], [bb.x + bb.width, bb.y + bb.height]].map(([x, y]) => new DOMPoint(x, y).matrixTransform(m));
+        return { left: Math.max(q.left, Math.min(pts[0].x, pts[1].x)), right: Math.min(q.right, Math.max(pts[0].x, pts[1].x)), top: Math.max(q.top, Math.min(pts[0].y, pts[1].y)), bottom: Math.min(q.bottom, Math.max(pts[0].y, pts[1].y)) }; }
+      if (ic.tagName === 'IMG' && ic.complete && ic.naturalWidth && /^(fill|contain)$/.test(st(ic).objectFit)) { let a = alphaBox.get(ic.currentSrc);
+        if (!a) { const W = ic.naturalWidth, H = ic.naturalHeight, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d'); g.drawImage(ic, 0, 0); const d = g.getImageData(0, 0, W, H).data;
+          let x0 = W, x1 = -1, y0 = H, y1 = -1; for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (d[(y * W + x) * 4 + 3] > 24) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+          a = x1 < 0 ? [0, 0, 1, 1] : [x0 / W, y0 / H, (x1 + 1) / W, (y1 + 1) / H]; alphaBox.set(ic.currentSrc, a); }
+        // (con «contain», la imagen va centrada en su caja con su proporción)
+        let L = q.left, T = q.top, w = q.width, h = q.height; if (st(ic).objectFit === 'contain') { const k = Math.min(q.width / ic.naturalWidth, q.height / ic.naturalHeight); w = ic.naturalWidth * k; h = ic.naturalHeight * k; L += (q.width - w) / 2; T += (q.height - h) / 2; }
+        return { left: L + a[0] * w, top: T + a[1] * h, right: L + a[2] * w, bottom: T + a[3] * h }; }
+    } catch (e) { }
+    return q; };
+  const CTRL = 'button, .btn, a.btn, [role=button], [role=tab], input, select, textarea';
+  const boxOf = (e) => { for (let q = e.parentElement; q && q !== document.body; q = q.parentElement) if (painted(q)) return q; return null; };
+  const loose = (e, upTo) => { for (let q = e; q && q !== upTo && q !== document.body; q = q.parentElement) if (/absolute|fixed|sticky/.test(st(q).position)) return true; return false; };
+  const items = [];
+  for (const B of blocks) { if (hidden.has(B.e) || B.e.closest(CTRL) || B.e.closest('svg, .gx-card') || loose(B.e, B.box)) continue;
+    // (un texto plegado, como el de «Ver más», se ve hasta donde lo corta su caja)
+    let bot = B.base, cut = Infinity; for (let q = B.e; q && q !== B.box && q !== document.body; q = q.parentElement) if (/(hidden|clip)/.test(st(q).overflowY)) cut = Math.min(cut, q.getBoundingClientRect().bottom);
+    if (cut < bot) { const m = metr(st(B.e)), ls = []; for (const n of B.e.childNodes) if (n.nodeType === 3 && n.textContent.trim()) { const rg = document.createRange(); rg.selectNodeContents(n); ls.push(...[...rg.getClientRects()].filter(q => q.width > 2 && q.bottom <= cut + 1)); }
+      const last = ls.sort((x, y) => y.bottom - x.bottom)[0]; bot = last ? last.top + m.asc * (last.height / (m.asc + m.desc)) : cut; }   // (la línea base de la última línea que se ve)
+    items.push({ e: B.e, t: B.role, top: B.top, bot, left: B.left, right: B.right, box: B.box }); }
+  for (const e of all) { if (!(e.matches('img, svg') ? shown(e) : vis(e)) || hidden.has(e) || e.closest('.gx-card')) continue;
+    let t = null; if (e.matches(CTRL) && !e.parentElement.closest(CTRL)) t = 'botón';
+    else if (e.matches('img, svg, canvas') && !e.parentElement.closest('svg') && !e.closest(CTRL)) t = 'imagen';
+    else if (painted(e) && !e.closest(CTRL) && !e.closest('svg')) t = 'tarjeta';
+    if (!t) continue; let r = e.getBoundingClientRect(); if (r.width < (t === 'imagen' ? 20 : 40) || r.height < (t === 'imagen' ? 20 : 24)) continue;
+    // (un botón sin fondo ni borde, como una pestaña, se ve hasta donde llega lo que lleva: su texto y su icono)
+    if (t === 'botón' && !painted(e)) { const q = { left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity }, add = (k) => { q.left = Math.min(q.left, k.left); q.top = Math.min(q.top, k.top); q.right = Math.max(q.right, k.right); q.bottom = Math.max(q.bottom, k.bottom); };
+      const w = document.createTreeWalker(e, NodeFilter.SHOW_TEXT); for (let n; (n = w.nextNode());) { if (!n.textContent.trim() || !vis(n.parentElement)) continue; const rg = document.createRange(); rg.selectNodeContents(n); for (const k of rg.getClientRects()) if (k.width > 1) add(k); }
+      for (const ic of e.querySelectorAll('img, svg')) if (shown(ic) && !ic.parentElement.closest('svg')) add(ic.getBoundingClientRect());
+      if (q.left === Infinity) continue; r = q; }
+    if (t === 'imagen') r = inkOf(e);   // (lo pintado del icono, no su caja)
+    // (lo que se funde por un borde con una máscara no acaba en su caja: no se mide)
+    const box = boxOf(e); if (loose(e, box) || st(e).maskImage !== 'none' || st(e).webkitMaskImage && st(e).webkitMaskImage !== 'none') continue; items.push({ e, t, top: r.top, bot: r.bottom, left: r.left, right: r.right, box }); }
+  const cls = (t) => t === 'botón' ? 'botón' : t === 'imagen' ? 'imagen' : t === 'tarjeta' ? 'tarjeta' : 'texto';
+  const MIN = (a, b) => { const A = cls(a.t), B = cls(b.t), k = [A, B].sort().join('+');
+    if (a.t === 'rótulo' && /botón|tarjeta/.test(B)) return big ? 12 : 8;   // (el rótulo de una casilla, junto a ella)
+    if (A === 'texto' && B === 'texto') return a.t === 'texto' && /título|rótulo/.test(b.t) ? (big ? 24 : 16) : 6;
+    return ({ 'botón+texto': big ? 16 : 12, 'tarjeta+texto': big ? 16 : 12, 'botón+botón': 8, 'tarjeta+tarjeta': big ? 16 : 8, 'botón+tarjeta': big ? 16 : 8,
+      'imagen+texto': 8, 'botón+imagen': 8, 'imagen+tarjeta': 8, 'imagen+imagen': 4 })[k]; };
+  // (lo que va dentro de una tira que se desplaza y lo que va fuera no se miden juntos: al desplazar, uno pasa por debajo del otro)
+  const roll = (e) => { for (let q = e.parentElement; q && q !== document.body; q = q.parentElement) if (/(auto|scroll)/.test(st(q).overflowX + st(q).overflowY)) return q; return null; };
+  for (const it of items) it.roll = roll(it.e);
+  const nested = (a, b) => a.e.contains(b.e) || b.e.contains(a.e) || a.roll !== b.roll;
+  const seenJ = new Set();
+  for (const A of items) {
+    // debajo: lo más cercano que empieza por debajo de A y comparte columna con él
+    let best = null; for (const B of items) { if (B === A || B.box !== A.box || nested(A, B)) continue; const ov = Math.min(A.right, B.right) - Math.max(A.left, B.left);
+      if (ov < Math.min(24, (A.right - A.left) * 0.5, (B.right - B.left) * 0.5)) continue; const g = B.top - A.bot; if (g < -2 || B.top < (A.top + A.bot) / 2) continue; if (!best || g < best.g) best = { B, g }; }
+    // al lado: lo más cercano a la derecha, en la misma fila (solo si uno de los dos es un botón, una tarjeta o una imagen)
+    let side = null; for (const B of items) { if (B === A || B.box !== A.box || nested(A, B) || (cls(A.t) === 'texto' && cls(B.t) === 'texto')) continue;
+      const ov = Math.min(A.bot, B.bot) - Math.max(A.top, B.top); if (ov < Math.min(A.bot - A.top, B.bot - B.top) * 0.5) continue; const g = B.left - A.right; if (g < -2) continue; if (!side || g < side.g) side = { B, g }; }
+    for (const [hit, dir] of [[best, '↓'], [side, '→']]) { if (!hit) continue; const B = hit.B;
+      if (A.t !== 'texto' && cls(A.t) === 'texto' && cls(B.t) === 'texto' && want[`${A.t}→${B.t}`]) continue;   // (va en «espacio»)
+      let m = MIN(A, B); if (dir === '→' && cls(A.t) === 'texto' !== (cls(B.t) === 'texto')) m = Math.min(m, 8);   // (al lado de un texto, como un icono o un botón en su fila, 8 px)
+      if (dir === '→' && (cls(A.t) === 'imagen' || cls(B.t) === 'imagen')) m = 4;   // (un icono junto a su texto)
+      const g = Math.round(hit.g); if (g >= m) continue;
+      const k2 = name(A.e) + txt(A.e).slice(0, 12) + dir + name(B.e) + txt(B.e).slice(0, 12); if (seenJ.has(k2)) continue; seenJ.add(k2);
+      const det = (e) => { const s = st(e); return `[${ruleOf(e, 'margin') !== '?' ? ruleOf(e, 'margin') : ruleOf(e, 'marginTop')}] mt ${s.marginTop} mb ${s.marginBottom}`; };
+      R.junto.push(`${A.t}${dir}${B.t} ${g} px (mín ${m}): ${name(A.e)} «${txt(A.e).slice(0, 22)}» → ${name(B.e)} «${txt(B.e).slice(0, 22)}»` + (window.__auditDetail ? `\n        A ${det(A.e)} · padre ${name(A.e.parentElement)} gap ${st(A.e.parentElement).rowGap}/${st(A.e.parentElement).columnGap}\n        B ${det(B.e)}` : '')); } }
+  // (el texto pegado al borde de su caja: cajas de 80 × 40 px o más que no son botones)
+  for (const A of items) { if (cls(A.t) !== 'texto' || !A.box || A.box.matches(CTRL) || A.box.closest(CTRL)) continue; const r = A.box.getBoundingClientRect(), s = st(A.box);
+    if (r.width < 80 || r.height < 40 || r.height > innerHeight * 0.8 || A.box.contains(root) || /(auto|scroll)/.test(s.overflowX + s.overflowY)) continue;   // (no el fondo de toda la pantalla)
+    const L = r.left + px(s.borderLeftWidth), Rr = r.right - px(s.borderRightWidth), T = r.top + px(s.borderTopWidth), Bt = r.bottom - px(s.borderBottomWidth);
+    if (A.right < L || A.left > Rr || A.bot < T || A.top > Bt) continue;   // (fuera de la caja: no es suyo, va desplazado o recortado)
+    const d = Math.min(A.left - L, Rr - A.right, A.top - T, Bt - A.bot); if (d >= 8) continue;
+    const k2 = 'borde' + name(A.box) + txt(A.e).slice(0, 16); if (seenJ.has(k2)) continue; seenJ.add(k2);
+    R.junto.push(`borde ${Math.round(d)} px (mín 8): ${name(A.e)} «${txt(A.e).slice(0, 22)}» en ${name(A.box)} (izq ${Math.round(A.left - L)}, dcha ${Math.round(Rr - A.right)}, arriba ${Math.round(A.top - T)}, abajo ${Math.round(Bt - A.bot)})`); }
+  // 19. centrado: lo que va dentro de una forma (botón, círculo, cuadrado, píldora, etiqueta, casilla), su texto y su icono,
+  // en el centro: lo mismo arriba que abajo y, si va centrado (un círculo, un cuadrado, un icono solo o lo alineado al
+  // centro), lo mismo a la izquierda que a la derecha, ±1,5 px. Del texto cuenta lo que se ve: de lo alto de sus mayúsculas
+  // a su línea base. Solo formas de hasta 120 px de alto (o cuadradas) y sin otras cajas dentro; lo colocado aparte, como
+  // una marca en la esquina, no cuenta
+  const TOL = 1.5;
+  for (const P of all) {
+    if (!vis(P) || hidden.has(P) || P.closest('svg, .gx-card') || P.matches('input, select, textarea, img, svg') || !painted(P)) continue;
+    const r = P.getBoundingClientRect(), s = st(P), square = Math.abs(r.width - r.height) <= 2 && r.height <= 160;
+    // (formas: botones, y cajas pequeñas como etiquetas, casillas y círculos; no una fila entera ni un panel)
+    if (r.width < 16 || r.height < 16 || (!square && r.height > 120) || (!P.matches('button, .btn, a, [role=button], [role=tab]') && r.width > 320) || /(auto|scroll)/.test(s.overflowX + s.overflowY)) continue;
+    let leaf = true; for (const q of P.querySelectorAll('*')) { if (q.parentElement.closest('svg') || q.matches('img, svg') || !shown(q) || loose(q, P)) continue; if (painted(q)) { leaf = false; break; } }
+    if (!leaf) continue;
+    const ink = [], w = document.createTreeWalker(P, NodeFilter.SHOW_TEXT);
+    for (let n; (n = w.nextNode());) { const pe = n.parentElement; if (!n.textContent.trim() || !vis(pe) || hidden.has(pe) || loose(pe, P)) continue; const m = metr(st(pe)), rg = document.createRange(); rg.selectNodeContents(n);
+      for (const q of rg.getClientRects()) { if (q.width < 1) continue; const k = q.height / (m.asc + m.desc), base = q.top + m.asc * k; ink.push({ top: base - m.cap * k, bot: base, left: q.left, right: q.right }); } }
+    for (const ic of P.querySelectorAll('img, svg')) { if (ic.parentElement.closest('svg') || !shown(ic) || loose(ic, P)) continue; if (ic.getBoundingClientRect().width < 4) continue; const q = inkOf(ic); ink.push({ top: q.top, bot: q.bottom, left: q.left, right: q.right, ic: true }); }
+    if (!ink.length) continue;
+    const T = Math.min(...ink.map(q => q.top)), B = Math.max(...ink.map(q => q.bot)), Lx = Math.min(...ink.map(q => q.left)), Rx = Math.max(...ink.map(q => q.right));
+    const iT = r.top + px(s.borderTopWidth), iB = r.bottom - px(s.borderBottomWidth), iL = r.left + px(s.borderLeftWidth), iR = r.right - px(s.borderRightWidth);
+    if (B < iT || T > iB || Rx < iL || Lx > iR) continue;   // (lo de dentro va fuera de la forma: eso es «sobresale»)
+    const col = /column/.test(s.flexDirection) && /flex/.test(s.display), flex = /flex/.test(s.display), grid = /grid/.test(s.display);
+    // (una flecha o una marca dibujada con ::before o ::after no se puede medir: entonces, solo arriba y abajo)
+    const pseudo = ['::before', '::after'].some(k => { const q = getComputedStyle(P, k); return q.content !== 'none' && q.content !== 'normal' && !/absolute|fixed/.test(q.position) && q.display !== 'none'; });
+    const hc = !pseudo && (square || (ink.length === 1 && ink[0].ic) || s.textAlign === 'center' || (flex && /center/.test(col ? s.alignItems : s.justifyContent)) || (grid && /center/.test(s.justifyItems + s.justifyContent)));
+    const dy = ((T - iT) - (iB - B)) / 2, dx = ((Lx - iL) - (iR - Rx)) / 2, out = [];
+    if (Math.abs(dy) > TOL) out.push(`${Math.abs(dy).toFixed(1)} px más ${dy > 0 ? 'abajo' : 'arriba'}`);
+    if (hc && Math.abs(dx) > TOL) out.push(`${Math.abs(dx).toFixed(1)} px más a la ${dx > 0 ? 'derecha' : 'izquierda'}`);
+    if (out.length) R.centrado.push(`${name(P)} «${txt(P).slice(0, 24)}» ${Math.round(r.width)}×${Math.round(r.height)}: ${out.join(' y ')}` + (window.__auditDetail ? ` [${ruleOf(P, 'padding') !== '?' ? ruleOf(P, 'padding') : ruleOf(P, 'paddingTop')}] pad ${s.padding} lh ${s.lineHeight}` : '')); }
   return R;
 };

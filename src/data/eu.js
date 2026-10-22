@@ -314,7 +314,7 @@ export const EU_RX = [
   [/^Capítulo (\d+) · (.+)$/, '$1. kapitulua · $2'],
   [/^(\d+)\/(\d+) sellos de la comarca$/, 'Eskualdeko $1/$2 zigilu'],
   [/^(\d+) pueblos? jugables? · (\d+) sellos?$/, '$1 herri jolasteko · $2 zigilu'],
-  [/^(\d+) pueblos? para jugar · río (.+)$/, '$1 herri jolasteko · $2 ibaia'],
+  [/^(\d+) pueblos? · (\d+) sellados? · río (.+)$/, '$1 herri · $2 zigilatuta · $3 ibaia'],
   [/^(.+) · (\d+)\/(\d+) misiones$/, '$1 · $2/$3 misio'],
   [/^(\d+)\/(\d+) misiones$/, '$1/$2 misio'],
   [/^(\d+)\/(\d+) sellos$/, '$1/$2 zigilu'],

@@ -115,10 +115,6 @@ function fitMaps(root) {
   if (!fitMaps.on) { fitMaps.on = true; addEventListener('resize', () => fitMaps.root && requestAnimationFrame(() => fitMaps(fitMaps.root))); }
   fitMaps.root = root;
 }
-function ring(p, size = 54, color = '#ff7ac8', label = '') {
-  const r = size / 2 - 5, C = 2 * Math.PI * r;
-  return `<svg class="ring" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="6"/><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${color}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${C * p} ${C}" transform="rotate(-90 ${size / 2} ${size / 2})"/><text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" fill="#fff" font-size="${size < 80 ? 12 : 24}" font-weight="900">${label || Math.round(p * 100) + '%'}</text></svg>`;
-}
 function spark(profile, w = 160, h = 44) {
   if (!profile?.length) return '';
   const xs = profile.map(p => p[0]), ys = profile.map(p => p[1]);
@@ -130,7 +126,7 @@ function spark(profile, w = 160, h = 44) {
 export class Hub {
   constructor({ sound, onPlay }) {
     this.sound = sound; this.onPlay = onPlay;
-    this.root = el(`<div id="hub"><div class="hub-bg"><div class="bgimg"></div>${Array.from({ length: 12 }, (_, i) => `<i class="mote" style="left:${(i * 37) % 100}%;animation-delay:${-i * 1.7}s;animation-duration:${16 + (i % 5) * 3}s"></i>`).join('')}</div>
+    this.root = el(`<div id="hub"><div class="hub-bg"><div class="bgimg"></div></div>
       <header class="hub-top"><div class="brand logo">HERRIZHERRI</div><button type="button" class="app-btn" data-app hidden><svg viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><rect x="13" y="4" width="22" height="40" rx="5"/><path d="M24 14v14M18 22l6 6 6-6M21 38h6"/></svg><span>Instalar app</span></button><button type="button" class="app-btn alt" data-mando hidden>${I('control', 24)}<span>Mando del móvil</span></button><div class="chip" id="hChip"></div></header>
       <nav class="hub-nav" id="hNav"></nav><main class="hub-main" id="hMain"></main></div>`);
     document.body.appendChild(this.root);
@@ -267,10 +263,10 @@ export class Hub {
     <section class="saberes">
       <div class="sb-head"><small class="kicker">${I('book', 20)} Lo más importante</small><h2>Aprende Navarra jugando</h2>
         <p>Cada misión, cada paseo y cada partido te enseñan algo de Navarra: su producto local, su arquitectura y sus escudos, su historia, su campo, su fauna, su flora y sus tradiciones. Cada cosa que aprendes es una carta.</p></div>
-      <button class="btn ghost sb-arms" data-go="escudos">${I('shield', 26)} Escudos de Navarra: cómo se leen y qué significan</button>
+      <div class="sb-links"><button class="btn ghost sb-arms" data-go="escudos">${I('shield', 26)} Escudos de Navarra: cómo se leen y qué significan</button>
       <button class="btn ghost sb-arms" data-go="cuentos">${I('legend', 26)} Cuentos y leyendas de Navarra: escúchalos en cada pueblo</button>
       <button class="btn ghost sb-arms" data-go="instrumentos">${I('music', 26)} Instrumentos de Navarra: escúchalos y aprende a tocarlos</button>
-      <button class="btn ghost sb-arms" data-go="pasaka">${I('pelota', 26)} Pasaka: el juego de pelota con red de los claustros</button>
+      <button class="btn ghost sb-arms" data-go="pasaka">${I('pelota', 26)} Pasaka: el juego de pelota con red de los claustros</button></div>
       <div class="sb-grid">${(() => { const n = saberCounts(p); return SABERES.map(sb => `<div class="sb ${n[sb.id] ? 'on' : ''}${sb.id === 'escudos' ? ' link' : ''}" title="${esc(sb.text)}"${sb.id === 'escudos' ? ' data-go="escudos" role="button" tabindex="0"' : ''}>${I(sb.icon, 34)}<b>${n[sb.id]}</b><span>${esc(sb.name)}</span><small>${esc(sb.text)}</small></div>`).join(''); })()}</div>
     </section>
     <section class="story">
@@ -358,7 +354,6 @@ export class Hub {
       <div class="cimg ready" style="background-image:url(${comarcaCover(c.id, true)})"></div>
       <img class="cstamp ${pr.stamps ? '' : 'gray'}" src="${stampImg(c.id)}" alt="">
       <div class="cbody"><b>${esc(c.name)}</b><small>${cnt(ts.length, 'pueblo jugable', 'pueblos jugables')} · ${cnt(pr.stamps, 'sello', 'sellos')}${ts.length ? ` · ${TXAPELAS()[c.id] ? '¡txapela de pelota!' : 'txapela: por ganar'}` : ''}</small></div>
-      <div class="cring">${ring(pr.pct, 50, '#fff')}</div>
       <span class="cgo">${ts.length ? 'Elegir pueblo' : 'Próximamente'}</span></button>`;
   }
   drawMiniMap(box) {
@@ -409,8 +404,7 @@ export class Hub {
     <section class="chero" style="--c:${c.color};--bg:url(${comarcaCover(id)})">
       <button class="back" data-go="map">${I('back', 26)} Mapa</button>
       <img class="bigstamp ${pr.stamps || dd ? '' : 'gray'}" src="${stampImg(id)}" alt="">
-      <div><small class="kicker">Comarca</small><h1>${esc(c.full || c.name)}</h1><p>${dd ? `<b>${ts.length}</b> <span>${ts.length === 1 ? 'pueblo' : 'pueblos'}</span> · ${I('river', 20)} <span>${esc(c.river || '')}</span>` : `${cnt(ts.length, 'pueblo para jugar', 'pueblos para jugar')} · río ${esc(c.river || '')}`}</p></div>
-      ${dd ? '' : `<div class="cring">${ring(pr.pct, 96, '#fff')}</div>`}
+      <div><small class="kicker">Comarca</small><h1>${esc(c.full || c.name)}</h1><p>${dd ? `<b>${ts.length}</b> <span>${ts.length === 1 ? 'pueblo' : 'pueblos'}</span> · ${I('river', 20)} <span>${esc(c.river || '')}</span>` : `${cnt(ts.length, 'pueblo', 'pueblos')} · ${cnt(pr.stamps, 'sellado', 'sellados')} · río ${esc(c.river || '')}`}</p></div>
     </section>
     ${(L => L.length ? `<h2 class="sec">${I('scroll', 30)} Láminas</h2>${laminaRail(L)}` : '')(this.comarcaLaminas(id))}
     <h2 class="sec">${I('church', 30)} Pueblos y ciudades</h2>
@@ -455,7 +449,7 @@ export class Hub {
         ${l.church ? `<h3>${I('church', 24)} Qué visitar</h3><ul class="plist"><li><b>${esc(l.church.name)}</b> ${esc(l.church.text)}</li>${(l.landmarks || []).map(x => `<li><b>${esc(x.name)}</b> ${esc(x.text)}</li>`).join('')}</ul>` : ''}
         ${REAL_IDS.includes(l.id) ? `<p class="sh-src"><span>Trazado real del pueblo</span>: ${esc(ATRIBUCION)}</p>` : ''}
       </div>
-      <div class="sh-foot"><button class="btn primary big" data-play="${l.id}">${I('play', 28)} ${t.done ? 'Seguir jugando' : 'Jugar'} en ${esc(l.name)}</button></div></div></div>`);
+      <div class="sh-foot"><button class="btn primary big" data-play="${l.id}">${I('play', 28)} <span>${t.done ? 'Seguir jugando' : 'Empezar a jugar'}</span></button></div></div></div>`);
     this.sheet?.remove(); this.sheet = s; this.root.appendChild(s); bindLaminas(s, this.sound);
     { const A = armsOfTown(l.id), c = s.querySelector('.sh-arms canvas'); if (A && c) drawOfficial(c.getContext('2d'), c.width / 2, 3, 90, A); }
     s.addEventListener('click', e => { if (e.target === s || e.target.closest('.x')) { s.remove(); this.sheet = null; } });
