@@ -673,3 +673,10 @@ body.mg3d-on .learn-btn { bottom: auto; top: calc(env(safe-area-inset-top, 0px) 
 }
 /* (en los móviles tumbados más bajos, la pausa sin la línea de ayuda de los mandos: se cortaba abajo y obligaba a desplazar) */
 @media (orientation: landscape) and (max-height: 400px) { .menu .keys { display: none; } }
+/* ---------- Cuaderno del pueblo: palabras en euskera de los vecinos ---------- */
+.hz-voc { width: 100%; border-collapse: collapse; margin: 0 0 8px; font-size: var(--fs-md); }
+.hz-voc th, .hz-voc td { padding: 8px; border-bottom: 1px solid rgba(190, 160, 255, .18); text-align: left; vertical-align: middle; }
+.hz-voc th { width: 45%; font-weight: 900; color: #fff; }
+.hz-voc td { color: #cbc2e0; }
+.hz-voc .hz-ok { width: 28px; padding: 4px; }
+.hz-voc tr.lk th { color: rgba(255, 255, 255, .4); }

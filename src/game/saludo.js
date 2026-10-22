@@ -5,7 +5,7 @@ export function kaixo(G) {
   return t >= 6 && t < 13.5 ? 'Egun on' : t >= 13.5 && t < 20.5 ? 'Arratsalde on' : 'Gabon';
 }
 // lo que cae ahora mismo: 'rain', 'snow' o 'clear' (la lluvia va a ratos: entre chaparrón y chaparrón, despejado)
-function weatherNow(G) {
+export function weatherNow(G) {
   const W = G?.rt?.weather;
   if (!W || W.kind === 'clear') return 'clear';
   return W.kind === 'snow' || W.k > 0.3 ? W.kind : 'clear';
