@@ -23,3 +23,9 @@ export const VAQUERA_INFO = {
   then: 'Las parejas de bueyes tiraban del carro y del arado. Las vacas daban leche, que se ordeñaba a mano en la cuadra de la casa.',
   now: 'Ya no trabajan en el campo: se crían para carne y leche, con ordeñadoras y comederos. Pero siguen subiendo al monte en verano, como siempre.',
 };
+// lo que se cosecha en cada misión de cosecha (data/levels.js, crop): su nombre en plural y su icono
+export const CROP = {
+  uva: ['racimos de uva', 'uva'], olivo: ['aceitunas', 'olivo'], piquillo: ['pimientos del piquillo', 'piquillo'], esparrago: ['manojos de espárragos', 'esparrago'],
+  alcachofa: ['alcachofas', 'alcachofa'], cardo: ['cardos', 'cardo'], tomate: ['tomates', 'tomate'], trigo: ['gavillas de trigo', 'trigo'], patata: ['patatas', 'patata'],
+  manzana: ['manzanas', 'manzana'], almendra: ['almendras', 'almendra'], pocha: ['vainas de pocha', 'pocha'], maiz: ['mazorcas', 'corn'],
+};

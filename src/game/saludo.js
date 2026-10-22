@@ -17,7 +17,7 @@ function dayLine(G) {
   return night ? 'Qué noche más tranquila para pasear.' : 'Qué día más bonito para pasear.';
 }
 // (lo que significa cada saludo, para quien aprende euskera)
-const KAIXO_ES = { 'Egun on': 'buenos días', 'Arratsalde on': 'buenas tardes', Gabon: 'buenas noches' };
+export const KAIXO_ES = { 'Egun on': 'buenos días', 'Arratsalde on': 'buenas tardes', Gabon: 'buenas noches' };
 // lo que dicen los vecinos, a la hora y con el tiempo de ahora: «Egun on» pasa a «Arratsalde on» o «Gabon», y el «qué día
 // más bonito» se cambia por lo que de verdad hace (lluvia, nieve o una noche tranquila)
 const DAY = /Qué día más bonito para pasear\.|Hace un día precioso en el valle\./;
