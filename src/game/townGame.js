@@ -1187,7 +1187,7 @@ export class TownGame {
   // cómo acaba él; si fallas, te dice la buena y qué significaba la tuya
   hizketaLines(a, ctx) {
     const H = this.P.hizketak ||= {}, h = nextHizketa(H, ctx, this.rnd); if (!h) return [];
-    const izena = this.P.name || 'Mendi', put = ([eu, es]) => [eu.replace('{izena}', izena), es.replace('{izena}', izena)];
+    const izena = this.P.name || 'Mendi', put = ([eu, es]) => [eu.replace('{izena}', () => izena), es.replace('{izena}', () => izena)];   // (con función: un nombre con «$» se queda tal cual)
     const [aEu, aEs] = put(h.a), ok = put(h.ok), opts = [ok, ...h.no.map(put)], who = a.name, look = a.obj?.userData.look, T = HITZ_TXT;
     for (let i = opts.length - 1; i > 0; i--) { const j = Math.floor(this.rnd() * (i + 1)); [opts[i], opts[j]] = [opts[j], opts[i]]; }
     const fin = { who, look, text: T.say(...put(h.fin)) };
