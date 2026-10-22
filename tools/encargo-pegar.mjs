@@ -15,7 +15,8 @@ for (const line of md.split('\n')) {
 }
 const n = (h) => +(h.match(/\((\d+)\)\s*$/)?.[1] ?? -1);
 const util = secs.filter(s => /^\d/.test(s.h) && !/^12\.|Opcional/.test(s.h) && n(s.h) > 0);
-// (de cada apartado: la nota de estilo y las imágenes; fuera los subapartados opcionales y las frases para el autor)
+// (de cada apartado: la nota de estilo y las imágenes; fuera los subapartados opcionales y las frases para el autor, y sin
+// la palabra sangre, que es un juego para niños y la herramienta podría no querer dibujarla)
 function cuerpo(s) {
   const out = []; let skip = false;
   for (let l of s.L) {
@@ -25,7 +26,7 @@ function cuerpo(s) {
     l = l.replace(/\*\*/g, '').replace('Estilo (pégalo una vez): ', 'Estilo: ').replace('Hoy son un dibujo plano del propio juego. ', '')
       .replace('Para el panel de cultura de cada comarca, que hoy enseña solo el texto. ', '').replace(/ Misma familia que tus \d+ iconos:/, ' De la misma familia que los iconos del juego:')
       .replace('Renders del propio juego que conviene sustituir', 'Hoy son capturas del propio juego. Para sustituirlas')
-      .replace(': el resto de botones ya llevan tus iconos.', '.').replace('Estilo: el mismo que los otros siete instrumentos que me mandaste (icono 3D de la familia, fondo transparente, 1254 × 1254).', 'Estilo: icono 3D de la misma familia que los iconos, el instrumento entero, fondo transparente, 1254 × 1254.');
+      .replace(': el resto de botones ya llevan tus iconos.', '.').replace('una sábana manchada de sangre', 'una sábana blanca con manchas rojas').replace('Estilo: el mismo que los otros siete instrumentos que me mandaste (icono 3D de la familia, fondo transparente, 1254 × 1254).', 'Estilo: icono 3D de la misma familia que los iconos, el instrumento entero, fondo transparente, 1254 × 1254.');
     if (/^Hoy salen con un render del traje/.test(l)) continue;
     out.push(l);
   }
