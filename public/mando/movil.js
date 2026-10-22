@@ -191,7 +191,11 @@ function enlaza(b, down, up, queda) {
 const bt = (i, d) => ({ t: 'bt', i, d });
 // (el icono del botón, de los del juego: iconos/<nombre>.webp)
 const ico = (i) => { const n = C.ic?.[i]; return n && /^[a-z]+$/.test(n) ? `<img src="iconos/${n}.webp" alt="" draggable="false">` : ''; };
-const boton = (cls, i, html) => { const x = document.createElement('button'); x.className = cls; x.dataset.b = i; x.innerHTML = html; (x.querySelector('.nom') || x.querySelector('span')).textContent = T(C.b[i]); return x; };
+// (cada botón, solo con su icono; su nombre, para el lector de pantalla; si no tuviera icono, el nombre a la vista)
+const boton = (cls, i, dentro = (h) => h) => {
+  const x = document.createElement('button'), n = T(C.b[i]); x.className = cls; x.dataset.b = i; x.setAttribute('aria-label', n);
+  x.innerHTML = dentro(ico(i) || '<span class="txt"></span>'); const t = x.querySelector('.txt'); if (t) t.textContent = n; return x;
+};
 const CIERRA = /cerrar|salir|volver|atrás|ahora no|itxi|irten|itzuli|^(✕|×|x)$/i;
 function pinta() {
   const b = C.b || {}, esp = C.esp || [], fijos = (C.fijo || []).filter(i => b[i]), der = C.der || [];
@@ -200,9 +204,9 @@ function pinta() {
   const izq = C.pal ? fijos : [], sis = [4, 5, 8, 9].filter(i => b[i] && !der.includes(i) && !izq.includes(i));
   const acc = esp.length ? [] : [0, 1, 2, 3, ...der, 7].filter((i, n, L) => b[i] && L.indexOf(i) === n && !izq.includes(i) && !sis.includes(i));
   const sup = $('#sup'); sup.innerHTML = ''; $('#top').classList.toggle('fila', sis.length > 2);
-  for (const i of sis) { const x = boton('sis', i, ico(i) + '<span></span>'); sup.appendChild(x); enlaza(x, bt(i, 1), bt(i, 0)); }
+  for (const i of sis) { const x = boton('sis', i); sup.appendChild(x); enlaza(x, bt(i, 1), bt(i, 0)); }
   const tog = $('#tog'); tog.innerHTML = '';
-  for (const i of izq) { const x = boton('tg', i, ico(i) + '<span></span>'); x.setAttribute('aria-pressed', 'false'); tog.appendChild(x); enlaza(x, bt(i, 1), bt(i, 0), true); }
+  for (const i of izq) { const x = boton('tg', i); x.setAttribute('aria-pressed', 'false'); tog.appendChild(x); enlaza(x, bt(i, 1), bt(i, 0), true); }
   // izquierda: la palanca, o el panel táctil
   $('#base').classList.toggle('hide', !C.pal);
   $('#hIzq').textContent = C.pal ? T(C.pal === 'andar' ? 'Desliza para andar' : 'Desliza para moverte') : '';
@@ -211,7 +215,7 @@ function pinta() {
   // derecha: los botones de acción, la copia de los del minijuego o «¡A jugar!»
   const bts = $('#bts'); bts.innerHTML = '';
   acc.forEach((i, n) => {
-    const x = n ? boton('bt', i, `<span class="cir">${ico(i)}</span><span class="nom"></span>`) : boton('bt prim', i, `<span class="cir">${ico(i)}<span class="nom"></span></span>`);
+    const x = boton(n ? 'bt' : 'bt prim', i, (h) => `<span class="cir">${h}</span>`);
     bts.appendChild(x); enlaza(x, bt(i, 1), bt(i, 0), fijos.includes(i));
   });
   const E = $('#esp'); E.innerHTML = ''; E.classList.toggle('hide', !esp.length); E.classList.toggle('dos', esp.length > 4);
@@ -221,9 +225,8 @@ function pinta() {
   estado(); coloca();
 }
 // dónde va cada cosa, a la medida de cada mitad: la palanca abajo a la izquierda, con su aviso y lo que se queda puesto
-// encima; el botón principal abajo a la derecha y los demás alrededor, como en los juegos del móvil: a su izquierda (un
-// poco más arriba, para que su nombre no baje del borde), encima y, entre los dos, en diagonal; cada uno con sitio para
-// su nombre debajo
+// encima; el botón principal abajo a la derecha y los demás en arco a su alrededor, como en los juegos del móvil: a su
+// izquierda, encima y, entre los dos, en diagonal
 const lim = (v, a, z) => Math.max(a, Math.min(z, v));
 function coloca() {
   const zi = $('#izq'), zd = $('#der'), m = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--m')) || 16;
@@ -234,31 +237,19 @@ function coloca() {
   const tg = $('#tog'); tg.style.left = m + 'px'; tg.style.top = (by - db / 2 - 8 - (h.offsetHeight ? h.offsetHeight + 16 : 0) - tg.offsetHeight) + 'px';
   const W = zd.clientWidth, H = zd.clientHeight, ks = [...$('#bts').children];
   const dA = Math.round(lim(Math.min(W * 0.26, H * 0.3), 72, 100)), dS = Math.round(lim(dA * 0.68, 52, 68));
-  const NOM = 30;   // (el nombre debajo del botón: su alto y su separación)
-  const cx = W - m - dA / 2, cy = H - m - dA / 2, dx = dA / 2 + dS / 2 + 20, dy = dA / 2 + dS / 2 + NOM + 8, oy = Math.max(0, dS / 2 + NOM - dA / 2);
-  const huecos = [[0, 0], [-dx, -oy], [0, -dy], [-dx, -dy - oy]];
+  const cx = W - m - dA / 2, cy = H - m - dA / 2, D = dA / 2 + dS / 2 + 18, huecos = [180, 90, 135];
   ks.forEach((x, n) => {
-    const [hx, hy] = huecos[Math.min(n, 3)];
-    x.style.left = (cx + hx) + 'px'; x.style.top = (cy + hy) + 'px'; x.style.setProperty('--d', (n ? dS : dA) + 'px');
+    const a = (n ? huecos[Math.min(n, 3) - 1] : 0) * Math.PI / 180, r = n ? D : 0;
+    x.style.left = (cx + r * Math.cos(a)) + 'px'; x.style.top = (cy - r * Math.sin(a)) + 'px'; x.style.setProperty('--d', (n ? dS : dA) + 'px');
   });
   encaja();
 }
-// cada nombre, entero: si no cabe, la letra baja hasta 10 px. Arriba, si la barra no cabe, el icono va encima del nombre
-// y, si aun así no cabe, se queda solo el icono (con su nombre para el lector de pantalla).
-// (en el botón principal, las cuatro esquinas del nombre dentro del círculo)
-function enCirculo(c, s) {
-  const r = c.getBoundingClientRect(), R = r.width / 2 - 3, cx = r.left + r.width / 2, cy = r.top + r.height / 2, t = s.getBoundingClientRect();
-  return [[t.left, t.top], [t.right, t.top], [t.left, t.bottom], [t.right, t.bottom]].every(([px, py]) => Math.hypot(px - cx, py - cy) <= R);
-}
+// los textos que quedan en botones (los copiados del minijuego y el nombre de un botón sin icono), enteros: si no caben,
+// la letra baja hasta 10 px
 function encaja() {
-  const top = $('#top'), sis = [...top.querySelectorAll('#sup .sis')];
-  top.classList.remove('pila', 'ico'); for (const x of sis) x.removeAttribute('aria-label');
-  const sobra = () => top.scrollWidth > top.clientWidth + 1 || $('#sup').scrollWidth > $('#sup').clientWidth + 1;
-  if (sobra() && matchMedia('(orientation: landscape)').matches) top.classList.add('pila');
-  if (sobra()) { top.classList.add('ico'); for (const x of sis) x.setAttribute('aria-label', x.querySelector('span').textContent); }
-  for (const s of document.querySelectorAll('.bt .nom, .tg span, #sup .sis span, #esp button')) {
+  for (const s of document.querySelectorAll('.txt, #esp button')) {
     s.style.fontSize = ''; if (!s.textContent) continue;
-    const prim = s.closest('.prim .cir'), cabe = () => prim ? enCirculo(prim, s) : s.scrollWidth <= s.clientWidth + 1 && s.scrollHeight <= s.clientHeight + 1;
+    const cabe = () => s.scrollWidth <= s.clientWidth + 1 && s.scrollHeight <= s.clientHeight + 1;
     for (let f = parseFloat(getComputedStyle(s).fontSize); !cabe() && f > 10; f--) s.style.fontSize = (f - 1) + 'px';
   }
 }
