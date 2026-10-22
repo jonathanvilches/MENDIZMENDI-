@@ -48,14 +48,16 @@ export function encaja(root = document.body) {
   for (const e of root.querySelectorAll('*')) if (!/^(svg|path|g|canvas|img|script|style|select|option)$/i.test(e.tagName)) ajusta(e);
 }
 
-/** Vigila la página: lo que se añade se ajusta entero en el siguiente fotograma; si solo cambia el texto de algo, ese
- *  algo (así, lo que se repinta a cada momento al jugar cuesta poco). */
+/** Vigila la página: lo que se añade se ajusta entero; si solo cambia el texto de algo, ese algo (así, lo que se
+ *  repinta a cada momento al jugar cuesta poco). */
 export function vigilaEncaje() {
   const nuevos = new Set(), cambiados = new Set(); let raf = 0;
   const run = () => { raf = 0; limpia(); const L = [...nuevos]; nuevos.clear(); for (const r of L) if (r.isConnected && !L.some(o => o !== r && o.contains(r))) encaja(r);
     for (const e of cambiados) if (e.isConnected && !L.some(o => o.contains(e))) ajusta(e); cambiados.clear(); };
   const pide = () => { if (!raf) raf = requestAnimationFrame(run); };
-  new MutationObserver((ms) => { for (const m of ms) { if (m.target.nodeType === 1 && m.target !== document.body) cambiados.add(m.target); for (const n of m.addedNodes) if (n.nodeType === 1) nuevos.add(n); } pide(); })
+  // (lo que cambia se ajusta enseguida, antes de pintarse: nunca se llega a ver cortado; el cambio de tamaño, al fotograma)
+  new MutationObserver((ms) => { for (const m of ms) { if (m.target.nodeType === 1 && m.target !== document.body) cambiados.add(m.target); for (const n of m.addedNodes) if (n.nodeType === 1) nuevos.add(n); } run(); })
     .observe(document.body, { childList: true, subtree: true });
   addEventListener('resize', () => { nuevos.add(document.body); pide(); });
+  document.fonts?.addEventListener?.('loadingdone', () => { nuevos.add(document.body); pide(); });   // (con la letra ya cargada, que es más ancha que la de mientras)
 }
