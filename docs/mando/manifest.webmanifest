@@ -1,0 +1,19 @@
+{
+  "id": "./",
+  "name": "Herrizherri · Mando",
+  "short_name": "Mando",
+  "description": "El móvil como mando para jugar a Herrizherri en el ordenador.",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "landscape",
+  "background_color": "#1e0a44",
+  "theme_color": "#1e1830",
+  "icons": [
+    { "src": "../icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "../icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "../icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
