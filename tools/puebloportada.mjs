@@ -25,7 +25,7 @@ for (const town of list) {
   const [kind, dist, high, turn, fixed] = OVR[town] || ['church', 44, 1.9, 0];
   const p = await b.newPage({ viewport: { width: 1600, height: 900 } });
   p.on('pageerror', e => console.log('ERR', town, e.message));
-  await p.addInitScript(() => { try { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true }, settings: { quality: 'high' } })); } catch (e) { } });
+  await p.addInitScript(() => { try { localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true }, settings: { quality: 'high' } })); } catch (e) { } });
   try {
     await p.goto(`${BASE}/?town=${town}&q=high&weather=clear&t=18.1&skipintro=1`, { timeout: 300000 });
     await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 900000 });

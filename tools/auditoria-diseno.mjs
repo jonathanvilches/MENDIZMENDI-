@@ -17,14 +17,14 @@ const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-119
 const p = await b.newPage({ viewport: { width: W, height: H }, isMobile: W < 1000, hasTouch: true }); const errs = []; p.on('pageerror', e => errs.push(e.message));
 await muesca(p, W, H);
 // (un perfil con datos de verdad: textos largos como «2 partidos · 0 ganados», txapelas, club elegido, cartas y rivales)
-await p.addInitScript((todo) => { window.__auditTodo = todo; window.__auditDetail = todo; window.__vs = true; window.__vsMs = 600000; localStorage.setItem('mendimendiz-lang', 'es');
-  localStorage.setItem('mendimendiz-futbol-v1', JSON.stringify({ played: 12, won: 7, goals: 23, tutorial: true }));
-  localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', age: 'nino', seen: { heroBenat: true, dog: true }, xp: 900, last: 'altsasu-alsasua', futbolClub: 'osasuna', txapelas: 1,
+await p.addInitScript((todo) => { window.__auditTodo = todo; window.__auditDetail = todo; window.__vs = true; window.__vsMs = 600000; localStorage.setItem('herrizherri-lang', 'es');
+  localStorage.setItem('herrizherri-futbol-v1', JSON.stringify({ played: 12, won: 7, goals: 23, tutorial: true }));
+  localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', age: 'nino', seen: { heroBenat: true, dog: true }, xp: 900, last: 'altsasu-alsasua', futbolClub: 'osasuna', txapelas: 1,
     towns: { lesaka: { done: { 0: true }, visits: 1 }, 'altsasu-alsasua': { done: { 0: true, 1: true }, visits: 2 } }, cards: ['armas:baztan'],
     pelotaris: { lesaka: { name: 'Mikel', town: 'Lesaka', won: 2, lost: 1, stats: { fuerza: 4, agilidad: 3, velocidad: 2 } }, leitza: { name: 'Garazi', town: 'Leitza', won: 0, lost: 1, stats: { fuerza: 2, agilidad: 4, velocidad: 4 } } }, settings: { quality: 'low' } })); }, !!process.env.TODO);
 if (process.env.DETALLE) await p.addInitScript(() => { window.__auditDetail = true; });
 // IDIOMA=eu: la misma auditoría en euskera (los textos son más largos)
-if (process.env.IDIOMA) await p.addInitScript((l) => localStorage.setItem('mendimendiz-lang', l), process.env.IDIOMA);
+if (process.env.IDIOMA) await p.addInitScript((l) => localStorage.setItem('herrizherri-lang', l), process.env.IDIOMA);
 await p.goto(URL, { timeout: 300000 }); await p.waitForFunction(() => window.__hub, null, { timeout: 300000 }); await p.waitForTimeout(1500);
 
 const audit = (sel) => p.evaluate(auditar, sel);

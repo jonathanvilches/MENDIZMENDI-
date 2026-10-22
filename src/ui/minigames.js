@@ -258,7 +258,7 @@ export function townFinale(ui, { town, stamp, missions = [], xp = 0, next = null
       <small class="kicker">¡Pueblo completado!</small>
       <img class="stampimg big" src="${stamp}" alt="">
       <h2>${esc(town)}</h2>
-      <p>Has cumplido todas las misiones y el sello ya brilla en tu Pasaporte Mendi.</p>
+      <p>Has cumplido todas las misiones y el sello ya brilla en tu Pasaporte Herri.</p>
       <ul class="fin-list">${missions.map(m => `<li>${iconSVG(m.icon, 34)}<span>${esc(m.title)}</span>${iconSVG('check', 22)}</li>`).join('')}</ul>
       <div class="rewards"><span class="rw">${iconSVG('star', 26)} +${xp} XP</span><span class="rw">${iconSVG('stamp', 26)} Sello nuevo</span></div>
       <div class="fin-btns">

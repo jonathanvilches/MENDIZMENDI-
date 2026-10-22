@@ -10,7 +10,7 @@ let total = 0, flojos = 0, rotos = 0;
 for (const [vw, vh, dpr, mobile] of [[844, 390, 3, true], [1440, 900, 1, false]]) {
   const p = await b.newPage({ viewport: { width: vw, height: vh }, deviceScaleFactor: dpr, isMobile: mobile, hasTouch: mobile }); const errs = [];
   p.on('pageerror', e => errs.push(e.message.slice(0, 120)));
-  await p.addInitScript(() => { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'sanfermin', seen: { heroBenat: true, dog: true, intro: true }, cards: ['instrumento:txistu', 'armas:pamplona', 'escudo:ituren:0'], species: ['zorro', 'buitre'], badges: ['first-town'], settings: { quality: 'low' } })); });
+  await p.addInitScript(() => { localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'sanfermin', seen: { heroBenat: true, dog: true, intro: true }, cards: ['instrumento:txistu', 'armas:pamplona', 'escudo:ituren:0'], species: ['zorro', 'buitre'], badges: ['first-town'], settings: { quality: 'low' } })); });
   await p.goto(URL + '/', { timeout: 300000 }); await p.waitForFunction(() => window.__hub, null, { timeout: 300000 }); await p.waitForTimeout(1500);
   const tiers = {};
   for (const s of SCREENS) {

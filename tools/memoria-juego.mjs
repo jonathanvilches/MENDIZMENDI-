@@ -19,7 +19,7 @@ const p = await ctx.newPage(), errs = [];
 p.on('pageerror', e => errs.push(e.message.slice(0, 160)));
 p.on('console', m => { if (m.type() === 'error' && !/favicon|404/.test(m.text())) errs.push(m.text().slice(0, 160)); });
 await p.addInitScript((q) => {
-  try { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true }, settings: { quality: q } })); } catch (e) { }
+  try { localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true }, settings: { quality: q } })); } catch (e) { }
   // memoria gráfica real: cada reserva y cada borrado, por contexto (como en tools/memoria-real.mjs)
   const M = window.__gm = { tex: 0, buf: 0, rb: 0, ctx: 0, made: 0, byCtx: [] };
   const BPP = { 0x1908: 4, 0x1907: 4, 0x1903: 1, 0x8227: 2, 0x1909: 1, 0x190A: 2, 0x1906: 1, 0x1902: 4, 0x84F9: 4 };

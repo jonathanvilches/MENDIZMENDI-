@@ -6,7 +6,7 @@ const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-119
 const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
 const p = await ctx.newPage();
 await p.addInitScript(() => {
-  localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } }));
+  localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } }));
   const L = window.__canvasLog = []; const orig = HTMLCanvasElement.prototype.getContext;
   HTMLCanvasElement.prototype.getContext = function (type, ...a) { if (!this.__logged && type === '2d') { this.__logged = true; L.push({ w: this.width, h: this.height, at: new Error().stack.split('\n')[2]?.trim().replace(/\(?http[^)]*\/src\//, '').slice(0, 90) }); } return orig.call(this, type, ...a); };
 });

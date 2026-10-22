@@ -20,7 +20,7 @@ export function loadEU() {
   });
 }
 
-const KEY = 'mendimendiz-lang';
+const KEY = 'herrizherri-lang';
 export function getLang() { try { return localStorage.getItem(KEY) || 'es'; } catch (e) { return 'es'; } }
 /** ¿Ha elegido ya idioma? (la primera vez se pregunta antes de nada) */
 export function langChosen() { try { return !!localStorage.getItem(KEY); } catch (e) { return true; } }

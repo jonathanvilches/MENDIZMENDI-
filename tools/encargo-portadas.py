@@ -6,7 +6,7 @@
 import re, json, sys, io, os, csv, zipfile
 from PIL import Image, ImageDraw, ImageFont
 R = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-out_zip = sys.argv[1] if len(sys.argv) > 1 else 'MENDIMENDIZ-encargo-portadas.zip'
+out_zip = sys.argv[1] if len(sys.argv) > 1 else 'encargo-portadas.zip'
 src = open(f'{R}/src/data/laminas.js', encoding='utf-8').read()
 lams = []
 for m in re.finditer(r"\{ id: '([^']+)'(.*?)\}", src):
@@ -45,7 +45,7 @@ def hojas():
         b = io.BytesIO(); sheet.save(b, 'JPEG', quality=85); out.append((f"hojas/hoja-{s // per + 1:02d}.jpg", b.getvalue()))
     return out
 n1 = sum(1 for r in rows if r['prio'] == 1)
-LEEME = f"""# MENDIMENDIZ · Encargo: las láminas con más calidad
+LEEME = f"""# HERRIZHERRI · Encargo: las láminas con más calidad
 
 Las {len(rows)} láminas del juego se generaron a 1280 × 720 y en un móvil o un ordenador se ven blandas: la portada del inicio
 pide más de 2000 píxeles de ancho. Ampliarlas no sirve (ya está probado con Real-ESRGAN): hay que volver a generarlas más

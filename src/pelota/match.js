@@ -29,8 +29,8 @@ export class PelotaMatch {
     this.level = o.level || 'normal';
     // la pelota elegida y la cámara dinámica (se recuerdan de un partido a otro)
     const ls = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
-    this.ballKind = BALLS[o.ball] ? o.ball : BALLS[ls('mendimendiz-pelota-bola')] ? ls('mendimendiz-pelota-bola') : 'normal';
-    this.camDyn = o.camDyn ?? ls('mendimendiz-pelota-cam') !== '0';
+    this.ballKind = BALLS[o.ball] ? o.ball : BALLS[ls('herrizherri-pelota-bola')] ? ls('herrizherri-pelota-bola') : 'normal';
+    this.camDyn = o.camDyn ?? ls('herrizherri-pelota-cam') !== '0';
     this.pairs = false; this.role = 'delantero'; this.mateObjs = null;   // por parejas: qué juegas tú y los otros dos
     this.names = { you: o.you?.name || this.txt.you, rival: o.rival?.name || 'Rival' };
     this.audio = new PelotaAudio(o.audio);
@@ -111,12 +111,12 @@ export class PelotaMatch {
         for (const x of p.querySelectorAll('[data-pel-tab]')) x.setAttribute('aria-selected', String(x === b));
         for (const x of p.querySelectorAll('.pel-opane')) x.hidden = +x.dataset.pane !== this.optTab; return; }
       if (b.dataset.pelBall) {   // (se cambia en el sitio, sin volver a montar el panel)
-        this.ballKind = b.dataset.pelBall; try { localStorage.setItem('mendimendiz-pelota-bola', this.ballKind); } catch (e) { } this.applyFeel();
+        this.ballKind = b.dataset.pelBall; try { localStorage.setItem('herrizherri-pelota-bola', this.ballKind); } catch (e) { } this.applyFeel();
         for (const x of p.querySelectorAll('[data-pel-ball]')) x.setAttribute('aria-pressed', String(x === b));
         const w = p.querySelector('.pel-ballwhat'), sm = p.querySelector('.pel-sum'); if (w) w.textContent = BL.kinds[this.ballKind][1];
         if (sm) sm.textContent = sm.textContent.replace(/[^·]*$/, ` ${BL.label} ${BL.kinds[this.ballKind][0].toLowerCase()}`);
         return; }
-      if (b.hasAttribute('data-pel-cam')) { this.camDyn = !this.camDyn; try { localStorage.setItem('mendimendiz-pelota-cam', this.camDyn ? '1' : '0'); } catch (e) { } b.setAttribute('aria-checked', String(this.camDyn)); return; }
+      if (b.hasAttribute('data-pel-cam')) { this.camDyn = !this.camDyn; try { localStorage.setItem('herrizherri-pelota-cam', this.camDyn ? '1' : '0'); } catch (e) { } b.setAttribute('aria-checked', String(this.camDyn)); return; }
       if (b.dataset.pelFicha) { this.ficha(b.dataset.pelFicha); return; }
       if (b.hasAttribute('data-pel-court')) { const w = p.querySelector('.pel-court-what'); if (w) { w.hidden = !w.hidden; b.setAttribute('aria-expanded', String(!w.hidden)); } return; }
       if (b.hasAttribute('data-pel-tour')) { this.startTour(); return; }

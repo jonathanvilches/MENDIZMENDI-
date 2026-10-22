@@ -16,7 +16,7 @@ const errs = [];
 // 2) en el pueblo
 const p = await b.newPage({ viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true });
 p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type() === 'error' && !/404/.test(m.text())) errs.push(m.text()); });
-await p.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true } })); localStorage.setItem('mendimendiz-lang', 'es'); });
+await p.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true } })); localStorage.setItem('herrizherri-lang', 'es'); });
 await p.goto(`http://127.0.0.1:5173/?town=${town}&q=low&weather=clear&skipintro=1`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 900000 });
 await p.evaluate(() => { const G = window.__game; G.ui.dialog = async () => 0; window.__trav = []; G.onPlayTown = (id) => window.__trav.push(id); });
@@ -39,6 +39,6 @@ await p.click('[data-a="sim"]'); await p.waitForSelector('.lg-res', { timeout: 6
 const lv2 = await p.evaluate(() => document.querySelector('.lg-btn.go')?.textContent); console.log('liga jornada 2: botón', lv2);
 await p.screenshot({ path: `${out}/liga2.png` });
 if (await p.evaluate(() => !!document.querySelector('[data-a="travel"]'))) { await p.click('[data-a="travel"]'); await p.waitForTimeout(800); } else await p.click('[data-a="exit"]');
-console.log('viajes', JSON.stringify(await p.evaluate(() => window.__trav)), 'club', await p.evaluate(() => JSON.parse(localStorage.getItem('mendimendiz-perfil-v1')).futbolClub));
+console.log('viajes', JSON.stringify(await p.evaluate(() => window.__trav)), 'club', await p.evaluate(() => JSON.parse(localStorage.getItem('herrizherri-perfil-v1')).futbolClub));
 console.log('errores', JSON.stringify(errs.slice(0, 5)));
 await b.close();

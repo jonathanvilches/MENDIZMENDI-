@@ -6,7 +6,7 @@ const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-119
 for (const [w, h] of [[844, 390], [390, 844], [1280, 720]]) {
   const p = await b.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: w < 900 ? 2 : 1, isMobile: w < 900, hasTouch: w < 900 });
   p.on('pageerror', e => console.log('ERR', e.message));
-  await p.addInitScript(() => { try { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'sanfermin', seen: { heroBenat: true, dog: true }, settings: { quality: 'low' } })); } catch (e) { } });
+  await p.addInitScript(() => { try { localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'sanfermin', seen: { heroBenat: true, dog: true }, settings: { quality: 'low' } })); } catch (e) { } });
   await p.goto('http://127.0.0.1:5173/', { timeout: 300000 });
   await p.waitForFunction(() => window.__hub, null, { timeout: 300000 });
   const com = await p.evaluate(async (t) => (await import('/src/data/levels.js')).LEVELS.find(l => l.id === t).comarca, town);

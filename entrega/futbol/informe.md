@@ -1,4 +1,4 @@
-# Fútbol sala de MENDIMENDIZ — informe
+# Fútbol sala de HERRIZHERRI — informe
 
 ## 1. Diagnóstico del código anterior (`src/game/futbol.js`, 493 líneas)
 
@@ -47,7 +47,7 @@ Había que reescribir más del 40 %, así que **se rehízo desde cero** según e
 | `hud.js` | Marcador, mensajes, joystick dinámico, botones, barras, menú, pausa y estadísticas. |
 | `audio.js` | Golpeo según la potencia, postes, red, silbato y público que reacciona. |
 | `retos.js` | Conos contra reloj, dianas en las escuadras y pases a compañeros en movimiento. |
-| `index.js` | `FutbolSystem`: `init`, `startMatch`, `startPenaltis`, `startReto`, `openMenu` y `career` (clave `mendimendiz-futbol-v1`). |
+| `index.js` | `FutbolSystem`: `init`, `startMatch`, `startPenaltis`, `startReto`, `openMenu` y `career` (clave `herrizherri-futbol-v1`). |
 | `src/game/futbol.js` | La integración en el juego. Lo detalla la sección 4. |
 | `lab/futbol-demo.html` | Página para probar cada modo sin cargar un pueblo. |
 
@@ -83,7 +83,7 @@ En el juego **no se abre un segundo WebGLRenderer**: en iPhone podía cerrar la 
 - **Tutorial de 60 s la primera vez:** moverse, pasar, tirar y robar.
 - **Misión en El Sadar:** la entrenadora propone primero el reto de pases y después el menú libre.
 
-## 4. Integración en MENDIMENDIZ
+## 4. Integración en HERRIZHERRI
 
 `src/game/futbol.js` conecta el módulo con el juego:
 

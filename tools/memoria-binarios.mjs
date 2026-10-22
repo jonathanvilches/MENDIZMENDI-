@@ -11,7 +11,7 @@ const ctx = await b.newContext({ viewport: { width: 844, height: 390 }, deviceSc
 const p = await ctx.newPage(), errs = [];
 p.on('pageerror', e => errs.push(e.message.slice(0, 160)));
 await p.addInitScript((q) => {
-  try { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true }, settings: { quality: q } })); } catch (e) { }
+  try { localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true }, settings: { quality: q } })); } catch (e) { }
   const MIN = 65536, live = window.__bin = new Map(); let id = 0, peak = 0, now = 0;
   const reg = new FinalizationRegistry((k) => { const r = live.get(k); if (r) { now -= r.by; live.delete(k); } });
   const site = () => new Error().stack.split('\n').slice(3, 7).map(x => x.trim().replace(/^at /, '').replace(/\(?https?:\/\/[^/]+\/(src\/|node_modules\/\.vite\/deps\/|node_modules\/)?/, '').replace(/\?[^:]*/, '').replace(/\)$/, '').slice(0, 64)).join(' < ');

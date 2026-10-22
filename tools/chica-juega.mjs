@@ -6,7 +6,7 @@ const [,, out, avatar = 'nerea', town = 'lumbier'] = process.argv; mkdirSync(out
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: 1100, height: 620 } }); const errs = []; p.on('pageerror', e => errs.push(e.message));
 p.on('console', m => { if (m.type() === 'error' && !/403|google|Failed to load|GPU stall|WebGL/.test(m.text())) errs.push(m.text().slice(0, 160)); });
-await p.addInitScript((av) => { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: av, seen: { heroBenat: true, dog: true }, dogOn: false, settings: { quality: 'high' } })); }, avatar);
+await p.addInitScript((av) => { localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: av, seen: { heroBenat: true, dog: true }, dogOn: false, settings: { quality: 'high' } })); }, avatar);
 await p.goto('http://127.0.0.1:' + (process.env.PUERTO || 5173) + `/?town=${town}&noflora&weather=clear&skipintro=1&t=12`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 400000 }); await p.waitForTimeout(1500);
 const coleta = () => p.evaluate(() => { const G = window.__game; let pelo = 0, mallas = 0; G.player.obj.traverse(o => { if (o.isMesh && o.visible) { mallas++; if (o.userData.pelo || o.userData.peloColor) pelo++; } }); return { rig: G.player.rig?.id, mallas, pelo, chica: !!G.player.rig?.char?.root?.userData?.chica }; });

@@ -10,7 +10,7 @@ async function page(w, h) {
   const p = await browser.newPage({ viewport: { width: w, height: h } });
   p.on('pageerror', e => errs.push('PAGEERROR ' + e.message));
   p.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errs.push(m.type() + ' ' + m.text().slice(0, 200)); });
-  await p.addInitScript(() => localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Mendi', avatar: 'benat' })));
+  await p.addInitScript(() => localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Iñigo', avatar: 'benat' })));
   return p;
 }
 const only = process.env.ONLY;

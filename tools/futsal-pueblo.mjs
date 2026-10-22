@@ -9,7 +9,7 @@ const towns = list.split(','); let first = true;
 for (const town of towns) {
   const p = await b.newPage({ viewport: { width: 1000, height: 560 } }); const errs = [];
   p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type() === 'error' && !/404/.test(m.text())) errs.push(m.text()); });
-  await p.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); localStorage.setItem('mendimendiz-futbol-v1', JSON.stringify({ v: 1, tutorial: true })); localStorage.setItem('mendimendiz-lang', 'es'); });
+  await p.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); localStorage.setItem('herrizherri-futbol-v1', JSON.stringify({ v: 1, tutorial: true })); localStorage.setItem('herrizherri-lang', 'es'); });
   await p.goto(`${process.env.URL || "http://127.0.0.1:5173"}/?town=${town}&q=low&weather=clear&skipintro=1`, { timeout: 300000 });
   await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 900000 });
   const info = await p.evaluate(() => { const G = window.__game; return { pista: !!G.pista, coach: G.futsalCoach?.name, spot: G.pista ? [G.pista.spot.x.toFixed(0), G.pista.spot.z.toFixed(0)] : null }; });
@@ -29,7 +29,7 @@ for (const town of towns) {
     await p.evaluate(() => { window.__menu = setInterval(() => { const c = document.querySelector('.lg-root [data-a="sala"]'); if (c) c.click(); const b = document.querySelector('.fb-panel .fb-alt'); if (b) b.click(); }, 700); });
     for (let k = 0; k < 3; k++) {
       await p.evaluate(() => window.__game.playFutsal());
-      const st = await p.evaluate(() => JSON.parse(localStorage.getItem('mendimendiz-perfil-v1')).towns?.[window.__game.def.id]?.futsal);
+      const st = await p.evaluate(() => JSON.parse(localStorage.getItem('herrizherri-perfil-v1')).towns?.[window.__game.def.id]?.futsal);
       console.log('  paso', k + 1, JSON.stringify(st), JSON.stringify(await p.evaluate(() => window.__steps)));
     }
     console.log('  modo', await p.evaluate(() => window.__game.mode));

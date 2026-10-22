@@ -1,12 +1,14 @@
-// Service worker de MENDIMENDIZ (versión web): guarda lo que se descarga para que la segunda vez cargue al momento y se
+// Service worker de HERRIZHERRI (versión web): guarda lo que se descarga para que la segunda vez cargue al momento y se
 // pueda jugar sin conexión. Los archivos de assets/ llevan su huella en el nombre (no cambian nunca): se sirven de la
 // caché. La página y el manifiesto se piden primero a la red (para recibir la versión nueva) y, sin red, de la caché.
 // Dos cachés:
 //  · la de la página, con el nombre de la versión (lo pone vite.config.js): al llegar una versión nueva se cambia entera
 //  · la de los archivos con huella, común a todas las versiones: al actualizar solo se descarga lo que ha cambiado
 //    (modelos, texturas y sonidos que no se tocan siguen guardados) y se quitan los que esta versión ya no usa
-const CACHE = 'mendimendiz-__VERSION__';
-const ASSETS = 'mendimendiz-assets';
+const CACHE = 'herrizherri-__VERSION__';
+const ASSETS = 'herrizherri-assets';
+// (las cachés de cuando el juego tenía otro nombre, por partes para no escribirlo: lo descargado pasa a la de ahora)
+const VIEJO = ['mend', 'imendiz-'].join('');
 const KEEP = new Set(__FILES__);   // los archivos de assets/ de esta versión (lo pone vite.config.js)
 const name = (url) => new URL(url).pathname.split('/').pop();
 // al instalarse guarda la página y lo imprescindible para arrancar (código, estilos y fuentes; unos 2,5 MB): así el
@@ -30,7 +32,7 @@ self.addEventListener('activate', (e) => {
     for (const k of await caches.keys()) {
       if (k === CACHE || k === ASSETS) continue;
       // cachés de versiones anteriores: lo que esta versión sigue usando pasa a la caché común antes de borrarlas
-      if (k.startsWith('mendimendiz-')) {
+      if (k.startsWith('herrizherri-') || k.startsWith(VIEJO)) {
         const old = await caches.open(k);
         for (const r of await old.keys()) if (new URL(r.url).pathname.includes('/assets/') && KEEP.has(name(r.url)) && !(await keep.match(r))) { const res = await old.match(r); if (res) await keep.put(r, res); }
       }

@@ -20,7 +20,7 @@ export const EU_EXACT = {
   '¿Sabías que…?': 'Ba al zenekien…?', 'Preparando…': 'Prestatzen…', '¡Listo!': 'Prest!', 'Navarra, pueblo a pueblo': 'Nafarroa, herriz herri',
   // --- hasiera ---
   'Próxima parada': 'Hurrengo geltokia', 'Sigue tu aventura en': 'Jarraitu zure abentura hemen:', 'misiones': 'misio', '¡A la aventura!': 'Abenturara!', '¡Seguimos!': 'Jarraitu dezagun!',
-  'La historia': 'Istorioa', 'El Pasaporte Mendi': 'Mendi Pasaportea',
+  'La historia': 'Istorioa', 'El Pasaporte Herri': 'Herri Pasaportea',
   'Las páginas del viejo pasaporte se han quedado en blanco. Cada pueblo de Navarra guarda su sello, pero solo lo entrega a quien ayuda a su gente y aprende sus oficios, sus danzas y sus leyendas.':
     'Pasaporte zaharraren orriak zuri geratu dira. Nafarroako herri bakoitzak bere zigilua gordetzen du, baina bertako jendea laguntzen duenari eta bere ofizioak, dantzak eta kondairak ikasten dituenari bakarrik ematen dio.',
   'Viaja': 'Bidaiatu', 'Elige un pueblo en el mapa': 'Aukeratu herri bat mapan', 'Ayuda': 'Lagundu', 'Habla con su gente y cumple sus misiones': 'Hitz egin bertako jendearekin eta bete haien misioak',
@@ -74,7 +74,7 @@ export const EU_EXACT = {
   'Sabio del concejo': 'Kontzejuko jakintsua', 'Acierta diez preguntas de los sabios.': 'Asmatu jakintsuen hamar galdera.', 'Pies ligeros': 'Oin arinak', 'Gana tres carreras.': 'Irabazi hiru lasterketa.',
   'Naturalista': 'Naturalista', 'Observa diez especies distintas.': 'Behatu hamar espezie desberdin.', 'Coleccionista': 'Bildumazalea', 'Reúne treinta cartas.': 'Bildu hogeita hamar karta.',
   'Cumbres': 'Gailurrak', 'Corona cinco cimas en las misiones de montaña.': 'Igo bost gailurretara mendiko misioetan.',
-  'Pasaporte Mendi': 'Mendi Pasaportea', 'Cada pueblo completado estampa su sello. ¡Llena todas las páginas de Navarra!': 'Osatutako herri bakoitzak bere zigilua jartzen du. Bete Nafarroako orri guztiak!',
+  'Pasaporte Herri': 'Herri Pasaportea', 'Cada pueblo completado estampa su sello. ¡Llena todas las páginas de Navarra!': 'Osatutako herri bakoitzak bere zigilua jartzen du. Bete Nafarroako orri guztiak!',
   'Perfil y ajustes': 'Profila eta ezarpenak', 'Cambiar personaje': 'Aldatu pertsonaia', 'Ajustes': 'Ezarpenak', 'Música': 'Musika', 'Volumen': 'Bolumena', 'Calidad gráfica': 'Kalitate grafikoa',
   'Automática': 'Automatikoa', 'Baja (más fluido)': 'Baxua (arinagoa)', 'Media': 'Ertaina', 'Alta': 'Altua', 'Borrar todo el progreso': 'Ezabatu aurrerapen guztia',
   'Controles: WASD o flechas para caminar, ratón para mirar, E para hablar, Espacio para saltar, Mayús para correr. En móvil: arrastra a la izquierda para caminar y a la derecha para mirar.':
@@ -112,7 +112,7 @@ export const EU_EXACT = {
   // --- intro zinematikoa ---
   'Navarra': 'Nafarroa', 'La tormenta': 'Ekaitza', 'La promesa': 'Hitzarmena', 'Muskilda': 'Muskilda', 'Tu aventura': 'Zure abentura',
   'Hace mucho tiempo, cada pueblo de Navarra guardaba un sello en su plaza. Quien lo conseguía se llevaba un pedacito de su historia.': 'Duela asko, Nafarroako herri bakoitzak zigilu bat gordetzen zuen bere plazan. Lortzen zuenak herriaren historiaren zati txiki bat eramaten zuen.',
-  'Pero una noche de tormenta, el viento del Pirineo arrancó las páginas del viejo Pasaporte Mendi… y los sellos volvieron a sus pueblos.': 'Baina ekaitz-gau batean, Pirinioetako haizeak Mendi Pasaporte zaharraren orriak erauzi zituen… eta zigiluak beren herrietara itzuli ziren.',
+  'Pero una noche de tormenta, el viento del Pirineo arrancó las páginas del viejo Pasaporte Herri… y los sellos volvieron a sus pueblos.': 'Baina ekaitz-gau batean, Pirinioetako haizeak Herri Pasaporte zaharraren orriak erauzi zituen… eta zigiluak beren herrietara itzuli ziren.',
   'Dicen que sólo los devolverán a quien ayude a su gente, aprenda sus oficios, baile sus danzas y escuche sus leyendas.': 'Diotenez, bertako jendea laguntzen duenari, ofizioak ikasten dituenari, dantzak dantzatzen dituenari eta kondairak entzuten dituenari bakarrik itzuliko dizkiote.',
   'Y en Otsagabia, la Virgen de Muskilda perdió sus ocho cintas de colores. Sin ellas no hay fiesta…': 'Eta Otsagabian, Muskildako Ama Birjinak koloretako zortzi zintak galdu zituen. Haiek gabe ez dago jairik…',
   'Tu cuadrilla te espera. Ha llegado la hora de recorrer Navarra, pueblo a pueblo. ¿Preparado?': 'Zure koadrila zure zain dago. Nafarroa herriz herri ibiltzeko ordua iritsi da. Prest?',

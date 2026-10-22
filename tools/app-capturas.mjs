@@ -11,7 +11,7 @@ for (const [W, H, tag, screens] of [[844, 390, 'h', ['home', 'map', 'sports']]])
   const ctx = await b.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
   const p = await ctx.newPage();
   // (como si ya se jugase desde la app instalada: sin el botón de instalar)
-  await p.addInitScript(() => { Object.defineProperty(navigator, 'standalone', { value: true }); localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'pelotari', seen: { heroBenat: true, dog: true } })); });
+  await p.addInitScript(() => { Object.defineProperty(navigator, 'standalone', { value: true }); localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'pelotari', seen: { heroBenat: true, dog: true } })); });
   for (const s of screens) {
     await p.goto(`${URL}/?screen=${s}`); await p.waitForFunction(() => window.__hub && !document.getElementById('portada-app'), null, { timeout: 300000 }); await p.waitForTimeout(2500);
     await p.evaluate(() => Promise.all([...document.images].map(i => i.decode().catch(() => {}))));

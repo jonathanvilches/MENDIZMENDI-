@@ -1,4 +1,4 @@
-# MENDIMENDIZ · Haritz, niño del Neolítico de Aralar (época de los dólmenes, hace unos 5.000 años).
+# HERRIZHERRI · Haritz, niño del Neolítico de Aralar (época de los dólmenes, hace unos 5.000 años).
 # Diseño propio: túnica de lana sin teñir con franja en zigzag de ocre rojo, chaleco de piel de oveja, cinturón
 # tejido, polainas de cuero atadas con cordones y abarcas de cuero crudo. Mismo cuerpo y esqueleto que Beñat.
 # Uso: python3.11 tools/blender/build_haritz.py [--solo-geo] [--sin-renders]

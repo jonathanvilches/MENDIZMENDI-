@@ -18,7 +18,7 @@ const errs = [];
   await cam([0, 14, 52], [0, 0, 0]); await page.evaluate(() => { window.__futbol.t = 55.5; }); await tickAt(55.5, 0.3, false); await page.waitForTimeout(800); await page.screenshot({ path: `${out}/sadar-ola.png` });
   await page.close(); }
 { const p = await b.newPage({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true }); p.on('pageerror', e => errs.push(e.message));
-  await p.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); });
+  await p.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); });
   await p.goto(`http://127.0.0.1:5173/?town=${town}&q=low&weather=clear&skipintro=1&noflora`, { timeout: 300000 });
   await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 600000 });
   await p.evaluate(() => { const G = window.__game; G.fronton.play(G, G.pelotari || G.missions.find(M => M.type === 'pelota')?.host); });

@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { splashLinks } from './src/web/splash.js';
 
 // Dos compilaciones:
-//  · normal (npx vite build): un solo archivo con todo dentro (dist/index.html → MENDIMENDIZ-jugar.html), para ordenador
+//  · normal (npx vite build): un solo archivo con todo dentro (dist/index.html → HERRIZHERRI-jugar.html), para ordenador
 //  · web (WEB=1 npx vite build): la que se publica en docs/ para jugar desde el navegador, sobre todo en el móvil. La
 //    página es pequeña y cada modelo, textura o sonido es un archivo aparte que solo se descarga cuando hace falta y
 //    queda guardado (caché del navegador y de la app instalada): menos memoria, arranque rápido y juego sin conexión.

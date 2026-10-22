@@ -7,7 +7,7 @@ const [,, out] = process.argv; mkdirSync(out, { recursive: true });
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 for (const [tag, vp, dpr, movil] of [['escritorio', { width: 1920, height: 1080 }, 1, false], ['movil', { width: 844, height: 390 }, 3, true]]) {
   const p = await (await b.newContext({ viewport: vp, deviceScaleFactor: dpr, isMobile: movil, hasTouch: movil })).newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
-  await p.addInitScript(() => { window.__vs = true; localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', age: 'nino', avatar: 'leire', seen: { heroBenat: true, dog: true }, xp: 900, last: 'altsasu-alsasua', settings: { quality: 'low' } })); });
+  await p.addInitScript(() => { window.__vs = true; localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', age: 'nino', avatar: 'leire', seen: { heroBenat: true, dog: true }, xp: 900, last: 'altsasu-alsasua', settings: { quality: 'low' } })); });
   await p.goto('http://127.0.0.1:' + (process.env.PUERTO || 5173) + '/', { timeout: 300000 }); await p.waitForFunction(() => window.__hub, null, { timeout: 300000 }); await p.waitForTimeout(2000);
   await p.evaluate(() => document.querySelector('.figuras.rail')?.scrollIntoView()); await p.waitForTimeout(800); await p.screenshot({ path: `${out}/${tag}-inicio-figuras.png` });
   await p.evaluate(() => window.__hub.go('avatars')); await p.waitForTimeout(6000); await p.screenshot({ path: `${out}/${tag}-personajes.png` });

@@ -9,7 +9,7 @@ for (const town of towns.split(',')) {
   const p = await ctx.newPage(); const errs = [];
   p.on('pageerror', e => errs.push('PAGEERROR ' + e.message + ' @ ' + (e.stack || '').split('\n').slice(1, 3).join(' | ')));
   p.on('console', m => { if (m.type() === 'error') errs.push('console.error ' + m.text().slice(0, 300)); });
-  await p.addInitScript((town) => { Object.defineProperty(navigator, 'webdriver', { get: () => false }); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'nerea', seen: { heroBenat: true, dog: true }, last: town })); }, town);
+  await p.addInitScript((town) => { Object.defineProperty(navigator, 'webdriver', { get: () => false }); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'nerea', seen: { heroBenat: true, dog: true }, last: town })); }, town);
   await p.goto(process.env.URL || 'http://127.0.0.1:5173/', { timeout: 300000 });
   await p.waitForFunction(() => window.__hub, null, { timeout: 300000 }); await p.waitForTimeout(1500);
   await p.tap('[data-play]');

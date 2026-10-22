@@ -10,7 +10,7 @@ const [,, scen = 'menu', out = 'entrega/flujo', town = 'elizondo'] = process.arg
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true });
 const errs = []; p.on('pageerror', e => errs.push('pageerror: ' + e.message)); p.on('console', m => { if (m.type() === 'error') errs.push('console: ' + m.text().slice(0, 240)); });
-await p.addInitScript(() => { localStorage.setItem('mendimendiz-lang', 'es'); if (!localStorage.getItem('mendimendiz-perfil-v1')) localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Mendi', seen: { heroBenat: true, dog: true } })); });
+await p.addInitScript(() => { localStorage.setItem('herrizherri-lang', 'es'); if (!localStorage.getItem('herrizherri-perfil-v1')) localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Iñigo', seen: { heroBenat: true, dog: true } })); });
 const log = [], problems = [];
 let n = 0;
 // lo que hay en pantalla y el estado del juego

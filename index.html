@@ -63,7 +63,7 @@
     if (Date.now() - t0 < (soloWeb ? 2000 : 20000)) return;
     box.textContent = '';
     box.appendChild(line(soloWeb ? 'Este archivo es la versión web' : 'El juego no ha arrancado', 'font-size:22px;font-weight:800'));
-    box.appendChild(line(soloWeb ? 'Suelto en el ordenador no abre: le faltan sus archivos. Para jugar sin conexión, abre MENDIMENDIZ-jugar.html.' : 'Haz una captura de esta pantalla y envíala.'));
+    box.appendChild(line(soloWeb ? 'Suelto en el ordenador no abre: le faltan sus archivos. Para jugar sin conexión, abre HERRIZHERRI-jugar.html.' : 'Haz una captura de esta pantalla y envíala.'));
     var det = errs.length ? errs.slice(0, 5) : ['Sin errores a la vista: puede que aún esté cargando o que falte memoria.'];
     for (var i = 0; i < det.length; i++) box.appendChild(line(det[i].slice(0, 240), 'font:500 13px/1.4 ui-monospace,Menlo,monospace;overflow-wrap:anywhere;color:#ffd27a'));
     box.appendChild(line(navigator.userAgent + ' · ' + innerWidth + ' × ' + innerHeight + ' · ' + Math.round((Date.now() - t0) / 1000) + ' s', 'font:500 12px/1.4 ui-monospace,Menlo,monospace;overflow-wrap:anywhere;opacity:.75'));

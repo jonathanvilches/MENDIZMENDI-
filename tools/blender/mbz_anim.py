@@ -1,4 +1,4 @@
-# MENDIMENDIZ · acciones del humanoide (30 fps, en el sitio). Reposo en pose A (brazos 38° bajo la horizontal).
+# HERRIZHERRI · acciones del humanoide (30 fps, en el sitio). Reposo en pose A (brazos 38° bajo la horizontal).
 # Las poses son giros en el mundo respecto al reposo; mbz_core.Poser los pasa a giros locales.
 # Ejes: X = izquierda del personaje, −Y = delante, Z = arriba.
 #   Rx(+a): lo que apunta abajo va hacia atrás.  Ry(+a): el brazo izquierdo baja (el derecho sube).  Rz(+a): gira a su izquierda.

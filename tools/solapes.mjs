@@ -26,7 +26,7 @@ async function check(town) {
     const r = await route.fetch(), t = (await r.text()).replace('function insert(c, x, z, r) {', "function insert(c, x, z, r) { c.at = new Error().stack.split('\\n').slice(3, 6).join(' ');");
     await route.fulfill({ response: r, body: t });
   });
-  await p.addInitScript((q) => { try { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true }, settings: { quality: q } })); } catch (e) { } }, q);
+  await p.addInitScript((q) => { try { localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true }, settings: { quality: q } })); } catch (e) { } }, q);
   try {
     await p.goto(`${BASE}/?town=${town}&q=${q}&weather=clear&skipintro=1`, { timeout: 300000 });
     await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 400000 });

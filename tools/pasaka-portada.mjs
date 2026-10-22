@@ -11,7 +11,7 @@ const W = 1280, H = 720;
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--autoplay-policy=no-user-gesture-required'] });
 const p = await b.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 2 });
 const errs = []; p.on('pageerror', e => errs.push(e.message.slice(0, 160)));
-await p.addInitScript(() => { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'sanfermin', seen: { heroBenat: true, dog: true, intro: true }, cards: [], settings: { quality: 'high' } })); });
+await p.addInitScript(() => { localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'sanfermin', seen: { heroBenat: true, dog: true, intro: true }, cards: [], settings: { quality: 'high' } })); });
 await p.goto(`http://127.0.0.1:${process.env.PUERTO || 5173}/?town=pamplona&q=high&weather=clear&skipintro=1&t=11`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 600000 }); await p.waitForTimeout(2000);
 await p.evaluate(() => { const G = window.__game, a = G.canonigo; G.player.pos.set(a.pos.x + 1.4, a.pos.y, a.pos.z + 0.4); G.pasakaCon(G.canonigo); });

@@ -1,7 +1,7 @@
 import { chromium } from 'playwright-core';
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
-await page.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ name: 'Ane', avatar: 'leire' })); });
+await page.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ name: 'Ane', avatar: 'leire' })); });
 const cdp = await page.context().newCDPSession(page);
 if (process.argv[3] === 'warm') { await page.goto(process.argv[2], { timeout: 300000 }); await page.waitForFunction(() => window.__ready, null, { timeout: 300000 }); await page.waitForTimeout(40000); }
 await cdp.send('Profiler.enable'); await cdp.send('Profiler.setSamplingInterval', { interval: 1000 }); await cdp.send('Profiler.start');

@@ -8,7 +8,7 @@ const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromi
 for (const town of list.split(',')) {
   const p = await browser.newPage({ viewport: { width: 960, height: 540 } }); const errs = [];
   p.on('pageerror', e => errs.push('PAGEERROR ' + e.message));
-  await p.addInitScript(() => { try { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true }, settings: { quality: 'low' } })); } catch (e) { } });
+  await p.addInitScript(() => { try { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true }, settings: { quality: 'low' } })); } catch (e) { } });
   await p.goto(`http://127.0.0.1:5173/?town=${town}&q=${process.env.Q || 'low'}&weather=clear&skipintro=1&noflora`, { timeout: 300000 });
   await p.waitForFunction(() => window.__game && window.__game.mode === 'play' && window.__game.fronton, null, { timeout: 500000 });
   await p.addStyleTag({ content: '#hud, #controls, #compass, #toast, #prompt, .whisper, #minimap { display: none !important; }' });

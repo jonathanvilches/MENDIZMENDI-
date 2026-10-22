@@ -5,7 +5,7 @@ const [,, town = 'pamplona', q = 'mid'] = process.argv;
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--enable-precise-memory-info'] });
 const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
 const p = await ctx.newPage();
-await p.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); });
+await p.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); });
 const cdp = await ctx.newCDPSession(p); await cdp.send('Performance.enable');
 const heap = async () => { const m = (await cdp.send('Performance.getMetrics')).metrics; const g = (n) => m.find(x => x.name === n)?.value || 0; return (g('JSHeapUsedSize') / 1048576).toFixed(0) + ' MB'; };
 await p.goto(process.env.URL || 'http://127.0.0.1:5173/', { timeout: 300000 }); await p.waitForFunction(() => window.__hub, null, { timeout: 300000 }); await p.waitForTimeout(3000);

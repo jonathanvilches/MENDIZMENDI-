@@ -4,7 +4,7 @@ const [,, url, out, town = 'etxalar', q = 'high'] = process.argv;
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 page.on('pageerror', e => console.log('PAGEERROR', e.message));
-await page.addInitScript(() => { try { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'leire', xp: 0, towns: {}, cards: [], species: [], peaks: [], badges: [], seen: {}, settings: { music: false, volume: 0.8, timeSpeed: 0 } })); } catch (e) { } });
+await page.addInitScript(() => { try { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'leire', xp: 0, towns: {}, cards: [], species: [], peaks: [], badges: [], seen: {}, settings: { music: false, volume: 0.8, timeSpeed: 0 } })); } catch (e) { } });
 await page.goto(url + '?town=' + town + '&t=10.5&q=' + q);
 await page.waitForFunction(() => window.__game && window.__game.mode, null, { timeout: 180000 });
 await page.waitForTimeout(2500);

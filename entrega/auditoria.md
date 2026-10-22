@@ -1,4 +1,4 @@
-# Auditoría de peticiones — MENDIMENDIZ
+# Auditoría de peticiones — HERRIZHERRI
 
 Estado de todo lo pedido hasta ahora: **hecho** (comprobado en el juego con capturas o pruebas), **parcial** o **pendiente**.
 

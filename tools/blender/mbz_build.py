@@ -1,4 +1,4 @@
-# MENDIMENDIZ · montaje de un personaje: escena, geometría, ropa, cara, manos, pelo, esqueleto, pesos,
+# HERRIZHERRI · montaje de un personaje: escena, geometría, ropa, cara, manos, pelo, esqueleto, pesos,
 # UV y horneado, materiales, acciones, exportación, validación, renders e informe.
 import os, sys, math, json, time
 import bpy, bmesh

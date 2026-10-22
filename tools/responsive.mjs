@@ -104,7 +104,7 @@ for (const [dev, [W, H, touch]] of Object.entries(DEV)) {
   const ctx = await b.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 1, isMobile: !!touch && Math.min(W, H) < 800, hasTouch: !!touch });
   const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
   try {
-  await p.addInitScript((IDIOMA) => { try { if (!sessionStorage.getItem('rs')) { sessionStorage.setItem('rs', 1); localStorage.setItem('mendimendiz-lang', IDIOMA); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', age: 'nino', avatar: 'pelotari', xp: 900, seen: { heroBenat: true, dog: true }, cards: ['cuento:aralar', 'armas:navarra'], settings: { quality: 'low' } })); } } catch (e) { } }, process.env.IDIOMA || 'es');   // (IDIOMA=eu: todo en euskera, que tiene palabras más largas)
+  await p.addInitScript((IDIOMA) => { try { if (!sessionStorage.getItem('rs')) { sessionStorage.setItem('rs', 1); localStorage.setItem('herrizherri-lang', IDIOMA); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', age: 'nino', avatar: 'pelotari', xp: 900, seen: { heroBenat: true, dog: true }, cards: ['cuento:aralar', 'armas:navarra'], settings: { quality: 'low' } })); } } catch (e) { } }, process.env.IDIOMA || 'es');   // (IDIOMA=eu: todo en euskera, que tiene palabras más largas)
   await p.goto(URL, { timeout: 300000 }); await p.waitForFunction(() => window.__hub && window.__ready, null, { timeout: 300000 }); await p.waitForTimeout(1500);
     report[dev] = {};
   for (const [k, code] of [...JUEGO, ['__didactico', `H.setDidactico(true)`], ...DIDAC]) {

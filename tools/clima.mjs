@@ -6,7 +6,7 @@ const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-119
 for (const [w, t, name] of [['snow', 11, 'nieve'], ['rain', 12, 'lluvia'], ['clear', 23.5, 'luna']]) {
   const p = await b.newPage({ viewport: { width: 1100, height: 620 } });
   p.on('pageerror', e => console.log('PAGEERROR', e.message));
-  await p.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); });
+  await p.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); });
   await p.goto(`http://127.0.0.1:5173/?town=${town}&q=high&weather=${w}&t=${t}`, { timeout: 300000 });
   await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 500000 });
   await p.waitForTimeout(3000);

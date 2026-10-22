@@ -4,7 +4,7 @@ const [,, out = '/tmp/trajes.png', town = 'ituren'] = process.argv;
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const page = await browser.newPage({ viewport: { width: 1200, height: 600 } });
 const logs = []; page.on('pageerror', e => logs.push('PAGEERROR ' + e.message)); page.on('console', m => { if (/vecino|traje/i.test(m.text())) logs.push(m.text()); });
-await page.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'sanfermin', xp: 0, towns: {}, cards: [], species: [], peaks: [], badges: [], seen: { dog: true }, dogOn: false, settings: { music: false, quality: 'low' } })); });
+await page.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'sanfermin', xp: 0, towns: {}, cards: [], species: [], peaks: [], badges: [], seen: { dog: true }, dogOn: false, settings: { music: false, quality: 'low' } })); });
 await page.goto('http://127.0.0.1:5173/?town=' + town + '&noflora', { timeout: 300000 });
 await page.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 300000 });
 const r = await page.evaluate(async () => {

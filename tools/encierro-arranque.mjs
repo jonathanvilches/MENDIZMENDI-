@@ -7,7 +7,7 @@ const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-119
 const p = await b.newPage({ viewport: { width: 800, height: 450 } }); const errs = [];
 p.on('pageerror', e => errs.push('PAGEERROR ' + e.message)); p.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 200)); });
 p.on('requestfailed', r => errs.push('FALLA ' + r.url().slice(-80))); p.on('response', r => { if (r.status() >= 400) errs.push(r.status() + ' ' + r.url().slice(-90)); });
-await p.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); localStorage.setItem('mendimendiz-lang', 'es'); });
+await p.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); localStorage.setItem('herrizherri-lang', 'es'); });
 await p.goto(base + '?town=pamplona&q=low&weather=clear&skipintro=1', { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 900000 });
 await p.evaluate(() => { const G = window.__game; G.ui.dialog = async () => 0;   // (sin __autoWin: con él el encierro se da por ganado sin abrirse)

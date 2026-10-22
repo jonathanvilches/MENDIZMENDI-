@@ -1452,5 +1452,7 @@
  "Toca instalar": "Sakatu instalatu",
  "El botón a la derecha de la barra de direcciones, o «Instalar app» en el menú del juego": "Helbide-barraren eskuineko botoia, edo «Instalatu aplikazioa» jokoaren menuan",
  "En su propia ventana, sin barras del navegador y también sin conexión": "Bere leihoan, nabigatzailearen barrarik gabe eta konexiorik gabe ere",
- "Abrir la web": "Ireki webgunea"
+ "Abrir la web": "Ireki webgunea",
+ "Mando conectado": "Agintea konektatuta",
+ "Conecta el móvil a internet: mejor, a la misma wifi que el ordenador.": "Konektatu mugikorra internetera: hobe, ordenagailuaren wifi berera."
 }

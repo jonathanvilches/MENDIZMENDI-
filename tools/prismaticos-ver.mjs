@@ -10,7 +10,7 @@ const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-119
 const W = +(process.env.W || 844), H = +(process.env.H || 390), movil = W < 1000;   // (W y H para otra pantalla: en el ordenador, con ratón)
 const p = await b.newPage({ viewport: { width: W, height: H }, isMobile: movil, hasTouch: movil, deviceScaleFactor: 2 });
 const errs = []; p.on('pageerror', e => errs.push(e.message));
-await p.addInitScript(() => { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true }, gear: ['prismaticos'], bag: { agua: 2, food: {}, items: ['prismaticos'] }, settings: { quality: 'low' } })); });
+await p.addInitScript(() => { localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true }, gear: ['prismaticos'], bag: { agua: 2, food: {}, items: ['prismaticos'] }, settings: { quality: 'low' } })); });
 await p.goto(`${URL}/?town=${town}&q=low&weather=clear&skipintro=1&t=12`, { timeout: 600000 });
 await p.waitForFunction(() => window.__game && window.__rt?.active && window.__rt.elapsed > 2, null, { timeout: 900000 });
 let fails = 0; const ok = (c, m) => { console.log(`  ${c ? 'OK ' : 'FALLO'} ${m}`); if (!c) fails++; };

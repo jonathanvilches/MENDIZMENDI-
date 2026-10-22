@@ -8,7 +8,7 @@ const PUERTO = process.env.PUERTO || 5173, errs = [];
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--autoplay-policy=no-user-gesture-required'] });
 const page = async (vw, vh, mobile) => { const p = await b.newPage({ viewport: { width: vw, height: vh }, deviceScaleFactor: mobile ? 2 : 1, isMobile: mobile, hasTouch: mobile });
   p.on('pageerror', e => errs.push(e.message.slice(0, 160)));
-  await p.addInitScript(() => { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'sanfermin', seen: { heroBenat: true, dog: true, intro: true }, coins: 4, cards: [], settings: { quality: 'low' } })); }); return p; };
+  await p.addInitScript(() => { localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'sanfermin', seen: { heroBenat: true, dog: true, intro: true }, coins: 4, cards: [], settings: { quality: 'low' } })); }); return p; };
 // toca todas las notas a tiempo con el gancho de pruebas y devuelve lo que ha pasado
 // (un temporizador dentro de la página pulsa cada nota a tiempo: desde fuera, cada consulta tarda demasiado en el navegador de
 // pruebas; y la ventana es ancha, 0,12 s, porque sin gráfica los temporizadores llegan tarde)
@@ -27,7 +27,7 @@ for (const [nombre, vw, vh, mobile] of [['escritorio', 1280, 760, false], ['movi
   console.log(nombre, 'juego', await p.evaluate(() => ({ carriles: document.querySelectorAll('.tc-pads button').length, notasVisibles: document.querySelectorAll('.tc-note').length, titulo: document.querySelector('.tocar-card h3')?.textContent })));
   await p.waitForTimeout(2500); await p.screenshot({ path: `${out}/${nombre}-juego-2.png` });
   const r = await tocarTodo(p); await p.waitForTimeout(1500); await p.screenshot({ path: `${out}/${nombre}-resultado.png` });
-  console.log(nombre, 'resultado', r, await p.evaluate(() => ({ titulo: document.querySelector('.ix-title')?.textContent, texto: document.querySelector('.ix-text')?.textContent?.slice(0, 80), carta: JSON.parse(localStorage.getItem('mendimendiz-perfil-v1')).cards })));
+  console.log(nombre, 'resultado', r, await p.evaluate(() => ({ titulo: document.querySelector('.ix-title')?.textContent, texto: document.querySelector('.ix-text')?.textContent?.slice(0, 80), carta: JSON.parse(localStorage.getItem('herrizherri-perfil-v1')).cards })));
   await p.evaluate(() => document.querySelector('.mg-overlay button.btn')?.click()); await p.waitForTimeout(800);
   await p.close();
 }
@@ -48,7 +48,7 @@ for (const [nombre, vw, vh, mobile] of [['escritorio', 1280, 760, false], ['movi
     for (let i = 0; i < 6 && await p.evaluate(() => !!document.querySelector('#dialog')); i++) { await p.keyboard.press('e'); await p.waitForTimeout(500); }
     await p.waitForTimeout(1500); await p.screenshot({ path: `${out}/pueblo-juego.png` });
     const r = await tocarTodo(p); await p.waitForTimeout(1500); await p.screenshot({ path: `${out}/pueblo-resultado.png` });
-    console.log('pueblo resultado', r, await p.evaluate(() => ({ titulo: document.querySelector('.ix-title')?.textContent, carta: JSON.parse(localStorage.getItem('mendimendiz-perfil-v1')).cards })));
+    console.log('pueblo resultado', r, await p.evaluate(() => ({ titulo: document.querySelector('.ix-title')?.textContent, carta: JSON.parse(localStorage.getItem('herrizherri-perfil-v1')).cards })));
     await p.evaluate(() => document.querySelector('.mg-overlay button.btn')?.click()); await p.waitForTimeout(800);
     for (let i = 0; i < 6 && await p.evaluate(() => !!document.querySelector('#dialog')); i++) { await p.keyboard.press('e'); await p.waitForTimeout(500); }
     console.log('pueblo final', await p.evaluate(() => ({ modo: window.__game.mode, frozen: window.__game.player.frozen, busy: !!window.__game.ui.busy })));

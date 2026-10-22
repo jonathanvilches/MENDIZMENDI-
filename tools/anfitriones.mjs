@@ -12,7 +12,7 @@ let malos = 0;
 for (const id of ids) {
   const p = await b.newPage({ viewport: { width: 640, height: 360 } }); const errs = [];
   p.on('pageerror', e => errs.push(e.message.slice(0, 100)));
-  await p.addInitScript(() => { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); });
+  await p.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); });
   try {
     await p.goto(`${URL}/?town=${id}&q=low&weather=clear&skipintro=1`, { timeout: 300000 });
     await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 400000 }); await p.waitForTimeout(800);

@@ -7,7 +7,7 @@ const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceSc
 const p = await ctx.newPage(); const errs = [];
 p.on('pageerror', e => errs.push(e.message + ' @ ' + (e.stack || '').split('\n').slice(1, 4).join(' | ')));
 await p.addInitScript(() => {
-  localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true } }));
+  localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true } }));
   // lienzos vivos: se guardan con WeakRef y se suman los que siguen existiendo y tienen tamaño
   const live = window.__canvases = []; const orig = HTMLCanvasElement.prototype.getContext;
   HTMLCanvasElement.prototype.getContext = function (t, ...a) { if (!this.__r) { this.__r = 1; live.push(new WeakRef(this)); } return orig.call(this, t, ...a); };

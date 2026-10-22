@@ -1,4 +1,4 @@
-# MENDIMENDIZ · Navarra, pueblo a pueblo
+# HERRIZHERRI · Navarra, pueblo a pueblo
 
 Videojuego 3D para navegador (Three.js) para niños y niñas de 7 a 11 años. Se recorre Navarra pueblo a pueblo:
 cada pueblo y ciudad tiene sus propias misiones sobre su iglesia y sus monumentos, sus productos, su agricultura,
@@ -32,7 +32,7 @@ npm install
 npx vite                        # servidor de desarrollo
 npx vite build                  # genera dist/index.html (un solo archivo, para ordenador)
 WEB=1 npx vite build            # genera docs/ (versión web para el navegador y el móvil)
-node tools/make-artifact.mjs    # prepara artifact/mendimendiz.html para publicar
+ARTEFACTO=1 npx vite build && node tools/artefacto.mjs    # prepara dist-artefacto/ para publicar como artefacto
 ```
 ### Versión web y móvil (docs/)
 La carpeta `docs/` es la versión que se juega desde el navegador (GitHub Pages: rama `main`, carpeta `/docs`). La

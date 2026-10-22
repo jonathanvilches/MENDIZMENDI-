@@ -11,7 +11,7 @@ for (const id of ids) {
   const p = await b.newPage({ viewport: { width: 844, height: 390 }, hasTouch: true, deviceScaleFactor: 2 });
   const errs = [];
   p.on('pageerror', e => errs.push(e.message.slice(0, 160)));
-  await p.addInitScript(() => { try { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true } })); } catch (e) {} });
+  await p.addInitScript(() => { try { localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true } })); } catch (e) {} });
   const t0 = Date.now();
   try {
     await p.goto(`${URL}/?town=${id}&q=low&weather=clear&skipintro=1`, { timeout: 300000 });

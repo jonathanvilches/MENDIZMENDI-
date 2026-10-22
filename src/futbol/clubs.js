@@ -1,4 +1,4 @@
-// Equipos de fútbol de los pueblos de MENDIMENDIZ: cada pueblo juega con un equipo con el nombre del pueblo o del valle.
+// Equipos de fútbol de los pueblos de HERRIZHERRI: cada pueblo juega con un equipo con el nombre del pueblo o del valle.
 // Sin nombres, siglas ni escudos de clubes de verdad (marcas registradas): solo el nombre del lugar, colores lisos y el campo
 // (cuando consta; si no, «campo municipal»). La «media» es una estimación del juego.
 // Los pueblos sin club propio juegan con el de su valle o comarca; donde no hay club de fútbol 11 conocido, el equipo

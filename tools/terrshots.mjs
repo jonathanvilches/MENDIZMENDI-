@@ -6,7 +6,7 @@ const page = await browser.newPage({ viewport: { width: +w, height: +h } });
 const logs = [];
 page.on('pageerror', e => logs.push('PAGEERROR: ' + e.message));
 page.on('console', m => { if (m.type() === 'error' && !/CERT|favicon|404/.test(m.text())) logs.push('error: ' + m.text().slice(0, 300)); });
-await page.addInitScript(() => { try { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'leire', xp: 0, towns: {}, cards: [], species: [], peaks: [], badges: [], seen: {}, settings: { music: false, volume: 0.8, quality: 'high', timeSpeed: 0 } })); } catch (e) { } });
+await page.addInitScript(() => { try { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'leire', xp: 0, towns: {}, cards: [], species: [], peaks: [], badges: [], seen: {}, settings: { music: false, volume: 0.8, quality: 'high', timeSpeed: 0 } })); } catch (e) { } });
 await page.goto(url + '?town=' + town + '&t=11');
 await page.waitForFunction(() => window.__game && window.__game.mode, null, { timeout: 180000 }).catch(() => logs.push('no game'));
 await page.waitForTimeout(3000);

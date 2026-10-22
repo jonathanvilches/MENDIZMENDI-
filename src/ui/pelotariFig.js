@@ -20,8 +20,8 @@ hdTable('pelotari-rojo', ROJO); hdTable('pelotari-azul', CAMISETA);
 // (en la web, para la pantalla VS, donde la figura ocupa casi todo el alto: los de 1024 del autor)
 const VS = { azul: byId(import.meta.glob('@pelotaris/vs/azul/*.webp', { eager: true, query: '?url', import: 'default' })), rojo: byId(import.meta.glob('@pelotaris/vs/rojo/*.webp', { eager: true, query: '?url', import: 'default' })) };
 
-// la plantilla del autor: 11 chicos y 11 chicas (Mendi es el protagonista: no sale de rival)
-const CHICOS = ['Mendi', 'Unai', 'Mikel', 'Aitor', 'Iñaki', 'Ander', 'Xabier', 'Jokin', 'Ekaitz', 'Julen', 'Asier'];
+// la plantilla del autor: 11 chicos y 11 chicas (Iñigo es el protagonista: no sale de rival)
+const CHICOS = ['Iñigo', 'Unai', 'Mikel', 'Aitor', 'Iñaki', 'Ander', 'Xabier', 'Jokin', 'Ekaitz', 'Julen', 'Asier'];
 const CHICAS = ['Oihana', 'Garazi', 'Maialen', 'Amaia', 'Irati', 'Nahia', 'Nerea', 'Leire', 'Ane', 'Miren', 'Uxue'];
 export const PLANTILLA = [...CHICOS.map(name => ({ id: fold(name), name, girl: false })), ...CHICAS.map(name => ({ id: fold(name), name, girl: true }))];
 const BY = new Map(PLANTILLA.map(p => [p.id, p]));
@@ -31,8 +31,8 @@ const PELO = { unai: 'negro', mikel: 'rubio', inaki: 'negro', ander: 'pelirrojo'
   oihana: 'negro', garazi: 'castano', maialen: 'cobrizo', irati: 'rubio', nahia: 'castano', nerea: 'castano', leire: 'pelirrojo', ane: 'negro', miren: 'castanoClaro' };
 /** Color del pelo del pelotari de la plantilla para un nombre (null: el del modelo) */
 export const pelotariHair = (name) => HAIR_COLORS[PELO[pelotariId(name)]] || null;
-/** Los nombres de los rivales (toda la plantilla menos Mendi) */
-export const RIVALES = PLANTILLA.filter(p => p.id !== 'mendi').map(p => p.name);
+/** Los nombres de los rivales (toda la plantilla menos Iñigo) */
+export const RIVALES = PLANTILLA.filter(p => p.id !== 'inigo').map(p => p.name);
 /** ¿Es chica? (por la plantilla o por el nombre) */
 export const pelotariGirl = (name) => BY.get(pelotariId(name))?.girl ?? false;
 
@@ -42,8 +42,8 @@ export function pelotariId(name) {
   if (BY.has(n)) return n;
   if (ALIAS[n]) return ALIAS[n];
   const g = nameGender(n);
-  if (!g) return 'mendi';
-  const pool = PLANTILLA.filter(p => p.girl === (g === 'f') && p.id !== 'mendi');
+  if (!g) return 'inigo';
+  const pool = PLANTILLA.filter(p => p.girl === (g === 'f') && p.id !== 'inigo');
   let h = 7; for (const c of n) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   return pool[h % pool.length].id;
 }

@@ -9,7 +9,7 @@ const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-119
 const p = await b.newPage({ viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true });
 const errs = []; p.on('pageerror', e => errs.push(e.message));
 await p.addInitScript(() => {
-  try { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true } })); } catch (e) { }
+  try { localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true } })); } catch (e) { }
   // lienzos creados (los que siguen vivos tras la recogida de basura se cuentan con una referencia débil)
   const C = window.__canvases = []; const ce = Document.prototype.createElement;
   Document.prototype.createElement = function (t, ...r) { const e = ce.call(this, t, ...r); if (String(t).toLowerCase() === 'canvas') C.push(new WeakRef(e)); return e; };

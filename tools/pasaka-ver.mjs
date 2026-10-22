@@ -10,7 +10,7 @@ const PUERTO = process.env.PUERTO || 5173, errs = [];
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--autoplay-policy=no-user-gesture-required'] });
 const page = async (vw, vh, mobile) => { const p = await b.newPage({ viewport: { width: vw, height: vh }, deviceScaleFactor: mobile ? 2 : 1, isMobile: mobile, hasTouch: mobile });
   p.on('pageerror', e => errs.push(e.message.slice(0, 160)));
-  await p.addInitScript(() => { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'sanfermin', seen: { heroBenat: true, dog: true, intro: true }, coins: 4, cards: [], settings: { quality: 'low' } })); }); return p; };
+  await p.addInitScript(() => { localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'sanfermin', seen: { heroBenat: true, dog: true, intro: true }, coins: 4, cards: [], settings: { quality: 'low' } })); }); return p; };
 const estado = (p) => p.evaluate(() => window.__pasaka?.estado() || null);
 const frames = (p, n) => p.evaluate(async (n) => { for (let i = 0; i < n; i++) await new Promise(r => requestAnimationFrame(r)); }, n);
 // un saque y, en cuanto la pelota vuelve a nuestro campo, un golpe tuyo; después juega el automático y se adelanta el partido
@@ -32,7 +32,7 @@ const partido = async (p, nombre) => {
   await p.waitForFunction(() => !window.__pasaka, null, { timeout: 30000 }).catch(() => console.log(nombre, 'el partido no se cerró'));
   await p.waitForTimeout(800);
 };
-const perfil = (p) => p.evaluate(() => JSON.parse(localStorage.getItem('mendimendiz-perfil-v1')));
+const perfil = (p) => p.evaluate(() => JSON.parse(localStorage.getItem('herrizherri-perfil-v1')));
 // desde el menú
 if (!process.env.SINMENU) {
   const p = await page(844, 390, true);

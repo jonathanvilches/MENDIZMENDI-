@@ -1,4 +1,4 @@
-// Reparto original de MENDIMENDIZ: la cuadrilla de exploradores.
+// Reparto original de HERRIZHERRI: la cuadrilla de exploradores.
 // Cada personaje es un niño o niña de un rincón de Navarra con su tradición, su carácter y su habilidad.
 // stats: [Resistencia, Fuerza, Agilidad, Orientación, Naturaleza]
 // los personajes elegibles: los cuatro chicos (modelos de Meshy) y las tres chicas (chicas.js)

@@ -1,4 +1,4 @@
-# Patrimonio de Navarra en MENDIMENDIZ: revisión y propuestas
+# Patrimonio de Navarra en HERRIZHERRI: revisión y propuestas
 
 Objetivo del juego: conocer Navarra. El fútbol y la pelota acompañan, pero el centro es el producto local, la arquitectura,
 la historia, la fauna, la flora, la agricultura, la ganadería, las tradiciones y la lectura de los escudos de las casas.

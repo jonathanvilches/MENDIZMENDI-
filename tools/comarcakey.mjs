@@ -27,7 +27,7 @@ for (const c of only) {
   if (process.env.D) [dist, high, turn] = process.env.D.split(',').map(Number);   // para probar encuadres
   const p = await b.newPage({ viewport: { width: 1600, height: 900 } });
   p.on('pageerror', e => console.log('ERR', c, e.message));
-  await p.addInitScript(() => { try { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true }, settings: { quality: 'high' } })); } catch (e) { } });
+  await p.addInitScript(() => { try { localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true }, settings: { quality: 'high' } })); } catch (e) { } });
   await p.goto(`${BASE}/?town=${town}&q=high&weather=clear&t=${t}&skipintro=1`, { timeout: 300000 });
   await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 900000 });
   await p.waitForTimeout(3000);

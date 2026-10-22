@@ -1,11 +1,11 @@
-// Fútbol de MENDIMENDIZ (fútbol 11 en El Sadar y fútbol sala 5 contra 5 en la pista del pueblo): módulo independiente
+// Fútbol de HERRIZHERRI (fútbol 11 en El Sadar y fútbol sala 5 contra 5 en la pista del pueblo): módulo independiente
 // del juego (como el de pelota a mano). El formato sale del campo (VENUES[campoId].format).
 //   FutbolSystem.init({ THREE, data, makeCharacter, animateCharacter, crowd, host, quality, touch, audio })
 //   FutbolSystem.startMatch({ campoId, modo, rival, dificultad, duracion, asistencia }) → Promise<resultado>
 //   FutbolSystem.startPenaltis({ campoId, rival, tiros }) → Promise<resultado>
 //   FutbolSystem.startReto({ campoId, reto }) → Promise<resultado>
 //   FutbolSystem.openMenu({ campoId }) → Promise<resultado>
-//   FutbolSystem.career: partidos, goles, retos y tutorial (localStorage 'mendimendiz-futbol-v1')
+//   FutbolSystem.career: partidos, goles, retos y tutorial (localStorage 'herrizherri-futbol-v1')
 // El anfitrión (host) recibe la escena, la cámara y la función de cada fotograma: { attach(scene, camera, update),
 // detach() }. Sin anfitrión, el módulo crea su propio WebGLRenderer a pantalla completa (página de pruebas).
 import * as THREE from 'three';

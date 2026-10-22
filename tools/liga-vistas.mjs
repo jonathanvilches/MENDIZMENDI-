@@ -6,7 +6,7 @@ const [,, out = '/tmp/liga'] = process.argv; mkdirSync(out, { recursive: true })
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const errs = [];
 const open = async (url, w, h, touch) => { const p = await b.newPage({ viewport: { width: w, height: h }, hasTouch: touch, isMobile: touch }); p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type() === 'error' && !/404/.test(m.text())) errs.push(m.text()); });
-  await p.addInitScript(() => { localStorage.removeItem('mendimendiz-liga-v1'); }); await p.goto(url, { timeout: 300000 }); return p; };
+  await p.addInitScript(() => { localStorage.removeItem('herrizherri-liga-v1'); }); await p.goto(url, { timeout: 300000 }); return p; };
 // 1) pantalla de la liga en el móvil apaisado y en escritorio
 for (const [n, w, h, t] of [['movil', 844, 390, true], ['escritorio', 1100, 680, false]]) {
   const p = await open('http://127.0.0.1:5173/lab/futbol-demo.html?go=liga&club=baztan&notuto&quality=low', w, h, t);

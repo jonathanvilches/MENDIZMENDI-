@@ -1,5 +1,6 @@
-// MENDIMENDIZ · Navarra pueblo a pueblo
+// HERRIZHERRI · Navarra pueblo a pueblo
 // Arranque: centro de mando (hub) + motor 3D que carga cada localidad con sus misiones.
+import './util/migra.js';   // (lo primero: lo guardado con el nombre de antes pasa al de ahora)
 import * as THREE from 'three';
 // muchas piezas llaman a toNonIndexed() sobre geometría que ya lo es: three.js devuelve la misma y avisa en la consola
 // (decenas de avisos al arrancar). Mismo resultado, sin el aviso.
@@ -329,7 +330,7 @@ async function boot() {
   };
   rt.onReload = () => {
     try { game?.save?.(); } catch (e) { }
-    try { if (game && def) sessionStorage.setItem('mendimendiz-volver', def.id); } catch (e) { }
+    try { if (game && def) sessionStorage.setItem('herrizherri-volver', def.id); } catch (e) { }
     location.reload();
   };
 
@@ -337,10 +338,10 @@ async function boot() {
   addEventListener('pagehide', () => { try { game?.save(); } catch (e) { } });
 
   // parámetros de prueba: ?town=olite (&autostart)
-  let back = null; try { back = sessionStorage.getItem('mendimendiz-volver'); sessionStorage.removeItem('mendimendiz-volver'); } catch (e) { }
+  let back = null; try { back = sessionStorage.getItem('herrizherri-volver'); sessionStorage.removeItem('herrizherri-volver'); } catch (e) { }
   const t = q.get('town') || back;
   if (t && levelById(t) && isDidactico()) hub.show('pueblo', t);   // (en el modo didáctico, su página)
-  else if (t && levelById(t)) { if (!P.name) { P.name = 'Mendi'; saveProfile(); } play(levelById(t)); }
+  else if (t && levelById(t)) { if (!P.name) { P.name = 'Iñigo'; saveProfile(); } play(levelById(t)); }
   else {
     hub.show(q.get('screen') || 'home', q.get('arg') || undefined);
   }

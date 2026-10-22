@@ -10,8 +10,8 @@ const mine = () => (document.querySelector('script[type="module"][src*="assets/i
 let pub = null, note = null, last = 0;
 const inMenu = () => { const h = document.getElementById('hub'); return !!h && !h.classList.contains('hidden') && !document.querySelector('.pvs, .lg-root, .mg-overlay'); };
 const reload = () => location.replace(`./?v=${Date.now()}`);
-function tried() { try { return sessionStorage.getItem('mendimendiz-version') === pub; } catch (e) { return false; } }
-function remember() { try { sessionStorage.setItem('mendimendiz-version', pub); } catch (e) { /* sin almacenamiento */ } }
+function tried() { try { return sessionStorage.getItem('herrizherri-version') === pub; } catch (e) { return false; } }
+function remember() { try { sessionStorage.setItem('herrizherri-version', pub); } catch (e) { /* sin almacenamiento */ } }
 function show() {
   if (note || !inMenu()) return;
   note = document.createElement('button'); note.className = 'upd-note'; note.type = 'button';

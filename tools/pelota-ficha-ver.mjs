@@ -10,7 +10,7 @@ const [,, town = 'lesaka', out = 'entrega/pelota-ficha', lang = 'es'] = process.
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true });
 const errs = []; p.on('pageerror', e => errs.push(e.message));
-await p.addInitScript((lang) => { localStorage.setItem('mendimendiz-lang', lang); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Mendi', seen: { heroBenat: true, dog: true } })); }, lang);
+await p.addInitScript((lang) => { localStorage.setItem('herrizherri-lang', lang); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Iñigo', seen: { heroBenat: true, dog: true } })); }, lang);
 await p.goto(`${URL}/?town=${town}&q=low&weather=clear&skipintro=1&t=12`, { timeout: 300000 });
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 900000 }); await p.waitForTimeout(2500);
 let fails = 0, n = 0; const ok = (c, m) => { console.log(`  ${c ? 'OK ' : 'FALLO'} ${m}`); if (!c) fails++; };
@@ -82,7 +82,7 @@ await p.evaluate(() => window.__game.pelotaAbort?.()); await p.waitForTimeout(15
 console.log('4. el cuadro del torneo');
 await p.waitForFunction(() => window.__game.mode === 'play', null, { timeout: 60000 }).catch(() => {});
 await p.evaluate(async () => { const TO = await import('/src/game/torneo.js'), g = window.__game; document.querySelectorAll('.lg-root').forEach(x => x.remove());
-  const T = TO.torneo({ name: 'Mendi', town: 'Lesaka' }, { comarca: g.def.comarca, comarcaName: 'Bortziriak', towns: g.comarcaVenues() }); window.__tp = TO.torneoPanel(T, 'Lesaka'); });
+  const T = TO.torneo({ name: 'Iñigo', town: 'Lesaka' }, { comarca: g.def.comarca, comarcaName: 'Bortziriak', towns: g.comarcaVenues() }); window.__tp = TO.torneoPanel(T, 'Lesaka'); });
 await p.waitForSelector('.tq-chips .pfx-pl', { timeout: 60000 }); await p.waitForTimeout(600);
 await shot('torneo');
 await p.evaluate(() => document.querySelector('.tq-chips .pfx-pl').click()); await p.waitForTimeout(800);

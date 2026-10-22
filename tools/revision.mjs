@@ -15,7 +15,7 @@ for (const id of ids) {
   const errs = [];
   p.on('pageerror', e => errs.push('PAGEERROR ' + e.message.slice(0, 160)));
   p.on('console', m => { if (m.type() === 'error') errs.push('ERR ' + m.text().slice(0, 160)); });
-  await p.addInitScript(() => { try { localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); } catch (e) { } });
+  await p.addInitScript(() => { try { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); } catch (e) { } });
   const t0 = Date.now(); let info = null;
   try {
     await p.goto(`http://127.0.0.1:5173/?town=${id}&q=low`, { timeout: 300000 });

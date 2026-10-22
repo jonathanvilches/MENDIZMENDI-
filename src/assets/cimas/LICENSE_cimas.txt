@@ -1,4 +1,4 @@
-Cimas de las misiones de montaña de MENDIMENDIZ (320/, 768/ y 1536/; 1024/ sale de la de 1536 con tools/cimas-tarjetas.mjs).
-Ilustraciones entregadas por el autor del proyecto el 2026-10-11 en un ZIP («MENDIMENDIZ-cimas-responsive»), una por cada misión de montaña y con el id de su monte (src/data/mountains.json).
+Cimas de las misiones de montaña de HERRIZHERRI (320/, 768/ y 1536/; 1024/ sale de la de 1536 con tools/cimas-tarjetas.mjs).
+Ilustraciones entregadas por el autor del proyecto el 2026-10-11 en un ZIP («cimas-responsive»), una por cada misión de montaña y con el id de su monte (src/data/mountains.json).
 Son interpretaciones artísticas del paisaje con el explorador del juego, no fotografías ni reconstrucciones topográficas. Titularidad: el autor del proyecto. Generadas con IA: pendiente de anotar la herramienta y sus condiciones de uso (legal/registro-licencias.csv).
 Cambios: ninguno en las del autor; la copia de 1024 × 576 es una reducción de la de 1536.
