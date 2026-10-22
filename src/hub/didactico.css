@@ -2,7 +2,7 @@
    El material para leer: bloques oscuros como los del armorial, con su rótulo, su título y el texto en párrafos cortos.
    Una columna en el móvil de pie; dos o tres en la tableta y el ordenador. */
 html.didactico #hub [data-play], html.didactico #hub [data-sport], html.didactico #hub [data-pasaka], html.didactico #hub [data-frpick] { display: none !important; }
-#hub .dd-chip .dd-chs { display: none; } @media (max-width: 560px) { #hub .dd-chip .dd-chl { display: none; } #hub .dd-chip .dd-chs { display: inline; } }
+#hub .dd-chip .dd-chs { display: none; } @media (max-width: 700px) { #hub .dd-chip .dd-chl { display: none; } #hub .dd-chip .dd-chs { display: inline; } }
 .dd-chip { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 4px 16px 4px 8px; border-radius: 40px; background: rgba(255, 255, 255, .08); border: 1px solid var(--line2); color: #fff; font-size: var(--fs-sm); white-space: nowrap; cursor: pointer; }
 /* portada */
 .dd-portada { display: grid; gap: 8px; padding: 16px 0 8px; }
@@ -19,7 +19,7 @@ html.didactico #hub [data-play], html.didactico #hub [data-sport], html.didactic
 /* páginas */
 .armorial.dd .sec { margin: 16px 0 0; }
 .dd .adot { display: inline-block; flex: none; width: 12px; height: 12px; border-radius: 50%; background: var(--c, var(--gold)); }
-.dd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); gap: 12px; align-items: start; }
+.dd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 12px; align-items: start; }
 .dd-grid.dd-wide { grid-template-columns: repeat(auto-fill, minmax(min(100%, 540px), 1fr)); }
 .dd-b { min-width: 0; display: grid; gap: 8px; align-content: start; padding: 12px 16px 16px; border-radius: var(--rL); background: rgba(0, 0, 0, .25); border: 1px solid var(--line); overflow: hidden; }
 .dd-b > header { display: flex; align-items: center; gap: 12px; min-width: 0; } .dd-b > header > div { min-width: 0; }
@@ -39,7 +39,7 @@ html.didactico #hub [data-play], html.didactico #hub [data-sport], html.didactic
 .dd-q summary { display: flex; align-items: center; gap: 8px; min-height: 36px; cursor: pointer; color: #fff; font-size: var(--fs-sm); list-style: none; } .dd-q summary::-webkit-details-marker { display: none; }
 .dd-q ul { list-style: none; margin: 8px 0; padding: 0; display: grid; gap: 4px; } .dd-q li { display: flex; align-items: center; gap: 8px; color: var(--mute); font-size: var(--fs-sm); font-weight: 600; } .dd-q li.ok { color: #9ff3a8; font-weight: 800; }
 .dd-where { display: flex; flex-wrap: wrap; align-items: center; gap: 0 12px; margin: 0; }
-.dd .lnk { min-height: 36px; padding: 4px 0; background: none; border: 0; color: #ff7ac8; font: inherit; font-weight: 800; text-decoration: underline; cursor: pointer; }
+.dd .lnk { min-height: 40px; min-width: 40px; padding: 4px 0; background: none; border: 0; color: #ff7ac8; font: inherit; font-weight: 800; text-decoration: underline; cursor: pointer; }
 .dd-tools { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
 .dd-tools th, .dd-tools td { padding: 6px 8px 6px 0; border-top: 1px solid var(--line); text-align: left; vertical-align: top; } .dd-tools th { color: #fff; } .dd-tools td[lang] { color: var(--gold); font-weight: 800; } .dd-tools td:last-child { color: var(--mute); font-weight: 600; }
 .dd-paso { display: grid; gap: 6px; padding-top: 8px; border-top: 1px solid var(--line); } .dd-paso > b { color: #fff; font-size: var(--fs-sm); }
@@ -52,7 +52,7 @@ html.didactico #hub [data-play], html.didactico #hub [data-sport], html.didactic
 .dd-hero > img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--rL); border: 1px solid var(--line); }
 .dd-hero > div { display: grid; gap: 8px; justify-items: start; min-width: 0; } .dd-hero .back { position: static; }
 .dd-hero h1 { margin: 0; font: 400 var(--fs-hero)/1 var(--f-display, 'MZ Display', 'Nunito', sans-serif); text-transform: uppercase; color: #fff; overflow-wrap: anywhere; }
-.dd-hero p { margin: 0; color: #eae4f6; font-weight: 600; line-height: 1.5; } .dd-hero .kicker.lnk { min-height: 0; padding: 0; color: var(--rosa, #ff7ac8); text-decoration: none; }
+.dd-hero p { margin: 0; color: #eae4f6; font-weight: 600; line-height: 1.5; } .dd-hero .kicker.lnk { min-height: 40px; padding: 0; color: var(--rosa, #ff7ac8); text-decoration: none; }
 .dd-river { display: flex; align-items: center; gap: 8px; color: var(--mute) !important; }
 .dd-arms { display: flex; align-items: center; gap: 16px; padding: 12px 16px; border-radius: var(--rL); background: rgba(0, 0, 0, .25); border: 1px solid var(--line); }
 .dd-arms > img, .dd-arms > canvas { flex: none; width: 120px; height: auto; } .dd-arms > div { display: grid; gap: 8px; justify-items: start; } .dd-arms b { color: #fff; } .dd-arms p { margin: 0; color: #eae4f6; font-weight: 600; font-size: var(--fs-sm); line-height: 1.5; }
@@ -64,7 +64,7 @@ html.didactico #hub [data-play], html.didactico #hub [data-sport], html.didactic
 .dd-more { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 0; }
 .dd-vsec { padding: 4px 16px; border-radius: var(--rL); background: rgba(0, 0, 0, .25); border: 1px solid var(--line); }
 .dd-vsec summary { display: flex; align-items: center; gap: 12px; min-height: 48px; cursor: pointer; list-style: none; color: #fff; } .dd-vsec summary::-webkit-details-marker { display: none; } .dd-vsec summary small { margin-left: auto; color: var(--mute); }
-.dd-voc { width: 100%; margin: 0 0 12px; border-collapse: collapse; font-size: var(--fs-sm); }
+.dd-voc { width: 100%; margin: 0 0 12px; border-collapse: collapse; font-size: var(--fs-sm); overflow-wrap: anywhere; }
 .dd-voc th, .dd-voc td { padding: 6px 12px 6px 0; border-top: 1px solid var(--line); text-align: left; vertical-align: top; } .dd-voc th { color: var(--gold); } .dd-voc td { color: #eae4f6; font-weight: 700; } .dd-voc td.dd-vd { color: var(--mute); font-weight: 600; }
 /* móvil de pie y móvil tumbado */
 @media (max-width: 720px) {
@@ -77,3 +77,4 @@ html.didactico #hub [data-play], html.didactico #hub [data-sport], html.didactic
   .dd-hero { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr); gap: 16px; } .dd-hero h1, .dd-portada h1 { font-size: var(--fs-2xl); }
   .dd-tema { min-height: 72px; padding: 8px 12px; }
 }
+@media (max-height: 520px) and (min-width: 561px) { .dd-chip { min-height: 40px; padding-block: 2px; } }

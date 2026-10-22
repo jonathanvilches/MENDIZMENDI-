@@ -114,7 +114,7 @@ const CSS = `
 .tq-info{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid rgba(201,178,255,.4);background:rgba(255,255,255,.06);color:#fff;font:400 var(--fs-xl)/1 var(--f-display);cursor:pointer}
 .tq-info[aria-expanded=true]{background:var(--cta);border-color:transparent}
 .tq-left{display:flex;flex-direction:column;gap:8px;min-width:0;justify-content:space-between}
-.tq-duel{position:relative;display:flex;align-items:center;justify-content:center;gap:8px;padding:8px 0}
+.tq-duel{position:relative;display:flex;align-items:center;justify-content:center;gap:8px;padding:8px 0}.lg-card.tq-card{overflow-x:hidden}
 .tq-duel::before{content:'';position:absolute;inset:18% -4px;z-index:-1;background:linear-gradient(90deg,rgba(91,75,255,.35),transparent 45%,transparent 55%,rgba(255,46,136,.35));transform:skewX(-14deg)}
 .tq-duel .gx-card{cursor:pointer}.tq-duel button.gx-card{border:0;padding:0;background:none;font:inherit}
 .tq-mid{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;min-width:72px}
@@ -138,6 +138,9 @@ const CSS = `
 .tq-rd.now h4{color:var(--rosa)}
 /* (en los móviles más estrechos, la ronda sin «a 5»: si no, los rótulos de las columnas se pisan; los tantos van en la carta del partido) */
 @media (orientation:landscape) and (max-width:760px){.tq-rd h4 small{display:none}}
+/* (móvil tumbado pequeño: las dos cartas del partido, a la medida de su columna, que gana algo de ancho al cuadro; a 568 px
+   de ancho se salían por la izquierda y tapaban el cuadro) */
+@media (orientation:landscape) and (max-width:760px) and (max-height:520px){.lg-card.tq-card{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr)}.tq-rd h4{white-space:normal;letter-spacing:.02em}.tq-duel{gap:4px}.tq-duel .gx-card{--w:min(120px,18.3vw)!important}.tq-mid{min-width:56px}.tq-mid b{font-size:var(--fs-2xl)}}
 .tq-ms{flex:1;display:flex;flex-direction:column;justify-content:space-around;gap:4px}
 .tq-m{position:relative;z-index:1;display:grid;border-radius:3px;overflow:hidden;background:rgba(18,5,42,.92);border:1px solid rgba(201,178,255,.22);clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px)}
 .tq-m.me{border-color:var(--fx);box-shadow:0 0 14px rgba(255,43,214,.45)}
@@ -154,7 +157,7 @@ const CSS = `
 .tq-how{grid-column:1/-1;margin:0}
 .tq-txa{display:flex;align-items:center;gap:12px}.tq-txa>svg{width:52px;height:34px;flex:none}
 /* menú de pelota: losas grandes como el menú de un juego de deportes, cada una con su figura */
-.tq-tiles{display:grid;grid-template-columns:1.25fr 1fr 1fr 1fr;gap:12px;min-height:0}
+.tq-tiles{display:grid;grid-template-columns:1.25fr 1fr 1fr 1fr;gap:12px;min-height:0}.tq-tiles.n3{grid-template-columns:1.25fr 1fr 1fr}
 .tq-tile{position:relative;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:2px;min-height:190px;padding:12px calc(16px + 8px);border:1px solid rgba(201,178,255,.25);border-radius:4px;color:#fff;text-align:left;cursor:pointer;font:inherit;
   background:linear-gradient(160deg,var(--t1,#3b1590),var(--t2,#12052a) 75%);clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px);transition:transform .15s,border-color .15s}
 .tq-tile::before{content:'';position:absolute;inset:0;z-index:-1;background:repeating-linear-gradient(125deg,transparent 0 14px,rgba(255,255,255,.035) 14px 15px)}
@@ -181,15 +184,16 @@ const CSS = `
 }
 @media (max-width:900px) and (orientation:portrait){
 .lg-card.tq-card{grid-template-columns:1fr;grid-template-rows:none}.tq-br{grid-template-columns:1fr 1fr .8fr;min-height:260px}
-.tq-tiles{grid-template-columns:1fr 1fr}.tq-tile{min-height:150px}.tq-tile.main{grid-column:1/-1}.tq-tile b{font-size:var(--fs-xl)}
+.tq-tiles,.tq-tiles.n3{grid-template-columns:1fr 1fr}.tq-rd h4{white-space:normal}.tq-tile{min-height:150px}.tq-tile.main{grid-column:1/-1}.tq-tile b{font-size:var(--fs-xl)}
 .tq-tile .figs{min-height:96px}.tq-tile.main .figs{min-height:120px}
 }
+@media (max-width:360px) and (orientation:portrait){.tq-tile{padding:8px 12px}.tq-tile b{font-size:var(--fs-lg);overflow-wrap:anywhere}.tq-duel{flex-wrap:wrap}.tq-duel>.tq-mid{order:-1;flex:1 1 100%}.tq-duel .gx-card{--w:108px!important}.tq-br{gap:0 12px}}
 @media (orientation:portrait) and (min-width:600px){.tq-tile .figs{min-height:170px}.tq-tile.main .figs{min-height:200px}}
 /* tumbado: las cuatro losas en fila con las mismas filas (figura, rótulo, título y texto) para todas, así las figuras
    salen del mismo alto y los textos alineados aunque uno ocupe más líneas; las dos primeras, que llevan más texto,
    algo más anchas (si no, sus títulos iban en dos o tres líneas y sus figuras salían a la mitad) */
 @media (orientation:landscape){
-.tq-tiles{grid-template-columns:1.15fr 1.15fr .85fr .85fr;grid-template-rows:minmax(0,1fr) auto auto auto;row-gap:0}
+.tq-tiles{grid-template-columns:1.15fr 1.15fr .85fr .85fr;grid-template-rows:minmax(0,1fr) auto auto auto;row-gap:0}.tq-tiles.n3{grid-template-columns:1.15fr 1fr 1fr}
 .tq-tile{display:grid;grid-row:span 4;grid-template-rows:subgrid;align-content:stretch;justify-items:start;padding-left:16px;padding-right:16px}
 .tq-tile .figs{justify-self:stretch;align-self:stretch}.tq-tile>:not(.figs){align-self:end}
 .tq-tile .k{letter-spacing:.06em}.tq-tile b{font-size:var(--fs-xl)}
@@ -201,7 +205,7 @@ const CSS = `
 @media (min-width:1200px) and (min-height:700px){
 .lg-card.tq-card{width:min(1280px,100%);gap:16px 32px}
 .lg-card.tq-menu-card{width:min(1320px,100%)}
-.tq-tiles{gap:16px;grid-template-columns:1.1fr 1.1fr 1fr 1fr}
+.tq-tiles{gap:16px;grid-template-columns:1.1fr 1.1fr 1fr 1fr}.tq-tiles.n3{grid-template-columns:1.1fr 1fr 1fr}
 .tq-tile{padding-left:24px;padding-right:24px}.tq-tile .figs{min-height:clamp(280px,42vh,460px)}.tq-tile .figs.trio img.pf{height:80%}
 .tq-tile b{font-size:var(--fs-2xl)}.tq-tile small{font-size:var(--fs-md)}.tq-tile .k{font-size:var(--fs-sm)}
 .tq-duel .gx-card{--w:168px!important}.tq-banner .gx-card{--w:168px!important}.tq-mid b{font-size:var(--fs-5xl)}.tq-mid small.r{font-size:var(--fs-md)}
@@ -301,7 +305,7 @@ export function pelotaMenu(T, here = null, T2 = null) {
     const trio = [...new Set([...met, 'Oihana', 'Unai', 'Irati'])].slice(0, 3);
     const youName = T.players.find(q => q.you)?.name;
     const r = lgPanel(`<div class="lg-head tq-txa">${TXAPELA}<div><small>${here ? `Frontón de ${esc(here)}` : 'Frontón del pueblo'}</small><h2>Pelota a mano</h2></div>${tx ? `<div class="lg-ovr">${tx}<small>TXAPELAS</small></div>` : ''}</div>
-      <div class="tq-tiles"><button class="tq-tile main" data-a="torneo" style="--d:.2s"><span class="figs">${figOf(T)}</span><span class="k">${T.txapelas ? `${T.txapelas} ${T.txapelas === 1 ? 'txapela' : 'txapelas'}` : 'Por la txapela'}</span><b>Torneo individual</b><small>${sub(T)}</small></button>
+      <div class="tq-tiles${T2 ? '' : ' n3'}"><button class="tq-tile main" data-a="torneo" style="--d:.2s"><span class="figs">${figOf(T)}</span><span class="k">${T.txapelas ? `${T.txapelas} ${T.txapelas === 1 ? 'txapela' : 'txapelas'}` : 'Por la txapela'}</span><b>Torneo individual</b><small>${sub(T)}</small></button>
         ${T2 ? `<button class="tq-tile pair" data-a="torneoParejas" style="--d:.8s"><span class="figs duo">${figOf(T2, true)}</span><span class="k">Delantero y zaguero</span><b>Torneo por parejas</b><small>${sub(T2)}</small></button>` : ''}
         <button class="tq-tile free" data-a="libre" style="--d:1.4s"><span class="figs">${pelotariFig(youName, 'azul', 'fig')}</span><span class="k">A 5 tantos</span><b>Partido libre</b><small>Mano a mano o parejas</small></button>
         <button class="tq-tile col" data-a="pelotaris" style="--d:2s"><span class="figs trio">${trio.map(n => pelotariFig(n, 'rojo', 'fig')).join('')}</span><span class="k">Tu colección</span><b>Pelotaris</b><small class="pc-n">${C.have}/${C.total} descubiertos</small></button></div>

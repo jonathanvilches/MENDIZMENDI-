@@ -85,7 +85,7 @@ const CSS = `
 @media (max-width:560px){.pel-rv.pel-rv2{grid-template-columns:1fr}}
 .pel-pairs{margin:0 0 8px;font-size:var(--fs-sm);line-height:1.45;color:#d8cff0}
 /* las partes del frontón: el botón junto al título y la ficha de cada parte, abajo */
-.pel-chip{position:relative;margin-left:8px;border:1px solid rgba(255,122,200,.6);background:rgba(255,122,200,.12);color:#ff7ac8;border-radius:999px;padding:4px 12px;font:inherit;font-size:var(--fs-xs);font-weight:900;letter-spacing:0;cursor:pointer;vertical-align:middle;min-height:30px}
+.pel-chip{position:relative;min-height:40px;margin-left:8px;border:1px solid rgba(255,122,200,.6);background:rgba(255,122,200,.12);color:#ff7ac8;border-radius:999px;padding:4px 12px;font:inherit;font-size:var(--fs-xs);font-weight:900;letter-spacing:0;cursor:pointer;vertical-align:middle}
 .pel-tour{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);transform:translateX(-50%);width:min(560px,calc(100vw - 32px));padding:8px 16px;border-radius:16px;background:linear-gradient(180deg,rgba(50,19,111,.95),rgba(28,11,58,.95));border:1px solid rgba(255,122,200,.45);pointer-events:auto;box-shadow:0 10px 30px rgba(0,0,0,.45)}
 .pel-tour b{display:block;font-family:var(--pel-display,'MZ Display',Nunito,sans-serif);font-size:var(--fs-lg);font-weight:400;color:#ff7ac8}
 .pel-tour p{margin:4px 0 8px;font-size:var(--fs-sm);line-height:1.3}.pel-tour div{display:flex;gap:8px;justify-content:flex-end}
@@ -116,7 +116,7 @@ const CSS = `
   .pel-card>.pel-lbl{display:none}
   .pel-card>.pel-levels{flex:3 1 0;min-width:0;margin:0;align-self:center;flex-wrap:nowrap}.pel-card>.pel-levels button{min-width:0;min-height:44px}
   .pel-card>.pel-levels+.pel-row{flex:2 1 0;min-width:0;align-self:center}.pel-card>.pel-levels+.pel-row .pel-go{min-height:44px}
-  .pel-card>.pel-court{margin-bottom:8px}.pel-card>.pel-lv5 button{padding:4px 4px}
+  .pel-card>.pel-court{margin-bottom:8px}.pel-card>.pel-lv5 button{padding:4px 4px;font-size:var(--fs-xs);overflow-wrap:anywhere}
   .pel-card>.pel-mod{flex:1 1 100%;margin:0 0 8px}.pel-card>.pel-mod button{min-height:44px;padding:4px 8px}.pel-card>.pel-pairs{margin-bottom:8px;font-size:var(--fs-xs)}
   .pel-card.opts>.pel-sub{display:none}.pel-opts{display:contents}.pel-card.opts>h2{align-self:center;margin-bottom:8px}
   .pel-otabs{flex:1 1 0;min-width:0;margin-bottom:8px}.pel-opane{flex:1 1 100%}.pel-opane .pel-mod{margin-bottom:8px}.pel-opane .pel-mod button{min-height:44px;padding:4px 8px}.pel-opane .pel-pairs{margin:0 0 8px;font-size:var(--fs-xs)}
@@ -157,6 +157,10 @@ const CSS = `
 .pel-orow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:center;margin:0 0 12px}
 .pel-orow .pel-ballwhat,.pel-orow .pel-switch{margin:0}
 .pel-lv5 button{min-width:0;font-size:var(--fs-sm)}
+/* móvil muy estrecho de pie: los niveles bajan a otra fila en vez de pisarse, los nombres de quien juega van debajo de su
+   círculo y «Volver al pueblo» parte en dos líneas */
+@media (orientation:portrait) and (max-width:400px){.pel-lv5 button{flex:1 1 auto;min-width:max-content}}
+@media (orientation:portrait) and (max-width:360px){.pel-vs .pfx-pl{flex-direction:column;text-align:center;padding:8px 4px}.pel-vs .pfx-pl-t b,.pel-vs .pfx-pl-t small{white-space:normal;overflow-wrap:anywhere}.pel-vs .pfx-pl-t b{font-size:var(--fs-sm)}.pel-row .pel-go{white-space:normal;font-size:var(--fs-lg);line-height:1.1}}
 /* tu energía: grande, abajo en el centro (entre el joystick y los botones); verde, amarilla y roja al cansarte */
 .pel-myen{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb,16px));transform:translateX(-50%);width:min(280px,34vw);display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:none}
 .pel-myen[hidden]{display:none}.pel-myen span{font:800 var(--fs-xs)/1.3 var(--f-cond,Nunito),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.7)}

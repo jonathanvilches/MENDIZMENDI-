@@ -167,9 +167,11 @@ export class Hub {
       ? [['home', 'Inicio', 'home'], ['map', 'Mapa', 'map'], ['towns', 'Pueblos', 'church'], ['personajes', 'Personajes', 'book'], ['cuentos', 'Leyendas', 'legend'], ['tradiciones', 'Tradiciones', 'mask', 1], ['oficios', 'Oficios', 'anvil', 1], ['productos', 'Productos', 'cheese', 1], ['historia', 'Historia', 'castle', 1], ['nature', 'Naturaleza', 'leaf', 1], ['peaks', 'Cimas', 'peak', 1], ['escudos', 'Escudos', 'shield', 1], ['instrumentos', 'Instrumentos', 'music', 1], ['euskera', 'Euskera', 'talk', 1], ['album', 'Láminas', 'scroll', 1], ['profile', 'Ajustes', 'gear', 1]]
       : [['home', 'Inicio', 'home'], ['map', 'Mapa', 'map'], ['towns', 'Pueblos', 'church'], ['sports', 'Torneos', 'trophy'], ['personajes', 'Personajes', 'book'], ['avatars', 'Avatar', 'person', 2], ['peaks', 'Cimas', 'peak', 1], ['nature', 'Naturaleza', 'leaf', 1], ['escudos', 'Escudos', 'shield', 1], ['cuentos', 'Leyendas', 'legend', 1], ['instrumentos', 'Instrumentos', 'music', 1], ['pasaka', 'Pasaka', 'pelota', 1], ['album', 'Láminas', 'scroll', 1], ['badges', 'Insignias', 'badge', 1], ['passport', 'Pasaporte', 'stamp', 1], ['profile', 'Perfil', 'gear', 1]];
     this.MORE = { avatars: 'Elige con quién juegas', peaks: 'Montañas de Navarra con su perfil', nature: 'Fauna, árboles, plantas y flores', escudos: 'Escudos de Navarra y cómo se leen', cuentos: 'Cuentos, leyendas e historias de Navarra', instrumentos: 'Txistu, gaita, txalaparta… escúchalos y aprende a tocarlos', pasaka: 'El juego de pelota con red de los claustros: apréndelo y juégalo', album: 'Las ilustraciones de cada pueblo y comarca', badges: 'Tus logros', passport: 'Los sellos de tus pueblos', profile: isDidactico() ? 'Idioma, sonido y modo' : 'Nombre, nivel y ajustes',
+      sports: 'Pelota a mano y fútbol, sin entrar en un pueblo', personajes: 'Mujeres y hombres de Navarra, seres de leyenda y figuras de carnaval',
       tradiciones: 'Danzas, carnavales, fiestas, ferias y pelota', oficios: 'Cómo se trabajaba y con qué herramientas', productos: 'Quesos, huerta, cosechas y ganadería', historia: 'Castillos, dólmenes y monumentos', euskera: 'Saludos, herramientas, animales y pueblos' };
     if (isDidactico()) this.MORE.instrumentos = 'Txistu, gaita, txalaparta… qué son y cómo suenan';
-    $('#hNav', this.root).innerHTML = this.nav.map(([id, n, ic, sec]) => `<button data-s="${id}" class="${sec === 2 ? 'nav3' : sec ? 'nav2' : ''}">${I(ic, 26)}<span>${n}</span></button>`).join('') + `<button data-s="more" class="more-btn"><svg viewBox="0 0 24 24" width="26" height="26"><circle cx="5" cy="12" r="2.4" fill="#f7f0e6"/><circle cx="12" cy="12" r="2.4" fill="#f7f0e6"/><circle cx="19" cy="12" r="2.4" fill="#f7f0e6"/></svg><span>Más</span></button>`;
+    // (las principales 4.ª y 5.ª, en los móviles más estrechos, van a «Más»: en la barra de abajo no caben sus nombres)
+    $('#hNav', this.root).innerHTML = this.nav.map(([id, n, ic, sec], i) => `<button data-s="${id}" class="${sec === 2 ? 'nav3' : sec ? 'nav2' : i === 3 ? 'navp4' : i === 4 ? 'navp5' : ''}">${I(ic, 26)}<span>${n}</span></button>`).join('') + `<button data-s="more" class="more-btn"><svg viewBox="0 0 24 24" width="26" height="26"><circle cx="5" cy="12" r="2.4" fill="#f7f0e6"/><circle cx="12" cy="12" r="2.4" fill="#f7f0e6"/><circle cx="19" cy="12" r="2.4" fill="#f7f0e6"/></svg><span>Más</span></button>`;
   }
   /** Pone o quita el modo didáctico y vuelve a la portada. */
   setDidactico(on) {
@@ -183,7 +185,7 @@ export class Hub {
     this.screen = screen; this.arg = arg;
     if (!silent) this.sound?.ui('click');
     this.sheet?.remove(); this.sheet = null;
-    const secScreen = this.nav.some(n => n[0] === screen && n[3]) && this.navHidden(screen);
+    const secScreen = this.nav.some(n => n[0] === screen) && this.navHidden(screen);
     this.root.querySelectorAll('#hNav button').forEach(b => b.classList.toggle('on', !!(b.dataset.s === screen || (screen === 'comarca' && b.dataset.s === 'map') || (b.dataset.s === 'more' && secScreen))));
     const bgc = screen === 'comarca' ? arg : (levelById(profile().last) || LEVELS[0]).comarca;
     if (this.bgc !== bgc) { this.bgc = bgc; $('.bgimg', this.root).style.backgroundImage = `url(${comarcaCover(bgc, true)})`; }
@@ -200,7 +202,7 @@ export class Hub {
   more() {
     this.sound?.ui('open');
     const s = el(`<div class="sheet more"><div class="more-in"><div class="grab"></div><small class="kicker">Más secciones</small>
-      ${offer() ? `<button data-install class="more-app"><img src="./icon-180.png" alt=""><div><b>Instalar app</b><small>A pantalla completa y sin conexión</small></div>${I('play', 20)}</button>` : ''}${this.nav.filter(n => n[3] && this.navHidden(n[0])).map(([id, n, ic]) => `<button data-go="${id}" class="${this.screen === id ? 'on' : ''}">${I(ic, 34)}<div><b>${n}</b><small>${this.MORE[id]}</small></div>${I('play', 20)}</button>`).join('')}</div></div>`);
+      ${offer() ? `<button data-install class="more-app"><img src="./icon-180.png" alt=""><div><b>Instalar app</b><small>A pantalla completa y sin conexión</small></div>${I('play', 20)}</button>` : ''}${this.nav.filter(n => this.navHidden(n[0])).map(([id, n, ic]) => `<button data-go="${id}" class="${this.screen === id ? 'on' : ''}">${I(ic, 34)}<div><b>${n}</b><small>${this.MORE[id]}</small></div>${I('play', 20)}</button>`).join('')}</div></div>`);
     this.sheet?.remove(); this.sheet = s; this.root.appendChild(s);
     s.addEventListener('click', e => { if (e.target === s) { s.remove(); this.sheet = null; } });
     s.querySelector('[data-install]')?.addEventListener('click', () => { s.remove(); this.sheet = null; openInstall(this.root); });
