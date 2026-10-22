@@ -28,17 +28,19 @@ const inv = await p.evaluate(async () => {
     mod('/src/data/armas-navarra.js'), mod('/src/ui/laminas.js'), mod('/src/ui/escudoImg.js'), mod('/src/ui/faunaImg.js'), mod('/src/ui/figuras.js'),
     mod('/src/ui/icon3d.js'), mod('/src/ui/icons.js'), mod('/src/data/mountains.json'), mod('/src/data/comarcas.json')]);
   const LEVELS = lev.LEVELS, MOUNTAINS = mon.default || mon, COMARCAS = com.default || com;
+  // (los textos largos, cortados donde acaba una frase y no a media palabra)
+  const corta = (s, n) => { s = String(s || ''); if (s.length <= n) return s; const c = s.slice(0, n), i = Math.max(c.lastIndexOf('. '), c.lastIndexOf('! '), c.lastIndexOf('? ')); return i > n / 3 ? c.slice(0, i + 1) : c.replace(/\s+\S*$/, '') + '…'; };
   const townOf = (id) => Object.entries(pers.FIGURE_TOWNS).find(([, ids]) => ids.includes(id))?.[0] || null;
   return {
-    personajes: Object.entries(pers.PERSONAJES).map(([id, x]) => ({ id, name: x.name, eu: x.eu, years: x.years, kicker: x.kicker, women: !!x.women, town: townOf(id), intro: String(x.pages?.[0] || '').slice(0, 280), has: /\/personajes\//.test(lam.personajeUrl(id) || '') })),   // (solo su ilustración propia; Sancho y las golondrinas llevan una lámina prestada)
-    leyendas: cue.CUENTOS.map(c => ({ id: c.id, title: c.title, kind: c.kind, place: c.place, towns: c.towns, intro: String((c.parts || [])[0] || '').slice(0, 300), clave: String((c.parts || [])[2] || '').slice(0, 220), has: !!(lam.leyendaUrl(c.id, true) && lam.leyendaUrl(c.id, true) !== lam.laminaUrl(lamd.CUENTO_LAMINA[c.id])) })),
-    figuras: fig.FIGURAS.map(f => ({ id: f.id, kind: f.kind, name: f.name, eu: f.eu, where: f.where, who: String(f.who || '').slice(0, 260), wear: f.wear, has: /\/ilus\//.test(figi.figuraImg(f.id) || '') })),   // (solo cuenta la ilustración del autor, no el render del traje)
-    cimas: LEVELS.flatMap(l => (l.missions || []).filter(m => m.type === 'summit' && m.peak).map(m => ({ town: l.id, townName: l.name, id: m.peak }))).map(x => { const m = MOUNTAINS.find(y => y.id === x.id) || {}; return { ...x, name: m.name || x.id, altName: m.altName || '', zone: m.zone || '', altitude: m.altitude || '', tag: m.tag || '', intro: String(m.intro || '').slice(0, 240), has: !!lam.cimaUrl(x.id) }; }),
-    tradiciones: LEVELS.flatMap(l => (l.missions || []).filter(m => m.ilus || ['tradition', 'dance', 'feria'].includes(m.type)).map(m => { const strs = Object.entries(m).filter(([k, v]) => typeof v === 'string' && !['type', 'kind', 'ilus', 'character'].includes(k)).map(([, v]) => v); const title = m.title || m.name || m.dance || m.label || ''; return { town: l.id, townName: l.name, type: m.type, kind: m.kind || '', title, ilus: m.ilus || null, text: strs.filter(v => v !== title).sort((a, b) => b.length - a.length)[0]?.slice(0, 240) || '', has: !!(m.ilus && lam.tradicionUrl(m.ilus)) }; })),
+    personajes: Object.entries(pers.PERSONAJES).map(([id, x]) => ({ id, name: x.name, eu: x.eu, years: x.years, kicker: x.kicker, women: !!x.women, town: townOf(id), intro: corta(x.pages?.[0], 280), has: /\/personajes\//.test(lam.personajeUrl(id) || '') })),   // (solo su ilustración propia; Sancho y las golondrinas llevan una lámina prestada)
+    leyendas: cue.CUENTOS.map(c => ({ id: c.id, title: c.title, kind: c.kind, place: c.place, towns: c.towns, intro: corta((c.parts || [])[0], 300), clave: corta((c.parts || [])[2], 220), has: !!(lam.leyendaUrl(c.id, true) && lam.leyendaUrl(c.id, true) !== lam.laminaUrl(lamd.CUENTO_LAMINA[c.id])) })),
+    figuras: fig.FIGURAS.map(f => ({ id: f.id, kind: f.kind, name: f.name, eu: f.eu, where: f.where, who: corta(f.who, 260), wear: f.wear, has: /\/ilus\//.test(figi.figuraImg(f.id) || '') })),   // (solo cuenta la ilustración del autor, no el render del traje)
+    cimas: LEVELS.flatMap(l => (l.missions || []).filter(m => m.type === 'summit' && m.peak).map(m => ({ town: l.id, townName: l.name, id: m.peak }))).map(x => { const m = MOUNTAINS.find(y => y.id === x.id) || {}; return { ...x, name: m.name || x.id, altName: m.altName || '', zone: m.zone || '', altitude: m.altitude || '', tag: m.tag || '', intro: corta(m.intro, 240), has: !!lam.cimaUrl(x.id) }; }),
+    tradiciones: LEVELS.flatMap(l => (l.missions || []).filter(m => m.ilus || ['tradition', 'dance', 'feria'].includes(m.type)).map(m => { const strs = Object.entries(m).filter(([k, v]) => typeof v === 'string' && !['type', 'kind', 'ilus', 'character'].includes(k)).map(([, v]) => v); const title = m.title || m.name || m.dance || m.label || ''; return { town: l.id, townName: l.name, type: m.type, kind: m.kind || '', title, ilus: m.ilus || null, text: corta(strs.filter(v => v !== title).sort((a, b) => b.length - a.length)[0], 240), has: !!(m.ilus && lam.tradicionUrl(m.ilus)) }; })),
     fauna: Object.entries(fau.FAUNA).map(([id, f]) => ({ id, name: f.name, eu: f.eu, sci: f.sci, kind: f.kind, has: !!fai.faunaImg(id) })),
     flora: Object.entries(flo.FLORA).map(([id, f]) => ({ id, name: f.name, eu: f.eu || '', sci: f.sci || '', kind: f.kind || '' })),
-    oficios: Object.entries(ofi.OFICIOS).map(([id, o]) => ({ id, name: o.name, intro: String(o.intro || '').slice(0, 200), has: !!esc.oficioImg(id) })),
-    instrumentos: ins.INSTRUMENTOS.map(i => ({ id: i.id, name: i.name, eu: i.eu, icon: i.icon, what: String(i.what || '').slice(0, 220) })),
+    oficios: Object.entries(ofi.OFICIOS).map(([id, o]) => ({ id, name: o.name, intro: corta(o.intro, 200), has: !!esc.oficioImg(id) })),
+    instrumentos: ins.INSTRUMENTOS.map(i => ({ id: i.id, name: i.name, eu: i.eu, icon: i.icon, what: corta(i.what, 220) })),
     laminas: lamd.LAMINAS.map(l => ({ id: l.id, title: l.title, kind: l.kind, town: l.town || '', comarca: l.comarca || '', group: l.group || '', cover: !!l.cover, has: !!lam.laminaUrl(l.id) })),
     iconos: [...new Set([...Object.keys(ics.ICONS), ...ic3.ICON3D_NAMES()])].map(n => ({ n, baked: !!ic3.icon3DReady(n), url: String(ic3.icon3DReady(n) || ''), d3: ic3.has3D(n) })),
     casas: LEVELS.flatMap(l => Array.from({ length: 8 }, (_, i) => { const A = bla.houseArms(l, i); return { town: l.id, townName: l.name, comarca: l.comarca, n: i + 1, house: A.house, century: A.century, blazon: bla.blazon(A), has: !!esc.casaImg(l.id, i) }; })),
@@ -47,7 +49,7 @@ const inv = await p.evaluate(async () => {
     comarcas: Object.fromEntries(COMARCAS.map(c => [c.id, c.name])),
     towns: LEVELS.map(l => ({ id: l.id, name: l.name, comarca: l.comarca })),
     // (la danza de cada comarca, para su panel de cultura: danza-<comarca>)
-    danzas: COMARCAS.filter(c => c.culture?.dance).map(c => ({ id: c.id, name: c.name, title: c.culture.dance.title, text: String(c.culture.dance.text || '').slice(0, 220), has: !!lam.tradicionUrl('danza-' + c.id) })),
+    danzas: COMARCAS.filter(c => c.culture?.dance).map(c => ({ id: c.id, name: c.name, title: c.culture.dance.title, text: corta(c.culture.dance.text, 220), has: !!lam.tradicionUrl('danza-' + c.id) })),
   };
 });
 await b.close();
