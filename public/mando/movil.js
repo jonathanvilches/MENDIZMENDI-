@@ -153,8 +153,8 @@ function abierto() {
   const ya = conectado;
   conectado = true; intentos = 0; clearTimeout(espera); clearTimeout(pasoT); clearTimeout(tardaT);
   if (dc?.readyState === 'open') { relevo = false; sig?.close(); sig = null; }   // (ya hablan directamente: el saludo sobra)
+  envia({ t: 'repite' });   // (desde ahora el ordenador suelta lo que no se repita: ver «lo que se mantiene, se repite»; también al pasar del saludo a la conexión directa)
   if (ya) { estado(); return; }
-  envia({ t: 'repite' });   // (desde ahora el ordenador suelta lo que no se repita: ver «lo que se mantiene, se repite»)
   msg(''); $('#go').disabled = false; vista(true); estado(); despierta(); ofrece();
 }
 function caido() {
