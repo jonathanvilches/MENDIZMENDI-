@@ -194,7 +194,7 @@ export const DIDACTICO = {
   },
   d_feria(m = null) {
     return block('cow', 'Feria de ganado', m?.title || 'Feria de ganado', Ps(FERIA.intro) + (m?.note ? P(m.note) : '') + (FERIA.breeds ? H4('Las razas') + `<ul class="dd-ul dd-finds">${FERIA.breeds.map(([n, t]) => `<li><b>${esc(n)}</b> <span>${esc(t)}</span></li>`).join('')}</ul>` : '')
-      + quiz(FERIA.judge) + quiz(FERIA.deal) + aa(FERIA.then, FERIA.now), { where: m ? '' : where(towns(x => x.type === 'feria')) });
+      + quiz(FERIA.judge) + quiz(FERIA.deal) + aa(FERIA.then, FERIA.now), { where: m ? '' : where(towns(x => x.type === 'feria')), img: (m && tradicionUrl(m.ilus)) || '' });
   },
   // un cuento entero: su ilustración, las cuatro partes, lo que se ve hoy y su pregunta
   d_cuento(C) {
@@ -221,14 +221,15 @@ export const DIDACTICO = {
 
   // ---------- Tradiciones ----------
   s_tradiciones() {
-    const C = (ic, k, o) => o ? `<div class="cult">${I(ic, 40)}<div><small>${esc(k)}${o.date ? ' · ' + esc(o.date) : ''}</small><b>${esc(o.title)}</b>${P(o.text)}${o.place ? `<em>${esc(o.place)}</em>` : ''}</div></div>` : '';
+    // (la danza de cada comarca, con su ilustración si la hay, como en la pantalla de la comarca)
+    const C = (ic, k, o, img = '') => o ? `<div class="cult${img ? ' con-img' : ''}">${img ? `<span class="cult-img"><img src="${img}" alt="" loading="lazy"></span>` : I(ic, 40)}<div><small>${esc(k)}${o.date ? ' · ' + esc(o.date) : ''}</small><b>${esc(o.title)}</b>${P(o.text)}${o.place ? `<em>${esc(o.place)}</em>` : ''}</div></div>` : '';
     const dances = LEVELS.flatMap(l => (l.missions || []).filter(m => m.type === 'dance').map(m => ({ l, m })));
     const races = LEVELS.flatMap(l => (l.missions || []).filter(m => m.type === 'race').map(m => ({ l, m })));
     const trads = LEVELS.flatMap(l => (l.missions || []).filter(m => m.type === 'tradition').map(m => ({ l, m })));
     return `<section class="armorial dd"><div class="ar-head dd-head"><small class="kicker">${I('mask', 20)} Material didáctico</small><h1>Tradiciones de Navarra</h1>
       <p>Las danzas, los carnavales, las fiestas y los trajes de cada comarca; las tradiciones de los pueblos, las romerías y los caminos, las ferias de ganado, la pelota y la música.</p></div>
       ${sec('dance', 'Cada comarca: danza, carnaval, fiesta y traje')}
-      ${COMARCAS.map(c => { const K = c.culture || {}; return `<div class="dd-com" style="--c:${c.color}"><h3><i class="adot"></i><button type="button" class="lnk" data-comarca="${c.id}">${esc(c.full || c.name)}</button></h3><div class="cultgrid">${C('dance', 'Danza', K.dance)}${C('mask', 'Carnaval', K.carnival)}${C('flag', 'Fiesta', K.festival)}${C('ribbon', 'Traje', K.costume)}</div></div>`; }).join('')}
+      ${COMARCAS.map(c => { const K = c.culture || {}; return `<div class="dd-com" style="--c:${c.color}"><h3><i class="adot"></i><button type="button" class="lnk" data-comarca="${c.id}">${esc(c.full || c.name)}</button></h3><div class="cultgrid">${C('dance', 'Danza', K.dance, tradicionUrl('danza-' + c.id) || '')}${C('mask', 'Carnaval', K.carnival)}${C('flag', 'Fiesta', K.festival)}${C('ribbon', 'Traje', K.costume)}</div></div>`; }).join('')}
       ${sec('dance', 'Danzas de los pueblos')}<div class="dd-grid">${dances.map(({ l, m }) => block('dance', 'Danza', m.name, P(m.text), { img: tradicionUrl(m.ilus) || '', where: where([l.id]) })).join('')}</div>
       ${sec('mask', 'Carnavales')}<div class="dd-grid">${FOLKLORE.filter(f => f.category === 'carnival').map(f => this.d_carnaval(f.id)).join('')}</div>
       ${trads.length ? sec('music', 'Tradiciones de los pueblos') + `<div class="dd-grid">${trads.map(({ l, m }) => { const X = TRADICIONES[m.title]; return block('music', 'Tradición', m.title, X ? H4('¿Qué es?') + P(X.what) + H4('Cómo se hace') + P(X.how) + aa(X.then, X.now) : '', { img: tradicionUrl(m.ilus) || '', where: where([l.id]) }); }).join('')}</div>` : ''}
