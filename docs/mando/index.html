@@ -154,7 +154,7 @@ img { pointer-events: none; }
 @media (orientation: portrait) {
   :root { --m: 12px; }
   #pad { grid-template-rows: auto auto minmax(0, 1fr); }
-  #top.fila { flex-wrap: wrap; row-gap: 8px; } #top.fila #est { flex-basis: calc(100% - 52px); } #top.fila #sup { order: 3; }   /* (cuatro botones o más: en su propia fila) */
+  #top.fila { flex-wrap: wrap; row-gap: 8px; } #top.fila #est { flex-basis: calc(100% - 52px); } #top.fila #sup { order: 3; flex-wrap: wrap; }   /* (cuatro botones o más: en su propia fila) */
   #jugar .big { padding: 12px 20px; white-space: nowrap; }
   #giro { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 var(--m); padding: 8px 12px; border-radius: 10px; background: rgba(255, 255, 255, .06); color: var(--lila); font-size: 13px; font-weight: 800; }
   #giro svg { width: 18px; height: 18px; flex: none; }
