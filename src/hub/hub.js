@@ -139,7 +139,7 @@ export class Hub {
     const mb = this.root.querySelector('[data-mando]');
     if (!TACTIL && !(typeof __AF__ !== 'undefined' && __AF__) && !isDidactico()) {
       mb.hidden = false; mb.onclick = () => import('../mando/mando.js').then(m => m.abrirMando());
-      (window.requestIdleCallback || setTimeout)(() => { import('../mando/mando.js'); import('qrcode-generator'); }, { timeout: 4000 });
+      (window.requestIdleCallback || setTimeout)(() => { import('../mando/mando.js').then(m => m.esperarMovil()); import('qrcode-generator'); }, { timeout: 4000 });   // (y, si ya se conectó un móvil, se le espera)
     }
     // el modo didáctico (util/modo.js): se elige en la primera pantalla o en Ajustes, o con ?didactico=1 (?didactico=0, quitarlo)
     { const S = profile().settings, u = new URLSearchParams(location.search).get('didactico');

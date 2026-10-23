@@ -16,6 +16,12 @@ const WEB = 'https://jonathanvilches.github.io/MENDIZMENDI-/';
 const LETRAS = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';   // (sin 0/O ni 1/I/L, que se confunden al escribirlos)
 // (secreto: el del QR; fuerte: si el móvil que manda llegó con él o con el código escrito a mano; pide: la oferta de un
 // móvil que escribió el código y espera permiso; dejados y vetados: los que se aceptaron o se rechazaron)
+// el móvil de siempre: el código y su secreto se guardan en este ordenador (el QR es el mismo cada vez) y, cuando un móvil
+// se ha conectado, el juego le espera solo al abrirse, sin abrir el panel: la app «Mando» del móvil se conecta sola.
+// «Terminar» lo olvida (el código deja de valer y el próximo será otro)
+const GUARDA = 'herrizherri-mando-v1';
+const guardado = () => { try { const g = JSON.parse(localStorage.getItem(GUARDA) || 'null'); return g?.code?.length === 5 && g.secreto ? g : null; } catch (e) { return null; } };
+const guardar = (o) => { try { if (o) localStorage.setItem(GUARDA, JSON.stringify(o)); else localStorage.removeItem(GUARDA); } catch (e) { } };
 const S = { code: '', secreto: '', of: '', respuesta: null, sig: null, pc: null, dc: null, relevo: false, vivo: 0, estado: 'nada', ctx: '', t: 0, movil: '', fuerte: false, pide: null, dejados: new Set(), vetados: new Set(), ui: null, pill: null, vias: {}, otra: 0 };
 
 const CSS = `
@@ -62,6 +68,7 @@ function urlMando() {
 async function empezar() {
   if (S.sig || S.estado === 'prep') return;
   S.estado = 'prep'; clearTimeout(S.otra);
+  const g = guardado(); if (!S.code && g) { S.code = g.code; S.secreto = g.secreto; }
   for (let n = 0; n < 4 && !S.sig; n++) {
     // (el QR sale ya; al volver a probar se queda el mismo código, que puede estar ya en el móvil: solo cambia si está cogido)
     if (!S.code || n) { S.code = [...crypto.getRandomValues(new Uint32Array(5))].map(x => LETRAS[x % LETRAS.length]).join(''); S.secreto = nuevoSecreto(); }
@@ -69,10 +76,14 @@ async function empezar() {
     try { S.sig = await senal('hzh-' + S.code, recibe, (v) => { S.vias = v; pinta(); }, S.secreto); }
     catch (e) { if (e.message !== 'ID-TAKEN') break; }   // (nombre cogido: otro código)
   }
+  if (S.sig) guardar({ code: S.code, secreto: S.secreto, emparejado: !!(g && g.code === S.code && g.emparejado) });
   S.estado = S.sig ? 'espera' : 'mal'; pinta(); if (!S.sig) otraVez();
 }
-// (sin ningún camino: se vuelve a probar solo cada 5 s, con el mismo código, mientras el panel siga abierto)
-function otraVez() { clearTimeout(S.otra); S.otra = setTimeout(() => { if (S.ui && !S.sig) empezar(); }, 5000); }
+/** Al abrir el juego: si un móvil se conectó otra vez, se le espera ya, sin abrir el panel. */
+export function esperarMovil() { if (guardado()?.emparejado && !S.sig && !(typeof __AF__ !== 'undefined' && __AF__)) { S.auto = true; empezar(); } }
+// (sin ningún camino: se vuelve a probar solo cada 5 s, con el mismo código, mientras el panel siga abierto o se espere al
+// móvil de siempre)
+function otraVez() { clearTimeout(S.otra); S.otra = setTimeout(() => { if ((S.ui || S.auto) && !S.sig) empezar(); }, 5000); }
 function cerrarPc() { try { S.dc?.close(); } catch (e) { } try { S.pc?.close(); } catch (e) { } S.dc = S.pc = null; S.relevo = false; mandoMovil(false); }
 /** Lo que llega por el servidor de saludo: la oferta del móvil y sus rutas de red. */
 async function recibe(m) {
@@ -121,12 +132,16 @@ const rutas = (pc, ms) => new Promise((ok) => {
 function caido() { if (S.estado !== 'ok') return; cerrarPc(); S.estado = S.sig ? 'caido' : 'mal'; pinta(); if (!S.sig) otraVez(); }
 function abre(dc) {
   S.dc = dc;
-  dc.onopen = () => { const ya = S.relevo; S.relevo = false; if (!ya) listo(); else pinta(); };   // (si ya iba por el saludo, sigue por aquí, más rápido)
+  dc.onopen = () => { const ya = S.relevo; S.relevo = false; if (!ya) listo(); else { pareja(); pinta(); } };   // (si ya iba por el saludo, sigue por aquí, más rápido)
   dc.onclose = () => { if (dc === S.dc && !S.relevo) caido(); };
   dc.onmessage = (e) => { let m; try { m = JSON.parse(e.data); } catch (er) { return; } usa(m); };
 }
 // conectado: el panel lo dice, el móvil recibe el idioma y sus botones, y el panel se cierra solo
-function listo() { S.estado = 'ok'; S.ctx = S.mis = ''; mandoMovil(true); envia({ t: 'hola', lang: isEU() ? 'eu' : 'es' }); pinta(); setTimeout(() => { if (S.estado === 'ok' && !S.pide) cierraPanel(); }, 1600); }
+function listo() { S.estado = 'ok'; S.ctx = S.mis = ''; mandoMovil(true); envia({ t: 'hola', lang: isEU() ? 'eu' : 'es' });
+  guardar({ code: S.code, secreto: S.secreto, emparejado: true }); pareja(); pinta(); setTimeout(() => { if (S.estado === 'ok' && !S.pide) cierraPanel(); }, 1600); }
+// (el móvil se queda con este ordenador: el código y su secreto, solo por la conexión directa, que va cifrada de punta a
+// punta; si entró con el código a mano, la próxima vez entra directamente, sin pedir permiso)
+function pareja() { if (S.dc?.readyState === 'open') S.dc.send(JSON.stringify({ t: 'pareja', code: S.code, secreto: S.secreto })); }
 const envia = (m) => { if (S.dc?.readyState === 'open') S.dc.send(JSON.stringify(m)); else if (S.relevo && S.movil) S.sig?.send(S.movil, 'DATA', m, S.fuerte); };
 // (por el saludo no hay aviso de corte: si el móvil no dice nada en 8 s —manda señal cada 2—, se ha ido)
 setInterval(() => { if (S.relevo && S.estado === 'ok' && performance.now() - S.vivo > 8000) caido(); }, 2000);
@@ -206,14 +221,14 @@ export function abrirMando() {
     return;
   }
   const o = S.ui = el(`<div class="mnd-ov" role="dialog" aria-modal="true" aria-label="Mando en el móvil"><div class="mnd-card">
-    <h2>Mando en el móvil</h2><p class="mnd-lead">Usa el móvil como mando, sin instalar nada. Funciona con Android y con iPhone.</p>
+    <h2>Mando en el móvil</h2><p class="mnd-lead">Usa el móvil como mando. Funciona con Android y con iPhone.</p>
     <div class="mnd-qr wait" aria-label="Código QR del mando"></div>
     <ol class="mnd-pasos"><li>Conecta el móvil a internet: mejor, a la misma wifi que el ordenador.</li><li>Abre la cámara del móvil y apunta al código.</li>
-      <li>O entra en esta dirección y escribe el código:<span class="mnd-url" data-notr></span><span class="mnd-code" data-notr></span></li><li>Pon el móvil en horizontal y ¡a jugar!</li></ol>
+      <li>O entra en esta dirección y escribe el código:<span class="mnd-url" data-notr></span><span class="mnd-code" data-notr></span></li><li>Pon el móvil en horizontal y ¡a jugar!</li><li>Para no repetirlo: en el móvil, instala la app «Mando». La próxima vez, ábrela y se conecta sola en cuanto el juego esté abierto.</li></ol>
     <p class="mnd-est"><i></i><span></span></p>
     <p class="mnd-vias" data-notr aria-label="Servidores"></p>
     <div class="mnd-pide" hidden><p>Un móvil ha escrito el código a mano y quiere ser el mando. ¿Es el tuyo?</p><div><button data-no>No, no lo conozco</button><button class="go" data-si>Sí, dejarle</button></div></div>
-    <div class="mnd-bts"><button data-off>Desconectar el mando</button><button class="go" data-close>Cerrar</button></div></div></div>`);
+    <div class="mnd-bts"><button data-off>Olvidar este móvil</button><button class="go" data-close>Cerrar</button></div></div></div>`);
   document.body.appendChild(o);
   o.addEventListener('click', (e) => { if (e.target === o || e.target.closest('[data-close]')) cierraPanel(); });
   o.querySelector('[data-off]').onclick = () => terminar();
@@ -229,8 +244,9 @@ export function abrirMando() {
 }
 /** Termina la sesión: el móvil deja de mandar y el código deja de valer. */
 export function terminar() {
-  envia({ t: 'adios' }); setTimeout(cerrarPc, 400);   // (que el adiós llegue antes de cortar)
-  S.sig?.close(); S.sig = null; S.code = ''; S.secreto = ''; S.of = ''; S.respuesta = null; S.estado = 'nada'; S.vias = {}; S.pide = null; S.dejados.clear(); S.vetados.clear(); antes.clear(); clearTimeout(S.otra);
+  // (que el adiós llegue antes de cortar, también si va por el saludo: el saludo se cierra con la conexión)
+  envia({ t: 'adios' }); const sig = S.sig; setTimeout(() => { cerrarPc(); sig?.close(); }, 400);
+  S.sig = null; S.code = ''; S.secreto = ''; S.auto = false; guardar(null); S.of = ''; S.respuesta = null; S.estado = 'nada'; S.vias = {}; S.pide = null; S.dejados.clear(); S.vetados.clear(); antes.clear(); clearTimeout(S.otra);
   if (S.pill) S.pill.hidden = true; pinta(); cierraPanel();
 }
 // (para las pruebas: el código y el estado)
