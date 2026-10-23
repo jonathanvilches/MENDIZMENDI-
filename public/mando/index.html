@@ -105,11 +105,12 @@ img { pointer-events: none; }
 .bt { position: absolute; left: 0; top: 0; width: var(--d, 68px); height: var(--d, 68px); padding: 0; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: #fff; text-align: center; transform: translate(-50%, -50%); pointer-events: auto; touch-action: none; transition: transform .08s, box-shadow .08s, opacity .2s; }
 .bt .nom { max-width: 84%; line-height: 1; white-space: nowrap; text-transform: uppercase; pointer-events: none; }
 .bt :is(img, svg) { flex: none; pointer-events: none; }
-.bt.solo .nom { display: none; }
+.bt.solo .nom, .bt.icono .nom { display: none; }
 .bt img.alt { display: none; } .bt.solo img.alt { display: block; }
-/* · los del pueblo (como los de la pantalla del juego): morados con el aro blanco; Acción, rosa; Correr puesto, encendido */
+/* · los del pueblo (como los de la pantalla del juego): morados con el aro blanco; Acción, rosa; Correr puesto, encendido;
+   solo con su icono, que ya se entiende (.icono) */
 .cb { background: radial-gradient(circle at 50% 30%, rgba(80, 40, 150, .82), rgba(28, 11, 58, .88)); border: 2.5px solid #fff; box-shadow: 0 0 0 3px rgba(138, 43, 226, .45), 0 5px 0 rgba(10, 4, 24, .55), 0 8px 16px rgba(0, 0, 0, .3); }
-.cb img { width: 42%; height: auto; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .35)); } .cb.solo img { width: 56%; }   /* (con nombre, el icono algo menor: el rótulo queda cerca del centro, donde el círculo es más ancho) */
+.cb img { width: 42%; height: auto; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .35)); } .cb:is(.solo, .icono) img { width: 56%; }   /* (con nombre, el icono algo menor: el rótulo queda cerca del centro, donde el círculo es más ancho) */
 .cb .nom { font: 900 clamp(11px, calc(var(--d) * .15), 14px)/1 Nunito, system-ui, sans-serif; letter-spacing: .04em; text-shadow: 0 1px 0 #1f1a26; }
 .cb.prim { background: radial-gradient(circle at 50% 30%, #ffc2ec, #ff7ac8 60%, #ff3dbd); box-shadow: 0 0 0 4px rgba(255, 122, 200, .35), 0 5px 0 #8a1c8f, 0 10px 22px rgba(0, 0, 0, .35); }
 .cb.prim .nom { color: #2a0638; text-shadow: 0 1px 0 rgba(255, 255, 255, .6); }

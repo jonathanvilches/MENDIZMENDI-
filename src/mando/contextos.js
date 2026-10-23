@@ -9,13 +9,13 @@
 
 // [nombre, tecla, icono]; la tecla null es que el juego lee el mando él mismo (el fútbol). Los iconos son los del autor,
 // copiados para la página del mando en public/mando/iconos (la dejada, con la mano; la cortada y el globo, con la pelota
-// con efecto; el periódico, con el rollo de papel; coser, con el ovillo)
+// con efecto; coser, con el ovillo)
 // (en el móvil, fijo son los que se quedan puestos al tocarlos, como Correr; der, los de hombro que van con los de acción,
 // a la derecha, y no arriba con los de sistema; estilo, que el móvil pinte los mismos botones que la pantalla del fútbol o
 // de la pelota, con su forma, su color y su sitio)
 const FIJOS = {
   juego: { tit: 'En el pueblo', pal: 'andar', mira: true, b: { 0: ['Acción', 'e', 'talk'], 1: ['Saltar', ' ', 'jump'], 2: ['Prismáticos', 'f', 'binoculars'], 3: ['Mochila', 'b', 'backpack'], 4: ['Cuaderno', 'c', 'book'], 5: ['Mapa', 'm', 'map'], 7: ['Correr', 'Shift', 'run'], 8: ['Perro', 'h', 'dog'], 9: ['Menú', 'Escape', 'menu'] }, fijo: [7] },
-  encierro: { tit: 'El encierro', pal: 'andar', mira: true, b: { 0: ['Saltar', ' ', 'jump'], 2: ['Periódico', 'p', 'scroll'], 3: ['Cámara', 'c', 'camera'], 7: ['Correr', 'Shift', 'run'] }, fijo: [7] },
+  encierro: { tit: 'El encierro', pal: 'andar', mira: true, b: { 0: ['Saltar', ' ', 'jump'], 3: ['Cámara', 'c', 'camera'], 7: ['Correr', 'Shift', 'run'] }, fijo: [7] },
   bino: { tit: 'Prismáticos', mira: true, b: { 0: ['Anotar', 'e', 'pen'], 1: ['Salir', 'f', 'close'] } },
   dialogo: { tit: 'Hablando', b: { 0: ['Seguir', 'e', 'play'] } },
   pelota: { tit: 'Pelota a mano', pal: 'flechas', estilo: 'pelota', b: { 0: ['Golpe', ' ', 'pelota'], 1: ['Dejada', 'Shift', 'hand'], 2: ['Cortada', 'l', 'slide'], 9: ['Salir', 'Escape', 'close'] } },

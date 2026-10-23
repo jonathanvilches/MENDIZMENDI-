@@ -360,13 +360,13 @@ export class Encierro {
   hud() {
     const h = this.h = document.createElement('div'); h.className = 'enc-hud';
     const touch = this.G.input.touch;
-    h.innerHTML = `<div class="enc-top"><div class="enc-hearts"></div><div class="enc-bar"><i></i><b>Plaza</b></div></div><div class="enc-msg"></div><div class="enc-warn">¡Toro detrás! Apártate</div><div class="enc-help">${touch ? 'Palanca: a los lados esquivar, arriba correr · SALTAR los caídos · PERIÓDICO para guiar al toro' : 'A / D esquivar · W o Mayús correr · Espacio saltar · P periódico · C cámara'}</div>
+    h.innerHTML = `<div class="enc-top"><div class="enc-hearts"></div><div class="enc-bar"><i></i><b>Plaza</b></div></div><div class="enc-msg"></div><div class="enc-warn">¡Toro detrás! Apártate</div><div class="enc-help">${touch ? 'Palanca: a los lados esquivar, arriba correr · SALTAR los caídos' : 'A / D esquivar · W o Mayús correr · Espacio saltar · C cámara'}</div>
       ${touch ? '<div class="enc-stick"><div class="enc-knob"><i></i></div></div><div class="enc-stickhint"><svg viewBox="0 0 48 48" width="46" height="46"><path d="M24 6l6 7h-4v8h8v-4l7 7-7 7v-4h-8v8h4l-6 7-6-7h4v-8h-8v4l-7-7 7-7v4h8v-8h-4z" fill="#fff" opacity=".9"/></svg></div>' : ''}
-      <div class="enc-btns"><button class="enc-b enc-jump" data-k="jump">SALTAR</button><button class="enc-b enc-paper" data-k="paper">PERIÓDICO</button></div>
+      <div class="enc-btns"><button class="enc-b enc-jump" data-k="jump">SALTAR</button></div>
       <button class="enc-cam" data-k="cam">CÁMARA</button><button class="enc-quit" data-k="quit" aria-label="Salir del encierro">✕</button><div class="enc-live"><i></i>EN DIRECTO</div>`;
     document.body.appendChild(h);
     // (la X: durante la carrera, abandona; al final, se salta la espera y las fichas y se vuelve ya al pueblo)
-    for (const b of h.querySelectorAll('[data-k]')) b.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); const k = b.dataset.k; if (k === 'quit') { if (this.done) { this.skipCards = true; this.skipWait?.(); } else this.finish(false, true); return; } if (k === 'jump') this.jumpQ = true; if (k === 'paper') this.paperQ = true; if (k === 'cam') this.nextCam(); });
+    for (const b of h.querySelectorAll('[data-k]')) b.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); const k = b.dataset.k; if (k === 'quit') { if (this.done) { this.skipCards = true; this.skipWait?.(); } else this.finish(false, true); return; } if (k === 'jump') this.jumpQ = true; if (k === 'cam') this.nextCam(); });
     // la palanca táctil, en la mitad izquierda: a los lados esquiva, arriba corre más y abajo frena (el teclado sigue
     // valiendo a la vez). Se suelta también desde la ventana, por si el «soltar» no llega a la zona (gestos del sistema).
     this.stick = { id: null, x: 0, y: 0 };
@@ -434,19 +434,11 @@ export class Encierro {
     // jugador: corre solo hacia la plaza; adelante = más rápido, atrás = más despacio, a los lados = esquivar
     const st = this.stick || { x: 0, y: 0 }, fy = Math.max(-1, Math.min(1, inp.move.y + st.y)), fx = Math.max(-1, Math.min(1, inp.move.x + st.x));
     if (inp.consume(' ')) this.jumpQ = true;
-    if (inp.consume('p')) this.paperQ = true;
     if (inp.consume('c')) this.nextCam();
     // salto (para pasar por encima de los que se han caído)
     if (this.jumpQ) { this.jumpQ = false; if (!(me.jump > 0) && me.fall <= 0) { me.jump = 0.62; me.char.playOnce?.('Jump_Start', 0.2); this.G.sound.jump?.(); } }
     if (me.jump > 0) me.jump -= dt;
     me.y = me.jump > 0 ? Math.sin((1 - me.jump / 0.62) * Math.PI) * 0.75 : 0;
-    // el periódico: como hacen los corredores, se agita delante del toro para que lo siga y no al corredor
-    this.paperCd = Math.max(0, (this.paperCd || 0) - dt);
-    if (this.paperQ) { this.paperQ = false;
-      const b = this.bulls.filter(b => b.kind === 'bull' && !b.out && b.z > me.z && b.z - me.z < 9).sort((a, c) => a.z - c.z)[0];
-      if (this.paperCd > 0) this.msg(`El periódico, en ${Math.ceil(this.paperCd)} s`, 900);
-      else if (b) { this.paperCd = 8; b.lure = 1.6; b.lureX = me.x > 0 ? -1.4 : 1.4; me.char.playOnce?.('Wave', 0.6); this.msg('¡Bien! El toro sigue el periódico y se aparta de ti', 1800); this.closeCall += 0.4; }
-      else this.msg('El periódico sirve cuando un toro está justo detrás', 1200); }
     if (me.fall > 0) { me.fall -= dt; me.speed = Math.max(0, me.speed - dt * 12); }
     else { const want = (inp.run || fy > 0.35) ? 7.2 : fy < -0.35 ? 3.0 : 5.3; me.speed += (want - me.speed) * Math.min(1, dt * 3); me.x += fx * 3.8 * dt; }
     me.x = Math.max(-HALF + 0.45, Math.min(HALF - 0.45, me.x)); me.z -= me.speed * dt; me.safe -= dt;
@@ -509,7 +501,6 @@ export class Encierro {
     if (inRing) b.x0 *= Math.max(0, 1 - dt * 1.6);   // en el ruedo se juntan hacia la puerta
     // la manada va por el centro haciendo eses: pegarse a la pared es la forma de salvarse (como en la realidad)
     b.x = b.x0 + Math.sin(this.t * 0.7 + b.x0 * 2) * (inRing ? 0.2 : 0.55); b.x = Math.max(-1.45, Math.min(1.45, b.x));
-    if (b.lure > 0) { b.lure -= dt; b.lx = (b.lx ?? b.x) + ((b.lureX ?? b.x) - (b.lx ?? b.x)) * Math.min(1, dt * 3); b.x = b.lx; } else b.lx = b.x;
     // amago de embestida: un toro que tiene a alguien justo delante baja la cabeza, tira un derrote hacia ese lado y
     // acelera un instante; luego sigue su camino (como en la calle de verdad)
     b.feintCd = Math.max(0, (b.feintCd ?? 2 + Math.random() * 3) - dt);
