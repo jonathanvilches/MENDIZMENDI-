@@ -38,7 +38,7 @@ import { ARMAS, PENDIENTES, GUIA, armsOfTown } from '../data/armas-navarra.js';
 import { CUENTOS, KIND_LABEL } from '../data/cuentos.js';
 import { drawOfficial, officialHeight } from '../world/armas.js';
 import { armsImg, armsImgBig, clubImg, casaImg } from '../ui/escudoImg.js';
-import { setupInstall, offer, openInstall, appImg } from '../web/install.js';
+import { comoJugar, vistoComoJugar } from './comojugar.js';
 import { puedeDescargar, queFalta, descargarTodo } from '../web/todo.js';
 import { profile, saveProfile, levelOf, rankOf, townProgress, comarcaProgress, comarcaTowns, navarraProgress, stampCount, BADGES, checkBadges, resetProfile, salazarState } from '../game/profile.js';
 import { esc, el } from '../util/html.js';
@@ -129,11 +129,9 @@ export class Hub {
   constructor({ sound, onPlay }) {
     this.sound = sound; this.onPlay = onPlay;
     this.root = el(`<div id="hub"><div class="hub-bg"><div class="bgimg"></div></div>
-      <header class="hub-top"><div class="brand logo">HERRIZHERRI</div><button type="button" class="app-btn" data-app hidden><svg viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><rect x="13" y="4" width="22" height="40" rx="5"/><path d="M24 14v14M18 22l6 6 6-6M21 38h6"/></svg><span>Instalar app</span></button><button type="button" class="app-btn alt" data-mando hidden>${I('control', 24)}<span>Mando del móvil</span></button><div class="chip" id="hChip"></div></header>
+      <header class="hub-top"><div class="brand logo">HERRIZHERRI</div><button type="button" class="app-btn" data-cj-abre hidden><svg viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="19"/><path d="M20 16l12 8-12 8z"/></svg><span>Cómo jugar</span></button><button type="button" class="app-btn alt" data-mando hidden>${I('control', 24)}<span>Mando del móvil</span></button><div class="chip" id="hChip"></div></header>
       <nav class="hub-nav" id="hNav"></nav><main class="hub-main" id="hMain"></main></div>`);
     document.body.appendChild(this.root);
-    // (instalar el juego como app: solo en la web y si no se está jugando ya desde la app instalada)
-    setupInstall(this.root, this.root.querySelector('[data-app]'));
     // en el ordenador o en una tele (sin dedo: util/tactil.js), el mando del móvil a mano desde el principio (en el artefacto de claude.ai no puede conectarse); su
     // código y el del QR se cargan en un rato libre, para que el panel salga al momento
     const mb = this.root.querySelector('[data-mando]');
@@ -145,6 +143,10 @@ export class Hub {
     { const S = profile().settings, u = new URLSearchParams(location.search).get('didactico');
       if (u != null) { S.didactic = u !== '0'; saveProfile(); }
       markDidactico(S.didactic); }
+    // cómo jugar (en el ordenador, con el móvil de mando o en el móvil) e instalar el juego o la app Mando: siempre a mano
+    // arriba (en el móvil de pie, en «Más»), salvo en el modo didáctico, que no se juega
+    const cb = this.root.querySelector('[data-cj-abre]');
+    cb.hidden = isDidactico(); cb.onclick = () => { this.sound?.ui('open'); comoJugar(this.root); };
     this.buildNav();
     $('#hNav', this.root).addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.s === 'more') return this.more(); this.go(b.dataset.s); });
     this.root.addEventListener('click', e => {
@@ -181,11 +183,13 @@ export class Hub {
   }
   /** Pone o quita el modo didáctico y vuelve a la portada. */
   setDidactico(on) {
-    const S = profile().settings; S.didactic = !!on; saveProfile(); markDidactico(on);
+    const S = profile().settings; S.didactic = !!on; saveProfile(); markDidactico(on); this.root.querySelector('[data-cj-abre]').hidden = !!on;
     this.buildNav(); this.sound?.ui('open'); this.go('home', undefined, true);
-    if (!on && !profile().name) this.onboarding();
+    if (!on && !profile().name) this.primeraVez();
   }
-  show(screen = this.screen, arg = this.arg) { this.root.classList.remove('hidden'); this.visible = true; this.go(screen, arg, true); if (!langChosen()) this.langPicker(); else if (!profile().name && !isDidactico()) this.onboarding(); }
+  show(screen = this.screen, arg = this.arg) { this.root.classList.remove('hidden'); this.visible = true; this.go(screen, arg, true); if (!langChosen()) this.langPicker(); else if (!profile().name && !isDidactico()) this.primeraVez(); }
+  // (quien empieza: primero cómo quiere jugar y después su nombre y su personaje)
+  primeraVez() { if (vistoComoJugar()) return this.onboarding(); comoJugar(this.root, { primera: true, despues: () => { if (!profile().name && !isDidactico()) this.onboarding(); } }); }
   hide() { this.root.classList.add('hidden'); this.visible = false; this.sheet?.remove(); releaseStage(); this.stage = null; releaseOffscreen(); }
   go(screen, arg, silent) {
     this.screen = screen; this.arg = arg;
@@ -208,10 +212,10 @@ export class Hub {
   more() {
     this.sound?.ui('open');
     const s = el(`<div class="sheet more"><div class="more-in"><div class="grab"></div><small class="kicker">Más secciones</small>
-      ${offer() ? `<button data-install class="more-app">${appImg()}<div><b>Instalar app</b><small>A pantalla completa y sin conexión</small></div>${I('play', 20)}</button>` : ''}${this.nav.filter(n => this.navHidden(n[0])).map(([id, n, ic]) => `<button data-go="${id}" class="${this.screen === id ? 'on' : ''}">${I(ic, 34)}<div><b>${n}</b><small>${this.MORE[id]}</small></div>${I('play', 20)}</button>`).join('')}</div></div>`);
+      ${isDidactico() ? '' : `<button data-cj class="more-app">${I('play', 34)}<div><b>Cómo jugar</b><small>En el ordenador, con el móvil de mando o en el móvil; e instalar las apps</small></div>${I('play', 20)}</button>`}${this.nav.filter(n => this.navHidden(n[0])).map(([id, n, ic]) => `<button data-go="${id}" class="${this.screen === id ? 'on' : ''}">${I(ic, 34)}<div><b>${n}</b><small>${this.MORE[id]}</small></div>${I('play', 20)}</button>`).join('')}</div></div>`);
     this.sheet?.remove(); this.sheet = s; this.root.appendChild(s);
     s.addEventListener('click', e => { if (e.target === s) { s.remove(); this.sheet = null; } });
-    s.querySelector('[data-install]')?.addEventListener('click', () => { s.remove(); this.sheet = null; openInstall(this.root); });
+    s.querySelector('[data-cj]')?.addEventListener('click', () => { s.remove(); this.sheet = null; comoJugar(this.root); });
   }
   renderChip() {
     if (isDidactico()) { $('#hChip', this.root).innerHTML = `<span class="dd-chip">${I('book', 26)}<b class="dd-chl">Material didáctico</b><b class="dd-chs">Didáctico</b></span>`; $('#hChip', this.root).onclick = () => this.go('profile'); return; }
@@ -248,6 +252,7 @@ export class Hub {
     const ms = missionSlots(last, edadDe(p)).map(({ m, si: i }) => `<span class="mi ${done[i] ? 'ok' : ''}" title="${esc(m.title || m.name || TYPE_NAME[m.type] || '')}">${I(TYPE_ICON[m.type] || 'star', 40)}${done[i] ? `<i class="tick">${I('check', 16)}</i>` : ''}</span>`).join('');
     this.after = () => {
       this.drawMiniMap($('#homeMap', this.root));
+      this.cabeSugg($('.next-panel .sugg', this.root));
     };
     const next = this.suggestions();
     return `
@@ -345,9 +350,21 @@ export class Hub {
     s.addEventListener('click', e => { if (e.target === s || e.target.closest('.x')) { s.remove(); this.sheet = null; } });
     s.querySelector('.fr-chip.on')?.scrollIntoView({ block: 'nearest' });
   }
+  // «Te esperan»: junto al mapa, los pueblos que quepan enteros en su alto (tres como poco); en una columna, cuatro
+  cabeSugg(sg) {
+    if (!sg) return;
+    const cabe = () => {
+      if (!sg.isConnected) { ro.disconnect(); return; }
+      const L = [...sg.children]; L.forEach(x => { x.hidden = false; });
+      if (!getComputedStyle(sg).contain.includes('size')) { L.forEach((x, i) => { x.hidden = i >= 4; }); return; }
+      const lim = sg.getBoundingClientRect().bottom + 1, i = L.findIndex((x, k) => k >= 3 && x.getBoundingClientRect().bottom > lim);
+      if (i >= 0) L.slice(i).forEach(x => { x.hidden = true; });
+    };
+    const ro = new ResizeObserver(cabe); ro.observe(sg); cabe();
+  }
   suggestions() {
     const p = profile();
-    const list = LEVELS.filter(l => !townProgress(p, l).stamp).slice(0, 4);
+    const list = LEVELS.filter(l => !townProgress(p, l).stamp).slice(0, 8);   // (salen los que quepan junto al mapa: cabeSugg)
     return `<div class="sugg">${list.map(l => { const t = townProgress(p, l), c = comarca(l.comarca); return `<button class="sg" data-town="${l.id}" style="--c:${c?.color}"><span class="dot"></span><div><b>${esc(l.name)}</b><small>${esc(c?.name)} · ${t.done}/${t.total} misiones</small></div>${I('play', 26)}</button>`; }).join('')}</div>`;
   }
   comarcaCard(c) {
@@ -724,6 +741,7 @@ export class Hub {
       $('#pName', r).onchange = e => { p.name = e.target.value.trim().slice(0, 14) || p.name; saveProfile(); this.renderChip(); };
       $('#pName', r).addEventListener('keydown', e => e.stopPropagation());
       $('#pQ', r).value = S.quality || 'auto';
+      $('#pCj', r).onclick = () => { this.sound?.ui('open'); comoJugar(this.root); };
       $('#pPad', r)?.addEventListener('click', () => import('../mando/mando.js').then(m => m.abrirMando()));   // (en el ordenador: el móvil como mando)
       // (descargar el juego entero: cuánto falta y, al pulsar, el progreso)
       const bt = $('#pTodo', r), nt = $('#pTodoN', r), mb = (n) => Math.round(n / 1e6);
@@ -751,12 +769,17 @@ export class Hub {
         <label class="set">Volumen <input type="range" id="pVol" min="0" max="1" step="0.05" value="${S.volume}"></label></div></section>`;
     let doneM = 0; for (const l of LEVELS) doneM += townProgress(p, l).done;
     return `<h1 class="title">${I('gear', 40)} Perfil y ajustes</h1>
-      <section class="two"><div class="panel prof"><img src="${avatarPortrait(p.avatar, 'hero')}" alt=""><div>
+      <section class="two pf"><div class="panel prof"><img src="${avatarPortrait(p.avatar, 'hero')}" alt=""><div>
         <label>Tu nombre<input id="pName" maxlength="14" value="${esc(p.name)}" autocomplete="off"></label>
         <div class="lvl"><b>Nivel ${L.lv}</b> · ${rankOf(L.lv)}<div class="xp big"><i style="width:${L.cur / L.need * 100}%"></i></div><small>${L.cur}/${L.need} XP para el siguiente nivel</small></div>
         <div class="pstats"><span>${I('stamp', 26)} ${cnt(stampCount(p), 'sello', 'sellos')}</span><span>${I('check', 26)} ${cnt(doneM, 'misión', 'misiones')}</span><span>${I('book', 26)} ${cnt(p.cards.length, 'carta', 'cartas')}</span><span>${I('peak', 26)} ${cnt(p.peaks.length, 'cima', 'cimas')}</span><span>${I('binoculars', 26)} ${cnt(p.species.length, 'especie', 'especies')}</span><span>${I('ribbon', 26)} ${sal?.ribbons?.length || 0}/8 cintas de Muskilda</span></div>
         <button class="btn" data-go="avatars">${I('person', 22)} Cambiar personaje</button></div></div>
-      <div class="panel"><h2>${I('gear', 30)} Ajustes</h2>${mode}
+      <div class="panel pjugar"><h2>${I('play', 30)} Cómo jugar</h2>
+        <button class="btn" id="pCj">${I('play', 22)} Cómo jugar e instalar</button><p class="set-note">En el ordenador, con el móvil de mando o en el móvil: los pasos de cada forma y sus botones para instalar el juego o la app Mando.</p>
+        ${TACTIL ? '' : `<button class="btn" id="pPad">${I('control', 22)} Usar el móvil como mando</button><p class="set-note">El móvil hace de mando por la wifi, sin instalar nada: el ordenador te enseña un código para escanearlo con la cámara.</p>`}
+        ${puedeDescargar() ? `<button class="btn" id="pTodo">${I('home', 22)} <span>Descargar el juego entero</span></button><p class="set-note" id="pTodoN">Todo se guarda en este ordenador: los pueblos y los minijuegos abren sin esperar a internet, y se puede jugar sin conexión.</p>` : ''}
+      </div>
+      <div class="panel pajustes"><h2>${I('gear', 30)} Ajustes</h2>${mode}
         <label class="set">Edad <select id="pAge">${EDADES.map(e => `<option value="${e.id}">${e.name}</option>`).join('')}</select></label>
         <p class="set-note">${esc(EDADES.find(e => e.id === edadDe(p)).text)}. Cambiar de edad no borra nada de lo que ya has hecho.</p>
         <label class="set">Idioma <select id="pLang"><option value="eu">Euskara</option><option value="es">Castellano</option><option value="learn">Aprende euskera</option></select></label>
@@ -764,8 +787,6 @@ export class Hub {
         <label class="set">Volumen <input type="range" id="pVol" min="0" max="1" step="0.05" value="${S.volume}"></label>
         <label class="set">Calidad gráfica <select id="pQ"><option value="auto">Automática</option><option value="low">Baja (más fluido)</option><option value="mid">Media</option><option value="high">Alta</option></select></label>
         <p class="hint">Controles: WASD o flechas para caminar, ratón para mirar, E para hablar, Espacio para saltar, Mayús para correr. En móvil: arrastra a la izquierda para caminar y a la derecha para mirar. También vale un mando de consola.</p>
-        ${TACTIL ? '' : `<button class="btn" id="pPad">${I('control', 22)} Usar el móvil como mando</button><p class="set-note">El móvil hace de mando por la wifi, sin instalar nada: el ordenador te enseña un código para escanearlo con la cámara.</p>`}
-        ${puedeDescargar() ? `<button class="btn" id="pTodo">${I('home', 22)} <span>Descargar el juego entero</span></button><p class="set-note" id="pTodoN">Todo se guarda en este ordenador: los pueblos y los minijuegos abren sin esperar a internet, y se puede jugar sin conexión.</p>` : ''}
         <button class="btn danger" id="pReset">Borrar todo el progreso</button></div></section>`;
   }
 

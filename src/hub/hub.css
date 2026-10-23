@@ -162,7 +162,10 @@
 .sg:hover { transform: translateX(3px); background: rgba(255, 255, 255, .08); border-color: var(--line2); }
 /* (el rombo girado ocupa 2,5 px más a cada lado: con el margen, lo que se ve queda a 16 px del borde, como el resto) */
 .sg .dot { width: 12px; height: 12px; margin: 0 2.5px; transform: rotate(45deg); border-radius: 2px; background: var(--c); box-shadow: 0 0 10px var(--c); flex: none; }
-.sg div { flex: 1; min-width: 0; } .sg b { display: block; } .sg small { color: var(--mute); }
+.sg div { flex: 1; min-width: 0; } .sg b { display: block; } .sg small { color: var(--mute); } .sg[hidden] { display: none; }
+/* (en dos columnas, la lista de «Te esperan» no manda en el alto: llena el que da el mapa de al lado, con los pueblos que
+   quepan enteros; en una columna, cuatro) */
+@media (min-width: 761px) { .next-panel { display: flex; flex-direction: column; } .next-panel .sugg { flex: 1 1 0; contain: size; overflow: hidden; } }
 
 /* comarcas */
 .comarcas { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: var(--hueco-m); }
@@ -295,7 +298,7 @@
 .pmeta { display: flex; gap: 12px; align-items: center; font-size: var(--fs-sm); color: var(--mute); flex-wrap: wrap; } .pmeta span { display: inline-flex; align-items: center; gap: 4px; }
 .diff i { display: inline-block; width: 9px; height: 9px; transform: rotate(45deg); border-radius: 2px; background: #ff8c42; margin-right: 4px; } .diff i.o { background: rgba(255, 255, 255, .15); }
 .pcard p { margin: 0; font-size: var(--fs-sm); color: var(--mute); font-weight: 600; }
-.pcard .btn { align-self: flex-start; margin-top: 4px; }
+.pcard .btn { align-self: flex-start; margin-top: auto; }   /* (al pie: en una fila, todos los botones a la misma altura) */
 
 /* ---------- Naturaleza ---------- */
 .species { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr)); gap: 8px; }
@@ -336,7 +339,9 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .bcard b { display: block; font-size: var(--fs-md); } .bcard:not(.on) b { color: var(--mute); } .bcard p { margin: 4px 0 0; font-size: var(--fs-sm); color: var(--mute); font-weight: 600; }
 
 /* ---------- Pasaporte ---------- */
-.passport { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr)); gap: 16px; }
+/* (las páginas, en columnas que se rellenan de arriba abajo: cada una a la medida de sus sellos, sin el hueco que dejaba
+   una fila igualada a la comarca con más pueblos) */
+.passport { columns: 290px; gap: 16px; } .passport > .ppage { break-inside: avoid; margin-bottom: 16px; }
 .ppage { padding: 16px; border-radius: 16px; background: linear-gradient(160deg, color-mix(in srgb, var(--c) 18%, #32136f), #1c0b3a 75%); color: var(--ink); border: 1px solid var(--line2); box-shadow: 0 10px 24px rgba(0, 0, 0, .35); }
 .ppage header { display: flex; align-items: center; gap: 12px; } .ppage header img { width: 66px; height: 66px; object-fit: contain; }
 .ppage header div { display: flex; flex-direction: column; }
@@ -349,7 +354,12 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 
 /* ---------- Perfil ---------- */
 .prof { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
-.two > .panel:has(> .prof) { align-self: start; }   /* (la tarjeta del perfil, a la medida de lo que lleva: sin un hueco vacío debajo para igualar los ajustes) */
+/* (perfil y ajustes: a la izquierda, quién juega y debajo cómo jugar; a la derecha, los ajustes. Así las dos columnas
+   quedan parejas y ninguna tarjeta se estira con un hueco vacío debajo) */
+.two.pf { grid-template-areas: "p a" "j a"; grid-template-rows: auto 1fr; align-items: start; }
+.two.pf > .prof { grid-area: p; } .two.pf > .pjugar { grid-area: j; } .two.pf > .pajustes { grid-area: a; }
+.pjugar { display: flex; flex-direction: column; gap: 8px; } .pjugar h2 { margin-bottom: 4px; }
+@media (max-width: 760px) { .two.pf { grid-template-areas: "p" "j" "a"; grid-template-rows: none; } }
 .hub-nav button span { max-width: 100%; overflow-x: clip; overflow-y: visible; text-overflow: ellipsis; white-space: nowrap; }   /* (se recorta solo a lo ancho: lo que baja de la línea, como la «j» de «Personajes», se ve entero) */ .prof > img { height: 240px; filter: drop-shadow(0 12px 14px rgba(0, 0, 0, .5)); }
 .prof > div { flex: 1 1 220px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .prof label, .onb label { display: flex; flex-direction: column; gap: 8px; color: var(--mute); font-size: var(--fs-sm); letter-spacing: .04em; text-transform: uppercase; font-weight: 900; }
@@ -957,6 +967,43 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .enc-live.on { display: flex; }
 .enc-live i { width: 10px; height: 10px; border-radius: 50%; background: #ff2a2a; box-shadow: 0 0 8px #ff2a2a; animation: encLive 1s steps(2) infinite; }
 @keyframes encLive { 50% { opacity: .25; } }
+
+/* ¿cómo quieres jugar? (comojugar.js): las tres formas, cada una con sus pasos y sus botones; en fila en el ordenador y
+   en la tele, una debajo de otra en el móvil de pie. La del aparato en el que se está, marcada en rosa */
+.cj { display: grid; z-index: 42; }
+.cj-in { width: min(1240px, 100%); margin: auto; display: flex; flex-direction: column; gap: 16px; padding: 8px 0; }
+.cj-head { text-align: center; } .cj-head .kicker { margin: 0 auto; }
+.cj-head h2 { margin: 4px 0 8px; font: 400 var(--fs-3xl)/1.05 var(--f-display); text-transform: uppercase; color: #fff; }
+.cj-head p { margin: 0 auto; max-width: 640px; color: var(--mute); font-size: var(--fs-md); font-weight: 700; line-height: 1.4; }
+.cj-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
+.cj-card { position: relative; display: flex; flex-direction: column; gap: 12px; min-width: 0; padding: 16px 20px 20px; border-radius: 18px; background: rgba(20, 10, 40, .72); border: 2px solid var(--line2); }
+.cj-card.aqui { border-color: #ff7ac8; box-shadow: 0 0 0 4px rgba(255, 122, 200, .14); }
+.cj-top { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.cj-ico { flex: none; width: 52px; height: 52px; display: grid; place-items: center; border-radius: 14px; background: linear-gradient(135deg, #ff2bd6, #7b2ff7); color: #fff; } .cj-ico svg { width: 34px; height: 34px; }
+.cj-top h3 { flex: 1; min-width: 0; margin: 0; font: 400 var(--fs-xl)/1.05 var(--f-display); text-transform: uppercase; color: #fff; }
+.cj-aqui { position: absolute; top: -12px; right: 16px; padding: 4px 10px; border-radius: 999px; background: #ff7ac8; color: #1e0a44; font: 900 var(--fs-xs)/1.2 Nunito, sans-serif; letter-spacing: .04em; text-transform: uppercase; }
+.cj-txt { margin: 0; color: #ece4ff; font-size: var(--fs-sm); font-weight: 700; line-height: 1.4; }
+.cj-pasos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.cj-pasos li { display: flex; align-items: flex-start; gap: 12px; }
+.cj-n { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--cyan, #c9b2ff); color: #1e0a44; font: 900 var(--fs-sm)/1 Nunito, sans-serif; }
+.cj-pasos b { display: block; color: #fff; font-size: var(--fs-md); line-height: 1.25; } .cj-pasos small { display: block; color: var(--mute); font-size: var(--fs-sm); font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
+.cj-qr { display: flex; align-items: center; gap: 12px; } .cj-qr small { min-width: 0; color: var(--mute); font-size: var(--fs-xs); font-weight: 700; overflow-wrap: anywhere; }
+.cj-qrimg { flex: none; width: 128px; height: 128px; border-radius: 10px; background: #fff; } .cj-qrimg svg { display: block; width: 100%; height: 100%; }
+.cj-btns { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
+.cj .btn { min-height: 48px; text-decoration: none; color: #fff; } .cj .btn svg { width: 22px; height: 22px; }
+.cj-hecho { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; color: #3ee07a; font-weight: 900; } .cj-hecho svg { width: 22px; height: 22px; }
+.cj-cards { padding-top: 12px; }   /* (sitio para la etiqueta «Estás aquí», que asoma por arriba) */
+.cj-foot { position: sticky; z-index: 1; bottom: calc(-16px - env(safe-area-inset-bottom, 0px)); display: flex; justify-content: center; padding: 12px 0 calc(16px + env(safe-area-inset-bottom, 0px)); } .cj-foot .btn { min-width: 240px; }   /* (siempre a la vista, abajo) */
+.cj-foot::before { content: ''; position: absolute; z-index: -1; top: 0; bottom: -48px; left: calc(50% - 50vw / var(--z, 1)); right: calc(50% - 50vw / var(--z, 1)); background: linear-gradient(180deg, transparent, rgba(12, 9, 20, .9) 45%); pointer-events: none; }   /* (su fondo, de lado a lado: lo de debajo se ve pasar sin estorbar) */
+.app-sheet { z-index: 45; }   /* (los pasos de instalar, encima de esta pantalla) */
+@media (orientation: portrait) and (max-width: 900px), (max-width: 700px) { .cj-cards { grid-template-columns: minmax(0, 1fr); } .cj-head h2 { font-size: var(--fs-2xl); } }
+/* (móvil tumbado, con poca altura: más justas, para ver más de un vistazo) */
+@media (orientation: landscape) and (max-height: 560px) {
+  .cj-in { gap: 12px; } .cj-head h2 { font-size: var(--fs-2xl); margin: 0 0 4px; } .cj-head p { font-size: var(--fs-sm); }
+  .cj-cards { gap: 12px; } .cj-card { padding: 12px 12px 16px; gap: 8px; } .cj-ico { width: 40px; height: 40px; border-radius: 12px; } .cj-ico svg { width: 26px; height: 26px; }
+  .cj-top { gap: 8px; } .cj-top h3 { font-size: var(--fs-lg); } .cj-pasos b { font-size: var(--fs-sm); } .cj-pasos small { font-size: var(--fs-xs); }
+  .cj-qrimg { width: 96px; height: 96px; } .cj .btn { min-height: 44px; padding: 8px 12px; }
+}
 
 /* primera pantalla: elegir idioma */
 .langpick { display: grid; place-items: center; }
