@@ -374,7 +374,7 @@ export class Encierro {
     if (zone) {
       const R = 56;
       zone.addEventListener('pointerdown', (e) => {
-        if (this.stick.id !== null) return; e.preventDefault();
+        if (this.stick.id === e.pointerId) return; e.preventDefault();   // (otro dedo manda él: así un dedo enganchado se arregla tocando otra vez)
         this.stick = { id: e.pointerId, ox: e.clientX, oy: e.clientY, x: 0, y: 0 }; try { zone.setPointerCapture?.(e.pointerId); } catch { /* (un puntero sintético de las pruebas) */ }
         const zr = zone.getBoundingClientRect(); knob.style.display = 'block'; knob.style.left = (e.clientX - zr.left) + 'px'; knob.style.top = (e.clientY - zr.top) + 'px'; knob.firstElementChild.style.transform = '';
         h.querySelector('.enc-stickhint')?.remove();

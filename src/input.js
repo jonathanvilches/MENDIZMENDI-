@@ -29,6 +29,11 @@ export class Input {
     addEventListener('pointermove', e => this.moveP(e));
     addEventListener('pointerup', e => this.up(e));
     addEventListener('pointercancel', e => this.up(e));
+    // (si el dedo se levanta sin que llegue su «soltar», por un gesto del sistema o un aviso encima, al no quedar ningún dedo
+    // en la pantalla se suelta todo; y al irse la página, también: si no, el explorador seguía andando solo)
+    const sinDedos = (e) => { if (e.touches.length) return; if (this.stick.id !== null) this.stickEnd(); this.lookPtr.id = null; };
+    addEventListener('touchend', sinDedos, true); addEventListener('touchcancel', sinDedos, true);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) return; this.keys.clear(); if (this.stick.id !== null) this.stickEnd(); this.lookPtr.id = null; });
   }
   down(e) {
     if (!this.enabled) return;

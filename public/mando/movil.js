@@ -154,6 +154,7 @@ function abierto() {
   conectado = true; intentos = 0; clearTimeout(espera); clearTimeout(pasoT); clearTimeout(tardaT);
   if (dc?.readyState === 'open') { relevo = false; sig?.close(); sig = null; }   // (ya hablan directamente: el saludo sobra)
   if (ya) { estado(); return; }
+  envia({ t: 'repite' });   // (desde ahora el ordenador suelta lo que no se repita: ver «lo que se mantiene, se repite»)
   msg(''); $('#go').disabled = false; vista(true); estado(); despierta(); ofrece();
 }
 function caido() {
@@ -164,7 +165,12 @@ function caido() {
   if (intentos++ < 6 || auto) setTimeout(() => { if (!conectado && !cerrado) { $('#code').value = code; conectar(); } }, 1000);
   else { vista(false); msg(NOHAY, true); pantalla(false); }
 }
-const envia = (m) => { if (dc?.readyState === 'open') dc.send(JSON.stringify(m)); else if (relevo) sig?.send('hzh-' + code, 'DATA', m); };
+// (la palanca y los botones van numerados: por el saludo pueden llegar desordenados y el ordenador se queda con el más nuevo)
+let sec = 0;
+const envia = (m) => {
+  if (m.t === 'ej' || m.t === 'bt' || m.t === 'esp') m = { ...m, s: ++sec };
+  if (dc?.readyState === 'open') dc.send(JSON.stringify(m)); else if (relevo) sig?.send('hzh-' + code, 'DATA', m);
+};
 // (por el saludo no hay aviso de corte: si el ordenador no contesta en 8 s —se le pregunta cada 2—, se ha ido)
 setInterval(() => { if (relevo && conectado && performance.now() - oido > 8000) caido(); }, 2000);
 // lo que dice el ordenador
@@ -379,7 +385,8 @@ izq.addEventListener('pointerdown', (e) => {
   if (e.target.closest('button')) return;
   e.preventDefault(); try { izq.setPointerCapture(e.pointerId); } catch (er) { }
   if (C.pal) {
-    if (st) return;
+    // (otro dedo en la palanca manda él: si el anterior se quedó enganchado sin su «soltar», tocar otra vez lo arregla)
+    if (st) { if (e.pointerId === st.id) return; paraPalanca(); }
     const r = izq.getBoundingClientRect(); st = { id: e.pointerId, ox: e.clientX, oy: e.clientY };
     knob.style.left = (e.clientX - r.left) + 'px'; knob.style.top = (e.clientY - r.top) + 'px'; knob.classList.remove('hide'); base.classList.add('activa'); empuja(e);
   } else if (C.tac) toques.set(e.pointerId, { x: e.clientX, y: e.clientY, t: performance.now(), mov: 0 });
@@ -391,12 +398,34 @@ izq.addEventListener('pointermove', (e) => {
     if (toques.size >= 2) rue += dy / toques.size; else { cur.dx += dx; cur.dy += dy; }   // (dos dedos: desplazar la lista)
   }
 });
+// (al soltar, el «quieto» se manda tres veces, por si alguno se pierde por el camino: si no, el jugador seguía andando
+// hacia donde apuntaba el pulgar)
+let quieto = [];
+function paraPalanca() {
+  if (!st) return;
+  st = null; knob.classList.add('hide'); bola.style.transform = ''; base.classList.remove('activa'); ej = { x: 0, y: 0 }; ejSucio = false;
+  envia({ t: 'ej', x: 0, y: 0 }); quieto.forEach(clearTimeout);
+  quieto = [150, 450].map(ms => setTimeout(() => { if (!st) envia({ t: 'ej', x: 0, y: 0 }); }, ms));
+}
 const sueltaIzq = (e) => {
-  if (st && e.pointerId === st.id) { st = null; knob.classList.add('hide'); bola.style.transform = ''; base.classList.remove('activa'); ej = { x: 0, y: 0 }; envia({ t: 'ej', x: 0, y: 0 }); ejSucio = false; }
+  if (st && e.pointerId === st.id) paraPalanca();
   const p = toques.get(e.pointerId);
   if (p) { toques.delete(e.pointerId); if (e.type === 'pointerup' && p.mov < 12 && performance.now() - p.t < 350 && !toques.size) { vibra(8); envia({ t: 'clic' }); } }
 };
-izq.addEventListener('pointerup', sueltaIzq); izq.addEventListener('pointercancel', sueltaIzq);
+izq.addEventListener('pointerup', sueltaIzq); izq.addEventListener('pointercancel', sueltaIzq); izq.addEventListener('lostpointercapture', sueltaIzq);
+// (en el iPhone, a veces el «soltar» no llega a la zona: un gesto del sistema desde el borde, un aviso encima o el dedo que
+// sale de la pantalla. Se suelta también desde la ventana y cuando ningún dedo queda dentro de la mitad izquierda)
+addEventListener('pointerup', sueltaIzq, true); addEventListener('pointercancel', sueltaIzq, true);
+const sinDedos = (e) => {
+  if (!st) return; const r = izq.getBoundingClientRect();
+  for (const t of e.touches) if (t.clientX >= r.left && t.clientX <= r.right && t.clientY >= r.top && t.clientY <= r.bottom) return;
+  paraPalanca();
+};
+addEventListener('touchend', sinDedos, true); addEventListener('touchcancel', sinDedos, true);
+// (si la página se va, por una llamada, otra app o el bloqueo, todo suelto)
+const sueltaYa = () => { paraPalanca(); toques.clear(); soltarTodo(); };
+addEventListener('blur', sueltaYa); addEventListener('pagehide', sueltaYa);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState !== 'visible') sueltaYa(); });
 
 // ---------- derecha: arrastrar fuera de los botones gira la cámara ----------
 const der = $('#der'); let mi = null, acc = { dx: 0, dy: 0 };
@@ -405,9 +434,14 @@ der.addEventListener('pointermove', (e) => { if (!mi || e.pointerId !== mi.id) r
 const sueltaMi = (e) => { if (mi && e.pointerId === mi.id) mi = null; };
 der.addEventListener('pointerup', sueltaMi); der.addEventListener('pointercancel', sueltaMi);
 // (la palanca, la cámara y la flecha, unas 30 veces por segundo y solo si cambian)
+// lo que se mantiene, se repite: la palanca fuera del centro cada 0,3 s y los botones apretados cada 0,5 s. El ordenador
+// suelta lo que no se repita en 1,5 s; así un «soltar» perdido por el camino ya no deja nada pulsado
+let ejT = 0, btT = 0;
 setInterval(() => {
   if (!conectado) return;
-  if (ejSucio) { envia({ t: 'ej', x: ej.x, y: ej.y }); ejSucio = false; }
+  const n = performance.now();
+  if (ejSucio || (st && (ej.x || ej.y) && n - ejT > 300)) { envia({ t: 'ej', x: ej.x, y: ej.y }); ejSucio = false; ejT = n; }
+  if (n - btT > 500) { btT = n; for (const [, m] of pulsados) envia({ ...m, d: 1 }); }
   if (acc.dx || acc.dy) { envia({ t: 'mira', dx: acc.dx, dy: acc.dy }); acc = { dx: 0, dy: 0 }; }
   if (cur.dx || cur.dy) { envia({ t: 'cur', dx: cur.dx, dy: cur.dy }); cur = { dx: 0, dy: 0 }; }
   if (Math.abs(rue) >= 1) { envia({ t: 'rueda', dy: -Math.round(rue) * 3 }); rue = 0; }

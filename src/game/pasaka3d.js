@@ -401,7 +401,8 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
     addEventListener('keydown', onKey, true); addEventListener('keyup', onKey, true);
     const zone = $('.pel-stick'), knob = $('.pel-knob'), RK = 56;
     const resetStick = () => { stick = { id: null, x: 0, y: 0 }; knob.style.display = 'none'; };
-    zone.addEventListener('pointerdown', (e) => { if (stick.id !== null) return; e.preventDefault(); const zr = zone.getBoundingClientRect(); stick = { id: e.pointerId, ox: e.clientX, oy: e.clientY, x: 0, y: 0 }; knob.style.display = 'block'; knob.style.left = (e.clientX - zr.left) + 'px'; knob.style.top = (e.clientY - zr.top) + 'px'; knob.firstElementChild.style.transform = ''; $('.pel-stickhint')?.remove(); });
+    zone.addEventListener('pointerdown', (e) => { if (stick.id === e.pointerId) return; e.preventDefault();   // (otro dedo manda él: un dedo enganchado se arregla tocando otra vez)
+      const zr = zone.getBoundingClientRect(); stick = { id: e.pointerId, ox: e.clientX, oy: e.clientY, x: 0, y: 0 }; knob.style.display = 'block'; knob.style.left = (e.clientX - zr.left) + 'px'; knob.style.top = (e.clientY - zr.top) + 'px'; knob.firstElementChild.style.transform = ''; $('.pel-stickhint')?.remove(); });
     const onPtrMove = (e) => { if (e.pointerId !== stick.id) return; let dx = e.clientX - stick.ox, dy = e.clientY - stick.oy; const d = Math.hypot(dx, dy); if (d > RK) { dx *= RK / d; dy *= RK / d; } stick.x = dx / RK; stick.y = -dy / RK; knob.firstElementChild.style.transform = `translate(${dx}px,${dy}px)`; };
     const endStick = (e) => { if (e.pointerId === stick.id) resetStick(); };
     addEventListener('pointermove', onPtrMove, true); addEventListener('pointerup', endStick, true); addEventListener('pointercancel', endStick, true);

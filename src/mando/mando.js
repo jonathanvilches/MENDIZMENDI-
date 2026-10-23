@@ -6,7 +6,7 @@
 // la pelota o el fútbol y, en cada minijuego, una copia de sus botones de la pantalla, con un panel táctil para lo demás.
 // La sesión sigue abierta al pasar del menú al pueblo y vuelta: el móvil se puede volver a conectar con el mismo código.
 import { senal, ICE, SENAL_PRUEBA, SIN_P2P, CAMINOS, nuevoSecreto } from './senal.js';
-import { PAD, VPAD, mandoMovil, botonMovil } from './pad.js';
+import { PAD, mandoMovil, botonMovil, palancaMovil, vigilaMovil } from './pad.js';
 import { ctxActual, ctxMovil, misMovil, seguirMision } from './contextos.js';
 import { mueve, clic, rueda, pulsar } from './cursor.js';
 import { isEU } from '../i18n.js';
@@ -84,7 +84,7 @@ export function esperarMovil() { if (guardado()?.emparejado && !S.sig && !(typeo
 // (sin ningún camino: se vuelve a probar solo cada 5 s, con el mismo código, mientras el panel siga abierto o se espere al
 // móvil de siempre)
 function otraVez() { clearTimeout(S.otra); S.otra = setTimeout(() => { if ((S.ui || S.auto) && !S.sig) empezar(); }, 5000); }
-function cerrarPc() { try { S.dc?.close(); } catch (e) { } try { S.pc?.close(); } catch (e) { } S.dc = S.pc = null; S.relevo = false; mandoMovil(false); }
+function cerrarPc() { try { S.dc?.close(); } catch (e) { } try { S.pc?.close(); } catch (e) { } S.dc = S.pc = null; S.relevo = false; mandoMovil(false); sueltaCopia(); }
 /** Lo que llega por el servidor de saludo: la oferta del móvil y sus rutas de red. */
 async function recibe(m) {
   // (el mando por el saludo, cuando no han podido hablar directamente: el móvil lo pide mandando por aquí)
@@ -137,7 +137,7 @@ function abre(dc) {
   dc.onmessage = (e) => { let m; try { m = JSON.parse(e.data); } catch (er) { return; } usa(m); };
 }
 // conectado: el panel lo dice, el móvil recibe el idioma y sus botones, y el panel se cierra solo
-function listo() { S.estado = 'ok'; S.ctx = S.mis = ''; mandoMovil(true); envia({ t: 'hola', lang: isEU() ? 'eu' : 'es' });
+function listo() { S.estado = 'ok'; S.ctx = S.mis = ''; ultimo.clear(); mandoMovil(true); envia({ t: 'hola', lang: isEU() ? 'eu' : 'es' });
   guardar({ code: S.code, secreto: S.secreto, emparejado: true }); pareja(); pinta(); setTimeout(() => { if (S.estado === 'ok' && !S.pide) cierraPanel(); }, 1600); }
 // (el móvil se queda con este ordenador: el código y su secreto, solo por la conexión directa, que va cifrada de punta a
 // punta; si entró con el código a mano, la próxima vez entra directamente, sin pedir permiso)
@@ -147,15 +147,36 @@ const envia = (m) => { if (S.dc?.readyState === 'open') S.dc.send(JSON.stringify
 setInterval(() => { if (S.relevo && S.estado === 'ok' && performance.now() - S.vivo > 8000) caido(); }, 2000);
 /** Lo que manda el móvil: la palanca, el giro de cámara, los botones del mando, los botones copiados de la pantalla y el
  *  panel táctil (mover la flecha, tocar y desplazar con dos dedos). */
+// (los botones de la copia que el móvil tiene apretados: el botón de verdad y la última vez que el móvil dijo que seguía.
+// Si el móvil repite y deja de decirlo 1,5 s, el «soltar» se ha perdido y se suelta aquí; y al cortarse, también)
 const apretados = new Map();
+let repite = false;
+function sueltaEsp(n) { const a = apretados.get(n); apretados.delete(n); if (a) pulsar(a.b, false); }
+function sueltaCopia() { for (const n of [...apretados.keys()]) sueltaEsp(n); repite = false; }
+setInterval(() => { if (!repite) return; const t = performance.now(); for (const [n, a] of apretados) if (t - a.t > 1500) sueltaEsp(n); }, 500);
+// (por el saludo, lo del móvil puede llegar desordenado: va por dos caminos, cada uno a su paso. De la palanca y de cada
+// botón vale solo lo más nuevo, por su número; si no, un «pulsado» que llegaba después de su «soltar» lo dejaba pulsado)
+const ultimo = new Map();
+function nuevo(m) {
+  if (typeof m.s !== 'number') return true;   // (un móvil de antes no los numera)
+  const k = m.t === 'ej' ? 'ej' : m.t + (m.t === 'bt' ? m.i : m.n);
+  if (m.s <= (ultimo.get(k) ?? -1)) return false;
+  ultimo.set(k, m.s); return true;
+}
 function usa(m) {
   const n = (v, a = 1) => Math.max(-a, Math.min(a, +v || 0));
-  if (m.t === 'ej') { VPAD.axes[0] = n(m.x); VPAD.axes[1] = -n(m.y); VPAD.timestamp = performance.now(); }
+  if ((m.t === 'ej' || m.t === 'bt' || m.t === 'esp') && !nuevo(m)) return;
+  if (m.t === 'ej') palancaMovil(n(m.x), n(m.y));
+  else if (m.t === 'repite') { vigilaMovil(true); repite = true; }   // (el móvil repite lo que mantiene pulsado: lo que no se repita, se suelta)
   else if (m.t === 'mira') { PAD.lx += n(m.dx, 400) * 2; PAD.ly += n(m.dy, 400) * 2; }
   else if (m.t === 'bt') botonMovil(+m.i, !!m.d);
   else if (m.t === 'esp') {   // (el botón n de la copia: se apoya y se levanta el dedo sobre el botón de verdad)
-    if (m.d) { const b = ctxActual().esp[m.n]?.el; if (b) { apretados.set(m.n, b); pulsar(b, true); } }
-    else { const b = apretados.get(m.n); apretados.delete(m.n); if (b) pulsar(b, false); }
+    if (!m.d) sueltaEsp(m.n);
+    else {   // (la repetición de uno que ya está apretado solo dice que sigue)
+      const b = ctxActual().esp[m.n]?.el, a = apretados.get(m.n);
+      if (a && a.b === b) a.t = performance.now();
+      else { if (a) sueltaEsp(m.n); if (b) { apretados.set(m.n, { b, t: performance.now() }); pulsar(b, true); } }
+    }
   }
   else if (m.t === 'cur') mueve(n(m.dx, 400) * 1.8, n(m.dy, 400) * 1.8);
   else if (m.t === 'clic') clic();
