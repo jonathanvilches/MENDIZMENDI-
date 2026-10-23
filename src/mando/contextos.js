@@ -11,10 +11,11 @@
 // copiados para la página del mando en public/mando/iconos (la dejada, con la mano; la cortada y el globo, con la pelota
 // con efecto; coser, con el ovillo)
 // (en el móvil, fijo son los que se quedan puestos al tocarlos, como Correr; der, los de hombro que van con los de acción,
-// a la derecha, y no arriba con los de sistema; estilo, que el móvil pinte los mismos botones que la pantalla del fútbol o
-// de la pelota, con su forma, su color y su sitio)
+// a la derecha, y no arriba con los de sistema; arriba, los de acción que se usan poco y van arriba con los de sistema,
+// como la mochila y los prismáticos, para dejar sitio a hablar, saltar y correr; estilo, que el móvil pinte los mismos
+// botones que la pantalla del fútbol o de la pelota, con su forma, su color y su sitio)
 const FIJOS = {
-  juego: { tit: 'En el pueblo', pal: 'andar', mira: true, b: { 0: ['Acción', 'e', 'talk'], 1: ['Saltar', ' ', 'jump'], 2: ['Prismáticos', 'f', 'binoculars'], 3: ['Mochila', 'b', 'backpack'], 4: ['Cuaderno', 'c', 'book'], 5: ['Mapa', 'm', 'map'], 7: ['Correr', 'Shift', 'run'], 8: ['Perro', 'h', 'dog'], 9: ['Menú', 'Escape', 'menu'] }, fijo: [7] },
+  juego: { tit: 'En el pueblo', pal: 'andar', mira: true, b: { 0: ['Acción', 'e', 'talk'], 1: ['Saltar', ' ', 'jump'], 2: ['Prismáticos', 'f', 'binoculars'], 3: ['Mochila', 'b', 'backpack'], 4: ['Cuaderno', 'c', 'book'], 5: ['Mapa', 'm', 'map'], 7: ['Correr', 'Shift', 'run'], 8: ['Perro', 'h', 'dog'], 9: ['Menú', 'Escape', 'menu'] }, fijo: [7], arriba: [3, 2] },
   encierro: { tit: 'El encierro', pal: 'andar', mira: true, b: { 0: ['Saltar', ' ', 'jump'], 3: ['Cámara', 'c', 'camera'], 7: ['Correr', 'Shift', 'run'] }, fijo: [7] },
   bino: { tit: 'Prismáticos', mira: true, b: { 0: ['Anotar', 'e', 'pen'], 1: ['Salir', 'f', 'close'] } },
   dialogo: { tit: 'Hablando', b: { 0: ['Seguir', 'e', 'play'] } },
@@ -45,7 +46,7 @@ function botones(root) {
   const cierra = L.filter(x => CERRAR.test(x.t)), resto = L.filter(x => !CERRAR.test(x.t));
   return [...resto.slice(0, 8 - Math.min(1, cierra.length)), ...cierra.slice(0, 1)];
 }
-function fijo(m, extra = {}) { const F = FIJOS[m]; return { m, tit: F.tit, pal: F.pal || '', mira: !!F.mira, tac: false, nativo: !!F.nativo, b: F.b, fijo: F.fijo || [], der: F.der || [], estilo: F.estilo || '', esp: [], ...extra }; }
+function fijo(m, extra = {}) { const F = FIJOS[m]; return { m, tit: F.tit, pal: F.pal || '', mira: !!F.mira, tac: false, nativo: !!F.nativo, b: F.b, fijo: F.fijo || [], der: F.der || [], arriba: F.arriba || [], estilo: F.estilo || '', esp: [], ...extra }; }
 function espejo(m, root, tit) {
   const esp = botones(root), prim = esp.find(x => x.el.matches('.primary, .go, [data-go], .pel-go:not(.alt)')) || esp.find(x => !CERRAR.test(x.t)) || esp[0];
   const h = root.querySelector('h1, h2, h3');
@@ -86,5 +87,5 @@ let C = null, t = 0;
 export function ctxActual() { const n = performance.now(); if (!C || n - t > 200) { C = calcula(); t = n; } return C; }
 /** Lo que se le cuenta al móvil: los nombres de los botones, sin las teclas ni los elementos de la página. */
 export function ctxMovil(c = ctxActual()) {
-  return { t: 'ctx', m: c.m, tit: c.tit, pal: c.pal, mira: c.mira, tac: c.tac, fijo: c.fijo, der: c.der || [], estilo: c.estilo || '', modo: c.modo || '', jugar: !!c.jugar, b: Object.fromEntries(Object.entries(c.b).map(([i, [n]]) => [i, n])), ic: Object.fromEntries(Object.entries(c.b).filter(([, x]) => x[2]).map(([i, x]) => [i, x[2]])), esp: c.esp.map(x => x.t) };
+  return { t: 'ctx', m: c.m, tit: c.tit, pal: c.pal, mira: c.mira, tac: c.tac, fijo: c.fijo, der: c.der || [], arriba: c.arriba || [], estilo: c.estilo || '', modo: c.modo || '', jugar: !!c.jugar, b: Object.fromEntries(Object.entries(c.b).map(([i, [n]]) => [i, n])), ic: Object.fromEntries(Object.entries(c.b).filter(([, x]) => x[2]).map(([i, x]) => [i, x[2]])), esp: c.esp.map(x => x.t) };
 }
