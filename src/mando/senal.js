@@ -8,7 +8,8 @@
 //    wifi ni ningún operador
 //  · y ntfy.sh, también por el 443: solo para la oferta y la respuesta (no deja mandar muchos mensajes seguidos)
 // Lo que llega repetido por dos caminos se cuenta una vez (cada mensaje lleva su marca, payload.k). Un camino que se cae, o
-// que no contestó, se vuelve a probar al rato. Si el ordenador y el móvil no consiguen hablar directamente, los mensajes
+// que no contestó, se vuelve a probar al rato, y el saludo no se da nunca por perdido: si se cae el único que había
+// contestado, siguen los que aún estaban llegando (en la calle, PeerJS a veces acepta y se cae enseguida). Si el ordenador y el móvil no consiguen hablar directamente, los mensajes
 // del mando también pueden ir por aquí, con el tipo «DATA», por los caminos que ya han entregado algo del otro.
 // Seguridad: ningún servidor puede leer ni falsificar nada.
 //  · Todo va cifrado y firmado (AES-GCM) por todos los caminos. Los nombres con que se apuntan en los servidores son una
@@ -49,14 +50,14 @@ export const SECRETO = /^[A-Za-z0-9_-]{22}$/;
 
 /** Se apunta con el nombre id (hzh-CÓDIGO en el ordenador, hzh-CÓDIGO-m… en el móvil). Devuelve { send(dst, type,
  *  payload, fuerte), close() } en cuanto un camino lo acepta; falla con 'ID-TAKEN' si el nombre ya está cogido y con
- *  'red' si no contesta ninguno. onMsg recibe lo que otros le mandan: { type, src, payload, fuerte }; onClose, cuando se
- *  caen todos; onEstado, cada vez que un camino cambia: { nombre: 'prueba' | 'ok' | 'mal' }. Con secreto (el del QR), se
+ *  'red' si no contesta ninguno. onMsg recibe lo que otros le mandan: { type, src, payload, fuerte }; onEstado, cada vez
+ *  que un camino cambia: { nombre: 'prueba' | 'ok' | 'mal' }. Con secreto (el del QR), se
  *  manda con él (fuerte) salvo que send diga lo contrario, y se entiende lo que llegue con él o con el código. */
-export function senal(id, onMsg, onClose, onEstado, secreto = '') {
+export function senal(id, onMsg, onEstado, secreto = '') {
   const code = (/^hzh-([0-9A-Z]{5})/.exec(id) || [])[1] || '';
   if (!code || !globalThis.crypto?.subtle) return Promise.reject(new Error('red'));
   return claves(code, secreto).then(K => new Promise((ok, ko) => {
-    const vias = [], visto = new Set(), est = {}, desfase = new Map(), soloEnviado = new Map(); let listo = false, cerrado = false, pend = 0, cogido = false;
+    const vias = [], visto = new Set(), est = {}, desfase = new Map(), soloEnviado = new Map(); let listo = false, cerrado = false, pend = 0, cogido = false; const veces = new Map();
     const pon = (n, e) => { est[n] = e; onEstado?.({ ...est }); };
     // los nombres en cada servidor: una huella del código y, detrás, «pc» para el ordenador o la marca del móvil, «-m…»
     const suyo = (x) => x.slice(('hzh-' + code).length) || 'pc';
@@ -91,10 +92,11 @@ export function senal(id, onMsg, onClose, onEstado, secreto = '') {
     const paraElMando = () => { const vs = vias.filter(x => !x.solo); return [...vs.filter(x => x.oido).sort((a, b) => b.oido - a.oido), ...vs.filter(x => !x.oido)].slice(0, 2); };
     const cae = (v) => {
       const i = vias.indexOf(v); if (i >= 0) vias.splice(i, 1); if (cerrado) return;
-      pon(v.n, 'mal');
-      if (listo && !vias.length) { api.close(); onClose?.(); return; }
-      setTimeout(() => intenta(v.c), 5000);
+      pon(v.n, 'mal'); if (performance.now() - v.t0 > 10000) veces.delete(v.c); otraVez(v.c);
     };
+    // (otra vez al rato: a los 2 s, a los 4, a los 8 y luego cada 15; la cuenta vuelve a empezar si el camino aguanta 10 s:
+    // uno que acepta y se cae enseguida se prueba cada vez menos)
+    const otraVez = (c) => { const n = veces.get(c) || 0; veces.set(c, n + 1); setTimeout(() => intenta(c), [2000, 4000, 8000][n] || 15000); };
     const arranca = (c) => (c.tipo === 'peer' ? peer : c.tipo === 'mqtt' ? mqtt : ntfy)(c, dir[c.tipo](id), recibe, cae);
     const intenta = (c, primera) => {
       if (cerrado || vias.some(v => v.c === c)) return;
@@ -102,12 +104,12 @@ export function senal(id, onMsg, onClose, onEstado, secreto = '') {
       pon(c.n, 'prueba');
       arranca(c).then((v) => {
         if (cerrado) { v.close(); return; }
-        vias.push(v); pon(c.n, 'ok');
+        v.t0 = performance.now(); vias.push(v); pon(c.n, 'ok');
         if (!listo) { listo = true; ok(api); }
       }, (e) => {
         if (e?.message === 'ID-TAKEN') cogido = true;
         if (cerrado) return;
-        pon(c.n, 'mal'); setTimeout(() => intenta(c), 15000);   // (el que no contestó, otra vez al rato)
+        pon(c.n, 'mal'); otraVez(c);
       }).finally(() => { if (primera && --pend === 0 && !listo) { cerrado = true; ko(new Error(cogido ? 'ID-TAKEN' : 'red')); } });
     };
     for (const c of CAMINOS) intenta(c, true);

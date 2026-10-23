@@ -16,7 +16,7 @@ const WEB = 'https://jonathanvilches.github.io/MENDIZMENDI-/';
 const LETRAS = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';   // (sin 0/O ni 1/I/L, que se confunden al escribirlos)
 // (secreto: el del QR; fuerte: si el móvil que manda llegó con él o con el código escrito a mano; pide: la oferta de un
 // móvil que escribió el código y espera permiso; dejados y vetados: los que se aceptaron o se rechazaron)
-const S = { code: '', secreto: '', sig: null, pc: null, dc: null, relevo: false, vivo: 0, estado: 'nada', ctx: '', t: 0, movil: '', fuerte: false, pide: null, dejados: new Set(), vetados: new Set(), ui: null, pill: null, vias: {}, otra: 0 };
+const S = { code: '', secreto: '', of: '', respuesta: null, sig: null, pc: null, dc: null, relevo: false, vivo: 0, estado: 'nada', ctx: '', t: 0, movil: '', fuerte: false, pide: null, dejados: new Set(), vetados: new Set(), ui: null, pill: null, vias: {}, otra: 0 };
 
 const CSS = `
 .mnd-ov{position:fixed;inset:0;z-index:9500;display:grid;place-items:center;padding:16px;background:rgba(7,2,15,.72);font-family:Nunito,system-ui,sans-serif;color:#f6f3fc}
@@ -63,14 +63,16 @@ async function empezar() {
   if (S.sig || S.estado === 'prep') return;
   S.estado = 'prep'; clearTimeout(S.otra);
   for (let n = 0; n < 4 && !S.sig; n++) {
-    S.code = [...crypto.getRandomValues(new Uint32Array(5))].map(x => LETRAS[x % LETRAS.length]).join(''); S.secreto = nuevoSecreto(); pinta();   // (el QR, ya)
-    try { S.sig = await senal('hzh-' + S.code, recibe, () => { S.sig = null; if (S.estado !== 'ok') { S.estado = 'mal'; pinta(); otraVez(); } }, (v) => { S.vias = v; pinta(); }, S.secreto); }
+    // (el QR sale ya; al volver a probar se queda el mismo código, que puede estar ya en el móvil: solo cambia si está cogido)
+    if (!S.code || n) { S.code = [...crypto.getRandomValues(new Uint32Array(5))].map(x => LETRAS[x % LETRAS.length]).join(''); S.secreto = nuevoSecreto(); }
+    pinta();
+    try { S.sig = await senal('hzh-' + S.code, recibe, (v) => { S.vias = v; pinta(); }, S.secreto); }
     catch (e) { if (e.message !== 'ID-TAKEN') break; }   // (nombre cogido: otro código)
   }
   S.estado = S.sig ? 'espera' : 'mal'; pinta(); if (!S.sig) otraVez();
 }
-// (sin ningún camino: se vuelve a probar solo cada 5 s mientras el panel siga abierto)
-function otraVez() { clearTimeout(S.otra); S.otra = setTimeout(() => { if (S.ui && !S.sig) { S.code = ''; empezar(); } }, 5000); }
+// (sin ningún camino: se vuelve a probar solo cada 5 s, con el mismo código, mientras el panel siga abierto)
+function otraVez() { clearTimeout(S.otra); S.otra = setTimeout(() => { if (S.ui && !S.sig) empezar(); }, 5000); }
 function cerrarPc() { try { S.dc?.close(); } catch (e) { } try { S.pc?.close(); } catch (e) { } S.dc = S.pc = null; S.relevo = false; mandoMovil(false); }
 /** Lo que llega por el servidor de saludo: la oferta del móvil y sus rutas de red. */
 async function recibe(m) {
@@ -84,8 +86,12 @@ async function recibe(m) {
   if (m.type === 'OFFER' && m.payload?.sdp) {
     // (quien escribió el código a mano, con permiso: se pregunta en el panel; con el QR se entra directamente)
     if (!m.fuerte && !S.dejados.has(m.src)) { if (!S.vetados.has(m.src)) { S.pide = m; if (!S.ui) abrirMando(); else pinta(); } return; }
+    // (la misma oferta, repetida porque la respuesta no le ha llegado al móvil, por ejemplo si el camino por el que iba se
+    // cayó: se le vuelve a mandar la respuesta, sin empezar de nuevo)
+    const of = m.payload.of || m.payload.k;
+    if (of && of === S.of && m.src === S.movil) { if (S.respuesta) S.sig?.send(m.src, 'ANSWER', S.respuesta, m.fuerte); return; }
     cerrarPc();   // (un móvil nuevo, o el mismo que vuelve: se queda el último)
-    S.movil = m.src; S.fuerte = m.fuerte; if (S.estado !== 'ok') { S.estado = 'llama'; pinta(); }
+    S.of = of; S.respuesta = null; S.movil = m.src; S.fuerte = m.fuerte; if (S.estado !== 'ok') { S.estado = 'llama'; pinta(); }
     const pc = S.pc = new RTCPeerConnection({ iceServers: ICE, ...(SIN_P2P ? { iceTransportPolicy: 'relay' } : {}) }); let dicho = false;
     pc.onicecandidate = (e) => { if (e.candidate && dicho) S.sig?.send(m.src, 'CANDIDATE', { candidate: e.candidate.toJSON() }, m.fuerte); };   // (las que lleguen tarde)
     pc.onconnectionstatechange = () => { if (pc === S.pc && !S.relevo && ['failed', 'closed', 'disconnected'].includes(pc.connectionState)) caido(); };
@@ -96,7 +102,7 @@ async function recibe(m) {
     const a = await pc.createAnswer(); await pc.setLocalDescription(a);
     await rutas(pc, 800);   // (la respuesta, con las rutas de red que haya dentro; las que salgan después van sueltas)
     if (pc !== S.pc) return;
-    S.sig?.send(m.src, 'ANSWER', { sdp: pc.localDescription.toJSON() }, m.fuerte); dicho = true;
+    S.respuesta = { sdp: pc.localDescription.toJSON() }; S.sig?.send(m.src, 'ANSWER', S.respuesta, m.fuerte); dicho = true;
   } else if (m.type === 'CANDIDATE' && m.payload?.candidate) {
     if (m.src === S.movil && m.fuerte === S.fuerte && S.pc) { try { await S.pc.addIceCandidate(m.payload.candidate); } catch (e) { } }
     else if (!S.vetados.has(m.src)) { let a = antes.get(m.src); if (!a) { a = []; antes.set(m.src, a); if (antes.size > 8) antes.delete(antes.keys().next().value); } if (a.length < 40) a.push(m); }
@@ -218,7 +224,7 @@ export function abrirMando() {
 /** Termina la sesión: el móvil deja de mandar y el código deja de valer. */
 export function terminar() {
   envia({ t: 'adios' }); setTimeout(cerrarPc, 400);   // (que el adiós llegue antes de cortar)
-  S.sig?.close(); S.sig = null; S.code = ''; S.secreto = ''; S.estado = 'nada'; S.vias = {}; S.pide = null; S.dejados.clear(); S.vetados.clear(); antes.clear(); clearTimeout(S.otra);
+  S.sig?.close(); S.sig = null; S.code = ''; S.secreto = ''; S.of = ''; S.respuesta = null; S.estado = 'nada'; S.vias = {}; S.pide = null; S.dejados.clear(); S.vetados.clear(); antes.clear(); clearTimeout(S.otra);
   if (S.pill) S.pill.hidden = true; cierraPanel();
 }
 // (para las pruebas: el código y el estado)
