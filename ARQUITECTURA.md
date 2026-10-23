@@ -409,10 +409,17 @@ navegador, y lo demás sale de la caché. La app instalada en el iPhone vuelve d
 momento (con `?v=…`, una sola vez por versión); si se está jugando, sale en el menú un aviso «Versión nueva» para
 actualizar con un toque.
 
-La web se instala como app (prototipo para enseñar). `src/web/install.js` pone en la barra de arriba del menú un
-botón «Instalar app» (en vertical, donde no cabe, es la primera fila de «Más»): en Android y en Chrome o Edge del
-ordenador abre el aviso del navegador; en el iPhone y el iPad enseña los tres pasos de Safari, y deja compartir el
-enlace. No sale en la app ya instalada ni en el archivo único. El icono, la portada con la que arranca la página
+Cómo jugar (`src/hub/comojugar.js`): la primera pantalla de quien empieza, tras el idioma y antes del nombre, y
+siempre a mano con «Cómo jugar» arriba del menú (en el móvil de pie, en «Más») y en Ajustes; no sale en el modo
+didáctico. Las tres formas de jugar, cada una con sus pasos y su botón: en el ordenador o en la tele (teclado y ratón
+o un mando de consola, e instalar el juego), con el móvil de mando (abre el panel del QR; en el móvil, «Descargar la
+app Mando» abre `mando/`, que se instala) y en el móvil o la tableta (en el ordenador, un QR con la dirección del
+juego; en el móvil, instalarlo aquí). La del aparato en el que se está va marcada y, en el móvil, la primera. Se ve
+una sola vez sola (`seen.comoJugar` del perfil).
+
+La web se instala como app. `src/web/install.js`, desde «Cómo jugar»: en Android y en Chrome o Edge del ordenador abre
+el aviso del navegador; en el iPhone y el iPad enseña los tres pasos de Safari, y deja compartir el enlace. En la app
+ya instalada lo dice, y en el archivo único y en el artefacto manda a la web. El icono, la portada con la que arranca la página
 (`#portada-app` en `index.html`, se quita sola cuando sale el menú) y las pantallas de arranque del iPhone y del iPad
 (`public/splash`, 17 tamaños de `src/web/splash.js` en vertical y en horizontal, enlazadas por `vite.config.js`) son
 el explorador de la lámina de Ezkaba (del autor), de rodillas sobre el mapa y señalando a Navarra, que va como una

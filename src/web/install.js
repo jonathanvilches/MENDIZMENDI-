@@ -1,21 +1,21 @@
-// Instalar el juego como app (prototipo para enseñar): en la barra de arriba del menú, un botón «Instalar app» (en el
-// móvil en vertical, donde no cabe, es la primera fila de «Más»).
+// Instalar el juego como app: desde «Cómo jugar» (src/hub/comojugar.js), con su botón «Instalar en el ordenador» o
+// «Instalar en este móvil».
 //  · en Android y en el ordenador, con Chrome o Edge, abre el aviso del navegador para instalarla
 //  · en el iPhone y el iPad, que no lo tienen, enseña los tres pasos de Safari para añadirla a la pantalla de inicio
 //  · en los demás, cómo hacerlo desde el menú del navegador
 // En la ventana también se puede compartir el enlace. No sale si ya se juega desde la app instalada ni en el archivo
 // único (un archivo abierto no se puede instalar). En el artefacto de claude.ai, que no se puede instalar, manda a la web.
 let deferred = null;
-addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferred = e; document.querySelectorAll('[data-app]').forEach(b => { b.hidden = false; }); });
-addEventListener('appinstalled', () => { deferred = null; document.querySelectorAll('[data-app]').forEach(b => { b.hidden = true; }); });
+addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferred = e; });
+addEventListener('appinstalled', () => { deferred = null; });
 
 const UA = navigator.userAgent;
 const IOS = /iP(hone|ad|od)/.test(UA) || (/Macintosh/.test(UA) && navigator.maxTouchPoints > 1);
 const ANDROID = /Android/.test(UA);
 /** ¿Se está jugando desde la app instalada? */
-const installed = () => matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || navigator.standalone === true;
+export const instalada = () => matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || navigator.standalone === true;
 /** ¿Se puede ofrecer instalarla desde aquí? (en la web y sin estar ya instalada) */
-export const offer = () => typeof __WEB__ !== 'undefined' && __WEB__ && !installed();
+export const offer = () => typeof __WEB__ !== 'undefined' && __WEB__ && !instalada();
 const link = () => new URL('./', location.href).href;
 
 // los dibujos de los pasos: el botón Compartir de Safari, el de añadir a la pantalla de inicio, el menú de tres puntos
@@ -26,9 +26,8 @@ const G = {
   dots: '<circle cx="24" cy="11" r="3" fill="currentColor" stroke="none" /><circle cx="24" cy="24" r="3" fill="currentColor" stroke="none" /><circle cx="24" cy="37" r="3" fill="currentColor" stroke="none" />',
   inst: '<rect x="6" y="9" width="36" height="26" rx="4" /><path d="M24 15v12M18 22l6 6 6-6M16 41h16" />',
 };
-// (el icono de la app; en el artefacto, que no publica las imágenes de la web, el dibujo de instalar)
+// (en el artefacto, que no publica las imágenes de la web, el icono de la app es el dibujo de instalar)
 const AF = typeof __AF__ !== 'undefined' && __AF__;
-export const appImg = () => AF ? ico('inst') : '<img src="./icon-180.png" alt="">';
 const ico = (k) => k === 'app' && !AF ? '<img src="./icon-180.png" alt="">' : `<svg viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${G[k === 'app' ? 'inst' : k]}</svg>`;
 const WEB = 'https://jonathanvilches.github.io/MENDIZMENDI-/';
 const STEPS = AF ? [
@@ -74,10 +73,4 @@ export async function openInstall(root) {
     return;
   }
   sheet(root);
-}
-/** El botón de la barra de arriba (se enseña si se puede instalar desde aquí) */
-export function setupInstall(root, button) {
-  if (!button) return;
-  button.hidden = !offer();
-  button.addEventListener('click', () => openInstall(root));
 }

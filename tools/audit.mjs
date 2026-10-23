@@ -70,7 +70,7 @@ async function auditSize(sz) {
     await page.waitForFunction(() => window.__ready, null, { timeout: 120000 });
     await page.waitForTimeout(1500);
     await log('bienvenida'); await shot('onb');
-    await page.evaluate(() => { const i = document.querySelector('#oName'); if (i) { i.value = 'Aitziber'; document.querySelector('#oGo').click(); } });
+    await page.evaluate(() => { document.querySelector('.cj [data-cj="seguir"]')?.click(); const i = document.querySelector('#oName'); if (i) { i.value = 'Aitziber'; document.querySelector('#oGo').click(); } });
     await page.waitForTimeout(900);
     for (const s of ['home', 'map', 'towns', 'sports', 'peaks', 'nature', 'avatars', 'badges', 'passport', 'profile']) { await page.evaluate((s) => window.__hub.go(s), s); await page.waitForTimeout(700); await log(s); await shot(s); }
     await page.evaluate(() => window.__hub.go('comarca', 'bidasoa')); await page.waitForTimeout(700); await log('comarca'); await shot('comarca');

@@ -8,6 +8,6 @@ await page.goto(base, { timeout: 240000 });
 await page.waitForFunction(() => window.__ready, null, { timeout: 240000 });
 await page.waitForTimeout(2000);
 await page.screenshot({ path: `${out}-onb.png`, timeout: 240000 });
-await page.evaluate(() => { const i = document.querySelector('#oName'); if (i) { i.value = 'Ane'; document.querySelector('#oGo').click(); } });
+await page.evaluate(() => { document.querySelector('.cj [data-cj="seguir"]')?.click(); const i = document.querySelector('#oName'); if (i) { i.value = 'Ane'; document.querySelector('#oGo').click(); } });
 for (const s of ['home', 'avatars', 'profile', 'badges']) { await page.evaluate((s) => window.__hub.go(s), s); await page.waitForTimeout(1500); await page.screenshot({ path: `${out}-${s}.png`, timeout: 240000 }); }
 await browser.close();
