@@ -28,7 +28,7 @@ import { FIGURAS, FIGURAS_LEYENDA, FIGURAS_CARNAVAL } from '../data/figuras.js';
 import { stampImg } from '../assets.js';
 import { Stage, releaseStage } from './stage.js';
 import { getLang, setLang, langChosen } from '../i18n.js';
-import { laminaUrl, laminasDe, laminaRail, bindLaminas, townCover, comarcaCover, townImg, leyendaUrl, openVisor, cimaUrl } from '../ui/laminas.js';
+import { laminaUrl, laminasDe, laminaRail, bindLaminas, townCover, comarcaCover, townImg, leyendaUrl, openVisor, cimaUrl, tradicionUrl } from '../ui/laminas.js';
 import { LAMINAS } from '../data/laminas.js';
 import { CLUBS } from '../futbol/clubs.js';
 import { SABERES, saberCounts } from '../data/saberes.js';
@@ -394,12 +394,17 @@ export class Hub {
   s_comarca(id) {
     const c = comarca(id); if (!c) return this.s_map();
     const p = profile(), pr = comarcaProgress(p, id), ts = comarcaTowns(id), C = c.culture || {}, dd = isDidactico(), star = dd && STAR[id];
-    const block = (ic, k, o) => o ? `<div class="cult">${I(ic, 48)}<div><small>${k}${o.date ? ' · ' + esc(o.date) : ''}</small><b>${esc(o.title)}</b><p>${esc(o.text)}</p>${o.place ? `<em>${esc(o.place)}</em>` : ''}</div></div>` : '';
+    // (la danza de la comarca, con su ilustración si la hay: se abre en grande al tocarla)
+    const danza = tradicionUrl('danza-' + id);
+    const block = (ic, k, o, img = '') => o ? `<div class="cult${img ? ' con-img' : ''}">${img ? `<button type="button" class="cult-img" data-cultimg aria-label="Ver la ilustración"><img src="${img}" alt="" loading="lazy"></button>` : I(ic, 48)}<div><small>${k}${o.date ? ' · ' + esc(o.date) : ''}</small><b>${esc(o.title)}</b><p>${esc(o.text)}</p>${o.place ? `<em>${esc(o.place)}</em>` : ''}</div></div>` : '';
     const mts = MOUNTAINS.filter(m => m.region === id && LEVELS.some(l => (l.missions || []).some(x => x.type === 'summit' && x.peak === m.id)));
     // cada animal y planta abre su ficha
     const chip = (n, fb, key, title = '') => key ? `<button class="nchip" data-k="${key}" title="${esc(title)}">${I(speciesIcon(n) || fb, 26)}${esc(n)}</button>` : `<span class="nchip" title="${esc(title)}">${I(speciesIcon(n) || fb, 26)}${esc(n)}</span>`;
     const chips = (arr, fb) => (arr || []).map(n => { const k = floraId(n); return chip(n, fb, k && 'flora:' + k); }).join('');
-    this.after = () => this.root.querySelectorAll('.nchip[data-k]').forEach(b => b.onclick = () => showFicha(b.dataset.k, { ui: { sound: this.sound }, button: 'Cerrar' }));
+    this.after = () => {
+      this.root.querySelectorAll('.nchip[data-k]').forEach(b => b.onclick = () => showFicha(b.dataset.k, { ui: { sound: this.sound }, button: 'Cerrar' }));
+      const cb = this.root.querySelector('[data-cultimg]'); if (cb) cb.onclick = () => openVisor([{ src: danza, title: C.dance.title }], 0, this.sound);
+    };
     return `
     <section class="chero" style="--c:${c.color};--bg:url(${comarcaCover(id)})">
       <button class="back" data-go="map">${I('back', 26)} Mapa</button>
@@ -410,7 +415,7 @@ export class Hub {
     <h2 class="sec">${I('church', 30)} Pueblos y ciudades</h2>
     <section class="towns">${ts.length ? ts.map(l => this.townCard(l)).join('') : '<p class="empty">Muy pronto habrá pueblos jugables en esta comarca.</p>'}</section>
     <section class="two">
-      <div class="panel"><h2>${I('dance', 30)} Cultura</h2><div class="cultgrid">${block('dance', 'Danza', C.dance)}${block('mask', 'Carnaval', C.carnival)}${block('flag', 'Fiesta', C.festival)}${block('ribbon', 'Traje', C.costume)}${star ? block('star', 'Producto estrella', { title: star.name, text: star.text }) : ''}</div></div>
+      <div class="panel"><h2>${I('dance', 30)} Cultura</h2><div class="cultgrid">${block('dance', 'Danza', C.dance, danza)}${block('mask', 'Carnaval', C.carnival)}${block('flag', 'Fiesta', C.festival)}${block('ribbon', 'Traje', C.costume)}${star ? block('star', 'Producto estrella', { title: star.name, text: star.text }) : ''}</div></div>
       <div class="panel"><h2>${I('leaf', 30)} Naturaleza</h2>
         <h3>Fauna</h3><div class="nchips">${(c.fauna || []).map(f => { const k = faunaId(f[0]); return chip(f[0], 'bird', k && 'fauna:' + k, f[2]); }).join('')}</div>
         <h3>Árboles</h3><div class="nchips">${chips(c.nature?.trees, 'tree')}</div>

@@ -36,7 +36,8 @@ hdTable('cimas', CIMA_BIG, CIMA_HD, 2560);
 /** La escena de una cima (o null si no la tiene); big: la grande. */
 export const cimaUrl = (id, big = false) => (big && CIMA_BIG[id]) || CIMA[id] || null;
 // Los personajes de Navarra (src/assets/personajes), con su id de data/personajes.js, en 16:9: en la web, los de 1536;
-// en el archivo único, los de 320. Sancho y las golondrinas llevan una lámina que ya estaba en el juego.
+// en el archivo único, los de 320. Si en una versión faltara la de un personaje, Sancho y las golondrinas llevan una lámina
+// que ya estaba en el juego.
 const PERS = byId(import.meta.glob('@personajes/*.webp', { eager: true, query: '?url', import: 'default' }));
 const PERS_HD = byId(import.meta.glob('@personajes-hd/*.webp', { eager: true, query: '?url', import: 'default' }));
 hdTable('personajes', PERS, PERS_HD, 2560);

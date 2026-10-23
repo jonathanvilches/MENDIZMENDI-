@@ -18,3 +18,5 @@ Instrumentos (entregados el 2026-10-17 en «7-instrumentos», PNG de 1254 px): b
 trikitixa ttunttun txalaparta. Recortados y centrados igual (89 %) desde el PNG de 1254: en 1024/ a 1024 px (la ficha de los
 instrumentos en pantallas densas), en 512/, 256/ y 128/ como el resto. El txistu es de la entrega del 2026-10-12. Sustituyen a
 los dibujos en código de ui/icon3d.js.
+
+Entrega del 2026-10-23 (encargo de imágenes del 2026-10-22, ZIP «Herrizherri-imagenes-01» a «-11»): bell, corzo, goat, grulla, lechuza, milano y quebrantahuesos (sustituyen a los renders del juego) y txistu (también a 1024 para su ficha); recortados a su dibujo y centrados al 89 % del cuadro, a 512, 256 y 128. Generadas con IA por el autor del proyecto; titularidad del autor. Cambios: reducidas a los tamaños del juego en WebP con tools/encargo-importar.mjs, sin ampliar.

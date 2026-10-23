@@ -1,0 +1,2 @@
+Ilustraciones de las figuras de leyenda y carnaval de HERRIZHERRI (web/ a 1280 × 720 y mini/ a 640 × 360).
+Entrega del 2026-10-23 (encargo de imágenes del 2026-10-22, ZIP «Herrizherri-imagenes-01» a «-11»): las 12 figuras (lamia, basajaun, sorgina, tartalo, roldan, joaldun, momotxorro, cascabobo, zipotero, lagunero, irasko y paloki); con ellas, la tarjeta y la ficha dejan el render del traje y salen apaisadas. Generadas con IA por el autor del proyecto; titularidad del autor. Cambios: reducidas a los tamaños del juego en WebP con tools/encargo-importar.mjs, sin ampliar.

@@ -1421,7 +1421,13 @@ export class TownGame {
         return;
       }
       case 'feria': {
-        if (M.step === 0) { await S([...FERIA.intro, m.note || '']); M.step = 1; }
+        if (M.step === 0) {
+          // (con su ilustración, la ficha la enseña con lo que cuenta el tratante, como en las danzas)
+          const lam = tradicionUrl(m.ilus);
+          if (lam) { await infoCard(this.ui, { icon: 'cow', lamina: lam, kicker: 'Feria de ganado', title: M.title, text: [...FERIA.intro, m.note || ''].filter(Boolean).join(' '), button: '¡Vamos!' }); }
+          else await S([...FERIA.intro, m.note || '']);
+          M.step = 1;
+        }
         else if (M.step === 1) await S(['Ve a los corrales y mira bien los animales. ¡Luego me cuentas!']);
         else {
           await S(['¿Qué te han parecido? Ahora aprende lo más importante de una feria: cómo se cierra un trato.']);

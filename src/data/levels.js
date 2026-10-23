@@ -5,7 +5,7 @@
 // family: atlantic | pyrenean | central | ribera | city  → estilo de casas
 // relief: valley | hills | plain | hilltop                → forma del terreno
 // river: { name, x (desvío respecto al centro), w (semiancho), amp (meandro) } o null
-// ilus (en una misión de tradición o de danza): el id de su ilustración en src/assets/tradiciones (tradicionUrl)
+// ilus (en una misión de tradición, de danza o de feria): el id de su ilustración en src/assets/tradiciones (tradicionUrl)
 
 const H = (name, look) => ({ name, look });
 const PASTOR = { txapela: '#1d1d24', shirt: '#efe9dc', vest: '#2d2b33', pants: '#3a3530', staff: true, hair: '#d6d0c6', moustache: '#ece8e0', old: true };
@@ -28,7 +28,7 @@ export const LEVELS = [
     landmarks: [{ kind: 'towerhouse', name: 'Casa-torre de Zabaleta', text: 'Las casas-torre medievales eran casas fuertes de piedra. Lesaka conserva varias junto al río.' }],
     missions: [
       { type: 'visit' },
-      { type: 'dance', name: 'Zubigainekoa', text: 'El 7 de julio, los dantzaris bailan el Zubigainekoa encima del pretil del río Onin. ¡Hay que tener equilibrio!', host: H('Mikel, dantzari', { shirt: '#ffffff', pants: '#ffffff', sash: '#d42f2f', txapela: '#c0392b' }), colors: ['#ffffff', '#d42f2f'] },
+      { type: 'dance', name: 'Zubigainekoa', ilus: 'lesaka-dance', text: 'El 7 de julio, los dantzaris bailan el Zubigainekoa encima del pretil del río Onin. ¡Hay que tener equilibrio!', host: H('Mikel, dantzari', { shirt: '#ffffff', pants: '#ffffff', sash: '#d42f2f', txapela: '#c0392b' }), colors: ['#ffffff', '#d42f2f'] },
       { type: 'process', id: 'salmon', title: 'El viaje del salmón', host: H('Nerea, guarda del río', { shirt: '#3a6b5a', pants: '#2f3b33', hair: '#1f1712', bun: true }), product: 'Salmón del Bidasoa',
         text: 'El salmón nace en el río, viaja al mar y vuelve años después para poner sus huevos. Hay que cuidar el agua para que pueda regresar.',
         gather: { item: 'litter', n: 4, label: 'Recoger basura del río' },
@@ -109,7 +109,7 @@ export const LEVELS = [
       { type: 'legend', who: 'lamia', title: 'La lamia de Xorroxin', host: H('Lamia', { myth: 'lamia', hair: '#f3c94a', longHair: true, shirt: '#9fd6d2', skirt: '#5fb0a8', pants: '#f6dcc8', feet: 'duck', crown: true }),
         text: 'En las leyendas de la cascada de Xorroxin, las lamias se peinan con peines de oro. Ha perdido tres peines en el río.',
         gather: { item: 'comb', n: 3, label: 'Coger un peine de oro', near: 'river' } },
-      { type: 'dance', name: 'Baztan dantza', text: 'Las danzas de Baztan (mutil dantzak) se bailan en fiestas con txistu y tamboril.', host: H('Leire, dantzari', { shirt: '#ffffff', skirt: '#c0392b', pants: '#ffffff', hair: '#3b2418', bun: true }), colors: ['#ffffff', '#c0392b'] },
+      { type: 'dance', name: 'Baztan dantza', ilus: 'elizondo-dance', text: 'Las danzas de Baztan (mutil dantzak) se bailan en fiestas con txistu y tamboril.', host: H('Leire, dantzari', { shirt: '#ffffff', skirt: '#c0392b', pants: '#ffffff', hair: '#3b2418', bun: true }), colors: ['#ffffff', '#c0392b'] },
       { type: 'quiz' },
     ] },
   // ---------------- Larraun-Leitzaldea ----------------
@@ -531,7 +531,7 @@ for (const [id, list] of Object.entries(FIGURE_TOWNS)) {
 for (const [id, F] of Object.entries(FERIA_TOWNS)) {
   const l = LEVELS.find(x => x.id === id); if (!l?.missions) continue;
   const at = l.missions.findIndex(m => m.type === 'quiz');
-  l.missions.splice(at < 0 ? l.missions.length : at, 0, { type: 'feria', title: F.title, note: F.note,
+  l.missions.splice(at < 0 ? l.missions.length : at, 0, { type: 'feria', title: F.title, note: F.note, ilus: `${id}-feria`,
     host: H('Tratante de ganado', { shirt: '#1d1d24', pants: '#2b2630', txapela: '#1d1d24', hair: '#8a8478', moustache: '#8a8478', staff: true, old: true }) });
 }
 

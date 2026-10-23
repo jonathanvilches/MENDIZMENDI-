@@ -4,3 +4,5 @@ el canto de Gayarre (Roncal), los trovadores de la corte (Olite), la Bajada del 
 Son escenas artísticas generadas con IA, no reconstrucciones documentales de plazas, arquitectura o personas. Titularidad: el autor del proyecto. Pendiente de anotar la herramienta y sus condiciones de uso (legal/registro-licencias.csv).
 Referencias culturales que acompañaban a las ilustraciones: el Ttun-ttun y la indumentaria de Isaba (Dantzatlas, Archivo de Navarra), la Bajada del Ángel (Visit Navarra y Ayuntamiento de Tudela).
 Cambios: ninguno; se usan las de 1536 y 320 px tal como llegaron (la de 768 no hace falta en el juego).
+
+Entrega del 2026-10-23 (encargo de imágenes del 2026-10-22, ZIP «Herrizherri-imagenes-01» a «-11»): las danzas de Lesaka y Elizondo, las ferias de Elizondo, Estella y Altsasu y la danza de la comarca de Baztan-Bidasoa (danza-bidasoa, la variante «Zubigainekoa en el pretil de Lesaka»). Generadas con IA por el autor del proyecto; titularidad del autor. Cambios: reducidas a los tamaños del juego en WebP con tools/encargo-importar.mjs, sin ampliar.

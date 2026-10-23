@@ -226,6 +226,9 @@
 .cultgrid { display: grid; gap: 8px; }
 .cult { display: flex; gap: 12px; padding: 12px; border-radius: 12px; background: rgba(255, 255, 255, .04); border: 1px solid var(--line); }
 .cult svg { flex: none; } .cult small { color: var(--gold); font-weight: 900; text-transform: uppercase; font-size: var(--fs-xs); letter-spacing: .1em; }
+.cult.con-img { flex-direction: column; }   /* (con su ilustración, encima del texto y a todo el ancho) */
+.cult-img { display: block; width: 100%; aspect-ratio: 16 / 9; padding: 0; border: 0; border-radius: 8px; overflow: hidden; background: rgba(0, 0, 0, .2); } button.cult-img { cursor: zoom-in; }
+.cult-img img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .cult b { display: block; font-size: var(--fs-md); } .cult p { margin: 4px 0; color: #eae4f6; font-weight: 600; font-size: var(--fs-sm); } .cult em { color: var(--mute); font-size: var(--fs-sm); }
 .nchips { display: flex; flex-wrap: wrap; gap: 8px; }
 .nchip { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 4px 12px 4px 8px; border-radius: 20px; background: rgba(255, 255, 255, .06); border: 1px solid var(--line); font-size: var(--fs-sm); }

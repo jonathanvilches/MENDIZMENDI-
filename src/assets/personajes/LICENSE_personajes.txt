@@ -3,3 +3,5 @@ Ilustraciones entregadas por el autor del proyecto el 2026-10-11 en un ZIP («pe
 Son interpretaciones artísticas generadas con IA, no retratos documentales. Titularidad: el autor del proyecto. Pendiente de anotar la herramienta y sus condiciones de uso (legal/registro-licencias.csv).
 Miguel Induráin es una persona viva: hace falta su permiso antes de publicar o vender el juego (legal/estado-legal.md, apartado F). Para quitar su ilustración basta con borrar indurain.webp de las dos carpetas.
 Cambios: las de 1536 px, sin cambios; las de 320 × 180 se han reducido a partir de las de 1536 y guardado en WebP para el archivo único.
+
+Entrega del 2026-10-23 (encargo de imágenes del 2026-10-22, ZIP «Herrizherri-imagenes-01» a «-11»): los 16 personajes que faltaban (Sancho VII, Toda, Berenguela, Catalina de Foix, Josefa Úriz, las etxekoandreak, las conserveras, las golondrinas, Arrieta, Carmen y Julio Caro Baroja, Baquedano, Sáenz de Oiza, Elena Asins, los pastores trashumantes y las huertas). Generadas con IA por el autor del proyecto; titularidad del autor. Cambios: reducidas a los tamaños del juego en WebP con tools/encargo-importar.mjs, sin ampliar.

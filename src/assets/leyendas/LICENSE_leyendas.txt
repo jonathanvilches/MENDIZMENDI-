@@ -2,3 +2,5 @@ Leyendas ilustradas de HERRIZHERRI (640/, 768/ y 1536/).
 Ilustraciones entregadas por el autor del proyecto el 2026-10-11 en un ZIP («leyendas-responsive»), una por cada cuento de src/data/cuentos.js y con su mismo id.
 Son interpretaciones artísticas de los relatos, no reconstrucciones documentales. Titularidad: el autor del proyecto. Generadas con IA: pendiente de anotar la herramienta y sus condiciones de uso (legal/registro-licencias.csv).
 Cambios: las de 768 y 1536 px, sin cambios; las de 640 × 360 se han reducido a partir de las de 1536 y guardado en WebP para el archivo único.
+
+Entrega del 2026-10-23 (encargo de imágenes del 2026-10-22, ZIP «Herrizherri-imagenes-01» a «-11»): el peine de oro de Xorroxin (lamias, la variante «La lamia dorada de Xorroxin») y los cencerros que despiertan la tierra (joaldunak, la variante «Joaldunak de Ituren por Malerreka»). Generadas con IA por el autor del proyecto; titularidad del autor. Cambios: reducidas a los tamaños del juego en WebP con tools/encargo-importar.mjs, sin ampliar.
