@@ -234,7 +234,9 @@ export class Sound {
       // cambio de ambiente al empezar compás, con un pequeño fundido del bus
       if (this.mood !== S.cur) {
         S.cur = this.mood; S.bar = 0; const g = this.musicBus.gain, v = this.musicOn ? 0.32 : 0; g.cancelScheduledValues(ctx.currentTime);
-        if (S.cur === 'none') g.setTargetAtTime(0, ctx.currentTime, 0.35); else { g.setValueAtTime(v * 0.25, S.next); g.linearRampToValueAtTime(v, S.next + 1.2); }
+        if (S.cur === 'none') g.setTargetAtTime(0, ctx.currentTime, 0.35);
+        else if ((this.duckUntil || 0) > S.next) { g.setTargetAtTime(0, ctx.currentTime, 0.08); g.setTargetAtTime(v, this.duckUntil, 0.4); }   // (apartada: vuelve al acabar)
+        else { g.setValueAtTime(v * 0.25, S.next); g.linearRampToValueAtTime(v, S.next + 1.2); }
       }
       if (S.cur === 'none') { S.next += 0.5; continue; }   // (sin música: en los partidos se oye el público)
       const M = MOOD[S.cur] || MOOD.explore, sc = M.sc, beat = M.beat, next = S.next, bar = S.bar, cur = S.cur;
@@ -396,7 +398,12 @@ export class Sound {
     o.start(t); o2.start(t); vib.start(t); o.stop(t + dur + 0.05); o2.stop(t + dur + 0.05); vib.stop(t + dur + 0.05);
     this.noiseBurst(0.05, 3000, 1, 0.03, this.musicBus, t0);
   }
-  setMusic(on) { this.musicOn = on; if (this.musicBus) { this.musicBus.gain.cancelScheduledValues(this.ctx.currentTime); this.musicBus.gain.setTargetAtTime(on ? 0.32 : 0, this.ctx.currentTime, 0.3); } }
+  setMusic(on) { this.musicOn = on; if (this.musicBus) { const t = this.ctx.currentTime, g = this.musicBus.gain, d = (this.duckUntil || 0) > t; g.cancelScheduledValues(t); g.setTargetAtTime(on && !d ? 0.32 : 0, t, 0.3); if (on && d) g.setTargetAtTime(0.32, this.duckUntil, 0.4); } }
+  /** La música se aparta s segundos (al escuchar un instrumento en su ficha: antes sonaban los dos a la vez) y vuelve sola. */
+  duck(s) {
+    if (!this.musicBus) return; const t = this.ctx.currentTime, g = this.musicBus.gain;
+    this.duckUntil = t + s; g.cancelScheduledValues(t); g.setTargetAtTime(0, t, 0.08); if (this.musicOn) g.setTargetAtTime(0.32, this.duckUntil, 0.4);
+  }
   // trueno: si el rayo cae cerca, primero un chasquido seco; luego el retumbar grave y largo, que va y viene (ruido muy
   // filtrado con varios golpes) y resuena en el eco. dist en metros: más lejos, más tarde, más grave y más flojo
   thunder(dist = 600, pan = 0) {

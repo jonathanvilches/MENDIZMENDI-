@@ -41,6 +41,10 @@ import { drawOfficial, officialHeight } from '../world/armas.js';
 import { iconSVG } from '../ui/icons.js';
 import { isEU, tr } from '../i18n.js';
 import { esc } from '../util/html.js';
+import { galeria, palabras } from './ddgal.js';
+import { faunaImg } from '../ui/faunaImg.js';
+import { floraFoto } from '../ui/floraFoto.js';
+import { figuraImg, figuraIlus } from '../ui/figuras.js';
 import './didactico.css';
 
 const I = (n, s = 24) => iconSVG(n, s);
@@ -75,6 +79,27 @@ function sinOrdenes(s) {
   const E = tr(s).split(SPLIT);
   return E.length === S.length ? `<p data-notr>${esc(E.filter((_, i) => keep[i]).join(' '))}</p>` : P(s);
 }
+// las ilustraciones que ya hay para cada producto, cosecha, animal y yacimiento (láminas del autor); lo que no la tiene
+// va con su icono grande hasta que llegue la suya (está en el encargo de imágenes)
+const STAR_LAM = { pamplona: 'pamplona-txistorra', pirineo: 'roncal-queso', prepirineo: 'aoiz-miel', sanguesa: 'sanguesa-pochas', 'tierra-estella': 'cortes-pimientos', 'valdizarbe-novenera': 'ujue-almendras', 'zona-media': 'c-vendimia', ribera: 'c-huerta' };
+const FOOD_ICON = { cuajada: 'milk', talo: 'corn', queso: 'cheese', txistorra: 'chistorra', miel: 'honey', pochas: 'beans', pimientos: 'pepper', almendras: 'almond', uvas: 'grapes', esparragos: 'asparagus', alcachofa: 'artichoke' };
+const PROC_LAM = { salmon: 'lesaka-salmon', mill: 'c-molino', idiazabal: 'etxalar-ovejas', roncal: 'roncal-queso', chistorra: 'pamplona-txistorra', honey: 'aoiz-miel', wine: 'c-vendimia', olive: 'tafalla-olivas', piquillo: 'cortes-pimientos' };
+const PROC_ICON = { salmon: 'fish', cuajada: 'milk', mill: 'mill', idiazabal: 'cheese', roncal: 'cheese', chistorra: 'chistorra', honey: 'honey', wine: 'grapes', olive: 'olive', piquillo: 'pepper' };
+const CROP_LAM = { patata: 'aribe-patatas', manzana: 'irurtzun-manzanas', olivo: 'tafalla-olivas', pocha: 'sanguesa-pochas', piquillo: 'cortes-pimientos', uva: 'c-vendimia', trigo: 'c-cereal', almendra: 'ujue-almendras', esparrago: 'c-huerta', alcachofa: 'c-huerta', tomate: 'c-huerta' };
+const HERD_LAM = { lekunberri: 'lekunberri-txerri', 'isaba-izaba': 'isaba-vacas' };
+const PET_FAUNA = { sheep: 'oveja', cow: 'vaca', pottoka: 'pottoka', goat: 'cabra', pig: 'cerdo', dog: 'perro' };
+const SITE_LAM = { dolmen: 'artajona-dolmen', irulegi: 'irulegi-mano' };
+const ESTILO = { romanesque: 'Románica', gothic: 'Gótica', baroque: 'Barroca', fortress: 'Iglesia-fortaleza', cathedral: 'Catedral' };
+const MONUMENTO = { bridge: 'Puentes de piedra', castle: 'Castillos', walls: 'Murallas', palace: 'Palacios', house: 'Casas con escudo', towerhouse: 'Casas-torre', dolmen: 'Dólmenes', chapel: 'Ermitas', pass: 'Puertos de montaña', dig: 'Excavaciones', palomeras: 'Palomeras', gorge: 'Foces', fountain: 'Fuentes', kiosk: 'Quioscos', arch: 'Arcos y portales',
+  ruin: 'Ruinas', cross: 'Cruceros', mill: 'Molinos', monolith: 'Monolitos', lookout: 'Miradores', tunnel: 'Túneles', horreo: 'Hórreos', stelae: 'Estelas discoidales', cave: 'Cuevas', townhall: 'Ayuntamientos' };
+// (el dibujo de cada palabra de los vecinos y de los saludos)
+const PALABRA_ICO = { Kaixo: 'hand', 'Egun on': 'sun', 'Arratsalde on': 'sun', Gabon: 'moon', 'Ongi etorri': 'home', 'Eskerrik asko': 'heart', Agur: 'hand', Mesedez: 'star', Bai: 'check', Ez: 'close',
+  herria: 'house', txakurra: 'dog', ardia: 'sheep', behia: 'cow', eliza: 'church', kanpaia: 'bell', dorrea: 'towerhouse', igandea: 'clock', denda: 'kiosk', gazta: 'cheese', saskia: 'basket', dirua: 'medal', sagarra: 'apple',
+  'Zer moduz?': 'talk', ondo: 'check', laguna: 'person', 'Gero arte': 'hand', jolastu: 'play', korrika: 'running', pilota: 'pelota', irabazi: 'trophy', ura: 'water', iturria: 'fountain', ibaia: 'river', hotza: 'snow',
+  ogia: 'bread', etxea: 'house', labea: 'fire', goxoa: 'heart', mendia: 'mountain', basoa: 'pine', zuhaitza: 'tree', bidea: 'footprint', txoria: 'bird', eguzkia: 'sun', euria: 'cloud', elurra: 'snow', gaua: 'moon', ilargia: 'moon' };
+// (las romerías y los monumentos que ya tienen una lámina que es justo eso: el camino, la almadía, el puente…)
+const ROMERIA_LAM = { 'orreaga-roncesvalles': 'orreaga-camino', 'burgui-burgi': 'burgui-almadia', irurtzun: 'lekunberri-plazaola', sanguesa: 'sanguesa', 'puente-la-reina': 'puente-la-reina', javier: 'javier-camino', ujue: 'ujue' };
+const MONUMENTO_LAM = { bridge: 'puente-la-reina', castle: 'javier', walls: 'pamplona-murallas', palace: 'olite', dolmen: 'artajona-dolmen', mill: 'c-molino', tunnel: 'lekunberri-plazaola', cave: 'zugarramurdi', dig: 'irulegi-mano', palomeras: 'etxalar-palomeras', townhall: 'pamplona', arch: 'amaiur-maya-del-baztan', gorge: 'lumbier' };
 const LM_ICON = { chapel: 'church', pass: 'mountain', dig: 'dolmen', palomeras: 'net', gorge: 'gorge', fountain: 'fountain', kiosk: 'kiosk', arch: 'arch' };
 const towns = (pred) => LEVELS.filter(l => (l.missions || []).some(pred)).map(l => l.id);
 
@@ -219,87 +244,139 @@ export const DIDACTICO = {
       <p class="ar-src">Fuentes: Cátedra de Patrimonio de la Universidad de Navarra, Auñamendi Eusko Entziklopedia, Senditur, Noticias de Navarra, culturanavarra.es, las Leyendas de Gustavo Adolfo Bécquer y los santuarios y ayuntamientos de cada lugar. Las leyendas tienen muchas versiones: aquí está la más contada, adaptada para niños y niñas.</p></section>`;
   },
 
-  // ---------- Tradiciones ----------
-  s_tradiciones() {
-    // (la danza de cada comarca, con su ilustración si la hay, como en la pantalla de la comarca)
-    const C = (ic, k, o, img = '') => o ? `<div class="cult${img ? ' con-img' : ''}">${img ? `<span class="cult-img"><img src="${img}" alt="" loading="lazy"></span>` : I(ic, 40)}<div><small>${esc(k)}${o.date ? ' · ' + esc(o.date) : ''}</small><b>${esc(o.title)}</b>${P(o.text)}${o.place ? `<em>${esc(o.place)}</em>` : ''}</div></div>` : '';
+  // ---------- Tradiciones (galería, como Naturaleza) ----------
+  s_tradiciones(tab) {
     const dances = LEVELS.flatMap(l => (l.missions || []).filter(m => m.type === 'dance').map(m => ({ l, m })));
     const races = LEVELS.flatMap(l => (l.missions || []).filter(m => m.type === 'race').map(m => ({ l, m })));
     const trads = LEVELS.flatMap(l => (l.missions || []).filter(m => m.type === 'tradition').map(m => ({ l, m })));
-    return `<section class="armorial dd"><div class="ar-head dd-head"><small class="kicker">${I('mask', 20)} Material didáctico</small><h1>Tradiciones de Navarra</h1>
-      <p>Las danzas, los carnavales, las fiestas y los trajes de cada comarca; las tradiciones de los pueblos, las romerías y los caminos, las ferias de ganado, la pelota y la música.</p></div>
-      ${sec('dance', 'Cada comarca: danza, carnaval, fiesta y traje')}
-      ${COMARCAS.map(c => { const K = c.culture || {}; return `<div class="dd-com" style="--c:${c.color}"><h3><i class="adot"></i><button type="button" class="lnk" data-comarca="${c.id}">${esc(c.full || c.name)}</button></h3><div class="cultgrid">${C('dance', 'Danza', K.dance, tradicionUrl('danza-' + c.id) || '')}${C('mask', 'Carnaval', K.carnival)}${C('flag', 'Fiesta', K.festival)}${C('ribbon', 'Traje', K.costume)}</div></div>`; }).join('')}
-      ${sec('dance', 'Danzas de los pueblos')}<div class="dd-grid">${dances.map(({ l, m }) => block('dance', 'Danza', m.name, P(m.text), { img: tradicionUrl(m.ilus) || '', where: where([l.id]) })).join('')}</div>
-      ${sec('mask', 'Carnavales')}<div class="dd-grid">${FOLKLORE.filter(f => f.category === 'carnival').map(f => this.d_carnaval(f.id)).join('')}</div>
-      ${trads.length ? sec('music', 'Tradiciones de los pueblos') + `<div class="dd-grid">${trads.map(({ l, m }) => { const X = TRADICIONES[m.title]; return block('music', 'Tradición', m.title, X ? H4('¿Qué es?') + P(X.what) + H4('Cómo se hace') + P(X.how) + aa(X.then, X.now) : '', { img: tradicionUrl(m.ilus) || '', where: where([l.id]) }); }).join('')}</div>` : ''}
-      ${sec('footprint', 'Romerías, caminos y fiestas')}<div class="dd-grid">${races.map(({ l, m }) => block('footprint', 'Fiestas y caminos', m.title || '', sinOrdenes(m.text), { where: where([l.id]) })).join('')}</div>
-      ${sec('cow', 'Ferias de ganado')}<div class="dd-grid">${this.d_feria()}</div>
-      ${sec('pelota', 'Pelota y pasaka')}<div class="dd-grid">${block('pelota', 'Pelota', 'Pelota a mano', Ps(LEVELS.flatMap(l => l.missions || []).find(m => m.type === 'pelota')?.story) + P('Así se juega: la pelota tiene que dar en el frontis por encima de la chapa, la raya roja. La puedes devolver de aire o después de un bote.'), { where: where(towns(m => m.type === 'pelota')) })}
-        ${block('pelota', PASAKA.kicker, 'Pasaka', PASAKA.secs.filter(([t]) => t !== 'En el juego').map(([t, x]) => H4(t) + P(x)).join('') + `<p class="ar-src">${esc(PASAKA.sources)}</p>`, { img: laminaUrl('dep-pasaka') || '' })}</div>
-      ${sec('bell', 'Las campanas')}<div class="dd-grid">${block('bell', '', BELL.title, P(BELL.fact))}</div>
-      <p class="dd-more"><button type="button" class="btn ghost" data-go="instrumentos">${I('music', 22)} Los instrumentos de la música de siempre</button><button type="button" class="btn ghost" data-go="personajes">${I('mask', 22)} Las fichas de los personajes de leyenda y carnaval</button></p></section>`;
+    const cult = (o, ic) => o ? `<div class="dd-cu">${o.date ? `<small>${esc(o.date)}</small>` : ''}<h4>${esc(o.title)}</h4>${P(o.text)}${o.place ? `<p class="dd-place">${I('pin', 18)}${esc(o.place)}</p>` : ''}</div>` : '';
+    const pelota = LEVELS.flatMap(l => l.missions || []).find(m => m.type === 'pelota');
+    const grupos = [
+      { k: 'comarcas', name: 'Cada comarca', icon: 'map', intro: 'La danza, el carnaval, la fiesta y el traje de cada comarca.',
+        items: COMARCAS.filter(c => c.culture).map(c => { const K = c.culture; return { k: 'c-' + c.id, img: tradicionUrl('danza-' + c.id) || comarcaCover(c.id, true) || '', icon: 'dance', c: c.color, kicker: 'Comarca', title: c.full || c.name,
+          secs: [['Danza', cult(K.dance)], ['Carnaval', cult(K.carnival)], ['Fiesta', cult(K.festival)], ['Traje', cult(K.costume)]] }; }) },
+      { k: 'danzas', name: 'Danzas', icon: 'dance', items: dances.map(({ l, m }) => ({ k: 'd-' + l.id, img: tradicionUrl(m.ilus) || '', icon: 'dance', c: comarca(l.comarca)?.color, kicker: tn(l.id), title: m.name, secs: [['La danza', P(m.text)]], towns: [l.id] })) },
+      { k: 'carnavales', name: 'Carnavales', icon: 'mask', items: FOLKLORE.filter(f => f.category === 'carnival').map(f => { const N = NIGHT_CARNIVAL[f.id], fig = FIGURAS.find(x => x.id === f.id);
+        return { k: 'f-' + f.id, img: figuraImg(f.id) || '', fit: !figuraIlus(f.id), icon: 'mask', kicker: f.origin || 'Carnaval', title: f.name,
+          secs: [['Qué es', P(f.fact) + P(f.culture)], ['La noche del carnaval', N ? Ps(N.story) : ''], ['Su traje', fig ? `<p><button type="button" class="btn ghost" data-figura="${fig.id}">${I('mask', 22)} Su ficha y su traje</button></p>` : '']],
+          towns: towns(m => m.type === 'carnival' && m.character === f.id) }; }) },
+      { k: 'tradiciones', name: 'Tradiciones', icon: 'music', items: trads.map(({ l, m }) => { const X = TRADICIONES[m.title]; return { k: 't-' + l.id, img: tradicionUrl(m.ilus) || '', icon: 'music', c: comarca(l.comarca)?.color, kicker: tn(l.id), title: m.title,
+        secs: X ? [['Qué es', P(X.what)], ['Cómo se hace', P(X.how)], ['Antes y ahora', aa(X.then, X.now)]] : [['Qué es', sinOrdenes(m.text)]], towns: [l.id] }; }) },
+      { k: 'romerias', name: 'Romerías y caminos', icon: 'footprint', items: races.map(({ l, m }) => ({ k: 'r-' + l.id, img: (ROMERIA_LAM[l.id] && laminaUrl(ROMERIA_LAM[l.id], true)) || '', icon: 'footprint', c: comarca(l.comarca)?.color, kicker: tn(l.id), title: m.title || '', secs: [['Qué es', sinOrdenes(m.text)]], towns: [l.id] })) },
+      { k: 'ferias', name: 'Ferias de ganado', icon: 'cow', items: [{ k: 'feria', img: laminaUrl('elizondo-feria', true) || '', icon: 'cow', kicker: 'Feria de ganado', title: 'La feria de ganado',
+        secs: [['Qué es', Ps(FERIA.intro)], ['Las razas', FERIA.breeds ? `<ul class="dd-ul dd-finds">${FERIA.breeds.map(([n, t]) => `<li><b>${esc(n)}</b> <span>${esc(t)}</span></li>`).join('')}</ul>` : ''], ['Preguntas', quiz(FERIA.judge) + quiz(FERIA.deal)], ['Antes y ahora', aa(FERIA.then, FERIA.now)]],
+        towns: towns(x => x.type === 'feria') }] },
+      { k: 'pelota', name: 'Pelota y pasaka', icon: 'pelota', items: [
+        { k: 'pelota', img: laminaUrl('dep-pelotari', true) || '', icon: 'pelota', kicker: 'Pelota', title: 'Pelota a mano', secs: [['La historia', Ps(pelota?.story)], ['Cómo se juega', P('La pelota tiene que dar en el frontis por encima de la chapa, la raya roja. La puedes devolver de aire o después de un bote.')]] },
+        { k: 'pasaka', img: laminaUrl('dep-pasaka', true) || '', icon: 'pelota', kicker: PASAKA.kicker, title: 'Pasaka', secs: PASAKA.secs.filter(([t]) => t !== 'En el juego').map(([t, x]) => [t, P(x)]).concat([['Fuentes', `<p class="ar-src">${esc(PASAKA.sources)}</p>`]]) }] },
+      { k: 'campanas', name: 'Las campanas', icon: 'bell', items: [{ k: 'campanas', img: '', icon: 'bell', kicker: 'Tradición', title: BELL.title, secs: [['Qué es', P(BELL.fact)]] }] },
+    ];
+    const head = `<div class="ar-head dd-head"><small class="kicker">${I('mask', 20)} Material didáctico</small><h1>Tradiciones de Navarra</h1>
+      <p>Las danzas, los carnavales, las fiestas y los trajes de cada comarca; las tradiciones de los pueblos, las romerías y los caminos, las ferias de ganado, la pelota y la música. Toca una para ver su ficha.</p></div>`;
+    grupos.at(-1).after = `<p class="dd-more"><button type="button" class="btn ghost" data-go="instrumentos">${I('music', 22)} Los instrumentos de la música de siempre</button><button type="button" class="btn ghost" data-go="personajes">${I('mask', 22)} Las fichas de los personajes de leyenda y carnaval</button></p>`;
+    return galeria(this, 'tradiciones', tab, head, grupos);
   },
 
-  // ---------- Oficios ----------
-  s_oficios() {
-    return `<section class="armorial dd"><div class="ar-head dd-head"><small class="kicker">${I('anvil', 20)} Material didáctico</small><h1>Oficios de antes</h1>
-      <p>Cómo se hacían las cosas cuando no había máquinas: quién hacía cada trabajo, con qué herramientas, en castellano y en euskera, cómo se trabajaba paso a paso y cómo es hoy. Cada paso lleva una pregunta con su respuesta.</p></div>
-      <div class="dd-grid dd-wide">${Object.keys(OFICIOS).map(k => this.d_oficio(k)).join('')}</div></section>`;
+  // ---------- Oficios (galería) ----------
+  s_oficios(tab) {
+    const items = Object.entries(OFICIOS).map(([k, O]) => {
+      const esc2 = oficioImg(k);
+      return { k, img: laminaUrl(OFICIO_LAMINA[k], true) || '', icon: O.icon, kicker: 'Oficio de antes', title: O.name, eu: O.eu,
+        secs: [['El oficio', P(O.intro) + (esc2 ? `<p class="dd-ofarms"><img src="${esc2}" alt=""><span>El escudo del oficio</span></p>` : '')],
+          ['Herramientas', `<table class="dd-tools"><thead><tr><th>Castellano</th><th>Euskera</th><th>Para qué sirve</th></tr></thead><tbody>${O.tools.map(([es, eu, d]) => `<tr><th data-notr lang="es">${esc(es)}</th><td data-notr lang="eu">${esc(eu)}</td><td>${esc(d)}</td></tr>`).join('')}</tbody></table>`],
+          ['Cómo se trabajaba', O.steps.map((s, i) => `<div class="dd-paso"><h4><span class="dd-n">${i + 1}</span>${esc(s.title)}</h4>${P(s.text)}${s.q ? quiz({ q: s.q, options: s.options, answer: s.answer, why: s.why }) : ''}</div>`).join('')],
+          ['Antes y ahora', aa(O.then, O.now)]],
+        towns: towns(m => m.type === 'trade' && m.kind === k) };
+    });
+    const head = `<div class="ar-head dd-head"><small class="kicker">${I('anvil', 20)} Material didáctico</small><h1>Oficios de antes</h1>
+      <p>Cómo se hacían las cosas cuando no había máquinas. Cada oficio tiene su ficha: qué hacía, sus herramientas en castellano y en euskera, cómo se trabajaba paso a paso, con una pregunta en cada paso, y cómo es hoy.</p></div>`;
+    return galeria(this, 'oficios', tab, head, [{ k: 'oficios', name: 'Oficios', icon: 'anvil', items }]);
   },
 
-  // ---------- Producto local y campo ----------
-  s_productos() {
+  // ---------- Producto local y campo (galería) ----------
+  s_productos(tab) {
     const proc = LEVELS.flatMap(l => (l.missions || []).filter(m => m.type === 'process').map(m => ({ l, m })));
-    const harv = LEVELS.flatMap(l => (l.missions || []).filter(m => m.type === 'harvest').map(m => ({ l, m })));
     const herd = LEVELS.flatMap(l => (l.missions || []).filter(m => m.type === 'herd' && m.story).map(m => ({ l, m })));
-    return `<section class="armorial dd"><div class="ar-head dd-head"><small class="kicker">${I('cheese', 20)} Material didáctico</small><h1>Producto local y campo</h1>
-      <p>Lo que se cultiva, se cría y se elabora en cada comarca: cómo se hace, cómo era antes y cómo es ahora.</p></div>
-      ${sec('star', 'El producto estrella de cada comarca')}<div class="dd-grid">${COMARCAS.filter(c => STAR[c.id]).map(c => block('star', c.name, STAR[c.id].name, P(STAR[c.id].text), { eu: STAR[c.id].eu })).join('')}</div>
-      ${sec('basket', 'Cómo se hace')}<div class="dd-grid">${proc.map(({ l, m }) => this.d_mision(l, m).replace('</article>', where([l.id]) + '</article>')).join('')}</div>
-      ${sec('wheat', 'Las cosechas')}<div class="dd-grid">${harv.map(({ l, m }) => this.d_mision(l, m).replace('</article>', where([l.id]) + '</article>')).join('')}</div>
-      ${sec('sheep', 'Ganadería')}<div class="dd-grid">${[PASTOR_INFO('atlantic'), PASTOR_INFO('ribera'), VAQUERA_INFO].map((X, i) => block(X.icon, 'Ganadería', X.title, Ps(X.lines) + aa(X.then, X.now), { sub: ['Montaña', 'Ribera y Zona Media', ''][i] })).join('')}
-        ${herd.map(({ l, m }) => this.d_mision(l, m).replace('</article>', where([l.id]) + '</article>')).join('')}</div>
-      ${sec('cow', 'Los animales de la granja')}<div class="dd-grid">${Object.values(PET).filter(Boolean).map(X => block(X.icon, '', X.title, P(X.fact))).join('')}</div>
-      ${sec('backpack', 'Comida para el monte')}<div class="dd-grid">${Object.values(FOOD).filter(f => f.fact).map(f => block(f.icon, '', f.name, P(f.fact))).join('')}</div>
-      ${sec('basket', 'Del campo y la ganadería')}<ul class="dd-goods">${Object.values(GOODS).map(g => `<li>${I(g.icon, 30)}<b>${esc(g.name)}</b><i data-notr lang="eu">${esc(g.eu)}</i></li>`).join('')}</ul></section>`;
+    // (las cosechas, una por cultivo, con todos los pueblos donde se recoge)
+    const crops = [...new Set(LEVELS.flatMap(l => (l.missions || []).filter(m => m.type === 'harvest').map(m => m.crop)))];
+    const cropTowns = (c) => LEVELS.filter(l => (l.missions || []).some(m => m.type === 'harvest' && m.crop === c));
+    const cropText = (c) => { for (const l of cropTowns(c)) for (const m of l.missions) if (m.type === 'harvest' && m.crop === c) { const t = sinOrdenes(m.text); if (t) return t; } return ''; };
+    const cap = (s) => s ? s[0].toUpperCase() + s.slice(1) : s;
+    const lam = (id) => (id && laminaUrl(id, true)) || '';
+    const grupos = [
+      { k: 'estrella', name: 'Producto estrella', icon: 'star', intro: 'Lo más típico de cada comarca.',
+        items: COMARCAS.filter(c => STAR[c.id]).map(c => { const S = STAR[c.id]; return { k: 's-' + c.id, img: lam(STAR_LAM[c.id]), icon: FOOD_ICON[S.food] || 'cheese', c: c.color, kicker: c.name, title: S.name, eu: S.eu, secs: [['Qué es', P(S.text)]] }; }) },
+      { k: 'como', name: 'Cómo se hace', icon: 'basket', intro: 'Del campo o del animal a la mesa, paso a paso.',
+        items: proc.map(({ l, m }) => { const X = PROCESOS[m.id]; return { k: 'p-' + l.id + '-' + m.id, img: lam(PROC_LAM[m.id]), icon: PROC_ICON[m.id] || 'basket', c: comarca(l.comarca)?.color, kicker: tn(l.id), title: m.title || m.product, sub: m.product,
+          secs: X ? [['Qué es', P(X.what)], ['Cómo se hace', P(X.how) + (m.steps ? H4('Paso a paso') + ol(m.steps) : '')], ['Antes y ahora', aa(X.then, X.now)]] : [['Qué es', P(m.text)]], towns: [l.id] }; }) },
+      { k: 'cosechas', name: 'Las cosechas', icon: 'wheat', intro: 'Qué se recoge en cada sitio.',
+        items: crops.map(c => ({ k: 'h-' + c, img: lam(CROP_LAM[c]), icon: CROP[c]?.[1] || 'wheat', kicker: 'Cosecha', title: cap(CROP[c]?.[0] || c), secs: [['La cosecha', cropText(c)]], towns: cropTowns(c).map(l => l.id) })) },
+      { k: 'ganaderia', name: 'Ganadería', icon: 'sheep', intro: 'Pastores, vaqueras y sus rebaños.',
+        items: [[PASTOR_INFO('atlantic'), 'Montaña', 'etxalar-ovejas'], [PASTOR_INFO('ribera'), 'Ribera y Zona Media', 'c-bardenas'], [VAQUERA_INFO, '', 'ituren-vacas']].map(([X, sub, l], i) => ({ k: 'g-' + i, img: lam(l), icon: X.icon, kicker: 'Ganadería', title: X.title, sub, secs: [['El oficio', Ps(X.lines)], ['Antes y ahora', aa(X.then, X.now)]] }))
+          .concat(herd.map(({ l, m }) => ({ k: 'g-' + l.id, img: lam(HERD_LAM[l.id]), icon: 'sheep', c: comarca(l.comarca)?.color, kicker: tn(l.id), title: m.title || '', secs: [['La historia', Ps(m.story) + (m.cardText ? `<p class="dd-tip">${esc(m.cardText)}</p>` : '')]], towns: [l.id] }))) },
+      { k: 'granja', name: 'La granja', icon: 'cow', intro: 'Los animales del caserío y de la borda.',
+        items: Object.entries(PET).filter(([, X]) => X?.fact).map(([k, X]) => ({ k: 'a-' + k, img: faunaImg(PET_FAUNA[k])?.small || '', fit: true, icon: X.icon, kicker: 'Animales de la granja', title: X.title, secs: [['Cómo es', P(X.fact)]] })) },
+      { k: 'monte', name: 'Comida para el monte', icon: 'backpack', items: Object.values(FOOD).filter(f => f.fact).map(f => ({ k: 'm-' + f.name, img: '', icon: f.icon, kicker: 'Para el monte', title: f.name, secs: [['Qué es', P(f.fact)]] })) },
+      { k: 'campo', name: 'Del campo', icon: 'basket', items: Object.values(GOODS).map(g => ({ k: 'c-' + g.name, img: '', icon: g.icon, kicker: 'Del campo y la ganadería', title: g.name, eu: g.eu, secs: [['De dónde sale', P(cap(g.from || ''))]] })) },
+    ];
+    const head = `<div class="ar-head dd-head"><small class="kicker">${I('cheese', 20)} Material didáctico</small><h1>Producto local y campo</h1>
+      <p>Lo que se cultiva, se cría y se elabora en cada comarca: cómo se hace, cómo era antes y cómo es ahora. Toca uno para ver su ficha.</p></div>`;
+    return galeria(this, 'productos', tab, head, grupos);
   },
 
-  // ---------- Historia y arquitectura ----------
-  s_historia() {
+  // ---------- Historia y arquitectura (galería) ----------
+  s_historia(tab) {
     const H = CUENTOS.filter(C => C.kind === 'historia');
-    const kinds = Object.entries(KIND_TIP);
-    return `<section class="armorial dd"><div class="ar-head dd-head"><small class="kicker">${I('castle', 20)} Material didáctico</small><h1>Historia y arquitectura</h1>
-      <p>De los primeros pastores que levantaron los dólmenes a los vascones de Irulegi, los castillos del reino y los monumentos de los pueblos: qué son y cómo reconocerlos.</p></div>
-      ${sec('dolmen', 'Los primeros pobladores')}<div class="dd-grid">${Object.keys(SITES).map(k => this.d_site(k)).join('')}</div>
-      ${sec('castle', 'Los castillos')}<div class="dd-grid">${block('castle', 'Castillo', 'Las partes de un castillo', `<ul class="dd-ul dd-finds">${Object.values(PARTS).map(p => `<li><b>${esc(p.name)}</b> <span>${esc(p.text)}</span></li>`).join('')}</ul>` + quiz(CASTLE_QUIZ))}
-        ${Object.keys(CASTLE_TOWNS).map(k => this.d_castillo(k)).join('')}
-        ${block('castle', 'Ruta de los castillos', 'Castillos de Navarra', P('Después de la conquista de Navarra muchos castillos se derribaron. Estos son algunos de los que quedan, en pie o en ruinas:') + `<ul class="dd-ul dd-finds">${CASTILLOS.map(([n, t]) => `<li><b>${esc(n)}</b> <span>${esc(t)}</span></li>`).join('')}</ul>`)}</div>
-      ${sec('church', 'Cómo reconocer una iglesia')}<div class="dd-grid">${[...Object.values(STYLE_TIP), ...Object.values(LABEL_TIP)].map(t => `<article class="dd-b dd-tipb">${I('church', 30)}${P(t)}</article>`).join('')}</div>
-      ${sec('visit', 'Monumentos de los pueblos')}<div class="dd-grid">${kinds.map(([k, t]) => `<article class="dd-b dd-tipb">${I(LM_ICON[k] || k, 30)}${P(t)}</article>`).join('')}</div>
-      ${sec('book', 'Historias que pasaron de verdad')}<div class="dd-grid dd-cts">${H.map(C => this.d_cuento(C)).join('')}</div>
-      <p class="dd-more"><button type="button" class="btn ghost" data-go="personajes">${I('book', 22)} Los personajes de la historia de Navarra</button><button type="button" class="btn ghost" data-go="escudos">${I('shield', 22)} Los escudos y cómo se leen</button></p></section>`;
+    const lista = (a) => `<ul class="dd-ul dd-finds">${a.map(([n, t]) => `<li><b>${esc(n)}</b> <span>${esc(t)}</span></li>`).join('')}</ul>`;
+    const grupos = [
+      { k: 'pobladores', name: 'Los primeros pobladores', icon: 'dolmen', intro: 'De los pastores que levantaron los dólmenes a los vascones de Irulegi.',
+        items: Object.entries(SITES).map(([k, S]) => ({ k: 's-' + k, img: laminaUrl(SITE_LAM[k], true) || '', icon: S.icon, kicker: 'Arqueología', title: S.whatTitle,
+          secs: [['Qué es', Ps(S.intro) + P(S.what)], ['Lo que se encuentra', lista(S.finds.map(([, n, t]) => [n, t]))], [S.stepsTitle, ol(S.steps)], [S.nowTitle || 'Antes y ahora', aa(S.then, S.now)]],
+          towns: towns(m => m.type === 'dolmen' && (m.site || 'dolmen') === k) })) },
+      { k: 'castillos', name: 'Los castillos', icon: 'castle', intro: 'Cómo eran por dentro y los que quedan en pie.',
+        items: [{ k: 'partes', img: '', icon: 'castle', kicker: 'Castillo', title: 'Las partes de un castillo', secs: [['Sus partes', lista(Object.values(PARTS).map(p => [p.name, p.text]))], ['Pregunta', quiz(CASTLE_QUIZ)]] },
+          ...Object.entries(CASTLE_TOWNS).map(([k, C]) => ({ k: 'c-' + k, img: laminaUrl(k, true) || '', icon: 'castle', c: comarca(levelById(k)?.comarca)?.color, kicker: tn(k), title: C.title,
+            secs: [['Su historia', Ps(C.intro)], ['Sus partes', lista(C.parts.map(p => ({ ...PARTS[p], ...(C.own[p] || {}) })).map(p => [p.name, p.text]))], ['Antes y ahora', aa(C.then, C.now)]], towns: [k] })),
+          { k: 'ruta', img: laminaUrl('ujue', true) || '', icon: 'castle', kicker: 'Ruta de los castillos', title: 'Castillos de Navarra', secs: [['Los que quedan', P('Después de la conquista de Navarra muchos castillos se derribaron. Estos son algunos de los que quedan, en pie o en ruinas:') + lista(CASTILLOS)]] }] },
+      { k: 'iglesias', name: 'Cómo reconocer una iglesia', icon: 'church', intro: 'Los estilos: fíjate en los arcos, las ventanas y la decoración.',
+        items: [...Object.entries(STYLE_TIP).map(([k, t]) => [ESTILO[k] || k, t, k]), ...Object.entries(LABEL_TIP).map(([k, t]) => [k, t, k])].map(([n, t, k]) => ({ k: 'i-' + k, img: (k === 'cathedral' && laminaUrl('tudela', true)) || '', icon: k === 'cathedral' ? 'cathedral' : 'church', kicker: 'Estilo', title: n, secs: [['Cómo reconocerla', P(t)]] })) },
+      { k: 'monumentos', name: 'Monumentos', icon: 'arch', intro: 'Puentes, murallas, palacios y casas con escudo: qué mirar en cada uno.',
+        items: Object.entries(KIND_TIP).map(([k, t]) => ({ k: 'm-' + k, img: (MONUMENTO_LAM[k] && laminaUrl(MONUMENTO_LAM[k], true)) || '', icon: LM_ICON[k] || k, kicker: 'Monumento', title: MONUMENTO[k] || k, secs: [['Qué mirar', P(t)]] })) },
+      { k: 'historias', name: 'Historias que pasaron', icon: 'book', intro: 'Lo que pasó de verdad en los pueblos de Navarra.',
+        items: H.map(C => ({ k: 'h-' + C.id, img: leyendaUrl(C.id) || '', icon: C.icon, kicker: KIND_LABEL[C.kind], title: C.title, sub: C.place, secs: [['La historia', Ps(C.parts)], ['Lo que puedes ver hoy', P(C.today)], ['Pregunta', quiz(C.q)]], towns: C.towns })) },
+    ];
+    const head = `<div class="ar-head dd-head"><small class="kicker">${I('castle', 20)} Material didáctico</small><h1>Historia y arquitectura</h1>
+      <p>De los primeros pastores que levantaron los dólmenes a los vascones de Irulegi, los castillos del reino y los monumentos de los pueblos: qué son y cómo reconocerlos. Toca uno para ver su ficha.</p></div>`;
+    grupos.at(-1).after = `<p class="dd-more"><button type="button" class="btn ghost" data-go="personajes">${I('book', 22)} Los personajes de la historia de Navarra</button><button type="button" class="btn ghost" data-go="escudos">${I('shield', 22)} Los escudos y cómo se leen</button></p>`;
+    return galeria(this, 'historia', tab, head, grupos);
   },
 
-  // ---------- Palabras en euskera ----------
-  s_euskera() {
-    // (las dos columnas tal cual: el traductor no las toca, ni en euskera ni al ver el castellano)
-    const tab = (rows) => `<table class="dd-voc"><tbody>${rows.map(([eu, es, d = '']) => `<tr><th data-notr lang="eu">${esc(eu)}</th><td data-notr lang="es">${esc(es)}</td>${d ? `<td class="dd-vd">${esc(d)}</td>` : ''}</tr>`).join('')}</tbody></table>`;
-    const both = (name) => { const [a, b] = name.split(' / '); return b ? [b, a] : null; };
-    const fauna = allFichas('fauna').filter(d => d.F.eu).map(d => [d.F.eu, d.F.name]), flora = allFichas('flora').filter(d => d.F.eu).map(d => [d.F.eu, d.F.name]);
-    const S = [['talk', 'Saludos', [['Kaixo', 'Hola'], ...Object.entries(KAIXO_ES), ['Ongi etorri', 'Bienvenida, bienvenido'], ['Eskerrik asko', 'Gracias'], ['Agur', 'Adiós']]],
-      ['talk', 'Conversaciones con los vecinos', HIZKETAK.flatMap(h => hizketaLines(h).map(([eu, es]) => [eu.replace('{izena}', 'Ane'), es.replace('{izena}', 'Ane')]))],   // (lo que te dicen y lo que se contesta)
-      ['house', 'Palabras de los vecinos', Object.values(HITZAK).flat().filter(([eu]) => !['Kaixo', 'Eskerrik asko', 'Agur'].includes(eu))],   // (las que enseñan en el juego)
-      ['anvil', 'Oficios', Object.values(OFICIOS).map(o => [o.eu, o.name])],
-      ['hammer', 'Herramientas de los oficios', Object.values(OFICIOS).flatMap(o => o.tools.map(([es, eu, d]) => [eu, es, d]))],
-      ['music', 'Instrumentos', INSTRUMENTOS.map(x => [x.eu, x.name])],
-      ['cheese', 'Productos', [...Object.values(STAR).map(s => [s.eu, s.name]), ...Object.values(GOODS).map(g => [g.eu, g.name])]],
-      ['mask', 'Seres de leyenda y carnaval', FIGURAS.filter(f => f.eu && f.eu !== f.name).map(f => [f.eu, f.name])],
-      ['bird', 'Animales', fauna], ['leaf', 'Árboles y plantas', flora],
-      ['church', 'Pueblos', LEVELS.map(l => both(l.name)).filter(Boolean)],
-      ['map', 'Comarcas', COMARCAS.map(c => both(c.full || c.name)).filter(Boolean)]];
-    return `<section class="armorial dd"><div class="ar-head dd-head"><small class="kicker">${I('talk', 20)} Material didáctico</small><h1>Palabras en euskera</h1>
-      <p>Las palabras en euskera que salen en el juego, con su traducción: para saludar, los oficios y sus herramientas, los instrumentos, los productos, los animales y las plantas, y los nombres de los pueblos y las comarcas.</p></div>
-      ${S.filter(s => s[2].length).map(([ic, t, rows], i) => `<details class="dd-vsec"${i < 2 ? ' open' : ''}><summary>${I(ic, 28)}<b>${esc(t)}</b><small>${rows.length}</small></summary>${tab(rows)}</details>`).join('')}</section>`;
+  // ---------- Palabras en euskera (por temas, como tarjetas con su imagen) ----------
+  s_euskera(tab) {
+    // (los pueblos con dos nombres: unos llevan delante el euskera, como Amaiur / Maya, y otros el castellano)
+    const EU_DELANTE = new Set(['Amaiur', 'Orreaga', 'Otsagabia', 'Erronkari', 'Altsasu']);
+    const both = (name) => { const [a, b] = name.split(' / '); return b ? (EU_DELANTE.has(a) ? [a, b] : [b, a]) : null; };
+    const W = (eu, es, o = {}) => ({ eu, es, ...o });
+    const lam = (id) => (id && laminaUrl(id, true)) || '';
+    const grupos = [
+      { k: 'saludos', name: 'Saludos', icon: 'talk', intro: 'Para saludar, dar las gracias y despedirse.',
+        items: [['Kaixo', 'Hola'], ...Object.entries(KAIXO_ES), ['Ongi etorri', 'Bienvenida, bienvenido'], ['Eskerrik asko', 'Gracias'], ['Agur', 'Adiós']].map(([eu, es]) => W(eu, es, { icon: PALABRA_ICO[eu] || 'talk' })) },
+      { k: 'charlas', name: 'Conversaciones', icon: 'talk', intro: 'Lo que te dicen los vecinos y lo que se contesta.',
+        chats: HIZKETAK.map(h => hizketaLines(h).map(([eu, es]) => [eu.replace('{izena}', 'Ane'), es.replace('{izena}', 'Ane')])) },
+      { k: 'vecinos', name: 'Palabras de los vecinos', icon: 'house', intro: 'Las que enseñan los vecinos en el juego.',
+        items: Object.values(HITZAK).flat().filter(([eu]) => !['Kaixo', 'Eskerrik asko', 'Agur'].includes(eu)).map(([eu, es]) => W(eu, es, { icon: PALABRA_ICO[eu] || 'talk' })) },
+      { k: 'oficios', name: 'Oficios', icon: 'anvil', items: Object.entries(OFICIOS).map(([k, o]) => W(o.eu, o.name, { img: lam(OFICIO_LAMINA[k]), icon: o.icon })) },
+      { k: 'herramientas', name: 'Herramientas', icon: 'hammer', items: Object.values(OFICIOS).flatMap(o => o.tools.map(([es, eu, d]) => W(eu, es, { d, icon: o.icon }))) },
+      { k: 'instrumentos', name: 'Instrumentos', icon: 'music', items: INSTRUMENTOS.map(x => W(x.eu, x.name, { icon: x.icon })) },
+      { k: 'productos', name: 'Productos', icon: 'cheese', items: [...Object.entries(STAR).map(([c, s]) => W(s.eu, s.name, { img: lam(STAR_LAM[c]), icon: FOOD_ICON[s.food] || 'cheese' })), ...Object.values(GOODS).map(g => W(g.eu, g.name, { icon: g.icon }))] },
+      { k: 'seres', name: 'Leyenda y carnaval', icon: 'mask', items: FIGURAS.filter(f => f.eu && f.eu !== f.name).map(f => W(f.eu, f.name, { img: figuraImg(f.id) || '', fit: !figuraIlus(f.id), icon: 'mask' })) },
+      { k: 'animales', name: 'Animales', icon: 'bird', items: allFichas('fauna').filter(d => d.F.eu).map(d => W(d.F.eu, d.F.name, { img: faunaImg(d.id)?.small || '', fit: true, icon: d.F.icon || 'bird' })) },
+      { k: 'plantas', name: 'Árboles y plantas', icon: 'leaf', items: allFichas('flora').filter(d => d.F.eu).map(d => W(d.F.eu, d.F.name, { img: floraFoto(d.id)?.planta || '', icon: d.F.m?.t === 'tree' ? 'tree' : 'leaf' })) },
+      { k: 'pueblos', name: 'Pueblos', icon: 'church', items: LEVELS.map(l => { const n = both(l.name); return n && W(n[0], n[1], { img: townImg(l, true), icon: 'church' }); }).filter(Boolean) },
+      { k: 'comarcas', name: 'Comarcas', icon: 'map', items: COMARCAS.map(c => { const n = both(c.full || c.name); return n && W(n[0], n[1], { img: comarcaCover(c.id, true) || '', icon: 'map' }); }).filter(Boolean) },
+    ];
+    const head = `<div class="ar-head dd-head"><small class="kicker">${I('talk', 20)} Material didáctico</small><h1>Palabras en euskera</h1>
+      <p>Las palabras en euskera que salen en el juego, por temas: cada una con su dibujo, en euskera en grande y en castellano debajo.</p></div>`;
+    return palabras(this, 'euskera', tab, head, grupos);
   },
 };
