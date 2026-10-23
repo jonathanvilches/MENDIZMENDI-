@@ -291,7 +291,7 @@ async function boot() {
     document.body.appendChild(o);
   }
 
-  function exit(to) {
+  function exit(to, luego = null) {
     if (!game) return;
     try { game.save?.(); } catch (e) { }
     // el valle de Salazar completo cuenta como sello
@@ -307,6 +307,8 @@ async function boot() {
     game = null;
     // (desde un campeonato, de vuelta a Torneos, de donde se vino; y en el menú, su tema)
     sound.setMood('inicio'); queueMode('all'); if (to === 'home' || to === 'sports' || to === 'pasaka') hub.show(to); else hub.show('comarca', def?.comarca);
+    // (desde el menú de pelota de Campeonatos, a jugar en el frontón de otro pueblo: se carga ese pueblo)
+    if (luego?.pelota && levelById(luego.pelota)) setTimeout(() => play(levelById(luego.pelota), { sport: 'pelota' }), 60);
   }
   window.__exit = exit;
   // memoria gráfica perdida (en el iPhone, al volver de otra aplicación o con poca memoria): si el navegador la
