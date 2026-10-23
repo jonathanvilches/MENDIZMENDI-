@@ -171,6 +171,7 @@ const CSS = `
 .tq-tile .figs img.pf{position:absolute;bottom:0;left:50%;height:100%;width:auto;max-width:none;transform:translateX(-50%);transform-origin:50% 100%;filter:drop-shadow(0 6px 14px rgba(0,0,0,.5));transition:transform .3s}
 .tq-tile:hover .figs img.pf:only-child{transform:translateX(-50%) scale(1.04) translateY(-3px)}
 .tq-tile .figs.duo img.pf:first-child{transform:translateX(-80%)}.tq-tile .figs.duo img.pf:last-child{transform:translateX(-20%)}
+.tq-tile .figs{container-type:inline-size}.tq-tile .figs.trio img.pf{height:min(100%,84cqw)}.tq-tile .figs.duo img.pf{height:min(100%,90cqw)}   /* (en abanico ocupan 1,13 y 1,07 veces su alto: nunca más anchas que la losa) */
 .tq-tile .figs.trio img.pf:nth-child(1){transform:translateX(-92%) scale(.86)}.tq-tile .figs.trio img.pf:nth-child(2){z-index:1}.tq-tile .figs.trio img.pf:nth-child(3){transform:translateX(-8%) scale(.86)}
 .tq-tile .k{font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--rosa);text-shadow:0 1px 3px rgba(0,0,0,.8);overflow-wrap:anywhere}
 .tq-tile b{font:400 var(--fs-2xl)/1 var(--f-display);text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.55);max-width:100%;overflow-wrap:anywhere}
@@ -195,7 +196,7 @@ const CSS = `
    algo más anchas (si no, sus títulos iban en dos o tres líneas y sus figuras salían a la mitad) */
 @media (orientation:landscape){
 .tq-tiles{grid-template-columns:1.15fr 1.15fr .85fr .85fr;grid-template-rows:minmax(0,1fr) auto auto auto;row-gap:0}.tq-tiles.n3{grid-template-columns:1.15fr 1fr 1fr}
-.tq-tile{display:grid;grid-row:span 4;grid-template-rows:subgrid;align-content:stretch;justify-items:start;padding-left:16px;padding-right:16px}
+.tq-tile{display:grid;grid-row:span 4;grid-template-rows:subgrid;grid-template-columns:minmax(0,1fr);align-content:stretch;justify-items:start;padding-left:16px;padding-right:16px}   /* (la columna, todo el ancho de la losa: si no, medía lo que su título y las figuras salían a un lado y cortadas) */
 .tq-tile .figs{justify-self:stretch;align-self:stretch}.tq-tile>:not(.figs){align-self:end}
 .tq-tile .k{letter-spacing:.06em}.tq-tile b{font-size:var(--fs-xl)}
 }
@@ -205,9 +206,9 @@ const CSS = `
    con tres pelotaris, ya no se corta) y las cartas del próximo partido más grandes */
 @media (min-width:1200px) and (min-height:700px){
 .lg-card.tq-card{width:min(1280px,100%);gap:16px 32px}
-.lg-card.tq-menu-card{width:min(1320px,100%)}
+.lg-card.tq-menu-card{width:min(1640px,100%)}
 .tq-tiles{gap:16px;grid-template-columns:1.1fr 1.1fr 1fr 1fr}.tq-tiles.n3{grid-template-columns:1.1fr 1fr 1fr}
-.tq-tile{padding-left:24px;padding-right:24px}.tq-tile .figs{min-height:clamp(280px,calc(42vh / var(--z, 1)),460px)}.tq-tile .figs.trio img.pf{height:80%}
+.tq-tile{padding-left:24px;padding-right:24px}.tq-tile .figs{min-height:clamp(280px,calc(46vh / var(--z, 1)),560px)}.tq-tile .figs.trio img.pf{height:min(80%,84cqw)}
 .tq-tile b{font-size:var(--fs-2xl)}.tq-tile small{font-size:var(--fs-md)}.tq-tile .k{font-size:var(--fs-sm)}
 .tq-duel .gx-card{--w:168px!important}.tq-banner .gx-card{--w:168px!important}.tq-mid b{font-size:var(--fs-5xl)}.tq-mid small.r{font-size:var(--fs-md)}
 .tq-where{font-size:var(--fs-md)}.tq-ficha{font-size:var(--fs-sm)}

@@ -741,6 +741,8 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   .finale .fin-btns { flex-direction: row; } .finale .fin-btns .btn { flex: 1 1 0; min-width: 0; flex-direction: column; gap: 4px; padding: 8px 8px; font-size: var(--fs-sm); line-height: 1.15; }
 }
 @media (max-height: 900px) { .finale .mg-card { gap: 8px; } .finale .stampimg.big { width: 104px; height: 104px; } .finale h2 { font-size: var(--fs-2xl); } .finale p { font-size: var(--fs-sm); line-height: 1.45; } .fin-list { gap: 4px; } .fin-list li { padding: 4px 8px; font-size: var(--fs-sm); } .finale .rewards .rw { padding: 4px 8px; } .finale .fin-btns { gap: 8px; padding-top: 8px; } .finale .fin-btns .btn { min-height: 46px; } }
+/* (lo mismo con la interfaz ampliada de una pantalla grande, util/tele.js: menos de 900 de alto, contado sin ampliar) */
+html.tele-bajo .finale .mg-card { gap: 8px; } html.tele-bajo .finale .stampimg.big { width: 104px; height: 104px; } html.tele-bajo .finale h2 { font-size: var(--fs-2xl); } html.tele-bajo .finale p { font-size: var(--fs-sm); line-height: 1.45; } html.tele-bajo .fin-list { gap: 4px; } html.tele-bajo .fin-list li { padding: 4px 8px; font-size: var(--fs-sm); } html.tele-bajo .finale .rewards .rw { padding: 4px 8px; } html.tele-bajo .finale .fin-btns { gap: 8px; padding-top: 8px; } html.tele-bajo .finale .fin-btns .btn { min-height: 46px; }
 #pReset { width: 100%; margin-top: 8px; }
 .fw { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .fw i { position: absolute; left: var(--x); top: 110%; width: 8px; height: 8px; border-radius: 50%; background: var(--c); box-shadow: 0 0 12px var(--c); animation: fwUp 2.4s var(--d) ease-out infinite; }

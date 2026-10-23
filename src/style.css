@@ -244,6 +244,12 @@ html:not(.con-mando) .pel-hit:has(.pel-hk) .pel-hl { transform: translateY(-5px)
 .con-mando .touch #prompt { bottom: calc(var(--sb) + 110px); left: 50%; right: auto; transform: translateX(-50%); }
 /* (en una pantalla grande, util/tele.js: las vistas 3D a pantalla entera, que se miden con la ventana, sin el zoom de la interfaz) */
 .pantalla3d { zoom: calc(1 / var(--z, 1)); }
+/* en una pantalla grande, las ventanas medianas, un 20 % más que el resto: la de antes del partido y las pausas de la
+   pelota y del fútbol, la pausa y las fichas del pueblo, el cuadro del torneo y el diálogo; así llenan la tele y se leen
+   desde el sofá. Su --z pasa a ser el total (--zt), para que sus vw y vh sigan midiendo la pantalla */
+html.tele :is(.pel-card, .fb-card, .screen > .paper, .lg-card.tq-card) { zoom: 1.2; --z: var(--zt); }
+/* (el diálogo va pegado abajo: se amplía por dentro, para que siga en su sitio) */
+html.tele #dialog { width: min(912px, calc(calc(100vw / var(--z, 1)) - 24px)); } html.tele #dialog > * { zoom: 1.2; }
 
 /* ---------- Diálogo: franja inferior de cine ---------- */
 #dialog { position: absolute; left: 50%; bottom: calc(var(--sb, 0px) + 14px); transform: translateX(-50%); width: min(760px, calc(calc(100vw / var(--z, 1)) - 24px)); padding: 16px 16px 12px; display: flex; gap: 16px; align-items: flex-start;
