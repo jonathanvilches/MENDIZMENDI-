@@ -29,8 +29,16 @@ const prev = new Map(), held = new Map(), flechas = new Map();
 let raf = 0, quieto = 0;
 const dz = (v) => (Math.abs(v) < 0.15 ? 0 : v);
 function suelta(a) { if (a.key) tecla('keyup', a.key); else if (a.el) pulsar(a.el, false); }
+// (todo suelto: los botones que se mantenían, las flechas de la palanca y el andar; al quedarse sin mandos, al irse uno
+// o cuando el móvil deja de dar señales. Si no, la flecha que se estaba pulsando seguía pulsada y el jugador no paraba)
+function soltarTodo(id) {
+  for (const [k, a] of held) if (!id || k.endsWith(':' + id)) { suelta(a); held.delete(k); }
+  for (const [k] of flechas) tecla('keyup', k); flechas.clear(); PAD.x = PAD.y = 0;
+}
+addEventListener('gamepaddisconnected', (e) => { const g = e.gamepad; prev.delete(g.index + g.id); soltarTodo(g.index + g.id); });
 function frame() {
   const L = navigator.getGamepads ? [...navigator.getGamepads()].filter(p => p && p.connected) : [];
+  if (!L.length && (flechas.size || held.size)) soltarTodo();   // (sin mandos, nada pulsado)
   if (!L.length && ++quieto > 120) { raf = 0; PAD.x = PAD.y = 0; verFlecha(false); return; }   // (sin mandos, deja de mirar)
   if (L.length) quieto = 0;
   raf = requestAnimationFrame(frame);
@@ -63,7 +71,7 @@ function frame() {
  *  ocupado, podía caer entre dos y perderse); el mando estándar del móvil también se actualiza, para el fútbol. */
 export function botonMovil(i, d) {
   const b = VPAD.buttons[i]; if (!b) return;
-  b.pressed = b.touched = !!d; b.value = d ? 1 : 0; VPAD.timestamp = performance.now();
+  b.pressed = b.touched = !!d; b.value = d ? 1 : 0; VPAD.timestamp = performance.now(); vivo[i] = VPAD.timestamp;
   const k = i + ':' + VPAD.index + VPAD.id;
   if (d && !held.has(k)) { const a = accion(ctxActual(), i); if (a) { held.set(k, a); if (a.key) tecla('keydown', a.key); else pulsar(a.el, true); } }
   else if (!d && held.has(k)) { suelta(held.get(k)); held.delete(k); }
@@ -72,6 +80,21 @@ export function botonMovil(i, d) {
 export function leerMandos() { quieto = 0; if (!raf) raf = requestAnimationFrame(frame); }
 addEventListener('gamepadconnected', leerMandos);
 
+/** La palanca del móvil (x, y de -1 a 1; y: adelante), tal como llega. */
+export function palancaMovil(x, y) { VPAD.axes[0] = x; VPAD.axes[1] = -y; VPAD.timestamp = vivo.ej = performance.now(); }
+// el vigilante: lo que el móvil mantiene pulsado (la palanca y los botones) lo repite cada poco; si en 1,5 s no se
+// repite, es que el «soltar» se ha perdido por el camino (o el móvil se ha quedado sin señal) y se suelta aquí. Solo con
+// un móvil que avisa de que repite (uno de antes no lo hace y se le soltaría Correr al segundo y medio)
+const vivo = { ej: 0 };
+let vigila = false;
+/** El móvil avisa de que repite lo que mantiene pulsado: desde ahora, lo que no se repita se suelta solo. */
+export function vigilaMovil(on) { vigila = !!on; vivo.ej = performance.now(); VPAD.buttons.forEach((b, i) => { vivo[i] = vivo.ej; }); }
+setInterval(() => {
+  if (!VPAD.connected || !vigila) return;
+  const n = performance.now();
+  if ((VPAD.axes[0] || VPAD.axes[1]) && n - vivo.ej > 1500) { VPAD.axes[0] = VPAD.axes[1] = 0; }
+  VPAD.buttons.forEach((b, i) => { if (b.pressed && n - (vivo[i] || 0) > 1500) botonMovil(i, 0); });
+}, 500);
 let parche = false;
 /** Enciende o apaga el mando del móvil: mientras está, sale en navigator.getGamepads como uno más. */
 export function mandoMovil(on) {
@@ -80,11 +103,9 @@ export function mandoMovil(on) {
     const real = navigator.getGamepads ? navigator.getGamepads.bind(navigator) : () => [];
     Object.defineProperty(navigator, 'getGamepads', { configurable: true, value: () => { const L = [...real()]; if (VPAD.connected) L.push(VPAD); return L; } });
   }
-  VPAD.connected = !!on;
+  VPAD.connected = !!on; if (!on) vigila = false;
   if (!on) {   // (lo que el móvil dejó pulsado se suelta: si se corta a media carrera, el explorador no sigue corriendo)
     VPAD.axes.fill(0); VPAD.buttons.forEach(b => { b.pressed = false; b.value = 0; });
-    const id = VPAD.index + VPAD.id; prev.delete(id);
-    for (const [k, a] of held) if (k.endsWith(':' + id)) { suelta(a); held.delete(k); }
-    for (const [k] of flechas) tecla('keyup', k); flechas.clear(); PAD.x = PAD.y = 0;
+    const id = VPAD.index + VPAD.id; prev.delete(id); soltarTodo(id);
   } else leerMandos();
 }

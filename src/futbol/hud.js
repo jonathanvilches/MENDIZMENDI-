@@ -285,12 +285,13 @@ export class FutbolHud {
       const up = () => { if (!b.classList.contains('down')) return; b.classList.remove('down'); if (a === 'sprint') this.held.sprint = false; else o.onRelease?.(a); };
       b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up); b.addEventListener('lostpointercapture', up);
     }
-    // joystick dinámico en la mitad izquierda: aparece donde se toca
+    // joystick dinámico en la mitad izquierda: aparece donde se toca (otro dedo en la zona manda él: si el anterior se
+    // quedó enganchado sin su «soltar», tocar otra vez lo arregla)
     this.stick = { x: 0, y: 0, id: null };
     const zone = $('.fb-stick');
     if (zone) {
       const knob = zone.querySelector('.fb-knob'), dot = knob.querySelector('i'), RAD = 56;
-      zone.addEventListener('pointerdown', (e) => { if (this.stick.id !== null) return; e.preventDefault(); try { zone.setPointerCapture(e.pointerId); } catch { /* sin captura */ } const rc = zone.getBoundingClientRect(); this.stick = { id: e.pointerId, ox: e.clientX, oy: e.clientY, x: 0, y: 0 }; knob.style.display = 'block'; knob.style.left = (e.clientX - rc.left) + 'px'; knob.style.top = (e.clientY - rc.top) + 'px'; dot.style.transform = ''; if (this.el.hint) this.el.hint.style.opacity = 0; });
+      zone.addEventListener('pointerdown', (e) => { if (this.stick.id === e.pointerId) return; e.preventDefault(); try { zone.setPointerCapture(e.pointerId); } catch { /* sin captura */ } const rc = zone.getBoundingClientRect(); this.stick = { id: e.pointerId, ox: e.clientX, oy: e.clientY, x: 0, y: 0 }; knob.style.display = 'block'; knob.style.left = (e.clientX - rc.left) + 'px'; knob.style.top = (e.clientY - rc.top) + 'px'; dot.style.transform = ''; if (this.el.hint) this.el.hint.style.opacity = 0; });
       zone.addEventListener('pointermove', (e) => { if (e.pointerId !== this.stick.id) return; let dx = e.clientX - this.stick.ox, dy = e.clientY - this.stick.oy; const l = Math.hypot(dx, dy); if (l > RAD) { dx *= RAD / l; dy *= RAD / l; } this.stick.x = dx / RAD; this.stick.y = -dy / RAD; dot.style.transform = `translate(${dx}px,${dy}px)`; });
       const reset = () => { this.stick = { x: 0, y: 0, id: null }; knob.style.display = 'none'; };
       const end = (e) => { if (e.pointerId !== this.stick.id) return; reset(); };

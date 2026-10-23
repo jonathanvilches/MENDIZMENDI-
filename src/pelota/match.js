@@ -286,12 +286,16 @@ export class PelotaMatch {
   bindInput() {
     const I = this.input, hud = this.hud;
     this.onKey = (e) => {
-      if (!this.active) return;
       const k = e.key.toLowerCase(), down = e.type === 'keydown';
       const mine = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'shift', 'j', 'k', 'l', 'e', 'escape', 'enter'];
       if (!mine.includes(k)) return;
+      // (soltar vale siempre: entre tanto y tanto, con una ventana abierta o con el partido parado; antes se perdía y la
+      // palanca o la tecla se quedaban pulsadas al volver, hacia la izquierda, sin dejar mover)
+      const suelta = () => { I.keys[k] = false; const kind = ({ ' ': 'hit', j: 'hit', e: 'hit', enter: 'hit', shift: 'drop', k: 'drop', l: 'cut' })[k]; if (kind && I.charge?.kind === kind) I.charge = null; };
+      if (!down && !this.active) { suelta(); return; }
+      if (!this.active) return;
       // (con una ventana abierta, Intro y espacio pulsan su botón elegido: antes golpeaban y no se podía confirmar «Sí, salir»)
-      if (hud.panelEl && (k === 'enter' || k === ' ') && hud.panelEl.contains(document.activeElement)) return;
+      if (hud.panelEl && (k === 'enter' || k === ' ') && hud.panelEl.contains(document.activeElement)) { if (!down) suelta(); return; }
       e.preventDefault(); e.stopPropagation();
       if (down && !I.keys[k]) {
         if (k === ' ' || k === 'j' || k === 'e' || k === 'enter') this.chargeStart('hit');
@@ -303,14 +307,18 @@ export class PelotaMatch {
       I.keys[k] = down;
     };
     addEventListener('keydown', this.onKey, true); addEventListener('keyup', this.onKey, true);
-    this.onBlur = () => { I.keys = {}; this.resetStick?.(); };
+    // (al irse la ventana, todo suelto: las teclas, la palanca y el golpe que se estaba cargando, que si no dejaba al
+    // pelotari apuntando y sin moverse)
+    this.soltar = () => { I.keys = {}; this.resetStick?.(); I.charge = null; I.hitQ = I.dropQ = I.cutQ = false; };
+    this.onBlur = () => this.soltar();
     addEventListener('blur', this.onBlur);
     // joystick táctil
     const zone = hud.$('.pel-stick'), knob = hud.$('.pel-knob'), R = 56;
     zone.addEventListener('pointerdown', (e) => {
-      if (I.stick.id !== null) return;
+      // (otro dedo en la zona manda él: si el anterior se quedó enganchado sin su «soltar», tocar otra vez lo arregla)
+      if (I.stick.id === e.pointerId) return;
       I.stick = { id: e.pointerId, ox: e.clientX, oy: e.clientY, x: 0, y: 0 };
-      zone.setPointerCapture?.(e.pointerId);
+      try { zone.setPointerCapture?.(e.pointerId); } catch { /* (un puntero sintético de las pruebas) */ }
       const zr = zone.getBoundingClientRect(); knob.style.display = 'block'; knob.style.left = (e.clientX - zr.left) + 'px'; knob.style.top = (e.clientY - zr.top) + 'px';
       knob.firstElementChild.style.transform = '';
       const h = hud.$('.pel-stickhint'); if (h) h.remove();
@@ -333,7 +341,7 @@ export class PelotaMatch {
       for (const t of e.touches) if (t.clientX >= zr.left && t.clientX <= zr.right && t.clientY >= zr.top && t.clientY <= zr.bottom) return;
       reset(); };
     addEventListener('touchend', this.onTouchEnd, true); addEventListener('touchcancel', this.onTouchEnd, true);
-    this.onHide = () => { if (document.hidden) { reset(); I.keys = {}; } }; document.addEventListener('visibilitychange', this.onHide);
+    this.onHide = () => { if (document.hidden) this.soltar(); }; document.addEventListener('visibilitychange', this.onHide);
     // botones: el golpe, la cortada y la dejada se cargan mientras se mantienen y salen al soltar (un toque, suave)
     const btn = (sel, flag, charge) => {
       const b = hud.$(sel);
@@ -377,6 +385,8 @@ export class PelotaMatch {
     dt = Math.min(dt, 0.05); this.t += dt;
     // (el golpe sale siempre al soltar: con la carga a tope, espera a que tú decidas)
     this.hud.charge(this.chargeLevel(), this.input.charge?.kind);
+    // (con el partido en pausa o una ventana abierta no se juega: el golpe que se cargaba se suelta sin golpear)
+    if ((this.paused || this.hud.panelEl) && this.input.charge) this.input.charge = null;
     const g = this.game, inp = this.paused || this.hud.panelEl ? {} : this.readInput();
     const ev = this.paused ? [] : g.update(dt, inp);
     for (const e of ev) { this.onEvent(e); this.o.onEvent?.(e); }

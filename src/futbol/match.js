@@ -140,6 +140,9 @@ export class FutbolMatch {
     this.keys = new Set();
     this.onKey = (e) => this.key(e, true); this.onKeyUp = (e) => this.key(e, false);
     addEventListener('keydown', this.onKey, true); addEventListener('keyup', this.onKeyUp, true);
+    // (al irse la ventana, las teclas sueltas: si no, la que estaba pulsada se quedaba dentro y el jugador seguía corriendo)
+    this.onBlur = () => { for (const k of this.keys) { const act = { j: 'pass', ' ': 'pass', k: 'shoot', e: 'shoot' }[k]; if (act) this.release(act); } this.keys.clear(); };
+    addEventListener('blur', this.onBlur);
     this.onResize = () => { this.camera.aspect = innerWidth / innerHeight; this.camera.updateProjectionMatrix(); };
     addEventListener('resize', this.onResize);
     // al cambiar de aplicación en el móvil, el partido se para
@@ -775,7 +778,7 @@ export class FutbolMatch {
     H.arrow((x + 1) / 2 * innerWidth, (1 - y) / 2 * innerHeight, Math.atan2(x, y));
   }
   dispose() {
-    removeEventListener('keydown', this.onKey, true); removeEventListener('keyup', this.onKeyUp, true); removeEventListener('resize', this.onResize); document.removeEventListener('visibilitychange', this.onHide);
+    removeEventListener('keydown', this.onKey, true); removeEventListener('keyup', this.onKeyUp, true); removeEventListener('blur', this.onBlur); removeEventListener('resize', this.onResize); document.removeEventListener('visibilitychange', this.onHide);
     for (const ch of [...(this.chars || []), ...(this.refChars || [])]) { try { ch.c.dispose?.(); } catch (e) { } }
     for (const m of this.roofMats || []) m.dispose();
     this.reto?.dispose?.(); this.confetti?.dispose(); removeEventListener('pointerdown', this.onTap);
