@@ -159,6 +159,8 @@ setInterval(() => { if (!repite) return; const t = performance.now(); for (const
 const ultimo = new Map();
 function nuevo(m) {
   if (typeof m.s !== 'number') return true;   // (un móvil de antes no los numera)
+  // (y el que numera también repite lo que mantiene: se vigila aunque su «repite» se quedara en una conexión anterior)
+  if (!repite) { vigilaMovil(true); repite = true; }
   const k = m.t === 'ej' ? 'ej' : m.t + (m.t === 'bt' ? m.i : m.n);
   if (m.s <= (ultimo.get(k) ?? -1)) return false;
   ultimo.set(k, m.s); return true;
