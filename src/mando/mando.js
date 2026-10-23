@@ -7,7 +7,7 @@
 // La sesión sigue abierta al pasar del menú al pueblo y vuelta: el móvil se puede volver a conectar con el mismo código.
 import { senal, ICE, SENAL_PRUEBA, SIN_P2P, CAMINOS, nuevoSecreto } from './senal.js';
 import { PAD, VPAD, mandoMovil, botonMovil } from './pad.js';
-import { ctxActual, ctxMovil } from './contextos.js';
+import { ctxActual, ctxMovil, misMovil, seguirMision } from './contextos.js';
 import { mueve, clic, rueda, pulsar } from './cursor.js';
 import { isEU } from '../i18n.js';
 import { el } from '../util/html.js';
@@ -126,7 +126,7 @@ function abre(dc) {
   dc.onmessage = (e) => { let m; try { m = JSON.parse(e.data); } catch (er) { return; } usa(m); };
 }
 // conectado: el panel lo dice, el móvil recibe el idioma y sus botones, y el panel se cierra solo
-function listo() { S.estado = 'ok'; S.ctx = ''; mandoMovil(true); envia({ t: 'hola', lang: isEU() ? 'eu' : 'es' }); pinta(); setTimeout(() => { if (S.estado === 'ok' && !S.pide) cierraPanel(); }, 1600); }
+function listo() { S.estado = 'ok'; S.ctx = S.mis = ''; mandoMovil(true); envia({ t: 'hola', lang: isEU() ? 'eu' : 'es' }); pinta(); setTimeout(() => { if (S.estado === 'ok' && !S.pide) cierraPanel(); }, 1600); }
 const envia = (m) => { if (S.dc?.readyState === 'open') S.dc.send(JSON.stringify(m)); else if (S.relevo && S.movil) S.sig?.send(S.movil, 'DATA', m, S.fuerte); };
 // (por el saludo no hay aviso de corte: si el móvil no dice nada en 8 s —manda señal cada 2—, se ha ido)
 setInterval(() => { if (S.relevo && S.estado === 'ok' && performance.now() - S.vivo > 8000) caido(); }, 2000);
@@ -149,14 +149,18 @@ function usa(m) {
     const jugar = () => [...document.querySelectorAll('#hub [data-play]')].find(x => x.offsetWidth), b = jugar();
     if (b) b.click(); else { document.querySelector('#hub [data-s="home"]')?.click(); setTimeout(() => jugar()?.click(), 400); }
   }
+  else if (m.t === 'seguir') seguirMision(+m.i);
   else if (m.t === 'ping') envia({ t: 'pong', n: m.n });
 }
 
 // ---------- en qué se está, para los botones del móvil ----------
+let vuelta = 0;
 setInterval(() => {
   if (S.estado !== 'ok') return;
   const c = ctxMovil(), k = JSON.stringify(c);
   if (k !== S.ctx) { S.ctx = k; envia(c); }
+  // (y las misiones del pueblo, una vez por segundo, si han cambiado)
+  if (++vuelta % 4 === 0) { const m = misMovil() || { t: 'mis', lista: [] }, km = JSON.stringify(m); if (km !== S.mis) { S.mis = km; envia(m); } }
 }, 250);
 
 // ---------- el panel ----------

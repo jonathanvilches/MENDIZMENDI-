@@ -21,6 +21,8 @@ const EU = {
   'Pase': 'Pasea', 'Tiro': 'Jaurtiketa', 'Cambiar': 'Aldatu', 'Sprint': 'Korrika', 'Robar': 'Kendu', 'Entrada': 'Sarrera', 'Saque largo': 'Sake luzea', 'Cámara': 'Kamera', 'Coser': 'Josi',
   'En el pueblo': 'Herrian', 'El encierro': 'Entzierroa', 'Hablando': 'Hizketan', 'Pregunta': 'Galdera', 'Pelota a mano': 'Esku pilota', 'Pasaka': 'Pasaka',
   'Fútbol': 'Futbola', 'El esquileo': 'Ardi-mozketa', 'La costura': 'Josketa', 'En el menú': 'Menuan',
+  'Misiones': 'Misioak', 'Hecha': 'Eginda', 'En curso': 'Martxan', 'Nueva': 'Berria', 'La sigues': 'Jarraitzen', 'Toca una para seguirla': 'Ukitu bat jarraitzeko',
+  '¡Todas hechas!': 'Denak eginda!', 'sello conseguido': 'zigilua lortuta', 'completa todas para ganar el sello': 'osatu denak zigilua irabazteko', 'Con': 'Nork:', 'Cerrar': 'Itxi',
 };
 let LANG = (navigator.language || 'es').toLowerCase().startsWith('eu') ? 'eu' : 'es';
 const T = (s) => (LANG === 'eu' && EU[s]) || s;
@@ -151,11 +153,12 @@ const envia = (m) => { if (dc?.readyState === 'open') dc.send(JSON.stringify(m))
 // (por el saludo no hay aviso de corte: si el ordenador no contesta en 8 s —se le pregunta cada 2—, se ha ido)
 setInterval(() => { if (relevo && conectado && performance.now() - oido > 8000) caido(); }, 2000);
 // lo que dice el ordenador
-let C = { m: 'juego', tit: '', pal: 'andar', mira: true, tac: false, b: {}, fijo: [], esp: [] }, lat = 0, pingT = 0, ctxK = '', demo = false;
+let C = { m: 'juego', tit: '', pal: 'andar', mira: true, tac: false, b: {}, fijo: [], esp: [] }, lat = 0, pingT = 0, ctxK = '', demo = false, MIS = null;
 function del(m) {
-  if (m.t === 'hola') { LANG = m.lang === 'eu' ? 'eu' : 'es'; traduce(); pinta(); }
+  if (m.t === 'hola') { LANG = m.lang === 'eu' ? 'eu' : 'es'; traduce(); pinta(); pintaMis(); }
   else if (m.t === 'ctx') { const k = JSON.stringify(m); if (k === ctxK) return; const igual = forma(m) === forma(C) && ctxK; ctxK = k; C = m; if (igual) retoca(); else { soltarTodo(); pinta(); } }
   else if (m.t === 'pong') { lat = Math.round(performance.now() - pingT); estado(); }
+  else if (m.t === 'mis') { MIS = m.lista?.length ? m : null; pintaMis(); estado(); }
   else if (m.t === 'adios') { cerrado = true; conectado = false; soltarTodo(); limpia(); vista(false); msg('El juego ha cerrado el mando.', true); pantalla(false); }
 }
 setInterval(() => { if (conectado) { pingT = performance.now(); envia({ t: 'ping' }); } }, 2000);
@@ -165,7 +168,34 @@ function estado() {
   $('#est').classList.toggle('ok', ok);
   $('#estT').innerHTML = ok ? '<b></b>' + (lat ? ` <small>${lat} ms</small>` : '') : '';
   if (ok) $('#estT b').textContent = T(C.tit || 'Conectado'); else $('#estT').textContent = T('Reconectando…');
+  // (en el pueblo, en vez de «En el pueblo», la misión que sigues)
+  const q = ok && MIS && C.m === 'juego'; $('#qst').classList.toggle('hide', !q); $('#estT').classList.toggle('hide', !!q);
 }
+// las misiones: la que sigues arriba, y todas en su panel
+function pintaMis() {
+  if (!MIS) { $('#mis').classList.add('hide'); return; }
+  const L = MIS.lista, f = L.find(x => x.sigue), hechas = L.filter(x => x.st === 'hecha').length;
+  $('#qst small').textContent = f ? f.t : MIS.pueblo; $('#qst b').textContent = f ? f.pasos[Math.min(f.k, f.pasos.length - 1)] || '' : T('¡Todas hechas!');
+  $('#qst').setAttribute('aria-label', T('Misiones') + ': ' + $('#qst small').textContent + '. ' + $('#qst b').textContent);
+  $('#misH').textContent = T('Misiones') + ' · ' + MIS.pueblo;
+  $('#misP').textContent = `${hechas}/${L.length} · ${T(MIS.sello ? 'sello conseguido' : 'completa todas para ganar el sello')}`;
+  $('.mis-bar i').style.width = (hechas / L.length * 100) + '%';
+  const ol = $('#misL'); ol.innerHTML = '';
+  for (const M of L) {
+    const li = document.createElement('li'), b = document.createElement('button'); li.className = M.st + (M.sigue ? ' sigue' : '');
+    const est = M.sigue ? 'La sigues' : { hecha: 'Hecha', curso: 'En curso', nueva: 'Nueva' }[M.st];
+    b.innerHTML = '<b></b><em></em>'; b.querySelector('b').textContent = M.t; b.querySelector('em').textContent = T(est);
+    if (M.sigue) { const o = document.createElement('ol'); M.pasos.forEach((t, k) => { const x = document.createElement('li'); x.textContent = t; if (k < M.k) x.className = 'ok'; else if (k === M.k) x.className = 'now'; o.appendChild(x); }); b.appendChild(o); }
+    else if (M.pasos[0]) { const p = document.createElement('p'); p.textContent = M.pasos[0]; b.appendChild(p); }
+    if (M.con) { const s = document.createElement('small'); s.textContent = T('Con') + ' ' + M.con; b.appendChild(s); }
+    if (M.st !== 'hecha' && !M.sigue) b.onclick = () => { vibra(); envia({ t: 'seguir', i: M.i }); L.forEach(x => { x.sigue = x === M; }); pintaMis(); };
+    else b.disabled = M.st === 'hecha';
+    li.appendChild(b); ol.appendChild(li);
+  }
+}
+$('#qst').onclick = () => { soltarTodo(); vibra(); $('#mis').classList.remove('hide'); $('#misL').scrollTop = 0; };
+$('#misX').onclick = () => $('#mis').classList.add('hide');
+$('#misX').setAttribute('aria-label', T('Cerrar'));
 function vista(mando) { $('#conn').classList.toggle('hide', mando); $('#pad').classList.toggle('hide', !mando); if (mando) requestAnimationFrame(coloca); }
 // (la pantalla no se apaga mientras se juega)
 async function despierta() { try { await navigator.wakeLock?.request('screen'); } catch (e) { } }
@@ -377,4 +407,4 @@ pinta();
 // (del QR llegan el código y el secreto, «#CÓDIGO.secreto»; escrito a mano, solo el código)
 const [hc = '', hs = ''] = location.hash.slice(1).split('.'), h = hc.toUpperCase();
 if (LETRAS.test(h)) { if (SECRETO.test(hs)) guarda({ code: h, secreto: hs, yo: sesion().code === h ? sesion().yo : '' }); $('#code').value = h; conectar(); }
-window.__mandoMovil = { get conectado() { return conectado; }, get relevo() { return relevo; }, get ctx() { return C; }, prueba(m) { demo = true; del(m); vista(true); } };   // (para las pruebas: prueba pinta un momento sin conexión)
+window.__mandoMovil = { get conectado() { return conectado; }, get relevo() { return relevo; }, get ctx() { return C; }, get mis() { return MIS; }, prueba(m) { demo = true; del(m); vista(true); } };   // (para las pruebas: prueba pinta un momento sin conexión)

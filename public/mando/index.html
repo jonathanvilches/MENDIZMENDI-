@@ -76,6 +76,32 @@ img { pointer-events: none; }
 #est.ok i { background: var(--ok); box-shadow: 0 0 0 4px rgba(62, 224, 122, .18); }
 #est b { font-weight: 900; color: #fff; }
 #est small { flex: none; color: var(--lila); font-size: 13px; font-weight: 700; }
+/* la misión que sigues, como el recuadro de arriba a la izquierda del juego; al tocarla, todas */
+#qst { flex: 0 1 380px; min-width: 0; display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 4px 14px 4px 4px; border-radius: 26px; border: 1px solid var(--borde); background: rgba(14, 10, 24, .66); color: #fff; text-align: left; touch-action: manipulation; }
+#qst img { width: 36px; height: 36px; flex: none; }
+#qst span { display: grid; min-width: 0; }
+#qst small { color: var(--rosa); font: 800 12px/1.15 'MZ Cond', Nunito, sans-serif; letter-spacing: .06em; text-transform: uppercase; overflow-wrap: anywhere; }
+#qst b { font-size: 14px; font-weight: 800; line-height: 1.2; }
+#qst.down { transform: scale(.97); }
+#mis { position: fixed; inset: 0; z-index: 60; display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 12px; padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); background: rgba(18, 5, 42, .97); }
+.mis-cab { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.mis-cab small { color: var(--lila); font-size: 13px; font-weight: 800; }
+#misH { margin: 0; font: 800 italic 26px/1.1 'MZ Display', Nunito, sans-serif; text-transform: uppercase; }
+.mis-bar { height: 6px; border-radius: 3px; background: rgba(255, 255, 255, .12); overflow: hidden; }
+.mis-bar i { display: block; height: 100%; width: 0; background: var(--cta); }
+#misL { list-style: none; margin: 0; padding: 0 0 8px; overflow: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 8px; align-content: start; touch-action: pan-y; overscroll-behavior: contain; }
+#misL button { width: 100%; height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--borde); background: var(--panel); color: #fff; text-align: left; font: inherit; touch-action: pan-y; }
+#misL b { font-size: 16px; font-weight: 900; line-height: 1.2; }
+#misL em { font-style: normal; flex: none; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 900; background: rgba(203, 194, 224, .16); color: var(--lila); }
+#misL .curso em { background: rgba(255, 122, 200, .18); color: var(--rosa); }
+#misL .hecha em { background: rgba(62, 224, 122, .16); color: var(--ok); }
+#misL .hecha button { opacity: .62; }
+#misL .sigue button { border-color: var(--rosa); box-shadow: 0 0 0 2px rgba(255, 122, 200, .35); }
+#misL p, #misL ol { grid-column: 1 / -1; margin: 0; color: var(--lila); font-size: 14px; line-height: 1.35; }
+#misL ol { padding-left: 20px; display: grid; gap: 2px; }
+#misL ol .ok { text-decoration: line-through; opacity: .7; }
+#misL ol .now { color: #fff; font-weight: 800; }
+#misL small { grid-column: 1 / -1; color: var(--lila); font-size: 12px; font-weight: 700; opacity: .85; }
 #sup { display: flex; gap: 8px; flex: none; }
 .sis { position: relative; width: 44px; height: 44px; padding: 0; border-radius: 50%; display: grid; place-items: center; background: rgba(14, 10, 24, .66); border: 2px solid rgba(255, 255, 255, .82); box-shadow: 0 3px 12px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .15); touch-action: none; transition: transform .12s; }
 .sis :is(img, svg) { width: 26px; height: 26px; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .6)); }
@@ -185,6 +211,7 @@ img { pointer-events: none; }
 <div id="pad" class="hide">
   <div id="top">
     <div id="est" role="status"><i></i><span id="estT"></span></div>
+    <button id="qst" class="hide" aria-haspopup="dialog"><img src="iconos/scroll.webp" alt=""><span><small></small><b></b></span></button>
     <div id="sup"></div>
     <button class="sis" id="bFull"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
   </div>
@@ -202,6 +229,12 @@ img { pointer-events: none; }
       <div id="jugar" class="hide"><p data-t="Elige en el ordenador con la flecha, o sigue tu aventura:">Elige en el ordenador con la flecha, o sigue tu aventura:</p><button class="big" id="bJugar" data-t="¡A jugar!">¡A jugar!</button></div>
     </div>
   </div>
+</div>
+<!-- las misiones del pueblo, como en el cuaderno del juego: tocando una, se sigue con la luz dorada -->
+<div id="mis" class="hide" role="dialog" aria-modal="true" aria-labelledby="misH">
+  <div class="mis-cab"><div><small id="misP"></small><h2 id="misH" data-t="Misiones">Misiones</h2></div><button class="sis" id="misX"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div class="mis-bar"><i></i></div>
+  <ol id="misL"></ol>
 </div>
 <script type="module" src="movil.js"></script>
 </body>
