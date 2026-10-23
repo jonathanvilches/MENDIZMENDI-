@@ -1460,5 +1460,8 @@
  "¡Mando conectado! Va por internet.": "Agintea konektatuta! Internet bidez doa.",
  "Un móvil ha escrito el código a mano y quiere ser el mando. ¿Es el tuyo?": "Mugikor batek kodea eskuz idatzi du eta agintea izan nahi du. Zurea al da?",
  "No, no lo conozco": "Ez, ez dut ezagutzen",
- "Sí, dejarle": "Bai, utzi"
+ "Sí, dejarle": "Bai, utzi",
+ "Usa el móvil como mando. Funciona con Android y con iPhone.": "Erabili mugikorra aginte gisa. Android eta iPhonearekin dabil.",
+ "Para no repetirlo: en el móvil, instala la app «Mando». La próxima vez, ábrela y se conecta sola en cuanto el juego esté abierto.": "Ez errepikatzeko: mugikorrean, instalatu «Mando» aplikazioa. Hurrengoan, ireki eta berez konektatuko da jokoa irekita dagoenean.",
+ "Olvidar este móvil": "Ahaztu mugikor hau"
 }
