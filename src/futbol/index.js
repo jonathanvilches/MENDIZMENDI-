@@ -49,7 +49,7 @@ function ownHost() {
       wrap = document.createElement('div'); wrap.style.cssText = 'position:fixed;inset:0;z-index:800;background:#000';
       renderer = new THREE.WebGLRenderer({ antialias: true }); renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.setSize(innerWidth, innerHeight);
       renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
-      wrap.appendChild(renderer.domElement); document.body.appendChild(wrap);
+      renderer.domElement.className = 'pantalla3d'; wrap.appendChild(renderer.domElement); document.body.appendChild(wrap);
       const onResize = () => renderer.setSize(innerWidth, innerHeight); addEventListener('resize', onResize); this.onResize = onResize;
       const loop = (t) => { raf = requestAnimationFrame(loop); const dt = last ? Math.min(0.1, (t - last) / 1000) : 1 / 60; last = t; update(dt); renderer.render(scene, camera); };
       raf = requestAnimationFrame(loop);

@@ -3,6 +3,7 @@
 import * as THREE from 'three';
 import { castById } from '../data/cast.js';
 import { GlbRig, isGlbAvatar, loadGlbAvatar } from '../actors/glbChar.js';
+import { escala } from '../util/tele.js';
 
 let R = null;
 const COARSE = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
@@ -146,7 +147,7 @@ export class Stage {
     const dt = Math.max(0, Math.min(0.05, (now - this.last) / 1000)); this.last = now; this.t += dt;
     const w = this.host.clientWidth, h = this.host.clientHeight;
     if (!w || !h) return;
-    if (this.w !== w || this.h !== h) { this.w = w; this.h = h; this.r.setSize(w, h, false); this.r.domElement.style.width = w + 'px'; this.r.domElement.style.height = h + 'px'; this.cam.aspect = w / h; this.frame(); }
+    if (this.w !== w || this.h !== h) { this.w = w; this.h = h; this.r.setPixelRatio(Math.min(devicePixelRatio, 2) * escala()); this.r.setSize(w, h, false); this.r.domElement.style.width = w + 'px'; this.r.domElement.style.height = h + 'px'; this.cam.aspect = w / h; this.frame(); }
     if (this.wave > 0) this.wave -= dt;
     let jumpY = 0; if (this.jump > 0) { this.jump -= dt; jumpY = Math.sin((1 - this.jump / 0.5) * Math.PI) * 0.25; }
     this.pop = Math.min(1, this.pop + dt * 3.2);

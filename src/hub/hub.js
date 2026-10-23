@@ -44,8 +44,10 @@ import { profile, saveProfile, levelOf, rankOf, townProgress, comarcaProgress, c
 import { esc, el } from '../util/html.js';
 import { lettersOnly } from '../util/text.js';
 import { isDidactico, markDidactico } from '../util/modo.js';
+import { TACTIL } from '../util/tactil.js';
 import { DIDACTICO } from './didactico.js';
 import { ORIENTA, ORIENTA_TIPS, MONTE_TIPS } from '../game/senales.js';
+import { enCss } from '../util/tele.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const I = (n, s = 24, c = '') => iconSVG(n, s, c);
@@ -108,7 +110,7 @@ function mapLayout() {
 // el mapa de Navarra se dibuja en su propia escala (725 de ancho) y en el móvil se ve a menos de la mitad: --k es cuántas
 // unidades del mapa hay en un píxel, para que los números de las comarcas nunca bajen de 12 px en la pantalla
 function fitMaps(root) {
-  const fit = () => { for (const s of root.querySelectorAll('svg.navarra')) { const w = s.getBoundingClientRect().width; if (!w) continue; const k = s.viewBox.baseVal.width / w; s.style.setProperty('--k', k.toFixed(3)); s.classList.toggle('tiny', k > 1.6);
+  const fit = () => { for (const s of root.querySelectorAll('svg.navarra')) { const w = enCss(s.getBoundingClientRect().width); if (!w) continue; const k = s.viewBox.baseVal.width / w; s.style.setProperty('--k', k.toFixed(3)); s.classList.toggle('tiny', k > 1.6);
     // (también en el atributo: así el círculo tiene su tamaño aunque el navegador no lea «r» en el CSS)
     for (const c of s.querySelectorAll('.cnum circle')) c.setAttribute('r', ((k > 1.6 ? 10 : 13) * k).toFixed(1)); } };
   requestAnimationFrame(fit);
@@ -132,10 +134,10 @@ export class Hub {
     document.body.appendChild(this.root);
     // (instalar el juego como app: solo en la web y si no se está jugando ya desde la app instalada)
     setupInstall(this.root, this.root.querySelector('[data-app]'));
-    // en el ordenador, el mando del móvil a mano desde el principio (en el artefacto de claude.ai no puede conectarse); su
+    // en el ordenador o en una tele (sin dedo: util/tactil.js), el mando del móvil a mano desde el principio (en el artefacto de claude.ai no puede conectarse); su
     // código y el del QR se cargan en un rato libre, para que el panel salga al momento
     const mb = this.root.querySelector('[data-mando]');
-    if (matchMedia('(pointer: fine)').matches && !(typeof __AF__ !== 'undefined' && __AF__) && !isDidactico()) {
+    if (!TACTIL && !(typeof __AF__ !== 'undefined' && __AF__) && !isDidactico()) {
       mb.hidden = false; mb.onclick = () => import('../mando/mando.js').then(m => m.abrirMando());
       (window.requestIdleCallback || setTimeout)(() => { import('../mando/mando.js'); import('qrcode-generator'); }, { timeout: 4000 });
     }
@@ -762,7 +764,7 @@ export class Hub {
         <label class="set">Volumen <input type="range" id="pVol" min="0" max="1" step="0.05" value="${S.volume}"></label>
         <label class="set">Calidad gráfica <select id="pQ"><option value="auto">Automática</option><option value="low">Baja (más fluido)</option><option value="mid">Media</option><option value="high">Alta</option></select></label>
         <p class="hint">Controles: WASD o flechas para caminar, ratón para mirar, E para hablar, Espacio para saltar, Mayús para correr. En móvil: arrastra a la izquierda para caminar y a la derecha para mirar. También vale un mando de consola.</p>
-        ${matchMedia('(pointer:coarse)').matches ? '' : `<button class="btn" id="pPad">${I('control', 22)} Usar el móvil como mando</button><p class="set-note">El móvil hace de mando por la wifi, sin instalar nada: el ordenador te enseña un código para escanearlo con la cámara.</p>`}
+        ${TACTIL ? '' : `<button class="btn" id="pPad">${I('control', 22)} Usar el móvil como mando</button><p class="set-note">El móvil hace de mando por la wifi, sin instalar nada: el ordenador te enseña un código para escanearlo con la cámara.</p>`}
         ${puedeDescargar() ? `<button class="btn" id="pTodo">${I('home', 22)} <span>Descargar el juego entero</span></button><p class="set-note" id="pTodoN">Todo se guarda en este ordenador: los pueblos y los minijuegos abren sin esperar a internet, y se puede jugar sin conexión.</p>` : ''}
         <button class="btn danger" id="pReset">Borrar todo el progreso</button></div></section>`;
   }

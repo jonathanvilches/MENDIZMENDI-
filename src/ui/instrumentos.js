@@ -12,6 +12,7 @@ import { profile, addCard, addXP, saveProfile, checkBadges } from '../game/profi
 import { fitCircles } from './fitlabel.js';
 import { esc, el } from '../util/html.js';
 import { isDidactico } from '../util/modo.js';
+import { TACTIL } from '../util/tactil.js';
 
 const tocado = (id, p = profile()) => (p.cards || []).includes('instrumento:' + id);
 
@@ -68,7 +69,7 @@ const KEYS = ['a', 's', 'd', 'f', 'g'];
 function tocarGame(ui, x, { who = '' } = {}) {
   return new Promise(res => {
     const S = ui.sound, g = x.game, n = g.lanes.length, notas = notasDe(x), total = notas.length;
-    const eighth = 60 / g.bpm / 2, bar = eighth * 2 * g.meter, fall = 2.3, touch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
+    const eighth = 60 / g.bpm / 2, bar = eighth * 2 * g.meter, fall = 2.3, touch = TACTIL;
     const air = (isEU() && g.airEu) || g.air || '';
     // el reloj del sonido (así las notas van a tempo con el acompañamiento); si el navegador lo tiene parado (sin permiso
     // para sonar, o el sonido suspendido al volver de otra aplicación), el de la página: si no, las notas no bajaban
