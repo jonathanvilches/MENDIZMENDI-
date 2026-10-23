@@ -484,7 +484,7 @@ export class PelotaMatch {
     let tip = '';
     const PT = tt.pairs || TEXT.es.pairs, sp = g.serverP();
     if (g.phase === 'serveWait' && sp === 'you') tip = g.runUp ? tt.tipServeRun : tt.tipServe;
-    else if (g.phase === 'servePrep' && sp === 'you') tip = g.hittable('you') ? tt.tipServe2 : tt.tipServeRun;
+    else if (g.phase === 'servePrep' && sp === 'you') tip = g.saque ? tt.tipServeRun : g.hittable('you') ? tt.tipServe2 : '';   // (el saque sale solo; si se escapa la pelota, lo das tú)
     else if (g.phase === 'serveWait' && sp === 'youMate') tip = PT.mateServe;
     else if (g.phase === 'serveWait' && g.server === 'rival') tip = g.pairs && this.role === 'delantero' ? PT.rivalServe : tt.tipRivalServe;
     else if (h && h.mate && !h.hittable && h.tired > 0.3) tip = PT.rest;
