@@ -350,6 +350,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 | `pelota-camara-parejas.mjs` | Pelota por parejas: en cada golpe, si el que golpea sale en la imagen |
 | `jugadores-duos.mjs` | Recorta las parejas de cada equipación del ZIP del autor: a su alto completo para la VS y 480 para los menús |
 | `laminas-pequenas.mjs` | Las copias pequeñas de las láminas de la web, de 640 × 360 |
+| `laminas-importar.mjs` | Las láminas que rehace el autor (parte B del encargo), de una carpeta con `<id>.png`: la original a calidad 90, la de la web de 1280 y su copia de 640 sacadas del PNG, las del archivo único y del ligero sin pesar más que las de antes y, con `laminas-grandes.mjs`, la grande de 2560 |
 | `laminas-grandes.mjs` | Las láminas grandes de la web, de 2560 × 1440: las de 1280 ampliadas al doble con Real-ESRGAN (`laminas-ampliar.py`, en CPU) y guardadas en WebP; con un grupo (leyendas, cimas, personajes, tradiciones), lo mismo con sus ilustraciones de 1536 |
 | `cimas-tarjetas.mjs` | Las escenas de las cimas de 1024 para las tarjetas de la web |
 | `nitidez.mjs` | Nitidez de las imágenes en el iPhone 12 tumbado (o en un ordenador, con `VISTA=1920x1080` y `DPR=`): cuánto se amplía cada una, por pantallas (URL de la web o del archivo único con MINI=1) |
