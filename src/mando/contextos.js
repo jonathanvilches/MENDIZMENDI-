@@ -7,6 +7,8 @@
 //    para lo que no es un botón. Así cada minijuego trae sus botones, también los que se añadan, sin tocar el minijuego.
 // Botones estándar de un mando: 0 A, 1 B, 2 X, 3 Y, 4 LB, 5 RB, 6 LT, 7 RT, 8 Select, 9 Start.
 
+import { tr } from '../i18n.js';
+
 // [nombre, tecla, icono]; la tecla null es que el juego lee el mando él mismo (el fútbol). Los iconos son los del autor,
 // copiados para la página del mando en public/mando/iconos (la dejada, con la mano; la cortada y el globo, con la pelota
 // con efecto; coser, con el ovillo)
@@ -89,3 +91,15 @@ export function ctxActual() { const n = performance.now(); if (!C || n - t > 200
 export function ctxMovil(c = ctxActual()) {
   return { t: 'ctx', m: c.m, tit: c.tit, pal: c.pal, mira: c.mira, tac: c.tac, fijo: c.fijo, der: c.der || [], arriba: c.arriba || [], estilo: c.estilo || '', modo: c.modo || '', jugar: !!c.jugar, b: Object.fromEntries(Object.entries(c.b).map(([i, [n]]) => [i, n])), ic: Object.fromEntries(Object.entries(c.b).filter(([, x]) => x[2]).map(([i, x]) => [i, x[2]])), esp: c.esp.map(x => x.t) };
 }
+/** Las misiones del pueblo, para el móvil (como el cuaderno del juego): cuántas van, la que sigues con todos sus pasos y
+ *  las demás con el siguiente; null fuera de un pueblo. Los textos, ya en el idioma del juego. */
+export function misMovil() {
+  const g = window.__game; if (g?.kind !== 'town' || !g.missions?.length) return null;
+  const lista = g.missions.map((M) => {
+    const p = M.steps(), k = Math.min(M.step, p.length), sigue = g.tracked === M.i && !M.done;
+    return { i: M.i, t: tr(M.title), st: M.done ? 'hecha' : M.step > 0 ? 'curso' : 'nueva', n: p.length, k, sigue, pasos: (sigue ? p : M.done ? [] : [p[Math.min(k, p.length - 1)] || '']).map(tr), con: M.host?.name || '' };
+  });
+  return { t: 'mis', pueblo: tr(g.def.name.split(' /')[0]), sello: !!g.ts?.stamp, lista };
+}
+/** Seguir una misión desde el móvil (como al tocarla en el cuaderno: la luz dorada lleva a ella). */
+export function seguirMision(i) { const g = window.__game, M = g?.kind === 'town' && g.missions?.[i]; if (M && !M.done) g.setBook(M); }
