@@ -13,12 +13,12 @@ const EU = {
   'No llego a ningún servidor para presentarme al ordenador. Comprueba internet en el móvil: lo vuelvo a intentar…': 'Ez dut ordenagailuari aurkezteko zerbitzaririk lortzen. Begiratu mugikorraren internet: berriro saiatzen…',
   'Buscando el ordenador…': 'Ordenagailua bilatzen…', 'Acepta en el ordenador que este móvil sea el mando.': 'Onartu ordenagailuan mugikor hau agintea izatea.', 'El ordenador ha contestado: conectando…': 'Ordenagailuak erantzun du: konektatzen…',
   'El código tiene cinco letras o números.': 'Kodeak bost letra edo zenbaki ditu.', 'El juego ha cerrado el mando.': 'Jokoak agintea itxi du.',
-  'Desliza para andar': 'Irristatu ibiltzeko', 'Desliza para moverte': 'Irristatu mugitzeko', 'Desliza para mirar': 'Irristatu begiratzeko',
+  'Mover': 'Mugitu', 'Desliza para mirar': 'Irristatu begiratzeko',
   'Desliza': 'Irristatu', 'para mover la flecha': 'gezia mugitzeko', 'Toca': 'Ukitu', 'para pulsar': 'sakatzeko', 'Dos dedos': 'Bi hatzekin', 'para subir y bajar': 'gora eta behera egiteko',
   'Elige en el ordenador con la flecha, o sigue tu aventura:': 'Aukeratu ordenagailuan geziarekin, edo jarraitu zure abenturarekin:', '¡A jugar!': 'Jolastera!',
   'Acción': 'Ekintza', 'Saltar': 'Jauzi', 'Prismáticos': 'Prismatikoak', 'Mochila': 'Motxila', 'Correr': 'Korrika', 'Mapa': 'Mapa', 'Cuaderno': 'Koadernoa', 'Menú': 'Menua', 'Perro': 'Txakurra',
-  'Seguir': 'Jarraitu', 'Anotar': 'Idatzi', 'Salir': 'Irten', 'Atrás': 'Atzera', 'Golpe': 'Kolpea', 'Cortada': 'Moztua', 'Dejada': 'Utzia', 'Globo': 'Globoa', 'Pausa': 'Etenaldia',
-  'Pase': 'Pasea', 'Tiro': 'Jaurtiketa', 'Cambiar': 'Aldatu', 'Sprint': 'Esprinta', 'Periódico': 'Egunkaria', 'Cámara': 'Kamera', 'Coser': 'Josi',
+  'Seguir': 'Jarraitu', 'Anotar': 'Idatzi', 'Salir': 'Irten', 'Atrás': 'Atzera', 'Golpe': 'Kolpea', 'Cortada': 'Moztua', 'Dejada': 'Utzia', 'Globo': 'Globoa', 'Pausa': 'Pausa',
+  'Pase': 'Pasea', 'Tiro': 'Jaurtiketa', 'Cambiar': 'Aldatu', 'Sprint': 'Korrika', 'Robar': 'Kendu', 'Entrada': 'Sarrera', 'Saque largo': 'Sake luzea', 'Periódico': 'Egunkaria', 'Cámara': 'Kamera', 'Coser': 'Josi',
   'En el pueblo': 'Herrian', 'El encierro': 'Entzierroa', 'Hablando': 'Hizketan', 'Pregunta': 'Galdera', 'Pelota a mano': 'Esku pilota', 'Pasaka': 'Pasaka',
   'Fútbol': 'Futbola', 'El esquileo': 'Ardi-mozketa', 'La costura': 'Josketa', 'En el menú': 'Menuan',
 };
@@ -72,7 +72,7 @@ async function conectar() {
   limpia(); vias(); $('#vias').classList.add('hide'); msg('Conectando…'); pantalla(true);
   const p = nuevaPc();   // (las rutas de red, ya: mientras se llega al saludo)
   let s;
-  try { s = await senal(`hzh-${code}-${ses.yo}`, recibe, () => { if (sig === s) sig = null; }, vias, ses.secreto); }
+  try { s = await senal(`hzh-${code}-${ses.yo}`, recibe, vias, ses.secreto); }
   catch (e) {
     if (yo !== intento) return;
     // (sin ningún servidor: se vuelve a probar solo, unas cuantas veces)
@@ -85,9 +85,10 @@ async function conectar() {
   try { await p.oferta; } catch (e) { }
   await rutas(p, RUTAS - (performance.now() - p.t0));
   if (yo !== intento || !sig) return;
-  // (con las rutas que haya dentro y repetida, con la misma marca, al medio segundo, al segundo y medio y luego cada 2 s
-  // hasta que conteste: si el ordenador aún se está apuntando a un camino, la siguiente le llega; él la cuenta una vez)
-  const oferta = { sdp: p.localDescription.toJSON(), k: 'of' + Math.random().toString(36).slice(2) };
+  // (con las rutas que haya dentro y repetida al medio segundo, al segundo y medio y luego cada 2 s hasta que conteste: si el
+  // ordenador aún se está apuntando a un camino, la siguiente le llega. Lleva su nombre, of: el ordenador la atiende una
+  // vez y, si le vuelve a llegar, repite su respuesta, por si la primera se perdió)
+  const oferta = { sdp: p.localDescription.toJSON(), of: 'of' + Math.random().toString(36).slice(2) };
   sig.send('hzh-' + code, 'OFFER', oferta); dicha = true;
   let n = 0; const otraOferta = () => { repite = setTimeout(() => { if (conectado || !sig || respondido || yo !== intento) return; sig.send('hzh-' + code, 'OFFER', oferta); otraOferta(); }, [500, 1000][n++] || 2000); }; otraOferta();
   clearTimeout(espera);
@@ -153,7 +154,7 @@ setInterval(() => { if (relevo && conectado && performance.now() - oido > 8000) 
 let C = { m: 'juego', tit: '', pal: 'andar', mira: true, tac: false, b: {}, fijo: [], esp: [] }, lat = 0, pingT = 0, ctxK = '', demo = false;
 function del(m) {
   if (m.t === 'hola') { LANG = m.lang === 'eu' ? 'eu' : 'es'; traduce(); pinta(); }
-  else if (m.t === 'ctx') { const k = JSON.stringify(m); if (k !== ctxK) { ctxK = k; soltarTodo(); C = m; pinta(); } }
+  else if (m.t === 'ctx') { const k = JSON.stringify(m); if (k === ctxK) return; const igual = forma(m) === forma(C) && ctxK; ctxK = k; C = m; if (igual) retoca(); else { soltarTodo(); pinta(); } }
   else if (m.t === 'pong') { lat = Math.round(performance.now() - pingT); estado(); }
   else if (m.t === 'adios') { cerrado = true; conectado = false; soltarTodo(); limpia(); vista(false); msg('El juego ha cerrado el mando.', true); pantalla(false); }
 }
@@ -173,6 +174,9 @@ async function despierta() { try { await navigator.wakeLock?.request('screen'); 
 document.addEventListener('visibilitychange', () => { if (document.visibilityState !== 'visible') return; if (conectado) despierta(); else if (!cerrado && LETRAS.test(code) && !$('#go').disabled) conectar(); });
 
 // ---------- los botones de cada momento ----------
+// Los mismos que se ven en la pantalla del juego al jugar en el móvil, para no confundir: en el fútbol y en la pelota, sus
+// botones (forma, color, icono y sitio: src/futbol/hud.js y src/pelota/hud.js); en lo demás, los círculos morados del
+// pueblo, con el principal en rosa. Cada uno con su nombre dentro; si el nombre no cabe, solo el icono.
 const vibra = (ms = 12) => { try { navigator.vibrate?.(ms); } catch (e) { } };
 const pulsados = new Map();   // botón → mensaje para soltarlo
 function soltarTodo() { for (const [, m] of pulsados) envia(m); pulsados.clear(); document.querySelectorAll('.down, .on').forEach(b => { b.classList.remove('down', 'on'); if (b.hasAttribute('aria-pressed')) b.setAttribute('aria-pressed', 'false'); }); }
@@ -190,33 +194,49 @@ function enlaza(b, down, up, queda) {
 }
 const bt = (i, d) => ({ t: 'bt', i, d });
 // (el icono del botón, de los del juego: iconos/<nombre>.webp)
-const ico = (i) => { const n = C.ic?.[i]; return n && /^[a-z]+$/.test(n) ? `<img src="iconos/${n}.webp" alt="" draggable="false">` : ''; };
-// (cada botón, solo con su icono; su nombre, para el lector de pantalla; si no tuviera icono, el nombre a la vista)
-const boton = (cls, i, dentro = (h) => h) => {
-  const x = document.createElement('button'), n = T(C.b[i]); x.className = cls; x.dataset.b = i; x.setAttribute('aria-label', n);
-  x.innerHTML = dentro(ico(i) || '<span class="txt"></span>'); const t = x.querySelector('.txt'); if (t) t.textContent = n; return x;
+const ico = (i, cls = '') => { const n = C.ic?.[i]; return n && /^[a-z]+$/.test(n) ? `<img${cls ? ` class="${cls}"` : ''} src="iconos/${n}.webp" alt="" draggable="false">` : ''; };
+// (los iconos de trazo del fútbol, los de su pantalla)
+const IC = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const FBI = {
+  shoot: IC('<circle cx="15" cy="12" r="5"/><path d="M3.5 9.5h5M2.5 12h6M3.5 14.5h5"/>'), pass: IC('<path d="M5.5 18.5L18.5 5.5"/><path d="M10 5.5h8.5V14"/>'),
+  sprint: IC('<path d="M6 6.5l5.5 5.5L6 17.5M12.5 6.5l5.5 5.5-5.5 5.5"/>'), swap: IC('<path d="M4.5 9h14l-3.5-3.5M19.5 15h-14l3.5 3.5"/>'),
+  tackle: IC('<circle cx="16.5" cy="12" r="3.5"/><path d="M11 12H3.5M6.5 9l-3 3 3 3"/>'), slide: IC('<path d="M2.5 17.5h11M10.5 14.5l3 3-3 3"/><circle cx="19" cy="17.5" r="2.3"/>'),
+  dive: IC('<path d="M4 18c3.5-6.5 8.5-9.5 14-9.5"/><circle cx="19" cy="8.5" r="2"/>'), pause: IC('<path d="M8 5v14M16 5v14"/>'),
 };
+const FUT = { 0: 'fb-pass', 1: 'fb-shoot', 4: 'fb-swap', 7: 'fb-sprint' }, PEL = { 0: 'pel-hit', 1: 'pel-drop', 2: 'pel-drop pel-cut' };
+// (arriba, redondos y con su icono; si no tuviera, su nombre)
+function sis(i) {
+  const x = document.createElement('button'), n = T(C.b[i]); x.className = 'sis'; x.dataset.b = i; x.setAttribute('aria-label', n);
+  x.innerHTML = (C.estilo === 'futbol' && i === 9 ? FBI.pause : ico(i)) || '<span class="txt"></span>'; const t = x.querySelector('.txt'); if (t) t.textContent = n; return x;
+}
+// (los de acción, en su estilo; los de la pelota, sin icono, como en su pantalla: el icono sale solo si el nombre no cabe)
+function accion(i, prim) {
+  const x = document.createElement('button'), n = T(C.b[i]), e = C.estilo;
+  x.className = 'bt ' + (e === 'futbol' ? 'fb ' + (FUT[i] || '') : e === 'pelota' ? 'pel ' + (PEL[i] || '') : 'cb' + (prim ? ' prim' : ''));
+  x.dataset.b = i; x.setAttribute('aria-label', n);
+  x.innerHTML = (e === 'futbol' ? FBI[C.ic?.[i]] || '' : e === 'pelota' ? ico(i, 'alt') : ico(i)) + '<span class="nom"></span>';
+  x.querySelector('.nom').textContent = n; return x;
+}
 const CIERRA = /cerrar|salir|volver|atrás|ahora no|itxi|irten|itzuli|^(✕|×|x)$/i;
 function pinta() {
-  const b = C.b || {}, esp = C.esp || [], fijos = (C.fijo || []).filter(i => b[i]), der = C.der || [];
-  // arriba, los botones de sistema (cuaderno, mapa, perro, menú, salir…); a la izquierda, los que se quedan puestos, encima
-  // de la palanca; a la derecha, los de acción: el principal y los demás en abanico
-  const izq = C.pal ? fijos : [], sis = [4, 5, 8, 9].filter(i => b[i] && !der.includes(i) && !izq.includes(i));
-  const acc = esp.length ? [] : [0, 1, 2, 3, ...der, 7].filter((i, n, L) => b[i] && L.indexOf(i) === n && !izq.includes(i) && !sis.includes(i));
-  const sup = $('#sup'); sup.innerHTML = ''; $('#top').classList.toggle('fila', sis.length > 2);
-  for (const i of sis) { const x = boton('sis', i); sup.appendChild(x); enlaza(x, bt(i, 1), bt(i, 0)); }
-  const tog = $('#tog'); tog.innerHTML = '';
-  for (const i of izq) { const x = boton('tg', i); x.setAttribute('aria-pressed', 'false'); tog.appendChild(x); enlaza(x, bt(i, 1), bt(i, 0), true); }
+  const b = C.b || {}, esp = C.esp || [], fijos = (C.fijo || []).filter(i => b[i]), der = C.der || [], e = C.estilo;
+  // arriba, los de sistema (cuaderno, mapa, perro, menú, pausa, salir…); a la derecha, los de acción: en el fútbol y en la
+  // pelota, los de su pantalla; en lo demás, el principal, los demás y, al final, los que se quedan puestos
+  const top = [4, 5, 8, 9].filter(i => b[i] && !der.includes(i));
+  const acc = esp.length ? [] : e === 'futbol' ? [1, 0, 7, 4].filter(i => b[i]) : e === 'pelota' ? [0, 1, 2].filter(i => b[i])
+    : [0, 1, 2, 3, ...der, 7].filter((i, n, L) => b[i] && L.indexOf(i) === n && !top.includes(i) && !fijos.includes(i)).concat(fijos.filter(i => !top.includes(i)));
+  const sup = $('#sup'); sup.innerHTML = ''; $('#top').classList.toggle('fila', top.length > 3);
+  for (const i of top) { const x = sis(i); sup.appendChild(x); enlaza(x, bt(i, 1), bt(i, 0)); }
   // izquierda: la palanca, o el panel táctil
   $('#base').classList.toggle('hide', !C.pal);
-  $('#hIzq').textContent = C.pal ? T(C.pal === 'andar' ? 'Desliza para andar' : 'Desliza para moverte') : '';
   $('#tp').classList.toggle('hide', !C.tac || !!C.pal);
   $('#tpL').innerHTML = [['Desliza', 'para mover la flecha'], ['Toca', 'para pulsar'], ['Dos dedos', 'para subir y bajar']].map(([a, z]) => `<li><b>${T(a)}</b> ${T(z)}</li>`).join('');
   // derecha: los botones de acción, la copia de los del minijuego o «¡A jugar!»
-  const bts = $('#bts'); bts.innerHTML = '';
+  const bts = $('#bts'); bts.innerHTML = ''; bts.className = e === 'futbol' ? C.modo || 'atk' : '';
   acc.forEach((i, n) => {
-    const x = boton(n ? 'bt' : 'bt prim', i, (h) => `<span class="cir">${h}</span>`);
-    bts.appendChild(x); enlaza(x, bt(i, 1), bt(i, 0), fijos.includes(i));
+    const q = fijos.includes(i), x = accion(i, !n && !q);
+    if (q) { x.classList.add('queda'); x.setAttribute('aria-pressed', 'false'); }
+    bts.appendChild(x); enlaza(x, bt(i, 1), bt(i, 0), q);
   });
   const E = $('#esp'); E.innerHTML = ''; E.classList.toggle('hide', !esp.length); E.classList.toggle('dos', esp.length > 4);
   esp.forEach((t, n) => { const x = document.createElement('button'); x.textContent = t; if (!n) x.className = 'prim'; else if (CIERRA.test(t)) x.className = 'cierra'; E.appendChild(x); enlaza(x, { t: 'esp', n, d: 1 }, { t: 'esp', n, d: 0 }); });
@@ -224,29 +244,61 @@ function pinta() {
   $('#hDer').textContent = C.mira && !esp.length ? T('Desliza para mirar') : '';
   estado(); coloca();
 }
-// dónde va cada cosa, a la medida de cada mitad: la palanca abajo a la izquierda, con su aviso y lo que se queda puesto
-// encima; el botón principal abajo a la derecha y los demás en arco a su alrededor, como en los juegos del móvil: a su
-// izquierda, encima y, entre los dos, en diagonal
+// (en el mismo momento solo cambian los nombres, como PASE, que al defender es ROBAR: se cambian en su sitio, sin soltar lo
+// que se tiene pulsado, como el Sprint)
+const forma = (c) => JSON.stringify([c.m, c.estilo, Object.keys(c.b || {}), c.fijo, c.der, c.esp, c.pal, c.tac, c.mira, c.jugar]);
+function retoca() {
+  $('#bts').className = C.estilo === 'futbol' ? C.modo || 'atk' : '';
+  for (const x of document.querySelectorAll('#bts .bt')) {
+    const i = +x.dataset.b, n = T(C.b[i]); x.setAttribute('aria-label', n); x.querySelector('.nom').textContent = n;
+    if (C.estilo === 'futbol' && FBI[C.ic?.[i]]) { x.querySelector('svg')?.remove(); x.insertAdjacentHTML('afterbegin', FBI[C.ic[i]]); }
+  }
+  estado(); encaja();
+}
+// dónde va cada cosa, a la medida de cada mitad: la palanca abajo a la izquierda; a la derecha, en el fútbol y en la
+// pelota, sus botones como en su pantalla, a la escala de la mitad; en lo demás, el principal en la esquina y los demás a
+// su izquierda, encima y en diagonal, y lo que se queda puesto (Correr) en la fila del principal, más a la izquierda, como
+// en la pantalla del pueblo (si no cabe, encima)
 const lim = (v, a, z) => Math.max(a, Math.min(z, v));
+const FUTP = { 1: [10, 8, 84], 0: [101, 1, 82], 7: [18, 108, 68], 4: [105, 92, 74] };   // (fútbol, a escala 1: hueco a la derecha, hueco abajo y tamaño)
 function coloca() {
   const zi = $('#izq'), zd = $('#der'), m = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--m')) || 16;
   if (!zd.clientWidth) return;
-  const db = Math.round(lim(Math.min(zi.clientWidth * 0.62, zi.clientHeight * 0.42), 104, 144)), bx = m + db / 2, by = zi.clientHeight - m - db / 2;
-  zi.style.setProperty('--db', db + 'px'); reposo = { x: bx, y: by }; if (!st) ponBase(bx, by);
-  const h = $('#hIzq'); h.style.left = Math.max(m, bx - h.offsetWidth / 2) + 'px'; h.style.top = (by - db / 2 - 8 - h.offsetHeight) + 'px';
-  const tg = $('#tog'); tg.style.left = m + 'px'; tg.style.top = (by - db / 2 - 8 - (h.offsetHeight ? h.offsetHeight + 16 : 0) - tg.offsetHeight) + 'px';
-  const W = zd.clientWidth, H = zd.clientHeight, ks = [...$('#bts').children];
-  const dA = Math.round(lim(Math.min(W * 0.26, H * 0.3), 72, 100)), dS = Math.round(lim(dA * 0.68, 52, 68));
-  const cx = W - m - dA / 2, cy = H - m - dA / 2, D = dA / 2 + dS / 2 + 18, huecos = [180, 90, 135];
-  ks.forEach((x, n) => {
-    const a = (n ? huecos[Math.min(n, 3) - 1] : 0) * Math.PI / 180, r = n ? D : 0;
-    x.style.left = (cx + r * Math.cos(a)) + 'px'; x.style.top = (cy - r * Math.sin(a)) + 'px'; x.style.setProperty('--d', (n ? dS : dA) + 'px');
-  });
+  const db = Math.round(lim(Math.min(zi.clientWidth * 0.5, zi.clientHeight * 0.36), 96, 124));
+  zi.style.setProperty('--db', db + 'px'); ponBase(m + db / 2, zi.clientHeight - m - db / 2);
+  const W = zd.clientWidth, H = zd.clientHeight, ks = [...$('#bts').children], e = C.estilo, arriba = 32;   // (arriba: el aviso de mirar)
+  const pon = (x, px, py, d) => { x.style.left = px + 'px'; x.style.top = py + 'px'; x.style.setProperty('--d', d + 'px'); };
+  if (e === 'futbol') {
+    const u = lim(Math.min((W - 2 * m) / 240, (H - 2 * m - arriba) / 178), 0.7, 1.4); zd.style.setProperty('--u', u);
+    for (const x of ks) { const [r, bo, s] = FUTP[x.dataset.b] || FUTP[1]; pon(x, W - m - (r + s / 2) * u, H - m - (bo + s / 2) * u, s * u); }
+  } else if (e === 'pelota') {
+    const u = lim(Math.min((W - 2 * m) / 204, (H - 2 * m - arriba) / 168), 0.7, 1.15); zd.style.setProperty('--u', u);
+    for (const x of ks) { const i = +x.dataset.b; if (!i) pon(x, W - m - 56 * u, H - m - 56 * u, 112 * u); else pon(x, W - m - 164 * u, H - m - (i === 1 ? 40 : 128) * u, 80 * u); }
+  } else {
+    const dA = Math.round(lim(Math.min(W * 0.25, H * 0.31), 72, 104)), dS = Math.round(lim(dA * 0.76, 56, 80));
+    const cx = W - m - dA / 2, cy = H - m - dA / 2, D = dA / 2 + dS / 2 + 14, huecos = [[-D, 0], [0, -D], [-D, -D]];
+    let n = 0;
+    ks.forEach((x, k) => {
+      if (!k && !x.classList.contains('queda')) { pon(x, cx, cy, dA); return; }
+      if (x.classList.contains('queda')) { const fila = cx - 2 * D, cabe = fila - dS / 2 >= m; pon(x, cabe ? fila : cx, cabe ? cy : cy - 2 * D, dS); return; }
+      const [hx, hy] = huecos[Math.min(n++, 2)]; pon(x, cx + hx, cy + hy, dS);
+    });
+  }
   encaja();
 }
-// los textos que quedan en botones (los copiados del minijuego y el nombre de un botón sin icono), enteros: si no caben,
-// la letra baja hasta 10 px
+// cada nombre, entero dentro de su botón (las cuatro esquinas del rótulo dentro del círculo): si no cabe, la letra baja
+// hasta 11 px y, si aun así no cabe, se queda solo el icono (con su nombre para el lector de pantalla). Los textos de los
+// botones copiados del minijuego, enteros: si no caben, la letra baja hasta 10 px.
+function enCirculo(c, s) {
+  const r = c.getBoundingClientRect(), R = r.width / 2 - 6, cx = r.left + r.width / 2, cy = r.top + r.height / 2, rg = document.createRange(); rg.selectNodeContents(s); const t = rg.getBoundingClientRect();   // (lo que ocupa el texto de verdad, aunque se salga de su caja)
+  return [[t.left, t.top], [t.right, t.top], [t.left, t.bottom], [t.right, t.bottom]].every(([px, py]) => Math.hypot(px - cx, py - cy) <= R);
+}
 function encaja() {
+  for (const x of document.querySelectorAll('#bts .bt')) {
+    const s = x.querySelector('.nom'); x.classList.remove('solo'); s.style.fontSize = ''; if (!s.textContent) continue;
+    for (let f = parseFloat(getComputedStyle(s).fontSize); !enCirculo(x, s) && f > 11; f--) s.style.fontSize = (f - 1) + 'px';
+    if (!enCirculo(x, s) && x.querySelector('img, svg')) x.classList.add('solo');
+  }
   for (const s of document.querySelectorAll('.txt, #esp button')) {
     s.style.fontSize = ''; if (!s.textContent) continue;
     const cabe = () => s.scrollWidth <= s.clientWidth + 1 && s.scrollHeight <= s.clientHeight + 1;
@@ -254,6 +306,7 @@ function encaja() {
   }
 }
 addEventListener('resize', () => requestAnimationFrame(coloca));
+document.fonts?.addEventListener?.('loadingdone', () => requestAnimationFrame(encaja));   // (con la letra del juego ya cargada, se mide otra vez)
 $('#bJugar').addEventListener('click', () => { vibra(); envia({ t: 'jugar' }); });
 // (pantalla completa: donde se puede; en el iPhone no hay, y el botón no sale)
 const fullOk = !!document.documentElement.requestFullscreen;
@@ -261,14 +314,15 @@ $('#bFull').classList.toggle('hide', !fullOk);
 $('#bFull').onclick = () => { const d = document.documentElement; (document.fullscreenElement ? document.exitFullscreen?.() : d.requestFullscreen?.({ navigationUI: 'hide' }))?.catch?.(() => {}); try { screen.orientation?.lock?.('landscape').catch(() => {}); } catch (e) { } };
 
 // ---------- izquierda: la palanca o el panel táctil ----------
-const izq = $('#izq'), base = $('#base'), nub = $('#nub');
-let st = null, reposo = { x: 0, y: 0 }, ej = { x: 0, y: 0 }, ejSucio = false, cur = { dx: 0, dy: 0 }, toques = new Map(), rue = 0;
+// (como en el juego: donde se apoye el pulgar, en toda la mitad, sale el aro y el botón blanco se mueve desde su centro;
+// en reposo, abajo, el círculo de trazos de MOVER)
+const izq = $('#izq'), base = $('#base'), knob = $('#knob'), bola = $('#knob i');
+let st = null, ej = { x: 0, y: 0 }, ejSucio = false, cur = { dx: 0, dy: 0 }, toques = new Map(), rue = 0;
 const ponBase = (x, y) => { base.style.left = x + 'px'; base.style.top = y + 'px'; };
-// (la palanca: si el pulgar cae sobre ella, se mueve desde su centro; si cae en otro sitio de la mitad, va allí)
 const empuja = (e) => {
-  const R = base.offsetWidth * 0.36; let dx = e.clientX - st.ox, dy = e.clientY - st.oy; const l = Math.hypot(dx, dy);
+  const R = knob.offsetWidth * 0.45; let dx = e.clientX - st.ox, dy = e.clientY - st.oy; const l = Math.hypot(dx, dy);
   if (l > R) { dx *= R / l; dy *= R / l; }
-  nub.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+  bola.style.transform = `translate(${dx}px, ${dy}px)`;
   ej = { x: +(dx / R).toFixed(3), y: +(-dy / R).toFixed(3) }; ejSucio = true;
 };
 izq.addEventListener('pointerdown', (e) => {
@@ -276,10 +330,8 @@ izq.addEventListener('pointerdown', (e) => {
   e.preventDefault(); try { izq.setPointerCapture(e.pointerId); } catch (er) { }
   if (C.pal) {
     if (st) return;
-    const r = izq.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, enElla = Math.hypot(x - reposo.x, y - reposo.y) <= base.offsetWidth / 2;
-    st = enElla ? { id: e.pointerId, ox: r.left + reposo.x, oy: r.top + reposo.y } : { id: e.pointerId, ox: e.clientX, oy: e.clientY };
-    if (!enElla) ponBase(x, y);
-    base.classList.add('activa'); empuja(e);
+    const r = izq.getBoundingClientRect(); st = { id: e.pointerId, ox: e.clientX, oy: e.clientY };
+    knob.style.left = (e.clientX - r.left) + 'px'; knob.style.top = (e.clientY - r.top) + 'px'; knob.classList.remove('hide'); base.classList.add('activa'); empuja(e);
   } else if (C.tac) toques.set(e.pointerId, { x: e.clientX, y: e.clientY, t: performance.now(), mov: 0 });
 });
 izq.addEventListener('pointermove', (e) => {
@@ -290,7 +342,7 @@ izq.addEventListener('pointermove', (e) => {
   }
 });
 const sueltaIzq = (e) => {
-  if (st && e.pointerId === st.id) { st = null; base.classList.remove('activa'); ponBase(reposo.x, reposo.y); nub.style.transform = ''; ej = { x: 0, y: 0 }; envia({ t: 'ej', x: 0, y: 0 }); ejSucio = false; }
+  if (st && e.pointerId === st.id) { st = null; knob.classList.add('hide'); bola.style.transform = ''; base.classList.remove('activa'); ej = { x: 0, y: 0 }; envia({ t: 'ej', x: 0, y: 0 }); ejSucio = false; }
   const p = toques.get(e.pointerId);
   if (p) { toques.delete(e.pointerId); if (e.type === 'pointerup' && p.mov < 12 && performance.now() - p.t < 350 && !toques.size) { vibra(8); envia({ t: 'clic' }); } }
 };
