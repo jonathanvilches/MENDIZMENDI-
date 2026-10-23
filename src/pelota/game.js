@@ -44,7 +44,8 @@ const pow01 = (pow) => clamp((pow - 0.15) / 0.85, 0, 1);
 export function cutHeight(pow, ay = 0) { return clamp(COURT.CHAPA + 0.45 + Math.pow(pow01(pow), 1.1) * (COURT.FRONT_H * 0.3 - COURT.CHAPA - 0.45) + ay * 0.35, COURT.CHAPA + 0.35, COURT.FRONT_H * 0.34); }
 // el joystick a un lado se exagera: medio lado ya va casi a la pared y del todo, pegada a ella o a dos paredes
 export const aimSide = (x) => Math.sign(x) * Math.min(1, Math.pow(Math.abs(x), 0.6) * 1.12);
-export function dropHeight(pow, ay = 0) { return clamp(COURT.CHAPA + 0.12 + pow01(pow) * 1.0 + ay * 0.25, COURT.CHAPA + 0.06, 2.3); }
+// (la dejada: la carga dice la altura, de rozar la chapa a unos 2 m; el joystick arriba o abajo afina un palmo más)
+export function dropHeight(pow, ay = 0) { return clamp(COURT.CHAPA + 0.1 + pow01(pow) * 1.05 + ay * 0.32, COURT.CHAPA + 0.06, 2.3); }
 // ¿pasa la pelota por encima de la pared izquierda (o la roza muy alta) antes de botar?
 function overLeft(p, v) {
   const b = new Ball(); b.set({ ...p }, { ...v }); const out = [];
@@ -256,8 +257,10 @@ export class PelotaGame {
       // (antes había que ir a la diagonal exacta abajo-izquierda y casi nunca salía: ahora basta con el joystick bien a la
       // izquierda sin subirlo; arriba-izquierda es la que va pegada a la pared, larga)
       // (a dos paredes con el joystick casi del todo a la izquierda; a medias, pegada a la pared)
-      if (!gancho && rawX < -0.72 && aim.y < 0.3) {
-        const ang = clamp((-rawX - 0.72) / 0.22 + Math.max(0, -aim.y) * 0.3, 0, 1), lz = clamp(11.5 + pow * 8 + aim.y * 1.5 + gauss(rnd) * err * 2, 10, 22);
+      // (el ángulo, con todo el recorrido que queda del joystick, de 0,7 al tope, y algo de abajo; la fuerza dice lo larga
+      // que sale, de la mitad de la cancha al cuadro 6: antes ese recorrido era la mitad y la fuerza se notaba poco)
+      if (!gancho && rawX < -0.7 && aim.y < 0.3) {
+        const ang = clamp(Math.pow(clamp((-rawX - 0.7) / 0.3, 0, 1), 0.85) + Math.max(0, -aim.y) * 0.3, 0, 1), lz = clamp(10.5 + pow * 10.5 + aim.y * 1.5 + gauss(rnd) * err * 2, 10, 22);
         const fz = clamp(0.62 - ang * 0.45 + gauss(rnd) * err * 0.07, 0.15, 0.8);
         const r = solveTwoWalls(p, speed + 1, lz, [fz, fz - 0.06, fz + 0.06]);   // (más fuerza, más rápida y más larga)
         if (r) {

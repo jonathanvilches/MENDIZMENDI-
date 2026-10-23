@@ -70,7 +70,7 @@ import { Fronton, findFrontonSpot, frontonWall, labrit, labritInTown, hallVenue 
 import { Pista, findPistaSpot } from './pista.js';
 import { clubOfTown, teamOfClub, CLUBS } from '../futbol/clubs.js';
 import { clubPanel, season as ligaSeason } from '../futbol/liga.js';
-import { torneo, yourMatch, playTorneoRound, torneoPanel, pelotaMenu, youBonus } from './torneo.js';
+import { torneo, yourMatch, playTorneoRound, torneoPanel, pelotaMenu, youBonus, sedeDe } from './torneo.js';
 import { showChampion } from '../ui/champion.js';
 import { makeClue, makeAura } from './legendFx.js';
 import { Chase } from './chase.js';
@@ -1015,11 +1015,15 @@ export class TownGame {
       const ctx = { comarca: this.def.comarca, comarcaName: cm, towns: this.comarcaVenues() };
       const you = { name: P.name || 'Tú', town };
       this.ui.hudVisible(false);
-      const pick = await pelotaMenu(torneo(you, ctx), town, torneo(you, ctx, false, 'parejas'));
+      // (el partido libre, en el frontón que elijas: de primeras, el de la plaza, que es donde estás)
+      const sel = { sedes: this.sedes(), sede: this.fronton.court.labrit ? 'labrit' : 'plaza' };
+      const pick = await pelotaMenu(torneo(you, ctx), town, torneo(you, ctx, false, 'parejas'), sel);
       if (this.disposed || pick === 'exit') return;
       if (pick === 'torneo') return await this.pelotaTorneo(a, ctx);
       if (pick === 'torneoParejas') return await this.pelotaTorneo(a, ctx, 'parejas');
-      const r = await this.fronton.play(this, a);
+      const v = this.venueDe(sel.sede); await this.venueIntro(v);
+      if (this.disposed) return;
+      const r = await v.play(this, a, v === this.fronton ? {} : { returnTo: this.fronton });
       if (this.disposed || r.quit) return;
       const best = (townState(profile(), this.def.id).best ||= {});
       if (r.win) { best.pelota = (best.pelota || 0) + 1; saveProfile(); }
@@ -1047,11 +1051,13 @@ export class TownGame {
         // cada partido; delante, el fondo de los campeonatos: el pueblo no se ve ni se dibuja)
         this.ui.hudVisible(false); this.player.frozen = true; this.perro?.away?.(); this.sportBackdrop(true);
         const you = { name: P.name || 'Tú', town };
-        const pick = await pelotaMenu(torneo(you, ctx), town, torneo(you, ctx, false, 'parejas'));
+        // (el frontón del partido libre, a elegir: el de la plaza, el cubierto, el Labrit u otro pueblo; se recuerda)
+        const S = this.sedes(), sel = { sedes: S, sede: S.includes(P.pelotaSede) ? P.pelotaSede : this.fronton.court.labrit ? 'labrit' : 'cubierto', otro: true, onSede: (k) => { P.pelotaSede = k; saveProfile(); } };
+        const pick = await pelotaMenu(torneo(you, ctx), town, torneo(you, ctx, false, 'parejas'), sel);
         if (this.disposed || pick === 'exit') return;
+        if (pick.startsWith('otro:')) { if (pick.slice(5) !== this.def.id) { this.luego = { pelota: pick.slice(5) }; return; } continue; }
         if (pick === 'torneo' || pick === 'torneoParejas') { await this.pelotaTorneo(a, ctx, pick === 'torneoParejas' ? 'parejas' : 'mano'); if (this.disposed) return; continue; }
-        // (el partido de Campeonatos, como el torneo, en el frontón cubierto; el de la calle queda para las misiones)
-        const hv = this.fronton.court.labrit ? this.fronton : this.hallVenue(); this.sportBackdrop(false); if (hv !== this.fronton) await this.hallIntro(hv);
+        const hv = this.venueDe(sel.sede); this.sportBackdrop(false); await this.venueIntro(hv);
         if (this.disposed) return;
         // (al acabar, de vuelta al menú de pelota sin pasar por el pueblo: el resultado ya se ha visto en la cancha)
         const r = await hv.play(this, a, { returnTo: this.fronton, comp: 'Partido de exhibición', stay: true });
@@ -1061,7 +1067,7 @@ export class TownGame {
         const best = (townState(profile(), this.def.id).best ||= {});
         if (r.win) { best.pelota = (best.pelota || 0) + 1; saveProfile(); }
       }
-    } finally { if (!this.disposed) this.onExit?.('sports'); }   // (de vuelta a Torneos, de donde se vino; si el pueblo se rehízo, el nuevo sigue)
+    } finally { if (!this.disposed) this.onExit?.('sports', this.luego); }   // (de vuelta a Torneos, de donde se vino, o al frontón de otro pueblo; si el pueblo se rehízo, el nuevo sigue)
   }
   /** Fondo de los menús de los campeonatos de pelota: la lámina del frontón, desenfocada bajo el morado de los
    *  deportes, a pantalla completa. Antes, entre menú y menú se veía el pueblo y su frontón de la calle, que en los
@@ -1085,16 +1091,16 @@ export class TownGame {
     try {
       for (;;) {
         this.ui.hudVisible(false); this.player.frozen = true; this.sportBackdrop(true);   // (con el cuadro del torneo delante, nada del pueblo debajo)
-        const act = await torneoPanel(T, town);
+        const sel = { sedes: this.sedes() }, act = await torneoPanel(T, town, sel);
         if (this.disposed || act === 'exit') return;   // (el pueblo se rehízo mientras tanto: este torneo ya no sigue)
         if (act === 'new') { T = torneo({ name: P.name || 'Tú', town }, ctx, true, kind); continue; }
         if (act === 'sim') { playTorneoRound(T); continue; }
         const m = yourMatch(T);
-        // la final, en el frontón Labrit de Iruña (los cuartos y las semifinales, aquí)
-        // (los cuartos y las semifinales, en el frontón cubierto del pueblo; en Iruña, en el Labrit)
-        const fin = m.round === 'Final', venue = this.fronton?.court.labrit ? this.fronton : fin ? this.labritVenue() : this.hallVenue();
+        // (en el frontón elegido para este partido; si no, los cuartos y las semifinales en el cubierto del pueblo y la
+        // final en el Labrit de Iruña)
+        const venue = this.venueDe(sedeDe(T, m));
         this.sportBackdrop(false);
-        if (fin) await this.labritIntro(venue); else if (venue.court.hall) await this.hallIntro(venue);
+        await this.venueIntro(venue, m.round === 'Final');
         if (this.disposed) return;
         // (por parejas: juegas con tu compañero contra el delantero y el zaguero rivales)
         // (stay: del partido, al cuadro del torneo, sin volver al pueblo entre ronda y ronda)
@@ -1121,6 +1127,15 @@ export class TownGame {
       }
     } finally { if (played && !this.sportMode && !this.disposed) this.perro?.release?.(); }   // (el perro, que se quedó en casa durante el torneo, vuelve al acabar)
   }
+  // el frontón de un partido: el de la plaza (el de la calle del pueblo, cada uno de su comarca), el cubierto o el Labrit
+  // (en Iruña, el de la calle ya es el Labrit)
+  sedes() { return this.fronton?.court.labrit ? ['labrit', 'cubierto'] : ['plaza', 'cubierto', 'labrit']; }
+  venueDe(sede) {
+    if (this.fronton?.court.labrit) return sede === 'cubierto' ? this.hallVenue() : this.fronton;
+    return sede === 'plaza' ? this.fronton : sede === 'labrit' ? this.labritVenue() : this.hallVenue();
+  }
+  // (la llegada: al cubierto y al Labrit, con su plano de entrada; al de la plaza, donde ya estás, sin más)
+  async venueIntro(v, fin = false) { if (v === this.fronton) return; if (v.court.labrit) await this.labritIntro(v, fin); else if (v.court.hall) await this.hallIntro(v); }
   // el frontón Labrit: muy por encima del pueblo y fuera de sus límites (solo se ve por dentro y en la llegada)
   labritVenue() { return labrit(this.scene, { x: PLACES.plaza.x + 2600, z: PLACES.plaza.z }); }
   // el frontón cubierto del pueblo (los campeonatos): también muy por encima y fuera de sus límites, al otro lado
@@ -1136,11 +1151,13 @@ export class TownGame {
       const rt = this.rt, shot = async (pos, look, ms) => { this.follow.cinematic = { pos, look, t: 0, lookCur: look.clone() }; this.camera.position.copy(pos); this.camera.lookAt(look);
         const f0 = rt?.frameNo ?? 0, t0 = performance.now(); await new Promise(r => { const k = () => (performance.now() - t0 >= ms && (rt?.frameNo ?? 1e9) - f0 >= 30) || performance.now() - t0 > ms + 12000 ? r() : setTimeout(k, 50); k(); }); };
       this.ui.toast?.(`Frontón cubierto de ${this.def.name.split(' /')[0]}`, 'pelota', 2600);
-      await shot(V(12.5, 7.6, 31), V(0, 3, 6), 1800);
+      await shot(V(12.5, 7.6, 31), V(0, 3, 6), 1600);
+      await shot(V(-2.5, 2.2, 15), V(0.5, 2.6, 2), 1100);   // (y a ras de cancha, hacia el frontis: el sitio del partido)
     } finally { this.follow.cinematic = null; }
   }
-  // llegada a la final: la fachada de ladrillo con sus torreones y, dentro, la cancha llena
-  async labritIntro(L) {
+  // llegada al Labrit (la final o un partido que eliges jugar allí): la fachada de ladrillo con sus torreones y, dentro,
+  // la cancha llena
+  async labritIntro(L, fin = true) {
     if (window.__autoWin) return;
     const g = L.court.group, V = (x, y, z) => g.localToWorld(new THREE.Vector3(x, y, z)), E = L.court.extent;
     const xc = (E.x0 + E.x1) / 2, zb = E.z1;
@@ -1151,7 +1168,7 @@ export class TownGame {
       // (cada plano dura su tiempo y, como poco, 40 imágenes: la primera vez, el móvil tarda en preparar el edificio)
       const rt = this.rt, shot = async (pos, look, ms) => { this.follow.cinematic = { pos, look, t: 0, lookCur: look.clone() }; this.camera.position.copy(pos); this.camera.lookAt(look);
         const f0 = rt?.frameNo ?? 0, t0 = performance.now(); await new Promise(r => { const k = () => (performance.now() - t0 >= ms && (rt?.frameNo ?? 1e9) - f0 >= 40) || performance.now() - t0 > ms + 15000 ? r() : setTimeout(k, 50); k(); }); };
-      this.ui.toast?.('La final, en el frontón Labrit de Iruña', 'pelota', 3600);
+      this.ui.toast?.(fin ? 'La final, en el frontón Labrit de Iruña' : 'Frontón Labrit de Iruña', 'pelota', 3600);
       await shot(V(xc + 14, 7, zb + 34), V(xc, 7, zb), 2600);
       await shot(V(xc - 6, 3, zb + 14), V(xc, 6, zb), 1600);
       this.sky.indoor = true;   // (ya dentro: la luz del Labrit y, si llueve fuera, nada cae sobre la cancha)

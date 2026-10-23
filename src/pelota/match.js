@@ -354,9 +354,11 @@ export class PelotaMatch {
     // (la X responde al levantar el dedo: en el iPhone, en pleno partido, el clic a veces no llegaba y no se podía salir)
     tap(hud.$('.pel-exit'), () => { if (!hud.panelEl) this.confirmExit(); });
   }
-  // carga del golpe: cuanto más se mantiene, más fuerte (a tope en 0,7 s); un toque corto es un golpe suave
+  // carga del golpe: cuanto más se mantiene, más fuerte; un toque corto es un golpe suave. A tope en 1 s (la dejada, en
+  // 1,3 s) y al principio más despacio: así se afina bien un golpe suave o medio y la altura de la dejada (antes, a tope
+  // en 0,7 s y en línea recta, costaba parar donde querías)
   chargeStart(kind) { if (!this.input.charge) this.input.charge = { kind, t0: this.t }; }
-  chargeLevel() { const c = this.input.charge; return c ? Math.min(1, (this.t - c.t0) / 0.7) : 0; }
+  chargeLevel() { const c = this.input.charge; return c ? Math.pow(Math.min(1, (this.t - c.t0) / (c.kind === 'drop' ? 1.3 : 1)), 1.15) : 0; }
   chargeEnd(kind) {
     const I = this.input, c = I.charge; if (!c || c.kind !== kind) return;
     I.power = 0.15 + this.chargeLevel() * 0.85; I.charge = null;
@@ -562,7 +564,29 @@ export class PelotaMatch {
     // sube en vez de retroceder
     const lp = portrait ? [cx * 0.3 + 0.6, 7.4 + up, cz + 10.5 + behind * 0.12] : [cx * 0.32 + 1.1, 6.0 + up * 0.7, cz + 8.6 + behind * 0.12];
     const ll = portrait ? [cx * 0.18, 1.4, cz - 9] : [cx * 0.2, 1.5, cz - 11];
+    // la pelota larga: si va hacia el rebote, por detrás de ti, la cámara retrocede y sube hasta verla llegar (y al
+    // pelotari que va a por ella); antes se quedaba detrás de ti y la pelota se perdía por arriba
+    if (g.phase === 'rally' && !this.tour) {
+      const B = g.ball, bz = Number.isFinite(B.p.z) ? B.p.z + Math.max(0, B.v?.z || 0) * 0.3 : you.z;
+      const largo = Math.max(0, Math.min(1, (bz - you.z - 2) / 10)) * Math.max(0, Math.min(1, (bz - 16) / 10));
+      this.largoK = (this.largoK || 0) + (largo - (this.largoK || 0)) * Math.min(1, dt * 3);
+    } else this.largoK = (this.largoK || 0) * Math.max(0, 1 - dt * 2);
+    // y con un peloteo largo, poco a poco un plano más abierto, como en la tele cuando el tanto se alarga
+    const abre = this.camDyn ? Math.max(0, Math.min(1, ((this.rallyN || 0) - 5) / 6)) * (g.phase === 'rally' ? 1 : 0) : 0;
+    this.abreK = (this.abreK || 0) + (abre - (this.abreK || 0)) * Math.min(1, dt * 1.5);
+    { const L2 = this.largoK, A2 = this.abreK; lp[2] += L2 * 7 + A2 * 2.5; lp[1] += L2 * 2.8 + A2 * 1.6; ll[2] += L2 * 9; ll[1] -= L2 * 0.2; }
     if (C.hall && g.phase !== 'intro') { const zMax = COURT.REBOTE - 0.7, over = Math.max(0, lp[2] - zMax); lp[2] -= over; lp[1] += over * 0.32; ll[2] -= over * 0.4; }
+    // los cambios de plano (con la cámara dinámica): tras cada tanto, mientras se canta, un plano distinto del de juego,
+    // uno cada vez: desde la contracancha a la altura de la grada, desde el frontis de cara a los pelotaris o desde lo
+    // alto. Es un corte de verdad (sin deslizar), y al sacar se vuelve de golpe al de juego
+    const corte = this.camDyn && !this.tour && g.phase === 'point' && g.phaseT > 0.35;
+    if (corte) {
+      const rv0 = g.players.rival || you, mid = Math.max(4, Math.min(COURT.L, (you.z + rv0.z) / 2)), co = COURT.W / 2 + (C.contra || 2.6);
+      const planos = [[[co - 0.4, 3.4, mid + 4], [-1.5, 1.3, mid - 1]], [[1.2, 1.5, 3.2], [(you.x + rv0.x) / 2, 1.4, mid + 1]], [[-1.5, 16, mid + 8], [0, 0, mid - 2]]];
+      const [cp, cl] = planos[(this.plano || 0) % planos.length];
+      lp[0] = cp[0]; lp[1] = cp[1]; lp[2] = cp[2]; ll[0] = cl[0]; ll[1] = cl[1]; ll[2] = cl[2];
+    }
+    if (corte !== !!this.enCorte) { this.enCorte = corte; this.camInit = false; if (!corte) this.plano = (this.plano || 0) + 1; }
     if (g.phase === 'intro') { const a = this.t * 0.25; if (C.hall) { lp[0] = 3.5 + Math.sin(a) * 3; lp[1] = 8.5 + Math.sin(a * 0.7); lp[2] = 30 + Math.cos(a) * 2.5; ll[0] = 0; ll[1] = 3; ll[2] = 8; }   // (dentro del pabellón: un paseo lento desde lo alto del fondo)
       else { lp[0] = Math.sin(a) * 18 + 2; lp[1] = 9; lp[2] = COURT.L * 0.5 + Math.cos(a) * 18 + 6; ll[0] = 0; ll[1] = 2; ll[2] = COURT.L * 0.4; } }
     if (this.tour) { const [cp, cl] = this.tourCams[this.tour.i]; lp[0] = cp[0]; lp[1] = cp[1]; lp[2] = cp[2]; ll[0] = cl[0]; ll[1] = cl[1]; ll[2] = cl[2]; this.tourMat.opacity = 0.45 + 0.3 * Math.sin(this.t * 4); }   // (parpadea: se ve que está resaltada)
@@ -589,7 +613,7 @@ export class PelotaMatch {
     // el rebote, a través si la cámara queda detrás de él (si no, taparía la cancha)
     const lc = grp.worldToLocal(this.v3.copy(this.camPos)); C.reboteSeeThrough?.(lc.z > COURT.REBOTE - 0.3, dt);
     this.fovK = (this.fovK || 0) + (dyn - (this.fovK || 0)) * Math.min(1, dt * 10);
-    const fov = (portrait ? 62 : 54) + (g.pairs ? 4 : 0) - this.fovK * 3;   // (por parejas, algo más abierta: cuatro pelotaris en la cancha)
+    const fov = (portrait ? 62 : 54) + (g.pairs ? 4 : 0) - this.fovK * 3 + (this.largoK || 0) * 6 + (this.enCorte ? 4 : 0);   // (por parejas, algo más abierta: cuatro pelotaris en la cancha)
     if (Math.abs(this.cam.fov - fov) > 0.01) { this.cam.fov = fov; this.cam.updateProjectionMatrix(); }
   }
   destroy() {
