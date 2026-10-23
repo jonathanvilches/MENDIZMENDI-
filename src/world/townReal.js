@@ -16,23 +16,45 @@ export function realChurchRy(b, plaza) {
   return along.reduce((a, r) => (Math.sin(r) * tx + Math.cos(r) * tz > Math.sin(a) * tx + Math.cos(a) * tz ? r : a));
 }
 
-/** Puentes de piedra sobre los tramos de calle que son puente: tablero con algo de lomo, pretiles, bóveda y suelo pisable. */
+/** Puentes de piedra: los tramos de calle que son puente y que src/levels/ordenar.js manda levantar (los que cruzan agua,
+ *  el de la misión y los nuevos donde una calle cruzaba el agua sin puente). Tablero con algo de lomo, que nunca se hunde
+ *  en el terreno, y pretiles; debajo, los muros de los costados hasta el suelo, con tantos arcos como quepan en el hueco,
+ *  cada uno con su bóveda, y tajamares en las pilas que pisan el agua. Antes había un solo arco de 14 m como mucho y el
+ *  resto del tablero, en los puentes largos (el románico de Puente la Reina pasa de 100 m), quedaba en el aire. */
 export function realBridges(B, real) {
   for (const P of real.puentes) {
+    if (!P.hecho) continue;
     const pts = P.pts; if (pts.length < 2) continue;
-    // longitud acumulada y alturas de los extremos (en tierra firme); el lomo, por encima del agua
     const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
     const L = cum[cum.length - 1]; if (L < 3) continue;
-    const a = pts[0], b = pts[pts.length - 1];
-    const ya = terrainHeight(a[0], a[1]), yb = terrainHeight(b[0], b[1]);
-    let water = -Infinity; for (let i = 0; i <= 8; i++) { const t = i / 8, k = Math.min(pts.length - 2, Math.floor(t * (pts.length - 1))); const x = pts[k][0] + (pts[k + 1][0] - pts[k][0]) * (t * (pts.length - 1) - k), z = pts[k][1] + (pts[k + 1][1] - pts[k][1]) * (t * (pts.length - 1) - k); const r = riverInfo(x, z); if (r.edge < 0.5) water = Math.max(water, r.level); }
-    // (solo los que cruzan agua, y el de la misión del pueblo: los datos marcan también como puente los pasos sobre una
-    // carretera o una vaguada seca, y aquí salían puentes de piedra con lomo en mitad de la calle)
-    if (!(water > -1e8) && !P.mision) continue;
-    const hump = Math.max(0.3, (water > -1e8 ? water + 2.2 : -Infinity) - (ya + yb) / 2);
-    // (t, acotado: al final del último tramo la suma da L y una millonésima, el seno sale negativo y su potencia, NaN)
-    const deck = (s) => { const t = clamp(s / L, 0, 1); return ya + (yb - ya) * t + hump * Math.max(0, Math.sin(Math.PI * t)) ** 0.8; };
-    const Wd = 2 * P.w + 1.0, stone = 'stone', cap = 'ashlar';
+    const Wd = 2 * P.w + 1.0, off = Wd / 2 - 0.25, stone = 'stone', cap = 'ashlar';
+    // el eje a s metros del principio: punto, dirección y normal (junto a un codo, la media de los dos tramos)
+    const seg = []; for (let i = 0; i < pts.length - 1; i++) { const l = cum[i + 1] - cum[i] || 1e-6; seg.push([(pts[i + 1][0] - pts[i][0]) / l, (pts[i + 1][1] - pts[i][1]) / l]); }
+    const eje = (s) => {
+      s = clamp(s, 0, L); let i = 0; while (i < seg.length - 1 && s > cum[i + 1]) i++;
+      const t = (s - cum[i]) / ((cum[i + 1] - cum[i]) || 1e-6), x = pts[i][0] + (pts[i + 1][0] - pts[i][0]) * t, z = pts[i][1] + (pts[i + 1][1] - pts[i][1]) * t;
+      let [dx, dz] = seg[i];
+      const j = i < seg.length - 1 && cum[i + 1] - s < 0.75 ? i + 1 : i > 0 && s - cum[i] < 0.75 ? i - 1 : -1;
+      if (j >= 0) { const k = 0.5 * (1 - Math.min(Math.abs(cum[Math.max(i, j)] - s), 0.75) / 0.75); dx += (seg[j][0] - dx) * k; dz += (seg[j][1] - dz) * k; }
+      const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l;
+      return { x, z, dx, dz, nx: dz, nz: -dx };
+    };
+    // el suelo bajo el puente (lo más bajo de los dos costados y el eje) y el agua, cada metro
+    const N = Math.max(3, Math.ceil(L) + 1), S = [], G = [], W = [];
+    for (let k = 0; k < N; k++) {
+      const s = L * k / (N - 1), e = eje(s); S.push(s);
+      G.push(Math.min(terrainHeight(e.x, e.z), terrainHeight(e.x + e.nx * off, e.z + e.nz * off), terrainHeight(e.x - e.nx * off, e.z - e.nz * off)));
+      const r = riverInfo(e.x, e.z); W.push(r.edge < 0.5 ? r.level : -Infinity);
+    }
+    const water = Math.max(...W), ya = terrainHeight(pts[0][0], pts[0][1]), yb = terrainHeight(pts[pts.length - 1][0], pts[pts.length - 1][1]);
+    // (los de piedra de siempre, el de la misión o los que se llaman románico, medieval o viejo, con su lomo de asno: así
+    // caben sus arcos, como los seis del de Puente la Reina)
+    const viejo = P.mision || /rom[aá]nic|medieval|viejo|zahar|zaharra|erromaniko/i.test(P.n || '');
+    const hump = Math.max(0.3, (water > -1e8 ? water + 2.2 : -Infinity) - (ya + yb) / 2, viejo ? Math.min(7, L * 0.06) : 0);
+    // el tablero: el lomo de siempre, por encima del suelo (salvo en los extremos, que llegan a la calle) y suavizado
+    let Dk = S.map((s, k) => { const t = s / L; return Math.max(ya + (yb - ya) * t + hump * Math.max(0, Math.sin(Math.PI * t)) ** 0.8, G[k] + 0.3 * Math.min(1, s / 3, (L - s) / 3)); });
+    for (let r = 0; r < 2; r++) Dk = Dk.map((v, k) => k === 0 || k === N - 1 ? v : Math.max(v, (Dk[k - 1] + v + Dk[k + 1]) / 3));
+    const deck = (s) => { const f = clamp(s / L, 0, 1) * (N - 1), k = Math.min(N - 2, Math.floor(f)); return Dk[k] + (Dk[k + 1] - Dk[k]) * (f - k); };
     for (let i = 0; i < pts.length - 1; i++) {
       const [x0, z0] = pts[i], [x1, z1] = pts[i + 1], sl = cum[i + 1] - cum[i]; if (sl < 0.2) continue;
       const dx = (x1 - x0) / sl, dz = (z1 - z0) / sl, ry = Math.atan2(dx, dz);
@@ -43,28 +65,64 @@ export function realBridges(B, real) {
         const cx = x0 + dx * (s0 + s1 - 2 * cum[i]) / 2, cz = z0 + dz * (s0 + s1 - 2 * cum[i]) / 2, pitch = -Math.atan2(y1 - y0, len), ym = (y0 + y1) / 2;
         const T = M(cx, ym, cz, ry, pitch);
         B.add(stone, box(Wd, 0.6, len + 0.06, 2), MM(T, M(0, -0.3, 0)));
-        // costados de sillería bajo el tablero (de lejos se lee como un puente de piedra; el agua pasa por debajo)
         for (const side of [-1, 1]) {
           B.add(stone, box(0.42, 0.85, len + 0.04, 1.6), MM(T, M(side * (Wd / 2 - 0.21), 0.42, 0)));
           B.add(cap, box(0.55, 0.14, len + 0.06, 1), MM(T, M(side * (Wd / 2 - 0.21), 0.9, 0)));
-          B.add(stone, box(0.5, 1.5, len + 0.06, 1.8), MM(T, M(side * (Wd / 2 - 0.25), -1.3, 0)));
         }
         addPlatform(cx, cz, ry, -Wd / 2 + 0.4, Wd / 2 - 0.4, -len / 2 - 0.02, len / 2 + 0.02, y0, y1);
       }
       for (const side of [-1, 1]) addBox(x0 + (x1 - x0) / 2 + side * Math.cos(ry) * (Wd / 2 - 0.2), z0 + (z1 - z0) / 2 - side * Math.sin(ry) * (Wd / 2 - 0.2), 0.45, Math.max(0.5, sl - (i === 0 || i === pts.length - 2 ? 1.2 : 0)), ry);
     }
-    // la bóveda: un arco de piedra a cada lado, bajo el tramo que cruza el agua
-    if (water > -1e8 && L > 4) {
-      const mx = (a[0] + b[0]) / 2, mz = (a[1] + b[1]) / 2, dx = (b[0] - a[0]) / L, dz = (b[1] - a[1]) / L;
-      const span = Math.min(L - 1.6, 14), rise = Math.max(0.8, deck(L / 2) - 0.7 - water);
-      const s = new THREE.Shape();
-      s.moveTo(-span / 2 - 0.6, water - 1.2); s.lineTo(-span / 2 - 0.6, deck(L / 2 - span / 2) - 0.55); s.lineTo(span / 2 + 0.6, deck(L / 2 + span / 2) - 0.55); s.lineTo(span / 2 + 0.6, water - 1.2);
-      const h = new THREE.Path(); h.moveTo(span / 2, water - 1.2); h.lineTo(span / 2, water); for (let i = 1; i < 18; i++) { const t = Math.PI * i / 18; h.lineTo(Math.cos(t) * span / 2, water + Math.sin(t) * Math.min(rise, span / 2)); } h.lineTo(-span / 2, water); h.lineTo(-span / 2, water - 1.2); h.lineTo(span / 2, water - 1.2);
-      s.holes.push(h);
-      const g = new THREE.ExtrudeGeometry(s, { depth: 0.5, bevelEnabled: false }); g.translate(0, 0, -0.25);
-      const uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) / 2.2, uv.getY(i) / 2.2);
-      const ry = Math.atan2(-dz, dx);   // (el eje x de la forma, a lo largo del puente)
-      for (const side of [-1, 1]) B.add(stone, g, M(mx - side * dz * (Wd / 2 - 0.3), 0, mz + side * dx * (Wd / 2 - 0.3), ry));
+    // los arcos: donde queda hueco bajo el tablero (agua, vega o vaguada), repartidos en ojos de unos 13 m con sus pilas
+    const yBot = Math.min(...G) - 1.6, arcos = [];
+    for (let k = 0; k < N;) {
+      if (Dk[k] - 0.6 - G[k] <= 1.5) { k++; continue; }
+      let e = k; while (e + 1 < N && (Dk[e + 1] - 0.6 - G[e + 1] > 1.5 || (e + 2 < N && Dk[e + 2] - 0.6 - G[e + 2] > 1.5))) e++;
+      const sa = S[k], sb = S[e], Lg = sb - sa; k = e + 1;
+      if (Lg < 2.5) continue;
+      const n = Math.max(1, Math.round(Lg / 13)), pila = n > 1 ? clamp(Lg * 0.08, 1.4, 2.6) : 0, ojo = (Lg - (n - 1) * pila) / n;
+      for (let i = 0; i < n; i++) {
+        const a = sa + i * (ojo + pila), b = a + ojo, c = (a + b) / 2;
+        let suelo = -Infinity, techo = Infinity, agua = -Infinity;
+        for (let q = 0; q < N; q++) if (S[q] >= a - 0.5 && S[q] <= b + 0.5) { techo = Math.min(techo, Dk[q] - 0.6); agua = Math.max(agua, W[q]); }
+        for (const s of [a, b]) { const q = Math.round(s / L * (N - 1)); suelo = Math.max(suelo, G[q]); }
+        const ys = Math.max(suelo, agua + 0.15), rise = Math.min(ojo / 2, techo - 0.4 - ys);
+        if (rise < 0.6) continue;
+        arcos.push({ a, b, c, ys, rise, ojo, pila: i < n - 1 ? b + pila / 2 : null });
+      }
+    }
+    // los muros de los costados: del tablero al suelo, con los ojos abiertos, doblados a lo largo del eje
+    const forma = new THREE.Shape();
+    forma.moveTo(0, yBot); for (let k = 0; k < N; k++) forma.lineTo(S[k], Dk[k] - 0.55); forma.lineTo(L, yBot); forma.closePath();
+    const yh0 = yBot + 0.6;
+    for (const A of arcos) {
+      const h = new THREE.Path(); h.moveTo(A.b, yh0); h.lineTo(A.b, A.ys);
+      for (let i = 1; i < 18; i++) { const t = Math.PI * i / 18; h.lineTo(A.c + Math.cos(t) * A.ojo / 2, A.ys + Math.sin(t) * A.rise); }
+      h.lineTo(A.a, A.ys); h.lineTo(A.a, yh0); h.closePath(); forma.holes.push(h);
+    }
+    for (const side of [-1, 1]) {
+      const g = new THREE.ExtrudeGeometry(forma, { depth: 0.5, bevelEnabled: false, curveSegments: 1 });
+      const pos = g.attributes.position, uv = g.attributes.uv;
+      for (let i = 0; i < pos.count; i++) {
+        const e = eje(pos.getX(i)), o = side * off - (pos.getZ(i) - 0.25);   // (el grueso, hacia fuera; −n: sin darle la vuelta a las caras)
+        pos.setXYZ(i, e.x + e.nx * o, pos.getY(i), e.z + e.nz * o);
+      }
+      for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) / 2.2, uv.getY(i) / 2.2);
+      g.computeVertexNormals();
+      B.add(stone, g, M(0, 0, 0));
+    }
+    // la bóveda de cada ojo (por dentro se ve al pasar por debajo) y los tajamares de las pilas que pisan el agua
+    for (const A of arcos) {
+      const q = 12, P0 = [];
+      for (let i = 0; i <= q; i++) { const t = Math.PI * (1 - i / q); P0.push([A.c + Math.cos(t) * A.ojo / 2, A.ys + Math.sin(t) * A.rise]); }
+      for (let i = 0; i < q; i++) {
+        const [s0, y0] = P0[i], [s1, y1] = P0[i + 1], e = eje((s0 + s1) / 2), l = Math.hypot(s1 - s0, y1 - y0);
+        B.add(stone, box(Wd - 0.7, 0.3, l + 0.06, 2), M(e.x, (y0 + y1) / 2 + 0.15, e.z, Math.atan2(e.dx, e.dz), -Math.atan2(y1 - y0, s1 - s0)));
+      }
+      if (A.pila != null) {
+        const e = eje(A.pila), r = riverInfo(e.x, e.z);
+        if (r.edge < 0.5) { const bed = terrainHeight(e.x, e.z) - 0.4, top = r.level + 1.3; for (const side of [-1, 1]) B.add(stone, box(1.3, top - bed, 1.3, 1.8), M(e.x + e.nx * side * (off + 0.3), (top + bed) / 2, e.z + e.nz * side * (off + 0.3), Math.atan2(e.dx, e.dz) + Math.PI / 4)); }
+      }
     }
   }
 }
@@ -77,12 +135,14 @@ export function realRiverWalls(B, real, fam) {
     const pts = R.pts;
     for (let i = 0; i < pts.length - 1; i++) {
       const [x0, z0] = pts[i], [x1, z1] = pts[i + 1], sl = Math.hypot(x1 - x0, z1 - z0); if (sl < 0.5) continue;
+      if (R.cubierto?.[i] && R.cubierto[i + 1]) continue;          // (bajo la calle: sin muros)
+      const half = R.hv ? (R.hv[i] + R.hv[i + 1]) / 2 : R.half;   // (en el casco, más estrecho donde va una calle por la orilla)
       const tx = (x1 - x0) / sl, tz = (z1 - z0) / sl, nx = tz, nz = -tx, xm = (x0 + x1) / 2, zm = (z0 + z1) / 2;
       if (villageMask(xm, zm) < 0.5 || nearBridge(xm, zm)) continue;
       const level = (R.lv[i] + R.lv[i + 1]) / 2;
       for (const side of [-1, 1]) {
-        const off = R.half + 0.5, wx = xm + side * nx * off, wz = zm + side * nz * off;
-        const top = terrainHeight(xm + side * nx * (R.half + 2.4), zm + side * nz * (R.half + 2.4)) + 0.6, bot = level - 1.4;
+        const off = half + 0.5, wx = xm + side * nx * off, wz = zm + side * nz * off;
+        const top = terrainHeight(xm + side * nx * (half + 2.4), zm + side * nz * (half + 2.4)) + 0.6, bot = level - 1.4;
         if (top - bot < 1.0 || top - bot > 9) continue;
         const ry = Math.atan2(tx, tz);
         B.add(fam === 'ribera' ? 'brick' : 'stone', box(0.8, top - bot, sl + 0.08, 2), M(wx, (top + bot) / 2, wz, ry));
@@ -279,6 +339,8 @@ export function realHouses(B, def, rnd, H) {
     if (b.a >= 60) h = Math.max(h, (vm > 0.55 && b.a >= 90 ? 3 : 2) * 3 + Math.abs(Math.sin(x * 12.9898 + z * 78.233)) * 0.6); // (sin gastar rnd: el resto del pueblo sale como antes)
     else if (!b.h) h = Math.min(h, 4.6 + b.a / 30);
     h = clamp(h, 3.4, 18);
+    // (las casas de una fila partida, cada una con su altura, un poco más o menos que la de al lado: si no, parecía una nave)
+    if (b.parte) { const f = Math.abs(Math.sin(x * 12.9898 + z * 78.233)) * 43758.5453 % 1; h = clamp(h * (0.84 + 0.36 * f), 3.4, 18); }
     if (b.k === 'borda') Object.assign(st, { wall: 'stone', balcony: false, timber: false });
     const hb = slopeBase(B, x, z, w, d, ry, g);
     // lejos del casco y fuera del pueblo, la versión sencilla (de lejos no se ven los detalles y pesa mucho menos)

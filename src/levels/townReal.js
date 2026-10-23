@@ -7,6 +7,7 @@
 import { clamp, lerp, smoothstep, segDist, mulberry32 } from '../util/math.js';
 import { fbm } from '../util/noise.js';
 import { skylineFor } from '../data/horizonte.js';
+import { ordenarCasas, ordenarPuentes, partirBloques } from './ordenar.js';
 
 const FAMILY = {
   atlantic: { forest: 0.55, grass: 'lush', crops: [0, 0, 4, 4, 1, 8] },
@@ -82,19 +83,22 @@ export function createRealTownLevel(def, D) {
   // ---------- Ríos: polilíneas con el nivel del agua (bajando con la corriente) ----------
   const RV = (D.rios || []).filter(r => r.pts.length > 1).map((r, k) => ({ id: 'r' + k, name: r.n, half: r.w, pts: r.pts, lv: r.lv.map(v => BASE + v - 1.6) }));
   const riverAt = buckets(RV, 20, 14);
+  // (el ancho, el del río; en el casco, más estrecho donde una calle va por la orilla: ver «El cauce en el casco», abajo)
+  const anchoEn = (s, t) => s.L.hv ? lerp(s.L.hv[s.i], s.L.hv[s.i + 1], t) : s.L.half;
   const NONE = { d: 1e4, edge: 1e4, half: 0, level: -Infinity, river: 'A', dA: 1e4, dZ: 1e9 };
   function riverInfo(x, z) {
     const L = riverAt(x, z); if (!L) return NONE;
     let best = null, bd = 1e9;
-    for (const s of L) { const r = segDist(x, z, s.a[0], s.a[1], s.b[0], s.b[1]), e = r.d - s.L.half; if (e < bd) { bd = e; best = { s, r }; } }
+    for (const s of L) { if (s.L.cubierto?.[s.i] && s.L.cubierto[s.i + 1]) continue; const r = segDist(x, z, s.a[0], s.a[1], s.b[0], s.b[1]), e = r.d - anchoEn(s, r.t); if (e < bd) { bd = e; best = { s, r }; } }
     if (!best) return NONE;
-    const { s, r } = best, lv = lerp(s.L.lv[s.i], s.L.lv[s.i + 1], r.t);
-    return { d: r.d, edge: r.d - s.L.half, half: s.L.half, level: lv, river: 'A', dA: r.d, dZ: 1e9, id: s.L.id };
+    const { s, r } = best, lv = lerp(s.L.lv[s.i], s.L.lv[s.i + 1], r.t), half = anchoEn(s, r.t);
+    return { d: r.d, edge: r.d - half, half, level: lv, river: 'A', dA: r.d, dZ: 1e9, id: s.L.id };
   }
   // el punto del río más cercano (para las truchas que saltan junto al jugador)
   function riverPointNear(x, z) {
     let best = null, bd = 1e9;
     for (const L of RV) for (let i = 0; i < L.pts.length - 1; i++) {
+      if (L.cubierto?.[i] && L.cubierto[i + 1]) continue;
       const a = L.pts[i], b = L.pts[i + 1], r = segDist(x, z, a[0], a[1], b[0], b[1]);
       if (r.d < bd) { bd = r.d; best = { x: a[0] + (b[0] - a[0]) * r.t, z: a[1] + (b[1] - a[1]) * r.t }; }
     }
@@ -195,17 +199,18 @@ export function createRealTownLevel(def, D) {
   PLACES.fields = ring(R + 20, 360, (x, z) => okSpot(x, z, 20, 0.2) && villageMask(x, z) < 0.05 && Math.hypot(x - PLACES.farm.x, z - PLACES.farm.z) > 60) || { x: -(R + 40), z: -90 };
   PLACES.forest = ring(Math.max(R + 120, 260), 420, (x, z) => okSpot(x, z, 40, 0.5) && villageMask(x, z) < 0.01 && Math.hypot(x - PLACES.farm.x, z - PLACES.farm.z) > 120) || { x: 0, z: -R - 130 };
   PLACES.market = near(PL.x + 10, PL.z + 10, (x, z) => okSpot(x, z, 3, 0.3), 50) || { x: PL.x + 6, z: PL.z + 6 };
-  // junto al río, en la orilla, cerca de la plaza
-  {
+  // junto al río, en la orilla, cerca de la plaza (donde el río va a la vista: no donde va cubierto bajo la calle)
+  const orilla = () => {
     let best = null, bd = 1e9;
     for (const L of RV) for (let i = 0; i < L.pts.length; i++) {
       const [x, z] = L.pts[i], d = Math.hypot(x - PL.x, z - PL.z);
-      if (d < 25 || d > 260 || d > bd) continue;
-      const nx = i < L.pts.length - 1 ? L.pts[i + 1][1] - z : z - L.pts[i - 1][1], nz = i < L.pts.length - 1 ? -(L.pts[i + 1][0] - x) : -(x - L.pts[i - 1][0]), nl = Math.hypot(nx, nz) || 1;
-      for (const s of [1, -1]) { const X = x + s * nx / nl * (L.half + 5), Z = z + s * nz / nl * (L.half + 5); if (inner(X, Z) && !occupied(X, Z, 1.5)) { best = { x: X, z: Z }; bd = d; break; } }
+      if (d < 25 || d > 260 || d > bd || L.cubierto?.[i]) continue;
+      const nx = i < L.pts.length - 1 ? L.pts[i + 1][1] - z : z - L.pts[i - 1][1], nz = i < L.pts.length - 1 ? -(L.pts[i + 1][0] - x) : -(x - L.pts[i - 1][0]), nl = Math.hypot(nx, nz) || 1, h = L.hv ? L.hv[i] : L.half;
+      for (const s of [1, -1]) { const X = x + s * nx / nl * (h + 5), Z = z + s * nz / nl * (h + 5); if (inner(X, Z) && !occupied(X, Z, 1.5)) { best = { x: X, z: Z }; bd = d; break; } }
     }
-    PLACES.riverSpot = best || { x: PL.x + 60, z: PL.z + 60 };
-  }
+    return best || { x: PL.x + 60, z: PL.z + 60 };
+  };
+  PLACES.riverSpot = orilla();
   // las cuatro salidas del pueblo y el sitio donde se llega: en calles, a la distancia del borde del casco
   const onStreet = (dirx, dirz, r0, r1) => {
     let best = null, bs = -1e9;
@@ -317,7 +322,9 @@ export function createRealTownLevel(def, D) {
     if (pos) { /* ya en su sitio por el lugar con nombre */ }
     else if (b) { TAKEN.add(b); pos = { x: b.x, z: b.z }; }
     else if (k === 'bridge' && D.puentes?.length) {
-      const named = D.puentes.find(p => p.n && keys.some(w => nrm(p.n).includes(w)));
+      // (y si el nombre de la ficha solo tiene palabras de tipo, como «Puente románico», el puente que se llama igual)
+      const named = D.puentes.find(p => p.n && keys.some(w => nrm(p.n).includes(w)))
+        || D.puentes.filter(p => p.n).map(p => ({ p, k: LMW.filter(w => nrm(p.n).includes(w)).length })).filter(x => x.k >= Math.min(2, LMW.length)).sort((a, b) => b.k - a.k)[0]?.p;
       const mid = (p) => p.pts[Math.floor(p.pts.length / 2)], wet = (p) => { const [x, z] = mid(p); return riverInfo(x, z).edge < 2 ? riverInfo(x, z).half : 0; };
       const P0 = named || D.puentes.slice().sort((p, q) => (wet(q) - wet(p)) * 40 + Math.hypot(mid(p)[0] - PL.x, mid(p)[1] - PL.z) - Math.hypot(mid(q)[0] - PL.x, mid(q)[1] - PL.z))[0];
       const m = P0.pts[Math.floor(P0.pts.length / 2)]; pos = { x: m[0], z: m[1] }; P0.mision = true;   // (este se levanta aunque no cruce agua: src/world/townReal.js)
@@ -373,6 +380,43 @@ export function createRealTownLevel(def, D) {
     const urbana = (c) => c.type === 'street' || c.cls === 'footway' || c.cls === 'pedestrian';
     const quedan = PATHS.filter(c => !(urbana(c) && c.pts.every(([x, z]) => nucleoD(x, z) > 35)));
     PATHS.length = 0; PATHS.push(...quedan); pathAt = buckets(PATHS, 25, 10);
+  }
+  // ---------- El orden: puentes que llegan a tierra, casas que no se pisan ni pisan la calle, puertas con salida ----------
+  // (src/levels/ordenar.js; la iglesia, el ayuntamiento, el frontón y las casas de los monumentos no se tocan)
+  // El cauce en el casco: los datos dan a cada río un ancho solo (6 m a una regata con nombre) y, donde una calle va
+  // pegada a la orilla, el cauce se comía media calle y se andaba por el agua. Ahí se estrecha lo justo para que quepan
+  // el muro y la calle (con 2 m de cauce como poco); los cruces no cuentan, los hace el puente
+  const cubre = ['central', 'ribera', 'city'].includes(def.family);
+  for (const L of RV) {
+    const hv = L.pts.map(() => L.half);
+    for (let i = 0; i < L.pts.length; i++) {
+      const [x, z] = L.pts[i], j = Math.min(i + 1, L.pts.length - 1), k = Math.max(i - 1, 0);
+      if (villageMask(x, z) < 0.3) continue;
+      const tl = Math.hypot(L.pts[j][0] - L.pts[k][0], L.pts[j][1] - L.pts[k][1]) || 1, tx = (L.pts[j][0] - L.pts[k][0]) / tl, tz = (L.pts[j][1] - L.pts[k][1]) / tl;
+      for (const s of pathAt(x, z) || []) {
+        if (s.L.type === 'trail') continue;
+        const sl = Math.hypot(s.b[0] - s.a[0], s.b[1] - s.a[1]) || 1;
+        if (Math.abs(((s.b[0] - s.a[0]) * tx + (s.b[1] - s.a[1]) * tz) / sl) < 0.75) continue;
+        const d = segDist(x, z, s.a[0], s.a[1], s.b[0], s.b[1]).d;
+        hv[i] = Math.min(hv[i], Math.max(1.0, d - s.L.w * 0.85 - 1.0));
+        // (y si la calle va justo por encima, el río está cubierto: va por debajo, como el Mediavilla en Tudela; solo en los
+        // cascos de la Zona Media, la Ribera y las ciudades: en la montaña los ríos del pueblo van abiertos, con sus muros)
+        if (cubre && d < s.L.w * 0.85 + 1.2) hv[i] = 0;
+      }
+    }
+    // (sin escalones: lo más estrecho de cada tramo se reparte a los vértices de al lado; un tramo con los dos extremos
+    // cubiertos no lleva agua a la vista)
+    const m = hv.map((v, i) => Math.min(v, hv[i - 1] ?? v, hv[i + 1] ?? v));
+    if (m.some(v => v < L.half)) { L.cubierto = hv.map((v, i) => v === 0); L.hv = m.map((v, i) => Math.max(1.0, (v + (m[i - 1] ?? v) + (m[i + 1] ?? v)) / 3)); }
+  }
+  // (si la orilla de las misiones daba a un tramo que ahora va cubierto, otra con el agua a la vista)
+  if (RV.some(L => L.cubierto) && riverInfo(PLACES.riverSpot.x, PLACES.riverSpot.z).edge > 8) PLACES.riverSpot = orilla();
+  const PUENTES = ordenarPuentes(D.puentes || [], PATHS, riverInfo, RV);
+  {
+    const fijas = new Set([...TAKEN, LG.iglesia, LG.ayuntamiento, LG.fronton, ...CASAS.filter(b => b.k === 'church' || b.k === 'townhall' || b.k === 'fronton')].filter(Boolean));
+    const partidas = partirBloques(CASAS, { plaza: PL, fijas, urbano: ['central', 'ribera', 'city'].includes(def.family) && CASAS.length >= 80, pathQuery });
+    const ok = ordenarCasas(partidas, { callesCerca: (x, z) => pathAt(x, z), rios: RV, puentes: PUENTES, riverInfo, pathQuery, plazaMask, fijas });
+    CASAS.length = 0; CASAS.push(...ok); marcarCasas();
   }
   // (las salidas del pueblo, otra vez, en las calles y caminos que quedan)
   PLACES.edgeN = onStreet(0, -1, R + 20, R + 120) || PLACES.edgeN; PLACES.edgeS = onStreet(0, 1, R + 20, R + 120) || PLACES.edgeS;
@@ -453,8 +497,9 @@ export function createRealTownLevel(def, D) {
       const a = U.u.i * 0.7, c = Math.cos(a), s = Math.sin(a), v = -x * s + z * c;
       return { mask, type: t, edge: U.edge, stripe: Math.sin(v * 1.6), row: v, cell: 100000 + U.u.i };
     }
-    // (sin dato: parcelas solo donde la ladera es suave; en las cuestas, prado o monte)
-    mask *= 1 - smoothstep(0.12, 0.22, slopeAt(x, z));
+    // (sin dato: parcelas solo donde la ladera es suave, en las cuestas prado o monte; y nunca dentro del casco: el
+    // interior de una manzana es un patio o una huerta, no un campo de labor)
+    mask *= (1 - smoothstep(0.12, 0.22, slopeAt(x, z))) * smoothstep(0, 25, nucleoD(x, z));
     if (mask <= 0.01) return { mask: 0, type: 0, edge: 99 };
     const a = 0.2 + ph * 0.05, c = Math.cos(a), s = Math.sin(a);
     const wx = x + fbm(x / 90, z / 90, 2) * 12, wz = z + fbm(x / 90 + 7, z / 90 - 3, 2) * 12;
@@ -471,7 +516,7 @@ export function createRealTownLevel(def, D) {
     return n > 0.2 ? 'pine' : n > -0.3 ? 'oak' : 'olive';
   }
   const RIVERS = RV.map(L => ({ pts: L.pts, levels: L.lv, half: L.half, name: L.name }));
-  const real = { data: D, casas: CASAS, anclas: ANCLAS, taken: TAKEN, puentes: D.puentes || [], rios: RV, plazas: PLAZAS, piscinas: D.piscinas || [], atribucion: D.atribucion };
+  const real = { data: D, casas: CASAS, anclas: ANCLAS, taken: TAKEN, puentes: PUENTES, rios: RV, plazas: PLAZAS, piscinas: D.piscinas || [], atribucion: D.atribucion };
   return {
     rx, zz: () => 9999, CONF: { x: 9999, z: 9999 }, FA: () => BASE, FZ: () => BASE, riverHalfA: () => 0, RIVER_HALF_Z: 0,
     riverInfo, riverPointNear, valleyFloor, finalHeight, pathQuery, plazaMask, fieldInfo, villageMask, meadowMask, iratiMask, skyTan,
