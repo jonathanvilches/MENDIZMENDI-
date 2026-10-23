@@ -157,8 +157,10 @@ const CSS = `
 .tq-cup b{color:#fff;font:400 var(--fs-md)/1.1 var(--f-display)}
 .tq-how{grid-column:1/-1;margin:0}
 .tq-txa{display:flex;align-items:center;gap:12px}.tq-txa>.ico{width:52px;height:52px;flex:none}
-/* menú de pelota: losas grandes como el menú de un juego de deportes, cada una con su figura */
-.tq-tiles{display:grid;grid-template-columns:1.25fr 1fr 1fr 1fr;gap:12px;min-height:0}.tq-tiles.n3{grid-template-columns:1.25fr 1fr 1fr}
+/* menú de pelota: losas grandes como el menú de un juego de deportes, cada una con su figura. Las figuras, del mismo alto
+   en todas: la losa de la colección, con tres, algo más ancha y la del partido libre, con una, algo más estrecha; así
+   salen lo más grandes posible */
+.tq-tiles{display:grid;grid-template-columns:1fr 1fr .85fr 1.15fr;gap:12px;min-height:0}.tq-tiles.n3{grid-template-columns:1fr .85fr 1.15fr}
 .tq-tile{position:relative;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:2px;min-height:190px;padding:12px calc(16px + 8px);border:1px solid rgba(201,178,255,.25);border-radius:4px;color:#fff;text-align:left;cursor:pointer;font:inherit;
   background:linear-gradient(160deg,var(--t1,#3b1590),var(--t2,#12052a) 75%);clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px);transition:transform .15s,border-color .15s}
 .tq-tile::before{content:'';position:absolute;inset:0;z-index:-1;background:repeating-linear-gradient(125deg,transparent 0 14px,rgba(255,255,255,.035) 14px 15px)}
@@ -166,13 +168,12 @@ const CSS = `
 .tq-tile:active{transform:scale(.97)}.tq-tile:hover{border-color:var(--rosa)}
 /* (la ilustración arriba, centrada y apoyada abajo, y el texto debajo: nunca se pisan) */
 .tq-tile .figs{flex:1 1 0;min-height:0;align-self:stretch;display:flex;justify-content:center;align-items:flex-end;margin:0 -8px 8px;pointer-events:none;position:relative}
-/* (las figuras, cada una en posición absoluta en la caja de la portada: alto de la caja, ancho por su proporción y
-   apoyadas abajo; con dos o tres, abiertas en abanico, el desplazamiento en su propio ancho: nunca se salen) */
-.tq-tile .figs img.pf{position:absolute;bottom:0;left:50%;height:100%;width:auto;max-width:none;transform:translateX(-50%);transform-origin:50% 100%;filter:drop-shadow(0 6px 14px rgba(0,0,0,.5));transition:transform .3s}
-.tq-tile:hover .figs img.pf:only-child{transform:translateX(-50%) scale(1.04) translateY(-3px)}
-.tq-tile .figs.duo img.pf:first-child{transform:translateX(-80%)}.tq-tile .figs.duo img.pf:last-child{transform:translateX(-20%)}
-.tq-tile .figs{container-type:inline-size}.tq-tile .figs.trio img.pf{height:min(100%,84cqw)}.tq-tile .figs.duo img.pf{height:min(100%,90cqw)}   /* (en abanico ocupan 1,13 y 1,07 veces su alto: nunca más anchas que la losa) */
-.tq-tile .figs.trio img.pf:nth-child(1){transform:translateX(-92%) scale(.86)}.tq-tile .figs.trio img.pf:nth-child(2){z-index:1}.tq-tile .figs.trio img.pf:nth-child(3){transform:translateX(-8%) scale(.86)}
+/* (las figuras, todas del mismo alto en las cuatro losas: --fh, el mayor que cabe en todas, lo pone el menú. Apoyadas
+   abajo y, con dos o tres, en fila al mismo paso, un tercio de su alto, con la del centro delante; nunca se salen) */
+.tq-tile .figs img.pf{position:absolute;bottom:0;left:50%;height:var(--fh,100%);width:auto;max-width:none;transform:translateX(calc(-50% + var(--o,0) * var(--fh,0px)));transform-origin:50% 100%;filter:drop-shadow(0 6px 14px rgba(0,0,0,.5));transition:translate .3s}
+.tq-tile:hover .figs img.pf{translate:0 -3px}
+.tq-tile .figs.duo img.pf:first-child{--o:-.16}.tq-tile .figs.duo img.pf:last-child{--o:.16}
+.tq-tile .figs.trio img.pf:nth-child(1){--o:-.32}.tq-tile .figs.trio img.pf:nth-child(2){z-index:1}.tq-tile .figs.trio img.pf:nth-child(3){--o:.32}
 .tq-tile .k{font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--rosa);text-shadow:0 1px 3px rgba(0,0,0,.8);overflow-wrap:anywhere}
 .tq-tile b{font:400 var(--fs-2xl)/1 var(--f-display);text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.55);max-width:100%;overflow-wrap:anywhere}
 .tq-tile small{font:600 var(--fs-sm)/1.2 var(--f-cond);letter-spacing:0;color:#ece4ff;text-shadow:0 1px 3px rgba(0,0,0,.9);max-width:100%}
@@ -187,19 +188,25 @@ const CSS = `
 @media (max-width:900px) and (orientation:portrait){
 .lg-card.tq-card{grid-template-columns:1fr;grid-template-rows:none}.tq-br{grid-template-columns:1fr 1fr .8fr;min-height:260px}
 .tq-tiles,.tq-tiles.n3{grid-template-columns:1fr 1fr}.tq-rd h4{white-space:normal}.tq-tile{min-height:150px}.tq-tile.main{grid-column:1/-1}.tq-tile b{font-size:var(--fs-xl)}
-.tq-tile .figs{min-height:96px}.tq-tile.main .figs{min-height:120px}
+.tq-tile .figs{min-height:110px}
+/* (de pie, las dos losas de cada fila con las mismas filas, como tumbado: las figuras sobre el mismo suelo y los textos
+   alineados aunque uno ocupe más líneas) */
+.tq-tiles{row-gap:0}.tq-tile{display:grid;grid-row:span 4;grid-template-rows:subgrid;grid-template-columns:minmax(0,1fr);align-content:stretch;justify-items:start;margin-bottom:12px}
+.tq-tile .figs{justify-self:stretch;align-self:stretch}.tq-tile>:not(.figs){align-self:end}
 }
 @media (max-width:360px) and (orientation:portrait){.tq-tile{padding:8px 12px}.tq-tile b{font-size:var(--fs-lg);overflow-wrap:anywhere}.tq-duel{flex-wrap:wrap}.tq-duel>.tq-mid{order:-1;flex:1 1 100%}.tq-duel .gx-card{--w:108px!important}.tq-br{gap:0 12px}}
-@media (orientation:portrait) and (min-width:600px){.tq-tile .figs{min-height:170px}.tq-tile.main .figs{min-height:200px}}
+@media (orientation:portrait) and (min-width:600px){.tq-tile .figs{min-height:180px}}
 /* tumbado: las cuatro losas en fila con las mismas filas (figura, rótulo, título y texto) para todas, así las figuras
-   salen del mismo alto y los textos alineados aunque uno ocupe más líneas; las dos primeras, que llevan más texto,
-   algo más anchas (si no, sus títulos iban en dos o tres líneas y sus figuras salían a la mitad) */
+   salen del mismo alto y los textos alineados aunque uno ocupe más líneas */
 @media (orientation:landscape){
-.tq-tiles{grid-template-columns:1.15fr 1.15fr .85fr .85fr;grid-template-rows:minmax(0,1fr) auto auto auto;row-gap:0}.tq-tiles.n3{grid-template-columns:1.15fr 1fr 1fr}
+.tq-tiles{grid-template-rows:minmax(0,1fr) auto auto auto;row-gap:0}
 .tq-tile{display:grid;grid-row:span 4;grid-template-rows:subgrid;grid-template-columns:minmax(0,1fr);align-content:stretch;justify-items:start;padding-left:16px;padding-right:16px}   /* (la columna, todo el ancho de la losa: si no, medía lo que su título y las figuras salían a un lado y cortadas) */
 .tq-tile .figs{justify-self:stretch;align-self:stretch}.tq-tile>:not(.figs){align-self:end}
 .tq-tile .k{letter-spacing:.06em}.tq-tile b{font-size:var(--fs-xl)}
 }
+/* (con sitio, cada losa mide al menos lo que su título en una línea y el resto se reparte: los títulos no se parten y las
+   figuras, iguales en todas, salen lo más grandes posible) */
+@media (orientation:landscape) and (min-width:800px){.tq-tile{min-width:min-content;grid-template-columns:minmax(min-content,1fr)}.tq-tile b{white-space:nowrap}}
 /* (en pantallas altas, como el iPad tumbado, la ilustración con su altura: no se queda diminuta encima del texto) */
 @media (min-height:561px) and (orientation:landscape){.tq-tile .figs{min-height:clamp(150px,calc(32vh / var(--z, 1)),300px)}}
 /* ordenador (pantalla grande): el menú y el cuadro a su tamaño, las figuras grandes y enteras (la losa de la colección,
@@ -207,8 +214,8 @@ const CSS = `
 @media (min-width:1200px) and (min-height:700px){
 .lg-card.tq-card{width:min(1280px,100%);gap:16px 32px}
 .lg-card.tq-menu-card{width:min(1640px,100%)}
-.tq-tiles{gap:16px;grid-template-columns:1.1fr 1.1fr 1fr 1fr}.tq-tiles.n3{grid-template-columns:1.1fr 1fr 1fr}
-.tq-tile{padding-left:24px;padding-right:24px}.tq-tile .figs{min-height:clamp(280px,calc(46vh / var(--z, 1)),560px)}.tq-tile .figs.trio img.pf{height:min(80%,84cqw)}
+.tq-tiles{gap:16px}
+.tq-tile{padding-left:24px;padding-right:24px}.tq-tile .figs{min-height:clamp(280px,calc(46vh / var(--z, 1)),560px)}
 .tq-tile b{font-size:var(--fs-2xl)}.tq-tile small{font-size:var(--fs-md)}.tq-tile .k{font-size:var(--fs-sm)}
 .tq-duel .gx-card{--w:168px!important}.tq-banner .gx-card{--w:168px!important}.tq-mid b{font-size:var(--fs-5xl)}.tq-mid small.r{font-size:var(--fs-md)}
 .tq-where{font-size:var(--fs-md)}.tq-ficha{font-size:var(--fs-sm)}
@@ -313,6 +320,16 @@ export function pelotaMenu(T, here = null, T2 = null) {
         <button class="tq-tile col" data-a="pelotaris" style="--d:2s"><span class="figs trio">${trio.map(n => pelotariFig(n, 'rojo', 'fig')).join('')}</span><span class="k">Tu colección</span><b>Pelotaris</b><small class="pc-n">${C.have}/${C.total} descubiertos</small></button></div>
       <div class="tq-menu-foot"><button class="lg-btn" data-a="exit">Salir</button></div>`);
     r.firstElementChild.classList.add('tq-menu-card');
+    // las figuras de las cuatro losas, del mismo alto: el mayor que cabe en todas. Las ilustraciones tienen el mismo
+    // encuadre (el cuerpo, de ancho, un 36 % de su alto como mucho) y van en fila a un paso del 32 % de su alto
+    const tiles = r.querySelector('.tq-tiles');
+    const iguala = () => {
+      if (!r.isConnected) { ro.disconnect(); return; }
+      let h = Infinity;
+      for (const f of tiles.querySelectorAll('.figs')) { const n = f.children.length || 1; h = Math.min(h, f.clientHeight, f.clientWidth * 0.94 / (0.36 + (n - 1) * 0.32)); }
+      if (h > 0 && h < Infinity) tiles.style.setProperty('--fh', Math.floor(h) + 'px');
+    };
+    const ro = new ResizeObserver(iguala); ro.observe(tiles); tiles.querySelectorAll('.figs').forEach(f => ro.observe(f)); iguala();
     // (la colección se abre encima y, al cerrarla, el menú sigue ahí)
     r.addEventListener('click', async (e) => { const b = e.target.closest('[data-a]'); if (!b) return; if (b.dataset.a === 'pelotaris') { await pelotarisPanel(T.comarca); const c = pelotarisCount(); const s2 = b.querySelector('.pc-n'); if (s2) s2.textContent = `${c.have}/${c.total} descubiertos`; return; } r.remove(); res(b.dataset.a); });
   });
