@@ -386,6 +386,8 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 /* ================= Minijuegos y fichas ================= */
 .mg-overlay { position: fixed; inset: 0; z-index: 25; display: grid; place-items: center; padding: 16px; background: rgba(8, 5, 16, .55); animation: fadein .2s; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
 .mg-overlay.out { opacity: 0; transition: opacity .25s; }
+.mg-overlay.ctxlost { z-index: 30000; }   /* (el aviso de la imagen perdida o del partido que no carga, encima de todo: del fútbol, de la pelota y del fundido negro;
+   antes quedaba debajo y solo se veía la pantalla negra) */
 .mg-card { width: min(560px, 100%); max-height: calc(94dvh / var(--z, 1)); overflow-y: auto; background: linear-gradient(180deg, #32136f, #1c0b3a); border-radius: var(--rL); padding: 24px; text-align: center; color: #f7f0e6; border: 1px solid rgba(255, 244, 228, .22); box-shadow: 0 30px 80px rgba(0, 0, 0, .6); animation: pop .3s cubic-bezier(.2, 1.3, .4, 1); display: flex; flex-direction: column; gap: 12px; align-items: center; }
 .mg-card h2 { margin: 0; font-family: 'MZ Display', 'Nunito', sans-serif; font-weight: 400; font-size: var(--fs-xl); line-height: 1; } .mg-card p { margin: 0; color: #eae4f6; font-weight: 600; }
 .mg-card .btn { min-width: 220px; min-height: 50px; }

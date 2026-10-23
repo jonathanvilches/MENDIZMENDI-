@@ -41,6 +41,16 @@ const career = {
   set(k, v) { this.load()[k] = v; this.save(); },
 };
 
+// el aviso de que el partido no ha podido cargarse (encima de todo, con su botón para seguir)
+function avisoCarga() {
+  return new Promise((ok) => {
+    const o = document.createElement('div'); o.className = 'mg-overlay ctxlost';
+    o.innerHTML = '<div class="mg-card"><h3>No se ha podido cargar el partido</h3><p>El dispositivo se ha quedado corto de memoria para el estadio. Cierra otras apps o pestañas y vuelve a intentarlo; si sigue pasando, baja la calidad gráfica en Ajustes.</p><button class="btn primary">Volver</button></div>';
+    o.querySelector('button').onclick = () => { o.remove(); ok(); };
+    document.body.appendChild(o);
+  });
+}
+
 // anfitrión propio: un lienzo a pantalla completa con su WebGLRenderer
 function ownHost() {
   let renderer, raf = 0, last = 0, wrap;
@@ -76,7 +86,12 @@ export const FutbolSystem = {
     if (PUBLICO) crowdBuffers(C.audio?.ctx);   // (el público de la grada se calcula mientras se carga el estadio)
     await C.host?.before?.();
     try { await m.load(); }
-    catch (e) { console.error('[fútbol] carga', e); m.dispose(); await C.host?.after?.(); return { quit: true, error: String(e) }; }
+    catch (e) {
+      // (si el estadio no carga, por ejemplo un móvil sin memoria, se quita el fundido negro de la entrada y se avisa: antes
+      // la pantalla se quedaba en negro)
+      console.error('[fútbol] carga', e); m.dispose(); await C.host?.shown?.(); await C.host?.after?.();
+      await avisoCarga(); return { quit: true, error: String(e) };
+    }
     const host = C.host || ownHost();
     host.attach(m.scene, m.camera, (dt) => m.update(dt));
     await C.host?.shown?.();

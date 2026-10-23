@@ -160,7 +160,7 @@ const CSS = `
 /* menú de pelota: losas grandes como el menú de un juego de deportes, cada una con su figura. Las figuras, del mismo alto
    en todas: la losa de la colección, con tres, algo más ancha y la del partido libre, con una, algo más estrecha; así
    salen lo más grandes posible */
-.tq-tiles{display:grid;grid-template-columns:1fr 1fr .85fr 1.15fr;gap:12px;min-height:0}.tq-tiles.n3{grid-template-columns:1fr .85fr 1.15fr}
+.tq-tiles{display:grid;grid-template-columns:1fr 1.08fr .8fr 1.12fr;gap:12px;min-height:0}.tq-tiles.n3{grid-template-columns:1fr .8fr 1.12fr}
 .tq-tile{position:relative;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:2px;min-height:190px;padding:12px calc(16px + 8px);border:1px solid rgba(201,178,255,.25);border-radius:4px;color:#fff;text-align:left;cursor:pointer;font:inherit;
   background:linear-gradient(160deg,var(--t1,#3b1590),var(--t2,#12052a) 75%);clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px);transition:transform .15s,border-color .15s}
 .tq-tile::before{content:'';position:absolute;inset:0;z-index:-1;background:repeating-linear-gradient(125deg,transparent 0 14px,rgba(255,255,255,.035) 14px 15px)}
@@ -204,9 +204,12 @@ const CSS = `
 .tq-tile .figs{justify-self:stretch;align-self:stretch}.tq-tile>:not(.figs){align-self:end}
 .tq-tile .k{letter-spacing:.06em}.tq-tile b{font-size:var(--fs-xl)}
 }
-/* (con sitio, cada losa mide al menos lo que su título en una línea y el resto se reparte: los títulos no se parten y las
-   figuras, iguales en todas, salen lo más grandes posible) */
-@media (orientation:landscape) and (min-width:800px){.tq-tile{min-width:min-content;grid-template-columns:minmax(min-content,1fr)}.tq-tile b{white-space:nowrap}}
+/* (si un título no cabe en una línea, se parte en dos y el rótulo sigue pegado encima: el hueco queda debajo, antes del
+   texto, y los textos de abajo, alineados en todas. Nunca empuja a las demás losas fuera de la tarjeta) */
+@media (orientation:landscape){.tq-tile b{align-self:start}}
+/* (en el móvil tumbado, con poco ancho y la muesca del iPhone a los lados, los títulos un punto más pequeños: caben en una
+   línea y dejan sitio a las figuras) */
+@media (orientation:landscape) and (max-height:520px){.tq-tile b{font-size:var(--fs-lg)}}
 /* (en pantallas altas, como el iPad tumbado, la ilustración con su altura: no se queda diminuta encima del texto) */
 @media (min-height:561px) and (orientation:landscape){.tq-tile .figs{min-height:clamp(150px,calc(32vh / var(--z, 1)),300px)}}
 /* ordenador (pantalla grande): el menú y el cuadro a su tamaño, las figuras grandes y enteras (la losa de la colección,

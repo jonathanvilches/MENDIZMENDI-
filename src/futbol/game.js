@@ -1337,8 +1337,11 @@ export class FutbolGame {
     const toward = !this.owner && b.v.x * s > 3 && ((this.shotLive && this.shotLive.team !== t) || b.speed > 14);
     const Tg = toward ? (gx - B.x) / b.v.x : -1, zg = B.z + b.v.z * Tg, yg = B.y + b.v.y * Tg - 0.5 * K.g * Tg * Tg;
     if (toward && Tg > 0 && Tg < 2.8 && Math.abs(zg) < HW_G + 0.6 && yg < F.goalH + 0.4) {
-      const T = Math.max(0.03, (p.x - B.x) / b.v.x);   // cuándo pasa el balón por donde está él
-      const zc = B.z + b.v.z * T, yc = Math.max(R, B.y + b.v.y * T - 0.5 * K.g * T * T);
+      // cuándo pasa el balón más cerca de él, entre ahora y la línea de gol: en un tiro cruzado no es al cruzar su línea
+      // (por ahí el balón va aún fuera del palo y luego se cuela por detrás de él, hacia el centro: se tiraba hacia fuera
+      // y el balón entraba a medio metro), sino en diagonal, más atrás
+      const vv = b.v.x * b.v.x + b.v.z * b.v.z, T = clamp(vv > 1e-6 ? ((p.x - B.x) * b.v.x + (p.z - B.z) * b.v.z) / vv : 0, 0.03, Math.max(0.03, Tg));
+      const xc = B.x + b.v.x * T, zc = B.z + b.v.z * T, yc = Math.max(R, B.y + b.v.y * T - 0.5 * K.g * T * T);
       if (p.threat == null) p.threat = L.keeperReact;
       p.threat -= h;
       const HD = p.humanDive;
@@ -1348,14 +1351,17 @@ export class FutbolGame {
         const GK = gkReach(); let need = zc - p.z;
         // (si el balón le va al cuerpo, no hace falta tirarse: lo bloca de pie aunque hayas pedido un lado)
         if (HD?.side && Math.sign(need) !== HD.side && Math.abs(need) > 0.6) need = HD.side * Math.max(Math.abs(need), 1.6);
-        const lead = Math.max(0.4 + 0.1 * L.keeperReach, (Math.abs(need) - GK.hand) / (GK.v * L.keeperReach) + 0.16);
-        const high = yc > 2.05 || (HD?.high && yc > 1.5), low = yc < 0.45 && Math.abs(need) > 0.35;
-        if (T <= lead && (Math.abs(need) > 0.5 || high || low)) {
+        // (y hacia atrás, si el balón se le cuela por detrás en diagonal: la estirada va hacia ese punto, no solo de lado)
+        const needX = HD ? 0 : xc - p.x, dist = hyp(needX, need);
+        const lead = Math.max(0.4 + 0.1 * L.keeperReach, (dist - GK.hand) / (GK.v * L.keeperReach) + 0.16);
+        const high = yc > 2.05 || (HD?.high && yc > 1.5), low = yc < 0.45 && dist > 0.35;
+        if (T <= lead && (dist > 0.5 || high || low)) {
           p.humanDive = null;
           // (el impulso tarda una décima en arrancar: se cuenta para llegar a tiempo)
-          // (el cuerpo va medio metro menos: las manos van por delante, a su lado)
-          const reach = L.keeperReach, dur = Math.max(0.1, T - 0.12), v = clamp(Math.max(0, Math.abs(need) - GK.hand) / dur, 0, GK.v * reach);
-          p.dive = { t: Math.max(0.55, T + 0.3), vz: Math.sign(need) * v, vx: -s * 0.35, hy: clamp(yc, 0.25, 2.4), side: Math.sign(need) || 1, jump: Math.abs(need) <= 0.5 };
+          // (el cuerpo va medio metro menos: las manos van por delante, hacia donde se lanza)
+          const reach = L.keeperReach, dur = Math.max(0.1, T - 0.12), v = clamp(Math.max(0, dist - GK.hand) / dur, 0, GK.v * reach);
+          const ux = dist > 1e-3 ? needX / dist : 0, uz = dist > 1e-3 ? need / dist : (Math.sign(need) || 1);
+          p.dive = { t: Math.max(0.55, T + 0.3), vz: uz * v, vx: ux * v + (needX * s > 0.3 ? 0 : -s * 0.35), hy: clamp(yc, 0.25, 2.4), side: Math.sign(need) || 1, ux, uz, jump: dist <= 0.5 };
           p.act = 'dive'; p.actT = 0.9; this.emit({ t: 'dive', p: p.id, side: p.dive.side, high: yc > 1.2 });
           return;
         }
@@ -1404,7 +1410,7 @@ export class FutbolGame {
   diveStep(p, h) {
     const D = p.dive; D.t -= h; D.el = (D.el || 0) + h;
     const go = clamp((D.el - 0.06) / 0.1, 0, 1);   // impulso: casi 0,12 s hasta lanzarse del todo
-    p.x += D.vx * go * h; p.z += D.vz * go * h; p.vx = D.vx * go; p.vz = D.vz * go; if (go >= 1) D.vz *= Math.exp(-1.5 * h);
+    p.x += D.vx * go * h; p.z += D.vz * go * h; p.vx = D.vx * go; p.vz = D.vz * go; if (go >= 1) { D.vz *= Math.exp(-1.5 * h); if (D.ux) D.vx *= Math.exp(-1.5 * h); }
     this.bounds(p); this.keeperTouch(p);
     if (D.t <= 0) { p.dive = null; p.down = 0.5; p.vx = p.vz = 0; p.threat = null; }
   }
@@ -1417,7 +1423,7 @@ export class FutbolGame {
     if (this.last?.team === t && this.last !== p && this.lastKick?.p === this.last && this.lastKick.kind !== 'head') return;
     // (estirado, las manos van hacia su lado; saltando, por encima de la cabeza; abierto ante un delantero, el cuerpo
     // entero tapa un metro a cada lado hasta la altura del pecho)
-    const GK = gkReach(), D = p.dive, spread = !D && p.spread > 0, hx = p.x + (D ? -s * 0.1 : 0), hz = p.z + (D && !D.jump ? D.side * GK.hand : 0), hy = D ? D.hy : 1.1;
+    const GK = gkReach(), D = p.dive, spread = !D && p.spread > 0, dj = D && !D.jump, hx = p.x + (D ? -s * 0.1 : 0) + (dj && D.ux ? D.ux * GK.hand : 0), hz = p.z + (dj ? (D.uz ?? D.side) * GK.hand : 0), hy = D ? D.hy : 1.1;
     const dh = hyp(B.x - hx, B.z - hz), r = D ? GK.dive : spread ? GK.spread : GK.stand;
     if (dh > r || B.y > (D ? hy + 0.75 : spread ? 1.6 : 2.25) || B.y < (D ? hy - 0.95 : 0)) return;
     const L = this.L(p), v = b.speed;
@@ -1430,8 +1436,12 @@ export class FutbolGame {
     const edge = dmin / r, lim = D ? 0.55 : spread ? 0.5 : 0.7;
     // (más difícil arriba, a la escuadra, y cuanto más fuerte va)
     if (edge > lim && this.rnd() > 1 - (edge - lim) / (1 - lim) * (0.62 + Math.max(0, v - 22) * 0.012 + (D && D.hy > 1.85 && !D.jump ? 0.15 : 0)) * (1.15 - 0.25 * L.keeperReach)) { p.missKick = kick; return; }
-    // (los flojos y los de media fuerza que le van al cuerpo los bloca: antes casi todo lo despejaba y el balón volvía al área)
-    if ((v < L.catchV * (D ? 0.85 : 1.15) || (!D && edge < 0.35 && v < L.catchV * 1.5)) && this.rnd() < 0.9) { this.catchBall(p); return; }
+    // blocar o despejar: lo que le llega al cuerpo lo bloca aunque vaya fuerte; estirado, lo que le llega a las manos con
+    // fuerza media; a la punta de los dedos, a la escuadra o muy fuerte y abierto, lo despeja. Antes solo blocaba los
+    // flojos (menos de 14 a 18 m/s, y un tiro va a 23 o 30): despejaba nueve de cada diez y el rechace era gol fácil
+    const cuerpo = !D && !spread, alto = D && D.hy > 1.85 && !D.jump;
+    const blocaV = L.catchV * (cuerpo ? (edge < 0.5 ? 1.9 : 1.3) : spread ? 1.2 : alto ? 0.9 : edge < 0.35 ? 1.6 : edge < 0.55 ? 1.2 : 0.85);
+    if (v < blocaV && this.rnd() < 0.8 + 0.12 * L.keeperReach) { this.catchBall(p); return; }
     // despeje: hacia fuera y a un lado
     const side = Math.sign(B.z || this.rnd() - 0.5);
     b.kick(-s * (3 + this.rnd() * 4), 1.6 + this.rnd() * 2.6, side * (3 + this.rnd() * 4));
