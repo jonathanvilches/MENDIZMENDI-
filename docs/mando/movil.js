@@ -21,6 +21,12 @@ const EU = {
   'Pase': 'Pasea', 'Tiro': 'Jaurtiketa', 'Cambiar': 'Aldatu', 'Sprint': 'Korrika', 'Robar': 'Kendu', 'Entrada': 'Sarrera', 'Saque largo': 'Sake luzea', 'Cámara': 'Kamera', 'Coser': 'Josi',
   'En el pueblo': 'Herrian', 'El encierro': 'Entzierroa', 'Hablando': 'Hizketan', 'Pregunta': 'Galdera', 'Pelota a mano': 'Esku pilota', 'Pasaka': 'Pasaka',
   'Fútbol': 'Futbola', 'El esquileo': 'Ardi-mozketa', 'La costura': 'Josketa', 'En el menú': 'Menuan',
+  'Misiones': 'Misioak', 'Hecha': 'Eginda', 'En curso': 'Martxan', 'Nueva': 'Berria', 'La sigues': 'Jarraitzen', 'Toca una para seguirla': 'Ukitu bat jarraitzeko',
+  'Instala la app «Mando»': 'Instalatu «Mando» aplikazioa', 'Instalar': 'Instalatu', 'Ahora no': 'Orain ez',
+  'Ocupa toda la pantalla y, la próxima vez, se conecta sola al ordenador.': 'Pantaila osoa hartzen du eta, hurrengoan, berez konektatzen da ordenagailura.',
+  'En Safari, toca Compartir y luego «Añadir a pantalla de inicio». Después, ábrela desde su icono: ocupa toda la pantalla y se conecta sola.': 'Safarin, ukitu Partekatu eta gero «Gehitu hasierako pantailan». Gero, ireki bere ikonotik: pantaila osoa hartzen du eta berez konektatzen da.',
+  'Abre Herrizherri en el ordenador: el mando se conecta solo en cuanto esté.': 'Ireki Herrizherri ordenagailuan: agintea berez konektatuko da prest dagoenean.',
+  '¡Todas hechas!': 'Denak eginda!', 'sello conseguido': 'zigilua lortuta', 'completa todas para ganar el sello': 'osatu denak zigilua irabazteko', 'Con': 'Nork:', 'Cerrar': 'Itxi',
 };
 let LANG = (navigator.language || 'es').toLowerCase().startsWith('eu') ? 'eu' : 'es';
 const T = (s) => (LANG === 'eu' && EU[s]) || s;
@@ -50,6 +56,12 @@ let sueltas = [];   // (las rutas del ordenador que llegan antes que su respuest
 const SES = 'herrizherri-mando';
 const sesion = () => { try { return JSON.parse(sessionStorage.getItem(SES) || '{}'); } catch (e) { return {}; } };
 const guarda = (o) => { try { sessionStorage.setItem(SES, JSON.stringify(o)); } catch (e) { } };
+// el ordenador de siempre (en localStorage: queda aunque se cierre la app): su código, el secreto que manda al conectar
+// y el nombre de este móvil. Al abrir la app sin enlace, se conecta sola; «Olvidar este móvil» en el ordenador lo borra
+const PAR = 'herrizherri-mando-pareja';
+const pareja = () => { try { const p = JSON.parse(localStorage.getItem(PAR) || 'null'); return p && LETRAS.test(p.code) && SECRETO.test(p.secreto) ? p : null; } catch (e) { return null; } };
+const emparejar = (p) => { try { if (p) localStorage.setItem(PAR, JSON.stringify(p)); else localStorage.removeItem(PAR); } catch (e) { } };
+let auto = false;   // (conectando con el ordenador de siempre: si aún no tiene el juego abierto, se espera sin dar error)
 const msg = (t, mal) => { $('#msg').textContent = t ? T(t) : ''; $('#msg').classList.toggle('mal', !!mal); };
 // (la pantalla de conectar: el formulario del código, o la rueda mientras se conecta; si tarda, los servidores con que se
 // presenta, en verde los que contestan, y la opción de escribir el código)
@@ -92,7 +104,12 @@ async function conectar() {
   sig.send('hzh-' + code, 'OFFER', oferta); dicha = true;
   let n = 0; const otraOferta = () => { repite = setTimeout(() => { if (conectado || !sig || respondido || yo !== intento) return; sig.send('hzh-' + code, 'OFFER', oferta); otraOferta(); }, [500, 1000][n++] || 2000); }; otraOferta();
   clearTimeout(espera);
-  espera = setTimeout(() => { if (!conectado && yo === intento) { limpia(); msg(NOHAY, true); pantalla(false); vista(false); } }, fuerte ? 30000 : 120000);   // (con el código a mano, tiempo para aceptar en el ordenador)
+  espera = setTimeout(() => {
+    if (conectado || yo !== intento) return;
+    // (el ordenador de siempre aún no tiene el juego abierto: se sigue esperando, sin error)
+    if (auto) { limpia(); msg('Abre Herrizherri en el ordenador: el mando se conecta solo en cuanto esté.'); otra = setTimeout(() => { if (auto && !conectado && document.visibilityState === 'visible') conectar(); }, 3000); return; }
+    limpia(); msg(NOHAY, true); pantalla(false); vista(false);
+  }, fuerte ? 30000 : 120000);   // (con el código a mano, tiempo para aceptar en el ordenador)
 }
 // (la conexión directa: su canal para el mando y sus rutas de red, que empiezan a buscarse en cuanto se crea la oferta)
 function nuevaPc() {
@@ -137,26 +154,28 @@ function abierto() {
   conectado = true; intentos = 0; clearTimeout(espera); clearTimeout(pasoT); clearTimeout(tardaT);
   if (dc?.readyState === 'open') { relevo = false; sig?.close(); sig = null; }   // (ya hablan directamente: el saludo sobra)
   if (ya) { estado(); return; }
-  msg(''); $('#go').disabled = false; vista(true); estado(); despierta();
+  msg(''); $('#go').disabled = false; vista(true); estado(); despierta(); ofrece();
 }
 function caido() {
   if (!conectado) return;
   conectado = false; soltarTodo(); limpia(); estado();
   if (cerrado) return;
   // (se reintenta unas cuantas veces: si el ordenador cerró el juego, se vuelve a la pantalla del código)
-  if (intentos++ < 6) setTimeout(() => { if (!conectado && !cerrado) { $('#code').value = code; conectar(); } }, 1000);
+  if (intentos++ < 6 || auto) setTimeout(() => { if (!conectado && !cerrado) { $('#code').value = code; conectar(); } }, 1000);
   else { vista(false); msg(NOHAY, true); pantalla(false); }
 }
 const envia = (m) => { if (dc?.readyState === 'open') dc.send(JSON.stringify(m)); else if (relevo) sig?.send('hzh-' + code, 'DATA', m); };
 // (por el saludo no hay aviso de corte: si el ordenador no contesta en 8 s —se le pregunta cada 2—, se ha ido)
 setInterval(() => { if (relevo && conectado && performance.now() - oido > 8000) caido(); }, 2000);
 // lo que dice el ordenador
-let C = { m: 'juego', tit: '', pal: 'andar', mira: true, tac: false, b: {}, fijo: [], esp: [] }, lat = 0, pingT = 0, ctxK = '', demo = false;
+let C = { m: 'juego', tit: '', pal: 'andar', mira: true, tac: false, b: {}, fijo: [], esp: [] }, lat = 0, pingT = 0, ctxK = '', demo = false, MIS = null;
 function del(m) {
-  if (m.t === 'hola') { LANG = m.lang === 'eu' ? 'eu' : 'es'; traduce(); pinta(); }
+  if (m.t === 'hola') { LANG = m.lang === 'eu' ? 'eu' : 'es'; traduce(); pinta(); pintaMis(); }
   else if (m.t === 'ctx') { const k = JSON.stringify(m); if (k === ctxK) return; const igual = forma(m) === forma(C) && ctxK; ctxK = k; C = m; if (igual) retoca(); else { soltarTodo(); pinta(); } }
   else if (m.t === 'pong') { lat = Math.round(performance.now() - pingT); estado(); }
-  else if (m.t === 'adios') { cerrado = true; conectado = false; soltarTodo(); limpia(); vista(false); msg('El juego ha cerrado el mando.', true); pantalla(false); }
+  else if (m.t === 'mis') { MIS = m.lista?.length ? m : null; pintaMis(); estado(); }
+  else if (m.t === 'pareja') { if (m.code === code && SECRETO.test(m.secreto || '')) { const s = sesion(); guarda({ ...s, code, secreto: m.secreto }); emparejar({ code, secreto: m.secreto, yo: s.yo }); } }
+  else if (m.t === 'adios') { emparejar(null); auto = false; cerrado = true; conectado = false; soltarTodo(); limpia(); vista(false); msg('El juego ha cerrado el mando.', true); pantalla(false); }
 }
 setInterval(() => { if (conectado) { pingT = performance.now(); envia({ t: 'ping' }); } }, 2000);
 // (arriba a la izquierda: verde y en qué se está, con lo que tarda en llegar; amarillo mientras se vuelve a conectar)
@@ -165,7 +184,34 @@ function estado() {
   $('#est').classList.toggle('ok', ok);
   $('#estT').innerHTML = ok ? '<b></b>' + (lat ? ` <small>${lat} ms</small>` : '') : '';
   if (ok) $('#estT b').textContent = T(C.tit || 'Conectado'); else $('#estT').textContent = T('Reconectando…');
+  // (en el pueblo, en vez de «En el pueblo», la misión que sigues)
+  const q = ok && MIS && C.m === 'juego'; $('#qst').classList.toggle('hide', !q); $('#estT').classList.toggle('hide', !!q);
 }
+// las misiones: la que sigues arriba, y todas en su panel
+function pintaMis() {
+  if (!MIS) { $('#mis').classList.add('hide'); return; }
+  const L = MIS.lista, f = L.find(x => x.sigue), hechas = L.filter(x => x.st === 'hecha').length;
+  $('#qst small').textContent = f ? f.t : MIS.pueblo; $('#qst b').textContent = f ? f.pasos[Math.min(f.k, f.pasos.length - 1)] || '' : T('¡Todas hechas!');
+  $('#qst').setAttribute('aria-label', T('Misiones') + ': ' + $('#qst small').textContent + '. ' + $('#qst b').textContent);
+  $('#misH').textContent = T('Misiones') + ' · ' + MIS.pueblo;
+  $('#misP').textContent = `${hechas}/${L.length} · ${T(MIS.sello ? 'sello conseguido' : 'completa todas para ganar el sello')}`;
+  $('.mis-bar i').style.width = (hechas / L.length * 100) + '%';
+  const ol = $('#misL'); ol.innerHTML = '';
+  for (const M of L) {
+    const li = document.createElement('li'), b = document.createElement('button'); li.className = M.st + (M.sigue ? ' sigue' : '');
+    const est = M.sigue ? 'La sigues' : { hecha: 'Hecha', curso: 'En curso', nueva: 'Nueva' }[M.st];
+    b.innerHTML = '<b></b><em></em>'; b.querySelector('b').textContent = M.t; b.querySelector('em').textContent = T(est);
+    if (M.sigue) { const o = document.createElement('ol'); M.pasos.forEach((t, k) => { const x = document.createElement('li'); x.textContent = t; if (k < M.k) x.className = 'ok'; else if (k === M.k) x.className = 'now'; o.appendChild(x); }); b.appendChild(o); }
+    else if (M.pasos[0]) { const p = document.createElement('p'); p.textContent = M.pasos[0]; b.appendChild(p); }
+    if (M.con) { const s = document.createElement('small'); s.textContent = T('Con') + ' ' + M.con; b.appendChild(s); }
+    if (M.st !== 'hecha' && !M.sigue) b.onclick = () => { vibra(); envia({ t: 'seguir', i: M.i }); L.forEach(x => { x.sigue = x === M; }); pintaMis(); };
+    else b.disabled = M.st === 'hecha';
+    li.appendChild(b); ol.appendChild(li);
+  }
+}
+$('#qst').onclick = () => { soltarTodo(); vibra(); $('#mis').classList.remove('hide'); $('#misL').scrollTop = 0; };
+$('#misX').onclick = () => $('#mis').classList.add('hide');
+$('#misX').setAttribute('aria-label', T('Cerrar'));
 function vista(mando) { $('#conn').classList.toggle('hide', mando); $('#pad').classList.toggle('hide', !mando); if (mando) requestAnimationFrame(coloca); }
 // (la pantalla no se apaga mientras se juega)
 async function despierta() { try { await navigator.wakeLock?.request('screen'); } catch (e) { } }
@@ -370,11 +416,33 @@ setInterval(() => {
 // ---------- arranque ----------
 document.addEventListener('contextmenu', (e) => e.preventDefault());
 $('#go').onclick = () => conectar();
-$('#otro').onclick = () => { intento++; limpia(); clearTimeout(espera); clearTimeout(otra); msg(''); pantalla(false); $('#code').value = ''; $('#code').focus(); };
+$('#otro').onclick = () => { auto = false; intento++; limpia(); clearTimeout(espera); clearTimeout(otra); msg(''); pantalla(false); $('#code').value = ''; $('#code').focus(); };
 $('#code').addEventListener('input', (e) => { e.target.value = e.target.value.toUpperCase().replace(/[^0-9A-Z]/g, '').slice(0, 5); if (e.target.value.length === 5) conectar(); });
 $('#code').addEventListener('keydown', (e) => { if (e.key === 'Enter') conectar(); });
 pinta();
 // (del QR llegan el código y el secreto, «#CÓDIGO.secreto»; escrito a mano, solo el código)
 const [hc = '', hs = ''] = location.hash.slice(1).split('.'), h = hc.toUpperCase();
 if (LETRAS.test(h)) { if (SECRETO.test(hs)) guarda({ code: h, secreto: hs, yo: sesion().code === h ? sesion().yo : '' }); $('#code').value = h; conectar(); }
-window.__mandoMovil = { get conectado() { return conectado; }, get relevo() { return relevo; }, get ctx() { return C; }, prueba(m) { demo = true; del(m); vista(true); } };   // (para las pruebas: prueba pinta un momento sin conexión)
+else { const p = pareja(); if (p) { guarda({ code: p.code, secreto: p.secreto, yo: p.yo }); $('#code').value = p.code; auto = true; conectar(); } }   // (la app, sin enlace: el ordenador de siempre)
+// ---------- la app «Mando» ----------
+// Instalada, ocupa toda la pantalla, en horizontal, y se conecta sola. En Android (Chrome), con su botón; en el iPhone,
+// desde Safari: Compartir y «Añadir a pantalla de inicio». Se ofrece en la pantalla de conectar y, una vez, al conectar
+const instalada = () => ['fullscreen', 'standalone'].some(d => matchMedia(`(display-mode: ${d})`).matches) || navigator.standalone === true;
+const IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const VISTO = 'herrizherri-mando-instalar';
+let aviso = null;   // (el de Android para instalar)
+addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); aviso = e; ofrece(); });
+addEventListener('appinstalled', () => { aviso = null; ofrece(); });
+function ofrece() {
+  const ver = !instalada() && (!!aviso || IOS), txt = T(aviso ? 'Ocupa toda la pantalla y, la próxima vez, se conecta sola al ordenador.' : 'En Safari, toca Compartir y luego «Añadir a pantalla de inicio». Después, ábrela desde su icono: ocupa toda la pantalla y se conecta sola.');
+  $('#inst').classList.toggle('hide', !ver); $('#instT').textContent = txt; $('#instB').classList.toggle('hide', !aviso);
+  let visto = false; try { visto = !!localStorage.getItem(VISTO); } catch (e) { }
+  $('#instP').classList.toggle('hide', !ver || visto || !conectado); $('#instPT').textContent = txt; $('#instPsi').classList.toggle('hide', !aviso);
+}
+async function instala() { if (!aviso) return; const a = aviso; aviso = null; a.prompt(); try { await a.userChoice; } catch (e) { } ofrece(); }
+$('#instB').onclick = instala; $('#instPsi').onclick = () => { vibra(); instala(); };
+$('#instPno').onclick = () => { try { localStorage.setItem(VISTO, '1'); } catch (e) { } $('#instP').classList.add('hide'); };
+ofrece();
+// (su service worker: para poder instalarla y que abra al momento; la página, siempre de la red si la hay)
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => { });
+window.__mandoMovil = { get conectado() { return conectado; }, get relevo() { return relevo; }, get ctx() { return C; }, get mis() { return MIS; }, prueba(m) { demo = true; del(m); vista(true); } };   // (para las pruebas: prueba pinta un momento sin conexión)
