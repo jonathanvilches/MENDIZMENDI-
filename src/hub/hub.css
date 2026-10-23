@@ -941,7 +941,6 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .enc-btns { position: fixed; right: max(14px, env(safe-area-inset-right)); bottom: calc(18px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 8px; z-index: 30; pointer-events: auto; }
 .enc-b { width: 84px; height: 84px; padding: 0 12px; border-radius: 50%; border: 3px solid rgba(255,255,255,.9); color: #fff; font: 800 var(--fs-sm)/1.15 var(--f-cond, 'MZ Cond'), Nunito, sans-serif; letter-spacing: .04em; text-transform: uppercase; cursor: pointer; box-shadow: 0 6px 16px rgba(0,0,0,.35); display: grid; place-items: center; touch-action: none; }
 .enc-jump { background: radial-gradient(circle at 50% 30%, #ff9bd8, #ff2bd6 60%, #c21cff); text-shadow: 0 2px 0 rgba(74,10,94,.6); box-shadow: 0 0 0 4px rgba(255,122,200,.35), 0 6px 0 #8a1c8f, 0 10px 22px rgba(0,0,0,.35); }
-.enc-paper { background: radial-gradient(circle at 35% 30%, #f4efe2, #b8ad92); color: #2a1a10; font-size: var(--fs-xs); }
 /* la palanca táctil (como la de la pelota): zona en la mitad izquierda, mando donde se apoya el dedo y una pista hasta el primer toque */
 .enc-stick { position: absolute; left: 0; bottom: 0; width: 46vw; height: 62dvh; pointer-events: auto; touch-action: none; z-index: 30; }
 .enc-knob { position: absolute; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; border: 3px solid rgba(255,255,255,.55); background: rgba(28,11,58,.3); display: none; }

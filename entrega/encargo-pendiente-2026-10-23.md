@@ -1,10 +1,10 @@
 # Herrizherri · todo lo que falta de imágenes (2026-10-23)
 
-De las 106 imágenes del encargo del 22 de octubre han llegado 74 con su nombre, y tres de las variantes cubren otras tres: «La lamia dorada de Xorroxin» será lamias.png, «Joaldunak de Ituren por Malerreka» será joaldunak.png y «Zubigainekoa en el pretil de Lesaka» será danza-bidasoa.png. Faltan estas 29. Mismas reglas de entrega que en el encargo: PNG con el nombre exacto, sin texto dentro; iconos y trofeo cuadrados con fondo transparente; el resto apaisado 16:9.
+De las 106 imágenes del encargo del 22 de octubre han llegado 74 con su nombre, y tres de las variantes cubren otras tres: «La lamia dorada de Xorroxin» será lamias.png, «Joaldunak de Ituren por Malerreka» será joaldunak.png y «Zubigainekoa en el pretil de Lesaka» será danza-bidasoa.png. Faltan estas 28 (el periódico del encierro ya no hace falta: se ha quitado del juego). Mismas reglas de entrega que en el encargo: PNG con el nombre exacto, sin texto dentro; iconos y trofeo cuadrados con fondo transparente; el resto apaisado 16:9.
 
 Hay tres partes. La A es lo imprescindible: hoy esas pantallas no tienen imagen tuya. La B mejora la calidad de imágenes que ya están en el juego. La C es opcional.
 
-# A. Imprescindibles (29)
+# A. Imprescindibles (28)
 
 ## A1. Cuentos y leyendas (14)
 
@@ -25,13 +25,12 @@ Hay tres partes. La A es lo imprescindible: hoy esas pantallas no tienen imagen 
 - **sanchicorrota.png** · «Sanchicorrota, el bandido de las Bardenas» (leyenda; Bardenas Reales; en Tudela). El momento clave: Conocía cada barranco y cada cueva, y los soldados del rey no conseguían atraparle. Dicen que su escondite estaba en un monte cerca de Piskerra, que todavía lleva su nombre.
 - **altocruz.png** · «El poblado de barro de hace tres mil años» (historia real; Alto de la Cruz, en Cortes; en Cortes). El momento clave: Dentro de las casas tenían un hogar para el fuego, bancos para sentarse y silos, unos agujeros para guardar el grano. Y todo el poblado estaba protegido por una muralla.
 
-## A2. Iconos (3)
+## A2. Iconos (2)
 
 **Estilo (pégalo una vez):** Icono 3D de la familia única del juego: un solo objeto, centrado, vista tres cuartos un poco desde arriba, formas redondeadas, colores vivos, un brillo suave, sin fondo (PNG transparente), 1024 × 1024, el objeto ocupando el 89 % del cuadro. Sin texto. Misma familia que tus 182 iconos: mismo grosor de formas, misma luz, misma paleta.
 
 - **mando.png** · El móvil como mando: un teléfono móvil tumbado, con una palanca a la izquierda y cuatro botones de colores a la derecha dibujados en su pantalla. Sale en «Usar el móvil como mando».
 - **globo.png** · El globo, en la pasaka: la pelota de cuero subiendo en un arco alto por encima de una red baja.
-- **periodico.png** · El periódico enrollado del encierro: un periódico enrollado de papel, con rayas grises en lugar de letras.
 
 ## A3. Trofeo (1)
 

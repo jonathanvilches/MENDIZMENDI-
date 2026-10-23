@@ -18,7 +18,7 @@ const EU = {
   'Elige en el ordenador con la flecha, o sigue tu aventura:': 'Aukeratu ordenagailuan geziarekin, edo jarraitu zure abenturarekin:', '¡A jugar!': 'Jolastera!',
   'Acción': 'Ekintza', 'Saltar': 'Jauzi', 'Prismáticos': 'Prismatikoak', 'Mochila': 'Motxila', 'Correr': 'Korrika', 'Mapa': 'Mapa', 'Cuaderno': 'Koadernoa', 'Menú': 'Menua', 'Perro': 'Txakurra',
   'Seguir': 'Jarraitu', 'Anotar': 'Idatzi', 'Salir': 'Irten', 'Atrás': 'Atzera', 'Golpe': 'Kolpea', 'Cortada': 'Moztua', 'Dejada': 'Utzia', 'Globo': 'Globoa', 'Pausa': 'Pausa',
-  'Pase': 'Pasea', 'Tiro': 'Jaurtiketa', 'Cambiar': 'Aldatu', 'Sprint': 'Korrika', 'Robar': 'Kendu', 'Entrada': 'Sarrera', 'Saque largo': 'Sake luzea', 'Periódico': 'Egunkaria', 'Cámara': 'Kamera', 'Coser': 'Josi',
+  'Pase': 'Pasea', 'Tiro': 'Jaurtiketa', 'Cambiar': 'Aldatu', 'Sprint': 'Korrika', 'Robar': 'Kendu', 'Entrada': 'Sarrera', 'Saque largo': 'Sake luzea', 'Cámara': 'Kamera', 'Coser': 'Josi',
   'En el pueblo': 'Herrian', 'El encierro': 'Entzierroa', 'Hablando': 'Hizketan', 'Pregunta': 'Galdera', 'Pelota a mano': 'Esku pilota', 'Pasaka': 'Pasaka',
   'Fútbol': 'Futbola', 'El esquileo': 'Ardi-mozketa', 'La costura': 'Josketa', 'En el menú': 'Menuan',
 };
@@ -209,13 +209,14 @@ function sis(i) {
   const x = document.createElement('button'), n = T(C.b[i]); x.className = 'sis'; x.dataset.b = i; x.setAttribute('aria-label', n);
   x.innerHTML = (C.estilo === 'futbol' && i === 9 ? FBI.pause : ico(i)) || '<span class="txt"></span>'; const t = x.querySelector('.txt'); if (t) t.textContent = n; return x;
 }
-// (los de acción, en su estilo; los de la pelota, sin icono, como en su pantalla: el icono sale solo si el nombre no cabe)
+// (los de acción, en su estilo; los de la pelota, sin icono, como en su pantalla: el icono sale solo si el nombre no cabe;
+// los del pueblo, solo con su icono, que ya se entiende: Acción, Saltar, Correr, Mochila, Anotar, Seguir…)
 function accion(i, prim) {
   const x = document.createElement('button'), n = T(C.b[i]), e = C.estilo;
   x.className = 'bt ' + (e === 'futbol' ? 'fb ' + (FUT[i] || '') : e === 'pelota' ? 'pel ' + (PEL[i] || '') : 'cb' + (prim ? ' prim' : ''));
   x.dataset.b = i; x.setAttribute('aria-label', n);
   x.innerHTML = (e === 'futbol' ? FBI[C.ic?.[i]] || '' : e === 'pelota' ? ico(i, 'alt') : ico(i)) + '<span class="nom"></span>';
-  x.querySelector('.nom').textContent = n; return x;
+  x.querySelector('.nom').textContent = n; if (e !== 'futbol' && e !== 'pelota' && ico(i)) x.classList.add('icono'); return x;
 }
 const CIERRA = /cerrar|salir|volver|atrás|ahora no|itxi|irten|itzuli|^(✕|×|x)$/i;
 function pinta() {
@@ -294,7 +295,7 @@ function enCirculo(c, s) {
   return [[t.left, t.top], [t.right, t.top], [t.left, t.bottom], [t.right, t.bottom]].every(([px, py]) => Math.hypot(px - cx, py - cy) <= R);
 }
 function encaja() {
-  for (const x of document.querySelectorAll('#bts .bt')) {
+  for (const x of document.querySelectorAll('#bts .bt:not(.icono)')) {
     const s = x.querySelector('.nom'); x.classList.remove('solo'); s.style.fontSize = ''; if (!s.textContent) continue;
     for (let f = parseFloat(getComputedStyle(s).fontSize); !enCirculo(x, s) && f > 11; f--) s.style.fontSize = (f - 1) + 'px';
     if (!enCirculo(x, s) && x.querySelector('img, svg')) x.classList.add('solo');
