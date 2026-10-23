@@ -18,12 +18,17 @@ function hud(ui, { title, hint, icon, buttons = '', extra = '' }) {
   document.body.appendChild(o); ui.modal = o; document.body.classList.add('mg3d-on');   // el HUD del pueblo se oculta (style.css)
   const $ = (s) => o.querySelector(s);
   let keyFn = null;
+  // la explicación, entera al empezar: se recoge al primer toque en la escena o a los 7 s, y tocándola se abre otra vez
+  // (en el móvil apaisado, recogida, solo caben dos líneas y la frase quedaba cortada)
+  const top = $('.m3-top'), recoge = () => top.classList.remove('abre'); top.classList.add('abre');
+  $('.m3-txt').addEventListener('click', () => top.classList.toggle('abre'));
+  o.addEventListener('pointerdown', (e) => { if (!e.target.closest('.m3-txt')) recoge(); }, true);
   return {
     o, cap: $('.m3-cap'), x: [$('.m3-x'), $('.m3-xl')], fb: $('.fb'), clock: $('.m3-clock'), top: $('.m3-top'), bot: $('.m3-bot'),
     prog(p) { $('.m3-prog i').style.width = Math.round(Math.max(0, Math.min(1, p)) * 100) + '%'; },
     time(s) { this.clock.textContent = Math.max(0, s).toFixed(1) + ' s'; },
     keys(fn) { keyFn = (e) => { if (o.classList.contains('loading')) return; e.stopImmediatePropagation(); fn(e); }; addEventListener('keydown', keyFn, true); },
-    ready() { o.classList.remove('loading'); },
+    ready() { o.classList.remove('loading'); setTimeout(recoge, 7000); },
     remove() {
       if (keyFn) removeEventListener('keydown', keyFn, true); keyFn = null; o.classList.add('out'); if (ui.modal === o) ui.modal = null;
       setTimeout(() => { o.remove(); if (!document.querySelector('.mg3d')) document.body.classList.remove('mg3d-on'); }, 260);
