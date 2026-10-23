@@ -260,8 +260,8 @@ function retoca() {
 // dónde va cada cosa, a la medida de cada mitad: la palanca abajo a la izquierda; a la derecha, en el fútbol y en la
 // pelota, sus botones como en su pantalla, a la escala de la mitad; en lo demás, el principal en la esquina y los demás a
 // su izquierda, encima y en diagonal; si hay uno que se queda puesto (Correr), ese a la izquierda del principal y los demás
-// encima, como en la pantalla del pueblo: Acción en la esquina, Saltar encima y Correr a su izquierda. Con tres o menos,
-// más grandes, que son los que más se usan
+// encima, como en la pantalla del pueblo con el móvil en vertical: Acción en la esquina, Saltar encima y Correr a su
+// izquierda. Con tres o menos, más grandes, que son los que más se usan
 const lim = (v, a, z) => Math.max(a, Math.min(z, v));
 const FUTP = { 1: [10, 8, 84], 0: [101, 1, 82], 7: [18, 108, 68], 4: [105, 92, 74] };   // (fútbol, a escala 1: hueco a la derecha, hueco abajo y tamaño)
 function coloca() {
