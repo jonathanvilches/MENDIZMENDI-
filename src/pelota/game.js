@@ -8,6 +8,9 @@ const gauss = (rnd) => (rnd() + rnd() + rnd() - 1.5) / 1.5;
 // el saque, como en el frontón: el que saca sale del cuadro 7, corre hasta poco antes del 4, bota la pelota y saca; el
 // que resta espera junto a la pared izquierda, sobre el 7
 const SERVE_FROM = COURT.CUADRO * 7, SERVE_Z = COURT.FALTA + 0.75, SERVE_X = 0.6, RUN_V = 5.8;
+// (el bote del saque: hacia abajo con fuerza y que suba poco, para golpear enseguida, sin pararse)
+const SERVE_DOWN = 3, SERVE_UP = 2.4, SERVE_LEAD = 0.24;   // (LEAD: cuánto antes del 4 se bota, por m/s de carrera y
+// por el tempo de la pelota: cuanto más despacio va, antes, para que el golpe salga siempre en el 4)
 const RECV_X = -COURT.W / 2 + 1.3, RECV_Z = COURT.CUADRO * 7;
 // por parejas: el delantero coge lo de delante (hasta el cuadro 5) y el zaguero lo de atrás; tu compañero juega como un
 // pelotari del nivel normal
@@ -115,7 +118,7 @@ export class PelotaGame {
     }
     for (const id of this.ids) { const p = this.players[id]; p.vx = p.vz = 0; p.swing = 0; p.act = 'idle'; }
     this.ball.set(vec(s.x + 0.35, 1.05, s.z - 0.35), vec()); this.ball.spin = 0;
-    this.rally = null; this.serveTries = 0; this.runUp = false;
+    this.rally = null; this.serveTries = 0; this.runUp = false; this.saque = null;
   }
   start() { if (this.phase === 'intro') this.toServe(); }
   toServe() {
@@ -125,7 +128,10 @@ export class PelotaGame {
   dropForServe() {
     const s = this.players[this.serverP()];
     this.phase = 'servePrep'; this.phaseT = 0;
-    this.ball.set(vec(s.x + 0.35, 1.05, s.z - 0.4), vec(0, 0.6, 0)); this.ball.spin = 0;
+    // (la bota corriendo, hacia el suelo y con fuerza, como en el frontón: la pelota va hacia delante con el que saca, que
+    // la sigue hasta golpearla. Su velocidad, en el tiempo de la pelota, que va más despacio que los jugadores: tempo)
+    const k = 0.8 / this.tempo;
+    this.ball.set(vec(s.x + 0.35, 1.0, s.z - 0.4), vec(s.vx * k, -SERVE_DOWN, s.vz * k)); this.ball.spin = 0;
     this.prepBounces = 0;
     s.act = 'bounce'; s.actT = 0;
     this.emit({ type: 'drop', who: this.serverP() });
@@ -566,6 +572,7 @@ export class PelotaGame {
       if (this.hittable(who) && this.ball.v.y < 0.4 && this.ball.p.y < 1.1) {
         const s = this.aiShot(who); return this.strike(who, 0.6 + this.rnd() * 0.35, s.aim, false);
       }
+      return;   // (la carrera del saque la lleva movePlayers: sigue a la pelota que ha botado)
     }
     this.moveTo(pl, tx, tz, lv.speed * sprint, dt);
   }
@@ -602,15 +609,19 @@ export class PelotaGame {
       this.movePlayers(dt, inp);
       return this.events;
     }
-    // saque: el que saca sale corriendo desde el 7 (tú, al pulsar GOLPE) con la pelota en la mano y, poco antes del 4,
-    // la bota
+    // saque: el que saca sale corriendo desde el 7 con la pelota en la mano, poco antes del 4 la bota y, al bajar, saca,
+    // todo seguido. Tú, de un solo gesto: mantienes GOLPE para elegir la fuerza (y apuntas con la palanca) y, al soltar,
+    // sales corriendo; el golpe del saque sale solo, con esa fuerza y esa puntería
     if (this.phase === 'serveWait') {
       const s = this.players[this.serverP()];
       const humanServes = this.serverP() === 'you' && !this.autoplay;
-      if (!this.runUp && (humanServes ? (inp.hit || this.phaseT > 9) : this.phaseT > 0.8)) { this.runUp = true; this.emit({ type: 'serveRun', who: this.serverP() }); }
+      if (!this.runUp && (humanServes ? (inp.hit || this.phaseT > 9) : this.phaseT > 0.8)) {
+        this.runUp = true; this.emit({ type: 'serveRun', who: this.serverP() });
+        if (humanServes) this.saque = inp.hit ? { pow: inp.power ?? 0.5, aim: { x: inp.aimX || 0, y: inp.aimY || 0 } } : { pow: 0.5, aim: { x: 0, y: 0 } };
+      }
       this.movePlayers(dt, { ...inp, hit: false, drop: false });
       this.ball.set(vec(s.x + 0.35, 1.05, s.z - 0.35), vec()); this.ball.spin = 0;
-      if (this.runUp && s.z < SERVE_Z + 0.3) this.dropForServe();
+      if (this.runUp && s.z < SERVE_Z + 0.3 + Math.hypot(s.vx, s.vz) * SERVE_LEAD / this.tempo) this.dropForServe();   // (antes del 4, sin frenar: el golpe sale ya en el 4)
       return this.events;
     }
     if (this.phase === 'servePrep') {
@@ -629,7 +640,7 @@ export class PelotaGame {
     for (let i = 0; i < n; i++) {
       const ev = this.ball.step(h, []);
       for (const e of ev) {
-        if (prep) { if (e.type === 'floor') { this.prepBounces++; if (this.prepBounces === 1) this.ball.v.y = Math.max(this.ball.v.y, 2.9); this.emit({ type: 'floor', ...e, soft: true }); } continue; }   // al sacar, el pelotari bota la pelota con fuerza para que suba a la mano
+        if (prep) { if (e.type === 'floor') { this.prepBounces++; if (this.prepBounces === 1) this.ball.v.y = Math.max(this.ball.v.y, SERVE_UP); this.emit({ type: 'floor', ...e, soft: true }); } continue; }   // al sacar, el pelotari bota la pelota con fuerza para que suba a la mano
         if (this.phase === 'rally') this.onBallEvent(e);
         else if (e.type === 'floor' || e.type === 'front' || e.type === 'left') this.emit({ type: e.type === 'left' ? 'wall' : e.type, ...e, dead: true });
       }
@@ -667,7 +678,10 @@ export class PelotaGame {
       if (ti?.v != null && ti.v > SWEET) you.idealAt.v = this.clock + ti.v;
       // el golpe lo das tú: sale al soltar el botón y la mano llega un instante después. Si la pelota está a tu alcance en
       // ese momento (o llega mientras dura el gesto), la tocas; si no, al aire
-      if ((inp.hit || inp.drop || inp.cut) && you.cool <= 0) {
+      // (el saque, con la fuerza y la puntería que elegiste al salir: al bajar la pelota tras el bote, como el rival)
+      if (this.phase === 'servePrep' && this.saque && this.serverP() === 'you') {
+        if (this.hittable('you') && this.ball.v.y < 0.4 && this.ball.p.y < 1.1) { const S = this.saque; this.saque = null; this.strike('you', this.quality('you', 0), S.aim, false, S.pow, false, null, { timing: 0 }); }
+      } else if ((inp.hit || inp.drop || inp.cut) && you.cool <= 0) {
         if (this.phase === 'servePrep' || this.phase === 'rally') { you.swing = SWING_WIN; you.swingT = 0; you.dropReq = inp.drop ? 'dejada' : inp.cut ? 'cortada' : false; you.pow = inp.power ?? 0.5; you.aim = { x: inp.aimX || 0, y: inp.aimY || 0 }; you.act = 'swing'; you.actT = 0; you.cool = 0.36; }
       }
       if (you.swing > 0) {
@@ -684,6 +698,7 @@ export class PelotaGame {
     if (this.phase === 'serveWait' || this.phase === 'servePrep') {
       const s = this.players[this.serverP()];
       if (this.phase === 'serveWait' && this.runUp) this.moveTo(s, SERVE_X, SERVE_Z, RUN_V, dt);
+      else if (this.phase === 'servePrep') this.moveTo(s, this.ball.p.x - 0.35, this.ball.p.z + 0.45, RUN_V, dt);   // (sigue a la pelota que ha botado, sin pararse)
       else { s.vx = s.vz = 0; }
     }
     this.giveWay(dt, inp);
