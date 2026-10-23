@@ -221,9 +221,10 @@ function accion(i, prim) {
 const CIERRA = /cerrar|salir|volver|atrás|ahora no|itxi|irten|itzuli|^(✕|×|x)$/i;
 function pinta() {
   const b = C.b || {}, esp = C.esp || [], fijos = (C.fijo || []).filter(i => b[i]), der = C.der || [], e = C.estilo;
-  // arriba, los de sistema (cuaderno, mapa, perro, menú, pausa, salir…); a la derecha, los de acción: en el fútbol y en la
-  // pelota, los de su pantalla; en lo demás, el principal, los demás y, al final, los que se quedan puestos
-  const top = [4, 5, 8, 9].filter(i => b[i] && !der.includes(i));
+  // arriba, los de sistema (cuaderno, mapa, perro, menú, pausa, salir…) y, delante, los de acción que se usan poco (en el
+  // pueblo, la mochila y los prismáticos); a la derecha, los de acción: en el fútbol y en la pelota, los de su pantalla; en
+  // lo demás, el principal, los demás y, al final, los que se quedan puestos
+  const top = [...(C.arriba || []), 4, 5, 8, 9].filter((i, n, L) => b[i] && !der.includes(i) && L.indexOf(i) === n);
   const acc = esp.length ? [] : e === 'futbol' ? [1, 0, 7, 4].filter(i => b[i]) : e === 'pelota' ? [0, 1, 2].filter(i => b[i])
     : [0, 1, 2, 3, ...der, 7].filter((i, n, L) => b[i] && L.indexOf(i) === n && !top.includes(i) && !fijos.includes(i)).concat(fijos.filter(i => !top.includes(i)));
   const sup = $('#sup'); sup.innerHTML = ''; $('#top').classList.toggle('fila', top.length > 3);
@@ -247,7 +248,7 @@ function pinta() {
 }
 // (en el mismo momento solo cambian los nombres, como PASE, que al defender es ROBAR: se cambian en su sitio, sin soltar lo
 // que se tiene pulsado, como el Sprint)
-const forma = (c) => JSON.stringify([c.m, c.estilo, Object.keys(c.b || {}), c.fijo, c.der, c.esp, c.pal, c.tac, c.mira, c.jugar]);
+const forma = (c) => JSON.stringify([c.m, c.estilo, Object.keys(c.b || {}), c.fijo, c.der, c.arriba, c.esp, c.pal, c.tac, c.mira, c.jugar]);
 function retoca() {
   $('#bts').className = C.estilo === 'futbol' ? C.modo || 'atk' : '';
   for (const x of document.querySelectorAll('#bts .bt')) {
@@ -258,8 +259,9 @@ function retoca() {
 }
 // dónde va cada cosa, a la medida de cada mitad: la palanca abajo a la izquierda; a la derecha, en el fútbol y en la
 // pelota, sus botones como en su pantalla, a la escala de la mitad; en lo demás, el principal en la esquina y los demás a
-// su izquierda, encima y en diagonal, y lo que se queda puesto (Correr) en la fila del principal, más a la izquierda, como
-// en la pantalla del pueblo (si no cabe, encima)
+// su izquierda, encima y en diagonal; si hay uno que se queda puesto (Correr), ese a la izquierda del principal y los demás
+// encima, como en la pantalla del pueblo: Acción en la esquina, Saltar encima y Correr a su izquierda. Con tres o menos,
+// más grandes, que son los que más se usan
 const lim = (v, a, z) => Math.max(a, Math.min(z, v));
 const FUTP = { 1: [10, 8, 84], 0: [101, 1, 82], 7: [18, 108, 68], 4: [105, 92, 74] };   // (fútbol, a escala 1: hueco a la derecha, hueco abajo y tamaño)
 function coloca() {
@@ -276,12 +278,13 @@ function coloca() {
     const u = lim(Math.min((W - 2 * m) / 204, (H - 2 * m - arriba) / 168), 0.7, 1.15); zd.style.setProperty('--u', u);
     for (const x of ks) { const i = +x.dataset.b; if (!i) pon(x, W - m - 56 * u, H - m - 56 * u, 112 * u); else pon(x, W - m - 164 * u, H - m - (i === 1 ? 40 : 128) * u, 80 * u); }
   } else {
-    const dA = Math.round(lim(Math.min(W * 0.25, H * 0.31), 72, 104)), dS = Math.round(lim(dA * 0.76, 56, 80));
-    const cx = W - m - dA / 2, cy = H - m - dA / 2, D = dA / 2 + dS / 2 + 14, huecos = [[-D, 0], [0, -D], [-D, -D]];
+    const pocos = ks.length <= 3, dA = Math.round(pocos ? lim(Math.min(W * 0.3, H * 0.36), 80, 120) : lim(Math.min(W * 0.25, H * 0.31), 72, 104));
+    const dS = Math.round(pocos ? lim(dA * 0.8, 64, 96) : lim(dA * 0.76, 56, 80)), cx = W - m - dA / 2, cy = H - m - dA / 2, D = dA / 2 + dS / 2 + 14;
+    const huecos = ks.some(x => x.classList.contains('queda')) ? [[0, -D], [-D, -D], [-2 * D, 0]] : [[-D, 0], [0, -D], [-D, -D]];
     let n = 0;
     ks.forEach((x, k) => {
       if (!k && !x.classList.contains('queda')) { pon(x, cx, cy, dA); return; }
-      if (x.classList.contains('queda')) { const fila = cx - 2 * D, cabe = fila - dS / 2 >= m; pon(x, cabe ? fila : cx, cabe ? cy : cy - 2 * D, dS); return; }
+      if (x.classList.contains('queda')) { pon(x, cx - D, cy, dS); return; }
       const [hx, hy] = huecos[Math.min(n++, 2)]; pon(x, cx + hx, cy + hy, dS);
     });
   }
