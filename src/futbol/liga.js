@@ -197,14 +197,14 @@ const CSS = `
 }
 @media (orientation:landscape) and (max-height:520px){
 .lg-card.eq-menu,.lg-card.eq-pick{height:100%}.eq-tile{min-height:0;padding:8px 12px}.eq-tile b{font-size:var(--fs-xl)}.eq-tile .art{margin-bottom:4px}
-.eq-teams{grid-auto-columns:clamp(128px,18vw,160px)}.eq-team{min-height:0;padding:8px 18px 10px}.eq-team .art{margin-top:28px}.lg-champ .duo{height:84px}
+.eq-teams{grid-auto-columns:clamp(128px,calc(18vw / var(--z, 1)),160px)}.eq-team{min-height:0;padding:8px 18px 10px}.eq-team .art{margin-top:28px}.lg-champ .duo{height:84px}
 }
 /* (en los móviles más estrechos, las losas iguales y el título algo menor: «Lagunartekoa» cabe entero) */
 @media (orientation:landscape) and (max-width:720px){.eq-tiles{grid-template-columns:1fr}.eq-tile b{font-size:var(--fs-lg)}}
 /* (muy poca altura: sin el grupo encima del nombre, para que la portada no se quede pequeña) */
 @media (orientation:landscape) and (max-height:380px){.eq-team .k,.eq-team small,.lg-card.eq-pick .lg-head .lg-note{display:none}}
 /* (en pantallas altas, como el iPad tumbado, la portada con su altura: no se queda diminuta encima del texto) */
-@media (min-height:561px) and (orientation:landscape){.eq-tile .art{min-height:clamp(150px,26vh,240px)}.eq-team{min-height:clamp(240px,40vh,320px)}}
+@media (min-height:561px) and (orientation:landscape){.eq-tile .art{min-height:clamp(150px,calc(26vh / var(--z, 1)),240px)}.eq-team{min-height:clamp(240px,calc(40vh / var(--z, 1)),320px)}}
 /* muy poca altura (iPhone con la barra de Safari): la explicación en dos líneas y los botones siempre a la vista */
 /* (la explicación de la liga, plegada en dos líneas: en el móvil tumbado cabe todo sin desplazar; mientras está plegada, sin
    relleno abajo, que dejaba asomar el principio de la línea siguiente) */
@@ -221,11 +221,11 @@ const CSS = `
 .lg-how,.lg-res{font-size:var(--fs-md)}
 .lg-btn{min-height:56px;font-size:var(--fs-lg)}.lg-btn.go{font-size:var(--fs-2xl)}
 .lg-card.eq-pick,.lg-card.eq-menu{width:min(1360px,100%)}
-.eq-tile{min-height:300px}.eq-tile .art{min-height:clamp(220px,34vh,380px)}.eq-tile b{font-size:var(--fs-3xl)}.eq-tile small{font-size:var(--fs-md)}
+.eq-tile{min-height:300px}.eq-tile .art{min-height:clamp(220px,calc(34vh / var(--z, 1)),380px)}.eq-tile b{font-size:var(--fs-3xl)}.eq-tile small{font-size:var(--fs-md)}
 .eq-teams{grid-auto-flow:row;grid-template-columns:repeat(auto-fill,minmax(176px,1fr));grid-auto-columns:auto;gap:12px;overflow-x:hidden;overflow-y:auto;scroll-snap-type:none}
 .eq-teams.mr,.eq-teams.ml{-webkit-mask-image:none;mask-image:none}
 .eq-teams.mb{-webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(180deg,#000 calc(100% - 40px),transparent)}
-.eq-team{min-height:clamp(250px,30vh,300px)}.eq-team b{font-size:var(--fs-xl)}
+.eq-team{min-height:clamp(250px,calc(30vh / var(--z, 1)),300px)}.eq-team b{font-size:var(--fs-xl)}
 .lg-champ .duo{height:150px}
 }
 `;

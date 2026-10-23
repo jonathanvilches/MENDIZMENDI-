@@ -9,7 +9,7 @@
    Espacios: 16 px por fuera, 12 px entre bloques y 8 px dentro de cada bloque. Gama morada con fucsia de acento. */
 .mg-overlay.ix-ov { z-index: 4000; padding: 12px; }
 .mg-overlay.ix-ov > .mg-card.ix { --ix-pad: 16px; --ix-gap: 12px; --ix-in: 8px;
-  position: relative; width: min(880px, 100%); max-height: calc(100dvh - 24px); display: grid; grid-template-columns: minmax(0, 1fr); align-content: start;
+  position: relative; width: min(880px, 100%); max-height: calc(calc(100dvh / var(--z, 1)) - 24px); display: grid; grid-template-columns: minmax(0, 1fr); align-content: start;
   gap: var(--ix-gap); padding: var(--ix-pad); text-align: left; align-items: stretch; justify-items: stretch; overflow: hidden;
   color: #f3edff; border: 0; border-radius: 4px; box-shadow: 0 30px 80px rgba(0, 0, 0, .6);
   clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
@@ -124,18 +124,18 @@
 /* vertical: la imagen arriba, sin pasarse de alto */
 @media (orientation: portrait) {
   .mg-overlay.ix-ov > .mg-card.ix { width: min(560px, 100%); }
-  .ix-frame { flex: none; max-height: 34dvh; width: 100%; }
-  .ix-frame.paper { height: 30dvh; max-height: none; }
+  .ix-frame { flex: none; max-height: calc(34dvh / var(--z, 1)); width: 100%; }
+  .ix-frame.paper { height: calc(30dvh / var(--z, 1)); max-height: none; }
   .mg-card.ix .antes-ahora { grid-template-columns: 1fr; }
   .ix-tabs button { flex: 1 1 auto; padding: 4px 6px; font-size: var(--fs-xs); letter-spacing: .03em; }
 }
 /* móvil tumbado y pantallas anchas: imagen a la izquierda y todo lo demás a la derecha; el alto se ajusta a la pantalla
    y, si un texto no cabe, solo se desplaza su caja (el botón sigue a la vista) */
 @media (orientation: landscape) {
-  .mg-overlay.ix-ov > .mg-card.ix { grid-template-columns: minmax(200px, 38%) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); align-content: stretch; column-gap: 16px; height: min(470px, calc(100dvh - 24px)); }
-  .mg-overlay.ix-ov > .mg-card.ix.fit { grid-template-rows: auto; align-content: start; height: auto; max-height: min(470px, calc(100dvh - 24px)); align-items: center; }
+  .mg-overlay.ix-ov > .mg-card.ix { grid-template-columns: minmax(200px, 38%) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); align-content: stretch; column-gap: 16px; height: min(470px, calc(calc(100dvh / var(--z, 1)) - 24px)); }
+  .mg-overlay.ix-ov > .mg-card.ix.fit { grid-template-rows: auto; align-content: start; height: auto; max-height: min(470px, calc(calc(100dvh / var(--z, 1)) - 24px)); align-items: center; }
   .mg-card.ix > .ix-media { height: 100%; }
-  .mg-card.ix.fit > .ix-media { height: auto; max-height: calc(min(470px, 100dvh - 24px) - 32px); }
+  .mg-card.ix.fit > .ix-media { height: auto; max-height: calc(min(470px, calc(100dvh / var(--z, 1)) - 24px) - 32px); }
   .ix-frame { aspect-ratio: auto; }
   .mg-card.ix.fit .ix-frame { aspect-ratio: 1; flex: none; }
   .mg-card.ix > .ix-main { height: 100%; }
@@ -143,9 +143,9 @@
 }
 @media (orientation: landscape) and (max-height: 430px) {
   .mg-overlay.ix-ov { padding: 8px; }
-  .mg-overlay.ix-ov > .mg-card.ix { --ix-pad: 12px; --ix-gap: 8px; height: calc(100dvh - 16px); max-height: none; padding: 12px 16px; grid-template-columns: minmax(180px, 36%) minmax(0, 1fr); }
-  .mg-overlay.ix-ov > .mg-card.ix.fit { height: auto; max-height: calc(100dvh - 16px); }
-  .mg-card.ix.fit > .ix-media { max-height: calc(100dvh - 40px); }
+  .mg-overlay.ix-ov > .mg-card.ix { --ix-pad: 12px; --ix-gap: 8px; height: calc(calc(100dvh / var(--z, 1)) - 16px); max-height: none; padding: 12px 16px; grid-template-columns: minmax(180px, 36%) minmax(0, 1fr); }
+  .mg-overlay.ix-ov > .mg-card.ix.fit { height: auto; max-height: calc(calc(100dvh / var(--z, 1)) - 16px); }
+  .mg-card.ix.fit > .ix-media { max-height: calc(calc(100dvh / var(--z, 1)) - 40px); }
   .mg-card.ix .ix-title { font-size: var(--fs-xl); }
   .mg-card.ix .ix-text, .ix-pane { font-size: var(--fs-sm); }
   .ix-pane { padding: 8px 12px; }
@@ -194,14 +194,14 @@
    tres y el texto con un alto mínimo para leerse; si aun así no cabe todo, se desplaza la columna entera de la ficha */
 @media (orientation: portrait) and (max-height: 700px) {
   .mg-overlay.ix-ov > .mg-card.ix { --ix-pad: 12px; --ix-gap: 8px; }
-  .ix-frame { max-height: 22dvh; } .ix-frame.paper { height: 22dvh; }
+  .ix-frame { max-height: calc(22dvh / var(--z, 1)); } .ix-frame.paper { height: calc(22dvh / var(--z, 1)); }
   .mg-card.ix .ix-title { font-size: var(--fs-xl); }
   .ix-tabs button { flex: 1 1 calc(33.3% - 4px); padding: 4px; white-space: normal; line-height: 1.05; }
   .mg-overlay.ix-ov > .mg-card.ix > .ix-main { overflow-y: auto; overscroll-behavior: contain; }
   /* (el botón de seguir, pegado abajo aunque la columna se desplace) */
   .mg-overlay.ix-ov > .mg-card.ix > .ix-main > .ix-end { display: contents; }
   .mg-overlay.ix-ov > .mg-card.ix > .ix-main > .ix-foot, .mg-overlay.ix-ov > .mg-card.ix > .ix-main > .ix-end > .ix-foot { position: sticky; bottom: 0; z-index: 2; padding-top: 8px; background: linear-gradient(180deg, transparent, var(--v1) 8px); }
-  .ix-main .ix-pane { min-height: min(120px, 22dvh); }
+  .ix-main .ix-pane { min-height: min(120px, calc(22dvh / var(--z, 1))); }
 }
 /* móvil tumbado muy bajo (iPhone SE de primera generación, 320 px de alto): la columna del texto se desplaza entera y el
    botón de seguir queda pegado abajo, siempre a la vista */
@@ -211,5 +211,5 @@
   .mg-overlay.ix-ov > .mg-card.ix > .ix-main > .ix-foot, .mg-overlay.ix-ov > .mg-card.ix > .ix-main > .ix-end > .ix-foot { position: sticky; bottom: 0; z-index: 2; padding-top: 8px; background: linear-gradient(180deg, transparent, var(--v1) 8px); }
   .ix-main .ix-pane { flex: none; }
   /* (la ficha que se ajusta a su contenido no tiene alto fijo: su columna, con tope, para que se desplace dentro) */
-  .mg-overlay.ix-ov > .mg-card.ix.fit > .ix-main { max-height: calc(100dvh - 40px); }
+  .mg-overlay.ix-ov > .mg-card.ix.fit > .ix-main { max-height: calc(calc(100dvh / var(--z, 1)) - 40px); }
 }

@@ -141,7 +141,7 @@ const CSS = `
 @media (orientation:landscape) and (max-width:760px){.tq-rd h4 small{display:none}}
 /* (móvil tumbado pequeño: las dos cartas del partido, a la medida de su columna, que gana algo de ancho al cuadro; a 568 px
    de ancho se salían por la izquierda y tapaban el cuadro) */
-@media (orientation:landscape) and (max-width:760px) and (max-height:520px){.lg-card.tq-card{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr)}.tq-rd h4{white-space:normal;letter-spacing:.02em}.tq-duel{gap:4px}.tq-duel .gx-card{--w:min(120px,18.3vw)!important}.tq-mid{min-width:56px}.tq-mid b{font-size:var(--fs-2xl)}}
+@media (orientation:landscape) and (max-width:760px) and (max-height:520px){.lg-card.tq-card{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr)}.tq-rd h4{white-space:normal;letter-spacing:.02em}.tq-duel{gap:4px}.tq-duel .gx-card{--w:min(120px,calc(18.3vw / var(--z, 1)))!important}.tq-mid{min-width:56px}.tq-mid b{font-size:var(--fs-2xl)}}
 .tq-ms{flex:1;display:flex;flex-direction:column;justify-content:space-around;gap:4px}
 .tq-m{position:relative;z-index:1;display:grid;border-radius:3px;overflow:hidden;background:rgba(18,5,42,.92);border:1px solid rgba(201,178,255,.22);clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px)}
 .tq-m.me{border-color:var(--fx);box-shadow:0 0 14px rgba(255,43,214,.45)}
@@ -200,14 +200,14 @@ const CSS = `
 .tq-tile .k{letter-spacing:.06em}.tq-tile b{font-size:var(--fs-xl)}
 }
 /* (en pantallas altas, como el iPad tumbado, la ilustración con su altura: no se queda diminuta encima del texto) */
-@media (min-height:561px) and (orientation:landscape){.tq-tile .figs{min-height:clamp(150px,32vh,300px)}}
+@media (min-height:561px) and (orientation:landscape){.tq-tile .figs{min-height:clamp(150px,calc(32vh / var(--z, 1)),300px)}}
 /* ordenador (pantalla grande): el menú y el cuadro a su tamaño, las figuras grandes y enteras (la losa de la colección,
    con tres pelotaris, ya no se corta) y las cartas del próximo partido más grandes */
 @media (min-width:1200px) and (min-height:700px){
 .lg-card.tq-card{width:min(1280px,100%);gap:16px 32px}
 .lg-card.tq-menu-card{width:min(1320px,100%)}
 .tq-tiles{gap:16px;grid-template-columns:1.1fr 1.1fr 1fr 1fr}.tq-tiles.n3{grid-template-columns:1.1fr 1fr 1fr}
-.tq-tile{padding-left:24px;padding-right:24px}.tq-tile .figs{min-height:clamp(280px,42vh,460px)}.tq-tile .figs.trio img.pf{height:80%}
+.tq-tile{padding-left:24px;padding-right:24px}.tq-tile .figs{min-height:clamp(280px,calc(42vh / var(--z, 1)),460px)}.tq-tile .figs.trio img.pf{height:80%}
 .tq-tile b{font-size:var(--fs-2xl)}.tq-tile small{font-size:var(--fs-md)}.tq-tile .k{font-size:var(--fs-sm)}
 .tq-duel .gx-card{--w:168px!important}.tq-banner .gx-card{--w:168px!important}.tq-mid b{font-size:var(--fs-5xl)}.tq-mid small.r{font-size:var(--fs-md)}
 .tq-where{font-size:var(--fs-md)}.tq-ficha{font-size:var(--fs-sm)}

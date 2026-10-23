@@ -1,5 +1,6 @@
 // Teclado, ratón, controles táctiles (joystick + botones) y mandos (mando/pad.js: los de verdad y el móvil)
 import { PAD } from './mando/pad.js';
+import { TACTIL } from './util/tactil.js';
 export class Input {
   constructor(canvas) {
     this.keys = new Set();
@@ -8,7 +9,7 @@ export class Input {
     this.zoom = 0;
     this.pressed = new Set();        // acciones pulsadas en este fotograma
     this.run = false;
-    this.touch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
+    this.touch = TACTIL;
     this.enabled = true;
     this.canvas = canvas;
     this.stick = { id: null, ox: 0, oy: 0, x: 0, y: 0 };

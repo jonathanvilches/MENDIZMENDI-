@@ -6,6 +6,7 @@ import { clubImg } from '../ui/escudoImg.js';
 import { fitCircle, fitCircles } from '../ui/fitlabel.js';
 import { tap } from '../util/tap.js';
 import { esc } from '../util/html.js';
+import { enCss } from '../util/tele.js';
 // (en el marcador, el emblema de un equipo de la liga; si no lo tiene, el color de su camiseta)
 const em = (t) => t?.club && clubImg(t.club) ? `<img class="fb-em" src="${clubImg(t.club)}" alt="">` : `<i style="background:${t.shirt}"></i>`;
 const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;gap:16px;align-items:center;text-align:left;margin:4px 0 8px}.fb-board{width:100%;height:auto;display:block;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
@@ -21,11 +22,11 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-score{display:flex;align-items:stretch;border-radius:3px;overflow:hidden;background:rgba(7,2,15,.9);border-top:2px solid var(--fx,#ff2bd6);box-shadow:0 6px 20px rgba(0,0,0,.35);max-width:100%;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%)}
 .fb-team{display:flex;align-items:center;gap:8px;padding:4px 12px;font:800 var(--fs-sm)/1 var(--f-cond,Nunito),sans-serif;letter-spacing:.04em;text-transform:uppercase;min-width:0}
 .fb-team img.fb-em{width:20px;height:24px;object-fit:contain;flex:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}.fb-team i{width:12px;height:20px;border-radius:3px;flex:none;box-shadow:0 0 0 1.5px rgba(255,255,255,.7)}
-.fb-team span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:22vw}.fb-team span.fb-sn{display:none}
+.fb-team span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(22vw / var(--z, 1))}.fb-team span.fb-sn{display:none}
 .fb-team b{font-family:'MZ Display',Nunito,sans-serif;font-weight:400;font-size:var(--fs-xl);line-height:1;min-width:1em;text-align:center}
 .fb-clock{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:2px 12px;background:linear-gradient(180deg,rgba(123,47,247,.55),rgba(49,16,107,.7));font:800 var(--fs-md)/1 var(--f-cond,Nunito),sans-serif;font-variant-numeric:tabular-nums}
 .fb-clock small{font-size:var(--fs-xs);color:var(--lila,#c9b2ff);font-weight:800;text-transform:uppercase;letter-spacing:.1em}
-.fb-say{display:none;font-size:var(--fs-sm);font-weight:800;padding:4px 12px;border-radius:12px;background:rgba(16,10,30,.62);max-width:min(92vw,480px);text-align:center;line-height:1.3}
+.fb-say{display:none;font-size:var(--fs-sm);font-weight:800;padding:4px 12px;border-radius:12px;background:rgba(16,10,30,.62);max-width:min(calc(92vw / var(--z, 1)),480px);text-align:center;line-height:1.3}
 .fb-say.on{display:block;animation:fbin .18s ease-out}
 @keyframes fbin{from{opacity:0;transform:translateY(-4px)}}
 .fb-pen{display:none;gap:8px;font-size:var(--fs-xs);font-weight:800;padding:4px 8px;border-radius:10px;background:rgba(16,10,30,.7)}
@@ -36,7 +37,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-pause::before,.fb-cam::before{content:'';position:absolute;inset:-4px;border-radius:50%}   /* (zona táctil de 44 px; el dibujo no cambia) */
 .fb-pause{left:calc(env(safe-area-inset-left,0px) + var(--edge,16px))}.fb-cam{right:calc(env(safe-area-inset-right,0px) + var(--edge,16px))}
 .fb-pause svg,.fb-cam svg{width:20px;height:20px;filter:drop-shadow(0 1px 1px rgba(18,6,27,.5));pointer-events:none}
-.fb-msg{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%) scale(.85);opacity:0;transition:opacity .2s,transform .25s cubic-bezier(.2,1.4,.4,1);text-align:center;pointer-events:none;max-width:92vw}
+.fb-msg{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%) scale(.85);opacity:0;transition:opacity .2s,transform .25s cubic-bezier(.2,1.4,.4,1);text-align:center;pointer-events:none;max-width:calc(92vw / var(--z, 1))}
 .fb-msg.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
 /* (mientras se ve el rótulo grande, el aviso y el consejo de debajo del marcador esperan escondidos: en el móvil tumbado se
    pisaban; vuelven al quitarse el rótulo, si les queda tiempo) */
@@ -44,7 +45,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-msg h2{margin:0;font-family:'MZ Display',Nunito,sans-serif;font-weight:400;font-size:var(--fs-display);line-height:1;text-shadow:0 4px 0 rgba(0,0,0,.35),0 8px 26px rgba(0,0,0,.45);letter-spacing:0}
 .fb-msg p{margin:8px 0 0;font-size:var(--fs-lg);font-weight:900;text-shadow:0 2px 8px rgba(0,0,0,.6)}
 .fb-msg.goal h2{color:#ff9bd8}
-.fb-stick{position:absolute;left:0;bottom:0;width:50vw;height:78dvh;pointer-events:auto;touch-action:none}
+.fb-stick{position:absolute;left:0;bottom:0;width:calc(50vw / var(--z, 1));height:calc(78dvh / var(--z, 1));pointer-events:auto;touch-action:none}
 .fb-knob{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;border:1.5px solid rgba(255,255,255,.6);background:rgba(8,10,20,.14);display:none}
 .fb-knob i{position:absolute;left:50%;top:50%;width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:50%;background:rgba(255,255,255,.72);box-shadow:0 1px 6px rgba(0,0,0,.25)}
 /* (la ayuda del joystick, como en el pueblo y en la pelota: las flechas y «Mover» en la letra estrecha) */
@@ -75,7 +76,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-btns.gk .fb-pass,.fb-btns.gk .fb-shoot,.fb-btns.gkhands .fb-pass,.fb-btns.gkhands .fb-shoot{--mm-top:#1d8aa3;--mm-bottom:#0b2f3d;border-color:#d4f6ff}   /* (con tu portero, turquesa: sin verdes en los mandos) */
 @media (prefers-reduced-motion:reduce){.fb-b{transition:none}}
 .fb-btns.pen .fb-swap,.fb-btns.pen .fb-sprint{display:none}
-.fb-bars{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 8px);width:min(30vw,220px);display:flex;flex-direction:column;gap:4px;pointer-events:none}
+.fb-bars{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 8px);width:min(calc(30vw / var(--z, 1)),220px);display:flex;flex-direction:column;gap:4px;pointer-events:none}
 .fb-bar{height:4px;border-radius:3px;background:rgba(8,10,20,.4);overflow:hidden;box-shadow:0 0 0 .5px rgba(255,255,255,.4)}
 .fb-bar i{display:block;height:100%;width:100%;border-radius:6px;background:linear-gradient(90deg,#c9b2ff,#efe8ff);transform-origin:left;transition:transform .05s linear}
 .fb-b.chg::after{content:'';position:absolute;inset:calc(-6px * var(--u));border-radius:50%;pointer-events:none;background:conic-gradient(#ff7ac8 0, #ff8a2a calc(var(--chg) * 300deg), #e0302a calc(var(--chg) * 360deg), rgba(255,255,255,.18) calc(var(--chg) * 360deg));-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 6px),#000 calc(100% - 5px));mask:radial-gradient(farthest-side,transparent calc(100% - 6px),#000 calc(100% - 5px))}
@@ -85,11 +86,11 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-arrow{position:absolute;width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-bottom:26px solid #ffe14a;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));display:none;transform-origin:50% 60%}
 /* consejo del tutorial y de los retos: pequeño, bajo el marcador (encima de la grada, no del campo); a los pocos segundos
    se recoge en un botón «?» que lo vuelve a abrir */
-.fb-tip{display:none;align-items:center;gap:8px;max-width:min(500px,64vw);padding:4px 12px 4px 4px;border-radius:13px;background:rgba(36,14,80,.8);border:1px solid rgba(255,122,200,.45);font-size:var(--fs-sm);font-weight:800;line-height:1.3;text-align:left;box-shadow:0 4px 14px rgba(0,0,0,.3);pointer-events:auto;cursor:pointer}
+.fb-tip{display:none;align-items:center;gap:8px;max-width:min(500px,calc(64vw / var(--z, 1)));padding:4px 12px 4px 4px;border-radius:13px;background:rgba(36,14,80,.8);border:1px solid rgba(255,122,200,.45);font-size:var(--fs-sm);font-weight:800;line-height:1.3;text-align:left;box-shadow:0 4px 14px rgba(0,0,0,.3);pointer-events:auto;cursor:pointer}
 .fb-tip.on{display:flex;animation:fbin .18s ease-out}.fb-tip b{color:#ff9bd8}
 .fb-tip i{flex:none;width:20px;height:20px;border-radius:50%;background:#ff9bd8;color:#2a0638;font:900 var(--fs-sm)/20px Nunito,sans-serif;font-style:normal;text-align:center}
 .fb-tip.mini{padding:4px;border-radius:50%;background:rgba(36,14,80,.6)}.fb-tip.mini span{display:none}
-.fb-keys{position:absolute;left:calc(env(safe-area-inset-left,0px) + 12px);bottom:calc(env(safe-area-inset-bottom,0px) + 8px);font-size:var(--fs-xs);font-weight:800;padding:4px 8px;border-radius:10px;background:rgba(16,10,30,.6);max-width:calc(100vw - 24px)}
+.fb-keys{position:absolute;left:calc(env(safe-area-inset-left,0px) + 12px);bottom:calc(env(safe-area-inset-bottom,0px) + 8px);font-size:var(--fs-xs);font-weight:800;padding:4px 8px;border-radius:10px;background:rgba(16,10,30,.6);max-width:calc(calc(100vw / var(--z, 1)) - 24px)}
 .fb-fouls{display:none;align-self:center;gap:8px;align-items:center;padding:2px 8px;border-radius:9px;background:rgba(14,10,30,.72);font:900 var(--fs-xs) Nunito,sans-serif;letter-spacing:.1em;color:#cbbcf0}
 .fb-fouls.show{display:flex}.fb-fouls span{display:flex;gap:2px}.fb-fouls u{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.22);text-decoration:none}
 .fb-fouls u.on{background:#ff9bd8}.fb-fouls u.x{background:#ff4a4a}
@@ -121,11 +122,11 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-ctrl td{padding:4px;border-top:1px solid rgba(255,255,255,.1);vertical-align:middle;font-weight:800}.fb-ctrl td small{font-weight:600;color:#cbbcf0;font-size:var(--fs-xs)}.fb-ctrl td.ic{width:30px}.fb-ctrl td.ic svg{width:22px;height:22px}
 .fb-big{font-family:'MZ Display',Nunito,sans-serif;font-size:var(--fs-4xl);line-height:1;margin:8px 0}
 @media (max-width:640px) and (orientation:portrait){
-  .fb-top{left:58px;right:58px}.fb-team{padding:4px 8px;font-size:var(--fs-xs)}.fb-team b{font-size:var(--fs-xl)}.fb-team span{max-width:18vw}
+  .fb-top{left:58px;right:58px}.fb-team{padding:4px 8px;font-size:var(--fs-xs)}.fb-team b{font-size:var(--fs-xl)}.fb-team span{max-width:calc(18vw / var(--z, 1))}
   .fb-team span.fb-ln{display:none}.fb-team span.fb-sn{display:inline}
-  .fb-btns{--u:.96}.fb-tip{max-width:92vw}
+  .fb-btns{--u:.96}.fb-tip{max-width:calc(92vw / var(--z, 1))}
   .fb-bars{left:auto;transform:none;right:calc(env(safe-area-inset-right,0px) + 12px);bottom:calc(env(safe-area-inset-bottom,0px) + 184px);width:140px}
-  .fb-stick{height:62dvh}
+  .fb-stick{height:calc(62dvh / var(--z, 1))}
 }
 @media (max-height:520px) and (orientation:landscape){
   .fb-panel{padding:calc(env(safe-area-inset-top,0px) + 8px) calc(env(safe-area-inset-right,0px) + 8px) calc(env(safe-area-inset-bottom,0px) + 8px) calc(env(safe-area-inset-left,0px) + 8px)}
@@ -156,7 +157,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 @media (max-height:460px) and (orientation:landscape){
   .fb-top{top:calc(env(safe-area-inset-top,0px) + var(--edge,16px))}.fb-team b{font-size:var(--fs-xl)}
   .fb-btns{--u:.9}
-  .fb-bars{left:calc(env(safe-area-inset-left,0px) + 124px);transform:none;width:min(196px,26vw)}
+  .fb-bars{left:calc(env(safe-area-inset-left,0px) + 124px);transform:none;width:min(196px,calc(26vw / var(--z, 1)))}
   .fb-pause,.fb-cam{width:38px;height:38px}.fb-top{gap:4px}.fb-tip{font-size:var(--fs-sm)}
   .fb-stickhint{width:84px;height:84px;font-size:var(--fs-xs)}
   .fb-msg{top:42%}.fb-msg h2{font-size:var(--fs-hero)}
@@ -259,10 +260,10 @@ export class FutbolHud {
       <button class="fb-pause" aria-label="Pausa">${ICO_PAUSE}</button><button class="fb-cam" aria-label="Cambiar cámara">${ICO_CAM}</button>
       <div class="fb-msg"><h2></h2><p></p></div><div class="fb-arrow"></div>
       ${t ? `<div class="fb-stick"><div class="fb-knob"><i></i></div></div><div class="fb-stickhint"><svg viewBox="0 0 48 48" width="34" height="34"><path d="M24 6l6 7h-4v8h8v-4l7 7-7 7v-4h-8v8h4l-6 7-6-7h4v-8h-8v4l-7-7 7-7v4h8v-8h-4z" fill="#fff" opacity=".9"/></svg><span>Mover</span></div>
-      <div class="fb-bars"><div class="fb-me"><b class="fb-me-n">0</b><span class="fb-me-r"></span><span class="fb-me-e"><i class="fb-en"></i><s class="fb-me-f"></s></span><em class="fb-me-p">100 %</em><span class="fb-me-ic"></span></div><div class="fb-bar pow"><i class="fb-pw"></i></div></div>
-      <div class="fb-btns atk"><button class="fb-b fb-sprint" data-a="sprint" aria-label="Sprint">${ICON.sprint}<span>Sprint</span></button><button class="fb-b fb-swap" data-a="switch" aria-label="Cambiar de jugador">${ICON.swap}<span>Cambiar</span></button><button class="fb-b fb-pass" data-a="pass" aria-label="Pase">${ICON.pass}<span>Pase</span></button><button class="fb-b fb-shoot" data-a="shoot" aria-label="Tiro">${ICON.shoot}<span>Tiro</span></button></div>`
+      <div class="fb-bars"><div class="fb-me"><b class="fb-me-n">0</b><span class="fb-me-r"></span><span class="fb-me-e"><i class="fb-en"></i><s class="fb-me-f"></s></span><em class="fb-me-p">100 %</em><span class="fb-me-ic"></span></div><div class="fb-bar pow"><i class="fb-pw"></i></div></div>`
       : `<div class="fb-bars" style="bottom:calc(env(safe-area-inset-bottom,0px) + 44px)"><div class="fb-me"><b class="fb-me-n">0</b><span class="fb-me-r"></span><span class="fb-me-e"><i class="fb-en"></i><s class="fb-me-f"></s></span><em class="fb-me-p">100 %</em><span class="fb-me-ic"></span></div><div class="fb-bar pow"><i class="fb-pw"></i></div></div>
-      <div class="fb-keys">WASD/flechas mover · <b>J</b> pase / robar · <b>K</b> tiro (mantén: fuerza) / entrada · <b>Mayús</b> sprint · <b>L</b> cambiar · <b>Esc</b> pausa · <b>H</b> controles · también con mando</div>`}`;
+      <div class="fb-keys">WASD/flechas mover · <b>J</b> pase / robar · <b>K</b> tiro (mantén: fuerza) / entrada · <b>Mayús</b> sprint · <b>L</b> cambiar · <b>Esc</b> pausa · <b>H</b> controles · también con mando</div>`}
+      <div class="fb-btns atk"><button class="fb-b fb-sprint" data-a="sprint" aria-label="Sprint">${ICON.sprint}<span>Sprint</span></button><button class="fb-b fb-swap" data-a="switch" aria-label="Cambiar de jugador">${ICON.swap}<span>Cambiar</span></button><button class="fb-b fb-pass" data-a="pass" aria-label="Pase">${ICON.pass}<span>Pase</span></button><button class="fb-b fb-shoot" data-a="shoot" aria-label="Tiro">${ICON.shoot}<span>Tiro</span></button></div>`;
     // (el aviso de cambio, el último: encima del joystick; los paneles, que llegan después, lo tapan)
     r.insertAdjacentHTML('beforeend', `<button class="fb-subalert" hidden aria-label="Cambio">${ICON.swap}<span>Cambio</span></button>`);
     document.body.appendChild(r);
@@ -440,7 +441,7 @@ export class FutbolHud {
   }
   tipOpen(open, ms = 6000) { const t = this.el.tip; clearTimeout(this.tt); t.classList.toggle('mini', !open); if (open) this.tt = setTimeout(() => t.classList.add('mini'), ms); }
   /** Flecha en el borde de la pantalla hacia el jugador controlado (x, y en píxeles; ang en radianes) o null. */
-  arrow(x, y, ang) { const a = this.el.arrow; if (x === null) { a.style.display = 'none'; return; } a.style.display = 'block'; a.style.left = (x - 14) + 'px'; a.style.top = (y - 13) + 'px'; a.style.transform = `rotate(${ang}rad)`; }
+  arrow(x, y, ang) { const a = this.el.arrow; if (x === null) { a.style.display = 'none'; return; } a.style.display = 'block'; a.style.left = (enCss(x) - 14) + 'px'; a.style.top = (enCss(y) - 13) + 'px'; a.style.transform = `rotate(${ang}rad)`; }
   pens(log, kicks) {
     this.el.pen.classList.add('on');
     for (const t of [0, 1]) { const l = log[t], n = Math.max(kicks, l.length + (l.length >= kicks ? 0 : 0)); let h = ''; for (let i = 0; i < Math.max(kicks, l.length); i++) h += `<u class="${i < l.length ? (l[i] ? 'g' : 'x') : ''}"></u>`; this.el['p' + t].innerHTML = h; void n; }

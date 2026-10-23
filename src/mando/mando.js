@@ -20,11 +20,11 @@ const S = { code: '', secreto: '', of: '', respuesta: null, sig: null, pc: null,
 
 const CSS = `
 .mnd-ov{position:fixed;inset:0;z-index:9500;display:grid;place-items:center;padding:16px;background:rgba(7,2,15,.72);font-family:Nunito,system-ui,sans-serif;color:#f6f3fc}
-.mnd-card{position:relative;width:min(760px,100%);max-height:calc(100dvh - 32px);overflow:auto;display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px 24px;align-items:center;padding:24px;border-radius:4px;background:linear-gradient(180deg,#31106b,#0c041e);border:1px solid rgba(201,178,255,.25);box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.mnd-card{position:relative;width:min(760px,100%);max-height:calc(calc(100dvh / var(--z, 1)) - 32px);overflow:auto;display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px 24px;align-items:center;padding:24px;border-radius:4px;background:linear-gradient(180deg,#31106b,#0c041e);border:1px solid rgba(201,178,255,.25);box-shadow:0 30px 80px rgba(0,0,0,.6)}
 .mnd-card::before{content:'';position:absolute;left:16px;right:0;top:0;height:3px;background:linear-gradient(90deg,#ff2bd6,#7b2ff7)}
 .mnd-card h2{grid-column:1/-1;margin:0;font:400 var(--fs-2xl,32px)/1 'MZ Display',Nunito,sans-serif;text-transform:uppercase}
 .mnd-card .mnd-lead{grid-column:1/-1;margin:0;color:#cbc2e0;font-size:var(--fs-md,16px)}
-.mnd-qr{width:min(240px,62vw);aspect-ratio:1;padding:12px;border-radius:12px;background:#fff;display:grid;place-items:center}
+.mnd-qr{width:min(240px,calc(62vw / var(--z, 1)));aspect-ratio:1;padding:12px;border-radius:12px;background:#fff;display:grid;place-items:center}
 .mnd-qr svg{width:100%;height:100%;display:block}
 .mnd-qr.wait{background:rgba(255,255,255,.08)}
 .mnd-pasos{margin:0;padding-left:24px;display:grid;gap:8px;font-size:var(--fs-md,16px);line-height:1.4}
@@ -43,7 +43,7 @@ const CSS = `
 .mnd-bts button{min-height:44px;padding:8px 20px;border-radius:4px;border:1px solid rgba(201,178,255,.35);background:rgba(255,255,255,.08);color:#fff;font:800 var(--fs-md,16px) Nunito,sans-serif;cursor:pointer}
 .mnd-bts button.go{border:0;background:linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7)}
 .mnd-bts a.go{display:inline-flex;align-items:center;min-height:44px;padding:8px 20px;border-radius:4px;background:linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7);color:#fff;font:800 var(--fs-md,16px) Nunito,sans-serif;text-decoration:none}
-@media (max-width:620px),(orientation:landscape) and (max-height:520px){.mnd-card{grid-template-columns:1fr;justify-items:center;padding:16px}.mnd-qr{width:min(200px,50dvh)}}
+@media (max-width:620px),(orientation:landscape) and (max-height:520px){.mnd-card{grid-template-columns:1fr;justify-items:center;padding:16px}.mnd-qr{width:min(200px,calc(50dvh / var(--z, 1)))}}
 .mnd-pill{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:9400;display:flex;align-items:center;gap:8px;min-height:40px;padding:4px 14px;border-radius:999px;border:1px solid rgba(201,178,255,.35);background:rgba(20,8,40,.82);color:#fff;font:800 var(--fs-sm,14px) Nunito,sans-serif;cursor:pointer;opacity:.75}
 .mnd-pill[hidden]{display:none}.mnd-pill:hover{opacity:1}.mnd-pill i{width:10px;height:10px;border-radius:50%;background:#f2c230}.mnd-pill.ok i{background:#3ee07a}
 `;
@@ -163,6 +163,8 @@ setInterval(() => {
 function pinta() {
   // (el aviso de abajo, solo si el mando espera o se ha caído, y fuera del menú, que tiene su botón arriba; el botón del
   // menú dice si está conectado)
+  // (conectado, fuera los controles de pantalla en todo el juego: <html class="con-mando">, util/tactil.js)
+  document.documentElement.classList.toggle('con-mando', S.estado === 'ok');
   const enMenu = !!document.querySelector('#hub:not(.hidden)'), mb = document.querySelector('[data-mando]');
   if (S.pill) S.pill.hidden = !S.sig || S.estado === 'ok' || enMenu;
   if (mb) { mb.classList.toggle('ok', S.estado === 'ok'); mb.querySelector('span').textContent = S.estado === 'ok' ? 'Mando conectado' : 'Mando del móvil'; }
@@ -225,7 +227,7 @@ export function abrirMando() {
 export function terminar() {
   envia({ t: 'adios' }); setTimeout(cerrarPc, 400);   // (que el adiós llegue antes de cortar)
   S.sig?.close(); S.sig = null; S.code = ''; S.secreto = ''; S.of = ''; S.respuesta = null; S.estado = 'nada'; S.vias = {}; S.pide = null; S.dejados.clear(); S.vetados.clear(); antes.clear(); clearTimeout(S.otra);
-  if (S.pill) S.pill.hidden = true; cierraPanel();
+  if (S.pill) S.pill.hidden = true; pinta(); cierraPanel();
 }
 // (para las pruebas: el código y el estado)
 window.__mando = { get code() { return S.code; }, get estado() { return S.estado; }, get url() { return urlMando(); }, get pide() { return !!S.pide; }, abrir: abrirMando };

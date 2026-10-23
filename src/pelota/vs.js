@@ -6,6 +6,7 @@
 // La usan la pelota (figuras de nuestros pelotaris en 3D, hechas con tools/meshy-retratos.mjs) y el fútbol (las
 // camisetas de los dos clubes). El dibujo del frontón es propio.
 import { esc } from './hud.js';
+import { enCss } from '../util/tele.js';
 
 const CSS = `
 /* (la gama y las letras van aquí también: el fútbol se puede abrir solo, sin el resto del juego) */
@@ -44,10 +45,10 @@ const CSS = `
 .pvs-fig>.kit{position:absolute;inset:0;display:grid;place-items:end center;padding-bottom:4%}.pvs-fig .kit svg{width:auto;height:84%;filter:drop-shadow(0 0 2px #fff) drop-shadow(0 14px 18px rgba(0,0,0,.5))}
 /* (las zonas seguras del iPhone, para medirlas) */
 .pvs-safe{position:absolute;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
-.pvs-x{position:absolute;left:50%;top:44%;z-index:5;transform:translate(-50%,-50%);font:400 clamp(72px,16vh,140px)/1 var(--f-display);letter-spacing:-.02em;padding:0 .08em;
+.pvs-x{position:absolute;left:50%;top:44%;z-index:5;transform:translate(-50%,-50%);font:400 clamp(72px,calc(16vh / var(--z, 1)),140px)/1 var(--f-display);letter-spacing:-.02em;padding:0 .08em;
   background:linear-gradient(180deg,#fff 0%,#fff 42%,var(--rosa) 58%,var(--fx2) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 18px rgba(255,43,214,.85)) drop-shadow(0 6px 0 rgba(7,2,15,.7));
   animation:pvs-x .45s .5s cubic-bezier(.2,1.6,.4,1) both}
-.pvs-mid{position:absolute;left:50%;top:calc(44% + clamp(50px,12vh,84px));z-index:5;transform:translateX(-50%);width:min(300px,34%);display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;animation:pvs-upc .35s 1.05s ease-out both}
+.pvs-mid{position:absolute;left:50%;top:calc(44% + clamp(50px,calc(12vh / var(--z, 1)),84px));z-index:5;transform:translateX(-50%);width:min(300px,34%);display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;animation:pvs-upc .35s 1.05s ease-out both}
 .pvs-line{font:800 var(--fs-sm)/1.2 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;text-shadow:0 1px 3px rgba(0,0,0,.8)}
 .pvs-tags{display:flex;flex-wrap:wrap;justify-content:center;gap:4px}
 .pvs-tags span{padding:2px 8px;background:rgba(7,2,15,.75);border:1px solid rgba(201,178,255,.35);font:700 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;color:var(--lila);clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%)}
@@ -83,7 +84,7 @@ const CSS = `
 @keyframes pvs-up{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
 @keyframes pvs-upc{from{transform:translate(-50%,24px);opacity:0}to{transform:translateX(-50%);opacity:1}}
 @keyframes pvs-pl{from{transform:translateX(-120%) skewX(-10deg)}to{transform:none}}@keyframes pvs-pr{from{transform:translateX(120%) skewX(10deg)}to{transform:none}}
-@keyframes pvs-spark{0%{transform:translate(0,0);opacity:0}10%{opacity:1}100%{transform:translate(var(--x,20px),-110vh);opacity:0}}
+@keyframes pvs-spark{0%{transform:translate(0,0);opacity:0}10%{opacity:1}100%{transform:translate(var(--x,20px),calc(-110vh / var(--z, 1)));opacity:0}}
 @keyframes pvs-marq{0%,12%{transform:translateX(0)}100%{transform:translateX(-100%)}}
 @keyframes pvs-tap{from{filter:brightness(.85)}to{filter:brightness(1.2)}}
 @media (orientation:landscape) and (max-height:500px){.pvs-who b{font-size:var(--fs-xl)}.pvs-ovr b{font-size:var(--fs-2xl)}.pvs-plate{max-width:min(300px,36%)}}
@@ -147,7 +148,7 @@ function layoutVs(el) {
   for (const k of K) { for (const p of ['left', 'right', 'top', 'bottom', 'maxWidth']) plates[k].style[p] = ''; Object.assign(sides[k].style, { width: '', left: '', right: '', clipPath: '' }); figs[k].style.clipPath = ''; }
   // el centro (las etiquetas): su ancho natural, en columna si así deja más sitio a las figuras
   const midSize = (stack, max) => { mid.classList.toggle('stack', stack); Object.assign(mid.style, { width: 'max-content', alignItems: '', textAlign: '' });
-    const w = mid.hidden ? 0 : Math.min(Math.ceil(mid.getBoundingClientRect().width) + 1, max); mid.style.width = `${w}px`; return [w, mid.hidden ? 0 : mid.offsetHeight]; };
+    const w = mid.hidden ? 0 : Math.min(Math.ceil(enCss(mid.getBoundingClientRect().width)) + 1, max); mid.style.width = `${w}px`; return [w, mid.hidden ? 0 : mid.offsetHeight]; };
   const B = tick.offsetTop, g = { azul: groupOf(figs.azul, port ? MSP : MS), rojo: groupOf(figs.rojo, port ? MSP : MS) };
   if (!port) {
     const T = top.offsetTop + top.offsetHeight + 8, PT = Math.min(plates.azul.offsetTop, plates.rojo.offsetTop) - 10;

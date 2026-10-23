@@ -13,6 +13,7 @@ import { showVs } from '../pelota/vs.js';
 import { kitSvgOf } from './liga.js';
 import { jugadorDuo, jugadorFig } from './jugadorFig.js';
 import { clamp } from '../util/math.js';
+import { TACTIL } from '../util/tactil.js';
 // la figura de cada equipo en la pantalla VS: su pareja (el chico y la chica con la equipación del partido); si esta
 // versión no la tiene, el jugador solo y, en el archivo único, la camiseta dibujada
 const vsFig = (t, key) => { const pf = jugadorDuo(t, '', true) || jugadorFig(t); return pf ? { pf } : { figHtml: kitSvgOf(t, 320, key) }; };
@@ -132,7 +133,7 @@ export class FutbolMatch {
     // a quién va el pase: un aro azul
     this.mark = new THREE.Mesh(new THREE.RingGeometry(0.4, 0.5, 28).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#7ad7ff', transparent: true, opacity: 0.8, depthWrite: false })); this.mark.visible = false; this.scene.add(this.mark);
     this.audio = new FutbolAudio(o.audio || {});
-    this.hud = new FutbolHud({ touch: o.touch ?? matchMedia('(pointer:coarse)').matches, home: this.home, away: this.away,
+    this.hud = new FutbolHud({ touch: o.touch ?? TACTIL, home: this.home, away: this.away,
       onPress: (a) => this.press(a), onRelease: (a) => this.release(a), onPause: () => this.pauseMenu(), onCam: () => this.nextCam(), onSubs: () => this.openSubs() });
     if (RU.foulLimit && o.mode === 'match') this.hud.setFouls(0, 0, RU.foulLimit);
     this.meChip(); // ya en la presentación, con su número y su puesto

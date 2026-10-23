@@ -13,6 +13,7 @@ import { tr } from './i18n.js';
 import { buildMapVectorsIdle } from './ui/mapvector.js';
 import { esc, el } from './util/html.js';
 import { windowKeys } from './util/keys.js';
+import { escala } from './util/tele.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const I = (n, s = 22) => iconSVG(n, s);
@@ -457,7 +458,7 @@ export class UI {
   // Brújula superior: puntos cardinales, misiones cercanas y el objetivo con su distancia
   drawCompass(player, camYaw, markers, target) {
     const c = this.compass; if (!c) return;
-    const [cw, ch] = this.box(c), dpr = Math.min(2, devicePixelRatio || 1), W = Math.round(cw * dpr), Hh = Math.round(ch * dpr);
+    const [cw, ch] = this.box(c), dpr = Math.min(2, devicePixelRatio || 1) * escala(), W = Math.round(cw * dpr), Hh = Math.round(ch * dpr);
     if (!W || !Hh) return;
     // sin cambios (quieto, hablando…) no se redibuja; las marcas que se mueven solas se ponen al día cada cuarto de segundo
     const sg = this.hudSig, nm = markers ? markers.length : 0, now = performance.now();

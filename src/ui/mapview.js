@@ -8,6 +8,7 @@ import { iconImage, iconSVG } from './icons.js';
 import { buildMapVectors, drawMapVectors } from './mapvector.js';
 import { esc } from '../util/html.js';
 import { roundRect } from '../world/civic.js';
+import { escala, enCss } from '../util/tele.js';
 
 // (los botones del mapa llevan los iconos 3D de la familia: acercar, alejar, centrar en mí y viajar)
 const hitsRect = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
@@ -63,7 +64,7 @@ export function mountMapView(ui, box, opts = {}) {
     const occ = [], P = game.player, [px, py] = toS(P.pos.x, P.pos.z);
     occ.push({ x: px - 14, y: py - 14, w: 28, h: 28 });
     const ctl = box.querySelector('.mapctl')?.getBoundingClientRect(), br = cv.getBoundingClientRect();
-    if (ctl?.width) occ.push({ x: ctl.left - br.left - 4, y: ctl.top - br.top - 4, w: ctl.width + 8, h: ctl.height + 8 });
+    if (ctl?.width) occ.push({ x: enCss(ctl.left - br.left) - 4, y: enCss(ctl.top - br.top) - 4, w: enCss(ctl.width) + 8, h: enCss(ctl.height) + 8 });
     hits = [];
     // 1) iconos: las misiones nunca se esconden (si se tapan, se separan un poco);
     //    un lugar cuyo icono choca con otro deja solo su nombre, y el icono vuelve al ampliar
@@ -154,7 +155,7 @@ export function mountMapView(ui, box, opts = {}) {
 
   // gestos: arrastrar, pellizcar, rueda y doble toque
   const pts = new Map(); let down = null, pinch = null, lastTap = null;
-  const pos = (e) => { const r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+  const pos = (e) => { const r = cv.getBoundingClientRect(); return { x: enCss(e.clientX - r.left), y: enCss(e.clientY - r.top) }; };
   cv.addEventListener('pointerdown', (e) => {
     e.preventDefault(); try { cv.setPointerCapture(e.pointerId); } catch { /* sin captura */ } anim = null;
     const p = pos(e); pts.set(e.pointerId, p);
@@ -226,7 +227,8 @@ export function mountMapView(ui, box, opts = {}) {
   const resize = () => {
     const r = box.getBoundingClientRect(); if (!r.width || !r.height) return;
     const [wx, wz] = fitted ? [v.cx, v.cz] : [0, 0];
-    W = r.width; H = r.height; dpr = Math.min(3, devicePixelRatio || 1);
+    // (el mapa se dibuja en píxeles del CSS, que en una pantalla grande crecen con la interfaz: util/tele.js)
+    W = enCss(r.width); H = enCss(r.height); dpr = Math.min(3, devicePixelRatio || 1) * escala();
     cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
     if (!fitted) { fitted = true; fit(); } else { v.cx = wx; v.cz = wz; clampV(); }
     draw();

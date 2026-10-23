@@ -23,6 +23,7 @@ import { armsOfTown } from '../data/armas-navarra.js';
 import { tr, isEU } from '../i18n.js';
 import { esc } from '../util/html.js';
 import { clamp } from '../util/math.js';
+import { TACTIL } from '../util/tactil.js';
 
 const { W, L, NETH, SAQUE, CHAPA } = PISTA, NETZ = L / 2, CEIL = 5.8, GRAV = 9.81, R = 0.034, VALLA = 1.6, Y = 2400;
 const QN = ['0', '15', '30', '40'], SX = -1;   // (la cámara mira hacia +z: la derecha de la pantalla es -x en la cancha)
@@ -196,7 +197,7 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
     const names = { partner: partner?.name || PASAKA.canonigo.name, r: PASAKA.rivales };
     // --- la interfaz
     if (!document.getElementById('pk-style')) { const s = document.createElement('style'); s.id = 'pk-style'; s.textContent = CSS; document.head.appendChild(s); }
-    const touch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
+    const touch = TACTIL;
     pelotaStyle();
     hud = document.createElement('div'); hud.className = 'pel-root pk-hud' + (touch ? ' touch' : '');
     hud.innerHTML = `<button type="button" class="pel-exit" aria-label="${esc(tr('Salir'))}">${X_ICON}</button>
@@ -208,7 +209,7 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
       <div class="pel-call"><h3></h3><p></p></div>
       <div class="pel-tip"></div>
       <div class="pel-stick"><div class="pel-knob"><i></i></div></div>${touch ? '<div class="pel-stickhint"><svg viewBox="0 0 48 48" width="46" height="46"><path d="M24 6l6 7h-4v8h8v-4l7 7-7 7v-4h-8v8h4l-6 7-6-7h4v-8h-8v4l-7-7 7-7v4h8v-8h-4z" fill="#fff" opacity=".9"/></svg></div>' : ''}
-      <div class="pel-btns"><div class="pel-bcol"><button type="button" class="pel-btn pel-drop pel-cut" data-k="globo" aria-label="${esc(tr('Globo'))}"><span>${esc(tr('Globo'))}</span></button><button type="button" class="pel-btn pel-drop pel-dejada" data-k="dejada" aria-label="${esc(tr('Dejada'))}"><span>${esc(tr('Dejada'))}</span></button></div><button type="button" class="pel-btn pel-hit" data-k="golpe" aria-label="${esc(tr('Golpe'))}"><span class="pel-hl">${esc(tr('Golpe'))}</span></button></div>
+      <div class="pel-btns"><div class="pel-bcol"><button type="button" class="pel-btn pel-drop pel-cut" data-k="globo" aria-label="${esc(tr('Globo'))}"><span>${esc(tr('Globo'))}</span></button><button type="button" class="pel-btn pel-drop pel-dejada" data-k="dejada" aria-label="${esc(tr('Dejada'))}"><span>${esc(tr('Dejada'))}</span></button></div><button type="button" class="pel-btn pel-hit" data-k="golpe" aria-label="${esc(tr('Golpe'))}"><span class="pel-hl">${esc(tr('Golpe'))}</span>${touch ? '' : `<small class="pel-hk">${esc(tr('espacio'))}</small>`}</button></div>
       <div class="pel-force"><b></b><i><u></u></i></div>`;
     document.body.appendChild(hud);
     fitCircles(hud.querySelector('.pel-btns')); const onFit = () => fitCircles(hud.querySelector('.pel-btns')); addEventListener('resize', onFit);

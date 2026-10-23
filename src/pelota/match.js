@@ -8,6 +8,7 @@ import { PelotaGame, cutHeight, dropHeight, aimSide } from './game.js';
 import { PelotaHud, esc } from './hud.js';
 import { PelotaAudio } from './audio.js';
 import { tap } from '../util/tap.js';
+import { TACTIL } from '../util/tactil.js';
 const clamp1 = (v) => Math.max(-1, Math.min(1, v));
 
 export class PelotaMatch {
@@ -25,7 +26,7 @@ export class PelotaMatch {
   constructor(o) {
     this.o = o; this.T = o.THREE; this.court = o.court; this.cam = o.camera;
     this.lang = o.lang === 'eu' ? 'eu' : 'es'; this.txt = TEXT[this.lang];
-    this.touch = o.touch ?? (matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window);
+    this.touch = o.touch ?? TACTIL;
     this.level = o.level || 'normal';
     // la pelota elegida y la cámara dinámica (se recuerdan de un partido a otro)
     const ls = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };

@@ -24,13 +24,13 @@
   radial-gradient(120% 80% at 50% 0%, transparent 40%, rgba(0, 0, 0, .45) 100%); }
 
 /* margen del contenido a los lados (en la rejilla de 4 px), el mismo para la barra de arriba a la derecha */
-#hub { --gut: clamp(16px, 3vw, 44px); }
+#hub { --gut: clamp(16px, calc(3vw / var(--z, 1)), 44px); }
 /* el aire del menú, el mismo en todas las pantallas: entre secciones (--esp), dentro de los paneles (--relleno y, en las
    tarjetas pequeñas, --relleno-s), entre las tarjetas de una rejilla (--hueco) y entre bloques grandes que van juntos
    (--hueco-m). En el ordenador, con sitio de sobra, todo respira más */
 #hub { --esp: 16px; --relleno: 16px 20px; --relleno-s: 8px 12px; --hueco: 8px; --hueco-m: 16px; }
 @media (min-width: 1200px) and (min-height: 700px) { #hub { --esp: 32px; --relleno: 24px 32px; --relleno-s: 16px; --hueco: 16px; --hueco-m: 24px; } }
-@supports (width: round(1px, 4px)) { #hub { --gut: round(clamp(16px, 3vw, 44px), 4px); } }
+@supports (width: round(1px, 4px)) { #hub { --gut: round(clamp(16px, calc(3vw / var(--z, 1)), 44px), 4px); } }
 /* barra superior */
 .hub-top { grid-column: 1 / 3; min-width: 0; overflow: hidden; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 var(--gut) 0 24px; padding-top: env(safe-area-inset-top, 0px);
   background: linear-gradient(180deg, rgba(24, 8, 54, .85), rgba(24, 8, 54, .45)); border-bottom: 1px solid var(--line); }
@@ -59,7 +59,7 @@
 /* en horizontal con poca altura (iPhone, también con las barras de Safari): los tres pasos uno al lado del otro, sin el
    asa de arrastrar, y la ventana más ancha que la de «Más», entre los bordes seguros de la pantalla */
 @media (orientation: landscape) and (max-height: 520px) {
-  .app-sheet .more-in { width: min(760px, calc(100vw - 2 * max(12px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)))); max-height: calc(100dvh - 8px); overflow-y: auto; overscroll-behavior: contain; padding-top: 16px; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); }
+  .app-sheet .more-in { width: min(760px, calc(calc(100vw / var(--z, 1)) - 2 * max(12px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)))); max-height: calc(calc(100dvh / var(--z, 1)) - 8px); overflow-y: auto; overscroll-behavior: contain; padding-top: 16px; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); }
   .app-sheet .grab { display: none; }
   .app-sheet .ap-head { margin-bottom: 0; } .app-sheet .ap-ico { width: 48px; height: 48px; }
   .ap-steps { flex-direction: row; }
@@ -256,7 +256,7 @@
 
 /* ficha de pueblo */
 .sheet { position: fixed; inset: 0; z-index: 30; background: rgba(6, 4, 12, .6); display: grid; place-items: center; padding: 16px; animation: fadein .2s; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
-.sheet-in { position: relative; width: min(700px, 100%); max-height: 92dvh; display: flex; flex-direction: column; background: var(--plum); border-radius: var(--rL); overflow: hidden; border: 1px solid var(--line2); box-shadow: 0 30px 80px rgba(0, 0, 0, .6); animation: pop .25s cubic-bezier(.2, 1.3, .4, 1); }
+.sheet-in { position: relative; width: min(700px, 100%); max-height: calc(92dvh / var(--z, 1)); display: flex; flex-direction: column; background: var(--plum); border-radius: var(--rL); overflow: hidden; border: 1px solid var(--line2); box-shadow: 0 30px 80px rgba(0, 0, 0, .6); animation: pop .25s cubic-bezier(.2, 1.3, .4, 1); }
 .sheet-in::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--c); z-index: 3; }
 .sheet .x { position: absolute; right: 12px; top: 12px; z-index: 2; background: rgba(10, 8, 16, .6); border: 1px solid var(--line2); border-radius: 50%; width: 40px; height: 40px; display: grid; place-items: center; }
 .sh-hero { padding: 56px 24px 16px; background: linear-gradient(180deg, transparent, var(--plum)), linear-gradient(90deg, color-mix(in srgb, var(--c) 70%, #000), transparent), var(--bg) center/cover; }
@@ -275,7 +275,7 @@
 
 /* hoja «Más» */
 .sheet.more { place-items: end center; padding: 0; }
-.more-in { max-height: calc(100dvh - 8px); overflow-y: auto; overscroll-behavior: contain; width: min(520px, 100%); background: var(--plum); border: 1px solid var(--line2); border-bottom: 0; border-radius: var(--rL) var(--rL) 0 0; padding: 8px 16px calc(env(safe-area-inset-bottom, 0px) + 16px); display: flex; flex-direction: column; gap: 8px; animation: up .28s cubic-bezier(.2, 1, .3, 1); }
+.more-in { max-height: calc(calc(100dvh / var(--z, 1)) - 8px); overflow-y: auto; overscroll-behavior: contain; width: min(520px, 100%); background: var(--plum); border: 1px solid var(--line2); border-bottom: 0; border-radius: var(--rL) var(--rL) 0 0; padding: 8px 16px calc(env(safe-area-inset-bottom, 0px) + 16px); display: flex; flex-direction: column; gap: 8px; animation: up .28s cubic-bezier(.2, 1, .3, 1); }
 .more-in .grab { width: 44px; height: 5px; border-radius: 5px; background: var(--line2); margin: 2px auto 8px; }
 .more-in .kicker { margin: 0 4px 4px; }
 .more-in button { display: flex; align-items: center; gap: 16px; padding: 8px 12px; border-radius: 14px; background: rgba(255, 255, 255, .04); border: 1px solid var(--line); text-align: left; }
@@ -376,7 +376,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 /* ================= Minijuegos y fichas ================= */
 .mg-overlay { position: fixed; inset: 0; z-index: 25; display: grid; place-items: center; padding: 16px; background: rgba(8, 5, 16, .55); animation: fadein .2s; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
 .mg-overlay.out { opacity: 0; transition: opacity .25s; }
-.mg-card { width: min(560px, 100%); max-height: 94dvh; overflow-y: auto; background: linear-gradient(180deg, #32136f, #1c0b3a); border-radius: var(--rL); padding: 24px; text-align: center; color: #f7f0e6; border: 1px solid rgba(255, 244, 228, .22); box-shadow: 0 30px 80px rgba(0, 0, 0, .6); animation: pop .3s cubic-bezier(.2, 1.3, .4, 1); display: flex; flex-direction: column; gap: 12px; align-items: center; }
+.mg-card { width: min(560px, 100%); max-height: calc(94dvh / var(--z, 1)); overflow-y: auto; background: linear-gradient(180deg, #32136f, #1c0b3a); border-radius: var(--rL); padding: 24px; text-align: center; color: #f7f0e6; border: 1px solid rgba(255, 244, 228, .22); box-shadow: 0 30px 80px rgba(0, 0, 0, .6); animation: pop .3s cubic-bezier(.2, 1.3, .4, 1); display: flex; flex-direction: column; gap: 12px; align-items: center; }
 .mg-card h2 { margin: 0; font-family: 'MZ Display', 'Nunito', sans-serif; font-weight: 400; font-size: var(--fs-xl); line-height: 1; } .mg-card p { margin: 0; color: #eae4f6; font-weight: 600; }
 .mg-card .btn { min-width: 220px; min-height: 50px; }
 .mg-top { display: flex; gap: 12px; align-items: center; text-align: left; align-self: stretch; } .mg-top h3 { margin: 0; font-size: var(--fs-xl); } .mg-top small { color: #c4b8a8; }
@@ -475,7 +475,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   .cname { font-size: var(--fs-4xl); }
   .prof { flex-direction: column; align-items: center; } .prof > img { height: 170px; }
   .sheet { padding: 0; place-items: end center; }
-  .sheet-in { width: 100%; max-height: 94dvh; border-radius: var(--rL) var(--rL) 0 0; border-bottom: 0; animation: up .3s cubic-bezier(.2, 1, .3, 1); }
+  .sheet-in { width: 100%; max-height: calc(94dvh / var(--z, 1)); border-radius: var(--rL) var(--rL) 0 0; border-bottom: 0; animation: up .3s cubic-bezier(.2, 1, .3, 1); }
   .sh-hero { padding: 56px 16px 16px; } .sh-hero h1 { font-size: var(--fs-2xl); } .sh-body { padding: 4px 16px 8px; } .sh-foot { padding-left: 16px; padding-right: 16px; }
   .onb-in { grid-template-columns: minmax(0, 1fr); grid-template-areas: "head" "stage" "side"; align-content: start; gap: 8px; }
   .onb .logo { font-size: var(--fs-4xl); } .onb .tag { font-size: var(--fs-xs); }
@@ -503,10 +503,10 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   .hero { min-height: 0; padding: 16px 20px; grid-template-columns: 1.4fr 1fr; }
   .hero h1 { font-size: var(--fs-2xl); } .hero p { font-size: var(--fs-sm); }
   .tile { padding: 8px 12px; } .tile b { font-size: var(--fs-lg); } .tile svg { width: 28px; height: 28px; }
-  .map-wrap { grid-template-columns: minmax(0, 1fr) 240px; } .bigmap { max-height: calc(100dvh - 110px); display: flex; justify-content: center; } .bigmap .navarra { width: auto; height: calc(100dvh - 130px); max-width: 100%; }
+  .map-wrap { grid-template-columns: minmax(0, 1fr) 240px; } .bigmap { max-height: calc(calc(100dvh / var(--z, 1)) - 110px); display: flex; justify-content: center; } .bigmap .navarra { width: auto; height: calc(calc(100dvh / var(--z, 1)) - 130px); max-width: 100%; }
   .chero { padding: 52px 20px 16px; } .bigstamp { width: 90px; height: 90px; }
   .cname { font-size: var(--fs-3xl); } .csel-info p { font-size: var(--fs-sm); }
-  .sheet-in { max-height: calc(100dvh - 16px); } .sh-hero { padding: 44px 20px 8px; } .sh-hero h1 { font-size: var(--fs-xl); }
+  .sheet-in { max-height: calc(calc(100dvh / var(--z, 1)) - 16px); } .sh-hero { padding: 44px 20px 8px; } .sh-hero h1 { font-size: var(--fs-xl); }
   .onb-in { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); grid-template-areas: "stage head" "stage side"; align-content: center; gap: 8px 20px; }
   .onb-head { text-align: left; } .onb .logo { font-size: var(--fs-3xl); }
   .onb .cstrip { flex-wrap: nowrap; overflow-x: auto; }
@@ -525,7 +525,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 @media (prefers-reduced-motion: reduce) { #hub *, .onb * { animation: none !important; } }
 
 /* ================= Portada con historia ================= */
-.hero3d { position: relative; height: clamp(460px, 66dvh, 640px); border-radius: var(--rL); overflow: hidden; border: 1px solid var(--line2); box-shadow: 0 20px 50px rgba(0, 0, 0, .45); background: #1c0b3a; isolation: isolate; }
+.hero3d { position: relative; height: clamp(460px, calc(66dvh / var(--z, 1)), 640px); border-radius: var(--rL); overflow: hidden; border: 1px solid var(--line2); box-shadow: 0 20px 50px rgba(0, 0, 0, .45); background: #1c0b3a; isolation: isolate; }
 /* portada fija: la foto de la comarca y el personaje de pie a la derecha (en vertical, en el centro, encima del título) */
 .hero3d .hero-img { position: absolute; inset: 0; background: #1c0b3a center 82% / cover no-repeat; }   /* (las láminas llevan al personaje abajo, con los pies casi en el borde: cuando hay que recortar, se recorta el cielo) */
 .h-shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(20, 6, 48, .5) 0%, rgba(20, 6, 48, 0) 20%, rgba(20, 6, 48, 0) 52%, rgba(20, 6, 48, .8) 80%, rgba(20, 6, 48, .96) 100%); }
@@ -579,16 +579,16 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   .h-bot { width: 100%; padding: 0 16px 16px; } .chapter { left: 16px; top: 16px; max-width: calc(100% - 32px); }
 }
 @media (max-width: 760px) {
-  .hero3d { height: max(440px, calc(100svh - 158px)); max-height: 760px; margin: -8px 0 0; border-radius: var(--rL); }
+  .hero3d { height: max(440px, calc(calc(100svh / var(--z, 1)) - 158px)); max-height: 760px; margin: -8px 0 0; border-radius: var(--rL); }
   .h-bot h1 { font-size: var(--fs-4xl); margin-bottom: 8px; }
   .mrow { gap: 8px; margin-bottom: 12px; } .mrow .mi { width: 44px; height: 44px; border-radius: 12px; } .mrow .mi img, .mrow .mi svg { width: 34px; height: 34px; }
   .story { grid-template-columns: minmax(0, 1fr); padding: 16px 16px; }
   .hsteps { gap: 8px; } .hsteps li { padding: 8px 8px; } .hsteps li img, .hsteps li svg { width: 48px; height: 48px; } .hsteps b { font-size: var(--fs-sm); } .hsteps span { font-size: var(--fs-xs); }
 }
 @media (max-height: 520px) {
-  .hero3d { height: calc(100dvh - 90px); min-height: 280px; }
+  .hero3d { height: calc(calc(100dvh / var(--z, 1)) - 90px); min-height: 280px; }
   /* (en columna, con 16 px a cada lado y entre la caja del capítulo y lo de abajo: crece si no cabe, en vez de pisarse) */
-  .hero3d { height: auto; min-height: max(280px, calc(100dvh - 90px)); display: flex; flex-direction: column; align-items: flex-start; gap: 16px; padding: 16px; }
+  .hero3d { height: auto; min-height: max(280px, calc(calc(100dvh / var(--z, 1)) - 90px)); display: flex; flex-direction: column; align-items: flex-start; gap: 16px; padding: 16px; }
   .hero3d .chapter { position: relative; top: auto; left: auto; max-width: 100%; } .hero3d .chapter img { width: 36px; height: 36px; } .hero3d .chapter .cbar { display: none; }
   .hero3d .h-bot { position: relative; left: auto; bottom: auto; margin-top: auto; width: min(398px, calc(52% - 16px)); padding: 0; }
   .hero3d .bubble { top: 16px; left: auto; right: 16px; width: min(260px, 36%); } .hero3d .bubble p { font-size: var(--fs-sm); } .hero3d .bubble::after { left: -8px; bottom: 16px; }
@@ -611,7 +611,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .cs-stage::after { content: ''; position: absolute; left: 50%; bottom: 6%; width: 70%; height: 22%; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(closest-side, rgba(255, 43, 214, .45), transparent); pointer-events: none; animation: cs-pulse 2.4s ease-in-out infinite alternate; }
 @keyframes cs-pulse { to { opacity: .55; transform: translateX(-50%) scale(1.08); } }
 .cs-stage .stage-host { position: absolute; inset: 0; width: auto; height: auto; max-width: none; cursor: grab; touch-action: pan-y; z-index: 1; }
-.cs-bgname { position: absolute; left: 50%; top: 44%; transform: translate(-50%, -50%); font: 400 clamp(90px, 14vw, 180px)/1 var(--f-display); color: transparent; -webkit-text-stroke: 2px rgba(255, 122, 200, .55); opacity: .5; white-space: nowrap; pointer-events: none; text-transform: uppercase; letter-spacing: 0; animation: cs-name 8s linear infinite alternate; }
+.cs-bgname { position: absolute; left: 50%; top: 44%; transform: translate(-50%, -50%); font: 400 clamp(90px, calc(14vw / var(--z, 1)), 180px)/1 var(--f-display); color: transparent; -webkit-text-stroke: 2px rgba(255, 122, 200, .55); opacity: .5; white-space: nowrap; pointer-events: none; text-transform: uppercase; letter-spacing: 0; animation: cs-name 8s linear infinite alternate; }
 @keyframes cs-name { from { transform: translate(-54%, -50%); } to { transform: translate(-46%, -50%); } }
 .cs-arrow { position: absolute; top: 46%; z-index: 2; width: 48px; height: 48px; margin-top: -24px; border-radius: 4px; border: 0; background: var(--cta); display: grid; place-items: center; cursor: pointer; box-shadow: var(--glow); clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%); transition: transform .12s; }
 .cs-arrow:active { transform: scale(.9); }
@@ -662,21 +662,21 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 
 @media (max-width: 760px) {
   .csel2 { grid-template-columns: minmax(0, 1fr); grid-template-areas: "stage" "roster" "extra" "side"; }
-  .cs-stage { min-height: 0; height: min(52dvh, 400px); }
+  .cs-stage { min-height: 0; height: min(calc(52dvh / var(--z, 1)), 400px); }
   .cs-side { padding: 16px 16px 16px; }
   .cs-cta { position: sticky; bottom: 8px; z-index: 3; }
   .cs-roster { border-top: 0; border-bottom: 1px solid var(--line); }
   .csel2 .cstrip button { width: 64px; } .csel2 .cstrip button img { width: 54px; height: 54px; }
   .cname { font-size: var(--fs-4xl); }
   .onb-foot { grid-template-columns: minmax(0, 1fr); grid-template-areas: "name" "age" "go" "dd"; } .onb-foot .btn { width: 100%; }
-  .onb .cs-stage { height: min(40dvh, 330px); }
+  .onb .cs-stage { height: min(calc(40dvh / var(--z, 1)), 330px); }
 }
 @media (max-height: 520px) {
   .csel2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); grid-template-areas: "stage side" "roster roster" "extra extra"; }
-  .cs-stage { min-height: 0; height: calc(100dvh - 190px); min-height: 200px; }
+  .cs-stage { min-height: 0; height: calc(calc(100dvh / var(--z, 1)) - 190px); min-height: 200px; }
   .cs-side { padding: 12px 16px 8px 4px; } .cname { font-size: var(--fs-3xl); } .cdesc { display: none; } .stats { gap: 4px; } .sbar { height: 8px; }
   .csel2 .cstrip { padding-top: 8px; } .csel2 .cstrip button { width: 56px; } .csel2 .cstrip button img { width: 46px; height: 46px; } .csel2 .cstrip button span { display: none; }
-  .onb .cs-stage { height: calc(100dvh - 150px); }
+  .onb .cs-stage { height: calc(calc(100dvh / var(--z, 1)) - 150px); }
   .onb-foot { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name go" "age age" "dd dd"; }
   .cs-hint { display: none; }   /* (en pantallas bajas se montaba sobre la peana) */
   .cs-count { top: 16px; left: 16px; }
@@ -700,7 +700,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   .csel2:not(.onbsel) .csel-info .tl { font-size: var(--fs-sm); }
   .csel2:not(.onbsel) .abil { padding: 8px 8px 8px 4px; font-size: var(--fs-xs); } .csel2:not(.onbsel) .abil .aic { width: 32px; height: 32px; }
   .csel2:not(.onbsel) .cs-kick { display: none; }
-  .csel2:not(.onbsel) .cs-arrow { width: 44px; height: 44px; margin-top: -24px; } .csel2:not(.onbsel) .cs-bgname { font-size: clamp(80px, 22vh, 120px); }
+  .csel2:not(.onbsel) .cs-arrow { width: 44px; height: 44px; margin-top: -24px; } .csel2:not(.onbsel) .cs-bgname { font-size: clamp(80px, calc(22vh / var(--z, 1)), 120px); }
   .csel2:not(.onbsel) .cs-cta .gx-go { min-height: 44px; font-size: var(--fs-lg); }
   /* (con la muesca del iPhone queda menos alto: fuera la frase del personaje, y si aun así no cabe, los datos se
      desplazan y el botón de jugar sigue abajo, entero) */
@@ -793,7 +793,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
    Arriba, en una fila, el icono, el título, la energía, las monedas y «Cerrar». Debajo, una franja por cosa (perro, agua,
    comida y equipo): el rótulo a la izquierda, en una columna del mismo ancho para todas, y lo suyo en fila a la derecha.
    Mucho aire: 24 px de margen, 24 px entre franjas y una raya fina entre ellas. Si no cabe, se desplaza */
-.bagpanel .mg-card.bp-card { display: flex; flex-direction: column; align-items: stretch; gap: 0; padding: 0; width: min(920px, 100%); max-width: none; max-height: 92dvh; overflow: hidden; text-align: left; }
+.bagpanel .mg-card.bp-card { display: flex; flex-direction: column; align-items: stretch; gap: 0; padding: 0; width: min(920px, 100%); max-width: none; max-height: calc(92dvh / var(--z, 1)); overflow: hidden; text-align: left; }
 .bp-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 24px; -webkit-overflow-scrolling: touch; }
 .bp-head { display: flex; align-items: center; gap: 16px; min-width: 0; }
 .bp-head > svg, .bp-head > img { flex: none; width: 44px; height: 44px; }   /* (la iconografía de siempre, a su tamaño) */
@@ -852,10 +852,10 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .dogpick-foot { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; width: 100%; } .dogpick-foot .btn { flex: 1 1 160px; max-width: 260px; }
 
 /* listado de castillos al terminar una visita y montes desde el mirador */
-.peaklist { list-style: none; margin: 8px 0 4px; padding: 0; display: grid; gap: 8px; text-align: left; max-height: 40dvh; overflow-y: auto; }
+.peaklist { list-style: none; margin: 8px 0 4px; padding: 0; display: grid; gap: 8px; text-align: left; max-height: calc(40dvh / var(--z, 1)); overflow-y: auto; }
 .peaklist li { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; font-size: var(--fs-sm); padding: 8px 8px; border-radius: 10px; background: rgba(255, 255, 255, .06); }
 .peaklist b { color: #ff7ac8; } .peaklist i { font-style: normal; opacity: .85; text-align: right; } .peaklist span { grid-column: 1 / -1; opacity: .8; font-size: var(--fs-sm); }
-.castlelist { list-style: none; margin: 8px 0 4px; padding: 0; display: grid; gap: 8px; text-align: left; max-height: 40dvh; overflow-y: auto; }
+.castlelist { list-style: none; margin: 8px 0 4px; padding: 0; display: grid; gap: 8px; text-align: left; max-height: calc(40dvh / var(--z, 1)); overflow-y: auto; }
 .castlelist li { font-size: var(--fs-sm); line-height: 1.45; padding: 8px 8px; border-radius: 10px; background: rgba(255, 255, 255, .06); }
 .castlelist b { display: block; font-size: var(--fs-sm); color: #ff7ac8; }
 
@@ -867,15 +867,15 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .enc-bar { flex: 1; height: 16px; border-radius: 9px; background: rgba(0, 0, 0, .35); border: 2px solid rgba(255, 255, 255, .55); position: relative; overflow: hidden; }
 .enc-bar i { position: absolute; inset: 0 auto 0 0; width: 0; background: linear-gradient(90deg, #f7f3ea, #d42f2f); }
 .enc-bar b { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: var(--fs-xs); text-shadow: 0 1px 2px #000; }
-.enc-msg { position: absolute; left: 50%; top: 22%; transform: translate(-50%, -10px); max-width: min(92vw, 560px); text-align: center; font: 900 clamp(18px, 4.4vw, 28px) Nunito, sans-serif; text-shadow: 0 2px 6px rgba(0, 0, 0, .7); opacity: 0; transition: .25s; }
+.enc-msg { position: absolute; left: 50%; top: 22%; transform: translate(-50%, -10px); max-width: min(calc(92vw / var(--z, 1)), 560px); text-align: center; font: 900 clamp(18px, calc(4.4vw / var(--z, 1)), 28px) Nunito, sans-serif; text-shadow: 0 2px 6px rgba(0, 0, 0, .7); opacity: 0; transition: .25s; }
 .enc-msg.on { opacity: 1; transform: translate(-50%, 0); }
 .enc-warn { position: absolute; left: 50%; bottom: 22%; transform: translateX(-50%); padding: 8px 16px; border-radius: 14px; background: #d42f2f; font-weight: 900; font-size: var(--fs-lg); opacity: 0; transition: .15s; box-shadow: 0 0 22px rgba(212, 47, 47, .8); }
 .enc-warn.on { opacity: 1; animation: encPulse .5s infinite alternate; }
 @keyframes encPulse { to { transform: translateX(-50%) scale(1.08); } }
-.enc-help { position: absolute; left: 50%; bottom: max(14px, env(safe-area-inset-bottom)); transform: translateX(-50%); padding: 8px 16px; border-radius: 12px; background: rgba(0, 0, 0, .4); font-size: var(--fs-sm); white-space: nowrap; max-width: 92vw; overflow: hidden; text-overflow: ellipsis; }
+.enc-help { position: absolute; left: 50%; bottom: max(14px, env(safe-area-inset-bottom)); transform: translateX(-50%); padding: 8px 16px; border-radius: 12px; background: rgba(0, 0, 0, .4); font-size: var(--fs-sm); white-space: nowrap; max-width: calc(92vw / var(--z, 1)); overflow: hidden; text-overflow: ellipsis; }
 
 /* aviso de error discreto */
-.errnote { position: fixed; left: 8px; bottom: max(10px, env(safe-area-inset-bottom)); z-index: 90; max-width: min(92vw, 520px); padding: 8px 12px; border-radius: 10px; border: 0; background: rgba(140, 30, 30, .92); color: #fff; font: 700 var(--fs-xs) Nunito, sans-serif; text-align: left; opacity: 0; transform: translateY(8px); transition: .25s; pointer-events: none; }
+.errnote { position: fixed; left: 8px; bottom: max(10px, env(safe-area-inset-bottom)); z-index: 90; max-width: min(calc(92vw / var(--z, 1)), 520px); padding: 8px 12px; border-radius: 10px; border: 0; background: rgba(140, 30, 30, .92); color: #fff; font: 700 var(--fs-xs) Nunito, sans-serif; text-align: left; opacity: 0; transform: translateY(8px); transition: .25s; pointer-events: none; }
 .errnote.on { opacity: 1; transform: none; pointer-events: auto; }
 
 /* partido en El Sadar: marcador arriba; se ocultan brújula, misión y minimapa (los controles táctiles siguen) */
@@ -884,7 +884,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 /* selector de ropa de los personajes KayKit */
 /* tienda del pueblo: interior con estanterías, quien atiende y pestañas de producto estrella, compra y trueque */
 .mg-overlay.shop { display: grid; place-items: center; padding: 12px; }
-.shop-room { position: relative; width: min(900px, 100%); max-height: calc(100dvh - 24px); border-radius: var(--rL); overflow: hidden; display: flex; flex-direction: column;
+.shop-room { position: relative; width: min(900px, 100%); max-height: calc(calc(100dvh / var(--z, 1)) - 24px); border-radius: var(--rL); overflow: hidden; display: flex; flex-direction: column;
   background: radial-gradient(80% 60% at 100% 0%, rgba(255, 43, 214, .16), transparent 60%), linear-gradient(170deg, #31106b 0%, #12052a 78%); box-shadow: 0 20px 60px rgba(0,0,0,.5);
   border-radius: 4px; clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px); }
 /* (la tienda, con la identidad de todo el juego: cristal morado, esquinas cortadas, raya de color arriba, pestañas como las
@@ -942,7 +942,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .enc-b { width: 84px; height: 84px; padding: 0 12px; border-radius: 50%; border: 3px solid rgba(255,255,255,.9); color: #fff; font: 800 var(--fs-sm)/1.15 var(--f-cond, 'MZ Cond'), Nunito, sans-serif; letter-spacing: .04em; text-transform: uppercase; cursor: pointer; box-shadow: 0 6px 16px rgba(0,0,0,.35); display: grid; place-items: center; touch-action: none; }
 .enc-jump { background: radial-gradient(circle at 50% 30%, #ff9bd8, #ff2bd6 60%, #c21cff); text-shadow: 0 2px 0 rgba(74,10,94,.6); box-shadow: 0 0 0 4px rgba(255,122,200,.35), 0 6px 0 #8a1c8f, 0 10px 22px rgba(0,0,0,.35); }
 /* la palanca táctil (como la de la pelota): zona en la mitad izquierda, mando donde se apoya el dedo y una pista hasta el primer toque */
-.enc-stick { position: absolute; left: 0; bottom: 0; width: 46vw; height: 62dvh; pointer-events: auto; touch-action: none; z-index: 30; }
+.enc-stick { position: absolute; left: 0; bottom: 0; width: calc(46vw / var(--z, 1)); height: calc(62dvh / var(--z, 1)); pointer-events: auto; touch-action: none; z-index: 30; }
 .enc-knob { position: absolute; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; border: 3px solid rgba(255,255,255,.55); background: rgba(28,11,58,.3); display: none; }
 .enc-knob i { position: absolute; left: 50%; top: 50%; width: 56px; height: 56px; margin: -28px 0 0 -28px; border-radius: 50%; background: rgba(255,255,255,.85); }
 .enc-stickhint { position: absolute; left: calc(env(safe-area-inset-left, 0px) + 16px); bottom: calc(env(safe-area-inset-bottom, 0px) + 70px); width: 120px; height: 120px; border-radius: 50%; border: 3px dashed rgba(255,255,255,.55); display: grid; place-items: center; opacity: .8; pointer-events: none; z-index: 31; }
@@ -958,7 +958,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 
 /* primera pantalla: elegir idioma */
 .langpick { display: grid; place-items: center; }
-.lp-in { width: min(560px, calc(100vw - 32px)); text-align: center; padding: 24px 0; }
+.lp-in { width: min(560px, calc(calc(100vw / var(--z, 1)) - 32px)); text-align: center; padding: 24px 0; }
 .lp-in .logo { font-size: var(--fs-hero); }
 .lp-in h2 { margin: 16px 0 24px; font-size: var(--fs-xl); font-weight: 900; }
 .lp-in h2 span { color: var(--mute); font-weight: 800; }
@@ -997,7 +997,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   .onb .cs-roster { padding: 2px 8px 8px; } .onb .csel2 .cstrip { padding-top: 8px; }
 }
 @media (orientation: landscape) and (max-height: 520px) {
-  .onb .cs-stage { min-height: calc(100dvh - 150px); min-height: calc(100dvh - 150px); }
+  .onb .cs-stage { min-height: calc(calc(100dvh / var(--z, 1)) - 150px); min-height: calc(calc(100dvh / var(--z, 1)) - 150px); }
 }
 @media (orientation: landscape) and (max-height: 520px) and (max-width: 740px) {
   .onb-foot { grid-template-columns: minmax(0, 1fr); grid-template-areas: "name" "age" "go" "dd"; } .onb-foot .btn.big { width: 100%; }
@@ -1067,7 +1067,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .fr-chip { flex: none; padding: 8px 16px; border-radius: 2px; background: rgba(7, 2, 15, .6); border: 1px solid rgba(201, 178, 255, .3); color: var(--ink); font: 800 var(--fs-sm)/1.15 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%); }
 .fr-chip.on { background: var(--cta); color: #fff; border-color: transparent; box-shadow: var(--glow); }
 /* la lista de frontones: los pueblos de cada comarca juntos, con el elegido en fucsia; se desliza si no cabe */
-.frs-in { position: relative; width: min(640px, 100%); max-height: min(600px, calc(100dvh - 32px)); display: flex; flex-direction: column; background: var(--plum); border: 1px solid var(--line2); clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px); animation: pop .25s cubic-bezier(.2, 1.3, .4, 1); }
+.frs-in { position: relative; width: min(640px, 100%); max-height: min(600px, calc(calc(100dvh / var(--z, 1)) - 32px)); display: flex; flex-direction: column; background: var(--plum); border: 1px solid var(--line2); clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px); animation: pop .25s cubic-bezier(.2, 1.3, .4, 1); }
 .frs-head { flex: none; padding: 24px 72px 16px 24px; border-bottom: 1px solid var(--line); }
 .frs-head h2 { margin: var(--t-mt) 0 0; font: 400 var(--fs-2xl)/1 var(--f-display); text-transform: uppercase; letter-spacing: 0; color: #fff; }
 .frs-list { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 16px 24px 24px; display: flex; flex-direction: column; gap: 16px; }
@@ -1082,14 +1082,14 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   .sport::after { background: none; }
   .sport .sp-stat { position: static; margin-top: 12px; }   /* (en la columna estrecha, debajo del texto) */
   .sp-bar { flex-direction: column; align-items: stretch; } .sp-bar .sp-box { width: 100%; }
-  .frs-in { width: 100%; max-height: 80dvh; }
+  .frs-in { width: 100%; max-height: calc(80dvh / var(--z, 1)); }
 }
 /* (en el móvil tumbado: la carta entera a la vista, también con la barra de Sitecase o de Safari) */
 @media (orientation: landscape) and (max-height: 560px) {
   .sport { --pad: 20px 24px; --col: 400px; gap: 12px 24px; }
   .sport .sp-txt p { max-width: 360px; }   /* (el párrafo acaba antes de la portada) */
   .sp-txt h3 { font-size: var(--fs-2xl); white-space: nowrap; }
-  .frs-in { max-height: calc(100dvh - 16px - env(safe-area-inset-bottom, 0px)); }
+  .frs-in { max-height: calc(calc(100dvh / var(--z, 1)) - 16px - env(safe-area-inset-bottom, 0px)); }
   .frs-head { padding: 12px 64px 12px 20px; } .frs-head h2 { font-size: var(--fs-xl); } .frs-list { padding: 12px 20px 16px; gap: 12px; }
 }
 /* mochila en el móvil tumbado: los botones del perro uno junto al otro (el segundo quedaba debajo, fuera de la vista) */
@@ -1194,7 +1194,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   .tcard { --tp-l: 16px; --tp-r: 16px; padding: 12px var(--tp-r) 12px var(--tp-l); gap: 8px; } .tcard b { font-size: var(--fs-md); } .tcard p { font-size: var(--fs-sm); }
   /* ficha del pueblo: imagen a la izquierda; misiones y botón a la derecha, siempre a la vista */
   .sheet { align-items: center; }
-  .sheet-in { width: min(920px, calc(100vw - 24px)); max-height: calc(100dvh - 16px); display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; border-radius: 18px; }
+  .sheet-in { width: min(920px, calc(calc(100vw / var(--z, 1)) - 24px)); max-height: calc(calc(100dvh / var(--z, 1)) - 16px); display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; border-radius: 18px; }
   .sh-hero { grid-row: 1 / 3; grid-column: 1; min-height: 0; padding: 16px 16px 16px; justify-content: flex-end; overflow-y: auto; }   /* (el texto entero: si no cabe, se desplaza) */
   .sh-hero h1 { font-size: var(--fs-xl); } .sh-hero p { font-size: var(--fs-sm); }
   .sh-body { grid-column: 2; grid-row: 1; padding: 12px 16px 8px; min-height: 0; }
@@ -1220,7 +1220,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   .hub-nav { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 4px); }
   .hub-main { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); }
   .sheet { padding: max(8px, env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) max(8px, env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)); }
-  .sheet-in { max-height: calc(100dvh - max(16px, env(safe-area-inset-bottom, 0px) + 8px)); }
+  .sheet-in { max-height: calc(calc(100dvh / var(--z, 1)) - max(16px, env(safe-area-inset-bottom, 0px) + 8px)); }
   .sheet:not(.more) .sheet-in { width: min(920px, 100%); }
   .onb { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 }
@@ -1262,7 +1262,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
    Tira horizontal: todas las láminas del mismo tamaño (16:9) y con el mismo hueco; se desliza de lado, con aire y
    sin apilar. Debajo de cada una, su título. El visor: la lámina entera, tan grande como quepa, y su título. */
 .lam-rail { display: flex; gap: 16px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; padding: 4px 0 16px; scrollbar-width: thin; }
-.lam-rail .lam { flex: none; width: clamp(200px, 26vw, 320px); display: flex; flex-direction: column; gap: 8px; padding: 0; border: 0; background: none; color: #f6f3fc; text-align: left; cursor: pointer; scroll-snap-align: start; font: inherit; }
+.lam-rail .lam { flex: none; width: clamp(200px, calc(26vw / var(--z, 1)), 320px); display: flex; flex-direction: column; gap: 8px; padding: 0; border: 0; background: none; color: #f6f3fc; text-align: left; cursor: pointer; scroll-snap-align: start; font: inherit; }
 .lam-rail .lam img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; border-radius: 4px; border: 1px solid rgba(201, 178, 255, .3); background: rgba(255, 255, 255, .06); transition: transform .2s; }
 .lam-rail .lam:hover img, .lam-rail .lam:focus-visible img { transform: translateY(-2px); border-color: #ff7ac8; }
 .lam-rail .lam span { font: 800 var(--fs-sm)/1.2 var(--f-cond); letter-spacing: .04em; }
@@ -1271,7 +1271,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .album-sec .adot { width: 12px; height: 12px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 3px rgba(255, 255, 255, .12); }
 .lam-view { position: fixed; inset: 0; z-index: 5000; display: grid; place-items: center; padding: calc(env(safe-area-inset-top, 0px) + 24px) calc(max(env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + 88px) calc(env(safe-area-inset-bottom, 0px) + 24px); background: rgba(10, 2, 26, .92); animation: lvin .25s ease both; }
 @keyframes lvin { from { opacity: 0; } }
-.lam-view figure { margin: 0; display: flex; flex-direction: column; gap: 12px; width: min(100%, calc((100dvh - 120px) * 16 / 9)); }
+.lam-view figure { margin: 0; display: flex; flex-direction: column; gap: 12px; width: min(100%, calc((calc(100dvh / var(--z, 1)) - 120px) * 16 / 9)); }
 .lam-view img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 4px; border: 1px solid rgba(201, 178, 255, .35); box-shadow: 0 16px 40px rgba(0, 0, 0, .6); }
 .lam-view figcaption { display: flex; align-items: baseline; gap: 12px; } .lam-view figcaption b { font: 400 var(--fs-lg)/1.1 var(--f-display); } .lam-view figcaption small { color: #c9b2ff; font-weight: 800; font-size: var(--fs-sm); }
 .lam-view :is(.lv-x, .lv-a) { position: absolute; display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; border: 1px solid rgba(201, 178, 255, .35); background: rgba(43, 16, 98, .85); cursor: pointer; }
@@ -1295,11 +1295,11 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .h-shade { background: var(--cov-head), var(--cov-foot), var(--cov-side); }
 @media (max-aspect-ratio: 1/1) { .h-shade { background: var(--cov-head), linear-gradient(0deg, rgba(14, 7, 32, .92) 0%, rgba(14, 7, 32, .62) 34%, rgba(14, 7, 32, 0) 60%); } }
 /* cabecera de la comarca: más alta para que la lámina no quede en una tira, y el texto abajo a la izquierda */
-.chero { min-height: clamp(200px, 36vw, 56dvh); align-items: end; background: var(--cov-head), var(--cov-foot), var(--cov-side), var(--bg) center 38% / cover no-repeat, #1c0b3a; }
+.chero { min-height: clamp(200px, calc(36vw / var(--z, 1)), calc(56dvh / var(--z, 1))); align-items: end; background: var(--cov-head), var(--cov-foot), var(--cov-side), var(--bg) center 38% / cover no-repeat, #1c0b3a; }
 @media (max-width: 599px), (orientation: portrait) { .chero { min-height: 240px; } }
 /* ficha del pueblo: la lámina entera arriba y, debajo, el nombre y la presentación */
 .sh-hero { padding: 0; background: none; display: flex; flex-direction: column; justify-content: flex-start; min-height: 0; flex: none; }   /* (en vertical no se encoge: las misiones bajan) */
-.sh-hero .sh-cov { display: block; flex: none; width: 100%; aspect-ratio: 16 / 9; max-height: 42dvh; object-fit: cover; object-position: 50% 80%; background: #1c0b3a;
+.sh-hero .sh-cov { display: block; flex: none; width: 100%; aspect-ratio: 16 / 9; max-height: calc(42dvh / var(--z, 1)); object-fit: cover; object-position: 50% 80%; background: #1c0b3a;
   -webkit-mask: linear-gradient(180deg, #000 84%, transparent); mask: linear-gradient(180deg, #000 84%, transparent); }
 .sh-hero .sh-txt { padding: 8px 24px 12px; min-height: 0; }
 .sh-hero .sh-txt .kicker { margin-top: 0; }
@@ -1307,7 +1307,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 /* en horizontal (iPhone tumbado e iPad): dos columnas, la lámina con su texto a la izquierda y las misiones a la derecha */
 @media (orientation: landscape) and (min-width: 600px) {
   .sheet { align-items: center; }
-  .sheet-in { width: min(980px, calc(100vw - 32px)); max-height: min(760px, calc(100dvh - 16px)); display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
+  .sheet-in { width: min(980px, calc(calc(100vw / var(--z, 1)) - 32px)); max-height: min(760px, calc(calc(100dvh / var(--z, 1)) - 16px)); display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
   .sh-hero { grid-row: 1 / 3; grid-column: 1; overflow-y: auto; border-right: 1px solid var(--line); background: linear-gradient(180deg, color-mix(in srgb, var(--c) 14%, var(--plum)), var(--plum) 70%); }
   .sh-hero .sh-cov { max-height: none; }
   .sh-hero .sh-txt { padding: 8px 16px 16px; }
@@ -1368,7 +1368,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .ix-foot .tc-oir, .ix-foot .tc-tocar { min-width: 0; } .ix-foot .tc-oir.on { border-color: #ff7ac8; color: #ff7ac8; }
 .mg-card.tocar-card { gap: 10px; position: relative; } .tocar-card .mg-top { padding-right: 44px; }   /* (sitio para la cruz de salir) */
 .tocar-card .tc-score { margin-left: auto; font: 800 var(--fs-lg)/1 var(--f-cond, 'Nunito'); color: #fff; white-space: nowrap; }
-.tc-stage { position: relative; width: 100%; height: min(320px, 50dvh); border-radius: var(--rL); background: linear-gradient(180deg, rgba(14, 7, 32, .45), rgba(14, 7, 32, .85)); border: 1px solid var(--line); overflow: hidden; }
+.tc-stage { position: relative; width: 100%; height: min(320px, calc(50dvh / var(--z, 1))); border-radius: var(--rL); background: linear-gradient(180deg, rgba(14, 7, 32, .45), rgba(14, 7, 32, .85)); border: 1px solid var(--line); overflow: hidden; }
 .tc-lanes { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); }
 .tc-lane { position: relative; border-left: 1px solid rgba(255, 255, 255, .1); } .tc-lane:first-child { border-left: 0; }
 .tc-tag { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); padding: 2px 10px; border-radius: 4px; background: rgba(255, 255, 255, .08); font-size: var(--fs-xs); font-weight: 800; color: rgba(255, 255, 255, .6); white-space: nowrap; max-width: calc(100% - 8px); overflow: hidden; text-overflow: ellipsis; }
@@ -1389,7 +1389,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .tc-hint { margin: 0; color: var(--mute); font-size: var(--fs-xs); }
 .tocar-card .tc-x { position: absolute; top: 10px; right: 10px; width: 40px; height: 40px; border-radius: 50%; background: rgba(0, 0, 0, .35); border: 1px solid rgba(255, 255, 255, .3); color: #fff; font: 400 16px/1 var(--f-cond, 'Nunito'); display: grid; place-items: center; cursor: pointer; }
 .tocar .tc-pads { --n: inherit; }
-@media (max-height: 470px) { .tc-stage { height: 44dvh; } .tc-pads button { width: 64px; height: 64px; } .tc-hint { display: none; } .mg-card.tocar-card { padding: 14px 16px; gap: 8px; } .tc-tag { top: 4px; } }
+@media (max-height: 470px) { .tc-stage { height: calc(44dvh / var(--z, 1)); } .tc-pads button { width: 64px; height: 64px; } .tc-hint { display: none; } .mg-card.tocar-card { padding: 14px 16px; gap: 8px; } .tc-tag { top: 4px; } }
 
 /* ---- pasaka: el marcador, el aviso y los botones del partido (game/pasaka3d.js pone encima su mando) ---- */
 .pasaka-menu .mg-card { gap: 10px; } .pasaka-menu .mg-card .btn { min-width: 240px; }

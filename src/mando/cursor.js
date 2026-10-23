@@ -1,8 +1,9 @@
 // La flecha del panel táctil: en los menús y en los minijuegos que se tocan, el móvil (o la palanca de un mando de verdad)
 // la mueve y, al tocar, pulsa lo que hay debajo. Y pulsar un botón de la pantalla como si se tocara con el dedo, para los
 // botones que el móvil copia (contextos.js).
+import { enCss } from '../util/tele.js';
 let el = null, x = 0, y = 0, on = false;
-const pon = () => { if (el) el.style.transform = `translate(${x}px, ${y}px)`; };
+const pon = () => { if (el) el.style.transform = `translate(${enCss(x)}px, ${enCss(y)}px)`; };   // (x e y, en píxeles de la pantalla: util/tele.js)
 /** Enseña o esconde la flecha. */
 export function verFlecha(v) {
   if (v === on) return; on = v;
