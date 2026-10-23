@@ -5,3 +5,6 @@ Cambios: redimensionadas (1280 × 720 y 640 × 360) y convertidas a WebP. Las de
 2026-10-19: el autor volvió a entregar las 110 láminas a 1672 × 941 (un ZIP de portadas), con más detalle que las de
 antes y una c-cereal nueva. Se guardan en original/; las de web/ (1280 y 640), mini/ (640, sin pesar más que las de antes)
 y grande/ (2560, de las de 1672 ampliadas con Real-ESRGAN y reducidas) salen ahora de ellas. dep-pasaka sigue siendo la de antes.
+2026-10-23: el autor rehízo 45 de ellas con más detalle y la misma escena (las 32 portadas de pueblo, los 8 paisajes de
+comarca y los 5 de deportes), a 1672 × 941, en seis ZIP («Herrizherri-regeneradas»). Sustituyen a las de antes en
+original/, web/, mini/, movil/ y grande/ (tools/laminas-importar.mjs); las de mini/ y movil/ sin pesar más que las de antes.

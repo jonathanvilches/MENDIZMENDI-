@@ -2,7 +2,7 @@
 
 De las 106 imágenes del encargo del 22 de octubre han llegado 74 con su nombre, y tres de las variantes cubren otras tres: «La lamia dorada de Xorroxin» será lamias.png, «Joaldunak de Ituren por Malerreka» será joaldunak.png y «Zubigainekoa en el pretil de Lesaka» será danza-bidasoa.png. Faltan estas 28 (el periódico del encierro ya no hace falta: se ha quitado del juego). Mismas reglas de entrega que en el encargo: PNG con el nombre exacto, sin texto dentro; iconos y trofeo cuadrados con fondo transparente; el resto apaisado 16:9.
 
-Hay tres partes. La A es lo imprescindible: hoy esas pantallas no tienen imagen tuya. La B mejora la calidad de imágenes que ya están en el juego. La C es opcional.
+Hay tres partes. La A es lo imprescindible: hoy esas pantallas no tienen imagen tuya. La B, las láminas rehechas, ya está entregada. La C es opcional.
 
 # A. Imprescindibles (28)
 
@@ -54,55 +54,9 @@ Para el panel de cultura de cada comarca, que hoy enseña solo el texto. **Estil
 - **danza-ribera-alta.png** · «La jota: voz y baile» (comarca de Ribera Alta). La jota es una tradición compartida: se canta y también se baila. En Peralta, su concurso de jota navarra reúne a distintas generaciones de cantantes.
 - **danza-ribera.png** · «Paloteado de Cortes» (comarca de Ribera). Los palos marcan el ritmo. Este conjunto local reúne danzas y personajes; su ropa actual también ha cambiado con el tiempo.
 
-# B. Láminas para rehacer con más calidad (45)
+# B. Láminas rehechas con más calidad: entregadas
 
-Ya están en el juego, pero a 1672 × 941 y se ven blandas en pantallas grandes. No es otra idea: es la misma escena con más resolución y detalle. Si la herramienta acepta una imagen de referencia, adjunta la actual (van todas en referencias-laminas-para-rehacer.zip) y pide: «Regenera la imagen adjunta con la misma composición, los mismos personajes, colores, luz y estilo, en 16:9 al mayor tamaño posible y con mucho más detalle y nitidez. Sin texto ni marcas».
-
-- **lesaka.png** · «La regata Onin» (pueblo; Lesaka (Baztan-Bidasoa))
-- **etxalar.png** · «La iglesia y sus estelas» (pueblo; Etxalar (Baztan-Bidasoa))
-- **zugarramurdi.png** · «La cueva de Zugarramurdi» (pueblo; Zugarramurdi (Baztan-Bidasoa))
-- **amaiur-maya-del-baztan.png** · «El arco de Amaiur» (pueblo; Amaiur / Maya (Baztan-Bidasoa))
-- **ituren.png** · «Los joaldunak» (pueblo; Ituren (Baztan-Bidasoa))
-- **elizondo.png** · «El azud de Txokoto» (pueblo; Elizondo (Baztan-Bidasoa))
-- **leitza.png** · «La iglesia de San Miguel» (pueblo; Leitza (Larraun-Leitzaldea))
-- **lekunberri.png** · «La iglesia de Lekunberri» (pueblo; Lekunberri (Larraun-Leitzaldea))
-- **orreaga-roncesvalles.png** · «La colegiata de Roncesvalles» (pueblo; Orreaga / Roncesvalles (Pirineo))
-- **aribe.png** · «El puente de Aribe» (pueblo; Aribe (Pirineo))
-- **otsagabia-ochagavia.png** · «El puente de Otsagabia» (pueblo; Otsagabia / Ochagavía (Pirineo))
-- **isaba-izaba.png** · «La torre de Isaba» (pueblo; Isaba / Izaba (Pirineo))
-- **erronkari-roncal.png** · «La iglesia de Roncal» (pueblo; Erronkari / Roncal (Pirineo))
-- **burgui-burgi.png** · «El puente de Burgui» (pueblo; Burgui / Burgi (Pirineo))
-- **altsasu-alsasua.png** · «La plaza de los Fueros» (pueblo; Altsasu / Alsasua (Sakana))
-- **irurtzun.png** · «Las Dos Hermanas» (pueblo; Irurtzun (Sakana))
-- **pamplona.png** · «El Ayuntamiento» (pueblo; Pamplona / Iruña (Comarca de Pamplona))
-- **aoiz.png** · «El puente sobre el Irati» (pueblo; Aoiz / Agoitz (Prepirineo))
-- **lumbier.png** · «La Foz de Lumbier» (pueblo; Lumbier (Sangüesa))
-- **irulegi.png** · «Las ruinas del castillo» (pueblo; Irulegi (Comarca de Pamplona))
-- **sanguesa.png** · «El Camino de Santiago en Sangüesa» (pueblo; Sangüesa / Zangoza (Sangüesa))
-- **estella.png** · «El puente de la Cárcel» (pueblo; Estella-Lizarra (Tierra Estella))
-- **viana.png** · «El portal de Santa María» (pueblo; Viana (Tierra Estella))
-- **puente-la-reina.png** · «El puente sobre el Arga» (pueblo; Puente la Reina / Gares (Valdizarbe-Novenera))
-- **artajona.png** · «El Cerco de Artajona» (pueblo; Artajona (Valdizarbe-Novenera))
-- **tafalla.png** · «La plaza de Navarra» (pueblo; Tafalla (Zona Media))
-- **javier.png** · «El castillo de Javier» (pueblo; Javier / Xabier (Sangüesa))
-- **ujue.png** · «La fortaleza de Ujué» (pueblo; Ujué / Uxue (Zona Media))
-- **olite.png** · «El Palacio Real» (pueblo; Olite / Erriberri (Zona Media))
-- **marcilla.png** · «El castillo de Marcilla» (pueblo; Marcilla (Ribera Alta))
-- **tudela.png** · «El claustro de la catedral» (pueblo; Tudela (Ribera))
-- **cortes.png** · «El castillo de Cortes» (pueblo; Cortes (Ribera))
-- **c-baztan.png** · «El valle de Baztan» (paisaje; comarca de Baztan-Bidasoa)
-- **c-aralar.png** · «Atardecer en Aralar» (paisaje; comarca de Larraun-Leitzaldea)
-- **c-setas.png** · «Setas en el bosque» (paisaje; comarca de Larraun-Leitzaldea)
-- **c-pirineos.png** · «Los Pirineos» (paisaje; comarca de Pirineo)
-- **c-sakana.png** · «El valle de Sakana» (paisaje; comarca de Sakana)
-- **c-urbasa.png** · «El mapa en Urbasa» (paisaje; comarca de Sakana)
-- **c-prepirineo.png** · «Huellas en el Prepirineo» (paisaje; comarca de Prepirineo)
-- **c-bardenas.png** · «Las Bardenas» (paisaje; comarca de Ribera)
-- **dep-fronton.png** · «El frontón» (deporte; Navarra)
-- **dep-estadio.png** · «El estadio» (deporte; Navarra)
-- **dep-pelotari.png** · «El pelotari» (deporte; Navarra)
-- **dep-torneo.png** · «Torneo de pelota» (deporte; Navarra)
-- **dep-futbol.png** · «Partido de fútbol» (deporte; Navarra)
+Las 45 llegaron el 23 de octubre en seis ZIP y ya están en el juego en todos sus tamaños. No hace falta hacer nada más con ellas.
 
 # C. Opcional: flora en tu estilo (51)
 
