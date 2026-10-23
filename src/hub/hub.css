@@ -92,8 +92,6 @@
 /* escritorio: en pantallas anchas el contenido no pasa de 1440 px y va centrado (antes se estiraba de borde a borde: las
    portadas, de 1280 px, se veían estiradas y borrosas, y el mapa quedaba lejos de su lista) */
 @media (min-width: 1600px) { .hub-main { padding-left: max(var(--gut), calc((100% - 1440px) / 2)); padding-right: max(var(--gut), calc((100% - 1440px) / 2)); } }
-/* (y el mapa, que no pasa de 820 px, junto a su lista y los dos centrados: antes quedaba un hueco grande entre ellos) */
-@media (min-width: 1200px) and (min-height: 700px) { .map-wrap { grid-template-columns: minmax(0, 820px) 300px; justify-content: center; gap: 32px; } }
 .hub-main::-webkit-scrollbar { width: 8px; } .hub-main::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, .14); border-radius: 8px; }
 .hub-main > * { animation: rise .4s cubic-bezier(.2, .9, .3, 1) both; }
 .hub-main > *:nth-child(2) { animation-delay: .04s; } .hub-main > *:nth-child(3) { animation-delay: .08s; } .hub-main > *:nth-child(4) { animation-delay: .12s; } .hub-main > *:nth-child(n+5) { animation-delay: .16s; }
@@ -210,6 +208,16 @@
 .legend2 .lg { display: flex; flex-wrap: wrap; gap: 4px 12px; font: 600 var(--fs-xs)/1.3 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; color: var(--lila); }
 /* (solo los puntos de la leyenda: los números de la lista de comarcas, que también van dentro, llevan su estilo) */
 .legend2 .lg i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; border: 2px solid #12052a; vertical-align: -2px; margin-right: 8px; background: #fdf8ef; }
+/* (con la pantalla apaisada, el mapa entero a la vista, sin desplazar: tan alto como cabe bajo el título, y su lista al lado) */
+@media (min-aspect-ratio: 1/1) and (min-height: 521px) {
+  .map-wrap { grid-template-columns: auto minmax(240px, 300px); justify-content: center; gap: 24px; }
+  .map-wrap .bigmap { display: flex; justify-content: center; }
+  .map-wrap .bigmap .navarra { width: auto; height: clamp(320px, calc(100dvh / var(--z, 1) - 230px), 820px); max-width: 100%; }
+  /* (y la lista, tan alta como el mapa: sus botones se reparten ese alto y, si no caben, se desplaza ella sola) */
+  .map-wrap { align-items: stretch; } .map-wrap .legend2 { height: 0; min-height: 100%; }
+  .map-wrap .clist { flex: 1; min-height: 0; overflow-y: auto; }
+  .map-wrap .clist button { flex: 1 1 0; min-height: 40px; max-height: 64px; padding-top: 4px; padding-bottom: 4px; }
+}
 .legend2 .lg i.pin1 { background: var(--gold); } .legend2 .lg i.pin2 { background: var(--leaf); }
 .clist { display: flex; flex-direction: column; gap: 8px; }
 .clist button { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: auto auto; align-items: center; gap: 2px 8px; padding: 8px 12px 8px 8px; border-radius: 3px; background: rgba(255, 255, 255, .04); border: 1px solid rgba(201, 178, 255, .16); text-align: left; clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%); animation: gx-in .4s cubic-bezier(.2, .9, .3, 1.15) var(--d, 0s) both; }
@@ -369,7 +377,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .pstats { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; } .pstats span { display: flex; align-items: center; gap: 8px; font-size: var(--fs-sm); }
 .set { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
 /* (los controles, todos del mismo ancho y pegados al mismo borde derecho: la casilla, sin el margen que le pone el navegador) */
-.set select { font: inherit; padding: 8px 8px; border-radius: 10px; background: var(--plum2); color: #fff; border: 1px solid var(--line2); min-width: 0; width: min(56%, 220px); flex: none; text-overflow: ellipsis; }
+.set select { font: inherit; padding: 8px 12px; border-radius: 10px; background-color: var(--plum2); color: #fff; border: 1px solid var(--line2); min-width: 0; width: min(56%, 220px); flex: none; text-overflow: ellipsis; }
 .set input[type=range] { width: min(56%, 220px); flex: none; margin: 0; accent-color: var(--gold); } .set input[type=checkbox] { width: 24px; height: 24px; margin: 0; accent-color: var(--gold); }
 
 /* ---------- Bienvenida: selección de personaje a pantalla completa ---------- */

@@ -42,7 +42,8 @@ export async function openInstrumento(ui, id) {
     const oir = el(`<button type="button" class="btn ghost tc-oir">${esc(tr('Escuchar'))}</button>`), tocar = el(`<button type="button" class="btn tc-tocar">${esc(tr('Tocar'))}</button>`);
     if (isDidactico()) foot.prepend(oir); else foot.prepend(oir, tocar);
     let busy = 0;
-    oir.onclick = () => { if (busy > Date.now()) return; ui.sound?.init?.(); const d = muestra(ui.sound, x, notas); busy = Date.now() + d * 1000; oir.classList.add('on'); setTimeout(() => oir.classList.remove('on'), d * 1000); };
+    oir.onclick = () => { if (busy > Date.now()) return; ui.sound?.init?.(); const d = muestra(ui.sound, x, notas); ui.sound?.duck?.(d);   // (la música del juego, apartada mientras suena)
+       busy = Date.now() + d * 1000; oir.classList.add('on'); setTimeout(() => oir.classList.remove('on'), d * 1000); };
     tocar.onclick = async () => { next?.click(); await new Promise(r => setTimeout(r, 280)); await jugarInstrumento(ui, x); };
   }
   return p;

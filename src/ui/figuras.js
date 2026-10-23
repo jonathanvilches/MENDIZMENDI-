@@ -17,7 +17,7 @@ const KIND = { leyenda: 'Leyenda', carnaval: 'Carnaval' };
 /** La ilustración de una figura si la hay; si no, el render de su traje (o '' si no está en esta versión). */
 export const figuraImg = (id) => ILUS[id] || IMG[id] || '';
 /** Si la figura tiene ilustración (apaisada) en vez del render. */
-const figuraIlus = (id) => !!ILUS[id];
+export const figuraIlus = (id) => !!ILUS[id];
 /** La tarjeta de una figura: su imagen, de qué es y de dónde, y su nombre (abre la ficha al tocarla: data-figura). */
 const figuraCard = (f) => `<button type="button" class="fcard${figuraIlus(f.id) ? ' ilus' : ''}" data-figura="${f.id}" aria-label="${esc(f.name)}"><span class="fpic">${figuraImg(f.id) ? `<img src="${figuraImg(f.id)}" alt="" loading="lazy" decoding="async">` : ''}</span><span class="ftx"><small>${esc(KIND[f.kind])} · ${esc(f.where.split(' · ')[0])}</small><b>${esc(f.name)}</b>${f.eu && f.eu !== f.name ? `<i>${esc(f.eu)}</i>` : ''}</span></button>`;
 /** Las tarjetas de una lista de figuras (por defecto, todas). */

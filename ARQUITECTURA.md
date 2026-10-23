@@ -417,6 +417,13 @@ app Mando» abre `mando/`, que se instala) y en el móvil o la tableta (en el or
 juego; en el móvil, instalarlo aquí). La del aparato en el que se está va marcada y, en el móvil, la primera. Se ve
 una sola vez sola (`seen.comoJugar` del perfil).
 
+El material didáctico (`src/hub/didactico.js`) enseña tradiciones, oficios, productos, historia y palabras en euskera
+como la página de naturaleza: `src/hub/ddgal.js` pinta la galería, con pestañas por apartado (en el móvil, la elegida
+se trae a la vista) y una tarjeta por cosa con su lámina o, si aún no la tiene, su icono grande sobre su color. Al
+tocarla se abre su ficha (`infoCard`) con el texto en pestañas: qué es, cómo se hace, herramientas, antes y ahora, y
+dónde, con enlaces a sus pueblos. Las palabras en euskera van en tarjetas con la palabra en grande y el castellano
+debajo, y las conversaciones, en bocadillos. Lo que sale con icono está en el encargo de imágenes pendiente.
+
 La web se instala como app. `src/web/install.js`, desde «Cómo jugar»: en Android y en Chrome o Edge del ordenador abre
 el aviso del navegador; en el iPhone y el iPad enseña los tres pasos de Safari, y deja compartir el enlace. En la app
 ya instalada lo dice, y en el archivo único y en el artefacto manda a la web. El icono, la portada con la que arranca la página

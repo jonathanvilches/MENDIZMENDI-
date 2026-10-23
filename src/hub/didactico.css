@@ -66,6 +66,54 @@ html.didactico #hub [data-play], html.didactico #hub [data-sport], html.didactic
 .dd-vsec summary { display: flex; align-items: center; gap: 12px; min-height: 48px; cursor: pointer; list-style: none; color: #fff; } .dd-vsec summary::-webkit-details-marker { display: none; } .dd-vsec summary small { margin-left: auto; color: var(--mute); }
 .dd-voc { width: 100%; margin: 0 0 12px; border-collapse: collapse; font-size: var(--fs-sm); overflow-wrap: anywhere; }
 .dd-voc th, .dd-voc td { padding: 6px 12px 6px 0; border-top: 1px solid var(--line); text-align: left; vertical-align: top; } .dd-voc th { color: var(--gold); } .dd-voc td { color: #eae4f6; font-weight: 700; } .dd-voc td.dd-vd { color: var(--mute); font-weight: 600; }
+/* la galería (ddgal.js), como Naturaleza: pestañas con su icono y cuántos hay, y una tarjeta por cosa con su ilustración (o
+   su icono grande sobre su color), el rótulo pequeño encima y el nombre en grande; legible también en la tele */
+.ddg .dd-tabs { margin-top: 8px; } .ddg .dd-tabs button { display: inline-flex; align-items: center; gap: 8px; font-size: var(--fs-md); }
+.ddg .dd-tabs button .ico { width: 26px; height: 26px; } .ddg .dd-tabs button small { min-width: 24px; padding: 2px 8px; border-radius: 999px; background: rgba(255, 255, 255, .1); font-size: var(--fs-xs); text-align: center; }
+.dd-intro { margin: 0; color: var(--mute); font-size: var(--fs-md); font-weight: 700; }
+/* (en la galería, las pestañas, su frase y sus tarjetas juntas: el hueco de la sección entre ellas ya basta) */
+.ddg .dd-tabs { margin-bottom: 0; } .ddg .dd-intro { margin-top: -4px; }
+.ddc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 16px; }
+.ddc { display: flex; flex-direction: column; min-width: 0; text-align: left; border-radius: var(--r); overflow: hidden; background: var(--glass); border: 1px solid var(--line); transition: transform .15s, border-color .15s, box-shadow .15s; }
+.ddc:hover, .ddc:focus-visible { transform: translateY(-3px); border-color: var(--c); box-shadow: 0 10px 28px rgba(0, 0, 0, .35); }
+.ddc-pic { position: relative; aspect-ratio: 16 / 10; display: grid; place-items: center; overflow: hidden; background: radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--c) 42%, #2a0f55), #170833 78%); }
+.ddc-pic > img:not(.ico) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ddc.fit .ddc-pic > img:not(.ico) { object-fit: contain; padding: 6% 10%; filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .45)); }
+.ddc-pic > .ico, .ddc-pic > svg { width: 42%; height: auto; max-height: 72%; filter: drop-shadow(0 10px 16px rgba(0, 0, 0, .45)); }
+.ddc-txt { display: flex; flex-direction: column; gap: 4px; padding: 12px 16px 16px; }
+.ddc-txt small { color: var(--rosa, #ff7ac8); font: 800 var(--fs-xs)/1.25 var(--f-cond); letter-spacing: .08em; text-transform: uppercase; }
+.ddc-txt b { color: #fff; font: 900 var(--fs-lg)/1.2 Nunito, sans-serif; }
+.ddc-txt i { color: var(--mute); font-size: var(--fs-sm); font-weight: 700; font-style: normal; }
+/* la ficha: el icono grande sobre su color cuando aún no hay ilustración, y el texto con sus títulos */
+.ddf .ddf-ico { position: absolute; inset: 0; display: grid; place-items: center; background: radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--c) 42%, #2a0f55), #170833 78%); }
+.ddf .ddf-ico > .ico, .ddf .ddf-ico > svg { width: 52%; height: auto; max-height: 76%; filter: drop-shadow(0 12px 20px rgba(0, 0, 0, .45)); }
+.ddf .es-pane h4 { margin: 16px 0 4px; color: #fff; font: 900 var(--fs-md)/1.25 Nunito, sans-serif; } .ddf .es-pane h4:first-child { margin-top: 0; }
+.ddf .es-pane p { margin: 0 0 8px; line-height: 1.55; }
+.dd-n { display: inline-grid; place-items: center; width: 28px; height: 28px; margin-right: 8px; border-radius: 50%; background: var(--cyan, #c9b2ff); color: #1e0a44; font: 900 var(--fs-sm)/1 Nunito, sans-serif; vertical-align: middle; }
+.dd-cu small { color: var(--rosa, #ff7ac8); font: 800 var(--fs-xs)/1.25 var(--f-cond); letter-spacing: .08em; text-transform: uppercase; }
+.dd-place { display: flex; align-items: center; gap: 4px; color: var(--mute); font-style: italic; }
+.dd-where-f { display: flex; flex-wrap: wrap; gap: 8px; } .dd-where-f .lnk { display: inline-flex; align-items: center; gap: 4px; min-height: 40px; padding: 4px 12px; border-radius: 999px; background: rgba(255, 255, 255, .08); border: 1px solid var(--line2); color: #fff; text-decoration: none; }
+.dd-tools thead th { color: var(--mute); font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .06em; }
+
+/* las palabras en euskera: tarjetas con su dibujo, el euskera en grande y el castellano debajo; las conversaciones, en
+   bocadillos (el vecino a la izquierda, tú a la derecha) */
+.ddw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 16px; }
+.ddw { container-type: inline-size; display: flex; flex-direction: column; min-width: 0; border-radius: var(--r); overflow: hidden; background: var(--glass); border: 1px solid var(--line); }
+.ddw-pic { position: relative; aspect-ratio: 4 / 3; display: grid; place-items: center; overflow: hidden; background: radial-gradient(circle at 50% 42%, #4a1d8c, #170833 78%); }
+.ddw-pic > img:not(.ico) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ddw.fit .ddw-pic > img:not(.ico) { object-fit: contain; padding: 6% 10%; filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .45)); }
+.ddw-pic > .ico, .ddw-pic > svg { width: 46%; height: auto; max-height: 74%; filter: drop-shadow(0 10px 16px rgba(0, 0, 0, .45)); }
+.ddw-txt { display: flex; flex-direction: column; gap: 2px; padding: 12px 16px 16px; text-align: center; }
+.ddw-txt b { color: #ffd76a; font: 400 min(var(--fs-2xl), 15cqi)/1.05 var(--f-display); text-transform: none; overflow-wrap: anywhere; }
+.ddw.largo .ddw-txt b { font-size: min(var(--fs-xl), 10.5cqi); }   /* (una palabra larga, como harrijasotzailea, más pequeña: entera en su tarjeta, sin partirla) */
+.ddw-txt i { color: #fff; font: 800 var(--fs-md)/1.3 Nunito, sans-serif; font-style: normal; }
+.ddw-txt small { margin-top: 4px; color: var(--mute); font-size: var(--fs-sm); font-weight: 700; }
+.ddch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap: 16px; }
+.ddch { display: flex; flex-direction: column; gap: 8px; padding: 16px; border-radius: var(--r); background: var(--glass); border: 1px solid var(--line); }
+.ddch-b { max-width: 82%; margin: 0; padding: 8px 16px; border-radius: 18px 18px 18px 4px; background: rgba(255, 255, 255, .1); display: flex; flex-direction: column; gap: 2px; }
+.ddch-b.tu { align-self: flex-end; border-radius: 18px 18px 4px 18px; background: linear-gradient(100deg, rgba(255, 43, 214, .35), rgba(123, 47, 247, .35)); text-align: right; }
+.ddch-b b { color: #ffd76a; font: 900 var(--fs-lg)/1.25 Nunito, sans-serif; } .ddch-b i { color: #eae4f6; font-size: var(--fs-sm); font-weight: 700; font-style: normal; }
+
 /* móvil de pie y móvil tumbado */
 @media (max-width: 720px) {
   .dd-hero { grid-template-columns: 1fr; gap: 12px; }
@@ -73,8 +121,16 @@ html.didactico #hub [data-play], html.didactico #hub [data-sport], html.didactic
   .dd-tools th, .dd-tools td, .dd-voc th, .dd-voc td { border-top: 0; } .dd-tools td:last-child, .dd-voc td.dd-vd { grid-column: 1 / -1; padding-top: 0; }
   .dd-arms > img, .dd-arms > canvas { width: 84px; }
 }
+/* (en el móvil de pie, las tarjetas de dos en dos) */
+@media (max-width: 560px) {
+  .ddc-grid, .ddw-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .ddc-txt { padding: 8px 12px 12px; } .ddc-txt b { font-size: var(--fs-md); } .ddw-txt { padding: 8px 8px 12px; } .ddw-txt i { font-size: var(--fs-sm); }
+}
 @media (orientation: landscape) and (max-height: 500px) {
   .dd-hero { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr); gap: 16px; } .dd-hero h1, .dd-portada h1 { font-size: var(--fs-2xl); }
   .dd-tema { min-height: 72px; padding: 8px 12px; }
+  /* (y tumbado, más tarjetas por fila y más bajas: se ven enteras) */
+  .ddc-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; } .ddw-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .ddc-txt { padding: 8px 12px 12px; } .ddc-txt b { font-size: var(--fs-md); } .ddw-txt { padding: 8px 8px 12px; } .ddw-txt i { font-size: var(--fs-sm); }
 }
 @media (max-height: 520px) and (min-width: 561px) { .dd-chip { min-height: 40px; padding-block: 2px; } }
