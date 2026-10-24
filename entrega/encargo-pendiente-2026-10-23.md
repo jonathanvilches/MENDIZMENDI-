@@ -1,12 +1,14 @@
 # Herrizherri · todo lo que falta de imágenes (2026-10-23)
 
+**24 de octubre:** han llegado 26 de la parte A, ya en el juego: los 14 cuentos, 9 danzas, los iconos del mando y del globo y la txapela de campeón. De las danzas faltan dos: la del Prepirineo llegó cortada (el segundo zip estaba incompleto) y la de Sangüesa no llegó. Quedan 35 en la parte A; la lista para pegar, `encargo-pendiente-para-pegar.txt`, ya está al día.
+
 De las 106 imágenes del encargo del 22 de octubre han llegado 74 con su nombre, y tres de las variantes cubren otras tres: «La lamia dorada de Xorroxin» será lamias.png, «Joaldunak de Ituren por Malerreka» será joaldunak.png y «Zubigainekoa en el pretil de Lesaka» será danza-bidasoa.png. Faltaban esas 28 (el periódico del encierro ya no hace falta: se ha quitado del juego). Tras revisar pantalla por pantalla el material didáctico y el juego, se suman 33 más (productos, carnavales, tradiciones, historia y arquitectura) y las 104 cimas que aún no tienen escena. Mismas reglas de entrega que en el encargo: PNG con el nombre exacto, sin texto dentro; iconos y trofeo cuadrados con fondo transparente; el resto apaisado 16:9.
 
 Hay cinco partes. La A es lo imprescindible: hoy esas pantallas no tienen imagen tuya o llevan un icono. La B, las láminas rehechas, ya está entregada. La C es opcional. La D son las cimas, empezando por las de los pueblos del juego. La E responde a si falta alguna leyenda.
 
 | Parte | Imágenes |
 |---|---|
-| A. Imprescindibles | 61 |
+| A. Imprescindibles | 35 (de 61: el 24 de octubre llegaron 26) |
 | B. Láminas rehechas | entregadas |
 | C. Flora, opcional | 51 |
 | D. Cimas | 104 |
