@@ -272,20 +272,15 @@ export class Hub {
     </section>
     ${empezado ? this.progreso(p, last) : ''}
     <section class="saberes">
-      <div class="sb-head"><small class="kicker">${I('book', 20)} Lo más importante</small><h2>Aprende Navarra jugando</h2>
-        <p>Cada misión, cada paseo y cada partido te enseñan algo de Navarra: su producto local, su arquitectura y sus escudos, su historia, su campo, su fauna, su flora y sus tradiciones. Cada cosa que aprendes es una carta.</p></div>
-      <div class="sb-links"><button class="btn ghost sb-arms" data-go="escudos">${I('shield', 26)} Escudos de Navarra: cómo se leen y qué significan</button>
-      <button class="btn ghost sb-arms" data-go="cuentos">${I('legend', 26)} Cuentos y leyendas de Navarra: escúchalos en cada pueblo</button>
-      <button class="btn ghost sb-arms" data-go="instrumentos">${I('music', 26)} Instrumentos de Navarra: escúchalos y aprende a tocarlos</button>
-      <button class="btn ghost sb-arms" data-go="pasaka">${I('pelota', 26)} Pasaka: el juego de pelota con red de los claustros</button></div>
-      <div class="sb-grid">${(() => { const n = saberCounts(p); return SABERES.map(sb => `<div class="sb ${n[sb.id] ? 'on' : ''}${sb.id === 'escudos' ? ' link' : ''}" title="${esc(sb.text)}"${sb.id === 'escudos' ? ' data-go="escudos" role="button" tabindex="0"' : ''}>${I(sb.icon, 34)}<b>${n[sb.id]}</b><span>${esc(sb.name)}</span><small>${esc(sb.text)}</small></div>`).join(''); })()}</div>
+      <div class="sb-head"><small class="kicker">${I('book', 20)} Lo más importante</small><h2>Aprende Navarra jugando</h2></div>
+      <div class="sb-links">${[['escudos', 'shield', 'Escudos'], ['cuentos', 'legend', 'Leyendas'], ['instrumentos', 'music', 'Instrumentos'], ['pasaka', 'pelota', 'Pasaka']].map(([go, ic, t], i) => `<button class="sb-tile" data-go="${go}" style="--d:${i * 0.07}s">${I(ic, 52)}<b>${t}</b></button>`).join('')}</div>
+      <div class="sb-grid">${(() => { const n = saberCounts(p); return SABERES.map(sb => `<div class="sb ${n[sb.id] ? 'on' : ''}${sb.id === 'escudos' ? ' link' : ''}" title="${esc(sb.text)}"${sb.id === 'escudos' ? ' data-go="escudos" role="button" tabindex="0"' : ''}>${I(sb.icon, 40)}<b>${n[sb.id]}</b><span>${esc(sb.name)}</span></div>`).join(''); })()}</div>
     </section>
     <section class="story">
-      <div class="st-txt"><small class="kicker">${I('book', 20)} La historia</small><h2>El Pasaporte Herri</h2>
-        <p>Las páginas del viejo pasaporte se han quedado en blanco. Cada pueblo de Navarra guarda su sello, pero solo lo entrega a quien ayuda a su gente y aprende de ella: su producto, sus casas y escudos, sus oficios, sus danzas y sus leyendas.</p></div>
-      <ol class="hsteps"><li>${I('map', 56)}<b>Viaja</b><span>Elige un pueblo en el mapa</span></li><li>${I('exclaim', 56)}<b>Ayuda</b><span>Habla con su gente y cumple sus misiones</span></li><li>${I('stamp', 56)}<b>Consigue el sello</b><span>Y llena tu pasaporte</span></li></ol>
+      <div class="st-txt"><small class="kicker">${I('book', 20)} La historia</small><h2>El Pasaporte Herri</h2></div>
+      <ol class="hsteps"><li>${I('map', 60)}<b>Viaja</b></li><li>${I('exclaim', 60)}<b>Ayuda</b></li><li>${I('stamp', 60)}<b>Gana el sello</b></li></ol>
     </section>
-    <button class="sports-cta" data-go="sports">${I('trophy', 44)}<div><b>Campeonatos</b><small>Pelota a mano y fútbol, sin entrar en un pueblo</small></div>${I('play', 26)}</button>
+    <button class="sports-cta" data-go="sports">${I('trophy', 44)}<div><b>Campeonatos</b></div><span class="sp-ics">${I('pelota', 40)}${I('txapela', 40)}${I('balon', 40)}</span>${I('play', 26)}</button>
     ${empezado ? '' : `<section class="tiles">
       <div class="tile">${I('stamp', 44)}<b>${N.stamps}<small>/${N.towns}</small></b><span>Sellos</span></div>
       <div class="tile">${I('shield', 44)}<b>${N.comarcas}<small>/${N.comarcasTotal}</small></b><span>Comarcas</span></div>
@@ -295,7 +290,7 @@ export class Hub {
     </section>`}
     <section class="two">
       <div class="panel next-panel"><h2 class="sec">${I('exclaim', 34)} Te esperan</h2>${next}</div>
-      <div class="panel map-panel" data-go="map"><h2 class="sec">${I('map', 34)} Mapa de Navarra</h2><div id="homeMap" class="mini-map"></div><p class="hint">Completa pueblos para iluminar sus comarcas.</p></div>
+      <div class="panel map-panel" data-go="map"><h2 class="sec">${I('map', 34)} Mapa de Navarra</h2><div id="homeMap" class="mini-map"></div></div>
     </section>
     <h2 class="sec">${I('shield', 34)} Capítulos: las comarcas</h2>
     <section class="comarcas rail">${COMARCAS.map(c => this.comarcaCard(c)).join('')}</section>
@@ -327,7 +322,7 @@ export class Hub {
     // (cada dato en su línea, sin «·» que se quede suelto al principio de una; el botón de seguir, con su rótulo, que en una
     // columna estrecha se queda en el icono: así el nombre no se parte palabra a palabra)
     const go = (attr) => `<button class="btn primary small pg-go" ${attr} aria-label="Seguir">${I('play', 18)}<span>Seguir</span></button>`;
-    const row = ({ l, t }) => { const c = comarca(l.comarca); return `<li style="--c:${c?.color}"><div><b>${esc(l.name.split(' /')[0])}</b><small>${esc(c?.name || '')}</small><span class="pg-prog">${bar(pct(t.done, t.total), c?.color)}<em>${t.done}/${t.total} misiones</em></span></div>${go(`data-play="${l.id}"`)}</li>`; };
+    const row = ({ l, t }) => { const c = comarca(l.comarca), cov = townCover(l.id, true); return `<li style="--c:${c?.color}">${cov ? `<img class="pg-thumb" src="${cov}" alt="" loading="lazy" decoding="async">` : ''}<div><b>${esc(l.name.split(' /')[0])}</b><small>${esc(c?.name || '')}</small><span class="pg-prog">${bar(pct(t.done, t.total), c?.color)}<em>${t.done}/${t.total} misiones</em></span></div>${go(`data-play="${l.id}"`)}</li>`; };
     const sellos = LEVELS.filter(l => townProgress(p, l).stamp).length;
     const partidas = `<div class="panel pg-partidas"><h2 class="sec">${I('play', 30)} Partidas empezadas</h2>${started.length
       ? `<ul class="pg-list">${started.slice(0, 5).map(row).join('')}</ul>${started.length > 5 ? `<button class="btn ghost small pg-more" data-go="towns">Y ${cnt(started.length - 5, 'pueblo más', 'pueblos más')}</button>` : ''}`
@@ -342,13 +337,9 @@ export class Hub {
       const estado = T.done ? (T.champion === yo ? '¡Txapela ganada!' : 'Terminado') : m ? `${m.round} contra ${m.pairs ? m.rival.mates[0] : m.rival.name}` : 'Eliminado: el torneo sigue';
       return `<li><span class="pg-ico">${I('txapela', 34)}</span><div><b>Txapela de ${esc(T.comarcaName)}</b><small class="pg-sub"><span><span>${(KINDS[T.kind] || KINDS.mano).name}</span>${T.txapelas ? ` · <span>${cnt(T.txapelas, 'txapela', 'txapelas')}</span>` : ''}</span><span>${esc(estado)}</span></small></div>${en ? go(`data-sport="pelota" data-en="${en}"`) : ''}</li>`; });
     const camp = `<div class="panel pg-camp"><h2 class="sec">${I('trophy', 30)} Campeonatos</h2>${fut.length || pel.length
-      ? `<ul class="pg-list">${[...fut, ...pel].join('')}</ul>` : `<p class="pg-empty">Aún no has empezado ningún campeonato.</p>`}<button class="btn ghost small pg-more" data-go="sports">${I('trophy', 18)} Ir a Campeonatos</button></div>`;
-    // cada comarca: cuánto llevas descubierto y sus sellos
-    const coms = COMARCAS.filter(c => comarcaTowns(c.id).length).map(c => { const cp = comarcaProgress(p, c.id), v = pct(cp.done, cp.total);
-      return `<button class="pg-com" data-comarca="${c.id}" style="--c:${c.color}"><span><b>${esc(c.name)}</b><small><span>${v}%</span> · <span>${cp.stamps}/${cp.towns} ${cp.towns === 1 ? 'sello' : 'sellos'}</span></small></span>${bar(v, c.color)}</button>`; }).join('');
+      ? `<ul class="pg-list">${[...fut, ...pel].join('')}</ul>` : `<div class="pg-vacio" aria-hidden="true">${I('pelota', 64)}${I('txapela', 72)}${I('balon', 64)}</div>`}<button class="btn ${fut.length || pel.length ? 'ghost' : 'primary'} small pg-more" data-go="sports">${I('trophy', 18)} Ir a Campeonatos</button></div>`;
     return `<h2 class="sec pg-title">${I('flag', 34)} Cómo vas</h2>
-    <section class="progreso"><div class="pg-grid">${total}${partidas}${camp}</div>
-      <div class="panel pg-comarcas"><h2 class="sec">${I('shield', 30)} Tus comarcas</h2><div class="pg-coms">${coms}</div></div></section>`;
+    <section class="progreso"><div class="pg-grid">${total}${partidas}${camp}</div></section>`;
   }
   // ---------- Campeonatos ----------
   // pelota a mano y fútbol sin entrar en las misiones de un pueblo: la pelota se juega en el frontón del pueblo que se
@@ -366,12 +357,11 @@ export class Hub {
     const kit = club ? (clubImg(p.futbolClub) ? `<img class="sp-media sp-em" src="${clubImg(p.futbolClub)}" alt="">` : `<i class="sp-media sp-kit" style="--a:${club.shirt};--b:${club.shirt2 || club.shorts || club.shirt}"></i>`) : `<i class="sp-media sp-ico">${I('balon', 32)}</i>`;
     return `
     <h2 class="sec">${I('trophy', 34)} Campeonatos</h2>
-    <p class="hint sp-hint">Juega sin entrar en las misiones de un pueblo. Lo que ganes cuenta igual.</p>
     <section class="sports">
       <div class="sport sp-pelota">
         <span class="sp-cover" aria-hidden="true" style="background-image:url(${laminaUrl('dep-pelotari') || laminaUrl('dep-fronton') || townImg(fl)})"></span>
         <div class="sp-txt"><small class="kicker">Tres campeonatos</small><h3>Pelota a mano</h3>
-          <p>Manomanista, Parejas y Cuatro y Medio por la txapela de la comarca, o un partido libre.</p>
+          <p class="sp-chips"><span>${I('pelota', 22)}Manomanista</span><span>${I('person', 22)}Parejas</span><span>${I('target', 22)}4½</span></p>
           <span class="sp-stat">${I('txapela', 22)} ${tx} ${tx === 1 ? 'txapela' : 'txapelas'}</span></div>
         <div class="sp-bar"><div class="sp-row"><small>Elige frontón</small>${this.frontonBox(fl)}</div>
           <button class="gx-go" data-sport="pelota">${I('play', 24)} <span>Jugar</span></button></div><span class="sp-shine"></span>
@@ -379,7 +369,7 @@ export class Hub {
       <div class="sport sp-futbol">
         <span class="sp-cover" aria-hidden="true" style="background-image:url(${laminaUrl('dep-futbol') || laminaUrl('dep-estadio') || townImg(sadar)})"></span>
         <div class="sp-txt"><small class="kicker">Liga Navarra</small><h3>Fútbol</h3>
-          <p>Liga con tu club y amistosos contra cualquier club. Todos los partidos, en El Sadar.</p>
+          <p class="sp-chips"><span>${I('trophy', 22)}Liga</span><span>${I('balon', 22)}Amistosos</span><span>${I('pin', 22)}El Sadar</span></p>
           <span class="sp-stat">${I('balon', 22)} ${fb?.played || 0} ${(fb?.played || 0) === 1 ? 'partido' : 'partidos'} · ${fb?.won || 0} ${(fb?.won || 0) === 1 ? 'ganado' : 'ganados'}</span></div>
         <div class="sp-bar"><div class="sp-row"><small>Tu club</small><div class="sp-box">${kit}<span><b>${club ? esc(club.name) : 'Sin club'}</b><small>${club ? 'En El Sadar' : 'Lo eliges al jugar'}</small></span></div></div>
           <button class="gx-go" data-sport="futbol">${I('play', 24)} <span>Jugar</span></button></div><span class="sp-shine"></span>
@@ -414,16 +404,18 @@ export class Hub {
   }
   suggestions() {
     const p = profile();
-    const list = LEVELS.filter(l => !townProgress(p, l).stamp).slice(0, 8);   // (salen los que quepan junto al mapa: cabeSugg)
-    return `<div class="sugg">${list.map(l => { const t = townProgress(p, l), c = comarca(l.comarca); return `<button class="sg" data-town="${l.id}" style="--c:${c?.color}"><span class="dot"></span><div><b>${esc(l.name)}</b><small>${esc(c?.name)} · ${t.done}/${t.total} misiones</small></div>${I('play', 26)}</button>`; }).join('')}</div>`;
+    // (los pueblos sin sello y, si ya hay alguno empezado, los que faltan por empezar: los otros salen en «Partidas
+    // empezadas». Salen los que quepan junto al mapa: cabeSugg)
+    const nuevo = (l) => !(p.towns[l.id]?.visits || townProgress(p, l).done), alguno = LEVELS.some(l => !nuevo(l));
+    const list = LEVELS.filter(l => !townProgress(p, l).stamp && (!alguno || nuevo(l))).slice(0, 8);
+    return `<div class="sugg">${list.map(l => { const t = townProgress(p, l), c = comarca(l.comarca), cov = townCover(l.id, true); return `<button class="sg" data-town="${l.id}" style="--c:${c?.color}">${cov ? `<img class="sg-img" src="${cov}" alt="" loading="lazy" decoding="async">` : '<span class="dot"></span>'}<div><b>${esc(l.name)}</b><small>${esc(c?.name)} · ${t.done}/${t.total} misiones</small></div>${I('play', 26)}</button>`; }).join('')}</div>`;
   }
   comarcaCard(c) {
-    const p = profile(), pr = comarcaProgress(p, c.id), ts = comarcaTowns(c.id);
+    const p = profile(), pr = comarcaProgress(p, c.id), ts = comarcaTowns(c.id), tx = TXAPELAS()[c.id];
     return `<button class="ccard ${ts.length ? '' : 'soon'}" data-comarca="${c.id}" style="--c:${c.color}">
       <div class="cimg ready" style="background-image:url(${comarcaCover(c.id, true)})"></div>
       <img class="cstamp ${pr.stamps ? '' : 'gray'}" src="${stampImg(c.id)}" alt="">
-      <div class="cbody"><b>${esc(c.name)}</b><small>${cnt(ts.length, 'pueblo jugable', 'pueblos jugables')} · ${cnt(pr.stamps, 'sello', 'sellos')}${ts.length ? ` · ${TXAPELAS()[c.id] ? '¡txapela de pelota!' : 'txapela: por ganar'}` : ''}</small></div>
-      <span class="cgo">${ts.length ? 'Elegir pueblo' : 'Próximamente'}</span></button>`;
+      <div class="cbody"><b>${esc(c.name)}</b>${ts.length ? `<span class="cchips"><span>${I('church', 22)}${ts.length}</span><span>${I('stamp', 22)}${pr.stamps}/${ts.length}</span><span class="tx${tx ? ' won' : ''}" title="${tx ? 'Txapela ganada' : 'Txapela por ganar'}">${I('txapela', 24)}</span></span><span class="cbar"><i style="width:${Math.round(pr.pct * 100)}%"></i></span>` : `<small>Próximamente</small>`}</div></button>`;
   }
   drawMiniMap(box) {
     if (!box) return;
@@ -500,7 +492,7 @@ export class Hub {
     return `<button class="tcard ${t.stamp ? 'stamped' : ''}${cov ? ' has-cov' : ''}" data-town="${l.id}" style="--c:${c?.color}">
       ${cov ? `<img class="tcov" src="${cov}" alt="" loading="lazy" decoding="async">` : ''}
       <div class="thead">${I(l.special ? 'castle' : ({ romanesque: 'church', gothic: 'church', baroque: 'church', fortress: 'castle', cathedral: 'cathedral', pamplona: 'cathedral' }[l.church?.style] || 'church'), 44)}<div><b>${esc(l.name)}</b><small>${esc(c?.name)}</small></div>${t.stamp ? `<img class="tstamp" src="${stampImg(l.comarca)}" alt="">` : ''}</div>
-      <p>${esc(l.intro || '')}</p>
+      ${isDidactico() ? `<p>${esc(l.intro || '')}</p>` : ''}
       <div class="ticons">${(l.special ? ['visit', 'herd', 'legend', 'dance', 'observe', 'carnival'] : types).map(ty => `<span title="${TYPE_NAME[ty]}">${I(TYPE_ICON[ty], 24)}</span>`).join('')}</div>
       ${isDidactico() ? '' : `<div class="mini-prog"><div class="bar"><i style="width:${t.total ? t.done / t.total * 100 : 0}%"></i></div><span>${t.done}/${t.total}</span></div>`}</button>`;
   }
@@ -535,7 +527,7 @@ export class Hub {
   s_towns(filter = 'all') {
     const list = LEVELS.filter(l => filter === 'all' || l.comarca === filter);
     this.after = () => this.root.querySelectorAll('.filters button').forEach(b => b.onclick = (e) => { e.stopPropagation(); this.go('towns', b.dataset.f); });
-    return `<h1 class="title">${I('church', 40)} Pueblos y ciudades</h1><p class="lead">${isDidactico() ? 'Toca un pueblo para ver todo lo que enseña: qué visitar, su escudo, sus cuentos, sus productos, sus oficios, sus danzas y su carnaval.' : 'Cada pueblo tiene sus propias misiones: su iglesia y sus monumentos, sus productos, sus oficios, sus danzas y su carnaval.'}</p>
+    return `<h1 class="title">${I('church', 40)} Pueblos y ciudades</h1>${isDidactico() ? '<p class="lead">Toca un pueblo para ver todo lo que enseña: qué visitar, su escudo, sus cuentos, sus productos, sus oficios, sus danzas y su carnaval.</p>' : ''}
       <div class="filters"><button data-f="all" class="${filter === 'all' ? 'on' : ''}">Todas</button>${COMARCAS.filter(c => comarcaTowns(c.id).length).map(c => `<button data-f="${c.id}" class="${filter === c.id ? 'on' : ''}" style="--c:${c.color}">${esc(c.name)}</button>`).join('')}</div>
       <section class="towns">${list.map(l => this.townCard(l)).join('')}</section>`;
   }
@@ -549,7 +541,7 @@ export class Hub {
     this.after = () => this.root.querySelectorAll('.filters button').forEach(b => b.onclick = (e) => { e.stopPropagation(); this.go('peaks', b.dataset.f); });
     const won = [...inGame.keys()].filter(id => p.peaks.includes(id)).length;
     const dd = isDidactico();
-    return `<h1 class="title">${I('peak', 40)} Cimas de Navarra</h1><p class="lead">${dd ? 'Los montes de Navarra con su altura, su recorrido y su perfil. Debajo, cómo se leen las señales de los senderos y cómo ir al monte.' : `Sube a los montes en las misiones de montaña: sigue los mojones hasta el buzón de cumbre. Llevas <b>${won}/${inGame.size}</b> cimas.`}</p>
+    return `<h1 class="title">${I('peak', 40)} Cimas de Navarra</h1>${dd ? '<p class="lead">Los montes de Navarra con su altura, su recorrido y su perfil. Debajo, cómo se leen las señales de los senderos y cómo ir al monte.</p>' : `<p class="lead-chip">${I('peak', 24)}<b>${won}/${inGame.size}</b> cimas</p>`}
       <div class="filters"><button data-f="game" class="${filter === 'game' ? 'on' : ''}">${I('flag', 20)} En el juego</button><button data-f="all" class="${filter === 'all' ? 'on' : ''}">Todas</button>${COMARCAS.filter(c => MOUNTAINS.some(m => m.region === c.id)).map(c => `<button data-f="${c.id}" class="${filter === c.id ? 'on' : ''}" style="--c:${c.color}">${esc(c.name)}</button>`).join('')}</div>
       <section class="peaks">${list.map(m => this.peakCard(m, dd ? null : inGame.get(m.id))).join('')}</section>
       ${dd ? `<h2 class="sec">${I('flag', 30)} Las señales de los senderos</h2><div class="dd-grid">${ORIENTA.map(o => `<article class="dd-b"><header>${I('flag', 34)}<div><h3>${esc(o.title)}</h3></div></header><p>${esc(o.text)}</p></article>`).join('')}</div>
@@ -586,7 +578,7 @@ export class Hub {
     const fb = { trees: 'tree', plants: 'herbs', flowers: 'flower' };
     // (de las plantas, la foto de la planta entera de borde a borde por arriba y su hoja en un círculo encima)
     const pic = (d) => d.type === 'fauna' ? (fi => fi ? `<img class="fpic" src="${fi.small}" alt="" loading="lazy" decoding="async">` : I(d.F.icon || speciesIcon(d.F.name) || 'bird', 64))(faunaImg(d.id)) : `<span class="spic">${I(speciesIcon(d.F.name) || fb[tab], 40)}<img alt="" loading="lazy" decoding="async" data-flora="${d.id}"><img class="sleaf" alt="" decoding="async"></span>`;
-    return `<h1 class="title">${I('leaf', 40)} Naturaleza de Navarra</h1><p class="lead">${isDidactico() ? 'Del hayedo atlántico a las Bardenas: cada comarca tiene sus animales y plantas. Toca uno para ver su ficha.' : 'Del hayedo atlántico a las Bardenas: cada comarca tiene sus animales y plantas. Toca uno para ver su ficha. En los pueblos, identifica las plantas marcadas con una hoja y observa los animales para completar tu cuaderno.'}</p>
+    return `<h1 class="title">${I('leaf', 40)} Naturaleza de Navarra</h1>${isDidactico() ? '<p class="lead">Del hayedo atlántico a las Bardenas: cada comarca tiene sus animales y plantas. Toca uno para ver su ficha.</p>' : ''}
       ${isDidactico() ? '' : `<div class="nprog"><span>${I('leaf', 22)} Herbario <b>${gotFl}</b> / ${nFl}</span><span>${I('binoculars', 22)} Cuaderno de fauna <b>${gotFa}</b> / ${nFa}</span></div>`}
       <div class="filters">${[['fauna', 'Fauna'], ['trees', 'Árboles'], ['plants', 'Arbustos y plantas'], ['flowers', 'Flores']].map(([k, n]) => `<button data-f="${k}" class="${tab === k ? 'on' : ''}">${n}</button>`).join('')}</div>
       <section class="species">${list.map(d => { const got = cards.has(type + ':' + d.id); return `<button class="scard ${type === 'flora' ? 'fl' : ''} ${got ? 'seen' : ''}" data-k="${type}:${d.id}">${pic(d)}<b>${esc(d.F.name)}</b><small class="seu">${esc(d.F.eu || '')}${d.F.eu && d.F.sci ? ' · ' : ''}<i>${esc(d.F.sci || '')}</i></small><div class="where">${d.comarcas.map(c => `<i style="background:${c.color}" title="${esc(c.name)}"></i>`).join('')}</div>${got ? `<span class="seenb">${I(type === 'flora' ? 'check' : 'binoculars', 18)} ${type === 'flora' ? 'Identificada' : 'Observado'}</span>` : ''}</button>`; }).join('')}</section>`;
@@ -660,7 +652,7 @@ export class Hub {
         <p>${isDidactico() ? 'Las mujeres y los hombres que hicieron historia, los seres de las leyendas y las figuras de los carnavales, con la ficha de cada uno.' : 'Las mujeres y los hombres que hicieron historia, los seres de las leyendas y las figuras de los carnavales. En el juego te los encuentras en sus pueblos; aquí tienes la ficha de cada uno.'}</p>
         <b class="ar-count">${total} personajes</b></div>
       <div class="filters">${[['all', 'Todos', total], ...G.map(g => [g[0], g[1], g[6]])].map(([k, n, c]) => `<button data-f="${k}" class="${tab === k ? 'on' : ''}">${n} <small>${c}</small></button>`).join('')}</div>
-      ${G.filter(g => tab === 'all' || g[0] === tab).map(g => `<div class="pj-g"><h2 class="sec">${I(g[3], 34)} ${g[2]}</h2><p class="lead">${g[4]}</p><section class="figuras">${g[5]}</section></div>`).join('')}
+      ${G.filter(g => tab === 'all' || g[0] === tab).map(g => `<div class="pj-g"><h2 class="sec">${I(g[3], 34)} ${g[2]}</h2>${isDidactico() ? `<p class="lead">${g[4]}</p>` : ''}<section class="figuras">${g[5]}</section></div>`).join('')}
     </section>`;
   }
 
@@ -715,7 +707,7 @@ export class Hub {
   s_album() {
     const groups = [...COMARCAS.map(c => ({ name: c.name, color: c.color, list: this.comarcaLaminas(c.id) })),
       { name: 'Oficios de antes', list: laminasDe({ group: 'oficios' }) }, { name: 'Deportes', list: laminasDe({ group: 'deportes' }) }].filter(g => g.list.length);
-    return `<h1 class="title">${I('scroll', 40)} Láminas de Navarra</h1><p class="lead">Las ilustraciones del explorador por toda Navarra: el monumento de cada pueblo, sus leyendas, sus oficios, sus cosechas, sus animales y sus fiestas. Toca una para verla en grande.</p>
+    return `<h1 class="title">${I('scroll', 40)} Láminas de Navarra</h1>
       ${groups.map(g => `<section class="album-sec" style="--c:${g.color || '#c9b2ff'}"><h2 class="sec"><i class="adot"></i>${esc(g.name)}</h2>${laminaRail(g.list)}</section>`).join('')}`;
   }
   // ---------- Cuentos y leyendas ----------
@@ -765,14 +757,14 @@ export class Hub {
   }
   s_badges() {
     const p = profile(); checkBadges(); saveProfile();
-    return `<h1 class="title">${I('badge', 40)} Insignias</h1><p class="lead">Has ganado ${p.badges.length} de ${BADGES.length}.</p>
+    return `<h1 class="title">${I('badge', 40)} Insignias</h1><p class="lead-chip">${I('badge', 24)}<b>${p.badges.length}/${BADGES.length}</b></p>
       <section class="badges">${BADGES.map(b => { const on = p.badges.includes(b.id); return `<div class="bcard ${on ? 'on' : ''}"><div class="bic">${I(on ? b.icon : 'lock', 64)}</div><b>${esc(b.name)}</b><p>${esc(b.text)}</p></div>`; }).join('')}</section>`;
   }
 
   // ---------- Pasaporte ----------
   s_passport() {
     const p = profile();
-    return `<h1 class="title">${I('stamp', 40)} Pasaporte Herri</h1><p class="lead">Cada pueblo completado estampa su sello. ¡Llena todas las páginas de Navarra!</p>
+    return `<h1 class="title">${I('stamp', 40)} Pasaporte Herri</h1>
       <section class="passport">${COMARCAS.map(c => { const ts = comarcaTowns(c.id), pr = comarcaProgress(p, c.id);
         return `<div class="ppage" style="--c:${c.color}"><header><img class="${pr.stamps ? '' : 'gray'}" src="${stampImg(c.id)}" alt=""><div><b>${esc(c.name)}</b><small>${pr.stamps}/${ts.length} sellos</small></div></header>
         <div class="pstamps">${ts.length ? ts.map(l => { const t = townProgress(p, l), fut = p.towns?.[l.id]?.futsal?.sello; return `<button class="pst ${t.stamp ? 'on' : ''}" data-town="${l.id}"><span class="ink">${I(t.stamp ? 'stamp' : 'lock', 30)}</span>${fut ? `<i class="fsello" title="Sello de fútbol">${I('balon', 18)}</i>` : ''}<small>${esc(l.name.split(' /')[0])}</small></button>`; }).join('') : '<small class="empty">Próximamente</small>'}</div></div>`; }).join('')}</section>`;

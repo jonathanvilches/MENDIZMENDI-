@@ -122,6 +122,8 @@ const CSS = `
 .pfx-pl.blue{border-color:rgba(74,163,255,.55)}.pfx-pl.red{border-color:rgba(255,106,74,.55)}.pfx-pl:active{transform:translateY(1px)}
 .pfx-pl-av{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-family:'MZ Display',Nunito,sans-serif;font-weight:400;font-size:var(--fs-md);line-height:1;color:#fff;letter-spacing:.04em;border:2px solid rgba(255,255,255,.7)}
 .pfx-pl.blue .pfx-pl-av{background:linear-gradient(180deg,#2a6fe0,#17419e)}.pfx-pl.red .pfx-pl-av{background:linear-gradient(180deg,#d9412a,#9c1f17)}
+/* (con cara: el retrato de tu avatar o la cabeza de la figura del pelotari, en vez de la inicial) */
+.pfx-pl-av.img{position:relative;overflow:hidden;width:48px;height:48px}.pfx-pl-av.img>img{position:absolute;left:50%;transform:translateX(-50%)}.pfx-pl-av.img>img:not(.pf){top:0;width:100%;height:100%;object-fit:cover}.pfx-pl-av.img>img.pf{top:4%;height:330%;width:auto;max-width:none}
 .pfx-pl-t{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.3}
 .pfx-pl-t b{font-size:var(--fs-md);font-weight:900;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pfx-pl-t small{font-size:var(--fs-xs);font-weight:800;color:#e6def7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -140,7 +142,7 @@ export function playerChip(p, lang = 'es', attr = 'data-pel-ficha') {
   fichaCss();
   const T = TEXT[lang] || TEXT.es, PT = T.profile || TEXT.es.profile, st = p.stats || {}, sty = st.style || {}, top = SHOTS.filter(k => sty[k] >= 3)[0], { name } = splitName(p.name);
   const kind = p.you ? (T.vsYou || 'Tú') : [top ? PT.arch[top] : '', st.velocidad >= 4 ? PT.fast : st.velocidad <= 2 ? PT.slow : '', st.fuerza >= 4 ? PT.strong : ''].filter(Boolean).join(' · ') || (T.vsEven || 'Equilibrado');
-  return `<button class="pfx-pl ${rojoDe(p) ? 'red' : 'blue'}" ${attr}="${esc(p.id)}"><span class="pfx-pl-av" aria-hidden="true">${esc(initials(name))}</span><span class="pfx-pl-t"><b>${esc(name)}</b><small>${esc(kind)}</small></span><span class="pfx-pl-go">${T.ficha || 'Ficha'}</span></button>`;
+  return `<button class="pfx-pl ${rojoDe(p) ? 'red' : 'blue'}" ${attr}="${esc(p.id)}"><span class="pfx-pl-av${p.cara || p.fig ? ' img' : ''}" aria-hidden="true">${p.cara ? `<img src="${p.cara}" alt="">` : p.fig || esc(initials(name))}</span><span class="pfx-pl-t"><b>${esc(name)}</b><small>${esc(kind)}</small></span><span class="pfx-pl-go">${T.ficha || 'Ficha'}</span></button>`;
 }
 export function openFicha(list, i = 0, lang = 'es', host = document.body) {
   fichaCss();
