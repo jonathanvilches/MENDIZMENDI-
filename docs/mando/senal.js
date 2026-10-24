@@ -94,11 +94,9 @@ export function senal(id, onMsg, onEstado, secreto = '') {
     // (el mando, por dos caminos: primero los probados, el que más recientemente trajo algo del otro antes; un servidor que
     // acepta pero no entrega nada no se queda con él)
     const paraElMando = () => { const vs = vias.filter(x => !x.solo); return [...vs.filter(x => x.oido).sort((a, b) => b.oido - a.oido), ...vs.filter(x => !x.oido)].slice(0, 2); };
-    // (fuera: el servidor propio lo ha echado porque otro ha entrado con el mismo nombre; si volviera, lo echaría a él y
-    // así todo el rato: por ese camino ya no lo intenta más)
-    const cae = (v, fuera = false) => {
+    const cae = (v) => {
       const i = vias.indexOf(v); if (i >= 0) vias.splice(i, 1); if (cerrado) return;
-      pon(v.n, 'mal'); if (fuera) return; if (performance.now() - v.t0 > 10000) veces.delete(v.c); otraVez(v.c);
+      pon(v.n, 'mal'); if (performance.now() - v.t0 > 10000) veces.delete(v.c); otraVez(v.c);
     };
     // (otra vez al rato: a los 2 s, a los 4, a los 8 y luego cada 15; la cuenta vuelve a empezar si el camino aguanta 10 s:
     // uno que acepta y se cae enseguida se prueba cada vez menos)
@@ -175,10 +173,14 @@ function peer(c, yo, recibe, cae) {
 
 // ---------- el servidor propio (servidor/mando-relevo): una sala por partida, con la huella del código ----------
 // yo: «sala/nombre». Lo que se manda, en binario: [largo del nombre][nombre del destino][lo cifrado]; llega solo lo cifrado.
+// MARCA: la de esta pestaña (se guarda en sessionStorage, así que vale también al recargar); al reconectarse con ella, el
+// servidor la reconoce y cierra la conexión vieja, aunque esa siga colgada. Otra pestaña con el mismo código lleva otra y
+// recibe «ID-TAKEN», como en PeerJS
+const MARCA = (() => { const n = () => Math.random().toString(36).slice(2, 12); try { let m = sessionStorage.getItem('herrizherri-mando-marca'); if (!/^[a-z0-9]{4,12}$/.test(m || '')) { m = n(); sessionStorage.setItem('herrizherri-mando-marca', m); } return m; } catch (e) { return n(); } })();
 function propio(c, yo, recibe, cae) {
   return new Promise((ok, ko) => {
     let ws, open = false, ping = 0;
-    try { ws = new WebSocket(`${c.u.replace(/\/+$/, '')}/s/${yo}`); ws.binaryType = 'arraybuffer'; } catch (e) { ko(e); return; }
+    try { ws = new WebSocket(`${c.u.replace(/\/+$/, '')}/s/${yo}?t=${MARCA}`); ws.binaryType = 'arraybuffer'; } catch (e) { ko(e); return; }
     const t = setTimeout(() => { if (!open) { ko(new Error('red')); try { ws.close(); } catch (e) { } } }, TIEMPO);
     const fin = () => { clearInterval(ping); try { ws.close(); } catch (e) { } };
     const v = { n: c.n, c, close: fin, send: (dst, bytes) => {
@@ -189,12 +191,14 @@ function propio(c, yo, recibe, cae) {
     ws.onmessage = (e) => {
       if (typeof e.data === 'string') {   // (el saludo del servidor y la respuesta al latido, que da Cloudflare solo)
         if (e.data === 'OPEN' && !open) { open = true; clearTimeout(t); ping = setInterval(() => ws.readyState === 1 && ws.send('ping'), 25000); ok(v); }
+        else if (e.data === 'ID-TAKEN' && !open) { clearTimeout(t); ko(new Error('ID-TAKEN')); try { ws.close(); } catch (er) { } }
         return;
       }
       if (open) recibe(new Uint8Array(e.data), v);
     };
     ws.onerror = () => { if (!open) { clearTimeout(t); ko(new Error('red')); } };
-    ws.onclose = (e) => { clearInterval(ping); if (open) cae(v, e.code === 4001); else { clearTimeout(t); ko(new Error('red')); } };
+    // (cerrada porque esta misma pestaña ha vuelto a entrar, 4001, o por lo que sea: se vuelve a probar al rato, como todas)
+    ws.onclose = (e) => { clearInterval(ping); if (open) cae(v); else { clearTimeout(t); ko(new Error(e.code === 4002 ? 'ID-TAKEN' : 'red')); } };
   });
 }
 
