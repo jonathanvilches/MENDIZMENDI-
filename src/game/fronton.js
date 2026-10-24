@@ -6,9 +6,9 @@ import { hairTint } from '../actors/hairColor.js';
 import { outfitTint } from '../actors/npcOutfit.js';
 import { loadChica, hasChica } from '../actors/chicas.js';
 import { PelotaCourt, PelotaMatch, labritExtent } from '../pelota/index.js';
-import { pelotariStats, levelTier } from '../pelota/rules.js';
+import { pelotariStats, levelTier, temporadas, COURT } from '../pelota/rules.js';
 import { terrainHeight, waterLevelAt, addPlatform, onPlatform } from '../world/heightfield.js';
-import { addBox, rectFree } from '../world/colliders.js';
+import { addBox, rectFree, removeMover } from '../world/colliders.js';
 import { rx, pathQuery } from '../world/layout.js';
 import { clearGrass, clearTrees } from '../world/nature.js';
 import { isEU } from '../i18n.js';
@@ -20,7 +20,8 @@ import { officialHeight } from '../world/armas.js';
 import { drawTownArms } from '../ui/escudoImg.js';
 import { armsOfTown } from '../data/armas-navarra.js';
 import { LEVELS } from '../data/levels.js';
-import { txapelas } from './torneo.js';
+import { txapelas, tusTemporadas } from './torneo.js';
+import { Actor } from '../actors/people.js';
 import { meetPelotari } from './pelotaris.js';
 // las figuras de la pantalla VS (nuestros pelotaris en 3D, en pleno golpe: tools/meshy-retratos.mjs con CLIP=Hit T=0.2)
 import { pelotariFig, RIVALES, pelotariHair, pelotariGirl } from '../ui/pelotariFig.js';   // (las mismas figuras que las cartas: así no van dos veces en el archivo único)
@@ -37,6 +38,25 @@ async function rigPelotari(model, name, girl = pelotariGirl(name), hair = pelota
   fullTexFor(model); const r = new GlbRig(await loadMeshy(model), model); hairTint(r.char.root, model, hair); return r;
 }
 
+// Los jueces de la contracancha: tres, de blanco, a la altura de la chapa, del 4 y del 7, de cara a la cancha. En cada
+// falta (chapa, fuera, alta, pasa…) levanta la mano el que la ve: el de la chapa lo del frontis; si no, el más cercano
+const _jv = new THREE.Vector3();
+function makeJueces(G, C) {
+  const g = C.group; g.updateMatrixWorld(true);
+  const yaw = new THREE.Euler().setFromQuaternion(g.getWorldQuaternion(new THREE.Quaternion()), 'YXZ').y, x = COURT.W / 2 + (C.contra || 2.6) * 0.62;
+  return [3.2, COURT.FALTA, COURT.PASA].map((z, i) => {
+    const w = g.localToWorld(new THREE.Vector3(x, 0, z));
+    const a = new Actor({ id: 'juez' + i, name: 'Juez', x: w.x, z: w.z, y: w.y, heading: Math.atan2(-Math.cos(yaw), Math.sin(yaw)), ghost: true, wander: 0,
+      look: { shirt: '#f7f7f2', pants: '#1d1f2a', shoes: '#16161c', female: i === 1, hair: ['#2b1d14', '#5a3a22', '#bdb6aa'][i], bun: i === 1, txapela: i === 1 ? undefined : '#1d1d24', old: i === 2 } }, G.scene);
+    a.frozen = true; a.zl = z; return a;
+  });
+}
+function senalaJuez(J, call, b) {
+  if (!J?.length || !call || call === 'bote' || call === 'tanto') return;
+  const z = ['chapa', 'alta', 'lado', 'corta'].includes(call) ? 0 : b?.z ?? COURT.FALTA;
+  let best = J[0]; for (const j of J) if (Math.abs(j.zl - z) < Math.abs(best.zl - z)) best = j;
+  best.wave = 2.2;
+}
 // Cómo es el frontón de cada sitio. Se parte de la comarca y de lo que cuentan las fuentes (legal/estado-legal.md): los
 // frontones viejos de los pueblos, junto a la iglesia y con el frontis de sillería (arenisca rojiza en Baztan y Bidasoa,
 // piedra oscura en el Pirineo, caliza dorada en la Navarra media); en las villas grandes, frontón cubierto con cerchas
@@ -227,12 +247,20 @@ export function labritInTown(scene, near) {
 // pairs: { partner: { name, stats }, rivalMate: { name, stats } } (el torneo por parejas: el partido es por parejas)
 // rivalTown: { id, name } del pueblo del rival (en el torneo, el suyo; si no, el del frontón): para la colección
 // stay: al acabar no se vuelve al pueblo (los campeonatos y el torneo siguen con su menú)
-export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level, rivalName, fixedLevel = false, returnTo = null, rivalStats = null, pairs = null, rivalTown = null, comp = null, youBonus = 2, rivalBonus = 0, stay = false, intro = null } = {}) {
+export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level, rivalName, fixedLevel = false, returnTo = null, rivalStats = null, pairs = null, rivalTown = null, comp = null, youBonus = 2, rivalBonus = 0, stay = false, intro = null, cuatro = false } = {}) {
   if (window.__autoWin) return Promise.resolve({ win: true, you: target, cpu: 0 });
   return new Promise(res => {
     const P = G.player, rig0 = P.rig, home = { x: rival.pos.x, z: rival.pos.z, h: rival.heading };
     let seated = null, seatedZ = 0, cheerT = 0;
-    let rig = rig0, pel = null, red = null, bf = null, bfWas = false, ended = false, match = null, mates = null, rivName = rivalName || String(rival.name).split(',')[0], rStatsKeep = null; const hidden = [], hiddenR = [];
+    let rig = rig0, pel = null, red = null, bf = null, bfWas = false, ended = false, match = null, mates = null, rivName = rivalName || String(rival.name).split(',')[0], rStatsKeep = null, jueces = []; const hidden = [], hiddenR = [];
+    // los colores, como en los frontones: viste de colorado quien debutó antes (más temporadas; por parejas, el más
+    // veterano de cada una) y el otro de azul. Tú empiezas de debutante: cada campeonato que acabas es una temporada más
+    const lvR = levelTier(level), suyas = Math.max(temporadas(rivName, lvR), pairs?.rivalMate ? temporadas(pairs.rivalMate.name, lvR) : 0);
+    const tuyas = Math.max(tusTemporadas(), pairs?.partner ? temporadas(pairs.partner.name, 2) : 0);
+    const colors = tuyas > suyas ? { you: 'rojo', rival: 'azul' } : { you: 'azul', rival: 'rojo' }, seasons = { you: tuyas, rival: suyas };
+    const MODEL = { azul: 'pelotari', rojo: 'pelotari_rojo' }, youModel = MODEL[colors.you], rivModel = MODEL[colors.rival];
+    // (el marcador del frontis: los azules a la izquierda y los colorados a la derecha)
+    const marca = (a, b, sa, sb) => (colors.you === 'azul' ? fronton.court.setScore?.(a, b, sa, sb) : fronton.court.setScore?.(b, a, sb, sa));
     // si algo falla al montar el partido, de vuelta al pueblo con todo como estaba (nunca congelado en la cancha)
     const fail = (e) => {
       console.warn('frontón', e);
@@ -248,11 +276,11 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     if (wait) G.ui.toast?.(isEU() ? 'Pilotariak prestatzen…' : 'Preparando a los pelotaris…', 'pelota', 1800);
     // (la jugadora, con su cuerpo de chica de pelotari y su pelo: chicas.js)
     const ella = avatarIsGirl(profile().avatar);
-    if ((rig0.id !== 'pelotari' || ella) && hasMeshy('pelotari')) try { if (ella) pel = await rigPelotari('pelotari', '', true, null); else { fullTexFor('pelotari'); pel = new GlbRig(await loadMeshy('pelotari'), 'pelotari'); } } catch (e) { console.warn('pelotari', e); }
+    if ((rig0.id !== youModel || ella) && hasMeshy(youModel)) try { if (ella) pel = await rigPelotari(youModel, '', true, null); else { fullTexFor(youModel); pel = new GlbRig(await loadMeshy(youModel), youModel); } } catch (e) { console.warn('pelotari', e); }
     // (el cuerpo de siempre se aparta del todo mientras dura el partido: así nada lo vuelve a mostrar)
     if (pel) { hidden.push(...P.obj.children); for (const c of hidden) P.obj.remove(c); P.obj.add(pel.char.root); rig = pel; }
-    // y el rival juega de rojo (el pelotari colorado), como en los partidos de verdad: azules contra colorados
-    if (hasMeshy('pelotari_rojo')) try { red = await rigPelotari('pelotari_rojo', rivName); } catch (e) { console.warn('pelotari rojo', e); }
+    // y el rival, con el color que le toca (azules contra colorados, como en los partidos de verdad)
+    if (hasMeshy(rivModel)) try { red = await rigPelotari(rivModel, rivName); } catch (e) { console.warn('pelotari rival', e); }
     // (si mientras se preparaban los pelotaris el pueblo se ha rehecho —en el iPhone, al quedarse sin memoria gráfica—,
     // este partido ya no se juega: antes salían sus controles sobre el pueblo nuevo, en la llegada)
     if (G.disposed) { pel?.dispose(); red?.dispose(); G.pelotaLoading = false; res({ win: false, you: 0, cpu: 0, best: 0, quit: true }); return; }
@@ -319,24 +347,28 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
           animate: (o, s2, dt = 1 / 60) => { st.v = s2; if (r) { r.char.back = s2.back; r.update(dt, s2.speed, true, 0); flag('swing', s2.swing >= 0, () => r.doAct('hit', 0.5)); flag('won', s2.won, () => r.doCheer()); } },
           dispose() { obj.parent?.remove(obj); if (r) { r.char.post = null; r.dispose(); } else obj.traverse(c => { c.geometry?.dispose(); c.material?.dispose?.(); }); } };
       };
-      const m = { youMate: await mk('pelotari', n1, 2, pairs?.partner?.stats), rivalMate: await mk('pelotari_rojo', n2, levelTier(level), pairs?.rivalMate?.stats) };
+      const m = { youMate: await mk(youModel, n1, 2, pairs?.partner?.stats), rivalMate: await mk(rivModel, n2, levelTier(level), pairs?.rivalMate?.stats) };
       if (ended || G.disposed) { for (const x of Object.values(m)) x.dispose(); throw new Error('partido acabado'); }
       return (mates = m);
     };
-    fronton.court.setScore?.(youName, rivName, 0, 0);
+    marca(youName, rivName, 0, 0);
+    // los jueces, en la contracancha (a la altura de la chapa, del 4 y del 7): levantan la mano en cada falta
+    try { jueces = G.pelotaJueces = makeJueces(G, fronton.court); } catch (e) { console.warn('jueces', e); }
     const rStats = rivalStats || pelotariStats(rivName, levelTier(level)); rStatsKeep = rStats;
     try { match = G.pelotaMatch = new PelotaMatch({
       THREE, court: fronton.court, camera: G.camera, lang: isEU() ? 'eu' : 'es', mode, target, level, fixedLevel, rivalStats: rStats,
       you: { obj: P.obj, name: profile().name || (isEU() ? 'Zu' : 'Tú'), animate: animYou },
       rival: { obj: rival.obj, name: rivalName || String(rival.name).split(',')[0], animate: animRival },
       onEnd: (r) => done(r), onExit: (r) => done(r),
+      colors, seasons, cuatro,   // (quién viste de cada color y sus temporadas; el Cuatro y Medio)
       fly: intro,   // (la llegada: el vuelo de la cámara hasta la cancha, con los pelotaris y el público ya en su sitio)
       mates: mode === 'match' && (!fixedLevel || pairs) ? makeMates : null, forcePairs: !!pairs,   // (en el torneo individual, mano a mano; en el de parejas, por parejas)
       back: fixedLevel ? 'torneo' : G.sportMode ? 'menu' : 'pueblo',   // (a dónde lleva el botón del final)
       town: (G.def?.name || '').split(' /')[0], youRecord: myRecord(),   // (para las fichas: el pueblo del frontón y lo que has ganado)
       cond: frontonCond(G, fronton),   // (cómo es el frontón: a cubierto o al aire libre, de piedra, mojado o el Labrit)
       venue: fronton.court.labrit ? (isEU() ? 'Labrit frontoia · Iruña' : 'Frontón Labrit · Iruña') : fronton.court.hall ? (isEU() ? `${(G.def?.name || '').split(' /')[0]} · frontoi estalia` : `Frontón cubierto de ${(G.def?.name || '').split(' /')[0]}`) : null, vsImg: { fig: (name, side) => pelotariFig(name, side, '', true) }, comp, youBonus, rivalBonus,   // (la presentación: qué se juega y la media de cada uno)
-      onEvent: (e) => { if (e.type === 'call' && e.score) { const [a, b] = match?.labels?.() || [youName, rivName]; fronton.court.setScore?.(a, b, e.score.you, e.score.rival); } if (e.type === 'call' && seated) { seated.cheer(true); cheerT = e.final ? 4.6 : 1.6; } },
+      onEvent: (e) => { if (e.type === 'call' && e.score) { const [a, b] = match?.labels?.() || [youName, rivName]; marca(a, b, e.score.you, e.score.rival); } if (e.type === 'call' && seated) { seated.cheer(true); cheerT = e.final ? 4.6 : 1.6; }
+        if (e.type === 'call') senalaJuez(jueces, e.call, match?.game?.ball?.p); },
     }); } catch (e) { console.warn('frontón', e); done({ win: false, error: true }); return; }   // (si no se monta, de vuelta al pueblo)
     // (si el partido falla una y otra vez, se acaba y se vuelve al pueblo: nunca el marcador puesto en mitad de la calle)
     let bad = 0;
@@ -346,6 +378,8 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     G.pelotaTick = (dt) => {
       try { match.update(dt); bad = 0; } catch (e) { console.warn('partido', e); if (++bad > 20) { done({ win: false, quit: true, error: true }); return; } }
       try { if (seated) { seated.tick(match.t || 0, cheerT > 0 ? 1 : 0.15, seatedZ, G.camera); if (cheerT > 0 && (cheerT -= dt) <= 0) seated.cheer(false); } } catch (e) { console.warn('público', e); seated = null; }
+      // (los jueces siguen la pelota con la mirada)
+      try { if (jueces.length) { const b = match.game.ball.p, w = fronton.court.group.localToWorld(_jv.set(b.x, 0, b.z)); for (const j of jueces) { j.lookAt = w; j.update(dt, null); } } } catch (e) { console.warn('jueces', e); jueces = []; }
     };
     })().catch(fail);
     function done(r) {
@@ -357,6 +391,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       // (cada paso por su cuenta: si uno falla, los demás se hacen igual y se vuelve al pueblo con todo en su sitio)
       const safe = (f) => { try { f(); } catch (e) { console.warn('frontón', e); } };
       safe(() => { if (seated) { seated.parent?.remove(seated); seated.dispose(); seated = null; } });
+      safe(() => { for (const j of jueces) { j.obj.parent?.remove(j.obj); removeMover(j.collider); } jueces = []; G.pelotaJueces = null; });
       safe(() => { if (mates) for (const m of Object.values(mates)) m.dispose(); mates = null; });
       safe(() => { if (rig.char) rig.char.post = null; if (rival.glb) rival.glb.post = null; rig.setStance?.(null); });
       safe(() => { if (pel) { P.obj.remove(pel.char.root); pel.dispose(); } });

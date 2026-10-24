@@ -1,6 +1,6 @@
 // Lógica del partido de pelota a mano (sin gráficos): saque, peloteo, árbitro, tanteo y rival.
 // La vista (match.js) le pasa la entrada del jugador y recibe eventos para dibujar, sonar y rotular.
-import { COURT, LEVELS, SHOTS, kantari } from './rules.js';
+import { COURT, LEVELS, SHOTS, kantari, CUATRO } from './rules.js';
 import { Ball, predict, solveShot, solveTwoWalls, aimVelocity, vec } from './physics.js';
 import { clamp } from '../util/math.js';
 
@@ -46,6 +46,12 @@ export function cutHeight(pow, ay = 0) { return clamp(COURT.CHAPA + 0.45 + Math.
 export const aimSide = (x) => Math.sign(x) * Math.min(1, Math.pow(Math.abs(x), 0.6) * 1.12);
 // (la dejada: la carga dice la altura, de rozar la chapa a unos 2 m; el joystick arriba o abajo afina un palmo más)
 export function dropHeight(pow, ay = 0) { return clamp(COURT.CHAPA + 0.1 + pow01(pow) * 1.05 + ay * 0.32, COURT.CHAPA + 0.06, 2.3); }
+// dónde bota por primera vez después de dar en el frontis (el Cuatro y Medio: que no pase de la raya naranja)
+function firstBounceZ(p, v) {
+  const b = new Ball(); b.set({ ...p }, { ...v }); const out = []; let front = false;
+  for (let t = 0; t < 4; t += 1 / 120) { out.length = 0; b.step(1 / 120, out); for (const e of out) { if (e.type === 'front') front = true; else if (e.type === 'floor') return front ? e.z : null; } }
+  return null;
+}
 // ¿pasa la pelota por encima de la pared izquierda (o la roza muy alta) antes de botar?
 function overLeft(p, v) {
   const b = new Ball(); b.set({ ...p }, { ...v }); const out = [];
@@ -67,6 +73,8 @@ export class PelotaGame {
     // por parejas: cada lado con un delantero y un zaguero (tú eliges qué juegas; tu compañero, lo otro). El rival del
     // pueblo juega de delantero y saca
     this.pairs = !!o.pairs && this.mode === 'match';
+    // el Cuatro y Medio (mano a mano): el saque entre la raya del 3 y la del 5, y en el tanto nada más allá del 4 y medio
+    this.cuatro = !!o.cuatro && !this.pairs && this.mode === 'match';
     const yr = o.youRole === 'zaguero' ? 'zaguero' : 'delantero';
     this.role = this.pairs ? { you: yr, youMate: yr === 'delantero' ? 'zaguero' : 'delantero', rival: 'delantero', rivalMate: 'zaguero' } : {};
     this.clock = 0;
@@ -115,7 +123,7 @@ export class PelotaGame {
     } else {
       const r = this.players[this.other(this.server)];
       s.x = SERVE_X; s.z = SERVE_FROM;
-      r.x = RECV_X; r.z = RECV_Z;
+      r.x = RECV_X; r.z = this.cuatro ? 18.5 : RECV_Z;   // (en el Cuatro y Medio el saque cae corto: se resta hacia el 5)
     }
     for (const id of this.ids) { const p = this.players[id]; p.vx = p.vz = 0; p.swing = 0; p.act = 'idle'; }
     this.ball.set(vec(s.x + 0.35, 1.05, s.z - 0.35), vec()); this.ball.spin = 0;
@@ -213,7 +221,7 @@ export class PelotaGame {
     const err = (1 - q) + Math.max(0, pow - 0.85) * 0.3 * (1.6 - this.qual[who].fuerza * 0.2), forceDrop = req === true || req === 'dejada';
     if (serve) {
       const tx = clamp(aim.x * 2.5 + gauss(rnd) * err * 1.2, -3.5, 3.5);
-      const landZ = 18.3 + pow * 2 + gauss(rnd) * err * 7.5;
+      const landZ = this.cuatro ? 13.4 + pow * 2.4 + gauss(rnd) * err * 4.5 : 18.3 + pow * 2 + gauss(rnd) * err * 7.5;
       v = solveShot(p, tx, landZ, 17 + q * 3 + pow * 6).v; shot = 'saque';
     } else if (forceDrop) {
       // dejada: la fuerza dice a qué altura pega: suave, justo encima de la chapa (muere enseguida); cargada, más
@@ -260,7 +268,7 @@ export class PelotaGame {
       // (el ángulo, con todo el recorrido que queda del joystick, de 0,7 al tope, y algo de abajo; la fuerza dice lo larga
       // que sale, de la mitad de la cancha al cuadro 6: antes ese recorrido era la mitad y la fuerza se notaba poco)
       if (!gancho && rawX < -0.7 && aim.y < 0.3) {
-        const ang = clamp(Math.pow(clamp((-rawX - 0.7) / 0.3, 0, 1), 0.85) + Math.max(0, -aim.y) * 0.3, 0, 1), lz = clamp(10.5 + pow * 10.5 + aim.y * 1.5 + gauss(rnd) * err * 2, 10, 22);
+        const ang = clamp(Math.pow(clamp((-rawX - 0.7) / 0.3, 0, 1), 0.85) + Math.max(0, -aim.y) * 0.3, 0, 1), lz = clamp(10.5 + pow * 10.5 + aim.y * 1.5 + gauss(rnd) * err * 2, 10, this.cuatro ? 14.6 : 22);
         const fz = clamp(0.62 - ang * 0.45 + gauss(rnd) * err * 0.07, 0.15, 0.8);
         const r = solveTwoWalls(p, speed + 1, lz, [fz, fz - 0.06, fz + 0.06]);   // (más fuerza, más rápida y más larga)
         if (r) {
@@ -277,7 +285,7 @@ export class PelotaGame {
         let lx = aim.x * (aim.x < 0 ? 4.1 : 4.4);   // (a la izquierda, del todo, a medio metro de la pared: si no, la roza alta)
         // a tope y largo, un pelotari con fuerza la manda al fondo: bota en el último cuadro y llega al rebote (la pared de
         // atrás), que la devuelve; uno flojo no llega
-        const rebote = pow > 0.88 && aim.y > 0.3 && q > 0.5 && S >= 2;
+        const rebote = !this.cuatro && pow > 0.88 && aim.y > 0.3 && q > 0.5 && S >= 2;
         if (rebote) { shot = 'rebote'; landZ = clamp(28.8 + (S - 3) * 0.9 + (pow - 0.88) * 6, 26.5, 30.8); speed += 5 + (S - 3) * 2; }
         else if (aim.y > 0.6) { shot = 'largo'; landZ = Math.max(depth, 19 + pow * 4); speed += 1.5; }
         else landZ = depth;
@@ -288,6 +296,8 @@ export class PelotaGame {
         // alcance de un golpe: un pelotari con mucha fuerza, desde el cuadro 4, la manda de vuelta hasta el cuadro 7;
         // desde más atrás llega algo más lejos (le da más alto en el frontis) y un golpe flojo se queda antes
         if (!rebote) landZ = Math.min(landZ, 15.5 + q * 2 + pow * 8 + clamp(p.z - COURT.FALTA, -4, 8) * 0.18 + (S - 3) * 1.3, COURT.L - 2.5);
+        // (en el Cuatro y Medio, lo largo se queda antes de la raya naranja; un golpe malo se puede pasar)
+        if (this.cuatro) landZ = Math.min(landZ, CUATRO.LIMITE - 1.2 + q * 0.6) + Math.max(0, gauss(rnd)) * err * 1.6;
         tx = lx * 0.55;
         // se corrige el punto del frontis hasta que el bote cae donde se apunta, quedándose con el mejor (si se apunta muy
         // a la izquierda, una pelota larga puede tocar la pared y volver: más a la izquierda ya no es mejor)
@@ -315,6 +325,8 @@ export class PelotaGame {
         for (let k = 0; k < 5 && v && overLeft(p, v); k++) { speed += 3; const r = solveShot(p, tx, landZ, speed); if (r?.v) v = r.v; }
       } else if (err > 0.2) { const k = 1 + gauss(rnd) * err * 0.06; v.x *= k; v.y *= 1 + gauss(rnd) * err * 0.05; v.z *= k; }   // a dos paredes, un golpe flojo se desvía un poco
     }
+    // (el Cuatro y Medio: si un golpe bueno se iba a pasar de la raya naranja, sale algo más flojo y bota antes)
+    if (this.cuatro && !serve && v && q > 0.45) for (let k = 0; k < 8; k++) { const z = firstBounceZ(p, v); if (z == null || z < CUATRO.LIMITE - 0.35) break; v = { x: v.x * 0.95, y: v.y * 0.97, z: v.z * 0.95 }; }
     if (dry) return { p, v, shot, sub, spin: shot === 'cortada' ? 1 : 0 };
     // golpe muy malo: a veces a la chapa o demasiado alto
     if (!serve && q < 0.3 && rnd() < 0.45) {
@@ -386,8 +398,14 @@ export class PelotaGame {
       if (R.bounces === 1) {
         if (e.x > COURT.W / 2) return this.point(receiver, 'fuera');
         if (e.z > COURT.L) return this.point(receiver, 'largo');
-        if (R.serve && e.z < COURT.FALTA) return this.point(receiver, 'falta');
-        if (R.serve && e.z > COURT.PASA) return this.point(receiver, 'pasa');
+        if (this.cuatro) {   // (el saque, entre el 3 y el 5; el tanto, nunca más allá de la raya naranja del 4 y medio)
+          if (R.serve && e.z < CUATRO.FALTA) return this.point(receiver, 'falta45');
+          if (R.serve && e.z > CUATRO.PASA) return this.point(receiver, 'pasa45');
+          if (!R.serve && e.z > CUATRO.LIMITE) return this.point(receiver, 'cuatro');
+        } else {
+          if (R.serve && e.z < COURT.FALTA) return this.point(receiver, 'falta');
+          if (R.serve && e.z > COURT.PASA) return this.point(receiver, 'pasa');
+        }
       } else if (R.bounces >= 2) return this.point(striker, 'bote');
     }
   }
@@ -570,7 +588,7 @@ export class PelotaGame {
     } else if (this.phase === 'rally') {
       // se recoloca: centro-fondo, algo al lado contrario del rival
       const op = this.players[this.other(sd)];
-      tx = clamp(-op.x * 0.5, -2.5, 2.5); tz = 20.5;
+      tx = clamp(-op.x * 0.5, -2.5, 2.5); tz = this.cuatro ? 13 : 20.5;   // (en el Cuatro y Medio se espera más adelante: todo se juega antes del 4 y medio)
     } else if (this.phase === 'servePrep' && this.serverP() === who) {
       if (this.hittable(who) && this.ball.v.y < 0.4 && this.ball.p.y < 1.1) {
         const s = this.aiShot(who); return this.strike(who, 0.6 + this.rnd() * 0.35, s.aim, false);

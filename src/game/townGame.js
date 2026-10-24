@@ -70,7 +70,7 @@ import { Fronton, findFrontonSpot, frontonWall, labrit, labritInTown, hallVenue 
 import { Pista, findPistaSpot } from './pista.js';
 import { clubOfTown, teamOfClub, CLUBS } from '../futbol/clubs.js';
 import { clubPanel, season as ligaSeason } from '../futbol/liga.js';
-import { torneo, yourMatch, playTorneoRound, torneoPanel, pelotaMenu, youBonus, sedeDe } from './torneo.js';
+import { torneo, yourMatch, playTorneoRound, torneoPanel, pelotaMenu, youBonus, sedeDe, KINDS } from './torneo.js';
 import { showChampion } from '../ui/champion.js';
 import { makeClue, makeAura } from './legendFx.js';
 import { Chase } from './chase.js';
@@ -1046,10 +1046,11 @@ export class TownGame {
       this.ui.hudVisible(false);
       // (el partido libre, en el frontón que elijas: de primeras, el de la plaza, que es donde estás)
       const sel = { sedes: this.sedes(), sede: this.fronton.court.labrit ? 'labrit' : 'plaza' };
-      const pick = await pelotaMenu(torneo(you, ctx), town, torneo(you, ctx, false, 'parejas'), sel);
+      const pick = await pelotaMenu(torneo(you, ctx), town, torneo(you, ctx, false, 'parejas'), sel, torneo(you, ctx, false, 'cuatro'));
       if (this.disposed || pick === 'exit') return;
       if (pick === 'torneo') return await this.pelotaTorneo(a, ctx);
       if (pick === 'torneoParejas') return await this.pelotaTorneo(a, ctx, 'parejas');
+      if (pick === 'torneoCuatro') return await this.pelotaTorneo(a, ctx, 'cuatro');
       const v = this.venueDe(sel.sede); await this.venuePrep(v);
       if (this.disposed) return;
       const r = await v.play(this, a, { ...(v === this.fronton ? {} : { returnTo: this.fronton }), intro: (m) => vueloFronton(this, v, m) });
@@ -1083,10 +1084,10 @@ export class TownGame {
         const you = { name: P.name || 'Tú', town };
         // (el frontón del partido libre, a elegir: el de la plaza, el cubierto, el Labrit u otro pueblo; se recuerda)
         const S = this.sedes(), sel = { sedes: S, sede: S.includes(P.pelotaSede) ? P.pelotaSede : this.fronton.court.labrit ? 'labrit' : 'cubierto', otro: true, onSede: (k) => { P.pelotaSede = k; saveProfile(); } };
-        const pick = await pelotaMenu(torneo(you, ctx), town, torneo(you, ctx, false, 'parejas'), sel);
+        const pick = await pelotaMenu(torneo(you, ctx), town, torneo(you, ctx, false, 'parejas'), sel, torneo(you, ctx, false, 'cuatro'));
         if (this.disposed || pick === 'exit') return;
         if (pick.startsWith('otro:')) { if (pick.slice(5) !== this.def.id) { this.luego = { pelota: pick.slice(5) }; return; } continue; }
-        if (pick === 'torneo' || pick === 'torneoParejas') { await this.pelotaTorneo(a, ctx, pick === 'torneoParejas' ? 'parejas' : 'mano'); if (this.disposed) return; continue; }
+        if (pick === 'torneo' || pick === 'torneoParejas' || pick === 'torneoCuatro') { await this.pelotaTorneo(a, ctx, pick === 'torneoParejas' ? 'parejas' : pick === 'torneoCuatro' ? 'cuatro' : 'mano'); if (this.disposed) return; continue; }
         // (el fondo sigue delante mientras se preparan los pelotaris: lo quita el vuelo de la llegada; antes se veía al
         // jugador quieto en la puerta del frontón hasta que empezaba el partido)
         const hv = this.venueDe(sel.sede); await this.venuePrep(hv);
@@ -1138,7 +1139,7 @@ export class TownGame {
         // (stay: del partido, al cuadro del torneo, sin volver al pueblo entre ronda y ronda)
         const r = await venue.play(this, a, { target: m.target, level: m.level, rivalName: `${pairs ? m.rival.mates[0] : m.rival.name} (${m.rival.town})`, fixedLevel: true, returnTo: this.fronton, rivalStats: m.stats, stay: true,
           pairs: pairs ? { partner: m.partner, rivalMate: m.mate } : null, rivalTown: m.rival.townId ? { id: m.rival.townId, name: m.rival.town } : null,
-          comp: `${pairs ? 'Torneo por parejas' : 'Torneo de mano'} · ${m.round}`, youBonus: youBonus(T), rivalBonus: ((m.rival.lv || 2) - 2) * 3, intro: (pm) => vueloFronton(this, venue, pm) });
+          comp: `${(KINDS[kind] || KINDS.mano).name} · ${m.round}`, youBonus: youBonus(T), rivalBonus: ((m.rival.lv || 2) - 2) * 3, intro: (pm) => vueloFronton(this, venue, pm), cuatro: kind === 'cuatro' });
         this.sportBackdrop(true);
         if (this.disposed) return;
         played = true;
@@ -1150,9 +1151,9 @@ export class TownGame {
           this.player.rig.doCheer?.(); this.particles.confetti?.(this.player.pos, 120);
           // la gran celebración: la txapela baja, confeti, fuegos y el frontón en pie
           if (pairs) {
-            await showChampion({ kind: 'pelota', kicker: `Torneo por parejas · ${ctx.comarcaName}`, title: '¡Txapeldunak!', name: T.players[T.champion].name, sub: `La txapela de parejas de ${ctx.comarcaName} es vuestra. Llevas ${P.txapelas} ${P.txapelas === 1 ? 'txapela' : 'txapelas'}. Zorionak!`, score: `Final · ${r.you} – ${r.cpu}`, sound: this.sound, button: 'Ponerme la txapela' });
+            await showChampion({ kind: 'pelota', kicker: `${KINDS.parejas.full} · ${ctx.comarcaName}`, title: '¡Txapeldunak!', name: T.players[T.champion].name, sub: `La txapela de parejas de ${ctx.comarcaName} es vuestra. Llevas ${P.txapelas} ${P.txapelas === 1 ? 'txapela' : 'txapelas'}. Zorionak!`, score: `Final · ${r.you} – ${r.cpu}`, sound: this.sound, button: 'Ponerme la txapela' });
           } else {
-            await showChampion({ kind: 'pelota', kicker: `Torneo de mano · ${ctx.comarcaName}`, title: '¡Txapeldun!', name: P.name || 'Campeón', sub: `La txapela de ${ctx.comarcaName} es tuya. Llevas ${P.txapelas} ${P.txapelas === 1 ? 'txapela' : 'txapelas'}. Zorionak!`, score: `Final · ${r.you} – ${r.cpu}`, sound: this.sound, button: 'Ponerme la txapela' });
+            await showChampion({ kind: 'pelota', kicker: `${(KINDS[kind] || KINDS.mano).full} · ${ctx.comarcaName}`, title: '¡Txapeldun!', name: P.name || 'Campeón', sub: `La txapela de ${ctx.comarcaName} es tuya. Llevas ${P.txapelas} ${P.txapelas === 1 ? 'txapela' : 'txapelas'}. Zorionak!`, score: `Final · ${r.you} – ${r.cpu}`, sound: this.sound, button: 'Ponerme la txapela' });
           }
         }
         // (sin charla en el pueblo entre ronda y ronda: el cuadro del torneo ya dice si sigues, la ronda que viene y dónde)

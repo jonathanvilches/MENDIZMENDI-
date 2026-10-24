@@ -1,6 +1,6 @@
 // Centro de mando: inicio, mapa de Navarra, comarcas, pueblos, cimas, naturaleza, personajes, insignias, pasaporte y perfil.
 import COMARCAS from '../data/comarcas.json';
-import { txapelas as TXAPELAS, torneosGuardados, yourMatch } from '../game/torneo.js';
+import { txapelas as TXAPELAS, torneosGuardados, KINDS, yourMatch } from '../game/torneo.js';
 import { ligasGuardadas, table as ligaTabla } from '../futbol/liga.js';
 import { pelotarisCount } from '../game/pelotaris.js';
 import MOUNTAINS from '../data/mountains.json';
@@ -337,7 +337,7 @@ export class Hub {
     const tors = torneosGuardados().sort((a, b) => (a.done - b.done) || (b.past?.length || 0) - (a.past?.length || 0)).slice(0, 3), pel = tors.map(T => {
       const m = yourMatch(T), yo = T.players.findIndex(x => x.you), en = (last.comarca === T.comarca ? last : LEVELS.find(l => l.comarca === T.comarca))?.id || '';
       const estado = T.done ? (T.champion === yo ? '¡Txapela ganada!' : 'Terminado') : m ? `${m.round} contra ${m.pairs ? m.rival.mates[0] : m.rival.name}` : 'Eliminado: el torneo sigue';
-      return `<li><span class="pg-ico">${I('txapela', 34)}</span><div><b>Txapela de ${esc(T.comarcaName)}</b><small><span>${T.kind === 'parejas' ? 'Por parejas' : 'Mano a mano'}</span> · <span>${esc(estado)}</span>${T.txapelas ? ` · <span>${cnt(T.txapelas, 'txapela', 'txapelas')}</span>` : ''}</small></div>${en ? `<button class="btn primary small" data-sport="pelota" data-en="${en}">${I('play', 18)} Seguir</button>` : ''}</li>`; });
+      return `<li><span class="pg-ico">${I('txapela', 34)}</span><div><b>Txapela de ${esc(T.comarcaName)}</b><small><span>${(KINDS[T.kind] || KINDS.mano).name}</span> · <span>${esc(estado)}</span>${T.txapelas ? ` · <span>${cnt(T.txapelas, 'txapela', 'txapelas')}</span>` : ''}</small></div>${en ? `<button class="btn primary small" data-sport="pelota" data-en="${en}">${I('play', 18)} Seguir</button>` : ''}</li>`; });
     const camp = `<div class="panel pg-camp"><h2 class="sec">${I('trophy', 30)} Campeonatos</h2>${fut.length || pel.length
       ? `<ul class="pg-list">${[...fut, ...pel].join('')}</ul>` : `<p class="pg-empty">Aún no has empezado ningún campeonato.</p>`}<button class="btn ghost small pg-more" data-go="sports">${I('trophy', 18)} Ir a Campeonatos</button></div>`;
     // cada comarca: cuánto llevas descubierto y sus sellos
@@ -367,8 +367,8 @@ export class Hub {
     <section class="sports">
       <div class="sport sp-pelota">
         <span class="sp-cover" aria-hidden="true" style="background-image:url(${laminaUrl('dep-pelotari') || laminaUrl('dep-fronton') || townImg(fl)})"></span>
-        <div class="sp-txt"><small class="kicker">Torneo de mano</small><h3>Pelota a mano</h3>
-          <p>Partido libre o el torneo por la txapela de la comarca: cuartos, semifinal y final.</p>
+        <div class="sp-txt"><small class="kicker">Tres campeonatos</small><h3>Pelota a mano</h3>
+          <p>Manomanista, Parejas y Cuatro y Medio por la txapela de la comarca, o un partido libre.</p>
           <span class="sp-stat">${I('txapela', 22)} ${tx} ${tx === 1 ? 'txapela' : 'txapelas'}</span></div>
         <div class="sp-bar"><div class="sp-row"><small>Elige frontón</small>${this.frontonBox(fl)}</div>
           <button class="gx-go" data-sport="pelota">${I('play', 24)} <span>Jugar</span></button></div><span class="sp-shine"></span>
@@ -391,7 +391,7 @@ export class Hub {
     this.sound?.ui('open');
     const cur = this.frontonId(), groups = COMARCAS.map(c => [c, LEVELS.filter(l => !l.special && l.comarca === c.id)]).filter(([, ts]) => ts.length);
     const s = el(`<div class="sheet frs"><div class="frs-in" role="dialog" aria-label="Elige frontón">
-      <div class="frs-head"><small class="kicker">Torneo de mano</small><h2>Elige frontón</h2></div><button class="x" aria-label="Cerrar">${I('close', 22)}</button>
+      <div class="frs-head"><small class="kicker">Pelota a mano</small><h2>Elige frontón</h2></div><button class="x" aria-label="Cerrar">${I('close', 22)}</button>
       <div class="frs-list">${groups.map(([c, ts]) => `<section><h3>${esc(c.name)}</h3><div class="frs-grid">${ts.map(l => `<button class="fr-chip ${l.id === cur ? 'on' : ''}" data-fronton="${l.id}">${esc(l.name.split(' /')[0])}</button>`).join('')}</div></section>`).join('')}</div></div></div>`);
     this.sheet?.remove(); this.sheet = s; this.root.appendChild(s);
     s.addEventListener('click', e => { if (e.target === s || e.target.closest('.x')) { s.remove(); this.sheet = null; } });

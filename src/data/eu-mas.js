@@ -88,6 +88,10 @@ export const EU_RX_MAS = [
   [/^(\d+)\.º con (\d+) puntos?$/, '$1. postua, $2 puntu'], [/^(\d+)\.º$/, '$1.'], [/^(\d+) títulos?$/, '$1 titulu'], [/^Y (\d+) pueblos? más$/, 'Eta beste $1 herri'],
   [/^(Cuartos de final|Semifinales|Final) contra (.+)$/, (m, a, b) => `${e(a)}: ${gen(b)} aurka`], [/^(\d+)\/(\d+) sello$/, '$1/$2 zigilu'], [/^(\d+)%$/, '%$1'],
   [/^(Torneo por parejas|Torneo de mano) · edición (\d+)$/, (m, a, n) => `${e(a)} · ${n}. edizioa`],
+  // (los tres campeonatos de pelota: su nombre con la edición, con la ronda o con la comarca)
+  [/^(Campeonato Manomanista|Campeonato de Parejas|Campeonato del Cuatro y Medio) · edición (\d+)$/, (m, a, n) => `${e(a)} · ${n}. edizioa`],
+  [/^(Manomanista|Parejas|Cuatro y Medio) · (.+)$/, (m, a, b) => `${e(a)} · ${e(b)}`],
+  [/^(Campeonato Manomanista|Campeonato de Parejas|Campeonato del Cuatro y Medio) · (.+)$/, (m, a, b) => `${e(a)} · ${b}`],
   [/^Seguir jugando en (.+)$/, (m, a) => `Jarraitu jolasten ${ine(e(a))}`], [/^Jugar en (.+)$/, (m, a) => `Jolastu ${ine(e(a))}`],
   [/^(.*?) ?· ficha de (flora|fauna)$/, (m, k, f) => `${k ? e(k) + ' · ' : ''}${f}-fitxa`],
   [/^Has completado una misión en (.+)\.$/, (m, a) => `Misio bat osatu duzu ${ine(e(a))}.`],

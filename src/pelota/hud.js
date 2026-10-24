@@ -8,6 +8,51 @@ export { esc };
 const CSS = `
 .pel-root{position:fixed;inset:0;z-index:900;pointer-events:none;font-family:var(--pel-font,Nunito,sans-serif);color:#fff;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 .pel-root.vuelo>*{visibility:hidden!important}
+.pel-root.repe :is(.pel-stick,.pel-btns,.pel-stickhint,.pel-tip,.pel-q,.pel-myen,.pel-en,.pel-exit,.pel-call){visibility:hidden}
+/* la repetición: el rótulo arriba a la izquierda con su punto rojo que late; en cámara lenta, su aviso */
+.pel-rep{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--edge,16px));top:calc(env(safe-area-inset-top,0px) + var(--edge,16px) + 60px);display:flex;flex-direction:column;gap:6px;pointer-events:none;animation:pel-repin .45s cubic-bezier(.2,1.3,.4,1) both}
+.pel-rep-b{display:flex;align-items:center;gap:10px;padding:8px 16px 8px 12px;border-radius:6px;background:linear-gradient(100deg,rgba(30,10,68,.92),rgba(91,52,196,.86));box-shadow:0 6px 18px rgba(0,0,0,.4),inset 0 0 0 1px rgba(255,255,255,.18);transform:skewX(-8deg)}
+.pel-rep-b>*{transform:skewX(8deg)}.pel-rep-b i{width:12px;height:12px;border-radius:50%;background:#ff3b5c;box-shadow:0 0 10px #ff3b5c;animation:pel-rec 1s ease-in-out infinite}
+.pel-rep-b b{font:400 var(--fs-xl)/1 var(--f-display,'MZ Display'),Nunito,sans-serif;text-transform:uppercase;letter-spacing:.04em}
+.pel-rep-b .sl{display:none;font:800 var(--fs-xs)/1 var(--f-cond,'MZ Cond'),Nunito,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#ffd6f6;padding:4px 8px;border-radius:999px;background:rgba(255,43,214,.35)}
+.pel-rep.slow .sl{display:inline-block;animation:pel-repin .3s ease-out both}
+.pel-rep small{font:700 var(--fs-xs)/1.2 var(--f-cond,'MZ Cond'),Nunito,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#e8dcff;text-shadow:0 1px 3px #000;padding-left:4px}
+@keyframes pel-repin{from{opacity:0;transform:translateX(-24px)}}@keyframes pel-rec{50%{opacity:.25}}
+/* el sorteo del saque: la chapa (azul por una cara y colorada por la otra) sube girando y cae; brilla el lado que saca */
+.pel-toss{position:absolute;inset:0;z-index:5;display:grid;place-items:center;padding:16px;pointer-events:auto;background:radial-gradient(ellipse at 50% 45%,rgba(40,14,92,.78),rgba(7,2,15,.92));animation:pel-tossbg .3s ease-out both}
+.pel-root:has(>.pel-toss)>:not(.pel-toss){visibility:hidden}
+.pel-toss.out{animation:pel-tossout .32s ease-in both}
+.pel-toss-card{display:flex;flex-direction:column;align-items:center;gap:12px;width:min(640px,100%);text-align:center}
+.pel-toss-k{font:800 var(--fs-sm)/1.2 var(--f-cond,'MZ Cond'),Nunito,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#ffd6f6;animation:pel-kin .6s ease-out both}
+.pel-toss-row{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:end;gap:16px;width:100%;margin-top:24px}
+.pel-toss-p{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border-radius:8px;border:2px solid transparent;transition:transform .3s,box-shadow .3s,border-color .3s;min-width:0}
+.pel-toss-p i{width:34px;height:34px;border-radius:50%;box-shadow:inset 0 -4px 0 rgba(0,0,0,.25),0 0 0 3px rgba(255,255,255,.25)}
+.pel-toss-p.azul i{background:radial-gradient(circle at 35% 30%,#9c92ff,#5b4bff 50%,#2a1a9e)}.pel-toss-p.rojo i{background:radial-gradient(circle at 35% 30%,#ff8fc0,#ff2e88 50%,#9e0f52)}
+.pel-toss-p b{font:400 var(--fs-xl)/1.05 var(--f-display,'MZ Display'),Nunito,sans-serif;text-transform:uppercase;max-width:100%;overflow-wrap:anywhere}
+.pel-toss-p small{font:700 var(--fs-xs)/1.25 var(--f-cond,'MZ Cond'),Nunito,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#d8cff0}
+.pel-toss-p.azul{animation:pel-tl .45s cubic-bezier(.2,1.3,.4,1) both}.pel-toss-p.rojo{animation:pel-tr .45s cubic-bezier(.2,1.3,.4,1) both}
+.pel-toss-p.gana{transform:scale(1.1)}.pel-toss-p.azul.gana{border-color:#8f84ff;box-shadow:0 0 28px rgba(91,75,255,.8),inset 0 0 18px rgba(91,75,255,.4)}.pel-toss-p.rojo.gana{border-color:#ff7ac8;box-shadow:0 0 28px rgba(255,46,136,.8),inset 0 0 18px rgba(255,46,136,.4)}
+.pel-toss-coin{position:relative;width:104px;height:150px;perspective:600px;display:flex;align-items:flex-end;justify-content:center}
+.pel-toss-coin .coin{position:relative;width:84px;height:84px;margin-bottom:22px;transform-style:preserve-3d;transform:rotateX(70deg)}
+.pel-toss-coin .f{position:absolute;inset:0;border-radius:50%;backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:inset 0 0 0 5px rgba(255,255,255,.4),inset 0 0 0 9px rgba(0,0,0,.15)}
+.pel-toss-coin .f.azul{background:radial-gradient(circle at 35% 30%,#a59cff,#5b4bff 48%,#2a1a9e)}
+.pel-toss-coin .f.rojo{transform:rotateX(180deg);background:radial-gradient(circle at 35% 30%,#ff9cc8,#ff2e88 48%,#9e0f52)}
+.pel-toss-coin .sh{position:absolute;bottom:8px;left:50%;width:70px;height:12px;margin-left:-35px;border-radius:50%;background:rgba(0,0,0,.45);filter:blur(3px)}
+.pel-toss.aire .coin{animation:pel-flip 1.45s cubic-bezier(.25,.6,.35,1) both}.pel-toss.aire .sh{animation:pel-flipsh 1.45s cubic-bezier(.25,.6,.35,1) both}
+.pel-toss.cae .coin{animation:pel-flip 1.45s cubic-bezier(.25,.6,.35,1) both,pel-land .35s 1.45s ease-out}
+.pel-toss-why{margin:0;font:700 var(--fs-sm)/1.3 var(--f-cond,'MZ Cond'),Nunito,sans-serif;letter-spacing:.04em;color:#e8dcff}
+.pel-toss.aire .pel-toss-go{opacity:0;pointer-events:none;transform:scale(.9);transition:opacity .2s,transform .2s}
+.pel-toss-go{animation:pel-kin .5s .35s ease-out both}
+.pel-toss-res{margin:0;min-height:1.2em;font:400 var(--fs-3xl)/1 var(--f-display,'MZ Display'),Nunito,sans-serif;text-transform:uppercase;letter-spacing:.02em}
+.pel-toss-res.azul{color:#b3aaff;text-shadow:0 0 18px rgba(91,75,255,.9);animation:pel-res .5s cubic-bezier(.2,1.6,.4,1) both}.pel-toss-res.rojo{color:#ff9ccc;text-shadow:0 0 18px rgba(255,46,136,.9);animation:pel-res .5s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes pel-flip{0%{transform:translateY(0) rotateX(70deg)}50%{transform:translateY(-96px) rotateX(990deg)}100%{transform:translateY(0) rotateX(calc(1870deg + var(--fin,0deg)))}}
+@keyframes pel-flipsh{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.45);opacity:.4}}
+@keyframes pel-land{30%{translate:0 -10px}}
+@keyframes pel-tossbg{from{opacity:0}}@keyframes pel-tossout{to{opacity:0;transform:scale(1.04)}}
+@keyframes pel-tl{from{opacity:0;transform:translateX(-40px)}}@keyframes pel-tr{from{opacity:0;transform:translateX(40px)}}
+@keyframes pel-kin{from{opacity:0;letter-spacing:.5em}}@keyframes pel-res{from{opacity:0;transform:scale(.5)}}
+@media (orientation:portrait){.pel-toss-row{gap:8px}.pel-toss-coin{width:84px}.pel-toss-p b{font-size:var(--fs-lg)}}
+@media (prefers-reduced-motion:reduce){.pel-toss *,.pel-rep *{animation-duration:.01s!important}}
 .pel-root *{box-sizing:border-box}
 .pel-top{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px));right:calc(env(safe-area-inset-right,0px) + var(--edge,16px));display:flex;justify-content:flex-end}
 .pel-exit{padding:0;position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px));left:calc(env(safe-area-inset-left,0px) + var(--edge,16px));width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.82);background:rgba(14,10,24,.66);box-shadow:0 3px 12px rgba(0,0,0,.35);color:#fff;pointer-events:auto;cursor:pointer;display:grid;place-items:center}.pel-exit svg{width:20px;height:20px;display:block}.pel-exit .pel-xi{width:22px;height:22px;display:block;pointer-events:none}
@@ -99,7 +144,7 @@ const CSS = `
 .pel-en{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px) + 52px);left:calc(env(safe-area-inset-left,0px) + var(--edge,16px));display:flex;flex-direction:column;gap:4px;padding:4px 8px;border-radius:10px;background:rgba(14,10,24,.58);font-size:var(--fs-xs);font-weight:800;line-height:1}
 .pel-en[hidden]{display:none}.pel-en div{display:flex;align-items:center;gap:8px}
 .pel-en span{min-width:62px;white-space:nowrap;opacity:.9}.pel-en .me span{opacity:1;color:#ff7ac8}
-.pel-en em{width:7px;height:7px;border-radius:50%;flex:none}.pel-en .you em{background:#5b4bff}.pel-en .rival em{background:#ff2e88}
+.pel-en em{width:7px;height:7px;border-radius:50%;flex:none}.pel-en .c-azul em{background:#5b4bff}.pel-en .c-rojo em{background:#ff2e88}
 .pel-en i{width:64px;height:6px;border-radius:3px;background:rgba(255,255,255,.18);overflow:hidden;position:relative;display:block}
 .pel-en i b{position:absolute;inset:0;transform-origin:left;background:#c9b2ff;transition:transform .2s}.pel-en .mid i b{background:#ff9bd8}.pel-en .low i b{background:#ff5a3a}
 @media (max-width:560px){.pel-mid{display:none}.pel-side{padding:2px 8px}.pel-side span{max-width:calc(20vw / var(--z, 1))}
@@ -159,7 +204,7 @@ const CSS = `
 .pel-opane{animation:pel-pane .18s ease both}@keyframes pel-pane{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 .pel-opane ol{margin:0 0 12px}.pel-opane .pel-ctrl{margin:0 0 12px}
 .pel-orow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:center;margin:0 0 12px}
-.pel-orow .pel-ballwhat,.pel-orow .pel-switch{margin:0}
+.pel-orow .pel-ballwhat,.pel-orow .pel-switch{margin:0}.pel-orow .pel-ballwhat{grid-row:span 2}
 .pel-lv5 button{min-width:0;font-size:var(--fs-sm)}
 /* móvil muy estrecho de pie: los niveles bajan a otra fila en vez de pisarse, los nombres de quien juega van debajo de su
    círculo y «Volver al pueblo» parte en dos líneas */
@@ -205,16 +250,16 @@ export function pelotaStyle() { if (!document.getElementById('pel-style')) { con
 export const X_ICON = icon3DReady('close') ? `<img class="pel-xi" src="${icon3DReady('close')}" alt="" aria-hidden="true">` : '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>';
 
 export class PelotaHud {
-  constructor(container, txt, names, touch) {
+  constructor(container, txt, names, touch, cols = { you: 'azul', rival: 'rojo' }) {
     this.txt = txt; this.touch = touch;
     pelotaStyle();
     const r = this.root = document.createElement('div'); r.className = 'pel-root';
     r.innerHTML = `
       <button class="pel-exit" aria-label="${txt.exit}">${X_ICON}</button>
       <div class="pel-top"><div class="pel-score">
-        <div class="pel-side pel-blue"><i class="pel-serve" data-pel-s="you"></i><span>${esc(short(names.you))}</span><b data-pel-n="you">0</b></div>
+        <div class="pel-side ${cols.you === 'rojo' ? 'pel-red' : 'pel-blue'}" data-side="you"><i class="pel-serve" data-pel-s="you"></i><span>${esc(short(names.you))}</span><b data-pel-n="you">0</b></div>
         <div class="pel-mid" data-pel-mid></div>
-        <div class="pel-side pel-red"><b data-pel-n="rival">0</b><span>${esc(short(names.rival))}</span><i class="pel-serve" data-pel-s="rival"></i></div>
+        <div class="pel-side ${cols.rival === 'azul' ? 'pel-blue' : 'pel-red'}" data-side="rival"><b data-pel-n="rival">0</b><span>${esc(short(names.rival))}</span><i class="pel-serve" data-pel-s="rival"></i></div>
       </div></div>
       <div class="pel-call"><h3></h3><p></p><div class="pel-kantari"></div></div>
       <div class="pel-q"></div>
@@ -237,7 +282,7 @@ export class PelotaHud {
     this.myEn.hidden = !rows.some(r => r.me);
     if (!el || this.enKey !== key) {
       el?.remove(); el = this.enEl = document.createElement('div'); el.className = 'pel-en'; this.enKey = key;
-      el.innerHTML = rows.filter(r => !r.me).map(r => `<div class="${r.side}" data-en="${r.id}"><em></em><span>${esc(short(r.name))}</span><i><b></b></i></div>`).join('');
+      el.innerHTML = rows.filter(r => !r.me).map(r => `<div class="${r.side} c-${r.color || (r.side === 'rival' ? 'rojo' : 'azul')}" data-en="${r.id}"><em></em><span>${esc(short(r.name))}</span><i><b></b></i></div>`).join('');
       this.root.insertBefore(el, this.root.querySelector('.pel-call'));
     }
     if (el.hidden !== false) { el.hidden = false; this.placeTip(); } else if (this.tipFor !== key) this.placeTip();
@@ -261,7 +306,7 @@ export class PelotaHud {
       if (w >= 280) st.setProperty('--pel-tip-w', w + 'px'); else st.setProperty('--pel-tip-top', Math.ceil(enCss(r.bottom) + 8) + 'px');
     });
   }
-  setNames(you, rival) { const a = this.root.querySelector('.pel-blue span'), b = this.root.querySelector('.pel-red span'); if (a) a.textContent = short(you); if (b) b.textContent = short(rival); }
+  setNames(you, rival) { const a = this.root.querySelector('[data-side=you] span'), b = this.root.querySelector('[data-side=rival] span'); if (a) a.textContent = short(you); if (b) b.textContent = short(rival); }
   setScore(you, rival, server, mid) {
     this.$('[data-pel-n=you]').textContent = you; this.$('[data-pel-n=rival]').textContent = rival;
     for (const el of this.root.querySelectorAll('.pel-serve')) el.classList.toggle('on', el.dataset.pelS === server);
