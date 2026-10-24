@@ -77,7 +77,8 @@ export class Actor {
     const walker = !!(this.route || this.wander > 0);
     const near = dP < 4.5 && !this.dance, blocking = walker ? dP < 2.2 && !this.dance : near;
     let moving = false;
-    if (this.chatWith && this.talking > 0) this.lookAt = this.chatWith.pos;
+    if (this.mira) this.lookAt = this.mira;   // (quien sigue algo con la mirada, como los jueces del frontón la pelota)
+    else if (this.chatWith && this.talking > 0) this.lookAt = this.chatWith.pos;
     else if (this.talkTo && this.talking > 0) this.lookAt = this.talkTo;   // (en su tarea: hablando con quien atiende en la tienda, por ejemplo)
     else if (this.talking > 0 || (near && this.state !== 'walk')) { this.lookAt = player.pos; this.chatWith = null; this.talkTo = null; }
     else { this.lookAt = null; this.chatWith = null; }

@@ -326,6 +326,7 @@ export function buildNpc(look = {}) {
   if (srcBody && srcFace) {
     const T = variantTextures(sex, P, srcBody.map.image, srcFace.map.image);
     const mb = srcBody.clone(); mb.map = T.body; const mf = srcFace.clone(); mf.map = T.face;
+    mb.userData.own = mf.userData.own = true;   // (de este vecino: se liberan con él, GlbChar.dispose; las texturas, no, que son compartidas)
     char.root.traverse(o => { if (!o.isMesh || o.userData.outline) return; if (o.material === srcBody) o.material = mb; else if (o.material === srcFace) o.material = mf; });
   }
   // pañuelo al cuello solo si lo lleva

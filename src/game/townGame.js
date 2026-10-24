@@ -1054,8 +1054,9 @@ export class TownGame {
       const v = this.venueDe(sel.sede); await this.venuePrep(v);
       if (this.disposed) return;
       const r = await v.play(this, a, { ...(v === this.fronton ? {} : { returnTo: this.fronton }), intro: (m) => vueloFronton(this, v, m) });
+      if (this.disposed) return;   // (el pueblo se rehízo durante el partido: el fondo de los campeonatos ya es del nuevo)
       this.sportBackdrop(false);
-      if (this.disposed || r.quit) return;
+      if (r.quit) return;
       const best = (townState(profile(), this.def.id).best ||= {});
       if (r.win) { best.pelota = (best.pelota || 0) + 1; saveProfile(); }
       this.player.frozen = true;
@@ -1094,8 +1095,8 @@ export class TownGame {
         if (this.disposed) return;
         // (al acabar, de vuelta al menú de pelota sin pasar por el pueblo: el resultado ya se ha visto en la cancha)
         const r = await hv.play(this, a, { returnTo: this.fronton, comp: 'Partido de exhibición', stay: true, intro: (m) => vueloFronton(this, hv, m) });
+        if (this.disposed) return;   // (si el pueblo se rehízo durante el partido, el fondo ya es del nuevo: no se toca)
         this.sportBackdrop(true);
-        if (this.disposed) return;
         if (r.quit) continue;
         const best = (townState(profile(), this.def.id).best ||= {});
         if (r.win) { best.pelota = (best.pelota || 0) + 1; saveProfile(); }
@@ -1140,11 +1141,12 @@ export class TownGame {
         const r = await venue.play(this, a, { target: m.target, level: m.level, rivalName: `${pairs ? m.rival.mates[0] : m.rival.name} (${m.rival.town})`, fixedLevel: true, returnTo: this.fronton, rivalStats: m.stats, stay: true,
           pairs: pairs ? { partner: m.partner, rivalMate: m.mate } : null, rivalTown: m.rival.townId ? { id: m.rival.townId, name: m.rival.town } : null,
           comp: `${(KINDS[kind] || KINDS.mano).name} · ${m.round}`, youBonus: youBonus(T), rivalBonus: ((m.rival.lv || 2) - 2) * 3, intro: (pm) => vueloFronton(this, venue, pm), cuatro: kind === 'cuatro' });
+        if (this.disposed) return;   // (si el pueblo se rehízo durante el partido, el fondo ya es del nuevo: no se toca)
         this.sportBackdrop(true);
-        if (this.disposed) return;
         played = true;
         if (r.quit && r.later) continue;   // («Ahora no» antes de empezar: de vuelta al cuadro del torneo, de donde se vino)
         if (r.quit) return;   // (salir del partido es salir: de vuelta al pueblo, no al panel del torneo otra vez)
+        if (r.color) T.tuColor = r.color;   // (el color con que jugaste: el de tu carta de campeón)
         playTorneoRound(T, r.you, r.cpu);
         if (T.done && T.players[T.champion].you) {
           P.txapelas = (P.txapelas || 0) + 1; addXP(150); saveProfile();

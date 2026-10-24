@@ -20,6 +20,7 @@ import { houseArms } from '../data/blasones.js';
 import { drawArms } from '../world/heraldry.js';
 import { releaseOffscreen } from '../util/offscreen.js';
 import { mapaXY } from '../util/geo.js';
+import { townLatLon } from '../data/miradores.js';
 import { avatarPortrait, avatarPortraitImg } from '../ui/portraits.js';
 import { figurasHTML, openFigura } from '../ui/figuras.js';
 import { personajesHTML, openPersonaje, MUJERES, HOMBRES } from '../ui/personajes.js';
@@ -67,9 +68,8 @@ function townName(id) {
   return s ? s[2].split(/\s*[/(]/)[0].trim() : id.replace(/-/g, ' ').replace(/^./, c => c.toUpperCase());
 }
 function townXY(lv) {
-  const names = (lv.mapName || lv.name).split('/').map(s => lettersOnly(s));
-  const hit = SETTLEMENTS.find(s => names.includes(lettersOnly(s[2])) || lettersOnly(s[2]).startsWith(names[0])) || SETTLEMENTS.find(s => names.some(n => lettersOnly(s[2]).includes(n)));
-  if (hit) return mapaXY(hit[0], hit[1]);
+  const ll = townLatLon(lv);   // (la misma búsqueda que el cartel de la llegada: llegadas.js)
+  if (ll) return mapaXY(ll.lat, ll.lon);
   const c = comarca(lv.comarca); return c ? [c.label.x, c.label.y + 20] : [380, 400];
 }
 const XY = new Map(LEVELS.map(l => [l.id, townXY(l)]));

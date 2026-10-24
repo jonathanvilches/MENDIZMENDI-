@@ -57,7 +57,9 @@ export class PelotaMatch {
       // la llegada (o.fly(partido), una promesa): la cámara vuela hasta la cancha con los pelotaris ya en su sitio y el
       // público en la grada; mientras, nada del marcador ni de los botones. Al acabar, el panel del partido
       this.flying = true; this.hud.controls(false); this.hud.root.classList.add('vuelo');
-      Promise.resolve().then(() => o.fly(this)).catch(e => console.warn('llegada', e)).finally(() => {
+      // (en el torneo por parejas, los otros dos pelotaris antes del vuelo: así llegan los cuatro ya en su sitio)
+      const prep = o.forcePairs && o.mates ? Promise.resolve().then(() => o.mates()).then((M) => { if (this.active && M) { this.mateObjs = M; this.pairs = true; this.role = 'delantero'; this.newGame(); } }, e => console.warn('parejas', e)) : Promise.resolve();
+      prep.then(() => this.active && o.fly(this)).catch(e => console.warn('llegada', e)).finally(() => {
         this.flying = false; this.camInit = false; this.t0 = this.t; this.hud.root.classList.remove('vuelo');
         if (this.active) panel();
       });
@@ -76,7 +78,7 @@ export class PelotaMatch {
   introPose() {
     const [p, l] = this.introCam(0), g = this.court.group; g.updateMatrixWorld(true);
     return { pos: g.localToWorld(new this.T.Vector3(p[0], p[1], Math.min(p[2], COURT.L + 11))), look: g.localToWorld(new this.T.Vector3(l[0], l[1], l[2])),
-      fov: (innerWidth < innerHeight ? 62 : 54) + (this.game.pairs ? 4 : 0) };
+      fov: (innerWidth < innerHeight ? 62 : 54) + (this.game.pairs || this.o.forcePairs ? 4 : 0) };
   }
   // la física del partido: la del frontón por la de la pelota elegida
   applyFeel() {
@@ -100,6 +102,9 @@ export class PelotaMatch {
   // el nombre de cada lado: el pelotari o, por parejas, los dos
   label(sd) { const m = this.pairs && this.mateObjs?.[sd + 'Mate']; return m ? `${this.names[sd]} · ${m.name}` : this.names[sd]; }
   labels() { return [this.label('you'), this.label('rival')]; }
+  // el nombre sin el pueblo entre paréntesis y las temporadas de cada lado (la presentación y el sorteo de la chapa)
+  nomLimpio(sd) { return this.label(sd).replace(/\s*\([^)]*\)/g, ''); }
+  tempDe(sd) { const TS = this.txt.toss || TEXT.es.toss; return this.seasons ? TS.seasons(this.seasons[sd] || 0) : ''; }
 
   // ------------------------------------------------------------ paneles
   intro() {
@@ -181,8 +186,7 @@ export class PelotaMatch {
     this.vsOpen = true; this.met = true;
     // (las cartas: la media y las tres cualidades de cada uno, como en el cuadro del torneo)
     const N = t.card || TEXT.es.card, cardOf = (st, seed, bonus) => { const r = pelotariRating(st || {}, seed, bonus); return { ovr: r.ovr, ovrLabel: t.ovr || TEXT.es.ovr, stats: [r.vel, r.pot, r.man].map((v, i) => ({ k: N[i], v })) }; };
-    const yn = this.label('you'), rn = this.label('rival').replace(/\s*\([^)]*\)/g, ''), C = this.cols, TS = t.toss || TEXT.es.toss;
-    const temp = (sd) => (this.seasons ? TS.seasons(this.seasons[sd] || 0) : '');
+    const yn = this.label('you'), rn = this.nomLimpio('rival'), C = this.cols, temp = (sd) => this.tempDe(sd);
     // (cada uno con el color que viste: los azules a la izquierda y los colorados a la derecha, como en el frontón)
     const A = { name: yn, sub: [this.o.town || '', temp('you')].filter(Boolean).join(' · '), img: V.you, pf: V.fig?.(splitName(this.names.you).name, C.you), mateImg: M ? V.you : null, matePf: M ? V.fig?.(M.youMate?.name, C.you) : null, ...cardOf(this.o.youStats, `${splitName(this.names.you).name} ${this.o.town || ''}`, this.o.youBonus ?? 2) };
     const B = { name: rn, sub: [rt, temp('rival')].filter(Boolean).join(' · '), img: V.rival, pf: V.fig?.(splitName(this.names.rival).name, C.rival), mateImg: M ? V.rival : null, matePf: M ? V.fig?.(M.rivalMate?.name, C.rival) : null, ...cardOf(this.o.rivalStats, `${splitName(this.names.rival).name} ${rt}`, this.o.rivalBonus ?? 0) };
@@ -192,13 +196,13 @@ export class PelotaMatch {
       you: C.you === 'azul' ? A : B, rival: C.you === 'azul' ? B : A,
       venue: this.o.venue || (this.o.town ? (t.fronton || TEXT.es.fronton)(this.o.town) : ''), cond: this.o.cond, tags: this.feel?.tags || [],
       line, quote: rivalQuote(this.o.rivalStats || {}, this.lang), quoteBy: rn, tap: t.vsTap || TEXT.es.vsTap, onSlam: () => this.audio.slam?.(),
-    }).then(sorteo);
+    }).then(g.mode === 'match' ? sorteo : go);   // (en el peloteo saca siempre el rival: sin sorteo)
   }
   // el sorteo del saque: el juez echa al aire la chapa (una cara azul y otra colorada) y saca el del color que sale. Se
   // lanza tocando el botón (o sola a los pocos segundos); devuelve el lado que saca, 'you' o 'rival'
   tossChapa() {
     const t = this.txt, TS = t.toss || TEXT.es.toss, C = this.cols, de = (col) => (C.you === col ? 'you' : 'rival');
-    const nom = (sd) => this.label(sd).replace(/\s*\([^)]*\)/g, ''), temp = (sd) => (this.seasons ? TS.seasons(this.seasons[sd] || 0) : '');
+    const nom = (sd) => this.nomLimpio(sd), temp = (sd) => this.tempDe(sd);
     const lado = (col) => `<div class="pel-toss-p ${col}"><i aria-hidden="true"></i><b>${esc(nom(de(col)))}</b><small>${esc([col === 'azul' ? TS.azul : TS.rojo, temp(de(col))].filter(Boolean).join(' · '))}</small></div>`;
     return new Promise(res => {
       const el = document.createElement('div'); el.className = 'pel-toss'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', TS.title);
@@ -209,15 +213,18 @@ export class PelotaMatch {
       const win = Math.random() < 0.5 ? 'azul' : 'rojo', coin = el.querySelector('.coin');
       let tirada = false; const tms = [];
       const tirar = () => {
-        if (tirada || !this.active) return; tirada = true; clearTimeout(auto);
+        if (tirada || !this.active) return; tirada = true; clearTimeout(auto); removeEventListener('keydown', tecla, true);
         coin.style.setProperty('--fin', win === 'azul' ? '0deg' : '180deg'); el.classList.add('aire'); this.audio.ensure();
         tms.push(setTimeout(() => { this.audio.chapa(); el.classList.add('cae'); el.querySelector(`.pel-toss-p.${win}`)?.classList.add('gana');
           const r = el.querySelector('.pel-toss-res'); r.textContent = TS.serves(nom(de(win))); r.className = `pel-toss-res ${win}`; }, 1450));
         tms.push(setTimeout(() => { el.classList.add('out'); tms.push(setTimeout(() => { el.remove(); res(de(win)); }, 320)); }, 3100));
       };
       el.querySelector('.pel-toss-go').addEventListener('click', tirar);
+      // (con el teclado o el mando, las teclas de golpear o Intro también la lanzan)
+      const tecla = (e) => { if ([' ', 'enter', 'j', 'e'].includes(e.key.toLowerCase())) { e.preventDefault(); e.stopPropagation(); tirar(); } };
+      addEventListener('keydown', tecla, true);
       const auto = setTimeout(tirar, 4200);   // (si no se toca, la lanza el juez)
-      this.tossEl = el; this.tossOff = () => { clearTimeout(auto); tms.forEach(clearTimeout); el.remove(); };
+      this.tossEl = el; this.tossOff = () => { clearTimeout(auto); tms.forEach(clearTimeout); removeEventListener('keydown', tecla, true); el.remove(); };
     });
   }
   // ------------------------------------------------------------ la repetición de cada tanto
@@ -225,12 +232,12 @@ export class PelotaMatch {
   // otro plano (alternando la contracancha en alto y el frontis), con cámara lenta en el final; tocando se salta
   record(dt) {
     const g = this.game, ph = g.phase;
-    if (ph === 'servePrep' && this.recPh !== 'servePrep') this.rec = [];   // (un saque nuevo: empieza otra grabación)
+    if (ph === 'servePrep' && this.recPh !== 'servePrep') { this.rec = []; this.recT = 0; }   // (un saque nuevo: empieza otra grabación)
     this.recPh = ph;
     if (!this.rec || !(ph === 'servePrep' || ph === 'rally' || (ph === 'point' && g.phaseT < 1.1))) return;
-    if (this.rec.length > 1500) this.rec.shift();
+    while (this.recT > 8 && this.rec.length > 1) this.recT -= this.rec.shift().dt;   // (los 8 últimos segundos, sea cual sea la pantalla: se repiten 5 y un poco)
     const P = {}; for (const id of g.ids) { const sd = this.o[id] || this.mateObjs?.[id]; if (sd?.obj && sd.obj.visible !== false) P[id] = [sd.obj.position.x, sd.obj.position.y, sd.obj.position.z, sd.obj.rotation.y, { ...(this.recSt?.[id] || {}) }]; }
-    const b = g.ball.p; this.rec.push({ dt, b: [b.x, b.y, b.z], P, ev: this.recEv?.length ? this.recEv.splice(0) : null, call: !!this.recCall }); this.recCall = false;
+    const b = g.ball.p; this.recT = (this.recT || 0) + dt; this.rec.push({ dt, b: [b.x, b.y, b.z], P, ev: this.recEv?.length ? this.recEv.splice(0) : null, call: !!this.recCall }); this.recCall = false;
   }
   startReplay() {
     const F = this.rec || []; if (F.length < 30) return;
@@ -412,6 +419,8 @@ export class PelotaMatch {
       const suelta = () => { I.keys[k] = false; const kind = ({ ' ': 'hit', j: 'hit', e: 'hit', enter: 'hit', shift: 'drop', k: 'drop', l: 'cut' })[k]; if (kind && I.charge?.kind === kind) I.charge = null; };
       if (!down && !this.active) { suelta(); return; }
       if (!this.active) return;
+      // (durante el vuelo de la llegada y el sorteo de la chapa, las teclas son suyas: saltar el vuelo, lanzar la chapa)
+      if (this.flying || this.tossEl?.isConnected) { if (!down) suelta(); return; }
       // (con una ventana abierta, Intro y espacio pulsan su botón elegido: antes golpeaban y no se podía confirmar «Sí, salir»)
       if (hud.panelEl && (k === 'enter' || k === ' ') && hud.panelEl.contains(document.activeElement)) { if (!down) suelta(); return; }
       e.preventDefault(); e.stopPropagation();
@@ -512,7 +521,7 @@ export class PelotaMatch {
     const g = this.game, inp = this.paused || this.hud.panelEl ? {} : this.readInput();
     const ev = this.paused ? [] : g.update(dt, inp);
     for (const e of ev) { this.onEvent(e); this.o.onEvent?.(e); }
-    this.draw(dt); this.record(dt);
+    this.draw(dt); if (!this.paused) this.record(dt);   // (en pausa no se graba: la repetición sería una imagen quieta)
     this.hud.tick(dt); this.court.tick(dt);
     return this.active;
   }
@@ -671,7 +680,8 @@ export class PelotaMatch {
       if (!this.pin) { this.pin = new T.Mesh(new T.ConeGeometry(0.2, 0.36, 4).rotateX(Math.PI), new T.MeshBasicMaterial({ color: '#ff7ac8', depthTest: false, transparent: true })); this.pin.renderOrder = 3; grp.add(this.pin); }
       const Y = g.players.you; this.pin.visible = g.phase !== 'intro'; this.pin.position.set(Y.x, 2.35 + Math.sin(this.t * 6) * 0.08, Y.z); this.pin.rotation.y = this.t * 2;
     } else if (this.pin) this.pin.visible = false;
-    if (this.flying) return;   // (durante la llegada, la cámara es la del vuelo)
+    // (durante la llegada, la cámara es la del vuelo; si pasa por detrás del rebote, el rebote se deja ver a través)
+    if (this.flying) { const lc = grp.worldToLocal(this.v3.copy(this.cam.position)); C.reboteSeeThrough?.(lc.z > COURT.REBOTE - 0.3 && lc.z < COURT.REBOTE + 12 && lc.y < COURT.REBOTE_H + 3 && Math.abs(lc.x) < 14, dt); return; }
     // cámara detrás del jugador, mirando al frontis
     const you = g.players.you, portrait = innerWidth < innerHeight;
     // en vertical (móvil) algo más cerca que antes: los pelotaris se ven más grandes y con su detalle

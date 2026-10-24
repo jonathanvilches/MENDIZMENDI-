@@ -335,7 +335,7 @@ export function realHouses(B, def, rnd, H) {
     if (b.k === 'industrial' || b.k === 'shed' || (b.k === 'school' && b.a > 600)) {
       const h = b.k === 'shed' ? 2.6 + Math.min(1.2, b.a / 40) : clamp(b.h ? b.h * 0.85 : 7.5, 4.5, 14);
       const wall = b.k === 'shed' ? (fam === 'ribera' ? 'brick' : rnd() < 0.5 ? 'stone' : 'plaster') : 'plasterCream';
-      if (dist > (b.k === 'shed' ? 150 : LEJOS)) { lejos++; continue; }
+      if (b.k === 'shed' && dist > 150) { lejos++; continue; }   // (las naves grandes y las escuelas, sí: se ven de lejos)
       const hb = slopeBase(B, x, z, w, d, ry, g);
       block(B, x, hb, z, ry, w, d, h, wall, b.k === 'shed' ? 'tile' : 'zinc', b.k === 'shed' ? 0.5 : 0.18);
       fachada(B, M(x, hb, z, ry), w, d, h, { fam, wall, kind: b.k === 'shed' ? 'shed' : b.k === 'school' ? 'school' : 'industrial', rnd: hashRnd(x, z) });

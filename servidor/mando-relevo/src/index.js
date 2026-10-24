@@ -5,7 +5,9 @@
 //  · Una sala por partida, cada una en su Durable Object de la jurisdicción «eu» (los datos no salen de la UE).
 //  · WebSockets que hibernan: mientras nadie habla no cuestan nada; el latido («ping») lo contesta Cloudflare solo.
 //  · Límites: 8 conexiones por sala, 64 KB por mensaje y 200 mensajes por segundo y conexión (el mando manda unos 90).
-//  · Si alguien vuelve a entrar con el mismo nombre (el móvil que se reconecta), el nuevo se queda y el viejo se cierra.
+//  · Cada uno entra con su nombre y una marca suya (?t=…). Si vuelve a entrar con el mismo nombre y la misma marca (el que
+//    se reconecta), el nuevo se queda y el viejo se cierra; con otra marca (otra pestaña con el mismo código), «ID-TAKEN»,
+//    como en PeerJS, y el que ya estaba sigue.
 // Mensaje binario: [largo del destino][destino][lo cifrado]. Al conectar, el servidor manda «OPEN».
 const NOMBRE = /^[A-Za-z0-9_-]{1,40}$/, SALA = /^[0-9a-f]{24}$/;
 
@@ -28,13 +30,16 @@ export class Sala {
     this.ctx.setWebSocketAutoResponse(new WebSocketRequestResponsePair('ping', 'pong'));
   }
   async fetch(req) {
-    const yo = new URL(req.url).pathname.split('/')[3];
-    // (el mismo nombre otra vez: el que se reconecta se queda y el de antes se cierra)
-    for (const viejo of this.ctx.getWebSockets(yo)) try { viejo.close(4001, 'otra vez'); } catch (e) { /* ya cerrado */ }
-    if (this.ctx.getWebSockets().length >= 8) return new Response('llena', { status: 429 });
-    const [cli, srv] = Object.values(new WebSocketPair());
+    const u = new URL(req.url), yo = u.pathname.split('/')[3], tk = (u.searchParams.get('t') || '').slice(0, 24);
+    const [cli, srv] = Object.values(new WebSocketPair()), mismos = this.ctx.getWebSockets(yo);
+    // (el nombre ya cogido desde otro sitio: se le avisa y no entra)
+    if (mismos.some(w => (w.deserializeAttachment() || {}).tk !== tk)) { srv.accept(); srv.send('ID-TAKEN'); srv.close(4002, 'cogido'); return new Response(null, { status: 101, webSocket: cli }); }
+    // (el mismo que vuelve: se queda el nuevo y el de antes se cierra, que ya no cuenta para llenar la sala; si aun así está
+    // llena, no entra y el de antes sigue)
+    if (this.ctx.getWebSockets().filter(w => !mismos.includes(w)).length >= 8) return new Response('llena', { status: 429 });
+    for (const viejo of mismos) try { viejo.close(4001, 'otra vez'); } catch (e) { /* ya cerrado */ }
     this.ctx.acceptWebSocket(srv, [yo]);
-    srv.serializeAttachment({ t: 0, n: 0 });
+    srv.serializeAttachment({ t: 0, n: 0, tk });
     srv.send('OPEN');
     return new Response(null, { status: 101, webSocket: cli });
   }

@@ -204,8 +204,9 @@ async function boot() {
         sound.setMusic(P.settings.music); sound.setVolume(P.settings.volume);
         if (!st.introDone && !q.get('skipintro')) await game.intro(d);
         else {   // (las siguientes veces, la llegada: el vuelo por encima de Otsagabia con su nombre y su comarca)
-          if (!q.get('skipintro')) { game.mode = 'cine'; rt.player.frozen = true;
+          if (!q.get('skipintro')) { game.mode = 'cine'; rt.player.frozen = true; const g0 = game;
             await vueloPueblo({ follow: rt.follow, player: rt.player, ui, def: d, centro: PLACES.crucero, iglesia: PLACES.church }).catch(e => console.warn('llegada', e));
+            if (game !== g0) { loading = false; return; }   // (se salió del pueblo durante el vuelo: lo de después ya no es de este)
             rt.follow.snap(rt.player); rt.player.frozen = false; }
           ui.hudVisible(true); game.mode = 'play';
         }
@@ -261,7 +262,8 @@ async function boot() {
     const pause = (ms) => new Promise(r => setTimeout(r, ms));
     // (con mensaje, como el del pueblo: el fondo de los deportes con la pelota que bota, en vez del negro)
     const gui = Object.create(ui); gui.fadeOut = async (msg = '') => { fade.innerHTML = msg ? `<div class="fade-msg"><i></i><span>${esc(msg)}</span></div>` : ''; fade.classList.toggle('msg', !!msg); fade.style.opacity = '1'; await pause(480); };
-    gui.fadeIn = async () => { fade.style.opacity = '0'; await pause(320); fade.classList.remove('msg'); fade.innerHTML = ''; };
+    // (si entre tanto empieza otro fundido, su mensaje se queda: como el fadeIn de ui.js)
+    gui.fadeIn = async () => { fade.style.opacity = '0'; await pause(320); if (fade.style.opacity === '0') { fade.classList.remove('msg'); fade.innerHTML = ''; } };
     const G = { mode: 'menu', ui: gui, sound, input, rt, player: { frozen: false }, follow: null, altUpdate: null,
       get altScene() { return alt || blank; }, set altScene(v) { alt = v; }, get altCamera() { return altCam || cam; }, set altCamera(v) { altCam = v; } };
     const ownScene = !rt.scene; if (ownScene) rt.scene = blank;

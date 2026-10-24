@@ -40,4 +40,4 @@ Y el juego con `?propio=ws://127.0.0.1:8787` (y `&sinpeer=1&mqtt=&ntfy=` para qu
 - 8 conexiones por sala.
 - 64 KB por mensaje.
 - 200 mensajes por segundo y conexión.
-- Si el móvil vuelve a entrar con el mismo nombre, se queda la conexión nueva y la vieja se cierra.
+- Cada página entra con su nombre y una marca suya. Si vuelve a entrar con la misma marca, se queda la conexión nueva y la vieja se cierra. Otra pestaña con el mismo código recibe «ID-TAKEN», como en PeerJS.

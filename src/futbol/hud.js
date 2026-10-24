@@ -126,7 +126,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
   .fb-top{left:58px;right:58px}.fb-team{padding:4px 8px;font-size:var(--fs-xs)}.fb-team b{font-size:var(--fs-xl)}.fb-team span{max-width:calc(18vw / var(--z, 1))}
   .fb-team span.fb-ln{display:none}.fb-team span.fb-sn{display:inline}
   .fb-btns{--u:.96}.fb-tip{max-width:calc(92vw / var(--z, 1))}
-  .fb-bars{left:auto;transform:none;right:calc(env(safe-area-inset-right,0px) + 12px);bottom:calc(env(safe-area-inset-bottom,0px) + 184px);width:140px}
+  .fb-bars{left:auto;transform:none;right:calc(env(safe-area-inset-right,0px) + 12px);bottom:calc(env(safe-area-inset-bottom,0px) + 184px);width:auto;min-width:140px}
   .fb-stick{height:calc(62dvh / var(--z, 1))}
 }
 @media (max-height:520px) and (orientation:landscape){
