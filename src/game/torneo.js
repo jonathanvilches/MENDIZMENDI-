@@ -243,7 +243,7 @@ const CSS = `
 .tq-rd h4{font-size:var(--fs-sm)}.tq-m>div{min-height:30px;padding:4px 12px;font-size:var(--fs-md)}.tq-m b{font-size:var(--fs-lg)}
 .tq-cup .ico{width:84px;height:84px}.tq-cup b{font-size:var(--fs-lg)}
 }`;
-const TXAPELA = () => iconSVG('txapela', 64);   // (la txapela de los iconos del autor)
+const TXAPELA = () => iconSVG('txapela-campeon', 64);   // (la txapela de campeón, de los iconos del autor: con su cinta bordada)
 function card(T, p, s, w, l) {
   const P = T.players[p];
   return `<div class="${w ? 'w' : l ? 'l' : ''} ${P.you ? 'you' : ''}"><span>${esc(P.name)}<small> · ${esc(P.town)}</small></span><b>${s == null ? '' : s}</b></div>`;

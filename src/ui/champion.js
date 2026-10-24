@@ -71,7 +71,7 @@ export function showChampion({ kind = 'pelota', title, kicker, name = '', sub = 
   const colors = kind === 'futbol' ? ['#d6001c', '#ffffff', '#0a2a6b', '#ff9bd8'] : ['#c8222a', '#ffffff', '#ff9bd8', '#2f7d4a'];
   return new Promise(res => {
     const o = document.createElement('div'); o.className = 'champ';
-    o.innerHTML = `<div class="ch-rays"></div><canvas></canvas><div class="ch-box">${iconSVG(kind === 'futbol' ? 'trophy' : 'txapela', 260, 'ch-obj')}
+    o.innerHTML = `<div class="ch-rays"></div><canvas></canvas><div class="ch-box">${iconSVG(kind === 'futbol' ? 'trophy' : 'txapela-campeon', 260, 'ch-obj')}
       <div class="ch-kick">${esc(kicker || (kind === 'futbol' ? 'Liga Navarra' : 'Torneo de mano'))}</div>
       <h1 class="ch-title">${esc(title || (kind === 'futbol' ? '¡Campeones!' : '¡Txapeldun!'))}</h1>
       ${name ? `<div class="ch-name">${esc(name)}</div>` : ''}${sub ? `<div class="ch-sub">${esc(sub)}</div>` : ''}${score ? `<div class="ch-score">${esc(score)}</div>` : ''}
