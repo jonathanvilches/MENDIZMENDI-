@@ -47,7 +47,32 @@ export class PelotaMatch {
     this.applyFeel();
     this.bindInput();
     this.newGame();
-    if (o.autostart) { this.hud.controls(true); this.game.start(); } else { this.intro(); if (o.forcePairs) this.chooseMode('delantero'); }   // (torneo por parejas: ya por parejas)
+    const panel = () => { this.intro(); if (o.forcePairs) this.chooseMode('delantero'); };   // (torneo por parejas: ya por parejas)
+    if (o.autostart) { this.hud.controls(true); this.game.start(); }
+    else if (o.fly) {
+      // la llegada (o.fly(partido), una promesa): la cámara vuela hasta la cancha con los pelotaris ya en su sitio y el
+      // público en la grada; mientras, nada del marcador ni de los botones. Al acabar, el panel del partido
+      this.flying = true; this.hud.controls(false); this.hud.root.classList.add('vuelo');
+      Promise.resolve().then(() => o.fly(this)).catch(e => console.warn('llegada', e)).finally(() => {
+        this.flying = false; this.camInit = false; this.t0 = this.t; this.hud.root.classList.remove('vuelo');
+        if (this.active) panel();
+      });
+    } else panel();
+  }
+  // el plano del panel del partido: un paseo lento por lo alto, en las medidas de la cancha (t, segundos desde que empieza)
+  introCam(t) {
+    const C = this.court, a = t * 0.25, L = COURT.L;
+    if (C.hall) return [[3.5 + Math.sin(a) * 3, 8.5 + Math.sin(a * 0.7), 30 + Math.cos(a) * 2.5], [0, 3, 8]];   // (dentro del pabellón, desde lo alto del fondo)
+    if (C.labrit) return [[2 + Math.sin(a) * 5, 9 + Math.sin(a * 0.7) * 0.6, 38 + Math.cos(a) * 1.5], [0, 2.5, 12]];   // (sobre la grada del fondo del Labrit)
+    // (al aire libre, de lado a lado por detrás de la cancha; antes daba la vuelta entera y pasaba por detrás de la pared
+    // izquierda y por las casas de al lado)
+    return [[2 + Math.sin(a) * 6, 9, L * 0.5 + 22 + Math.cos(a) * 2], [0, 2, L * 0.4]];
+  }
+  // dónde empieza ese plano, en el mundo (el vuelo de la llegada acaba justo ahí): posición, a dónde mira y apertura
+  introPose() {
+    const [p, l] = this.introCam(0), g = this.court.group; g.updateMatrixWorld(true);
+    return { pos: g.localToWorld(new this.T.Vector3(p[0], p[1], Math.min(p[2], COURT.L + 11))), look: g.localToWorld(new this.T.Vector3(l[0], l[1], l[2])),
+      fov: (innerWidth < innerHeight ? 62 : 54) + (this.game.pairs ? 4 : 0) };
   }
   // la física del partido: la del frontón por la de la pelota elegida
   applyFeel() {
@@ -546,6 +571,7 @@ export class PelotaMatch {
       if (!this.pin) { this.pin = new T.Mesh(new T.ConeGeometry(0.2, 0.36, 4).rotateX(Math.PI), new T.MeshBasicMaterial({ color: '#ff7ac8', depthTest: false, transparent: true })); this.pin.renderOrder = 3; grp.add(this.pin); }
       const Y = g.players.you; this.pin.visible = g.phase !== 'intro'; this.pin.position.set(Y.x, 2.35 + Math.sin(this.t * 6) * 0.08, Y.z); this.pin.rotation.y = this.t * 2;
     } else if (this.pin) this.pin.visible = false;
+    if (this.flying) return;   // (durante la llegada, la cámara es la del vuelo)
     // cámara detrás del jugador, mirando al frontis
     const you = g.players.you, portrait = innerWidth < innerHeight;
     // en vertical (móvil) algo más cerca que antes: los pelotaris se ven más grandes y con su detalle
@@ -587,8 +613,7 @@ export class PelotaMatch {
       lp[0] = cp[0]; lp[1] = cp[1]; lp[2] = cp[2]; ll[0] = cl[0]; ll[1] = cl[1]; ll[2] = cl[2];
     }
     if (corte !== !!this.enCorte) { this.enCorte = corte; this.camInit = false; if (!corte) this.plano = (this.plano || 0) + 1; }
-    if (g.phase === 'intro') { const a = this.t * 0.25; if (C.hall) { lp[0] = 3.5 + Math.sin(a) * 3; lp[1] = 8.5 + Math.sin(a * 0.7); lp[2] = 30 + Math.cos(a) * 2.5; ll[0] = 0; ll[1] = 3; ll[2] = 8; }   // (dentro del pabellón: un paseo lento desde lo alto del fondo)
-      else { lp[0] = Math.sin(a) * 18 + 2; lp[1] = 9; lp[2] = COURT.L * 0.5 + Math.cos(a) * 18 + 6; ll[0] = 0; ll[1] = 2; ll[2] = COURT.L * 0.4; } }
+    if (g.phase === 'intro') { const [p, l] = this.introCam(this.t - (this.t0 || 0)); lp[0] = p[0]; lp[1] = p[1]; lp[2] = p[2]; ll[0] = l[0]; ll[1] = l[1]; ll[2] = l[2]; }
     if (this.tour) { const [cp, cl] = this.tourCams[this.tour.i]; lp[0] = cp[0]; lp[1] = cp[1]; lp[2] = cp[2]; ll[0] = cl[0]; ll[1] = cl[1]; ll[2] = cl[2]; this.tourMat.opacity = 0.45 + 0.3 * Math.sin(this.t * 4); }   // (parpadea: se ve que está resaltada)
     // cámara dinámica (se puede quitar en Más opciones): sigue un poco la pelota de lado, se acerca con cada golpe fuerte
     // y se inclina apenas hacia donde va. Todo suave y pequeño, para dar vida sin perder de vista la cancha ni la pelota
@@ -618,7 +643,7 @@ export class PelotaMatch {
   }
   destroy() {
     if (!this.active) return;
-    this.active = false; setFeel(null); this.audio.stop();
+    this.active = false; setFeel(null); this.audio.stop(); this.flyAbort?.();
     removeEventListener('keydown', this.onKey, true); removeEventListener('keyup', this.onKey, true); removeEventListener('blur', this.onBlur); removeEventListener('pointerup', this.onPtrEnd, true); removeEventListener('pointercancel', this.onPtrEnd, true); removeEventListener('touchend', this.onTouchEnd, true); removeEventListener('touchcancel', this.onTouchEnd, true); document.removeEventListener('visibilitychange', this.onHide);
     this.hud.destroy(); this.court.hideBall();
     if (this.pin) { this.pin.parent?.remove(this.pin); this.pin.geometry.dispose(); this.pin.material.dispose(); this.pin = null; }

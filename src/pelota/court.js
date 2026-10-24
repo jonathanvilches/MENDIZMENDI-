@@ -110,6 +110,11 @@ const THEMES = {
 const LABRIT_CONTRA = 4.4;
 // el frontón cubierto de los campeonatos: alto hasta el techo y contracancha algo más ancha (con la grada al lado)
 const HALL_H = 13, HALL_CONTRA = 3.4, HALL_ROWS = 7;
+/** La fachada de la entrada del Labrit (en las medidas de la cancha): su centro al pie y su alto (el vuelo de la llegada). */
+export function labritFront() {
+  const W = COURT.W, EXT = COURT.L + 3, xr = W / 2 + LABRIT_CONTRA, zf = EXT + 0.3, xa = -W / 2 - 0.6, xb = xr + 14.6, zb = zf + 14.6;
+  return { x: (xa + xb) / 2, z: zb + 0.5, h: 13.6 };
+}
 export function labritExtent() {
   const W = COURT.W, EXT = COURT.L + 3, xr = W / 2 + LABRIT_CONTRA, zf = EXT + 0.3, xa = -W / 2 - 0.6, xb = xr + 14.6, za = -1.0, zb = zf + 14.6;
   return { x0: xa - 4.9, x1: xb + 4.9, z0: za - 4.9, z1: zb + 6.5 };

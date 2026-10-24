@@ -1,5 +1,5 @@
-// El frontón cubierto de los campeonatos, en el móvil tumbado: se monta el del pueblo, se entra (plano de llegada) y se
-// juega un rato. Comprueba que la luz del pabellón está encendida (de día también), que el público está sentado en la
+// El frontón cubierto de los campeonatos, en el móvil tumbado: se monta el del pueblo, se entra (el vuelo de la llegada) y
+// se juega un rato. Comprueba que la luz del pabellón está encendida (de día también), que el público está sentado en la
 // grada, que la cámara de retransmisión queda siempre dentro del pabellón y que la pelota no se sale por el rebote, y
 // hace capturas del partido desde la cámara del juego.
 // Uso: URL=http://127.0.0.1:5173 node tools/pelota-cubierto-ver.mjs [pueblo] [carpeta]
@@ -15,15 +15,15 @@ await p.goto(`${URL}/?town=${town}&q=low&weather=clear&skipintro=1&t=12`, { time
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 900000 }); await p.waitForTimeout(2000);
 let fails = 0; const ok = (c, m) => { console.log(`  ${c ? 'OK ' : 'FALLO'} ${m}`); if (!c) fails++; };
 console.log('1. la llegada al frontón cubierto');
-await p.evaluate(() => { const G = window.__game; window.__H = G.hallVenue(); window.__intro = G.hallIntro(window.__H); });
-await p.waitForTimeout(900); await p.screenshot({ path: `${out}/01-llegada.png` });
+await p.evaluate(() => { const G = window.__game; window.__vuelo = true; window.__H = G.hallVenue(); window.__intro = G.venuePrep(window.__H); });
 await p.evaluate(() => window.__intro);
 const A = await p.evaluate(() => { const G = window.__game, C = window.__H.court; return { hall: !!C.hall, seats: C.standSpots.length, indoor: G.sky.indoor, flood: G.sky.floodCur }; });
 console.log('   ', JSON.stringify(A));
 ok(A.hall && A.seats > 200, `el pabellón con su grada (${A.seats} asientos)`);
 ok(A.indoor && A.flood >= 0.99, 'la luz del pabellón encendida a mediodía');
 console.log('2. el partido');
-await p.evaluate(() => { const G = window.__game, a = G.pelotari || G.missions.find(M => M.type === 'pelota')?.host; window.__r = window.__H.play(G, a, { comp: 'Prueba' }); });
+await p.evaluate(() => { const G = window.__game, a = G.pelotari || G.missions.find(M => M.type === 'pelota')?.host; window.__r = window.__H.play(G, a, { comp: 'Prueba', intro: (m) => import('/src/game/llegadas.js').then(L => L.vueloFronton(G, window.__H, m)) }); });
+await p.waitForSelector('.cartel', { timeout: 300000 }); await p.waitForTimeout(1200); await p.screenshot({ path: `${out}/01-llegada.png` });
 await p.waitForSelector('.pel-panel [data-pel-go]', { timeout: 300000 }); await p.waitForTimeout(600);
 await p.screenshot({ path: `${out}/02-panel.png` });
 const tags = await p.evaluate(() => [...document.querySelectorAll('.pel-court-t i')].map(x => x.innerText));

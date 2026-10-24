@@ -161,13 +161,16 @@ export function realRiverWalls(B, real, fam) {
 // que se ven desde la otra punta del pueblo. El estilo, el de cada comarca, como en src/world/houses.js: contraventanas
 // rojas y verdes y balcón corrido de madera en la vertiente atlántica; madera oscura y ventanas pequeñas en el Pirineo;
 // balcones de forja en la Zona Media y la Ribera.
+// (contraventanas recién pintadas, de colores vivos: rojo y verde en la vertiente atlántica, y verdes, azules y ocres
+// hacia la Ribera; y en balcones y ventanas, geranios)
 const ESTILO = {
-  atlantic: { contra: ['#7b3f2a', '#3e6b48', '#8a2f2f', '#2f5a3c'], marco: '#efe9dc', puerta: '#5a2f22', madera: '#5b3a24' },
-  pyrenean: { contra: ['#6d5231', '#5a4128', '#3e6b48'], marco: '#d4c9b2', puerta: '#4a3220', chica: true },
-  central: { contra: ['#6d5231', '#3e6b48', '#5a4128'], marco: '#ddd2b8', puerta: '#4a3220', forja: true },
-  ribera: { contra: ['#3e6b48', '#6d5231', '#2f4f6e'], marco: '#e8dfcc', puerta: '#4a3220', forja: true },
-  city: { contra: ['#3e6b48', '#2f4f6e', '#6d5231'], marco: '#e8dfcc', puerta: '#3a2a1c', forja: true },
+  atlantic: { contra: ['#b23a2a', '#2e8b57', '#c8323e', '#2f7a4a'], marco: '#f4efe4', puerta: '#6a2a1e', madera: '#6b4024' },
+  pyrenean: { contra: ['#8a5a2c', '#2e8b57', '#a8432c'], marco: '#ddd3bd', puerta: '#4a3220', chica: true },
+  central: { contra: ['#2e8b57', '#2b6cb0', '#b23a2a'], marco: '#e6dcc4', puerta: '#4a3220', forja: true },
+  ribera: { contra: ['#2e8b57', '#2b6cb0', '#1f8a9a', '#c9851c'], marco: '#f0e8d6', puerta: '#4a3220', forja: true },
+  city: { contra: ['#2e8b57', '#2b6cb0', '#b23a2a'], marco: '#f0e8d6', puerta: '#3a2a1c', forja: true },
 };
+const FLOR = ['#ff2d55', '#ff5fa2', '#ff7a1a', '#d23cff', '#ffd23f', '#ff3b30'];
 // juntar rectángulos en una sola pieza: cada uno en el plano de una fachada (u a lo largo, y de altura, a «off» de la pared)
 // (con color por vértice, o con coordenadas de textura a lo largo para la barandilla calada, que se repite cada 0,9 m)
 class Lienzo {
@@ -257,16 +260,20 @@ function fachada(B, T, w, d, h, o) {
           // (la ventana del balcón llega al suelo de la planta, como una puerta balconera)
           const y0 = fh + 0.05, y1 = fh + Math.min(2.3, fh * 0.78);
           ventana(F, u, (y0 + y1) / 2, ww, y1 - y0, true);
-          if (E.forja) { forja.rect(F, u - ww / 2 - 0.3, u + ww / 2 + 0.3, y0, y0 + 0.95, off + 0.55); losa(F, u, ww + 0.6, y0, 0.55, 'ashlar'); }
+          if (E.forja) { forja.rect(F, u - ww / 2 - 0.3, u + ww / 2 + 0.3, y0, y0 + 0.95, off + 0.55); losa(F, u, ww + 0.6, y0, 0.55, 'ashlar');
+            if (r() < 0.75) car.rect(F, u - ww / 2 - 0.2, u + ww / 2 + 0.2, y0 + 0.95, y0 + 1.16, off + 0.6, FLOR[Math.floor(r() * FLOR.length)]); }   // (macetas en la barandilla)
           continue;
         }
-        ventana(F, u, f * fh + fh * 0.56, ww, wh, f > 0 && r() < 0.88);
+        const yv = f * fh + fh * 0.56;
+        ventana(F, u, yv, ww, wh, f > 0 && r() < 0.88);
+        if (f > 0 && F.frente && r() < 0.4) car.rect(F, u - ww / 2 - 0.05, u + ww / 2 + 0.05, yv - wh / 2 - 0.02, yv - wh / 2 + 0.2, off + 0.22, FLOR[Math.floor(r() * FLOR.length)]);   // (jardinera)
       }
       if (balcon && E.madera) {
         // balcón corrido de madera: barandilla con balaustres sobre un vuelo
         const y0 = fh + 0.05, a = -F.L * 0.36, b = F.L * 0.36;
         car.rect(F, a, b, y0 - 0.14, y0 + 0.02, off + 0.6, E.madera); car.rect(F, a, b, y0 + 0.92, y0 + 1.02, off + 0.6, E.madera); losa(F, 0, b - a, y0, 0.6, 'wood');
         for (let u = a; u <= b; u += 0.3) car.rect(F, u - 0.035, u + 0.035, y0, y0 + 0.92, off + 0.6, E.madera);
+        for (let u = a + 0.4; u < b - 0.4; u += 1.3) car.rect(F, u, u + 0.7, y0 + 1.02, y0 + 1.22, off + 0.62, FLOR[Math.floor(r() * FLOR.length)]);   // (geranios a lo largo)
       }
     }
   }
@@ -297,7 +304,7 @@ function block(B, x, y, z, ry, w, d, h, wall, roof, pitch = 0.45) {
 
 /** Las casas de los datos. H: lo que hace falta de townBuilder (buildHouse, houseStyle, minGround, slopeBase, houseShield…). */
 export function realHouses(B, def, rnd, H) {
-  const { buildHouse, houseStyle, minGround, slopeBase, houseShield, addHouse, HALL, P, fam } = H;
+  const { buildHouse, houseStyle, minGround, slopeBase, houseShield, addHouse, addBalcon, HALL, P, fam } = H;
   const real = MOD.real;
   const hall = real.data.lugares?.ayuntamiento;
   const fr = real.data.lugares?.fronton;
@@ -357,7 +364,7 @@ export function realHouses(B, def, rnd, H) {
     buildHouse(B, M(x, hb, z, ry), ho, rnd);
     // (y de lejos, cuando sus ventanas de verdad ya no se dibujan, la fachada sencilla)
     fachadaLejana(B, M(x, hb, z, ry), ho, fam, x, z);
-    houseShield(x, hb, z, ry, ho, isHall);
+    houseShield(x, hb, z, ry, ho, isHall); addBalcon(x, hb, z, ry, ho);
     addBox(x, z, w + 0.3, d + 0.3, ry, { solidView: true });
     addHouse(x, z, ry, w, d, { real: b.n || null });
     full++;

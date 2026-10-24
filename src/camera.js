@@ -43,6 +43,7 @@ export class FollowCamera {
     if (this.cinematic) {
       const c = this.cinematic;
       c.t += dt;
+      if (c.fly) { c.fly(this.cam, c.t); return; }   // (un vuelo: la cámara va por su camino, ui/vuelo.js)
       const k = instant ? 1 : 1 - Math.exp(-2.5 * dt);
       this.cam.position.lerp(c.pos, k);
       const look = c.lookCur || (c.lookCur = this.focus.clone());

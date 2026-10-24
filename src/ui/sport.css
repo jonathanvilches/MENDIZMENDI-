@@ -31,7 +31,7 @@
 /* fondo de los menús de los campeonatos de pelota (townGame.sportBackdrop): el morado de los deportes con la lámina
    del frontón desenfocada debajo; por encima del lienzo y por debajo de los avisos (#ui) y de los paneles */
 .sport-bg { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0; transition: opacity .25s; }
-.sport-bg.on { opacity: 1; }
+.sport-bg.on, .sport-bg.tapa { opacity: 1; }   /* (tapa: sigue delante, pero el juego ya dibuja detrás: game/llegadas.js) */
 .sport-bg > i { position: absolute; inset: -48px; z-index: -1; background: center / cover no-repeat; filter: blur(18px) saturate(1.1); opacity: .32; }
 
 /* ---------- títulos y rótulos */

@@ -16,6 +16,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 
 .fb-root{position:fixed;inset:0;z-index:900;pointer-events:none;font-family:Nunito,system-ui,sans-serif;color:#fff;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 .fb-root *{box-sizing:border-box}
+.fb-root.fb-intro>:not(.fb-msg,.pvs){visibility:hidden}
 .fb-top{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px));left:64px;right:64px;display:flex;flex-direction:column;align-items:center;gap:8px}
 /* el marcador, el mismo de la pelota y de las pantallas de deporte: placa en ángulo, filete fucsia arriba, nombres en
    letra estrecha y mayúsculas, el reloj en lila (como en las retransmisiones y en los juegos de fútbol) */

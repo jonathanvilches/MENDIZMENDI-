@@ -11,7 +11,7 @@ import { addBox, addCircle, isFree, rectFree } from './colliders.js';
 import { mulberry32, clamp } from '../util/math.js';
 import { realChurchRy, realBridges, realRiverWalls, realHouses, fachadaLejana } from './townReal.js';
 
-export const TOWN = { houses: [], shields: [], armsSpot: null, benches: [], church: null, fountain: null, landmarks: [], farm: null, pen: null };
+export const TOWN = { houses: [], balcones: [], shields: [], armsSpot: null, benches: [], church: null, fountain: null, landmarks: [], farm: null, pen: null };
 if (typeof window !== 'undefined') window.__TOWN = TOWN;   // (para las herramientas de capturas)
 
 // escudo de una fachada: dónde queda en el mundo (para ponerle sus armas y poder leerlo desde la calle)
@@ -29,6 +29,8 @@ function houseShield(x, hb, z, ry, ho, hall) {
   TOWN.armsSpot = { x: x + lx * c + lz * sn, y: hb + ly, z: z - lx * sn + lz * c, ry, hall: true, base: hb, plateY: hb + ho.plateY, read: { x: x + lx * c + (lz + 2.6) * sn, z: z - lx * sn + (lz + 2.6) * c } };
 }
 // una casa más en la lista del pueblo, con el sitio de delante de su puerta
+// dónde se puede asomar alguien al balcón de una casa (en el mundo, de cara a la calle)
+const addBalcon = (x, hb, z, ry, ho) => { if (!ho.balcon) return; const [lx, ly, lz] = ho.balcon, c = Math.cos(ry), sn = Math.sin(ry); TOWN.balcones.push({ x: x + lx * c + lz * sn, y: hb + ly, z: z - lx * sn + lz * c, ry }); };
 const addHouse = (x, z, ry, w, d, extra) => TOWN.houses.push({ x, z, ry, w, d, door: { x: x + Math.sin(ry) * (d / 2 + 1.2), z: z + Math.cos(ry) * (d / 2 + 1.2) }, ...extra });
 function cornersOk(x, z, w, d, ry) {
   const c = Math.cos(ry), s = Math.sin(ry);
@@ -155,7 +157,7 @@ export function buildTown(scene, mats, def) {
   const mid = (p) => p.pts[Math.floor(p.pts.length / 2)];
   const streets = PATHS.filter(p => p.type === 'street' && !p.noHouses).sort((a, b) => { const A = mid(a), Bm = mid(b); return Math.hypot(A[0] - PLACES.plaza.x, A[1] - PLACES.plaza.z) - Math.hypot(Bm[0] - PLACES.plaza.x, Bm[1] - PLACES.plaza.z); });
   const cap = Math.round(def.size * (fam === 'city' || fam === 'ribera' ? 1.7 : fam === 'central' ? 1.5 : 1.25));
-  if (real) { const n = realHouses(B, def, rnd, { buildHouse, houseStyle, minGround, slopeBase, houseShield, addHouse, HALL, P, fam }); count = n.full + n.simple; TOWN.realCount = n; }
+  if (real) { const n = realHouses(B, def, rnd, { buildHouse, houseStyle, minGround, slopeBase, houseShield, addHouse, addBalcon, HALL, P, fam }); count = n.full + n.simple; TOWN.realCount = n; }
   else for (const path of streets) for (const side of [-1, 1]) {
     const L = polyLen(path.pts);
     let s = 2 + rnd() * 4;
@@ -176,7 +178,7 @@ export function buildTown(scene, mats, def) {
           if (hall) Object.assign(ho, HALL(w, h));
           buildHouse(B, M(x, hb, z, ry), ho, rnd);
           fachadaLejana(B, M(x, hb, z, ry), ho, fam, x, z);   // (de lejos, sus ventanas ya no se dibujan: src/world/townReal.js)
-          houseShield(x, hb, z, ry, ho, hall);
+          houseShield(x, hb, z, ry, ho, hall); addBalcon(x, hb, z, ry, ho);
           addBox(x, z, w + 0.3, d + 0.3, ry, { solidView: true });
           addHouse(x, z, ry, w, d);
           count++; s += w + 1.2 + rnd() * 2.5; continue;
