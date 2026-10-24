@@ -174,9 +174,12 @@
 .ccard::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--c); z-index: 1; }
 .ccard .cstamp { position: absolute; top: 62px; left: 16px; width: 80px; height: 80px; object-fit: contain; filter: drop-shadow(0 6px 8px rgba(0, 0, 0, .45)); }
 .ccard .cbody { padding: 32px 16px 8px; } .ccard b { font-size: var(--fs-md); font-weight: 900; display: block; } .ccard small { color: var(--mute); font-size: var(--fs-sm); }
-.ccard .cgo { margin: auto 16px 16px; align-self: flex-start; color: var(--gold); font-weight: 900; font-size: var(--fs-xs); letter-spacing: .1em; text-transform: uppercase; display: inline-flex; align-items: center; gap: 8px; }
-.ccard .cgo::after { content: '›'; font-size: var(--fs-md); line-height: 1; }
-.ccard.soon { opacity: .6; } .ccard.soon .cgo { color: var(--dim); } .ccard.soon .cgo::after { content: ''; }
+.ccard .cchips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin: 8px 0 10px; font-weight: 900; font-size: var(--fs-md); }
+.ccard .cchips > span { display: inline-flex; align-items: center; gap: 4px; }
+.ccard .cchips .tx { margin-left: auto; opacity: .6; filter: drop-shadow(0 0 3px rgba(255, 255, 255, .55)); } .ccard .cchips .tx.won { filter: drop-shadow(0 0 8px rgba(255, 200, 60, .8)); opacity: 1; }
+.ccard .cbar { display: block; height: 6px; margin-bottom: 8px; border-radius: 99px; background: rgba(255, 255, 255, .12); overflow: hidden; }
+.ccard .cbar i { display: block; height: 100%; min-width: 6px; border-radius: 99px; background: var(--c, var(--gold)); }
+.ccard.soon { opacity: .6; }
 
 .folk { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 16px; }
 
@@ -588,7 +591,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .hsteps li { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; padding: 12px 8px 12px; border-radius: 14px; background: rgba(20, 6, 48, .55); border: 1px solid var(--line); counter-increment: st; min-width: 0; }
 .hsteps li::before { content: counter(st); position: absolute; left: 8px; top: 8px; width: 22px; height: 22px; border-radius: 50%; background: var(--gold); color: #2a0638; font-size: var(--fs-xs); font-weight: 900; display: grid; place-items: center; }
 .hsteps li img, .hsteps li svg { width: 56px; height: 56px; }
-.hsteps b { font-size: var(--fs-md); } .hsteps span { font-size: var(--fs-xs); color: var(--mute); line-height: 1.3; }
+.hsteps b { font-size: var(--fs-md); margin-top: 4px; }
 .tile img.ico { grid-row: 1 / 3; }
 .ccard .cimg { background: linear-gradient(160deg, #3b2a66, #1c0b3a) center/cover; transition: opacity .4s; }
 .ccard .cimg:not(.ready) { opacity: .6; }
@@ -603,7 +606,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   .h-bot h1 { font-size: var(--fs-4xl); margin-bottom: 8px; }
   .mrow { gap: 8px; margin-bottom: 12px; } .mrow .mi { width: 44px; height: 44px; border-radius: 12px; } .mrow .mi img, .mrow .mi svg { width: 34px; height: 34px; }
   .story { grid-template-columns: minmax(0, 1fr); padding: 16px 16px; }
-  .hsteps { gap: 8px; } .hsteps li { padding: 8px 8px; } .hsteps li img, .hsteps li svg { width: 48px; height: 48px; } .hsteps b { font-size: var(--fs-sm); } .hsteps span { font-size: var(--fs-xs); }
+  .hsteps { gap: 8px; } .hsteps li { padding: 8px 8px; } .hsteps li img, .hsteps li svg { width: 48px; height: 48px; } .hsteps b { font-size: var(--fs-sm); }
 }
 @media (max-height: 520px) {
   .hero3d { height: calc(calc(100dvh / var(--z, 1)) - 90px); min-height: 280px; }
@@ -1080,7 +1083,10 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .sports-cta { display: flex; align-items: center; gap: 16px; width: 100%; margin: var(--esp) 0 0; padding: var(--relleno); border-radius: var(--r); text-align: left; color: var(--ink);
   background: linear-gradient(100deg, rgba(196, 31, 44, .55), rgba(52, 18, 104, .7) 60%); border: 1px solid var(--line2); transition: transform .12s; }
 .sports-cta:active { transform: scale(.98); }
-.sports-cta div { flex: 1; min-width: 0; } .sports-cta b { display: block; font-size: var(--fs-lg); font-weight: 900; } .sports-cta small { color: var(--mute); }
+.sports-cta div { flex: 1; min-width: 0; } .sports-cta b { display: block; font: 400 var(--fs-xl)/1 var(--f-display); text-transform: uppercase; }
+.sports-cta .sp-ics { display: flex; gap: 8px; } @media (max-width: 440px) { .sports-cta .sp-ics > :not(:first-child) { display: none; } } .sports-cta .sp-ics > * { filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .4)); animation: hubFlota 3s ease-in-out infinite; } .sports-cta .sp-ics > :nth-child(2) { animation-delay: -1s; } .sports-cta .sp-ics > :nth-child(3) { animation-delay: -2s; }
+@keyframes hubFlota { 50% { transform: translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) { .sports-cta .sp-ics > *, .pg-vacio > * { animation: none; } }
 .sp-hint { margin: -4px 0 12px; }
 .sports { display: flex; flex-direction: column; gap: 24px; }   /* (una carta por fila, ancha y con aire: si no caben las dos, se desplaza) */
 /* cada carta, igual que la otra, con su portada: la lámina del protagonista en acción, a todo color, a la derecha y
@@ -1158,16 +1164,23 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .saberes { margin-top: var(--esp); padding: var(--relleno); border-radius: var(--r); background: radial-gradient(80% 70% at 100% 0%, rgba(255, 43, 214, .16), transparent 60%), linear-gradient(160deg, rgba(76, 26, 158, .55), rgba(30, 10, 64, .88)); border: 1px solid var(--line2); }   /* (en la gama del juego: antes, verde) */
 .saberes .sb-head h2 { margin: var(--t-mt) 0 var(--t-mb); font: 400 var(--fs-xl)/1 var(--f-display); } .saberes .sb-head p { margin: 0 0 var(--hueco-m); color: var(--ink); font-weight: 600; max-width: 70ch; }
 .saberes .sb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr)); gap: var(--hueco); }
-.saberes .sb { display: grid; grid-template-columns: 34px 1fr; grid-template-rows: auto auto; column-gap: 8px; align-items: center; padding: var(--relleno-s); border-radius: var(--r); background: rgba(0, 0, 0, .22); border: 1px solid rgba(255, 255, 255, .1); opacity: .78; }
+.saberes .sb { display: grid; grid-template-columns: 40px 1fr; grid-template-rows: auto auto; column-gap: 8px; align-items: center; padding: var(--relleno-s); border-radius: var(--r); background: rgba(0, 0, 0, .22); border: 1px solid rgba(255, 255, 255, .1); opacity: .78; }
 .saberes .sb.on { opacity: 1; background: rgba(255, 122, 200, .12); border-color: rgba(255, 122, 200, .35); }
 .saberes .sb > :first-child { grid-row: span 2; } .saberes .sb b { font-size: var(--fs-xl); line-height: 1; color: #ff7ac8; } .saberes .sb span { font-weight: 900; font-size: var(--fs-sm); line-height: 1.15; }   /* (sin aire de más debajo de la línea: la tarjeta, centrada) */
-.saberes .sb small { grid-column: 1 / -1; color: var(--mute); font-size: var(--fs-xs); margin-top: 4px; line-height: 1.3; }
-@media (max-width: 560px), (orientation: landscape) and (max-height: 440px) { .saberes .sb small { display: none; } .saberes .sb-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 136px), 1fr)); } }
+@media (max-width: 560px), (orientation: landscape) and (max-height: 440px) { .saberes .sb-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 136px), 1fr)); } }
 /* Escudos de Navarra (armorial) */
 .saberes .sb.link { cursor: pointer; outline-offset: 2px; } .saberes .sb.link:hover { border-color: #ff7ac8; }
 /* (los cuatro enlaces, en una rejilla de piezas iguales: dos por fila donde caben, uno donde no) */
-.saberes .sb-links { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--hueco); margin: 0 0 var(--hueco-m); }
-@media (min-width: 760px) { .saberes .sb-links { grid-template-columns: repeat(2, minmax(0, 1fr)); } }   /* (cuatro: dos y dos, nunca tres y uno) */
+.saberes .sb-links { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--hueco); margin: 0 0 var(--hueco-m); }
+@media (max-width: 520px) { .saberes .sb-links { grid-template-columns: repeat(2, minmax(0, 1fr)); } }   /* (cuatro: en fila o dos y dos, nunca tres y uno) */
+.sb-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 112px; padding: 14px 8px 12px; border-radius: var(--r); border: 1px solid rgba(255, 255, 255, .16); color: var(--ink); cursor: pointer;
+  background: radial-gradient(90% 80% at 50% 0%, rgba(255, 43, 214, .32), transparent 70%), linear-gradient(160deg, rgba(123, 47, 247, .45), rgba(30, 10, 64, .9)); box-shadow: 0 8px 22px rgba(0, 0, 0, .3);
+  transition: transform .18s, border-color .18s, box-shadow .18s; animation: sbIn .5s var(--d, 0s) cubic-bezier(.2, 1.3, .4, 1) both; }
+.sb-tile:hover { transform: translateY(-4px); border-color: #ff7ac8; box-shadow: 0 14px 30px rgba(0, 0, 0, .4), 0 0 18px rgba(255, 43, 214, .35); } .sb-tile:active { transform: scale(.96); }
+.sb-tile > :first-child { filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .45)); transition: transform .25s; } .sb-tile:hover > :first-child { transform: scale(1.1) rotate(-4deg); }
+.sb-tile b { font: 400 var(--fs-md)/1 var(--f-display); text-transform: uppercase; letter-spacing: .02em; }
+@keyframes sbIn { from { opacity: 0; transform: translateY(14px) scale(.94); } }
+@media (prefers-reduced-motion: reduce) { .sb-tile { animation: none; } }
 .saberes .sb-arms { margin: 0; display: flex; align-items: center; gap: 8px; min-height: 44px; white-space: normal; text-align: left; justify-content: flex-start; }
 .armorial { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--hueco-m); padding-bottom: 24px; }   /* (una columna que no ensancha nada de dentro) */
 .armorial .ar-head h1 { margin: var(--t-mt) 0 var(--t-mb); } .armorial .ar-head p { margin: 0 0 8px; max-width: 75ch; font-weight: 600; color: #eae4f6; }
@@ -1506,6 +1519,11 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
    arriba, a lo ancho, tu Navarra (el aro y los datos en fila); debajo, las partidas empezadas y los campeonatos uno al
    lado del otro, y las comarcas; de pie, todo en una columna */
 .pg-title { margin-top: var(--esp); }
+/* (Campeonatos: lo que se juega, en pastillas con su icono en vez de una frase) */
+.sp-chips { display: flex; flex-wrap: wrap; gap: 8px; } .sp-chips > span { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px 4px 6px; border-radius: 99px; background: rgba(0, 0, 0, .35); border: 1px solid rgba(255, 255, 255, .18); font-weight: 900; font-size: var(--fs-sm); color: #fff; }
+/* (lo que antes era una frase, un dato con su icono: cimas subidas, insignias ganadas) */
+.lead-chip { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 var(--hueco-m); padding: 6px 16px 6px 10px; border-radius: 99px; background: rgba(255, 255, 255, .08); border: 1px solid var(--line2); font-weight: 900; font-size: var(--fs-md); }
+.lead-chip b { font-size: var(--fs-lg); color: var(--gold); }
 .progreso { display: grid; gap: var(--hueco-m); }
 .pg-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--hueco-m); align-items: stretch; }
 .progreso .panel.pg-total { grid-column: 1 / -1; display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto 1fr; column-gap: var(--hueco-m); align-items: start; }
@@ -1538,16 +1556,17 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 /* (en una columna estrecha, el botón de seguir se queda en su icono y el nombre tiene sitio) */
 @container (max-width: 460px) { .pg-list .pg-go { min-width: 52px; padding: 8px 12px; } .pg-list .pg-go span { display: none; } }
 .pg-crest { width: 40px; height: 40px; object-fit: contain; flex: none; }
+.next-panel .sg-img { width: 56px; height: 42px; flex: none; object-fit: cover; border-radius: 8px; box-shadow: 0 3px 10px rgba(0, 0, 0, .35); }
+.pg-thumb { width: 72px; height: 54px; flex: none; object-fit: cover; border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, .35); }
+@container (max-width: 340px) { .pg-thumb { width: 52px; height: 52px; } }
 .pg-ico { display: grid; place-items: center; width: 40px; height: 40px; flex: none; }
 .pg-bar { display: block; height: 8px; border-radius: 99px; background: rgba(255, 255, 255, .12); overflow: hidden; }
 .pg-bar u { display: block; height: 100%; border-radius: 99px; background: var(--c, var(--gold)); }
 .pg-empty { margin: 0 0 12px; color: var(--mute); line-height: 1.45; } .pg-empty b { color: var(--ink); }
+/* (sin campeonatos empezados: la pelota, la txapela y el balón, grandes, en vez de una frase) */
+.pg-vacio { flex: 1; display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 120px; margin: 0 0 12px; padding: 12px; border-radius: 14px; border: 1px dashed rgba(255, 255, 255, .18); background: radial-gradient(70% 80% at 50% 50%, rgba(255, 43, 214, .16), transparent 70%); }
+.pg-vacio > * { filter: drop-shadow(0 8px 12px rgba(0, 0, 0, .45)); animation: hubFlota 3s ease-in-out infinite; } .pg-vacio > :nth-child(2) { animation-delay: -1s; } .pg-vacio > :nth-child(3) { animation-delay: -2s; }
+.pg-camp { display: flex; flex-direction: column; }
 .progreso .pg-more { margin-top: auto; align-self: flex-start; }
 .progreso .pg-list + .pg-more, .progreso .pg-empty + .pg-more { margin-top: 12px; }
-.pg-coms { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px 16px; }   /* (columnas que dejan el nombre entero: «Comarca de Pamplona», «Larraun-Leitzaldea») */
-.pg-com { display: grid; gap: 4px; padding: 8px 12px; border-radius: 12px; background: rgba(255, 255, 255, .05); border-left: 4px solid var(--c); text-align: left; color: var(--ink); min-height: 48px; }
-.pg-com > span { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; min-width: 0; }   /* (solo la fila de arriba: antes también apilaba «0%», «·» y «0/6 sellos» uno debajo de otro) */
-.pg-com b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pg-com b { font-size: var(--fs-sm); font-weight: 900; } .pg-com small { font-size: var(--fs-xs); color: var(--mute); white-space: nowrap; }
-@media (max-width: 760px) { .pg-grid { grid-template-columns: minmax(0, 1fr); } .progreso .panel.pg-total { grid-template-columns: minmax(0, 1fr); } .pg-total .pg-ringbox, .pg-total .pg-rank, .pg-total .pg-stats { grid-row: auto; grid-column: 1; } .pg-coms { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
-@media (max-width: 420px) { .pg-coms { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 760px) { .pg-grid { grid-template-columns: minmax(0, 1fr); } .progreso .panel.pg-total { grid-template-columns: minmax(0, 1fr); } .pg-total .pg-ringbox, .pg-total .pg-rank, .pg-total .pg-stats { grid-row: auto; grid-column: 1; } }

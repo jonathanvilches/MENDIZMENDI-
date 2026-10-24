@@ -358,7 +358,7 @@ export class PelotaMatch {
     if (M) L.push({ id: 'youMate', name: M.youMate.name, town, stats: M.youMate.stats, side: 'you', role: other });
     L.push({ id: 'rival', name: this.names.rival, town: rt, stats: o.rivalStats, side: 'rival', role: M ? 'delantero' : 'mano' });
     if (M) L.push({ id: 'rivalMate', name: M.rivalMate.name, town: rt, stats: M.rivalMate.stats, side: 'rival', role: 'zaguero' });
-    for (const p of L) p.color = this.cols[p.side];
+    for (const p of L) { p.color = this.cols[p.side]; p.cara = p.you ? o.caras?.you : null; p.fig = p.you ? null : o.caras?.fig?.(splitName(p.name).name, p.color); }
     return L;
   }
   // abre la ficha (el partido se para mientras se mira y sigue al cerrarla)
