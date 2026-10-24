@@ -1,6 +1,6 @@
 // Frontón en 3D (compatible con three.js r128 y posteriores: THREE se recibe como parámetro).
 // Origen del grupo: suelo, centro del frontis. La cancha crece hacia +z; la pared izquierda en x = −W/2.
-import { COURT } from './rules.js';
+import { COURT, CUATRO } from './rules.js';
 import { freeCanvasOnUpload } from '../util/freeCanvas.js';
 
 function srgb(THREE, tex) {
@@ -410,6 +410,28 @@ export class PelotaCourt {
     const wd = this.aimWall = new T.Mesh(new T.RingGeometry(0.16, 0.26, 24), aim.material); wd.rotation.y = Math.PI / 2; wd.visible = false; wd.renderOrder = 3; g.add(wd);
     this.materials?.push(pathMat, aim.material, this.aimLand.material);
     this.hideBall();
+  }
+  /** El Cuatro y Medio: la raya naranja del 4 y medio (en el suelo y en la pared izquierda, con su «4½») y la zona del
+   *  saque entre la raya del 3 y la del 5; sin él, todo como siempre. */
+  setCuatro(on) {
+    const T = this.THREE, C = COURT;
+    if (on && !this.cuatroMark) {
+      const mat = new T.MeshBasicMaterial({ color: '#ff8a1a', toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 });
+      const g = this.cuatroMark = new T.Group(); g.name = 'cuatro-y-medio';
+      const fl = new T.Mesh(new T.PlaneGeometry(C.W, 0.12), mat); fl.rotation.x = -Math.PI / 2; fl.position.set(0, 0.022, CUATRO.LIMITE); g.add(fl);
+      const wl = new T.Mesh(new T.PlaneGeometry(0.12, C.LEFT_LINE), mat); wl.rotation.y = Math.PI / 2; wl.position.set(-C.W / 2 + 0.02, C.LEFT_LINE / 2, CUATRO.LIMITE); g.add(wl);
+      const tex = canvasTex(T, 192, 96, (c, w, h) => { c.fillStyle = '#ff8a1a'; c.font = `900 ${h * 0.8}px "Lilita One", "Trebuchet MS", Nunito, Arial, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('4½', w / 2, h * 0.54); });
+      const lab = new T.Mesh(new T.PlaneGeometry(1.1, 0.55), new T.MeshBasicMaterial({ map: tex, transparent: true, toneMapped: false, depthWrite: false }));
+      lab.position.set(-C.W / 2 + 0.03, C.LEFT_LINE + 0.45, CUATRO.LIMITE); lab.rotation.y = Math.PI / 2; g.add(lab);
+      this.group.add(g); this.materials?.push(mat, lab.material);
+    }
+    if (this.cuatroMark) this.cuatroMark.visible = !!on;
+    // (la zona del saque que se ilumina al sacar: entre el 3 y el 5 en el Cuatro y Medio; entre el 4 y el 7, si no)
+    const z0 = on ? CUATRO.FALTA : C.FALTA, z1 = on ? CUATRO.PASA : C.PASA;
+    if (this.serveZone) { this.serveZone.scale.y = (z1 - z0) / (C.PASA - C.FALTA); this.serveZone.position.z = (z0 + z1) / 2; }
+    // (y los nombres FALTA y PASA de la pared, encima de las rayas que valen)
+    const rf = this.group.getObjectByName('raya-falta'), rp = this.group.getObjectByName('raya-pasa');
+    if (rf) rf.position.z = z0; if (rp) rp.position.z = z1;
   }
   // ---------- frontón Labrit (Iruña, 1952): donde se juegan las finales ----------
   // Lo que cuentan las fuentes (Ayuntamiento de Pamplona, Federación Navarra de Pelota, Noticias de Navarra): frontón

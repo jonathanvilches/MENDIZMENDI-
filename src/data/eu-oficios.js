@@ -1271,7 +1271,6 @@ export const EU_OFICIOS = {
   'nos espera en': 'zure zain dago hemen:',
   'queda 1 misión': 'misio 1 falta da',
   'Las páginas del Pasaporte Herri están en blanco. ¡Cada pueblo guarda un sello!': 'Herri Pasaportearen orriak zuri daude. Herri bakoitzak zigilu bat gordetzen du!',
-  'Partido libre o el torneo por la txapela de la comarca: cuartos, semifinal y final.': 'Partida librea edo eskualdeko txapelaren txapelketa: final-laurdenak, finalerdia eta finala.',
   'Liga con tu club y amistosos contra cualquier club. Todos los partidos, en El Sadar.': 'Liga zure klubarekin eta lagunarteko partidak edozein klubaren aurka. Partida guztiak, El Sadarren.',
   '¡txapela de pelota!': 'pilotako txapela!',
   'txapela: por ganar': 'txapela: irabazteagatik',

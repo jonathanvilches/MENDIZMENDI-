@@ -7,6 +7,8 @@
 //  · de reserva, servidores públicos de MQTT: tres de siempre y dos por el puerto de las webs (443), que no corta ninguna
 //    wifi ni ningún operador
 //  · y ntfy.sh, también por el 443: solo para la oferta y la respuesta (no deja mandar muchos mensajes seguidos)
+//  · el servidor propio de Herrizherri (servidor/mando-relevo, en Cloudflare, en la Unión Europea), el primero cuando
+//    esté desplegado: PROPIO vacío hasta entonces
 // Lo que llega repetido por dos caminos se cuenta una vez (cada mensaje lleva su marca, payload.k). Un camino que se cae, o
 // que no contestó, se vuelve a probar al rato, y el saludo no se da nunca por perdido: si se cae el único que había
 // contestado, siguen los que aún estaban llegando (en la calle, PeerJS a veces acepta y se cae enseguida). Si el ordenador y el móvil no consiguen hablar directamente, los mensajes
@@ -21,29 +23,31 @@
 //    secreto (fuerte) o con el código.
 //  · Cada mensaje lleva su hora: lo repetido o lo que llega con más de 2 minutos de retraso (grabado y vuelto a mandar) no
 //    vale. La hora se compara con la del propio que lo manda, así que un reloj mal puesto no estorba.
-// Pruebas: ?senal=ws://… cambia el servidor de PeerJS, ?mqtt=ws://…,ws://… los de MQTT, ?ntfy=http://… el de ntfy
-// (vacíos, ninguno), ?sinpeer=1 deja fuera PeerJS y ?trozo=n parte lo que va por ntfy en trozos de n letras.
+// Pruebas: ?senal=ws://… cambia el servidor de PeerJS, ?mqtt=ws://…,ws://… los de MQTT, ?ntfy=http://… el de ntfy,
+// ?propio=ws://… el propio (vacíos, ninguno), ?sinpeer=1 deja fuera PeerJS y ?trozo=n parte lo que va por ntfy en trozos de n letras.
 const Q = (() => { try { return new URLSearchParams(location.search); } catch (e) { return new URLSearchParams(); } })();
 export const SENAL = Q.get('senal') || 'wss://0.peerjs.com/peerjs';
 const lista = (k, d) => (Q.has(k) ? Q.get(k).split(',').filter(Boolean) : d);
 const MQTT = lista('mqtt', ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt', 'wss://test.mosquitto.org:8081/mqtt', 'wss://mqtt.eclipseprojects.io:443/mqtt', 'wss://public:public@public.cloud.shiftr.io']);
 const NTFY = lista('ntfy', ['https://ntfy.sh']);
 const SIN_PEER = Q.has('sinpeer');
+// (al desplegarlo, su dirección aquí y en la lista connect-src de public/mando/index.html: servidor/mando-relevo/LEEME.md)
+const PROPIO = Q.has('propio') ? Q.get('propio') : '';
 /** Prueba: ?sinp2p hace que el ordenador y el móvil no puedan hablar directamente (para probar el relevo por el saludo). */
 export const SIN_P2P = Q.has('sinp2p');
 // (los de Google y Cloudflare para saber la ruta de cada uno y, si la wifi no deja hablar directamente, los de PeerJS de
 // relevo; si aun así no hay manera, el mando va por el propio saludo: mira «DATA» más arriba)
 export const ICE = SIN_P2P ? [] : [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302', 'stun:stun.cloudflare.com:3478'] }, { urls: ['turn:eu-0.turn.peerjs.com:3478', 'turn:us-0.turn.peerjs.com:3478'], username: 'peerjs', credential: 'peerjsp' }];
 /** Los parámetros de prueba que también tiene que llevar la página del mando (para el QR). */
-export const SENAL_PRUEBA = ['senal', 'mqtt', 'ntfy', 'sinpeer', 'sinp2p', 'trozo'].filter(k => Q.has(k)).map(k => `${k}=${encodeURIComponent(Q.get(k))}`).join('&');
+export const SENAL_PRUEBA = ['senal', 'mqtt', 'ntfy', 'propio', 'sinpeer', 'sinp2p', 'trozo'].filter(k => Q.has(k)).map(k => `${k}=${encodeURIComponent(Q.get(k))}`).join('&');
 const TIEMPO = 8000;   // (un camino que no contesta en 8 s no vale)
 const TROZO = +Q.get('trozo') || 3000;   // (ntfy: hasta 4096 letras por mensaje; lo largo, en trozos)
 const RETRASO = 120000;   // (lo que llega con más retraso que esto, grabado y vuelto a mandar, no vale)
 // el nombre de cada camino, para enseñar en las dos pantallas cuáles contestan
-const NOMBRES = [[/peerjs/, 'PeerJS'], [/emqx/, 'EMQX'], [/hivemq/, 'HiveMQ'], [/mosquitto/, 'Mosquitto'], [/eclipse/, 'Eclipse'], [/shiftr/, 'Shiftr'], [/ntfy/, 'ntfy']];
+const NOMBRES = [[/herrizherri/, 'Herrizherri'], [/peerjs/, 'PeerJS'], [/emqx/, 'EMQX'], [/hivemq/, 'HiveMQ'], [/mosquitto/, 'Mosquitto'], [/eclipse/, 'Eclipse'], [/shiftr/, 'Shiftr'], [/ntfy/, 'ntfy']];
 const nombre = (u) => { const U = new URL(u); return (NOMBRES.find(([r]) => r.test(U.hostname)) || [, U.host])[1]; };
 /** Los caminos del saludo: { n (su nombre), tipo, u }. */
-export const CAMINOS = [...(SIN_PEER ? [] : [{ tipo: 'peer', u: SENAL }]), ...MQTT.map(u => ({ tipo: 'mqtt', u })), ...NTFY.map(u => ({ tipo: 'ntfy', u }))].map(c => ({ ...c, n: nombre(c.u) }));
+export const CAMINOS = [...(PROPIO ? [{ tipo: 'propio', u: PROPIO }] : []), ...(SIN_PEER ? [] : [{ tipo: 'peer', u: SENAL }]), ...MQTT.map(u => ({ tipo: 'mqtt', u })), ...NTFY.map(u => ({ tipo: 'ntfy', u }))].map(c => ({ ...c, n: nombre(c.u) }));
 /** Un secreto nuevo para el QR: 128 bits al azar, en letras que valen en una dirección. */
 export const nuevoSecreto = () => b64(crypto.getRandomValues(new Uint8Array(16))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 export const SECRETO = /^[A-Za-z0-9_-]{22}$/;
@@ -61,7 +65,7 @@ export function senal(id, onMsg, onEstado, secreto = '') {
     const pon = (n, e) => { est[n] = e; onEstado?.({ ...est }); };
     // los nombres en cada servidor: una huella del código y, detrás, «pc» para el ordenador o la marca del móvil, «-m…»
     const suyo = (x) => x.slice(('hzh-' + code).length) || 'pc';
-    const dir = { peer: (x) => `hzh-${K.hue.slice(0, 20)}${suyo(x) === 'pc' ? '' : suyo(x)}`, mqtt: (x) => `hzh/${K.hue}/${suyo(x)}`, ntfy: (x) => `hzh${K.hue}-${suyo(x).replace(/^-/, '')}` };
+    const dir = { peer: (x) => `hzh-${K.hue.slice(0, 20)}${suyo(x) === 'pc' ? '' : suyo(x)}`, mqtt: (x) => `hzh/${K.hue}/${suyo(x)}`, ntfy: (x) => `hzh${K.hue}-${suyo(x).replace(/^-/, '')}`, propio: (x) => `${K.hue}/${suyo(x).replace(/^-/, '')}` };
     // lo que llega: se abre (si no, no es de los nuestros); el camino por el que llega algo del otro, aunque sea repetido,
     // queda probado (por él irá el mando si no hablan directamente); y lo repetido, o grabado y vuelto a mandar, fuera
     const recibe = (bytes, v) => abre(K, bytes).then((m) => {
@@ -90,14 +94,16 @@ export function senal(id, onMsg, onEstado, secreto = '') {
     // (el mando, por dos caminos: primero los probados, el que más recientemente trajo algo del otro antes; un servidor que
     // acepta pero no entrega nada no se queda con él)
     const paraElMando = () => { const vs = vias.filter(x => !x.solo); return [...vs.filter(x => x.oido).sort((a, b) => b.oido - a.oido), ...vs.filter(x => !x.oido)].slice(0, 2); };
-    const cae = (v) => {
+    // (fuera: el servidor propio lo ha echado porque otro ha entrado con el mismo nombre; si volviera, lo echaría a él y
+    // así todo el rato: por ese camino ya no lo intenta más)
+    const cae = (v, fuera = false) => {
       const i = vias.indexOf(v); if (i >= 0) vias.splice(i, 1); if (cerrado) return;
-      pon(v.n, 'mal'); if (performance.now() - v.t0 > 10000) veces.delete(v.c); otraVez(v.c);
+      pon(v.n, 'mal'); if (fuera) return; if (performance.now() - v.t0 > 10000) veces.delete(v.c); otraVez(v.c);
     };
     // (otra vez al rato: a los 2 s, a los 4, a los 8 y luego cada 15; la cuenta vuelve a empezar si el camino aguanta 10 s:
     // uno que acepta y se cae enseguida se prueba cada vez menos)
     const otraVez = (c) => { const n = veces.get(c) || 0; veces.set(c, n + 1); setTimeout(() => intenta(c), [2000, 4000, 8000][n] || 15000); };
-    const arranca = (c) => (c.tipo === 'peer' ? peer : c.tipo === 'mqtt' ? mqtt : ntfy)(c, dir[c.tipo](id), recibe, cae);
+    const arranca = (c) => ({ peer, mqtt, ntfy, propio }[c.tipo])(c, dir[c.tipo](id), recibe, cae);
     const intenta = (c, primera) => {
       if (cerrado || vias.some(v => v.c === c)) return;
       if (primera) pend++;
@@ -164,6 +170,31 @@ function peer(c, yo, recibe, cae) {
     };
     ws.onerror = () => { if (!open) { clearTimeout(t); ko(new Error('red')); } };
     ws.onclose = () => { clearInterval(hb); if (open) cae(v); else { clearTimeout(t); ko(new Error('red')); } };
+  });
+}
+
+// ---------- el servidor propio (servidor/mando-relevo): una sala por partida, con la huella del código ----------
+// yo: «sala/nombre». Lo que se manda, en binario: [largo del nombre][nombre del destino][lo cifrado]; llega solo lo cifrado.
+function propio(c, yo, recibe, cae) {
+  return new Promise((ok, ko) => {
+    let ws, open = false, ping = 0;
+    try { ws = new WebSocket(`${c.u.replace(/\/+$/, '')}/s/${yo}`); ws.binaryType = 'arraybuffer'; } catch (e) { ko(e); return; }
+    const t = setTimeout(() => { if (!open) { ko(new Error('red')); try { ws.close(); } catch (e) { } } }, TIEMPO);
+    const fin = () => { clearInterval(ping); try { ws.close(); } catch (e) { } };
+    const v = { n: c.n, c, close: fin, send: (dst, bytes) => {
+      if (ws.readyState !== 1) return;
+      const d = TE.encode(dst.slice(dst.indexOf('/') + 1)), out = new Uint8Array(1 + d.length + bytes.length);
+      out[0] = d.length; out.set(d, 1); out.set(bytes, 1 + d.length); ws.send(out);
+    } };
+    ws.onmessage = (e) => {
+      if (typeof e.data === 'string') {   // (el saludo del servidor y la respuesta al latido, que da Cloudflare solo)
+        if (e.data === 'OPEN' && !open) { open = true; clearTimeout(t); ping = setInterval(() => ws.readyState === 1 && ws.send('ping'), 25000); ok(v); }
+        return;
+      }
+      if (open) recibe(new Uint8Array(e.data), v);
+    };
+    ws.onerror = () => { if (!open) { clearTimeout(t); ko(new Error('red')); } };
+    ws.onclose = (e) => { clearInterval(ping); if (open) cae(v, e.code === 4001); else { clearTimeout(t); ko(new Error('red')); } };
   });
 }
 

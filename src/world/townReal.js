@@ -308,7 +308,7 @@ export function realHouses(B, def, rnd, H) {
   const real = MOD.real;
   const hall = real.data.lugares?.ayuntamiento;
   const fr = real.data.lugares?.fronton;
-  let full = 0, simple = 0;
+  let full = 0, simple = 0, lejos = 0;
   // (las casas con todo su detalle, solo las más cercanas a los lugares de las misiones: un pueblo real tiene muchas más
   // casas que uno generado y en el móvil no caben todas así; el resto, como bloque con su tejado y su fachada sencilla)
   const FULL = builderQuality() === 'low' ? 80 : builderQuality() === 'mid' ? 120 : 160;
@@ -316,6 +316,10 @@ export function realHouses(B, def, rnd, H) {
   // dist: a la plaza o al lugar de misión más cercano, para que las detalladas sean las de alrededor de donde se juega.
   // NMAX, solo por si un pueblo trajera muchas más casas de las que caben en el móvil (hoy el que más, unas 410)
   const NMAX = builderQuality() === 'low' ? 450 : builderQuality() === 'mid' ? 560 : 680, A = real.anclas?.length ? real.anclas : [P];
+  // (más allá de LEJOS, las casas sencillas de las afueras no se levantan: apenas se ven y así el pueblo va más fluido; las
+  // sueltas fuera del casco, ya a 7/10 de LEJOS, y las casetas, a partir de 150 m. Se saltan después de sacar su estilo,
+  // para que el azar del resto del pueblo no cambie)
+  const LEJOS = builderQuality() === 'low' ? 220 : builderQuality() === 'mid' ? 270 : 330;
   const lista = real.casas.map(b => ({ b, dist: Math.min(...A.map(a => Math.hypot(b.x - a.x, b.z - a.z))) })).sort((a, c) => a.dist - c.dist);
   let n = 0;
   for (const { b, dist } of lista) {
@@ -329,9 +333,10 @@ export function realHouses(B, def, rnd, H) {
     if (++n > NMAX) break;
     const isHall = hall && Math.abs(hall.x - x) < 0.5 && Math.abs(hall.z - z) < 0.5;
     if (b.k === 'industrial' || b.k === 'shed' || (b.k === 'school' && b.a > 600)) {
-      const hb = slopeBase(B, x, z, w, d, ry, g);
       const h = b.k === 'shed' ? 2.6 + Math.min(1.2, b.a / 40) : clamp(b.h ? b.h * 0.85 : 7.5, 4.5, 14);
       const wall = b.k === 'shed' ? (fam === 'ribera' ? 'brick' : rnd() < 0.5 ? 'stone' : 'plaster') : 'plasterCream';
+      if (dist > (b.k === 'shed' ? 150 : LEJOS)) { lejos++; continue; }
+      const hb = slopeBase(B, x, z, w, d, ry, g);
       block(B, x, hb, z, ry, w, d, h, wall, b.k === 'shed' ? 'tile' : 'zinc', b.k === 'shed' ? 0.5 : 0.18);
       fachada(B, M(x, hb, z, ry), w, d, h, { fam, wall, kind: b.k === 'shed' ? 'shed' : b.k === 'school' ? 'school' : 'industrial', rnd: hashRnd(x, z) });
       addBox(x, z, w + 0.2, d + 0.2, ry, { solidView: true });
@@ -349,9 +354,11 @@ export function realHouses(B, def, rnd, H) {
     // (las casas de una fila partida, cada una con su altura, un poco más o menos que la de al lado: si no, parecía una nave)
     if (b.parte) { const f = Math.abs(Math.sin(x * 12.9898 + z * 78.233)) * 43758.5453 % 1; h = clamp(h * (0.84 + 0.36 * f), 3.4, 18); }
     if (b.k === 'borda') Object.assign(st, { wall: 'stone', balcony: false, timber: false });
-    const hb = slopeBase(B, x, z, w, d, ry, g);
     // lejos del casco y fuera del pueblo, la versión sencilla (de lejos no se ven los detalles y pesa mucho menos)
-    if (!isHall && (full >= FULL || dist > 210 || (vm < 0.3 && dist > 140))) {
+    const sencilla = !isHall && (full >= FULL || dist > 210 || (vm < 0.3 && dist > 140));
+    if (sencilla && (dist > LEJOS || (vm < 0.3 && dist > LEJOS * 0.7))) { lejos++; continue; }
+    const hb = slopeBase(B, x, z, w, d, ry, g);
+    if (sencilla) {
       block(B, x, hb, z, ry, w, d, h, st.wall, st.roof || 'tile', st.pitch || 0.45);
       fachada(B, M(x, hb, z, ry), w, d, h, { fam, wall: st.wall, kind: b.k, rnd: hashRnd(x, z) });
       addBox(x, z, w + 0.3, d + 0.3, ry, { solidView: true });
@@ -369,5 +376,5 @@ export function realHouses(B, def, rnd, H) {
     addHouse(x, z, ry, w, d, { real: b.n || null });
     full++;
   }
-  return { full, simple };
+  return { full, simple, lejos };
 }

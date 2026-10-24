@@ -1,0 +1,9 @@
+// El servidor propio del mando (ver src/index.js). Se despliega con «npx wrangler deploy» desde esta carpeta.
+{
+  "name": "herrizherri-mando",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-01",
+  "durable_objects": { "bindings": [{ "name": "SALAS", "class_name": "Sala" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Sala"] }],
+  "observability": { "enabled": false }
+}

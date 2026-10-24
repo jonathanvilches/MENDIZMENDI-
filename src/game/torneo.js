@@ -31,7 +31,14 @@ const ROUNDS = [{ name: 'Cuartos de final', target: 5 }, { name: 'Semifinales', 
 const NAMES = RIVALES;   // (21 chicos y chicas, cada uno con su figura)
 const TOWNS = ['Leitza', 'Lesaka', 'Elizondo', 'Altsasu', 'Lekunberri', 'Aoiz', 'Sangüesa', 'Estella-Lizarra', 'Tafalla', 'Olite', 'Tudela', 'Puente la Reina', 'Viana', 'Lumbier', 'Doneztebe', 'Irurtzun'];
 const loadAll = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } };
-const keyOf = (comarca, kind) => kind === 'parejas' ? comarca + ':parejas' : comarca;
+const keyOf = (comarca, kind) => kind === 'parejas' ? comarca + ':parejas' : kind === 'cuatro' ? comarca + ':cuatro' : comarca;
+/** Los tres campeonatos de pelota de cada comarca, como los de los profesionales: el Manomanista (mano a mano, en toda la
+ *  cancha), el de Parejas (delantero y zaguero) y el del Cuatro y Medio (mano a mano hasta la raya naranja del 4 y medio) */
+export const KINDS = {
+  mano: { name: 'Manomanista', full: 'Campeonato Manomanista', k: 'Campeonato individual' },
+  parejas: { name: 'Parejas', full: 'Campeonato de Parejas', k: 'Delantero y zaguero' },
+  cuatro: { name: 'Cuatro y Medio', full: 'Campeonato del Cuatro y Medio', k: 'Hasta la raya naranja' },
+};
 const save = (T) => { try { const all = loadAll(); all[keyOf(T.comarca, T.kind)] = T; localStorage.setItem(KEY, JSON.stringify(all)); } catch (e) { /* sin guardado */ } };
 /** Las cualidades de cada uno de una pareja (i = 0 el delantero, 1 el zaguero). */
 export const mateStats = (p, i) => (p.mst ||= [])[i]?.style ? p.mst[i] : (p.mst[i] = pelotariStats(`${p.mates[i]} ${p.town}`, p.lv || 2));
@@ -40,6 +47,9 @@ const clamp01 = (v) => Math.max(0.1, Math.min(0.9, v));
 /** Los torneos guardados, sin crear ninguno (para el resumen del inicio: el menú de pelota crea los dos de la comarca al
  *  abrirse, así que solo cuentan los que ya tienen alguna ronda jugada o alguna txapela). */
 export function torneosGuardados() { return Object.values(loadAll()).filter(T => T?.players?.length && (T.past?.length || T.txapelas || T.edition > 1)); }
+/** Tus temporadas como pelotari: cada campeonato que se acaba (lo ganes o no) es una más. Con ellas se decide quién viste
+ *  de colorado en cada partido: el que debutó antes */
+export function tusTemporadas() { return Object.values(loadAll()).reduce((n, T) => n + (T?.players?.length ? Math.max(0, (T.edition || 1) - 1) + (T.done ? 1 : 0) : 0), 0); }
 /** Txapelas ganadas en cada comarca: { comarca: n } */
 export function txapelas() { const all = loadAll(), o = {}; for (const k in all) if (all[k]?.txapelas) { const c = k.split(':')[0]; o[c] = (o[c] || 0) + all[k].txapelas; } return o; }
 /**
@@ -166,7 +176,7 @@ const CSS = `
 /* menú de pelota: losas grandes como el menú de un juego de deportes, cada una con su figura. Las figuras, del mismo alto
    en todas: la losa de la colección, con tres, algo más ancha y la del partido libre, con una, algo más estrecha; así
    salen lo más grandes posible */
-.tq-tiles{display:grid;grid-template-columns:1fr 1.08fr .8fr 1.12fr;gap:12px;min-height:0}.tq-tiles.n3{grid-template-columns:1fr .8fr 1.12fr}
+.tq-tiles{display:grid;grid-template-columns:1fr 1.08fr .8fr 1.12fr;gap:12px;min-height:0}.tq-tiles.n3{grid-template-columns:1fr .8fr 1.12fr}.tq-tiles.n5{grid-template-columns:1fr 1.08fr 1fr .78fr 1.05fr}
 .tq-tile{position:relative;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:2px;min-height:190px;padding:12px calc(16px + 8px);border:1px solid rgba(201,178,255,.25);border-radius:4px;color:#fff;text-align:left;cursor:pointer;font:inherit;
   background:linear-gradient(160deg,var(--t1,#3b1590),var(--t2,#12052a) 75%);clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px);transition:transform .15s,border-color .15s}
 .tq-tile::before{content:'';position:absolute;inset:0;z-index:-1;background:repeating-linear-gradient(125deg,transparent 0 14px,rgba(255,255,255,.035) 14px 15px)}
@@ -183,7 +193,7 @@ const CSS = `
 .tq-tile .k{font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--rosa);text-shadow:0 1px 3px rgba(0,0,0,.8);overflow-wrap:anywhere}
 .tq-tile b{font:400 var(--fs-2xl)/1 var(--f-display);text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.55);max-width:100%;overflow-wrap:anywhere}
 .tq-tile small{font:600 var(--fs-sm)/1.2 var(--f-cond);letter-spacing:0;color:#ece4ff;text-shadow:0 1px 3px rgba(0,0,0,.9);max-width:100%}
-.tq-tile.main{--t1:#ff2bd6;--t2:#3a0b6b}.tq-tile.pair{--t1:#7b2ff7;--t2:#160636}.tq-tile.free{--t1:#5b4bff;--t2:#120a40}.tq-tile.col{--t1:#c21cff;--t2:#2a0638}
+.tq-tile.main{--t1:#ff2bd6;--t2:#3a0b6b}.tq-tile.c45{--t1:#ff7a1a;--t2:#3b0d3a}.tq-tile.c45 .k{color:#ffb26b}.tq-tile.pair{--t1:#7b2ff7;--t2:#160636}.tq-tile.free{--t1:#5b4bff;--t2:#120a40}.tq-tile.col{--t1:#c21cff;--t2:#2a0638}
 .tq-menu-foot{display:flex;justify-content:space-between;align-items:center;gap:12px}
 /* el frontón del partido: un botón (el nombre corto del elegido y una flecha) que abre la lista de los frontones con una
    línea de cada uno; en el menú, a la derecha de Salir; en el torneo, junto a tus txapelas. La lista de pueblos, por comarcas */
@@ -206,7 +216,7 @@ const CSS = `
 }
 @media (max-width:900px) and (orientation:portrait){
 .lg-card.tq-card{grid-template-columns:1fr;grid-template-rows:none}.tq-br{grid-template-columns:1fr 1fr .8fr;min-height:260px}
-.tq-tiles,.tq-tiles.n3{grid-template-columns:1fr 1fr}.tq-rd h4{white-space:normal}.tq-tile{min-height:150px}.tq-tiles.n3 .tq-tile.main{grid-column:1/-1}.tq-tile b{font-size:var(--fs-xl)}
+.tq-tiles,.tq-tiles.n3,.tq-tiles.n5{grid-template-columns:1fr 1fr}.tq-rd h4{white-space:normal}.tq-tile{min-height:150px}.tq-tiles.n3 .tq-tile.main,.tq-tiles.n5 .tq-tile.main{grid-column:1/-1}.tq-tile b{font-size:var(--fs-xl)}
 .tq-tile .figs{min-height:110px}
 /* (de pie, la losa del torneo a lo ancho solo con tres: con cuatro, dos filas de dos; si no, quedaba un hueco al lado de
    la colección y el pie, con Salir y el frontón, no cabía) */
@@ -351,8 +361,9 @@ export function torneoPanel(T, here = null, o = null) {
     const m = yourMatch(T), pairs = T.kind === 'parejas', lang = isEU() ? 'eu' : 'es', yp = T.players.find(p => p.you);
     // (el frontón del partido: el elegido para esta ronda o, si no, el de siempre: el cubierto y, la final, el Labrit)
     if (o && m) { o.sede = sedeDe(T, m); o.onSede = (k) => { T.sede = { round: m.round, edition: T.edition, kind: k }; }; }
-    const head = `<div class="tq-top"><div class="lg-head tq-txa">${TXAPELA()}<div><small>${pairs ? 'Torneo por parejas' : 'Torneo de mano'} · edición ${T.edition}</small><h2>Txapela de ${esc(T.comarcaName)}</h2></div></div><button class="tq-info" data-info aria-expanded="false" aria-label="Cómo funciona">?</button></div>`;
+    const head = `<div class="tq-top"><div class="lg-head tq-txa">${TXAPELA()}<div><small>${(KINDS[T.kind] || KINDS.mano).full} · edición ${T.edition}</small><h2>Txapela de ${esc(T.comarcaName)}</h2></div></div><button class="tq-info" data-info aria-expanded="false" aria-label="Cómo funciona">?</button></div>`;
     const how = pairs ? '<p class="lg-how tq-how" hidden><b>Cómo funciona:</b> ocho parejas de delantero y zaguero por eliminatorias (cuartos y semifinales a 5 tantos, final a 7). Juegas con tu compañero de siempre. La final, en el frontón Labrit de Iruña.</p>'
+      : T.kind === 'cuatro' ? '<p class="lg-how tq-how" hidden><b>Cómo funciona:</b> ocho pelotaris mano a mano por eliminatorias (cuartos y semifinales a 5 tantos, final a 7) en el Cuatro y Medio: la pelota no puede botar más allá de la raya naranja del 4 y medio y el saque bota entre la raya del 3 y la del 5. Juego corto, de dejadas y ganchos. La final, en el Labrit.</p>'
       : '<p class="lg-how tq-how" hidden><b>Cómo funciona:</b> ocho pelotaris por eliminatorias (cuartos y semifinales a 5 tantos, final a 7). Los rivales vienen a tu frontón; la final, en el frontón Labrit de Iruña. Los demás partidos se simulan.</p>';
     const youCard = (w) => pelotariCard({ name: pairs ? yp.mates[0] : yp.name, town: yp.town, side: 'azul', role: pairs ? 'Del' : 'Mano', w, bonus: youBonus(T), stats: { fuerza: 3, agilidad: 3, velocidad: 3 }, pop: true, lang });
     let left;
@@ -380,11 +391,11 @@ export const sedeDe = (T, m) => (T.sede?.round === m.round && T.sede.edition ===
 /** Menú del pelotari: torneo individual, torneo por parejas o partido libre (here: el nombre del pueblo del frontón;
  *  T2: el torneo por parejas; o: los frontones para el partido libre, ver sedeHtml). Devuelve 'torneo' | 'torneoParejas' |
  *  'libre' | 'exit', u 'otro:<pueblo>' para jugar en el frontón de otro pueblo. */
-export function pelotaMenu(T, here = null, T2 = null, o = null) {
+export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null) {
   css();   // (antes solo lo ponía el cuadro del torneo: la primera vez, la txapela salía enorme)
   return new Promise(res => {
     const sub = (X) => { const m = yourMatch(X); return X.done ? 'Nueva edición' : m ? `${m.round} · rival: ${esc(m.rival.name)}` : 'Siguiente ronda'; };
-    const tx = (T.txapelas || 0) + (T2?.txapelas || 0), C = pelotarisCount();
+    const tx = (T.txapelas || 0) + (T2?.txapelas || 0) + (T3?.txapelas || 0), C = pelotarisCount();
     // las portadas, con los pelotaris del autor: en el torneo, tu rival de la ronda (o quien ganó); por parejas, la pareja
     // rival; en el partido libre, tú, de azul; en la colección, los tres últimos que has conocido (o tres de la plantilla)
     const who = (X) => yourMatch(X)?.rival || (X.done ? X.players[X.champion] : X.players.find(q => !q.you));
@@ -393,9 +404,10 @@ export function pelotaMenu(T, here = null, T2 = null, o = null) {
     const trio = [...new Set([...met, 'Oihana', 'Unai', 'Irati'])].slice(0, 3);
     const youName = T.players.find(q => q.you)?.name;
     const r = lgPanel(`<div class="lg-head tq-txa">${TXAPELA()}<div><small>${here ? `Frontón de ${esc(here)}` : 'Frontón del pueblo'}</small><h2>Pelota a mano</h2></div>${tx ? `<div class="lg-ovr">${tx}<small>TXAPELAS</small></div>` : ''}</div>
-      <div class="tq-tiles${T2 ? '' : ' n3'}"><button class="tq-tile main" data-a="torneo" style="--d:.2s"><span class="figs">${figOf(T)}</span><span class="k">${T.txapelas ? `${T.txapelas} ${T.txapelas === 1 ? 'txapela' : 'txapelas'}` : 'Por la txapela'}</span><b>Torneo individual</b><small>${sub(T)}</small></button>
-        ${T2 ? `<button class="tq-tile pair" data-a="torneoParejas" style="--d:.8s"><span class="figs duo">${figOf(T2, true)}</span><span class="k">Delantero y zaguero</span><b>Torneo por parejas</b><small>${sub(T2)}</small></button>` : ''}
-        <button class="tq-tile free" data-a="libre" style="--d:1.4s"><span class="figs">${pelotariFig(youName, 'azul', 'fig')}</span><span class="k">A 5 tantos</span><b>Partido libre</b><small>Mano a mano o parejas</small></button>
+      <div class="tq-tiles${T2 ? T3 ? ' n5' : '' : ' n3'}"><button class="tq-tile main" data-a="torneo" style="--d:.2s"><span class="figs">${figOf(T)}</span><span class="k">${T.txapelas ? `${T.txapelas} ${T.txapelas === 1 ? 'txapela' : 'txapelas'}` : KINDS.mano.k}</span><b>${KINDS.mano.name}</b><small>${sub(T)}</small></button>
+        ${T2 ? `<button class="tq-tile pair" data-a="torneoParejas" style="--d:.8s"><span class="figs duo">${figOf(T2, true)}</span><span class="k">${KINDS.parejas.k}</span><b>${KINDS.parejas.name}</b><small>${sub(T2)}</small></button>` : ''}
+        ${T3 ? `<button class="tq-tile c45" data-a="torneoCuatro" style="--d:1.1s"><span class="figs">${figOf(T3)}</span><span class="k">${T3.txapelas ? `${T3.txapelas} ${T3.txapelas === 1 ? 'txapela' : 'txapelas'}` : KINDS.cuatro.k}</span><b>${KINDS.cuatro.name}</b><small>${sub(T3)}</small></button>` : ''}
+        <button class="tq-tile free" data-a="libre" style="--d:1.4s"><span class="figs">${pelotariFig(youName, 'azul', 'fig')}</span><span class="k">A 5 tantos</span><b>Partido libre</b><small>Mano a mano, parejas o&nbsp;4½</small></button>
         <button class="tq-tile col" data-a="pelotaris" style="--d:2s"><span class="figs trio">${trio.map(n => pelotariFig(n, 'rojo', 'fig')).join('')}</span><span class="k">Tu colección</span><b>Pelotaris</b><small class="pc-n">${C.have}/${C.total} descubiertos</small></button></div>
       <div class="tq-menu-foot"><button class="lg-btn" data-a="exit">Salir</button>${sedeHtml(o, here)}</div>`);
     r.firstElementChild.classList.add('tq-menu-card');

@@ -37,6 +37,8 @@ function pelotariBio(name, st = {}, town = '') {
   return { age, height, weight, left: r() < 0.12, debut, played, won, txapelas };
 }
 
+// (el color de cada uno: el que viste en el partido, si se sabe; si no, los tuyos de azul y los rivales de colorado)
+const rojoDe = (p) => (p.color || (p.side === 'rival' ? 'rojo' : 'azul')) === 'rojo';
 const initials = (n) => String(n).replace(/\(.*\)/, '').trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '?';
 // el pueblo, si viene en el nombre como en el torneo («Mikel (Lesaka)»)
 export const splitName = (n) => { const m = String(n).match(/^(.*?)\s*\(([^)]+)\)\s*$/); return m ? { name: m[1], town: m[2] } : { name: String(n), town: '' }; };
@@ -68,8 +70,8 @@ function card(p, lang) {
   // (la media, como en las cartas del torneo y de la colección: la misma cifra en todas partes)
   const ovr = pelotariRating(st, `${name} ${town}`, p.you ? 2 + (p.record?.txapelas || 0) * 2 : 0).ovr, PT2 = TEXT[lang] || TEXT.es;
   return `<section class="pfx-id">
-      <div class="pfx-head"><span class="pfx-av ${p.side === 'rival' ? 'red' : 'blue'}" aria-hidden="true"><b>${ovr}</b><small>${esc(PT2.ovr || 'Media')}</small></span>
-        <div><small>${esc(p.you ? T.yours : `${p.side === 'rival' ? T.red : T.blue} · ${role}`)}</small><h3>${esc(name)}</h3>${kind ? `<span class="pfx-k">${esc(kind)}</span>` : ''}</div></div>
+      <div class="pfx-head"><span class="pfx-av ${rojoDe(p) ? 'red' : 'blue'}" aria-hidden="true"><b>${ovr}</b><small>${esc(PT2.ovr || 'Media')}</small></span>
+        <div><small>${esc(p.you ? T.yours : `${rojoDe(p) ? T.red : T.blue} · ${role}`)}</small><h3>${esc(name)}</h3>${kind ? `<span class="pfx-k">${esc(kind)}</span>` : ''}</div></div>
       <dl class="pfx-data">${data.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
       ${p.you ? '' : `<p class="pfx-note">${T.invented}</p>`}
     </section>
@@ -138,7 +140,7 @@ export function playerChip(p, lang = 'es', attr = 'data-pel-ficha') {
   fichaCss();
   const T = TEXT[lang] || TEXT.es, PT = T.profile || TEXT.es.profile, st = p.stats || {}, sty = st.style || {}, top = SHOTS.filter(k => sty[k] >= 3)[0], { name } = splitName(p.name);
   const kind = p.you ? (T.vsYou || 'Tú') : [top ? PT.arch[top] : '', st.velocidad >= 4 ? PT.fast : st.velocidad <= 2 ? PT.slow : '', st.fuerza >= 4 ? PT.strong : ''].filter(Boolean).join(' · ') || (T.vsEven || 'Equilibrado');
-  return `<button class="pfx-pl ${p.side === 'rival' ? 'red' : 'blue'}" ${attr}="${esc(p.id)}"><span class="pfx-pl-av" aria-hidden="true">${esc(initials(name))}</span><span class="pfx-pl-t"><b>${esc(name)}</b><small>${esc(kind)}</small></span><span class="pfx-pl-go">${T.ficha || 'Ficha'}</span></button>`;
+  return `<button class="pfx-pl ${rojoDe(p) ? 'red' : 'blue'}" ${attr}="${esc(p.id)}"><span class="pfx-pl-av" aria-hidden="true">${esc(initials(name))}</span><span class="pfx-pl-t"><b>${esc(name)}</b><small>${esc(kind)}</small></span><span class="pfx-pl-go">${T.ficha || 'Ficha'}</span></button>`;
 }
 export function openFicha(list, i = 0, lang = 'es', host = document.body) {
   fichaCss();
@@ -150,7 +152,7 @@ export function openFicha(list, i = 0, lang = 'es', host = document.body) {
     const draw = () => {
       const p = list[cur], nm = splitName(p.name).name;
       o.setAttribute('aria-label', `${T.title}: ${nm}`);
-      o.innerHTML = `<div class="pfx-card"><div class="pfx-top">${list.length > 1 ? `<div class="pfx-tabs" role="tablist">${list.map((q, k) => `<button role="tab" aria-selected="${k === cur}" data-k="${k}"><i class="${q.side === 'rival' ? 'red' : ''}"></i>${esc(q.you ? T.you : splitName(q.name).name)}</button>`).join('')}</div>` : `<small>${T.title}</small>`}
+      o.innerHTML = `<div class="pfx-card"><div class="pfx-top">${list.length > 1 ? `<div class="pfx-tabs" role="tablist">${list.map((q, k) => `<button role="tab" aria-selected="${k === cur}" data-k="${k}"><i class="${rojoDe(q) ? 'red' : ''}"></i>${esc(q.you ? T.you : splitName(q.name).name)}</button>`).join('')}</div>` : `<small>${T.title}</small>`}
         <button class="pfx-x" aria-label="${T.close}"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg></button></div>
         <div class="pfx-body">${card(p, lang)}</div></div>`;
     };

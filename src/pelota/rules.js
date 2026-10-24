@@ -49,6 +49,17 @@ export const LEVELS = {
 // los cinco niveles, de menos a más, y lo fuerte que es el rival en cada uno (de 1 a 4, para sus cualidades)
 export const LEVEL_ORDER = ['iniciacion', 'facil', 'normal', 'dificil', 'experto'];
 export const levelTier = (lv) => ({ iniciacion: 1, facil: 1, normal: 2, dificil: 3, experto: 4 })[lv] || 2;
+/** Las temporadas como profesional de un pelotari del juego (de su nombre y su nivel, siempre las mismas): las promesas,
+ *  de 0 a 2; los del medio, de 2 a 6; los fuertes, de 6 a 13. En los partidos viste de colorado quien debutó antes y el
+ *  otro, de azul (como en los frontones de verdad) */
+export function temporadas(name, lv = 2) {
+  let h = 7; for (const c of String(name || '')) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  const L = Math.max(1, Math.min(4, Math.round(lv) || 2)), base = [0, 0, 2, 6, 9][L], span = [3, 3, 5, 8, 8][L];
+  return base + (h % span);
+}
+/** El Cuatro y Medio: el saque bota entre la raya del 3 (falta) y la del 5 (pasa) y, en el tanto, nunca más allá de la
+ *  raya naranja del 4 y medio (Federación Española de Pelota, mano individual cuatro y medio) */
+export const CUATRO = { FALTA: 10.5, PASA: 17.5, LIMITE: 15.75 };
 
 // El frontón también juega: cómo es (a cubierto o al aire libre, con el frontis de piedra, con el suelo mojado por la
 // lluvia, o el Labrit de las finales) cambia un poco la pelota. Devuelve lo que se nota en la física (front, floor, run:
@@ -218,6 +229,7 @@ export const TEXT = {
     tipAim: 'Apunta con el joystick: izquierda del todo, dos paredes. Suelta para golpear.',
     tipHit: '¡Ahora! Suelta cuando el aro se cierre.',
     tipRivalServe: 'Saca el rival. Espera junto a la pared, en el 7, a que bote y devuélvela.',
+    tipRivalServe45: 'Saca el rival. Espera junto a la pared, en el 5, a que bote y devuélvela.',
     tipWait: 'Buen golpe. Vuelve al centro.',
     energyTitle: 'Energía', tiredYou: 'Estás cansado: corres menos y fallarás más. Pelotea normal, sin cortadas, para recuperar.',
     calls: {
@@ -230,6 +242,9 @@ export const TEXT = {
       largo: ['¡Fuera!', 'Ha botado más allá de la última raya.'],
       falta: ['¡Falta!', 'El saque ha botado antes de la raya del 4.'],
       pasa: ['¡Pasa!', 'El saque ha botado más allá de la raya del 7.'],
+      cuatro: ['¡Pasa del 4 y medio!', 'Ha botado más allá de la raya naranja.'],
+      falta45: ['¡Falta!', 'El saque ha botado antes de la raya del 3.'],
+      pasa45: ['¡Pasa!', 'El saque ha botado más allá de la raya del 5.'],
       bote: ['¡Dos botes!', 'Hay que devolverla antes del segundo bote.'],
       tanto: ['¡Tanto!', ''],
     },
@@ -245,7 +260,14 @@ export const TEXT = {
     } },
     shots: { rebote: 'Al rebote', dejada: 'Dejada', cortada: 'Cortada', pared: 'A la pared', dosparedes: 'Dos paredes', dpCorta: 'Dos paredes corta', dpCruzada: 'Dos paredes cruzada', dpLarga: 'Dos paredes larga', dpPegada: 'Dos paredes pegada', cortDos: 'Cortada a dos paredes', ancho: 'Al ancho', largo: 'Largo', gancho: 'Gancho', ganchoCruzado: 'Gancho cruzado', normal: '' },
     pointYou: 'Tanto para ti', pointRival: (n) => `Tanto para ${n}`,
-    pairs: { label: 'Partido', single: 'Mano a mano', front: 'Parejas: delantero', back: 'Parejas: zaguero', frontName: 'delantero', backName: 'zaguero',
+    // el sorteo del saque con la chapa (una cara roja y otra azul), los colores por antigüedad, las repeticiones y el
+    // Cuatro y Medio
+    toss: { title: 'Sorteo del saque', throw: '¡Lanza la chapa!', azul: 'Azul', rojo: 'Colorado', serves: (n) => `Saca ${n}`,
+      why: 'Viste de colorado quien debutó antes', seasons: (n) => (n ? `${n} ${n === 1 ? 'temporada' : 'temporadas'}` : 'Debutante'), auto: 'La chapa decide quién saca primero' },
+    replay: { label: 'Repetición', slow: 'Cámara lenta', skip: 'Toca para seguir' },
+    repe: ['Repeticiones', 'Cada tanto se repite desde otro plano, a cámara lenta al final.'],
+    cuatro: { name: 'Cuatro y Medio', rule: 'Cuatro y Medio: la pelota no puede botar más allá de la raya naranja del 4 y medio. El saque bota entre la raya del 3 y la del 5.' },
+    pairs: { label: 'Partido', single: 'Mano a mano', front: 'Parejas: delantero', back: 'Parejas: zaguero', four: 'Cuatro y Medio', frontName: 'delantero', backName: 'zaguero',
       how: (front) => front ? 'Juegas de delantero: tuyas las de delante, hasta el cuadro 5, y sacas tú. Tu compañero zaguero coge las de atrás.' : 'Juegas de zaguero: tuyas las de atrás, desde el cuadro 5. Tu compañero delantero coge las de delante y saca él.',
       rivals: (a, b) => `Así juegan ${a} y ${b}`, loading: 'Preparando…', mateServe: 'Saca tu compañero.', mateBall: 'Esa es de tu compañero.', rivalServe: 'Saca el rival: el resto lo coge tu zaguero.',
       energy: 'Correr y las cortadas cansan: si te cansas, deja que tu compañero juegue más; si se cansa él, pide tú la pelota manteniendo GOLPE.',
@@ -311,6 +333,7 @@ export const TEXT = {
     tipAim: 'Zuzendu joystickarekin: ezkerrera erabat, bi pareta. Askatu jotzeko.',
     tipHit: 'Orain! Askatu eraztuna ixten denean.',
     tipRivalServe: 'Aurkariak ateratzen du. Itxaron hormaren ondoan, 7an, boteari eta itzuli.',
+    tipRivalServe45: 'Aurkariak ateratzen du. Itxaron hormaren ondoan, 5ean, boteari eta itzuli.',
     tipWait: 'Kolpe ona. Itzuli erdira.',
     energyTitle: 'Energia', tiredYou: 'Nekatuta zaude: gutxiago korrika egingo duzu eta gehiago huts egingo duzu. Jokatu arrunt, cortadarik gabe, berreskuratzeko.',
     calls: {
@@ -323,6 +346,9 @@ export const TEXT = {
       largo: ['Kanpo!', 'Azken marratik haratago egin du bote.'],
       falta: ['Falta!', 'Sakeak 4ko marra baino lehen egin du bote.'],
       pasa: ['Pasa!', 'Sakeak 7ko marratik haratago egin du bote.'],
+      cuatro: ['Lau eta erdia pasa!', 'Marra laranjatik haratago egin du bote.'],
+      falta45: ['Falta!', 'Sakeak 3ko marra baino lehen egin du bote.'],
+      pasa45: ['Pasa!', 'Sakeak 5eko marratik haratago egin du bote.'],
       bote: ['Bi bote!', 'Bigarren botea baino lehen itzuli behar da.'],
       tanto: ['Tantoa!', ''],
     },
@@ -337,7 +363,12 @@ export const TEXT = {
     } },
     shots: { rebote: 'Errebotera', dejada: 'Dejada', cortada: 'Cortada', pared: 'Paretara', dosparedes: 'Bi pareta', dpCorta: 'Bi pareta motza', dpCruzada: 'Bi pareta zeharka', dpLarga: 'Bi pareta luzea', dpPegada: 'Bi pareta itsatsia', cortDos: 'Bi paretako cortada', gancho: 'Ganchoa', ganchoCruzado: 'Gancho zeharkakoa', ancho: 'Zabalera', largo: 'Luzea', normal: '' },
     pointYou: 'Tantoa zuretzat', pointRival: (n) => `Tantoa ${n}rentzat`,
-    pairs: { label: 'Partida', single: 'Buruz buru', front: 'Binaka: aurrelari', back: 'Binaka: atzelari', frontName: 'aurrelaria', backName: 'atzelaria',
+    toss: { title: 'Sakearen zozketa', throw: 'Bota txapa!', azul: 'Urdina', rojo: 'Gorria', serves: (n) => `Sakea: ${n}`,
+      why: 'Lehenago debutatu zuenak gorriz janzten du', seasons: (n) => (n ? `${n} denboraldi` : 'Debutantea'), auto: 'Txapak erabakitzen du nork ateratzen duen lehenik' },
+    replay: { label: 'Errepikapena', slow: 'Kamera geldoa', skip: 'Ukitu jarraitzeko' },
+    repe: ['Errepikapenak', 'Tanto bakoitza beste plano batetik errepikatzen da, amaieran geldoan.'],
+    cuatro: { name: 'Lau t\'erdi', rule: 'Lau t\'erdi: pilotak ezin du lau eta erdiko marra laranjatik haratago bote egin. Sakeak 3ko eta 5eko marren artean egiten du bote.' },
+    pairs: { label: 'Partida', single: 'Buruz buru', front: 'Binaka: aurrelari', back: 'Binaka: atzelari', four: 'Lau t\'erdi', frontName: 'aurrelaria', backName: 'atzelaria',
       how: (front) => front ? 'Aurrelari zara: aurrekoak zureak dira, 5. koadroraino, eta zuk ateratzen duzu. Zure atzelari lagunak atzekoak hartzen ditu.' : 'Atzelari zara: atzekoak zureak dira, 5. koadrotik aurrera. Zure aurrelari lagunak aurrekoak hartzen ditu eta berak ateratzen du.',
       rivals: (a, b) => `${a} eta ${b}: honela jokatzen dute`, loading: 'Prestatzen…', mateServe: 'Zure lagunak ateratzen du.', mateBall: 'Hori zure lagunarena da.', rivalServe: 'Aurkariak ateratzen du: zure atzelariak hartzen du.',
       energy: 'Korrika egiteak eta cortadek nekatzen dute: nekatzen bazara, utzi zure lagunari gehiago jokatzen; bera nekatzen bada, eskatu zuk pilota JO sakatuta mantenduz.',
