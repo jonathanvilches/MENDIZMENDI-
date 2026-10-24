@@ -35,9 +35,9 @@ const keyOf = (comarca, kind) => kind === 'parejas' ? comarca + ':parejas' : kin
 /** Los tres campeonatos de pelota de cada comarca, como los de los profesionales: el Manomanista (mano a mano, en toda la
  *  cancha), el de Parejas (delantero y zaguero) y el del Cuatro y Medio (mano a mano hasta la raya naranja del 4 y medio) */
 export const KINDS = {
-  mano: { name: 'Manomanista', full: 'Campeonato Manomanista', k: 'Campeonato individual' },
-  parejas: { name: 'Parejas', full: 'Campeonato de Parejas', k: 'Delantero y zaguero' },
-  cuatro: { name: 'Cuatro y Medio', full: 'Campeonato del Cuatro y Medio', k: 'Hasta la raya naranja' },
+  mano: { name: 'Manomanista', full: 'Campeonato Manomanista', k: 'Individual' },
+  parejas: { name: 'Parejas', full: 'Campeonato de Parejas', k: 'Por parejas' },
+  cuatro: { name: 'Cuatro y Medio', full: 'Campeonato del Cuatro y Medio', k: 'Hasta el 4½' },
 };
 const save = (T) => { try { const all = loadAll(); all[keyOf(T.comarca, T.kind)] = T; localStorage.setItem(KEY, JSON.stringify(all)); } catch (e) { /* sin guardado */ } };
 /** Las cualidades de cada uno de una pareja (i = 0 el delantero, 1 el zaguero). */
@@ -248,6 +248,9 @@ const CSS = `
 /* (en el móvil tumbado, con poco ancho y la muesca del iPhone a los lados, los títulos un punto más pequeños: caben en una
    línea y dejan sitio a las figuras) */
 @media (orientation:landscape) and (max-height:520px){.tq-tile b{font-size:var(--fs-lg)}}
+/* (en todas: el rótulo en una sola línea y el texto en dos como mucho; así las cinco losas respiran y se leen de un vistazo) */
+.tq-tile .k{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tq-tile small{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
 /* (en pantallas altas, como el iPad tumbado, la ilustración con su altura: no se queda diminuta encima del texto) */
 @media (min-height:561px) and (orientation:landscape){.tq-tile .figs{min-height:clamp(150px,calc(32vh / var(--z, 1)),300px)}}
 /* ordenador (pantalla grande): el menú y el cuadro a su tamaño, las figuras grandes y enteras (la losa de la colección,
@@ -403,7 +406,7 @@ export const sedeDe = (T, m) => (T.sede?.round === m.round && T.sede.edition ===
 export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null) {
   css();   // (antes solo lo ponía el cuadro del torneo: la primera vez, la txapela salía enorme)
   return new Promise(res => {
-    const sub = (X) => { const m = yourMatch(X); return X.done ? 'Nueva edición' : m ? `${m.round} · rival: ${esc(m.rival.name)}` : 'Siguiente ronda'; };
+    const sub = (X) => { const m = yourMatch(X); return X.done ? 'Nueva edición' : m ? `${m.round} contra ${esc(m.pairs ? m.rival.mates[0] : m.rival.name)}` : 'Siguiente ronda'; };
     const tx = (T.txapelas || 0) + (T2?.txapelas || 0) + (T3?.txapelas || 0), C = pelotarisCount();
     // las portadas, con los pelotaris del autor: en el torneo, tu rival de la ronda (o quien ganó); por parejas, la pareja
     // rival; en el partido libre, tú, de azul; en la colección, los tres últimos que has conocido (o tres de la plantilla)
@@ -416,7 +419,7 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null) {
       <div class="tq-tiles${T2 ? T3 ? ' n5' : '' : ' n3'}"><button class="tq-tile main" data-a="torneo" style="--d:.2s"><span class="figs">${figOf(T)}</span><span class="k">${T.txapelas ? `${T.txapelas} ${T.txapelas === 1 ? 'txapela' : 'txapelas'}` : KINDS.mano.k}</span><b>${KINDS.mano.name}</b><small>${sub(T)}</small></button>
         ${T2 ? `<button class="tq-tile pair" data-a="torneoParejas" style="--d:.8s"><span class="figs duo">${figOf(T2, true)}</span><span class="k">${KINDS.parejas.k}</span><b>${KINDS.parejas.name}</b><small>${sub(T2)}</small></button>` : ''}
         ${T3 ? `<button class="tq-tile c45" data-a="torneoCuatro" style="--d:1.1s"><span class="figs">${figOf(T3)}</span><span class="k">${T3.txapelas ? `${T3.txapelas} ${T3.txapelas === 1 ? 'txapela' : 'txapelas'}` : KINDS.cuatro.k}</span><b>${KINDS.cuatro.name}</b><small>${sub(T3)}</small></button>` : ''}
-        <button class="tq-tile free" data-a="libre" style="--d:1.4s"><span class="figs">${pelotariFig(youName, 'azul', 'fig')}</span><span class="k">A 5 tantos</span><b>Partido libre</b><small>Mano a mano, parejas o&nbsp;4½</small></button>
+        <button class="tq-tile free" data-a="libre" style="--d:1.4s"><span class="figs">${pelotariFig(youName, 'azul', 'fig')}</span><span class="k">A 5 tantos</span><b>Partido libre</b><small>Mano, parejas o&nbsp;4½</small></button>
         <button class="tq-tile col" data-a="pelotaris" style="--d:2s"><span class="figs trio">${trio.map(n => pelotariFig(n, 'rojo', 'fig')).join('')}</span><span class="k">Tu colección</span><b>Pelotaris</b><small class="pc-n">${C.have}/${C.total} descubiertos</small></button></div>
       <div class="tq-menu-foot"><button class="lg-btn" data-a="exit">Salir</button>${sedeHtml(o, here)}</div>`);
     r.firstElementChild.classList.add('tq-menu-card');
