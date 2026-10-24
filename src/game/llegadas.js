@@ -44,9 +44,10 @@ export async function vueloFronton(G, v, m) {
   const quien = m.labels().map(n => n.replace(/\s*\([^)]*\)/g, '')).join(' vs ');
   const card = cartel({ kicker: m.o.comp || t.friendly || TEXT.es.friendly, title: venue, sub: quien, tono: 'pelota' });
   m.flyAbort = () => card.close();   // (si el partido se deshace a medio vuelo, el cartel se va con él)
-  try {
-    await vuelo(G.follow, tramos, { suelo: C.hall || C.labrit ? null : groundHeight, alto: 6, onTramo, onT: (k) => { destapa(); if (k > 0.7) card.close(); } });
-  } finally { card.close(); veil?.classList.remove('tapa'); if (!G.disposed) G.follow.cinematic = null; }   // (de aquí en adelante, la cámara del partido)
+  // (al acabar, la cámara se suelta solo si sigue siendo la de este vuelo: si el pueblo se ha rehecho y hay otra llegada
+  // en marcha, no se la quita)
+  const fin = vuelo(G.follow, tramos, { suelo: C.hall || C.labrit ? null : groundHeight, alto: 6, onTramo, onT: (k) => { destapa(); if (k > 0.7) card.close(); } }), mio = G.follow.cinematic;
+  try { await fin; } finally { card.close(); veil?.classList.remove('tapa'); if (!G.disposed && G.follow.cinematic === mio) G.follow.cinematic = null; }   // (de aquí en adelante, la cámara del partido)
 }
 
 /** La llegada al pueblo: de lejos y en lo alto, una vuelta por encima de las casas y de la iglesia que acaba detrás del
@@ -64,9 +65,8 @@ export async function vueloPueblo({ follow, player, ui, def, centro, iglesia }) 
   const looks = [c.clone().setY(c.y + 4), ig, E.look.clone().setY(E.look.y - 0.5), E.look];
   const card = cartelPueblo(def);
   ui.hudVisible?.(false); ui.setCinematic?.(true, def.intro || '');
-  try {
-    await vuelo(follow, [{ pts, looks, dur: 7, ease: 'inOut' }], { suelo: groundHeight, alto: 12, onT: (k) => { if (k > 0.8) card.close(); } });
-  } finally { card.close(); follow.cinematic = null; ui.setCinematic?.(false); }
+  const fin = vuelo(follow, [{ pts, looks, dur: 7, ease: 'inOut' }], { suelo: groundHeight, alto: 12, onT: (k) => { if (k > 0.8) card.close(); } }), mio = follow.cinematic;
+  try { await fin; } finally { card.close(); if (follow.cinematic === mio) { follow.cinematic = null; ui.setCinematic?.(false); } }
 }
 
 /** El cartel del pueblo: su comarca, su nombre (y el otro, si lo tiene) y el mapa de Navarra con la comarca encendida y

@@ -1,6 +1,6 @@
 // Casas pirenaicas del valle de Salazar (piedra, revoco, tejados muy inclinados, balcones de madera)
 import * as THREE from 'three';
-import { box, gable, archRing, archPanel, colored, M, MM } from './builder.js';
+import { box, gable, archRing, archPanel, colored, M, MM, builderQuality } from './builder.js';
 import { addStep } from './heightfield.js';
 
 // (colores vivos: contraventanas verdes, rojo sangre de toro, azules y ocres como las de los pueblos, pero recién
@@ -43,8 +43,8 @@ function windowAt(B, T, x, y, w, h, o) {
       B.add('paint', colored(g, fc), F(M(x - w / 2 + 0.1 + k * (w - 0.2) / 4, y - h / 2 + 0.2, 0.38, k)));
       B.add('leaf', colored(new THREE.IcosahedronGeometry(0.14, 0), '#3f7a34'), F(M(x - w / 2 + 0.2 + k * (w - 0.4) / 4, y - h / 2 + 0.12, 0.42, k)));
     }
-    // y lo que cuelga por delante de la jardinera, como las gitanillas
-    for (let k = 0; k < 3; k++) {
+    // y lo que cuelga por delante de la jardinera, como las gitanillas (en calidad baja, no: son muchas piezas pequeñas)
+    if (builderQuality() !== 'low') for (let k = 0; k < 3; k++) {
       const px = x - w / 2 + 0.2 + k * (w - 0.4) / 2, py = y - h / 2 - 0.22 - (k % 2) * 0.14;
       B.add('leaf', colored(new THREE.IcosahedronGeometry(0.1, 0), '#4a8a3a'), F(M(px, py, 0.5, k)));
       B.add('paint', colored(new THREE.IcosahedronGeometry(0.08, 0), o.flowers[(k + 1) % o.flowers.length]), F(M(px + 0.06, py - 0.1, 0.53, k)));
@@ -100,13 +100,15 @@ function balconyAt(B, T, x, y, w, o) {
   for (const s of [-1, 1]) B.add(mat, box(0.08, 0.08, dep), F(M(x + s * (w / 2 - 0.04), y + 1.05, dep / 2)));
   // ménsulas
   if (!o.iron) for (const s of [-0.4, 0, 0.4]) B.add('woodDark', box(0.14, 0.14, dep * 0.8), F(M(x + s * w, y - 0.14, dep * 0.4, 0, 0.25)));
-  // macetas colgadas, muy juntas, y flores que caen por delante de la barandilla
-  if (o.flowers) for (let i = 0; i < Math.floor(w / 0.55); i++) {
-    const px = x - w / 2 + 0.35 + i * 0.55;
+  // macetas colgadas, muy juntas, y flores que caen por delante de la barandilla (en calidad baja, más separadas y sin lo
+  // que cae: las flores pasaban a ser buena parte de las piezas de cada casa)
+  const low = builderQuality() === 'low', paso = low ? 0.8 : 0.55;
+  if (o.flowers) for (let i = 0; i < Math.floor(w / paso); i++) {
+    const px = x - w / 2 + 0.35 + i * paso;
     B.add('tile', new THREE.CylinderGeometry(0.16, 0.12, 0.24, 7), F(M(px, y + 1.12, dep - 0.02)));
     const fc = o.flowers[i % o.flowers.length];
     for (let k = 0; k < 3; k++) B.add('paint', colored(new THREE.IcosahedronGeometry(0.12, 0), k === 1 ? '#3f7a34' : fc), F(M(px + (k - 1) * 0.1, y + 1.3 - (k === 1 ? 0.18 : 0), dep + 0.06 + (k === 1 ? 0.06 : 0))));
-    if (i % 2 === 0) { B.add('leaf', colored(new THREE.IcosahedronGeometry(0.11, 0), '#4a8a3a'), F(M(px, y + 0.82, dep + 0.12, i))); B.add('paint', colored(new THREE.IcosahedronGeometry(0.09, 0), o.flowers[(i + 1) % o.flowers.length]), F(M(px + 0.05, y + 0.66, dep + 0.14, i))); }
+    if (i % 2 === 0 && !low) { B.add('leaf', colored(new THREE.IcosahedronGeometry(0.11, 0), '#4a8a3a'), F(M(px, y + 0.82, dep + 0.12, i))); B.add('paint', colored(new THREE.IcosahedronGeometry(0.09, 0), o.flowers[(i + 1) % o.flowers.length]), F(M(px + 0.05, y + 0.66, dep + 0.14, i))); }
   }
 }
 

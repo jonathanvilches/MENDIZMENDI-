@@ -13,7 +13,7 @@ const EXTRA = [
 ];
 export function townLatLon(lv) {
   const names = (lv.mapName || lv.name).split('/').map(lettersOnly);
-  const hit = SETTLEMENTS.find(s => names.includes(lettersOnly(s[2]))) || SETTLEMENTS.find(s => lettersOnly(s[2]).startsWith(names[0]));
+  const hit = SETTLEMENTS.find(s => names.includes(lettersOnly(s[2]))) || SETTLEMENTS.find(s => lettersOnly(s[2]).startsWith(names[0])) || SETTLEMENTS.find(s => names.some(n => lettersOnly(s[2]).includes(n)));
   return hit ? { lat: hit[0], lon: hit[1] } : null;
 }
 // montes que se ven desde un punto: entre 4 y 70 km, los más altos y cercanos, repartidos en direcciones distintas. Desde

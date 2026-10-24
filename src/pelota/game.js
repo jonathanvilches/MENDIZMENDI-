@@ -46,10 +46,10 @@ export function cutHeight(pow, ay = 0) { return clamp(COURT.CHAPA + 0.45 + Math.
 export const aimSide = (x) => Math.sign(x) * Math.min(1, Math.pow(Math.abs(x), 0.6) * 1.12);
 // (la dejada: la carga dice la altura, de rozar la chapa a unos 2 m; el joystick arriba o abajo afina un palmo más)
 export function dropHeight(pow, ay = 0) { return clamp(COURT.CHAPA + 0.1 + pow01(pow) * 1.05 + ay * 0.32, COURT.CHAPA + 0.06, 2.3); }
-// dónde bota por primera vez después de dar en el frontis (el Cuatro y Medio: que no pase de la raya naranja)
-function firstBounceZ(p, v) {
-  const b = new Ball(); b.set({ ...p }, { ...v }); const out = []; let front = false;
-  for (let t = 0; t < 4; t += 1 / 120) { out.length = 0; b.step(1 / 120, out); for (const e of out) { if (e.type === 'front') front = true; else if (e.type === 'floor') return front ? e.z : null; } }
+// a qué altura da en el frontis y dónde bota después (el Cuatro y Medio: que no pase de la raya naranja ni baje a la chapa)
+function firstBounce(p, v) {
+  const b = new Ball(); b.set({ ...p }, { ...v }); const out = []; let fy = null;
+  for (let t = 0; t < 4; t += 1 / 120) { out.length = 0; b.step(1 / 120, out); for (const e of out) { if (e.type === 'front') fy = e.y; else if (e.type === 'floor') return fy == null ? null : { z: e.z, fy }; } }
   return null;
 }
 // ¿pasa la pelota por encima de la pared izquierda (o la roza muy alta) antes de botar?
@@ -325,8 +325,15 @@ export class PelotaGame {
         for (let k = 0; k < 5 && v && overLeft(p, v); k++) { speed += 3; const r = solveShot(p, tx, landZ, speed); if (r?.v) v = r.v; }
       } else if (err > 0.2) { const k = 1 + gauss(rnd) * err * 0.06; v.x *= k; v.y *= 1 + gauss(rnd) * err * 0.05; v.z *= k; }   // a dos paredes, un golpe flojo se desvía un poco
     }
-    // (el Cuatro y Medio: si un golpe bueno se iba a pasar de la raya naranja, sale algo más flojo y bota antes)
-    if (this.cuatro && !serve && v && q > 0.45) for (let k = 0; k < 8; k++) { const z = firstBounceZ(p, v); if (z == null || z < CUATRO.LIMITE - 0.35) break; v = { x: v.x * 0.95, y: v.y * 0.97, z: v.z * 0.95 }; }
+    // (el Cuatro y Medio: si un golpe bueno se iba a pasar de la raya naranja, sale algo más flojo y bota antes; nunca
+    // tanto que baje a la chapa)
+    if (this.cuatro && !serve && v && q > 0.45) {
+      let f = firstBounce(p, v);
+      for (let k = 0; k < 8 && f && f.z >= CUATRO.LIMITE - 0.35; k++) {
+        const w = { x: v.x * 0.95, y: v.y * 0.97, z: v.z * 0.95 }, g = firstBounce(p, w); if (!g || g.fy < COURT.CHAPA + 0.25) break;
+        v = w; f = g;
+      }
+    }
     if (dry) return { p, v, shot, sub, spin: shot === 'cortada' ? 1 : 0 };
     // golpe muy malo: a veces a la chapa o demasiado alto
     if (!serve && q < 0.3 && rnd() < 0.45) {

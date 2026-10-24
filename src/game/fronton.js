@@ -6,7 +6,7 @@ import { hairTint } from '../actors/hairColor.js';
 import { outfitTint } from '../actors/npcOutfit.js';
 import { loadChica, hasChica } from '../actors/chicas.js';
 import { PelotaCourt, PelotaMatch, labritExtent } from '../pelota/index.js';
-import { pelotariStats, levelTier, temporadas, COURT } from '../pelota/rules.js';
+import { pelotariStats, levelTier, COURT } from '../pelota/rules.js';
 import { terrainHeight, waterLevelAt, addPlatform, onPlatform } from '../world/heightfield.js';
 import { addBox, rectFree, removeMover } from '../world/colliders.js';
 import { rx, pathQuery } from '../world/layout.js';
@@ -20,7 +20,7 @@ import { officialHeight } from '../world/armas.js';
 import { drawTownArms } from '../ui/escudoImg.js';
 import { armsOfTown } from '../data/armas-navarra.js';
 import { LEVELS } from '../data/levels.js';
-import { txapelas, tusTemporadas } from './torneo.js';
+import { txapelas, coloresPartido } from './torneo.js';
 import { Actor } from '../actors/people.js';
 import { meetPelotari } from './pelotaris.js';
 // las figuras de la pantalla VS (nuestros pelotaris en 3D, en pleno golpe: tools/meshy-retratos.mjs con CLIP=Hit T=0.2)
@@ -253,11 +253,9 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     const P = G.player, rig0 = P.rig, home = { x: rival.pos.x, z: rival.pos.z, h: rival.heading };
     let seated = null, seatedZ = 0, cheerT = 0;
     let rig = rig0, pel = null, red = null, bf = null, bfWas = false, ended = false, match = null, mates = null, rivName = rivalName || String(rival.name).split(',')[0], rStatsKeep = null, jueces = []; const hidden = [], hiddenR = [];
-    // los colores, como en los frontones: viste de colorado quien debutó antes (más temporadas; por parejas, el más
-    // veterano de cada una) y el otro de azul. Tú empiezas de debutante: cada campeonato que acabas es una temporada más
-    const lvR = levelTier(level), suyas = Math.max(temporadas(rivName, lvR), pairs?.rivalMate ? temporadas(pairs.rivalMate.name, lvR) : 0);
-    const tuyas = Math.max(tusTemporadas(), pairs?.partner ? temporadas(pairs.partner.name, 2) : 0);
-    const colors = tuyas > suyas ? { you: 'rojo', rival: 'azul' } : { you: 'azul', rival: 'rojo' }, seasons = { you: tuyas, rival: suyas };
+    // los colores, como en los frontones: viste de colorado quien debutó antes y el otro de azul. Tú empiezas de
+    // debutante: cada campeonato que acabas es una temporada más
+    const { colors, seasons } = coloresPartido(rivName, level, pairs?.rivalMate?.name, pairs?.partner?.name);
     const MODEL = { azul: 'pelotari', rojo: 'pelotari_rojo' }, youModel = MODEL[colors.you], rivModel = MODEL[colors.rival];
     // (el marcador del frontis: los azules a la izquierda y los colorados a la derecha)
     const marca = (a, b, sa, sb) => (colors.you === 'azul' ? fronton.court.setScore?.(a, b, sa, sb) : fronton.court.setScore?.(b, a, sb, sa));
@@ -379,7 +377,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       try { match.update(dt); bad = 0; } catch (e) { console.warn('partido', e); if (++bad > 20) { done({ win: false, quit: true, error: true }); return; } }
       try { if (seated) { seated.tick(match.t || 0, cheerT > 0 ? 1 : 0.15, seatedZ, G.camera); if (cheerT > 0 && (cheerT -= dt) <= 0) seated.cheer(false); } } catch (e) { console.warn('público', e); seated = null; }
       // (los jueces siguen la pelota con la mirada)
-      try { if (jueces.length) { const b = match.game.ball.p, w = fronton.court.group.localToWorld(_jv.set(b.x, 0, b.z)); for (const j of jueces) { j.lookAt = w; j.update(dt, null); } } } catch (e) { console.warn('jueces', e); jueces = []; }
+      try { if (jueces.length) { const b = match.game.ball.p, w = fronton.court.group.localToWorld(_jv.set(b.x, 0, b.z)); for (const j of jueces) { j.mira = w; j.update(dt, null); } } } catch (e) { console.warn('jueces', e); jueces = []; }
     };
     })().catch(fail);
     function done(r) {
@@ -391,7 +389,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       // (cada paso por su cuenta: si uno falla, los demás se hacen igual y se vuelve al pueblo con todo en su sitio)
       const safe = (f) => { try { f(); } catch (e) { console.warn('frontón', e); } };
       safe(() => { if (seated) { seated.parent?.remove(seated); seated.dispose(); seated = null; } });
-      safe(() => { for (const j of jueces) { j.obj.parent?.remove(j.obj); removeMover(j.collider); } jueces = []; G.pelotaJueces = null; });
+      safe(() => { for (const j of jueces) { j.obj.parent?.remove(j.obj); removeMover(j.collider); j.glb?.dispose(); } jueces = []; G.pelotaJueces = null; });
       safe(() => { if (mates) for (const m of Object.values(mates)) m.dispose(); mates = null; });
       safe(() => { if (rig.char) rig.char.post = null; if (rival.glb) rival.glb.post = null; rig.setStance?.(null); });
       safe(() => { if (pel) { P.obj.remove(pel.char.root); pel.dispose(); } });
@@ -409,7 +407,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       safe(() => { G.follow.cinematic = null; G.follow.snap(P); });
       // (la colección de pelotaris: el rival queda en su pueblo en cuanto se juega contra él; el resultado, si se acabó)
       safe(() => { if (mode === 'match' && (match?.met || match?.game?.phase !== 'intro') && !r.later && !r.error) { const tw = rivalTown || { id: G.def?.id, name: (G.def?.name || '').split(' /')[0] }; meetPelotari(tw, { name: rivName, stats: rStatsKeep }, r.quit ? null : !!r.win); } });
-      res({ win: !!r.win, you: r.score?.you ?? 0, cpu: r.score?.rival ?? 0, best: r.best ?? 0, quit: !!r.quit, later: !!r.later });
+      res({ win: !!r.win, you: r.score?.you ?? 0, cpu: r.score?.rival ?? 0, best: r.best ?? 0, quit: !!r.quit, later: !!r.later, color: colors.you });
     }
   });
 }

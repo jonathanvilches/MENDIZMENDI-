@@ -8,7 +8,7 @@
 // Se guarda en localStorage ('herrizherri-torneo-v1'): uno individual y uno por parejas por comarca.
 import { lgPanel, lgEsc as esc } from '../futbol/liga.js';
 import { pelotarisPanel, pelotarisCount } from './pelotaris.js';
-import { pelotariStats } from '../pelota/rules.js';
+import { pelotariStats, temporadas, levelTier } from '../pelota/rules.js';
 import { openFicha } from '../pelota/ficha.js';
 import { pelotariCard } from '../ui/sportCard.js';
 // los pelotaris del autor (src/ui/pelotariFig.js): sus nombres y sus figuras, también en las portadas del menú de pelota
@@ -50,6 +50,13 @@ export function torneosGuardados() { return Object.values(loadAll()).filter(T =>
 /** Tus temporadas como pelotari: cada campeonato que se acaba (lo ganes o no) es una más. Con ellas se decide quién viste
  *  de colorado en cada partido: el que debutó antes */
 export function tusTemporadas() { return Object.values(loadAll()).reduce((n, T) => n + (T?.players?.length ? Math.max(0, (T.edition || 1) - 1) + (T.done ? 1 : 0) : 0), 0); }
+/** Los colores de un partido: de colorado el que debutó antes (más temporadas; por parejas, el más veterano de cada una)
+ *  y el otro de azul. rival: su nombre, como va al partido; level: el del partido. { colors: { you, rival }, seasons } */
+export function coloresPartido(rival, level, rivalMate = null, partner = null) {
+  const lv = levelTier(level), suyas = Math.max(temporadas(rival, lv), rivalMate ? temporadas(rivalMate, lv) : 0);
+  const tuyas = Math.max(tusTemporadas(), partner ? temporadas(partner, 2) : 0);
+  return { colors: tuyas > suyas ? { you: 'rojo', rival: 'azul' } : { you: 'azul', rival: 'rojo' }, seasons: { you: tuyas, rival: suyas } };
+}
 /** Txapelas ganadas en cada comarca: { comarca: n } */
 export function txapelas() { const all = loadAll(), o = {}; for (const k in all) if (all[k]?.txapelas) { const c = k.split(':')[0]; o[c] = (o[c] || 0) + all[k].txapelas; } return o; }
 /**
@@ -365,12 +372,14 @@ export function torneoPanel(T, here = null, o = null) {
     const how = pairs ? '<p class="lg-how tq-how" hidden><b>Cómo funciona:</b> ocho parejas de delantero y zaguero por eliminatorias (cuartos y semifinales a 5 tantos, final a 7). Juegas con tu compañero de siempre. La final, en el frontón Labrit de Iruña.</p>'
       : T.kind === 'cuatro' ? '<p class="lg-how tq-how" hidden><b>Cómo funciona:</b> ocho pelotaris mano a mano por eliminatorias (cuartos y semifinales a 5 tantos, final a 7) en el Cuatro y Medio: la pelota no puede botar más allá de la raya naranja del 4 y medio y el saque bota entre la raya del 3 y la del 5. Juego corto, de dejadas y ganchos. La final, en el Labrit.</p>'
       : '<p class="lg-how tq-how" hidden><b>Cómo funciona:</b> ocho pelotaris por eliminatorias (cuartos y semifinales a 5 tantos, final a 7). Los rivales vienen a tu frontón; la final, en el frontón Labrit de Iruña. Los demás partidos se simulan.</p>';
-    const youCard = (w) => pelotariCard({ name: pairs ? yp.mates[0] : yp.name, town: yp.town, side: 'azul', role: pairs ? 'Del' : 'Mano', w, bonus: youBonus(T), stats: { fuerza: 3, agilidad: 3, velocidad: 3 }, pop: true, lang });
+    // (las cartas del duelo, con el color que cada uno viste en el partido)
+    const col = m ? coloresPartido(`${pairs ? m.rival.mates[0] : m.rival.name} (${m.rival.town})`, m.level, m.mate?.name, m.partner?.name).colors : { you: 'azul', rival: 'rojo' };
+    const youCard = (w) => pelotariCard({ name: pairs ? yp.mates[0] : yp.name, town: yp.town, side: col.you, role: pairs ? 'Del' : 'Mano', w, bonus: youBonus(T), stats: { fuerza: 3, agilidad: 3, velocidad: 3 }, pop: true, lang });
     let left;
-    if (T.done) { const C = T.players[T.champion]; left = `<div class="tq-banner"><small>Txapeldun · campeón del torneo</small>${pelotariCard({ name: C.name, town: C.town, side: C.you ? 'azul' : 'rojo', role: pairs ? 'Par' : 'Mano', w: 110, bonus: C.you ? youBonus(T) : rivalBonus(C), stats: C.you ? {} : pairs ? mateStats(C, 0) : statsOf(C), pop: true, lang })}<p>${C.you ? '¡La txapela es tuya! Zorionak!' : `${esc(C.town)} se lleva la txapela. ¡A por la próxima!`}</p></div>`; }
+    if (T.done) { const C = T.players[T.champion]; left = `<div class="tq-banner"><small>Txapeldun · campeón del torneo</small>${pelotariCard({ name: C.name, town: C.town, side: C.you ? (T.tuColor || 'azul') : (T.tuColor === 'rojo' ? 'azul' : 'rojo'), role: pairs ? 'Par' : 'Mano', w: 110, bonus: C.you ? youBonus(T) : rivalBonus(C), stats: C.you ? {} : pairs ? mateStats(C, 0) : statsOf(C), pop: true, lang })}<p>${C.you ? '¡La txapela es tuya! Zorionak!' : `${esc(C.town)} se lleva la txapela. ¡A por la próxima!`}</p></div>`; }
     else if (m) {
       const rv = m.rival, rvStats = pairs ? mateStats(rv, 0) : statsOf(rv);
-      left = `<div class="tq-duel">${youCard(120)}<div class="tq-mid"><b>VS</b><small class="r">${esc(m.round)}</small><small>A ${m.target} tantos</small></div>${pelotariCard({ name: pairs ? rv.mates[0] : rv.name, town: rv.town, side: 'rojo', role: pairs ? 'Del' : 'Mano', w: 120, bonus: rivalBonus(rv), stats: rvStats, tag: 'button', attr: 'data-f="rival" aria-label="Ficha del rival"', d: 0.08, pop: true, lang })}</div>
+      left = `<div class="tq-duel">${youCard(120)}<div class="tq-mid"><b>VS</b><small class="r">${esc(m.round)}</small><small>A ${m.target} tantos</small></div>${pelotariCard({ name: pairs ? rv.mates[0] : rv.name, town: rv.town, side: col.rival, role: pairs ? 'Del' : 'Mano', w: 120, bonus: rivalBonus(rv), stats: rvStats, tag: 'button', attr: 'data-f="rival" aria-label="Ficha del rival"', d: 0.08, pop: true, lang })}</div>
         <p class="tq-ficha">Toca su carta para ver su ficha</p>
         <div class="tq-where">${o ? sedeHtml(o, here) : here ? `<span>Frontón de <b>${esc(here)}</b></span>` : ''}<span>Tus txapelas <b>${T.txapelas || 0}</b></span></div>`;
     } else left = `<div class="tq-banner"><small>Eliminado</small><b>El torneo sigue</b><p>Mira quién se lleva la txapela.</p></div>`;

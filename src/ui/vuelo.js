@@ -19,7 +19,8 @@ export function vuelo(follow, tramos, { suelo = null, alto = 4, skip = true, onT
     const cam = follow.cam, total = tramos.reduce((a, s) => a + s.dur, 0), p = new THREE.Vector3(), l = new THREE.Vector3();
     const segs = tramos.map((T, i) => ({ ...T, cp: new THREE.CatmullRomCurve3(T.pts, false, 'centripetal'), cl: new THREE.CatmullRomCurve3(T.looks, false, 'centripetal'), fov0: i ? tramos[i - 1].fov ?? cam.fov : cam.fov }));
     let cur = -1, ended = false, saltar = false;
-    const onSkip = () => { saltar = true; };
+    // (lo que salta el vuelo no le llega además al juego: ni abre la pausa ni empieza a andar)
+    const onSkip = (e) => { saltar = true; e.stopImmediatePropagation(); if (e.type === 'keydown') e.preventDefault(); };
     const end = () => { if (ended) return; ended = true; removeEventListener('pointerdown', onSkip, true); removeEventListener('keydown', onSkip, true); clearInterval(guard); res(); };
     if (skip) { addEventListener('pointerdown', onSkip, true); addEventListener('keydown', onSkip, true); }
     // (si el juego deja de dibujar —otra ventana, el pueblo se rehace— o alguien quita el vuelo, no se queda esperando)
