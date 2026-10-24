@@ -7,3 +7,5 @@ export function rel(lat0, lon0, lat, lon) {
   const km = Math.hypot(dx, dy), b = (Math.atan2(dx, dy) * 180 / Math.PI + 360) % 360;
   return { km, dir: DIRS[Math.round(b / 45) % 8], bearing: b };
 }
+// Coordenadas geográficas en el mapa de comarcas (el de comarcas.json, viewBox 10 10 725 780)
+export const mapaXY = (lat, lon) => [19 + (lon + 2.52) / 1.80 * 709, 17 + (43.325 - lat) / 1.43 * 765];

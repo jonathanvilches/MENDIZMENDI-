@@ -19,6 +19,7 @@ import { readTownArms, readArms, infoCard } from '../ui/escudo.js';
 import { houseArms } from '../data/blasones.js';
 import { drawArms } from '../world/heraldry.js';
 import { releaseOffscreen } from '../util/offscreen.js';
+import { mapaXY } from '../util/geo.js';
 import { avatarPortrait, avatarPortraitImg } from '../ui/portraits.js';
 import { figurasHTML, openFigura } from '../ui/figuras.js';
 import { personajesHTML, openPersonaje, MUJERES, HOMBRES } from '../ui/personajes.js';
@@ -57,8 +58,6 @@ const cnt = (n, one, many) => `${n} ${n === 1 ? one : many}`;   // (1 sello, 2 s
 const comarca = (id) => COMARCAS.find(c => c.id === id);
 const TYPE_NAME = { visit: 'Visita', process: 'Producto', harvest: 'Cosecha', herd: 'Ganadería', dance: 'Danza', carnival: 'Carnaval', trade: 'Oficio', legend: 'Leyenda', race: 'Carrera', observe: 'Naturaleza', tradition: 'Tradición', quiz: 'Preguntas', summit: 'Montaña', pelota: 'Pelota', figure: 'Personajes', feria: 'Feria', dolmen: 'Arqueología', castle: 'Castillo', mirador: 'Mirador' };
 const TYPE_ICON = { visit: 'church', process: 'basket', harvest: 'wheat', herd: 'sheep', dance: 'dance', carnival: 'mask', trade: 'anvil', legend: 'legend', race: 'running', observe: 'binoculars', tradition: 'music', quiz: 'quiz', summit: 'peak', pelota: 'pelota', figure: 'person', feria: 'cow', dolmen: 'dolmen', castle: 'castle', mirador: 'binoculars' };
-// Proyección de coordenadas geográficas al mapa de comarcas
-const proj = (lat, lon) => [19 + (lon + 2.52) / 1.80 * 709, 17 + (43.325 - lat) / 1.43 * 765];
 // El nombre corto de un pueblo: el del juego o, si no está en el juego, el de su núcleo en settlements.json; nunca su
 // identificador (en euskera salía en minúsculas, como «uztarroz-uztarroze»)
 function townName(id) {
@@ -70,7 +69,7 @@ function townName(id) {
 function townXY(lv) {
   const names = (lv.mapName || lv.name).split('/').map(s => lettersOnly(s));
   const hit = SETTLEMENTS.find(s => names.includes(lettersOnly(s[2])) || lettersOnly(s[2]).startsWith(names[0])) || SETTLEMENTS.find(s => names.some(n => lettersOnly(s[2]).includes(n)));
-  if (hit) return proj(hit[0], hit[1]);
+  if (hit) return mapaXY(hit[0], hit[1]);
   const c = comarca(lv.comarca); return c ? [c.label.x, c.label.y + 20] : [380, 400];
 }
 const XY = new Map(LEVELS.map(l => [l.id, townXY(l)]));

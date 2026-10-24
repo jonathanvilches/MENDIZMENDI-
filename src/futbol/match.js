@@ -136,6 +136,7 @@ export class FutbolMatch {
     this.hud = new FutbolHud({ touch: o.touch ?? TACTIL, home: this.home, away: this.away,
       onPress: (a) => this.press(a), onRelease: (a) => this.release(a), onPause: () => this.pauseMenu(), onCam: () => this.nextCam(), onSubs: () => this.openSubs() });
     if (RU.foulLimit && o.mode === 'match') this.hud.setFouls(0, 0, RU.foulLimit);
+    this.hud.root.classList.add('fb-intro');   // (durante la llegada al estadio, sin marcador ni botones: solo el vuelo y su rótulo)
     this.meChip(); // ya en la presentación, con su número y su puesto
     this.keys = new Set();
     this.onKey = (e) => this.key(e, true); this.onKeyUp = (e) => this.key(e, false);
@@ -369,7 +370,7 @@ export class FutbolMatch {
     if (this.paused) { this.field.tick(dt, this.t, this.camera, 0.2, 0); return; }
     // hasta que run() arranca (el fundido de entrada), solo se dibuja la presentación
     if (!this.live) { this.sync(dt); this.cam(dt); return; }
-    if (this.intro > 0) { this.intro -= dt; this.introStep(dt); this.sync(dt); this.cam(dt); if (this.intro <= 0) { this.confetti.mesh.visible = false; this.begin(); this.cut(); this.cam(dt, true); } return; }
+    if (this.intro > 0) { this.intro -= dt; this.introStep(dt); this.sync(dt); this.cam(dt); if (this.intro <= 0) { this.confetti.mesh.visible = false; this.hud.root.classList.remove('fb-intro'); this.begin(); this.cut(); this.cam(dt, true); } return; }
     if (this.replay) { this.playReplay(dt); return; }
     this.moveInput();
     this.tuto?.update(dt); this.reto?.update(dt);

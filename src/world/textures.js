@@ -553,8 +553,9 @@ export function buildTextures(quality = 'high') {
   TEX.stoneWall = masonry(S, { seed: 3, rows: 9, mortar: '#8d8375', hue: 36, hueVar: 16, sat: 14, light: 62, lightVar: 18 });
   TEX.stoneDark = masonry(S, { seed: 7, rows: 8, mortar: '#6f685f', hue: 30, hueVar: 14, sat: 9, light: 50, lightVar: 16 });
   TEX.ashlar = masonry(S, { seed: 11, rows: 7, mortar: '#9d9281', hue: 38, hueVar: 8, sat: 20, light: 68, lightVar: 10 });
-  TEX.plasterWhite = plaster(S, '#ede6d8', 1);
-  TEX.plasterCream = plaster(S, '#e6d4b4', 2);
+  // (revocos claros y luminosos, recién encalados)
+  TEX.plasterWhite = plaster(S, '#f6f1e6', 1);
+  TEX.plasterCream = plaster(S, '#f2dcb0', 2);
   TEX.roofSlate = roofTiles(S, { seed: 4, rows: 16, cols: 8, dark: '#1f2126', hue: 220, hueVar: 12, sat: 8, light: 30, lightVar: 10 });
   TEX.roofTile = roofTiles(S, { seed: 5, rows: 14, cols: 9, dark: '#3d1d14', hue: 12, hueVar: 10, sat: 45, light: 38, lightVar: 12, round: true });
   // (la madera, a la mitad; en el ordenador, entera: puertas, balcones y entramados se ven de cerca)
@@ -563,9 +564,9 @@ export function buildTextures(quality = 'high') {
   TEX.woodDark = wood(W, [20, 35, 27], 12);   // (roble oscuro, pero no negro: a la sombra las puertas se veían como un hueco)
   TEX.cobble = cobbles(S);
   TEX.brick = bricks(S);
-  TEX.plasterOcher = plaster(S, '#e3c48f', 3);
-  TEX.plasterRose = plaster(S, '#e6b9a0', 4);
-  TEX.plasterBlue = plaster(S, '#c9d6de', 5);
+  TEX.plasterOcher = plaster(S, '#f0c47e', 3);
+  TEX.plasterRose = plaster(S, '#f2b29a', 4);
+  TEX.plasterBlue = plaster(S, '#bcd8ea', 5);
   TEX.detail = groundDetail(S);
   // (el relieve de la hierba y de la tierra solo se usa en calidad media y alta: en baja no se hace)
   { const g = grassGround(S, quality !== 'low'); TEX.grass = g.map; TEX.grassN = g.normalMap; }

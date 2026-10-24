@@ -59,11 +59,13 @@ export class Actor {
     this.blink = 2;
     this.radius = 0.35;
     this.visible = true;
-    this.collider = addMover(def.x, def.z, 0.4, { actor: this, ghost: false });
-    this.pos.y = groundHeight(def.x, def.z);
+    // (def.y: a una altura fija, como quien se asoma a un balcón; def.ghost: no estorba a quien pasa por debajo)
+    this.alto = def.y ?? null;
+    this.collider = addMover(def.x, def.z, 0.4, { actor: this, ghost: !!def.ghost });
+    this.pos.y = this.alto ?? groundHeight(def.x, def.z);
     this.sync();
   }
-  setPos(x, z, heading) { this.pos.set(x, groundHeight(x, z), z); this.home = { x, z }; if (heading != null) this.heading = heading; this.sync(); }
+  setPos(x, z, heading) { this.pos.set(x, this.alto ?? groundHeight(x, z), z); this.home = { x, z }; if (heading != null) this.heading = heading; this.sync(); }
   update(dt, player) {
     this.t += dt;
     // al empezar, si ha quedado dentro de algo que se puso después (un puesto, la tienda), sale a un lado
@@ -136,7 +138,7 @@ export class Actor {
     this.vSpeed = damp(this.vSpeed || 0, dt > 0 ? this.moved / dt : 0, 10, dt);
     if (this.lookAt && this.speed < 0.3) this.heading = dampAngle(this.heading, Math.atan2(this.lookAt.x - this.pos.x, this.lookAt.z - this.pos.z), 5, dt);
     // la altura sube y baja con el suelo poco a poco (un escalón se sube, no se salta de golpe)
-    const g = groundHeight(this.pos.x, this.pos.z);
+    const g = this.alto ?? groundHeight(this.pos.x, this.pos.z);
     this.pos.y = this.moved > 0 ? damp(this.pos.y, g, 16, dt) : g;
     this.collider.x = this.pos.x; this.collider.z = this.pos.z;
     // animación por distancia: fuera de cámara o lejos se anima a saltos (se acumula el tiempo), cerca en cada fotograma

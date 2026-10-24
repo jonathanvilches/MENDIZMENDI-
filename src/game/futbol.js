@@ -167,7 +167,7 @@ export class Futbol {
       makeCharacter, quality: QUALITY, touch: G.input?.touch, audio: sound,
       crowd: (spots) => crowd3d(spots, 'futbol', 1.38, { sit: true }),
       host: {
-        before: async () => { G.player.frozen = true; G.ui.setPrompt?.(null); await G.ui.fadeOut?.(); },
+        before: async () => { G.player.frozen = true; G.ui.setPrompt?.(null); await G.ui.fadeOut?.('Preparando el partido…'); },
         attach: (scene, camera, update) => { G.altScene = scene; G.altCamera = camera; G.altUpdate = update; G.mode = 'futbol'; G.ui.hudVisible?.(false); document.body.classList.add('futbol'); G.rt?.boost?.(true); },
         shown: async () => { await G.ui.fadeIn?.(); },
         // (en la liga, entre jornada y jornada, del partido a la clasificación sin volver al pueblo: ni sus botones ni

@@ -208,8 +208,9 @@ export class UI {
   hudVisible(v) { if (this.hud) this.hud.style.display = v ? '' : 'none'; }
   setMG(html) { if (!this.hud) return; const m = $('#mg', this.hud); if (!html) m.classList.add('hidden'); else { m.innerHTML = html; m.classList.remove('hidden'); } }
   setCinematic(on, text) { if (!this.cine) return; this.cine.classList.toggle('on', on); this.subtitle.textContent = text || ''; }
-  async fadeOut() { this.fade.classList.add('on'); await wait(650); }
-  async fadeIn() { this.fade.classList.remove('on'); await wait(300); }
+  // (msg: en vez del negro, el fondo de los deportes con una pelota que bota y lo que se prepara, mientras se carga)
+  async fadeOut(msg = '') { this.fade.innerHTML = msg ? `<div class="fade-msg"><i></i><span>${esc(msg)}</span></div>` : ''; this.fade.classList.toggle('msg', !!msg); this.fade.classList.add('on'); await wait(650); }
+  async fadeIn() { this.fade.classList.remove('on'); await wait(300); if (!this.fade.classList.contains('on')) { this.fade.classList.remove('msg'); this.fade.innerHTML = ''; } }
 
   // ---------- Diálogo ----------
   // lines: [{who, look, icon, text, choices:[...], onChoice, notr}] -> devuelve el índice de la última elección (notr: las

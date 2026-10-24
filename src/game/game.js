@@ -16,6 +16,7 @@ import { Fronton, playPelota, frontonWall } from './fronton.js';
 import { instrumentosDe, instrumentoById } from '../data/instrumentos.js';
 import { jugarInstrumento } from '../ui/instrumentos.js';
 import { clamp, lerp, angleDiff, mulberry32 } from '../util/math.js';
+import { cartelPueblo } from './llegadas.js';
 
 // prismáticos: vectores de trabajo (sin crear objetos en cada fotograma ni por cada animal que se mira)
 const _eye = new THREE.Vector3(), _dir = new THREE.Vector3(), _to = new THREE.Vector3(), _near = new THREE.Vector3(), _look = new THREE.Vector3();
@@ -906,9 +907,10 @@ export class Game {
   }
 
   // ---------- Escenas ----------
-  async intro() {
+  async intro(def = null) {
     this.mode = 'cine'; this.player.frozen = true;
     this.ui.hudVisible(false); this.ui.setCinematic(true);
+    const card = def ? cartelPueblo(def) : null;   // (en el primer plano, el cartel del pueblo con su comarca, como en todas las llegadas)
     const shots = [
       { pos: [60, 90, 230], look: [0, 10, -40], text: 'El valle de Salazar, en el Pirineo de Navarra…' },
       { pos: [-40, 40, 60], look: [PLACES.church.x, 15, PLACES.church.z], text: 'Aquí, junto al río Anduña, está Otsagabia, o Ochagavía.' },
@@ -927,7 +929,9 @@ export class Game {
       this.follow.cinematic = { pos: p, look: l, t: 0, lookCur: this.follow.cinematic?.lookCur };
       this.ui.setCinematic(true, s.text);
       for (let t = 0; t < 3600 && !skip; t += 100) await wait(100);
+      card?.close();
     }
+    card?.close();
     removeEventListener('keydown', onSkip); removeEventListener('pointerdown', onSkip);
     this.follow.cinematic = null; this.follow.snap(this.player);
     this.ui.setCinematic(false); this.ui.hudVisible(true);

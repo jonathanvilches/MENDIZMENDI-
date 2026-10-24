@@ -61,8 +61,9 @@ async function gzipMejor(buf) {
   try { const { gzipAsync } = await import('@gfx/zopfli'); out = Buffer.from(await gzipAsync(buf, { numiterations: 15 })); } catch (e) { out = gzipSync(buf, { level: 9 }); }
   mkdirSync(ZCACHE, { recursive: true }); writeFileSync(f, out); return out;
 }
+// (también los parches de las chicas: src/util/glb.js bytesDe los descomprime igual)
 const glbGzip = { name: 'glb-gzip', enforce: 'pre', async load(id) {
-  if (!/\.glb\?url$/.test(id)) return;
+  if (!/\.(glb|parche)\?url$/.test(id)) return;
   return `export default ${JSON.stringify('data:application/gzip;base64,' + (await gzipMejor(readFileSync(id.replace(/\?url$/, '')))).toString('base64'))}`;
 } };
 // En el archivo único, además, el código del juego va comprimido con gzip (un tercio de lo que ocupa: deja sitio dentro

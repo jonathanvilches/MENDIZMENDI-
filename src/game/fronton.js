@@ -227,7 +227,7 @@ export function labritInTown(scene, near) {
 // pairs: { partner: { name, stats }, rivalMate: { name, stats } } (el torneo por parejas: el partido es por parejas)
 // rivalTown: { id, name } del pueblo del rival (en el torneo, el suyo; si no, el del frontón): para la colección
 // stay: al acabar no se vuelve al pueblo (los campeonatos y el torneo siguen con su menú)
-export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level, rivalName, fixedLevel = false, returnTo = null, rivalStats = null, pairs = null, rivalTown = null, comp = null, youBonus = 2, rivalBonus = 0, stay = false } = {}) {
+export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level, rivalName, fixedLevel = false, returnTo = null, rivalStats = null, pairs = null, rivalTown = null, comp = null, youBonus = 2, rivalBonus = 0, stay = false, intro = null } = {}) {
   if (window.__autoWin) return Promise.resolve({ win: true, you: target, cpu: 0 });
   return new Promise(res => {
     const P = G.player, rig0 = P.rig, home = { x: rival.pos.x, z: rival.pos.z, h: rival.heading };
@@ -330,6 +330,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       you: { obj: P.obj, name: profile().name || (isEU() ? 'Zu' : 'Tú'), animate: animYou },
       rival: { obj: rival.obj, name: rivalName || String(rival.name).split(',')[0], animate: animRival },
       onEnd: (r) => done(r), onExit: (r) => done(r),
+      fly: intro,   // (la llegada: el vuelo de la cámara hasta la cancha, con los pelotaris y el público ya en su sitio)
       mates: mode === 'match' && (!fixedLevel || pairs) ? makeMates : null, forcePairs: !!pairs,   // (en el torneo individual, mano a mano; en el de parejas, por parejas)
       back: fixedLevel ? 'torneo' : G.sportMode ? 'menu' : 'pueblo',   // (a dónde lleva el botón del final)
       town: (G.def?.name || '').split(' /')[0], youRecord: myRecord(),   // (para las fichas: el pueblo del frontón y lo que has ganado)

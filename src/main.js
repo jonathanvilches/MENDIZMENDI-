@@ -16,6 +16,8 @@ import './ui/infocard.css';
 import * as HF from './world/heightfield.js';
 import * as LAYOUT from './world/layout.js';
 import { PLACES } from './world/layout.js';
+import { esc } from './util/html.js';
+import { vueloPueblo } from './game/llegadas.js';
 import { LANDMARKS } from './world/landmarks.js';
 import { Runtime } from './engine/runtime.js';
 import { Input } from './input.js';
@@ -200,8 +202,13 @@ async function boot() {
         rt.start(game);
         ui.hideLoading(); queueMode('light');
         sound.setMusic(P.settings.music); sound.setVolume(P.settings.volume);
-        if (!st.introDone && !q.get('skipintro')) await game.intro();
-        else { ui.hudVisible(true); game.mode = 'play'; }
+        if (!st.introDone && !q.get('skipintro')) await game.intro(d);
+        else {   // (las siguientes veces, la llegada: el vuelo por encima de Otsagabia con su nombre y su comarca)
+          if (!q.get('skipintro')) { game.mode = 'cine'; rt.player.frozen = true;
+            await vueloPueblo({ follow: rt.follow, player: rt.player, ui, def: d, centro: PLACES.crucero, iglesia: PLACES.church }).catch(e => console.warn('llegada', e));
+            rt.follow.snap(rt.player); rt.player.frozen = false; }
+          ui.hudVisible(true); game.mode = 'play';
+        }
       } else {
         game = new TownGame(ctx, d);
         game.onPlayTown = (id) => { exit(); setTimeout(() => play(levelById(id)), 60); };
@@ -220,7 +227,10 @@ async function boot() {
         if (opt.resumeAt) { rt.player.place(opt.resumeAt.x, opt.resumeAt.z, opt.resumeAt.h ?? 0); rt.follow.snap(rt.player); }
         if (opt.sport) { loading = false; if (opt.sport === 'pasaka') game.pasakaOnly(); else game.sportOnly(); return; }
         if (opt.resumed) { const g = game; setTimeout(() => { if (g && g === game) g.ui.toast('Imagen recuperada: sigues donde estabas', 'exclaim', 3600); }, 700); }
-        else { const g = game; setTimeout(() => { if (g && g === game) g.ui.toast(`¡Ya estás en ${d.name}! Habla con ${g.missions[0]?.host?.name || 'tu guía'}`, 'exclaim', 4200); }, 700); }
+        else {   // (primero, la llegada: el vuelo por encima del pueblo con su nombre y su comarca; luego, a quién buscar)
+          const g = game; (q.get('skipintro') ? Promise.resolve() : g.llegada()).catch(e => console.warn('llegada', e))
+            .then(() => setTimeout(() => { if (g && g === game) g.ui.toast(`¡Ya estás en ${d.name}! Habla con ${g.missions[0]?.host?.name || 'tu guía'}`, 'exclaim', 4200); }, 300));
+        }
       }
     } catch (e) {
       // antes se volvía al menú sin decir nada («me saca del juego»): ahora se avisa, y si no estaba ya en calidad
@@ -246,10 +256,12 @@ async function boot() {
     const cam = new THREE.PerspectiveCamera();
     let alt = null, altCam = null;
     // fundido propio (el del interfaz del pueblo se crea con su marcador, que aquí no hay)
-    const fade = document.createElement('div'); fade.style.cssText = 'position:fixed;inset:0;z-index:29999;background:#000;opacity:0;pointer-events:none;transition:opacity .45s';
+    const fade = document.createElement('div'); fade.className = 'fundido'; fade.style.cssText = 'position:fixed;inset:0;z-index:29999;opacity:0;pointer-events:none;transition:opacity .45s';
     document.body.appendChild(fade);
     const pause = (ms) => new Promise(r => setTimeout(r, ms));
-    const gui = Object.create(ui); gui.fadeOut = async () => { fade.style.opacity = '1'; await pause(480); }; gui.fadeIn = async () => { fade.style.opacity = '0'; await pause(320); };
+    // (con mensaje, como el del pueblo: el fondo de los deportes con la pelota que bota, en vez del negro)
+    const gui = Object.create(ui); gui.fadeOut = async (msg = '') => { fade.innerHTML = msg ? `<div class="fade-msg"><i></i><span>${esc(msg)}</span></div>` : ''; fade.classList.toggle('msg', !!msg); fade.style.opacity = '1'; await pause(480); };
+    gui.fadeIn = async () => { fade.style.opacity = '0'; await pause(320); fade.classList.remove('msg'); fade.innerHTML = ''; };
     const G = { mode: 'menu', ui: gui, sound, input, rt, player: { frozen: false }, follow: null, altUpdate: null,
       get altScene() { return alt || blank; }, set altScene(v) { alt = v; }, get altCamera() { return altCam || cam; }, set altCamera(v) { altCam = v; } };
     const ownScene = !rt.scene; if (ownScene) rt.scene = blank;

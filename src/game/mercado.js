@@ -5,7 +5,7 @@
 import * as THREE from 'three';
 import { Actor } from '../actors/people.js';
 import { addBox, isFree } from '../world/colliders.js';
-import { groundHeight, onPlatform } from '../world/heightfield.js';
+import { groundHeight, onPlatform, waterLevelAt } from '../world/heightfield.js';
 import { PLACES } from '../world/layout.js';
 import { PRODUCTS, crateOf, mergeByMaterial } from '../world/products3d.js';
 
@@ -44,7 +44,10 @@ export class Mercado {
       const a = k / 16 * Math.PI * 2 + 0.2, x = c.x + Math.sin(a) * r, z = c.z + Math.cos(a) * r;
       // (ni encima de quien ya está en la plaza: los personajes no chocan, y en Roncal un puesto tapaba a la maestra de música)
       if (!isFree(x, z, 2.0) || onPlatform(x, z, 2) || this.stalls.some(s => Math.hypot(s.x - x, s.z - z) < 5.5) || game.actors.some(a => Math.hypot(a.pos.x - x, a.pos.z - z) < 2.8)) continue;
-      const S = list[placed++], ry = Math.atan2(c.x - x, c.z - z), y = groundHeight(x, z);
+      // (ni en el agua, ni el puesto ni quien vende detrás: en Roncal la plaza da al Esca y la hortelana quedaba en el río)
+      const ry = Math.atan2(c.x - x, c.z - z), wet = (px, pz) => waterLevelAt(px, pz) > groundHeight(px, pz) - 0.3;
+      if (wet(x, z) || wet(x - Math.sin(ry) * 1.6, z - Math.cos(ry) * 1.6) || wet(x + Math.cos(ry) * 1.4, z - Math.sin(ry) * 1.4) || wet(x - Math.cos(ry) * 1.4, z + Math.sin(ry) * 1.4)) continue;
+      const S = list[placed++], y = groundHeight(x, z);
       const st = new THREE.Group(); st.position.set(x, y, z); st.rotation.y = ry;
       const add = (o) => { st.add(o); return o; };
       const box = (w, h, dd, px, py, pz) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, dd), wood); m.position.set(px, py, pz); return add(m); };
