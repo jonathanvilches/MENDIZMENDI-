@@ -5,13 +5,13 @@ Faltan estas imágenes para Herrizherri, un juego educativo sobre los pueblos de
 NORMAS PARA TODAS
 
 - PNG, o WebP de calidad 90 o más. Nada de JPEG.
-- Iconos y trofeo: cuadrados y con fondo transparente. Todo lo demás: apaisado 16:9, al mayor tamaño posible (ideal 2560 × 1440; mínimo 1536 × 864).
+- Iconos: cuadrados y con fondo transparente. Todo lo demás: apaisado 16:9, al mayor tamaño posible (ideal 2560 × 1440; mínimo 1536 × 864).
 - Nada de texto, letras ni marcas de agua dentro de la imagen.
 - Nada que imite marcas, escudos de clubes reales ni personajes de otros videojuegos.
 - El nombre del archivo, exactamente el que se indica.
 
 ============================================================
-PEDIDO 1 · IMPRESCINDIBLES (35)
+PEDIDO 1 · IMPRESCINDIBLES (46)
 ============================================================
 
 LA DANZA DE CADA COMARCA (2)
@@ -50,7 +50,7 @@ Estilo: Ilustración 3D tipo película de animación (sin fotorrealismo), luz su
 - romeria-encierro.png · «El encierro de San Fermín» (Pamplona). La Cuesta de Santo Domingo por la mañana, con los corredores de blanco y pañuelo rojo cantando ante la hornacina del santo, antes del cohete; el explorador del juego (niño de pelo castaño rizado, camisa beige, pantalón corto verde oliva, botas y mochila) lo mira seguro desde un balcón con su familia. Sin toros corneando ni nadie herido.
 - campanas.png · «Las campanas del pueblo». El campanario de piedra de una iglesia de pueblo navarro por dentro: dos campanas grandes de bronce, las cuerdas y un campanero mayor que enseña los toques a el explorador del juego (niño de pelo castaño rizado, camisa beige, pantalón corto verde oliva, botas y mochila); por los huecos se ven los tejados y el monte.
 
-HISTORIA Y ARQUITECTURA (21)
+HISTORIA Y ARQUITECTURA (24)
 
 Para la página de historia del material didáctico, donde hoy salen con un icono. Estilo: Ilustración 3D tipo película de animación (sin fotorrealismo), luz suave y cálida, colores vivos, mucho detalle. Apaisada 16:9, al mayor tamaño que dé la herramienta (ideal 2560 × 1440; mínimo 1536 × 864). Lo importante en el 60 % central (los lados se recortan en el móvil). Sin texto, sin letras, sin marcas de agua, sin bordes. Cada uno con un ejemplo real de Navarra reconocible, de día; el explorador del juego (niño de pelo castaño rizado, camisa beige, pantalón corto verde oliva, botas y mochila) pequeño, señalando el detalle que hay que mirar (el arco, el escudo, la losa…).
 
@@ -68,6 +68,9 @@ Cómo reconocer una iglesia (10)
 - iglesia-neogotica.png · Basílica neogótica: arcos en punta y torres esbeltas, construida hace poco más de cien años, como la basílica de Javier. (Sirve también para «Iglesia del siglo XIX».)
 - iglesia-renacimiento.png · Iglesia del siglo XVI, entre el gótico y el Renacimiento: muros altos, contrafuertes y, por dentro, bóvedas con nervios en estrella.
 - iglesia-ladrillo.png · Iglesia de ladrillo de la Ribera: torre de ladrillo con dibujos de rombos de tradición mudéjar, cielo azul y campos de cereal.
+- iglesia-siglo-xix.png · Iglesia del siglo XIX: una iglesia de pueblo navarro construida hace unos ciento cincuenta años que imita a las medievales, con arcos en punta, ventanas altas y una torre con campanario; piedra clara y tejado de teja, y la plaza delante.
+- iglesia-medieval.png · Iglesia medieval: una iglesia de piedra muy sencilla de un pueblo de la Cuenca de Pamplona, de muros gruesos y pocas ventanas, con la torre a los pies de la nave y un pórtico de madera junto a la puerta.
+- iglesia-pueblo.png · Iglesia del pueblo: una iglesia pequeña y sencilla de piedra con tejado de pizarra en un pueblo de montaña navarro, con la plaza de delante llena de vecinos un día de fiesta, el banco de piedra y la fuente.
 
 Monumentos (10)
 - casa-escudo.png · Casa con escudo: un palacio del Baztan, como los de Elizondo o Arizkun, con el escudo de piedra ajedrezado en la fachada, aleros de madera y balcones.
@@ -80,6 +83,19 @@ Monumentos (10)
 - puerto-montana.png · Puerto de montaña: una carretera de curvas que sube a un collado del Pirineo, como Larrau o Belate, con hayedos, pastos y vacas.
 - horreo.png · Hórreo: un hórreo de Aezkoa, el granero de piedra levantado sobre pilares para que no entren ratones, junto a un caserío de Aribe.
 - estelas.png · Estelas discoidales: las hilarriak de Etxalar, piedras funerarias con forma de disco y dibujos grabados, junto a la iglesia.
+
+ICONOS (8)
+
+Hoy salen con un dibujo hecho por el propio juego, que no es de tu familia de iconos; el periódico, en el botón del mando del móvil en el encierro. Estilo: Icono 3D de la familia única del juego: un solo objeto, centrado, vista tres cuartos un poco desde arriba, formas redondeadas, colores vivos, un brillo suave, sin fondo (PNG transparente), 1024 × 1024, el objeto ocupando el 89 % del cuadro. Sin texto. Misma familia que tus 182 iconos: mismo grosor de formas, misma luz, misma paleta.
+
+- bell.png · Una campana de bronce de iglesia, con su badajo y su yugo de madera.
+- corzo.png · Un corzo de los bosques navarros, de cuerpo entero, con sus cuernos cortos.
+- goat.png · Una cabra de monte, de cuerpo entero.
+- grulla.png · Una grulla común en vuelo, gris con la cabeza negra y blanca y una mancha roja.
+- lechuza.png · Una lechuza blanca y dorada, posada.
+- milano.png · Un milano real en vuelo, con su cola en horquilla rojiza.
+- quebrantahuesos.png · Un quebrantahuesos en vuelo, con el pecho anaranjado y las alas largas.
+- periodico.png · El periódico enrollado del encierro: un periódico de papel enrollado, con rayas grises en lugar de letras.
 
 ============================================================
 PEDIDO 2 · CIMAS Y MONTAÑAS (104)
