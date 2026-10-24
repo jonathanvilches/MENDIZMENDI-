@@ -751,4 +751,13 @@ body.mg3d-on .learn-btn { bottom: auto; top: calc(env(safe-area-inset-top, 0px) 
   .cartel-k { font-size: var(--fs-xs); letter-spacing: .12em; }
   .cartel-s { font-size: var(--fs-sm); }
 }
+/* (en el móvil tumbado, más pequeño y más arriba: antes tapaba media pantalla del vuelo) */
+@media (orientation: landscape) and (max-height: 520px) {
+  .cartel { top: calc(8px + env(safe-area-inset-top, 0px)); }
+  .cartel-in { gap: 12px; padding: 8px 18px 10px 12px; border-radius: 16px; }
+  .cartel-t { font-size: clamp(24px, calc(4.4vw / var(--z, 1)), 40px); }
+  .cartel-k { font-size: var(--fs-xs); letter-spacing: .12em; }
+  .cartel-s { font-size: var(--fs-sm); }
+  .cartel-mapa { width: 56px; }
+}
 @media (prefers-reduced-motion: reduce) { .cartel-in, .cartel-in::after, .cartel-t .w > span, .cartel-k, .cartel-s, .cartel-mapa, .cartel-mapa * { animation: none !important; } }

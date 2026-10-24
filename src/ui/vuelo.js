@@ -9,7 +9,8 @@ const inOut = (u) => u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
 const out = (u) => 1 - Math.pow(1 - u, 2.4);
 
 /**
- * follow: la cámara del juego (camera.js). tramos: [{ pts, looks, dur, fov, ease ('out' o 'inOut') }], puntos del mundo;
+ * follow: la cámara del juego (camera.js). tramos: [{ pts, looks, dur, fov, ease ('out' o 'inOut'), libre (sin la altura
+ *  mínima sobre el suelo: el plano corto de detrás del jugador) }], puntos del mundo;
  * suelo(x, z): la altura del suelo (la cámara pasa como poco a «alto» metros, salvo al final, que es exacto);
  * onTramo(i) al empezar cada tramo, onT(k) con lo que va de vuelo (0 a 1). Acaba con la cámara quieta en el último punto
  * (follow.cinematic sigue puesto: quien llama decide qué viene después).
@@ -34,7 +35,7 @@ export function vuelo(follow, tramos, { suelo = null, alto = 4, skip = true, onT
       if (i !== cur) { cur = i; onTramo?.(i); }
       S.cp.getPoint(e, p); S.cl.getPoint(e, l);
       // (sobre el terreno: un monte entre medias levanta la cámara; al final, nada, que el último punto es exacto)
-      if (suelo && u < 1) { const g = suelo(p.x, p.z) + alto * Math.min(1, (1 - u) * 4); if (p.y < g) p.y = g; }
+      if (suelo && !S.libre && u < 1) { const g = suelo(p.x, p.z) + alto * Math.min(1, (1 - u) * 4); if (p.y < g) p.y = g; }
       c.position.copy(p); c.lookAt(l);
       if (S.fov) { const f = S.fov0 + (S.fov - S.fov0) * e; if (Math.abs(c.fov - f) > 0.01) { c.fov = f; c.updateProjectionMatrix(); } }
       onT?.(Math.min(1, t / total));

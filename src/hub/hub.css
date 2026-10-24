@@ -1531,6 +1531,12 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .pg-list li > div { flex: 1; min-width: 0; display: grid; gap: 4px; }
 .pg-list b { font-size: var(--fs-md); font-weight: 900; line-height: 1.15; } .pg-list small { font-size: var(--fs-xs); color: var(--mute); line-height: 1.35; }
 .pg-list .btn { flex: none; }
+.pg-list { container-type: inline-size; }
+.pg-sub { display: grid; gap: 2px; } .pg-sub > span { display: block; }
+.pg-prog { display: flex; align-items: center; gap: 8px; min-width: 0; } .pg-prog .pg-bar { flex: 1; min-width: 40px; }
+.pg-prog em { flex: none; font-style: normal; font-size: var(--fs-xs); font-weight: 700; color: var(--mute); white-space: nowrap; }
+/* (en una columna estrecha, el botón de seguir se queda en su icono y el nombre tiene sitio) */
+@container (max-width: 460px) { .pg-list .pg-go { min-width: 52px; padding: 8px 12px; } .pg-list .pg-go span { display: none; } }
 .pg-crest { width: 40px; height: 40px; object-fit: contain; flex: none; }
 .pg-ico { display: grid; place-items: center; width: 40px; height: 40px; flex: none; }
 .pg-bar { display: block; height: 8px; border-radius: 99px; background: rgba(255, 255, 255, .12); overflow: hidden; }
@@ -1538,9 +1544,10 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .pg-empty { margin: 0 0 12px; color: var(--mute); line-height: 1.45; } .pg-empty b { color: var(--ink); }
 .progreso .pg-more { margin-top: auto; align-self: flex-start; }
 .progreso .pg-list + .pg-more, .progreso .pg-empty + .pg-more { margin-top: 12px; }
-.pg-coms { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px 16px; }
+.pg-coms { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px 16px; }   /* (columnas que dejan el nombre entero: «Comarca de Pamplona», «Larraun-Leitzaldea») */
 .pg-com { display: grid; gap: 4px; padding: 8px 12px; border-radius: 12px; background: rgba(255, 255, 255, .05); border-left: 4px solid var(--c); text-align: left; color: var(--ink); min-height: 48px; }
-.pg-com span { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; min-width: 0; }
+.pg-com > span { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; min-width: 0; }   /* (solo la fila de arriba: antes también apilaba «0%», «·» y «0/6 sellos» uno debajo de otro) */
+.pg-com b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pg-com b { font-size: var(--fs-sm); font-weight: 900; } .pg-com small { font-size: var(--fs-xs); color: var(--mute); white-space: nowrap; }
 @media (max-width: 760px) { .pg-grid { grid-template-columns: minmax(0, 1fr); } .progreso .panel.pg-total { grid-template-columns: minmax(0, 1fr); } .pg-total .pg-ringbox, .pg-total .pg-rank, .pg-total .pg-stats { grid-row: auto; grid-column: 1; } .pg-coms { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
 @media (max-width: 420px) { .pg-coms { grid-template-columns: minmax(0, 1fr); } }

@@ -26,9 +26,9 @@ export async function vueloFronton(G, v, m) {
   const V = (x, y, z) => g.localToWorld(new THREE.Vector3(x, y, z)), E = m.introPose(), t = m.txt;
   let tramos, onTramo = null;
   if (C.hall) {
-    // dentro del pabellón, como una grúa: de lo alto junto al frontis, mirando a la grada llena, baja por la cancha a lo
-    // largo del público y gira al fondo hacia el frontis
-    tramos = [{ pts: [V(-3, 9.5, 5), V(3, 7, 17), V(1.5, 8.2, 28), E.pos], looks: [V(10, 2, 18), V(11, 2, 21), V(0, 3, 11), E.look], dur: 5, fov: E.fov }];
+    // dentro del pabellón, como una grúa: de junto a la pared izquierda, a media altura y mirando al frontis, sube y se
+    // aleja por el centro de la cancha hasta el plano del panel (antes pasaba rozando la grada y se veía el público de cerca)
+    tramos = [{ pts: [V(-3, 4.5, 10), V(-0.5, 7, 21), E.pos], looks: [V(0, 3, 0), V(0, 2.5, 4), E.look], dur: 4.4, fov: E.fov, ease: 'inOut' }];
   } else if (C.labrit) {
     // el Labrit: bajando por la avenida, entre las casas, hasta su fachada con los torreones y, de un corte, dentro, sobre
     // la grada
@@ -59,13 +59,17 @@ export async function vueloPueblo({ follow, player, ui, def, centro, iglesia }) 
   const c = new THREE.Vector3(centro.x, groundHeight(centro.x, centro.z), centro.z), R = Math.max(70, (def.size || 50) * 1.5);
   // (la vuelta acaba por detrás del jugador: empieza al otro lado del pueblo, a 150 grados)
   const aE = Math.atan2(E.pos.x - c.x, E.pos.z - c.z), at = (a, r, h) => new THREE.Vector3(c.x + Math.sin(a) * r, c.y + h, c.z + Math.cos(a) * r);
-  const back = E.pos.clone().sub(E.look).setY(0).normalize();
   const ig = iglesia ? new THREE.Vector3(iglesia.x, groundHeight(iglesia.x, iglesia.z) + 8, iglesia.z) : c.clone().setY(c.y + 6);
-  const pts = [at(aE + 2.6, R * 1.7, R * 0.8), at(aE + 1.4, R * 1.05, R * 0.45), E.pos.clone().addScaledVector(back, 5).setY(E.pos.y + 15), E.pos];
-  const looks = [c.clone().setY(c.y + 4), ig, E.look.clone().setY(E.look.y - 0.5), E.look];
+  // (dos tramos con un corte entre medias: la vuelta alta por encima del pueblo, que acaba mirando hacia la iglesia, y un
+  // plano corto que se aleja del jugador hasta la cámara de juego. Antes bajaba de lo alto en picado entre los tejados hasta el jugador:
+  // rozaba las casas y se veía el suelo desde arriba)
+  const aire = { pts: [at(aE + 2.6, R * 1.7, R * 0.8), at(aE + 1.6, R * 1.15, R * 0.55), at(aE + 0.8, R * 0.9, Math.max(32, R * 0.5))], looks: [c.clone().setY(c.y + 4), ig, ig.clone().lerp(E.look, 0.5)], dur: 5, ease: 'inOut' };
+  // (el plano corto: de cerca del jugador hacia atrás hasta la cámara de juego, por el tramo que ya ve al jugador: siempre
+  // despejado; empezar más atrás que la cámara podía caer dentro de una casa o de un balcón)
+  const cerca = { pts: [E.pos.clone().lerp(E.look, 0.45).setY(E.pos.y * 0.55 + E.look.y * 0.45 + 0.6), E.pos], looks: [E.look.clone(), E.look], dur: 1.8, libre: true };
   const card = cartelPueblo(def);
-  ui.hudVisible?.(false); ui.setCinematic?.(true, def.intro || '');
-  const fin = vuelo(follow, [{ pts, looks, dur: 7, ease: 'inOut' }], { suelo: groundHeight, alto: 12, onT: (k) => { if (k > 0.8) card.close(); } }), mio = follow.cinematic;
+  ui.hudVisible?.(false); ui.setCinematic?.(true, '');   // (sin texto encima: el cartel ya dice dónde estás)
+  const fin = vuelo(follow, [aire, cerca], { suelo: groundHeight, alto: 12, onTramo: (i) => { if (i === 1) card.close(); } }), mio = follow.cinematic;
   try { await fin; } finally { card.close(); if (follow.cinematic === mio) { follow.cinematic = null; ui.setCinematic?.(false); } }
 }
 

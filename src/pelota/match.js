@@ -51,7 +51,9 @@ export class PelotaMatch {
     this.applyFeel();
     this.bindInput();
     this.newGame();
-    const panel = () => { this.intro(); if (o.forcePairs) this.chooseMode('delantero'); };   // (torneo por parejas: ya por parejas)
+    // (el panel, una sola vez: si algo termina la llegada antes de tiempo y luego acaba, no sale dos veces)
+    let conPanel = false;
+    const panel = () => { if (conPanel || !this.active) return; conPanel = true; this.intro(); if (o.forcePairs) this.chooseMode('delantero'); };   // (torneo por parejas: ya por parejas)
     if (o.autostart) { this.hud.controls(true); this.game.start(); }
     else if (o.fly) {
       // la llegada (o.fly(partido), una promesa): la cámara vuela hasta la cancha con los pelotaris ya en su sitio y el

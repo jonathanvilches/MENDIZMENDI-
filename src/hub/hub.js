@@ -324,7 +324,10 @@ export class Hub {
     // los pueblos empezados y sin sello: primero el último en el que jugaste, después los que van más adelantados
     const started = LEVELS.map(l => ({ l, t: townProgress(p, l), v: p.towns[l.id]?.visits || 0 })).filter(x => !x.t.stamp && (x.t.done || x.v))
       .sort((a, b) => (b.l.id === p.last) - (a.l.id === p.last) || b.t.done / (b.t.total || 1) - a.t.done / (a.t.total || 1));
-    const row = ({ l, t }) => { const c = comarca(l.comarca); return `<li style="--c:${c?.color}"><div><b>${esc(l.name.split(' /')[0])}</b><small><span>${esc(c?.name || '')}</span> · <span>${t.done}/${t.total} misiones</span></small>${bar(pct(t.done, t.total), c?.color)}</div><button class="btn primary small" data-play="${l.id}">${I('play', 18)} Seguir</button></li>`; };
+    // (cada dato en su línea, sin «·» que se quede suelto al principio de una; el botón de seguir, con su rótulo, que en una
+    // columna estrecha se queda en el icono: así el nombre no se parte palabra a palabra)
+    const go = (attr) => `<button class="btn primary small pg-go" ${attr} aria-label="Seguir">${I('play', 18)}<span>Seguir</span></button>`;
+    const row = ({ l, t }) => { const c = comarca(l.comarca); return `<li style="--c:${c?.color}"><div><b>${esc(l.name.split(' /')[0])}</b><small>${esc(c?.name || '')}</small><span class="pg-prog">${bar(pct(t.done, t.total), c?.color)}<em>${t.done}/${t.total} misiones</em></span></div>${go(`data-play="${l.id}"`)}</li>`; };
     const sellos = LEVELS.filter(l => townProgress(p, l).stamp).length;
     const partidas = `<div class="panel pg-partidas"><h2 class="sec">${I('play', 30)} Partidas empezadas</h2>${started.length
       ? `<ul class="pg-list">${started.slice(0, 5).map(row).join('')}</ul>${started.length > 5 ? `<button class="btn ghost small pg-more" data-go="towns">Y ${cnt(started.length - 5, 'pueblo más', 'pueblos más')}</button>` : ''}`
@@ -332,12 +335,12 @@ export class Hub {
     // los campeonatos: tu liga de fútbol (la del club de Campeonatos, primero) y los torneos de pelota de cada comarca
     const ligas = ligasGuardadas().filter(S => S.j > 0 || S.titles).sort((a, b) => (b.club === p.futbolClub) - (a.club === p.futbolClub) || b.j - a.j).slice(0, 2);
     const ord = (n) => `${n}.º`, fut = ligas.map(S => { const T = ligaTabla(S), pos = T.findIndex(x => x.id === S.club) + 1, me = T[pos - 1], fin = S.j >= S.rounds.length, Cl = CLUBS[S.club];
-      const estado = fin ? (pos === 1 ? '<span>¡Campeones de liga!</span>' : `<span>Liga terminada</span> · <span>${ord(pos)}</span>`) : `<span>Jornada ${S.j + 1} de ${S.rounds.length}</span> · <span>${ord(pos)} con ${cnt(me?.pts || 0, 'punto', 'puntos')}</span>`;
-      return `<li><img class="pg-crest" src="${clubImg(S.club) || ''}" alt=""><div><b>${esc(Cl.name)}</b><small><span>Liga Navarra</span> · ${estado}${S.titles ? ` · <span>${cnt(S.titles, 'título', 'títulos')}</span>` : ''}</small></div><button class="btn primary small" data-sport="futbol">${I('play', 18)} Seguir</button></li>`; });
+      const estado = fin ? (pos === 1 ? '<span>¡Campeones de liga!</span>' : `<span>Liga terminada: ${ord(pos)}</span>`) : `<span>Jornada ${S.j + 1} de ${S.rounds.length}</span><span>${ord(pos)} con ${cnt(me?.pts || 0, 'punto', 'puntos')}</span>`;
+      return `<li><img class="pg-crest" src="${clubImg(S.club) || ''}" alt=""><div><b>${esc(Cl.name)}</b><small class="pg-sub"><span><span>Liga Navarra</span>${S.titles ? ` · <span>${cnt(S.titles, 'título', 'títulos')}</span>` : ''}</span>${estado}</small></div>${go('data-sport="futbol"')}</li>`; });
     const tors = torneosGuardados().sort((a, b) => (a.done - b.done) || (b.past?.length || 0) - (a.past?.length || 0)).slice(0, 3), pel = tors.map(T => {
       const m = yourMatch(T), yo = T.players.findIndex(x => x.you), en = (last.comarca === T.comarca ? last : LEVELS.find(l => l.comarca === T.comarca))?.id || '';
       const estado = T.done ? (T.champion === yo ? '¡Txapela ganada!' : 'Terminado') : m ? `${m.round} contra ${m.pairs ? m.rival.mates[0] : m.rival.name}` : 'Eliminado: el torneo sigue';
-      return `<li><span class="pg-ico">${I('txapela', 34)}</span><div><b>Txapela de ${esc(T.comarcaName)}</b><small><span>${(KINDS[T.kind] || KINDS.mano).name}</span> · <span>${esc(estado)}</span>${T.txapelas ? ` · <span>${cnt(T.txapelas, 'txapela', 'txapelas')}</span>` : ''}</small></div>${en ? `<button class="btn primary small" data-sport="pelota" data-en="${en}">${I('play', 18)} Seguir</button>` : ''}</li>`; });
+      return `<li><span class="pg-ico">${I('txapela', 34)}</span><div><b>Txapela de ${esc(T.comarcaName)}</b><small class="pg-sub"><span><span>${(KINDS[T.kind] || KINDS.mano).name}</span>${T.txapelas ? ` · <span>${cnt(T.txapelas, 'txapela', 'txapelas')}</span>` : ''}</span><span>${esc(estado)}</span></small></div>${en ? go(`data-sport="pelota" data-en="${en}"`) : ''}</li>`; });
     const camp = `<div class="panel pg-camp"><h2 class="sec">${I('trophy', 30)} Campeonatos</h2>${fut.length || pel.length
       ? `<ul class="pg-list">${[...fut, ...pel].join('')}</ul>` : `<p class="pg-empty">Aún no has empezado ningún campeonato.</p>`}<button class="btn ghost small pg-more" data-go="sports">${I('trophy', 18)} Ir a Campeonatos</button></div>`;
     // cada comarca: cuánto llevas descubierto y sus sellos
