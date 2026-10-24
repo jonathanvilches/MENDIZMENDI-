@@ -167,9 +167,10 @@ export const ICON3D_NAMES = () => [...new Set([UI3D, CUSTOM, ITEM, ANIMAL, SMALL
 // se queda en la carpeta, sin cargarse; owl y lechuza son la misma imagen, byte a byte)
 // (12 de los del fútbol, como los botones de pase, tiro o la pausa, tampoco se cargan: el partido usa los símbolos de
 // los controles del autor, de trazo, en src/futbol/hud.js; la palanca, control, sí: es el botón del móvil como mando)
+// (el globo de la pasaka tampoco: va en el botón «Globo» del móvil como mando, public/mando/iconos)
 const SAME = { aguila: 'eagle', ardilla: 'squirrel', jabali: 'boar', buitre: 'vulture', ciguena: 'stork', ciervo: 'deer', trucha: 'trout', zorro: 'fox', pottoka: 'horse', pito: 'woodpecker', owl: 'lechuza' };
 const BAKED = {};
-for (const [p, u] of Object.entries(import.meta.glob(['@icons3d/*.webp', '!@icons3d/{aguila,ardilla,jabali,buitre,ciguena,ciervo,trucha,zorro,pottoka,pito,owl}.webp', '!@icons3d/{shoot,pass,through,sprint,swap,tackle,slide,contain,dive,move,pause,camera}.webp'], { eager: true, query: '?url', import: 'default' }))) BAKED[p.split('/').pop().replace('.webp', '')] = u;
+for (const [p, u] of Object.entries(import.meta.glob(['@icons3d/*.webp', '!@icons3d/{aguila,ardilla,jabali,buitre,ciguena,ciervo,trucha,zorro,pottoka,pito,owl}.webp', '!@icons3d/{shoot,pass,through,sprint,swap,tackle,slide,contain,dive,move,pause,camera,globo}.webp'], { eager: true, query: '?url', import: 'default' }))) BAKED[p.split('/').pop().replace('.webp', '')] = u;
 for (const [a, b] of Object.entries(SAME)) if (BAKED[b]) BAKED[a] = BAKED[b];
 // (los de 512, en icons3d/512 y solo en la web: para la ficha de los instrumentos, que los enseña a 260 px, y las pantallas
 // densas; src/web/hd.js los pide cuando el icono se ve más grande que el de 256)
