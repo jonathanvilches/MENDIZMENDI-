@@ -1,7 +1,7 @@
 // Revisión de la traducción al euskera: juega en euskera (con ?eufaltan, que apunta cada texto que se queda sin
 // traducir) por todas las pantallas del menú, todas las fichas de flora y fauna, la ficha de cada pueblo y, en los
-// pueblos que se pidan, todas sus misiones con sus diálogos. Escribe la lista en /tmp/eu-faltan.json.
-// Uso: node tools/eu-faltan.mjs [pueblo,pueblo…|todos]   (URL=http://127.0.0.1:5173)
+// pueblos que se pidan, todas sus misiones con sus diálogos. Escribe la lista en /tmp/eu-faltan.json (o en OUT).
+// Uso: node tools/eu-faltan.mjs [pueblo,pueblo…|todos]   (URL=http://127.0.0.1:5173, OUT=archivo)
 import { chromium } from 'playwright-core';
 import { readFileSync, writeFileSync } from 'fs';
 const URL = process.env.URL || 'http://127.0.0.1:5173', arg = process.argv[2] || '';
@@ -49,4 +49,4 @@ async function town(t) {
 const queue = towns.slice(); await Promise.all(Array.from({ length: +(process.env.N || 3) }, async () => { while (queue.length) await town(queue.shift()); }));
 await b.close();
 const out = [...miss].map(([s, m]) => ({ s, n: m.n, where: [...m.where].slice(0, 4) })).sort((a, b) => b.n - a.n);
-writeFileSync('/tmp/eu-faltan.json', JSON.stringify(out, null, 1)); console.log('sin traducir:', out.length);
+writeFileSync(process.env.OUT || '/tmp/eu-faltan.json', JSON.stringify(out, null, 1)); console.log('sin traducir:', out.length);
