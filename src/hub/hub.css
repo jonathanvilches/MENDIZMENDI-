@@ -1501,3 +1501,46 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   .scard, .bcard, .fcard, .ins { padding: var(--relleno-s); }
   .cs-side, .csel-info { gap: 12px; }
 }
+
+/* ---------- Cómo vas: el resumen del inicio (hub.js, progreso) ----------
+   arriba, a lo ancho, tu Navarra (el aro y los datos en fila); debajo, las partidas empezadas y los campeonatos uno al
+   lado del otro, y las comarcas; de pie, todo en una columna */
+.pg-title { margin-top: var(--esp); }
+.progreso { display: grid; gap: var(--hueco-m); }
+.pg-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--hueco-m); align-items: stretch; }
+.progreso .panel.pg-total { grid-column: 1 / -1; display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto 1fr; column-gap: var(--hueco-m); align-items: start; }
+.pg-total > .sec { grid-column: 1 / -1; } .pg-total .pg-ringbox { grid-row: 2; } .pg-total .pg-rank { grid-row: 3; grid-column: 1; } .pg-total .pg-stats { grid-row: 2 / 4; grid-column: 2; }
+.progreso .panel { display: flex; flex-direction: column; min-width: 0; }
+.progreso .panel > .sec { margin: 0 0 12px; font-size: var(--fs-lg); }
+.pg-ringbox { position: relative; display: grid; place-items: center; width: 132px; aspect-ratio: 1; margin: 0 auto 4px; }
+.pg-ring { position: absolute; inset: 0; width: 100%; height: 100%; }
+.pg-ring circle { fill: none; stroke-width: 12; stroke-linecap: round; }
+.pg-ring .bg { stroke: rgba(255, 255, 255, .12); } .pg-ring .fg { stroke: var(--gold); }
+.pg-ringbox b { font-size: var(--fs-3xl); font-weight: 900; line-height: 1; margin-top: -10px; } .pg-ringbox b small { font-size: var(--fs-lg); }
+.pg-ringbox span { position: absolute; top: 62%; font-size: var(--fs-xs); color: var(--mute); text-transform: uppercase; letter-spacing: .08em; }
+.pg-rank { margin: 0 0 12px; text-align: center; font-weight: 800; color: var(--gold); font-size: var(--fs-sm); }
+/* (cada dato, la cifra arriba y debajo su icono y su nombre: en el panel estrecho no caben en una línea) */
+.pg-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 0; align-self: center; }
+@media (min-width: 1000px) { .pg-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.pg-stats div { display: grid; gap: 4px; min-width: 0; padding: 8px 12px; border-radius: 12px; background: rgba(255, 255, 255, .05); }
+.pg-stats dt { display: flex; align-items: center; gap: 4px; min-width: 0; font-size: var(--fs-xs); color: var(--mute); text-transform: uppercase; letter-spacing: .04em; }
+.pg-stats dt span { min-width: 0; white-space: nowrap; }   /* (nunca una palabra partida: «COMARC-AS») */ .pg-stats dt svg, .pg-stats dt img { flex: none; }
+.pg-stats dd { margin: 0; font-weight: 900; font-size: var(--fs-lg); line-height: 1; white-space: nowrap; } .pg-stats dd small { font-size: var(--fs-xs); color: var(--dim); }
+.pg-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.pg-list li { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: 12px; background: rgba(255, 255, 255, .05); border-left: 4px solid var(--c, var(--gold)); min-width: 0; }
+.pg-list li > div { flex: 1; min-width: 0; display: grid; gap: 4px; }
+.pg-list b { font-size: var(--fs-md); font-weight: 900; line-height: 1.15; } .pg-list small { font-size: var(--fs-xs); color: var(--mute); line-height: 1.35; }
+.pg-list .btn { flex: none; }
+.pg-crest { width: 40px; height: 40px; object-fit: contain; flex: none; }
+.pg-ico { display: grid; place-items: center; width: 40px; height: 40px; flex: none; }
+.pg-bar { display: block; height: 8px; border-radius: 99px; background: rgba(255, 255, 255, .12); overflow: hidden; }
+.pg-bar u { display: block; height: 100%; border-radius: 99px; background: var(--c, var(--gold)); }
+.pg-empty { margin: 0 0 12px; color: var(--mute); line-height: 1.45; } .pg-empty b { color: var(--ink); }
+.progreso .pg-more { margin-top: auto; align-self: flex-start; }
+.progreso .pg-list + .pg-more, .progreso .pg-empty + .pg-more { margin-top: 12px; }
+.pg-coms { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px 16px; }
+.pg-com { display: grid; gap: 4px; padding: 8px 12px; border-radius: 12px; background: rgba(255, 255, 255, .05); border-left: 4px solid var(--c); text-align: left; color: var(--ink); min-height: 48px; }
+.pg-com span { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; min-width: 0; }
+.pg-com b { font-size: var(--fs-sm); font-weight: 900; } .pg-com small { font-size: var(--fs-xs); color: var(--mute); white-space: nowrap; }
+@media (max-width: 760px) { .pg-grid { grid-template-columns: minmax(0, 1fr); } .progreso .panel.pg-total { grid-template-columns: minmax(0, 1fr); } .pg-total .pg-ringbox, .pg-total .pg-rank, .pg-total .pg-stats { grid-row: auto; grid-column: 1; } .pg-coms { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+@media (max-width: 420px) { .pg-coms { grid-template-columns: minmax(0, 1fr); } }

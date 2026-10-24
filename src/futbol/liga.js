@@ -49,6 +49,8 @@ export function season(club) {
 export function saveSeason(S) { const all = load(); all[S.club] = S; save(all); }
 export function newSeason(club) { const all = load(), t = all[club]?.titles || 0, y = (all[club]?.year || 0) + 1; delete all[club]; save(all); const S = season(club); S.titles = t; S.year = y; saveSeason(S); return S; }
 
+/** Las temporadas guardadas, sin crear ninguna (para el resumen del inicio). */
+export function ligasGuardadas() { return Object.values(load()).filter(S => S?.rounds?.length && CLUBS[S.club]); }
 /** Tu próximo partido: { h, a, j } (o null si la liga ha terminado). */
 export function nextMatch(S) {
   if (S.j >= S.rounds.length) return null;
