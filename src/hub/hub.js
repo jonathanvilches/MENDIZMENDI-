@@ -322,7 +322,7 @@ export class Hub {
         <span class="sp-cover" aria-hidden="true" style="background-image:url(${laminaUrl('dep-pelotari') || laminaUrl('dep-fronton') || townImg(fl)})"></span>
         <div class="sp-txt"><small class="kicker">Torneo de mano</small><h3>Pelota a mano</h3>
           <p>Partido libre o el torneo por la txapela de la comarca: cuartos, semifinal y final.</p>
-          <span class="sp-stat">${I('txapela-campeon', 22)} ${tx} ${tx === 1 ? 'txapela' : 'txapelas'}</span></div>
+          <span class="sp-stat">${I('txapela', 22)} ${tx} ${tx === 1 ? 'txapela' : 'txapelas'}</span></div>
         <div class="sp-bar"><div class="sp-row"><small>Elige frontón</small>${this.frontonBox(fl)}</div>
           <button class="gx-go" data-sport="pelota">${I('play', 24)} <span>Jugar</span></button></div><span class="sp-shine"></span>
       </div>
