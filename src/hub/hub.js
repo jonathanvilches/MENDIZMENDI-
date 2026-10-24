@@ -1,6 +1,8 @@
 // Centro de mando: inicio, mapa de Navarra, comarcas, pueblos, cimas, naturaleza, personajes, insignias, pasaporte y perfil.
 import COMARCAS from '../data/comarcas.json';
-import { txapelas as TXAPELAS } from '../game/torneo.js';
+import { txapelas as TXAPELAS, torneosGuardados, yourMatch } from '../game/torneo.js';
+import { ligasGuardadas, table as ligaTabla } from '../futbol/liga.js';
+import { pelotarisCount } from '../game/pelotaris.js';
 import MOUNTAINS from '../data/mountains.json';
 import { CAST as AVATARS, STAT_LABELS, castById } from '../data/cast.js';
 import SETTLEMENTS from '../data/settlements.json';
@@ -159,7 +161,7 @@ export class Hub {
       if (t.dataset.instrumento) { this.sound?.ui('open'); return openInstrumento({ sound: this.sound, townName }, t.dataset.instrumento).then(() => { if (this.screen === 'instrumentos') this.go('instrumentos', undefined, true); }); }   // (la ficha de un instrumento; al volver, la lista con lo tocado)
       // (el frontón elegido cambia en su caja, sin volver a pintar la pantalla ni subirla arriba)
       if (t.dataset.fronton) { this.frontonTown = t.dataset.fronton; this.sound?.ui('click'); this.sheet?.remove(); this.sheet = null; const b = $('.sp-pick', this.root); if (b) b.outerHTML = this.frontonBox(); else this.go('sports', undefined, true); return; }
-      if (t.dataset.sport) { this.sound?.ui('open'); return this.onSport?.(t.dataset.sport, t.dataset.sport === 'pelota' ? this.frontonId() : null); }
+      if (t.dataset.sport) { this.sound?.ui('open'); return this.onSport?.(t.dataset.sport, t.dataset.sport === 'pelota' ? (t.dataset.en || this.frontonId()) : null); }   // (data-en: el pueblo del frontón, desde el resumen del inicio)
       if (t.dataset.play) return this.play(t.dataset.play);
       if (t.dataset.town) return isDidactico() ? this.go('pueblo', t.dataset.town) : this.townSheet(t.dataset.town);
       if (t.dataset.comarca) return this.go('comarca', t.dataset.comarca);
@@ -255,6 +257,8 @@ export class Hub {
       this.cabeSugg($('.next-panel .sugg', this.root));
     };
     const next = this.suggestions();
+    // (en cuanto se ha jugado algo, el resumen de cómo vas va debajo de la portada)
+    const empezado = doneM > 0 || p.xp > 0 || Object.values(p.towns || {}).some(t => t.visits) || ligasGuardadas().some(S => S.j > 0) || torneosGuardados().length > 0;
     return `
     <section class="hero3d">
       <div class="hero-img" style="background-image:url(${townImg(last)})"></div>
@@ -267,6 +271,7 @@ export class Hub {
         <div class="h-cta"><button class="btn primary big go" data-play="${last.id}">${I('play', 28)} <span>${lp.done ? '¡Seguimos!' : '¡A la aventura!'}</span></button><button class="btn ghost sq" data-go="map" aria-label="Elegir en el mapa">${I('map', 30)}<span>Mapa</span></button></div>
       </div>
     </section>
+    ${empezado ? this.progreso(p, last) : ''}
     <section class="saberes">
       <div class="sb-head"><small class="kicker">${I('book', 20)} Lo más importante</small><h2>Aprende Navarra jugando</h2>
         <p>Cada misión, cada paseo y cada partido te enseñan algo de Navarra: su producto local, su arquitectura y sus escudos, su historia, su campo, su fauna, su flora y sus tradiciones. Cada cosa que aprendes es una carta.</p></div>
@@ -282,13 +287,13 @@ export class Hub {
       <ol class="hsteps"><li>${I('map', 56)}<b>Viaja</b><span>Elige un pueblo en el mapa</span></li><li>${I('exclaim', 56)}<b>Ayuda</b><span>Habla con su gente y cumple sus misiones</span></li><li>${I('stamp', 56)}<b>Consigue el sello</b><span>Y llena tu pasaporte</span></li></ol>
     </section>
     <button class="sports-cta" data-go="sports">${I('trophy', 44)}<div><b>Campeonatos</b><small>Pelota a mano y fútbol, sin entrar en un pueblo</small></div>${I('play', 26)}</button>
-    <section class="tiles">
+    ${empezado ? '' : `<section class="tiles">
       <div class="tile">${I('stamp', 44)}<b>${N.stamps}<small>/${N.towns}</small></b><span>Sellos</span></div>
       <div class="tile">${I('shield', 44)}<b>${N.comarcas}<small>/${N.comarcasTotal}</small></b><span>Comarcas</span></div>
       <div class="tile">${I('check', 44)}<b>${doneM}<small>/${totM}</small></b><span>Misiones</span></div>
       <div class="tile">${I('badge', 44)}<b>${p.badges.length}<small>/${BADGES.length}</small></b><span>Insignias</span></div>
       <div class="tile">${I('star', 44)}<b>${p.xp}<small>\u00a0XP</small></b><span>Nivel ${L.lv}</span></div>
-    </section>
+    </section>`}
     <section class="two">
       <div class="panel next-panel"><h2 class="sec">${I('exclaim', 34)} Te esperan</h2>${next}</div>
       <div class="panel map-panel" data-go="map"><h2 class="sec">${I('map', 34)} Mapa de Navarra</h2><div id="homeMap" class="mini-map"></div><p class="hint">Completa pueblos para iluminar sus comarcas.</p></div>
@@ -299,6 +304,49 @@ export class Hub {
     <section class="figuras rail">${personajesHTML(MUJERES)}</section>
     <h2 class="sec">${I('mask', 34)} Leyendas y carnaval<button class="lnk sec-more" data-go="personajes">Ver todos</button></h2>
     <section class="figuras rail">${figurasHTML(FIGURAS)}</section>`;
+  }
+  // ---------- Cómo vas: el resumen del inicio ----------
+  // de un vistazo, al empezar o al volver: lo hecho en toda Navarra, los pueblos empezados (para seguir donde lo dejaste),
+  // cada comarca y los campeonatos abiertos de fútbol y de pelota, con su botón para seguir
+  progreso(p, last) {
+    const N = navarraProgress(p), L = levelOf(p.xp);
+    let doneM = 0, totM = 0; for (const l of LEVELS) { const t = townProgress(p, l); doneM += t.done; totM += t.total; }
+    const pct = (a, b) => (b ? Math.round(100 * a / b) : 0), all = pct(doneM, totM);
+    const bar = (v, c = '') => `<i class="pg-bar"${c ? ` style="--c:${c}"` : ''}><u style="width:${Math.max(v ? 4 : 0, v)}%"></u></i>`;
+    // (el aro: lo hecho de todas las misiones de Navarra)
+    const R = 52, C = 2 * Math.PI * R, ring = `<svg class="pg-ring" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="${R}" class="bg"/><circle cx="60" cy="60" r="${R}" class="fg" stroke-dasharray="${(C * all / 100).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 60 60)"/></svg>`;
+    const heard = CUENTOS.filter(Cu => (p.cards || []).includes('cuento:' + Cu.id)).length, pc = pelotarisCount();
+    const total = `<div class="panel pg-total"><h2 class="sec">${I('compass', 30)} Tu Navarra</h2>
+      <div class="pg-ringbox">${ring}<b>${all}<small>%</small></b><span>descubierto</span></div>
+      <p class="pg-rank"><span>Nivel ${L.lv}</span> · <span>${esc(rankOf(L.lv))}</span></p>
+      <dl class="pg-stats">${[['stamp', 'Sellos', N.stamps, N.towns], ['check', 'Misiones', doneM, totM], ['shield', 'Comarcas', N.comarcas, N.comarcasTotal], ['book', 'Cartas', (p.cards || []).length],
+        ['legend', 'Cuentos', heard, CUENTOS.length], ['pelota', 'Pelotaris', pc.have, pc.total], ['badge', 'Insignias', p.badges.length, BADGES.length], ['star', 'Puntos', p.xp]]
+        .map(([ic, k, v, de]) => `<div><dd>${v}${de != null ? `<small>/${de}</small>` : ''}</dd><dt>${I(ic, 20)}<span>${k}</span></dt></div>`).join('')}</dl></div>`;
+    // los pueblos empezados y sin sello: primero el último en el que jugaste, después los que van más adelantados
+    const started = LEVELS.map(l => ({ l, t: townProgress(p, l), v: p.towns[l.id]?.visits || 0 })).filter(x => !x.t.stamp && (x.t.done || x.v))
+      .sort((a, b) => (b.l.id === p.last) - (a.l.id === p.last) || b.t.done / (b.t.total || 1) - a.t.done / (a.t.total || 1));
+    const row = ({ l, t }) => { const c = comarca(l.comarca); return `<li style="--c:${c?.color}"><div><b>${esc(l.name.split(' /')[0])}</b><small><span>${esc(c?.name || '')}</span> · <span>${t.done}/${t.total} misiones</span></small>${bar(pct(t.done, t.total), c?.color)}</div><button class="btn primary small" data-play="${l.id}">${I('play', 18)} Seguir</button></li>`; };
+    const sellos = LEVELS.filter(l => townProgress(p, l).stamp).length;
+    const partidas = `<div class="panel pg-partidas"><h2 class="sec">${I('play', 30)} Partidas empezadas</h2>${started.length
+      ? `<ul class="pg-list">${started.slice(0, 5).map(row).join('')}</ul>${started.length > 5 ? `<button class="btn ghost small pg-more" data-go="towns">Y ${cnt(started.length - 5, 'pueblo más', 'pueblos más')}</button>` : ''}`
+      : `<p class="pg-empty"><span>${sellos ? 'Ningún pueblo a medias.' : 'Aún no has empezado ningún pueblo.'}</span> <span>Próxima parada</span>: <b>${esc(last.name.split(' /')[0])}</b></p><button class="btn primary small pg-more" data-play="${last.id}">${I('play', 18)} Ir</button>`}</div>`;
+    // los campeonatos: tu liga de fútbol (la del club de Campeonatos, primero) y los torneos de pelota de cada comarca
+    const ligas = ligasGuardadas().filter(S => S.j > 0 || S.titles).sort((a, b) => (b.club === p.futbolClub) - (a.club === p.futbolClub) || b.j - a.j).slice(0, 2);
+    const ord = (n) => `${n}.º`, fut = ligas.map(S => { const T = ligaTabla(S), pos = T.findIndex(x => x.id === S.club) + 1, me = T[pos - 1], fin = S.j >= S.rounds.length, Cl = CLUBS[S.club];
+      const estado = fin ? (pos === 1 ? '<span>¡Campeones de liga!</span>' : `<span>Liga terminada</span> · <span>${ord(pos)}</span>`) : `<span>Jornada ${S.j + 1} de ${S.rounds.length}</span> · <span>${ord(pos)} con ${cnt(me?.pts || 0, 'punto', 'puntos')}</span>`;
+      return `<li><img class="pg-crest" src="${clubImg(S.club) || ''}" alt=""><div><b>${esc(Cl.name)}</b><small><span>Liga Navarra</span> · ${estado}${S.titles ? ` · <span>${cnt(S.titles, 'título', 'títulos')}</span>` : ''}</small></div><button class="btn primary small" data-sport="futbol">${I('play', 18)} Seguir</button></li>`; });
+    const tors = torneosGuardados().sort((a, b) => (a.done - b.done) || (b.past?.length || 0) - (a.past?.length || 0)).slice(0, 3), pel = tors.map(T => {
+      const m = yourMatch(T), yo = T.players.findIndex(x => x.you), en = (last.comarca === T.comarca ? last : LEVELS.find(l => l.comarca === T.comarca))?.id || '';
+      const estado = T.done ? (T.champion === yo ? '¡Txapela ganada!' : 'Terminado') : m ? `${m.round} contra ${m.pairs ? m.rival.mates[0] : m.rival.name}` : 'Eliminado: el torneo sigue';
+      return `<li><span class="pg-ico">${I('txapela', 34)}</span><div><b>Txapela de ${esc(T.comarcaName)}</b><small><span>${T.kind === 'parejas' ? 'Por parejas' : 'Mano a mano'}</span> · <span>${esc(estado)}</span>${T.txapelas ? ` · <span>${cnt(T.txapelas, 'txapela', 'txapelas')}</span>` : ''}</small></div>${en ? `<button class="btn primary small" data-sport="pelota" data-en="${en}">${I('play', 18)} Seguir</button>` : ''}</li>`; });
+    const camp = `<div class="panel pg-camp"><h2 class="sec">${I('trophy', 30)} Campeonatos</h2>${fut.length || pel.length
+      ? `<ul class="pg-list">${[...fut, ...pel].join('')}</ul>` : `<p class="pg-empty">Aún no has empezado ningún campeonato.</p>`}<button class="btn ghost small pg-more" data-go="sports">${I('trophy', 18)} Ir a Campeonatos</button></div>`;
+    // cada comarca: cuánto llevas descubierto y sus sellos
+    const coms = COMARCAS.filter(c => comarcaTowns(c.id).length).map(c => { const cp = comarcaProgress(p, c.id), v = pct(cp.done, cp.total);
+      return `<button class="pg-com" data-comarca="${c.id}" style="--c:${c.color}"><span><b>${esc(c.name)}</b><small><span>${v}%</span> · <span>${cp.stamps}/${cp.towns} ${cp.towns === 1 ? 'sello' : 'sellos'}</span></small></span>${bar(v, c.color)}</button>`; }).join('');
+    return `<h2 class="sec pg-title">${I('flag', 34)} Cómo vas</h2>
+    <section class="progreso"><div class="pg-grid">${total}${partidas}${camp}</div>
+      <div class="panel pg-comarcas"><h2 class="sec">${I('shield', 30)} Tus comarcas</h2><div class="pg-coms">${coms}</div></div></section>`;
   }
   // ---------- Campeonatos ----------
   // pelota a mano y fútbol sin entrar en las misiones de un pueblo: la pelota se juega en el frontón del pueblo que se

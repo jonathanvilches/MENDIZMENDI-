@@ -37,6 +37,9 @@ const save = (T) => { try { const all = loadAll(); all[keyOf(T.comarca, T.kind)]
 export const mateStats = (p, i) => (p.mst ||= [])[i]?.style ? p.mst[i] : (p.mst[i] = pelotariStats(`${p.mates[i]} ${p.town}`, p.lv || 2));
 const clamp01 = (v) => Math.max(0.1, Math.min(0.9, v));
 
+/** Los torneos guardados, sin crear ninguno (para el resumen del inicio: el menú de pelota crea los dos de la comarca al
+ *  abrirse, así que solo cuentan los que ya tienen alguna ronda jugada o alguna txapela). */
+export function torneosGuardados() { return Object.values(loadAll()).filter(T => T?.players?.length && (T.past?.length || T.txapelas || T.edition > 1)); }
 /** Txapelas ganadas en cada comarca: { comarca: n } */
 export function txapelas() { const all = loadAll(), o = {}; for (const k in all) if (all[k]?.txapelas) { const c = k.split(':')[0]; o[c] = (o[c] || 0) + all[k].txapelas; } return o; }
 /**

@@ -84,6 +84,9 @@ export const EU_RX_MAS = [
   [/^(\d+(?:–\d+)?) (enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)$/, (m) => mes(m)],
   [/^Seguir \((\d+)\/(\d+)\)$/, 'Jarraitu ($1/$2)'], [/^Seguir buscando \((\d+)\/(\d+)\)$/, 'Jarraitu bilatzen ($1/$2)'],
   [/^Seguir paseando por (.+)$/, (m, a) => `Jarraitu ${ine(e(a))} paseatzen`], [/^Frontón cubierto de (.+)$/, (m, a) => `${loc(e(a))} pilotaleku estalia`],
+  // (el resumen del inicio: tu puesto en la liga, tu partido del torneo, los títulos y los pueblos que quedan)
+  [/^(\d+)\.º con (\d+) puntos?$/, '$1. postua, $2 puntu'], [/^(\d+)\.º$/, '$1.'], [/^(\d+) títulos?$/, '$1 titulu'], [/^Y (\d+) pueblos? más$/, 'Eta beste $1 herri'],
+  [/^(Cuartos de final|Semifinales|Final) contra (.+)$/, (m, a, b) => `${e(a)}: ${gen(b)} aurka`], [/^(\d+)\/(\d+) sello$/, '$1/$2 zigilu'], [/^(\d+)%$/, '%$1'],
   [/^(Torneo por parejas|Torneo de mano) · edición (\d+)$/, (m, a, n) => `${e(a)} · ${n}. edizioa`],
   [/^Seguir jugando en (.+)$/, (m, a) => `Jarraitu jolasten ${ine(e(a))}`], [/^Jugar en (.+)$/, (m, a) => `Jolastu ${ine(e(a))}`],
   [/^(.*?) ?· ficha de (flora|fauna)$/, (m, k, f) => `${k ? e(k) + ' · ' : ''}${f}-fitxa`],
