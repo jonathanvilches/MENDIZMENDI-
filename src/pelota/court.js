@@ -453,6 +453,7 @@ export class PelotaCourt {
       for (const s of segs(off0 + 0.6)) { const dx = Math.sin(s.ry), dz = Math.cos(s.ry); for (let t = -0.5; t <= 0.5; t += 0.5) if (s.l > 4 || t === 0) box(0.32, y0 - 0.5, 0.32, cream, s.x + dx * t * s.l * 0.9, (y0 - 0.5) / 2, s.z + dz * t * s.l * 0.9); }
     };
     balc(8.2, 5.2, 4); balc(10.4, 8.6, 4);
+    this.seated = true;   // (el público, sentado en sus butacas: de pie se subía al asiento y las piernas atravesaban el respaldo)
     { const shell = boxesGeo(T, [{ w: 0.46, h: 0.045, d: 0.42, x: 0, y: 0.44, z: 0.04 }, { w: 0.46, h: 0.5, d: 0.04, x: 0, y: 0.72, z: -0.2, rx: -0.2 },
         { w: 0.05, h: 0.04, d: 0.36, x: -0.255, y: 0.64, z: 0.02 }, { w: 0.05, h: 0.04, d: 0.36, x: 0.255, y: 0.64, z: 0.02 }]);
       const frame = boxesGeo(T, [{ w: 0.05, h: 0.44, d: 0.05, x: -0.255, y: 0.22, z: -0.08 }, { w: 0.05, h: 0.44, d: 0.05, x: 0.255, y: 0.22, z: -0.08 },
