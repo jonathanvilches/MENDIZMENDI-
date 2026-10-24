@@ -629,7 +629,8 @@ export class Nature {
     const parts = [];
     for (let v = 0; v < 5; v++) parts.push(makeRockGeo(rnd, v));
     const spots = [];
-    const put = (x, z, s, sink, moss) => { const p = pathQuery(x, z); if (p.d < p.w + 0.8) return; spots.push({ x, z, s, sink, moss, v: Math.floor(rnd() * 5) }); };
+    // (fuera de los caminos y de las casas: las de los caseríos quedan fuera del casco y una roca grande se metía en ellas)
+    const put = (x, z, s, sink, moss) => { const p = pathQuery(x, z); if (p.d < p.w + 0.8 || !isFree(x, z, Math.max(0.4, s * 0.6))) return; spots.push({ x, z, s, sink, moss, v: Math.floor(rnd() * 5) }); };
     for (let k = 0; k < 5200; k++) {
       const x = (rnd() - 0.5) * 2 * (HALF - 10), z = (rnd() - 0.5) * 2 * (HALF - 10);
       if (villageMask(x, z) > 0.2) continue;
