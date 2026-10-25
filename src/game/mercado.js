@@ -31,7 +31,7 @@ function awning(c1, c2) {
 export function marketDay(def, rnd = Math.random) {
   const q = new URLSearchParams(location.search).get('market');
   if (q != null) return q === '1';
-  return !def.special && rnd() < 0.5;
+  return !def.special && !def.bosque && rnd() < 0.5;
 }
 
 export class Mercado {

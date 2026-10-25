@@ -127,6 +127,8 @@ export const CUENTO_LAMINA = { aralar: 'lekunberri-cadenas', ujue: 'ujue-paloma'
 export const PERSONAJE_LAMINA = { sancho: 'orreaga-roncesvalles', golondrinas: 'of-alpargatas' };
 // la de cada oficio de antes (el taller del pueblo)
 export const OFICIO_LAMINA = { herrero: 'of-herreria', palomero: 'etxalar-palomeras', cantero: 'puente-cantero', aizkolari: 'leitza-aizkolari', harrijasotzaile: 'leitza-harrijasotzaile', alpargatero: 'of-alpargatas', cestero: 'of-cesteria', carbonero: 'aribe-carbonera', hilandera: 'of-telar', panadero: 'of-pan', tonelero: 'viana-tonelero' };
+// la portada de cada bosque, por orden (si en esta versión falta la primera, la siguiente; si no, la de su comarca)
+export const BOSQUE_LAMINA = { 'selva-irati': ['aribe-irati'], 'sierra-urbasa': ['c-urbasa'], 'sierra-aralar': ['c-aralar'], 'bosque-orgi': ['c-setas'], 'senorio-bertiz': ['c-bidasoa-aves', 'c-baztan'], 'sotos-ebro': ['tudela-ciguenas'] };
 // la de la cabecera de cada comarca: su paisaje (o, si no tiene, la de un pueblo suyo)
 export const COMARCA_LAMINA = { bidasoa: 'c-baztan', 'larraun-leitzaldea': 'c-aralar', pirineo: 'c-pirineos', sakana: 'c-sakana', pamplona: 'pamplona-murallas', prepirineo: 'c-prepirineo', sanguesa: 'lumbier', 'tierra-estella': 'c-vendimia', 'valdizarbe-novenera': 'puente-la-reina', 'zona-media': 'c-cereal', 'ribera-alta': 'c-pitillas', ribera: 'c-bardenas' };
 

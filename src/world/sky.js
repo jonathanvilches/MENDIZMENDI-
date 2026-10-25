@@ -275,7 +275,8 @@ void main(){
     this.moon.material.opacity = this.night; this.moon.visible = this.night > 0.02;
     this.moonGlow.position.copy(this.moon.position); this.moonGlow.material.opacity = this.night * (0.3 + 0.6 * lit); this.moonGlow.visible = this.moon.visible;
     this.moonGlow.material.color.setRGB(1, 1 - 0.1 * low, 1 - 0.25 * low);
-    const mo = this.night * 0.3 * (1 - fk), cam = this.camPos || focus;   // (en el partido, con los focos, sin niebla)
+    // (en el partido, con los focos, sin niebla; en el bosque, también de día: mistDay, weather.js)
+    const mo = Math.max(this.night * 0.3, this.mistDay || 0) * (1 - fk), cam = this.camPos || focus;
     for (const s of this.mist) {
       s.visible = mo > 0.01; if (!s.visible) continue;
       const o = s.userData.off, drift = (elapsed * 0.6) % 140;

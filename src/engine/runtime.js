@@ -4,7 +4,7 @@ import { Weather, pickWeather } from '../world/weather.js';
 import * as THREE from 'three';
 import { setMeshyTexMax, GlbRig, isGlbAvatar, loadGlbAvatar } from '../actors/glbChar.js';
 import { setQuality } from '../util/quality.js';
-import { bake, initBridges, clearPlatforms } from '../world/heightfield.js';
+import { bake, initBridges, clearPlatforms, surfAt } from '../world/heightfield.js';
 import { buildTextures, TEX } from '../world/textures.js';
 import { Terrain } from '../world/terrain.js';
 import { SkySystem } from '../world/sky.js';
@@ -376,6 +376,7 @@ export class Runtime {
     if (m === 'dance') return 'fiesta';
     if (g.missions?.some(M => M.chase)) return 'tension';
     if (night && g.missions?.some(M => !M.done && (M.type === 'legend' || (M.type === 'carnival' && M.night)))) return 'mystery';
+    if (g.def?.bosque && this.forestK > 0.5) return night ? 'mystery' : 'night';   // (monte adentro: notas sueltas y arpa lenta)
     return night ? 'night' : 'explore';
   }
   step(dt, g, input) {
@@ -410,7 +411,8 @@ export class Runtime {
     this.lights.update(this.sky.night, P);
     { const fl = this.sky.floodK(); lampFill(skyFill(this.charFill, this.sky.hemi, this.sky.sun, this.sky.night * (1 - fl)), (this.lights.lampK || 0) * (1 - fl)); }   // (en el frontón, la luz de los focos: la misma de día y de noche)
     this.beacon.update(this.elapsed, P, g.mode !== 'play' || !!this.follow.cinematic || !!g.ui.dialogOpen, dt);
-    this.sound.update(dt, P, this.follow.yaw, this.sky.night, iratiMask(P.pos.x, P.pos.z) > 0.5, this.sportQuiet);   // (en los deportes, sin el río: sonaba como la lluvia)
+    this.forestK = surfAt('forest', P.pos.x, P.pos.z);   // (monte adentro: más pájaros, el pito negro y el cuco; en los bosques, su música)
+    this.sound.update(dt, P, this.follow.yaw, this.sky.night, iratiMask(P.pos.x, P.pos.z) > 0.5 || this.forestK > 0.5, this.sportQuiet, !!g.def?.bosque);   // (en los deportes, sin el río: sonaba como la lluvia)
     g.ui.setClock(this.sky.clock(), this.sky.night > 0.5);
   }
 }

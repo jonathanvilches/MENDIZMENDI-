@@ -48,6 +48,21 @@ export function eaveCorbels(B, T, W, L, H) {
     for (let zc = -L / 2 + 0.7; zc < L / 2 - 0.4; zc += 1.25) B.add('ashlar', box(0.32, 0.36, 0.26, 1), MM(T, M(s * (W / 2 + 0.16), H - 0.38, zc)));
   }
 }
+// Ermita de monte (con su espadaña y la campana) o, sin campana, la borda o la casa del bosque: nave de mampostería con
+// tejado de dos aguas, puerta en arco y un poyo a la entrada
+function ermita(B, T, x, z, y, ry, bell) {
+  const W = 6.6, L = 10, Hh = 4.6, rise = 1.9;
+  B.add('stone', box(W, Hh + 1, L, 2.2), MM(T, M(0, (Hh + 1) / 2 - 1, 0)));
+  for (const s of [-1, 1]) B.add('slate', box(Math.hypot(W / 2, rise) + 0.5, 0.22, L + 0.8), MM(T, M(s * W / 4, Hh + rise / 2 + 0.1, 0, 0, 0, -s * Math.atan2(rise, W / 2))));
+  for (const s of [-1, 1]) B.add('stone', gable(W, rise, 0.5), MM(T, M(0, Hh, s * (L / 2 - 0.25))));
+  B.add(bell ? 'woodDark' : 'wood', archPanel(1.5, 2.5, 0.12), MM(T, M(0, 0, L / 2 + 0.02)));
+  B.add('ashlar', box(2.3, 0.35, 0.25), MM(T, M(0, 2.75, L / 2 + 0.05)));
+  for (const s of [-1, 1]) B.add('glass', archPanel(0.45, 1, 0.08), MM(T, M(s * (W / 2 + 0.02), 2.4, 0, s * Math.PI / 2)));
+  if (bell) { B.add('stone', box(1.8, 2.6, 0.6), MM(T, M(0, Hh + rise + 0.9, L / 2 - 0.3))); B.add('dark', archPanel(0.55, 1, 0.65), MM(T, M(0, Hh + rise + 0.55, L / 2 - 0.3))); B.add('iron', new THREE.SphereGeometry(0.3, 10, 8), MM(T, M(0, Hh + rise + 0.8, L / 2 - 0.3))); }
+  B.add('ashlar', box(2.6, 0.45, 0.6), MM(T, M(-2.4, 0.22, L / 2 + 0.6)));
+  addBox(x, z, W + 0.4, L + 0.4, ry, { solidView: true });
+  return { door: toW(x, z, ry, 0, L / 2 + 3), x, z, y, W, L };
+}
 function spireTower(B, T, tw, th, roof, mat, style, clock = true) {
   B.add(mat, box(tw, th + 2, tw, 2.2), MM(T, M(0, (th + 2) / 2 - 2, 0)));
   for (const y of [th * 0.35, th * 0.68]) B.add('ashlar', box(tw + 0.3, 0.3, tw + 0.3), MM(T, M(0, y, 0)));
@@ -80,6 +95,7 @@ function spireTower(B, T, tw, th, roof, mat, style, clock = true) {
 export function church(B, x, z, ry, style, fam, opts = {}) {
   const y = terrainHeight(x, z) - 0.2;
   const T = M(x, y, z, ry);
+  if (style === 'ermita' || style === 'borda') return ermita(B, T, x, z, y, ry, style === 'ermita');
   const brick = fam === 'ribera' && style === 'baroque';
   const mat = brick ? 'brick' : 'ashlar';
   const roof = fam === 'pyrenean' || fam === 'atlantic' && style !== 'baroque' ? 'slate' : 'tile';
@@ -460,6 +476,11 @@ export function landmark(B, lm, ctx) {
       B.add('paint', colored(mound, '#7a8a4a'), MM(T, M(0, -0.1, -0.3)));
       for (let i = 0; i < 16; i++) { const a = i / 16 * 6.28 + (i % 3) * 0.1; B.add('stone', new THREE.DodecahedronGeometry(0.28 + (i % 4) * 0.08, 0), MM(T, M(Math.cos(a) * (4.2 + (i % 2) * 0.8), 0.25, Math.sin(a) * (4.2 + (i % 2) * 0.8) - 0.3, i, i * 0.7, 0))); }
       col(3.6, 3); return { x, z: z + 4 };
+    }
+    case 'bigtree': {
+      // el árbol monumental lo pone la naturaleza (nature.js); aquí, su cartel de madera a un lado
+      B.add('woodDark', box(0.14, 1.3, 0.14), MM(T, M(4.2, 0.65, 0))); B.add('wood', box(1.1, 0.7, 0.08), MM(T, M(4.2, 1.35, 0.08, -0.2)));
+      addCircle(x + 4.2, z, 0.4); return { x: x + 3, z: z + 4 };
     }
     case 'rocks': {
       for (const s of [-1, 1]) { B.add('stoneDark', new THREE.CylinderGeometry(3, 5, 26, 7), MM(T, M(s * 9, 12, 0))); B.add('stoneDark', new THREE.DodecahedronGeometry(4, 0), MM(T, M(s * 9, 25, 0))); addCircle(x + s * 9, z, 5); }

@@ -176,6 +176,7 @@ export class Sound {
       else this.tone(base * 1.2, 0.09, 'sine', 0.1, o, t, 0.005, base * 0.8);
     }
   }
+  cuckoo(pos) { if (!this.ctx) return; const o = this.out(pos, 90, 0.5, 0.5); if (!o) return; for (let r = 0; r < 2; r++) { this.tone(650, 0.2, 'sine', 0.1, o, r * 0.9, 0.02, 630); this.tone(540, 0.32, 'sine', 0.1, o, r * 0.9 + 0.26, 0.02, 520); } }
   owl(pos) { if (!this.ctx) return; const o = this.out(pos, 80, 0.4, 0.6); if (!o) return; this.tone(380, 0.35, 'sine', 0.12, o, 0, 0.05, 360); this.tone(380, 0.6, 'sine', 0.12, o, 0.5, 0.05, 350); }
   // sonido propio de cada criatura: 'call' al avisar de que se mueve, 'ambient' de fondo
   creature(who, kind, pos) {
@@ -193,7 +194,7 @@ export class Sound {
   crowd(v = 0.3) { if (!this.ctx) return; this.noiseBurst(1.3, 700, 0.6, 0.12 * v, this.sfx, 0, 'bandpass'); this.noiseBurst(1.1, 1500, 0.8, 0.05 * v, this.sfx, 0.1, 'bandpass'); }
   pelota(v = 1) { if (this.ctx) { this.tone(160, 0.08, 'sine', 0.3 * v, this.sfx); this.noiseBurst(0.06, 2500, 1.2, 0.5 * v, this.sfx); } }
   // ---- ambiente continuo ----
-  update(dt, player, camYaw, night, inIrati, sport = false) {
+  update(dt, player, camYaw, night, inIrati, sport = false, bosque = false) {
     if (!this.ctx) return;
     // (una posición sin número, por un salto raro o un fallo, no puede romper el bucle del juego: se ignora)
     if (!Number.isFinite(player.pos.x) || !Number.isFinite(player.pos.y) || !Number.isFinite(player.pos.z)) return;
@@ -209,8 +210,14 @@ export class Sound {
       this.birdT = night > 0.5 ? 2 + Math.random() * 6 : (inIrati ? 0.6 : 1.2) + Math.random() * 2.5;
       const a = Math.random() * 6.28, d = 8 + Math.random() * 25;
       const p = { x: player.pos.x + Math.cos(a) * d, z: player.pos.z + Math.sin(a) * d };
-      if (night > 0.5) { if (Math.random() < 0.3) this.owl(p); else this.cricket(); }
+      if (night > 0.5) { if (Math.random() < (inIrati ? 0.5 : 0.3)) this.owl(p); else this.cricket(); }
       else this.bird(p);
+    }
+    // monte adentro, de día: de vez en cuando el tamborileo del pito negro o el cuco, lejos
+    if (inIrati && night < 0.5 && !sport && (this.drumT = (this.drumT ?? 8) - dt) < 0) {
+      this.drumT = (bosque ? 16 : 30) + Math.random() * 30;
+      const a = Math.random() * 6.28, p = { x: player.pos.x + Math.cos(a) * 35, z: player.pos.z + Math.sin(a) * 35 };
+      if (Math.random() < 0.6) this.woodpecker(p); else this.cuckoo(p);
     }
   }
   // ---- música generativa por ambiente ----

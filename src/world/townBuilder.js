@@ -129,7 +129,7 @@ export function buildTown(scene, mats, def) {
   // plaza: fuente (si no hay kiosco), bancos y árboles
   const P = PLACES.plaza;
   const hasKiosk = pamp || (PLACES.landmarks || []).some(l => l.kind === 'kiosk');
-  if (!hasKiosk) {
+  if (!hasKiosk && !def.bosque) {   // (en el claro del bosque no hay fuente de plaza)
     // (en un pueblo real, la fuente de los datos si está en la plaza; si no, en el centro de la plaza si cabe)
     let f = { x: P.x, z: P.z };
     if (real) {
@@ -155,14 +155,14 @@ export function buildTown(scene, mats, def) {
   const inKeep = (x, z, r) => keep.some(k => Math.hypot(x - k.x, z - k.z) < k.r + r);
   let count = pamp ? TOWN.houses.length : 0;
   const mid = (p) => p.pts[Math.floor(p.pts.length / 2)];
-  const streets = PATHS.filter(p => p.type === 'street' && !p.noHouses).sort((a, b) => { const A = mid(a), Bm = mid(b); return Math.hypot(A[0] - PLACES.plaza.x, A[1] - PLACES.plaza.z) - Math.hypot(Bm[0] - PLACES.plaza.x, Bm[1] - PLACES.plaza.z); });
+  const streets = PATHS.filter(p => (p.type === 'street' || p.type === 'lane') && !p.noHouses).sort((a, b) => { const A = mid(a), Bm = mid(b); return Math.hypot(A[0] - PLACES.plaza.x, A[1] - PLACES.plaza.z) - Math.hypot(Bm[0] - PLACES.plaza.x, Bm[1] - PLACES.plaza.z); });
   const cap = Math.round(def.size * (fam === 'city' || fam === 'ribera' ? 1.7 : fam === 'central' ? 1.5 : 1.25));
   if (real) { const n = realHouses(B, def, rnd, { buildHouse, houseStyle, minGround, slopeBase, houseShield, addHouse, addBalcon, HALL, P, fam }); count = n.full + n.simple; TOWN.realCount = n; }
   else for (const path of streets) for (const side of [-1, 1]) {
     const L = polyLen(path.pts);
     let s = 2 + rnd() * 4;
     while (s < L - 3 && count < cap) {
-      const st = houseStyle(fam, rnd);
+      const st = houseStyle(fam, rnd); if (def.bosque) st.h = [5.8, 6.8];   // (en el bosque, casas bajas: la del guarda, la borda)
       const w = (st.wide ? 9 : 7) + rnd() * 3.5, d = 7.5 + rnd() * 3, h = st.h[0] + rnd() * (st.h[1] - st.h[0]);
       const a = polyAt(path.pts, s + w / 2);
       const nx = -a.tz * side, nz = a.tx * side;
@@ -200,6 +200,7 @@ export function buildTown(scene, mats, def) {
   }
   // farolas (en un pueblo real, solo en las calles del casco)
   for (const path of streets) {
+    if (path.type !== 'street') continue;   // (en los caminos de tierra del bosque, sin farolas)
     const L = polyLen(path.pts);
     for (let s = 6, k = 0; s < L; s += 26, k++) {
       const a = polyAt(path.pts, s); const side = k % 2 ? 1 : -1;

@@ -5,7 +5,7 @@
 // la pantalla la necesita. En el archivo único solo está la de 640 × 360, y en el ligero, la de 1024 × 576
 // (tools/laminas-movil.mjs: sin conexión, la portada a todo el ancho del móvil tumbado se veía borrosa).
 // En WebP y no en AVIF: los visores de HTML del iPhone no siempre enseñan AVIF, y sin ellas las portadas salían vacías.
-import { LAMINAS, COMARCA_LAMINA, CUENTO_LAMINA, PERSONAJE_LAMINA } from '../data/laminas.js';
+import { LAMINAS, COMARCA_LAMINA, CUENTO_LAMINA, PERSONAJE_LAMINA, BOSQUE_LAMINA } from '../data/laminas.js';
 import { hdTable } from '../web/hd.js';
 import { esc } from '../util/html.js';
 import { byId } from '../util/glob.js';
@@ -57,7 +57,7 @@ export const leyendaUrl = (id, big = false) => (big && LEY_BIG[id]) || LEY[id] |
 // Las portadas son todas láminas: la de cada pueblo, la de cada comarca y, si un pueblo no tiene, la de su comarca.
 // (Las fotos 3D de antes, con el diorama de la comarca y el personaje delante, ya no se usan.)
 /** La portada del pueblo (o null si no tiene); small: la copia de las tarjetas. */
-export const townCover = (id, small = false) => laminaUrl(id, small);
+export const townCover = (id, small = false) => laminaUrl(id, small) || (BOSQUE_LAMINA[id] || []).map(k => laminaUrl(k, small)).find(Boolean) || null;
 /** La portada de la comarca. */
 export const comarcaCover = (id, small = false) => laminaUrl(COMARCA_LAMINA[id], small);
 /** La portada de un pueblo o, si no tiene, la de su comarca. */

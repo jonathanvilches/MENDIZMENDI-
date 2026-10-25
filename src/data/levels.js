@@ -18,6 +18,7 @@ import { FERIA_TOWNS } from './ferias.js';
 import { DOLMEN_TOWNS } from './dolmen.js';
 import { CASTLE_TOWNS } from './castillos.js';
 import { MIRADOR_TOWNS } from './miradores.js';
+import { BOSQUES } from './bosques.js';
 
 export const LEVELS = [
   // ---------------- Baztan-Bidasoa ----------------
@@ -484,6 +485,8 @@ export const LEVELS = [
       { type: 'quiz' },
     ] },
 ];
+// los bosques y selvas, cada uno en su comarca (src/data/bosques.js)
+LEVELS.push(...BOSQUES);
 
 export const levelById = id => LEVELS.find(l => l.id === id);
 

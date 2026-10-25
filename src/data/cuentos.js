@@ -8,7 +8,7 @@
 
 export const CUENTOS = [
   {
-    id: 'aralar', towns: ['lekunberri', 'irurtzun'], kind: 'leyenda', icon: 'cave',
+    id: 'aralar', towns: ['lekunberri', 'irurtzun', 'sierra-aralar'], kind: 'leyenda', icon: 'cave',
     title: 'El dragón de Aralar', place: 'Santuario de San Miguel de Aralar',
     teller: { name: 'Kontalari Mikel', female: false },
     parts: [

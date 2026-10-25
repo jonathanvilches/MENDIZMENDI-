@@ -12,6 +12,7 @@ const EXTRA = [
   { id: 'anie', name: 'Auñamendi / Pic d\'Anie', altitude: 2504, lat: 42.946, lon: -0.717, zone: 'Pirineo · Béarn', intro: 'La gran pirámide de roca que cierra el Pirineo por el este del valle de Roncal. Para los vascos es un monte de leyendas.' },
 ];
 export function townLatLon(lv) {
+  if (lv.lat) return { lat: lv.lat, lon: lv.lon };   // (los bosques no son núcleos: llevan su punto)
   const names = (lv.mapName || lv.name).split('/').map(lettersOnly);
   const hit = SETTLEMENTS.find(s => names.includes(lettersOnly(s[2]))) || SETTLEMENTS.find(s => lettersOnly(s[2]).startsWith(names[0])) || SETTLEMENTS.find(s => names.some(n => lettersOnly(s[2]).includes(n)));
   return hit ? { lat: hit[0], lon: hit[1] } : null;
