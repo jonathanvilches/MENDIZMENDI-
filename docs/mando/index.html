@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<!-- (seguridad: solo el código de la propia web y solo hablar con los servidores del saludo; los de 127.0.0.1, para las pruebas) -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' wss://0.peerjs.com wss://broker.emqx.io:8084 wss://broker.hivemq.com:8884 wss://test.mosquitto.org:8081 wss://mqtt.eclipseprojects.io wss://public.cloud.shiftr.io wss://ntfy.sh https://ntfy.sh ws://127.0.0.1:* http://127.0.0.1:*; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1e1830">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Herrizherri · Mando</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-title" content="Mando">
+<!--
+  El móvil como mando de Herrizherri (src/mando/ es la otra mitad, en el ordenador). El ordenador enseña un código; esta
+  página se presenta con él por varios servidores públicos a la vez, solo para el saludo (mando/senal.js, el mismo archivo
+  que usa el juego) y, después, habla directamente con el ordenador por la wifi con WebRTC; si la wifi no lo deja, por
+  el propio saludo. El ordenador le dice en qué se está y qué botones poner (src/mando/contextos.js). Se juega como en
+  un juego del móvil: la mano izquierda mueve (la palanca, o el panel táctil en los menús) y la derecha actúa (el botón
+  principal abajo a la derecha y los demás a su alrededor). Los botones son los mismos que se ven en la pantalla del juego
+  al jugar en el móvil: los del fútbol y los de la pelota, con su forma, su color y su sitio, y en el pueblo los círculos
+  morados con Acción en rosa; cada uno con su icono y su nombre dentro y, si el nombre no cabe, solo el icono. Aquí solo
+  se pintan y se mandan los toques.
+-->
+<style>
+:root { --fondo: #12052a; --panel: rgba(40, 16, 80, .9); --borde: rgba(201, 178, 255, .35); --rosa: #ff7ac8; --lila: #cbc2e0; --ok: #3ee07a; --aviso: #f2c230; --mal: #ff5d5d; --cta: linear-gradient(100deg, #ff2bd6, #c21cff 55%, #7b2ff7); --m: 16px; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+/* (fija: ni zoom, ni desplazarse, ni la letra que el iPhone agranda en horizontal; movil.js frena además el pellizco) */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+html, body { position: fixed; inset: 0; margin: 0; height: 100%; overflow: hidden; background: radial-gradient(circle at 50% 30%, #3a1680, var(--fondo) 70%); color: #f6f3fc; font-family: Nunito, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; -webkit-user-select: none; user-select: none; touch-action: none; overscroll-behavior: none; }
+button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
+.hide { display: none !important; }
+img { pointer-events: none; }
+
+/* ---------- conectar ---------- */
+#conn { position: fixed; inset: 0; display: grid; place-items: center; padding: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left)); text-align: center; overflow: auto; touch-action: pan-y; }
+#conn .box { width: min(440px, 100%); display: grid; gap: 24px; justify-items: center; align-items: center; }
+#conn .cab, #conn .cuerpo { display: grid; gap: 16px; justify-items: center; width: 100%; }
+#conn h1 { margin: 0; font-size: 28px; line-height: 1.1; font-weight: 900; letter-spacing: .02em; text-transform: uppercase; }
+#conn h1 small { display: block; margin-bottom: 8px; color: var(--rosa); font-size: 13px; letter-spacing: .16em; }
+#conn .nota { margin: 0; color: var(--lila); font-size: 14px; line-height: 1.4; }
+#forma { display: grid; gap: 16px; justify-items: center; width: 100%; }
+#forma label { color: var(--lila); font-size: 16px; line-height: 1.4; }
+#code { width: 100%; max-width: 280px; height: 64px; padding: 0 16px; border-radius: 12px; border: 2px solid rgba(201, 178, 255, .4); background: rgba(255, 255, 255, .08); color: #fff; font: 900 32px/1 Nunito, system-ui, sans-serif; letter-spacing: .3em; text-indent: .3em; text-align: center; text-transform: uppercase; -webkit-user-select: text; user-select: text; }
+#code:focus { outline: none; border-color: var(--rosa); }
+.big { min-height: 52px; padding: 12px 32px; border: 0; border-radius: 8px; background: var(--cta); color: #fff; font-weight: 900; font-size: 18px; letter-spacing: .04em; text-transform: uppercase; box-shadow: 0 0 18px rgba(255, 43, 214, .45); }
+.big:disabled { opacity: .5; }
+#espera { display: grid; place-items: center; }
+.rueda { width: 48px; height: 48px; border-radius: 50%; border: 4px solid rgba(255, 255, 255, .14); border-top-color: var(--rosa); animation: gira 0.9s linear infinite; }
+@keyframes gira { to { transform: rotate(1turn); } }
+#msg { min-height: 24px; font-weight: 800; font-size: 17px; line-height: 1.4; color: #fff; }
+#msg:empty { display: none; }
+#msg.mal { color: #ffb0b0; }
+.link { min-height: 44px; padding: 8px 16px; border: 1px solid var(--borde); border-radius: 8px; background: rgba(255, 255, 255, .06); font-weight: 800; font-size: 15px; }
+#vias { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; color: var(--lila); font-size: 12px; font-weight: 800; }   /* (los servidores con que se presenta: cuáles contestan) */
+#vias:empty { display: none; }
+#vias span { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 4px; background: rgba(255, 255, 255, .06); }
+#vias span::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--aviso); } #vias .ok::before { background: var(--ok); } #vias .mal::before { background: var(--mal); }
+/* (en horizontal, el título a la izquierda y lo que se hace a la derecha: todo a la vista sin desplazar) */
+@media (orientation: landscape) and (max-height: 520px) {
+  #conn .box { width: min(760px, 100%); grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; }
+  #conn .cab { justify-items: start; text-align: left; }
+}
+
+/* ---------- el mando ---------- */
+/* (la letra de los botones, la del juego: Barlow Condensed y Nunito, OFL, en fuentes/ con sus licencias) */
+@font-face { font-family: 'MZ Display'; font-weight: 100 900; font-display: swap; src: url('fuentes/barlow-condensed-latin-800-italic.woff2') format('woff2'); }
+@font-face { font-family: 'MZ Cond'; font-weight: 100 900; font-display: swap; src: url('fuentes/barlow-condensed-latin-800-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Nunito'; font-weight: 800; font-display: swap; src: url('fuentes/nunito-latin-800-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Nunito'; font-weight: 900; font-display: swap; src: url('fuentes/nunito-latin-900-normal.woff2') format('woff2'); }
+#pad { position: fixed; inset: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0); }
+/* arriba: en qué se está y los botones de sistema, redondos como los de arriba del juego */
+#top { display: flex; align-items: center; gap: 8px; padding: 8px var(--m); min-width: 0; }
+#est { display: flex; align-items: center; gap: 8px; flex: 1 1 auto; min-width: 0; font-size: 15px; line-height: 1.25; }
+#est i { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--aviso); box-shadow: 0 0 0 4px rgba(242, 194, 48, .18); }
+#est.ok i { background: var(--ok); box-shadow: 0 0 0 4px rgba(62, 224, 122, .18); }
+#est b { font-weight: 900; color: #fff; }
+/* la misión que sigues, como el recuadro de arriba a la izquierda del juego; al tocarla, todas */
+#qst { flex: 0 1 380px; min-width: 0; display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 4px 14px 4px 4px; border-radius: 26px; border: 1px solid var(--borde); background: rgba(14, 10, 24, .66); color: #fff; text-align: left; touch-action: manipulation; }
+#qst img { width: 36px; height: 36px; flex: none; }
+#qst span { display: grid; min-width: 0; }
+#qst small { color: var(--rosa); font: 800 12px/1.15 'MZ Cond', Nunito, sans-serif; letter-spacing: .06em; text-transform: uppercase; overflow-wrap: anywhere; }
+#qst b { font-size: 14px; font-weight: 800; line-height: 1.2; }
+#qst.down { transform: scale(.97); }
+/* instalar la app: en la pantalla de conectar y, una vez, al conectar */
+#inst { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: start; width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--borde); background: rgba(255, 255, 255, .05); text-align: left; }
+#inst img, #instP img { width: 48px; height: 48px; border-radius: 12px; }
+#inst b, #instP b { font-weight: 900; font-size: 15px; }
+#inst p, #instP p { margin: 4px 0 8px; color: var(--lila); font-size: 14px; line-height: 1.35; }
+#inst p + p { margin-top: -4px; color: #fff; }
+#inst p:empty { display: none; }
+#instP { position: fixed; z-index: 55; left: 50%; top: max(64px, calc(env(safe-area-inset-top) + 56px)); transform: translateX(-50%); width: min(560px, calc(100% - 32px)); display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--rosa); background: rgba(30, 10, 64, .97); box-shadow: 0 10px 30px rgba(0, 0, 0, .45); }
+#instP p { margin-bottom: 0; }
+#instP .bts { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 12px; }
+#instP .big { min-height: 44px; padding: 8px 24px; font-size: 16px; }
+#mis { position: fixed; inset: 0; z-index: 60; display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 12px; padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); background: rgba(18, 5, 42, .97); }
+.mis-cab { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.mis-cab small { color: var(--lila); font-size: 13px; font-weight: 800; }
+#misH { margin: 0; font: 800 italic 26px/1.1 'MZ Display', Nunito, sans-serif; text-transform: uppercase; }
+.mis-bar { height: 6px; border-radius: 3px; background: rgba(255, 255, 255, .12); overflow: hidden; }
+.mis-bar i { display: block; height: 100%; width: 0; background: var(--cta); }
+#misL { list-style: none; margin: 0; padding: 0 0 8px; overflow: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 8px; align-content: start; touch-action: pan-y; overscroll-behavior: contain; }
+#misL button { width: 100%; height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--borde); background: var(--panel); color: #fff; text-align: left; font: inherit; touch-action: pan-y; }
+#misL b { font-size: 16px; font-weight: 900; line-height: 1.2; }
+#misL em { font-style: normal; flex: none; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 900; background: rgba(203, 194, 224, .16); color: var(--lila); }
+#misL .curso em { background: rgba(255, 122, 200, .18); color: var(--rosa); }
+#misL .hecha em { background: rgba(62, 224, 122, .16); color: var(--ok); }
+#misL .hecha button { opacity: .62; }
+#misL .sigue button { border-color: var(--rosa); box-shadow: 0 0 0 2px rgba(255, 122, 200, .35); }
+#misL p, #misL ol { grid-column: 1 / -1; margin: 0; color: var(--lila); font-size: 14px; line-height: 1.35; }
+#misL ol { padding-left: 20px; display: grid; gap: 2px; }
+#misL ol .ok { text-decoration: line-through; opacity: .7; }
+#misL ol .now { color: #fff; font-weight: 800; }
+#misL small { grid-column: 1 / -1; color: var(--lila); font-size: 12px; font-weight: 700; opacity: .85; }
+#sup { display: flex; gap: 8px; flex: none; }
+.sis { position: relative; width: 44px; height: 44px; padding: 0; border-radius: 50%; display: grid; place-items: center; background: rgba(14, 10, 24, .66); border: 2px solid rgba(255, 255, 255, .82); box-shadow: 0 3px 12px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .15); touch-action: none; transition: transform .12s; }
+.sis :is(img, svg) { width: 26px; height: 26px; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .6)); }
+.sis svg { width: 20px; height: 20px; }
+.sis.down { transform: scale(.92); border-color: var(--rosa); }
+.sis .txt { font-size: 11px; }
+
+#zonas { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); min-height: 0; }
+#izq, #der { position: relative; min-height: 0; touch-action: none; overflow: hidden; }
+/* la mano izquierda: la palanca del juego. En reposo, el círculo de trazos con las flechas y MOVER; al apoyar el pulgar,
+   donde sea de la mitad, el aro con el botón blanco */
+#base { position: absolute; left: 0; top: 0; width: var(--db, 104px); height: var(--db, 104px); border-radius: 50%; border: 1.5px dashed rgba(255, 255, 255, .55); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font: 800 13px/1.15 'MZ Cond', Nunito, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .9), 0 0 6px rgba(0, 0, 0, .6); transform: translate(-50%, -50%); pointer-events: none; transition: opacity .2s; }
+#base svg { width: 36px; height: 36px; }
+#base.activa { opacity: 0; }
+#knob { position: absolute; left: 0; top: 0; width: 124px; height: 124px; border-radius: 50%; border: 3px solid rgba(255, 255, 255, .55); background: rgba(28, 11, 58, .3); transform: translate(-50%, -50%); pointer-events: none; }
+#knob i { position: absolute; left: 50%; top: 50%; width: 58px; height: 58px; margin: -29px 0 0 -29px; border-radius: 50%; background: rgba(255, 255, 255, .88); box-shadow: 0 4px 12px rgba(0, 0, 0, .3); }
+/* el panel táctil (menús y ventanas): mover la flecha del ordenador */
+#tp { position: absolute; inset: 8px; display: grid; place-content: center; justify-items: center; gap: 12px; padding: 16px; border-radius: 16px; border: 1px solid rgba(201, 178, 255, .25); background: repeating-linear-gradient(45deg, rgba(255, 255, 255, .025) 0 12px, transparent 12px 24px); pointer-events: none; }
+#tp svg { width: 48px; height: 48px; opacity: .55; }
+/* la mano derecha: los mismos botones del juego (movil.js los coloca: --d, su tamaño; --u, la escala del fútbol y la
+   pelota). Cada uno con su icono y su nombre dentro; si el nombre no cabe, solo el icono (.solo) */
+#bts { position: absolute; inset: 0; pointer-events: none; }
+.bt { position: absolute; left: 0; top: 0; width: var(--d, 68px); height: var(--d, 68px); padding: 0; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: #fff; text-align: center; transform: translate(-50%, -50%); pointer-events: auto; touch-action: none; transition: transform .08s, box-shadow .08s, opacity .2s; }
+.bt .nom { max-width: 84%; line-height: 1; white-space: nowrap; text-transform: uppercase; pointer-events: none; }
+.bt :is(img, svg) { flex: none; pointer-events: none; }
+.bt.solo .nom, .bt.icono .nom { display: none; }
+.bt img.alt { display: none; } .bt.solo img.alt { display: block; }
+/* · los del pueblo (como los de la pantalla del juego): morados con el aro blanco; Acción, rosa; Correr puesto, encendido;
+   solo con su icono, que ya se entiende (.icono) */
+.cb { background: radial-gradient(circle at 50% 30%, rgba(80, 40, 150, .82), rgba(28, 11, 58, .88)); border: 2.5px solid #fff; box-shadow: 0 0 0 3px rgba(138, 43, 226, .45), 0 5px 0 rgba(10, 4, 24, .55), 0 8px 16px rgba(0, 0, 0, .3); }
+.cb img { width: 42%; height: auto; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .35)); } .cb:is(.solo, .icono) img { width: 56%; }   /* (con nombre, el icono algo menor: el rótulo queda cerca del centro, donde el círculo es más ancho) */
+.cb .nom { font: 900 clamp(11px, calc(var(--d) * .15), 14px)/1 Nunito, system-ui, sans-serif; letter-spacing: .04em; text-shadow: 0 1px 0 #1f1a26; }
+.cb.prim { background: radial-gradient(circle at 50% 30%, #ffc2ec, #ff7ac8 60%, #ff3dbd); box-shadow: 0 0 0 4px rgba(255, 122, 200, .35), 0 5px 0 #8a1c8f, 0 10px 22px rgba(0, 0, 0, .35); }
+.cb.prim .nom { color: #2a0638; text-shadow: 0 1px 0 rgba(255, 255, 255, .6); }
+.cb.on { background: radial-gradient(circle at 50% 30%, #ff9d8a, #ff2e88 70%); box-shadow: 0 0 0 3px rgba(255, 122, 200, .8), 0 5px 0 rgba(120, 30, 10, .6), 0 0 18px rgba(255, 99, 71, .6); }
+.cb.down { transform: translate(-50%, -50%) translateY(3px) scale(.95); box-shadow: 0 0 0 3px rgba(138, 43, 226, .45), 0 2px 0 rgba(10, 4, 24, .55), 0 4px 10px rgba(0, 0, 0, .3); }
+/* · los del fútbol (los de src/futbol/hud.js): aro fino, icono de trazo y nombre en la letra estrecha; TIRO en la esquina,
+   PASE a su izquierda, SPRINT encima de TIRO y CAMBIAR en diagonal (apagado con el balón en tus pies); al defender, ROBAR y
+   ENTRADA; con el portero, en turquesa */
+.fb { --mm-top: #6551b5; --mm-bottom: #24154a; border: 1.5px solid #f2dcff; background: linear-gradient(155deg, var(--mm-top), var(--mm-bottom)); gap: 4px; font: 800 max(12px, calc(13px * var(--u, 1)))/1 'MZ Cond', Nunito, system-ui, sans-serif; letter-spacing: .04em; text-shadow: 0 1px 2px #090411; box-shadow: inset 0 2px 0 rgba(255, 255, 255, .27), inset 0 -3px 0 rgba(22, 7, 37, .5), 0 3px 0 #12061b, 0 5px 10px rgba(14, 6, 29, .4); }
+.fb svg { width: max(20px, calc(24px * var(--u, 1))); height: max(20px, calc(24px * var(--u, 1))); filter: drop-shadow(0 1px 1px rgba(18, 6, 27, .5)); }
+.fb.fb-shoot svg { width: max(24px, calc(28px * var(--u, 1))); height: max(24px, calc(28px * var(--u, 1))); }
+.fb img.alt { width: 50%; height: auto; }
+.fb-shoot { --mm-top: #b12bb7; --mm-bottom: #4a1559; border-color: #ffd8fa; }
+.fb-pass { --mm-top: #2a61b5; --mm-bottom: #10294f; border-color: #d8ecff; }
+.fb-swap { --mm-top: #81552e; --mm-bottom: #352033; border-color: #ffe0a0; }
+#bts.atk .fb-swap { opacity: .5; }
+#bts.def .fb-pass { --mm-top: #81502f; --mm-bottom: #3c1d37; } #bts.def .fb-shoot { --mm-top: #982e65; --mm-bottom: #471437; }
+#bts.gk :is(.fb-pass, .fb-shoot), #bts.gkhands :is(.fb-pass, .fb-shoot) { --mm-top: #1d8aa3; --mm-bottom: #0b2f3d; border-color: #d4f6ff; }
+#bts.pen :is(.fb-swap, .fb-sprint) { display: none; }
+.fb.down { background: linear-gradient(155deg, var(--mm-bottom), var(--mm-top)); transform: translate(-50%, -50%) translateY(2px) scale(.96); box-shadow: inset 0 2px 5px rgba(9, 4, 17, .5), 0 1px 0 #12061b; }
+/* · los de la pelota y la pasaka (los de src/pelota/hud.js): GOLPE grande y rosa; DEJADA morado; CORTADA, o GLOBO, fucsia;
+   solo con su nombre, en la letra de los títulos */
+.pel { border: 0; font-family: 'MZ Display', 'MZ Cond', Nunito, sans-serif; font-weight: 800; text-shadow: 0 1px 0 #1f1a26; box-shadow: 0 6px 0 rgba(0, 0, 0, .25), 0 8px 22px rgba(0, 0, 0, .25); }
+.pel img.alt { width: 50%; height: auto; }
+.pel-hit { font-size: calc(24px * var(--u, 1)); text-shadow: 0 2px 0 rgba(74, 10, 94, .6); background: radial-gradient(circle at 50% 30%, #ff9bd8, #ff2bd6 60%, #c21cff); box-shadow: 0 0 0 4px rgba(255, 122, 200, .35), 0 6px 0 #8a1c8f, 0 10px 22px rgba(0, 0, 0, .35); }
+.pel-drop { font-size: calc(14px * var(--u, 1)); background: radial-gradient(circle at 50% 30%, rgba(80, 40, 150, .92), rgba(28, 11, 58, .95)); border: 2.5px solid #fff; box-shadow: 0 0 0 3px rgba(138, 43, 226, .45), 0 5px 0 rgba(10, 4, 24, .55), 0 8px 16px rgba(0, 0, 0, .3); }
+.pel-cut { font-size: calc(13px * var(--u, 1)); background: radial-gradient(circle at 50% 30%, rgba(255, 60, 150, .95), rgba(120, 10, 70, .96)); box-shadow: 0 0 0 3px rgba(255, 46, 136, .45), 0 5px 0 rgba(40, 4, 24, .55), 0 8px 16px rgba(0, 0, 0, .3); }
+.pel.down { transform: translate(-50%, -50%) translateY(4px); box-shadow: 0 2px 0 rgba(0, 0, 0, .25); }
+.txt { padding: 0 8px; font-weight: 800; font-size: 13px; line-height: 1.15; white-space: nowrap; }   /* (el nombre de un botón de arriba que no tuviera icono) */
+/* la copia de los botones del minijuego */
+/* (solo el nombre de cada botón, como un mando: todos a la vista, las filas reparten el alto entre 44 y 72 px; el nombre,
+   entero, en dos líneas como mucho, con la letra más pequeña si no cabe) */
+#esp { position: absolute; inset: 8px var(--m) var(--m) 8px; display: grid; grid-template-columns: minmax(0, 1fr); grid-auto-rows: minmax(44px, 72px); gap: 8px; align-content: safe center; overflow: auto; touch-action: pan-y; overscroll-behavior: contain; }   /* (safe: si no caben, se llega al primero desplazando) */
+#esp.dos { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+#esp button { min-width: 0; min-height: 0; padding: 6px 12px; border-radius: 12px; border: 1px solid var(--borde); background: var(--panel); font-weight: 800; font-size: 16px; line-height: 1.2; text-align: center; text-wrap: balance; overflow: hidden; overflow-wrap: normal; touch-action: none; }
+#esp button.prim { background: var(--cta); border-color: transparent; font-weight: 900; }
+#esp button.on { border: 2px solid var(--rosa); box-shadow: 0 0 0 2px rgba(255, 122, 200, .35); }
+#esp button.cierra { background: rgba(255, 255, 255, .04); }
+#esp button.down { transform: scale(.97); filter: brightness(1.2); }
+#jugar { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; gap: 16px; padding: 16px; text-align: center; }
+#giro { display: none; }
+/* en vertical: los dos pulgares abajo igual y el aviso de girar debajo de la barra */
+@media (orientation: portrait) {
+  :root { --m: 12px; }
+  #pad { grid-template-rows: auto auto minmax(0, 1fr); }
+  #top.fila { flex-wrap: wrap; row-gap: 8px; } #top.fila #est { flex-basis: calc(100% - 52px); } #top.fila #sup { order: 3; flex-wrap: wrap; }   /* (cuatro botones o más: en su propia fila) */
+  #jugar .big { padding: 12px 20px; white-space: nowrap; }
+  #giro { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 var(--m); padding: 8px 12px; border-radius: 10px; background: rgba(255, 255, 255, .06); color: var(--lila); font-size: 13px; font-weight: 800; }
+  #giro svg { width: 18px; height: 18px; flex: none; }
+  #esp.dos { grid-template-columns: minmax(0, 1fr); }
+}
+</style>
+</head>
+<body>
+<div id="conn">
+  <div class="box">
+    <div class="cab">
+      <h1><small>Herrizherri</small><span data-t="Mando en el móvil">Mando en el móvil</span></h1>
+      <p class="nota" data-t="El móvil y el ordenador, mejor en la misma wifi.">El móvil y el ordenador, mejor en la misma wifi.</p>
+    </div>
+    <div class="cuerpo">
+      <div id="espera" class="hide"><div class="rueda" aria-hidden="true"></div></div>
+      <div id="msg" role="status"></div>
+      <div id="forma">
+        <label for="code" data-t="Escribe el código que sale en el ordenador, en «Mando del móvil».">Escribe el código que sale en el ordenador, en «Mando del móvil».</label>
+        <input id="code" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text">
+        <button id="go" class="big" data-t="Conectar">Conectar</button>
+      </div>
+      <button id="otro" class="link hide" data-t="Escribir el código a mano">Escribir el código a mano</button>
+      <div id="vias" aria-label="Servidores"></div>
+      <div id="inst" class="hide"><img src="icon-192.png" alt=""><div><b data-t="Instala la app «Mando»">Instala la app «Mando»</b><p id="instT"></p><p id="instF"></p><button id="instB" class="link hide" data-t="Instalar">Instalar</button></div></div>
+    </div>
+  </div>
+</div>
+<div id="pad" class="hide">
+  <div id="top">
+    <div id="est" role="status"><i></i><span id="estT"></span></div>
+    <button id="qst" class="hide" aria-haspopup="dialog"><img src="iconos/scroll.webp" alt=""><span><small></small><b></b></span></button>
+    <div id="sup"></div>
+    <button class="sis" id="bFull"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+  </div>
+  <div id="giro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M2 14a8 8 0 0 0 5 6M22 10a8 8 0 0 0-5-6"/></svg><span data-t="Mejor con el móvil en horizontal">Mejor con el móvil en horizontal</span></div>
+  <div id="zonas">
+    <div id="izq">
+      <div id="tp" class="hide"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M5 3l14 8-6 1.5L10 19z"/></svg></div>
+      <div id="base" class="hide"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 6l6 7h-4v8h8v-4l7 7-7 7v-4h-8v8h4l-6 7-6-7h4v-8h-8v4l-7-7 7-7v4h8v-8h-4z" fill="#fff" opacity=".9"/></svg><span data-t="Mover">Mover</span></div>
+      <div id="knob" class="hide"><i></i></div>
+    </div>
+    <div id="der">
+      <div id="bts"></div>
+      <div id="esp" class="hide"></div>
+      <div id="jugar" class="hide"><button class="big" id="bJugar" data-t="¡A jugar!">¡A jugar!</button></div>
+    </div>
+  </div>
+</div>
+<!-- una vez, al conectar: instalar la app (ocupa toda la pantalla y se conecta sola) -->
+<div id="instP" class="hide" role="dialog" aria-labelledby="instPH"><img src="icon-192.png" alt=""><div><b id="instPH" data-t="Instala la app «Mando»">Instala la app «Mando»</b><p id="instPT"></p></div><div class="bts"><button id="instPno" class="link" data-t="Ahora no">Ahora no</button><button id="instPsi" class="big hide" data-t="Instalar">Instalar</button></div></div>
+<!-- las misiones del pueblo, como en el cuaderno del juego: tocando una, se sigue con la luz dorada -->
+<div id="mis" class="hide" role="dialog" aria-modal="true" aria-labelledby="misH">
+  <div class="mis-cab"><div><small id="misP"></small><h2 id="misH" data-t="Misiones">Misiones</h2></div><button class="sis" id="misX"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div class="mis-bar"><i></i></div>
+  <ol id="misL"></ol>
+</div>
+<script type="module" src="movil.js"></script>
+</body>
+</html>
