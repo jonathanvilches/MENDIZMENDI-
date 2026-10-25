@@ -660,11 +660,14 @@ export class Hub {
     let cur = start;
     // centra el retrato elegido en la tira sin mover la página
     const center = (id, smooth) => { const b = host.querySelector(`[data-av="${id}"]`), st = b?.parentElement; if (!st) return; st.scrollTo({ left: b.offsetLeft - st.clientWidth / 2 + b.offsetWidth / 2, behavior: smooth ? 'smooth' : 'auto' }); };
-    this.stage = new Stage($('#avStage', host), cur);
+    const stage = this.stage = new Stage($('#avStage', host), cur), sec = $('.csel2', host);
+    // (solo mientras se ve este selector: al jugar, el menú se esconde pero sigue en la página, y las flechas del pueblo
+    // cambiaban de personaje con el escenario ya cerrado: «Cannot read properties of null (reading 'setAvatar')»)
+    const vivo = () => sec.isConnected && !sec.closest('.hidden') && this.stage === stage;
     const set = (id) => {
-      if (id === cur) return; cur = id; const a = castById(id);
-      this.stage.setAvatar(id); this.sound?.ui('coin');
-      const sec = $('.csel2', host); sec.style.setProperty('--c', a.color);
+      if (id === cur || !vivo()) return; cur = id; const a = castById(id);
+      stage.setAvatar(id); this.sound?.ui('coin');
+      sec.style.setProperty('--c', a.color);
       const info = $('#csInfo', host); info.innerHTML = this.castInfo(a); info.classList.remove('swap'); void info.offsetWidth; info.classList.add('swap');
       $('.cs-bgname', host).textContent = a.name; $('.cs-count b', host).textContent = AVATARS.indexOf(a) + 1;
       host.querySelectorAll('[data-av]').forEach(x => x.classList.toggle('on', x.dataset.av === id));
@@ -674,7 +677,7 @@ export class Hub {
     const step = (d) => { const i = AVATARS.findIndex(a => a.id === cur); set(AVATARS[(i + d + AVATARS.length) % AVATARS.length].id); };
     host.querySelectorAll('[data-av]').forEach(b => b.onclick = (e) => { e.stopPropagation(); set(b.dataset.av); });
     host.querySelectorAll('[data-step]').forEach(b => b.onclick = (e) => { e.stopPropagation(); step(+b.dataset.step); });
-    const key = (e) => { if (!host.isConnected) return removeEventListener('keydown', key); if (e.target.tagName === 'INPUT') return; if (e.key === 'ArrowRight') step(1); if (e.key === 'ArrowLeft') step(-1); };
+    const key = (e) => { if (!sec.isConnected || this.stage !== stage) return removeEventListener('keydown', key); if (!vivo() || e.target.tagName === 'INPUT') return; if (e.key === 'ArrowRight') step(1); if (e.key === 'ArrowLeft') step(-1); };
     addEventListener('keydown', key);
     center(cur);
   }
