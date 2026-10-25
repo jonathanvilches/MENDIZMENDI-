@@ -13,6 +13,8 @@ import { OFICIOS } from '../data/oficios.js';
 import { LEGENDS, NIGHT_CARNIVAL } from '../data/legends.js';
 import { PARTS, CASTLE_QUIZ, CASTLE_TOWNS, CASTILLOS } from '../data/castillos.js';
 import { SITES } from '../data/dolmen.js';
+import { MAS_YACIMIENTOS } from '../data/yacimientos.js';
+import { mapaXY } from '../util/geo.js';
 import { FERIA } from '../data/ferias.js';
 import { PASTOR_INFO, VAQUERA_INFO, CROP } from '../data/campo.js';
 import { PET, BELL } from '../data/tocar.js';
@@ -89,6 +91,21 @@ const CROP_LAM = { patata: 'aribe-patatas', manzana: 'irurtzun-manzanas', olivo:
 const HERD_LAM = { lekunberri: 'lekunberri-txerri', 'isaba-izaba': 'isaba-vacas' };
 const PET_FAUNA = { sheep: 'oveja', cow: 'vaca', pottoka: 'pottoka', goat: 'cabra', pig: 'cerdo', dog: 'perro' };
 const SITE_LAM = { dolmen: 'artajona-dolmen', irulegi: 'irulegi-mano' };
+// el mapa de los yacimientos: los de las misiones y algunos más, cada uno en su punto (aproximado) con su número dentro de
+// un círculo; los que caen muy juntos se apartan un poco, para que ningún círculo tape a otro (en el móvil, con --k:
+// fitMaps de hub.js, los círculos crecen hasta unas 48 unidades del mapa)
+function mapaYacimientos() {
+  const P = [...Object.values(SITES).filter(S => S.lat).map(S => ({ n: S.title || S.whatTitle, l: S.lugar || tn(S.town), lat: S.lat, lon: S.lon, t: S.town })),
+    ...MAS_YACIMIENTOS.map(([n, l, txt, lat, lon, , t]) => ({ n, l, txt, lat, lon, t }))].map(p => ({ ...p, xy: mapaXY(p.lat, p.lon) }));
+  for (let it = 0; it < 80; it++) for (const a of P) for (const b of P) {
+    if (a === b) continue; const dx = b.xy[0] - a.xy[0], dy = b.xy[1] - a.xy[1], d = Math.hypot(dx, dy) || 0.1;
+    if (d < 48) { const k = (48 - d) / 2 / d; a.xy[0] -= dx * k; a.xy[1] -= dy * k; b.xy[0] += dx * k; b.xy[1] += dy * k; }
+  }
+  for (const a of P) { a.xy[0] = Math.min(705, Math.max(40, a.xy[0])); a.xy[1] = Math.min(760, Math.max(40, a.xy[1])); }   // (y dentro del marco)
+  const svg = `<svg class="navarra yac-mapa" viewBox="10 10 725 780" role="img" aria-label="Mapa de los yacimientos de Navarra">${COMARCAS.map(c => `<path d="${c.path}" style="fill:${c.color}"/>`).join('')}${P.map((p, i) => `<g class="ynum" transform="translate(${p.xy[0].toFixed(1)} ${p.xy[1].toFixed(1)})"><circle r="14"/><text dy=".36em" text-anchor="middle">${i + 1}</text></g>`).join('')}</svg>`;
+  const li = P.map((p, i) => `<li><i>${i + 1}</i><span><b>${esc(p.n)}</b><small>${esc(p.l)}</small>${p.txt ? `<em>${esc(p.txt)}</em>` : ''}</span>${p.t && levelById(p.t) ? `<button type="button" class="lnk" data-town="${p.t}">${I('pin', 20)}${esc(tn(p.t))}</button>` : ''}</li>`).join('');
+  return `<section class="yac"><h3>${I('map', 30)}<span>El mapa de los yacimientos</span></h3><p class="dd-intro">En Navarra hay catalogados más de 400 dólmenes y muchos otros yacimientos. Estos son algunos de ellos, con el pueblo donde está su misión.</p><div class="yac-in">${svg}<ol class="yac-lista">${li}</ol></div></section>`;
+}
 const ESTILO = { romanesque: 'Románica', gothic: 'Gótica', baroque: 'Barroca', fortress: 'Iglesia-fortaleza', cathedral: 'Catedral' };
 const MONUMENTO = { bridge: 'Puentes de piedra', castle: 'Castillos', walls: 'Murallas', palace: 'Palacios', house: 'Casas con escudo', towerhouse: 'Casas-torre', dolmen: 'Dólmenes', chapel: 'Ermitas', pass: 'Puertos de montaña', dig: 'Excavaciones', palomeras: 'Palomeras', gorge: 'Foces', fountain: 'Fuentes', kiosk: 'Quioscos', arch: 'Arcos y portales',
   ruin: 'Ruinas', cross: 'Cruceros', mill: 'Molinos', monolith: 'Monolitos', lookout: 'Miradores', tunnel: 'Túneles', horreo: 'Hórreos', stelae: 'Estelas discoidales', cave: 'Cuevas', townhall: 'Ayuntamientos' };
@@ -208,7 +225,7 @@ export const DIDACTICO = {
   },
   d_site(id) {
     const S = SITES[id]; if (!S) return '';
-    return block(S.icon, 'Arqueología', S.whatTitle, Ps(S.intro) + P(S.what) + H4('Lo que se encuentra') + `<ul class="dd-ul dd-finds">${S.finds.map(([, n, t]) => `<li><b>${esc(n)}</b> <span>${esc(t)}</span></li>`).join('')}</ul>` + H4(S.stepsTitle) + ol(S.steps) + H4(S.nowTitle) + aa(S.then, S.now),
+    return block(S.icon, 'Arqueología', S.title || S.whatTitle, Ps(S.intro) + P(S.what) + H4('Lo que se encuentra') + `<ul class="dd-ul dd-finds">${S.finds.map(([, n, t]) => `<li><b>${esc(n)}</b> <span>${esc(t)}</span></li>`).join('')}</ul>` + H4(S.stepsTitle) + ol(S.steps) + H4(S.nowTitle) + aa(S.then, S.now) + (S.q ? quiz(S.q) : ''),
       { where: where(towns(m => m.type === 'dolmen' && (m.site || 'dolmen') === id)) });
   },
   d_castillo(id) {
@@ -329,9 +346,9 @@ export const DIDACTICO = {
     const H = CUENTOS.filter(C => C.kind === 'historia');
     const lista = (a) => `<ul class="dd-ul dd-finds">${a.map(([n, t]) => `<li><b>${esc(n)}</b> <span>${esc(t)}</span></li>`).join('')}</ul>`;
     const grupos = [
-      { k: 'pobladores', name: 'Los primeros pobladores', icon: 'dolmen', intro: 'De los pastores que levantaron los dólmenes a los vascones de Irulegi.',
-        items: Object.entries(SITES).map(([k, S]) => ({ k: 's-' + k, img: laminaUrl(SITE_LAM[k], true) || '', icon: S.icon, kicker: 'Arqueología', title: S.whatTitle,
-          secs: [['Qué es', Ps(S.intro) + P(S.what)], ['Lo que se encuentra', lista(S.finds.map(([, n, t]) => [n, t]))], [S.stepsTitle, ol(S.steps)], [S.nowTitle || 'Antes y ahora', aa(S.then, S.now)]],
+      { k: 'pobladores', name: 'Los primeros pobladores', icon: 'dolmen', intro: 'De los cazadores de la Edad de Hielo a las ciudades romanas: dólmenes, crómlech, cuevas, poblados y villas de Navarra.', after: mapaYacimientos(),
+        items: Object.entries(SITES).map(([k, S]) => ({ k: 's-' + k, img: laminaUrl(SITE_LAM[k], true) || '', icon: S.icon, kicker: S.lugar || 'Arqueología', title: S.title || S.whatTitle,
+          secs: [['Qué es', Ps(S.intro) + P(S.what)], ['Lo que se encuentra', lista(S.finds.map(([, n, t]) => [n, t]))], [S.stepsTitle, ol(S.steps)], [S.nowTitle || 'Antes y ahora', aa(S.then, S.now)], S.q && ['Pregunta', quiz(S.q)]],
           towns: towns(m => m.type === 'dolmen' && (m.site || 'dolmen') === k) })) },
       { k: 'castillos', name: 'Los castillos', icon: 'castle', intro: 'Cómo eran por dentro y los que quedan en pie.',
         items: [{ k: 'partes', img: '', icon: 'castle', kicker: 'Castillo', title: 'Las partes de un castillo', secs: [['Sus partes', lista(Object.values(PARTS).map(p => [p.name, p.text]))], ['Pregunta', quiz(CASTLE_QUIZ)]] },

@@ -15,7 +15,7 @@ const HUERTA = { shirt: '#d9a03a', pants: '#4a5b3a', hat: 'straw', hair: '#6b4a2
 
 import { PERSONAJES, FIGURE_TOWNS } from './personajes.js';
 import { FERIA_TOWNS } from './ferias.js';
-import { DOLMEN_TOWNS } from './dolmen.js';
+import { DOLMEN_TOWNS, SITES } from './dolmen.js';
 import { CASTLE_TOWNS } from './castillos.js';
 import { MIRADOR_TOWNS } from './miradores.js';
 import { BOSQUES } from './bosques.js';
@@ -561,4 +561,14 @@ for (const id of DOLMEN_TOWNS) {
   const at = l.missions.findIndex(m => m.type === 'quiz');
   l.missions.splice(at < 0 ? l.missions.length : at, 0, { type: 'dolmen', title: 'El secreto del dolmen',
     host: H('Ainhoa, arqueóloga', { shirt: '#c9a46a', vest: '#4a5a3a', pants: '#5a4a3a', hair: '#3b2418', ponytail: true, female: true, hat: 'straw', bag: '#7a5a3a' }) });
+}
+
+// Los demás yacimientos (data/yacimientos.js): su misión en el pueblo o el bosque más cercano al sitio de verdad, con su
+// monumento (el crómlech, el menhir, la cueva, el poblado o las ruinas romanas: src/world/monuments.js)
+for (const [id, S] of Object.entries(SITES)) {
+  if (!S.tipo) continue;
+  const l = LEVELS.find(x => x.id === S.town); if (!l?.missions) continue;
+  if (!(l.landmarks || []).some(x => x.kind === S.landmark)) (l.landmarks ||= []).push({ kind: S.landmark, name: S.lmName || S.title, text: S.what, ...S.lm });
+  const at = l.missions.findIndex(m => m.type === 'quiz');
+  l.missions.splice(at < 0 ? l.missions.length : at, 0, { type: 'dolmen', site: id, title: S.title, host: S.host });
 }

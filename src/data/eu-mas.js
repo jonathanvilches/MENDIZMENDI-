@@ -38,6 +38,8 @@ export const EU_ROLES = {
   'carbonero': 'ikazkina', 'apicultora': 'erlezaina', 'apicultor': 'erlezaina', 'panadera': 'okina', 'panadero': 'okina', 'viticultor': 'mahastizaina',
   'viticultora': 'mahastizaina', 'tonelero': 'upelgilea', 'cantero': 'hargina', 'almadiero': 'almadiazaina', 'hortelana': 'baratzezaina', 'hortelano': 'baratzezaina',
   'ganadera': 'abeltzaina', 'ganadero': 'abeltzaina', 'agricultora': 'nekazaria', 'agricultor': 'nekazaria', 'dantzari': 'dantzaria', 'txistulari': 'txistularia', 'palomero': 'usazalea', 'guarda forestal': 'basozaina', 'lavandera': 'garbitzailea', 'criador': 'hazlea', 'criadora': 'hazlea', 'peregrino': 'erromesa', 'peregrina': 'erromesa', 'violinista': 'biolin-jolea', 'carnicera': 'harakina', 'Amona Felisa': 'Felisa amona', 'Aizkolari': 'Aizkolaria', 'Cantero': 'Hargina', 'palomera': 'usazalea', 'aizkolari': 'aizkolaria', 'leñador': 'egurgilea',
+  'guía de Agiña': 'Agiñako gidaria', 'guarda de Aezkoa': 'Aezkoako zaindaria', 'espeleóloga': 'espeleologoa', 'arqueóloga de la ciudad': 'hiriko arkeologoa', 'guía de Andelos': 'Andelosko gidaria',
+  'guía de Eslava': 'Eslavako gidaria', 'guía de Arellano': 'Arellanoko gidaria', 'guía de la Foz': 'arroilako gidaria', 'pastora de Belagua': 'Belaguako artzaina',
   'ovejas': 'ardiak', 'vacas': 'behiak', 'cerdos': 'txerriak', 'cabras': 'ahuntzak', 'caballos': 'zaldiak', 'patatas': 'patatak', 'manzanas': 'sagarrak',
 };
 const T = { ...EU_TOWNS, ...EU_ROLES };
@@ -71,6 +73,8 @@ const supply = (s) => s.replace(/\bagua\b/g, 'ura').replace(/\bcomida\b/g, 'jana
 
 export const EU_MAS = { ...MAS, ...T };
 export const EU_RX_MAS = [
+  // (el inicio: la columna y las tarjetas de «Descubre Navarra»)
+  [/^Bosque · (.+)$/, 'Basoa · $1'], [/^Yacimiento · (.+)$/, 'Aztarnategia · $1'], [/^Misión en (.+)$/, 'Misioa: $1'],
   // herriko fitxak, oroigarriak, mendiak eta begiratokiak (2026-10, bigarren itzulia)
   [/^Patrimonio de (.+)$/, (m, a) => `${loc(e(a))} ondarea`],
   // herriko liburua, mapa, motxila eta denda

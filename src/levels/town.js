@@ -382,7 +382,7 @@ export function createTownLevel(def) {
     }
     nDeep++; return best || { x: P.x + 90, z: P.z - 90 };
   };
-  const DEEP = new Set(['dolmen', 'cave', 'ruin', 'lookout', 'bigtree', 'rocks', 'monolith', 'stone', 'cross', 'raft', 'mill']);
+  const DEEP = new Set(['dolmen', 'cave', 'ruin', 'lookout', 'bigtree', 'rocks', 'monolith', 'stone', 'cross', 'raft', 'mill', 'cromlech', 'menhir', 'cueva', 'castro', 'romana', 'villa']);
   for (const lm of def.landmarks || []) {
     const c = cat[lm.kind] || 'edge';
     let pos;
@@ -399,8 +399,8 @@ export function createTownLevel(def) {
     if (lm.pad) addPad(o.x, o.z, lm.pad, lm.padBlend || 20);
     PLACES.landmarks.push(o);
     if (lm.kind === 'castle') addPad(o.x, o.z, 30, 16);
-    else if (lm.kind === 'dig') addPad(o.x, o.z, 14, 14);
-    else if (['ruin', 'monolith', 'lookout', 'dolmen', 'cross', 'stone', 'chapel', 'palomeras', 'horreo', 'house', 'palace', 'towerhouse', 'mill', 'bigtree'].includes(lm.kind)) addPad(o.x, o.z, 9, 12);
+    else if (['dig', 'castro', 'romana', 'villa'].includes(lm.kind)) addPad(o.x, o.z, 14, 14);
+    else if (['ruin', 'monolith', 'lookout', 'dolmen', 'cross', 'stone', 'chapel', 'palomeras', 'horreo', 'house', 'palace', 'towerhouse', 'mill', 'bigtree', 'cromlech', 'menhir', 'cueva'].includes(lm.kind)) addPad(o.x, o.z, 9, 12);
   }
   // sendas por el monte desde el borde del claro hasta cada sitio, con sus curvas
   if (BQ) PLACES.landmarks.forEach((l, i) => {

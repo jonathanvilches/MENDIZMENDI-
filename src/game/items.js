@@ -41,6 +41,28 @@ export function makeItem(kind) {
     // la mano de bronce (lámina recortada con dedos)
     case 'hand': { const M2 = { metalness: 0.75, roughness: 0.35 }; add(new THREE.BoxGeometry(0.2, 0.22, 0.015), '#a87a3a', 0, 0.35, 0, M2); for (let i = 0; i < 4; i++) add(new THREE.BoxGeometry(0.038, 0.14, 0.015), '#a87a3a', -0.075 + i * 0.05, 0.52, 0, M2); const th = mesh(new THREE.BoxGeometry(0.04, 0.12, 0.015), '#a87a3a', 0.13, 0.38, 0, M2); th.rotation.z = -0.6; body.add(th); for (let i = 0; i < 4; i++) add(new THREE.BoxGeometry(0.15, 0.008, 0.004), '#5a3a1a', 0, 0.3 + i * 0.03, 0.01); break; }
     case 'shell': { const s = new THREE.Mesh(new THREE.CircleGeometry(0.22, 12, 0, Math.PI), mat('#f2c94c', { side: THREE.DoubleSide })); s.position.y = 0.3; body.add(s); break; }
+    // hallazgos de los yacimientos (data/yacimientos.js)
+    case 'charcoal': for (let i = 0; i < 5; i++) add(new THREE.DodecahedronGeometry(0.05 + (i % 3) * 0.015, 0), '#1f1a18', Math.cos(i * 1.3) * 0.12, 0.25 + (i % 2) * 0.05, Math.sin(i * 1.3) * 0.12, { roughness: 0.9 }); break;
+    case 'wedge': for (let i = 0; i < 3; i++) add(new THREE.DodecahedronGeometry(0.13 - i * 0.025, 0), '#8f897e', (i - 1) * 0.17, 0.24, (i % 2) * 0.08, { flatShading: true }); break;
+    case 'flint': { const f = mesh(new THREE.OctahedronGeometry(0.17, 0), '#b7a98a', 0, 0.3, 0, { roughness: 0.35, flatShading: true }); f.scale.set(1, 0.4, 0.65); body.add(f); break; }
+    case 'needle': { const n = mesh(new THREE.CylinderGeometry(0.008, 0.016, 0.42, 6), '#e8dcc0', 0, 0.32, 0); n.rotation.z = 1.2; body.add(n); add(new THREE.TorusGeometry(0.022, 0.006, 5, 10), '#e8dcc0', -0.18, 0.4, 0); break; }
+    case 'loomweight': { add(new THREE.CylinderGeometry(0.07, 0.13, 0.28, 4), '#a8683e', 0, 0.3, 0, { flatShading: true }); const h = mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.2, 8), '#3a2418', 0, 0.38, 0); h.rotation.x = Math.PI / 2; body.add(h); break; }
+    case 'coin': { const c = mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.025, 20), '#9a6a32', 0, 0.32, 0, { metalness: 0.7, roughness: 0.35 }); c.rotation.x = Math.PI / 2; body.add(c); add(new THREE.TorusGeometry(0.1, 0.008, 4, 18), '#6a4520', 0, 0.32, 0.014, { metalness: 0.7, roughness: 0.4 }); break; }
+    case 'sigillata': { const c = mesh(new THREE.CylinderGeometry(0.2, 0.15, 0.1, 10, 1, true, 0, 1.8), '#b8452a', 0, 0.25, 0, { side: THREE.DoubleSide, roughness: 0.25 }); c.rotation.x = 0.5; body.add(c); break; }
+    case 'tesela': for (let i = 0; i < 9; i++) add(new THREE.BoxGeometry(0.07, 0.07, 0.07), ['#efe6d2', '#7a2a22', '#262220', '#c9a24a'][i % 4], (i % 3 - 1) * 0.1, 0.24 + Math.floor(i / 3) * 0.02, (Math.floor(i / 3) - 1) * 0.1); break;
+    case 'lucerna': { const l = mesh(new THREE.SphereGeometry(0.15, 14, 8), '#b07a4a', 0, 0.28, 0); l.scale.y = 0.4; body.add(l); const n = mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.14, 8), '#b07a4a', 0.16, 0.28, 0); n.rotation.z = Math.PI / 2; body.add(n); add(new THREE.TorusGeometry(0.05, 0.015, 5, 10), '#b07a4a', -0.15, 0.32, 0); const o = mesh(new THREE.CircleGeometry(0.03, 8), '#3a2418', 0, 0.341, 0); o.rotation.x = -Math.PI / 2; body.add(o); break; }
+    case 'tessera': { const M2 = { metalness: 0.7, roughness: 0.4 }; add(new THREE.BoxGeometry(0.24, 0.1, 0.03), '#8a6a3a', 0, 0.34, 0, M2); add(new THREE.BoxGeometry(0.08, 0.08, 0.03), '#8a6a3a', 0.14, 0.4, 0, M2); for (const lx of [-0.09, 0.09]) add(new THREE.BoxGeometry(0.03, 0.1, 0.03), '#8a6a3a', lx, 0.25, 0, M2); break; }
+    case 'sling': for (let i = 0; i < 3; i++) { const b = mesh(new THREE.SphereGeometry(0.05, 10, 8), '#6a6e74', (i - 1) * 0.13, 0.26, (i % 2) * 0.06, { metalness: 0.5, roughness: 0.45 }); b.scale.set(1.6, 1, 1); body.add(b); } break;
+    case 'shadow': { const sh = { transparent: true, opacity: 0.55, depthWrite: false }; const b = mesh(new THREE.CapsuleGeometry(0.1, 0.4, 4, 8), '#24222a', 0, 0.06, 0.05, sh), hd = mesh(new THREE.CircleGeometry(0.1, 12), '#24222a', 0, 0.06, -0.33, sh); b.rotation.x = Math.PI / 2; hd.rotation.x = -Math.PI / 2; body.add(b, hd); add(new THREE.SphereGeometry(0.07, 10, 8), '#ffd56a', 0.25, 0.55, 0.2, { emissive: new THREE.Color('#c08a20') }); break; }
+    case 'bison': case 'mapstone': case 'inscription': {
+      // piedra con rayas grabadas: el bisonte de Alkerdi, el mapa de Abauntz o las letras de una inscripción romana
+      const ins = kind === 'inscription', st = mesh(new THREE.BoxGeometry(ins ? 0.42 : 0.52, ins ? 0.52 : 0.34, 0.08), ins ? '#cfc6b0' : '#958e82', 0, 0.36, 0, { flatShading: !ins }); body.add(st);
+      const L = kind === 'bison' ? [[-0.12, 0.42, 0.18, 0.6], [0.05, 0.45, 0.14, -0.3], [0.14, 0.38, 0.1, -1.2], [-0.04, 0.3, 0.3, 0], [-0.2, 0.36, 0.12, 1.3]] : kind === 'mapstone' ? [[-0.1, 0.42, 0.3, 0.3], [0.08, 0.36, 0.28, -0.4], [-0.05, 0.3, 0.32, 0.15], [0.16, 0.44, 0.12, 1]] : [0.5, 0.42, 0.34, 0.26].map(y => [0, y, 0.3, 0]);
+      for (const [lx, ly, w, a] of L) { const l = mesh(new THREE.BoxGeometry(w, 0.012, 0.01), '#2e2a26', lx, ly, 0.042); l.rotation.z = a; body.add(l); }
+      break;
+    }
+    case 'hearth': add(new THREE.CylinderGeometry(0.3, 0.32, 0.06, 16), '#7a4a32', 0, 0.06, 0); for (let i = 0; i < 4; i++) add(new THREE.DodecahedronGeometry(0.045, 0), '#1f1a18', Math.cos(i * 1.6) * 0.12, 0.12, Math.sin(i * 1.6) * 0.12); add(new THREE.SphereGeometry(0.05, 8, 6), '#ff7a2a', 0, 0.13, 0, { emissive: new THREE.Color('#c04a10') }); break;
+    case 'brick': for (let i = 0; i < 4; i++) add(new THREE.BoxGeometry(0.22, 0.05, 0.22), i % 2 ? '#a8583a' : '#b8683f', 0, 0.12 + i * 0.06, 0); break;
     default: add(new THREE.OctahedronGeometry(0.2, 0), '#f5c542', 0, 0.35, 0, { emissive: new THREE.Color('#a07a1a') });
   }
   body.userData.spin = true;

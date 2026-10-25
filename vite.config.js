@@ -67,7 +67,7 @@ const glbGzip = { name: 'glb-gzip', enforce: 'pre', async load(id) {
   return `export default ${JSON.stringify('data:application/gzip;base64,' + (await gzipMejor(readFileSync(id.replace(/\?url$/, '')))).toString('base64'))}`;
 } };
 // En el archivo único, además, el código del juego va comprimido con gzip (un tercio de lo que ocupa: deja sitio dentro
-// de los 30 MB de Sitecase). Solo el código: las imágenes, sonidos y modelos que lleva dentro ya van comprimidos y en
+// de los 30 MB de Sitecase), y también la hoja de estilos. Solo el texto: las imágenes, sonidos y modelos que lleva dentro ya van comprimidos y en
 // base64 no ganarían nada, así que se sacan aparte (cada «data:…» del código pasa a ser __hzD[n], y sus textos van en
 // un bloque de texto). Al abrirlo, un cargador pequeño lo descomprime con el fflate de three.js (el mismo que abre los
 // modelos 3D del archivo único) y lo ejecuta como el módulo que era
@@ -89,21 +89,28 @@ const jsGzip = { name: 'js-gzip', enforce: 'post', async writeBundle(out) {
   let code = '', at = 0;
   for (const n of cortes.sort((a, b) => a.start - b.start)) { code += src.slice(at, n.start) + `__hzD[${datos.length}]`; datos.push(n.value); at = n.end; }
   code += src.slice(at);
+  // (la hoja de estilos, igual: sus fuentes en base64 van con los demás datos y el resto, comprimido; el cargador la pone
+  // en su sitio antes de arrancar el código. Hasta entonces solo se ve la portada, que lleva su propio estilo)
+  const reCss = /<style rel="stylesheet" crossorigin>([\s\S]*?)<\/style>/, mc = html.match(reCss);
+  const css = mc ? mc[1].replace(/data:[\w/+.-]+;base64,[A-Za-z0-9+/=]+/g, (d) => `@@hzD${datos.push(d) - 1}@@`) : '';
+  if (mc) html = html.replace(reCss, () => '<style id="hz-estilo"></style>');
   const { rolldown } = await import('rolldown');
   const b = await rolldown({ input: 'cargador', logLevel: 'silent', plugins: [{ name: 'cargador', resolveId: (id) => (id === 'cargador' ? id : null), load: (id) => (id !== 'cargador' ? null : `
     import { gunzipSync } from 'three/examples/jsm/libs/fflate.module.js';
-    const el = (id) => document.getElementById(id), z = atob(el('hz-codigo').textContent), u = new Uint8Array(z.length);
-    for (let i = 0; i < z.length; i++) u[i] = z.charCodeAt(i);
+    const el = (id) => document.getElementById(id), abre = (id) => { const z = atob(el(id).textContent), u = new Uint8Array(z.length);
+      for (let i = 0; i < z.length; i++) u[i] = z.charCodeAt(i);
+      el(id).remove(); return new TextDecoder().decode(gunzipSync(u)); };
     window.__hzD = el('hz-datos').textContent.split('\\n');
-    const s = document.createElement('script'); s.type = 'module'; s.textContent = new TextDecoder().decode(gunzipSync(u));
-    el('hz-codigo').remove(); el('hz-datos').remove(); document.body.appendChild(s);`) }] });
+    if (el('hz-css')) el('hz-estilo').textContent = abre('hz-css').replace(/@@hzD(\\d+)@@/g, (_, i) => window.__hzD[i]);
+    const s = document.createElement('script'); s.type = 'module'; s.textContent = abre('hz-codigo');
+    el('hz-datos').remove(); document.body.appendChild(s);`) }] });
   const cargador = (await b.generate({ format: 'iife', minify: true })).output[0].code.trim();
-  const gz = (await gzipMejor(Buffer.from(code))).toString('base64');
+  const gz = (await gzipMejor(Buffer.from(code))).toString('base64'), gzCss = css && (await gzipMejor(Buffer.from(css))).toString('base64');
   html = html.replace(re, () => '');
   const fin = html.lastIndexOf('</body>');
-  html = html.slice(0, fin) + `<script type="text/plain" id="hz-datos">${datos.join('\n')}</script>\n<script type="text/plain" id="hz-codigo">${gz}</script>\n<script id="hz-cargador">${cargador}</script>\n` + html.slice(fin);
+  html = html.slice(0, fin) + `<script type="text/plain" id="hz-datos">${datos.join('\n')}</script>\n${gzCss ? `<script type="text/plain" id="hz-css">${gzCss}</script>\n` : ''}<script type="text/plain" id="hz-codigo">${gz}</script>\n<script id="hz-cargador">${cargador}</script>\n` + html.slice(fin);
   writeFileSync(f, html);
-  console.log(`código comprimido: ${(src.length / 1e6).toFixed(2)} MB → ${((gz.length + datos.join('\n').length) / 1e6).toFixed(2)} MB (${datos.length} datos aparte, cargador de ${cargador.length} bytes)`);
+  console.log(`código comprimido: ${((src.length + (mc?.[1].length || 0)) / 1e6).toFixed(2)} MB → ${((gz.length + (gzCss || '').length + datos.join('\n').length) / 1e6).toFixed(2)} MB (${datos.length} datos aparte, cargador de ${cargador.length} bytes)`);
 } };
 // la redirección a docs/ de index.html solo sirve sin compilar (GitHub Pages desde la raíz): fuera al compilar
 const sinRedir = { name: 'sin-redireccion', transformIndexHtml: (html) => html.replace(/<!-- en GitHub Pages[\s\S]*?<script id="ir-a-docs">[\s\S]*?<\/script>\n?/, '') };

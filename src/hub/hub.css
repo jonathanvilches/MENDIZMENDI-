@@ -536,36 +536,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 }
 @media (prefers-reduced-motion: reduce) { #hub *, .onb * { animation: none !important; } }
 
-/* ================= Portada con historia ================= */
-.hero3d { position: relative; height: clamp(460px, calc(66dvh / var(--z, 1)), 640px); border-radius: var(--rL); overflow: hidden; border: 1px solid var(--line2); box-shadow: 0 20px 50px rgba(0, 0, 0, .45); background: #1c0b3a; isolation: isolate; }
-/* portada fija: la foto de la comarca y el personaje de pie a la derecha (en vertical, en el centro, encima del título) */
-.hero3d .hero-img { position: absolute; inset: 0; background: #1c0b3a center 82% / cover no-repeat; }   /* (las láminas llevan al personaje abajo, con los pies casi en el borde: cuando hay que recortar, se recorta el cielo) */
-.h-shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(20, 6, 48, .5) 0%, rgba(20, 6, 48, 0) 20%, rgba(20, 6, 48, 0) 52%, rgba(20, 6, 48, .8) 80%, rgba(20, 6, 48, .96) 100%); }
-.chapter { position: absolute; left: 24px; top: 24px; z-index: 2; display: flex; gap: 8px; align-items: center; padding: 4px 16px 4px 4px; border-radius: 40px; background: rgba(20, 6, 48, .74); border: 1px solid var(--line2); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); color: #fff; max-width: calc(100% - 48px); text-align: left; font: inherit; cursor: pointer; }
-.chapter img { width: 46px; height: 46px; flex: none; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .4)); }
-.chapter > span { min-width: 0; display: block; }
-.chapter small { display: block; color: var(--gold); font-size: var(--fs-xs); letter-spacing: .1em; text-transform: uppercase; font-weight: 900; line-height: 1.25; }   /* (en dos líneas si no cabe, sin puntos suspensivos) */
-.chapter b { display: block; font-size: var(--fs-sm); line-height: 1.25; }
-.chapter .cbar { display: block; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, .18); margin-top: 4px; overflow: hidden; }
-.chapter .cbar i { display: block; height: 100%; min-width: 5px; border-radius: 3px; background: linear-gradient(90deg, var(--cyan), var(--pink)); }
-.h-bot { position: absolute; left: 0; bottom: 0; z-index: 2; width: min(520px, 50%); padding: 0 24px 24px; display: flex; flex-direction: column; align-items: flex-start; }
-.h-bot .kicker { color: var(--gold); }
-.h-bot h1 { margin: var(--t-mt) 0 8px; font-family: 'MZ Display', 'Nunito', sans-serif; font-weight: 400; font-size: var(--fs-hero); line-height: 1; color: #fff; text-shadow: 0 4px 0 #3a1580, 0 8px 22px rgba(0, 0, 0, .5); max-width: 100%; overflow-wrap: anywhere; }
-.mrow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-.mrow .mi { position: relative; width: 50px; height: 50px; display: grid; place-items: center; border-radius: 14px; background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .22); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
-.mrow .mi img, .mrow .mi svg { width: 40px; height: 40px; }
-.mrow .mi.ok { background: rgba(201, 178, 255, .22); border-color: var(--cyan); }
-.mrow .mi .tick { position: absolute; right: -4px; top: -4px; width: 20px; height: 20px; border-radius: 50%; background: var(--cyan); display: grid; place-items: center; }
-.mrow .mi .tick img, .mrow .mi .tick svg { width: 16px; height: 16px; }
-.mrow .mcount { font-size: var(--fs-lg); font-weight: 900; color: #fff; line-height: 1; } .mrow .mcount small { display: block; font-size: var(--fs-xs); color: var(--mute); letter-spacing: .1em; text-transform: uppercase; }
-.h-cta { display: flex; gap: 8px; width: 100%; }
-.h-cta .go { flex: 1 1 auto; min-width: 0; white-space: nowrap; font-size: var(--fs-lg); padding-top: 16px; padding-bottom: 16px; }
-.h-cta .go img, .h-cta .go svg { width: 28px; height: 28px; }
-.h-cta .sq { flex: none; flex-direction: column; gap: 0; padding: 8px 16px; font-size: var(--fs-xs); letter-spacing: .04em; text-transform: uppercase; }
-.h-cta .sq img, .h-cta .sq svg { width: 30px; height: 30px; }
-@media (orientation: landscape) and (max-height: 420px) { .h-cta .go { font-size: var(--fs-lg); gap: 8px; padding-left: 16px; padding-right: 16px; } }
-@media (orientation: landscape) and (max-height: 420px) and (max-width: 700px) { .hero3d .h-cta .go { font-size: var(--fs-md); gap: 4px; padding-left: 12px; padding-right: 12px; } .hero3d .h-cta .go :is(img, svg) { width: 24px; height: 24px; } .hero3d .h-bot { width: min(398px, calc(58% - 16px)); } }   /* (en los móviles más estrechos, «Jarraitu dezagun!» cabe entero) */
-
+/* ================= La historia del pasaporte ================= */
 .story { margin-top: var(--esp); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: var(--hueco-m); align-items: center; padding: var(--relleno); border-radius: var(--r); border: 1px solid var(--line2); min-height: 150px;
   background: linear-gradient(90deg, rgba(60, 14, 110, .3), rgba(36, 10, 76, .78) 42%, rgba(28, 8, 60, .94)), var(--img, none) left 30%/cover; }   /* (la comarca en la que juegas, de fondo) */
 .story h2 { text-shadow: 0 2px 10px rgba(0, 0, 0, .7); }
@@ -580,25 +551,9 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .ccard .cimg { background: linear-gradient(160deg, #3b2a66, #1c0b3a) center/cover; transition: opacity .4s; }
 .ccard .cimg:not(.ready) { opacity: .6; }
 
-@media (max-aspect-ratio: 1/1) {
-  .h-bot { width: 100%; padding: 0 16px 16px; } .chapter { left: 16px; top: 16px; max-width: calc(100% - 32px); }
-}
 @media (max-width: 760px) {
-  .hero3d { height: max(440px, calc(calc(100svh / var(--z, 1)) - 158px)); max-height: 760px; margin: -8px 0 0; border-radius: var(--rL); }
-  .h-bot h1 { font-size: var(--fs-4xl); margin-bottom: 8px; }
-  .mrow { gap: 8px; margin-bottom: 12px; } .mrow .mi { width: 44px; height: 44px; border-radius: 12px; } .mrow .mi img, .mrow .mi svg { width: 34px; height: 34px; }
   .story { grid-template-columns: minmax(0, 1fr); padding: 16px 16px; background: linear-gradient(180deg, rgba(60, 14, 110, .25), rgba(28, 8, 60, .92) 60%), var(--img, none) center 30%/cover; }
   .hsteps { gap: 8px; } .hsteps li { padding: 8px 8px; } .hsteps li img, .hsteps li svg { width: 48px; height: 48px; } .hsteps b { font-size: var(--fs-sm); }
-}
-@media (max-height: 520px) {
-  .hero3d { height: calc(calc(100dvh / var(--z, 1)) - 90px); min-height: 280px; }
-  /* (en columna, con 16 px a cada lado y entre la caja del capítulo y lo de abajo: crece si no cabe, en vez de pisarse) */
-  .hero3d { height: auto; min-height: max(280px, calc(calc(100dvh / var(--z, 1)) - 90px)); display: flex; flex-direction: column; align-items: flex-start; gap: 16px; padding: 16px; }
-  .hero3d .chapter { position: relative; top: auto; left: auto; max-width: 100%; } .hero3d .chapter img { width: 36px; height: 36px; } .hero3d .chapter .cbar { display: none; }
-  .hero3d .h-bot { position: relative; left: auto; bottom: auto; margin-top: auto; width: min(398px, calc(52% - 16px)); padding: 0; }
-  .hero3d .h-bot h1 { font-size: var(--fs-2xl); margin-bottom: 8px; } .hero3d .h-bot .kicker { margin-top: 0; }
-  .mrow { margin-bottom: 8px; } .mrow .mi { width: 38px; height: 38px; } .mrow .mi img, .mrow .mi svg { width: 30px; height: 30px; }
-  .h-cta .go { font-size: var(--fs-lg); padding-top: 12px; padding-bottom: 12px; }
 }
 
 /* ================= Selector de personaje =================
@@ -719,11 +674,6 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .cs-extra { grid-area: extra; position: relative; padding: 16px 16px 16px; border-top: 1px solid var(--line); background: rgba(10, 4, 26, .55); }
 .csel2 .cs-roster { overflow: hidden; }
 .stats .stat { border: 0; background: none; padding: 0; border-radius: 0; min-height: 0; box-shadow: none; }
-@media (max-width: 760px) and (max-height: 700px) {
-  .chapter { top: 16px; left: 16px; padding: 4px 12px 4px 4px; } .chapter img { width: 36px; height: 36px; } .chapter .cbar { display: none; }
-  .h-bot h1 { font-size: var(--fs-3xl); margin-bottom: 8px; } .mrow { margin-bottom: 8px; }
-  .h-cta .go { font-size: var(--fs-lg); padding-top: 12px; padding-bottom: 12px; }
-}
 /* final de pueblo */
 .finale .mg-card { width: min(520px, 100%); background: radial-gradient(ellipse at 50% 0%, #5a22b0, #1c0b3a 70%); border-color: rgba(255, 122, 200, .5); overflow-x: hidden; position: relative; }
 .finale .kicker { color: #ff7ac8; font-size: var(--fs-sm); letter-spacing: .1em; }
@@ -759,8 +709,6 @@ html.tele-bajo .finale .mg-card { gap: 8px; } html.tele-bajo .finale .stampimg.b
 /* barra lateral: los nombres completos caben sin cortarse (Naturaleza, Personajes, Pasaporte) */
 .hub-nav button span { font-family: var(--f-cond); font-weight: 700; font-size: var(--fs-sm); letter-spacing: .02em; }   /* (la letra de los botones del juego: estrecha, los nombres largos en euskera caben con aire) */
 @media (orientation: landscape) and (max-height: 520px), (max-width: 760px) { .hub-nav button span { font-size: var(--fs-xs); } }   /* (en la barra de abajo y en la de al lado del móvil tumbado, más pequeña: seis nombres en fila) */
-/* móvil pequeño en horizontal: portada sin bocadillo ni rótulo para que nada se monte */
-@media (max-height: 520px) and (max-width: 700px) { .hero3d .h-bot .kicker { display: none; } }
 /* móvil tumbado (poca altura): «ordenar pasos» pone las opciones junto a los huecos y todo cabe sin desplazar (las
    fichas de información van en src/ui/infocard.css) */
 @media (orientation: landscape) and (max-height: 560px) {
@@ -1256,7 +1204,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   /* dianas táctiles y textos pequeños */
   .fr-chip { min-height: 44px; padding: 8px 16px; }
   .set select { min-height: 44px; } .set input[type=checkbox] { width: 30px; height: 30px; }
-  .chapter small, .tcard small { font-size: var(--fs-xs); }
+  .tcard small { font-size: var(--fs-xs); }
   /* (el texto «¿Cómo te llamas?» queda dentro del campo, para que el nombre tenga sitio) */
   .onb-foot > label { font-size: 0; gap: 0; } .onb-foot > label input { font-size: var(--fs-md); }
   .onb .langsel button { min-height: 44px; }
@@ -1343,10 +1291,6 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 /* tarjetas de comarca */
 .ccard .cimg { background-size: cover; background-position: center 80%; opacity: 1; }
 .ccard .cimg::after { background: linear-gradient(180deg, transparent 55%, var(--plum) 100%); }
-/* inicio: la lámina del pueblo, nítida, con el texto a la izquierda */
-.hero3d .hero-img { background-color: #1c0b3a; background-position: center 82%; background-size: cover; background-repeat: no-repeat; }
-.h-shade { background: var(--cov-head), var(--cov-foot), var(--cov-side); }
-@media (max-aspect-ratio: 1/1) { .h-shade { background: var(--cov-head), linear-gradient(0deg, rgba(14, 7, 32, .92) 0%, rgba(14, 7, 32, .62) 34%, rgba(14, 7, 32, 0) 60%); } }
 /* cabecera de la comarca: más alta para que la lámina no quede en una tira, y el texto abajo a la izquierda */
 .chero { min-height: clamp(200px, calc(36vw / var(--z, 1)), calc(56dvh / var(--z, 1))); align-items: end; background: var(--cov-head), var(--cov-foot), var(--cov-side), var(--bg) center 38% / cover no-repeat, #1c0b3a; }
 @media (max-width: 599px), (orientation: portrait) { .chero { min-height: 240px; } }
@@ -1374,14 +1318,6 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .ccard { container-type: inline-size; }
 .ccard .cimg { height: auto; aspect-ratio: 16 / 9; background-position: center; }
 .ccard .cstamp { top: calc(100cqw * 9 / 16 - 54px); }
-/* inicio en vertical (móvil o iPad de pie): la lámina entera arriba, en 16:9, y debajo el pueblo, sus misiones y el botón */
-@media (max-aspect-ratio: 1/1) {
-  .hero3d { height: auto; min-height: 0; max-height: none; display: flex; flex-direction: column; }
-  .hero3d .hero-img { position: relative; inset: auto; flex: none; width: 100%; aspect-ratio: 16 / 9; background-position: center;
-    -webkit-mask: linear-gradient(180deg, #000 80%, transparent); mask: linear-gradient(180deg, #000 80%, transparent); }
-  .hero3d .h-shade { display: none; }
-  .hero3d .h-bot { position: relative; left: auto; bottom: auto; width: 100%; padding: 0 16px 16px; }
-}
 /* el iPad de pie: las cinco cifras del inicio en una fila, con el icono menor para que cada rótulo quepa en una línea */
 @media (orientation: portrait) and (min-width: 600px) { .tile { padding: 12px; } .tile :is(img.ico, svg) { width: 32px; height: 32px; } .tile b { white-space: nowrap; } }
 /* cuaderno de fauna: el animal entero y centrado en su tarjeta, del mismo tamaño en todas */
@@ -1465,15 +1401,14 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .pj-g .sec { margin-top: 16px; }
 .pj-g .lead { margin: 0 0 16px; }
 /* el enlace a la sección desde las tiras de la portada, a la derecha del título y en letra normal */
-.sec .sec-more { margin-left: auto; min-height: 40px; display: inline-flex; align-items: center; padding: 8px 0; background: none; border: 0; color: #ff7ac8; font-size: var(--fs-sm); font-weight: 800; letter-spacing: 0; text-transform: none; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; white-space: nowrap; }
+.sec .sec-more, .ini-h .sec-more { margin-left: auto; min-height: 40px; display: inline-flex; align-items: center; padding: 8px 0; background: none; border: 0; color: #ff7ac8; font-size: var(--fs-sm); font-weight: 800; letter-spacing: 0; text-transform: none; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; white-space: nowrap; }
 /* móviles muy estrechos (plegables, iPhone SE de primera generación): en la barra de abajo no caben seis nombres; la 5.ª
    sección principal y, aún más estrecho, la 4.ª pasan a «Más» */
 @media (max-width: 379px) and (orientation: portrait) { .hub-nav .navp5 { display: none; } }
-@media (max-width: 339px) and (orientation: portrait) { .hub-nav .navp4 { display: none; } .h-cta .go { font-size: var(--fs-md); padding-left: 12px; padding-right: 12px; gap: 4px; } .h-cta .sq { padding: 8px 12px; } }
+@media (max-width: 339px) and (orientation: portrait) { .hub-nav .navp4 { display: none; } }
 /* móvil tumbado: los botones de la barra lateral, de 40 px de alto como mínimo para el dedo */
 @media (max-height: 520px) and (min-width: 561px) { .hub-nav button { min-height: 40px; } }
 /* móvil tumbado pequeño (iPhone SE de primera generación): el botón de la portada y el nombre del modo, más cortos */
-@media (orientation: landscape) and (max-height: 360px) { .h-cta .go { font-size: var(--fs-md); padding-left: 12px; padding-right: 12px; gap: 4px; } .h-cta .sq { padding: 4px 12px; } }
 /* el móvil más estrecho (280 a 360 px, como el Galaxy Fold cerrado): el idioma con menos relleno, los botones de la
    bienvenida en dos líneas si hace falta, el campeonato con menos márgenes, los nombres de las insignias partidos (antes se salían de su caja) y el contador debajo de «Ver más» */
 @media (max-width: 360px) {

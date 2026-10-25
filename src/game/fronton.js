@@ -9,7 +9,7 @@ import { PelotaCourt, PelotaMatch, labritExtent } from '../pelota/index.js';
 import { pelotariStats, levelTier, COURT } from '../pelota/rules.js';
 import { terrainHeight, waterLevelAt, addPlatform, onPlatform } from '../world/heightfield.js';
 import { addBox, rectFree, removeMover } from '../world/colliders.js';
-import { rx, pathQuery } from '../world/layout.js';
+import { rx, pathQuery, cercaDeYacimiento } from '../world/layout.js';
 import { clearGrass, clearTrees } from '../world/nature.js';
 import { isEU } from '../i18n.js';
 import { profile } from './profile.js';
@@ -157,6 +157,7 @@ function frontonSearch(plaza, r0, r1, gap, da, noRoad, E) {
   for (let r = r0; r <= r1; r += 8) for (let a = 0; a < Math.PI * 2; a += da) {
     const x = plaza.x + Math.cos(a) * r, z = plaza.z + Math.sin(a) * r, face = r < 1 && plaza.ry != null ? plaza.ry : Math.atan2(plaza.x - x, plaza.z - z);
     if (Math.sign(x - rx(z)) !== Math.sign(plaza.x - rx(plaza.z))) continue;   // en la misma orilla que la plaza (sin río, rx es 9999: todo vale)
+    if (cercaDeYacimiento(x, z, 26)) continue;   // (ni encima de un yacimiento)
     // la cancha se abre hacia la plaza; si así no cabe, también de lado (como muchos frontones, a lo largo de la calle)
     for (const [ry, turned] of [[face, 0], [face + Math.PI / 2, 1], [face - Math.PI / 2, 1]]) {
       if (!rectFree(x, z, ry, E.x0, E.x1, E.z0, E.z1, gap)) continue;   // ni casas ni muros ni farolas dentro

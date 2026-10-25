@@ -277,7 +277,9 @@ export function createRealTownLevel(def, D) {
     }
     return best;
   };
-  const highest = (r0, r1, m) => { let best = null, bh = -1e9; for (let r = r0; r <= r1; r += 15) for (let k = 0; k < 36; k++) { const a = k / 36 * Math.PI * 2, x = PL.x + Math.cos(a) * r, z = PL.z + Math.sin(a) * r; if (!okSpot(x, z, m, 0.35) || PLACES.landmarks.some(l => Math.hypot(l.x - x, l.z - z) < 40)) continue; const h = dem(x, z) - r * 0.02; if (h > bh) { bh = h; best = { x, z }; } } return best; };
+  // (lejos: además, lejos del frontón, que se levanta aparte: los yacimientos son grandes y no deben pisarlo)
+  const lejosFronton = (x, z) => !PLACES.frontonNear || Math.hypot(x - PLACES.frontonNear.x, z - PLACES.frontonNear.z) > 45;
+  const highest = (r0, r1, m, lejos) => { let best = null, bh = -1e9; for (let r = r0; r <= r1; r += 15) for (let k = 0; k < 36; k++) { const a = k / 36 * Math.PI * 2, x = PL.x + Math.cos(a) * r, z = PL.z + Math.sin(a) * r; if (!okSpot(x, z, m, 0.35) || PLACES.landmarks.some(l => Math.hypot(l.x - x, l.z - z) < 40) || (lejos && !lejosFronton(x, z))) continue; const h = dem(x, z) - r * 0.02; if (h > bh) { bh = h; best = { x, z }; } } return best; };
   const freeNear = (x0, z0, r0, r1, m) => ring(r0, r1, (x, z) => okSpot(x + x0, z + z0, m, 0.25) && !PLACES.landmarks.some(l => Math.hypot(l.x - x - x0, l.z - z - z0) < 30));
   // (los lugares con nombre de monumento de los datos: el castillo, el cerco o la cueva donde están aunque su edificio
   // no tenga nombre; cuenta cada palabra del nombre de la ficha que coincide y el tipo de sitio que es)
@@ -285,7 +287,8 @@ export function createRealTownLevel(def, D) {
   const KIND_RE = { castle: /castillo|gaztelu|palacio real|errege jauregi/, palace: /palacio|jauregi/, towerhouse: /dorre|torre/, chapel: /ermita|baseliza|kapera|capilla|silo/,
     walls: /cerco|muralla|harresi/, cave: /cueva|kobazulo|leize/, dolmen: /dolmen|trikuharri/, mill: /molino|errota/, horreo: /horreo|garaixea/, lookout: /mirador|begiratoki/,
     ruin: /ruina/, stone: /tumba|piedra/, stelae: /estela|hilarri/, palomeras: /palomer|usategi/, tunnel: /via verde|plazaola|tunel/, dig: /poblado|yacimiento/ };
-  const NATURAL = new Set(['cave', 'dolmen', 'lookout', 'pass', 'gorge', 'dig', 'monolith']);
+  const NATURAL = new Set(['cave', 'dolmen', 'lookout', 'pass', 'gorge', 'dig', 'monolith', 'cromlech', 'menhir', 'cueva', 'castro', 'romana', 'villa']);
+  const YAC = new Set(['cromlech', 'menhir', 'cueva', 'castro', 'romana', 'villa']);   // (los yacimientos: data/yacimientos.js)
   const placeByName = (keys, re, natural) => {
     let best = null, bs = null;
     for (const p of NOMS) {
@@ -335,11 +338,11 @@ export function createRealTownLevel(def, D) {
     else if (k === 'raft') pos = onBank(30, 200, 4);
     else if (k === 'mill') pos = onBank(60, 320, 7);
     else if (k === 'gorge') pos = onBank(260, 440, 6);
-    else if (['lookout', 'pass', 'ruin', 'monolith', 'dig'].includes(k)) pos = highest(120, 420, k === 'dig' ? 14 : 8);
+    else if (['lookout', 'pass', 'ruin', 'monolith', 'dig', 'cromlech', 'menhir', 'castro'].includes(k)) pos = highest(120, 420, ['dig', 'castro'].includes(k) ? 14 : 8, YAC.has(k));
     else if (k === 'arch') pos = onStreet(1, 0, R * 0.5, R + 30) && freeNear(0, 0, R * 0.6, R + 40, 3);
     if (!pos) {
-      const big = ['castle', 'walls', 'dig', 'ruin', 'monolith', 'dolmen', 'lookout', 'cave', 'palomeras', 'tunnel', 'stone', 'pass', 'gorge'].includes(k), m = big ? 16 : 7;
-      pos = ring(big ? R + 20 : 40, big ? 400 : 260, (x, z) => okSpot(x, z, m, 0.25) && !PLACES.landmarks.some(l => Math.hypot(l.x - x, l.z - z) < 40)) || { x: PL.x + 60, z: PL.z - 60 };
+      const big = ['castle', 'walls', 'dig', 'ruin', 'monolith', 'dolmen', 'lookout', 'cave', 'palomeras', 'tunnel', 'stone', 'pass', 'gorge', 'cromlech', 'menhir', 'cueva', 'castro', 'romana', 'villa'].includes(k), m = big ? 16 : 7;
+      pos = ring(big ? R + 20 : 40, big ? 400 : 260, (x, z) => okSpot(x, z, m, 0.25) && !PLACES.landmarks.some(l => Math.hypot(l.x - x, l.z - z) < 40) && (!YAC.has(k) || lejosFronton(x, z))) || { x: PL.x + 60, z: PL.z - 60 };
     }
     if (lm.x != null) pos = { x: lm.x, z: lm.z };
     const o = { ...lm, x: pos.x, z: pos.z, center: pos.center, ring: pos.ring, realBuilding: b || null, realPlace: placeName };
@@ -348,7 +351,7 @@ export function createRealTownLevel(def, D) {
     const rr = clearR || (k === 'walls' && pos.ring ? 0 : ['bridge', 'plaza', 'kiosk', 'fountain', 'townhall'].includes(k) || b ? 0 : 8);
     if (rr) for (const c of CASAS) if (Math.hypot(c.x - o.x, c.z - o.z) < rr + Math.max(c.w, c.d) / 2) TAKEN.add(c);
     if (k === 'walls' && pos.ring) for (const c of CASAS) if (Math.abs(Math.hypot(c.x - o.x, c.z - o.z) - 44) < Math.max(c.w, c.d) / 2 + 3) TAKEN.add(c);
-    if (!b && !['bridge', 'plaza', 'kiosk', 'fountain', 'townhall'].includes(k) && !pos.ring) pads.push({ x: o.x, z: o.z, r: k === 'castle' ? 30 : 9, blend: 12 });
+    if (!b && !['bridge', 'plaza', 'kiosk', 'fountain', 'townhall'].includes(k) && !pos.ring) pads.push({ x: o.x, z: o.z, r: k === 'castle' ? 30 : ['castro', 'romana', 'villa'].includes(k) ? 15 : 9, blend: 12 });
     if (b && k === 'castle') pads.push({ x: o.x, z: o.z, r: 30, blend: 16 });
   }
   // ---------- El núcleo: donde se juega ----------
@@ -358,7 +361,7 @@ export function createRealTownLevel(def, D) {
   // estructura del pueblo; fuera, campo. Con un círculo fijo de 300 m, en Estella quedaban fuera el palacio y el puente de
   // la misión y en Tudela se levantaban casi mil casas que no pisaba ninguna misión. Los miradores, dólmenes, cuevas y
   // demás lugares del monte no cuentan: están en el campo
-  const MONTE = new Set(['lookout', 'pass', 'dig', 'monolith', 'dolmen', 'gorge', 'cave', 'tunnel']);
+  const MONTE = new Set(['lookout', 'pass', 'dig', 'monolith', 'dolmen', 'gorge', 'cave', 'tunnel', 'cromlech', 'menhir', 'cueva', 'castro', 'romana', 'villa']);
   const conCasas = (p) => CASAS.some(b => Math.hypot(b.x - p.x, b.z - p.z) < 35);
   const ANCLAS = [PLACES.plaza, PLACES.church, PLACES.townhall, PLACES.frontonReal && PLACES.frontonNear, PLACES.market, PLACES.spawn,
     riverInfo(PLACES.riverSpot.x, PLACES.riverSpot.z).edge < 12 && PLACES.riverSpot,

@@ -385,6 +385,20 @@ export function bridge(B, b, riverInfo) {
   }
 }
 
+// losa en bruto, sin labrar, con los bordes irregulares (dólmenes, crómlech y menhires)
+function laja(w, h, d, seed) {
+  const g = new THREE.BoxGeometry(w, h, d, 4, 4, 2), p = g.attributes.position; let r = seed; const rn = () => ((r = (r * 9301 + 49297) % 233280) / 233280 - 0.5);
+  for (let i = 0; i < p.count; i++) { const e = Math.abs(p.getX(i)) > w / 2 - 1e-3 || Math.abs(p.getY(i)) > h / 2 - 1e-3; p.setXYZ(i, p.getX(i) * (1 + rn() * 0.18), p.getY(i) * (1 + (e ? rn() * 0.2 : 0)), p.getZ(i) * (1 + rn() * 0.35)); }
+  g.computeVertexNormals(); return g;
+}
+// cata de excavación: tierra removida con su cuadrícula de cuerdas y estacas (w × d metros, en cx, cz)
+function cata(B, T, cx, cz, w, d) {
+  B.add('paint', colored(box(w, 0.2, d), '#8a6a4a'), MM(T, M(cx, -0.04, cz)));
+  const nx = Math.max(1, Math.round(w / 1.5)), nz = Math.max(1, Math.round(d / 1.5));
+  for (let i = 0; i <= nx; i++) { const lx = cx - w / 2 + i * w / nx; B.add('paint', colored(box(0.03, 0.03, d), '#f2e6c4'), MM(T, M(lx, 0.32, cz))); for (const s of [-1, 1]) B.add('woodDark', box(0.07, 0.6, 0.07), MM(T, M(lx, 0.22, cz + s * d / 2))); }
+  for (let j = 0; j <= nz; j++) B.add('paint', colored(box(w, 0.03, 0.03), '#f2e6c4'), MM(T, M(cx, 0.32, cz - d / 2 + j * d / nz)));
+}
+
 // ---------- Otros elementos ----------
 export function landmark(B, lm, ctx) {
   const { x, z } = lm;
@@ -464,9 +478,7 @@ export function landmark(B, lm, ctx) {
     case 'dolmen': {
       // losas en bruto (sin labrar, con bordes irregulares), cámara abierta por delante, gran losa de cubierta
       // inclinada y restos del túmulo: un anillo bajo de tierra y piedras alrededor
-      const slab = (w, h, d, seed) => { const g = new THREE.BoxGeometry(w, h, d, 4, 4, 2), p = g.attributes.position; let r = seed; const rn = () => ((r = (r * 9301 + 49297) % 233280) / 233280 - 0.5);
-        for (let i = 0; i < p.count; i++) { const e = Math.abs(p.getX(i)) > w / 2 - 1e-3 || Math.abs(p.getY(i)) > h / 2 - 1e-3; p.setXYZ(i, p.getX(i) * (1 + rn() * 0.18), p.getY(i) * (1 + (e ? rn() * 0.2 : 0)), p.getZ(i) * (1 + rn() * 0.35)); }
-        g.computeVertexNormals(); return g; };
+      const slab = laja;
       B.add('rock', slab(0.45, 2.1, 2.2, 11), MM(T, M(-1.3, 0.95, -0.2, 0, 0.08, 0.05)));
       B.add('rock', slab(0.45, 1.9, 2.0, 23), MM(T, M(1.35, 0.85, -0.1, 0, -0.06, -0.06)));
       B.add('rock', slab(0.45, 2.0, 2.6, 37), MM(T, M(0, 0.9, -1.35, 0, Math.PI / 2, 0.04)));
@@ -476,6 +488,95 @@ export function landmark(B, lm, ctx) {
       B.add('paint', colored(mound, '#7a8a4a'), MM(T, M(0, -0.1, -0.3)));
       for (let i = 0; i < 16; i++) { const a = i / 16 * 6.28 + (i % 3) * 0.1; B.add('stone', new THREE.DodecahedronGeometry(0.28 + (i % 4) * 0.08, 0), MM(T, M(Math.cos(a) * (4.2 + (i % 2) * 0.8), 0.25, Math.sin(a) * (4.2 + (i % 2) * 0.8) - 0.3, i, i * 0.7, 0))); }
       col(3.6, 3); return { x, z: z + 4 };
+    }
+    case 'cromlech': {
+      // crómlech: círculos pequeños de lajas clavadas de pie, varios juntos en el rellano; el grande, con su cata en medio
+      const anillo = (cx, cz, r, n, seed) => { for (let i = 0; i < n; i++) { const a = i / n * 6.283 + (seed % 7) * 0.1, h = 0.35 + ((i * 7 + seed) % 5) * 0.12;
+        B.add('rock', laja(0.5 + (i % 3) * 0.12, h, 0.22, seed + i * 13), MM(T, M(cx + Math.cos(a) * r, h / 2 - 0.12, cz + Math.sin(a) * r, -a + Math.PI / 2 + ((i * 5) % 3 - 1) * 0.15, 0, ((i * 3) % 5 - 2) * 0.05))); } };
+      anillo(0, 0, 2.6, 16, 3);
+      for (const [cx, cz, r, n] of [[-6.5, -3, 1.9, 12], [5.8, -4.5, 2.2, 13], [-3, -8.5, 1.6, 10], [7.5, 3.5, 1.7, 11]]) anillo(cx, cz, r, n, Math.round(Math.abs(cx * 3 + cz)) + 5);
+      cata(B, T, 0, 0, 2.4, 2.4);
+      return { x, z: z + 5 };
+    }
+    case 'menhir': {
+      // una laja larga de pie, algo inclinada, con sus piedras de calzo alrededor de la base
+      B.add('rock', laja(1.25, 3.8, 0.6, 77), MM(T, M(0, 1.75, 0, 0.3, 0.06, -0.07)));
+      for (let i = 0; i < 7; i++) { const a = i / 7 * 6.283 + 0.3; B.add('stone', new THREE.DodecahedronGeometry(0.22 + (i % 3) * 0.06, 0), MM(T, M(Math.cos(a) * 0.95, 0.08, Math.sin(a) * 0.6, i, i * 0.7, 0))); }
+      addCircle(x, z, 0.9); return { x, z: z + 4 };
+    }
+    case 'cueva': {
+      // abrigo en un roquedo calizo, con la boca cerrada por una reja (las cuevas con arte o con restos tan antiguos están
+      // protegidas) y la cata del equipo delante
+      // (el roquedo, un peñasco redondeado; las rocas enmarcan la boca sin taparla)
+      const pe = new THREE.DodecahedronGeometry(1, 1); pe.scale(10, 7.5, 5.5); B.add('rock', pe, MM(T, M(0, 3, -8.3, 0.4)));
+      for (let i = 0; i < 9; i++) { const a = i / 8 * Math.PI; B.add('rock', new THREE.DodecahedronGeometry(1.9 + (i % 3) * 0.4, 1), MM(T, M(Math.cos(a) * 5.3, 2.2 + Math.sin(a) * 4.7 - (i % 2) * 0.3, -2.6 - (i % 2) * 0.8, i, i * 0.5, 0))); }
+      B.add('dark', archPanel(6, 5.2, 0.4), MM(T, M(0, -0.3, -2.2)));
+      for (let i = -5; i <= 5; i++) { const lx = i * 0.52, top = 2.2 + Math.sqrt(9 - lx * lx) - 0.08; B.add('iron', box(0.07, top, 0.07), MM(T, M(lx, -0.3 + top / 2, -1.9))); }
+      for (const ly of [1.1, 2.6]) B.add('iron', box(5.8, 0.08, 0.08), MM(T, M(0, ly, -1.9)));
+      cata(B, T, 0, 1.4, 4.5, 3);
+      addBox(x, z - 8.3, 18, 9, 0, { solidView: true }); for (const s of [-1, 1]) addBox(x + s * 5.6, z - 2.8, 3.6, 3.2, 0);
+      addBox(x, z - 1.9, 6, 0.4, 0);
+      return { x, z: z + 5.5 };
+    }
+    case 'castro': {
+      // poblado de la Edad del Hierro: los zócalos de piedra de las casas a los dos lados de la calle, con el arranque de
+      // las paredes de adobe y el hogar en medio; al fondo, la muralla con su torre y una casa levantadas otra vez, como en
+      // Las Eretas, y la cata al final de la calle
+      const ADOBE = '#b8956a';
+      const muro = (lx, lz, ww, dd, h) => { B.add('stone', box(ww, 0.55, dd, 1.5), MM(T, M(lx, 0.2, lz))); if (h) B.add('paint', colored(box(ww * 0.98, h, dd * 0.8), ADOBE), MM(T, M(lx, 0.47 + h / 2, lz))); };
+      for (const s of [-1, 1]) for (let i = 0; i < 3; i++) {
+        const cx = s * 4.4, cz = -3 + i * 5, w = 5.4, d = 4.4, ad = ((i + (s > 0 ? 1 : 0)) % 3) * 0.35;
+        muro(cx, cz - d / 2, w, 0.55, ad); muro(cx, cz + d / 2, w, 0.55, ad); muro(cx + s * w / 2, cz, 0.55, d, ad);
+        for (const t of [-1, 1]) muro(cx - s * w / 2, cz + t * (d / 4 + 0.45), 0.55, d / 2 - 0.9, ad);   // (la de la calle, con su puerta)
+        B.add('paint', colored(new THREE.CylinderGeometry(0.55, 0.6, 0.12, 12), '#7a4a32'), MM(T, M(cx, 0.06, cz)));
+      }
+      B.add('stone', box(20, 2.6, 1.4, 2), MM(T, M(0, 1.1, -11.5)));
+      B.add('stone', box(4, 5.4, 4, 2), MM(T, M(-6.5, 2.5, -11.5)));
+      B.add('paint', colored(box(5.4, 2.4, 4.4), ADOBE), MM(T, M(4, 1.2, -8)));
+      for (const s of [-1, 1]) B.add('paint', colored(box(3.3, 0.22, 5), '#9a8550'), MM(T, M(4 + s * 1.38, 3.12, -8, 0, 0, -s * 0.55)));
+      for (const s of [-1, 1]) B.add('paint', colored(gable(5.4, 1.62, 0.2), ADOBE), MM(T, M(4, 2.4, -8 + s * 2.1)));
+      B.add('woodDark', box(1, 1.8, 0.1), MM(T, M(4, 0.9, -5.75)));
+      cata(B, T, 0, 10.5, 3.5, 2.5);
+      addBox(x, z - 11.5, 20, 1.4, 0, { solidView: true }); addBox(x - 6.5, z - 11.5, 4, 4, 0, { solidView: true }); addBox(x + 4, z - 8, 5.4, 4.4, 0, { solidView: true });
+      return { x, z: z + 4 };
+    }
+    case 'romana': {
+      // ruinas de una ciudad romana: el enlosado del foro con su pórtico de columnas (alguna rota), los muros bajos de las
+      // casas y las tiendas y el canal del agua; en Andelos, además, un tramo del acueducto. En una cata de ciudad
+      // (Pompaelo, debajo de Pamplona), solo un trozo con su valla
+      const ct = !!lm.cata, S = ct ? 0.6 : 1, H = [4.2, 4.2, 1.6, 4.2, 2.6, 0.9];
+      B.add('ashlar', box(12 * S, 0.25, 9 * S, 1.2), MM(T, M(0, 0, 0)));
+      for (let i = 0; i < (ct ? 3 : 6); i++) {
+        const lx = (-5 + i * 2) * S, h = H[i] * (ct ? 0.5 : 1);
+        B.add('ashlar', box(0.9, 0.35, 0.9, 1), MM(T, M(lx, 0.3, -4 * S)));
+        B.add('ashlar', cyl(0.32, 0.36, h, 12), MM(T, M(lx, 0.45 + h / 2, -4 * S)));
+        if (h > 4) B.add('ashlar', box(0.85, 0.3, 0.85, 1), MM(T, M(lx, 0.6 + h, -4 * S)));
+        addCircle(x + lx, z - 4 * S, 0.5);
+      }
+      if (!ct) B.add('ashlar', box(2.9, 0.45, 0.85, 1), MM(T, M(-4, 5.2, -4)));
+      for (const [cx, cz, w, d, h] of ct ? [[2.2, 1.5, 2.6, 2.4, 0.7]] : [[-6.5, 7, 4, 4, 0.9], [-2.2, 7, 4, 4, 0.6], [2.1, 7, 4, 4, 1.1], [7.8, 1, 3, 8, 0.8]])
+        for (const [lx, lz, ww, dd] of [[0, -d / 2, w, 0.5], [0, d / 2, w, 0.5], [-w / 2, 0, 0.5, d], [w / 2, 0, 0.5, d]]) B.add('stone', box(ww, h, dd, 1.5), MM(T, M(cx + lx, h / 2 - 0.1, cz + lz)));
+      if (!ct) { for (const s of [-1, 1]) B.add('ashlar', box(0.3, 0.5, 13, 1.2), MM(T, M(10.2 + s * 0.4, 0.15, 0))); B.add('paint', colored(box(0.5, 0.06, 13), '#4a7a8a'), MM(T, M(10.2, 0.08, 0))); }
+      if (lm.agua) {
+        for (let i = 0; i < 4; i++) { B.add('ashlar', box(1, 3.4, 1.3, 1.5), MM(T, M(-6 + i * 4, 1.5, -10))); addBox(x - 6 + i * 4, z - 10, 1, 1.3, 0); }
+        for (let i = 0; i < 3; i++) B.add('ashlar', archRing(1.5, 1.95, 1.3, 12), MM(T, M(-4 + i * 4, 3.2, -10)));
+        B.add('ashlar', box(13, 0.9, 1.3, 1.5), MM(T, M(0, 5.6, -10)));
+      }
+      if (ct) { for (const [lx, lz] of [[-4, -3.4], [4, -3.4], [-4, 3.4], [4, 3.4]]) B.add('iron', box(0.06, 1.1, 0.06), MM(T, M(lx, 0.55, lz)));
+        for (const lz of [-3.4, 3.4]) B.add('iron', box(8, 0.05, 0.05), MM(T, M(0, 1.05, lz))); for (const lx of [-4, 4]) B.add('iron', box(0.05, 0.05, 6.8), MM(T, M(lx, 1.05, 0))); }
+      cata(B, T, ct ? -1.5 : 0, ct ? 1.2 : 2.5, 3, 2.2);
+      return { x, z: z + (ct ? 5 : 7) };
+    }
+    case 'villa': {
+      // villa romana: los muros bajos de las habitaciones alrededor de un patio con columnas, un mosaico de teselas y, en la
+      // bodega, las tinajas medio enterradas
+      for (const [lx, lz, ww, dd] of [[0, -7, 18, 0.6], [0, 7, 18, 0.6], [-9, 0, 0.6, 14], [9, 0, 0.6, 14], [-4, -3, 0.6, 8], [4, -3, 0.6, 8], [0, 1, 8.6, 0.6]])
+        B.add('stone', box(ww, 0.9 + ((lx * 3 + lz) % 3 + 3) % 3 * 0.25, dd, 1.5), MM(T, M(lx, 0.35, lz)));
+      for (let i = 0; i < 4; i++) for (const s of [-1, 1]) { const lx = -3 + i * 2, h = (i + (s > 0 ? 2 : 0)) % 3 ? 2.3 : 0.8; B.add('ashlar', cyl(0.18, 0.22, h, 10), MM(T, M(lx, h / 2, 4 + s * 1.9))); }
+      const tc = (i, j) => { const d = Math.min(i, j, 11 - i, 11 - j); return d === 0 ? '#7a2a22' : d === 2 ? ((i + j) % 2 ? '#262220' : '#efe6d2') : d < 4 ? '#efe6d2' : (i === 5 || i === 6) && (j === 5 || j === 6) ? '#7a2a22' : '#c9a24a'; };
+      for (let i = 0; i < 12; i++) for (let j = 0; j < 12; j++) B.add('paint', colored(box(0.38, 0.06, 0.38), tc(i, j)), MM(T, M(-6.5 + i * 0.4 - 2.2, 0.06, -3 + j * 0.4 - 2.2)));
+      for (let i = 0; i < 4; i++) { const g = new THREE.SphereGeometry(0.62, 12, 8); g.scale(1, 1.25, 1); B.add('paint', colored(g, '#a8683e'), MM(T, M(5.4 + (i % 2) * 1.6, 0.25, -5.2 + Math.floor(i / 2) * 1.7))); addCircle(x + 5.4 + (i % 2) * 1.6, z - 5.2 + Math.floor(i / 2) * 1.7, 0.6); }
+      return { x, z: z + 9 };
     }
     case 'bigtree': {
       // el árbol monumental lo pone la naturaleza (nature.js); aquí, su cartel de madera a un lado
