@@ -150,6 +150,19 @@ CUSTOM.artichoke = () => {
 // ovillo de lana con las vueltas del hilo
 CUSTOM.wool = () => { const g = G(M(new THREE.SphereGeometry(0.45, 32, 24), '#f2ead8', 0, 0, 0, 0, 0, 0, { roughness: 0.95 })); for (let i = 0; i < 9; i++) g.add(M(new THREE.TorusGeometry(0.45, 0.025, 6, 40), i % 2 ? '#e2d6bc' : '#fbf5e6', 0, 0, 0, i * 0.35, i * 0.7, 0)); g.add(M(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(0.35, -0.3, 0.2), new THREE.Vector3(0.6, -0.45, 0.25), new THREE.Vector3(0.75, -0.3, 0.1)]), 12, 0.025, 6), '#e2d6bc')); return g; };
 CUSTOM.trout = CUSTOM.fish;
+// yacimientos (data/yacimientos.js): el crómlech, el poblado, la columna romana y el mosaico
+CUSTOM.cromlech = () => { const g = G(M(new THREE.CylinderGeometry(0.55, 0.58, 0.06, 28), '#7f9a52', 0, -0.25, 0, 0, 0, 0, { roughness: 0.9 }));
+  for (let i = 0; i < 9; i++) { const a = i / 9 * Math.PI * 2, h = 0.22 + (i % 3) * 0.08; g.add(M(new THREE.BoxGeometry(0.16, h, 0.07), i % 2 ? '#a39d92' : '#8f897e', Math.cos(a) * 0.4, -0.22 + h / 2, Math.sin(a) * 0.4, 0, -a + Math.PI / 2, (i % 3 - 1) * 0.08, { flatShading: true })); }
+  g.rotation.set(0.5, 0.3, 0); return g; };
+CUSTOM.castro = () => { const g = G(M(new THREE.BoxGeometry(0.62, 0.34, 0.46), '#b8956a', 0, -0.12, 0, 0, 0, 0, { roughness: 0.9 }), M(new THREE.BoxGeometry(0.66, 0.1, 0.5), '#8f897e', 0, -0.32, 0));
+  for (const s of [-1, 1]) g.add(M(new THREE.BoxGeometry(0.4, 0.05, 0.56), '#a8925a', s * 0.17, 0.15, 0, 0, 0, -s * 0.6, { roughness: 1 }));
+  g.add(M(new THREE.BoxGeometry(0.14, 0.22, 0.02), '#5a3a22', 0, -0.18, 0.235)); g.rotation.set(0.35, -0.6, 0); return g; };
+CUSTOM.column = () => { const C = '#e2d8c2', g = G(M(new THREE.BoxGeometry(0.34, 0.08, 0.34), C, 0, -0.42, 0), M(new THREE.CylinderGeometry(0.11, 0.13, 0.72, 16), C, 0, -0.02, 0), M(new THREE.BoxGeometry(0.32, 0.08, 0.32), C, 0, 0.38, 0));
+  for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; g.add(M(new THREE.CylinderGeometry(0.012, 0.012, 0.7, 4), '#c8bea8', Math.cos(a) * 0.115, -0.02, Math.sin(a) * 0.115)); }
+  g.rotation.set(0.2, 0.4, 0.12); return g; };
+CUSTOM.mosaic = () => { const g = new THREE.Group(), K = ['#7a2a22', '#efe6d2', '#262220', '#c9a24a'];
+  for (let i = 0; i < 5; i++) for (let j = 0; j < 5; j++) { const d = Math.min(i, j, 4 - i, 4 - j); g.add(M(new THREE.BoxGeometry(0.17, 0.06, 0.17), K[d === 0 ? 0 : d === 1 ? ((i + j) % 2 ? 2 : 1) : 3], (i - 2) * 0.19, 0, (j - 2) * 0.19, 0, 0, 0, { roughness: 0.5 })); }
+  g.rotation.set(0.75, 0.5, 0); return g; };
 // nombre del icono → constructor del modelo
 const ITEM = { grapes: 'uva', olive: 'olivo', pepper: 'piquillo', asparagus: 'esparrago', tomato: 'tomate', potato: 'patata', apple: 'manzana', almond: 'almendra', beans: 'pocha', corn: 'corn', herb: 'herb', herbs: 'herb', litter: 'litter', stone: 'stone' };
 const ANIMAL = { sheep: 'sheep', latxa: 'sheep', lamb: 'sheep', cow: 'cow', horse: 'pottoka', pottoka: 'pottoka', dog: 'dog', deer: 'corzo', corzo: 'corzo', ciervo: 'ciervo', chamois: 'goat', goat: 'goat', boar: 'jabali', jabali: 'jabali', fox: 'zorro', zorro: 'zorro' };

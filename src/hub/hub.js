@@ -21,6 +21,7 @@ import { drawArms } from '../world/heraldry.js';
 import { releaseOffscreen } from '../util/offscreen.js';
 import { mapaXY } from '../util/geo.js';
 import { townLatLon } from '../data/miradores.js';
+import { SITES } from '../data/dolmen.js';
 import { avatarPortrait, avatarPortraitImg } from '../ui/portraits.js';
 import { figurasHTML, openFigura } from '../ui/figuras.js';
 import { personajesHTML, openPersonaje, MUJERES, HOMBRES } from '../ui/personajes.js';
@@ -28,7 +29,7 @@ import { instrumentosHTML, openInstrumento } from '../ui/instrumentos.js';
 import { pasakaPreview } from '../ui/pasaka.js';
 import { PASAKA } from '../data/pasaka.js';
 import { INSTRUMENTOS } from '../data/instrumentos.js';
-import { FIGURAS, FIGURAS_LEYENDA, FIGURAS_CARNAVAL } from '../data/figuras.js';
+import { FIGURAS_LEYENDA, FIGURAS_CARNAVAL } from '../data/figuras.js';
 import { stampImg } from '../assets.js';
 import { Stage, releaseStage } from './stage.js';
 import { getLang, setLang, langChosen } from '../i18n.js';
@@ -50,6 +51,7 @@ import { lettersOnly } from '../util/text.js';
 import { isDidactico, markDidactico } from '../util/modo.js';
 import { TACTIL } from '../util/tactil.js';
 import { DIDACTICO } from './didactico.js';
+import { inicioHTML, inicioOn } from './inicio.js';
 import { ORIENTA, ORIENTA_TIPS, MONTE_TIPS } from '../game/senales.js';
 import { enCss } from '../util/tele.js';
 
@@ -65,6 +67,8 @@ const bg = (u, v = 'background-image') => u ? ` style="${v}:url(${u})"` : '';   
 const SBK = { producto: '#ffc23d', agricultura: '#b9e34a', ganaderia: '#ff9b4a', oficios: '#4fd1ff', arquitectura: '#6ea8ff', escudos: '#2dd4ff', historia: '#a78bfa', tradiciones: '#ff4fd8', fauna: '#3ee07a', flora: '#7be05a', montes: '#5eead4' };
 const TYPE_NAME = { visit: 'Visita', process: 'Producto', harvest: 'Cosecha', herd: 'Ganadería', dance: 'Danza', carnival: 'Carnaval', trade: 'Oficio', legend: 'Leyenda', race: 'Carrera', observe: 'Naturaleza', tradition: 'Tradición', quiz: 'Preguntas', summit: 'Montaña', pelota: 'Pelota', figure: 'Personajes', feria: 'Feria', dolmen: 'Arqueología', castle: 'Castillo', mirador: 'Mirador' };
 const TYPE_ICON = { visit: 'church', process: 'basket', harvest: 'wheat', herd: 'sheep', dance: 'dance', carnival: 'mask', trade: 'anvil', legend: 'legend', race: 'running', observe: 'binoculars', tradition: 'music', quiz: 'quiz', summit: 'peak', pelota: 'pelota', figure: 'person', feria: 'cow', dolmen: 'dolmen', castle: 'castle', mirador: 'binoculars' };
+// (una excavación, con el icono de su yacimiento: el crómlech, la cueva, la columna romana…)
+const mIcon = (m) => (m.type === 'dolmen' && SITES[m.site || 'dolmen']?.icon) || TYPE_ICON[m.type];
 // El nombre corto de un pueblo: el del juego o, si no está en el juego, el de su núcleo en settlements.json; nunca su
 // identificador (en euskera salía en minúsculas, como «uztarroz-uztarroze»)
 function townName(id) {
@@ -311,31 +315,18 @@ export class Hub {
     if (isDidactico()) return this.d_home();
     const p = profile(), N = navarraProgress(p), L = levelOf(p.xp);
     const last = levelById(p.last) || LEVELS.find(l => !townProgress(p, l).stamp) || LEVELS[0];
-    const lp = townProgress(p, last), cm = comarca(last.comarca), cpr = comarcaProgress(p, last.comarca), cts = comarcaTowns(last.comarca);
-    const chapter = COMARCAS.findIndex(c => c.id === last.comarca) + 1;
     let doneM = 0, totM = 0; for (const l of LEVELS) { const t = townProgress(p, l); doneM += t.done; totM += t.total; }
-    const done = p.towns[last.id]?.done || {};
-    const ms = missionSlots(last, edadDe(p)).map(({ m, si: i }) => `<span class="mi ${done[i] ? 'ok' : ''}" title="${esc(m.title || m.name || TYPE_NAME[m.type] || '')}">${I(TYPE_ICON[m.type] || 'star', 40)}${done[i] ? `<i class="tick">${I('check', 16)}</i>` : ''}</span>`).join('');
     this.after = () => {
       this.drawMiniMap($('#homeMap', this.root));
       this.cabeSugg($('.next-panel .sugg', this.root));
       dashOn(this.root);
+      inicioOn(this.root);
     };
     const next = this.suggestions();
     // (en cuanto se ha jugado algo, el resumen de cómo vas va debajo de la portada)
     const empezado = doneM > 0 || p.xp > 0 || Object.values(p.towns || {}).some(t => t.visits) || ligasGuardadas().some(S => S.j > 0) || torneosGuardados().length > 0;
     return `
-    <section class="hero3d">
-      <div class="hero-img" style="background-image:url(${townImg(last)})"></div>
-      <div class="h-shade"></div>
-      <button class="chapter" data-comarca="${last.comarca}" style="--c:${cm?.color}"><img src="${stampImg(last.comarca)}" alt=""><span><small>Capítulo ${chapter} · ${esc(cm?.name || '')}</small><b>${cpr.stamps}/${cts.length} sellos de la comarca</b><span class="cbar"><i style="width:${cts.length ? cpr.stamps / cts.length * 100 : 0}%"></i></span></span></button>
-      <div class="h-bot">
-        <small class="kicker">${lp.done ? 'Sigue tu aventura en' : 'Próxima parada'}</small>
-        <h1>${esc(last.name.split(' /')[0])}</h1>
-        <div class="mrow">${ms}<span class="mcount">${lp.done}/${lp.total}<small>misiones</small></span></div>
-        <div class="h-cta"><button class="btn primary big go" data-play="${last.id}">${I('play', 28)} <span>${lp.done ? '¡Seguimos!' : '¡A la aventura!'}</span></button><button class="btn ghost sq" data-go="map" aria-label="Elegir en el mapa">${I('map', 30)}<span>Mapa</span></button></div>
-      </div>
-    </section>
+    ${inicioHTML({ icono: mIcon, slots: (l) => missionSlots(l, edadDe(p)) })}
     ${empezado ? this.progreso(p, last) : ''}
     <section class="saberes" data-cat="sab">
       <div class="sb-head"><small class="kicker">${I('book', 20)} Lo más importante</small><h2>Aprende Navarra jugando</h2></div>
@@ -358,8 +349,7 @@ export class Hub {
     <section class="comarcas rail">${COMARCAS.map(c => this.comarcaCard(c)).join('')}</section>
     <h2 class="sec" data-cat="ley">${I('person', 34)} Mujeres de Navarra<button class="lnk sec-more" data-go="personajes">Ver todos</button></h2>
     <section class="figuras rail">${personajesHTML(MUJERES)}</section>
-    <h2 class="sec" data-cat="ley">${I('mask', 34)} Leyendas y carnaval<button class="lnk sec-more" data-go="personajes">Ver todos</button></h2>
-    <section class="figuras rail">${figurasHTML(FIGURAS)}</section>`;
+`;
   }
   // ---------- Cómo vas: el panel de control del inicio ----------
   // de un vistazo, al empezar o al volver: el dial de Navarra (lo descubierto y un tramo por comarca que se llena con sus
@@ -569,7 +559,7 @@ export class Hub {
       <div class="sh-hero"><img class="sh-cov" src="${townImg(l)}" alt=""><div class="sh-txt"><small class="kicker">${esc(c?.name)}</small><h1>${esc(l.name)}</h1><p>${esc(l.intro || '')}</p></div></div>
       <div class="sh-body">
         <h3>${I('check', 24)} Misiones (${t.done}/${t.total})</h3>
-        <ul class="mlist">${ms.map((m, i) => { const k = l.missions?.includes(m) ? l.missions.indexOf(m) : i; return `<li class="${ts?.done?.[k] ? 'ok' : ''}">${I(TYPE_ICON[m.type], 34)}<div><b>${esc(title(m))}</b><small>${TYPE_NAME[m.type]}${m.host ? ' · con ' + esc(m.host.name) : ''}</small></div>${ts?.done?.[k] ? I('check', 26) : ''}</li>`; }).join('')}</ul>
+        <ul class="mlist">${ms.map((m, i) => { const k = l.missions?.includes(m) ? l.missions.indexOf(m) : i; return `<li class="${ts?.done?.[k] ? 'ok' : ''}">${I(mIcon(m), 34)}<div><b>${esc(title(m))}</b><small>${TYPE_NAME[m.type]}${m.host ? ' · con ' + esc(m.host.name) : ''}</small></div>${ts?.done?.[k] ? I('check', 26) : ''}</li>`; }).join('')}</ul>
         ${lams.length > 1 ? `<h3>${I('scroll', 24)} Láminas</h3>${laminaRail(lams)}` : ''}
         ${armsOfTown(l.id) ? `<h3>${I('shield', 24)} Su escudo</h3><div class="sh-arms">${armsImg(armsOfTown(l.id).id) ? `<img class="sh-armimg" src="${armsImg(armsOfTown(l.id).id)}" alt="">` : `<canvas width="120" height="${Math.ceil(officialHeight(90, armsOfTown(l.id))) + 6}"></canvas>`}<p><b>${esc(armsOfTown(l.id).name)}.</b> ${esc(armsOfTown(l.id).read)}</p><button class="lnk" data-go="escudos">Ver todos los escudos</button></div>` : ''}
         ${l.church ? `<h3>${I('church', 24)} Qué visitar</h3><ul class="plist"><li><b>${esc(l.church.name)}</b> ${esc(l.church.text)}</li>${(l.landmarks || []).map(x => `<li><b>${esc(x.name)}</b> ${esc(x.text)}</li>`).join('')}</ul>` : ''}

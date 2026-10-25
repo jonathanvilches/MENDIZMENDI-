@@ -1408,9 +1408,18 @@ export class TownGame {
           this.ui.toast(`Busca los brillos ${st.where} y excava con cuidado`, st.icon, 3000);
         } else if (M.step === 1) await S([`Te quedan ${M.need - M.count} hallazgos. ¡Despacio, como una arqueóloga de verdad!`]);
         else {
-          await S([st.hostDone]);
-          const r = await sequenceGame(this.ui, { title: st.stepsTitle, hint: 'Toca los pasos en orden', icon: st.icon, steps: st.steps });
-          if (!r.win) { await S(['¡Casi! Vuelve a hablar conmigo y lo intentamos otra vez.']); return; }
+          if (!M.seqOk) {
+            await S([st.hostDone]);
+            const r = await sequenceGame(this.ui, { title: st.stepsTitle, hint: 'Toca los pasos en orden', icon: st.icon, steps: st.steps });
+            if (!r.win) { await S(['¡Casi! Vuelve a hablar conmigo y lo intentamos otra vez.']); return; }
+            M.seqOk = true;
+          }
+          // (cada yacimiento, su pregunta: data/yacimientos.js)
+          if (st.q) {
+            const ord = [0, 1, 2].sort(() => this.rnd() - 0.5), Q = st.q;
+            const r = await choiceGame(this.ui, { title: st.title || st.whatTitle, icon: st.icon, q: Q.q, options: ord.map(i => Q.options[i]), answer: ord.indexOf(Q.answer), why: Q.why });
+            if (!r.win) { await S(['¡Casi! Piénsalo otra vez y vuelve a hablar conmigo.']); return; }
+          }
           await infoCard(this.ui, { icon: st.icon, kicker: 'Antes y ahora', title: st.nowTitle, text: 'Así ha cambiado:', extra: `<div class="antes-ahora"><div><b>Antes</b>${st.then}</div><div><b>Ahora</b>${st.now}</div></div>`, button: '¡Lo he aprendido!' });
           await this.complete(M, { card: st.card, cardText: st.what });
         }

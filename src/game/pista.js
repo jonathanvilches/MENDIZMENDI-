@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import { terrainHeight, waterLevelAt, addPlatform, onPlatform } from '../world/heightfield.js';
 import { addBox, rectFree } from '../world/colliders.js';
-import { pathQuery, rx } from '../world/layout.js';
+import { pathQuery, rx, cercaDeYacimiento } from '../world/layout.js';
 import { clearGrass, clearTrees } from '../world/nature.js';
 import { VENUES } from '../futbol/rules.js';
 
@@ -18,7 +18,7 @@ export function findPistaSpot(near) {
   for (let r = 40; r <= 230; r += 10) for (let a = 0; a < Math.PI * 2; a += 0.18) {
     const x = near.x + Math.cos(a) * r, z = near.z + Math.sin(a) * r, ry = Math.atan2(near.x - x, near.z - z) + Math.PI / 2;   // la banda larga mira hacia el pueblo
     const across = Math.sign(x - rx(z)) !== Math.sign(near.x - rx(near.z));   // al otro lado del río que la plaza (hay que buscar un puente)
-    if (!rectFree(x, z, ry, -HL - 1, HL + 1, -HW - 1, HW + 1, 1.2)) continue;   // ni casas, ni muros, ni farolas ni bancos dentro
+    if (!rectFree(x, z, ry, -HL - 1, HL + 1, -HW - 1, HW + 1, 1.2) || cercaDeYacimiento(x, z, Math.hypot(HL, HW))) continue;   // ni casas, ni muros, ni farolas ni bancos dentro, ni un yacimiento
     const c = Math.cos(ry), s = Math.sin(ry); let mn = 1e9, mx = -1e9, ok = true, road = 0;
     for (let lx = -HL - 1; lx <= HL + 1.01 && ok; lx += 3) for (let lz = -HW - 1; lz <= HW + 1.01; lz += 3) {
       const X = x + lx * c + lz * s, Z = z - lx * s + lz * c;

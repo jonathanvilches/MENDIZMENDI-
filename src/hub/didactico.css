@@ -126,3 +126,20 @@ html.didactico #hub [data-play], html.didactico #hub [data-sport], html.didactic
   .ddc-txt { padding: 8px 12px 12px; } .ddc-txt b { font-size: var(--fs-md); } .ddw-txt { padding: 8px 8px 12px; } .ddw-txt i { font-size: var(--fs-sm); }
 }
 @media (max-height: 520px) and (min-width: 561px) { .dd-chip { min-height: 40px; padding-block: 2px; } }
+/* el mapa de los yacimientos (Historia, los primeros pobladores): el mapa y su lista numerada al lado, o debajo en el móvil.
+   Cada número va dentro de su círculo, que crece con --k para no bajar de 12 px en la pantalla (fitMaps de hub.js) */
+.yac { display: grid; gap: 12px; margin-top: 24px; padding: 16px; border-radius: var(--rL); background: var(--glass); border: 1px solid var(--line); }
+.yac > h3 { display: flex; align-items: center; gap: 12px; margin: 0; font-size: var(--fs-lg); color: #fff; } .yac > h3 .ico, .yac > h3 svg { width: 30px; height: 30px; flex: none; }
+.yac-in { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.yac-mapa { width: 100%; height: auto; display: block; }
+.yac-mapa path { stroke: rgba(255, 255, 255, .55); stroke-width: calc(1px * var(--k, 1)); fill-opacity: .55; }
+.yac-mapa .ynum circle { r: calc(13px * var(--k, 1)); fill: #2a1d14; stroke: #f2c94c; stroke-width: calc(2px * var(--k, 1)); }
+.yac-mapa .ynum text { fill: #fff; font-size: calc(var(--fs-sm) * var(--k, 1)); font-weight: 900; }
+.yac-mapa.tiny .ynum circle { r: calc(10px * var(--k, 1)); } .yac-mapa.tiny .ynum text { font-size: calc(var(--fs-xs) * var(--k, 1)); }   /* (en el móvil: caben en las 48 unidades que hay entre círculos) */
+.yac-lista { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.yac-lista li { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 8px 12px; border-radius: var(--r); background: rgba(255, 255, 255, .04); border: 1px solid var(--line); }
+.yac-lista li > i { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #2a1d14; border: 2px solid #f2c94c; color: #fff; font-style: normal; font-weight: 900; font-size: var(--fs-sm); }
+.yac-lista li > span { display: grid; gap: 2px; min-width: 0; } .yac-lista b { color: #fff; font-size: var(--fs-md); } .yac-lista small { color: var(--mute); font-weight: 700; font-size: var(--fs-sm); }
+.yac-lista em { font-style: normal; color: var(--ink); font-size: var(--fs-sm); line-height: 1.4; }
+.yac-lista .lnk { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+@media (max-width: 760px) { .yac-in { grid-template-columns: 1fr; } .yac-lista li { grid-template-columns: 32px minmax(0, 1fr); } .yac-lista .lnk { grid-column: 2; justify-self: start; } }

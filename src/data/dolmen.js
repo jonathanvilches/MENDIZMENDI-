@@ -1,4 +1,5 @@
 // El dolmen y los primeros pastores de Navarra (Neolítico y Edad del Bronce, hace unos 5.000 años).
+import { yacimientos } from './yacimientos.js';
 export const DOLMEN_TOWNS = ['artajona', 'altsasu-alsasua', 'lekunberri'];
 const DOLMEN = {
   intro: [
@@ -41,4 +42,6 @@ const IRULEGI = {
 };
 DOLMEN.whatTitle = 'El dolmen'; DOLMEN.stepsTitle = 'Así se levantaba un dolmen'; DOLMEN.nowTitle = 'Los primeros pastores';
 DOLMEN.card = 'El dolmen'; DOLMEN.icon = 'dolmen'; DOLMEN.landmark = 'dolmen'; DOLMEN.where = 'alrededor del dolmen'; DOLMEN.hostDone = '¡Buen trabajo! Con lo que has encontrado sabemos cómo vivían. Ahora, ¿cómo crees que levantaban el dolmen?';
-export const SITES = { dolmen: DOLMEN, irulegi: IRULEGI };
+IRULEGI.town = 'irulegi'; IRULEGI.lat = 42.78; IRULEGI.lon = -1.55;
+// (y los demás yacimientos de Navarra: crómlech, menhires, cuevas, poblados y ciudades y villas romanas)
+export const SITES = { dolmen: DOLMEN, irulegi: IRULEGI, ...yacimientos(DOLMEN) };

@@ -10,6 +10,10 @@ export let rx, zz, CONF, FA, FZ, riverHalfA, RIVER_HALF_Z;
 export let riverInfo, valleyFloor, finalHeight, pathQuery, plazaMask, fieldInfo;
 export let villageMask, meadowMask, iratiMask, skyTan, riverPointNear;
 export let PLACES, MEADOW, PATHS, BRIDGES, POND_LEVEL, RIVERS, PONDS, SPECIAL_TREES, TREE_MIX, FAUNA, BOUNDARY, FOREST, TONE, MOD;
+// ¿Cae a menos de r metros de un yacimiento grande? (el poblado, las ruinas romanas, la villa y los crómlech ocupan mucho
+// suelo sin choque: el frontón y la pista del pueblo, que se levantan después, buscan sitio fuera de ellos)
+const YAC_R = { castro: 16, romana: 14, villa: 12, cromlech: 12 };
+export const cercaDeYacimiento = (x, z, r) => (PLACES?.landmarks || []).some(l => YAC_R[l.kind] && Math.hypot(l.x - x, l.z - z) < YAC_R[l.kind] + r);
 
 const noMask = () => 0;
 export function setLevel(mod, def = null, kind = 'salazar') {
