@@ -174,8 +174,9 @@ async function boot() {
       comarca: cm?.name, caption: laminaUrl(lam) ? laminaById(lam).title : '', avatar: avatarPortrait(P.avatar),
       intro: opt.sport ? '' : d.intro, missions: opt.sport ? [] : missionSlots(d, edadDe(P)).map(({ m }) => m.icon || MISSION_ICON[m.type] || 'star'), left: opt.sport ? 0 : left,
     });
-    // (el menú se queda debajo mientras la pantalla de carga entra con su fundido, y luego se va)
-    const fueraHub = setTimeout(() => hub.hide(), 320);
+    // (el menú se queda debajo mientras la pantalla de carga entra con su fundido, y luego se va; si la carga acaba antes,
+    // se va entonces: que no asome a través de la pantalla de carga cuando se desvanece)
+    const fueraHub = setTimeout(() => hub.hide(), 320), sinHub = () => { clearTimeout(fueraHub); if (hub.visible) hub.hide(); };
     try {
       // (el escudo del pueblo, y el de Pamplona del Labrit, con su acabado: listos antes de montar la plaza y el frontón)
       await Promise.all([armsReady(armsOfTown(d.id)?.id), armsReady('pamplona')]);
@@ -202,7 +203,7 @@ async function boot() {
         rt.follow.snap(rt.player);
         ui.progress(1, '¡Listo!');
         rt.start(game);
-        ui.hideLoading(); queueMode('light');
+        sinHub(); ui.hideLoading(); queueMode('light');
         sound.setMusic(P.settings.music); sound.setVolume(P.settings.volume);
         if (!st.introDone && !q.get('skipintro')) await game.intro(d);
         else {   // (las siguientes veces, la llegada: el vuelo por encima de Otsagabia con su nombre y su comarca)
@@ -225,7 +226,7 @@ async function boot() {
         await rt.precompile();
         ui.progress(1, '¡Listo!');
         rt.start(game);
-        ui.hideLoading(); queueMode('light');
+        sinHub(); ui.hideLoading(); queueMode('light');
         saveProfile();
         if (opt.resumeAt) { rt.player.place(opt.resumeAt.x, opt.resumeAt.z, opt.resumeAt.h ?? 0); rt.follow.snap(rt.player); }
         if (opt.sport) { loading = false; if (opt.sport === 'pasaka') game.pasakaOnly(); else game.sportOnly(); return; }
