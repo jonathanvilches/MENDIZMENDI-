@@ -67,7 +67,7 @@ export class UI {
   }
   // info: { comarca, avatar, missions: [iconos], left, intro, caption }
   showLoading(title, tip = '', image = '', info = {}) {
-    const L = this.loading;
+    const L = this.loading; clearTimeout(this.ldHide); this.ldOut?.cancel(); this.ldOut = null;
     // (entra con un fundido corto sobre lo que hubiera debajo, el menú o los Torneos: antes aparecía de golpe)
     const ya = !L.classList.contains('hidden'); L.classList.remove('hidden'); L.style.opacity = 1; L.style.transition = '';
     if (!ya) { L.classList.remove('entra'); void L.offsetWidth; L.classList.add('entra'); }
@@ -84,9 +84,21 @@ export class UI {
     $('.ld-bulb', L).innerHTML = I('sparkle', 30);
     $('.tip', L).textContent = tip;
     this.progress(0, 'Preparando…');
+    // (se cumple cuando ha terminado de entrar: quien abre la carga quita entonces lo que hay debajo)
+    return new Promise(res => {
+      if (ya || getComputedStyle(L).animationName === 'none') return res();
+      const fin = (e) => { if (e && e.target !== L) return; L.removeEventListener('animationend', fin); clearTimeout(t); res(); };
+      const t = setTimeout(fin, 1500); L.addEventListener('animationend', fin);
+    });
   }
   progress(p, msg) { const L = this.loading, v = Math.max(0, Math.min(1, p)); $('.bar i', L).style.width = (v * 100).toFixed(0) + '%'; $('.ld-av', L).style.left = `${(v * 100).toFixed(1)}%`; $('.ld-pc', L).textContent = Math.round(v * 100) + '%'; if (msg) $('.msg', L).textContent = msg; }
-  hideLoading() { this.loading.style.transition = 'opacity .6s'; this.loading.style.opacity = 0; setTimeout(() => this.loading.classList.add('hidden'), 650); }
+  // (se desvanece desde donde esté: si aún estaba entrando, sin pasar a transparente de golpe)
+  hideLoading() {
+    const L = this.loading, de = +getComputedStyle(L).opacity;
+    L.classList.remove('entra'); L.style.transition = ''; L.style.opacity = 0; this.ldOut?.cancel(); this.ldOut = null;
+    if (de > 0 && !matchMedia('(prefers-reduced-motion: reduce)').matches) this.ldOut = L.animate([{ opacity: de }, { opacity: 0 }], { duration: 600, easing: 'ease' });
+    clearTimeout(this.ldHide); this.ldHide = setTimeout(() => L.classList.add('hidden'), 650);
+  }
 
   // ---------- HUD ----------
   buildHUD(game) {
