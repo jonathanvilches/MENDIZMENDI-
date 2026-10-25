@@ -772,9 +772,23 @@ export class TownGame {
     return L;
   }
   setBook(M) { if (!M.done) { this.tracked = M.i; this.sound.ui('click'); } }
-  // Acciones del mapa: seguir una misión o ir a un sitio
+  /** Viajar a una misión (desde el libro o el mapa): junto al vecino que la da, mirándole, o, si ya está en marcha, al
+   *  sitio de su paso siguiente; y se sigue con la luz dorada. Con un fundido, como al entrar al pueblo. */
+  async goMission(M) {
+    if (!M || this.disposed || this.goingM) return;
+    const t = !M.done && M.step > 0 ? this.target(M) : null, dest = t || M.host?.pos; if (!dest) return;
+    this.goingM = true;
+    try {
+      await this.ui.fadeOut(); if (this.disposed) return;
+      const s = this.spot(dest, t ? 3 : 2.2); this.player.place(s.x, s.z, Math.atan2(dest.x - s.x, dest.z - s.z));
+      this.follow.yaw = this.player.heading + Math.PI; this.follow.snap(this.player);
+      if (!M.done) this.tracked = M.i;
+      await this.ui.fadeIn();
+    } finally { this.goingM = false; }
+  }
+  // Acciones del mapa: ir a una misión o a un sitio
   mapAct(a, it) {
-    if (a === 'track') return this.setBook(this.missions[it.id]);
+    if (a === 'mission' || a === 'track') return this.goMission(this.missions[it.id]);
     if (a === 'go') this.teleport(it.x, it.z);
   }
 

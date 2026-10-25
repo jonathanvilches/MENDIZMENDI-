@@ -947,7 +947,12 @@ export class Game {
   }
   // Acciones del mapa: seguir una misión o ir a un sitio
   mapAct(a, it) {
-    if (a === 'track') return this.track(it.id);
+    if (a === 'mission' || a === 'track') return this.goMission(it.id);
     if (a === 'go') this.teleport(it.x, it.z);
+  }
+  /** Viajar a una misión: junto a quien la da o al sitio de su paso siguiente, y se sigue con la flecha. */
+  async goMission(id) {
+    const m = this.mapMarkers?.().find(x => x.id === id && x.act === 'track'); if (!m) return;
+    this.track(id); await this.ui.fadeOut(); this.teleport(m.x, m.z); await this.ui.fadeIn();
   }
 }

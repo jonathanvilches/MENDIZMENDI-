@@ -343,10 +343,12 @@ export class UI {
           const rib = RIBBONS.find(r => r.id === q.ribbon);
           const label = { locked: 'Bloqueada', available: 'Nueva', active: 'En curso', done: 'Hecha' }[qs.state];
           const stepTxt = qs.state === 'done' ? '¡Completada!' : qs.state === 'locked' ? 'Reúne las 8 cintas' : g.stepText(id);
-          return `<div class="qitem ${st.tracked === id ? 'active' : ''} ${qs.state}" data-q="${id}"><div class="qi">${I(q.icon, 40)}</div><div><b>${q.title}</b><small>${esc(stepTxt)}</small></div>
+          const go = ['active', 'available'].includes(qs.state) ? `<button type="button" class="qgo ${qs.state}" data-go="${id}">${I('play', 22)}<span>${qs.state === 'active' ? 'Ir al siguiente paso' : 'Empezar la misión'}</span></button>` : '';
+          return `<div class="qitem ${st.tracked === id ? 'active' : ''} ${qs.state}" data-q="${id}"><div class="qi">${I(q.icon, 40)}</div><div><b>${q.title}</b><small>${esc(stepTxt)}</small>${go}</div>
             <span class="state">${label}</span>${rib ? `<div class="rb" style="background:${qs.state === 'done' ? rib.color : '#cbc2e0'}"></div>` : ''}</div>`;
-        }).join('')}</div><p class="keys" style="margin-top:12px">Toca una misión para seguirla con la flecha.</p>`;
+        }).join('')}</div><p class="keys" style="margin-top:12px">Pulsa «Empezar la misión» y viajas junto a quien te la explica.</p>`;
         body.querySelectorAll('.qitem').forEach(n => n.onclick = () => { const id = n.dataset.q; if (['active', 'available'].includes(st.quests[id]?.state)) { g.track(id); this.sound.ui('click'); render('misiones'); } });
+        body.querySelectorAll('[data-go]').forEach(b => b.onclick = (e) => { e.stopPropagation(); this.sound.ui('click'); this.closeModal(); g.goMission?.(b.dataset.go); });
       } else if (t === 'saberes' || t === 'animales') {
         const list = CARDS.filter(c => t === 'animales' ? c.cat === 'Animales' : c.cat !== 'Animales');
         const cats = [...new Set(list.map(c => c.cat))];
@@ -387,10 +389,13 @@ export class UI {
           return `<div class="qitem ${g.tracked === M.i ? 'active' : ''} ${st}" data-m="${M.i}"><div class="qi">${I(M.icon, 40)}</div><div class="qb"><b>${esc(M.title)}</b>
             ${open ? `<ol class="steps">${steps.map((x, k) => `<li class="${k < M.step ? 'ok' : k === M.step ? 'now' : ''}">${esc(x)}</li>`).join('')}</ol>`
               : `<p class="qnext">${M.done ? `<span>${steps.length} pasos hechos</span>` : `<span class="qn">Paso ${Math.min(M.step + 1, steps.length)} de ${steps.length}</span> <span>${esc(steps[Math.min(M.step, steps.length - 1)] || '')}</span>`}</p>`}
-            <small>${M.host ? 'Con ' + esc(M.host.name) : ''}</small></div>
+            <small>${M.host ? 'Con ' + esc(M.host.name) : ''}</small>
+            <button type="button" class="qgo ${st}" data-go="${M.i}">${I(M.done ? 'navigate' : 'play', 22)}<span>${M.done ? 'Volver allí' : M.step > 0 ? 'Ir al siguiente paso' : 'Empezar la misión'}</span></button></div>
             <span class="state">${{ done: 'Hecha', active: 'En curso', available: 'Nueva' }[st]}</span></div>`;
-        }).join('')}</div><p class="keys">Toca una misión para seguirla con la luz dorada.</p>`;
+        }).join('')}</div><p class="keys">Pulsa «Empezar la misión» y viajas junto al vecino que te la explica.</p>`;
         body.querySelectorAll('.qitem').forEach(n => n.onclick = () => { g.setBook(g.missions[+n.dataset.m]); render('misiones'); });
+        // (viajar a la misión: junto al vecino que la da o, si ya está en marcha, al sitio de su paso siguiente)
+        body.querySelectorAll('[data-go]').forEach(b => b.onclick = (e) => { e.stopPropagation(); this.sound.ui('click'); this.closeModal(); g.goMission?.(g.missions[+b.dataset.go]); });
       } else if (t === 'lugares') {
         const V = g.missions.find(M => M.type === 'visit');
         const places = V ? V.places : [];
