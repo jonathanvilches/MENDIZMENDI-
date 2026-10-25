@@ -46,7 +46,7 @@ export function cutHeight(pow, ay = 0) { return clamp(COURT.CHAPA + 0.45 + Math.
 export const aimSide = (x) => Math.sign(x) * Math.min(1, Math.pow(Math.abs(x), 0.6) * 1.12);
 // (la dejada: la carga dice la altura, de rozar la chapa a unos 2 m; el joystick arriba o abajo afina un palmo más)
 export function dropHeight(pow, ay = 0) { return clamp(COURT.CHAPA + 0.1 + pow01(pow) * 1.05 + ay * 0.32, COURT.CHAPA + 0.06, 2.3); }
-// a qué altura da en el frontis y dónde bota después (el Cuatro y Medio: que no pase de la raya naranja ni baje a la chapa)
+// a qué altura da en el frontis y dónde bota después (el Cuatro y Medio: que no pase de la raya del 4 y medio ni baje a la chapa)
 function firstBounce(p, v) {
   const b = new Ball(); b.set({ ...p }, { ...v }); const out = []; let fy = null;
   for (let t = 0; t < 4; t += 1 / 120) { out.length = 0; b.step(1 / 120, out); for (const e of out) { if (e.type === 'front') fy = e.y; else if (e.type === 'floor') return fy == null ? null : { z: e.z, fy }; } }
@@ -296,7 +296,7 @@ export class PelotaGame {
         // alcance de un golpe: un pelotari con mucha fuerza, desde el cuadro 4, la manda de vuelta hasta el cuadro 7;
         // desde más atrás llega algo más lejos (le da más alto en el frontis) y un golpe flojo se queda antes
         if (!rebote) landZ = Math.min(landZ, 15.5 + q * 2 + pow * 8 + clamp(p.z - COURT.FALTA, -4, 8) * 0.18 + (S - 3) * 1.3, COURT.L - 2.5);
-        // (en el Cuatro y Medio, lo largo se queda antes de la raya naranja; un golpe malo se puede pasar)
+        // (en el Cuatro y Medio, lo largo se queda antes de la raya del 4 y medio; un golpe malo se puede pasar)
         if (this.cuatro) landZ = Math.min(landZ, CUATRO.LIMITE - 1.2 + q * 0.6) + Math.max(0, gauss(rnd)) * err * 1.6;
         tx = lx * 0.55;
         // se corrige el punto del frontis hasta que el bote cae donde se apunta, quedándose con el mejor (si se apunta muy
@@ -325,7 +325,7 @@ export class PelotaGame {
         for (let k = 0; k < 5 && v && overLeft(p, v); k++) { speed += 3; const r = solveShot(p, tx, landZ, speed); if (r?.v) v = r.v; }
       } else if (err > 0.2) { const k = 1 + gauss(rnd) * err * 0.06; v.x *= k; v.y *= 1 + gauss(rnd) * err * 0.05; v.z *= k; }   // a dos paredes, un golpe flojo se desvía un poco
     }
-    // (el Cuatro y Medio: si un golpe bueno se iba a pasar de la raya naranja, sale algo más flojo y bota antes; nunca
+    // (el Cuatro y Medio: si un golpe bueno se iba a pasar de la raya del 4 y medio, sale algo más flojo y bota antes; nunca
     // tanto que baje a la chapa)
     if (this.cuatro && !serve && v && q > 0.45) {
       let f = firstBounce(p, v);
@@ -405,7 +405,7 @@ export class PelotaGame {
       if (R.bounces === 1) {
         if (e.x > COURT.W / 2) return this.point(receiver, 'fuera');
         if (e.z > COURT.L) return this.point(receiver, 'largo');
-        if (this.cuatro) {   // (el saque, entre el 3 y el 5; el tanto, nunca más allá de la raya naranja del 4 y medio)
+        if (this.cuatro) {   // (el saque, entre el 3 y el 5; el tanto, nunca más allá de la raya del 4 y medio)
           if (R.serve && e.z < CUATRO.FALTA) return this.point(receiver, 'falta45');
           if (R.serve && e.z > CUATRO.PASA) return this.point(receiver, 'pasa45');
           if (!R.serve && e.z > CUATRO.LIMITE) return this.point(receiver, 'cuatro');

@@ -411,19 +411,18 @@ export class PelotaCourt {
     this.materials?.push(pathMat, aim.material, this.aimLand.material);
     this.hideBall();
   }
-  /** El Cuatro y Medio: la raya naranja del 4 y medio (en el suelo y en la pared izquierda, con su «4½») y la zona del
-   *  saque entre la raya del 3 y la del 5; sin él, todo como siempre. */
+  /** El Cuatro y Medio: la raya del 4 y medio y la zona del saque entre la raya del 3 y la del 5; sin él, todo como
+   *  siempre. La raya, como en los frontones: pintada en el suelo, paralela al frontis, de la pared izquierda a la
+   *  contracancha, entre los números 4 y 5 de la pared, del color y del ancho de las de falta y pasa (15 cm). Antes era
+   *  naranja y con brillo propio, subía por la pared hasta la raya de arriba y llevaba encima un cartel «4½»: en los
+   *  frontones no se pinta nada de eso. */
   setCuatro(on) {
     const T = this.THREE, C = COURT;
     if (on && !this.cuatroMark) {
-      const mat = new T.MeshBasicMaterial({ color: '#ff8a1a', toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 });
-      const g = this.cuatroMark = new T.Group(); g.name = 'cuatro-y-medio';
-      const fl = new T.Mesh(new T.PlaneGeometry(C.W, 0.12), mat); fl.rotation.x = -Math.PI / 2; fl.position.set(0, 0.022, CUATRO.LIMITE); g.add(fl);
-      const wl = new T.Mesh(new T.PlaneGeometry(0.12, C.LEFT_LINE), mat); wl.rotation.y = Math.PI / 2; wl.position.set(-C.W / 2 + 0.02, C.LEFT_LINE / 2, CUATRO.LIMITE); g.add(wl);
-      const tex = canvasTex(T, 192, 96, (c, w, h) => { c.fillStyle = '#ff8a1a'; c.font = `900 ${h * 0.8}px "Lilita One", "Trebuchet MS", Nunito, Arial, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('4½', w / 2, h * 0.54); });
-      const lab = new T.Mesh(new T.PlaneGeometry(1.1, 0.55), new T.MeshBasicMaterial({ map: tex, transparent: true, toneMapped: false, depthWrite: false }));
-      lab.position.set(-C.W / 2 + 0.03, C.LEFT_LINE + 0.45, CUATRO.LIMITE); lab.rotation.y = Math.PI / 2; g.add(lab);
-      this.group.add(g); this.materials?.push(mat, lab.material);
+      const mat = new T.MeshStandardMaterial({ color: this.look.mark, roughness: 0.92, metalness: 0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 });
+      const m = this.cuatroMark = new T.Mesh(new T.PlaneGeometry(C.W, 0.15), mat); m.name = 'cuatro-y-medio';
+      m.rotation.x = -Math.PI / 2; m.position.set(0, 0.012, CUATRO.LIMITE); m.receiveShadow = true;
+      this.group.add(m); this.materials?.push(mat);
     }
     if (this.cuatroMark) this.cuatroMark.visible = !!on;
     // (la zona del saque que se ilumina al sacar: entre el 3 y el 5 en el Cuatro y Medio; entre el 4 y el 7, si no)

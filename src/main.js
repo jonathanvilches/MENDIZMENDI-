@@ -163,7 +163,7 @@ async function boot() {
     loading = true;
     sound.init();
     def = d;
-    hub.hide(); queueMode('off');
+    queueMode('off');
     const cm = COMARCAS.find(c => c.id === d.comarca), eu = isEU(), pasaka = opt.sport === 'pasaka';
     // (al campeonato de pelota se va a jugar: sin la historia del pueblo ni sus misiones en la pantalla de carga)
     const title = pasaka ? 'Pasaka · Iruña' : opt.sport ? `${eu ? 'Esku pilota' : 'Pelota a mano'} · ${d.name.split(' /')[0]}` : d.name;
@@ -174,6 +174,8 @@ async function boot() {
       comarca: cm?.name, caption: laminaUrl(lam) ? laminaById(lam).title : '', avatar: avatarPortrait(P.avatar),
       intro: opt.sport ? '' : d.intro, missions: opt.sport ? [] : missionSlots(d, edadDe(P)).map(({ m }) => m.icon || MISSION_ICON[m.type] || 'star'), left: opt.sport ? 0 : left,
     });
+    // (el menú se queda debajo mientras la pantalla de carga entra con su fundido, y luego se va)
+    const fueraHub = setTimeout(() => hub.hide(), 320);
     try {
       // (el escudo del pueblo, y el de Pamplona del Labrit, con su acabado: listos antes de montar la plaza y el frontón)
       await Promise.all([armsReady(armsOfTown(d.id)?.id), armsReady('pamplona')]);
@@ -241,7 +243,7 @@ async function boot() {
       try { rt.unload(); } catch (e2) { }
       const S = P.settings, lowered = (S.quality || rt.quality) !== 'low';
       if (lowered) { S.quality = 'low'; S.qualityAuto = true; saveProfile(); }
-      hub.show('home');
+      clearTimeout(fueraHub); hub.show('home');
       showLoadError(d, e, lowered);
       return;
     }

@@ -84,6 +84,8 @@ summary { line-height: 1.3; }
 #loading .ld-pic figcaption:empty { display: none; }
 #loading.no-pic .ld-pic { visibility: hidden; }
 @keyframes ldpic { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+#loading.entra { animation: ldIn .3s ease-out; }
+@keyframes ldIn { from { opacity: 0; } }
 #loading .ld-tip { grid-area: tip; min-width: 0; display: flex; gap: 12px; align-items: center; }
 #loading .ld-tip b { font-size: var(--fs-xs); letter-spacing: .1em; text-transform: uppercase; color: #ff7ac8; }
 #loading .ld-tip p { margin: 4px 0 0; font-size: var(--fs-xs); font-weight: 700; line-height: 1.4; color: #f6f3fc; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }

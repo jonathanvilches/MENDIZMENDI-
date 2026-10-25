@@ -33,7 +33,7 @@ const TOWNS = ['Leitza', 'Lesaka', 'Elizondo', 'Altsasu', 'Lekunberri', 'Aoiz', 
 const loadAll = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } };
 const keyOf = (comarca, kind) => kind === 'parejas' ? comarca + ':parejas' : kind === 'cuatro' ? comarca + ':cuatro' : comarca;
 /** Los tres campeonatos de pelota de cada comarca, como los de los profesionales: el Manomanista (mano a mano, en toda la
- *  cancha), el de Parejas (delantero y zaguero) y el del Cuatro y Medio (mano a mano hasta la raya naranja del 4 y medio) */
+ *  cancha), el de Parejas (delantero y zaguero) y el del Cuatro y Medio (mano a mano hasta la raya del 4 y medio) */
 export const KINDS = {
   mano: { name: 'Manomanista', full: 'Campeonato Manomanista', k: 'Individual' },
   parejas: { name: 'Parejas', full: 'Campeonato de Parejas', k: 'Por parejas' },
@@ -373,7 +373,7 @@ export function torneoPanel(T, here = null, o = null) {
     if (o && m) { o.sede = sedeDe(T, m); o.onSede = (k) => { T.sede = { round: m.round, edition: T.edition, kind: k }; }; }
     const head = `<div class="tq-top"><div class="lg-head tq-txa">${TXAPELA()}<div><small>${(KINDS[T.kind] || KINDS.mano).full} · edición ${T.edition}</small><h2>Txapela de ${esc(T.comarcaName)}</h2></div></div><button class="tq-info" data-info aria-expanded="false" aria-label="Cómo funciona">?</button></div>`;
     const how = pairs ? '<p class="lg-how tq-how" hidden><b>Cómo funciona:</b> ocho parejas de delantero y zaguero por eliminatorias (cuartos y semifinales a 5 tantos, final a 7). Juegas con tu compañero de siempre. La final, en el frontón Labrit de Iruña.</p>'
-      : T.kind === 'cuatro' ? '<p class="lg-how tq-how" hidden><b>Cómo funciona:</b> ocho pelotaris mano a mano por eliminatorias (cuartos y semifinales a 5 tantos, final a 7) en el Cuatro y Medio: la pelota no puede botar más allá de la raya naranja del 4 y medio y el saque bota entre la raya del 3 y la del 5. Juego corto, de dejadas y ganchos. La final, en el Labrit.</p>'
+      : T.kind === 'cuatro' ? '<p class="lg-how tq-how" hidden><b>Cómo funciona:</b> ocho pelotaris mano a mano por eliminatorias (cuartos y semifinales a 5 tantos, final a 7) en el Cuatro y Medio: la pelota no puede botar más allá de la raya del 4 y medio, la del suelo entre el 4 y el 5, y el saque bota entre la raya del 3 y la del 5. Juego corto, de dejadas y ganchos. La final, en el Labrit.</p>'
       : '<p class="lg-how tq-how" hidden><b>Cómo funciona:</b> ocho pelotaris por eliminatorias (cuartos y semifinales a 5 tantos, final a 7). Los rivales vienen a tu frontón; la final, en el frontón Labrit de Iruña. Los demás partidos se simulan.</p>';
     // (las cartas del duelo, con el color que cada uno viste en el partido)
     const col = m ? coloresPartido(`${pairs ? m.rival.mates[0] : m.rival.name} (${m.rival.town})`, m.level, m.mate?.name, m.partner?.name).colors : { you: 'azul', rival: 'rojo' };
