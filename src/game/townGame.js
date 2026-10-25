@@ -1173,10 +1173,12 @@ export class TownGame {
   }
   // ir al cubierto o al Labrit: el pueblo se tapa (el velo de los campeonatos) mientras se preparan los pelotaris y el
   // jugador va allí (el cielo y las sombras van con él); la llegada, el vuelo hasta la cancha con el partido ya montado
-  // (llegadas.js). Al de la plaza, donde ya estás, sin más
+  // (llegadas.js), que es quien quita el velo. Al de la plaza, donde ya estás, solo el velo: si no, al elegir en el menú
+  // se veía un momento la calle y luego, de golpe, el vuelo
   async venuePrep(v) {
-    if (v === this.fronton || window.__autoWin) return;
+    if (window.__autoWin) return;
     this.sportBackdrop(true, true);
+    if (v === this.fronton) return;
     await this.rt?.warm?.(v.court.group);   // (sus sombreadores, antes de verlo: si no, la llegada se quedaba congelada un momento)
     if (this.disposed) return;
     this.sky.flood = 1; this.sky.indoor = true; this.sky.floodCur = 1; this.ui.hudVisible?.(false); this.perro?.away?.();
@@ -2522,7 +2524,7 @@ export class TownGame {
     // nuevo no debe recibir sus ventanas ni sus controles)
     this.disposed = true;
     try { this.pelotaAbort?.(); } catch (e) { }
-    document.querySelectorAll('.lg-root, .pel-root, .sport-bg, .cartel').forEach(o => o.remove());
+    document.querySelectorAll('.lg-root:not(.out), .pel-root, .sport-bg, .cartel').forEach(o => o.remove());   // (el panel que se está desvaneciendo, que acabe)
     if (this.townArms) { for (const m of [this.townArms.mesh, this.townArms.plate]) if (m) { m.geometry.dispose(); m.material.map?.dispose(); m.material.dispose(); } this.townArms = null; }
     for (const b of this.blasones || []) { b.mesh.geometry.dispose(); b.mesh.material.map?.dispose(); b.mesh.material.dispose(); }
     // (que la interfaz, que dura toda la partida, no siga apuntando al pueblo que se deja: lo dejaba entero en memoria)
