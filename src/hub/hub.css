@@ -389,7 +389,6 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .onb-head { grid-area: head; text-align: center; }
 .onb .logo { font-size: var(--fs-display); line-height: 1; color: #fff; text-shadow: 0 4px 0 #6d3b5c, 0 0 40px rgba(255, 122, 200, .35); }
 .onb .tag { margin: 4px 0 0; color: var(--gold); font-weight: 900; letter-spacing: .2em; text-transform: uppercase; font-size: var(--fs-sm); }
-.onb .lbl { margin: 0; color: var(--mute); font-size: var(--fs-sm); letter-spacing: .04em; text-transform: uppercase; font-weight: 900; }
 .onb .cstrip { flex-wrap: wrap; overflow: visible; padding: 0; }
 .onb .cstrip button { width: 78px; } .onb .cstrip button img { width: 66px; height: 66px; }
 .onb #oGo { width: 100%; }
@@ -559,13 +558,6 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .chapter b { display: block; font-size: var(--fs-sm); line-height: 1.25; }
 .chapter .cbar { display: block; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, .18); margin-top: 4px; overflow: hidden; }
 .chapter .cbar i { display: block; height: 100%; min-width: 5px; border-radius: 3px; background: linear-gradient(90deg, var(--cyan), var(--pink)); }
-.bubble { position: absolute; z-index: 2; left: calc(67% + 70px); top: 16%; width: min(300px, calc(33% - 90px)); background: #fff; color: #231642; border-radius: 18px; padding: 8px 16px 8px; box-shadow: 0 10px 26px rgba(0, 0, 0, .35); cursor: pointer; }
-.bubble::after { content: ''; position: absolute; left: -8px; bottom: 24px; width: 16px; height: 16px; background: #fff; transform: rotate(45deg); border-radius: 3px; }
-.bubble b { display: block; font-size: var(--fs-xs); color: var(--violet); letter-spacing: .1em; text-transform: uppercase; font-weight: 900; }
-.bubble p { position: relative; z-index: 1; margin: 2px 0 8px; font-size: var(--fs-sm); line-height: 1.45; font-weight: 800; min-height: 2.64em; }
-.bubble p.in { animation: bubIn .45s cubic-bezier(.2, 1.4, .4, 1); }
-@keyframes bubIn { from { opacity: .35; transform: translateY(5px); } }
-.bubble .dots { display: flex; gap: 4px; } .bubble .dots i { width: 6px; height: 6px; border-radius: 3px; background: #d8d0ea; transition: width .25s, background .25s; } .bubble .dots i.on { width: 16px; background: var(--violet); }
 .h-bot { position: absolute; left: 0; bottom: 0; z-index: 2; width: min(520px, 50%); padding: 0 24px 24px; display: flex; flex-direction: column; align-items: flex-start; }
 .h-bot .kicker { color: var(--gold); }
 .h-bot h1 { margin: var(--t-mt) 0 8px; font-family: 'MZ Display', 'Nunito', sans-serif; font-weight: 400; font-size: var(--fs-hero); line-height: 1; color: #fff; text-shadow: 0 4px 0 #3a1580, 0 8px 22px rgba(0, 0, 0, .5); max-width: 100%; overflow-wrap: anywhere; }
@@ -584,7 +576,9 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 @media (orientation: landscape) and (max-height: 420px) { .h-cta .go { font-size: var(--fs-lg); gap: 8px; padding-left: 16px; padding-right: 16px; } }
 @media (orientation: landscape) and (max-height: 420px) and (max-width: 700px) { .hero3d .h-cta .go { font-size: var(--fs-md); gap: 4px; padding-left: 12px; padding-right: 12px; } .hero3d .h-cta .go :is(img, svg) { width: 24px; height: 24px; } .hero3d .h-bot { width: min(398px, calc(58% - 16px)); } }   /* (en los móviles más estrechos, «Jarraitu dezagun!» cabe entero) */
 
-.story { margin-top: var(--esp); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: var(--hueco-m); align-items: center; padding: var(--relleno); border-radius: var(--r); background: linear-gradient(135deg, rgba(138, 43, 226, .38), rgba(52, 18, 104, .6)); border: 1px solid var(--line2); }
+.story { margin-top: var(--esp); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: var(--hueco-m); align-items: center; padding: var(--relleno); border-radius: var(--r); border: 1px solid var(--line2); min-height: 150px;
+  background: linear-gradient(90deg, rgba(60, 14, 110, .3), rgba(36, 10, 76, .78) 42%, rgba(28, 8, 60, .94)), var(--img, none) left 30%/cover; }   /* (la comarca en la que juegas, de fondo) */
+.story h2 { text-shadow: 0 2px 10px rgba(0, 0, 0, .7); }
 .story h2 { margin: var(--t-mt) 0 var(--t-mb); font-family: 'MZ Display', 'Nunito', sans-serif; font-weight: 400; font-size: var(--fs-xl); line-height: 1; }
 .story p { margin: 0; color: var(--mute); font-weight: 600; font-size: var(--fs-sm); line-height: 1.45; }
 .hsteps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--hueco); counter-reset: st; }
@@ -597,15 +591,13 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .ccard .cimg:not(.ready) { opacity: .6; }
 
 @media (max-aspect-ratio: 1/1) {
-  .bubble { left: 16px; right: 16px; top: 74px; width: auto; max-width: 520px; }
-  .bubble::after { left: 50%; bottom: -8px; margin-left: -8px; }
   .h-bot { width: 100%; padding: 0 16px 16px; } .chapter { left: 16px; top: 16px; max-width: calc(100% - 32px); }
 }
 @media (max-width: 760px) {
   .hero3d { height: max(440px, calc(calc(100svh / var(--z, 1)) - 158px)); max-height: 760px; margin: -8px 0 0; border-radius: var(--rL); }
   .h-bot h1 { font-size: var(--fs-4xl); margin-bottom: 8px; }
   .mrow { gap: 8px; margin-bottom: 12px; } .mrow .mi { width: 44px; height: 44px; border-radius: 12px; } .mrow .mi img, .mrow .mi svg { width: 34px; height: 34px; }
-  .story { grid-template-columns: minmax(0, 1fr); padding: 16px 16px; }
+  .story { grid-template-columns: minmax(0, 1fr); padding: 16px 16px; background: linear-gradient(180deg, rgba(60, 14, 110, .25), rgba(28, 8, 60, .92) 60%), var(--img, none) center 30%/cover; }
   .hsteps { gap: 8px; } .hsteps li { padding: 8px 8px; } .hsteps li img, .hsteps li svg { width: 48px; height: 48px; } .hsteps b { font-size: var(--fs-sm); }
 }
 @media (max-height: 520px) {
@@ -614,7 +606,6 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   .hero3d { height: auto; min-height: max(280px, calc(calc(100dvh / var(--z, 1)) - 90px)); display: flex; flex-direction: column; align-items: flex-start; gap: 16px; padding: 16px; }
   .hero3d .chapter { position: relative; top: auto; left: auto; max-width: 100%; } .hero3d .chapter img { width: 36px; height: 36px; } .hero3d .chapter .cbar { display: none; }
   .hero3d .h-bot { position: relative; left: auto; bottom: auto; margin-top: auto; width: min(398px, calc(52% - 16px)); padding: 0; }
-  .hero3d .bubble { top: 16px; left: auto; right: 16px; width: min(260px, 36%); } .hero3d .bubble p { font-size: var(--fs-sm); } .hero3d .bubble::after { left: -8px; bottom: 16px; }
   .hero3d .h-bot h1 { font-size: var(--fs-2xl); margin-bottom: 8px; } .hero3d .h-bot .kicker { margin-top: 0; }
   .mrow { margin-bottom: 8px; } .mrow .mi { width: 38px; height: 38px; } .mrow .mi img, .mrow .mi svg { width: 30px; height: 30px; }
   .h-cta .go { font-size: var(--fs-lg); padding-top: 12px; padding-bottom: 12px; }
@@ -740,7 +731,6 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .stats .stat { border: 0; background: none; padding: 0; border-radius: 0; min-height: 0; box-shadow: none; }
 @media (max-width: 760px) and (max-height: 700px) {
   .chapter { top: 16px; left: 16px; padding: 4px 12px 4px 4px; } .chapter img { width: 36px; height: 36px; } .chapter .cbar { display: none; }
-  .bubble { top: 78px; left: 16px; right: 16px; padding: 8px 12px; } .bubble p { font-size: var(--fs-sm); min-height: 0; margin-bottom: 4px; }
   .h-bot h1 { font-size: var(--fs-3xl); margin-bottom: 8px; } .mrow { margin-bottom: 8px; }
   .h-cta .go { font-size: var(--fs-lg); padding-top: 12px; padding-bottom: 12px; }
 }
@@ -780,7 +770,7 @@ html.tele-bajo .finale .mg-card { gap: 8px; } html.tele-bajo .finale .stampimg.b
 .hub-nav button span { font-family: var(--f-cond); font-weight: 700; font-size: var(--fs-sm); letter-spacing: .02em; }   /* (la letra de los botones del juego: estrecha, los nombres largos en euskera caben con aire) */
 @media (orientation: landscape) and (max-height: 520px), (max-width: 760px) { .hub-nav button span { font-size: var(--fs-xs); } }   /* (en la barra de abajo y en la de al lado del móvil tumbado, más pequeña: seis nombres en fila) */
 /* móvil pequeño en horizontal: portada sin bocadillo ni rótulo para que nada se monte */
-@media (max-height: 520px) and (max-width: 700px) { .hero3d .bubble, .hero3d .h-bot .kicker { display: none; } }
+@media (max-height: 520px) and (max-width: 700px) { .hero3d .h-bot .kicker { display: none; } }
 /* móvil tumbado (poca altura): «ordenar pasos» pone las opciones junto a los huecos y todo cabe sin desplazar (las
    fichas de información van en src/ui/infocard.css) */
 @media (orientation: landscape) and (max-height: 560px) {
@@ -1084,10 +1074,11 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   background: linear-gradient(100deg, rgba(196, 31, 44, .55), rgba(52, 18, 104, .7) 60%); border: 1px solid var(--line2); transition: transform .12s; }
 .sports-cta:active { transform: scale(.98); }
 .sports-cta div { flex: 1; min-width: 0; } .sports-cta b { display: block; font: 400 var(--fs-xl)/1 var(--f-display); text-transform: uppercase; }
-.sports-cta .sp-ics { display: flex; gap: 8px; } @media (max-width: 440px) { .sports-cta .sp-ics > :not(:first-child) { display: none; } } .sports-cta .sp-ics > * { filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .4)); animation: hubFlota 3s ease-in-out infinite; } .sports-cta .sp-ics > :nth-child(2) { animation-delay: -1s; } .sports-cta .sp-ics > :nth-child(3) { animation-delay: -2s; }
-@keyframes hubFlota { 50% { transform: translateY(-4px); } }
-@media (prefers-reduced-motion: reduce) { .sports-cta .sp-ics > *, .pg-vacio > * { animation: none; } }
-.sp-hint { margin: -4px 0 12px; }
+.sports-cta { position: relative; overflow: hidden; isolation: isolate; min-height: 120px; }
+.sports-cta > :not(.cta-fotos) { position: relative; } .sports-cta > svg, .sports-cta > img { filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .6)); } .sports-cta b { text-shadow: 0 2px 10px rgba(0, 0, 0, .7); }
+.cta-fotos { position: absolute; inset: 0; z-index: -1; display: flex; } .cta-fotos i { flex: 1; background: center 30%/cover; transition: transform .4s; }
+.cta-fotos::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, rgba(120, 30, 10, .88) 0%, rgba(40, 12, 70, .55) 45%, rgba(20, 6, 40, .25) 100%); }
+.sports-cta:hover .cta-fotos i { transform: scale(1.05); }
 .sports { display: flex; flex-direction: column; gap: 24px; }   /* (una carta por fila, ancha y con aire: si no caben las dos, se desplaza) */
 /* cada carta, igual que la otra, con su portada: la lámina del protagonista en acción, a todo color, a la derecha y
    fundida con el fondo; a la izquierda, en una sola columna, el rótulo con tu marca, el título y el texto, y abajo lo que
@@ -1161,7 +1152,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 /* (la ficha de un escudo va en src/ui/infocard.css; aquí, las muestras de color de sus esmaltes) */
 .escudo .es-sw { display: inline-flex; align-items: center; gap: 4px; margin-right: 8px; font-weight: 800; } .escudo .es-sw i { width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid rgba(0, 0, 0, .4); }
 /* aprender Navarra: los saberes en la portada, a la vista nada más entrar */
-.saberes { margin-top: var(--esp); padding: var(--relleno); border-radius: var(--r); background: radial-gradient(80% 70% at 100% 0%, rgba(255, 43, 214, .16), transparent 60%), linear-gradient(160deg, rgba(76, 26, 158, .55), rgba(30, 10, 64, .88)); border: 1px solid var(--line2); }   /* (en la gama del juego: antes, verde) */
+.saberes { margin-top: var(--esp); padding: var(--relleno); border-radius: var(--r); background: radial-gradient(80% 70% at 100% 0%, color-mix(in srgb, var(--cat) 16%, transparent), transparent 60%), linear-gradient(160deg, rgba(76, 26, 158, .55), rgba(30, 10, 64, .88)); border: 1px solid var(--line2); }   /* (en la gama del juego: antes, verde) */
 .saberes .sb-head h2 { margin: var(--t-mt) 0 var(--t-mb); font: 400 var(--fs-xl)/1 var(--f-display); } .saberes .sb-head p { margin: 0 0 var(--hueco-m); color: var(--ink); font-weight: 600; max-width: 70ch; }
 .saberes .sb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr)); gap: var(--hueco); }
 .saberes .sb { display: grid; grid-template-columns: 40px 1fr; grid-template-rows: auto auto; column-gap: 8px; align-items: center; padding: var(--relleno-s); border-radius: var(--r); background: rgba(0, 0, 0, .22); border: 1px solid rgba(255, 255, 255, .1); opacity: .78; }
@@ -1173,15 +1164,15 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 /* (los cuatro enlaces, en una rejilla de piezas iguales: dos por fila donde caben, uno donde no) */
 .saberes .sb-links { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--hueco); margin: 0 0 var(--hueco-m); }
 @media (max-width: 520px) { .saberes .sb-links { grid-template-columns: repeat(2, minmax(0, 1fr)); } }   /* (cuatro: en fila o dos y dos, nunca tres y uno) */
-.sb-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 112px; padding: 14px 8px 12px; border-radius: var(--r); border: 1px solid rgba(255, 255, 255, .16); color: var(--ink); cursor: pointer;
-  background: radial-gradient(90% 80% at 50% 0%, rgba(255, 43, 214, .32), transparent 70%), linear-gradient(160deg, rgba(123, 47, 247, .45), rgba(30, 10, 64, .9)); box-shadow: 0 8px 22px rgba(0, 0, 0, .3);
+.sb-tile { display: flex; flex-direction: column; padding: 0; overflow: hidden; border-radius: var(--r); border: 1px solid rgba(255, 255, 255, .16); border-bottom: 3px solid var(--cat); color: var(--ink); cursor: pointer;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--cat) 26%, #2a0f55), #1e0a40); box-shadow: 0 8px 22px rgba(0, 0, 0, .3);
   transition: transform .18s, border-color .18s, box-shadow .18s; animation: sbIn .5s var(--d, 0s) cubic-bezier(.2, 1.3, .4, 1) both; }
-.sb-tile:hover { transform: translateY(-4px); border-color: #ff7ac8; box-shadow: 0 14px 30px rgba(0, 0, 0, .4), 0 0 18px rgba(255, 43, 214, .35); } .sb-tile:active { transform: scale(.96); }
-.sb-tile > :first-child { filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .45)); transition: transform .25s; } .sb-tile:hover > :first-child { transform: scale(1.1) rotate(-4deg); }
-.sb-tile b { font: 400 var(--fs-md)/1 var(--f-display); text-transform: uppercase; letter-spacing: .02em; }
+.sb-tile:hover { transform: translateY(-4px); border-color: var(--cat); box-shadow: 0 14px 30px rgba(0, 0, 0, .4), 0 0 18px color-mix(in srgb, var(--cat) 45%, transparent); } .sb-tile:active { transform: scale(.96); }
+.sb-img { display: grid; place-items: center; aspect-ratio: 16 / 9; background: center/cover; transition: transform .35s; } .sb-tile:hover .sb-img { transform: scale(1.06); }
+.sb-img.fit { background-size: auto 80%; background-repeat: no-repeat; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .45)); }   /* (el escudo entero, sin recortar) */
+.sb-tile b { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 8px; font: 400 var(--fs-md)/1 var(--f-display); text-transform: uppercase; letter-spacing: .02em; }
 @keyframes sbIn { from { opacity: 0; transform: translateY(14px) scale(.94); } }
 @media (prefers-reduced-motion: reduce) { .sb-tile { animation: none; } }
-.saberes .sb-arms { margin: 0; display: flex; align-items: center; gap: 8px; min-height: 44px; white-space: normal; text-align: left; justify-content: flex-start; }
 .armorial { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--hueco-m); padding-bottom: 24px; }   /* (una columna que no ensancha nada de dentro) */
 .armorial .ar-head h1 { margin: var(--t-mt) 0 var(--t-mb); } .armorial .ar-head p { margin: 0 0 8px; max-width: 75ch; font-weight: 600; color: #eae4f6; }
 .armorial .ar-count { color: #ff7ac8; }
@@ -1475,7 +1466,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .armorial.pasaka .pk-hero-tx small { grid-area: k; margin: 0; } .armorial.pasaka .pk-hero-tx .btn { grid-area: go; }
 .armorial.pasaka .pk-hero-tx b { grid-area: t; margin: 4px 0 0; font-size: var(--fs-lg); line-height: 1.1; color: #fff; text-shadow: 0 2px 8px #000; }
 @media (max-width: 600px) { .armorial.pasaka .pk-hero-tx { grid-template-columns: minmax(0, 1fr); grid-template-rows: 1fr auto auto auto; grid-template-areas: "." "k" "t" "go"; } .armorial.pasaka .pk-hero-tx .btn { margin-top: 16px; } .armorial.pasaka .pk-hero { aspect-ratio: 16 / 10; } }
-.armorial.pasaka .pk-sec { border-radius: 4px; } .armorial.pasaka .pk-sec h3 { margin: 8px 0 6px; font-size: var(--fs-md); line-height: 1.3; color: var(--lila); } .armorial.pasaka .pk-sec p { margin: 0 0 8px; color: #eae4f6; font-weight: 600; }
+.armorial.pasaka .pk-sec { border-radius: 4px; } .armorial.pasaka .pk-sec h3 { display: flex; align-items: center; gap: 8px; margin: 8px 0 6px; font-size: var(--fs-md); line-height: 1.3; color: color-mix(in srgb, var(--cat) 70%, #fff); } .armorial.pasaka .pk-sec { border-left: 3px solid var(--cat); } .armorial.pasaka .pk-sec p { margin: 0 0 8px; color: #eae4f6; font-weight: 600; }
 
 /* ---------- Personajes: su propia sección (antes, debajo de «Elige tu personaje») */
 .pj .filters { margin-bottom: 0; }
@@ -1563,10 +1554,56 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .pg-bar { display: block; height: 8px; border-radius: 99px; background: rgba(255, 255, 255, .12); overflow: hidden; }
 .pg-bar u { display: block; height: 100%; border-radius: 99px; background: var(--c, var(--gold)); }
 .pg-empty { margin: 0 0 12px; color: var(--mute); line-height: 1.45; } .pg-empty b { color: var(--ink); }
-/* (sin campeonatos empezados: la pelota, la txapela y el balón, grandes, en vez de una frase) */
-.pg-vacio { flex: 1; display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 120px; margin: 0 0 12px; padding: 12px; border-radius: 14px; border: 1px dashed rgba(255, 255, 255, .18); background: radial-gradient(70% 80% at 50% 50%, rgba(255, 43, 214, .16), transparent 70%); }
-.pg-vacio > * { filter: drop-shadow(0 8px 12px rgba(0, 0, 0, .45)); animation: hubFlota 3s ease-in-out infinite; } .pg-vacio > :nth-child(2) { animation-delay: -1s; } .pg-vacio > :nth-child(3) { animation-delay: -2s; }
+/* (sin campeonatos empezados: el pelotari y el futbolista, que llevan a jugar, en vez de una frase) */
+.pg-fotos { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: var(--hueco); min-height: 140px; margin: 0 0 12px; }
+.pg-fotos button { position: relative; display: flex; align-items: flex-end; padding: 8px; border-radius: var(--r); overflow: hidden; border: 1px solid var(--line2); background: #2a0f55 center/cover; color: #fff; cursor: pointer; transition: transform .15s, border-color .15s; }
+.pg-fotos button::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 45%, rgba(20, 6, 40, .9)); }
+.pg-fotos button:hover { transform: translateY(-3px); border-color: var(--cat); } .pg-fotos button:active { transform: scale(.97); }
+.pg-fotos b { position: relative; display: flex; align-items: center; gap: 8px; font: 400 var(--fs-lg)/1 var(--f-display); text-transform: uppercase; text-shadow: 0 2px 8px #000; }
 .pg-camp { display: flex; flex-direction: column; }
 .progreso .pg-more { margin-top: auto; align-self: flex-start; }
 .progreso .pg-list + .pg-more, .progreso .pg-empty + .pg-more { margin-top: 12px; }
 @media (max-width: 760px) { .pg-grid { grid-template-columns: minmax(0, 1fr); } .progreso .panel.pg-total { grid-template-columns: minmax(0, 1fr); } .pg-total .pg-ringbox, .pg-total .pg-rank, .pg-total .pg-stats { grid-row: auto; grid-column: 1; } }
+
+/* ---------- El color de cada parte del juego ----------
+   Sobre el morado de siempre, un acento por parte (hub.js, KC): la aventura en fucsia, los torneos en naranja, los
+   saberes en cian, la naturaleza en verde, los personajes y las leyendas en ámbar y lo tuyo en azul. Lo llevan el botón
+   de la barra, el título y las líneas de la pantalla, y en el inicio cada bloque y cada dato */
+#hub { --k-av: #ff4fd8; --k-dep: #ff8a1f; --k-sab: #2dd4ff; --k-nat: #3ee07a; --k-ley: #ffc23d; --k-yo: #7c9cff; --cat: var(--k-av); }
+[data-cat=dep] { --cat: var(--k-dep); } [data-cat=sab] { --cat: var(--k-sab); } [data-cat=nat] { --cat: var(--k-nat); } [data-cat=ley] { --cat: var(--k-ley); } [data-cat=yo] { --cat: var(--k-yo); } [data-cat=av] { --cat: var(--k-av); }
+.hub-nav button[data-cat] svg, .hub-nav button[data-cat] img { filter: drop-shadow(0 0 4px color-mix(in srgb, var(--cat) 55%, transparent)); }
+.hub-nav button[data-cat]:hover { background: color-mix(in srgb, var(--cat) 12%, transparent); }
+.hub-nav button.on[data-cat] { background: linear-gradient(90deg, color-mix(in srgb, var(--cat) 34%, transparent), transparent); }
+.hub-nav button.on[data-cat] :is(svg, img) { filter: drop-shadow(0 0 8px var(--cat)); }
+.hub-nav button.on[data-cat]::before { background: var(--cat); box-shadow: 0 0 10px var(--cat); }
+@media (max-width: 760px) { .hub-nav button.on[data-cat] { background: linear-gradient(180deg, color-mix(in srgb, var(--cat) 28%, transparent), transparent); } }   /* (en la barra de abajo, desde arriba) */
+.more-in button[data-cat] { border-left: 3px solid var(--cat); }
+.hub-main .kicker { color: color-mix(in srgb, var(--cat) 75%, #fff); } .hub-main .kicker::before { background: var(--cat); }
+.hub-main .sec::after { background: linear-gradient(90deg, color-mix(in srgb, var(--cat) 60%, transparent), transparent); }
+.hub-main .title, .armorial .ar-head h1 { text-shadow: 0 3px 0 rgba(0, 0, 0, .3), 0 0 26px color-mix(in srgb, var(--cat) 45%, transparent); }
+.armorial .ar-count, .lead-chip b { color: color-mix(in srgb, var(--cat) 75%, #fff); }
+.hub-main .filters button.on { box-shadow: inset 0 -3px 0 var(--cat); }
+/* (en el inicio, cada bloque con su franja de color arriba y un brillo suave) */
+.hub-main :is(.panel, .saberes, .sports-cta)[data-cat], .hub-main .progreso .panel, .hub-main .two > .panel { border-top: 3px solid var(--cat); }
+.hub-main .panel:is([data-cat], .progreso *, .two > *) { background-image: radial-gradient(90% 60% at 0% 0%, color-mix(in srgb, var(--cat) 16%, transparent), transparent 70%); }
+.tiles .tile b { color: color-mix(in srgb, var(--cat) 70%, #fff); } .pg-stats [data-cat] { border-left: 3px solid var(--cat); } .pg-stats [data-cat] dd { color: color-mix(in srgb, var(--cat) 70%, #fff); }
+.saberes .sb { border-left: 3px solid var(--cat); } .saberes .sb b { color: color-mix(in srgb, var(--cat) 80%, #fff); }
+.saberes .sb.on { background: color-mix(in srgb, var(--cat) 14%, transparent); border-color: color-mix(in srgb, var(--cat) 45%, transparent); }
+.saberes .sb.link:hover { border-color: var(--cat); }
+/* (los números de las comarcas, en su color, como en el mapa) */
+.clist i { background: var(--c, var(--cta)); text-shadow: 0 1px 3px rgba(0, 0, 0, .7); } .clist button:hover { background: color-mix(in srgb, var(--c, #ff2bd6) 16%, transparent); border-color: var(--c, var(--fx)); } .cbar2 u { background: var(--c, var(--cta)); }
+
+/* insignias: cada una con su dibujo; las que faltan, apagadas y con un candado pequeño */
+.bcard .bic { position: relative; } .bcard:not(.on) .bic :is(svg, img):first-child { filter: grayscale(1) brightness(.75); opacity: .6; }
+.bcard .blk { position: absolute; right: -2px; bottom: -2px; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: #2a0f55; border: 1px solid var(--line2); }
+
+/* pasaporte: en cada casilla, la foto del pueblo (en gris hasta tener el sello, y entonces con el sello encima) */
+.pst { overflow: hidden; justify-content: center; min-height: 96px; isolation: isolate; }
+.pst-img { position: absolute; inset: 0; z-index: -1; width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) brightness(.42); transition: filter .3s, transform .3s; }
+.pst:hover .pst-img { filter: grayscale(.4) brightness(.55); transform: scale(1.06); } .pst.on .pst-img { filter: saturate(1.15) brightness(.62); }
+.pst .ink { opacity: .8; } .pst .ink img { display: block; width: 46px; height: 46px; object-fit: contain; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, .6)); }
+.pst small { text-shadow: 0 1px 3px #000, 0 0 8px rgba(0, 0, 0, .8); }
+/* la naturaleza de cada comarca: los animales y las plantas con su dibujo o su foto */
+.nchip .nimg { width: 32px; height: 32px; flex: none; border-radius: 50%; object-fit: cover; background: rgba(255, 255, 255, .1); } .nchip .nimg.fa { object-fit: contain; background: radial-gradient(rgba(255, 255, 255, .18), transparent 70%); }
+svg.navarra { filter: saturate(1.25); }   /* (los colores de las comarcas, más vivos sobre el morado) */
+

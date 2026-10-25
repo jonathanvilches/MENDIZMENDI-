@@ -19,7 +19,7 @@ export const HOMBRES = Object.keys(PERSONAJES).filter(id => !PERSONAJES[id].wome
 const cat = (F) => F.kicker.split('·').pop().trim();
 const pic = (id, F) => { const u = personajeUrl(id); if (u) return `<img src="${u}" alt="" loading="lazy" decoding="async">`; const i = icon3DReady(F.icon); return i ? `<img class="pico" src="${i}" alt="">` : iconSVG(F.icon, 72); };
 /** La tarjeta de un personaje (abre la ficha al tocarla: data-personaje). */
-const personajeCard = (id) => { const F = PERSONAJES[id]; return `<button type="button" class="fcard pers${personajeUrl(id) ? ' ilus' : ''}" data-personaje="${id}" aria-label="${esc(F.name)}"><span class="fpic">${pic(id, F)}</span><span class="ftx"><small><span>${esc(cat(F))}</span> · <span>${esc(townName(TOWN_OF[id]))}</span></small><b>${esc(isEU() ? (F.eu || F.name) : F.name)}</b><i>${esc(F.years)}</i></span></button>`; };
+const personajeCard = (id) => { const F = PERSONAJES[id], nm = isEU() ? (F.eu || F.name) : F.name; return `<button type="button" class="fcard pers${personajeUrl(id) ? ' ilus' : ''}" data-personaje="${id}" aria-label="${esc(nm)}"><span class="fpic">${pic(id, F)}</span><span class="ftx"><small><span>${esc(cat(F))}</span> · <span>${esc(townName(TOWN_OF[id]))}</span></small><b>${esc(nm)}</b><i>${esc(F.years)}</i></span></button>`; };
 export const personajesHTML = (list) => list.map(personajeCard).join('');
 /** La ficha de un personaje, con pestañas como las de las figuras. */
 export function openPersonaje(ui, id) {
