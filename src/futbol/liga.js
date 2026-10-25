@@ -106,6 +106,7 @@ export function kitSvgOf(c, size = 44, key = 'kit') {
 const CSS = `
 .lg-root{position:fixed;inset:0;z-index:30000;display:grid;place-items:center;padding:calc(env(safe-area-inset-top,0px) + 8px) calc(env(safe-area-inset-right,0px) + 8px) calc(env(safe-area-inset-bottom,0px) + 8px) calc(env(safe-area-inset-left,0px) + 8px);font-family:Nunito,system-ui,sans-serif;color:#fff;animation:lgIn .25s}
 @keyframes lgIn{from{opacity:0}to{opacity:1}}
+.lg-root.out{animation:lgOut .2s ease-in both;pointer-events:none}@keyframes lgOut{to{opacity:0}}
 /* (la tarjeta, como un rótulo de retransmisión: cristal morado, esquinas cortadas y una raya fucsia arriba) */
 .lg-card{position:relative;width:min(900px,100%);max-height:100%;overflow:auto;display:grid;gap:12px;grid-template-columns:1fr;padding:16px 20px;border-radius:4px;background:linear-gradient(180deg,rgba(49,16,107,.62),rgba(12,4,30,.9));border:1px solid rgba(201,178,255,.2);box-shadow:0 30px 80px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06);clip-path:polygon(18px 0,100% 0,100% calc(100% - 18px),calc(100% - 18px) 100%,0 100%,0 18px)}
 .lg-card::before{content:'';position:absolute;left:16px;right:0;top:0;height:3px;background:var(--cta);box-shadow:var(--glow)}
@@ -240,6 +241,8 @@ function panel(html) {
   for (const L of r.querySelectorAll('.lg-list')) { const upd = () => L.classList.toggle('more', L.scrollHeight - L.scrollTop - L.clientHeight > 6); L.addEventListener('scroll', upd, { passive: true }); requestAnimationFrame(upd); }
   return r;
 }
+// (al elegir, el panel se desvanece mientras empieza lo siguiente, que entra por debajo o encima: antes se quitaba de golpe)
+function fuera(r) { r.classList.add('out'); setTimeout(() => r.remove(), 220); }
 // (en el móvil, solo PJ · DG · Pts; las demás columnas se ven en pantallas anchas)
 function tableHtml(S) {
   return `<table class="lg-table"><tr><th></th><th style="text-align:left">Club</th><th>PJ</th><th class="x">G</th><th class="x">E</th><th class="x">P</th><th class="x">GF</th><th class="x">GC</th><th>DG</th><th>Pts</th></tr>${table(S).map((t, i) => {
@@ -271,7 +274,7 @@ export function ligaPanel(S) {
     const play = '<button class="lg-btn go" data-a="play">¡A jugar!</button>';
     const r = panel(`${head(S, m ? `Temporada ${S.year}` : 'Fin de temporada')}${mid}${m && S.j === 0 ? HOW : ''}${tableHtml(S)}
       <div class="lg-btns lg-foot">${m ? `${play}<button class="lg-btn" data-a="sim">Simular partido</button>` : '<button class="lg-btn go" data-a="new">Nueva temporada</button>'}<button class="lg-btn" data-a="exit">Salir</button></div>${adapt}`);
-    r.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; r.remove(); res(b.dataset.a); });
+    r.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; fuera(r); res(b.dataset.a); });
   });
 }
 /** Resultados de la jornada y clasificación. */
@@ -279,7 +282,7 @@ export function roundPanel(S, R, j) {
   return new Promise(res => {
     const rows = R.map(m => `<div class="${m.h === S.club || m.a === S.club ? 'me' : ''}"><span>${esc(CLUBS[m.h].name)}</span><b>${m.g[0]} - ${m.g[1]}</b><span>${esc(CLUBS[m.a].name)}</span></div>`).join('');
     const r = panel(`${head(S, `Resultados · jornada ${j + 1}`)}<div class="lg-res">${rows}</div>${tableHtml(S)}<div class="lg-btns"><button class="lg-btn go" data-a="ok">Continuar</button></div>`);
-    r.addEventListener('click', (e) => { if (!e.target.closest('[data-a]')) return; r.remove(); res(); });
+    r.addEventListener('click', (e) => { if (!e.target.closest('[data-a]')) return; fuera(r); res(); });
   });
 }
 // las portadas de equipo: la pareja del autor (el chico y la chica con su equipación) en la web y, en el archivo único, la
@@ -306,7 +309,7 @@ export function clubPanel(clubId, items, sub = 'Tu club') {
     const exit = items.find(([id]) => id === 'exit');
     const r = panel(`${head(S, sub)}<div class="eq-tiles">${tiles}</div>${exit ? `<div class="eq-foot"><button class="lg-btn" data-a="exit">${esc(exit[1] || 'Salir')}</button></div>` : ''}`);
     r.firstElementChild.classList.add('eq-menu');
-    r.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; r.remove(); res(b.dataset.a); });
+    r.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; fuera(r); res(b.dataset.a); });
   });
 }
 // las cartas de los clubes para elegir: la portada del equipo, su escudo, su media, el grupo, el nombre y el pueblo (o
@@ -329,7 +332,7 @@ function teamPicker(top, ids, cur, back = 'Volver') {
     L.addEventListener('scroll', upd, { passive: true });
     L.addEventListener('wheel', (e) => { if (L.scrollWidth > L.clientWidth + 4 && Math.abs(e.deltaY) > Math.abs(e.deltaX)) { L.scrollLeft += e.deltaY; e.preventDefault(); } }, { passive: false });
     requestAnimationFrame(() => { const on = L.querySelector('.on'); if (on) { L.scrollLeft = Math.max(0, on.offsetLeft - (L.clientWidth - on.offsetWidth) / 2); L.scrollTop = Math.max(0, on.offsetTop - (L.clientHeight - on.offsetHeight) / 2); } upd(); });
-    r.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; r.remove(); res(b.dataset.a || null); });
+    r.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; fuera(r); res(b.dataset.a || null); });
   });
 }
 /** Elegir rival para un amistoso (todos los clubes). */
@@ -340,4 +343,4 @@ export function rivalPanel(clubId) {
 export function clubPick(cur = null) {
   return teamPicker('<div class="lg-head"><div><small>Campeonato de fútbol</small><h2>Elige tu club</h2><span class="lg-note">Con él juegas la Liga Navarra y los amistosos</span></div></div>', byGroup(Object.keys(CLUBS)), cur);
 }
-export { clubById, panel as lgPanel, esc as lgEsc };
+export { clubById, panel as lgPanel, fuera as lgFuera, esc as lgEsc };

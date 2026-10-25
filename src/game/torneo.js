@@ -6,7 +6,7 @@
 // También hay torneo por parejas (ocho parejas de delantero y zaguero, tú con tu compañero de siempre), igual de rondas.
 // Los pelotaris son personajes del juego (nombres inventados con su pueblo), no pelotaris reales.
 // Se guarda en localStorage ('herrizherri-torneo-v1'): uno individual y uno por parejas por comarca.
-import { lgPanel, lgEsc as esc } from '../futbol/liga.js';
+import { lgPanel, lgFuera, lgEsc as esc } from '../futbol/liga.js';
 import { pelotarisPanel, pelotarisCount } from './pelotaris.js';
 import { pelotariStats, temporadas, levelTier } from '../pelota/rules.js';
 import { openFicha } from '../pelota/ficha.js';
@@ -359,7 +359,7 @@ function otroPueblo(here) {
     const r = lgPanel(`<div class="lg-head" data-notr><div><small>${isEU() ? 'Esku pilota' : 'Pelota a mano'}</small><h2>${isEU() ? 'Zein frontoitan?' : '¿En qué frontón?'}</h2></div></div>
       <div class="lg-list tq-pueblos">${grupos.map(([c, ts]) => `<section><h3>${esc(c.name)}</h3><div>${ts.map(l => { const n = l.name.split(' /')[0]; return `<button type="button" class="${n === here ? 'on' : ''}" data-pueblo="${l.id}">${esc(n)}</button>`; }).join('')}</div></section>`).join('')}</div>
       <div class="lg-btns"><button class="lg-btn" data-a="no" data-notr>${isEU() ? 'Itzuli' : 'Volver'}</button></div>`);
-    r.addEventListener('click', (e) => { const b = e.target.closest('[data-pueblo], [data-a]'); if (!b) return; r.remove(); res(b.dataset.pueblo || null); });
+    r.addEventListener('click', (e) => { const b = e.target.closest('[data-pueblo], [data-a]'); if (!b) return; lgFuera(r); res(b.dataset.pueblo || null); });
   });
 }
 /** Pantalla del torneo (here: el nombre del pueblo del frontón donde se juega; o: los frontones a elegir, ver sedeHtml:
@@ -395,7 +395,7 @@ export function torneoPanel(T, here = null, o = null) {
       if (o && await sedeClick(e, r, o, here)) return;
       const f = e.target.closest('[data-f]'); if (f && m) { const L = fichaList(T, m); openFicha(L, Math.max(0, L.findIndex(p => p.id === f.dataset.f)), lang); return; }   // (la ficha, encima del cuadro)
       const inf = e.target.closest('[data-info]'); if (inf) { const h = r.querySelector('.tq-how'), on = h.hidden; h.hidden = !on; inf.setAttribute('aria-expanded', String(on)); requestAnimationFrame(lines); return; }
-      const b = e.target.closest('[data-a]'); if (!b) return; ro.disconnect(); r.remove(); res(b.dataset.a); });
+      const b = e.target.closest('[data-a]'); if (!b) return; ro.disconnect(); lgFuera(r); res(b.dataset.a); });
   });
 }
 /** El frontón de tu partido del torneo: el que elegiste para esta ronda o el de siempre (la final, en el Labrit). */
@@ -435,8 +435,8 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null) {
     const ro = new ResizeObserver(iguala); ro.observe(tiles); tiles.querySelectorAll('.figs').forEach(f => ro.observe(f)); iguala();
     // (la colección se abre encima y, al cerrarla, el menú sigue ahí)
     r.addEventListener('click', async (e) => {
-      const s = o && await sedeClick(e, r, o, here); if (s?.otro) { ro.disconnect(); r.remove(); res('otro:' + s.otro); return; } if (s) return;
-      const b = e.target.closest('[data-a]'); if (!b) return; if (b.dataset.a === 'pelotaris') { await pelotarisPanel(T.comarca); const c = pelotarisCount(); const s2 = b.querySelector('.pc-n'); if (s2) s2.textContent = `${c.have}/${c.total} descubiertos`; return; } r.remove(); res(b.dataset.a); });
+      const s = o && await sedeClick(e, r, o, here); if (s?.otro) { ro.disconnect(); lgFuera(r); res('otro:' + s.otro); return; } if (s) return;
+      const b = e.target.closest('[data-a]'); if (!b) return; if (b.dataset.a === 'pelotaris') { await pelotarisPanel(T.comarca); const c = pelotarisCount(); const s2 = b.querySelector('.pc-n'); if (s2) s2.textContent = `${c.have}/${c.total} descubiertos`; return; } lgFuera(r); res(b.dataset.a); });
   });
 }
 export { ROUNDS };
