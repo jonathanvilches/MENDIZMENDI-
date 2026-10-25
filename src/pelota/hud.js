@@ -19,7 +19,7 @@ const CSS = `
 .pel-rep small{font:700 var(--fs-xs)/1.2 var(--f-cond,'MZ Cond'),Nunito,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#e8dcff;text-shadow:0 1px 3px #000;padding-left:4px}
 @keyframes pel-repin{from{opacity:0;transform:translateX(-24px)}}@keyframes pel-rec{50%{opacity:.25}}
 /* el sorteo del saque: la chapa (azul por una cara y colorada por la otra) sube girando y cae; brilla el lado que saca */
-.pel-toss{position:absolute;inset:0;z-index:5;display:grid;place-items:center;padding:16px;pointer-events:auto;background:radial-gradient(ellipse at 50% 45%,rgba(40,14,92,.78),rgba(7,2,15,.92));animation:pel-tossbg .3s ease-out both}
+.pel-toss{position:absolute;inset:0;z-index:5;display:grid;place-items:center;padding:16px;pointer-events:auto;background:radial-gradient(ellipse at 50% 45%,rgba(40,14,92,.78),rgba(7,2,15,.92));animation:pel-tossbg .3s ease-out both}.pel-toss.directo{animation:none}
 .pel-root:has(>.pel-toss)>:not(.pel-toss){visibility:hidden}
 .pel-toss.out{animation:pel-tossout .32s ease-in both}
 .pel-toss-card{display:flex;flex-direction:column;align-items:center;gap:12px;width:min(640px,100%);text-align:center}

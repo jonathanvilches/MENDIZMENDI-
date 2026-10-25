@@ -1106,7 +1106,7 @@ export class TownGame {
   /** Fondo de los menús de los campeonatos de pelota: la lámina del frontón, desenfocada bajo el morado de los
    *  deportes, a pantalla completa. Antes, entre menú y menú se veía el pueblo y su frontón de la calle, que en los
    *  campeonatos no pinta nada; además, con él delante el pueblo no se dibuja (runtime: covered). Solo en Campeonatos. */
-  sportBackdrop(on, force = false) {
+  sportBackdrop(on, force = false, ya = false) {
     // (fuera de Campeonatos, solo el velo de ir al cubierto o al Labrit, force; cualquier otro, lo quita)
     if (!this.sportMode && !force) on = false;
     let el = document.querySelector('.sport-bg');
@@ -1115,6 +1115,8 @@ export class TownGame {
       const u = laminaUrl('dep-fronton'); if (u) { const i = document.createElement('i'); i.style.backgroundImage = `url("${u}")`; el.appendChild(i); }
       document.body.appendChild(el);
     }
+    // (ya: delante al momento, sin fundido; el siguiente cambio ya funde)
+    if (el && ya) { el.classList.add('ya'); requestAnimationFrame(() => requestAnimationFrame(() => el.classList.remove('ya'))); }
     el?.classList.toggle('on', !!on);
     this.rt?.checkCover?.();   // (al quitarlo, el frontón cubierto se dibuja ya: sin un momento de la imagen vieja)
   }
@@ -2507,7 +2509,7 @@ export class TownGame {
     const nextL = LEVELS.find(l => l.comarca === this.def.comarca && l.id !== this.def.id && !this.P.towns[l.id]?.stamp) || LEVELS.find(l => l.id !== this.def.id && !this.P.towns[l.id]?.stamp);
     const r = await townFinale(this.ui, { town, stamp: img, missions: this.missions.map(M => ({ title: M.title, icon: M.icon })), xp, next: nextL?.name.split(' /')[0] });
     if (r === 'next' && nextL) this.onPlayTown?.(nextL.id);
-    else if (r === 'map') this.onExit?.();
+    else if (r === 'map') { await this.ui.fadeOut(); if (!this.disposed) this.onExit?.(); this.ui.fadeIn(); }   // (al mapa, con un fundido)
   }
 
   // Compatibilidad con la interfaz

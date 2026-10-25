@@ -391,26 +391,34 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       document.querySelectorAll('.pel-root').forEach(el => el.remove());
       // (cada paso por su cuenta: si uno falla, los demás se hacen igual y se vuelve al pueblo con todo en su sitio)
       const safe = (f) => { try { f(); } catch (e) { console.warn('frontón', e); } };
-      safe(() => { if (seated) { seated.parent?.remove(seated); seated.dispose(); seated = null; } });
-      safe(() => { for (const j of jueces) { j.obj.parent?.remove(j.obj); removeMover(j.collider); j.glb?.dispose(); } jueces = []; G.pelotaJueces = null; });
-      safe(() => { if (mates) for (const m of Object.values(mates)) m.dispose(); mates = null; });
-      safe(() => { if (rig.char) rig.char.post = null; if (rival.glb) rival.glb.post = null; rig.setStance?.(null); });
-      safe(() => { if (pel) { P.obj.remove(pel.char.root); pel.dispose(); } });
-      safe(() => { for (const c of hidden) if (!c.parent) P.obj.add(c); });
-      safe(() => { if (bf) bf.visible = bfWas; if (G.beacon) G.beacon.off = false; if (G.sky) { G.sky.flood = 0; G.sky.indoor = false; } });
-      safe(() => { if (red) { red.char.post = null; rival.obj.remove(red.char.root); red.dispose(); } });
-      safe(() => { for (const c of hiddenR) if (!c.parent) rival.obj.add(c); });
-      safe(() => G.rt?.boost?.(false));
-      // (en los campeonatos, stay: del partido se pasa al menú o al cuadro del torneo sin volver al pueblo, ni sus
-      // botones ni el perro; el jugador sigue quieto en la puerta del frontón, de fondo)
-      P.rig = rig0; P.frozen = !!stay; G.mode = 'play';
-      if (!stay) { safe(() => G.ui.hudVisible?.(true)); safe(() => G.perro?.release?.()); }
-      safe(() => { rival.frozen = false; rival.speed = 0; rival.setPos(home.x, home.z, home.h); });
-      safe(() => { const back = returnTo || fronton, e = back.entry, c = back.out || back.toWorld(0, 12); P.place(e.x, e.z, Math.atan2(c.x - e.x, c.z - e.z)); });
-      safe(() => { G.follow.cinematic = null; G.follow.snap(P); });
-      // (la colección de pelotaris: el rival queda en su pueblo en cuanto se juega contra él; el resultado, si se acabó)
-      safe(() => { if (mode === 'match' && (match?.met || match?.game?.phase !== 'intro') && !r.later && !r.error) { const tw = rivalTown || { id: G.def?.id, name: (G.def?.name || '').split(' /')[0] }; meetPelotari(tw, { name: rivName, stats: rStatsKeep }, r.quit ? null : !!r.win); } });
-      res({ win: !!r.win, you: r.score?.you ?? 0, cpu: r.score?.rival ?? 0, best: r.best ?? 0, quit: !!r.quit, later: !!r.later, color: colors.you });
+      // la vuelta, sin ver cómo se recoge la cancha ni cómo salta la cámara a la puerta del frontón: en los campeonatos,
+      // el fondo de sus menús delante al momento; en el pueblo, un fundido a negro y, al volver la imagen, ya junto al
+      // frontón (si algo falló, sin esperas)
+      if (stay && G.sportMode) { safe(() => G.sportBackdrop?.(true, false, true)); vuelve(); }
+      else if (!r.error && G.ui?.fadeOut) G.ui.fadeOut().catch(() => {}).then(() => { vuelve(); G.ui.fadeIn?.(); });
+      else vuelve();
+      function vuelve() {
+        safe(() => { if (seated) { seated.parent?.remove(seated); seated.dispose(); seated = null; } });
+        safe(() => { for (const j of jueces) { j.obj.parent?.remove(j.obj); removeMover(j.collider); j.glb?.dispose(); } jueces = []; G.pelotaJueces = null; });
+        safe(() => { if (mates) for (const m of Object.values(mates)) m.dispose(); mates = null; });
+        safe(() => { if (rig.char) rig.char.post = null; if (rival.glb) rival.glb.post = null; rig.setStance?.(null); });
+        safe(() => { if (pel) { P.obj.remove(pel.char.root); pel.dispose(); } });
+        safe(() => { for (const c of hidden) if (!c.parent) P.obj.add(c); });
+        safe(() => { if (bf) bf.visible = bfWas; if (G.beacon) G.beacon.off = false; if (G.sky) { G.sky.flood = 0; G.sky.indoor = false; } });
+        safe(() => { if (red) { red.char.post = null; rival.obj.remove(red.char.root); red.dispose(); } });
+        safe(() => { for (const c of hiddenR) if (!c.parent) rival.obj.add(c); });
+        safe(() => G.rt?.boost?.(false));
+        // (en los campeonatos, stay: del partido se pasa al menú o al cuadro del torneo sin volver al pueblo, ni sus
+        // botones ni el perro; el jugador sigue quieto en la puerta del frontón, de fondo)
+        P.rig = rig0; P.frozen = !!stay; G.mode = 'play';
+        if (!stay) { safe(() => G.ui.hudVisible?.(true)); safe(() => G.perro?.release?.()); }
+        safe(() => { rival.frozen = false; rival.speed = 0; rival.setPos(home.x, home.z, home.h); });
+        safe(() => { const back = returnTo || fronton, e = back.entry, c = back.out || back.toWorld(0, 12); P.place(e.x, e.z, Math.atan2(c.x - e.x, c.z - e.z)); });
+        safe(() => { G.follow.cinematic = null; G.follow.snap(P); });
+        // (la colección de pelotaris: el rival queda en su pueblo en cuanto se juega contra él; el resultado, si se acabó)
+        safe(() => { if (mode === 'match' && (match?.met || match?.game?.phase !== 'intro') && !r.later && !r.error) { const tw = rivalTown || { id: G.def?.id, name: (G.def?.name || '').split(' /')[0] }; meetPelotari(tw, { name: rivName, stats: rStatsKeep }, r.quit ? null : !!r.win); } });
+        res({ win: !!r.win, you: r.score?.you ?? 0, cpu: r.score?.rival ?? 0, best: r.best ?? 0, quit: !!r.quit, later: !!r.later, color: colors.you });
+      }
     }
   });
 }
