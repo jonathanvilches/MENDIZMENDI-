@@ -6,7 +6,7 @@
 // (tools/laminas-movil.mjs: sin conexión, la portada a todo el ancho del móvil tumbado se veía borrosa).
 // En WebP y no en AVIF: los visores de HTML del iPhone no siempre enseñan AVIF, y sin ellas las portadas salían vacías.
 import { LAMINAS, COMARCA_LAMINA, CUENTO_LAMINA, PERSONAJE_LAMINA, BOSQUE_LAMINA } from '../data/laminas.js';
-import { hdTable } from '../web/hd.js';
+import { hdTable, webUrl } from '../web/hd.js';
 import { esc } from '../util/html.js';
 import { byId } from '../util/glob.js';
 
@@ -24,8 +24,9 @@ const BY_ID = Object.fromEntries(LAMINAS.map(l => [l.id, l]));
 const SMALL = Object.fromEntries(Object.entries(URLS).filter(([k]) => k.endsWith('-s')).map(([k, v]) => [k.slice(0, -2), v]));
 hdTable('laminas', URLS, BIG, 2560); hdTable('laminas', SMALL, URLS, 1280); hdTable('laminas', SMALL, BIG, 2560); hdTable('leyendas', LEY_BIG, LEY_HD, 2560);   // (en el archivo único, con conexión: los de la web, src/web/hd.js)
 
-/** La lámina por su id (o null si no está en esta versión); small: la copia pequeña. */
-export const laminaUrl = (id, small = false) => (id && ((small && URLS[id + '-s']) || URLS[id])) || null;
+/** La lámina por su id (o null si no está en esta versión); small: la copia pequeña. (En el archivo único, las que no
+ *  caben dentro, de la web si se llega a ella: src/web/hd.js) */
+export const laminaUrl = (id, small = false) => (id && ((small && URLS[id + '-s']) || URLS[id] || webUrl('laminas', id))) || null;
 export const laminaById = (id) => BY_ID[id] || null;
 // Las escenas de las cimas de las misiones de montaña (src/assets/cimas), con el id del monte, en 16:9: el explorador en
 // la subida. En la web, la de 1024 para las tarjetas y la de 1536 para el buzón de cumbre; en el archivo único, la de 320.
@@ -36,24 +37,24 @@ hdTable('cimas', CIMA_BIG, CIMA_HD, 2560);
 /** La escena de una cima (o null si no la tiene); big: la grande. */
 export const cimaUrl = (id, big = false) => (big && CIMA_BIG[id]) || CIMA[id] || null;
 // Los personajes de Navarra (src/assets/personajes), con su id de data/personajes.js, en 16:9: en la web, los de 1536;
-// en el archivo único, los de 320. Si en una versión faltara la de un personaje, Sancho y las golondrinas llevan una lámina
-// que ya estaba en el juego. Miguel Induráin, sin la suya: es una persona viva y no se le dibuja sin su permiso
+// en el archivo único, los de 320 (los 8 primeros: los demás no caben y, con conexión, se ven de la web). Si en una versión
+// faltara la de un personaje, Sancho y las golondrinas llevan una lámina que ya estaba en el juego. Miguel Induráin, sin la suya: es una persona viva y no se le dibuja sin su permiso
 // (legal/estado-legal.md, R4); su ficha lleva su icono. Para volver a ponerla, basta con quitar la exclusión. (En la
 // carpeta de enlaces del artefacto, personajes/artefacto, tampoco va su enlace: la exclusión no vale con enlaces.)
 const PERS = byId(import.meta.glob(['@personajes/*.webp', '!@personajes/indurain.webp'], { eager: true, query: '?url', import: 'default' }));
 const PERS_HD = byId(import.meta.glob(['@personajes-hd/*.webp', '!@personajes-hd/indurain.webp'], { eager: true, query: '?url', import: 'default' }));
 hdTable('personajes', PERS, PERS_HD, 2560);
 /** La ilustración de un personaje de Navarra (o null si no la tiene). */
-export const personajeUrl = (id) => PERS[id] || laminaUrl(PERSONAJE_LAMINA[id]) || null;
+export const personajeUrl = (id) => PERS[id] || webUrl('personajes', id) || laminaUrl(PERSONAJE_LAMINA[id]) || null;
 // Las tradiciones (src/assets/tradiciones), una por misión con su id en el campo «ilus» de data/levels.js, en 16:9: el
 // explorador viendo la tradición. En la web, las de 1536; en el archivo único, las de 320.
 const TRAD = byId(import.meta.glob('@tradiciones/*.webp', { eager: true, query: '?url', import: 'default' }));
 const TRAD_HD = byId(import.meta.glob('@tradiciones-hd/*.webp', { eager: true, query: '?url', import: 'default' }));
 hdTable('tradiciones', TRAD, TRAD_HD, 2560);
 /** La ilustración de una tradición (o null si no está en esta versión). */
-export const tradicionUrl = (id) => (id && TRAD[id]) || null;
+export const tradicionUrl = (id) => (id && (TRAD[id] || webUrl('tradiciones', id))) || null;
 /** La ilustración de un cuento (o, si no tiene, la lámina de su pueblo que lo recuerda); big: la grande. */
-export const leyendaUrl = (id, big = false) => (big && LEY_BIG[id]) || LEY[id] || laminaUrl(CUENTO_LAMINA[id], !big);
+export const leyendaUrl = (id, big = false) => (big && LEY_BIG[id]) || LEY[id] || webUrl('leyendas', id, big ? 1536 : 0) || laminaUrl(CUENTO_LAMINA[id], !big);
 // Las portadas son todas láminas: la de cada pueblo, la de cada comarca y, si un pueblo no tiene, la de su comarca.
 // (Las fotos 3D de antes, con el diorama de la comarca y el personaje delante, ya no se usan.)
 /** La portada del pueblo (o null si no tiene); small: la copia de las tarjetas. */

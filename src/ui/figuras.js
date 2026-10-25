@@ -3,7 +3,7 @@
 // la tarjeta de la tira del inicio y de la pantalla Personajes, y su ficha (quién es, cómo viste, en el juego).
 import { FIGURAS, figuraById } from '../data/figuras.js';
 import { infoCard } from './escudo.js';
-import { hdTable } from '../web/hd.js';
+import { hdTable, webUrl } from '../web/hd.js';
 import { esc } from '../util/html.js';
 import { isDidactico } from '../util/modo.js';
 import { byId } from '../util/glob.js';
@@ -15,11 +15,11 @@ const ILUS = byId(import.meta.glob('@figuras-ilus/*.webp', { eager: true, query:
 hdTable('figuras', IMG); hdTable('figuras-ilus', ILUS);
 const KIND = { leyenda: 'Leyenda', carnaval: 'Carnaval' };
 /** La ilustración de una figura si la hay; si no, el render de su traje (o '' si no está en esta versión). */
-export const figuraImg = (id) => ILUS[id] || IMG[id] || '';
+export const figuraImg = (id) => ILUS[id] || webUrl('figuras-ilus', id) || IMG[id] || '';   // (en el archivo único, la ilustración de la web si se llega a ella)
 /** La figura recortada, sin fondo (para un círculo con su cara). */
 export const figuraRecorte = (id) => IMG[id] || '';
 /** Si la figura tiene ilustración (apaisada) en vez del render. */
-export const figuraIlus = (id) => !!ILUS[id];
+export const figuraIlus = (id) => !!(ILUS[id] || webUrl('figuras-ilus', id));
 /** La tarjeta de una figura: su imagen, de qué es y de dónde, y su nombre (abre la ficha al tocarla: data-figura). */
 const figuraCard = (f) => `<button type="button" class="fcard${figuraIlus(f.id) ? ' ilus' : ''}" data-figura="${f.id}" aria-label="${esc(f.name)}"><span class="fpic">${figuraImg(f.id) ? `<img src="${figuraImg(f.id)}" alt="" loading="lazy" decoding="async">` : ''}</span><span class="ftx"><small>${esc(KIND[f.kind])} · ${esc(f.where.split(' · ')[0])}</small><b>${esc(f.name)}</b>${f.eu && f.eu !== f.name ? `<i>${esc(f.eu)}</i>` : ''}</span></button>`;
 /** Las tarjetas de una lista de figuras (por defecto, todas). */

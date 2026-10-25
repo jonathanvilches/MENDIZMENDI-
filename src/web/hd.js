@@ -26,6 +26,34 @@ const addBig = (u, w, b) => { const L = REV.get(u) || []; if (!L.some(x => x.u =
 /** En el archivo único con conexión: la dirección en la web de una imagen que no va dentro (grupo e id de la lista),
  *  en cuanto ha llegado la lista; si no, null (los escudos de las casas y de los oficios). */
 export const hdUrl = (group, id) => { const e = MAP?.[group + '/' + id]; return Array.isArray(e) && e.length && typeof e[0]?.[1] === 'string' ? SITE + e[0][1] : null; };
+// En el archivo único no caben todas las ilustraciones (los personajes de Navarra, las tradiciones, las leyendas, las
+// figuras y las láminas nuevas): sin ellas, la ficha enseñaba el icono de antes. Si se llega a la web publicada (se
+// prueba cargando de ella una imagen pequeña: hay visores que dejan cargar imágenes de fuera pero no pedir archivos),
+// esas se ven de la web, como en ella; si no, las de dentro. Al saberlo, «herrizherri-web», para que el menú se repinte.
+let WEB_OK = false;
+/** En el archivo único, si se llega a la web: la dirección de una imagen que no va dentro (grupo e id de la lista; la
+ *  más pequeña de al menos «ancho» píxeles, o la mayor); si no, null. */
+export const webUrl = (group, id, ancho = 0) => {
+  if (!WEB_OK || !id) return null;
+  const e = MAP?.[group + '/' + id]; if (!Array.isArray(e)) return null;
+  const L = e.filter(x => Array.isArray(x) && typeof x[1] === 'string');
+  const x = L.find(x => +x[0] >= ancho) || L[L.length - 1];
+  return x ? SITE + x[1] : null;
+};
+function probarWeb() {
+  const e = MAP && Object.values(MAP).find(e => Array.isArray(e) && Array.isArray(e[0]) && +e[0][0] <= 256 && typeof e[0][1] === 'string');
+  if (!e || WEB_OK) return;
+  let n = 0;
+  const prueba = () => {
+    if (WEB_OK || navigator.onLine === false) return;
+    const i = new Image(); n++;
+    i.onload = () => { if (WEB_OK) return; WEB_OK = true; dispatchEvent(new Event('herrizherri-web')); };
+    i.onerror = () => { if (n < 3) setTimeout(prueba, n === 1 ? 4000 : 15000); };
+    i.referrerPolicy = 'no-referrer'; i.src = SITE + e[0][1];
+  };
+  addEventListener('online', () => { n = 0; prueba(); });
+  prueba();
+}
 function fill(group, table) {
   for (const [id, u] of Object.entries(table)) {
     const e = MAP[group + '/' + id]; if (!Array.isArray(e) || !u) continue;
@@ -40,7 +68,7 @@ export function startHD() {
   // por si la web publicada es más nueva que el archivo)
   let watching = false;
   const use = (j) => { MAP = j; for (const [g, tb] of TABLES) fill(g, tb); if (REV.size && !watching) { watching = true; watch(); } };
-  if (__HDMAP__ && typeof __HDMAP__ === 'object') use(__HDMAP__);
+  if (__HDMAP__ && typeof __HDMAP__ === 'object') { use(__HDMAP__); probarWeb(); }
   // (si la lista no llega —sin conexión, una red lenta, un corte—, se vuelve a pedir a los 4 y a los 15 s y al recuperar
   // la conexión: antes se pedía una sola vez, y si fallaba el archivo único se quedaba con las láminas pequeñas)
   let n = 0, busy = false;
@@ -50,7 +78,7 @@ export function startHD() {
     const ac = new AbortController(), t = setTimeout(() => ac.abort(), 15000);
     fetch(SITE + 'hd.json', { signal: ac.signal, cache: 'no-cache', credentials: 'omit', referrerPolicy: 'no-referrer' })
       .then(r => r.ok ? r.json() : null)
-      .then(j => { clearTimeout(t); busy = false; if (!j || typeof j !== 'object') throw 0; FRESH = true; use(j); })
+      .then(j => { clearTimeout(t); busy = false; if (!j || typeof j !== 'object') throw 0; FRESH = true; use(j); probarWeb(); })
       .catch(() => { clearTimeout(t); busy = false; if (n < 3) setTimeout(ask, n === 1 ? 4000 : 15000); });
   };
   addEventListener('online', ask);
