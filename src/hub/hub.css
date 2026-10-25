@@ -1606,4 +1606,8 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 /* la naturaleza de cada comarca: los animales y las plantas con su dibujo o su foto */
 .nchip .nimg { width: 32px; height: 32px; flex: none; border-radius: 50%; object-fit: cover; background: rgba(255, 255, 255, .1); } .nchip .nimg.fa { object-fit: contain; background: radial-gradient(rgba(255, 255, 255, .18), transparent 70%); }
 svg.navarra { filter: saturate(1.25); }   /* (los colores de las comarcas, más vivos sobre el morado) */
+/* créditos y licencias, plegados al final del perfil */
+.creditos { margin-top: var(--esp); } .creditos summary { display: flex; align-items: center; gap: 8px; min-height: 44px; cursor: pointer; font-weight: 900; list-style: none; } .creditos summary::-webkit-details-marker { display: none; }
+.creditos ul { margin: 8px 0; padding-left: 20px; display: grid; gap: 6px; color: var(--mute); font-size: var(--fs-sm); font-weight: 600; line-height: 1.4; }
+.creditos .mit { margin: 0; color: var(--dim); font-size: var(--fs-xs); line-height: 1.4; font-weight: 600; overflow-wrap: anywhere; }
 

@@ -148,6 +148,13 @@ export const EU_EXACT = {
   // --- eskualdeak ---
   'Comarca de Pamplona': 'Iruñerria', 'Pirineo': 'Pirinioak', 'Prepirineo': 'Aurrepirinioak', 'Tierra Estella': 'Lizarraldea', 'Zona Media': 'Erdialdea', 'Ribera Alta': 'Erribera Garaia', 'Ribera': 'Erribera', 'Sangüesa': 'Zangoza',
   // --- futbola: menua, kontrolak, partida eta estatistikak ---
+  'Créditos y licencias': 'Kredituak eta lizentziak',
+  'Ilustraciones, iconos y personajes: creados por el autor del juego con ayuda de herramientas de inteligencia artificial.': 'Ilustrazioak, ikonoak eta pertsonaiak: jokoaren egileak sortuak, adimen artifizialeko tresnen laguntzaz.',
+  'Modelos 3D de base: hechos con Meshy (meshy.ai) y adaptados para el juego.': 'Oinarrizko 3D ereduak: Meshy-rekin (meshy.ai) eginak eta jokorako egokituak.',
+  'Fotos de las plantas: iNaturalist, de dominio público (CC0).': 'Landareen argazkiak: iNaturalist, jabari publikokoak (CC0).',
+  'Mapas de los pueblos: © colaboradores de OpenStreetMap (ODbL), Overture Maps y relieve EU-DEM de Copernicus (Unión Europea).': 'Herrien mapak: © OpenStreetMap-en laguntzaileak (ODbL), Overture Maps eta Copernicusen EU-DEM erliebea (Europar Batasuna).',
+  'Letras: Barlow Condensed, Lilita One y Nunito, con licencia SIL Open Font License 1.1.': 'Letrak: Barlow Condensed, Lilita One eta Nunito, SIL Open Font License 1.1 lizentziarekin.',
+  'Programas: three.js (© 2010-2025 Three.js Authors) y qrcode-generator (© 2009 Kazuhiko Arase), con licencia MIT:': 'Programak: three.js (© 2010-2025 Three.js Authors) eta qrcode-generator (© 2009 Kazuhiko Arase), MIT lizentziarekin:',
   'Fútbol': 'Futbola', 'Fútbol 11': '11ko futbola', 'Fútbol sala': 'Areto futbola', 'Modo': 'Modua', 'Retos de entrenamiento': 'Entrenamendu erronkak', 'Rival': 'Aurkaria',
   'Dificultad': 'Zailtasuna', 'Duración de cada parte': 'Zati bakoitzaren iraupena', 'Asistencia al pase y al tiro': 'Laguntza pasean eta jaurtiketan',
   'Fácil': 'Erraza', 'Normal': 'Normala', 'Difícil': 'Zaila', 'Sí': 'Bai', 'No': 'Ez', '¡A jugar!': 'Jolastera!', 'Salir': 'Irten', 'Volver': 'Itzuli',
