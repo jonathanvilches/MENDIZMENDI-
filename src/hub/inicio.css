@@ -60,7 +60,7 @@
 .ini-live li { display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 6px; border-radius: 14px; border: 1px solid transparent; transition: background .25s, border-color .25s; }
 .ini-live li.on { background: rgba(255, 255, 255, .1); border-color: var(--line2); box-shadow: inset 3px 0 0 var(--t); }
 .il-pick { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 0; background: none; border: 0; color: var(--ink); text-align: left; font: inherit; cursor: pointer; }
-.il-pick img { flex: none; width: 56px; height: 56px; border-radius: 12px; object-fit: cover; }
+.il-pick img { flex: none; width: 80px; height: 45px; border-radius: 10px; object-fit: cover; }   /* (la lámina entera, en 16:9: en cuadrado se cortaban los lados) */
 .il-pick span { display: grid; min-width: 0; line-height: 1.2; } .il-pick b { color: #fff; font-size: var(--fs-md); } .il-pick small { color: var(--mute); font-weight: 700; font-size: var(--fs-sm); }
 .il-btn { flex: none; min-height: 36px; padding: 6px 16px; border-radius: 999px; border: 0; cursor: pointer; background: var(--t); color: #12081f; font: 900 var(--fs-sm) 'Nunito', sans-serif; white-space: nowrap; box-shadow: 0 4px 14px color-mix(in srgb, var(--t) 45%, transparent); transition: transform .15s; }
 .il-btn:hover, .il-btn:focus-visible { transform: translateY(-2px); }
@@ -221,9 +221,25 @@
 /* (el capítulo abierto: su lámina con el número y el nombre, la barra de sellos y sus pantallas) */
 .ir-cap { display: grid; gap: 12px; min-width: 0; }
 .ir-cap.cambia > * { animation: ih-sube .4s ease both; }
-.ic-banner { position: relative; min-height: 170px; display: grid; align-content: end; gap: 2px; padding: 16px 96px 16px 20px; border-radius: 16px; overflow: hidden; background: #1a2a22 center / cover no-repeat;
+/* (la lámina entera a la derecha, en 16:9, sin cortar a los personajes; el número, el nombre y lo que llevas a su
+   izquierda, sobre la misma lámina difuminada, y el sello a caballo entre las dos. Si el capítulo es estrecho, como en el
+   móvil de pie, la lámina arriba y el texto debajo) */
+.ir-cap { container-type: inline-size; }
+.ic-banner { --lw: 54%; position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, var(--lw)); grid-template-rows: minmax(0, 1fr) auto auto auto; align-content: end; row-gap: 2px; padding: 0; border-radius: 16px; overflow: hidden; background: #1a2a22;
   box-shadow: var(--filete), 0 14px 34px rgba(0, 0, 0, .45); isolation: isolate; }
-.ic-banner::before { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgba(8, 12, 10, .88), rgba(8, 12, 10, .45) 60%, rgba(8, 12, 10, .15)), linear-gradient(0deg, color-mix(in srgb, var(--c) 55%, transparent), transparent 70%); }
+.ic-banner::before { content: ''; position: absolute; inset: -40px; z-index: -1; filter: blur(20px) saturate(1.1);
+  background: linear-gradient(90deg, rgba(8, 12, 10, .8), rgba(8, 12, 10, .45)), linear-gradient(0deg, color-mix(in srgb, var(--c) 50%, transparent), transparent 70%), var(--bg) left center / cover no-repeat; }
+.ic-banner > :is(.ic-num, .ic-name, .ic-meta) { grid-column: 1; padding: 0 12px 0 20px; min-width: 0; }
+.ic-banner > .ic-num { grid-row: 2; padding-top: 88px; } .ic-banner > .ic-name { grid-row: 3; } .ic-banner > .ic-meta { grid-row: 4; padding-bottom: 16px; }
+.ic-foto { grid-column: 2; grid-row: 1 / -1; align-self: center; display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover;
+  -webkit-mask: linear-gradient(90deg, transparent, #000 14%); mask: linear-gradient(90deg, transparent, #000 14%); }
+.ic-banner .ic-sello { right: auto; left: 20px; top: 16px; transform: rotate(-8deg); }
+@container (max-width: 420px) {
+  .ic-banner { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto auto; }
+  .ic-foto { grid-column: 1; grid-row: 1; -webkit-mask: linear-gradient(180deg, #000 80%, transparent); mask: linear-gradient(180deg, #000 80%, transparent); }
+  .ic-banner > :is(.ic-num, .ic-name, .ic-meta) { padding-right: 84px; } .ic-banner > .ic-num { padding-top: 4px; }
+  .ic-banner .ic-sello { left: auto; right: 14px; top: auto; bottom: 14px; }
+}
 .ic-num { color: var(--oro2); font: 700 var(--fs-sm) 'Cinzel', serif; letter-spacing: .2em; text-transform: uppercase; }
 .ic-name { color: var(--perg); font: 700 var(--fs-2xl) 'Cinzel', 'Times New Roman', serif; line-height: 1.1; letter-spacing: .03em; text-shadow: 0 2px 6px rgba(0, 0, 0, .7); }
 .ic-meta { display: flex; align-items: center; gap: 6px; color: var(--perg2); font-weight: 800; font-size: var(--fs-sm); } .ic-meta svg, .ic-meta img { width: 20px; height: 20px; }
@@ -235,7 +251,7 @@
 .ic-town { display: grid; gap: 4px; justify-items: start; min-width: 0; padding: 6px 6px 8px; border-radius: 14px; cursor: pointer; text-align: left; color: var(--perg); font: inherit;
   background: rgba(13, 22, 19, .9); border: 1px solid rgba(226, 189, 99, .28); transition: transform .15s, border-color .2s, box-shadow .2s; animation: ig-in .35s ease both; animation-delay: var(--d, 0s); }
 .ic-town:hover, .ic-town:focus-visible { transform: translateY(-3px); border-color: var(--oro); box-shadow: 0 10px 22px rgba(0, 0, 0, .45); }
-.ic-img { position: relative; display: block; width: 100%; aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden; background: #1a2a22; }
+.ic-img { position: relative; display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 10px; overflow: hidden; background: #1a2a22; }
 .ic-img img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .ic-town:not(.go):not(.ok) .ic-img img { filter: saturate(.75) brightness(.9); }
 .ic-n { position: absolute; left: 6px; top: 6px; min-width: 26px; height: 26px; padding: 0 6px; display: grid; place-items: center; border-radius: 8px; font: 700 var(--fs-sm) 'Cinzel', serif; font-style: normal; color: var(--tinta); background: linear-gradient(180deg, var(--oro2), var(--oro)); box-shadow: 0 2px 6px rgba(0, 0, 0, .5); }
@@ -249,12 +265,13 @@
 /* (con poco sitio: el mapa encima del capítulo; en el móvil tumbado, mapa y capítulo de lado, más bajos) */
 @media (max-width: 1099px) { .ir-body { grid-template-columns: minmax(0, 1fr); } .ir-mapa svg.navarra { max-height: min(520px, 60dvh); } }
 @media (max-height: 520px) { .ir-head .ep-h { font-size: var(--fs-xl); } .ir-lead { font-size: var(--fs-sm); } .ir-cifras b { font-size: var(--fs-lg); } .ir-cifras svg, .ir-cifras img { width: 24px; height: 24px; } }
-@media (max-height: 520px) and (min-width: 700px) { .ir-body { grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); } .ir-mapa svg.navarra { max-height: 72dvh; } .ini-reino { margin-top: 16px; padding: 16px; } .ic-banner { min-height: 120px; } .ic-name { font-size: var(--fs-xl); } }
+@media (max-height: 520px) and (min-width: 700px) { .ir-body { grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); } .ir-mapa svg.navarra { max-height: 72dvh; } .ini-reino { margin-top: 16px; padding: 16px; } .ic-name { font-size: var(--fs-xl); } }
 @media (max-width: 760px) {
   .ini-reino { padding: 16px 12px; } .ir-head .ep-h { font-size: var(--fs-lg); } .ir-head .ep-h > span { white-space: normal; } .ir-head .ep-h::before, .ir-head .ep-orla { flex-basis: 40px; }
   .ir-cifras > span { padding: 4px 12px 4px 6px; } .ir-cifras b { font-size: var(--fs-lg); }
-  .ic-banner { min-height: 140px; padding-right: 80px; } .ic-sello { width: 58px; height: 58px; } .ic-name { font-size: var(--fs-xl); }
+  .ic-sello { width: 58px; height: 58px; } .ic-name { font-size: var(--fs-xl); }
   .ic-towns { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); } .ir-rosa { width: 60px; height: 60px; }
+  .ic-n { left: 4px; top: 4px; min-width: 22px; height: 22px; padding: 0 4px; border-radius: 6px; font-size: var(--fs-xs); } .ic-bq { right: 4px; top: 4px; width: 24px; height: 24px; }   /* (la portada, en 16:9, es baja: que el número no la tape) */
 }
 @media (max-width: 420px) { .ini-epic .ep-h { font-size: var(--fs-md); letter-spacing: .04em; } .ini-epic .ep-h > span { white-space: nowrap; } .ep-orla { flex-basis: 40px; } .ep-h:has(.sec-more) .ep-orla { display: none; } .ir-cartela { left: 12px; bottom: 12px; padding: 4px 10px; } .ir-cartela b { font-size: var(--fs-md); } }
 @media (prefers-reduced-motion: reduce) { .ini-epic .ih-play, .ic-town, .ir-cap.cambia > * { animation: none !important; } }

@@ -334,7 +334,7 @@ export class Hub {
         .map(([go, ic, t, img, fit], i) => `<button class="sb-tile" data-go="${go}" style="--d:${i * 0.07}s"><span class="sb-img${fit ? ' fit' : ''}"${bg(img)}>${img ? '' : I(ic, 52)}</span><b>${I(ic, 28)}${t}</b></button>`).join('')}</div>
       <div class="sb-grid">${(() => { const n = saberCounts(p); return SABERES.map(sb => `<div class="sb ${n[sb.id] ? 'on' : ''}${sb.id === 'escudos' ? ' link' : ''}" style="--cat:${SBK[sb.id] || ''}" title="${esc(sb.text)}"${sb.id === 'escudos' ? ' data-go="escudos" role="button" tabindex="0"' : ''}>${I(sb.icon, 40)}<b>${n[sb.id]}</b><span>${esc(sb.name)}</span></div>`).join(''); })()}</div>
     </section>
-    <section class="story"${bg(comarcaCover(last.comarca, true), '--img')}>
+    <section class="story">${(u => u ? `<img class="st-img" src="${u}" alt="" loading="lazy" decoding="async">` : '')(comarcaCover(last.comarca, true))}
       <div class="st-txt"><small class="kicker">${I('book', 20)} La historia</small><h2>El Pasaporte Herri</h2></div>
       <ol class="hsteps"><li>${I('map', 60)}<b>Viaja</b></li><li>${I('exclaim', 60)}<b>Ayuda</b></li><li><img src="${stampImg(last.comarca)}" alt=""><b>Gana el sello</b></li></ol>
     </section>
@@ -521,6 +521,7 @@ export class Hub {
       <button class="back" data-go="map">${I('back', 26)} Mapa</button>
       <img class="bigstamp ${pr.stamps || dd ? '' : 'gray'}" src="${stampImg(id)}" alt="">
       <div><small class="kicker">Comarca</small><h1>${esc(c.full || c.name)}</h1><p>${dd ? `<b>${ts.length}</b> <span>${ts.length === 1 ? 'pueblo' : 'pueblos'}</span> · ${I('river', 20)} <span>${esc(c.river || '')}</span>` : `${cnt(ts.length, 'pueblo', 'pueblos')} · ${cnt(pr.stamps, 'sellado', 'sellados')} · río ${esc(c.river || '')}`}</p></div>
+      ${comarcaCover(id) ? `<img class="chero-img" src="${comarcaCover(id)}" alt="" decoding="async">` : ''}
     </section>
     ${(L => L.length ? `<h2 class="sec">${I('scroll', 30)} Láminas</h2>${laminaRail(L)}` : '')(this.comarcaLaminas(id))}
     <h2 class="sec">${I('church', 30)} Pueblos y ciudades</h2>
@@ -801,7 +802,7 @@ export class Hub {
       <div class="ar-head"><small class="kicker">${I('pelota', 20)} Saberes · Tradiciones</small><h1>Pasaka</h1>
         <p>${esc(PASAKA.lead)}</p>
         <b class="ar-count">${played ? `${won} ${won === 1 ? 'partido ganado' : 'partidos ganados'} de ${played}` : 'Todavía no has jugado'}${has ? ' · carta de tradiciones' : ''}</b></div>
-      <div class="pk-hero">${laminaUrl('dep-pasaka') ? `<img class="pk-cov" src="${laminaUrl('dep-pasaka')}" alt="" decoding="async">` : '<canvas class="pk-prev" aria-hidden="true"></canvas>'}
+      <div class="pk-hero"${laminaUrl('dep-pasaka') ? ` style="--bg:url(${laminaUrl('dep-pasaka')})"` : ''}>${laminaUrl('dep-pasaka') ? `<img class="pk-cov" src="${laminaUrl('dep-pasaka')}" alt="" decoding="async">` : '<canvas class="pk-prev" aria-hidden="true"></canvas>'}
         <div class="pk-hero-tx"><small class="kicker">${esc(PASAKA.kicker)}</small><b>Dos parejas, una red por medio y un guante de cuero</b><button class="btn primary big" data-pasaka="jugar">${I('play', 26)} <span>Jugar a pasaka</span></button></div></div>
       <div class="ar-grid pk-secs">${PASAKA.secs.map(([t, x], i) => `<article class="ar-guia pk-sec"><h3>${I(['book', 'castle', 'pelota', 'pin', 'cathedral', 'play'][i] || 'book', 30)}${esc(t)}</h3><p>${esc(x)}</p></article>`).join('')}</div>
       <p class="ar-src">${esc(PASAKA.sources)}</p>

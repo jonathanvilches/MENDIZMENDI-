@@ -538,7 +538,10 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 
 /* ================= La historia del pasaporte ================= */
 .story { margin-top: var(--esp); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: var(--hueco-m); align-items: center; padding: var(--relleno); border-radius: var(--r); border: 1px solid var(--line2); min-height: 150px;
-  background: linear-gradient(90deg, rgba(60, 14, 110, .3), rgba(36, 10, 76, .78) 42%, rgba(28, 8, 60, .94)), var(--img, none) left 30%/cover; }   /* (la comarca en la que juegas, de fondo) */
+  background: linear-gradient(90deg, rgba(60, 14, 110, .45), rgba(36, 10, 76, .78) 42%, rgba(28, 8, 60, .94)); }
+/* (la lámina de la comarca en la que juegas, entera y a la izquierda: de fondo, en una tira tan ancha, solo se veía un trozo) */
+.story:has(.st-img) { grid-template-columns: auto minmax(0, .8fr) minmax(0, 1.3fr); }
+.st-img { display: block; height: 132px; width: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 12px; box-shadow: 0 6px 18px rgba(0, 0, 0, .4); }
 .story h2 { text-shadow: 0 2px 10px rgba(0, 0, 0, .7); }
 .story h2 { margin: var(--t-mt) 0 var(--t-mb); font-family: 'MZ Display', 'Nunito', sans-serif; font-weight: 400; font-size: var(--fs-xl); line-height: 1; }
 .story p { margin: 0; color: var(--mute); font-weight: 600; font-size: var(--fs-sm); line-height: 1.45; }
@@ -552,7 +555,8 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .ccard .cimg:not(.ready) { opacity: .6; }
 
 @media (max-width: 760px) {
-  .story { grid-template-columns: minmax(0, 1fr); padding: 16px 16px; background: linear-gradient(180deg, rgba(60, 14, 110, .25), rgba(28, 8, 60, .92) 60%), var(--img, none) center 30%/cover; }
+  .story { grid-template-columns: minmax(0, 1fr); padding: 16px 16px; background: linear-gradient(180deg, rgba(60, 14, 110, .35), rgba(28, 8, 60, .92) 60%); }
+  .story:has(.st-img) { grid-template-columns: 128px minmax(0, 1fr); } .st-img { width: 100%; height: auto; } .story .hsteps { grid-column: 1 / -1; }
   .hsteps { gap: 8px; } .hsteps li { padding: 8px 8px; } .hsteps li img, .hsteps li svg { width: 48px; height: 48px; } .hsteps b { font-size: var(--fs-sm); }
 }
 
@@ -1014,8 +1018,18 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .sports-cta div { flex: 1; min-width: 0; } .sports-cta b { display: block; font: 400 var(--fs-xl)/1 var(--f-display); text-transform: uppercase; }
 .sports-cta { position: relative; overflow: hidden; isolation: isolate; min-height: 120px; }
 .sports-cta > :not(.cta-fotos) { position: relative; } .sports-cta > svg, .sports-cta > img { filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .6)); } .sports-cta b { text-shadow: 0 2px 10px rgba(0, 0, 0, .7); }
-.cta-fotos { position: absolute; inset: 0; z-index: -1; display: flex; } .cta-fotos i { flex: 1; background: center 30%/cover; transition: transform .4s; }
-.cta-fotos::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, rgba(120, 30, 10, .88) 0%, rgba(40, 12, 70, .55) 45%, rgba(20, 6, 40, .25) 100%); }
+/* (las dos láminas enteras, en 16:9 y a la derecha, a toda la altura del botón; antes llenaban todo su ancho y se les
+   cortaba la cabeza a los niños) */
+.cta-fotos { position: absolute; inset: 0 0 0 auto; z-index: -1; display: flex; height: 100%; aspect-ratio: 32 / 9; max-width: 100%;
+  -webkit-mask: linear-gradient(90deg, transparent, #000 18%); mask: linear-gradient(90deg, transparent, #000 18%); }
+.cta-fotos i { flex: 1; background: center / cover; transition: transform .4s; }
+.cta-fotos::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(40, 12, 70, .35), transparent 40%); }
+/* (en el móvil de pie no caben al lado del rótulo sin taparlo: arriba, de borde a borde, y el rótulo debajo) */
+@media (max-width: 600px) {
+  .sports-cta:has(.cta-fotos) { flex-wrap: wrap; padding: 0 16px 12px; }
+  .cta-fotos { position: relative; inset: auto; flex: 0 0 calc(100% + 32px); margin: 0 -16px; height: auto; max-width: none; -webkit-mask: linear-gradient(180deg, #000 78%, transparent); mask: linear-gradient(180deg, #000 78%, transparent); }
+  .cta-fotos::after { content: none; }
+}
 .sports-cta:hover .cta-fotos i { transform: scale(1.05); }
 .sports { display: flex; flex-direction: column; gap: 24px; }   /* (una carta por fila, ancha y con aire: si no caben las dos, se desplaza) */
 /* cada carta, igual que la otra, con su portada: la lámina del protagonista en acción, a todo color, a la derecha y
@@ -1053,6 +1067,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .sp-box b { font: 800 var(--fs-md)/1 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; color: #fff; white-space: nowrap; }
 .sp-box small { font: 600 var(--fs-xs)/1 var(--f-cond); color: var(--mute); white-space: nowrap; }
 .sp-media { flex: none; display: block; width: 40px; height: 40px; border-radius: 2px; object-fit: cover; }
+img.sp-media:not(.sp-em) { width: 64px; height: 36px; }   /* (la lámina del frontón, entera en 16:9) */
 .sp-media.sp-em { object-fit: contain; padding: 4px; background: rgba(255, 255, 255, .08); }
 .sp-media.sp-kit { background: linear-gradient(135deg, var(--a) 50%, var(--b) 50%); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .5); }
 .sp-media.sp-ico { display: grid; place-items: center; background: rgba(255, 255, 255, .08); }
@@ -1211,6 +1226,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   .hub-nav button span { font-size: var(--fs-xs); }
   .tile { padding: 8px 8px; column-gap: 8px; } .tile img.ico { width: 32px; height: 32px; } .tile span { letter-spacing: .04em; }
   .story { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 16px 20px; } .story p { max-width: none; }
+  .story:has(.st-img) { grid-template-columns: 128px minmax(0, 1fr); } .st-img { width: 100%; height: auto; } .story .hsteps { grid-column: 1 / -1; }
   .hub-main h2.sec { margin-top: 8px; margin-bottom: 8px; }
 }
 
@@ -1291,9 +1307,27 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 /* tarjetas de comarca */
 .ccard .cimg { background-size: cover; background-position: center 80%; opacity: 1; }
 .ccard .cimg::after { background: linear-gradient(180deg, transparent 55%, var(--plum) 100%); }
-/* cabecera de la comarca: más alta para que la lámina no quede en una tira, y el texto abajo a la izquierda */
-.chero { min-height: clamp(200px, calc(36vw / var(--z, 1)), calc(56dvh / var(--z, 1))); align-items: end; background: var(--cov-head), var(--cov-foot), var(--cov-side), var(--bg) center 38% / cover no-repeat, #1c0b3a; }
-@media (max-width: 599px), (orientation: portrait) { .chero { min-height: 240px; } }
+/* cabecera de la comarca: la lámina entera, en 16:9 y sin cortar a nadie, a la derecha; a su izquierda, el sello y el
+   nombre sobre la misma lámina difuminada. Antes la lámina llenaba la cabecera, mucho más ancha que ella: se cortaban
+   la cabeza o los pies de los personajes y el nombre les caía encima. En vertical, la lámina arriba y el nombre debajo. */
+.chero { grid-template-columns: minmax(0, 1fr) minmax(0, 60%); grid-template-rows: minmax(0, 1fr) auto; align-items: end; gap: 0; padding: 0; min-height: 0; background: #1c0b3a; isolation: isolate; }
+.chero::before { content: ''; position: absolute; inset: -48px; z-index: -1; filter: blur(24px) saturate(1.1);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--c) 45%, rgba(14, 7, 32, .78)), rgba(14, 7, 32, .5)), var(--bg) left center / cover no-repeat; }
+.chero .back { z-index: 2; }
+.chero-img { grid-column: 2; grid-row: 1 / 3; align-self: center; display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover;
+  -webkit-mask: linear-gradient(90deg, transparent, #000 16%); mask: linear-gradient(90deg, transparent, #000 16%); }
+.chero .bigstamp { grid-column: 1; grid-row: 1; align-self: end; margin: 76px 0 0 32px; width: clamp(84px, calc(8vw / var(--z, 1)), 130px); height: auto; aspect-ratio: 1; }
+.chero > div { grid-column: 1; grid-row: 2; min-width: 0; padding: 12px 16px 28px 32px; }
+.chero h1 { font-size: clamp(var(--fs-2xl), calc(3.4vw / var(--z, 1)), var(--fs-hero)); text-wrap: balance; }
+.chero:not(:has(.chero-img)) { grid-template-columns: auto minmax(0, 1fr); } .chero:not(:has(.chero-img)) > div { grid-column: 2; grid-row: 1 / 3; }
+@media (orientation: landscape) and (max-height: 520px) { .chero .bigstamp { margin: 64px 0 0 20px; width: 72px; } .chero > div { padding: 8px 12px 16px 20px; } }
+@media (max-width: 599px), (orientation: portrait) {
+  .chero { grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto; align-items: center; }
+  .chero-img { grid-column: 1 / -1; grid-row: 1; -webkit-mask: linear-gradient(180deg, #000 82%, transparent); mask: linear-gradient(180deg, #000 82%, transparent); }
+  .chero .bigstamp { grid-column: 1; grid-row: 2; align-self: start; margin: -24px 0 16px 16px; width: 84px; }
+  .chero > div { grid-column: 2; grid-row: 2; padding: 4px 16px 16px 12px; }
+  .chero h1 { font-size: var(--fs-2xl); }
+}
 /* ficha del pueblo: la lámina entera arriba y, debajo, el nombre y la presentación */
 .sh-hero { padding: 0; background: none; display: flex; flex-direction: column; justify-content: flex-start; min-height: 0; flex: none; }   /* (en vertical no se encoge: las misiones bajan) */
 .sh-hero .sh-cov { display: block; flex: none; width: 100%; aspect-ratio: 16 / 9; max-height: calc(42dvh / var(--z, 1)); object-fit: cover; object-position: 50% 80%; background: #1c0b3a;
@@ -1391,6 +1425,18 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .armorial.pasaka .pk-hero-tx { position: absolute; left: 0; right: 0; bottom: 0; padding: 16px; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: 1fr auto auto; grid-template-areas: ". go" "k go" "t go"; align-items: end; column-gap: 16px; background: linear-gradient(180deg, transparent, rgba(10, 4, 20, .85)); }
 .armorial.pasaka .pk-hero-tx small { grid-area: k; margin: 0; } .armorial.pasaka .pk-hero-tx .btn { grid-area: go; }
 .armorial.pasaka .pk-hero-tx b { grid-area: t; margin: 4px 0 0; font-size: var(--fs-lg); line-height: 1.1; color: #fff; text-shadow: 0 2px 8px #000; }
+/* (con la lámina: entera, en 16:9, a la derecha, y el texto y el botón a su izquierda sobre la misma lámina difuminada;
+   antes la lámina llenaba un marco más ancho que ella y el texto tapaba a los jugadores. De pie, la lámina arriba) */
+.armorial.pasaka .pk-hero:has(.pk-cov) { aspect-ratio: auto; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 62%); isolation: isolate; }
+.armorial.pasaka .pk-hero:has(.pk-cov)::before { content: ''; position: absolute; inset: -40px; z-index: -1; background: linear-gradient(90deg, rgba(10, 4, 20, .75), rgba(10, 4, 20, .4)), var(--bg) left center / cover no-repeat; filter: blur(22px); }
+.armorial.pasaka .pk-hero .pk-cov { position: static; grid-column: 2; grid-row: 1; height: auto; aspect-ratio: 16 / 9; -webkit-mask: linear-gradient(90deg, transparent, #000 16%); mask: linear-gradient(90deg, transparent, #000 16%); }
+.armorial.pasaka .pk-hero:has(.pk-cov) .pk-hero-tx { position: static; grid-column: 1; grid-row: 1; align-self: end; background: none; padding: 24px; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto; grid-template-areas: "k" "t" "go"; }
+.armorial.pasaka .pk-hero:has(.pk-cov) .pk-hero-tx .btn { justify-self: start; margin-top: 16px; }
+@media (max-width: 600px), (orientation: portrait) {
+  .armorial.pasaka .pk-hero:has(.pk-cov) { grid-template-columns: minmax(0, 1fr); }
+  .armorial.pasaka .pk-hero .pk-cov { grid-column: 1; -webkit-mask: linear-gradient(180deg, #000 82%, transparent); mask: linear-gradient(180deg, #000 82%, transparent); }
+  .armorial.pasaka .pk-hero:has(.pk-cov) .pk-hero-tx { grid-row: 2; padding: 8px 16px 16px; }
+}
 @media (max-width: 600px) { .armorial.pasaka .pk-hero-tx { grid-template-columns: minmax(0, 1fr); grid-template-rows: 1fr auto auto auto; grid-template-areas: "." "k" "t" "go"; } .armorial.pasaka .pk-hero-tx .btn { margin-top: 16px; } .armorial.pasaka .pk-hero { aspect-ratio: 16 / 10; } }
 .armorial.pasaka .pk-sec { border-radius: 4px; } .armorial.pasaka .pk-sec h3 { display: flex; align-items: center; gap: 8px; margin: 8px 0 6px; font-size: var(--fs-md); line-height: 1.3; color: color-mix(in srgb, var(--cat) 70%, #fff); } .armorial.pasaka .pk-sec { border-left: 3px solid var(--cat); } .armorial.pasaka .pk-sec p { margin: 0 0 8px; color: #eae4f6; font-weight: 600; }
 
@@ -1503,7 +1549,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 /* (en una columna estrecha, el botón de seguir se queda en su icono y el nombre tiene sitio) */
 @container (max-width: 460px) { .pg-list .pg-go { min-width: 52px; padding: 8px 12px; } .pg-list .pg-go span { display: none; } }
 @container (max-width: 340px) { .pg-orb { width: 54px; height: 54px; } .pg-orb > img { width: 42px; height: 42px; } }
-.next-panel .sg-img { width: 56px; height: 42px; flex: none; object-fit: cover; border-radius: 8px; box-shadow: 0 3px 10px rgba(0, 0, 0, .35); }
+.next-panel .sg-img { width: 64px; height: 36px; flex: none; object-fit: cover; border-radius: 8px; box-shadow: 0 3px 10px rgba(0, 0, 0, .35); }
 .pg-empty { margin: 0; color: var(--mute); line-height: 1.45; } .pg-empty b { color: var(--ink); }
 /* (sin campeonatos empezados: el pelotari y el futbolista, que llevan a jugar, en vez de una frase) */
 .pg-fotos { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: var(--hueco); min-height: 140px; }
