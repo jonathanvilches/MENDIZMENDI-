@@ -86,10 +86,12 @@ const estadoDe = (p, l) => { const t = townProgress(p, l); return t.stamp ? 'ok'
 function capitulo(c, p) {
   const k = CAPS().indexOf(c) + 1, ts = comarcaTowns(c.id), pr = comarcaProgress(p, c.id);
   const est = { ok: ['stamp', 'Sellado'], go: ['compass', 'En camino'], '': ['star', 'Por descubrir'] };
-  return `<div class="ic-banner" style="--c:${c.color};background-image:url(${comarcaCover(c.id, true) || townImg(ts[0], true)})">
+  // (la lámina entera, en 16:9, a la derecha; el número y el nombre a su izquierda, sobre la misma lámina difuminada)
+  const lam = comarcaCover(c.id, true) || townImg(ts[0], true);
+  return `<div class="ic-banner" style="--c:${c.color};--bg:url(${lam})">
       <span class="ic-num">Capítulo ${ROMANO(k)}</span><b class="ic-name">${esc(c.name)}</b>
       <span class="ic-meta">${I('church', 20)}${ts.length} pantallas · ${pr.stamps} ${pr.stamps === 1 ? 'sello' : 'sellos'}</span>
-      <img class="ic-sello${pr.stamps ? '' : ' gris'}" src="${stampImg(c.id)}" alt=""></div>
+      <img class="ic-foto" src="${lam}" alt="" decoding="async"><img class="ic-sello${pr.stamps ? '' : ' gris'}" src="${stampImg(c.id)}" alt=""></div>
     <i class="ic-barra" style="--c:${c.color}"><u style="width:${Math.round(pr.stamps / ts.length * 100)}%"></u></i>
     <div class="ic-towns">${ts.map((l, i) => { const e = estadoDe(p, l), [ic, tx] = est[e];
       return `<button class="ic-town ${e}" data-town="${l.id}" style="--d:${(i * 0.04).toFixed(2)}s"><span class="ic-img"><img src="${townImg(l, true)}" alt="" loading="lazy" decoding="async"><i class="ic-n">${i + 1}</i>${l.bosque ? `<i class="ic-bq">${I('tree', 18)}</i>` : ''}</span><b>${esc(corto(l))}</b><small>${I(ic, 16)}${tx}</small></button>`; }).join('')}</div>
