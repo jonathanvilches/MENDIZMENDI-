@@ -200,6 +200,9 @@ export class Hub {
       <header class="hub-top"><div class="brand logo">HERRIZHERRI</div><button type="button" class="app-btn" data-cj-abre hidden><svg viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="19"/><path d="M20 16l12 8-12 8z"/></svg><span>Cómo jugar</span></button><button type="button" class="app-btn alt" data-mando hidden>${I('control', 24)}<span>Mando del móvil</span></button><div class="chip" id="hChip"></div></header>
       <nav class="hub-nav" id="hNav"></nav><main class="hub-main" id="hMain"></main></div>`);
     document.body.appendChild(this.root);
+    // (en el archivo único: en cuanto se sabe que se llega a la web, la pantalla del menú se repinta con las ilustraciones
+    // que no van dentro, src/web/hd.js; solo si no se ha bajado en ella ni hay nada abierto encima)
+    addEventListener('herrizherri-web', () => { const m = $('#hMain', this.root); if (this.visible && !this.sheet && m && m.scrollTop < 40 && !document.querySelector('.mg-overlay, .lam-view')) this.go(this.screen, this.arg, true); });
     // en el ordenador o en una tele (sin dedo: util/tactil.js), el mando del móvil a mano desde el principio (en el artefacto de claude.ai no puede conectarse); su
     // código y el del QR se cargan en un rato libre, para que el panel salga al momento
     const mb = this.root.querySelector('[data-mando]');
