@@ -158,10 +158,10 @@ if (AF) {
   for (const f of readdirSync('./src/assets/laminas/web')) if (f.endsWith('-s.webp') && !existsSync(`${D}/${f}`)) symlinkSync(`../web/${f}`, `${D}/${f}`);
   // (los personajes, las tradiciones y las leyendas en grande: la de 2560 de cada una y, si no la hay, la de 1536; de las
   // leyendas, solo las de 2560: las demás se ven en grande con la de 768, que va dentro del código, y así el artefacto no
-  // pasa de sus 511 archivos)
+  // pasa de sus 511 archivos). Sin la de Induráin: es una persona viva y no sale dibujada (src/ui/laminas.js)
   for (const t of ['personajes', 'tradiciones', 'leyendas']) {
     const A = `./src/assets/${t}/artefacto`; mkdirSync(A, { recursive: true });
-    for (const g of t === 'leyendas' ? ['2560'] : ['2560', '1536']) for (const f of readdirSync(`./src/assets/${t}/${g}`)) if (f.endsWith('.webp') && !existsSync(`${A}/${f}`)) symlinkSync(`../${g}/${f}`, `${A}/${f}`);
+    for (const g of t === 'leyendas' ? ['2560'] : ['2560', '1536']) for (const f of readdirSync(`./src/assets/${t}/${g}`)) if (f.endsWith('.webp') && f !== 'indurain.webp' && !existsSync(`${A}/${f}`)) symlinkSync(`../${g}/${f}`, `${A}/${f}`);
   }
 }
 const afDir = (d) => fileURLToPath(new URL(`./src/assets/${d}`, import.meta.url));
