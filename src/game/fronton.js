@@ -109,7 +109,7 @@ const LOOK_TOWN = {
 };
 export function frontonLook(def = {}) {
   const cid = LOOK_COMARCA[def.comarca] ? def.comarca : FAMILY[def.family], c = LOOK_COMARCA[cid] || {};
-  const i = Math.max(0, LEVELS.filter(l => l.comarca === cid && !l.special).findIndex(l => l.id === def.id)), V = VARIANTS[cid] || [{}];
+  const i = Math.max(0, LEVELS.filter(l => l.comarca === cid && !l.special && !l.bosque).findIndex(l => l.id === def.id)), V = VARIANTS[cid] || [{}];
   return { ...c, ...V[i % V.length], ...(LOOK_TOWN[def.id] || {}) };
 }
 

@@ -21,6 +21,9 @@ const TONES = {
   alpine: {},
   lush: { grassA: '#4f9438', grassB: '#7fb04a', grassDry: '#94a654', meadow: '#6cb543', lush: '#3f8a2f' },
   dry: { grassA: '#6c9840', grassB: '#98a852', grassDry: '#bcae62', meadow: '#7aac46', hay: '#c7b464', cut: '#d6c07a', cut2: '#c9ad62', soil: '#8a6a45', rock: '#a39880', rockDark: '#857a66', forest: '#4f6a30' },
+  // la selva (Irati, Orgi, Bertiz): verdes hondos y húmedos y roca con musgo; la caliza (Urbasa, Aralar): roca clara
+  selva: { grassA: '#3f8432', grassB: '#6a9c3e', grassDry: '#8a9a4a', meadow: '#5fa63c', lush: '#3a7f2c', forest: '#33521f', litter: '#5e4426', rock: '#7f8379', rockDark: '#5e625a' },
+  karst: { grassA: '#5f9a3e', grassB: '#8aae50', grassDry: '#aaa860', meadow: '#72ac44', rock: '#b7b2a6', rockDark: '#918c80', forest: '#3e5e27' },
   arid: { grassA: '#8f9a52', grassB: '#b2ac68', grassDry: '#d6c38a', meadow: '#98a353', hay: '#d0bb70', cut: '#decb8c', cut2: '#cfb876', soil: '#9b7a50', rock: '#c2ab82', rockDark: '#a58c66', gravel: '#b7a88a', forest: '#5d6e3a', snow: '#e9d9b8' },
 };
 let PAL = {};
@@ -62,7 +65,7 @@ function vertexColor(i, j, out) {
   if (rock > 0) out.lerp(n2 > 0.5 ? PAL.rock : PAL.rockDark, rock);
   // nieve en lo alto solo en el Pirineo (en la Ribera, «nieve» es el yeso claro de las cimas); en los montes atlánticos y
   // de la Navarra media las cumbres son de pasto y helecho
-  const snow = TONE === 'lush' || TONE === 'dry' ? 0 : smoothstep(128, 150, h + n * 14);
+  const snow = TONE === 'alpine' || TONE === 'arid' ? smoothstep(128, 150, h + n * 14) : 0;
   if (snow > 0) out.lerp(PAL.snow, snow);
   else if (TONE === 'lush') out.lerp(PAL.grassDry, smoothstep(128, 150, h + n * 14) * 0.5 * (1 - rock));
   const s = SURF.street[k] / 255, d = SURF.dirt[k] / 255;
@@ -137,9 +140,13 @@ function makeTerrainMaterial({ outer = false, quality = 'high' } = {}) {
     sh.uniforms.tDirt = { value: TEX.dirt.map };
     sh.uniforms.tDirtN = { value: TEX.dirt.normalMap };
     sh.uniforms.tGrassN = { value: TEX.grassN };
+    sh.uniforms.tLitter = { value: TEX.litter };
+    // el musgo del suelo del bosque (más en la selva húmeda) y el tono de la hojarasca (en los sotos, hoja de chopo, más pálida)
+    sh.uniforms.uMoss = { value: ({ selva: 0.2, karst: 0.08, lush: 0.06, alpine: 0.04 })[TONE] ?? -0.06 };
+    sh.uniforms.uLitter = { value: new THREE.Vector3(...(TONE === 'dry' || TONE === 'arid' ? [1.1, 1.02, 0.8] : [1, 1, 1])) };
     sh.uniforms.uRock = { value: rockCol };
     sh.uniforms.uSnowY = { value: TONE === 'alpine' ? 212 : 1e5 };   // cota de la nieve perpetua (solo en el Pirineo)
-    sh.uniforms.uRockSlope = { value: new THREE.Vector2(...(({ alpine: [0.3, 0.44], dry: [0.36, 0.5], arid: [0.33, 0.47] })[TONE] || [0.46, 0.62])) };
+    sh.uniforms.uRockSlope = { value: new THREE.Vector2(...(({ alpine: [0.3, 0.44], karst: [0.3, 0.44], dry: [0.36, 0.5], arid: [0.33, 0.47] })[TONE] || [0.46, 0.62])) };
     sh.defines = sh.defines || {};
     if (outer) sh.defines.OUTER = 1;
     if (quality === 'low') sh.defines.LOWQ = 1;   // móvil: menos lecturas de textura por píxel
@@ -148,7 +155,7 @@ function makeTerrainMaterial({ outer = false, quality = 'high' } = {}) {
       .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvSurf = aSurf;\nvWP = (modelMatrix * vec4(transformed,1.0)).xyz;\nvNW = normalize(mat3(modelMatrix) * objectNormal);');
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>
-uniform sampler2D tDetail; uniform sampler2D tGrass; uniform sampler2D tRock; uniform sampler2D tRockN; uniform sampler2D tCobble; uniform sampler2D tCobbleN; uniform sampler2D tDirt; uniform sampler2D tDirtN; uniform sampler2D tGrassN; uniform vec3 uRock; uniform vec2 uRockSlope; uniform float uSnowY;
+uniform sampler2D tDetail; uniform sampler2D tGrass; uniform sampler2D tRock; uniform sampler2D tRockN; uniform sampler2D tCobble; uniform sampler2D tCobbleN; uniform sampler2D tDirt; uniform sampler2D tDirtN; uniform sampler2D tGrassN; uniform sampler2D tLitter; uniform vec3 uRock; uniform vec2 uRockSlope; uniform float uSnowY; uniform float uMoss; uniform vec3 uLitter;
 varying vec4 vSurf; varying vec3 vWP; varying vec3 vNW;
 vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.x + texture2D(tRock, p.xz / s) * bw.y + texture2D(tRock, p.xy / s) * bw.z; }
 #ifdef OUTER
@@ -215,6 +222,20 @@ float grassM = 0.0, dirtM = 0.0, dirtB = 0.0;   // (para el relieve, más abajo)
   gc = mix(gc, fc * (0.75 + 0.25 * g1.b), fl * 0.9);
   // bajo la hierba en 3D el suelo es la sombra de las matas: verde oliva oscuro como el pie de las briznas
   vec3 col = mix(soft, gc, grassy);
+  // suelo del bosque: hojarasca (hojas caídas y ramitas) a dos escalas con manchas de musgo; en la linde se funde con la
+  // hierba de forma irregular (antes, bajo los árboles había el mismo prado que fuera)
+  float fw = smoothstep(0.2, 0.62, vSurf.w + (big - 0.5) * 0.35 + (d1.g - 0.5) * 0.2) * (1.0 - vSurf.x);
+  if (fw > 0.002) {
+    vec3 lt = texture2D(tLitter, vWP.xz / 1.7).rgb;
+#ifndef LOWQ
+    lt = mix(lt, texture2D(tLitter, vWP.xz / 2.9 + 0.37).rgb, smoothstep(0.4, 0.6, d1.r));
+#endif
+    lt *= uLitter * (0.78 + 0.4 * big) * (0.9 + 0.2 * d2.g);
+    float moss = smoothstep(0.55, 0.8, clump * 0.55 + d1.g * 0.45 + uMoss);
+    lt = mix(lt, vec3(0.16, 0.27, 0.06) * (0.75 + 0.6 * blades), moss * 0.9);
+    col = mix(col, lt, fw);
+    grassM *= 1.0 - fw;
+  }
   // roca en las laderas (proyección triplanar: no se estira en los cortados). Solo donde la hay: en los prados y las
   // calles se salta entera (eran seis lecturas de textura por píxel aunque no se viera roca)
   float rockM = max(vSurf.z, smoothstep(uRockSlope.x, uRockSlope.y, slope + (d1.g - 0.5) * 0.18)) * (1.0 - vSurf.x);

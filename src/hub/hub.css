@@ -145,14 +145,8 @@
 .stage-host { position: relative; width: 300px; height: 330px; cursor: pointer; overflow: hidden; max-width: 100%; }
 .stage3d { display: block; }
 
-.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); margin-top: var(--esp); border-radius: var(--r); background: var(--glass); border: 1px solid var(--line); overflow: hidden; }
-.tile { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 8px; align-items: center; padding: 16px 16px; border-left: 1px solid var(--line); min-width: 0; }
-.tile span { white-space: normal; line-height: 1.3; }   /* (entero, en dos líneas si hace falta: antes «COMARC…») */
 /* (el icono y la cifra arriba y el nombre debajo, a todo el ancho de la cifra: al lado del icono, «COMARCAS» o «INSIGNIAS»
    no cabían en el iPad ni en los móviles estrechos y se salían de su caja) */
-.tiles .tile > svg, .tiles .tile > img.ico { grid-row: auto; } .tiles .tile > span { grid-column: 1 / -1; margin-top: 4px; }
-.tile:first-child { border-left: 0; }
-.tile svg { grid-row: 1 / 3; } .tile b { font-size: var(--fs-xl); font-weight: 900; line-height: 1; } .tile b small { font-size: var(--fs-sm); color: var(--dim); } .tile span { font-size: var(--fs-xs); color: var(--mute); text-transform: uppercase; letter-spacing: .1em; }
 
 .map-panel { cursor: pointer; } .mini-map { max-width: 340px; margin: 0 auto; }
 .sugg { display: flex; flex-direction: column; gap: 8px; }
@@ -480,9 +474,6 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   .title { font-size: var(--fs-2xl); } .lead { font-size: var(--fs-sm); margin-bottom: 16px; }
   .hero { grid-template-columns: minmax(0, 1fr); grid-template-areas: "txt" "fig" "cta"; min-height: 0; padding: 20px 16px 16px; background: linear-gradient(180deg, rgba(12, 9, 20, .75) 0%, rgba(12, 9, 20, .15) 45%, rgba(12, 9, 20, .85) 100%), var(--bg) center/cover; }
   .hero h1 { font-size: var(--fs-3xl); margin: 8px 0 8px; } .hero p { display: none; }
-  .tiles { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  .tile { padding: 16px 16px; border-left: 0; border-top: 1px solid var(--line); } .tile:nth-child(-n+2) { border-top: 0; } .tile:nth-child(2n) { border-left: 1px solid var(--line); }
-  .tile:last-child { grid-column: span 2; border-left: 0; } .tile b { font-size: var(--fs-lg); }
   .two { grid-template-columns: minmax(0, 1fr); }
   .rail { display: grid; grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: 86%; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 8px; scrollbar-width: none; touch-action: pan-x pan-y; }
   .rail::-webkit-scrollbar { display: none; } .rail > * { scroll-snap-align: start; }
@@ -524,7 +515,6 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   .title { font-size: var(--fs-xl); } .lead { margin-bottom: 12px; font-size: var(--fs-sm); }
   .hero { min-height: 0; padding: 16px 20px; grid-template-columns: 1.4fr 1fr; }
   .hero h1 { font-size: var(--fs-2xl); } .hero p { font-size: var(--fs-sm); }
-  .tile { padding: 8px 12px; } .tile b { font-size: var(--fs-lg); } .tile svg { width: 28px; height: 28px; }
   .map-wrap { grid-template-columns: minmax(0, 1fr) 240px; } .bigmap { max-height: calc(calc(100dvh / var(--z, 1)) - 110px); display: flex; justify-content: center; } .bigmap .navarra { width: auto; height: calc(calc(100dvh / var(--z, 1)) - 130px); max-width: 100%; }
   .chero { padding: 52px 20px 16px; } .bigstamp { width: 90px; height: 90px; }
   .cname { font-size: var(--fs-3xl); } .csel-info p { font-size: var(--fs-sm); }
@@ -1509,61 +1499,88 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 /* ---------- Cómo vas: el resumen del inicio (hub.js, progreso) ----------
    arriba, a lo ancho, tu Navarra (el aro y los datos en fila); debajo, las partidas empezadas y los campeonatos uno al
    lado del otro, y las comarcas; de pie, todo en una columna */
-.pg-title { margin-top: var(--esp); }
 /* (Campeonatos: lo que se juega, en pastillas con su icono en vez de una frase) */
 .sp-chips { display: flex; flex-wrap: wrap; gap: 8px; } .sp-chips > span { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px 4px 6px; border-radius: 99px; background: rgba(0, 0, 0, .35); border: 1px solid rgba(255, 255, 255, .18); font-weight: 900; font-size: var(--fs-sm); color: #fff; }
 /* (lo que antes era una frase, un dato con su icono: cimas subidas, insignias ganadas) */
 .lead-chip { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 var(--hueco-m); padding: 6px 16px 6px 10px; border-radius: 99px; background: rgba(255, 255, 255, .08); border: 1px solid var(--line2); font-weight: 900; font-size: var(--fs-md); }
 .lead-chip b { font-size: var(--fs-lg); color: var(--gold); }
-.progreso { display: grid; gap: var(--hueco-m); }
+/* el panel: rótulos dentro de su pastilla (sin la raya de al lado), paneles de cristal con una rejilla técnica que se
+   desvanece hacia abajo y un brillo que recorre el borde de arriba */
+.dash { display: grid; gap: var(--hueco-m); margin-top: var(--esp); }
+.dash-tag { justify-self: start; display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin: 0; min-height: 40px; padding: 6px 18px 6px 12px; border-radius: 99px;
+  background: linear-gradient(100deg, rgba(255, 43, 214, .24), rgba(123, 47, 247, .3)); box-shadow: inset 0 0 0 1px rgba(255, 122, 200, .5), 0 0 18px rgba(255, 43, 214, .2);
+  font-size: var(--fs-sm); font-weight: 900; letter-spacing: .1em; line-height: 1; text-transform: uppercase; color: #fff; white-space: nowrap; }
+.dash-tag svg, .dash-tag img { width: 26px; height: 26px; flex: none; }
+.dash-tag.big { min-height: 46px; padding: 8px 22px 8px 14px; font-size: var(--fs-md); }
 .pg-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--hueco-m); align-items: stretch; }
-.progreso .panel.pg-total { grid-column: 1 / -1; display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto 1fr; column-gap: var(--hueco-m); align-items: start; }
-.pg-total > .sec { grid-column: 1 / -1; } .pg-total .pg-ringbox { grid-row: 2; } .pg-total .pg-rank { grid-row: 3; grid-column: 1; } .pg-total .pg-stats { grid-row: 2 / 4; grid-column: 2; }
-.progreso .panel { display: flex; flex-direction: column; min-width: 0; }
-.progreso .panel > .sec { margin: 0 0 12px; font-size: var(--fs-lg); }
-.pg-ringbox { position: relative; display: grid; place-items: center; width: 132px; aspect-ratio: 1; margin: 0 auto 4px; }
-.pg-ring { position: absolute; inset: 0; width: 100%; height: 100%; }
-.pg-ring circle { fill: none; stroke-width: 12; stroke-linecap: round; }
-.pg-ring .bg { stroke: rgba(255, 255, 255, .12); } .pg-ring .fg { stroke: var(--gold); }
-.pg-ringbox b { font-size: var(--fs-3xl); font-weight: 900; line-height: 1; margin-top: -10px; } .pg-ringbox b small { font-size: var(--fs-lg); }
-.pg-ringbox span { position: absolute; top: 62%; font-size: var(--fs-xs); color: var(--mute); text-transform: uppercase; letter-spacing: .08em; }
-.pg-rank { margin: 0 0 12px; text-align: center; font-weight: 800; color: var(--gold); font-size: var(--fs-sm); }
-/* (cada dato, la cifra arriba y debajo su icono y su nombre: en el panel estrecho no caben en una línea) */
-.pg-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 0; align-self: center; }
-@media (min-width: 1000px) { .pg-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-.pg-stats div { display: grid; gap: 4px; min-width: 0; padding: 8px 12px; border-radius: 12px; background: rgba(255, 255, 255, .05); }
-.pg-stats dt { display: flex; align-items: center; gap: 4px; min-width: 0; font-size: var(--fs-xs); color: var(--mute); text-transform: uppercase; letter-spacing: .04em; }
-.pg-stats dt span { min-width: 0; white-space: nowrap; }   /* (nunca una palabra partida: «COMARC-AS») */ .pg-stats dt svg, .pg-stats dt img { flex: none; }
-.pg-stats dd { margin: 0; font-weight: 900; font-size: var(--fs-lg); line-height: 1; white-space: nowrap; } .pg-stats dd small { font-size: var(--fs-xs); color: var(--dim); }
-.pg-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.pg-list li { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: 12px; background: rgba(255, 255, 255, .05); border-left: 4px solid var(--c, var(--gold)); min-width: 0; }
+.dash .panel { position: relative; display: flex; flex-direction: column; gap: var(--hueco-m); min-width: 0; overflow: hidden; background-color: rgba(30, 10, 66, .78); border: 1px solid rgba(190, 160, 255, .28); }
+.dash .panel::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(rgba(201, 178, 255, .07) 1px, transparent 1px) 0 0 / 22px 22px, linear-gradient(90deg, rgba(201, 178, 255, .07) 1px, transparent 1px) 0 0 / 22px 22px;
+  -webkit-mask-image: linear-gradient(180deg, #000, transparent 75%); mask-image: linear-gradient(180deg, #000, transparent 75%); }
+.dash .panel::after { content: ''; position: absolute; top: 0; left: -40%; width: 40%; height: 2px; pointer-events: none; background: linear-gradient(90deg, transparent, var(--cat), transparent); animation: dashBarre 5s linear infinite; }
+@keyframes dashBarre { to { left: 100%; } }
+.dash .panel > * { position: relative; }
+/* el dial y los medidores: el dial a un lado y los medidores en dos filas de cuatro; de pie, uno debajo del otro */
+.dash-core { display: grid !important; grid-column: 1 / -1; grid-template-columns: minmax(200px, 300px) minmax(0, 1fr); grid-template-rows: auto 1fr; align-items: center; column-gap: var(--esp); }
+.dash-core > .dash-tag { grid-column: 1 / -1; }
+.dial { display: block; width: 100%; max-width: 300px; aspect-ratio: 1; justify-self: center; overflow: visible; }
+.dl-ticks { fill: none; stroke: rgba(201, 178, 255, .45); stroke-width: 1.2; transform-origin: 120px 120px; animation: dlGira 90s linear infinite; }
+.dl-scan { fill: none; stroke: rgba(255, 255, 255, .16); stroke-width: 1; stroke-dasharray: 2 6; transform-origin: 120px 120px; animation: dlGira 40s linear infinite reverse; }
+@keyframes dlGira { to { transform: rotate(360deg); } }
+.dl-c { cursor: pointer; outline: none; } .dl-cb, .dl-cf { fill: none; stroke: var(--c); stroke-width: 10; } .dl-cb { stroke-opacity: .26; transition: stroke-opacity .2s; }
+.dl-cf { filter: drop-shadow(0 0 4px var(--c)); } .dl-c:is(:hover, :focus-visible) .dl-cb { stroke-opacity: .6; }
+.dl-trk { fill: none; stroke: rgba(255, 255, 255, .1); stroke-width: 8; }
+.dl-arc { fill: none; stroke: url(#dlG); stroke-width: 8; stroke-linecap: round; filter: drop-shadow(0 0 6px rgba(255, 43, 214, .7)); }
+.dl-disc { fill: url(#dlD); stroke: rgba(255, 122, 200, .4); stroke-width: 1; }
+.dl-pct { fill: #fff; font: 400 48px/1 'MZ Display', Nunito, sans-serif; } .dl-pct .u { font-size: 22px; fill: var(--gold); }
+.dl-t, .dl-b { font: 700 12px/1 var(--f-cond), Nunito, sans-serif; letter-spacing: .14em; text-transform: uppercase; } .dl-t { fill: var(--mute); } .dl-b { fill: var(--gold); }
+.dash-gauges { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--hueco); align-self: center; }
+.gauge { position: relative; width: 100%; max-width: 140px; aspect-ratio: 1; justify-self: center; animation: gEntra .5s var(--d, 0s) both; }
+@keyframes gEntra { from { opacity: 0; transform: scale(.8); } }
+.gauge svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.g-trk { fill: none; stroke: rgba(255, 255, 255, .09); stroke-width: 7; }
+.g-arc { fill: none; stroke: var(--cat); stroke-width: 7; stroke-linecap: round; filter: drop-shadow(0 0 4px var(--cat)); }
+.g-disc { fill: rgba(16, 5, 38, .78); stroke: rgba(255, 255, 255, .1); stroke-width: 1; }
+.g-n { fill: #fff; font: 400 25px/1 'MZ Display', Nunito, sans-serif; } .g-de { fill: var(--dim); font-size: 12px; }
+.g-l { fill: var(--mute); font: 700 10px/1 var(--f-cond), Nunito, sans-serif; letter-spacing: .1em; text-transform: uppercase; }
+.g-ico { position: absolute; left: 50%; top: 18%; width: 24%; aspect-ratio: 1; transform: translateX(-50%); display: grid; place-items: center; pointer-events: none; }
+.g-ico :is(svg, img) { width: 100%; height: 100%; filter: drop-shadow(0 0 6px color-mix(in srgb, var(--cat) 60%, transparent)); }
+.dash .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+/* los aros se dibujan al aparecer */
+.dash .g-arc, .dash .dl-arc { animation: aroDibuja 1.2s .15s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes aroDibuja { from { stroke-dasharray: 0 999; } }
+.dash-mini .dash-gauges { grid-template-columns: repeat(5, minmax(0, 1fr)); padding: var(--relleno); border-radius: var(--r); background: rgba(30, 10, 66, .7); border: 1px solid rgba(190, 160, 255, .28); }
+/* las placas de los pueblos empezados y de los campeonatos: la portada o el escudo en un círculo con su aro de lo hecho
+   alrededor, el nombre y un segmento por misión (el hecho, encendido) */
+.pg-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; container-type: inline-size; }
+.pg-list li { display: flex; align-items: center; gap: 12px; min-width: 0; padding: 8px 12px 8px 8px; border-radius: 40px 14px 14px 40px; background: linear-gradient(90deg, color-mix(in srgb, var(--c, var(--gold)) 18%, transparent), rgba(255, 255, 255, .04) 60%); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08); }
 .pg-list li > div { flex: 1; min-width: 0; display: grid; gap: 4px; }
 .pg-list b { font-size: var(--fs-md); font-weight: 900; line-height: 1.15; } .pg-list small { font-size: var(--fs-xs); color: var(--mute); line-height: 1.35; }
 .pg-list .btn { flex: none; }
-.pg-list { container-type: inline-size; }
+.pg-orb { position: relative; flex: none; width: 64px; height: 64px; display: grid; place-items: center; }
+.pg-orb > img, .pg-orb > svg:first-child:not(:last-child) { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; }
+.pg-orb > img.pg-crest { object-fit: contain; border-radius: 0; width: 40px; height: 40px; }
+.pg-orb > svg:last-child { position: absolute; inset: 0; width: 100%; height: 100%; }
+.o-trk { fill: none; stroke: rgba(255, 255, 255, .12); stroke-width: 3; } .o-arc { fill: none; stroke: var(--c, var(--cat)); stroke-width: 3; stroke-linecap: round; filter: drop-shadow(0 0 3px var(--c, var(--cat))); }
+.pg-seg { display: flex; gap: 3px; } .pg-seg i { flex: 1; max-width: 26px; height: 7px; border-radius: 2px; background: rgba(255, 255, 255, .12); }
+.pg-seg i.ok { background: var(--c, var(--gold)); box-shadow: 0 0 6px var(--c, var(--gold)); }
+.pg-list em { font-style: normal; font-size: var(--fs-xs); font-weight: 700; color: var(--mute); white-space: nowrap; }
 .pg-sub { display: grid; gap: 2px; } .pg-sub > span { display: block; }
-.pg-prog { display: flex; align-items: center; gap: 8px; min-width: 0; } .pg-prog .pg-bar { flex: 1; min-width: 40px; }
-.pg-prog em { flex: none; font-style: normal; font-size: var(--fs-xs); font-weight: 700; color: var(--mute); white-space: nowrap; }
 /* (en una columna estrecha, el botón de seguir se queda en su icono y el nombre tiene sitio) */
 @container (max-width: 460px) { .pg-list .pg-go { min-width: 52px; padding: 8px 12px; } .pg-list .pg-go span { display: none; } }
-.pg-crest { width: 40px; height: 40px; object-fit: contain; flex: none; }
+@container (max-width: 340px) { .pg-orb { width: 54px; height: 54px; } .pg-orb > img { width: 42px; height: 42px; } }
 .next-panel .sg-img { width: 56px; height: 42px; flex: none; object-fit: cover; border-radius: 8px; box-shadow: 0 3px 10px rgba(0, 0, 0, .35); }
-.pg-thumb { width: 72px; height: 54px; flex: none; object-fit: cover; border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, .35); }
-@container (max-width: 340px) { .pg-thumb { width: 52px; height: 52px; } }
-.pg-ico { display: grid; place-items: center; width: 40px; height: 40px; flex: none; }
-.pg-bar { display: block; height: 8px; border-radius: 99px; background: rgba(255, 255, 255, .12); overflow: hidden; }
-.pg-bar u { display: block; height: 100%; border-radius: 99px; background: var(--c, var(--gold)); }
-.pg-empty { margin: 0 0 12px; color: var(--mute); line-height: 1.45; } .pg-empty b { color: var(--ink); }
+.pg-empty { margin: 0; color: var(--mute); line-height: 1.45; } .pg-empty b { color: var(--ink); }
 /* (sin campeonatos empezados: el pelotari y el futbolista, que llevan a jugar, en vez de una frase) */
-.pg-fotos { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: var(--hueco); min-height: 140px; margin: 0 0 12px; }
+.pg-fotos { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: var(--hueco); min-height: 140px; }
 .pg-fotos button { position: relative; display: flex; align-items: flex-end; padding: 8px; border-radius: var(--r); overflow: hidden; border: 1px solid var(--line2); background: #2a0f55 center/cover; color: #fff; cursor: pointer; transition: transform .15s, border-color .15s; }
 .pg-fotos button::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 45%, rgba(20, 6, 40, .9)); }
 .pg-fotos button:hover { transform: translateY(-3px); border-color: var(--cat); } .pg-fotos button:active { transform: scale(.97); }
 .pg-fotos b { position: relative; display: flex; align-items: center; gap: 8px; font: 400 var(--fs-lg)/1 var(--f-display); text-transform: uppercase; text-shadow: 0 2px 8px #000; }
-.pg-camp { display: flex; flex-direction: column; }
 .progreso .pg-more { margin-top: auto; align-self: flex-start; }
-.progreso .pg-list + .pg-more, .progreso .pg-empty + .pg-more { margin-top: 12px; }
-@media (max-width: 760px) { .pg-grid { grid-template-columns: minmax(0, 1fr); } .progreso .panel.pg-total { grid-template-columns: minmax(0, 1fr); } .pg-total .pg-ringbox, .pg-total .pg-rank, .pg-total .pg-stats { grid-row: auto; grid-column: 1; } }
+@media (max-width: 1100px) { .dash-gauges { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .pg-grid, .dash-core { grid-template-columns: minmax(0, 1fr); } .dash-core > .dash-tag { justify-self: center; } .dial { max-width: 260px; }
+  .dash-mini .dash-gauges { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 420px) { .dash-gauges { grid-template-columns: repeat(2, minmax(0, 1fr)); } .gauge { max-width: 132px; } }
 
 /* ---------- El color de cada parte del juego ----------
    Sobre el morado de siempre, un acento por parte (hub.js, KC): la aventura en fucsia, los torneos en naranja, los
@@ -1586,7 +1603,6 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 /* (en el inicio, cada bloque con su franja de color arriba y un brillo suave) */
 .hub-main :is(.panel, .saberes, .sports-cta)[data-cat], .hub-main .progreso .panel, .hub-main .two > .panel { border-top: 3px solid var(--cat); }
 .hub-main .panel:is([data-cat], .progreso *, .two > *) { background-image: radial-gradient(90% 60% at 0% 0%, color-mix(in srgb, var(--cat) 16%, transparent), transparent 70%); }
-.tiles .tile b { color: color-mix(in srgb, var(--cat) 70%, #fff); } .pg-stats [data-cat] { border-left: 3px solid var(--cat); } .pg-stats [data-cat] dd { color: color-mix(in srgb, var(--cat) 70%, #fff); }
 .saberes .sb { border-left: 3px solid var(--cat); } .saberes .sb b { color: color-mix(in srgb, var(--cat) 80%, #fff); }
 .saberes .sb.on { background: color-mix(in srgb, var(--cat) 14%, transparent); border-color: color-mix(in srgb, var(--cat) 45%, transparent); }
 .saberes .sb.link:hover { border-color: var(--cat); }

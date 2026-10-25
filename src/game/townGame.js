@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { Actor, cullActor, frameFrustum } from '../actors/people.js';
 import { MYTHS } from '../actors/outfits.js';
-import { PLACES } from '../world/layout.js';
+import { PLACES, PONDS } from '../world/layout.js';
 import { loadMeshy, hasMeshy } from '../actors/glbChar.js';
 import { QUALITY } from '../util/quality.js';
 import { Jornales } from './jornales.js';
@@ -95,7 +95,7 @@ const TRADE = {
 };
 // nombre del guía del pueblo, nunca el mismo que el de quien juega («Guía Ane: ¡Kaixo, Ane!» confundía)
 const guideName = (g, me = '') => (g ? ['Ane', 'Maite'] : ['Iker', 'Unai']).find(n => n.toLowerCase() !== String(me).trim().toLowerCase());
-const RACE = { camino: ['El Camino de Santiago', 'camino', 'Sigue las conchas y flechas amarillas'], almadia: ['Bajada en almadía', 'raft', 'Guía la almadía por el río'], encierro: ['Carrera del encierro', 'bull', '¡Corre delante de los toros!'], romeria: ['Romería', 'footprint', 'Sube por el camino de los romeros'], bici: ['Vía verde', 'bike', 'Recorre el viejo trazado del tren'] };
+const RACE = { camino: ['El Camino de Santiago', 'camino', 'Sigue las conchas y flechas amarillas'], almadia: ['Bajada en almadía', 'raft', 'Guía la almadía por el río'], encierro: ['Carrera del encierro', 'bull', '¡Corre delante de los toros!'], romeria: ['Romería', 'footprint', 'Sube por el camino de los romeros'], bici: ['Vía verde', 'bike', 'Recorre el viejo trazado del tren'], senda: ['La senda del bosque', 'footprint', 'Sigue la senda del bosque'] };
 // Aspecto de los personajes de carnaval y leyenda
 export const FOLK = {
   joaldun: { traje: 'joaldun', shirt: '#f4f1ea', fur: '#ece4d2', hat: 'cone', hatColor: '#f4f1ea', skirt: '#f4f1ea', pants: '#1d2a4a', bells: true, scarf: '#3a8fd6', handkerchief: '#e8e0cc', face: 'brave' },
@@ -197,7 +197,7 @@ export class TownGame {
           : ['Habla con ' + host(), `Encuentra a ${f?.name || 'los personajes'} (${M.count}/${M.need}) — escucha sus cencerros`, 'Vuelve con ' + host()]; break; }
       case 'trade': { const t = TRADE[m.kind] || TRADE.herrero, of = OFICIOS[m.kind]; M.trade = t; M.oficio = of; M.tstep = 0; M.title = m.title || of?.name || t.title; M.icon = of?.icon || t.icon;
         M.steps = () => ['Habla con ' + host(), of ? `Taller de ${of.name.toLowerCase()}: paso ${Math.min(M.tstep + 1, of.steps.length)} de ${of.steps.length}` : `Trabaja en el taller: ${t.title.toLowerCase()}`]; break; }
-      case 'legend': { const L = M.leg = LEGENDS[m.who]; M.title = m.title || 'Leyenda'; M.icon = 'legend'; M.need = L?.clues.length || m.gather?.n || 4;
+      case 'legend': { const L = M.leg = m.leg ? { ...LEGENDS[m.who], ...m.leg } : LEGENDS[m.who];   // (un bosque cuenta la suya: leg) M.title = m.title || 'Leyenda'; M.icon = 'legend'; M.need = L?.clues.length || m.gather?.n || 4;
         M.steps = () => ['Escucha la leyenda: habla con ' + host(), 'Espera a que caiga la noche', `Sigue las pistas que brillan en la oscuridad (${M.count}/${M.need})`, `Encuentra a ${L?.creature || 'la criatura'}`]; break; }
       case 'race': { const r = RACE[m.kind] || RACE.camino; M.title = m.title || r[0]; M.icon = r[1]; M.need = 6;
         M.steps = () => ['Habla con ' + host(), `${r[2]}: pasa por los aros (${M.count}/${M.need})`, 'Vuelve con ' + host()]; break; }
@@ -286,7 +286,7 @@ export class TownGame {
   ensureFronton() {
     // (en Iruña, el Labrit: el edificio entero junto a la plaza de toros; si no cupiera, el frontón de siempre)
     if (!this.fronton && this.def.id === 'pamplona') try { this.fronton = labritInTown(this.scene, PLACES.frontonNear || PLACES.plaza); } catch (e) { console.warn('labrit', e); }
-    if (!this.fronton) { const sp = findFrontonSpot(PLACES.frontonNear || PLACES.plaza, undefined, !!PLACES.frontonReal); if (sp) this.fronton = new Fronton(this.scene, sp, this.def.name.split(' /')[0], frontonWall(this.def)); }
+    if (!this.fronton && !this.def.bosque) { const sp = findFrontonSpot(PLACES.frontonNear || PLACES.plaza, undefined, !!PLACES.frontonReal); if (sp) this.fronton = new Fronton(this.scene, sp, this.def.name.split(' /')[0], frontonWall(this.def)); }
     return this.fronton;
   }
   // pista polideportiva del pueblo (donde espera el entrenador; el partido se juega en el campo del pueblo), si hay sitio llano cerca de la plaza (en Pamplona se juega en El
@@ -295,7 +295,7 @@ export class TownGame {
   ensurePista() {
     if (this._pistaDone) return this.pista;
     this._pistaDone = true;
-    if (TOWN.landmarks.find(l => l.kind === 'stadium') || /nopista/.test(location.search)) return null;
+    if (this.def.bosque || TOWN.landmarks.find(l => l.kind === 'stadium') || /nopista/.test(location.search)) return null;
     try { const sp = findPistaSpot(PLACES.plaza); if (sp) this.pista = new Pista(this.scene, sp); } catch (e) { console.warn('pista', e); }
     return this.pista;
   }
@@ -763,7 +763,7 @@ export class TownGame {
   }
   mapLabels() {
     const L = [{ x: PLACES.plaza.x, z: PLACES.plaza.z - 18, label: this.def.name }];
-    if (TOWN.church) L.push({ x: TOWN.church.x ?? PLACES.church.x, z: TOWN.church.z ?? PLACES.church.z, icon: 'church', label: 'Iglesia' });
+    if (TOWN.church) L.push({ x: TOWN.church.x ?? PLACES.church.x, z: TOWN.church.z ?? PLACES.church.z, icon: 'church', label: this.def.church?.label || 'Iglesia' });
     for (const l of TOWN.landmarks) L.push({ x: l.spot.x, z: l.spot.z, icon: l.kind, label: (n => n.length > 24 ? n.slice(0, 23).replace(/\s+\S*$/, '') + '…' : n)(tr(l.name)) })   // (se corta por palabra entera, ya traducido);
     if (TOWN.farm) L.push({ x: TOWN.farm.x, z: TOWN.farm.z, icon: 'sheep', label: 'Granja' });
     L.push({ x: PLACES.fields.x, z: PLACES.fields.z, icon: 'wheat', label: 'Campos' });
@@ -866,7 +866,7 @@ export class TownGame {
     // animales de granja cercanos (los del rebaño de una misión no)
     const Pp = this.player.pos;
     for (const a of this.fauna.animals) if (PET[a.kind] && !a.herd && Math.abs(a.pos.x - Pp.x) < 4 && Math.abs(a.pos.z - Pp.z) < 4) list.push({ kind: 'pet', a, x: a.pos.x, z: a.pos.z, r: a.kind === 'cow' ? 2.8 : 2.2, label: `Acariciar a ${PET[a.kind].name}` });
-    if (TOWN.church?.door) list.push({ kind: 'bell', x: TOWN.church.door.x, z: TOWN.church.door.z, r: 2.6, label: 'Tocar la campana' });
+    if (TOWN.church?.door && this.def.church?.style !== 'borda') list.push({ kind: 'bell', x: TOWN.church.door.x, z: TOWN.church.door.z, r: 2.6, label: 'Tocar la campana' });
     for (const b of TOWN.benches) if (Math.abs(b.x - Pp.x) < 3 && Math.abs(b.z - Pp.z) < 3) list.push({ kind: 'seat', b, x: b.x, z: b.z, r: 1.7, label: 'Sentarse a descansar' });
     if (TOWN.fountain) list.push({ kind: 'fountain', x: TOWN.fountain.x, z: TOWN.fountain.z, r: 3.8, label: 'Beber agua' });
     if (this.tienda) list.push(this.tienda.interactable());
@@ -1925,7 +1925,7 @@ export class TownGame {
   startLegend(M) {
     const L = M.leg; M.step = M.count >= M.need ? 3 : 2;
     const P = PLACES, lm = (k) => TOWN.landmarks.find(l => l.kind === k);
-    const lairP = L.lair === 'cave' ? (lm('cave')?.spot || P.forest) : L.lair === 'river' ? (lm('bridge')?.spot || P.riverSpot || P.forest) : P.forest || P.edgeN;
+    const pd = PONDS[0], lairP = L.lair === 'cave' ? (lm('cave')?.spot || P.forest) : L.lair === 'river' ? (lm('bridge')?.spot || P.riverSpot || P.forest) : L.lair === 'pond' && pd ? { x: pd.x + pd.r + 5, z: pd.z } : P.forest || P.edgeN;   // (pond: la charca del bosque)
     M.lair = this.spot(lairP, 6);
     for (const k of this.clues.filter(c => c.M === M)) this.scene.remove(k.obj);
     this.clues = this.clues.filter(c => c.M !== M);
@@ -1963,7 +1963,7 @@ export class TownGame {
       const a = new Actor({ id: 'c' + M.i, name: M.leg.creature, x: s.x, z: s.z, heading: Math.atan2(this.player.pos.x - s.x, this.player.pos.z - s.z), look: myth ? { ...look, myth } : look }, this.scene);
       a.collider.ghost = true; a.base = a.obj.scale.x || 1;
       // el caballero es sólo una sombra de niebla: translúcido y azulado
-      if (M.m.who === 'roldan') a.obj.traverse(o => { if (o.isMesh && o.material) { o.material = o.material.clone(); o.material.transparent = true; o.material.opacity = 0.62; o.material.depthWrite = false; } });
+      if (M.m.who === 'roldan' || M.leg.ghost) a.obj.traverse(o => { if (o.isMesh && o.material) { o.material = o.material.clone(); o.material.transparent = true; o.material.opacity = 0.62; o.material.depthWrite = false; } });
       const aura = makeAura(M.leg.color, 3.2); aura.position.y = 1.4; a.obj.add(aura); a.aura = aura;
       M.creature = a;
     }

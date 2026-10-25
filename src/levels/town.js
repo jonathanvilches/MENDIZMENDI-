@@ -10,12 +10,25 @@ const FAMILY = {
   city: { relief: 26, noise: 5, grass: 'dry', forest: 0.15 },
   ribera: { relief: 10, noise: 3, grass: 'arid', forest: 0.08 },
 };
+// Bosques y selvas (def.bosque): un claro pequeño con la ermita, la borda o el palacio en mitad del monte, sendas a cada
+// sitio y el monte de cada uno: hayedo-abetal en Irati; hayedo con rasos (praderas), dolinas y lapiaz de caliza en Urbasa
+// y Aralar; robledal en Orgi; hayas, robles y castaños en Bertiz, y chopos y sauces a la orilla del Ebro en los sotos.
+// rasos: cuánto monte abierto; karst: dolinas y roca a flor de suelo; balsas: charcas; escarpe: el cortado del sur
+const BOSQUE = {
+  irati: { relief: 84, noise: 13, grass: 'selva', forest: 1 },
+  urbasa: { relief: 14, noise: 5, grass: 'karst', forest: 0.85, rasos: 0.42, karst: 1, balsas: 1, escarpe: 1 },
+  aralar: { relief: 64, noise: 11, grass: 'karst', forest: 0.9, rasos: 0.3, karst: 0.6 },
+  orgi: { relief: 10, noise: 4, grass: 'selva', forest: 1, balsas: 2 },
+  bertiz: { relief: 66, noise: 10, grass: 'selva', forest: 0.95 },
+  sotos: { relief: 4, noise: 2, grass: 'dry', forest: 0.95, soto: 1 },
+};
 
 export function createTownLevel(def) {
   const rnd = mulberry32(def.id.split('').reduce((a, c) => a * 31 + c.charCodeAt(0), 7) >>> 0);
-  const F = FAMILY[def.family] || FAMILY.central;
+  const BQ = BOSQUE[def.bosque] || null;
+  const F = { ...(FAMILY[def.family] || FAMILY.central), ...BQ };
   const relief = def.relief || 'valley';
-  const R = def.size >= 110 ? 175 : def.size >= 70 ? 140 : def.size >= 45 ? 118 : 96;   // radio del casco
+  const R = BQ ? 44 : def.size >= 110 ? 175 : def.size >= 70 ? 140 : def.size >= 45 ? 118 : 96;   // radio del casco (en el bosque, el claro)
   const rv = def.river;
   const ph = rnd() * 6.28;
 
@@ -101,6 +114,19 @@ export function createTownLevel(def) {
     addPath('toBridge', 'road', 3, line(-96, bz, rx(bz) + o, bz, 8));
     addPath('overRiver', 'road', 3, [[rx(bz) + o, bz], [rx(bz) - o, bz]]);
     BRIDGES.push({ id: 'b0', z: bz, w: 4, arch: 1.8, span: 2 * o, main: true, big: true });
+  } else if (BQ) {
+    // el claro del bosque: caminos de tierra con las pocas casas (la del guarda, la borda) y la ermita al fondo; si hay
+    // río, una senda lo cruza por un puente pequeño
+    addPath('main', 'lane', 2.6, line(P.x, R, P.x, -R * 0.45, 6));
+    addPath('cross', 'lane', 2.2, line(P.x - R * 0.8, 8, P.x + R * 0.8, -2, 6));
+    addPath('toChurch', 'lane', 2.2, line(P.x, -10, PLACES.church.x, PLACES.church.z + 10, 5));
+    if (rv) {
+      const bz = -40, o = half + 6, xb = rx(bz);
+      addPath('toRiver', 'trail', 1.8, line(P.x + R * 0.8, -2, xb - o, bz, 7));
+      addPath('overRiver', 'trail', 1.8, [[xb - o, bz], [xb + o, bz]]);
+      addPath('beyond', 'trail', 1.6, line(xb + o, bz, xb + o + 60, bz - 50, 8));
+      BRIDGES.push({ id: 'b0', z: bz, w: 2.6, arch: 1.2, span: 2 * o, main: true });
+    }
   } else if (riverThrough) {
     // dos calles paralelas al río, como en los pueblos pirenaicos
     const along = (off, z0, z1) => { const p = []; for (let z = z0; z <= z1; z += 6) p.push([rx(z) + off, z]); return p; };
@@ -174,7 +200,7 @@ export function createTownLevel(def) {
   }
 
   // ---------- Relieve ----------
-  const vR = R + 30;
+  const vR = R + (BQ ? 12 : 30);   // (el claro del bosque: el monte empieza enseguida)
   function villageMask(x, z) {
     const e = Math.hypot((x - PLACES.plaza.x) / vR, (z - 0) / vR);
     return 1 - smoothstep(0.7, 1.15, e);
@@ -207,6 +233,16 @@ export function createTownLevel(def) {
     const b = (Math.atan2(x, -z) * 180 / Math.PI + 360) % 360, i = Math.floor(b), f = b - i;
     return SKY[i] * (1 - f) + SKY[(i + 1) % 360] * f;
   }
+  // Bosques de caliza: dolinas (hoyos redondos por donde el agua de lluvia se cuela en la roca) y, en Urbasa, el cortado
+  // del sur de la sierra (el Balcón de Pilatos), donde el monte cae de golpe hacia el valle
+  const DOLINAS = [];
+  if (BQ?.karst) for (let i = 0; i < 26 * BQ.karst; i++) { const a = rnd() * 6.28, d = 95 + rnd() * 290; DOLINAS.push({ x: Math.cos(a) * d, z: Math.sin(a) * d, r: 9 + rnd() * 15, h: 2.5 + rnd() * 4 }); }
+  function bosqueH(x, z) {
+    let h = 0;
+    for (const D of DOLINAS) { if (Math.abs(x - D.x) > D.r || Math.abs(z - D.z) > D.r) continue; const k = 1 - Math.min(1, Math.hypot(x - D.x, z - D.z) / D.r); h -= D.h * k * k * (3 - 2 * k); }
+    if (BQ.escarpe) h -= 95 * smoothstep(262, 300, z + fbm(x / 70, 3.3, 2) * 26);
+    return h;
+  }
   function rawHeight(x, z, detail) {
     const F0 = FA(z);
     const dRiv = rv ? Math.abs(x - rx(z)) : Math.abs(x - PLACES.plaza.x);
@@ -217,6 +253,7 @@ export function createTownLevel(def) {
     else h += F.relief * 0.3 * smoothstep(250, 450, r);
     if (hill) h += hillH * Math.exp(-(r * r) / (2 * 120 * 120));
     if (PEAKS.length) h += peakH(x, z);
+    if (BQ) h += bosqueH(x, z);
     // bordes montañosos
     const r4 = Math.pow(x ** 4 + z ** 4, 0.25);
     const mt = smoothstep(360, 540, r4);
@@ -303,6 +340,12 @@ export function createTownLevel(def) {
   }
   const PADS = [];
   function addPad(x, z, r, blend = 14) { const h = rawHeight(x, z, false).h; PADS.push({ x, z, r, blend, h }); }
+  // charcas del bosque: la balsa del ganado en el raso de Urbasa, las zonas encharcadas del robledal de Orgi
+  const PONDS = [];
+  for (let i = 0; i < (BQ?.balsas || 0); i++) {
+    const a = ph + 2.1 + i * 2.6, x = P.x + Math.cos(a) * (120 + i * 40), z = P.z + Math.sin(a) * (110 + i * 40), r = 11 + i * 3;
+    PONDS.push({ x, z, r, level: rawHeight(x, z, false).h - 0.7 });
+  }
   addPad(PLACES.church.x, PLACES.church.z, PAMP ? 40 : 20, PAMP ? 12 : 14);
   addPad(PLACES.farm.x, PLACES.farm.z, 16, 18);
   // ---------- Monumentos: cada tipo busca su sitio ----------
@@ -323,10 +366,28 @@ export function createTownLevel(def) {
   const cat = { castle: 'big', walls: 'big', palace: 'street', house: 'street', towerhouse: rv ? 'river' : 'street', arch: 'street', townhall: 'plaza', kiosk: 'plaza', fountain: 'plaza', plaza: 'plaza',
     mill: rv ? 'river' : 'edge', raft: rv ? 'river' : 'edge', gorge: 'gorge', bridge: 'bridge', stelae: 'church', chapel: 'church' };
   PLACES.landmarks = [];
+  // en el bosque, cada sitio queda monte adentro, a un buen paseo del claro y en su misma orilla del río (el mirador, en
+  // lo más alto que encuentra)
+  let nDeep = 0;
+  const deep = (kind) => {
+    let best = null;
+    for (let t = 0; t < (kind === 'lookout' ? 14 : 8); t++) {
+      const a = ph + (nDeep + t * 0.37) * 2.4, d = kind === 'lookout' ? 185 : 115 + (nDeep % 3) * 42;
+      let x = P.x + Math.cos(a) * d; const z = P.z + Math.sin(a) * d;
+      if (rv && Math.sign(x - rx(z)) !== Math.sign(P.x - rx(P.z))) x = 2 * P.x - x;
+      if (rv && Math.abs(x - rx(z)) < half + 28 || (BQ.escarpe && z > 235)) continue;
+      const s = kind === 'lookout' ? rawHeight(x, z, false).h : -t;
+      if (!best || s > best.s) best = { x, z, s };
+      if (kind !== 'lookout') break;
+    }
+    nDeep++; return best || { x: P.x + 90, z: P.z - 90 };
+  };
+  const DEEP = new Set(['dolmen', 'cave', 'ruin', 'lookout', 'bigtree', 'rocks', 'monolith', 'stone', 'cross', 'raft', 'mill']);
   for (const lm of def.landmarks || []) {
     const c = cat[lm.kind] || 'edge';
     let pos;
-    if (c === 'bridge') { const b = BRIDGES.find(b => b.main) || BRIDGES[0]; pos = b ? { x: rx(b.z), z: b.z + 4 } : { x: pl.x + 10, z: pl.z + 30 }; }
+    if (BQ && DEEP.has(lm.kind)) pos = deep(lm.kind);
+    else if (c === 'bridge') { const b = BRIDGES.find(b => b.main) || BRIDGES[0]; pos = b ? { x: rx(b.z), z: b.z + 4 } : { x: pl.x + 10, z: pl.z + 30 }; }
     else if (c === 'plaza') pos = { x: pl.x + (lm.kind === 'townhall' ? 0 : 0), z: pl.z + (lm.kind === 'townhall' ? -pl.r - 7 : 0), center: lm.kind !== 'townhall' };
     else if (c === 'church') pos = { x: PLACES.church.x + 18, z: PLACES.church.z + 6 };
     else if (c === 'gorge') pos = rv ? { x: rx(R + 150), z: R + 150 } : slots.edge.shift();
@@ -339,8 +400,15 @@ export function createTownLevel(def) {
     PLACES.landmarks.push(o);
     if (lm.kind === 'castle') addPad(o.x, o.z, 30, 16);
     else if (lm.kind === 'dig') addPad(o.x, o.z, 14, 14);
-    else if (['ruin', 'monolith', 'lookout', 'dolmen', 'cross', 'stone', 'chapel', 'palomeras', 'horreo', 'house', 'palace', 'towerhouse', 'mill'].includes(lm.kind)) addPad(o.x, o.z, 9, 12);
+    else if (['ruin', 'monolith', 'lookout', 'dolmen', 'cross', 'stone', 'chapel', 'palomeras', 'horreo', 'house', 'palace', 'towerhouse', 'mill', 'bigtree'].includes(lm.kind)) addPad(o.x, o.z, 9, 12);
   }
+  // sendas por el monte desde el borde del claro hasta cada sitio, con sus curvas
+  if (BQ) PLACES.landmarks.forEach((l, i) => {
+    const dx = l.x - P.x, dz = l.z - P.z, L = Math.hypot(dx, dz); if (L < R + 25) return;
+    const t0 = (R * 0.85) / L, t1 = 1 - 6 / L, n = Math.max(4, Math.round((L - R) / 8)), w = 8 + rnd() * 10, pts = [];   // (acaba a unos pasos del sitio)
+    for (let j = 0; j <= n; j++) { const u = j / n, t = t0 + (t1 - t0) * u, s = Math.sin(u * Math.PI) * w * Math.sin(t * 5 + i); pts.push([P.x + dx * t - dz / L * s, P.z + dz * t + dx / L * s]); }
+    addPath('senda' + i, 'trail', 1.5, pts);
+  });
   // Pamplona: murallas al borde del casco
   PLACES.courts = [];
   PLACES.clearings = PLACES.landmarks.map(l => ({ x: l.x, z: l.z, r0: (l.pad || 14) + 12, r1: l.pad || 12 }));
@@ -391,9 +459,16 @@ export function createTownLevel(def) {
         h = lerp(h, hNo, smoothstep(440, 475, r4c));
       }
     }
+    // las charcas: un cuenco con la orilla suave (como la balsa de Irati de Otsagabia)
+    for (const pd of PONDS) {
+      const dp = Math.hypot(x - pd.x, z - pd.z); if (dp > pd.r + 14) continue;
+      const bowl = pd.level - 1.4 + Math.pow(Math.max(0, dp - pd.r + 5) / 18, 1.6) * 3;
+      h = lerp(h, Math.min(h, Math.max(bowl, pd.level - 1.4)), smoothstep(pd.r + 14, pd.r - 2, dp));
+      if (dp < pd.r + 5) h = Math.min(h, lerp(pd.level + 0.7, h, smoothstep(pd.r + 1, pd.r + 9, dp)));
+    }
     return { h, river: riverInfo(x, z), vm: a.vm, mm: a.mm };
   }
-  const plazaMask = PLACES.plaza.rect
+  const plazaMask = BQ ? () => 0 : PLACES.plaza.rect
     ? (x, z) => { const q = PLACES.plaza, dx = Math.abs(x - q.x) - q.rect.hw, dz = Math.abs(z - q.z) - q.rect.hd; return 1 - smoothstep(-1, 1, Math.max(dx, dz)); }
     : (x, z) => 1 - smoothstep(PLACES.plaza.r - 2, PLACES.plaza.r + 1, Math.hypot(x - PLACES.plaza.x, z - PLACES.plaza.z));
 
@@ -407,8 +482,10 @@ export function createTownLevel(def) {
   }[def.family] || [0];
   function hash2(i, j) { const s = Math.sin(i * 127.1 + j * 311.7 + ph) * 43758.5453; return s - Math.floor(s); }
   function fieldInfo(x, z) {
+    if (BQ && !BQ.soto) return { mask: 0, type: 0, edge: 99 };   // (en el monte no hay huertas ni campos)
     let mask = 1 - villageMask(x, z) * 1.2;
     const rr = riverInfo(x, z);
+    if (BQ) mask *= smoothstep(140, 180, rr.d);   // (en los sotos, la huerta empieza donde acaba el bosque de ribera)
     mask *= smoothstep(6, 14, rr.edge);
     const r4 = Math.pow(x ** 4 + z ** 4, 0.25);
     mask *= 1 - smoothstep(300, 380, r4);
@@ -433,13 +510,18 @@ export function createTownLevel(def) {
 
   // ---------- Árboles según la familia ----------
   function TREE_MIX(x, z, h, n) {
-    const f = def.family;
+    const f = def.family, b = def.bosque;
+    if (b === 'irati') return n > 0.28 || h > 80 + n * 30 ? 'fir' : 'beech';             // hayas y, en manchas y en lo alto, abetos
+    if (b === 'orgi') return n > 0.5 ? 'beech' : n < -0.5 ? 'chestnut' : 'oak';         // robledal
+    if (b === 'bertiz') return n > 0.2 ? 'beech' : n > -0.35 ? 'oak' : 'chestnut';
+    if (b === 'sotos') return riverInfo(x, z).edge < 45 + n * 30 ? 'poplar' : 'oak';    // chopos y sauces junto al agua; fresnos y olmos detrás
+    if (b) return n < -0.55 ? 'oak' : 'beech';                                            // hayedo de Urbasa y Aralar
     if (f === 'pyrenean') return h > 60 || n > 0 ? 'fir' : 'beech';
     if (f === 'atlantic') return n > 0.25 ? 'beech' : n > -0.2 ? 'oak' : 'chestnut';
     if (f === 'ribera') return riverInfo(x, z).edge < 30 ? 'poplar' : n > 0 ? 'pine' : 'olive';
     return n > 0.2 ? 'pine' : n > -0.3 ? 'oak' : 'olive';
   }
-  const SPECIAL_TREES = PAMP ? pampTrees() : [[PLACES.plaza.x + PLACES.plaza.r + 4, PLACES.plaza.z - 6, def.family === 'ribera' ? 'poplar' : 'oak', 1.2, true], [PLACES.plaza.x - PLACES.plaza.r - 4, PLACES.plaza.z + 7, def.family === 'ribera' ? 'poplar' : 'oak', 1.1, true]];   // (true: si no caben, buscan un hueco cerca)
+  const SPECIAL_TREES = BQ ? PLACES.landmarks.filter(l => l.kind === 'bigtree').map(l => [l.x, l.z, l.tree || 'oak', 2.3, true]) : PAMP ? pampTrees() : [[PLACES.plaza.x + PLACES.plaza.r + 4, PLACES.plaza.z - 6, def.family === 'ribera' ? 'poplar' : 'oak', 1.2, true], [PLACES.plaza.x - PLACES.plaza.r - 4, PLACES.plaza.z + 7, def.family === 'ribera' ? 'poplar' : 'oak', 1.1, true]];   // (true: si no caben, buscan un hueco cerca)
 
   // Pamplona: plátanos en la plaza del Castillo y en Carlos III, y arboleda dentro de la Ciudadela
   function pampTrees() {
@@ -465,7 +547,16 @@ export function createTownLevel(def) {
   return {
     rx, zz: () => 9999, CONF: { x: 9999, z: 9999 }, FA, FZ: FA, riverHalfA, RIVER_HALF_Z: 0,
     riverInfo, valleyFloor, finalHeight, pathQuery, plazaMask, fieldInfo, villageMask, meadowMask, iratiMask, skyTan,
-    PLACES, MEADOW: null, PATHS, BRIDGES, PONDS: [], SPECIAL_TREES, TREE_MIX, R,
+    PLACES, MEADOW: null, PATHS, BRIDGES, PONDS, SPECIAL_TREES, TREE_MIX, R, bosque: def.bosque || null,
+    // el monte del bosque y la roca a flor de suelo (heightfield.js)
+    forestMask: BQ && ((x, z, n1, r) => {
+      let k = smoothstep(-0.75, -0.4, n1);
+      if (BQ.rasos) k *= smoothstep(BQ.rasos - 0.06, BQ.rasos + 0.06, fbm(x / 190 + 7, z / 190 - 5, 3) * 0.5 + 0.5);
+      if (BQ.soto) k *= 1 - smoothstep(70, 125, r.d + fbm(x / 60, z / 60, 2) * 25);
+      if (BQ.escarpe) k *= 1 - smoothstep(250, 268, z);
+      return k;
+    }),
+    rockMask: BQ?.karst && ((x, z) => BQ.karst * smoothstep(0.6, 0.74, fbm(x / 34 + 2, z / 34 + 9, 3) * 0.5 + 0.5 + fbm(x / 9, z / 9, 2) * 0.12) * (1 - villageMask(x, z))),
     RIVERS: rv ? [{ rx, level: z => FA(z) - 0.9, half }] : [],
     BOUNDARY: 440, def, family: def.family, relief, addPad, PADS, FOREST: F.forest, TONE: F.grass,
   };

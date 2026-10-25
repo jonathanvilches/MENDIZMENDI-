@@ -1,5 +1,5 @@
 // Hornea la geografía en rejillas para consultas rápidas (altura, superficie, bosque)
-import { HALF, CELL, N, finalHeight, pathQuery, iratiMask, plazaMask, BRIDGES, PLACES, riverInfo, PONDS, fieldInfo, FOREST } from './layout.js';
+import { HALF, CELL, N, finalHeight, pathQuery, iratiMask, plazaMask, BRIDGES, PLACES, riverInfo, PONDS, fieldInfo, FOREST, MOD } from './layout.js';
 import { clamp, lerp, smoothstep } from '../util/math.js';
 import { fbm } from '../util/noise.js';
 
@@ -16,6 +16,7 @@ export const SURF = {
 const idx = (i, j) => j * N + i;
 
 export function bake() {
+  const FM = MOD?.forestMask, RM = MOD?.rockMask;   // (los bosques: su monte y su roca a flor de suelo, src/levels/town.js)
   for (let j = 0; j < N; j++) {
     const z = -HALF + j * CELL;
     for (let i = 0; i < N; i++) {
@@ -46,7 +47,7 @@ export function bake() {
       const n1 = fbm(x / 90 + 11, z / 90 - 4, 3);
       let forest = iratiMask(x, z) * smoothstep(-0.55, -0.2, n1);
       const ft = 0.45 - 0.8 * FOREST;   // (umbral del bosque: más bajo cuanto más boscoso es el pueblo)
-      forest = Math.max(forest, smoothstep(ft, ft + 0.3, n1) * smoothstep(60, 140, Math.min(r.d, 400)));
+      forest = FM ? FM(x, z, n1, r) : Math.max(forest, smoothstep(ft, ft + 0.3, n1) * smoothstep(60, 140, Math.min(r.d, 400)));
       const r4 = Math.pow(x ** 4 + z ** 4, 0.25);
       forest *= 1 - smoothstep(470, 520, r4) * 0.8;
       forest *= 1 - vm;
@@ -75,7 +76,7 @@ export function bake() {
     const s = Math.hypot(gx, gz);
     const xw = -HALF + i * CELL, zw = -HALF + j * CELL;
     const re = riverInfo(xw, zw).edge;
-    const rock = (smoothstep(0.75, 1.25, s) + smoothstep(115, 150, H[k]) * 0.5) * smoothstep(1, 7, re);
+    const rock = Math.max((smoothstep(0.75, 1.25, s) + smoothstep(115, 150, H[k]) * 0.5), RM ? RM(xw, zw) : 0) * smoothstep(1, 7, re);
     SURF.rock[k] = clamp(rock, 0, 1) * 255;
     if (rock > 0.5) { SURF.grass[k] *= 0.3; SURF.forest[k] *= 0.5; }
   }

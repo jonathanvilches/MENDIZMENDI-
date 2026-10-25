@@ -1,9 +1,9 @@
 // Árboles (hayas, abetos, robles), hierba viva, flores, rocas y helechos
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { HALF, CELL, N, pathQuery, riverInfo, villageMask, meadowMask, iratiMask, fieldInfo, SPECIAL_TREES, TREE_MIX, TONE } from './layout.js';
+import { HALF, CELL, N, pathQuery, riverInfo, villageMask, meadowMask, iratiMask, fieldInfo, SPECIAL_TREES, TREE_MIX, TONE, MOD, PLACES } from './layout.js';
 import { H, SURF, terrainHeight, surfAt, onPlatform } from './heightfield.js';
-import { addCircle, isFree, removeCollider } from './colliders.js';
+import { addCircle, addBox, isFree, removeCollider } from './colliders.js';
 import { mulberry32, clamp } from '../util/math.js';
 import { fbm } from '../util/noise.js';
 import { TEX, FOLIAGE } from './textures.js';
@@ -152,13 +152,14 @@ function makeBeech(rnd, detail) {
     br.push(barkUV(colorize(g.toNonIndexed(), (x, y, z, c) => c.set('#857f75'))));
   }
   const blobs = [[0, 6.3, 0, 2.9], [1.8, 5.4, 0.6, 2.1], [-1.6, 5.6, -0.8, 2.2], [0.4, 5.2, -1.8, 2.0], [-0.6, 7.6, 0.5, 2.0], [0.9, 7.1, 1.4, 1.7]];
-  const c = blobCanopy(rnd, detail ? blobs : blobs.slice(0, 4), detail ? 1 : -1, '#3f6f2a', '#8fbf4a', 3.4, 6.2);
+  // (detail 'mid': la de cerca de los bosques, con sus hojas pero sin los bultos pequeños; hay cientos a la vista)
+  const c = blobCanopy(rnd, detail ? blobs : blobs.slice(0, 4), detail === 'mid' ? 0 : detail ? 1 : -1, '#3f6f2a', '#8fbf4a', 3.4, 6.2);
   return mergeKeep([t, ...(detail ? br : []), c]);
 }
 function makeOak(rnd, detail) {
   const t = trunk(3.2, 0.42, '#6d5a45');
   const blobs = [[0, 5.2, 0, 3.0], [2.3, 4.6, 0.3, 2.3], [-2.2, 4.8, -0.4, 2.4], [0.3, 4.5, 2.1, 2.1], [-0.3, 4.6, -2.2, 2.2], [0.2, 6.6, 0, 2.1]];
-  const c = blobCanopy(rnd, detail ? blobs : blobs.slice(0, 4), detail ? 1 : -1, '#3d6526', '#9cbb4d', 3.6, 5.0);
+  const c = blobCanopy(rnd, detail ? blobs : blobs.slice(0, 4), detail === 'mid' ? 0 : detail ? 1 : -1, '#3d6526', '#9cbb4d', 3.6, 5.0);
   return mergeKeep([t, c]);
 }
 function makeFir(rnd, detail) {
@@ -211,6 +212,33 @@ function makeFir(rnd, detail) {
   const top = new THREE.ConeGeometry(0.28, 1.4, 6, 1, true); top.translate(0, H1 + 0.2, 0);
   const tn = top.toNonIndexed(); tn.computeVertexNormals(); colorize(tn, (x, y, z, c) => c.copy(mid)); parts.push(tn);
   return mergeKeep(parts);
+}
+// Tronco caído: corteza con bultos, musgo por encima y los cortes claros con sus anillos; dos muñones de rama
+function makeLog(rnd) {
+  const L = 3.6, r = 0.3, cB = new THREE.Color('#5b4b3c'), cM = new THREE.Color('#4a7426'), cW = new THREE.Color('#c9a877'), cR = new THREE.Color('#8a6a45');
+  const g = new THREE.CylinderGeometry(r * 0.9, r, L, 11, 6); g.rotateZ(Math.PI / 2);
+  const parts = [g];
+  for (const [x, a] of [[-0.6, 0.7], [0.9, -0.9]]) parts.push(new THREE.CylinderGeometry(0.05, 0.08, 0.5, 6).translate(0, 0.25, 0).rotateX(a).translate(x, 0.15, 0));
+  const out = mergeGeometries(parts.map(q => q.toNonIndexed()));
+  const p = out.attributes.position, n = out.attributes.normal, col = new Float32Array(p.count * 3), c = new THREE.Color();
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+    if (Math.abs(n.getX(i)) > 0.9 && Math.abs(Math.abs(x) - L / 2) < 0.01) { const d = Math.hypot(y, z) / r; c.copy(cW).lerp(cR, 0.5 + 0.5 * Math.sin(d * 22)); if (d > 0.85) c.copy(cB); }
+    else { const b = 1 + Math.abs(fbm(x * 3, Math.atan2(z, y) * 2, 2)) * 0.12; /* (solo hacia fuera: el corte queda dentro de la corteza) */ p.setY(i, y * b); p.setZ(i, z * b); c.copy(cB).multiplyScalar(0.85 + 0.3 * fbm(x * 5, y * 9 + z * 9, 2)); c.lerp(cM, clamp((n.getY(i) - 0.25) * 2 + fbm(x * 2, z * 4, 2) * 0.8, 0, 1)); }
+    col.set([c.r, c.g, c.b], i * 3);
+  }
+  out.setAttribute('color', new THREE.BufferAttribute(col, 3)); out.computeVertexNormals(); return out;
+}
+// Corrillo de tres setas: la matamoscas (sombrero rojo con verrugas blancas) o el hongo (sombrero pardo, pie grueso)
+function makeShrooms(rnd, red) {
+  const parts = [];
+  for (const [x, z, k] of [[0, 0, 1], [0.13, 0.08, 0.7], [-0.1, 0.11, 0.55]]) {
+    const st = new THREE.CylinderGeometry((red ? 0.025 : 0.04) * k, (red ? 0.035 : 0.055) * k, (red ? 0.17 : 0.12) * k, 7).translate(x, (red ? 0.085 : 0.06) * k, z);
+    const cap = new THREE.SphereGeometry((red ? 0.1 : 0.09) * k, 12, 5, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, red ? 0.55 : 0.7, 1).translate(x, (red ? 0.16 : 0.11) * k, z);
+    parts.push(colorize(st.toNonIndexed(), (X, Y, Z, c) => c.set(red ? '#efe9dc' : '#d6c49c')));
+    parts.push(colorize(cap.toNonIndexed(), (X, Y, Z, c) => { c.set(red ? '#c8241a' : '#7a4a22'); if (red && fbm(X * 70 + 3, Z * 70 + Y * 40, 2) > 0.32) c.set('#f4f0e6'); }));
+  }
+  const g = mergeGeometries(parts); g.computeVertexNormals(); return g;
 }
 function makeBush(rnd) {
   // mata central redondeada y dos laterales más sencillas (hay cientos: pocos triángulos)
@@ -293,7 +321,7 @@ vec4 triR(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.x +
   m.customProgramCacheKey = () => 'rock-tri' + (low ? '-low' : '');
   return m;
 }
-const ROCK_TINT = { alpine: '#8f8d88', lush: '#8a8a80', dry: '#a39a88', arid: '#b8a684' };
+const ROCK_TINT = { alpine: '#8f8d88', lush: '#8a8a80', dry: '#a39a88', arid: '#b8a684', selva: '#7d8076', karst: '#bab5a9' };
 
 function makeOlive(rnd, detail) {
   // tronco retorcido y copa gris verdosa
@@ -514,9 +542,13 @@ export class Nature {
     // con nieve, un poco de blanco encima de las copas (los troncos, que miran a los lados, quedan oscuros)
     this.matTree = snowable(windMaterial({ map: TEX.foliage, alphaTest: 0.45, side: THREE.DoubleSide }, { bark: true, low: quality === 'low' }), 0.75, 0.2, 0.8);
     this.group = new THREE.Group();
+    // (en los bosques, la rejilla de trozos corrida medio trozo: el claro queda en el centro de uno y no en la esquina de cuatro,
+    // que de cerca se dibujaban enteros con todo su detalle)
+    this.off = MOD?.bosque ? CHUNK / 2 : 0;
+    const hiQ = MOD?.bosque ? 'mid' : true;   // (en los bosques, las hayas y los robles de cerca algo más sencillos)
     const geos = {
-      beech: [makeBeech(rnd, true), makeBeech(rnd, false)],
-      oak: [makeOak(rnd, true), makeOak(rnd, false)],
+      beech: [makeBeech(rnd, hiQ), makeBeech(rnd, false)],
+      oak: [makeOak(rnd, hiQ), makeOak(rnd, false)],
       fir: [makeFir(rnd, true), makeFir(rnd, false)],
       olive: [makeOlive(rnd, true), makeOlive(rnd, false)],
       poplar: [makePoplar(rnd, true), makePoplar(rnd, false)],
@@ -527,12 +559,14 @@ export class Nature {
     TREES.length = 0;
     let spots = treeSpots(rnd);
     // menos árboles, pero cada uno con todo su detalle (mejor pocos y bonitos que muchos y pobres)
-    const cap = quality === 'low' ? 1800 : quality === 'mid' ? 2600 : 3200;
-    if (spots.length > cap) { const crop = spots.filter(s => s.crop || s.special), rest = spots.filter(s => !s.crop && !s.special); rest.sort(() => rnd() - 0.5); spots = crop.slice(0, cap * 0.4).concat(rest.slice(0, cap - Math.min(crop.length, cap * 0.4))); }
+    // (en los bosques, más y, sobre todo, cerca de donde se juega: la espesura se va aclarando hacia lo lejos)
+    const bq = MOD?.bosque, P0 = PLACES?.plaza || { x: 0, z: 0 };
+    const cap = (quality === 'low' ? 1800 : quality === 'mid' ? 2600 : 3200) * (bq ? 1.35 : 1);
+    if (spots.length > cap) { const crop = spots.filter(s => s.crop || s.special), rest = spots.filter(s => !s.crop && !s.special); if (bq) { for (const s of rest) s.k = Math.hypot(s.x - P0.x, s.z - P0.z) + rnd() * 170; rest.sort((a, b) => a.k - b.k); } else rest.sort(() => rnd() - 0.5); spots = crop.slice(0, cap * 0.4).concat(rest.slice(0, cap - Math.min(crop.length, cap * 0.4))); }
     // agrupar por trozo
     const chunks = new Map();
     for (const s of spots) {
-      const key = Math.floor((s.x + HALF) / CHUNK) + ',' + Math.floor((s.z + HALF) / CHUNK);
+      const key = Math.floor((s.x + HALF + this.off) / CHUNK) + ',' + Math.floor((s.z + HALF + this.off) / CHUNK);
       if (!chunks.has(key)) chunks.set(key, { list: [], cx: 0, cz: 0 });
       chunks.get(key).list.push(s);
       TREES.push(s);
@@ -542,7 +576,7 @@ export class Nature {
     const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), sc = new THREE.Vector3();
     for (const [key, c] of chunks) {
       const [ci, cj] = key.split(',').map(Number);
-      const cx = -HALF + (ci + 0.5) * CHUNK, cz = -HALF + (cj + 0.5) * CHUNK;
+      const cx = -HALF - this.off + (ci + 0.5) * CHUNK, cz = -HALF - this.off + (cj + 0.5) * CHUNK;
       const entry = { cx, cz, hi: [], lo: [] };
       for (const type of Object.keys(geos)) {
         const list = c.list.filter(s => s.type === type);
@@ -562,12 +596,14 @@ export class Nature {
       }
       this.chunks.push(entry);
     }
-    this.lodDist = quality === 'low' ? 60 : quality === 'mid' ? 80 : 100;
+    // (en los bosques, con tanto árbol, el detalle completo solo en los trozos más cercanos; los demás, con su forma sencilla)
+    this.lodDist = MOD?.bosque ? (quality === 'low' ? 15 : quality === 'mid' ? 32 : 48) : quality === 'low' ? 60 : quality === 'mid' ? 80 : 100;
     this.rockFar = quality === 'low' ? 170 : quality === 'mid' ? 230 : 300;
     // solo los trozos cercanos proyectan sombra: la sombra de lo lejano apenas se ve y duplica el coste
     this.shadowDist = quality === 'low' ? 0 : quality === 'mid' ? 20 : 45;
     this.buildRocks(rnd);
     this.buildBushes(rnd);
+    this.buildForestFloor(rnd);
     this.buildCrops(rnd, quality);
     scene.add(this.group);
     dataTextures(true);
@@ -579,10 +615,10 @@ export class Nature {
   addChunked(list, hi, lo, mat, place, opts = {}) {
     this.chunkMap ||= new Map(this.chunks.map(c => [c.cx + ',' + c.cz, c]));
     const by = new Map();
-    for (const s of list) { const k = Math.floor((s.x + HALF) / CHUNK) + ',' + Math.floor((s.z + HALF) / CHUNK); if (!by.has(k)) by.set(k, []); by.get(k).push(s); }
+    for (const s of list) { const k = Math.floor((s.x + HALF + this.off) / CHUNK) + ',' + Math.floor((s.z + HALF + this.off) / CHUNK); if (!by.has(k)) by.set(k, []); by.get(k).push(s); }
     const out = [];
     for (const [k, items] of by) {
-      const [ci, cj] = k.split(',').map(Number), cx = -HALF + (ci + 0.5) * CHUNK, cz = -HALF + (cj + 0.5) * CHUNK;
+      const [ci, cj] = k.split(',').map(Number), cx = -HALF - this.off + (ci + 0.5) * CHUNK, cz = -HALF - this.off + (cj + 0.5) * CHUNK;
       let entry = this.chunkMap.get(cx + ',' + cz);
       if (!entry) { entry = { cx, cz, hi: [], lo: [] }; this.chunkMap.set(cx + ',' + cz, entry); this.chunks.push(entry); }
       for (const [geo, far] of [[hi, false], [lo, true]]) {
@@ -643,7 +679,7 @@ export class Nature {
         put(x, z, big, 0.45, 0.2);
         for (let q = 0, nq = 2 + (rnd() * 4 | 0); q < nq; q++) { const a = rnd() * 6.28, d = big * (0.8 + rnd() * 0.9); put(x + Math.cos(a) * d, z + Math.sin(a) * d, 0.3 + rnd() * big * 0.35, 0.3, 0.1); }
       } else if (nearRiver && rnd() < 0.6) put(x, z, 0.25 + rnd() * 0.6, 0.35, 0);
-      else if (forest > 0.4 && rnd() < 0.12) put(x, z, 0.6 + rnd() * 1.2, 0.35, 0.9);
+      else if (forest > 0.4 && rnd() < (MOD?.bosque ? 0.3 : 0.12)) put(x, z, 0.6 + rnd() * 1.2, 0.35, 0.9);   // (piedras con musgo; en los bosques, más)
       else if (slope > 0.45 && rnd() < 0.25) put(x, z, 0.5 + rnd() * 1.4, 0.4, 0.3);
     }
     const m = rockMaterial(this.quality);
@@ -693,8 +729,10 @@ export class Nature {
       if (!isFree(x, z, 0.8)) continue;
       bushSpots.push({ x, z, s: 0.8 + rnd() * 0.7 });
     }
-    for (let k = 0; k < 10000; k++) {
-      const x = (rnd() - 0.5) * 2 * (HALF - 10), z = (rnd() - 0.5) * 2 * (HALF - 10);
+    // (en los bosques, el doble de helechos y repartidos cerca de donde se juega)
+    const bq = MOD?.bosque, P0 = PLACES?.plaza || { x: 0, z: 0 }, fernR = bq ? 330 : HALF - 10;
+    for (let k = 0; k < (bq ? 24000 : 10000); k++) {
+      const x = bq ? P0.x + (rnd() - 0.5) * 2 * fernR : (rnd() - 0.5) * 2 * fernR, z = bq ? P0.z + (rnd() - 0.5) * 2 * fernR : (rnd() - 0.5) * 2 * fernR;
       const f = surfAt('forest', x, z);
       const p = pathQuery(x, z); if (p.d < p.w + 0.8) continue;
       const r = riverInfo(x, z); if (r.edge < 1) continue;
@@ -711,9 +749,32 @@ export class Nature {
     // detrás de la cámara o a cientos de metros, donde una mata mide menos de un píxel). Sin sombra: apenas se ve y
     // duplicaba el coste
     const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), sc = new THREE.Vector3();
-    for (const [geo, list, mat] of [[g, bushSpots, matB], [fern, fernSpots.slice(0, 5000), matF]]) {
+    for (const [geo, list, mat] of [[g, bushSpots, matB], [fern, fernSpots.slice(0, bq && this.quality !== 'low' ? 9000 : 5000), matF]]) {
       for (const s of list) s.r = rnd() * 6;
       this.addChunked(list, geo, null, mat, (s) => m4.compose(v.set(s.x, terrainHeight(s.x, s.z) - 0.1, s.z), q.setFromEuler(e.set(0, s.r, 0)), sc.setScalar(s.s)), { name: 'matas' });
+    }
+  }
+  // El suelo del bosque: troncos caídos con musgo (no se atraviesan) y corrillos de setas, la roja de puntos blancos
+  // (la matamoscas, venenosa: se mira y no se toca) y el hongo pardo. Solo de cerca, como las matas
+  buildForestFloor(rnd) {
+    const bq = MOD?.bosque, logs = [], shrooms = [];
+    for (let k = 0; k < (bq ? 30000 : 12000) && (logs.length < (bq ? 170 : 45) || shrooms.length < (bq ? 650 : 160)); k++) {
+      const x = (rnd() - 0.5) * 2 * (HALF - 20), z = (rnd() - 0.5) * 2 * (HALF - 20);
+      if (surfAt('forest', x, z) < 0.55 || riverInfo(x, z).edge < 3) continue;
+      const p = pathQuery(x, z); if (p.d < p.w + 1.5) continue;
+      if (logs.length < (bq ? 170 : 45) && rnd() < 0.2) {
+        const ry = rnd() * 6.28, s = 0.8 + rnd() * 0.5, c = Math.cos(ry) * 1.8 * s, sn = -Math.sin(ry) * 1.8 * s;
+        if (!isFree(x, z, 1) || !isFree(x + c, z + sn, 0.9) || !isFree(x - c, z - sn, 0.9)) continue;
+        const pitch = Math.atan2(terrainHeight(x + c, z + sn) - terrainHeight(x - c, z - sn), 3.6 * s);
+        logs.push({ x, z, ry, s, pitch }); addBox(x, z, 3.6 * s, 0.6 * s, ry);
+      } else if (shrooms.length < (bq ? 650 : 160) && isFree(x, z, 0.4)) shrooms.push({ x, z, s: 0.8 + rnd() * 0.8, r: rnd() * 6.28, red: rnd() < 0.35 });
+    }
+    const mat = snowable(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.92, metalness: 0 }), 0.6, 0.25, 0.8);
+    const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(0, 0, 0, 'YZX'), v = new THREE.Vector3(), sc = new THREE.Vector3();
+    this.addChunked(logs, makeLog(rnd), null, mat, (o) => m4.compose(v.set(o.x, terrainHeight(o.x, o.z) + 0.12 * o.s, o.z), q.setFromEuler(e.set(0, o.ry, o.pitch)), sc.setScalar(o.s)), { name: 'troncos', shadow: true });
+    for (const red of [true, false]) {
+      const list = shrooms.filter(o => o.red === red); if (!list.length) continue;
+      this.addChunked(list, makeShrooms(rnd, red), null, mat, (o) => m4.compose(v.set(o.x, terrainHeight(o.x, o.z) - 0.02, o.z), q.setFromEuler(e.set(0, o.r, 0)), sc.setScalar(o.s)), { name: 'setas' });
     }
   }
   update(camPos, focus, elapsed, player) {

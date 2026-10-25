@@ -13,7 +13,7 @@ import { pelotariCard } from '../ui/sportCard.js';
 import { townPelotari } from '../ui/pelotariFig.js';
 
 // los pueblos con partido de pelota (el valle de Salazar va con su peloteo, sin rival)
-export const pelotaTowns = () => LEVELS.filter(l => !l.special);
+export const pelotaTowns = () => LEVELS.filter(l => !l.special && !l.bosque);   // (en los bosques no hay frontón)
 const short = (n) => String(n || '').split(' /')[0];
 /** El pelotari que espera en el frontón de un pueblo (el de su misión de pelota, si la tiene) */
 export const pelotariDe = (l) => townPelotari(l.id, l.missions?.find(m => m.type === 'pelota')?.host?.name);

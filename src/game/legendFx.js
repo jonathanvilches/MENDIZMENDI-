@@ -48,9 +48,15 @@ function horn(color) {
   const m = new THREE.Mesh(geo, lit('#f2ead6', color, 0.6)); m.position.y = 0.3; m.rotation.z = 0.3;
   const band = new THREE.Mesh(new THREE.TorusGeometry(0.055, 0.012, 8, 20), lit('#d9a93a', '#8a6010', 0.8, { metalness: 0.7 })); band.position.set(0, 0.33, 0.02); band.rotation.y = Math.PI / 2; const g = new THREE.Group(); g.add(m, band); return g;
 }
+// eslabones rotos de una cadena de hierro (las cadenas de Teodosio de Goñi, en Aralar)
+function chain(color) {
+  const g = new THREE.Group(), m = lit('#6e6a66', color, 0.35, { metalness: 0.8, roughness: 0.35 });
+  for (let i = 0; i < 3; i++) { const l = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.028, 8, 18), m); l.scale.y = 1.5; l.position.set(-0.16 + i * 0.16, 0.12, 0); l.rotation.set(Math.PI / 2, i % 2 ? Math.PI / 2 : 0, 0.3); g.add(l); }
+  return g;
+}
 export function makeClue(kind, color = '#b6ff9a') {
   const root = new THREE.Group();
-  const item = kind === 'footprint' ? footprint(color) : kind === 'comb' ? comb() : kind === 'horn' ? horn(color) : herb(color);
+  const item = kind === 'footprint' ? footprint(color) : kind === 'comb' ? comb() : kind === 'horn' ? horn(color) : kind === 'chain' ? chain(color) : herb(color);
   root.add(item);
   // halo en el suelo y fuego fatuo que flota encima: se ven desde lejos en la oscuridad
   const disc = new THREE.Mesh(new THREE.CircleGeometry(1.1, 32), new THREE.MeshBasicMaterial({ map: glowTex(), color, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));

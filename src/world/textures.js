@@ -377,6 +377,33 @@ function dirtGround(size, relief = true) {
 
 // ---- Roca de montaña: bloques fracturados, estratos, grietas y líquenes ----
 // R: luminancia de la roca, G: líquenes, B: oclusión de grietas. Devuelve también el mapa de relieve (normal).
+// ---- Hojarasca del bosque: hojas caídas de haya y de roble (cobre, canela, pardo y alguna aún verde) sobre mantillo
+// oscuro, con ramitas. El sombreador del terreno le pone encima las manchas de musgo ----
+function litterGround(size) {
+  const rnd = mulberry32(41), c = canvas(size), g = c.getContext('2d'), k = size / 512;
+  g.fillStyle = '#3b2c1f'; g.fillRect(0, 0, size, size);
+  grain(g, size, 0.35, rnd, k);
+  const cols = ['#9a5a2a', '#b8742e', '#7a4a26', '#a88a5a', '#5a3a22', '#8a7a5a', '#c08a4a', '#6f5a3a', '#7c8a3a'];
+  for (let i = 0; i < 2600 * k * k; i++) {
+    const x = rnd() * size, y = rnd() * size, a = rnd() * Math.PI, L = (6 + rnd() * 5) * k, W = L * (0.42 + rnd() * 0.18), n = parseInt(cols[(rnd() * cols.length) | 0].slice(1), 16), sh = 0.75 + rnd() * 0.4;
+    const col = `rgb(${Math.min(255, (n >> 16) * sh) | 0},${Math.min(255, (n >> 8 & 255) * sh) | 0},${Math.min(255, (n & 255) * sh) | 0})`;
+    wrapDraw(size, x, y, L + 2, (X, Y) => {
+      g.save(); g.translate(X, Y); g.rotate(a);
+      g.fillStyle = 'rgba(20,12,6,0.35)'; g.beginPath(); g.ellipse(1.2 * k, 1.2 * k, L, W, 0, 0, 7); g.fill();   // (su sombra)
+      g.fillStyle = col; g.globalAlpha = 0.95;
+      g.beginPath(); g.moveTo(-L, 0); g.quadraticCurveTo(-L * 0.2, -W * 1.6, L, 0); g.quadraticCurveTo(-L * 0.2, W * 1.6, -L, 0); g.fill();
+      g.globalAlpha = 0.5; g.strokeStyle = '#2e1e12'; g.lineWidth = 0.7 * k; g.beginPath(); g.moveTo(-L, 0); g.lineTo(L, 0); g.stroke();
+      g.restore(); g.globalAlpha = 1;
+    });
+  }
+  g.lineCap = 'round';
+  for (let i = 0; i < 70 * k * k; i++) {
+    const x = rnd() * size, y = rnd() * size, a = rnd() * 6.28, L = (12 + rnd() * 26) * k;
+    wrapDraw(size, x, y, L, (X, Y) => { g.strokeStyle = rnd() < 0.5 ? '#2a1d14' : '#5a4632'; g.lineWidth = (1 + rnd() * 1.6) * k; g.beginPath(); g.moveTo(X, Y); g.lineTo(X + Math.cos(a) * L, Y + Math.sin(a) * L); g.stroke(); });
+  }
+  return toTex(c);
+}
+
 function rockFace(size) {
   const rnd = mulberry32(23);
   const per = (x, y, f) => {   // (sin costura y sin remolinos, como en groundDetail)
@@ -573,5 +600,6 @@ export function buildTextures(quality = 'high') {
   TEX.dirt = dirtGround(S, quality !== 'low');
   { const r = rockFace(S); TEX.rock = r.map; TEX.rockN = r.normalMap; }
   TEX.foliage = foliageAtlas(S);
+  TEX.litter = litterGround(S);
   return TEX;
 }

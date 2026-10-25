@@ -355,7 +355,7 @@ function sedeLista(btn, o, here) {
 /** La lista de los pueblos, por comarcas, para jugar en el frontón de otro: devuelve su id (o null). */
 function otroPueblo(here) {
   return new Promise(res => {
-    const grupos = COMARCAS.map(c => [c, LEVELS.filter(l => !l.special && l.comarca === c.id)]).filter(([, ts]) => ts.length);
+    const grupos = COMARCAS.map(c => [c, LEVELS.filter(l => !l.special && !l.bosque && l.comarca === c.id)]).filter(([, ts]) => ts.length);
     const r = lgPanel(`<div class="lg-head" data-notr><div><small>${isEU() ? 'Esku pilota' : 'Pelota a mano'}</small><h2>${isEU() ? 'Zein frontoitan?' : '¿En qué frontón?'}</h2></div></div>
       <div class="lg-list tq-pueblos">${grupos.map(([c, ts]) => `<section><h3>${esc(c.name)}</h3><div>${ts.map(l => { const n = l.name.split(' /')[0]; return `<button type="button" class="${n === here ? 'on' : ''}" data-pueblo="${l.id}">${esc(n)}</button>`; }).join('')}</div></section>`).join('')}</div>
       <div class="lg-btns"><button class="lg-btn" data-a="no" data-notr>${isEU() ? 'Itzuli' : 'Volver'}</button></div>`);

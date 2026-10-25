@@ -2,6 +2,7 @@
 // las gotas y los copos animados en la tarjeta gráfica alrededor de la cámara, el cielo más gris y, cuando nieva,
 // los tejados, el suelo y las copas de los árboles blanqueando poco a poco.
 import * as THREE from 'three';
+import { surfAt } from './heightfield.js';
 
 const SNOW = { value: 0 };   // 0…1: cuánta nieve cubre lo que mira hacia arriba (lo comparten los materiales)
 const _m = new THREE.Matrix4(), _p = new THREE.Vector3(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0);   // (las huellas)
@@ -89,6 +90,7 @@ void main() {${wrap.replaceAll('SPEED', '1.6').replaceAll('DRIFT', '0.03').repla
 export function pickWeather(def, rnd = Math.random) {
   const q = new URLSearchParams(location.search).get('weather');
   if (q) return q;
+  if (def?.bosque) return 'niebla';   // (los bosques: niebla que se espesa monte adentro)
   if (def?.special) return 'clear';
   const c = def?.comarca, r = rnd();
   // en el norte nieva a menudo (más en el Pirineo): tejados blancos, niebla baja y copos
@@ -125,12 +127,30 @@ function boltGeometry(camPos, top, bottom, width, rnd) {
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); return g;
 }
 
+// rayos de sol entre los árboles: bandas de luz alargadas, suaves por los lados y por los extremos
+const MIST = new THREE.Color('#a9b8ad');
+let SHAFT_TEX = null, SHAFT_GEO = null;
+function shafts(scene, n) {
+  if (!SHAFT_TEX) {
+    const c = document.createElement('canvas'); c.width = 32; c.height = 128; const g = c.getContext('2d'), img = g.createImageData(32, 128);
+    for (let y = 0; y < 128; y++) for (let x = 0; x < 32; x++) { const a = Math.sin(Math.PI * (x + 0.5) / 32) ** 2 * Math.sin(Math.PI * (y + 0.5) / 128) ** 1.5; img.data.set([255, 246, 214, a * 255], (y * 32 + x) * 4); }
+    g.putImageData(img, 0, 0); SHAFT_TEX = new THREE.CanvasTexture(c); SHAFT_TEX.colorSpace = THREE.SRGBColorSpace; SHAFT_GEO = new THREE.PlaneGeometry(2.4, 28);
+  }
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const s = new THREE.Mesh(SHAFT_GEO, new THREE.MeshBasicMaterial({ map: SHAFT_TEX, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false }));
+    s.visible = false; s.frustumCulled = false; s.renderOrder = 4; s.scale.x = 0.7 + (i % 3) * 0.5; scene.add(s); out.push(s);
+  }
+  return out;
+}
+
 export class Weather {
   constructor(scene, kind = 'clear', quality = 'high') {
     this.kind = kind; this.scene = scene; this.t = 0; this.k = 0;
     const n = quality === 'low' ? 0.45 : quality === 'mid' ? 0.7 : 1;
     if (kind === 'rain') { this.fx = precip('rain', Math.round(3200 * n)); scene.add(this.fx); }
     if (kind === 'snow') { this.fx = precip('snow', Math.round(4200 * n)); scene.add(this.fx); }
+    if (kind === 'niebla') this.shafts = shafts(scene, quality === 'low' ? 5 : 9);
     SNOW.value = kind === 'snow' ? 0.55 : 0;   // al llegar ya ha nevado: tejados y prados blancos
     this.grey = new THREE.Color(kind === 'snow' ? '#d6dde6' : '#6c757f');
     // la lluvia va a ratos: al llegar llueve, al cabo de un rato escampa y luego vuelve a llover
@@ -140,6 +160,7 @@ export class Weather {
   // hold: durante un partido (fútbol o pelota) no se ve caer nada sobre la cancha, con la misma luz
   // mute: en los deportes (partidos, campeonatos y sus menús) no se oyen ni la lluvia ni los truenos
   update(dt, camera, sky, sound, hold = false, mute = hold) {
+    if (this.kind === 'niebla') return this.mist(dt, camera, sky, hold);
     if (this.kind === 'clear') return;
     this.t += dt;
     // durante un partido no cae nada sobre la cancha (no se ven gotas ni copos y no hay rayos), pero la luz se queda como
@@ -164,6 +185,36 @@ export class Weather {
     }
     sound?.setRain?.(this.kind === 'rain' && !mute ? this.k : 0, mute);
     if (this.kind === 'rain') this.storm(dt, camera, sky, mute ? null : sound, hold);
+  }
+  // Bosque: la niebla se espesa monte adentro (y más al amanecer, al atardecer y de noche) con un tono gris verdoso; la
+  // niebla baja se arrastra también de día, y entre los árboles bajan rayos de sol donde se abre la copa
+  mist(dt, camera, sky, hold) {
+    if (!sky) return;
+    this.sky = sky;
+    // (cuánto bosque hay alrededor, no justo debajo: en las sendas el suelo es camino)
+    const P = camera.position, f = hold ? 0 : (surfAt('forest', P.x + 12, P.z) + surfAt('forest', P.x - 12, P.z) + surfAt('forest', P.x, P.z + 12) + surfAt('forest', P.x, P.z - 12)) / 4, low = 1 - Math.min(1, Math.max(0, sky.sunDir.y) / 0.45);
+    if (!this.fogBase) { this.fogBase = [sky.fog.near, sky.fog.far]; this.k = 0.7; }   // (al llegar, el bosque ya está con su niebla)
+    this.k += ((f > 0.3 ? 1 : 0.4) - this.k) * Math.min(1, dt * 0.35);
+    const k = this.k * (0.75 + 0.25 * low);
+    sky.fog.near = this.fogBase[0] + (4 - this.fogBase[0]) * k; sky.fog.far = this.fogBase[1] + (190 - this.fogBase[1]) * k;
+    sky.fog.color.lerp(MIST, 0.6 * k * (1 - sky.night));
+    sky.mistDay = 0.24 * k; sky.sun.intensity *= 1 - 0.3 * k;
+    const day = (1 - sky.night) * (1 - low * 0.7) * this.k, sd = sky.sunDir, side = _p, to = _s;
+    for (const s of this.shafts) {
+      const u = s.userData;
+      if (!u.at || Math.hypot(u.at.x - P.x, u.at.z - P.z) > 60) {   // (se recoloca cerca de la cámara, en un hueco del bosque)
+        const a = Math.random() * 6.28, d = 10 + Math.random() * 34, x = P.x + Math.cos(a) * d, z = P.z + Math.sin(a) * d;
+        u.at = new THREE.Vector3(x, 0, z); u.on = surfAt('forest', x, z) > 0.45; u.ph = Math.random() * 6.28;
+      }
+      const d = Math.hypot(u.at.x - P.x, u.at.z - P.z), o = u.on ? day * 0.16 * Math.min(1, (d - 5) / 8) * Math.min(1, (60 - d) / 18) * (0.75 + 0.25 * Math.sin(this.t * 0.4 + u.ph)) : 0;
+      s.visible = o > 0.005 && sd.y > 0.12; if (!s.visible) continue;
+      s.material.opacity = o; u.at.y = P.y - 4;
+      // a lo largo de la dirección del sol y de cara a la cámara
+      s.position.copy(u.at).addScaledVector(sd, 14);
+      to.subVectors(P, s.position); side.crossVectors(sd, to).normalize(); to.crossVectors(side, sd);
+      _m.makeBasis(side, sd, to); s.quaternion.setFromRotationMatrix(_m);
+    }
+    this.t += dt;
   }
   storm(dt, camera, sky, sound, hold = false) {
     if (!sky?.uniforms) return;
@@ -239,5 +290,5 @@ export class Weather {
     }
     if (dirty) this.prints.instanceMatrix.needsUpdate = true;
   }
-  dispose() { if (this.sky?.uniforms) { this.sky.uniforms.uStorm.value = 0; this.sky.uniforms.uFlash.value = 0; this.sky.uniforms.uCloud.value = 0.55; } if (this.bolt) { this.scene.remove(this.bolt); this.bolt.children.forEach(o => { o.geometry.dispose(); o.material.dispose(); }); } if (this.fx) { this.scene.remove(this.fx); this.fx.geometry.dispose(); this.fx.material.dispose(); } if (this.prints) { this.scene.remove(this.prints); this.prints.geometry.dispose(); this.prints.material.dispose(); this.printTex.dispose(); } SNOW.value = 0; }
+  dispose() { for (const s of this.shafts || []) { this.scene.remove(s); s.material.dispose(); } if (this.sky) this.sky.mistDay = 0; if (this.sky?.uniforms) { this.sky.uniforms.uStorm.value = 0; this.sky.uniforms.uFlash.value = 0; this.sky.uniforms.uCloud.value = 0.55; } if (this.bolt) { this.scene.remove(this.bolt); this.bolt.children.forEach(o => { o.geometry.dispose(); o.material.dispose(); }); } if (this.fx) { this.scene.remove(this.fx); this.fx.geometry.dispose(); this.fx.material.dispose(); } if (this.prints) { this.scene.remove(this.prints); this.prints.geometry.dispose(); this.prints.material.dispose(); this.printTex.dispose(); } SNOW.value = 0; }
 }
