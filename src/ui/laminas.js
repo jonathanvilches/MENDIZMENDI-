@@ -39,8 +39,8 @@ export const cimaUrl = (id, big = false) => (big && CIMA_BIG[id]) || CIMA[id] ||
 // en el archivo único, los de 320. Si en una versión faltara la de un personaje, Sancho y las golondrinas llevan una lámina
 // que ya estaba en el juego. Miguel Induráin, sin la suya: es una persona viva y no se le dibuja sin su permiso
 // (legal/estado-legal.md, R4); su ficha lleva su icono. Para volver a ponerla, basta con quitar la exclusión.
-const PERS = byId(import.meta.glob(['@personajes/*.webp', '!@personajes/indurain.webp'], { eager: true, query: '?url', import: 'default' }));
-const PERS_HD = byId(import.meta.glob(['@personajes-hd/*.webp', '!@personajes-hd/indurain.webp'], { eager: true, query: '?url', import: 'default' }));
+const PERS = byId(import.meta.glob('@personajes/!(indurain).webp', { eager: true, query: '?url', import: 'default' }));
+const PERS_HD = byId(import.meta.glob('@personajes-hd/!(indurain).webp', { eager: true, query: '?url', import: 'default' }));
 hdTable('personajes', PERS, PERS_HD, 2560);
 /** La ilustración de un personaje de Navarra (o null si no la tiene). */
 export const personajeUrl = (id) => PERS[id] || laminaUrl(PERSONAJE_LAMINA[id]) || null;
