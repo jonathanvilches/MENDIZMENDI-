@@ -16,6 +16,7 @@ export const EU_TOWNS = {
   'Amaiur / Maya': 'Amaiur', 'Erronkari / Roncal': 'Erronkari', 'Otsagabia / Ochagavía': 'Otsagabia', 'Ochagavía / Otsagabia': 'Otsagabia', 'Javier / Xabier': 'Xabier',
   'Burgi / Burgui': 'Burgi', 'Izaba / Isaba': 'Izaba', 'Zangoza / Sangüesa': 'Zangoza', 'Erriberri / Olite': 'Erriberri', 'Uxue / Ujué': 'Uxue', 'Gares / Puente la Reina': 'Gares',
   'Agoitz / Aoiz': 'Agoitz', 'Alsasua / Altsasu': 'Altsasu', 'Roncesvalles / Orreaga': 'Orreaga', 'Uztárroz': 'Uztarroze', 'Esparza de Salazar': 'Espartza Zaraitzu',
+  'Otsagabia, Ezkaroze, Jaurrieta, Esparza de Salazar, Itzalzu': 'Otsagabia, Ezkaroze, Jaurrieta, Espartza Zaraitzu, Itzalzu',
   'Mesa de los Tres Reyes': 'Hiru Erregeen Mahaia', 'Peña de Ezkaurre': 'Ezkaurre', 'Sierra de Urbasa': 'Urbasa mendilerroa', 'Sierra de Aralar': 'Aralar mendilerroa',
   // eskualdeak
   'Comarca de Pamplona': 'Iruñerria', 'Pirineo': 'Pirinioa', 'Prepirineo': 'Aurrepirinioa', 'Tierra Estella': 'Lizarraldea', 'Valdizarbe-Novenera': 'Izarbeibar-Novenera',
